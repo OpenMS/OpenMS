@@ -1,0 +1,1013 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<featureMap version="1.6" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_6.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<featureList count="72">
+		<feature id="f_0">
+			<position dim="0">4003.6575404948</position>
+			<position dim="1">0</position>
+			<intensity>38032</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="PeptideRef" value="10423_NSFVSYENFYQNHENAEIR/3"/>
+			<userParam type="float" name="leftWidth" value="3965.19995117188"/>
+			<userParam type="float" name="rightWidth" value="4019.82006835938"/>
+			<userParam type="float" name="total_xic" value="125820"/>
+			<userParam type="float" name="peak_apices_sum" value="4837"/>
+		</feature>
+		<feature id="f_0">
+			<position dim="0">4027.30156758726</position>
+			<position dim="1">0</position>
+			<intensity>41911</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="PeptideRef" value="10423_NSFVSYENFYQNHENAEIR/3"/>
+			<userParam type="float" name="leftWidth" value="4019.82006835938"/>
+			<userParam type="float" name="rightWidth" value="4071.03002929688"/>
+			<userParam type="float" name="total_xic" value="125820"/>
+			<userParam type="float" name="peak_apices_sum" value="7687"/>
+		</feature>
+		<feature id="f_0">
+			<position dim="0">4110.70485367417</position>
+			<position dim="1">0</position>
+			<intensity>11391</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="PeptideRef" value="10423_NSFVSYENFYQNHENAEIR/3"/>
+			<userParam type="float" name="leftWidth" value="4071.03002929688"/>
+			<userParam type="float" name="rightWidth" value="4129.06982421875"/>
+			<userParam type="float" name="total_xic" value="125820"/>
+			<userParam type="float" name="peak_apices_sum" value="1430"/>
+		</feature>
+		<feature id="f_0">
+			<position dim="0">4158.43013015866</position>
+			<position dim="1">0</position>
+			<intensity>2610</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="PeptideRef" value="10423_NSFVSYENFYQNHENAEIR/3"/>
+			<userParam type="float" name="leftWidth" value="4152.9599609375"/>
+			<userParam type="float" name="rightWidth" value="4166.6201171875"/>
+			<userParam type="float" name="total_xic" value="125820"/>
+			<userParam type="float" name="peak_apices_sum" value="500"/>
+		</feature>
+		<feature id="f_0">
+			<position dim="0">4237.44424422085</position>
+			<position dim="1">0</position>
+			<intensity>2481</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="PeptideRef" value="10423_NSFVSYENFYQNHENAEIR/3"/>
+			<userParam type="float" name="leftWidth" value="4234.89013671875"/>
+			<userParam type="float" name="rightWidth" value="4258.7900390625"/>
+			<userParam type="float" name="total_xic" value="125820"/>
+			<userParam type="float" name="peak_apices_sum" value="400"/>
+		</feature>
+		<feature id="f_0">
+			<position dim="0">4187.4614243573</position>
+			<position dim="1">0</position>
+			<intensity>1970</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="PeptideRef" value="10423_NSFVSYENFYQNHENAEIR/3"/>
+			<userParam type="float" name="leftWidth" value="4180.27978515625"/>
+			<userParam type="float" name="rightWidth" value="4190.52001953125"/>
+			<userParam type="float" name="total_xic" value="125820"/>
+			<userParam type="float" name="peak_apices_sum" value="530"/>
+		</feature>
+		<feature id="f_0">
+			<position dim="0">4223.463842085</position>
+			<position dim="1">0</position>
+			<intensity>731</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="PeptideRef" value="10423_NSFVSYENFYQNHENAEIR/3"/>
+			<userParam type="float" name="leftWidth" value="4217.830078125"/>
+			<userParam type="float" name="rightWidth" value="4228.06982421875"/>
+			<userParam type="float" name="total_xic" value="125820"/>
+			<userParam type="float" name="peak_apices_sum" value="411"/>
+		</feature>
+		<feature id="f_0">
+			<position dim="0">3684.23469207108</position>
+			<position dim="1">0</position>
+			<intensity>611</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="PeptideRef" value="10423_NSFVSYENFYQNHENAEIR/3"/>
+			<userParam type="float" name="leftWidth" value="3681.85009765625"/>
+			<userParam type="float" name="rightWidth" value="3688.67993164062"/>
+			<userParam type="float" name="total_xic" value="125820"/>
+			<userParam type="float" name="peak_apices_sum" value="611"/>
+		</feature>
+		<feature id="f_0">
+			<position dim="0">3882.91504058242</position>
+			<position dim="1">0</position>
+			<intensity>870</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="PeptideRef" value="10423_NSFVSYENFYQNHENAEIR/3"/>
+			<userParam type="float" name="leftWidth" value="3879.86010742188"/>
+			<userParam type="float" name="rightWidth" value="3890.10009765625"/>
+			<userParam type="float" name="total_xic" value="125820"/>
+			<userParam type="float" name="peak_apices_sum" value="290"/>
+		</feature>
+		<feature id="f_0">
+			<position dim="0">3729.08611843646</position>
+			<position dim="1">0</position>
+			<intensity>690</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="PeptideRef" value="10423_NSFVSYENFYQNHENAEIR/3"/>
+			<userParam type="float" name="leftWidth" value="3726.22998046875"/>
+			<userParam type="float" name="rightWidth" value="3736.46997070312"/>
+			<userParam type="float" name="total_xic" value="125820"/>
+			<userParam type="float" name="peak_apices_sum" value="260"/>
+		</feature>
+		<feature id="f_0">
+			<position dim="0">3892.4467870158</position>
+			<position dim="1">0</position>
+			<intensity>220</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="PeptideRef" value="10423_NSFVSYENFYQNHENAEIR/3"/>
+			<userParam type="float" name="leftWidth" value="3890.10009765625"/>
+			<userParam type="float" name="rightWidth" value="3896.92993164062"/>
+			<userParam type="float" name="total_xic" value="125820"/>
+			<userParam type="float" name="peak_apices_sum" value="220"/>
+		</feature>
+		<feature id="f_0">
+			<position dim="0">4192.23069043934</position>
+			<position dim="1">0</position>
+			<intensity>5013</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="PeptideRef" value="10423_NSFVSYENFYQNHENAEIR/3"/>
+			<userParam type="float" name="leftWidth" value="4190.52001953125"/>
+			<userParam type="float" name="rightWidth" value="4234.89013671875"/>
+			<userParam type="float" name="total_xic" value="125820"/>
+			<userParam type="float" name="peak_apices_sum" value="410"/>
+		</feature>
+		<feature id="f_0">
+			<position dim="0">3758.94877330661</position>
+			<position dim="1">0</position>
+			<intensity>610</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="PeptideRef" value="10423_NSFVSYENFYQNHENAEIR/3"/>
+			<userParam type="float" name="leftWidth" value="3756.9599609375"/>
+			<userParam type="float" name="rightWidth" value="3763.78002929688"/>
+			<userParam type="float" name="total_xic" value="125820"/>
+			<userParam type="float" name="peak_apices_sum" value="230"/>
+		</feature>
+		<feature id="f_0">
+			<position dim="0">3716.75142263115</position>
+			<position dim="1">0</position>
+			<intensity>200</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="PeptideRef" value="10423_NSFVSYENFYQNHENAEIR/3"/>
+			<userParam type="float" name="leftWidth" value="3712.57006835938"/>
+			<userParam type="float" name="rightWidth" value="3719.39990234375"/>
+			<userParam type="float" name="total_xic" value="125820"/>
+			<userParam type="float" name="peak_apices_sum" value="200"/>
+		</feature>
+		<feature id="f_0">
+			<position dim="0">4174.31959065616</position>
+			<position dim="1">0</position>
+			<intensity>1300</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="PeptideRef" value="10423_NSFVSYENFYQNHENAEIR/3"/>
+			<userParam type="float" name="leftWidth" value="4170.02978515625"/>
+			<userParam type="float" name="rightWidth" value="4180.27978515625"/>
+			<userParam type="float" name="total_xic" value="125820"/>
+			<userParam type="float" name="peak_apices_sum" value="490"/>
+		</feature>
+		<feature id="f_0">
+			<position dim="0">3793.20370653033</position>
+			<position dim="1">0</position>
+			<intensity>140</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="PeptideRef" value="10423_NSFVSYENFYQNHENAEIR/3"/>
+			<userParam type="float" name="leftWidth" value="3791.10009765625"/>
+			<userParam type="float" name="rightWidth" value="3797.919921875"/>
+			<userParam type="float" name="total_xic" value="125820"/>
+			<userParam type="float" name="peak_apices_sum" value="140"/>
+		</feature>
+		<feature id="f_0">
+			<position dim="0">3845.37453150928</position>
+			<position dim="1">0</position>
+			<intensity>190</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="PeptideRef" value="10423_NSFVSYENFYQNHENAEIR/3"/>
+			<userParam type="float" name="leftWidth" value="3842.30004882812"/>
+			<userParam type="float" name="rightWidth" value="3849.1298828125"/>
+			<userParam type="float" name="total_xic" value="125820"/>
+			<userParam type="float" name="peak_apices_sum" value="190"/>
+		</feature>
+		<feature id="f_0">
+			<position dim="0">3775.82430276036</position>
+			<position dim="1">0</position>
+			<intensity>270</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="PeptideRef" value="10423_NSFVSYENFYQNHENAEIR/3"/>
+			<userParam type="float" name="leftWidth" value="3774.03002929688"/>
+			<userParam type="float" name="rightWidth" value="3780.85009765625"/>
+			<userParam type="float" name="total_xic" value="125820"/>
+			<userParam type="float" name="peak_apices_sum" value="190"/>
+		</feature>
+		<feature id="f_0">
+			<position dim="0">3768.31719115078</position>
+			<position dim="1">0</position>
+			<intensity>290</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="PeptideRef" value="10423_NSFVSYENFYQNHENAEIR/3"/>
+			<userParam type="float" name="leftWidth" value="3763.78002929688"/>
+			<userParam type="float" name="rightWidth" value="3770.61010742188"/>
+			<userParam type="float" name="total_xic" value="125820"/>
+			<userParam type="float" name="peak_apices_sum" value="110"/>
+		</feature>
+		<feature id="f_0">
+			<position dim="0">3740.00762047231</position>
+			<position dim="1">0</position>
+			<intensity>640</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="PeptideRef" value="10423_NSFVSYENFYQNHENAEIR/3"/>
+			<userParam type="float" name="leftWidth" value="3736.46997070312"/>
+			<userParam type="float" name="rightWidth" value="3746.7099609375"/>
+			<userParam type="float" name="total_xic" value="125820"/>
+			<userParam type="float" name="peak_apices_sum" value="170"/>
+		</feature>
+		<feature id="f_0">
+			<position dim="0">3723.36943522036</position>
+			<position dim="1">0</position>
+			<intensity>380</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="PeptideRef" value="10423_NSFVSYENFYQNHENAEIR/3"/>
+			<userParam type="float" name="leftWidth" value="3719.39990234375"/>
+			<userParam type="float" name="rightWidth" value="3726.22998046875"/>
+			<userParam type="float" name="total_xic" value="125820"/>
+			<userParam type="float" name="peak_apices_sum" value="230"/>
+		</feature>
+		<feature id="f_0">
+			<position dim="0">3939.02804768622</position>
+			<position dim="1">0</position>
+			<intensity>770</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="PeptideRef" value="10423_NSFVSYENFYQNHENAEIR/3"/>
+			<userParam type="float" name="leftWidth" value="3931.07006835938"/>
+			<userParam type="float" name="rightWidth" value="3944.71997070312"/>
+			<userParam type="float" name="total_xic" value="125820"/>
+			<userParam type="float" name="peak_apices_sum" value="290"/>
+		</feature>
+		<feature id="f_0">
+			<position dim="0">3832.15893608451</position>
+			<position dim="1">0</position>
+			<intensity>290</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="PeptideRef" value="10423_NSFVSYENFYQNHENAEIR/3"/>
+			<userParam type="float" name="leftWidth" value="3828.64990234375"/>
+			<userParam type="float" name="rightWidth" value="3835.46997070312"/>
+			<userParam type="float" name="total_xic" value="125820"/>
+			<userParam type="float" name="peak_apices_sum" value="170"/>
+		</feature>
+		<feature id="f_0">
+			<position dim="0">3912.21662404895</position>
+			<position dim="1">0</position>
+			<intensity>750</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="PeptideRef" value="10423_NSFVSYENFYQNHENAEIR/3"/>
+			<userParam type="float" name="leftWidth" value="3907.169921875"/>
+			<userParam type="float" name="rightWidth" value="3920.82006835938"/>
+			<userParam type="float" name="total_xic" value="125820"/>
+			<userParam type="float" name="peak_apices_sum" value="140"/>
+		</feature>
+		<feature id="f_0">
+			<position dim="0">6961.73848134577</position>
+			<position dim="1">0</position>
+			<intensity>11500</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="PeptideRef" value="10588_GRDNEMYFSDLVNEIQNYLGK/3"/>
+			<userParam type="float" name="leftWidth" value="6938.830078125"/>
+			<userParam type="float" name="rightWidth" value="6983.2099609375"/>
+			<userParam type="float" name="total_xic" value="26613"/>
+			<userParam type="float" name="peak_apices_sum" value="1166"/>
+		</feature>
+		<feature id="f_0">
+			<position dim="0">6622.25539100587</position>
+			<position dim="1">0</position>
+			<intensity>1710</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="PeptideRef" value="10588_GRDNEMYFSDLVNEIQNYLGK/3"/>
+			<userParam type="float" name="leftWidth" value="6604.27978515625"/>
+			<userParam type="float" name="rightWidth" value="6635"/>
+			<userParam type="float" name="total_xic" value="26613"/>
+			<userParam type="float" name="peak_apices_sum" value="280"/>
+		</feature>
+		<feature id="f_0">
+			<position dim="0">6821.98528556049</position>
+			<position dim="1">0</position>
+			<intensity>2280</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="PeptideRef" value="10588_GRDNEMYFSDLVNEIQNYLGK/3"/>
+			<userParam type="float" name="leftWidth" value="6798.85986328125"/>
+			<userParam type="float" name="rightWidth" value="6843.240234375"/>
+			<userParam type="float" name="total_xic" value="26613"/>
+			<userParam type="float" name="peak_apices_sum" value="280"/>
+		</feature>
+		<feature id="f_0">
+			<position dim="0">6696.41076304555</position>
+			<position dim="1">0</position>
+			<intensity>1790</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="PeptideRef" value="10588_GRDNEMYFSDLVNEIQNYLGK/3"/>
+			<userParam type="float" name="leftWidth" value="6669.14013671875"/>
+			<userParam type="float" name="rightWidth" value="6716.93017578125"/>
+			<userParam type="float" name="total_xic" value="26613"/>
+			<userParam type="float" name="peak_apices_sum" value="240"/>
+		</feature>
+		<feature id="f_0">
+			<position dim="0">7111.37483712494</position>
+			<position dim="1">0</position>
+			<intensity>490</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="PeptideRef" value="10588_GRDNEMYFSDLVNEIQNYLGK/3"/>
+			<userParam type="float" name="leftWidth" value="7102.68994140625"/>
+			<userParam type="float" name="rightWidth" value="7119.759765625"/>
+			<userParam type="float" name="total_xic" value="26613"/>
+			<userParam type="float" name="peak_apices_sum" value="90"/>
+		</feature>
+		<feature id="f_0">
+			<position dim="0">6741.88763653219</position>
+			<position dim="1">0</position>
+			<intensity>400</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="PeptideRef" value="10588_GRDNEMYFSDLVNEIQNYLGK/3"/>
+			<userParam type="float" name="leftWidth" value="6737.41015625"/>
+			<userParam type="float" name="rightWidth" value="6751.06982421875"/>
+			<userParam type="float" name="total_xic" value="26613"/>
+			<userParam type="float" name="peak_apices_sum" value="120"/>
+		</feature>
+		<feature id="f_0">
+			<position dim="0">6731.93482747495</position>
+			<position dim="1">0</position>
+			<intensity>290</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="PeptideRef" value="10588_GRDNEMYFSDLVNEIQNYLGK/3"/>
+			<userParam type="float" name="leftWidth" value="6716.93017578125"/>
+			<userParam type="float" name="rightWidth" value="6730.58984375"/>
+			<userParam type="float" name="total_xic" value="26613"/>
+			<userParam type="float" name="peak_apices_sum" value="90"/>
+		</feature>
+		<feature id="f_0">
+			<position dim="0">6658.53469679654</position>
+			<position dim="1">0</position>
+			<intensity>430</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="PeptideRef" value="10588_GRDNEMYFSDLVNEIQNYLGK/3"/>
+			<userParam type="float" name="leftWidth" value="6655.47998046875"/>
+			<userParam type="float" name="rightWidth" value="6669.14013671875"/>
+			<userParam type="float" name="total_xic" value="26613"/>
+			<userParam type="float" name="peak_apices_sum" value="110"/>
+		</feature>
+		<feature id="f_0">
+			<position dim="0">6892.69220730722</position>
+			<position dim="1">0</position>
+			<intensity>150</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="PeptideRef" value="10588_GRDNEMYFSDLVNEIQNYLGK/3"/>
+			<userParam type="float" name="leftWidth" value="6887.6201171875"/>
+			<userParam type="float" name="rightWidth" value="6897.85986328125"/>
+			<userParam type="float" name="total_xic" value="26613"/>
+			<userParam type="float" name="peak_apices_sum" value="110"/>
+		</feature>
+		<feature id="f_0">
+			<position dim="0">7029.39226426661</position>
+			<position dim="1">0</position>
+			<intensity>350</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="PeptideRef" value="10588_GRDNEMYFSDLVNEIQNYLGK/3"/>
+			<userParam type="float" name="leftWidth" value="7024.169921875"/>
+			<userParam type="float" name="rightWidth" value="7037.830078125"/>
+			<userParam type="float" name="total_xic" value="26613"/>
+			<userParam type="float" name="peak_apices_sum" value="110"/>
+		</feature>
+		<feature id="f_0">
+			<position dim="0">7048.18782468438</position>
+			<position dim="1">0</position>
+			<intensity>70</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="PeptideRef" value="10588_GRDNEMYFSDLVNEIQNYLGK/3"/>
+			<userParam type="float" name="leftWidth" value="7044.66015625"/>
+			<userParam type="float" name="rightWidth" value="7051.47998046875"/>
+			<userParam type="float" name="total_xic" value="26613"/>
+			<userParam type="float" name="peak_apices_sum" value="70"/>
+		</feature>
+		<feature id="f_0">
+			<position dim="0">6865.46383975804</position>
+			<position dim="1">0</position>
+			<intensity>673</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="PeptideRef" value="10588_GRDNEMYFSDLVNEIQNYLGK/3"/>
+			<userParam type="float" name="leftWidth" value="6850.06982421875"/>
+			<userParam type="float" name="rightWidth" value="6877.3798828125"/>
+			<userParam type="float" name="total_xic" value="26613"/>
+			<userParam type="float" name="peak_apices_sum" value="80"/>
+		</feature>
+		<feature id="f_0">
+			<position dim="0">6643.67374528587</position>
+			<position dim="1">0</position>
+			<intensity>400</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="PeptideRef" value="10588_GRDNEMYFSDLVNEIQNYLGK/3"/>
+			<userParam type="float" name="leftWidth" value="6638.41015625"/>
+			<userParam type="float" name="rightWidth" value="6652.06982421875"/>
+			<userParam type="float" name="total_xic" value="26613"/>
+			<userParam type="float" name="peak_apices_sum" value="150"/>
+		</feature>
+		<feature id="f_0">
+			<position dim="0">7094.48773318946</position>
+			<position dim="1">0</position>
+			<intensity>180</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="PeptideRef" value="10588_GRDNEMYFSDLVNEIQNYLGK/3"/>
+			<userParam type="float" name="leftWidth" value="7089.0400390625"/>
+			<userParam type="float" name="rightWidth" value="7099.27978515625"/>
+			<userParam type="float" name="total_xic" value="26613"/>
+			<userParam type="float" name="peak_apices_sum" value="100"/>
+		</feature>
+		<feature id="f_0">
+			<position dim="0">7072.81201534927</position>
+			<position dim="1">0</position>
+			<intensity>270</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="PeptideRef" value="10588_GRDNEMYFSDLVNEIQNYLGK/3"/>
+			<userParam type="float" name="leftWidth" value="7065.14013671875"/>
+			<userParam type="float" name="rightWidth" value="7078.7900390625"/>
+			<userParam type="float" name="total_xic" value="26613"/>
+			<userParam type="float" name="peak_apices_sum" value="90"/>
+		</feature>
+		<feature id="f_0">
+			<position dim="0">7135.89955007434</position>
+			<position dim="1">0</position>
+			<intensity>140</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="PeptideRef" value="10588_GRDNEMYFSDLVNEIQNYLGK/3"/>
+			<userParam type="float" name="leftWidth" value="7133.419921875"/>
+			<userParam type="float" name="rightWidth" value="7140.240234375"/>
+			<userParam type="float" name="total_xic" value="26613"/>
+			<userParam type="float" name="peak_apices_sum" value="40"/>
+		</feature>
+		<feature id="f_0">
+			<position dim="0">7061.91012900651</position>
+			<position dim="1">0</position>
+			<intensity>140</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="PeptideRef" value="10588_GRDNEMYFSDLVNEIQNYLGK/3"/>
+			<userParam type="float" name="leftWidth" value="7058.31005859375"/>
+			<userParam type="float" name="rightWidth" value="7065.14013671875"/>
+			<userParam type="float" name="total_xic" value="26613"/>
+			<userParam type="float" name="peak_apices_sum" value="50"/>
+		</feature>
+		<feature id="f_0">
+			<position dim="0">7012.86141655624</position>
+			<position dim="1">0</position>
+			<intensity>350</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="PeptideRef" value="10588_GRDNEMYFSDLVNEIQNYLGK/3"/>
+			<userParam type="float" name="leftWidth" value="7003.68994140625"/>
+			<userParam type="float" name="rightWidth" value="7017.35009765625"/>
+			<userParam type="float" name="total_xic" value="26613"/>
+			<userParam type="float" name="peak_apices_sum" value="40"/>
+		</feature>
+		<feature id="f_0">
+			<position dim="0">6900.92693340004</position>
+			<position dim="1">0</position>
+			<intensity>260</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="PeptideRef" value="10588_GRDNEMYFSDLVNEIQNYLGK/3"/>
+			<userParam type="float" name="leftWidth" value="6897.85986328125"/>
+			<userParam type="float" name="rightWidth" value="6908.10009765625"/>
+			<userParam type="float" name="total_xic" value="26613"/>
+			<userParam type="float" name="peak_apices_sum" value="60"/>
+		</feature>
+		<feature id="f_0">
+			<position dim="0">6785.39021856844</position>
+			<position dim="1">0</position>
+			<intensity>130</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="PeptideRef" value="10588_GRDNEMYFSDLVNEIQNYLGK/3"/>
+			<userParam type="float" name="leftWidth" value="6781.7900390625"/>
+			<userParam type="float" name="rightWidth" value="6788.6201171875"/>
+			<userParam type="float" name="total_xic" value="26613"/>
+			<userParam type="float" name="peak_apices_sum" value="70"/>
+		</feature>
+		<feature id="f_0">
+			<position dim="0">7124.88021901906</position>
+			<position dim="1">0</position>
+			<intensity>120</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="PeptideRef" value="10588_GRDNEMYFSDLVNEIQNYLGK/3"/>
+			<userParam type="float" name="leftWidth" value="7123.169921875"/>
+			<userParam type="float" name="rightWidth" value="7130"/>
+			<userParam type="float" name="total_xic" value="26613"/>
+			<userParam type="float" name="peak_apices_sum" value="80"/>
+		</feature>
+		<feature id="f_0">
+			<position dim="0">6583.39764257967</position>
+			<position dim="1">0</position>
+			<intensity>150</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="PeptideRef" value="10588_GRDNEMYFSDLVNEIQNYLGK/3"/>
+			<userParam type="float" name="leftWidth" value="6580.3798828125"/>
+			<userParam type="float" name="rightWidth" value="6587.2099609375"/>
+			<userParam type="float" name="total_xic" value="26613"/>
+			<userParam type="float" name="peak_apices_sum" value="30"/>
+		</feature>
+		<feature id="f_0">
+			<position dim="0">3042.25227638423</position>
+			<position dim="1">0</position>
+			<intensity>20253</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="PeptideRef" value="150_KSTPFAAQMAAEAAAK/2"/>
+			<userParam type="float" name="leftWidth" value="3009.330078125"/>
+			<userParam type="float" name="rightWidth" value="3053.7099609375"/>
+			<userParam type="float" name="total_xic" value="121247"/>
+			<userParam type="float" name="peak_apices_sum" value="3692"/>
+		</feature>
+		<feature id="f_0">
+			<position dim="0">3101.01831143498</position>
+			<position dim="1">0</position>
+			<intensity>45170</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="PeptideRef" value="150_KSTPFAAQMAAEAAAK/2"/>
+			<userParam type="float" name="leftWidth" value="3074.18994140625"/>
+			<userParam type="float" name="rightWidth" value="3125.39990234375"/>
+			<userParam type="float" name="total_xic" value="121247"/>
+			<userParam type="float" name="peak_apices_sum" value="8035"/>
+		</feature>
+		<feature id="f_0">
+			<position dim="0">3267.87490861714</position>
+			<position dim="1">0</position>
+			<intensity>6442</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="PeptideRef" value="150_KSTPFAAQMAAEAAAK/2"/>
+			<userParam type="float" name="leftWidth" value="3238.05004882812"/>
+			<userParam type="float" name="rightWidth" value="3282.42993164062"/>
+			<userParam type="float" name="total_xic" value="121247"/>
+			<userParam type="float" name="peak_apices_sum" value="1038"/>
+		</feature>
+		<feature id="f_0">
+			<position dim="0">2888.30301738441</position>
+			<position dim="1">0</position>
+			<intensity>6345</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="PeptideRef" value="150_KSTPFAAQMAAEAAAK/2"/>
+			<userParam type="float" name="leftWidth" value="2869.36010742188"/>
+			<userParam type="float" name="rightWidth" value="2920.57006835938"/>
+			<userParam type="float" name="total_xic" value="121247"/>
+			<userParam type="float" name="peak_apices_sum" value="511"/>
+		</feature>
+		<feature id="f_0">
+			<position dim="0">2975.30825229347</position>
+			<position dim="1">0</position>
+			<intensity>2680</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="PeptideRef" value="150_KSTPFAAQMAAEAAAK/2"/>
+			<userParam type="float" name="leftWidth" value="2964.94995117188"/>
+			<userParam type="float" name="rightWidth" value="2985.42993164062"/>
+			<userParam type="float" name="total_xic" value="121247"/>
+			<userParam type="float" name="peak_apices_sum" value="660"/>
+		</feature>
+		<feature id="f_0">
+			<position dim="0">3295.45978556037</position>
+			<position dim="1">0</position>
+			<intensity>2160</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="PeptideRef" value="150_KSTPFAAQMAAEAAAK/2"/>
+			<userParam type="float" name="leftWidth" value="3289.26000976562"/>
+			<userParam type="float" name="rightWidth" value="3309.75"/>
+			<userParam type="float" name="total_xic" value="121247"/>
+			<userParam type="float" name="peak_apices_sum" value="540"/>
+		</feature>
+		<feature id="f_0">
+			<position dim="0">3340.03029687941</position>
+			<position dim="1">0</position>
+			<intensity>3850</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="PeptideRef" value="150_KSTPFAAQMAAEAAAK/2"/>
+			<userParam type="float" name="leftWidth" value="3316.57006835938"/>
+			<userParam type="float" name="rightWidth" value="3354.1201171875"/>
+			<userParam type="float" name="total_xic" value="121247"/>
+			<userParam type="float" name="peak_apices_sum" value="520"/>
+		</feature>
+		<feature id="f_0">
+			<position dim="0">3167.26325536311</position>
+			<position dim="1">0</position>
+			<intensity>1741</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="PeptideRef" value="150_KSTPFAAQMAAEAAAK/2"/>
+			<userParam type="float" name="leftWidth" value="3162.94995117188"/>
+			<userParam type="float" name="rightWidth" value="3173.18994140625"/>
+			<userParam type="float" name="total_xic" value="121247"/>
+			<userParam type="float" name="peak_apices_sum" value="710"/>
+		</feature>
+		<feature id="f_0">
+			<position dim="0">3211.85707716525</position>
+			<position dim="1">0</position>
+			<intensity>1190</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="PeptideRef" value="150_KSTPFAAQMAAEAAAK/2"/>
+			<userParam type="float" name="leftWidth" value="3207.330078125"/>
+			<userParam type="float" name="rightWidth" value="3217.57006835938"/>
+			<userParam type="float" name="total_xic" value="121247"/>
+			<userParam type="float" name="peak_apices_sum" value="460"/>
+		</feature>
+		<feature id="f_0">
+			<position dim="0">3199.15630914748</position>
+			<position dim="1">0</position>
+			<intensity>1862</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="PeptideRef" value="150_KSTPFAAQMAAEAAAK/2"/>
+			<userParam type="float" name="leftWidth" value="3193.669921875"/>
+			<userParam type="float" name="rightWidth" value="3207.330078125"/>
+			<userParam type="float" name="total_xic" value="121247"/>
+			<userParam type="float" name="peak_apices_sum" value="400"/>
+		</feature>
+		<feature id="f_0">
+			<position dim="0">3408.86540666401</position>
+			<position dim="1">0</position>
+			<intensity>1130</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="PeptideRef" value="150_KSTPFAAQMAAEAAAK/2"/>
+			<userParam type="float" name="leftWidth" value="3405.330078125"/>
+			<userParam type="float" name="rightWidth" value="3415.57006835938"/>
+			<userParam type="float" name="total_xic" value="121247"/>
+			<userParam type="float" name="peak_apices_sum" value="520"/>
+		</feature>
+		<feature id="f_0">
+			<position dim="0">3162.08014961183</position>
+			<position dim="1">0</position>
+			<intensity>1741</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="PeptideRef" value="150_KSTPFAAQMAAEAAAK/2"/>
+			<userParam type="float" name="leftWidth" value="3159.53002929688"/>
+			<userParam type="float" name="rightWidth" value="3173.18994140625"/>
+			<userParam type="float" name="total_xic" value="121247"/>
+			<userParam type="float" name="peak_apices_sum" value="580"/>
+		</feature>
+		<feature id="f_0">
+			<position dim="0">3424.08512457669</position>
+			<position dim="1">0</position>
+			<intensity>1380</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="PeptideRef" value="150_KSTPFAAQMAAEAAAK/2"/>
+			<userParam type="float" name="leftWidth" value="3415.57006835938"/>
+			<userParam type="float" name="rightWidth" value="3432.63989257812"/>
+			<userParam type="float" name="total_xic" value="121247"/>
+			<userParam type="float" name="peak_apices_sum" value="240"/>
+		</feature>
+		<feature id="f_0">
+			<position dim="0">2853.14327735841</position>
+			<position dim="1">0</position>
+			<intensity>350</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="PeptideRef" value="150_KSTPFAAQMAAEAAAK/2"/>
+			<userParam type="float" name="leftWidth" value="2848.8798828125"/>
+			<userParam type="float" name="rightWidth" value="2855.7099609375"/>
+			<userParam type="float" name="total_xic" value="121247"/>
+			<userParam type="float" name="peak_apices_sum" value="150"/>
+		</feature>
+		<feature id="f_0">
+			<position dim="0">2942.19722778499</position>
+			<position dim="1">0</position>
+			<intensity>1930</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="PeptideRef" value="150_KSTPFAAQMAAEAAAK/2"/>
+			<userParam type="float" name="leftWidth" value="2927.39990234375"/>
+			<userParam type="float" name="rightWidth" value="2951.2900390625"/>
+			<userParam type="float" name="total_xic" value="121247"/>
+			<userParam type="float" name="peak_apices_sum" value="230"/>
+		</feature>
+		<feature id="f_0">
+			<position dim="0">3362.35261370301</position>
+			<position dim="1">0</position>
+			<intensity>700</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="PeptideRef" value="150_KSTPFAAQMAAEAAAK/2"/>
+			<userParam type="float" name="leftWidth" value="3354.1201171875"/>
+			<userParam type="float" name="rightWidth" value="3364.36010742188"/>
+			<userParam type="float" name="total_xic" value="121247"/>
+			<userParam type="float" name="peak_apices_sum" value="170"/>
+		</feature>
+		<feature id="f_0">
+			<position dim="0">3910.79387111008</position>
+			<position dim="1">0</position>
+			<intensity>2247</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="PeptideRef" value="15632_SSLPDTLMVTHEDINDKTVEGVK/3"/>
+			<userParam type="float" name="leftWidth" value="3900.5400390625"/>
+			<userParam type="float" name="rightWidth" value="3927.85009765625"/>
+			<userParam type="float" name="total_xic" value="14552"/>
+			<userParam type="float" name="peak_apices_sum" value="361"/>
+		</feature>
+		<feature id="f_0">
+			<position dim="0">3847.35837708354</position>
+			<position dim="1">0</position>
+			<intensity>5505</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="PeptideRef" value="15632_SSLPDTLMVTHEDINDKTVEGVK/3"/>
+			<userParam type="float" name="leftWidth" value="3825.43994140625"/>
+			<userParam type="float" name="rightWidth" value="3859.580078125"/>
+			<userParam type="float" name="total_xic" value="14552"/>
+			<userParam type="float" name="peak_apices_sum" value="1122"/>
+		</feature>
+		<feature id="f_0">
+			<position dim="0">3791.73454714656</position>
+			<position dim="1">0</position>
+			<intensity>1730</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="PeptideRef" value="15632_SSLPDTLMVTHEDINDKTVEGVK/3"/>
+			<userParam type="float" name="leftWidth" value="3763.98999023438"/>
+			<userParam type="float" name="rightWidth" value="3818.61010742188"/>
+			<userParam type="float" name="total_xic" value="14552"/>
+			<userParam type="float" name="peak_apices_sum" value="220"/>
+		</feature>
+		<feature id="f_0">
+			<position dim="0">3884.87996831834</position>
+			<position dim="1">0</position>
+			<intensity>1030</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="PeptideRef" value="15632_SSLPDTLMVTHEDINDKTVEGVK/3"/>
+			<userParam type="float" name="leftWidth" value="3876.64990234375"/>
+			<userParam type="float" name="rightWidth" value="3897.1298828125"/>
+			<userParam type="float" name="total_xic" value="14552"/>
+			<userParam type="float" name="peak_apices_sum" value="210"/>
+		</feature>
+		<feature id="f_0">
+			<position dim="0">3947.53631064475</position>
+			<position dim="1">0</position>
+			<intensity>200</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="PeptideRef" value="15632_SSLPDTLMVTHEDINDKTVEGVK/3"/>
+			<userParam type="float" name="leftWidth" value="3944.919921875"/>
+			<userParam type="float" name="rightWidth" value="3951.75"/>
+			<userParam type="float" name="total_xic" value="14552"/>
+			<userParam type="float" name="peak_apices_sum" value="120"/>
+		</feature>
+		<feature id="f_0">
+			<position dim="0">3961.34655975401</position>
+			<position dim="1">0</position>
+			<intensity>310</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="PeptideRef" value="15632_SSLPDTLMVTHEDINDKTVEGVK/3"/>
+			<userParam type="float" name="leftWidth" value="3955.15991210938"/>
+			<userParam type="float" name="rightWidth" value="3965.40991210938"/>
+			<userParam type="float" name="total_xic" value="14552"/>
+			<userParam type="float" name="peak_apices_sum" value="130"/>
+		</feature>
+		<feature id="f_0">
+			<position dim="0">3755.59744742513</position>
+			<position dim="1">0</position>
+			<intensity>270</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="PeptideRef" value="15632_SSLPDTLMVTHEDINDKTVEGVK/3"/>
+			<userParam type="float" name="leftWidth" value="3750.330078125"/>
+			<userParam type="float" name="rightWidth" value="3760.57006835938"/>
+			<userParam type="float" name="total_xic" value="14552"/>
+			<userParam type="float" name="peak_apices_sum" value="70"/>
+		</feature>
+		<feature id="f_0">
+			<position dim="0">3986.55915673554</position>
+			<position dim="1">0</position>
+			<intensity>170</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="PeptideRef" value="15632_SSLPDTLMVTHEDINDKTVEGVK/3"/>
+			<userParam type="float" name="leftWidth" value="3982.46997070312"/>
+			<userParam type="float" name="rightWidth" value="3989.30004882812"/>
+			<userParam type="float" name="total_xic" value="14552"/>
+			<userParam type="float" name="peak_apices_sum" value="60"/>
+		</feature>
+		<feature id="f_0">
+			<position dim="0">3737.60152355373</position>
+			<position dim="1">0</position>
+			<intensity>120</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="PeptideRef" value="15632_SSLPDTLMVTHEDINDKTVEGVK/3"/>
+			<userParam type="float" name="leftWidth" value="3733.26000976562"/>
+			<userParam type="float" name="rightWidth" value="3740.09008789062"/>
+			<userParam type="float" name="total_xic" value="14552"/>
+			<userParam type="float" name="peak_apices_sum" value="40"/>
+		</feature>
+		<feature id="f_0">
+			<position dim="0">3937.7346031636</position>
+			<position dim="1">0</position>
+			<intensity>240</intensity>
+			<quality dim="0">0</quality>
+			<quality dim="1">0</quality>
+			<overallquality>0</overallquality>
+			<charge>0</charge>
+			<userParam type="string" name="PeptideRef" value="15632_SSLPDTLMVTHEDINDKTVEGVK/3"/>
+			<userParam type="float" name="leftWidth" value="3927.85009765625"/>
+			<userParam type="float" name="rightWidth" value="3941.51000976562"/>
+			<userParam type="float" name="total_xic" value="14552"/>
+			<userParam type="float" name="peak_apices_sum" value="50"/>
+		</feature>
+	</featureList>
+</featureMap>

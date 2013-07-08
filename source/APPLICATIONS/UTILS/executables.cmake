@@ -53,6 +53,7 @@ if(NOT DISABLE_OPENSWATH)
     OpenSwathDIAPreScoring
     OpenSwathMzMLFileCacher
     OpenSwathRewriteToFeatureXML
+    MRMTransitionGroupPicker
   )
 endif(NOT DISABLE_OPENSWATH)
 
