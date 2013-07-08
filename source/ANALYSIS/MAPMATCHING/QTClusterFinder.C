@@ -175,7 +175,7 @@ namespace OpenMS
   {
     // find the best cluster (a valid cluster with the highest score)
     list<QTCluster>::iterator best = clustering.begin();
-    while (best->isInvalid() && best != clustering.end()) {best++;}
+    while (best != clustering.end() && best->isInvalid()) {++best;}
     for (list<QTCluster>::iterator it = best;
          it != clustering.end(); ++it)
     {
