@@ -184,6 +184,7 @@ START_SECTION(void mapExperimentToTransitionList(OpenSwath::SpectrumAccessPtr in
   }
 
   // Pick features in the experiment
+  ff.prepareProteinPeptideMaps_(transitions);
 #ifdef USE_SP_INTERFACE
   OpenSwath::SpectrumAccessPtr chromatogram_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(exp);
   ff.mapExperimentToTransitionList(chromatogram_ptr, transitions, transition_group_map, trafo, -1);

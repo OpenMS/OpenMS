@@ -99,13 +99,6 @@ namespace OpenMS
 
   void MRMFeatureFinderScoring::updateMembers_()
   {
-    /*
-    handle_params();
-  }
-
-  void MRMFeatureFinderScoring::handle_params()
-  {
-    */
     stop_report_after_feature_ = (int)param_.getValue("stop_report_after_feature");
     rt_extraction_window_ = (DoubleReal)param_.getValue("rt_extraction_window");
     rt_normalization_factor_ = (DoubleReal)param_.getValue("rt_normalization_factor");
@@ -117,15 +110,15 @@ namespace OpenMS
     diascoring_.setParameters(param_.copy("DIAScoring:", true));
     emgscoring_.setFitterParam(param_.copy("EmgScoring:", true));
 
-    use_coelution_score_     = param_.getValue("Scores:use_coelution_score").toBool();
-    use_shape_score_         = param_.getValue("Scores:use_shape_score").toBool();
-    use_rt_score_            = param_.getValue("Scores:use_rt_score").toBool();
-    use_library_score_       = param_.getValue("Scores:use_library_score").toBool();
-    use_elution_model_score_ = param_.getValue("Scores:use_elution_model_score").toBool();
-    use_intensity_score_     = param_.getValue("Scores:use_intensity_score").toBool();
-    use_total_xic_score_     = param_.getValue("Scores:use_total_xic_score").toBool();
-    use_nr_peaks_score_      = param_.getValue("Scores:use_nr_peaks_score").toBool();
-    use_sn_score_            = param_.getValue("Scores:use_sn_score").toBool();
+    su_.use_coelution_score_     = param_.getValue("Scores:use_coelution_score").toBool();
+    su_.use_shape_score_         = param_.getValue("Scores:use_shape_score").toBool();
+    su_.use_rt_score_            = param_.getValue("Scores:use_rt_score").toBool();
+    su_.use_library_score_       = param_.getValue("Scores:use_library_score").toBool();
+    su_.use_elution_model_score_ = param_.getValue("Scores:use_elution_model_score").toBool();
+    su_.use_intensity_score_     = param_.getValue("Scores:use_intensity_score").toBool();
+    su_.use_total_xic_score_     = param_.getValue("Scores:use_total_xic_score").toBool();
+    su_.use_nr_peaks_score_      = param_.getValue("Scores:use_nr_peaks_score").toBool();
+    su_.use_sn_score_            = param_.getValue("Scores:use_sn_score").toBool();
   }
 
   void MRMFeatureFinderScoring::mapExperimentToTransitionList(OpenSwath::SpectrumAccessPtr input,
@@ -174,7 +167,7 @@ namespace OpenMS
       // we want to transform from normalized to real RTs here and not the
       // other way round.
       rt_max = rt_min = 0;
-      expected_rt = PeptideRTMap_[transition->getPeptideRef()];
+      expected_rt = PeptideRefMap_[transition->getPeptideRef()]->rt;
       double de_normalized_experimental_rt = trafo.apply(expected_rt);
       rt_max = de_normalized_experimental_rt + rt_extraction_window;
       rt_min = de_normalized_experimental_rt - rt_extraction_window;
