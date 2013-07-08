@@ -50,7 +50,6 @@ namespace OpenMS
     defaults_.setValue("use_gauss", "true", "Use gauss for smoothing (other option is sgolay)");
 
     defaults_.setValue("peak_width", 40.0, "Estimated peak width in seconds.");
-    defaults_.setMinFloat("peak_width", 0.0);
     defaults_.setValue("signal_to_noise", 1.0, "Signal to noise.");
     defaults_.setMinFloat("signal_to_noise", 0.0);
 
@@ -67,8 +66,15 @@ namespace OpenMS
     updateMembers_();
   }
 
-  void PeakPickerMRM::pickAndSmoothChromatogram(const RichPeakChromatogram& chromatogram, RichPeakChromatogram& picked_chrom)
+  void PeakPickerMRM::pickChromatogram(const RichPeakChromatogram& chromatogram, RichPeakChromatogram& picked_chrom)
   {
+    if (!chromatogram.isSorted()) 
+    { 
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+          "Chromatogram must be sorted by position");
+    }
+
+    LOG_DEBUG << " ====  Picking chromatogram " << chromatogram.getNativeID() << std::endl;
     picked_chrom.clear(true);
 
     // Crowdad has its own methods, so we can call the wrapper directly
@@ -104,98 +110,170 @@ namespace OpenMS
     pp.setParameters(pepi_param);
     pp.pick(smoothed_chrom, picked_chrom);
 
-    pickChromatogram(chromatogram, picked_chrom);
-  }
+    if (method_ == "legacy")
+    {
+      // Legacy is to use the original chromatogram for peak-detection 
+      pickChromatogram_(chromatogram, picked_chrom);
+      if (remove_overlapping_)
+        removeOverlappingPeaks_(chromatogram, picked_chrom);
 
-  void PeakPickerMRM::pickChromatogram(const RichPeakChromatogram& chromatogram, RichPeakChromatogram& picked_chrom)
-  {
+      // for peak integration, we want to use the raw data
+      integratePeaks_(chromatogram);
+    }
+    else if (method_ == "corrected")
+    {
+      // use the smoothed chromatogram to derive the peak boundaries
+      pickChromatogram_(smoothed_chrom, picked_chrom);
+      if (remove_overlapping_)
+        removeOverlappingPeaks_(smoothed_chrom, picked_chrom);
+
+      // for peak integration, we want to use the raw data
+      integratePeaks_(chromatogram);
+    }
+
+    // Store the result in the picked_chromatogram
     picked_chrom.getFloatDataArrays().clear();
     picked_chrom.getFloatDataArrays().resize(3);
     picked_chrom.getFloatDataArrays()[0].setName("IntegratedIntensity");
     picked_chrom.getFloatDataArrays()[1].setName("leftWidth");
     picked_chrom.getFloatDataArrays()[2].setName("rightWidth");
+    for (Size i = 0; i < picked_chrom.size(); i++)
+    {
+      Real leftborder = chromatogram[left_width[i]].getMZ();
+      Real rightborder = chromatogram[right_width[i]].getMZ();
+      picked_chrom.getFloatDataArrays()[0].push_back(integrated_intensities[i]);
+      picked_chrom.getFloatDataArrays()[1].push_back(leftborder);
+      picked_chrom.getFloatDataArrays()[2].push_back(rightborder);
+    }
+  }
 
+  void PeakPickerMRM::pickChromatogram_(const RichPeakChromatogram& chromatogram, RichPeakChromatogram& picked_chrom)
+  {
     SignalToNoiseEstimatorMedian<RichPeakChromatogram> snt;
     Param snt_parameters = snt.getParameters();
     snt_parameters.setValue("win_len", sn_win_len_);
     snt_parameters.setValue("bin_count", sn_bin_count_);
     snt.setParameters(snt_parameters);
 
+    integrated_intensities.clear();
+    left_width.clear();
+    right_width.clear();
+    integrated_intensities.reserve(picked_chrom.size());
+    left_width.reserve(picked_chrom.size());
+    right_width.reserve(picked_chrom.size());
+
     snt.init(chromatogram);
-    LOG_DEBUG << " ====  Picking chromatogram " << chromatogram.getNativeID() << std::endl;
+    Size current_peak = 0;
     for (Size i = 0; i < picked_chrom.size(); i++)
     {
-
-      // Find the peak width and best RT
-      // FEATURE : we could use #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/PeakWidthEstimator.h>
-      // --> this sounds costly, fitting a spline and then linear regression ...
-      double central_peak_mz = picked_chrom[i].getMZ();
-      double min_d = std::fabs(central_peak_mz - chromatogram[0].getMZ());
-      Size min_i = 0;
-      for (Size j = 0; j < chromatogram.size(); j++)
-      {
-        if (std::fabs(central_peak_mz - chromatogram[j].getMZ()) < min_d)
-        {
-          min_d = std::fabs(central_peak_mz - chromatogram[j].getMZ());
-          min_i = j;
-        }
-      }
-
-      std::map<double, double> peak_raw_data;
-      peak_raw_data[chromatogram[min_i].getMZ()] = chromatogram[min_i].getIntensity();
+      const double central_peak_mz = picked_chrom[i].getMZ();
+      current_peak = findClosestPeak_(chromatogram, central_peak_mz, current_peak);
+      const Size min_i = current_peak;
 
       // peak core found, now extend it to the left
       Size k = 1;
       while ((min_i - k + 1) > 0
              //&& std::fabs(chromatogram[min_i-k].getMZ() - peak_raw_data.begin()->first) < spacing_difference*min_spacing
-            && (chromatogram[min_i - k].getIntensity() < peak_raw_data.begin()->second
-               || std::fabs(chromatogram[min_i - k].getMZ() - central_peak_mz) < peak_width_)
+            && (chromatogram[min_i - k].getIntensity() < chromatogram[min_i - k + 1].getIntensity() 
+               || (peak_width_ > 0.0 && std::fabs(chromatogram[min_i - k].getMZ() - central_peak_mz) < peak_width_)
+               )
             && snt.getSignalToNoise(chromatogram[min_i - k]) >= signal_to_noise_)
       {
-        peak_raw_data[chromatogram[min_i - k].getMZ()] = chromatogram[min_i - k].getIntensity();
         ++k;
       }
-      Real leftborder = chromatogram[min_i - k + 1].getMZ();
+      int left_idx = min_i-k+1;
 
       // to the right
       k = 1;
       while ((min_i + k) < chromatogram.size()
              //&& std::fabs(chromatogram[min_i+k].getMZ() - peak_raw_data.rbegin()->first) < spacing_difference*min_spacing
-            && (chromatogram[min_i + k].getIntensity() < peak_raw_data.rbegin()->second
-               || std::fabs(chromatogram[min_i + k].getMZ() - central_peak_mz) < peak_width_)
+            && (chromatogram[min_i + k].getIntensity() < chromatogram[min_i + k -1].getIntensity() 
+               || (peak_width_ > 0.0 && std::fabs(chromatogram[min_i + k].getMZ() - central_peak_mz) < peak_width_)
+               )
             && snt.getSignalToNoise(chromatogram[min_i + k]) >= signal_to_noise_)
       {
-        peak_raw_data[chromatogram[min_i + k].getMZ()] = chromatogram[min_i + k].getIntensity();
         ++k;
       }
+      int right_idx = min_i + k - 1;
 
-      Real rightborder = chromatogram[min_i + k - 1].getMZ();
-
-      // double weighted_mz = 0; // not used
-      Real integrated_intensity = 0;
-      for (std::map<double, double>::const_iterator map_it = peak_raw_data.begin(); map_it != peak_raw_data.end(); ++map_it)
-      {
-        // weighted_mz += map_it->first * map_it->second;
-        integrated_intensity += map_it->second;
-      }
-      // For peaks in chromatograms, it does not make much sense to recenter
-      // them since we are not concerned with accuracy as with m/z peaks but
-      // rather want to see coelution. For this relative peak shape is much
-      // more interesting.
-      // weighted_mz /= integrated_intensity;
+      left_width.push_back(left_idx);
+      right_width.push_back(right_idx);
+      integrated_intensities.push_back(0);
 
       LOG_DEBUG << "Found peak at " << central_peak_mz << " and "  << picked_chrom[i].getIntensity() 
-        << " with borders " << leftborder << " " << rightborder <<  " (" << rightborder - leftborder << ") " 
-        << integrated_intensity << " weighted RT " << /* weighted_mz << */ std::endl;
+        << " with borders " << chromatogram[left_width[i]].getMZ() << " " << chromatogram[right_width[i]].getMZ() <<  
+        " (" << chromatogram[right_width[i]].getMZ() - chromatogram[left_width[i]].getMZ() << ") " 
+        << 0 << " weighted RT " << /* weighted_mz << */ std::endl;
+    }
+  }
 
-      picked_chrom.getFloatDataArrays()[0].push_back(integrated_intensity);
-      picked_chrom.getFloatDataArrays()[1].push_back(leftborder);
-      picked_chrom.getFloatDataArrays()[2].push_back(rightborder);
+#ifdef WITH_CRAWDAD
+  void PeakPickerMRM::pickChromatogramCrowdad(const RichPeakChromatogram& chromatogram, RichPeakChromatogram& picked_chrom)
+  {
+    std::cout << " using crawdad " << std::endl;
+
+    std::vector<double> time;
+    std::vector<double> intensity;
+    for (Size i = 0; i < chromatogram.size(); i++)
+    {
+      time.push_back(chromatogram[i].getRT());
+      intensity.push_back(chromatogram[i].getIntensity());
     }
 
-    if (remove_overlapping_)
-      removeOverlappingPeaks_(chromatogram, picked_chrom);
+    CrawdadWrapper crawdad_pp;
+    crawdad_pp.SetChromatogram(time, intensity);
+    std::vector<crawpeaks::SlimCrawPeak> result = crawdad_pp.CalcPeaks();
+
+    picked_chrom.getFloatDataArrays().clear();
+    picked_chrom.getFloatDataArrays().resize(3);
+    picked_chrom.getFloatDataArrays()[0].setName("IntegratedIntensity");
+    picked_chrom.getFloatDataArrays()[1].setName("leftWidth");
+    picked_chrom.getFloatDataArrays()[2].setName("rightWidth");
+    for(std::vector<crawpeaks::SlimCrawPeak>::iterator it = result.begin(); it != result.end(); it++)
+    {
+
+      ChromatogramPeak p;
+      p.setRT( chromatogram[it->peak_rt_idx].getRT() );
+      p.setIntensity( it->peak_area ); //chromatogram[it->peak_rt_idx].getIntensity() );
+
+      picked_chrom.getFloatDataArrays()[0].push_back( it->peak_area );
+      picked_chrom.getFloatDataArrays()[1].push_back( chromatogram[it->start_rt_idx].getRT() );
+      picked_chrom.getFloatDataArrays()[2].push_back( chromatogram[it->stop_rt_idx].getRT() );
+      /*
+      int peak_rt_idx, start_rt_idx, stop_rt_idx, max_rt_idx;
+      int mz_idx;
+      int len;
+      float fwhm;
+      bool fwhm_calculated_ok;
+      float bg_area;
+      float raw_area; // total area under the curve, including background
+      float peak_area;  
+      float bgslope;
+      ///cutoff level for extending past the peak
+
+      ///maximum height, calculated above background
+      float peak_height;
+      float raw_height;
+
+      */
+
+      LOG_DEBUG << "Found peak at " << p.getRT() << " and "  << chromatogram[it->peak_rt_idx].getIntensity()
+      << " with borders " << chromatogram[it->start_rt_idx].getRT() << " " << chromatogram[it->stop_rt_idx].getRT()  <<  " (" << chromatogram[it->start_rt_idx].getRT() - chromatogram[it->stop_rt_idx].getRT() << ") " 
+      << it->peak_area << " weighted RT " << /* weighted_mz << */ std::endl;
+
+      picked_chrom.push_back(p);
+      
+    }
+
   }
+#else
+  void PeakPickerMRM::pickChromatogramCrowdad(const RichPeakChromatogram& chromatogram, RichPeakChromatogram& picked_chrom)
+  {
+    throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+      "PeakPickerMRM was not compiled with crawdad, please choose a different algorithm!");
+  }
+#endif
+
 
   void PeakPickerMRM::removeOverlappingPeaks_(const RichPeakChromatogram& chromatogram, RichPeakChromatogram& picked_chrom)
   {
@@ -204,26 +282,25 @@ namespace OpenMS
     // Find overlapping peaks
     for (Size i = 0; i < picked_chrom.size() - 1; i++)
     {
-      const double current_left   = picked_chrom.getFloatDataArrays()[1][i];
-      const double current_right  = picked_chrom.getFloatDataArrays()[2][i];
-      const double next_left   = picked_chrom.getFloatDataArrays()[1][i+1];
-      const double next_right  = picked_chrom.getFloatDataArrays()[2][i+1];
-      if ( current_right > next_left)
+      // Check whether the current right overlaps with the next left
+      // See whether we can correct this and find some border between the two
+      // features ... 
+      if (right_width[i] > left_width[i+1])
       {
-        LOG_DEBUG << " Found overlapping " << i << " : " << current_left << " " << current_right << std::endl;
-        LOG_DEBUG << "                   -- with  " << i +1 << " : " << next_left << " " << next_right << std::endl;
-        // See whether we can correct this and find some border between the two features ... 
+        const int current_left_idx = left_width[i];
+        const int current_right_idx = right_width[i];
+        const int next_left_idx = left_width[i+1];
+        const int next_right_idx = right_width[i+1];
+        LOG_DEBUG << " Found overlapping " << i << " : " << current_left_idx << " " << current_right_idx << std::endl;
+        LOG_DEBUG << "                   -- with  " << i +1 << " : " << next_left_idx << " " << next_right_idx << std::endl;
 
         // Find the peak width and best RT
         double central_peak_mz = picked_chrom[i].getMZ();
         double next_peak_mz = picked_chrom[i+1].getMZ();
-
         current_peak = findClosestPeak_(chromatogram, central_peak_mz, current_peak);
         Size next_peak = findClosestPeak_(chromatogram, next_peak_mz, current_peak);
 
         // adjust the right border of the current and left border of next
-        
-        // extend current peak to the right
         Size k = 1;
         while ((current_peak + k) < chromatogram.size()
               && (chromatogram[current_peak + k].getIntensity() < chromatogram[current_peak + k - 1].getIntensity() ))
@@ -231,8 +308,6 @@ namespace OpenMS
           ++k;
         }
         Size new_right_border = current_peak + k - 1;
-
-        // extend next peak to the left
         k = 1;
         while ((next_peak - k + 1) > 0
               && (chromatogram[next_peak - k].getIntensity() < chromatogram[next_peak - k + 1].getIntensity() ))
@@ -241,14 +316,22 @@ namespace OpenMS
         }
         Size new_left_border = next_peak - k + 1;
 
-        // check that the peaks are now not overlapping any more ... 
-        if ( new_left_border < new_right_border) 
-          {throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-              "Something went wrong, peaks are still overlapping!");}
+        // assert that the peaks are now not overlapping any more ... 
+        if (new_left_border < new_right_border) 
+        {  
+          std::cerr << "Something went wrong, peaks are still overlapping!" << " - new left border " << new_left_border << " vs " << new_right_border << " -- will take the mean" <<std::endl;
+          new_left_border = (new_left_border + new_right_border) / 2;
+          new_right_border = (new_left_border + new_right_border) / 2;
 
-        // set new right/left borders
-        picked_chrom.getFloatDataArrays()[2][i] = chromatogram[new_right_border].getMZ();
-        picked_chrom.getFloatDataArrays()[1][i+1] = chromatogram[new_left_border].getMZ();
+        }
+
+        LOG_DEBUG  << "New peak l: " << chromatogram[current_left_idx].getMZ() << " "<< chromatogram[new_right_border].getMZ() << " int " << integrated_intensities[i] << std::endl;
+        LOG_DEBUG  << "New peak r: " << chromatogram[new_left_border].getMZ() << " "<< chromatogram[next_right_idx].getMZ() << " int " << integrated_intensities[i+1] << std::endl;
+
+
+        right_width[i] = new_right_border;
+        left_width[i+1] = new_left_border;
+
       }
     }
   }
@@ -274,6 +357,23 @@ namespace OpenMS
     }
     return current_peak;
   }
+
+  void PeakPickerMRM::integratePeaks_(const RichPeakChromatogram& chromatogram)
+  {
+    for (Size i = 0; i < left_width.size(); i++)
+    {
+      const int current_left_idx = left_width[i];
+      const int current_right_idx = right_width[i];
+
+      // Also integrate the intensities
+      integrated_intensities[i] = 0;
+      for (Size k=current_left_idx; k <= current_right_idx; k++)
+      {
+        integrated_intensities[i] += chromatogram[k].getIntensity();
+      }
+    }
+  }
+
 
   void PeakPickerMRM::updateMembers_()
   {

@@ -77,73 +77,6 @@ public:
     ~PeakPickerMRM() {}
     //@}
 
-#ifdef WITH_CRAWDAD
-    void pickChromatogramCrowdad(const RichPeakChromatogram& chromatogram, RichPeakChromatogram& picked_chrom)
-    {
-      std::cout << " using crawdad " << std::endl;
-
-      std::vector<double> time;
-      std::vector<double> intensity;
-      for (Size i = 0; i < chromatogram.size(); i++)
-      {
-        time.push_back(chromatogram[i].getRT());
-        intensity.push_back(chromatogram[i].getIntensity());
-      }
-
-      CrawdadWrapper crawdad_pp;
-      crawdad_pp.SetChromatogram(time, intensity);
-      std::vector<crawpeaks::SlimCrawPeak> result = crawdad_pp.CalcPeaks();
-
-      picked_chrom.getFloatDataArrays().clear();
-      picked_chrom.getFloatDataArrays().resize(3);
-      picked_chrom.getFloatDataArrays()[0].setName("IntegratedIntensity");
-      picked_chrom.getFloatDataArrays()[1].setName("leftWidth");
-      picked_chrom.getFloatDataArrays()[2].setName("rightWidth");
-      for(std::vector<crawpeaks::SlimCrawPeak>::iterator it = result.begin(); it != result.end(); it++)
-      {
-
-        ChromatogramPeak p;
-        p.setRT( chromatogram[it->peak_rt_idx].getRT() );
-        p.setIntensity( it->peak_area ); //chromatogram[it->peak_rt_idx].getIntensity() );
-
-        picked_chrom.getFloatDataArrays()[0].push_back( it->peak_area );
-        picked_chrom.getFloatDataArrays()[1].push_back( chromatogram[it->start_rt_idx].getRT() );
-        picked_chrom.getFloatDataArrays()[2].push_back( chromatogram[it->stop_rt_idx].getRT() );
-        /*
-        int peak_rt_idx, start_rt_idx, stop_rt_idx, max_rt_idx;
-        int mz_idx;
-        int len;
-        float fwhm;
-        bool fwhm_calculated_ok;
-        float bg_area;
-        float raw_area; // total area under the curve, including background
-        float peak_area;  
-        float bgslope;
-        ///cutoff level for extending past the peak
-
-        ///maximum height, calculated above background
-        float peak_height;
-        float raw_height;
-
-        */
-
-        LOG_DEBUG << "Found peak at " << p.getRT() << " and "  << chromatogram[it->peak_rt_idx].getIntensity()
-        << " with borders " << chromatogram[it->start_rt_idx].getRT() << " " << chromatogram[it->stop_rt_idx].getRT()  <<  " (" << chromatogram[it->start_rt_idx].getRT() - chromatogram[it->stop_rt_idx].getRT() << ") " 
-        << it->peak_area << " weighted RT " << /* weighted_mz << */ std::endl;
-
-        picked_chrom.push_back(p);
-        
-      }
-
-    }
-#else
-    void pickChromatogramCrowdad(const RichPeakChromatogram& chromatogram, RichPeakChromatogram& picked_chrom)
-    {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-        "PeakPickerMRM was not compiled with crawdad, please choose a different algorithm!");
-    }
-#endif
-
     /**
       @brief Finds peaks in a single chromatogram and annotates left/right borders
 
@@ -153,9 +86,16 @@ public:
     */
     void pickChromatogram(const RichPeakChromatogram& chromatogram, RichPeakChromatogram& picked_chrom);
 
-    void pickAndSmoothChromatogram(const RichPeakChromatogram& chromatogram, RichPeakChromatogram& picked_chrom);
-
 protected:
+
+    void pickChromatogramCrowdad(const RichPeakChromatogram& chromatogram, RichPeakChromatogram& picked_chrom);
+
+    void pickChromatogram_(const RichPeakChromatogram& chromatogram, RichPeakChromatogram& picked_chrom);
+
+    /**
+      @brief Compute peak area (peak integration)
+    */
+    void integratePeaks_(const RichPeakChromatogram& chromatogram);
 
     /**
       @brief Helper function to find the closest peak in a chromatogram to "target_rt" 
@@ -193,6 +133,11 @@ protected:
     DoubleReal sn_win_len_;
     UInt sn_bin_count_;
     String method_;
+
+    std::vector<double> integrated_intensities;
+    std::vector<int> left_width;
+    std::vector<int> right_width;
+
   };
 }
 

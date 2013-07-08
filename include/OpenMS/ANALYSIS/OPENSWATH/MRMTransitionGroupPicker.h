@@ -122,9 +122,7 @@ public:
         }
 
         RichPeakChromatogram picked_chrom;
-
-        picker.pickAndSmoothChromatogram(chromatogram, picked_chrom);
-
+        picker.pickChromatogram(chromatogram, picked_chrom);
         picked_chrom.sortByIntensity(); // we could do without that
         picked_chroms_.push_back(picked_chrom);
       }

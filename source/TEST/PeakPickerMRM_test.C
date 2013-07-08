@@ -102,7 +102,7 @@ START_SECTION(~PeakPickerMRM())
 }
 END_SECTION
 
-START_SECTION(void pickAndSmoothChromatogram(const RichPeakChromatogram &chromatogram, RichPeakChromatogram &picked_chrom))
+START_SECTION(void pickChromatogram(const RichPeakChromatogram &chromatogram, RichPeakChromatogram &picked_chrom))
 {
   RichPeakChromatogram picked_chrom, smoothed_chrom, chrom;
 
@@ -112,7 +112,7 @@ START_SECTION(void pickAndSmoothChromatogram(const RichPeakChromatogram &chromat
   Param picker_param = picker.getDefaults();
   picker_param.setValue("method", "legacy");
   picker.setParameters(picker_param);
-  picker.pickAndSmoothChromatogram(chrom, picked_chrom);
+  picker.pickChromatogram(chrom, picked_chrom);
 
   TEST_EQUAL( picked_chrom.size(), 1);
   TEST_EQUAL( picked_chrom.getFloatDataArrays().size(), 3);
@@ -127,7 +127,7 @@ START_SECTION(void pickAndSmoothChromatogram(const RichPeakChromatogram &chromat
 
   // chrom = transition_group.getChromatograms()[1];
   chrom = get_chrom(1);
-  picker.pickAndSmoothChromatogram(chrom, picked_chrom);
+  picker.pickChromatogram(chrom, picked_chrom);
 
   TEST_EQUAL( picked_chrom.size(), 1);
   TEST_EQUAL( picked_chrom.getFloatDataArrays().size(), 3);
@@ -144,7 +144,7 @@ START_SECTION(void pickAndSmoothChromatogram(const RichPeakChromatogram &chromat
   chrom = get_chrom(0);
   picker_param.setValue("method", "crawdad");
   picker.setParameters(picker_param);
-  picker.pickAndSmoothChromatogram(chrom, picked_chrom);
+  picker.pickChromatogram(chrom, picked_chrom);
   TEST_REAL_SIMILAR( picked_chrom[0].getIntensity(), 61366.56640625);
   TEST_REAL_SIMILAR( picked_chrom[0].getMZ(), 1496.48);
   TEST_REAL_SIMILAR( picked_chrom.getFloatDataArrays()[0][0], 61366.6); // IntegratedIntensity
@@ -152,7 +152,7 @@ START_SECTION(void pickAndSmoothChromatogram(const RichPeakChromatogram &chromat
   TEST_REAL_SIMILAR( picked_chrom.getFloatDataArrays()[2][0], 1510.33); // rightWidth
 
   chrom = get_chrom(1);
-  picker.pickAndSmoothChromatogram(chrom, picked_chrom);
+  picker.pickChromatogram(chrom, picked_chrom);
   TEST_EQUAL( picked_chrom.size(), 1);
   TEST_EQUAL( picked_chrom.getFloatDataArrays().size(), 3);
 
