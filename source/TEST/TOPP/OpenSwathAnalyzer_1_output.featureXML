@@ -20,7 +20,7 @@
 			<intensity>3574.23</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>-21994.9</overallquality>
+			<overallquality>6.92259</overallquality>
 			<charge>0</charge>
 			<subordinate>
 				<feature id="f_16627578304933075941_13229490167902618598">
@@ -49,7 +49,7 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-21994.8526298809" sequence="PEPTIDEA" charge="0" protein_refs="PH_0">
+				<PeptideHit score="6.92258996814835" sequence="PEPTIDEA" charge="0" protein_refs="PH_0">
 				</PeptideHit>
 			</PeptideIdentification>
 			<userParam type="string" name="PeptideRef" value="tr_gr1"/>
@@ -65,17 +65,17 @@
 			<userParam type="float" name="var_library_rmsd" value="0.108663236021716"/>
 			<userParam type="float" name="var_library_manhattan" value="0.128558411767946"/>
 			<userParam type="float" name="var_library_dotprod" value="0.992608693580346"/>
-			<userParam type="float" name="delta_rt" value="3118.65196821988"/>
-			<userParam type="float" name="assay_rt" value="0.44"/>
-			<userParam type="float" name="norm_RT" value="3119.09196821988"/>
-			<userParam type="float" name="rt_score" value="3118.65196821988"/>
-			<userParam type="float" name="var_norm_rt_score" value="3118.65196821988"/>
+			<userParam type="float" name="delta_rt" value="119.091968219877"/>
+			<userParam type="float" name="assay_rt" value="3000"/>
+			<userParam type="float" name="norm_RT" value="0.468582072372771"/>
+			<userParam type="float" name="rt_score" value="0.0285820723727706"/>
+			<userParam type="float" name="var_norm_rt_score" value="0.0285820723727706"/>
 			<userParam type="float" name="var_intensity_score" value="0.971216417399615"/>
 			<userParam type="float" name="nr_peaks" value="2"/>
 			<userParam type="float" name="sn_ratio" value="86.0041379995282"/>
 			<userParam type="float" name="var_log_sn_score" value="4.45439541136954"/>
 			<userParam type="float" name="var_elution_model_fit_score" value="0.985403060913086"/>
-			<userParam type="float" name="main_var_xx_lda_prelim_score" value="-21994.8526298809"/>
+			<userParam type="float" name="main_var_xx_lda_prelim_score" value="6.92258996814835"/>
 			<userParam type="float" name="PrecursorMZ" value="500"/>
 		</feature>
 		<feature id="f_12945392992539867993">
@@ -84,7 +84,7 @@
 			<intensity>195.654</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>-21551.9</overallquality>
+			<overallquality>1.92043</overallquality>
 			<charge>0</charge>
 			<subordinate>
 				<feature id="f_12945392992539867993_177690319544281384">
@@ -125,7 +125,7 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-21551.916238951" sequence="PEPTIDEB" charge="0" protein_refs="PH_0">
+				<PeptideHit score="1.92042735945466" sequence="PEPTIDEB" charge="0" protein_refs="PH_0">
 				</PeptideHit>
 			</PeptideIdentification>
 			<userParam type="string" name="PeptideRef" value="tr_gr2"/>
@@ -141,17 +141,17 @@
 			<userParam type="float" name="var_library_rmsd" value="0.0801900625876904"/>
 			<userParam type="float" name="var_library_manhattan" value="0.357621970266554"/>
 			<userParam type="float" name="var_library_dotprod" value="0.949274692722253"/>
-			<userParam type="float" name="delta_rt" value="3055.38404744804"/>
-			<userParam type="float" name="assay_rt" value="0.2"/>
-			<userParam type="float" name="norm_RT" value="3055.58404744804"/>
-			<userParam type="float" name="rt_score" value="3055.38404744804"/>
-			<userParam type="float" name="var_norm_rt_score" value="3055.38404744804"/>
+			<userParam type="float" name="delta_rt" value="1055.58404744804"/>
+			<userParam type="float" name="assay_rt" value="2000"/>
+			<userParam type="float" name="norm_RT" value="0.45334017138753"/>
+			<userParam type="float" name="rt_score" value="0.25334017138753"/>
+			<userParam type="float" name="var_norm_rt_score" value="0.25334017138753"/>
 			<userParam type="float" name="var_intensity_score" value="0.121503684911807"/>
 			<userParam type="float" name="nr_peaks" value="3"/>
 			<userParam type="float" name="sn_ratio" value="3.27205298324225"/>
 			<userParam type="float" name="var_log_sn_score" value="1.18541761153185"/>
 			<userParam type="float" name="var_elution_model_fit_score" value="0.88344677289327"/>
-			<userParam type="float" name="main_var_xx_lda_prelim_score" value="-21551.916238951"/>
+			<userParam type="float" name="main_var_xx_lda_prelim_score" value="1.92042735945466"/>
 			<userParam type="float" name="PrecursorMZ" value="501"/>
 		</feature>
 		<feature id="f_6211693768620736135">
@@ -160,7 +160,7 @@
 			<intensity>1034.55</intensity>
 			<quality dim="0">0</quality>
 			<quality dim="1">0</quality>
-			<overallquality>-22000.3</overallquality>
+			<overallquality>1.24773</overallquality>
 			<charge>0</charge>
 			<subordinate>
 				<feature id="f_6211693768620736135_2727934422266510952">
@@ -201,7 +201,7 @@
 				</feature>
 			</subordinate>
 			<PeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" >
-				<PeptideHit score="-22000.3232536088" sequence="PEPTIDEB" charge="0" protein_refs="PH_0">
+				<PeptideHit score="1.2477255832813" sequence="PEPTIDEB" charge="0" protein_refs="PH_0">
 				</PeptideHit>
 			</PeptideIdentification>
 			<userParam type="string" name="PeptideRef" value="tr_gr2"/>
@@ -217,17 +217,17 @@
 			<userParam type="float" name="var_library_rmsd" value="0.435668770903728"/>
 			<userParam type="float" name="var_library_manhattan" value="0.718225439410146"/>
 			<userParam type="float" name="var_library_dotprod" value="0.721582143955776"/>
-			<userParam type="float" name="delta_rt" value="3118.86301134765"/>
-			<userParam type="float" name="assay_rt" value="0.2"/>
-			<userParam type="float" name="norm_RT" value="3119.06301134765"/>
-			<userParam type="float" name="rt_score" value="3118.86301134765"/>
-			<userParam type="float" name="var_norm_rt_score" value="3118.86301134765"/>
+			<userParam type="float" name="delta_rt" value="1119.06301134765"/>
+			<userParam type="float" name="assay_rt" value="2000"/>
+			<userParam type="float" name="norm_RT" value="0.468575122723437"/>
+			<userParam type="float" name="rt_score" value="0.268575122723437"/>
+			<userParam type="float" name="var_norm_rt_score" value="0.268575122723437"/>
 			<userParam type="float" name="var_intensity_score" value="0.642470542740079"/>
 			<userParam type="float" name="nr_peaks" value="3"/>
 			<userParam type="float" name="sn_ratio" value="30.180081980405"/>
 			<userParam type="float" name="var_log_sn_score" value="3.40718216971789"/>
 			<userParam type="float" name="var_elution_model_fit_score" value="0.902421613534292"/>
-			<userParam type="float" name="main_var_xx_lda_prelim_score" value="-22000.3232536088"/>
+			<userParam type="float" name="main_var_xx_lda_prelim_score" value="1.2477255832813"/>
 			<userParam type="float" name="PrecursorMZ" value="501"/>
 		</feature>
 	</featureList>
