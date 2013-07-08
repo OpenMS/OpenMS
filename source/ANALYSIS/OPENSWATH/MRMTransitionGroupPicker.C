@@ -47,12 +47,14 @@ namespace OpenMS
   {
     defaults_.setValue("stop_after_feature", -1, "Stop finding after feature (ordered by intensity; -1 means do not stop).");
     defaults_.setValue("stop_after_intensity_ratio", 0.0001, "Stop after reaching intensity ratio");
-    defaults_.setValue("min_peak_width", -1.0, "Minimal peak width (s)");
+    defaults_.setValue("min_peak_width", -1.0, "Minimal peak width (s), discard all peaks below this value (-1 means no action).", StringList::create("advanced"));
 
-    defaults_.setValue("background_subtraction", "none", "Try to apply a background subtraction to the peak (experimental). The background is estimated at the peak boundaries, either the smoothed or the raw chromatogram data can be used for that."); //, StringList::create("advanced"));
+    defaults_.setValue("background_subtraction", "none", "Try to apply a background subtraction to the peak (experimental). The background is estimated at the peak boundaries, either the smoothed or the raw chromatogram data can be used for that.", StringList::create("advanced"));
     defaults_.setValidStrings("background_subtraction", StringList::create("none,smoothed,original"));
 
-    defaults_.setValue("recalculate_peaks", "false", "Tries to get better peak picking by looking at peak consistency");
+    defaults_.setValue("recalculate_peaks", "false", "Tries to get better peak picking by looking at peak consistency", StringList::create("advanced"));
+    // defaults_.setValue("detect_outliers", "false", "Tries to detect outlier transitions", StringList::create("advanced"));
+    defaults_.setValue("compute_peak_quality", "false", "Tries to compute a quality value for each peakgroup and detect outlier transitions", StringList::create("advanced"));
 
     defaults_.insert("PeakPickerMRM:", PeakPickerMRM().getDefaults());
 
@@ -81,6 +83,8 @@ namespace OpenMS
     stop_after_intensity_ratio_ = (DoubleReal)param_.getValue("stop_after_intensity_ratio");
     background_subtraction_ = param_.getValue("background_subtraction");
     recalculate_peaks_ = (bool)param_.getValue("recalculate_peaks").toBool();
+    // detect_outliers_ = (bool)param_.getValue("detect_outliers").toBool();
+    compute_peak_quality_ = (bool)param_.getValue("compute_peak_quality").toBool();
     min_peak_width_ = (DoubleReal)param_.getValue("min_peak_width");
   }
 

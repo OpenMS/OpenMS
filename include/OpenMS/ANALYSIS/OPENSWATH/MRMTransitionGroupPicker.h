@@ -48,6 +48,10 @@
 
 #include <numeric>
 
+// Cross-correlation
+#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/Scoring.h"
+#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/StatsHelpers.h"
+
 //#define DEBUG_TRANSITIONGROUPPICKER
 
 namespace OpenMS
@@ -138,7 +142,7 @@ public:
         findLargestPeak(picked_chroms_, chr_idx, peak_idx);
         if (chr_idx == -1 && peak_idx == -1) break;
 
-        // get feature, prevent non-extended zero features to be added
+        // Compute a feature from the individual chromatograms and add non-zero features
         MRMFeature mrm_feature = createMRMFeature(transition_group, picked_chroms_, chr_idx, peak_idx);
         if (mrm_feature.getIntensity() > 0)
         {
@@ -146,7 +150,8 @@ public:
         }
 
         cnt++;
-        if ((stop_after_feature_ > 0 && cnt > stop_after_feature_) && mrm_feature.getIntensity() / (double)mrm_feature.getMetaValue("total_xic") < stop_after_intensity_ratio_)
+        if ((stop_after_feature_ > 0 && cnt > stop_after_feature_) && 
+            mrm_feature.getIntensity() / (double)mrm_feature.getMetaValue("total_xic") < stop_after_intensity_ratio_)
         {
           break;
         }
@@ -163,6 +168,9 @@ public:
       double best_left = picked_chroms[chr_idx].getFloatDataArrays()[1][peak_idx];
       double best_right = picked_chroms[chr_idx].getFloatDataArrays()[2][peak_idx];
       const double peak_apex = picked_chroms[chr_idx][peak_idx].getRT();
+      LOG_DEBUG << "Creating MRMFeature for peak " << chr_idx << " " << peak_idx << " " << 
+        picked_chroms[chr_idx][peak_idx] << " with borders " << best_left << " " << 
+        best_right << " (" << best_right - best_left<< ")"<< std::endl;
 
       // Remove other, overlapping, picked peaks (in this and other
       // chromatograms) and then ensure that at least one peak is set to zero
@@ -175,8 +183,16 @@ public:
       }
       picked_chroms[chr_idx][peak_idx].setIntensity(0.0);
 
-      // Check for minimal peak width
+      // Check for minimal peak width -> return empty feature (Intensity zero)
       if( min_peak_width_ > 0.0 && std::fabs(best_right-best_left) < min_peak_width_) {return mrmFeature;}
+
+      if (compute_peak_quality_)
+      {
+        String outlier = "none";
+        double qual = compute_quality(transition_group, picked_chroms, chr_idx, best_left, best_right, outlier);
+        mrmFeature.setMetaValue("potentialOutlier", outlier);
+        mrmFeature.setOverallQuality(qual);
+      }
 
       // Prepare linear resampling of all the chromatograms, here creating the
       // empty master_peak_container with the same RT (m/z) values as the reference
@@ -273,6 +289,7 @@ public:
         total_peak_apices += peak_apex_int;
         mrmFeature.addFeature(f, chromatogram.getNativeID()); //map index and feature
       }
+
       mrmFeature.setRT(picked_chroms[chr_idx][peak_idx].getMZ());
       mrmFeature.setIntensity(total_intensity);
       mrmFeature.setMetaValue("PeptideRef", transition_group.getTransitionGroupID());
@@ -285,8 +302,9 @@ public:
     }
 
     // maybe private, but we have tests
+
     /**
-      @brief Remove overlaping features.
+      @brief Remove overlapping features.
       
       Remove features that are within the current seed (between best_left and
       best_right) or overlap with it. An overlapping feature is defined as a
@@ -332,6 +350,202 @@ public:
           }
         }
       }
+    }
+
+    /// Find largest peak in a vector of chromatograms
+    void findLargestPeak(std::vector<RichPeakChromatogram>& picked_chroms, int& chr_idx, int& peak_idx);
+
+protected:
+
+    /// Synchronize members with param class
+    void updateMembers_();
+
+    /// Assignment operator is protected for algorithm
+    MRMTransitionGroupPicker& operator=(const MRMTransitionGroupPicker& rhs);
+
+    /**
+      @brief Compute transition group quality (higher score is better)
+      
+      This is only based on the co-elution of the chromatograms and internal
+      consistency without any library information.
+      
+    */
+    template <typename SpectrumT, typename TransitionT>
+    double compute_quality(MRMTransitionGroup<SpectrumT, TransitionT> & transition_group,
+      std::vector<SpectrumT> & picked_chroms, const int chr_idx, const double best_left, const double best_right, String& outlier)
+    {
+
+      // Resample all chromatograms around the current estimated peak and
+      // collect the raw intensities. For resampling, use a bit more on either
+      // side to correctly identify shoulders etc.
+      double resample_boundary = 15.0; // sample 15 seconds more on each side
+      SpectrumT master_peak_container;
+      const SpectrumT & ref_chromatogram = transition_group.getChromatograms()[chr_idx];
+      prepareMasterContainer_(ref_chromatogram, master_peak_container, best_left - resample_boundary, best_right + resample_boundary);
+      std::vector< std::vector<double > > all_ints;
+      for (Size k = 0; k < transition_group.getChromatograms().size(); k++)
+      {
+        const SpectrumT& chromatogram = transition_group.getChromatograms()[k];
+        const SpectrumT used_chromatogram = resampleChromatogram_(chromatogram, master_peak_container, best_left - resample_boundary, best_right + resample_boundary);
+
+        std::vector<double> int_here;
+        for (Size i = 0; i < used_chromatogram.size(); i++)
+        {
+          int_here.push_back(used_chromatogram[i].getIntensity());
+        }
+        all_ints.push_back(int_here);
+      }
+
+      // Compute the cross-correlation for the collected intensities
+      // std::vector<std::vector<double> > all_shape_scores;
+      // std::vector<std::vector<double> > all_coel_scores;
+      std::vector<double> mean_shapes;
+      std::vector<double> mean_coel;
+      for (Size k = 0; k < all_ints.size(); k++)
+      {
+          std::vector<double> shapes;
+          std::vector<double> coel;
+          for (Size i = 0; i < all_ints.size(); i++)
+          {
+            if (i == k) {continue;}
+            std::map<int, double> res = OpenSwath::Scoring::normalizedCrossCorrelation(all_ints[k], all_ints[i], boost::numeric_cast<int>(all_ints[i].size()), 1);
+           
+            // the first value is the x-axis (retention time) and should be an int -> it show the lag between the two
+            double res_coelution = std::abs(OpenSwath::Scoring::xcorrArrayGetMaxPeak(res)->first);
+            double res_shape = std::abs(OpenSwath::Scoring::xcorrArrayGetMaxPeak(res)->second);
+
+            shapes.push_back(res_shape);
+            coel.push_back(res_coelution);
+          }
+
+          // We have computed the cross-correlation of chromatogram k against
+          // all others. Use the mean of these computations as the value for k.
+          OpenSwath::mean_and_stddev msc;
+          msc = std::for_each(shapes.begin(), shapes.end(), msc);
+          double shapes_mean = msc.mean();
+          double shapes_stdv = msc.sample_stddev();
+          msc = std::for_each(coel.begin(), coel.end(), msc);
+          double coel_mean = msc.mean();
+          double coel_stdv = msc.sample_stddev();
+
+          // mean shape scores below 0.5-0.6 should be a real sign of trouble ... !
+          // mean coel scores above 3.5 should be a real sign of trouble ... !
+
+          // std::cout << "overall shapes " << shapes_mean << " std " << shapes_stdv << std::endl; 
+          // std::cout << "overall coel " << coel_mean << " std " << coel_stdv << std::endl; 
+
+          mean_shapes.push_back(shapes_mean);
+          mean_coel.push_back(coel_mean);
+          // all_shape_scores.push_back(shapes);
+          // all_coel_scores.push_back(coel);
+      }
+
+      // find the chromatogram with the minimal shape score and the maximal
+      // coelution score -> if it is the same chromatogram, the chance is
+      // pretty good that it is different from the others...
+      int min_index_shape = std::distance(mean_shapes.begin(), std::min_element(mean_shapes.begin(), mean_shapes.end()));
+      int max_index_coel = std::distance(mean_coel.begin(), std::max_element(mean_coel.begin(), mean_coel.end()));
+      /*
+      std::cout << " min shape  " << min_index_shape << " max coel " << max_index_coel << std::endl;
+      std::cout << " Shape (min): " << *std::min_element(mean_shapes.begin(), mean_shapes.end())   << std::endl;
+      std::cout << " Coelution (max): " << *std::max_element(mean_coel.begin(), mean_coel.end())    << std::endl; 
+      */
+
+      // Look at the picked peaks that are within the current left/right borders
+      int missing_peaks = 0;
+      int multiple_peaks = 0;
+      // collect all seeds that lie within the current seed
+      std::vector< double > left_borders;
+      std::vector< double > right_borders;
+      for (Size k = 0; k < picked_chroms.size(); k++)
+      {
+        double l_tmp;
+        double r_tmp;
+        double max_int = -1;
+
+        int pfound = 0;
+        l_tmp = -1;
+        r_tmp = -1;
+        for (Size i = 0; i < picked_chroms[k].size(); i++)
+        {
+          if (picked_chroms[k][i].getMZ() >= best_left && picked_chroms[k][i].getMZ() <= best_right)
+          {
+            pfound++;
+            if (picked_chroms[k][i].getIntensity() > max_int) 
+            {
+              max_int = picked_chroms[k][i].getIntensity() > max_int; 
+              l_tmp = picked_chroms[k].getFloatDataArrays()[1][i];
+              r_tmp = picked_chroms[k].getFloatDataArrays()[2][i];
+            }
+          }
+        }
+
+        // std::cout << " for chrom " << k << " found " << pfound << " peaks";
+        if (pfound == 1)
+        {
+          //std::cout << " l /r " << l_tmp << " / " << r_tmp;
+        }
+        if(l_tmp>0.0) left_borders.push_back( l_tmp );
+        if(r_tmp>0.0) right_borders.push_back( r_tmp );
+        // std::cout << std::endl;
+
+        if (pfound == 0) missing_peaks++;
+        if (pfound > 1) multiple_peaks++;
+      }
+
+      // Check how many chromatograms had exactly one peak picked between our
+      // current left/right borders -> this would be a sign of consistency.
+      LOG_DEBUG << " Overall found missing : " << missing_peaks << " and multiple : " << multiple_peaks << std::endl;
+
+      /// left_borders / right_borders might not have the same length since we might have peaks missing!!
+
+#if 0
+      {
+        OpenSwath::mean_and_stddev msc;
+        msc = std::for_each(left_borders.begin(), left_borders.end(), msc);
+        std::cout << " left borders " << msc.mean() << " +/- " << msc.sample_stddev() << " my: "<< /* left_borders[min_index_shape]  << */std::endl;
+      }
+      {
+        OpenSwath::mean_and_stddev msc;
+        msc = std::for_each(right_borders.begin(), right_borders.end(), msc);
+        std::cout << " right borders " << msc.mean() << " +/- " << msc.sample_stddev() << " my: "<< /* right_borders[min_index_shape] << */ std::endl;
+      }
+      {
+        OpenSwath::mean_and_stddev msc;
+        msc = std::for_each(mean_shapes.begin(), mean_shapes.end(), msc);
+        std::cout << " mean_shapes borders " << msc.mean() << " +/- " << msc.sample_stddev() << " my: "<< /* right_borders[min_index_shape] << */ std::endl;
+      }
+      {
+        OpenSwath::mean_and_stddev msc;
+        msc = std::for_each(mean_coel.begin(), mean_coel.end(), msc);
+        std::cout << " mean_coel borders " << msc.mean() << " +/- " << msc.sample_stddev() << " my: "<< /* right_borders[min_index_shape] << */ std::endl;
+      }
+#endif
+
+      // Is there one transitions that is very different from the rest (e.g.
+      // the same element has a bad shape and a bad coelution score) -> potential outlier
+      if (min_index_shape == max_index_coel)
+      {
+        LOG_DEBUG << " element " << min_index_shape << " is a candidate for removal ... " << std::endl;
+        outlier = String( transition_group.getTransitions()[min_index_shape].getNativeID() );
+      }
+      else
+      {
+        outlier = "none";
+      }
+
+      // For the final score (larger is better), consider these scores:
+      // - missing_peaks (the more peaks are missing, the worse)
+      // - multiple_peaks
+      // - mean of the shapes (1 is very good, 0 is bad)
+      // - mean of the coelutions (0 is good, 1 is ok, above 1 is pretty bad)
+      double shape_score = std::accumulate(mean_shapes.begin(), mean_shapes.end(), 0.0) / mean_shapes.size();
+      double coel_score = std::accumulate(mean_coel.begin(), mean_coel.end(), 0.0) / mean_coel.size();
+      coel_score = (coel_score - 1.0)/2.0;
+
+      double score = shape_score - coel_score - 1.0*missing_peaks / picked_chroms.size();
+      LOG_DEBUG << " computed score  " << score << std::endl;
+      return score;
     }
 
     /**
@@ -388,17 +602,6 @@ public:
       }
 
     }
-
-    /// Find largest peak in a vector of chromatograms
-    void findLargestPeak(std::vector<RichPeakChromatogram>& picked_chroms, int& chr_idx, int& peak_idx);
-
-protected:
-
-    /// Synchronize members with param class
-    void updateMembers_();
-
-    /// Assignment operator is protected for algorithm
-    MRMTransitionGroupPicker& operator=(const MRMTransitionGroupPicker& rhs);
 
     /// @name Resampling methods
     //@{
@@ -461,6 +664,7 @@ protected:
     // Members
     String background_subtraction_;
     bool recalculate_peaks_;
+    bool compute_peak_quality_;
 
     int stop_after_feature_;
     DoubleReal stop_after_intensity_ratio_;
