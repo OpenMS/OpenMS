@@ -64,10 +64,7 @@ namespace OpenMS
     lower = prec[0].getIsolationWindowLowerOffset();
     upper = prec[0].getIsolationWindowUpperOffset();
     UInt expected_mslevel = swath_map[0].getMSLevel();
-    // sanity check for the whole map:
-    //  - all scans need to have exactly one precursor
-    //  - all MS levels need to be the same (otherwise extracting an XIC from them makes no sense)
-    //  - all scans need to have the same precursor isolation window (otherwise extracting an XIC from them makes no sense)
+
     for (Size index = 0; index < swath_map.size(); index++)
     {
       const std::vector<Precursor> prec = swath_map[index].getPrecursors();

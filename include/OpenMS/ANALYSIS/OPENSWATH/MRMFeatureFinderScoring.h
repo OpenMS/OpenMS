@@ -332,13 +332,12 @@ private:
     /// Score all peak groups
     template <typename SpectrumT, typename TransitionT>
     void scorePeakgroups_(MRMTransitionGroup<SpectrumT, TransitionT> & transition_group, TransformationDescription & trafo,
-                         OpenSwath::SpectrumAccessPtr  swath_map, FeatureMap<Feature>& output)
+                         OpenSwath::SpectrumAccessPtr swath_map, FeatureMap<Feature>& output)
     {
       //std::vector<SignalToNoiseEstimatorMedian<RichPeakChromatogram> > signal_noise_estimators;
       typedef typename MRMTransitionGroup<SpectrumT, TransitionT>::PeakType PeakT;
       std::vector<OpenSwath::ISignalToNoisePtr> signal_noise_estimators;
       std::vector<MRMFeature> feature_list;
-
 
       DoubleReal sn_win_len_ = (DoubleReal)param_.getValue("TransitionGroupPicker:sn_win_len");
       DoubleReal sn_bin_count_ = (DoubleReal)param_.getValue("TransitionGroupPicker:sn_bin_count");

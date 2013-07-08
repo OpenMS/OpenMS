@@ -49,20 +49,42 @@ namespace OpenMS
 
 public:
 
-    /// Select transitions between lower and upper and write them into the new TargetedExperiment
+    /**
+      @brief Select transitions between lower and upper and write them into the new TargetedExperiment
+
+      Version for the OpenMS TargetedExperiment
+    */
     static void selectSwathTransitions(const OpenMS::TargetedExperiment& targeted_exp,
                                        OpenMS::TargetedExperiment& transition_exp_used, double min_upper_edge_dist,
                                        double lower, double upper);
 
-    /// Get the lower / upper offset for this SWATH map and do some sanity checks
-    static void checkSwathMap(const OpenMS::MSExperiment<Peak1D>& swath_map,
-                              double& lower, double& upper);
+    /**
+      @brief Select transitions between lower and upper and write them into the new TargetedExperiment
 
-    /// Select transitions between lower and upper and write them into the new TargetedExperiment
+      Version for the LightTargetedExperiment
+    */
     static void selectSwathTransitions(const OpenSwath::LightTargetedExperiment& targeted_exp,
                                        OpenSwath::LightTargetedExperiment& transition_exp_used, double min_upper_edge_dist,
                                        double lower, double upper);
+    /**
+      @brief Get the lower / upper offset for this SWATH map and do some sanity checks
 
+     
+      Sanity check for the whole map:
+       - all scans need to have exactly one precursor
+       - all scans need to have the same MS levels (otherwise extracting an XIC
+         from them makes no sense)
+       - all scans need to have the same precursor isolation window (otherwise
+         extracting an XIC from them makes no sense)
+
+      @throw throws IllegalArgument exception if the sanity checks fail.
+    */
+    static void checkSwathMap(const OpenMS::MSExperiment<Peak1D>& swath_map,
+                              double& lower, double& upper);
+
+    /**
+      @brief Check the map and select transition in one function
+    */
     template <class TargetedExperimentT>
     static bool checkSwathMapAndSelectTransitions(const OpenMS::MSExperiment<Peak1D>& exp,
                                                   const TargetedExperimentT& targeted_exp, TargetedExperimentT& transition_exp_used, double min_upper_edge_dist)
