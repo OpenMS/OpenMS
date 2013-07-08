@@ -45,6 +45,8 @@
 #include <OpenMS/FILTERING/TRANSFORMERS/LinearResampler.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/LinearResamplerAlign.h>
 
+#include <OpenMS/ANALYSIS/OPENSWATH/PeakPickerMRM.h>
+
 //#define DEBUG_TRANSITIONGROUPPICKER
 
 namespace OpenMS
@@ -77,127 +79,6 @@ public:
     // this is the type in which we store the chromatograms for this analysis
     typedef MSSpectrum<ChromatogramPeak> RichPeakChromatogram; 
 
-protected:
-    UInt sgolay_frame_length_;
-    UInt sgolay_polynomial_order_;
-    DoubleReal gauss_width_;
-    bool use_gauss_;
-    bool remove_overlapping_;
-
-    String background_subtraction_;
-
-    DoubleReal peak_width_;
-    DoubleReal signal_to_noise_;
-
-    DoubleReal sn_win_len_;
-    UInt sn_bin_count_;
-
-    int stop_after_feature_;
-    DoubleReal stop_after_intensity_ratio_;
-
-    std::vector<RichPeakChromatogram> picked_chroms_;
-    std::vector<RichPeakChromatogram> smoothed_chroms_;
-
-    /// @name Resampling methods
-    //@{
-    /// create an empty master peak container that has the correct mz / RT values set
-    template <typename SpectrumT, typename TransitionT>
-    void prepareMasterContainer_(MRMTransitionGroup<SpectrumT, TransitionT> & transition_group,
-      SpectrumT & master_peak_container, int chr_idx, double best_left, double best_right)
-    {
-      const SpectrumT & ref_chromatogram = transition_group.getChromatograms()[chr_idx];
-
-      // search for begin / end of the reference chromatogram (and add one more point)
-      typename SpectrumT::const_iterator begin = ref_chromatogram.begin();
-      while (begin != ref_chromatogram.end() && begin->getMZ() < best_left) {begin++; }
-      if (begin != ref_chromatogram.begin()) {begin--; }
-
-      typename SpectrumT::const_iterator end = begin;
-      while (end != ref_chromatogram.end() && end->getMZ() < best_right) {end++; }
-      if (end != ref_chromatogram.end()) {end++; }
-
-      // resize the master container and set the m/z values to the ones of the master container
-      master_peak_container.resize(distance(begin, end));
-      typename SpectrumT::iterator it = master_peak_container.begin();
-      for (typename SpectrumT::const_iterator chrom_it = begin; chrom_it != end; chrom_it++, it++)
-      {
-        it->setMZ(chrom_it->getMZ());
-      }
-    }
-
-    /// use the master container from above to resample a chromatogram at those points stored in the master container
-    template <typename SpectrumT>
-    SpectrumT resampleChromatogram_(const SpectrumT & chromatogram,
-      SpectrumT & master_peak_container, double best_left, double best_right)
-    {
-      // get the start / end point of this chromatogram => go one past
-      // best_left / best_right to make the resampling accurate also at the
-      // edge.
-      typename SpectrumT::const_iterator begin = chromatogram.begin();
-      while (begin != chromatogram.end() && begin->getMZ() < best_left) {begin++; }
-      if (begin != chromatogram.begin()) {begin--; }
-
-      typename SpectrumT::const_iterator end = begin;
-      while (end != chromatogram.end() && end->getMZ() < best_right) {end++; }
-      if (end != chromatogram.end()) {end++; }
-
-      SpectrumT resampled_peak_container = master_peak_container; // copy the master container, which contains the RT values
-      LinearResamplerAlign lresampler;
-      lresampler.raster(begin, end, resampled_peak_container.begin(), resampled_peak_container.end());
-
-#if DEBUG_TRANSITIONGROUPPICKER
-      {
-        std::cout << "===========================================================================  " << std::endl;
-        double tot;
-        tot = 0;
-        for (typename SpectrumT::const_iterator it = begin; it != end; it++)
-        {
-          std::cout << " before resampl " << *it << std::endl;
-          tot += it->getIntensity();
-        }
-        std::cout << " total " << tot << std::endl;
-
-        tot = 0;
-        for (typename SpectrumT::iterator it = resampled_peak_container.begin(); it != resampled_peak_container.end(); it++)
-        {
-          std::cout << " resampl " << *it << std::endl;
-          tot += it->getIntensity();
-        }
-        std::cout << " total " << tot << std::endl;
-        std::cout << " resampled size " << resampled_peak_container.size() << std::endl;
-      }
-#endif
-      return resampled_peak_container;
-    }
-
-    //@}
-
-    /// Will use the smoothed chromatograms
-    double calculateBgEstimation_(const RichPeakChromatogram& smoothed_chromat, double best_left, double best_right);
-
-    /// Synchronize members with param class
-    void updateMembers_();
-
-    /// Assignment operator is private for algorithm
-    MRMTransitionGroupPicker& operator=(const MRMTransitionGroupPicker& rhs);
-
-    /**
-      @brief Helper function to find the closest peak in a chromatogram to "target_rt" 
-
-      The search will start from the index current_peak, so the function is
-      assuming the closest peak is to the right of current_peak.
-
-      It will return the index of the closest peak in the chromatogram.
-    */
-    Size findClosestPeak_(const RichPeakChromatogram& chromatogram, double target_rt, Size current_peak = 0);
-
-    /**
-      @brief Helper function to remove overlapping peaks in a single Chromatogram
-    */
-    void removeOverlappingPeaks_(const RichPeakChromatogram& chromatogram, RichPeakChromatogram& picked_chrom);
-
-public:
-
     //@{
     /// Constructor
     MRMTransitionGroupPicker();
@@ -225,16 +106,23 @@ public:
     template <typename SpectrumT, typename TransitionT>
     void pickTransitionGroup(MRMTransitionGroup<SpectrumT, TransitionT> & transition_group)
     {
+      std::vector<RichPeakChromatogram> picked_chroms_;
+      std::vector<RichPeakChromatogram> smoothed_chroms_;
+
+      PeakPickerMRM picker;
+      picker.setParameters(param_.copy("PeakPickerMRM:", true));
+
       // Pick chromatograms
-      picked_chroms_.clear();
       for (Size k = 0; k < transition_group.getChromatograms().size(); k++)
       {
         RichPeakChromatogram& chromatogram = transition_group.getChromatograms()[k];
-        if (!chromatogram.isSorted()) { chromatogram.sortByPosition(); }
+        if (!chromatogram.isSorted()) 
+        { 
+          chromatogram.sortByPosition(); 
+        }
 
-        // pickChromatogram will return the picked and the smoothed chromatogram
         RichPeakChromatogram picked_chrom, smoothed_chrom;
-        pickChromatogram(chromatogram, smoothed_chrom, picked_chrom);
+        picker.pickChromatogram(chromatogram, smoothed_chrom, picked_chrom);
         picked_chrom.sortByIntensity(); // we could do without that
         picked_chroms_.push_back(picked_chrom);
         smoothed_chroms_.push_back(smoothed_chrom);
@@ -251,14 +139,8 @@ public:
         findLargestPeak(picked_chroms_, chr_idx, peak_idx);
         if (chr_idx == -1 && peak_idx == -1) break;
 
-        /*
-        // FEATURE (hroest) check that this left/right do not collide with any already present features -- if so, re-set the left/right
-        double best_left = picked_chroms[chr_idx].getFloatDataArrays()[1][peak_idx];
-        double best_right = picked_chroms[chr_idx].getFloatDataArrays()[2][peak_idx];
-        */
-
         // get feature, prevent non-extended zero features to be added
-        MRMFeature mrm_feature = createMRMFeature(transition_group, picked_chroms_, chr_idx, peak_idx);
+        MRMFeature mrm_feature = createMRMFeature(transition_group, picked_chroms_, smoothed_chroms_, chr_idx, peak_idx);
         if (mrm_feature.getIntensity() > 0)
         {
           transition_group.addFeature(mrm_feature);
@@ -272,19 +154,10 @@ public:
       }
     }
 
-    /**
-      @brief Finds peaks in a single chromatogram and annotates left/right borders
-
-      It uses a modified algorithm of the PeakPickerHiRes
-
-      This function will return a smoothed chromatogram and a picked chromatogram
-    */
-    void pickChromatogram(const RichPeakChromatogram& chromatogram, RichPeakChromatogram& smoothed_chrom, RichPeakChromatogram& picked_chrom);
-
     /// Create feature from a vector of chromatograms and a specified peak
     template <typename SpectrumT, typename TransitionT>
     MRMFeature createMRMFeature(MRMTransitionGroup<SpectrumT, TransitionT> & transition_group,
-      std::vector<SpectrumT> & picked_chroms, int & chr_idx, int & peak_idx)
+      std::vector<SpectrumT> & picked_chroms, std::vector<SpectrumT> & smoothed_chroms_, int & chr_idx, int & peak_idx)
     {
       MRMFeature mrmFeature;
       const double best_left = picked_chroms[chr_idx].getFloatDataArrays()[1][peak_idx];
@@ -301,7 +174,8 @@ public:
       // empty master_peak_container with the same RT (m/z) values as the reference
       // chromatogram.
       SpectrumT master_peak_container;
-      prepareMasterContainer_(transition_group, master_peak_container, chr_idx, best_left, best_right);
+      const SpectrumT & ref_chromatogram = transition_group.getChromatograms()[chr_idx];
+      prepareMasterContainer_(ref_chromatogram, master_peak_container, best_left, best_right);
 
       double total_intensity = 0; double total_peak_apices = 0; double total_xic = 0;
       for (Size k = 0; k < transition_group.getChromatograms().size(); k++)
@@ -416,12 +290,15 @@ public:
     void remove_overlapping_features(std::vector<SpectrumT> & picked_chroms, double best_left, double best_right)
     {
       // delete all seeds that lie within the current seed
+      //std::cout << "Removing features for peak  between " << best_left << " " << best_right << std::endl;
       for (Size k = 0; k < picked_chroms.size(); k++)
       {
         for (Size i = 0; i < picked_chroms[k].size(); i++)
         {
           if (picked_chroms[k][i].getMZ() >= best_left && picked_chroms[k][i].getMZ() <= best_right)
           {
+            //std::cout << "For Chrom " << k << " removing peak " << picked_chroms[k][i].getMZ() << " l/r : " << picked_chroms[k].getFloatDataArrays()[1][i] << " " << 
+            //  picked_chroms[k].getFloatDataArrays()[2][i] << " with int " <<  picked_chroms[k][i].getIntensity() <<std::endl;
             picked_chroms[k][i].setIntensity(0.0);
           }
         }
@@ -437,6 +314,8 @@ public:
           if ((left > best_left && left < best_right)
              || (right > best_left && right < best_right))
           {
+            //std::cout << "= For Chrom " << k << " removing contained peak " << picked_chroms[k][i].getMZ() << " l/r : " << picked_chroms[k].getFloatDataArrays()[1][i] << " " << 
+            //  picked_chroms[k].getFloatDataArrays()[2][i] << " with int " <<  picked_chroms[k][i].getIntensity() <<std::endl;
             picked_chroms[k][i].setIntensity(0.0);
           }
         }
@@ -445,6 +324,79 @@ public:
 
     /// Find largest peak in a vector of chromatograms
     void findLargestPeak(std::vector<RichPeakChromatogram>& picked_chroms, int& chr_idx, int& peak_idx);
+
+protected:
+
+    /// Synchronize members with param class
+    void updateMembers_();
+
+    /// Assignment operator is protected for algorithm
+    MRMTransitionGroupPicker& operator=(const MRMTransitionGroupPicker& rhs);
+
+    /// @name Resampling methods
+    //@{
+    /// create an empty master peak container that has the correct mz / RT values set
+    template <typename SpectrumT>
+    void prepareMasterContainer_(const SpectrumT& ref_chromatogram,
+      SpectrumT & master_peak_container, double best_left, double best_right)
+    {
+      // search for begin / end of the reference chromatogram (and add one more point)
+      typename SpectrumT::const_iterator begin = ref_chromatogram.begin();
+      while (begin != ref_chromatogram.end() && begin->getMZ() < best_left) {begin++; }
+      if (begin != ref_chromatogram.begin()) {begin--; }
+
+      typename SpectrumT::const_iterator end = begin;
+      while (end != ref_chromatogram.end() && end->getMZ() < best_right) {end++; }
+      if (end != ref_chromatogram.end()) {end++; }
+
+      // resize the master container and set the m/z values to the ones of the master container
+      master_peak_container.resize(distance(begin, end));
+      typename SpectrumT::iterator it = master_peak_container.begin();
+      for (typename SpectrumT::const_iterator chrom_it = begin; chrom_it != end; chrom_it++, it++)
+      {
+        it->setMZ(chrom_it->getMZ());
+      }
+    }
+
+    /// use the master container from above to resample a chromatogram at those points stored in the master container
+    template <typename SpectrumT>
+    SpectrumT resampleChromatogram_(const SpectrumT & chromatogram,
+      SpectrumT & master_peak_container, double best_left, double best_right)
+    {
+      // get the start / end point of this chromatogram => go one past
+      // best_left / best_right to make the resampling accurate also at the
+      // edge.
+      typename SpectrumT::const_iterator begin = chromatogram.begin();
+      while (begin != chromatogram.end() && begin->getMZ() < best_left) {begin++; }
+      if (begin != chromatogram.begin()) {begin--; }
+
+      typename SpectrumT::const_iterator end = begin;
+      while (end != chromatogram.end() && end->getMZ() < best_right) {end++; }
+      if (end != chromatogram.end()) {end++; }
+
+      SpectrumT resampled_peak_container = master_peak_container; // copy the master container, which contains the RT values
+      LinearResamplerAlign lresampler;
+      lresampler.raster(begin, end, resampled_peak_container.begin(), resampled_peak_container.end());
+
+      return resampled_peak_container;
+    }
+
+    //@}
+
+    /**
+      @brief Will use the smoothed chromatograms to estimate the background noise and then subtract it
+
+      The background is estimated by averaging the noise on either side of the
+      peak and then subtracting that from the total intensity.
+    */
+    double calculateBgEstimation_(const RichPeakChromatogram& smoothed_chromat, double best_left, double best_right);
+
+    // Members
+    String background_subtraction_;
+
+    int stop_after_feature_;
+    DoubleReal stop_after_intensity_ratio_;
+
   };
 }
 
