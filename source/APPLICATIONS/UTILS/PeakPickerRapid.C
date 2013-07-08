@@ -110,7 +110,7 @@ class TOPPPeakPickerRapid
 {
 public:
     TOPPPeakPickerRapid()
-        : TOPPBase("PeakPickerRapid","Finds mass spectrometric peaks in profile mass spectra.")
+        : TOPPBase("PeakPickerRapid","Finds mass spectrometric peaks in profile mass spectra.", false)
     {
     }
 
