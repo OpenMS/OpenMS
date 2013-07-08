@@ -41,11 +41,12 @@
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/KERNEL/ChromatogramPeak.h>
 
-
 #include <OpenMS/FILTERING/TRANSFORMERS/LinearResampler.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/LinearResamplerAlign.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/PeakPickerMRM.h>
+
+#include <numeric>
 
 //#define DEBUG_TRANSITIONGROUPPICKER
 
@@ -169,6 +170,11 @@ public:
       // chromatograms) and then ensure that at least one peak is set to zero
       // (the currently best peak).
       remove_overlapping_features(picked_chroms, best_left, best_right);
+      if (recalculate_peaks_)
+      {
+        // This may change best_left / best_right 
+        recalculatePeakBorders(picked_chroms, best_left, best_right);
+      }
       picked_chroms[chr_idx][peak_idx].setIntensity(0.0);
 
       // Check for minimal peak width
@@ -288,7 +294,6 @@ public:
       
       Directly adjacent features are allowed, e.g. they can share one
       border.
-
     */
     template <typename SpectrumT>
     void remove_overlapping_features(std::vector<SpectrumT> & picked_chroms, double best_left, double best_right)
@@ -313,6 +318,8 @@ public:
       {
         for (Size i = 0; i < picked_chroms[k].size(); i++)
         {
+          if (picked_chroms[k][i].getIntensity() <= 0.0) {continue;}
+
           double left = picked_chroms[k].getFloatDataArrays()[1][i];
           double right = picked_chroms[k].getFloatDataArrays()[2][i];
           if ((left > best_left && left < best_right)
@@ -324,6 +331,61 @@ public:
           }
         }
       }
+    }
+
+    /**
+      @brief Recalculate the borders of the peak
+      
+      By collecting all left and right borders of contained peaks, a consensus
+      peak is computed.  By looking at the means and standard deviations of all
+      the peak borders it is estimated whether the proposed peak border
+      deviates too much from the consensus one. If the deviation is too high,
+      then we fall back to the "consensus" (a median here).
+    */
+    template <typename SpectrumT>
+    void recalculatePeakBorders(std::vector<SpectrumT> & picked_chroms, double & best_left, double & best_right)
+    {
+      // collect all seeds that lie within the current seed
+      std::vector< double > left_borders;
+      std::vector< double > right_borders;
+      for (Size k = 0; k < picked_chroms.size(); k++)
+      {
+        for (Size i = 0; i < picked_chroms[k].size(); i++)
+        {
+          if (picked_chroms[k][i].getMZ() >= best_left && picked_chroms[k][i].getMZ() <= best_right)
+          {
+            left_borders.push_back( picked_chroms[k].getFloatDataArrays()[1][i] );
+            right_borders.push_back( picked_chroms[k].getFloatDataArrays()[2][i] );
+          }
+        }
+      }
+
+      // Return for empty peak list
+      if (right_borders.empty())
+      {
+        return;
+      }
+
+      // Calculate mean and standard deviation
+      double mean = std::accumulate(right_borders.begin(), right_borders.end(), 0.0) / (double) right_borders.size();
+      double stdev = std::sqrt(std::inner_product(right_borders.begin(), right_borders.end(), right_borders.begin(), 0.0)
+          / right_borders.size() - mean * mean);
+      std::sort(right_borders.begin(), right_borders.end() );
+      if (std::fabs(best_right-mean) /stdev > 1.5)
+      {
+        best_right = right_borders[ right_borders.size()/2 ]; // pseudo median
+      }
+
+      mean = std::accumulate(left_borders.begin(), left_borders.end(), 0.0) / (double) left_borders.size();
+      stdev = std::sqrt(std::inner_product(left_borders.begin(), left_borders.end(), left_borders.begin(), 0.0)
+          / left_borders.size() - mean * mean);
+      std::sort(left_borders.begin(), left_borders.end() );
+
+      if (std::fabs(best_left-mean)  /stdev > 1.5)
+      {
+        best_left = left_borders[ left_borders.size()/2 ]; // pseudo median
+      }
+
     }
 
     /// Find largest peak in a vector of chromatograms
@@ -397,6 +459,7 @@ protected:
 
     // Members
     String background_subtraction_;
+    bool recalculate_peaks_;
 
     int stop_after_feature_;
     DoubleReal stop_after_intensity_ratio_;

@@ -52,6 +52,8 @@ namespace OpenMS
     defaults_.setValue("background_subtraction", "none", "Try to apply a background subtraction to the peak (experimental). The background is estimated at the peak boundaries, either the smoothed or the raw chromatogram data can be used for that."); //, StringList::create("advanced"));
     defaults_.setValidStrings("background_subtraction", StringList::create("none,smoothed,original"));
 
+    defaults_.setValue("recalculate_peaks", "false", "Tries to get better peak picking by looking at peak consistency");
+
     defaults_.insert("PeakPickerMRM:", PeakPickerMRM().getDefaults());
 
     // write defaults into Param object param_
@@ -78,6 +80,7 @@ namespace OpenMS
     stop_after_feature_ = (int)param_.getValue("stop_after_feature");
     stop_after_intensity_ratio_ = (DoubleReal)param_.getValue("stop_after_intensity_ratio");
     background_subtraction_ = param_.getValue("background_subtraction");
+    recalculate_peaks_ = (bool)param_.getValue("recalculate_peaks").toBool();
     min_peak_width_ = (DoubleReal)param_.getValue("min_peak_width");
   }
 
