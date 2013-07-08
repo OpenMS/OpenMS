@@ -174,5 +174,6 @@
   #define IF_MASTERTHREAD 
 #endif    
    
+#cmakedefine WITH_CRAWDAD 1
 
 #endif // OPENMS_CONFIG_H

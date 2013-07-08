@@ -243,6 +243,12 @@ if (OPENMP_FOUND)
 	endif()
 endif()
 
+# cmake args: -DCrawdad_DIR=/path/to/Crawdad/ -DWITH_CRAWDAD=TRUE
+if (WITH_CRAWDAD)
+  find_package(Crawdad)
+  include_directories(${CRAWDAD_INCLUDE_DIRS})
+endif()
+
 ########################################################
 ###    external libs (contrib or system)						 ###
 ########################################################
@@ -379,6 +385,9 @@ if (TBB_FOUND)
 endif()
 if (MSVC)
 	list(APPEND OPENMS_DEP_LIBRARIES opengl32.lib)
+endif()
+if (WITH_CRAWDAD)
+  list(APPEND OPENMS_DEP_LIBRARIES Crawdad)
 endif()
 
 ########################################################
