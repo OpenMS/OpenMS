@@ -80,7 +80,9 @@ public:
 
       This function will return a smoothed chromatogram and a picked chromatogram
     */
-    void pickChromatogram(const RichPeakChromatogram& chromatogram, RichPeakChromatogram& smoothed_chrom, RichPeakChromatogram& picked_chrom);
+    void pickChromatogram(const RichPeakChromatogram& chromatogram, RichPeakChromatogram& picked_chrom);
+
+    void pickAndSmoothChromatogram(const RichPeakChromatogram& chromatogram, RichPeakChromatogram& picked_chrom);
 
 protected:
 

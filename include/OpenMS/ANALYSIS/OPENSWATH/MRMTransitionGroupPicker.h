@@ -108,7 +108,6 @@ public:
     void pickTransitionGroup(MRMTransitionGroup<SpectrumT, TransitionT> & transition_group)
     {
       std::vector<RichPeakChromatogram> picked_chroms_;
-      std::vector<RichPeakChromatogram> smoothed_chroms_;
 
       PeakPickerMRM picker;
       picker.setParameters(param_.copy("PeakPickerMRM:", true));
@@ -122,11 +121,12 @@ public:
           chromatogram.sortByPosition(); 
         }
 
-        RichPeakChromatogram picked_chrom, smoothed_chrom;
-        picker.pickChromatogram(chromatogram, smoothed_chrom, picked_chrom);
+        RichPeakChromatogram picked_chrom;
+
+        picker.pickAndSmoothChromatogram(chromatogram, picked_chrom);
+
         picked_chrom.sortByIntensity(); // we could do without that
         picked_chroms_.push_back(picked_chrom);
-        smoothed_chroms_.push_back(smoothed_chrom);
       }
 
       // Find features (peak groups) in this group of transitions.
@@ -141,7 +141,7 @@ public:
         if (chr_idx == -1 && peak_idx == -1) break;
 
         // get feature, prevent non-extended zero features to be added
-        MRMFeature mrm_feature = createMRMFeature(transition_group, picked_chroms_, smoothed_chroms_, chr_idx, peak_idx);
+        MRMFeature mrm_feature = createMRMFeature(transition_group, picked_chroms_, chr_idx, peak_idx);
         if (mrm_feature.getIntensity() > 0)
         {
           transition_group.addFeature(mrm_feature);
@@ -158,7 +158,7 @@ public:
     /// Create feature from a vector of chromatograms and a specified peak
     template <typename SpectrumT, typename TransitionT>
     MRMFeature createMRMFeature(MRMTransitionGroup<SpectrumT, TransitionT> & transition_group,
-      std::vector<SpectrumT> & picked_chroms, std::vector<SpectrumT> & smoothed_chroms_, int & chr_idx, int & peak_idx)
+      std::vector<SpectrumT> & picked_chroms, int & chr_idx, int & peak_idx)
     {
       MRMFeature mrmFeature;
       mrmFeature.setIntensity(0.0);
@@ -231,9 +231,11 @@ public:
         if (background_subtraction_ != "none")
         {
           double background = 0;
-          // we use the smoothed chromatogram here to have a more accurate estimatation of the noise at the flanks of the peak
           if (background_subtraction_ == "smoothed")
           {
+            throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+            /*
+             * Currently we do not have access to the smoothed chromatogram any more
             if (smoothed_chroms_.size() <= k)
             {
               std::cerr << "Tried to calculate background estimation without any smoothed chromatograms" << std::endl;
@@ -243,6 +245,7 @@ public:
             {
               background = calculateBgEstimation_(smoothed_chroms_[k], best_left, best_right);
             }
+            */
           }
           else if (background_subtraction_ == "original")
           {
@@ -450,12 +453,12 @@ protected:
     //@}
 
     /**
-      @brief Will use the smoothed chromatograms to estimate the background noise and then subtract it
+      @brief Will use the chromatogram to estimate the background noise and then subtract it
 
       The background is estimated by averaging the noise on either side of the
       peak and then subtracting that from the total intensity.
     */
-    double calculateBgEstimation_(const RichPeakChromatogram& smoothed_chromat, double best_left, double best_right);
+    double calculateBgEstimation_(const RichPeakChromatogram& chromatogram, double best_left, double best_right);
 
     // Members
     String background_subtraction_;

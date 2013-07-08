@@ -84,12 +84,12 @@ namespace OpenMS
     min_peak_width_ = (DoubleReal)param_.getValue("min_peak_width");
   }
 
-  double MRMTransitionGroupPicker::calculateBgEstimation_(const RichPeakChromatogram& smoothed_chromat, double best_left, double best_right)
+  double MRMTransitionGroupPicker::calculateBgEstimation_(const RichPeakChromatogram& chromatogram, double best_left, double best_right)
   {
-    // determine (in the smoothed chrom) the intensity at the left / right border
-    RichPeakChromatogram::const_iterator it = smoothed_chromat.begin();
+    // determine (in the chromatogram) the intensity at the left / right border
+    RichPeakChromatogram::const_iterator it = chromatogram.begin();
     int nr_points = 0;
-    for (; it != smoothed_chromat.end(); ++it)
+    for (; it != chromatogram.end(); ++it)
     {
       if (it->getMZ() > best_left)
       {
@@ -98,7 +98,7 @@ namespace OpenMS
       }
     }
     double intensity_left = it->getIntensity();
-    for (; it != smoothed_chromat.end(); ++it)
+    for (; it != chromatogram.end(); ++it)
     {
       if (it->getMZ() > best_right)
       {
@@ -106,7 +106,7 @@ namespace OpenMS
       }
       nr_points++;
     }
-    if (it == smoothed_chromat.begin() || nr_points < 1)
+    if (it == chromatogram.begin() || nr_points < 1)
     {
       // something is fishy, the endpoint of the peak is the beginning of the chromatogram
       std::cerr << "Tried to calculate background but no points were found " << std::endl;

@@ -64,10 +64,10 @@ namespace OpenMS
     updateMembers_();
   }
 
-  void PeakPickerMRM::pickChromatogram(const RichPeakChromatogram& chromatogram, RichPeakChromatogram& smoothed_chrom, RichPeakChromatogram& picked_chrom)
+  void PeakPickerMRM::pickAndSmoothChromatogram(const RichPeakChromatogram& chromatogram, RichPeakChromatogram& picked_chrom)
   {
     // Smooth the chromatogram
-    smoothed_chrom = chromatogram;
+    RichPeakChromatogram smoothed_chrom = chromatogram;
     if (!use_gauss_)
     {
       SavitzkyGolayFilter sgolay;
@@ -92,6 +92,11 @@ namespace OpenMS
     pp.setParameters(pepi_param);
     pp.pick(smoothed_chrom, picked_chrom);
 
+    pickChromatogram(chromatogram, picked_chrom);
+  }
+
+  void PeakPickerMRM::pickChromatogram(const RichPeakChromatogram& chromatogram, RichPeakChromatogram& picked_chrom)
+  {
     picked_chrom.getFloatDataArrays().clear();
     picked_chrom.getFloatDataArrays().resize(3);
     picked_chrom.getFloatDataArrays()[0].setName("IntegratedIntensity");

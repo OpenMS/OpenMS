@@ -102,14 +102,14 @@ START_SECTION(~PeakPickerMRM())
 }
 END_SECTION
 
-START_SECTION(void pickChromatogram(const RichPeakChromatogram &chromatogram, RichPeakChromatogram &smoothed_chrom, RichPeakChromatogram &picked_chrom))
+START_SECTION(void pickAndSmoothChromatogram(const RichPeakChromatogram &chromatogram, RichPeakChromatogram &picked_chrom))
 {
   RichPeakChromatogram picked_chrom, smoothed_chrom, chrom;
 
   //RichPeakChromatogram chrom = transition_group.getChromatograms()[0];
   chrom = get_chrom(0);
   PeakPickerMRM picker;
-  picker.pickChromatogram(chrom, smoothed_chrom, picked_chrom);
+  picker.pickAndSmoothChromatogram(chrom, picked_chrom);
 
   TEST_EQUAL( picked_chrom.size(), 1);
   TEST_EQUAL( picked_chrom.getFloatDataArrays().size(), 3);
@@ -124,7 +124,7 @@ START_SECTION(void pickChromatogram(const RichPeakChromatogram &chromatogram, Ri
 
   // chrom = transition_group.getChromatograms()[1];
   chrom = get_chrom(1);
-  picker.pickChromatogram(chrom, smoothed_chrom, picked_chrom);
+  picker.pickAndSmoothChromatogram(chrom, picked_chrom);
 
   TEST_EQUAL( picked_chrom.size(), 1);
   TEST_EQUAL( picked_chrom.getFloatDataArrays().size(), 3);
