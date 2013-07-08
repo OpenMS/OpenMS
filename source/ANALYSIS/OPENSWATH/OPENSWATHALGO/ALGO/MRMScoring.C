@@ -59,33 +59,25 @@ namespace OpenSwath
     return xcorr_matrix_;
   }
 
-  void MRMScoring::initializeXCorrMatrix(OpenSwath::IMRMFeature * mrmfeature, OpenSwath::ITransitionGroup * transition_group, bool normalize)
+  void MRMScoring::initializeXCorrMatrix(OpenSwath::IMRMFeature* mrmfeature, std::vector<String> native_ids)
   {
     std::vector<double> intensityi, intensityj;
-    xcorr_matrix_.resize(transition_group->size());
-    for (std::size_t i = 0; i < transition_group->size(); i++)
+    xcorr_matrix_.resize(native_ids.size());
+    for (std::size_t i = 0; i < native_ids.size(); i++)
     {
-      String native_id = transition_group->getNativeIDs()[i];
+      String native_id = native_ids[i];
       FeatureType fi = mrmfeature->getFeature(native_id);
-      xcorr_matrix_[i].resize(transition_group->size());
+      xcorr_matrix_[i].resize(native_ids.size());
       intensityi.clear();
       fi->getIntensity(intensityi);
-      for (std::size_t j = i; j < transition_group->size(); j++)
+      for (std::size_t j = i; j < native_ids.size(); j++)
       {
-        String native_id2 = transition_group->getNativeIDs()[j];
+        String native_id2 = native_ids[j];
         FeatureType fj = mrmfeature->getFeature(native_id2);
         intensityj.clear();
         fj->getIntensity(intensityj);
-        //std::cout << " = Computing crosscorrelation " << i << " / "  << j << " or " << native_id << " vs " << native_id2 << std::endl;
-        if (normalize)
-        {
-          xcorr_matrix_[i][j] = Scoring::normalizedCrossCorrelation(intensityi, intensityj, boost::numeric_cast<int>(intensityi.size()), 1);
-        }
-        else
-        {
-          throw "not implemented";
-        }
-
+        // compute normalized cross correlation
+        xcorr_matrix_[i][j] = Scoring::normalizedCrossCorrelation(intensityi, intensityj, boost::numeric_cast<int>(intensityi.size()), 1);
       }
     }
   }

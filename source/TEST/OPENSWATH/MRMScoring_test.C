@@ -65,14 +65,11 @@ using namespace OpenMS;
 using namespace std;
 using namespace OpenSwath;
 
-void fill_mock_objects(MockMRMFeature * imrmfeature, MockTransitionGroup * itransition_group)
+void fill_mock_objects(MockMRMFeature * imrmfeature, std::vector<std::string>& native_ids)
 {
-  std::vector<std::string> native_ids;
   native_ids.push_back("group1");
   native_ids.push_back("group2");
-  itransition_group->m_native_ids = native_ids;
 
-  itransition_group->m_size = 2;
   static const double arr1[] = {
     5.97543668746948, 4.2749171257019, 3.3301842212677, 4.08597040176392, 5.50307035446167, 5.24326848983765,
     8.40812492370605, 2.83419919013977, 6.94378805160522, 7.69957494735718, 4.08597040176392 
@@ -141,13 +138,13 @@ BOOST_AUTO_TEST_CASE(initializeXCorrMatrix)
   // xcorr_coeltion = mean(deltas) + std(deltas, ddof=1)
 
   MockMRMFeature * imrmfeature = new MockMRMFeature();
-  MockTransitionGroup * itransition_group = new MockTransitionGroup();
   MRMScoring mrmscore;
 
-  fill_mock_objects(imrmfeature, itransition_group);
+  std::vector<std::string> native_ids;
+  fill_mock_objects(imrmfeature, native_ids);
 
   //initialize the XCorr Matrix
-  mrmscore.initializeXCorrMatrix(imrmfeature, itransition_group, true);
+  mrmscore.initializeXCorrMatrix(imrmfeature, native_ids);
 
   TEST_EQUAL(mrmscore.getXCorrMatrix().size(), 2)
   TEST_EQUAL(mrmscore.getXCorrMatrix()[0].size(), 2)
@@ -177,13 +174,13 @@ END_SECTION
 BOOST_AUTO_TEST_CASE(test_calcXcorrCoelutionScore)
 {
   MockMRMFeature * imrmfeature = new MockMRMFeature();
-  MockTransitionGroup * itransition_group = new MockTransitionGroup();
   MRMScoring mrmscore;
 
-  fill_mock_objects(imrmfeature, itransition_group);
+  std::vector<std::string> native_ids;
+  fill_mock_objects(imrmfeature, native_ids);
 
   //initialize the XCorr Matrix
-  mrmscore.initializeXCorrMatrix(imrmfeature, itransition_group, true);
+  mrmscore.initializeXCorrMatrix(imrmfeature, native_ids);
   
   // xcorr_deltas = [0, 3, 0]
   // xcorr_coeltion = mean(xcorr_deltas) + std(xcorr_deltas, ddof=1)
@@ -194,16 +191,16 @@ END_SECTION
 BOOST_AUTO_TEST_CASE(test_calcXcorrCoelutionScore_weighted)
 {
   MockMRMFeature * imrmfeature = new MockMRMFeature();
-  MockTransitionGroup * itransition_group = new MockTransitionGroup();
   MRMScoring mrmscore;
 
   static const double weights_[] = { 0.5, 0.5 };
   std::vector<double> weights (weights_, weights_ + sizeof(weights_) / sizeof(weights_[0]) );
 
-  fill_mock_objects(imrmfeature, itransition_group);
+  std::vector<std::string> native_ids;
+  fill_mock_objects(imrmfeature, native_ids);
 
   //initialize the XCorr Matrix
-  mrmscore.initializeXCorrMatrix(imrmfeature, itransition_group, true);
+  mrmscore.initializeXCorrMatrix(imrmfeature, native_ids);
   
   // xcorr_deltas = [0, 3, 0] * array([0.25, 2*0.5*0.5,0.25])
   // sum(xcorr_deltas) 
@@ -214,13 +211,13 @@ END_SECTION
 BOOST_AUTO_TEST_CASE(test_calcXcorrShape_score)
 {
   MockMRMFeature * imrmfeature = new MockMRMFeature();
-  MockTransitionGroup * itransition_group = new MockTransitionGroup();
   MRMScoring mrmscore;
 
-  fill_mock_objects(imrmfeature, itransition_group);
+  std::vector<std::string> native_ids;
+  fill_mock_objects(imrmfeature, native_ids);
 
   //initialize the XCorr Matrix
-  mrmscore.initializeXCorrMatrix(imrmfeature, itransition_group, true);
+  mrmscore.initializeXCorrMatrix(imrmfeature, native_ids);
   
   // xcorr_deltas = [1, 0.3969832, 1]
   // xcorr_coeltion = mean(xcorr_deltas)
@@ -231,16 +228,16 @@ END_SECTION
 BOOST_AUTO_TEST_CASE(test_calcXcorrShape_score_weighted)
 {
   MockMRMFeature * imrmfeature = new MockMRMFeature();
-  MockTransitionGroup * itransition_group = new MockTransitionGroup();
   MRMScoring mrmscore;
 
-  fill_mock_objects(imrmfeature, itransition_group);
+  std::vector<std::string> native_ids;
+  fill_mock_objects(imrmfeature, native_ids);
 
   static const double weights_[] = { 0.5, 0.5 };
   std::vector<double> weights (weights_, weights_ + sizeof(weights_) / sizeof(weights_[0]) );
 
   //initialize the XCorr Matrix
-  mrmscore.initializeXCorrMatrix(imrmfeature, itransition_group, true);
+  mrmscore.initializeXCorrMatrix(imrmfeature, native_ids);
   
   // xcorr_deltas = [1, 0.3969832, 1] * array([0.25, 2*0.5*0.5,0.25])
   // sum(xcorr_deltas)

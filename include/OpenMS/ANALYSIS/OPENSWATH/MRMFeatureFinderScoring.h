@@ -417,29 +417,29 @@ var_yseries_score   -0.0327896378737766
      * scores specified in the OpenSwath_Scores_Usage object are computed.
      *
     */
-    void scoreMRMFeature(OpenSwath::ITransitionGroup* itransition_group,
-          const PeptideType& pep,
-          std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators,
+    void scoreMRMFeature(
           OpenSwath::IMRMFeature* imrmfeature,
+          const PeptideType& pep,
           const std::vector<TransitionType> & transitions,
+          std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators,
           TransformationDescription & trafo,
           OpenSwath::SpectrumAccessPtr swath_map, 
           OpenMS::DIAScoring& diascoring_t,
           OpenSwath_Scores & scores)
     {
-        int group_size = boost::numeric_cast<int>(transitions.size());
-
-        // calculate the normalized library intensity (expected value of the intensities)
         std::vector<double> normalized_library_intensity;
-        itransition_group->getLibraryIntensities(normalized_library_intensity);
-        // std::vector<double> normalized_library_intensity(normalized_library_intensity_.size() );
+        for (Size i = 0; i < transitions.size(); i++) {normalized_library_intensity.push_back(transitions[i].getLibraryIntensity());}
+        for (Size i = 0; i < normalized_library_intensity.size(); i++) 
+        { 
+          // the library intensity should never be below zero
+          if (normalized_library_intensity[i] < 0.0) { normalized_library_intensity[i] = 0.0; } 
+        } 
         OpenSwath::Scoring::normalize_sum(&normalized_library_intensity[0], boost::numeric_cast<int>(normalized_library_intensity.size()));
 
-        // calcxcorr -> for each lag do the correlation, normally use lag 0
-        // xcorr_matrix  => correlate chromatogram i with chromatogram j
-        bool normalize = true;
+        std::vector<std::string> native_ids;
         OpenSwath::MRMScoring mrmscore_;
-        mrmscore_.initializeXCorrMatrix(imrmfeature, itransition_group, normalize);
+        for (Size i = 0; i < transitions.size(); i++) {native_ids.push_back(transitions[i].getNativeID());}
+        mrmscore_.initializeXCorrMatrix(imrmfeature, native_ids);
 
         // XCorr score (coelution)
         if (su_.use_coelution_score_)
@@ -478,33 +478,20 @@ var_yseries_score   -0.0327896378737766
         }
 
 
-        if (su_.use_nr_peaks_score_)
-        {
-          scores.nr_peaks = group_size;
-        }
-
+        if (su_.use_nr_peaks_score_) { scores.nr_peaks = boost::numeric_cast<int>(transitions.size());}
         if (su_.use_sn_score_)
         {
           scores.sn_ratio = mrmscore_.calcSNScore(imrmfeature, signal_noise_estimators);
-          if (scores.sn_ratio < 1) // fix to make sure, that log(sn_score = 0) = -inf does not occur
-          {
-            scores.log_sn_score = 0;
-          }
-          else
-          {
-            scores.log_sn_score = std::log(scores.sn_ratio);
-          }
+          // everything below S/N 1 can be set to zero (and the log safely applied)
+          if (scores.sn_ratio < 1) { scores.log_sn_score = 0; }
+          else { scores.log_sn_score = std::log(scores.sn_ratio); }
         }
 
         double quick_lda_dismiss = 0;
         double lda_quick_score = -scores.get_quick_lda_score(scores.library_corr,
             scores.library_rmsd, scores.norm_rt_score, scores.xcorr_coelution_score, scores.xcorr_shape_score, scores.log_sn_score);
 
-        if (lda_quick_score < quick_lda_dismiss)
-        {
-          // continue;
-        }
-
+        if (lda_quick_score < quick_lda_dismiss) { ; }
         if (swath_map->getNrSpectra() > 0)
         {
           calculateSwathScores_(imrmfeature, swath_map, normalized_library_intensity, scores, transitions, diascoring_t, pep);
@@ -608,7 +595,6 @@ var_yseries_score   -0.0327896378737766
   {
 
 public:
-
     ///Type definitions
     //@{
 
@@ -633,6 +619,8 @@ public:
     /// Destructor
     ~MRMFeatureFinderScoring();
 
+    /// Picker and prepare functions
+    //@{
     /** @brief Pick features in one experiment containing chromatogram
      *
      * Function for for wrapping in Python, only uses OpenMS datastructures 
@@ -722,6 +710,8 @@ public:
     }
 
     /** @brief Prepares the internal mappings of peptides and proteins.
+     *
+     * Calling this method _is_ required before calling scorePeakgroups
     */
     void prepareProteinPeptideMaps_(OpenSwath::LightTargetedExperiment& transition_exp)
     {
@@ -735,22 +725,7 @@ public:
         ProteinRefMap_[transition_exp.getProteins()[i].id] = &transition_exp.getProteins()[i];
       }
     }
-
-    /** @brief Map the chromatograms to the transitions.
-     *
-     * Map an input experiment (mzML) and transition list (TraML) onto each other
-     * when they share identifiers, e.g. if the transition id is the same as the
-     * chromatogram native id.
-    */
-    void mapExperimentToTransitionList(OpenSwath::SpectrumAccessPtr input, OpenSwath::LightTargetedExperiment& transition_exp,
-                                       TransitionGroupMapType& transition_group_map, TransformationDescription trafo, double rt_extraction_window);
-
-    /** @brief Set the flag for strict mapping
-    */
-    void setStrictFlag(bool f)
-    {
-      strict_ = f;
-    }
+    //@}
 
     /** @brief Score all peak groups of a transition group
      *
@@ -791,9 +766,6 @@ public:
       {
         OpenSwath::IMRMFeature* imrmfeature;
         imrmfeature = new MRMFeatureOpenMS(*mrmfeature);
-        OpenSwath::ITransitionGroup* itransition_group;
-        itransition_group = new TransitionGroupOpenMS<MRMTransitionGroupType::SpectrumT,
-                          MRMTransitionGroupType::TransitionT>(transition_group);
 
         LOG_DEBUG << "000000000000000000000000000000000000000000000000000000000000000000000000000 " << std::endl;
         LOG_DEBUG << "scoring feature " << (*mrmfeature) << " == " << mrmfeature->getMetaValue("PeptideRef") <<
@@ -818,9 +790,8 @@ public:
         ///////////////////////////////////
 
         OpenSwath_Scores scores;
-        scorer.scoreMRMFeature(itransition_group, *pep,
-          signal_noise_estimators, imrmfeature, transition_group.getTransitions(),
-          trafo, swath_map, diascoring_, scores);
+        scorer.scoreMRMFeature(imrmfeature, *pep, transition_group.getTransitions(),
+          signal_noise_estimators, trafo, swath_map, diascoring_, scores);
 
         if (su_.use_coelution_score_) { 
           mrmfeature->addScore("var_xcorr_coelution", scores.xcorr_coelution_score);
@@ -919,7 +890,6 @@ public:
         feature_list.push_back((*mrmfeature));
 
         delete imrmfeature;
-        delete itransition_group;
       }
 
       // Order by quality
@@ -933,33 +903,42 @@ public:
       }
     }
 
+    /** @brief Set the flag for strict mapping
+    */
+    void setStrictFlag(bool f)
+    {
+      strict_ = f;
+    }
+
+    /** @brief Map the chromatograms to the transitions.
+     *
+     * Map an input experiment (mzML) and transition list (TraML) onto each other
+     * when they share identifiers, e.g. if the transition id is the same as the
+     * chromatogram native id.
+    */
+    void mapExperimentToTransitionList(OpenSwath::SpectrumAccessPtr input, OpenSwath::LightTargetedExperiment& transition_exp,
+                                       TransitionGroupMapType& transition_group_map, TransformationDescription trafo, double rt_extraction_window);
 private:
 
     /// Synchronize members with param class
     void updateMembers_();
 
-    // Variables
+    // parameters
     DoubleReal rt_extraction_window_;
     DoubleReal quantification_cutoff_;
-
-
     int stop_report_after_feature_;
-
-    // bool do_local_fdr_;
     bool write_convex_hull_;
     bool strict_;
 
-    // TODO
+    // scoring parameters
     DoubleReal rt_normalization_factor_;
     int add_up_spectra_;
     DoubleReal spacing_for_spectra_resampling_;
-    // TODO
 
-    OpenSwath_Scores_Usage su_;
-
+    // members
     std::map<OpenMS::String, const PeptideType*> PeptideRefMap_;
     std::map<OpenMS::String, const ProteinType*> ProteinRefMap_;
-
+    OpenSwath_Scores_Usage su_;
     OpenMS::DIAScoring diascoring_;
     OpenMS::EmgScoring emgscoring_;
   };

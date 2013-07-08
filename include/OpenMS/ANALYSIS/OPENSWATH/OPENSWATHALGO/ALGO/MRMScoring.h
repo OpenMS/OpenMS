@@ -103,7 +103,7 @@ public:
     /** @name Scores */
     //@{
     /// Initialize the scoring object and building the cross-correlation matrix
-    void initializeXCorrMatrix(OpenSwath::IMRMFeature* mrmfeature, OpenSwath::ITransitionGroup* transition_group, bool normalize);
+    void initializeXCorrMatrix(OpenSwath::IMRMFeature* mrmfeature, std::vector<String> native_ids);
 
     /// calculate the cross-correlation score
     double calcXcorrCoelutionScore();

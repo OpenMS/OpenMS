@@ -98,12 +98,12 @@ START_SECTION([EXTRA] test_scores())
   // create the Interface objects
   OpenSwath::IMRMFeature * imrmfeature;
   imrmfeature = new MRMFeatureOpenMS(mrmfeature);
-  OpenSwath::ITransitionGroup * itransition_group;
-  itransition_group = new TransitionGroupOpenMS <MSSpectrum <ChromatogramPeak>, OpenSWATH_Test::TransitionType>(transition_group);
 
   //initialize the XCorr Matrix
   OpenSwath::MRMScoring mrmscore;
-  mrmscore.initializeXCorrMatrix(imrmfeature, itransition_group, true);
+  std::vector<std::string> native_ids;
+  for (Size i = 0; i < transition_group.getTransitions().size(); i++) {native_ids.push_back(transition_group.getTransitions()[i].getNativeID());}
+  mrmscore.initializeXCorrMatrix(imrmfeature, native_ids);
 
   static const double arr_lib[] = {0.5,1,0.5};
   std::vector<double> normalized_library_intensity (arr_lib, arr_lib + sizeof(arr_lib) / sizeof(arr_lib[0]) );

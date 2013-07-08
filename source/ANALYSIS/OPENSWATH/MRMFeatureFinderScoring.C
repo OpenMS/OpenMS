@@ -67,15 +67,15 @@ namespace OpenMS
 
     // One can turn on / off each score individually
     Param scores_to_use;
-    scores_to_use.setValue("use_shape_score", "true", "Use the shape score", StringList::create("advanced"));
+    scores_to_use.setValue("use_shape_score", "true", "Use the shape score (this score measures the similarity in shape of the transitions using a cross-correlation)", StringList::create("advanced"));
     scores_to_use.setValidStrings("use_shape_score", StringList::create("true,false"));
-    scores_to_use.setValue("use_coelution_score", "true", "Use the coelution score", StringList::create("advanced"));
+    scores_to_use.setValue("use_coelution_score", "true", "Use the coelution score (this score measures the similarity in coelution of the transitions using a cross-correlation)", StringList::create("advanced"));
     scores_to_use.setValidStrings("use_coelution_score", StringList::create("true,false"));
-    scores_to_use.setValue("use_rt_score", "true", "Use the retention time score", StringList::create("advanced"));
+    scores_to_use.setValue("use_rt_score", "true", "Use the retention time score (this score measure the difference in retention time)", StringList::create("advanced"));
     scores_to_use.setValidStrings("use_rt_score", StringList::create("true,false"));
     scores_to_use.setValue("use_library_score", "true", "Use the library score", StringList::create("advanced"));
     scores_to_use.setValidStrings("use_library_score", StringList::create("true,false"));
-    scores_to_use.setValue("use_elution_model_score", "true", "Use the elution model (EMG) score", StringList::create("advanced"));
+    scores_to_use.setValue("use_elution_model_score", "true", "Use the elution model (EMG) score (this score fits a gaussian model to the peak and checks the fit)", StringList::create("advanced"));
     scores_to_use.setValidStrings("use_elution_model_score", StringList::create("true,false"));
     scores_to_use.setValue("use_intensity_score", "true", "Use the intensity score", StringList::create("advanced"));
     scores_to_use.setValidStrings("use_intensity_score", StringList::create("true,false"));
