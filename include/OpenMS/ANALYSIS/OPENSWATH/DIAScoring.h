@@ -55,12 +55,18 @@ namespace OpenMS
 
     - isotope scores:
       -- isotope_corr: computes the correlation of each fragment ion with the
-         theoretical isotope distribution.
+         theoretical isotope distribution. This is the pearson correlation to
+         the theoretical isotope pattern weighted by the relative intensity of
+         the transition (more is better).
       -- isotope_overlap: checks whether a signal at position (mz - 1) / charge
          exists and how strong it is. This would be an indication that the current
-         peak is an isotopic signal of another peak.
+         peak is an isotopic signal of another peak. This simply counts how
+         often a peak was observed that is higher than the current peak, thus
+         number is then weighted by the relative intensity of the transition
+         (thus less is better here).
 
-    - massdiff score: computes the difference in ppm of the experimental signal to the exepcted signal
+    - massdiff score: computes the difference in ppm of the experimental signal
+         to the expected signal (thus less is better)
 
     - b/y ion score: checks for the presence of b/y ions of the peptide in question
 

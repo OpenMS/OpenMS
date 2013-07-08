@@ -59,25 +59,52 @@ namespace OpenSwath
 
     /** @name Helper functions */
     //@{
-    /// Fxn "deltaRatioSum" from mQuest to calculate similarity between library intensity and experimental ones
-    OPENSWATHALGO_DLLAPI double RMSD(double x[], double y[], int n);
+    /** @brief Calculate the normalized Manhattan distance between two arrays
+     *
+     * Equivalent to the function "delta_ratio_sum" from mQuest to calculate
+     * similarity between library intensity and experimental ones.
+     *
+     * The delta_ratio_sum is calculated as follows:
+     
+       @f[
+       d = \sqrt{\frac{1}{N}  \sum_{i=0}^N |\frac{x_i}{\mu_x} - \frac{y_i}{\mu_y}|) }
+       @f]
+    */
+    OPENSWATHALGO_DLLAPI double NormalizedManhattanDist(double x[], double y[], int n);
 
-    /// Calculate crosscorrelation on std::vector data
-    OPENSWATHALGO_DLLAPI XCorrArrayType calcxcorr(std::vector<double>& data1,
+    /** @brief Calculate the RMSD (root means square deviation)
+     *
+     * The RMSD is calculated as follows:
+     
+       @f[
+       RMSD = \sqrt{\frac{1}{N}  \sum_{i=0}^N (x_i - y_i)^2 } 
+       @f]
+    */
+    OPENSWATHALGO_DLLAPI double RootMeanSquareDeviation(double x[], double y[], int n);
+
+    /** @brief Calculate the Spectral angle (acosine of the normalized dotproduct)
+     *
+     * The spectral angle is calculated as follows:
+     
+       @f[
+       \theta = acos \left( \frac{\sum_{i=0}^N (x_i * y_i))}{\sqrt{\sum_{i=0}^N (x_i * x_i) \sum_{i=0}^N (y_i * y_i)} }  \right)
+       @f]
+    */
+    OPENSWATHALGO_DLLAPI double SpectralAngle(double x[], double y[], int n);
+
+    /// Calculate crosscorrelation on std::vector data - Deprecated!
+    /// Legacy code, this is a 1:1 port of the function from mQuest
+    OPENSWATHALGO_DLLAPI XCorrArrayType calcxcorr_legacy_mquest_(std::vector<double>& data1,
                                                   std::vector<double>& data2, bool normalize);
 
     /// Calculate crosscorrelation on std::vector data (which is first normalized)
-    OPENSWATHALGO_DLLAPI XCorrArrayType normalizedCalcxcorr(std::vector<double>& data1,
+    /// NOTE: this replaces calcxcorr 
+    OPENSWATHALGO_DLLAPI XCorrArrayType normalizedCrossCorrelation(std::vector<double>& data1,
                                                             std::vector<double>& data2, int maxdelay, int lag);
 
     /// Calculate crosscorrelation on std::vector data without normalization
-    OPENSWATHALGO_DLLAPI XCorrArrayType calcxcorr_new(std::vector<double>& data1,
+    OPENSWATHALGO_DLLAPI XCorrArrayType calculateCrossCorrelation(std::vector<double>& data1,
                                                       std::vector<double>& data2, int maxdelay, int lag);
-
-    /*
-    XCorrArrayType calcxcorr_lag1(std::vector<double> & data1,
-        std::vector<double> & data2, int maxdelay);
-    */
 
     /// Find best peak in an cross-correlation (highest apex)
     OPENSWATHALGO_DLLAPI XCorrArrayType::iterator xcorrArrayGetMaxPeak(XCorrArrayType & array);

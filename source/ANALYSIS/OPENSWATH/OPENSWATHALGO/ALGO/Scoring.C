@@ -62,7 +62,7 @@ namespace OpenSwath
       }
     }
 
-    double RMSD(double x[], double y[], int n)
+    double NormalizedManhattanDist(double x[], double y[], int n)
     {
       OPENMS_PRECONDITION(n > 0, "Need at least one element");
 
@@ -74,6 +74,38 @@ namespace OpenSwath
         delta_ratio_sum += std::fabs(x[i] - y[i]);
       }
       return delta_ratio_sum / n;
+    }
+
+    double RootMeanSquareDeviation(double x[], double y[], int n)
+    {
+      OPENMS_PRECONDITION(n > 0, "Need at least one element");
+
+      double result = 0;
+      for (int i = 0; i < n; i++)
+      {
+
+        result += (x[i] - y[i])*(x[i] - y[i]);
+      }
+      return std::sqrt(result / n);
+    }
+
+    double SpectralAngle(double x[], double y[], int n)
+    {
+      OPENMS_PRECONDITION(n > 0, "Need at least one element");
+
+      double dotprod = 0;
+      double x_len = 0;
+      double y_len = 0;
+      for (int i = 0; i < n; i++)
+      {
+        dotprod += x[i] * y[i];
+        x_len += x[i] * x[i];
+        y_len += y[i] * y[i];
+      }
+      x_len = std::sqrt(x_len);
+      y_len = std::sqrt(y_len);
+
+      return std::acos( dotprod / (x_len*y_len) );
     }
 
     XCorrArrayType::iterator xcorrArrayGetMaxPeak(XCorrArrayType & array)
@@ -112,7 +144,7 @@ namespace OpenSwath
       }
     }
 
-    XCorrArrayType normalizedCalcxcorr(std::vector<double> & data1,
+    XCorrArrayType normalizedCrossCorrelation(std::vector<double> & data1,
       std::vector<double> & data2, int maxdelay, int lag = 1)
     {
       OPENMS_PRECONDITION(data1.size() != 0 && data1.size() == data2.size(), "Both data vectors need to have the same length");
@@ -120,7 +152,7 @@ namespace OpenSwath
       // normalize the data
       standardize_data(data1);
       standardize_data(data2);
-      std::map<int, double> result = calcxcorr_new(data1, data2, maxdelay, lag);
+      std::map<int, double> result = calculateCrossCorrelation(data1, data2, maxdelay, lag);
       for (std::map<int, double>::iterator it = result.begin(); it != result.end(); it++)
       {
         it->second = it->second / data1.size();
@@ -128,7 +160,7 @@ namespace OpenSwath
       return result;
     }
 
-    XCorrArrayType calcxcorr_new(std::vector<double> & data1,
+    XCorrArrayType calculateCrossCorrelation(std::vector<double> & data1,
       std::vector<double> & data2, int maxdelay, int lag)
     {
       OPENMS_PRECONDITION(data1.size() != 0 && data1.size() == data2.size(), "Both data vectors need to have the same length");
@@ -155,7 +187,7 @@ namespace OpenSwath
       return result;
     }
 
-    XCorrArrayType calcxcorr(std::vector<double> & data1,
+    XCorrArrayType calcxcorr_legacy_mquest_(std::vector<double> & data1,
       std::vector<double> & data2, bool normalize)
     {
       OPENMS_PRECONDITION(!data1.empty() && data1.size() == data2.size(), "Both data vectors need to have the same length");

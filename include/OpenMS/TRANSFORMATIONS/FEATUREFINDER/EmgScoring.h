@@ -80,7 +80,6 @@ namespace OpenMS
     template<typename SpectrumType, class TransitionT>
     double calcElutionFitScore(MRMFeature & mrmfeature, MRMTransitionGroup<SpectrumType, TransitionT> & transition_group)
     {
-
       std::vector<double> fit_scores;
       double avg_score = 0;
       bool smooth_data = false;
@@ -114,7 +113,6 @@ namespace OpenMS
       // local PeakType is a small hack since here we *need* data of type
       // Peak1D, otherwise our fitter will not accept it.
       typedef Peak1D LocalPeakType;
-
 
       // -- cut line 301 of FeatureFinderAlgorithmMRM
       std::vector<LocalPeakType> data_to_fit;

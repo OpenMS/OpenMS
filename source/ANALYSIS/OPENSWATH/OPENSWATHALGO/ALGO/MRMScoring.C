@@ -42,6 +42,7 @@
 #include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/Scoring.h"
 #include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/StatsHelpers.h"
 
+
 #ifdef OPENMS_ASSERTIONS
 #define OPENMS_PRECONDITION(condition, message)\
 	if (!(condition))\
@@ -78,7 +79,7 @@ namespace OpenSwath
         //std::cout << " = Computing crosscorrelation " << i << " / "  << j << " or " << native_id << " vs " << native_id2 << std::endl;
         if (normalize)
         {
-          xcorr_matrix_[i][j] = Scoring::normalizedCalcxcorr(intensityi, intensityj, boost::numeric_cast<int>(intensityi.size()), 1);
+          xcorr_matrix_[i][j] = Scoring::normalizedCrossCorrelation(intensityi, intensityj, boost::numeric_cast<int>(intensityi.size()), 1);
         }
         else
         {
@@ -232,7 +233,7 @@ namespace OpenSwath
   }
 
   void MRMScoring::calcLibraryScore(OpenSwath::IMRMFeature * mrmfeature, const std::vector<TransitionType> & transitions,
-                                           double & correlation, double & rmsd, double & manhattan, double & dotprod)
+                                           double & correlation, double & delta_ratio_sum, double & manhattan, double & dotprod)
   {
     std::vector<double> library_intensity;
     std::vector<double> experimental_intensity;
@@ -268,7 +269,7 @@ namespace OpenSwath
     Scoring::normalize_sum(&experimental_intensity[0], boost::numeric_cast<unsigned int>(transitions.size()));
     Scoring::normalize_sum(&library_intensity[0], boost::numeric_cast<unsigned int>(transitions.size()));
 
-    rmsd = Scoring::RMSD(&experimental_intensity[0], &library_intensity[0], boost::numeric_cast<unsigned int>(transitions.size()));
+    delta_ratio_sum = Scoring::NormalizedManhattanDist(&experimental_intensity[0], &library_intensity[0], boost::numeric_cast<unsigned int>(transitions.size()));
     correlation = OpenSwath::cor_pearson(experimental_intensity.begin(), experimental_intensity.end(), library_intensity.begin());
 
 

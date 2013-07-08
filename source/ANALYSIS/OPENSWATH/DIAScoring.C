@@ -104,6 +104,8 @@ namespace OpenMS
   void DIAScoring::dia_isotope_scores(const std::vector<TransitionType>& transitions, SpectrumType spectrum,
                                       OpenSwath::IMRMFeature* mrmfeature, double& isotope_corr, double& isotope_overlap)
   {
+    isotope_corr = 0;
+    isotope_overlap = 0;
     // first compute a map of relative intensities from the feature, then compute the score
     std::map<std::string, double> intensities;
     getFirstIsotopeRelativeIntensities_(transitions, mrmfeature, intensities);
@@ -144,6 +146,8 @@ namespace OpenMS
                                     AASequence& sequence, int charge, double& bseries_score,
                                     double& yseries_score)
   {
+    bseries_score = 0;
+    yseries_score = 0;
     OPENMS_PRECONDITION(charge > 0, "Charge is a positive integer");
 
     double mz, intensity, left, right;

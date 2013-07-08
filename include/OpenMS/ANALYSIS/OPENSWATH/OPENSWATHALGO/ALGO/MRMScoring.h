@@ -57,7 +57,7 @@ namespace OpenSwath
       It uses scores based on different parameters of the peaks from the
       individual transitions and stores them individually. The idea and the
       scores are based on the following paper:
-        Reiter L, Rinner O, Picotti P, Httenhain R, Beck M, Brusniak MY,
+        Reiter L, Rinner O, Picotti P, Huettenhain R, Beck M, Brusniak MY,
         Hengartner MO, Aebersold R.  mProphet: automated data processing and
         statistical validation for large-scale SRM experiments.  Nat Methods.
         2011 May;8(5):430-5. Epub 2011 Mar 20.
