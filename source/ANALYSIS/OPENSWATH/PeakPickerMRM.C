@@ -44,6 +44,17 @@ namespace OpenMS
   PeakPickerMRM::PeakPickerMRM() :
       DefaultParamHandler("PeakPickerMRM")
   {
+    // NEW default settings: recommeded: 
+    // 
+    // sgolay_frame_length = 9  (29.7s on our data)
+    // gauss_width = 30  (if even gauss is used)
+    // use_gauss = false
+    //
+    //
+    // THIS is the most important change !! this caused a lot of trouble ... 
+    // peak_width = -1 (do not force a certain width)
+    // method = corrected
+    //
     defaults_.setValue("sgolay_frame_length", 15, "The number of subsequent data points used for smoothing.\nThis number has to be uneven. If it is not, 1 will be added.");
     defaults_.setValue("sgolay_polynomial_order", 3, "Order or the polynomial that is fitted.");
     defaults_.setValue("gauss_width", 50.0, "Gaussian width in seconds, estimated peak size.");
