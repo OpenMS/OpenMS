@@ -121,9 +121,9 @@ START_SECTION(void pickChromatogram(const RichPeakChromatogram &chromatogram, Ri
   // and searching for the point with zero derivative.
   TEST_REAL_SIMILAR( picked_chrom[0].getIntensity(), 9981.76460102146);
   TEST_REAL_SIMILAR( picked_chrom[0].getMZ(), 1495.11321013749);
-  TEST_REAL_SIMILAR( picked_chrom.getFloatDataArrays()[0][0], 59509.4); // IntegratedIntensity
+  TEST_REAL_SIMILAR( picked_chrom.getFloatDataArrays()[0][0], 60124.9); // IntegratedIntensity
   TEST_REAL_SIMILAR( picked_chrom.getFloatDataArrays()[1][0], 1490.95); // leftWidth
-  TEST_REAL_SIMILAR( picked_chrom.getFloatDataArrays()[2][0], 1496.48); // rightWidth
+  TEST_REAL_SIMILAR( picked_chrom.getFloatDataArrays()[2][0], 1502.03); // rightWidth
 
   // chrom = transition_group.getChromatograms()[1];
   chrom = get_chrom(1);

@@ -171,7 +171,7 @@ namespace OpenMS
       const Size min_i = current_peak;
 
       // peak core found, now extend it to the left
-      Size k = 1;
+      Size k = 2;
       while ((min_i - k + 1) > 0
              //&& std::fabs(chromatogram[min_i-k].getMZ() - peak_raw_data.begin()->first) < spacing_difference*min_spacing
             && (chromatogram[min_i - k].getIntensity() < chromatogram[min_i - k + 1].getIntensity() 
@@ -184,7 +184,7 @@ namespace OpenMS
       int left_idx = min_i-k+1;
 
       // to the right
-      k = 1;
+      k = 2;
       while ((min_i + k) < chromatogram.size()
              //&& std::fabs(chromatogram[min_i+k].getMZ() - peak_raw_data.rbegin()->first) < spacing_difference*min_spacing
             && (chromatogram[min_i + k].getIntensity() < chromatogram[min_i + k -1].getIntensity() 
@@ -210,7 +210,7 @@ namespace OpenMS
 #ifdef WITH_CRAWDAD
   void PeakPickerMRM::pickChromatogramCrowdad(const RichPeakChromatogram& chromatogram, RichPeakChromatogram& picked_chrom)
   {
-    std::cout << " using crawdad " << std::endl;
+    LOG_DEBUG << "Picking chromatogram using crawdad " << std::endl;
 
     std::vector<double> time;
     std::vector<double> intensity;
@@ -231,7 +231,6 @@ namespace OpenMS
     picked_chrom.getFloatDataArrays()[2].setName("rightWidth");
     for(std::vector<crawpeaks::SlimCrawPeak>::iterator it = result.begin(); it != result.end(); it++)
     {
-
       ChromatogramPeak p;
       p.setRT( chromatogram[it->peak_rt_idx].getRT() );
       p.setIntensity( it->peak_area ); //chromatogram[it->peak_rt_idx].getIntensity() );
