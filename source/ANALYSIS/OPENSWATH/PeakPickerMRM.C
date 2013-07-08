@@ -59,6 +59,9 @@ namespace OpenMS
 
     defaults_.setValue("remove_overlapping_peaks", "false", "Try to remove overlappign peaks during peak picking");
 
+    defaults_.setValue("method", "legacy", "Which method to choose for chromatographic peak-picking (OpenSWATH legacy, corrected picking or Crawdad)");
+    defaults_.setValidStrings("method", StringList::create("legacy,corrected,crawdad"));
+
     // write defaults into Param object param_
     defaultsToParam_();
     updateMembers_();
@@ -66,6 +69,15 @@ namespace OpenMS
 
   void PeakPickerMRM::pickAndSmoothChromatogram(const RichPeakChromatogram& chromatogram, RichPeakChromatogram& picked_chrom)
   {
+    picked_chrom.clear(true);
+
+    // Crowdad has its own methods, so we can call the wrapper directly
+    if (method_ == "crawdad")
+    {
+      pickChromatogramCrowdad(chromatogram, picked_chrom);
+      return;
+    }
+
     // Smooth the chromatogram
     RichPeakChromatogram smoothed_chrom = chromatogram;
     if (!use_gauss_)
@@ -272,7 +284,23 @@ namespace OpenMS
     signal_to_noise_ = (DoubleReal)param_.getValue("signal_to_noise");
     sn_win_len_ = (DoubleReal)param_.getValue("sn_win_len");
     sn_bin_count_ = (UInt)param_.getValue("sn_bin_count");
+    // TODO make list, not boolean
     use_gauss_ = (bool)param_.getValue("use_gauss").toBool();
     remove_overlapping_ = (bool)param_.getValue("remove_overlapping_peaks").toBool();
+    method_ = (String)param_.getValue("method");
+
+    if (method_ != "crawdad" && method_ != "corrected" && method_ != "legacy")
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+        "Method needs to be one of: crawdad, corrected, legacy");
+    }
+
+#ifndef WITH_CRAWDAD
+    if (method_ == "crawdad")
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+        "PeakPickerMRM was not compiled with crawdad, please choose a different algorithm!");
+    }
+#endif
   }
 }

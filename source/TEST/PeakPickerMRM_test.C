@@ -55,11 +55,11 @@ RichPeakChromatogram get_chrom(int i)
   // this is a simulated SRM experiment where the two traces are not sampled at
   // the exact same time points, thus a resampling is necessary before applying
   // the algorithm.
-  static const double rtdata_1[] = {1474.34, 1477.11, 1479.88, 1482.64, 1485.41, 1488.19, 1490.95, 1493.72, 1496.48, 1499.25, 1502.03, 1504.8 , 1507.56, 1510.33, 1513.09, 1515.87, 1518.64, 1521.42};
-  static const double rtdata_2[] = {1473.55, 1476.31, 1479.08, 1481.84, 1484.61, 1487.39, 1490.15, 1492.92, 1495.69, 1498.45, 1501.23, 1504   , 1506.76, 1509.53, 1512.29, 1515.07, 1517.84, 1520.62};
+  static const double rtdata_1[] = {1474.34, 1477.11,  1479.88, 1482.64, 1485.41, 1488.19, 1490.95, 1493.72, 1496.48, 1499.25, 1502.03, 1504.8 , 1507.56, 1510.33, 1513.09, 1515.87, 1518.64, 1521.42};
+  static const double rtdata_2[] = {1473.55, 1476.31,  1479.08, 1481.84, 1484.61, 1487.39, 1490.15, 1492.92, 1495.69, 1498.45, 1501.23, 1504   , 1506.76, 1509.53, 1512.29, 1515.07, 1517.84, 1520.62};
 
   static const double intdata_1[] = {3.26958, 3.74189, 3.31075, 86.1901, 3.47528, 387.864, 13281  , 6375.84, 39852.6, 2.66726, 612.747, 3.34313, 793.12 , 3.29156, 4.00586, 4.1591 , 3.23035, 3.90591};
-  static const double intdata_2[] =  {3.44054 , 2142.31 , 3.58763 , 3076.97 , 6663.55 , 45681   , 157694  , 122844  , 86034.7 , 85391.1 , 15992.8 , 2293.94 , 6934.85 , 2735.18 , 459.413 , 3.93863 , 3.36564 , 3.44005};
+  static const double intdata_2[] = {3.44054, 2142.31, 3.58763, 3076.97, 6663.55, 45681 ,  157694 , 122844 , 86034.7, 85391.1, 15992.8, 2293.94, 6934.85, 2735.18, 459.413, 3.93863, 3.36564, 3.44005};
 
   RichPeakChromatogram chromatogram;
   for (int k = 0; k < 18; k++)
@@ -109,6 +109,9 @@ START_SECTION(void pickAndSmoothChromatogram(const RichPeakChromatogram &chromat
   //RichPeakChromatogram chrom = transition_group.getChromatograms()[0];
   chrom = get_chrom(0);
   PeakPickerMRM picker;
+  Param picker_param = picker.getDefaults();
+  picker_param.setValue("method", "legacy");
+  picker.setParameters(picker_param);
   picker.pickAndSmoothChromatogram(chrom, picked_chrom);
 
   TEST_EQUAL( picked_chrom.size(), 1);
@@ -136,6 +139,29 @@ START_SECTION(void pickAndSmoothChromatogram(const RichPeakChromatogram &chromat
   TEST_REAL_SIMILAR( picked_chrom.getFloatDataArrays()[0][0], 523378); // IntegratedIntensity
   TEST_REAL_SIMILAR( picked_chrom.getFloatDataArrays()[1][0], 1481.84); // leftWidth
   TEST_REAL_SIMILAR( picked_chrom.getFloatDataArrays()[2][0], 1501.23); // rightWidth
+
+#ifdef WITH_CRAWDAD
+  chrom = get_chrom(0);
+  picker_param.setValue("method", "crawdad");
+  picker.setParameters(picker_param);
+  picker.pickAndSmoothChromatogram(chrom, picked_chrom);
+  TEST_REAL_SIMILAR( picked_chrom[0].getIntensity(), 61366.56640625);
+  TEST_REAL_SIMILAR( picked_chrom[0].getMZ(), 1496.48);
+  TEST_REAL_SIMILAR( picked_chrom.getFloatDataArrays()[0][0], 61366.6); // IntegratedIntensity
+  TEST_REAL_SIMILAR( picked_chrom.getFloatDataArrays()[1][0], 1479.88); // leftWidth
+  TEST_REAL_SIMILAR( picked_chrom.getFloatDataArrays()[2][0], 1510.33); // rightWidth
+
+  chrom = get_chrom(1);
+  picker.pickAndSmoothChromatogram(chrom, picked_chrom);
+  TEST_EQUAL( picked_chrom.size(), 1);
+  TEST_EQUAL( picked_chrom.getFloatDataArrays().size(), 3);
+
+  TEST_REAL_SIMILAR( picked_chrom[0].getIntensity(), 533936.875);
+  TEST_REAL_SIMILAR( picked_chrom[0].getMZ(), 1490.15);
+  TEST_REAL_SIMILAR( picked_chrom.getFloatDataArrays()[0][0], 533936.875); // IntegratedIntensity
+  TEST_REAL_SIMILAR( picked_chrom.getFloatDataArrays()[1][0], 1479.08); // leftWidth
+  TEST_REAL_SIMILAR( picked_chrom.getFloatDataArrays()[2][0], 1509.53); // rightWidth
+#endif
 }
 END_SECTION
 
