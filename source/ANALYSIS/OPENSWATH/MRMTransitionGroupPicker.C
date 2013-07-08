@@ -47,6 +47,7 @@ namespace OpenMS
   {
     defaults_.setValue("stop_after_feature", -1, "Stop finding after feature (ordered by intensity; -1 means do not stop).");
     defaults_.setValue("stop_after_intensity_ratio", 0.0001, "Stop after reaching intensity ratio");
+    defaults_.setValue("min_peak_width", -1.0, "Minimal peak width (s)");
 
     defaults_.setValue("background_subtraction", "none", "Try to apply a background subtraction to the peak (experimental). The background is estimated at the peak boundaries, either the smoothed or the raw chromatogram data can be used for that."); //, StringList::create("advanced"));
     defaults_.setValidStrings("background_subtraction", StringList::create("none,smoothed,original"));
@@ -77,6 +78,7 @@ namespace OpenMS
     stop_after_feature_ = (int)param_.getValue("stop_after_feature");
     stop_after_intensity_ratio_ = (DoubleReal)param_.getValue("stop_after_intensity_ratio");
     background_subtraction_ = param_.getValue("background_subtraction");
+    min_peak_width_ = (DoubleReal)param_.getValue("min_peak_width");
   }
 
   double MRMTransitionGroupPicker::calculateBgEstimation_(const RichPeakChromatogram& smoothed_chromat, double best_left, double best_right)

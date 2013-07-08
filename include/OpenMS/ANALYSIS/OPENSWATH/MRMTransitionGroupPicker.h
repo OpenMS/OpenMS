@@ -160,8 +160,9 @@ public:
       std::vector<SpectrumT> & picked_chroms, std::vector<SpectrumT> & smoothed_chroms_, int & chr_idx, int & peak_idx)
     {
       MRMFeature mrmFeature;
-      const double best_left = picked_chroms[chr_idx].getFloatDataArrays()[1][peak_idx];
-      const double best_right = picked_chroms[chr_idx].getFloatDataArrays()[2][peak_idx];
+      mrmFeature.setIntensity(0.0);
+      double best_left = picked_chroms[chr_idx].getFloatDataArrays()[1][peak_idx];
+      double best_right = picked_chroms[chr_idx].getFloatDataArrays()[2][peak_idx];
       const double peak_apex = picked_chroms[chr_idx][peak_idx].getRT();
 
       // Remove other, overlapping, picked peaks (in this and other
@@ -169,6 +170,9 @@ public:
       // (the currently best peak).
       remove_overlapping_features(picked_chroms, best_left, best_right);
       picked_chroms[chr_idx][peak_idx].setIntensity(0.0);
+
+      // Check for minimal peak width
+      if( min_peak_width_ > 0.0 && std::fabs(best_right-best_left) < min_peak_width_) {return mrmFeature;}
 
       // Prepare linear resampling of all the chromatograms, here creating the
       // empty master_peak_container with the same RT (m/z) values as the reference
@@ -396,7 +400,7 @@ protected:
 
     int stop_after_feature_;
     DoubleReal stop_after_intensity_ratio_;
-
+    DoubleReal min_peak_width_;
   };
 }
 
