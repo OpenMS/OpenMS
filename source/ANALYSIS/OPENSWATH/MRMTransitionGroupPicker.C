@@ -34,6 +34,11 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h>
 
+#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
+#include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
+#include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
+#include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>
+
 namespace OpenMS
 {
 
@@ -58,6 +63,8 @@ namespace OpenMS
 
     defaults_.setValue("background_subtraction", "none", "Try to apply a background subtraction to the peak (experimental). The background is estimated at the peak boundaries, either the smoothed or the raw chromatogram data can be used for that."); //, StringList::create("advanced"));
     defaults_.setValidStrings("background_subtraction", StringList::create("none,smoothed,original"));
+
+    defaults_.setValue("remove_overlapping_peaks", "false", "Try to remove overlappign peaks during peak picking");
 
     // write defaults into Param object param_
     defaultsToParam_();
@@ -88,6 +95,7 @@ namespace OpenMS
     sn_win_len_ = (DoubleReal)param_.getValue("sn_win_len");
     sn_bin_count_ = (UInt)param_.getValue("sn_bin_count");
     use_gauss_ = (bool)param_.getValue("use_gauss").toBool();
+    remove_overlapping_ = (bool)param_.getValue("remove_overlapping_peaks").toBool();
 
     stop_after_feature_ = (int)param_.getValue("stop_after_feature");
     stop_after_intensity_ratio_ = (DoubleReal)param_.getValue("stop_after_intensity_ratio");
@@ -136,6 +144,7 @@ namespace OpenMS
     snt.setParameters(snt_parameters);
 
     snt.init(chromatogram);
+    LOG_DEBUG << " ====  Picking chromatogram " << chromatogram.getNativeID() << std::endl;
     for (Size i = 0; i < picked_chrom.size(); i++)
     {
 
@@ -197,23 +206,95 @@ namespace OpenMS
       // more interesting.
       // weighted_mz /= integrated_intensity;
 
-#ifdef DEBUG_MRMPEAKPICKER
-      double central_peak_int = picked_chrom[i].getIntensity();
-      std::cout << "Found peak at " << central_peak_mz << " and "  << central_peak_int << " with borders " << leftborder << " " << rightborder <<  " (" << rightborder - leftborder << ") " << integrated_intensity << " weighted RT " << /* weighted_mz << */ std::endl;
-#endif
-
+      LOG_DEBUG << "Found peak at " << central_peak_mz << " and "  << picked_chrom[i].getIntensity() 
+        << " with borders " << leftborder << " " << rightborder <<  " (" << rightborder - leftborder << ") " 
+        << integrated_intensity << " weighted RT " << /* weighted_mz << */ std::endl;
 
       picked_chrom.getFloatDataArrays()[0].push_back(integrated_intensity);
       picked_chrom.getFloatDataArrays()[1].push_back(leftborder);
       picked_chrom.getFloatDataArrays()[2].push_back(rightborder);
-
-      /*
-      picked_chrom.getFloatDataArrays()[0].push_back( integrated_intensity );
-      picked_chrom.getFloatDataArrays()[1].push_back( picked_chrom[i].getMZ() - peak_width / 2.0);
-      picked_chrom.getFloatDataArrays()[2].push_back( picked_chrom[i].getMZ() + peak_width / 2.0);
-      */
     }
 
+    if (remove_overlapping_)
+      removeOverlappingPeaks_(chromatogram, picked_chrom);
+  }
+
+  void MRMTransitionGroupPicker::removeOverlappingPeaks_(const RichPeakChromatogram& chromatogram, RichPeakChromatogram& picked_chrom)
+  {
+    LOG_DEBUG  << "Remove overlapping peaks now" << std::endl;
+    Size current_peak = 0;
+    // Find overlapping peaks
+    for (Size i = 0; i < picked_chrom.size() - 1; i++)
+    {
+      const double current_left   = picked_chrom.getFloatDataArrays()[1][i];
+      const double current_right  = picked_chrom.getFloatDataArrays()[2][i];
+      const double next_left   = picked_chrom.getFloatDataArrays()[1][i+1];
+      const double next_right  = picked_chrom.getFloatDataArrays()[2][i+1];
+      if ( current_right > next_left)
+      {
+        LOG_DEBUG << " Found overlapping " << i << " : " << current_left << " " << current_right << std::endl;
+        LOG_DEBUG << "                   -- with  " << i +1 << " : " << next_left << " " << next_right << std::endl;
+        // See whether we can correct this and find some border between the two features ... 
+
+        // Find the peak width and best RT
+        double central_peak_mz = picked_chrom[i].getMZ();
+        double next_peak_mz = picked_chrom[i+1].getMZ();
+
+        current_peak = findClosestPeak_(chromatogram, central_peak_mz, current_peak);
+        Size next_peak = findClosestPeak_(chromatogram, next_peak_mz, current_peak);
+
+        // adjust the right border of the current and left border of next
+        
+        // extend current peak to the right
+        Size k = 1;
+        while ((current_peak + k) < chromatogram.size()
+              && (chromatogram[current_peak + k].getIntensity() < chromatogram[current_peak + k - 1].getIntensity() ))
+        {
+          ++k;
+        }
+        Size new_right_border = current_peak + k - 1;
+
+        // extend next peak to the left
+        k = 1;
+        while ((next_peak - k + 1) > 0
+              && (chromatogram[next_peak - k].getIntensity() < chromatogram[next_peak - k + 1].getIntensity() ))
+        {
+          ++k;
+        }
+        Size new_left_border = next_peak - k + 1;
+
+        // check that the peaks are now not overlapping any more ... 
+        if ( new_left_border < new_right_border) 
+          {throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+              "Something went wrong, peaks are still overlapping!");}
+
+        // set new right/left borders
+        picked_chrom.getFloatDataArrays()[2][i] = chromatogram[new_right_border].getMZ();
+        picked_chrom.getFloatDataArrays()[1][i+1] = chromatogram[new_left_border].getMZ();
+      }
+    }
+  }
+
+  Size MRMTransitionGroupPicker::findClosestPeak_(const RichPeakChromatogram& chromatogram, double central_peak_mz, Size current_peak)
+  {
+    while( current_peak < chromatogram.size() )
+    {
+      // check if we have walked past the RT of the peak
+      if (central_peak_mz - chromatogram[current_peak].getMZ() < 0.0)
+      {
+        // see which one is closer, the current one or the one before
+        if (current_peak > 0 && 
+            std::fabs(central_peak_mz - chromatogram[current_peak-1].getMZ()) < 
+            std::fabs(central_peak_mz - chromatogram[current_peak].getMZ()) )
+        {
+          current_peak--;
+        }
+
+        return current_peak;
+      }
+      current_peak++;
+    }
+    return current_peak;
   }
 
   double MRMTransitionGroupPicker::calculateBgEstimation_(const RichPeakChromatogram& smoothed_chromat, double best_left, double best_right)

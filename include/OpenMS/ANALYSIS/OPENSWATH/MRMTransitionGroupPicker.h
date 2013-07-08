@@ -41,14 +41,9 @@
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/KERNEL/ChromatogramPeak.h>
 
-#include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
-#include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
-#include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>
 
 #include <OpenMS/FILTERING/TRANSFORMERS/LinearResampler.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/LinearResamplerAlign.h>
-
-#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 
 //#define DEBUG_TRANSITIONGROUPPICKER
 
@@ -87,6 +82,7 @@ protected:
     UInt sgolay_polynomial_order_;
     DoubleReal gauss_width_;
     bool use_gauss_;
+    bool remove_overlapping_;
 
     String background_subtraction_;
 
@@ -185,6 +181,21 @@ protected:
     /// Assignment operator is private for algorithm
     MRMTransitionGroupPicker& operator=(const MRMTransitionGroupPicker& rhs);
 
+    /**
+      @brief Helper function to find the closest peak in a chromatogram to "target_rt" 
+
+      The search will start from the index current_peak, so the function is
+      assuming the closest peak is to the right of current_peak.
+
+      It will return the index of the closest peak in the chromatogram.
+    */
+    Size findClosestPeak_(const RichPeakChromatogram& chromatogram, double target_rt, Size current_peak = 0);
+
+    /**
+      @brief Helper function to remove overlapping peaks in a single Chromatogram
+    */
+    void removeOverlappingPeaks_(const RichPeakChromatogram& chromatogram, RichPeakChromatogram& picked_chrom);
+
 public:
 
     //@{
@@ -195,9 +206,22 @@ public:
     ~MRMTransitionGroupPicker();
     //@}
 
-    /// This function will accept a MRMTransitionGroup with raw chromatograms,
-    /// create features on it and add the features back to the
-    /// MRMTransitionGroup.
+    /**
+      @brief Pick a group of chromatograms belonging to the same peptide
+
+      Will identify peaks in a set of chromatograms that belong to the same
+      peptide. The chromatograms are given inthe MRMTransitionGroup container
+      which also contains the mapping of the chromatograms to their metadata.
+
+      The resulting features are added added to the MRMTransitionGroup. Each feature contains the following meta-data:
+
+      - PeptideRef
+      - leftWidth
+      - rightWidth
+      - total_xic
+      - peak_apices_sum
+
+    */
     template <typename SpectrumT, typename TransitionT>
     void pickTransitionGroup(MRMTransitionGroup<SpectrumT, TransitionT> & transition_group)
     {
@@ -248,8 +272,13 @@ public:
       }
     }
 
-    /// Finds peaks in a chromatogram and annotates left/right borders
-    // This function will return a smoothed chromatogram and a picked chromatogram
+    /**
+      @brief Finds peaks in a single chromatogram and annotates left/right borders
+
+      It uses a modified algorithm of the PeakPickerHiRes
+
+      This function will return a smoothed chromatogram and a picked chromatogram
+    */
     void pickChromatogram(const RichPeakChromatogram& chromatogram, RichPeakChromatogram& smoothed_chrom, RichPeakChromatogram& picked_chrom);
 
     /// Create feature from a vector of chromatograms and a specified peak
@@ -371,8 +400,18 @@ public:
     }
 
     // maybe private, but we have tests
+    /**
+      @brief Remove overlaping features.
+      
+      Remove features that are within the current seed (between best_left and
+      best_right) or overlap with it. An overlapping feature is defined as a
+      feature that has either of its borders within the border of the current
+      peak 
+      
+      Directly adjacent features are allowed, e.g. they can share one
+      border.
 
-    /// Remove overlaping features that are within the current seed feature or overlap with it
+    */
     template <typename SpectrumT>
     void remove_overlapping_features(std::vector<SpectrumT> & picked_chroms, double best_left, double best_right)
     {
@@ -395,8 +434,8 @@ public:
         {
           double left = picked_chroms[k].getFloatDataArrays()[1][i];
           double right = picked_chroms[k].getFloatDataArrays()[2][i];
-          if ((left >= best_left && left <= best_right)
-             || (right >= best_left && right <= best_right))
+          if ((left > best_left && left < best_right)
+             || (right > best_left && right < best_right))
           {
             picked_chroms[k][i].setIntensity(0.0);
           }
