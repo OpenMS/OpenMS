@@ -147,49 +147,13 @@ START_SECTION((template < typename SpectrumT, typename TransitionT > void pickTr
 }
 END_SECTION
 
-START_SECTION(void pickChromatogram(const RichPeakChromatogram &chromatogram, RichPeakChromatogram &smoothed_chrom, RichPeakChromatogram &picked_chrom))
+START_SECTION((MRMFeature createMRMFeature(MRMTransitionGroup<SpectrumT, TransitionT> & transition_group,
+      std::vector<SpectrumT> & picked_chroms, std::vector<SpectrumT> & smoothed_chroms_, int & chr_idx, int & peak_idx)))
 {
   MRMTransitionGroupType transition_group;
   setup_transition_group(transition_group);
   std::vector< RichPeakChromatogram > picked_chroms;
-
-  RichPeakChromatogram picked_chrom, smoothed_chrom;
-  RichPeakChromatogram chrom = transition_group.getChromatograms()[0];
-  MRMTransitionGroupPicker picker;
-  picker.pickChromatogram(chrom, smoothed_chrom, picked_chrom);
-
-  TEST_EQUAL( picked_chrom.size(), 1);
-  TEST_EQUAL( picked_chrom.getFloatDataArrays().size(), 3);
-
-  // Peak picking is done on the smoothed data by cubic spline interpolation
-  // and searching for the point with zero derivative.
-  TEST_REAL_SIMILAR( picked_chrom[0].getIntensity(), 9981.76460102146);
-  TEST_REAL_SIMILAR( picked_chrom[0].getMZ(), 1495.11321013749);
-  TEST_REAL_SIMILAR( picked_chrom.getFloatDataArrays()[0][0], 59509.4); // IntegratedIntensity
-  TEST_REAL_SIMILAR( picked_chrom.getFloatDataArrays()[1][0], 1490.95); // leftWidth
-  TEST_REAL_SIMILAR( picked_chrom.getFloatDataArrays()[2][0], 1496.48); // rightWidth
-
-  chrom = transition_group.getChromatograms()[1];
-  picker.pickChromatogram(chrom, smoothed_chrom, picked_chrom);
-
-  TEST_EQUAL( picked_chrom.size(), 1);
-  TEST_EQUAL( picked_chrom.getFloatDataArrays().size(), 3);
-
-  // Peak picking is done on the smoothed data by cubic spline interpolation
-  // and searching for the point with zero derivative.
-  TEST_REAL_SIMILAR( picked_chrom[0].getIntensity(), 78719.134569503);
-  TEST_REAL_SIMILAR( picked_chrom[0].getMZ(), 1492.830608593);
-  TEST_REAL_SIMILAR( picked_chrom.getFloatDataArrays()[0][0], 523378); // IntegratedIntensity
-  TEST_REAL_SIMILAR( picked_chrom.getFloatDataArrays()[1][0], 1481.84); // leftWidth
-  TEST_REAL_SIMILAR( picked_chrom.getFloatDataArrays()[2][0], 1501.23); // rightWidth
-}
-END_SECTION
-
-START_SECTION( ( template < typename SpectrumT, typename TransitionT > MRMFeature createMRMFeature(MRMTransitionGroup< SpectrumT, TransitionT > &transition_group, std::vector< SpectrumT > &picked_chroms, int &chr_idx, int &peak_idx)))
-{
-  MRMTransitionGroupType transition_group;
-  setup_transition_group(transition_group);
-  std::vector< RichPeakChromatogram > picked_chroms;
+  std::vector< RichPeakChromatogram > smoothed_chroms;
 
   double left_start = 1481.840;
   double right_end = 1512.290;
@@ -219,7 +183,7 @@ START_SECTION( ( template < typename SpectrumT, typename TransitionT > MRMFeatur
   // create the corresponding first mrm feature
   int chr_idx = 1, peak_idx = 0;
   MRMTransitionGroupPicker picker;
-  MRMFeature mrmfeature = picker.createMRMFeature(transition_group, picked_chroms, chr_idx, peak_idx);
+  MRMFeature mrmfeature = picker.createMRMFeature(transition_group, picked_chroms, smoothed_chroms, chr_idx, peak_idx);
   TEST_REAL_SIMILAR(mrmfeature.getRT(), 1490.0)
 
   // test the number of hull points (should be equal)

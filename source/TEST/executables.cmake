@@ -537,6 +537,7 @@ if(NOT DISABLE_OPENSWATH)
     TransitionTSVReader_test
     ChromatogramExtractor_test
     OpenSwathHelper_test
+    PeakPickerMRM_test
     MRMTransitionGroupPicker_test
     DIAHelper_test
     DIAScoring_test
