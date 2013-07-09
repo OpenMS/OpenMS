@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
-// $Authors: $
+// $Maintainer: Stephan Aiche $
+// $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_FORMAT_XTANDEMINFILE_H
@@ -43,11 +43,11 @@
 namespace OpenMS
 {
   /**
-      @brief XTandem input file adapter
+    @brief XTandem input file.
 
-      This class is able to create a X!Tandem configuration file for a search
+    This class is able to create a X!Tandem configuration files to be used with Xtandem.
 
-  @ingroup FileIO
+    @ingroup FileIO
   */
   class OPENMS_DLLAPI XTandemInfile :
     public Internal::XMLFile
@@ -67,7 +67,6 @@ public:
       MONOISOTOPIC = 0,
       AVERAGE
     };
-
 
     /// constructor
     XTandemInfile();
@@ -130,40 +129,40 @@ public:
     UInt getNumberOfThreads() const;
 
     /// sets the modifications using a modification definitions set
-    void setModifications(const ModificationDefinitionsSet & mods);
+    void setModifications(const ModificationDefinitionsSet& mods);
 
     /// returns the modifications set, using a modification definitions set
-    const ModificationDefinitionsSet & getModifications() const;
+    const ModificationDefinitionsSet& getModifications() const;
 
     /// sets the output filename
-    void setOutputFilename(const String & output);
+    void setOutputFilename(const String& output);
 
     /// returns the output filename
-    const String & getOutputFilename() const;
+    const String& getOutputFilename() const;
 
     /// sets the input filename
-    void setInputFilename(const String & input_file);
+    void setInputFilename(const String& input_file);
 
     /// returns the input filename
-    const String & getInputFilename() const;
+    const String& getInputFilename() const;
 
     /// set the filename of the taxonomy file
-    void setTaxonomyFilename(const String & filename);
+    void setTaxonomyFilename(const String& filename);
 
     /// returns the filename of the taxonomy file
-    const String & getTaxonomyFilename() const;
+    const String& getTaxonomyFilename() const;
 
     /// sets the default paramters file
-    void setDefaultParametersFilename(const String & filename);
+    void setDefaultParametersFilename(const String& filename);
 
     /// returns the default parameters file
-    const String & getDefaultParametersFilename() const;
+    const String& getDefaultParametersFilename() const;
 
     /// sets the taxon used in the taxonomy file
-    void setTaxon(const String & taxon);
+    void setTaxon(const String& taxon);
 
     /// returns the taxon used in the taxonomy file
-    const String & getTaxon() const;
+    const String& getTaxon() const;
 
     /// sets the max precursor charge
     void setMaxPrecursorCharge(Int max_charge);
@@ -192,34 +191,44 @@ public:
     /// set state of refine setting
     void setRefine(const bool refine);
 
-    /** writes the XTandemInfile to the given file
+    /** 
+      @brief Writes the XTandemInfile to the given file
 
-            @param filename the name of the file which is written
-            @throw UnableToCreateFile is thrown if the given file could not be created
+      @param filename the name of the file which is written
+      @throw UnableToCreateFile is thrown if the given file could not be created
     */
-    void write(const String & filename);
+    void write(const String& filename);
 
-    /** read the information from the given filename
+    /** 
+      @brief Reads the information from the given filename
 
-            @param filename the file which should be read from
-            @throw FileNotFound is thrown if the given file could not be found
-            @throw ParseError is thrown if the given file could not be parsed
+      @param filename the file which should be read from
+      @throw FileNotFound is thrown if the given file could not be found
+      @throw ParseError is thrown if the given file could not be parsed
     */
-    void load(const String & filename);
+    void load(const String& filename);
 
 protected:
 
-    XTandemInfile(const XTandemInfile & rhs);
+    XTandemInfile(const XTandemInfile& rhs);
 
-    XTandemInfile & operator=(const XTandemInfile & rhs);
+    XTandemInfile& operator=(const XTandemInfile& rhs);
 
-    void writeTo_(std::ostream & os);
+    void writeTo_(std::ostream& os);
 
-    void writeNote_(std::ostream & os, const String & type, const String & label, const String & value);
+    void writeNote_(std::ostream& os, const String& type, const String& label, const String& value);
 
-    void writeNote_(std::ostream & os, const String & type, const String & label, const char * value);
+    void writeNote_(std::ostream& os, const String& type, const String& label, const char* value);
 
-    void writeNote_(std::ostream & os, const String & type, const String & label, bool value);
+    void writeNote_(std::ostream& os, const String& type, const String& label, bool value);
+
+    /**
+      @brief Converts the given set of Modifications into a format compatible to X!Tandem.
+
+      @param mods The modifications to convert.
+      @return A X!Tandem compatible string representation.
+    */
+    String convertModificationSet_(const std::set<ModificationDefinition>& mods) const;
 
     double fragment_mass_tolerance_;
 
@@ -257,10 +266,10 @@ protected:
 
     String cleavage_site_;
 
-    // Sment
+    /// Enable/disable xtandem refinement
     bool refine_;
 
-    //semi cleavage
+    /// semi cleavage
     bool semi_cleavage_;
 
     double refine_max_valid_evalue_;
@@ -273,7 +282,10 @@ protected:
     // output parameters
     double max_valid_evalue_;
 
-    //<note type="input" label="spectrum, fragment monoisotopic mass error">0.4</note>
+    /** 
+      Holds additional nodes that were not translated to member variables, but are conserved for storing.
+      &ltnote type="input" label="spectrum, fragment monoisotopic mass error"&gt;0.4&lt;/note&gt;
+    */
     std::vector<Internal::XTandemInfileNote> notes_;
   };
 

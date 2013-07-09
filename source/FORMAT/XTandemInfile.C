@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
-// $Authors: $
+// $Maintainer: Stephan Aiche $
+// $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/XTandemInfile.h>
@@ -77,13 +77,13 @@ namespace OpenMS
   {
   }
 
-  void XTandemInfile::load(const String & filename)
+  void XTandemInfile::load(const String& filename)
   {
     Internal::XTandemInfileXMLHandler handler(filename, notes_, this);
     parse_(filename, &handler);
   }
 
-  void XTandemInfile::write(const String & filename)
+  void XTandemInfile::write(const String& filename)
   {
     if (!File::writable(filename))
     {
@@ -94,9 +94,46 @@ namespace OpenMS
     return;
   }
 
-  void XTandemInfile::writeTo_(ostream & os)
+  String XTandemInfile::convertModificationSet_(const set<ModificationDefinition>& mods) const
   {
-    set<String> used_labels;     // labels which are set by OpenMS not by the default parameters file
+    StringList xtandem_mods;
+    for (set<ModificationDefinition>::const_iterator it = mods.begin(); it != mods.end(); ++it)
+    {
+      double mod_mass(ModificationsDB::getInstance()->getModification(it->getModification()).getDiffMonoMass());
+      String mod_string;
+      if (mod_mass >= 0)
+      {
+        mod_string = "+" + String(mod_mass);
+      }
+      else
+      {
+        mod_string = "-" + String(mod_mass);
+      }
+
+      ResidueModification::Term_Specificity ts = ModificationsDB::getInstance()->getModification(it->getModification()).getTermSpecificity();
+      if (ts == ResidueModification::ANYWHERE)
+      {
+        mod_string += "@" + ModificationsDB::getInstance()->getModification(it->getModification()).getOrigin();
+      }
+      else
+      {
+        if (ts == ResidueModification::C_TERM)
+        {
+          mod_string += "@]";
+        }
+        else
+        {
+          mod_string += "@[";
+        }
+      }
+      xtandem_mods.push_back(mod_string);
+    }
+    return xtandem_mods.concatenate(",");
+  }
+
+  void XTandemInfile::writeTo_(ostream& os)
+  {
+    set<String> used_labels; // labels which are set by OpenMS not by the default parameters file
 
     os << "<?xml version=\"1.0\"?>" << "\n"
        << "<?xml-stylesheet type=\"text/xsl\" href=\"tandem-input-style.xsl\"?>" << "\n"
@@ -222,84 +259,14 @@ namespace OpenMS
     //Positive and negative values are allowed.
     //</note>
 
-    String fixed_mods;
-    set<ModificationDefinition> fixed_mod_defs(modifications_.getFixedModifications());
-    for (set<ModificationDefinition>::const_iterator it = fixed_mod_defs.begin(); it != fixed_mod_defs.end(); ++it)
-    {
-      double mod_mass(ModificationsDB::getInstance()->getModification(it->getModification()).getDiffMonoMass());
-      String mod_string;
-      if (mod_mass >= 0)
-      {
-        mod_string = "+" + String(mod_mass);
-      }
-      else
-      {
-        mod_string = "-" + String(mod_mass);
-      }
-
-      ResidueModification::Term_Specificity ts = ModificationsDB::getInstance()->getModification(it->getModification()).getTermSpecificity();
-      //cerr << ModificationsDB::getInstance()->getModification(it->getModification()).getTermSpecificityName(ts) << " " << ModificationsDB::getInstance()->getModification(it->getModification()).getOrigin() << "\n";
-      if (ts == ResidueModification::ANYWHERE)
-      {
-        mod_string += "@" + ModificationsDB::getInstance()->getModification(it->getModification()).getOrigin();
-      }
-      else
-      {
-        if (ts == ResidueModification::C_TERM)
-        {
-          mod_string += "@]";
-        }
-        else
-        {
-          mod_string += "@[";
-        }
-      }
-
-      if (fixed_mods != "")
-      {
-        fixed_mods += "," + mod_string;
-      }
-      else
-      {
-        fixed_mods = mod_string;
-      }
-    }
-
-    writeNote_(os, "input", "residue, modification mass", fixed_mods);
+    writeNote_(os, "input", "residue, modification mass", convertModificationSet_(modifications_.getFixedModifications()));
     used_labels.insert("residue, modification mass");
 
     //<note type="input" label="residue, potential modification mass"></note>
     //<note>The format of this parameter is the same as the format
     //for residue, modification mass (see above).</note>
 
-    String var_mods;
-    set<ModificationDefinition> var_mod_defs(modifications_.getVariableModifications());
-    for (set<ModificationDefinition>::const_iterator it = var_mod_defs.begin(); it != var_mod_defs.end(); ++it)
-    {
-      double mod_mass(ModificationsDB::getInstance()->getModification(it->getModification()).getDiffMonoMass());
-      String mod_string;
-      if (mod_mass >= 0)
-      {
-        mod_string = "+" + String(mod_mass);
-      }
-      else
-      {
-        mod_string = "-" + String(mod_mass);
-      }
-
-      mod_string += "@" + ModificationsDB::getInstance()->getModification(it->getModification()).getOrigin();
-
-      if (var_mods != "")
-      {
-        var_mods += "," + mod_string;
-      }
-      else
-      {
-        var_mods = mod_string;
-      }
-    }
-
-    writeNote_(os, "input", "residue, potential modification mass", var_mods);
+    writeNote_(os, "input", "residue, potential modification mass", convertModificationSet_(modifications_.getVariableModifications()));
     used_labels.insert("residue, potential modification mass");
 
     writeNote_(os, "input", "protein, taxon", taxon_);
@@ -516,18 +483,18 @@ namespace OpenMS
 
   }
 
-  void XTandemInfile::writeNote_(ostream & os, const String & type, const String & label, const String & value)
+  void XTandemInfile::writeNote_(ostream& os, const String& type, const String& label, const String& value)
   {
     os << "\t<note type=\"" << type << "\" label=\"" << label  << "\">" << value << "</note>" << "\n";
   }
 
-  void XTandemInfile::writeNote_(ostream & os, const String & type, const String & label, const char * value)
+  void XTandemInfile::writeNote_(ostream& os, const String& type, const String& label, const char* value)
   {
     String val(value);
     os << "\t<note type=\"" << type << "\" label=\"" << label  << "\">" << val << "</note>" << "\n";
   }
 
-  void XTandemInfile::writeNote_(ostream & os, const String & type, const String & label, bool value)
+  void XTandemInfile::writeNote_(ostream& os, const String& type, const String& label, bool value)
   {
     if (value)
     {
@@ -539,62 +506,62 @@ namespace OpenMS
     }
   }
 
-  void XTandemInfile::setOutputFilename(const String & filename)
+  void XTandemInfile::setOutputFilename(const String& filename)
   {
     output_filename_ = filename;
   }
 
-  const String & XTandemInfile::getOutputFilename() const
+  const String& XTandemInfile::getOutputFilename() const
   {
     return output_filename_;
   }
 
-  void XTandemInfile::setInputFilename(const String & filename)
+  void XTandemInfile::setInputFilename(const String& filename)
   {
     input_filename_ = filename;
   }
 
-  const String & XTandemInfile::getInputFilename() const
+  const String& XTandemInfile::getInputFilename() const
   {
     return input_filename_;
   }
 
-  void XTandemInfile::setTaxonomyFilename(const String & filename)
+  void XTandemInfile::setTaxonomyFilename(const String& filename)
   {
     taxonomy_file_ = filename;
   }
 
-  const String & XTandemInfile::getTaxonomyFilename() const
+  const String& XTandemInfile::getTaxonomyFilename() const
   {
     return taxonomy_file_;
   }
 
-  void XTandemInfile::setDefaultParametersFilename(const String & filename)
+  void XTandemInfile::setDefaultParametersFilename(const String& filename)
   {
     default_parameters_file_ = filename;
   }
 
-  const String & XTandemInfile::getDefaultParametersFilename() const
+  const String& XTandemInfile::getDefaultParametersFilename() const
   {
     return default_parameters_file_;
   }
 
-  void XTandemInfile::setModifications(const ModificationDefinitionsSet & mods)
+  void XTandemInfile::setModifications(const ModificationDefinitionsSet& mods)
   {
     modifications_ = mods;
   }
 
-  const ModificationDefinitionsSet & XTandemInfile::getModifications() const
+  const ModificationDefinitionsSet& XTandemInfile::getModifications() const
   {
     return modifications_;
   }
 
-  void XTandemInfile::setTaxon(const String & taxon)
+  void XTandemInfile::setTaxon(const String& taxon)
   {
     taxon_ = taxon;
   }
 
-  const String & XTandemInfile::getTaxon() const
+  const String& XTandemInfile::getTaxon() const
   {
     return taxon_;
   }
