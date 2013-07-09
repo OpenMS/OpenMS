@@ -88,6 +88,11 @@ namespace OpenSwath
     return m_rt;
   }
 
+  size_t MockMRMFeature::size()
+  {
+    return m_features.size();
+  }
+
   MockTransitionGroup::MockTransitionGroup()
   {
   }
