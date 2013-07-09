@@ -50,6 +50,7 @@
 #include <OpenMS/FORMAT/VALIDATORS/SemanticValidator.h>
 #include <OpenMS/FORMAT/CVMappingFile.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
+#include <OpenMS/INTERFACES/IMSDataConsumer.h>
 
 #include <OpenMS/SYSTEM/File.h>
 
@@ -110,6 +111,7 @@ public:
         in_spectrum_list_(false),
         decoder_(),
         logger_(logger),
+        consumer_(NULL),
         scan_count(0),
         chromatogram_count(0),
         skip_chromatogram_(false),
@@ -145,6 +147,7 @@ public:
         in_spectrum_list_(false),
         decoder_(),
         logger_(logger),
+        consumer_(NULL),
         scan_count(0),
         chromatogram_count(0),
         skip_chromatogram_(false),
@@ -198,6 +201,11 @@ public:
         chromatogram_counts = chromatogram_count;
       }
 
+      void setMSDataConsumer(Interfaces::IMSDataConsumer * consumer)
+      {
+        consumer_ = consumer;
+      }
+
 protected:
 
       /// Peak type
@@ -233,7 +241,7 @@ protected:
 
       void writeHeader_(std::ostream& os, const MapType& exp, std::vector<std::vector<DataProcessing> > & dps, Internal::MzMLValidator& validator);
 
-      void writeFooter_(std::ostream& os);
+      static void writeFooter_(std::ostream& os);
 
       /// map pointer for reading
       MapType* exp_;
@@ -279,6 +287,10 @@ protected:
       /// Progress logger
       const ProgressLogger& logger_;
 
+      /// Consumer class to work on spectra
+      Interfaces::IMSDataConsumer* consumer_;
+
+      /// Counting spectra and chromatograms
       UInt scan_count;
       UInt chromatogram_count;
 
@@ -801,23 +813,32 @@ protected:
 
       if (equal_(qname, s_spectrum))
       {
-        if (!skip_spectrum_)
+
+        // catch errors stemming from confusion about elution time and scan time
+        if (spec_.getRT() == -1.0 && spec_.metaValueExists("elution time (seconds)"))
         {
+          spec_.setRT(spec_.getMetaValue("elution time (seconds)"));
+        }
+        /* this is too hot (could be SRM as well? -- check!):
+           // correct spectrum type if possible (i.e., make it more specific)
+        if (spec_.getInstrumentSettings().getScanMode() == InstrumentSettings::MASSSPECTRUM)
+        {
+          if (spec_.getMSLevel() <= 1) spec_.getInstrumentSettings().setScanMode(InstrumentSettings::MS1SPECTRUM);
+          else                         spec_.getInstrumentSettings().setScanMode(InstrumentSettings::MSNSPECTRUM);
+        }
+        */
 
-          // catch errors stemming from confusion about elution time and scan time
-          if (spec_.getRT() == -1.0 && spec_.metaValueExists("elution time (seconds)"))
+        if (consumer_ != NULL && !skip_spectrum_)
+        {
+          fillData_();
+          consumer_->consumeSpectrum(spec_);
+          if (options_.getAlwaysAppendData())
           {
-            spec_.setRT(spec_.getMetaValue("elution time (seconds)"));
+            exp_->addSpectrum(spec_);
           }
-          /* this is too hot (could be SRM as well? -- check!):
-             // correct spectrum type if possible (i.e., make it more specific)
-          if (spec_.getInstrumentSettings().getScanMode() == InstrumentSettings::MASSSPECTRUM)
-          {
-            if (spec_.getMSLevel() <= 1) spec_.getInstrumentSettings().setScanMode(InstrumentSettings::MS1SPECTRUM);
-            else                         spec_.getInstrumentSettings().setScanMode(InstrumentSettings::MSNSPECTRUM);
-          }
-          */
-
+        }
+        else if (!skip_spectrum_)
+        {
           fillData_();
           exp_->addSpectrum(spec_);
 
@@ -830,7 +851,16 @@ protected:
       }
       else if (equal_(qname, s_chromatogram))
       {
-        if (!skip_chromatogram_)
+        if (consumer_ != NULL && !skip_chromatogram_)
+        {
+          fillChromatogramData_();
+          consumer_->consumeChromatogram(chromatogram_);
+          if (options_.getAlwaysAppendData())
+          {
+            exp_->addChromatogram(chromatogram_);
+          }
+        }
+        else if (!skip_chromatogram_)
         {
           fillChromatogramData_();
           exp_->addChromatogram(chromatogram_);

@@ -139,6 +139,10 @@ public:
     void setSizeOnly(bool only);
     ///returns whether or not to load only meta data
     bool getSizeOnly() const;
+    ///sets whether or not to always append the data to the given map (even if a consumer is given)
+    void setAlwaysAppendData(bool only);
+    ///returns whether or not to always append the data to the given map (even if a consumer is given)
+    bool getAlwaysAppendData() const;
 
     /**
         @name Precision options
@@ -170,6 +174,7 @@ private:
     std::vector<Int> ms_levels_;
     bool zlib_compression_;
     bool size_only_;
+    bool always_append_data_;
   };
 
 } // namespace OpenMS

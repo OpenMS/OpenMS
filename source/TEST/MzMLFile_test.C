@@ -40,7 +40,6 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
-
 using namespace OpenMS;
 using namespace std;
 

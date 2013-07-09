@@ -53,7 +53,8 @@ namespace OpenMS
     intensity_range_(),
     ms_levels_(),
     zlib_compression_(false),
-    size_only_(false)
+    size_only_(false),
+    always_append_data_(false)
   {
   }
 
@@ -70,7 +71,8 @@ namespace OpenMS
     intensity_range_(options.intensity_range_),
     ms_levels_(options.ms_levels_),
     zlib_compression_(options.zlib_compression_),
-    size_only_(options.size_only_)
+    size_only_(options.size_only_),
+    always_append_data_(options.always_append_data_)
   {
   }
 
@@ -194,6 +196,16 @@ namespace OpenMS
   void PeakFileOptions::setSizeOnly(bool size_only)
   {
     size_only_ = size_only;
+  }
+
+  bool PeakFileOptions::getAlwaysAppendData() const
+  {
+    return always_append_data_;
+  }
+
+  void PeakFileOptions::setAlwaysAppendData(bool always_append_data)
+  {
+    always_append_data_ = always_append_data;
   }
 
   void PeakFileOptions::setMz32Bit(bool mz_32_bit)
