@@ -15,7 +15,8 @@ execute_process(
      OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 
-MESSAGE(STATUS "found python ${PY_VERSION}")
+message(STATUS "Python found at ${PYTHON_EXECUTABLE} with version ${PY_VERSION} (if this is
+wrong, configure with -DPYTHON_EXECUTABLE:FILEPATH=/path/to/python)")
 
 # Windows support restricted to Python 2.7 at the moment!
 IF (WIN32)
