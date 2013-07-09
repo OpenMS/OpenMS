@@ -767,7 +767,7 @@ public:
     void scorePeakgroups(MRMTransitionGroupType& transition_group, TransformationDescription & trafo,
                          OpenSwath::SpectrumAccessPtr swath_map, FeatureMap<Feature>& output)
     {
-      typedef typename MRMTransitionGroupType::PeakType PeakT;
+      typedef MRMTransitionGroupType::PeakType PeakT;
       std::vector<OpenSwath::ISignalToNoisePtr> signal_noise_estimators;
       std::vector<MRMFeature> feature_list;
 
