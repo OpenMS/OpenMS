@@ -110,6 +110,9 @@ public:
         in_spectrum_list_(false),
         decoder_(),
         logger_(logger),
+        scan_count(0),
+        chromatogram_count(0),
+        skip_chromatogram_(false),
         skip_spectrum_(false) /* ,
                 validator_(mapping_, cv_) */
       {
@@ -142,6 +145,9 @@ public:
         in_spectrum_list_(false),
         decoder_(),
         logger_(logger),
+        scan_count(0),
+        chromatogram_count(0),
+        skip_chromatogram_(false),
         skip_spectrum_(false) /* ,
                 validator_(mapping_, cv_) */
       {
@@ -184,6 +190,12 @@ public:
       void setOptions(const PeakFileOptions& opt)
       {
         options_ = opt;
+      }
+
+      void getCounts(Size& spectra_counts, Size& chromatogram_counts)
+      {
+        spectra_counts = scan_count;
+        chromatogram_counts = chromatogram_count;
       }
 
 protected:
@@ -267,7 +279,11 @@ protected:
       /// Progress logger
       const ProgressLogger& logger_;
 
+      UInt scan_count;
+      UInt chromatogram_count;
+
       /// Flag that indicates whether this spectrum should be skipped (due to options)
+      bool skip_chromatogram_;
       bool skip_spectrum_;
 
       ///Controlled vocabulary (psi-ms from OpenMS/share/OpenMS/CV/psi-ms.obo)
@@ -323,7 +339,7 @@ protected:
     template <typename MapType>
     void MzMLHandler<MapType>::characters(const XMLCh* const chars, const XMLSize_t /*length*/)
     {
-      if (skip_spectrum_)
+      if (skip_spectrum_ || skip_chromatogram_)
         return;
 
       char* transcoded_chars = sm_.convert(chars);
@@ -394,6 +410,8 @@ protected:
 
       //do nothing until a new spectrum is reached
       if (tag != "spectrum" && skip_spectrum_)
+        return;
+      if (tag != "chromatogram" && skip_chromatogram_)
         return;
 
       if (tag == "spectrum")
@@ -565,6 +583,9 @@ protected:
       }
       else if (tag == "mzML")
       {
+        scan_count = 0;
+        chromatogram_count = 0;
+
         //check file version against schema version
         String file_version = attributeAsString_(attributes, s_version);
 
@@ -770,9 +791,6 @@ protected:
     template <typename MapType>
     void MzMLHandler<MapType>::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
     {
-      static UInt scan_count = 0;
-      static UInt chromatogram_count = 0;
-
       static const XMLCh* s_spectrum = xercesc::XMLString::transcode("spectrum");
       static const XMLCh* s_chromatogram = xercesc::XMLString::transcode("chromatogram");
       static const XMLCh* s_spectrum_list = xercesc::XMLString::transcode("spectrumList");
@@ -805,14 +823,20 @@ protected:
 
         }
         skip_spectrum_ = false;
+        if (options_.getSizeOnly()) {skip_spectrum_ = true;}
         logger_.setProgress(++scan_count);
         data_.clear();
         default_array_length_ = 0;
       }
       else if (equal_(qname, s_chromatogram))
       {
-        fillChromatogramData_();
-        exp_->addChromatogram(chromatogram_);
+        if (!skip_chromatogram_)
+        {
+          fillChromatogramData_();
+          exp_->addChromatogram(chromatogram_);
+        }
+        skip_chromatogram_ = false;
+        if (options_.getSizeOnly()) {skip_chromatogram_ = true;}
         logger_.setProgress(++chromatogram_count);
         data_.clear();
         default_array_length_ = 0;
@@ -829,8 +853,6 @@ protected:
       }
       else if (equal_(qname, s_mzml))
       {
-        scan_count = 0;
-        chromatogram_count = 0;
         ref_param_.clear();
         current_id_ = "";
         source_files_.clear();

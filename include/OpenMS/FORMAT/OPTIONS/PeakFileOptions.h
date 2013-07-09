@@ -134,6 +134,12 @@ public:
     bool getCompression() const;
     //@}
 
+    ///@name lazyload option
+    ///sets whether or not to load only the count
+    void setSizeOnly(bool only);
+    ///returns whether or not to load only meta data
+    bool getSizeOnly() const;
+
     /**
         @name Precision options
 
@@ -163,6 +169,7 @@ private:
     DRange<1> intensity_range_;
     std::vector<Int> ms_levels_;
     bool zlib_compression_;
+    bool size_only_;
   };
 
 } // namespace OpenMS

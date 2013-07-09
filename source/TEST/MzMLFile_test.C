@@ -862,6 +862,17 @@ START_SECTION([EXTRA] load intensity range)
 	TEST_EQUAL(exp[3].size(),0)
 END_SECTION
 
+START_SECTION((Size loadSize(const String & filename, Size& scount, Size& ccount)))
+{
+  MzMLFile file;
+  file.getOptions().setSizeOnly(true);
+  Size spectra_count, chrom_count;
+  file.loadSize(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), spectra_count, chrom_count);
+  TEST_EQUAL(spectra_count, 4);
+  TEST_EQUAL(chrom_count, 2);
+}
+END_SECTION
+
 START_SECTION((template <typename MapType> void store(const String& filename, const MapType& map) const))
 	MzMLFile file;
 

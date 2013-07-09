@@ -116,6 +116,11 @@ public:
     }
 
     /**
+        @brief Only count he number of spectra and chromatograms from a file
+    */
+    void loadSize(const String & filename, Size& scount, Size& ccount);
+
+    /**
         @brief Stores a map in a MzML file.
 
         @p map has to be a MSExperiment or have the same interface.

@@ -112,4 +112,21 @@ namespace OpenMS
     return result;
   }
 
+  void MzMLFile::loadSize(const String & filename, Size& scount, Size& ccount)
+  {
+    typedef MSExperiment<> MapType;
+
+    MapType dummy;
+    bool size_only_before_ = options_.getSizeOnly();
+    options_.setSizeOnly(true);
+    Internal::MzMLHandler<MapType> handler(dummy, filename, getVersion(), *this);
+    handler.setOptions(options_);
+
+    // TODO catch errors as above ?
+    parse_(filename, &handler);
+
+    handler.getCounts(scount, ccount);
+    options_.setSizeOnly(size_only_before_);
+  }
+
 } // namespace OpenMS
