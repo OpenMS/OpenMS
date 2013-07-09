@@ -386,7 +386,7 @@ var_yseries_score   -0.0327896378737766
   /**
   @brief A class that calls the scoring routines
   */
-  class SwathScorer 
+  class ChromatographicScorer 
   {
     typedef OpenSwath::LightPeptide PeptideType;
     typedef OpenSwath::LightTransition TransitionType;
@@ -401,7 +401,7 @@ var_yseries_score   -0.0327896378737766
     /**
     @brief Initialize the scoring object
     */
-    void initialize( DoubleReal rt_normalization_factor_,
+    void initialize(DoubleReal rt_normalization_factor_,
       int add_up_spectra_, DoubleReal spacing_for_spectra_resampling_,
       OpenSwath_Scores_Usage & su_)
     {
@@ -411,34 +411,25 @@ var_yseries_score   -0.0327896378737766
       this->su_ = su_;
     }
 
-    /** @brief Score a single chromatographic feature.
+    /** @brief Score a single peakgroup in a chromatogram using only chromatographic propertiesj.
+     *
+     * This function only uses the chromatographic properties (coelution,
+     * signal to noise, etc.) of a peakgroup in a chromatogram to compute
+     * scores. If more information is available, also consider using the
+     * library based scoring and the full-spectrum based scoring.
      *
      * The scores are returned in the OpenSwath_Scores object. Only those
      * scores specified in the OpenSwath_Scores_Usage object are computed.
      *
     */
-    void scoreMRMFeature(
+    void calculateChromatographicScores(
           OpenSwath::IMRMFeature* imrmfeature,
-          const PeptideType& pep,
-          const std::vector<TransitionType> & transitions,
+          const std::vector<std::string>& native_ids,
+          const std::vector<double>& normalized_library_intensity,
           std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators,
-          TransformationDescription & trafo,
-          OpenSwath::SpectrumAccessPtr swath_map, 
-          OpenMS::DIAScoring& diascoring_t,
           OpenSwath_Scores & scores)
     {
-        std::vector<double> normalized_library_intensity;
-        for (Size i = 0; i < transitions.size(); i++) {normalized_library_intensity.push_back(transitions[i].getLibraryIntensity());}
-        for (Size i = 0; i < normalized_library_intensity.size(); i++) 
-        { 
-          // the library intensity should never be below zero
-          if (normalized_library_intensity[i] < 0.0) { normalized_library_intensity[i] = 0.0; } 
-        } 
-        OpenSwath::Scoring::normalize_sum(&normalized_library_intensity[0], boost::numeric_cast<int>(normalized_library_intensity.size()));
-
-        std::vector<std::string> native_ids;
         OpenSwath::MRMScoring mrmscore_;
-        for (Size i = 0; i < transitions.size(); i++) {native_ids.push_back(transitions[i].getNativeID());}
         mrmscore_.initializeXCorrMatrix(imrmfeature, native_ids);
 
         // XCorr score (coelution)
@@ -458,11 +449,50 @@ var_yseries_score   -0.0327896378737766
           scores.weighted_xcorr_shape = mrmscore_.calcXcorrShape_score_weighted(normalized_library_intensity);
         }
 
+        if (su_.use_nr_peaks_score_) 
+        { 
+          scores.nr_peaks = boost::numeric_cast<int>(imrmfeature->size());
+        }
+
+        // Signal to noise scoring
+        if (su_.use_sn_score_)
+        {
+          scores.sn_ratio = mrmscore_.calcSNScore(imrmfeature, signal_noise_estimators);
+          // everything below S/N 1 can be set to zero (and the log safely applied)
+          if (scores.sn_ratio < 1) { scores.log_sn_score = 0; }
+          else { scores.log_sn_score = std::log(scores.sn_ratio); }
+        }
+    }
+
+    /** @brief Score a single chromatographic feature against a spectral library
+     *
+     * The spectral library is provided in a set of transition objects and a
+     * peptide object. Both contain information about the expected elution time
+     * on the chromatography and the relative intensity of the transitions.
+     *
+     * The scores are returned in the OpenSwath_Scores object. 
+     *
+    */
+    void calculateLibraryScores(
+          OpenSwath::IMRMFeature* imrmfeature,
+          const std::vector<TransitionType> & transitions,
+          const PeptideType& pep,
+          TransformationDescription & trafo,
+          OpenSwath_Scores & scores)
+    {
+        std::vector<double> normalized_library_intensity;
+        getNormalized_library_intensities_(transitions, normalized_library_intensity);
+
+        std::vector<std::string> native_ids;
+        OpenSwath::MRMScoring mrmscore_;
+        for (Size i = 0; i < transitions.size(); i++) {native_ids.push_back(transitions[i].getNativeID());}
+
         // FEATURE : how should we best calculate correlation between library and experiment?
         // FEATURE : spectral angle
         if (su_.use_library_score_)
         {
-          mrmscore_.calcLibraryScore(imrmfeature, transitions, scores.library_corr, scores.library_rmsd, scores.library_manhattan, scores.library_dotprod);
+          mrmscore_.calcLibraryScore(imrmfeature, transitions, 
+              scores.library_corr, scores.library_rmsd, scores.library_manhattan, scores.library_dotprod);
         }
 
         // Retention time score
@@ -476,26 +506,6 @@ var_yseries_score   -0.0327896378737766
           scores.raw_rt_score = rt_score;
           scores.norm_rt_score = rt_score / rt_normalization_factor_;
         }
-
-
-        if (su_.use_nr_peaks_score_) { scores.nr_peaks = boost::numeric_cast<int>(transitions.size());}
-        if (su_.use_sn_score_)
-        {
-          scores.sn_ratio = mrmscore_.calcSNScore(imrmfeature, signal_noise_estimators);
-          // everything below S/N 1 can be set to zero (and the log safely applied)
-          if (scores.sn_ratio < 1) { scores.log_sn_score = 0; }
-          else { scores.log_sn_score = std::log(scores.sn_ratio); }
-        }
-
-        double quick_lda_dismiss = 0;
-        double lda_quick_score = -scores.get_quick_lda_score(scores.library_corr,
-            scores.library_rmsd, scores.norm_rt_score, scores.xcorr_coelution_score, scores.xcorr_shape_score, scores.log_sn_score);
-
-        if (lda_quick_score < quick_lda_dismiss) { ; }
-        if (swath_map->getNrSpectra() > 0)
-        {
-          calculateSwathScores_(imrmfeature, swath_map, normalized_library_intensity, scores, transitions, diascoring_t, pep);
-        }
     }
 
     /** @brief Score a single chromatographic feature using DIA / SWATH scores.
@@ -503,10 +513,13 @@ var_yseries_score   -0.0327896378737766
      * The scores are returned in the OpenSwath_Scores object. 
      *
     */
-    void calculateSwathScores_(OpenSwath::IMRMFeature* imrmfeature, OpenSwath::SpectrumAccessPtr swath_map,
-        std::vector<double>& normalized_library_intensity, OpenSwath_Scores & scores, const std::vector<TransitionType> & transitions, 
-        OpenMS::DIAScoring & diascoring, const PeptideType& pep)
+    void calculateDIAScores(OpenSwath::IMRMFeature* imrmfeature, const std::vector<TransitionType> & transitions,
+        OpenSwath::SpectrumAccessPtr swath_map, OpenMS::DIAScoring & diascoring,
+        const PeptideType& pep, OpenSwath_Scores & scores)
     {
+      std::vector<double> normalized_library_intensity;
+      getNormalized_library_intensities_(transitions, normalized_library_intensity);
+
       // parameters
       int by_charge_state = 1; // for which charge states should we check b/y series
 
@@ -541,6 +554,21 @@ var_yseries_score   -0.0327896378737766
       cout << "added score bseries_score " << scores.bseries_score << endl;
       cout << "added score yseries_score " << scores.yseries_score << endl;
 #endif
+    }
+
+    void getNormalized_library_intensities_(const std::vector<TransitionType> & transitions, std::vector<double>& normalized_library_intensity)
+    {
+      normalized_library_intensity.clear();
+      for (Size i = 0; i < transitions.size(); i++) 
+      {
+        normalized_library_intensity.push_back(transitions[i].getLibraryIntensity());
+      }
+      for (Size i = 0; i < normalized_library_intensity.size(); i++) 
+      { 
+        // the library intensity should never be below zero
+        if (normalized_library_intensity[i] < 0.0) { normalized_library_intensity[i] = 0.0; } 
+      } 
+      OpenSwath::Scoring::normalize_sum(&normalized_library_intensity[0], boost::numeric_cast<int>(normalized_library_intensity.size()));
     }
 
     /// Returns the addition of "nr_spectra_to_add" spectra around the given RT
@@ -757,7 +785,7 @@ public:
       newtr.invert();
       expected_rt = newtr.apply(expected_rt);
 
-      SwathScorer scorer;
+      ChromatographicScorer scorer;
       scorer.initialize(rt_normalization_factor_, add_up_spectra_, spacing_for_spectra_resampling_, su_);
 
       // Go through all peak groups (found MRM features) and score them
@@ -789,9 +817,25 @@ public:
         // call the scoring
         ///////////////////////////////////
 
+        std::vector<double> normalized_library_intensity;
+        transition_group.getLibraryIntensity(normalized_library_intensity);
+        OpenSwath::Scoring::normalize_sum(&normalized_library_intensity[0], boost::numeric_cast<int>(normalized_library_intensity.size()));
+        std::vector<std::string> native_ids;
+        for (Size i = 0; i < transition_group.size(); i++) 
+        {
+          native_ids.push_back(transition_group.getTransitions()[i].getNativeID());
+        }
+
         OpenSwath_Scores scores;
-        scorer.scoreMRMFeature(imrmfeature, *pep, transition_group.getTransitions(),
-          signal_noise_estimators, trafo, swath_map, diascoring_, scores);
+        scorer.calculateChromatographicScores(imrmfeature, native_ids, normalized_library_intensity,
+          signal_noise_estimators, scores);
+        scorer.calculateLibraryScores(imrmfeature, transition_group.getTransitions(), *pep, trafo, scores);
+        if (swath_map->getNrSpectra() > 0)
+        {
+          scorer.calculateDIAScores(imrmfeature, transition_group.getTransitions(),
+              swath_map, diascoring_, *pep, scores);
+        }
+
 
         if (su_.use_coelution_score_) { 
           mrmfeature->addScore("var_xcorr_coelution", scores.xcorr_coelution_score);
