@@ -63,6 +63,8 @@
 			<userParam type="float" name="var_xcorr_shape_weighted" value="0.997577947394571"/>
 			<userParam type="float" name="var_library_corr" value="0.999999999999999"/>
 			<userParam type="float" name="var_library_rmsd" value="0.108663236021716"/>
+			<userParam type="float" name="var_library_sangle" value="0.181599083818331"/>
+			<userParam type="float" name="var_library_rootmeansquare" value="0.108663236021716"/>
 			<userParam type="float" name="var_library_manhattan" value="0.128558411767946"/>
 			<userParam type="float" name="var_library_dotprod" value="0.992608693580346"/>
 			<userParam type="float" name="delta_rt" value="3118.65196821988"/>
@@ -149,6 +151,8 @@
 			<userParam type="float" name="var_xcorr_shape_weighted" value="0.827432023818302"/>
 			<userParam type="float" name="var_library_corr" value="0.930678748454332"/>
 			<userParam type="float" name="var_library_rmsd" value="0.0801900625876904"/>
+			<userParam type="float" name="var_library_sangle" value="0.230979581576551"/>
+			<userParam type="float" name="var_library_rootmeansquare" value="0.0970136886035403"/>
 			<userParam type="float" name="var_library_manhattan" value="0.357621970266554"/>
 			<userParam type="float" name="var_library_dotprod" value="0.949274692722253"/>
 			<userParam type="float" name="delta_rt" value="3055.38404744804"/>
@@ -235,6 +239,8 @@
 			<userParam type="float" name="var_xcorr_shape_weighted" value="0.643242628379923"/>
 			<userParam type="float" name="var_library_corr" value="-0.78414843390081"/>
 			<userParam type="float" name="var_library_rmsd" value="0.435668770903728"/>
+			<userParam type="float" name="var_library_sangle" value="1.22900596185022"/>
+			<userParam type="float" name="var_library_rootmeansquare" value="0.493251048154143"/>
 			<userParam type="float" name="var_library_manhattan" value="0.718225439410146"/>
 			<userParam type="float" name="var_library_dotprod" value="0.721582143955776"/>
 			<userParam type="float" name="delta_rt" value="3118.86301134765"/>

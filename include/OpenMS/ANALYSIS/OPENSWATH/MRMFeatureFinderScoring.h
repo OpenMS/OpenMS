@@ -102,7 +102,9 @@ namespace OpenMS
   {
     double elution_model_fit_score;
     double library_corr;
-    double library_rmsd;
+    double library_norm_manhattan;
+    double library_rootmeansquare;
+    double library_sangle;
     double norm_rt_score;
     double isotope_correlation;
     double isotope_overlap;
@@ -134,7 +136,9 @@ namespace OpenMS
     OpenSwath_Scores() :
       elution_model_fit_score(0),
       library_corr(0),
-      library_rmsd(0),
+      library_norm_manhattan(0),
+      library_rootmeansquare(0),
+      library_sangle(0),
       norm_rt_score(0),
       isotope_correlation(0),
       isotope_overlap(0),
@@ -159,7 +163,7 @@ namespace OpenMS
     }
 
 
-    double get_quick_lda_score(double library_corr, double library_rmsd, double norm_rt_score, double xcorr_coelution_score,
+    double get_quick_lda_score(double library_corr, double library_norm_manhattan, double norm_rt_score, double xcorr_coelution_score,
                                double xcorr_shape_score, double log_sn_score)
     {
       // some scores based on manual evaluation of 80 chromatograms
@@ -176,7 +180,7 @@ namespace OpenMS
       // NOTE this score means "better" if it is more negative!
       double lda_quick_score =
         library_corr                    * -0.5319046 +
-        library_rmsd                    *  2.1643962 +
+        library_norm_manhattan          *  2.1643962 +
         norm_rt_score                   *  8.0353047 +
         xcorr_coelution_score           *  0.1458914 +
         xcorr_shape_score               * -1.6901925 +
@@ -192,7 +196,7 @@ namespace OpenMS
       double xx_old_lda_prescore =
       intensity_score       * -2.296679          +
       library_corr          * -0.1223876         +
-      library_rmsd          *  2.013638          +
+      library_norm_manhattan*  2.013638          +
       nr_peaks_score        *  0.01683357        +
       rt_score              *  0.00143999        +
       sn_score              * -0.1619762         +
@@ -204,7 +208,7 @@ namespace OpenMS
       */
 
       return scores.library_corr                     * -0.34664267 +
-             scores.library_rmsd                     *  2.98700722 +
+             scores.library_norm_manhattan           *  2.98700722 +
              scores.norm_rt_score                    *  7.05496384 +
              scores.xcorr_coelution_score            *  0.09445371 +
              scores.xcorr_shape_score                * -5.71823862 +
@@ -220,7 +224,7 @@ namespace OpenMS
       double xx_old_swath_prescore =
       intensity_score              * -3.148838e+00  +
       library_corr                 * -7.562403e-02  +
-      library_rmsd                 *  1.786286e+00  +
+      library_norm_manhattan       *  1.786286e+00  +
       nr_peaks_score               * -7.674263e-03  +
       rt_score                     *  1.748377e-03  +
       sn_score                     * -1.372636e-01  +
@@ -240,7 +244,7 @@ namespace OpenMS
       */
 
       return scores.library_corr              * -0.19011762 +
-             scores.library_rmsd              *  2.47298914 +
+             scores.library_norm_manhattan    *  2.47298914 +
              scores.norm_rt_score             *  5.63906731 +
              scores.isotope_correlation       * -0.62640133 +
              scores.isotope_overlap           *  0.36006925 +
@@ -264,7 +268,7 @@ Gold standard, best sample
  var_library_corr  0.061432632721274
  var_library_dotprod -3.79958938222036
  var_library_manhattan -1.36520528433508
- var_library_rmsd  -6.44998534845163
+ var_library_norm_manhattan  -6.44998534845163
  var_log_sn_score  -0.0389995774588385
  var_manhatt_score -0.0944805864772705
  var_massdev_score 0.0144460056621709
@@ -285,7 +289,7 @@ var_intensity_score -0.80664074459128
 var_isotope_correlation_score   2.34488326031997
 var_isotope_overlap_score   -2.14735763746488
 var_library_corr    -0.395167010986141
-var_library_rmsd    -13.1295053007338
+var_library_norm_manhattan    -13.1295053007338
 var_log_sn_score    0.265784828465348
 var_massdev_score   0.0150193500103614
 var_massdev_score_weighted  -0.109859906028132
@@ -304,7 +308,7 @@ var_intensity_score -0.828540564651968
 var_isotope_correlation_score   2.76284687671386
 var_isotope_overlap_score   -2.26460097307479
 var_library_corr    -0.445369627383142
-var_library_rmsd    -13.2905041886848
+var_library_norm_manhattan    -13.2905041886848
 var_log_sn_score    0.224626177093898
 var_massdev_score   0.0185003919755981
 var_massdev_score_weighted  -0.0899477179756381
@@ -327,7 +331,7 @@ var_intensity_score -1.26021147555789
 var_isotope_correlation_score   1.21887083303546
 var_isotope_overlap_score   -1.60051046353231
 var_library_corr    -0.33958843974352
-var_library_rmsd    -5.20235596662978
+var_library_norm_manhattan    -5.20235596662978
 var_log_sn_score    0.24021015633787
 var_massdev_score   0.0399855393620327
 var_massdev_score_weighted  -0.0907785715261295
@@ -346,7 +350,7 @@ var_intensity_score -1.11972743418717
 var_isotope_correlation_score   1.68717154416093
 var_isotope_overlap_score   -1.38410070381813
 var_library_corr    -0.454409692201745
-var_library_rmsd    -6.08160902837145
+var_library_norm_manhattan    -6.08160902837145
 var_log_sn_score    0.157259477914274
 var_massdev_score   0.0543919580711367
 var_massdev_score_weighted  -0.137296627160332
@@ -365,7 +369,7 @@ var_intensity_score 1.91714146537607
 var_isotope_correlation_score   0.914387652486204
 var_isotope_overlap_score   -1.46521560409083
 var_library_corr    -0.485498555013885
-var_library_rmsd    -8.3847526088391
+var_library_norm_manhattan    -8.3847526088391
 var_log_sn_score    0.00644514889704832
 var_massdev_score   0.0177435175558717
 var_massdev_score_weighted  -0.0899451169038299
@@ -487,12 +491,11 @@ var_yseries_score   -0.0327896378737766
         OpenSwath::MRMScoring mrmscore_;
         for (Size i = 0; i < transitions.size(); i++) {native_ids.push_back(transitions[i].getNativeID());}
 
-        // FEATURE : how should we best calculate correlation between library and experiment?
-        // FEATURE : spectral angle
         if (su_.use_library_score_)
         {
           mrmscore_.calcLibraryScore(imrmfeature, transitions, 
-              scores.library_corr, scores.library_rmsd, scores.library_manhattan, scores.library_dotprod);
+              scores.library_corr, scores.library_norm_manhattan, scores.library_manhattan, 
+              scores.library_dotprod, scores.library_sangle, scores.library_rootmeansquare);
         }
 
         // Retention time score
@@ -845,9 +848,12 @@ public:
           mrmfeature->addScore("var_xcorr_shape_weighted", scores.weighted_xcorr_shape); }
         if (su_.use_library_score_) { 
           mrmfeature->addScore("var_library_corr", scores.library_corr);
-          mrmfeature->addScore("var_library_rmsd", scores.library_rmsd);
+          mrmfeature->addScore("var_library_rmsd", scores.library_norm_manhattan);
+          mrmfeature->addScore("var_library_sangle", scores.library_sangle);
+          mrmfeature->addScore("var_library_rootmeansquare", scores.library_rootmeansquare); 
           mrmfeature->addScore("var_library_manhattan", scores.library_manhattan);
-          mrmfeature->addScore("var_library_dotprod", scores.library_dotprod); }
+          mrmfeature->addScore("var_library_dotprod", scores.library_dotprod); 
+        }
         if (su_.use_rt_score_) { 
           mrmfeature->addScore("delta_rt", mrmfeature->getRT() - expected_rt);
           mrmfeature->addScore("assay_rt", expected_rt);
