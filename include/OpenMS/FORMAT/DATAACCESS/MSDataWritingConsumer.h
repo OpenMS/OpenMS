@@ -32,17 +32,12 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_INTERFACES_impl
-#define OPENMS_INTERFACES_impl
+#ifndef OPENMS_FORMAT_DATAACCESS_MSDATAWRITINGCONSUMER_H
+#define OPENMS_FORMAT_DATAACCESS_MSDATAWRITINGCONSUMER_H
 
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
 
 #include <OpenMS/FORMAT/MzMLFile.h>
-/*
-#include <OpenMS/DATASTRUCTURES/CVMappings.h>
-#include <OpenMS/FORMAT/CVMappingFile.h>
-#include <OpenMS/FORMAT/ControlledVocabulary.h>
-*/
 #include <OpenMS/FORMAT/HANDLERS/MzMLHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
