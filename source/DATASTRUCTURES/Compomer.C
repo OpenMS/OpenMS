@@ -37,6 +37,7 @@
 #include <OpenMS/DATASTRUCTURES/Adduct.h>
 
 #include <cmath>
+#include <algorithm>    // std::min
 
 using namespace std;
 

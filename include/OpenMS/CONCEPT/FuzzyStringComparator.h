@@ -363,15 +363,15 @@ protected:
       }
 
       /**
-          Convert to pointer
+          Convert to bool
 
-          The pointer returned is not intended to be referenced, it just indicates success when none of the error flags are set.
+		  The operator indicates success when none of the error flags (either failbit or badbit of the nested std::stringstream) are set.
 
-          @return	null pointer if either failbit or badbit of the nested std::stringstream is set. A non-null pointer otherwise.
+          @return False on error, true otherwise.
           */
-      operator void *() const
+      explicit operator bool() const
       {
-        return line_.operator void *();
+        return line_.operator bool();
       }
     };
 
@@ -439,7 +439,7 @@ protected:
         else
         {
           input_line.seekGToSavedPosition();
-          if ((is_number = ((input_line.line_ >> number) != 0)))                    // is a number?
+          if ((is_number = (bool(input_line.line_ >> number))))       // is a number (explicit bool op in C11)?
           {
           }
           else

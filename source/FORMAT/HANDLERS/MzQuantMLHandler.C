@@ -1035,7 +1035,7 @@ namespace OpenMS
         std::vector<std::vector<UInt64> > cmid;
         for (ConsensusMap::const_iterator cit = mit->begin(); cit != mit->end(); ++cit)
         {
-          const std::set<FeatureHandle, FeatureHandle::IndexLess>& feature_handles = cit->getFeatures();
+          const ConsensusFeature::HandleSetType& feature_handles = cit->getFeatures();
           switch (cmsq_->getAnalysisSummary().quant_type_) //enum QUANT_TYPES {MS1LABEL=0, MS2LABEL, LABELFREE, SIZE_OF_QUANT_TYPES}; // derived from processing applied
           {
           case 0: //ms1label
