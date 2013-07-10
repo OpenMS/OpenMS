@@ -56,25 +56,20 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page UTILS_QCExporter QCExporter
+    @page UTILS_QCExtractor QCExtractor
 
-    @brief This application is used to provide data export from quality control files (qcml). It is intended to provide tables that have been embedded previously to external toos such as R where QC metrics and plots wil be generated. If there are no tables for the given run/set and qp, output will be empty.
-
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude UTILS_QCExporter.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude UTILS_QCExporter.html
+    Please add docu
 
 */
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
-class TOPPQCExporter :
+class TOPPQCExtractor :
   public TOPPBase
 {
 public:
-  TOPPQCExporter() :
-    TOPPBase("QCExporter", "produces qcml files", false)
+  TOPPQCExtractor():
+    TOPPBase("QCExtractor", "produces qcml files", false)
   {
   }
 
@@ -161,7 +156,7 @@ protected:
 };
 int main(int argc, const char** argv)
 {
-  TOPPQCExporter tool;
+  TOPPQCExtractor tool;
   return tool.main(argc, argv);
 }
 
