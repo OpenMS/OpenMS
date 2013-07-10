@@ -45,12 +45,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 # get the actual code examples
 include(${CMAKE_CURRENT_LIST_DIR}/executables.cmake)
 
-if (MSVC OR CMAKE_GENERATOR STREQUAL "Xcode")
-  set(_tutorial_bin_dir ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/$(ConfigurationName))
-else()
-  set(_tutorial_bin_dir ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
-endif()
-
 # add the targets
 foreach(i ${EXAMPLES_executables})
   add_executable(${i} ${CMAKE_CURRENT_LIST_DIR}/${i}.C)
@@ -58,8 +52,9 @@ foreach(i ${EXAMPLES_executables})
   
   # if not GUI and no style tests requested -> add as test
   if(NOT ${i} MATCHES "_GUI_" AND NOT ENABLE_STYLE_TESTING)
-  	add_test(${i}
-             ${CMAKE_COMMAND} -E chdir ${CMAKE_CURRENT_LIST_DIR}  ${_tutorial_bin_dir}/${i})
+  	add_test(NAME ${i}
+             WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
+						 COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${i})
   endif()
 endforeach(i)
 
@@ -67,13 +62,4 @@ endforeach(i)
 add_custom_target(Tutorials_build)
 add_dependencies(Tutorials_build ${EXAMPLES_executables})
 
-## Execute all examples as single target
-foreach(i ${EXAMPLES_executables})
-	list(APPEND EX_LIST COMMAND ${CMAKE_COMMAND} -E chdir ${PROJECT_SOURCE_DIR} ${_tutorial_bin_dir}/${i})
-endforeach(i)
-list(APPEND EX_LIST "${CMAKE_COMMAND} -E \"echo all done\"")
 
-add_custom_target(Tutorials_exec COMMENT "Executes the examples")
-add_dependencies(Tutorials_exec Tutorials_build)
-separate_arguments(EX_LIST)
-add_custom_command(TARGET Tutorials_exec POST_BUILD ${EX_LIST})

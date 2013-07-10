@@ -32,16 +32,19 @@
 
 <b>Pre-Requisites (Software)</b>
   <UL>
-    <LI>have a Visual Studio 2005/2008/2010[SP1]/2012 installed (The C++ Express editions should work as well, we tested VSE2008 and VSE2012). VS2003 is not supported!
+    <LI>have a Visual Studio 2005/2008/2010[SP1]/2012/2013 installed (The C++ Express editions should work as well, we tested VSE2008 and VSE2012). VS2003 is not supported!
     <br>Visual C++ Express 2012 (VS11) supports Win64 and OpenMP by default. For older editions (2010 and below) you can find tutorials on how to enable them on the net.
     <br> If you work with VS 2008, installation of the Service Pack 1 (SP1) is required,
     otherwise VS might crash during the compilation of the contrib package.
     <LI>Have CMake 2.8.3 or greater installed (see http://www.cmake.org)<br>
 			 [VS2012 requires CMake 2.8.10 or later]
     <LI>If you work with the SVN version of %OpenMS (instead of the Release package), we recommend downloading
-    the svn binaries (which contain svnversion.exe). TortoiseSVN is *not* enough!
+    the svn binaries (which contain svnversion.exe). 
+		Subversion is developed as a project of the Apache Software Foundation (see http://subversion.apache.org/).
+		There are multiple binary distributions out there. Pick the one you like.
+		The TortoiseSVN installer per se only supports the (very useful) explorer shell extensions, but also allows you to install the command line binaries if
+		requested during installation.
     Installing svnversion.exe allows to include the current svn repository revision into the TOPP binaries' help message, which can ease debugging.
-		You can find the binaries here: http://subversion.tigris.org. 
 		Svnversion.exe is searched in "c:/program files/subversion/bin" and "c:/programme/subversion/bin". Make sure it is in either of these locations or add
 		the installation directory to your PATH.
     <br>Make sure to add the location of svnversion.exe to your PATH (usually this is "C:\progam files\subversion\bin")
@@ -75,16 +78,19 @@
       <LI>non-commercial:
         <OL>
           <LI>download Qt <b>source</b> from http://qt-project.org/downloads as .zip or .tar.gz (or use the prebuild binaries exactly matching your compiler!)
-          <LI>extract zip file
-					<LI>[VS2012 only] there is a bug in the latest Qt (4.8.4) preventing compilation. Look at http://stackoverflow.com/questions/12113400/compiling-qt-4-8-x-for-visual-studio-2012 for a fix.
-							Its meant for 4.8.3 though. For 4.8.4 you only need to fix HashSet.h!
+          <LI>extract zip file to a temp location (called <path-to-tmp-qt> henceforth)
+					<LI>[VS2012 and VS2013 only] there is a bug in the latest Qt (4.8.4 and 4.8.5) preventing compilation. Look at http://stackoverflow.com/questions/12113400/compiling-qt-4-8-x-for-visual-studio-2012 for a fix.
+							Its meant for 4.8.3 though. For 4.8.4 and 4.8.5 you only need to fix HashSet.h!
+							If you use VS12 (2013) you additionally need to remove three functions from <path-to-tmp-qt>\src\3rdparty\webkit\Source\JavaScriptCore\wtf\MathExtras.h,
+							which are already defined by VS12 (round(), roundf and signbit()).
           <LI>open a Visual Studio Command Line (use x64 version if you want 64bit apps!)
-          <LI>$ cd <path-to-qt>
+          <LI>$ cd <path-to-tmp-qt>
 					<LI>if you have multiple versions of VS installed you might need to provide the "-platform" param for the next configure command (e.g., -platform win32-msvc2012)
-          <LI>$ configure.exe -opensource -nomake demos -nomake examples -no-script
+          <LI>$ configure.exe -opensource -nomake demos -nomake examples -no-script -webkit -prefix <path-to-qt>  ...[more options, e.g. -graphicssystem opengl]
           <LI>$ nmake
-					<LI> or download JOM (http://qt-project.org/wiki/jom) and type "jom" in your Qt build directory to use multiple cores (builds a lot faster usually)
-          <LI>now you should have Link-Libraries and Dll's (debug and release) in your &lt;Qt&gt;/lib directory
+          <LI>$ nmake install
+					<LI>all Qt files (libs, includes etc) are now in <path-to-qt> and sub-directories. You can delete  <path-to-tmp-qt> (since it will consume quite a lot of disk space)
+					<LI>alternatively to nmake, you can download JOM (http://qt-project.org/wiki/jom) and type "jom" in your Qt build directory to use multiple cores (builds a lot faster usually)
         </OL>
       <LI>commercial:
         <OL>
