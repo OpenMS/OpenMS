@@ -3045,7 +3045,7 @@ namespace OpenMS
       // find correct location of TOPP tool
       tool_executable = File::findExecutable(topp_.tool).toQString();
     }
-    catch (Exception::FileNotFound& ex)
+    catch (Exception::FileNotFound& /*ex*/)
     {
       showLogMessage_(LS_ERROR, "Could not locate executable!", QString("Finding executable of TOPP tool '%1' failed. Please check your TOPP/OpenMS installation. Workaround: Add the bin/ directory to your PATH").arg(topp_.tool.toQString()));
       return;
