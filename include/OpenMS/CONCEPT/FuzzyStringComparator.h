@@ -365,13 +365,15 @@ protected:
       /**
           Convert to bool
 
-		  The operator indicates success when none of the error flags (either failbit or badbit of the nested std::stringstream) are set.
+		      The function indicates success when none of the error flags (either failbit or badbit of the nested std::stringstream) are set.
 
           @return False on error, true otherwise.
           */
-      explicit operator bool() const
+      bool ok() const
       {
-        return line_.operator bool();
+        return !line_.fail(); // failbit AND badbit are both NOT set; using fail() seems the only portable solution for both C++98 and C++11
+                              // operator bool() (C++11 only) and operator void*() (C++98 only) are both not very sexy since they are not "safe bool idiomic" and would require
+                              // a macro here... So we use a real function name (both internally and externally)
       }
     };
 
@@ -439,7 +441,7 @@ protected:
         else
         {
           input_line.seekGToSavedPosition();
-          if ((is_number = (bool(input_line.line_ >> number))))       // is a number (explicit bool op in C11)?
+          if ((is_number = (bool(input_line.line_ >> number))))       // is a number? (explicit bool op for C11)
           {
           }
           else

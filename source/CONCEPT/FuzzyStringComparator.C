@@ -218,7 +218,7 @@ namespace OpenMS
 
     try
     {
-      while (input_line_1_ && input_line_2_)
+      while (input_line_1_.ok() && input_line_2_.ok())
       {
         element_1_.fillFromInputLine(input_line_1_);
         element_2_.fillFromInputLine(input_line_2_);
@@ -393,11 +393,11 @@ namespace OpenMS
           );
 
       }       // while ( input_line_1_ || input_line_2_ )
-      if (input_line_1_ && !input_line_2_)
+      if (input_line_1_.ok() && !input_line_2_.ok())
       {
         reportFailure_("line from input_2 is shorter than line from input_1");
       }
-      if (!input_line_1_ && input_line_2_)
+      if (!input_line_1_.ok() && input_line_2_.ok())
       {
         reportFailure_("line from input_1 is shorter than line from input_2");
       }
