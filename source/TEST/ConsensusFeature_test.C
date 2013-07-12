@@ -368,6 +368,30 @@ START_SECTION((const HandleSetType& getFeatures() const))
 END_SECTION
 
 
+
+START_SECTION((void insert(const ConsensusFeature& cf)))
+  ConsensusFeature cons, cons_t;
+  FeatureHandle h1(2,tmp_feature);
+  h1.setUniqueId(3);
+  FeatureHandle h2(4,tmp_feature);
+  h2.setUniqueId(5);
+  cons.insert(h1);
+  cons.insert(h2);
+
+  cons_t.insert(cons);
+
+  ConsensusFeature::HandleSetType::const_iterator it = cons_t.begin();
+  TEST_EQUAL(it->getMapIndex(),2)
+  TEST_EQUAL(it->getUniqueId(),3)
+  TEST_EQUAL(it->getIntensity(),200)
+  ++it;
+  TEST_EQUAL(it->getMapIndex(),4)
+  TEST_EQUAL(it->getUniqueId(),5)
+  TEST_EQUAL(it->getIntensity(),200)
+  ++it;
+  TEST_EQUAL(it==cons_t.end(), true)
+END_SECTION
+
 START_SECTION((void insert(const FeatureHandle &handle)))
   ConsensusFeature cons;
   FeatureHandle h1(2,tmp_feature);
@@ -517,6 +541,118 @@ START_SECTION((void computeDechargeConsensus(const FeatureMap<>& fm, bool intens
 	TEST_REAL_SIMILAR(cons.getMZ(),((m+m1_add)/3 + (m+m2_add)/3 + (m+m3_add)/3))
 
 END_SECTION
+
+
+
+
+START_SECTION((Size size() const))
+{
+  ConsensusFeature c1(tmp_feature);
+	c1.insert(1, tmp_feature);
+	c1.insert(2, tmp_feature3);
+  TEST_EQUAL(c1.size(), 2)
+		
+	ConsensusFeature c2;
+  TEST_EQUAL(c2.size(), 0)
+	c2.insert(1,tmp_feature2);
+	TEST_EQUAL(c2.size(), 1)
+}
+END_SECTION
+
+START_SECTION((const_iterator begin() const))
+{
+		
+	ConsensusFeature c;
+  const ConsensusFeature& c2 = c;
+  TEST_EQUAL(c2.begin()==c2.end(), true)
+	c.insert(1,tmp_feature2);
+  const ConsensusFeature& c3 = c;
+	TEST_EQUAL(c3.begin()->getUniqueId(), 5)
+}
+END_SECTION
+  
+START_SECTION((iterator begin()))
+{
+	ConsensusFeature c;
+  TEST_EQUAL(c.begin()==c.end(), true)
+	c.insert(1,tmp_feature2);
+	TEST_EQUAL(c.begin()->getUniqueId(), 5)
+}
+END_SECTION
+
+START_SECTION((const_iterator end() const))
+  NOT_TESTABLE // tested above
+END_SECTION
+
+START_SECTION((iterator end()))
+  NOT_TESTABLE // tested above
+END_SECTION
+
+
+START_SECTION((const_reverse_iterator rbegin() const))
+{
+		
+	ConsensusFeature c;
+  const ConsensusFeature& c2 = c;
+  TEST_EQUAL(c2.rbegin()==c2.rend(), true)
+	c.insert(1,tmp_feature2);
+  const ConsensusFeature& c3 = c;
+	TEST_EQUAL(c3.rbegin()->getUniqueId(), 5)
+}
+END_SECTION
+
+START_SECTION((reverse_iterator rbegin()))
+{
+	ConsensusFeature c;
+  TEST_EQUAL(c.rbegin()==c.rend(), true)
+	c.insert(1,tmp_feature2);
+	TEST_EQUAL(c.rbegin()->getUniqueId(), 5)
+}
+END_SECTION
+
+
+START_SECTION((const_reverse_iterator rend() const))
+  NOT_TESTABLE // tested above
+END_SECTION
+
+START_SECTION((reverse_iterator rend()))
+  NOT_TESTABLE // tested above
+END_SECTION	  
+START_SECTION((void clear()))
+{
+  ConsensusFeature c1(tmp_feature);
+	c1.insert(1, tmp_feature);
+	c1.insert(2, tmp_feature3);
+  c1.clear();
+  TEST_EQUAL(c1.size(), 0)
+		
+	ConsensusFeature c2;
+  TEST_EQUAL(c2.size(), 0)
+	c2.insert(1,tmp_feature2);
+  c2.clear();
+	TEST_EQUAL(c2.size(), 0)
+}
+END_SECTION
+
+START_SECTION((bool empty() const))
+{
+  ConsensusFeature c1(tmp_feature);
+	c1.insert(1, tmp_feature);
+	c1.insert(2, tmp_feature3);
+  TEST_EQUAL(c1.empty(), false)
+  c1.clear();
+  TEST_EQUAL(c1.empty(), true)
+		
+	ConsensusFeature c2;
+  TEST_EQUAL(c2.size(), 0)
+	c2.insert(1,tmp_feature2);
+  TEST_EQUAL(c2.empty(), false)
+  c2.clear();
+  TEST_EQUAL(c2.empty(), true)
+}
+END_SECTION
+
+	  
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
