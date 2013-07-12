@@ -641,8 +641,8 @@ protected:
       at.colTypes.push_back("Feature_Charge");
       for (ConsensusMap::const_iterator cmit = map.begin(); cmit != map.end(); ++cmit)
       {
-        ConsensusFeature CF = *cmit;
-        for (ConsensusFeature::const_iterator cfit = cmit->begin(); cfit != cmit->end(); ++cfit)
+        const ConsensusFeature& CF = *cmit;
+        for (ConsensusFeature::const_iterator cfit = CF.begin(); cfit != CF.end(); ++cfit)
         {
           std::vector<String> row;
           FeatureHandle FH = *cfit;
