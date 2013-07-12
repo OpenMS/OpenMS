@@ -86,6 +86,12 @@ public:
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Input to SpectrumAlignment is not sorted!");
       }
+      // TODO remove parameter 
+      if (param_.getValue("is_relative_tolerance").toBool() )
+      {
+        throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+      }
+
       // clear result
       alignment.clear();
 

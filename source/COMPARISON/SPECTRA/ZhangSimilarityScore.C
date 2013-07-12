@@ -86,6 +86,12 @@ namespace OpenMS
     bool use_gaussian_factor = param_.getValue("use_gaussian_factor").toBool();
     double score(0), sum(0), sum1(0), sum2(0) /*, squared_sum1(0), squared_sum2(0)*/;
 
+    // TODO remove parameter 
+    if (param_.getValue("is_relative_tolerance").toBool() )
+    {
+      throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+    }
+
     for (PeakSpectrum::ConstIterator it1 = s1.begin(); it1 != s1.end(); ++it1)
     {
       sum1 += it1->getIntensity();

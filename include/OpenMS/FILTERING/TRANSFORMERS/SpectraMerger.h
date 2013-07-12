@@ -309,6 +309,7 @@ protected:
       Param p;
       p.setValue("tolerance", mz_binning_width);
       if (!(mz_binning_unit == "Da" || mz_binning_unit == "ppm")) throw Exception::IllegalSelfOperation(__FILE__, __LINE__, __PRETTY_FUNCTION__);  // sanity check
+      // TODO : SpectrumAlignment does not implement is_relative_tolerance
       p.setValue("is_relative_tolerance", mz_binning_unit == "Da" ? "false" : "true");
       sas.setParameters(p);
       std::vector<std::pair<Size, Size> > alignment;
