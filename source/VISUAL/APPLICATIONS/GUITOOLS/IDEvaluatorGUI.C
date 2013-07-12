@@ -88,37 +88,16 @@ public:
     TOPPBase("IDEvaluatorGUI",
              "Computes a 'q-value vs. #PSM' plot to visualize the number identifications for a certain q-value.", false, false, false)
   {
-    int argc = 1;
-    const char* c = "IDEvaluatorGUI";
-    const char** argv = &c;
-    QApplication a(argc, const_cast<char**>(argv));
-    out_formats_ = IDEvaluationBase().getSupportedImageFormats(); // can only be called if a QApplication is present...
+    // Do _not_ create instances of QApplication here, see bug 569
   }
 
 protected:
   StringList out_formats_; //< valid output formats for image
 
-  Param getSubsectionDefaults_(const String & /*section*/) const
-  {
-    Param p_my;
-
-    Param p = FalseDiscoveryRate().getDefaults();
-    p_my.insert("fdr:", p.copy("use_all_hits"));
-
-    int argc = 1;
-    const char* c = "IDEvaluatorGUI";
-    const char** argv = &c;
-    QApplication a(argc, const_cast<char**>(argv));
-    p_my.insert("image:", IDEvaluationBase().getParameters().copy("image:", true)); // can only be called if a QApplication is present...
-    return p_my;
-  }
-
   void registerOptionsAndFlags_()
   {
     registerInputFileList_("in", "<file>", StringList::create(""), "Input file(s)", false);
     setValidFormats_("in", StringList::create("idXML"));
-
-    registerSubsection_("algorithm", "Additional parameters for FDR and image sizes.");
   }
 
   ExitCodes main_(int argc, const char ** argv)
