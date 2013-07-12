@@ -124,7 +124,7 @@ namespace OpenMS
       for (NeighborMap::const_iterator n_it = neighbors_.begin();
            n_it != neighbors_.end(); ++n_it)
       {
-        for (boost::unordered::unordered_multimap<DoubleReal, GridFeature *>::const_iterator df_it =
+        for (std::multimap<DoubleReal, GridFeature *>::const_iterator df_it =
                n_it->second.begin(); df_it != n_it->second.end(); ++df_it)
         {
           const set<AASequence> & current = df_it->second->getAnnotations();
@@ -154,7 +154,7 @@ namespace OpenMS
       NeighborMap::iterator pos = neighbors_.find(rm_it->first);
       if (pos == neighbors_.end())
         continue;                                  // no points from this map
-      for (boost::unordered::unordered_multimap<DoubleReal, GridFeature *>::iterator feat_it =
+      for (std::multimap<DoubleReal, GridFeature *>::iterator feat_it =
              pos->second.begin(); feat_it != pos->second.end(); ++feat_it)
       {
         if (feat_it->second == rm_it->second)         // remove this neighbor
@@ -234,7 +234,7 @@ namespace OpenMS
          n_it != neighbors_.end(); ++n_it)
     {
       Size map_index = n_it->first;
-      for (boost::unordered::unordered_multimap<DoubleReal, GridFeature *>::iterator df_it =
+      for (std::multimap<DoubleReal, GridFeature *>::iterator df_it =
              n_it->second.begin(); df_it != n_it->second.end(); ++df_it)
       {
         DoubleReal dist = df_it->first;

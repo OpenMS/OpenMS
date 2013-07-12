@@ -135,9 +135,9 @@ namespace OpenMS
     boost::unordered::unordered_map<GridFeature *, std::vector< QTCluster * > > element_mapping;
     for (list<QTCluster>::iterator it = clustering.begin(); it != clustering.end(); ++it)
     {
-      boost::unordered::unordered_map<Size, GridFeature *> elements; // = it->getNeighbors();
-      typedef boost::unordered::unordered_multimap<DoubleReal, GridFeature *> InnerNeighborMap;
-      typedef boost::unordered::unordered_map<Size, boost::unordered::unordered_multimap<DoubleReal, GridFeature *> > NeighborMap;
+      boost::unordered::unordered_map<Size, GridFeature *> elements;
+      typedef std::multimap<DoubleReal, GridFeature *> InnerNeighborMap;
+      typedef boost::unordered::unordered_map<Size, InnerNeighborMap > NeighborMap;
       NeighborMap neigh = it->getNeighbors();
       for (NeighborMap::iterator n_it = neigh.begin(); n_it != neigh.end(); n_it++)
       {
