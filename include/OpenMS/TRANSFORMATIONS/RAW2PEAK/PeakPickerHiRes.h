@@ -80,27 +80,52 @@ public:
             @brief Applies the peak-picking algorithm to a single spectrum (MSSpectrum). The resulting picked peaks are written to the output spectrum.
 */
     template <typename PeakType>
-    void pick(const MSSpectrum<PeakType> & input, MSSpectrum<PeakType> & output) const
+    void pick(const MSSpectrum<PeakType> & input1, MSSpectrum<PeakType> & output) const
     {
       // copy meta data of the input spectrum
       output.clear(true);
-      output.SpectrumSettings::operator=(input);
-      output.MetaInfoInterface::operator=(input);
-      output.setRT(input.getRT());
-      output.setMSLevel(input.getMSLevel());
-      output.setName(input.getName());
+      output.SpectrumSettings::operator=(input1);
+      output.MetaInfoInterface::operator=(input1);
+      output.setRT(input1.getRT());
+      output.setMSLevel(input1.getMSLevel());
+      output.setName(input1.getName());
       output.setType(SpectrumSettings::PEAKS);
 
       // don't pick a spectrum with less than 5 data points
-      if (input.size() < 5) return;
+      if (input1.size() < 5) return;
+
+      // remove peaks with 0.0 intensity (seen in Orbitrap/FT spectra)
+      MSSpectrum<PeakType> input;
+
+      for (Size p = 0; p < input1.size(); ++p)
+      {
+          if (input1[p].getIntensity() > 0.0)
+          {
+              input.push_back(input1[p]);
+          }
+      }
+
 
       // signal-to-noise estimation
       SignalToNoiseEstimatorMedian<MSSpectrum<PeakType> > snt;
+
+      Param snt_param;
+      snt_param.setValue("win_len", 50.0);
+      snt.setParameters(snt_param);
 
       if (signal_to_noise_ > 0.0)
       {
         snt.init(input);
       }
+
+      // DEBUG noise estimation
+//      for (Size i = 0; i < input.size(); ++i)
+//      {
+//          std::cout << input[i].getMZ() << "\t" << input[i].getIntensity() << "\t" << snt.getSignalToNoise(input[i]) << std::endl;
+
+//      }
+
+
 
       // find local maxima in raw data
       for (Size i = 2; i < input.size() - 2; ++i)
@@ -122,6 +147,7 @@ public:
           act_snt_l1 = snt.getSignalToNoise(input[i - 1]);
           act_snt_r1 = snt.getSignalToNoise(input[i + 1]);
         }
+
 
         // look for peak cores meeting MZ and intensity/SNT criteria
         if (act_snt >= signal_to_noise_
