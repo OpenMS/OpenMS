@@ -34,7 +34,7 @@
 
 /**
 
-@page pyOpenMS PyOpenMS
+@page pyOpenMS pyOpenMS (Python bindings)
 
 <H1 style="margin-top:40px; border-top:4px solid grey; text-align:left;">Introduction</H1>
 

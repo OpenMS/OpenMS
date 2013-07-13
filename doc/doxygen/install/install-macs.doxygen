@@ -165,6 +165,10 @@ ccmake ~/openms-development/openms_build
       <td>The location where the ID search engines are located. This directory should have the same structure as the one in the %OpenMS svn repository. 
       This directory is needed to build the installer for %OpenMS.</td>
     </tr>        
+    <tr>
+      <td valign="top">PYOPENMS</td>
+      <td>Use ON to also build the Python bindings, see also @ref pyOpenMS.</td>
+    </tr>
   </table>
 
   After CMake was executed, you can list the make targets by calling:

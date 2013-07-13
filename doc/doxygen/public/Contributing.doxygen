@@ -82,7 +82,12 @@
 
 		</UL>
 	<H2 style="border-top:2px solid grey;">TOPP</H2>
-		<UL>
-			<LI> Coming soon.
-		</UL>
+
+			<LI><B>I want to implement a new TOPP tool. What is to be done?</B><BR>
+      <OL>
+        <LI> Prepare testdata for blackbox testing and add the test to <tt>source/TEST/TOPP/CMakeLists.txt</tt>. Make sure that a test exists for each commandline option of the tool.</LI>
+        <LI> Add your tool either in <tt>source/APPLICATIONS/TOPP</tt> or <tt>source/APPLICATIONS/UTILS</tt> (depending on its maturity) </LI>
+        <LI> Add your tool to the list in the ToolHandler in <tt>source/APPLICATIONS/ToolHandler.C</tt> </LI>
+        <LI> Insert your tool into the documentation in <tt>doc/doxygen/public/TOPP.doxygen</tt> </LI>
+      </OL>
 */

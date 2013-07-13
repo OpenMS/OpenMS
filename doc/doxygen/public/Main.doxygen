@@ -74,6 +74,7 @@
 
 				Misc:
 				<UL>
+				  <LI> <a class="el" href="http://www.OpenMS.de/support/bugs" target="_blank">Support</a> 
 					<LI> @subpage FAQ
 					<LI> @subpage ChangeLog
 				</UL>
@@ -81,7 +82,7 @@
 
 			<TD>
 				<BR>
-				The %OpenMS project was initiated by Prof. Oliver Kohlbacher and Prof. Knut Reinert in 2003.
+				The %OpenMS project was initiated by Prof. Oliver Kohlbacher and Prof. Knut Reinert in 2003. 
 
 				Currently the main developers of %OpenMS are:
 				<UL>
@@ -91,7 +92,9 @@
 					<LI style="margin-top: 3px;"> Johannes Junker @n <i> Quantification, TOPPAS</i>
 					<LI style="margin-top: 3px;"> Erhan Kenar @n <i> metabolomics </i>
 					<LI style="margin-top: 3px;"> Lars Nilse @n <i> SILAC quantitation </i>
-					<LI style="margin-top: 3px;"> Timo Sachsenberg @n <i> Visualization/TOPPView </i>
+					<LI style="margin-top: 3px;"> Hannes Roest @n <i> SWATH MS, Targeted Analysis, Python bindings </i>
+					<LI style="margin-top: 3px;"> George Rosenberger @n <i> SWATH MS, Targeted Analysis </i>
+					<LI style="margin-top: 3px;"> Timo Sachsenberg @n <i> Visualization, TOPPView </i>
 					<LI style="margin-top: 3px;"> Mathias Walzer @n <i> peptide identification, clustering </i>
 					<LI style="margin-top: 3px;"> Hendrik Weisser @n <i> protein quantification, map alignment </i>
 					<LI style="margin-top: 3px;"> Alexandra Zerck @n <i> precursor selection, calibration</i>
