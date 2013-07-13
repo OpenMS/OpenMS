@@ -664,13 +664,15 @@ DoubleReal FeatureFindingMetabo::scoreRT_(const MassTrace& tr1, const MassTrace&
 
 
     DoubleReal proportion(overlap/max_length);
-    // std::cout << tr1.getLabel() << " & " << tr2.getLabel() << " prop:" << proportion << std::endl;
+    // std::cout << tr1.getLabel() << " & " << tr2.getLabel() << " prop:" << proportion << " overlap size" << overlap_rts.size() << std::endl;
 
     if (proportion < 0.7)
     {
         // std::cout << "reject";
         return 0.0;
     }
+
+    // std::cout << computeCosineSim_(x, y);
 
     return computeCosineSim_(x, y);
 }
@@ -800,7 +802,7 @@ void FeatureFindingMetabo::findLocalFeatures_(std::vector<MassTrace*>& candidate
 
                 fh_tmp.setScore(fh_tmp.getScore() + weighted_score);
                 fh_tmp.setCharge(charge);
-                //std::cout << "adding " << fh_tmp.getLabel() << std::endl;
+                // std::cout << "adding " << fh_tmp.getLabel() << << std::endl;
 
                 output_hypos.push_back(fh_tmp);
                 last_iso_idx = best_idx;
