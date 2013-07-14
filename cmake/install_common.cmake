@@ -43,14 +43,17 @@ INSTALL(DIRECTORY share/		# warning: that slash(/) is important here, otherwise 
 
   
 if (INSTALL_FORCE_DOC OR DOXYGEN_FOUND)
-  # 'doc' target exists
-  install(CODE "MESSAGE(\"Installing documentation created from 'doc' target. Make sure this target was called before!\")")
+  # 'doc' target exists, we make sure that it was run before installing the documentation
+  install(CODE "MESSAGE(\"Installing documentation created from 'doc' target. Running doc target now.\")")
+  install(CODE "execute_process(COMMAND \"${CMAKE_COMMAND}\" --build \"${PROJECT_BINARY_DIR}\" --target doc)")
+  
   ## this does not work yet (CMake 'bug') :  add_dependencies(install doc) ## force 'doc' to be build before installing the resulting files
   install(FILES     ${PROJECT_BINARY_DIR}/doc/index.html      DESTINATION share/OpenMS/doc COMPONENT doc) 
   install(DIRECTORY ${PROJECT_BINARY_DIR}/doc/html            DESTINATION share/OpenMS/doc COMPONENT doc PATTERN ".svn" EXCLUDE) 
   if (INSTALL_FORCE_DOC OR DOC_TUTORIALS_ACTIVE)
     # 'doc_tutorials' target exists
-    install(CODE "MESSAGE(\"Installing documentation created from 'doc_tutorials' target. Make sure this target was called before!\")")
+    install(CODE "MESSAGE(\"Installing documentation created from 'doc_tutorials' target. Running doc_tutorials target now!\")")
+    install(CODE "execute_process(COMMAND \"${CMAKE_COMMAND}\" --build \"${PROJECT_BINARY_DIR}\" --target doc_tutorials)")    
     ## this does not work yet (CMake 'bug') :  add_dependencies(install doc_tutorials) ## force 'doc_tutorials' to be build before installing the resulting files
     install(FILES ${PROJECT_BINARY_DIR}/doc/OpenMS_tutorial.pdf DESTINATION share/OpenMS/doc COMPONENT doc) 
     install(FILES ${PROJECT_BINARY_DIR}/doc/TOPP_tutorial.pdf   DESTINATION share/OpenMS/doc COMPONENT doc) 
