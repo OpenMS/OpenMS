@@ -101,7 +101,7 @@ protected:
     static void keepFirstPSM_(std::vector<PeptideIdentification>::iterator begin, std::vector<PeptideIdentification>::iterator end);
 
     /// Extract protein and peptide identifications for each run. maps are assumed empty.
-    static void partitionIntoRuns(const std::vector<PeptideIdentification> & pep_ids,
+    static void partitionIntoRuns_(const std::vector<PeptideIdentification> & pep_ids,
                                   const std::vector<ProteinIdentification> & pro_ids,
                                   std::map<String, std::vector<PeptideIdentification> > & map_run_to_pepids,
                                   std::map<String, std::vector<ProteinIdentification> > & map_run_to_proids
@@ -109,7 +109,7 @@ protected:
 
 
     /// create links from protein to peptides
-    static void createProteinToPeptideLinks(const std::map<String, std::vector<PeptideIdentification> > & map_run_to_pepids, MapAccPepType & map_run_accession_to_pephits);
+    static void createProteinToPeptideLinks_(const std::map<String, std::vector<PeptideIdentification> > & map_run_to_pepids, MapAccPepType & map_run_accession_to_pephits);
 
     /// Extracts, if possible a unique protein accession for a peptide hit in mzTab format. Otherwise NA is returned
     static String extractProteinAccession_(const PeptideHit & peptide_hit);
@@ -122,15 +122,15 @@ protected:
 
     static String mapSearchEngineScoreToCvParam_(const String & openms_search_engine_name, DoubleReal score, String score_type);
 
-    static String extractNumPeptides(const String & common_identifier, const String & protein_accession,
+    static String extractNumPeptides_(const String & common_identifier, const String & protein_accession,
                                      const MapAccPepType & map_run_accesion_to_peptides);
 
     // mzTab definition of distinct
-    static String extractNumPeptidesDistinct(String common_identifier, String protein_accession,
+    static String extractNumPeptidesDistinct_(String common_identifier, String protein_accession,
                                              const MapAccPepType & map_run_accesion_to_peptides);
 
     // same as distinct but additional constraint of uniquenes (=maps to exactly one Protein)
-    static String extractNumPeptidesUnambiguous(String common_identifier, String protein_accession,
+    static String extractNumPeptidesUnambiguous_(String common_identifier, String protein_accession,
                                                 const MapAccPepType & map_run_accesion_to_peptides);
 
     static std::map<String, Size> extractNumberOfSubSamples_(const std::map<String, std::vector<ProteinIdentification> > & map_run_to_proids);

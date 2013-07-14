@@ -46,7 +46,9 @@
 namespace OpenMS
 {
   /**
-  @brief Tabular visualization/ selection of identified specra.
+    @brief Tabular visualization / selection of identified specra.
+  
+    @htmlinclude OpenMS_DigestSimulation.parameters
   */
   class SpectraIdentificationViewWidget :
     public QWidget,

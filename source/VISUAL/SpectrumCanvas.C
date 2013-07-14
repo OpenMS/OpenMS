@@ -200,11 +200,11 @@ namespace OpenMS
 
   void SpectrumCanvas::wheelEvent(QWheelEvent * e)
   {
-    zoom(e->x(), e->y(), e->delta() > 0);
+    zoom_(e->x(), e->y(), e->delta() > 0);
     e->accept();
   }
 
-  void SpectrumCanvas::zoom(int x, int y, bool zoom_in)
+  void SpectrumCanvas::zoom_(int x, int y, bool zoom_in)
   {
     const PointType::CoordinateType zoom_factor = zoom_in ? 0.8 : 1.0 / 0.8;
     AreaType new_area;

@@ -584,9 +584,9 @@ namespace OpenMS
       // try to retrieve the map from the cache if available
       typedef std::set<Precursor, Precursor::MZLess> PCSetType;
       std::map<Precursor, std::vector<Size>, Precursor::MZLess> map_precursor_to_chrom_idx;
-      if (map_precursor_to_chrom_idx_cache.find((size_t)(exp.get())) != map_precursor_to_chrom_idx_cache.end())
+      if (map_precursor_to_chrom_idx_cache_.find((size_t)(exp.get())) != map_precursor_to_chrom_idx_cache_.end())
       {
-        map_precursor_to_chrom_idx = map_precursor_to_chrom_idx_cache[(size_t)(exp.get())];
+        map_precursor_to_chrom_idx = map_precursor_to_chrom_idx_cache_[(size_t)(exp.get())];
       }
       else
       {
@@ -610,7 +610,7 @@ namespace OpenMS
           }
         }
 
-        map_precursor_to_chrom_idx_cache[(size_t)(exp.get())] = map_precursor_to_chrom_idx;
+        map_precursor_to_chrom_idx_cache_[(size_t)(exp.get())] = map_precursor_to_chrom_idx;
       }
 
       if (!map_precursor_to_chrom_idx.empty())

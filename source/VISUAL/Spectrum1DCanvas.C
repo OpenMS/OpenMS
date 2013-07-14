@@ -1560,7 +1560,7 @@ namespace OpenMS
     modificationStatus_(i, false);
   }
 
-  void Spectrum1DCanvas::zoom(int x, int y, bool zoom_in)
+  void Spectrum1DCanvas::zoom_(int x, int y, bool zoom_in)
   {
     if (!zoom_in)
     {
