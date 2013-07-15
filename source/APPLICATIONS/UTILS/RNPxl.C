@@ -56,9 +56,6 @@
 using namespace std;
 using namespace OpenMS;
 
-/**
-    @brief Tool for RNP cross linking experiment analysis.
-  */
 
 #define RT_FACTOR 10000000
 #define RT_FACTOR_PRECISION 1000
@@ -684,13 +681,25 @@ ModificationMassesResult initModificationMassesRNA(StringList target_nucleotides
 
     @brief Perform preotein-RNA cross-linking experiments.
 
+    <CENTER>
+    <table>
+        <tr>
+            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+            <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ RNPxl \f$ \longrightarrow \f$</td>
+            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+        </tr>
+        <tr>
+            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> RNPxlXICFilter </td>
+            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> - </td>
+        </tr>
+    </table>
+</CENTER>
+
     <B>The command line parameters of this tool are:</B>
     @verbinclude UTILS_RNPxl.cli
     <B>INI file documentation of this tool:</B>
     @htmlinclude UTILS_RNPxl.html
 */
-// We do not want this class to show up in the docu:
-/// @cond TOPPCLASSES
 
 class TOPPRNPxl :
   public TOPPBase
