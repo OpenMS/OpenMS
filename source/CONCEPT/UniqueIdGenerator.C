@@ -34,7 +34,7 @@
 
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 
-#include <OpenMS/MATH/gsl_wrapper.h>
+#include <gsl/gsl_rng.h>
 
 
 // debugging
@@ -55,7 +55,7 @@ namespace OpenMS
 // Remember: The order of execution of static initializers is unspecified.
 // Well, actually that paragraph does not apply here (instance_ is just a pointer, not an object)...
 // But don't blame me ... just in case ...
-    static deprecated_gsl_rng * rng_;
+    static gsl_rng * rng_;
 
   }
 
@@ -68,7 +68,7 @@ namespace OpenMS
     UInt64 r;
 #pragma omp critical
     {
-      r = (UInt64(deprecated_gsl_rng_get(rng_)) << 32) + UInt64(deprecated_gsl_rng_get(rng_));
+      r = (UInt64(gsl_rng_get(rng_)) << 32) + UInt64(gsl_rng_get(rng_));
     }
     return r;
   }
@@ -84,7 +84,7 @@ namespace OpenMS
   UniqueIdGenerator::UniqueIdGenerator()
   {
     V_UniqueIdGenerator("UniqueIdGenerator::UniqueIdGenerator()");
-    rng_ = deprecated_gsl_rng_alloc(deprecated_wrapper_get_gsl_rng_mt19937());
+    rng_ = gsl_rng_alloc(gsl_rng_mt19937);
     // The random seed is set by a call to init_()
     // from within either getInstance_() or setSeed(),
     // depending upon what is called first.
@@ -122,11 +122,11 @@ namespace OpenMS
 
     const UInt64 seed_64 = date_time.toString("yyyyMMddhhmmsszzz").toLongLong();
     const unsigned long int actually_used_seed = ((UInt64(1) << 32) - 1) & ((seed_64 >> 32) ^ seed_64); // just to mix the bits a bit
-    deprecated_gsl_rng_set(rng_, actually_used_seed);
+    gsl_rng_set(rng_, actually_used_seed);
 
-    info_.setValue("generator_type", deprecated_gsl_rng_name(rng_));
-    info_.setValue("generator_min", String(deprecated_gsl_rng_min(rng_)));
-    info_.setValue("generator_max", String(deprecated_gsl_rng_max(rng_)));
+    info_.setValue("generator_type", gsl_rng_name(rng_));
+    info_.setValue("generator_min", String(gsl_rng_min(rng_)));
+    info_.setValue("generator_max", String(gsl_rng_max(rng_)));
     info_.setValue("initialization_date_time_as_string", date_time.get());
     info_.setValue("initialization_date_time_as_longlong", String(seed_64));
     info_.setValue("actually_used_seed", String(actually_used_seed));
@@ -138,7 +138,7 @@ namespace OpenMS
   UniqueIdGenerator::~UniqueIdGenerator()
   {
     V_UniqueIdGenerator("UniqueIdGenerator::~UniqueIdGenerator()");
-    deprecated_gsl_rng_free(rng_);
+    gsl_rng_free(rng_);
     return;
   }
 

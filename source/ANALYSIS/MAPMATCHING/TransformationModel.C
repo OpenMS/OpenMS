@@ -35,6 +35,10 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
+#include <gsl/gsl_fit.h>
+#include <gsl/gsl_multifit.h>
+#include <gsl/gsl_sort_vector.h>
+#include <gsl/gsl_statistics.h>
 #include <algorithm>
 #include <numeric>
 
@@ -89,7 +93,7 @@ namespace OpenMS
         }
         double cov00, cov01, cov11, sumsq;         // covariance values, sum of squares
         double * x_start = &(x[0]), * y_start = &(y[0]);
-        deprecated_gsl_fit_linear(x_start, 1, y_start, 1, size, &intercept_, &slope_,
+        gsl_fit_linear(x_start, 1, y_start, 1, size, &intercept_, &slope_,
                        &cov00, &cov01, &cov11, &sumsq);
 
         if (symmetric_)         // undo coordinate transformation:
@@ -171,30 +175,30 @@ namespace OpenMS
     }
 
     String interpolation_type = params_.getValue("interpolation_type");
-    const deprecated_gsl_interp_type * type;
+    const gsl_interp_type * type;
     if (interpolation_type == "linear")
-      type = deprecated_wrapper_get_gsl_interp_linear();
+      type = gsl_interp_linear;
     else if (interpolation_type == "polynomial")
-      type = deprecated_wrapper_get_gsl_interp_polynomial();
+      type = gsl_interp_polynomial;
     else if (interpolation_type == "cspline")
-      type = deprecated_wrapper_get_gsl_interp_cspline();
+      type = gsl_interp_cspline;
     else if (interpolation_type == "akima")
-      type = deprecated_wrapper_get_gsl_interp_akima();
+      type = gsl_interp_akima;
     else
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "unknown/unsupported interpolation type '" + interpolation_type + "'");
     }
 
-    size_t min_size = deprecated_wrapper_gsl_interp_type_get_min_size( type );
+    size_t min_size = type->min_size;
     if (size_ < min_size)
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "'" + interpolation_type + "' interpolation model needs at least " + String(min_size) + " data points (with unique x values)");
     }
 
-    interp_ = deprecated_gsl_interp_alloc(type, size_);
-    acc_ = deprecated_gsl_interp_accel_alloc();
+    interp_ = gsl_interp_alloc(type, size_);
+    acc_ = gsl_interp_accel_alloc();
     double * x_start = &(x_[0]), * y_start = &(y_[0]);
-    deprecated_gsl_interp_init(interp_, x_start, y_start, size_);
+    gsl_interp_init(interp_, x_start, y_start, size_);
 
     // linear model for extrapolation:
     TransformationModel::DataPoints lm_data(2);
@@ -205,8 +209,8 @@ namespace OpenMS
 
   TransformationModelInterpolated::~TransformationModelInterpolated()
   {
-    deprecated_gsl_interp_free(interp_);
-    deprecated_gsl_interp_accel_free(acc_);
+    gsl_interp_free(interp_);
+    gsl_interp_accel_free(acc_);
     delete lm_;
   }
 
@@ -219,7 +223,7 @@ namespace OpenMS
     }
     // interpolate:
     const double * x_start = &(x_[0]), * y_start = &(y_[0]);
-    return deprecated_gsl_interp_eval(interp_, x_start, y_start, value, acc_);
+    return gsl_interp_eval(interp_, x_start, y_start, value, acc_);
   }
 
   void TransformationModelInterpolated::getDefaultParameters(Param & params)
@@ -251,16 +255,16 @@ namespace OpenMS
     }
 
     size_ = data.size();
-    x_ = deprecated_gsl_vector_alloc(size_);
-    y_ = deprecated_gsl_vector_alloc(size_);
-    w_ = deprecated_gsl_vector_alloc(size_);
+    x_ = gsl_vector_alloc(size_);
+    y_ = gsl_vector_alloc(size_);
+    w_ = gsl_vector_alloc(size_);
     for (size_t i = 0; i < size_; ++i)
     {
-      deprecated_gsl_vector_set(x_, i, data[i].first);
-      deprecated_gsl_vector_set(y_, i, data[i].second);
-      deprecated_gsl_vector_set(w_, i, 1.0);       // TODO: non-uniform weights
+      gsl_vector_set(x_, i, data[i].first);
+      gsl_vector_set(y_, i, data[i].second);
+      gsl_vector_set(w_, i, 1.0);       // TODO: non-uniform weights
     }
-    deprecated_gsl_vector_minmax(x_, &xmin_, &xmax_);
+    gsl_vector_minmax(x_, &xmin_, &xmax_);
 
     // set up cubic (k = 4) spline workspace:
     if (num_breakpoints < 2)
@@ -273,10 +277,10 @@ namespace OpenMS
       num_breakpoints = size_ - 2;
       LOG_WARN << "Warning: Decreased parameter 'num_breakpoints' to " + String(num_breakpoints) + " (maximum for this number of data points)." << endl;
     }
-    workspace_ = deprecated_gsl_bspline_alloc(4, num_breakpoints);
+    workspace_ = gsl_bspline_alloc(4, num_breakpoints);
     if (break_positions == "uniform")
     {
-      deprecated_gsl_bspline_knots_uniform(xmin_, xmax_, workspace_);
+      gsl_bspline_knots_uniform(xmin_, xmax_, workspace_);
     }
     else
     {
@@ -286,72 +290,69 @@ namespace OpenMS
       {
         quantiles[i] = i * step;
       }
-      deprecated_gsl_vector * breakpoints;
-      breakpoints = deprecated_gsl_vector_alloc(num_breakpoints);
+      gsl_vector * breakpoints;
+      breakpoints = gsl_vector_alloc(num_breakpoints);
       getQuantiles_(x_, quantiles, breakpoints);
-      deprecated_gsl_bspline_knots(breakpoints, workspace_);
-      deprecated_gsl_vector_free(breakpoints);
+      gsl_bspline_knots(breakpoints, workspace_);
+      gsl_vector_free(breakpoints);
     }
-    ncoeffs_ = deprecated_gsl_bspline_ncoeffs(workspace_);
-    deprecated_gsl_vector_minmax(
-    		deprecated_wrapper_gsl_bspline_workspace_get_knots(workspace_), &xmin_, &xmax_);
+    ncoeffs_ = gsl_bspline_ncoeffs(workspace_);
+    gsl_vector_minmax(workspace_->knots, &xmin_, &xmax_);
     computeFit_();
   }
 
   TransformationModelBSpline::~TransformationModelBSpline()
   {
-    deprecated_gsl_bspline_free(workspace_);
-    deprecated_gsl_vector_free(bsplines_);
-    deprecated_gsl_vector_free(coeffs_);
-    deprecated_gsl_matrix_free(cov_);
-    deprecated_gsl_vector_free(x_);
-    deprecated_gsl_vector_free(y_);
-    deprecated_gsl_vector_free(w_);
+    gsl_bspline_free(workspace_);
+    gsl_vector_free(bsplines_);
+    gsl_vector_free(coeffs_);
+    gsl_matrix_free(cov_);
+    gsl_vector_free(x_);
+    gsl_vector_free(y_);
+    gsl_vector_free(w_);
   }
 
   void TransformationModelBSpline::getQuantiles_(
-    const deprecated_gsl_vector * x, const vector<double> & quantiles, deprecated_gsl_vector * results)
+    const gsl_vector * x, const vector<double> & quantiles, gsl_vector * results)
   {
-    deprecated_gsl_vector * x_sort;
-    x_sort = deprecated_gsl_vector_alloc(
-    		deprecated_wrapper_gsl_vector_get_size(x) );
-    deprecated_gsl_vector_memcpy(x_sort, x);
-    deprecated_gsl_sort_vector(x_sort);
+    gsl_vector * x_sort;
+    x_sort = gsl_vector_alloc(x->size);
+    gsl_vector_memcpy(x_sort, x);
+    gsl_sort_vector(x_sort);
     for (Size i = 0; i < quantiles.size(); ++i)
     {
-      double q = deprecated_gsl_stats_quantile_from_sorted_data(
-    		  deprecated_wrapper_gsl_vector_get_data(x_sort), 1,
-    		  deprecated_wrapper_gsl_vector_get_size(x),quantiles[i]);
-      deprecated_gsl_vector_set(results, i, q);
+      double q = gsl_stats_quantile_from_sorted_data(x_sort->data, 1, x->size,
+                                                     quantiles[i]);
+      gsl_vector_set(results, i, q);
     }
-    deprecated_gsl_vector_free(x_sort);
+    gsl_vector_free(x_sort);
   }
 
   void TransformationModelBSpline::computeFit_()
   {
     // construct the fit matrix:
-    deprecated_gsl_matrix * fit_matrix = deprecated_gsl_matrix_alloc(size_, ncoeffs_);
-    bsplines_ = deprecated_gsl_vector_alloc(ncoeffs_);
+    gsl_matrix * fit_matrix = gsl_matrix_alloc(size_, ncoeffs_);
+    bsplines_ = gsl_vector_alloc(ncoeffs_);
     for (size_t i = 0; i < size_; ++i)
     {
-      double xi = deprecated_gsl_vector_get(x_, i);
-      deprecated_gsl_bspline_eval(xi, bsplines_, workspace_);
+      double xi = gsl_vector_get(x_, i);
+      gsl_bspline_eval(xi, bsplines_, workspace_);
       for (size_t j = 0; j < ncoeffs_; ++j)
       {
-        double bspline = deprecated_gsl_vector_get(bsplines_, j);
-        deprecated_gsl_matrix_set(fit_matrix, i, j, bspline);
+        double bspline = gsl_vector_get(bsplines_, j);
+        gsl_matrix_set(fit_matrix, i, j, bspline);
       }
     }
     // do the fit:
-    deprecated_gsl_multifit_linear_workspace * multifit = deprecated_gsl_multifit_linear_alloc(
+    gsl_multifit_linear_workspace * multifit = gsl_multifit_linear_alloc(
       size_, ncoeffs_);
-    coeffs_ = deprecated_gsl_vector_alloc(ncoeffs_);
-    cov_ = deprecated_gsl_matrix_alloc(ncoeffs_, ncoeffs_);
+    coeffs_ = gsl_vector_alloc(ncoeffs_);
+    cov_ = gsl_matrix_alloc(ncoeffs_, ncoeffs_);
     double chisq;
-    deprecated_gsl_multifit_wlinear(fit_matrix, w_, y_, coeffs_, cov_, &chisq, multifit);
+    gsl_multifit_wlinear(fit_matrix, w_, y_, coeffs_, cov_, &chisq, multifit);
     // clean-up:
-    deprecated_gsl_matrix_free(fit_matrix);
-    deprecated_gsl_multifit_linear_free(multifit);
+    gsl_matrix_free(fit_matrix);
+    gsl_multifit_linear_free(multifit);
     // for linear extrapolation (natural spline):
     computeLinear_(xmin_, slope_min_, offset_min_, sd_err_left_);
     computeLinear_(xmax_, slope_max_, offset_max_, sd_err_right_);
@@ -360,18 +361,18 @@ namespace OpenMS
   void TransformationModelBSpline::computeLinear_(
     const double pos, double & slope, double & offset, double & sd_err)
   {
-    deprecated_gsl_bspline_deriv_workspace * deriv_workspace = deprecated_gsl_bspline_deriv_alloc(4);
-    deprecated_gsl_matrix * deriv = deprecated_gsl_matrix_alloc(ncoeffs_, 2);
-    deprecated_gsl_bspline_deriv_eval(pos, 1, deriv, workspace_, deriv_workspace);
-    deprecated_gsl_bspline_deriv_free(deriv_workspace);
+    gsl_bspline_deriv_workspace * deriv_workspace = gsl_bspline_deriv_alloc(4);
+    gsl_matrix * deriv = gsl_matrix_alloc(ncoeffs_, 2);
+    gsl_bspline_deriv_eval(pos, 1, deriv, workspace_, deriv_workspace);
+    gsl_bspline_deriv_free(deriv_workspace);
     double results[2];
     for (size_t j = 0; j < 2; ++j)
     {
       for (size_t i = 0; i < ncoeffs_; ++i)
       {
-        deprecated_gsl_vector_set(bsplines_, i, deprecated_gsl_matrix_get(deriv, i, j));
+        gsl_vector_set(bsplines_, i, gsl_matrix_get(deriv, i, j));
       }
-      deprecated_gsl_multifit_linear_est(bsplines_, coeffs_, cov_, &results[j], &sd_err);
+      gsl_multifit_linear_est(bsplines_, coeffs_, cov_, &results[j], &sd_err);
       // TODO: find a good way to estimate the error
       // e.g. by reducing "num_breakpoints" and comparing to current?!
       if (sd_err >= 1)
@@ -381,7 +382,7 @@ namespace OpenMS
         LOG_WARN << "Warning: B-spline extrapolation is unreliable. Consider reducing 'num_breakpoints' or using another model." << endl;
       }
     }
-    deprecated_gsl_matrix_free(deriv);
+    gsl_matrix_free(deriv);
     offset = results[0];
     slope = results[1];
   }
@@ -400,8 +401,8 @@ namespace OpenMS
     else     // evaluate B-splines
     {
       double yerr;
-      deprecated_gsl_bspline_eval(value, bsplines_, workspace_);
-      deprecated_gsl_multifit_linear_est(bsplines_, coeffs_, cov_, &result, &yerr);
+      gsl_bspline_eval(value, bsplines_, workspace_);
+      gsl_multifit_linear_est(bsplines_, coeffs_, cov_, &result, &yerr);
     }
     return result;
   }

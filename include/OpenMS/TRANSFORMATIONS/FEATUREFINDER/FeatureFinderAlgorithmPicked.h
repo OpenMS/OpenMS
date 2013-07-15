@@ -58,6 +58,11 @@
 #include <fstream>
 #include <algorithm>
 
+#include <gsl/gsl_rng.h>
+#include <gsl/gsl_vector.h>
+#include <gsl/gsl_multifit_nlin.h>
+#include <gsl/gsl_blas.h>
+
 #include <QtCore/QDir>
 
 #ifdef _OPENMP

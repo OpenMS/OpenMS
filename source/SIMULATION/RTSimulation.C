@@ -40,8 +40,6 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 
-#include <OpenMS/MATH/gsl_wrapper.h>
-
 #include <vector>
 #include <iostream>
 
@@ -250,7 +248,7 @@ namespace OpenMS
         predicted_retention_times[i] = features[i].getMetaValue("rt");
       }
       // add variation
-      SimCoordinateType rt_error = deprecated_gsl_ran_gaussian(rnd_gen_->technical_rng, rt_ft_stddev) + rt_offset;
+      SimCoordinateType rt_error = gsl_ran_gaussian(rnd_gen_->technical_rng, rt_ft_stddev) + rt_offset;
       predicted_retention_times[i] = predicted_retention_times[i] * rt_scale + rt_error;
       //overwrite RT [no randomization] (if given by user)
       if (features[i].metaValueExists("RT"))
@@ -274,8 +272,8 @@ namespace OpenMS
       features[i].setRT(predicted_retention_times[i]);
 
       // determine shape parameters for EGH
-      DoubleReal variance = egh_variance_location_ + (egh_variance_scale_ == 0 ? 0 : deprecated_gsl_ran_cauchy(rnd_gen_->technical_rng, egh_variance_scale_));
-      DoubleReal tau = egh_tau_location_ + (egh_tau_scale_ == 0 ? 0 : deprecated_gsl_ran_cauchy(rnd_gen_->technical_rng, egh_tau_scale_));
+      DoubleReal variance = egh_variance_location_ + (egh_variance_scale_ == 0 ? 0 : gsl_ran_cauchy(rnd_gen_->technical_rng, egh_variance_scale_));
+      DoubleReal tau = egh_tau_location_ + (egh_tau_scale_ == 0 ? 0 : gsl_ran_cauchy(rnd_gen_->technical_rng, egh_tau_scale_));
 
       // resample variance if it is below 0
       // try this only 10 times to avoid endless loop in case of
@@ -283,7 +281,7 @@ namespace OpenMS
       Size retry_variance_sampling = 0;
       while ((variance <= 0 || (fabs(variance - egh_variance_location_) > 10 * egh_variance_scale_)) && retry_variance_sampling < 9)
       {
-        variance = egh_variance_location_ + deprecated_gsl_ran_cauchy(rnd_gen_->technical_rng, egh_variance_scale_);
+        variance = egh_variance_location_ + gsl_ran_cauchy(rnd_gen_->technical_rng, egh_variance_scale_);
         ++retry_variance_sampling;
       }
 
@@ -299,7 +297,7 @@ namespace OpenMS
       Size retry_tau_sampling = 0;
       while (fabs(tau - egh_tau_location_) > 10 * egh_tau_scale_  && retry_tau_sampling < 9)
       {
-        tau = egh_tau_location_ + deprecated_gsl_ran_cauchy(rnd_gen_->technical_rng, egh_tau_scale_);
+        tau = egh_tau_location_ + gsl_ran_cauchy(rnd_gen_->technical_rng, egh_tau_scale_);
         ++retry_tau_sampling;
       }
 
@@ -566,7 +564,7 @@ namespace OpenMS
     {
 
       // assign random retention time
-      SimCoordinateType retention_time = deprecated_gsl_ran_flat(rnd_gen_->technical_rng, 0, total_gradient_time_);
+      SimCoordinateType retention_time = gsl_ran_flat(rnd_gen_->technical_rng, 0, total_gradient_time_);
       contaminants[i].setRT(retention_time);
     }
   }
@@ -651,7 +649,7 @@ namespace OpenMS
         next = (DoubleReal) experiment[scan + 1].getMetaValue("distortion");
 
         DoubleReal smoothed = (previous + current + next) / 3.0;
-        smoothed *= deprecated_gsl_ran_flat(rnd_gen_->technical_rng, 1.0 - std::pow(fi + 1.0, 2) * 0.01, 1.0 + std::pow(fi + 1.0, 2) * 0.01); // distortion gets worse round by round
+        smoothed *= gsl_ran_flat(rnd_gen_->technical_rng, 1.0 - std::pow(fi + 1.0, 2) * 0.01, 1.0 + std::pow(fi + 1.0, 2) * 0.01); // distortion gets worse round by round
         previous = current;
 
 #ifdef MSSIM_DEBUG_MOV_AVG_FILTER

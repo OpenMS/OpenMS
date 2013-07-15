@@ -40,8 +40,6 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantifierStatistics.h>
 
-#include <OpenMS/MATH/gsl_wrapper.h>
-
 namespace OpenMS
 {
   /**
@@ -82,13 +80,13 @@ private:
 
     /// @brief GSL objects used for the isotope correction.
     /// @{
-    deprecated_gsl_matrix* m_;
-    deprecated_gsl_permutation* p_;
-    deprecated_gsl_vector* b_;
-    deprecated_gsl_vector* x_;
+    gsl_matrix* gsl_m_;
+    gsl_permutation* gsl_p_;
+    gsl_vector* gsl_b_;
+    gsl_vector* gsl_x_;
 
     /// Indicates wether memory was allocated for the gsl vector/matrix pointers.
-    bool allocated_;
+    bool gsl_allocated_;
 
     /// Free all memory allocated by GSL objects.
     void freeGSLMemory_();
@@ -103,7 +101,7 @@ private:
     bool isIdentityMatrix_(const Matrix<double>& channel_frequency) const;
 
     /**
-     @brief Checks if the gsl matrix is invertible (see IsobaricIsotopeCorrector::m_).
+     @brief Checks if the gsl matrix is invertible (see IsobaricIsotopeCorrector::gsl_m_).
 
      @return True if the matrix is invertible, false otherwise.
      */
@@ -112,12 +110,12 @@ private:
     /**
      @brief Fills the input vector for the gsl/NNLS step given the ConsensusFeature.
      */
-    void fillInputVector_(deprecated_gsl_vector* b, Matrix<double>& m_b, const ConsensusFeature& cf, const ConsensusMap& cm) const;
+    void fillInputVector_(gsl_vector* gsl_b, Matrix<double>& m_b, const ConsensusFeature& cf, const ConsensusMap& cm) const;
 
     /**
      @brief Solves the
      */
-    void solvedeprecated_gsl_(const deprecated_gsl_matrix* m, const deprecated_gsl_permutation* p, const deprecated_gsl_vector* b, deprecated_gsl_vector* x) const;
+    void solveGSL_(const gsl_matrix* gsl_m, const gsl_permutation* gsl_p, const gsl_vector* gsl_b, gsl_vector* gsl_x) const;
 
     /**
      @brief
@@ -127,7 +125,7 @@ private:
     /**
      @brief
      */
-    void computeStats_(const Matrix<double>& m_x, deprecated_gsl_vector* x, const ConsensusFeature::IntensityType cf_intensity, IsobaricQuantifierStatistics& stats);
+    void computeStats_(const Matrix<double>& m_x, gsl_vector* gsl_x, const ConsensusFeature::IntensityType cf_intensity, IsobaricQuantifierStatistics& stats);
 
     /**
      @brief

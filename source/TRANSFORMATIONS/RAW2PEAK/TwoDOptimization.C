@@ -40,7 +40,7 @@ namespace OpenMS
 {
 
   // Evaluation of the target function for nonlinear optimization.
-  Int TwoDOptimization::residual2D_(const deprecated_gsl_vector * x, void * params, deprecated_gsl_vector * f)
+  Int TwoDOptimization::residual2D_(const gsl_vector * x, void * params, gsl_vector * f)
   {
     // According to the gsl conventions, x contains the parameters to be optimized.
     // In our case these are the weighted average mz-position and left and right width for all
@@ -65,7 +65,7 @@ namespace OpenMS
 
     Size num_scans = signal2D.size() / 2;
     IsotopeCluster::ChargedIndexSet::iterator peak_iter = iso_map_iter->second.peaks.begin();
-    deprecated_gsl_vector_set_zero(f);
+    gsl_vector_set_zero(f);
 
     //iterate over all scans
     for (Size current_scan = 0; current_scan < num_scans; ++current_scan)
@@ -120,15 +120,15 @@ namespace OpenMS
           // if the current peak is in the reference scan take all parameters from the vector x
 #ifdef DEBUG_2D
           std::cout << "ref_scan : " << current_peak << "\t "
-                    << deprecated_gsl_vector_get(x, 3 * current_peak) << "\t" << deprecated_gsl_vector_get(x, 3 * current_peak + 1)
-                    << "\t" << deprecated_gsl_vector_get(x, 3 * current_peak + 2) << std::endl;
+                    << gsl_vector_get(x, 3 * current_peak) << "\t" << gsl_vector_get(x, 3 * current_peak + 1)
+                    << "\t" << gsl_vector_get(x, 3 * current_peak + 2) << std::endl;
 #endif
           //Store the current parameters for this peak
-          p_position    = deprecated_gsl_vector_get(x, total_nr_peaks + 3 * map_idx);
-          p_height      = deprecated_gsl_vector_get(x, peak_idx);
+          p_position    = gsl_vector_get(x, total_nr_peaks + 3 * map_idx);
+          p_height      = gsl_vector_get(x, peak_idx);
           p_width       = (current_position <= p_position) ?
-                          deprecated_gsl_vector_get(x, total_nr_peaks + 3 * map_idx + 1) :
-                          deprecated_gsl_vector_get(x, total_nr_peaks + 3 * map_idx + 2);
+                          gsl_vector_get(x, total_nr_peaks + 3 * map_idx + 1) :
+                          gsl_vector_get(x, total_nr_peaks + 3 * map_idx + 2);
           ++count;
 
 
@@ -159,7 +159,7 @@ namespace OpenMS
         std::cout << "computed vs experimental signal: " << computed_signal << "\t"
                   << experimental_signal << std::endl;
 #endif
-        deprecated_gsl_vector_set(f, counter_posf, step * (computed_signal - experimental_signal));
+        gsl_vector_set(f, counter_posf, step * (computed_signal - experimental_signal));
         ++counter_posf;
       }
 
@@ -190,7 +190,7 @@ namespace OpenMS
         old_width_l += picked_peaks[vec_iter->spectrum].getFloatDataArrays()[3][vec_iter->peak] * old_height;
         old_width_r += picked_peaks[vec_iter->spectrum].getFloatDataArrays()[4][vec_iter->peak] * old_height;
 
-        p_height     = deprecated_gsl_vector_get(x, peak);
+        p_height     = gsl_vector_get(x, peak);
         ++peak;
 
         if (p_height < 1)
@@ -203,9 +203,9 @@ namespace OpenMS
       old_width_l /= weight;
       old_width_r /= weight;
 
-      DoubleReal p_position   = deprecated_gsl_vector_get(x, total_nr_peaks + 3 * current_peak);
-      DoubleReal p_width_l    = deprecated_gsl_vector_get(x, total_nr_peaks + 3 * current_peak + 1);
-      DoubleReal p_width_r    = deprecated_gsl_vector_get(x, total_nr_peaks + 3 * current_peak + 2);
+      DoubleReal p_position   = gsl_vector_get(x, total_nr_peaks + 3 * current_peak);
+      DoubleReal p_width_l    = gsl_vector_get(x, total_nr_peaks + 3 * current_peak + 1);
+      DoubleReal p_width_r    = gsl_vector_get(x, total_nr_peaks + 3 * current_peak + 2);
       if (p_width_l < 0)
       {
         penalty += 1e7 * penalties.lWidth * pow(fabs(p_width_l - old_width_l), 2);
@@ -238,15 +238,14 @@ namespace OpenMS
       ++current_peak;
     }
 
-    deprecated_gsl_vector_set(f,
-    		deprecated_wrapper_gsl_vector_get_size(f) - 1, penalty);
-    return deprecated_gsl_SUCCESS;
+    gsl_vector_set(f, f->size - 1, penalty);
+    return GSL_SUCCESS;
   }
 
   /** Compute the Jacobian of the residual, where each row of the matrix corresponds to a
    *  point in the data.
    */
-  Int TwoDOptimization::jacobian2D_(const deprecated_gsl_vector * x, void * params, deprecated_gsl_matrix * J)
+  Int TwoDOptimization::jacobian2D_(const gsl_vector * x, void * params, gsl_matrix * J)
   {
     // For the conventions on x and params c.f. the commentary in residual()
     //
@@ -327,22 +326,22 @@ namespace OpenMS
           // if the current peak is in the reference scan take all parameters from the vector x
 #ifdef DEBUG_2D
           std::cout << "ref_scan : " << current_peak << "\t "
-                    << deprecated_gsl_vector_get(x, 3 * current_peak) << "\t" << deprecated_gsl_vector_get(x, 3 * current_peak + 1)
-                    << "\t" << deprecated_gsl_vector_get(x, 3 * current_peak + 2) << std::endl;
+                    << gsl_vector_get(x, 3 * current_peak) << "\t" << gsl_vector_get(x, 3 * current_peak + 1)
+                    << "\t" << gsl_vector_get(x, 3 * current_peak + 2) << std::endl;
 #endif
           // Store the current parameters for this peak
-          p_position    = deprecated_gsl_vector_get(x, total_nr_peaks + 3 * map_idx);
-          p_height      = deprecated_gsl_vector_get(x, peak_idx);
+          p_position    = gsl_vector_get(x, total_nr_peaks + 3 * map_idx);
+          p_height      = gsl_vector_get(x, peak_idx);
           p_width       = (current_position <= p_position) ?
-                          deprecated_gsl_vector_get(x, total_nr_peaks + 3 * map_idx + 1) :
-                          deprecated_gsl_vector_get(x, total_nr_peaks + 3 * map_idx + 2);
+                          gsl_vector_get(x, total_nr_peaks + 3 * map_idx + 1) :
+                          gsl_vector_get(x, total_nr_peaks + 3 * map_idx + 2);
           ++count;
 // DoubleReal weight = step*((picked_peaks[peak_iter->first]).begin()+peak_iter->second)->getIntensity();
           DoubleReal weight = step * picked_peaks[peak_iter->first].getFloatDataArrays()[1][peak_iter->second];
           ov_weight[map_idx] += weight;
-          DoubleReal ddx0_old = deprecated_gsl_matrix_get(J, counter_posf, total_nr_peaks + 3 * map_idx);
-          DoubleReal ddl_left_old = deprecated_gsl_matrix_get(J, counter_posf, total_nr_peaks + 3 * map_idx + 1);
-          DoubleReal ddl_right_old = deprecated_gsl_matrix_get(J, counter_posf, total_nr_peaks + 3 * map_idx + 2);
+          DoubleReal ddx0_old = gsl_matrix_get(J, counter_posf, total_nr_peaks + 3 * map_idx);
+          DoubleReal ddl_left_old = gsl_matrix_get(J, counter_posf, total_nr_peaks + 3 * map_idx + 1);
+          DoubleReal ddl_right_old = gsl_matrix_get(J, counter_posf, total_nr_peaks + 3 * map_idx + 2);
           //is it a Lorentz or a Sech - Peak?
 
           if ((PeakShape::Type)(Int) Math::round((picked_peaks[peak_iter->first]).getFloatDataArrays()[5][peak_iter->second]) == PeakShape::LORENTZ_PEAK)
@@ -363,10 +362,10 @@ namespace OpenMS
             ddx0 = 2 * p_height * pow(p_width, 2) * diff * pow(denom_inv, 2);
 
 
-            deprecated_gsl_matrix_set(J, counter_posf, total_nr_peaks + 3 * map_idx, ddx0 * weight  + ddx0_old);
-            deprecated_gsl_matrix_set(J, counter_posf, peak_idx, step * denom_inv);
-            deprecated_gsl_matrix_set(J, counter_posf, total_nr_peaks + 3 * map_idx + 1, ddl_left * weight + ddl_left_old);
-            deprecated_gsl_matrix_set(J, counter_posf, total_nr_peaks + 3 * map_idx + 2, ddl_right * weight + ddl_right_old);
+            gsl_matrix_set(J, counter_posf, total_nr_peaks + 3 * map_idx, ddx0 * weight  + ddx0_old);
+            gsl_matrix_set(J, counter_posf, peak_idx, step * denom_inv);
+            gsl_matrix_set(J, counter_posf, total_nr_peaks + 3 * map_idx + 1, ddl_left * weight + ddl_left_old);
+            gsl_matrix_set(J, counter_posf, total_nr_peaks + 3 * map_idx + 2, ddl_right * weight + ddl_right_old);
 
 
 //                                          diff      = current_position - p_position;
@@ -387,10 +386,10 @@ namespace OpenMS
 //                                          // and position
 //                                          ddx0 = (4 * help * p_height*pow(p_width,2)*diff);
 
-//                                          deprecated_gsl_matrix_set(J, counter_posf, total_nr_peaks +3*map_idx    , ddx0* weight  + ddx0_old);
-//                                          deprecated_gsl_matrix_set(J, counter_posf, peak_idx                     , denom_inv);
-//                                          deprecated_gsl_matrix_set(J, counter_posf, total_nr_peaks +3*map_idx +1 , ddl_left * weight + ddl_left_old);
-//                                          deprecated_gsl_matrix_set(J, counter_posf, total_nr_peaks +3*map_idx +2 , ddl_right * weight + ddl_right_old);
+//                                          gsl_matrix_set(J, counter_posf, total_nr_peaks +3*map_idx    , ddx0* weight  + ddx0_old);
+//                                          gsl_matrix_set(J, counter_posf, peak_idx                     , denom_inv);
+//                                          gsl_matrix_set(J, counter_posf, total_nr_peaks +3*map_idx +1 , ddl_left * weight + ddl_left_old);
+//                                          gsl_matrix_set(J, counter_posf, total_nr_peaks +3*map_idx +2 , ddl_right * weight + ddl_right_old);
           }
           // if it's a Sech - Peak
           else
@@ -411,10 +410,10 @@ namespace OpenMS
 
             ddx0      = 2 * p_height * p_width * sinh_term * pow(denom_inv, 3);
 
-            deprecated_gsl_matrix_set(J, counter_posf, total_nr_peaks + 3 * map_idx, ddx0 * weight + ddx0_old);
-            deprecated_gsl_matrix_set(J, counter_posf, peak_idx, step * pow(denom_inv, 2));
-            deprecated_gsl_matrix_set(J, counter_posf, total_nr_peaks + 3 * map_idx  + 1, ddl_left * weight + ddl_left_old);
-            deprecated_gsl_matrix_set(J, counter_posf, total_nr_peaks + 3 * map_idx  + 2, ddl_right * weight + ddl_right_old);
+            gsl_matrix_set(J, counter_posf, total_nr_peaks + 3 * map_idx, ddx0 * weight + ddx0_old);
+            gsl_matrix_set(J, counter_posf, peak_idx, step * pow(denom_inv, 2));
+            gsl_matrix_set(J, counter_posf, total_nr_peaks + 3 * map_idx  + 1, ddl_left * weight + ddl_left_old);
+            gsl_matrix_set(J, counter_posf, total_nr_peaks + 3 * map_idx  + 2, ddl_right * weight + ddl_right_old);
 
 
 //                                          diff      = current_position - p_position;
@@ -434,10 +433,10 @@ namespace OpenMS
 
 //                                          ddx0      = 4*enum_term*p_height*p_width*sinh_term * pow(denom_inv,3);
 
-//                                          deprecated_gsl_matrix_set(J, counter_posf, total_nr_peaks +3*map_idx     , ddx0 * weight + ddx0_old);
-//                                          deprecated_gsl_matrix_set(J, counter_posf, peak_idx                      , 2*enum_term*pow(denom_inv, 2));
-//                                          deprecated_gsl_matrix_set(J, counter_posf, total_nr_peaks +3*map_idx  + 1, ddl_left * weight + ddl_left_old);
-//                                          deprecated_gsl_matrix_set(J, counter_posf, total_nr_peaks +3*map_idx  + 2, ddl_right * weight + ddl_right_old);
+//                                          gsl_matrix_set(J, counter_posf, total_nr_peaks +3*map_idx     , ddx0 * weight + ddx0_old);
+//                                          gsl_matrix_set(J, counter_posf, peak_idx                      , 2*enum_term*pow(denom_inv, 2));
+//                                          gsl_matrix_set(J, counter_posf, total_nr_peaks +3*map_idx  + 1, ddl_left * weight + ddl_left_old);
+//                                          gsl_matrix_set(J, counter_posf, total_nr_peaks +3*map_idx  + 2, ddl_right * weight + ddl_right_old);
 
           }
           ++current_peak;
@@ -452,15 +451,15 @@ namespace OpenMS
 
     for (Size cluster = 0; cluster < matching_peaks.size(); ++cluster)
     {
-      for (UInt j = 0; j < deprecated_wrapper_gsl_matrix_get_size1(J) - 1; ++j)
+      for (UInt j = 0; j < J->size1 - 1; ++j)
       {
-        deprecated_gsl_matrix_set(J, j, total_nr_peaks + 3 * cluster,
-                       deprecated_gsl_matrix_get(J, j, total_nr_peaks + 3 * cluster) / ov_weight[cluster]);
-        deprecated_gsl_matrix_set(J, j, total_nr_peaks + 3 * cluster + 1,
-                       deprecated_gsl_matrix_get(J, j, total_nr_peaks + 3 * cluster + 1) / ov_weight[cluster]);
+        gsl_matrix_set(J, j, total_nr_peaks + 3 * cluster,
+                       gsl_matrix_get(J, j, total_nr_peaks + 3 * cluster) / ov_weight[cluster]);
+        gsl_matrix_set(J, j, total_nr_peaks + 3 * cluster + 1,
+                       gsl_matrix_get(J, j, total_nr_peaks + 3 * cluster + 1) / ov_weight[cluster]);
 
-        deprecated_gsl_matrix_set(J, j, total_nr_peaks + 3 * cluster + 2,
-                       deprecated_gsl_matrix_get(J, j, total_nr_peaks + 3 * cluster + 2) / ov_weight[cluster]);
+        gsl_matrix_set(J, j, total_nr_peaks + 3 * cluster + 2,
+                       gsl_matrix_get(J, j, total_nr_peaks + 3 * cluster + 2) / ov_weight[cluster]);
       }
     }
 
@@ -484,7 +483,7 @@ namespace OpenMS
         old_width_l += picked_peaks[vec_iter->spectrum].getFloatDataArrays()[3][vec_iter->peak] * old_height;
         old_width_r += picked_peaks[vec_iter->spectrum].getFloatDataArrays()[4][vec_iter->peak] * old_height;
 
-        p_height     = deprecated_gsl_vector_get(x, peak);
+        p_height     = gsl_vector_get(x, peak);
 
 
         DoubleReal penalty_height = 2. * penalties.height * fabs(p_height - old_height);
@@ -492,7 +491,7 @@ namespace OpenMS
         {
           penalty_h += 1000000 * penalty_height;
         }
-        deprecated_gsl_matrix_set(J, counter_posf, peak, penalty_h);
+        gsl_matrix_set(J, counter_posf, peak, penalty_h);
         ++peak;
       }
       old_position /= weight;
@@ -500,9 +499,9 @@ namespace OpenMS
       old_width_r /= weight;
 
       // std::cout << old_position << "vs. ";
-      DoubleReal p_position   = deprecated_gsl_vector_get(x, total_nr_peaks + 3 * current_peak);
-      DoubleReal p_width_l    = deprecated_gsl_vector_get(x, total_nr_peaks + 3 * current_peak + 1);
-      DoubleReal p_width_r    = deprecated_gsl_vector_get(x, total_nr_peaks + 3 * current_peak + 2);
+      DoubleReal p_position   = gsl_vector_get(x, total_nr_peaks + 3 * current_peak);
+      DoubleReal p_width_l    = gsl_vector_get(x, total_nr_peaks + 3 * current_peak + 1);
+      DoubleReal p_width_r    = gsl_vector_get(x, total_nr_peaks + 3 * current_peak + 2);
       DoubleReal penalty_lwidth = 2. * penalties.lWidth * fabs(p_width_l - old_width_l);
       DoubleReal penalty_rwidth = 2. * penalties.rWidth * fabs(p_width_r - old_width_r);
       DoubleReal penalty_pos    = 2. * penalties.pos * fabs(p_position - old_position);
@@ -543,24 +542,24 @@ namespace OpenMS
         penalty_l += 1000 * penalty_lwidth;
       }
 
-      deprecated_gsl_matrix_set(J, counter_posf, total_nr_peaks + 3 * current_peak + 1, penalty_l);
-      deprecated_gsl_matrix_set(J, counter_posf, total_nr_peaks + 3 * current_peak + 2, penalty_r);
-      deprecated_gsl_matrix_set(J, counter_posf, total_nr_peaks + 3 * current_peak, penalty_p);
+      gsl_matrix_set(J, counter_posf, total_nr_peaks + 3 * current_peak + 1, penalty_l);
+      gsl_matrix_set(J, counter_posf, total_nr_peaks + 3 * current_peak + 2, penalty_r);
+      gsl_matrix_set(J, counter_posf, total_nr_peaks + 3 * current_peak, penalty_p);
 
 
 
       ++current_peak;
     }
-    return deprecated_gsl_SUCCESS;
+    return GSL_SUCCESS;
   }
 
   //Driver function for the evaluation of function and jacobian.
-  Int TwoDOptimization::evaluate2D_(const deprecated_gsl_vector * x, void * params, deprecated_gsl_vector * f, deprecated_gsl_matrix * J)
+  Int TwoDOptimization::evaluate2D_(const gsl_vector * x, void * params, gsl_vector * f, gsl_matrix * J)
   {
     residual2D_(x, params, f);
     jacobian2D_(x, params, J);
 
-    return deprecated_gsl_SUCCESS;
+    return GSL_SUCCESS;
   }
 
   TwoDOptimization::TwoDOptimization() :

@@ -40,7 +40,10 @@
 
 #include <vector>
 
-#include <OpenMS/MATH/gsl_wrapper.h>
+// gsl includes
+#include <gsl/gsl_rng.h>
+#include <gsl/gsl_vector.h>
+#include <gsl/gsl_multifit_nlin.h>
 
 
 namespace OpenMS
@@ -121,13 +124,13 @@ public:
 
 protected:
 
-      static int gammaDistributionFitterf_(const deprecated_gsl_vector * x, void * params, deprecated_gsl_vector * f);
+      static int gammaDistributionFitterf_(const gsl_vector * x, void * params, gsl_vector * f);
 
-      static int gammaDistributionFitterdf_(const deprecated_gsl_vector * x, void * params, deprecated_gsl_matrix * J);
+      static int gammaDistributionFitterdf_(const gsl_vector * x, void * params, gsl_matrix * J);
 
-      static int gammaDistributionFitterfdf_(const deprecated_gsl_vector * x, void * params, deprecated_gsl_vector * f, deprecated_gsl_matrix * J);
+      static int gammaDistributionFitterfdf_(const gsl_vector * x, void * params, gsl_vector * f, gsl_matrix * J);
 
-      void printState_(size_t iter, deprecated_gsl_multifit_fdfsolver * s);
+      void printState_(size_t iter, gsl_multifit_fdfsolver * s);
 
       GammaDistributionFitResult init_param_;
 

@@ -38,9 +38,10 @@
 
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakShape.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePick.h>
+#include <gsl/gsl_vector.h>
+#include <gsl/gsl_multifit_nlin.h>
+#include <gsl/gsl_blas.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-
-#include <OpenMS/MATH/gsl_wrapper.h>
 
 //#define DEBUG_DECONV
 #include <iostream>
@@ -196,7 +197,7 @@ protected:
     Size getNumberOfPeaks_(Int charge, std::vector<PeakShape> & temp_shapes, Data & data);
 
     // After each iteration the fwhm of all peaks is checked whether it isn't too large
-    bool checkFWHM_(std::vector<PeakShape> & peaks, deprecated_gsl_multifit_fdfsolver * & fit);
+    bool checkFWHM_(std::vector<PeakShape> & peaks, gsl_multifit_fdfsolver * & fit);
 
     void updateMembers_();
   }; // class

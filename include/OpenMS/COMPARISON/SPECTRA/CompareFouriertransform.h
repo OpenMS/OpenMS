@@ -36,6 +36,8 @@
 
 #include <OpenMS/COMPARISON/SPECTRA/PeakSpectrumCompareFunctor.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <gsl/gsl_errno.h>
+#include <gsl/gsl_fft_real.h>
 
 namespace OpenMS
 {

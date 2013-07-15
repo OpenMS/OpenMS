@@ -42,7 +42,8 @@
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 
-#include <OpenMS/MATH/gsl_wrapper.h>
+#include <gsl/gsl_rng.h>
+#include <gsl/gsl_randist.h>
 
 ///////////////////////////
 
@@ -109,11 +110,11 @@ START_SECTION(SvmTheoreticalSpectrumGenerator & getSvmModel(Size))
     NOT_TESTABLE
 END_SECTION
 
-START_SECTION(void simulate(RichPeakSpectrum &spectrum, const AASequence &peptide, const deprecated_gsl_rng *rng, Size precursor_charge))
+START_SECTION(void simulate(RichPeakSpectrum &spectrum, const AASequence &peptide, const gsl_rng *rng, Size precursor_charge))
 
     RichPeakMap exp;
-    deprecated_gsl_rng* rnd_gen = deprecated_gsl_rng_alloc (deprecated_wrapper_gsl_rng_taus_get());
-    deprecated_gsl_rng_set(rnd_gen, 0);
+    gsl_rng* rnd_gen = gsl_rng_alloc (gsl_rng_taus);
+    gsl_rng_set(rnd_gen, 0);
     RichPeakSpectrum spec;
     AASequence peptide("IFSQVGK");
 
@@ -122,7 +123,7 @@ START_SECTION(void simulate(RichPeakSpectrum &spectrum, const AASequence &peptid
     gen_set.getSvmModel(2).setParameters(p);
 
     gen_set.simulate(spec, peptide,rnd_gen,2);
-    deprecated_gsl_rng_free(rnd_gen);
+    gsl_rng_free(rnd_gen);
 
     MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("SvmTheoreticalSpectrumGenerator_test.mzML"),exp);
     if(exp.size())

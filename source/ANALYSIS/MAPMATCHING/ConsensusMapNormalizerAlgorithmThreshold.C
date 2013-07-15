@@ -33,7 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithmThreshold.h>
-#include <OpenMS/MATH/gsl_wrapper.h>
+#include <gsl/gsl_statistics.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
 using namespace std;
@@ -92,7 +92,7 @@ namespace OpenMS
           }
         }
       }
-      ratio_vector[j] = deprecated_gsl_stats_mean(&ratios.front(), 1, ratios.size());
+      ratio_vector[j] = gsl_stats_mean(&ratios.front(), 1, ratios.size());
     }
     return ratio_vector;
   }

@@ -33,7 +33,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithmMedian.h>
-#include <OpenMS/MATH/gsl_wrapper.h>
+#include <gsl/gsl_statistics.h>
+#include <gsl/gsl_sort_double.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
@@ -79,8 +80,8 @@ namespace OpenMS
     for (UInt j = 0; j < number_of_maps; j++)
     {
       vector<double> & ints_j = feature_int[j];
-      deprecated_gsl_sort(&ints_j.front(), 1, ints_j.size());
-      medians[j] = deprecated_gsl_stats_median_from_sorted_data(&ints_j.front(), 1, ints_j.size());
+      gsl_sort(&ints_j.front(), 1, ints_j.size());
+      medians[j] = gsl_stats_median_from_sorted_data(&ints_j.front(), 1, ints_j.size());
     }
     //compute normalization factors
     vector<double> normalization_factors(number_of_maps);

@@ -224,8 +224,8 @@ namespace OpenSwath
     return std::accumulate(intensities.begin(), intensities.end(), 0.0);
   }
 
-  void MRMScoring::calcLibraryScore(OpenSwath::IMRMFeature * mrmfeature, const std::vector<TransitionType> & transitions,
-                                           double & correlation, double & delta_ratio_sum, double & manhattan, double & dotprod)
+  void MRMScoring::calcLibraryScore(OpenSwath::IMRMFeature* mrmfeature, const std::vector<TransitionType>& transitions,
+                                 double& correlation, double& norm_manhattan, double& manhattan, double& dotprod, double& spectral_angle, double& rmsd)
   {
     std::vector<double> library_intensity;
     std::vector<double> experimental_intensity;
@@ -257,18 +257,19 @@ namespace OpenSwath
     manhattan = OpenSwath::manhattanScoring(experimental_intensity, library_intensity);
     dotprod = OpenSwath::dotprodScoring(experimental_intensity, library_intensity);
 
+    spectral_angle = Scoring::SpectralAngle(&experimental_intensity[0], &library_intensity[0], boost::numeric_cast<unsigned int>(transitions.size()));
 
     Scoring::normalize_sum(&experimental_intensity[0], boost::numeric_cast<unsigned int>(transitions.size()));
     Scoring::normalize_sum(&library_intensity[0], boost::numeric_cast<unsigned int>(transitions.size()));
 
-    delta_ratio_sum = Scoring::NormalizedManhattanDist(&experimental_intensity[0], &library_intensity[0], boost::numeric_cast<unsigned int>(transitions.size()));
+    norm_manhattan = Scoring::NormalizedManhattanDist(&experimental_intensity[0], &library_intensity[0], boost::numeric_cast<unsigned int>(transitions.size()));
+    rmsd = Scoring::RootMeanSquareDeviation(&experimental_intensity[0], &library_intensity[0], boost::numeric_cast<unsigned int>(transitions.size()));
     correlation = OpenSwath::cor_pearson(experimental_intensity.begin(), experimental_intensity.end(), library_intensity.begin());
 
-
-    //double c0, c1, cov00, cov01, cov11, sumsq;
-    //int ret = gsl_fit_linear(normx, 1, normy, 1, transitions.size(), &c0, &c1, &cov00, &cov01, &cov11, &sumsq);
     if (boost::math::isnan(correlation))
+    {
       correlation = -1.0;
+    }
   }
 
   double MRMScoring::calcRTScore(const PeptideType & peptide, double normalized_experimental_rt)

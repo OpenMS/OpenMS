@@ -41,11 +41,10 @@
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/CONCEPT/Constants.h>
 
+#include <fstream>
 #include <OpenMS/FORMAT/SVOutStream.h>
 
-#include <OpenMS/MATH/gsl_wrapper.h>
 
-#include <fstream>
 #include <vector>
 using std::vector;
 
@@ -658,7 +657,7 @@ namespace OpenMS
         continue;
 
       // add Gaussian distributed m/z error
-      double mz_err = deprecated_gsl_ran_gaussian(rnd_gen_->technical_rng, mz_error_stddev_) + mz_error_mean_;
+      double mz_err = gsl_ran_gaussian(rnd_gen_->technical_rng, mz_error_stddev_) + mz_error_mean_;
       point.setMZ(fabs(point.getMZ() + mz_err));
 
       intensity_sum += point.getIntensity();
@@ -747,7 +746,7 @@ namespace OpenMS
             {
               for (Size i = 0; i < THREADED_RANDOM_NUMBER_POOL_SIZE_; ++i)
               {
-                threaded_random_numbers_[CURRENT_THREAD][i] = deprecated_gsl_ran_gaussian(rnd_gen_->technical_rng, mz_error_stddev_) + mz_error_mean_;
+                threaded_random_numbers_[CURRENT_THREAD][i] = gsl_ran_gaussian(rnd_gen_->technical_rng, mz_error_stddev_) + mz_error_mean_;
               }
             }
           }
@@ -763,7 +762,7 @@ namespace OpenMS
         const double mz_err = threaded_random_numbers_[CURRENT_THREAD][threaded_random_numbers_index_[CURRENT_THREAD]++];
 #else
         // we can use the normal Gaussian ran-gen if we do not use OPENMP
-        const double mz_err = deprecated_gsl_ran_gaussian(rnd_gen_->technical_rng, mz_error_stddev_) + mz_error_mean_;
+        const double mz_err = gsl_ran_gaussian(rnd_gen_->technical_rng, mz_error_stddev_) + mz_error_mean_;
 #endif
         point.setMZ(fabs(point.getMZ() + mz_err));
         exp_iter->push_back(point);
@@ -989,11 +988,11 @@ namespace OpenMS
 
       for (Size j = 0; j < num_intervals; ++j)
       {
-        UInt counts = deprecated_gsl_ran_poisson(rnd_gen_->technical_rng, scaled_rate);
+        UInt counts = gsl_ran_poisson(rnd_gen_->technical_rng, scaled_rate);
         for (UInt c = 0; c < counts; ++c)
         {
-          SimCoordinateType mz        = deprecated_gsl_ran_flat(rnd_gen_->technical_rng, mz_lw, mz_up);
-          SimCoordinateType intensity = deprecated_gsl_ran_exponential(rnd_gen_->technical_rng, intensity_mean);
+          SimCoordinateType mz        = gsl_ran_flat(rnd_gen_->technical_rng, mz_lw, mz_up);
+          SimCoordinateType intensity = gsl_ran_exponential(rnd_gen_->technical_rng, intensity_mean);
 
           // we only add points if they have an intensity>0 and are inside of the measurement range
           if (mz < maximal_mz_measurement_limit)
@@ -1031,7 +1030,7 @@ namespace OpenMS
 
         boost::math::exponential_distribution<double> ed(shape);
         double bx = boost::math::pdf(ed, x);
-        //DoubleReal b = deprecated_gsl_ran_exponential_pdf(x, shape);
+        //DoubleReal b = gsl_ran_exponential_pdf(x, shape);
         bx *= scale;
         experiment[i][j].setIntensity(experiment[i][j].getIntensity() + bx);
       }
@@ -1058,7 +1057,7 @@ namespace OpenMS
 
       for (MSSimExperiment::SpectrumType::iterator peak_it = (*spectrum_it).begin(); peak_it != (*spectrum_it).end(); ++peak_it)
       {
-        SimIntensityType intensity = peak_it->getIntensity() + white_noise_mean + deprecated_gsl_ran_gaussian(rnd_gen_->technical_rng, white_noise_stddev);
+        SimIntensityType intensity = peak_it->getIntensity() + white_noise_mean + gsl_ran_gaussian(rnd_gen_->technical_rng, white_noise_stddev);
         if (intensity > 0.0)
         {
           peak_it->setIntensity(intensity);
@@ -1096,7 +1095,7 @@ namespace OpenMS
         // if peak is in grid
         if (peak_it != spectrum_it->end() && *grid_it == peak_it->getMZ())
         {
-          SimIntensityType intensity = peak_it->getIntensity() + detector_noise_mean + deprecated_gsl_ran_gaussian(rnd_gen_->technical_rng, detector_noise_stddev);
+          SimIntensityType intensity = peak_it->getIntensity() + detector_noise_mean + gsl_ran_gaussian(rnd_gen_->technical_rng, detector_noise_stddev);
           if (intensity > 0.0)
           {
             peak_it->setIntensity(intensity);
@@ -1106,7 +1105,7 @@ namespace OpenMS
         }
         else // we have no point here, generate one if noise is above 0
         {
-          SimIntensityType intensity = detector_noise_mean + deprecated_gsl_ran_gaussian(rnd_gen_->technical_rng, detector_noise_stddev);
+          SimIntensityType intensity = detector_noise_mean + gsl_ran_gaussian(rnd_gen_->technical_rng, detector_noise_stddev);
           if (intensity > 0.0)
           {
             MSSimExperiment::SpectrumType::PeakType noise_peak;
@@ -1264,7 +1263,7 @@ namespace OpenMS
     // add some noise
     // TODO: variables model f??r den intensit??ts-einfluss
     // e.g. sqrt(intensity) || ln(intensity)
-    intensity += deprecated_gsl_ran_gaussian(rnd_gen_->technical_rng, intensity_scale_stddev_ * intensity);
+    intensity += gsl_ran_gaussian(rnd_gen_->technical_rng, intensity_scale_stddev_ * intensity);
 
     return intensity;
   }

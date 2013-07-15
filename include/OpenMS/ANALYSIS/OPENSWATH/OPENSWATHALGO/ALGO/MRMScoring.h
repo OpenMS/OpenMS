@@ -117,9 +117,9 @@ public:
     /// calculate the weighted cross-correlation score
     double calcXcorrCoelutionScore_weighted(const std::vector<double>& normalized_library_intensity);
 
-    /// calculate the library correlation score (correlation and rmsd)
+    /// calculate the library correlation score
     static void calcLibraryScore(OpenSwath::IMRMFeature* mrmfeature, const std::vector<TransitionType>& transitions,
-                                 double& correlation, double& rmsd, double& manhattan, double& dotprod);
+                                 double& correlation, double& norm_manhattan, double& manhattan, double& dotprod, double& spectral_angle, double& rmsd);
 
     /// calculate the retention time correlation score
     static double calcRTScore(const PeptideType& peptide, double normalized_experimental_rt);

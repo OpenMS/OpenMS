@@ -50,6 +50,7 @@
 #include <OpenMS/FORMAT/VALIDATORS/SemanticValidator.h>
 #include <OpenMS/FORMAT/CVMappingFile.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
+#include <OpenMS/INTERFACES/IMSDataConsumer.h>
 
 #include <OpenMS/SYSTEM/File.h>
 
@@ -110,6 +111,10 @@ public:
         in_spectrum_list_(false),
         decoder_(),
         logger_(logger),
+        consumer_(NULL),
+        scan_count(0),
+        chromatogram_count(0),
+        skip_chromatogram_(false),
         skip_spectrum_(false) /* ,
                 validator_(mapping_, cv_) */
       {
@@ -142,6 +147,10 @@ public:
         in_spectrum_list_(false),
         decoder_(),
         logger_(logger),
+        consumer_(NULL),
+        scan_count(0),
+        chromatogram_count(0),
+        skip_chromatogram_(false),
         skip_spectrum_(false) /* ,
                 validator_(mapping_, cv_) */
       {
@@ -186,6 +195,17 @@ public:
         options_ = opt;
       }
 
+      void getCounts(Size& spectra_counts, Size& chromatogram_counts)
+      {
+        spectra_counts = scan_count;
+        chromatogram_counts = chromatogram_count;
+      }
+
+      void setMSDataConsumer(Interfaces::IMSDataConsumer * consumer)
+      {
+        consumer_ = consumer;
+      }
+
 protected:
 
       /// Peak type
@@ -221,7 +241,7 @@ protected:
 
       void writeHeader_(std::ostream& os, const MapType& exp, std::vector<std::vector<DataProcessing> > & dps, Internal::MzMLValidator& validator);
 
-      void writeFooter_(std::ostream& os);
+      static void writeFooter_(std::ostream& os);
 
       /// map pointer for reading
       MapType* exp_;
@@ -267,7 +287,15 @@ protected:
       /// Progress logger
       const ProgressLogger& logger_;
 
+      /// Consumer class to work on spectra
+      Interfaces::IMSDataConsumer* consumer_;
+
+      /// Counting spectra and chromatograms
+      UInt scan_count;
+      UInt chromatogram_count;
+
       /// Flag that indicates whether this spectrum should be skipped (due to options)
+      bool skip_chromatogram_;
       bool skip_spectrum_;
 
       ///Controlled vocabulary (psi-ms from OpenMS/share/OpenMS/CV/psi-ms.obo)
@@ -323,7 +351,7 @@ protected:
     template <typename MapType>
     void MzMLHandler<MapType>::characters(const XMLCh* const chars, const XMLSize_t /*length*/)
     {
-      if (skip_spectrum_)
+      if (skip_spectrum_ || skip_chromatogram_)
         return;
 
       char* transcoded_chars = sm_.convert(chars);
@@ -394,6 +422,8 @@ protected:
 
       //do nothing until a new spectrum is reached
       if (tag != "spectrum" && skip_spectrum_)
+        return;
+      if (tag != "chromatogram" && skip_chromatogram_)
         return;
 
       if (tag == "spectrum")
@@ -565,6 +595,9 @@ protected:
       }
       else if (tag == "mzML")
       {
+        scan_count = 0;
+        chromatogram_count = 0;
+
         //check file version against schema version
         String file_version = attributeAsString_(attributes, s_version);
 
@@ -770,9 +803,6 @@ protected:
     template <typename MapType>
     void MzMLHandler<MapType>::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
     {
-      static UInt scan_count = 0;
-      static UInt chromatogram_count = 0;
-
       static const XMLCh* s_spectrum = xercesc::XMLString::transcode("spectrum");
       static const XMLCh* s_chromatogram = xercesc::XMLString::transcode("chromatogram");
       static const XMLCh* s_spectrum_list = xercesc::XMLString::transcode("spectrumList");
@@ -783,36 +813,60 @@ protected:
 
       if (equal_(qname, s_spectrum))
       {
-        if (!skip_spectrum_)
+
+        // catch errors stemming from confusion about elution time and scan time
+        if (spec_.getRT() == -1.0 && spec_.metaValueExists("elution time (seconds)"))
         {
+          spec_.setRT(spec_.getMetaValue("elution time (seconds)"));
+        }
+        /* this is too hot (could be SRM as well? -- check!):
+           // correct spectrum type if possible (i.e., make it more specific)
+        if (spec_.getInstrumentSettings().getScanMode() == InstrumentSettings::MASSSPECTRUM)
+        {
+          if (spec_.getMSLevel() <= 1) spec_.getInstrumentSettings().setScanMode(InstrumentSettings::MS1SPECTRUM);
+          else                         spec_.getInstrumentSettings().setScanMode(InstrumentSettings::MSNSPECTRUM);
+        }
+        */
 
-          // catch errors stemming from confusion about elution time and scan time
-          if (spec_.getRT() == -1.0 && spec_.metaValueExists("elution time (seconds)"))
+        if (consumer_ != NULL && !skip_spectrum_)
+        {
+          fillData_();
+          consumer_->consumeSpectrum(spec_);
+          if (options_.getAlwaysAppendData())
           {
-            spec_.setRT(spec_.getMetaValue("elution time (seconds)"));
+            exp_->addSpectrum(spec_);
           }
-          /* this is too hot (could be SRM as well? -- check!):
-             // correct spectrum type if possible (i.e., make it more specific)
-          if (spec_.getInstrumentSettings().getScanMode() == InstrumentSettings::MASSSPECTRUM)
-          {
-            if (spec_.getMSLevel() <= 1) spec_.getInstrumentSettings().setScanMode(InstrumentSettings::MS1SPECTRUM);
-            else                         spec_.getInstrumentSettings().setScanMode(InstrumentSettings::MSNSPECTRUM);
-          }
-          */
-
+        }
+        else if (!skip_spectrum_)
+        {
           fillData_();
           exp_->addSpectrum(spec_);
 
         }
         skip_spectrum_ = false;
+        if (options_.getSizeOnly()) {skip_spectrum_ = true;}
         logger_.setProgress(++scan_count);
         data_.clear();
         default_array_length_ = 0;
       }
       else if (equal_(qname, s_chromatogram))
       {
-        fillChromatogramData_();
-        exp_->addChromatogram(chromatogram_);
+        if (consumer_ != NULL && !skip_chromatogram_)
+        {
+          fillChromatogramData_();
+          consumer_->consumeChromatogram(chromatogram_);
+          if (options_.getAlwaysAppendData())
+          {
+            exp_->addChromatogram(chromatogram_);
+          }
+        }
+        else if (!skip_chromatogram_)
+        {
+          fillChromatogramData_();
+          exp_->addChromatogram(chromatogram_);
+        }
+        skip_chromatogram_ = false;
+        if (options_.getSizeOnly()) {skip_chromatogram_ = true;}
         logger_.setProgress(++chromatogram_count);
         data_.clear();
         default_array_length_ = 0;
@@ -829,8 +883,6 @@ protected:
       }
       else if (equal_(qname, s_mzml))
       {
-        scan_count = 0;
-        chromatogram_count = 0;
         ref_param_.clear();
         current_id_ = "";
         source_files_.clear();

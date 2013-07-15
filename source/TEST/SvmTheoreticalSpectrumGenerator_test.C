@@ -42,7 +42,8 @@
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 
-#include <OpenMS/MATH/gsl_wrapper.h>
+#include <gsl/gsl_rng.h>
+#include <gsl/gsl_randist.h>
 
 ///////////////////////////
 
@@ -81,10 +82,10 @@ START_SECTION(SvmTheoreticalSpectrumGenerator& operator = (const SvmTheoreticalS
 END_SECTION
 
 
-START_SECTION(void simulate(RichPeakSpectrum &spectrum, const AASequence &peptide, const deprecated_gsl_rng *rng, Size precursor_charge))
+START_SECTION(void simulate(RichPeakSpectrum &spectrum, const AASequence &peptide, const gsl_rng *rng, Size precursor_charge))
   // init rng
-  deprecated_gsl_rng* rnd_gen = deprecated_gsl_rng_alloc (deprecated_wrapper_gsl_rng_taus_get());
-  deprecated_gsl_rng_set(rnd_gen, 0);
+  gsl_rng* rnd_gen = gsl_rng_alloc (gsl_rng_taus);
+  gsl_rng_set(rnd_gen, 0);
   RichPeakSpectrum spec;
 
   Param p = ptr->getDefaults();
@@ -93,7 +94,7 @@ START_SECTION(void simulate(RichPeakSpectrum &spectrum, const AASequence &peptid
 
   ptr->load();
   ptr->simulate(spec, peptide,rnd_gen,1);
-  deprecated_gsl_rng_free(rnd_gen);
+  gsl_rng_free(rnd_gen);
 
   MSExperiment<RichPeak1D>exp;
   //MSExperiment<RichPeak1D>exp2;

@@ -43,7 +43,7 @@
 #include <boost/smart_ptr.hpp>
 
 
-#include <OpenMS/MATH/gsl_wrapper.h>
+
 
 
 namespace OpenMS
@@ -209,7 +209,7 @@ public:
 
 
     /// Generate the MS/MS according to the given probabilistic model
-    void simulate(RichPeakSpectrum & spectrum, const AASequence & peptide, const deprecated_gsl_rng * rng, Size precursor_charge);
+    void simulate(RichPeakSpectrum & spectrum, const AASequence & peptide, const gsl_rng * rng, Size precursor_charge);
 
     ///Load a trained Svm and Prob. models
     void load();

@@ -40,8 +40,6 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/LevMarqFitter1D.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/Fitter1D.h>
 
-#include <OpenMS/MATH/gsl_wrapper.h>
-
 ///////////////////////////
 
 using namespace OpenMS;
@@ -97,7 +95,7 @@ class TestModel : public LevMarqFitter1D
     return 1.0;
   }
 
-  void printState_(Int /* iter */, deprecated_gsl_multifit_fdfsolver*)
+  void printState_(Int /* iter */, gsl_multifit_fdfsolver*)
   {
 //    Int iterations = 0;
 //    iterations = iter;

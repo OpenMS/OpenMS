@@ -38,7 +38,9 @@
 #include <algorithm>
 #include <cstdlib>
 
-#include "OpenMS/MATH/gsl_wrapper.h"
+#include <gsl/gsl_vector.h>
+#include <gsl/gsl_matrix.h>
+#include <gsl/gsl_multifit.h>
 
 
 namespace OpenMS
@@ -79,13 +81,13 @@ namespace OpenMS
 
     // DoubleVector smooth_yvals_Vec(input_size);
 
-    deprecated_gsl_matrix * X = deprecated_gsl_matrix_alloc(input_size, 3);
-    deprecated_gsl_matrix * cov = deprecated_gsl_matrix_alloc(3, 3);
+    gsl_matrix * X = gsl_matrix_alloc(input_size, 3);
+    gsl_matrix * cov = gsl_matrix_alloc(3, 3);
 
-    deprecated_gsl_vector * weights = deprecated_gsl_vector_alloc(input_size);
-    deprecated_gsl_vector * c = deprecated_gsl_vector_alloc(3);
-    deprecated_gsl_vector * x = deprecated_gsl_vector_alloc(3);
-    deprecated_gsl_vector * yvals_ = deprecated_gsl_vector_alloc(input_size);
+    gsl_vector * weights = gsl_vector_alloc(input_size);
+    gsl_vector * c = gsl_vector_alloc(3);
+    gsl_vector * x = gsl_vector_alloc(3);
+    gsl_vector * yvals_ = gsl_vector_alloc(input_size);
 
     DoubleReal y, yErr, chisq;
 
@@ -97,11 +99,11 @@ namespace OpenMS
     {
       DoubleReal rt = input_x[p_idx];
 
-      deprecated_gsl_matrix_set(X, p_idx, 0, 1.0);
-      deprecated_gsl_matrix_set(X, p_idx, 1, rt);
-      deprecated_gsl_matrix_set(X, p_idx, 2, rt * rt);
+      gsl_matrix_set(X, p_idx, 0, 1.0);
+      gsl_matrix_set(X, p_idx, 1, rt);
+      gsl_matrix_set(X, p_idx, 2, rt * rt);
 
-      deprecated_gsl_vector_set(yvals_, p_idx, input_y[p_idx]);
+      gsl_vector_set(yvals_, p_idx, input_y[p_idx]);
 
       // ++idx;
     }
@@ -128,29 +130,29 @@ namespace OpenMS
       // Compute weights.
       for (Size inner_idx = 0; inner_idx < input_size; ++inner_idx)
       {
-        deprecated_gsl_vector_set(weights, inner_idx, tricube_(distances[inner_idx], sortedDistances[q]));
+        gsl_vector_set(weights, inner_idx, tricube_(distances[inner_idx], sortedDistances[q]));
       }
 
 
-      deprecated_gsl_multifit_linear_workspace * work = deprecated_gsl_multifit_linear_alloc(input_size, 3);
-      deprecated_gsl_multifit_wlinear(X, weights, yvals_, c, cov, &chisq, work);
-      deprecated_gsl_multifit_linear_free(work);
+      gsl_multifit_linear_workspace * work = gsl_multifit_linear_alloc(input_size, 3);
+      gsl_multifit_wlinear(X, weights, yvals_, c, cov, &chisq, work);
+      gsl_multifit_linear_free(work);
 
 
       DoubleReal rt = input_x[outer_idx];
-      deprecated_gsl_vector_set(x, 0, 1.0);
-      deprecated_gsl_vector_set(x, 1, rt);
-      deprecated_gsl_vector_set(x, 2, rt * rt);
+      gsl_vector_set(x, 0, 1.0);
+      gsl_vector_set(x, 1, rt);
+      gsl_vector_set(x, 2, rt * rt);
 
-      deprecated_gsl_multifit_linear_est(x, c, cov, &y, &yErr);
+      gsl_multifit_linear_est(x, c, cov, &y, &yErr);
 
       smoothed_output.push_back(y);
     }
 
-    deprecated_gsl_matrix_free(X);
-    deprecated_gsl_vector_free(weights);
-    deprecated_gsl_vector_free(c);
-    deprecated_gsl_matrix_free(cov);
+    gsl_matrix_free(X);
+    gsl_vector_free(weights);
+    gsl_vector_free(c);
+    gsl_matrix_free(cov);
 
     return;
   }

@@ -43,6 +43,10 @@
 #include <OpenMS/SIMULATION/MSSim.h>
 #include <OpenMS/SIMULATION/SimTypes.h>
 
+// GSL includes (random number generation)
+#include <gsl/gsl_rng.h>
+#include <gsl/gsl_randist.h>
+
 // file types
 #include <OpenMS/FORMAT/DTA2DFile.h>
 #include <OpenMS/FORMAT/MzXMLFile.h>

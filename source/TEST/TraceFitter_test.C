@@ -37,7 +37,6 @@
 ///////////////////////////
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/TraceFitter.h>
 #include <OpenMS/KERNEL/Peak1D.h>
-#include <OpenMS/MATH/gsl_wrapper.h>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -106,12 +105,12 @@ public:
         throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
     }
 
-    void printState_(SignedSize, deprecated_gsl_multifit_fdfsolver*)
+    void printState_(SignedSize, gsl_multifit_fdfsolver*)
     {
         throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
     }
 
-    void getOptimizedParameters_(deprecated_gsl_multifit_fdfsolver*)
+    void getOptimizedParameters_(gsl_multifit_fdfsolver*)
     {
         throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
     }

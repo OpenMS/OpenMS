@@ -41,7 +41,8 @@
 
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
 
-#include "OpenMS/MATH/gsl_wrapper.h"
+#include <gsl/gsl_spline.h>
+#include <gsl/gsl_interp.h>
 
 #include <map>
 
@@ -251,10 +252,10 @@ public:
           }
 
           // setup gsl splines
-          deprecated_gsl_interp_accel * spline_acc = deprecated_gsl_interp_accel_alloc();
-          deprecated_gsl_interp_accel * first_deriv_acc = deprecated_gsl_interp_accel_alloc();
-          deprecated_gsl_spline * peak_spline = deprecated_gsl_spline_alloc( deprecated_wrapper_get_gsl_interp_cspline(), num_raw_points);
-          deprecated_gsl_spline_init(peak_spline, &(*raw_mz_values.begin()), &(*raw_int_values.begin()), num_raw_points);
+          gsl_interp_accel * spline_acc = gsl_interp_accel_alloc();
+          gsl_interp_accel * first_deriv_acc = gsl_interp_accel_alloc();
+          gsl_spline * peak_spline = gsl_spline_alloc(gsl_interp_cspline, num_raw_points);
+          gsl_spline_init(peak_spline, &(*raw_mz_values.begin()), &(*raw_int_values.begin()), num_raw_points);
 
 
           // calculate maximum by evaluating the spline's 1st derivative
@@ -273,7 +274,7 @@ public:
           {
             double mid = (lefthand + righthand) / 2;
 
-            double midpoint_deriv_val = deprecated_gsl_spline_eval_deriv(peak_spline, mid, first_deriv_acc);
+            double midpoint_deriv_val = gsl_spline_eval_deriv(peak_spline, mid, first_deriv_acc);
 
             // if deriv nearly zero then maximum already found
             if (!(std::fabs(midpoint_deriv_val) > eps))
@@ -295,7 +296,7 @@ public:
             // TODO: #ifdef DEBUG_ ...
             // PeakType peak;
             // peak.setMZ(mid);
-            // peak.setIntensity(deprecated_gsl_spline_eval(peak_spline, mid, spline_acc));
+            // peak.setIntensity(gsl_spline_eval(peak_spline, mid, spline_acc));
             // output.push_back(peak);
 
           }
@@ -303,7 +304,7 @@ public:
 
           // sanity check?
           max_peak_mz = (lefthand + righthand) / 2;
-          max_peak_int = deprecated_gsl_spline_eval(peak_spline, max_peak_mz, spline_acc);
+          max_peak_int = gsl_spline_eval(peak_spline, max_peak_mz, spline_acc);
 
           // save picked pick into output spectrum
           PeakType peak;
@@ -312,9 +313,9 @@ public:
           output.push_back(peak);
 
           // free allocated gsl memory
-          deprecated_gsl_spline_free(peak_spline);
-          deprecated_gsl_interp_accel_free(spline_acc);
-          deprecated_gsl_interp_accel_free(first_deriv_acc);
+          gsl_spline_free(peak_spline);
+          gsl_interp_accel_free(spline_acc);
+          gsl_interp_accel_free(first_deriv_acc);
 
           // jump over raw data points that have been considered already
           i = i + k - 1;

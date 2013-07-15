@@ -50,7 +50,8 @@
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 
 // GSL includes (random number generation)
-#include "OpenMS/MATH/gsl_wrapper.h"
+#include <gsl/gsl_rng.h>
+#include <gsl/gsl_randist.h>
 
 namespace OpenMS
 {
@@ -98,9 +99,9 @@ namespace OpenMS
   struct SimRandomNumberGenerator
   {
     /// GSL random number generator for biological variability
-    deprecated_gsl_rng * biological_rng;
+    gsl_rng * biological_rng;
     /// GSL random number generator for technical variability
-    deprecated_gsl_rng * technical_rng;
+    gsl_rng * technical_rng;
 
     /// Default constructor
     SimRandomNumberGenerator() :
@@ -124,12 +125,12 @@ namespace OpenMS
     {
       if (biological_rng != 0)
       {
-        deprecated_gsl_rng_free(biological_rng);
+        gsl_rng_free(biological_rng);
       }
 
       if (technical_rng != 0)
       {
-        deprecated_gsl_rng_free(technical_rng);
+        gsl_rng_free(technical_rng);
       }
     }
 
@@ -147,24 +148,24 @@ namespace OpenMS
     /// Initialize the RNGs
     void initialize(bool biological_random, bool technical_random)
     {
-      biological_rng = deprecated_gsl_rng_alloc(deprecated_wrapper_get_gsl_rng_mt19937());
+      biological_rng = gsl_rng_alloc(gsl_rng_mt19937);
       if (biological_random)
       {
-        deprecated_gsl_rng_set(biological_rng, time(0));
+        gsl_rng_set(biological_rng, time(0));
       }
       else // use gsl default seed to get reproducible experiments
       {
-        deprecated_gsl_rng_set(biological_rng, 0);
+        gsl_rng_set(biological_rng, 0);
       }
 
-      technical_rng = deprecated_gsl_rng_alloc(deprecated_wrapper_get_gsl_rng_mt19937());
+      technical_rng = gsl_rng_alloc(gsl_rng_mt19937);
       if (technical_random)
       {
-        deprecated_gsl_rng_set(technical_rng, time(0));
+        gsl_rng_set(technical_rng, time(0));
       }
       else // use gsl default seed to get reproducible experiments
       {
-        deprecated_gsl_rng_set(technical_rng, 0);
+        gsl_rng_set(technical_rng, 0);
       }
     }
 

@@ -41,7 +41,8 @@
 #include <OpenMS/DATASTRUCTURES/DRange.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/PeakWidthEstimator.h>
 
-#include "OpenMS/MATH/gsl_wrapper.h"
+#include <gsl/gsl_interp.h>
+#include <gsl/gsl_spline.h>
 #include <list>
 #include <map>
 #include <vector>
@@ -75,8 +76,8 @@ public:
     class OPENMS_DLLAPI SpectrumInterpolation
     {
 private:
-      deprecated_gsl_interp_accel * current_;
-      deprecated_gsl_spline * spline_;
+      gsl_interp_accel * current_;
+      gsl_spline * spline_;
 
 public:
       SpectrumInterpolation(const MSSpectrum<> &, const SILACFiltering &);
@@ -84,7 +85,7 @@ public:
 
       DoubleReal operator()(DoubleReal mz) const
       {
-        return deprecated_gsl_spline_eval(spline_, mz, current_);
+        return gsl_spline_eval(spline_, mz, current_);
       }
 
     };

@@ -37,9 +37,11 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/Fitter1D.h>
 
-#include "OpenMS/MATH/gsl_wrapper.h"
-
-#include <algorithm>
+#include <gsl/gsl_rng.h> // gsl random number generators
+#include <gsl/gsl_randist.h> // gsl random number distributions
+#include <gsl/gsl_vector.h> // gsl vector and matrix definitions
+#include <gsl/gsl_multifit_nlin.h> // gsl multidimensional fitting
+#include <gsl/gsl_blas.h> // gsl linear algebra stuff
 
 namespace OpenMS
 {
@@ -94,7 +96,7 @@ public:
 protected:
 
     /// GSL status
-    Int status_;
+    Int gsl_status_;
     /// Parameter indicates symmetric peaks
     bool symmetric_;
     /// Maximum number of iterations
@@ -108,12 +110,12 @@ protected:
     /** Display the intermediate state of the solution. The solver state contains
         the vector s->x which is the current position, and the vector s->f with
         corresponding function values */
-    virtual void printState_(Int iter, deprecated_gsl_multifit_fdfsolver * s) = 0;
+    virtual void printState_(Int iter, gsl_multifit_fdfsolver * s) = 0;
 
     /// Return GSL status as string
     const String getGslStatus_()
     {
-      return deprecated_gsl_strerror(status_);
+      return gsl_strerror(gsl_status_);
     }
 
     /**
@@ -122,15 +124,15 @@ protected:
         @exception Exception::UnableToFit is thrown if fitting cannot be performed
     */
     void optimize_(const RawDataArrayType & set, Int num_params, CoordinateType x_init[],
-                   Int (* residual)(const deprecated_gsl_vector * x, void * params, deprecated_gsl_vector * f),
-                   Int (* jacobian)(const deprecated_gsl_vector * x, void * params, deprecated_gsl_matrix * J),
-                   Int (* evaluate)(const deprecated_gsl_vector * x, void * params, deprecated_gsl_vector * f, deprecated_gsl_matrix * J),
+                   Int (* residual)(const gsl_vector * x, void * params, gsl_vector * f),
+                   Int (* jacobian)(const gsl_vector * x, void * params, gsl_matrix * J),
+                   Int (* evaluate)(const gsl_vector * x, void * params, gsl_vector * f, gsl_matrix * J),
                    void * advanced_params
                    )
     {
 
-      const deprecated_gsl_multifit_fdfsolver_type * T;
-      deprecated_gsl_multifit_fdfsolver * s;
+      const gsl_multifit_fdfsolver_type * T;
+      gsl_multifit_fdfsolver * s;
 
       Int status;
       Int iter = 0;
@@ -144,25 +146,24 @@ protected:
       if (n < p) throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-FinalSet", "Skipping feature, gsl always expects N>=p");
 
       // allocate space for a covariance matrix of size p by p
-      deprecated_gsl_matrix * covar = deprecated_gsl_matrix_alloc(p, p);
+      gsl_matrix * covar = gsl_matrix_alloc(p, p);
+      gsl_multifit_function_fdf f;
 
-      deprecated_gsl_vector_view_ptr x = deprecated_gsl_vector_view_array(x_init, p);
+      gsl_vector_view x = gsl_vector_view_array(x_init, p);
 
-      deprecated_gsl_rng_env_setup();
+      gsl_rng_env_setup();
 
-	  // set up the function to be fit
-      deprecated_gsl_multifit_function_fdf_ptr f
-      	  = deprecated_wrapper_gsl_multifit_fdfsolver_lmsder_new (
-      		  residual, // the function of residuals
-      		  jacobian, // the gradient of this function
-		  	  evaluate, // combined function and gradient
-		  	  set.size(), // number of points in the data set
-		  	  p, // number of parameters in the fit function
-		  	  advanced_params );// structure with the data and error bars
+      // set up the function to be fit
+      f.f = (residual);     // the function of residuals
+      f.df = (jacobian);     // the gradient of this function
+      f.fdf = (evaluate);     // combined function and gradient
+      f.n = set.size();     // number of points in the data set
+      f.p = p;     // number of parameters in the fit function
+      f.params = advanced_params;     // // structure with the data and error bars
 
-      T = deprecated_wrapper_get_multifit_fdfsolver_lmsder();
-      s = deprecated_gsl_multifit_fdfsolver_alloc(T, n, p);
-      deprecated_gsl_multifit_fdfsolver_set(s, f.get(), deprecated_wrapper_gsl_vector_view_get_vector(x));
+      T = gsl_multifit_fdfsolver_lmsder;
+      s = gsl_multifit_fdfsolver_alloc(T, n, p);
+      gsl_multifit_fdfsolver_set(s, &f, &x.vector);
 
 #ifdef DEBUG_FEATUREFINDER
       printState_(iter, s);
@@ -174,7 +175,7 @@ protected:
         iter++;
 
         // perform a single iteration of the fitting routine
-        status = deprecated_gsl_multifit_fdfsolver_iterate(s);
+        status = gsl_multifit_fdfsolver_iterate(s);
 
 #ifdef DEBUG_FEATUREFINDER
         // customized routine to print out current parameters
@@ -185,34 +186,30 @@ protected:
         if (status) break;
 
         // test for convergence with an absolute and relative error
-        status = deprecated_gsl_multifit_test_delta(
-        		deprecated_wrapper_gsl_multifit_fdfsolver_get_dx(s),
-        		deprecated_wrapper_gsl_multifit_fdfsolver_get_x(s), abs_error_, rel_error_);
+        status = gsl_multifit_test_delta(s->dx, s->x, abs_error_, rel_error_);
       }
-      while (status == deprecated_gsl_CONTINUE && iter < max_iteration_);
+      while (status == GSL_CONTINUE && iter < max_iteration_);
 
       // This function uses Jacobian matrix J to compute the covariance matrix of the best-fit parameters, covar.
       // The parameter epsrel (0.0) is used to remove linear-dependent columns when J is rank deficient.
-      deprecated_gsl_multifit_covar(
-    		  deprecated_wrapper_gsl_multifit_fdfsolver_get_J(s), 0.0, covar);
+      gsl_multifit_covar(s->J, 0.0, covar);
 
 #ifdef DEBUG_FEATUREFINDER
-      deprecated_gsl_matrix_fprintf(stdout, covar, "covar %g");
+      gsl_matrix_fprintf(stdout, covar, "covar %g");
 #endif
 
-#define FIT(i) deprecated_gsl_vector_get(deprecated_wrapper_gsl_multifit_fdfsolver_get_x(s), i)
-#define ERR(i) sqrt(deprecated_gsl_matrix_get(covar, i, i))
+#define FIT(i) gsl_vector_get(s->x, i)
+#define ERR(i) sqrt(gsl_matrix_get(covar, i, i))
 
       // Set GSl status
-      status_ = status;
+      gsl_status_ = status;
 
 #ifdef DEBUG_FEATUREFINDER
       {
         // chi-squared value
-        DoubleReal chi = deprecated_gsl_blas_dnrm2(
-        		deprecated_wrapper_gsl_multifit_fdfsolver_get_f(s));
+        DoubleReal chi = gsl_blas_dnrm2(s->f);
         DoubleReal dof = n - p;
-        DoubleReal c = std::max(1.0, chi / sqrt(dof));
+        DoubleReal c = GSL_MAX_DBL(1, chi / sqrt(dof));
 
         printf("chisq/dof = %g\n", pow(chi, 2.0) / dof);
 
@@ -230,8 +227,8 @@ protected:
         x_init[i] = FIT(i);
       }
 
-      deprecated_gsl_multifit_fdfsolver_free(s);
-      deprecated_gsl_matrix_free(covar);
+      gsl_multifit_fdfsolver_free(s);
+      gsl_matrix_free(covar);
 
     }
 

@@ -70,96 +70,94 @@ namespace OpenMS
       return gnuplot_formula_;
     }
 
-    int GaussFitter::gaussFitterf_(const deprecated_gsl_vector * x, void * params, deprecated_gsl_vector * f)
+    int GaussFitter::gaussFitterf_(const gsl_vector * x, void * params, gsl_vector * f)
     {
       vector<DPosition<2> > * data = static_cast<vector<DPosition<2> > *>(params);
 
-      double A = deprecated_gsl_vector_get(x, 0);
-      double x0 = deprecated_gsl_vector_get(x, 1);
-      double sig = deprecated_gsl_vector_get(x, 2);
+      double A = gsl_vector_get(x, 0);
+      double x0 = gsl_vector_get(x, 1);
+      double sig = gsl_vector_get(x, 2);
 
       UInt i = 0;
       for (vector<DPosition<2> >::iterator it = data->begin(); it != data->end(); ++it)
       {
-        deprecated_gsl_vector_set(f, i++, A * exp(-1.0 * pow(it->getX() - x0, 2) / (2 * pow(sig, 2))) - it->getY());
+        gsl_vector_set(f, i++, A * exp(-1.0 * pow(it->getX() - x0, 2) / (2 * pow(sig, 2))) - it->getY());
       }
 
-      return deprecated_gsl_SUCCESS;
+      return GSL_SUCCESS;
     }
 
-    int GaussFitter::gaussFitterdf_(const deprecated_gsl_vector * x, void * params, deprecated_gsl_matrix * J)
+    int GaussFitter::gaussFitterdf_(const gsl_vector * x, void * params, gsl_matrix * J)
     {
       vector<DPosition<2> > * data = static_cast<vector<DPosition<2> > *>(params);
 
-      double A = deprecated_gsl_vector_get(x, 0);
-      double x0 = deprecated_gsl_vector_get(x, 1);
-      double sig = deprecated_gsl_vector_get(x, 2);
+      double A = gsl_vector_get(x, 0);
+      double x0 = gsl_vector_get(x, 1);
+      double sig = gsl_vector_get(x, 2);
 
       UInt i = 0;
       for (vector<DPosition<2> >::iterator it = data->begin(); it != data->end(); ++it)
       {
-        deprecated_gsl_matrix_set(J, i, 0, exp(-1.0 * pow(it->getX() - x0, 2) / (2 * pow(sig, 2))));
-        deprecated_gsl_matrix_set(J, i, 1, (A * exp(-1.0 * pow(it->getX() - x0, 2) / (2 * pow(sig, 2))) * (-1 * (-2 * it->getX() + 2.0 * x0) / (2 * pow(sig, 2)))));
-        deprecated_gsl_matrix_set(J, i++, 2, (A * exp(-1.0 * pow(it->getX() - x0, 2) / (2 * pow(sig, 2))) * (pow(it->getX() - x0, 2) / (4 * pow(sig, 3)))));
+        gsl_matrix_set(J, i, 0, exp(-1.0 * pow(it->getX() - x0, 2) / (2 * pow(sig, 2))));
+        gsl_matrix_set(J, i, 1, (A * exp(-1.0 * pow(it->getX() - x0, 2) / (2 * pow(sig, 2))) * (-1 * (-2 * it->getX() + 2.0 * x0) / (2 * pow(sig, 2)))));
+        gsl_matrix_set(J, i++, 2, (A * exp(-1.0 * pow(it->getX() - x0, 2) / (2 * pow(sig, 2))) * (pow(it->getX() - x0, 2) / (4 * pow(sig, 3)))));
       }
-      return deprecated_gsl_SUCCESS;
+      return GSL_SUCCESS;
     }
 
-    int GaussFitter::gaussFitterfdf_(const deprecated_gsl_vector * x, void * params, deprecated_gsl_vector * f, deprecated_gsl_matrix * J)
+    int GaussFitter::gaussFitterfdf_(const gsl_vector * x, void * params, gsl_vector * f, gsl_matrix * J)
     {
       gaussFitterf_(x, params, f);
       gaussFitterdf_(x, params, J);
-      return deprecated_gsl_SUCCESS;
+      return GSL_SUCCESS;
     }
 
 #ifdef GAUSS_FITTER_VERBOSE
-    void GaussFitter::printState_(size_t iter, deprecated_gsl_multifit_fdfsolver * s)
+    void GaussFitter::printState_(size_t iter, gsl_multifit_fdfsolver * s)
     {
       printf("iter: %3u x = % 15.8f % 15.8f % 15.8f "
              "|f(x)| = %g\n",
              iter,
-             deprecated_gsl_vector_get(s->x, 0),
-             deprecated_gsl_vector_get(s->x, 1),
-             deprecated_gsl_vector_get(s->x, 2),
-             / deprecated_gsl_blas_dnrm2(s->f)*/ 0);
+             gsl_vector_get(s->x, 0),
+             gsl_vector_get(s->x, 1),
+             gsl_vector_get(s->x, 2),
+             /*gsl_blas_dnrm2(s->f)*/ 0);
     }
 
 #endif
 
     GaussFitter::GaussFitResult GaussFitter::fit(vector<DPosition<2> > & input)
     {
-      const deprecated_gsl_multifit_fdfsolver_type * T = NULL;
-      deprecated_gsl_multifit_fdfsolver * s = NULL;
+      const gsl_multifit_fdfsolver_type * T = NULL;
+      gsl_multifit_fdfsolver * s = NULL;
 
       int status(0);
       size_t iter = 0;
 
       const size_t p = 3;
 
-      //deprecated_gsl_matrix *covar = deprecated_gsl_matrix_alloc (p, p);
+      //gsl_matrix *covar = gsl_matrix_alloc (p, p);
+      gsl_multifit_function_fdf f;
       double x_init[3] = { init_param_.A, init_param_.x0, init_param_.sigma };
-      deprecated_gsl_vector_view_ptr x = deprecated_gsl_vector_view_array(x_init, p);
-      const deprecated_gsl_rng_type * type = NULL;
-      deprecated_gsl_rng * r = NULL;
+      gsl_vector_view x = gsl_vector_view_array(x_init, p);
+      const gsl_rng_type * type = NULL;
+      gsl_rng * r = NULL;
 
-      deprecated_gsl_rng_env_setup();
+      gsl_rng_env_setup();
 
-      type = deprecated_wrapper_get_gsl_rng_default();
-      r = deprecated_gsl_rng_alloc(type);
-      // set up the function to be fit
-	  deprecated_gsl_multifit_function_fdf_ptr f
-		  = deprecated_wrapper_gsl_multifit_fdfsolver_lmsder_new (
-				&gaussFitterf_,
-				&gaussFitterdf_,
-				&gaussFitterfdf_,
-			    input.size(),
-				p,
-				&input );
+      type = gsl_rng_default;
+      r = gsl_rng_alloc(type);
 
-      T = deprecated_wrapper_get_multifit_fdfsolver_lmsder();
-      s = deprecated_gsl_multifit_fdfsolver_alloc(T, input.size(), p);
-      deprecated_gsl_multifit_fdfsolver_set(s, f.get(),
-    		  deprecated_wrapper_gsl_vector_view_get_vector(x));
+      f.f = &gaussFitterf_;
+      f.df = &gaussFitterdf_;
+      f.fdf = &gaussFitterfdf_;
+      f.n = input.size();
+      f.p = p;
+      f.params = &input;
+
+      T = gsl_multifit_fdfsolver_lmsder;
+      s = gsl_multifit_fdfsolver_alloc(T, input.size(), p);
+      gsl_multifit_fdfsolver_set(s, &f, &x.vector);
 
 #ifdef GAUSS_FITTER_VERBOSE
       printState_(iter, s);
@@ -168,13 +166,13 @@ namespace OpenMS
       do
       {
         iter++;
-        status = deprecated_gsl_multifit_fdfsolver_iterate(s);
+        status = gsl_multifit_fdfsolver_iterate(s);
 
 #ifdef GAUSS_FITTER_VERBOSE
-        printf("status = %s\n", deprecated_gsl_strerror(status));
+        printf("status = %s\n", gsl_strerror(status));
         printState_(iter, s);
 
-        cerr << "f(x)=" << deprecated_gsl_vector_get(s->x, 0) << " * exp(-(x - " << deprecated_gsl_vector_get(s->x, 1) << ") ** 2 / 2 / (" << deprecated_gsl_vector_get(s->x, 2) << ") ** 2)";
+        cerr << "f(x)=" << gsl_vector_get(s->x, 0) << " * exp(-(x - " << gsl_vector_get(s->x, 1) << ") ** 2 / 2 / (" << gsl_vector_get(s->x, 2) << ") ** 2)";
 #endif
 
         if (status)
@@ -182,28 +180,24 @@ namespace OpenMS
           break;
         }
 
-        status = deprecated_gsl_multifit_test_delta(
-        		deprecated_wrapper_gsl_multifit_fdfsolver_get_dx(s),
-        		deprecated_wrapper_gsl_multifit_fdfsolver_get_x(s), 1e-4, 1e-4);
+        status = gsl_multifit_test_delta(s->dx, s->x,
+                                         1e-4, 1e-4);
       }
-      while (status == deprecated_gsl_CONTINUE && iter < 500);
+      while (status == GSL_CONTINUE && iter < 500);
 
-      if (status != deprecated_gsl_SUCCESS)
+      if (status != GSL_SUCCESS)
       {
-        deprecated_gsl_rng_free(r);
-        deprecated_gsl_multifit_fdfsolver_free(s);
+        gsl_rng_free(r);
+        gsl_multifit_fdfsolver_free(s);
 
         throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-GaussFitter", "Could not fit the gaussian to the data");
       }
 
       // write the result in a GaussFitResult struct
       GaussFitResult result;
-      result.A = deprecated_gsl_vector_get(
-    		  deprecated_wrapper_gsl_multifit_fdfsolver_get_x(s), 0);
-      result.x0 = deprecated_gsl_vector_get(
-    		  deprecated_wrapper_gsl_multifit_fdfsolver_get_x(s), 1);
-      result.sigma = deprecated_gsl_vector_get(
-    		  deprecated_wrapper_gsl_multifit_fdfsolver_get_x(s), 2);
+      result.A = gsl_vector_get(s->x, 0);
+      result.x0 = gsl_vector_get(s->x, 1);
+      result.sigma = gsl_vector_get(s->x, 2);
 
       // build a formula with the fitted parameters for gnuplot
       stringstream formula;
@@ -213,8 +207,8 @@ namespace OpenMS
       cout << gnuplot_formula_ << endl;
 #endif
 
-      deprecated_gsl_rng_free(r);
-      deprecated_gsl_multifit_fdfsolver_free(s);
+      gsl_rng_free(r);
+      gsl_multifit_fdfsolver_free(s);
 
       return result;
     }

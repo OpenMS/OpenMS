@@ -39,7 +39,9 @@
 #include <deque>
 #include <boost/tuple/tuple_comparison.hpp>
 
-#include <OpenMS/MATH/gsl_wrapper.h>
+#include <gsl/gsl_fit.h>
+#include <gsl/gsl_interp.h>
+#include <gsl/gsl_spline.h>
 
 namespace OpenMS
 {
@@ -115,10 +117,10 @@ namespace OpenMS
 
       // setup gsl splines
       const Size num_raw_points = raw_mz_values.size();
-      deprecated_gsl_interp_accel * spline_acc = deprecated_gsl_interp_accel_alloc();
-      deprecated_gsl_interp_accel * first_deriv_acc = deprecated_gsl_interp_accel_alloc();
-      deprecated_gsl_spline * peak_spline = deprecated_gsl_spline_alloc(deprecated_wrapper_get_gsl_interp_akima(), num_raw_points);
-      deprecated_gsl_spline_init(peak_spline, &(*raw_mz_values.begin()), &(*raw_int_values.begin()), num_raw_points);
+      gsl_interp_accel * spline_acc = gsl_interp_accel_alloc();
+      gsl_interp_accel * first_deriv_acc = gsl_interp_accel_alloc();
+      gsl_spline * peak_spline = gsl_spline_alloc(gsl_interp_akima, num_raw_points);
+      gsl_spline_init(peak_spline, &(*raw_mz_values.begin()), &(*raw_int_values.begin()), num_raw_points);
 
       // search for half intensity to the left
       DoubleReal MZ_THRESHOLD = 0.00000001;
@@ -134,7 +136,7 @@ namespace OpenMS
       do
       {
         mid = (left + right) / 2.0;
-        DoubleReal mid_int = deprecated_gsl_spline_eval(peak_spline, mid, spline_acc);
+        DoubleReal mid_int = gsl_spline_eval(peak_spline, mid, spline_acc);
 
         // found half maximum
         if (std::fabs(mid_int - half_maximum) < INTENSITY_THRESHOLD)
@@ -163,7 +165,7 @@ namespace OpenMS
       do
       {
         mid = (left + right) / 2.0;
-        DoubleReal mid_int = deprecated_gsl_spline_eval(peak_spline, mid, spline_acc);
+        DoubleReal mid_int = gsl_spline_eval(peak_spline, mid, spline_acc);
 
         // found half maximum
         if (std::fabs(mid_int - half_maximum) < INTENSITY_THRESHOLD)
@@ -187,9 +189,9 @@ namespace OpenMS
       DoubleReal right_fwhm_mz = mid;
 
       // free allocated gsl memory
-      deprecated_gsl_spline_free(peak_spline);
-      deprecated_gsl_interp_accel_free(spline_acc);
-      deprecated_gsl_interp_accel_free(first_deriv_acc);
+      gsl_spline_free(peak_spline);
+      gsl_interp_accel_free(spline_acc);
+      gsl_interp_accel_free(first_deriv_acc);
 
       // sanity check (left distance and right distance should be more or less equal)
       DoubleReal ratio = std::fabs(left_fwhm_mz - mz) / std::fabs(right_fwhm_mz - mz);
@@ -280,7 +282,7 @@ namespace OpenMS
     }
 
     double c0, c1, cov00, cov01, cov11, chisq;
-    int error = deprecated_gsl_fit_wlinear(&keys[0], 1, &weights[0], 1, &values[0], 1, keys.size(),
+    int error = gsl_fit_wlinear(&keys[0], 1, &weights[0], 1, &values[0], 1, keys.size(),
                                 &c0, &c1, &cov00, &cov01, &cov11, &chisq);
 
     if (error)

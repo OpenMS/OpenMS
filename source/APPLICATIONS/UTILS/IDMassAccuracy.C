@@ -45,7 +45,7 @@
 #include <OpenMS/MATH/STATISTICS/GaussFitter.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
 
-#include <OpenMS/MATH/gsl_wrapper.h>
+#include <gsl/gsl_statistics.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -343,9 +343,9 @@ protected:
         values.push_back(p);
       }
 
-      DoubleReal mean = deprecated_gsl_stats_mean(&errors.front(), 1, errors.size());
-      DoubleReal abs_dev = deprecated_gsl_stats_absdev(&errors.front(), 1, errors.size());
-      DoubleReal sdv = deprecated_gsl_stats_sd(&errors.front(), 1, errors.size());
+      DoubleReal mean = gsl_stats_mean(&errors.front(), 1, errors.size());
+      DoubleReal abs_dev = gsl_stats_absdev(&errors.front(), 1, errors.size());
+      DoubleReal sdv = gsl_stats_sd(&errors.front(), 1, errors.size());
       sort(errors.begin(), errors.end());
       DoubleReal median = errors[(Size)(errors.size() / 2.0)];
 
@@ -448,9 +448,9 @@ protected:
         values.push_back(p);
       }
 
-      DoubleReal mean = deprecated_gsl_stats_mean(&errors.front(), 1, errors.size());
-      DoubleReal abs_dev = deprecated_gsl_stats_absdev(&errors.front(), 1, errors.size());
-      DoubleReal sdv = deprecated_gsl_stats_sd(&errors.front(), 1, errors.size());
+      DoubleReal mean = gsl_stats_mean(&errors.front(), 1, errors.size());
+      DoubleReal abs_dev = gsl_stats_absdev(&errors.front(), 1, errors.size());
+      DoubleReal sdv = gsl_stats_sd(&errors.front(), 1, errors.size());
       sort(errors.begin(), errors.end());
       DoubleReal median = errors[(Size)(errors.size() / 2.0)];
 

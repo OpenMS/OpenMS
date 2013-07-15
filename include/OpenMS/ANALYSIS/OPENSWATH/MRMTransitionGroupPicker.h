@@ -423,10 +423,10 @@ protected:
           OpenSwath::mean_and_stddev msc;
           msc = std::for_each(shapes.begin(), shapes.end(), msc);
           double shapes_mean = msc.mean();
-          double shapes_stdv = msc.sample_stddev();
+          // double shapes_stdv = msc.sample_stddev();
           msc = std::for_each(coel.begin(), coel.end(), msc);
           double coel_mean = msc.mean();
-          double coel_stdv = msc.sample_stddev();
+          // double coel_stdv = msc.sample_stddev();
 
           // mean shape scores below 0.5-0.6 should be a real sign of trouble ... !
           // mean coel scores above 3.5 should be a real sign of trouble ... !

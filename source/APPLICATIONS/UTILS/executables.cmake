@@ -22,6 +22,7 @@ RTEvaluation
 ImageCreator
 INIUpdater
 LabeledEval
+LowMemPeakPickerHiRes
 MassCalculator
 MRMPairFinder
 MSSimulator

@@ -70,8 +70,8 @@ namespace OpenMS
       matchMasses_(calib_spectra, monoiso_peaks, monoiso_peaks_scan, exp_masses, spec);
 
       // the actual quadratic fitting part
-      deprecated_gsl_matrix * X, * cov;
-      deprecated_gsl_vector * y, * c;
+      gsl_matrix * X, * cov;
+      gsl_vector * y, * c;
       Size n = exp_masses.size();
       if (n < 3)
       {
@@ -81,14 +81,14 @@ namespace OpenMS
       double chisq;
 
       // matrix containing the observations
-      X = deprecated_gsl_matrix_alloc(n, 3);
+      X = gsl_matrix_alloc(n, 3);
       // vector containing the expected masses
-      y = deprecated_gsl_vector_alloc(n);
+      y = gsl_vector_alloc(n);
 
       // vector containing the coefficients of the quadratic function after the fitting
-      c = deprecated_gsl_vector_alloc(3);
+      c = gsl_vector_alloc(3);
       // matrix containing the covariances
-      cov = deprecated_gsl_matrix_alloc(3, 3);
+      cov = gsl_matrix_alloc(3, 3);
 
       for (Size i = 0; i < n; i++)
       {
@@ -96,37 +96,37 @@ namespace OpenMS
         double xi = ((calib_peaks_ft_.begin() + spec)->begin() + monoiso_peaks_scan[i])->getMZ();
         // y_i = a + b*x_i + c*x_i^2  <---- the quadratic equation, a, b, and c shall be determined
         // x_i^0 = 1 --> enter 1 at the first position of each row
-        deprecated_gsl_matrix_set(X, i, 0, 1.0);
+        gsl_matrix_set(X, i, 0, 1.0);
 
         // x_i^1 at the second position
-        deprecated_gsl_matrix_set(X, i, 1, xi);
+        gsl_matrix_set(X, i, 1, xi);
         // x_i^2 at the third position
-        deprecated_gsl_matrix_set(X, i, 2, xi * xi);
+        gsl_matrix_set(X, i, 2, xi * xi);
 
         // set expected mass
-        deprecated_gsl_vector_set(y, i, exp_masses[i]);
+        gsl_vector_set(y, i, exp_masses[i]);
 
       }
 
-      deprecated_gsl_multifit_linear_workspace * work
-        = deprecated_gsl_multifit_linear_alloc(n, 3);
+      gsl_multifit_linear_workspace * work
+        = gsl_multifit_linear_alloc(n, 3);
 
-      deprecated_gsl_multifit_linear(X, y, c, cov,
+      gsl_multifit_linear(X, y, c, cov,
                           &chisq, work);
 
 
 #ifdef DEBUG_CALIBRATION
       printf("# best fit: Y = %g + %g X + %g X^2\n",
-             deprecated_gsl_vector_get(c, (0)),
-             deprecated_gsl_vector_get(c, (1)),
-             deprecated_gsl_vector_get(c, (2)));
+             gsl_vector_get(c, (0)),
+             gsl_vector_get(c, (1)),
+             gsl_vector_get(c, (2)));
 #endif
       // store the coefficients
-      coeff_quad_fit_.push_back(deprecated_gsl_vector_get(c, (0)));
-      coeff_quad_fit_.push_back(deprecated_gsl_vector_get(c, (1)));
-      coeff_quad_fit_.push_back(deprecated_gsl_vector_get(c, (2)));
+      coeff_quad_fit_.push_back(gsl_vector_get(c, (0)));
+      coeff_quad_fit_.push_back(gsl_vector_get(c, (1)));
+      coeff_quad_fit_.push_back(gsl_vector_get(c, (2)));
 
-      deprecated_gsl_multifit_linear_free(work);
+      gsl_multifit_linear_free(work);
 
       // determine the errors in ppm
       for (Size p = 0; p < n; ++p)
@@ -158,9 +158,9 @@ namespace OpenMS
       error_medians[i] = error_medians_[i];
     }
 
-    acc_ = deprecated_gsl_interp_accel_alloc();
-    spline_ = deprecated_gsl_spline_alloc( deprecated_wrapper_get_gsl_interp_cspline(), error_medians_.size());
-    deprecated_gsl_spline_init(spline_, calib_masses, error_medians, error_medians_.size());
+    acc_ = gsl_interp_accel_alloc();
+    spline_ = gsl_spline_alloc(gsl_interp_cspline, error_medians_.size());
+    gsl_spline_init(spline_, calib_masses, error_medians, error_medians_.size());
 
 #ifdef DEBUG_CALIBRATION
     std::cout << "fehler nach spline fitting" << std::endl;
@@ -179,7 +179,7 @@ namespace OpenMS
         if (xi < calib_masses[0])
           continue;
         std::cout << exp_masses[p] << "\t"
-                  << (xi - exp_masses[p] - deprecated_gsl_spline_eval(spline_, xi, acc_)) / exp_masses[p] * 1e6
+                  << (xi - exp_masses[p] - gsl_spline_eval(spline_, xi, acc_)) / exp_masses[p] * 1e6
                   << std::endl;
 
       }
@@ -191,7 +191,7 @@ namespace OpenMS
     std::cout << "interpolation \n\n";
     for (xi = calib_masses[0]; xi < calib_masses[error_medians_.size() - 1]; xi += 0.01)
     {
-      yi = deprecated_gsl_spline_eval(spline_, xi, acc_);
+      yi = gsl_spline_eval(spline_, xi, acc_);
       std::cout << xi << "\t" << yi << std::endl;
     }
     std::cout << "--------------\nend interpolation \n\n";

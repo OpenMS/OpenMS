@@ -45,7 +45,8 @@
 #include <iostream>
 #include <vector>
 #include <map>
-#include "OpenMS/MATH/gsl_wrapper.h"
+#include <gsl/gsl_multifit.h>
+#include <gsl/gsl_spline.h>
 
 //#define DEBUG_CALIBRATION
 namespace OpenMS
@@ -148,9 +149,9 @@ private:
     double a_, b_, c_;
 
 
-    deprecated_gsl_interp_accel * acc_;
+    gsl_interp_accel * acc_;
 
-    deprecated_gsl_spline * spline_;
+    gsl_spline * spline_;
 
     /// Calculates the coefficients of the quadratic fit used for external calibration.
     void calculateCalibCoeffs_(MSExperiment<> & calib_peaks_ft);
@@ -218,7 +219,7 @@ private:
       for (unsigned int peak = 0; peak <  exp[spec].size(); ++peak)
       {
         m = mQAv_(exp[spec][peak].getMZ());
-        exp[spec][peak].setPos(m - deprecated_gsl_spline_eval(spline_, m, acc_));
+        exp[spec][peak].setPos(m - gsl_spline_eval(spline_, m, acc_));
       }
     }
   }

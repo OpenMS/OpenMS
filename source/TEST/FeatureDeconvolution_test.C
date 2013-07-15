@@ -212,8 +212,8 @@ START_SECTION(void compute(const FeatureMapType &fm_in, FeatureMapType &fm_out, 
 //_CrtSetDbgFlag(_CrtSetDbgFlag(0)|_CRTDBG_CHECK_ALWAYS_DF);
 
 	FeatureDeconvolution fd;
-    Param p;
-    p.setValue("potential_adducts", StringList::create("H+:0.7,Na+:0.1,(2)H4H-4:0.1:-2:heavy"), "Ad");
+  Param p;
+  p.setValue("potential_adducts", StringList::create("H+:0.7,Na+:0.1,(2)H4H-4:0.1:-2:heavy"), "Ad");
 	p.setValue("mass_max_diff", 0.1);
 	fd.setParameters(p);
 

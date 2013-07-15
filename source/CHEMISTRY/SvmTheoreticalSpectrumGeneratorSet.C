@@ -68,7 +68,7 @@ namespace OpenMS
   }
 
   // Generate the MS/MS according to the given probabilistic model
-  void SvmTheoreticalSpectrumGeneratorSet::simulate(RichPeakSpectrum & spectrum, const AASequence & peptide, const deprecated_gsl_rng * rng, Size precursor_charge)
+  void SvmTheoreticalSpectrumGeneratorSet::simulate(RichPeakSpectrum & spectrum, const AASequence & peptide, const gsl_rng * rng, Size precursor_charge)
   {
     std::map<Size, SvmTheoreticalSpectrumGenerator>::iterator it = simulators_.find(precursor_charge);
     if (it != simulators_.end())
