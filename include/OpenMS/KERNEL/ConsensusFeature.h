@@ -69,8 +69,7 @@ public:
     typedef HandleSetType::reverse_iterator reverse_iterator;
     //@}
 
-	
-	/// Compare by size(), the number of consensus elements
+    /// Compare by size(), the number of consensus elements
     struct SizeLess :
       std::binary_function<ConsensusFeature, ConsensusFeature, bool>
     {
@@ -165,7 +164,7 @@ public:
     ConsensusFeature(UInt64 map_index, const Peak2D & element, UInt64 element_index);
 
     /**
-      @brief Constructor with map index for a singleton consensus	feature.
+      @brief Constructor with map index for a singleton consensus feature.
 
       Sets the consensus feature position, intensity, charge, quality, and peptide identifications
       to the values of @p element as well.
@@ -183,10 +182,10 @@ public:
     ///@name Management of feature handles
     //@{
 
-	/**
-	@brief Adds all feature handles (of the CF) into the consensus feature
-	*/
-	void insert(const ConsensusFeature & cf);
+    /**
+      @brief Adds all feature handles (of the CF) into the consensus feature
+    */
+    void insert(const ConsensusFeature & cf);
 
     /**
       @brief Adds an feature handle into the consensus feature
@@ -295,32 +294,32 @@ public:
 
     ///@name Accessors for set of FeatureHandles
     //@{
-	  Size size() const;
+    Size size() const;
 
-	  const_iterator begin() const;
+    const_iterator begin() const;
 
-	  iterator begin();
+    iterator begin();
     
     const_iterator end() const;
 
-	  iterator end();
+    iterator end();
 
-	  const_reverse_iterator rbegin() const;
+    const_reverse_iterator rbegin() const;
 
-	  reverse_iterator rbegin();
+    reverse_iterator rbegin();
 
-	  const_reverse_iterator rend() const;
+    const_reverse_iterator rend() const;
 
-	  reverse_iterator rend();
+    reverse_iterator rend();
 
-	  void clear();
+    void clear();
 
-	  bool empty() const;
+    bool empty() const;
     //@}
 
   private:
-	  HandleSetType handles_;
-	  std::vector<Ratio> ratios_;
+    HandleSetType handles_;
+    std::vector<Ratio> ratios_;
 
   };
 

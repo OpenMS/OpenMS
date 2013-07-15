@@ -145,8 +145,8 @@ namespace OpenMS
       if (feature_intensities.size()!=assay_intensities.size())
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-          "Did not find a feature for each assay provided - each feature needs \
-          to have n subordinates with the meta-value 'native_id' set to the corresponding transition.");
+          "Did not find a feature for each assay provided - each feature needs "
+          "to have n subordinates with the meta-value 'native_id' set to the corresponding transition.");
       }
 
       // compute intensity distance:

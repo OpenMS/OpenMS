@@ -98,11 +98,11 @@ protected:
     //-------------------------------------------------------------
     // parsing parameters
     //-------------------------------------------------------------
-    String in                   	= getStringOption_("in");
-    String csv                  	= getStringOption_("out_csv");
-    StringList qps           	= getStringList_("qps");
-    StringList names      	= getStringList_("names");
-    String mappi          	= getStringOption_("mapping");
+    String in = getStringOption_("in");
+    String csv = getStringOption_("out_csv");
+    StringList qps = getStringList_("qps");
+    StringList names = getStringList_("names");
+    String mappi = getStringOption_("mapping");
     
     ControlledVocabulary cv;
     cv.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));

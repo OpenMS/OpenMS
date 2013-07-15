@@ -46,24 +46,24 @@ namespace OpenMS
   }
 
   ConsensusFeature::ConsensusFeature(const ConsensusFeature & rhs) :
-	  BaseFeature(rhs), handles_(rhs.handles_), ratios_()
+    BaseFeature(rhs), handles_(rhs.handles_), ratios_()
   {
     ratios_ = rhs.ratios_;
   }
 
   ConsensusFeature::ConsensusFeature(const BaseFeature & feature) :
-	  BaseFeature(feature), handles_(), ratios_()
+    BaseFeature(feature), handles_(), ratios_()
   {
   }
 
   ConsensusFeature::ConsensusFeature(UInt64 map_index, const Peak2D & element, UInt64 element_index) :
-	  BaseFeature(element), handles_(), ratios_()
+    BaseFeature(element), handles_(), ratios_()
   {
     insert(map_index, element, element_index);
   }
 
   ConsensusFeature::ConsensusFeature(UInt64 map_index, const BaseFeature & element) :
-	  BaseFeature(element), handles_(), ratios_()
+    BaseFeature(element), handles_(), ratios_()
   {
     insert(FeatureHandle(map_index, element));
   }
@@ -74,9 +74,8 @@ namespace OpenMS
       return *this;
 
     BaseFeature::operator=(rhs);
-	handles_ = rhs.handles_;
-	ratios_ = rhs.ratios_;
-
+    handles_ = rhs.handles_;
+    ratios_ = rhs.ratios_;
     return *this;
   }
 
@@ -86,12 +85,12 @@ namespace OpenMS
 
   void ConsensusFeature::insert(const ConsensusFeature & cf)
   {
-	  handles_.insert(cf.handles_.begin(), cf.handles_.end());
+    handles_.insert(cf.handles_.begin(), cf.handles_.end());
   }
 
   void ConsensusFeature::insert(const FeatureHandle & handle)
   {
-	if (!(handles_.insert(handle).second))
+    if (!(handles_.insert(handle).second))
     {
       String key = String("map") + handle.getMapIndex() + "/feature" + handle.getUniqueId();
       throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "The set already contained an element with this key.", key);
@@ -119,14 +118,14 @@ namespace OpenMS
 
   const ConsensusFeature::HandleSetType & ConsensusFeature::getFeatures() const
   {
-	return handles_;
+    return handles_;
   }
 
   DRange<2> ConsensusFeature::getPositionRange() const
   {
     DPosition<2> min = DPosition<2>::maxPositive();
     DPosition<2> max = DPosition<2>::minPositive();
-	for (ConsensusFeature::HandleSetType::const_iterator it = handles_.begin(); it != handles_.end(); ++it)
+    for (ConsensusFeature::HandleSetType::const_iterator it = handles_.begin(); it != handles_.end(); ++it)
     {
       if (it->getRT() < min[0])
         min[0] = it->getRT();
@@ -144,7 +143,7 @@ namespace OpenMS
   {
     DPosition<1> min = DPosition<1>::maxPositive();
     DPosition<1> max = DPosition<1>::minPositive();
-	for (ConsensusFeature::HandleSetType::const_iterator it = handles_.begin(); it != handles_.end(); ++it)
+    for (ConsensusFeature::HandleSetType::const_iterator it = handles_.begin(); it != handles_.end(); ++it)
     {
       if (it->getIntensity() < min[0])
         min[0] = it->getIntensity();
@@ -166,7 +165,7 @@ namespace OpenMS
     Int charge_most_frequent = 0;
     UInt charge_most_frequent_occ = 0;
 
-	for (ConsensusFeature::HandleSetType::const_iterator it = handles_.begin(); it != handles_.end(); ++it)
+    for (ConsensusFeature::HandleSetType::const_iterator it = handles_.begin(); it != handles_.end(); ++it)
     {
       rt += it->getRT();
       mz += it->getMZ();
@@ -207,7 +206,7 @@ namespace OpenMS
     Int charge_most_frequent = 0;
     UInt charge_most_frequent_occ = 0;
 
-	for (ConsensusFeature::HandleSetType::const_iterator it = handles_.begin(); it != handles_.end(); ++it)
+    for (ConsensusFeature::HandleSetType::const_iterator it = handles_.begin(); it != handles_.end(); ++it)
     {
       rt += it->getRT();
       if (it->getMZ() < mz)
@@ -247,7 +246,7 @@ namespace OpenMS
     DoubleReal proton_mass = Constants::PROTON_MASS_U;
 
     // intensity sum (for weighting)
-	  for (ConsensusFeature::HandleSetType::const_iterator it = handles_.begin(); it != handles_.end(); ++it)
+    for (ConsensusFeature::HandleSetType::const_iterator it = handles_.begin(); it != handles_.end(); ++it)
     {
       intensity += it->getIntensity();
     }
@@ -258,7 +257,7 @@ namespace OpenMS
     DoubleReal weighting_factor = 1.0 / size();
 
     // RT and Mass
-	  for (ConsensusFeature::HandleSetType::const_iterator it = handles_.begin(); it != handles_.end(); ++it)
+    for (ConsensusFeature::HandleSetType::const_iterator it = handles_.begin(); it != handles_.end(); ++it)
     {
       Int q = it->getCharge();
       if (q == 0)
@@ -312,48 +311,48 @@ namespace OpenMS
 
   Size ConsensusFeature::size() const
   { 
-	  return handles_.size();
+    return handles_.size();
   }
 
   ConsensusFeature::const_iterator ConsensusFeature::begin() const
   {
-	  return handles_.begin();
+    return handles_.begin();
   }
 
   ConsensusFeature::iterator ConsensusFeature::begin()
   {
-	  return handles_.begin();
+    return handles_.begin();
   }
 
 
   ConsensusFeature::const_iterator ConsensusFeature::end() const
   {
-	  return handles_.end();
+    return handles_.end();
   }
 
   ConsensusFeature::iterator ConsensusFeature::end()
   {
-	  return handles_.end();
+    return handles_.end();
   }
 
   ConsensusFeature::const_reverse_iterator ConsensusFeature::rbegin() const
   {
-	  return handles_.rbegin();
+    return handles_.rbegin();
   }
 
   ConsensusFeature::reverse_iterator ConsensusFeature::rbegin()
   {
-	  return handles_.rbegin();
+    return handles_.rbegin();
   }
 
   ConsensusFeature::const_reverse_iterator ConsensusFeature::rend() const
   {
-	  return handles_.rend();
+    return handles_.rend();
   }
 
   ConsensusFeature::reverse_iterator ConsensusFeature::rend()
   {
-	  return handles_.rend();
+    return handles_.rend();
   }
 
   void ConsensusFeature::clear()
@@ -363,7 +362,7 @@ namespace OpenMS
 
   bool ConsensusFeature::empty() const
   {
-	  return handles_.empty();
+    return handles_.empty();
   }
 
 

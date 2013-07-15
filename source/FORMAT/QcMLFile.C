@@ -553,7 +553,7 @@ namespace OpenMS
     // if the return statement wasn't hit from runs maybe it is from sets?
     qpsit = setQualityQPs_.find(filename);
     if (qpsit != setQualityQPs_.end())
-    {	    
+    {    
       for (std::vector<QcMLFile::QualityParameter>::const_iterator qit = qpsit->second.begin(); qit != qpsit->second.end(); ++qit)
       {
         if (qpname == qit->name)
@@ -568,12 +568,12 @@ namespace OpenMS
   
    String QcMLFile::exportQPs(const String filename, const StringList qpnames) const
   {
-	  String ret = "";
-	  for (StringList::const_iterator qit = qpnames.begin(); qit != qpnames.end(); ++qit)
-	  {
-		  ret += exportQP(filename,*qit);
-		  ret += ",";
-	  }
+    String ret = "";
+    for (StringList::const_iterator qit = qpnames.begin(); qit != qpnames.end(); ++qit)
+    {
+       ret += exportQP(filename,*qit);
+       ret += ",";
+    }
     return ret;
   }
   

@@ -99,8 +99,8 @@ protected:
 
   void registerOptionsAndFlags_()
   {
-    registerInputFile_("in", "<file>", "", "Input OpenSWATH transition TSV file.\n \
-        See http://www.openms.de/current_doxygen/html/UTILS_ConvertTSVToTraML.html for format.");
+    registerInputFile_("in", "<file>", "", "Input OpenSWATH transition TSV file.\n "
+                                           "See http://www.openms.de/current_doxygen/html/UTILS_ConvertTSVToTraML.html for format.");
     /*
      PrecursorMz (float) \n \
      ProductMz (float)\n  \

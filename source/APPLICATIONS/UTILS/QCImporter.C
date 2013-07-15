@@ -98,10 +98,10 @@ protected:
     //-------------------------------------------------------------
     // parsing parameters
     //-------------------------------------------------------------
-    String in                   = getStringOption_("in");
-    String out                 = getStringOption_("out");
-    String mappi          	= getStringOption_("mapping");
-    String tab                 = getStringOption_("table");
+    String in = getStringOption_("in");
+    String out = getStringOption_("out");
+    String mappi = getStringOption_("mapping");
+    String tab = getStringOption_("table");
     
     ControlledVocabulary cv;
     cv.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));

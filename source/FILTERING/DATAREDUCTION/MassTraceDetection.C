@@ -517,7 +517,7 @@ void MassTraceDetection::run(const MSExperiment<Peak1D> & input_exp, std::vector
         DoubleReal mt_quality((DoubleReal)current_trace.size() / (DoubleReal)num_scans);
         DoubleReal rt_range(std::fabs(current_trace.rbegin()->getRT() - current_trace.begin()->getRT()));
 
-//	std::cout << num_scans << " " << mt_quality << " " << rt_range << std::endl;
+        // std::cout << num_scans << " " << mt_quality << " " << rt_range << std::endl;
         // check if minimum length and quality of mass trace criteria are met
         if (rt_range >= min_trace_length_ && rt_range < max_trace_length_ && mt_quality >= min_sample_rate_)
         {
