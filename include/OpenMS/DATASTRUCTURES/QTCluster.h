@@ -66,7 +66,7 @@ namespace OpenMS
   {
 private:
     /**
-     * @brief Mapping: input map -> distance to center -> neighboring point
+     * @brief Mapping: input map -> distance to center (ordered!) -> neighboring point
      * @note There should never be an empty sub-map! (When a sub-map becomes empty, it should be removed from the overall map.)
      */
     typedef boost::unordered::unordered_map<Size, std::multimap<DoubleReal, GridFeature *> >
