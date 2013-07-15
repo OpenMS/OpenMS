@@ -36,6 +36,7 @@
 
 ///////////////////////////
 #include <OpenMS/SIMULATION/RTSimulation.h>
+#include <OpenMS/MATH/gsl_wrapper.h>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -105,10 +106,10 @@ START_SECTION(([EXTRA] Prediction Test - HPLC with relative RTs))
   // init rng
   SimRandomNumberGenerator rnd_gen;
 
-  rnd_gen.biological_rng = gsl_rng_alloc (gsl_rng_taus);
-  gsl_rng_set(rnd_gen.biological_rng, rnd_gen_seed);
-  rnd_gen.technical_rng = gsl_rng_alloc (gsl_rng_taus);
-  gsl_rng_set(rnd_gen.technical_rng, rnd_gen_seed);
+  rnd_gen.biological_rng = deprecated_gsl_rng_alloc (deprecated_wrapper_gsl_rng_taus_get());
+  deprecated_gsl_rng_set(rnd_gen.biological_rng, rnd_gen_seed);
+  rnd_gen.technical_rng = deprecated_gsl_rng_alloc (deprecated_wrapper_gsl_rng_taus_get());
+  deprecated_gsl_rng_set(rnd_gen.technical_rng, rnd_gen_seed);
 
   // rt svm
   RTSimulation svm_rt_sim(rnd_gen);
@@ -161,10 +162,10 @@ START_SECTION((void createExperiment(MSSimExperiment & experiment)))
   // init rng
   SimRandomNumberGenerator rnd_gen;
 
-  rnd_gen.biological_rng = gsl_rng_alloc (gsl_rng_taus);
-  gsl_rng_set(rnd_gen.biological_rng, rnd_gen_seed);
-  rnd_gen.technical_rng = gsl_rng_alloc (gsl_rng_taus);
-  gsl_rng_set(rnd_gen.technical_rng, rnd_gen_seed);
+  rnd_gen.biological_rng = deprecated_gsl_rng_alloc (deprecated_wrapper_gsl_rng_taus_get());
+  deprecated_gsl_rng_set(rnd_gen.biological_rng, rnd_gen_seed);
+  rnd_gen.technical_rng = deprecated_gsl_rng_alloc (deprecated_wrapper_gsl_rng_taus_get());
+  deprecated_gsl_rng_set(rnd_gen.technical_rng, rnd_gen_seed);
 
   // rt svm
   RTSimulation svm_rt_sim(rnd_gen);
@@ -219,10 +220,10 @@ START_SECTION(([EXTRA] Prediction Test - No RT column))
   // init rng
   SimRandomNumberGenerator rnd_gen;
 
-  rnd_gen.biological_rng = gsl_rng_alloc (gsl_rng_taus);
-  gsl_rng_set(rnd_gen.biological_rng, rnd_gen_seed);
-  rnd_gen.technical_rng = gsl_rng_alloc (gsl_rng_taus);
-  gsl_rng_set(rnd_gen.technical_rng, rnd_gen_seed);
+  rnd_gen.biological_rng = deprecated_gsl_rng_alloc (deprecated_wrapper_gsl_rng_taus_get());
+  deprecated_gsl_rng_set(rnd_gen.biological_rng, rnd_gen_seed);
+  rnd_gen.technical_rng = deprecated_gsl_rng_alloc (deprecated_wrapper_gsl_rng_taus_get());
+  deprecated_gsl_rng_set(rnd_gen.technical_rng, rnd_gen_seed);
 
   // no rt scan
   RTSimulation no_rt_sim(rnd_gen);
@@ -260,10 +261,10 @@ START_SECTION(([EXTRA] Prediction Test - HPLC with absolute RTs))
   // init rng
   SimRandomNumberGenerator rnd_gen;
 
-  rnd_gen.biological_rng = gsl_rng_alloc (gsl_rng_taus);
-  gsl_rng_set(rnd_gen.biological_rng, rnd_gen_seed);
-  rnd_gen.technical_rng = gsl_rng_alloc (gsl_rng_taus);
-  gsl_rng_set(rnd_gen.technical_rng, rnd_gen_seed);
+  rnd_gen.biological_rng = deprecated_gsl_rng_alloc (deprecated_wrapper_gsl_rng_taus_get());
+  deprecated_gsl_rng_set(rnd_gen.biological_rng, rnd_gen_seed);
+  rnd_gen.technical_rng = deprecated_gsl_rng_alloc (deprecated_wrapper_gsl_rng_taus_get());
+  deprecated_gsl_rng_set(rnd_gen.technical_rng, rnd_gen_seed);
 
   // absolute rt values
   // rt svm

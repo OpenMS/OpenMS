@@ -343,22 +343,22 @@ START_SECTION((template <int ROWS, int COLS> void setMatrix(const ValueType matr
 }
 END_SECTION
 
-START_SECTION((gsl_matrix* toGslMatrix()))
+START_SECTION((deprecated_gsl_matrix* toGslMatrix()))
 {
 	Matrix<double> mi(2,3,6);
 	mi(1,2)=112.234;
 	mi(0,0)=100.8547;
 	mi(1,1)=111.323541;
 	mi(0,2)=103.38395;
-	gsl_matrix* gsl_m = mi.toGslMatrix();
+	deprecated_gsl_matrix* gsl_m = mi.toGslMatrix();
 	for (size_t i=0;i<2;++i)
 	{
 		for (size_t j=0;j<3;++j)
 		{
-			TEST_REAL_SIMILAR(mi(i,j),gsl_matrix_get (gsl_m, i, j))
+			TEST_REAL_SIMILAR(mi(i,j),deprecated_gsl_matrix_get (gsl_m, i, j))
 		}
 	}
-	gsl_matrix_free (gsl_m);
+	deprecated_gsl_matrix_free (gsl_m);
 }
 END_SECTION
 

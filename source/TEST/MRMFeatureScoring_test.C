@@ -117,19 +117,12 @@ START_SECTION([EXTRA] test_scores())
   TEST_REAL_SIMILAR(mrmscore.calcXcorrShape_score_weighted(normalized_library_intensity), 0.7130856895)
 
   // numpy
-  double library_corr, library_rmsd;
-  double manhatten, dotproduct;
-  double spectral_angle, rmsd;
-  mrmscore.calcLibraryScore(imrmfeature, transition_group.getTransitions(), library_corr, library_rmsd, manhatten, dotproduct, spectral_angle, rmsd);
+  //data1 = array([1,10000,2000])
+  //data2 = array([782.380737304688, 58.3845062255859, 58.3845062255859])
+  double library_corr, library_rmsd, d1, d2;
+  mrmscore.calcLibraryScore(imrmfeature, transition_group.getTransitions(), library_corr, library_rmsd, d1, d2);
   TEST_REAL_SIMILAR(library_corr, -0.654591316)
   TEST_REAL_SIMILAR(library_rmsd, 0.5800337593)
-
-  TEST_REAL_SIMILAR(manhatten, 1.279644714)
-  TEST_REAL_SIMILAR(dotproduct, 0.34514801)
-
-  TEST_REAL_SIMILAR(spectral_angle, 1.483262)
-  TEST_REAL_SIMILAR(rmsd, 0.6727226674)
-
 }
 END_SECTION
 

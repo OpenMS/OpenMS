@@ -47,7 +47,7 @@
 #include <cmath>
 #include <ctime>
 
-#include <gsl/gsl_cdf.h>
+#include <OpenMS/MATH/gsl_wrapper.h>
 
 using namespace std;
 
@@ -1857,7 +1857,7 @@ namespace OpenMS
     sd_units = distance / actual_sigma;
 
     // getting only the inner part of the area (0 +- sd_units)
-    result = (gsl_cdf_gaussian_P(sd_units, 1) - 0.5) * 2;
+    result = (deprecated_gsl_cdf_gaussian_P(sd_units, 1) - 0.5) * 2;
 
     //should be impossible
     if (result > 1)

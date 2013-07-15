@@ -38,6 +38,7 @@
 #include <sstream>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/TraceFitter.h>
+#include "OpenMS/MATH/gsl_wrapper.h"
 
 namespace OpenMS
 {
@@ -237,12 +238,16 @@ protected:
       return bounds;
     }
 
-    void getOptimizedParameters_(gsl_multifit_fdfsolver * fdfsolver)
+    void getOptimizedParameters_( deprecated_gsl_multifit_fdfsolver * fdfsolver)
     {
-      height_ =  gsl_vector_get(fdfsolver->x, 0);
-      apex_rt_ =  gsl_vector_get(fdfsolver->x, 1);
-      sigma_square_ =  gsl_vector_get(fdfsolver->x, 2);
-      tau_ =  gsl_vector_get(fdfsolver->x, 3);
+      height_ =  deprecated_gsl_vector_get(
+    		  deprecated_wrapper_gsl_multifit_fdfsolver_get_x(fdfsolver), 0);
+      apex_rt_ =  deprecated_gsl_vector_get(
+    		  deprecated_wrapper_gsl_multifit_fdfsolver_get_x(fdfsolver), 1);
+      sigma_square_ =  deprecated_gsl_vector_get(
+    		  deprecated_wrapper_gsl_multifit_fdfsolver_get_x(fdfsolver), 2);
+      tau_ =  deprecated_gsl_vector_get(
+    		  deprecated_wrapper_gsl_multifit_fdfsolver_get_x(fdfsolver), 3);
 
       // we set alpha to 0.04 which is conceptually equal to
       // 2.5 sigma for lower and upper bound
@@ -251,14 +256,14 @@ protected:
       fwhm_bound_ = getAlphaBoundaries_(0.45783);
     }
 
-    static Int residual_(const gsl_vector * param, void * data, gsl_vector * f)
+    static Int residual_(const deprecated_gsl_vector * param, void * data, deprecated_gsl_vector * f)
     {
       FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType> * traces = static_cast<FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType> *>(data);
 
-      double H  = gsl_vector_get(param, 0);
-      double tR = gsl_vector_get(param, 1);
-      double sigma_square = gsl_vector_get(param, 2);
-      double tau = gsl_vector_get(param, 3);
+      double H  = deprecated_gsl_vector_get(param, 0);
+      double tR = deprecated_gsl_vector_get(param, 1);
+      double sigma_square = deprecated_gsl_vector_get(param, 2);
+      double tau = deprecated_gsl_vector_get(param, 3);
 
       double t_diff, t_diff2, denominator = 0.0;
 
@@ -286,21 +291,21 @@ protected:
             fegh = 0.0;
           }
 
-          gsl_vector_set(f, count, (fegh - trace.peaks[i].second->getIntensity()));
+          deprecated_gsl_vector_set(f, count, (fegh - trace.peaks[i].second->getIntensity()));
           ++count;
         }
       }
-      return GSL_SUCCESS;
+      return deprecated_gsl_SUCCESS;
     }
 
-    static Int jacobian_(const gsl_vector * param, void * data, gsl_matrix * J)
+    static Int jacobian_(const deprecated_gsl_vector * param, void * data, deprecated_gsl_matrix * J)
     {
       FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType> * traces = static_cast<FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType> *>(data);
 
-      double H  = gsl_vector_get(param, 0);
-      double tR = gsl_vector_get(param, 1);
-      double sigma_square = gsl_vector_get(param, 2);
-      double tau = gsl_vector_get(param, 3);
+      double H  = deprecated_gsl_vector_get(param, 0);
+      double tR = deprecated_gsl_vector_get(param, 1);
+      double sigma_square = deprecated_gsl_vector_get(param, 2);
+      double tau = deprecated_gsl_vector_get(param, 3);
 
       double derivative_H, derivative_tR, derivative_sigma_square, derivative_tau = 0.0;
       double t_diff, t_diff2, exp1, denominator = 0.0;
@@ -343,22 +348,22 @@ protected:
           }
 
           // set the jacobian matrix
-          gsl_matrix_set(J, count, 0, derivative_H);
-          gsl_matrix_set(J, count, 1, derivative_tR);
-          gsl_matrix_set(J, count, 2, derivative_sigma_square);
-          gsl_matrix_set(J, count, 3, derivative_tau);
+          deprecated_gsl_matrix_set(J, count, 0, derivative_H);
+          deprecated_gsl_matrix_set(J, count, 1, derivative_tR);
+          deprecated_gsl_matrix_set(J, count, 2, derivative_sigma_square);
+          deprecated_gsl_matrix_set(J, count, 3, derivative_tau);
 
           ++count;
         }
       }
-      return GSL_SUCCESS;
+      return deprecated_gsl_SUCCESS;
     }
 
-    static Int evaluate_(const gsl_vector * param, void * data, gsl_vector * f, gsl_matrix * J)
+    static Int evaluate_(const deprecated_gsl_vector * param, void * data, deprecated_gsl_vector * f, deprecated_gsl_matrix * J)
     {
       residual_(param, data, f);
       jacobian_(param, data, J);
-      return GSL_SUCCESS;
+      return deprecated_gsl_SUCCESS;
     }
 
     void setInitialParameters_(FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType> & traces)
@@ -465,14 +470,19 @@ protected:
       TraceFitter<PeakType>::updateMembers_();
     }
 
-    void printState_(SignedSize iter, gsl_multifit_fdfsolver * s)
+    void printState_(SignedSize iter, deprecated_gsl_multifit_fdfsolver * s)
     {
       LOG_DEBUG << "iter: " << iter << " "
-                << "height: " << gsl_vector_get(s->x, 0) << " "
-                << "apex_rt: " << gsl_vector_get(s->x, 1) << " "
-                << "sigma_square: " << gsl_vector_get(s->x, 2) << " "
-                << "tau: " << gsl_vector_get(s->x, 3) << " "
-                << "|f(x)| = " << gsl_blas_dnrm2(s->f) << std::endl;
+                << "height: " << deprecated_gsl_vector_get(
+                		deprecated_wrapper_gsl_multifit_fdfsolver_get_x(s), 0) << " "
+                << "apex_rt: " << deprecated_gsl_vector_get(
+                		deprecated_wrapper_gsl_multifit_fdfsolver_get_x(s), 1) << " "
+                << "sigma_square: " << deprecated_gsl_vector_get(
+                		deprecated_wrapper_gsl_multifit_fdfsolver_get_x(s), 2) << " "
+                << "tau: " << deprecated_gsl_vector_get(
+                		deprecated_wrapper_gsl_multifit_fdfsolver_get_x(s), 3) << " "
+                << "|f(x)| = " << deprecated_gsl_blas_dnrm2(
+                		deprecated_wrapper_gsl_multifit_fdfsolver_get_f(s)) << std::endl;
     }
 
   };

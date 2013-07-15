@@ -48,7 +48,7 @@ namespace OpenMS
   namespace OptimizationFunctions
   {
     // Evaluation of the target function for nonlinear optimization.
-    Int residualDC(const gsl_vector * x, void * params, gsl_vector * f)
+    Int residualDC(const deprecated_gsl_vector * x, void * params, deprecated_gsl_vector * f)
     {
       // According to the gsl conventions, x contains the parameters to be optimized.
       // The first two entries are the left and right width, respectively.They are equal
@@ -63,9 +63,9 @@ namespace OpenMS
       std::vector<PeakShape> & peaks = static_cast<OptimizePeakDeconvolution::Data *>(params)->peaks;
       OptimizationFunctions::PenaltyFactorsIntensity & penalties = static_cast<OptimizePeakDeconvolution::Data *>(params)->penalties;
       Int charge = static_cast<OptimizePeakDeconvolution::Data *>(params)->charge;
-      DoubleReal leftwidth = gsl_vector_get(x, 0);
-      DoubleReal rightwidth = gsl_vector_get(x, 1);
-      //DoubleReal posP1 = gsl_vector_get(x,2);
+      DoubleReal leftwidth = deprecated_gsl_vector_get(x, 0);
+      DoubleReal rightwidth = deprecated_gsl_vector_get(x, 1);
+      //DoubleReal posP1 = deprecated_gsl_vector_get(x,2);
 
       // iterate over all points of the signal
       for (Size current_point = 0; current_point < positions.size(); current_point++)
@@ -78,8 +78,8 @@ namespace OpenMS
         for (Size current_peak = 0; current_peak < peaks.size(); current_peak++)
         {
           //Store the current parameters for this peak
-          DoubleReal p_height        = gsl_vector_get(x, 2 + 2 * current_peak);
-          DoubleReal p_position    = gsl_vector_get(x, 2 + 2 * current_peak + 1);
+          DoubleReal p_height        = deprecated_gsl_vector_get(x, 2 + 2 * current_peak);
+          DoubleReal p_position    = deprecated_gsl_vector_get(x, 2 + 2 * current_peak + 1);
           DoubleReal p_width         = (current_position <= p_position) ? leftwidth : rightwidth;
 
           //is it a Lorentz or a Sech - Peak?
@@ -92,7 +92,7 @@ namespace OpenMS
             computed_signal += p_height / pow(cosh(p_width * (current_position - p_position)), 2);
           }
         }
-        gsl_vector_set(f, current_point, computed_signal - experimental_signal);
+        deprecated_gsl_vector_set(f, current_point, computed_signal - experimental_signal);
       }
 
       // penalties : especially negative heights have to be penalised
@@ -107,11 +107,11 @@ namespace OpenMS
       //iterate over all peaks again to compute the penalties
       for (Size current_peak = 0; current_peak < peaks.size(); current_peak++)
       {
-        DoubleReal p_position = gsl_vector_get(x, 2 + 2 * current_peak + 1);
+        DoubleReal p_position = deprecated_gsl_vector_get(x, 2 + 2 * current_peak + 1);
         if (current_peak < peaks.size() - 1)
         {
 
-          DoubleReal next_p_position  = gsl_vector_get(x, 2 + 2 * current_peak + 3);
+          DoubleReal next_p_position  = deprecated_gsl_vector_get(x, 2 + 2 * current_peak + 3);
           // if distance between peaks does not match the peptide mass rule
           if (fabs(fabs(p_position - next_p_position) - 1.003 / charge) > 0.05)
           {
@@ -125,9 +125,9 @@ namespace OpenMS
         DoubleReal old_width_r    = peaks[current_peak].right_width;
         DoubleReal old_height    = peaks[current_peak].height;
 
-        DoubleReal p_width_l    = gsl_vector_get(x, 0);
-        DoubleReal p_width_r    = gsl_vector_get(x, 1);
-        DoubleReal p_height     = gsl_vector_get(x, 2 + 2 * current_peak);
+        DoubleReal p_width_l    = deprecated_gsl_vector_get(x, 0);
+        DoubleReal p_width_r    = deprecated_gsl_vector_get(x, 1);
+        DoubleReal p_height     = deprecated_gsl_vector_get(x, 2 + 2 * current_peak);
 
         if (p_height <  1)
         {
@@ -154,14 +154,15 @@ namespace OpenMS
 
 
       }
-      gsl_vector_set(f, f->size - 1, penalty);
-      return GSL_SUCCESS;
+      deprecated_gsl_vector_set(f,
+    		  deprecated_wrapper_gsl_vector_get_size(f) - 1, penalty);
+      return deprecated_gsl_SUCCESS;
     }
 
     /** Compute the Jacobian of the residual, where each row of the matrix corresponds to a
      *  point in the data.
      */
-    Int jacobianDC(const gsl_vector * x, void * params, gsl_matrix * J)
+    Int jacobianDC(const deprecated_gsl_vector * x, void * params, deprecated_gsl_matrix * J)
     {
       // For the conventions on x and params c.f. the commentary in residual()
       //
@@ -175,11 +176,11 @@ namespace OpenMS
       OptimizationFunctions::PenaltyFactorsIntensity & penalties = static_cast<OptimizePeakDeconvolution::Data *>(params)->penalties;
       Int charge = static_cast<OptimizePeakDeconvolution::Data *>(params)->charge;
 
-      DoubleReal leftwidth = gsl_vector_get(x, 0);
-      DoubleReal rightwidth = gsl_vector_get(x, 1);
+      DoubleReal leftwidth = deprecated_gsl_vector_get(x, 0);
+      DoubleReal rightwidth = deprecated_gsl_vector_get(x, 1);
 
 
-      gsl_matrix_set_zero(J);
+      deprecated_gsl_matrix_set_zero(J);
 
 
       // iterate over all points of the signal
@@ -193,8 +194,8 @@ namespace OpenMS
 
 
           //Store the current parameters for this peak
-          DoubleReal p_height        = gsl_vector_get(x, 2 + 2 * current_peak);
-          DoubleReal p_position    = gsl_vector_get(x, 2 + 2 * current_peak + 1);
+          DoubleReal p_height        = deprecated_gsl_vector_get(x, 2 + 2 * current_peak);
+          DoubleReal p_position    = deprecated_gsl_vector_get(x, 2 + 2 * current_peak + 1);
           DoubleReal p_width          = (current_position <= p_position) ? leftwidth : rightwidth;
 
           //is it a Lorentz or a Sech - Peak?
@@ -213,16 +214,16 @@ namespace OpenMS
 
             // left and right width are the same for all peaks,
             // the sums of the derivations over all peaks are stored in the first two columns
-            gsl_matrix_set(J, current_point, 0, gsl_matrix_get(J, current_point, 0) + ddl_left);
-            gsl_matrix_set(J, current_point, 1, gsl_matrix_get(J, current_point, 1) + ddl_right);
+            deprecated_gsl_matrix_set(J, current_point, 0, deprecated_gsl_matrix_get(J, current_point, 0) + ddl_left);
+            deprecated_gsl_matrix_set(J, current_point, 1, deprecated_gsl_matrix_get(J, current_point, 1) + ddl_right);
 
             DoubleReal ddx0    = 2 * p_height * pow(p_width, 2) * diff * pow(denom_inv, 2);
 
             // partial derivation with respect to intensity
-            gsl_matrix_set(J, current_point, 2 + 2 * current_peak, denom_inv);
+            deprecated_gsl_matrix_set(J, current_point, 2 + 2 * current_peak, denom_inv);
 
             // partial derivation with respect to the mz-position
-            gsl_matrix_set(J, current_point, 2 + 2 * current_peak + 1, ddx0);
+            deprecated_gsl_matrix_set(J, current_point, 2 + 2 * current_peak + 1, ddx0);
           }
           else                   // It's a Sech - Peak
           {
@@ -241,13 +242,13 @@ namespace OpenMS
                                    ? -2 * p_height * sinh_term * diff * pow(denom_inv, 3) :
                                      0;
 
-            gsl_matrix_set(J, current_point, 0, gsl_matrix_get(J, current_point, 0) + ddl_left);
-            gsl_matrix_set(J, current_point, 1, gsl_matrix_get(J, current_point, 1) + ddl_right);
+            deprecated_gsl_matrix_set(J, current_point, 0, deprecated_gsl_matrix_get(J, current_point, 0) + ddl_left);
+            deprecated_gsl_matrix_set(J, current_point, 1, deprecated_gsl_matrix_get(J, current_point, 1) + ddl_right);
 
             DoubleReal ddx0      = 2 * p_height * p_width * sinh_term * pow(denom_inv, 3);
 
-            gsl_matrix_set(J, current_point, 2 + 2 * current_peak, pow(denom_inv, 2));
-            gsl_matrix_set(J, current_point, 2 + 2 * current_peak + 1, ddx0);
+            deprecated_gsl_matrix_set(J, current_point, 2 + 2 * current_peak, pow(denom_inv, 2));
+            deprecated_gsl_matrix_set(J, current_point, 2 + 2 * current_peak + 1, ddx0);
           }
         }
       }
@@ -262,11 +263,11 @@ namespace OpenMS
 
 
         DoubleReal penalty_p = 0;
-        DoubleReal p_position = gsl_vector_get(x, 2 + 2 * current_peak + 1);
+        DoubleReal p_position = deprecated_gsl_vector_get(x, 2 + 2 * current_peak + 1);
         if (current_peak < peaks.size() - 1)
         {
 
-          DoubleReal next_p_position  = gsl_vector_get(x, 2 + 2 * current_peak + 3);
+          DoubleReal next_p_position  = deprecated_gsl_vector_get(x, 2 + 2 * current_peak + 3);
           // if distance between peaks does not match the peptide mass rule
           if (fabs(fabs(p_position - next_p_position) - 1.003 / charge) > 0.05)
           {
@@ -277,9 +278,9 @@ namespace OpenMS
           }
         }
         //  std::cout << "penalty_p "<<penalty_p<<std::endl;
-        DoubleReal p_width_left = gsl_vector_get(x, 0);
-        DoubleReal p_width_right = gsl_vector_get(x, 1);
-        DoubleReal p_height   = gsl_vector_get(x, 2 + 2 * current_peak);
+        DoubleReal p_width_left = deprecated_gsl_vector_get(x, 0);
+        DoubleReal p_width_right = deprecated_gsl_vector_get(x, 1);
+        DoubleReal p_height   = deprecated_gsl_vector_get(x, 2 + 2 * current_peak);
 
         DoubleReal old_position    = peaks[current_peak].mz_position;
         DoubleReal old_width_left  = peaks[current_peak].left_width;
@@ -311,22 +312,22 @@ namespace OpenMS
 
 
 
-        gsl_matrix_set(J, positions.size(), 2 + 2 * current_peak, 100 * penalty_h);
-        gsl_matrix_set(J, positions.size(), 0, 100 * penalty_l);
-        gsl_matrix_set(J, positions.size(), 1, 100 * penalty_r);
-        gsl_matrix_set(J, positions.size(), 2 + 2 * current_peak + 1, 100 * penalty_p);
+        deprecated_gsl_matrix_set(J, positions.size(), 2 + 2 * current_peak, 100 * penalty_h);
+        deprecated_gsl_matrix_set(J, positions.size(), 0, 100 * penalty_l);
+        deprecated_gsl_matrix_set(J, positions.size(), 1, 100 * penalty_r);
+        deprecated_gsl_matrix_set(J, positions.size(), 2 + 2 * current_peak + 1, 100 * penalty_p);
       }
 
-      return GSL_SUCCESS;
+      return deprecated_gsl_SUCCESS;
     }
 
     // Driver function for the evaluation of function and jacobian.
-    Int evaluateDC(const gsl_vector * x, void * params, gsl_vector * f, gsl_matrix * J)
+    Int evaluateDC(const deprecated_gsl_vector * x, void * params, deprecated_gsl_vector * f, deprecated_gsl_matrix * J)
     {
       residualDC(x, params, f);
       jacobianDC(x, params, J);
 
-      return GSL_SUCCESS;
+      return deprecated_gsl_SUCCESS;
     }
 
   } // namespace OptimizationFunctions
@@ -401,7 +402,7 @@ namespace OpenMS
     Int best_charge;
     Size num_peaks;
     Size best_num_peaks;
-    gsl_vector * best_result = gsl_vector_alloc((Int)(2 + 2 * data.peaks.size()));
+    deprecated_gsl_vector * best_result = deprecated_gsl_vector_alloc((Int)(2 + 2 * data.peaks.size()));
 
 
     // try three different charge states : charge-1, charge, charge +1
@@ -424,14 +425,14 @@ namespace OpenMS
       std::cout << "charge " << l << " #peaks " << num_peaks << "\tpeaks.size() "
                 << data.peaks.size() << std::endl;
 #endif
-      gsl_vector * start_value;
+      deprecated_gsl_vector * start_value;
       // the vector storing the start values for the parameters has to be filled
       // differently depending on the usage of the peptide mass rule
-      start_value = gsl_vector_alloc(2 + 2 * data.peaks.size());
+      start_value = deprecated_gsl_vector_alloc(2 + 2 * data.peaks.size());
       for (Size i = 0; i < data.peaks.size(); i++)
       {
-        gsl_vector_set(start_value, 2 + 2 * i, data.peaks[i].height);
-        gsl_vector_set(start_value, 3 + 2 * i, data.peaks[i].mz_position);
+        deprecated_gsl_vector_set(start_value, 2 + 2 * i, data.peaks[i].height);
+        deprecated_gsl_vector_set(start_value, 3 + 2 * i, data.peaks[i].mz_position);
       }
 
 
@@ -457,33 +458,34 @@ namespace OpenMS
         wr = 1.;
       }
 
-      gsl_vector_set(start_value, 0, wl);
-      gsl_vector_set(start_value, 1, wr);
+      deprecated_gsl_vector_set(start_value, 0, wl);
+      deprecated_gsl_vector_set(start_value, 1, wr);
+
+      data.penalties = penalties_;
+   // fit_function.params = &penalties_;
+         data.charge = l;
 
 
       // The gsl algorithms require us to provide function pointers for the evaluation of
       // the target function.
-      gsl_multifit_function_fdf fit_function;
+      deprecated_gsl_multifit_function_fdf_ptr fit_function
+		  = deprecated_wrapper_gsl_multifit_fdfsolver_lmsder_new (
+				  OptimizationFunctions::residualDC,
+				  OptimizationFunctions::jacobianDC,
+				  OptimizationFunctions::evaluateDC,
+				  std::max(data.positions.size() + 1, 2 + 2 * data.peaks.size()),
+				  2 + 2 * data.peaks.size(),
+				  &data );
 
-      fit_function.f      = OptimizationFunctions::residualDC;
-      fit_function.df     = OptimizationFunctions::jacobianDC;
-      fit_function.fdf    = OptimizationFunctions::evaluateDC;
 
-      fit_function.n      = std::max(data.positions.size() + 1,
-                                     2 + 2 * data.peaks.size());
-
-      fit_function.p    = 2 + 2 * data.peaks.size();
-      data.penalties = penalties_;
-// fit_function.params = &penalties_;
-      data.charge = l;
-      fit_function.params = &data;
 #ifdef DEBUG_DECONV
       std::cout << "fit_function.p " << fit_function.p << "\t fit_function.n " << fit_function.n << std::endl;
       std::cout << "peaks.size() " << data.peaks.size() << std::endl;
 #endif
-      const gsl_multifit_fdfsolver_type * type = gsl_multifit_fdfsolver_lmsder;
-      gsl_multifit_fdfsolver * fit;
-      fit = gsl_multifit_fdfsolver_alloc(type,
+      const deprecated_gsl_multifit_fdfsolver_type * type
+      = deprecated_wrapper_get_multifit_fdfsolver_lmsder();
+      deprecated_gsl_multifit_fdfsolver * fit;
+      fit = deprecated_gsl_multifit_fdfsolver_alloc(type,
                                          std::max(data.positions.size() + 1,
                                                   2 + 2 * data.peaks.size()),
                                          2 + 2 * data.peaks.size());
@@ -492,11 +494,11 @@ namespace OpenMS
 
 
 
-      gsl_multifit_fdfsolver_set(fit, &fit_function, start_value);
+      deprecated_gsl_multifit_fdfsolver_set(fit, fit_function.get(), start_value);
 
 #ifdef DEBUG_DECONV
       // initial norm
-      std::cout << "Before optimization: ||f|| = " << gsl_blas_dnrm2(fit->f) << std::endl;
+      std::cout << "Before optimization: ||f|| = " << deprecated_gsl_blas_dnrm2(fit->f) << std::endl;
 #endif
       // Iteration
       Int iteration = 0;
@@ -505,28 +507,32 @@ namespace OpenMS
       do
       {
         iteration++;
-        status = gsl_multifit_fdfsolver_iterate(fit);
+        status = deprecated_gsl_multifit_fdfsolver_iterate(fit);
 
 #ifdef DEBUG_DECONV
-        std::cout << "Iteration " << iteration << "; Status " << gsl_strerror(status) << "; " << std::endl;
-        std::cout << "||f|| = " << gsl_blas_dnrm2(fit->f) << std::endl;
+        std::cout << "Iteration " << iteration << "; Status " << deprecated_gsl_strerror(status) << "; " << std::endl;
+        std::cout << "||f|| = " << deprecated_gsl_blas_dnrm2(fit->f) << std::endl;
         std::cout << "Number of parms: " << data.peaks.size() + 3 << std::endl;
-        std::cout << "Delta: " << gsl_blas_dnrm2(fit->dx) << std::endl;
+        std::cout << "Delta: " << deprecated_gsl_blas_dnrm2(fit->dx) << std::endl;
 #endif
-        if (boost::math::isnan(gsl_blas_dnrm2(fit->dx)))
+        if (boost::math::isnan( deprecated_gsl_blas_dnrm2(
+        		deprecated_wrapper_gsl_multifit_fdfsolver_get_dx(fit)) ))
         {
 #ifdef DEBUG_DECONV
           std::cout << "norm is not a number" << std::endl;
 #endif
           break;
         }
-        status = gsl_multifit_test_delta(fit->dx, fit->x, (float)param_.getValue("eps_abs"),
-                                         (float)param_.getValue("eps_rel"));
+        status = deprecated_gsl_multifit_test_delta(
+        		deprecated_wrapper_gsl_multifit_fdfsolver_get_x(fit),
+        		deprecated_wrapper_gsl_multifit_fdfsolver_get_x(fit),
+        		(float)param_.getValue("eps_abs"),
+        		(float)param_.getValue("eps_rel"));
 
-        if (status != GSL_CONTINUE)
+        if (status != deprecated_gsl_CONTINUE)
         {
 #ifdef DEBUG_DECONV
-          std::cout << "gsl status != GSL_CONTINUE" << std::endl;
+          std::cout << "gsl status != deprecated_gsl_CONTINUE" << std::endl;
 #endif
           break;
         }
@@ -538,24 +544,26 @@ namespace OpenMS
 //                              return false;
 //                      }
       }
-      while (status == GSL_CONTINUE && iteration < (Int)param_.getValue("max_iteration"));
+      while (status == deprecated_gsl_CONTINUE && iteration < (Int)param_.getValue("max_iteration"));
 
 
-      DoubleReal chi = gsl_blas_dnrm2(fit->f);
+      DoubleReal chi = deprecated_gsl_blas_dnrm2(
+    		  deprecated_wrapper_gsl_multifit_fdfsolver_get_f(fit));
 #ifdef DEBUG_DECONV
       std::cout << "Finished! Charge " << l << "\tIterations: " << iteration << std::endl;
-      std::cout << "Delta: " << gsl_blas_dnrm2(fit->dx) << std::endl;
+      std::cout << "Delta: " << deprecated_gsl_blas_dnrm2(fit->dx) << std::endl;
 
       std::cout << "chisq/dof = " << pow(chi, 2.0) / (data.positions.size()
                                                       - (3 + data.peaks.size()));
-      std::cout << "\nAfter optimization: ||f|| = " << gsl_blas_dnrm2(fit->f) << std::endl;
+      std::cout << "\nAfter optimization: ||f|| = " << deprecated_gsl_blas_dnrm2(fit->f) << std::endl;
 #endif
       if ((l == start_l) || (chi < min))
       {
         if (l != start_l)
-          gsl_vector_free(best_result);
-        best_result = gsl_vector_alloc(2 + 2 * data.peaks.size());
-        gsl_vector_memcpy(best_result, fit->x);
+          deprecated_gsl_vector_free(best_result);
+        best_result = deprecated_gsl_vector_alloc(2 + 2 * data.peaks.size());
+        deprecated_gsl_vector_memcpy(best_result,
+        		deprecated_wrapper_gsl_multifit_fdfsolver_get_x(fit));
         min = chi;
         best_charge = l;
         best_num_peaks = data.peaks.size();
@@ -564,8 +572,8 @@ namespace OpenMS
 
 
 
-      gsl_multifit_fdfsolver_free(fit);
-      gsl_vector_free(start_value);
+      deprecated_gsl_multifit_fdfsolver_free(fit);
+      deprecated_gsl_vector_free(start_value);
 
     }
     global_peak_number += best_num_peaks;
@@ -578,11 +586,11 @@ namespace OpenMS
 
         // Store the current parameters for this peak
 
-        peaks[current_peak].left_width  = gsl_vector_get(best_result, 0);
-        peaks[current_peak].right_width = gsl_vector_get(best_result, 1);
+        peaks[current_peak].left_width  = deprecated_gsl_vector_get(best_result, 0);
+        peaks[current_peak].right_width = deprecated_gsl_vector_get(best_result, 1);
 
-        peaks[current_peak].height      = gsl_vector_get(best_result, 2 + 2 * current_peak);
-        peaks[current_peak].mz_position = gsl_vector_get(best_result, 2 + 2 * current_peak + 1);
+        peaks[current_peak].height      = deprecated_gsl_vector_get(best_result, 2 + 2 * current_peak);
+        peaks[current_peak].mz_position = deprecated_gsl_vector_get(best_result, 2 + 2 * current_peak + 1);
 
 
 
@@ -622,20 +630,22 @@ namespace OpenMS
       }
     }
     charge_ = best_charge;
-    gsl_vector_free(best_result);
+    deprecated_gsl_vector_free(best_result);
 
     return true;
   }
 
-  bool OptimizePeakDeconvolution::checkFWHM_(std::vector<PeakShape> & peaks, gsl_multifit_fdfsolver * & fit)
+  bool OptimizePeakDeconvolution::checkFWHM_(std::vector<PeakShape> & peaks, deprecated_gsl_multifit_fdfsolver * & fit)
   {
     DoubleReal fwhm_threshold = (DoubleReal)param_.getValue("fwhm_threshold");
 
     PeakShape p;
     for (Size current_peak = 0; current_peak < peaks.size(); current_peak++)
     {
-      p.left_width  = gsl_vector_get(fit->x, 0);
-      p.right_width = gsl_vector_get(fit->x, 1);
+      p.left_width  = deprecated_gsl_vector_get(
+    		  deprecated_wrapper_gsl_multifit_fdfsolver_get_x(fit), 0);
+      p.right_width = deprecated_gsl_vector_get(
+    		  deprecated_wrapper_gsl_multifit_fdfsolver_get_x(fit), 1);
       p.type        = peaks[current_peak].type;
 #ifdef DEBUG_DECONV
       std::cout << "fwhm: " << p.getFWHM() << " > " << fwhm_threshold << " ?" << std::endl;

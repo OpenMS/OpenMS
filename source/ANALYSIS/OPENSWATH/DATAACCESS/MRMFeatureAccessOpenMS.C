@@ -111,11 +111,6 @@ namespace OpenMS
     return mrmfeature_.getRT();
   }
 
-  size_t MRMFeatureOpenMS::size()
-  {
-    return features_.size();
-  }
-
   // default instances
   MSSpectrum<Peak1D> chromat;
   SignalToNoiseOpenMS<Peak1D> default_signal_to_noise_openms(chromat, 1.0, 3);

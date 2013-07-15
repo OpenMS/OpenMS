@@ -721,7 +721,7 @@ namespace OpenMS
     }
   }
 
-  void SvmTheoreticalSpectrumGenerator::simulate(RichPeakSpectrum & spectrum, const AASequence & peptide, const gsl_rng * rng, Size precursor_charge)
+  void SvmTheoreticalSpectrumGenerator::simulate(RichPeakSpectrum & spectrum, const AASequence & peptide, const deprecated_gsl_rng * rng, Size precursor_charge)
   {
     RichPeak1D p_;
     // just in case someone wants the ion names;
@@ -747,7 +747,7 @@ namespace OpenMS
     std::vector<std::set<String> > possible_c_term_losses(peptide.size());
 
     UInt ion_nr = 0;
-    gsl_ran_discrete_t * gsl_gen = 0;
+    deprecated_gsl_ran_discrete_t * gsl_gen = 0;
 
 
     for (Size i = 1; i < peptide.size(); ++i)
@@ -917,9 +917,9 @@ namespace OpenMS
             //sample intensities for secondary types
             Size region = std::min(mp_.number_regions - 1, (Size)floor(mp_.number_regions * prefix.getMonoWeight(Residue::Internal) / peptide.getMonoWeight()));
             DoubleReal * condit_probs = &(mp_.conditional_prob[std::make_pair(*it, region)][bin][0]);
-            gsl_gen = gsl_ran_discrete_preproc(mp_.number_intensity_levels, condit_probs);
-            Size binned_int = gsl_ran_discrete(rng, gsl_gen);
-            gsl_ran_discrete_free(gsl_gen);
+            gsl_gen = deprecated_gsl_ran_discrete_preproc(mp_.number_intensity_levels, condit_probs);
+            Size binned_int = deprecated_gsl_ran_discrete(rng, gsl_gen);
+            deprecated_gsl_ran_discrete_free(gsl_gen);
 
             if (binned_int != 0)
             {

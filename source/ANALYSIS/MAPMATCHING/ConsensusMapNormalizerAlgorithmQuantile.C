@@ -33,8 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithmQuantile.h>
-#include <gsl/gsl_statistics.h>
-#include <gsl/gsl_sort_double.h>
+#include <OpenMS/MATH/gsl_wrapper.h>
 #include <cmath>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
@@ -73,7 +72,7 @@ namespace OpenMS
     for (Size i = 0; i < number_of_maps; ++i)
     {
       vector<double> sorted = feature_ints[i];
-      gsl_sort(&sorted.front(), 1, sorted.size());
+      deprecated_gsl_sort(&sorted.front(), 1, sorted.size());
       vector<double> resampled(largest_number_of_features);
       resample(sorted, resampled, largest_number_of_features);
       resampled_sorted_data.push_back(resampled);
@@ -102,7 +101,7 @@ namespace OpenMS
     for (Size i = 0; i < number_of_maps; ++i)
     {
       vector<Size> sort_indices(feature_ints[i].size());
-      gsl_sort_index(&sort_indices.front(), &feature_ints[i].front(), 1, feature_ints[i].size());
+      deprecated_gsl_sort_index(&sort_indices.front(), &feature_ints[i].front(), 1, feature_ints[i].size());
       Size k = 0;
       for (Size j = 0; j < sort_indices.size(); ++j)
       {

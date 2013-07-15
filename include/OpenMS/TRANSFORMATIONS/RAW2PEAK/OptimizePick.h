@@ -38,9 +38,7 @@
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakShape.h>
 #include <OpenMS/KERNEL/Peak1D.h>
 
-#include <gsl/gsl_vector.h>
-#include <gsl/gsl_multifit_nlin.h>
-#include <gsl/gsl_blas.h>
+#include <OpenMS/MATH/gsl_wrapper.h>
 
 #include <iostream>
 #include <fstream>
@@ -94,16 +92,16 @@ namespace OpenMS
     };
 
     /// Evaluation of the target function for nonlinear optimization.
-    int residual(const gsl_vector * x, void * params, gsl_vector * f);
+    int residual(const deprecated_gsl_vector * x, void * params, deprecated_gsl_vector * f);
 
     /// Compute the Jacobian of the residual, where each row of the matrix corresponds to a point in the data.
-    int jacobian(const gsl_vector * x, void * params, gsl_matrix * J);
+    int jacobian(const deprecated_gsl_vector * x, void * params, deprecated_gsl_matrix * J);
 
     /// Driver function for the evaluation of function and jacobian.
-    int evaluate(const gsl_vector * x, void * params, gsl_vector * f, gsl_matrix * J);
+    int evaluate(const deprecated_gsl_vector * x, void * params, deprecated_gsl_vector * f, deprecated_gsl_matrix * J);
 
     /// Print all peak shapes
-    void printSignal(const gsl_vector * x, void * param, float resolution = 0.25);
+    void printSignal(const deprecated_gsl_vector * x, void * param, float resolution = 0.25);
   }
 
 

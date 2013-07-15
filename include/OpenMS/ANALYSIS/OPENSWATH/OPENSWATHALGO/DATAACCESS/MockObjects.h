@@ -90,8 +90,6 @@ public:
 
     double getRT();
 
-    size_t size();
-
     std::map<std::string, boost::shared_ptr<MockFeature> > m_features;
     float m_intensity;
     double m_rt;

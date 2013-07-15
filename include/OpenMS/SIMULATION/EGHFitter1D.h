@@ -39,6 +39,8 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/LevMarqFitter1D.h>
 
+#include <OpenMS/MATH/gsl_wrapper.h>
+
 namespace OpenMS
 {
   /**
@@ -93,18 +95,18 @@ protected:
     virtual void setInitialParameters_(const RawDataArrayType & set);
 
     /// Evaluation of the target function for nonlinear optimization
-    static Int residual_(const gsl_vector * x, void * params, gsl_vector * f);
+    static Int residual_(const deprecated_gsl_vector * x, void * params, deprecated_gsl_vector * f);
 
     /// Compute the Jacobian matrix, where each row of the matrix corresponds to a point in the data
-    static Int jacobian_(const gsl_vector * x, void * params, gsl_matrix * J);
+    static Int jacobian_(const deprecated_gsl_vector * x, void * params, deprecated_gsl_matrix * J);
 
     /// Driver function for the evaluation of function and jacobian
-    static Int evaluate_(const gsl_vector * x, void * params, gsl_vector * f, gsl_matrix * J);
+    static Int evaluate_(const deprecated_gsl_vector * x, void * params, deprecated_gsl_vector * f, deprecated_gsl_matrix * J);
 
     /** Diplay the intermediate state of the solution. The solver state contains
     the vector s->x which is the current position, and the vector s->f with
     corresponding function values */
-    void printState_(Int iter, gsl_multifit_fdfsolver * s);
+    void printState_(Int iter, deprecated_gsl_multifit_fdfsolver * s);
 
     /// Parameter of egh - peak height
     CoordinateType height_;

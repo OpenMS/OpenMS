@@ -41,7 +41,6 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/METADATA/DocumentIdentifier.h>
-#include <OpenMS/INTERFACES/IMSDataConsumer.h>
 
 namespace OpenMS
 {
@@ -117,11 +116,6 @@ public:
     }
 
     /**
-        @brief Only count he number of spectra and chromatograms from a file
-    */
-    void loadSize(const String & filename, Size& scount, Size& ccount);
-
-    /**
         @brief Stores a map in a MzML file.
 
         @p map has to be a MSExperiment or have the same interface.
@@ -134,50 +128,6 @@ public:
       Internal::MzMLHandler<MapType> handler(map, filename, getVersion(), *this);
       handler.setOptions(options_);
       save_(filename, &handler);
-    }
-
-    /**
-        @brief Transforms a map while loading using the supplied MSDataConsumer.
-
-        The result will not be stored by this class.
-    */
-    void transform(const String& filename_in, /* const String& filename_out, */ Interfaces::IMSDataConsumer * consumer/* , const MapType& map */);
-
-    /**
-        @brief Transforms a map while loading using the supplied MSDataConsumer
-
-        The result will be stored in the supplied map.
-    */
-    template <typename MapType>
-    void transform(const String& filename_in, /* const String& filename_out, */ Interfaces::IMSDataConsumer * consumer, const MapType& map)
-    {
-      // First pass through the file -> get the meta-data and hand it to the consumer
-      {
-        Size scount = 0, ccount = 0;
-        MapType experimental_settings;
-        bool size_only_before_ = options_.getSizeOnly();
-        options_.setSizeOnly(true);
-        Internal::MzMLHandler<MapType> handler(experimental_settings, filename_in, getVersion(), *this);
-        handler.setOptions(options_);
-        parse_(filename_in, &handler);
-        handler.getCounts(scount, ccount);
-        options_.setSizeOnly(size_only_before_);
-        consumer->setExpectedSize(scount, ccount);
-        consumer->setExperimentalSettings(experimental_settings);
-      }
-
-      // Second pass through the data, now read the spectra!
-      {
-        Internal::MzMLHandler<MapType> handler(map, filename_in, getVersion(), *this);
-        bool always_append_data = options_.getAlwaysAppendData();
-        options_.setAlwaysAppendData(true);
-        handler.setOptions(options_);
-        handler.setMSDataConsumer(consumer);
-
-        // TODO catch errors as above ?
-        parse_(filename_in, &handler);
-        options_.setAlwaysAppendData(always_append_data);
-      }
     }
 
     /**

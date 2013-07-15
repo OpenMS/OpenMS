@@ -38,6 +38,7 @@
 #include <sstream>
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/TraceFitter.h>
+#include "OpenMS/MATH/gsl_wrapper.h"
 
 namespace OpenMS
 {
@@ -171,19 +172,22 @@ protected:
 
     static const Size NUM_PARAMS_ = 3;
 
-    void getOptimizedParameters_(gsl_multifit_fdfsolver * s)
+    void getOptimizedParameters_( deprecated_gsl_multifit_fdfsolver * s)
     {
-      height_ = gsl_vector_get(s->x, 0);
-      x0_ = gsl_vector_get(s->x, 1);
-      sigma_ = std::fabs(gsl_vector_get(s->x, 2));
+      height_ = deprecated_gsl_vector_get(
+    		  deprecated_wrapper_gsl_multifit_fdfsolver_get_x(s), 0);
+      x0_ = deprecated_gsl_vector_get(
+    		  deprecated_wrapper_gsl_multifit_fdfsolver_get_x(s), 1);
+      sigma_ = std::fabs(deprecated_gsl_vector_get(
+    		  deprecated_wrapper_gsl_multifit_fdfsolver_get_x(s), 2));
     }
 
-    static Int residual_(const gsl_vector * param, void * data, gsl_vector * f)
+    static Int residual_(const deprecated_gsl_vector * param, void * data, deprecated_gsl_vector * f)
     {
       FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType> * traces = static_cast<FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType> *>(data);
-      double height = gsl_vector_get(param, 0);
-      double x0 = gsl_vector_get(param, 1);
-      double sig = gsl_vector_get(param, 2);
+      double height = deprecated_gsl_vector_get(param, 0);
+      double x0 = deprecated_gsl_vector_get(param, 1);
+      double sig = deprecated_gsl_vector_get(param, 2);
       double c_fac = -0.5 / pow(sig, 2);
 
       Size count = 0;
@@ -192,19 +196,19 @@ protected:
         const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType> & trace = (*traces)[t];
         for (Size i = 0; i < trace.peaks.size(); ++i)
         {
-          gsl_vector_set(f, count, traces->baseline + trace.theoretical_int * height * exp(c_fac * pow(trace.peaks[i].first - x0, 2)) - trace.peaks[i].second->getIntensity());
+          deprecated_gsl_vector_set(f, count, traces->baseline + trace.theoretical_int * height * exp(c_fac * pow(trace.peaks[i].first - x0, 2)) - trace.peaks[i].second->getIntensity());
           ++count;
         }
       }
-      return GSL_SUCCESS;
+      return deprecated_gsl_SUCCESS;
     }
 
-    static Int jacobian_(const gsl_vector * param, void * data, gsl_matrix * J)
+    static Int jacobian_(const deprecated_gsl_vector * param, void * data, deprecated_gsl_matrix * J)
     {
       FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType> * traces = static_cast<FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType> *>(data);
-      double height = gsl_vector_get(param, 0);
-      double x0 = gsl_vector_get(param, 1);
-      double sig = gsl_vector_get(param, 2);
+      double height = deprecated_gsl_vector_get(param, 0);
+      double x0 = deprecated_gsl_vector_get(param, 1);
+      double sig = deprecated_gsl_vector_get(param, 2);
       double sig_sq = pow(sig, 2);
       double sig_3 = pow(sig, 3);
       double c_fac = -0.5 / sig_sq;
@@ -217,20 +221,20 @@ protected:
         {
           DoubleReal rt = trace.peaks[i].first;
           DoubleReal e = exp(c_fac * pow(rt - x0, 2));
-          gsl_matrix_set(J, count, 0, trace.theoretical_int * e);
-          gsl_matrix_set(J, count, 1, trace.theoretical_int * height * e * (rt - x0) / sig_sq);
-          gsl_matrix_set(J, count, 2, 0.125 * trace.theoretical_int * height * e * pow(rt - x0, 2) / sig_3);
+          deprecated_gsl_matrix_set(J, count, 0, trace.theoretical_int * e);
+          deprecated_gsl_matrix_set(J, count, 1, trace.theoretical_int * height * e * (rt - x0) / sig_sq);
+          deprecated_gsl_matrix_set(J, count, 2, 0.125 * trace.theoretical_int * height * e * pow(rt - x0, 2) / sig_3);
           ++count;
         }
       }
-      return GSL_SUCCESS;
+      return deprecated_gsl_SUCCESS;
     }
 
-    static Int evaluate_(const gsl_vector * param, void * data, gsl_vector * f, gsl_matrix * J)
+    static Int evaluate_(const deprecated_gsl_vector * param, void * data, deprecated_gsl_vector * f, deprecated_gsl_matrix * J)
     {
       residual_(param, data, f);
       jacobian_(param, data, J);
-      return GSL_SUCCESS;
+      return deprecated_gsl_SUCCESS;
     }
 
     void setInitialParameters_(FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType> & traces)
@@ -255,13 +259,17 @@ protected:
       TraceFitter<PeakType>::updateMembers_();
     }
 
-    void printState_(SignedSize iter, gsl_multifit_fdfsolver * s)
+    void printState_(SignedSize iter, deprecated_gsl_multifit_fdfsolver * s)
     {
       LOG_DEBUG << "iter " << iter << ": " <<
-      "height: " << gsl_vector_get(s->x, 0) << " " <<
-      "x0: " << gsl_vector_get(s->x, 1) << " " <<
-      "sigma: " << std::fabs(gsl_vector_get(s->x, 2)) << " " <<
-      "|f(x)| = " << gsl_blas_dnrm2(s->f) << std::endl;
+      "height: " << deprecated_gsl_vector_get(
+    		  deprecated_wrapper_gsl_multifit_fdfsolver_get_x(s), 0) << " " <<
+      "x0: " << deprecated_gsl_vector_get(
+    		  deprecated_wrapper_gsl_multifit_fdfsolver_get_x(s), 1) << " " <<
+      "sigma: " << std::fabs(deprecated_gsl_vector_get(
+    		  deprecated_wrapper_gsl_multifit_fdfsolver_get_x(s), 2)) << " " <<
+      "|f(x)| = " << deprecated_gsl_blas_dnrm2(
+    		  deprecated_wrapper_gsl_multifit_fdfsolver_get_f(s)) << std::endl;
     }
 
   };

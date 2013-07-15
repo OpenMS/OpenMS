@@ -34,6 +34,7 @@
 
 #include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/MATH/gsl_wrapper.h>
 
 namespace OpenMS
 {
@@ -77,10 +78,10 @@ namespace OpenMS
       int i, j;
       double help;
 
-      gsl_vector * sv = gsl_vector_alloc((int)order_ + 1);
-      gsl_vector * work = gsl_vector_alloc((int)order_ + 1);
-      gsl_matrix * A = gsl_matrix_calloc(frame_size_, (int)order_ + 1);
-      gsl_matrix * V = gsl_matrix_calloc((int)order_ + 1, (int)order_ + 1);
+      deprecated_gsl_vector * sv = deprecated_gsl_vector_alloc((int)order_ + 1);
+      deprecated_gsl_vector * work = deprecated_gsl_vector_alloc((int)order_ + 1);
+      deprecated_gsl_matrix * A = deprecated_gsl_matrix_calloc(frame_size_, (int)order_ + 1);
+      deprecated_gsl_matrix * V = deprecated_gsl_matrix_calloc((int)order_ + 1, (int)order_ + 1);
 
 
       // compute a vandermonde matrix whose columns are powers of the vector [-nL,...,nR]
@@ -88,17 +89,17 @@ namespace OpenMS
       {
         for (j = 0; j <= (int)order_; j++)
         {
-          gsl_matrix_set(A, i + nl, j, gsl_pow_int(i, j));
+          deprecated_gsl_matrix_set(A, i + nl, j, deprecated_gsl_pow_int(i, j));
         }
       }
 
       // compute the singular-value decomposition of A
-      if (gsl_linalg_SV_decomp(A, V, sv, work) != 1)
+      if (deprecated_gsl_linalg_SV_decomp(A, V, sv, work) != 1)
       {
         // compute B=V*inv(D)
         for (i = 0; i <= (int)order_; ++i)
         {
-          gsl_vector_set(sv, i, (gsl_matrix_get(V, 0, i) / gsl_vector_get(sv, i)));
+          deprecated_gsl_vector_set(sv, i, (deprecated_gsl_matrix_get(V, 0, i) / deprecated_gsl_vector_get(sv, i)));
         }
 
         // compute B*transpose(U)*b, where b is the unit vector b=[1 0 ... 0]
@@ -107,15 +108,15 @@ namespace OpenMS
           help = 0;
           for (j = 0; j <= (int)order_; ++j)
           {
-            help += gsl_vector_get(sv, j) * gsl_matrix_get(A, i, j);
+            help += deprecated_gsl_vector_get(sv, j) * deprecated_gsl_matrix_get(A, i, j);
           }
           coeffs_[(nl + 1) * frame_size_ - i - 1] = help;
         }
       }
-      gsl_vector_free(sv);
-      gsl_vector_free(work);
-      gsl_matrix_free(A);
-      gsl_matrix_free(V);
+      deprecated_gsl_vector_free(sv);
+      deprecated_gsl_vector_free(work);
+      deprecated_gsl_matrix_free(A);
+      deprecated_gsl_matrix_free(V);
     }
   }
 

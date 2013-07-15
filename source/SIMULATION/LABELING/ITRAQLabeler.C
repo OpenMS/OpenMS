@@ -35,7 +35,7 @@
 #include <OpenMS/SIMULATION/LABELING/ITRAQLabeler.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
-#include <gsl/gsl_blas.h>
+#include <OpenMS/MATH/gsl_wrapper.h>
 
 using std::vector;
 using std::pair;
@@ -225,9 +225,9 @@ namespace OpenMS
     DoubleReal rep_shift = param_.getValue("reporter_mass_shift");
 
     OPENMS_PRECONDITION(fm.size() == 1, "More than one feature map given in ITRAQLabeler::postRawTandemMSHook()!")
-    gsl_matrix * channel_frequency = ItraqConstants::translateIsotopeMatrix(itraq_type_, isotope_corrections_).toGslMatrix();
-    gsl_matrix * itraq_intensity_observed = Matrix<SimIntensityType>(ItraqConstants::CHANNEL_COUNT[itraq_type_], 1).toGslMatrix();
-    gsl_matrix * itraq_intensity_sum = Matrix<SimIntensityType>(ItraqConstants::CHANNEL_COUNT[itraq_type_], 1).toGslMatrix();
+    deprecated_gsl_matrix * channel_frequency = ItraqConstants::translateIsotopeMatrix(itraq_type_, isotope_corrections_).toGslMatrix();
+    deprecated_gsl_matrix * itraq_intensity_observed = Matrix<SimIntensityType>(ItraqConstants::CHANNEL_COUNT[itraq_type_], 1).toGslMatrix();
+    deprecated_gsl_matrix * itraq_intensity_sum = Matrix<SimIntensityType>(ItraqConstants::CHANNEL_COUNT[itraq_type_], 1).toGslMatrix();
 
     std::vector<Matrix<Int> > channel_names(2);
     channel_names[0].setMatrix<4, 1>(ItraqConstants::CHANNELS_FOURPLEX);
@@ -240,7 +240,7 @@ namespace OpenMS
         continue;
 
       // reset sum matrix to 0
-      gsl_matrix_scale(itraq_intensity_sum, 0);
+      deprecated_gsl_matrix_scale(itraq_intensity_sum, 0);
 
       // add up signal of all features
       OPENMS_PRECONDITION(it->metaValueExists("parent_feature_ids"), "Meta value 'parent_feature_ids' missing in ITRAQLabeler::postRawTandemMSHook()!")
@@ -248,15 +248,15 @@ namespace OpenMS
       for (Size i_f = 0; i_f < parent_fs.size(); ++i_f)
       {
         // get RT scaled iTRAQ intensities
-        gsl_matrix * row = getItraqIntensity_(fm[0][parent_fs[i_f]], it->getRT()).toGslMatrix();
+        deprecated_gsl_matrix * row = getItraqIntensity_(fm[0][parent_fs[i_f]], it->getRT()).toGslMatrix();
         // apply isotope matrix to active channels
         // row * channel_frequency = observed iTRAQ intensities
-        gsl_blas_dgemm(CblasNoTrans, CblasNoTrans,
+        deprecated_gsl_blas_dgemm(deprecated_gsl_CblasNoTrans, deprecated_gsl_CblasNoTrans,
                        1.0, channel_frequency, row,
                        0.0, itraq_intensity_observed);
         // add result to sum
-        gsl_matrix_add(itraq_intensity_sum, itraq_intensity_observed);
-        gsl_matrix_free(row);
+        deprecated_gsl_matrix_add(itraq_intensity_sum, itraq_intensity_observed);
+        deprecated_gsl_matrix_free(row);
       }
 
       // add signal to MS2 spectrum
@@ -264,17 +264,17 @@ namespace OpenMS
       {
         MSSimExperiment::SpectrumType::PeakType p;
         // random shift of +-rep_shift around exact position
-        DoubleReal rnd_shift = gsl_rng_uniform(rng_->technical_rng) * 2 * rep_shift - rep_shift;
+        DoubleReal rnd_shift = deprecated_gsl_rng_uniform(rng_->technical_rng) * 2 * rep_shift - rep_shift;
         p.setMZ(channel_names[itraq_type_].getValue(i_channel, 0) + 0.1 + rnd_shift);
-        p.setIntensity(gsl_matrix_get(itraq_intensity_sum, i_channel, 0));
+        p.setIntensity(deprecated_gsl_matrix_get(itraq_intensity_sum, i_channel, 0));
         //std::cout << "inserted iTRAQ peak: " << p << "\n";
         it->push_back(p);
       }
     }
 
-    gsl_matrix_free(channel_frequency);
-    gsl_matrix_free(itraq_intensity_observed);
-    gsl_matrix_free(itraq_intensity_sum);
+    deprecated_gsl_matrix_free(channel_frequency);
+    deprecated_gsl_matrix_free(itraq_intensity_observed);
+    deprecated_gsl_matrix_free(itraq_intensity_sum);
   }
 
   // CUSTOM FUNCTIONS for iTRAQ:: //

@@ -41,10 +41,7 @@
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
-#include <gsl/gsl_rng.h>
-#include <gsl/gsl_vector.h>
-#include <gsl/gsl_multifit_nlin.h>
-#include <gsl/gsl_blas.h>
+#include "OpenMS/MATH/gsl_wrapper.h"
 
 namespace OpenMS
 {
@@ -177,7 +174,7 @@ protected:
      * @param iter Number of current iteration.
      * @param s The solver that also contains all the parameters.
      */
-    virtual void printState_(SignedSize iter, gsl_multifit_fdfsolver * s) = 0;
+    virtual void printState_(SignedSize iter, deprecated_gsl_multifit_fdfsolver * s) = 0;
 
     virtual void updateMembers_()
     {
@@ -191,18 +188,18 @@ protected:
      *
      * @param s The solver containing the fitted parameter values.
      */
-    virtual void getOptimizedParameters_(gsl_multifit_fdfsolver * s) = 0;
+    virtual void getOptimizedParameters_( deprecated_gsl_multifit_fdfsolver * s) = 0;
 
     /**
      * Optimize the given parameters using the Levenberg-Marquardt algorithm.
      */
     void optimize_(FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType> & traces, const Size num_params, double x_init[],
-                   Int (* residual)(const gsl_vector * x, void * params, gsl_vector * f),
-                   Int (* jacobian)(const gsl_vector * x, void * params, gsl_matrix * J),
-                   Int (* evaluate)(const gsl_vector * x, void * params, gsl_vector * f, gsl_matrix * J))
+                   Int (* residual)(const deprecated_gsl_vector * x, void * params, deprecated_gsl_vector * f),
+                   Int (* jacobian)(const deprecated_gsl_vector * x, void * params, deprecated_gsl_matrix * J),
+                   Int (* evaluate)(const deprecated_gsl_vector * x, void * params, deprecated_gsl_vector * f, deprecated_gsl_matrix * J))
     {
-      const gsl_multifit_fdfsolver_type * T;
-      gsl_multifit_fdfsolver * s;
+      const deprecated_gsl_multifit_fdfsolver_type * T;
+      deprecated_gsl_multifit_fdfsolver * s;
 
       const size_t data_count = traces.getPeakCount();
 
@@ -210,34 +207,38 @@ protected:
       // cause Jacobian be rectangular M x N with M>=N
       if (data_count < num_params) throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-FinalSet", "Skipping feature, gsl always expects N>=p");
 
-      gsl_multifit_function_fdf func;
-      gsl_vector_view x = gsl_vector_view_array(x_init, num_params);
-      gsl_rng_env_setup();
-      func.f = (residual);
-      func.df = (jacobian);
-      func.fdf = (evaluate);
-      func.n = data_count;
-      func.p = num_params;
-      func.params = &traces;
-      T = gsl_multifit_fdfsolver_lmsder;
-      s = gsl_multifit_fdfsolver_alloc(T, data_count, num_params);
-      gsl_multifit_fdfsolver_set(s, &func, &x.vector);
+      deprecated_gsl_vector_view_ptr x = deprecated_gsl_vector_view_array(x_init, num_params);
+      deprecated_gsl_rng_env_setup();
+      // set up the function to be fit
+	  deprecated_gsl_multifit_function_fdf_ptr func
+	  	  = deprecated_wrapper_gsl_multifit_fdfsolver_lmsder_new (
+	  			residual, // the function of residuals
+	  			jacobian, // the gradient of this function
+	  			evaluate, // combined function and gradient
+	  			data_count, // number of points in the data set
+	  			num_params, // number of parameters in the fit function
+	  			&traces );// structure with the data and error bars
+      T = deprecated_wrapper_get_multifit_fdfsolver_lmsder();
+      s = deprecated_gsl_multifit_fdfsolver_alloc(T, data_count, num_params);
+      deprecated_gsl_multifit_fdfsolver_set(s, func.get(), deprecated_wrapper_gsl_vector_view_get_vector(x));
       SignedSize iter = 0;
-      Int gsl_status_;
+      Int status;
       do
       {
         iter++;
-        gsl_status_ = gsl_multifit_fdfsolver_iterate(s);
+        status = deprecated_gsl_multifit_fdfsolver_iterate(s);
         printState_(iter, s);
-        if (gsl_status_) break;
-        gsl_status_ = gsl_multifit_test_delta(s->dx, s->x, epsilon_abs_, epsilon_rel_);
+        if (status) break;
+        status = deprecated_gsl_multifit_test_delta(
+        		deprecated_wrapper_gsl_multifit_fdfsolver_get_dx(s),
+        		deprecated_wrapper_gsl_multifit_fdfsolver_get_x(s), epsilon_abs_, epsilon_rel_);
       }
-      while (gsl_status_ == GSL_CONTINUE && iter < max_iterations_);
+      while (status == deprecated_gsl_CONTINUE && iter < max_iterations_);
 
       // get the parameters out of the fdfsolver
       getOptimizedParameters_(s);
 
-      gsl_multifit_fdfsolver_free(s);
+      deprecated_gsl_multifit_fdfsolver_free(s);
     }
 
     /** Test for the convergence of the sequence by comparing the last iteration step dx with the absolute error epsabs and relative error epsrel to the current position x */

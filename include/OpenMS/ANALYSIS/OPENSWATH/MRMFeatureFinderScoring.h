@@ -102,9 +102,7 @@ namespace OpenMS
   {
     double elution_model_fit_score;
     double library_corr;
-    double library_norm_manhattan;
-    double library_rootmeansquare;
-    double library_sangle;
+    double library_rmsd;
     double norm_rt_score;
     double isotope_correlation;
     double isotope_overlap;
@@ -136,9 +134,7 @@ namespace OpenMS
     OpenSwath_Scores() :
       elution_model_fit_score(0),
       library_corr(0),
-      library_norm_manhattan(0),
-      library_rootmeansquare(0),
-      library_sangle(0),
+      library_rmsd(0),
       norm_rt_score(0),
       isotope_correlation(0),
       isotope_overlap(0),
@@ -163,7 +159,7 @@ namespace OpenMS
     }
 
 
-    double get_quick_lda_score(double library_corr, double library_norm_manhattan, double norm_rt_score, double xcorr_coelution_score,
+    double get_quick_lda_score(double library_corr, double library_rmsd, double norm_rt_score, double xcorr_coelution_score,
                                double xcorr_shape_score, double log_sn_score)
     {
       // some scores based on manual evaluation of 80 chromatograms
@@ -180,7 +176,7 @@ namespace OpenMS
       // NOTE this score means "better" if it is more negative!
       double lda_quick_score =
         library_corr                    * -0.5319046 +
-        library_norm_manhattan          *  2.1643962 +
+        library_rmsd                    *  2.1643962 +
         norm_rt_score                   *  8.0353047 +
         xcorr_coelution_score           *  0.1458914 +
         xcorr_shape_score               * -1.6901925 +
@@ -196,7 +192,7 @@ namespace OpenMS
       double xx_old_lda_prescore =
       intensity_score       * -2.296679          +
       library_corr          * -0.1223876         +
-      library_norm_manhattan*  2.013638          +
+      library_rmsd          *  2.013638          +
       nr_peaks_score        *  0.01683357        +
       rt_score              *  0.00143999        +
       sn_score              * -0.1619762         +
@@ -208,7 +204,7 @@ namespace OpenMS
       */
 
       return scores.library_corr                     * -0.34664267 +
-             scores.library_norm_manhattan           *  2.98700722 +
+             scores.library_rmsd                     *  2.98700722 +
              scores.norm_rt_score                    *  7.05496384 +
              scores.xcorr_coelution_score            *  0.09445371 +
              scores.xcorr_shape_score                * -5.71823862 +
@@ -224,7 +220,7 @@ namespace OpenMS
       double xx_old_swath_prescore =
       intensity_score              * -3.148838e+00  +
       library_corr                 * -7.562403e-02  +
-      library_norm_manhattan       *  1.786286e+00  +
+      library_rmsd                 *  1.786286e+00  +
       nr_peaks_score               * -7.674263e-03  +
       rt_score                     *  1.748377e-03  +
       sn_score                     * -1.372636e-01  +
@@ -244,7 +240,7 @@ namespace OpenMS
       */
 
       return scores.library_corr              * -0.19011762 +
-             scores.library_norm_manhattan    *  2.47298914 +
+             scores.library_rmsd              *  2.47298914 +
              scores.norm_rt_score             *  5.63906731 +
              scores.isotope_correlation       * -0.62640133 +
              scores.isotope_overlap           *  0.36006925 +
@@ -268,7 +264,7 @@ Gold standard, best sample
  var_library_corr  0.061432632721274
  var_library_dotprod -3.79958938222036
  var_library_manhattan -1.36520528433508
- var_library_norm_manhattan  -6.44998534845163
+ var_library_rmsd  -6.44998534845163
  var_log_sn_score  -0.0389995774588385
  var_manhatt_score -0.0944805864772705
  var_massdev_score 0.0144460056621709
@@ -289,7 +285,7 @@ var_intensity_score -0.80664074459128
 var_isotope_correlation_score   2.34488326031997
 var_isotope_overlap_score   -2.14735763746488
 var_library_corr    -0.395167010986141
-var_library_norm_manhattan    -13.1295053007338
+var_library_rmsd    -13.1295053007338
 var_log_sn_score    0.265784828465348
 var_massdev_score   0.0150193500103614
 var_massdev_score_weighted  -0.109859906028132
@@ -308,7 +304,7 @@ var_intensity_score -0.828540564651968
 var_isotope_correlation_score   2.76284687671386
 var_isotope_overlap_score   -2.26460097307479
 var_library_corr    -0.445369627383142
-var_library_norm_manhattan    -13.2905041886848
+var_library_rmsd    -13.2905041886848
 var_log_sn_score    0.224626177093898
 var_massdev_score   0.0185003919755981
 var_massdev_score_weighted  -0.0899477179756381
@@ -331,7 +327,7 @@ var_intensity_score -1.26021147555789
 var_isotope_correlation_score   1.21887083303546
 var_isotope_overlap_score   -1.60051046353231
 var_library_corr    -0.33958843974352
-var_library_norm_manhattan    -5.20235596662978
+var_library_rmsd    -5.20235596662978
 var_log_sn_score    0.24021015633787
 var_massdev_score   0.0399855393620327
 var_massdev_score_weighted  -0.0907785715261295
@@ -350,7 +346,7 @@ var_intensity_score -1.11972743418717
 var_isotope_correlation_score   1.68717154416093
 var_isotope_overlap_score   -1.38410070381813
 var_library_corr    -0.454409692201745
-var_library_norm_manhattan    -6.08160902837145
+var_library_rmsd    -6.08160902837145
 var_log_sn_score    0.157259477914274
 var_massdev_score   0.0543919580711367
 var_massdev_score_weighted  -0.137296627160332
@@ -369,7 +365,7 @@ var_intensity_score 1.91714146537607
 var_isotope_correlation_score   0.914387652486204
 var_isotope_overlap_score   -1.46521560409083
 var_library_corr    -0.485498555013885
-var_library_norm_manhattan    -8.3847526088391
+var_library_rmsd    -8.3847526088391
 var_log_sn_score    0.00644514889704832
 var_massdev_score   0.0177435175558717
 var_massdev_score_weighted  -0.0899451169038299
@@ -390,7 +386,7 @@ var_yseries_score   -0.0327896378737766
   /**
   @brief A class that calls the scoring routines
   */
-  class ChromatographicScorer 
+  class SwathScorer 
   {
     typedef OpenSwath::LightPeptide PeptideType;
     typedef OpenSwath::LightTransition TransitionType;
@@ -405,7 +401,7 @@ var_yseries_score   -0.0327896378737766
     /**
     @brief Initialize the scoring object
     */
-    void initialize(DoubleReal rt_normalization_factor_,
+    void initialize( DoubleReal rt_normalization_factor_,
       int add_up_spectra_, DoubleReal spacing_for_spectra_resampling_,
       OpenSwath_Scores_Usage & su_)
     {
@@ -415,25 +411,34 @@ var_yseries_score   -0.0327896378737766
       this->su_ = su_;
     }
 
-    /** @brief Score a single peakgroup in a chromatogram using only chromatographic propertiesj.
-     *
-     * This function only uses the chromatographic properties (coelution,
-     * signal to noise, etc.) of a peakgroup in a chromatogram to compute
-     * scores. If more information is available, also consider using the
-     * library based scoring and the full-spectrum based scoring.
+    /** @brief Score a single chromatographic feature.
      *
      * The scores are returned in the OpenSwath_Scores object. Only those
      * scores specified in the OpenSwath_Scores_Usage object are computed.
      *
     */
-    void calculateChromatographicScores(
+    void scoreMRMFeature(
           OpenSwath::IMRMFeature* imrmfeature,
-          const std::vector<std::string>& native_ids,
-          const std::vector<double>& normalized_library_intensity,
+          const PeptideType& pep,
+          const std::vector<TransitionType> & transitions,
           std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators,
+          TransformationDescription & trafo,
+          OpenSwath::SpectrumAccessPtr swath_map, 
+          OpenMS::DIAScoring& diascoring_t,
           OpenSwath_Scores & scores)
     {
+        std::vector<double> normalized_library_intensity;
+        for (Size i = 0; i < transitions.size(); i++) {normalized_library_intensity.push_back(transitions[i].getLibraryIntensity());}
+        for (Size i = 0; i < normalized_library_intensity.size(); i++) 
+        { 
+          // the library intensity should never be below zero
+          if (normalized_library_intensity[i] < 0.0) { normalized_library_intensity[i] = 0.0; } 
+        } 
+        OpenSwath::Scoring::normalize_sum(&normalized_library_intensity[0], boost::numeric_cast<int>(normalized_library_intensity.size()));
+
+        std::vector<std::string> native_ids;
         OpenSwath::MRMScoring mrmscore_;
+        for (Size i = 0; i < transitions.size(); i++) {native_ids.push_back(transitions[i].getNativeID());}
         mrmscore_.initializeXCorrMatrix(imrmfeature, native_ids);
 
         // XCorr score (coelution)
@@ -453,49 +458,11 @@ var_yseries_score   -0.0327896378737766
           scores.weighted_xcorr_shape = mrmscore_.calcXcorrShape_score_weighted(normalized_library_intensity);
         }
 
-        if (su_.use_nr_peaks_score_) 
-        { 
-          scores.nr_peaks = boost::numeric_cast<int>(imrmfeature->size());
-        }
-
-        // Signal to noise scoring
-        if (su_.use_sn_score_)
-        {
-          scores.sn_ratio = mrmscore_.calcSNScore(imrmfeature, signal_noise_estimators);
-          // everything below S/N 1 can be set to zero (and the log safely applied)
-          if (scores.sn_ratio < 1) { scores.log_sn_score = 0; }
-          else { scores.log_sn_score = std::log(scores.sn_ratio); }
-        }
-    }
-
-    /** @brief Score a single chromatographic feature against a spectral library
-     *
-     * The spectral library is provided in a set of transition objects and a
-     * peptide object. Both contain information about the expected elution time
-     * on the chromatography and the relative intensity of the transitions.
-     *
-     * The scores are returned in the OpenSwath_Scores object. 
-     *
-    */
-    void calculateLibraryScores(
-          OpenSwath::IMRMFeature* imrmfeature,
-          const std::vector<TransitionType> & transitions,
-          const PeptideType& pep,
-          TransformationDescription & trafo,
-          OpenSwath_Scores & scores)
-    {
-        std::vector<double> normalized_library_intensity;
-        getNormalized_library_intensities_(transitions, normalized_library_intensity);
-
-        std::vector<std::string> native_ids;
-        OpenSwath::MRMScoring mrmscore_;
-        for (Size i = 0; i < transitions.size(); i++) {native_ids.push_back(transitions[i].getNativeID());}
-
+        // FEATURE : how should we best calculate correlation between library and experiment?
+        // FEATURE : spectral angle
         if (su_.use_library_score_)
         {
-          mrmscore_.calcLibraryScore(imrmfeature, transitions, 
-              scores.library_corr, scores.library_norm_manhattan, scores.library_manhattan, 
-              scores.library_dotprod, scores.library_sangle, scores.library_rootmeansquare);
+          mrmscore_.calcLibraryScore(imrmfeature, transitions, scores.library_corr, scores.library_rmsd, scores.library_manhattan, scores.library_dotprod);
         }
 
         // Retention time score
@@ -509,6 +476,26 @@ var_yseries_score   -0.0327896378737766
           scores.raw_rt_score = rt_score;
           scores.norm_rt_score = rt_score / rt_normalization_factor_;
         }
+
+
+        if (su_.use_nr_peaks_score_) { scores.nr_peaks = boost::numeric_cast<int>(transitions.size());}
+        if (su_.use_sn_score_)
+        {
+          scores.sn_ratio = mrmscore_.calcSNScore(imrmfeature, signal_noise_estimators);
+          // everything below S/N 1 can be set to zero (and the log safely applied)
+          if (scores.sn_ratio < 1) { scores.log_sn_score = 0; }
+          else { scores.log_sn_score = std::log(scores.sn_ratio); }
+        }
+
+        double quick_lda_dismiss = 0;
+        double lda_quick_score = -scores.get_quick_lda_score(scores.library_corr,
+            scores.library_rmsd, scores.norm_rt_score, scores.xcorr_coelution_score, scores.xcorr_shape_score, scores.log_sn_score);
+
+        if (lda_quick_score < quick_lda_dismiss) { ; }
+        if (swath_map->getNrSpectra() > 0)
+        {
+          calculateSwathScores_(imrmfeature, swath_map, normalized_library_intensity, scores, transitions, diascoring_t, pep);
+        }
     }
 
     /** @brief Score a single chromatographic feature using DIA / SWATH scores.
@@ -516,13 +503,10 @@ var_yseries_score   -0.0327896378737766
      * The scores are returned in the OpenSwath_Scores object. 
      *
     */
-    void calculateDIAScores(OpenSwath::IMRMFeature* imrmfeature, const std::vector<TransitionType> & transitions,
-        OpenSwath::SpectrumAccessPtr swath_map, OpenMS::DIAScoring & diascoring,
-        const PeptideType& pep, OpenSwath_Scores & scores)
+    void calculateSwathScores_(OpenSwath::IMRMFeature* imrmfeature, OpenSwath::SpectrumAccessPtr swath_map,
+        std::vector<double>& normalized_library_intensity, OpenSwath_Scores & scores, const std::vector<TransitionType> & transitions, 
+        OpenMS::DIAScoring & diascoring, const PeptideType& pep)
     {
-      std::vector<double> normalized_library_intensity;
-      getNormalized_library_intensities_(transitions, normalized_library_intensity);
-
       // parameters
       int by_charge_state = 1; // for which charge states should we check b/y series
 
@@ -557,21 +541,6 @@ var_yseries_score   -0.0327896378737766
       cout << "added score bseries_score " << scores.bseries_score << endl;
       cout << "added score yseries_score " << scores.yseries_score << endl;
 #endif
-    }
-
-    void getNormalized_library_intensities_(const std::vector<TransitionType> & transitions, std::vector<double>& normalized_library_intensity)
-    {
-      normalized_library_intensity.clear();
-      for (Size i = 0; i < transitions.size(); i++) 
-      {
-        normalized_library_intensity.push_back(transitions[i].getLibraryIntensity());
-      }
-      for (Size i = 0; i < normalized_library_intensity.size(); i++) 
-      { 
-        // the library intensity should never be below zero
-        if (normalized_library_intensity[i] < 0.0) { normalized_library_intensity[i] = 0.0; } 
-      } 
-      OpenSwath::Scoring::normalize_sum(&normalized_library_intensity[0], boost::numeric_cast<int>(normalized_library_intensity.size()));
     }
 
     /// Returns the addition of "nr_spectra_to_add" spectra around the given RT
@@ -767,7 +736,7 @@ public:
     void scorePeakgroups(MRMTransitionGroupType& transition_group, TransformationDescription & trafo,
                          OpenSwath::SpectrumAccessPtr swath_map, FeatureMap<Feature>& output)
     {
-      typedef MRMTransitionGroupType::PeakType PeakT;
+      typedef typename MRMTransitionGroupType::PeakType PeakT;
       std::vector<OpenSwath::ISignalToNoisePtr> signal_noise_estimators;
       std::vector<MRMFeature> feature_list;
 
@@ -788,7 +757,7 @@ public:
       newtr.invert();
       expected_rt = newtr.apply(expected_rt);
 
-      ChromatographicScorer scorer;
+      SwathScorer scorer;
       scorer.initialize(rt_normalization_factor_, add_up_spectra_, spacing_for_spectra_resampling_, su_);
 
       // Go through all peak groups (found MRM features) and score them
@@ -820,25 +789,9 @@ public:
         // call the scoring
         ///////////////////////////////////
 
-        std::vector<double> normalized_library_intensity;
-        transition_group.getLibraryIntensity(normalized_library_intensity);
-        OpenSwath::Scoring::normalize_sum(&normalized_library_intensity[0], boost::numeric_cast<int>(normalized_library_intensity.size()));
-        std::vector<std::string> native_ids;
-        for (Size i = 0; i < transition_group.size(); i++) 
-        {
-          native_ids.push_back(transition_group.getTransitions()[i].getNativeID());
-        }
-
         OpenSwath_Scores scores;
-        scorer.calculateChromatographicScores(imrmfeature, native_ids, normalized_library_intensity,
-          signal_noise_estimators, scores);
-        scorer.calculateLibraryScores(imrmfeature, transition_group.getTransitions(), *pep, trafo, scores);
-        if (swath_map->getNrSpectra() > 0)
-        {
-          scorer.calculateDIAScores(imrmfeature, transition_group.getTransitions(),
-              swath_map, diascoring_, *pep, scores);
-        }
-
+        scorer.scoreMRMFeature(imrmfeature, *pep, transition_group.getTransitions(),
+          signal_noise_estimators, trafo, swath_map, diascoring_, scores);
 
         if (su_.use_coelution_score_) { 
           mrmfeature->addScore("var_xcorr_coelution", scores.xcorr_coelution_score);
@@ -848,12 +801,9 @@ public:
           mrmfeature->addScore("var_xcorr_shape_weighted", scores.weighted_xcorr_shape); }
         if (su_.use_library_score_) { 
           mrmfeature->addScore("var_library_corr", scores.library_corr);
-          mrmfeature->addScore("var_library_rmsd", scores.library_norm_manhattan);
-          mrmfeature->addScore("var_library_sangle", scores.library_sangle);
-          mrmfeature->addScore("var_library_rootmeansquare", scores.library_rootmeansquare); 
+          mrmfeature->addScore("var_library_rmsd", scores.library_rmsd);
           mrmfeature->addScore("var_library_manhattan", scores.library_manhattan);
-          mrmfeature->addScore("var_library_dotprod", scores.library_dotprod); 
-        }
+          mrmfeature->addScore("var_library_dotprod", scores.library_dotprod); }
         if (su_.use_rt_score_) { 
           mrmfeature->addScore("delta_rt", mrmfeature->getRT() - expected_rt);
           mrmfeature->addScore("assay_rt", expected_rt);

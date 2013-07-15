@@ -39,8 +39,7 @@
 #include <OpenMS/SIMULATION/EGHModel.h>
 ///////////////////////////
 
-#include <gsl/gsl_rng.h>
-#include <gsl/gsl_randist.h>
+#include <OpenMS/MATH/gsl_wrapper.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -147,13 +146,13 @@ START_SECTION((QualityType fit1d(const RawDataArrayType &range, InterpolationMod
   }
 
   // make some noise
-  gsl_rng_default_seed = 0.0;
-  gsl_rng* rnd_gen_ = gsl_rng_alloc(gsl_rng_mt19937);
+  deprecated_wrapper_gsl_rng_default_seed_set( 0.0 );
+  deprecated_gsl_rng* rnd_gen_ = deprecated_gsl_rng_alloc(deprecated_wrapper_get_gsl_rng_mt19937());
   DoubleReal distortion = 0.1;
 
   for (Size i = 0; i < data_to_fit.size(); ++i)
   {
-    DoubleReal distort = exp(gsl_ran_flat(rnd_gen_, -distortion,
+    DoubleReal distort = exp(deprecated_gsl_ran_flat(rnd_gen_, -distortion,
         +distortion));
     data_to_fit[i].setIntensity(data_to_fit[i].getIntensity()
         * distort);

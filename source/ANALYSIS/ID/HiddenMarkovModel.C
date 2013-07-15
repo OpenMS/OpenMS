@@ -56,7 +56,7 @@
 #undef EVALUATE_DEBUG
 
 #ifdef EVALUATE_DEBUG
-#include <gsl/gsl_statistics.h>
+#include <OpenMS/MATH/gsl_wrapper.h>
 #endif
 
 using namespace std;
@@ -677,8 +677,8 @@ namespace OpenMS
           }
           vector<DoubleReal> data = train_count_trans_all_[it1->first][it2->first];
           std::sort(data.begin(), data.end());
-          DoubleReal mean = gsl_stats_mean(&data.front(), 1, data.size());
-          DoubleReal variance = gsl_stats_variance_m(&data.front(), 1, data.size(), mean);
+          DoubleReal mean = deprecated_gsl_stats_mean(&data.front(), 1, data.size());
+          DoubleReal variance = deprecated_gsl_stats_variance_m(&data.front(), 1, data.size(), mean);
           cerr << "mean=" << mean << ", variance=" << variance << endl;
 #endif
         }

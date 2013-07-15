@@ -40,7 +40,7 @@
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/SIMULATION/DetectabilitySimulation.h>
 #include <OpenMS/SIMULATION/RTSimulation.h>
-#include <gsl/gsl_cdf.h>
+#include <OpenMS/MATH/gsl_wrapper.h>
 
 using namespace std;
 //#define PISP_DEBUG
@@ -1168,17 +1168,17 @@ namespace OpenMS
     // gsl_cdf_gaussian_P computes the cumulative probs up to x (i.e. the area under the curve)
     // so cgauss(x2)  - cgauss(x1) yields the area between x1 and x2
     if (x2 > x1)
-      prob = gsl_cdf_gaussian_P(x2, sigma_) - gsl_cdf_gaussian_P(x1, sigma_);
+      prob = deprecated_gsl_cdf_gaussian_P(x2, sigma_) - deprecated_gsl_cdf_gaussian_P(x1, sigma_);
     else
-      prob = gsl_cdf_gaussian_P(x1, sigma_) -  gsl_cdf_gaussian_P(x2, sigma_);
+      prob = deprecated_gsl_cdf_gaussian_P(x1, sigma_) -  deprecated_gsl_cdf_gaussian_P(x2, sigma_);
     if ((prob < 0.) || (obs_scan_begin == obs_scan_end))
     {
       std::cerr << min_obs_rt << " " << obs_scan_begin << " " << max_obs_rt << " " << obs_scan_end << " "
                 << theo_rt << " " << theo_scan << " " << mu_ << " " << x1 << " " << x2 << " " << prob << std::endl;
       if (x2 > x1)
-        std::cerr <<  gsl_cdf_gaussian_P(x2, sigma_) << " - " << gsl_cdf_gaussian_P(x1, sigma_) << std::endl;
+        std::cerr <<  deprecated_gsl_cdf_gaussian_P(x2, sigma_) << " - " << deprecated_gsl_cdf_gaussian_P(x1, sigma_) << std::endl;
       else
-        std::cerr <<   gsl_cdf_gaussian_P(x1, sigma_) << " - " << gsl_cdf_gaussian_P(x2, sigma_) << std::endl;
+        std::cerr <<   deprecated_gsl_cdf_gaussian_P(x1, sigma_) << " - " << deprecated_gsl_cdf_gaussian_P(x2, sigma_) << std::endl;
     }
     return prob;
   }

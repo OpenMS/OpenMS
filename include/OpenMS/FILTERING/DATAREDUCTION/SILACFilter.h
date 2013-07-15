@@ -39,8 +39,6 @@
 #include <OpenMS/FILTERING/DATAREDUCTION/SILACFiltering.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/SILACPattern.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/IsotopeDistributionCache.h>
-#include <gsl/gsl_interp.h>
-#include <gsl/gsl_spline.h>
 #include <queue>
 #include <list>
 

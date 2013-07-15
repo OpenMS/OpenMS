@@ -42,7 +42,6 @@
 #include <OpenMS/FILTERING/TRANSFORMERS/NLargest.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/SqrtMower.h>
 #include <stdio.h>
-#include <gsl/gsl_statistics_double.h>
 #include <sstream>
 
 using namespace std;

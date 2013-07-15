@@ -75,15 +75,15 @@ namespace OpenMS
     }
 
     // spline interpolation, used for exact ratio calculation (more accurate when real peak pairs are present)
-    current_ = gsl_interp_accel_alloc();
-    spline_ = gsl_spline_alloc(gsl_interp_cspline, mz.size());
-    gsl_spline_init(spline_, &mz.front(), &intensity.front(), mz.size());
+    current_ = deprecated_gsl_interp_accel_alloc();
+    spline_ = deprecated_gsl_spline_alloc(deprecated_wrapper_get_gsl_interp_cspline(), mz.size());
+    deprecated_gsl_spline_init(spline_, &mz.front(), &intensity.front(), mz.size());
   }
 
   SILACFiltering::SpectrumInterpolation::~SpectrumInterpolation()
   {
-    gsl_interp_accel_free(current_);
-    gsl_spline_free(spline_);
+    deprecated_gsl_interp_accel_free(current_);
+    deprecated_gsl_spline_free(spline_);
   }
 
   SILACFiltering::SILACFiltering(MSExperiment<Peak1D>& exp, const PeakWidthEstimator::Result& peak_width, const DoubleReal intensity_cutoff, const String debug_filebase) :

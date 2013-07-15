@@ -74,15 +74,15 @@ namespace OpenMS
     return *this;
   }
 
-  Int EGHFitter1D::residual_(const gsl_vector * x, void * params, gsl_vector * f)
+  Int EGHFitter1D::residual_(const deprecated_gsl_vector * x, void * params, deprecated_gsl_vector * f)
   {
     Size n = static_cast<EGHFitter1D::Data *>(params)->n;
     RawDataArrayType set = static_cast<EGHFitter1D::Data *>(params)->set;
 
-    CoordinateType H  = gsl_vector_get(x, 0);
-    CoordinateType tR = gsl_vector_get(x, 1);
-    CoordinateType sigma_square = gsl_vector_get(x, 2);
-    CoordinateType tau = gsl_vector_get(x, 3);
+    CoordinateType H  = deprecated_gsl_vector_get(x, 0);
+    CoordinateType tR = deprecated_gsl_vector_get(x, 1);
+    CoordinateType sigma_square = deprecated_gsl_vector_get(x, 2);
+    CoordinateType tau = deprecated_gsl_vector_get(x, 3);
 
     CoordinateType t_diff, t_diff2, denominator = 0.0;
 
@@ -107,21 +107,21 @@ namespace OpenMS
         fegh = 0.0;
       }
 
-      gsl_vector_set(f, i, (fegh - set[i].getIntensity()));
+      deprecated_gsl_vector_set(f, i, (fegh - set[i].getIntensity()));
     }
 
-    return GSL_SUCCESS;
+    return deprecated_gsl_SUCCESS;
   }
 
-  Int EGHFitter1D::jacobian_(const gsl_vector * x, void * params, gsl_matrix * J)
+  Int EGHFitter1D::jacobian_(const deprecated_gsl_vector * x, void * params, deprecated_gsl_matrix * J)
   {
     Size n =  static_cast<EGHFitter1D::Data *>(params)->n;
     RawDataArrayType set = static_cast<EGHFitter1D::Data *>(params)->set;
 
-    CoordinateType H  = gsl_vector_get(x, 0);
-    CoordinateType tR = gsl_vector_get(x, 1);
-    CoordinateType sigma_square = gsl_vector_get(x, 2);
-    CoordinateType tau = gsl_vector_get(x, 3);
+    CoordinateType H  = deprecated_gsl_vector_get(x, 0);
+    CoordinateType tR = deprecated_gsl_vector_get(x, 1);
+    CoordinateType sigma_square = deprecated_gsl_vector_get(x, 2);
+    CoordinateType tau = deprecated_gsl_vector_get(x, 3);
 
     CoordinateType derivative_H, derivative_tR, derivative_sigma_square, derivative_tau = 0.0;
     CoordinateType t_diff, t_diff2, exp1, denominator = 0.0;
@@ -162,31 +162,36 @@ namespace OpenMS
       }
 
       // set the jacobian matrix
-      gsl_matrix_set(J, i, 0, derivative_H);
-      gsl_matrix_set(J, i, 1, derivative_tR);
-      gsl_matrix_set(J, i, 2, derivative_sigma_square);
-      gsl_matrix_set(J, i, 3, derivative_tau);
+      deprecated_gsl_matrix_set(J, i, 0, derivative_H);
+      deprecated_gsl_matrix_set(J, i, 1, derivative_tR);
+      deprecated_gsl_matrix_set(J, i, 2, derivative_sigma_square);
+      deprecated_gsl_matrix_set(J, i, 3, derivative_tau);
     }
 
-    return GSL_SUCCESS;
+    return deprecated_gsl_SUCCESS;
   }
 
-  Int EGHFitter1D::evaluate_(const gsl_vector * x, void * params, gsl_vector * f, gsl_matrix * J)
+  Int EGHFitter1D::evaluate_(const deprecated_gsl_vector * x, void * params, deprecated_gsl_vector * f, deprecated_gsl_matrix * J)
   {
     EGHFitter1D::residual_(x, params, f);
     EGHFitter1D::jacobian_(x, params, J);
 
-    return GSL_SUCCESS;
+    return deprecated_gsl_SUCCESS;
   }
 
-  void EGHFitter1D::printState_(Int iter, gsl_multifit_fdfsolver * s)
+  void EGHFitter1D::printState_(Int iter, deprecated_gsl_multifit_fdfsolver * s)
   {
     printf("iter: %4u x = % 15.8f % 15.8f  % 15.8f  % 15.8f |f(x)| = %g\n", iter,
-           gsl_vector_get(s->x, 0),
-           gsl_vector_get(s->x, 1),
-           gsl_vector_get(s->x, 2),
-           gsl_vector_get(s->x, 3),
-           gsl_blas_dnrm2(s->f));
+           deprecated_gsl_vector_get(
+        		   deprecated_wrapper_gsl_multifit_fdfsolver_get_x(s), 0),
+           deprecated_gsl_vector_get(
+        		   deprecated_wrapper_gsl_multifit_fdfsolver_get_x(s), 1),
+           deprecated_gsl_vector_get(
+        		   deprecated_wrapper_gsl_multifit_fdfsolver_get_x(s), 2),
+           deprecated_gsl_vector_get(
+        		   deprecated_wrapper_gsl_multifit_fdfsolver_get_x(s), 3),
+           deprecated_gsl_blas_dnrm2(
+        		   deprecated_wrapper_gsl_multifit_fdfsolver_get_f(s)));
   }
 
   EGHFitter1D::QualityType EGHFitter1D::fit1d(const RawDataArrayType & set, InterpolationModel * & model)

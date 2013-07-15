@@ -37,11 +37,6 @@
 // NNLS isotope correction
 #include <OpenMS/MATH/MISC/NonNegativeLeastSquaresSolver.h>
 
-// LINALG methods for isotope correction
-#include <gsl/gsl_vector.h>
-#include <gsl/gsl_matrix.h>
-#include <gsl/gsl_linalg.h>
-
 // #define ISOBARIC_QUANT_DEBUG
 
 namespace OpenMS
@@ -49,21 +44,21 @@ namespace OpenMS
 
   IsobaricIsotopeCorrector::IsobaricIsotopeCorrector(const IsobaricQuantitationMethod* const quant_method) :
     quant_method_(quant_method),
-    gsl_m_(0),
-    gsl_p_(0),
-    gsl_b_(0),
-    gsl_x_(0),
-    gsl_allocated_(false)
+    m_(0),
+    p_(0),
+    b_(0),
+    x_(0),
+    allocated_(false)
   {
   }
 
   IsobaricIsotopeCorrector::IsobaricIsotopeCorrector(const IsobaricIsotopeCorrector& other)
     : quant_method_(other.quant_method_),
-      gsl_m_(0),
-      gsl_p_(0),
-      gsl_b_(0),
-      gsl_x_(0),
-      gsl_allocated_(false)
+      m_(0),
+      p_(0),
+      b_(0),
+      x_(0),
+      allocated_(false)
   {
   }
 
@@ -85,13 +80,13 @@ namespace OpenMS
   void IsobaricIsotopeCorrector::freeGSLMemory_()
   {
     // ensure the memory is cleared
-    if (gsl_allocated_)
+    if (allocated_)
     {
-      gsl_matrix_free(gsl_m_);
-      gsl_permutation_free(gsl_p_);
-      gsl_vector_free(gsl_b_);
-      gsl_vector_free(gsl_x_);
-      gsl_allocated_ = false;
+      deprecated_gsl_matrix_free(m_);
+      deprecated_gsl_permutation_free(p_);
+      deprecated_gsl_vector_free(b_);
+      deprecated_gsl_vector_free(x_);
+      allocated_ = false;
     }
   }
 
@@ -113,11 +108,11 @@ namespace OpenMS
     }
 
     // convert to GSL matrix and setup required gsl datastructures
-    gsl_m_ = correction_matrix.toGslMatrix();
-    gsl_p_ = gsl_permutation_alloc(quant_method_->getNumberOfChannels());
-    gsl_b_ = gsl_vector_alloc(quant_method_->getNumberOfChannels());
-    gsl_x_ = gsl_vector_alloc(quant_method_->getNumberOfChannels());
-    gsl_allocated_ = true;
+    m_ = correction_matrix.toGslMatrix();
+    p_ = deprecated_gsl_permutation_alloc(quant_method_->getNumberOfChannels());
+    b_ = deprecated_gsl_vector_alloc(quant_method_->getNumberOfChannels());
+    x_ = deprecated_gsl_vector_alloc(quant_method_->getNumberOfChannels());
+    allocated_ = true;
 
     if (!isInvertible_())
     {
@@ -139,17 +134,17 @@ namespace OpenMS
       consensus_map_out[i].clear();
 
       // fill b vector
-      fillInputVector_(gsl_b_, m_b, consensus_map_in[i], consensus_map_in);
+      fillInputVector_(b_, m_b, consensus_map_in[i], consensus_map_in);
 
       // solve using gsl and NNLS for stability and QC reasons
-      solveGSL_(gsl_m_, gsl_p_, gsl_b_, gsl_x_);
+      solvedeprecated_gsl_(m_, p_, b_, x_);
       solveNNLS_(correction_matrix, m_b, m_x);
 
       // update the ouput consensus map with the corrected intensities
       ConsensusFeature::IntensityType cf_intensity = updateOutpuMap_(consensus_map_in, consensus_map_out, i, m_x);
 
       // check consistency between GSL and NNLS results
-      computeStats_(m_x, gsl_x_, cf_intensity, stats);
+      computeStats_(m_x, x_, cf_intensity, stats);
     }
 
     // free all memory allocated by GSL objects
@@ -183,12 +178,12 @@ namespace OpenMS
   bool IsobaricIsotopeCorrector::isInvertible_() const
   {
     // lets see if the matrix is invertible
-    int* gsl_sign = new int(0);
-    int  gsl_status = gsl_linalg_LU_decomp(gsl_m_, gsl_p_, gsl_sign);
-    return gsl_status == 0;
+    int* sign = new int(0);
+    int  status = deprecated_gsl_linalg_LU_decomp(m_, p_, sign);
+    return status == 0;
   }
 
-  void IsobaricIsotopeCorrector::fillInputVector_(gsl_vector* gsl_b, Matrix<double>& m_b, const ConsensusFeature& cf, const ConsensusMap& cm) const
+  void IsobaricIsotopeCorrector::fillInputVector_(deprecated_gsl_vector* b, Matrix<double>& m_b, const ConsensusFeature& cf, const ConsensusMap& cm) const
   {
     for (ConsensusFeature::HandleSetType::const_iterator it_elements = cf.getFeatures().begin();
          it_elements != cf.getFeatures().end();
@@ -200,15 +195,15 @@ namespace OpenMS
       std::cout << "  map_index " << it_elements->getMapIndex() << "-> id " << index << " with intensity " << it_elements->getIntensity() << "\n" << std::endl;
 #endif
       // this is deprecated, but serves as quality measurement
-      gsl_vector_set(gsl_b, index, it_elements->getIntensity());
+      deprecated_gsl_vector_set(b, index, it_elements->getIntensity());
       m_b(index, 0) = it_elements->getIntensity();
     }
   }
 
-  void IsobaricIsotopeCorrector::solveGSL_(const gsl_matrix* gsl_m, const gsl_permutation* gsl_p, const gsl_vector* gsl_b, gsl_vector* gsl_x) const
+  void IsobaricIsotopeCorrector::solvedeprecated_gsl_(const deprecated_gsl_matrix* m, const deprecated_gsl_permutation* p, const deprecated_gsl_vector* b, deprecated_gsl_vector* x) const
   {
-    int gsl_status = gsl_linalg_LU_solve(gsl_m, gsl_p, gsl_b, gsl_x);
-    if (gsl_status != 0)
+    int status = deprecated_gsl_linalg_LU_solve(m, p, b, x);
+    if (status != 0)
     {
       throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "IsobaricIsotopeCorrector: Invalid entry in Param 'isotope_correction_values'; Cannot multiply!");
     }
@@ -223,7 +218,7 @@ namespace OpenMS
     }
   }
 
-  void IsobaricIsotopeCorrector::computeStats_(const Matrix<double>& m_x, gsl_vector* gsl_x, const ConsensusFeature::IntensityType cf_intensity, IsobaricQuantifierStatistics& stats)
+  void IsobaricIsotopeCorrector::computeStats_(const Matrix<double>& m_x, deprecated_gsl_vector* x, const ConsensusFeature::IntensityType cf_intensity, IsobaricQuantifierStatistics& stats)
   {
     Size s_negative(0);
     Size s_different_count(0); // happens when naive solution is negative in other channels
@@ -232,14 +227,14 @@ namespace OpenMS
     // ISOTOPE CORRECTION: compare solutions of Matrix inversion vs. NNLS
     for (Size index = 0; index < quant_method_->getNumberOfChannels(); ++index)
     {
-      if (gsl_vector_get(gsl_x, index) < 0.0)
+      if (deprecated_gsl_vector_get(x, index) < 0.0)
       {
         ++s_negative;
       }
-      else if (std::fabs(m_x(index, 0) - gsl_vector_get(gsl_x, index)) > 0.000001)
+      else if (std::fabs(m_x(index, 0) - deprecated_gsl_vector_get(x, index)) > 0.000001)
       {
         ++s_different_count;
-        s_different_intensity += std::fabs(m_x(index, 0) - gsl_vector_get(gsl_x, index));
+        s_different_intensity += std::fabs(m_x(index, 0) - deprecated_gsl_vector_get(x, index));
       }
     }
 

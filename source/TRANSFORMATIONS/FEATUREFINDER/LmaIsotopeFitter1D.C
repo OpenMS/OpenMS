@@ -88,7 +88,7 @@ namespace OpenMS
     return *this;
   }
 
-  Int LmaIsotopeFitter1D::residual_(const gsl_vector * x, void * params, gsl_vector * f)
+  Int LmaIsotopeFitter1D::residual_(const deprecated_gsl_vector * x, void * params, deprecated_gsl_vector * f)
   {
     Size n = static_cast<LmaIsotopeFitter1D::Data *>(params)->n;
     RawDataArrayType set = static_cast<LmaIsotopeFitter1D::Data *>(params)->set;
@@ -97,9 +97,9 @@ namespace OpenMS
     CoordinateType sigma = static_cast<LmaIsotopeFitter1D::Data *>(params)->sigma;
     //CoordinateType stdev = static_cast<LmaIsotopeFitter1D::Data*> (params) ->isotopes_stdev;
 
-    CoordinateType A = gsl_vector_get(x, 0);
+    CoordinateType A = deprecated_gsl_vector_get(x, 0);
     CoordinateType stdev = static_cast<LmaIsotopeFitter1D::Data *>(params)->isotopes_stdev;      //gsl_vector_get( x, 1 );
-    CoordinateType mono_mz = gsl_vector_get(x, 1);
+    CoordinateType mono_mz = deprecated_gsl_vector_get(x, 1);
 
     CoordinateType Yi = 0.0;
 
@@ -117,13 +117,13 @@ namespace OpenMS
 
       Yi = term1 * termSum;
 
-      gsl_vector_set(f, i, (Yi - set[i].getIntensity()) / sigma);
+      deprecated_gsl_vector_set(f, i, (Yi - set[i].getIntensity()) / sigma);
     }
 
-    return GSL_SUCCESS;
+    return deprecated_gsl_SUCCESS;
   }
 
-  Int LmaIsotopeFitter1D::jacobian_(const gsl_vector * x, void * params, gsl_matrix * J)
+  Int LmaIsotopeFitter1D::jacobian_(const deprecated_gsl_vector * x, void * params, deprecated_gsl_matrix * J)
   {
     Size n = static_cast<LmaIsotopeFitter1D::Data *>(params)->n;
     RawDataArrayType set = static_cast<LmaIsotopeFitter1D::Data *>(params)->set;
@@ -132,9 +132,9 @@ namespace OpenMS
     CoordinateType sigma = static_cast<LmaIsotopeFitter1D::Data *>(params)->sigma;
     //CoordinateType stdev = static_cast<LmaIsotopeFitter1D::Data*> (params) ->isotopes_stdev;
 
-    CoordinateType A = gsl_vector_get(x, 0);
-    CoordinateType stdev = static_cast<LmaIsotopeFitter1D::Data *>(params)->isotopes_stdev;      //gsl_vector_get( x, 1 );
-    CoordinateType mono_mz = gsl_vector_get(x, 1);
+    CoordinateType A = deprecated_gsl_vector_get(x, 0);
+    CoordinateType stdev = static_cast<LmaIsotopeFitter1D::Data *>(params)->isotopes_stdev;      // gsl_vector_get( x, 1 );
+    CoordinateType mono_mz = deprecated_gsl_vector_get(x, 1);
 
     // iterate over all points of the signal
     for (Size i = 0; i < n; ++i)
@@ -160,29 +160,32 @@ namespace OpenMS
       CoordinateType f_mono_mz = (A / term1 * termSum2);
 
       // set the jacobian matrix
-      gsl_matrix_set(J, i, 0, f_a / sigma);
-      //   gsl_matrix_set( J, i, 1, f_stdev );
-      gsl_matrix_set(J, i, 1, f_mono_mz / sigma);
+      deprecated_gsl_matrix_set(J, i, 0, f_a / sigma);
+      //   deprecated_gsl_matrix_set( J, i, 1, f_stdev );
+      deprecated_gsl_matrix_set(J, i, 1, f_mono_mz / sigma);
     }
 
-    return GSL_SUCCESS;
+    return deprecated_gsl_SUCCESS;
   }
 
-  Int LmaIsotopeFitter1D::evaluate_(const gsl_vector * x, void * params, gsl_vector * f, gsl_matrix * J)
+  Int LmaIsotopeFitter1D::evaluate_(const deprecated_gsl_vector * x, void * params, deprecated_gsl_vector * f, deprecated_gsl_matrix * J)
   {
     LmaIsotopeFitter1D::residual_(x, params, f);
     LmaIsotopeFitter1D::jacobian_(x, params, J);
 
-    return GSL_SUCCESS;
+    return deprecated_gsl_SUCCESS;
   }
 
-  void LmaIsotopeFitter1D::printState_(Int iter, gsl_multifit_fdfsolver * s)
+  void LmaIsotopeFitter1D::printState_(Int iter, deprecated_gsl_multifit_fdfsolver * s)
   {
     printf("iter: %4u x = % 15.8f % 15.8f |f(x)| = %g\n", iter,
-           gsl_vector_get(s->x, 0),
-           gsl_vector_get(s->x, 1),
+           deprecated_gsl_vector_get(
+        		   deprecated_wrapper_gsl_multifit_fdfsolver_get_x(s), 0),
+           deprecated_gsl_vector_get(
+        		   deprecated_wrapper_gsl_multifit_fdfsolver_get_x(s), 1),
            //gsl_vector_get( s->x, 2 ),
-           gsl_blas_dnrm2(s->f));
+           deprecated_gsl_blas_dnrm2(
+        		   deprecated_wrapper_gsl_multifit_fdfsolver_get_f(s)));
   }
 
   void LmaIsotopeFitter1D::setInitialParameters_()
@@ -272,7 +275,7 @@ namespace OpenMS
     d.isotopes_stdev = isotope_stdev_;
     d.sigma = 0.1;     // gaussian noise (standard deviation = 0.1)
 
-    // The various _f, _df and _fdf of the LM loop return GSL_EDOM if any parameter is < 0
+    // The various _f, _df and _fdf of the LM loop return deprecated_gsl_EDOM if any parameter is < 0
 
     // Optimize parameters with Levenberg-Marquardt algorithm (GLS)
     CoordinateType x_init[2] = { total_intensity_ / 100, /*isotope_stdev_,*/ monoisotopic_mz_ };

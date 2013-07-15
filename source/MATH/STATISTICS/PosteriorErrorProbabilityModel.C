@@ -35,8 +35,8 @@
 #include <OpenMS/MATH/STATISTICS/PosteriorErrorProbabilityModel.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/MATH/gsl_wrapper.h>
 #include <algorithm>
-#include <gsl/gsl_statistics.h>
 #include <boost/math/special_functions/fpclassify.hpp>
 
 using namespace std;
@@ -87,8 +87,8 @@ namespace OpenMS
       negative_prior_ = 0.7;
       if (param_.getValue("incorrectly_assigned") == "Gumbel")
       {
-        incorrectly_assigned_fit_param_.x0 = gsl_stats_mean(&x_scores[0], 1, ceil(0.5 * x_scores.size())) + x_scores[0];
-        incorrectly_assigned_fit_param_.sigma = gsl_stats_sd(&x_scores[0], 1, x_scores.size() - 1);        //pow(gsl_stats_sd_with_fixed_mean(&probabilities[x_score_start], 1, probabilities.size() - x_score_start, gauss_fit_param_.x0),2);
+        incorrectly_assigned_fit_param_.x0 = deprecated_gsl_stats_mean(&x_scores[0], 1, ceil(0.5 * x_scores.size())) + x_scores[0];
+        incorrectly_assigned_fit_param_.sigma = deprecated_gsl_stats_sd(&x_scores[0], 1, x_scores.size() - 1);        //pow(deprecated_gsl_stats_sd_with_fixed_mean(&probabilities[x_score_start], 1, probabilities.size() - x_score_start, gauss_fit_param_.x0),2);
         incorrectly_assigned_fit_param_.A = 1   / sqrt(2 * 3.14159 * pow(incorrectly_assigned_fit_param_.sigma, 2));
         //TODO: compute directly with gauss. Workaround:
         calc_incorrect_ = &PosteriorErrorProbabilityModel::getGauss;
@@ -96,8 +96,8 @@ namespace OpenMS
       }
       else
       {
-        incorrectly_assigned_fit_param_.x0 = gsl_stats_mean(&x_scores[0], 1, ceil(0.5 * x_scores.size())) + x_scores[0];
-        incorrectly_assigned_fit_param_.sigma = gsl_stats_sd(&x_scores[0], 1, x_scores.size() - 1);        //pow(gsl_stats_sd_with_fixed_mean(&probabilities[x_score_start], 1, probabilities.size() - x_score_start, gauss_fit_param_.x0),2);
+        incorrectly_assigned_fit_param_.x0 = deprecated_gsl_stats_mean(&x_scores[0], 1, ceil(0.5 * x_scores.size())) + x_scores[0];
+        incorrectly_assigned_fit_param_.sigma = deprecated_gsl_stats_sd(&x_scores[0], 1, x_scores.size() - 1);        //pow(deprecated_gsl_stats_sd_with_fixed_mean(&probabilities[x_score_start], 1, probabilities.size() - x_score_start, gauss_fit_param_.x0),2);
         incorrectly_assigned_fit_param_.A = 1   / sqrt(2 * 3.14159 * pow(incorrectly_assigned_fit_param_.sigma, 2));
         calc_incorrect_ = &PosteriorErrorProbabilityModel::getGauss;
         getNegativeGnuplotFormula_ = &PosteriorErrorProbabilityModel::getGaussGnuplotFormula;
@@ -105,7 +105,7 @@ namespace OpenMS
       getPositiveGnuplotFormula_ = &PosteriorErrorProbabilityModel::getGaussGnuplotFormula;
       calc_correct_ = &PosteriorErrorProbabilityModel::getGauss;
       Size x_score_start = std::min(x_scores.size() - 1, (Size) ceil(x_scores.size() * 0.7));   // if only one score is present, ceil(...) will yield 1, which is an invalid index
-      correctly_assigned_fit_param_.x0 = gsl_stats_mean(&x_scores[x_score_start], 1, x_scores.size() - x_score_start) + x_scores[x_score_start];      //(gauss_scores.begin()->getX() + (gauss_scores.end()-1)->getX())/2;
+      correctly_assigned_fit_param_.x0 = deprecated_gsl_stats_mean(&x_scores[x_score_start], 1, x_scores.size() - x_score_start) + x_scores[x_score_start];      //(gauss_scores.begin()->getX() + (gauss_scores.end()-1)->getX())/2;
       correctly_assigned_fit_param_.sigma = incorrectly_assigned_fit_param_.sigma;
       correctly_assigned_fit_param_.A = 1.0   / sqrt(2 * 3.14159 * pow(correctly_assigned_fit_param_.sigma, 2));
 

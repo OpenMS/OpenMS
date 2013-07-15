@@ -71,14 +71,14 @@ namespace OpenMS
     return *this;
   }
 
-  Int LmaGaussFitter1D::residual_(const gsl_vector * x, void * params, gsl_vector * f)
+  Int LmaGaussFitter1D::residual_(const deprecated_gsl_vector * x, void * params, deprecated_gsl_vector * f)
   {
     Size n = static_cast<LmaGaussFitter1D::Data *>(params)->n;
     RawDataArrayType set = static_cast<LmaGaussFitter1D::Data *>(params)->set;
 
-    CoordinateType normal_s = gsl_vector_get(x, 0);
-    CoordinateType normal_m = gsl_vector_get(x, 1);
-    CoordinateType normal_scale = gsl_vector_get(x, 2);
+    CoordinateType normal_s = deprecated_gsl_vector_get(x, 0);
+    CoordinateType normal_m = deprecated_gsl_vector_get(x, 1);
+    CoordinateType normal_scale = deprecated_gsl_vector_get(x, 2);
 
     CoordinateType Yi = 0.0;
 
@@ -88,20 +88,20 @@ namespace OpenMS
 
       Yi = (1 / (sqrt(2 * Constants::PI) * normal_s)) * exp(-((t - normal_m) * (t - normal_m)) / (2 * normal_s * normal_s)) * normal_scale;
 
-      gsl_vector_set(f, i, (Yi - set[i].getIntensity()));
+      deprecated_gsl_vector_set(f, i, (Yi - set[i].getIntensity()));
     }
 
-    return GSL_SUCCESS;
+    return deprecated_gsl_SUCCESS;
   }
 
-  Int LmaGaussFitter1D::jacobian_(const gsl_vector * x, void * params, gsl_matrix * J)
+  Int LmaGaussFitter1D::jacobian_(const deprecated_gsl_vector * x, void * params, deprecated_gsl_matrix * J)
   {
     Size n = static_cast<LmaGaussFitter1D::Data *>(params)->n;
     RawDataArrayType set = static_cast<LmaGaussFitter1D::Data *>(params)->set;
 
-    CoordinateType normal_s = gsl_vector_get(x, 0);
-    CoordinateType normal_m = gsl_vector_get(x, 1);
-    CoordinateType normal_scale = gsl_vector_get(x, 2);
+    CoordinateType normal_s = deprecated_gsl_vector_get(x, 0);
+    CoordinateType normal_m = deprecated_gsl_vector_get(x, 1);
+    CoordinateType normal_scale = deprecated_gsl_vector_get(x, 2);
 
     CoordinateType derivative_normal_s, derivative_normal_m, derivative_normal_scale = 0.0;
 
@@ -119,29 +119,33 @@ namespace OpenMS
       derivative_normal_scale = ((1 / sqrt(2 * Constants::PI)) / (normal_s)) * exp(-((t - normal_m) * (t - normal_m)) / (2 * normal_s * normal_s));
 
       // set the jacobian matrix of the normal distribution
-      gsl_matrix_set(J, i, 0, derivative_normal_s);
-      gsl_matrix_set(J, i, 1, derivative_normal_m);
-      gsl_matrix_set(J, i, 2, derivative_normal_scale);
+      deprecated_gsl_matrix_set(J, i, 0, derivative_normal_s);
+      deprecated_gsl_matrix_set(J, i, 1, derivative_normal_m);
+      deprecated_gsl_matrix_set(J, i, 2, derivative_normal_scale);
     }
 
-    return GSL_SUCCESS;
+    return deprecated_gsl_SUCCESS;
   }
 
-  Int LmaGaussFitter1D::evaluate_(const gsl_vector * x, void * params, gsl_vector * f, gsl_matrix * J)
+  Int LmaGaussFitter1D::evaluate_(const deprecated_gsl_vector * x, void * params, deprecated_gsl_vector * f, deprecated_gsl_matrix * J)
   {
     LmaGaussFitter1D::residual_(x, params, f);
     LmaGaussFitter1D::jacobian_(x, params, J);
 
-    return GSL_SUCCESS;
+    return deprecated_gsl_SUCCESS;
   }
 
-  void LmaGaussFitter1D::printState_(Int iter, gsl_multifit_fdfsolver * s)
+  void LmaGaussFitter1D::printState_(Int iter, deprecated_gsl_multifit_fdfsolver * s)
   {
     printf("in loop iter: %4u x = % 15.8f % 15.8f % 15.8f |f(x)| = %g\n", iter,
-           gsl_vector_get(s->x, 0),
-           gsl_vector_get(s->x, 1),
-           gsl_vector_get(s->x, 2),
-           gsl_blas_dnrm2(s->f));
+           deprecated_gsl_vector_get(
+        		   deprecated_wrapper_gsl_multifit_fdfsolver_get_x(s), 0),
+           deprecated_gsl_vector_get(
+        		   deprecated_wrapper_gsl_multifit_fdfsolver_get_x(s), 1),
+           deprecated_gsl_vector_get(
+        		   deprecated_wrapper_gsl_multifit_fdfsolver_get_x(s), 2),
+           deprecated_gsl_blas_dnrm2(
+        		   deprecated_wrapper_gsl_multifit_fdfsolver_get_f(s)));
   }
 
   LmaGaussFitter1D::QualityType LmaGaussFitter1D::fit1d(const RawDataArrayType & set, InterpolationModel * & model)

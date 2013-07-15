@@ -61,9 +61,7 @@
 #endif
 
 #include <boost/math/special_functions/acosh.hpp>
-#include <gsl/gsl_vector.h>
-#include <gsl/gsl_multifit_nlin.h>
-#include <gsl/gsl_blas.h>
+#include "OpenMS/MATH/gsl_wrapper.h"
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePick.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakShape.h>
 
@@ -234,11 +232,11 @@ protected:
     */
     //@{
     /// Function computing estimated signal and its deviation to the experimental signal*/
-    static Int residual2D_(const gsl_vector* x, void* params, gsl_vector* f);
+    static Int residual2D_(const deprecated_gsl_vector* x, void* params, deprecated_gsl_vector* f);
     /// Function computing the Jacobian */
-    static Int jacobian2D_(const gsl_vector* x, void* params, gsl_matrix* J);
+    static Int jacobian2D_(const deprecated_gsl_vector* x, void* params, deprecated_gsl_matrix* J);
     /// Function that calls residual2D and jacobian2D*/
-    static Int evaluate2D_(const gsl_vector* x, void* params, gsl_vector* f, gsl_matrix* J);
+    static Int evaluate2D_(const deprecated_gsl_vector* x, void* params, deprecated_gsl_vector* f, deprecated_gsl_matrix* J);
 
 
     /**
@@ -626,8 +624,8 @@ protected:
 
       Size nr_parameters = nr_diff_peaks * 3 + d.total_nr_peaks;
 
-      gsl_vector* start_value = gsl_vector_alloc(nr_parameters);
-      gsl_vector_set_zero(start_value);
+      deprecated_gsl_vector* start_value = deprecated_gsl_vector_alloc(nr_parameters);
+      deprecated_gsl_vector_set_zero(start_value);
 
       // initialize parameters for optimization
       std::map<Int, std::vector<PeakIndex> >::iterator m_peaks_it = d.matching_peaks.begin();
@@ -646,12 +644,12 @@ protected:
           av_mz += (iter_iter)->getPeak(ms_exp).getMZ() * height;
           av_lw += ms_exp[(iter_iter)->spectrum].getFloatDataArrays()[3][(iter_iter)->peak] * height; //left width
           av_rw +=    ms_exp[(iter_iter)->spectrum].getFloatDataArrays()[4][(iter_iter)->peak] * height; //right width
-          gsl_vector_set(start_value, peak_counter, height);
+          deprecated_gsl_vector_set(start_value, peak_counter, height);
           ++peak_counter;
         }
-        gsl_vector_set(start_value, d.total_nr_peaks + 3 * diff_peak_counter, av_mz / avr_height);
-        gsl_vector_set(start_value, d.total_nr_peaks + 3 * diff_peak_counter + 1, av_lw / avr_height);
-        gsl_vector_set(start_value, d.total_nr_peaks + 3 * diff_peak_counter + 2, av_rw / avr_height);
+        deprecated_gsl_vector_set(start_value, d.total_nr_peaks + 3 * diff_peak_counter, av_mz / avr_height);
+        deprecated_gsl_vector_set(start_value, d.total_nr_peaks + 3 * diff_peak_counter + 1, av_lw / avr_height);
+        deprecated_gsl_vector_set(start_value, d.total_nr_peaks + 3 * diff_peak_counter + 2, av_rw / avr_height);
         ++diff_peak_counter;
       }
 
@@ -659,7 +657,7 @@ protected:
       std::cout << "----------------------------\n\nstart_value: " << std::endl;
       for (Size k = 0; k < start_value->size; ++k)
       {
-        std::cout << gsl_vector_get(start_value, k) << std::endl;
+        std::cout << deprecated_gsl_vector_get(start_value, k) << std::endl;
       }
 #endif
       Int num_positions = 0;
@@ -676,31 +674,32 @@ protected:
 #endif
       // The gsl algorithms require us to provide function pointers for the evaluation of
       // the target function.
-      gsl_multifit_function_fdf fit_function;
-      fit_function.f   = (Int (*)(const gsl_vector* x, void* params, gsl_vector* f)) & OpenMS::TwoDOptimization::residual2D_;
-      fit_function.df  = (Int (*)(const gsl_vector* x, void* params, gsl_matrix* J)) & OpenMS::TwoDOptimization::jacobian2D_;
-      fit_function.fdf = (Int (*)(const gsl_vector* x, void* params, gsl_vector* f, gsl_matrix* J)) & OpenMS::TwoDOptimization::evaluate2D_;
-      // gsl crashes when n is smaller than p!
-      fit_function.n   = std::max(num_positions + 1, (Int)(nr_parameters));
-      fit_function.p   = nr_parameters;
-      fit_function.params = &d;
+	  deprecated_gsl_multifit_function_fdf_ptr fit_function
+		  = deprecated_wrapper_gsl_multifit_fdfsolver_lmsder_new (
+				  (Int (*)(const deprecated_gsl_vector* x, void* params, deprecated_gsl_vector* f)) & OpenMS::TwoDOptimization::residual2D_,
+				  (Int (*)(const deprecated_gsl_vector* x, void* params, deprecated_gsl_matrix* J)) & OpenMS::TwoDOptimization::jacobian2D_, // the gradient of this function
+				  (Int (*)(const deprecated_gsl_vector* x, void* params, deprecated_gsl_vector* f, deprecated_gsl_matrix* J)) & OpenMS::TwoDOptimization::evaluate2D_, // combined function and gradient
+				  std::max(num_positions + 1, (Int)(nr_parameters)), // number of points in the data set
+				  nr_parameters, // number of parameters in the fit function
+				  &d);// structure with the data and error bars
 #ifdef DEBUG_2D
       std::cout << "fit_function.n " << fit_function.n
                 << "\tfit_function.p " << fit_function.p << std::endl;
 #endif
-      const gsl_multifit_fdfsolver_type* type = gsl_multifit_fdfsolver_lmsder;
+      const deprecated_gsl_multifit_fdfsolver_type* type
+      	  	  = deprecated_wrapper_get_multifit_fdfsolver_lmsder();
 
-      gsl_multifit_fdfsolver* fit = gsl_multifit_fdfsolver_alloc(type,
+      deprecated_gsl_multifit_fdfsolver* fit = deprecated_gsl_multifit_fdfsolver_alloc(type,
                                                                  std::max(num_positions + 1, (Int)(nr_parameters)),
                                                                  nr_parameters);
 
-      gsl_multifit_fdfsolver_set(fit, &fit_function, start_value);
+      deprecated_gsl_multifit_fdfsolver_set(fit, fit_function.get(), start_value);
 
 
 
       // initial norm
 #ifdef DEBUG_2D
-      std::cout << "Before optimization: ||f|| = " << gsl_blas_dnrm2(fit->f) << std::endl;
+      std::cout << "Before optimization: ||f|| = " << deprecated_gsl_blas_dnrm2(fit->f) << std::endl;
 #endif
       // Iteration
       UInt iteration = 0;
@@ -709,33 +708,35 @@ protected:
       do
       {
         iteration++;
-        status = gsl_multifit_fdfsolver_iterate(fit);
+        status = deprecated_gsl_multifit_fdfsolver_iterate(fit);
 #ifdef DEBUG_2D
-        std::cout << "Iteration " << iteration << "; Status " << gsl_strerror(status) << "; " << std::endl;
-        std::cout << "||f|| = " << gsl_blas_dnrm2(fit->f) << std::endl;
+        std::cout << "Iteration " << iteration << "; Status " << deprecated_gsl_strerror(status) << "; " << std::endl;
+        std::cout << "||f|| = " << deprecated_gsl_blas_dnrm2(fit->f) << std::endl;
         std::cout << "Number of parms: " << nr_parameters << std::endl;
-        std::cout << "Delta: " << gsl_blas_dnrm2(fit->dx) << std::endl;
+        std::cout << "Delta: " << deprecated_gsl_blas_dnrm2(fit->dx) << std::endl;
 #endif
 
-        status = gsl_multifit_test_delta(fit->dx, fit->x, eps_abs_, eps_rel_);
-        if (status != GSL_CONTINUE)
+        status = deprecated_gsl_multifit_test_delta(
+        		deprecated_wrapper_gsl_multifit_fdfsolver_get_dx(fit),
+        		deprecated_wrapper_gsl_multifit_fdfsolver_get_x(fit), eps_abs_, eps_rel_);
+        if (status != deprecated_gsl_CONTINUE)
           break;
 
       }
-      while (status == GSL_CONTINUE && iteration < max_iteration_);
+      while (status == deprecated_gsl_CONTINUE && iteration < max_iteration_);
 
 #ifdef DEBUG_2D
       std::cout << "Finished! No. of iterations" << iteration << std::endl;
-      std::cout << "Delta: " << gsl_blas_dnrm2(fit->dx) << std::endl;
-      DoubleReal chi = gsl_blas_dnrm2(fit->f);
-      std::cout << "After optimization: || f || = " << gsl_blas_dnrm2(fit->f) << std::endl;
+      std::cout << "Delta: " << deprecated_gsl_blas_dnrm2(fit->dx) << std::endl;
+      DoubleReal chi = deprecated_gsl_blas_dnrm2(fit->f);
+      std::cout << "After optimization: || f || = " << deprecated_gsl_blas_dnrm2(fit->f) << std::endl;
       std::cout << "chisq/dof = " << pow(chi, 2.0) / (num_positions - nr_parameters);
 
 
       std::cout << "----------------------------------------------\n\nnachher" << std::endl;
       for (Size k = 0; k < fit->x->size; ++k)
       {
-        std::cout << gsl_vector_get(fit->x, k) << std::endl;
+        std::cout << deprecated_gsl_vector_get(fit->x, k) << std::endl;
       }
 #endif
       Int peak_idx = 0;
@@ -753,13 +754,17 @@ protected:
                     << "\nrw: " << itv->second[j].getSpectrum(ms_exp).getFloatDataArrays()[4][itv->second[j].peak] << "\n";
 
 #endif
-          DoubleReal mz = gsl_vector_get(fit->x, d.total_nr_peaks + 3 * i);
+          DoubleReal mz = deprecated_gsl_vector_get(
+        		  deprecated_wrapper_gsl_multifit_fdfsolver_get_x(fit), d.total_nr_peaks + 3 * i);
           ms_exp[itv->second[j].spectrum][itv->second[j].peak].setMZ(mz);
-          DoubleReal height = (gsl_vector_get(fit->x, peak_idx));
+          DoubleReal height = (deprecated_gsl_vector_get(
+        		  deprecated_wrapper_gsl_multifit_fdfsolver_get_x(fit), peak_idx));
           ms_exp[itv->second[j].spectrum].getFloatDataArrays()[1][itv->second[j].peak] = height;
-          DoubleReal left_width = gsl_vector_get(fit->x, d.total_nr_peaks + 3 * i + 1);
+          DoubleReal left_width = deprecated_gsl_vector_get(
+        		  deprecated_wrapper_gsl_multifit_fdfsolver_get_x(fit), d.total_nr_peaks + 3 * i + 1);
           ms_exp[itv->second[j].spectrum].getFloatDataArrays()[3][itv->second[j].peak] = left_width;
-          DoubleReal right_width = gsl_vector_get(fit->x, d.total_nr_peaks + 3 * i + 2);
+          DoubleReal right_width = deprecated_gsl_vector_get(
+        		  deprecated_wrapper_gsl_multifit_fdfsolver_get_x(fit), d.total_nr_peaks + 3 * i + 2);
           ms_exp[itv->second[j].spectrum].getFloatDataArrays()[4][itv->second[j].peak] = right_width;
           // calculate area
           if ((PeakShape::Type)(Int)ms_exp[itv->second[j].spectrum].getFloatDataArrays()[5][itv->second[j].peak] == PeakShape::LORENTZ_PEAK)
@@ -797,8 +802,8 @@ protected:
         }
       }
 
-      gsl_multifit_fdfsolver_free(fit);
-      gsl_vector_free(start_value);
+      deprecated_gsl_multifit_fdfsolver_free(fit);
+      deprecated_gsl_vector_free(start_value);
       ++counter;
     } // end for
     //#undef DEBUG_2D
