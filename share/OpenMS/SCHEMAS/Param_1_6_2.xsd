@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Mit XMLSpy v2007 sp1 bearbeitet (http://www.altova.com) von Oliver Kohlbacher (Universität Tübingen) -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
 	<xs:element name="PARAMETERS" type="PARAMETERSType">
 		<xs:annotation>
@@ -11,7 +10,7 @@
 			<xs:group ref="ITEMS" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element name="NODE" type="NODEType" minOccurs="0" maxOccurs="unbounded"/>
 		</xs:sequence>
-		<xs:attribute name="version" type="xs:float"/>
+		<xs:attribute name="version" type="versionString"/>
 	</xs:complexType>
 	<xs:complexType name="AbstractITEMType" abstract="true">
 		<xs:attribute name="name" use="required">
@@ -30,12 +29,14 @@
 		<xs:attribute name="tags" type="xs:string" default="false"/>
 		<xs:attribute name="restrictions" type="xs:string" default=""/>
 		<xs:attribute name="supported_formats" type="xs:string" default="false"/>
+		<xs:attribute name="required" type="xs:boolean" default="false" />
+		<xs:attribute name="advanced" type="xs:boolean" default="false" />    
 	</xs:complexType>
 	<xs:complexType name="ITEMLISTType">
 		<xs:complexContent>
 			<xs:extension base="AbstractITEMType">
 				<xs:sequence>
-					<xs:element name="LISTITEM" type="LISTITEMType"/>
+					<xs:element name="LISTITEM" type="LISTITEMType" minOccurs="0" maxOccurs="unbounded"/>
 				</xs:sequence>
 			</xs:extension>
 		</xs:complexContent>
@@ -47,8 +48,6 @@
 		<xs:complexContent>
 			<xs:extension base="AbstractITEMType">
 				<xs:attribute name="value" type="xs:string" use="required"/>
-				<xs:attribute name="required" type="xs:boolean"/>
-				<xs:attribute name="advanced" type="xs:boolean"/>
 			</xs:extension>
 		</xs:complexContent>
 	</xs:complexType>
@@ -59,6 +58,7 @@
 		<xs:restriction base="xs:string">
       <xs:enumeration value="int"></xs:enumeration>
 			<xs:enumeration value="double"></xs:enumeration>
+			<xs:enumeration value="float"></xs:enumeration>      
 			<xs:enumeration value="string"></xs:enumeration>
 			<xs:enumeration value="int-pair"></xs:enumeration>
 			<xs:enumeration value="double-pair"></xs:enumeration>
@@ -77,10 +77,10 @@
 		<xs:annotation>
 			<xs:documentation/>
 		</xs:annotation>
-		<xs:sequence>
-			<xs:group ref="ITEMS" minOccurs="0" maxOccurs="unbounded"/>
+		<xs:choice minOccurs="0" maxOccurs="unbounded">
+			<xs:group ref="ITEMS"/>
 			<xs:element name="NODE" type="NODEType"/>
-		</xs:sequence>
+		</xs:choice>
 		<xs:attribute name="name" use="required">
 			<xs:simpleType>
 				<xs:restriction base="xs:string">
@@ -90,4 +90,9 @@
 		</xs:attribute>
 		<xs:attribute name="description" type="xs:string" default=""/>
 	</xs:complexType>
+  <xs:simpleType name="versionString">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="\d+\.\d+(\.\d+)?"></xs:pattern>
+    </xs:restriction>
+  </xs:simpleType>
 </xs:schema>
