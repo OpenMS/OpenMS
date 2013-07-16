@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/HANDLERS/ParamXMLHandler.h>
+#include <OpenMS/CONCEPT/VersionInfo.h>
 
 #include <iostream>
 
@@ -244,9 +245,14 @@ namespace OpenMS
         //check file version against schema version
         String file_version = "";
         optionalAttributeAsString_(file_version, attributes, "version");
-        if (file_version == "")
-          file_version = "1.0";                       //default version is 1.0
-        if (file_version.toDouble() > version_.toDouble())
+
+        // default version is 1.0
+        if (file_version == "") file_version = "1.0";
+
+        VersionInfo::VersionDetails file_version_details = VersionInfo::VersionDetails::create(file_version);
+        VersionInfo::VersionDetails parser_version = VersionInfo::VersionDetails::create(version_);
+
+        if (file_version_details > parser_version)
         {
           warning(LOAD, "The XML file (" + file_version + ") is newer than the parser (" + version_ + "). This might lead to undefined program behavior.");
         }
