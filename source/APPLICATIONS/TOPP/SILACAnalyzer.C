@@ -659,7 +659,7 @@ public:
             rts.push_back(r);
           }
 
-	  const ConsensusFeature::HandleSetType& feature_handles = cit->getFeatures();
+          const ConsensusFeature::HandleSetType& feature_handles = cit->getFeatures();
           if (feature_handles.size() > 1)
           {
             std::set<FeatureHandle, FeatureHandle::IndexLess>::const_iterator fit = feature_handles.begin();             // this is unlabeled
