@@ -571,11 +571,9 @@ namespace OpenMS
 
     int nearest_intensity = static_cast<int>(intervalTransformation(nearest_it->getIntensity(), visible_area_.minY(),
                                                                     visible_area_.maxY(), dest_interval_start, dest_interval_end));
-    int current_intensity;
-
     for (SpectrumConstIteratorType it = left_it; it != right_it; it++)
     {
-      current_intensity = static_cast<int>(intervalTransformation(it->getIntensity(), visible_area_.minY(), visible_area_.maxY(),
+      int current_intensity = static_cast<int>(intervalTransformation(it->getIntensity(), visible_area_.minY(), visible_area_.maxY(),
                                                                   dest_interval_start, dest_interval_end));
       if (abs(current_intensity - p.y()) < abs(nearest_intensity - p.y()))
       {
@@ -1705,10 +1703,9 @@ namespace OpenMS
         break;
       }
 
-      int x;
       for (std::vector<double>::const_iterator it = spectrum_widget_->xAxis()->gridLines()[j].begin(); it != spectrum_widget_->xAxis()->gridLines()[j].end(); ++it)
       {
-        x = static_cast<int>(Math::intervalTransformation(*it, spectrum_widget_->xAxis()->getAxisMinimum(), spectrum_widget_->xAxis()->getAxisMaximum(), xl, xh));
+        int x = static_cast<int>(Math::intervalTransformation(*it, spectrum_widget_->xAxis()->getAxisMinimum(), spectrum_widget_->xAxis()->getAxisMaximum(), xl, xh));
         painter.drawLine(x, yl, x, yh);
       }
     }
@@ -1733,10 +1730,9 @@ namespace OpenMS
         break;
       }
 
-      int y;
       for (std::vector<double>::const_iterator it = spectrum_widget_->yAxis()->gridLines()[j].begin(); it != spectrum_widget_->yAxis()->gridLines()[j].end(); ++it)
       {
-        y = static_cast<int>(Math::intervalTransformation(*it, spectrum_widget_->yAxis()->getAxisMinimum(), spectrum_widget_->yAxis()->getAxisMaximum(), yl, yh));
+        int y = static_cast<int>(Math::intervalTransformation(*it, spectrum_widget_->yAxis()->getAxisMinimum(), spectrum_widget_->yAxis()->getAxisMaximum(), yl, yh));
         if (!mirror_mode_)
         {
           painter.drawLine(xl, y, xh, y);
