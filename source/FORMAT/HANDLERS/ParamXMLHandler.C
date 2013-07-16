@@ -69,21 +69,33 @@ namespace OpenMS
         String type = attributeAsString_(attributes, "type");
         String name = path_ + attributeAsString_(attributes, "name");
         String value = attributeAsString_(attributes, "value");
+
         //parse description, if present
         String description;
         optionalAttributeAsString_(description, attributes, "description");
         description.substitute("#br#", "\n");
+
         //tags
         String tags_string;
         optionalAttributeAsString_(tags_string, attributes, "tags");
         StringList tags = StringList::create(tags_string);
-        //advanced (for downward compatibility with old Param files)
+
+        //advanced
         String advanced_string;
         optionalAttributeAsString_(advanced_string, attributes, "advanced");
         if (advanced_string == "true")
         {
           tags.push_back("advanced");
         }
+
+        //required
+        String required_string;
+        optionalAttributeAsString_(advanced_string, attributes, "required");
+        if (advanced_string == "true")
+        {
+          tags.push_back("required");
+        }
+
         //type
         if (type == "int")
         {
@@ -91,6 +103,17 @@ namespace OpenMS
         }
         else if (type == "string")
         {
+          param_.setValue(name, value, description, tags);
+        }
+        // since param v1.6.2 we support explicitly naming input/output files as types
+        else if (type == "input-file")
+        {
+          tags.push_back("input file");
+          param_.setValue(name, value, description, tags);
+        }
+        else if (type == "output-file")
+        {
+          tags.push_back("output file");          
           param_.setValue(name, value, description, tags);
         }
         else if (type == "float" || type == "double")
@@ -112,7 +135,7 @@ namespace OpenMS
           {
             value.split(':', parts);
             if (parts.size() != 2)
-              value.split('-', parts);  //for downward compatibility
+              value.split('-', parts); //for downward compatibility
             if (parts.size() == 2)
             {
               if (parts[0] != "")
@@ -138,7 +161,7 @@ namespace OpenMS
           {
             value.split(':', parts);
             if (parts.size() != 2)
-              value.split('-', parts);  //for downward compatibility
+              value.split('-', parts); //for downward compatibility
             if (parts.size() == 2)
             {
               if (parts[0] != "")
@@ -292,7 +315,7 @@ namespace OpenMS
           {
             list_.restrictions.split(':', parts);
             if (parts.size() != 2)
-              list_.restrictions.split('-', parts);  //for downward compatibility
+              list_.restrictions.split('-', parts); //for downward compatibility
             if (parts.size() == 2)
             {
               if (parts[0] != "")
@@ -317,7 +340,7 @@ namespace OpenMS
           {
             list_.restrictions.split(':', parts);
             if (parts.size() != 2)
-              list_.restrictions.split('-', parts);  //for downward compatibility
+              list_.restrictions.split('-', parts); //for downward compatibility
             if (parts.size() == 2)
             {
               if (parts[0] != "")
