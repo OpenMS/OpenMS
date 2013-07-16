@@ -273,7 +273,7 @@ START_SECTION(([EXTRA] test exceptions))
     subordinates.push_back(sub);
     features[1].setSubordinates(subordinates);
   }
-  TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument, scoring.scoreMap(features), "Did not find a feature for each assay provided - each feature needs           to have n subordinates with the meta-value 'native_id' set to the corresponding transition.")
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument, scoring.scoreMap(features), "Did not find a feature for each assay provided - each feature needs to have n subordinates with the meta-value 'native_id' set to the corresponding transition.")
 
   {
     std::vector<Feature> subordinates;
