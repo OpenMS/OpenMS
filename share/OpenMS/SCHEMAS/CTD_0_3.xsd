@@ -6,14 +6,14 @@
 	<xs:element name="tool">
 		<xs:complexType>
 			<xs:sequence>
-				<xs:element name="manual" type="xs:string" minOccurs="0">
-					<xs:annotation>
-						<xs:documentation>More detailed description of the tool (about 10 lines).</xs:documentation>
-					</xs:annotation>
-				</xs:element>
 				<xs:element name="description" type="xs:string" minOccurs="0">
 					<xs:annotation>
 						<xs:documentation>One line description of the tool.</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element name="manual" type="xs:string" minOccurs="0">
+					<xs:annotation>
+						<xs:documentation>More detailed description of the tool (about 10 lines).</xs:documentation>
 					</xs:annotation>
 				</xs:element>
 				<xs:element name="executableName" type="xs:string" minOccurs="0">
@@ -36,13 +36,13 @@
 				<xs:element name="PARAMETERS" type="PARAMETERSType"/>
 			</xs:sequence>
 			<xs:attribute name="version" type="xs:string" use="required"/>
-			<xs:attribute name="name">
+			<xs:attribute name="name" use="required">
 				<xs:annotation>
 					<xs:documentation>Name of the tool. Needs to pass following regex [[A-Z]|[a-z]][[0-9]|[A-Z]|[a-z]]+ i.e.\w</xs:documentation>
 				</xs:annotation>
 				<xs:simpleType>
 					<xs:restriction base="xs:string">
-						<xs:pattern value="\w"/>
+						<xs:pattern value="[A-Z][A-Za-z0-9]*"/>
 					</xs:restriction>
 				</xs:simpleType>
 			</xs:attribute>
@@ -51,7 +51,7 @@
 					<xs:documentation>URL to further documentation (WWW).</xs:documentation>
 				</xs:annotation>
 			</xs:attribute>
-			<xs:attribute name="category" type="xs:string">
+			<xs:attribute name="category" type="xs:string" default="">
 				<xs:annotation>
 					<xs:documentation>The category gives information on the task the associated tool performs. It can be used to categorize different tools in a GUI.</xs:documentation>
 				</xs:annotation>
