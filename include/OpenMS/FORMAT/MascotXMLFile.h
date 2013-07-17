@@ -69,8 +69,8 @@ public:
       @param filename the file to be loaded
       @param protein_identification protein identifications belonging to the whole experiment
       @param id_data the identifications with m/z and RT
-      @param An optional mapping of scan indices to RT, in case the file only contains scan numbers
-      @param An optional regular expression used to extract the scan numbers
+      @param rt_mapping An optional mapping of scan indices to RT, in case the file only contains scan numbers
+      @param scan_regex An optional regular expression used to extract the scan numbers
 
       @exception Exception::FileNotFound is thrown if the file does not exists.
       @exception Exception::ParseError is thrown if the file does not suit to the standard.
@@ -91,8 +91,8 @@ public:
       @param protein_identification protein identifications belonging to the whole experiment
       @param id_data the identifications with m/z and RT
       @param peptides a map of modified peptides identified by the String title
-      @param An optional mapping of scan indices to RT, in case the file only contains scan numbers
-      @param An optional regular expression used to extract the scan numbers
+      @param rt_mapping An optional mapping of scan indices to RT, in case the file only contains scan numbers
+      @param scan_regex An optional regular expression used to extract the scan numbers
 
       @exception Exception::FileNotFound is thrown if the file does not exists.
       @exception Exception::ParseError is thrown if the file does not suit to the standard.
