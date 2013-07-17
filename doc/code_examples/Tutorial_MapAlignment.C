@@ -36,14 +36,18 @@
 using namespace OpenMS;
 using namespace std;
 
-Int main()
+int main(int argc, const char** argv)
 {
+  if (argc < 2) return 1;
+  // the path to the data should be given on the command line
+  String tutorial_data_path(argv[1]);
+  
   FeatureMap<> reference;
   FeatureMap<> toAlign;
 
   FeatureXMLFile xml_file;
-  xml_file.load("data/Tutorial_MapAlignment_1.featureXML", reference);
-  xml_file.load("data/Tutorial_MapAlignment_2.featureXML", toAlign);
+  xml_file.load(tutorial_data_path + "/data/Tutorial_MapAlignment_1.featureXML", reference);
+  xml_file.load(tutorial_data_path + "/data/Tutorial_MapAlignment_2.featureXML", toAlign);
 
   // create map alignment algorithm
   MapAlignmentAlgorithmPoseClustering algorithm;
@@ -58,8 +62,8 @@ Int main()
   algorithm.align(toAlign, transformation);
 
   // store results
-  xml_file.store("output/Tutorial_MapAlignment_1.featureXML", reference);
-  xml_file.store("output/Tutorial_MapAlignment_2.featureXML", toAlign);
+  xml_file.store("Tutorial_MapAlignment_1.featureXML", reference);
+  xml_file.store("Tutorial_MapAlignment_2.featureXML", toAlign);
 
   return 0;
 } //end of main

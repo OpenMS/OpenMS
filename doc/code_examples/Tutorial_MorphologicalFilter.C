@@ -36,12 +36,16 @@
 using namespace OpenMS;
 using namespace std;
 
-Int main()
+int main(int argc, const char** argv)
 {
+  if (argc < 2) return 1;
+  // the path to the data should be given on the command line
+  String tutorial_data_path(argv[1]);
+  
   PeakMap exp;
 
   MzMLFile mzml_file;
-  mzml_file.load("data/Tutorial_MorphologicalFilter.mzML", exp);
+  mzml_file.load(tutorial_data_path + "/data/Tutorial_MorphologicalFilter.mzML", exp);
 
   Param parameters;
   parameters.setValue("struc_elem_length", 1.0);

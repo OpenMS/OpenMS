@@ -36,9 +36,12 @@
 using namespace OpenMS;
 using namespace std;
 
-Int main()
+int main(int argc, const char** argv)
 {
-
+  if (argc < 2) return 1;
+  // the path to the data should be given on the command line
+  String tutorial_data_path(argv[1]);
+  
   MzXMLFile mzxml;
   MzMLFile mzml;
 
@@ -46,8 +49,8 @@ Int main()
   MSExperiment<Peak1D> map;
 
   // convert MzXML to MzML
-  mzxml.load("data/Tutorial_FileIO.mzXML", map);
-  mzml.store("output/Tutorial_FileIO.mzML", map);
+  mzxml.load(tutorial_data_path + "/data/Tutorial_FileIO.mzXML", map);
+  mzml.store("Tutorial_FileIO.mzML", map);
 
   return 0;
 } //end of main

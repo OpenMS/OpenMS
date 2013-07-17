@@ -37,17 +37,21 @@
 using namespace OpenMS;
 using namespace std;
 
-Int main()
+int main(int argc, const char** argv)
 {
+  if (argc < 2) return 1;
+  // the path to the data should be given on the command line
+  String tutorial_data_path(argv[1]);
+  
   TOFCalibration ec;
   PeakMap exp_raw, calib_exp;
   MzMLFile mzml_file;
-  mzml_file.load("data/Tutorial_TOFCalibration_peak.mzML", calib_exp);
-  mzml_file.load("data/Tutorial_TOFCalibration_raw.mzML", exp_raw);
+  mzml_file.load(tutorial_data_path + "/data/Tutorial_TOFCalibration_peak.mzML", calib_exp);
+  mzml_file.load(tutorial_data_path + "/data/Tutorial_TOFCalibration_raw.mzML", exp_raw);
 
   vector<DoubleReal> ref_masses;
   TextFile ref_file;
-  ref_file.load("data/Tutorial_TOFCalibration_masses.txt", true);
+  ref_file.load(tutorial_data_path + "/data/Tutorial_TOFCalibration_masses.txt", true);
   for (TextFile::Iterator iter = ref_file.begin(); iter != ref_file.end(); ++iter)
   {
     ref_masses.push_back(String(iter->c_str()).toDouble());

@@ -37,13 +37,17 @@
 using namespace OpenMS;
 using namespace std;
 
-Int main()
+int main(int argc, const char** argv)
 {
+  if (argc < 2) return 1;
+  // the path to the data should be given on the command line
+  String tutorial_data_path(argv[1]);
+  
   vector<FeatureMap<> > maps;
   maps.resize(1);
 
   FeatureXMLFile feature_file;
-  feature_file.load("data/Tutorial_Labeled.featureXML", maps[0]);
+  feature_file.load(tutorial_data_path + "/data/Tutorial_Labeled.featureXML", maps[0]);
   ConsensusMap out;
   out.getFileDescriptions()[0].filename = "data/Tutorial_Labeled.featureXML";
   out.getFileDescriptions()[0].size = maps[0].size();
@@ -56,7 +60,7 @@ Int main()
   // ... set parameters
   algorithm.group(maps, out);
   ConsensusXMLFile consensus_file;
-  consensus_file.store("output/Tutorial_Labeled.consensusXML", out);
+  consensus_file.store("Tutorial_Labeled.consensusXML", out);
 
   return 0;
 } //end of main

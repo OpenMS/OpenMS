@@ -53,8 +53,7 @@ foreach(i ${EXAMPLES_executables})
   # if not GUI and no style tests requested -> add as test
   if(NOT ${i} MATCHES "_GUI_" AND NOT ENABLE_STYLE_TESTING)
   	add_test(NAME ${i}
-             WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
-						 COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${i})
+						 COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${i} ${CMAKE_CURRENT_LIST_DIR})
   endif()
 endforeach(i)
 

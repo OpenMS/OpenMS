@@ -37,12 +37,16 @@
 using namespace OpenMS;
 using namespace std;
 
-Int main()
+int main(int argc, const char** argv)
 {
+  if (argc < 2) return 1;
+  // the path to the data should be given on the command line
+  String tutorial_data_path(argv[1]);
+  
   PeakSpectrum spectrum;
 
   DTAFile dta_file;
-  dta_file.load("data/Tutorial_SavitzkyGolayFilter.dta", spectrum);
+  dta_file.load(tutorial_data_path + "/data/Tutorial_SavitzkyGolayFilter.dta", spectrum);
 
   LinearResampler lr;
   Param param_lr;
