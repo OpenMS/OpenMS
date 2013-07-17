@@ -89,9 +89,12 @@ using namespace std;
   the directories specified by 'OpenMS.ini:id_db_dir' (see @subpage TOPP_advanced).
 
     The major part of the setting can be directly adjusted using the "default_input.xml" of
-    @em X!Tandem. An example of that file is contained in the "bin" folder of the
-    @em X!Tandem installation. The parameters "default_input_file" must point to a valid
-    file. Parameters set by this wrapper overwrite the default settings given in the file.
+    @em X!Tandem. Parameters set by this wrapper overwrite the default settings given in the 
+    "default_input.xml", even those parameters not set explicitly, but defaulting to a value. 
+    An example of such a "default_input.xml" is contained in the "bin" folder of the
+    @em X!Tandem installation. The parameter "default_input_file" must point to a valid
+    file. "Masterfiles" for "default_input.xml" parameter importing other xml input files 
+    are not recommended, use at own risk.
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_XTandemAdapter.cli
