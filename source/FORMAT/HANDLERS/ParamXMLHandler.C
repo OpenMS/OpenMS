@@ -181,7 +181,7 @@ namespace OpenMS
         }
 
         // check for supported_formats -> supported_formats overwrites restrictions in case of files
-        if ((tags.contains("input file") || tags.contains("output file")) && type == "string")
+        if ((tags.contains("input file") || tags.contains("output file")) && (type == "string" || type == "input-file" || type == "output-file"))
         {
           Int supported_formats_index = attributes.getIndex(s_supported_formats);
           if (supported_formats_index != -1)
@@ -212,24 +212,49 @@ namespace OpenMS
       }
       else if (element == "ITEMLIST")
       {
-        //parse name/type
-        list_.type = attributeAsString_(attributes, "type");
-        list_.name = path_ + attributeAsString_(attributes, "name");
-        //parse description, if present
-        list_.description = "";
-        optionalAttributeAsString_(list_.description, attributes, "description");
-        list_.description.substitute("#br#", "\n");
         //tags
         String tags_string;
         optionalAttributeAsString_(tags_string, attributes, "tags");
         list_.tags = StringList::create(tags_string);
-        //advanced (for downward compatibility with old Param files)
+        
+        
+        //parse name/type
+        list_.type = attributeAsString_(attributes, "type");
+        // handle in-/output file correctly
+        if (list_.type == "input-file")
+        {
+          list_.type = "string";
+          list_.tags.push_back("input file");
+        }
+        else if (list_.type == "output-file")
+        {
+          list_.type = "string";
+          list_.tags.push_back("output file");
+        }
+
+        list_.name = path_ + attributeAsString_(attributes, "name");
+        
+        //parse description, if present
+        list_.description = "";
+        optionalAttributeAsString_(list_.description, attributes, "description");
+        list_.description.substitute("#br#", "\n");
+        
+        //advanced
         String advanced_string;
         optionalAttributeAsString_(advanced_string, attributes, "advanced");
         if (advanced_string == "true")
         {
           list_.tags.push_back("advanced");
         }
+
+        //advanced
+        String required_string;
+        optionalAttributeAsString_(required_string, attributes, "required");
+        if (required_string == "true")
+        {
+          list_.tags.push_back("required");
+        }
+        
         list_.restrictions_index = attributes.getIndex(s_restrictions);
         if (list_.restrictions_index != -1)
         {

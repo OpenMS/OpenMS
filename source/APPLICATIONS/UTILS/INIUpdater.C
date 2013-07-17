@@ -53,27 +53,13 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page UTILS_INIUpdater INIUpdater
-    @brief Update INI and TOPPAS files from previous versions of OpenMS/TOPP
+  @page UTILS_INIUpdater INIUpdater
+  @brief Update INI and TOPPAS files from previous versions of OpenMS/TOPP
 
-<CENTER>
-    <table>
-        <tr>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ INIUpdater \f$ \longrightarrow \f$</td>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
-        </tr>
-        <tr>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> - </td>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> - </td>
-        </tr>
-    </table>
-</CENTER>
-
-    This tool can update old INI files and make them
-   - compatible to new versions of %OpenMS
-   - show new parameters introduced with a new %OpenMS version
-   - delete old parameters which no longer have any effect
+  This tool can update old INI files and make them
+  - compatible to new versions of %OpenMS
+  - show new parameters introduced with a new %OpenMS version
+  - delete old parameters which no longer have any effect
 
   The new INI files can be created in-place (with -i option), which will overwrite the
   existing file, but create a backup copy with [filename]_[version].ini,
@@ -86,12 +72,10 @@ using namespace std;
   No backup will be created if -out is used, as the original files are not touched (unless you name them
   the same).
 
-
-
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude UTILS_INIUpdater.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude UTILS_INIUpdater.html
+  <B>The command line parameters of this tool are:</B>
+  @verbinclude UTILS_INIUpdater.cli
+  <B>INI file documentation of this tool:</B>
+  @htmlinclude UTILS_INIUpdater.html
 */
 
 // We do not want this class to show up in the docu:
@@ -434,4 +418,3 @@ int main(int argc, const char** argv)
 }
 
 /// @endcond
-
