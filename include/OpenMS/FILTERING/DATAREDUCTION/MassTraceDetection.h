@@ -93,6 +93,8 @@ private:
     DoubleReal noise_threshold_int_;
     DoubleReal chrom_peak_snr_;
 
+    String trace_termination_criterion_;
+    Size trace_termination_outliers_;
     DoubleReal min_sample_rate_;
     DoubleReal min_trace_length_;
     DoubleReal max_trace_length_;
