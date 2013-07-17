@@ -37,6 +37,7 @@
 
 #include <OpenMS/KERNEL/MassTrace.h>
 #include <OpenMS/KERNEL/Feature.h>
+#include <OpenMS/KERNEL/ConsensusFeature.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/FORMAT/MzTab.h>
@@ -155,14 +156,39 @@ namespace OpenMS
             observed_intensity_ = intensity;
         }
 
-        DoubleReal getMatchingIndex()
+        std::vector<DoubleReal> getIndividualIntensities()
+        {
+            return individual_intensities_;
+        }
+
+        std::vector<DoubleReal> getIndividualIntensities() const
+        {
+            return individual_intensities_;
+        }
+
+        void setIndividualIntensities(const std::vector<DoubleReal> indiv_ints)
+        {
+            individual_intensities_ = indiv_ints;
+        }
+
+        Size getMatchingIndex()
         {
             return matching_index_;
         }
 
-        void setMatchingIndex(const DoubleReal& idx)
+        void setMatchingIndex(const Size& idx)
         {
             matching_index_ = idx;
+        }
+
+        Size getSourceFeatureIndex()
+        {
+            return source_feature_index_;
+        }
+
+        void setSourceFeatureIndex(const Size& idx)
+        {
+            source_feature_index_ = idx;
         }
 
         String getFoundAdduct()
@@ -238,7 +264,9 @@ namespace OpenMS
         DoubleReal error_ppm_;
         DoubleReal observed_rt_;
         DoubleReal observed_intensity_;
+        std::vector<DoubleReal> individual_intensities_;
         Size matching_index_;
+        Size source_feature_index_;
 
         String found_adduct_;
         String empirical_formula_;
@@ -264,9 +292,11 @@ public:
 
     void queryByMass(const DoubleReal&, const DoubleReal&, std::vector<AccurateMassSearchResult>&);
     void queryByFeature(const Feature&, std::vector<AccurateMassSearchResult>&);
+    void queryByConsensusFeature(const ConsensusFeature&, std::vector<AccurateMassSearchResult>&);
 
     /// main method of AccurateMassSearchEngine
     void run(const FeatureMap<>&, MzTab&);
+    void run(const ConsensusMap&, MzTab&);
 
 
 protected:
