@@ -227,17 +227,6 @@ namespace OpenMS
       return EXECUTION_OK;
     }
 
-    // '-test' given
-    if (param_cmdline_.exists("test"))
-    {
-      test_mode_ = true;
-
-      // initialize the random generator as early as possible!
-      DateTime date_time;
-      date_time.set("1999-12-31 23:59:59");
-      UniqueIdGenerator::setSeed(date_time);
-    }
-
     // test if unknown options were given
     if (param_cmdline_.exists("unknown"))
     {
@@ -384,6 +373,17 @@ namespace OpenMS
           writeLog_(String("Warning: Parameters file version (") + file_version + ") does not match the version of this tool (" + version_ + ").");
         }
       }
+    }
+
+    // 'test' flag is set
+    if (getFlag_("test"))
+    {
+      test_mode_ = true;
+
+      // initialize the random generator as early as possible!
+      DateTime date_time;
+      date_time.set("1999-12-31 23:59:59");
+      UniqueIdGenerator::setSeed(date_time);
     }
 
     //-------------------------------------------------------------

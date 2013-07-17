@@ -553,6 +553,9 @@ if("${PACKAGE_TYPE}" STREQUAL "none")
   endif(NOT ENABLE_STYLE_TESTING)
 endif("${PACKAGE_TYPE}" STREQUAL "none")
 
+### TOPPAS pipeline tests ###
+set(ENABLE_PIPELINE_TESTING OFF CACHE BOOL "Enables the additional testing of various TOPPAS pipelines when 'make test' is called.")
+
 ########################################################
 ###                   Examples                       ###
 ########################################################
