@@ -57,7 +57,7 @@ namespace OpenMS
     */
     class OPENMS_DLLAPI MSDataWritingConsumer  : 
       public Internal::MzMLHandler< MSExperiment<> >,
-      public Interfaces::IMSDataConsumer
+      public Interfaces::IMSDataConsumer< MSExperiment<> >
     {
 
     public:

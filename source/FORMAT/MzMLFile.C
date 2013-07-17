@@ -66,9 +66,10 @@ namespace OpenMS
       options_ = options;
   }
 
-  void MzMLFile::transform(const String& filename_in, /* const String& filename_out,  */Interfaces::IMSDataConsumer * consumer/* , const MapType& map */)
+  template <typename MapType>
+  void MzMLFile::transform(const String& filename_in, /* const String& filename_out,  */Interfaces::IMSDataConsumer<MapType> * consumer/* , const MapType& map */)
   {
-    typedef MSExperiment<> MapType;
+    //    typedef MSExperiment<> MapType;
 
     // First pass through the file -> get the meta-data and hand it to the consumer
     {

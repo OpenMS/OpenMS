@@ -201,7 +201,7 @@ public:
         chromatogram_counts = chromatogram_count;
       }
 
-      void setMSDataConsumer(Interfaces::IMSDataConsumer * consumer)
+      void setMSDataConsumer(Interfaces::IMSDataConsumer<MapType> * consumer)
       {
         consumer_ = consumer;
       }
@@ -288,7 +288,7 @@ protected:
       const ProgressLogger& logger_;
 
       /// Consumer class to work on spectra
-      Interfaces::IMSDataConsumer* consumer_;
+      Interfaces::IMSDataConsumer<MapType>* consumer_;
 
       /// Counting spectra and chromatograms
       UInt scan_count;

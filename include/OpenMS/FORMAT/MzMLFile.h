@@ -141,7 +141,8 @@ public:
 
         The result will not be stored by this class.
     */
-    void transform(const String& filename_in, /* const String& filename_out, */ Interfaces::IMSDataConsumer * consumer/* , const MapType& map */);
+    template <typename MapType>
+    void transform(const String& filename_in, /* const String& filename_out, */ Interfaces::IMSDataConsumer<MapType> * consumer/* , const MapType& map */);
 
     /**
         @brief Transforms a map while loading using the supplied MSDataConsumer
@@ -149,7 +150,7 @@ public:
         The result will be stored in the supplied map.
     */
     template <typename MapType>
-    void transform(const String& filename_in, /* const String& filename_out, */ Interfaces::IMSDataConsumer * consumer, const MapType& map)
+    void transform(const String& filename_in, /* const String& filename_out, */ Interfaces::IMSDataConsumer<MapType> * consumer, const MapType& map)
     {
       // First pass through the file -> get the meta-data and hand it to the consumer
       {
