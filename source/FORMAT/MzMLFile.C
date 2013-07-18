@@ -66,38 +66,6 @@ namespace OpenMS
       options_ = options;
   }
 
-  template <typename MapType>
-  void MzMLFile::transform(const String& filename_in, /* const String& filename_out,  */Interfaces::IMSDataConsumer<MapType> * consumer/* , const MapType& map */)
-  {
-    //    typedef MSExperiment<> MapType;
-
-    // First pass through the file -> get the meta-data and hand it to the consumer
-    {
-      Size scount = 0, ccount = 0;
-      MapType experimental_settings;
-      bool size_only_before_ = options_.getSizeOnly();
-      options_.setSizeOnly(true);
-      Internal::MzMLHandler<MapType> handler(experimental_settings, filename_in, getVersion(), *this);
-      handler.setOptions(options_);
-      parse_(filename_in, &handler);
-      handler.getCounts(scount, ccount);
-      options_.setSizeOnly(size_only_before_);
-      consumer->setExpectedSize(scount, ccount);
-      consumer->setExperimentalSettings(experimental_settings);
-    }
-
-    // Second pass through the data, now read the spectra!
-    {
-      MapType dummy;
-      Internal::MzMLHandler<MapType> handler(dummy, filename_in, getVersion(), *this);
-      handler.setOptions(options_);
-      handler.setMSDataConsumer(consumer);
-      // TODO catch errors as above ?
-      parse_(filename_in, &handler);
-    }
-
-  }
-
   //reimplemented in order to handle index MzML
   bool MzMLFile::isValid(const String & filename, std::ostream & os)
   {
