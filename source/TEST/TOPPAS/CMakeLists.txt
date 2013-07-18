@@ -46,7 +46,7 @@
 set(TOPP_BIN_PATH ${OPENMS_BINARY_DIR})
 set(DATA_DIR_TOPP ${PROJECT_SOURCE_DIR}/TOPP)
 set(DATA_DIR_TOPPAS ${PROJECT_SOURCE_DIR}/TOPPAS)
-set(DIFF ${TOPP_BIN_PATH}/FuzzyDiff -ini ${DATA_DIR_TOPP}/FuzzyDiff.ini -whitelist "IdentificationRun " "SearchParameters ")
+set(DIFF ${TOPP_BIN_PATH}/FuzzyDiff -ini ${DATA_DIR_TOPP}/FuzzyDiff.ini -whitelist "IdentificationRun " "SearchParameters " "xml-stylesheet")
 
 
 ################### Labelfree quantification with IDMapping ####################
