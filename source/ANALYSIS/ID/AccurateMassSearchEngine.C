@@ -307,7 +307,7 @@ void AccurateMassSearchEngine::queryByMass(const DoubleReal& adduct_mass, const 
     return;
 }
 
-void AccurateMassSearchEngine::queryByFeature(const Feature& feat, std::vector<AccurateMassSearchResult>& results)
+void AccurateMassSearchEngine::queryByFeature(const Feature& feat, const Size& f_index, std::vector<AccurateMassSearchResult>& results)
 {
     DoubleReal adduct_mass(feat.getMZ());
     DoubleReal adduct_charge(feat.getCharge());
@@ -319,13 +319,14 @@ void AccurateMassSearchEngine::queryByFeature(const Feature& feat, std::vector<A
     for (Size hit_idx = 0; hit_idx < results_part.size(); ++hit_idx)
     {
         results_part[hit_idx].setObservedRT(feat.getRT());
+        results_part[hit_idx].setSourceFeatureIndex(f_index);
         results_part[hit_idx].setObservedIntensity(feat.getIntensity());
     }
 
     std::copy(results_part.begin(), results_part.end(), std::back_inserter(results));
 }
 
-void AccurateMassSearchEngine::queryByConsensusFeature(const ConsensusFeature& cfeat, std::vector<AccurateMassSearchResult>& results)
+void AccurateMassSearchEngine::queryByConsensusFeature(const ConsensusFeature& cfeat, const Size& cf_index, const Size& number_of_maps, std::vector<AccurateMassSearchResult>& results)
 {
     DoubleReal adduct_mass(cfeat.getMZ());
     DoubleReal adduct_charge(cfeat.getCharge());
@@ -342,20 +343,31 @@ void AccurateMassSearchEngine::queryByConsensusFeature(const ConsensusFeature& c
     //        std::cout << f_it->getRT() << "\t" << f_it->getMZ() << "\t" << f_it->getIntensity() << std::endl;
     //    }
 
+    ConsensusFeature::const_iterator f_it = ind_feats.begin();
+
+    std::vector<DoubleReal> tmp_f_ints;
+
+    for (Size map_idx = 0; map_idx < number_of_maps; ++map_idx)
+    {
+        // std::cout << "map idx: " << f_it->getMapIndex() << std::endl;
+
+        if (map_idx == f_it->getMapIndex())
+        {
+            tmp_f_ints.push_back(f_it->getIntensity());
+            ++f_it;
+        }
+        else
+        {
+            tmp_f_ints.push_back(0.0);
+        }
+    }
+
 
     for (Size hit_idx = 0; hit_idx < results_part.size(); ++hit_idx)
     {
         results_part[hit_idx].setObservedRT(cfeat.getRT());
+        results_part[hit_idx].setSourceFeatureIndex(cf_index);
         // results_part[hit_idx].setObservedIntensity(cfeat.getIntensity());
-        ConsensusFeature::const_iterator f_it = ind_feats.begin();
-
-        std::vector<DoubleReal> tmp_f_ints;
-
-        for ( ; f_it != ind_feats.end(); ++f_it)
-        {
-            tmp_f_ints.push_back(f_it->getIntensity());
-        }
-
         results_part[hit_idx].setIndividualIntensities(tmp_f_ints);
     }
 
@@ -390,7 +402,7 @@ void AccurateMassSearchEngine::run(const FeatureMap<>& fmap, MzTab& mztab_out)
         std::vector<AccurateMassSearchResult> query_results;
 
         // std::cout << i << ": " << fmap[i].getMetaValue(3) << " mass: " << fmap[i].getMZ() << " num_traces: " << fmap[i].getMetaValue("num_of_masstraces") << " charge: " << fmap[i].getCharge() << std::endl;
-        queryByFeature(fmap[i], query_results);
+        queryByFeature(fmap[i], i, query_results);
 
         if (iso_similarity_ && (Size)fmap[i].getMetaValue("num_of_masstraces") > 1 && query_results.size() > 0)
         {
@@ -430,7 +442,7 @@ void AccurateMassSearchEngine::run(const FeatureMap<>& fmap, MzTab& mztab_out)
 
     exportMzTab_(overall_results, mztab_out);
 
-    return;
+    return ;
 }
 
 void AccurateMassSearchEngine::run(const ConsensusMap& cmap, MzTab& mztab_out)
@@ -441,7 +453,11 @@ void AccurateMassSearchEngine::run(const ConsensusMap& cmap, MzTab& mztab_out)
     // This loads additional properties like common name, smiles, and inchi key for each HMDB id
     parseStructMappingFile_("");
 
-    // typedef std::map<String, std::vector<AccurateMassSearchResult> > QueryResultsTable;
+    ConsensusMap::FileDescriptions fd_map = cmap.getFileDescriptions();
+    Size num_of_maps = fd_map.size();
+
+    std::cout << "num of maps: " << num_of_maps << std::endl;
+
 
     if (ion_mode_ == "positive")
     {
@@ -461,14 +477,14 @@ void AccurateMassSearchEngine::run(const ConsensusMap& cmap, MzTab& mztab_out)
         std::vector<AccurateMassSearchResult> query_results;
 
         // std::cout << i << ": " << cmap[i].getMetaValue(3) << " mass: " << cmap[i].getMZ() << " num_traces: " << cmap[i].getMetaValue("num_of_masstraces") << " charge: " << cmap[i].getCharge() << std::endl;
-        queryByConsensusFeature(cmap[i], query_results);
+        queryByConsensusFeature(cmap[i], i, num_of_maps, query_results);
 
         overall_results.push_back(query_results);
     }
 
     exportMzTab_(overall_results, mztab_out);
 
-    return;
+    return ;
 }
 
 

@@ -291,8 +291,8 @@ public:
     virtual ~AccurateMassSearchEngine();
 
     void queryByMass(const DoubleReal&, const DoubleReal&, std::vector<AccurateMassSearchResult>&);
-    void queryByFeature(const Feature&, std::vector<AccurateMassSearchResult>&);
-    void queryByConsensusFeature(const ConsensusFeature&, std::vector<AccurateMassSearchResult>&);
+    void queryByFeature(const Feature&, const Size&, std::vector<AccurateMassSearchResult>&);
+    void queryByConsensusFeature(const ConsensusFeature&, const Size&, const Size&, std::vector<AccurateMassSearchResult>&);
 
     /// main method of AccurateMassSearchEngine
     void run(const FeatureMap<>&, MzTab&);
