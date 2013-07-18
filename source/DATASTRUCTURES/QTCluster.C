@@ -94,7 +94,7 @@ namespace OpenMS
     }
   }
 
-  void QTCluster::getElements(boost::unordered::unordered_map<Size, GridFeature *> & elements)
+  void QTCluster::getElements(OpenMSBoost::unordered_map<Size, GridFeature *> & elements)
   {
     elements.clear();
     elements[center_point_->getMapIndex()] = center_point_;
@@ -138,17 +138,17 @@ namespace OpenMS
     }
   }
 
-  bool QTCluster::update(const boost::unordered::unordered_map<Size, GridFeature *> & removed)
+  bool QTCluster::update(const OpenMSBoost::unordered_map<Size, GridFeature *> & removed)
   {
     // check if the cluster center was removed:
-    for (boost::unordered::unordered_map<Size, GridFeature *>::const_iterator rm_it = removed.begin();
+    for (OpenMSBoost::unordered_map<Size, GridFeature *>::const_iterator rm_it = removed.begin();
          rm_it != removed.end(); ++rm_it)
     {
       if (rm_it->second == center_point_)
         return false;
     }
     // update the cluster contents:
-    for (boost::unordered::unordered_map<Size, GridFeature *>::const_iterator rm_it = removed.begin();
+    for (OpenMSBoost::unordered_map<Size, GridFeature *>::const_iterator rm_it = removed.begin();
          rm_it != removed.end(); ++rm_it)
     {
       NeighborMap::iterator pos = neighbors_.find(rm_it->first);
