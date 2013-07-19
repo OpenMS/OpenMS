@@ -81,6 +81,12 @@
 
   @section install_linux_contrib Installing the contrib package
 
+  OpenMS depends on several external libraries, namely Boost, GSL, libSVM,
+  SeqAn, glpk, zlib, libbz2 and Xerces-C. There are two ways to install them:
+  i) use the "contrib" package provided by %OpenMS and compile them from source
+  or ii) use the distributions package management.
+
+  @subsection install_linux_contrib_src Installing the dependencies from source
   In order to facilitate the installation of the libraries required for %OpenMS, we composed a
   "contrib-package" containing the libraries Boost, GSL, libSVM, SeqAn, glpk, zlib, libbz2 and Xerces-C. 
     
@@ -111,6 +117,27 @@
 
   @note To avoid problems while building the libraries contained in the contrib package, the path
   to your contrib directory should not have any spaces in it.
+
+  @subsection install_linux_contrib_dist Installing the dependencies from the distribution
+
+  All %OpenMS dependencies (except SeqAn) can be installed using the package
+  management on many major Linux distributions. Depending on your internet
+  connection, this may be faster for you. For Ubuntu (12.04) and Debian please
+  install the following packages:
+
+  <pre>
+  libxerces-c-dev libgsl0-dev libboost-regex-dev libboost-iostreams-dev libboost-date-time-dev libboost-math-dev libsvm-dev libglpk-dev libzip-dev zlib1g-dev 
+  </pre>
+
+  Once these are installed, you will still need SeqAn, for this follow the instructions above (section section @ref install_linux_contrib_src) and configure with  
+
+  <pre>
+  &gt; cmake -DBUILD_TYPE=SEQAN .
+  </pre>
+
+  @note When compiling OpenMS (see section @ref install_linux_openms below) you will need to set the following CMake flags: 
+
+  -DCMAKE_FIND_ROOT_PATH="/usr;/usr/local" and -DBOOST_USE_STATIC=OFF to enable CMake to find the correct libraries and to disable static linking of the Boost libraries.
 
 <HR>
   
