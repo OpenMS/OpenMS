@@ -190,6 +190,7 @@ public:
       {
         String outlier = "none";
         double qual = compute_quality(transition_group, picked_chroms, chr_idx, best_left, best_right, outlier);
+        if (qual < min_qual_) {return mrmFeature;}
         mrmFeature.setMetaValue("potentialOutlier", outlier);
         mrmFeature.setOverallQuality(qual);
       }
@@ -665,6 +666,7 @@ protected:
     String background_subtraction_;
     bool recalculate_peaks_;
     bool compute_peak_quality_;
+    DoubleReal min_qual_;
 
     int stop_after_feature_;
     DoubleReal stop_after_intensity_ratio_;

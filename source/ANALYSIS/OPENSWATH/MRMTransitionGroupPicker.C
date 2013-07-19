@@ -54,6 +54,7 @@ namespace OpenMS
 
     defaults_.setValue("recalculate_peaks", "false", "Tries to get better peak picking by looking at peak consistency", StringList::create("advanced"));
     // defaults_.setValue("detect_outliers", "false", "Tries to detect outlier transitions", StringList::create("advanced"));
+    defaults_.setValue("minimal_quality", -10000.0, "Only if compute_peak_quality is set, this parameter will not consider peaks below this quality threshold", StringList::create("advanced"));
     defaults_.setValue("compute_peak_quality", "false", "Tries to compute a quality value for each peakgroup and detect outlier transitions", StringList::create("advanced"));
 
     defaults_.insert("PeakPickerMRM:", PeakPickerMRM().getDefaults());
@@ -85,6 +86,7 @@ namespace OpenMS
     recalculate_peaks_ = (bool)param_.getValue("recalculate_peaks").toBool();
     // detect_outliers_ = (bool)param_.getValue("detect_outliers").toBool();
     compute_peak_quality_ = (bool)param_.getValue("compute_peak_quality").toBool();
+    min_qual_ = (DoubleReal)param_.getValue("minimal_quality");
     min_peak_width_ = (DoubleReal)param_.getValue("min_peak_width");
   }
 
