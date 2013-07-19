@@ -287,7 +287,8 @@ namespace OpenMS
 
   void PeakPickerMRM::removeOverlappingPeaks_(const RichPeakChromatogram& chromatogram, RichPeakChromatogram& picked_chrom)
   {
-    LOG_DEBUG  << "Remove overlapping peaks now" << std::endl;
+    if (picked_chrom.empty()) {return;}
+    LOG_DEBUG  << "Remove overlapping peaks now (size " << picked_chrom.size() << ")"<< std::endl;
     Size current_peak = 0;
     // Find overlapping peaks
     for (Size i = 0; i < picked_chrom.size() - 1; i++)

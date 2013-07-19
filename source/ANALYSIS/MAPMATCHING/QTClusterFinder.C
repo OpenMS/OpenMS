@@ -139,9 +139,9 @@ namespace OpenMS
       typedef boost::unordered::unordered_multimap<DoubleReal, GridFeature *> InnerNeighborMap;
       typedef boost::unordered::unordered_map<Size, boost::unordered::unordered_multimap<DoubleReal, GridFeature *> > NeighborMap;
       NeighborMap neigh = it->getNeighbors();
-      for (NeighborMap::iterator n_it = neigh.begin(); n_it != neigh.end(); n_it++)
+      for (NeighborMap::iterator n_it = neigh.begin(); n_it != neigh.end(); ++n_it)
       {
-        for (InnerNeighborMap::iterator i_it = n_it->second.begin(); i_it != n_it->second.end(); i_it++)
+        for (InnerNeighborMap::iterator i_it = n_it->second.begin(); i_it != n_it->second.end(); ++i_it)
         {
           element_mapping[i_it->second].push_back( &(*it) );
         }
