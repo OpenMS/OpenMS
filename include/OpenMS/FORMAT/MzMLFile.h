@@ -178,7 +178,7 @@ public:
         The result will be stored in the supplied map.
     */
     template <typename MapType>
-    void transform(const String& filename_in, /* const String& filename_out, */ Interfaces::IMSDataConsumer<MapType> * consumer, const MapType& map)
+    void transform(const String& filename_in, /* const String& filename_out, */ Interfaces::IMSDataConsumer<MapType> * consumer, MapType& map)
     {
       // First pass through the file -> get the meta-data and hand it to the consumer
       {

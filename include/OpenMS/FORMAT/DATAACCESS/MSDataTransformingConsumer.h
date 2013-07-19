@@ -56,7 +56,7 @@ namespace OpenMS
       function pointer that can be set on the object.
     */
     class OPENMS_DLLAPI MSDataTransformingConsumer : 
-      public Interfaces::IMSDataConsumer
+      public Interfaces::IMSDataConsumer<>
     {
 
     public:
@@ -102,6 +102,8 @@ namespace OpenMS
       {
         cprocessing_ptr_ = cproptr;
       }
+
+      void setExperimentalSettings(OpenMS::ExperimentalSettings&) {};
 
     protected:
       void (*sprocessing_ptr_)(SpectrumType&);

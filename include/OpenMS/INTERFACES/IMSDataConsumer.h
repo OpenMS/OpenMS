@@ -52,8 +52,16 @@ namespace Interfaces
 
     /**
       @brief The interface of a consumer of spectra
+
+      The spectra consumer is able to consume MSSpectrum and MSChromatogram and
+      process them. It also expects to be informed about the number of spectra
+      and chromatograms that it needs to consume and about the
+      ExperimentalSettings _before_ consuming any spectra. Depending on the
+      implementation, an exception may occur if the ExperimentalSettings and
+      the size of the experiment are not set before consuming any spectra. 
+
     */
-    template <typename MapType>
+    template <typename MapType = MSExperiment<> >
     class OPENMS_DLLAPI IMSDataConsumer
     {
     public:
