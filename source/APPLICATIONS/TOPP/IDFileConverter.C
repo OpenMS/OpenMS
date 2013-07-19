@@ -328,12 +328,11 @@ protected:
         MascotXMLFile::RTMapping rt_mapping;
         if (!exp_name.empty())
         {
-          MSExperiment<> exp;
-          fh.loadExperiment(exp_name, exp);
-          for (Size i = 0; i < exp.size(); ++i)
-          {
-            if (exp[i].getMSLevel() > 1) rt_mapping[i] = exp[i].getRT();
-          }
+          PeakMap exp;
+          // load only MS2 spectra:
+          fh.getOptions().addMSLevel(2);
+          fh.loadExperiment(exp_name, exp, FileTypes::MZML, log_type_);
+          MascotXMLFile::generateRTMapping(exp.begin(), exp.end(), rt_mapping);
         }
         protein_identifications.resize(1);
         MascotXMLFile().load(in, protein_identifications[0],

@@ -108,7 +108,8 @@ namespace OpenMS
     if (no_rt_count)
     {
       LOG_WARN << "Warning: " << no_rt_count << " (of " << id_data.size() 
-               << ") peptide identifications have no retention time value.";
+               << ") peptide identifications have no retention time value."
+               << endl;
     }
     // if we have a mapping, but couldn't find any RT values, that's an error:
     if (!rt_mapping.empty() && (no_rt_count == id_data.size()))
@@ -133,6 +134,31 @@ namespace OpenMS
         // erase first hit
         peptide_hits.erase(peptide_hits.begin() + 1);
         it->setHits(peptide_hits);
+      }
+    }
+  }
+
+  
+  void MascotXMLFile::generateRTMapping(
+    const MSExperiment<>::ConstIterator begin,
+    const MSExperiment<>::ConstIterator end, RTMapping& rt_mapping)
+  {
+    rt_mapping.clear();
+    for (MSExperiment<>::ConstIterator it = begin; it != end; ++it)
+    {
+      String id = it->getNativeID(); // expected format: "... scan=#"
+      try
+      {
+        Int num_id = id.suffix('=').toInt();
+        if (num_id >= 0) rt_mapping[num_id] = it->getRT();
+        else throw Exception::ConversionError(__FILE__, __LINE__,
+                                              __PRETTY_FUNCTION__, "error");
+      }
+      catch (Exception::ConversionError)
+      {
+        LOG_ERROR << "Error: Could not create mapping of scan numbers to retention times." << endl;
+        rt_mapping.clear();
+        break;
       }
     }
   }
