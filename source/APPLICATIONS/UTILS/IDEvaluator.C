@@ -170,8 +170,6 @@ protected:
     }
 
 
-    QApplicationTOPP a(argc, const_cast<char **>(argv));
-
     IDEvaluationBase* mw = new IDEvaluationBase();
     Param alg_param = mw->getParameters();
     alg_param.insert("", getParam_().copy("algorithm:", true));
@@ -240,7 +238,7 @@ int main(int argc, const char ** argv)
   int argc_ = 1;
   const char* c = "IDEvaluator";
   const char** argv_ = &c;
-  QApplication app(argc_, const_cast<char**>(argv_));
+  QApplication app(argc_, const_cast<char**>(argv_)); // no QApplicationTOPP, since any exception thrown will result in an abort of a cmd line tool anyways (no real GUI here)
 
   TOPPIDEvaluator tool;
   return tool.main(argc, argv);
