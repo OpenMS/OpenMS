@@ -265,7 +265,7 @@ public:
     }
 
     /// Write only the meta data of an MSExperiment
-    void writeMetadata(MapType exp, String out_meta)
+    void writeMetadata(MapType exp, String out_meta, bool addCacheMetaValue=false)
     {
       // delete the actual data for all spectra and chromatograms, leave only metadata
       std::vector<MSChromatogram<ChromatogramPeak> > chromatograms = exp.getChromatograms(); // copy
@@ -281,9 +281,28 @@ public:
       }
       exp.setChromatograms(chromatograms);
 
-      // store the meta data that is left in out_meta file
-      MzMLFile f;
-      f.store(out_meta, exp);
+      if (addCacheMetaValue)
+      {
+        // set dataprocessing on each spectrum/chromatogram
+        DataProcessing dp;
+        std::set<DataProcessing::ProcessingAction> actions;
+        actions.insert(DataProcessing::FORMAT_CONVERSION);
+        dp.setProcessingActions(actions);
+        dp.setMetaValue("cached_data", "true");
+        for (Size i=0; i<exp.size(); ++i)
+        {
+          exp[i].getDataProcessing().push_back(dp);
+        }
+        std::vector<MSChromatogram<ChromatogramPeak> > chromatograms = exp.getChromatograms();
+        for (Size i=0; i<chromatograms.size(); ++i)
+        {
+          chromatograms[i].getDataProcessing().push_back(dp);
+        }
+        exp.setChromatograms(chromatograms);
+      }
+
+      // store the meta data using the regular MzMLFile
+      MzMLFile().store(out_meta, exp);
     }
 
     /// fast access without copying
