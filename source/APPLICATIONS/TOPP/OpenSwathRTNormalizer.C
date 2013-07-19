@@ -201,12 +201,11 @@ protected:
     std::vector<std::pair<double, double> > pairs; // store the RT pairs to write the output trafoXML
     for (Size i = 0; i < file_list.size(); ++i)
     {
-      MapType exp;
-      MapType xic_map;  // the map with the extracted ion chromatograms
-      MapType swath_map; // the original swath file (not used)
+      boost::shared_ptr<MapType> swath_map (new MapType()); // the map with the extracted ion chromatograms
+      boost::shared_ptr<MapType> xic_map (new MapType());
       FeatureMap<> featureFile;
       std::cout << "RT Normalization working on " << file_list[i] << std::endl;
-      f.load(file_list[i], exp);
+      f.load(file_list[i], *xic_map.get());
 
       // get the transitions that we want to use (in swath, only select those
       // from the current window).
@@ -215,7 +214,6 @@ protected:
 
       std::cout << "nr transitions " << transition_exp_used.getTransitions().size() << std::endl;
 
-      xic_map = exp;
       OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType transition_group_map;
 
       MRMFeatureFinderScoring featureFinder;
@@ -223,18 +221,14 @@ protected:
       scoring_params.setValue("Scores:use_rt_score", "false");
       featureFinder.setParameters(scoring_params);
       
-#ifdef USE_SP_INTERFACE
       OpenSwath::SpectrumAccessPtr swath_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(swath_map);
       OpenSwath::SpectrumAccessPtr chromatogram_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(xic_map);
       featureFinder.pickExperiment(chromatogram_ptr, featureFile, transition_exp_used, trafo, swath_ptr, transition_group_map);
-#else
-      featureFinder.pickExperiment(xic_map, featureFile, transition_exp_used, trafo, swath_map, transition_group_map);
-#endif
 
       // add all the chromatograms to the output
-      for (Size k = 0; k < xic_map.getChromatograms().size(); k++)
+      for (Size k = 0; k < xic_map->getChromatograms().size(); k++)
       {
-        all_xic_maps.addChromatogram(xic_map.getChromatograms()[k]);
+        all_xic_maps.addChromatogram(xic_map->getChromatograms()[k]);
       }
 
       // find most likely correct feature for each group

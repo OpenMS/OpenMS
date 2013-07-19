@@ -42,6 +42,7 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
 #include <fstream>
+#include <boost/shared_ptr.hpp>
 
 using namespace OpenMS;
 using namespace std;
@@ -194,7 +195,7 @@ protected:
     Param feature_finder_param = getParam_().copy("algorithm:", true);
 
     // Create the output map, load the input TraML file and the chromatograms
-    MapType exp;
+    boost::shared_ptr<MapType> exp (new MapType());
     FeatureMap<> out_featureFile;
     OpenSwath::LightTargetedExperiment transition_exp;
 
@@ -213,13 +214,13 @@ protected:
 
     MzMLFile mzmlfile;
     mzmlfile.setLogType(log_type_);
-    mzmlfile.load(in, exp);
+    mzmlfile.load(in, *exp.get());
 
     // If there are no SWATH files its, just regular SRM/MRM Scoring
     if (file_list.size() == 0)
     {
       MRMFeatureFinderScoring featureFinder;
-      MapType empty_swath_map;
+      boost::shared_ptr<MapType> empty_swath_map (new MapType());
       featureFinder.setParameters(feature_finder_param);
       featureFinder.setLogType(log_type_);
       featureFinder.setStrictFlag(!nostrict);
@@ -242,7 +243,7 @@ protected:
     {
       MRMFeatureFinderScoring featureFinder;
       MzMLFile swath_file;
-      MapType swath_map;
+      boost::shared_ptr<MapType> swath_map (new MapType());
       FeatureMap<> featureFile;
       cout << "Loading file " << file_list[i] << endl;
 
@@ -252,7 +253,7 @@ protected:
       featureFinder.setLogType(log_type_);
 //#endif
 
-      swath_file.load(file_list[i], swath_map);
+      swath_file.load(file_list[i], *swath_map.get());
 
       // Logging and output to the console
 #ifdef _OPENMP
@@ -268,14 +269,14 @@ protected:
       }
 
       OpenSwath::LightTargetedExperiment transition_exp_used;
-      bool do_continue = OpenSwathHelper::checkSwathMapAndSelectTransitions(swath_map, transition_exp, transition_exp_used, min_upper_edge_dist);  
+      bool do_continue = OpenSwathHelper::checkSwathMapAndSelectTransitions(*swath_map.get(), transition_exp, transition_exp_used, min_upper_edge_dist);  
 
       if (do_continue)
       {
         featureFinder.setParameters(feature_finder_param);
         featureFinder.setStrictFlag(!nostrict);
         OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType transition_group_map;
-        OpenSwath::SpectrumAccessPtr  swath_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(swath_map);
+        OpenSwath::SpectrumAccessPtr swath_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(swath_map);
         OpenSwath::SpectrumAccessPtr chromatogram_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(exp);
         featureFinder.pickExperiment(chromatogram_ptr, featureFile, transition_exp_used, trafo, swath_ptr, transition_group_map);
 

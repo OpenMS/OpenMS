@@ -39,6 +39,7 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <boost/shared_ptr.hpp>
 
 namespace OpenMS
 {
@@ -49,7 +50,10 @@ namespace OpenMS
   {
     public:
     /// Simple Factory method to get a SpectrumAccess Ptr from an MSExperiment
-    static OpenSwath::SpectrumAccessPtr getSpectrumAccessOpenMSPtr(OpenMS::MSExperiment<OpenMS::Peak1D> & exp);
+    static OpenSwath::SpectrumAccessPtr getSpectrumAccessOpenMSPtr(boost::shared_ptr<OpenMS::MSExperiment<OpenMS::Peak1D> > exp);
+
+    private:
+    static bool isExperimentCached(boost::shared_ptr<OpenMS::MSExperiment<OpenMS::Peak1D> > exp);
   };
 }
 

@@ -36,43 +36,51 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMS.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMSCached.h>
 
-namespace OpenMS{
+namespace OpenMS
+{
 
-  OpenSwath::SpectrumAccessPtr SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(OpenMS::MSExperiment<OpenMS::Peak1D> & exp)
+  bool SimpleOpenMSSpectraFactory::isExperimentCached(boost::shared_ptr<OpenMS::MSExperiment<OpenMS::Peak1D> > exp)
   {
     bool is_cached = false;
-    for (std::size_t i = 0; i < exp.size(); ++i)
+    for (std::size_t i = 0; i < exp->size(); ++i)
+    {
+      for (std::size_t j = 0; j < exp->getSpectra()[i].getDataProcessing().size(); j++)
       {
-        for (std::size_t j = 0; j < exp[i].getDataProcessing().size(); j++)
-          {
-            const OpenMS::DataProcessing & dp = exp[i].getDataProcessing()[j];
-            if (dp.metaValueExists("cached_data"))
-              {
-                is_cached = true;
-              }
-          }
+        const OpenMS::DataProcessing & dp = exp->getSpectra()[i].getDataProcessing()[j];
+        if (dp.metaValueExists("cached_data"))
+        {
+          is_cached = true;
+        }
       }
-    for (std::size_t i = 0; i < exp.getChromatograms().size(); ++i)
+    }
+    for (std::size_t i = 0; i < exp->getChromatograms().size(); ++i)
+    {
+      for (std::size_t j = 0; j < exp->getChromatograms()[i].getDataProcessing().size(); j++)
       {
-        for (std::size_t j = 0; j < exp.getChromatograms()[i].getDataProcessing().size(); j++)
-          {
-            const OpenMS::DataProcessing & dp = exp.getChromatograms()[i].getDataProcessing()[j];
-            if (dp.metaValueExists("cached_data"))
-              {
-                is_cached = true;
-              }
-          }
+        const OpenMS::DataProcessing & dp = exp->getChromatograms()[i].getDataProcessing()[j];
+        if (dp.metaValueExists("cached_data"))
+        {
+          is_cached = true;
+        }
       }
+      }
+    return is_cached;
+  }
+
+  OpenSwath::SpectrumAccessPtr SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(boost::shared_ptr<OpenMS::MSExperiment<OpenMS::Peak1D> > exp)
+  {
+    bool is_cached = SimpleOpenMSSpectraFactory::isExperimentCached(exp);
     if (is_cached)
-      {
-        OpenSwath::SpectrumAccessPtr experiment(new OpenMS::SpectrumAccessOpenMSCached(exp.getLoadedFilePath()));
-        return experiment;
-      }
+    {
+      OpenSwath::SpectrumAccessPtr experiment(new OpenMS::SpectrumAccessOpenMSCached(exp->getLoadedFilePath()));
+      return experiment;
+    }
     else
-      {
-        OpenSwath::SpectrumAccessPtr experiment(new OpenMS::SpectrumAccessOpenMS(exp));
-        return experiment;
-      }
+    {
+      OpenSwath::SpectrumAccessPtr experiment(new OpenMS::SpectrumAccessOpenMS(exp));
+      return experiment;
+    }
   }
 
 }//end Namespace
+

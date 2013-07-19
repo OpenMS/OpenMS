@@ -69,6 +69,8 @@
 // auxiliary
 #include <OpenMS/ANALYSIS/OPENSWATH/SpectrumAddition.h>
 
+#include <boost/shared_ptr.hpp>
+
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -665,8 +667,11 @@ public:
       OpenSwathDataAccessHelper::convertTargetedExp(transition_exp_, transition_exp);
       TransitionGroupMapType transition_group_map;
 
-      OpenSwath::SpectrumAccessPtr chromatogram_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(chromatograms);
-      OpenSwath::SpectrumAccessPtr empty_swath_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(swath_map);
+      boost::shared_ptr<MSExperiment<Peak1D> > sh_chromatograms (new MSExperiment<Peak1D>(chromatograms) );
+      boost::shared_ptr<MSExperiment<Peak1D> > sh_swath_map (new MSExperiment<Peak1D>(swath_map) );
+
+      OpenSwath::SpectrumAccessPtr chromatogram_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(sh_chromatograms);
+      OpenSwath::SpectrumAccessPtr empty_swath_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(sh_swath_map);
 
       pickExperiment(chromatogram_ptr, output, transition_exp, trafo, empty_swath_ptr, transition_group_map);
     }

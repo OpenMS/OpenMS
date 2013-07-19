@@ -41,6 +41,8 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
 
+#include <boost/shared_ptr.hpp>
+
 namespace OpenMS
 {
   /**
@@ -55,7 +57,7 @@ public:
     typedef OpenMS::MSSpectrum<Peak1D> MSSpectrumType;
     typedef OpenMS::MSChromatogram<ChromatogramPeak> MSChromatogramType;
 
-    explicit SpectrumAccessOpenMS(MSExperimentType& ms_experiment);
+    explicit SpectrumAccessOpenMS(boost::shared_ptr<MSExperimentType> ms_experiment);
 
     ~SpectrumAccessOpenMS();
 
@@ -81,7 +83,7 @@ public:
     std::string getChromatogramNativeID(int id) const;
 
 private:
-    MSExperimentType* ms_experiment_;
+    boost::shared_ptr<MSExperimentType> ms_experiment_;
 
   };
 } //end namespace OpenMS

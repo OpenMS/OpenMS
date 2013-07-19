@@ -36,10 +36,10 @@
 
 namespace OpenMS
 {
-  SpectrumAccessOpenMS::SpectrumAccessOpenMS(MSExperimentType& ms_experiment)
+  SpectrumAccessOpenMS::SpectrumAccessOpenMS(boost::shared_ptr<MSExperimentType> ms_experiment)
   {
     // store raw ptr to the experiment
-    ms_experiment_ = &ms_experiment;
+    ms_experiment_ = ms_experiment;
   }
 
   SpectrumAccessOpenMS::~SpectrumAccessOpenMS()
