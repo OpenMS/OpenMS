@@ -548,6 +548,7 @@ svn propset svn:eol-style native MyClass.C
 				<LI> Declare release candidate and distribute tasks:
 					<UL> Check installation on target platforms
 					<UL> Check if all installed tools can be executed
+                                        <UL> Check if documentation is available and correct (e.g. version numbers)
 					<UL> Check if pipelines run
 					<UL> Check if interactive applications work correctly (e.g. TOPPView, TOPPAS, INIFileEditor, IDEvalutator  ...)
 					<UL> Check KNIME installation on target platforms
