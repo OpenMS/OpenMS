@@ -131,17 +131,11 @@ private slots:
 
     OPENMS_DLLAPI void getResults();
 
-    OPENMS_DLLAPI void loginSuccess();
-
     OPENMS_DLLAPI void followRedirect(const QHttpResponseHeader& resp);
 
 signals:
 
     OPENMS_DLLAPI void done();
-
-    OPENMS_DLLAPI void loginDone();
-
-    OPENMS_DLLAPI void queryDone();
 
     OPENMS_DLLAPI void gotRedirect(const QHttpResponseHeader& resp);
 
@@ -153,6 +147,9 @@ private:
 
     OPENMS_DLLAPI void endRun_();
 
+    /// Write HTTP header to error stream (for debugging)
+    OPENMS_DLLAPI void logHeader_(const QHttpHeader& header, 
+                                  const String& what);
     /**
       @brief Remove host name information from an url, e.g., "http://www.google.de/search" -> "search"
 

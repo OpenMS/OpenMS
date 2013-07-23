@@ -112,29 +112,14 @@ namespace OpenMS
     connect(http_, SIGNAL(stateChanged(int)), this, SLOT(httpStateChanged(int)));
     connect(http_, SIGNAL(readyRead(const QHttpResponseHeader &)), this, SLOT(readyReadSlot(const QHttpResponseHeader &)));
     connect(http_, SIGNAL(responseHeaderReceived(const QHttpResponseHeader &)), this, SLOT(readResponseHeader(const QHttpResponseHeader &)));
-    connect(this, SIGNAL(loginDone()), this, SLOT(loginSuccess()));
-    connect(this, SIGNAL(queryDone()), this, SLOT(getResults()));
     connect(this, SIGNAL(gotRedirect(const QHttpResponseHeader &)), this, SLOT(followRedirect(const QHttpResponseHeader &)));
     connect(&timeout_, SIGNAL(timeout()), this, SLOT(timedOut()));
 
     // get progress information
     connect(http_, SIGNAL(dataReadProgress(int, int)), this, SLOT(httpDataReadProgress(int, int)));
 
-    if (requires_login_)
-    {
-      login();
-    }
-    else
-    {
-      emit loginDone();
-    }
-    return;
-  }
-
-  void MascotRemoteQuery::loginSuccess()
-  {
-    LOG_INFO << "Login successful!" << std::endl;
-    execQuery();
+    if (param_.getValue("login").toBool()) login();
+    else execQuery();
   }
 
   void MascotRemoteQuery::login()
@@ -204,11 +189,9 @@ namespace OpenMS
     loginbytes.append("login_prompt\r\n");
     loginbytes.append("--" + boundary + "--\r\n");
 
-//~ #ifdef MASCOTREMOTEQUERY_DEBUG
-    cerr << ">>>> Header to send: " << "\n";
-    cerr << header.toString().toStdString() << "\n";
-    cerr << "ended" << "\n";
-//~ #endif
+#ifdef MASCOTREMOTEQUERY_DEBUG
+    logHeader_(header, "send");
+#endif
 
     header.setContentLength(loginbytes.length());
     http_->request(header, loginbytes);
@@ -234,9 +217,7 @@ namespace OpenMS
     }
 
 #ifdef MASCOTREMOTEQUERY_DEBUG
-    cerr << ">>> Header to request results: " << "\n";
-    cerr << header.toString().toStdString() << "\n";
-    cerr << "ended: " << "\n";
+    logHeader_(header, "request results");  
 #endif
 
     http_->request(header);
@@ -307,12 +288,10 @@ namespace OpenMS
     header.setContentLength(querybytes.length());
 
 #ifdef MASCOTREMOTEQUERY_DEBUG
-    cerr << ">>>> Header to request:" << "\n";
-    cerr << header.toString().toStdString() << "\n";
-    cerr << "ended: " << "\n";
-    cerr << ">>>> Query:" << "\n";
-    //    cerr << querybytes.constData() << "\n";
-    cerr << "ended: " << "\n";
+    logHeader_(header, "request");
+    cerr << ">>>> Query (begin):" << "\n"
+         << querybytes.constData() << "\n"
+         << "<<<< Query (end)." << endl;
 #endif
 
     if (to_ > 0)
@@ -427,10 +406,7 @@ namespace OpenMS
   {
 #ifdef MASCOTREMOTEQUERY_DEBUG
     cerr << "void MascotRemoteQuery::readResponseHeader(const QHttpResponseHeader &responseHeader)" << "\n";
-
-    cerr << ">>>>> Header to read: " << "\n";
-    cerr <<  response_header.toString().toStdString() << "\n";
-    cerr << "ended" << "\n";
+    logHeader_(response_header, "read"); 
 #endif
 
     if (response_header.statusCode() >= 400)
@@ -518,7 +494,9 @@ namespace OpenMS
     //Successful login? fire off the search
     if (new_bytes.contains("Logged in successfu")) // Do not use the whole string. Currently Mascot writes 'successfuly', but that might change...
     {
-      emit loginDone();
+      //Successful login? fire off the search
+      LOG_INFO << "Login successful!" << std::endl;
+      execQuery();
     }
     else if (new_bytes.contains("Error: You have entered an invalid password"))
     {
@@ -562,7 +540,7 @@ namespace OpenMS
         results_path_.append("&query_master=0");
       }
       //Finished search, fire off results retrieval
-      emit queryDone();
+      getResults();
     }
     else if (http_->lastResponse().statusCode() == 303)
     {
@@ -585,7 +563,7 @@ namespace OpenMS
       // fill result link again and download
       removeHostName_(results_path_);
       //Finished search, fire off results retrieval
-      emit queryDone();
+      getResults();
     }
     else
     {
@@ -698,6 +676,14 @@ namespace OpenMS
 
     // ensure path starts with /
     if (url[0] != '/') url.prepend('/');
+  }
+
+  void MascotRemoteQuery::logHeader_(const QHttpHeader& header, 
+                                     const String& what)
+  {
+    cerr << ">>>> Header to " << what << " (begin):\n"
+         << header.toString().toStdString()
+         << "<<<< Header to " << what << " (end)." << endl;
   }
 
 }
