@@ -43,8 +43,6 @@
 	
 	<H2 style="border-top:2px solid grey;">%OpenMS</H2>
 		<UL>
-
-
 			<LI><B>I have written a class for %OpenMS I want to contribute. What should I do?</B><BR>
 				Basically, you must conform to the %OpenMS @subpage coding_conventions :
 				<OL>
@@ -60,7 +58,6 @@
 					<LI>post a patch to the mailing list or 
 					<LI>become a developer and commit your code to the SVN directly.
 				</UL>
-
 			<LI><B>I want to implement a new file adapter. What is to be done?</B><BR>
 				<OL>
 					<LI> First you should add a file adapter class to the <tt>include/OpenMS/FORMAT/</tt> and <tt>source/FORMAT/</tt> folders.
@@ -78,8 +75,6 @@
 					<LI> To add your format to TOPP applications, add the file extension to the extensions list of the respective parameter:<BR>
 					     e.g. <tt>setValidStrings_("in_type", StringList::create("mzData,mzXML,mzML"));</tt> in <tt>FileInfo</tt>
 				</OL>
-				
-
 		</UL>
 	<H2 style="border-top:2px solid grey;">TOPP</H2>
 

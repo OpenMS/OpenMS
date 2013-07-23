@@ -47,7 +47,7 @@
 	@b TOPP @b tools: A set of command line tools, each of which is a building block of an analysis pipeline. 
 	         These tools chained together in a way that fits the requirements of the user.
 					 Accessible from a command prompt/shell or via TOPPAS.
-					 See also: @subpage TOPP_tutorial and @subpage TOPP_documentation<br>
+					 See also: @subpage TOPP_tutorial and @subpage TOPP_documentation <br>
 	@b UTILS: Similar to TOPP tools, but with more supporting character, which you'd rarely use in a productive pipeline - but rather during pipeline construction or
 						parameter optimization.
 						See also: @subpage UTILS_documentation

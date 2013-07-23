@@ -106,6 +106,6 @@
 
 
   <b>Deprecated</b>
-  - @subpage UTILS_IDDecoyProbability - Estimates peptide probabilities using a decoy search strategy.\nWARNING: This util is deprecated. 
+  - @subpage UTILS_IDDecoyProbability - Estimates peptide probabilities using a decoy search strategy. <br> WARNING: This util is deprecated. 
 
 */

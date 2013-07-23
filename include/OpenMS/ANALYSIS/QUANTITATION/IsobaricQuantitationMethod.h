@@ -121,7 +121,7 @@ protected:
     /**
       @brief Helper function to convert a string list containing an isotope correction matrix into a Matrix<double>.
 
-      @param strinlist The StringList to convert.
+      @param stringlist The StringList to convert.
       @return An isotope correction matrix as Matrix<double>.
     */
     Matrix<double> stringListToIsotopCorrectionMatrix_(const StringList& stringlist) const;

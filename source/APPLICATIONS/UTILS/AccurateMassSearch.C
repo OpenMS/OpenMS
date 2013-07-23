@@ -82,7 +82,7 @@ using namespace std;
         intensity ratios match to those of theoretical isotope patterns.
 
         <B>The command line parameters of this tool are:</B>
-        @verbinclude TOPP_AccurateMassSearch.cli
+        @verbinclude UTILS_AccurateMassSearch.cli
 */
 
 // We do not want this class to show up in the docu:

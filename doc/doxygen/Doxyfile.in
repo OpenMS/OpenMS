@@ -114,7 +114,7 @@ EXCLUDE_PATTERNS       = */.svn/* \
                          */weg/* \
                          */old/* \
                          */new/*
-EXAMPLE_PATH           = "@CF_OPENMS_SRC_PATH@/source/EXAMPLES/" \
+EXAMPLE_PATH           = "@CF_OPENMS_SRC_PATH@/doc/code_examples/" \
 												 "@CF_OPENMS_BIN_PATH@/doc/doxygen/parameters/output/" \
 												 "@CF_OPENMS_SRC_PATH@/share/OpenMS/" \
 												 "@CF_OPENMS_SRC_PATH@/CHANGELOG"

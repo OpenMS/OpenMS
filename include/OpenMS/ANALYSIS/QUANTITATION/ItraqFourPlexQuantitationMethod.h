@@ -42,7 +42,7 @@ namespace OpenMS
   /**
     @brief iTRAQ 4 plex quantitation to be used with the IsobaricQuantitation.
    
-    @htminclude OpenMS_ItraqFourPlexQuantitationMethod.parameters
+    @htmlinclude OpenMS_ItraqFourPlexQuantitationMethod.parameters
   */
   class OPENMS_DLLAPI ItraqFourPlexQuantitationMethod :
     public IsobaricQuantitationMethod

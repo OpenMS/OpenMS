@@ -644,7 +644,7 @@ nested comments. Comments should be written in plain english and describe the fu
 <H2 style="margin-top:20px; border-top:1px solid grey;">Examples</H2>
 
 Instructive programming examples can be provided in the
-<TT>source/EXAMPLES</TT> directory.
+<TT>doc/code_examples</TT> directory.
 
 <H2 style="margin-top:20px; border-top:1px solid grey;">Revision control</H2>
 

@@ -43,11 +43,11 @@
 // - Please write a short introduction for each chapter that explains
 //   what classes are described and where these classes can be found (folder)
 // - Use @a to visually highlight class names, namespaces, etc
-// - When using example code, put it in the OpenMS/source/Examples folder
+// - When using example code, put it in the OpenMS/doc/code_examples folder
 //   to make sure it can be compiled. The name of the file should be in the text
 //   to make the file easy to find for the user.
 //   Dont forget to add the built example application to the svn ignore list:
-//   'svn propedit svn:ignore source/EXAMPLES/'
+//   'svn propedit svn:ignore source/doc/code_examples'
 // - When talking about OpenMS in general, prefix it with a '%'. Otherwise a
 //   link to the OpenMS namspace is generated automatically
 

@@ -97,7 +97,7 @@ using namespace std;
   </p>
 
   To specify intensity values for certain proteins, add an abundance tag for the corresponding protein in the FASTA input file:<br>
-    - add '[# <key>=<value> #]' at the end of the > line to specify intensity
+    - add '[# &lt;key&gt;=&lt;value&gt; #]' at the end of the &gt; line to specify intensity
   For RT control (disable digestion, to make this work!)
   <ul>
     <li> rt (subjected to small local error by randomization)
