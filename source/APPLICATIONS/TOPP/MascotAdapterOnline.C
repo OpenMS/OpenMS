@@ -166,7 +166,7 @@ protected:
     //-------------------------------------------------------------
 
     PeakMap exp;
-    // keep only Level2
+    // keep only MS2 spectra
     fh.getOptions().addMSLevel(2);
     fh.loadExperiment(in, exp, in_type, log_type_);
     writeDebug_(String("Spectra loaded: ") + exp.size(), 2);
@@ -230,17 +230,27 @@ protected:
     vector<PeptideIdentification> pep_ids;
     ProteinIdentification prot_id;
 
-    // create mapping from scan indices to RT:
-    // (this should not be required, as the RT is directly contained in
-    // <pep_scan_title>305.147376424496_802.099</pep_scan_title>
-    // , but on user-generated mascotXML files on might find:
-    // <pep_scan_title>scan=18427</pep_scan_title>
-    // . Our query should return the correct version, but as we have the RT's available anyways, we provide them as fall back.
+    // set up mapping between scan numbers and retention times:
     MascotXMLFile::RTMapping rt_mapping;
-    for (Size i = 0; i < exp.size(); ++i)
+    for (PeakMap::ConstIterator it = exp.begin(); it != exp.end(); ++it)
     {
-      if (exp[i].getMSLevel() > 1) rt_mapping[i] = exp[i].getRT();
+      String id = it->getNativeID(); // expected format: "... scan=#"
+      try
+      {
+        Int num_id = id.suffix('=').toInt();
+        // mapping expects 0-based scan numbers:
+        if (num_id >= 0) rt_mapping[num_id - 1] = it->getRT();
+        else throw Exception::ConversionError(__FILE__, __LINE__,
+                                              __PRETTY_FUNCTION__, "error");
+      }
+      catch (Exception::ConversionError)
+      {
+        writeLog_("Error: Could not create mapping of scan numbers to retention times");
+        rt_mapping.clear();
+        break;
+      }
     }
+
     // read the response
     MascotXMLFile().load(mascot_tmp_file_name, prot_id, pep_ids, rt_mapping);
     writeDebug_("Read " + String(pep_ids.size()) + " peptide ids and " + String(prot_id.getHits().size()) + " protein identifications from Mascot", 5);
