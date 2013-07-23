@@ -233,7 +233,7 @@ namespace OpenMS
     }
 
 #ifdef MASCOTREMOTEQUERY_DEBUG
-    logHeader_(header, "request results");  
+    logHeader_(header, "request results");
 #endif
 
     http_->request(header);
@@ -422,7 +422,7 @@ namespace OpenMS
   {
 #ifdef MASCOTREMOTEQUERY_DEBUG
     cerr << "void MascotRemoteQuery::readResponseHeader(const QHttpResponseHeader &responseHeader)" << "\n";
-    logHeader_(response_header, "read"); 
+    logHeader_(response_header, "read");
 #endif
 
     if (response_header.statusCode() >= 400)
@@ -592,10 +592,20 @@ namespace OpenMS
       QRegExp mascot_error_regex("\\[M[0-9][0-9][0-9][0-9][0-9]\\]");
       if (response_text.contains(mascot_error_regex))
       {
-        LOG_INFO << "Received response with Mascot error message!" << std::endl;
-        QTextDocument doc;
-        doc.setHtml(response_text);
-        error_message_ = doc.toPlainText().toStdString();
+        LOG_ERROR << "Received response with Mascot error message!" << std::endl;
+        if (mascot_error_regex.cap() == "[M00380]")
+        {
+          // we know this error, so we give a much shorter and readable error message for the user
+          LOG_ERROR << "You must enter an email address and user name when using the Matrix Science public web site [M00380]." << std::endl;
+          error_message_ = "You must enter an email address and user name when using the Matrix Science public web site [M00380].";
+        }
+        else
+        {
+          LOG_ERROR << "Error code: " << mascot_error_regex.cap().toStdString() << std::endl;
+          QTextDocument doc;
+          doc.setHtml(response_text);
+          error_message_ = doc.toPlainText().toStdString();
+        }
         endRun_();
       }
       else
@@ -698,7 +708,7 @@ namespace OpenMS
     if (url[0] != '/') url.prepend('/');
   }
 
-  void MascotRemoteQuery::logHeader_(const QHttpHeader& header, 
+  void MascotRemoteQuery::logHeader_(const QHttpHeader& header,
                                      const String& what)
   {
     cerr << ">>>> Header to " << what << " (begin):\n"

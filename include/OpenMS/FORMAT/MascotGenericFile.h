@@ -51,15 +51,15 @@
 namespace OpenMS
 {
   /**
-      @brief Mascot input file adapter.
+    @brief Mascot input file adapter.
 
-      Creates a file that can be used for Mascot search from a peak list or a whole experiment.
+    Creates a file that can be used for Mascot search from a peak list or a whole experiment.
 
-      Loading a file supports multi-threading, since conversion from string to double is expensive and takes long using a single thread.
+    Loading a file supports multi-threading, since conversion from string to double is expensive and takes long using a single thread.
 
-      @htmlinclude OpenMS_MascotGenericFile.parameters
+    @htmlinclude OpenMS_MascotGenericFile.parameters
 
-  @ingroup FileIO
+    @ingroup FileIO
   */
   class OPENMS_DLLAPI MascotGenericFile :
     public ProgressLogger,
@@ -74,19 +74,20 @@ public:
     virtual ~MascotGenericFile();
 
     /// stores the experiment data in a MascotGenericFile that can be used as input for MASCOT shell execution
-    void store(const String & filename, const PeakMap & experiment);
+    void store(const String& filename, const PeakMap& experiment);
 
     /// store the experiment data in a MascotGenericFile; the output is written to the given stream, the filename will be noted in the file
-    void store(std::ostream & os, const String & filename, const PeakMap & experiment);
+    void store(std::ostream& os, const String& filename, const PeakMap& experiment);
 
-    /** loads a Mascot Generic File into a PeakMap
+    /**
+      @brief loads a Mascot Generic File into a PeakMap
 
-            @param filename file name which the map should be read from
-            @param exp the map which is filled with the data from the given file
-            @throw FileNotFound is thrown if the given file could not be found
+      @param filename file name which the map should be read from
+      @param exp the map which is filled with the data from the given file
+      @throw FileNotFound is thrown if the given file could not be found
     */
     template <typename MapType>
-    void load(const String & filename, MapType & exp)
+    void load(const String& filename, MapType& exp)
     {
       if (!File::exists(filename))
       {
@@ -128,7 +129,7 @@ public:
 
           for (Size i = 0; i < spec.size(); ++i)
           {
-            p.setPosition(spec[i].first.toDouble());  // toDouble() is expensive (nothing can be done about this - boost::lexical_cast does not help), thats why we do it in threads
+            p.setPosition(spec[i].first.toDouble()); // toDouble() is expensive (nothing can be done about this - boost::lexical_cast does not help), thats why we do it in threads
             p.setIntensity(spec[i].second.toDouble());
             spectrum[i] = p;
           }
@@ -163,28 +164,28 @@ public:
     /**
       @brief enclosing Strings of the peak list body for HTTP submission
 
-        Can be used to embed custom content into HTTP submission (when writing only the MGF header in HTTP format and then
-        adding the peaks (in whatever format, e.g. mzXML) enclosed in this body.
-        The @p filename can later be found in the Mascot response.
+      Can be used to embed custom content into HTTP submission (when writing only the MGF header in HTTP format and then
+      adding the peaks (in whatever format, e.g. mzXML) enclosed in this body.
+      The @p filename can later be found in the Mascot response.
     */
-    std::pair<String, String> getHTTPPeakListEnclosure(const String & filename) const;
+    std::pair<String, String> getHTTPPeakListEnclosure(const String& filename) const;
 
 protected:
 
     /// writes a parameter header
-    void writeParameterHeader_(const String & name, std::ostream & os);
+    void writeParameterHeader_(const String& name, std::ostream& os);
 
     /// writes the full header
-    void writeHeader_(std::ostream & os);
+    void writeHeader_(std::ostream& os);
 
     /// writes the spectrum
-    void writeSpectrum_(std::ostream & os, const PeakSpectrum & spec, const String & filename);
+    void writeSpectrum_(std::ostream& os, const PeakSpectrum& spec, const String& filename);
 
     /// writes the MSExperiment
-    void writeMSExperiment_(std::ostream & os, const String & filename, const PeakMap & experiment);
+    void writeMSExperiment_(std::ostream& os, const String& filename, const PeakMap& experiment);
 
     /// reads a spectrum block, the section between 'BEGIN IONS' and 'END IONS' of a mgf file
-    bool getNextSpectrum_(std::istream & is, std::vector<std::pair<String, String> > & spectrum, UInt & charge, double & precursor_mz, double & precursor_int, double & rt, String & title, Size & line_number);
+    bool getNextSpectrum_(std::istream& is, std::vector<std::pair<String, String> >& spectrum, UInt& charge, double& precursor_mz, double& precursor_int, double& rt, String& title, Size& line_number);
   };
 
 } // namespace OpenMS
