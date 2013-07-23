@@ -91,7 +91,9 @@ namespace OpenMS
   {
     if (http_->state() != QHttp::Unconnected)
     {
+#ifdef MASCOTREMOTEQUERY_DEBUG
       std::cerr << "Aborting open connection!\n";
+#endif
       http_->abort(); // hardcore close connection (otherwise server might have too many dangling requests)
     }
     delete http_;
@@ -105,6 +107,20 @@ namespace OpenMS
 
   void MascotRemoteQuery::run()
   {
+    // Due to the asynchronous nature of QHttp::request (and the resulting use
+    // of signals and slots), the information flow in this class is not very
+    // clear. After the initial call to "run", the steps are roughly as follows:
+    // 1. optional: log into Mascot server (function "login")
+    // 2. send query (function "execQuery")
+    // 3. read query result, prepare exporting (function "httpDone")
+    // 4. send export request (function "getResults")
+    // 5. Mascot 2.4: read result, check for redirect (function "httpDone")
+    // 6. Mascot 2.4: request redirected (caching) page (function "getResults")
+    // (5. and 6. can happen multiple times - keep following redirects)
+    // 7. Mascot 2.4: read result, check if caching's done (function "httpDone")
+    // 8. Mascot 2.4: request results again (function "getResults")
+    // 9. read results, which should now contain the XML (function "httpDone")
+
     updateMembers_();
     connect(http_, SIGNAL(requestFinished(int, bool)), this, SLOT(httpRequestFinished(int, bool)));
     connect(http_, SIGNAL(requestStarted(int)), this, SLOT(httpRequestStarted(int)));
