@@ -38,7 +38,6 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <QtCore/QObject>
 #include <QtCore/QString>
-#include <QtCore/QFile>
 #include <QtNetwork/QHttpRequestHeader>
 #include <QTimer>
 
@@ -158,6 +157,15 @@ private:
     String error_message_;
     QTimer timeout_;
     Int to_;
+    
+    /// Path on mascot server
+    String server_path_;
+    /// Hostname of the mascot server
+    String host_name_;
+    /// Login required
+    bool requires_login_;
+    /// Max reported hits
+    Int max_hits_;
   };
 
 }
