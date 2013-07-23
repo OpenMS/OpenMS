@@ -177,6 +177,8 @@ private:
     bool requires_login_;
     /// Max reported hits
     Int max_hits_;
+    /// Use SSL connection
+    bool use_ssl_;
   };
 
 }

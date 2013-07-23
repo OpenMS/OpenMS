@@ -38,8 +38,7 @@
 #include <QtGui/QTextDocument>
 #include <iostream>
 
-#define MASCOTREMOTEQUERY_DEBUG
-// #undef  MASCOTREMOTEQUERY_DEBUG
+// #define MASCOTREMOTEQUERY_DEBUG
 
 using namespace std;
 
@@ -77,6 +76,8 @@ namespace OpenMS
     defaults_.setValidStrings("login", StringList::create("true,false"));
     defaults_.setValue("username", "", "Name of the user if login is used (Mascot security must be enabled!)");
     defaults_.setValue("password", "", "Password of the user if login is used (Mascot security must be enabled!)");
+    defaults_.setValue("use_ssl", "false", "Flag indicating wether the server uses https or not.");
+    defaults_.setValidStrings("use_ssl", StringList::create("true,false"));
 
     // Mascot specific options
     defaults_.setValue("query_master", "false", "If this option is set to true, query peptides will be returned with non-truncated lists, however, protein references of peptides will not be correct.", StringList::create("advanced"));
@@ -251,8 +252,6 @@ namespace OpenMS
     cerr << "Location header: " << resp.value("Location").toStdString() << "\n";
 #endif
     // parse the location mascot wants us to go
-    // http://mascot.imp.fu-berlin.de/cgi/nph-cache_families.pl?file=..%2Fdata%2F20130718%2FF001260.dat;report=0;show_same_sets=1;show_unassigned=1;show_queries=1;do_export=1;export_format=XML;pep_rank=1;_sigthreshold=0.99;_showsubsets=1;show_header=1;prot_score=1;pep_exp_z=1;pep_score=1;pep_seq=1;pep_homol=1;pep_ident=1;show_mods=1;pep_var_mod=1;protein_master=1;search_master=1;show_params=1;pep_scan_title=1;query_qualifiers=1;query_peaks=1;query_raw=1;query_title=1;pep_expect=1;peptide_master=1;generate_file=1;query_master=0;prot_hit_num=1;prot_acc=1;pep_query=1;pep_isbold=1;pep_isunique=1;pep_exp_mz=1;sub=build%3Aresultsfile;c.from=export_dat_2.pl
-
     QString location = resp.value("Location");
     removeHostName_(location);
 
@@ -644,11 +643,14 @@ namespace OpenMS
       server_path_ = "/" + server_path_;
 
     host_name_ = param_.getValue("hostname");
+    use_ssl_ = param_.getValue("use_ssl").toBool();
 
     // clear all content from this class
     delete http_;
     http_ = new QHttp(this);
-    http_->setHost(host_name_.c_str(), (UInt)param_.getValue("host_port"));
+    http_->setHost(host_name_.c_str(),
+                   (use_ssl_ ? QHttp::ConnectionModeHttps : QHttp::ConnectionModeHttp),
+                   (UInt)param_.getValue("host_port"));
 
     cookie_ = "";
     mascot_xml_ = "";
