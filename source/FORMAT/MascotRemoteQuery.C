@@ -146,7 +146,7 @@ namespace OpenMS
 
     // header
     QHttpRequestHeader header;
-    QString boundary(((String)param_.getValue("boundary")).c_str());
+    QString boundary = boundary_.toQString();
     header.setRequest("POST", (server_path_ + "/cgi/login.pl").c_str());
     header.setValue("Host", host_name_.c_str());
     header.setValue("Content-Type", "multipart/form-data, boundary=" + boundary);
@@ -223,7 +223,7 @@ namespace OpenMS
 
     QHttpRequestHeader header;
     header.setRequest("GET", results_path_);
-    header.setValue("Host", ((String)param_.getValue("hostname")).c_str());
+    header.setValue("Host", host_name_.toQString());
     header.setValue("Accept", "text/xml,text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
     header.setValue("Keep-Alive", "300");
     header.setValue("Connection", "keep-alive");
@@ -254,7 +254,7 @@ namespace OpenMS
 
     QHttpRequestHeader header;
     header.setRequest("GET", location);
-    header.setValue("Host", ((String)param_.getValue("hostname")).c_str());
+    header.setValue("Host", host_name_.toQString());
     header.setValue("Accept", "text/xml,text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
     header.setValue("Keep-Alive", "300");
     header.setValue("Connection", "keep-alive");
@@ -279,10 +279,11 @@ namespace OpenMS
 #endif
 
     QHttpRequestHeader header;
+    QString boundary(boundary_.toQString());
 
     header.setRequest("POST", (server_path_ + "/cgi/nph-mascot.exe?1").c_str());
-    header.setValue("Host", ((String)param_.getValue("hostname")).c_str());
-    header.setValue("Content-Type", ("multipart/form-data, boundary=" + (String)param_.getValue("boundary")).c_str());
+    header.setValue("Host", host_name_.toQString());
+    header.setValue("Content-Type", ("multipart/form-data, boundary=" + boundary));
     header.setValue("Cache-Control", "no-cache");
     if (cookie_ != "")
     {
@@ -291,7 +292,6 @@ namespace OpenMS
     header.setValue("Accept", "text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*");
 
     QByteArray querybytes;
-    QString boundary(((String)param_.getValue("boundary")).c_str());
     querybytes.append("--" + boundary + "--\n");
     querybytes.append("Content-Disposition: ");
     querybytes.append("form-data; name=\"QUE\"\n");
@@ -650,6 +650,7 @@ namespace OpenMS
                    (use_ssl_ ? QHttp::ConnectionModeHttps : QHttp::ConnectionModeHttp),
                    (UInt)param_.getValue("host_port"));
 
+    boundary_ = param_.getValue("boundary");
     cookie_ = "";
     mascot_xml_ = "";
     results_path_ = "";

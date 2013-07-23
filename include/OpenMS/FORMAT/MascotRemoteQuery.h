@@ -176,6 +176,8 @@ private:
     Int max_hits_;
     /// Use SSL connection
     bool use_ssl_;
+    /// boundary string that will be embedded into the HTTP requests
+    String boundary_;
   };
 
 }
