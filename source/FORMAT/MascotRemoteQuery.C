@@ -450,18 +450,15 @@ namespace OpenMS
   void MascotRemoteQuery::endRun_()
   {
     if (http_->state() != QHttp::Unconnected)
+    {
+      http_->clearPendingRequests();
       http_->close();
+    }
     emit done();
   }
 
   void MascotRemoteQuery::httpDone(bool error)
   {
-    if (error)
-    {
-      error_message_ = String("Mascot Server replied: '") + String(http_->errorString().toStdString()) + "'";
-      endRun_();
-    }
-
 #ifdef MASCOTREMOTEQUERY_DEBUG
     cerr << "void MascotRemoteQuery::httpDone(bool error): ";
     if (error)
@@ -476,6 +473,12 @@ namespace OpenMS
 
     timeout_.stop();
 
+    if (error)
+    {
+      error_message_ = String("Mascot Server replied: '") + String(http_->errorString().toStdString()) + "'";
+      endRun_();
+      return;
+    }
 
     QByteArray new_bytes = http_->readAll();
 #ifdef MASCOTREMOTEQUERY_DEBUG
@@ -489,6 +492,7 @@ namespace OpenMS
     {
       error_message_ = "Error: Reply from mascot server is empty! Possible server overload - see the Mascot Admin!";
       endRun_();
+      return;
     }
 
     //Successful login? fire off the search
