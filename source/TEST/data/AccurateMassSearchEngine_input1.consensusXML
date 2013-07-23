@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="file:////Users/kenar/OpenMS-FF/share/OpenMS/XSL/ConsensusXML.xsl"?>
+<consensusXML version="1.5" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<mapList count="10">
+		<map id="0" name="C:\Users\win7user\AppData\Local\Temp\GKN-STASH\GKN-STASH-4jsBqcru63zWqr1L\MapAlignerPoseClustering_0_0-615401883.featureXML" unique_id="15393979342453943715" label="" size="78266">
+		</map>
+		<map id="1" name="C:\Users\win7user\AppData\Local\Temp\GKN-STASH\GKN-STASH-4jsBqcru63zWqr1L\MapAlignerPoseClustering_0_1-1447740055.featureXML" unique_id="1752549199204100935" label="" size="74315">
+		</map>
+		<map id="2" name="C:\Users\win7user\AppData\Local\Temp\GKN-STASH\GKN-STASH-4jsBqcru63zWqr1L\MapAlignerPoseClustering_0_2-2145889212.featureXML" unique_id="16525843238046994014" label="" size="75379">
+		</map>
+		<map id="3" name="C:\Users\win7user\AppData\Local\Temp\GKN-STASH\GKN-STASH-4jsBqcru63zWqr1L\MapAlignerPoseClustering_0_3-1362140575.featureXML" unique_id="3510534677011218937" label="" size="73105">
+		</map>
+		<map id="4" name="C:\Users\win7user\AppData\Local\Temp\GKN-STASH\GKN-STASH-4jsBqcru63zWqr1L\MapAlignerPoseClustering_0_4-607939506.featureXML" unique_id="3979194618391475664" label="" size="74992">
+		</map>
+		<map id="5" name="C:\Users\win7user\AppData\Local\Temp\GKN-STASH\GKN-STASH-4jsBqcru63zWqr1L\MapAlignerPoseClustering_0_5-655720834.featureXML" unique_id="1572124567720077904" label="" size="76568">
+		</map>
+		<map id="6" name="C:\Users\win7user\AppData\Local\Temp\GKN-STASH\GKN-STASH-4jsBqcru63zWqr1L\MapAlignerPoseClustering_0_6-336818889.featureXML" unique_id="9145819935877909170" label="" size="75738">
+		</map>
+		<map id="7" name="C:\Users\win7user\AppData\Local\Temp\GKN-STASH\GKN-STASH-4jsBqcru63zWqr1L\MapAlignerPoseClustering_0_7-1344427992.featureXML" unique_id="7947576071730461028" label="" size="74563">
+		</map>
+		<map id="8" name="C:\Users\win7user\AppData\Local\Temp\GKN-STASH\GKN-STASH-4jsBqcru63zWqr1L\MapAlignerPoseClustering_0_8-381020355.featureXML" unique_id="17843427886733563445" label="" size="75486">
+		</map>
+		<map id="9" name="C:\Users\win7user\AppData\Local\Temp\GKN-STASH\GKN-STASH-4jsBqcru63zWqr1L\MapAlignerPoseClustering_0_9-1057768512.featureXML" unique_id="10782156067308480813" label="" size="76520">
+		</map>
+	</mapList>
+	<consensusElementList>
+		<consensusElement id="e_2627809606862146655" quality="0.793003">
+			<centroid rt="921.389662323789" mz="539.310716228163" it="2.65957e+06"/>
+			<groupedElementList>
+				<element map="0" id="12923402430640688784" rt="925.1649" mz="539.310464432764" it="3.12282e+06" charge="2"/>
+				<element map="1" id="2711623978727026519" rt="923.683084147412" mz="539.310486372584" it="6.58385e+06" charge="2"/>
+				<element map="2" id="5213653732291824828" rt="923.052063891243" mz="539.310342798762" it="4.31776e+06"/>
+				<element map="3" id="1038021903784097245" rt="925.634432029093" mz="539.310697840761" it="8316.33"/>
+				<element map="4" id="7657823376093862313" rt="922.831297151591" mz="539.310232733128" it="4.89429e+06" charge="2"/>
+				<element map="5" id="15842521615391707458" rt="927.166707764707" mz="539.310207718224" it="4.96792e+06" charge="2"/>
+				<element map="6" id="7356115812799918918" rt="916.486842402" mz="539.311981237648" it="9657.3"/>
+				<element map="7" id="2893539146138944128" rt="916.218178044644" mz="539.311287181217" it="6282.51"/>
+				<element map="9" id="6791245464577181726" rt="912.269455483412" mz="539.310745738376" it="25240.6"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_8579045074635938437" quality="0.636439">
+			<centroid rt="902.424530055782" mz="544.336905420892" it="1.45194e+07"/>
+			<groupedElementList>
+				<element map="0" id="15595479042526338705" rt="908.6559" mz="544.338378659807" it="85386"/>
+				<element map="1" id="13994176289446707543" rt="919.193053007256" mz="544.337178749121" it="3.67183e+07" charge="1"/>
+				<element map="2" id="9746002936104191518" rt="915.581832596686" mz="544.337167341375" it="8.72959e+07" charge="1"/>
+				<element map="3" id="1148034010877145188" rt="890.965744929926" mz="544.334547784333" it="3.07775e+06"/>
+				<element map="4" id="8384038307599263992" rt="900.211948865891" mz="544.337748461614" it="423405" charge="1"/>
+				<element map="5" id="3918610575051552651" rt="903.042922945567" mz="544.337733742475" it="701148" charge="1"/>
+				<element map="7" id="8901180172833952149" rt="885.25466808055" mz="544.338226086154" it="13861.3"/>
+				<element map="8" id="272298358957355070" rt="890.847783617635" mz="544.336536391605" it="15206.4"/>
+				<element map="9" id="1222735097962884139" rt="908.066916458522" mz="544.334631571543" it="2.34392e+06"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_11240617592181557343" quality="0.528132">
+			<centroid rt="982.514661907308" mz="538.382230568048" it="6.45801e+07"/>
+			<groupedElementList>
+				<element map="0" id="240663803171470891" rt="990.60229999998" mz="538.376018715544" it="53067.3"/>
+				<element map="1" id="8515829916614372549" rt="971.151197044489" mz="538.379542912541" it="7520.54"/>
+				<element map="2" id="10109881742986933990" rt="986.676815679881" mz="538.375791809506" it="44930.5"/>
+				<element map="3" id="13909680307551801203" rt="982.273751638891" mz="538.383873145219" it="4.22432e+08" charge="1"/>
+				<element map="4" id="1024965233154159705" rt="987.900346364894" mz="538.379177428239" it="56758.2"/>
+				<element map="6" id="14258142362831175590" rt="973.208105109748" mz="538.394208814425" it="6597.59"/>
+				<element map="8" id="9010930624923929138" rt="982.90106257778" mz="538.384751318608" it="134616" charge="1"/>
+				<element map="9" id="13622295201659615287" rt="985.403716842799" mz="538.384480400303" it="9.39056e+07" charge="1"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_6907624019630393058" quality="0.651208">
+			<centroid rt="981.102008901036" mz="544.334633705191" it="1.78411e+06"/>
+			<groupedElementList>
+				<element map="0" id="7688664753327213833" rt="979.17469999998" mz="544.334848606367" it="2.37941e+06"/>
+				<element map="1" id="5378165482983470513" rt="977.052155333871" mz="544.334348037286" it="2.13097e+06" charge="1"/>
+				<element map="2" id="926534585819999570" rt="975.633869407677" mz="544.33454738634" it="2.94699e+06" charge="1"/>
+				<element map="3" id="14068406474648263046" rt="986.248347064907" mz="544.338415527942" it="43080.3"/>
+				<element map="4" id="13934513799914904117" rt="976.81839114736" mz="544.334402175586" it="3.7014e+06" charge="1"/>
+				<element map="5" id="2645323108930810418" rt="978.875054099127" mz="544.334636071363" it="3.02156e+06"/>
+				<element map="8" id="17607392015513871416" rt="988.214192171207" mz="544.328603785981" it="25926.6"/>
+				<element map="9" id="755178425753594330" rt="986.799361984155" mz="544.337268050659" it="23563"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_2102373302449233572" quality="0.54634" charge="2">
+			<centroid rt="908.938215810585" mz="548.298003279469" it="2.89521e+06"/>
+			<groupedElementList>
+				<element map="0" id="12869013210749514171" rt="910.2861" mz="548.297511723272" it="3.07521e+06" charge="2"/>
+				<element map="1" id="18198938882811316230" rt="909.287591152893" mz="548.297282873336" it="2.69296e+06" charge="2"/>
+				<element map="2" id="3537894503625427391" rt="905.999594558948" mz="548.297103946265" it="7.94291e+06" charge="2"/>
+				<element map="3" id="4692540276867431295" rt="902.484569696786" mz="548.309012637872" it="667543"/>
+				<element map="4" id="3700073379803710255" rt="908.525061439947" mz="548.297074036653" it="4.32689e+06" charge="2"/>
+				<element map="5" id="5391657510579817975" rt="911.307184786607" mz="548.297128828832" it="4.40999e+06" charge="2"/>
+				<element map="8" id="8554256960257720594" rt="902.492557041615" mz="548.298747087153" it="15829"/>
+				<element map="9" id="18046304829979187633" rt="921.123067807882" mz="548.290165102366" it="30332.4"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_6430235210394300285" quality="0.675118" charge="1">
+			<centroid rt="946.375810895" mz="546.351836307451" it="9.44675e+06"/>
+			<groupedElementList>
+				<element map="0" id="15095435109214328075" rt="961.731" mz="546.352903020521" it="5.4631e+07" charge="1"/>
+				<element map="1" id="130286724100462842" rt="946.763826279479" mz="546.352631619732" it="4.07238e+06" charge="1"/>
+				<element map="2" id="6057474128463282638" rt="944.421218836421" mz="546.352622601279" it="4.78265e+06" charge="1"/>
+				<element map="3" id="5783033024080823053" rt="942.326176318158" mz="546.350737356826" it="2.7724e+06" charge="1"/>
+				<element map="4" id="17265214716548381816" rt="945.694077716647" mz="546.352444549553" it="4.71468e+06" charge="1"/>
+				<element map="5" id="8849398547064191777" rt="948.750793653626" mz="546.352432029676" it="3.94393e+06" charge="1"/>
+				<element map="8" id="9806530600490812016" rt="937.153409075384" mz="546.349630879106" it="9872.63"/>
+				<element map="9" id="12798470299843619945" rt="944.165985280286" mz="546.351288402913" it="647100" charge="1"/>
+			</groupedElementList>
+		</consensusElement>
+		<consensusElement id="e_18052850437100521888" quality="0.577659">
+			<centroid rt="920.790938156266" mz="539.160161316781" it="53702.2"/>
+			<groupedElementList>
+				<element map="0" id="17968657220986180701" rt="934.05679999998" mz="539.158857711404" it="31259.7"/>
+				<element map="1" id="17396692802973048816" rt="910.891630401447" mz="539.15973559544" it="90255.8"/>
+				<element map="2" id="2411629622825946140" rt="909.022661078458" mz="539.160042732003" it="64418.9" charge="1"/>
+				<element map="4" id="6456318644261610418" rt="922.831297151591" mz="539.159814533277" it="13173.1"/>
+				<element map="5" id="17754406815884952896" rt="925.715637225634" mz="539.15996605036" it="120567"/>
+				<element map="7" id="13473311564285806308" rt="918.436949956597" mz="539.162180103026" it="19812.5"/>
+				<element map="8" id="15315710991230572252" rt="935.965734551598" mz="539.160352379337" it="12676"/>
+				<element map="9" id="1803666974793739080" rt="909.40679488482" mz="539.160341429397" it="77454.8"/>
+			</groupedElementList>
+		</consensusElement>
+	</consensusElementList>
+</consensusXML>

@@ -57,7 +57,7 @@ namespace OpenMS
         AccurateMassSearchResult();
 
         /// Default destructor
-        virtual ~AccurateMassSearchResult();
+        ~AccurateMassSearchResult();
 
         /// copy constructor
         AccurateMassSearchResult(const AccurateMassSearchResult& );
@@ -66,190 +66,73 @@ namespace OpenMS
         AccurateMassSearchResult & operator=(const AccurateMassSearchResult& );
 
         /// getter & setter methods
-        DoubleReal getAdductMass()
-        {
-            return adduct_mass_;
-        }
+        DoubleReal getAdductMass();
+        DoubleReal getAdductMass() const;
 
-        DoubleReal getAdductMass() const
-        {
-            return adduct_mass_;
-        }
+        void setAdductMass(const DoubleReal&);
 
-        void setAdductMass(const DoubleReal& m)
-        {
-            adduct_mass_ = m;
-        }
+        DoubleReal getQueryMass();
+        void setQueryMass(const DoubleReal&);
 
-        DoubleReal getQueryMass()
-        {
-            return query_mass_;
-        }
+        DoubleReal getFoundMass();
+        void setFoundMass(const DoubleReal&);
 
-        void setQueryMass(const DoubleReal& m)
-        {
-            query_mass_ = m;
-        }
+        DoubleReal getCharge();
+        DoubleReal getCharge() const;
+        void setCharge(const DoubleReal&);
 
-        DoubleReal getFoundMass()
-        {
-            return found_mass_;
-        }
+        DoubleReal getErrorPPM();
 
-        void setFoundMass(const DoubleReal& m)
-        {
-            found_mass_ = m;
-        }
+        void setErrorPPM(const DoubleReal&);
 
-        DoubleReal getCharge()
-        {
-            return charge_;
-        }
+        DoubleReal getObservedRT();
+        DoubleReal getObservedRT() const;
 
-        DoubleReal getCharge() const
-        {
-            return charge_;
-        }
+        void setObservedRT(const DoubleReal& rt);
 
-        void setCharge(const DoubleReal& ch)
-        {
-            charge_ = ch;
-        }
+        DoubleReal getObservedIntensity();
 
-        DoubleReal getErrorPPM()
-        {
-            return error_ppm_;
-        }
+        DoubleReal getObservedIntensity() const;
 
-        void setErrorPPM(const DoubleReal& ppm)
-        {
-            error_ppm_ = ppm;
-        }
+        void setObservedIntensity(const DoubleReal&);
 
-        DoubleReal getObservedRT()
-        {
-            return observed_rt_;
-        }
+        std::vector<DoubleReal> getIndividualIntensities();
 
-        DoubleReal getObservedRT() const
-        {
-            return observed_rt_;
-        }
+        std::vector<DoubleReal> getIndividualIntensities() const;
 
-        void setObservedRT(const DoubleReal& rt)
-        {
-            observed_rt_ = rt;
-        }
+        void setIndividualIntensities(const std::vector<DoubleReal>&);
 
-        DoubleReal getObservedIntensity()
-        {
-            return observed_intensity_;
-        }
+        Size getMatchingIndex();
 
-        DoubleReal getObservedIntensity() const
-        {
-            return observed_intensity_;
-        }
+        void setMatchingIndex(const Size&);
 
-        void setObservedIntensity(const DoubleReal& intensity)
-        {
-            observed_intensity_ = intensity;
-        }
+        Size getSourceFeatureIndex();
 
-        std::vector<DoubleReal> getIndividualIntensities()
-        {
-            return individual_intensities_;
-        }
+        void setSourceFeatureIndex(const Size&);
 
-        std::vector<DoubleReal> getIndividualIntensities() const
-        {
-            return individual_intensities_;
-        }
+        String getFoundAdduct();
 
-        void setIndividualIntensities(const std::vector<DoubleReal> indiv_ints)
-        {
-            individual_intensities_ = indiv_ints;
-        }
+        String getFoundAdduct() const;
 
-        Size getMatchingIndex()
-        {
-            return matching_index_;
-        }
+        void setFoundAdduct(const String&);
 
-        void setMatchingIndex(const Size& idx)
-        {
-            matching_index_ = idx;
-        }
+        String getFormulaString();
 
-        Size getSourceFeatureIndex()
-        {
-            return source_feature_index_;
-        }
+        String getFormulaString() const;
 
-        void setSourceFeatureIndex(const Size& idx)
-        {
-            source_feature_index_ = idx;
-        }
+        void setEmpiricalFormula(const String&);
 
-        String getFoundAdduct()
-        {
-            return found_adduct_;
-        }
+        std::vector<String> getMatchingHMDBids();
 
-        String getFoundAdduct() const
-        {
-            return found_adduct_;
-        }
+        std::vector<String> getMatchingHMDBids() const;
 
-        void setFoundAdduct(const String& add)
-        {
-            found_adduct_ = add;
-        }
+        void setMatchingHMDBids(const std::vector<String>&);
 
-        String getFormulaString()
-        {
-            return empirical_formula_;
-        }
+        DoubleReal getIsotopesSimScore();
 
-        String getFormulaString() const
-        {
-            return empirical_formula_;
-        }
+        DoubleReal getIsotopesSimScore() const;
 
-        void setEmpiricalFormula(const String& ep)
-        {
-            empirical_formula_ = ep;
-        }
-
-        std::vector<String> getMatchingHMDBids()
-        {
-            return matching_hmdb_ids_;
-        }
-
-        std::vector<String> getMatchingHMDBids() const
-        {
-            return matching_hmdb_ids_;
-        }
-
-        void setMatchingHMDBids(const std::vector<String>& match_ids)
-        {
-            matching_hmdb_ids_ = match_ids;
-        }
-
-        DoubleReal getIsotopesSimScore()
-        {
-            return isotopes_sim_score_;
-        }
-
-        DoubleReal getIsotopesSimScore() const
-        {
-            return isotopes_sim_score_;
-        }
-
-        void setIsotopesSimScore(const DoubleReal& sim_score)
-        {
-            isotopes_sim_score_ = sim_score;
-        }
+        void setIsotopesSimScore(const DoubleReal&);
 
         // DoubleReal computeCombinedScore(); // not implemented
         // debug/output functions
@@ -285,7 +168,7 @@ public:
     AccurateMassSearchEngine();
 
     // Explicit constructor
-    AccurateMassSearchEngine(const String& map_fname);
+    // AccurateMassSearchEngine(const String& map_fname);
 
     /// Default destructor
     virtual ~AccurateMassSearchEngine();
