@@ -129,7 +129,7 @@ private slots:
 
     OPENMS_DLLAPI void execQuery();
 
-    OPENMS_DLLAPI void getResults();
+    OPENMS_DLLAPI void getResults(QString results_path);
 
     OPENMS_DLLAPI void followRedirect(const QHttpResponseHeader& resp);
 
@@ -160,7 +160,6 @@ private:
     String query_spectra_;
     QByteArray mascot_xml_;
     QHttp* http_;
-    QString results_path_;
     QString cookie_;
     String error_message_;
     QTimer timeout_;
