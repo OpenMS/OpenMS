@@ -35,6 +35,13 @@
 set(CPACK_GENERATOR "DragNDrop")
 
 ## drag'n'drop installaltion configuration
+## Note: We have certain dependencies between the individual components!!!
+##       To ensure that the components are executed in the correct order 
+##       we use the fact that cmake executes them in alphabetical order 
+##        1. A-Z 
+##        2. a-z
+##       So before adding an additional target make sure that you do not
+##       intefer with other namings/components.
 
 ## Fix OpenMS dependencies for all executables
 ########################################################### Fix Dependencies
@@ -92,6 +99,12 @@ install(DIRECTORY share/
 	PATTERN ".svn" EXCLUDE
 )
 
+########################################################### Documentation Preparation
+install(CODE "execute_process(COMMAND \"${CMAKE_COMMAND}\" --build \"${PROJECT_BINARY_DIR}\" --target doc)"
+        COMPONENT AAA-Documentation-Preparation)
+install(CODE "execute_process(COMMAND \"${CMAKE_COMMAND}\" --build \"${PROJECT_BINARY_DIR}\" --target doc_tutorials)"
+        COMPONENT AAA-Documentation-Preparation)
+        
 ########################################################### Documentation
 install(FILES       ${PROJECT_BINARY_DIR}/doc/index.html
         DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/Documentation/
