@@ -106,7 +106,7 @@ START_SECTION((void searchModifications(std::set< const ResidueModification * > 
     mods_sorted.insert((*mod_it_));
   }
 
-  set<const ResidueModification*>::const_iterator mod_it = mods_sorted.begin();
+  set<const ResidueModification*, ResidueModificationOriginCmp>::const_iterator mod_it = mods_sorted.begin();
 
   TEST_STRING_EQUAL((*mod_it)->getOrigin(), "C-term")
   TEST_STRING_EQUAL((*mod_it)->getId(), "Label:18O(1)")
