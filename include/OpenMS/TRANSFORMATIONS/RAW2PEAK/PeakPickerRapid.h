@@ -90,7 +90,7 @@ public:
       DoubleReal c_square = -1.0 / alpha;
       DoubleReal sigma_square = c_square / 2.0;
       height = std::exp(gamma + mu * mu / c_square);
-      area = height / std::sqrt(2.0 * Constants::PI * sigma_square);
+      area = height * std::sqrt(2.0 * Constants::PI * sigma_square);
       sigma = std::sqrt(sigma_square);
 
       return area != std::numeric_limits<DoubleReal>::infinity();
