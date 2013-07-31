@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 
 ///////////////////////////
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerRapid.h>
@@ -61,38 +62,88 @@ START_SECTION((virtual ~PeakPickerRapid()))
 }
 END_SECTION
 
-Peak1D p1, p2, p3;
-p1.setMZ(100.5);
-p1.setIntensity(0.3520653);
-
-p2.setMZ(101.0);
-p2.setIntensity(0.3989423);
-
-p3.setMZ(101.6);
-p3.setIntensity(0.3332246);
 
 PeakPickerRapid ppr;
+MSExperiment<Peak1D> input, output;
+// load Orbitrap input data
+MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("PeakPickerHiRes_orbitrap.mzML"),input);
+MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("PeakPickerHiRes_orbitrap_sn0_out.mzML"),output);
+
+//set data type (this is not stored correctly in mzData)
+for (Size scan_idx = 0; scan_idx < output.size(); ++scan_idx)
+{
+	output[scan_idx].setType(SpectrumSettings::PEAKS);
+}
 
 START_SECTION((template < typename PeakType > bool computeTPG(const PeakType &p1, const PeakType &p2, const PeakType &p3, DoubleReal &mu, DoubleReal &sigma, DoubleReal &area, DoubleReal &height) const ))
 {
-    DoubleReal m, s, A, h;
+    // test mean of gaussian if 3 non-symmetric points are given
+    DoubleReal mean, s, area, height;
+    Peak1D p1, p2, p3;
+    p1.setMZ(100.5);
+    p1.setIntensity(0.3520653);
 
-    ppr.computeTPG(p1, p2, p3, m, s, A, h);
+    p2.setMZ(101.0);
+    p2.setIntensity(0.3989423);
 
-    std::cout << "results: " << m << " " << s << " " << A << " " << h << std::endl;
+    p3.setMZ(101.6);
+    p3.setIntensity(0.3332246);
 
+    ppr.computeTPG(p1, p2, p3, mean, s, area, height);
+    TEST_REAL_SIMILAR(mean, 101.0)
+    TEST_REAL_SIMILAR(s, 1.0)
+    TEST_REAL_SIMILAR(area, 1.0)
+    TEST_REAL_SIMILAR(height, 1.0/std::sqrt(2.0*OpenMS::Constants::PI))
+
+    // test height and area of scaled gaussian (factor = 100)
+    p1.setMZ(-0.5);
+    p1.setIntensity(100.0*0.3520653);
+
+    p2.setMZ(0.0);
+    p2.setIntensity(100.0*0.3989423);
+
+    p3.setMZ(0.6);
+    p3.setIntensity(100.0*0.3332246);
+
+    ppr.computeTPG(p1, p2, p3, mean, s, area, height);
+    TEST_REAL_SIMILAR(mean, 0.0)
+    TEST_REAL_SIMILAR(s, 1.0)
+    TEST_REAL_SIMILAR(area, 100.0)
+    TEST_REAL_SIMILAR(height, 100.0/std::sqrt(2.0*OpenMS::Constants::PI))
 }
 END_SECTION
 
 START_SECTION((template < typename PeakType > void pick(const MSSpectrum< PeakType > &cinput, MSSpectrum< PeakType > &output)))
 {
-  // TODO
+  // should find the same peaks as spline based peak picker (PeakPickerHiRes)
+  MSSpectrum<Peak1D> tmp_spec;
+  ppr.pick(input[0],tmp_spec);
+
+  TEST_EQUAL(tmp_spec.size(),output[0].size());
+  for (Size peak_idx = 0; peak_idx < tmp_spec.size(); ++peak_idx)
+  {
+    TEST_REAL_SIMILAR(tmp_spec[peak_idx].getMZ(), output[0][peak_idx+1].getMZ())
+    TEST_REAL_SIMILAR(tmp_spec[peak_idx].getIntensity(), output[0][peak_idx+1].getIntensity())
+  }
 }
 END_SECTION
 
 START_SECTION((template < typename PeakType > void pickExperiment(MSExperiment< PeakType > &input, MSExperiment< PeakType > &output)))
 {
-  // TODO
+	/*
+  MSExperiment<Peak1D> tmp_exp;
+  ppr.pickExperiment(input,tmp_exp);
+
+  TEST_EQUAL(tmp_exp.ExperimentalSettings::operator==(input), true)
+  for (Size scan_idx = 0; scan_idx < tmp_exp.size(); ++scan_idx)
+  {
+    for (Size peak_idx = 0; peak_idx < tmp_exp[scan_idx].size(); ++peak_idx)
+    {
+     TEST_REAL_SIMILAR(tmp_exp[scan_idx][peak_idx].getMZ(), output[scan_idx][peak_idx].getMZ())
+     TEST_REAL_SIMILAR(tmp_exp[scan_idx][peak_idx].getIntensity(), output[scan_idx][peak_idx].getIntensity())
+    }
+  }
+*/
 }
 END_SECTION
 
