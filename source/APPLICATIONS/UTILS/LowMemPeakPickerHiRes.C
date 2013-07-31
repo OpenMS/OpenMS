@@ -143,6 +143,13 @@ protected:
       pp_.pick(s, sout);
       s = sout;
     }
+
+    void processChromatogram_(typename MapType::ChromatogramType & /* c */) 
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+        "Cannot handle chromatograms yet.");
+    }
+
     PeakPickerHiRes pp_;
     bool ms1_only_;
   };
