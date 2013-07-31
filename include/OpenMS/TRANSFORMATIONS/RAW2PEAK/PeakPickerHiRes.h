@@ -53,18 +53,28 @@
 namespace OpenMS
 {
   /**
-       @brief This class implements a fast peak-picking algorithm best suited for high resolution MS data (FT-ICR-MS, Orbitrap). In high resolution data, the signals of ions with similar mass-to-charge ratios (m/z) exhibit little or no overlapping and therefore allow for a clear separation. Furthermore, ion signals tend to show well-defined peak shapes with narrow peak width.
+    @brief This class implements a fast peak-picking algorithm best suited for
+    high resolution MS data (FT-ICR-MS, Orbitrap). In high resolution data, the
+    signals of ions with similar mass-to-charge ratios (m/z) exhibit little or
+    no overlapping and therefore allow for a clear separation. Furthermore, ion
+    signals tend to show well-defined peak shapes with narrow peak width.
 
-       This peak-picking algorithm detects ion signals in raw data and reconstructs the corresponding peak shape by cubic spline interpolation. Signal detection depends on the signal-to-noise ratio which is adjustable by the user (see parameter signal_to_noise). A picked peak's m/z and intensity value is given by the maximum of the underlying peak spline.
+    This peak-picking algorithm detects ion signals in raw data and
+    reconstructs the corresponding peak shape by cubic spline interpolation.
+    Signal detection depends on the signal-to-noise ratio which is adjustable
+    by the user (see parameter signal_to_noise). A picked peak's m/z and
+    intensity value is given by the maximum of the underlying peak spline.
 
-       So far, this peak picker was mainly tested on high resolution data. With appropriate preprocessing steps (e.g. noise reduction and baseline subtraction), it might be also applied to low resolution data.
+    So far, this peak picker was mainly tested on high resolution data. With
+    appropriate preprocessing steps (e.g. noise reduction and baseline
+    subtraction), it might be also applied to low resolution data.
 
-       @htmlinclude OpenMS_PeakPickerHiRes.parameters
+    @htmlinclude OpenMS_PeakPickerHiRes.parameters
 
-       @note The peaks must be sorted according to ascending m/z!
+    @note The peaks must be sorted according to ascending m/z!
 
-       @ingroup PeakPicking
-*/
+    @ingroup PeakPicking
+  */
   class OPENMS_DLLAPI PeakPickerHiRes :
     public DefaultParamHandler,
     public ProgressLogger
@@ -77,8 +87,10 @@ public:
     virtual ~PeakPickerHiRes();
 
     /**
-            @brief Applies the peak-picking algorithm to a single spectrum (MSSpectrum). The resulting picked peaks are written to the output spectrum.
-*/
+      @brief Applies the peak-picking algorithm to a single spectrum
+      (MSSpectrum). The resulting picked peaks are written to the output
+      spectrum.
+    */
     template <typename PeakType>
     void pick(const MSSpectrum<PeakType> & input, MSSpectrum<PeakType> & output) const
     {
@@ -325,6 +337,11 @@ public:
       return;
     }
 
+    /**
+      @brief Applies the peak-picking algorithm to a single chromatogram
+      (MSChromatogram). The resulting picked peaks are written to the output
+      chromatogram.
+    */
     template <typename PeakType>
     void pick(const MSChromatogram<PeakType> & input, MSChromatogram<PeakType> & output) const
     {
@@ -349,8 +366,10 @@ public:
     }
 
     /**
-            @brief Applies the peak-picking algorithm to a map (MSExperiment). This method picks peaks for each scan in the map consecutively. The resulting picked peaks are written to the output map.
-*/
+      @brief Applies the peak-picking algorithm to a map (MSExperiment). This
+      method picks peaks for each scan in the map consecutively. The resulting
+      picked peaks are written to the output map.
+    */
     template <typename PeakType, typename ChromatogramPeakT>
     void pickExperiment(const MSExperiment<PeakType, ChromatogramPeakT> & input, MSExperiment<PeakType, ChromatogramPeakT> & output) const
     {
@@ -396,10 +415,10 @@ protected:
     // signal-to-noise parameter
     double signal_to_noise_;
 
-    //docu in base class
+    // docu in base class
     void updateMembers_();
 
-  };   // end PeakPickerHiRes
+  }; // end PeakPickerHiRes
 
 } // namespace OpenMS
 
