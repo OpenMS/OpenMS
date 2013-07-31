@@ -48,17 +48,18 @@ namespace OpenMS
     defaults_.setValue("signal_to_noise", 1.0, "Minimal signal-to-noise ratio for a peak to be picked (0.0 disables SNT estimation!)");
     defaults_.setMinFloat("signal_to_noise", 0.0);
 
+    defaults_.setValue("spacing_difference", 1.5, "Maximum allowed distance between peaks in multiples of the minimal difference. A higher value is implies a less stringent peak definition since individual signals within the peaks are allowed to further apart. E.g. if the value is set to 1.5 and in a peak the minimal spacing between peaks is 10 mDa, then only signals at most 15 mDa apart will be added to the peak.", StringList::create("advanced"));
+    defaults_.setMinFloat("spacing_difference", 0.0);
+
     defaults_.setValue("ms1_only", "false", "If true, peak picking is only applied to MS1 scans. Other scans are copied to the output without changes.");
     defaults_.setValidStrings("ms1_only", StringList::create("true,false"));
 
-    // parameters for SNTestimator config ...
+    // parameters for SNT estimator
+    defaults_.insert("SignalToNoise:", SignalToNoiseEstimatorMedian< MSSpectrum<Peak1D> >().getDefaults());
 
     // write defaults into Param object param_
     defaultsToParam_();
-
-
-    // initialize class members
-    signal_to_noise_ = param_.getValue("signal_to_noise");
+    updateMembers_();
   }
 
   PeakPickerHiRes::~PeakPickerHiRes()
@@ -68,6 +69,7 @@ namespace OpenMS
   void PeakPickerHiRes::updateMembers_()
   {
     signal_to_noise_ = param_.getValue("signal_to_noise");
+    spacing_difference_ = param_.getValue("spacing_difference");
   }
 
 }

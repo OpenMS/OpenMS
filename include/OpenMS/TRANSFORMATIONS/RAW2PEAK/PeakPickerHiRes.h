@@ -108,6 +108,7 @@ public:
 
       // signal-to-noise estimation
       SignalToNoiseEstimatorMedian<MSSpectrum<PeakType> > snt;
+      snt.setParameters(param_.copy("SignalToNoise:", true));
 
       if (signal_to_noise_ > 0.0)
       {
@@ -137,10 +138,10 @@ public:
 
         // look for peak cores meeting MZ and intensity/SNT criteria
         if (act_snt >= signal_to_noise_
-           && left_to_central < 1.5 * min_spacing
+           && left_to_central < spacing_difference_ * min_spacing
            && central_peak_int > left_neighbor_int
            && act_snt_l1 >= signal_to_noise_
-           && central_to_right < 1.5 * min_spacing
+           && central_to_right < spacing_difference_ * min_spacing
            && central_peak_int > right_neighbor_int
            && act_snt_r1 >= signal_to_noise_)
         {
@@ -157,12 +158,12 @@ public:
           }
 
           if ((i > 1
-              && std::fabs(left_neighbor_mz - input[i - 2].getMZ()) < 1.5 * min_spacing
+              && std::fabs(left_neighbor_mz - input[i - 2].getMZ()) < spacing_difference_ * min_spacing
               && left_neighbor_int < input[i - 2].getIntensity()
               && act_snt_l2 >= signal_to_noise_)
              &&
               ((i + 2) < input.size()
-              && std::fabs(input[i + 2].getMZ() - right_neighbor_mz) < 1.5 * min_spacing
+              && std::fabs(input[i + 2].getMZ() - right_neighbor_mz) < spacing_difference_ * min_spacing
               && right_neighbor_int < input[i + 2].getIntensity()
               && act_snt_r2 >= signal_to_noise_)
               )
@@ -199,7 +200,7 @@ public:
             }
 
 
-            if (act_snt_lk >= signal_to_noise_ && std::fabs(input[i - k].getMZ() - peak_raw_data.begin()->first) < 1.5 * min_spacing)
+            if (act_snt_lk >= signal_to_noise_ && std::fabs(input[i - k].getMZ() - peak_raw_data.begin()->first) < spacing_difference_ * min_spacing)
             {
               peak_raw_data[input[i - k].getMZ()] = input[i - k].getIntensity();
             }
@@ -227,7 +228,7 @@ public:
               act_snt_rk = snt.getSignalToNoise(input[i + k]);
             }
 
-            if (act_snt_rk >= signal_to_noise_ && std::fabs(input[i + k].getMZ() - peak_raw_data.rbegin()->first) < 1.5 * min_spacing)
+            if (act_snt_rk >= signal_to_noise_ && std::fabs(input[i + k].getMZ() - peak_raw_data.rbegin()->first) < spacing_difference_ * min_spacing)
             {
               peak_raw_data[input[i + k].getMZ()] = input[i + k].getIntensity();
             }
@@ -414,6 +415,9 @@ public:
 protected:
     // signal-to-noise parameter
     double signal_to_noise_;
+
+    // maximal spacing difference
+    double spacing_difference_;
 
     // docu in base class
     void updateMembers_();
