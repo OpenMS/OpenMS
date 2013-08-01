@@ -328,7 +328,7 @@ namespace OpenMS
     {
       for (Size i = 0; i != complete_file.size(); ++i)
       {
-        if (complete_file[i].hasSubstring("BEGIN IONS"))
+        if (complete_file[i].trim()=="FORMAT=Mascot generic" || complete_file[i].trim()=="BEGIN IONS")
         {
           return FileTypes::MGF;
         }

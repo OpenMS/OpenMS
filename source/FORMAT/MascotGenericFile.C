@@ -152,7 +152,7 @@ namespace OpenMS
     }
 
     // format
-    writeParameterHeader_("FORMAT", os);
+    writeParameterHeader_("FORMAT", os);    // make sure this stays within the first 5 lines of the file, since we use it to recognize our own MGF files in case their file suffix is not MGF
     os << param_.getValue("internal:format") << "\n";
 
     // precursor mass tolerance unit : Da
