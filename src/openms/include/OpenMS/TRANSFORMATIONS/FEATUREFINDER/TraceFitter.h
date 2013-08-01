@@ -42,7 +42,7 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
-#include "OpenMS/MATH/gsl_wrapper.h"
+#include "OpenMS/MATH/GSL_WRAPPER/gsl_wrapper.h"
 
 namespace OpenMS
 {

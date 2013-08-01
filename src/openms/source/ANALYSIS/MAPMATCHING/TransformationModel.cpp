@@ -33,11 +33,14 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>
+#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <algorithm>
 #include <numeric>
+#include <iterator>
+
 
 using namespace std;
 
@@ -309,20 +312,72 @@ namespace OpenMS
     deprecated_gsl_vector_free(y_);
     deprecated_gsl_vector_free(w_);
   }
+namespace {
+/**
+     @brief Calculates the quantile of a range of values
 
+     @param begin Start of range
+     @param end End of range (past-the-end iterator)
+     @param quantile The quantile in the range of 1 to 100
+     @param sorted Is the range already sorted? If not, it will be sorted using
+     std::sort()
+
+     @exception Exception::InvalidRange is thrown if the range is empty or a
+     quantile over 100 is given
+
+     @ingroup MathFunctionsStatistics
+   */
+   OpenMS::DoubleReal quantile(
+		std::vector<double>::iterator begin, std::vector<double>::iterator end,
+   		UInt quantile, bool sorted = false)
+   {
+	   if (begin == end)
+	   {
+		   throw Exception::InvalidRange(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+	   }
+	   if (quantile > 100 || quantile < 1) //TODO is 0 quantile a valid request?
+	   {
+		   throw Exception::InvalidRange(__FILE__, __LINE__, __PRETTY_FUNCTION__);
+	   }
+	   Size size = std::distance(begin, end);
+	   int l = floor( (double(quantile) * (double(size) / 100)) + 0.5); // will not be negative, so this is round nearest
+	   std::cout << " l: " << l << std::endl;
+	   if (!sorted)
+	   {
+		   std::sort(begin, end);
+	   }
+
+	   std::vector<double>::iterator it = begin;
+	   std::advance(it, l - 1);
+	   if (size % 2 == 0) //even size
+	   {
+		   if(quantile == 50)// median => average two middle values
+			   return (*it + *(it+1)) / 2.0;
+	   }
+	   else
+	   {
+		   if(quantile < 50)
+			   return *(it+1);
+	   }
+
+     return *it;
+   }
+}
   void TransformationModelBSpline::getQuantiles_(
     const deprecated_gsl_vector * x, const vector<double> & quantiles, deprecated_gsl_vector * results)
   {
+
     deprecated_gsl_vector * x_sort;
     x_sort = deprecated_gsl_vector_alloc(
     		deprecated_wrapper_gsl_vector_get_size(x) );
     deprecated_gsl_vector_memcpy(x_sort, x);
     deprecated_gsl_sort_vector(x_sort);
+    std::vector<double> xVec;
+    for(unsigned i=0; i<deprecated_wrapper_gsl_vector_get_size(x_sort); ++i)
+      xVec.push_back( deprecated_wrapper_gsl_vector_get_data(x_sort)[i] );
     for (Size i = 0; i < quantiles.size(); ++i)
     {
-      double q = deprecated_gsl_stats_quantile_from_sorted_data(
-    		  deprecated_wrapper_gsl_vector_get_data(x_sort), 1,
-    		  deprecated_wrapper_gsl_vector_get_size(x),quantiles[i]);
+      double q = quantile( xVec.begin(), xVec.end(), 100 * quantiles[i], true );
       deprecated_gsl_vector_set(results, i, q);
     }
     deprecated_gsl_vector_free(x_sort);

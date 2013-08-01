@@ -38,7 +38,9 @@
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include <OpenMS/MATH/gsl_wrapper.h>
+#include <OpenMS/MATH/GSL_WRAPPER/gsl_wrapper.h>
+
+#include <boost/random/uniform_real_distribution.hpp>
 
 using std::vector;
 using std::pair;
@@ -227,6 +229,7 @@ namespace OpenMS
 
     DoubleReal rep_shift = param_.getValue("reporter_mass_shift");
 
+
     OPENMS_PRECONDITION(fm.size() == 1, "More than one feature map given in ITRAQLabeler::postRawTandemMSHook()!")
     deprecated_gsl_matrix * channel_frequency = ItraqConstants::translateIsotopeMatrix(itraq_type_, isotope_corrections_).toGslMatrix();
     deprecated_gsl_matrix * itraq_intensity_observed = Matrix<SimIntensityType>(ItraqConstants::CHANNEL_COUNT[itraq_type_], 1).toGslMatrix();
@@ -235,6 +238,8 @@ namespace OpenMS
     std::vector<Matrix<Int> > channel_names(2);
     channel_names[0].setMatrix<4, 1>(ItraqConstants::CHANNELS_FOURPLEX);
     channel_names[1].setMatrix<8, 1>(ItraqConstants::CHANNELS_EIGHTPLEX);
+
+    boost::random::uniform_real_distribution<DoubleReal> udist (0.0,1.0);
 
     // add signal...
     for (MSSimExperiment::iterator it = exp.begin(); it != exp.end(); ++it)
@@ -267,7 +272,7 @@ namespace OpenMS
       {
         MSSimExperiment::SpectrumType::PeakType p;
         // random shift of +-rep_shift around exact position
-        DoubleReal rnd_shift = deprecated_gsl_rng_uniform(rng_->technical_rng) * 2 * rep_shift - rep_shift;
+        DoubleReal rnd_shift = udist(rng_->getTechnicalRng()) * 2 * rep_shift - rep_shift;
         p.setMZ(channel_names[itraq_type_].getValue(i_channel, 0) + 0.1 + rnd_shift);
         p.setIntensity(deprecated_gsl_matrix_get(itraq_intensity_sum, i_channel, 0));
         //std::cout << "inserted iTRAQ peak: " << p << "\n";

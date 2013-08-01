@@ -40,7 +40,7 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantifierStatistics.h>
 
-#include <OpenMS/MATH/gsl_wrapper.h>
+#include <OpenMS/MATH/GSL_WRAPPER/gsl_wrapper.h>
 
 namespace OpenMS
 {
@@ -63,7 +63,7 @@ public:
     /// Assignment operator
     IsobaricIsotopeCorrector& operator=(const IsobaricIsotopeCorrector& rhs);
 
-    virtual ~IsobaricIsotopeCorrector();
+    ~IsobaricIsotopeCorrector();
 
     /**
      @brief Apply isotope correction to the given input map and store the corrected values in the output map.

@@ -33,9 +33,10 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithmQuantile.h>
-#include <OpenMS/MATH/gsl_wrapper.h>
+#include <OpenMS/MATH/GSL_WRAPPER/gsl_wrapper.h>
 #include <cmath>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <algorithm>
 
 using namespace std;
 
@@ -72,7 +73,7 @@ namespace OpenMS
     for (Size i = 0; i < number_of_maps; ++i)
     {
       vector<double> sorted = feature_ints[i];
-      deprecated_gsl_sort(&sorted.front(), 1, sorted.size());
+      std::sort(sorted.begin(), sorted.end());
       vector<double> resampled(largest_number_of_features);
       resample(sorted, resampled, largest_number_of_features);
       resampled_sorted_data.push_back(resampled);
@@ -100,8 +101,22 @@ namespace OpenMS
     //set the intensities of feature_ints to the normalized intensities
     for (Size i = 0; i < number_of_maps; ++i)
     {
-      vector<Size> sort_indices(feature_ints[i].size());
-      deprecated_gsl_sort_index(&sort_indices.front(), &feature_ints[i].front(), 1, feature_ints[i].size());
+      //we do not want to change the order in feature_ints[i] but normalized_sorted_ints
+      //comes sorted, so we transfer the values in feature_ints[i] into pairs that store
+      //the value and the index in feature_ints[i]. than we sort the vector of pair and as
+      //a result store the indexes of feature_ints[i] in a sorted order in sort_indices.
+      std::vector< std::pair<double, UInt> > sort_pairs;
+      sort_pairs.reserve( feature_ints[i].size() );
+      for(Size j=0; j<feature_ints[i].size(); ++j)
+      {
+        sort_pairs.push_back( std::make_pair(feature_ints[i][j], j) );
+      }
+      std::sort(sort_pairs.begin(), sort_pairs.end());
+      vector<Size> sort_indices(sort_pairs.size());
+      for(Size j=0; j<sort_pairs.size(); ++j)
+	  {
+    	  sort_indices.push_back( sort_pairs.at(j).second );
+	  }
       Size k = 0;
       for (Size j = 0; j < sort_indices.size(); ++j)
       {

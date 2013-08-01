@@ -33,6 +33,13 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/MATH/STATISTICS/LinearRegression.h>
+#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+
+#include <boost/math/distributions/normal.hpp>
+#include <boost/math/special_functions/binomial.hpp>
+#include <boost/math/distributions.hpp>
+
+using boost::math::detail::inverse_students_t;
 
 namespace OpenMS
 {
@@ -100,14 +107,22 @@ namespace OpenMS
 
     void LinearRegression::computeGoodness_(double * X, double * Y, int N, double confidence_interval_P)
     {
-      // Variance and Covariances
-      double var_X = deprecated_gsl_stats_variance(X, 1, N);
-      double var_Y = deprecated_gsl_stats_variance(Y, 1, N);
-      double cov_XY = deprecated_gsl_stats_covariance(X, 1, Y, 1, N);
+	  std::vector<double> XVec;
+	  XVec.reserve(N);
+	  for(Size i=0; i<(Size)N; ++i)
+		XVec.push_back(X[i]);
+	  std::vector<double> YVec;
+	  YVec.reserve(N);
+	  for(Size i=0; i<(Size)N; ++i)
+		YVec.push_back(Y[i]);
+	  // Variance and Covariances
+      double var_X = Math::variance(XVec.begin(), XVec.end());
+      double var_Y = Math::variance(YVec.begin(),YVec.end());
+      double cov_XY = Math::covariance(XVec.begin(), XVec.end(), YVec.begin(), YVec.end());
 
       // Mean of abscissa and ordinate values
-      double x_mean = deprecated_gsl_stats_mean(X, 1, N);
-      double y_mean = deprecated_gsl_stats_mean(Y, 1, N);
+      double x_mean = Math::mean(XVec.begin(), XVec.end());
+      double y_mean = Math::mean(YVec.begin(), YVec.end());
 
       // S_xx
       double s_XX = 0;
@@ -137,7 +152,8 @@ namespace OpenMS
       x_intercept_ = -(intercept_ / slope_);
 
       double P = 1 - (1 - confidence_interval_P) / 2;
-      t_star_ = deprecated_gsl_cdf_tdist_Pinv(P, N - 2);
+      boost::math::students_t tdist (N - 2);
+      t_star_ = boost::math::quantile(tdist, P);
 
       //Compute the asymmetric 95% confidence intervall of around the X-intercept
       double g = (t_star_ / (slope_ / stand_error_slope_));

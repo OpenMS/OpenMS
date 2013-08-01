@@ -139,13 +139,7 @@ namespace OpenMS
       //deprecated_gsl_matrix *covar = deprecated_gsl_matrix_alloc (p, p);
       double x_init[3] = { init_param_.A, init_param_.x0, init_param_.sigma };
       deprecated_gsl_vector_view_ptr x = deprecated_gsl_vector_view_array(x_init, p);
-      const deprecated_gsl_rng_type * type = NULL;
-      deprecated_gsl_rng * r = NULL;
 
-      deprecated_gsl_rng_env_setup();
-
-      type = deprecated_wrapper_get_gsl_rng_default();
-      r = deprecated_gsl_rng_alloc(type);
       // set up the function to be fit
 	  deprecated_gsl_multifit_function_fdf_ptr f
 		  = deprecated_wrapper_gsl_multifit_fdfsolver_lmsder_new (
@@ -190,7 +184,6 @@ namespace OpenMS
 
       if (status != deprecated_gsl_SUCCESS)
       {
-        deprecated_gsl_rng_free(r);
         deprecated_gsl_multifit_fdfsolver_free(s);
 
         throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-GaussFitter", "Could not fit the gaussian to the data");
@@ -213,7 +206,6 @@ namespace OpenMS
       cout << gnuplot_formula_ << endl;
 #endif
 
-      deprecated_gsl_rng_free(r);
       deprecated_gsl_multifit_fdfsolver_free(s);
 
       return result;

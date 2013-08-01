@@ -38,6 +38,7 @@
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <boost/math/special_functions/fpclassify.hpp>
+#include <boost/assign/list_of.hpp>
 ///////////////////////////
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -380,6 +381,19 @@ START_SECTION([EXTRA](template< typename IteratorType1, typename IteratorType2 >
 }
 END_SECTION
 
+START_SECTION([EXTRA](template <typename IteratorType> static DoubleReal quantile(IteratorType begin, IteratorType end, UInt quantile, bool sorted = false) ))
+{
+	std::vector<int> x = boost::assign::list_of(3)(6)(7)(8)(8)(10)(13)(15)(16)(20);
+	std::vector<int> y = boost::assign::list_of(3)(6)(7)(8)(8)(10)(13)(15)(16);
+
+	TEST_REAL_SIMILAR(Math::quantile1st(x.begin(), x.end(), true), 6.5);
+	TEST_REAL_SIMILAR(Math::median(x.begin(), x.end(), true), 9.0);
+	TEST_REAL_SIMILAR(Math::quantile3rd(x.begin(), x.end(), true), 15.5);
+	TEST_REAL_SIMILAR(Math::quantile1st(y.begin(), y.end(), true),6.5);
+	TEST_REAL_SIMILAR(Math::median(y.begin(), y.end(), true), 8.0);
+	TEST_REAL_SIMILAR(Math::quantile3rd(y.begin(), y.end(), true), 14.0);
+}
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

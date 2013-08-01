@@ -33,11 +33,13 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/QcMLFile.h>
+#include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <fstream>
 #include <iostream>
 #include <algorithm>
 #include <boost/range/adaptor/map.hpp>
 #include <boost/range/algorithm/copy.hpp>
+
 
 using namespace std;
 

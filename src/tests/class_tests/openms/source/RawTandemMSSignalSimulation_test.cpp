@@ -40,7 +40,7 @@
 
 ///////////////////////////
 #include <OpenMS/SIMULATION/RawTandemMSSignalSimulation.h>
-#include <OpenMS/MATH/gsl_wrapper.h>
+#include <OpenMS/MATH/GSL_WRAPPER/gsl_wrapper.h>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -53,9 +53,10 @@ START_TEST(RawTandemMSSignalSimulation, "$Id$")
 
 RawTandemMSSignalSimulation* ptr = 0;
 RawTandemMSSignalSimulation* null_ptr = 0;
-SimRandomNumberGenerator rng;
+MutableSimRandomNumberGeneratorPtr rng (new SimRandomNumberGenerator);
+rng->initialize(false, false);
 
-START_SECTION((RawTandemMSSignalSimulation(const SimRandomNumberGenerator &rng)))
+START_SECTION((RawTandemMSSignalSimulation(SimRandomNumberGeneratorPtr rng)))
 {
 	ptr = new RawTandemMSSignalSimulation(rng);
 	TEST_NOT_EQUAL(ptr, null_ptr)
@@ -90,8 +91,7 @@ END_SECTION
 
 START_SECTION((void generateRawTandemSignals(const FeatureMapSim &, MSSimExperiment &, MSSimExperiment &)))
 {
-    rng.biological_rng = deprecated_gsl_rng_alloc(deprecated_wrapper_get_gsl_rng_mt19937());
-    deprecated_gsl_rng_set(rng.biological_rng, 0);
+    rng->initialize(false, false);
 
     //Load featureXML and MSExperiment from MSSimulator run without MS2 simulation
     String feature_filename, exp_no_ms2_file, exp_with_ms2_file;

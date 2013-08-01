@@ -39,7 +39,7 @@
 #include <OpenMS/SIMULATION/IonizationSimulation.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/MATH/gsl_wrapper.h>
+#include <OpenMS/MATH/GSL_WRAPPER/gsl_wrapper.h>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -56,13 +56,10 @@ TOPPBase::setMaxNumberOfThreads(1);
 IonizationSimulation* ptr = 0;
 IonizationSimulation* nullPointer = 0;
 const unsigned long rnd_gen_seed = 1;
-SimRandomNumberGenerator rnd_gen;
+MutableSimRandomNumberGeneratorPtr rnd_gen (new SimRandomNumberGenerator);
 
 // init reproducible rnd_gen
-rnd_gen.technical_rng = deprecated_gsl_rng_alloc(deprecated_wrapper_get_gsl_rng_mt19937());
-deprecated_gsl_rng_set(rnd_gen.technical_rng, 0);
-rnd_gen.biological_rng = deprecated_gsl_rng_alloc(deprecated_wrapper_get_gsl_rng_mt19937());
-deprecated_gsl_rng_set(rnd_gen.biological_rng, 0);
+rnd_gen->initialize(false, false);
 
 START_SECTION(IonizationSimulation())
 {
@@ -113,12 +110,9 @@ END_SECTION
 START_SECTION((void ionize(FeatureMapSim &features, ConsensusMap &charge_consensus, MSSimExperiment &experiment)))
 {
   // init rng
-  SimRandomNumberGenerator rnd_gen;
-
-  rnd_gen.biological_rng = deprecated_gsl_rng_alloc (deprecated_wrapper_gsl_rng_taus_get());
-  deprecated_gsl_rng_set(rnd_gen.biological_rng, rnd_gen_seed);
-  rnd_gen.technical_rng = deprecated_gsl_rng_alloc (deprecated_wrapper_gsl_rng_taus_get());
-  deprecated_gsl_rng_set(rnd_gen.technical_rng, rnd_gen_seed);
+  MutableSimRandomNumberGeneratorPtr rnd_gen (new SimRandomNumberGenerator);
+  rnd_gen->setBiologicalRngSeed(rnd_gen_seed);
+  rnd_gen->setTechnicalRngSeed(rnd_gen_seed);
 
   // testing ESI
   IonizationSimulation esi_sim(rnd_gen);
@@ -231,12 +225,9 @@ START_SECTION((void ionize(FeatureMapSim &features, ConsensusMap &charge_consens
   }
 
 
-  SimRandomNumberGenerator rnd_gen_maldi;
-
-  rnd_gen_maldi.biological_rng = deprecated_gsl_rng_alloc (deprecated_wrapper_gsl_rng_taus_get());
-  deprecated_gsl_rng_set(rnd_gen_maldi.biological_rng, rnd_gen_seed);
-  rnd_gen_maldi.technical_rng = deprecated_gsl_rng_alloc (deprecated_wrapper_gsl_rng_taus_get());
-  deprecated_gsl_rng_set(rnd_gen_maldi.technical_rng, rnd_gen_seed);
+  MutableSimRandomNumberGeneratorPtr rnd_gen_maldi (new SimRandomNumberGenerator);
+  rnd_gen_maldi->setBiologicalRngSeed(rnd_gen_seed);
+  rnd_gen_maldi->setTechnicalRngSeed(rnd_gen_seed);
 
   // testing MALDI
   IonizationSimulation maldi_sim(rnd_gen_maldi);

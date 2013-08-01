@@ -113,11 +113,11 @@ namespace OpenMS
   {
     // section params
     defaults_.insert("Digestion:", DigestSimulation().getDefaults());
-    defaults_.insert("RT:", RTSimulation(SimRandomNumberGenerator()).getDefaults());
+    defaults_.insert("RT:", RTSimulation().getDefaults());
     defaults_.insert("Detectability:", DetectabilitySimulation().getDefaults());
-    defaults_.insert("Ionization:", IonizationSimulation(SimRandomNumberGenerator()).getDefaults());
-    defaults_.insert("RawSignal:", RawMSSignalSimulation(SimRandomNumberGenerator()).getDefaults());
-    defaults_.insert("RawTandemSignal:", RawTandemMSSignalSimulation(SimRandomNumberGenerator()).getDefaults());
+    defaults_.insert("Ionization:", IonizationSimulation().getDefaults());
+    defaults_.insert("RawSignal:", RawMSSignalSimulation().getDefaults());
+    defaults_.insert("RawTandemSignal:", RawTandemMSSignalSimulation().getDefaults());
 
     subsections_.push_back("Labeling");
 
@@ -157,7 +157,7 @@ namespace OpenMS
     return tmp;
   }
 
-  void MSSim::simulate(const SimRandomNumberGenerator & rnd_gen, SampleChannels & channels)
+  void MSSim::simulate(MutableSimRandomNumberGeneratorPtr rnd_gen, SampleChannels & channels)
   {
     /*todo: move to a global config file or into INI file */
     Log_fatal.setPrefix("%S: ");

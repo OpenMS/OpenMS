@@ -61,7 +61,7 @@
 #endif
 
 #include <boost/math/special_functions/acosh.hpp>
-#include "OpenMS/MATH/gsl_wrapper.h"
+#include "OpenMS/MATH/GSL_WRAPPER/gsl_wrapper.h"
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePick.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakShape.h>
 

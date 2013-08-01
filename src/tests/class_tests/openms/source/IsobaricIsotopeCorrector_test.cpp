@@ -125,7 +125,7 @@ START_SECTION((IsobaricQuantifierStatistics correctIsotopicImpurities(const Cons
     NEW_TMP_FILE(cm_file_out);
     cm_file.store(cm_file_out,cm_out);
   
-    WHITELIST("<?xml-stylesheet");
+    WHITELIST("<?xml-stylesheet,id=\",href=\"file:////");
     TEST_FILE_SIMILAR(cm_file_out,OPENMS_GET_TEST_DATA_PATH("IsobaricIsotopeCorrector_out.consensusXML")); 
 
     // 2. check the returned stats -> values are based on the org. impl.

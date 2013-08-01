@@ -87,7 +87,7 @@ public:
      @param rnd_gen GSL random number generator which will be passed to the different classes
      @param peptides List of peptides and abundances that will be simulated
      */
-    void simulate(const SimRandomNumberGenerator& rnd_gen, SampleChannels& peptides);
+    void simulate(MutableSimRandomNumberGeneratorPtr rnd_gen, SampleChannels & peptides);
 
     /// Access the simulated experiment
     MSSimExperiment const& getExperiment() const;

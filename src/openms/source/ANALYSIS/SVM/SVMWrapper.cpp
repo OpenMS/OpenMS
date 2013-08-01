@@ -47,9 +47,11 @@
 #include <cmath>
 #include <ctime>
 
-#include <OpenMS/MATH/gsl_wrapper.h>
+#include <OpenMS/MATH/GSL_WRAPPER/gsl_wrapper.h>
+#include <boost/math/distributions/normal.hpp>
 
 using namespace std;
+using boost::math::cdf;
 
 namespace OpenMS
 {
@@ -1838,33 +1840,22 @@ namespace OpenMS
     return counter;
   }
 
-  DoubleReal SVMWrapper::getPValue(DoubleReal                                         intercept,
-                                   DoubleReal                                         slope,
-                                   pair<DoubleReal, DoubleReal>       point)
+  DoubleReal SVMWrapper::getPValue(DoubleReal intercept,
+      DoubleReal slope,
+      pair<DoubleReal, DoubleReal> point)
   {
     DoubleReal center = point.first;
-    DoubleReal distance = point.second - center;
-    DoubleReal sd_units;
-    DoubleReal result;
-    DoubleReal actual_sigma;
+    DoubleReal distance = std::abs(point.second - center);
 
-    // getting the absolute value
-    distance = (distance < 0) ? (-1 * distance) : distance;
-
-    actual_sigma = ((intercept + point.first * slope) - point.first) / 2;
+    DoubleReal actual_sigma = ((intercept + point.first * slope) - point.first) / 2;
 
     actual_sigma = (actual_sigma < 0) ? (-1 * actual_sigma) : actual_sigma;
-    sd_units = distance / actual_sigma;
+    DoubleReal sd_units = distance / actual_sigma;
 
-    // getting only the inner part of the area (0 +- sd_units)
-    result = (deprecated_gsl_cdf_gaussian_P(sd_units, 1) - 0.5) * 2;
+    // getting only the inner part of the area [-1,1]
+    boost::math::normal dist (0, 1);
 
-    //should be impossible
-    if (result > 1)
-    {
-      result = 1;
-    }
-    return result;
+    return (boost::math::cdf(dist, sd_units) - 0.5) * 2;
   }
 
   void SVMWrapper::getDecisionValues(svm_problem* data, vector<DoubleReal>& decision_values)

@@ -39,6 +39,12 @@
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/CONCEPT/Constants.h>
 
+#include <algorithm>
+#include <iterator>
+
+#include <boost/bind.hpp>
+#include <boost/random/discrete_distribution.hpp>
+
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -722,7 +728,7 @@ namespace OpenMS
     }
   }
 
-  void SvmTheoreticalSpectrumGenerator::simulate(RichPeakSpectrum & spectrum, const AASequence & peptide, const deprecated_gsl_rng * rng, Size precursor_charge)
+  void SvmTheoreticalSpectrumGenerator::simulate(RichPeakSpectrum & spectrum, const AASequence & peptide, boost::random::mt19937_64& rng, Size precursor_charge)
   {
     RichPeak1D p_;
     // just in case someone wants the ion names;
@@ -748,7 +754,7 @@ namespace OpenMS
     std::vector<std::set<String> > possible_c_term_losses(peptide.size());
 
     UInt ion_nr = 0;
-    deprecated_gsl_ran_discrete_t * gsl_gen = 0;
+//    deprecated_gsl_ran_discrete_t * gsl_gen = 0;
 
 
     for (Size i = 1; i < peptide.size(); ++i)
@@ -917,10 +923,11 @@ namespace OpenMS
           {
             //sample intensities for secondary types
             Size region = std::min(mp_.number_regions - 1, (Size)floor(mp_.number_regions * prefix.getMonoWeight(Residue::Internal) / peptide.getMonoWeight()));
-            DoubleReal * condit_probs = &(mp_.conditional_prob[std::make_pair(*it, region)][bin][0]);
-            gsl_gen = deprecated_gsl_ran_discrete_preproc(mp_.number_intensity_levels, condit_probs);
-            Size binned_int = deprecated_gsl_ran_discrete(rng, gsl_gen);
-            deprecated_gsl_ran_discrete_free(gsl_gen);
+            std::vector<double>& props = mp_.conditional_prob[std::make_pair(*it, region)][bin];
+            std::vector<double> weights;
+            std::transform( props.begin(), props.end(), std::back_inserter(weights), boost::bind( std::multiplies<double>(), _1, 10 ) );
+            boost::random::discrete_distribution<Size> ddist (weights.begin(), weights.end());
+            Size binned_int = ddist(rng);
 
             if (binned_int != 0)
             {
@@ -930,7 +937,6 @@ namespace OpenMS
         }
       }
     }
-
 
     //Now create the actual spectrum containing also isotopic peaks if selected and precursor peaks etc.
     for (Size i = 0; i < peaks_to_generate.size(); ++i)

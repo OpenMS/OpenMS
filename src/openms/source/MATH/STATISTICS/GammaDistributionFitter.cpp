@@ -37,6 +37,7 @@
 #include <iostream>
 #include <cmath>
 #include <boost/math/special_functions/gamma.hpp>
+#include <boost/math/special_functions/digamma.hpp>
 
 #include <OpenMS/MATH/STATISTICS/GammaDistributionFitter.h>
 
@@ -106,7 +107,7 @@ namespace OpenMS
 
         // partielle ableitung nach p
         double factor = exp(-b * the_x) * pow(the_x, p - 1) * pow(b, p) / pow(boost::math::tgamma(p), 2);
-        double argument = (log(b) + log(the_x)) * boost::math::tgamma(p) - boost::math::tgamma(p) * deprecated_gsl_sf_psi(p);
+        double argument = (log(b) + log(the_x)) * boost::math::tgamma(p) - boost::math::tgamma(p) * boost::math::digamma(p);
         double part_dev_p = factor * argument;
         deprecated_gsl_matrix_set(J, i, 1, part_dev_p);
       }
@@ -145,13 +146,7 @@ namespace OpenMS
 
       double x_init[2] = { init_param_.b, init_param_.p };
       deprecated_gsl_vector_view_ptr x = deprecated_gsl_vector_view_array(x_init, p);
-      const deprecated_gsl_rng_type * type = NULL;
-      deprecated_gsl_rng * r = NULL;
 
-      deprecated_gsl_rng_env_setup();
-
-      type = deprecated_wrapper_get_gsl_rng_default();
-      r = deprecated_gsl_rng_alloc(type);
 
       // set up the function to be fit
 	  deprecated_gsl_multifit_function_fdf_ptr f
@@ -201,7 +196,6 @@ namespace OpenMS
 
       if (status != deprecated_gsl_SUCCESS)
       {
-        deprecated_gsl_rng_free(r);
         deprecated_gsl_multifit_fdfsolver_free(s);
 
         throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-GammaDistributionFitter", "Could not fit the gamma distribution to the data");
@@ -223,7 +217,6 @@ namespace OpenMS
       cout << gnuplot_formula_ << endl;
 #endif
 
-      deprecated_gsl_rng_free(r);
       deprecated_gsl_multifit_fdfsolver_free(s);
 
       return result;

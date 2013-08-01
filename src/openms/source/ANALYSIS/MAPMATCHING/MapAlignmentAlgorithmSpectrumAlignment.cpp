@@ -33,7 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmSpectrumAlignment.h>
-#include "OpenMS/MATH/gsl_wrapper.h"
+#include "OpenMS/MATH/GSL_WRAPPER/gsl_wrapper.h"
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 namespace OpenMS

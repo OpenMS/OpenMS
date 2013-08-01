@@ -39,8 +39,6 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/LevMarqFitter1D.h>
 
-#include <OpenMS/MATH/gsl_wrapper.h>
-
 namespace OpenMS
 {
   /**

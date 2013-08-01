@@ -74,7 +74,7 @@ public:
       Internally a pointer to the RNG is stored.
 
     */
-    virtual void setRnd(const SimRandomNumberGenerator & rng);
+    virtual void setRnd(MutableSimRandomNumberGeneratorPtr rng);
 
     /**
       @brief Checks the (simulation) params passed if they are consistent with
@@ -164,7 +164,7 @@ protected:
 
     ConsensusMap consensus_;
 
-    SimRandomNumberGenerator const * rng_;
+    MutableSimRandomNumberGeneratorPtr rng_;
 
     String channel_description_;
 

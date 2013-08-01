@@ -74,11 +74,14 @@ public:
       ESI
     } IonizationType;
 
+    /// Default constructor
+    IonizationSimulation();
+
     /** @name Constructors and Destructors
       */
     //@{
     ///
-    explicit IonizationSimulation(const SimRandomNumberGenerator &);
+    explicit IonizationSimulation(MutableSimRandomNumberGeneratorPtr);
 
     /// Copy constructor
     IonizationSimulation(const IonizationSimulation & source);
@@ -103,9 +106,6 @@ public:
     void ionize(FeatureMapSim & features, ConsensusMap & charge_consensus, MSSimExperiment & experiment);
 
 private:
-    /// Default constructor
-    IonizationSimulation();
-
     class CompareCmpByEF_;
 
     /// ionize using ESI
@@ -184,7 +184,7 @@ private:
 
 protected:
     /// Random number generator
-    SimRandomNumberGenerator const * rnd_gen_;
+    MutableSimRandomNumberGeneratorPtr rnd_gen_;
   };
 
 }

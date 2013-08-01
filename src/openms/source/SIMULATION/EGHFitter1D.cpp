@@ -38,6 +38,7 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <boost/math/special_functions/fpclassify.hpp>
+#include <OpenMS/MATH/GSL_WRAPPER/gsl_wrapper.h>
 
 #define DEBUG_EGHFITTER
 

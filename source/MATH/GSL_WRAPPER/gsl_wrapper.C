@@ -5,53 +5,59 @@
  *      Author: Hans-Christian Ehrlich
  */
 
-#include "OpenMS/MATH/gsl_wrapper.h"
+#include "OpenMS/MATH/GSL_WRAPPER/gsl_wrapper.h"
+
 /* basic linear algebra subprograms */
 #include <gsl/gsl_blas.h>
 /* curve fitting - basic spline */
 #include <gsl/gsl_bspline.h>
-/* gaussian distribution */
-#include <gsl/gsl_cdf.h>
-/* error handling */
-#include <gsl/gsl_errno.h>
-/* fast fourier transforms for real data */
-#include <gsl/gsl_fft_real.h>
 /* curve fitting -  general */
 #include <gsl/gsl_fit.h>
 /* curve fitting - interpolation */
 #include <gsl/gsl_interp.h>
-/* linear algebra */
-#include <gsl/gsl_linalg.h>
-/* basic mathematical functions */
-#include <gsl/gsl_math.h>
-/* matrix - data structures */
-#include <gsl/gsl_matrix.h>
-#include <gsl/gsl_matrix_double.h>
 /* curve fitting - multi parameter least-square fits */
 #include <gsl/gsl_multifit.h>
 #include <gsl/gsl_multifit_nlin.h>
 #include <gsl/gsl_multifit_nlin.h>
+/* curve fitting - spline */
+#include <gsl/gsl_spline.h>
+/* curve fitting - data sort */
+#include <gsl/gsl_sort_double.h>
+
+/* statistic functions */
+//#include <gsl/gsl_statistics.h>
+#include <gsl/gsl_statistics_double.h>
+/* statistics - gaussian distribution */
+#include <gsl/gsl_cdf.h>
+
+/* error handling */
+#include <gsl/gsl_errno.h>
+
+/* basic mathematical functions */
+#include <gsl/gsl_math.h>
+/* linear algebra */
+#include <gsl/gsl_linalg.h>
+/* fast fourier transforms for real data */
+#include <gsl/gsl_fft_real.h>
+/* matrix - data structures */
+#include <gsl/gsl_matrix.h>
+#include <gsl/gsl_matrix_double.h>
 /* matrix - permutations used for inverting a matrix */
 #include <gsl/gsl_permutation.h>
-/* math - power functions */
-#include <gsl/gsl_pow_int.h>
+/* special functions - digamma function */
+#include <gsl/gsl_sf_psi.h>
+#include <gsl/gsl_sort_vector.h>
+/* vector data structure */
+#include <gsl/gsl_vector.h>
+
 /* random number - distributions */
 #include <gsl/gsl_randist.h>
 /* random number - generators */
 #include <gsl/gsl_rng.h>
-/* special functions - digamma functio */
-#include <gsl/gsl_sf_psi.h>
+
 /* sorting */
-#include <gsl/gsl_sort.h>
-#include <gsl/gsl_sort_double.h>
-#include <gsl/gsl_sort_vector.h>
-/* curve fitting - spline */
-#include <gsl/gsl_spline.h>
-/* statistic functions */
-#include <gsl/gsl_statistics.h>
-#include <gsl/gsl_statistics_double.h>
-/* vector data structure */
-#include <gsl/gsl_vector.h>
+
+
 
 
 
@@ -102,31 +108,9 @@ struct deprecated_gsl_spline : public gsl_spline {};
 struct deprecated_gsl_vector : public gsl_vector {};
 struct deprecated_gsl_vector_view : public gsl_vector_view {};
 
-void
-deprecated_wrapper_gsl_rng_default_seed_set( unsigned long int x )
-{
-	gsl_rng_default_seed = x;
-}
-
-const deprecated_gsl_rng_type *
-deprecated_wrapper_gsl_rng_taus_get()
-{
-	return static_cast<const deprecated_gsl_rng_type*>(gsl_rng_taus);
-}
-
-const deprecated_gsl_rng_type * deprecated_wrapper_get_gsl_rng_mt19937()
-{
-	return static_cast<const deprecated_gsl_rng_type*>( gsl_rng_mt19937 );
-}
-
 const deprecated_gsl_multifit_fdfsolver_type * deprecated_wrapper_get_multifit_fdfsolver_lmsder()
 {
 	return static_cast<const deprecated_gsl_multifit_fdfsolver_type*>(gsl_multifit_fdfsolver_lmsder);
-}
-
-const deprecated_gsl_rng_type * deprecated_wrapper_get_gsl_rng_default()
-{
-	return static_cast<const deprecated_gsl_rng_type*>(gsl_rng_default);
 }
 
 const deprecated_gsl_vector*
@@ -242,136 +226,15 @@ const char * deprecated_gsl_strerror (const int e)
 	return gsl_strerror(e);
 }
 
-
-const char * deprecated_gsl_rng_name (const deprecated_gsl_rng * r)
-{
-	return gsl_rng_name (r);
-}
-
-
-const deprecated_gsl_rng_type * deprecated_gsl_rng_env_setup (void)
-{
-	return  static_cast<const deprecated_gsl_rng_type*>( gsl_rng_env_setup() );
-}
-
-
 double deprecated_gsl_blas_dnrm2 (const deprecated_gsl_vector * X)
 {
 	return gsl_blas_dnrm2 (X);
 }
 
-
-double deprecated_gsl_cdf_gaussian_P (const double x, const double sigma)
+const deprecated_gsl_rng_type * deprecated_gsl_rng_env_setup (void)
 {
-	return gsl_cdf_gaussian_P (x, sigma);
+ return  static_cast<const deprecated_gsl_rng_type*>( gsl_rng_env_setup() );
 }
-
-
-double deprecated_gsl_cdf_tdist_Pinv (const double P, const double nu)
-{
-	return gsl_cdf_tdist_Pinv (P, nu);
-}
-
-
-double deprecated_gsl_ran_cauchy (const deprecated_gsl_rng * r, const double a)
-{
-	return gsl_ran_cauchy (r, a);
-}
-
-
-double deprecated_gsl_ran_cauchy_pdf (const double x, const double a)
-{
-	return gsl_ran_cauchy_pdf (x, a);
-}
-
-
-double deprecated_gsl_ran_exponential (const deprecated_gsl_rng * r, const double mu)
-{
-	return gsl_ran_exponential (r, mu);
-}
-
-
-double deprecated_gsl_ran_exponential_pdf (const double x, const double mu)
-{
-	return gsl_ran_exponential_pdf (x, mu);
-}
-
-
-double deprecated_gsl_ran_flat (const deprecated_gsl_rng * r, const double a, const double b)
-{
-	return gsl_ran_flat (r, a, b);
-}
-
-
-double deprecated_gsl_ran_gaussian (const deprecated_gsl_rng * r, const double sigma)
-{
-	return gsl_ran_gaussian (r, sigma);
-}
-
-
-double deprecated_gsl_stats_absdev (const double data[], const size_t stride, const size_t n)
-{
-	return gsl_stats_absdev (data , stride, n);
-}
-
-
-double deprecated_gsl_stats_covariance (const double data1[], const size_t stride1,const double data2[], const size_t stride2, const size_t n)
-{
-	return gsl_stats_covariance (data1 , stride1, data2 , stride2, n);
-}
-
-
-double deprecated_gsl_stats_int_mean (const int data[], const size_t stride, const size_t n)
-{
-	return gsl_stats_int_mean (data , stride, n);
-}
-
-
-double deprecated_gsl_stats_int_sd (const int data[], const size_t stride, const size_t n)
-{
-	return gsl_stats_int_sd (data , stride, n);
-}
-
-
-double deprecated_gsl_stats_mean (const double data[], const size_t stride, const size_t n)
-{
-	return gsl_stats_mean (data , stride, n);
-}
-
-
-double deprecated_gsl_stats_median_from_sorted_data (const double sorted_data[], const size_t stride, const size_t n)
-{
-	return gsl_stats_median_from_sorted_data (sorted_data , stride, n) ;
-}
-
-double deprecated_gsl_stats_quantile_from_sorted_data (const double sorted_data[], const size_t stride, const size_t n, const double f)
-{
-	return gsl_stats_quantile_from_sorted_data (sorted_data , stride, n, f) ;
-}
-
-double deprecated_gsl_stats_sd (const double data[], const size_t stride, const size_t n)
-{
-	return gsl_stats_sd (data , stride, n);
-}
-
-
-double deprecated_gsl_stats_sd_with_fixed_mean (const double data[], const size_t stride, const size_t n, const double mean)
-{
-	return gsl_stats_sd_with_fixed_mean (data , stride, n, mean);
-}
-
-
-double deprecated_gsl_stats_variance (const double data[], const size_t stride, const size_t n)
-{
-	return gsl_stats_variance (data , stride, n);
-}
-
-
-double deprecated_gsl_stats_variance_m (const double data[], const size_t stride, const size_t n, const double mean)
-{
-	return gsl_stats_variance_m (data , stride, n, mean);
-}
-
 
 deprecated_gsl_fft_real_wavetable * deprecated_gsl_fft_real_wavetable_alloc (size_t n)
 {
@@ -428,30 +291,6 @@ void deprecated_gsl_multifit_linear_free (deprecated_gsl_multifit_linear_workspa
 deprecated_gsl_permutation * deprecated_gsl_permutation_alloc (const size_t n)
 {
 	return static_cast<deprecated_gsl_permutation*>( gsl_permutation_alloc (n) );
-}
-
-
-deprecated_gsl_ran_discrete_t * deprecated_gsl_ran_discrete_preproc (size_t K, const double *P)
-{
-	return static_cast<deprecated_gsl_ran_discrete_t*>( gsl_ran_discrete_preproc (K, P) );
-}
-
-
-deprecated_gsl_rng * deprecated_gsl_rng_alloc (const deprecated_gsl_rng_type * T)
-{
-	return static_cast<deprecated_gsl_rng*>( gsl_rng_alloc (T) );
-}
-
-
-unsigned long int deprecated_gsl_rng_get (const deprecated_gsl_rng * r)
-{
-	return gsl_rng_get (r);
-}
-
-
-double deprecated_gsl_rng_uniform (const deprecated_gsl_rng * r)
-{
-	return gsl_rng_uniform (r);
 }
 
 
@@ -523,36 +362,6 @@ int deprecated_gsl_vector_memcpy (deprecated_gsl_vector * dest, const deprecated
 }
 
 
-size_t deprecated_gsl_ran_discrete (const deprecated_gsl_rng *r, const deprecated_gsl_ran_discrete_t *g)
-{
-	return gsl_ran_discrete (r, g);
-}
-
-
-unsigned int deprecated_gsl_ran_binomial (const deprecated_gsl_rng * r, double p, unsigned int n)
-{
-	return gsl_ran_binomial (r, p, n);
-}
-
-
-unsigned int deprecated_gsl_ran_poisson (const deprecated_gsl_rng * r, double mu)
-{
-	return gsl_ran_poisson (r, mu);
-}
-
-
-unsigned long int deprecated_gsl_rng_max (const deprecated_gsl_rng * r)
-{
-	return gsl_rng_max (r);
-}
-
-
-unsigned long int deprecated_gsl_rng_min (const deprecated_gsl_rng * r)
-{
-	return gsl_rng_min (r);
-}
-
-
 void deprecated_gsl_fft_real_wavetable_free (deprecated_gsl_fft_real_wavetable * wavetable)
 {
 	gsl_fft_real_wavetable_free (wavetable);
@@ -578,35 +387,6 @@ void deprecated_gsl_matrix_set(deprecated_gsl_matrix * m, const size_t i, const 
 void deprecated_gsl_permutation_free (deprecated_gsl_permutation * p)
 {
 	gsl_permutation_free (p);
-}
-
-double deprecated_gsl_pow_int(double x, int n)
-{
-	return gsl_pow_int(x, n);
-}
-
-
-void deprecated_gsl_rng_free (deprecated_gsl_rng * r)
-{
-	gsl_rng_free (r);
-}
-
-
-void deprecated_gsl_rng_set (const deprecated_gsl_rng * r, unsigned long int seed)
-{
-	gsl_rng_set (r, seed);
-}
-
-
-void deprecated_gsl_sort (double * data, const size_t stride, const size_t n)
-{
-	gsl_sort (data, stride, n);
-}
-
-
-void deprecated_gsl_sort_index (size_t * p, const double * data, const size_t stride, const size_t n)
-{
-	gsl_sort_index (p, data, stride, n);
 }
 
 
@@ -817,17 +597,8 @@ int deprecated_gsl_interp_init(deprecated_gsl_interp* obj, const double xa[], co
   return gsl_interp_init(obj, xa, ya, size);
 }
 
-void deprecated_gsl_ran_discrete_free(deprecated_gsl_ran_discrete_t *g)
-{
-	gsl_ran_discrete_free(g);
-}
-
 void  deprecated_gsl_fft_real_workspace_free (deprecated_gsl_fft_real_workspace * workspace)
 {
 	gsl_fft_real_workspace_free (workspace);
 }
 
-double  deprecated_gsl_sf_psi(const double x)
-{
-	return gsl_sf_psi(x);
-}

@@ -40,7 +40,9 @@
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/SIMULATION/DetectabilitySimulation.h>
 #include <OpenMS/SIMULATION/RTSimulation.h>
-#include <OpenMS/MATH/gsl_wrapper.h>
+#include <OpenMS/MATH/GSL_WRAPPER/gsl_wrapper.h>
+
+#include <boost/math/distributions/normal.hpp>
 
 using namespace std;
 //#define PISP_DEBUG
@@ -424,8 +426,7 @@ namespace OpenMS
       {
         std::cout << distance(sequences_.begin(), seq_it) << " peptides done." << std::endl;
         // now make RTPrediction using the RTSimulation class of the simulator
-        SimRandomNumberGenerator rnd_gen;
-        RTSimulation rt_sim(rnd_gen);
+        RTSimulation rt_sim;
         rt_sim.setParameters(rt_param);
 
         std::vector<DoubleReal> rts2;
@@ -1163,24 +1164,22 @@ namespace OpenMS
 
     obs_scan_begin -= mu_;
     obs_scan_end -= mu_;
-    DoubleReal x1, x2;
-    x1 = theo_scan - obs_scan_end;
-    x2 = theo_scan - obs_scan_begin;
-    DoubleReal prob;
-    // gsl_cdf_gaussian_P computes the cumulative probs up to x (i.e. the area under the curve)
-    // so cgauss(x2)  - cgauss(x1) yields the area between x1 and x2
+    DoubleReal x1 = DoubleReal(theo_scan) - obs_scan_end;
+    DoubleReal x2 = DoubleReal(theo_scan) - obs_scan_begin;
+
+    // boost::math::cdf computes the cumulative probs up to x (i.e. the area under the curve)
+    boost::math::normal dist (0.0, sigma_);
+    DoubleReal prob = boost::math::cdf( dist, x1 ) - boost::math::cdf( dist, x2 );
     if (x2 > x1)
-      prob = deprecated_gsl_cdf_gaussian_P(x2, sigma_) - deprecated_gsl_cdf_gaussian_P(x1, sigma_);
-    else
-      prob = deprecated_gsl_cdf_gaussian_P(x1, sigma_) -  deprecated_gsl_cdf_gaussian_P(x2, sigma_);
+      prob = boost::math::cdf( dist, x2 ) - boost::math::cdf( dist, x1 );
     if ((prob < 0.) || (obs_scan_begin == obs_scan_end))
     {
       std::cerr << min_obs_rt << " " << obs_scan_begin << " " << max_obs_rt << " " << obs_scan_end << " "
                 << theo_rt << " " << theo_scan << " " << mu_ << " " << x1 << " " << x2 << " " << prob << std::endl;
       if (x2 > x1)
-        std::cerr <<  deprecated_gsl_cdf_gaussian_P(x2, sigma_) << " - " << deprecated_gsl_cdf_gaussian_P(x1, sigma_) << std::endl;
+        std::cerr <<  boost::math::cdf( dist, x2 ) << " - " << boost::math::cdf( dist, x1 ) << std::endl;
       else
-        std::cerr <<   deprecated_gsl_cdf_gaussian_P(x1, sigma_) << " - " << deprecated_gsl_cdf_gaussian_P(x2, sigma_) << std::endl;
+        std::cerr << boost::math::cdf( dist, x1 ) << " - " << boost::math::cdf( dist, x2 ) << std::endl;
     }
     return prob;
   }

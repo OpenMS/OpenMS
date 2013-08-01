@@ -36,7 +36,7 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqQuantifier.h>
 
 // default isotope correction (via A^-1)
-#include <OpenMS/MATH/gsl_wrapper.h>
+#include <OpenMS/MATH/GSL_WRAPPER/gsl_wrapper.h>
 // NNLS isotope correction
 #include <OpenMS/MATH/MISC/NonNegativeLeastSquaresSolver.h>
 

@@ -41,7 +41,7 @@
 #include <OpenMS/DATASTRUCTURES/DRange.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/PeakWidthEstimator.h>
 
-#include "OpenMS/MATH/gsl_wrapper.h"
+#include "OpenMS/MATH/GSL_WRAPPER/gsl_wrapper.h"
 #include <list>
 #include <map>
 #include <vector>

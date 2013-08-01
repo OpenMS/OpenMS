@@ -39,7 +39,7 @@
 #include <deque>
 #include <boost/tuple/tuple_comparison.hpp>
 
-#include <OpenMS/MATH/gsl_wrapper.h>
+#include <OpenMS/MATH/GSL_WRAPPER/gsl_wrapper.h>
 
 namespace OpenMS
 {

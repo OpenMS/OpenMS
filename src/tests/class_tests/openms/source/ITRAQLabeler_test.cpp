@@ -189,9 +189,8 @@ END_SECTION
 START_SECTION((void postRawTandemMSHook(FeatureMapSimVector &, MSSimExperiment &)))
 {
   ITRAQLabeler i;
-  SimRandomNumberGenerator rnd_gen;
-  rnd_gen.biological_rng = deprecated_gsl_rng_alloc(deprecated_wrapper_get_gsl_rng_mt19937());
-  rnd_gen.technical_rng = deprecated_gsl_rng_alloc(deprecated_wrapper_get_gsl_rng_mt19937());
+  MutableSimRandomNumberGeneratorPtr rnd_gen (new SimRandomNumberGenerator);
+  rnd_gen->initialize(false, false);
   i.setRnd(rnd_gen);
 
   FeatureMapSimVector f_maps;

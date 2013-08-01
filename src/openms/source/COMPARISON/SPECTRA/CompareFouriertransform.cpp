@@ -35,7 +35,7 @@
 #include <OpenMS/COMPARISON/SPECTRA/CompareFouriertransform.h>
 
 #include <cmath>
-#include <OpenMS/MATH/gsl_wrapper.h>
+#include <OpenMS/MATH/GSL_WRAPPER/gsl_wrapper.h>
 
 
 namespace OpenMS

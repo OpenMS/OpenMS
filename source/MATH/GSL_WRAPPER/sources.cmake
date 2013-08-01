@@ -1,5 +1,5 @@
 ### the directory name
-set(directory source/MATH)
+set(directory source/MATH/GSL_WRAPPER)
 
 ### list all filenames of the directory here
 set(sources_list
@@ -16,5 +16,5 @@ endforeach(i)
 set(OpenMS_sources ${OpenMS_sources} ${sources})
 
 ### source group definition
-source_group("Source Files\\MATH" FILES ${sources})
+source_group("Source Files\\MATH\\GSL_WRAPPER" FILES ${sources})
 

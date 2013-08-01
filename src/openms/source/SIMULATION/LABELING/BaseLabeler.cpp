@@ -48,7 +48,7 @@ namespace OpenMS
 
   BaseLabeler::BaseLabeler() :
     DefaultParamHandler("BaseLabeler"),
-    rng_(0),
+    rng_(),
     channel_description_()
   {
     warn_empty_defaults_ = false;
@@ -63,9 +63,9 @@ namespace OpenMS
     return this->defaults_;
   }
 
-  void BaseLabeler::setRnd(const SimRandomNumberGenerator & rng)
+  void BaseLabeler::setRnd(MutableSimRandomNumberGeneratorPtr rng)
   {
-    rng_ = &rng;
+    rng_ = rng;
   }
 
   String BaseLabeler::getChannelIntensityName(const Size channel_index) const

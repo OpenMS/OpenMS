@@ -34,7 +34,8 @@
 
 #include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
-#include <OpenMS/MATH/gsl_wrapper.h>
+#include "OpenMS/MATH/GSL_WRAPPER/gsl_wrapper.h"
+#include <cmath>
 
 namespace OpenMS
 {
@@ -88,7 +89,7 @@ namespace OpenMS
       {
         for (j = 0; j <= (int)order_; j++)
         {
-          deprecated_gsl_matrix_set(A, i + nl, j, deprecated_gsl_pow_int(i, j));
+          deprecated_gsl_matrix_set(A, i + nl, j, std::pow(i, j));
         }
       }
 

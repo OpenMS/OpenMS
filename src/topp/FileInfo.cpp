@@ -52,7 +52,8 @@
 
 #include <QtCore/QString>
 
-#include <OpenMS/MATH/gsl_wrapper.h>
+#include <OpenMS/MATH/GSL_WRAPPER/gsl_wrapper.h>
+#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -121,12 +122,12 @@ namespace OpenMS
       if (count > 0)
       {
         sort(data.begin(), data.end());
-        mean = deprecated_gsl_stats_mean(&data.front(), 1, data.size());
-        variance = deprecated_gsl_stats_variance_m(&data.front(), 1, data.size(), mean);
+        mean = Math::mean(data.begin(), data.end());
+        variance = Math::variance(data.begin(), data.end(), mean);
         min = data.front();
-        lowerq = deprecated_gsl_stats_quantile_from_sorted_data(&data.front(), 1, data.size(), 0.25);
-        median = deprecated_gsl_stats_median_from_sorted_data(&data.front(), 1, data.size());
-        upperq = deprecated_gsl_stats_quantile_from_sorted_data(&data.front(), 1, data.size(), 0.75);
+        lowerq = Math::quantile1st(data.begin(), data.end(), true);
+        median = Math::median(data.begin(), data.end(), true);
+        upperq = Math::quantile3rd(data.begin(), data.end(), true);
         max = data.back();
       }
       return *this;

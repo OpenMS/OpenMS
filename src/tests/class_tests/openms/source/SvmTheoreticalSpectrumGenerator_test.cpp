@@ -43,7 +43,7 @@
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 
-#include <OpenMS/MATH/gsl_wrapper.h>
+#include <OpenMS/MATH/GSL_WRAPPER/gsl_wrapper.h>
 
 ///////////////////////////
 
@@ -82,10 +82,9 @@ START_SECTION(SvmTheoreticalSpectrumGenerator& operator = (const SvmTheoreticalS
 END_SECTION
 
 
-START_SECTION(void simulate(RichPeakSpectrum &spectrum, const AASequence &peptide, const deprecated_gsl_rng *rng, Size precursor_charge))
+START_SECTION(void simulate(RichPeakSpectrum &spectrum, const AASequence &peptide, boost::random::mt19937_64&rng, Size precursor_charge))
   // init rng
-  deprecated_gsl_rng* rnd_gen = deprecated_gsl_rng_alloc (deprecated_wrapper_gsl_rng_taus_get());
-  deprecated_gsl_rng_set(rnd_gen, 0);
+  boost::random::mt19937_64 rnd_gen (0);
   RichPeakSpectrum spec;
 
   Param p = ptr->getDefaults();
@@ -93,14 +92,13 @@ START_SECTION(void simulate(RichPeakSpectrum &spectrum, const AASequence &peptid
   ptr->setParameters (p);
 
   ptr->load();
-  ptr->simulate(spec, peptide,rnd_gen,1);
-  deprecated_gsl_rng_free(rnd_gen);
+  ptr->simulate(spec, peptide, rnd_gen, 1);
 
   MSExperiment<RichPeak1D>exp;
-  //MSExperiment<RichPeak1D>exp2;
-  //exp2.push_back(spec);
+//  MSExperiment<RichPeak1D>exp2;
+//  exp2.getSpectra().push_back(spec);
   MzMLFile mz_file;
-  //MzMLFile().store(OPENMS_GET_TEST_DATA_PATH("SvmTheoreticalSpectrumGenerator_test.mzML"),exp2);
+//  MzMLFile().store(OPENMS_GET_TEST_DATA_PATH("SvmTheoreticalSpectrumGenerator_test.mzML"),exp2);
 
   mz_file.load(OPENMS_GET_TEST_DATA_PATH("SvmTheoreticalSpectrumGenerator_test.mzML"),exp);
 
