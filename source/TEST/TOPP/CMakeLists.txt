@@ -344,6 +344,14 @@ add_test("TOPP_FileFilter_34" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_T
 add_test("TOPP_FileFilter_34_out" ${DIFF} -in1 FileFilter_34.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_34_select_isolation_window.mzML )
 set_tests_properties("TOPP_FileFilter_34_out" PROPERTIES DEPENDS "TOPP_FileFilter_34")
 
+# Purpose: test the -peak_options:indexed_file to write mzML files with/without indices
+add_test("TOPP_FileFilter_35" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_1_input.mzML -out FileFilter_35.tmp -peak_options:indexed_file true -in_type mzML -out_type mzML)
+add_test("TOPP_FileFilter_35_out" ${DIFF} -in1 FileFilter_35.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_35_output.mzML )
+set_tests_properties("TOPP_FileFilter_35_out" PROPERTIES DEPENDS "TOPP_FileFilter_35")
+add_test("TOPP_FileFilter_36" ${TOPP_BIN_PATH}/FileFilter -test -in ${DATA_DIR_TOPP}/FileFilter_1_input.mzML -out FileFilter_36.tmp -peak_options:indexed_file false -in_type mzML -out_type mzML)
+add_test("TOPP_FileFilter_36_out" ${DIFF} -in1 FileFilter_36.tmp -in2 ${DATA_DIR_TOPP}/FileFilter_36_output.mzML )
+set_tests_properties("TOPP_FileFilter_36_out" PROPERTIES DEPENDS "TOPP_FileFilter_36")
+
 
 ### FileInfo tests
 add_test("TOPP_FileInfo_1" ${TOPP_BIN_PATH}/FileInfo -in ${DATA_DIR_TOPP}/FileInfo_1_input.dta -in_type dta -no_progress -out FileInfo_1.tmp)

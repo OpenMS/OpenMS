@@ -35,6 +35,7 @@
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/ChromatogramTools.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/StringList.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
@@ -271,6 +272,8 @@ protected:
     setValidStrings_("peak_options:mz_precision", StringList::create("32,64"));
     registerStringOption_("peak_options:int_precision", "32 or 64", 32, "Store base64 encoded intensity data using 32 or 64 bit precision.", false);
     setValidStrings_("peak_options:int_precision", StringList::create("32,64"));
+    registerStringOption_("peak_options:indexed_file", "true or false", "false", "Whether to add an index to the file when writing", false);
+    setValidStrings_("peak_options:indexed_file", StringList::create("true,false"));
 
     registerTOPPSubsection_("spectra", "Remove spectra or select spectra (removing all others) with certain properties.");
     registerFlag_("spectra:remove_zoom", "Remove zoom (enhanced resolution) scans");
@@ -465,9 +468,11 @@ protected:
     String remove_isolation_width = getStringOption_("spectra:remove_isolation_window_width");
     String select_isolation_width = getStringOption_("spectra:select_isolation_window_width");
 
-
     int mz32 = getStringOption_("peak_options:mz_precision").toInt();
     int int32 = getStringOption_("peak_options:int_precision").toInt();
+    bool indexed_file;
+    if (getStringOption_("peak_options:indexed_file") == "true") {indexed_file = true;}
+    else {indexed_file = false;}
 
     //id-filtering parameters
     bool remove_annotated_features = getFlag_("id:remove_annotated_features");
@@ -553,6 +558,9 @@ protected:
       // set precision options
       if (mz32 == 32) { f.getOptions().setMz32Bit(true); }else if (mz32 == 64) { f.getOptions().setMz32Bit(false); }
       if (int32 == 32) { f.getOptions().setIntensity32Bit(true); }else if (int32 == 64) { f.getOptions().setIntensity32Bit(false); }
+
+      // set writing index (e.g. indexedmzML)
+      f.getOptions().setWriteIndex(indexed_file); 
 
       MapType exp;
       f.load(in, exp);
@@ -1180,7 +1188,6 @@ protected:
   }
 
 };
-
 
 int main(int argc, const char** argv)
 {
