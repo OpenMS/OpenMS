@@ -31,6 +31,7 @@
 // $Maintainer: Hannes Roest $
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
+#include <boost/shared_ptr.hpp>
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
@@ -39,6 +40,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
 ///////////////////////////
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>
+
 ///////////////////////////
 
 using namespace OpenMS;
@@ -73,14 +75,14 @@ START_SECTION(void pickExperiment(OpenSwath::SpectrumAccessPtr input, FeatureMap
   MRMFeature feature;
   FeatureMap<> featureFile;
   TransformationDescription trafo;
-  PeakMap swath_map;
+  boost::shared_ptr<PeakMap> swath_map (new PeakMap);
   TransitionGroupMapType transition_group_map;
   MRMFeatureFinderScoring::MRMTransitionGroupType transition_group;
 
   // Load the chromatograms (mzML) and the meta-information (TraML)
-  PeakMap exp;
+  boost::shared_ptr<PeakMap> exp (new PeakMap);
   OpenSwath::LightTargetedExperiment transitions;
-  MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("OpenSwath_generic_input.mzML"), exp);
+  MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("OpenSwath_generic_input.mzML"), *exp);
   {
     TargetedExperiment transition_exp_;
     TraMLFile().load(OPENMS_GET_TEST_DATA_PATH("OpenSwath_generic_input.TraML"), transition_exp_);
@@ -94,7 +96,7 @@ START_SECTION(void pickExperiment(OpenSwath::SpectrumAccessPtr input, FeatureMap
   OpenSwath::SpectrumAccessPtr chromatogram_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(exp);
   ff.pickExperiment(chromatogram_ptr, featureFile, transitions, trafo, swath_ptr, transition_group_map);
 #else
-      ff.pickExperiment(exp, featureFile, transitions, trafo, swath_map, transition_group_map);
+      ff.pickExperiment(exp, featureFile, transitions, trafo, *swath_map, transition_group_map);
 #endif
 
   // Test the number of features found 
@@ -174,9 +176,9 @@ START_SECTION(void mapExperimentToTransitionList(OpenSwath::SpectrumAccessPtr in
   MRMFeatureFinderScoring::MRMTransitionGroupType transition_group;
 
   // Load the chromatograms (mzML) and the meta-information (TraML)
-  PeakMap exp;
+  boost::shared_ptr<PeakMap> exp (new PeakMap);
   OpenSwath::LightTargetedExperiment transitions;
-  MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("OpenSwath_generic_input.mzML"), exp);
+  MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("OpenSwath_generic_input.mzML"), *exp);
   {
     TargetedExperiment transition_exp_;
     TraMLFile().load(OPENMS_GET_TEST_DATA_PATH("OpenSwath_generic_input.TraML"), transition_exp_);

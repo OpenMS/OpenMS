@@ -81,6 +81,7 @@ public:
 protected:
 
   typedef MSExperiment<Peak1D> MapType;
+  typedef boost::shared_ptr<OpenMS::MSExperiment<OpenMS::Peak1D> > MapTypePtr;
 
   void registerOptionsAndFlags_()
   {
@@ -143,7 +144,7 @@ protected:
     for (Size i = 0; i < file_list.size(); ++i)
     {
       MzMLFile swath_file;
-      MapType swath_map;
+      MapTypePtr swath_map (new MapType);
       FeatureMap<> featureFile;
       std::cout << "Loading file " << file_list[i] << std::endl;
 
@@ -165,10 +166,10 @@ protected:
 
 
       swath_file.setLogType(log_type_);
-      swath_file.load(file_list[i], swath_map);
-      if (swath_map.size() == 0 || swath_map[0].getPrecursors().size() == 0)
+      swath_file.load(file_list[i], *swath_map);
+      if (swath_map->size() == 0 || (*swath_map)[0].getPrecursors().size() == 0)
       {
-        std::cerr << "WARNING: File " << swath_map.getLoadedFilePath()
+        std::cerr << "WARNING: File " << swath_map->getLoadedFilePath()
                   << " does not have any experiments or any precursors. Is it a SWATH map?"
                   << std::endl;
         continue;
@@ -176,14 +177,14 @@ protected:
       // Find the transitions to extract and extract them
       OpenSwath::LightTargetedExperiment transition_exp_used;
       double upper, lower;
-      const std::vector<Precursor> prec = swath_map[0].getPrecursors();
+      const std::vector<Precursor> prec = (*swath_map)[0].getPrecursors();
       lower = prec[0].getIsolationWindowLowerOffset();
       upper = prec[0].getIsolationWindowUpperOffset();
       OpenSwathHelper::selectSwathTransitions(transition_exp, transition_exp_used,
                                               min_upper_edge_dist, lower, upper);
       if (transition_exp_used.getTransitions().size() == 0)
       {
-        std::cerr << "WARNING: For file " << swath_map.getLoadedFilePath()
+        std::cerr << "WARNING: For file " << swath_map->getLoadedFilePath()
                   << " there are no transitions to extract." << std::endl;
         continue;
       }

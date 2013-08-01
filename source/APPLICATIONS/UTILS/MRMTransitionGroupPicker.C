@@ -230,10 +230,10 @@ protected:
     String out = getStringOption_("out");
     String tr_file = getStringOption_("tr");
 
-    MSExperiment<> exp;
+    boost::shared_ptr<MSExperiment<> > exp ( new MSExperiment<> );
     MzMLFile mzmlfile;
     mzmlfile.setLogType(log_type_);
-    mzmlfile.load(in, exp);
+    mzmlfile.load(in, *exp);
 
     TargetedExpType transition_exp;
     TraMLFile().load(tr_file, transition_exp);

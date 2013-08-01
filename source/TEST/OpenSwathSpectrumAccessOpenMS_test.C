@@ -40,6 +40,7 @@
 
 ///////////////////////////
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMS.h>
+#include <boost/shared_ptr.hpp>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -55,7 +56,7 @@ SpectrumAccessOpenMS* nullPointer = 0;
 
 START_SECTION(SpectrumAccessOpenMS())
 {
-  MSExperiment<> exp;
+  boost::shared_ptr< MSExperiment<Peak1D> > exp ( new MSExperiment<Peak1D> );
   ptr = new SpectrumAccessOpenMS(exp);
   TEST_NOT_EQUAL(ptr, nullPointer)
 }
