@@ -10,6 +10,7 @@ OptimizePick.C
 PeakPickerCWT.C
 PeakPickerHiRes.C
 PeakPickerRapid.C
+PeakPickerIterative.C
 PeakPickerSH.C
 PeakShape.C
 TwoDOptimization.C
