@@ -160,6 +160,11 @@ public:
     bool getIntensity32Bit() const;
     //@}
 
+    /// Whether to write an index at the end of the file (e.g. indexedmzML file format)
+    bool getWriteIndex() const;
+    /// Whether to write an index at the end of the file (e.g. indexedmzML file format)
+    void setWriteIndex(bool write_index);
+
 private:
     bool metadata_only_;
     bool write_supplemental_data_;
@@ -175,6 +180,7 @@ private:
     bool zlib_compression_;
     bool size_only_;
     bool always_append_data_;
+    bool write_index_;
   };
 
 } // namespace OpenMS

@@ -54,7 +54,8 @@ namespace OpenMS
     ms_levels_(),
     zlib_compression_(false),
     size_only_(false),
-    always_append_data_(false)
+    always_append_data_(false),
+    write_index_(false)
   {
   }
 
@@ -72,7 +73,8 @@ namespace OpenMS
     ms_levels_(options.ms_levels_),
     zlib_compression_(options.zlib_compression_),
     size_only_(options.size_only_),
-    always_append_data_(options.always_append_data_)
+    always_append_data_(options.always_append_data_),
+    write_index_(options.write_index_)
   {
   }
 
@@ -226,6 +228,16 @@ namespace OpenMS
   bool PeakFileOptions::getIntensity32Bit() const
   {
     return int_32_bit_;
+  }
+
+  bool PeakFileOptions::getWriteIndex() const
+  {
+    return write_index_;
+  }
+
+  void PeakFileOptions::setWriteIndex(bool write_index)
+  {
+    write_index_ = write_index;
   }
 
 } // namespace OpenMS

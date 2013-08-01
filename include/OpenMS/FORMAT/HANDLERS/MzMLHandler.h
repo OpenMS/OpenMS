@@ -241,7 +241,7 @@ protected:
 
       void writeHeader_(std::ostream& os, const MapType& exp, std::vector<std::vector<DataProcessing> > & dps, Internal::MzMLValidator& validator);
 
-      static void writeFooter_(std::ostream& os);
+      void writeFooter_(std::ostream& os);
 
       /// map pointer for reading
       MapType* exp_;
@@ -279,6 +279,11 @@ protected:
       Map<String, std::vector<DataProcessing> > processing_;
       /// id of the default data processing (used when no processing is defined)
       String default_processing_;
+      //@}
+      /**@name temporary data structures to hold written data */
+      //@{
+      std::vector< std::pair<std::string, long> > spectra_offsets;
+      std::vector< std::pair<std::string, long> > chromatograms_offsets;
       //@}
 
       /// Decoder/Encoder for Base64-data in MzML
@@ -3772,8 +3777,13 @@ protected:
     void MzMLHandler<MapType>::writeHeader_(std::ostream& os, const MapType& exp, 
             std::vector<std::vector<DataProcessing> > & dps, Internal::MzMLValidator& validator)
     {
-      os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n"
-         << "<mzML xmlns=\"http://psi.hupo.org/ms/mzml\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0.xsd\" accession=\"" << exp.getIdentifier() << "\" version=\"" << version_ << "\">\n";
+      os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n";
+
+      if (options_.getWriteIndex())
+      {
+        os << "<indexedmzML xmlns=\"http://psi.hupo.org/ms/mzml\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0_idx.xsd\">\n";
+      }
+      os << "<mzML xmlns=\"http://psi.hupo.org/ms/mzml\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0.xsd\" accession=\"" << exp.getIdentifier() << "\" version=\"" << version_ << "\">\n";
       //--------------------------------------------------------------------------------------------
       // CV list
       //--------------------------------------------------------------------------------------------
@@ -4676,6 +4686,10 @@ protected:
         if (renew_native_ids)
           native_id = String("spectrum=") + s;
 
+        long offset = os.tellp();
+        spectra_offsets.push_back(make_pair(native_id, offset+3));
+
+        // IMPORTANT make sure the offset (above) corresponds to the start of the <spectrum tag
         os << "\t\t\t<spectrum id=\"" << native_id << "\" index=\"" << s << "\" defaultArrayLength=\"" << spec.size() << "\"";
         if (spec.getSourceFile() != SourceFile())
         {
@@ -5057,7 +5071,11 @@ protected:
     void MzMLHandler<MapType>::writeChromatogram_(std::ostream& os,
             const ChromatogramType& chromatogram, Size c, Internal::MzMLValidator& validator)
     {
+        long offset = os.tellp();
+        chromatograms_offsets.push_back(make_pair(chromatogram.getNativeID(), offset+6));
+
         // TODO native id with chromatogram=?? prefix?
+        // IMPORTANT make sure the offset (above) corresponds to the start of the <chromatogram tag
         os << "      <chromatogram id=\"" << chromatogram.getNativeID() << "\" index=\"" << c << "\" defaultArrayLength=\"" << chromatogram.size() << "\">" << "\n";
 
         // write cvParams (chromatogram type)
@@ -5262,8 +5280,66 @@ protected:
     void MzMLHandler<MapType>::writeFooter_(std::ostream& os)
     {
       os << "\t</run>\n";
-
       os << "</mzML>";
+
+      if (options_.getWriteIndex())
+      {
+        int indexlists;
+        if (spectra_offsets.empty() && spectra_offsets.empty() )
+        {
+          indexlists = 0;
+        }
+        else if (!spectra_offsets.empty() && !spectra_offsets.empty() )
+        {
+          indexlists = 2;
+        }
+        else
+        {
+          indexlists = 1;
+        }
+
+        long indexlistoffset = os.tellp();
+        os << "\n";
+        // NOTE: indexList is required, so we need to write one 
+        os << "  <indexList count=\"" << indexlists << "\">\n";
+        if (!spectra_offsets.empty())
+        {
+          os << "    <index name=\"spectrum\">\n";
+          for (Size i = 0; i < spectra_offsets.size(); i++)
+          {
+            os << "      <offset idRef=\"" << spectra_offsets[i].first << "\">" << spectra_offsets[i].second << "</offset>\n";
+          }
+          os << "    </index>\n";
+        }
+        if (!chromatograms_offsets.empty())
+        {
+          os << "    <index name=\"chromatogram\">\n";
+          for (Size i = 0; i < chromatograms_offsets.size(); i++)
+          {
+            os << "      <offset idRef=\"" << chromatograms_offsets[i].first << "\">" << chromatograms_offsets[i].second << "</offset>\n";
+          }
+          os << "    </index>\n";
+        }
+        if (indexlists == 0)
+        {
+          // dummy: at least one index subelement is required by the standard,
+          // and at least one offset element is required so we need to handle
+          // the case where no spectra/chromatograms are present.
+          os << "    <index name=\"dummy\">\n";
+            os << "      <offset idRef=\"dummy\">-1</offset>\n";
+          os << "    </index>\n";
+        }
+        os << "  </indexList>\n";
+        os << "  <indexListOffset>" << indexlistoffset << "</indexListOffset>\n";
+        os << "<fileChecksum>";
+
+        // TODO calculate checksum here:
+        //  SHA-1 checksum from beginning of file to end of 'fileChecksum' open tag.
+        String sha1_checksum = "0";
+        os << sha1_checksum << "</fileChecksum>\n";
+
+        os << "</indexedmzML>";
+      }
     }
 
   } // namespace Internal
