@@ -61,8 +61,31 @@ using namespace std;
 /**
     @page UTILS_QCMerger QCMerger
 
-    @brief This application is used to provide data export from raw, id and feature data files generated via TOPP pipelines. It is intended to provide tables that can be read into R where QC metrics will be calculated.
+    @brief Merges two qcml files together.
 
+    <CENTER>
+      <table>
+        <tr>
+        <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+        <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ QCCalculator \f$ \longrightarrow \f$</td>
+        <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+        </tr>
+        <tr>
+        <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref UTILS_QCCalculator </td>
+        </tr>
+        <tr>
+        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref UTILS_QCShrinker </td>
+        </tr>
+      </table>
+    </CENTER>
+
+    The two or more given files (see parameter @p in) are merged. If a run/set exisits in several files, the qp of these are merged as well.
+    Several runs from qcml files can be comprised in a set.
+    
+    - @p setname If the runs of the given input files are to be comprised in a set, this will be the name of the set.
+
+    Output is in qcML format (see parameter @p out) which can be viewed directly in a modern browser (chromium, firefox). 
+    
     <B>The command line parameters of this tool are:</B>
     @verbinclude UTILS_QCMerger.cli
     <B>INI file documentation of this tool:</B>
@@ -77,7 +100,7 @@ class TOPPQCMerger :
 {
 public:
   TOPPQCMerger() :
-    TOPPBase("QCMerger", "produces qcml files", false)
+    TOPPBase("QCMerger", "Merges two qcml files together.", false)
   {
   }
 

@@ -89,6 +89,7 @@ public:
     struct OPENMS_DLLAPI Attachment
     {
       String name; ///< Name
+      String id; ///< Name
       String value; ///< Value
       String cvRef; ///< cv reference
       String cvAcc; ///< cv accession
@@ -121,7 +122,11 @@ public:
 
     String map2csv(const std::map< String, std::map<String, String> >& cvs_table, const String& separator) const;
     String exportIDstats(const String& filename) const;
-
+    
+    ///Registers a run in the qcml file with the respective mappings
+    void registerRun(const String id, const String name);
+    ///Registers a set in the qcml file with the respective mappings
+    void registerSet(const String id, const String name, const std::set<String>& names);
     ///Just adds a qualityparameter to run by the name r
     void addRunQualityParameter(String r, QualityParameter qp);
     ///Just adds a attachment to run by the name r
@@ -148,12 +153,14 @@ public:
     String exportQP(const String filename, const String qpname) const;
     ///Returns a String of a tab separated qualityparameter by the name qpname in run/set by the name filename
     String exportQPs(const String filename, const StringList qpnames) const;
+    ///Gives the ids of the registered runs in the vector ids.
+    void getRunIDs (std::vector<String>& ids) const;
     ///Gives the names of the registered runs in the vector ids.
     void getRunNames (std::vector<String>& ids) const;
-    ///Returns true if the given run name is present in this file
-    bool existsRun(const String filename) const;
-    ///Returns true if the given set name is present in this file
-    bool existsSet(const String filename) const;
+    ///Returns true if the given run id is present in this file, if checkname is true it also checks the names
+    bool existsRun(const String filename, bool checkname = false) const;
+    ///Returns true if the given set id is present in this file, if checkname is true it also checks the names
+    bool existsSet(const String filename, bool checkname = false) const;
     ///Returns the ids of the parameter name given if found in given run empty else
     void existsRunQualityParameter(const String filename, const String qpname, std::vector<String>& ids) const;
     ///Returns the ids of the parameter name given if found in given set, empty else
@@ -180,6 +187,8 @@ protected:
     std::map<String, std::vector< QualityParameter > > setQualityQPs_;
     std::map<String, std::vector< Attachment > > setQualityAts_;
     std::map<String, std::set< String > > setQualityQPs_members_;
+    std::map<String, String > run_Name_ID_map_;
+    std::map<String, String > set_Name_ID_map_;
 
     String tag_;
     UInt progress_;
@@ -188,6 +197,7 @@ protected:
     std::vector<String> row_;
     std::vector<String> header_;
     String name_;
+    String run_id_;
     std::set<String> names_;
     std::vector<QualityParameter> qps_;
     std::vector<Attachment> ats_;

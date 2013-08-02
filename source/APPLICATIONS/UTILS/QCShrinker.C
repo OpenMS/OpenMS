@@ -60,6 +60,30 @@ using namespace std;
 
     @brief This application is used to remove the verbose table attachments from a qcml file that are not needed anymore, e.g. for a final report.
 
+    <CENTER>
+      <table>
+        <tr>
+        <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+        <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ QCShrinker \f$ \longrightarrow \f$</td>
+        <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+        </tr>
+        <tr>
+        <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref UTILS_QCMerger </td>
+        </tr>
+        <tr>
+        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> ... </td>
+        </tr>
+      </table>
+    </CENTER>
+
+    If there is a lot of verbose or deprecated information in the given qcml file at @p in that can be purged.
+    
+    - @p qp_accessions A list of cv accessions that should be removed. If empty, the usual suspects will be removed.
+    - @p run the file that defined the run under which the qp for the attachment is aggregated as MZML file. The file is only used to extract the run name from the file name;
+    - @p name if no file for the run was given (or if the target qp is contained in a set), at least a name of the target run/set containing the the qp for the attachment has to be given;
+    
+    Output is in qcML format (see parameter @p out) which can be viewed directly in a modern browser (chromium, firefox). 
+    
     <B>The command line parameters of this tool are:</B>
     @verbinclude UTILS_QCShrinker.cli
     <B>INI file documentation of this tool:</B>
@@ -74,7 +98,7 @@ class TOPPQCShrinker :
 {
 public:
   TOPPQCShrinker() :
-    TOPPBase("QCShrinker", "produces qcml files", false)
+    TOPPBase("QCShrinker", "This application is used to remove the verbose table attachments from a qcml file that are not needed anymore, e.g. for a final report.", false)
   {
   }
 
@@ -84,7 +108,7 @@ protected:
     registerInputFile_("in", "<file>", "", "Input qcml file");
     setValidFormats_("in", StringList::create("qcML"));
     //~ registerFlag_("tables", "Remove all tables. (Of all runs and sets if these are not given with parameter name or run.)");
-    registerStringList_("qp_accessions", "<names>", StringList(), "A list of cv accessions that should be removed. if empty, all tables will be removed!", false);
+    registerStringList_("qp_accessions", "<names>", StringList(), "A list of cv accessions that should be removed. If empty, the usual suspects will be removed!", false);
     registerStringOption_("name", "<string>", "", "The name of the target run or set that contains the requested quality parameter.", false);
     registerInputFile_("run", "<file>", "", "The file from which the name of the target run that contains the requested quality parameter is taken. This overrides the name parameter!", false);
     setValidFormats_("run", StringList::create("mzML"));
@@ -118,12 +142,11 @@ protected:
 
     if (qp_accs.empty())
     {
-      qp_accs << "QC:0000037";
+      qp_accs << "QC:0000044";
+      qp_accs << "QC:0000047";
+      qp_accs << "QC:0000022";
       qp_accs << "QC:0000038";
-      qp_accs << "QC:0000039";
-      qp_accs << "QC:0000040";
-      qp_accs << "QC:0000041";
-      qp_accs << "QC:0000042";
+      qp_accs << "QC:0000049";
     }
 
     //TODO care for QualityParameter s
