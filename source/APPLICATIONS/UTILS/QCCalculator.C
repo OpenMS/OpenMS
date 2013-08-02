@@ -223,7 +223,7 @@ protected:
     at.cvRef = "QC"; ///< cv reference
     at.cvAcc = "QC:0000044";
     at.qualityRef = msaq_ref;
-    at.id = base_name + "_precursors" ; ///< Identifier
+    at.id = base_name + "_precursors"; ///< Identifier
     try
     {
       const ControlledVocabulary::CVTerm& term = cv.getTerm(at.cvAcc);
@@ -311,7 +311,7 @@ protected:
     at.cvRef = "QC"; ///< cv reference
     at.cvAcc = "QC:0000009";
     at.qualityRef = msaq_ref;
-    at.id = base_name + "_mzrange" ; ///< Identifier
+    at.id = base_name + "_mzrange"; ///< Identifier
     try
     {
       const ControlledVocabulary::CVTerm& term = cv.getTerm(at.cvAcc);
@@ -334,7 +334,7 @@ protected:
     at.cvRef = "QC"; ///< cv reference
     at.cvAcc = "QC:0000012";
     at.qualityRef = msaq_ref;
-    at.id = base_name + "_rtrange" ; ///< Identifier
+    at.id = base_name + "_rtrange"; ///< Identifier
     try
     {
       const ControlledVocabulary::CVTerm& term = cv.getTerm(at.cvAcc);
@@ -359,7 +359,7 @@ protected:
     at.cvRef = "QC"; ///< cv reference
     at.cvAcc = "QC:0000022";
     at.qualityRef = msaq_ref;
-    at.id = base_name + "_tics" ; ///< Identifier
+    at.id = base_name + "_tics"; ///< Identifier
     try
     {
       const ControlledVocabulary::CVTerm& term = cv.getTerm(at.cvAcc);
@@ -447,7 +447,7 @@ protected:
       at.cvRef = "QC"; ///< cv reference
       at.cvAcc = "QC:0000026";
       at.qualityRef = msid_ref;
-      at.id = base_name + "_idsetting" ; ///< Identifier
+      at.id = base_name + "_idsetting"; ///< Identifier
       try
       {
         const ControlledVocabulary::CVTerm& term = cv.getTerm(at.cvAcc);
@@ -458,7 +458,7 @@ protected:
         at.name = "MS id settings"; ///< Name
       }
       
-      at.colTypes.push_back("MS:1001013"); //MS:1001013 db name	MS:1001016 version 	MS:1001020 taxonomy
+      at.colTypes.push_back("MS:1001013"); //MS:1001013 db name  MS:1001016 version  MS:1001020 taxonomy
       at.colTypes.push_back("MS:1001016");
       at.colTypes.push_back("MS:1001020");
       std::vector<String> row;
@@ -616,7 +616,7 @@ protected:
       at.cvRef = "QC"; ///< cv reference
       at.cvAcc = "QC:0000038";
       at.qualityRef = msid_ref;
-      at.id = base_name + "_massacc" ; ///< Identifier
+      at.id = base_name + "_massacc"; ///< Identifier
       try
       {
         const ControlledVocabulary::CVTerm& term = cv.getTerm(at.cvAcc);
@@ -627,7 +627,7 @@ protected:
         at.name = "delta ppm tables";
       }
       
-      //~ delta ppm QC:0000039 RT	MZ	uniqueness	ProteinID MS:1000885 target/decoy	Score	PeptideSequence MS:1000889	Annots string	Similarity	Charge UO:0000219	TheoreticalWeight UO:0000221	Oxidation_(M)
+      //~ delta ppm QC:0000039 RT MZ uniqueness ProteinID MS:1000885 target/decoy Score PeptideSequence MS:1000889 Annots string Similarity Charge UO:0000219 TheoreticalWeight UO:0000221 Oxidation_(M)
       at.colTypes.push_back("RT");
       at.colTypes.push_back("MZ");
       at.colTypes.push_back("Score");
@@ -797,7 +797,7 @@ protected:
       at.cvRef = "QC"; ///< cv reference
       at.cvAcc = "QC:0000047";
       at.qualityRef = msqu_ref;
-      at.id = base_name + "_features" ; ///< Identifier
+      at.id = base_name + "_features"; ///< Identifier
       try
       {
         const ControlledVocabulary::CVTerm& term = cv.getTerm(at.cvAcc);
@@ -834,7 +834,7 @@ protected:
       at.cvRef = "QC"; ///< cv reference
       at.cvAcc = "QC:0000047";
       at.qualityRef = msqu_ref;
-      at.id = base_name + "_features" ; ///< Identifier
+      at.id = base_name + "_features"; ///< Identifier
       try
       {
         const ControlledVocabulary::CVTerm& term = cv.getTerm(at.cvAcc);
@@ -897,7 +897,7 @@ protected:
 
       at = QcMLFile::Attachment();
       qp.name = "consensuspoints"; ///< Name
-      //~ qp.id = base_name + "_consensuses" ; ///< Identifier
+      //~ qp.id = base_name + "_consensuses"; ///< Identifier
       qp.cvRef = "QC"; ///< cv reference
       qp.cvAcc = "QC:xxxxxxxx"; ///< cv accession "featuremapper results"
 
