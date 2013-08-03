@@ -304,14 +304,14 @@ namespace OpenMS
     std::map<String, std::vector<QcMLFile::QualityParameter> >::const_iterator qpsit = runQualityQPs_.find(run_id); //if 'filename is a ID:'
     if (qpsit != runQualityQPs_.end())
     {
-      runQualityQPs_.at(run_id).push_back(qp);
+      runQualityQPs_[run_id].push_back(qp);
     }
     else
     {
       std::map<String, String >::const_iterator qpsit = run_Name_ID_map_.find(run_id); //if 'filename' is a name
       if (qpsit != run_Name_ID_map_.end()) 
       {
-        runQualityQPs_.at(qpsit->second).push_back(qp);
+        runQualityQPs_[qpsit->second].push_back(qp);
       }
     }
     //TODO redundancy check
@@ -323,14 +323,14 @@ namespace OpenMS
     std::map<String, std::vector<QcMLFile::QualityParameter> >::const_iterator qpsit = setQualityQPs_.find(set_id); //if 'filename is a ID:'
     if (qpsit != setQualityQPs_.end())
     {
-      setQualityQPs_.at(set_id).push_back(qp);
+      setQualityQPs_[set_id].push_back(qp);
     }
     else
     {
       std::map<String, String >::const_iterator qpsit = set_Name_ID_map_.find(set_id); //if 'filename' is a name
       if (qpsit != set_Name_ID_map_.end()) 
       {
-        setQualityQPs_.at(qpsit->second).push_back(qp);
+        setQualityQPs_[qpsit->second].push_back(qp);
       }
     }
     //TODO redundancy check
@@ -338,12 +338,12 @@ namespace OpenMS
 
   void QcMLFile::addRunAttachment(String run_id, Attachment at)
   {
-    runQualityAts_.at(run_id).push_back(at); //TODO permit AT without a QP (or enable orphan writeout in store),redundancy check
+    runQualityAts_[run_id].push_back(at); //TODO permit AT without a QP (or enable orphan writeout in store),redundancy check
   }
 
   void QcMLFile::addSetAttachment(String run_id, Attachment at)
   {
-    setQualityAts_.at(run_id).push_back(at); //TODO add file QP to set member
+    setQualityAts_[run_id].push_back(at); //TODO add file QP to set member
   }
 
   void QcMLFile::getRunNames(std::vector<String>& ids) const
@@ -450,24 +450,24 @@ namespace OpenMS
     removeAttachment(r, ids);
     for (Size i = 0; i < ids.size(); ++i)
     {
-      std::vector<QcMLFile::QualityParameter>::iterator qit = runQualityQPs_.at(r).begin();
-      while (qit != runQualityQPs_.at(r).end())
+      std::vector<QcMLFile::QualityParameter>::iterator qit = runQualityQPs_[r].begin();
+      while (qit != runQualityQPs_[r].end())
       {
         if (qit->id == ids[i])
         {
-          qit = runQualityQPs_.at(r).erase(qit);
+          qit = runQualityQPs_[r].erase(qit);
         }
         else
         {
           ++qit;
         }
       }
-      qit = setQualityQPs_.at(r).begin();
-      while (qit != setQualityQPs_.at(r).end())
+      qit = setQualityQPs_[r].begin();
+      while (qit != setQualityQPs_[r].end())
       {
         if (qit->id == ids[i])
         {
-          qit = setQualityQPs_.at(r).erase(qit);
+          qit = setQualityQPs_[r].erase(qit);
         }
         else
         {
@@ -482,24 +482,24 @@ namespace OpenMS
     bool not_all = at.size();
     for (Size i = 0; i < ids.size(); ++i)
     {
-      std::vector<QcMLFile::Attachment>::iterator qit = runQualityAts_.at(r).begin();
-      while (qit != runQualityAts_.at(r).end())
+      std::vector<QcMLFile::Attachment>::iterator qit = runQualityAts_[r].begin();
+      while (qit != runQualityAts_[r].end())
       {
         if (qit->qualityRef == ids[i] && ((qit->name == at) || (!not_all)))
         {
-          qit = runQualityAts_.at(r).erase(qit);
+          qit = runQualityAts_[r].erase(qit);
         }
         else
         {
           ++qit;
         }
       }
-      qit = setQualityAts_.at(r).begin();
-      while (qit != setQualityAts_.at(r).end())
+      qit = setQualityAts_[r].begin();
+      while (qit != setQualityAts_[r].end())
       {
         if (qit->qualityRef == ids[i] && ((qit->name == at) || (!not_all)))
         {
-          qit = setQualityAts_.at(r).erase(qit);
+          qit = setQualityAts_[r].erase(qit);
         }
         else
         {
@@ -513,13 +513,13 @@ namespace OpenMS
   {
     if (existsRun(r))
     {
-      std::vector<QcMLFile::Attachment>::iterator qit = runQualityAts_.at(r).begin();
+      std::vector<QcMLFile::Attachment>::iterator qit = runQualityAts_[r].begin();
       //~ cout << "remove from " << r << endl;
-      while (qit != runQualityAts_.at(r).end())
+      while (qit != runQualityAts_[r].end())
       {
         if (qit->cvAcc == at)
         {
-          qit = runQualityAts_.at(r).erase(qit);
+          qit = runQualityAts_[r].erase(qit);
           //~ cout << "remove  " << at << endl;
         }
         else
@@ -530,12 +530,12 @@ namespace OpenMS
     }
     if (existsSet(r))
     {
-      std::vector<QcMLFile::Attachment>::iterator qit = setQualityAts_.at(r).begin();
-      while (qit != setQualityAts_.at(r).end())
+      std::vector<QcMLFile::Attachment>::iterator qit = setQualityAts_[r].begin();
+      while (qit != setQualityAts_[r].end())
       {
         if (qit->cvAcc == at)
         {
-          qit = setQualityAts_.at(r).erase(qit);
+          qit = setQualityAts_[r].erase(qit);
         }
         else
         {
