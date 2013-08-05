@@ -85,15 +85,13 @@ namespace OpenMS
 
       if (rsq < rsq_limit)
       {
-        double intercept;
-        double slope;
         std::vector<double> residuals;
 
         // calculate residuals
         for (std::vector<std::pair<double, double> >::iterator it = pairs.begin(); it != pairs.end(); ++it)
         {
-          intercept = lin_reg.getIntercept();
-          slope = (double)lin_reg.getSlope();
+          double intercept = lin_reg.getIntercept();
+          double slope = (double)lin_reg.getSlope();
           residuals.push_back(abs(it->second - (intercept + it->first * slope)));
         }
 
