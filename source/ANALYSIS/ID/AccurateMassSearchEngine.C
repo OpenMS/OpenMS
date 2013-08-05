@@ -628,7 +628,7 @@ void AccurateMassSearchEngine::run(const FeatureMap<>& fmap, MzTab& mztab_out)
 
     exportMzTab_(overall_results, mztab_out);
 
-    return ;
+    return;
 }
 
 void AccurateMassSearchEngine::run(const ConsensusMap& cmap, MzTab& mztab_out)
@@ -668,7 +668,7 @@ void AccurateMassSearchEngine::run(const ConsensusMap& cmap, MzTab& mztab_out)
 
     exportMzTab_(overall_results, mztab_out);
 
-    return ;
+    return;
 }
 
 
