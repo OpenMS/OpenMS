@@ -153,6 +153,7 @@ set(format_executables_list
   GzipIfstream_test
   GzipInputStream_test
   IdXMLFile_test
+  IndexedMzMLFile_test
   InspectInfile_test
   InspectOutfile_test
   KroenikFile_test
@@ -169,6 +170,7 @@ set(format_executables_list
   MzDataValidator_test
   MzIdentMLValidator_test
   MzMLFile_test
+  MzMLSpectrumDecoder_test
   MzMLValidator_test
   MzTab_test
   MzTabFile_test

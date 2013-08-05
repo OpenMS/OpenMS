@@ -23,6 +23,7 @@ FileTypes.C
 GzipIfstream.C
 GzipInputStream.C
 IdXMLFile.C
+IndexedMzMLFile.C
 InspectInfile.C
 InspectOutfile.C
 KroenikFile.C

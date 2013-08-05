@@ -5,11 +5,13 @@ set(directory source/FORMAT/HANDLERS)
 set(sources_list
 	AcqusHandler.C
 	FidHandler.C
+  IndexedMzMLDecoder.C
 	MascotXMLHandler.C
 	MzDataHandler.C
 	MzIdentMLHandler.C
 	MzQuantMLHandler.C
 	MzMLHandler.C
+  MzMLSpectrumDecoder.C
 	MzXMLHandler.C
 	PTMXMLHandler.C
 	ParamXMLHandler.C

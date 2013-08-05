@@ -5,9 +5,11 @@ set(directory include/OpenMS/FORMAT/HANDLERS)
 set(sources_list_h
 AcqusHandler.h
 FidHandler.h
+IndexedMzMLDecoder.h
 MascotXMLHandler.h
 MzDataHandler.h
 MzMLHandler.h
+MzMLSpectrumDecoder.h
 MzXMLHandler.h
 PTMXMLHandler.h
 ParamXMLHandler.h

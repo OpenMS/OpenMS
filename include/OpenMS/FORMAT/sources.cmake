@@ -41,6 +41,7 @@ FileHandler.h
 GzipIfstream.h
 GzipInputStream.h
 IdXMLFile.h
+IndexedMzMLFile.h
 InspectInfile.h
 InspectOutfile.h
 KroenikFile.h
