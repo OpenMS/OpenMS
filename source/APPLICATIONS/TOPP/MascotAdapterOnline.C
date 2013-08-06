@@ -232,24 +232,7 @@ protected:
 
     // set up mapping between scan numbers and retention times:
     MascotXMLFile::RTMapping rt_mapping;
-    for (PeakMap::ConstIterator it = exp.begin(); it != exp.end(); ++it)
-    {
-      String id = it->getNativeID(); // expected format: "... scan=#"
-      try
-      {
-        Int num_id = id.suffix('=').toInt();
-        // mapping expects 0-based scan numbers:
-        if (num_id >= 0) rt_mapping[num_id - 1] = it->getRT();
-        else throw Exception::ConversionError(__FILE__, __LINE__,
-                                              __PRETTY_FUNCTION__, "error");
-      }
-      catch (Exception::ConversionError)
-      {
-        writeLog_("Error: Could not create mapping of scan numbers to retention times");
-        rt_mapping.clear();
-        break;
-      }
-    }
+    MascotXMLFile::generateRTMapping(exp.begin(), exp.end(), rt_mapping);
 
     // read the response
     MascotXMLFile().load(mascot_tmp_file_name, prot_id, pep_ids, rt_mapping);

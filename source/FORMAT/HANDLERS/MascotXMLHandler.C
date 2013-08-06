@@ -258,10 +258,10 @@ namespace OpenMS
               else if (match["SCAN"].matched)
               {
                 Size scan_no = String(match["SCAN"].str()).toInt();
-                if (scan_no && rt_mapping_.has(scan_no - 1))
+                if (scan_no && rt_mapping_.has(scan_no))
                 {
                   id_data_[peptide_identification_index_].setMetaValue(
-                    "RT", rt_mapping_[scan_no - 1]);
+                    "RT", rt_mapping_[scan_no]);
                 }
               }
               if (match["MZ"].matched && 
