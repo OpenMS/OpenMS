@@ -143,7 +143,7 @@ namespace OpenMS
           }
           else
           {
-            os << indentation << "<ITEM name=\"" << writeXMLEscape(it->name) << "\" value=\"" << writeXMLEscape(it->value.toString()) << "\" type=\"string\"";
+            os << indentation << "<ITEM name=\"" << writeXMLEscape(it->name) << "\" value=\"" << encodeTab(writeXMLEscape(it->value.toString())) << "\" type=\"string\"";
           }
           break;
 
@@ -302,7 +302,7 @@ namespace OpenMS
           const StringList& list = it->value;
           for (Size i = 0; i < list.size(); ++i)
           {
-            os << indentation << "  <LISTITEM value=\"" << writeXMLEscape(list[i]) << "\"/>" << "\n";
+            os << indentation << "  <LISTITEM value=\"" << encodeTab(writeXMLEscape(list[i])) << "\"/>" << "\n";
           }
           os << indentation << "</ITEMLIST>" << "\n";
         }

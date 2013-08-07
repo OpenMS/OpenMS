@@ -204,6 +204,13 @@ private:
       writeXMLEscape(to_escape, ss);
       return String(ss.str());
     }
+    
+    String encodeTab(const String & to_encode)
+    {
+      String _copy = to_encode;
+      _copy.substitute("\t", "&#x9;");
+      return _copy;
+    }
 
     bool XMLFile::isValid(const String & filename, std::ostream & os)
     {
