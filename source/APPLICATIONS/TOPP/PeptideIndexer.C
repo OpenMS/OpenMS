@@ -862,9 +862,14 @@ protected:
     {
       LOG_WARN << "PeptideIndexer found unmatched peptides, which could not be associated to a protein.\n"
                << "Either:\n"
-               << "   - check your FASTA database\n"
+               << "   - check your FASTA database for completeness\n"
+               << "   - set 'enzyme:specificity' to match the identification parameters of search engine\n"
+               << "   - some engines (e.g. X!Tandem) employ loose cutting rules generating non-tryptic peptides\n"
+               << "     If you trust them, disable enzyme specificity\n"
                << "   - increase 'aaa_max' to allow more ambiguous AA\n"
-               << "   - use 'allow_unmatched' flag if unmatched peptides are ok\n";
+               << "   - as a last resort: use 'allow_unmatched' flag if unmatched peptides are ok\n"
+               << "     Note that these peptides cannot be used for FDR or Quantification\n";
+
       LOG_WARN << "Result files were written, but program will return with error code" << std::endl;
       return UNEXPECTED_RESULT;
     }
