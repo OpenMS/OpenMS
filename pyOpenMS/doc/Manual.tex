@@ -351,6 +351,20 @@ featurexml = pyopenms.FeatureXMLFile()
 featurexml.store("outfile.featureXML", output)
 \end{verbatim}
 
+\section{Iterators}
+
+Several core-OpenMS objects have been adapted to allow iteration in a native
+way in Python. These objects are currently \texttt{ConsensusMap, FeatureMap,
+MSExperiment, MSSpectrum} and \texttt{MSChromatogram}. They thus allow the
+following syntax: 
+
+\begin{verbatim}
+for spectrum in ms_experiment:
+  for peak in spectrum:
+    # process an individual peak
+    pass
+\end{verbatim}
+
 \section{Appendix}
 In this appendix, a complete list of all wrapped functions is given, ordered
 by class.

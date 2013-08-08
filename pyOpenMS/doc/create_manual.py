@@ -2,6 +2,7 @@ import os
 import glob
 pxd_files = glob.glob("../pxds/*.pxd")
 classdocu_base = "http://ftp.mi.fu-berlin.de/OpenMS/release-documentation/html"
+classdocu_base = "http://www.openms.de/current_doxygen/html/"
 
 # after how many characters should a line be wrapped
 Linebreak = 85
