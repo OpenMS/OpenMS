@@ -15,7 +15,7 @@
 #
 # 'TOPP_' This prefix is used to distinguish TOPP and OpenMS tests in the nightly builds.
 # <tool>  is the TOPP tool name used to identify failed TOPP tool tests during the nightly builds.
-# <num>   Index that is incresed for each call of a TOPP tool during a test.
+# <num>   Index that is increased for each call of a TOPP tool during a test.
 #         For each new TOPP tool test this is reset to 1.
 # '_out'  When the result file of a test is checked with FuzzyDiff, this suffix is appended.
 # <num2>  If several files need to be checked in the same test, the checks are numbered from 1.
@@ -29,8 +29,8 @@
 #          interpreting the test results file (which happens to be XML)
 #
 # Hint: Most TOPP tools add DataProcessing information to their output.
-#       The -test flag ensures that this output is independent of local path settings etc, so use it when *testing* TOPP tools!
-# Hint: Provide inidividual names for each test output file e.g., the first test for the FileConverter should have FileConverter_1.tmp
+#       The -test flag ensures that this output is independent of local path settings etc., so use it when *testing* TOPP tools!
+# Hint: Provide individual names for each test output file e.g., the first test for the FileConverter should have FileConverter_1.tmp
 #       as output file.
 
 ### General settings
@@ -1144,7 +1144,7 @@ set_tests_properties("TOPP_PeptideIndexer_5_out" PROPERTIES DEPENDS "TOPP_Peptid
 add_test("TOPP_PeptideIndexer_6" ${TOPP_BIN_PATH}/PeptideIndexer -test -fasta ${DATA_DIR_TOPP}/PeptideIndexer_1.fasta -in ${DATA_DIR_TOPP}/PeptideIndexer_2.idXML -out PeptideIndexer_6_out.tmp -allow_unmatched -enzyme:specificity none)
 add_test("TOPP_PeptideIndexer_6_out" ${DIFF} -in1 PeptideIndexer_6_out.tmp -in2 ${DATA_DIR_TOPP}/PeptideIndexer_6_out.idXML )
 set_tests_properties("TOPP_PeptideIndexer_6_out" PROPERTIES DEPENDS "TOPP_PeptideIndexer_6")
-# specififity tests
+# specificity tests
 add_test("TOPP_PeptideIndexer_7" ${TOPP_BIN_PATH}/PeptideIndexer -test -fasta ${DATA_DIR_TOPP}/PeptideIndexer_1.fasta -in ${DATA_DIR_TOPP}/PeptideIndexer_3.idXML -out PeptideIndexer_7_out.tmp -allow_unmatched)
 add_test("TOPP_PeptideIndexer_7_out" ${DIFF} -in1 PeptideIndexer_7_out.tmp -in2 ${DATA_DIR_TOPP}/PeptideIndexer_7_out.idXML )
 set_tests_properties("TOPP_PeptideIndexer_7_out" PROPERTIES DEPENDS "TOPP_PeptideIndexer_7")
