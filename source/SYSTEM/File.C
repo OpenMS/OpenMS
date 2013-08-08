@@ -280,6 +280,23 @@ namespace OpenMS
     return true;
   }
 
+  String File::findDoc(const String& filename)
+  {
+    StringList search_dirs;
+    search_dirs.push_back(String(OPENMS_BINARY_PATH) + "/doc/");
+    search_dirs.push_back(String(OPENMS_SOURCE_PATH) + "/doc/");
+    search_dirs.push_back(getOpenMSDataPath() + "/../../doc/");
+    
+    // needed for OpenMS Mac OS X packages where documentation is stored in <package-root>/Documentation
+#if defined(__APPLE__)
+    search_dirs.push_back(String(OPENMS_BINARY_PATH) + "/Documentation/");
+    search_dirs.push_back(String(OPENMS_SOURCE_PATH) + "/Documentation/");
+    search_dirs.push_back(getOpenMSDataPath() + "/../../Documentation/");
+#endif
+    
+    return File::find(filename, search_dirs);
+  }
+
   String File::getUniqueName()
   {
     DateTime now = DateTime::now();
@@ -337,11 +354,6 @@ namespace OpenMS
 
     // make its a proper path:
     path = path.substitute("\\", "/").ensureLastChar('/').chop(1);
-#ifdef OPENMS_WINDOWSPLATFORM
-    String share_dir = "c:\\Program Files\\OpenMS\\share\\OpenMS";
-#else
-    String share_dir = "/usr/share/OpenMS";
-#endif
 
     if (!path_checked) // - now we're in big trouble as './share' is not were its supposed to be...
     { // - do NOT use LOG_ERROR or similar for the messages below! (it might not even usable at this point)
@@ -350,6 +362,11 @@ namespace OpenMS
       {
         std::cerr << "  The environment variable 'OPENMS_DATA_PATH' currently points to '" << path << "', which is incorrect!\n";
       }
+#ifdef OPENMS_WINDOWSPLATFORM
+      String share_dir = "c:\\Program Files\\OpenMS\\share\\OpenMS";
+#else
+      String share_dir = "/usr/share/OpenMS";
+#endif
       std::cerr << "  To resolve this, set the environment variable 'OPENMS_DATA_PATH' to the OpenMS share directory (e.g., '" + share_dir + "').\n";
       std::cerr << "Exiting now.\n";
       exit(1);

@@ -101,6 +101,13 @@ START_SECTION((static String find(const String &filename, StringList directories
 
 	TEST_NOT_EQUAL(File::find("OpenMS_DB.sql"),"");
 END_SECTION
+  
+START_SECTION((static String findDoc(const String& filename)))
+	TEST_EXCEPTION(Exception::FileNotFound,File::findDoc("non-existing-documentation"))
+  // should exist in every valid build tree
+	TEST_NOT_EQUAL(File::findDoc("doxygen/Doxyfile"),"")
+  TEST_EQUAL(File::findDoc("doxygen/Doxyfile").hasSuffix("Doxyfile"), true)
+END_SECTION
 
 START_SECTION((static String absolutePath(const String &file)))
 	NOT_TESTABLE

@@ -125,6 +125,21 @@ public:
     */
     static bool fileList(const String& dir, const String& file_pattern, StringList& output, bool full_path = false);
 
+    /**
+      @brief Resolves a partial file name to a documention file in the doc-folder.
+
+      Using find() to locate the documentation file under OPENMS_DATA_PATH, OPENMS_SOURCE_PATH, OPENMS_BINARY_PATH + "/../../doc" (or a variation for MacOS packages)
+
+      Will return the String with the full path to the local documentation. If this call fails, try the web documentation (http://www.openms.de/current_doxygen/) instead.
+     
+      @param String The doc file name to find.
+      @return The full path to the requested file.
+
+      @exception FileNotFound is thrown, if the file is not found
+    */
+    static String findDoc(const String& filename);
+
+
     /// Returns a string, consisting of date, time, hostname, process id, and a incrementing number.  This can be used for temporary files.
     static String getUniqueName();
 

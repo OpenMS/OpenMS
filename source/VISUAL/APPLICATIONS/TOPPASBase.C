@@ -185,21 +185,7 @@ namespace OpenMS
     QAction* action = help->addAction("OpenMS website", this, SLOT(showURL()));
     action->setData("http://www.OpenMS.de");
     action = help->addAction("TOPPAS tutorial", this, SLOT(showURL()), Qt::Key_F1);
-
-    // we need to do some extra work on osx systems
-#if defined(__APPLE__)
-    // we need to check if we are in the build or package environment
-    if (File::exists(File::getOpenMSDataPath() + "/../../doc/html/TOPPAS_tutorial.html"))
-    {
-      action->setData(String("file://" + File::getOpenMSDataPath() + "/../../doc/html/TOPPAS_tutorial.html").toQString());
-    }
-    else
-    {
-      action->setData(String("file://" + File::getOpenMSDataPath() + "/../../Documentation/html/TOPPAS_tutorial.html").toQString());
-    }
-#else
-    action->setData(String(File::getOpenMSDataPath() + "/../../doc/html/TOPPAS_tutorial.html").toQString());
-#endif
+    action->setData(String("html/TOPPAS_tutorial.html").toQString());
 
     help->addSeparator();
     help->addAction("&About", this, SLOT(showAboutDialog()));
@@ -891,17 +877,34 @@ namespace OpenMS
 
   void TOPPASBase::showURL()
   {
+    // NOTE: This code identical to TOPPViewBase::showURL(), if you change anything here
+    //       you probably need to change it also there.
+    
     QAction* action = qobject_cast<QAction*>(sender());
     QString target = action->data().toString();
+    QUrl url_target;
 
-    // add protocol handler if non is given
-    if (!(target.startsWith("http://") || target.startsWith("https://") || target.startsWith("file://")))
+    // add protocol handler if none is given
+    if (!(target.startsWith("http://") || target.startsWith("https://")))
     {
       // we expect all unqualified urls to be file urls
-      target = QString("file://%1").arg(target);
+      try
+      {
+        String local_url = File::findDoc(target);
+        url_target = QUrl::fromLocalFile(local_url.toQString());
+      }
+      catch (Exception::FileNotFound&)
+      {
+        // we fall back to the web url
+        url_target = QUrl(QString("http://www.openms.de/current_doxygen/%1").arg(target), QUrl::TolerantMode);
+      }
+    }
+    else
+    {
+      url_target = QUrl(target, QUrl::TolerantMode);
     }
 
-    if (!QDesktopServices::openUrl(QUrl(target, QUrl::TolerantMode)))
+    if (!QDesktopServices::openUrl(url_target))
     {
       QMessageBox::warning(this, tr("Error"),
                            tr("Unable to open\n") +
