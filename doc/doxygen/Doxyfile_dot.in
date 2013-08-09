@@ -5,8 +5,6 @@
 
 INLINE_INHERITED_MEMB  = YES 
 
-INTERNAL_DOCS          = YES 
-
 HIDE_SCOPE_NAMES       = NO
 
 SORT_BY_SCOPE_NAME     = YES
@@ -25,9 +23,6 @@ WARNINGS               = YES
 WARN_IF_UNDOCUMENTED   = YES
 WARN_IF_DOC_ERROR      = YES
 WARN_NO_PARAMDOC       = YES
-
-# Internal info sections
-ENABLED_SECTIONS       = INTERNAL_INFO
 
 # XML for checker.php
 GENERATE_XML           = YES

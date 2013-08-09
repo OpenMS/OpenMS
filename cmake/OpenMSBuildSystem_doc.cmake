@@ -8,7 +8,6 @@ find_package(LATEX)
 
 if (DOXYGEN_FOUND)
   configure_file(${PROJECT_SOURCE_DIR}/doc/doxygen/Doxyfile.in ${PROJECT_BINARY_DIR}/doc/doxygen/Doxyfile)
-  configure_file(${PROJECT_SOURCE_DIR}/doc/doxygen/Doxyfile_internal.in ${PROJECT_BINARY_DIR}/doc/doxygen/Doxyfile_internal)
   configure_file(${PROJECT_SOURCE_DIR}/doc/doxygen/Doxyfile_dot.in ${PROJECT_BINARY_DIR}/doc/doxygen/Doxyfile_dot)
   configure_file(${PROJECT_SOURCE_DIR}/doc/doxygen/Doxyfile_noclass.in ${PROJECT_BINARY_DIR}/doc/doxygen/Doxyfile_noclass)
   configure_file(${PROJECT_SOURCE_DIR}/doc/doxygen/Doxyfile_xml.in ${PROJECT_BINARY_DIR}/doc/doxygen/Doxyfile_xml)
@@ -78,26 +77,6 @@ if (DOXYGEN_FOUND)
                     COMMENT "Build the doxygen documentation"
                     VERBATIM)
   add_dependencies(doc doc_param_internal)
-
-  #######################################################################
-  ## doc_internal target
-  add_custom_target(doc_internal
-                    COMMAND ${CMAKE_COMMAND} -E echo ""
-                    COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
-                    COMMAND ${CMAKE_COMMAND} -E echo "Creating internal html documentation";
-                    COMMAND ${CMAKE_COMMAND} -E echo "";
-                    COMMAND ${CMAKE_COMMAND} -E remove_directory doc/html
-                    COMMAND ${CMAKE_COMMAND} -E chdir doc doxygen doxygen/Doxyfile_internal
-                    COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/doc/index.html doc/index.html
-                    COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/doc/doxygen/common/style_ini.css doc/html/style_ini.css
-                    COMMAND ${CMAKE_COMMAND} -E echo "";
-                    COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
-                    COMMAND ${CMAKE_COMMAND} -E echo "The documentation has been successfully created.";
-                    COMMAND ${CMAKE_COMMAND} -E echo "You can now open 'doc/index.html' in a web browser.";
-                    COMMAND ${CMAKE_COMMAND} -E echo ""
-                    COMMENT "Build the doxygen documentation"
-                    VERBATIM)
-  add_dependencies(doc_internal doc_param_internal)
 
   #######################################################################
   ## doc_internal target

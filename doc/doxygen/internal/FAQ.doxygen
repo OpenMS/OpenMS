@@ -37,9 +37,6 @@
 // Otherwise a link to the namespace is created.
 // Thanks!
 
-
-/// @cond INTERNAL_INFO
-
 /**
 	@page FAQ_Internal Internal FAQ
 

@@ -261,3 +261,18 @@ DOT_CLEANUP            = YES
 # Configuration::additions related to the search engine   
 #---------------------------------------------------------------------------
 SEARCHENGINE           = NO
+
+#---------------------------------------------------------------------------
+# Former internal documentation!
+#---------------------------------------------------------------------------
+GENERATE_TODOLIST      = YES
+
+# issue all possible warnings
+QUIET                  = NO
+WARNINGS               = YES
+WARN_IF_UNDOCUMENTED   = YES
+WARN_IF_DOC_ERROR      = YES
+WARN_NO_PARAMDOC       = YES
+
+# Internal info sections
+INTERNAL_DOCS          = YES
