@@ -41,10 +41,12 @@ cmake_minimum_required(VERSION 2.8.3 FATAL_ERROR)
 SET(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true)
 set(CF_OPENMS_PACKAGE_VERSION "${OPENMS_PACKAGE_VERSION_MAJOR}.${OPENMS_PACKAGE_VERSION_MINOR}.${OPENMS_PACKAGE_VERSION_PATCH}" CACHE INTERNAL "OpenMS VERSION" FORCE)
 
+if (MINGW OR MSYS)
+  message(FATAL_ERROR "MSYS and/or MinGW are not supported! Please use a Visual Studio environment! See Windows build instructions for further information!")
+endif()
+  
 ## SOME MAC OS X STUFF
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-  # force cmake > 2.8.1 to avoid bugs with OSX_DEPLOYMENT_TARGET
-  cmake_minimum_required(VERSION 2.8.1 FATAL_ERROR)
 	# due to some awkward updates of cmake in the 2.8.x series we need to add the following
   find_library(CARBON NAMES Carbon)
   find_package(OpenGL)
