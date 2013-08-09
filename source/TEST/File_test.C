@@ -104,9 +104,8 @@ END_SECTION
   
 START_SECTION((static String findDoc(const String& filename)))
 	TEST_EXCEPTION(Exception::FileNotFound,File::findDoc("non-existing-documentation"))
-  // should exist in every valid build tree
-	TEST_NOT_EQUAL(File::findDoc("doxygen/Doxyfile"),"")
-  TEST_EQUAL(File::findDoc("doxygen/Doxyfile").hasSuffix("Doxyfile"), true)
+  // should exist in every valid source tree (we cannot test for Doxyfile since doxygen might not be installed)
+  TEST_EQUAL(File::findDoc("doxygen/Doxyfile.in").hasSuffix("Doxyfile.in"), true)
 END_SECTION
 
 START_SECTION((static String absolutePath(const String &file)))
