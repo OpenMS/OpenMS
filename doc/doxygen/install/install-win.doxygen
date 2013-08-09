@@ -33,9 +33,10 @@
 <b>Pre-Requisites (Software)</b>
   <UL>
     <LI>have a Visual Studio 2005/2008/2010[SP1]/2012/2013 installed (The C++ Express editions should work as well, we tested VSE2008, VSE2012 and VSE2013).
-    <br>Visual C++ Express 2012 and above support Win64 and OpenMP by default. For older editions (2010 and below) you can find tutorials on how to enable them on the internet.
-    <br>If you work with VS2008, installation of the Service Pack 1 (SP1) is required,
-        otherwise VS might crash during the compilation of the contrib package.
+        <br>Visual C++ Express 2012 and above support Win64 and OpenMP by default. For older editions (2010 and below) you can find tutorials on how to enable them on the internet.
+        <br>If you work with VS2008, installation of the Service Pack 1 (SP1) is required,
+            otherwise VS might crash during the compilation of the contrib package.
+        <br><b>Not supported are MinGW (g++ based compiler) and VS2003 (and earlier). Do not use a MinGW-enabled shell since CMake will get confused!</b> Other compilers which are close to the VS toolchain might work, but are not tested.
     <LI>Have CMake 2.8.3 or greater installed (see http://www.cmake.org)<br>
              [VS2012 requires CMake 2.8.10 or later, VS2013 needs CMake 2.8.11.2]
     <LI>If you work with the SVN version of %OpenMS (instead of the Release package), we recommend downloading
@@ -58,13 +59,13 @@
 
   @section install_win_required Installing required dependency libraries
 
-        %OpenMS depends on several other libraries. On a windows system, these are usually not present.
+    %OpenMS depends on several other libraries. On a windows system, these are usually not present.
 
   @subsection install_qt QT installation
-        
-        We require Qt version 4.5 or higher.<br>
-        <b>Qt 5.X IS NOT SUPPORTED YET!</b><br>
-        VS2012 and VS2013 require at least Qt 4.8.4 with some additional fix (see below).
+
+    We require Qt version 4.5 or higher.<br>
+    <b>Qt 5.X IS NOT SUPPORTED YET!</b><br>
+    VS2012 and VS2013 require at least Qt 4.8.4 with some additional fix (see below).
     
     Qt comes in two flavors: commercial or non-commercial - choose whatever is applicable to you: read more on the Qt website
     Recently (beginning with Qt 4.6) there are binary development versions available for VS2010 and VS2008. We found these to contain only
@@ -130,18 +131,18 @@
       <LI>Create a build directory for the %OpenMS contrib <br>
           -e.g. $ mkdir contrib_win64_build
       <LI>Call CMake to build the contrib<br>
-                Be aware that you can build 64bit apps even if your operating system is only 32bit (cross-compiling), but you will not be
-                able to run 64bit apps in this case.
+          Be aware that you can build 64bit apps even if your operating system is only 32bit (cross-compiling), but you will not be
+          able to run 64bit apps in this case.
                 
 @code
 cd <path_to_contrib_build>
 cmake -G "<generator>" "<path_to_contrib>"
 @endcode
 
-        The &lt;generator&gt; you use must be one of the Visual Studio Generators. This is because some contrib libs require Visual Studio to build.
-        Be careful to specify the Generator suffixed with "Win64" if you want a 64bit contrib!
-        Type <tt>$ cmake</tt> to see a list of available generators.<br>
-        Example:
+    The &lt;generator&gt; you use must be one of the Visual Studio Generators. This is because some contrib libs require Visual Studio to build.
+    Be careful to specify the Generator suffixed with "Win64" if you want a 64bit contrib!
+    Type <tt>$ cmake</tt> to see a list of available generators.<br>
+    Example:
 @code
 cd c:\svn\contrib_win64_build
 cmake -G "Visual Studio 9 2008 Win64" "c:\svn\contrib"
