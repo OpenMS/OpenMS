@@ -62,6 +62,7 @@
 			<xs:enumeration value="string"></xs:enumeration>
 			<xs:enumeration value="int-pair"></xs:enumeration>
 			<xs:enumeration value="double-pair"></xs:enumeration>
+			<xs:enumeration value="input-prefix"></xs:enumeration>      
 			<xs:enumeration value="output-prefix"></xs:enumeration>
 			<xs:enumeration value="input-file"></xs:enumeration>
 			<xs:enumeration value="output-file"></xs:enumeration>
