@@ -118,7 +118,7 @@ using namespace std;
  <i>optional output:</i>
  - out_clusters [*.consensusXML] - contains the complete set of data points passing the filters
 
-  The results of an analysis can easily visualized within TOPPView. Simply load *.consensusXML and *.featureXML as layers over the original *.mzML.
+  The results of an analysis can be easily visualized within TOPPView. Simply load *.consensusXML and *.featureXML as layers over the original *.mzML.
 
   Parameters in section <i>algorithm:</i>
  - <i>allow_missing_peaks</i> - Low intensity peaks might be missing from the isotopic pattern of some of the peptides. Specify if such peptides should be included in the analysis.
