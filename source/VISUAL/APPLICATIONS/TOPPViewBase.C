@@ -407,7 +407,7 @@ namespace OpenMS
     // feature labels:
     dm_label_2d_ = new QToolButton(tool_bar_2d_feat_);
     dm_label_2d_->setPopupMode(QToolButton::MenuButtonPopup);
-    QAction* action2 = new QAction(QIcon(":/labels.png"), "Show feature label", dm_label_2d_);
+    QAction* action2 = new QAction(QIcon(":/labels.png"), "Show feature annotation", dm_label_2d_);
     action2->setCheckable(true);
     action2->setWhatsThis("2D feature draw mode: Labels<BR><BR>Display different kinds of annotation next to features.<BR>(Hotkey: 7)");
     action2->setShortcut(Qt::Key_7);
@@ -422,8 +422,7 @@ namespace OpenMS
       QAction* temp = group_label_2d_->addAction(
         QString(LayerData::NamesOfLabelType[i].c_str()));
       temp->setCheckable(true);
-      if (i == 0)
-        temp->setChecked(true);
+      if (i == 0) temp->setChecked(true);
       menu->addAction(temp);
     }
     dm_label_2d_->setMenu(menu);
