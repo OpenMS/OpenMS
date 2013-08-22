@@ -131,6 +131,7 @@ Resolved issues:
   #591	Detection of MGF format via file content fails on our own files
   #593	Parameter default of 'tab' will be returned as single space
   #598  SILACAnalyzer (no label) crash
+  #603  TOPPView: showing peptide annotations of feature maps also shows feature indexes
   
 ------------------------------------------------------------------------------------------ 
 ----                                  OpenMS 1.10                                     ---- 
