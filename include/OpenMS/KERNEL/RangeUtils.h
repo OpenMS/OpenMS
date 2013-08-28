@@ -607,12 +607,12 @@ private:
 
 public:
     /**
-     @brief Constructor
+      @brief Constructor
 
-     @param min minimum width of the isolation window.
-     @param max maximum width of the isolation window.
-     @param reverse if @p reverse is true, operator() returns true if the width of the isolation window lies outside the range.
-     */
+      @param min_size minimum width of the isolation window.
+      @param max_size maximum width of the isolation window.
+      @param reverse if @p reverse is true, operator() returns true if the width of the isolation window lies outside the range.
+    */
     IsInIsolationWindowSizeRange(DoubleReal min_size, DoubleReal max_size, bool reverse = false) :
       min_size_(min_size),
       max_size_(max_size),

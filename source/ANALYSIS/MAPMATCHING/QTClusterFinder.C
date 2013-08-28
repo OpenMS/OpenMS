@@ -132,12 +132,12 @@ namespace OpenMS
     Size size = clustering.size();
 
     // Create a temporary map where we store which GridFeatures are next to which Clusters
-    boost::unordered::unordered_map<GridFeature *, std::vector< QTCluster * > > element_mapping;
+    OpenMSBoost::unordered_map<GridFeature *, std::vector< QTCluster * > > element_mapping;
     for (list<QTCluster>::iterator it = clustering.begin(); it != clustering.end(); ++it)
     {
-      boost::unordered::unordered_map<Size, GridFeature *> elements; // = it->getNeighbors();
-      typedef boost::unordered::unordered_multimap<DoubleReal, GridFeature *> InnerNeighborMap;
-      typedef boost::unordered::unordered_map<Size, boost::unordered::unordered_multimap<DoubleReal, GridFeature *> > NeighborMap;
+      OpenMSBoost::unordered_map<Size, GridFeature *> elements;
+      typedef std::multimap<DoubleReal, GridFeature *> InnerNeighborMap;
+      typedef OpenMSBoost::unordered_map<Size, InnerNeighborMap > NeighborMap;
       NeighborMap neigh = it->getNeighbors();
       for (NeighborMap::iterator n_it = neigh.begin(); n_it != neigh.end(); ++n_it)
       {
@@ -170,12 +170,12 @@ namespace OpenMS
   }
 
   void QTClusterFinder::makeConsensusFeature_(list<QTCluster> & clustering,
-           ConsensusFeature & feature, boost::unordered::unordered_map<GridFeature *,
+           ConsensusFeature & feature, OpenMSBoost::unordered_map<GridFeature *,
              std::vector< QTCluster * > > & element_mapping)
   {
     // find the best cluster (a valid cluster with the highest score)
     list<QTCluster>::iterator best = clustering.begin();
-    while (best->isInvalid() && best != clustering.end()) {best++;}
+    while (best != clustering.end() && best->isInvalid()) {++best;}
     for (list<QTCluster>::iterator it = best;
          it != clustering.end(); ++it)
     {
@@ -195,13 +195,13 @@ namespace OpenMS
       return;
     }
 
-    boost::unordered::unordered_map<Size, GridFeature *> elements;
+    OpenMSBoost::unordered_map<Size, GridFeature *> elements;
     best->getElements(elements);
     // cout << "Elements: " << elements.size() << " with best " << best->getQuality() << " invalid " << best->isInvalid() << endl;
 
     // create consensus feature from best cluster:
     feature.setQuality(best->getQuality());
-    for (boost::unordered::unordered_map<Size, GridFeature *>::const_iterator it = elements.begin();
+    for (OpenMSBoost::unordered_map<Size, GridFeature *>::const_iterator it = elements.begin();
          it != elements.end(); ++it)
     {
       feature.insert(it->first, it->second->getFeature());
@@ -215,7 +215,7 @@ namespace OpenMS
     // 2. update all clusters accordingly and invalidate elements whose central
     //    element is removed
     best->setInvalid();
-    for (boost::unordered::unordered_map<Size, GridFeature *>::const_iterator it = elements.begin();
+    for (OpenMSBoost::unordered_map<Size, GridFeature *>::const_iterator it = elements.begin();
          it != elements.end(); ++it)
     {
       for (std::vector< QTCluster* >::iterator 

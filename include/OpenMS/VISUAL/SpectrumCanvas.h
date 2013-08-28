@@ -713,7 +713,7 @@ protected:
     ///@name Zoom stack methods
     //@{
     /// Zooms such that screen point x, y would still point to the same data point
-    virtual void zoom(int x, int y, bool zoom_in);
+    virtual void zoom_(int x, int y, bool zoom_in);
     ///Go backward in zoom history
     void zoomBack_();
     ///Go forward in zoom history

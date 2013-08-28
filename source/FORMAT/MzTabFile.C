@@ -45,12 +45,10 @@ namespace OpenMS
 
   MzTabFile::MzTabFile()
   {
-
   }
 
   MzTabFile::~MzTabFile()
   {
-
   }
 
   void MzTabFile::load(const String& filename, MzTab& mz_tab)
@@ -1204,11 +1202,11 @@ namespace OpenMS
     // partition into runs (as this could be a merged idXML)
     map<String, vector<PeptideIdentification> > map_run_to_pepids;
     map<String, vector<ProteinIdentification> > map_run_to_proids;
-    partitionIntoRuns(pep_ids, prot_ids, map_run_to_pepids, map_run_to_proids);
+    partitionIntoRuns_(pep_ids, prot_ids, map_run_to_pepids, map_run_to_proids);
     // cout << "idXML contains: " << map_run_to_pepids.size() << " runs." << endl;
 
     MapAccPepType map_run_accesion_to_peptides;
-    createProteinToPeptideLinks(map_run_to_pepids, map_run_accesion_to_peptides);
+    createProteinToPeptideLinks_(map_run_to_pepids, map_run_accesion_to_peptides);
 
     // every ProteinIdentification corresponds to a search engine run and contains protein hits
 
@@ -1417,7 +1415,7 @@ namespace OpenMS
   }
 
   /// Extract protein and peptide identifications for each run. maps are assumed empty.
-  void MzTabFile::partitionIntoRuns(const vector<PeptideIdentification>& pep_ids,
+  void MzTabFile::partitionIntoRuns_(const vector<PeptideIdentification>& pep_ids,
                                     const vector<ProteinIdentification>& pro_ids,
                                     map<String, vector<PeptideIdentification> >& map_run_to_pepids,
                                     map<String, vector<ProteinIdentification> >& map_run_to_proids
@@ -1447,7 +1445,7 @@ namespace OpenMS
     }
   }
 
-  void MzTabFile::createProteinToPeptideLinks(const map<String, vector<PeptideIdentification> >& map_run_to_pepids, MapAccPepType& map_run_accession_to_pephits)
+  void MzTabFile::createProteinToPeptideLinks_(const map<String, vector<PeptideIdentification> >& map_run_to_pepids, MapAccPepType& map_run_accession_to_pephits)
   {
     // create links for each run
     map<String, vector<PeptideIdentification> >::const_iterator mpep_it = map_run_to_pepids.begin();
@@ -1717,7 +1715,7 @@ namespace OpenMS
   }
 
 // same as distinct but additional constraint of uniquenes (=maps to exactly one Protein)
-  String MzTabFile::extractNumPeptidesUnambiguous(String common_identifier, String protein_accession,
+  String MzTabFile::extractNumPeptidesUnambiguous_(String common_identifier, String protein_accession,
                                                   const MapAccPepType& map_run_accesion_to_peptides)
   {
     std::pair<String, String> key = make_pair(common_identifier, protein_accession);
@@ -1795,8 +1793,8 @@ namespace OpenMS
 
       String reliability = "--";
       String num_peptides;
-      String num_peptides_distinct = extractNumPeptidesDistinct(prot_id.getIdentifier(), accession, map_run_accesion_to_peptides);
-      String num_peptides_unambiguous = extractNumPeptidesUnambiguous(prot_id.getIdentifier(), accession, map_run_accesion_to_peptides);
+      String num_peptides_distinct = extractNumPeptidesDistinct_(prot_id.getIdentifier(), accession, map_run_accesion_to_peptides);
+      String num_peptides_unambiguous = extractNumPeptidesUnambiguous_(prot_id.getIdentifier(), accession, map_run_accesion_to_peptides);
       String ambiguity_members = "NA"; //TODO
       String modifications = "NA"; // TODO
       String uri = "file://" + input_filename;
@@ -1818,7 +1816,7 @@ namespace OpenMS
       }
       else
       {
-        num_peptides = extractNumPeptides(prot_id.getIdentifier(), accession, map_run_accesion_to_peptides);
+        num_peptides = extractNumPeptides_(prot_id.getIdentifier(), accession, map_run_accesion_to_peptides);
       }
 
       output << "PRT" << accession << unit_id << description << taxid
@@ -1869,7 +1867,7 @@ namespace OpenMS
     }
   }
 
-  String MzTabFile::extractNumPeptidesDistinct(String common_identifier, String protein_accession,
+  String MzTabFile::extractNumPeptidesDistinct_(String common_identifier, String protein_accession,
                                                const MapAccPepType& map_run_accesion_to_peptides)
   {
     std::pair<String, String> key = make_pair(common_identifier, protein_accession);
@@ -1892,7 +1890,7 @@ namespace OpenMS
     return ret;
   }
 
-  String MzTabFile::extractNumPeptides(const String& common_identifier, const String& protein_accession,
+  String MzTabFile::extractNumPeptides_(const String& common_identifier, const String& protein_accession,
                                        const MapAccPepType& map_run_accesion_to_peptides)
   {
     pair<String, String> key = make_pair(common_identifier, protein_accession);

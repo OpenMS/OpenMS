@@ -478,13 +478,12 @@ namespace OpenMS
         {
           const ExperimentType::PeakType & peak_1 = measurement_start_.getPeak(*getCurrentLayer().getPeakData());
           const ExperimentType::PeakType & peak_2 = selected_peak_.getPeak(*getCurrentLayer().getPeakData());
-          DoubleReal distance = peak_2.getMZ() - peak_1.getMZ();
           updatePercentageFactor_(current_layer_);
           PointType p = widgetToData(measurement_start_point_, true);
           bool peak_1_less = peak_1.getMZ() < peak_2.getMZ();
           DoubleReal start_mz = peak_1_less ? peak_1.getMZ() : peak_2.getMZ();
           DoubleReal end_mz = peak_1_less ? peak_2.getMZ() : peak_1.getMZ();
-          distance = end_mz - start_mz;
+          DoubleReal distance = end_mz - start_mz;
           PointType start_p(start_mz, p.getY());
           PointType end_p(end_mz, p.getY());
 
@@ -572,11 +571,9 @@ namespace OpenMS
 
     int nearest_intensity = static_cast<int>(intervalTransformation(nearest_it->getIntensity(), visible_area_.minY(),
                                                                     visible_area_.maxY(), dest_interval_start, dest_interval_end));
-    int current_intensity;
-
     for (SpectrumConstIteratorType it = left_it; it != right_it; it++)
     {
-      current_intensity = static_cast<int>(intervalTransformation(it->getIntensity(), visible_area_.minY(), visible_area_.maxY(),
+      int current_intensity = static_cast<int>(intervalTransformation(it->getIntensity(), visible_area_.minY(), visible_area_.maxY(),
                                                                   dest_interval_start, dest_interval_end));
       if (abs(current_intensity - p.y()) < abs(nearest_intensity - p.y()))
       {
@@ -1561,7 +1558,7 @@ namespace OpenMS
     modificationStatus_(i, false);
   }
 
-  void Spectrum1DCanvas::zoom(int x, int y, bool zoom_in)
+  void Spectrum1DCanvas::zoom_(int x, int y, bool zoom_in)
   {
     if (!zoom_in)
     {
@@ -1706,10 +1703,9 @@ namespace OpenMS
         break;
       }
 
-      int x;
       for (std::vector<double>::const_iterator it = spectrum_widget_->xAxis()->gridLines()[j].begin(); it != spectrum_widget_->xAxis()->gridLines()[j].end(); ++it)
       {
-        x = static_cast<int>(Math::intervalTransformation(*it, spectrum_widget_->xAxis()->getAxisMinimum(), spectrum_widget_->xAxis()->getAxisMaximum(), xl, xh));
+        int x = static_cast<int>(Math::intervalTransformation(*it, spectrum_widget_->xAxis()->getAxisMinimum(), spectrum_widget_->xAxis()->getAxisMaximum(), xl, xh));
         painter.drawLine(x, yl, x, yh);
       }
     }
@@ -1734,10 +1730,9 @@ namespace OpenMS
         break;
       }
 
-      int y;
       for (std::vector<double>::const_iterator it = spectrum_widget_->yAxis()->gridLines()[j].begin(); it != spectrum_widget_->yAxis()->gridLines()[j].end(); ++it)
       {
-        y = static_cast<int>(Math::intervalTransformation(*it, spectrum_widget_->yAxis()->getAxisMinimum(), spectrum_widget_->yAxis()->getAxisMaximum(), yl, yh));
+        int y = static_cast<int>(Math::intervalTransformation(*it, spectrum_widget_->yAxis()->getAxisMinimum(), spectrum_widget_->yAxis()->getAxisMaximum(), yl, yh));
         if (!mirror_mode_)
         {
           painter.drawLine(xl, y, xh, y);

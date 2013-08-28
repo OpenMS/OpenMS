@@ -118,13 +118,13 @@ namespace OpenMS
   {
     ppm_score = 0;
     ppm_score_weighted = 0;
-    double mz, intensity, left, right;
+    double mz, intensity;
     for (std::size_t k = 0; k < transitions.size(); k++)
     {
       const TransitionType* transition = &transitions[k];
       // Calculate the difference of the theoretical mass and the actually measured mass
-      left = transition->getProductMZ() - dia_extract_window_ / 2.0;
-      right = transition->getProductMZ() + dia_extract_window_ / 2.0;
+      double left = transition->getProductMZ() - dia_extract_window_ / 2.0;
+      double right = transition->getProductMZ() + dia_extract_window_ / 2.0;
       integrateWindow(spectrum, left, right, mz, intensity, dia_centroided_);
       if (mz == -1)
       {
@@ -193,11 +193,10 @@ namespace OpenMS
     const std::vector<TransitionType>& transitions,
     OpenSwath::IMRMFeature* mrmfeature, std::map<std::string, double>& intensities)
   {
-    double rel_intensity;
     for (Size k = 0; k < transitions.size(); k++)
     {
       std::string native_id = transitions[k].getNativeID();
-      rel_intensity = mrmfeature->getFeature(native_id)->getIntensity() / mrmfeature->getIntensity();
+      double rel_intensity = mrmfeature->getFeature(native_id)->getIntensity() / mrmfeature->getIntensity();
       intensities.insert(std::pair<std::string, double>(native_id, rel_intensity));
     }
   }
@@ -246,19 +245,19 @@ namespace OpenMS
                                                       SpectrumType& spectrum, double max_ppm_diff, double main_peak)
   {
     double result = 0;
-    double mz, intensity, left, right, ratio;
+    double mz, intensity;
 
     for (int ch = 1; ch <= dia_nr_charges_; ++ch)
     {
-      left = product_mz - dia_extract_window_ / 2.0 - C13C12_MASSDIFF_U / (DoubleReal) ch;
-      right = product_mz + dia_extract_window_ / 2.0 - C13C12_MASSDIFF_U / (DoubleReal) ch;
+      double left = product_mz - dia_extract_window_ / 2.0 - C13C12_MASSDIFF_U / (DoubleReal) ch;
+      double right = product_mz + dia_extract_window_ / 2.0 - C13C12_MASSDIFF_U / (DoubleReal) ch;
       integrateWindow(spectrum, left, right, mz, intensity, dia_centroided_);
       if (mz == -1)
       {
         mz = (left + right) / 2.0;
       }
 
-      ratio = intensity / main_peak;
+      double ratio = intensity / main_peak;
       if (main_peak == 0)
       {
         ratio = 0;

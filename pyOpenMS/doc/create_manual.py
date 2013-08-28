@@ -1,6 +1,8 @@
 import os
 import glob
 pxd_files = glob.glob("../pxds/*.pxd")
+classdocu_base = "http://ftp.mi.fu-berlin.de/OpenMS/release-documentation/html"
+classdocu_base = "http://www.openms.de/current_doxygen/html/"
 
 # after how many characters should a line be wrapped
 Linebreak = 85
@@ -31,6 +33,27 @@ def prepare_line(line):
     line = line.replace("xxxx", "    ")
     return line
 
+def get_namespace(pxd):
+    filehandle = open(pxd)
+    fulltext = filehandle.read()
+    filehandle.close()
+    import re
+    match = re.search("cdef extern.*?namespace\s*\"([^\"]*)\"", fulltext)
+    if not match:
+        return "OpenMS"
+    else:
+        return match.group(1)
+
+
+def get_header(title, ns):
+
+    return r"""
+$\rightarrow$ \textit{\href{%s/class%s_1_1%s.html}{Link
+to OpenMS documentation}}
+
+Wrapped functions in Python:
+""" % (classdocu_base, ns, title)
+
 write_handle = open("appendix.tex", "w")
 print pxd_files
 for pxd in sorted(pxd_files):
@@ -42,6 +65,7 @@ for pxd in sorted(pxd_files):
     write_handle.write("\subsection{%s}\n\n" % title)
     write_handle.write("\label{%s}\n\n" % title)
     # write_handle.write("{\\tiny\n    \\begin{verbatim}")
+    write_handle.write( get_header(title, get_namespace(pxd)) )
     write_handle.write("{    \\begin{verbatim}")
     filehandle = open(pxd)
     found_start = False

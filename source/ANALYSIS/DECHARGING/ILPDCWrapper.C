@@ -205,9 +205,11 @@ namespace OpenMS
     StopWatch time1;
     time1.start();
     // split problem into slices and have each one solved by the ILPS
-#ifdef _OPENMP
-#pragma omp parallel for schedule(dynamic, 1)
-#endif
+
+// OMP currently causes spurious segfaults in Release mode and is thus disabled until fix is available
+//#ifdef _OPENMP
+//#pragma omp parallel for schedule(dynamic, 1)
+//#endif
     for (SignedSize i = 0; i < (SignedSize)bins.size(); ++i)
     {
       score += computeSlice_(fm, pairs, bins[i].first, bins[i].second, verbose_level);
@@ -216,23 +218,6 @@ namespace OpenMS
     LOG_INFO << " Branch and cut took " << time1.getClockTime() << " seconds, "
              << " with objective value: " << score << "."
              << std::endl;
-
-    /*
-    time1.start();
-    // split problem into slices and have each one solved by the ILPS
-    DoubleReal score2(0);
-#ifdef _OPENMP
-#pragma omp parallel for schedule(dynamic, 1)
-#endif
-    for	(SignedSize i=0; i < (SignedSize)bins.size(); ++i)
-    {
-      score2 += computeSliceOld_(fm, pt2, bins[i].first, bins[i].second, verbose_level);
-    }
-    time1.stop();
-    LOG_INFO << " OLD Branch and cut took " << time1.getClockTime() << " seconds, "
-      << " with objective value: " << score2 << "."
-      << std::endl;
-    */
 
     return score;
   }

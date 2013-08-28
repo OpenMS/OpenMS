@@ -48,22 +48,22 @@ class QMouseEvent;
 namespace OpenMS
 {
   /**
-  @brief Canvas for 2D-visualization of peak map, feature map and consensus map data
+    @brief Canvas for 2D-visualization of peak map, feature map and consensus map data
 
-  This widget displays a 2D representation of a set of peaks, features or consensus elements.
+    This widget displays a 2D representation of a set of peaks, features or consensus elements.
 
-      @image html Spectrum2DCanvas.png
+    @image html Spectrum2DCanvas.png
 
-      The example image shows %Spectrum2DCanvas displaying a peak layer and a feature layer.
+    The example image shows %Spectrum2DCanvas displaying a peak layer and a feature layer.
 
-      @htmlinclude OpenMS_Spectrum2DCanvas.parameters
+    @htmlinclude OpenMS_Spectrum2DCanvas.parameters
 
-      @improvement Add RT interpolation mode for high zoom in 2D View (Hiwi)
+    @improvement Add RT interpolation mode for high zoom in 2D View (Hiwi)
 
-      @improvement Snap also to min intensity (Hiwi)
+    @improvement Snap also to min intensity (Hiwi)
 
-  @ingroup SpectrumWidgets
-*/
+    @ingroup SpectrumWidgets
+  */
   class OPENMS_GUI_DLLAPI Spectrum2DCanvas :
     public SpectrumCanvas
   {
@@ -71,7 +71,7 @@ namespace OpenMS
 
 public:
     /// Default constructor
-    Spectrum2DCanvas(const Param & preferences, QWidget * parent = 0);
+    Spectrum2DCanvas(const Param& preferences, QWidget* parent = 0);
 
     /// Destructor
     ~Spectrum2DCanvas();
@@ -89,7 +89,7 @@ public:
     void mergeIntoLayer(Size i, ConsensusMapSharedPtrType map);
 
     /// Merges the peptide identifications in @p peptides into the peptide layer @p i
-    void mergeIntoLayer(Size i, std::vector<PeptideIdentification> & peptides);
+    void mergeIntoLayer(Size i, std::vector<PeptideIdentification>& peptides);
 
     /// recalculates the dot gradient of the active layer
     void recalculateCurrentLayerDotGradient();
@@ -120,15 +120,16 @@ public slots:
     virtual void horizontalScrollBarChange(int value);
     // Docu in base class
     virtual void verticalScrollBarChange(int value);
+
     /**
-    @brief Updates the projection data and emits some related signals.
+      @brief Updates the projection data and emits some related signals.
 
-    Emitted signals are showProjectionHorizontal(ExperimentSharedPtrType, Spectrum1DCanvas::DrawModes) and
-    showProjectionVertical(ExperimentSharedPtrType, Spectrum1DCanvas::DrawModes).
+      Emitted signals are showProjectionHorizontal(ExperimentSharedPtrType, Spectrum1DCanvas::DrawModes) and
+      showProjectionVertical(ExperimentSharedPtrType, Spectrum1DCanvas::DrawModes).
 
-    @see projection_mz_
-    @see projection_rt_
-  */
+      @see projection_mz_
+      @see projection_rt_
+    */
     void updateProjections();
 
 protected slots:
@@ -141,121 +142,123 @@ protected:
     bool finishAdding_();
 
     /// Draws the coordinates (or coordinate deltas) to the widget's upper left corner
-    void drawCoordinates_(QPainter & painter, const PeakIndex & peak);
+    void drawCoordinates_(QPainter& painter, const PeakIndex& peak);
     /// Draws the coordinates (or coordinate deltas) to the widget's upper left corner
-    void drawDeltas_(QPainter & painter, const PeakIndex & start, const PeakIndex & end);
+    void drawDeltas_(QPainter& painter, const PeakIndex& start, const PeakIndex& end);
 
     /** @name Reimplemented QT events */
     //@{
-    void mousePressEvent(QMouseEvent * e);
-    void mouseReleaseEvent(QMouseEvent * e);
-    void mouseMoveEvent(QMouseEvent * e);
-    void paintEvent(QPaintEvent * e);
-    void contextMenuEvent(QContextMenuEvent * e);
-    void keyPressEvent(QKeyEvent * e);
-    void keyReleaseEvent(QKeyEvent * e);
-    void mouseDoubleClickEvent(QMouseEvent * e);
+    void mousePressEvent(QMouseEvent* e);
+    void mouseReleaseEvent(QMouseEvent* e);
+    void mouseMoveEvent(QMouseEvent* e);
+    void paintEvent(QPaintEvent* e);
+    void contextMenuEvent(QContextMenuEvent* e);
+    void keyPressEvent(QKeyEvent* e);
+    void keyReleaseEvent(QKeyEvent* e);
+    void mouseDoubleClickEvent(QMouseEvent* e);
     //@}
 
     // Docu in base class
     virtual void updateScrollbars_();
 
     /**
-    @brief Paints individual peaks.
+      @brief Paints individual peaks.
 
-    Calls different painting methods depending on the layer type and the density of displayed peaks
+      Calls different painting methods depending on the layer type and the density of displayed peaks
 
-    @param layer_index The index of the layer.
-    @param p The QPainter to paint on.
-  */
-    void paintDots_(Size layer_index, QPainter & p);
+      @param layer_index The index of the layer.
+      @param p The QPainter to paint on.
+    */
+    void paintDots_(Size layer_index, QPainter& p);
 
-    void paintAllIntensities_(Size layer_index, DoubleReal pen_width, QPainter & painter);
-
-    /**
-    @brief Paints maximum intensity of individual peaks.
-
-    Paints the peaks as small ellipses. The peaks are colored according to the
-    selected dot gradient.
-
-    @param layer_index The index of the layer.
-    @param p The QPainter to paint on.
-  */
-    void paintMaximumIntensities_(Size layer_index, Size rt_pixel_count, Size mz_pixel_count, QPainter & p);
+    void paintAllIntensities_(Size layer_index, DoubleReal pen_width, QPainter& painter);
 
     /**
-    @brief Paints the precursor peaks.
+      @brief Paints maximum intensity of individual peaks.
 
-    @param layer_index The index of the layer.
-    @param painter The QPainter to paint on.
-   */
-    void paintPrecursorPeaks_(Size layer_index, QPainter & painter);
+      Paints the peaks as small ellipses. The peaks are colored according to the
+      selected dot gradient.
 
-    /**
-    @brief Paints feature data.
-
-    @param layer_index The index of the layer.
-    @param p The QPainter to paint on.
-   */
-    void paintFeatureData_(Size layer_index, QPainter & p);
+      @param layer_index The index of the layer.
+      @param rt_pixel_count
+      @param mz_pixel_count
+      @param p The QPainter to paint on.
+    */
+    void paintMaximumIntensities_(Size layer_index, Size rt_pixel_count, Size mz_pixel_count, QPainter& p);
 
     /**
-    @brief Paints convex hulls (one for each mass trace) of a features layer.
+      @brief Paints the precursor peaks.
 
-    @param layer_index Index of the layer.
-    @param p The QPainter to paint on.
-  */
-    void paintTraceConvexHulls_(Size layer_index, QPainter & p);
-
-    /**
-    @brief Paints the convex hulls (one for each feature) of a features layer.
-
-    @param layer_index Index of the layer.
-    @param p The QPainter to paint on.
-  */
-    void paintFeatureConvexHulls_(Size layer_index, QPainter & p);
+      @param layer_index The index of the layer.
+      @param painter The QPainter to paint on.
+    */
+    void paintPrecursorPeaks_(Size layer_index, QPainter& painter);
 
     /**
-    @brief Paints peptide identifications (for idXML and unassigned peptides in featureXML).
+      @brief Paints feature data.
 
-    @param layer_index Index of the layer.
-    @param p The QPainter to paint on.
-  */
-    void paintIdentifications_(Size layer_index, QPainter & p);
-
-    /**
-    @brief Paints the consensus elements of a consensus features layer.
-
-    @param layer_index Index of the layer.
-    @param p The QPainter to paint on.
-  */
-    void paintConsensusElements_(Size layer_index, QPainter & p);
+      @param layer_index The index of the layer.
+      @param p The QPainter to paint on.
+    */
+    void paintFeatureData_(Size layer_index, QPainter& p);
 
     /**
-    @brief Paints one consensus element of a consensus features layer.
+      @brief Paints convex hulls (one for each mass trace) of a features layer.
 
-    @param layer_index Index of the layer.
-    @param cf Reference to the feature to be painted.
-    @param p The QPainter to paint on.
-    @param use_buffer Flag to switch between painting on the buffer and screen.
-  */
-    void paintConsensusElement_(Size layer_index, const ConsensusFeature & cf, QPainter & p, bool use_buffer);
+      @param layer_index Index of the layer.
+      @param p The QPainter to paint on.
+    */
+    void paintTraceConvexHulls_(Size layer_index, QPainter& p);
 
     /**
-    @brief checks if any element of a consensus feature is currently visible.
+      @brief Paints the convex hulls (one for each feature) of a features layer.
 
-    @param layer_index Index of the layer.
-    @param ce The ConsensusFeature that needs checking
-  */
-    bool isConsensusFeatureVisible_(const ConsensusFeature & ce, Size layer_index);
+      @param layer_index Index of the layer.
+      @param p The QPainter to paint on.
+    */
+    void paintFeatureConvexHulls_(Size layer_index, QPainter& p);
 
     /**
-    @brief Paints convex hulls (one for each mass trace) for a single feature.
+      @brief Paints peptide identifications (for idXML and unassigned peptides in featureXML).
 
-    @param hulls Reference to convex hull vector.
-    @param p The QPainter to paint on.
-  */
-    void paintConvexHulls_(const std::vector<ConvexHull2D> & hulls, bool hasIdentifications, QPainter & p);
+      @param layer_index Index of the layer.
+      @param p The QPainter to paint on.
+    */
+    void paintIdentifications_(Size layer_index, QPainter& p);
+
+    /**
+      @brief Paints the consensus elements of a consensus features layer.
+
+      @param layer_index Index of the layer.
+      @param p The QPainter to paint on.
+    */
+    void paintConsensusElements_(Size layer_index, QPainter& p);
+
+    /**
+      @brief Paints one consensus element of a consensus features layer.
+
+      @param layer_index Index of the layer.
+      @param cf Reference to the feature to be painted.
+      @param p The QPainter to paint on.
+      @param use_buffer Flag to switch between painting on the buffer and screen.
+    */
+    void paintConsensusElement_(Size layer_index, const ConsensusFeature& cf, QPainter& p, bool use_buffer);
+
+    /**
+      @brief checks if any element of a consensus feature is currently visible.
+
+      @param layer_index Index of the layer.
+      @param ce The ConsensusFeature that needs checking
+    */
+    bool isConsensusFeatureVisible_(const ConsensusFeature& ce, Size layer_index);
+
+    /**
+      @brief Paints convex hulls (one for each mass trace) for a single feature.
+
+      @param hulls Reference to convex hull vector.
+      @param p The QPainter to paint on.
+    */
+    void paintConvexHulls_(const std::vector<ConvexHull2D>& hulls, bool hasIdentifications, QPainter& p);
 
     // Docu in base class
     virtual void intensityModeChange_();
@@ -268,11 +271,11 @@ protected:
     ExperimentType projection_rt_;
 
     /**
-    @brief Returns the position on color @p gradient associated with given intensity @p.
+      @brief Returns the position on color @p gradient associated with given intensity.
 
-    Takes intensity modes into account.
-  */
-    inline Int precalculatedColorIndex_(Real val, const MultiGradient & gradient, DoubleReal snap_factor)
+      Takes intensity modes into account.
+    */
+    inline Int precalculatedColorIndex_(Real val, const MultiGradient& gradient, DoubleReal snap_factor)
     {
       Real gradientPos;
       switch (intensity_mode_)
@@ -280,29 +283,33 @@ protected:
       case IM_NONE:
         gradientPos = val;
         break;
+
       case IM_PERCENTAGE:
         gradientPos = val * percentage_factor_;
         break;
+
       case IM_SNAP:
         gradientPos = val * snap_factor;
         break;
+
       case IM_LOG:
         gradientPos = std::log(val + 1);
         break;
+
       default:
         throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
       }
-      return gradient.precalculatedColorIndex( gradientPos );
+      return gradient.precalculatedColorIndex(gradientPos);
     }
 
     /**
-    @brief Returns the color associated with @p val for the gradient @p gradient.
+      @brief Returns the color associated with @p val for the gradient @p gradient.
 
-    Takes intensity modes into account.
+      Takes intensity modes into account.
     */
-    inline QColor heightColor_(Real val, const MultiGradient & gradient, DoubleReal snap_factor)
+    inline QColor heightColor_(Real val, const MultiGradient& gradient, DoubleReal snap_factor)
     {
-      return gradient.precalculatedColorByIndex( precalculatedColorIndex_( val, gradient, snap_factor ) );
+      return gradient.precalculatedColorByIndex(precalculatedColorIndex_(val, gradient, snap_factor));
     }
 
     /**
@@ -313,7 +320,7 @@ protected:
       @param y the chart coordinate y
       @param point returned widget coordinates
     */
-    inline void dataToWidget_(DoubleReal x, DoubleReal y, QPoint & point)
+    inline void dataToWidget_(DoubleReal x, DoubleReal y, QPoint& point)
     {
       if (!isMzToXAxis())
       {
@@ -331,13 +338,13 @@ protected:
     void recalculateDotGradient_(Size layer);
 
     /// Highlights a single peak and prints coordinates to screen
-    void highlightPeak_(QPainter & p, const PeakIndex & peak);
+    void highlightPeak_(QPainter& p, const PeakIndex& peak);
 
     /// Returns the nearest peak to position @p pos
-    PeakIndex findNearestPeak_(const QPoint & pos);
+    PeakIndex findNearestPeak_(const QPoint& pos);
 
     /// Paints a peak icon for feature and consensus feature peaks
-    void paintIcon_(const QPoint & pos, const QRgb & color, const String & icon, Size s, QPainter & p) const;
+    void paintIcon_(const QPoint& pos, const QRgb& color, const String& icon, Size s, QPainter& p) const;
 
     /// the nearest peak/feature to the mouse cursor
     PeakIndex selected_peak_;
@@ -345,7 +352,7 @@ protected:
     PeakIndex measurement_start_;
 
     /// translates the visible area by a given offset specified in fractions of current visible area
-    virtual void translateVisibleArea_( DoubleReal mzShiftRel, DoubleReal rtShiftRel );
+    virtual void translateVisibleArea_(DoubleReal mzShiftRel, DoubleReal rtShiftRel);
 
     //docu in base class
     virtual void translateLeft_();
@@ -357,7 +364,7 @@ protected:
     virtual void translateBackward_();
 
     /// Finishes context menu after customization to peaks, features or consensus features
-    void finishContextMenu_(QMenu * context_menu, QMenu * settings_menu);
+    void finishContextMenu_(QMenu* context_menu, QMenu* settings_menu);
   };
 }
 

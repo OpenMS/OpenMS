@@ -269,21 +269,7 @@ namespace OpenMS
     QAction* action = help->addAction("OpenMS website", this, SLOT(showURL()));
     action->setData("http://www.OpenMS.de");
     action = help->addAction("Tutorials and documentation", this, SLOT(showURL()), Qt::Key_F1);
-
-    // we need to do some extra work on osx systems
-#if defined(__APPLE__)
-    // we need to check if we are in the build or package environment
-    if (File::exists(File::getOpenMSDataPath() + "../../doc/html/index.html"))
-    {
-      action->setData(String("file://" + File::getOpenMSDataPath() + "/../../doc/html/index.html").toQString());
-    }
-    else
-    {
-      action->setData(String("file://" + File::getOpenMSDataPath() + "/../../Documentation/html/index.html").toQString());
-    }
-#else
-    action->setData(String(File::getOpenMSDataPath() + "/../../doc/html/index.html").toQString());
-#endif
+    action->setData(String("html/index.html").toQString());
 
     help->addSeparator();
     help->addAction("&About", this, SLOT(showAboutDialog()));
@@ -421,7 +407,7 @@ namespace OpenMS
     // feature labels:
     dm_label_2d_ = new QToolButton(tool_bar_2d_feat_);
     dm_label_2d_->setPopupMode(QToolButton::MenuButtonPopup);
-    QAction* action2 = new QAction(QIcon(":/labels.png"), "Show feature label", dm_label_2d_);
+    QAction* action2 = new QAction(QIcon(":/labels.png"), "Show feature annotation", dm_label_2d_);
     action2->setCheckable(true);
     action2->setWhatsThis("2D feature draw mode: Labels<BR><BR>Display different kinds of annotation next to features.<BR>(Hotkey: 7)");
     action2->setShortcut(Qt::Key_7);
@@ -436,8 +422,7 @@ namespace OpenMS
       QAction* temp = group_label_2d_->addAction(
         QString(LayerData::NamesOfLabelType[i].c_str()));
       temp->setCheckable(true);
-      if (i == 0)
-        temp->setChecked(true);
+      if (i == 0) temp->setChecked(true);
       menu->addAction(temp);
     }
     dm_label_2d_->setMenu(menu);
@@ -652,26 +637,45 @@ namespace OpenMS
     event->accept();
   }
 
+
   void TOPPViewBase::showURL()
   {
+    // NOTE: This code identical to TOPPASBase::showURL(), if you change anything here
+    //       you probably need to change it also there.
+    
     QAction* action = qobject_cast<QAction*>(sender());
     QString target = action->data().toString();
-
-    // add protocol handler if non is given
-    if (!(target.startsWith("http://") || target.startsWith("https://") || target.startsWith("file://")))
+    QUrl url_target;
+    
+    // add protocol handler if none is given
+    if (!(target.startsWith("http://") || target.startsWith("https://")))
     {
       // we expect all unqualified urls to be file urls
-      target = QString("file://%1").arg(target);
+      try
+      {
+        String local_url = File::findDoc(target);
+        url_target = QUrl::fromLocalFile(local_url.toQString());
+      }
+      catch (Exception::FileNotFound&)
+      {
+        // we fall back to the web url
+        url_target = QUrl(QString("http://www.openms.de/current_doxygen/%1").arg(target), QUrl::TolerantMode);
+      }
     }
-
-    if (!QDesktopServices::openUrl(QUrl(target, QUrl::TolerantMode)))
+    else
+    {
+      url_target = QUrl(target, QUrl::TolerantMode);
+    }
+    
+    if (!QDesktopServices::openUrl(url_target))
     {
       QMessageBox::warning(this, tr("Error"),
                            tr("Unable to open\n") +
                            action->data().toString() +
-                           tr("\n\nPossible reasons: security settings or misconfigured operating system"));
+                           tr("\n\nPossible reason: security settings or misconfigured Operating System"));
     }
   }
+
 
   void TOPPViewBase::addDataDB(UInt db_id, bool show_options, String caption, UInt window_id)
   {
@@ -868,7 +872,6 @@ namespace OpenMS
     QDoubleSpinBox* tolerance = dlg.findChild<QDoubleSpinBox*>("tolerance");
 
     QDoubleSpinBox* relative_loss_intensity = dlg.findChild<QDoubleSpinBox*>("relative_loss_intensity");
-    QSpinBox* charge = dlg.findChild<QSpinBox*>("charge");
 
     QList<QListWidgetItem*> a_ions = id_view_ions->findItems("A-ions", Qt::MatchFixedString);
     QList<QListWidgetItem*> b_ions = id_view_ions->findItems("B-ions", Qt::MatchFixedString);
@@ -1923,13 +1926,12 @@ namespace OpenMS
       is_1d_view = true;
 
     layer_manager_->blockSignals(true);
-    QListWidgetItem* item = 0;
     QString name;
     for (Size i = 0; i < cc->getLayerCount(); ++i)
     {
       const LayerData& layer = cc->getLayer(i);
       //add item
-      item = new QListWidgetItem(layer_manager_);
+      QListWidgetItem* item = new QListWidgetItem(layer_manager_);
       name = layer.name.toQString();
       if (layer.flipped)
       {
@@ -3047,7 +3049,7 @@ namespace OpenMS
       // find correct location of TOPP tool
       tool_executable = File::findExecutable(topp_.tool).toQString();
     }
-    catch (Exception::FileNotFound ex)
+    catch (Exception::FileNotFound& /*ex*/)
     {
       showLogMessage_(LS_ERROR, "Could not locate executable!", QString("Finding executable of TOPP tool '%1' failed. Please check your TOPP/OpenMS installation. Workaround: Add the bin/ directory to your PATH").arg(topp_.tool.toQString()));
       return;

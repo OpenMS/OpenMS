@@ -43,11 +43,9 @@ using namespace OpenMS;
 //-------------------------------------------------------------
 
 /**
-  @page TOPPOpenSwathRewriteToFeatureXML OpenSwathRewriteToFeatureXML
+  @page UTILS_OpenSwathRewriteToFeatureXML OpenSwathRewriteToFeatureXML
 
   @brief Combines featureXML and mProphet tsv to FDR filtered featureXML.
-
-  Combines featureXML and mProphet tsv to FDR filtered featureXML.
 
 */
 

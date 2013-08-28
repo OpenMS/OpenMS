@@ -32,14 +32,16 @@ if sys.platform == "linux2":
         return sys_info.freeram
 
 elif sys.platform == "win32":
-    import win32api
-
-    def free_mem():
-        return win32api.GlobalMemoryStatus()['AvailPhys']
+    try:
+        import win32api
+    except:
+        free_mem = lambda: 0 # memory will never change !
+    else:
+        def free_mem():
+            return win32api.GlobalMemoryStatus()['AvailPhys']
 
 else:
     sys.stderr.write("determination of memory status not supported on this \n"
                      " platform, mesauring for memoryleaks will never fail\n")
 
-    def free_mem():
-        return 0 # memory will never change !
+    free_mem = lambda: 0 # memory will never change !

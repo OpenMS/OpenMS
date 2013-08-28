@@ -227,17 +227,6 @@ namespace OpenMS
       return EXECUTION_OK;
     }
 
-    // '-test' given
-    if (param_cmdline_.exists("test"))
-    {
-      test_mode_ = true;
-
-      // initialize the random generator as early as possible!
-      DateTime date_time;
-      date_time.set("1999-12-31 23:59:59");
-      UniqueIdGenerator::setSeed(date_time);
-    }
-
     // test if unknown options were given
     if (param_cmdline_.exists("unknown"))
     {
@@ -384,6 +373,17 @@ namespace OpenMS
           writeLog_(String("Warning: Parameters file version (") + file_version + ") does not match the version of this tool (" + version_ + ").");
         }
       }
+    }
+
+    // 'test' flag is set
+    if (getFlag_("test"))
+    {
+      test_mode_ = true;
+
+      // initialize the random generator as early as possible!
+      DateTime date_time;
+      date_time.set("1999-12-31 23:59:59");
+      UniqueIdGenerator::setSeed(date_time);
     }
 
     //-------------------------------------------------------------
@@ -2226,6 +2226,7 @@ namespace OpenMS
       if (type_list[i] != "")
         param_cmdline_.setValue("type", type_list[i]);
       Param default_params = getDefaultParameters_();
+
       // add type to ini file
       if (type_list[i] != "")
         default_params.setValue(this->ini_location_ + "type", type_list[i]);
@@ -2235,31 +2236,26 @@ namespace OpenMS
       paramFile.writeXMLToStream(ss, default_params);
       String ini_file_str(ss->str());
 
-      //morph to ctd format
-      QStringList lines = ini_file_str.toQString().split("\n", QString::SkipEmptyParts);
-      lines.replace(0, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
-      lines.insert(1, "<tool>");
-      lines.insert(2, QString("<name>") + tool_name_.toQString() + "</name>");
-      lines.insert(3, QString("<version>") + version_.toQString() + "</version>");
-      lines.insert(4, QString("<description><![CDATA[") + tool_description_.toQString() + "]]></description>");
-      QString html_doc = tool_description_.toQString();
-      lines.insert(5, QString("<manual><![CDATA[") + html_doc + "]]></manual>");
-
+      //
+      QString docurl = "", category = "";
       if (official_) // we can only get the docurl/category from registered/official tools
       {
-        lines.insert(6, "<docurl>http://ftp.mi.fu-berlin.de/OpenMS/release-documentation/html/TOPP__" + tool_name_.toQString() + ".html</docurl>");
-        lines.insert(7, "<category>" + ToolHandler::getCategory(tool_name_).toQString() + "</category>");
+        docurl = "http://ftp.mi.fu-berlin.de/OpenMS/release-documentation/html/TOPP_" + tool_name_.toQString() + ".html";
+        category = ToolHandler::getCategory(tool_name_).toQString();
       }
       else if (ToolHandler::getUtilList().count(tool_name_))
       {
-        lines.insert(6, "<docurl>http://ftp.mi.fu-berlin.de/OpenMS/release-documentation/html/UTILS__" + tool_name_.toQString() + ".html</docurl>");
-        lines.insert(7, "<category>" + ToolHandler::getCategory(tool_name_).toQString() + "</category>");
+        docurl = "http://ftp.mi.fu-berlin.de/OpenMS/release-documentation/html/UTILS_" + tool_name_.toQString() + ".html";
+        category = ToolHandler::getCategory(tool_name_).toQString();
       }
-      else
-      {
-        lines.insert(6, "<docurl></docurl>");
-        lines.insert(7, "<category></category>");
-      }
+      
+      // morph to ctd format
+      QStringList lines = ini_file_str.toQString().split("\n", QString::SkipEmptyParts);
+      lines.replace(0, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
+      lines.insert(1, QString("<tool version=\"%1\" name=\"%2\" docurl=\"%3\" category=\"%4\" >").arg(version_.toQString(), tool_name_.toQString(), docurl, category));
+      lines.insert(2, QString("<description><![CDATA[") + tool_description_.toQString() + "]]></description>");
+      QString html_doc = tool_description_.toQString();
+      lines.insert(3, QString("<manual><![CDATA[") + html_doc + "]]></manual>");
 
       lines.insert(lines.size(), "</tool>");
       String ctd_str = String(lines.join("\n")) + "\n";

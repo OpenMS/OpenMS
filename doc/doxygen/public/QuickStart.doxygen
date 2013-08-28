@@ -42,25 +42,25 @@
 	@section basic_Concepts Basic Concepts of OpenMS/TOPP
 
   @b %OpenMS: The name of our library, which contains the algorithms. You cannot use this directly, unless you are a programmer.<br>
-	@b TOPPView: View and explore LC/MS data, alignments, groups, peptide identifications and more!<br>
+	@b TOPPView: View and explore LC-MS data, alignments, groups, peptide identifications and more!<br>
 	@b TOPPAS: A graphical workflow design tool, which allows to create pipelines from all TOPP tools (and UTILS).<br>
 	@b TOPP @b tools: A set of command line tools, each of which is a building block of an analysis pipeline. 
 	         These tools chained together in a way that fits the requirements of the user.
 					 Accessible from a command prompt/shell or via TOPPAS.
-					 See also: @subpage TOPP_tutorial and @subpage TOPP_documentation<br>
+					 See also: @subpage TOPP_tutorial and @subpage TOPP_documentation <br>
 	@b UTILS: Similar to TOPP tools, but with more supporting character, which you'd rarely use in a productive pipeline - but rather during pipeline construction or
 						parameter optimization.
 						See also: @subpage UTILS_documentation
 	
 	@section run_tool How to run a tool
-	
-					We'd recommend using TOPPAS. A good start are the example pipelines (see "File" --> "Open example file" within TOPPAS).
-					In parallel you can read the documentation of the tools (see @subpage TOPP_tutorial, @subpage TOPP_documentation) 
-					and the one of TOPPAS (@subpage TOPPAS_tutorial).
-					
-					Alternatively, you can use the command line and call tools directly. In this case you'll probably want
-					to use some type of shell script for automation.
-					
+    
+    We'd recommend using TOPPAS. A good start are the example pipelines (see "File" --> "Open example file" within TOPPAS).
+    In parallel you can read the documentation of the tools (see @subpage TOPP_tutorial, @subpage TOPP_documentation) 
+    and the one of TOPPAS (@subpage TOPPAS_tutorial).
+    
+    Alternatively, you can use the command line and call tools directly. In this case you'll probably want
+    to use some type of shell script for automation.
+            
 										
 	@section parameters Adapting your pipeline parameters
 	

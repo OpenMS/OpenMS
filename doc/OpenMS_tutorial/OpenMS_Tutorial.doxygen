@@ -1040,10 +1040,10 @@ Visualization in %OpenMS is based on Qt.
 @section visualization_1D 1D view
 
 All types of peak or feature visualization share a common interface. So here only an example how to visualize
-a single spectrum is given (Tutorial_Spectrum1D.C).
+a single spectrum is given (Tutorial_GUI_Spectrum1D.C).
 
 First we need to create a @a QApplication in order to be able to use Qt widgets in out application.
-	@dontinclude Tutorial_Spectrum1D.C
+	@dontinclude Tutorial_GUI_Spectrum1D.C
   @skip main
   @until QApplication
 
@@ -1059,11 +1059,11 @@ Finally we start the application.
 @section visualization_param Visual editing of parameters
 
 @a Param objects are used to set algorithm parameters in %OpenMS. In order to be able to visually edit them, the @a ParamEditor
-class can be used. The following example (Tutorial_ParamEditor.C) show how to use it.
+class can be used. The following example (Tutorial_GUI_ParamEditor.C) show how to use it.
 
 We need to create a QApplication, load the data from a file (e.g. the parameters file of any TOPP tool),
 create the @a ParamEditor and execute the application:
-	@dontinclude Tutorial_ParamEditor.C
+	@dontinclude Tutorial_GUI_ParamEditor.C
   @skip main
   @until exec
 

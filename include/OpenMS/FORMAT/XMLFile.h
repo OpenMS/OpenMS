@@ -61,12 +61,12 @@ public:
       virtual ~XMLFile();
 
       /**
-          @brief Checks if a file validates against the XML schema
+        @brief Checks if a file validates against the XML schema
 
-          Error messages are printed to the error stream, unless redirected with the attribute @p os .
+        Error messages are printed to the error stream, unless redirected with the attribute @p os .
 
-      @exception Exception::FileNotFound is thrown if the file cannot be found
-          @exception Exception::NotImplemented is thrown if there is no schema available for the file type
+        @exception Exception::FileNotFound is thrown if the file cannot be found
+        @exception Exception::NotImplemented is thrown if there is no schema available for the file type
       */
       bool isValid(const String & filename, std::ostream & os = std::cerr);
 
@@ -123,21 +123,28 @@ public:
     };
 
     /**
-       @brief Escapes a string to be storable into an XML File
+      @brief Escapes a string to be storable into an XML File
 
-           Some characters must be escaped which are allowed in user params. E.g. > and & are not in XML and
-     need to be escaped. Parsing those escaped strings is automatically done by xerces
+      Some characters must be escaped which are allowed in user params. E.g. > and & are not in XML and
+      need to be escaped. Parsing those escaped strings is automatically done by xerces
     */
     void OPENMS_DLLAPI writeXMLEscape(const String & to_escape, std::ostream & os);
 
     /**
-    @brief Escapes a string and returns the escaped string
+      @brief Escapes a string and returns the escaped string
 
-        Some characters must be escaped which are allowed in user params. E.g. > and & are not in XML and
-    need to be escaped. Parsing those escaped strings is automatically done by xerces
+      Some characters must be escaped which are allowed in user params. E.g. > and & are not in XML and
+      need to be escaped. Parsing those escaped strings is automatically done by xerces
     */
     String OPENMS_DLLAPI writeXMLEscape(const String & to_escape);
 
+    /**
+      @brief Encodes tabs '\t' in the string as &amp;#x9; and returns the encoded string.
+      
+      @param to_encode The String to encode.
+      @return The encoded string.
+    */
+    String OPENMS_DLLAPI encodeTab(const String & to_encode);
   }   // namespace Internal
 } // namespace OpenMS
 

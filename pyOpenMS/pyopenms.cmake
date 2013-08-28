@@ -15,7 +15,8 @@ execute_process(
      OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 
-MESSAGE(STATUS "found python ${PY_VERSION}")
+message(STATUS "Python found at ${PYTHON_EXECUTABLE} with version ${PY_VERSION} (if this is
+wrong, configure with -DPYTHON_EXECUTABLE:FILEPATH=/path/to/python)")
 
 # Windows support restricted to Python 2.7 at the moment!
 IF (WIN32)
@@ -52,7 +53,14 @@ ENDIF()
 IF (CYTHON-MISSING)
 	MESSAGE(STATUS "Looking for cython - not found")
 ELSE()
-	MESSAGE(STATUS "Looking for cython - found")
+  # find out cython version info
+  execute_process(
+       COMMAND
+       ${PYTHON_EXECUTABLE} -c "import Cython; print Cython.__version__"
+       OUTPUT_VARIABLE CYTHON_VERSION
+       OUTPUT_STRIP_TRAILING_WHITESPACE
+  )
+  MESSAGE(STATUS "Looking for cython - found version ${CYTHON_VERSION}")
 ENDIF()
 
 # Check for autowrap Cython

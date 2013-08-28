@@ -84,9 +84,9 @@ namespace OpenMS
     public BaseGroupFinder
   {
 private:
+
     /// Distances between pairs of grid features
-    typedef boost::unordered::unordered_map<std::pair<GridFeature *, GridFeature *>, DoubleReal>
-    PairDistances;
+    typedef OpenMSBoost::unordered_map<std::pair<GridFeature *, GridFeature *>, DoubleReal> PairDistances;
 
     typedef HashGrid<GridFeature *> Grid;
 
@@ -131,7 +131,7 @@ private:
 
     /// Generates a consensus feature from the best cluster and updates the clustering
     void makeConsensusFeature_(std::list<QTCluster> & clustering,
-           ConsensusFeature & feature, boost::unordered::unordered_map<GridFeature *,
+           ConsensusFeature & feature, OpenMSBoost::unordered_map<GridFeature *,
              std::vector< QTCluster * > > & element_mapping);
 
     /// Computes an initial QT clustering of the points in the hash grid

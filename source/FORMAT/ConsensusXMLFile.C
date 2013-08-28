@@ -554,6 +554,7 @@ namespace OpenMS
     {
       // Currently it is possible that FeatureLinkerUnlabeledQT triggers this exception
       // throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "The ConsensusXML file contains invalid maps or references thereof. No data was written! Please fix the file or notify the maintainer of this tool if you did not provide a consensusXML file!");
+      std::cerr << "The ConsensusXML file contains invalid maps or references thereof. Please fix the file or notify the maintainer of this tool if you did not provide a consensusXML file! Note that this warning will be a fatal error in the next version of OpenMS!" << std::endl;
     }
 
     startProgress(0, 0, "storing consensusXML file");

@@ -52,8 +52,8 @@ foreach(i ${EXAMPLES_executables})
   
   # if not GUI and no style tests requested -> add as test
   if(NOT ${i} MATCHES "_GUI_" AND NOT ENABLE_STYLE_TESTING)
-  	add_test(${i}
-             ${CMAKE_COMMAND} -E chdir ${CMAKE_CURRENT_LIST_DIR}  ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${i})
+  	add_test(NAME ${i}
+						 COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${i} ${CMAKE_CURRENT_LIST_DIR})
   endif()
 endforeach(i)
 
@@ -61,19 +61,4 @@ endforeach(i)
 add_custom_target(Tutorials_build)
 add_dependencies(Tutorials_build ${EXAMPLES_executables})
 
-if (MSVC_IDE)
-	set(EXAMPLES_EXE_DIR ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/$(OutDir))
-else()
-	set(EXAMPLES_EXE_DIR ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
-endif()
 
-## Execute all examples as single target
-foreach(i ${EXAMPLES_executables})
-	list(APPEND EX_LIST COMMAND ${CMAKE_COMMAND} -E chdir ${PROJECT_SOURCE_DIR} ${EXAMPLES_EXE_DIR}/${i})
-endforeach(i)
-list(APPEND EX_LIST "${CMAKE_COMMAND} -E \"echo all done\"")
-
-add_custom_target(Tutorials_exec COMMENT "Executes the examples")
-add_dependencies(Tutorials_exec Tutorials_build)
-separate_arguments(EX_LIST)
-add_custom_command(TARGET Tutorials_exec POST_BUILD ${EX_LIST})

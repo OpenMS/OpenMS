@@ -14,7 +14,7 @@ cdef extern from "<OpenMS/FORMAT/QcMLFile.h>" namespace "OpenMS":
         #  ProgressLogger
         QcMLFile() nogil except +
         QcMLFile(QcMLFile) nogil except + #wrap-ignore
-        String map2cvs(libcpp_map[ String, libcpp_map[ String, String ] ] & cvs_table, String & separator) nogil except + # wrap-ignore
+        String map2csv(libcpp_map[ String, libcpp_map[ String, String ] ] & cvs_table, String & separator) nogil except + # wrap-ignore
         String exportIDstats(String & filename) nogil except +
         void addRunQualityParameter(String r, QualityParameter qp) nogil except +
         void addRunAttachment(String r, Attachment at) nogil except +

@@ -89,10 +89,6 @@ public:
     TOPPBase("IDEvaluator",
              "Computes a 'q-value vs. #PSM' plot which is saved as an image to visualize the number identifications for a certain q-value.", false)
   {
-    int argc = 1;
-    const char* c = "IDEvaluator";
-    const char** argv = &c;
-    QApplication app(argc, const_cast<char**>(argv));
     out_formats_ = IDEvaluationBase().getSupportedImageFormats(); // can only be called if a QApplication is present...
   }
 
@@ -106,10 +102,6 @@ protected:
     Param p = FalseDiscoveryRate().getDefaults();
     p_my.insert("fdr:", p.copy("use_all_hits"));
 
-    int argc = 1;
-    const char* c = "IDEvaluator";
-    const char** argv = &c;
-    QApplication app(argc, const_cast<char**>(argv));
     p_my.insert("image:", IDEvaluationBase().getParameters().copy("image:", true)); // can only be called if a QApplication is present...
     return p_my;
   }
@@ -178,8 +170,6 @@ protected:
     }
 
 
-    QApplicationTOPP a(argc, const_cast<char **>(argv));
-
     IDEvaluationBase* mw = new IDEvaluationBase();
     Param alg_param = mw->getParameters();
     alg_param.insert("", getParam_().copy("algorithm:", true));
@@ -233,6 +223,23 @@ protected:
 
 int main(int argc, const char ** argv)
 {
+
+  /*
+   * Initializing Qt Application which gets its own version of argc and argv
+   * (apparently, it will modify argv and does not use a const version of it).
+   *
+   * We need to make sure to only initialize QApplication since it is a
+   * singleton. Creating multiple ones will cause a segfault with Qt 4.8.1
+   * and possibly other versions as well.
+   *
+   * See bug 569
+   *
+  */
+  int argc_ = 1;
+  const char* c = "IDEvaluator";
+  const char** argv_ = &c;
+  QApplication app(argc_, const_cast<char**>(argv_)); // no QApplicationTOPP, since any exception thrown will result in an abort of a cmd line tool anyways (no real GUI here)
+
   TOPPIDEvaluator tool;
   return tool.main(argc, argv);
 }

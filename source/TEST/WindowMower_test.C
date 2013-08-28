@@ -106,7 +106,7 @@ START_SECTION((template<typename SpectrumType> void filterPeakSpectrumForTopNInJ
 	p.setValue("movetype", "jump");  // actually not needed as we directly call jumping window function
 	e_ptr->setParameters(p);
 	e_ptr->filterPeakSpectrumForTopNInJumpingWindow(spec);
-	TEST_EQUAL(spec.size(), 32)	
+	TEST_EQUAL(spec.size(), 30)	
 END_SECTION
 
 START_SECTION((void filterPeakMap(PeakMap& exp)))

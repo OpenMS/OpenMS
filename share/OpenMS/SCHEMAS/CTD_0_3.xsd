@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Mit XMLSpy v2007 sp1 bearbeitet (http://www.altova.com) von Oliver Kohlbacher (Universität Tübingen) -->
+<!-- Draft-Version 0.3 -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+	<xs:include schemaLocation="Param_1_6_2.xsd"/>
+	<xs:element name="tool">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="description" type="xs:string" minOccurs="0">
+					<xs:annotation>
+						<xs:documentation>One line description of the tool.</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element name="manual" type="xs:string" minOccurs="0">
+					<xs:annotation>
+						<xs:documentation>More detailed description of the tool (about 10 lines).</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element name="executableName" type="xs:string" minOccurs="0">
+					<xs:annotation>
+						<xs:documentation>Optionally a separate name for the executable can be specified here.</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element name="executablePath" type="xs:anyURI" minOccurs="0">
+					<xs:annotation>
+						<xs:documentation>Contains the path were the tool can be found using either the name element or (if set) the executableName.</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element name="cli" type="cliType" minOccurs="0"/>
+				<xs:element name="logs" type="logCollectionType" minOccurs="0"/>
+				<xs:element name="relocators" type="relocatorCollectionType" minOccurs="0">
+					<xs:annotation>
+						<xs:documentation>Defines rules to find the output of the tool and move it to the originally desired location.</xs:documentation>
+					</xs:annotation>
+				</xs:element>
+				<xs:element name="PARAMETERS" type="PARAMETERSType"/>
+			</xs:sequence>
+			<xs:attribute name="version" type="xs:string" use="required"/>
+			<xs:attribute name="name" use="required">
+				<xs:annotation>
+					<xs:documentation>Name of the tool. Needs to pass following regex [[A-Z]|[a-z]][[0-9]|[A-Z]|[a-z]]+ i.e.\w</xs:documentation>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:pattern value="[A-Z][A-Za-z0-9]*"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+			<xs:attribute name="docurl" type="xs:anyURI">
+				<xs:annotation>
+					<xs:documentation>URL to further documentation (WWW).</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="category" type="xs:string" default="">
+				<xs:annotation>
+					<xs:documentation>The category gives information on the task the associated tool performs. It can be used to categorize different tools in a GUI.</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+		</xs:complexType>
+	</xs:element>
+	<xs:complexType name="cliType">
+		<xs:annotation>
+			<xs:documentation>Wraps the information necessary to construct a command line call for the tool.</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="clielement" type="cliElementType" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="mappingType">
+		<xs:annotation>
+			<xs:documentation>Defines which ITEM from the parameter part is associated to cliElement.</xs:documentation>
+		</xs:annotation>
+		<xs:attribute name="referenceName" type="xs:string"/>
+		<xs:attribute name="referenceID" type="xs:IDREF"/>
+	</xs:complexType>
+	<xs:complexType name="cliElementType">
+		<xs:annotation>
+			<xs:documentation>Wraps a single element of a command line call (e.g., the -v flag for verbosity) and it's associated arguments. To model a non-option argument just leave the optionIdentifier empty. </xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="mapping" type="mappingType" minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>The mapping defines the association between the cliElement and the PARAM part. Note: If the mapped parameter is boolean, the optionIdentifier will be added to the CLI only if the mapped value is true.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+		<xs:attribute name="optionIdentifier" type="xs:string" use="optional">
+			<xs:annotation>
+				<xs:documentation>A string used to prefix any associated values (e.g., "-v" for a boolean flag to turn on verbosity).</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="isList" type="xs:boolean" use="optional">
+			<xs:annotation>
+				<xs:documentation>A boolean attribute indicating whether or not the given cliElement can be expended to occur more then once on the command line.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+		<xs:attribute name="required" type="xs:boolean" use="optional">
+			<xs:annotation>
+				<xs:documentation>Defines if the cliElement is required to build the full command line, i.e., if required is set to false and the mapped parameter was not set the complete element will not be used on the final cli.</xs:documentation>
+			</xs:annotation>
+		</xs:attribute>
+	</xs:complexType>
+	<xs:complexType name="logCollectionType">
+		<xs:annotation>
+			<xs:documentation>Wraps the log informations from the call of the tool.</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="log" type="logType" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>...</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="logType">
+		<xs:annotation>
+			<xs:documentation>Wraps the log informations from the call of the tool.</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="executionWarnings" type="xs:string" minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>...</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="executionErrors" type="xs:string" minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>...</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="executionMessage" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+		<xs:attribute name="executionTimeStart" type="xs:dateTime" use="required"/>
+		<xs:attribute name="executionTimeStop" type="xs:dateTime" use="required"/>
+		<xs:attribute name="executionStatus" type="xs:int" use="required"/>
+	</xs:complexType>
+	<xs:complexType name="logMessageType">
+		<xs:sequence>
+			<xs:element name="logMessage" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+		<xs:attribute name="NODEref" type="xs:IDREF"/>
+	</xs:complexType>
+	<xs:complexType name="relocatorCollectionType">
+		<xs:sequence>
+			<xs:element name="relocator" type="relocatorType"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="relocatorType">
+		<xs:sequence>
+			<xs:annotation>
+				<xs:documentation>Defines a relocation rule using a pattern to find the file and the targeted output file where the found file should be moved to.</xs:documentation>
+			</xs:annotation>
+			<xs:element name="reference" type="xs:string">
+				<xs:annotation>
+					<xs:documentation>The referenced parameter which should be relocated.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="location" type="xs:string">
+				<xs:annotation>
+					<xs:documentation>The location of the output file defined using following variables: 
+%TEMP% - the temporary directory while executing
+%PWD% - the working directory while executing 
+%BASENAME[PARAM]% - the base name of PARAM
+    		</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+</xs:schema>

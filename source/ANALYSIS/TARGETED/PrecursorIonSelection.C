@@ -732,7 +732,7 @@ namespace OpenMS
     std::vector<PeptideIdentification> curr_pep_ids, all_pep_ids;
     std::vector<ProteinIdentification> curr_prot_ids, all_prot_ids;
 
-    std::ofstream * precs;
+    std::ofstream * precs = 0;
     if (precursor_path != "")
       precs = new std::ofstream(precursor_path.c_str());
 
@@ -1080,7 +1080,7 @@ namespace OpenMS
       }
     }
 
-    std::ofstream * precs;
+    std::ofstream * precs = 0;
     if (precursor_path != "")
       precs = new std::ofstream(precursor_path.c_str());
 

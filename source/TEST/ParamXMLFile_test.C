@@ -256,6 +256,7 @@ START_SECTION((void writeXMLToStream(std::ostream *os_ptr, const Param &param) c
 	p.setValue("doublelist",DoubleList::create("1.22,2.33,4.55"));
 	p.setValue("doublelist3",DoubleList::create("1.4"));
   p.setValue("file_parameter", "", "This is a file parameter.");
+  p.addTag("file_parameter", "input file");
   p.setValidStrings("file_parameter", StringList::create("*.mzML,*.mzXML"));
   p.setValue("advanced_parameter", "", "This is an advanced parameter.", StringList::create("advanced"));
   
@@ -383,6 +384,61 @@ START_SECTION(([EXTRA] Escaping of characters))
   TEST_STRING_EQUAL(p.getDescription("string_with_less_sign_in_descr"), "String with less sign <")
 END_SECTION
 
+START_SECTION([EXTRA] loading pre 1.6.2 files and storing them in 1.6.2 format)
+{
+	Param p;
+  ParamXMLFile paramFile;
+  paramFile.load(OPENMS_GET_TEST_DATA_PATH("Param_pre16_update.ini"), p);
+  
+  // test some of the former tags if they were loaded correctly
+  TEST_EQUAL(p.getValue("SpectraFilterMarkerMower:version"), "1.11.0")
+  TEST_EQUAL(p.hasTag("SpectraFilterMarkerMower:1:in", "input file"), true)
+  TEST_EQUAL(p.hasTag("SpectraFilterMarkerMower:1:in", "required"), true)
+  TEST_EQUAL(p.hasTag("SpectraFilterMarkerMower:1:in", "advanced"), false)
+  
+  TEST_EQUAL(p.hasTag("SpectraFilterMarkerMower:1:out", "output file"), true)
+  TEST_EQUAL(p.hasTag("SpectraFilterMarkerMower:1:in", "required"), true)
+  TEST_EQUAL(p.hasTag("SpectraFilterMarkerMower:1:in", "advanced"), false)
+
+  TEST_EQUAL(p.hasTag("SpectraFilterMarkerMower:1:log", "advanced"), true)
+  TEST_EQUAL(p.hasTag("SpectraFilterMarkerMower:1:log", "required"), false)
+
+  TEST_EQUAL(p.hasTag("SpectraFilterMarkerMower:1:no_progress", "advanced"), true)
+  TEST_EQUAL(p.hasTag("SpectraFilterMarkerMower:1:no_progress", "required"), false)
+      
+  // write as 1.6.2 ini and check if the output is as expected
+	String filename;
+	NEW_TMP_FILE(filename)
+	paramFile.store(filename,p);
+  
+  TEST_FILE_EQUAL(filename.c_str(), OPENMS_GET_TEST_DATA_PATH("Param_post16_update.ini"))
+}
+END_SECTION
+
+START_SECTION([EXTRA] loading 1.6.2 files)
+{
+	Param p;
+  ParamXMLFile paramFile;
+  paramFile.load(OPENMS_GET_TEST_DATA_PATH("Param_post16_update.ini"), p);
+
+  // test some of the former tags if they were loaded correctly
+  TEST_EQUAL(p.getValue("SpectraFilterMarkerMower:version"), "1.11.0")
+  TEST_EQUAL(p.hasTag("SpectraFilterMarkerMower:1:in", "input file"), true)
+  TEST_EQUAL(p.hasTag("SpectraFilterMarkerMower:1:in", "required"), true)
+  TEST_EQUAL(p.hasTag("SpectraFilterMarkerMower:1:in", "advanced"), false)
+  
+  TEST_EQUAL(p.hasTag("SpectraFilterMarkerMower:1:out", "output file"), true)
+  TEST_EQUAL(p.hasTag("SpectraFilterMarkerMower:1:in", "required"), true)
+  TEST_EQUAL(p.hasTag("SpectraFilterMarkerMower:1:in", "advanced"), false)
+
+  TEST_EQUAL(p.hasTag("SpectraFilterMarkerMower:1:log", "advanced"), true)
+  TEST_EQUAL(p.hasTag("SpectraFilterMarkerMower:1:log", "required"), false)
+
+  TEST_EQUAL(p.hasTag("SpectraFilterMarkerMower:1:no_progress", "advanced"), true)
+  TEST_EQUAL(p.hasTag("SpectraFilterMarkerMower:1:no_progress", "required"), false)
+}
+END_SECTION
+  
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

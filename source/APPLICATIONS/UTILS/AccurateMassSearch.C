@@ -33,9 +33,12 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/FORMAT/MzTab.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/FileTypes.h>
 
 #include <OpenMS/ANALYSIS/ID/AccurateMassSearchEngine.h>
 
@@ -79,7 +82,7 @@ using namespace std;
         intensity ratios match to those of theoretical isotope patterns.
 
         <B>The command line parameters of this tool are:</B>
-        @verbinclude TOPP_AccurateMassSearch.cli
+        @verbinclude UTILS_AccurateMassSearch.cli
 */
 
 // We do not want this class to show up in the docu:
@@ -98,8 +101,8 @@ protected:
 
     void registerOptionsAndFlags_()
     {
-        registerInputFile_("in", "<file>", "", "featureXML file");
-        setValidFormats_("in", StringList::create("featureXML"));
+        registerInputFile_("in", "<file>", "", "featureXML or consensusXML file");
+        setValidFormats_("in", StringList::create("featureXML,consensusXML"));
         registerOutputFile_("out", "<file>", "", "mzTab file");
         setValidFormats_("out", StringList::create("csv"));
 
@@ -127,25 +130,19 @@ protected:
         // loading input
         //-------------------------------------------------------------
 
-//        MzMLFile mz_data_file;
-//        mz_data_file.setLogType(log_type_);
-//        MSExperiment<Peak1D> ms_peakmap;
-//        std::vector<Int> ms_level(1, 1);
-//        (mz_data_file.getOptions()).setMSLevels(ms_level);
-//        mz_data_file.load(in, ms_peakmap);
+        //        MzMLFile mz_data_file;
+        //        mz_data_file.setLogType(log_type_);
+        //        MSExperiment<Peak1D> ms_peakmap;
+        //        std::vector<Int> ms_level(1, 1);
+        //        (mz_data_file.getOptions()).setMSLevels(ms_level);
+        //        mz_data_file.load(in, ms_peakmap);
 
-//        if (ms_peakmap.empty())
-//        {
-//            LOG_WARN << "The given file does not contain any conventional peak data, but might"
-//                        " contain chromatograms. This tool currently cannot handle them, sorry.";
-//            return INCOMPATIBLE_INPUT_DATA;
-//        }
-
-        FeatureMap<> ms_feat_map;
-        MzTab mztab_output;
-
-        FeatureXMLFile().load(in, ms_feat_map);
-        MzTabFile mztab_outfile;
+        //        if (ms_peakmap.empty())
+        //        {
+        //            LOG_WARN << "The given file does not contain any conventional peak data, but might"
+        //                        " contain chromatograms. This tool currently cannot handle them, sorry.";
+        //            return INCOMPATIBLE_INPUT_DATA;
+        //        }
 
         //-------------------------------------------------------------
         // get parameters
@@ -155,29 +152,63 @@ protected:
         writeDebug_("Parameters passed to AccurateMassSearch", ams_param, 3);
 
 
-        //-------------------------------------------------------------
-        // do the work
-        //-------------------------------------------------------------
+        // mzTAB output datastructure
+        MzTab mztab_output;
+        MzTabFile mztab_outfile;
 
-        AccurateMassSearchEngine ams;
-        ams.setParameters(ams_param);
+        FileTypes::Type filetype = FileHandler::getType(in);
 
-        ams.run(ms_feat_map, mztab_output);
+        if (filetype == FileTypes::FEATUREXML)
+        {
+            FeatureMap<> ms_feat_map;
 
-        //std::vector<String> results;
+            FeatureXMLFile().load(in, ms_feat_map);
 
-        // ams.queryByMass(308.09, results);
 
-        //-------------------------------------------------------------
-        // writing output
-        //-------------------------------------------------------------
+            //-------------------------------------------------------------
+            // do the work
+            //-------------------------------------------------------------
 
-        // annotate output with data processing info
-        //addDataProcessing_(ms_feat_map, getProcessingInfo_(DataProcessing::IDENTIFICATION_MAPPING));
+            AccurateMassSearchEngine ams;
+            ams.setParameters(ams_param);
+
+            ams.run(ms_feat_map, mztab_output);
+
+            //-------------------------------------------------------------
+            // writing output
+            //-------------------------------------------------------------
+
+            // annotate output with data processing info
+            //addDataProcessing_(ms_feat_map, getProcessingInfo_(DataProcessing::IDENTIFICATION_MAPPING));
+
+
+        }
+        else if (filetype == FileTypes::CONSENSUSXML)
+        {
+            ConsensusMap ms_cons_map;
+
+            ConsensusXMLFile().load(in, ms_cons_map);
+
+            //-------------------------------------------------------------
+            // do the work
+            //-------------------------------------------------------------
+
+            AccurateMassSearchEngine ams;
+            ams.setParameters(ams_param);
+
+            ams.run(ms_cons_map, mztab_output);
+
+            //-------------------------------------------------------------
+            // writing output
+            //-------------------------------------------------------------
+
+            // annotate output with data processing info
+            //addDataProcessing_(ms_feat_map, getProcessingInfo_(DataProcessing::IDENTIFICATION_MAPPING));
+
+        }
 
         mztab_outfile.store(out, mztab_output);
 
-        //FeatureXMLFile().store(out, ms_feat_map);
 
         return EXECUTION_OK;
     }

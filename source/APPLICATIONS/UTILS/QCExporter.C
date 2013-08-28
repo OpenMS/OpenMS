@@ -60,8 +60,33 @@ using namespace std;
 /**
     @page UTILS_QCExporter QCExporter
 
-    @brief This application is used to provide data export from quality control files (qcml). It is intended to provide tables that have been embedded previously to external toos such as R where QC metrics and plots wil be generated. If there are no tables for the given run/set and qp, output will be empty.
+    @brief Will extract several qp from several run/sets in a tabular format.
 
+    <CENTER>
+      <table>
+        <tr>
+        <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+        <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ QCEmbedder \f$ \longrightarrow \f$</td>
+        <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+        </tr>
+        <tr>
+        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref UTILS_QCExporter </td>
+        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref UTILS_QCMerger </td>
+        </tr>
+        <tr>
+        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_XTandemAdapter </td>
+        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref UTILS_QCShrinker </td>
+        </tr>
+      </table>
+    </CENTER>
+
+    The data contained as values of the qp of a qcml file at @p in can be exported in tabluar (csv) format.
+    
+    - @p names The name of the target runs or sets to be exported from. If empty, from all will be exported.
+    - @p mapping The mapping of the exported table's headers to the according qp cvs. The first row is considered containing the headers as for the exported the table. The second row is considered the according qp cv accessions of the qp to be exported.
+    
+    Output is in csv format (see parameter @p out_csv) which can be easily viewed/parsed by many programs. 
+    
     <B>The command line parameters of this tool are:</B>
     @verbinclude UTILS_QCExporter.cli
     <B>INI file documentation of this tool:</B>
@@ -76,7 +101,7 @@ class TOPPQCExporter :
 {
 public:
   TOPPQCExporter() :
-    TOPPBase("QCExporter", "produces qcml files", false)
+    TOPPBase("QCExporter", "Will extract several qp from several run/sets in a tabular format.", false)
   {
   }
 
@@ -85,11 +110,10 @@ protected:
   {
     registerInputFile_("in", "<file>", "", "Input qcml file");
     setValidFormats_("in", StringList::create("qcML"));
-    registerStringList_("qps", "<qps>", StringList(), "QualityParameter to be exported.");
-    registerStringList_("names", "<names>", StringList(), "The name of the target runs or sets to be exported from. If empty, from all will be exported.");
-    registerInputFile_("mapping", "<file>", "", "Mapping table of which column in the export will be represented as which qc.", true);
+    registerStringList_("names", "<names>", StringList(), "The name of the target runs or sets to be exported from. If empty, from all will be exported.",false);
+    registerInputFile_("mapping", "<file>", "", "The mapping of the exported table's headers to the according qp cvs. The first row is considered containing the headers as for the exported the table. The second row is considered the according qp cv accessions of the qp to be exported.", true);
     setValidFormats_("mapping", StringList::create("csv"));
-    registerOutputFile_("out_csv", "<file>", "", "Output csv formated quality parameter or extended qcML file");
+    registerOutputFile_("out_csv", "<file>", "", "Output csv formatted quality parameter.");
     setValidFormats_("out_csv", StringList::create("csv"));
   }
 
@@ -98,11 +122,10 @@ protected:
     //-------------------------------------------------------------
     // parsing parameters
     //-------------------------------------------------------------
-    String in                   	= getStringOption_("in");
-    String csv                  	= getStringOption_("out_csv");
-    StringList qps           	= getStringList_("qps");
-    StringList names      	= getStringList_("names");
-    String mappi          	= getStringOption_("mapping");
+    String in = getStringOption_("in");
+    String csv = getStringOption_("out_csv");
+    StringList names = getStringList_("names");
+    String mappi = getStringOption_("mapping");
     
     ControlledVocabulary cv;
     cv.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));
@@ -132,7 +155,7 @@ protected:
       }
       //~ std::map<String,String> mapping;
       //~ std::transform( header.begin(), header.end(), according.begin(), std::inserter(mapping, mapping.end() ), std::make_pair<String,String> );
-      Size runset_col;
+      //~ Size runset_col;
       for (Size i = 0; i < according.size(); ++i)
       {
         if (!cv.exists(according[i]))
@@ -142,28 +165,28 @@ protected:
             const ControlledVocabulary::CVTerm& term = cv.getTermByName(according[i]);
             header[i] = term.name;
             according[i] = term.id;
-          }						
+          }
           catch (...)
           {
             cerr << "Error: You have to specify a correct cv with accession or name in col "<< String(i) <<". Aborting!" << endl;
             return ILLEGAL_PARAMETERS;
           }
         }
-        else
-        {
-          const ControlledVocabulary::CVTerm& term = cv.getTerm(according[i]);
-          header[i] = term.name;
-        }
-        if (header[i] == "raw file name")
-        {
-          runset_col = i;
-        }
+        //~ else
+        //~ {
+          //~ const ControlledVocabulary::CVTerm& term = cv.getTerm(according[i]);
+          //~ header[i] = term.name; //TODO what if custom headers are needed?!
+        //~ }
+        //~ if (header[i] == "raw file name")
+        //~ {
+          //~ runset_col = i;
+        //~ }
       }
 
       if (names.size() < 1)
       {
         std::vector<String> ns;
-        qcmlfile.getRunNames(ns);
+        qcmlfile.getRunIDs(ns); //n.b. names are ids
         names = StringList(ns); //TODO also  sets
       } 
     
@@ -192,9 +215,10 @@ protected:
       fout.close();
       //~ qcmlfile.store(out);
 
-      return EXECUTION_OK;
+      //~ return EXECUTION_OK;
       //~ TODO export table containing all given qp
     }
+    return EXECUTION_OK;
   }
 };
 int main(int argc, const char** argv)

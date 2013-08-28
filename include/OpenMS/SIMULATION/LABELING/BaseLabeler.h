@@ -120,10 +120,9 @@ public:
     ConsensusMap & getConsensus();
 
     /**
-      @brief Get short description of the labeler (#channels)
+      @brief Get short description of the labeler (e.g., channels used)
 
       Used to add a short description to the labeling section within the INI file.
-
     */
     const String & getDescription() const;
 

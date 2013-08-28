@@ -200,11 +200,11 @@ namespace OpenMS
 
   void SpectrumCanvas::wheelEvent(QWheelEvent * e)
   {
-    zoom(e->x(), e->y(), e->delta() > 0);
+    zoom_(e->x(), e->y(), e->delta() > 0);
     e->accept();
   }
 
-  void SpectrumCanvas::zoom(int x, int y, bool zoom_in)
+  void SpectrumCanvas::zoom_(int x, int y, bool zoom_in)
   {
     const PointType::CoordinateType zoom_factor = zoom_in ? 0.8 : 1.0 / 0.8;
     AreaType new_area;
@@ -347,10 +347,9 @@ namespace OpenMS
         break;
       }
 
-      int x;
       for (std::vector<double>::const_iterator it = spectrum_widget_->xAxis()->gridLines()[j].begin(); it != spectrum_widget_->xAxis()->gridLines()[j].end(); ++it)
       {
-        x = static_cast<int>(Math::intervalTransformation(*it, spectrum_widget_->xAxis()->getAxisMinimum(), spectrum_widget_->xAxis()->getAxisMaximum(), xl, xh));
+        int x = static_cast<int>(Math::intervalTransformation(*it, spectrum_widget_->xAxis()->getAxisMinimum(), spectrum_widget_->xAxis()->getAxisMaximum(), xl, xh));
         painter.drawLine(x, yl, x, yh);
       }
     }
@@ -375,10 +374,9 @@ namespace OpenMS
         break;
       }
 
-      int y;
       for (std::vector<double>::const_iterator it = spectrum_widget_->yAxis()->gridLines()[j].begin(); it != spectrum_widget_->yAxis()->gridLines()[j].end(); ++it)
       {
-        y = static_cast<int>(Math::intervalTransformation(*it, spectrum_widget_->yAxis()->getAxisMinimum(), spectrum_widget_->yAxis()->getAxisMaximum(), yl, yh));
+        int y = static_cast<int>(Math::intervalTransformation(*it, spectrum_widget_->yAxis()->getAxisMinimum(), spectrum_widget_->yAxis()->getAxisMaximum(), yl, yh));
 
         painter.drawLine(xl, y, xh, y);
       }

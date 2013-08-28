@@ -74,7 +74,8 @@ private:
     /**
       @brief Given a ConsensusFeature the method will return an iterator pointing to the consensus element representing the reference channel.
 
-      @param The ConsensusFeature for which the reference element should be found.
+      @param cf The ConsensusFeature for which the reference element should be found.
+      @param consensus_map The ConsensusMap in which the reference element should be found.
       @return An iterator pointing to the consensus element of the reference channel. ConsensusFeature::end() if the reference channel is not contained.
     */
     ConsensusFeature::HandleSetType::iterator findReferenceChannel_(ConsensusFeature& cf, const ConsensusMap& consensus_map) const;

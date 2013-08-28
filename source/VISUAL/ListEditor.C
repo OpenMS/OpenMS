@@ -298,10 +298,9 @@ namespace OpenMS
     {
       type_ = type;
 
-      QListWidgetItem * item = NULL;
       for (UInt i = 0; i < list.size(); ++i)
       {
-        item = new QListWidgetItem(list[i].toQString());
+        QListWidgetItem * item = new QListWidgetItem(list[i].toQString());
         item->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsEditable);
 
         insertItem(i, item);

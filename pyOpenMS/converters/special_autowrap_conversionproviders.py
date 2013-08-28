@@ -618,7 +618,7 @@ class CVTermMapConverter(TypeConverterBase):
 
     def output_conversion(self, cpp_type, input_cpp_var, output_py_var):
 
-        rnd = hex(id(self))+str(time.time()).split(".")[0]
+        rnd = str(id(self))+str(time.time()).split(".")[0]
         outer_it = "outer_it_%s" % rnd
         inner_it = "inner_it_%s" % rnd
         item     = "item_%s" % rnd

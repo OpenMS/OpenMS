@@ -209,7 +209,9 @@ namespace OpenMS
     util_map["MSSimulator"] = Internal::ToolDescription("MSSimulator", util_category);
     util_map["QCCalculator"] = Internal::ToolDescription("QCCalculator", util_category);
     util_map["QCEmbedder"] = Internal::ToolDescription("QCEmbedder", util_category);
+    util_map["QCExtractor"] = Internal::ToolDescription("QCExtractor", util_category);
     util_map["QCExporter"] = Internal::ToolDescription("QCExporter", util_category);
+    util_map["QCImporter"] = Internal::ToolDescription("QCImporter", util_category);
     util_map["QCMerger"] = Internal::ToolDescription("QCMerger", util_category);
     util_map["QCShrinker"] = Internal::ToolDescription("QCExporter", util_category);
     util_map["RNPxl"] = Internal::ToolDescription("RNPxl", util_category);

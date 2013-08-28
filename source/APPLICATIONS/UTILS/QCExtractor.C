@@ -56,25 +56,50 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page UTILS_QCExporter QCExporter
+    @page UTILS_QCExtractor QCExtractor
 
-    @brief This application is used to provide data export from quality control files (qcml). It is intended to provide tables that have been embedded previously to external toos such as R where QC metrics and plots wil be generated. If there are no tables for the given run/set and qp, output will be empty.
+    @brief Extracts a table attachment to a given qc parameter.
 
+    <CENTER>
+      <table>
+        <tr>
+        <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+        <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ QCExtractor \f$ \longrightarrow \f$</td>
+        <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+        </tr>
+        <tr>
+        <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref UTILS_QCEmbedder </td>
+        </tr>
+        <tr>
+        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref UTILS_QCShrinker </td>
+        </tr>
+      </table>
+    </CENTER>
+
+    If there is a table attached to a qp that is needed as a single file. The qcml file to extract from is given with @p in.
+    
+    - @p qp defines the qp name to which the table is attached;
+    - @p run the file that defined the run under which the qp for the attachment is aggregated as mzML file. The file is only used to extract the run name from the file name.
+    - @p name if no file for the run was given (or if the target qp is contained in a set), at least a name of the target run/set containing the the qp for the attachment has to be given.
+    - @p set/run if the target qp is contained in a set, this has to be set here;
+    
+    Output is in csv format (see parameter @p out_csv) which can be easily parsed by many programs. 
+    
     <B>The command line parameters of this tool are:</B>
-    @verbinclude UTILS_QCExporter.cli
+    @verbinclude UTILS_QCExtractor.cli
     <B>INI file documentation of this tool:</B>
-    @htmlinclude UTILS_QCExporter.html
+    @htmlinclude UTILS_QCExtractor.html
 
 */
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
-class TOPPQCExporter :
+class TOPPQCExtractor :
   public TOPPBase
 {
 public:
-  TOPPQCExporter() :
-    TOPPBase("QCExporter", "produces qcml files", false)
+  TOPPQCExtractor():
+    TOPPBase("QCExtractor", "Extracts a table attachment to a given qc parameter.", false)
   {
   }
 
@@ -83,12 +108,11 @@ protected:
   {
     registerInputFile_("in", "<file>", "", "Input qcml file");
     setValidFormats_("in", StringList::create("qcML"));
-    registerStringOption_("qp", "<string>", "", "Target attachment table.");
-    //~ setValidStrings_("qp", StringList::create("precursor tables,charge tables,total ion current tables,delta ppm tables,feature tables,set id, injection times"));
-    registerStringOption_("name", "<string>", "", "The name of the target run or set that contains the requested quality parameter.", false);
-    registerInputFile_("run", "<file>", "", "The file from which the name of the target run that contains the requested quality parameter is taken. This overrides the name parameter!", false);
+    registerStringOption_("qp", "<string>", "", "Target attachment qp.");
+    registerInputFile_("run", "<file>", "", "The file that defined the run under which the qp for the attachment is aggregated as mzML file. The file is only used to extract the run name from the file name.", false);
     setValidFormats_("run", StringList::create("mzML"));
-    registerOutputFile_("out_csv", "<file>", "", "Output csv formated quality parameter or extended qcML file");
+    registerStringOption_("name", "<string>", "", "If no file for the run was given (or if the target qp is contained in a set), at least a name of the target run/set containing the the qp for the attachment has to be given.", false);
+    registerOutputFile_("out_csv", "<file>", "", "Output csv formatted table.");
     setValidFormats_("out_csv", StringList::create("csv"));
   }
 
@@ -97,11 +121,11 @@ protected:
     //-------------------------------------------------------------
     // parsing parameters
     //-------------------------------------------------------------
-    String in                   = getStringOption_("in");
+    String in                    = getStringOption_("in");
     String csv                  = getStringOption_("out_csv");
-    String target_qp            = getStringOption_("qp");
-    String target_run           = getStringOption_("name");
-    String target_file          = getStringOption_("run");
+    String target_qp        = getStringOption_("qp");
+    String target_run       = getStringOption_("name");
+    String target_file        = getStringOption_("run");
 
     //-------------------------------------------------------------
     // reading input
@@ -133,7 +157,7 @@ protected:
     String csv_str = "";
     if (target_qp == "set id")
     {
-      if (qcmlfile.existsSet(target_run))
+      if (qcmlfile.existsSet(target_run,true))
       {
         csv_str = qcmlfile.exportIDstats(target_run);
       }
@@ -161,7 +185,7 @@ protected:
 };
 int main(int argc, const char** argv)
 {
-  TOPPQCExporter tool;
+  TOPPQCExtractor tool;
   return tool.main(argc, argv);
 }
 

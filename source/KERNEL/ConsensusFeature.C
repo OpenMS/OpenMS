@@ -41,29 +41,29 @@
 namespace OpenMS
 {
   ConsensusFeature::ConsensusFeature() :
-    BaseFeature(), HandleSetType(), ratios_()
+    BaseFeature(), handles_(), ratios_()
   {
   }
 
   ConsensusFeature::ConsensusFeature(const ConsensusFeature & rhs) :
-    BaseFeature(rhs), HandleSetType(rhs), ratios_()
+    BaseFeature(rhs), handles_(rhs.handles_), ratios_()
   {
     ratios_ = rhs.ratios_;
   }
 
   ConsensusFeature::ConsensusFeature(const BaseFeature & feature) :
-    BaseFeature(feature), HandleSetType(), ratios_()
+    BaseFeature(feature), handles_(), ratios_()
   {
   }
 
   ConsensusFeature::ConsensusFeature(UInt64 map_index, const Peak2D & element, UInt64 element_index) :
-    BaseFeature(element), HandleSetType(), ratios_()
+    BaseFeature(element), handles_(), ratios_()
   {
     insert(map_index, element, element_index);
   }
 
   ConsensusFeature::ConsensusFeature(UInt64 map_index, const BaseFeature & element) :
-    BaseFeature(element), HandleSetType(), ratios_()
+    BaseFeature(element), handles_(), ratios_()
   {
     insert(FeatureHandle(map_index, element));
   }
@@ -73,10 +73,9 @@ namespace OpenMS
     if (&rhs == this)
       return *this;
 
-    HandleSetType::operator=(rhs);
     BaseFeature::operator=(rhs);
+    handles_ = rhs.handles_;
     ratios_ = rhs.ratios_;
-
     return *this;
   }
 
@@ -84,9 +83,14 @@ namespace OpenMS
   {
   }
 
+  void ConsensusFeature::insert(const ConsensusFeature & cf)
+  {
+    handles_.insert(cf.handles_.begin(), cf.handles_.end());
+  }
+
   void ConsensusFeature::insert(const FeatureHandle & handle)
   {
-    if (!(HandleSetType::insert(handle).second))
+    if (!(handles_.insert(handle).second))
     {
       String key = String("map") + handle.getMapIndex() + "/feature" + handle.getUniqueId();
       throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "The set already contained an element with this key.", key);
@@ -114,14 +118,14 @@ namespace OpenMS
 
   const ConsensusFeature::HandleSetType & ConsensusFeature::getFeatures() const
   {
-    return *this;
+    return handles_;
   }
 
   DRange<2> ConsensusFeature::getPositionRange() const
   {
     DPosition<2> min = DPosition<2>::maxPositive();
     DPosition<2> max = DPosition<2>::minPositive();
-    for (ConsensusFeature::HandleSetType::const_iterator it = begin(); it != end(); ++it)
+    for (ConsensusFeature::HandleSetType::const_iterator it = handles_.begin(); it != handles_.end(); ++it)
     {
       if (it->getRT() < min[0])
         min[0] = it->getRT();
@@ -139,7 +143,7 @@ namespace OpenMS
   {
     DPosition<1> min = DPosition<1>::maxPositive();
     DPosition<1> max = DPosition<1>::minPositive();
-    for (ConsensusFeature::HandleSetType::const_iterator it = begin(); it != end(); ++it)
+    for (ConsensusFeature::HandleSetType::const_iterator it = handles_.begin(); it != handles_.end(); ++it)
     {
       if (it->getIntensity() < min[0])
         min[0] = it->getIntensity();
@@ -161,7 +165,7 @@ namespace OpenMS
     Int charge_most_frequent = 0;
     UInt charge_most_frequent_occ = 0;
 
-    for (ConsensusFeature::HandleSetType::const_iterator it = begin(); it != end(); ++it)
+    for (ConsensusFeature::HandleSetType::const_iterator it = handles_.begin(); it != handles_.end(); ++it)
     {
       rt += it->getRT();
       mz += it->getMZ();
@@ -202,7 +206,7 @@ namespace OpenMS
     Int charge_most_frequent = 0;
     UInt charge_most_frequent_occ = 0;
 
-    for (ConsensusFeature::HandleSetType::const_iterator it = begin(); it != end(); ++it)
+    for (ConsensusFeature::HandleSetType::const_iterator it = handles_.begin(); it != handles_.end(); ++it)
     {
       rt += it->getRT();
       if (it->getMZ() < mz)
@@ -242,7 +246,7 @@ namespace OpenMS
     DoubleReal proton_mass = Constants::PROTON_MASS_U;
 
     // intensity sum (for weighting)
-    for (ConsensusFeature::HandleSetType::const_iterator it = begin(); it != end(); ++it)
+    for (ConsensusFeature::HandleSetType::const_iterator it = handles_.begin(); it != handles_.end(); ++it)
     {
       intensity += it->getIntensity();
     }
@@ -253,7 +257,7 @@ namespace OpenMS
     DoubleReal weighting_factor = 1.0 / size();
 
     // RT and Mass
-    for (ConsensusFeature::HandleSetType::const_iterator it = begin(); it != end(); ++it)
+    for (ConsensusFeature::HandleSetType::const_iterator it = handles_.begin(); it != handles_.end(); ++it)
     {
       Int q = it->getCharge();
       if (q == 0)
@@ -284,36 +288,7 @@ namespace OpenMS
     setCharge(0);
     return;
   }
-
-  std::ostream & operator<<(std::ostream & os, const ConsensusFeature & cons)
-  {
-    os << "---------- CONSENSUS ELEMENT BEGIN -----------------\n";
-    os << "Position: " << cons.getPosition() << std::endl;
-    os << "Intensity " << precisionWrapper(cons.getIntensity()) << std::endl;
-    os << "Quality " << precisionWrapper(cons.getQuality()) << std::endl;
-    os << "Grouped features: " << std::endl;
-
-    for (ConsensusFeature::HandleSetType::const_iterator it = cons.begin(); it != cons.end(); ++it)
-    {
-      os << " - Map index: " << it->getMapIndex() << std::endl
-      << "   Feature id: " << it->getUniqueId() << std::endl
-      << "   RT: " << precisionWrapper(it->getRT()) << std::endl
-      << "   m/z: " << precisionWrapper(it->getMZ())  << std::endl
-      << "   Intensity: " << precisionWrapper(it->getIntensity()) << std::endl;
-    }
-
-    os << "Meta information: " << std::endl;
-    std::vector<String> keys;
-    cons.getKeys(keys);
-    for (std::vector<String>::const_iterator it = keys.begin(); it != keys.end(); ++it)
-    {
-      os << "   " << (*it) << ": " << cons.getMetaValue(*it) << std::endl;
-    }
-    os << "---------- CONSENSUS ELEMENT END ----------------- " << std::endl;
-
-    return os;
-  }
-
+  
   void ConsensusFeature::addRatio(const ConsensusFeature::Ratio & r)
   {
     ratios_.push_back(r);
@@ -332,6 +307,92 @@ namespace OpenMS
   std::vector<ConsensusFeature::Ratio> ConsensusFeature::getRatios() const
   {
     return ratios_;
+  }
+
+  Size ConsensusFeature::size() const
+  { 
+    return handles_.size();
+  }
+
+  ConsensusFeature::const_iterator ConsensusFeature::begin() const
+  {
+    return handles_.begin();
+  }
+
+  ConsensusFeature::iterator ConsensusFeature::begin()
+  {
+    return handles_.begin();
+  }
+
+
+  ConsensusFeature::const_iterator ConsensusFeature::end() const
+  {
+    return handles_.end();
+  }
+
+  ConsensusFeature::iterator ConsensusFeature::end()
+  {
+    return handles_.end();
+  }
+
+  ConsensusFeature::const_reverse_iterator ConsensusFeature::rbegin() const
+  {
+    return handles_.rbegin();
+  }
+
+  ConsensusFeature::reverse_iterator ConsensusFeature::rbegin()
+  {
+    return handles_.rbegin();
+  }
+
+  ConsensusFeature::const_reverse_iterator ConsensusFeature::rend() const
+  {
+    return handles_.rend();
+  }
+
+  ConsensusFeature::reverse_iterator ConsensusFeature::rend()
+  {
+    return handles_.rend();
+  }
+
+  void ConsensusFeature::clear()
+  {
+    handles_.clear();
+  }
+
+  bool ConsensusFeature::empty() const
+  {
+    return handles_.empty();
+  }
+
+
+  std::ostream & operator<<(std::ostream & os, const ConsensusFeature & cons)
+  {
+    os << "---------- CONSENSUS ELEMENT BEGIN -----------------\n";
+    os << "Position: " << cons.getPosition() << std::endl;
+    os << "Intensity " << precisionWrapper(cons.getIntensity()) << std::endl;
+    os << "Quality " << precisionWrapper(cons.getQuality()) << std::endl;
+    os << "Grouped features: " << std::endl;
+
+    for (ConsensusFeature::HandleSetType::const_iterator it = cons.begin(); it != cons.end(); ++it)
+    {
+      os << " - Map index: " << it->getMapIndex() << std::endl
+        << "   Feature id: " << it->getUniqueId() << std::endl
+        << "   RT: " << precisionWrapper(it->getRT()) << std::endl
+        << "   m/z: " << precisionWrapper(it->getMZ()) << std::endl
+        << "   Intensity: " << precisionWrapper(it->getIntensity()) << std::endl;
+    }
+
+    os << "Meta information: " << std::endl;
+    std::vector<String> keys;
+    cons.getKeys(keys);
+    for (std::vector<String>::const_iterator it = keys.begin(); it != keys.end(); ++it)
+    {
+      os << "   " << (*it) << ": " << cons.getMetaValue(*it) << std::endl;
+    }
+    os << "---------- CONSENSUS ELEMENT END ----------------- " << std::endl;
+
+    return os;
   }
 
 }

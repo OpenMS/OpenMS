@@ -100,6 +100,14 @@ START_SECTION((void scoreMap(FeatureMap<> & features)))
   FeatureMap<> features;
   TEST_EXCEPTION(Exception::IllegalArgument, scoring.scoreMap(features))
 
+  // The input to the program is 
+  // - a transition library which contains peptides with corresponding assays
+  // - a feature map where each feature corresponds to an assay (mapped with
+  //   MetaValue "PeptideRef") and each feature has as many subordinates as the
+  //   assay has transitions (mapped with MetaValue "native_id")
+
+  // In this case we have 2 assays (pep_1 and pep_2) with 1 transition each
+  // (tr_10 for pep_1 and tr_20 for pep_2).
   {
     TargetedExperiment::Peptide p;
 
@@ -137,6 +145,15 @@ START_SECTION((void scoreMap(FeatureMap<> & features)))
     f.setRT(60.0);
     f.setMetaValue("PeptideRef", "pep_1");
     f.setOverallQuality(-1);
+
+    std::vector<Feature> subordinates;
+    Feature sub;
+    sub.setIntensity(1);
+    sub.setMZ(500);
+    sub.setMetaValue("native_id", "tr_10");
+    subordinates.push_back(sub);
+    f.setSubordinates(subordinates);
+
     features.push_back(f);
   }
   {
@@ -144,6 +161,15 @@ START_SECTION((void scoreMap(FeatureMap<> & features)))
     f.setRT(60.0);
     f.setMetaValue("PeptideRef", "pep_2");
     f.setOverallQuality(-1);
+
+    std::vector<Feature> subordinates;
+    Feature sub;
+    sub.setIntensity(1);
+    sub.setMZ(500);
+    sub.setMetaValue("native_id", "tr_20");
+    subordinates.push_back(sub);
+    f.setSubordinates(subordinates);
+
     features.push_back(f);
   }
 
@@ -163,7 +189,7 @@ START_SECTION((void scoreMap(FeatureMap<> & features)))
 END_SECTION
 
 
-START_SECTION((void scoreMap(FeatureMap<> & features)))
+START_SECTION(([EXTRA] test exceptions))
 {
   ConfidenceScoring scoring(true); // initialize with test mode
   TargetedExperiment library;
@@ -203,25 +229,77 @@ START_SECTION((void scoreMap(FeatureMap<> & features)))
 
   }
 
-  // Do not a meta value for the feature and we should get a nice, specific exception
+  // If no meta value is present for the featuere, we cannot map it to the assay
   {
     Feature f;
     f.setRT(60.0);
+    f.setOverallQuality(-1);
     //f.setMetaValue("PeptideRef", "pep_1");
     features.push_back(f);
   }
   {
     Feature f;
     f.setRT(60.0);
+    f.setOverallQuality(-1);
     //f.setMetaValue("PeptideRef", "pep_2");
     features.push_back(f);
   }
 
   scoring.initialize(library, 0, 0, rt_trafo);
-  TEST_EXCEPTION(Exception::IllegalArgument, scoring.scoreMap(features))
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument, scoring.scoreMap(features), "Feature does not contain meta value 'PeptideRef' (reference to assay)")
+
+  // After we add the meta value, we still should get an exception
+  features[0].setMetaValue("PeptideRef", "pep_1");
+  features[1].setMetaValue("PeptideRef", "pep_2");
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument, scoring.scoreMap(features), "Feature intensities were empty - please provide feature subordinate with intensities")
+
+  // An exception should be thrown if the sub-features cannot be mapped to the
+  // transitions (e.g. the metavalue "native_id" is missing)
+  {
+    std::vector<Feature> subordinates;
+    Feature sub;
+    sub.setIntensity(1);
+    sub.setMZ(500);
+    // sub.setMetaValue("native_id", "tr_10");
+    subordinates.push_back(sub);
+    features[0].setSubordinates(subordinates);
+  }
+  {
+    std::vector<Feature> subordinates;
+    Feature sub;
+    sub.setIntensity(1);
+    sub.setMZ(500);
+    //sub.setMetaValue("native_id", "tr_20");
+    subordinates.push_back(sub);
+    features[1].setSubordinates(subordinates);
+  }
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::IllegalArgument, scoring.scoreMap(features), "Did not find a feature for each assay provided - each feature needs to have n subordinates with the meta-value 'native_id' set to the corresponding transition.")
+
+  {
+    std::vector<Feature> subordinates;
+    Feature sub;
+    sub.setIntensity(1);
+    sub.setMZ(500);
+    sub.setMetaValue("native_id", "tr_10");
+    subordinates.push_back(sub);
+    features[0].setSubordinates(subordinates);
+  }
+  {
+    std::vector<Feature> subordinates;
+    Feature sub;
+    sub.setIntensity(1);
+    sub.setMZ(500);
+    sub.setMetaValue("native_id", "tr_20");
+    subordinates.push_back(sub);
+    features[1].setSubordinates(subordinates);
+  }
+  scoring.scoreMap(features);
+  TEST_REAL_SIMILAR(features[0].getOverallQuality(), 0.0);
+  TEST_REAL_SIMILAR(features[1].getOverallQuality(), 1.0);
+
+
 }
 END_SECTION
-
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

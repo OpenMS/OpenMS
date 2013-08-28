@@ -4,12 +4,11 @@
   
   @section install_linux_read Read this section first!
   
-  This document addresses %OpenMS users and explains the
-  installation procedure for building %OpenMS from its sources. If you only want to use the %OpenMS Proteomics Pipeline (TOPP), you are strongly
-	encouraged to <b>download the binary installer</b>
-	(see <a href="http://www.OpenMS.de" target="_blank">here</a>),
-	instead of building %OpenMS from sources. 
-  Be aware though that we do not provide binary installers for every linux distribution.
+  This document addresses %OpenMS users and explains the installation procedure
+  for building %OpenMS from its sources. On Linux, this the most common way to
+  install OpenMS even though we provide binary packages for select Linux
+  distributions and versions of OpenMS. Be aware though that we do not provide
+  binary installers for every Linux distribution.
   For more information read the install instructions for the TOPP binaries.
 
 	This document especially considers the installation
@@ -82,6 +81,12 @@
 
   @section install_linux_contrib Installing the contrib package
 
+  OpenMS depends on several external libraries, namely Boost, GSL, libSVM,
+  SeqAn, glpk, zlib, libbz2 and Xerces-C. There are two ways to install them:
+  i) use the "contrib" package provided by %OpenMS and compile them from source
+  or ii) use the distributions package management.
+
+  @subsection install_linux_contrib_src Installing the dependencies from source
   In order to facilitate the installation of the libraries required for %OpenMS, we composed a
   "contrib-package" containing the libraries Boost, GSL, libSVM, SeqAn, glpk, zlib, libbz2 and Xerces-C. 
     
@@ -113,6 +118,27 @@
   @note To avoid problems while building the libraries contained in the contrib package, the path
   to your contrib directory should not have any spaces in it.
 
+  @subsection install_linux_contrib_dist Installing the dependencies from the distribution
+
+  All %OpenMS dependencies (except SeqAn) can be installed using the package
+  management on many major Linux distributions. Depending on your internet
+  connection, this may be faster for you. For Ubuntu (12.04) and Debian please
+  install the following packages:
+
+  <pre>
+  libxerces-c-dev libgsl0-dev libboost-regex-dev libboost-iostreams-dev libboost-date-time-dev libboost-math-dev libsvm-dev libglpk-dev libzip-dev zlib1g-dev 
+  </pre>
+
+  Once these are installed, you will still need SeqAn, for this follow the instructions above (section section @ref install_linux_contrib_src) and configure with  
+
+  <pre>
+  &gt; cmake -DBUILD_TYPE=SEQAN .
+  </pre>
+
+  @note When compiling OpenMS (see section @ref install_linux_openms below) you will need to set the following CMake flags: 
+
+  -DCMAKE_FIND_ROOT_PATH="/usr;/usr/local" and -DBOOST_USE_STATIC=OFF to enable CMake to find the correct libraries and to disable static linking of the Boost libraries.
+
 <HR>
   
   @section install_linux_openms Installing %OpenMS/TOPP
@@ -121,9 +147,9 @@
   <a href="http://www.OpenMS.de/download.php" target="_blank">download</a> page.
   For further (e.g. latest developer version from SVN) info see the <a href="http://open-ms.sourceforge.net/download.php" target="_blank">download instructions</a>.
 
-  If you have not installed thei contrib libraries which %OpenMS requires, please refer to the section @ref install_linux_contrib above and install the contrib libraries.
+  If you have not installed the contrib libraries which %OpenMS requires, please refer to the section @ref install_linux_contrib above and install the contrib libraries.
   
-  CMake is used to check the system and create the main 'Makefile'.
+  <a href="http://www.cmake.org/">CMake</a> is used to check the system and create the main 'Makefile'.
   @n Go to the %OpenMS directory and execute the following command:
   <pre>
   &gt; cmake .
@@ -134,7 +160,7 @@
   <pre>
   &gt; ccmake .
   </pre>
-  This works only after having executing <code>cmake .</code>.
+  This works only after having executing <code>cmake .</code> before.
   
   The most important CMake variables are:
 
@@ -154,7 +180,7 @@
     <tr>
       <td valign="top">CMAKE_FIND_ROOT_PATH</td>
       <td>Additional search path for the contrib libraries.
-          If not set the the location is assumed to be <tt>&lt;path_to_OpenMS&gt;/contrib</tt>.</td>
+          If not set the location is assumed to be <tt>&lt;path_to_OpenMS&gt;/contrib</tt>.</td>
     </tr>
     <tr>
       <td valign="top">QT_QMAKE_EXECUTABLE</td>
@@ -163,7 +189,7 @@
     <tr>
       <td valign="top">CMAKE_BUILD_TYPE</td>
       <td>Should be either 'Release' (optimization enabled) or 'Debug' (debug info and 
-          precondition/postcondiction checks enabled).
+          precondition/postcondition checks enabled).
           @n The default is 'Release'.</td>
     </tr>
     <tr>
@@ -173,6 +199,21 @@
     <tr>
       <td valign="top">CMAKE_CXX_COMPILER</td>
       <td>Defines the C++ compiler to use.</td>
+    </tr>
+    <tr>
+      <td valign="top"><tt>CMAKE_C_COMPILER</tt></td>
+      <td>Defines the C compiler to use. This should match the C++ compiler. Mixing compilers (e.g., <tt>clang++</tt> for C++ and <tt>gcc</tt> for C)
+       can lead to undefined behavior as some internal settings (e.g., %OpenMP support) are determined using the C compiler and are assumed to be the 
+       same for the C++ compiler.</td>
+    </tr>    
+    <tr>
+      <td valign="top"><tt>SEARCH_ENGINES_DIRECTORY</tt> (optional)</td>
+      <td>The location where the ID search engines are located. This directory should have the same structure as the one in the %OpenMS svn repository. 
+      This directory is needed to build the installer for %OpenMS.</td>
+    </tr>        
+    <tr>
+      <td valign="top">PYOPENMS</td>
+      <td>Use ON to also build the Python bindings, see also @ref pyOpenMS.</td>
     </tr>
   </table>
 

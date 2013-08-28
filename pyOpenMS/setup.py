@@ -69,7 +69,7 @@ if not os.path.exists(persisted_data_path)\
     extra_cimports = [ # "from libc.stdint cimport *",
                 #"from libc.stddef cimport *",
                 #"from UniqueIdInterface cimport setUniqueId as _setUniqueId",
-                "from Map cimport Map as _Map",
+                #"from Map cimport Map as _Map",
                 #"cimport numpy as np"
                 ]
     autowrap_include_dirs = autowrap.Main.run(pxd_files,
@@ -125,8 +125,20 @@ if OPEN_MS_CONTRIB_BUILD_DIRS.endswith(";"):
     OPEN_MS_CONTRIB_BUILD_DIRS = OPEN_MS_CONTRIB_BUILD_DIRS[:-1]
 
 for OPEN_MS_CONTRIB_BUILD_DIR in  OPEN_MS_CONTRIB_BUILD_DIRS.split(";"):
-    if os.path.exists(OPEN_MS_CONTRIB_BUILD_DIR):
+    if os.path.exists(os.path.join(OPEN_MS_CONTRIB_BUILD_DIR, "lib")):
         break
+
+
+if iswin:
+    # fix for broken library names in release 1.11:
+    for p in glob.glob(os.path.join(OPEN_MS_CONTRIB_BUILD_DIR,
+                                    "lib",
+                                    "libboost_math_*mt.lib")):
+
+        if "vc90" in p:
+            continue
+        new_p = p.replace("-mt.lib", "-vc90-mt-1_52.lib")
+        shutil.copy(p, new_p)
 
 
 
@@ -192,7 +204,8 @@ include_dirs=[
     QT_HEADERS_DIR,
     QT_QTCORE_INCLUDE_DIR,
     j(OPEN_MS_CONTRIB_BUILD_DIR, "include"),
-    j(OPEN_MS_CONTRIB_BUILD_DIR, "src", "boost_1_42_0", "include", "boost-1_42"),
+    #j(OPEN_MS_CONTRIB_BUILD_DIR, "src", "boost_1_52_0")
+    j(OPEN_MS_CONTRIB_BUILD_DIR, "include", "boost"),
     j(OPEN_MS_BUILD_DIR ,  "include"),
     j(OPEN_MS_SRC ,  "include"),
     j(numpy.core.__path__[0],"include"),

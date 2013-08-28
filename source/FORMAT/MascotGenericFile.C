@@ -79,6 +79,7 @@ namespace OpenMS
 
     defaults_.setValue("search_title", "OpenMS_search", "Sets the title of the search.", StringList::create("advanced"));
     defaults_.setValue("username", "OpenMS", "Sets the username which is mentioned in the results file.", StringList::create("advanced"));
+    defaults_.setValue("email", "", "Sets the email which is mentioned in the results file. Note: Some server require that a proper email is provided.");
 
     // the next section should not be shown to TOPP users
     Param p;
@@ -99,7 +100,7 @@ namespace OpenMS
 
   }
 
-  void MascotGenericFile::store(const String & filename, const PeakMap & experiment)
+  void MascotGenericFile::store(const String& filename, const PeakMap& experiment)
   {
     if (!File::writable(filename))
     {
@@ -110,7 +111,7 @@ namespace OpenMS
     os.close();
   }
 
-  void MascotGenericFile::store(ostream & os, const String & filename, const PeakMap & experiment)
+  void MascotGenericFile::store(ostream& os, const String& filename, const PeakMap& experiment)
   {
     if (param_.getValue("internal:content") != "peaklist_only")
       writeHeader_(os);
@@ -118,7 +119,7 @@ namespace OpenMS
       writeMSExperiment_(os, filename, experiment);
   }
 
-  void MascotGenericFile::writeParameterHeader_(const String & name, ostream & os)
+  void MascotGenericFile::writeParameterHeader_(const String& name, ostream& os)
   {
     if (param_.getValue("internal:HTTP_format") == "true")
     {
@@ -130,7 +131,7 @@ namespace OpenMS
     }
   }
 
-  void MascotGenericFile::writeHeader_(ostream & os)
+  void MascotGenericFile::writeHeader_(ostream& os)
   {
     // search title
     if (param_.getValue("search_title") != "")
@@ -143,8 +144,15 @@ namespace OpenMS
     writeParameterHeader_("USERNAME", os);
     os << param_.getValue("username") << "\n";
 
+    // email
+    if (!param_.getValue("email").toString().empty())
+    {
+      writeParameterHeader_("USEREMAIL", os);
+      os << param_.getValue("email") << "\n";
+    }
+
     // format
-    writeParameterHeader_("FORMAT", os);
+    writeParameterHeader_("FORMAT", os);    // make sure this stays within the first 5 lines of the file, since we use it to recognize our own MGF files in case their file suffix is not MGF
     os << param_.getValue("internal:format") << "\n";
 
     // precursor mass tolerance unit : Da
@@ -228,7 +236,7 @@ namespace OpenMS
     os << param_.getValue("charges") << "\n";
   }
 
-  void MascotGenericFile::writeSpectrum_(ostream & os, const PeakSpectrum & spec, const String & filename)
+  void MascotGenericFile::writeSpectrum_(ostream& os, const PeakSpectrum& spec, const String& filename)
   {
     Precursor precursor;
     if (spec.getPrecursors().size() > 0)
@@ -282,7 +290,7 @@ namespace OpenMS
     }
   }
 
-  std::pair<String, String> MascotGenericFile::getHTTPPeakListEnclosure(const String & filename) const
+  std::pair<String, String> MascotGenericFile::getHTTPPeakListEnclosure(const String& filename) const
   {
     std::pair<String, String> r;
     r.first = String("--" + String(param_.getValue("internal:boundary")) + "\n" + "Content-Disposition: form-data; name=\"FILE\"; filename=\"" + filename + "\"\n\n");
@@ -290,7 +298,7 @@ namespace OpenMS
     return r;
   }
 
-  void MascotGenericFile::writeMSExperiment_(ostream & os, const String & filename, const PeakMap & experiment)
+  void MascotGenericFile::writeMSExperiment_(ostream& os, const String& filename, const PeakMap& experiment)
   {
 
     std::pair<String, String> enc = getHTTPPeakListEnclosure(filename);
@@ -323,7 +331,7 @@ namespace OpenMS
     this->endProgress();
   }
 
-  bool MascotGenericFile::getNextSpectrum_(istream & is, vector<pair<String, String> > & spectrum, UInt & charge, DoubleReal & precursor_mz, DoubleReal & precursor_int, DoubleReal & rt, String & title, Size & line_number)
+  bool MascotGenericFile::getNextSpectrum_(istream& is, vector<pair<String, String> >& spectrum, UInt& charge, DoubleReal& precursor_mz, DoubleReal& precursor_int, DoubleReal& rt, String& title, Size& line_number)
   {
     bool ok(false);
     spectrum.clear();
@@ -338,7 +346,7 @@ namespace OpenMS
     while (getline(is, line, '\n'))
     {
       ++line_number;
-      
+
       line.trim(); // remove whitespaces, line-endings etc
 
       // found peak list block?
@@ -442,7 +450,7 @@ namespace OpenMS
                   }
                 }
               }
-              catch (Exception::BaseException & /*e*/)
+              catch (Exception::BaseException& /*e*/)
               {
                 // just do nothing and write the whole title to spec
                 vector<String> split;
@@ -453,7 +461,7 @@ namespace OpenMS
                 }
               }
             }
-            else             // just write the title as metainfo to the spectrum
+            else // just write the title as metainfo to the spectrum
             {
               vector<String> split;
               line.split('=', split);

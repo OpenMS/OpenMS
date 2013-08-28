@@ -71,6 +71,11 @@
 #include <OpenMS/ANALYSIS/MRM/MRMFragmentSelection.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqChannelExtractor.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqQuantifier.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/IsobaricChannelExtractor.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantifier.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/ItraqFourPlexQuantitationMethod.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/ItraqEightPlexQuantitationMethod.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/TMTSixPlexQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>
 #include <OpenMS/MATH/STATISTICS/PosteriorErrorProbabilityModel.h>
 #include <OpenMS/FORMAT/MSPFile.h>
@@ -373,6 +378,9 @@ int main(int argc, char ** argv)
   DOCME(IsotopeModel);
   DOCME(ItraqChannelExtractor);
   DOCME(ItraqQuantifier);
+  DOCME(TMTSixPlexQuantitationMethod);
+  DOCME(ItraqEightPlexQuantitationMethod);
+  DOCME(ItraqFourPlexQuantitationMethod);
   DOCME(LabeledPairFinder);
   DOCME(LinearResampler);
   DOCME(LmaGaussFitter1D);
@@ -478,5 +486,7 @@ int main(int argc, char ** argv)
   DOCME2(GaussTraceFitter, (GaussTraceFitter<Peak1D>()))
   DOCME2(EGHTraceFitter, (EGHTraceFitter<Peak1D>()))
 
+  DOCME2(IsobaricChannelExtractor, IsobaricChannelExtractor(new ItraqFourPlexQuantitationMethod()));
+  DOCME2(IsobaricQuantifier, IsobaricQuantifier(new ItraqFourPlexQuantitationMethod()));
   return 0;
 }

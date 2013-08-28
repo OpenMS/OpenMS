@@ -41,7 +41,7 @@ using namespace OpenMS;
 using namespace std;
 
 /**
-    @page TOPP_IDDecoyProbability IDDecoyProbability
+    @page UTILS_IDDecoyProbability IDDecoyProbability
 
     @brief Util to estimate probability of peptide hits
 
@@ -70,9 +70,9 @@ using namespace std;
     This implementation is much simpler than that of PeptideProphet.
 
     <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_IDDecoyProbability.cli
+    @verbinclude UTILS_IDDecoyProbability.cli
     <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_IDDecoyProbability.html
+    @htmlinclude UTILS_IDDecoyProbability.html
 
     For the parameters of the algorithm section see the algorithms documentation: @n
         @ref OpenMS::IDDecoyProbability "decoy_algorithm" @n

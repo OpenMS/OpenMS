@@ -49,6 +49,33 @@
 using namespace std;
 using namespace OpenMS;
 
+/**
+    @page UTILS_RNPxlXICFilter RNPxlXICFilter
+    @brief Filters MS2 spectra based on XIC intensities in control and treatment. Used in RNPxl experiments to reduce candidate spectra.
+
+<CENTER>
+  <table>
+    <tr>
+      <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
+      <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ RNPxlXICFilter \f$ \longrightarrow \f$</td>
+      <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
+    </tr>
+    <tr>
+      <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerHires </td>
+      <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref UTILS_RNPxl </td>
+    </tr>
+  </table>
+</CENTER>
+
+    <B>The command line parameters of this tool are:</B>
+    @verbinclude UTILS_RNPxlXICFilter.cli
+    <B>INI file documentation of this tool:</B>
+    @htmlinclude UTILS_RNPxlXICFilter.html
+*/
+
+// We do not want this class to show up in the docu:
+/// @cond TOPPCLASSES
+
 class TOPPRNPxlXICFilter :
   public TOPPBase
 {

@@ -48,7 +48,7 @@ namespace OpenMS
     @brief Given the extracted channel intensities the IsobaricQuantifier corrects and normalizes
            the intensities for further processing.
 
-    @htminclude OpenMS_IsobaricQuantifier.parameters
+    @htmlinclude OpenMS_IsobaricQuantifier.parameters
   */
   class OPENMS_DLLAPI IsobaricQuantifier :
     public DefaultParamHandler

@@ -149,7 +149,7 @@ public:
          Parameters should be set before using this method, as setting parameters will clear all results.
     */
     void quantifyPeptides(std::vector<ProteinIdentification>& proteins,
-													std::vector<PeptideIdentification>& peptides);
+                          std::vector<PeptideIdentification>& peptides);
 
     /**
          @brief Compute protein abundances.

@@ -39,6 +39,7 @@
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/FORMAT/HANDLERS/MascotXMLHandler.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 
 namespace OpenMS
@@ -64,18 +65,18 @@ public:
     MascotXMLFile();
 
     /**
-      @brief loads data from a MascotXML file
+      @brief loads data from a Mascot XML file
 
       @param filename the file to be loaded
       @param protein_identification protein identifications belonging to the whole experiment
       @param id_data the identifications with m/z and RT
-      @param An optional mapping of scan indices to RT, in case the file only contains scan numbers
-      @param An optional regular expression used to extract the scan numbers
+      @param rt_mapping An optional mapping of scan indices to RT, in case the file only contains scan numbers
+      @param scan_regex An optional regular expression used to extract the scan numbers
 
       @exception Exception::FileNotFound is thrown if the file does not exists.
       @exception Exception::ParseError is thrown if the file does not suit to the standard.
 
-      This method serves to read in a MascotXML file. The information can be
+      This method serves to read in a Mascot XML file. The information can be
       retrieved via the load function.
     */
     void load(const String& filename,
@@ -85,19 +86,19 @@ public:
               const String& scan_regex = "");
 
     /**
-      @brief loads data from a MascotXML file
+      @brief loads data from a Mascot XML file
 
       @param filename the file to be loaded
       @param protein_identification protein identifications belonging to the whole experiment
       @param id_data the identifications with m/z and RT
       @param peptides a map of modified peptides identified by the String title
-      @param An optional mapping of scan indices to RT, in case the file only contains scan numbers
-      @param An optional regular expression used to extract the scan numbers
+      @param rt_mapping An optional mapping of scan indices to RT, in case the file only contains scan numbers
+      @param scan_regex An optional regular expression used to extract the scan numbers
 
       @exception Exception::FileNotFound is thrown if the file does not exists.
       @exception Exception::ParseError is thrown if the file does not suit to the standard.
 
-      This method serves to read in a MascotXML file. The information can be
+      This method serves to read in a Mascot XML file. The information can be
       retrieved via the load function.
     */
     void load(const String& filename,
@@ -106,6 +107,19 @@ public:
               std::map<String, std::vector<AASequence> >& peptides, 
               const RTMapping& rt_mapping = RTMapping(),
               const String& scan_regex = "");
+
+    /**
+      @brief Generates a mapping between scan numbers and retention times in raw data
+
+      @param begin Iterator to the first spectrum
+      @param end Iterator past the last spectrum
+      @param rt_mapping Output mapping
+
+      The mapping can be used to infer retention times of identifications when a Mascot XML file is loaded.
+    */  
+    static void generateRTMapping(const MSExperiment<>::ConstIterator begin, 
+                                  const MSExperiment<>::ConstIterator end, 
+                                  RTMapping& rt_mapping);
 
   };
 

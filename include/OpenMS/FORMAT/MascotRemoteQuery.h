@@ -38,7 +38,6 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <QtCore/QObject>
 #include <QtCore/QString>
-#include <QtCore/QFile>
 #include <QtNetwork/QHttpRequestHeader>
 #include <QTimer>
 
@@ -66,7 +65,7 @@ public:
     */
     //@{
     /// default constructor
-    OPENMS_DLLAPI MascotRemoteQuery(QObject * parent = 0);
+    OPENMS_DLLAPI MascotRemoteQuery(QObject* parent = 0);
 
     /// destructor
     OPENMS_DLLAPI virtual ~MascotRemoteQuery();
@@ -74,16 +73,16 @@ public:
 
 
     /// sets the query spectra, given in MGF file format
-    OPENMS_DLLAPI void setQuerySpectra(const String & exp);
+    OPENMS_DLLAPI void setQuerySpectra(const String& exp);
 
     /// returns the Mascot XML response which contains the identifications
-    OPENMS_DLLAPI const QByteArray & getMascotXMLResponse() const;
+    OPENMS_DLLAPI const QByteArray& getMascotXMLResponse() const;
 
     /// predicate which returns true if an error occurred during the query
     OPENMS_DLLAPI bool hasError() const;
 
     /// returns the error message, if hasError can be used to check whether an error has occurred
-    OPENMS_DLLAPI const String & getErrorMessage() const;
+    OPENMS_DLLAPI const String& getErrorMessage() const;
 
 protected:
 
@@ -97,7 +96,7 @@ private slots:
 
     OPENMS_DLLAPI void timedOut();
 
-    OPENMS_DLLAPI void readyReadSlot(const QHttpResponseHeader & resp);
+    OPENMS_DLLAPI void readyReadSlot(const QHttpResponseHeader& resp);
 
     /** slot connected to signal requestFinished of QHttp: "This signal is emitted
           when processing the request identified by id has finished. error is true
@@ -124,40 +123,60 @@ private slots:
     OPENMS_DLLAPI void httpDone(bool error);
 
     /// slot connect to responseHeaderRecieved, which indicates that a new response header is available
-    OPENMS_DLLAPI void readResponseHeader(const QHttpResponseHeader & response_header);
+    OPENMS_DLLAPI void readResponseHeader(const QHttpResponseHeader& response_header);
 
     OPENMS_DLLAPI void login();
 
     OPENMS_DLLAPI void execQuery();
 
-    OPENMS_DLLAPI void getResults();
+    OPENMS_DLLAPI void getResults(QString results_path);
 
-    OPENMS_DLLAPI void loginSuccess();
+    OPENMS_DLLAPI void followRedirect(const QHttpResponseHeader& resp);
 
 signals:
 
     OPENMS_DLLAPI void done();
 
-    OPENMS_DLLAPI void loginDone();
-
-    OPENMS_DLLAPI void queryDone();
+    OPENMS_DLLAPI void gotRedirect(const QHttpResponseHeader& resp);
 
 private:
     /// assignment operator
-    OPENMS_DLLAPI MascotRemoteQuery & operator=(const MascotRemoteQuery & rhs);
+    OPENMS_DLLAPI MascotRemoteQuery& operator=(const MascotRemoteQuery& rhs);
     /// copy constructor
-    OPENMS_DLLAPI MascotRemoteQuery(const MascotRemoteQuery & rhs);
+    OPENMS_DLLAPI MascotRemoteQuery(const MascotRemoteQuery& rhs);
 
     OPENMS_DLLAPI void endRun_();
 
+    /// Write HTTP header to error stream (for debugging)
+    OPENMS_DLLAPI void logHeader_(const QHttpHeader& header, 
+                                  const String& what);
+    /**
+      @brief Remove host name information from an url, e.g., "http://www.google.de/search" -> "search"
+
+      @param The url that will be manipulated.
+    */
+    void removeHostName_(QString& url);
+
     String query_spectra_;
     QByteArray mascot_xml_;
-    QHttp * http_;
-    QString results_path_;
+    QHttp* http_;
     QString cookie_;
     String error_message_;
     QTimer timeout_;
     Int to_;
+
+    /// Path on mascot server
+    String server_path_;
+    /// Hostname of the mascot server
+    String host_name_;
+    /// Login required
+    bool requires_login_;
+    /// Max reported hits
+    Int max_hits_;
+    /// Use SSL connection
+    bool use_ssl_;
+    /// boundary string that will be embedded into the HTTP requests
+    String boundary_;
   };
 
 }

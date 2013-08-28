@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/HANDLERS/ParamXMLHandler.h>
+#include <OpenMS/CONCEPT/VersionInfo.h>
 
 #include <iostream>
 
@@ -68,21 +69,33 @@ namespace OpenMS
         String type = attributeAsString_(attributes, "type");
         String name = path_ + attributeAsString_(attributes, "name");
         String value = attributeAsString_(attributes, "value");
+
         //parse description, if present
         String description;
         optionalAttributeAsString_(description, attributes, "description");
         description.substitute("#br#", "\n");
+
         //tags
         String tags_string;
         optionalAttributeAsString_(tags_string, attributes, "tags");
         StringList tags = StringList::create(tags_string);
-        //advanced (for downward compatibility with old Param files)
+
+        //advanced
         String advanced_string;
         optionalAttributeAsString_(advanced_string, attributes, "advanced");
         if (advanced_string == "true")
         {
           tags.push_back("advanced");
         }
+
+        //required
+        String required_string;
+        optionalAttributeAsString_(advanced_string, attributes, "required");
+        if (advanced_string == "true")
+        {
+          tags.push_back("required");
+        }
+
         //type
         if (type == "int")
         {
@@ -90,6 +103,17 @@ namespace OpenMS
         }
         else if (type == "string")
         {
+          param_.setValue(name, value, description, tags);
+        }
+        // since param v1.6.2 we support explicitly naming input/output files as types
+        else if (type == "input-file")
+        {
+          tags.push_back("input file");
+          param_.setValue(name, value, description, tags);
+        }
+        else if (type == "output-file")
+        {
+          tags.push_back("output file");          
           param_.setValue(name, value, description, tags);
         }
         else if (type == "float" || type == "double")
@@ -111,7 +135,7 @@ namespace OpenMS
           {
             value.split(':', parts);
             if (parts.size() != 2)
-              value.split('-', parts);  //for downward compatibility
+              value.split('-', parts); //for downward compatibility
             if (parts.size() == 2)
             {
               if (parts[0] != "")
@@ -137,7 +161,7 @@ namespace OpenMS
           {
             value.split(':', parts);
             if (parts.size() != 2)
-              value.split('-', parts);  //for downward compatibility
+              value.split('-', parts); //for downward compatibility
             if (parts.size() == 2)
             {
               if (parts[0] != "")
@@ -157,7 +181,7 @@ namespace OpenMS
         }
 
         // check for supported_formats -> supported_formats overwrites restrictions in case of files
-        if ((tags.contains("input file") || tags.contains("output file")) && type == "string")
+        if ((tags.contains("input file") || tags.contains("output file")) && (type == "string" || type == "input-file" || type == "output-file"))
         {
           Int supported_formats_index = attributes.getIndex(s_supported_formats);
           if (supported_formats_index != -1)
@@ -188,24 +212,49 @@ namespace OpenMS
       }
       else if (element == "ITEMLIST")
       {
-        //parse name/type
-        list_.type = attributeAsString_(attributes, "type");
-        list_.name = path_ + attributeAsString_(attributes, "name");
-        //parse description, if present
-        list_.description = "";
-        optionalAttributeAsString_(list_.description, attributes, "description");
-        list_.description.substitute("#br#", "\n");
         //tags
         String tags_string;
         optionalAttributeAsString_(tags_string, attributes, "tags");
         list_.tags = StringList::create(tags_string);
-        //advanced (for downward compatibility with old Param files)
+        
+        
+        //parse name/type
+        list_.type = attributeAsString_(attributes, "type");
+        // handle in-/output file correctly
+        if (list_.type == "input-file")
+        {
+          list_.type = "string";
+          list_.tags.push_back("input file");
+        }
+        else if (list_.type == "output-file")
+        {
+          list_.type = "string";
+          list_.tags.push_back("output file");
+        }
+
+        list_.name = path_ + attributeAsString_(attributes, "name");
+        
+        //parse description, if present
+        list_.description = "";
+        optionalAttributeAsString_(list_.description, attributes, "description");
+        list_.description.substitute("#br#", "\n");
+        
+        //advanced
         String advanced_string;
         optionalAttributeAsString_(advanced_string, attributes, "advanced");
         if (advanced_string == "true")
         {
           list_.tags.push_back("advanced");
         }
+
+        //advanced
+        String required_string;
+        optionalAttributeAsString_(required_string, attributes, "required");
+        if (required_string == "true")
+        {
+          list_.tags.push_back("required");
+        }
+        
         list_.restrictions_index = attributes.getIndex(s_restrictions);
         if (list_.restrictions_index != -1)
         {
@@ -244,9 +293,14 @@ namespace OpenMS
         //check file version against schema version
         String file_version = "";
         optionalAttributeAsString_(file_version, attributes, "version");
-        if (file_version == "")
-          file_version = "1.0";                       //default version is 1.0
-        if (file_version.toDouble() > version_.toDouble())
+
+        // default version is 1.0
+        if (file_version == "") file_version = "1.0";
+
+        VersionInfo::VersionDetails file_version_details = VersionInfo::VersionDetails::create(file_version);
+        VersionInfo::VersionDetails parser_version = VersionInfo::VersionDetails::create(version_);
+
+        if (file_version_details > parser_version)
         {
           warning(LOAD, "The XML file (" + file_version + ") is newer than the parser (" + version_ + "). This might lead to undefined program behavior.");
         }
@@ -286,7 +340,7 @@ namespace OpenMS
           {
             list_.restrictions.split(':', parts);
             if (parts.size() != 2)
-              list_.restrictions.split('-', parts);  //for downward compatibility
+              list_.restrictions.split('-', parts); //for downward compatibility
             if (parts.size() == 2)
             {
               if (parts[0] != "")
@@ -311,7 +365,7 @@ namespace OpenMS
           {
             list_.restrictions.split(':', parts);
             if (parts.size() != 2)
-              list_.restrictions.split('-', parts);  //for downward compatibility
+              list_.restrictions.split('-', parts); //for downward compatibility
             if (parts.size() == 2)
             {
               if (parts[0] != "")

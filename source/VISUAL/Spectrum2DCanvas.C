@@ -692,9 +692,9 @@ namespace OpenMS
     }
   }
 
-  void Spectrum2DCanvas::paintFeatureData_(Size layer_index, QPainter & painter)
+  void Spectrum2DCanvas::paintFeatureData_(Size layer_index, QPainter& painter)
   {
-    const LayerData & layer = getLayer(layer_index);
+    const LayerData& layer = getLayer(layer_index);
     DoubleReal snap_factor = snap_factors_[layer_index];
     Int image_width = buffer_.width();
     Int image_height = buffer_.height();
@@ -705,8 +705,7 @@ namespace OpenMS
     bool show_label = (layer.label != LayerData::L_NONE);
     UInt num = 0;
     for (FeatureMapType::ConstIterator i = layer.getFeatureMap()->begin();
-         i != layer.getFeatureMap()->end();
-         ++i)
+         i != layer.getFeatureMap()->end(); ++i)
     {
       if (i->getRT() >= visible_area_.minPosition()[1] &&
           i->getRT() <= visible_area_.maxPosition()[1] &&
@@ -714,7 +713,7 @@ namespace OpenMS
           i->getMZ() <= visible_area_.maxPosition()[0] &&
           layer.filters.passes(*i))
       {
-        //determine color
+        // determine color
         QColor color;
         if (i->metaValueExists(5))
         {
@@ -724,40 +723,33 @@ namespace OpenMS
         {
           color = heightColor_(i->getIntensity(), layer.gradient, snap_factor);
         }
-        //paint
+        // paint
         QPoint pos;
         dataToWidget_(i->getMZ(), i->getRT(), pos);
         if (pos.x() > 0 && pos.y() > 0 && pos.x() < image_width - 1 && pos.y() < image_height - 1)
         {
           paintIcon_(pos, color.rgb(), icon, icon_size, painter);
         }
-        //labels
+        // labels
         if (show_label)
         {
-          // fallback to indices if no peptide identification
-          LayerData::LabelType actualLabelType =
-            ( layer.label == LayerData::L_ID || layer.label == LayerData::L_ID_ALL)
-            && ( i->getPeptideIdentifications().size()==0 || i->getPeptideIdentifications()[0].getHits().size()==0 )
-            ? LayerData::L_INDEX
-            : layer.label;
-
-          if (actualLabelType == LayerData::L_INDEX)
+          if (layer.label == LayerData::L_INDEX)
           {
-            painter.setPen( Qt::darkBlue );
+            painter.setPen(Qt::darkBlue);
             painter.drawText(pos.x() + 10, pos.y() + 10, QString::number(num));
           }
-          else if ( actualLabelType == LayerData::L_ID || actualLabelType == LayerData::L_ID_ALL )
+          else if ((layer.label == LayerData::L_ID || layer.label == LayerData::L_ID_ALL) && !i->getPeptideIdentifications().empty() && !i->getPeptideIdentifications()[0].getHits().empty())
           {
-              painter.setPen( Qt::darkGreen );
-              Size maxHits = actualLabelType == LayerData::L_ID_ALL ? i->getPeptideIdentifications()[0].getHits().size() : 1;
-              for (Size j = 0; j < maxHits; ++j)
-              {
-                painter.drawText(pos.x() + 10, pos.y() + 10 + int(j) * line_spacing, i->getPeptideIdentifications()[0].getHits()[j].getSequence().toString().toQString());
-              }
+            painter.setPen(Qt::darkGreen);
+            Size maxHits = (layer.label == LayerData::L_ID_ALL) ? i->getPeptideIdentifications()[0].getHits().size() : 1;
+            for (Size j = 0; j < maxHits; ++j)
+            {
+              painter.drawText(pos.x() + 10, pos.y() + 10 + int(j) * line_spacing, i->getPeptideIdentifications()[0].getHits()[j].getSequence().toString().toQString());
+            }
           }
-          else if (actualLabelType == LayerData::L_META_LABEL)
+          else if (layer.label == LayerData::L_META_LABEL)
           {
-            painter.setPen( Qt::darkBlue );
+            painter.setPen(Qt::darkBlue);
             painter.drawText(pos.x() + 10, pos.y() + 10, i->getMetaValue(3).toQString());
           }
         }

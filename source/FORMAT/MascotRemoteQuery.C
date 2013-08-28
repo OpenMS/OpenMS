@@ -38,15 +38,14 @@
 #include <QtGui/QTextDocument>
 #include <iostream>
 
-#define MASCOTREMOTEQUERY_DEBUG
-#undef  MASCOTREMOTEQUERY_DEBUG
+// #define MASCOTREMOTEQUERY_DEBUG
 
 using namespace std;
 
 namespace OpenMS
 {
 
-  MascotRemoteQuery::MascotRemoteQuery(QObject * parent) :
+  MascotRemoteQuery::MascotRemoteQuery(QObject* parent) :
     QObject(parent),
     DefaultParamHandler("MascotRemoteQuery")
   {
@@ -77,6 +76,8 @@ namespace OpenMS
     defaults_.setValidStrings("login", StringList::create("true,false"));
     defaults_.setValue("username", "", "Name of the user if login is used (Mascot security must be enabled!)");
     defaults_.setValue("password", "", "Password of the user if login is used (Mascot security must be enabled!)");
+    defaults_.setValue("use_ssl", "false", "Flag indicating wether the server uses https or not.");
+    defaults_.setValidStrings("use_ssl", StringList::create("true,false"));
 
     // Mascot specific options
     defaults_.setValue("query_master", "false", "If this option is set to true, query peptides will be returned with non-truncated lists, however, protein references of peptides will not be correct.", StringList::create("advanced"));
@@ -90,7 +91,9 @@ namespace OpenMS
   {
     if (http_->state() != QHttp::Unconnected)
     {
+#ifdef MASCOTREMOTEQUERY_DEBUG
       std::cerr << "Aborting open connection!\n";
+#endif
       http_->abort(); // hardcore close connection (otherwise server might have too many dangling requests)
     }
     delete http_;
@@ -104,6 +107,20 @@ namespace OpenMS
 
   void MascotRemoteQuery::run()
   {
+    // Due to the asynchronous nature of QHttp::request (and the resulting use
+    // of signals and slots), the information flow in this class is not very
+    // clear. After the initial call to "run", the steps are roughly as follows:
+    // 1. optional: log into Mascot server (function "login")
+    // 2. send query (function "execQuery")
+    // 3. read query result, prepare exporting (function "httpDone")
+    // 4. send export request (function "getResults")
+    // 5. Mascot 2.4: read result, check for redirect (function "httpDone")
+    // 6. Mascot 2.4: request redirected (caching) page (function "getResults")
+    // (5. and 6. can happen multiple times - keep following redirects)
+    // 7. Mascot 2.4: read result, check if caching's done (function "httpDone")
+    // 8. Mascot 2.4: request results again (function "getResults")
+    // 9. read results, which should now contain the XML (function "httpDone")
+
     updateMembers_();
     connect(http_, SIGNAL(requestFinished(int, bool)), this, SLOT(httpRequestFinished(int, bool)));
     connect(http_, SIGNAL(requestStarted(int)), this, SLOT(httpRequestStarted(int)));
@@ -111,25 +128,14 @@ namespace OpenMS
     connect(http_, SIGNAL(stateChanged(int)), this, SLOT(httpStateChanged(int)));
     connect(http_, SIGNAL(readyRead(const QHttpResponseHeader &)), this, SLOT(readyReadSlot(const QHttpResponseHeader &)));
     connect(http_, SIGNAL(responseHeaderReceived(const QHttpResponseHeader &)), this, SLOT(readResponseHeader(const QHttpResponseHeader &)));
-    connect(this, SIGNAL(loginDone()), this, SLOT(loginSuccess()));
-    connect(this, SIGNAL(queryDone()), this, SLOT(getResults()));
+    connect(this, SIGNAL(gotRedirect(const QHttpResponseHeader &)), this, SLOT(followRedirect(const QHttpResponseHeader &)));
     connect(&timeout_, SIGNAL(timeout()), this, SLOT(timedOut()));
 
-    if (param_.getValue("login").toBool())
-    {
-      login();
-    }
-    else
-    {
-      emit loginDone();
-    }
-    return;
-  }
+    // get progress information
+    connect(http_, SIGNAL(dataReadProgress(int, int)), this, SLOT(httpDataReadProgress(int, int)));
 
-  void MascotRemoteQuery::loginSuccess()
-  {
-    LOG_INFO << "Login successful!" << std::endl;
-    execQuery();
+    if (param_.getValue("login").toBool()) login();
+    else execQuery();
   }
 
   void MascotRemoteQuery::login()
@@ -140,9 +146,9 @@ namespace OpenMS
 
     // header
     QHttpRequestHeader header;
-    QString boundary(((String)param_.getValue("boundary")).c_str());
-    header.setRequest("POST", ("/" + (String)param_.getValue("server_path") + "/cgi/login.pl").c_str());
-    header.setValue("Host", ((String)param_.getValue("hostname")).c_str());
+    QString boundary = boundary_.toQString();
+    header.setRequest("POST", (server_path_ + "/cgi/login.pl").c_str());
+    header.setValue("Host", host_name_.c_str());
     header.setValue("Content-Type", "multipart/form-data, boundary=" + boundary);
     header.setValue("Cache-Control", "no-cache");
     header.setValue("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
@@ -199,18 +205,16 @@ namespace OpenMS
     loginbytes.append("login_prompt\r\n");
     loginbytes.append("--" + boundary + "--\r\n");
 
-//~ #ifdef MASCOTREMOTEQUERY_DEBUG
-    cerr << ">>>> Header to send: " << "\n";
-    cerr << header.toString().toStdString() << "\n";
-    cerr << "ended" << "\n";
-//~ #endif
+#ifdef MASCOTREMOTEQUERY_DEBUG
+    logHeader_(header, "send");
+#endif
 
     header.setContentLength(loginbytes.length());
     http_->request(header, loginbytes);
 
   }
 
-  void MascotRemoteQuery::getResults()
+  void MascotRemoteQuery::getResults(QString results_path)
   {
     //Tidy up again and run another request...
 #ifdef MASCOTREMOTEQUERY_DEBUG
@@ -218,8 +222,8 @@ namespace OpenMS
 #endif
 
     QHttpRequestHeader header;
-    header.setRequest("GET", results_path_);
-    header.setValue("Host", ((String)param_.getValue("hostname")).c_str());
+    header.setRequest("GET", results_path);
+    header.setValue("Host", host_name_.toQString());
     header.setValue("Accept", "text/xml,text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
     header.setValue("Keep-Alive", "300");
     header.setValue("Connection", "keep-alive");
@@ -229,7 +233,38 @@ namespace OpenMS
     }
 
 #ifdef MASCOTREMOTEQUERY_DEBUG
-    cerr << ">>> Header to request results: " << "\n";
+    logHeader_(header, "request results");
+#endif
+
+    http_->request(header);
+  }
+
+  void MascotRemoteQuery::followRedirect(const QHttpResponseHeader& resp)
+  {
+#ifdef MASCOTREMOTEQUERY_DEBUG
+    cerr << "void MascotRemoteQuery::followRedirect(const QHttpResponseHeader &)" << "\n";
+    cerr << "Header containing redirect: \n";
+    cerr << resp.toString().toStdString();
+    cerr << "END HEADER" << "\n";
+    cerr << "Location header: " << resp.value("Location").toStdString() << "\n";
+#endif
+    // parse the location mascot wants us to go
+    QString location = resp.value("Location");
+    removeHostName_(location);
+
+    QHttpRequestHeader header;
+    header.setRequest("GET", location);
+    header.setValue("Host", host_name_.toQString());
+    header.setValue("Accept", "text/xml,text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+    header.setValue("Keep-Alive", "300");
+    header.setValue("Connection", "keep-alive");
+    if (cookie_ != "")
+    {
+      header.setValue("Cookie", cookie_);
+    }
+
+#ifdef MASCOTREMOTEQUERY_DEBUG
+    cerr << ">>> Header to follow redirect: " << "\n";
     cerr << header.toString().toStdString() << "\n";
     cerr << "ended: " << "\n";
 #endif
@@ -244,10 +279,11 @@ namespace OpenMS
 #endif
 
     QHttpRequestHeader header;
+    QString boundary(boundary_.toQString());
 
-    header.setRequest("POST", ("/" + (String)param_.getValue("server_path") + "/cgi/nph-mascot.exe?1").c_str());
-    header.setValue("Host", ((String)param_.getValue("hostname")).c_str());
-    header.setValue("Content-Type", ("multipart/form-data, boundary=" + (String)param_.getValue("boundary")).c_str());
+    header.setRequest("POST", (server_path_ + "/cgi/nph-mascot.exe?1").c_str());
+    header.setValue("Host", host_name_.toQString());
+    header.setValue("Content-Type", ("multipart/form-data, boundary=" + boundary));
     header.setValue("Cache-Control", "no-cache");
     if (cookie_ != "")
     {
@@ -256,7 +292,6 @@ namespace OpenMS
     header.setValue("Accept", "text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*");
 
     QByteArray querybytes;
-    QString boundary(((String)param_.getValue("boundary")).c_str());
     querybytes.append("--" + boundary + "--\n");
     querybytes.append("Content-Disposition: ");
     querybytes.append("form-data; name=\"QUE\"\n");
@@ -269,12 +304,10 @@ namespace OpenMS
     header.setContentLength(querybytes.length());
 
 #ifdef MASCOTREMOTEQUERY_DEBUG
-    cerr << ">>>> Header to request:" << "\n";
-    cerr << header.toString().toStdString() << "\n";
-    cerr << "ended: " << "\n";
-    cerr << ">>>> Query:" << "\n";
-    cerr << querybytes.constData() << "\n";
-    cerr << "ended: " << "\n";
+    logHeader_(header, "request");
+    cerr << ">>>> Query (begin):" << "\n"
+         << querybytes.constData() << "\n"
+         << "<<<< Query (end)." << endl;
 #endif
 
     if (to_ > 0)
@@ -303,6 +336,16 @@ namespace OpenMS
   {
 #ifdef MASCOTREMOTEQUERY_DEBUG
     cerr << "void MascotRemoteQuery::httpDataReadProgress(): " << bytes_read << " bytes of " << bytes_total << " read." << "\n";
+    /*
+    if (http_->state() == QHttp::Reading)
+    {
+      QByteArray new_bytes = http_->readAll();
+      cerr << "Current response: " << "\n";
+      QTextDocument doc;
+      doc.setHtml(new_bytes.constData());
+      cerr << doc.toPlainText().toStdString() << "\n";
+    }
+     */
 #endif
   }
 
@@ -335,30 +378,56 @@ namespace OpenMS
                                            )
   {
 #ifdef MASCOTREMOTEQUERY_DEBUG
-    cout << "State change: " << state << "\n";
+    switch (state)
+    {
+    case QHttp::Closing:
+      cout << "State change to QHttp::Closing\n";
+      break;
+
+    case QHttp::Unconnected:
+      cout << "State change to QHttp::Unconnected\n";
+      break;
+
+    case QHttp::HostLookup:
+      cout << "State change to QHttp::HostLookup\n";
+      break;
+
+    case QHttp::Sending:
+      cout << "State change to QHttp::Sending\n";
+      break;
+
+    case QHttp::Reading:
+      cout << "State change to QHttp::Reading\n";
+      break;
+
+    case QHttp::Connected:
+      cout << "State change to QHttp::Connected\n";
+      break;
+
+    case QHttp::Connecting:
+      cout << "State change to QHttp::Connecting\n";
+      break;
+    }
 #endif
   }
 
-  void MascotRemoteQuery::readyReadSlot(const QHttpResponseHeader & /* resp */)
+  void MascotRemoteQuery::readyReadSlot(const QHttpResponseHeader& /* resp */)
   {
     //if (http_->bytesAvailable() < 1000) std::cerr << "new bytes: " << http_->bytesAvailable() << " from " << resp.toString() << " with code " <<  resp.statusCode() << " and httpstat: " << http_->state() << "\n";
     if (to_ > 0)
-      timeout_.start();          // reset timeout
+      timeout_.start(); // reset timeout
   }
 
-  void MascotRemoteQuery::readResponseHeader(const QHttpResponseHeader & response_header)
+  void MascotRemoteQuery::readResponseHeader(const QHttpResponseHeader& response_header)
   {
 #ifdef MASCOTREMOTEQUERY_DEBUG
     cerr << "void MascotRemoteQuery::readResponseHeader(const QHttpResponseHeader &responseHeader)" << "\n";
-
-    cerr << ">>>>> Header to read: " << "\n";
-    cerr <<  response_header.toString().toStdString() << "\n";
-    cerr << "ended" << "\n";
+    logHeader_(response_header, "read");
 #endif
 
     if (response_header.statusCode() >= 400)
     {
-      error_message_ = String("MascotRemoteQuery: The server returned an error status code '") + response_header.statusCode() + "': " + response_header.reasonPhrase() + "\nTry accessing the server\n  " + (String)param_.getValue("hostname") + "/" + (String)param_.getValue("server_path") + "\n from your browser and check if it works fine.";
+      error_message_ = String("MascotRemoteQuery: The server returned an error status code '") + response_header.statusCode() + "': " + response_header.reasonPhrase() + "\nTry accessing the server\n  " + host_name_ + server_path_ + "\n from your browser and check if it works fine.";
       endRun_();
     }
 
@@ -397,18 +466,15 @@ namespace OpenMS
   void MascotRemoteQuery::endRun_()
   {
     if (http_->state() != QHttp::Unconnected)
+    {
+      http_->clearPendingRequests();
       http_->close();
+    }
     emit done();
   }
 
   void MascotRemoteQuery::httpDone(bool error)
   {
-    if (error)
-    {
-      error_message_ = String("Mascot Server replied: '") + String(http_->errorString().toStdString()) + "'";
-      endRun_();
-    }
-
 #ifdef MASCOTREMOTEQUERY_DEBUG
     cerr << "void MascotRemoteQuery::httpDone(bool error): ";
     if (error)
@@ -423,6 +489,12 @@ namespace OpenMS
 
     timeout_.stop();
 
+    if (error)
+    {
+      error_message_ = String("Mascot Server replied: '") + String(http_->errorString().toStdString()) + "'";
+      endRun_();
+      return;
+    }
 
     QByteArray new_bytes = http_->readAll();
 #ifdef MASCOTREMOTEQUERY_DEBUG
@@ -432,16 +504,19 @@ namespace OpenMS
     cerr << doc.toPlainText().toStdString() << "\n";
 #endif
 
-    if (QString(new_bytes).trimmed().size() == 0)
+    if (QString(new_bytes).trimmed().size() == 0 && !(http_->lastResponse().isValid() && http_->lastResponse().statusCode() == 303))
     {
       error_message_ = "Error: Reply from mascot server is empty! Possible server overload - see the Mascot Admin!";
       endRun_();
+      return;
     }
 
     //Successful login? fire off the search
     if (new_bytes.contains("Logged in successfu")) // Do not use the whole string. Currently Mascot writes 'successfuly', but that might change...
     {
-      emit loginDone();
+      //Successful login? fire off the search
+      LOG_INFO << "Login successful!" << std::endl;
+      execQuery();
     }
     else if (new_bytes.contains("Error: You have entered an invalid password"))
     {
@@ -464,28 +539,51 @@ namespace OpenMS
       rx.setMinimal(true);
       rx.indexIn(response);
 
-      results_path_ = "";
-      results_path_.append("/mascot/cgi/export_dat_2.pl?file=");
-      results_path_.append(rx.cap(1));
-      Int report_max = param_.getValue("max_hits");
-      results_path_.append(QString("&report=") + QString::number(report_max));
+      QString results_path("");
+      results_path.append(server_path_.toQString());
+      results_path.append("/cgi/export_dat_2.pl?file=");
+      results_path.append(rx.cap(1));
+      results_path.append(QString("&report=") + QString::number(max_hits_));
 
 #ifdef MASCOTREMOTEQUERY_DEBUG
-      cerr << "Results path to export: " << results_path_.toStdString() << "\n";
+      cerr << "Results path to export: " << results_path.toStdString() << "\n";
 #endif
       //results_path_.append("&show_same_sets=1&show_unassigned=1&show_queries=1&do_export=1&export_format=XML&pep_rank=1&_sigthreshold=0.99&_showsubsets=1&show_header=1&prot_score=1&pep_exp_z=1&pep_score=1&pep_seq=1&pep_homol=1&pep_ident=1&show_mods=1&pep_var_mod=1&protein_master=1&prot_score=1&search_master=1&show_header=1&show_params=1&pep_scan_title=1&query_qualifiers=1&query_peaks=1&query_raw=1&query_title=1&pep_expect=1&peptide_master=1"); // contains duplicate options
-      results_path_.append("&show_same_sets=1&show_unassigned=1&show_queries=1&do_export=1&export_format=XML&pep_rank=1&_sigthreshold=0.99&_showsubsets=1&show_header=1&prot_score=1&pep_exp_z=1&pep_score=1&pep_seq=1&pep_homol=1&pep_ident=1&show_mods=1&pep_var_mod=1&protein_master=1&search_master=1&show_params=1&pep_scan_title=1&query_qualifiers=1&query_peaks=1&query_raw=1&query_title=1&pep_expect=1&peptide_master=1");
+      results_path.append("&show_same_sets=1&show_unassigned=1&show_queries=1&do_export=1&export_format=XML&pep_rank=1&_sigthreshold=0.99&_showsubsets=1&show_header=1&prot_score=1&pep_exp_z=1&pep_score=1&pep_seq=1&pep_homol=1&pep_ident=1&show_mods=1&pep_var_mod=1&protein_master=1&search_master=1&show_params=1&pep_scan_title=1&query_qualifiers=1&query_peaks=1&query_raw=1&query_title=1&pep_expect=1&peptide_master=1&generate_file=1&group_family=1");
 
       if (param_.getValue("query_master").toBool())
       {
-        results_path_.append("&query_master=1");
+        results_path.append("&query_master=1");
       }
       else
       {
-        results_path_.append("&query_master=0");
+        results_path.append("&query_master=0");
       }
       //Finished search, fire off results retrieval
-      emit queryDone();
+      getResults(results_path);
+    }
+    else if (http_->lastResponse().statusCode() == 303)
+    {
+#ifdef MASCOTREMOTEQUERY_DEBUG
+      cerr << "Retrieved redirect \n";
+#endif
+      emit gotRedirect(http_->lastResponse());
+    }
+    // mascot 2.4 export page done
+    else if (new_bytes.contains("Finished after") &&  new_bytes.contains("<a id=\"continuation-link\""))
+    {
+      // parsing mascot 2.4 continuation download link
+      // <p>Finished after 0 s. <a id="continuation-link" ..
+      QString response(new_bytes);
+      QRegExp rx("<a id=\"continuation-link\" href=\"(.*)\"");
+      rx.setMinimal(true);
+      rx.indexIn(response);
+      QString results_path = rx.cap(1);
+
+      // fill result link again and download
+      removeHostName_(results_path);
+      //Finished search, fire off results retrieval
+      getResults(results_path);
     }
     else
     {
@@ -494,10 +592,20 @@ namespace OpenMS
       QRegExp mascot_error_regex("\\[M[0-9][0-9][0-9][0-9][0-9]\\]");
       if (response_text.contains(mascot_error_regex))
       {
-        LOG_INFO << "Received response with Mascot error message!" << std::endl;
-        QTextDocument doc;
-        doc.setHtml(response_text);
-        error_message_ = doc.toPlainText().toStdString();
+        LOG_ERROR << "Received response with Mascot error message!" << std::endl;
+        if (mascot_error_regex.cap() == "[M00380]")
+        {
+          // we know this error, so we give a much shorter and readable error message for the user
+          LOG_ERROR << "You must enter an email address and user name when using the Matrix Science public web site [M00380]." << std::endl;
+          error_message_ = "You must enter an email address and user name when using the Matrix Science public web site [M00380].";
+        }
+        else
+        {
+          LOG_ERROR << "Error code: " << mascot_error_regex.cap().toStdString() << std::endl;
+          QTextDocument doc;
+          doc.setHtml(response_text);
+          error_message_ = doc.toPlainText().toStdString();
+        }
         endRun_();
       }
       else
@@ -512,12 +620,12 @@ namespace OpenMS
     }
   }
 
-  void MascotRemoteQuery::setQuerySpectra(const String & exp)
+  void MascotRemoteQuery::setQuerySpectra(const String& exp)
   {
     query_spectra_ = exp;
   }
 
-  const QByteArray & MascotRemoteQuery::getMascotXMLResponse() const
+  const QByteArray& MascotRemoteQuery::getMascotXMLResponse() const
   {
     return mascot_xml_;
   }
@@ -527,7 +635,7 @@ namespace OpenMS
     return error_message_ != "";
   }
 
-  const String & MascotRemoteQuery::getErrorMessage() const
+  const String& MascotRemoteQuery::getErrorMessage() const
   {
     return error_message_;
   }
@@ -537,17 +645,29 @@ namespace OpenMS
 #ifdef MASCOTREMOTEQUERY_DEBUG
     cerr << "MascotRemoteQuery::updateMembers_()" << "\n";
 #endif
+    server_path_ = param_.getValue("server_path");
+    //MascotRemoteQuery_test
+    if (server_path_ != "")
+      server_path_ = "/" + server_path_;
+
+    host_name_ = param_.getValue("hostname");
+    use_ssl_ = param_.getValue("use_ssl").toBool();
+
     // clear all content from this class
     delete http_;
     http_ = new QHttp(this);
-    http_->setHost(((String)param_.getValue("hostname")).c_str(), (UInt)param_.getValue("host_port"));
+    http_->setHost(host_name_.c_str(),
+                   (use_ssl_ ? QHttp::ConnectionModeHttps : QHttp::ConnectionModeHttp),
+                   (UInt)param_.getValue("host_port"));
 
+    boundary_ = param_.getValue("boundary");
     cookie_ = "";
     mascot_xml_ = "";
-    results_path_ = "";
 
     to_ = param_.getValue("timeout");
     timeout_.setInterval(1000 * to_);
+    requires_login_ = param_.getValue("login").toBool();
+    max_hits_ = param_.getValue("max_hits");
 
     bool use_proxy(param_.getValue("use_proxy").toBool());
     if (use_proxy)
@@ -567,6 +687,33 @@ namespace OpenMS
     }
 
     return;
+  }
+
+  void MascotRemoteQuery::removeHostName_(QString& url)
+  {
+    if (url.startsWith("http://"))
+      url.remove("http://");
+    else if (url.startsWith("https://"))
+      url.remove("https://");
+
+    if (!url.startsWith(host_name_.toQString()))
+    {
+      LOG_ERROR << "Invalid location returned by mascot! Abort." << std::endl;
+      endRun_();
+      return;
+    }
+    url.remove(host_name_.toQString());
+
+    // ensure path starts with /
+    if (url[0] != '/') url.prepend('/');
+  }
+
+  void MascotRemoteQuery::logHeader_(const QHttpHeader& header,
+                                     const String& what)
+  {
+    cerr << ">>>> Header to " << what << " (begin):\n"
+         << header.toString().toStdString()
+         << "<<<< Header to " << what << " (end)." << endl;
   }
 
 }

@@ -46,29 +46,32 @@ using namespace OpenMS;
 //-------------------------------------------------------------
 
 /**
-  @page TOPP_ConvertTraMLToTSV ConvertTraMLToTSV
+  @page UTILS_ConvertTraMLToTSV ConvertTraMLToTSV
 
   @brief Converts TraML files to OpenSWATH transition TSV files
 
   The OpenSWATH transition TSV files will have the following headers, all fields are separated by tabs:
 
-  PrecursorMz (float)
-  ProductMz (float)
-  Tr_calibrated (float)
-  transition_name (free text, needs to be unique for each transition [in this file])
-  CE (float)
-  LibraryIntensity (float)
-  transition_group_id (free text, designates the transition group [e.g. peptide] to which this transition belongs)
-  decoy (1==decoy, 0== no decoy; determines whether the transition is a decoy transition or not)
-  PeptideSequence  (free text, sequence only (no modifications) )
-  ProteinName  (free text)
-  Annotation  (free text, e.g. y7)
-  FullPeptideName  (free text, should contain modifications*)  
-  MissedCleavages
-  Replicates
-  NrModifications
-  Charge (integer)
-  Labelgroup (free text, e.g. heavy or light)
+        <ul>
+          <li> PrecursorMz (float) </li>
+          <li> ProductMz (float) </li>
+          <li> Tr_calibrated (float) </li>
+          <li> transition_name (free text, needs to be unique for each transition [in this file]) </li>
+          <li> Collision Energy (float) </li>
+          <li> LibraryIntensity (float) </li>
+          <li> transition_group_id (free text, designates the transition group [e.g. peptide] to which this transition belongs) </li>
+          <li> decoy (1==decoy, 0== no decoy; determines whether the transition is a decoy transition or not) </li>
+          <li> PeptideSequence  (free text, sequence only (no modifications) ) </li>
+          <li> ProteinName  (free text) </li>
+          <li> Annotation  (free text, e.g. y7) </li>
+          <li> FullUniModPeptideName  (free text, should contain modifications*)  </li>
+          <li> PrecursorCharge (integer, contains the charge of the precursor) </li>
+          <li> GroupLabel (free text, e.g. heavy or light) </li>
+          <li> UniprotID (free text) </li>
+          <li> FragmentType (free text, contains the type of the fragment, e.g. "b" or "y") </li>
+          <li> FragmentCharge (integer, contains the fragment charge) </li>
+          <li> FragmentSeriesNumber (integer, e.g. for y7 use "7" here) </li>
+        </ul>
 
 * modifications are returned in UniMod annotation.
 

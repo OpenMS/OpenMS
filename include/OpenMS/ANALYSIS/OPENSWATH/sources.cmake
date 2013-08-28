@@ -5,17 +5,18 @@ set(directory include/OpenMS/ANALYSIS/OPENSWATH)
 set(sources_list_h
   PeakPickerMRM.h
   CachedmzML.h
-  DIAHelper.h
-  MRMDecoy.h
-  MRMTransitionGroupPicker.h
-  SpectrumAddition.h
   ChromatogramExtractor.h
+  ConfidenceScoring.h
+  DIAHelper.h
   DIAPrescoring.h
-  MRMFeatureFinderScoring.h
-  TransitionTSVReader.h
   DIAScoring.h
+  MRMDecoy.h
+  MRMFeatureFinderScoring.h
   MRMRTNormalizer.h
+  MRMTransitionGroupPicker.h
   OpenSwathHelper.h
+  SpectrumAddition.h
+  TransitionTSVReader.h
 )
 
 ### add path to the filenames

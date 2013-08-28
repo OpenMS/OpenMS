@@ -129,11 +129,13 @@ namespace OpenMS
 
   QcMLFile::Attachment::Attachment() :
     name(),
+    id(),
     value(),
     cvRef(),
     cvAcc(),
     unitRef(),
     unitAcc(),
+    qualityRef(),
     colTypes(),
     tableRows()
   {
@@ -141,6 +143,7 @@ namespace OpenMS
 
   QcMLFile::Attachment::Attachment(const Attachment& rhs) :
     name(rhs.name),
+    id(rhs.id),
     value(rhs.value),
     cvRef(rhs.cvRef),
     cvAcc(rhs.cvAcc),
@@ -158,6 +161,7 @@ namespace OpenMS
     if (this != &rhs)
     {
       name = rhs.name;
+      id = rhs.id;
       value = rhs.value;
       cvRef = rhs.cvRef;
       cvAcc = rhs.cvAcc;
@@ -191,11 +195,26 @@ namespace OpenMS
     String s = "";
     if ((!colTypes.empty()) && (!tableRows.empty()))
     {
-      s += StringList(colTypes).concatenate(separator).trim();
+      String replacement = "_";
+      if (separator == replacement)
+      {
+        replacement = "$";
+      }
+      std::vector<String> copy = colTypes;
+      for (std::vector<String>::iterator it = copy.begin(); it != copy.end(); ++it)
+      {
+        it->substitute(separator,replacement);
+      }
+      s += StringList(copy).concatenate(separator).trim();
       s += "\n";
       for (std::vector<std::vector<String> >::const_iterator it = tableRows.begin(); it != tableRows.end(); ++it)
       {
-        s += StringList(*it).concatenate(separator).trim();
+        std::vector<String> copy_row = *it;
+        for (std::vector<String>::iterator sit = copy_row.begin(); sit != copy_row.end(); ++sit)
+        {
+          sit->substitute(separator,replacement);
+        }
+        s += StringList(copy_row).concatenate(separator).trim();
         s += "\n";
       }
     }
@@ -204,10 +223,11 @@ namespace OpenMS
 
   String QcMLFile::Attachment::toXMLString(UInt indentation_level) const
   {
+    //TODO manage IDREF to qp internally
     String indent = String(indentation_level, '\t');
     String s = indent;
     s += "<Attachment ";
-    s += " name=\"" + name + "\"" + " cvRef=\"" + cvRef + "\"" + " accession=\"" + cvAcc + "\"";
+    s += " name=\"" + name + "\"" +" ID=\"" + id + "\"" + " cvRef=\"" + cvRef + "\"" + " accession=\"" + cvAcc + "\"";
     if (value != "")
     {
       s += " value=\"" + value + "\"";
@@ -235,11 +255,25 @@ namespace OpenMS
     {
       s += ">\n";
       s += indent + "\t" + "<TableColumnTypes>";
-      s += StringList(colTypes).concatenate(" ").trim();
+      
+      std::vector<String> copy = colTypes;
+      for (std::vector<String>::iterator it = copy.begin(); it != copy.end(); ++it)
+      {
+        it->substitute(String(" "),String("_"));
+      }
+
+      s += StringList(copy).concatenate(" ").trim();
       s += "</TableColumnTypes>\n";
       for (std::vector<std::vector<String> >::const_iterator it = tableRows.begin(); it != tableRows.end(); ++it)
       {
         s += indent + "\t" + "<TableRowValues>";
+        
+        std::vector<String> copy_row = *it;
+        for (std::vector<String>::iterator sit = copy_row.begin(); sit != copy_row.end(); ++sit)
+        {
+          sit->substitute(String(" "),String("_"));
+        }
+        
         s += StringList(*it).concatenate(" ").trim();
         s += "</TableRowValues>\n";
       }
@@ -255,7 +289,7 @@ namespace OpenMS
   }
 
   QcMLFile::QcMLFile() :
-    XMLHandler("", "0.3"), XMLFile("/SCHEMAS/qcml.xsd", "0.3"), ProgressLogger()
+    XMLHandler("", "0.3"), XMLFile("/SCHEMAS/qcml.xsd", "0.3"), ProgressLogger() //TODO correct version
   {
   }
 
@@ -264,71 +298,120 @@ namespace OpenMS
 
   }
 
-  void QcMLFile::addRunQualityParameter(String r, QualityParameter qp)
+  void QcMLFile::addRunQualityParameter(String run_id, QualityParameter qp)
   {
-    runQualityQPs_[r].push_back(qp); //TODO redundancy check
+    // TODO warn that run has to be registered!
+    std::map<String, std::vector<QcMLFile::QualityParameter> >::const_iterator qpsit = runQualityQPs_.find(run_id); //if 'filename is a ID:'
+    if (qpsit != runQualityQPs_.end())
+    {
+      runQualityQPs_[run_id].push_back(qp);
+    }
+    else
+    {
+      std::map<String, String >::const_iterator qpsit = run_Name_ID_map_.find(run_id); //if 'filename' is a name
+      if (qpsit != run_Name_ID_map_.end()) 
+      {
+        runQualityQPs_[qpsit->second].push_back(qp);
+      }
+    }
+    //TODO redundancy check
   }
 
-  void QcMLFile::addSetQualityParameter(String r, QualityParameter qp)
+  void QcMLFile::addSetQualityParameter(String set_id, QualityParameter qp)
   {
-    //~ if (setQualityQPs_[r].empty())
-    //~ {
-    //~ QualityParameter q;
-    //~ q.name = "set name"; ///< Name
-    //~ q.id = r + "_set_name"; ///< Identifier
-    //~ q.cvRef = "QC"; ///< cv reference
-    //~ q.cvAcc = "QC:0000058";
-    //~ q.value = r;
-    //~ setQualityQPs_[r].push_back(q);
-    //~ }
-    setQualityQPs_[r].push_back(qp);
+    // TODO warn that set has to be registered!
+    std::map<String, std::vector<QcMLFile::QualityParameter> >::const_iterator qpsit = setQualityQPs_.find(set_id); //if 'filename is a ID:'
+    if (qpsit != setQualityQPs_.end())
+    {
+      setQualityQPs_[set_id].push_back(qp);
+    }
+    else
+    {
+      std::map<String, String >::const_iterator qpsit = set_Name_ID_map_.find(set_id); //if 'filename' is a name
+      if (qpsit != set_Name_ID_map_.end()) 
+      {
+        setQualityQPs_[qpsit->second].push_back(qp);
+      }
+    }
+    //TODO redundancy check
   }
 
-  void QcMLFile::addRunAttachment(String r, Attachment at)
+  void QcMLFile::addRunAttachment(String run_id, Attachment at)
   {
-    runQualityAts_[r].push_back(at); //TODO permit AT without a QP (or enable orphan writeout in store),redundancy check
+    runQualityAts_[run_id].push_back(at); //TODO permit AT without a QP (or enable orphan writeout in store),redundancy check
   }
 
-  void QcMLFile::addSetAttachment(String r, Attachment at)
+  void QcMLFile::addSetAttachment(String run_id, Attachment at)
   {
-    setQualityAts_[r].push_back(at); //TODO add file QP to set member
+    setQualityAts_[run_id].push_back(at); //TODO add file QP to set member
   }
 
   void QcMLFile::getRunNames(std::vector<String>& ids) const
   {
     ids.clear();
+    boost::copy(run_Name_ID_map_ | boost::adaptors::map_keys, std::back_inserter(ids));
+  }
+  
+  void QcMLFile::getRunIDs(std::vector<String>& ids) const
+  {
+    ids.clear();
     boost::copy(runQualityQPs_ | boost::adaptors::map_keys, std::back_inserter(ids));
   }
 
-  bool QcMLFile::existsRun(const String filename) const
+  bool QcMLFile::existsRun(const String filename, bool checkname) const
   {
-    std::map<String, std::vector<QcMLFile::QualityParameter> >::const_iterator qpsit = runQualityQPs_.find(filename);
-    if (qpsit != runQualityQPs_.end()) //TODO permit AT without a QP
+    std::map<String, std::vector<QcMLFile::QualityParameter> >::const_iterator qpsit = runQualityQPs_.find(filename); //if 'filename is a ID:'
+    if (qpsit != runQualityQPs_.end()) //NO, do not!: permit AT without a QP
     {
       return true;
+    }
+    else if (checkname)
+    {
+      std::map<String, String >::const_iterator qpsit = run_Name_ID_map_.find(filename); //if 'filename' is a name
+      if (qpsit != run_Name_ID_map_.end()) //NO, do not!: permit AT without a QP
+      {
+        return true;
+      }
+
     }
     return false;
   }
 
-  bool QcMLFile::existsSet(const String filename) const
+  bool QcMLFile::existsSet(const String filename, bool checkname) const
   {
-    std::map<String, std::vector<QcMLFile::QualityParameter> >::const_iterator qpsit = setQualityQPs_.find(filename);
-    if (qpsit != setQualityQPs_.end()) //TODO permit AT without a QP
+    std::map<String, std::vector<QcMLFile::QualityParameter> >::const_iterator qpsit = setQualityQPs_.find(filename); //if 'filename is a ID:'
+    if (qpsit != setQualityQPs_.end()) //NO, do not!: permit AT without a QP
     {
       return true;
+    }
+    else if (checkname)
+    {
+      std::map<String, String >::const_iterator qpsit = set_Name_ID_map_.find(filename); //if 'filename' is a name
+      if (qpsit != set_Name_ID_map_.end()) //NO, do not!: permit AT without a QP
+      {
+        return true;
+      }
     }
     return false;
   }
 
   void QcMLFile::existsRunQualityParameter(const String filename, const String qpname, std::vector<String>& ids) const
   {
-    std::map<String, std::vector<QcMLFile::QualityParameter> >::const_iterator qpsit = runQualityQPs_.find(filename);
     ids.clear();
+    std::map<String, std::vector<QcMLFile::QualityParameter> >::const_iterator qpsit = runQualityQPs_.find(filename);
+    if (qpsit == runQualityQPs_.end()) //try name mapping if 'filename' is no ID but name
+    {
+      std::map<String, String >::const_iterator mapsit = run_Name_ID_map_.find(filename);
+      if (mapsit != run_Name_ID_map_.end())
+      {
+        qpsit = runQualityQPs_.find(mapsit->second);
+      }
+    }
     if (qpsit != runQualityQPs_.end())
     {
       for (std::vector<QcMLFile::QualityParameter>::const_iterator qit = qpsit->second.begin(); qit != qpsit->second.end(); ++qit)
       {
-        if (qpname == qit->name)
+        if (qpname == qit->cvAcc)
         {
           ids.push_back(qit->id);
         }
@@ -338,16 +421,23 @@ namespace OpenMS
 
   void QcMLFile::existsSetQualityParameter(const String filename, const String qpname, std::vector<String>& ids) const
   {
-    std::map<String, std::vector<QcMLFile::QualityParameter> >::const_iterator qpsit = setQualityQPs_.find(filename);
-    //~ std::cout << filename << "filename" << std::endl;
     ids.clear();
+    std::map<String, std::vector<QcMLFile::QualityParameter> >::const_iterator qpsit = setQualityQPs_.find(filename);
+    if (qpsit == setQualityQPs_.end()) //try name mapping if 'filename' is no ID but name
+    {
+      std::map<String, String >::const_iterator mapsit = set_Name_ID_map_.find(filename);
+      if (mapsit != set_Name_ID_map_.end())
+      {
+        qpsit = setQualityQPs_.find(mapsit->second);
+      }
+    }
     if (qpsit != setQualityQPs_.end())
     {
       for (std::vector<QcMLFile::QualityParameter>::const_iterator qit = qpsit->second.begin(); qit != qpsit->second.end(); ++qit)
       {
         //~ std::cout << qit->name << "setexists" << std::endl;
         //~ std::cout << qpname << "qpname" << std::endl;
-        if (qpname == qit->name)
+        if (qpname == qit->cvAcc)
         {
           ids.push_back(qit->id);
         }
@@ -419,14 +509,6 @@ namespace OpenMS
     }
   }
 
-  void QcMLFile::removeAllAttachments(String at)
-  {
-    for (std::map<String, std::vector<Attachment> >::iterator it = runQualityAts_.begin(); it != runQualityAts_.end(); ++it)
-    {
-      removeAttachment(it->first, at);
-    }
-  }
-
   void QcMLFile::removeAttachment(String r, String at)
   {
     if (existsRun(r))
@@ -463,8 +545,32 @@ namespace OpenMS
     }
   }
 
+  void QcMLFile::removeAllAttachments(String at)
+  {
+    for (std::map<String, std::vector<Attachment> >::iterator it = runQualityAts_.begin(); it != runQualityAts_.end(); ++it)
+    {
+      removeAttachment(it->first, at);
+    }
+  }
+  
+  void QcMLFile::registerRun(const String id, const String name)
+  {
+    runQualityQPs_[id] = std::vector< QualityParameter >();
+    runQualityAts_[id] = std::vector< Attachment >();
+    run_Name_ID_map_[name] = id;
+  }  
+  
+  void QcMLFile::registerSet(const String id, const String name, const std::set<String>& names)
+  {
+    setQualityQPs_[id] = std::vector< QualityParameter >();
+    setQualityAts_[id] = std::vector< Attachment >();
+    set_Name_ID_map_[name] = id;
+    setQualityQPs_members_[id] = names;
+  }
+
   void QcMLFile::merge(const QcMLFile& addendum, String setname)
   {
+    //TODO registerRun and registerSet! name_id mapping!
     //~ runs
     for (std::map<String, std::vector<QualityParameter> >::const_iterator it = addendum.runQualityQPs_.begin(); it != addendum.runQualityQPs_.end(); ++it)
     {
@@ -507,11 +613,19 @@ namespace OpenMS
   String QcMLFile::exportAttachment(const String filename, const String qpname) const
   {
     std::map<String, std::vector<QcMLFile::Attachment> >::const_iterator qpsit = runQualityAts_.find(filename);
+    if (qpsit == runQualityAts_.end()) //try name mapping if 'filename' is no ID but name
+    {
+      std::map<String, String >::const_iterator mapsit = run_Name_ID_map_.find(filename);
+      if (mapsit != run_Name_ID_map_.end())
+      {
+        qpsit = runQualityAts_.find(mapsit->second);
+      }
+    }
     if (qpsit != runQualityAts_.end())
     {
       for (std::vector<QcMLFile::Attachment>::const_iterator qit = qpsit->second.begin(); qit != qpsit->second.end(); ++qit)
       {
-        if (qpname == qit->name)
+        if ( (qpname == qit->name) || (qpname == qit->cvAcc) )
         {
           return qit->toCSVString("\t");
           //~ return qit->toXMLString(1);
@@ -521,11 +635,19 @@ namespace OpenMS
 
     // if the return statement wasn't hit from runs maybe it is from sets?
     qpsit = setQualityAts_.find(filename);
+    if (qpsit == setQualityAts_.end()) //try name mapping if 'filename' is no ID but name
+    {
+      std::map<String, String >::const_iterator mapsit = set_Name_ID_map_.find(filename);
+      if (mapsit != set_Name_ID_map_.end())
+      {
+        qpsit = setQualityAts_.find(mapsit->second);
+      }
+    }
     if (qpsit != setQualityAts_.end())
     {
       for (std::vector<QcMLFile::Attachment>::const_iterator qit = qpsit->second.begin(); qit != qpsit->second.end(); ++qit)
       {
-        if (qpname == qit->name)
+        if ( (qpname == qit->name) || (qpname == qit->cvAcc) )
         {
           return qit->toCSVString("\t");
           //~ return qit->toXMLString(1);
@@ -539,41 +661,57 @@ namespace OpenMS
   String QcMLFile::exportQP(const String filename, const String qpname) const
   {
     std::map<String, std::vector<QcMLFile::QualityParameter> >::const_iterator qpsit = runQualityQPs_.find(filename);
+    if (qpsit == runQualityQPs_.end()) //try name mapping if 'filename' is no ID but name
+    {
+      std::map<String, String >::const_iterator mapsit = run_Name_ID_map_.find(filename);
+      if (mapsit != run_Name_ID_map_.end())
+      {
+        qpsit = runQualityQPs_.find(mapsit->second);
+      }
+    }
     if (qpsit != runQualityQPs_.end())
     {
       for (std::vector<QcMLFile::QualityParameter>::const_iterator qit = qpsit->second.begin(); qit != qpsit->second.end(); ++qit)
       {
-        if (qpname == qit->name)
+        if (qpname == qit->cvAcc)
         {
-          return "\""+qit->value+"\"";
+          return /* "\""+ */qit->value/* +"\"" */;
         }
       }
     }
 
     // if the return statement wasn't hit from runs maybe it is from sets?
     qpsit = setQualityQPs_.find(filename);
+    if (qpsit == setQualityQPs_.end()) //try name mapping if 'filename' is no ID but name
+    {
+      std::map<String, String >::const_iterator mapsit = set_Name_ID_map_.find(filename);
+      if (mapsit != set_Name_ID_map_.end())
+      {
+        qpsit = setQualityQPs_.find(mapsit->second);
+      }
+    }
     if (qpsit != setQualityQPs_.end())
-    {	    
+    {    
       for (std::vector<QcMLFile::QualityParameter>::const_iterator qit = qpsit->second.begin(); qit != qpsit->second.end(); ++qit)
       {
         if (qpname == qit->name)
         {
-          return "\""+qit->value+"\"";
+          return /* "\""+ */qit->value/* +"\"" */;
         }
       }
     }
 
-    return "\"N/A\"";
+    return "N/A";
   }
   
    String QcMLFile::exportQPs(const String filename, const StringList qpnames) const
   {
-	  String ret = "";
-	  for (StringList::const_iterator qit = qpnames.begin(); qit != qpnames.end(); ++qit)
-	  {
-		  ret += exportQP(filename,*qit);
-		  ret += ",";
-	  }
+    String ret = "";
+    for (StringList::const_iterator qit = qpnames.begin(); qit != qpnames.end(); ++qit)
+    {
+       ret += exportQP(filename,*qit);
+       ret += ",";
+    }
     return ret;
   }
   
@@ -617,6 +755,14 @@ namespace OpenMS
   String QcMLFile::exportIDstats(const String& filename) const
   {
     std::map<String, std::vector<QualityParameter> >::const_iterator found = setQualityQPs_.find(filename);
+    if (found == setQualityQPs_.end()) //try name mapping if 'filename' is no ID but name
+    {
+      std::map<String, String >::const_iterator mapsit = set_Name_ID_map_.find(filename);
+      if (mapsit != set_Name_ID_map_.end())
+      {
+        found = setQualityQPs_.find(mapsit->second);
+      }
+    }
     if (found != setQualityQPs_.end())
     {
       std::map<String, std::map<String, String> > cvs_table;
@@ -700,6 +846,7 @@ namespace OpenMS
     }
     else if (tag_ == "RunQuality")
     {
+      run_id_ = attributeAsString_(attributes, "ID"); //TODO!
       setProgress(++progress_);
       qps_.clear();
       ats_.clear();
@@ -720,7 +867,7 @@ namespace OpenMS
       qp_.name = attributeAsString_(attributes, "name");
       if (parent_tag == "RunQuality")
       {
-        if (qp_.cvAcc == "MS:1000584") //no own qc cv
+        if (qp_.cvAcc == "MS:1000577") //no own qc cv
         {
           name_ = qp_.value;
         }
@@ -728,7 +875,7 @@ namespace OpenMS
       }
       else //SetQuality
       {
-        if (qp_.cvAcc == "MS:1000584") //TODO make sure these exist in runs later!
+        if (qp_.cvAcc == "MS:1000577") //TODO make sure these exist in runs later!
         {
           names_.insert(qp_.value);
         }
@@ -746,10 +893,13 @@ namespace OpenMS
       at_.cvRef = attributeAsString_(attributes, "cvRef");
       at_.cvAcc = attributeAsString_(attributes, "accession");
       at_.name = attributeAsString_(attributes, "name");
+      at_.id = attributeAsString_(attributes, "ID");
+      at_.qualityRef = attributeAsString_(attributes, "qualityParameterRef");
     }
     else if (tag_ == "SetQuality")
     {
       setProgress(++progress_);
+      run_id_ = attributeAsString_(attributes, "ID"); //TODO!
       qps_.clear();
       ats_.clear();
       qp_ = QualityParameter();
@@ -829,7 +979,7 @@ namespace OpenMS
     }
     else if (tag_ == "QualityParameter")
     {
-      if (!(qp_.cvAcc == "MS:1000584" && parent_tag == "SetQuality")) //set members get treated differently!
+      if (!(qp_.cvAcc == "MS:1000577" && parent_tag == "SetQuality")) //set members get treated differently!
       {
         qps_.push_back(qp_);
         qp_ = QualityParameter();
@@ -844,16 +994,18 @@ namespace OpenMS
     {
       if (name_ == "")
       {
-        name_ = String(UniqueIdGenerator::getUniqueId());
+        name_ = run_id_;
+        //~ name_ = String(UniqueIdGenerator::getUniqueId());
         //TODO give warning that a run should have a name cv!!!
       }
+      registerRun(run_id_,name_);
       for (std::vector<QualityParameter>::const_iterator it = qps_.begin(); it != qps_.end(); ++it)
       {
-        addRunQualityParameter(name_, *it);
+        addRunQualityParameter(run_id_, *it);
       }
       for (std::vector<Attachment>::const_iterator it = ats_.begin(); it != ats_.end(); ++it)
       {
-        addRunAttachment(name_, *it);
+        addRunAttachment(run_id_, *it);
       }
       ats_.clear();
       qps_.clear();
@@ -862,17 +1014,18 @@ namespace OpenMS
     {
       if (name_ == "")
       {
-        name_ = String(UniqueIdGenerator::getUniqueId());
-        //TODO give warning that a set should have a name cv!!!
+        name_ = run_id_;
+        //~ name_ = String(UniqueIdGenerator::getUniqueId());
+        //TODO give warning that a run should have a name cv!!!
       }
-      setQualityQPs_members_[name_] = names_;
+      registerSet(run_id_, name_, names_);
       for (std::vector<QualityParameter>::const_iterator it = qps_.begin(); it != qps_.end(); ++it)
       {
-        addSetQualityParameter(name_, *it);
+        addSetQualityParameter(run_id_, *it);
       }
       for (std::vector<Attachment>::const_iterator it = ats_.begin(); it != ats_.end(); ++it)
       {
-        addSetAttachment(name_, *it);
+        addSetAttachment(run_id_, *it);
       }
       ats_.clear();
       qps_.clear();
@@ -902,63 +1055,100 @@ namespace OpenMS
        << "  <!ATTLIST xsl:stylesheet\n"
        << "  id  ID  #REQUIRED>\n"
        << "  ]>\n";
-    os << "<MzQualityMLType>\n"; //TODO creation date into schema!!
-    os << "<xsl:stylesheet id=\"stylesheet\" version=\"1.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\">\n"
-       << "<xsl:template match=\"/\">\n"
-       << "  <html>\n"
-       << "  <body>\n"
-       << "   <h2>The Quality Parameters</h2>\n"
-       << "   <xsl:for-each select=\"MzQualityMLType/RunQuality/QualityParameter\">\n"
-       << "    <xsl:value-of select=\"@name\" />: <xsl:value-of select=\"@value\" />\n"
-       << "    <table border=\"0\">\n"
-       << "    <tr bgcolor=\"#9acd32\">\n"
-       << "     <xsl:call-template name=\"output-header\">\n"
-       << "      <xsl:with-param name=\"list\"><xsl:value-of select=\"TableColumnTypes\" /></xsl:with-param>\n"
-       << "     </xsl:call-template>\n"
-       << "    </tr>\n"
-       << "    <xsl:for-each select=\"TableRowValues\">\n"
-       << "     <tr>\n"
-       << "     <xsl:call-template name=\"output-row\">\n"
-       << "      <xsl:with-param name=\"list\"><xsl:value-of select=\".\" /></xsl:with-param>\n"
-       << "     </xsl:call-template></tr></xsl:for-each>\n"
-       << "     </table><br/>\n"
-       << "    </xsl:for-each>\n"
-       << "   <h2>The Quality Plots</h2>\n"
-       << "    <xsl:for-each select=\"MzQualityMLType/RunQuality/Attachment\">\n"
-       << "     <img>\n"
-       << "      <xsl:attribute name=\"src\">\n"
-       << "       data:image/png;base64,<xsl:value-of select=\"binary\" />\n"
-       << "      </xsl:attribute>\n"
-       << "     </img> <br/>\n"
-       << "    </xsl:for-each>\n"
-       << "  </body>\n"
-       << "  </html>\n"
-       << "</xsl:template>\n"
-       << "<xsl:template name=\"output-header\">\n"
-       << "    <xsl:param name=\"list\" />\n"
-       << "    <xsl:variable name=\"newlist\" select=\"concat(normalize-space($list), ' ')\" />\n"
-       << "    <xsl:variable name=\"first\" select=\"substring-before($newlist, ' ')\" />\n"
-       << "    <xsl:variable name=\"remaining\" select=\"substring-after($newlist, ' ')\" />\n"
-       << "    <th><xsl:value-of select=\"$first\" /></th>\n"
-       << "    <xsl:if test=\"$remaining\">\n"
-       << "        <xsl:call-template name=\"output-header\">\n"
-       << "            <xsl:with-param name=\"list\" select=\"$remaining\" />\n"
-       << "        </xsl:call-template>\n"
-       << "    </xsl:if>\n"
-       << "</xsl:template>\n"
-       << "<xsl:template name=\"output-row\">\n"
-       << "    <xsl:param name=\"list\" />\n"
-       << "    <xsl:variable name=\"newlist\" select=\"concat(normalize-space($list), ' ')\" />\n"
-       << "    <xsl:variable name=\"first\" select=\"substring-before($newlist, ' ')\" />\n"
-       << "    <xsl:variable name=\"remaining\" select=\"substring-after($newlist, ' ')\" />\n"
-       << "    <td><xsl:value-of select=\"$first\" /></td>\n"
-       << "    <xsl:if test=\"$remaining\">\n"
-       << "        <xsl:call-template name=\"output-row\">\n"
-       << "            <xsl:with-param name=\"list\" select=\"$remaining\" />\n"
-       << "        </xsl:call-template>\n"
-       << "    </xsl:if>\n"
-       << "</xsl:template>\n"
-       << "</xsl:stylesheet>\n";
+    os << "<MzQualityML>\n"; //TODO creation date into schema!!
+    os << "<xsl:stylesheet id=\"stylesheet\" version=\"1.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\">"
+        << "  <xsl:template match=\"/\">"
+        << "    <html>"
+        << "    <body>"
+        << "    <h2>Run QC</h2>"
+        << "    <xsl:for-each select=\"MzQualityML/RunQuality\">"
+        << "      <xsl:apply-templates/>"
+        << "    </xsl:for-each>"
+        << "    <h2>Set QC</h2>"
+        << "    <xsl:for-each select=\"MzQualityML/SetQuality\">"
+        << "      <xsl:apply-templates/>"
+        << "    </xsl:for-each>"
+        << "    <!--<h2>Orphans TODO</h2>"
+        << "    <xsl:for-each select=\"orphans\">"
+        << "      <xsl:apply-templates/>"
+        << "    </xsl:for-each>-->"
+        << "    </body>"
+        << "    </html>"
+        << "  </xsl:template>"
+        << "  <xsl:template match=\"QualityParameter[@accession = 'MS:1000577']\">"
+        << "    <h3><xsl:value-of select=\"@value\" /></h3>"
+        << "  </xsl:template>"
+        << "  <xsl:template match=\"QualityParameter[not(@accession = 'MS:1000577') and @value]\">"
+        << "    <xsl:value-of select=\"@name\" />: <xsl:value-of select=\"@value\" /><br/>"
+        << "    <xsl:call-template name=\"qp-attachments\">"
+        << "      <xsl:with-param name=\"qpref\" select=\"@ID\" />"
+        << "    </xsl:call-template>"
+        << "  </xsl:template>"
+        << "  <xsl:template match=\"QualityParameter[not(@value)]\">"
+        << "    <xsl:value-of select=\"@name\" />:<br/>"
+        << "    <xsl:call-template name=\"qp-attachments\">"
+        << "      <xsl:with-param name=\"qpref\" select=\"@ID\" />"
+        << "    </xsl:call-template>"
+        << "  </xsl:template>"
+        << "  <xsl:template match=\"Attachment\">"
+        << "  <!--Attachments handled otherwise below -->"
+        << "  </xsl:template>"
+        << "  <xsl:template name=\"qp-attachments\">"
+        << "    <xsl:param name=\"qpref\" />"
+        << "    <xsl:for-each select=\"../Attachment[@qualityParameterRef=$qpref]\">"
+        << "      +<xsl:value-of select=\"@name\"/>+<br/>"
+        << "      <xsl:choose>"
+        << "        <xsl:when test=\"binary\">"
+        << "          <img>"
+        << "            <xsl:attribute name=\"src\">"
+        << "             data:image/png;base64,<xsl:value-of select=\"binary\" />"
+        << "            </xsl:attribute>"
+        << "          </img> <br/>"
+        << "        </xsl:when>"
+        << "        <xsl:otherwise>"
+        << "          <table border=\"0\">"
+        << "          <tr bgcolor=\"#9acd32\">"
+        << "            <xsl:call-template name=\"output-header\">"
+        << "              <xsl:with-param name=\"list\"><xsl:value-of select=\"TableColumnTypes\" /></xsl:with-param>"
+        << "            </xsl:call-template>"
+        << "          </tr>"
+        << "          <xsl:for-each select=\"TableRowValues\">"
+        << "            <tr>"
+        << "            <xsl:call-template name=\"output-row\">"
+        << "              <xsl:with-param name=\"list\"><xsl:value-of select=\".\" /></xsl:with-param>"
+        << "            </xsl:call-template>"
+        << "            </tr>"
+        << "          </xsl:for-each>"
+        << "          </table><br/>"
+        << "        </xsl:otherwise>"
+        << "      </xsl:choose>"
+        << "      </xsl:for-each>"
+        << "  </xsl:template>"
+        << "  <xsl:template name=\"output-header\">"
+        << "      <xsl:param name=\"list\" />"
+        << "      <xsl:variable name=\"newlist\" select=\"concat(normalize-space($list), ' ')\" />"
+        << "      <xsl:variable name=\"first\" select=\"substring-before($newlist, ' ')\" />"
+        << "      <xsl:variable name=\"remaining\" select=\"substring-after($newlist, ' ')\" />"
+        << "      <th><xsl:value-of select=\"$first\" /></th>"
+        << "      <xsl:if test=\"$remaining\">"
+        << "    <xsl:call-template name=\"output-header\">"
+        << "        <xsl:with-param name=\"list\" select=\"$remaining\" />"
+        << "    </xsl:call-template>"
+        << "      </xsl:if>"
+        << "  </xsl:template>"
+        << "  <xsl:template name=\"output-row\">"
+        << "      <xsl:param name=\"list\" />"
+        << "      <xsl:variable name=\"newlist\" select=\"concat(normalize-space($list), ' ')\" />"
+        << "      <xsl:variable name=\"first\" select=\"substring-before($newlist, ' ')\" />"
+        << "      <xsl:variable name=\"remaining\" select=\"substring-after($newlist, ' ')\" />"
+        << "      <td><xsl:value-of select=\"$first\" /></td>"
+        << "      <xsl:if test=\"$remaining\">"
+        << "    <xsl:call-template name=\"output-row\">"
+        << "        <xsl:with-param name=\"list\" select=\"$remaining\" />"
+        << "    </xsl:call-template>"
+        << "      </xsl:if>"
+        << "  </xsl:template>"
+        << "</xsl:stylesheet>\n";
 
     //content runs
     std::set<String> keys;
@@ -975,7 +1165,7 @@ namespace OpenMS
     {
       for (std::set<String>::const_iterator it = keys.begin(); it != keys.end(); ++it)
       {
-        os << "\t<RunQuality>\n";
+        os << "\t<RunQuality ID=\"" << String(*it) << "\">\n";
         std::map<String, std::vector<QualityParameter> >::const_iterator qpsit = runQualityQPs_.find(*it);
         if (qpsit != runQualityQPs_.end())
         {
@@ -989,7 +1179,7 @@ namespace OpenMS
         {
           for (std::vector<QcMLFile::Attachment>::const_iterator ait = attit->second.begin(); ait != attit->second.end(); ++ait)
           {
-            os << ait->toXMLString(4);
+            os << ait->toXMLString(4); //TODO check integrity of reference to qp!
           }
         }
         os << "\t</RunQuality>\n";
@@ -1011,7 +1201,7 @@ namespace OpenMS
     {
       for (std::set<String>::const_iterator it = keys.begin(); it != keys.end(); ++it)
       {
-        os << "\t<SetQuality>\n";
+        os << "\t<SetQuality> ID=\"" << String(*it) << ">\n";
         //~ TODO warn if key has no entries in members_
 
         //document set members
@@ -1053,8 +1243,13 @@ namespace OpenMS
 
 
     }
+    os <<  "\t<cvList>\n";
+    os <<  "\t<cv uri=\"http://psidev.cvs.sourceforge.net/viewvc/psidev/psi/psi-ms/mzML/controlledVocabulary/psi-ms.obo\" id=\"psi_cv_ref\" fullName=\"PSI-MS\" version=\"x.y.z\"/>\n";
+    os <<  "\t<cv uri=\"http://www.???.cvs.sourceforge.net/???/qc-cv.obo\" id=\"qc_cv_ref\" fullName=\"MS-QC\" version=\"x.y.z\"/>\n";
+    os <<  "\t<cv uri=\"http://obo.cvs.sourceforge.net/viewvc/obo/obo/ontology/phenotype/unit.obo\" id=\"uo_cv_ref\" fullName=\"unit\" version=\"x.y.z\"/>\n";
+    os <<  "\t</cvList>\n";
 
-    os << "</MzQualityMLType>\n";
+    os << "</MzQualityML>\n";
   }
 
 }

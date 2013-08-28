@@ -36,13 +36,17 @@
 using namespace OpenMS;
 using namespace std;
 
-Int main()
+int main(int argc, const char** argv)
 {
+  if (argc < 2) return 1;
+  // the path to the data should be given on the command line
+  String tutorial_data_path(argv[1]);
+  
   PeakMap exp_raw;
   PeakMap exp_picked;
 
   MzMLFile mzml_file;
-  mzml_file.load("data/Tutorial_PeakPickerCWT.mzML", exp_raw);
+  mzml_file.load(tutorial_data_path + "/data/Tutorial_PeakPickerCWT.mzML", exp_raw);
 
   PeakPickerCWT pp;
   Param param;

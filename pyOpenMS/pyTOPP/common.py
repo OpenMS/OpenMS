@@ -8,7 +8,7 @@ def addDataProcessing(obj, params, action):
         result = pms.MSExperiment()
         for spec in obj:
             spec = _addDataProcessing(spec, params, action)
-            result.push_back(spec)
+            result.addSpectrum(spec)
     else:
         result = _addDataProcessing(obj, params, action)
     return result

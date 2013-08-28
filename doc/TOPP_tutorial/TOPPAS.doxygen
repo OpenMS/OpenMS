@@ -78,14 +78,14 @@
 			a @em selected node is dragged, it is moved on the canvas instead).
 			When a connection is created and the source (the target) has more than one output (input) parameter,
 			an input/output parameter
-			mapping dialog shows up and let's the user select the output parameter of the source node and the
-			input parameter of the target node for this data flow.
+			mapping dialog shows up and lets the user select the output parameter of the source node and the
+			input parameter of the target node for this data flow - shown here for the connection between PeptideIndexer and FalseDiscoveryRate.
 			If the file types of the selected input and output parameters are not compatible with each other,
 			@b TOPPAS will refuse to add the connection. It will also refuse to add a connection if it
 			would create a cycle in the workflow, or if it just would not make sense, e.g., if
-			its target is an input file node. The connection between the input file node and the BaselineFilter
-			tool is painted yellow which means it is not ready yet, because no input files have been
-			specified yet.
+			its target is an input file node. The connection between the input file node (#1) and the OMSSAAdapter (#5)
+			tool is painted yellow which indicates it is not ready yet, because no input files have been
+			specified.
 			
 			@image html TOPPAS_edges.png
 			@image latex TOPPAS_edges.png "" width=14cm

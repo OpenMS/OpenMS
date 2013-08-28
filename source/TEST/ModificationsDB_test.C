@@ -43,6 +43,14 @@
 using namespace OpenMS;
 using namespace std;
 
+struct ResidueModificationOriginCmp
+{
+  bool operator() (const ResidueModification* a, const ResidueModification* b)
+  {
+    return a->getOrigin() < b->getOrigin();
+  }
+};
+
 START_TEST(ModificationsDB, "$Id$")
 
 /////////////////////////////////////////////////////////////
@@ -87,9 +95,25 @@ START_SECTION((void searchModifications(std::set< const ResidueModification * > 
   TEST_EQUAL(mods.size(), 4)
   ABORT_IF(mods.size() != 4)
 
-  set<const ResidueModification*>::const_iterator mod_it = mods.begin();
+  // Create a sorted set (sorted by getOrigin) instead of sorted by pointer
+  // value -> this is more robust on different platforms.
+  set<const ResidueModification*, ResidueModificationOriginCmp> mods_sorted;
 
-  TEST_STRING_EQUAL((*mod_it)->getOrigin(), "Y")
+  // Copy the mods into our sorted container
+  set<const ResidueModification*>::const_iterator mod_it_ = mods.begin();
+  for (; mod_it_ != mods.end(); mod_it_++)
+  {
+    mods_sorted.insert((*mod_it_));
+  }
+
+  set<const ResidueModification*, ResidueModificationOriginCmp>::const_iterator mod_it = mods_sorted.begin();
+
+  TEST_STRING_EQUAL((*mod_it)->getOrigin(), "C-term")
+  TEST_STRING_EQUAL((*mod_it)->getId(), "Label:18O(1)")
+  TEST_EQUAL((*mod_it)->getTermSpecificity(), ResidueModification::C_TERM)
+  ++mod_it;
+
+  TEST_STRING_EQUAL((*mod_it)->getOrigin(), "S")
   TEST_STRING_EQUAL((*mod_it)->getId(), "Label:18O(1)")
   TEST_EQUAL((*mod_it)->getTermSpecificity(), ResidueModification::ANYWHERE)
   ++mod_it;
@@ -99,21 +123,23 @@ START_SECTION((void searchModifications(std::set< const ResidueModification * > 
   TEST_EQUAL((*mod_it)->getTermSpecificity(), ResidueModification::ANYWHERE)
   ++mod_it;
 
-  TEST_STRING_EQUAL((*mod_it)->getOrigin(), "S")
+  TEST_STRING_EQUAL((*mod_it)->getOrigin(), "Y")
   TEST_STRING_EQUAL((*mod_it)->getId(), "Label:18O(1)")
   TEST_EQUAL((*mod_it)->getTermSpecificity(), ResidueModification::ANYWHERE)
-  ++mod_it;
-
-  TEST_STRING_EQUAL((*mod_it)->getOrigin(), "C-term")
-  TEST_STRING_EQUAL((*mod_it)->getId(), "Label:18O(1)")
-  TEST_EQUAL((*mod_it)->getTermSpecificity(), ResidueModification::C_TERM)
 
   ptr->searchTerminalModifications(mods, "Label:18O(1)", ResidueModification::C_TERM);
 
   TEST_EQUAL(mods.size(), 1)
   ABORT_IF(mods.size() != 1)
 
-  mod_it = mods.begin();
+  // Copy the mods into our sorted container
+  mods_sorted.clear();
+  for (mod_it_ = mods.begin(); mod_it_ != mods.end(); mod_it_++)
+  {
+    mods_sorted.insert((*mod_it_));
+  }
+
+  mod_it = mods_sorted.begin();
   TEST_STRING_EQUAL((*mod_it)->getOrigin(), "C-term")
   TEST_STRING_EQUAL((*mod_it)->getId(), "Label:18O(1)")
   TEST_EQUAL((*mod_it)->getTermSpecificity(), ResidueModification::C_TERM)

@@ -7,7 +7,134 @@ INI file - parameter configuration file, holding custom parameter settings for T
 INIFileEditor - graphical parameter editor for INI files
 
 ------------------------------------------------------------------------------------------ 
-----                                  OpenMS 1.10                                      ---- 
+----                                  OpenMS 1.11                                     ---- 
+------------------------------------------------------------------------------------------ 
+Release date: August 2013
+
+OpenMS 1.11 is the first release with fully integrated Python bindings (termed pyOpenMS). 
+For further details, please refer to https://pypi.python.org/pypi/pyopenms
+
+File formats:
+- QcML support
+- pepXML exported from Mascot (added support)
+- mzTab updated to 1.0RC3
+- ParamXML updated to v 1.6.2
+- support for CTD schema 0.3
+- full support of sourceFile tag in mzML (all source files are written, SHA1 support)
+
+TOPPView:
+- handle .mzML file with mixed spectra and chromatograms (prefer spectra)
+- chromatograms of all types can be displayed (not just SRM)
+- link to documentation and webpage fixed
+- fix a segfault when loading empty chromatograms into TOPPView
+
+TOPPAS:
+- link to documentation and webpage fixed
+
+TOPP tools:
+- MODIFIED:
+  - FeatureLinkerUnlabeledQT: performance (speed and memory) improvement 
+  - FeatureLinkerUnlabeled: performance (memory) improvement (now constant in number of input maps)
+  - MapAlignerPoseClustering: performance (memory) improvement (now constant in number of input maps)
+  - EICExtractor: critical bugfix if the input map was not sorted
+  - PeptideIndexer: by default now demands that the peptide is fully tryptic ("-enzyme:specificity none" restores the old behavior)
+  - FileFilter: filter MS2 spectra by consensus map feature overlap, collision energy, isolation window width
+  - ProteinResolver: documentation and interface improvements
+  - QCCalculator/QCEmbedder/QCExtractor: multiple improvements
+  - WindowMower: speed improvement (movetype either slide or jump [faster])
+- ADDED
+  - AccurateMassSearch: AccurateMassSearch assembles metabolite features from singleton mass traces.
+  - IsobaricAnalyzer: Extracts and normalizes isobaric labeling information from an MS experiment. This merges the previous TMTAnalyzer and ITRAQAnalyzer functionality
+  - QCExtractor: Extracts a table attachment to a given qc parameter
+  - QCImporter: Embed tables or pictures in QcML
+
+General:
+- Python bindings allow full access to the OpenMS API from Python 
+- TOPPTools now support passing of all parameters on the command line (use --helphelp)
+- Better chromatogram support (for NoiseFilterGaussian, NoiseFilterSGolay, PeakPickerHiRes)
+
+Search engine support:
+- Mascot 2.4 is now supported
+- OMSSAAdapter with improved memory footprint
+- N-terminal modifications work now with X!Tandem
+
+Changes to the Build System / Package System:
+- shared linking works for all contrib packages with automated detection using CMake find modules 
+- upgrade of xerces to version 3.1.1
+- upgrade of libsvm to version 3.12
+
+Development:
+- public inheritance from std::vector and std::set has been reduced in the
+  OpenMS codebase (removed from ConsensusFeature, FeatureMap, ConsensusMap,
+  MSExperiment)
+- addition of the OpenMS/INTERFACES folder which contains proposed OpenMS
+  interfaces for reading/writing spectra
+
+Deprecated:
+- TMTAnalyzer, ITRAQAnalyzer -> please use IsobaricAnalyzer instead
+- Several functions provided by std::vector in the MSSpectrum interface are now
+  deprecated (e.g. push_back, reserve etc.)
+
+Resolved issues:
+  #120	Improve visual representation of edges
+  #151	Optimize time/memory efficiency of critical tools/algorithms
+  #184	Some OpenMS classes are derived from std::vector
+  #309	FileConverter puts incorrect/incomplete information in <sourceFile>
+  #343	OpenMS build system should allow searching for contrib libs also in system paths (e.g., /opt/local/..)
+  #382	Excessive memory usage by MapAligners and FeatureLinkers
+  #398	INIFileEditor doesn't save modified values if still in edit mode
+  #457	Use system libraries instead of contrib
+  #465	"-debug" option in TOPP tools doesn't show LOG_DEBUG messages
+  #497	Non-intuitive way to edit parameters in TOPPView/TOPPAS/INIFileEditor
+  #516	TOPPAS: "Refresh parameters" complains if no input files are present
+  #517	MSQuantification::load declared but not implemented
+  #519	Merge ITRAQAnalyzer and TMTAnalyzer
+  #520	Support linking against shared libs
+  #521	Upgrade contrib libsvm
+  #522	Make parameters from subsections addressable from command line
+  #523	Link to OpenMS website from within TOPPAS/TOPPView broken
+  #524	PeptideIndexer does not honor cleavage sites
+  #525	EICExtractor will report wrong intensities if input map is not sorted
+  #527	pyOpenMS compile issue with clang
+  #529	Strange naming of TextExporter parameters
+  #531	Upgrade xerces-c version in contrib to 3.1.1
+  #533	pyOpenMS
+  #534	MascotAdapterOnline does not support Mascot 2.4
+  #535	mzML with Spectra and Chromatograms
+  #536	MascotAdapterOnline SSL and Mascot 2.4
+  #537	Invalid Doxygen XML Files
+  #540	IsobaricAnalyzer
+  #541	AccurateMassSearch
+  #542	TOPPView: switch to 3D view should pick the data layer automatically
+  #544	featureXML version at 1.4 while 1.6 is the current version
+  #549	Problems converting Mascot XML to idXML
+  #552	pyOpenMS build system
+  #553	TOPPView's "Apply TOPP tool" functionality is broken
+  #554	FeatureLinkerUnlabeled(QT) - speed/memory enhancements
+  #556	Setting parameter may not take effect
+  #557	XTandemAdapter/mz-out scramble
+  #562	cmake doesn't check for MSBuild.exe location on Windows
+  #565	XTandemAdapter fails to add terminal modifications correctly to X!Tandem search
+  #569	Segfault of IDEvaluator and IDEvaluatorGUI
+  #570	FeatureLinkerUnlabeledQT regression
+  #574	Update ParamXMLHandler to support v1.6.2 of Param schema
+  #575	Upgrade TOPPBase's CTD support to new version of CTD schema
+  #576	Cython 0.19 does not compile current pyOpenMS
+  #578	Add qcML CV terms
+  #580	XTandemAdapter finds non-tryptic peptides although cleavage rule is set to "[RK]|{P}"
+  #582	Compile error with Boost 1.46
+  #583	MascotAdapterOnline with Mascot 2.4.0 may never finish
+  #584	FileFilter parameter -mz (mz range to extract) applies to all MS levels and not to a specified level
+  #586	ModificationsDB_test relies on raw memory addresses
+  #587	MascotAdapterOnline does not support SSL connections
+  #588	MascotAdapterOnline does not support connections to public MatrixScience Mascot instance
+  #591	Detection of MGF format via file content fails on our own files
+  #593	Parameter default of 'tab' will be returned as single space
+  #598  SILACAnalyzer (no label) crash
+  #603  TOPPView: showing peptide annotations of feature maps also shows feature indexes
+  
+------------------------------------------------------------------------------------------ 
+----                                  OpenMS 1.10                                     ---- 
 ------------------------------------------------------------------------------------------ 
 Release date: March 2013
 

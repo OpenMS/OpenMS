@@ -57,13 +57,16 @@ namespace OpenMS
     @ingroup Kernel
   */
   class OPENMS_DLLAPI ConsensusFeature :
-    public BaseFeature,
-    public std::set<FeatureHandle, FeatureHandle::IndexLess>
+    public BaseFeature
   {
 public:
     ///Type definitions
     //@{
     typedef std::set<FeatureHandle, FeatureHandle::IndexLess> HandleSetType;
+    typedef HandleSetType::const_iterator const_iterator;
+    typedef HandleSetType::iterator iterator;
+    typedef HandleSetType::const_reverse_iterator const_reverse_iterator;
+    typedef HandleSetType::reverse_iterator reverse_iterator;
     //@}
 
     /// Compare by size(), the number of consensus elements
@@ -161,7 +164,7 @@ public:
     ConsensusFeature(UInt64 map_index, const Peak2D & element, UInt64 element_index);
 
     /**
-      @brief Constructor with map index for a singleton consensus	feature.
+      @brief Constructor with map index for a singleton consensus feature.
 
       Sets the consensus feature position, intensity, charge, quality, and peptide identifications
       to the values of @p element as well.
@@ -178,6 +181,12 @@ public:
 
     ///@name Management of feature handles
     //@{
+
+    /**
+      @brief Adds all feature handles (of the CF) into the consensus feature
+    */
+    void insert(const ConsensusFeature & cf);
+
     /**
       @brief Adds an feature handle into the consensus feature
 
@@ -265,25 +274,51 @@ public:
     void addRatio(const Ratio & r);
 
     /**
-  @brief Add a ratio vector.
+      @brief Add a ratio vector.
 
-  Connects the ratios to the ConsensusFeature.
+      Connects the ratios to the ConsensusFeature.
 
-  @note still experimental. consensusfeaturehandler will ignore it.
-*/
+      @note still experimental. consensusfeaturehandler will ignore it.
+    */
     void setRatios(std::vector<Ratio> & rs);
 
     /**
-  @brief Get the ratio vector.
-*/
+      @brief Get the ratio vector.
+    */
     std::vector<Ratio> getRatios() const;
 
     /**
-  @brief Get the ratio vector.
-*/
+      @brief Get the ratio vector.
+    */
     std::vector<Ratio> & getRatios();
 
-private:
+    ///@name Accessors for set of FeatureHandles
+    //@{
+    Size size() const;
+
+    const_iterator begin() const;
+
+    iterator begin();
+    
+    const_iterator end() const;
+
+    iterator end();
+
+    const_reverse_iterator rbegin() const;
+
+    reverse_iterator rbegin();
+
+    const_reverse_iterator rend() const;
+
+    reverse_iterator rend();
+
+    void clear();
+
+    bool empty() const;
+    //@}
+
+  private:
+    HandleSetType handles_;
     std::vector<Ratio> ratios_;
 
   };

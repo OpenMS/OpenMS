@@ -101,6 +101,14 @@ START_SECTION((static String find(const String &filename, StringList directories
 
 	TEST_NOT_EQUAL(File::find("OpenMS_DB.sql"),"");
 END_SECTION
+  
+START_SECTION((static String findDoc(const String& filename)))
+	TEST_EXCEPTION(Exception::FileNotFound,File::findDoc("non-existing-documentation"))
+  // should exist in every valid source tree (we cannot test for Doxyfile since doxygen might not be installed)
+  TEST_EQUAL(File::findDoc("doxygen/Doxyfile.in").hasSuffix("Doxyfile.in"), true)
+  // a file from the build tree
+  TEST_EQUAL(File::findDoc("code_examples/cmake_install.cmake").hasSuffix("cmake_install.cmake"), true)
+END_SECTION
 
 START_SECTION((static String absolutePath(const String &file)))
 	NOT_TESTABLE

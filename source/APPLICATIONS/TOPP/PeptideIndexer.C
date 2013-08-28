@@ -86,27 +86,28 @@ using namespace std;
   By default the tool will fail, if an unmatched peptide occurs, i.e. the database does not contain the corresponding protein.
   You can force the tool to return successfully in this case by using the flag 'allow_unmatched'.
 
-  Some search engines (such as Mascot) will replace ambiguous AA's in the protein database with unambiguous AA' in the reported peptides, e.g., exchange 'X' with 'H'.
-  This will cause this peptide not to be found by exactly matching its sequence. However, we can recover these cases by using tolerant search in these cases (done automatically).
-  In all cases we require ambiguous AA's in peptide sequence to match exactly in the protein DB (i.e., 'X' in peptide only matches 'X').
+  Some search engines (such as Mascot) will replace ambiguous AA's ('B', 'Z', and 'X') in the protein database with unambiguous AA' in the reported peptides, e.g., exchange 'X' with 'H'.
+  This will cause this peptide not to be found by exactly matching its sequence to the database. However, we can recover these cases by using tolerant search (done automatically).
 
   Two search modes are available:
     - exact: Peptide sequences require exact match in protein database.
-             If no protein for this peptide can be found, tolerant matching is automatically used for this peptide. Thus, the results for these peptides
-             are identical for both search modes.
+             If at least one protein hit is found, no tolerant search is used for this peptide.
+             If no protein for this peptide can be found, tolerant matching is automatically used for this peptide.
     - tolerant:
              Allow ambiguous AA's in protein sequence, e.g., 'M' in peptide will match 'X' in protein.
-             This mode might yield more protein hits for some peptides (even though they have exact matches as well).
+             This mode might yield more protein hits for some peptides (those that contain ambiguous AAs).
 
-  The exact mode is much faster (about x10) and consumes less memory (about x2.5), but might fail to report a few proteins with ambiguous AAs for some peptides. Usually these proteins are putative, however.
+  No matter if exact or tolerant search is used, we require ambiguous AA's in peptide sequence to match exactly in the protein DB (i.e., 'X' in peptide only matches 'X' in database).
+  The exact mode is much faster (about x10) and consumes less memory (about x2.5), but might fail to report a few protein hits with ambiguous AAs for some peptides. Usually these proteins are putative, however.
   The exact mode also supports usage of multiple threads (use @ -threads option) to speed up computation even further, at the cost of some memory. This is only for the exact search though (Aho Corasick). If tolerant searching
   needs to be done for unassigned peptides, the latter will consume the major time portion.
 
   Once a peptide sequence is found in a protein sequence, this does <b>not</b> imply that the hit is valid! This is where enzyme specificity comes into play.
-  By default we demand that the peptide is fully tryptic (since the enzyme parameter is set to "trypsin" and specificity is "full").
-  So unless the peptide coindices with C and/or N-terminus of the protein, the peptide's cleavage pattern should fulfill the trypsin cleavage rule [KR][^P].
-  We make one exception for peptides which start at the second AA of the protein where the first AA of the protein is methionin, which is usually cleaved off in vivo,
-  thus the N-terminus of the peptide is not required to be tryptic.
+  By default, we demand that the peptide is fully tryptic (since the enzyme parameter is set to "trypsin" and specificity is "full").
+  So unless the peptide coincides with C- and/or N-terminus of the protein, the peptide's cleavage pattern should fulfill the trypsin cleavage rule [KR][^P].
+  We make one exception for peptides which start at the second AA of the protein where the first AA of the protein is methionin (M), which is usually cleaved off in vivo, e.g.,
+  the two peptides AAAR and MAAAR would both match a protein starting with MAAAR.
+  
   You can relax the requirements further by chosing <tt>semi-tryptic</tt> (only one of two "internal" termini must match requirements) or <tt>none</tt> (essentially allowing all hits, no matter their context).
 
 
@@ -861,9 +862,14 @@ protected:
     {
       LOG_WARN << "PeptideIndexer found unmatched peptides, which could not be associated to a protein.\n"
                << "Either:\n"
-               << "   - check your FASTA database\n"
+               << "   - check your FASTA database for completeness\n"
+               << "   - set 'enzyme:specificity' to match the identification parameters of search engine\n"
+               << "   - some engines (e.g. X!Tandem) employ loose cutting rules generating non-tryptic peptides\n"
+               << "     If you trust them, disable enzyme specificity\n"
                << "   - increase 'aaa_max' to allow more ambiguous AA\n"
-               << "   - use 'allow_unmatched' flag if unmatched peptides are ok\n";
+               << "   - as a last resort: use 'allow_unmatched' flag if unmatched peptides are ok\n"
+               << "     Note that these peptides cannot be used for FDR or Quantification\n";
+
       LOG_WARN << "Result files were written, but program will return with error code" << std::endl;
       return UNEXPECTED_RESULT;
     }

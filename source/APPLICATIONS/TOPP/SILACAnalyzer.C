@@ -203,24 +203,25 @@ public:
 
   void registerOptionsAndFlags_()
   {
-    // create flag for input file (.mzML)
+    // create parameter for input file (.mzML)
     registerInputFile_("in", "<file>", "", "Raw LC-MS data to be analyzed. (Profile data required. Will not work with centroided data!)");
     setValidFormats_("in", StringList::create("mzML"));
-    // create flag for output file (.consensusXML)
+    // create parameter for output file (.consensusXML)
     registerOutputFile_("out", "<file>", "", "Set of all identified peptide groups (i.e. peptide pairs or triplets or singlets or ..). The m/z-RT positions correspond to the lightest peptide in each group.", false);
     setValidFormats_("out", StringList::create("consensusXML"));
-    // create optional flag for additional clusters output file (.featureXML)
+    // create optional parameter for additional clusters output file (.featureXML)
     registerOutputFile_("out_clusters", "<file>", "", "Optional debug output containing data points passing all filters, hence belonging to a SILAC pattern. Points of the same colour correspond to the mono-isotopic peak of the lightest peptide in a pattern.", false, true);
     setValidFormats_("out_clusters", StringList::create("consensusXML"));
+    // create optional parameter for additional clusters output file (.featureXML)
     registerOutputFile_("out_features", "<file>", "", "Optional output file containing the individual peptide features in \'out\'.", false, true);
     setValidFormats_("out_features", StringList::create("featureXML"));
     registerOutputFile_("out_mzq", "<file>", "", "Optional output file of MzQuantML.", false, true);
     setValidFormats_("out_mzq", StringList::create("mzq"));
 
-    // create optional flag for additional output file (.consensusXML) to store filter results
+    // create optional parameter for additional output file (.consensusXML) to store filter results
     registerOutputFile_("out_filters", "<file>", "", "Optional output file containing all points that passed the filters as txt. Suitable as input for \'in_filters\' to perform clustering without preceding filtering process.", false, true);
     setValidFormats_("out_filters", StringList::create("consensusXML"));
-    // create optional flag for additional input file (.consensusXML) to load filter results
+    // create optional parameter for additional input file (.consensusXML) to load filter results
     registerInputFile_("in_filters", "<file>", "", "Optional input file containing all points that passed the filters as txt. Use output from \'out_filters\' to perform clustering only.", false, true);
     setValidFormats_("in_filters", StringList::create("consensusXML"));
     registerStringOption_("out_debug", "<filebase>", "", "Filename base for debug output.", false, true);
@@ -286,7 +287,7 @@ public:
 
     if (section == "sample")
     {
-      defaults.setValue("labels", "[Lys8,Arg10]", "Labels used for labelling the sample. [...] specifies the labels for a single sample. For example, [Lys4,Arg6][Lys8,Arg10] describes a mixtures of three samples. One of them unlabelled, one labelled with Lys4 and Arg6 and a third one with Lys8 and Arg10. For permitted labels see \'advanced parameters\', section \'labels\'. If left empty the tool identifies singlets, i.e. acts as peptide feature finder.");
+      defaults.setValue("labels", "[Lys8,Arg10]", "Labels used for labelling the sample. [...] specifies the labels for a single sample. For example, [Lys4,Arg6][Lys8,Arg10] describes a mixtures of three samples. One of them unlabelled, one labelled with Lys4 and Arg6 and a third one with Lys8 and Arg10. For permitted labels see \'advanced parameters\', section \'labels\'. If left empty the tool identifies singlets, i.e. acts as peptide feature finder (in this case, 'out_features' must be used for output instead of 'out').");
       defaults.setValue("charge", "2:4", "Range of charge states in the sample, i.e. min charge : max charge.");
       defaults.setValue("missed_cleavages", 0, "Maximum number of missed cleavages.");
       defaults.setMinInt("missed_cleavages", 0);
@@ -433,6 +434,12 @@ public:
     handleParameters_labels(label_identifiers);
     handleParameters();
 
+    if (selected_labels.empty() && !out.empty()) // incompatible parameters
+    {
+      writeLog_("Error: The 'out' parameter cannot be used without a label (parameter 'sample:labels'). Use 'out_features' instead.");
+      return ILLEGAL_PARAMETERS;
+    }
+
     // 
     // Initializing the SILACAnalzer with our parameters
     // 
@@ -470,6 +477,7 @@ public:
     levels.push_back(1);
     file.getOptions().setMSLevels(levels);
     */
+    LOG_DEBUG << "Loading input..." << endl;
     file.setLogType(log_type_);
     file.load(in, exp);
 
@@ -508,6 +516,7 @@ public:
     // estimate peak width
     //--------------------------------------------------
 
+    LOG_DEBUG << "Estimating peak width..." << endl;
     PeakWidthEstimator::Result peak_width;
     try
     {
@@ -526,6 +535,7 @@ public:
       // filter input data
       //--------------------------------------------------
 
+      LOG_DEBUG << "Filtering input data..." << endl;
       analyzer.filterData(exp, peak_width, data); 
 
       //--------------------------------------------------
@@ -534,6 +544,7 @@ public:
 
       if (out_filters != "")
       {
+        LOG_DEBUG << "Storing filtering results..." << endl;
         ConsensusMap map;
         for (std::vector<std::vector<SILACPattern> >::const_iterator it = data.begin(); it != data.end(); ++it)
         {
@@ -548,6 +559,7 @@ public:
       // load filter results
       //--------------------------------------------------
 
+      LOG_DEBUG << "Loading filtering results..." << endl;
       ConsensusMap map;
       analyzer.readConsensus(in_filters, map);
       analyzer.readFilterConsensusByPattern(map, data);
@@ -557,6 +569,7 @@ public:
     // clustering
     //--------------------------------------------------
 
+    LOG_DEBUG << "Clustering data..." << endl;
     analyzer.clusterData(exp, peak_width, cluster_data, data);
 
     //--------------------------------------------------------------
@@ -565,6 +578,7 @@ public:
 
     if (out_debug != "")
     {
+      LOG_DEBUG << "Writing debug output file..." << endl;
       std::ofstream out((out_debug + ".clusters.csv").c_str());
 
       vector<vector<DoubleReal> > massShifts = analyzer.getMassShifts(); // list of mass shifts
@@ -611,24 +625,27 @@ public:
 
     if (out != "")
     {
+      LOG_DEBUG << "Generating output consensus map..." << endl;
       ConsensusMap map;
 
       for (vector<Clustering *>::const_iterator it = cluster_data.begin(); it != cluster_data.end(); ++it)
       {
         analyzer.generateClusterConsensusByCluster(map, **it);
       }
+
+      LOG_DEBUG << "Adding meta data..." << endl;
       // XXX: Need a map per mass shift
-      ConsensusMap::FileDescriptions & desc = map.getFileDescriptions();
+      ConsensusMap::FileDescriptions& desc = map.getFileDescriptions();
       Size id = 0;
       for (ConsensusMap::FileDescriptions::iterator it = desc.begin(); it != desc.end(); ++it)
       {
         if (test_mode_) it->second.filename = in; // skip path, since its not cross platform and complicates verification
         else it->second.filename = File::basename(in);
         // Write correct label
-        if (id>0) it->second.label = StringList(analyzer.getSILAClabels()[id-1]).concatenate(""); // skip first round (empty label is not listed)
+        // (this would crash if used without a label!)
+        if (id > 0) it->second.label = StringList(analyzer.getSILAClabels()[id - 1]).concatenate(""); // skip first round (empty label is not listed)
         ++id;
       }
-
 
       std::set<DataProcessing::ProcessingAction> actions;
       actions.insert(DataProcessing::DATA_PROCESSING);
@@ -638,10 +655,10 @@ public:
 
       addDataProcessing_(map, getProcessingInfo_(actions));
 
-
       analyzer.writeConsensus(out, map);
       if (out_mzq != "")
       {
+        LOG_DEBUG << "Generating output mzQuantML file..." << endl;
         ConsensusMap numap(map);
         //calc. ratios
         for (ConsensusMap::iterator cit = numap.begin(); cit != numap.end(); ++cit)
@@ -658,7 +675,8 @@ public:
             //~ "<cvParam cvRef=\"PSI-MS\" accession=\"MS:1001132\" name=\"peptide ratio\"/>"
             rts.push_back(r);
           }
-          const std::set<FeatureHandle, FeatureHandle::IndexLess> & feature_handles = cit->getFeatures();
+
+          const ConsensusFeature::HandleSetType& feature_handles = cit->getFeatures();
           if (feature_handles.size() > 1)
           {
             std::set<FeatureHandle, FeatureHandle::IndexLess>::const_iterator fit = feature_handles.begin();             // this is unlabeled
@@ -682,6 +700,7 @@ public:
 
     if (out_clusters != "")
     {
+      LOG_DEBUG << "Generating cluster output file..." << endl;
       ConsensusMap map;
       for (vector<Clustering *>::const_iterator it = cluster_data.begin(); it != cluster_data.end(); ++it)
       {
@@ -698,6 +717,7 @@ public:
 
     if (out_features != "")
     {
+      LOG_DEBUG << "Generating output feature map..." << endl;
       FeatureMap<> map;
       for (vector<Clustering *>::const_iterator it = cluster_data.begin(); it != cluster_data.end(); ++it)
       {

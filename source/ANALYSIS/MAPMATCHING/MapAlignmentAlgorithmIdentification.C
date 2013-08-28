@@ -484,4 +484,10 @@ namespace OpenMS
 
   }
 
+  // explicit template instantiation for windows dll
+  template OPENMS_DLLAPI void MapAlignmentAlgorithmIdentification::getRetentionTimes_(ConsensusMap & features, SeqToList & rt_data);
+
+  // explicit template instantiation for windows dll
+  template void OPENMS_DLLAPI MapAlignmentAlgorithmIdentification::getRetentionTimes_(FeatureMap<> & features, SeqToList & rt_data);
+
 } //namespace

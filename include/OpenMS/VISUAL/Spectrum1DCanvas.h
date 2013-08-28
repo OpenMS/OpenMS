@@ -289,7 +289,7 @@ protected:
     ///Go forward in zoom history
     virtual void zoomForward_();
     /// docu in base class
-    virtual void zoom(int x, int y, bool zoom_in);
+    virtual void zoom_(int x, int y, bool zoom_in);
     //docu in base class
     virtual void translateLeft_();
     //docu in base class

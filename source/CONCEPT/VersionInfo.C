@@ -67,7 +67,7 @@ namespace OpenMS
     return !(*this < rhs || *this == rhs);
   }
 
-  VersionInfo::VersionDetails VersionInfo::VersionDetails::create(const String & version)
+  VersionInfo::VersionDetails VersionInfo::VersionDetails::create(const String & version) //static
   {
     VersionInfo::VersionDetails result;
 

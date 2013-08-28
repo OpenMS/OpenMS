@@ -363,15 +363,17 @@ protected:
       }
 
       /**
-          Convert to pointer
+          Convert to bool
 
-          The pointer returned is not intended to be referenced, it just indicates success when none of the error flags are set.
+		      The function indicates success when none of the error flags (either failbit or badbit of the nested std::stringstream) are set.
 
-          @return	null pointer if either failbit or badbit of the nested std::stringstream is set. A non-null pointer otherwise.
+          @return False on error, true otherwise.
           */
-      operator void *() const
+      bool ok() const
       {
-        return line_.operator void *();
+        return !line_.fail(); // failbit AND badbit are both NOT set; using fail() seems the only portable solution for both C++98 and C++11
+                              // operator bool() (C++11 only) and operator void*() (C++98 only) are both not very sexy since they are not "safe bool idiomic" and would require
+                              // a macro here... So we use a real function name (both internally and externally)
       }
     };
 
@@ -439,7 +441,7 @@ protected:
         else
         {
           input_line.seekGToSavedPosition();
-          if ((is_number = ((input_line.line_ >> number) != 0)))                    // is a number?
+          if ((is_number = (bool(input_line.line_ >> number))))       // is a number? (explicit bool op for C11)
           {
           }
           else

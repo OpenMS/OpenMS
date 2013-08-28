@@ -18,7 +18,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/AccurateMassSearchEngine.h>" namespace "Op
         AccurateMassSearchEngine(AccurateMassSearchEngine) nogil except + #wrap-ignore
         # TODO : not implemented
         # AccurateMassSearchEngine(String & map_fname) nogil except +
-        void queryByMass(DoubleReal & , DoubleReal & , libcpp_vector[ AccurateMassSearchResult ] & ) nogil except +
-        void queryByFeature(Feature & , libcpp_vector[ AccurateMassSearchResult ] & ) nogil except +
+        # void queryByMass(DoubleReal & , DoubleReal & , libcpp_vector[ AccurateMassSearchResult ] & ) nogil except +
+        # void queryByFeature(Feature & , libcpp_vector[ AccurateMassSearchResult ] & ) nogil except +
         void run(FeatureMap[Feature] & , MzTab & ) nogil except +
 

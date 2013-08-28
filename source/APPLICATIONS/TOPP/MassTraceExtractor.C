@@ -102,10 +102,9 @@ protected:
     registerInputFile_("in", "<file>", "", "input centroided mzML file");
     setValidFormats_("in", StringList::create("mzML"));
     registerOutputFile_("out", "<file>", "", "output featureXML file with mass traces");
-    setValidFormats_("out", StringList::create("featureXML"));
-
-    registerFlag_("write_consensusXML","Write a consensusXML in addition to the featureXML containing also intensities of the masstraces.");
-
+    setValidFormats_("out", StringList::create("featureXML,consensusXML"));
+    registerStringOption_("out_type", "<type>", "", "output file type -- default: determined from file extension or content\n", false);
+    setValidStrings_("out_type", StringList::create("featureXML,consensusXML"));
 
     addEmptyLine_();
     registerSubsection_("algorithm", "Algorithm parameters section");
@@ -149,7 +148,7 @@ protected:
 
     String in = getStringOption_("in");
     String out = getStringOption_("out");
-    bool write_consensusXML = getFlag_("write_consensusXML");
+    FileTypes::Type out_type = FileTypes::nameToType(getStringOption_("out_type"));
 
     //-------------------------------------------------------------
     // loading input
@@ -168,7 +167,9 @@ protected:
       return INCOMPATIBLE_INPUT_DATA;
     }
 
-
+    // make sure that the spectra are sorted by m/z
+    ms_peakmap.sortSpectra(true);
+    
     FeatureMap<> ms_feat_map;
     vector<MassTrace> m_traces;
 
@@ -228,7 +229,7 @@ protected:
     //-------------------------------------------------------------
     // writing consensus map output
     //-------------------------------------------------------------
-    if (write_consensusXML)
+    if (out_type == FileTypes::CONSENSUSXML)
     {
       ConsensusMap consensus_map;
       for (Size i = 0; i < m_traces_final.size(); ++i)
@@ -260,57 +261,58 @@ protected:
       consensus_map.applyMemberFunction(&UniqueIdInterface::setUniqueId);
       addDataProcessing_(consensus_map, getProcessingInfo_(DataProcessing::QUANTITATION));
       consensus_map.setUniqueId();
-
-      String out_consensus = out;
-      ConsensusXMLFile().store(out_consensus.substitute("featureXML", "consensusXML"), consensus_map);
+      ConsensusXMLFile().store(out, consensus_map);
 
     }
-
-    //-----------------------------------------------------------
-    // convert mass traces to features
-    //-----------------------------------------------------------
-
-    for (Size i = 0; i < m_traces_final.size(); ++i)
+    else
     {
-      if (m_traces_final[i].getSize() == 0) continue;
 
-      Feature f;
-      f.setMetaValue(3, m_traces_final[i].getLabel());
-      f.setCharge(0);
-      f.setMZ(m_traces_final[i].getCentroidMZ());
-      f.setIntensity(m_traces_final[i].computePeakArea());
-      f.setRT(m_traces_final[i].getCentroidRT());
-      f.setWidth(m_traces_final[i].estimateFWHM(use_epd));
-      f.setOverallQuality(1 - (1.0 / m_traces_final[i].getSize()));
-      f.getConvexHulls().push_back(m_traces_final[i].getConvexhull());
+      //-----------------------------------------------------------
+      // convert mass traces to features
+      //-----------------------------------------------------------
 
-      ms_feat_map.push_back(f);
+      for (Size i = 0; i < m_traces_final.size(); ++i)
+      {
+        if (m_traces_final[i].getSize() == 0) continue;
+
+        Feature f;
+        f.setMetaValue(3, m_traces_final[i].getLabel());
+        f.setCharge(0);
+        f.setMZ(m_traces_final[i].getCentroidMZ());
+        f.setIntensity(m_traces_final[i].computePeakArea());
+        f.setRT(m_traces_final[i].getCentroidRT());
+        f.setWidth(m_traces_final[i].estimateFWHM(use_epd));
+        f.setOverallQuality(1 - (1.0 / m_traces_final[i].getSize()));
+        f.getConvexHulls().push_back(m_traces_final[i].getConvexhull());
+
+        ms_feat_map.push_back(f);
 
 
-      // debug output
-//            DoubleReal cent_rt(m_traces_final[i].getCentroidRT());
-//            DoubleReal cent_mz(m_traces_final[i].getCentroidMZ());
-//            // DoubleReal cent_int(m_traces_final[i].compute());
+        // debug output
+  //            DoubleReal cent_rt(m_traces_final[i].getCentroidRT());
+  //            DoubleReal cent_mz(m_traces_final[i].getCentroidMZ());
+  //            // DoubleReal cent_int(m_traces_final[i].compute());
 
-//            for (MassTrace::const_iterator v_it = m_traces_final[i].begin(); v_it != m_traces_final[i].end(); ++v_it)
-//            {
-//                std::cout << cent_rt << " " << cent_mz << " " << /* cent_int << " "  << */ v_it->getMZ() << " " << v_it->getIntensity() << std::endl;
-//            }
+  //            for (MassTrace::const_iterator v_it = m_traces_final[i].begin(); v_it != m_traces_final[i].end(); ++v_it)
+  //            {
+  //                std::cout << cent_rt << " " << cent_mz << " " << /* cent_int << " "  << */ v_it->getMZ() << " " << v_it->getIntensity() << std::endl;
+  //            }
 
-//            std::cout << "----" << std::endl;
+  //            std::cout << "----" << std::endl;
+      }
+
+      ms_feat_map.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+
+      //-------------------------------------------------------------
+      // writing output
+      //-------------------------------------------------------------
+
+      //annotate output with data processing info TODO
+      addDataProcessing_(ms_feat_map, getProcessingInfo_(DataProcessing::QUANTITATION));
+      // ms_feat_map.setUniqueId();
+
+      FeatureXMLFile().store(out, ms_feat_map);
     }
-
-    ms_feat_map.applyMemberFunction(&UniqueIdInterface::setUniqueId);
-
-    //-------------------------------------------------------------
-    // writing output
-    //-------------------------------------------------------------
-
-    //annotate output with data processing info TODO
-    addDataProcessing_(ms_feat_map, getProcessingInfo_(DataProcessing::QUANTITATION));
-    // ms_feat_map.setUniqueId();
-
-    FeatureXMLFile().store(out, ms_feat_map);
 
     return EXECUTION_OK;
   }

@@ -38,12 +38,16 @@ using namespace std;
 
 Int main(int argc, const char** argv)
 {
+  if (argc < 2) return 1;
+  // the path to the data should be given on the command line
+  String tutorial_data_path(argv[1]);
+  
   QApplication app(argc, const_cast<char**>(argv));
 
   Param param;
   ParamXMLFile paramFile;
 
-  paramFile.load("data/Tutorial_ParamEditor.ini", param);
+  paramFile.load(tutorial_data_path + "/data/Tutorial_ParamEditor.ini", param);
 
   ParamEditor* editor = new ParamEditor(0);
   editor->load(param);
@@ -52,7 +56,7 @@ Int main(int argc, const char** argv)
   app.exec();
 
   editor->store();
-  paramFile.store("output/Tutorial_ParamEditor_out.ini", param);
+  paramFile.store("Tutorial_ParamEditor_out.ini", param);
 
   return 0;
 } //end of main

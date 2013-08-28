@@ -160,7 +160,18 @@ public:
       glm_.int_coef = int_coef;
     }
 
-    /// Score a feature map -> make sure the class is properly initialized
+    /**
+      @brief Score a feature map -> make sure the class is properly initialized
+
+      both functions initializeGlm and initialize need to be called first.
+
+      The input to the program is 
+      - a transition library which contains peptides with corresponding assays.
+      - a feature map where each feature corresponds to an assay (mapped with
+        MetaValue "PeptideRef") and each feature has as many subordinates as the
+        assay has transitions (mapped with MetaValue "native_id").
+
+    */
     void scoreMap(FeatureMap<> & features)
     {
       // are there enough assays in the library?

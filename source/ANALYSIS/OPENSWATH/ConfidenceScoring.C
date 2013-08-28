@@ -137,6 +137,18 @@ namespace OpenMS
       extractIntensities_(intensity_map, feature_intensities.size(), 
                           assay_intensities);
 
+      if (feature_intensities.empty())
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+                                         "Feature intensities were empty - please provide feature subordinate with intensities");
+      }
+      if (feature_intensities.size()!=assay_intensities.size())
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+          "Did not find a feature for each assay provided - each feature needs "
+          "to have n subordinates with the meta-value 'native_id' set to the corresponding transition.");
+      }
+
       // compute intensity distance:
       OpenSwath::Scoring::normalize_sum(&feature_intensities[0],
                                         boost::numeric_cast<int>(feature_intensities.size()));

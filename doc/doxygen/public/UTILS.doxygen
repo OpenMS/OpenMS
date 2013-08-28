@@ -46,12 +46,18 @@
 	<b>Maintenance</b>
 	- @subpage UTILS_INIUpdater - Update INI and TOPPAS files from previous versions of %OpenMS as parameters and storage method might have changed
 	
+  <b>Signal Processing and Preprocessing</b>
+  - @subpage UTILS_RNPxlXICFilter - Remove MS2 spectra from treatment based on the fold change between control and treatment for RNP cross linking experiments.  
+
   <b>File handling</b>
   - @subpage UTILS_FuzzyDiff - Compares two files, tolerating numeric differences.
   - @subpage UTILS_XMLValidator - Validates XML files against an XSD schema.
 	- @subpage UTILS_SemanticValidator - SemanticValidator for analysisXML and mzML files.
   - @subpage UTILS_CVInspector - A tool for visualization and validation of PSI mapping and CV files.
 	- @subpage UTILS_IDSplitter - Splits protein/peptide identifications off of annotated data files.
+	- @subpage UTILS_ConvertTSVToTraML - Converts a tsv file (tab separated) to TraML.
+	- @subpage UTILS_ConvertTraMLToTSV - Converts a TraML file to TSV.
+  - @subpage UTILS_OpenSwathMzMLFileCacher - Caching of large mzML files 
 
   <b>Algorithm evaluation</b>
   - @subpage UTILS_FFEval - Evaluation tool for feature detection algorithms.
@@ -69,8 +75,9 @@
   - @subpage UTILS_IDExtractor - Extracts n peptides randomly or best n from idXML files.
   - @subpage UTILS_IDMassAccuracy - Calculates a distribution of the mass error from given mass spectra and IDs.
   - @subpage UTILS_SpecLibCreator - Creates an MSP formated spectral library.
+  - @subpage UTILS_RNPxl - Tool for RNP cross linking experiment analysis.
 
-  <b>Quantitation</b>
+ <b>Quantitation</b>
   - @subpage UTILS_ERPairFinder - Evaluate pair ratios on enhanced resolution (zoom) scans.
   - @subpage UTILS_MRMPairFinder - Evaluate labeled pair ratios on MRM features.
   - @subpage UTILS_FeatureFinderSuperHirn - Find Features using the SuperHirn Algorithm (it can handle centroided or profile data, see .ini file)
@@ -81,6 +88,23 @@
 	- @subpage UTILS_MSSimulator - A highly configurable simulator for mass spectrometry experiments.
 	- @subpage UTILS_SvmTheoreticalSpectrumGeneratorTrainer - A trainer for svm models as input for SvmTheoreticalSpectrumGenerator.
   - @subpage UTILS_DeMeanderize - Orders the spectra of MALDI spotting plates correctly.
-  - @subpage UTILS_OpenSwathMzMLFileCacher - Caching of large mzML files 
+  - @subpage UTILS_OpenSwathDIAPreScoring - SWATH (data independent acquisition) pre-scoring
+  - @subpage UTILS_OpenSwathRewriteToFeatureXML - rewrite results from mProphet back into featureXML
+
+  <b>Metabolite identification</b>
+  - @subpage UTILS_AccurateMassSearch - Find potential HMDB ids within the given mass error window.
+
+  <b>Quality control</b>
+  - @subpage UTILS_QCCalculator -
+  - @subpage UTILS_QCImporter -
+  - @subpage UTILS_QCEmbedder -
+  - @subpage UTILS_QCExporter -
+  - @subpage UTILS_QCExtractor -
+  - @subpage UTILS_QCMerger -
+  - @subpage UTILS_QCShrinker -
+
+
+  <b>Deprecated</b>
+  - @subpage UTILS_IDDecoyProbability - Estimates peptide probabilities using a decoy search strategy. <br> WARNING: This util is deprecated. 
 
 */

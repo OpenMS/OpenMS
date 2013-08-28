@@ -75,9 +75,9 @@ using namespace std;
 </CENTER>
 
     Reference:\n
-		Weisser <em>et al.</em>: <a href="http://dx.doi.org/10.1021/pr300992u">An automated pipeline for high-throughput label-free quantitative proteomics</a> (J. Proteome Res., 2013, PMID: 23391308).
+    Weisser <em>et al.</em>: <a href="http://dx.doi.org/10.1021/pr300992u">An automated pipeline for high-throughput label-free quantitative proteomics</a> (J. Proteome Res., 2013, PMID: 23391308).
 
-		<B>Input: featureXML or consensusXML</B>
+    <B>Input: featureXML or consensusXML</B>
 
     Quantification is based on the intensity values of the features in the input files. Feature intensities are first accumulated to peptide abundances, according to the peptide identifications annotated to the features/feature groups. Then, abundances of the peptides of a protein are averaged to compute the protein abundance.
 
@@ -90,11 +90,11 @@ using namespace std;
 
     Peptides with the same sequence, but with different modifications are quantified separately on the peptide level, but treated as one peptide for the protein quantification (i.e. the contributions of differently-modified variants of the same peptide are accumulated).
 
-		<B>Input: idXML</B>
+    <B>Input: idXML</B>
 
-		Quantification based on identification results uses spectral counting, i.e. the abundance of each peptide is the number of times that peptide was identified from an MS2 spectrum (considering only the best hit per spectrum). Different identification runs in the input are treated as different samples; this makes it possible to quantify several related samples at once by merging the corresponding idXML files with @ref TOPP_IDMerger. Depending on the presence of multiple runs, output format and applicable parameters are the same as for featureXML and consensusXML, respectively.
+    Quantification based on identification results uses spectral counting, i.e. the abundance of each peptide is the number of times that peptide was identified from an MS2 spectrum (considering only the best hit per spectrum). Different identification runs in the input are treated as different samples; this makes it possible to quantify several related samples at once by merging the corresponding idXML files with @ref TOPP_IDMerger. Depending on the presence of multiple runs, output format and applicable parameters are the same as for featureXML and consensusXML, respectively.
 
-		The notes above regarding quantification on the protein level and the treatment of modifications also apply to idXML input. In particular, this means that the settings @p top 0 and @p average @p sum should be used to get the "classical" spectral counting quantification on the protein level (where all identifications of all peptides of a protein are summed up).
+    The notes above regarding quantification on the protein level and the treatment of modifications also apply to idXML input. In particular, this means that the settings @p top 0 and @p average @p sum should be used to get the "classical" spectral counting quantification on the protein level (where all identifications of all peptides of a protein are summed up).
 
 
     More information below the parameter specification.
@@ -320,7 +320,7 @@ public:
   TOPPProteinQuantifier() :
     TOPPBase("ProteinQuantifier", "Compute peptide and protein abundances"),
     algo_params_(), proteins_(), peptides_(), files_(), 
-		spectral_counting_(false) {}
+    spectral_counting_(false) {}
 
 protected:
 
@@ -333,7 +333,7 @@ protected:
   ProteinIdentification proteins_; // ProteinProphet results (proteins)
   PeptideIdentification peptides_; // ProteinProphet results (peptides)
   ConsensusMap::FileDescriptions files_; // information about files involved
-	bool spectral_counting_; // quantification based on spectral counting?
+  bool spectral_counting_; // quantification based on spectral counting?
 
   void registerOptionsAndFlags_()
   {
@@ -606,24 +606,24 @@ protected:
   void writeStatistics_(const Statistics& stats)
   {
     LOG_INFO << "\nProcessing summary - number of...";
-		if (spectral_counting_)
-		{
-			LOG_INFO << "\n...spectra: " << stats.total_features << " identified"
-							 << "\n...peptides: " << stats.quant_peptides
-							 << " identified and quantified (considering best hits only)";
-		}
-		else
-		{
-			LOG_INFO << "\n...features: " << stats.quant_features
-							 << " used for quantification, " << stats.total_features
-							 << " total (" << stats.blank_features << " no annotation, "
-							 << stats.ambig_features << " ambiguous annotation)"
-							 << "\n...peptides: "  << stats.quant_peptides
-							 << " quantified, " << stats.total_peptides
-							 << " identified (considering best hits only)";
-		}
+    if (spectral_counting_)
+    {
+      LOG_INFO << "\n...spectra: " << stats.total_features << " identified"
+               << "\n...peptides: " << stats.quant_peptides
+               << " identified and quantified (considering best hits only)";
+    }
+    else
+    {
+      LOG_INFO << "\n...features: " << stats.quant_features
+               << " used for quantification, " << stats.total_features
+               << " total (" << stats.blank_features << " no annotation, "
+               << stats.ambig_features << " ambiguous annotation)"
+               << "\n...peptides: "  << stats.quant_peptides
+               << " quantified, " << stats.total_peptides
+               << " identified (considering best hits only)";
+    }
     if (!getStringOption_("out").empty() || 
-				!getStringOption_("mzTab_out").empty())
+        !getStringOption_("mzTab_out").empty())
     {
       bool include_all = algo_params_.getValue("include_all") == "true";
       Size top = algo_params_.getValue("top");
@@ -879,24 +879,24 @@ protected:
       }
       quantifier.quantifyPeptides(features);
     }
-		else if (in_type == FileTypes::IDXML)
-		{
-			spectral_counting_ = true;
-			vector<ProteinIdentification> proteins;
-			vector<PeptideIdentification> peptides;
-			IdXMLFile().load(in, proteins, peptides);
-			for (Size i = 0; i < proteins.size(); ++i)
-			{
-				files_[i].filename = proteins[i].getIdentifier();
-			}
+    else if (in_type == FileTypes::IDXML)
+    {
+      spectral_counting_ = true;
+      vector<ProteinIdentification> proteins;
+      vector<PeptideIdentification> peptides;
+      IdXMLFile().load(in, proteins, peptides);
+      for (Size i = 0; i < proteins.size(); ++i)
+      {
+        files_[i].filename = proteins[i].getIdentifier();
+      }
       // ProteinProphet results in the idXML?
       if (protxml.empty() && (proteins.size() == 1) && 
-					(!proteins[0].getHits().empty()))
+          (!proteins[0].getHits().empty()))
       {
         proteins_ = proteins[0];
       }
-			quantifier.quantifyPeptides(proteins, peptides);
-		}
+      quantifier.quantifyPeptides(proteins, peptides);
+    }
     else // consensusXML
     {
       ConsensusMap consensus;

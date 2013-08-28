@@ -37,9 +37,6 @@
 // Otherwise a link to the namespace is created.
 // Thanks!
 
-
-/// @cond INTERNAL_INFO
-
 /**
 	@page FAQ_Internal Internal FAQ
 
@@ -484,6 +481,17 @@ svn propset svn:eol-style native MyClass.C
 				@code
 @htmlinclude OpenMS_<class name>.parameters
 				@endcode
+				Note that parameter documentation is automatically generated for TOPP/UTILS included in the static ToolHandler.C tools list.
+				To include TOPP/UTILS parameter documentation use following doxygen command:
+				@code
+@htmlinclude TOPP_<tool name>.parameters
+				@endcode
+				or
+				@code
+@htmlinclude UTILS_<tool name>.parameters
+				@endcode
+
+
 				You can test if everything worked by calling @a make @a doc_param_internal .
 				The parameters documentation is written to @a OpenMS/doc/doxygen/parameters/output/.
 
@@ -525,14 +533,25 @@ svn propset svn:eol-style native MyClass.C
 
 			<LI><B>What has the release manager to do for a release?</B>
 			<OL>
-				<LI> Create release branch and add it to CDASH
+				<LI> Create release branch
+				<LI> Add release branch to CDASH
 				<LI> Distribute tasks among developers:
-					<UL> Fix automatic tests
-					<UL> Fix release critical bugs
-					<UL> Fix compile warnings
-					<UL> Fix checker violations
-					<UL> Fix code analysis (e.g. cpplint, cppcheck) violations
+          <UL>
+					<LI> Fix automatic tests
+					<LI> Fix release critical bugs
+					<LI> Fix compile warnings
+					<LI> Fix checker violations
+					<LI> Fix code analysis (e.g. cpplint, cppcheck) violations
+          </UL>
 				<LI> Update the list of active maintainers in tools/ACTIVE_MAINTAINERS
+				<LI> Declare release candidate and distribute tasks:
+					<UL> Check installation on target platforms
+					<UL> Check if all installed tools can be executed
+                                        <UL> Check if documentation is available and correct (e.g. version numbers)
+					<UL> Check if pipelines run
+					<UL> Check if interactive applications work correctly (e.g. TOPPView, TOPPAS, INIFileEditor, IDEvalutator  ...)
+					<UL> Check KNIME installation on target platforms
+					<UL> Check if automatic update in KNIME works
 				<LI> Organise packaging
 			</OL>
 			<LI><B>What has each developer to do for a release?</B>
@@ -547,7 +566,7 @@ svn propset svn:eol-style native MyClass.C
               - the easiest way to do this: take all INI files from previous release and call:
               "<tool> -write_ini bla.ini -ini <previous.ini>" and look at output)
 					<LI> Check the test builds of the latest gcc/cl version for compiler warnings (32 and 64 bit)
-					<LI> Check if all examples in @a OpenMS/source/EXAMPLES/ compile.
+					<LI> Check if all examples in @a OpenMS/doc/code_examples/ compile.
 					<LI> Make sure the binary packages can be compiled for all platforms (see below). Between releases, the build system usually catches a bug, and you
 							 need to fix this!
 					<LI> Correct errors found by @a tools/checker.php.
@@ -609,7 +628,7 @@ svn propset svn:eol-style native MyClass.C
 									 The GIMP/PhotoShop files can be found in the @em images SVN module.
 							</OL>
 						<LI> Run cmake
-						<LI> Make sure that the tutorial examples in <TT>sources/EXAMPLES/</TT> can be compiled and executed (target 'Tutorials_build' and 'Tutorials_exec')
+						<LI> Make sure that the tutorial examples in <TT>doc/code_examples/</TT> can be compiled and executed (target 'Tutorials_build' and 'Tutorials_exec')
 						<LI> Commit the changes to the SVN repository
 						<LI> Build the documentation that is needed for the release
 							<OL>

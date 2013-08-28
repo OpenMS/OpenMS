@@ -45,6 +45,7 @@
 #include <string>
 #include <cstring>
 #include <cstdio>
+#include <algorithm>    // std::min
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/StreamHandler.h>
 

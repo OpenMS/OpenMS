@@ -43,6 +43,18 @@
 namespace OpenMS
 {
 
+  // Boost switch since with 1.47 several classes got moved into a new
+  // boost::unordered namespace (specifically unordered_map).
+  namespace OpenMSBoost
+  {
+#if OPENMS_BOOST_VERSION_MINOR > 47
+      using namespace boost::unordered;
+#else
+      using namespace boost;
+#endif
+  }
+
+
 /**
      @brief A representation of a QT cluster used for feature grouping.
 
@@ -65,12 +77,12 @@ namespace OpenMS
   class OPENMS_DLLAPI QTCluster
   {
 private:
+
     /**
-     * @brief Mapping: input map -> distance to center -> neighboring point
+     * @brief Mapping: input map -> distance to center (ordered!) -> neighboring point
      * @note There should never be an empty sub-map! (When a sub-map becomes empty, it should be removed from the overall map.)
      */
-    typedef boost::unordered::unordered_map<Size, boost::unordered::unordered_multimap<DoubleReal, GridFeature *> >
-    NeighborMap;
+    typedef OpenMSBoost::unordered_map<Size, std::multimap<DoubleReal, GridFeature *> > NeighborMap;
 
     /// Pointer to the cluster center
     GridFeature * center_point_;
@@ -155,13 +167,13 @@ public:
     void add(GridFeature * element, DoubleReal distance);
 
     /// Gets the clustered elements
-    void getElements(boost::unordered::unordered_map<Size, GridFeature *> & elements);
+    void getElements(OpenMSBoost::unordered_map<Size, GridFeature *> & elements);
 
     /**
      * @brief Updates the cluster after data points were removed
      * @return Whether the cluster is still valid (it's not if the cluster center is among the removed points).
      */
-    bool update(const boost::unordered::unordered_map<Size, GridFeature *> & removed);
+    bool update(const OpenMSBoost::unordered_map<Size, GridFeature *> & removed);
 
     /// Returns the cluster quality
     DoubleReal getQuality();

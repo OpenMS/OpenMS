@@ -59,6 +59,10 @@ MassTraceDetection::MassTraceDetection() :
     defaults_.setValidStrings("reestimate_mt_sd", StringList::create(("true,false")));
 
     // advanced parameters
+    defaults_.setValue("trace_termination_criterion", "outlier", "Termination criterion for the extension of mass traces. In 'outlier' mode, trace extension cancels if a predefined number of consecutive outliers are found (see trace_termination_outliers parameter). In 'sample_rate' mode, trace extension in both directions stops if ratio of found peaks versus visited spectra falls below the 'min_sample_rate' threshold.", StringList::create("advanced"));
+    defaults_.setValidStrings("trace_termination_criterion", StringList::create(("outlier,sample_rate")));
+    defaults_.setValue("trace_termination_outliers", 5, "Mass trace extension in one direction cancels if this number of consecutive spectra with no detectable peaks is reached.", StringList::create("advanced"));
+
     defaults_.setValue("min_sample_rate", 0.5, "Minimum fraction of scans along the mass trace that must contain a peak.", StringList::create("advanced"));
     defaults_.setValue("min_trace_length", 5.0, "Minimum expected length of a mass trace (in seconds).", StringList::create("advanced"));
     defaults_.setValue("max_trace_length", 300.0, "Minimum expected length of a mass trace (in seconds).", StringList::create("advanced"));
@@ -223,6 +227,7 @@ void MassTraceDetection::run(const MSExperiment<Peak1D> & input_exp, std::vector
 
     Size spectra_count(0);
 
+
     // this->startProgress(0, input_exp.size(), "Detect potential chromatographic apeces...");
     for (Size scan_idx = 0; scan_idx < input_exp.size(); ++scan_idx)
     {
@@ -253,6 +258,7 @@ void MassTraceDetection::run(const MSExperiment<Peak1D> & input_exp, std::vector
                     ++spec_peak_idx;
                 }
             }
+
 
             work_exp.addSpectrum(tmp_spec);
             spec_offsets.push_back(spec_offsets[spec_offsets.size() - 1] + tmp_spec.size());
@@ -329,7 +335,11 @@ void MassTraceDetection::run(const MSExperiment<Peak1D> & input_exp, std::vector
         bool toggle_up = true, toggle_down = true;
 
         Size conseq_missed_peak_up(0), conseq_missed_peak_down(0);
-        Size MAX_CONSEQ_MISSING(5);
+        Size MAX_CONSEQ_MISSING(trace_termination_outliers_);
+
+        DoubleReal current_sample_rate(1.0);
+        // Size min_scans_to_consider(std::floor((min_sample_rate_ /2)*10));
+        Size min_scans_to_consider(5);
 
         // DoubleReal outlier_ratio(0.3);
 
@@ -358,7 +368,7 @@ void MassTraceDetection::run(const MSExperiment<Peak1D> & input_exp, std::vector
                     right_bound = centroid_mz + 3 * ftl_sd;
                     left_bound = centroid_mz - 3 * ftl_sd;
 
-                    // std::cout << "down: " << centroid_mz << " "<<  ftl_sd << std::endl;
+                    //                  std::cout << "down: " << centroid_mz << " "<<  ftl_sd << std::endl;
 
                     Size left_next_idx = work_exp[trace_down_idx - 1].findNearest(left_bound);
                     Size right_next_idx = work_exp[trace_down_idx - 1].findNearest(right_bound);
@@ -366,6 +376,7 @@ void MassTraceDetection::run(const MSExperiment<Peak1D> & input_exp, std::vector
                     DoubleReal left_mz(work_exp[trace_down_idx - 1][left_next_idx].getMZ());
                     DoubleReal right_mz(work_exp[trace_down_idx - 1][right_next_idx].getMZ());
 
+                    // std::cout << "next: " << next_down_peak_mz << std::endl;
 
                     if ((next_down_peak_mz <= right_bound) && (next_down_peak_mz >= left_bound) && !peak_visited[spec_offsets[trace_down_idx - 1] + next_down_peak_idx])
                     {
@@ -407,21 +418,25 @@ void MassTraceDetection::run(const MSExperiment<Peak1D> & input_exp, std::vector
                 ++down_scan_counter;
 
 
-                if (conseq_missed_peak_down > MAX_CONSEQ_MISSING)
+                // trace termination criterion: max allowed number of consecutive outliers reached OR cancel extenstion if sampling_rate falls below min_sample_rate_
+                if (trace_termination_criterion_ == "outlier")
                 {
-                    toggle_down = false;
+                    if (conseq_missed_peak_down > MAX_CONSEQ_MISSING)
+                    {
+                        toggle_down = false;
+                    }
                 }
+                else if (trace_termination_criterion_ == "sample_rate")
+                {
+                    current_sample_rate = (DoubleReal)(down_hitting_peak + up_hitting_peak + 1)/(DoubleReal)(down_scan_counter + up_scan_counter + 1);
 
-                //                                if (down_scan_counter > min_flank_scans)
-                //                                {
-                //                                    //std::cout << "down ratio: " << (DoubleReal)down_hitting_peak/(DoubleReal)down_scan_counter << std::endl;
-                //                                    DoubleReal trace_sampling_ratio_down((DoubleReal)down_hitting_peak/(DoubleReal)down_scan_counter);
+                    if (down_scan_counter > min_scans_to_consider && current_sample_rate < min_sample_rate_)
+                    {
+                        // std::cout << "stopping down..." << std::endl;
+                        toggle_down = false;
+                    }
 
-                //                                    if (trace_sampling_ratio_down < min_sample_rate_)
-                //                                    {
-                //                                        toggle_down = false;
-                //                                    }
-                //                                }
+                }
 
             }
 
@@ -488,32 +503,37 @@ void MassTraceDetection::run(const MSExperiment<Peak1D> & input_exp, std::vector
                 ++trace_up_idx;
                 ++up_scan_counter;
 
-                if (conseq_missed_peak_up > MAX_CONSEQ_MISSING)
+                if (trace_termination_criterion_ == "outlier")
                 {
-                    toggle_up = false;
+                    if (conseq_missed_peak_up > MAX_CONSEQ_MISSING)
+                    {
+                        toggle_up = false;
+                    }
                 }
+                else if (trace_termination_criterion_ == "sample_rate")
+                {
+                    current_sample_rate = (DoubleReal)(down_hitting_peak + up_hitting_peak + 1)/(DoubleReal)(down_scan_counter + up_scan_counter + 1);
 
-                //                                if (up_scan_counter > min_flank_scans)
-                //                                {
-                //                                    //std::cout << "down ratio: " << (DoubleReal)down_hitting_peak/(DoubleReal)down_scan_counter << std::endl;
-                //                                    DoubleReal trace_sampling_ratio_up((DoubleReal)up_hitting_peak/(DoubleReal)up_scan_counter);
-
-                //                                    if (trace_sampling_ratio_up < min_sample_rate_)
-                //                                    {
-                //                                        toggle_up = false;
-                //                                    }
-                //                                }
+                    if (up_scan_counter > min_scans_to_consider && current_sample_rate < min_sample_rate_)
+                    {
+                        // std::cout << "stopping up" << std::endl;
+                        toggle_up = false;
+                    }
+                }
 
 
             }
 
         }
 
+        // std::cout << "current sr: " << current_sample_rate << std::endl;
         DoubleReal num_scans(down_scan_counter + up_scan_counter + 1 - conseq_missed_peak_down - conseq_missed_peak_up);
 
         DoubleReal mt_quality((DoubleReal)current_trace.size() / (DoubleReal)num_scans);
+        // std::cout << "mt quality: " << mt_quality << std::endl;
         DoubleReal rt_range(std::fabs(current_trace.rbegin()->getRT() - current_trace.begin()->getRT()));
 
+        // std::cout << num_scans << " " << mt_quality << " " << rt_range << std::endl;
         // check if minimum length and quality of mass trace criteria are met
         if (rt_range >= min_trace_length_ && rt_range < max_trace_length_ && mt_quality >= min_sample_rate_)
         {
@@ -558,6 +578,8 @@ void MassTraceDetection::updateMembers_()
     chrom_peak_snr_ = (DoubleReal)param_.getValue("chrom_peak_snr");
     // chrom_fwhm_ = (DoubleReal)param_.getValue("chrom_fwhm");
 
+    trace_termination_criterion_ = (String)param_.getValue("trace_termination_criterion");
+    trace_termination_outliers_ = (Size)param_.getValue("trace_termination_outliers");
     min_sample_rate_ = (DoubleReal)param_.getValue("min_sample_rate");
     min_trace_length_ = (DoubleReal)param_.getValue("min_trace_length");
     max_trace_length_ = (DoubleReal)param_.getValue("max_trace_length");

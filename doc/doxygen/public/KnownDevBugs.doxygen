@@ -41,13 +41,14 @@ Cannot open include file: 'windows.h': No such file or directory
         <b>Solution</b>: You need to download the Microsoft SDK for Windows 7 (or whatever your OS is). Make sure to select "Header Files" Section during install and make sure that the SDK's include path is in your <em>INCLUDE</em> environment.</li>
 </ul>
 
-  @section known_issues_linux Known Issues on Windows  
+  @section known_issues_linux Known Issues on Linux  
 
 <ul>
-        <li><B>Contrib fails to compile on Ubuntu 10.04</B> Your error message might look like:
+<li><B>Contrib fails to compile on Ubuntu 10.04</B> Your error message might look like:
 @code
 gzip: stdin: invalid compressed data--crc error 
 @endcode
-        This happens with a buggy version of gzip in Ubuntu 10.04. <BR>
-        <b>Solution</b>: To solve this issue update gzip using lucid-proposed (see https://wiki.ubuntu.com/Testing/EnableProposed)
+This happens with a buggy version of gzip in Ubuntu 10.04. <BR>
+<b>Solution</b>: To solve this issue update gzip using lucid-proposed (see https://wiki.ubuntu.com/Testing/EnableProposed)
+</ul>
 */

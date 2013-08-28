@@ -39,6 +39,7 @@
 #include <OpenMS/FORMAT/QcMLFile.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 
 #include <QByteArray>
 #include <QFile>
@@ -62,6 +63,29 @@ using namespace std;
 
     @brief This application is used embed tables or pictures generated externally as attachments to existing quality parameters in the targeted run/set meant to have attachments. If no quality parameter is present an empty value one will be generated with the name of "default set name"/"default mzML file".
 
+    <CENTER>
+      <table>
+        <tr>
+        <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+        <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ QCEmbedder \f$ \longrightarrow \f$</td>
+        <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+        </tr>
+        <tr>
+        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref UTILS_QCExporter </td>
+        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref UTILS_QCMerger </td>
+        </tr>
+        <tr>
+        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_XTandemAdapter </td>
+        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref UTILS_QCShrinker </td>
+        </tr>
+      </table>
+    </CENTER>
+
+    If there is additional data from external tools in tabular format containing additional quality control parameter (qp) to runs or sets, or even new runs, in the qcml file at @p in it can be imported to complete the qcml file, written subsequently to @p out.
+    
+    - @p table The table containing the additional qp values in the columns. First row is considered containing the header. The target run or set names/ids are indicated by column "raw data file", so each row after the header will contain the values of qps for that run.
+    - @p mapping The mapping of the table header to the according qp cvs, also in csv format. The first row is considered containing the headers as in the table. The second row is considered the according qp cv accessions.
+    
     <B>The command line parameters of this tool are:</B>
     @verbinclude UTILS_QCImporter.cli
     <B>INI file documentation of this tool:</B>
@@ -76,7 +100,7 @@ class TOPPQCImporter :
 {
 public:
   TOPPQCImporter() :
-    TOPPBase("QCImporter", "produces qcml files", false)
+    TOPPBase("QCImporter", "Imports tables with quality control parameters into qcml files.", false)
   {
   }
 
@@ -85,11 +109,11 @@ protected:
   {
     registerInputFile_("in", "<file>", "", "Input qcml file",false);
     setValidFormats_("in", StringList::create("qcML"));
-    registerInputFile_("table", "<file>", "", "Table file that will be imported into the given qc file .", true);
+    registerInputFile_("table", "<file>", "", "The table containing the additional qp values in the columns. First row is considered containing the header. The target run or set names/ids are indicated by column \"raw data file\", so each row after the header will contain the values of qps for that run.", true);
     setValidFormats_("table", StringList::create("csv"));
-    registerInputFile_("mapping", "<file>", "", "Mapping table of which column in the import will be represented as which qc.", true);
+    registerInputFile_("mapping", "<file>", "", "The mapping of the table header to the according qp cvs, also in csv format. The first row is considered containing the headers as in the table. The second row is considered the according qp cv accessions.", true);
     setValidFormats_("mapping", StringList::create("csv"));
-    registerOutputFile_("out", "<file>", "", "Output extended/reduced qcML file",true);
+    registerOutputFile_("out", "<file>", "", "Output extended qcML file",true);
     setValidFormats_("out", StringList::create("qcML"));
   }
 
@@ -98,10 +122,10 @@ protected:
     //-------------------------------------------------------------
     // parsing parameters
     //-------------------------------------------------------------
-    String in                   = getStringOption_("in");
-    String out                 = getStringOption_("out");
-    String mappi          	= getStringOption_("mapping");
-    String tab                 = getStringOption_("table");
+    String in = getStringOption_("in");
+    String out = getStringOption_("out");
+    String mappi = getStringOption_("mapping");
+    String tab = getStringOption_("table");
     
     ControlledVocabulary cv;
     cv.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));
@@ -137,7 +161,7 @@ protected:
       }
       //~ std::map<String,String> mapping;
       //~ std::transform( header.begin(), header.end(), according.begin(), std::inserter(mapping, mapping.end() ), std::make_pair<String,String> );
-      Size runset_col;
+      int runset_col = -1;
       for (Size i = 0; i < according.size(); ++i)
       {
         if (!cv.exists(according[i]))
@@ -147,7 +171,7 @@ protected:
             const ControlledVocabulary::CVTerm& term = cv.getTermByName(according[i]);
             header[i] = term.name;
             according[i] = term.id;
-          }						
+          }
           catch (...)
           {
             cerr << "Error: You have to specify a correct cv with accession or name in col "<< String(i) <<". Aborting!" << endl;
@@ -159,50 +183,73 @@ protected:
           const ControlledVocabulary::CVTerm& term = cv.getTerm(according[i]);
           header[i] = term.name;
         }
-        if (header[i] == "raw file name") //TODO add set name as possibility!
+        if (header[i] == "raw data file") //TODO add set name as possibility!
         {
           runset_col = i;
         }
+      }
+      if (runset_col < 0)
+      {
+        cerr << "Error: You have to give a mapping of your table - rows to runs/sets. Aborting!" << endl;
+        return ILLEGAL_PARAMETERS;
       }
 
       if (csv_file.size()>1)
       {
         StringList li;
-        for (Size i = 0; i < csv_file.size(); ++i)
+        for (Size i = 1; i < csv_file.size(); ++i)
         {
           StringList li;
           csv_file.getRow(i, li);
           if (li.size() < according.size())
           {
-            cerr << "Error: You have to give a correct mapping of your table - row " << String(i) <<" is too short. Aborting!" << endl;
+            cerr << "Error: You have to give a correct mapping of your table - row " << String(i+1) <<" is too short. Aborting!" << endl;
             return ILLEGAL_PARAMETERS;
           }
           
+          std::vector< QcMLFile::QualityParameter > qps;
+          String id;
+          bool set = false;
           for (Size j = 0; j < li.size(); ++j)
           {
             if (j==runset_col)
             {
-              continue;
+              if (qcmlfile.existsRun(li[j])) //TODO this only works for real run IDs
+              {
+                id = li[j];
+              }
+              else if (qcmlfile.existsSet(li[j])) //TODO this only works for real set IDs
+              {
+                id = li[j];
+                set = true;
+              }
+              else
+              {
+                id = li[j];
+                qcmlfile.registerRun(id,id);
+                //TODO warn that if this was supposed to be a set - now it is not!
+              }
             }
             QcMLFile::QualityParameter def;
-            def.name = header[i]; ///< Name
-            def.id = "default"; ///TODO !!!
+            def.name = header[j]; ///< Name
+            def.id = String(UniqueIdGenerator::getUniqueId());
             def.cvRef = "QC"; ///< cv reference ('full name')
             def.cvAcc = according[j];
             def.value = li[j];
-            
-            if (qcmlfile.existsRun(header[runset_col]))
+            qps.push_back(def);
+          }
+          if (id!="")
+          {
+            for (std::vector<QcMLFile::QualityParameter>::const_iterator qit = qps.begin(); qit != qps.end(); ++qit)
             {
-              qcmlfile.addRunQualityParameter(header[runset_col], def);
-            }
-            else if (qcmlfile.existsSet(header[runset_col]))
-            {
-              qcmlfile.addSetQualityParameter(header[runset_col], def);
-            }
-            else
-            {
-              cerr << "Error: You have to give a existing run or set - row " << String(i) <<" has none. Aborting!" << endl;
-              return ILLEGAL_PARAMETERS;
+              if (!set)
+              {
+                qcmlfile.addRunQualityParameter(id, *qit);
+              }
+              else
+              {
+                qcmlfile.addSetQualityParameter(id, *qit);
+              }
             }
           }
         }
