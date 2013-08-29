@@ -154,16 +154,18 @@ public:
             } else // step over window boundaries
             {
                 window_start = spectrum[i].getMZ(); // as there might be large gaps between peaks resulting in empty windows, set new window start to next peak
-                // copy N highest peaks to out
-                std::partial_sort(peaks_in_window.begin(), peaks_in_window.begin() + peakcount_, peaks_in_window.end(), reverseComparator(typename SpectrumType::PeakType::IntensityLess()));
 
-                if (peaks_in_window.size() > peakcount_)
-                {
-                    copy(peaks_in_window.begin(), peaks_in_window.begin() + peakcount_, back_inserter(out));
-                } else
-                {
-                    copy(peaks_in_window.begin(), peaks_in_window.end(), back_inserter(out));
-                }
+                // copy N highest peaks to out
+		if (peaks_in_window.size() > peakcount_ )
+		{	
+                  std::partial_sort(peaks_in_window.begin(), peaks_in_window.begin() + peakcount_, peaks_in_window.end(), reverseComparator(typename SpectrumType::PeakType::IntensityLess()));
+                  copy(peaks_in_window.begin(), peaks_in_window.begin() + peakcount_, back_inserter(out));
+		} else
+		{
+                  std::sort(peaks_in_window.begin(), peaks_in_window.end(), reverseComparator(typename SpectrumType::PeakType::IntensityLess()));
+                  copy(peaks_in_window.begin(), peaks_in_window.end(), back_inserter(out));
+		}
+
                 peaks_in_window.clear(false);
                 peaks_in_window.push_back(spectrum[i]);
             }
