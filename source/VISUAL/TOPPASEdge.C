@@ -200,6 +200,12 @@ namespace OpenMS
     // print names
     if (getTargetInParam() != -1)
     {
+      qreal text_angle = angle;
+      bool invert_text_direction = endPos().x() < startPos().x();
+      if (invert_text_direction)
+      {
+        text_angle += 180;
+      }
       QPainterPath path_line_short(borderPoint_(false));
       path_line_short.lineTo(endPos());
       QString str = getSourceOutParamName();
@@ -208,8 +214,18 @@ namespace OpenMS
         painter->save();
         QPointF point = path_line_short.pointAtPercent(0.05);
         painter->translate(point);
-        painter->rotate(angle);
-        painter->drawText(QPoint(0, -pen.width()), str);
+        painter->rotate(text_angle);
+        if (invert_text_direction)
+        {
+          //TODO
+          QFontMetrics fm(painter->fontMetrics());
+          int width=fm.width(str);
+          painter->drawText(QPoint(-width, -pen.width()), str);
+        }
+        else
+        {
+          painter->drawText(QPoint(0, -pen.width()), str);
+        }
         painter->restore();
       }
       str = getTargetInParamName();
@@ -219,10 +235,18 @@ namespace OpenMS
         qreal pc = path_line_short.percentAtLength(10);
         QPointF point = path_line_short.pointAtPercent(0.95);
         painter->translate(point);
-        painter->rotate(angle);
+        painter->rotate(text_angle);
         QFontMetrics fm(painter->fontMetrics());
         int width=fm.width(str);
-        painter->drawText(QPoint(-width - arrow_width, -pen.width()), str); // for text length and arrow
+        if (invert_text_direction)
+        {
+          //TODO
+          painter->drawText(QPoint(arrow_width, -pen.width()), str); // for text length and arrow
+        }
+        else
+        {
+          painter->drawText(QPoint(-width - arrow_width, -pen.width()), str); // for text length and arrow
+        }
         painter->restore();
       }
     }
