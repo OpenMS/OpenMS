@@ -198,30 +198,33 @@ namespace OpenMS
     const qreal arrow_width = 10; // required multiple times, so defined here to avoid inconsistencies
 
     // print names
-    QPainterPath path_line_short(borderPoint_(false));
-    path_line_short.lineTo(endPos());
-    QString str = getSourceOutParamName();
-    if (!str.isEmpty())
+    if (getTargetInParam() != -1)
     {
-      painter->save();
-      QPointF point = path_line_short.pointAtPercent(0.05);
-      painter->translate(point);
-      painter->rotate(angle);
-      painter->drawText(QPoint(0, -pen.width()), str);
-      painter->restore();
-    }
-    str = getTargetInParamName();
-    if (!str.isEmpty())
-    {
-      painter->save();
-      qreal pc = path_line_short.percentAtLength(10);
-      QPointF point = path_line_short.pointAtPercent(0.95);
-      painter->translate(point);
-      painter->rotate(angle);
-      QFontMetrics fm(painter->fontMetrics());
-      int width=fm.width(str);
-      painter->drawText(QPoint(-width - arrow_width, -pen.width()), str); // for text length and arrow
-      painter->restore();
+      QPainterPath path_line_short(borderPoint_(false));
+      path_line_short.lineTo(endPos());
+      QString str = getSourceOutParamName();
+      if (!str.isEmpty())
+      {
+        painter->save();
+        QPointF point = path_line_short.pointAtPercent(0.05);
+        painter->translate(point);
+        painter->rotate(angle);
+        painter->drawText(QPoint(0, -pen.width()), str);
+        painter->restore();
+      }
+      str = getTargetInParamName();
+      if (!str.isEmpty())
+      {
+        painter->save();
+        qreal pc = path_line_short.percentAtLength(10);
+        QPointF point = path_line_short.pointAtPercent(0.95);
+        painter->translate(point);
+        painter->rotate(angle);
+        QFontMetrics fm(painter->fontMetrics());
+        int width=fm.width(str);
+        painter->drawText(QPoint(-width - arrow_width, -pen.width()), str); // for text length and arrow
+        painter->restore();
+      }
     }
 
     // draw arrow head
