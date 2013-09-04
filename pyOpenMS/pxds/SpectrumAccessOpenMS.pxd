@@ -6,8 +6,8 @@ from MSExperiment cimport *
 cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMS.h>" namespace "OpenMS":
 
   cdef cppclass SpectrumAccessOpenMS:
-        SpectrumAccessOpenMS(MSExperiment[Peak1D, ChromatogramPeak] & ms_experiment)
-        SpectrumAccessOpenMS(SpectrumAccessOpenMS)
+        SpectrumAccessOpenMS(SpectrumAccessOpenMS) # wrap-ignore
+        SpectrumAccessOpenMS(shared_ptr[ MSExperiment[Peak1D, ChromatogramPeak] ] & ms_experiment)
 
         shared_ptr[Spectrum] getSpectrumById(int id)  #wrap-ignore
         libcpp_vector[size_t] getSpectraByRT(double RT, double deltaRT)
