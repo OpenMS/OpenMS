@@ -217,7 +217,6 @@ namespace OpenMS
         painter->rotate(text_angle);
         if (invert_text_direction)
         {
-          //TODO
           QFontMetrics fm(painter->fontMetrics());
           int width=fm.width(str);
           painter->drawText(QPoint(-width, -pen.width()), str);
@@ -240,7 +239,6 @@ namespace OpenMS
         int width=fm.width(str);
         if (invert_text_direction)
         {
-          //TODO
           painter->drawText(QPoint(arrow_width, -pen.width()), str); // for text length and arrow
         }
         else
