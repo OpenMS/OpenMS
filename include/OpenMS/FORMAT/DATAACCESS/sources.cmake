@@ -3,9 +3,9 @@ set(directory include/OpenMS/FORMAT/DATAACCESS)
 
 ### list all header files of the directory here
 set(sources_list_h
-#MSDataWritingConsumer.h
-#MSDataTransformingConsumer.h
-#MSDataCachedConsumer.h
+MSDataWritingConsumer.h
+MSDataTransformingConsumer.h
+MSDataCachedConsumer.h
 )
 
 ### add path to the filenames
