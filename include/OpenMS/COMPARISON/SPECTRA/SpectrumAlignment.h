@@ -51,8 +51,8 @@ namespace OpenMS
   /**
       @brief Aligns the peaks of two spectra
 
-    Using a banded (width via 'tolerance' parameter) alignment.
-    Scoring function is the m/z distance between peaks. Intensity does not play a role!
+        Using a banded (width via 'tolerance' parameter) alignment.
+        Scoring function is the m/z distance between peaks. Intensity does not play a role!
 
         @htmlinclude OpenMS_SpectrumAlignment.parameters
 

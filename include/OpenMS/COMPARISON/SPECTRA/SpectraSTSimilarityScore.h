@@ -44,16 +44,20 @@ namespace OpenMS
   /**
       @brief Similarity score of SpectraST.
 
-      Unlike the other similarity scores this score is used for matching a spectrum against a whole library, although
-      the dot poduct seems to be an effective method for scoring on its own. For calculating the Spectrast score,
-      first preprocess the spectra if not already done. Transform them and calculate the dot product and the dot bias.
-      Afterwards get the best two hits and calculate delta_D. Now for every spectrum from the library you can calculate the final score.
+      Unlike the other similarity scores this score is used for matching a
+      spectrum against a whole library, although the dot product seems to be an
+      effective method for scoring on its own. For calculating the SpectraST
+      score, first preprocess the spectra if not already done. Transform them
+      and calculate the dot product and the dot bias.  Afterwards get the best
+      two hits and calculate delta_D. Now for every spectrum from the library
+      you can calculate the final score.
 
-        The details of the score can be found in:
-        H. Lam et al., Development and validation of a spectral library searching method for peptide identification from MS/MS,
-        Proteomics, 7 , 655-667, 2007
+      The details of the score can be found in:
+      H. Lam et al., Development and validation of a spectral library searching
+      method for peptide identification from MS/MS,
+      Proteomics, 7 , 655-667, 2007
 
-        @ingroup SpectraComparison
+      @ingroup SpectraComparison
   */
 
   class OPENMS_DLLAPI SpectraSTSimilarityScore :
@@ -104,7 +108,7 @@ public:
     BinnedSpectrum transform(const PeakSpectrum & spec);
 
     /**
-        @brief Calculates how much of the dot prudct is dominated by a few peaks
+        @brief Calculates how much of the dot product is dominated by a few peaks
 
         @param dot_product if -1 this value will be calculated as well.
         @param bin1 first spectrum in binned representation
@@ -115,7 +119,7 @@ public:
     /**
         @brief calculates the normalized distance between top_hit and runner_up.
         @param top_hit is the best score for a given match.
-        @param runner_up a match with a worse score than top_hit. e.g. the second best score.
+        @param runner_up a match with a worse score than top_hit, e.g. the second best score.
 
         @return normalized distance
         @throw DividedByZero exception if top_hit is 0.

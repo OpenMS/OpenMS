@@ -45,14 +45,14 @@ namespace OpenMS
   /**
     @brief SpectrumCheapDPCorr calculates an optimal alignment on stick spectra
 
-      to save computing time only Peak Pairs that could get a score > 0 are considered
-      which Peak Pairs could get scores > 0 ? <br>
-      Peaks get a score depending on the difference in position and the heights of the peaks <br>
-      pairs with positions that differ more than some limit get score 0
+    to save computing time only Peak Pairs that could get a score > 0 are considered
+    which Peak Pairs could get scores > 0 ? <br>
+    Peaks get a score depending on the difference in position and the heights of the peaks <br>
+    pairs with positions that differ more than some limit get score 0
 
-        @htmlinclude OpenMS_SpectrumCheapDPCorr.parameters
+    @htmlinclude OpenMS_SpectrumCheapDPCorr.parameters
 
-        @ingroup SpectraComparison
+    @ingroup SpectraComparison
   */
 
   class OPENMS_DLLAPI SpectrumCheapDPCorr :

@@ -38,7 +38,6 @@
 
 #include <OpenMS/FORMAT/HANDLERS/MzMLSpectrumDecoder.h>
 
-//#define MULTI_LINE_STRING(a) #a
 #define MULTI_LINE_STRING(...) #__VA_ARGS__ 
 
 using namespace std;

@@ -40,7 +40,6 @@
 #include <OpenMS/DATASTRUCTURES/SparseVector.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
-
 #include <cmath>
 
 namespace OpenMS
