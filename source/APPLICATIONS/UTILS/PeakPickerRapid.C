@@ -46,10 +46,10 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-        @page TOPP_PeakPickerRapid PeakPickerRapid
+        @page UTILS_PeakPickerRapid PeakPickerRapid
 
-        @brief A tool for peak detection in profile data. Executes the peak picking with @ref OpenMS::PeakPickerRapid "high_res" algorithm.
-<CENTER>
+        @brief A tool for peak detection in profile data. Analytically fits a 3 point gaussian.
+	<CENTER>
 	<table>
 		<tr>
 			<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
@@ -71,37 +71,18 @@ using namespace std;
 
 	The conversion of the ''raw'' ion count data acquired
 	by the machine into peak lists for further processing
-	is usually called peak picking. The choice of the algorithm
-	should mainly depend on the resolution of the data.
-        As the name implies, the @ref OpenMS::PeakPickerRapid "high_res"
-  algorithm is fit for high resolution data.
-
-	@ref TOPP_example_signalprocessing_parameters is explained in the TOPP tutorial.
+	is usually called peak picking.
 
 	<B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_PeakPickerRapid.cli
+        @verbinclude UTILS_PeakPickerRapid.cli
+
+        <B>INI file documentation of this tool:</B>
+        @htmlinclude UTILS_PeakPickerRapid.html
 
 	For the parameters of the algorithm section see the algorithm documentation: @n
-    @ref OpenMS::PeakPickerRapid "PeakPickerRapid" @n
-
-	In the following table you, can find example values of the most important algorithm parameters for
-	different instrument types. @n These parameters are not valid for all instruments of that type,
-	but can be used as a starting point for finding suitable parameters.
-	<table>
-		<tr BGCOLOR="#EBEBEB">
-			<td>&nbsp;</td>
-			<td><b>Q-TOF</b></td>
-			<td><b>LTQ Orbitrap</b></td>
-		</tr>
-		<tr>
-			<td BGCOLOR="#EBEBEB"><b>signal_to_noise</b></td>
-			<td>2</td>
-			<td>0</td>
-		</tr>
-	</table>
+        @ref OpenMS::PeakPickerRapid "PeakPickerRapid" @n
 
 */
-
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
@@ -110,7 +91,7 @@ class TOPPPeakPickerRapid
 {
 public:
     TOPPPeakPickerRapid()
-        : TOPPBase("PeakPickerRapid","Finds mass spectrometric peaks in profile mass spectra.")
+        : TOPPBase("PeakPickerRapid","Finds mass spectrometric peaks in profile mass spectra.", false)
     {
     }
 

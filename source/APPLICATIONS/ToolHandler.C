@@ -207,6 +207,7 @@ namespace OpenMS
     util_map["MassCalculator"] = Internal::ToolDescription("MassCalculator", util_category);
     util_map["MRMPairFinder"] = Internal::ToolDescription("MRMPairFinder", util_category);
     util_map["MSSimulator"] = Internal::ToolDescription("MSSimulator", util_category);
+    util_map["PeakPickerRapid"] = Internal::ToolDescription("PeakPickerRapid", "Signal processing and preprocessing");
     util_map["QCCalculator"] = Internal::ToolDescription("QCCalculator", util_category);
     util_map["QCEmbedder"] = Internal::ToolDescription("QCEmbedder", util_category);
     util_map["QCExtractor"] = Internal::ToolDescription("QCExtractor", util_category);

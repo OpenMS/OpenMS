@@ -47,6 +47,7 @@
 	- @subpage UTILS_INIUpdater - Update INI and TOPPAS files from previous versions of %OpenMS as parameters and storage method might have changed
 	
   <b>Signal Processing and Preprocessing</b>
+  - @subpage UTILS_PeakPickerRapid - Finds mass spectrometric peaks in profile mass spectra.
   - @subpage UTILS_RNPxlXICFilter - Remove MS2 spectra from treatment based on the fold change between control and treatment for RNP cross linking experiments.  
 
   <b>File handling</b>
