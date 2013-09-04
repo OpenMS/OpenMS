@@ -47,11 +47,20 @@
 namespace OpenMS
 {
   /**
-    @brief This class implements a fast peak-picking algorithm best suited for high resolution MS data (FT-ICR-MS, Orbitrap). In high resolution data, the signals of ions with similar mass-to-charge ratios (m/z) exhibit little or no overlapping and therefore allow for a clear separation. Furthermore, ion signals tend to show well-defined peak shapes with narrow peak width.
+    @brief This class implements a fast peak-picking algorithm best suited for
+    high resolution MS data (FT-ICR-MS, Orbitrap). In high resolution data, the
+    signals of ions with similar mass-to-charge ratios (m/z) exhibit little or
+    no overlapping and therefore allow for a clear separation. Furthermore, ion
+    signals tend to show well-defined peak shapes with narrow peak width.
 
-    This peak-picking algorithm detects ion signals in raw data and reconstructs the corresponding peak shape by analytically fitting a scaled gaussian. A picked peak's m/z and intensity value is given by the height of the gaussian or alternativly the area under the gaussian.
+    This peak-picking algorithm detects ion signals in raw data and
+    reconstructs the corresponding peak shape by analytically fitting a scaled
+    gaussian. A picked peak's m/z and intensity value is given by the height of
+    the gaussian or alternatively the area under the gaussian.
 
-    So far, this peak picker was mainly tested on high resolution data. With appropriate preprocessing steps (e.g. noise reduction and baseline subtraction), it might be also applied to low resolution data.
+    So far, this peak picker was mainly tested on high resolution data. With
+    appropriate preprocessing steps (e.g. noise reduction and baseline
+    subtraction), it might be also applied to low resolution data.
 
     @htmlinclude OpenMS_PeakPickerRapid.parameters
 
