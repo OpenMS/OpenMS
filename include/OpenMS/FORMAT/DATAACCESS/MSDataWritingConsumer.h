@@ -249,8 +249,8 @@ namespace OpenMS
     public:
 
       PlainMSDataWritingConsumer(String filename) : MSDataWritingConsumer(filename) {}
-      void processSpectrum_(typename MapType::SpectrumType & /* s */) {}
-      void processChromatogram_(typename MapType::ChromatogramType & /* c */) {}
+      void processSpectrum_(MapType::SpectrumType & /* s */) {}
+      void processChromatogram_(MapType::ChromatogramType & /* c */) {}
     };
 
 } //end namespace OpenMS

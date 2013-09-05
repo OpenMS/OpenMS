@@ -135,16 +135,16 @@ protected:
       ms1_only_ = pp.getParameters().getValue("ms1_only").toBool();
     }
 
-    void processSpectrum_(typename MapType::SpectrumType & s)
+    void processSpectrum_(MapType::SpectrumType & s)
     {
       if (ms1_only_ && (s.getMSLevel() != 1)) {return;}
 
-      typename MapType::SpectrumType sout;
+      MapType::SpectrumType sout;
       pp_.pick(s, sout);
       s = sout;
     }
 
-    void processChromatogram_(typename MapType::ChromatogramType & /* c */) 
+    void processChromatogram_(MapType::ChromatogramType & /* c */) 
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
         "Cannot handle chromatograms yet.");
