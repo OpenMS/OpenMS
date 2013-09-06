@@ -68,18 +68,26 @@ using namespace std;
     </table>
     </CENTER>
 
-   Currently this tool can create tab-delimited inclusion or exclusion lists (m/z, RT start, RT stop).
-     The input can either be peptide identifications from previous runs, a feature map or a FASTA-file with proteins.
-     Inclusion and exclusion charges can be specified for FASTA and idXML input. If no charges are specified in the case of peptide id input, only
-   the charge state of the peptide id is in/excluded, otherwise all given charge states are entered to the list.
+    Currently this tool can create tab-delimited inclusion or exclusion lists (m/z, RT start, RT stop).
+    The input can either be peptide identifications from previous runs, a feature map or a FASTA-file with proteins.
+    Inclusion and exclusion charges can be specified for FASTA and idXML input. If no charges are specified in the case of peptide id input, only
+    the charge state of the peptide id is in/excluded, otherwise all given charge states are entered to the list.
+    
+    InclusionExclusionListCreator has different strategies for inclusion list creation: 'FeatureBased_LP', 'ProteinBased_LP' and 'ALL'. 
+    In the ALL mode all features are put onto the list. The FeatureBased_LP,  which was designed for MALDI data, maximizes the number of features in the inclusion list 
+    given the constraints that for each RT fraction a maximal number of precursors is not exceeded and each feature is scheduled at most a fixed number of times. 
+    In this mode, the sum of normalized feature intensities is maximized so that for each feature high intensity RTs are favoured over lower intensity ones.
+    The ProteinBased_LP uses RT and detectability prediction methods to predict features that are most likely to be identified by MS/MS. 
+    Both LP methods are described in more detail in a recent publication: Zerck et al.: 
+    <a href="http://www.biomedcentral.com/1471-2105/14/56">Optimal precursor ion selection for LC-MALDI MS/MS</a> (BMC Bioinformatics 2013).
 
-   The RT window size can be specified in the RT section of the INI file, either as relative window
-   with [rt-rel_rt_window_size*rt,rt+rel_rt_window_size*rt] or absolute window.
-
-   The default is RT in minutes, but seconds can also be used (see INI file).
-
-   <B>The command line parameters of this tool are:</B>
-   @verbinclude TOPP_InclusionExclusionListCreator.cli
+    The RT window size can be specified in the RT section of the INI file, either as relative window
+    with [rt-rel_rt_window_size*rt,rt+rel_rt_window_size*rt] or absolute window.
+    
+    The default is RT in minutes, but seconds can also be used (see INI file).
+    
+    <B>The command line parameters of this tool are:</B>
+    @verbinclude TOPP_InclusionExclusionListCreator.cli
     <B>INI file documentation of this tool:</B>
     @htmlinclude TOPP_InclusionExclusionListCreator.html
 */
@@ -136,6 +144,8 @@ protected:
     Param tmp;
     tmp.insert("InclusionExclusionList:", fdc.getParameters());
     tmp.insert("PrecursorSelection:", ops.getParameters());
+    tmp.remove("PrecursorSelection:selection_window");
+    tmp.remove("PrecursorSelection:min_peak_distance");
     return tmp;
   }
 
