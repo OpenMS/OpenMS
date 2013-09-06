@@ -121,8 +121,7 @@ public:
 
 protected:
 
-
-  class OPENMS_DLLAPI PPHiResMzMLConsumer :
+  class PPHiResMzMLConsumer :
     public MSDataWritingConsumer 
   {
 
