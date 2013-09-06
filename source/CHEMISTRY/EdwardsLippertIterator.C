@@ -129,7 +129,7 @@ protected:
     m_(source.m_),
     massMax_(source.massMax_)
   {
-    for (Size i = 0; i < 256; i++)
+    for (Size i = 0; i < 255; i++)
     {
       masse_[i] = source.masse_[i];
     }
@@ -257,7 +257,9 @@ protected:
         if (e_ <= seq.length())
         {
           if (e_ < seq.length())
+          {
             m_ += masse_[(int)seq[e_]];
+          }
           e_++;
           if (e_ > (b_ + 1))
           {
