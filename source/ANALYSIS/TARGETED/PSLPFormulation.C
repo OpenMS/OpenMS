@@ -35,6 +35,9 @@
 #include <OpenMS/ANALYSIS/TARGETED/PSProteinInference.h>
 #include <OpenMS/ANALYSIS/TARGETED/PrecursorIonSelectionPreprocessing.h>
 
+#ifdef DEBUG_OPS
+#include <OpenMS/SYSTEM/StopWatch.h>
+#endif
 namespace OpenMS
 {
 
@@ -240,12 +243,11 @@ namespace OpenMS
 #ifdef DEBUG_OPS
       std::cout << "\nadd row " << std::endl;
 #endif
-      //    String name = "PREC_ACQU_LIMIT_" + String(i);
 
       model_->addRow(indices, entries, (String("PREC_ACQU_LIMIT_") + i), 0, 1, LPWrapper::UPPER_BOUND_ONLY); // only upper bounded problem -> lower bound is ignored
 
 #ifdef DEBUG_OPS
-      std::cout << stop - start << " " << name << std::endl;
+      std::cout << stop - start << " PREC_ACQU_LIMIT_" << String(i) << std::endl;
       std::cout << "added row" << std::endl;
 #endif
       //#undef DEBUG_OPS
@@ -301,9 +303,9 @@ namespace OpenMS
 
 
 
-#ifdef DEBUG_OPS
-    model_->writeProblem("/home/zerck/data/tmp/test_pis_problem.mps", "MPS");
-#endif
+// #ifdef DEBUG_OPS
+//     model_->writeProblem("/home/zerck/data/tmp/test_pis_problem.mps", "MPS");
+// #endif
 
     solveILP(solution_indices);
   }
@@ -541,12 +543,12 @@ namespace OpenMS
 #ifdef DEBUG_OPS
         test_feature.setMZ(masses[p]);
         test_feature.setRT(curr_rt);
-        std::map<String, std::vector<String> >::const_iterator prot_pep_iter = prot_pep_seq_map.find(map_iter->first);
-        if (prot_pep_iter != prot_pep_seq_map.end())
-        {
-          const std::vector<String> & pep_seqs =  prot_pep_iter->second;
-          test_feature.setMetaValue("sequence", pep_seqs[p]);
-        }
+	//        std::map<String, std::vector<String> >::const_iterator prot_pep_iter = prot_pep_seq_map.find(map_iter->first);
+        // if (prot_pep_iter != prot_pep_seq_map.end())
+        // {
+        //   const std::vector<String> & pep_seqs =  prot_pep_iter->second;
+        //   test_feature.setMetaValue("sequence", pep_seqs[p]);
+        // }
 
 
 #endif
@@ -584,8 +586,9 @@ namespace OpenMS
           std::cout << "protein " << map_iter->first << " peptide " << p
 
                     << " scan " << curr_rt_index << " weight "
-                    << curr_rt_weight * map_iter->second[p] * mz_weight
-                    << " = " << curr_rt_weight << " * " << map_iter->second[p] << std::endl;
+	    //<< curr_rt_weight * map_iter->second[p] * mz_weight
+	    // << " = " << curr_rt_weight << " * " << map_iter->second[p] 
+		    << std::endl;
           //                            << " * "<<mz_weight<<std::endl;
 #endif
           model_->setObjective(index, 0.0);
@@ -665,8 +668,9 @@ namespace OpenMS
 #ifdef DEBUG_OPS
           std::cout << "protein " << map_iter->first << " peptide " << p
                     << " scan " << curr_rt_index << " weight "
-                    << curr_rt_weight * map_iter->second[p] * mz_weight
-                    << " = " << curr_rt_weight << " * " << map_iter->second[p] << std::endl;
+	    //                    << curr_rt_weight * map_iter->second[p] * mz_weight
+	    //      << " = " << curr_rt_weight << " * " << map_iter->second[p] 
+		    << std::endl;
           //  << " * "<<mz_weight <<std::endl;
 #endif
           //cmodel_->setObjective(counter,1.-curr_rt_weight*map_iter->second[p]);
@@ -901,7 +905,8 @@ namespace OpenMS
       std::cout << "\nadd row " << std::endl;
       std::cout << (String("PROT_COV_") + map_iter->first) << "\t" << (String("PROT_COV_") + i).c_str() << std::endl;
       std::cout << indices_vec.size() << " " << (indices_vec[0]) << " " << (entries[0])
-                << " min " << -COIN_DBL_MAX << ", max " << log(1. - min_prot_coverage) << std::endl;
+	//                << " min " << -COIN_DBL_MAX << ", max " << log(1. - min_prot_coverage) 
+		<< std::endl;
 #endif
       // at the moment we want a certain coverage for each protein
       model_->addRow(indices_vec, entries, (String("PROT_COV_") + i), 0., 0., LPWrapper::UPPER_BOUND_ONLY);
@@ -1765,7 +1770,7 @@ namespace OpenMS
               //Int i = distance(preprocessed_db.getProteinPTMap().begin(),map_iter);
 #ifdef DEBUG_OPS
               std::cout << "\nadd row ";
-              std::cout << (String("PROT_COV_") + map_iter->first) << "\t" << (String("PROT_COV_") + i).c_str();
+	      //              std::cout << (String("PROT_COV_") + map_iter->first) << "\t" << (String("PROT_COV_") + i).c_str();
               std::cout << " " << indices.size() << " entries " << (indices[0]) << " " << (entries[0]) << std::endl;
 #endif
 

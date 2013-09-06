@@ -39,6 +39,7 @@
 
 #include <OpenMS/DATASTRUCTURES/LPWrapper.h>
 
+//#define DEBUG_OPS
 namespace OpenMS
 {
   class PrecursorIonSelectionPreprocessing;

@@ -195,13 +195,13 @@ protected:
         FeatureMap<> map;
         FeatureXMLFile().load(include, map);
 
-        if (!incl_charges.empty())
-        {
-          writeLog_("Warning: 'inclusion_charges' parameter is not honored for featureXML input.");
-          return ILLEGAL_PARAMETERS;
-        }
         if (strategy == "ALL")
         {
+	  if (!incl_charges.empty())
+	  {
+	    writeLog_("Warning: 'inclusion_charges' parameter is not honored for featureXML input with strategy ALL.");
+	    return ILLEGAL_PARAMETERS;
+	  }
 
           // convert to targeted experiment
           // for traML output
@@ -234,8 +234,12 @@ protected:
           std::cout << "spot_cap " << spot_cap << std::endl;
           opis.setParameters(param);
 
+	  // insert charges
           std::set<Int> charges_set;
-          charges_set.insert(0);
+	  for(Size c=0; c < incl_charges.size();++c) 
+	  { 
+	    charges_set.insert(incl_charges[c]);
+	  }
 
           // create ILP
           PSLPFormulation ilp_wrapper;
