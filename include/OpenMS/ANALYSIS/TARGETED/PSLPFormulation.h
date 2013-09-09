@@ -296,7 +296,14 @@ protected:
   {
 
     std::vector<std::vector<DoubleReal> > intensity_weights;
-    calculateXICs_(intensity_weights, features, experiment, mass_ranges, true);
+    if (param_.getValue("feature_based:normalize_intensities") == "true")
+    {
+      calculateXICs_(intensity_weights, features, experiment, mass_ranges, true);
+    }
+    else 
+    {
+      calculateXICs_(intensity_weights, features, experiment, mass_ranges, false);
+    }
 #ifdef DEBUG_OPS
     std::cout << "got xics" << std::endl;
 #endif

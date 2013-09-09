@@ -141,11 +141,13 @@ protected:
     // there is only one subsection: 'algorithm' (s.a) .. and in it belongs the InclusionExclusionList param
     InclusionExclusionList fdc;
     OfflinePrecursorIonSelection ops;
+    PSLPFormulation lp;
     Param tmp;
     tmp.insert("InclusionExclusionList:", fdc.getParameters());
     tmp.insert("PrecursorSelection:", ops.getParameters());
     tmp.remove("PrecursorSelection:selection_window");
     tmp.remove("PrecursorSelection:min_peak_distance");
+    tmp.insert("PrecursorSelection:",lp.getParameters().copy("feature_based"));
     return tmp;
   }
 
@@ -240,8 +242,8 @@ protected:
           exp.sortSpectra(true);
           OfflinePrecursorIonSelection opis;
           Param param = getParam_().copy("algorithm:PrecursorSelection:", true);
+	  param.remove("feature_based:normalize_intensities");
           UInt spot_cap = param.getValue("ms2_spectra_per_rt_bin");
-          std::cout << "spot_cap " << spot_cap << std::endl;
           opis.setParameters(param);
 
 	  // insert charges
@@ -253,6 +255,8 @@ protected:
 
           // create ILP
           PSLPFormulation ilp_wrapper;
+	  Param param2 = getParam_().copy("algorithm:PrecursorSelection:", true);
+	  ilp_wrapper.setParameters(param2.copy("feature_based"));
           // get the mass ranges for each features for each scan it occurs in
           std::vector<std::vector<std::pair<Size, Size> > >  indices;
           opis.getMassRanges(map, exp, indices);
@@ -273,14 +277,15 @@ protected:
             Size feature_index = variable_indices[solution_indices[i]].feature;
             Size scan = variable_indices[solution_indices[i]].scan;
             out_map.push_back(map[feature_index]);
-            std::cout << map[feature_index].getMetaValue("msms_score") << std::endl;
+	    //            std::cout << map[feature_index].getMetaValue("msms_score") << std::endl;
             ++rt_sizes[scan];
           }
-
+#ifdef DEBUG_OPS
           for (Size r = 0; r < rt_sizes.size(); ++r)
           {
             std::cout << r << "\t" << rt_sizes[r] << "\n";
           }
+#endif
           try
           {
             if (out.hasSuffix("featureXML"))
@@ -318,6 +323,7 @@ protected:
         {
           OfflinePrecursorIonSelection opis;
           Param param = getParam_().copy("algorithm:PrecursorSelection:", true);
+	  param.remove("feature_based:normalize_intensities");
           opis.setParameters(param);
 
           FeatureMap<> precursors;

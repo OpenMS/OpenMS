@@ -110,6 +110,9 @@ namespace OpenMS
     // defaults_.setMaxFloat("combined_ilp:k1",1.);
     defaults_.setValue("combined_ilp:scale_matching_probs", "true", "flag if detectability * rt_weight shall be scaled to cover all [0,1]");
     defaults_.setValidStrings("combined_ilp:scale_matching_probs", StringList::create("true,false"));
+
+    defaults_.setValue("feature_based:normalize_intensities","true", "Flag indicating if intensities shall be scaled to be in [0,1]. This is done for each feature separately, so that the feature's maximal intensity in a spectrum is set to 1.");
+    defaults_.setValidStrings("feature_based:normalize_intensities", StringList::create("true,false"));
     defaultsToParam_();
 
   }
