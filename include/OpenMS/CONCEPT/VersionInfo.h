@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
-// $Authors:  Clemens Groepl, Chris Bielow $
+// $Authors: Clemens Groepl, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_CONCEPT_VERSIONINFO_H
@@ -110,8 +110,7 @@ public:
       code.
 
       @internal The current svn version is queried by the build system regularly and
-      the result is written as a header file which is
-      included by VersionInfo.C.
+      the result is written as a header file which is included by VersionInfo.C.
         */
     static String getRevision();
 

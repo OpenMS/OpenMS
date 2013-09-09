@@ -90,7 +90,7 @@ public:
     /**
       Returns the file name without the extension
 
-      The extension is the suffix of the string upto and including the last dot.
+      The extension is the suffix of the string up to and including the last dot.
 
       If no extension is found, the whole file name is returned
     */
@@ -126,11 +126,15 @@ public:
     static bool fileList(const String& dir, const String& file_pattern, StringList& output, bool full_path = false);
 
     /**
-      @brief Resolves a partial file name to a documention file in the doc-folder.
+      @brief Resolves a partial file name to a documentation file in the doc-folder.
 
-      Using find() to locate the documentation file under OPENMS_DATA_PATH, OPENMS_SOURCE_PATH, OPENMS_BINARY_PATH + "/../../doc" (or a variation for MacOS packages)
+      Using find() to locate the documentation file under OPENMS_DATA_PATH,
+      OPENMS_SOURCE_PATH, OPENMS_BINARY_PATH + "/../../doc" (or a variation for
+      MacOS packages)
 
-      Will return the String with the full path to the local documentation. If this call fails, try the web documentation (http://www.openms.de/current_doxygen/) instead.
+      Will return the String with the full path to the local documentation. If
+      this call fails, try the web documentation
+      (http://www.openms.de/current_doxygen/) instead.
      
       @param String The doc file name to find.
       @return The full path to the requested file.
@@ -162,7 +166,7 @@ public:
     static String findDatabase(const String& db_name);
 
     /**
-      @brief Searchs for an executable with the given name.
+      @brief Searches for an executable with the given name.
 
       @param toolName The executable to search for.
       @exception FileNotFound is thrown, if the tool executable was not found.
@@ -171,7 +175,7 @@ public:
 
 private:
 
-    /// get defaults for the system's Temp-path, user home directory etc
+    /// get defaults for the system's Temp-path, user home directory etc.
     static Param getSystemParameterDefaults_();
 
     /// Check if the given path is a valid OPENMS_DATA_PATH

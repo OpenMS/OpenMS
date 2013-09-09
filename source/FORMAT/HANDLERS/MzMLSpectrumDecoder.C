@@ -137,8 +137,6 @@ namespace OpenMS
       computeDataProperties_(data_, x_precision_64, x_index, "m/z array");
       computeDataProperties_(data_, int_precision_64, int_index, "intensity array");
 
-      std::cout << x_index << " and " << int_index << std::endl;
-
       //Abort if no m/z or intensity array is present
       if (int_index == -1 || x_index == -1)
       {
@@ -207,8 +205,6 @@ namespace OpenMS
       SignedSize int_index = -1;
       computeDataProperties_(data_, x_precision_64, x_index, "time array");
       computeDataProperties_(data_, int_precision_64, int_index, "intensity array");
-
-      std::cout << x_index << " and " << int_index << std::endl;
 
       //Abort if no m/z or intensity array is present
       if (int_index == -1 || x_index == -1)
