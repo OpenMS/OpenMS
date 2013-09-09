@@ -111,12 +111,12 @@ using namespace std;
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 //
-class TOPPLowMemPeakPickerHiRes :
+class TOPPLowMemPeakPickerHiRes_RandomAccess :
   public TOPPBase
 {
 public:
-  TOPPLowMemPeakPickerHiRes() :
-    TOPPBase("LowMemPeakPickerHiRes", "Finds mass spectrometric peaks in profile mass spectra.")
+  TOPPLowMemPeakPickerHiRes_RandomAccess() :
+    TOPPBase("LowMemPeakPickerHiRes_RandomAccess", "Finds mass spectrometric peaks in profile mass spectra.")
   {
   }
 
@@ -265,7 +265,7 @@ protected:
 
 int main(int argc, const char ** argv)
 {
-  TOPPLowMemPeakPickerHiRes tool;
+  TOPPLowMemPeakPickerHiRes_RandomAccess tool;
   return tool.main(argc, argv);
 }
 
