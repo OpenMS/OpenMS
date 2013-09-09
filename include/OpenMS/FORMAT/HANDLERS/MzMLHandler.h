@@ -835,7 +835,7 @@ protected:
 
         if (consumer_ != NULL && !skip_spectrum_)
         {
-          fillData_();
+          if (options_.getFillData()) fillData_();
           consumer_->consumeSpectrum(spec_);
           if (options_.getAlwaysAppendData())
           {
@@ -844,9 +844,8 @@ protected:
         }
         else if (!skip_spectrum_)
         {
-          fillData_();
+          if (options_.getFillData()) fillData_();
           exp_->addSpectrum(spec_);
-
         }
         skip_spectrum_ = false;
         if (options_.getSizeOnly()) {skip_spectrum_ = true;}
@@ -858,7 +857,7 @@ protected:
       {
         if (consumer_ != NULL && !skip_chromatogram_)
         {
-          fillChromatogramData_();
+          if (options_.getFillData()) fillChromatogramData_();
           consumer_->consumeChromatogram(chromatogram_);
           if (options_.getAlwaysAppendData())
           {
@@ -867,7 +866,7 @@ protected:
         }
         else if (!skip_chromatogram_)
         {
-          fillChromatogramData_();
+          if (options_.getFillData()) fillChromatogramData_();
           exp_->addChromatogram(chromatogram_);
         }
         skip_chromatogram_ = false;

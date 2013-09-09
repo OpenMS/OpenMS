@@ -143,6 +143,10 @@ public:
     void setAlwaysAppendData(bool only);
     ///returns whether or not to always append the data to the given map (even if a consumer is given)
     bool getAlwaysAppendData() const;
+    ///sets whether to fill the actual data into the container (spectrum/chromatogram)
+    void setFillData(bool only);
+    ///returns whether to fill the actual data into the container (spectrum/chromatogram)
+    bool getFillData() const;
 
     /**
         @name Precision options
@@ -180,6 +184,7 @@ private:
     bool zlib_compression_;
     bool size_only_;
     bool always_append_data_;
+    bool fill_data_;
     bool write_index_;
   };
 

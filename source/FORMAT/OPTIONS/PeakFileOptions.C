@@ -55,6 +55,7 @@ namespace OpenMS
     zlib_compression_(false),
     size_only_(false),
     always_append_data_(false),
+    fill_data_(true),
     write_index_(false)
   {
   }
@@ -74,6 +75,7 @@ namespace OpenMS
     zlib_compression_(options.zlib_compression_),
     size_only_(options.size_only_),
     always_append_data_(options.always_append_data_),
+    fill_data_(options.fill_data_),
     write_index_(options.write_index_)
   {
   }
@@ -208,6 +210,16 @@ namespace OpenMS
   void PeakFileOptions::setAlwaysAppendData(bool always_append_data)
   {
     always_append_data_ = always_append_data;
+  }
+
+  bool PeakFileOptions::getFillData() const
+  {
+    return fill_data_;
+  }
+
+  void PeakFileOptions::setFillData(bool fill_data)
+  {
+    fill_data_ = fill_data;
   }
 
   void PeakFileOptions::setMz32Bit(bool mz_32_bit)
