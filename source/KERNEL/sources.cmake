@@ -17,6 +17,7 @@ MRMFeature.C
 MRMTransitionGroup.C
 MSExperiment.C
 MSSpectrum.C
+OnDiscMSExperiment.C
 Peak1D.C
 Peak2D.C
 PeakIndex.C

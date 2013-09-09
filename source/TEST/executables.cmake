@@ -118,6 +118,7 @@ set(kernel_executables_list
   MRMTransitionGroup_test
 	MSChromatogram_test
 	MSExperiment_test
+	OnDiscMSExperiment_test
 	MSSpectrum_test
 	Peak1D_test
 	Peak2D_test
