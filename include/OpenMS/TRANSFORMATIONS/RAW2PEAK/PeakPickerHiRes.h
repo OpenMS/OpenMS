@@ -35,6 +35,7 @@
 #define OPENMS_TRANSFORMATIONS_RAW2PEAK_PEAKPICKERHIRES_H
 
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/OnDiscMSExperiment.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
@@ -403,6 +404,56 @@ public:
       {
         MSChromatogram<ChromatogramPeakT> chromatogram;
         pick(input.getChromatograms()[i], chromatogram);
+        output.addChromatogram(chromatogram);
+        setProgress(++progress);
+      }
+
+      endProgress();
+
+      return;
+    }
+
+    /**
+      @brief Applies the peak-picking algorithm to a map (MSExperiment). This
+      method picks peaks for each scan in the map consecutively. The resulting
+      picked peaks are written to the output map.
+
+      Currently we have to give up const-correctness but we know that everything on disc is constant
+    */
+    template <typename PeakType, typename ChromatogramPeakT>
+    void pickExperiment(/* const */ OnDiscMSExperiment<PeakType, ChromatogramPeakT> & input, MSExperiment<PeakType, ChromatogramPeakT> & output) const
+    {
+      // make sure that output is clear
+      output.clear(true);
+
+      // copy experimental settings
+      static_cast<ExperimentalSettings &>(output) = *input.getExperimentalSettings();
+
+      // resize output with respect to input
+      output.resize(input.size());
+
+      bool ms1_only = param_.getValue("ms1_only").toBool();
+      Size progress = 0;
+
+      startProgress(0, input.size() + input.getNrChromatograms(), "smoothing data");
+      for (Size scan_idx = 0; scan_idx != input.size(); ++scan_idx)
+      {
+        if (ms1_only && (input[scan_idx].getMSLevel() != 1))
+        {
+          output[scan_idx] = input[scan_idx];
+        }
+        else
+        {
+          MSSpectrum<PeakType> s = input[scan_idx];
+          s.sortByPosition();
+          pick(s, output[scan_idx]);
+        }
+        setProgress(++progress);
+      }
+      for (Size i = 0; i < input.getNrChromatograms(); ++i)
+      {
+        MSChromatogram<ChromatogramPeakT> chromatogram;
+        pick(input.getChromatogram(i), chromatogram);
         output.addChromatogram(chromatogram);
         setProgress(++progress);
       }

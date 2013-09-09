@@ -23,6 +23,7 @@ ImageCreator
 INIUpdater
 LabeledEval
 LowMemPeakPickerHiRes
+LowMemPeakPickerHiRes_RandomAccess
 MassCalculator
 MRMPairFinder
 MSSimulator

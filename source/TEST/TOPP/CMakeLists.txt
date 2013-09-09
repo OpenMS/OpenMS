@@ -742,6 +742,9 @@ ADD_TEST("PeakPickerIterative_test_2_out1" ${DIFF} -in1 PeakPickerIterative_2.mz
 add_test("TOPP_LowMemPeakPickerHiRes_1" ${TOPP_BIN_PATH}/LowMemPeakPickerHiRes -test -ini ${DATA_DIR_TOPP}/LowMemPeakPickerHiRes_parameters.ini -in ${DATA_DIR_TOPP}/PeakPickerHiRes_input.mzML -out LowMemPeakPickerHiRes_1.tmp)
 add_test("TOPP_LowMemPeakPickerHiRes_1_out1" ${DIFF} -in1 LowMemPeakPickerHiRes_1.tmp -in2 ${DATA_DIR_TOPP}/LowMemPeakPickerHiRes_output.mzML)
 set_tests_properties("TOPP_LowMemPeakPickerHiRes_1_out1" PROPERTIES DEPENDS "TOPP_LowMemPeakPickerHiRes_1")
+add_test("TOPP_LowMemPeakPickerHiRes_RandomAccess_1" ${TOPP_BIN_PATH}/LowMemPeakPickerHiRes_RandomAccess -test -ini ${DATA_DIR_TOPP}/LowMemPeakPickerHiRes_RandomAccess_parameters.ini -in ${DATA_DIR_TOPP}/PeakPickerHiRes_RandomAccess_input.mzML -out LowMemPeakPickerHiRes_RandomAccess_1.tmp)
+add_test("TOPP_LowMemPeakPickerHiRes_RandomAccess_1_out1" ${DIFF} -in1 LowMemPeakPickerHiRes_RandomAccess_1.tmp -in2 ${DATA_DIR_TOPP}/LowMemPeakPickerHiRes_output.mzML)
+set_tests_properties("TOPP_LowMemPeakPickerHiRes_RandomAccess_1_out1" PROPERTIES DEPENDS "TOPP_LowMemPeakPickerHiRes_RandomAccess_1")
 
 ### Resampler tests
 add_test("TOPP_Resampler_1" ${TOPP_BIN_PATH}/Resampler -test -in ${DATA_DIR_TOPP}/Resampler_1_input.mzML -out Resampler.mzML -sampling_rate 0.3)
