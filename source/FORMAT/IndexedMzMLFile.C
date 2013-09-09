@@ -58,29 +58,40 @@ namespace OpenMS
   }
 
   IndexedMzMLFile::IndexedMzMLFile(String filename) :
+    filename_(filename),
     filestream(filename.c_str())
   {
     parseFooter(filename);
   }
 
+  IndexedMzMLFile::IndexedMzMLFile(const IndexedMzMLFile & source) :
+    filename_(source.filename_),
+    spectra_offsets(source.spectra_offsets),
+    chromatograms_offsets(source.chromatograms_offsets),
+    index_offset_(source.index_offset_),
+    spectra_before_chroms_(source.spectra_before_chroms_),
+    filestream(source.filename_.c_str()),
+    parsing_success_(source.parsing_success_)
+  {}
+
   IndexedMzMLFile::~IndexedMzMLFile() {}
 
-  bool IndexedMzMLFile::getParsingSuccess() 
+  bool IndexedMzMLFile::getParsingSuccess() const
   {
     return parsing_success_;
   }
 
-  size_t IndexedMzMLFile::getNrSpectra() 
+  size_t IndexedMzMLFile::getNrSpectra() const
   {
     return spectra_offsets.size();
   }
 
-  size_t IndexedMzMLFile::getNrChromatograms() 
+  size_t IndexedMzMLFile::getNrChromatograms() const
   {
     return chromatograms_offsets.size();
   }
 
-  OpenMS::Interfaces::SpectrumPtr IndexedMzMLFile::getSpectrumById(int id)
+  OpenMS::Interfaces::SpectrumPtr IndexedMzMLFile::getSpectrumById(int id) 
   {
     int spectrumToGet = id;
 
@@ -130,7 +141,9 @@ namespace OpenMS
     OpenMS::Interfaces::SpectrumPtr sptr(new OpenMS::Interfaces::Spectrum);
     MzMLSpectrumDecoder().domParseSpectrum(text, sptr);
 
+#ifdef DEBUG_READER
     std::cout << sptr->getIntensityArray()->data.size() << " int and mz : " << sptr->getMZArray()->data.size() << std::endl;
+#endif
 
     return sptr;
   }
@@ -185,7 +198,9 @@ namespace OpenMS
     OpenMS::Interfaces::ChromatogramPtr sptr(new OpenMS::Interfaces::Chromatogram);
     MzMLSpectrumDecoder().domParseChromatogram(text, sptr);
 
-    std::cout << sptr->getIntensityArray()->data.size() << " int and mz : " << sptr->getTimeArray()->data.size() << std::endl;
+#ifdef DEBUG_READER
+    std::cout << sptr->getIntensityArray()->data.size() << " int and time : " << sptr->getTimeArray()->data.size() << std::endl;
+#endif
 
     return sptr;
   }

@@ -66,6 +66,8 @@ namespace OpenMS
   */
   class OPENMS_DLLAPI IndexedMzMLFile
   {
+      /// Name of the file
+      String filename_;
       /// Binary offsets to all spectra
       std::vector< std::pair<std::string, long> > spectra_offsets;
       /// Binary offsets to all chromatograms
@@ -96,17 +98,20 @@ namespace OpenMS
     */
     IndexedMzMLFile(String filename);
 
+    /// Copy constructor
+    IndexedMzMLFile(const IndexedMzMLFile & source);
+
     /// Destructor
     ~IndexedMzMLFile();
 
     /// Returns whether parsing was successful
-    bool getParsingSuccess();
+    bool getParsingSuccess() const;
 
     /// Returns the number of spectra available
-    size_t getNrSpectra();
+    size_t getNrSpectra() const;
 
     /// Returns the number of chromatograms available
-    size_t getNrChromatograms();
+    size_t getNrChromatograms() const;
 
     /// Returns the raw data for the spectrum at position "id"
     OpenMS::Interfaces::SpectrumPtr getSpectrumById(int id);
