@@ -72,13 +72,16 @@ public:
       filename_(filename),
       indexed_mzml_file_(filename)
     {
-      meta_ms_experiment_ = boost::shared_ptr< MSExperiment<> >(new MSExperiment<>);
+      if (filename != "")
+      {
+        meta_ms_experiment_ = boost::shared_ptr< MSExperiment<> >(new MSExperiment<>);
 
-      MzMLFile f;
-      PeakFileOptions options = f.getOptions();
-      options.setFillData(false);
-      f.setOptions(options);
-      f.load(filename, *meta_ms_experiment_.get());
+        MzMLFile f;
+        PeakFileOptions options = f.getOptions();
+        options.setFillData(false);
+        f.setOptions(options);
+        f.load(filename, *meta_ms_experiment_.get());
+      }
     }
 
     /// Copy constructor

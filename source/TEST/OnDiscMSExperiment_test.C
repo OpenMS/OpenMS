@@ -157,7 +157,7 @@ START_SECTION((inline MSSpectrum<PeakT>& operator[] (Size n) const))
   TEST_EQUAL(tmp.empty(), false);
   MSSpectrum<> s = tmp[0];
   TEST_EQUAL(s.empty(), false);
-  TEST_EQUAL(s.size(), 39828);
+  TEST_EQUAL(s.size(), 19914);
 }
 END_SECTION
 
@@ -167,7 +167,7 @@ START_SECTION((MSSpectrum<PeakT> getSpectrum(Size id)))
   TEST_EQUAL(tmp.empty(), false);
   MSSpectrum<> s = tmp.getSpectrum(0);
   TEST_EQUAL(s.empty(), false);
-  TEST_EQUAL(s.size(), 39828);
+  TEST_EQUAL(s.size(), 19914);
 }
 END_SECTION
 
@@ -178,7 +178,7 @@ START_SECTION((MSSpectrum<PeakT> getChromatogram(Size id)))
   TEST_EQUAL(tmp.empty(), false);
   MSChromatogram<> c = tmp.getChromatogram(0);
   TEST_EQUAL(c.empty(), false);
-  TEST_EQUAL(c.size(), 96);
+  TEST_EQUAL(c.size(), 48);
 }
 END_SECTION
 

@@ -41,7 +41,6 @@ using namespace OpenMS;
 using namespace std;
 
 #include <OpenMS/KERNEL/OnDiscMSExperiment.h>
-#include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h> 
 
 //-------------------------------------------------------------
 //Doxygen docu
@@ -121,38 +120,6 @@ public:
   }
 
 protected:
-
-  class PPHiResMzMLConsumer :
-    public MSDataWritingConsumer 
-  {
-
-  public:
-
-    PPHiResMzMLConsumer(String filename, PeakPickerHiRes pp) :
-      MSDataWritingConsumer(filename) 
-    {
-      pp_ = pp;
-      ms1_only_ = pp.getParameters().getValue("ms1_only").toBool();
-    }
-
-    void processSpectrum_(MapType::SpectrumType & s)
-    {
-      if (ms1_only_ && (s.getMSLevel() != 1)) {return;}
-
-      MapType::SpectrumType sout;
-      pp_.pick(s, sout);
-      s = sout;
-    }
-
-    void processChromatogram_(MapType::ChromatogramType & /* c */) 
-    {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-        "Cannot handle chromatograms yet.");
-    }
-
-    PeakPickerHiRes pp_;
-    bool ms1_only_;
-  };
 
   void registerOptionsAndFlags_()
   {
