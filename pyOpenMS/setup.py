@@ -211,6 +211,10 @@ include_dirs=[
     j(numpy.core.__path__[0],"include"),
              ]
 
+include_dirs.extend( LIBRARIES_EXTEND )
+libraries.extend( LIBRARIES_EXTEND )
+library_dirs.extend( LIBRARY_DIRS_EXTEND )
+
 extra_link_args = []
 
 if sys.platform == "linux2":
