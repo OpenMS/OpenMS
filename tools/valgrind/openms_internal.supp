@@ -1,0 +1,65 @@
+# Valgrind suppression file for OpenMS code 
+
+#
+# TODO: These leaks are triggered in OpenMS itself and should be investigated.
+# 
+
+#
+## Present in all programs, even OpenMSInfo
+# 
+
+# possibly lost: 8,471 bytes in 256 blocks
+{
+   ElementDB_constructor_leak
+   Memcheck:Leak
+   ...
+   fun:_ZN6OpenMS9ElementDBC1Ev
+   ...
+}
+
+# still reachable: 8,984 bytes in 215 blocks
+{
+   ResidueDB_constructor_leak
+   Memcheck:Leak
+   ...
+   fun:_ZN6OpenMS9ResidueDBC1Ev
+   ...
+}
+
+# still reachable: 1,296 bytes in 27 blocks
+{
+   EmpiricalFormula_copy_constructor
+   Memcheck:Leak
+   ...
+   fun:_ZN6OpenMS16EmpiricalFormulaC1ERKS0_
+   ...
+}
+
+# still reachable: 9,408 bytes in 196 blocks
+{
+   EmpiricalFormula_assignment_operator
+   Memcheck:Leak
+   ...
+   fun:_ZN6OpenMS16EmpiricalFormulaaSERKS0_
+   ...
+}
+
+#
+## Only certain programs
+#
+{
+   TheoreticalSpectrumGenerator
+   Memcheck:Leak
+   ...
+   fun:_ZN6OpenMS31SvmTheoreticalSpectrumGenerator15initializeMaps*
+   ...
+}
+
+{
+   String_split_leak
+   Memcheck:Leak
+   ...
+   fun:_ZNK6OpenMS6String5splitEcRSt6vectorIS0_SaIS0_EEb
+   ...
+}
+

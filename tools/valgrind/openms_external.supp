@@ -1,0 +1,98 @@
+# Valgrind suppression file for external code 
+
+# possibly lost: 16,131 bytes in 382 blocks
+# still reachable: 62 bytes in 2 blocks
+{
+   Xercesc
+   Memcheck:Leak
+   ...
+   fun:_ZN11xercesc_*
+   ...
+}
+
+# possibly lost: 30 bytes in 1 blocks
+# still reachable: 32,976 bytes in 2 blocks
+{
+   StaticStreams
+   Memcheck:Leak
+   ...
+   fun:_Z41__static_initialization_and_destruction_0ii
+   ...
+   obj:*ld*.so
+}
+
+#
+# MzML Reader
+#
+{
+   Qt_Locale
+   Memcheck:Leak
+   ...
+   fun:_ZN7QLocaleC1Ev
+   ...
+}
+
+{
+   Qt_localeprivate
+   Memcheck:Leak
+   ...
+   fun:_ZN14QLocalePrivate19updateSystemPrivateEv
+   ...
+}
+
+{
+   dlopen
+   Memcheck:Leak
+   ...
+   fun:openaux
+   fun:_dl_catch_error
+   fun:_dl_map_object_deps
+   fun:dl_open_worker
+   fun:_dl_catch_error
+   fun:_dl_open
+   fun:dlopen_doit
+   fun:_dl_catch_error
+   ...
+}
+
+{
+   dlopen_Qt
+   Memcheck:Leak
+   ...
+   fun:dl_open_worker
+   fun:_dl_catch_error
+   fun:_dl_open
+   fun:dlopen_doit
+   fun:_dl_catch_error
+   fun:_dlerror_run
+   ...
+   obj:*libQtCore.so*
+   ...
+}
+
+{
+   ICU_library
+   Memcheck:Leak
+   fun:malloc
+   ...
+   obj:*libicuuc*
+   ...
+}
+
+# 
+# Not all code trigger these
+#
+{
+   NvidiaLibGL
+   Memcheck:Leak
+   ...
+   obj:*libGL.so*
+}
+
+{
+   OpenMP
+   Memcheck:Leak
+   ...
+   obj:*libgomp.so*
+   ...
+}
