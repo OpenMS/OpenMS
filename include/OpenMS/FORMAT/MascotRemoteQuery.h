@@ -171,8 +171,6 @@ private:
     String host_name_;
     /// Login required
     bool requires_login_;
-    /// Max reported hits
-    Int max_hits_;
     /// Use SSL connection
     bool use_ssl_;
     /// boundary string that will be embedded into the HTTP requests

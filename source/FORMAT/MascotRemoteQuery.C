@@ -79,11 +79,8 @@ namespace OpenMS
     defaults_.setValue("use_ssl", "false", "Flag indicating wether the server uses https or not.");
     defaults_.setValidStrings("use_ssl", StringList::create("true,false"));
 
-    // Mascot specific options
-    defaults_.setValue("query_master", "false", "If this option is set to true, query peptides will be returned with non-truncated lists, however, protein references of peptides will not be correct.", StringList::create("advanced"));
-    defaults_.setValidStrings("query_master", StringList::create("true,false"));
-    defaults_.setValue("max_hits", 0, "Maximum number of hits to be exported from the server to XML (0 = AUTO)");
-    defaults_.setMinInt("max_hits", 0);
+    // Mascot export options
+    defaults_.setValue("export_params", "_sigthreshold=0.99&_showsubsets=1&show_same_sets=1&report=0&percolate=0&query_master=0", "Adjustable export parameters (passed to Mascot's 'export_dat_2.pl' script). Generally only parameters that control which hits to export are safe to adjust/add. Many settings that govern what types of information to include are required by OpenMS and cannot be changed. Note that setting 'query_master' to 1 may lead to incorrect protein references for peptides.", StringList::create("advanced"));
     defaultsToParam_();
   }
 
@@ -543,22 +540,17 @@ namespace OpenMS
       results_path.append(server_path_.toQString());
       results_path.append("/cgi/export_dat_2.pl?file=");
       results_path.append(rx.cap(1));
-      results_path.append(QString("&report=") + QString::number(max_hits_));
 
 #ifdef MASCOTREMOTEQUERY_DEBUG
       cerr << "Results path to export: " << results_path.toStdString() << "\n";
 #endif
-      //results_path_.append("&show_same_sets=1&show_unassigned=1&show_queries=1&do_export=1&export_format=XML&pep_rank=1&_sigthreshold=0.99&_showsubsets=1&show_header=1&prot_score=1&pep_exp_z=1&pep_score=1&pep_seq=1&pep_homol=1&pep_ident=1&show_mods=1&pep_var_mod=1&protein_master=1&prot_score=1&search_master=1&show_header=1&show_params=1&pep_scan_title=1&query_qualifiers=1&query_peaks=1&query_raw=1&query_title=1&pep_expect=1&peptide_master=1"); // contains duplicate options
-      results_path.append("&show_same_sets=1&show_unassigned=1&show_queries=1&do_export=1&export_format=XML&pep_rank=1&_sigthreshold=0.99&_showsubsets=1&show_header=1&prot_score=1&pep_exp_z=1&pep_score=1&pep_seq=1&pep_homol=1&pep_ident=1&show_mods=1&pep_var_mod=1&protein_master=1&search_master=1&show_params=1&pep_scan_title=1&query_qualifiers=1&query_peaks=1&query_raw=1&query_title=1&pep_expect=1&peptide_master=1&generate_file=1&group_family=1");
+      // see http://www.matrixscience.com/help/export_help.html for parameter documentation
+      String required_params = "&do_export=1&export_format=XML&generate_file=1&group_family=1&peptide_master=1&protein_master=1&search_master=1&show_unassigned=1&show_mods=1&show_header=1&show_params=1&prot_score=1&pep_exp_z=1&pep_score=1&pep_seq=1&pep_homol=1&pep_ident=1&pep_expect=1&pep_var_mod=1&pep_scan_title=1&query_qualifiers=1&query_peaks=1&query_raw=1&query_title=1";
+      String adjustable_params = param_.getValue("export_params");
+      results_path.append(required_params.toQString() + "&" + 
+                          adjustable_params.toQString());
+      // results_path.append("&show_same_sets=1&show_unassigned=1&show_queries=1&do_export=1&export_format=XML&pep_rank=1&_sigthreshold=0.99&_showsubsets=1&show_header=1&prot_score=1&pep_exp_z=1&pep_score=1&pep_seq=1&pep_homol=1&pep_ident=1&show_mods=1&pep_var_mod=1&protein_master=1&search_master=1&show_params=1&pep_scan_title=1&query_qualifiers=1&query_peaks=1&query_raw=1&query_title=1&pep_expect=1&peptide_master=1&generate_file=1&group_family=1");
 
-      if (param_.getValue("query_master").toBool())
-      {
-        results_path.append("&query_master=1");
-      }
-      else
-      {
-        results_path.append("&query_master=0");
-      }
       //Finished search, fire off results retrieval
       getResults(results_path);
     }
@@ -667,7 +659,6 @@ namespace OpenMS
     to_ = param_.getValue("timeout");
     timeout_.setInterval(1000 * to_);
     requires_login_ = param_.getValue("login").toBool();
-    max_hits_ = param_.getValue("max_hits");
 
     bool use_proxy(param_.getValue("use_proxy").toBool());
     if (use_proxy)
