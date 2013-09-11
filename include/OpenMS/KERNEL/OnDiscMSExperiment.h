@@ -58,7 +58,7 @@ namespace OpenMS
     @ingroup Kernel
   */
   template <typename PeakT = Peak1D, typename ChromatogramPeakT = ChromatogramPeak>
-  class OPENMS_DLLAPI OnDiscMSExperiment
+  class OnDiscMSExperiment
   {
 public:
 

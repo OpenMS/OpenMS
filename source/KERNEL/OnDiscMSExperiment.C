@@ -36,7 +36,4 @@
 
 namespace OpenMS
 {
-
-  OnDiscMSExperiment<> default_on_disc_ms_experiment_("");
-
 } //namespace OpenMS
