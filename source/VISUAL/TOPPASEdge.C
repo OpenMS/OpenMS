@@ -198,33 +198,30 @@ namespace OpenMS
     const qreal arrow_width = 10; // required multiple times, so defined here to avoid inconsistencies
 
     // print names
-    if (getTargetInParam() != -1)
+    QPainterPath path_line_short(borderPoint_(false));
+    path_line_short.lineTo(endPos());
+    QString str = getSourceOutParamName();
+    if (!str.isEmpty())
     {
-      QPainterPath path_line_short(borderPoint_(false));
-      path_line_short.lineTo(endPos());
-      QString str = getSourceOutParamName();
-      if (!str.isEmpty())
-      {
-        painter->save();
-        QPointF point = path_line_short.pointAtPercent(0.05);
-        painter->translate(point);
-        painter->rotate(angle);
-        painter->drawText(QPoint(0, -pen.width()), str);
-        painter->restore();
-      }
-      str = getTargetInParamName();
-      if (!str.isEmpty())
-      {
-        painter->save();
-        qreal pc = path_line_short.percentAtLength(10);
-        QPointF point = path_line_short.pointAtPercent(0.95);
-        painter->translate(point);
-        painter->rotate(angle);
-        QFontMetrics fm(painter->fontMetrics());
-        int width=fm.width(str);
-        painter->drawText(QPoint(-width - arrow_width, -pen.width()), str); // for text length and arrow
-        painter->restore();
-      }
+      painter->save();
+      QPointF point = path_line_short.pointAtPercent(0.05);
+      painter->translate(point);
+      painter->rotate(angle);
+      painter->drawText(QPoint(0, -pen.width()), str);
+      painter->restore();
+    }
+    str = getTargetInParamName();
+    if (!str.isEmpty())
+    {
+      painter->save();
+      qreal pc = path_line_short.percentAtLength(10);
+      QPointF point = path_line_short.pointAtPercent(0.95);
+      painter->translate(point);
+      painter->rotate(angle);
+      QFontMetrics fm(painter->fontMetrics());
+      int width=fm.width(str);
+      painter->drawText(QPoint(-width - arrow_width, -pen.width()), str); // for text length and arrow
+      painter->restore();
     }
 
     // draw arrow head
@@ -238,7 +235,6 @@ namespace OpenMS
     path.closeSubpath();
     painter->drawPath(path);
     painter->restore();
-
   }
 
   QPointF TOPPASEdge::startPos() const
@@ -398,6 +394,15 @@ namespace OpenMS
 
   TOPPASEdge::EdgeStatus TOPPASEdge::getToolToolStatus_(TOPPASToolVertex * source_tool, int source_param_index, TOPPASToolVertex * target_tool, int target_param_index)
   {
+    if (source_param_index < 0)
+    {
+      return ES_NO_SOURCE_PARAM;
+    }
+    if (target_param_index < 0)
+    {
+      return ES_NO_TARGET_PARAM;
+    }
+
     QVector<TOPPASToolVertex::IOInfo> source_output_files;
     source_tool->getOutputParameters(source_output_files);
     if (source_param_index >= source_output_files.size())
