@@ -44,7 +44,10 @@ namespace OpenMS
 
   MultiGradient::MultiGradient() :
     pos_col_(),
-    interpolation_mode_(IM_LINEAR)
+    interpolation_mode_(IM_LINEAR),
+    pre_min_(0),
+    pre_size_(0),
+    pre_steps_(0)
   {
     pos_col_[0] = Qt::white;
     pos_col_[100] = Qt::black;
