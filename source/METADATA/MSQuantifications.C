@@ -46,6 +46,21 @@ namespace OpenMS
   MSQuantifications::MSQuantifications() :
     ExperimentalSettings()
   {
+  }  
+  
+  /// Detailed Constructor
+  MSQuantifications::MSQuantifications(FeatureMap<> fm, ExperimentalSettings& es, std::vector<DataProcessing>& dps, std::vector<std::vector<std::pair<String, DoubleReal> > > label) :
+    ExperimentalSettings()
+  {
+    MSQuantifications::QUANT_TYPES quant_type = MSQuantifications::LABELFREE;
+    this->setAnalysisSummaryQuantType(quant_type);
+
+    //~ AssayList,InputFiles,SoftwareList
+    //~ aus exp.
+    this->registerExperiment(es,dps,label);
+    
+    this->setDataProcessingList(fm.getDataProcessing()); //TODO add dp from experiment (i.e. mzml) ?
+    feature_maps_  = std::vector<FeatureMap<> > (1,fm);
   }
 
   /// Copy constructor
@@ -181,7 +196,27 @@ namespace OpenMS
       assays_.push_back(a);
     }
 
-    data_processings_ = exp[0].getDataProcessing();             //todo overwrite MSExperiments inherited front method to work. [0] operator is ugly!
+    data_processings_ = exp[0].getDataProcessing();             //TODO check if empty, overwrite MSExperiments inherited front method to work. [0] operator is ugly!
+  }
+  
+  void MSQuantifications::registerExperiment(ExperimentalSettings & es, std::vector<DataProcessing>& dps,  std::vector<std::vector<std::pair<String, DoubleReal> > > label)
+  {
+    for (std::vector<std::vector<std::pair<String, DoubleReal> > >::const_iterator lit = label.begin(); lit != label.end(); ++lit)
+    {
+      //TODO look for existing labels
+      Assay a;
+      a.mods_ = (*lit);
+      a.raw_files_.push_back(es);
+      assays_.push_back(a);
+    }
+    if (label.empty())
+    {
+      Assay a;
+      a.raw_files_.push_back(es);
+      assays_.push_back(a);
+    }
+
+    data_processings_ = dps; //TODO add in set fashion
   }
 
 } //namespace OpenMS

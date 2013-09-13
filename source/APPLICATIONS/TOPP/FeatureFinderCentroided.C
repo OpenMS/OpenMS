@@ -38,6 +38,9 @@
 #include <OpenMS/KERNEL/RangeUtils.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder_impl.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/FORMAT/MzQuantMLFile.h>
+#include <OpenMS/METADATA/MSQuantifications.h>
+#include <OpenMS/SYSTEM/File.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -148,6 +151,10 @@ protected:
     setValidFormats_("out", StringList::create("featureXML"));
     registerInputFile_("seeds", "<file>", "", "User specified seed list", false);
     setValidFormats_("seeds", StringList::create("featureXML"));
+    
+    registerOutputFile_("out_mzq", "<file>", "", "Optional output file of MzQuantML.", false, true);
+    setValidFormats_("out_mzq", StringList::create("mzq"));
+    
     addEmptyLine_();
 
     registerSubsection_("algorithm", "Algorithm section");
@@ -163,6 +170,8 @@ protected:
     //input file names
     String in = getStringOption_("in");
     String out = getStringOption_("out");
+    String out_mzq = getStringOption_("out_mzq");
+
 
     //prevent loading of fragment spectra
     PeakFileOptions options;
@@ -246,7 +255,15 @@ protected:
     }
 
     map_file.store(out, features);
-
+    
+    if (!out_mzq.trim().empty())
+    {
+      MSQuantifications msq(features, exp.getExperimentalSettings(), exp[0].getDataProcessing() );
+      msq.assignUIDs();
+      MzQuantMLFile file;
+      file.store(out_mzq, msq);
+    }
+    
     return EXECUTION_OK;
   }
 
