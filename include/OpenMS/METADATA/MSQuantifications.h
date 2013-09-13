@@ -185,7 +185,7 @@ public:
     MSQuantifications();
 
     /// Detailed Constructor
-    MSQuantifications(FeatureMap<> fm, ExperimentalSettings& es, std::vector<DataProcessing>& dps, std::vector<std::vector<std::pair<String, DoubleReal> > > labels = std::vector<std::vector<std::pair<String, DoubleReal> > >() );
+    MSQuantifications(FeatureMap<> fm, ExperimentalSettings& es, std::vector<DataProcessing>& dps, std::vector<std::vector<std::pair<String, DoubleReal> > > labels = (std::vector<std::vector<std::pair<String, DoubleReal> > >()));
 
     /// Destructor
     ~MSQuantifications();
@@ -232,7 +232,7 @@ public:
     void addConsensusMap(ConsensusMap & m);
     void assignUIDs();
     void registerExperiment(MSExperiment<Peak1D> & exp, std::vector<std::vector<std::pair<String, DoubleReal> > > labels);
-    void registerExperiment(ExperimentalSettings & es, std::vector<DataProcessing>& dp, std::vector<std::vector<std::pair<String, DoubleReal> > > labels = std::vector<std::vector<std::pair<String, DoubleReal> > >() );
+    void registerExperiment(ExperimentalSettings & es, std::vector<DataProcessing>& dp, std::vector<std::vector<std::pair<String, DoubleReal> > > labels = (std::vector<std::vector<std::pair<String, DoubleReal> > >()));
 
 private:
     AnalysisSummary analysis_summary_;
