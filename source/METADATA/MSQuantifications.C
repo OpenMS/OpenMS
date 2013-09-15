@@ -216,7 +216,7 @@ namespace OpenMS
       assays_.push_back(a);
     }
 
-    data_processings_ = dps; //TODO add in set fashion
+    //~ data_processings_ = dps; //TODO add in set fashion
   }
 
 } //namespace OpenMS

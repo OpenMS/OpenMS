@@ -114,8 +114,8 @@ protected:
       ControlledVocabulary::CVTerm getChildWithName_(const String & parent_accession, const String & name) const;
 
 
-      /// Helper method that writes a feature
-      void writeFeature_(std::ostream & os, const String & identifier_prefix, UInt64 identifier, UInt indentation_level);
+      /// Helper method that writes the featuremaps
+      void writeFeature_(String & feature_xml, const std::vector<FeatureMap<> >& fm, UInt indentation_level);
 
       /// Helper method that writes a source file
       //void writeSourceFile_(std::ostream& os, const String& id, const SourceFile& software);
