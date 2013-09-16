@@ -105,6 +105,11 @@ namespace OpenMS
     return hits_;
   }
 
+  std::vector<PeptideHit> & PeptideIdentification::getHits()
+  {
+    return hits_;
+  }
+
   void PeptideIdentification::insertHit(const PeptideHit & hit)
   {
     hits_.push_back(hit);
