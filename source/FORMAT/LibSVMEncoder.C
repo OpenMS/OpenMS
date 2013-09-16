@@ -157,12 +157,8 @@ namespace OpenMS
     }
 
     problem = new svm_problem;
-    if (problem == NULL)
-    {
-      return NULL;
-    }
     problem->l = (int) vectors.size();
-    if (problem->l < 0)
+    if (problem->l < 0) // dubious. Just makes sense if vectors.size() is larger than int and overflows
     {
       return NULL;
     }
@@ -174,12 +170,6 @@ namespace OpenMS
     }
 
     node_vectors = new svm_node *[problem->l];
-    if (node_vectors == NULL)
-    {
-      delete[] problem->y;
-      delete problem;
-      return NULL;
-    }
 
     for (Size i = 0; i < vectors.size(); i++)
     {
@@ -255,13 +245,13 @@ namespace OpenMS
 
   bool LibSVMEncoder::storeLibSVMProblem(const String & filename, const svm_problem * problem) const
   {
-    ofstream output_file(filename.c_str());
-    Int j = 0;
-
     if (problem == NULL)
     {
       return false;
     }
+
+    ofstream output_file(filename.c_str());
+    Int j = 0;
 
     // checking if file is writable
     if (!File::writable(filename))

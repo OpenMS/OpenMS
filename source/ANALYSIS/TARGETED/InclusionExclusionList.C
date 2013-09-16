@@ -278,11 +278,11 @@ namespace OpenMS
     {
       if (pep_id_iter->getHits().size() > 1)
       {
-        Exception::InvalidSize(__FILE__, __LINE__, __PRETTY_FUNCTION__, pep_id_iter->getHits().size());
+        throw Exception::InvalidSize(__FILE__, __LINE__, __PRETTY_FUNCTION__, pep_id_iter->getHits().size());
       }
       if (!pep_id_iter->metaValueExists("RT"))
       {
-        Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Peptide identification contains no RT information.");
+        throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Peptide identification contains no RT information.");
       }
       DoubleReal rt = pep_id_iter->getMetaValue("RT");
 

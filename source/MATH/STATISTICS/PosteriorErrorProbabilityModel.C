@@ -33,8 +33,11 @@
 // --------------------------------------------------------------------------
 //
 #include <OpenMS/MATH/STATISTICS/PosteriorErrorProbabilityModel.h>
-#include <OpenMS/FORMAT/TextFile.h>
+
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/FORMAT/TextFile.h>
+
 #include <algorithm>
 #include <gsl/gsl_statistics.h>
 #include <boost/math/special_functions/fpclassify.hpp>
@@ -89,7 +92,7 @@ namespace OpenMS
       {
         incorrectly_assigned_fit_param_.x0 = gsl_stats_mean(&x_scores[0], 1, ceil(0.5 * x_scores.size())) + x_scores[0];
         incorrectly_assigned_fit_param_.sigma = gsl_stats_sd(&x_scores[0], 1, x_scores.size() - 1);        //pow(gsl_stats_sd_with_fixed_mean(&probabilities[x_score_start], 1, probabilities.size() - x_score_start, gauss_fit_param_.x0),2);
-        incorrectly_assigned_fit_param_.A = 1   / sqrt(2 * 3.14159 * pow(incorrectly_assigned_fit_param_.sigma, 2));
+        incorrectly_assigned_fit_param_.A = 1   / sqrt(2 * Constants::PI * pow(incorrectly_assigned_fit_param_.sigma, 2));
         //TODO: compute directly with gauss. Workaround:
         calc_incorrect_ = &PosteriorErrorProbabilityModel::getGauss;
         getNegativeGnuplotFormula_ = &PosteriorErrorProbabilityModel::getGumbelGnuplotFormula;
@@ -98,7 +101,7 @@ namespace OpenMS
       {
         incorrectly_assigned_fit_param_.x0 = gsl_stats_mean(&x_scores[0], 1, ceil(0.5 * x_scores.size())) + x_scores[0];
         incorrectly_assigned_fit_param_.sigma = gsl_stats_sd(&x_scores[0], 1, x_scores.size() - 1);        //pow(gsl_stats_sd_with_fixed_mean(&probabilities[x_score_start], 1, probabilities.size() - x_score_start, gauss_fit_param_.x0),2);
-        incorrectly_assigned_fit_param_.A = 1   / sqrt(2 * 3.14159 * pow(incorrectly_assigned_fit_param_.sigma, 2));
+        incorrectly_assigned_fit_param_.A = 1   / sqrt(2 * Constants::PI * pow(incorrectly_assigned_fit_param_.sigma, 2));
         calc_incorrect_ = &PosteriorErrorProbabilityModel::getGauss;
         getNegativeGnuplotFormula_ = &PosteriorErrorProbabilityModel::getGaussGnuplotFormula;
       }
@@ -107,7 +110,7 @@ namespace OpenMS
       Size x_score_start = std::min(x_scores.size() - 1, (Size) ceil(x_scores.size() * 0.7));   // if only one score is present, ceil(...) will yield 1, which is an invalid index
       correctly_assigned_fit_param_.x0 = gsl_stats_mean(&x_scores[x_score_start], 1, x_scores.size() - x_score_start) + x_scores[x_score_start];      //(gauss_scores.begin()->getX() + (gauss_scores.end()-1)->getX())/2;
       correctly_assigned_fit_param_.sigma = incorrectly_assigned_fit_param_.sigma;
-      correctly_assigned_fit_param_.A = 1.0   / sqrt(2 * 3.14159 * pow(correctly_assigned_fit_param_.sigma, 2));
+      correctly_assigned_fit_param_.A = 1.0   / sqrt(2 * Constants::PI * pow(correctly_assigned_fit_param_.sigma, 2));
 
       DoubleReal maxlike(0);
       vector<DoubleReal> incorrect_density;
@@ -152,14 +155,14 @@ namespace OpenMS
         if (sum_positive_sigma  != 0 && one_minus_sum_posterior != 0)
         {
           correctly_assigned_fit_param_.sigma = sqrt(sum_positive_sigma / one_minus_sum_posterior);
-          correctly_assigned_fit_param_.A = 1 / sqrt(2 * 3.14159 * pow(correctly_assigned_fit_param_.sigma, 2));
+          correctly_assigned_fit_param_.A = 1 / sqrt(2 * Constants::PI * pow(correctly_assigned_fit_param_.sigma, 2));
         }
 
         incorrectly_assigned_fit_param_.x0 = negative_mean;
         if (sum_negative_sigma  != 0 && sum_posterior != 0)
         {
           incorrectly_assigned_fit_param_.sigma = sqrt(sum_negative_sigma / sum_posterior);
-          incorrectly_assigned_fit_param_.A = 1 / sqrt(2 * 3.14159 * pow(incorrectly_assigned_fit_param_.sigma, 2));
+          incorrectly_assigned_fit_param_.A = 1 / sqrt(2 * Constants::PI * pow(incorrectly_assigned_fit_param_.sigma, 2));
         }
 
 

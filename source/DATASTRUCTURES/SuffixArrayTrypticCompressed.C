@@ -485,7 +485,7 @@ protected:
         // if we walked out of string something went wrong
         if ((Size)(indices_[i].first + j) >= s_.length())
         {
-          Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, (indices_[i].first) + j, s_.length());
+          throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, (indices_[i].first) + j, s_.length());
         }
 
         if (j < 2)

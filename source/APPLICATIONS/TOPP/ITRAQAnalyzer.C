@@ -229,7 +229,7 @@ protected:
         for (Size i = 0; i < 8; ++i)
         {
           std::vector<std::pair<String, DoubleReal> > one_label;
-          one_label.push_back(std::make_pair<String, DoubleReal>(String("Channel ") + String(ItraqConstants::CHANNELS_FOURPLEX[i][0]), DoubleReal(ItraqConstants::CHANNELS_FOURPLEX[i][0])));
+          one_label.push_back(std::make_pair<String, DoubleReal>(String("Channel ") + String(ItraqConstants::CHANNELS_EIGHTPLEX[i][0]), DoubleReal(ItraqConstants::CHANNELS_EIGHTPLEX[i][0])));
           labels.push_back(one_label);
         }
       }

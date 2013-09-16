@@ -254,7 +254,9 @@ namespace OpenMS
       loadPreprocessedDB_(path);
     }
     else
-      Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, path);
+    {
+      throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, path);
+    }
   }
 
   void PrecursorIonSelectionPreprocessing::filterTaxonomyIdentifier_(FASTAFile::FASTAEntry & entry)

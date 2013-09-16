@@ -416,7 +416,7 @@ namespace OpenMS
         line.split('"', val_split);
         if (val_split.size() < 3)
         {
-          Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, line, "missing \" characters to enclose argument!");
+          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, line, "missing \" characters to enclose argument!");
         }
         mod.addSynonym(val_split[1]);
 
@@ -439,7 +439,7 @@ namespace OpenMS
         val.split('"', val_split);
         if (val_split.size() != 3)
         {
-          Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, line, "missing \" characters to enclose argument!");
+          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, line, "missing \" characters to enclose argument!");
         }
         if (val.hasPrefix("DiffAvg:"))
         {

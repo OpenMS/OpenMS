@@ -282,7 +282,7 @@ namespace OpenMS
     }
     else
     {
-      Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, stream_name);
+      throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, stream_name);
     }
     return *log;
   }
@@ -312,7 +312,7 @@ namespace OpenMS
     }
     else
     {
-      Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, stream_type);
+      throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, stream_type);
     }
 
     return *s;

@@ -60,7 +60,7 @@ namespace OpenMS
       head_[1] = '\0';
     }
     //
-    //  If the path is relative, then complete it acording to the current
+    //  If the path is relative, then complete it according to the current
     //  working directory rules of the current platform. Else, just take
     //  it as is.
     //

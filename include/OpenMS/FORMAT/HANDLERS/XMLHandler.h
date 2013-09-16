@@ -244,11 +244,11 @@ protected:
           Int tmp = in.toInt();
           if (tmp < 0)
           {
-            Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "");
+            throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "");
           }
           res = UInt(tmp);
         }
-        catch (Exception::ConversionError)
+        catch (Exception::ConversionError& )
         {
           error(LOAD, String("UInt conversion error of \"") + in + "\"");
         }
@@ -263,7 +263,7 @@ protected:
         {
           res = in.toDouble();
         }
-        catch (Exception::ConversionError)
+        catch (Exception::ConversionError& )
         {
           error(LOAD, String("Double conversion error of \"") + in + "\"");
         }
@@ -278,7 +278,7 @@ protected:
         {
           res = in.toFloat();
         }
-        catch (Exception::ConversionError)
+        catch (Exception::ConversionError& )
         {
           error(LOAD, String("Float conversion error of \"") + in + "\"");
         }
@@ -321,7 +321,7 @@ protected:
             date_string = date_string.substr(0, 19);
             date_time.set(date_string);
           }
-          catch (Exception::ParseError err)
+          catch (Exception::ParseError& /*err*/ )
           {
             error(LOAD, String("DateTime conversion error of \"") + date_string + "\"");
           }

@@ -532,7 +532,7 @@ protected:
         }
         else
         {
-          data_.back().meta.setDataProcessing(processing_[data_processing_ref]);
+          data_.back().meta.setDataProcessing(processing_[default_processing_]);
         }
       }
       else if (tag == "cvParam")
@@ -5283,19 +5283,7 @@ protected:
 
       if (options_.getWriteIndex())
       {
-        int indexlists;
-        if (spectra_offsets.empty() && spectra_offsets.empty() )
-        {
-          indexlists = 0;
-        }
-        else if (!spectra_offsets.empty() && !spectra_offsets.empty() )
-        {
-          indexlists = 2;
-        }
-        else
-        {
-          indexlists = 1;
-        }
+        int indexlists = (int) !spectra_offsets.empty() + (int) !chromatograms_offsets.empty();
 
         long indexlistoffset = os.tellp();
         os << "\n";

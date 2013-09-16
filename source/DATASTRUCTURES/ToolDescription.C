@@ -143,8 +143,10 @@ namespace OpenMS
       {
         LOG_ERROR << "A type appears at least twice for the TOPP/UTIL '" << name << "'. Types given are '" << types.concatenate(", ") << "'\n";
         if (name == "GenericWrapper")
+        {
           LOG_ERROR << "Check the .ttd files in your share/ folder and remove duplicate types!\n";
-        Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "see above!", "");
+        }
+        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "see above!", "");
       }
     }
 

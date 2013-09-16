@@ -100,7 +100,7 @@ namespace OpenMS
 
       if (spl.size() != 2 || precursor_charge < 1)
       {
-        OpenMS::Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, file[line_num], " Invalid entry in SVM model File");
+        throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, file[line_num], " Invalid entry in SVM model File");
       }
 
       //load the model into the map

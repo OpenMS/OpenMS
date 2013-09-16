@@ -64,8 +64,6 @@ namespace OpenMS
 
   DoubleReal ILPDCWrapper::compute(const FeatureMap<> fm, PairsType& pairs, Size verbose_level) const
   {
-    DoubleReal score = 0;
-
     if (fm.empty())
     {
       LOG_INFO << "ILPDC wrapper received empty feature list. Nothing to compute! Exiting..." << std::endl;
@@ -204,15 +202,16 @@ namespace OpenMS
     //PairsType pt2 = pairs;
     StopWatch time1;
     time1.start();
-    // split problem into slices and have each one solved by the ILPS
 
-// OMP currently causes spurious segfaults in Release mode and is thus disabled until fix is available
-//#ifdef _OPENMP
-//#pragma omp parallel for schedule(dynamic, 1)
-//#endif
+    // split problem into slices and have each one solved by the ILPS
+    DoubleReal score = 0;
+// OMP currently causes spurious segfaults in Release mode; OMP fix applied, however: disable if problem persists
+#ifdef _OPENMP
+#pragma omp parallel for schedule(dynamic, 1), reduction(+: score)
+#endif
     for (SignedSize i = 0; i < (SignedSize)bins.size(); ++i)
     {
-      score += computeSlice_(fm, pairs, bins[i].first, bins[i].second, verbose_level);
+      score = computeSlice_(fm, pairs, bins[i].first, bins[i].second, verbose_level);
     }
     time1.stop();
     LOG_INFO << " Branch and cut took " << time1.getClockTime() << " seconds, "
