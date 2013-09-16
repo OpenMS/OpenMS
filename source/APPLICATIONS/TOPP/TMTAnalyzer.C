@@ -208,30 +208,18 @@ protected:
     {
       MSQuantifications msq;
       std::vector<std::vector<std::pair<String, DoubleReal> > > labels;
-      if (itraq_type == ItraqQuantifier::FOURPLEX)
+      for (Size i = 0; i < ItraqConstants::CHANNEL_COUNT[ItraqConstants::TMT_SIXPLEX]; ++i)
       {
-        for (Size i = 0; i < 4; ++i)
-        {
-          std::vector<std::pair<String, DoubleReal> > one_label;
-          one_label.push_back(std::make_pair<String, DoubleReal>(String("Channel ") + String(ItraqConstants::CHANNELS_FOURPLEX[i][0]), DoubleReal(ItraqConstants::CHANNELS_FOURPLEX[i][0])));
-          labels.push_back(one_label);
-        }
-      }
-      else       //ItraqQuantifier::EIGHTPLEX
-      {
-        for (Size i = 0; i < 8; ++i)
-        {
-          std::vector<std::pair<String, DoubleReal> > one_label;
-          one_label.push_back(std::make_pair<String, DoubleReal>(String("Channel ") + String(ItraqConstants::CHANNELS_FOURPLEX[i][0]), DoubleReal(ItraqConstants::CHANNELS_FOURPLEX[i][0])));
-          labels.push_back(one_label);
-        }
+        std::vector<std::pair<String, DoubleReal> > one_label;
+        one_label.push_back(std::make_pair<String, DoubleReal>(String("Channel ") + String(ItraqConstants::CHANNELS_TMT_SIXPLEX[i][0]), DoubleReal(ItraqConstants::CHANNELS_FOURPLEX[i][0])));
+        labels.push_back(one_label);
       }
       msq.registerExperiment(exp, labels);       //add assays
       msq.assignUIDs();
       MSQuantifications::QUANT_TYPES quant_type = MSQuantifications::MS2LABEL;
       msq.setAnalysisSummaryQuantType(quant_type);      //add analysis_summary_
 
-      msq.addConsensusMap(consensus_map_quant);      //add ITRAQAnalyzer result
+      msq.addConsensusMap(consensus_map_quant);      //add TMTAnalyzer result
       //~ add AuditCollection - no such concept in TOPPTools yet
       MzQuantMLFile file;
       file.store(out_mzq, msq);
