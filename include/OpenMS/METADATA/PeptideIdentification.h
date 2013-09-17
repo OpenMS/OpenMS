@@ -84,8 +84,10 @@ public:
     bool operator!=(const PeptideIdentification & rhs) const;
     //@}
 
-    /// returns the peptide hits
+    /// returns the peptide hits as const
     const std::vector<PeptideHit> & getHits() const;
+    /// returns the peptide hits
+    std::vector<PeptideHit> & getHits();
     /// Appends a peptide hit
     void insertHit(const PeptideHit & hit);
     /// Sets the peptide hits
