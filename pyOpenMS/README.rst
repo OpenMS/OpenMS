@@ -29,12 +29,8 @@ Binary installation
 ===================
 
 The current binaries require numpy **1.7.x**.
-
-Run pip::
-
-    $ pip install pyopenms
-
-or easy_install::
+As we distribute the package as binary eggs, you have to use *easy_install*,
+installing with *pip* does not work::
 
     $ easy_install pyopenms
 

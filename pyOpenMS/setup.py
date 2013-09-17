@@ -1,4 +1,4 @@
-#input-encoding: latin-1
+# input-encoding: latin-1
 
 import distribute_setup
 distribute_setup.use_setuptools()
@@ -9,7 +9,7 @@ iswin = sys.platform == "win32"
 
 # import config
 from env import *
-IS_DEBUG =  OPEN_MS_BUILD_TYPE.upper() == "DEBUG"
+IS_DEBUG = OPEN_MS_BUILD_TYPE.upper() == "DEBUG"
 
 if iswin and IS_DEBUG:
     raise Exception("building pyopenms on windows in debug mode not tested yet.")
@@ -20,16 +20,18 @@ import autowrap.Main
 import glob
 import cPickle
 import os.path
-import os, shutil
+import os
+import shutil
 
-j=os.path.join
+j = os.path.join
 
 pxd_files = glob.glob("pxds/*.pxd")
 addons = glob.glob("addons/*.pyx")
 converters = ["converters"]
 
+
 def copy_files_if_updated(src, target, ext):
-    getf = lambda d: [f for f in os.listdir(d) if os.path.splitext(f)[1]==ext]
+    getf = lambda d: [f for f in os.listdir(d) if os.path.splitext(f)[1] == ext]
     files_target = getf(src)
     files_src = getf(target)
 
@@ -64,19 +66,39 @@ else:
 persisted_data_path = "include_dir.bin"
 
 if not os.path.exists(persisted_data_path)\
-    or any(m > mtime_result for m in mtimes):
+        or any(m > mtime_result for m in mtimes):
 
-    extra_cimports = [ # "from libc.stdint cimport *",
-                #"from libc.stddef cimport *",
-                #"from UniqueIdInterface cimport setUniqueId as _setUniqueId",
-                #"from Map cimport Map as _Map",
-                #"cimport numpy as np"
-                ]
-    autowrap_include_dirs = autowrap.Main.run(pxd_files,
-                                            addons,
-                                            converters,
-                                            "pyopenms/pyopenms.pyx",
-                                            extra_cimports)
+    extra_cimports = [  # "from libc.stdint cimport *",
+        #"from libc.stddef cimport *",
+        #"from UniqueIdInterface cimport setUniqueId as _setUniqueId",
+        #"from Map cimport Map as _Map",
+        #"cimport numpy as np"
+    ]
+
+    decls, instance_map = autowrap.parse(pxd_files, ".")
+    # add __str__ if toString() method is declared:
+    for d in decls:
+        # enums, free functions, .. do not have a methods attribute
+        methods = getattr(d, "methods", dict())
+        to_strings = []
+        for name, mdecls in methods.items():
+            for mdecl in mdecls:
+                name = mdecl.cpp_decl.annotations.get("wrap-cast", name)
+                name = mdecl.cpp_decl.annotations.get("wrap-as", name)
+                if name == "toString":
+                    to_strings.append(mdecl)
+
+        for to_string in to_strings:
+            if len(to_string.arguments) == 0:
+                d.methods.setdefault("__str__", []).append(to_string)
+                print "ADDED __str__ method to", d.name
+                break
+
+    autowrap_include_dirs = autowrap.Main.create_wrapper_code(decls, instance_map, addons,
+                                                              converters, "pyopenms/pyopenms.pyx",
+                                                              extra_cimports,
+                                                              None)
+
     cPickle.dump(autowrap_include_dirs, open(persisted_data_path, "wb"))
 
 else:
@@ -124,7 +146,7 @@ print >> open("pyopenms/qt_version_info.py", "w"), "info=%r\n" % QT_QMAKE_VERSIO
 if OPEN_MS_CONTRIB_BUILD_DIRS.endswith(";"):
     OPEN_MS_CONTRIB_BUILD_DIRS = OPEN_MS_CONTRIB_BUILD_DIRS[:-1]
 
-for OPEN_MS_CONTRIB_BUILD_DIR in  OPEN_MS_CONTRIB_BUILD_DIRS.split(";"):
+for OPEN_MS_CONTRIB_BUILD_DIR in OPEN_MS_CONTRIB_BUILD_DIRS.split(";"):
     if os.path.exists(os.path.join(OPEN_MS_CONTRIB_BUILD_DIR, "lib")):
         break
 
@@ -141,7 +163,6 @@ if iswin:
         shutil.copy(p, new_p)
 
 
-
 # package data expected to be installed. on linux the debian package
 # contains share/ data and must be intalled to get access to the openms shared
 # library.
@@ -153,35 +174,34 @@ if iswin:
     shutil.copy(MSVCR90DLL, "pyopenms")
     shutil.copy(MSVCP90DLL, "pyopenms")
 
-
     if OPEN_MS_BUILD_TYPE.upper() == "DEBUG":
-        libraries=["OpenMSd", "OpenSwathAlgod", "xerces-c_3D", "QtCored4", "gsl_d", "cblas_d"]
+        libraries = ["OpenMSd", "OpenSwathAlgod", "xerces-c_3D", "QtCored4", "gsl_d", "cblas_d"]
         shutil.copy(j(QT_LIBRARY_DIR, "QtCored4.dll"), "pyopenms")
         shutil.copy(j(QT_LIBRARY_DIR, "QtGuid4.dll"), "pyopenms")
         shutil.copy(j(QT_LIBRARY_DIR, "QtSqld4.dll"), "pyopenms")
         shutil.copy(j(QT_LIBRARY_DIR, "QtNetworkd4.dll"), "pyopenms")
-        shutil.copy(j(OPEN_MS_CONTRIB_BUILD_DIR, "lib", "xerces-c_3_1D.dll"),\
-                        "pyopenms")
+        shutil.copy(j(OPEN_MS_CONTRIB_BUILD_DIR, "lib", "xerces-c_3_1D.dll"),
+                    "pyopenms")
     else:
-        libraries=["OpenMS", "OpenSwathAlgo", "xerces-c_3", "QtCore4", "gsl", "cblas"]
+        libraries = ["OpenMS", "OpenSwathAlgo", "xerces-c_3", "QtCore4", "gsl", "cblas"]
         shutil.copy(j(QT_LIBRARY_DIR, "QtCore4.dll"), "pyopenms")
         shutil.copy(j(QT_LIBRARY_DIR, "QtGui4.dll"), "pyopenms")
         shutil.copy(j(QT_LIBRARY_DIR, "QtSql4.dll"), "pyopenms")
         shutil.copy(j(QT_LIBRARY_DIR, "QtNetwork4.dll"), "pyopenms")
-        shutil.copy(j(OPEN_MS_CONTRIB_BUILD_DIR, "lib", "xerces-c_3_1.dll"),\
-                        "pyopenms")
+        shutil.copy(j(OPEN_MS_CONTRIB_BUILD_DIR, "lib", "xerces-c_3_1.dll"),
+                    "pyopenms")
 
 elif sys.platform == "linux2":
-    libraries=["OpenMS", "OpenSwathAlgo", "xerces-c", "QtCore", "gsl", "gslcblas"]
+    libraries = ["OpenMS", "OpenSwathAlgo", "xerces-c", "QtCore", "gsl", "gslcblas"]
 
-    shutil.copy(j(OPEN_MS_BUILD_DIR, "lib", "libOpenMS.so" ), "pyopenms")
-    shutil.copy(j(OPEN_MS_BUILD_DIR, "lib", "libOpenSwathAlgo.so" ), "pyopenms")
+    shutil.copy(j(OPEN_MS_BUILD_DIR, "lib", "libOpenMS.so"), "pyopenms")
+    shutil.copy(j(OPEN_MS_BUILD_DIR, "lib", "libOpenSwathAlgo.so"), "pyopenms")
 
 elif sys.platform == "darwin":
-    libraries=["OpenMS", "OpenSwathAlgo", "xerces-c", "gsl", "gslcblas" ]
+    libraries = ["OpenMS", "OpenSwathAlgo", "xerces-c", "gsl", "gslcblas"]
 
-    shutil.copy(j(OPEN_MS_BUILD_DIR, "lib", "libOpenMS.dylib" ), "pyopenms")
-    shutil.copy(j(OPEN_MS_BUILD_DIR, "lib", "libOpenSwathAlgo.dylib" ), "pyopenms")
+    shutil.copy(j(OPEN_MS_BUILD_DIR, "lib", "libOpenMS.dylib"), "pyopenms")
+    shutil.copy(j(OPEN_MS_BUILD_DIR, "lib", "libOpenSwathAlgo.dylib"), "pyopenms")
 
 else:
     print
@@ -189,69 +209,69 @@ else:
     print
     exit()
 
-library_dirs=[ OPEN_MS_BUILD_DIR,
-               j(OPEN_MS_BUILD_DIR,"lib"),
-               j(OPEN_MS_BUILD_DIR,"bin"),
-               j(OPEN_MS_BUILD_DIR,"bin", "Release"),
-               j(OPEN_MS_BUILD_DIR,"Release"),
-               j(OPEN_MS_CONTRIB_BUILD_DIR,"lib"),
-               QT_LIBRARY_DIR,
-              ]
+library_dirs = [OPEN_MS_BUILD_DIR,
+                j(OPEN_MS_BUILD_DIR, "lib"),
+                j(OPEN_MS_BUILD_DIR, "bin"),
+                j(OPEN_MS_BUILD_DIR, "bin", "Release"),
+                j(OPEN_MS_BUILD_DIR, "Release"),
+                j(OPEN_MS_CONTRIB_BUILD_DIR, "lib"),
+                QT_LIBRARY_DIR,
+                ]
 
 import numpy
 
-include_dirs=[
+include_dirs = [
     QT_HEADERS_DIR,
     QT_QTCORE_INCLUDE_DIR,
     j(OPEN_MS_CONTRIB_BUILD_DIR, "include"),
-    #j(OPEN_MS_CONTRIB_BUILD_DIR, "src", "boost_1_52_0")
+    # j(OPEN_MS_CONTRIB_BUILD_DIR, "src", "boost_1_52_0")
     j(OPEN_MS_CONTRIB_BUILD_DIR, "include", "boost"),
-    j(OPEN_MS_BUILD_DIR ,  "include"),
-    j(OPEN_MS_SRC ,  "include"),
-    j(numpy.core.__path__[0],"include"),
-             ]
+    j(OPEN_MS_BUILD_DIR, "include"),
+    j(OPEN_MS_SRC, "include"),
+    j(numpy.core.__path__[0], "include"),
+]
 
-include_dirs.extend( LIBRARIES_EXTEND )
-libraries.extend( LIBRARIES_EXTEND )
-library_dirs.extend( LIBRARY_DIRS_EXTEND )
+include_dirs.extend(LIBRARIES_EXTEND)
+libraries.extend(LIBRARIES_EXTEND)
+library_dirs.extend(LIBRARY_DIRS_EXTEND)
 
 extra_link_args = []
 
 if sys.platform == "linux2":
-    extra_link_args = [ "-Wl,-s"]
+    extra_link_args = ["-Wl,-s"]
 elif sys.platform == "darwin":
     # we need to manually link to the Qt Frameworks
-    extra_link_args = [ "-Wl,-s",
-                        "-F"+QT_LIBRARY_DIR,
-                        "-framework Carbon",
-                        "-framework AGL",
-                        "-framework OpenGL",
-                        "-framework QtOpenGL",
-                        "-framework QtSvg",
-                        "-framework QtWebKit",
-                        "-framework QtXmlPatterns",
-                        "-framework QtGui",
-                        "-framework QtTest",
-                        "-framework QtXml",
-                        "-framework QtSql",
-                        "-framework QtNetwork",
-                        "-framework QtCore" ]
+    extra_link_args = ["-Wl,-s",
+                       "-F" + QT_LIBRARY_DIR,
+                       "-framework Carbon",
+                       "-framework AGL",
+                       "-framework OpenGL",
+                       "-framework QtOpenGL",
+                       "-framework QtSvg",
+                       "-framework QtWebKit",
+                       "-framework QtXmlPatterns",
+                       "-framework QtGui",
+                       "-framework QtTest",
+                       "-framework QtXml",
+                       "-framework QtSql",
+                       "-framework QtNetwork",
+                       "-framework QtCore"]
 
 ext = Extension(
-        "pyopenms",
-        sources = ["pyopenms/pyopenms.cpp"],
-        language="c++",
-        library_dirs = library_dirs,
-        libraries = libraries,
-        include_dirs = include_dirs + autowrap_include_dirs,
+    "pyopenms",
+    sources=["pyopenms/pyopenms.cpp"],
+    language="c++",
+    library_dirs=library_dirs,
+    libraries=libraries,
+    include_dirs=include_dirs + autowrap_include_dirs,
 
-        # /EHs is important. It sets _CPPUNWIND which causes boost to
-        # set BOOST_NO_EXCEPTION in <boost/config/compiler/visualc.hpp>
-        # such that  boost::throw_excption() is declared but not implemented.
-        # The linker does not like that very much ...
-        extra_compile_args = iswin and [ "/EHs", "/bigobj"] or (IS_DEBUG and ["-g2"] or []),
-        extra_link_args = extra_link_args
-    )
+    # /EHs is important. It sets _CPPUNWIND which causes boost to
+    # set BOOST_NO_EXCEPTION in <boost/config/compiler/visualc.hpp>
+    # such that  boost::throw_excption() is declared but not implemented.
+    # The linker does not like that very much ...
+    extra_compile_args=iswin and ["/EHs", "/bigobj"] or (IS_DEBUG and ["-g2"] or []),
+    extra_link_args=extra_link_args
+)
 
 
 source_share = j(OPEN_MS_SRC, "share")
@@ -274,11 +294,11 @@ if sys.platform == "darwin":
 
 setup(
 
-    name = "pyopenms",
-    packages = ["pyopenms"],
-    ext_package = "pyopenms",
+    name="pyopenms",
+    packages=["pyopenms"],
+    ext_package="pyopenms",
 
-    version = version,
+    version=version,
 
     maintainer="Uwe Schmitt",
     maintainer_email="uschmitt@mineway.de",
@@ -295,11 +315,11 @@ setup(
     long_description=open("README.rst").read(),
     zip_safe=False,
 
-    url = "http://open-ms.de",
+    url="http://open-ms.de",
 
-    author = "Uwe Schmitt",
-    author_email = "uschmitt@mineway.de",
+    author="Uwe Schmitt",
+    author_email="uschmitt@mineway.de",
 
-    ext_modules = [ext ],
-    include_package_data = True # see MANIFEST.in
+    ext_modules=[ext],
+    include_package_data=True  # see MANIFEST.in
 )
