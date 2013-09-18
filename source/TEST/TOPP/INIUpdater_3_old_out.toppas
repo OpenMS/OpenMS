@@ -29,6 +29,7 @@
         <ITEM name="in" value="" type="input-file" description="input file" required="true" advanced="false"  supported_formats="*.mzML" />
         <ITEM name="out" value="" type="output-file" description="output file" required="true" advanced="false"  supported_formats="*.featureXML" />
         <ITEM name="seeds" value="" type="input-file" description="User specified seed list" required="false" advanced="false"  supported_formats="*.featureXML" />
+        <ITEM name="out_mzq" value="" type="output-file" description="Optional output file of MzQuantML." required="false" advanced="true" supported_formats="*.mzq" />
         <ITEM name="log" value="TOPP.log" type="string" description="Name of log file (created only when specified)" required="false" advanced="true" />
         <ITEM name="debug" value="0" type="int" description="Sets the debug level" required="false" advanced="true" />
         <ITEM name="threads" value="1" type="int" description="Sets the number of threads allowed to be used by the TOPP tool" required="false" advanced="false" />
