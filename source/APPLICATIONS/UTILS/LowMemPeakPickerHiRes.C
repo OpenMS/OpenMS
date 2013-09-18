@@ -115,7 +115,7 @@ class TOPPLowMemPeakPickerHiRes :
 {
 public:
   TOPPLowMemPeakPickerHiRes() :
-    TOPPBase("LowMemPeakPickerHiRes", "Finds mass spectrometric peaks in profile mass spectra.")
+    TOPPBase("LowMemPeakPickerHiRes", "Finds mass spectrometric peaks in profile mass spectra.",false)
   {
   }
 

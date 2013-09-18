@@ -203,10 +203,14 @@ namespace OpenMS
     util_map["ImageCreator"] = Internal::ToolDescription("ImageCreator", util_category);
     util_map["INIUpdater"] = Internal::ToolDescription("INIUpdater", util_category);
     util_map["LabeledEval"] = Internal::ToolDescription("LabeledEval", util_category);
+    util_map["LowMemPeakPickerHiRes"] = Internal::ToolDescription("LowMemPeakPickerHiRes", util_category);
+    util_map["LowMemPeakPickerHiRes_RandomAccess"] = Internal::ToolDescription("LowMemPeakPickerHiRes_RandomAccess", util_category);
     util_map["MapAlignmentEvaluation"] = Internal::ToolDescription("MapAlignmentEvaluation", util_category);
     util_map["MassCalculator"] = Internal::ToolDescription("MassCalculator", util_category);
+    util_map["MRMTransitionGroupPicker"] = Internal::ToolDescription("MRMTransitionGroupPicker", util_category);
     util_map["MRMPairFinder"] = Internal::ToolDescription("MRMPairFinder", util_category);
     util_map["MSSimulator"] = Internal::ToolDescription("MSSimulator", util_category);
+    util_map["PeakPickerIterative"] = Internal::ToolDescription("PeakPickerIterative", "Signal processing and preprocessing");    
     util_map["PeakPickerRapid"] = Internal::ToolDescription("PeakPickerRapid", "Signal processing and preprocessing");
     util_map["QCCalculator"] = Internal::ToolDescription("QCCalculator", util_category);
     util_map["QCEmbedder"] = Internal::ToolDescription("QCEmbedder", util_category);

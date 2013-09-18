@@ -79,7 +79,7 @@ class TOPPMRMTransitionGroupPicker
 public:
 
   TOPPMRMTransitionGroupPicker() 
-    : TOPPBase("MRMTransitionGroupPicker", "", true)
+    : TOPPBase("MRMTransitionGroupPicker", "", false)
   {
   }
 
