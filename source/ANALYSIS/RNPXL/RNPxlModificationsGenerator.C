@@ -259,18 +259,18 @@ RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMasse
           if (modifications_is_subtractive[m][f])
           {
             e = e - modification_formulas[m][f];
-            s += "-" + modification_formulas[m][f].getString();
+            s += "-" + modification_formulas[m][f].toString();
           }
           else
           {
             e = e + modification_formulas[m][f];
-            s += "+" + modification_formulas[m][f].getString();
+            s += "+" + modification_formulas[m][f].toString();
           }
         }
         actual_combinations.push_back(e);
-        result.mod_combinations[actual_combinations.back().getString()].insert(s);
+        result.mod_combinations[actual_combinations.back().toString()].insert(s);
 
-        std::cout << "\t" << "modifications: " << s << "\t\t" << e.getString() << endl;
+        std::cout << "\t" << "modifications: " << s << "\t\t" << e.toString() << endl;
       }
     }
 
@@ -287,12 +287,12 @@ RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMasse
         {
           new_combinations.push_back(target_nucleotide_formula + actual_combinations[c] - EmpiricalFormula("H2O")); // -H2O because of condensation reaction
           all_combinations.push_back(target_nucleotide_formula + actual_combinations[c] - EmpiricalFormula("H2O")); // " "
-          const set<String>& ambiguities = result.mod_combinations[actual_combinations[c].getString()];
+          const set<String>& ambiguities = result.mod_combinations[actual_combinations[c].toString()];
           for (set<String>::const_iterator sit = ambiguities.begin(); sit != ambiguities.end(); ++sit)
           {
-            result.mod_combinations[all_combinations.back().getString()].insert(target_nucleotide + *sit);
+            result.mod_combinations[all_combinations.back().toString()].insert(target_nucleotide + *sit);
           }
-          //cout << target_nucleotide + mod_combinations[actual_combinations[c].getString()]  << endl;
+          //cout << target_nucleotide + mod_combinations[actual_combinations[c].toString()]  << endl;
         }
       }
       actual_combinations = new_combinations;
@@ -301,8 +301,8 @@ RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMasse
     //    std::cout << all_combinations.size() << endl;
     for (Size i = 0; i != all_combinations.size(); ++i)
     {
-      //      std::cout << all_combinations[i].getString() << endl;
-      result.mod_masses[all_combinations[i].getString()] = all_combinations[i].getMonoWeight();
+      //      std::cout << all_combinations[i].toString() << endl;
+      result.mod_masses[all_combinations[i].toString()] = all_combinations[i].getMonoWeight();
     }
   }
 
@@ -387,8 +387,8 @@ RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMasse
 
   if (cysteine_adduct)
   {
-    result.mod_masses[cysteine_adduct_formula.getString()] = cysteine_adduct_formula.getMonoWeight();
-    result.mod_combinations[cysteine_adduct_formula.getString()].insert(cysteine_adduct_string);
+    result.mod_masses[cysteine_adduct_formula.toString()] = cysteine_adduct_formula.getMonoWeight();
+    result.mod_combinations[cysteine_adduct_formula.toString()].insert(cysteine_adduct_string);
   }
 
   // output index  -> empirical formula -> (ambigous) nucleotide formulas
@@ -398,7 +398,7 @@ RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMasse
   {
     result.mod_formula_idx[pseudo_rt] = mit->first;
 
-    if (cysteine_adduct && mit->first == cysteine_adduct_formula.getString())
+    if (cysteine_adduct && mit->first == cysteine_adduct_formula.toString())
     {
       std::cout << pseudo_rt++ << " " << mit->first << " " << mit->second << " ( cysteine adduct )" << endl;
       continue;

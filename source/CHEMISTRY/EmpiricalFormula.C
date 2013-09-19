@@ -184,7 +184,7 @@ namespace OpenMS
     return charge_;
   }
 
-  String EmpiricalFormula::getString() const
+  String EmpiricalFormula::toString() const
   {
     String formula;
     Map<String, SignedSize> new_formula;

@@ -726,9 +726,9 @@ namespace OpenMS
       }
 
       String svm_model_file_class = filename + "_" + Residue::getResidueTypeName(ion_types[type_nr].residue) + "_" +
-                                    ion_types[type_nr].loss.getString() + "_" + ion_types[type_nr].charge + "_class.svm";
+                                    ion_types[type_nr].loss.toString() + "_" + ion_types[type_nr].charge + "_class.svm";
       String svm_model_file_reg = filename + "_" + Residue::getResidueTypeName(ion_types[type_nr].residue) + "_" +
-                                  ion_types[type_nr].loss.getString() + "_" + ion_types[type_nr].charge + "_reg.svm";
+                                  ion_types[type_nr].loss.toString() + "_" + ion_types[type_nr].charge + "_reg.svm";
 
 
       //------------------------------------------------------------------------------------------
@@ -749,7 +749,7 @@ namespace OpenMS
       if (write_outfiles)
       {
         writeTrainingFile_(training_input_reg, training_output_reg, String("Training_") + Residue::getResidueTypeName(ion_types[type_nr].residue) + "_" +
-                           ion_types[type_nr].loss.getString() + "_" + ion_types[type_nr].charge + "_reg.dat");
+                           ion_types[type_nr].loss.toString() + "_" + ion_types[type_nr].charge + "_reg.dat");
       }
       else
       {
@@ -840,7 +840,7 @@ namespace OpenMS
       if (write_outfiles)
       {
         writeTrainingFile_(training_input[type_nr], training_output[type_nr], String("Training_") + Residue::getResidueTypeName(ion_types[type_nr].residue) + "_" +
-                           ion_types[type_nr].loss.getString() + "_" + ion_types[type_nr].charge + "_class.dat");
+                           ion_types[type_nr].loss.toString() + "_" + ion_types[type_nr].charge + "_class.dat");
       }
       else
       {
@@ -892,7 +892,7 @@ namespace OpenMS
         //add entries to info file
         info_outfile.push_back("<IonType>");
         info_outfile.push_back(ion_types[type_nr].residue);
-        info_outfile.push_back(ion_types[type_nr].loss.getString());
+        info_outfile.push_back(ion_types[type_nr].loss.toString());
         info_outfile.push_back(ion_types[type_nr].charge);
         info_outfile.push_back("<SvmModelFileClass>");
         info_outfile.push_back(svm_model_file_class);
@@ -1120,7 +1120,7 @@ namespace OpenMS
 
       info_outfile.push_back("<IonType>");
       info_outfile.push_back(type.residue);
-      info_outfile.push_back(type.loss.getString());
+      info_outfile.push_back(type.loss.toString());
       info_outfile.push_back(type.charge);
       info_outfile.push_back("<ConditionalProbabilities>");
 
@@ -1178,7 +1178,7 @@ namespace OpenMS
         std::vector<EmpiricalFormula> loss_formulas = annotation[frag_pos - 1].getLossFormulas();
         for (Size k = 0; k != loss_formulas.size(); ++k)
         {
-          possible_n_term_losses.insert(loss_formulas[k].getString());
+          possible_n_term_losses.insert(loss_formulas[k].toString());
         }
       }
       //check for possible losses on the c-terminal ions
@@ -1190,7 +1190,7 @@ namespace OpenMS
           std::vector<EmpiricalFormula> loss_formulas = annotation[pos].getLossFormulas();
           for (Size k = 0; k != loss_formulas.size(); ++k)
           {
-            possible_c_term_losses.insert(loss_formulas[k].getString());
+            possible_c_term_losses.insert(loss_formulas[k].toString());
           }
         }
       }
@@ -1199,7 +1199,7 @@ namespace OpenMS
       if (residue == Residue::AIon || residue == Residue::BIon || residue == Residue::CIon)
       {
         //if loss is not supported or no loss ions shall be generated -- continue
-        if (!loss.isEmpty() && (!possible_n_term_losses.count(loss.getString())))
+        if (!loss.isEmpty() && (!possible_n_term_losses.count(loss.toString())))
         {
           observed_intensities[std::make_pair(type, region)].push_back(-1);
           continue;
@@ -1211,7 +1211,7 @@ namespace OpenMS
       else if (residue == Residue::XIon || residue == Residue::YIon || residue == Residue::ZIon)
       {
         //if loss is not supported or no loss ions shall be generated -- continue
-        if (!loss.isEmpty() && (!possible_c_term_losses.count(loss.getString())))
+        if (!loss.isEmpty() && (!possible_c_term_losses.count(loss.toString())))
         {
           observed_intensities[std::make_pair(type, region)].push_back(-1);
           continue;

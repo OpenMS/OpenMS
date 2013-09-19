@@ -947,7 +947,7 @@ namespace OpenMS
       {
         feature.setMetaValue("RT_width_gaussian", contaminants_[i].rt_end - contaminants_[i].rt_start);
       }
-      feature.setMetaValue("sum_formula", contaminants_[i].sf.getString()); // formula without adducts or charges
+      feature.setMetaValue("sum_formula", contaminants_[i].sf.toString()); // formula without adducts or charges
       feature.setCharge(contaminants_[i].q);
       feature.setMetaValue("charge_adducts", "H" + String(contaminants_[i].q)); // adducts separately
       add2DSignal_(feature, exp, exp_ct);

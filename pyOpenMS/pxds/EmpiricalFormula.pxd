@@ -11,6 +11,9 @@ cdef extern from "<OpenMS/CHEMISTRY/EmpiricalFormula.h>" namespace "OpenMS":
         EmpiricalFormula() nogil except +
         EmpiricalFormula(EmpiricalFormula) nogil except + # wrap-ignore
 
+        # constructor from string
+        EmpiricalFormula(String) nogil except +
+
         # constructor with element pointer and number
         ## EmpiricalFormula(SignedSize number, Element * element, SignedSize charge = 0) nogil except +
 
@@ -54,7 +57,7 @@ cdef extern from "<OpenMS/CHEMISTRY/EmpiricalFormula.h>" namespace "OpenMS":
         void setCharge(SignedSize charge) nogil except +
 
         # returns the formula as a string (charges are not included)
-        String getString() nogil except +
+        String toString() nogil except +
 
         # TargetedExperiment iadd(TargetedExperiment)   nogil except + 
         # adds the elements of the given formula

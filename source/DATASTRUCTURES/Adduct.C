@@ -180,7 +180,7 @@ namespace OpenMS
       std::cerr << "Warning: Adduct was given only a single element but with an abundance>1. This might lead to errors! (" << formula << ")\n";
     }
 
-    return ef.getString();
+    return ef.toString();
   }
 
   ///Print the contents of an Adduct to a stream.

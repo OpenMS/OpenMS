@@ -382,7 +382,7 @@ namespace OpenMS
             vector<EmpiricalFormula> loss_formulas = it->getLossFormulas();
             for (Size i = 0; i != loss_formulas.size(); ++i)
             {
-              losses.insert(loss_formulas[i].getString());
+              losses.insert(loss_formulas[i].toString());
             }
           }
         }

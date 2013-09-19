@@ -166,7 +166,7 @@ END_SECTION
 START_SECTION(bool isConflicting(const Compomer &cmp, UInt side_this, UInt side_other) const)
 {
 	EmpiricalFormula ef("H");
-	Adduct default_adduct(1, 1, ef.getMonoWeight(), ef.getString(), log(0.7f), 0);
+	Adduct default_adduct(1, 1, ef.getMonoWeight(), ef.toString(), log(0.7f), 0);
 
 	{
 	Adduct a1(1, 1, 1.007f, "H1", -0.13f, 0);

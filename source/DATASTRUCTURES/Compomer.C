@@ -243,7 +243,7 @@ namespace OpenMS
 
       EmpiricalFormula ef(it->first);
       ef = ef * f;
-      r += ef.getString();
+      r += ef.toString();
     }
 
     return r;

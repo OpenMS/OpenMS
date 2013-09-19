@@ -202,15 +202,15 @@ namespace OpenMS
       vector<EmpiricalFormula> losses = it->getLossFormulas();
       for (vector<EmpiricalFormula>::const_iterator lit = losses.begin(); lit != losses.end(); ++lit)
       {
-        //cerr << "AA-LOSS: " << it->getOneLetterCode() << " " << lit->getString() << endl;
-        precursor_losses.insert(lit->getString());
+        //cerr << "AA-LOSS: " << it->getOneLetterCode() << " " << lit->toString() << endl;
+        precursor_losses.insert(lit->toString());
       }
     }
 
     bool enable_COOH(param_.getValue("C_term_H2O_loss").toBool());
     if (enable_COOH)
     {
-      String h2o(EmpiricalFormula("H2O").getString());
+      String h2o(EmpiricalFormula("H2O").toString());
       precursor_losses.insert(h2o);
     }
 
@@ -336,7 +336,7 @@ namespace OpenMS
     String h2o;
     if (enable_COOH)
     {
-      h2o = EmpiricalFormula("H2O").getString();
+      h2o = EmpiricalFormula("H2O").toString();
     }
 
     Map<String, UInt> double_losses;
@@ -362,7 +362,7 @@ namespace OpenMS
 
         for (vector<EmpiricalFormula>::const_iterator loss_it1 = losses1.begin(); loss_it1 != losses1.end(); ++loss_it1)
         {
-          String loss1 = loss_it1->getString();
+          String loss1 = loss_it1->toString();
           if (loss1 == "")
           {
             continue;
@@ -377,7 +377,7 @@ namespace OpenMS
             vector<EmpiricalFormula> losses2 = it2->getLossFormulas();
             for (vector<EmpiricalFormula>::const_iterator loss_it2 = losses2.begin(); loss_it2 != losses2.end(); ++loss_it2)
             {
-              String loss2 = loss_it2->getString();
+              String loss2 = loss_it2->toString();
               if (loss2 == "")
               {
                 continue;
@@ -530,7 +530,7 @@ namespace OpenMS
 
         for (vector<EmpiricalFormula>::const_iterator loss_it = losses.begin(); loss_it != losses.end(); ++loss_it)
         {
-          String loss = loss_it->getString();
+          String loss = loss_it->toString();
 
           if (loss == "")
           {
@@ -548,7 +548,7 @@ namespace OpenMS
         for (vector<EmpiricalFormula>::const_iterator loss_it = losses.begin(); loss_it != losses.end(); ++loss_it)
         {
 
-          String loss = loss_it->getString();
+          String loss = loss_it->toString();
           String num;
           if (loss != "")
           {
@@ -696,7 +696,7 @@ namespace OpenMS
       vector<EmpiricalFormula> res_losses = (*it)->getLossFormulas();
       for (vector<EmpiricalFormula>::const_iterator loss_it = res_losses.begin(); loss_it != res_losses.end(); ++loss_it)
       {
-        String loss = loss_it->getString();
+        String loss = loss_it->toString();
         losses.insert(loss);
 #ifdef NEUTRAL_LOSS_MODEL_DEBUG
         cerr << "Loss: " << loss << ", of residue: " << (*it)->getName() << endl;
@@ -747,7 +747,7 @@ namespace OpenMS
     if (enable_COOH)
     {
       // H2O loss from the C-terminus
-      h2o = EmpiricalFormula("H2O").getString();
+      h2o = EmpiricalFormula("H2O").toString();
       hmm_precursor_.addNewState(new HMMState("COOH-" + h2o, true));
     }
     hmm_precursor_.addNewState(new HMMState("start", true));
@@ -775,7 +775,7 @@ namespace OpenMS
       vector<EmpiricalFormula> NTerm_res_losses = (*it1)->getNTermLossFormulas();
       for (vector<EmpiricalFormula>::const_iterator loss_it1 = NTerm_res_losses.begin(); loss_it1 != NTerm_res_losses.end(); ++loss_it1)
       {
-        String loss1 = loss_it1->getString();
+        String loss1 = loss_it1->toString();
         if (loss1 == "")
         {
           continue;
@@ -788,7 +788,7 @@ namespace OpenMS
       vector<EmpiricalFormula> res_losses1 = (*it1)->getLossFormulas();
       for (vector<EmpiricalFormula>::const_iterator loss_it1 = res_losses1.begin(); loss_it1 != res_losses1.end(); ++loss_it1)
       {
-        String loss1 = loss_it1->getString();
+        String loss1 = loss_it1->toString();
         if (loss1 == "")
         {
           continue;
@@ -843,7 +843,7 @@ namespace OpenMS
 
         for (vector<EmpiricalFormula>::const_iterator loss_it1 = res_losses1.begin(); loss_it1 != res_losses1.end(); ++loss_it1)
         {
-          String loss1 = loss_it1->getString();
+          String loss1 = loss_it1->toString();
 
           if (loss1 == "")
           {
@@ -858,7 +858,7 @@ namespace OpenMS
             vector<EmpiricalFormula> res_losses2 = (*it2)->getLossFormulas();
             for (vector<EmpiricalFormula>::const_iterator loss_it2 = res_losses2.begin(); loss_it2 != res_losses2.end(); ++loss_it2)
             {
-              String loss2 = loss_it2->getString();
+              String loss2 = loss_it2->toString();
               if (loss2 != "")
               {
                 String name;
@@ -944,7 +944,7 @@ namespace OpenMS
       vector<EmpiricalFormula> NTerm_res_losses = (*it)->getNTermLossFormulas();
       for (vector<EmpiricalFormula>::const_iterator loss_it = NTerm_res_losses.begin(); loss_it != NTerm_res_losses.end(); ++loss_it)
       {
-        String loss = loss_it->getString();
+        String loss = loss_it->toString();
         //cerr << "Enabling NTermNeutralLoss: " << aa.toString() << "-NTerm-" << loss << endl;
 
         if (loss == "")
@@ -960,7 +960,7 @@ namespace OpenMS
       vector<EmpiricalFormula> res_losses = (*it)->getLossFormulas();
       for (vector<EmpiricalFormula>::const_iterator loss_it = res_losses.begin(); loss_it != res_losses.end(); ++loss_it)
       {
-        String loss = loss_it->getString();
+        String loss = loss_it->toString();
 
         if (loss == "")
         {

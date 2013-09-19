@@ -264,9 +264,9 @@ START_SECTION(DoubleReal getMonoWeight() const)
 	TEST_REAL_SIMILAR(ef.getMonoWeight(), e->getMonoWeight() * 2)
 END_SECTION
 
-START_SECTION(String getString() const)
+START_SECTION(String toString() const)
 	EmpiricalFormula ef("C2H5");
-	String str = ef.getString();
+	String str = ef.toString();
 	TEST_EQUAL(String(str).hasSubstring("H5"), true)
 	TEST_EQUAL(String(str).hasSubstring("C2"), true)
 END_SECTION

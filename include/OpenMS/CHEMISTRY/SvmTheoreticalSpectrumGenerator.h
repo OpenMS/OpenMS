@@ -125,8 +125,8 @@ public:
       {
         if (residue != rhs.residue)
           return residue < rhs.residue;
-        else if (loss.getString() != rhs.loss.getString())
-          return loss.getString() < rhs.loss.getString();
+        else if (loss.toString() != rhs.loss.toString())
+          return loss.toString() < rhs.loss.toString();
         else
           return charge < rhs.charge;
       }

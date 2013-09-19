@@ -760,7 +760,7 @@ namespace OpenMS
         std::vector<EmpiricalFormula> loss_formulas = peptide[i - 1].getLossFormulas();
         for (Size k = 0; k != loss_formulas.size(); ++k)
         {
-          possible_n_term_losses[i].insert(loss_formulas[k].getString());
+          possible_n_term_losses[i].insert(loss_formulas[k].toString());
         }
       }
 
@@ -772,7 +772,7 @@ namespace OpenMS
           std::vector<EmpiricalFormula> loss_formulas = peptide[pos].getLossFormulas();
           for (Size k = 0; k != loss_formulas.size(); ++k)
           {
-            possible_c_term_losses[i].insert(loss_formulas[k].getString());
+            possible_c_term_losses[i].insert(loss_formulas[k].toString());
           }
         }
       }
@@ -806,7 +806,7 @@ namespace OpenMS
             continue;
           }
           //if loss is not supported or no loss ions shall be generated -- continue
-          if (!loss_formula.isEmpty() && (!possible_n_term_losses[i].count(loss_formula.getString()) || !add_losses))
+          if (!loss_formula.isEmpty() && (!possible_n_term_losses[i].count(loss_formula.toString()) || !add_losses))
           {
             continue;
           }
@@ -814,7 +814,7 @@ namespace OpenMS
         //same for c-terminal ions
         else if (residue == Residue::XIon || residue == Residue::YIon || residue == Residue::ZIon)
         {
-          if (!loss_formula.isEmpty() && (!possible_c_term_losses[i].count(loss_formula.getString()) || !add_losses))
+          if (!loss_formula.isEmpty() && (!possible_c_term_losses[i].count(loss_formula.toString()) || !add_losses))
           {
             continue;
           }
@@ -955,7 +955,7 @@ namespace OpenMS
       EmpiricalFormula ion_formula = ion.getFormula(residue, charge) - loss_formula;
       DoubleReal mz_pos = ion_formula.getMonoWeight() / charge;
 
-      String ion_name = ResidueTypeToString_(residue) + " " + loss_formula.getString() + " " + String(ion_nr) + String(charge, '+');
+      String ion_name = ResidueTypeToString_(residue) + " " + loss_formula.toString() + " " + String(ion_nr) + String(charge, '+');
 
       if (add_isotopes)
       {

@@ -153,7 +153,7 @@ public:
     void setCharge(SignedSize charge);
 
     /// returns the formula as a string (charges are not included)
-    String getString() const;
+    String toString() const;
     //@}
 
     /** Assignment

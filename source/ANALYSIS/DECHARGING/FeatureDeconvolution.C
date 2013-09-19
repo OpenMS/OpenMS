@@ -217,7 +217,7 @@ namespace OpenMS
       }
 
       Adduct a((Int)l_charge, 1, ef.getMonoWeight(), adduct[0].remove('+'), log(prob), rt_shift, label);
-      //std::cout << "FeatureDeconvolution: inserting potential adduct " << ef.getString() << "[q:" << l_charge << ", pr:" << prob << "(" << a.getLogProb() << "), RTShift: " << rt_shift << "]\n";
+      //std::cout << "FeatureDeconvolution: inserting potential adduct " << ef.toString() << "[q:" << l_charge << ", pr:" << prob << "(" << a.getLogProb() << "), RTShift: " << rt_shift << "]\n";
       potential_adducts_.push_back(a);
 
       verbose_level_ = param_.getValue("verbose_level");
@@ -682,7 +682,7 @@ namespace OpenMS
 #ifdef DC_DEVEL
     out_dead.store("ILP_dead_edges.txt"); // TODO disable
     //std::cout << "Edge score distribution (clean):\n" + scores_clean_edge.concatenate(" ") + "\n(dirty)\n" + scores_dirty_edge.concatenate(" ") + "\n\n";
-    //std::cout << "Edge emprirical formula (clean):\n" + ef_clean_edge.getString() + "\n(dirty)\n" + ef_dirty_edge.getString() + "\n\n";
+    //std::cout << "Edge emprirical formula (clean):\n" + ef_clean_edge.toString() + "\n(dirty)\n" + ef_dirty_edge.toString() + "\n\n";
 #endif
 
     // END DEBUG
@@ -742,12 +742,12 @@ namespace OpenMS
         EmpiricalFormula ef_l(c.getAdductsAsString(Compomer::LEFT));
         if (fm_out[f0_idx].metaValueExists("dc_charge_adducts"))
         {
-          if (ef_l.getString() != fm_out[f0_idx].getMetaValue("dc_charge_adducts"))
-            throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Decharging produced inconsistent adduct annotation! [expected: ") + String(fm_out[f0_idx].getMetaValue("dc_charge_adducts")) + "]", ef_l.getString());
+          if (ef_l.toString() != fm_out[f0_idx].getMetaValue("dc_charge_adducts"))
+            throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Decharging produced inconsistent adduct annotation! [expected: ") + String(fm_out[f0_idx].getMetaValue("dc_charge_adducts")) + "]", ef_l.toString());
         }
         else
         {
-          fm_out[f0_idx].setMetaValue("dc_charge_adducts", ef_l.getString());
+          fm_out[f0_idx].setMetaValue("dc_charge_adducts", ef_l.toString());
         }
         fm_out[f0_idx].setMetaValue("dc_charge_adduct_mass", ef_l.getMonoWeight());
         fm_out[f0_idx].setMetaValue("is_backbone", Size(c.isSingleAdduct(proton, Compomer::LEFT) ? 1 : 0));
@@ -766,12 +766,12 @@ namespace OpenMS
         EmpiricalFormula ef_r(c.getAdductsAsString(Compomer::RIGHT));
         if (fm_out[f1_idx].metaValueExists("dc_charge_adducts"))
         {
-          if (ef_r.getString() != fm_out[f1_idx].getMetaValue("dc_charge_adducts"))
-            throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Decharging produced inconsistent adduct annotation! [expected: ") + String(fm_out[f1_idx].getMetaValue("dc_charge_adducts")) + "]", ef_r.getString());
+          if (ef_r.toString() != fm_out[f1_idx].getMetaValue("dc_charge_adducts"))
+            throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Decharging produced inconsistent adduct annotation! [expected: ") + String(fm_out[f1_idx].getMetaValue("dc_charge_adducts")) + "]", ef_r.toString());
         }
         else
         {
-          fm_out[f1_idx].setMetaValue("dc_charge_adducts", ef_r.getString());
+          fm_out[f1_idx].setMetaValue("dc_charge_adducts", ef_r.toString());
         }
         fm_out[f1_idx].setMetaValue("dc_charge_adduct_mass", ef_r.getMonoWeight());
         fm_out[f1_idx].setMetaValue("is_backbone", Size(c.isSingleAdduct(proton, Compomer::RIGHT) ? 1 : 0));

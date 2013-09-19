@@ -624,7 +624,7 @@ namespace OpenMS
     if (mod.hasNeutralLoss())
     {
       loss_formulas_.push_back(mod.getNeutralLossDiffFormula());
-      loss_names_.push_back(mod.getNeutralLossDiffFormula().getString());
+      loss_names_.push_back(mod.getNeutralLossDiffFormula().toString());
     }
 
     is_modified_ = true;
