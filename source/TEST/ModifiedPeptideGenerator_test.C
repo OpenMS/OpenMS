@@ -105,7 +105,24 @@ START_SECTION((static void applyVariableModifications(const std::vector< Residue
   vector<AASequence> seqs;
   vector<AASequence> modified_peptides;
 
+  // test behavior if sequence empty
+  seqs.clear();
+  ModifiedPeptideGenerator::applyVariableModifications(fixed_mods.begin(), fixed_mods.end(), seqs.begin(), seqs.end(), 1, modified_peptides, false);
+  TEST_EQUAL(modified_peptides.size(), 0); // no generated peptide
+  modified_peptides.clear();
+  // test behavior if peptide empty
+  seqs.push_back("");
+  ModifiedPeptideGenerator::applyVariableModifications(fixed_mods.begin(), fixed_mods.end(), seqs.begin(), seqs.end(), 0, modified_peptides, false);
+  TEST_EQUAL(modified_peptides.size(), 0); // no generated peptide
+  modified_peptides.clear();
+  ModifiedPeptideGenerator::applyVariableModifications(fixed_mods.begin(), fixed_mods.end(), seqs.begin(), seqs.end(), 1, modified_peptides, false);
+  TEST_EQUAL(modified_peptides.size(), 0); // no generated peptide
+  modified_peptides.clear();
+  ModifiedPeptideGenerator::applyVariableModifications(fixed_mods.begin(), fixed_mods.end(), seqs.begin(), seqs.end(), 2, modified_peptides, false);
+  TEST_EQUAL(modified_peptides.size(), 0); // no generated peptide
+  modified_peptides.clear();
   // test behavior if no target site in sequence
+  seqs.clear();
   seqs.push_back("AAAAAAAAA");
   ModifiedPeptideGenerator::applyVariableModifications(fixed_mods.begin(), fixed_mods.end(), seqs.begin(), seqs.end(), 1, modified_peptides, false);
   TEST_EQUAL(modified_peptides.size(), 0); // no generated peptide

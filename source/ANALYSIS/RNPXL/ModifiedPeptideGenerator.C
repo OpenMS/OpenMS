@@ -81,8 +81,8 @@ namespace OpenMS
   // static
   void ModifiedPeptideGenerator::applyVariableModifications(const vector<ResidueModification>::const_iterator& var_mods_begin, const vector<ResidueModification>::const_iterator& var_mods_end, vector<AASequence>::iterator digested_peptides_begin, vector<AASequence>::iterator digested_peptides_end, Size max_variable_mods_per_peptide, vector<AASequence>& all_modified_peptides, bool keep_unmodified)
   {
-    // no variable modifications specified? no compatibility map needs to be build
-    if (var_mods_begin == var_mods_end)
+    // no variable modifications specified or no variable mods allowed? no compatibility map needs to be build
+    if (var_mods_begin == var_mods_end || max_variable_mods_per_peptide == 0)
     {
       // if unmodifed peptides should be kept return the original list of digested peptides
       if (keep_unmodified)
@@ -91,6 +91,13 @@ namespace OpenMS
       }
       return;
     }
+
+    // if there is at most one variable modification allowed for a peptide we don't need combinatoric placement and can reside to a faster implementation
+    if (max_variable_mods_per_peptide == 1)
+    {
+      applyAtMostOneVariableModification_(var_mods_begin, var_mods_end, digested_peptides_begin, digested_peptides_end, all_modified_peptides, keep_unmodified);
+      return;
+    } 
 
     const int N_TERM_MODIFICATION_INDEX = -1; // magic constant to distinguish N_TERM only modifications from ANYWHERE modifications placed at N-term residue
     const int C_TERM_MODIFICATION_INDEX = -2; // magic constant to distinguish C_TERM only modifications from ANYWHERE modifications placed at C-term residue
@@ -239,6 +246,60 @@ namespace OpenMS
     }
   }
 
-  //static
-}
+  // static
+  void ModifiedPeptideGenerator::applyAtMostOneVariableModification_(const vector<ResidueModification>::const_iterator& var_mods_begin, const vector<ResidueModification>::const_iterator& var_mods_end, vector<AASequence>::iterator digested_peptides_begin, vector<AASequence>::iterator digested_peptides_end, vector<AASequence>& all_modified_peptides, bool keep_unmodified)
+  {
+    for (vector<AASequence>::const_iterator peptide_it = digested_peptides_begin; peptide_it != digested_peptides_end; ++peptide_it)
+    {
+      const AASequence& peptide_seq = *peptide_it;
+      if (keep_unmodified)
+      {
+        all_modified_peptides.push_back(peptide_seq);
+      }
+ 
+      // we want the same behavior as for the slower function... we would need a reverse iterator here that AASequence doesn't provide
+      for (AASequence::ConstIterator residue_it = peptide_seq.end() - 1; residue_it != peptide_seq.begin() - 1; --residue_it)
+      {
+        // skip already modified residues
+        if (residue_it->isModified())
+        {
+          continue;
+        }
 
+        Size residue_index = residue_it - peptide_seq.begin();
+
+        //determine compatibility of variable modifications
+        for (vector<ResidueModification>::const_iterator variable_it = var_mods_begin; variable_it != var_mods_end; ++variable_it)
+        {
+          // check if amino acid match between modification and current residue
+          if (residue_it->getOneLetterCode() != variable_it->getOrigin())
+          {
+            continue;
+          }
+          bool is_compatible = false;
+
+          // Term specifity is ANYWHERE on the peptide, C_TERM or N_TERM (currently no explicit support in OpenMS for protein C-term and protein N-term)
+          const ResidueModification::Term_Specificity& term_spec = variable_it->getTermSpecificity();
+          if (term_spec == ResidueModification::ANYWHERE)
+          {
+            is_compatible = true;
+          } else if (term_spec == ResidueModification::C_TERM && residue_index == (peptide_seq.size() - 1))
+          {
+            is_compatible = true;
+          } else if (term_spec == ResidueModification::N_TERM && residue_index == 0)
+          {
+            is_compatible = true;
+          }
+
+          // residue modification an be placed at current position? Then generate modified peptide.
+          if (is_compatible)
+          {
+            AASequence new_peptide = peptide_seq;
+            new_peptide.setModification(residue_index, variable_it->getFullName());
+            all_modified_peptides.push_back(new_peptide);
+          }
+        }
+      }
+    }
+  }
+}
