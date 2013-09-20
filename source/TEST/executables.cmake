@@ -400,6 +400,7 @@ set(analysis_executables_list
 	MapAlignmentTransformer_test
 	MassDecompositionAlgorithm_test
 	MassDecomposition_test
+        ModifiedPeptideGenerator_test
 	OfflinePrecursorIonSelection_test
 	PeptideAndProteinQuant_test
 	PILISModelGenerator_test

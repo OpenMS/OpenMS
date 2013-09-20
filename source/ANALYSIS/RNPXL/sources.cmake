@@ -4,6 +4,7 @@ set(directory source/ANALYSIS/RNPXL)
 ### list all filenames of the directory here
 set(sources_list
 RNPxlModificationsGenerator.C
+ModifiedPeptideGenerator.C
 )
 
 ### add path to the filenames
