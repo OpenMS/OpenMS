@@ -200,6 +200,32 @@ START_SECTION((static void applyVariableModifications(const std::vector< Residue
   seqs.push_back("ACAACAACA"); // three target sites and maximum of three occurances of the two modifications Glutathione and Carbamidomethyl
   ModifiedPeptideGenerator::applyVariableModifications(fixed_mods.begin(), fixed_mods.end(), seqs.begin(), seqs.end(), 3, modified_peptides, false);
   TEST_EQUAL(modified_peptides.size(), 3*3*3-1); // three sites with 3 possibilities (none, Glut., Carb.) each - but we need to subtract (none, none, none). The unmodified peptide  
+
+  seqs.clear();
+  modified_peptides.clear();
+  seqs.push_back("AAAAC(Carbamidomethyl)AAAA"); // target site already occupied 
+  ModifiedPeptideGenerator::applyVariableModifications(fixed_mods.begin(), fixed_mods.end(), seqs.begin(), seqs.end(), 3, modified_peptides, false);
+  TEST_EQUAL(modified_peptides.size(), 0); // no generated peptide as target site was already occupied
+
+  // three different modifications
+  modNames.clear();
+  modNames << "Glutathione (C)" << "Carbamidomethyl (C)" << "Oxidation (M)";
+  fixed_mods.clear();
+  for (StringList::iterator mod_it = modNames.begin(); mod_it != modNames.end(); ++mod_it)
+  {
+    String modification(*mod_it);
+    fixed_mods.push_back( ModificationsDB::getInstance()->getModification(modification));
+  }
+  seqs.clear();
+  modified_peptides.clear();
+
+  seqs.push_back("ACMACMACA"); // three target sites (C) and two target sites (M)
+  ModifiedPeptideGenerator::applyVariableModifications(fixed_mods.begin(), fixed_mods.end(), seqs.begin(), seqs.end(), 3, modified_peptides, false);
+
+  // for exactly one mod: 2*3 + 2 = 8 (two possibilities each for each C sites and 1 for each of the two M sites) 
+  // for exactly two mods: 1 (iff two Ox) + 6 * 2 (iff one Ox at two pos.) + (3 choose 2) * 4 (iff no Ox) = 25
+  // for exactly three mod: 6 (iff two Ox) + ((3 choose2) * 4) * 2 (iff one Ox at two pos.) + 8 (iff no Ox) = 38 
+  TEST_EQUAL(modified_peptides.size(), 8 + 25 + 38);
 }
 END_SECTION
   
