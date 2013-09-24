@@ -530,10 +530,6 @@ protected:
         {
           data_.back().meta.setDataProcessing(processing_[data_processing_ref]);
         }
-        else
-        {
-          data_.back().meta.setDataProcessing(processing_[default_processing_]);
-        }
       }
       else if (tag == "cvParam")
       {
