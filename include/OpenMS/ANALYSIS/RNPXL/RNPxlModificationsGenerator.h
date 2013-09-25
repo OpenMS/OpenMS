@@ -42,14 +42,14 @@
 
 namespace OpenMS
 {  
-  struct RNPxlModificationMassesResult
+  struct OPENMS_DLLAPI RNPxlModificationMassesResult
   {
     std::map<String, DoubleReal> mod_masses; // empirical formula -> mass
     std::map<String, std::set<String> > mod_combinations; // empirical formula -> nucleotide formula(s) (formulas if modifications lead to ambiguities)
     std::map<Size, String> mod_formula_idx;
   };
 
-  class RNPxlModificationsGenerator
+  class OPENMS_DLLAPI RNPxlModificationsGenerator
   {
     public:
       static RNPxlModificationMassesResult initModificationMassesRNA(StringList target_nucleotides, StringList mappings, StringList restrictions, StringList modifications, String sequence_restriction, bool cysteine_adduct, Int max_length = 4);
