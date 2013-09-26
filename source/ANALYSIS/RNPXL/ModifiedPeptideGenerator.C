@@ -32,9 +32,11 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-using namespace std;
-
 #include <OpenMS/ANALYSIS/RNPXL/ModifiedPeptideGenerator.h>
+
+using std::vector;
+using std::map;
+
 namespace OpenMS
 {
   // static
