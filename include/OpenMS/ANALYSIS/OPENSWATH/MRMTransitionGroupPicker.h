@@ -82,7 +82,7 @@ namespace OpenMS
 public:
 
     // this is the type in which we store the chromatograms for this analysis
-    typedef MSSpectrum<ChromatogramPeak> RichPeakChromatogram; 
+    typedef MSSpectrum<ChromatogramPeak> RichPeakChromatogram;
 
     //@{
     /// Constructor
@@ -109,7 +109,7 @@ public:
 
     */
     template <typename SpectrumT, typename TransitionT>
-    void pickTransitionGroup(MRMTransitionGroup<SpectrumT, TransitionT> & transition_group)
+    void pickTransitionGroup(MRMTransitionGroup<SpectrumT, TransitionT>& transition_group)
     {
       std::vector<RichPeakChromatogram> picked_chroms_;
 
@@ -120,9 +120,9 @@ public:
       for (Size k = 0; k < transition_group.getChromatograms().size(); k++)
       {
         RichPeakChromatogram& chromatogram = transition_group.getChromatograms()[k];
-        if (!chromatogram.isSorted()) 
-        { 
-          chromatogram.sortByPosition(); 
+        if (!chromatogram.isSorted())
+        {
+          chromatogram.sortByPosition();
         }
 
         RichPeakChromatogram picked_chrom;
@@ -150,7 +150,7 @@ public:
         }
 
         cnt++;
-        if ((stop_after_feature_ > 0 && cnt > stop_after_feature_) && 
+        if ((stop_after_feature_ > 0 && cnt > stop_after_feature_) &&
             mrm_feature.getIntensity() / (double)mrm_feature.getMetaValue("total_xic") < stop_after_intensity_ratio_)
         {
           break;
@@ -160,17 +160,17 @@ public:
 
     /// Create feature from a vector of chromatograms and a specified peak
     template <typename SpectrumT, typename TransitionT>
-    MRMFeature createMRMFeature(MRMTransitionGroup<SpectrumT, TransitionT> & transition_group,
-      std::vector<SpectrumT> & picked_chroms, int & chr_idx, int & peak_idx)
+    MRMFeature createMRMFeature(MRMTransitionGroup<SpectrumT, TransitionT>& transition_group,
+                                std::vector<SpectrumT>& picked_chroms, int& chr_idx, int& peak_idx)
     {
       MRMFeature mrmFeature;
       mrmFeature.setIntensity(0.0);
       double best_left = picked_chroms[chr_idx].getFloatDataArrays()[1][peak_idx];
       double best_right = picked_chroms[chr_idx].getFloatDataArrays()[2][peak_idx];
       const double peak_apex = picked_chroms[chr_idx][peak_idx].getRT();
-      LOG_DEBUG << "Creating MRMFeature for peak " << chr_idx << " " << peak_idx << " " << 
-        picked_chroms[chr_idx][peak_idx] << " with borders " << best_left << " " << 
-        best_right << " (" << best_right - best_left<< ")"<< std::endl;
+      LOG_DEBUG << "Creating MRMFeature for peak " << chr_idx << " " << peak_idx << " " <<
+        picked_chroms[chr_idx][peak_idx] << " with borders " << best_left << " " <<
+        best_right << " (" << best_right - best_left << ")" << std::endl;
 
       // Remove other, overlapping, picked peaks (in this and other
       // chromatograms) and then ensure that at least one peak is set to zero
@@ -178,19 +178,19 @@ public:
       remove_overlapping_features(picked_chroms, best_left, best_right);
       if (recalculate_peaks_)
       {
-        // This may change best_left / best_right 
+        // This may change best_left / best_right
         recalculatePeakBorders(picked_chroms, best_left, best_right);
       }
       picked_chroms[chr_idx][peak_idx].setIntensity(0.0);
 
       // Check for minimal peak width -> return empty feature (Intensity zero)
-      if( min_peak_width_ > 0.0 && std::fabs(best_right-best_left) < min_peak_width_) {return mrmFeature;}
+      if (min_peak_width_ > 0.0 && std::fabs(best_right - best_left) < min_peak_width_) {return mrmFeature; }
 
       if (compute_peak_quality_)
       {
         String outlier = "none";
         double qual = compute_quality(transition_group, picked_chroms, chr_idx, best_left, best_right, outlier);
-        if (qual < min_qual_) {return mrmFeature;}
+        if (qual < min_qual_) {return mrmFeature; }
         mrmFeature.setMetaValue("potentialOutlier", outlier);
         mrmFeature.setOverallQuality(qual);
       }
@@ -199,7 +199,7 @@ public:
       // empty master_peak_container with the same RT (m/z) values as the reference
       // chromatogram.
       SpectrumT master_peak_container;
-      const SpectrumT & ref_chromatogram = transition_group.getChromatograms()[chr_idx];
+      const SpectrumT& ref_chromatogram = transition_group.getChromatograms()[chr_idx];
       prepareMasterContainer_(ref_chromatogram, master_peak_container, best_left, best_right);
 
       double total_intensity = 0; double total_peak_apices = 0; double total_xic = 0;
@@ -306,17 +306,17 @@ public:
 
     /**
       @brief Remove overlapping features.
-      
+
       Remove features that are within the current seed (between best_left and
       best_right) or overlap with it. An overlapping feature is defined as a
       feature that has either of its borders within the border of the current
-      peak 
-      
+      peak
+
       Directly adjacent features are allowed, e.g. they can share one
       border.
     */
     template <typename SpectrumT>
-    void remove_overlapping_features(std::vector<SpectrumT> & picked_chroms, double best_left, double best_right)
+    void remove_overlapping_features(std::vector<SpectrumT>& picked_chroms, double best_left, double best_right)
     {
       // delete all seeds that lie within the current seed
       //std::cout << "Removing features for peak  between " << best_left << " " << best_right << std::endl;
@@ -326,7 +326,7 @@ public:
         {
           if (picked_chroms[k][i].getMZ() >= best_left && picked_chroms[k][i].getMZ() <= best_right)
           {
-            //std::cout << "For Chrom " << k << " removing peak " << picked_chroms[k][i].getMZ() << " l/r : " << picked_chroms[k].getFloatDataArrays()[1][i] << " " << 
+            //std::cout << "For Chrom " << k << " removing peak " << picked_chroms[k][i].getMZ() << " l/r : " << picked_chroms[k].getFloatDataArrays()[1][i] << " " <<
             //  picked_chroms[k].getFloatDataArrays()[2][i] << " with int " <<  picked_chroms[k][i].getIntensity() <<std::endl;
             picked_chroms[k][i].setIntensity(0.0);
           }
@@ -338,14 +338,14 @@ public:
       {
         for (Size i = 0; i < picked_chroms[k].size(); i++)
         {
-          if (picked_chroms[k][i].getIntensity() <= 0.0) {continue;}
+          if (picked_chroms[k][i].getIntensity() <= 0.0) {continue; }
 
           double left = picked_chroms[k].getFloatDataArrays()[1][i];
           double right = picked_chroms[k].getFloatDataArrays()[2][i];
           if ((left > best_left && left < best_right)
              || (right > best_left && right < best_right))
           {
-            //std::cout << "= For Chrom " << k << " removing contained peak " << picked_chroms[k][i].getMZ() << " l/r : " << picked_chroms[k].getFloatDataArrays()[1][i] << " " << 
+            //std::cout << "= For Chrom " << k << " removing contained peak " << picked_chroms[k][i].getMZ() << " l/r : " << picked_chroms[k].getFloatDataArrays()[1][i] << " " <<
             //  picked_chroms[k].getFloatDataArrays()[2][i] << " with int " <<  picked_chroms[k][i].getIntensity() <<std::endl;
             picked_chroms[k][i].setIntensity(0.0);
           }
@@ -366,14 +366,14 @@ protected:
 
     /**
       @brief Compute transition group quality (higher score is better)
-      
+
       This is only based on the co-elution of the chromatograms and internal
       consistency without any library information.
-      
+
     */
     template <typename SpectrumT, typename TransitionT>
-    double compute_quality(MRMTransitionGroup<SpectrumT, TransitionT> & transition_group,
-      std::vector<SpectrumT> & picked_chroms, const int chr_idx, const double best_left, const double best_right, String& outlier)
+    double compute_quality(MRMTransitionGroup<SpectrumT, TransitionT>& transition_group,
+                           std::vector<SpectrumT>& picked_chroms, const int chr_idx, const double best_left, const double best_right, String& outlier)
     {
 
       // Resample all chromatograms around the current estimated peak and
@@ -381,9 +381,9 @@ protected:
       // side to correctly identify shoulders etc.
       double resample_boundary = 15.0; // sample 15 seconds more on each side
       SpectrumT master_peak_container;
-      const SpectrumT & ref_chromatogram = transition_group.getChromatograms()[chr_idx];
+      const SpectrumT& ref_chromatogram = transition_group.getChromatograms()[chr_idx];
       prepareMasterContainer_(ref_chromatogram, master_peak_container, best_left - resample_boundary, best_right + resample_boundary);
-      std::vector< std::vector<double > > all_ints;
+      std::vector<std::vector<double> > all_ints;
       for (Size k = 0; k < transition_group.getChromatograms().size(); k++)
       {
         const SpectrumT& chromatogram = transition_group.getChromatograms()[k];
@@ -404,41 +404,41 @@ protected:
       std::vector<double> mean_coel;
       for (Size k = 0; k < all_ints.size(); k++)
       {
-          std::vector<double> shapes;
-          std::vector<double> coel;
-          for (Size i = 0; i < all_ints.size(); i++)
-          {
-            if (i == k) {continue;}
-            std::map<int, double> res = OpenSwath::Scoring::normalizedCrossCorrelation(all_ints[k], all_ints[i], boost::numeric_cast<int>(all_ints[i].size()), 1);
-           
-            // the first value is the x-axis (retention time) and should be an int -> it show the lag between the two
-            double res_coelution = std::abs(OpenSwath::Scoring::xcorrArrayGetMaxPeak(res)->first);
-            double res_shape = std::abs(OpenSwath::Scoring::xcorrArrayGetMaxPeak(res)->second);
+        std::vector<double> shapes;
+        std::vector<double> coel;
+        for (Size i = 0; i < all_ints.size(); i++)
+        {
+          if (i == k) {continue; }
+          std::map<int, double> res = OpenSwath::Scoring::normalizedCrossCorrelation(all_ints[k], all_ints[i], boost::numeric_cast<int>(all_ints[i].size()), 1);
 
-            shapes.push_back(res_shape);
-            coel.push_back(res_coelution);
-          }
+          // the first value is the x-axis (retention time) and should be an int -> it show the lag between the two
+          double res_coelution = std::abs(OpenSwath::Scoring::xcorrArrayGetMaxPeak(res)->first);
+          double res_shape = std::abs(OpenSwath::Scoring::xcorrArrayGetMaxPeak(res)->second);
 
-          // We have computed the cross-correlation of chromatogram k against
-          // all others. Use the mean of these computations as the value for k.
-          OpenSwath::mean_and_stddev msc;
-          msc = std::for_each(shapes.begin(), shapes.end(), msc);
-          double shapes_mean = msc.mean();
-          // double shapes_stdv = msc.sample_stddev();
-          msc = std::for_each(coel.begin(), coel.end(), msc);
-          double coel_mean = msc.mean();
-          // double coel_stdv = msc.sample_stddev();
+          shapes.push_back(res_shape);
+          coel.push_back(res_coelution);
+        }
 
-          // mean shape scores below 0.5-0.6 should be a real sign of trouble ... !
-          // mean coel scores above 3.5 should be a real sign of trouble ... !
+        // We have computed the cross-correlation of chromatogram k against
+        // all others. Use the mean of these computations as the value for k.
+        OpenSwath::mean_and_stddev msc;
+        msc = std::for_each(shapes.begin(), shapes.end(), msc);
+        double shapes_mean = msc.mean();
+        // double shapes_stdv = msc.sample_stddev();
+        msc = std::for_each(coel.begin(), coel.end(), msc);
+        double coel_mean = msc.mean();
+        // double coel_stdv = msc.sample_stddev();
 
-          // std::cout << "overall shapes " << shapes_mean << " std " << shapes_stdv << std::endl; 
-          // std::cout << "overall coel " << coel_mean << " std " << coel_stdv << std::endl; 
+        // mean shape scores below 0.5-0.6 should be a real sign of trouble ... !
+        // mean coel scores above 3.5 should be a real sign of trouble ... !
 
-          mean_shapes.push_back(shapes_mean);
-          mean_coel.push_back(coel_mean);
-          // all_shape_scores.push_back(shapes);
-          // all_coel_scores.push_back(coel);
+        // std::cout << "overall shapes " << shapes_mean << " std " << shapes_stdv << std::endl;
+        // std::cout << "overall coel " << coel_mean << " std " << coel_stdv << std::endl;
+
+        mean_shapes.push_back(shapes_mean);
+        mean_coel.push_back(coel_mean);
+        // all_shape_scores.push_back(shapes);
+        // all_coel_scores.push_back(coel);
       }
 
       // find the chromatogram with the minimal shape score and the maximal
@@ -449,15 +449,15 @@ protected:
       /*
       std::cout << " min shape  " << min_index_shape << " max coel " << max_index_coel << std::endl;
       std::cout << " Shape (min): " << *std::min_element(mean_shapes.begin(), mean_shapes.end())   << std::endl;
-      std::cout << " Coelution (max): " << *std::max_element(mean_coel.begin(), mean_coel.end())    << std::endl; 
+      std::cout << " Coelution (max): " << *std::max_element(mean_coel.begin(), mean_coel.end())    << std::endl;
       */
 
       // Look at the picked peaks that are within the current left/right borders
       int missing_peaks = 0;
       int multiple_peaks = 0;
       // collect all seeds that lie within the current seed
-      std::vector< double > left_borders;
-      std::vector< double > right_borders;
+      std::vector<double> left_borders;
+      std::vector<double> right_borders;
       for (Size k = 0; k < picked_chroms.size(); k++)
       {
         double l_tmp;
@@ -472,9 +472,9 @@ protected:
           if (picked_chroms[k][i].getMZ() >= best_left && picked_chroms[k][i].getMZ() <= best_right)
           {
             pfound++;
-            if (picked_chroms[k][i].getIntensity() > max_int) 
+            if (picked_chroms[k][i].getIntensity() > max_int)
             {
-              max_int = picked_chroms[k][i].getIntensity() > max_int; 
+              max_int = picked_chroms[k][i].getIntensity() > max_int;
               l_tmp = picked_chroms[k].getFloatDataArrays()[1][i];
               r_tmp = picked_chroms[k].getFloatDataArrays()[2][i];
             }
@@ -486,8 +486,8 @@ protected:
         {
           //std::cout << " l /r " << l_tmp << " / " << r_tmp;
         }
-        if(l_tmp>0.0) left_borders.push_back( l_tmp );
-        if(r_tmp>0.0) right_borders.push_back( r_tmp );
+        if (l_tmp > 0.0) left_borders.push_back(l_tmp);
+        if (r_tmp > 0.0) right_borders.push_back(r_tmp);
         // std::cout << std::endl;
 
         if (pfound == 0) missing_peaks++;
@@ -504,22 +504,22 @@ protected:
       {
         OpenSwath::mean_and_stddev msc;
         msc = std::for_each(left_borders.begin(), left_borders.end(), msc);
-        std::cout << " left borders " << msc.mean() << " +/- " << msc.sample_stddev() << " my: "<< /* left_borders[min_index_shape]  << */std::endl;
+        std::cout << " left borders " << msc.mean() << " +/- " << msc.sample_stddev() << " my: " << /* left_borders[min_index_shape]  << */ std::endl;
       }
       {
         OpenSwath::mean_and_stddev msc;
         msc = std::for_each(right_borders.begin(), right_borders.end(), msc);
-        std::cout << " right borders " << msc.mean() << " +/- " << msc.sample_stddev() << " my: "<< /* right_borders[min_index_shape] << */ std::endl;
+        std::cout << " right borders " << msc.mean() << " +/- " << msc.sample_stddev() << " my: " << /* right_borders[min_index_shape] << */ std::endl;
       }
       {
         OpenSwath::mean_and_stddev msc;
         msc = std::for_each(mean_shapes.begin(), mean_shapes.end(), msc);
-        std::cout << " mean_shapes borders " << msc.mean() << " +/- " << msc.sample_stddev() << " my: "<< /* right_borders[min_index_shape] << */ std::endl;
+        std::cout << " mean_shapes borders " << msc.mean() << " +/- " << msc.sample_stddev() << " my: " << /* right_borders[min_index_shape] << */ std::endl;
       }
       {
         OpenSwath::mean_and_stddev msc;
         msc = std::for_each(mean_coel.begin(), mean_coel.end(), msc);
-        std::cout << " mean_coel borders " << msc.mean() << " +/- " << msc.sample_stddev() << " my: "<< /* right_borders[min_index_shape] << */ std::endl;
+        std::cout << " mean_coel borders " << msc.mean() << " +/- " << msc.sample_stddev() << " my: " << /* right_borders[min_index_shape] << */ std::endl;
       }
 #endif
 
@@ -528,7 +528,7 @@ protected:
       if (min_index_shape == max_index_coel)
       {
         LOG_DEBUG << " element " << min_index_shape << " is a candidate for removal ... " << std::endl;
-        outlier = String( transition_group.getTransitions()[min_index_shape].getNativeID() );
+        outlier = String(transition_group.getTransitions()[min_index_shape].getNativeID());
       }
       else
       {
@@ -542,16 +542,16 @@ protected:
       // - mean of the coelutions (0 is good, 1 is ok, above 1 is pretty bad)
       double shape_score = std::accumulate(mean_shapes.begin(), mean_shapes.end(), 0.0) / mean_shapes.size();
       double coel_score = std::accumulate(mean_coel.begin(), mean_coel.end(), 0.0) / mean_coel.size();
-      coel_score = (coel_score - 1.0)/2.0;
+      coel_score = (coel_score - 1.0) / 2.0;
 
-      double score = shape_score - coel_score - 1.0*missing_peaks / picked_chroms.size();
+      double score = shape_score - coel_score - 1.0 * missing_peaks / picked_chroms.size();
       LOG_DEBUG << " computed score  " << score << std::endl;
       return score;
     }
 
     /**
       @brief Recalculate the borders of the peak
-      
+
       By collecting all left and right borders of contained peaks, a consensus
       peak is computed.  By looking at the means and standard deviations of all
       the peak borders it is estimated whether the proposed peak border
@@ -559,19 +559,19 @@ protected:
       then we fall back to the "consensus" (a median here).
     */
     template <typename SpectrumT>
-    void recalculatePeakBorders(std::vector<SpectrumT> & picked_chroms, double & best_left, double & best_right)
+    void recalculatePeakBorders(std::vector<SpectrumT>& picked_chroms, double& best_left, double& best_right)
     {
       // collect all seeds that lie within the current seed
-      std::vector< double > left_borders;
-      std::vector< double > right_borders;
+      std::vector<double> left_borders;
+      std::vector<double> right_borders;
       for (Size k = 0; k < picked_chroms.size(); k++)
       {
         for (Size i = 0; i < picked_chroms[k].size(); i++)
         {
           if (picked_chroms[k][i].getMZ() >= best_left && picked_chroms[k][i].getMZ() <= best_right)
           {
-            left_borders.push_back( picked_chroms[k].getFloatDataArrays()[1][i] );
-            right_borders.push_back( picked_chroms[k].getFloatDataArrays()[2][i] );
+            left_borders.push_back(picked_chroms[k].getFloatDataArrays()[1][i]);
+            right_borders.push_back(picked_chroms[k].getFloatDataArrays()[2][i]);
           }
         }
       }
@@ -585,21 +585,21 @@ protected:
       // Calculate mean and standard deviation
       double mean = std::accumulate(right_borders.begin(), right_borders.end(), 0.0) / (double) right_borders.size();
       double stdev = std::sqrt(std::inner_product(right_borders.begin(), right_borders.end(), right_borders.begin(), 0.0)
-          / right_borders.size() - mean * mean);
-      std::sort(right_borders.begin(), right_borders.end() );
-      if (std::fabs(best_right-mean) /stdev > 1.5)
+                               / right_borders.size() - mean * mean);
+      std::sort(right_borders.begin(), right_borders.end());
+      if (std::fabs(best_right - mean) / stdev > 1.5)
       {
-        best_right = right_borders[ right_borders.size()/2 ]; // pseudo median
+        best_right = right_borders[right_borders.size() / 2]; // pseudo median
       }
 
       mean = std::accumulate(left_borders.begin(), left_borders.end(), 0.0) / (double) left_borders.size();
       stdev = std::sqrt(std::inner_product(left_borders.begin(), left_borders.end(), left_borders.begin(), 0.0)
-          / left_borders.size() - mean * mean);
-      std::sort(left_borders.begin(), left_borders.end() );
+                        / left_borders.size() - mean * mean);
+      std::sort(left_borders.begin(), left_borders.end());
 
-      if (std::fabs(best_left-mean)  /stdev > 1.5)
+      if (std::fabs(best_left - mean)  / stdev > 1.5)
       {
-        best_left = left_borders[ left_borders.size()/2 ]; // pseudo median
+        best_left = left_borders[left_borders.size() / 2]; // pseudo median
       }
 
     }
@@ -609,7 +609,7 @@ protected:
     /// create an empty master peak container that has the correct mz / RT values set
     template <typename SpectrumT>
     void prepareMasterContainer_(const SpectrumT& ref_chromatogram,
-      SpectrumT & master_peak_container, double best_left, double best_right)
+                                 SpectrumT& master_peak_container, double best_left, double best_right)
     {
       // search for begin / end of the reference chromatogram (and add one more point)
       typename SpectrumT::const_iterator begin = ref_chromatogram.begin();
@@ -631,8 +631,8 @@ protected:
 
     /// use the master container from above to resample a chromatogram at those points stored in the master container
     template <typename SpectrumT>
-    SpectrumT resampleChromatogram_(const SpectrumT & chromatogram,
-      SpectrumT & master_peak_container, double best_left, double best_right)
+    SpectrumT resampleChromatogram_(const SpectrumT& chromatogram,
+                                    SpectrumT& master_peak_container, double best_left, double best_right)
     {
       // get the start / end point of this chromatogram => go one past
       // best_left / best_right to make the resampling accurate also at the

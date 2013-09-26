@@ -66,7 +66,7 @@ public:
     WindowMower(const WindowMower& source);
     /// assignment operator
     WindowMower& operator=(const WindowMower& source);
-    // @}  
+    // @}
 
     /// sliding window version (slower)
     template <typename SpectrumType>
@@ -130,86 +130,89 @@ public:
     template <typename SpectrumType>
     void filterPeakSpectrumForTopNInJumpingWindow(SpectrumType& spectrum)
     {
-        if (spectrum.empty())
+      if (spectrum.empty())
+      {
+        return;
+      }
+
+      spectrum.sortByPosition();
+
+      windowsize_ = (DoubleReal)param_.getValue("windowsize");
+      peakcount_ = (UInt)param_.getValue("peakcount");
+
+      // copy meta data
+      SpectrumType out = spectrum;
+      out.clear(false);
+
+      SpectrumType peaks_in_window;
+      DoubleReal window_start = spectrum[0].getMZ();
+      for (Size i = 0; i != spectrum.size(); ++i)
+      {
+        if (spectrum[i].getMZ() - window_start < windowsize_)      // collect peaks in window
         {
-            return;
+          peaks_in_window.push_back(spectrum[i]);
         }
-
-        spectrum.sortByPosition();
-
-        windowsize_ = (DoubleReal)param_.getValue("windowsize");
-        peakcount_ = (UInt)param_.getValue("peakcount");
-
-        // copy meta data
-        SpectrumType out = spectrum;
-        out.clear(false);
-
-        SpectrumType peaks_in_window;
-        DoubleReal window_start = spectrum[0].getMZ();
-        for (Size i = 0; i != spectrum.size(); ++i)
+        else       // step over window boundaries
         {
-            if (spectrum[i].getMZ() - window_start < windowsize_)  // collect peaks in window
-            {
-                peaks_in_window.push_back(spectrum[i]);
-            } else // step over window boundaries
-            {
-                window_start = spectrum[i].getMZ(); // as there might be large gaps between peaks resulting in empty windows, set new window start to next peak
+          window_start = spectrum[i].getMZ();       // as there might be large gaps between peaks resulting in empty windows, set new window start to next peak
 
-                // copy N highest peaks to out
-		if (peaks_in_window.size() > peakcount_ )
-		{	
-                  std::partial_sort(peaks_in_window.begin(), peaks_in_window.begin() + peakcount_, peaks_in_window.end(), reverseComparator(typename SpectrumType::PeakType::IntensityLess()));
-                  copy(peaks_in_window.begin(), peaks_in_window.begin() + peakcount_, back_inserter(out));
-		} else
-		{
-                  std::sort(peaks_in_window.begin(), peaks_in_window.end(), reverseComparator(typename SpectrumType::PeakType::IntensityLess()));
-                  copy(peaks_in_window.begin(), peaks_in_window.end(), back_inserter(out));
-		}
+          // copy N highest peaks to out
+          if (peaks_in_window.size() > peakcount_)
+          {
+            std::partial_sort(peaks_in_window.begin(), peaks_in_window.begin() + peakcount_, peaks_in_window.end(), reverseComparator(typename SpectrumType::PeakType::IntensityLess()));
+            copy(peaks_in_window.begin(), peaks_in_window.begin() + peakcount_, back_inserter(out));
+          }
+          else
+          {
+            std::sort(peaks_in_window.begin(), peaks_in_window.end(), reverseComparator(typename SpectrumType::PeakType::IntensityLess()));
+            copy(peaks_in_window.begin(), peaks_in_window.end(), back_inserter(out));
+          }
 
-                peaks_in_window.clear(false);
-                peaks_in_window.push_back(spectrum[i]);
-            }
+          peaks_in_window.clear(false);
+          peaks_in_window.push_back(spectrum[i]);
         }
+      }
 
-        if (peaks_in_window.empty())  // last window is empty -> no special handling needed
-        {
-          out.sortByPosition();
-          spectrum = out;
-          return;
-        }
-
-        // Note that the last window might be much smaller than windowsize.
-        // Therefor the number of peaks copied from this window should be adapted accordingly.
-        // Otherwise alot of noise peaks are copied from each end of a spectrum.
-
-        DoubleReal last_window_size = peaks_in_window.back().getMZ() - window_start;
-        DoubleReal last_window_size_fraction = last_window_size / windowsize_;
-        Size last_window_peakcount = last_window_size_fraction * peakcount_;
-
-        if (last_window_peakcount)  // handle single peak in last window (will produce no proper fraction)
-        {
-          last_window_peakcount = 1;
-        }
-
-        // sort for last_window_peakcount highest peaks
-        std::partial_sort(peaks_in_window.begin(), peaks_in_window.begin() + last_window_peakcount, peaks_in_window.end(), reverseComparator(typename SpectrumType::PeakType::IntensityLess()));
-
-        if (peaks_in_window.size() > last_window_peakcount)
-        {
-          std::copy(peaks_in_window.begin(), peaks_in_window.begin() + last_window_peakcount, back_inserter(out));
-        } else
-        {
-          std::copy(peaks_in_window.begin(), peaks_in_window.end(), std::back_inserter(out));
-        }
-
+      if (peaks_in_window.empty())    // last window is empty -> no special handling needed
+      {
         out.sortByPosition();
         spectrum = out;
         return;
+      }
+
+      // Note that the last window might be much smaller than windowsize.
+      // Therefor the number of peaks copied from this window should be adapted accordingly.
+      // Otherwise alot of noise peaks are copied from each end of a spectrum.
+
+      DoubleReal last_window_size = peaks_in_window.back().getMZ() - window_start;
+      DoubleReal last_window_size_fraction = last_window_size / windowsize_;
+      Size last_window_peakcount = last_window_size_fraction * peakcount_;
+
+      if (last_window_peakcount)    // handle single peak in last window (will produce no proper fraction)
+      {
+        last_window_peakcount = 1;
+      }
+
+      // sort for last_window_peakcount highest peaks
+      std::partial_sort(peaks_in_window.begin(), peaks_in_window.begin() + last_window_peakcount, peaks_in_window.end(), reverseComparator(typename SpectrumType::PeakType::IntensityLess()));
+
+      if (peaks_in_window.size() > last_window_peakcount)
+      {
+        std::copy(peaks_in_window.begin(), peaks_in_window.begin() + last_window_peakcount, back_inserter(out));
+      }
+      else
+      {
+        std::copy(peaks_in_window.begin(), peaks_in_window.end(), std::back_inserter(out));
+      }
+
+      out.sortByPosition();
+      spectrum = out;
+      return;
     }
 
     //TODO reimplement DefaultParamHandler::updateMembers_()
 
-private:          
+private:
     DoubleReal windowsize_;
     UInt peakcount_;
   };

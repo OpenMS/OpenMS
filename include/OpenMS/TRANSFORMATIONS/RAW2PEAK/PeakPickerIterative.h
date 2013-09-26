@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2012.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
 // $Authors: Hannes Roest $
@@ -40,7 +40,7 @@
 
 namespace OpenMS
 {
-  struct PeakCandidate 
+  struct PeakCandidate
   {
     int index;
     double peak_apex_intensity;
@@ -51,11 +51,14 @@ namespace OpenMS
     float mz;
   };
 
-  bool sort_peaks_by_intensity (const PeakCandidate &a, const PeakCandidate &b) { return a.peak_apex_intensity > b.peak_apex_intensity; }
+  bool sort_peaks_by_intensity(const PeakCandidate& a, const PeakCandidate& b)
+  {
+    return a.peak_apex_intensity > b.peak_apex_intensity;
+  }
 
   /**
   @brief This class implements a peak-picking algorithm for high-resolution MS
-  data (specifically designed for TOF-MS data). 
+  data (specifically designed for TOF-MS data).
 
   This peak-picking algorithm detects ion signals in raw data and
   reconstructs the corresponding peak shape by identifying the left and right
@@ -68,7 +71,7 @@ namespace OpenMS
   Its approach is similar to the PeakPickerHiRes but additionally uses an
   iterative approach to find and re-center peaks.
 
-  - First, it uses the PeakPickerHiRes to find seeds or candidate peaks. 
+  - First, it uses the PeakPickerHiRes to find seeds or candidate peaks.
   - Next it uses n iterations to re-center those peaks and compute left/right
     borders for each peak.
   - Finally it removes peaks that are within the borders of other peaks.
@@ -87,7 +90,7 @@ namespace OpenMS
     public ProgressLogger
   {
 
-  private:
+private:
     double signal_to_noise_;
     double peak_width_;
     double spacing_difference_;
@@ -96,7 +99,7 @@ namespace OpenMS
     double sn_win_len_;
     bool check_width_internally_;
 
-  public:
+public:
 
     /// Constructor
     PeakPickerIterative() :
@@ -136,14 +139,14 @@ namespace OpenMS
     }
 
     /// Destructor
-    ~PeakPickerIterative() {};
+    ~PeakPickerIterative() {}
 
-  private:
+private:
 
     /*
      * This will re-center the peaks by using the seeds (ordered by intensity) to
      * find raw signals that may belong to this peak. Then the peak is centered
-     * using a weighted average. 
+     * using a weighted average.
      * Signals are added to the peak as long as they are still inside the
      * peak_width or as long as the signal intensity keeps falling. Also the
      * distance to the previous signal and the whether the signal is below the
@@ -153,91 +156,91 @@ namespace OpenMS
     */
     template <typename PeakType>
     void _pick_recenter_peaks(const MSSpectrum<PeakType>& input,
-        std::vector<PeakCandidate>& PeakCandidates, 
-        SignalToNoiseEstimatorMedian<MSSpectrum<PeakType> > & snt) 
+                              std::vector<PeakCandidate>& PeakCandidates,
+                              SignalToNoiseEstimatorMedian<MSSpectrum<PeakType> >& snt)
     {
-      for(Size peak_it = 0; peak_it < PeakCandidates.size(); peak_it++)
+      for (Size peak_it = 0; peak_it < PeakCandidates.size(); peak_it++)
       {
         int i = PeakCandidates[peak_it].index;
         double central_peak_mz = input[i].getMZ(), central_peak_int = input[i].getIntensity();
-        double left_neighbor_mz = input[i-1].getMZ(), left_neighbor_int = input[i-1].getIntensity();
-        double right_neighbor_mz = input[i+1].getMZ(), right_neighbor_int = input[i+1].getIntensity();
+        double left_neighbor_mz = input[i - 1].getMZ(), left_neighbor_int = input[i - 1].getIntensity();
+        double right_neighbor_mz = input[i + 1].getMZ(), right_neighbor_int = input[i + 1].getIntensity();
 
         // MZ spacing sanity checks
-        double left_to_central = std::fabs(central_peak_mz-left_neighbor_mz);
-        double central_to_right = std::fabs(right_neighbor_mz-central_peak_mz);
-        double min_spacing = (left_to_central < central_to_right)? left_to_central : central_to_right;
+        double left_to_central = std::fabs(central_peak_mz - left_neighbor_mz);
+        double central_to_right = std::fabs(right_neighbor_mz - central_peak_mz);
+        double min_spacing = (left_to_central < central_to_right) ? left_to_central : central_to_right;
         double est_peak_width = peak_width_;
 
-        if (check_width_internally_ && (left_to_central > est_peak_width || central_to_right > est_peak_width) )
+        if (check_width_internally_ && (left_to_central > est_peak_width || central_to_right > est_peak_width))
         {
           // something has gone wrong, the points are further away than the peak width -> delete this peak
-          PeakCandidates[peak_it].integrated_intensity = -1; 
-          PeakCandidates[peak_it].leftWidth = -1; 
-          PeakCandidates[peak_it].rightWidth = -1; 
-          PeakCandidates[peak_it].mz = -1; 
+          PeakCandidates[peak_it].integrated_intensity = -1;
+          PeakCandidates[peak_it].leftWidth = -1;
+          PeakCandidates[peak_it].rightWidth = -1;
+          PeakCandidates[peak_it].mz = -1;
           continue;
         }
 
         std::map<double, double> peak_raw_data;
-        
+
         peak_raw_data[central_peak_mz] = central_peak_int;
         peak_raw_data[left_neighbor_mz] = left_neighbor_int;
         peak_raw_data[right_neighbor_mz] = right_neighbor_int;
 
-        // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // 
+        // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // //
         // COPY - from PeakPickerHiRes
         // peak core found, now extend it to the left
         Size k = 2;
-        while ((i-k+1) > 0
-                     && std::fabs(input[i-k].getMZ() - peak_raw_data.begin()->first) < spacing_difference_*min_spacing
-                     && (input[i-k].getIntensity() < peak_raw_data.begin()->second
-                        || std::fabs(input[i-k].getMZ() - central_peak_mz) < est_peak_width) 
-                     )
+        while ((i - k + 1) > 0
+              && std::fabs(input[i - k].getMZ() - peak_raw_data.begin()->first) < spacing_difference_ * min_spacing
+              && (input[i - k].getIntensity() < peak_raw_data.begin()->second
+                 || std::fabs(input[i - k].getMZ() - central_peak_mz) < est_peak_width)
+               )
+        {
+          if (signal_to_noise_ > 0.0)
+          {
+            if (snt.getSignalToNoise(input[i - k]) < signal_to_noise_)
             {
-                if (signal_to_noise_ > 0.0)
-                {
-                  if(snt.getSignalToNoise(input[i-k]) < signal_to_noise_) 
-                  {
-                    break;
-                  }
-                }
-                peak_raw_data[input[i-k].getMZ()] = input[i-k].getIntensity();
-                ++k;
+              break;
             }
-        double leftborder = input[i-k+1].getMZ();
-        
+          }
+          peak_raw_data[input[i - k].getMZ()] = input[i - k].getIntensity();
+          ++k;
+        }
+        double leftborder = input[i - k + 1].getMZ();
+
         // to the right
         k = 2;
-        while ((i+k) < input.size()
-                     && std::fabs(input[i+k].getMZ() - peak_raw_data.rbegin()->first) < spacing_difference_*min_spacing
-                     && (input[i+k].getIntensity() < peak_raw_data.rbegin()->second
-                        || std::fabs(input[i+k].getMZ() - central_peak_mz) < est_peak_width) 
-                     )
+        while ((i + k) < input.size()
+              && std::fabs(input[i + k].getMZ() - peak_raw_data.rbegin()->first) < spacing_difference_ * min_spacing
+              && (input[i + k].getIntensity() < peak_raw_data.rbegin()->second
+                 || std::fabs(input[i + k].getMZ() - central_peak_mz) < est_peak_width)
+               )
+        {
+          if (signal_to_noise_ > 0.0)
+          {
+            if (snt.getSignalToNoise(input[i + k]) < signal_to_noise_)
             {
-                if (signal_to_noise_ > 0.0)
-                {
-                  if(snt.getSignalToNoise(input[i+k]) < signal_to_noise_) 
-                  {
-                    break;
-                  }
-                }
-
-                peak_raw_data[input[i+k].getMZ()] = input[i+k].getIntensity();
-                ++k;
+              break;
             }
+          }
+
+          peak_raw_data[input[i + k].getMZ()] = input[i + k].getIntensity();
+          ++k;
+        }
         // END COPY - from PeakPickerHiRes
-        // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // 
+        // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // //
 
-        double rightborder = input[i+k-1].getMZ();
+        double rightborder = input[i + k - 1].getMZ();
 
-        double weighted_mz = 0 ;
+        double weighted_mz = 0;
         double integrated_intensity = 0;
         for (std::map<double, double>::const_iterator map_it = peak_raw_data.begin(); map_it != peak_raw_data.end(); ++map_it)
-            {
-                weighted_mz += map_it->first * map_it->second;
-                integrated_intensity += map_it->second;
-            }
+        {
+          weighted_mz += map_it->first * map_it->second;
+          integrated_intensity += map_it->second;
+        }
         weighted_mz /= integrated_intensity;
 
         // store the data
@@ -246,31 +249,33 @@ namespace OpenMS
         PeakCandidates[peak_it].rightWidth = rightborder;
         PeakCandidates[peak_it].mz = weighted_mz;
 
-        // find the closest raw signal peak to where we just put our peak and store it 
-        double min_diff = std::fabs(weighted_mz - input[i].getMZ() );
+        // find the closest raw signal peak to where we just put our peak and store it
+        double min_diff = std::fabs(weighted_mz - input[i].getMZ());
         int min_i = i;
 
         // Search to the left
-        for(int m = 1; i-m > 0 && leftborder < input[i-m].getMZ(); m++ )
+        for (int m = 1; i - m > 0 && leftborder < input[i - m].getMZ(); m++)
         {
-            if( std::fabs(weighted_mz - input[i-m].getMZ() ) < min_diff ) {
-                min_diff = std::fabs(weighted_mz - input[i-m].getMZ() ) ;
-                min_i = i-m;
-            }
+          if (std::fabs(weighted_mz - input[i - m].getMZ()) < min_diff)
+          {
+            min_diff = std::fabs(weighted_mz - input[i - m].getMZ());
+            min_i = i - m;
+          }
         }
         // Search to the right
-        for(int m = 1; i-m > 0 && rightborder > input[i+m].getMZ(); m++ )
+        for (int m = 1; i - m > 0 && rightborder > input[i + m].getMZ(); m++)
         {
-            if( std::fabs(weighted_mz - input[i+m].getMZ() ) < min_diff ) {
-                min_diff = std::fabs(weighted_mz - input[i+m].getMZ() ) ;
-                min_i = i+m;
-            }
+          if (std::fabs(weighted_mz - input[i + m].getMZ()) < min_diff)
+          {
+            min_diff = std::fabs(weighted_mz - input[i + m].getMZ());
+            min_i = i + m;
+          }
         }
         PeakCandidates[peak_it].index = min_i;
       }
     }
 
-  public:
+public:
 
     /*
      * This will pick one single spectrum. The PeakPickerHiRes is used to
@@ -278,7 +283,7 @@ namespace OpenMS
      * compute peak width and integrated intensity of the peak.
      *
      * Finally, other peaks that would fall within the primary peak are
-     * discarded 
+     * discarded
      *
      * The output are the remaining peaks.
     */
@@ -301,7 +306,7 @@ namespace OpenMS
       std::vector<PeakCandidate> PeakCandidates;
       MSSpectrum<PeakType> picked_spectrum;
 
-      // Use the PeakPickerHiRes to find candidates ... 
+      // Use the PeakPickerHiRes to find candidates ...
       OpenMS::PeakPickerHiRes pp;
       Param pepi_param = OpenMS::PeakPickerHiRes().getDefaults();
       pepi_param.setValue("signal_to_noise", signal_to_noise_);
@@ -311,11 +316,11 @@ namespace OpenMS
 
       // after picking peaks, we store the closest index of the raw spectrum and the picked intensity
       std::vector<PeakCandidate> newPeakCandidates_;
-      Size j =0;
+      Size j = 0;
       LOG_DEBUG << "Candidates " << picked_spectrum.size() << std::endl;
-      for(Size k = 0; k < input.size() && j < picked_spectrum.size(); k++)
+      for (Size k = 0; k < input.size() && j < picked_spectrum.size(); k++)
       {
-        if(input[k].getMZ() > picked_spectrum[j].getMZ() )
+        if (input[k].getMZ() > picked_spectrum[j].getMZ())
         {
           LOG_DEBUG << "got a value " << k << " @ " << input[k] << std::endl;
           PeakCandidate pc = { /*.index=*/ k, /*.intensity=*/ picked_spectrum[j].getIntensity(), -1, -1, -1, -1};
@@ -325,21 +330,21 @@ namespace OpenMS
       }
 
       PeakCandidates = newPeakCandidates_;
-      std::sort(PeakCandidates.begin(), PeakCandidates.end(), sort_peaks_by_intensity );
+      std::sort(PeakCandidates.begin(), PeakCandidates.end(), sort_peaks_by_intensity);
 
       // signal-to-noise estimation
       SignalToNoiseEstimatorMedian<MSSpectrum<PeakType> > snt;
       if (signal_to_noise_ > 0.0)
       {
         Param snt_parameters = snt.getParameters();
-        snt_parameters.setValue("win_len", sn_win_len_ );
+        snt_parameters.setValue("win_len", sn_win_len_);
         snt_parameters.setValue("bin_count", sn_bin_count_);
-        snt.setParameters( snt_parameters );
+        snt.setParameters(snt_parameters);
         snt.init(input);
       }
 
       // The peak candidates are recentered and the width is computed for each peak
-      for(int i=0; i < nr_iterations_; i++)
+      for (int i = 0; i < nr_iterations_; i++)
       {
         _pick_recenter_peaks(input, PeakCandidates, snt);
       }
@@ -352,19 +357,19 @@ namespace OpenMS
       // Go through all candidates and exclude all lower-intensity candidates
       // that are within the borders of another peak
       LOG_DEBUG << "Will now merge candidates" << std::endl;
-      for(Size peak_it = 0; peak_it < PeakCandidates.size(); peak_it++)
+      for (Size peak_it = 0; peak_it < PeakCandidates.size(); peak_it++)
       {
-        if(PeakCandidates[peak_it].leftWidth < 0) continue;
+        if (PeakCandidates[peak_it].leftWidth < 0) continue;
 
         //Remove all peak candidates that are enclosed by this peak
-        for(Size m = peak_it+1; m < PeakCandidates.size(); m++)
+        for (Size m = peak_it + 1; m < PeakCandidates.size(); m++)
         {
-          if(PeakCandidates[m].mz >= PeakCandidates[peak_it].leftWidth && PeakCandidates[m].mz <= PeakCandidates[peak_it].rightWidth)
+          if (PeakCandidates[m].mz >= PeakCandidates[peak_it].leftWidth && PeakCandidates[m].mz <= PeakCandidates[peak_it].rightWidth)
           {
-            LOG_DEBUG << "Remove peak " << m <<  " : " << PeakCandidates[m].mz << " "  << 
-              PeakCandidates[m].peak_apex_intensity << " (too close to " << PeakCandidates[peak_it].mz << 
+            LOG_DEBUG << "Remove peak " << m <<  " : " << PeakCandidates[m].mz << " "  <<
+              PeakCandidates[m].peak_apex_intensity << " (too close to " << PeakCandidates[peak_it].mz <<
               " " << PeakCandidates[peak_it].peak_apex_intensity <<  ")" << std::endl;
-            PeakCandidates[m].leftWidth = PeakCandidates[m].rightWidth = -1; 
+            PeakCandidates[m].leftWidth = PeakCandidates[m].rightWidth = -1;
           }
         }
 
@@ -373,7 +378,7 @@ namespace OpenMS
         peak.setIntensity(PeakCandidates[peak_it].integrated_intensity);
         output.push_back(peak);
 
-        LOG_DEBUG << "Push peak " << peak_it << "  "<< peak << std::endl;
+        LOG_DEBUG << "Push peak " << peak_it << "  " << peak << std::endl;
         output.getFloatDataArrays()[0].push_back(PeakCandidates[peak_it].integrated_intensity);
         output.getFloatDataArrays()[1].push_back(PeakCandidates[peak_it].leftWidth);
         output.getFloatDataArrays()[2].push_back(PeakCandidates[peak_it].rightWidth);
@@ -385,7 +390,7 @@ namespace OpenMS
 
     template <typename PeakType>
     void pickExperiment(const MSExperiment<PeakType>& input, MSExperiment<PeakType>& output)
-    { 
+    {
       // make sure that output is clear
       output.clear(true);
 
@@ -400,13 +405,13 @@ namespace OpenMS
       Size progress = 0;
       startProgress(0, input.size(), "picking peaks");
       for (Size scan_idx = 0; scan_idx != input.size(); ++scan_idx)
-      { 
+      {
         if (ms1_only && (input[scan_idx].getMSLevel() != 1))
-        { 
+        {
           output[scan_idx] = input[scan_idx];
         }
         else
-        { 
+        {
           pick(input[scan_idx], output[scan_idx]);
         }
         setProgress(progress++);
@@ -417,4 +422,3 @@ namespace OpenMS
   };
 
 }
-

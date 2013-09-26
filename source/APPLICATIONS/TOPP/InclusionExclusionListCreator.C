@@ -72,20 +72,20 @@ using namespace std;
     The input can either be peptide identifications from previous runs, a feature map or a FASTA-file with proteins.
     Inclusion and exclusion charges can be specified for FASTA and idXML input. If no charges are specified in the case of peptide id input, only
     the charge state of the peptide id is in/excluded, otherwise all given charge states are entered to the list.
-    
-    InclusionExclusionListCreator has different strategies for inclusion list creation: 'FeatureBased_LP', 'ProteinBased_LP' and 'ALL'. 
-    In the ALL mode all features are put onto the list. The FeatureBased_LP,  which was designed for MALDI data, maximizes the number of features in the inclusion list 
-    given the constraints that for each RT fraction a maximal number of precursors is not exceeded and each feature is scheduled at most a fixed number of times. 
+
+    InclusionExclusionListCreator has different strategies for inclusion list creation: 'FeatureBased_LP', 'ProteinBased_LP' and 'ALL'.
+    In the ALL mode all features are put onto the list. The FeatureBased_LP,  which was designed for MALDI data, maximizes the number of features in the inclusion list
+    given the constraints that for each RT fraction a maximal number of precursors is not exceeded and each feature is scheduled at most a fixed number of times.
     In this mode, the sum of normalized feature intensities is maximized so that for each feature high intensity RTs are favoured over lower intensity ones.
-    The ProteinBased_LP uses RT and detectability prediction methods to predict features that are most likely to be identified by MS/MS. 
-    Both LP methods are described in more detail in a recent publication: Zerck et al.: 
+    The ProteinBased_LP uses RT and detectability prediction methods to predict features that are most likely to be identified by MS/MS.
+    Both LP methods are described in more detail in a recent publication: Zerck et al.:
     <a href="http://www.biomedcentral.com/1471-2105/14/56">Optimal precursor ion selection for LC-MALDI MS/MS</a> (BMC Bioinformatics 2013).
 
     The RT window size can be specified in the RT section of the INI file, either as relative window
     with [rt-rel_rt_window_size*rt,rt+rel_rt_window_size*rt] or absolute window.
-    
+
     The default is RT in minutes, but seconds can also be used (see INI file).
-    
+
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_InclusionExclusionListCreator.cli
     <B>INI file documentation of this tool:</B>
@@ -136,7 +136,7 @@ protected:
     registerSubsection_("algorithm", "Inclusion/Exclusion algorithm section");
   }
 
-  Param getSubsectionDefaults_(const String & /*section*/) const
+  Param getSubsectionDefaults_(const String& /*section*/) const
   {
     // there is only one subsection: 'algorithm' (s.a) .. and in it belongs the InclusionExclusionList param
     InclusionExclusionList fdc;
@@ -147,11 +147,11 @@ protected:
     tmp.insert("PrecursorSelection:", ops.getParameters());
     tmp.remove("PrecursorSelection:selection_window");
     tmp.remove("PrecursorSelection:min_peak_distance");
-    tmp.insert("PrecursorSelection:",lp.getParameters().copy("feature_based"));
+    tmp.insert("PrecursorSelection:", lp.getParameters().copy("feature_based"));
     return tmp;
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     //-------------------------------------------------------------
     // parameter handling
@@ -187,7 +187,7 @@ protected:
 
     FileHandler fh;
     TargetedExperiment exp;
-    Param const & iel_param = getParam_().copy("algorithm:InclusionExclusionList:", true);
+    Param const& iel_param = getParam_().copy("algorithm:InclusionExclusionList:", true);
     writeDebug_("Parameters passed to InclusionExclusionList", iel_param, 3);
 
     InclusionExclusionList list;
@@ -209,11 +209,11 @@ protected:
 
         if (strategy == "ALL")
         {
-	  if (!incl_charges.empty())
-	  {
-	    writeLog_("Warning: 'inclusion_charges' parameter is not honored for featureXML input with strategy ALL.");
-	    return ILLEGAL_PARAMETERS;
-	  }
+          if (!incl_charges.empty())
+          {
+            writeLog_("Warning: 'inclusion_charges' parameter is not honored for featureXML input with strategy ALL.");
+            return ILLEGAL_PARAMETERS;
+          }
 
           // convert to targeted experiment
           // for traML output
@@ -238,25 +238,25 @@ protected:
           IntList levels;
           levels << 1;
           exp.getSpectra().erase(remove_if(exp.begin(), exp.end(),
-                              InMSLevelRange<MSSpectrum<> >(levels, true)), exp.end());
+                                           InMSLevelRange<MSSpectrum<> >(levels, true)), exp.end());
           exp.sortSpectra(true);
           OfflinePrecursorIonSelection opis;
           Param param = getParam_().copy("algorithm:PrecursorSelection:", true);
-	  param.remove("feature_based:normalize_intensities");
+          param.remove("feature_based:normalize_intensities");
           UInt spot_cap = param.getValue("ms2_spectra_per_rt_bin");
           opis.setParameters(param);
 
-	  // insert charges
+          // insert charges
           std::set<Int> charges_set;
-	  for(Size c=0; c < incl_charges.size();++c) 
-	  { 
-	    charges_set.insert(incl_charges[c]);
-	  }
+          for (Size c = 0; c < incl_charges.size(); ++c)
+          {
+            charges_set.insert(incl_charges[c]);
+          }
 
           // create ILP
           PSLPFormulation ilp_wrapper;
-	  Param param2 = getParam_().copy("algorithm:PrecursorSelection:", true);
-	  ilp_wrapper.setParameters(param2.copy("feature_based"));
+          Param param2 = getParam_().copy("algorithm:PrecursorSelection:", true);
+          ilp_wrapper.setParameters(param2.copy("feature_based"));
           // get the mass ranges for each features for each scan it occurs in
           std::vector<std::vector<std::pair<Size, Size> > >  indices;
           opis.getMassRanges(map, exp, indices);
@@ -277,7 +277,7 @@ protected:
             Size feature_index = variable_indices[solution_indices[i]].feature;
             Size scan = variable_indices[solution_indices[i]].scan;
             out_map.push_back(map[feature_index]);
-	    //            std::cout << map[feature_index].getMetaValue("msms_score") << std::endl;
+            //            std::cout << map[feature_index].getMetaValue("msms_score") << std::endl;
             ++rt_sizes[scan];
           }
 #ifdef DEBUG_OPS
@@ -300,7 +300,7 @@ protected:
             return CANNOT_WRITE_OUTPUT_FILE;
           }
 
-        }  //else if(strategy == "ILP") // ILP
+        } //else if(strategy == "ILP") // ILP
         else
         {
           writeLog_("Warning: 'ProteinBased_LP' inclusion strategy is not valid for featureXML input.");
@@ -323,7 +323,7 @@ protected:
         {
           OfflinePrecursorIonSelection opis;
           Param param = getParam_().copy("algorithm:PrecursorSelection:", true);
-	  param.remove("feature_based:normalize_intensities");
+          param.remove("feature_based:normalize_intensities");
           opis.setParameters(param);
 
           FeatureMap<> precursors;
@@ -416,7 +416,7 @@ protected:
           return ILLEGAL_PARAMETERS;
         }
       }
-      else   // FASTA format ...
+      else // FASTA format ...
       {
         if (!File::exists(rt_model_file))
         {
@@ -459,7 +459,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPInclusionExclusionListCreator tool;
   return tool.main(argc, argv);
