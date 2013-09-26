@@ -29,7 +29,6 @@ MRMPairFinder
 MSSimulator
 MapAlignmentEvaluation
 OpenMSInfo
-PeakPickerRapid
 PeakPickerIterative
 SemanticValidator
 SequenceCoverageCalculator
@@ -46,6 +45,8 @@ QCMerger
 QCShrinker
 RNPxl
 RNPxlXICFilter
+#SimpleSearchEngine
+#RNPxlSearch
 )
 
 if(NOT DISABLE_OPENSWATH)
