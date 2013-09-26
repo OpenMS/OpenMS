@@ -140,6 +140,7 @@ public:
       features(new FeatureMapType()),
       consensus(new ConsensusMapType()),
       peaks(new ExperimentType()),
+      chromatograms(new ExperimentType()),
       current_spectrum_(0)
     {
       annotations_1d.resize(1);

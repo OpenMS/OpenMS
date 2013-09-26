@@ -307,6 +307,7 @@ namespace OpenMS
     QList<QTreeWidgetItem *> toplevel_items;
     bool more_than_one_spectrum = true;
 
+    // Branch if the current layer is a spectrum
     if (cl.type == LayerData::DT_PEAK  && !(cl.chromatogram_flag_set()))
     {
       std::vector<QTreeWidgetItem *> parent_stack;
@@ -518,6 +519,8 @@ namespace OpenMS
         more_than_one_spectrum = false;
       }
     }
+    // Branch if the current layer is a chromatogram (either indicated by its
+    // type or by the flag which is set).
     else if (cl.type == LayerData::DT_CHROMATOGRAM || cl.chromatogram_flag_set())
     {
 
@@ -720,6 +723,7 @@ namespace OpenMS
         }
       }
     }
+    // Branch if its neither (just draw an empty item)
     else
     {
       item = new QTreeWidgetItem((QTreeWidget *)0);
@@ -731,7 +735,7 @@ namespace OpenMS
       spectra_treewidget_->addTopLevelItem(item);
     }
 
-    if (more_than_one_spectrum)
+    if (more_than_one_spectrum && item != 0)
     {
       item->setFlags(0);
     }

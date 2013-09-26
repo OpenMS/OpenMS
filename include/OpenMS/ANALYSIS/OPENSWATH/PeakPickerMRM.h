@@ -82,7 +82,7 @@ public:
 
       It uses a modified algorithm of the PeakPickerHiRes
 
-      This function will return a smoothed chromatogram and a picked chromatogram
+      This function will return a picked chromatogram
     */
     void pickChromatogram(const RichPeakChromatogram& chromatogram, RichPeakChromatogram& picked_chrom);
 

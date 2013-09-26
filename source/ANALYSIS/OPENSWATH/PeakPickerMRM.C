@@ -278,7 +278,7 @@ namespace OpenMS
   }
 
 #else
-  void PeakPickerMRM::pickChromatogramCrowdad(const RichPeakChromatogram& chromatogram, RichPeakChromatogram& picked_chrom)
+  void PeakPickerMRM::pickChromatogramCrowdad(const RichPeakChromatogram& /* chromatogram */, RichPeakChromatogram& /* picked_chrom */)
   {
     throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
                                      "PeakPickerMRM was not compiled with crawdad, please choose a different algorithm!");
