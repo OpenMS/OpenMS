@@ -42,7 +42,7 @@
 
 namespace OpenMS
 {  
-  class ModifiedPeptideGenerator
+  class OPENMS_DLLAPI RModifiedPeptideGenerator
   {
   public:
     // Applies fixed modifications to peptides
