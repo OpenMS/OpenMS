@@ -316,7 +316,6 @@ namespace OpenMS
     template <typename Value>
     static void computeRank(std::vector<Value> & w)
     {
-      using namespace boost::lambda;
       Size i = 0; // main index
       Size z  = 0;  // "secondary" index
       Value rank = 0;
@@ -329,7 +328,8 @@ namespace OpenMS
       }
       //sort
       std::sort(w_idx.begin(), w_idx.end(),
-                ret<bool>((&_1->*& std::pair<Size, Value>::second) < (&_2->*& std::pair<Size, Value>::second)));
+                boost::lambda::ret<bool>((&boost::lambda::_1->*& std::pair<Size, Value>::second) < 
+                                         (&boost::lambda::_2->*& std::pair<Size, Value>::second)));
       //replace pairs <orig_index, value> in w_idx by pairs <orig_index, rank>
       while (i < n)
       {
