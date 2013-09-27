@@ -1895,31 +1895,49 @@ namespace OpenMS
 
   void TOPPBase::parseRange_(const String& text, double& low, double& high) const
   {
-    String tmp = text.prefix(':');
-    if (tmp != "")
+    try
     {
-      low = tmp.toDouble();
+      String tmp = text.prefix(':');
+      if (tmp != "")
+      {
+        low = tmp.toDouble();
+      }
+      tmp = "";
+      tmp = text.suffix(':');
+      if (tmp != "")
+      {
+        high = tmp.toDouble();
+      }
     }
-    tmp = "";
-    tmp = text.suffix(':');
-    if (tmp != "")
+    catch (Exception::ConversionError&)
     {
-      high = tmp.toDouble();
+      throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+                                       "Could not convert string '" + text + 
+                                       "' to a range of floating point values");
     }
   }
 
   void TOPPBase::parseRange_(const String& text, Int& low, Int& high) const
   {
-    String tmp = text.prefix(':');
-    if (tmp != "")
+    try
     {
-      low = tmp.toInt();
+      String tmp = text.prefix(':');
+      if (tmp != "")
+      {
+        low = tmp.toInt();
+      }
+      tmp = "";
+      tmp = text.suffix(':');
+      if (tmp != "")
+      {
+        high = tmp.toInt();
+      }
     }
-    tmp = "";
-    tmp = text.suffix(':');
-    if (tmp != "")
+    catch (Exception::ConversionError&)
     {
-      high = tmp.toInt();
+      throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+                                       "Could not convert string '" + text + 
+                                       "' to a range of integer values");
     }
   }
 

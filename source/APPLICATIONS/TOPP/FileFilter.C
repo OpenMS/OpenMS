@@ -509,15 +509,9 @@ protected:
       //select isolation window width
       parseRange_(select_isolation_width, select_isolation_width_l, select_isolation_width_u);
     }
-    catch (Exception::ConversionError&)
+    catch (Exception::ConversionError& ce)
     {
-      String tmp;
-      for (IntList::iterator it = levels.begin(); it != levels.end(); ++it)
-      {
-        tmp += *it;
-      }
-
-      writeLog_("Invalid boundary '" + tmp + "' given. Aborting!");
+      writeLog_(String("Invalid boundary given: ") + ce.what() + ". Aborting!");
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
