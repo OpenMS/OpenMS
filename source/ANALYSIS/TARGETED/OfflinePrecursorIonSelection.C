@@ -69,7 +69,7 @@ namespace OpenMS
     defaults_.remove("ProteinBasedInclusion:thresholds:min_protein_probability");
     defaults_.remove("ProteinBasedInclusion:thresholds:min_pred_pep_prob");
     defaults_.remove("ProteinBasedInclusion:thresholds:min_rt_weight");
-    defaults_.remove("ProteinBasedInclusion:feature_based:normalize_intensities");
+    defaults_.removeAll("ProteinBasedInclusion:feature_based");
     defaults_.setValue("ProteinBasedInclusion:max_list_size", 1000, "The maximal number of precursors in the inclusion list.");
     defaults_.setMinInt("ProteinBasedInclusion:max_list_size", 1);
 

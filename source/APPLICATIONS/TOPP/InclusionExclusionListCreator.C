@@ -231,6 +231,7 @@ protected:
         }
         else if (strategy == "FeatureBased_LP")
         {
+
           String raw_data_path = getStringOption_("raw_data");
           MSExperiment<> exp, ms2;
           FeatureMap<> out_map;
@@ -242,8 +243,8 @@ protected:
           exp.sortSpectra(true);
           OfflinePrecursorIonSelection opis;
           Param param = getParam_().copy("algorithm:PrecursorSelection:", true);
-          param.remove("feature_based:normalize_intensities");
-          UInt spot_cap = param.getValue("ms2_spectra_per_rt_bin");
+	  param.removeAll("feature_based:");
+	  UInt spot_cap = param.getValue("ms2_spectra_per_rt_bin");
           opis.setParameters(param);
 
           // insert charges
@@ -323,7 +324,7 @@ protected:
         {
           OfflinePrecursorIonSelection opis;
           Param param = getParam_().copy("algorithm:PrecursorSelection:", true);
-          param.remove("feature_based:normalize_intensities");
+          param.removeAll("feature_based:");
           opis.setParameters(param);
 
           FeatureMap<> precursors;

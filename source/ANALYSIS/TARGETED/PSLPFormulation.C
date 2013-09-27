@@ -111,8 +111,11 @@ namespace OpenMS
     defaults_.setValue("combined_ilp:scale_matching_probs", "true", "flag if detectability * rt_weight shall be scaled to cover all [0,1]");
     defaults_.setValidStrings("combined_ilp:scale_matching_probs", StringList::create("true,false"));
 
-    defaults_.setValue("feature_based:normalize_intensities", "true", "Flag indicating if intensities shall be scaled to be in [0,1]. This is done for each feature separately, so that the feature's maximal intensity in a spectrum is set to 1.");
-    defaults_.setValidStrings("feature_based:normalize_intensities", StringList::create("true,false"));
+    defaults_.setValue("feature_based:no_intensity_normalization", "false", "Flag indicating if intensities shall be scaled to be in [0,1]. This is done for each feature separately, so that the feature's maximal intensity in a spectrum is set to 1.");
+    defaults_.setValidStrings("feature_based:no_intensity_normalization", StringList::create("true,false"));
+
+    defaults_.setValue("feature_based:max_number_precursors_per_feature", 1, "The maximal number of precursors per feature.");
+    defaults_.setMinInt("feature_based:max_number_precursors_per_feature", 1);
     defaultsToParam_();
 
   }
@@ -246,8 +249,8 @@ namespace OpenMS
 #ifdef DEBUG_OPS
       std::cout << "\nadd row " << std::endl;
 #endif
-
-      model_->addRow(indices, entries, (String("PREC_ACQU_LIMIT_") + i), 0, 1, LPWrapper::UPPER_BOUND_ONLY); // only upper bounded problem -> lower bound is ignored
+      model_->addRow(indices, entries, (String("PREC_ACQU_LIMIT_") + i), 0, param_.getValue("feature_based:max_number_precursors_per_feature"), 
+		     LPWrapper::UPPER_BOUND_ONLY); // only upper bounded problem -> lower bound is ignored
 
 #ifdef DEBUG_OPS
       std::cout << stop - start << " PREC_ACQU_LIMIT_" << String(i) << std::endl;
