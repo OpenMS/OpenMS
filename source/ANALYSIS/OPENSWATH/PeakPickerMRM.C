@@ -56,18 +56,18 @@ namespace OpenMS
     // method = corrected
     //
     defaults_.setValue("sgolay_frame_length", 15, "The number of subsequent data points used for smoothing.\nThis number has to be uneven. If it is not, 1 will be added.");
-    defaults_.setValue("sgolay_polynomial_order", 3, "Order or the polynomial that is fitted.");
+    defaults_.setValue("sgolay_polynomial_order", 3, "Order of the polynomial that is fitted.");
     defaults_.setValue("gauss_width", 50.0, "Gaussian width in seconds, estimated peak size.");
-    defaults_.setValue("use_gauss", "true", "Use gauss for smoothing (other option is sgolay)");
+    defaults_.setValue("use_gauss", "true", "Use Gaussian filter for smoothing (alternative is Savitzky-Golay filter)");
 
     defaults_.setValue("peak_width", 40.0, "Estimated peak width in seconds.");
-    defaults_.setValue("signal_to_noise", 1.0, "Signal to noise.");
+    defaults_.setValue("signal_to_noise", 1.0, "Signal-to-noise threshold.");
     defaults_.setMinFloat("signal_to_noise", 0.0);
 
     defaults_.setValue("sn_win_len", 1000.0, "Signal to noise window length.");
     defaults_.setValue("sn_bin_count", 30, "Signal to noise bin count.");
 
-    defaults_.setValue("remove_overlapping_peaks", "false", "Try to remove overlappign peaks during peak picking");
+    defaults_.setValue("remove_overlapping_peaks", "false", "Try to remove overlapping peaks during peak picking");
 
     defaults_.setValue("method", "legacy", "Which method to choose for chromatographic peak-picking (OpenSWATH legacy, corrected picking or Crawdad)");
     defaults_.setValidStrings("method", StringList::create("legacy,corrected,crawdad"));
