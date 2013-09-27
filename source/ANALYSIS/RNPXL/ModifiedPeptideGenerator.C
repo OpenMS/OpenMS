@@ -33,6 +33,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/RNPXL/ModifiedPeptideGenerator.h>
+#include <vector>
+#include <map>
 
 using std::vector;
 using std::map;
@@ -225,7 +227,9 @@ namespace OpenMS
 
     // get modifications compatible to residue at current peptide position
     const int current_index = subset_indices[depth];
-    const vector<ResidueModification>& mods = map_compatibility.at(current_index);
+
+    map<int, vector<ResidueModification> >::const_iterator pos_mod_it = map_compatibility.find(current_index);
+    const vector<ResidueModification>& mods = pos_mod_it->second;  // we don't need to check for .end as entry is guaranteed to exist
 
     for (vector<ResidueModification>::const_iterator mod_it = mods.begin(); mod_it != mods.end(); ++mod_it)
     {
