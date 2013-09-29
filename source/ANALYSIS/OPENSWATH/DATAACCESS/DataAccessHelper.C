@@ -100,10 +100,16 @@ namespace OpenMS
       OpenSwath::LightModification m;
 
       p.id = transition_exp_.getPeptides()[i].id;
-      p.rt = transition_exp_.getPeptides()[i].rts[0].getCVTerms()["MS:1000896"][0].getValue().toString().toDouble();
+      if (!transition_exp_.getPeptides()[i].rts.empty())
+      {
+        p.rt = transition_exp_.getPeptides()[i].rts[0].getCVTerms()["MS:1000896"][0].getValue().toString().toDouble();
+      }
       p.charge = transition_exp_.getPeptides()[i].getChargeState();
       p.sequence = transition_exp_.getPeptides()[i].sequence;
-      p.protein_ref = transition_exp_.getPeptides()[i].protein_refs[0];
+      if (!transition_exp_.getPeptides()[i].protein_refs.empty())
+      {
+        p.protein_ref = transition_exp_.getPeptides()[i].protein_refs[0];
+      }
 
       // Mapping of peptide modifications
       {
