@@ -18,6 +18,7 @@ ExecutePipeline
 FalseDiscoveryRate
 FeatureFinderMRM
 FeatureFinderCentroided
+FeatureFinderIdentification
 FeatureFinderIsotopeWavelet
 FeatureFinderMetabo
 FeatureFinderRaw
