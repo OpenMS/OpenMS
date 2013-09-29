@@ -70,6 +70,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/SpectrumAddition.h>
 
 #include <boost/shared_ptr.hpp>
+#include <boost/make_shared.hpp>
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -417,7 +418,7 @@ var_yseries_score   -0.0327896378737766
       this->su_ = su_;
     }
 
-    /** @brief Score a single peakgroup in a chromatogram using only chromatographic propertiesj.
+    /** @brief Score a single peakgroup in a chromatogram using only chromatographic properties.
      *
      * This function only uses the chromatographic properties (coelution,
      * signal to noise, etc.) of a peakgroup in a chromatogram to compute
@@ -667,8 +668,8 @@ public:
       OpenSwathDataAccessHelper::convertTargetedExp(transition_exp_, transition_exp);
       TransitionGroupMapType transition_group_map;
 
-      boost::shared_ptr<MSExperiment<Peak1D> > sh_chromatograms (new MSExperiment<Peak1D>(chromatograms) );
-      boost::shared_ptr<MSExperiment<Peak1D> > sh_swath_map (new MSExperiment<Peak1D>(swath_map) );
+      boost::shared_ptr<MSExperiment<Peak1D> > sh_chromatograms = boost::make_shared<MSExperiment<Peak1D> >(chromatograms);
+      boost::shared_ptr<MSExperiment<Peak1D> > sh_swath_map = boost::make_shared<MSExperiment<Peak1D> >(swath_map);
 
       OpenSwath::SpectrumAccessPtr chromatogram_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(sh_chromatograms);
       OpenSwath::SpectrumAccessPtr empty_swath_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(sh_swath_map);
@@ -803,9 +804,8 @@ public:
         OpenSwath::IMRMFeature* imrmfeature;
         imrmfeature = new MRMFeatureOpenMS(*mrmfeature);
 
-        LOG_DEBUG << "000000000000000000000000000000000000000000000000000000000000000000000000000 " << std::endl;
         LOG_DEBUG << "scoring feature " << (*mrmfeature) << " == " << mrmfeature->getMetaValue("PeptideRef") <<
-        "[ expected RT " << PeptideRefMap_[mrmfeature->getMetaValue("PeptideRef")]->rt << " / " << expected_rt << " ]" <<
+        " [ expected RT " << PeptideRefMap_[mrmfeature->getMetaValue("PeptideRef")]->rt << " / " << expected_rt << " ]" <<
         " with " << transition_group.size()  << " nr transitions and nr chromats " << transition_group.getChromatograms().size() << std::endl;
 
         int group_size = boost::numeric_cast<int>(transition_group.size());
@@ -816,8 +816,8 @@ public:
         }
         if (group_size < 2)
         {
-          std::cerr << "Error: transition group " << transition_group.getTransitionGroupID() 
-            << " has less than 2 chromatograms. It has " << group_size << std::endl;
+          LOG_ERROR << "Error: Transition group " << transition_group.getTransitionGroupID() 
+            << " has only one chromatogram." << std::endl;
           continue;
         }
 
