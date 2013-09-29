@@ -155,8 +155,8 @@ namespace OpenMS
 
   void IDFilter::filterIdentificationsByLength(const PeptideIdentification& identification,
                                                PeptideIdentification& filtered_identification,
-                                               Size                            min_length,
-                                               Size                            max_length)
+                                               Size min_length,
+                                               Size max_length)
   {
     vector<Size> new_peptide_indices;
     vector<PeptideHit> filtered_peptide_hits;
@@ -191,7 +191,7 @@ namespace OpenMS
   }
 
   void IDFilter::filterIdentificationsByCharge(const PeptideIdentification& identification,
-                                               Int                            min_charge,
+                                               Int min_charge,
                                                PeptideIdentification& filtered_identification)
   {
     vector<Size> new_peptide_indices;
@@ -402,7 +402,7 @@ namespace OpenMS
 
   void IDFilter::filterIdentificationsByRTFirstDimPValues(const PeptideIdentification& identification,
                                                           PeptideIdentification& filtered_identification,
-                                                          DoubleReal                     p_value)
+                                                          DoubleReal p_value)
   {
     DoubleReal border = 1 - p_value;
     vector<PeptideHit> filtered_peptide_hits;
@@ -437,7 +437,7 @@ namespace OpenMS
 
   void IDFilter::filterIdentificationsByRTPValues(const PeptideIdentification& identification,
                                                   PeptideIdentification& filtered_identification,
-                                                  DoubleReal                     p_value)
+                                                  DoubleReal p_value)
   {
     DoubleReal border = 1 - p_value;
     vector<PeptideHit> filtered_peptide_hits;
@@ -513,5 +513,15 @@ namespace OpenMS
     // assign filtered hits to protein identification
     filtered_identification.setHits(filtered_protein_hits);
   }
+
+
+  bool IDFilter::filterIdentificationsByMetaValueRange(const PeptideIdentification& identification, const String& key, DoubleReal low, DoubleReal high, bool missing)
+  {
+    if (!identification.metaValueExists(key)) return missing;
+
+    DoubleReal value = identification.getMetaValue(key);
+    return (value >= low) && (value <= high);
+  }
+
 
 } // namespace OpenMS

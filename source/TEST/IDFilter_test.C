@@ -503,7 +503,22 @@ START_SECTION((void filterIdentificationsUnique(const PeptideIdentification &ide
 	TEST_EQUAL(id2.getHits()[3].getCharge(), 2)
 	TEST_STRING_EQUAL(id2.getHits()[4].getSequence().toString(), "DFPIANGEK")
 	TEST_EQUAL(id2.getHits()[4].getCharge(), 5)
+END_SECTION
 
+START_SECTION((bool filterIdentificationsByMetaValueRange(const PeptideIdentification& identification, const String& key, DoubleReal low, DoubleReal high, bool missing=false)))
+{
+  IDFilter id_filter;
+  PeptideIdentification peptide;
+  peptide.setMetaValue("FOO", 1.23);
+  TEST_EQUAL(id_filter.filterIdentificationsByMetaValueRange(
+               peptide, "FOO", 1.0, 2.0), true);
+  TEST_EQUAL(id_filter.filterIdentificationsByMetaValueRange(
+               peptide, "FOO", 2.0, 3.0), false);
+  TEST_EQUAL(id_filter.filterIdentificationsByMetaValueRange(
+               peptide, "BAR", 1.0, 2.0), false);
+  TEST_EQUAL(id_filter.filterIdentificationsByMetaValueRange(
+               peptide, "BAR", 1.0, 2.0, true), true);
+}
 END_SECTION
 
 /////////////////////////////////////////////////////////////

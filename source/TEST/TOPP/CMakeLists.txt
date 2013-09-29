@@ -494,6 +494,11 @@ set_tests_properties("TOPP_IDFilter_6_out1" PROPERTIES DEPENDS "TOPP_IDFilter_6"
 add_test("TOPP_IDFilter_7" ${TOPP_BIN_PATH}/IDFilter -in ${DATA_DIR_TOPP}/IDFilter_7_input.idXML -out IDFilter_7_output.tmp -unique)
 add_test("TOPP_IDFilter_7_out1" ${DIFF} -in1 IDFilter_7_output.tmp -in2 ${DATA_DIR_TOPP}/IDFilter_7_output.idXML )
 set_tests_properties("TOPP_IDFilter_7_out1" PROPERTIES DEPENDS "TOPP_IDFilter_7")
+# filter by precursor RT and m/z:
+add_test("TOPP_IDFilter_8" ${TOPP_BIN_PATH}/IDFilter -in ${DATA_DIR_TOPP}/IDFilter_8_input.idXML -out IDFilter_8_output.tmp -precursor:rt 200:350 -precursor:mz 999:1000)
+add_test("TOPP_IDFilter_8_out1" ${DIFF} -in1 IDFilter_8_output.tmp -in2 ${DATA_DIR_TOPP}/IDFilter_8_output.idXML )
+set_tests_properties("TOPP_IDFilter_8_out1" PROPERTIES DEPENDS "TOPP_IDFilter_8")
+
 
 ### MapAlignerPoseClustering tests
 # featureXML input:

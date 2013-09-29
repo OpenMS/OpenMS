@@ -88,17 +88,20 @@ using namespace std;
  <ul>
 
   <li>
-   <b>score:pep</b>:<br> This parameter
-   specifies which score a peptide hit should have to be kept.
+   <b>precursor:rt</b>:<br> Precursor RT range for the peptide identification to be kept.
   </li>
   <li>
-   <b>score:prot</b>:<br> This parameter
-   specifies which score a protein hit should have to be kept.
+   <b>precursor:mz</b>:<br> Precursor m/z range for the peptide identification to be kept.
   </li>
   <li>
-   <b>thresh:pep</b>:<br> This parameter
-   specifies which amount of the significance threshold should
-   be reached by a peptide to be kept. If for example a peptide
+   <b>score:pep</b>:<br> The score a peptide hit should have to be kept.
+  </li>
+  <li>
+   <b>score:prot</b>:<br> The score a protein hit should have to be kept.
+  </li>
+  <li>
+   <b>thresh:pep</b>:<br> The fraction of the significance threshold that should
+   be reached by a peptide hit to be kept. If for example a peptide
    has score 30 and the significance threshold is 40, the
    peptide will only be kept by the filter if the significance
    threshold fraction is set to 0.75 or lower.
@@ -163,12 +166,18 @@ public:
   }
 
 protected:
+
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "input file ");
     setValidFormats_("in", StringList::create("idXML"));
     registerOutputFile_("out", "<file>", "", "output file ");
     setValidFormats_("out", StringList::create("idXML"));
+
+    registerTOPPSubsection_("precursor", "Filtering by precursor RT or m/z");
+    registerStringOption_("precursor:rt", "[min]:[max]", ":", "Retention time range to extract.", false);
+    registerStringOption_("precursor:mz", "[min]:[max]", ":", "Mass-to-charge range to extract.", false);
+    registerFlag_("precursor:allow_missing", "When filtering by precursor RT or m/z, keep peptide IDs with missing precursor information ('RT'/'MZ' meta values)?");
 
     registerTOPPSubsection_("score", "Filtering by peptide/protein score. To enable any of the filters below, just change their default value. All active filters will be applied in order.");
     registerDoubleOption_("score:pep", "<score>", 0, "The score which should be reached by a peptide hit to be kept. The score is dependent on the most recent(!) preprocessing - it could be Mascot scores (if a MascotAdapter was applied before), or an FDR (if FalseDiscoveryRate was applied before), etc.", false);
@@ -263,18 +272,26 @@ protected:
     Int best_n_to_m_peptide_hits_n = 0;
     Int best_n_to_m_peptide_hits_m = numeric_limits<Int>::max();
 
+    const double double_max = numeric_limits<double>::max();
+    DoubleReal rt_low, rt_high, mz_low, mz_high;
+    rt_high = mz_high = double_max;
+    rt_low = mz_low = -double_max;
+
     //convert bounds to numbers
     try
     {
       parseRange_(getStringOption_("best:n_to_m_peptide_hits"), best_n_to_m_peptide_hits_n, best_n_to_m_peptide_hits_m);
+      parseRange_(getStringOption_("precursor:rt"), rt_low, rt_high);
+      parseRange_(getStringOption_("precursor:mz"), mz_low, mz_high);
     }
-    catch (Exception::ConversionError&)
+    catch (Exception::ConversionError& ce)
     {
-      writeLog_("Invalid boundary '" + getStringOption_("best:n_to_m_peptide_hits") + "' given. Aborting!");
+      writeLog_(String("Invalid boundary given: ") + ce.what() + ". Aborting!");
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
 
+    bool precursor_missing = getFlag_("precursor:allow_missing");
     bool best_strict = getFlag_("best:strict");
     UInt min_length = getIntOption_("min_length");
     UInt max_length = getIntOption_("max_length");
@@ -336,6 +353,18 @@ protected:
     // Filtering peptide identification according to set criteria
     for (Size i = 0; i < identifications.size(); i++)
     {
+      if ((rt_high < double_max) || (rt_low > -double_max))
+      {
+        applied_filters.insert("Filtering by precursor RT ...\n");
+        if (!filter.filterIdentificationsByMetaValueRange(identifications[i], "RT", rt_low, rt_high, precursor_missing)) continue; // don't keep this peptide ID
+      }
+
+      if ((mz_high < double_max) || (mz_low > -double_max))
+      {
+        applied_filters.insert("Filtering by precursor m/z ...\n");
+        if (!filter.filterIdentificationsByMetaValueRange(identifications[i], "MZ", mz_low, mz_high, precursor_missing)) continue; // don't keep this peptide ID
+      }
+
       if (unique_per_protein)
       {
         applied_filters.insert("Filtering unique per proteins ...\n");
@@ -477,12 +506,11 @@ protected:
 
       if (!filtered_identification.getHits().empty())
       {
-        PeptideIdentification tmp;
-        tmp = filtered_identification;
-        tmp.setMetaValue("RT", identifications[i].getMetaValue("RT"));
-        tmp.setMetaValue("MZ", identifications[i].getMetaValue("MZ"));
-        filtered_peptide_identifications.push_back(tmp);
+        filtered_identification.setMetaValue("RT", identifications[i].getMetaValue("RT"));
+        filtered_identification.setMetaValue("MZ", identifications[i].getMetaValue("MZ"));
+        filtered_peptide_identifications.push_back(filtered_identification);
       }
+
     }
 
     // Filtering protein identifications according to set criteria

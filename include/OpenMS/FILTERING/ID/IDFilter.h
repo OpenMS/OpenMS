@@ -221,6 +221,21 @@ public:
     /// filters a PeptideIdentification keeping only the best scoring hits (if strict is set, keeping only the best hit only if it is the only hit with that score)
     void filterIdentificationsByBestHits(const PeptideIdentification& identification, PeptideIdentification& filtered_identification, bool strict = false);
 
+    /**
+       @brief Checks whether a meta value of the peptide identification is within a given range
+
+       Useful for filtering by precursor RT or m/z.
+
+       @param identification The peptide ID to check
+       @param key Key (name) for the meta value
+       @param low Lower boundary (inclusive)
+       @param high Upper boundary (inclusive)
+       @param missing What to return when the meta value is missing
+
+       @returns Whether the peptide ID passes the check
+    */
+    bool filterIdentificationsByMetaValueRange(const PeptideIdentification& identification, const String& key, DoubleReal low, DoubleReal high, bool missing = false);
+    
     /// filters a PeptideIdentification corresponding to the given proteins
     /// PeptideHits with no matching @em proteins are removed.
     /// Matching is done either based on accessions or on sequence (if no accessions are given, or @em no_protein_identifiers is set)
@@ -268,9 +283,7 @@ public:
           probability (p-value) of a correct ProteinIdentification having a deviation between
           observed and predicted rt equal or bigger than allowed.
       */
-    void filterIdentificationsByRTFirstDimPValues(const PeptideIdentification& identification,
-                                                  PeptideIdentification& filtered_identification,
-                                                  DoubleReal                                      p_value = 0.05);
+    void filterIdentificationsByRTFirstDimPValues(const PeptideIdentification& identification, PeptideIdentification& filtered_identification, DoubleReal p_value = 0.05);
 
     /// filters an MS/MS experiment corresponding to the threshold_fractions
     template <class PeakT>
@@ -385,8 +398,7 @@ public:
 
     /// filters an MS/MS experiment corresponding to the given proteins
     template <class PeakT>
-    void filterIdentificationsByProteins(MSExperiment<PeakT>& experiment,
-                                         const std::vector<FASTAFile::FASTAEntry>& proteins)
+    void filterIdentificationsByProteins(MSExperiment<PeakT>& experiment, const std::vector<FASTAFile::FASTAEntry>& proteins)
     {
       std::vector<PeptideIdentification> temp_identifications;
       std::vector<PeptideIdentification> filtered_identifications;
