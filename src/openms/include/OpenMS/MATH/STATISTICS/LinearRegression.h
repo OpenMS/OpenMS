@@ -40,9 +40,7 @@
 
 #include <iostream>
 #include <vector>
-#include <gsl/gsl_fit.h>
-#include <gsl/gsl_statistics.h>
-#include <gsl/gsl_cdf.h>
+#include "OpenMS/MATH/gsl_wrapper.h"
 
 namespace OpenMS
 {
@@ -235,7 +233,7 @@ private:
       // Compute the unweighted linear fit.
       // Get the intercept and the slope of the regression Y_hat=intercept_+slope_*X
       // and the value of Chi squared, the covariances of the intercept and the slope
-      int error = gsl_fit_linear(X, 1, Y, 1, N, &intercept_, &slope_, &cov00, &cov01, &cov11, &chi_squared_);
+      int error = deprecated_gsl_fit_linear(X, 1, Y, 1, N, &intercept_, &slope_, &cov00, &cov01, &cov11, &chi_squared_);
 
       if (!error)
       {
@@ -265,7 +263,7 @@ private:
       // Compute the linear fit.
       // Get the intercept and the slope of the regression Y_hat=intercept_+slope_*X
       // and the value of Chi squared, the covariances of the intercept and the slope
-      int error = gsl_fit_mul(X, 1, Y, 1, N, &slope_, &cov, &chi_squared_);
+      int error = deprecated_gsl_fit_mul(X, 1, Y, 1, N, &slope_, &cov, &chi_squared_);
       intercept_ = 0.0;
 
       if (!error)
@@ -297,7 +295,7 @@ private:
       // Compute the weighted linear fit.
       // Get the intercept and the slope of the regression Y_hat=intercept_+slope_*X
       // and the value of Chi squared, the covariances of the intercept and the slope
-      int error = gsl_fit_wlinear(X, 1, W, 1, Y, 1, N, &intercept_, &slope_, &cov00, &cov01, &cov11, &chi_squared_);
+      int error = deprecated_gsl_fit_wlinear(X, 1, W, 1, Y, 1, N, &intercept_, &slope_, &cov00, &cov01, &cov11, &chi_squared_);
 
       if (!error)
       {

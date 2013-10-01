@@ -39,6 +39,7 @@
 #include <OpenMS/SIMULATION/IonizationSimulation.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/MATH/gsl_wrapper.h>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -58,10 +59,10 @@ const unsigned long rnd_gen_seed = 1;
 SimRandomNumberGenerator rnd_gen;
 
 // init reproducible rnd_gen
-rnd_gen.technical_rng = gsl_rng_alloc(gsl_rng_mt19937);
-gsl_rng_set(rnd_gen.technical_rng, 0);
-rnd_gen.biological_rng = gsl_rng_alloc(gsl_rng_mt19937);
-gsl_rng_set(rnd_gen.biological_rng, 0);
+rnd_gen.technical_rng = deprecated_gsl_rng_alloc(deprecated_wrapper_get_gsl_rng_mt19937());
+deprecated_gsl_rng_set(rnd_gen.technical_rng, 0);
+rnd_gen.biological_rng = deprecated_gsl_rng_alloc(deprecated_wrapper_get_gsl_rng_mt19937());
+deprecated_gsl_rng_set(rnd_gen.biological_rng, 0);
 
 START_SECTION(IonizationSimulation())
 {
@@ -114,10 +115,10 @@ START_SECTION((void ionize(FeatureMapSim &features, ConsensusMap &charge_consens
   // init rng
   SimRandomNumberGenerator rnd_gen;
 
-  rnd_gen.biological_rng = gsl_rng_alloc (gsl_rng_taus);
-  gsl_rng_set(rnd_gen.biological_rng, rnd_gen_seed);
-  rnd_gen.technical_rng = gsl_rng_alloc (gsl_rng_taus);
-  gsl_rng_set(rnd_gen.technical_rng, rnd_gen_seed);
+  rnd_gen.biological_rng = deprecated_gsl_rng_alloc (deprecated_wrapper_gsl_rng_taus_get());
+  deprecated_gsl_rng_set(rnd_gen.biological_rng, rnd_gen_seed);
+  rnd_gen.technical_rng = deprecated_gsl_rng_alloc (deprecated_wrapper_gsl_rng_taus_get());
+  deprecated_gsl_rng_set(rnd_gen.technical_rng, rnd_gen_seed);
 
   // testing ESI
   IonizationSimulation esi_sim(rnd_gen);
@@ -232,10 +233,10 @@ START_SECTION((void ionize(FeatureMapSim &features, ConsensusMap &charge_consens
 
   SimRandomNumberGenerator rnd_gen_maldi;
 
-  rnd_gen_maldi.biological_rng = gsl_rng_alloc (gsl_rng_taus);
-  gsl_rng_set(rnd_gen_maldi.biological_rng, rnd_gen_seed);
-  rnd_gen_maldi.technical_rng = gsl_rng_alloc (gsl_rng_taus);
-  gsl_rng_set(rnd_gen_maldi.technical_rng, rnd_gen_seed);
+  rnd_gen_maldi.biological_rng = deprecated_gsl_rng_alloc (deprecated_wrapper_gsl_rng_taus_get());
+  deprecated_gsl_rng_set(rnd_gen_maldi.biological_rng, rnd_gen_seed);
+  rnd_gen_maldi.technical_rng = deprecated_gsl_rng_alloc (deprecated_wrapper_gsl_rng_taus_get());
+  deprecated_gsl_rng_set(rnd_gen_maldi.technical_rng, rnd_gen_seed);
 
   // testing MALDI
   IonizationSimulation maldi_sim(rnd_gen_maldi);

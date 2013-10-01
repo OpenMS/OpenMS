@@ -40,8 +40,6 @@
 
 #include <numeric>
 
-//#include <gsl/gsl_randist.h>
-
 namespace OpenMS
 {
   IsotopeModel::IsotopeModel() :

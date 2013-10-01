@@ -41,10 +41,7 @@
 
 #include <vector>
 
-// gsl includes
-#include <gsl/gsl_rng.h>
-#include <gsl/gsl_vector.h>
-#include <gsl/gsl_multifit_nlin.h>
+#include <OpenMS/MATH/gsl_wrapper.h>
 
 namespace OpenMS
 {
@@ -105,13 +102,13 @@ public:
 
 protected:
 
-      static int gaussFitterf_(const gsl_vector * x, void * params, gsl_vector * f);
+      static int gaussFitterf_(const deprecated_gsl_vector * x, void * params, deprecated_gsl_vector * f);
 
-      static int gaussFitterdf_(const gsl_vector * x, void * params, gsl_matrix * J);
+      static int gaussFitterdf_(const deprecated_gsl_vector * x, void * params, deprecated_gsl_matrix * J);
 
-      static int gaussFitterfdf_(const gsl_vector * x, void * params, gsl_vector * f, gsl_matrix * J);
+      static int gaussFitterfdf_(const deprecated_gsl_vector * x, void * params, deprecated_gsl_vector * f, deprecated_gsl_matrix * J);
 
-      void printState_(size_t iter, gsl_multifit_fdfsolver * s);
+      void printState_(size_t iter, deprecated_gsl_multifit_fdfsolver * s);
 
       GaussFitResult init_param_;
 

@@ -41,28 +41,28 @@ namespace OpenMS
 
 #if 0
   template <>
-  gsl_matrix * Matrix<double>::toGslMatrix()
+  deprecated_gsl_matrix * Matrix<double>::toGslMatrix()
   {
-    gsl_matrix * m_ptr = gsl_matrix_alloc(rows_, cols_);
+    deprecated_gsl_matrix * m_ptr = deprecated_gsl_matrix_alloc(rows_, cols_);
     for (size_type i = 0; i < this->rows_; ++i)
     {
       for (size_type j = 0; j < this->cols_; ++j)
       {
-        gsl_matrix_set(m_ptr, i, j, (*this)(i, j));
+        deprecated_gsl_matrix_set(m_ptr, i, j, (*this)(i, j));
       }
     }
     return m_ptr;
   }
 
   template <>
-  gsl_matrix * Matrix<float>::toGslMatrix()
+  deprecated_gsl_matrix * Matrix<float>::toGslMatrix()
   {
-    gsl_matrix * m_ptr = gsl_matrix_alloc(rows_, cols_);
+    deprecated_gsl_matrix * m_ptr = deprecated_gsl_matrix_alloc(rows_, cols_);
     for (size_type i = 0; i < this->rows_; ++i)
     {
       for (size_type j = 0; j < this->cols_; ++j)
       {
-        gsl_matrix_set(m_ptr, i, j, (double) (*this)(i, j));
+        deprecated_gsl_matrix_set(m_ptr, i, j, (double) (*this)(i, j));
       }
     }
     return m_ptr;

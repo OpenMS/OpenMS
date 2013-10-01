@@ -35,7 +35,7 @@
 #include <OpenMS/COMPARISON/SPECTRA/CompareFouriertransform.h>
 
 #include <cmath>
-
+#include <OpenMS/MATH/gsl_wrapper.h>
 
 
 namespace OpenMS
@@ -167,13 +167,13 @@ namespace OpenMS
       ++i;
     }
 
-    gsl_fft_real_wavetable * real;
-    gsl_fft_real_workspace * work;
-    work = gsl_fft_real_workspace_alloc(spec.size());
-    real = gsl_fft_real_wavetable_alloc(spec.size());
-    gsl_fft_real_transform(data, 1, spec.size(), real, work);
-    gsl_fft_real_wavetable_free(real);
-    gsl_fft_real_workspace_free(work);
+    deprecated_gsl_fft_real_wavetable * real;
+    deprecated_gsl_fft_real_workspace * work;
+    work = deprecated_gsl_fft_real_workspace_alloc(spec.size());
+    real = deprecated_gsl_fft_real_wavetable_alloc(spec.size());
+    deprecated_gsl_fft_real_transform(data, 1, spec.size(), real, work);
+    deprecated_gsl_fft_real_wavetable_free(real);
+    deprecated_gsl_fft_real_workspace_free(work);
 
     MSSpectrum<>::FloatDataArrays & temp = spec.getFloatDataArrays();
     i = temp.size();

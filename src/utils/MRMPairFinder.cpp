@@ -41,7 +41,7 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder_impl.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
-#include <gsl/gsl_statistics.h>
+#include <OpenMS/MATH/gsl_wrapper.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -310,7 +310,7 @@ protected:
           ratios.push_back(qit1->heavy_intensity / qit1->light_intensity * (qit1->heavy_intensity + qit1->light_intensity));
         }
 
-        DoubleReal absdev_ratios = gsl_stats_absdev(&ratios.front(), 1, ratios.size()) / (light_sum + heavy_sum);
+        DoubleReal absdev_ratios = deprecated_gsl_stats_absdev(&ratios.front(), 1, ratios.size()) / (light_sum + heavy_sum);
         cout << "Ratio: " << it1->first << " <-> " << it2->first << " @ " << it2->second.begin()->rt << " s, ratio(h/l) " << heavy_sum / light_sum << " +/- " << absdev_ratios <<  " " << "(#XIC-pairs for quantation: " + String(ratios.size()) + " )" << endl;
       }
     }

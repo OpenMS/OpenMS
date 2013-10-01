@@ -36,9 +36,7 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqQuantifier.h>
 
 // default isotope correction (via A^-1)
-#include <gsl/gsl_vector.h>
-#include <gsl/gsl_matrix.h>
-#include <gsl/gsl_linalg.h>
+#include <OpenMS/MATH/gsl_wrapper.h>
 // NNLS isotope correction
 #include <OpenMS/MATH/MISC/NonNegativeLeastSquaresSolver.h>
 
@@ -151,14 +149,14 @@ namespace OpenMS
 #endif
 
       // ISOTOPE CORRECTION: this solves the system naively via matrix inversion
-      gsl_matrix* gsl_m = channel_frequency.toGslMatrix();
-      gsl_permutation* gsl_p = gsl_permutation_alloc(channel_frequency.rows());
-      int* gsl_sign = new int(0);
-      gsl_vector* gsl_b = gsl_vector_alloc(CHANNEL_COUNT[itraq_type_]);
-      gsl_vector* gsl_x = gsl_vector_alloc(CHANNEL_COUNT[itraq_type_]);
+      deprecated_gsl_matrix* m = channel_frequency.toGslMatrix();
+      deprecated_gsl_permutation* p = deprecated_gsl_permutation_alloc(channel_frequency.rows());
+      int* sign = new int(0);
+      deprecated_gsl_vector* b = deprecated_gsl_vector_alloc(CHANNEL_COUNT[itraq_type_]);
+      deprecated_gsl_vector* x = deprecated_gsl_vector_alloc(CHANNEL_COUNT[itraq_type_]);
       // lets see if the matrix is invertible
-      int  gsl_status = gsl_linalg_LU_decomp(gsl_m, gsl_p, gsl_sign);
-      if (gsl_status != 0)
+      int  status = deprecated_gsl_linalg_LU_decomp(m, p, sign);
+      if (status != 0)
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "ItraqQuantifier: Invalid entry in Param 'isotope_correction_values'; the Matrix is not invertible!");
       }
@@ -190,13 +188,13 @@ namespace OpenMS
 #endif
 
           // this is deprecated, but serves as quality measurement
-          gsl_vector_set(gsl_b, index, it_elements->getIntensity());
+          deprecated_gsl_vector_set(b, index, it_elements->getIntensity());
           m_b(index, 0) = it_elements->getIntensity();
         }
 
         // solve
-        gsl_status = gsl_linalg_LU_solve(gsl_m, gsl_p, gsl_b, gsl_x);
-        if (gsl_status != 0)
+        status = deprecated_gsl_linalg_LU_solve(m, p, b, x);
+        if (status != 0)
         {
           throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "ItraqQuantifier: Invalid entry in Param 'isotope_correction_values'; Cannot multiply!");
         }
@@ -212,14 +210,14 @@ namespace OpenMS
         // ISOTOPE CORRECTION: compare solutions of Matrix inversion vs. NNLS
         for (Size index = 0; index < (Size)CHANNEL_COUNT[itraq_type_]; ++index)
         {
-          if (gsl_vector_get(gsl_x, index) < 0.0)
+          if (deprecated_gsl_vector_get(x, index) < 0.0)
           {
             ++s_negative;
           }
-          else if (std::fabs(m_x(index, 0) - gsl_vector_get(gsl_x, index)) > 0.000001)
+          else if (std::fabs(m_x(index, 0) - deprecated_gsl_vector_get(x, index)) > 0.000001)
           {
             ++s_different_count;
-            s_different_intensity += std::fabs(m_x(index, 0) - gsl_vector_get(gsl_x, index));
+            s_different_intensity += std::fabs(m_x(index, 0) - deprecated_gsl_vector_get(x, index));
           }
         }
 
@@ -263,11 +261,11 @@ namespace OpenMS
       }
 
       // clean up
-      gsl_matrix_free(gsl_m);
-      gsl_permutation_free(gsl_p);
-      delete gsl_sign;
-      gsl_vector_free(gsl_b);
-      gsl_vector_free(gsl_x);
+      deprecated_gsl_matrix_free(m);
+      deprecated_gsl_permutation_free(p);
+      delete sign;
+      deprecated_gsl_vector_free(b);
+      deprecated_gsl_vector_free(x);
 
     } // ! isotope_correction
     else

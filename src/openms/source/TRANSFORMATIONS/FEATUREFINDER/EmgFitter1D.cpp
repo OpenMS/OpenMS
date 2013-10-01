@@ -71,15 +71,15 @@ namespace OpenMS
     return *this;
   }
 
-  Int EmgFitter1D::residual_(const gsl_vector * x, void * params, gsl_vector * f)
+  Int EmgFitter1D::residual_(const deprecated_gsl_vector * x, void * params, deprecated_gsl_vector * f)
   {
     Size n = static_cast<EmgFitter1D::Data *>(params)->n;
     RawDataArrayType set = static_cast<EmgFitter1D::Data *>(params)->set;
 
-    CoordinateType h = gsl_vector_get(x, 0);
-    CoordinateType w = gsl_vector_get(x, 1);
-    CoordinateType s = gsl_vector_get(x, 2);
-    CoordinateType z = gsl_vector_get(x, 3);
+    CoordinateType h = deprecated_gsl_vector_get(x, 0);
+    CoordinateType w = deprecated_gsl_vector_get(x, 1);
+    CoordinateType s = deprecated_gsl_vector_get(x, 2);
+    CoordinateType z = deprecated_gsl_vector_get(x, 3);
 
     CoordinateType Yi = 0.0;
 
@@ -91,21 +91,21 @@ namespace OpenMS
       // Simplified EMG
       Yi = (h * w / s) * sqrt(2.0 * Constants::PI) * exp((pow(w, 2) / (2 * pow(s, 2))) - ((t - z) / s)) / (1 + exp((-2.4055 / sqrt(2.0)) * (((t - z) / w) - w / s)));
 
-      gsl_vector_set(f, i, (Yi - set[i].getIntensity()));
+      deprecated_gsl_vector_set(f, i, (Yi - set[i].getIntensity()));
     }
 
-    return GSL_SUCCESS;
+    return deprecated_gsl_SUCCESS;
   }
 
-  Int EmgFitter1D::jacobian_(const gsl_vector * x, void * params, gsl_matrix * J)
+  Int EmgFitter1D::jacobian_(const deprecated_gsl_vector * x, void * params, deprecated_gsl_matrix * J)
   {
     Size n =  static_cast<EmgFitter1D::Data *>(params)->n;
     RawDataArrayType set = static_cast<EmgFitter1D::Data *>(params)->set;
 
-    CoordinateType h = gsl_vector_get(x, 0);
-    CoordinateType w = gsl_vector_get(x, 1);
-    CoordinateType s = gsl_vector_get(x, 2);
-    CoordinateType z = gsl_vector_get(x, 3);
+    CoordinateType h = deprecated_gsl_vector_get(x, 0);
+    CoordinateType w = deprecated_gsl_vector_get(x, 1);
+    CoordinateType s = deprecated_gsl_vector_get(x, 2);
+    CoordinateType z = deprecated_gsl_vector_get(x, 3);
 
     const CoordinateType emg_const = 2.4055;
     const CoordinateType sqrt_2pi = sqrt(2 * Constants::PI);
@@ -136,31 +136,36 @@ namespace OpenMS
       derivative_retention = h * w / (s * s) * sqrt_2pi * exp1 / exp2 - (emg_const * h) / s * sqrt_2pi * exp1 * exp3 / ((exp2 * exp2) * sqrt_2);
 
       // set the jacobian matrix
-      gsl_matrix_set(J, i, 0, derivative_height);
-      gsl_matrix_set(J, i, 1, derivative_width);
-      gsl_matrix_set(J, i, 2, derivative_symmetry);
-      gsl_matrix_set(J, i, 3, derivative_retention);
+      deprecated_gsl_matrix_set(J, i, 0, derivative_height);
+      deprecated_gsl_matrix_set(J, i, 1, derivative_width);
+      deprecated_gsl_matrix_set(J, i, 2, derivative_symmetry);
+      deprecated_gsl_matrix_set(J, i, 3, derivative_retention);
     }
 
-    return GSL_SUCCESS;
+    return deprecated_gsl_SUCCESS;
   }
 
-  Int EmgFitter1D::evaluate_(const gsl_vector * x, void * params, gsl_vector * f, gsl_matrix * J)
+  Int EmgFitter1D::evaluate_(const deprecated_gsl_vector * x, void * params, deprecated_gsl_vector * f, deprecated_gsl_matrix * J)
   {
     EmgFitter1D::residual_(x, params, f);
     EmgFitter1D::jacobian_(x, params, J);
 
-    return GSL_SUCCESS;
+    return deprecated_gsl_SUCCESS;
   }
 
-  void EmgFitter1D::printState_(Int iter, gsl_multifit_fdfsolver * s)
+  void EmgFitter1D::printState_(Int iter, deprecated_gsl_multifit_fdfsolver * s)
   {
     printf("iter: %4u x = % 15.8f % 15.8f  % 15.8f  % 15.8f |f(x)| = %g\n", iter,
-           gsl_vector_get(s->x, 0),
-           gsl_vector_get(s->x, 1),
-           gsl_vector_get(s->x, 2),
-           gsl_vector_get(s->x, 3),
-           gsl_blas_dnrm2(s->f));
+           deprecated_gsl_vector_get(
+        		   deprecated_wrapper_gsl_multifit_fdfsolver_get_x(s), 0),
+           deprecated_gsl_vector_get(
+        		   deprecated_wrapper_gsl_multifit_fdfsolver_get_x(s), 1),
+           deprecated_gsl_vector_get(
+        		   deprecated_wrapper_gsl_multifit_fdfsolver_get_x(s), 2),
+           deprecated_gsl_vector_get(
+        		   deprecated_wrapper_gsl_multifit_fdfsolver_get_x(s), 3),
+           deprecated_gsl_blas_dnrm2(
+        		   deprecated_wrapper_gsl_multifit_fdfsolver_get_f(s)));
   }
 
   EmgFitter1D::QualityType EmgFitter1D::fit1d(const RawDataArrayType & set, InterpolationModel * & model)

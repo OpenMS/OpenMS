@@ -37,8 +37,7 @@
 
 #include <OpenMS/DATASTRUCTURES/Param.h>
 
-#include <gsl/gsl_bspline.h>
-#include <gsl/gsl_interp.h>
+#include "OpenMS/MATH/gsl_wrapper.h"
 
 namespace OpenMS
 {
@@ -179,9 +178,9 @@ protected:
     /// Number of data points
     size_t size_;
     /// Look-up accelerator
-    gsl_interp_accel * acc_;
+    deprecated_gsl_interp_accel * acc_;
     /// Interpolation function
-    gsl_interp * interp_;
+    deprecated_gsl_interp * interp_;
     /// Linear model for extrapolation
     TransformationModelLinear * lm_;
   };
@@ -224,8 +223,8 @@ protected:
         @param quantiles Quantiles to find (values between 0 and 1)
         @param results Resulting quantiles (vector must be already allocated to the correct size!)
     */
-    void getQuantiles_(const gsl_vector * x, const std::vector<double> &
-                       quantiles, gsl_vector * results);
+    void getQuantiles_(const deprecated_gsl_vector * x, const std::vector<double> &
+                       quantiles, deprecated_gsl_vector * results);
 
     /// Computes the B-spline fit
     void computeFit_();
@@ -235,11 +234,11 @@ protected:
                         double & sd_err);
 
     /// Vectors for B-spline computation
-    gsl_vector * x_, * y_, * w_, * bsplines_, * coeffs_;
+    deprecated_gsl_vector * x_, * y_, * w_, * bsplines_, * coeffs_;
     /// Covariance matrix
-    gsl_matrix * cov_;
+    deprecated_gsl_matrix * cov_;
     /// B-spline workspace
-    gsl_bspline_workspace * workspace_;
+    deprecated_gsl_bspline_workspace * workspace_;
     /// Number of data points and coefficients
     size_t size_, ncoeffs_;
     // First/last breakpoint

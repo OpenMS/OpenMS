@@ -101,13 +101,13 @@ namespace OpenMS
     void LinearRegression::computeGoodness_(double * X, double * Y, int N, double confidence_interval_P)
     {
       // Variance and Covariances
-      double var_X = gsl_stats_variance(X, 1, N);
-      double var_Y = gsl_stats_variance(Y, 1, N);
-      double cov_XY = gsl_stats_covariance(X, 1, Y, 1, N);
+      double var_X = deprecated_gsl_stats_variance(X, 1, N);
+      double var_Y = deprecated_gsl_stats_variance(Y, 1, N);
+      double cov_XY = deprecated_gsl_stats_covariance(X, 1, Y, 1, N);
 
       // Mean of abscissa and ordinate values
-      double x_mean = gsl_stats_mean(X, 1, N);
-      double y_mean = gsl_stats_mean(Y, 1, N);
+      double x_mean = deprecated_gsl_stats_mean(X, 1, N);
+      double y_mean = deprecated_gsl_stats_mean(Y, 1, N);
 
       // S_xx
       double s_XX = 0;
@@ -137,7 +137,7 @@ namespace OpenMS
       x_intercept_ = -(intercept_ / slope_);
 
       double P = 1 - (1 - confidence_interval_P) / 2;
-      t_star_ = gsl_cdf_tdist_Pinv(P, N - 2);
+      t_star_ = deprecated_gsl_cdf_tdist_Pinv(P, N - 2);
 
       //Compute the asymmetric 95% confidence intervall of around the X-intercept
       double g = (t_star_ / (slope_ / stand_error_slope_));
