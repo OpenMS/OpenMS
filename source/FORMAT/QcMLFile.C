@@ -1055,7 +1055,7 @@ namespace OpenMS
        << "  <!ATTLIST xsl:stylesheet\n"
        << "  id  ID  #REQUIRED>\n"
        << "  ]>\n";
-    os << "<MzQualityML>\n"; //TODO creation date into schema!!
+    os << "<MzQualityML xmlns=\"http://www.prime-xs.eu/ms/qcml\" >\n"; //TODO creation date into schema!!
     os << "<xsl:stylesheet id=\"stylesheet\" version=\"1.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\">"
         << "  <xsl:template match=\"/\">"
         << "    <html>"
