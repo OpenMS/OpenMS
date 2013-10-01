@@ -32,9 +32,10 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/ANALYSIS/RNPXL/RNPxlModificationsGenerator.h>
+
 using namespace std;
 
-#include <OpenMS/ANALYSIS/RNPXL/RNPxlModificationsGenerator.h>
 namespace OpenMS
 {
 
