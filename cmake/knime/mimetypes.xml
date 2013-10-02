@@ -32,5 +32,5 @@
  <mimetype name="PSQ" binary="false" description="PSQ file" ext="psq"/>
  <mimetype name="EXE" binary="true" description="Executable files" ext="exe"/>
  <mimetype name="MZQUANTML" binary="false" description="mzQuantML" ext="mzq"/>
- <mimetype name="QCML" binary="false" description="mzQualityML (will undergo standardisation maybe) (.qcml)" ext="qcml"/>
+ <mimetype name="QCML" binary="false" description="qcML (will undergo standardisation maybe) (.qcml)" ext="qcml"/>
 </mimetypes>

@@ -183,7 +183,7 @@ namespace OpenMS
       return FileTypes::MZIDENTML;
 
     //mzq (all lines)
-    if (all_simple.hasSubstring("<mzQuantML"))
+    if (all_simple.hasSubstring("<qcML"))
       return FileTypes::MZQUANTML;
 
     //subject to change!

@@ -76,7 +76,7 @@ namespace OpenMS
       PROTXML,            ///< TPP protXML file (.protXML)
       MZIDENTML,          ///< mzIdentML (HUPO PSI AnalysisXML followup format) (.mzid)
       MZQUANTML,          ///< mzQuantML (HUPO PSI AnalysisXML followup format) (.mzq)
-      QCML,               ///< mzQualityML (will undergo standardisation maybe) (.qcml)
+      QCML,               ///< qcML (will undergo standardisation maybe) (.qcml)
       GELML,              ///< GelML (HUPO PSI format) (.gelML)
       TRAML,              ///< TraML (HUPO PSI format) for transitions (.traML)
       MSP,                ///< NIST spectra library file format (.msp)

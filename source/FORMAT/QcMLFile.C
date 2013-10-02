@@ -226,7 +226,7 @@ namespace OpenMS
     //TODO manage IDREF to qp internally
     String indent = String(indentation_level, '\t');
     String s = indent;
-    s += "<Attachment ";
+    s += "<attachment ";
     s += " name=\"" + name + "\"" +" ID=\"" + id + "\"" + " cvRef=\"" + cvRef + "\"" + " accession=\"" + cvAcc + "\"";
     if (value != "")
     {
@@ -249,12 +249,12 @@ namespace OpenMS
     {
       s += ">\n";
       s += indent + "\t" + "<binary>" + binary + "</binary>\n";
-      s += indent + "</Attachment>\n";
+      s += indent + "</attachment>\n";
     }
     else if ((!colTypes.empty()) && (!tableRows.empty()))
     {
       s += ">\n";
-      s += indent + "\t" + "<TableColumnTypes>";
+      s += indent + "\t" + "<tableColumnTypes>";
       
       std::vector<String> copy = colTypes;
       for (std::vector<String>::iterator it = copy.begin(); it != copy.end(); ++it)
@@ -263,10 +263,10 @@ namespace OpenMS
       }
 
       s += StringList(copy).concatenate(" ").trim();
-      s += "</TableColumnTypes>\n";
+      s += "</tableColumnTypes>\n";
       for (std::vector<std::vector<String> >::const_iterator it = tableRows.begin(); it != tableRows.end(); ++it)
       {
-        s += indent + "\t" + "<TableRowValues>";
+        s += indent + "\t" + "<tableRowValues>";
         
         std::vector<String> copy_row = *it;
         for (std::vector<String>::iterator sit = copy_row.begin(); sit != copy_row.end(); ++sit)
@@ -275,9 +275,9 @@ namespace OpenMS
         }
         
         s += StringList(*it).concatenate(" ").trim();
-        s += "</TableRowValues>\n";
+        s += "</tableRowValues>\n";
       }
-      s += indent + "</Attachment>\n";
+      s += indent + "</attachment>\n";
     }
     else
     {
@@ -827,8 +827,8 @@ namespace OpenMS
     static set<String> to_ignore;
     if (to_ignore.empty())
     {
-      to_ignore.insert("TableColumnTypes"); // will be handled entirely in characters.
-      to_ignore.insert("TableRowValues"); // ...
+      to_ignore.insert("tableColumnTypes"); // will be handled entirely in characters.
+      to_ignore.insert("tableRowValues"); // ...
       to_ignore.insert("binary"); // ...
     }
 
@@ -838,13 +838,13 @@ namespace OpenMS
     }
 
     String tmp_str;
-    if (tag_ == "MzQualityML")
+    if (tag_ == "qcML")
     {
       startProgress(0, 0, "loading qcML file");
       progress_ = 0;
       setProgress(++progress_);
     }
-    else if (tag_ == "RunQuality")
+    else if (tag_ == "runQuality")
     {
       run_id_ = attributeAsString_(attributes, "ID"); //TODO!
       setProgress(++progress_);
@@ -855,7 +855,7 @@ namespace OpenMS
       name_ = "";
       //for the run name wait for the qp with the right cv, otherwise use a uid
     }
-    else if (tag_ == "QualityParameter")
+    else if (tag_ == "qualityParameter")
     {
       optionalAttributeAsString_(qp_.value, attributes, "value");
       optionalAttributeAsString_(qp_.unitAcc, attributes, "unitAccession");
@@ -865,7 +865,7 @@ namespace OpenMS
       qp_.cvAcc = attributeAsString_(attributes, "accession");
       qp_.id = attributeAsString_(attributes, "ID");
       qp_.name = attributeAsString_(attributes, "name");
-      if (parent_tag == "RunQuality")
+      if (parent_tag == "runQuality")
       {
         if (qp_.cvAcc == "MS:1000577") //no own qc cv
         {
@@ -873,7 +873,7 @@ namespace OpenMS
         }
         //TODO add cvhandling for validation etc
       }
-      else //SetQuality
+      else //setQuality
       {
         if (qp_.cvAcc == "MS:1000577") //TODO make sure these exist in runs later!
         {
@@ -885,7 +885,7 @@ namespace OpenMS
         }
       }
     }
-    else if (tag_ == "Attachment")
+    else if (tag_ == "attachment")
     {
       optionalAttributeAsString_(at_.value, attributes, "value");
       optionalAttributeAsString_(at_.unitAcc, attributes, "unitAccession");
@@ -896,7 +896,7 @@ namespace OpenMS
       at_.id = attributeAsString_(attributes, "ID");
       at_.qualityRef = attributeAsString_(attributes, "qualityParameterRef");
     }
-    else if (tag_ == "SetQuality")
+    else if (tag_ == "setQuality")
     {
       setProgress(++progress_);
       run_id_ = attributeAsString_(attributes, "ID"); //TODO!
@@ -910,7 +910,7 @@ namespace OpenMS
 
   void QcMLFile::characters(const XMLCh* const chars, const XMLSize_t /*length*/)
   {
-    if (tag_ == "TableRowValues")
+    if (tag_ == "tableRowValues")
     {
       String s = sm_.convert(chars);
       s.trim();
@@ -919,7 +919,7 @@ namespace OpenMS
         s.split(" ", row_);
       }
     }
-    else if (tag_ == "TableColumnTypes")
+    else if (tag_ == "tableColumnTypes")
     {
       String s = sm_.convert(chars);
       if (!s.empty()) // always two notifications for a row, only the first one contains chars - dunno why
@@ -964,12 +964,12 @@ namespace OpenMS
     {
       return;
     }
-    if (tag_ == "TableColumnTypes")
+    if (tag_ == "tableColumnTypes")
     {
       at_.colTypes.swap(header_);
       header_.clear();
     }
-    else if (tag_ == "TableRowValues")
+    else if (tag_ == "tableRowValues")
     {
       if (!row_.empty())
       {
@@ -977,20 +977,20 @@ namespace OpenMS
       }
       row_.clear();
     }
-    else if (tag_ == "QualityParameter")
+    else if (tag_ == "qualityParameter")
     {
-      if (!(qp_.cvAcc == "MS:1000577" && parent_tag == "SetQuality")) //set members get treated differently!
+      if (!(qp_.cvAcc == "MS:1000577" && parent_tag == "setQuality")) //set members get treated differently!
       {
         qps_.push_back(qp_);
         qp_ = QualityParameter();
       }
     }
-    else if (tag_ == "Attachment")
+    else if (tag_ == "attachment")
     {
       ats_.push_back(at_);
       at_ = Attachment();
     }
-    else if (tag_ == "RunQuality")
+    else if (tag_ == "runQuality")
     {
       if (name_ == "")
       {
@@ -1010,7 +1010,7 @@ namespace OpenMS
       ats_.clear();
       qps_.clear();
     }
-    else if (tag_ == "SetQuality")
+    else if (tag_ == "setQuality")
     {
       if (name_ == "")
       {
@@ -1055,17 +1055,17 @@ namespace OpenMS
        << "  <!ATTLIST xsl:stylesheet\n"
        << "  id  ID  #REQUIRED>\n"
        << "  ]>\n";
-    os << "<MzQualityML xmlns=\"http://www.prime-xs.eu/ms/qcml\" >\n"; //TODO creation date into schema!!
+    os << "<qcML xmlns=\"http://www.prime-xs.eu/ms/qcml\" >\n"; //TODO creation date into schema!!
     os << "<xsl:stylesheet id=\"stylesheet\" version=\"1.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\">"
         << "  <xsl:template match=\"/\">"
         << "    <html>"
         << "    <body>"
         << "    <h2>Run QC</h2>"
-        << "    <xsl:for-each select=\"MzQualityML/RunQuality\">"
+        << "    <xsl:for-each select=\"qcML/runQuality\">"
         << "      <xsl:apply-templates/>"
         << "    </xsl:for-each>"
         << "    <h2>Set QC</h2>"
-        << "    <xsl:for-each select=\"MzQualityML/SetQuality\">"
+        << "    <xsl:for-each select=\"qcML/setQuality\">"
         << "      <xsl:apply-templates/>"
         << "    </xsl:for-each>"
         << "    <!--<h2>Orphans TODO</h2>"
@@ -1075,27 +1075,27 @@ namespace OpenMS
         << "    </body>"
         << "    </html>"
         << "  </xsl:template>"
-        << "  <xsl:template match=\"QualityParameter[@accession = 'MS:1000577']\">"
+        << "  <xsl:template match=\"qualityParameter[@accession = 'MS:1000577']\">"
         << "    <h3><xsl:value-of select=\"@value\" /></h3>"
         << "  </xsl:template>"
-        << "  <xsl:template match=\"QualityParameter[not(@accession = 'MS:1000577') and @value]\">"
+        << "  <xsl:template match=\"qualityParameter[not(@accession = 'MS:1000577') and @value]\">"
         << "    <xsl:value-of select=\"@name\" />: <xsl:value-of select=\"@value\" /><br/>"
         << "    <xsl:call-template name=\"qp-attachments\">"
         << "      <xsl:with-param name=\"qpref\" select=\"@ID\" />"
         << "    </xsl:call-template>"
         << "  </xsl:template>"
-        << "  <xsl:template match=\"QualityParameter[not(@value)]\">"
+        << "  <xsl:template match=\"qualityParameter[not(@value)]\">"
         << "    <xsl:value-of select=\"@name\" />:<br/>"
         << "    <xsl:call-template name=\"qp-attachments\">"
         << "      <xsl:with-param name=\"qpref\" select=\"@ID\" />"
         << "    </xsl:call-template>"
         << "  </xsl:template>"
-        << "  <xsl:template match=\"Attachment\">"
+        << "  <xsl:template match=\"attachment\">"
         << "  <!--Attachments handled otherwise below -->"
         << "  </xsl:template>"
         << "  <xsl:template name=\"qp-attachments\">"
         << "    <xsl:param name=\"qpref\" />"
-        << "    <xsl:for-each select=\"../Attachment[@qualityParameterRef=$qpref]\">"
+        << "    <xsl:for-each select=\"../attachment[@qualityParameterRef=$qpref]\">"
         << "      +<xsl:value-of select=\"@name\"/>+<br/>"
         << "      <xsl:choose>"
         << "        <xsl:when test=\"binary\">"
@@ -1109,10 +1109,10 @@ namespace OpenMS
         << "          <table border=\"0\">"
         << "          <tr bgcolor=\"#9acd32\">"
         << "            <xsl:call-template name=\"output-header\">"
-        << "              <xsl:with-param name=\"list\"><xsl:value-of select=\"TableColumnTypes\" /></xsl:with-param>"
+        << "              <xsl:with-param name=\"list\"><xsl:value-of select=\"tableColumnTypes\" /></xsl:with-param>"
         << "            </xsl:call-template>"
         << "          </tr>"
-        << "          <xsl:for-each select=\"TableRowValues\">"
+        << "          <xsl:for-each select=\"tableRowValues\">"
         << "            <tr>"
         << "            <xsl:call-template name=\"output-row\">"
         << "              <xsl:with-param name=\"list\"><xsl:value-of select=\".\" /></xsl:with-param>"
@@ -1165,7 +1165,7 @@ namespace OpenMS
     {
       for (std::set<String>::const_iterator it = keys.begin(); it != keys.end(); ++it)
       {
-        os << "\t<RunQuality ID=\"" << String(*it) << "\">\n";
+        os << "\t<runQuality ID=\"" << String(*it) << "\">\n";
         std::map<String, std::vector<QualityParameter> >::const_iterator qpsit = runQualityQPs_.find(*it);
         if (qpsit != runQualityQPs_.end())
         {
@@ -1182,7 +1182,7 @@ namespace OpenMS
             os << ait->toXMLString(4); //TODO check integrity of reference to qp!
           }
         }
-        os << "\t</RunQuality>\n";
+        os << "\t</runQuality>\n";
       }
     }
 
@@ -1201,7 +1201,7 @@ namespace OpenMS
     {
       for (std::set<String>::const_iterator it = keys.begin(); it != keys.end(); ++it)
       {
-        os << "\t<SetQuality> ID=\"" << String(*it) << ">\n";
+        os << "\t<setQuality> ID=\"" << String(*it) << ">\n";
         //~ TODO warn if key has no entries in members_
 
         //document set members
@@ -1238,7 +1238,7 @@ namespace OpenMS
             os << ait->toXMLString(4);
           }
         }
-        os << "\t</SetQuality>\n";
+        os << "\t</setQuality>\n";
       }
 
 
@@ -1249,7 +1249,7 @@ namespace OpenMS
     os <<  "\t<cv uri=\"http://obo.cvs.sourceforge.net/viewvc/obo/obo/ontology/phenotype/unit.obo\" id=\"uo_cv_ref\" fullName=\"unit\" version=\"x.y.z\"/>\n";
     os <<  "\t</cvList>\n";
 
-    os << "</MzQualityML>\n";
+    os << "</qcML>\n";
   }
 
 }
