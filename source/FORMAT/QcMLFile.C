@@ -221,6 +221,7 @@ namespace OpenMS
     return s;
   }
 
+  //TODO CHANGE TO ACCEPTABLE WAY OF GENERATING A PRETTY XML FILE
   String QcMLFile::Attachment::toXMLString(UInt indentation_level) const
   {
     //TODO manage IDREF to qp internally
@@ -254,6 +255,7 @@ namespace OpenMS
     else if ((!colTypes.empty()) && (!tableRows.empty()))
     {
       s += ">\n";
+      s += "<table>";
       s += indent + "\t" + "<tableColumnTypes>";
       
       std::vector<String> copy = colTypes;
@@ -277,6 +279,7 @@ namespace OpenMS
         s += StringList(*it).concatenate(" ").trim();
         s += "</tableRowValues>\n";
       }
+      s += "</table>";
       s += indent + "</attachment>\n";
     }
     else
