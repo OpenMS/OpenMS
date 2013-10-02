@@ -234,7 +234,7 @@ protected:
     else if (reference_rt_ == "intensity")
     {
       rts.resize(1);
-      DoubleReal highest_intensity = 0;
+      DoubleReal highest_intensity = -1;
       for (ChargeMap::mapped_type::const_iterator pi_it = 
              charge_data.second.begin(); pi_it != charge_data.second.end(); 
            ++pi_it)
@@ -244,13 +244,28 @@ protected:
         DoubleReal prec_mz = (*pi_it)->getMetaValue("MZ");
         // "lower_bound" gives the MS1 spectrum _after_ the MS2 of the ID:
         PeakMap::ConstIterator ms1_it = 
-          --lower_bound(ms_data_.begin(), ms_data_.end(), ms2_rt, RTLess());
+          lower_bound(ms_data_.begin(), ms_data_.end(), ms2_rt, RTLess());
+        // the following shouldn't happen, but might if input is combined IDs
+        // from different samples - use the current ID only if we have to:
+        if ((ms1_it == ms_data_.begin()) && (highest_intensity < 0))
+        {
+          rts[0] = ms2_rt;
+          continue;
+        }
+        --ms1_it;
         MSSpectrum<>::ConstIterator peak_it = 
           lower_bound(ms1_it->begin(), ms1_it->end(), prec_mz, MZLess());
-        // is the previous peak closer to the precursor in m/z?
-        if ((peak_it != ms1_it->begin()) &&
-            (fabs(peak_it->getMZ() - prec_mz) < 
-             fabs((--peak_it)->getMZ() - prec_mz))) ++peak_it;
+        if (peak_it == ms1_it->end())
+        {
+          --peak_it; // assuming the spectrum isn't empty, which it shouldn't be
+        }
+        // check if previous peak is closer to the precursor in m/z:
+        else if ((peak_it != ms1_it->begin()) &&
+                 (fabs(peak_it->getMZ() - prec_mz) < 
+                  fabs((--peak_it)->getMZ() - prec_mz)))
+        {
+          ++peak_it; 
+        }
         if (peak_it->getIntensity() > highest_intensity)
         {
           highest_intensity = peak_it->getIntensity();
@@ -268,7 +283,11 @@ protected:
       }
       if (reference_rt_ == "median")
       {
-        rts[0] = Math::median(rts.begin(), rts.end());
+        DoubleList::iterator start = rts.begin();
+        sort(start, rts.end());
+        // even number of IDs? don't take the RT _between_ the middle ones!
+        if (rts.size() % 2 == 0) ++start;
+        rts[0] = Math::median(start, rts.end(), true);
         rts.resize(1);
       }
     }
