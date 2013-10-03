@@ -235,7 +235,7 @@ def testEmpiricalFormula():
      EmpiricalFormula.getNumberOfAtoms
      EmpiricalFormula.setCharge
      EmpiricalFormula.getCharge
-     EmpiricalFormula.getString
+     EmpiricalFormula.toString
      EmpiricalFormula.isEmpty
      EmpiricalFormula.isCharged
      EmpiricalFormula.hasElement
@@ -251,7 +251,7 @@ def testEmpiricalFormula():
     ins.getNumberOfAtoms()
     ins.setCharge(2)
     ins.getCharge()
-    ins.getString()
+    ins.toString()
     ins.isEmpty()
     ins.isCharged()
     ins.hasElement("C")
