@@ -541,6 +541,7 @@ if(NOT DISABLE_OPENSWATH)
     MRMRTNormalizer_test
     TransitionTSVReader_test
     ChromatogramExtractor_test
+    ChromatogramExtractorAlgorithm_test
     OpenSwathHelper_test
     PeakPickerMRM_test
     MRMTransitionGroupPicker_test

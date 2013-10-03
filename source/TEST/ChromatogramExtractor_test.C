@@ -32,10 +32,12 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/CONCEPT/ClassTest.h>
-#include <OpenMS/FORMAT/TraMLFile.h>
-
 #include <OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractor.h>
+
+#include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/TraMLFile.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -164,10 +166,109 @@ START_SECTION( (template < typename ExperimentT > void extractChromatograms(cons
 
   TEST_REAL_SIMILAR(max_value, 35.593);
   TEST_REAL_SIMILAR(foundat, 3055.16);
+}
+END_SECTION
 
+START_SECTION(( void extractChromatograms(const OpenSwath::SpectrumAccessPtr input, std::vector< OpenSwath::ChromatogramPtr >& output, 
+        std::vector<ExtractionCoordinates> extraction_coordinates, double& extract_window, bool ppm, double rt_extraction_window, String filter) ))
+{
+  NOT_TESTABLE // is tested in ChromatogramExtractorAlgorithm
+}
+END_SECTION
+
+START_SECTION((void prepare_coordinates(std::vector< OpenSwath::ChromatogramPtr > & output_chromatograms,
+      std::vector< ExtractionCoordinates > & coordinates, OpenMS::TargetedExperiment & transition_exp_used,
+      const bool enforce_presence_rt,
+      const bool ms1) ))
+{
+  TargetedExperiment transitions;
+  TraMLFile().load(OPENMS_GET_TEST_DATA_PATH("ChromatogramExtractor_input.TraML"), transitions);
+  TargetedExperiment transitions_;
+  TraMLFile().load(OPENMS_GET_TEST_DATA_PATH("ChromatogramExtractor_input.TraML"), transitions_);
+
+  // Test transitions
+  {
+    std::vector< OpenSwath::ChromatogramPtr > output_chromatograms;
+    std::vector< ChromatogramExtractor::ExtractionCoordinates > coordinates;
+    ChromatogramExtractor extractor;
+    extractor.prepare_coordinates(output_chromatograms, coordinates, transitions, true, false);
+
+    TEST_EQUAL(transitions == transitions_, true)
+    TEST_EQUAL(output_chromatograms.size(), coordinates.size())
+    TEST_EQUAL(coordinates.size(), 3)
+    TEST_EQUAL(coordinates[0].mz, 618.31)
+    TEST_EQUAL(coordinates[1].mz, 628.45)
+    TEST_EQUAL(coordinates[2].mz, 654.38)
+
+    TEST_EQUAL(coordinates[0].rt, 2)
+    TEST_EQUAL(coordinates[1].rt, 44)
+    TEST_EQUAL(coordinates[2].rt, 44)
+
+    // Note: they are ordered according to m/z
+    TEST_EQUAL(coordinates[0].id, "tr3")
+    TEST_EQUAL(coordinates[1].id, "tr1")
+    TEST_EQUAL(coordinates[2].id, "tr2")
+  }
+
+  // Test peptides
+  {
+    std::vector< OpenSwath::ChromatogramPtr > output_chromatograms;
+    std::vector< ChromatogramExtractor::ExtractionCoordinates > coordinates;
+    ChromatogramExtractor extractor;
+    extractor.prepare_coordinates(output_chromatograms, coordinates, transitions, true, true);
+
+    TEST_EQUAL(transitions == transitions_, true)
+    TEST_EQUAL(output_chromatograms.size(), coordinates.size())
+    TEST_EQUAL(coordinates.size(), 2)
+    TEST_EQUAL(coordinates[0].mz, 500)
+    TEST_EQUAL(coordinates[1].mz, 501)
+
+    TEST_EQUAL(coordinates[0].rt, 44)
+    TEST_EQUAL(coordinates[1].rt, 2)
+
+    TEST_EQUAL(coordinates[0].id, "tr_gr1")
+    TEST_EQUAL(coordinates[1].id, "tr_gr2")
+  }
 
 }
 END_SECTION
+
+
+START_SECTION((void ChromatogramExtractor::return_chromatogram(std::vector< OpenSwath::ChromatogramPtr > & chromatograms,
+    std::vector< ChromatogramExtractor::ExtractionCoordinates > & coordinates,
+    OpenMS::TargetedExperiment & transition_exp_used, SpectrumSettings settings,
+    std::vector<OpenMS::MSChromatogram<> > & output_chromatograms, bool ms1) const))
+{
+  double extract_window = 0.05;
+  double ppm = false;
+  double rt_extraction_window = -1;
+  String extraction_function = "tophat";
+
+  TargetedExperiment transitions;
+  TraMLFile().load(OPENMS_GET_TEST_DATA_PATH("ChromatogramExtractor_input.TraML"), transitions);
+
+  boost::shared_ptr<MSExperiment<Peak1D> > exp(new MSExperiment<Peak1D>);
+  MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("ChromatogramExtractor_input.mzML"), *exp);
+  OpenSwath::SpectrumAccessPtr expptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(exp);
+
+  std::vector< OpenSwath::ChromatogramPtr > output_chromatograms;
+  std::vector< ChromatogramExtractor::ExtractionCoordinates > coordinates;
+  ChromatogramExtractor extractor;
+  extractor.prepare_coordinates(output_chromatograms, coordinates, transitions, true, false);
+
+  extractor.extractChromatograms(expptr, output_chromatograms, coordinates, 
+      extract_window, ppm, rt_extraction_window, extraction_function);
+  
+  std::vector< OpenMS::MSChromatogram<> > chromatograms;
+  extractor.return_chromatogram(output_chromatograms, coordinates, transitions, (*exp)[0], chromatograms, false);
+
+  TEST_EQUAL(chromatograms.size(), 3)
+  TEST_EQUAL(chromatograms[0].getChromatogramType(), ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM)
+  TEST_REAL_SIMILAR(chromatograms[0].getProduct().getMZ(), 618.31)
+  TEST_EQUAL(chromatograms[0].getPrecursor().metaValueExists("peptide_sequence"), true)
+}
+END_SECTION
+
 
 ///////////////////////////////////////////////////////////////////////////
 /// Private functions
@@ -360,75 +461,6 @@ START_SECTION( ( template < typename SpectrumT > void extract_value_bartlett(con
   TEST_REAL_SIMILAR( integrated_intensity,4650.4687);
   extractor.extract_value_bartlett(spectrum, 400.1, peak_idx, integrated_intensity, extract_window, true);
   TEST_REAL_SIMILAR( integrated_intensity,6150.7123219188725);
-
-}
-END_SECTION
-
-START_SECTION((void extract_value_tophat(const std::vector< double >::const_iterator &mz_start, std::vector< double >::const_iterator &mz_it, const std::vector< double >::const_iterator &mz_end, std::vector< double >::const_iterator &int_it, const double &mz, double &integrated_intensity, double &extract_window, bool ppm)))
-{ 
-  std::vector<double> mz (mz_arr, mz_arr + sizeof(mz_arr) / sizeof(mz_arr[0]) );
-  std::vector<double> intensities (int_arr, int_arr + sizeof(int_arr) / sizeof(int_arr[0]) );
-
-  // conver the data into a spectrum
-  MSSpectrum<Peak1D> spectrum;
-  for(Size i=0; i<mz.size(); ++i)
-  {
-    Peak1D peak;
-    peak.setMZ(mz[i]);
-    peak.setIntensity(intensities[i]);
-    spectrum.push_back(peak);
-  }
-
-  std::vector<double>::const_iterator mz_start = mz.begin();
-  std::vector<double>::const_iterator mz_it_end = mz.end();
-  std::vector<double>::const_iterator mz_it = mz.begin();
-  std::vector<double>::const_iterator int_it = intensities.begin();
-
-  double integrated_intensity = 0;
-  double extract_window = 0.2; // +/- 0.1
-
-  // If we use monotonically increasing m/z values then everything should work fine
-  ChromatogramExtractor extractor;
-  extractor.extract_value_tophat(mz_start, mz_it, mz_it_end, int_it, 399.91, integrated_intensity, extract_window, false);
-  TEST_REAL_SIMILAR( integrated_intensity,100.0);
-  extractor.extract_value_tophat(mz_start, mz_it, mz_it_end, int_it, 400.0, integrated_intensity, extract_window, false);
-  // print(sum([0 + i*100.0 for i in range(10)]) )
-  TEST_REAL_SIMILAR( integrated_intensity,4500.0);
-  extractor.extract_value_tophat(mz_start, mz_it, mz_it_end, int_it, 400.05,  integrated_intensity, extract_window, false);
-  //print(sum([0 + i*100.0 for i in range(10)]) + sum([900 - i*100.0 for i in range(6)])  )
-  TEST_REAL_SIMILAR( integrated_intensity,8400.0);
-  extractor.extract_value_tophat(mz_start, mz_it, mz_it_end, int_it, 400.1, integrated_intensity, extract_window, false);
-  //print(sum([0 + i*100.0 for i in range(10)]) + sum([900 - i*100.0 for i in range(10)])  )
-  TEST_REAL_SIMILAR( integrated_intensity,9000.0);
-  TEST_EQUAL((int)integrated_intensity,9000);
-  extractor.extract_value_tophat(mz_start, mz_it, mz_it_end, int_it, 400.28, integrated_intensity, extract_window, false);
-  TEST_REAL_SIMILAR( integrated_intensity,100.0);
-  extractor.extract_value_tophat(mz_start, mz_it, mz_it_end, int_it, 500.0, integrated_intensity, extract_window, false);
-  TEST_REAL_SIMILAR( integrated_intensity, 10.0);
-
-  // this is to document the situation of using m/z values that are not monotonically increasing:
-  //  --> it might not give the correct result (9000) if we try to extract 400.1 AFTER 500.0 
-  extractor.extract_value_tophat(mz_start, mz_it, mz_it_end, int_it, 400.1, integrated_intensity, extract_window, false);
-  TEST_NOT_EQUAL((int)integrated_intensity,9000);
-
-  /// use ppm extraction windows
-  //
-
-  mz_it = mz.begin();
-  int_it = intensities.begin();
-  integrated_intensity = 0;
-  extract_window = 500; // 500 ppm == 0.2 Da @ 400 m/z
-
-  extractor.extract_value_tophat(mz_start, mz_it, mz_it_end, int_it, 399.91, integrated_intensity, extract_window, true);
-  TEST_REAL_SIMILAR( integrated_intensity,0.0);  // below 400, 500ppm is below 0.2 Da...
-  extractor.extract_value_tophat(mz_start, mz_it, mz_it_end, int_it, 399.92, integrated_intensity, extract_window, true);
-  TEST_REAL_SIMILAR( integrated_intensity,100.0); 
-  extractor.extract_value_tophat(mz_start, mz_it, mz_it_end, int_it, 400.0, integrated_intensity, extract_window, true);
-  TEST_REAL_SIMILAR( integrated_intensity,4500.0);
-  extractor.extract_value_tophat(mz_start, mz_it, mz_it_end, int_it, 400.05, integrated_intensity, extract_window, true);
-  TEST_REAL_SIMILAR( integrated_intensity,8400.0);
-  extractor.extract_value_tophat(mz_start, mz_it, mz_it_end, int_it, 400.1, integrated_intensity, extract_window, true);
-  TEST_REAL_SIMILAR( integrated_intensity,9000.0);
 
 }
 END_SECTION

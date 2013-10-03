@@ -35,12 +35,22 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractor.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>
 
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
+
 #include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/FORMAT/TraMLFile.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/FORMAT/TraMLFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/TransformationXMLFile.h>
+
+
 using namespace std;
+
+#ifdef _OPENMP
+#include <omp.h>
+#endif
 
 #ifdef _OPENMP
   #define IF_MASTERTHREAD if (omp_get_thread_num() ==0)  
@@ -119,6 +129,8 @@ public:
 
 protected:
 
+  typedef MSExperiment<Peak1D> MapType;
+
   void registerOptionsAndFlags_()
   {
     registerInputFileList_("in", "<files>", StringList(), "Input files separated by blank");
@@ -140,6 +152,8 @@ protected:
 
     registerFlag_("is_swath", "Set this flag if the data is SWATH data");
     registerFlag_("ppm", "extraction_window is in ppm");
+
+    registerFlag_("extract_MS1", "Extract the MS1 transitions based on the precursor values in the TraML file");
 
     registerStringOption_("extraction_function", "<name>", "tophat", "Function used to extract the signal", false);
     StringList model_types;
@@ -170,12 +184,12 @@ protected:
 
   ExitCodes main_(int, const char **)
   {
-
     StringList file_list = getStringList_("in");
     String tr_file_str = getStringOption_("tr");
     String out = getStringOption_("out");
     bool is_swath = getFlag_("is_swath");
     bool ppm = getFlag_("ppm");
+    bool extract_MS1 = getFlag_("extract_MS1");
     DoubleReal min_upper_edge_dist = getDoubleOption_("min_upper_edge_dist");
     DoubleReal extraction_window = getDoubleOption_("extraction_window");
     DoubleReal rt_extraction_window = getDoubleOption_("rt_extraction_window");
@@ -196,10 +210,10 @@ protected:
       trafoxml.load(trafo_in, trafo);
       trafo.fitModel(model_type, model_params);
     }
+    TransformationDescription trafo_inverse = trafo;
+    trafo_inverse.invert();
 
     const char * tr_file = tr_file_str.c_str();
-
-    typedef MSExperiment<Peak1D> MapType;
 
     MapType out_exp;
     std::vector< OpenMS::MSChromatogram<> > chromatograms;
@@ -210,6 +224,8 @@ protected:
     traml.load(tr_file, targeted_exp);
     std::cout << "Loaded TraML file" << std::endl;
 
+    bool enforce_rt = (rt_extraction_window > 0.0);
+
     // Do parallelization over the different input files
     // Only in OpenMP 3.0 are unsigned loop variables allowed
 #ifdef _OPENMP
@@ -217,7 +233,7 @@ protected:
 #endif
     for (SignedSize i = 0; i < boost::numeric_cast<SignedSize>(file_list.size()); ++i)
     {
-      MapType exp;
+      boost::shared_ptr<MSExperiment<Peak1D> > exp(new MSExperiment<Peak1D>);
       MzMLFile f;
       // Logging and output to the console
       // IF_MASTERTHREAD f.setLogType(log_type_); 
@@ -225,11 +241,13 @@ protected:
       // Find the transitions to extract and extract them
       MapType tmp_out;
       OpenMS::TargetedExperiment transition_exp_used;
-      f.load(file_list[i], exp);
+      f.load(file_list[i], *exp);
+      if (exp->empty() ) { continue; } // if empty, go on
+      OpenSwath::SpectrumAccessPtr expptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(exp);
       bool do_continue = true;
       if (is_swath)
       {
-        do_continue = OpenSwathHelper::checkSwathMapAndSelectTransitions(exp, targeted_exp, transition_exp_used, min_upper_edge_dist);  
+        do_continue = OpenSwathHelper::checkSwathMapAndSelectTransitions(*exp, targeted_exp, transition_exp_used, min_upper_edge_dist);  
       }
       else
       {
@@ -240,28 +258,36 @@ protected:
 #pragma omp critical (OpenSwathChromatogramExtractor_metadata)
 #endif
       // after loading the first file, copy the meta data from that experiment
-      // this may happen *after* chromatograms were already added to the output.
+      // this may happen *after* chromatograms were already added to the
+      // output, thus we do NOT fill the experiment here but rather store all
+      // the chromatograms in the "chromatograms" array and store them in
+      // out_exp afterwards.
       if (i == 0) 
       {
-        out_exp = exp;
+        out_exp = *exp;
         out_exp.clear(false);
       }
+
+      std::cout << "Extracting " << transition_exp_used.getTransitions().size() << " transitions" << std::endl;
+      std::vector< OpenSwath::ChromatogramPtr > chromatogram_ptrs;
+      std::vector< ChromatogramExtractor::ExtractionCoordinates > coordinates;
 
       // continue if the map is not empty
       if (do_continue)
       {
-        std::cout << "Extracting " << transition_exp_used.getTransitions().size() << " transitions" << std::endl;
         ChromatogramExtractor extractor;
-        IF_MASTERTHREAD extractor.setLogType(log_type_); // no progress log on the console in parallel
-        extractor.extractChromatograms(exp, tmp_out, transition_exp_used, extraction_window, ppm, trafo, rt_extraction_window, extraction_function);
+        extractor.prepare_coordinates(chromatogram_ptrs, coordinates, transition_exp_used, enforce_rt, extract_MS1);
+        for (std::vector< ChromatogramExtractor::ExtractionCoordinates >::iterator it = coordinates.begin(); it != coordinates.end(); it++)
+        {
+          it->rt = trafo_inverse.apply(it->rt);
+        }
+        extractor.extractChromatograms(expptr, chromatogram_ptrs, coordinates, extraction_window, ppm, rt_extraction_window, extraction_function);
 
-        // adding the chromatogram to the output needs to be atomic
 #ifdef _OPENMP
-#pragma omp critical (OpenSwathChromatogramExtractor_insert)
+#pragma omp critical (OpenSwathChromatogramExtractor_insertMS1)
 #endif
         {
-          chromatograms.reserve(chromatograms.size() + distance(tmp_out.getChromatograms().begin(),tmp_out.getChromatograms().end()));
-          chromatograms.insert(chromatograms.end(), tmp_out.getChromatograms().begin(), tmp_out.getChromatograms().end());
+          extractor.return_chromatogram(chromatogram_ptrs, coordinates, transition_exp_used, (*exp)[0], chromatograms, extract_MS1);
         }
 
       } // end of do_continue
@@ -280,7 +306,6 @@ protected:
   }
 
 };
-
 
 int main(int argc, const char ** argv)
 {

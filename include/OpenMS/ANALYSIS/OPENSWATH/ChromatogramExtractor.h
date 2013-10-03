@@ -35,28 +35,30 @@
 #ifndef OPENMS_ANALYSIS_OPENSWATH_CHROMATOGRAMEXTRACTOR_H
 #define OPENMS_ANALYSIS_OPENSWATH_CHROMATOGRAMEXTRACTOR_H
 
+#include <OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractorAlgorithm.h>
+
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
-
-// move to TOPPTool
-#include <OpenMS/FORMAT/TransformationXMLFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
-
-#ifdef _OPENMP
-#include <omp.h>
-#endif
+#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
 
 namespace OpenMS
 {
 
   /**
-  @brief The ChromatogramExtractor extracts chromatograms from a mzML file.
-
-  It will take as input a set of (TraML) transitions and will extract the
-  signal of the provided map at the product ion m/z values specified by the
-  transitions. The map is thus assumed to be an MS2 map from a SWATH / DIA
-  experiment.
-
+   * @brief The ChromatogramExtractor extracts chromatograms from a spectra file.
+   *
+   * It will take as input a set of transitions coordinates and will extract
+   * the signal of the provided map at the product ion m/z values specified by
+   * the extraction coordinates. There are two interfaces, the old interface
+   * will take a full TargetedExperiment and assume that one wants to extract
+   * at the m/z of the transitions present in the TargetedExperiment. The new
+   * interface only expects a set of coordinates which are up to the user to
+   * fill but a convenient prepare_coordinates function is provided to create
+   * the coordinates for the most common case of an MS2 and MS1 extraction.
+   * 
+   * In the case of MS2 extraction, the map is assumed to originate from a SWATH
+   * (data-independent acquisition or DIA) experiment.
+   *
   */
   class OPENMS_DLLAPI ChromatogramExtractor :
     public ProgressLogger
@@ -64,22 +66,18 @@ namespace OpenMS
 
 public:
 
-    /// Constructor
-    ChromatogramExtractor()
-    {
-    }
+    typedef ChromatogramExtractorAlgorithm::ExtractionCoordinates ExtractionCoordinates;
 
-    /// Destructor
-    ~ChromatogramExtractor()
-    {
-    }
-
-    /// Extract chromatograms defined by the TargetedExperiment from the input map and write them to the output map
+    /// Extract chromatograms defined by the TargetedExperiment from the input
+    /// map and write them to the output map.
+    ///
+    ///  @note: it will replace chromatograms in the output map, not append to them!
+    ///  @note: whenever possible, please use the ChromatogramExtractorAlgorithm implementation since it is more flexible
     template <typename ExperimentT>
-    void extractChromatograms(const ExperimentT& input, ExperimentT& output, OpenMS::TargetedExperiment& transition_exp, double extract_window, bool ppm,
-                              TransformationDescription trafo, double rt_extraction_window, String filter)
+    void extractChromatograms(const ExperimentT& input, ExperimentT& output, 
+        OpenMS::TargetedExperiment& transition_exp, double mz_extraction_window, bool ppm,
+        TransformationDescription trafo, double rt_extraction_window, String filter)
     {
-
       // invert the trafo because we want to transform nRT values to "real" RT values
       trafo.invert();
 
@@ -88,46 +86,16 @@ public:
       {
         return;
       }
-      SpectrumSettings settings = input[0];
-      int used_filter = -1;
-      if (filter == "tophat")
-      {
-        used_filter = 1;
-      }
-      else if (filter == "bartlett")
-      {
-        used_filter = 2;
-      }
-      else
-      {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-                                         "Filter either needs to be tophat or bartlett");
-      }
 
-      // Store the peptide retention times in an intermediate map
-      PeptideRTMap_.clear();
-      for (Size i = 0; i < transition_exp.getPeptides().size(); i++)
-      {
-        const TargetedExperiment::Peptide& pep = transition_exp.getPeptides()[i];
-        if (pep.rts.empty() || pep.rts[0].getCVTerms()["MS:1000896"].empty())
-        {
-          // we dont have retention times -> this is only a problem if we actually
-          // wanted to use the RT limit feature.
-          if (rt_extraction_window >= 0)
-          {
-            throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-                                             "Error: Peptide " + pep.id + " does not have normalized retention times (term 1000896) which are necessary to perform an RT-limited extraction");
-          }
-          continue;
-        }
-        PeptideRTMap_[pep.id] = pep.rts[0].getCVTerms()["MS:1000896"][0].getValue().toString().toDouble();
-      }
+      int used_filter = get_filter_nr(filter);
+      populate_PeptideRTMap(transition_exp, rt_extraction_window);
 
       // sort the transition experiment by product mass
       // this is essential because the algorithm assumes sorted transitions!
       transition_exp.sortTransitionsByProductMZ();
 
       // prepare all the spectra (but leave them empty)
+      SpectrumSettings settings = input[0];
       std::vector<typename ExperimentT::ChromatogramType> chromatograms;
       prepareSpectra_(settings, chromatograms, transition_exp);
 
@@ -163,12 +131,13 @@ public:
 
           if (used_filter == 1)
           {
-            extract_value_tophat(input[scan_idx], mz, peak_idx, integrated_intensity, extract_window, ppm);
+            extract_value_tophat(input[scan_idx], mz, peak_idx, integrated_intensity, mz_extraction_window, ppm);
           }
           else if (used_filter == 2)
           {
-            extract_value_bartlett(input[scan_idx], mz, peak_idx, integrated_intensity, extract_window, ppm);
+            extract_value_bartlett(input[scan_idx], mz, peak_idx, integrated_intensity, mz_extraction_window, ppm);
           }
+
 
           p.setRT(current_rt);
           p.setIntensity(integrated_intensity);
@@ -181,10 +150,66 @@ public:
       output.setChromatograms(chromatograms);
     }
 
+    /**
+     * @brief Extract chromatograms at the m/z and RT defined by the ExtractionCoordinates.
+     *
+     * @note: whenever possible, please use this ChromatogramExtractorAlgorithm implementation
+     *
+    */
+    void extractChromatograms(const OpenSwath::SpectrumAccessPtr input, 
+        std::vector< OpenSwath::ChromatogramPtr >& output, 
+        std::vector<ExtractionCoordinates> extraction_coordinates,
+        double& mz_extraction_window, bool ppm, double rt_extraction_window, String filter)
+    {
+      ChromatogramExtractorAlgorithm().extractChromatograms(input, output, 
+          extraction_coordinates, mz_extraction_window, ppm, rt_extraction_window, filter);
+    }
+
 public:
 
+    /**
+     * @brief Prepare the extraction coordinates from a TargetedExperiment 
+     *
+     * Will fill the coordinates vector with the appropriate extraction
+     * coordinates (transitions for MS2 extraction, peptide m/z for MS1
+     * extraction). The output will be sorted by m/z.
+     *
+     * @param output_chromatograms An empty vector which will be initialized correctly
+     * @param coordinates An empty vector which will be filled with the
+     *   appropriate extraction coordinates in m/z and rt and sorted by m/z (to
+     *   be used as input to extractChromatograms)
+     * @param transition_exp The transition experiment used as input (is constant)
+     * @param enforce_presence_rt Enforce the presence of retention times (throw otherwise)
+     * @param ms1 Whether to extract for MS1 (peptide level) or MS2 (transition level)
+     *
+    */
+    void prepare_coordinates(std::vector< OpenSwath::ChromatogramPtr > & output_chromatograms,
+      std::vector< ExtractionCoordinates > & coordinates,
+      OpenMS::TargetedExperiment & transition_exp,
+      const bool enforce_presence_rt,
+      const bool ms1) const;
+
+    /**
+     * @brief This converts the ChromatogramPtr to MSChromatogram and adds meta-information.
+     *
+     * It sets
+     * 1) the target m/z
+     * 2) the isolation window (upper/lower)
+     * 3) the peptide sequence
+     * 4) the fragment m/z
+     * 5) the meta-data, e.g. InstrumentSettings, AcquisitionInfo, 
+     *     sourceFile and DataProcessing
+     * 6) the native ID from the transition
+     *
+     */
+    void return_chromatogram(std::vector< OpenSwath::ChromatogramPtr > & chromatograms,
+      std::vector< ChromatogramExtractor::ExtractionCoordinates > & coordinates,
+      OpenMS::TargetedExperiment & transition_exp_used, SpectrumSettings settings,
+      std::vector<OpenMS::MSChromatogram<> > & output_chromatograms, bool ms1) const;
+
     template <typename SpectrumT>
-    void extract_value_tophat(const SpectrumT& input, const double& mz, Size& peak_idx, double& integrated_intensity, const double& extract_window, const bool ppm)
+    void extract_value_tophat(const SpectrumT& input, const double& mz, Size& peak_idx,
+        double& integrated_intensity, const double& extract_window, const bool ppm)
     {
       integrated_intensity = 0;
       if (input.size() == 0)
@@ -251,7 +276,8 @@ public:
     }
 
     template <typename SpectrumT>
-    void extract_value_bartlett(const SpectrumT& input, const double& mz, Size& peak_idx, double& integrated_intensity, const double& extract_window, const bool ppm)
+    void extract_value_bartlett(const SpectrumT& input, const double& mz, Size& peak_idx,
+        double& integrated_intensity, const double& extract_window, const bool ppm)
     {
       integrated_intensity = 0;
       if (input.size() == 0)
@@ -321,82 +347,22 @@ public:
       }
     }
 
-    void extract_value_tophat(const std::vector<double>::const_iterator& mz_start, std::vector<double>::const_iterator& mz_it,
-                              const std::vector<double>::const_iterator& mz_end, std::vector<double>::const_iterator& int_it,
-                              const double& mz, double& integrated_intensity, double& extract_window, bool ppm)
-    {
-      integrated_intensity = 0;
-      if (mz_start == mz_end)
-      {
-        return;
-      }
-
-      // calculate extraction window
-      double left, right;
-      if (ppm)
-      {
-        left  = mz - mz * extract_window / 2.0 * 1.0e-6;
-        right = mz + mz * extract_window / 2.0 * 1.0e-6;
-      }
-      else
-      {
-        left  = mz - extract_window / 2.0;
-        right = mz + extract_window / 2.0;
-      }
-
-      std::vector<double>::const_iterator mz_walker;
-      std::vector<double>::const_iterator int_walker;
-
-      // advance the mz / int iterator until we hit the m/z value of the next transition
-      while (mz_it != mz_end && (*mz_it) < mz)
-      {
-        mz_it++; int_it++;
-      }
-
-      // walk right and left and add to our intensity
-      mz_walker  = mz_it;
-      int_walker = int_it;
-
-      // if we moved past the end of the spectrum, we need to try the last peak of the spectrum (it could still be within the window)
-      if (mz_it == mz_end)
-      {
-        mz_walker--; int_walker--;
-      }
-
-      // add the current peak if it is between right and left
-      if ((*mz_walker) > left && (*mz_walker) < right)
-      {
-        integrated_intensity += (*int_walker);
-      }
-
-      // walk to the right until we go outside the window, then walk to the left until we are outside the window
-      mz_walker  = mz_it;
-      int_walker = int_it;
-      if (mz_it != mz_start)
-      {
-        mz_walker--;
-        int_walker--;
-      }
-      while (mz_walker != mz_start && (*mz_walker) > left && (*mz_walker) < right)
-      {
-        integrated_intensity += (*int_walker); mz_walker--; int_walker--;
-      }
-      mz_walker  = mz_it;
-      int_walker = int_it;
-      if (mz_it != mz_end)
-      {
-        mz_walker++;
-        int_walker++;
-      }
-      while (mz_walker != mz_end && (*mz_walker) > left && (*mz_walker) < right)
-      {
-        integrated_intensity += (*int_walker); mz_walker++; int_walker++;
-      }
-    }
-
 private:
 
-    /// This populates the chromatograms vector with empty chromatograms (but sets their meta-information)
+    /**
+     * @brief This populates the chromatograms vector with empty chromatograms
+     * (but sets their meta-information)
+     *
+     * It extracts
+     * 1) the target m/z
+     * 2) the isolation window (upper/lower)
+     * 3) the peptide sequence
+     * 4) the fragment m/z
+     * 5) Copy the meta-data, e.g. InstrumentSettings, AcquisitionInfo, 
+     *     sourceFile and DataProcessing
+     * 6) the native ID from the transition
+     *
+     */
     template <class SpectrumSettingsT, class ChromatogramT>
     void prepareSpectra_(SpectrumSettingsT& settings, std::vector<ChromatogramT>& chromatograms, OpenMS::TargetedExperiment& transition_exp)
     {
@@ -406,11 +372,8 @@ private:
       {
         const ReactionMonitoringTransition* transition = &transition_exp.getTransitions()[i];
 
+        // 1) and 2) Extract precursor m/z and isolation window
         ChromatogramT chrom;
-        // Create precursor and set
-        // 1) the target m/z
-        // 2) the isolation window (upper/lower)
-        // 3) the peptide sequence
         Precursor prec;
         prec.setMZ(transition->getPrecursorMZ());
         if (settings.getPrecursors().size() > 0)
@@ -419,7 +382,7 @@ private:
           prec.setIsolationWindowUpperOffset(settings.getPrecursors()[0].getIsolationWindowUpperOffset());
         }
 
-        //set precursor sequence
+        // 3) set precursor peptide sequence
         String pepref = transition->getPeptideRef();
         for (Size pep_idx = 0; pep_idx < transition_exp.getPeptides().size(); pep_idx++)
         {
@@ -433,12 +396,12 @@ private:
         // add precursor to spectrum
         chrom.setPrecursor(prec);
 
-        // Create product and set its m/z
+        // 4) Create product and set its m/z
         Product prod;
         prod.setMZ(transition->getProductMZ());
         chrom.setProduct(prod);
 
-        // Set the rest of the meta-data
+        // 5) Set the rest of the meta-data
         chrom.setInstrumentSettings(settings.getInstrumentSettings());
         chrom.setAcquisitionInfo(settings.getAcquisitionInfo());
         chrom.setSourceFile(settings.getSourceFile());
@@ -459,26 +422,11 @@ private:
     }
 
     bool outsideExtractionWindow_(const ReactionMonitoringTransition& transition, double current_rt,
-                                   const TransformationDescription& trafo, double rt_extraction_window)
-    {
-      if (rt_extraction_window < 0)
-      {
-        return false;
-      }
+                                   const TransformationDescription& trafo, double rt_extraction_window);
 
-      // Get the expected retention time, apply the RT-transformation
-      // (which describes the normalization) and then take the difference.
-      // Note that we inverted the transformation in the beginning because
-      // we want to transform from normalized to real RTs here and not the
-      // other way round.
-      double expected_rt = PeptideRTMap_[transition.getPeptideRef()];
-      double de_normalized_experimental_rt = trafo.apply(expected_rt);
-      if (current_rt < de_normalized_experimental_rt - rt_extraction_window || current_rt > de_normalized_experimental_rt + rt_extraction_window)
-      {
-        return true;
-      }
-      return false;
-    }
+    int get_filter_nr(String filter);
+
+    void populate_PeptideRTMap(OpenMS::TargetedExperiment& transition_exp, double rt_extraction_window);
 
     std::map<OpenMS::String, double> PeptideRTMap_;
 
