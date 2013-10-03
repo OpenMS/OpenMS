@@ -786,7 +786,11 @@ public:
       }
 
       const PeptideType* pep = PeptideRefMap_[transition_group.getTransitionGroupID()];
-      const ProteinType* prot = ProteinRefMap_[pep->protein_ref];
+      String protein_id = "";
+      if (!pep->protein_ref.empty())
+      {
+        protein_id = ProteinRefMap_[pep->protein_ref]->id;
+      }
 
       // get the expected rt value for this peptide
       double expected_rt = pep->rt;
@@ -920,7 +924,7 @@ public:
           pep_hit_.setScore(mrmfeature->getScore("xx_swath_prelim_score"));
         }
         pep_hit_.setSequence((String)pep->sequence);
-        pep_hit_.addProteinAccession(prot->id);
+        pep_hit_.addProteinAccession(protein_id);
         pep_id_.insertHit(pep_hit_);
         pep_id_.setIdentifier(run_identifier);
 
