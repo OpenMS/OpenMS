@@ -121,6 +121,8 @@ public:
 
       defaults_.setValue("ms1_only", "false", "Only do MS1");
       defaults_.setValidStrings("ms1_only", StringList::create("true,false"));
+      defaults_.setValue("clear_meta_data", "false", "Delete meta data about peak width");
+      defaults_.setValidStrings("clear_meta_data", StringList::create("true,false"));
 
       // write defaults into Param object param_
       defaultsToParam_();
@@ -401,6 +403,7 @@ public:
       output.resize(input.size());
 
       bool ms1_only = param_.getValue("ms1_only").toBool();
+      bool clear_meta_data = param_.getValue("clear_meta_data").toBool();
 
       Size progress = 0;
       startProgress(0, input.size(), "picking peaks");
@@ -413,6 +416,7 @@ public:
         else
         {
           pick(input[scan_idx], output[scan_idx]);
+          if (clear_meta_data) {output[scan_idx].getFloatDataArrays().clear();}
         }
         setProgress(progress++);
       }

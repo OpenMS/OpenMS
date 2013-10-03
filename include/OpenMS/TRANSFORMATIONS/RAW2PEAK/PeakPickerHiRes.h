@@ -387,7 +387,7 @@ public:
       bool ms1_only = param_.getValue("ms1_only").toBool();
       Size progress = 0;
 
-      startProgress(0, input.size() + input.getChromatograms().size(), "smoothing data");
+      startProgress(0, input.size() + input.getChromatograms().size(), "picking peaks");
       for (Size scan_idx = 0; scan_idx != input.size(); ++scan_idx)
       {
         if (ms1_only && (input[scan_idx].getMSLevel() != 1))
@@ -435,7 +435,7 @@ public:
       bool ms1_only = param_.getValue("ms1_only").toBool();
       Size progress = 0;
 
-      startProgress(0, input.size() + input.getNrChromatograms(), "smoothing data");
+      startProgress(0, input.size() + input.getNrChromatograms(), "picking peaks");
       for (Size scan_idx = 0; scan_idx != input.size(); ++scan_idx)
       {
         if (ms1_only && (input[scan_idx].getMSLevel() != 1))
