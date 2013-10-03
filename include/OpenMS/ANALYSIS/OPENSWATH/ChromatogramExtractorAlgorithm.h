@@ -82,6 +82,9 @@ public:
      * @param mz_extraction_window Extracts a window of this size in m/z
      * dimension (e.g. a window of 50 ppm means an extraction of 25 ppm on
      * either side)
+     * @param rt_extraction_window Extracts a window of this size in RT
+     * dimension (e.g. a window of 600 seconds means an extraction of 300
+     * seconds on either side)
      *
     */
     void extractChromatograms(const OpenSwath::SpectrumAccessPtr input, 
@@ -91,9 +94,25 @@ public:
 
 public:
 
+    /**
+     * @brief Extract the next mz value and add the integrated intensity to integrated_intensity. 
+     *
+     * This function will sum up all intensities within mz +/-
+     * mz_extract_window / 2.0 and add the result to integrated_intensity.
+     *
+     * @param mz_extraction_window Extracts a window of this size in m/z
+     * dimension (e.g. a window of 50 ppm means an extraction of 25 ppm on
+     * either side)
+     *
+     * @note It will change the position of the iterators mz_it and int_it and
+     * it can *not* extract any data if the mz-iterator is already passed the
+     * mz value given. It is thus critically important to provide all mz values
+     * to be extracted in ascending order!
+     *
+    */
     void extract_value_tophat(const std::vector<double>::const_iterator& mz_start, std::vector<double>::const_iterator& mz_it,
                               const std::vector<double>::const_iterator& mz_end, std::vector<double>::const_iterator& int_it,
-                              const double& mz, double& integrated_intensity, double& extract_window, bool ppm);
+                              const double& mz, double& integrated_intensity, double& mz_extraction_window, bool ppm);
 
 private:
 

@@ -68,11 +68,21 @@ public:
 
     typedef ChromatogramExtractorAlgorithm::ExtractionCoordinates ExtractionCoordinates;
 
-    /// Extract chromatograms defined by the TargetedExperiment from the input
-    /// map and write them to the output map.
-    ///
-    ///  @note: it will replace chromatograms in the output map, not append to them!
-    ///  @note: whenever possible, please use the ChromatogramExtractorAlgorithm implementation since it is more flexible
+    /**
+     * @brief Extract chromatograms defined by the TargetedExperiment from the input map and write them to the output map.
+     *
+     * @param mz_extraction_window Extracts a window of this size in m/z
+     * dimension (e.g. a window of 50 ppm means an extraction of 25 ppm on
+     * either side)
+     * @param rt_extraction_window Extracts a window of this size in RT
+     * dimension (e.g. a window of 600 seconds means an extraction of 300
+     * seconds on either side)
+     *
+     * @note: it will replace chromatograms in the output map, not append to
+     * them!
+     * @note: whenever possible, please use the ChromatogramExtractorAlgorithm
+     * implementation since it is more flexible
+    */
     template <typename ExperimentT>
     void extractChromatograms(const ExperimentT& input, ExperimentT& output, 
         OpenMS::TargetedExperiment& transition_exp, double mz_extraction_window, bool ppm,

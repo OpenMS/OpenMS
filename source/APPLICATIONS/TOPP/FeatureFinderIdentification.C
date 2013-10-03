@@ -433,7 +433,7 @@ protected:
     PeakMap chrom_data;
     extractor.setLogType(log_type_);
     extractor.extractChromatograms(ms_data_, chrom_data, library_, mz_window,
-                                   false, trafo_, rt_window / 2.0, "tophat");
+                                   false, trafo_, rt_window, "tophat");
     ms_data_.reset(); // not needed anymore, free up the memory
     if (!chrom_out.empty())
     {

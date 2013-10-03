@@ -39,9 +39,12 @@
 namespace OpenMS
 {
 
-  void ChromatogramExtractorAlgorithm::extract_value_tophat(const std::vector<double>::const_iterator& mz_start, std::vector<double>::const_iterator& mz_it,
-                            const std::vector<double>::const_iterator& mz_end, std::vector<double>::const_iterator& int_it,
-                            const double& mz, double& integrated_intensity, double& extract_window, bool ppm)
+  void ChromatogramExtractorAlgorithm::extract_value_tophat(
+      const std::vector<double>::const_iterator& mz_start, 
+            std::vector<double>::const_iterator& mz_it,
+      const std::vector<double>::const_iterator& mz_end,
+            std::vector<double>::const_iterator& int_it,
+      const double& mz, double& integrated_intensity, double& mz_extraction_window, bool ppm)
   {
     integrated_intensity = 0;
     if (mz_start == mz_end)
@@ -53,13 +56,13 @@ namespace OpenMS
     double left, right;
     if (ppm)
     {
-      left  = mz - mz * extract_window / 2.0 * 1.0e-6;
-      right = mz + mz * extract_window / 2.0 * 1.0e-6;
+      left  = mz - mz * mz_extraction_window / 2.0 * 1.0e-6;
+      right = mz + mz * mz_extraction_window / 2.0 * 1.0e-6;
     }
     else
     {
-      left  = mz - extract_window / 2.0;
-      right = mz + extract_window / 2.0;
+      left  = mz - mz_extraction_window / 2.0;
+      right = mz + mz_extraction_window / 2.0;
     }
 
     std::vector<double>::const_iterator mz_walker;
@@ -166,8 +169,8 @@ namespace OpenMS
         double integrated_intensity = 0;
         double current_rt = s_meta.RT;
         if (rt_extraction_window > 0 && 
-            (current_rt < extraction_coordinates[k].rt - rt_extraction_window || 
-             current_rt > extraction_coordinates[k].rt + rt_extraction_window) )
+            (current_rt < extraction_coordinates[k].rt - rt_extraction_window / 2.0 || 
+             current_rt > extraction_coordinates[k].rt + rt_extraction_window / 2.0) )
         {
           continue;
         }

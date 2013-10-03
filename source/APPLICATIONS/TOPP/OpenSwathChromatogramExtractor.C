@@ -192,7 +192,8 @@ protected:
     bool extract_MS1 = getFlag_("extract_MS1");
     DoubleReal min_upper_edge_dist = getDoubleOption_("min_upper_edge_dist");
     DoubleReal extraction_window = getDoubleOption_("extraction_window");
-    DoubleReal rt_extraction_window = getDoubleOption_("rt_extraction_window");
+    DoubleReal rt_extraction_halfwindow = getDoubleOption_("rt_extraction_window");
+    DoubleReal rt_extraction_window = rt_extraction_halfwindow * 2.0;
 
     String extraction_function = getStringOption_("extraction_function");
 
@@ -281,7 +282,8 @@ protected:
         {
           it->rt = trafo_inverse.apply(it->rt);
         }
-        extractor.extractChromatograms(expptr, chromatogram_ptrs, coordinates, extraction_window, ppm, rt_extraction_window, extraction_function);
+        extractor.extractChromatograms(expptr, chromatogram_ptrs, coordinates, 
+            extraction_window, ppm, rt_extraction_window, extraction_function);
 
 #ifdef _OPENMP
 #pragma omp critical (OpenSwathChromatogramExtractor_insertMS1)

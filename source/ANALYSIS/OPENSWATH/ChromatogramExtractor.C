@@ -192,7 +192,8 @@ namespace OpenMS
     // other way round.
     double expected_rt = PeptideRTMap_[transition.getPeptideRef()];
     double de_normalized_experimental_rt = trafo.apply(expected_rt);
-    if (current_rt < de_normalized_experimental_rt - rt_extraction_window || current_rt > de_normalized_experimental_rt + rt_extraction_window)
+    if (current_rt < de_normalized_experimental_rt - rt_extraction_window / 2.0 || 
+        current_rt > de_normalized_experimental_rt + rt_extraction_window / 2.0 )
     {
       return true;
     }
