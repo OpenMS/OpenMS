@@ -146,12 +146,12 @@ protected:
     setValidFormats_("out", StringList::create("mzML"));
 
     registerDoubleOption_("min_upper_edge_dist", "<double>", 0.0, "Minimal distance to the edge to still consider a precursor, in Thomson", false);
-    registerDoubleOption_("extraction_window", "<double>", 0.05, "Extraction window used (in Thomson, to use ppm see -ppm flag)", false);
-    registerDoubleOption_("rt_extraction_window", "<double>", -1, "Only extract RT around this value (-1 means extract over the whole range, a value of 500 means to extract around +/- 500 s of the expected elution).", false);
-    setMinFloat_("extraction_window", 0.0);
+    registerDoubleOption_("mz_window", "<double>", 0.05, "Extraction window in m/z dimension (in Thomson, to use ppm see -ppm flag). This is the full window size, e.g. 100 ppm would extract 50 ppm on either side.", false);
+    registerDoubleOption_("rt_window", "<double>", -1, "Extraction window in RT dimension (-1 means extract over the whole range). This is the full window size, e.g. a value of 1000 seconds would extract 500 seconds on either side.", false);
+    setMinFloat_("mz_window", 0.0);
 
     registerFlag_("is_swath", "Set this flag if the data is SWATH data");
-    registerFlag_("ppm", "extraction_window is in ppm");
+    registerFlag_("ppm", "m/z extraction_window is in ppm");
 
     registerFlag_("extract_MS1", "Extract the MS1 transitions based on the precursor values in the TraML file");
 
@@ -191,9 +191,8 @@ protected:
     bool ppm = getFlag_("ppm");
     bool extract_MS1 = getFlag_("extract_MS1");
     DoubleReal min_upper_edge_dist = getDoubleOption_("min_upper_edge_dist");
-    DoubleReal extraction_window = getDoubleOption_("extraction_window");
-    DoubleReal rt_extraction_halfwindow = getDoubleOption_("rt_extraction_window");
-    DoubleReal rt_extraction_window = rt_extraction_halfwindow * 2.0;
+    DoubleReal mz_extraction_window = getDoubleOption_("mz_window");
+    DoubleReal rt_extraction_window = getDoubleOption_("rt_window");
 
     String extraction_function = getStringOption_("extraction_function");
 
@@ -283,7 +282,7 @@ protected:
           it->rt = trafo_inverse.apply(it->rt);
         }
         extractor.extractChromatograms(expptr, chromatogram_ptrs, coordinates, 
-            extraction_window, ppm, rt_extraction_window, extraction_function);
+            mz_extraction_window, ppm, rt_extraction_window, extraction_function);
 
 #ifdef _OPENMP
 #pragma omp critical (OpenSwathChromatogramExtractor_insertMS1)
