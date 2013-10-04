@@ -6,12 +6,12 @@
 
   You can find the Release and Development (svn) versions on http://open-ms.sourceforge.net/downloads/.
 
-  From here on the instructions assume you have an extracted tar.gz of the Release, or checked out the 
-  Development (svn) version by <pre>svn co https://open-ms.svn.sourceforge.net/svnroot/open-ms/OpenMS</pre>.
+  From here on the instructions assume you have an extracted tar.gz of the <a href="https://sourceforge.net/projects/open-ms/files/OpenMS/">Release</a>, or checked out the 
+  Development (svn) version by <pre>svn co https://open-ms.svn.sourceforge.net/svnroot/open-ms/OpenMS</pre>
 
   @section Dependencies
   Before building from source, %OpenMS requires several other libraries to be present on your system. Most of these 
-  should be available in the repositories of your GNU/Linux distribution. 
+  should be available in the repositories of your GNU/Linux distribution.
 
   For the libraries/versions often not found in those repositories, we provide sources and build scripts.
   The Release tar.gz archive contains the libraries in the contrib/ folder, if you build the Develoment (svn) 
@@ -33,8 +33,9 @@
     <td><B>Fedora </B> </td> 
     <td><pre>
     sudo yum install cmake gcc gcc-g++ autoconf autoconf-2.6 qt-devel
-    @n also look <a href="http://koji.fedoraproject.org/koji/packages">here</a>
-    </pre></td>
+    </pre>
+    also look <a href="http://koji.fedoraproject.org/koji/packages">here</a>
+    </td>
   </tr>                
   <tr>
     <td><B>OpenSuse 11.1</B></td>
@@ -45,7 +46,7 @@
   <tr>
     <td><B>Ubuntu/Debian (12.04/6.0 or later recommended)</B></td>
     <td><pre>
-    sudo apt-get install cmake g++ autoconf qt4-dev-tools patch libtool make libxerces-c-dev libgsl0-dev libboost-regex-dev libboost-iostreams-dev libboost-date-time-dev libboost-math-dev libsvm-dev libglpk-dev libzip-dev zlib1g-dev
+    sudo apt-get install cmake g++ autoconf qt4-dev-tools patch libtool make libxerces-c-dev libgsl0-dev libboost-regex-dev \<br>libboost-iostreams-dev libboost-date-time-dev libboost-math-dev libsvm-dev libglpk-dev libzip-dev zlib1g-dev
     </pre></td>
 
   </tr>
@@ -55,27 +56,28 @@
   @section build_linux_contrib Building remaining dependencies
   @note In most cases, the only dependency left unresolved at this point is SeqAn. You can check which dependencies you still need by attempting to configure %OpenMS (see the next section), it will complain about anything unusual. Contact us if you still have trouble with the dependencies after these instructions.
 
-  The %OpenMS Release package (https://sourceforge.net/projects/open-ms/files/OpenMS/) already contains the sources of the remaining
+  The %OpenMS Release package (https://sourceforge.net/projects/open-ms/files/OpenMS/) contains the sources of all
   dependencies in the contrib/ folder.
 
   For the Development (svn) version, this folder is not included, it has to be checked out separately (and referred to later):
-  <pre>svn co https://open-ms.svn.sourceforge.net/svnroot/open-ms/contrib</pre>.
+  <pre>svn co https://open-ms.svn.sourceforge.net/svnroot/open-ms/contrib</pre>
   
-  from the contrib/ folder, execute the following command to build SeqAn: (The other packages in the folder can be listed by substituting <i>SEQAN</i> with <i>ALL</i>)
+  from the contrib/ folder, execute the following command to build SeqAn: (The other build scripts can be listed by substituting <i>SEQAN</i> with <i>LIST</i>)
 
   <pre>
   cmake -DBUILD_TYPE=SEQAN ./
   </pre>
 
-  @note To avoid problems while building the libraries contained in the contrib package, the path
+  To avoid problems while building the libraries contained in the contrib package, the path
   to your contrib directory should not have any spaces in it.
 
   
-  @section install_linux_openms Configuring and building %OpenMS/TOPP
+  @section install_linux_openms Configuring and building OpenMS/TOPP
 
   <a href="http://www.cmake.org/">CMake</a> is used to check the system and create the 'Makefile'.
 
   From the root directory of the package (or the checked out svn branch of %OpenMS), execute the following command to <i>configure</i> %OpenMS to build in bin/ and lib/,
+
   substituting <b>/PATH/TO/contrib/</b> by the actual path to the directory of the previous step (for the Release package it is just <i>contrib/</i>):
   <pre>
   cmake -DCMAKE_FIND_ROOT_PATH="/usr;/usr/local;/PATH/TO/contrib" -DBOOST_USE_STATIC=OFF .
@@ -86,9 +88,9 @@
   make
   </pre>
   
-  This step takes the most time, in the meanwhile you can prepare your environment for easy %OpenMS usage:
+  @subsection linux_openms_environment Getting your environment ready to use OpenMS
 
-  @subsection linux_openms_environment Getting your environment ready to use %OpenMS
+  The previous step takes the most time, in the meanwhile you can prepare your environment for easy %OpenMS usage:
   
   Make sure to add <b>/PATH/TO/OpenMS/lib/</b> (e.g. <i>/home/smith/OpenMS/lib/</i>) to the environment variable <b>LD_LIBRARY_PATH</b>.
   The best way is to edit $HOME/.bashrc and add the following
@@ -97,7 +99,8 @@
   </pre>
   
   The TOPP tools will be built in the <b>/PATH/TO/OpenMS/bin/</b> folder. Add this path to the environment variable <b>PATH</b> to use the commands anywhere on your system. 
-  @note This is necessary to use the TOPP tools from TOPPView.
+  
+  This is necessary to use the TOPP tools from TOPPView.
   
   You can do this by appending the following also to your $HOME/.bashrc
   (Do not use the tilde character @em ~ to abbreviate your home folder) 
@@ -105,9 +108,9 @@
   export PATH=$PATH:/PATH/TO/OpenMS/bin
   </pre>
 
-  Apply both changes by executing <pre>. ~/.bashrc </pre>.
+  Apply both changes by executing <pre>. ~/.bashrc </pre>
   
-  @section running_linux_openms Running %OpenMS
+  @section running_linux_openms Running OpenMS
   If the build from @ref install_linux_openms is ready, you can now run a GNU/Linux %OpenMS tool by e.g. executing
   <pre>
   FileInfo
@@ -115,8 +118,10 @@
 
 
 <hr>
-
   @section advanced_linux_openms Advanced Options
+
+
+
 
   Advanced users can list the separate make targets by calling:
   <pre>
@@ -133,6 +138,7 @@
       <td>the path where the bin/ and lib/ directories should be installed to (when <pre>sudo make install</pre> is wished for a system-wide install: e.g. -DINSTALL_PREFIX=/usr/local/)
           <BR>
           <b>Note:</b> Moving these directories after installing is not supported. 
+
 	<b>For development, install prefixes are not supported. In this case %OpenMS must
 	be built in place!</b>
      </td>
@@ -168,7 +174,8 @@
     </tr>    
     <tr>
       <td valign="top"><pre>SEARCH_ENGINES_DIRECTORY</pre> (optional)</td>
-      <td>The location where the ID search engines (X!Tandem, OMMSA) are located. This directory should have the same structure as the example in the %OpenMS svn repository. 
+      <td>The location where the ID search engines (X!Tandem, OMMSA, MyriMatch) are located. This directory should have the same structure as the example in the %OpenMS svn repository: https://open-ms.svn.sourceforge.net/svnroot/open-ms/THIRDPARTY/SEARCHENGINES/.
+
       This directory is needed to build the installer for %OpenMS.</td>
     </tr>        
     <tr>
@@ -181,7 +188,7 @@
   <pre>
   ccmake .
   </pre>
-  This works only after having executed <code>cmake .</code>.
+  This works only after having executed <pre>cmake .</pre>
 
   
 <HR>
