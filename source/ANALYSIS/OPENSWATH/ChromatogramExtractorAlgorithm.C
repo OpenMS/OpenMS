@@ -90,7 +90,7 @@ namespace OpenMS
       integrated_intensity += (*int_walker);
     }
 
-    // walk to the right until we go outside the window, then walk to the left until we are outside the window
+    // walk to the left until we go outside the window, then start walking to the right until we are outside the window
     mz_walker  = mz_it;
     int_walker = int_it;
     if (mz_it != mz_start)

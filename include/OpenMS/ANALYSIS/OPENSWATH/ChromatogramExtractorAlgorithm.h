@@ -42,13 +42,19 @@ namespace OpenMS
 {
 
   /**
-  @brief The ChromatogramExtractor extracts chromatograms from a mzML file.
-
-  It will take as input a set of (TraML) transitions and will extract the
-  signal of the provided map at the product ion m/z values specified by the
-  transitions. The map is thus assumed to be an MS2 map from a SWATH / DIA
-  experiment.
-
+   * @brief The ChromatogramExtractorAlgorithm extracts chromatograms from a MS data.
+   * 
+   * It will take as input a set of transitions coordinates and will extract
+   * the signal of the provided map at the product ion m/z and retention time
+   * (rt) values specified by the extraction coordinates. This interface only
+   * expects a set of coordinates which are up to the user to fill but a
+   * convenient prepare_coordinates function is provided (in the
+   * ChromatogramExtractor class) to create the coordinates for the most common
+   * case of an MS2 and MS1 extraction.
+   * 
+   * In the case of MS2 extraction, the map is assumed to originate from a SWATH
+   * (data-independent acquisition or DIA) experiment.
+   *
   */
   class OPENMS_DLLAPI ChromatogramExtractorAlgorithm :
     public ProgressLogger
@@ -91,8 +97,6 @@ public:
         std::vector< OpenSwath::ChromatogramPtr >& output, 
         std::vector<ExtractionCoordinates> extraction_coordinates, double& mz_extraction_window,
         bool ppm, double rt_extraction_window, String filter);
-
-public:
 
     /**
      * @brief Extract the next mz value and add the integrated intensity to integrated_intensity. 

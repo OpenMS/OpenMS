@@ -48,13 +48,15 @@ namespace OpenMS
    * @brief The ChromatogramExtractor extracts chromatograms from a spectra file.
    *
    * It will take as input a set of transitions coordinates and will extract
-   * the signal of the provided map at the product ion m/z values specified by
-   * the extraction coordinates. There are two interfaces, the old interface
-   * will take a full TargetedExperiment and assume that one wants to extract
-   * at the m/z of the transitions present in the TargetedExperiment. The new
-   * interface only expects a set of coordinates which are up to the user to
-   * fill but a convenient prepare_coordinates function is provided to create
-   * the coordinates for the most common case of an MS2 and MS1 extraction.
+   * the signal of the provided map at the product ion m/z and retention time
+   * (rt) values specified by the extraction coordinates. There are two
+   * interfaces, the old interface will take a full TargetedExperiment and
+   * assume that one wants to extract at the m/z of the transitions present in
+   * the TargetedExperiment. The new interface (see also the
+   * ChromatogramExtractorAlgorithm class) only expects a set of coordinates
+   * which are up to the user to fill but a convenient prepare_coordinates
+   * function is provided to create the coordinates for the most common case of
+   * an MS2 and MS1 extraction.
    * 
    * In the case of MS2 extraction, the map is assumed to originate from a SWATH
    * (data-independent acquisition or DIA) experiment.
@@ -248,8 +250,6 @@ public:
         peak_idx++;
       }
 
-      integrated_intensity = 0;
-
       // walk right and left and add to our intensity
       walker = peak_idx;
       // if we moved past the end of the spectrum, we need to try the last peak of the spectrum (it could still be within the window)
@@ -264,7 +264,7 @@ public:
         integrated_intensity += input[walker].getIntensity();
       }
 
-      // walk to the right until we go outside the window, then walk to the left until we are outside the window
+      // walk to the left until we go outside the window, then start walking to the right until we are outside the window
       walker = peak_idx;
       if (walker > 0)
       {
@@ -318,7 +318,6 @@ public:
         peak_idx++;
       }
 
-
       // walk right and left and add to our intensity
       walker = peak_idx;
       // if we moved past the end of the spectrum, we need to try the last peak of the spectrum (it could still be within the window)
@@ -334,7 +333,7 @@ public:
         integrated_intensity += input[walker].getIntensity() * weight;
       }
 
-      // walk to the right until we go outside the window, then walk to the left until we are outside the window
+      // walk to the left until we go outside the window, then start walking to the right until we are outside the window
       walker = peak_idx;
       if (walker > 0 )
       {
