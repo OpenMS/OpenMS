@@ -30,11 +30,12 @@
 
   <table style="border-style:solid; border-collapse:collapse; border-color:#c0c0c0;" cellpadding="3px">
   <tr>
-    <td><B>Fedora </B> </td> 
+    <td><B>Fedora </B> 
+    also look <a href="http://koji.fedoraproject.org/koji/packages">here</a>
+	</td>
     <td><pre>
     sudo yum install cmake gcc gcc-g++ autoconf autoconf-2.6 qt-devel
     </pre>
-    also look <a href="http://koji.fedoraproject.org/koji/packages">here</a>
     </td>
   </tr>                
   <tr>
@@ -46,7 +47,8 @@
   <tr>
     <td><B>Ubuntu/Debian (12.04/6.0 or later recommended)</B></td>
     <td><pre>
-    sudo apt-get install cmake g++ autoconf qt4-dev-tools patch libtool make libxerces-c-dev libgsl0-dev libboost-regex-dev \<br>libboost-iostreams-dev libboost-date-time-dev libboost-math-dev libsvm-dev libglpk-dev libzip-dev zlib1g-dev
+    sudo apt-get install cmake g++ autoconf qt4-dev-tools patch libtool make libxerces-c-dev libgsl0-dev libboost-regex-dev \
+    libboost-iostreams-dev libboost-date-time-dev libboost-math-dev libsvm-dev libglpk-dev libzip-dev zlib1g-dev
     </pre></td>
 
   </tr>
@@ -76,8 +78,7 @@
 
   <a href="http://www.cmake.org/">CMake</a> is used to check the system and create the 'Makefile'.
 
-  From the root directory of the package (or the checked out svn branch of %OpenMS), execute the following command to <i>configure</i> %OpenMS to build in bin/ and lib/,
-
+  From the root directory of the package (or the checked out svn branch of %OpenMS), execute the following command to <i>configure</i> %OpenMS to build in bin/ and lib/,<br>
   substituting <b>/PATH/TO/contrib/</b> by the actual path to the directory of the previous step (for the Release package it is just <i>contrib/</i>):
   <pre>
   cmake -DCMAKE_FIND_ROOT_PATH="/usr;/usr/local;/PATH/TO/contrib" -DBOOST_USE_STATIC=OFF .
