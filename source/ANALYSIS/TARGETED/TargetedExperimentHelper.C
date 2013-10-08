@@ -60,7 +60,7 @@ namespace OpenMS
     OpenMS::AASequence getAASequence(const OpenMS::TargetedExperiment::Peptide& peptide)
     {
       OpenMS::ModificationsDB* mod_db = OpenMS::ModificationsDB::getInstance();
-      OpenMS::AASequence aas = peptide.sequence;
+      OpenMS::AASequence aas = AASequence(peptide.sequence);
 
       for (std::vector<OpenMS::TargetedExperiment::Peptide::Modification>::const_iterator it = peptide.mods.begin(); it != peptide.mods.end(); ++it)
       {

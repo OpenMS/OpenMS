@@ -124,7 +124,7 @@ protected:
     mass_acc = getIntOption_("mass_accuracy");
     out_opt = getIntOption_("out_option");
     missed_cleavages = getIntOption_("missed_cleavages");
-    AASequence M = getStringOption_("motif");
+    AASequence M = AASequence(getStringOption_("motif"));
 
     //-------------------------------------------------------------
     // reading input

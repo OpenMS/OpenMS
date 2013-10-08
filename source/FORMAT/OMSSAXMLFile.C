@@ -278,7 +278,7 @@ namespace OpenMS
     }
     if (tag_ == "MSHits_pepstring")
     {
-      AASequence seq = value.trim();
+      AASequence seq = AASequence(value.trim());
       if (mod_def_set_.getNumberOfFixedModifications() != 0 && seq.isValid())
       {
         set<String> fixed_mod_names = mod_def_set_.getFixedModificationNames();

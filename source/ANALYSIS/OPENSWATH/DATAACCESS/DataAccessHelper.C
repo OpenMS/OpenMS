@@ -162,7 +162,7 @@ namespace OpenMS
 
   void OpenSwathDataAccessHelper::convertPeptideToAASequence(const OpenSwath::LightPeptide & peptide, AASequence & aa_sequence)
   {
-      aa_sequence = (String)peptide.sequence;
+      aa_sequence = AASequence(peptide.sequence);
       for (std::vector<OpenSwath::LightModification>::const_iterator it = peptide.modifications.begin(); it != peptide.modifications.end(); ++it)
       {
         TargetedExperimentHelper::setModification(it->location, boost::numeric_cast<int>(peptide.sequence.size()), it->unimod_id, aa_sequence);

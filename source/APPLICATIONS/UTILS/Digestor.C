@@ -206,7 +206,7 @@ protected:
       vector<AASequence> temp_peptides;
       if (enzyme == "none")
       {
-        temp_peptides.push_back(protein_data[i].sequence);
+        temp_peptides.push_back(AASequence(protein_data[i].sequence));
       }
       else
       {

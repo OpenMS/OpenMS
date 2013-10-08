@@ -250,7 +250,7 @@ namespace OpenMS
           sequence.append(1, *c_i);
       }
 
-      peptide_hit.setSequence(sequence);
+      peptide_hit.setSequence(AASequence(sequence));
       peptide_hit.addProteinAccession(accession);
 
       peptide_identification.insertHit(peptide_hit);

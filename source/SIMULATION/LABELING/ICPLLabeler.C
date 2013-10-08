@@ -281,8 +281,8 @@ namespace OpenMS
           else
           {
             // merge all three channels
-            Feature c2c1 = mergeFeatures_(heavy_feature, heavy_feature_unmodified_sequence, medium_labeled_features_index);
-            Feature completeMerge = mergeFeatures_(c2c1, heavy_feature_unmodified_sequence, light_labeled_features_index);
+            Feature c2c1 = mergeFeatures_(heavy_feature, AASequence(heavy_feature_unmodified_sequence), medium_labeled_features_index);
+            Feature completeMerge = mergeFeatures_(c2c1, AASequence(heavy_feature_unmodified_sequence), light_labeled_features_index);
 
             final_feature_map.push_back(completeMerge);
           }
@@ -308,7 +308,7 @@ namespace OpenMS
           else
           {
             // merge all three channels
-            Feature completeMerge = mergeFeatures_(heavy_feature, heavy_feature_unmodified_sequence, light_labeled_features_index);
+            Feature completeMerge = mergeFeatures_(heavy_feature, AASequence(heavy_feature_unmodified_sequence), light_labeled_features_index);
             final_feature_map.push_back(completeMerge);
           }
           // remove features from indices
@@ -332,7 +332,7 @@ namespace OpenMS
           else
           {
             // merge all
-            Feature completeMerge = mergeFeatures_(heavy_feature, heavy_feature_unmodified_sequence, medium_labeled_features_index);
+            Feature completeMerge = mergeFeatures_(heavy_feature, AASequence(heavy_feature_unmodified_sequence), medium_labeled_features_index);
             final_feature_map.push_back(completeMerge);
           }
           // remove features from indices
@@ -371,7 +371,7 @@ namespace OpenMS
           else
           {
             // merge
-            Feature completeMerge = mergeFeatures_(medium_labeled_feature, medium_labeled_feature_unmodified_sequence, light_labeled_features_index);
+            Feature completeMerge = mergeFeatures_(medium_labeled_feature, AASequence(medium_labeled_feature_unmodified_sequence), light_labeled_features_index);
             final_feature_map.push_back(completeMerge);
           }
           // remove features from indices

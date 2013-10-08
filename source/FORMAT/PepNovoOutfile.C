@@ -298,7 +298,7 @@ namespace OpenMS
                 //cout<<mask_it->first<<" "<<mask_it->second<<endl;
                 sequence.substitute(mask_it->first, mask_it->second);
               }
-              peptide_hit.setSequence(sequence);
+              peptide_hit.setSequence(AASequence(sequence));
               peptide_identification.insertHit(peptide_hit);
             }
           }

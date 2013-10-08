@@ -164,7 +164,7 @@ namespace OpenMS
 
       // get sequence of peptide
       String seq(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("seq")))));
-      hit.setSequence(seq);
+      hit.setSequence(AASequence(seq));
 
       // get amino acid before
       String pre(sm_.convert(attributes.getValue(attributes.getIndex(sm_.convert("pre")))));
@@ -397,7 +397,7 @@ namespace OpenMS
         }
       }
 
-      peptide_hits_[actual_id_].back().setSequence(aa_seq);
+      peptide_hits_[actual_id_].back().setSequence(AASequence(aa_seq));
 
       return;
     }

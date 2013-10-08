@@ -108,7 +108,7 @@ namespace OpenMS
            ++protein_hit)
       {
         // generate a PeptideHit hit with the correct link to the protein
-        PeptideHit pep_hit(1.0, 1, 0, protein_hit->getSequence());
+        PeptideHit pep_hit(1.0, 1, 0, AASequence(protein_hit->getSequence()));
         std::vector<String> prot_accessions;
         prot_accessions.push_back(protein_hit->getAccession());
         pep_hit.setProteinAccessions(prot_accessions);
@@ -164,7 +164,7 @@ namespace OpenMS
 
       // how many "atomic"(i.e. non-cleavable) peptides are created?
       digestion.setMissedCleavages(0);
-      Size complete_digest_count = digestion.peptideCount(protein_hit->getSequence());
+      Size complete_digest_count = digestion.peptideCount(AASequence(protein_hit->getSequence()));
       // compute average number of "atomic" peptides summed from all digestion products
       Size number_atomic_whole = 0;
       Size number_of_digestion_products = 0;

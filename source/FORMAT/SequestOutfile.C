@@ -304,7 +304,7 @@ namespace OpenMS
           if ((bool) isalpha(*c_i) && (bool) isupper(*c_i))
             sequence.append(1, *c_i);
         }
-        peptide_hit.setSequence(sequence);
+        peptide_hit.setSequence(AASequence(sequence));
 
         peptide_hit.setRank(substrings[rank_sp_column].substr(0, substrings[rank_sp_column].find('/')).toInt());
 

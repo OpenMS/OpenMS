@@ -365,10 +365,10 @@ protected:
     AASequence(const AASequence & rhs);
 
     /// copy constructor from a String
-    AASequence(const String & rhs);
+    explicit AASequence(const String & rhs);
 
     /// copy constructor from char* string
-    AASequence(const char * rhs);
+    explicit AASequence(const char * rhs);
 
     /// destructor
     virtual ~AASequence();

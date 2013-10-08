@@ -673,7 +673,7 @@ namespace OpenMS
 
       pep_hit_.setCharge(attributeAsInt_(attributes, "charge"));
       pep_hit_.setScore(attributeAsDouble_(attributes, "score"));
-      pep_hit_.setSequence(attributeAsString_(attributes, "sequence"));
+      pep_hit_.setSequence(AASequence(attributeAsString_(attributes, "sequence")));
 
       //aa_before
       String tmp = "";

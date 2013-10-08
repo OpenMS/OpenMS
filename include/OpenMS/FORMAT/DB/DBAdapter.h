@@ -1505,7 +1505,7 @@ private:
       while (sub_result.next())
       {
         peh.setScore(sub_result.value(0).toDouble());
-        peh.setSequence(String(sub_result.value(1).toString()));
+        peh.setSequence(AASequence(sub_result.value(1).toString()));
         peh.setCharge(sub_result.value(2).toInt());
         peh.setAABefore(sub_result.value(3).toString().toStdString()[0]);
         peh.setAAAfter(sub_result.value(4).toString().toStdString()[0]);

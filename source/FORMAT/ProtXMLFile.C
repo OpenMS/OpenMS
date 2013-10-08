@@ -179,7 +179,7 @@ namespace OpenMS
       // We thus treat each instance as a separate peptide
       // todo/improvement: link them by a group in PeptideIdentification?!
       pep_hit_ = new PeptideHit;
-      pep_hit_->setSequence(attributeAsString_(attributes, "peptide_sequence"));
+      pep_hit_->setSequence(AASequence(attributeAsString_(attributes, "peptide_sequence")));
       pep_hit_->setScore(attributeAsDouble_(attributes, "nsp_adjusted_probability"));
 
       Int charge;

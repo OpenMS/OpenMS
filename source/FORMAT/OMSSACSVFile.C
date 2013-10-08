@@ -98,7 +98,7 @@ namespace OpenMS
         throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, line, "number of columns should be 14 in line " + String(line_number));
       }
       PeptideHit p;
-      p.setSequence(split[2].trim());
+      p.setSequence(AASequence(split[2].trim()));
       p.setScore(split[13 + offset].trim().toDouble());
       p.setCharge(split[11 + offset].trim().toInt());
 
