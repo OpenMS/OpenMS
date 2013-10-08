@@ -250,7 +250,7 @@ namespace OpenMS
       std::cout << "\nadd row " << std::endl;
 #endif
       model_->addRow(indices, entries, (String("PREC_ACQU_LIMIT_") + i), 0, param_.getValue("feature_based:max_number_precursors_per_feature"), 
-		     LPWrapper::UPPER_BOUND_ONLY); // only upper bounded problem -> lower bound is ignored
+      LPWrapper::UPPER_BOUND_ONLY); // only upper bounded problem -> lower bound is ignored
 
 #ifdef DEBUG_OPS
       std::cout << stop - start << " PREC_ACQU_LIMIT_" << String(i) << std::endl;

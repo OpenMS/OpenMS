@@ -243,8 +243,8 @@ protected:
           exp.sortSpectra(true);
           OfflinePrecursorIonSelection opis;
           Param param = getParam_().copy("algorithm:PrecursorSelection:", true);
-	  param.removeAll("feature_based:");
-	  UInt spot_cap = param.getValue("ms2_spectra_per_rt_bin");
+          param.removeAll("feature_based:");
+          UInt spot_cap = param.getValue("ms2_spectra_per_rt_bin");
           opis.setParameters(param);
 
           // insert charges
