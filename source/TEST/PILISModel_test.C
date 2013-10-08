@@ -103,8 +103,8 @@ START_SECTION(void writeToFile(const String& filename))
 	//model.getParameters().store("p.param");
 	//model2.getParameters().store("p2.param");
 	RichPeakSpectrum spec, spec2;
-	model.getSpectrum(spec, "DER", 1);
-	model2.getSpectrum(spec2, "DER", 1);
+	model.getSpectrum(spec, AASequence("DER"), 1);
+	model2.getSpectrum(spec2, AASequence("DER"), 1);
 	TOLERANCE_ABSOLUTE(0.1) // arithmetic with small numbers...
 	TEST_EQUAL(spec.size(), spec2.size())
 	for (Size i = 0; i != spec.size(); ++i)
@@ -122,7 +122,7 @@ START_SECTION(void getSpectrum(RichPeakSpectrum& spec, const AASequence& peptide
 	RichPeakSpectrum spec;
 	PILISModel model;
 	model.init(true);
-	model.getSpectrum(spec, "DER", 1);
+	model.getSpectrum(spec, AASequence("DER"), 1);
 	TEST_EQUAL(spec.size(), 18)
 END_SECTION
 
@@ -130,21 +130,21 @@ START_SECTION(void train(const RichPeakSpectrum&, const AASequence& peptide, UIn
 	RichPeakSpectrum spec1, spec2, spec3;
 	PILISModel model;
 	model.init(true);
-	model.getSpectrum(spec1, "DER", 1);
-	model.getSpectrum(spec2, "DEK", 1);
-	model.getSpectrum(spec3, "DQK", 1);
+	model.getSpectrum(spec1, AASequence("DER"), 1);
+	model.getSpectrum(spec2, AASequence("DEK"), 1);
+	model.getSpectrum(spec3, AASequence("DQK"), 1);
 	TEST_EQUAL(spec1.size(), 18);
 	TEST_EQUAL(spec2.size(), 19);
 	TEST_EQUAL(spec3.size(), 21);
-	model.train(spec1, "DER", 1);
-	model.train(spec2, "DEK", 1);
-	model.train(spec3, "DQK", 1);
+	model.train(spec1, AASequence("DER"), 1);
+	model.train(spec2, AASequence("DEK"), 1);
+	model.train(spec3, AASequence("DQK"), 1);
 
 	// before calling evaluate the generated spectra should not change!
 	RichPeakSpectrum spec4, spec5, spec6;
-	model.getSpectrum(spec4, "DER", 1);
-	model.getSpectrum(spec5, "DEK", 1);
-	model.getSpectrum(spec6, "DQK", 1);
+	model.getSpectrum(spec4, AASequence("DER"), 1);
+	model.getSpectrum(spec5, AASequence("DEK"), 1);
+	model.getSpectrum(spec6, AASequence("DQK"), 1);
 	TEST_EQUAL(spec1.size(), spec4.size())
 	TEST_EQUAL(spec2.size(), spec5.size())
 	TEST_EQUAL(spec3.size(), spec6.size())
@@ -167,7 +167,7 @@ START_SECTION(void train(const RichPeakSpectrum&, const AASequence& peptide, UIn
 	model.evaluate();
 
 	RichPeakSpectrum spec;
-	model.getSpectrum(spec, "DER", 1);
+	model.getSpectrum(spec, AASequence("DER"), 1);
 
 /*	
 	for (Size i = 0; i != spec.size(); ++i)

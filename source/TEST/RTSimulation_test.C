@@ -130,7 +130,7 @@ START_SECTION(([EXTRA] Prediction Test - HPLC with relative RTs))
 	{
 		Feature f;
 		PeptideIdentification pep_id;
-		pep_id.insertHit(PeptideHit(1.0, 1, 1, *it));
+		pep_id.insertHit(PeptideHit(1.0, 1, 1, AASequence(*it)));
 		f.getPeptideIdentifications().push_back(pep_id);
 		f.setIntensity(10);
 		svm_rt_features.push_back(f);
@@ -187,7 +187,7 @@ START_SECTION((void createExperiment(MSSimExperiment & experiment)))
   {
     Feature f;
     PeptideIdentification pep_id;
-    pep_id.insertHit(PeptideHit(1.0, 1, 1, *it));
+    pep_id.insertHit(PeptideHit(1.0, 1, 1, AASequence(*it)));
     f.getPeptideIdentifications().push_back(pep_id);
     f.setIntensity(10);
     svm_rt_features.push_back(f);
@@ -237,7 +237,7 @@ START_SECTION(([EXTRA] Prediction Test - No RT column))
   {
     Feature f;
     PeptideIdentification pep_id;
-    pep_id.insertHit(PeptideHit(1.0, 1, 1, *it));
+    pep_id.insertHit(PeptideHit(1.0, 1, 1, AASequence(*it)));
     f.getPeptideIdentifications().push_back(pep_id);
     f.setIntensity(10);
     no_rt_features.push_back(f);
@@ -289,7 +289,7 @@ START_SECTION(([EXTRA] Prediction Test - HPLC with absolute RTs))
   {
     Feature f;
     PeptideIdentification pep_id;
-    pep_id.insertHit(PeptideHit(1.0, 1, 1, *it));
+    pep_id.insertHit(PeptideHit(1.0, 1, 1, AASequence(*it)));
     f.getPeptideIdentifications().push_back(pep_id);
     f.setIntensity(10);
     features.push_back(f);

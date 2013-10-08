@@ -57,9 +57,9 @@ bf.setMZ(2.2);
 bf.setCharge(3);
 bf.getPeptideIdentifications().resize(2);
 PeptideHit hit;
-hit.setSequence("AAA");
+hit.setSequence(AASequence("AAA"));
 bf.getPeptideIdentifications()[0].insertHit(hit);
-hit.setSequence("CCC");
+hit.setSequence(AASequence("CCC"));
 bf.getPeptideIdentifications()[1].insertHit(hit);
 GridFeature gf(bf, 123, 456);
 

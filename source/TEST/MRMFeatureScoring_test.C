@@ -198,7 +198,7 @@ START_SECTION((virtual void test_dia_scores()))
   // Presence of b/y series score
   double bseries_score = 0, yseries_score = 0;
   String sequence = "SYVAWDR";
-  OpenMS::AASequence aas = sequence;
+  OpenMS::AASequence aas = AASequence(sequence);
   diascoring.dia_by_ion_score(sptr, aas, by_charge_state, bseries_score, yseries_score);
 
   TEST_REAL_SIMILAR(isotope_corr, 0.286635451556 * transition_group.getTransitions().size() )

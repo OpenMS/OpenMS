@@ -108,9 +108,9 @@ START_SECTION((const std::set<AASequence>& getAnnotations() const))
 	TEST_EQUAL(gf.getAnnotations().size(), 0);
 	bf.getPeptideIdentifications().resize(2);
 	PeptideHit hit;
-	hit.setSequence("AAA");
+	hit.setSequence(AASequence("AAA"));
 	bf.getPeptideIdentifications()[0].insertHit(hit);
-	hit.setSequence("CCC");
+	hit.setSequence(AASequence("CCC"));
 	bf.getPeptideIdentifications()[1].insertHit(hit);
 	GridFeature gf2(bf, 0, 0);
 	TEST_EQUAL(gf2.getAnnotations().size(), 2);

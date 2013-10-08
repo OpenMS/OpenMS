@@ -103,7 +103,7 @@ START_SECTION((void selectFragments(std::vector< RichPeak1D > &selected_peaks, c
 	
 	PeptideHit hit;
 	hit.setCharge(1);
-	hit.setSequence("DFPIANGER");
+	hit.setSequence(AASequence("DFPIANGER"));
 	vector<PeptideHit> hits;
 	hits.push_back(hit);
 	PeptideIdentification id;

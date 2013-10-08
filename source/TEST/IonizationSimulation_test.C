@@ -129,21 +129,21 @@ START_SECTION((void ionize(FeatureMapSim &features, ConsensusMap &charge_consens
   esi_sim.setParameters(esi_param);
   
   FeatureMapSim esi_features;
-	ConsensusMap cm;
+  ConsensusMap cm;
   StringList peps = StringList::create("TVQMENQFVAFVDK,ACHKKKKHHACAC,AAAAHTKLRTTIPPEFG,RYCNHKTUIKL");
-	for (StringList::const_iterator it=peps.begin(); it!=peps.end(); ++it)
-	{
-		Feature f;
-		PeptideIdentification pep_id;
-		pep_id.insertHit(PeptideHit(1.0, 1, 1, *it));
-		f.getPeptideIdentifications().push_back(pep_id);
-		f.setIntensity(10);
-		esi_features.push_back(f);
-	}
+  for (StringList::const_iterator it=peps.begin(); it!=peps.end(); ++it)
+  {
+    Feature f;
+    PeptideIdentification pep_id;
+    pep_id.insertHit(PeptideHit(1.0, 1, 1, AASequence(*it)));
+    f.getPeptideIdentifications().push_back(pep_id);
+    f.setIntensity(10);
+    esi_features.push_back(f);
+  }
   
-	MSSimExperiment exp;
-	MSSimExperiment::SpectrumType spec;
-	exp.addSpectrum(spec);
+  MSSimExperiment exp;
+  MSSimExperiment::SpectrumType spec;
+  exp.addSpectrum(spec);
 
   esi_sim.ionize(esi_features, cm, exp);
     
@@ -248,7 +248,7 @@ START_SECTION((void ionize(FeatureMapSim &features, ConsensusMap &charge_consens
 	{
 		Feature f;
 		PeptideIdentification pep_id;
-		pep_id.insertHit(PeptideHit(1.0, 1, 1, *it));
+		pep_id.insertHit(PeptideHit(1.0, 1, 1, AASequence(*it)));
 		f.getPeptideIdentifications().push_back(pep_id);
 		f.setIntensity(10);
     maldi_features.push_back(f);

@@ -101,7 +101,7 @@ START_SECTION((void generateSeedList(vector<PeptideIdentification>& peptides, Se
 	TEST_EQUAL(seeds[1], DPosition<2>(2.2, 222.222));
 	TEST_EQUAL(seeds[2], DPosition<2>(3.3, 333.333));
 	PeptideHit hit;
-	hit.setSequence("TEST");
+	hit.setSequence(AASequence("TEST"));
 	hit.setCharge(2);
 	peptides[0].insertHit(hit);
 	peptides.resize(1);

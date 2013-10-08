@@ -235,13 +235,13 @@ START_SECTION((void sort()))
 	PeptideIdentification id;
 	PeptideHit hit;
 	hit.setScore(23);
-	hit.setSequence("SECONDPROTEIN");
+	hit.setSequence(AASequence("SECONDPROTEIN"));
 	id.insertHit(hit);
 	hit.setScore(45);
-	hit.setSequence("FIRSTPROTEIN");
+	hit.setSequence(AASequence("FIRSTPROTEIN"));
 	id.insertHit(hit);
 	hit.setScore(7);
-	hit.setSequence("THIRDPROTEIN");
+	hit.setSequence(AASequence("THIRDPROTEIN"));
 	id.insertHit(hit);
 	
 	//higher score is better
@@ -271,13 +271,13 @@ START_SECTION((void assignRanks()))
 	PeptideIdentification id;
 	PeptideHit hit;
 	hit.setScore(23);
-	hit.setSequence("SECONDPROTEIN");
+	hit.setSequence(AASequence("SECONDPROTEIN"));
 	id.insertHit(hit);
 	hit.setScore(45);
-	hit.setSequence("FIRSTPROTEIN");
+	hit.setSequence(AASequence("FIRSTPROTEIN"));
 	id.insertHit(hit);
 	hit.setScore(7);
-	hit.setSequence("THIRDPROTEIN");
+	hit.setSequence(AASequence("THIRDPROTEIN"));
 	id.insertHit(hit);
 
 	id.assignRanks();
@@ -296,19 +296,19 @@ START_SECTION(void getReferencingHits(const String &protein_accession, std::vect
 	vector< PeptideHit > peptide_hits;
 	
 	hit.setScore(23);
-	hit.setSequence("FIRSTPROTEIN");
+	hit.setSequence(AASequence("FIRSTPROTEIN"));
 	hit.addProteinAccession("TEST_PROTEIN1");
 	id.insertHit(hit);
 	
 	hit = PeptideHit();
 	hit.setScore(10);
-	hit.setSequence("SECONDPROTEIN");
+	hit.setSequence(AASequence("SECONDPROTEIN"));
 	hit.addProteinAccession("TEST_PROTEIN2");
 	id.insertHit(hit);
 
 	hit = PeptideHit();
 	hit.setScore(11);
-	hit.setSequence("THIRDPROTEIN");
+	hit.setSequence(AASequence("THIRDPROTEIN"));
 	hit.addProteinAccession("TEST_PROTEIN2");
 	id.insertHit(hit);
 
@@ -329,19 +329,19 @@ START_SECTION(void getReferencingHits(const std::vector< String > &accessions, s
 	accessions.push_back("TEST_PROTEIN3");
 	
 	hit.setScore(23);
-	hit.setSequence("FIRSTPROTEIN");
+	hit.setSequence(AASequence("FIRSTPROTEIN"));
 	hit.addProteinAccession("TEST_PROTEIN1");
 	id.insertHit(hit);
 	
 	hit = PeptideHit();
 	hit.setScore(10);
-	hit.setSequence("SECONDPROTEIN");
+	hit.setSequence(AASequence("SECONDPROTEIN"));
 	hit.addProteinAccession("TEST_PROTEIN2");
 	id.insertHit(hit);
 
 	hit = PeptideHit();
 	hit.setScore(11);
-	hit.setSequence("THIRDPROTEIN");
+	hit.setSequence(AASequence("THIRDPROTEIN"));
 	hit.addProteinAccession("TEST_PROTEIN3");
 	id.insertHit(hit);
 
@@ -364,19 +364,19 @@ START_SECTION(void getReferencingHits(const std::vector< ProteinHit > &protein_h
 	protein_hits.push_back(p_hit);
 			
 	hit.setScore(23);
-	hit.setSequence("FIRSTPROTEIN");
+	hit.setSequence(AASequence("FIRSTPROTEIN"));
 	hit.addProteinAccession("TEST_PROTEIN1");
 	id.insertHit(hit);
 	
 	hit = PeptideHit();
 	hit.setScore(10);
-	hit.setSequence("SECONDPROTEIN");
+	hit.setSequence(AASequence("SECONDPROTEIN"));
 	hit.addProteinAccession("TEST_PROTEIN2");
 	id.insertHit(hit);
 
 	hit = PeptideHit();
 	hit.setScore(11);
-	hit.setSequence("THIRDPROTEIN");
+	hit.setSequence(AASequence("THIRDPROTEIN"));
 	hit.addProteinAccession("TEST_PROTEIN3");
 	id.insertHit(hit);
 
@@ -392,19 +392,19 @@ START_SECTION(void getNonReferencingHits(const String &protein_accession, std::v
 	vector< PeptideHit > peptide_hits;
 	
 	hit.setScore(23);
-	hit.setSequence("FIRSTPROTEIN");
+	hit.setSequence(AASequence("FIRSTPROTEIN"));
 	hit.addProteinAccession("TEST_PROTEIN1");
 	id.insertHit(hit);
 	
 	hit = PeptideHit();
 	hit.setScore(10);
-	hit.setSequence("SECONDPROTEIN");
+	hit.setSequence(AASequence("SECONDPROTEIN"));
 	hit.addProteinAccession("TEST_PROTEIN2");
 	id.insertHit(hit);
 
 	hit = PeptideHit();
 	hit.setScore(11);
-	hit.setSequence("THIRDPROTEIN");
+	hit.setSequence(AASequence("THIRDPROTEIN"));
 	hit.addProteinAccession("TEST_PROTEIN2");
 	id.insertHit(hit);
 
@@ -423,19 +423,19 @@ START_SECTION(void getNonReferencingHits(const std::vector< String > &accessions
 	accessions.push_back("TEST_PROTEIN3");
 	
 	hit.setScore(23);
-	hit.setSequence("FIRSTPROTEIN");
+	hit.setSequence(AASequence("FIRSTPROTEIN"));
 	hit.addProteinAccession("TEST_PROTEIN1");
 	id.insertHit(hit);
 	
 	hit = PeptideHit();
 	hit.setScore(10);
-	hit.setSequence("SECONDPROTEIN");
+	hit.setSequence(AASequence("SECONDPROTEIN"));
 	hit.addProteinAccession("TEST_PROTEIN2");
 	id.insertHit(hit);
 
 	hit = PeptideHit();
 	hit.setScore(11);
-	hit.setSequence("THIRDPROTEIN");
+	hit.setSequence(AASequence("THIRDPROTEIN"));
 	hit.addProteinAccession("TEST_PROTEIN3");
 	id.insertHit(hit);
 
@@ -458,19 +458,19 @@ START_SECTION(void getNonReferencingHits(const std::vector< ProteinHit > &protei
 	protein_hits.push_back(p_hit);
 			
 	hit.setScore(23);
-	hit.setSequence("FIRSTPROTEIN");
+	hit.setSequence(AASequence("FIRSTPROTEIN"));
 	hit.addProteinAccession("TEST_PROTEIN1");
 	id.insertHit(hit);
 	
 	hit = PeptideHit();
 	hit.setScore(10);
-	hit.setSequence("SECONDPROTEIN");
+	hit.setSequence(AASequence("SECONDPROTEIN"));
 	hit.addProteinAccession("TEST_PROTEIN2");
 	id.insertHit(hit);
 
 	hit = PeptideHit();
 	hit.setScore(11);
-	hit.setSequence("THIRDPROTEIN");
+	hit.setSequence(AASequence("THIRDPROTEIN"));
 	hit.addProteinAccession("TEST_PROTEIN3");
 	id.insertHit(hit);
 

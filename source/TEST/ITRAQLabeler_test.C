@@ -103,21 +103,21 @@ START_SECTION((void postDigestHook(FeatureMapSimVector &)))
   FeatureMap<> fm1, fm2, fm3;
 
   // create peptide
-  PeptideHit pep_hit(1.0, 1, 0, "AAHJK");
+  PeptideHit pep_hit(1.0, 1, 0, AASequence("AAHJK"));
   std::vector<String> prot_accessions;
   prot_accessions.push_back("p1");
   pep_hit.setProteinAccessions(prot_accessions);
   PeptideIdentification pep_id;
   pep_id.insertHit(pep_hit);
   // --
-  PeptideHit pep_hit2(1.0, 1, 0, "EEEEPPPK");
+  PeptideHit pep_hit2(1.0, 1, 0, AASequence("EEEEPPPK"));
   std::vector<String> prot_accessions2;
   prot_accessions2.push_back("p2");
   pep_hit2.setProteinAccessions(prot_accessions2);
   PeptideIdentification pep_id2;
   pep_id2.insertHit(pep_hit2);
   // --
-  PeptideHit pep_hit3(1.0, 1, 0, "EEEEPPPK"); // same peptide as #2, but from different protein
+  PeptideHit pep_hit3(1.0, 1, 0, AASequence("EEEEPPPK")); // same peptide as #2, but from different protein
   std::vector<String> prot_accessions3;
   prot_accessions3.push_back("p3");
   pep_hit3.setProteinAccessions(prot_accessions3);

@@ -63,7 +63,7 @@ END_SECTION
 
 START_SECTION(AASequence(const AASequence& rhs))
 	AASequence seq;
-	seq = String("AAA");
+	seq = AASequence("AAA");
 	AASequence seq2(seq);
 	TEST_EQUAL(seq, seq2)
 END_SECTION
@@ -77,8 +77,8 @@ START_SECTION(AASequence(const String& rhs))
   TEST_EQUAL(seq.getResidue((SignedSize)4).getModification(),"")
 
   AASequence seq2;
-  seq2 = String("CNARCKNCNCNARCDRE");
-	TEST_EQUAL(seq, seq2);
+  seq2 = AASequence("CNARCKNCNCNARCDRE");
+  TEST_EQUAL(seq, seq2);
 
   // test complex term-mods
   AASequence seq3("VPQVSTPTLVEVSRSLGK(Label:18O(2))");
@@ -89,7 +89,7 @@ START_SECTION(AASequence(const String& rhs))
   TEST_EQUAL(seq3.getResidue((SignedSize)4).getModification(),"")
   TEST_EQUAL(seq3.getCTerminalModification(), "Label:18O(2)")
   AASequence seq4;
-  seq4 = "VPQVSTPTLVEVSRSLGK(Label:18O(2))";
+  seq4 = AASequence("VPQVSTPTLVEVSRSLGK(Label:18O(2))");
   TEST_EQUAL(seq3,seq4)
 
   AASequence seq5("(ICPL:2H(4))CNARCNCNCN");
@@ -117,7 +117,7 @@ END_SECTION
 START_SECTION(AASequence& operator = (const AASequence& rhs))
 	AASequence seq("AAA");
 	AASequence seq2;
-	seq2 = String("AAA");
+	seq2 = AASequence("AAA");
 	TEST_EQUAL(seq, seq2)
 END_SECTION
 

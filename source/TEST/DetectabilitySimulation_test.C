@@ -98,15 +98,15 @@ START_SECTION((void filterDetectability(FeatureMapSim & features)))
   
   FeatureMapSim no_detect_features;
   StringList peps = StringList::create("TVQMENQFVAFVDK,ACHKKKKHHACAC,AAAAHTKLRTTIPPEFG,RYCNHKTUIKL");
-	for (StringList::const_iterator it=peps.begin(); it!=peps.end(); ++it)
-	{
-		Feature f;
-		PeptideIdentification pep_id;
-		pep_id.insertHit(PeptideHit(1.0, 1, 1, *it));
-		f.getPeptideIdentifications().push_back(pep_id);
-		f.setIntensity(10);
-		no_detect_features.push_back(f);
-	}
+  for (StringList::const_iterator it=peps.begin(); it!=peps.end(); ++it)
+  {
+    Feature f;
+    PeptideIdentification pep_id;
+    pep_id.insertHit(PeptideHit(1.0, 1, 1, AASequence(*it)));
+    f.getPeptideIdentifications().push_back(pep_id);
+    f.setIntensity(10);
+    no_detect_features.push_back(f);
+  }
   
   detect_off.filterDetectability(no_detect_features);
   
@@ -129,7 +129,7 @@ START_SECTION((void filterDetectability(FeatureMapSim & features)))
 	{
 		Feature f;
 		PeptideIdentification pep_id;
-		pep_id.insertHit(PeptideHit(1.0, 1, 1, *it));
+		pep_id.insertHit(PeptideHit(1.0, 1, 1, AASequence(*it)));
 		f.getPeptideIdentifications().push_back(pep_id);
 		f.setIntensity(10);
 		svm_features.push_back(f);

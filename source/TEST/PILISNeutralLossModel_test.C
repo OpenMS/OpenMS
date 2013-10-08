@@ -147,7 +147,7 @@ START_SECTION((DoubleReal train(const RichPeakSpectrum & spec, const AASequence 
   }
 
 	vector<RichPeak1D> peaks1;
-	model.getIons(peaks1, "ANGER", 1.0);
+	model.getIons(peaks1, AASequence("ANGER"), 1.0);
 	TEST_EQUAL(peaks1.size(), 9)
 
 /*
@@ -160,7 +160,7 @@ START_SECTION((DoubleReal train(const RichPeakSpectrum & spec, const AASequence 
 	model.evaluate();
 
 	vector<RichPeak1D> peaks2;
-	model.getIons(peaks2, "ANGER", 1.0);
+	model.getIons(peaks2, AASequence("ANGER"), 1.0);
 	TEST_EQUAL(peaks2.size(), 9)
 
 /*

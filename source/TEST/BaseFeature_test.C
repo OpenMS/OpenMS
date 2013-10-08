@@ -386,7 +386,7 @@ START_SECTION((AnnotationState getAnnotationState() const))
 	TEST_EQUAL(tmp.getAnnotationState(), BaseFeature::FEATURE_ID_NONE);
 
   PeptideHit hit;
-  hit.setSequence("ABCDE");
+  hit.setSequence(AASequence("ABCDE"));
   ids[0].setHits(std::vector<PeptideHit>(1, hit));
 	TEST_EQUAL(tmp.getAnnotationState(), BaseFeature::FEATURE_ID_SINGLE);
 
@@ -395,7 +395,7 @@ START_SECTION((AnnotationState getAnnotationState() const))
   //tmp.setPeptideIdentifications(ids);
 	TEST_EQUAL(tmp.getAnnotationState(), BaseFeature::FEATURE_ID_MULTIPLE_SAME);
   
-  hit.setSequence("KRGH");
+  hit.setSequence(AASequence("KRGH"));
   ids[1].setHits(std::vector<PeptideHit>(1, hit)); // different to first hit
 	TEST_EQUAL(tmp.getAnnotationState(), BaseFeature::FEATURE_ID_MULTIPLE_DIVERGENT);
 

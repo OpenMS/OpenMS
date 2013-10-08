@@ -479,7 +479,7 @@ START_SECTION((void filterIdentificationsUnique(const PeptideIdentification &ide
 	PeptideIdentification id, id2;
 	vector<PeptideHit> hits;
 	PeptideHit hit;
-	hit.setSequence("DFPIANGER");
+	hit.setSequence(AASequence("DFPIANGER"));
 	hit.setCharge(1);
 	hit.setScore(0.3);
 	hits.push_back(hit);
@@ -487,7 +487,7 @@ START_SECTION((void filterIdentificationsUnique(const PeptideIdentification &ide
 	hits.push_back(hit);
 	hit.setScore(0.5);
 	hits.push_back(hit);
-	hit.setSequence("DFPIANGEK");
+	hit.setSequence(AASequence("DFPIANGEK"));
 	hits.push_back(hit);
 	hits.push_back(hit);
 	hits.push_back(hit);

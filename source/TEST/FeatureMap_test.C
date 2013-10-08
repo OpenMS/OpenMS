@@ -73,7 +73,7 @@ END_SECTION
 
 std::vector<PeptideIdentification> ids(1);
 PeptideHit hit;
-hit.setSequence("ABCDE");
+hit.setSequence(AASequence("ABCDE"));
 ids[0].setHits(std::vector<PeptideHit>(1, hit));
 
 Feature feature1;
@@ -94,7 +94,7 @@ Feature feature3;
 feature3.getPosition()[0] = 10.5;
 feature3.getPosition()[1] = 0.0;
 feature3.setIntensity(0.01f);
-hit.setSequence("KRGH");
+hit.setSequence(AASequence("KRGH"));
 ids[1].setHits(std::vector<PeptideHit>(1, hit)); // different to first hit
 feature3.setPeptideIdentifications(ids);
 

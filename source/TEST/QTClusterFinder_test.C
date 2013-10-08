@@ -89,13 +89,13 @@ START_SECTION((void run(const std::vector<FeatureMap<> >& input_maps, ConsensusM
   feat1.setUniqueId(0);
   feat2.setPosition(pos2);
   feat2.setUniqueId(1);
-	PeptideHit hit;
-	hit.setSequence("AAA");
-	feat1.getPeptideIdentifications().resize(1);
-	feat1.getPeptideIdentifications()[0].insertHit(hit);
-	hit.setSequence("CCC");
-	feat2.getPeptideIdentifications().resize(1);
-	feat2.getPeptideIdentifications()[0].insertHit(hit);
+  PeptideHit hit;
+  hit.setSequence(AASequence("AAA"));
+  feat1.getPeptideIdentifications().resize(1);
+  feat1.getPeptideIdentifications()[0].insertHit(hit);
+  hit.setSequence(AASequence("CCC"));
+  feat2.getPeptideIdentifications().resize(1);
+  feat2.getPeptideIdentifications()[0].insertHit(hit);
   input[0].push_back(feat1);
   input[0].push_back(feat2);
 
@@ -111,13 +111,13 @@ START_SECTION((void run(const std::vector<FeatureMap<> >& input_maps, ConsensusM
   feat4.setUniqueId(1);
   feat5.setPosition(pos5);
   feat5.setUniqueId(2);
-	hit.setSequence("DDD");
-	feat3.getPeptideIdentifications().resize(1);
-	feat3.getPeptideIdentifications()[0].insertHit(hit);
-	hit.setSequence("AAA");
-	feat4.getPeptideIdentifications().resize(1);
-	feat4.getPeptideIdentifications()[0].insertHit(hit);
-	// no peptide ID for "feat5"
+  hit.setSequence(AASequence("DDD"));
+  feat3.getPeptideIdentifications().resize(1);
+  feat3.getPeptideIdentifications()[0].insertHit(hit);
+  hit.setSequence(AASequence("AAA"));
+  feat4.getPeptideIdentifications().resize(1);
+  feat4.getPeptideIdentifications()[0].insertHit(hit);
+  // no peptide ID for "feat5"
   input[1].push_back(feat3);
   input[1].push_back(feat4);
   input[1].push_back(feat5);
@@ -218,12 +218,12 @@ START_SECTION((void run(const std::vector<FeatureMap<> >& input_maps, ConsensusM
   feat6.setUniqueId(0);
   feat7.setPosition(pos7);
   feat7.setUniqueId(1);
-	hit.setSequence("EEE");
-	feat6.getPeptideIdentifications().resize(1);
-	feat6.getPeptideIdentifications()[0].insertHit(hit);
-	hit.setSequence("CCC");
-	feat7.getPeptideIdentifications().resize(1);
-	feat7.getPeptideIdentifications()[0].insertHit(hit);
+  hit.setSequence(AASequence("EEE"));
+  feat6.getPeptideIdentifications().resize(1);
+  feat6.getPeptideIdentifications()[0].insertHit(hit);
+  hit.setSequence(AASequence("CCC"));
+  feat7.getPeptideIdentifications().resize(1);
+  feat7.getPeptideIdentifications()[0].insertHit(hit);
   input[2].push_back(feat6);
   input[2].push_back(feat7);
 
