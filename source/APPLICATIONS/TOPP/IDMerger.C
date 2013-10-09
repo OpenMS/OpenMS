@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Nico Pfeifer $
-// $Authors: $
+// $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/IdXMLFile.h>
@@ -70,8 +70,10 @@ using namespace std;
   The peptide hits and protein hits of the input files will be written into the single output file. In general, the number of idXML files that can be merged into one file is not limited.
 
   The combination of search engine and processing date/time should be unique for every identification run over all input files. If this is not the case, the date/time of a conflicting run will be increased in steps of seconds until the combination is unique.
+  
+  If an additional file is given through the @p add_to parameter, identifications from the main inputs (@p in) are added to that file, but only for those peptide sequences that were not already present. Only the best peptide hit per identification (MS2 spectrum) is taken into account; peptide identifications and their corresponding protein identifications are transferred.
 
-  With the @p pepxml_protxml option, results from corresponding PeptideProphet and ProteinProphet runs can be combined. In this case, exactly two idXML files are expected as input: one containing data from a pepXML file, and the other containing data from a protXML file that was created based on the pepXML (meaningful results can only be obtained for matching files!). pepXML or protXML can be converted to idXML with the @ref TOPP_IDFileConverter tool.
+  Alternatively, with the @p pepxml_protxml option, results from corresponding PeptideProphet and ProteinProphet runs can be combined. In this case, exactly two idXML files are expected as input: one containing data from a pepXML file, and the other containing data from a protXML file that was created based on the pepXML (meaningful results can only be obtained for matching files!). pepXML or protXML can be converted to idXML with the @ref TOPP_IDFileConverter tool.
 
   <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_IDMerger.cli
@@ -93,8 +95,8 @@ public:
   }
 
 protected:
-  void mergePepXMLProtXML_(StringList filenames, vector<ProteinIdentification> &
-                           proteins, vector<PeptideIdentification> & peptides)
+  void mergePepXMLProtXML_(StringList filenames, vector<ProteinIdentification>&
+                           proteins, vector<PeptideIdentification>& peptides)
   {
     IdXMLFile idxml;
     idxml.load(filenames[0], proteins, peptides);
@@ -111,7 +113,7 @@ protected:
         throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "None of the input files seems to be derived from a protXML file (information about protein groups is missing).");
       }
     }
-    else      // first idXML contains data from the protXML
+    else // first idXML contains data from the protXML
     {
       proteins.swap(protxml_proteins);
       peptides.swap(protxml_peptides);
@@ -175,8 +177,7 @@ protected:
     }
   }
 
-  void generateNewId_(const set<String> & used_ids, const String & search_engine,
-                      DateTime & date_time, String & new_id)
+  void generateNewId_(const map<String, ProteinIdentification>& used_ids, const String& search_engine, DateTime& date_time, String& new_id)
   {
     do
     {
@@ -186,15 +187,33 @@ protected:
     while (used_ids.find(new_id) != used_ids.end());
   }
 
+  void annotateFileOrigin_(vector<ProteinIdentification>& proteins, 
+                           vector<PeptideIdentification>& peptides, 
+                           const String& filename)
+  {
+    for (vector<ProteinIdentification>::iterator prot_it = proteins.begin(); 
+         prot_it !=proteins.end(); ++prot_it)
+    {
+      prot_it->setMetaValue("file_origin", DataValue(filename));
+    }
+    
+    for (vector<PeptideIdentification>::iterator pep_it = peptides.begin(); 
+         pep_it != peptides.end(); ++pep_it)
+    {
+      pep_it->setMetaValue("file_origin", DataValue(filename));
+    }
+  }
+
   void registerOptionsAndFlags_()
   {
-    registerInputFileList_("in", "<files>", StringList(), "two or more input files separated by blanks");
+    registerInputFileList_("in", "<files>", StringList(), "Input files separated by blanks");
     setValidFormats_("in", StringList::create("idXML"));
-    registerOutputFile_("out", "<file>", "", "output file ");
+    registerOutputFile_("out", "<file>", "", "Output file");
     setValidFormats_("out", StringList::create("idXML"));
-    registerFlag_("annotate_file_origin", "Store the original filename in each protein/peptide identification (MetaValue: file_origin).");
-    registerFlag_("pepxml_protxml", "Merge idXML files derived from a pepXML and corresponding protXML file.\nExactly two input files are expected in this case.");
-
+    registerInputFile_("add_to", "<file>", "", "Optional input file. IDs from 'in' are added to this file, but only if the (modified) peptide sequences are not present yet (considering only best hits per spectrum).", false);
+    setValidFormats_("add_to", StringList::create("idXML"));
+    registerFlag_("annotate_file_origin", "Store the original filename in each protein/peptide identification (meta value: file_origin).");
+    registerFlag_("pepxml_protxml", "Merge idXML files derived from a pepXML and corresponding protXML file.\nExactly two input files are expected in this case. Not compatible with 'add_to'.");
   }
 
   ExitCodes main_(int, const char **)
@@ -205,12 +224,13 @@ protected:
 
     StringList file_names = getStringList_("in");
     String out = getStringOption_("out");
+    String add_to = getStringOption_("add_to");
 
-    if (file_names.size() < 1)
+    if (file_names.empty())
     {
       // this also allows exactly 1 file, because it might be usefull for
       // a TOPPAS pipeline containing an IDMerger, to run only with one file
-      writeLog_("Less than one filename given. Aborting!");
+      writeLog_("No input filename given. Aborting!");
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
@@ -218,9 +238,17 @@ protected:
     bool pepxml_protxml = getFlag_("pepxml_protxml");
     if (pepxml_protxml && (file_names.size() != 2))
     {
-      writeLog_("Exactly two filenames expected for option 'pepxml_protxml'. Aborting!");
+      writeLog_("Exactly two input filenames expected for option 'pepxml_protxml'. Aborting!");
       printUsage_();
       return ILLEGAL_PARAMETERS;
+    }
+    if (pepxml_protxml && !add_to.empty())
+    {
+      // currently not allowed to keep the code simpler and because it doesn't
+      // seem useful, but should be possible in principle:
+      writeLog_("The options 'add_to' and 'pepxml_protxml' cannot be used together. Aborting!");
+      printUsage_();
+      return ILLEGAL_PARAMETERS;    
     }
 
     //-------------------------------------------------------------
@@ -236,8 +264,8 @@ protected:
     }
     else
     {
-      bool annotate_file_origin =  getFlag_("annotate_file_origin");
-      set<String> used_ids;
+      bool annotate_file_origin = getFlag_("annotate_file_origin");
+      map<String, ProteinIdentification> proteins_by_id;
       for (StringList::Iterator file_it = file_names.begin();
            file_it != file_names.end(); ++file_it)
       {
@@ -245,57 +273,141 @@ protected:
         vector<PeptideIdentification> additional_peptides;
         IdXMLFile().load(*file_it, additional_proteins, additional_peptides);
 
-        // set MetaValue file_origin if flag is set
-        if (annotate_file_origin)
+        if (annotate_file_origin) // set MetaValue "file_origin" if flag is set
         {
-          for (vector<ProteinIdentification>::iterator prot_it =
-                 additional_proteins.begin(); prot_it !=
-               additional_proteins.end(); ++prot_it)
-          {
-            prot_it->setMetaValue("file_origin", DataValue(*file_it));
-          }
-
-          for (vector<PeptideIdentification>::iterator pep_it =
-                 additional_peptides.begin(); pep_it !=
-               additional_peptides.end(); ++pep_it)
-          {
-            pep_it->setMetaValue("file_origin", DataValue(*file_it));
-          }
+          annotateFileOrigin_(additional_proteins, additional_peptides, 
+                              *file_it);
         }
 
         for (vector<ProteinIdentification>::iterator prot_it =
                additional_proteins.begin(); prot_it !=
-             additional_proteins.end(); ++prot_it)
+               additional_proteins.end(); ++prot_it)
         {
           String id = prot_it->getIdentifier();
-          if (used_ids.find(id) != used_ids.end())           // ID used previously
+          if (proteins_by_id.find(id) != proteins_by_id.end())
           {
             writeLog_("Warning: The identifier '" + id + "' was used before!");
             // generate a new ID:
             DateTime date_time = prot_it->getDateTime();
             String new_id;
-            generateNewId_(used_ids, prot_it->getSearchEngine(), date_time,
-                           new_id);
+            generateNewId_(proteins_by_id, prot_it->getSearchEngine(), 
+                           date_time, new_id);
             writeLog_("New identifier '" + new_id +
                       "' generated as replacement.");
             // update fields:
             prot_it->setIdentifier(new_id);
             prot_it->setDateTime(date_time);
             for (vector<PeptideIdentification>::iterator pep_it =
-                   additional_peptides.begin(); pep_it !=
-                 additional_peptides.end(); ++pep_it)
+                   additional_peptides.begin(); pep_it != 
+                   additional_peptides.end(); ++pep_it)
             {
               if (pep_it->getIdentifier() == id) pep_it->setIdentifier(new_id);
             }
-            used_ids.insert(new_id);
+            id = new_id;
           }
-          else used_ids.insert(id);
+          proteins_by_id[id] = *prot_it;
         }
 
-        proteins.insert(proteins.end(), additional_proteins.begin(),
-                        additional_proteins.end());
         peptides.insert(peptides.end(), additional_peptides.begin(),
                         additional_peptides.end());
+      }
+      LOG_DEBUG << "protein IDs: " << proteins_by_id.size() << endl
+                << "peptide IDs: " << peptides.size() << endl;
+
+      if (add_to.empty()) // copy proteins from map into vector for writing
+      {
+        for (map<String, ProteinIdentification>::iterator map_it = 
+               proteins_by_id.begin(); map_it != proteins_by_id.end(); ++map_it)
+        {
+          proteins.push_back(map_it->second);
+        }
+      }
+      else // add only new IDs to an existing file
+      {
+        map<String, ProteinIdentification> base_proteins;
+        vector<PeptideIdentification> base_peptides;
+        set<String> accessions;
+        IdXMLFile().load(add_to, proteins, base_peptides);
+        for (vector<ProteinIdentification>::iterator prot_it = proteins.begin();
+             prot_it != proteins.end(); ++prot_it)
+        {
+          base_proteins[prot_it->getIdentifier()] = *prot_it;
+          for (vector<ProteinHit>::iterator hit_it = prot_it->getHits().begin();
+               hit_it != prot_it->getHits().end(); ++hit_it)
+          {
+            accessions.insert(hit_it->getAccession());
+          }
+        }
+        set<AASequence> sequences;
+        for (vector<PeptideIdentification>::iterator pep_it = 
+               base_peptides.begin(); pep_it != base_peptides.end(); ++pep_it)
+        {
+          if (pep_it->getHits().empty()) continue;
+          pep_it->sort();
+          sequences.insert(pep_it->getHits()[0].getSequence());
+        }
+        LOG_DEBUG << "accessions: " << accessions.size() << endl;
+        for (vector<PeptideIdentification>::iterator pep_it = peptides.begin(); 
+             pep_it != peptides.end(); ++pep_it)
+        {
+          if (pep_it->getHits().empty()) continue;
+          pep_it->sort();
+          const PeptideHit& hit = pep_it->getHits()[0];
+          LOG_DEBUG << "peptide: " << hit.getSequence().toString() << endl;
+          // skip ahead if peptide is not new:
+          if (sequences.find(hit.getSequence()) != sequences.end()) continue;
+          LOG_DEBUG << "new peptide!" << endl;
+          pep_it->getHits().resize(1); // restrict to best hit for simplicity
+          base_peptides.push_back(*pep_it);
+          // copy over proteins:
+          for (vector<String>::const_iterator acc_it = 
+                 hit.getProteinAccessions().begin();  acc_it !=
+                 hit.getProteinAccessions().end(); ++acc_it)
+          {
+            LOG_DEBUG << "accession: " << *acc_it << endl;
+            // skip ahead if accession is not new:
+            if (accessions.find(*acc_it) != accessions.end()) continue;
+            LOG_DEBUG << "new accession!" << endl;
+            // first find the right protein identification:
+            const String& id = pep_it->getIdentifier();
+            LOG_DEBUG << "identifier: " << id << endl;
+            if (proteins_by_id.find(id) == proteins_by_id.end()) 
+            {
+              writeLog_("Error: identifier '" + id + 
+                        "' linking peptides and proteins not found. Skipping.");
+              continue;
+            }
+            ProteinIdentification& protein = proteins_by_id[id];
+            // now find the protein hit:
+            vector<ProteinHit>::iterator hit_it = protein.findHit(*acc_it);
+            if (hit_it == protein.getHits().end())
+            {
+              writeLog_("Error: accession '" + *acc_it + "' not found in "
+                        "protein identification '" + id + "'. Skipping.");
+              continue;
+            }
+            if (base_proteins.find(id) == base_proteins.end()) // not copied yet
+            {
+              LOG_DEBUG << "adding protein identification" << endl;
+              base_proteins[id] = protein;
+              base_proteins[id].getHits().clear();
+              // remove potentially invalid information:
+              base_proteins[id].getProteinGroups().clear();
+              base_proteins[id].getIndistinguishableProteins().clear();
+            }
+            base_proteins[id].insertHit(*hit_it);
+            accessions.insert(*acc_it);
+            // NOTE: we're only adding the first protein hit for each accession,
+            // not taking into account scores or any meta data
+          }
+        }
+        proteins.clear();
+        for (map<String, ProteinIdentification>::iterator map_it = 
+               base_proteins.begin(); map_it != base_proteins.end(); ++map_it)
+        {
+          proteins.push_back(map_it->second);
+        }
+        peptides.swap(base_peptides);
       }
     }
 
