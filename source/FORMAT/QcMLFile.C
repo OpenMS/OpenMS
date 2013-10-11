@@ -1253,9 +1253,9 @@ namespace OpenMS
 
     }
     os <<  "\t<cvList>\n";
-    os <<  "\t<cv uri=\"http://psidev.cvs.sourceforge.net/viewvc/psidev/psi/psi-ms/mzML/controlledVocabulary/psi-ms.obo\" id=\"psi_cv_ref\" fullName=\"PSI-MS\" version=\"x.y.z\"/>\n";
-    os <<  "\t<cv uri=\"http://www.???.cvs.sourceforge.net/???/qc-cv.obo\" id=\"qc_cv_ref\" fullName=\"MS-QC\" version=\"x.y.z\"/>\n";
-    os <<  "\t<cv uri=\"http://obo.cvs.sourceforge.net/viewvc/obo/obo/ontology/phenotype/unit.obo\" id=\"uo_cv_ref\" fullName=\"unit\" version=\"x.y.z\"/>\n";
+    os <<  "\t<cv uri=\"http://psidev.cvs.sourceforge.net/viewvc/psidev/psi/psi-ms/mzML/controlledVocabulary/psi-ms.obo\" ID=\"psi_cv_ref\" fullName=\"PSI-MS\" version=\"x.y.z\"/>\n";
+    os <<  "\t<cv uri=\"http://www.???.cvs.sourceforge.net/???/qc-cv.obo\" ID=\"qc_cv_ref\" fullName=\"MS-QC\" version=\"x.y.z\"/>\n";
+    os <<  "\t<cv uri=\"http://obo.cvs.sourceforge.net/viewvc/obo/obo/ontology/phenotype/unit.obo\" ID=\"uo_cv_ref\" fullName=\"unit\" version=\"x.y.z\"/>\n";
     os <<  "\t</cvList>\n";
 
     os << "</qcML>\n";
