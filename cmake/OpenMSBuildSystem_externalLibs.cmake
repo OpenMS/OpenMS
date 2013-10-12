@@ -194,6 +194,11 @@ endif()
 # Done finding contrib libraries
 #------------------------------------------------------------------------------
 
+  message(STATUS "Found eigen3 version ${EIGEN3_VERSION}")
+else()
+  message(FATAL_ERROR "eigen3 not found!")
+endif()
+
 if(MSVC)
 	## needed to locate libs (put this above ADD_LIBRARY() - otherwise it will not work)
 	link_directories(${CONTRIB_LIB_DIR})
