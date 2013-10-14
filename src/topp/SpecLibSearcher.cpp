@@ -40,7 +40,6 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/COMPARISON/SPECTRA/BinnedSpectrum.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectraSTSimilarityScore.h>
-#include <OpenMS/COMPARISON/SPECTRA/CompareFouriertransform.h>
 #include <OpenMS/COMPARISON/SPECTRA/ZhangSimilarityScore.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
@@ -398,12 +397,6 @@ protected:
                   }
                   else
                   {
-                    if (compare_function == "CompareFouriertransform")
-                    {
-                      CompareFouriertransform * ft = static_cast<CompareFouriertransform *>(comparor);
-                      ft->transform(quer);
-                      ft->transform(librar);
-                    }
                     score = (*comparor)(quer, librar);
                   }
 

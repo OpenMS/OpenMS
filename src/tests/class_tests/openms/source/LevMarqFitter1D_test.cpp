@@ -85,23 +85,12 @@ class TestModel : public LevMarqFitter1D
      LevMarqFitter1D::updateMembers_();
   }
 
-  String getGslStatus_() const
-  {
-    return "success";
-  }
-
   QualityType fit1d(const RawDataArrayType& /*range*/, InterpolationModel*&  /*model*/)
   {
 //    DoubleReal center = 0.0;
 //    center = model->getCenter();
 
     return 1.0;
-  }
-
-  void printState_(Int /* iter */, deprecated_gsl_multifit_fdfsolver*)
-  {
-//    Int iterations = 0;
-//    iterations = iter;
   }
 
   void optimize_()

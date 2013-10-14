@@ -41,8 +41,6 @@
 #include <iomanip>
 #include <vector>
 
-#include <OpenMS/MATH/GSL_WRAPPER/gsl_wrapper.h>
-
 namespace OpenMS
 {
 
@@ -365,28 +363,6 @@ public:
       }
     }
 
-    /**
-      @brief create deprecated_gsl_matrix*
-
-      allocate and return an equivalent GSL matrix
-      @note Works only for Matrix<double> and Matrix<float>
-      @note Clean up the deprecated_gsl_matrix using deprecated_gsl_matrix_free (deprecated_gsl_matrix * m)
-    */
-    deprecated_gsl_matrix* toGslMatrix()
-    {
-      deprecated_gsl_matrix* m_ptr = deprecated_gsl_matrix_alloc(rows_, cols_);
-
-      for (size_type i = 0; i < this->rows_; ++i)
-      {
-        for (size_type j = 0; j < this->cols_; ++j)
-        {
-          deprecated_gsl_matrix_set(m_ptr, i, j, (double) (*this)(i, j));
-        }
-      }
-
-      return m_ptr;
-    }
-
 protected:
 
     ///@name Data members
@@ -398,9 +374,6 @@ protected:
     //@}
 
   }; // class Matrix
-
-  // template<> OPENMS_DLLAPI deprecated_gsl_matrix* Matrix<double>::toGslMatrix();
-  // template<> OPENMS_DLLAPI deprecated_gsl_matrix* Matrix<float>::toGslMatrix();
 
   /**
     @brief Print the contents to a stream.

@@ -31,13 +31,17 @@
 // $Maintainer: Alexandra Zerck $
 // $Authors: Eva Lange $
 // --------------------------------------------------------------------------
-
+#include <algorithm>
 #include <cmath>
+
 #include <boost/math/special_functions/acosh.hpp>
 #include <boost/math/special_functions/fpclassify.hpp>
 
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePick.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
+
+
+using std::max;
 
 
 namespace OpenMS
@@ -120,212 +124,20 @@ namespace OpenMS
       }
     }
 
-    // Evaluation of the target function for nonlinear optimization.
-    int residual(const deprecated_gsl_vector * x, void * params, deprecated_gsl_vector * f)
-    {
-      // According to the gsl conventions, x contains the parameters to be optimized.
-      // In our case, this means that we store for each peak four consecutive values:
-      //  - its height
-      //  - its left width
-      //  - its right width
-      //  - its position
-      //
-      // Params might contain any additional parameters. We handle these using class members
-      // instead.
-      // The vector f is supposed to contain the result when we return from this function.
-      // Note: GSL wants the values for each data point i as one component of the results vector
-      std::vector<DoubleReal> & signal = static_cast<OptimizePick::Data *>(params)->signal;
-      std::vector<DoubleReal> & positions = static_cast<OptimizePick::Data *>(params)->positions;
-      std::vector<PeakShape> & peaks = static_cast<OptimizePick::Data *>(params)->peaks;
-      OptimizationFunctions::PenaltyFactors & penalties = static_cast<OptimizePick::Data *>(params)->penalties;
-      // iterate over all points of the signal
-      for (size_t current_point = 0; current_point < positions.size(); current_point++)
-      {
-        double computed_signal     = 0.;
-        double current_position    = positions[current_point];
-        double experimental_signal = signal[current_point];
-
-        // iterate over all peaks
-        for (size_t current_peak = 0; current_peak < peaks.size(); current_peak++)
-        {
-          // Store the current parameters for this peak
-          double p_height        = deprecated_gsl_vector_get(x, 4 * current_peak);
-          double p_position    = deprecated_gsl_vector_get(x, 4 * current_peak + 3);
-          double p_width         = (current_position <= p_position) ? deprecated_gsl_vector_get(x, 4 * current_peak + 1)
-                                   : deprecated_gsl_vector_get(x, 4 * current_peak + 2);
-
-          // is it a Lorentz or a Sech - Peak?
-          if (peaks[current_peak].type == PeakShape::LORENTZ_PEAK)
-          {
-            computed_signal += p_height / (1. + pow(p_width * (current_position - p_position), 2));
-          }
-          else // It's a Sech - Peak
-          {
-            computed_signal += p_height / pow(cosh(p_width * (current_position - p_position)), 2);
-          }
-        }
-        deprecated_gsl_vector_set(f, current_point, computed_signal - experimental_signal);
-      }
-
-      double penalty = 0.;
-//      struct PenaltyFactors* penalties = (struct PenaltyFactors *)params;
-      double penalty_pos    = penalties.pos;
-      double penalty_lwidth = penalties.lWidth;
-      double penalty_rwidth = penalties.rWidth;
-
-      // iterate over all peaks again to compute the penalties
-      for (size_t current_peak = 0; current_peak < peaks.size(); current_peak++)
-      {
-        double old_position = peaks[current_peak].mz_position;
-        double old_width_l  = peaks[current_peak].left_width;
-        double old_width_r  = peaks[current_peak].right_width;
-        double p_position   = deprecated_gsl_vector_get(x, 4 * current_peak + 3);
-        double p_width_l        = deprecated_gsl_vector_get(x, 4 * current_peak + 1);
-        double p_width_r    = deprecated_gsl_vector_get(x, 4 * current_peak + 2);
-
-        //penalty += pow(p_position - old_position, 2) + pow(p_width_l - old_width_l, 2) + pow(p_width_r - old_width_r, 2);
-        penalty +=      penalty_pos    * pow(p_position - old_position, 2)
-                   + penalty_lwidth * pow(p_width_l - old_width_l, 2)
-                   + penalty_rwidth * pow(p_width_r - old_width_r, 2);
-      }
-
-      deprecated_gsl_vector_set(f, positions.size(), 100 * penalty);
-
-      return deprecated_gsl_SUCCESS;
-    }
-
-    /** Compute the Jacobian of the residual, where each row of the matrix corresponds to a
-     *  point in the data.
-     */
-    int jacobian(const deprecated_gsl_vector * x, void * params, deprecated_gsl_matrix * J)
-    {
-      // For the conventions on x and params c.f. the commentary in residual()
-      //
-      // The matrix J is supposed to contain the result when we return from this function.
-      // Note: GSL expects the Jacobian as follows:
-      // - each row corresponds to one data point
-      // - each column corresponds to one parameter
-      // std::vector<DoubleReal>& signal = static_cast<OptimizePick::Data*> (params) ->signal;
-      std::vector<DoubleReal> & positions = static_cast<OptimizePick::Data *>(params)->positions;
-      std::vector<PeakShape> & peaks = static_cast<OptimizePick::Data *>(params)->peaks;
-      OptimizationFunctions::PenaltyFactors & penalties = static_cast<OptimizePick::Data *>(params)->penalties;
-      // iterate over all points of the signal
-      for (size_t current_point = 0; current_point < positions.size(); current_point++)
-      {
-        double current_position    = positions[current_point];
-
-        // iterate over all peaks
-        for (size_t current_peak = 0; current_peak < peaks.size(); current_peak++)
-        {
-          // Store the current parameters for this peak
-          double p_height        = deprecated_gsl_vector_get(x, 4 * current_peak);
-          double p_position    = deprecated_gsl_vector_get(x, 4 * current_peak + 3);
-          double p_width         = (current_position <= p_position) ? deprecated_gsl_vector_get(x, 4 * current_peak + 1)
-                                   : deprecated_gsl_vector_get(x, 4 * current_peak + 2);
-
-          // is it a Lorentz or a Sech - Peak?
-          if (peaks[current_peak].type == PeakShape::LORENTZ_PEAK)
-          {
-            double diff      = current_position - p_position;
-            double denom_inv = 1. / (1. + pow(p_width * diff, 2));
-
-            double ddl_left  = (current_position <= p_position)
-                               ? -2 * p_height * pow(diff, 2) * p_width * pow(denom_inv, 2) :
-                                 0;
-
-            double ddl_right = (current_position  > p_position)
-                               ? -2 * p_height * pow(diff, 2) * p_width * pow(denom_inv, 2) :
-                                 0;
-
-            double ddx0          = -2 * p_height * pow(p_width, 2) * diff * pow(denom_inv, 2);
-
-            deprecated_gsl_matrix_set(J, current_point, 4 * current_peak, denom_inv);
-            deprecated_gsl_matrix_set(J, current_point, 4 * current_peak + 1, ddl_left);
-            deprecated_gsl_matrix_set(J, current_point, 4 * current_peak + 2, ddl_right);
-            deprecated_gsl_matrix_set(J, current_point, 4 * current_peak + 3, ddx0);
-          }
-          else // It's a Sech - Peak
-          {
-            double diff      = current_position - p_position;
-            double denom_inv = 1. / cosh(p_width * diff);
-
-            // The remaining computations are not stable if denom_inv == 0. In that case, we are far away from the peak
-            // and can assume that all derivatives vanish
-            double sinh_term = (fabs(denom_inv) < 1e-6) ? 0.0 : sinh(p_width * diff);
-            double ddl_left  = (current_position <= p_position)
-                               ? -2 * p_height * sinh_term * diff * pow(denom_inv, 3) :
-                                 0;
-            double ddl_right = (current_position  > p_position)
-                               ? -2 * p_height * sinh_term * diff * pow(denom_inv, 3) :
-                                 0;
-            double ddx0      = 2 * p_height * p_width * sinh_term * pow(denom_inv, 3);
-
-            deprecated_gsl_matrix_set(J, current_point, 4 * current_peak, pow(denom_inv, 2));
-            deprecated_gsl_matrix_set(J, current_point, 4 * current_peak + 1, ddl_left);
-            deprecated_gsl_matrix_set(J, current_point, 4 * current_peak + 2, ddl_right);
-            deprecated_gsl_matrix_set(J, current_point, 4 * current_peak + 3, ddx0);
-          }
-        }
-      }
-
-      // Now iterate over all peaks again to compute the penalties.
-//   struct PenaltyFactors* penalties = (struct PenaltyFactors *)params;
-      for (size_t current_peak = 0; current_peak < peaks.size(); current_peak++)
-      {
-        double p_width_left = deprecated_gsl_vector_get(x, 4 * current_peak + 1);
-        double p_width_right = deprecated_gsl_vector_get(x, 4 * current_peak + 2);
-        double p_position   = deprecated_gsl_vector_get(x, 4 * current_peak + 3);
-
-        double old_width_left  = peaks[current_peak].left_width;
-        double old_width_right = peaks[current_peak].right_width;
-        double old_position    = peaks[current_peak].mz_position;
-
-
-        double penalty_l = 2. * penalties.lWidth * (p_width_left - old_width_left);
-        double penalty_r = 2. * penalties.rWidth * (p_width_right - old_width_right);
-        double penalty_p = 0;
-        if (fabs(p_position - old_position) < 0.2)
-        {
-          penalty_p = 2. * penalties.pos * (p_position - old_position);
-        }
-
-        deprecated_gsl_matrix_set(J, positions.size(), 4 * current_peak, 0.);
-        deprecated_gsl_matrix_set(J, positions.size(), 4 * current_peak + 1, 100 * penalty_l);
-        deprecated_gsl_matrix_set(J, positions.size(), 4 * current_peak + 2, 100 * penalty_r);
-        deprecated_gsl_matrix_set(J, positions.size(), 4 * current_peak + 3, 100 * penalty_p);
-      }
-
-      return deprecated_gsl_SUCCESS;
-    }
-
-    // Driver function for the evaluation of function and jacobian.
-    int evaluate(const deprecated_gsl_vector * x, void * params, deprecated_gsl_vector * f, deprecated_gsl_matrix * J)
-    {
-      residual(x, params, f);
-      jacobian(x, params, J);
-
-      return deprecated_gsl_SUCCESS;
-    }
-
   }
 
 
-  OptimizePick::OptimizePick(const struct OptimizationFunctions::PenaltyFactors & penalties,
-                             const int max_iteration,
-                             const double eps_abs,
-                             const double eps_rel)
+  OptimizePick::OptimizePick(
+      const struct OptimizationFunctions::PenaltyFactors & penalties,
+      const int max_iteration)
   {
 
     penalties_ = penalties;
 
     max_iteration_ = max_iteration;
-    eps_abs_ = eps_abs;
-    eps_rel_ = eps_rel;
 
 #ifdef DEBUG_PEAK_PICKING
     std::cout << "max iteration " << max_iteration_
-              << "\n eps abs " << eps_abs
-              << "\n eps rel " << eps_rel
               << "\n penalty factor pos " << penalties.pos
               << "\n penalty factor left width " << penalties.lWidth
               << "\n penalty factor right width " << penalties.rWidth
@@ -346,7 +158,8 @@ namespace OpenMS
     size_t global_peak_number = 0;
     data.peaks.assign(peaks.begin(), peaks.end());
 
-    deprecated_gsl_vector * start_value = deprecated_gsl_vector_alloc(4 * data.peaks.size());
+    size_t num_dimensions = 4 * data.peaks.size();
+    Eigen::VectorXd x_init (num_dimensions);
     // We have to initialize the parameters for the optimization
     for (size_t i = 0; i < data.peaks.size(); i++)
     {
@@ -365,86 +178,35 @@ namespace OpenMS
         data.peaks[i].right_width = 1;
         wr = 1.;
       }
-
-      deprecated_gsl_vector_set(start_value, 4 * i, h);
-      deprecated_gsl_vector_set(start_value, 4 * i + 1, wl);
-      deprecated_gsl_vector_set(start_value, 4 * i + 2, wr);
-      deprecated_gsl_vector_set(start_value, 4 * i + 3, p);
+      x_init(4 * i) = h;
+      x_init(4 * i + 1) = wl;
+      x_init(4 * i + 2) = wr;
+      x_init(4 * i + 3) = p;
     }
 
     data.penalties = penalties_;
 
-    // The gsl algorithms require us to provide function pointers for the evaluation of
-    // the target function.
-    deprecated_gsl_multifit_function_fdf_ptr fit_function
-		  = deprecated_wrapper_gsl_multifit_fdfsolver_lmsder_new (
-				  OptimizationFunctions::residual,
-				  OptimizationFunctions::jacobian,
-				  OptimizationFunctions::evaluate,
-				  std::max(data.positions.size() + 1, 4 * data.peaks.size()),
-				  4 * data.peaks.size(),
-				  &data );
-
-    const deprecated_gsl_multifit_fdfsolver_type * type
-    		= deprecated_wrapper_get_multifit_fdfsolver_lmsder();
-
-    deprecated_gsl_multifit_fdfsolver * fit = deprecated_gsl_multifit_fdfsolver_alloc(type, std::max(data.positions.size() + 1, 4 * data.peaks.size()), 4 * data.peaks.size());
-
-    deprecated_gsl_multifit_fdfsolver_set(fit, fit_function.get(), start_value);
-
-    // initial norm
-    // std::cout << "Before optimization: ||f|| = " << deprecated_gsl_blas_dnrm2(fit->f) << std::endl;
-
-    // Iteration
-    unsigned int iteration = 0;
-    int status;
-
-    do
+    unsigned num_data_points = std::max(data.positions.size() + 1, num_dimensions);
+    OptPeakFunctor functor (num_dimensions, num_data_points, &data);
+    Eigen::LevenbergMarquardt<OptPeakFunctor> lmSolver (functor);
+    lmSolver.parameters.maxfev = max_iteration_;
+    Eigen::LevenbergMarquardtSpace::Status status = lmSolver.minimize(x_init);
+    //the states are poorly documented. after checking the source, we believe that
+    //all states except NotStarted, Running and ImproperInputParameters are good
+    //termination states.
+    if (status <= Eigen::LevenbergMarquardtSpace::ImproperInputParameters)
     {
-      iteration++;
-      status = deprecated_gsl_multifit_fdfsolver_iterate(fit);
-#ifdef DEBUG_PEAK_PICKING
-      std::cout << "Iteration " << iteration << "; Status " << deprecated_gsl_strerror(status) << "; " << std::endl;
-      std::cout << "||f|| = " << deprecated_gsl_blas_dnrm2(fit->f) << std::endl;
-      std::cout << "Number of parms: " << data.peaks.size() * 4 << std::endl;
-      std::cout << "Delta: " << deprecated_gsl_blas_dnrm2(fit->dx) << std::endl;
-#endif
-      if (boost::math::isnan(deprecated_gsl_blas_dnrm2(
-    		  deprecated_wrapper_gsl_multifit_fdfsolver_get_dx(fit))))
-        break;
-
-      // We use the gsl function deprecated_gsl_multifit_test_delta to decide if we can finish the iteration.
-      // We only finish if all new parameters deviates only by a small amount from the parameters of the last iteration
-      status = deprecated_gsl_multifit_test_delta(
-    		  deprecated_wrapper_gsl_multifit_fdfsolver_get_dx(fit),
-    		  deprecated_wrapper_gsl_multifit_fdfsolver_get_x(fit), eps_abs_, eps_rel_);
-      if (status != deprecated_gsl_CONTINUE)
-        break;
-
+        throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-OptimizePeak:", "Could not fit the data: Error " + String(status));
     }
-    while (status == deprecated_gsl_CONTINUE && iteration < max_iteration_);
-
-#ifdef DEBUG_PEAK_PICKING
-    std::cout << "Finished!" << std::endl;
-    std::cout << "Delta: " << deprecated_gsl_blas_dnrm2(fit->dx) << std::endl;
-    double chi = deprecated_gsl_blas_dnrm2(fit->f);
-    std::cout << "chisq/dof = " << pow(chi, 2.0) / (data.positions.size() - 4 * data.peaks.size());
-#endif
-
-    // OptimizationFunctions::printSignal(fit->x, 5.,param);
 
     // iterate over all peaks and store the optimized values in peaks
     for (size_t current_peak = 0; current_peak < data.peaks.size(); current_peak++)
     {
       // Store the current parameters for this peak
-      peaks[global_peak_number + current_peak].height = deprecated_gsl_vector_get(
-    		  deprecated_wrapper_gsl_multifit_fdfsolver_get_x(fit), 4 * current_peak);
-      peaks[global_peak_number + current_peak].mz_position = deprecated_gsl_vector_get(
-    		  deprecated_wrapper_gsl_multifit_fdfsolver_get_x(fit), 4 * current_peak + 3);
-      peaks[global_peak_number + current_peak].left_width  = deprecated_gsl_vector_get(
-    		  deprecated_wrapper_gsl_multifit_fdfsolver_get_x(fit), 4 * current_peak + 1);
-      peaks[global_peak_number + current_peak].right_width = deprecated_gsl_vector_get(
-    		  deprecated_wrapper_gsl_multifit_fdfsolver_get_x(fit), 4 * current_peak + 2);
+      peaks[global_peak_number + current_peak].height =  x_init(4 * current_peak);
+      peaks[global_peak_number + current_peak].mz_position = x_init(4 * current_peak + 3);
+      peaks[global_peak_number + current_peak].left_width = x_init(4 * current_peak + 1);
+      peaks[global_peak_number + current_peak].right_width = x_init(4 * current_peak + 2);
 
       // compute the area
       // is it a Lorentz or a Sech - Peak?
@@ -478,67 +240,152 @@ namespace OpenMS
     }
     global_peak_number += data.peaks.size();
 
-    deprecated_gsl_multifit_fdfsolver_free(fit);
-    deprecated_gsl_vector_free(start_value);
   }
 
-  // double OptimizePick::correlate_(const PeakShape& peak,
-//                                  double left_endpoint,
-//                                                                  double right_endpoint,Data& data)
-//   {
-//     double SSxx = 0., SSyy = 0., SSxy = 0.;
+  int OptimizePick::OptPeakFunctor::operator()(const Eigen::VectorXd &x, Eigen::VectorXd &fvec)
+  {
+    const std::vector<DoubleReal> & signal = m_data->signal;
+    const std::vector<DoubleReal> & positions = m_data->positions;
+    const std::vector<PeakShape> & peaks = m_data->peaks;
+    const OptimizationFunctions::PenaltyFactors & penalties = m_data->penalties;
+    // iterate over all points of the signal
+    for (size_t current_point = 0; current_point < positions.size(); current_point++)
+    {
+      double computed_signal = 0.;
+      double current_position = positions[current_point];
+      double experimental_signal = signal[current_point];
 
-//     // compute the averages
-//     double data_average=0., fit_average=0.;
-//     double data_sqr=0., fit_sqr=0.;
-//     double cross=0.;
+      // iterate over all peaks
+      for (size_t current_peak = 0; current_peak < peaks.size(); current_peak++)
+      {
+        // Store the current parameters for this peak
+        double p_height = x(4 * current_peak);
+        double p_position = x(4 * current_peak + 3);
+        double p_width
+            = (current_position <= p_position) ? x(4 * current_peak + 1)
+                                 : x(4 * current_peak + 2);
 
-//     int number_of_points = 0;
+        // is it a Lorentz or a Sech - Peak?
+        if (peaks[current_peak].type == PeakShape::LORENTZ_PEAK)
+        {
+          computed_signal += p_height / (1. + pow(p_width * (current_position - p_position), 2));
+        }
+        else // It's a Sech - Peak
+        {
+          computed_signal += p_height / pow(cosh(p_width * (current_position - p_position)), 2);
+        }
+      }
+      fvec(current_point) = computed_signal - experimental_signal;
+    }
 
-//     int first=0;
-//     int last=data.positions.size()-1;
+    double penalty = 0.;
+    double penalty_pos    = penalties.pos;
+    double penalty_lwidth = penalties.lWidth;
+    double penalty_rwidth = penalties.rWidth;
 
-//     // search for the left endpoint position
-//     while (data.positions[first] < left_endpoint)
-//     {
-//       ++first;
-//     }
+    // iterate over all peaks again to compute the penalties
+    for (size_t current_peak = 0; current_peak < peaks.size(); current_peak++)
+    {
+      double old_position = peaks[current_peak].mz_position;
+      double old_width_l = peaks[current_peak].left_width;
+      double old_width_r = peaks[current_peak].right_width;
+      double p_position = x(4 * current_peak + 3);
+      double p_width_l = x(4 * current_peak + 1);
+      double p_width_r = x(4 * current_peak + 2);
 
-//     // search for the right endpoint position
-//     while (data.positions[last] > right_endpoint)
-//     {
-//       --last;
-//     }
+      //penalty += pow(p_position - old_position, 2) + pow(p_width_l - old_width_l, 2) + pow(p_width_r - old_width_r, 2);
+      penalty += penalty_pos * pow(p_position - old_position, 2)
+        + penalty_lwidth * pow(p_width_l - old_width_l, 2)
+        + penalty_rwidth * pow(p_width_r - old_width_r, 2);
+    }
+
+    fvec(positions.size()) = 100 * penalty;
+  }
+  // compute Jacobian matrix for the different parameters
+  int OptimizePick::OptPeakFunctor::df(const Eigen::VectorXd &x, Eigen::MatrixXd &J)
+  {
+    const std::vector<DoubleReal> & positions = m_data->positions;
+    const std::vector<PeakShape> & peaks = m_data->peaks;
+    const OptimizationFunctions::PenaltyFactors & penalties = m_data->penalties;
+    // iterate over all points of the signal
+    for (size_t current_point = 0; current_point < positions.size(); current_point++)
+    {
+      double current_position = positions[current_point];
+
+      // iterate over all peaks
+      for (size_t current_peak = 0; current_peak < peaks.size(); current_peak++)
+      {
+        // Store the current parameters for this peak
+        double p_height = x(4 * current_peak);
+        double p_position = x(4 * current_peak + 3);
+        double p_width = (current_position <= p_position) ? x(4 * current_peak + 1)
+                          : x(4 * current_peak + 2);
+
+        // is it a Lorentz or a Sech - Peak?
+        if (peaks[current_peak].type == PeakShape::LORENTZ_PEAK)
+        {
+          double diff = current_position - p_position;
+          double denom_inv = 1. / (1. + pow(p_width * diff, 2));
+
+          double ddl_left = (current_position <= p_position)
+              ? -2 * p_height * pow(diff, 2) * p_width * pow(denom_inv, 2) : 0;
+
+          double ddl_right = (current_position  > p_position)
+              ? -2 * p_height * pow(diff, 2) * p_width * pow(denom_inv, 2) : 0;
+
+          double ddx0 = -2 * p_height * pow(p_width, 2) * diff * pow(denom_inv, 2);
+
+          J(current_point, 4 * current_peak) = denom_inv;
+          J(current_point, 4 * current_peak + 1) = ddl_left;
+          J(current_point, 4 * current_peak + 2) = ddl_right;
+          J(current_point, 4 * current_peak + 3) = ddx0;
+        }
+        else // It's a Sech - Peak
+        {
+          double diff = current_position - p_position;
+          double denom_inv = 1. / cosh(p_width * diff);
+
+          // The remaining computations are not stable if denom_inv == 0. In that case, we are far away from the peak
+          // and can assume that all derivatives vanish
+          double sinh_term = (fabs(denom_inv) < 1e-6) ? 0.0 : sinh(p_width * diff);
+          double ddl_left  = (current_position <= p_position)
+              ? -2 * p_height * sinh_term * diff * pow(denom_inv, 3) : 0;
+          double ddl_right = (current_position  > p_position)
+              ? -2 * p_height * sinh_term * diff * pow(denom_inv, 3) : 0;
+          double ddx0      = 2 * p_height * p_width * sinh_term * pow(denom_inv, 3);
+
+          J(current_point, 4 * current_peak) = pow(denom_inv, 2);
+          J(current_point, 4 * current_peak + 1) = ddl_left;
+          J(current_point, 4 * current_peak + 2) = ddl_right;
+          J(current_point, 4 * current_peak + 3) = ddx0;
+        }
+      }
+    }
+
+    // Now iterate over all peaks again to compute the penalties.
+    for (size_t current_peak = 0; current_peak < peaks.size(); current_peak++)
+    {
+      double p_width_left = x(4 * current_peak + 1);
+      double p_width_right = x(4 * current_peak + 2);
+      double p_position = x(4 * current_peak + 3);
+
+      double old_width_left = peaks[current_peak].left_width;
+      double old_width_right = peaks[current_peak].right_width;
+      double old_position = peaks[current_peak].mz_position;
 
 
-//     // for separate overlapping peak correlate until the max position...
-//     for (int i=first; i <= last; i++)
-//     {
-//       double data_val = data.signal[i];
-//       double peak_val = peak(data.positions[i]);
+      double penalty_l = 2. * penalties.lWidth * (p_width_left - old_width_left);
+      double penalty_r = 2. * penalties.rWidth * (p_width_right - old_width_right);
+      double penalty_p = 0;
+      if (fabs(p_position - old_position) < 0.2)
+      {
+        penalty_p = 2. * penalties.pos * (p_position - old_position);
+      }
 
-//       data_average += data_val;
-//       fit_average  += peak_val;
-
-//       data_sqr += data_val * data_val;
-//       fit_sqr  += peak_val * peak_val;
-
-//       cross += data_val * peak_val;
-
-//       number_of_points++;
-//     }
-
-//     if (number_of_points == 0)
-//       return 0.;
-
-//     data_average /= number_of_points;
-//     fit_average  /= number_of_points;
-
-//     SSxx = data_sqr - number_of_points * (data_average * data_average);
-//     SSyy = fit_sqr - number_of_points * (fit_average * fit_average);
-//     SSxy = cross - number_of_points * (data_average * fit_average);
-
-//     return (SSxy * SSxy) / (SSxx * SSyy);
-//   }
-
-}
+      J(positions.size(), 4 * current_peak) = 0.;
+      J(positions.size(), 4 * current_peak + 1) = 100 * penalty_l;
+      J(positions.size(), 4 * current_peak + 2) = 100 * penalty_r;
+      J(positions.size(), 4 * current_peak + 3) = 100 * penalty_p;
+    }
+  }
+}//namespace

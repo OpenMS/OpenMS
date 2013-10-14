@@ -44,7 +44,9 @@ namespace OpenMS
   deprecated_gsl_matrix * Matrix<double>::toGslMatrix()
   {
     deprecated_gsl_matrix * m_ptr = deprecated_gsl_matrix_alloc(rows_, cols_);
-    for (size_type i = 0; i < this->rows_; ++i)
+    for (size_type i = 0; i < this->rows_; ++i)namespace Eigen {
+        class MatrixXd;
+      }
     {
       for (size_type j = 0; j < this->cols_; ++j)
       {

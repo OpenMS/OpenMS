@@ -180,7 +180,7 @@ namespace OpenMS
     CoordinateType x_init[3] = { standard_deviation_, expected_value_, scale_factor_ };
     if (symmetric_ == false)
     {
-      optimize_(set, 3, x_init, &(residual_), &(jacobian_), &(evaluate_), &d);
+      optimize2_(d.n, 3, x_init, &(residual_), &(jacobian_), &(evaluate_), &d);
     }
 
     // Set optimized parameter

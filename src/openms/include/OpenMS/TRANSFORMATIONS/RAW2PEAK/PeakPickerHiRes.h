@@ -39,12 +39,9 @@
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/MATH/MISC/Spline2d.h>
 
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
-
-#include "OpenMS/MATH/GSL_WRAPPER/gsl_wrapper.h"
-
-#include <map>
 
 
 #define DEBUG_PEAK_PICKING
@@ -122,6 +119,12 @@ public:
         double left_neighbor_mz = input[i - 1].getMZ(), left_neighbor_int = input[i - 1].getIntensity();
         double right_neighbor_mz = input[i + 1].getMZ(), right_neighbor_int = input[i + 1].getIntensity();
 
+        //do not interpolate when the left or right support is a zero-data-point
+        if(std::fabs(left_neighbor_int) < std::numeric_limits<double>::epsilon() )
+          continue;
+        if(std::fabs(right_neighbor_int) < std::numeric_limits<double>::epsilon() )
+          continue;
+
         // MZ spacing sanity checks
         double left_to_central = std::fabs(central_peak_mz - left_neighbor_mz);
         double central_to_right = std::fabs(right_neighbor_mz - central_peak_mz);
@@ -157,6 +160,7 @@ public:
             act_snt_r2 = snt.getSignalToNoise(input[i + 2]);
           }
 
+          //checking signal-to-noise?
           if ((i > 1
               && std::fabs(left_neighbor_mz - input[i - 2].getMZ()) < spacing_difference_ * min_spacing
               && left_neighbor_int < input[i - 2].getIntensity()
@@ -178,6 +182,8 @@ public:
           peak_raw_data[central_peak_mz] = central_peak_int;
           peak_raw_data[left_neighbor_mz] = left_neighbor_int;
           peak_raw_data[right_neighbor_mz] = right_neighbor_int;
+//          std::cout << std::setprecision(9) << "core: central: " << central_peak_mz << ", left: "
+//              << left_neighbor_mz << ", right: " << right_neighbor_mz << "\n";
 
 
           // peak core found, now extend it
@@ -187,7 +193,8 @@ public:
           Size missing_left(0);
           Size missing_right(0);
 
-          while ((i - k + 1) > 0
+          while ( k <= i//prevent underflow
+                && (i - k + 1) > 0
                 && (missing_left < 2)
                 && input[i - k].getIntensity() <= peak_raw_data.begin()->second)
           {
@@ -253,27 +260,16 @@ public:
           // }
           // std::cout << "--------------------" << std::endl;
 
-          const Size num_raw_points = peak_raw_data.size();
+          //skip if the minimal number of 3 points for fitting is not reached
+          if(peak_raw_data.size() < 4)
+            continue;
 
-          std::vector<double> raw_mz_values;
-          std::vector<double> raw_int_values;
-
-          for (std::map<double, double>::const_iterator map_it = peak_raw_data.begin(); map_it != peak_raw_data.end(); ++map_it)
-          {
-            raw_mz_values.push_back(map_it->first);
-            raw_int_values.push_back(map_it->second);
-          }
-
-          // setup gsl splines
-          deprecated_gsl_interp_accel * spline_acc = deprecated_gsl_interp_accel_alloc();
-          deprecated_gsl_interp_accel * first_deriv_acc = deprecated_gsl_interp_accel_alloc();
-          deprecated_gsl_spline * peak_spline = deprecated_gsl_spline_alloc( deprecated_wrapper_get_gsl_interp_cspline(), num_raw_points);
-          deprecated_gsl_spline_init(peak_spline, &(*raw_mz_values.begin()), &(*raw_int_values.begin()), num_raw_points);
-
+          Spline2d<double> peak_spline (3, peak_raw_data);
 
           // calculate maximum by evaluating the spline's 1st derivative
           // (bisection method)
-          double max_peak_mz = central_peak_mz, max_peak_int = central_peak_int;
+          double max_peak_mz = central_peak_mz;
+          double max_peak_int = central_peak_int;
           double threshold = 0.000001;
           double lefthand = left_neighbor_mz;
           double righthand = right_neighbor_mz;
@@ -281,13 +277,11 @@ public:
           bool lefthand_sign = 1;
           double eps = std::numeric_limits<double>::epsilon();
 
-
           // bisection
           do
           {
             double mid = (lefthand + righthand) / 2;
-
-            double midpoint_deriv_val = deprecated_gsl_spline_eval_deriv(peak_spline, mid, first_deriv_acc);
+            double midpoint_deriv_val = peak_spline.derivatives(mid, 1);
 
             // if deriv nearly zero then maximum already found
             if (!(std::fabs(midpoint_deriv_val) > eps))
@@ -305,30 +299,18 @@ public:
             {
               lefthand = mid;
             }
-
-            // TODO: #ifdef DEBUG_ ...
-            // PeakType peak;
-            // peak.setMZ(mid);
-            // peak.setIntensity(deprecated_gsl_spline_eval(peak_spline, mid, spline_acc));
-            // output.push_back(peak);
-
           }
           while (std::fabs(lefthand - righthand) > threshold);
 
           // sanity check?
           max_peak_mz = (lefthand + righthand) / 2;
-          max_peak_int = deprecated_gsl_spline_eval(peak_spline, max_peak_mz, spline_acc);
+          max_peak_int = peak_spline.eval( max_peak_mz );
 
           // save picked pick into output spectrum
           PeakType peak;
           peak.setMZ(max_peak_mz);
           peak.setIntensity(max_peak_int);
           output.push_back(peak);
-
-          // free allocated gsl memory
-          deprecated_gsl_spline_free(peak_spline);
-          deprecated_gsl_interp_accel_free(spline_acc);
-          deprecated_gsl_interp_accel_free(first_deriv_acc);
 
           // jump over raw data points that have been considered already
           i = i + k - 1;

@@ -33,73 +33,86 @@
 // --------------------------------------------------------------------------
 //
 
-#include <boost/math/special_functions/acosh.hpp>
-
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePeakDeconvolution.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include <limits>
 #include <boost/math/special_functions/fpclassify.hpp>
+#include <boost/math/special_functions/acosh.hpp>
+
+#include <unsupported/Eigen/NonLinearOptimization>
+
+#include <limits>
+
 
 namespace OpenMS
 {
 
 
   const DoubleReal OptimizePeakDeconvolution::dist_ = 1.003;
-  namespace OptimizationFunctions
+
+  //TODO: the operator() and the df function need heavy refactoring!!!
+  struct OPDFunctor
   {
-    // Evaluation of the target function for nonlinear optimization.
-    Int residualDC(const deprecated_gsl_vector * x, void * params, deprecated_gsl_vector * f)
+    int inputs() const { return m_inputs; }
+    int values() const { return m_values; }
+
+    OPDFunctor(unsigned dimensions, unsigned numDataPoints, const OptimizePeakDeconvolution::Data* data)
+    : m_inputs(dimensions), m_values(numDataPoints), m_data(data){ }
+
+    int operator()(const Eigen::VectorXd &x, Eigen::VectorXd &fvec)
     {
-      // According to the gsl conventions, x contains the parameters to be optimized.
+      //TODO: holding the parameters to be optimized and additional values in the same vector is
+      //      most likely not the best idea. should be split in two vectors.
+      //
+      // x contains the parameters to be optimized.
       // The first two entries are the left and right width, respectively.They are equal
       // for all peaks. Then the height and position of all peaks are stored.
       //
-      // Params might contain any additional parameters. We handle these using class members
+      // m_data might contain any additional parameters. We handle these using class members
       // instead.
       // The vector f is supposed to contain the result when we return from this function.
       // Note: GSL wants the values for each data point i as one component of the results vector
-      std::vector<DoubleReal> & signal = static_cast<OptimizePeakDeconvolution::Data *>(params)->signal;
-      std::vector<DoubleReal> & positions = static_cast<OptimizePeakDeconvolution::Data *>(params)->positions;
-      std::vector<PeakShape> & peaks = static_cast<OptimizePeakDeconvolution::Data *>(params)->peaks;
-      OptimizationFunctions::PenaltyFactorsIntensity & penalties = static_cast<OptimizePeakDeconvolution::Data *>(params)->penalties;
-      Int charge = static_cast<OptimizePeakDeconvolution::Data *>(params)->charge;
-      DoubleReal leftwidth = deprecated_gsl_vector_get(x, 0);
-      DoubleReal rightwidth = deprecated_gsl_vector_get(x, 1);
-      //DoubleReal posP1 = deprecated_gsl_vector_get(x,2);
+      const std::vector<DoubleReal>& signal = m_data->signal;
+      const std::vector<DoubleReal>& positions = m_data->positions;
+      const std::vector<PeakShape>& peaks = m_data->peaks;
+      const OptimizationFunctions::PenaltyFactorsIntensity& penalties = m_data->penalties;
+      Int charge = m_data->charge;
+      DoubleReal leftwidth = x(0);
+      DoubleReal rightwidth = x(1);
+      //DoubleReal posP1 = x(2);
 
       // iterate over all points of the signal
       for (Size current_point = 0; current_point < positions.size(); current_point++)
       {
-        DoubleReal computed_signal     = 0.;
-        DoubleReal current_position    = positions[current_point];
+        DoubleReal computed_signal = 0.;
+        DoubleReal current_position = positions[current_point];
         DoubleReal experimental_signal = signal[current_point];
 
         //iterate over all peaks
         for (Size current_peak = 0; current_peak < peaks.size(); current_peak++)
         {
           //Store the current parameters for this peak
-          DoubleReal p_height        = deprecated_gsl_vector_get(x, 2 + 2 * current_peak);
-          DoubleReal p_position    = deprecated_gsl_vector_get(x, 2 + 2 * current_peak + 1);
-          DoubleReal p_width         = (current_position <= p_position) ? leftwidth : rightwidth;
+          DoubleReal p_height = x(2 + 2 * current_peak);
+          DoubleReal p_position = x(2 + 2 * current_peak + 1);
+          DoubleReal p_width = (current_position <= p_position) ? leftwidth : rightwidth;
 
           //is it a Lorentz or a Sech - Peak?
           if (peaks[current_peak].type == PeakShape::LORENTZ_PEAK)
           {
             computed_signal += p_height / (1. + pow(p_width * (current_position - p_position), 2));
           }
-          else                   // It's a Sech - Peak
+          else // It's a Sech - Peak
           {
             computed_signal += p_height / pow(cosh(p_width * (current_position - p_position)), 2);
           }
         }
-        deprecated_gsl_vector_set(f, current_point, computed_signal - experimental_signal);
+        fvec(current_point) = computed_signal - experimental_signal;
       }
 
       // penalties : especially negative heights have to be penalised
       DoubleReal penalty = 0.;
 
-      DoubleReal penalty_pos    = penalties.pos;
+      DoubleReal penalty_pos = penalties.pos;
       DoubleReal penalty_lwidth = penalties.lWidth;
       DoubleReal penalty_rwidth = penalties.rWidth;
       DoubleReal penalty_intensity = penalties.height;
@@ -108,11 +121,11 @@ namespace OpenMS
       //iterate over all peaks again to compute the penalties
       for (Size current_peak = 0; current_peak < peaks.size(); current_peak++)
       {
-        DoubleReal p_position = deprecated_gsl_vector_get(x, 2 + 2 * current_peak + 1);
+        DoubleReal p_position = x(2 + 2 * current_peak + 1);
         if (current_peak < peaks.size() - 1)
         {
 
-          DoubleReal next_p_position  = deprecated_gsl_vector_get(x, 2 + 2 * current_peak + 3);
+          DoubleReal next_p_position  = x(2 + 2 * current_peak + 3);
           // if distance between peaks does not match the peptide mass rule
           if (fabs(fabs(p_position - next_p_position) - 1.003 / charge) > 0.05)
           {
@@ -121,14 +134,14 @@ namespace OpenMS
                        * pow(fabs(fabs(p_position - next_p_position) - 1.003 / charge), 2);
           }
         }
-        DoubleReal old_position   = peaks[current_peak].mz_position;
+        DoubleReal old_position = peaks[current_peak].mz_position;
         DoubleReal old_width_l  = peaks[current_peak].left_width;
-        DoubleReal old_width_r    = peaks[current_peak].right_width;
-        DoubleReal old_height    = peaks[current_peak].height;
+        DoubleReal old_width_r = peaks[current_peak].right_width;
+        DoubleReal old_height = peaks[current_peak].height;
 
-        DoubleReal p_width_l    = deprecated_gsl_vector_get(x, 0);
-        DoubleReal p_width_r    = deprecated_gsl_vector_get(x, 1);
-        DoubleReal p_height     = deprecated_gsl_vector_get(x, 2 + 2 * current_peak);
+        DoubleReal p_width_l = x(0);
+        DoubleReal p_width_r = x(1);
+        DoubleReal p_height = x(2 + 2 * current_peak);
 
         if (p_height <  1)
         {
@@ -151,82 +164,70 @@ namespace OpenMS
         {
           penalty += 10000 * penalty_pos * pow(fabs(old_position - p_position), 2);
         }
-
-
-
       }
-      deprecated_gsl_vector_set(f,
-    		  deprecated_wrapper_gsl_vector_get_size(f) - 1, penalty);
-      return deprecated_gsl_SUCCESS;
-    }
+      fvec(fvec.size()-1) = penalty;
 
-    /** Compute the Jacobian of the residual, where each row of the matrix corresponds to a
-     *  point in the data.
-     */
-    Int jacobianDC(const deprecated_gsl_vector * x, void * params, deprecated_gsl_matrix * J)
+      return 0;
+    }
+    // compute Jacobian matrix for the different parameters
+    int df(const Eigen::VectorXd &x, Eigen::MatrixXd &J)
     {
       // For the conventions on x and params c.f. the commentary in residual()
       //
       // The matrix J is supposed to contain the result when we return from this function.
-      // Note: GSL expects the Jacobian as follows:
+      // Note: Jacobian is expected as follows:
       //                    - each row corresponds to one data point
       //                    - each column corresponds to one parameter
+      const std::vector<DoubleReal> & positions = m_data->positions;
+      const std::vector<PeakShape> & peaks = m_data->peaks;
+      const OptimizationFunctions::PenaltyFactorsIntensity & penalties = m_data->penalties;
+      Int charge = m_data->charge;
 
-      std::vector<DoubleReal> & positions = static_cast<OptimizePeakDeconvolution::Data *>(params)->positions;
-      std::vector<PeakShape> & peaks = static_cast<OptimizePeakDeconvolution::Data *>(params)->peaks;
-      OptimizationFunctions::PenaltyFactorsIntensity & penalties = static_cast<OptimizePeakDeconvolution::Data *>(params)->penalties;
-      Int charge = static_cast<OptimizePeakDeconvolution::Data *>(params)->charge;
+      DoubleReal leftwidth = x(0);
+      DoubleReal rightwidth = x(1);
 
-      DoubleReal leftwidth = deprecated_gsl_vector_get(x, 0);
-      DoubleReal rightwidth = deprecated_gsl_vector_get(x, 1);
-
-
-      deprecated_gsl_matrix_set_zero(J);
-
+      //TODO: is the reset needed?
+      J.setZero();
 
       // iterate over all points of the signal
       for (Size current_point = 0; current_point < positions.size(); current_point++)
       {
-        DoubleReal current_position    = positions[current_point];
+        DoubleReal current_position = positions[current_point];
 
         // iterate over all peaks
         for (Size current_peak = 0; current_peak < peaks.size(); current_peak++)
         {
-
-
           //Store the current parameters for this peak
-          DoubleReal p_height        = deprecated_gsl_vector_get(x, 2 + 2 * current_peak);
-          DoubleReal p_position    = deprecated_gsl_vector_get(x, 2 + 2 * current_peak + 1);
-          DoubleReal p_width          = (current_position <= p_position) ? leftwidth : rightwidth;
+          DoubleReal p_height = x(2 + 2 * current_peak);
+          DoubleReal p_position = x(2 + 2 * current_peak + 1);
+          DoubleReal p_width = (current_position <= p_position) ? leftwidth : rightwidth;
 
           //is it a Lorentz or a Sech - Peak?
           if (peaks[current_peak].type == PeakShape::LORENTZ_PEAK)
           {
-            DoubleReal diff      = current_position - p_position;
+            DoubleReal diff = current_position - p_position;
             DoubleReal denom_inv = 1. / (1. + pow(p_width * diff, 2));
 
-            DoubleReal ddl_left  = (current_position <= p_position)
-                                   ? -2 * p_height * pow(diff, 2) * p_width * pow(denom_inv, 2) :
-                                     0;
+            DoubleReal ddl_left
+                = (current_position <= p_position) ? -2 * p_height * pow(diff, 2) * p_width * pow(denom_inv, 2) : 0;
 
-            DoubleReal ddl_right = (current_position  > p_position)
-                                   ? -2 * p_height * pow(diff, 2) * p_width * pow(denom_inv, 2) :
-                                     0;
+            DoubleReal ddl_right
+                = (current_position  > p_position) ? -2 * p_height * pow(diff, 2) * p_width * pow(denom_inv, 2) : 0;
 
             // left and right width are the same for all peaks,
             // the sums of the derivations over all peaks are stored in the first two columns
-            deprecated_gsl_matrix_set(J, current_point, 0, deprecated_gsl_matrix_get(J, current_point, 0) + ddl_left);
-            deprecated_gsl_matrix_set(J, current_point, 1, deprecated_gsl_matrix_get(J, current_point, 1) + ddl_right);
+            J(current_point, 0) = J(current_point, 0) + ddl_left;
+            J(current_point, 1) = J(current_point, 1) + ddl_right;
 
             DoubleReal ddx0    = 2 * p_height * pow(p_width, 2) * diff * pow(denom_inv, 2);
 
             // partial derivation with respect to intensity
-            deprecated_gsl_matrix_set(J, current_point, 2 + 2 * current_peak, denom_inv);
+            J(current_point, 2 + 2 * current_peak) = denom_inv;
 
             // partial derivation with respect to the mz-position
-            deprecated_gsl_matrix_set(J, current_point, 2 + 2 * current_peak + 1, ddx0);
+            J(current_point, 2 + 2 * current_peak + 1) = ddx0;
           }
-          else                   // It's a Sech - Peak
+          else// It's a Sech - Peak
           {
             DoubleReal diff      = current_position - p_position;
             DoubleReal denom_inv = 1. / cosh(p_width * diff);
@@ -243,32 +244,30 @@ namespace OpenMS
                                    ? -2 * p_height * sinh_term * diff * pow(denom_inv, 3) :
                                      0;
 
-            deprecated_gsl_matrix_set(J, current_point, 0, deprecated_gsl_matrix_get(J, current_point, 0) + ddl_left);
-            deprecated_gsl_matrix_set(J, current_point, 1, deprecated_gsl_matrix_get(J, current_point, 1) + ddl_right);
+            J(current_point, 0) = J(current_point, 0) + ddl_left;
+            J(current_point, 1) = J(current_point, 1) + ddl_right;
 
             DoubleReal ddx0      = 2 * p_height * p_width * sinh_term * pow(denom_inv, 3);
 
-            deprecated_gsl_matrix_set(J, current_point, 2 + 2 * current_peak, pow(denom_inv, 2));
-            deprecated_gsl_matrix_set(J, current_point, 2 + 2 * current_peak + 1, ddx0);
+            J(current_point, 2 + 2 * current_peak) = pow(denom_inv, 2);
+            J(current_point, 2 + 2 * current_peak + 1) = ddx0;
           }
         }
       }
 
-
       /** Now iterate over all peaks again to compute the
        *  penalties.
        */
-
       for (Size current_peak = 0; current_peak < peaks.size(); current_peak++)
       {
 
 
         DoubleReal penalty_p = 0;
-        DoubleReal p_position = deprecated_gsl_vector_get(x, 2 + 2 * current_peak + 1);
+        DoubleReal p_position = x(2 + 2 * current_peak + 1);
         if (current_peak < peaks.size() - 1)
         {
 
-          DoubleReal next_p_position  = deprecated_gsl_vector_get(x, 2 + 2 * current_peak + 3);
+          DoubleReal next_p_position  = x(2 + 2 * current_peak + 3);
           // if distance between peaks does not match the peptide mass rule
           if (fabs(fabs(p_position - next_p_position) - 1.003 / charge) > 0.05)
           {
@@ -278,15 +277,15 @@ namespace OpenMS
 
           }
         }
-        //  std::cout << "penalty_p "<<penalty_p<<std::endl;
-        DoubleReal p_width_left = deprecated_gsl_vector_get(x, 0);
-        DoubleReal p_width_right = deprecated_gsl_vector_get(x, 1);
-        DoubleReal p_height   = deprecated_gsl_vector_get(x, 2 + 2 * current_peak);
+        std::cout << "Eigen penalty_p "<<penalty_p<<std::endl;
+        DoubleReal p_width_left = x(0);
+        DoubleReal p_width_right = x(1);
+        DoubleReal p_height = x(2 + 2 * current_peak);
 
-        DoubleReal old_position    = peaks[current_peak].mz_position;
+        DoubleReal old_position = peaks[current_peak].mz_position;
         DoubleReal old_width_left  = peaks[current_peak].left_width;
         DoubleReal old_width_right = peaks[current_peak].right_width;
-        DoubleReal old_height      = peaks[current_peak].height;
+        DoubleReal old_height = peaks[current_peak].height;
 
         DoubleReal penalty_h = 0., penalty_l = 0., penalty_r = 0.;
         if (p_height < 1)
@@ -311,27 +310,24 @@ namespace OpenMS
           penalty_p += 10000 * penalties.pos * 2 * fabs(old_position - p_position);
         }
 
-
-
-        deprecated_gsl_matrix_set(J, positions.size(), 2 + 2 * current_peak, 100 * penalty_h);
-        deprecated_gsl_matrix_set(J, positions.size(), 0, 100 * penalty_l);
-        deprecated_gsl_matrix_set(J, positions.size(), 1, 100 * penalty_r);
-        deprecated_gsl_matrix_set(J, positions.size(), 2 + 2 * current_peak + 1, 100 * penalty_p);
+        J(positions.size(), 2 + 2 * current_peak) = 100 * penalty_h;
+        J(positions.size(), 0) = 100 * penalty_l;
+        J(positions.size(), 1) = 100 * penalty_r;
+        J(positions.size(), 2 + 2 * current_peak + 1) = 100 * penalty_p;
       }
-
-      return deprecated_gsl_SUCCESS;
+      for(int i=0; i<J.rows(); ++i)
+      {
+        for(int j=0; j<J.cols(); ++j)
+          std::cout << J(i,j) << " ";
+        std::cout << std::endl;
+      }
+      std::cout << std::endl;
+      return 0;
     }
 
-    // Driver function for the evaluation of function and jacobian.
-    Int evaluateDC(const deprecated_gsl_vector * x, void * params, deprecated_gsl_vector * f, deprecated_gsl_matrix * J)
-    {
-      residualDC(x, params, f);
-      jacobianDC(x, params, J);
-
-      return deprecated_gsl_SUCCESS;
-    }
-
-  } // namespace OptimizationFunctions
+    const int m_inputs, m_values;
+    const OptimizePeakDeconvolution::Data* m_data;
+  };
 
 
 
@@ -396,49 +392,35 @@ namespace OpenMS
     // the input peaks are stored in a temporary vector
     std::vector<PeakShape> temp_shapes = peaks;
 
-
     Size global_peak_number = 0;
 
     DoubleReal min(std::numeric_limits<double>::max());
-    Int best_charge;
-    Size num_peaks;
-    Size best_num_peaks;
-    deprecated_gsl_vector * best_result = deprecated_gsl_vector_alloc((Int)(2 + 2 * data.peaks.size()));
-
+    Int bestCharge = 0;
+    Size bestNumPeaks = 0;
+    Eigen::VectorXd bestResult (2 + 2 * data.peaks.size());
+    bestResult.setZero();
 
     // try three different charge states : charge-1, charge, charge +1
     // take the best solution
-    Int l = (charge_ - 1 > 1) ? charge_ - 1 : charge_;
-    Int start_l = l;
+    Int chargeState = (charge_ - 1 > 1) ? charge_ - 1 : charge_;
+    Int firstChargeState = chargeState;
 #ifdef DEBUG_DECONV
-    std::cout << "charge " << l << " max_charge" << charge_ + 1
+    std::cout << "charge " << chargeState << " max_charge" << charge_ + 1
               << "\tpeaks.size() " << peaks.size() << std::endl;
 #endif
-    best_charge = l;
-    best_num_peaks = peaks.size();
-    num_peaks = peaks.size();
-    for (; l < charge_ + 2; ++l)
+    bestCharge = chargeState;
+    bestNumPeaks = peaks.size();
+    for (; chargeState < charge_ + 2; ++chargeState)
     {
 
-
-      num_peaks = getNumberOfPeaks_(l, temp_shapes, data);
-#ifdef DEBUG_DECONV
-      std::cout << "charge " << l << " #peaks " << num_peaks << "\tpeaks.size() "
-                << data.peaks.size() << std::endl;
-#endif
-      deprecated_gsl_vector * start_value;
-      // the vector storing the start values for the parameters has to be filled
-      // differently depending on the usage of the peptide mass rule
-      start_value = deprecated_gsl_vector_alloc(2 + 2 * data.peaks.size());
+      setNumberOfPeaks_(data, temp_shapes, chargeState);
+      Eigen::VectorXd x_init (2 + 2 * data.peaks.size());
       for (Size i = 0; i < data.peaks.size(); i++)
       {
-        deprecated_gsl_vector_set(start_value, 2 + 2 * i, data.peaks[i].height);
-        deprecated_gsl_vector_set(start_value, 3 + 2 * i, data.peaks[i].mz_position);
+        x_init(2 + 2 * i) = data.peaks[i].height;
+        x_init(3 + 2 * i) = data.peaks[i].mz_position;
       }
-
-
       // Initialize the parameters for the optimization
-
       // all peaks shall have the same width
       DoubleReal wl = data.peaks[0].left_width;
       DoubleReal wr = data.peaks[0].right_width;
@@ -458,204 +440,91 @@ namespace OpenMS
         }
         wr = 1.;
       }
-
-      deprecated_gsl_vector_set(start_value, 0, wl);
-      deprecated_gsl_vector_set(start_value, 1, wr);
-
+      x_init(0) = wl;
+      x_init(1) = wr;
       data.penalties = penalties_;
-   // fit_function.params = &penalties_;
-         data.charge = l;
+      data.charge = chargeState;
+      unsigned numDataPoints = std::max(data.positions.size() + 1, 2 + 2 * data.peaks.size());
+      OPDFunctor functor (2, numDataPoints, &data);
+      Eigen::LevenbergMarquardt<OPDFunctor> lmSolver (functor);
+      Eigen::LevenbergMarquardt<OPDFunctor>::Parameters config;
+      config.maxfev = (Int)param_.getValue("max_iteration");
+      lmSolver.parameters = config;
+      Eigen::LevenbergMarquardtSpace::Status status = lmSolver.minimize(x_init);
 
-
-      // The gsl algorithms require us to provide function pointers for the evaluation of
-      // the target function.
-      deprecated_gsl_multifit_function_fdf_ptr fit_function
-		  = deprecated_wrapper_gsl_multifit_fdfsolver_lmsder_new (
-				  OptimizationFunctions::residualDC,
-				  OptimizationFunctions::jacobianDC,
-				  OptimizationFunctions::evaluateDC,
-				  std::max(data.positions.size() + 1, 2 + 2 * data.peaks.size()),
-				  2 + 2 * data.peaks.size(),
-				  &data );
-
-
-#ifdef DEBUG_DECONV
-      std::cout << "fit_function.p " << fit_function.p << "\t fit_function.n " << fit_function.n << std::endl;
-      std::cout << "peaks.size() " << data.peaks.size() << std::endl;
-#endif
-      const deprecated_gsl_multifit_fdfsolver_type * type
-      = deprecated_wrapper_get_multifit_fdfsolver_lmsder();
-      deprecated_gsl_multifit_fdfsolver * fit;
-      fit = deprecated_gsl_multifit_fdfsolver_alloc(type,
-                                         std::max(data.positions.size() + 1,
-                                                  2 + 2 * data.peaks.size()),
-                                         2 + 2 * data.peaks.size());
-
-
-
-
-
-      deprecated_gsl_multifit_fdfsolver_set(fit, fit_function.get(), start_value);
-
-#ifdef DEBUG_DECONV
-      // initial norm
-      std::cout << "Before optimization: ||f|| = " << deprecated_gsl_blas_dnrm2(fit->f) << std::endl;
-#endif
-      // Iteration
-      Int iteration = 0;
-      Int status;
-
-      do
+      //the states are poorly documented. after checking the source, we believe that
+      //all states except NotStarted, Running and ImproperInputParameters are good
+      //termination states.
+      if (status <= Eigen::LevenbergMarquardtSpace::ImproperInputParameters)
       {
-        iteration++;
-        status = deprecated_gsl_multifit_fdfsolver_iterate(fit);
-
-#ifdef DEBUG_DECONV
-        std::cout << "Iteration " << iteration << "; Status " << deprecated_gsl_strerror(status) << "; " << std::endl;
-        std::cout << "||f|| = " << deprecated_gsl_blas_dnrm2(fit->f) << std::endl;
-        std::cout << "Number of parms: " << data.peaks.size() + 3 << std::endl;
-        std::cout << "Delta: " << deprecated_gsl_blas_dnrm2(fit->dx) << std::endl;
-#endif
-        if (boost::math::isnan( deprecated_gsl_blas_dnrm2(
-        		deprecated_wrapper_gsl_multifit_fdfsolver_get_dx(fit)) ))
-        {
-#ifdef DEBUG_DECONV
-          std::cout << "norm is not a number" << std::endl;
-#endif
-          break;
-        }
-        status = deprecated_gsl_multifit_test_delta(
-        		deprecated_wrapper_gsl_multifit_fdfsolver_get_x(fit),
-        		deprecated_wrapper_gsl_multifit_fdfsolver_get_x(fit),
-        		(float)param_.getValue("eps_abs"),
-        		(float)param_.getValue("eps_rel"));
-
-        if (status != deprecated_gsl_CONTINUE)
-        {
-#ifdef DEBUG_DECONV
-          std::cout << "gsl status != deprecated_gsl_CONTINUE" << std::endl;
-#endif
-          break;
-        }
-        //      if(!checkFWHM_(peaks,fit) && failure <1)
-//                      {
-// #ifdef DEBUG_DECONV
-//                              std::cout << "fwhm differ"<<std::endl;
-// #endif
-//                              return false;
-//                      }
+          throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-OptimizePeakDeconvolution", "Could not fit the curve to the data: Error " + String(status));
       }
-      while (status == deprecated_gsl_CONTINUE && iteration < (Int)param_.getValue("max_iteration"));
-
-
-      DoubleReal chi = deprecated_gsl_blas_dnrm2(
-    		  deprecated_wrapper_gsl_multifit_fdfsolver_get_f(fit));
-#ifdef DEBUG_DECONV
-      std::cout << "Finished! Charge " << l << "\tIterations: " << iteration << std::endl;
-      std::cout << "Delta: " << deprecated_gsl_blas_dnrm2(fit->dx) << std::endl;
-
-      std::cout << "chisq/dof = " << pow(chi, 2.0) / (data.positions.size()
-                                                      - (3 + data.peaks.size()));
-      std::cout << "\nAfter optimization: ||f|| = " << deprecated_gsl_blas_dnrm2(fit->f) << std::endl;
-#endif
-      if ((l == start_l) || (chi < min))
+      DoubleReal chi = lmSolver.fnorm;
+      if ((chargeState == firstChargeState) || (chi < min))
       {
-        if (l != start_l)
-          deprecated_gsl_vector_free(best_result);
-        best_result = deprecated_gsl_vector_alloc(2 + 2 * data.peaks.size());
-        deprecated_gsl_vector_memcpy(best_result,
-        		deprecated_wrapper_gsl_multifit_fdfsolver_get_x(fit));
+
+        bestResult = x_init;
         min = chi;
-        best_charge = l;
-        best_num_peaks = data.peaks.size();
-      }
-      iteration = 0;
-
-
-
-      deprecated_gsl_multifit_fdfsolver_free(fit);
-      deprecated_gsl_vector_free(start_value);
-
-    }
-    global_peak_number += best_num_peaks;
-    // iterate over all peaks and store the optimized values in peaks
-    if (best_num_peaks > 0)
-    {
-      peaks.resize(best_num_peaks);
-      for (Size current_peak = 0; current_peak < best_num_peaks; current_peak++)
-      {
-
-        // Store the current parameters for this peak
-
-        peaks[current_peak].left_width  = deprecated_gsl_vector_get(best_result, 0);
-        peaks[current_peak].right_width = deprecated_gsl_vector_get(best_result, 1);
-
-        peaks[current_peak].height      = deprecated_gsl_vector_get(best_result, 2 + 2 * current_peak);
-        peaks[current_peak].mz_position = deprecated_gsl_vector_get(best_result, 2 + 2 * current_peak + 1);
-
-
-
-        // compute the area
-        // is it a Lorentz or a Sech - Peak?
-        if (peaks[current_peak].type == PeakShape::LORENTZ_PEAK)
-        {
-          PeakShape p = peaks[current_peak];
-          DoubleReal x_left_endpoint = p.mz_position + 1 / p.left_width * sqrt(p.height / 1 - 1);
-          DoubleReal x_right_endpoint = p.mz_position + 1 / p.right_width * sqrt(p.height / 1 - 1);
-#ifdef DEBUG_DECONV
-          std::cout << "x_left_endpoint " << x_left_endpoint << " x_right_endpoint " << x_right_endpoint << std::endl;
-          std::cout << "p.height" << p.height << std::endl;
-#endif
-          DoubleReal area_left = -p.height / p.left_width * atan(p.left_width * (x_left_endpoint - p.mz_position));
-          DoubleReal area_right = -p.height / p.right_width * atan(p.right_width * (p.mz_position - x_right_endpoint));
-          peaks[current_peak].area = area_left + area_right;
-
-        }
-        else                  //It's a Sech - Peak
-        {
-          PeakShape p = peaks[current_peak];
-          DoubleReal x_left_endpoint = p.mz_position + 1 / p.left_width * boost::math::acosh(sqrt(p.height / 0.001));
-          DoubleReal x_right_endpoint = p.mz_position + 1 / p.right_width * boost::math::acosh(sqrt(p.height / 0.001));
-#ifdef DEBUG_DECONV
-          std::cout << "x_left_endpoint " << x_left_endpoint << " x_right_endpoint " << x_right_endpoint << std::endl;
-          std::cout << "p.height" << p.height << std::endl;
-#endif
-          DoubleReal area_left = -p.height / p.left_width * (sinh(p.left_width * (p.mz_position - x_left_endpoint))
-                                                             / cosh(p.left_width * (p.mz_position - x_left_endpoint)));
-          DoubleReal area_right = -p.height / p.right_width * (sinh(p.right_width * (p.mz_position - x_right_endpoint))
-                                                               / cosh(p.right_width * (p.mz_position - x_right_endpoint)));
-          peaks[current_peak].area = area_left + area_right;
-
-        }
-
+        bestCharge = chargeState;
+        bestNumPeaks = data.peaks.size();
       }
     }
-    charge_ = best_charge;
-    deprecated_gsl_vector_free(best_result);
+     global_peak_number += bestNumPeaks;
+     // iterate over all peaks and store the optimized values in peaks
+     if (bestNumPeaks > 0)
+     {
+       peaks.resize(bestNumPeaks);
+       for (Size current_peak = 0; current_peak < bestNumPeaks; current_peak++)
+       {
 
-    return true;
-  }
+         // Store the current parameters for this peak
 
-  bool OptimizePeakDeconvolution::checkFWHM_(std::vector<PeakShape> & peaks, deprecated_gsl_multifit_fdfsolver * & fit)
-  {
-    DoubleReal fwhm_threshold = (DoubleReal)param_.getValue("fwhm_threshold");
+         peaks[current_peak].left_width  = bestResult(0);
+         peaks[current_peak].right_width = bestResult(1);
 
-    PeakShape p;
-    for (Size current_peak = 0; current_peak < peaks.size(); current_peak++)
-    {
-      p.left_width  = deprecated_gsl_vector_get(
-    		  deprecated_wrapper_gsl_multifit_fdfsolver_get_x(fit), 0);
-      p.right_width = deprecated_gsl_vector_get(
-    		  deprecated_wrapper_gsl_multifit_fdfsolver_get_x(fit), 1);
-      p.type        = peaks[current_peak].type;
-#ifdef DEBUG_DECONV
-      std::cout << "fwhm: " << p.getFWHM() << " > " << fwhm_threshold << " ?" << std::endl;
-#endif
-      if (p.getFWHM() > fwhm_threshold)
-        return false;
-    }
+         peaks[current_peak].height = bestResult(2 + 2 * current_peak);
+         peaks[current_peak].mz_position = bestResult(2 + 2 * current_peak + 1);
 
-    return true;
+
+
+         // compute the area
+         // is it a Lorentz or a Sech - Peak?
+         if (peaks[current_peak].type == PeakShape::LORENTZ_PEAK)
+         {
+           PeakShape p = peaks[current_peak];
+           DoubleReal x_left_endpoint = p.mz_position + 1 / p.left_width * sqrt(p.height / 1 - 1);
+           DoubleReal x_right_endpoint = p.mz_position + 1 / p.right_width * sqrt(p.height / 1 - 1);
+ #ifdef DEBUG_DECONV
+           std::cout << "x_left_endpoint " << x_left_endpoint << " x_right_endpoint " << x_right_endpoint << std::endl;
+           std::cout << "p.height" << p.height << std::endl;
+ #endif
+           DoubleReal area_left = -p.height / p.left_width * atan(p.left_width * (x_left_endpoint - p.mz_position));
+           DoubleReal area_right = -p.height / p.right_width * atan(p.right_width * (p.mz_position - x_right_endpoint));
+           peaks[current_peak].area = area_left + area_right;
+
+         }
+         else                  //It's a Sech - Peak
+         {
+           PeakShape p = peaks[current_peak];
+           DoubleReal x_left_endpoint = p.mz_position + 1 / p.left_width * boost::math::acosh(sqrt(p.height / 0.001));
+           DoubleReal x_right_endpoint = p.mz_position + 1 / p.right_width * boost::math::acosh(sqrt(p.height / 0.001));
+ #ifdef DEBUG_DECONV
+           std::cout << "x_left_endpoint " << x_left_endpoint << " x_right_endpoint " << x_right_endpoint << std::endl;
+           std::cout << "p.height" << p.height << std::endl;
+ #endif
+           DoubleReal area_left = -p.height / p.left_width * (sinh(p.left_width * (p.mz_position - x_left_endpoint))
+                                                              / cosh(p.left_width * (p.mz_position - x_left_endpoint)));
+           DoubleReal area_right = -p.height / p.right_width * (sinh(p.right_width * (p.mz_position - x_right_endpoint))
+                                                                / cosh(p.right_width * (p.mz_position - x_right_endpoint)));
+           peaks[current_peak].area = area_left + area_right;
+
+         }
+
+       }
+     }
+     charge_ = bestCharge;
+
+     return true;
   }
 
   Size OptimizePeakDeconvolution::getNumberOfPeaks_(Int charge, std::vector<PeakShape> & temp_shapes, Data & data)
@@ -684,6 +553,52 @@ namespace OpenMS
 
     return shape;
 
+  }
+
+  bool OptimizePeakDeconvolution::checkFWHM_(std::vector<PeakShape> & peaks, deprecated_gsl_multifit_fdfsolver * & fit)
+  {
+    DoubleReal fwhm_threshold = (DoubleReal)param_.getValue("fwhm_threshold");
+
+    PeakShape p;
+    for (Size current_peak = 0; current_peak < peaks.size(); current_peak++)
+    {
+      p.left_width  = deprecated_gsl_vector_get(
+    		  deprecated_wrapper_gsl_multifit_fdfsolver_get_x(fit), 0);
+      p.right_width = deprecated_gsl_vector_get(
+    		  deprecated_wrapper_gsl_multifit_fdfsolver_get_x(fit), 1);
+      p.type        = peaks[current_peak].type;
+#ifdef DEBUG_DECONV
+      std::cout << "fwhm: " << p.getFWHM() << " > " << fwhm_threshold << " ?" << std::endl;
+#endif
+      if (p.getFWHM() > fwhm_threshold)
+        return false;
+    }
+
+    return true;
+  }
+
+  void OptimizePeakDeconvolution::setNumberOfPeaks_(Data & data, const std::vector<PeakShape> & temp_shapes, Int charge)
+  {
+    DoubleReal dist = dist_ / charge;
+
+    data.peaks.clear();
+#ifdef DEBUG_DECONV
+    std::cout << "temp_shapes[0].mz_position " << temp_shapes[0].mz_position
+              << "\t dist " << dist << "\tp_index " << shape << std::endl;
+#endif
+    // while the peak's position is smaller than the last considered position
+    // take the peak for optimization
+    Size shape = 0;
+    while ((temp_shapes[0].mz_position + shape * dist <
+            data.positions[data.positions.size() - 1]) &&
+           (shape < temp_shapes.size()))
+    {
+      data.peaks.push_back(temp_shapes[shape]);
+#ifdef DEBUG_DECONV
+      std::cout << "temp_shapes[0].mz_position + p_index*dist = " << temp_shapes[0].mz_position + shape * dist << std::endl;
+#endif
+      shape++;
+    }
   }
 
 }

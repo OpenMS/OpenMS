@@ -65,7 +65,11 @@ END_SECTION
 
 TransformationDescription::DataPoints data;
 data.push_back(make_pair(0.0, 1.0));
+data.push_back(make_pair(0.25, 1.5));
+data.push_back(make_pair(0.5, 2.0));
 data.push_back(make_pair(1.0, 3.0));
+
+
 
 START_SECTION((TransformationDescription(const DataPoints& data)))
 {
@@ -91,7 +95,7 @@ START_SECTION((void setDataPoints(const DataPoints& data)))
 	td.setDataPoints(data);
 	// setting data points clears the model:
 	TEST_EQUAL(td.getModelType(), "none");
-	TEST_EQUAL(td.getDataPoints().size(), 2)
+	TEST_EQUAL(td.getDataPoints().size(), 4)
 	TEST_EQUAL(td.getDataPoints() == data, true);
 
 	TransformationDescription::DataPoints empty;
@@ -122,9 +126,9 @@ START_SECTION((static void getModelTypes(StringList& result)))
 	StringList result;
 	TransformationDescription::getModelTypes(result);
 	TEST_EQUAL(result.size(), 3);
-	TEST_EQUAL(result[0], "linear");
-	TEST_EQUAL(result[1], "b_spline");
-	TEST_EQUAL(result[2], "interpolated");
+	TEST_EQUAL(result.at(0), "linear");
+	TEST_EQUAL(result.at(1), "b_spline");
+	TEST_EQUAL(result.at(2), "interpolated");
 }
 END_SECTION
 
@@ -154,14 +158,13 @@ END_SECTION
 START_SECTION((void getModelParameters(Param& params) const))
 {
 	TransformationDescription td;
-	Param params;
-	td.getModelParameters(params);
+	Param params = td.getModelParameters();
 	TEST_EQUAL(params, Param());
 	params.setValue("slope", 2.5);
 	params.setValue("intercept", -100.0);
 	const Param const_params = params;
 	td.fitModel("linear", const_params);
-	td.getModelParameters(params);
+	params = td.getModelParameters();
 	TEST_EQUAL(params, const_params);
 }
 END_SECTION
@@ -173,9 +176,8 @@ START_SECTION((TransformationDescription(const TransformationDescription& rhs)))
 	TransformationDescription td2 = td;
 	TEST_EQUAL(td.getModelType(), td2.getModelType());
 	TEST_EQUAL(td.getDataPoints() == td2.getDataPoints(), true);
-	Param params, params2;
-	td.getModelParameters(params);
-	td2.getModelParameters(params2);
+	Param params = td.getModelParameters();
+	Param params2 = td2.getModelParameters();
 	TEST_EQUAL(params, params2);
 }
 END_SECTION
@@ -188,57 +190,68 @@ START_SECTION((TransformationDescription& operator=(const TransformationDescript
 	td2 = td;
 	TEST_EQUAL(td.getModelType(), td2.getModelType());
 	TEST_EQUAL(td.getDataPoints() == td2.getDataPoints(), true);
-	Param params, params2;
-	td.getModelParameters(params);
-	td2.getModelParameters(params2);
+  Param params = td.getModelParameters();
+  Param params2 = td2.getModelParameters();
 	TEST_EQUAL(params, params2);
 }
 END_SECTION
 
 START_SECTION((void invert()))
 {
-	TransformationDescription td;
+
 	DoubleReal value = 57.12;
-	Param params;
 
 	// test null transformation:
-	td.fitModel("none", params);
+	TransformationDescription td;
+	td.fitModel("none", Param());
 	td.invert();
 	TEST_EQUAL(td.getModelType(), "none");
 
+  // test inversion of data points:
+	TransformationDescription td1;
+  td1.setDataPoints(data);
+  td1.invert();
+  td1.invert();
+  TEST_EQUAL(td1.getDataPoints() == data, true);
+
+
 	// test linear transformation:
-	params.setValue("slope", 2.0);
-	params.setValue("intercept", 47.12);
-	td.fitModel("linear", params);
+  TransformationDescription td2;
+  td2.setDataPoints(data);
+  Param params2;
+	params2.setValue("slope", 2.0);
+	params2.setValue("intercept", 47.12);
+	td2.fitModel("linear", params2);
+	TEST_REAL_SIMILAR(params2.getValue("slope"), 2.0);
+  TEST_REAL_SIMILAR(params2.getValue("intercept"), 47.12);
 
-	td.invert();
-	TEST_EQUAL(td.getModelType(), "linear");
-	td.getModelParameters(params);
-	TEST_REAL_SIMILAR(params.getValue("slope"), 0.5);
-	TEST_REAL_SIMILAR(params.getValue("intercept"), -23.56);
-	TEST_REAL_SIMILAR(td.apply(value), 5.0);
+  TransformationDescription td3;
+  td3.setDataPoints(data);
+  Param params3;
+  td3.fitModel("linear", params3);
+	td3.invert();
+	TEST_EQUAL(td3.getModelType(), "linear");
+	TEST_REAL_SIMILAR(td3.apply(1.0), 0.0);//control input values
+	TEST_REAL_SIMILAR(td3.apply(2.0), 0.5);//control input values
+	TEST_REAL_SIMILAR(td3.apply(3.0), 1.0);//control input values
+	TEST_REAL_SIMILAR(td3.apply(4.0), 1.5);//control interpolation values
+	TEST_REAL_SIMILAR(td3.apply(5.0), 2.0);//control interpolation values
 
-	// test inversion of data points:
-	td.setDataPoints(data);
-	td.invert();
-	TEST_EQUAL(td.getDataPoints()[0].first, data[0].second);
-	TEST_EQUAL(td.getDataPoints()[0].second, data[0].first);
-	TEST_EQUAL(td.getDataPoints()[1].first, data[1].second);
-	TEST_EQUAL(td.getDataPoints()[1].second, data[1].first);
-	td.invert();
-	TEST_EQUAL(td.getDataPoints() == data, true);
+
 
 	// test interpolated-linear transformation:
-	params.clear();
-	params.setValue("interpolation_type", "linear");
-	td.fitModel("interpolated", params);
-	td.invert();
-	TEST_EQUAL(td.getModelType(), "interpolated");
+	TransformationDescription td4;
+	td4.setDataPoints(data);
+  Param params4;
+	params4.setValue("interpolation_type", "cspline");
+	td4.fitModel("interpolated", params4);
+	td4.invert();
+	TEST_EQUAL(td4.getModelType(), "interpolated");
 	// pairs have changed...
-	TEST_EQUAL(td.getDataPoints() != data, true);
-	td.invert();
+	TEST_EQUAL(td4.getDataPoints() != data, true);
+	td4.invert();
 	// ... now they're back to the original:
-	TEST_EQUAL(td.getDataPoints() == data, true);
+	TEST_EQUAL(td4.getDataPoints() == data, true);
 }
 END_SECTION
 

@@ -76,6 +76,12 @@ public:
       intensity_(0)
     {}
 
+    /// construct with position and intensity
+    inline Peak1D(PositionType a, IntensityType b) :
+      position_(a),
+      intensity_(b)
+    {}
+
     /// Copy constructor
     inline Peak1D(const Peak1D & p) :
       position_(p.position_),

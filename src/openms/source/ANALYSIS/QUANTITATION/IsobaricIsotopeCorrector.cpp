@@ -33,96 +33,57 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricIsotopeCorrector.h>
+#include <OpenMS/DATASTRUCTURES/Utils/MatrixUtils.h>
 
 // NNLS isotope correction
 #include <OpenMS/MATH/MISC/NonNegativeLeastSquaresSolver.h>
+
+#include <Eigen/LU>
 
 // #define ISOBARIC_QUANT_DEBUG
 
 namespace OpenMS
 {
 
-  IsobaricIsotopeCorrector::IsobaricIsotopeCorrector(const IsobaricQuantitationMethod* const quant_method) :
-    quant_method_(quant_method),
-    m_(0),
-    p_(0),
-    b_(0),
-    x_(0),
-    allocated_(false)
+  IsobaricQuantifierStatistics
+  IsobaricIsotopeCorrector::correctIsotopicImpurities(
+      const ConsensusMap& consensus_map_in, ConsensusMap& consensus_map_out,
+      const IsobaricQuantitationMethod* quant_method)
   {
-  }
-
-  IsobaricIsotopeCorrector::IsobaricIsotopeCorrector(const IsobaricIsotopeCorrector& other)
-    : quant_method_(other.quant_method_),
-      m_(0),
-      p_(0),
-      b_(0),
-      x_(0),
-      allocated_(false)
-  {
-  }
-
-  IsobaricIsotopeCorrector& IsobaricIsotopeCorrector::operator=(const IsobaricIsotopeCorrector& rhs)
-  {
-    if (this == &rhs)
-      return *this;
-
-    quant_method_ = rhs.quant_method_;
-
-    return *this;
-  }
-
-  IsobaricIsotopeCorrector::~IsobaricIsotopeCorrector()
-  {
-    freeGSLMemory_();
-  }
-
-  void IsobaricIsotopeCorrector::freeGSLMemory_()
-  {
-    // ensure the memory is cleared
-    if (allocated_)
-    {
-      deprecated_gsl_matrix_free(m_);
-      deprecated_gsl_permutation_free(p_);
-      deprecated_gsl_vector_free(b_);
-      deprecated_gsl_vector_free(x_);
-      allocated_ = false;
-    }
-  }
-
-  IsobaricQuantifierStatistics IsobaricIsotopeCorrector::correctIsotopicImpurities(const ConsensusMap& consensus_map_in, ConsensusMap& consensus_map_out)
-  {
-    OPENMS_PRECONDITION(consensus_map_in.size() == consensus_map_out.size(), "The in- and output map need to have the same size.")
+    OPENMS_PRECONDITION(consensus_map_in.size() == consensus_map_out.size(),
+        "The in- and output map need to have the same size.")
 
     // the stats object to fill while correcting
     IsobaricQuantifierStatistics stats;
     stats.number_ms2_total = consensus_map_out.size();
-    stats.channel_count = quant_method_->getNumberOfChannels();
+    stats.channel_count = quant_method->getNumberOfChannels();
 
-    Matrix<double> correction_matrix = quant_method_->getIsotopeCorrectionMatrix();
+    Matrix<double> correction_matrix = quant_method->getIsotopeCorrectionMatrix();
 
-    if (isIdentityMatrix_(correction_matrix))
+    if (matrixIsIdentityMatrix(correction_matrix))
     {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "IsobaricIsotopeCorrector: The given isotope correction matrix is an identity matrix leading to no correction. "
-                                                                                 "Please provide a valid isotope_correction matrix as it was provided with the sample kit!");
+      throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+          "IsobaricIsotopeCorrector: The given isotope correction matrix is an identity matrix leading to no correction. "
+          "Please provide a valid isotope_correction matrix as it was provided with the sample kit!");
     }
 
     // convert to GSL matrix and setup required gsl datastructures
-    m_ = correction_matrix.toGslMatrix();
-    p_ = deprecated_gsl_permutation_alloc(quant_method_->getNumberOfChannels());
-    b_ = deprecated_gsl_vector_alloc(quant_method_->getNumberOfChannels());
-    x_ = deprecated_gsl_vector_alloc(quant_method_->getNumberOfChannels());
-    allocated_ = true;
+    EigenMatrixXdPtr m ( convertOpenMSMatrix2EigenMatrixXd( correction_matrix ) );
+    Eigen::FullPivLU<Eigen::MatrixXd> ludecomp (*m);
+    Eigen::VectorXd b;
+    b.resize(quant_method->getNumberOfChannels());
+    b.setZero();
+    std::vector<double> x (quant_method->getNumberOfChannels(), 0);
 
-    if (!isInvertible_())
+    if (!ludecomp.isInvertible())
     {
       // clean up before we leave
       throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "IsobaricIsotopeCorrector: The given isotope correction matrix is not invertible!");
     }
 
     // data structures for NNLS
-    Matrix<double> m_b(quant_method_->getNumberOfChannels(), 1);
-    Matrix<double> m_x(quant_method_->getNumberOfChannels(), 1);
+    Matrix<double> m_b(quant_method->getNumberOfChannels(), 1);
+    Matrix<double> m_x(quant_method->getNumberOfChannels(), 1);
 
     // correct all consensus elements
     for (ConsensusMap::size_type i = 0; i < consensus_map_out.size(); ++i)
@@ -134,56 +95,32 @@ namespace OpenMS
       consensus_map_out[i].clear();
 
       // fill b vector
-      fillInputVector_(b_, m_b, consensus_map_in[i], consensus_map_in);
+      fillInputVector_(b, m_b, consensus_map_in[i], consensus_map_in);
 
       // solve using gsl and NNLS for stability and QC reasons
-      solvedeprecated_gsl_(m_, p_, b_, x_);
+      Eigen::MatrixXd x = ludecomp.solve( b );
+      if (! ((*m) * x).isApprox(b))
+      {
+        throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "IsobaricIsotopeCorrector: Cannot multiply!");
+      }
       solveNNLS_(correction_matrix, m_b, m_x);
 
       // update the ouput consensus map with the corrected intensities
       ConsensusFeature::IntensityType cf_intensity = updateOutpuMap_(consensus_map_in, consensus_map_out, i, m_x);
 
       // check consistency between GSL and NNLS results
-      computeStats_(m_x, x_, cf_intensity, stats);
+      computeStats_(m_x, x, cf_intensity, quant_method, stats);
     }
 
     // free all memory allocated by GSL objects
-    freeGSLMemory_();
+//    freeGSLMemory_();
 
     return stats;
   }
 
-  bool IsobaricIsotopeCorrector::isIdentityMatrix_(const Matrix<double>& channel_frequency) const
-  {
-    bool is_identity = true;
-
-    for (Matrix<double>::SizeType i = 0; i < channel_frequency.rows(); ++i)
-    {
-      for (Matrix<double>::SizeType j = 0; j < channel_frequency.rows(); ++j)
-      {
-        // check if the entries are those of a identity matrix;
-        // i==j -> m(i,j) == 1.0 && i!=j -> m(i,j) == 0.0
-        if ((i == j && channel_frequency(i, j) != 1.0) || channel_frequency(i, j) != 0.0)
-        {
-          is_identity = false;
-          break;
-        }
-      }
-      // leave outer loop if we have reached the abortion cirteria
-      if (!is_identity) break;
-    }
-    return is_identity;
-  }
-
-  bool IsobaricIsotopeCorrector::isInvertible_() const
-  {
-    // lets see if the matrix is invertible
-    int* sign = new int(0);
-    int  status = deprecated_gsl_linalg_LU_decomp(m_, p_, sign);
-    return status == 0;
-  }
-
-  void IsobaricIsotopeCorrector::fillInputVector_(deprecated_gsl_vector* b, Matrix<double>& m_b, const ConsensusFeature& cf, const ConsensusMap& cm) const
+  void
+  IsobaricIsotopeCorrector::fillInputVector_(Eigen::VectorXd& b,
+      Matrix<double>& m_b, const ConsensusFeature& cf, const ConsensusMap& cm)
   {
     for (ConsensusFeature::HandleSetType::const_iterator it_elements = cf.getFeatures().begin();
          it_elements != cf.getFeatures().end();
@@ -195,21 +132,14 @@ namespace OpenMS
       std::cout << "  map_index " << it_elements->getMapIndex() << "-> id " << index << " with intensity " << it_elements->getIntensity() << "\n" << std::endl;
 #endif
       // this is deprecated, but serves as quality measurement
-      deprecated_gsl_vector_set(b, index, it_elements->getIntensity());
+      b(index) = it_elements->getIntensity();
       m_b(index, 0) = it_elements->getIntensity();
     }
   }
 
-  void IsobaricIsotopeCorrector::solvedeprecated_gsl_(const deprecated_gsl_matrix* m, const deprecated_gsl_permutation* p, const deprecated_gsl_vector* b, deprecated_gsl_vector* x) const
-  {
-    int status = deprecated_gsl_linalg_LU_solve(m, p, b, x);
-    if (status != 0)
-    {
-      throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "IsobaricIsotopeCorrector: Invalid entry in Param 'isotope_correction_values'; Cannot multiply!");
-    }
-  }
-
-  void IsobaricIsotopeCorrector::solveNNLS_(const Matrix<double>& correction_matrix, const Matrix<double>& m_b, Matrix<double>& m_x) const
+  void
+  IsobaricIsotopeCorrector::solveNNLS_(const Matrix<double>& correction_matrix,
+      const Matrix<double>& m_b, Matrix<double>& m_x)
   {
     Int status = NonNegativeLeastSquaresSolver::solve(correction_matrix, m_b, m_x);
     if (status != NonNegativeLeastSquaresSolver::SOLVED)
@@ -218,23 +148,26 @@ namespace OpenMS
     }
   }
 
-  void IsobaricIsotopeCorrector::computeStats_(const Matrix<double>& m_x, deprecated_gsl_vector* x, const ConsensusFeature::IntensityType cf_intensity, IsobaricQuantifierStatistics& stats)
+  void
+  IsobaricIsotopeCorrector::computeStats_(const Matrix<double>& m_x,
+      const Eigen::MatrixXd& x, const ConsensusFeature::IntensityType cf_intensity,
+      const IsobaricQuantitationMethod* quant_method, IsobaricQuantifierStatistics& stats)
   {
     Size s_negative(0);
     Size s_different_count(0); // happens when naive solution is negative in other channels
     DoubleReal s_different_intensity(0);
 
     // ISOTOPE CORRECTION: compare solutions of Matrix inversion vs. NNLS
-    for (Size index = 0; index < quant_method_->getNumberOfChannels(); ++index)
+    for (Size index = 0; index < quant_method->getNumberOfChannels(); ++index)
     {
-      if (deprecated_gsl_vector_get(x, index) < 0.0)
+      if (x(index) < 0.0)
       {
         ++s_negative;
       }
-      else if (std::fabs(m_x(index, 0) - deprecated_gsl_vector_get(x, index)) > 0.000001)
+      else if (std::fabs(m_x(index, 0) - x(index)) > 0.000001)
       {
         ++s_different_count;
-        s_different_intensity += std::fabs(m_x(index, 0) - deprecated_gsl_vector_get(x, index));
+        s_different_intensity += std::fabs(m_x(index, 0) - x(index));
       }
     }
 
@@ -255,7 +188,10 @@ namespace OpenMS
     }
   }
 
-  ConsensusFeature::IntensityType IsobaricIsotopeCorrector::updateOutpuMap_(const ConsensusMap& consensus_map_in, ConsensusMap& consensus_map_out, ConsensusMap::size_type current_cf, const Matrix<double>& m_x) const
+  ConsensusFeature::IntensityType
+  IsobaricIsotopeCorrector::updateOutpuMap_(
+      const ConsensusMap& consensus_map_in, ConsensusMap& consensus_map_out,
+      ConsensusMap::size_type current_cf, const Matrix<double>& m_x)
   {
     ConsensusFeature::IntensityType cf_intensity(0);
     for (ConsensusFeature::HandleSetType::const_iterator it_elements = consensus_map_in[current_cf].begin();

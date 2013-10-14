@@ -8,6 +8,7 @@ LinearInterpolation.h
 MathFunctions.h
 NonNegativeLeastSquaresSolver.h
 MSNumpress.h
+Spline2d.h
 )
 
 ### add path to the filenames

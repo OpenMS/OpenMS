@@ -51,7 +51,10 @@ namespace OpenMS
   namespace Math
   {
     PosteriorErrorProbabilityModel::PosteriorErrorProbabilityModel() :
-      DefaultParamHandler("PosteriorErrorProbabilityModel"), negative_prior_(0.5), max_incorrectly_(0), max_correctly_(0), smallest_score_(0)
+      DefaultParamHandler("PosteriorErrorProbabilityModel"),
+      incorrectly_assigned_fit_param_(GaussFitter::GaussFitResult(-1,-1,-1)),
+      correctly_assigned_fit_param_(GaussFitter::GaussFitResult(-1,-1,-1)),
+      negative_prior_(0.5), max_incorrectly_(0), max_correctly_(0), smallest_score_(0)
     {
       defaults_.setValue("number_of_bins", 100, "Number of bins used for visualization. Only needed if each iteration step of the EM-Algorithm will be visualized", ListUtils::create<String>("advanced"));
       defaults_.setValue("output_plots", "false", "If true every step of the EM-algorithm will be written to a file as a gnuplot formula", ListUtils::create<String>("advanced"));

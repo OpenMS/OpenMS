@@ -90,17 +90,20 @@ public:
     // override important methods
     void fit(FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType>& traces)
     {
-      LOG_DEBUG << "Traces length: " << traces.size() << std::endl;
+      LOG_DEBUG << "Traces length: " << traces.size() << "\n";
       setInitialParameters_(traces);
 
-      double x_init[NUM_PARAMS_] = {height_, x0_, sigma_};
+      Eigen::VectorXd x_init(NUM_PARAMS_);
+      x_init(0) = height_;
+      x_init(1) = x0_;
+      x_init(2) = sigma_;
 
-      Size num_params = NUM_PARAMS_;
+      typename TraceFitter<PeakType>::ModelData data;
+      data.traces_ptr = &traces;
+      data.weighted = this->weighted_;
+      GaussTraceFunctor functor (NUM_PARAMS_, &data);
 
-      TraceFitter<PeakType>::optimize_(traces, num_params, x_init,
-                                       &(GaussTraceFitter<PeakType>::residual_),
-                                       &(GaussTraceFitter<PeakType>::jacobian_),
-                                       &(GaussTraceFitter<PeakType>::evaluate_));
+      TraceFitter<PeakType>::optimize_(x_init, functor);
     }
 
     DoubleReal getLowerRTBound() const
@@ -173,73 +176,72 @@ protected:
 
     static const Size NUM_PARAMS_ = 3;
 
-    void getOptimizedParameters_( deprecated_gsl_multifit_fdfsolver * s)
+    void getOptimizedParameters_(const Eigen::VectorXd& x_init)
     {
-      height_ = deprecated_gsl_vector_get(
-    		  deprecated_wrapper_gsl_multifit_fdfsolver_get_x(s), 0);
-      x0_ = deprecated_gsl_vector_get(
-    		  deprecated_wrapper_gsl_multifit_fdfsolver_get_x(s), 1);
-      sigma_ = std::fabs(deprecated_gsl_vector_get(
-    		  deprecated_wrapper_gsl_multifit_fdfsolver_get_x(s), 2));
+      height_ = x_init(0);
+      x0_ = x_init(1);
+      sigma_ = std::fabs(x_init(2));
     }
 
-    static Int residual_(const deprecated_gsl_vector * param, void * data, deprecated_gsl_vector * f)
+    class GaussTraceFunctor : public TraceFitter<PeakType>::GenericFunctor
     {
-      typename TraceFitter<PeakType>::ModelData* model_data = static_cast<typename TraceFitter<PeakType>::ModelData*>(data);
-      double height = deprecated_gsl_vector_get(param, 0);
-      double x0 = deprecated_gsl_vector_get(param, 1);
-      double sig = deprecated_gsl_vector_get(param, 2);
-      double c_fac = -0.5 / pow(sig, 2);
+    public:
+      GaussTraceFunctor(int dimensions,
+          const typename TraceFitter<PeakType>::ModelData* data)
+      : TraceFitter<PeakType>::GenericFunctor(dimensions, data->traces_ptr->getPeakCount()), m_data(data) {}
 
-      Size count = 0;
-      for (Size t = 0; t < traces->size(); ++t)
+      int operator()(const Eigen::VectorXd &x, Eigen::VectorXd &fvec)
       {
-        const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType>& trace = (*traces)[t];
-        DoubleReal weight = model_data->weighted ? trace.theoretical_int : 1.0;
-        for (Size i = 0; i < trace.peaks.size(); ++i)
+        double height = x(0);
+        double x0 = x(1);
+        double sig = x(2);
+        double c_fac = -0.5 / pow(sig, 2);
+
+        Size count = 0;
+        for (Size t = 0; t < m_data->traces_ptr->size(); ++t)
         {
-          deprecated_gsl_vector_set(f, count, traces->baseline + trace.theoretical_int * height * exp(c_fac * pow(trace.peaks[i].first - x0, 2)) - trace.peaks[i].second->getIntensity());
-          gsl_vector_set(f, count, (fgauss - trace.peaks[i].second->getIntensity()) * weight);
-          ++count;
+          const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType> & trace = (*m_data->traces_ptr)[t];
+          double weight = m_data->weighted ? trace.theoretical_int : 1.0;
+          for (Size i = 0; i < trace.peaks.size(); ++i)
+          {
+            fvec(count) = (m_data->traces_ptr->baseline + trace.theoretical_int * height
+                * exp(c_fac * pow(trace.peaks[i].first - x0, 2)) - trace.peaks[i].second->getIntensity()) * weight;
+            ++count;
+          }
         }
+
+        return 0;
       }
-      return deprecated_gsl_SUCCESS;
-    }
-
-    static Int jacobian_(const deprecated_gsl_vector * param, void * data, deprecated_gsl_matrix * J)
-    {
-      typename TraceFitter<PeakType>::ModelData* model_data = static_cast<typename TraceFitter<PeakType>::ModelData*>(data);
-      double height = deprecated_gsl_vector_get(param, 0);
-      double x0 = deprecated_gsl_vector_get(param, 1);
-      double sig = deprecated_gsl_vector_get(param, 2);
-      double sig_sq = pow(sig, 2);
-      double sig_3 = pow(sig, 3);
-      double c_fac = -0.5 / sig_sq;
-
-      Size count = 0;
-      for (Size t = 0; t < traces->size(); ++t)
+      // compute Jacobian matrix for the different parameters
+      int df(const Eigen::VectorXd &x, Eigen::MatrixXd &J)
       {
-        const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType>& trace = (*traces)[t];
-        DoubleReal weight = model_data->weighted ? trace.theoretical_int : 1.0;
-        for (Size i = 0; i < trace.peaks.size(); ++i)
-        {
-          DoubleReal rt = trace.peaks[i].first;
-          DoubleReal e = exp(c_fac * pow(rt - x0, 2));
-          deprecated_gsl_matrix_set(J, count, 0, trace.theoretical_int * e);
-          deprecated_gsl_matrix_set(J, count, 1, trace.theoretical_int * height * e * (rt - x0) / sig_sq);
-          deprecated_gsl_matrix_set(J, count, 2, 0.125 * trace.theoretical_int * height * e * pow(rt - x0, 2) / sig_3);
-          ++count;
-        }
-      }
-      return deprecated_gsl_SUCCESS;
-    }
+        double height = x(0);
+        double x0 = x(1);
+        double sig = x(2);
+        double sig_sq = pow(sig, 2);
+        double sig_3 = pow(sig, 3);
+        double c_fac = -0.5 / sig_sq;
 
-    static Int evaluate_(const deprecated_gsl_vector * param, void * data, deprecated_gsl_vector * f, deprecated_gsl_matrix * J)
-    {
-      residual_(param, data, f);
-      jacobian_(param, data, J);
-      return deprecated_gsl_SUCCESS;
-    }
+        Size count = 0;
+        for (Size t = 0; t < m_data->traces_ptr->size(); ++t)
+        {
+          const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType> & trace = (*m_data->traces_ptr)[t];
+          DoubleReal weight = m_data->weighted ? trace.theoretical_int : 1.0;
+          for (Size i = 0; i < trace.peaks.size(); ++i)
+          {
+            DoubleReal rt = trace.peaks[i].first;
+            DoubleReal e = exp(c_fac * pow(rt - x0, 2));
+            J(count, 0) = trace.theoretical_int * e * weight;
+            J(count, 1) = trace.theoretical_int * height * e * (rt - x0) / sig_sq * weight;
+            J(count, 2) = 0.125 * trace.theoretical_int * height * e * pow(rt - x0, 2) / sig_3 *weight;
+            ++count;
+          }
+        }
+        return 0;
+      }
+    protected:
+      const typename TraceFitter<PeakType>::ModelData* m_data;
+    };
 
     void setInitialParameters_(FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType>& traces)
     {
@@ -261,19 +263,6 @@ protected:
     virtual void updateMembers_()
     {
       TraceFitter<PeakType>::updateMembers_();
-    }
-
-    void printState_(SignedSize iter, deprecated_gsl_multifit_fdfsolver * s)
-    {
-      LOG_DEBUG << "iter " << iter << ": " <<
-      "height: " << deprecated_gsl_vector_get(
-    		  deprecated_wrapper_gsl_multifit_fdfsolver_get_x(s), 0) << " " <<
-      "x0: " << deprecated_gsl_vector_get(
-    		  deprecated_wrapper_gsl_multifit_fdfsolver_get_x(s), 1) << " " <<
-      "sigma: " << std::fabs(deprecated_gsl_vector_get(
-    		  deprecated_wrapper_gsl_multifit_fdfsolver_get_x(s), 2)) << " " <<
-      "|f(x)| = " << deprecated_gsl_blas_dnrm2(
-    		  deprecated_wrapper_gsl_multifit_fdfsolver_get_f(s)) << std::endl;
     }
 
   };

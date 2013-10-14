@@ -112,7 +112,7 @@ public:
         throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
     }
 
-    void getOptimizedParameters_(deprecated_gsl_multifit_fdfsolver*)
+    void getOptimizedParameters_(const Eigen::VectorXd& x_init)
     {
         throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
     }

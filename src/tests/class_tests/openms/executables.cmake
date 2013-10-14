@@ -287,7 +287,6 @@ set(comparison_executables_list
   ClusterAnalyzer_test
   ClusterFunctor_test
   ClusterHierarchical_test
-  CompareFouriertransform_test
   CompleteLinkage_test
   EuclideanSimilarity_test
   HierarchicalClustering_test

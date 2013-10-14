@@ -89,22 +89,22 @@ protected:
       RawDataArrayType set;
     };
 
+    class EGHFitterFunctor : public LevMarqFitter1D::GenericFunctor
+    {
+      public:
+      EGHFitterFunctor(int dimensions, const EGHFitter1D::Data * data)
+      : LevMarqFitter1D::GenericFunctor(dimensions, data->n), m_data(data) {}
+
+      int operator()(const Eigen::VectorXd &x, Eigen::VectorXd &fvec);
+      // compute Jacobian matrix for the different parameters
+      int df(const Eigen::VectorXd &x, Eigen::MatrixXd &J);
+
+      protected:
+        const EGHFitter1D::Data * m_data;
+    };
+
     /// Compute start parameter
     virtual void setInitialParameters_(const RawDataArrayType & set);
-
-    /// Evaluation of the target function for nonlinear optimization
-    static Int residual_(const deprecated_gsl_vector * x, void * params, deprecated_gsl_vector * f);
-
-    /// Compute the Jacobian matrix, where each row of the matrix corresponds to a point in the data
-    static Int jacobian_(const deprecated_gsl_vector * x, void * params, deprecated_gsl_matrix * J);
-
-    /// Driver function for the evaluation of function and jacobian
-    static Int evaluate_(const deprecated_gsl_vector * x, void * params, deprecated_gsl_vector * f, deprecated_gsl_matrix * J);
-
-    /** Display the intermediate state of the solution. The solver state contains
-    the vector s->x which is the current position, and the vector s->f with
-    corresponding function values */
-    void printState_(Int iter, deprecated_gsl_multifit_fdfsolver * s);
 
     /// Parameter of egh - peak height
     CoordinateType height_;

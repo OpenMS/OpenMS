@@ -116,7 +116,6 @@ END_SECTION
 
 
 START_SECTION((template<typename PeakType> void pickAndCalibrate(MSExperiment< Peak1D > &calib_spectra, MSExperiment< PeakType > &exp, std::vector< double > &exp_masses)))
-  TOLERANCE_ABSOLUTE(0.000001)
   std::cout.precision(writtenDigits<DoubleReal>());
   MSExperiment<Peak1D> calib_exp;
   MSExperiment<Peak1D> exp,res_exp;
@@ -157,8 +156,8 @@ START_SECTION((template<typename PeakType> void pickAndCalibrate(MSExperiment< P
   param.setValue("PeakPicker:centroid_percentage",0.6);
   tc.setParameters(param);
   tc.pickAndCalibrate(calib_exp,exp,ref_masses);
-	
-TOLERANCE_ABSOLUTE(0.01)
+  TOLERANCE_ABSOLUTE(0.01)
+  TOLERANCE_RELATIVE(1.0)
   TEST_EQUAL(exp.size()==res_exp.size(),true)
 	for (Size i=0; i<exp.size(); ++i)
 	{
@@ -173,7 +172,6 @@ END_SECTION
 tc = TOFCalibration();
 
 START_SECTION((template<typename PeakType> void calibrate(MSExperiment<Peak1D> &calib_spectra, MSExperiment< PeakType > &exp, std::vector< double > &exp_masses)))
-  TOLERANCE_ABSOLUTE(0.000001)
 	std::cout.precision(writtenDigits<>(DoubleReal()));
   MSExperiment<> calib_exp;
   MSExperiment<> exp,res_exp;
@@ -192,17 +190,17 @@ START_SECTION((template<typename PeakType> void calibrate(MSExperiment<Peak1D> &
    }
 
   std::vector<double> ml1;
-                                 
+
   ml1.push_back(418327.924993827);
   ml1.push_back(418257.238180361);
   ml1.push_back(418295.348979040);
   std::vector<double> ml2;
-                
+
   ml2.push_back(253.645187196031);
   ml2.push_back(250.532666867861);
   ml2.push_back(251.878402283764);
   std::vector<double> ml3;
-                
+
   ml3.push_back(-0.0414243465397252);
   ml3.push_back(-0.0428127107041497);
   ml3.push_back(-0.0419329877166861);
@@ -213,6 +211,7 @@ START_SECTION((template<typename PeakType> void calibrate(MSExperiment<Peak1D> &
   tc.calibrate(calib_exp,exp,ref_masses);
 
 	TOLERANCE_ABSOLUTE(0.01)
+  TOLERANCE_RELATIVE(1.0)
   TEST_EQUAL(exp.size()==res_exp.size(),true)
 	for (Size i=0; i<exp.size(); ++i)
 	{
@@ -223,7 +222,7 @@ START_SECTION((template<typename PeakType> void calibrate(MSExperiment<Peak1D> &
 		}
 	}
 
-END_SECTION	
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

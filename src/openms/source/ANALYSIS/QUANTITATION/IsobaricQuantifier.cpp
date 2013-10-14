@@ -104,8 +104,7 @@ namespace OpenMS
     // apply isotope correction if requested by user
     if (isotope_correction_enabled_)
     {
-      IsobaricIsotopeCorrector corrector(quant_method_);
-      stats_ = corrector.correctIsotopicImpurities(consensus_map_in, consensus_map_out);
+      stats_ = IsobaricIsotopeCorrector::correctIsotopicImpurities(consensus_map_in, consensus_map_out, quant_method_);
     }
     else
     {

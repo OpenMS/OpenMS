@@ -279,7 +279,7 @@ namespace OpenMS
 
     // Optimize parameters with Levenberg-Marquardt algorithm (GLS)
     CoordinateType x_init[2] = { total_intensity_ / 100, /*isotope_stdev_,*/ monoisotopic_mz_ };
-    optimize_(set, 2, x_init, &(residual_), &(jacobian_), &(evaluate_), &d);
+    optimize2_(d.n, 2, x_init, &(residual_), &(jacobian_), &(evaluate_), &d);
 
     // Set optimized parameters
     total_intensity_ = x_init[0];

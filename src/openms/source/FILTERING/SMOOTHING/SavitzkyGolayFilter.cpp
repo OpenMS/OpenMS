@@ -34,8 +34,12 @@
 
 #include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
-#include "OpenMS/MATH/GSL_WRAPPER/gsl_wrapper.h"
+
+#include <Eigen/Core>
+#include <Eigen/SVD>
+
 #include <cmath>
+#include <iostream>//DEBUG
 
 namespace OpenMS
 {
@@ -71,53 +75,38 @@ namespace OpenMS
       throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "The degree of the polynomial has to be less than the frame length.", String(order_));
     }
 
-    int m = frame_size_ / 2;
-    for (int nl = 0; nl <= m; ++nl)
+    for (int nl = 0; nl <= (int) (frame_size_ / 2); ++nl)
     {
       int nr = frame_size_ - 1 - nl;
 
-      int i, j;
-
-      deprecated_gsl_vector * sv = deprecated_gsl_vector_alloc((int)order_ + 1);
-      deprecated_gsl_vector * work = deprecated_gsl_vector_alloc((int)order_ + 1);
-      deprecated_gsl_matrix * A = deprecated_gsl_matrix_calloc(frame_size_, (int)order_ + 1);
-      deprecated_gsl_matrix * V = deprecated_gsl_matrix_calloc((int)order_ + 1, (int)order_ + 1);
-
-
       // compute a vandermonde matrix whose columns are powers of the vector [-nL,...,nR]
-      for (i = -nl; i <= nr; i++)
+      Eigen::MatrixXd A (frame_size_, order_ + 1);
+      for (int i = -nl; i <= nr; i++)
       {
-        for (j = 0; j <= (int)order_; j++)
+        for (UInt j = 0; j <= order_; j++)
         {
-          deprecated_gsl_matrix_set(A, i + nl, j, std::pow(i, j));
+          A(i + nl, j) = std::pow(i, j);
         }
       }
 
       // compute the singular-value decomposition of A
-      if (deprecated_gsl_linalg_SV_decomp(A, V, sv, work) != 1)
-      {
-        // compute B=V*inv(D)
-        for (i = 0; i <= (int)order_; ++i)
-        {
-          deprecated_gsl_vector_set(sv, i, (deprecated_gsl_matrix_get(V, 0, i) / deprecated_gsl_vector_get(sv, i)));
-        }
+      Eigen::JacobiSVD<Eigen::MatrixXd> svd (A, Eigen::ComputeThinU | Eigen::ComputeThinV);
 
-        // compute B*transpose(U)*b, where b is the unit vector b=[1 0 ... 0]
-        for (i = 0; i < (int)frame_size_; ++i)
+      Eigen::VectorXd B (order_ + 1);
+      for (UInt i = 0; i <= order_; ++i)
+      {
+        B(i) = svd.matrixV()(0, i) / svd.singularValues()(i);
+      }
+
+      // compute B*transpose(U)*b, where b is the unit vector b=[1 0 ... 0]
+      for (UInt i = 0; i < frame_size_; ++i)
+      {
+        coeffs_[(nl + 1) * frame_size_ - i - 1] = 0;
+        for (UInt j = 0; j <= order_; ++j)
         {
-          double help = 0;
-          for (j = 0; j <= (int)order_; ++j)
-          {
-            help += deprecated_gsl_vector_get(sv, j) * deprecated_gsl_matrix_get(A, i, j);
-          }
-          coeffs_[(nl + 1) * frame_size_ - i - 1] = help;
+          coeffs_[(nl + 1) * frame_size_ - i - 1] += B(j) * svd.matrixU()(i, j);
         }
       }
-      deprecated_gsl_vector_free(sv);
-      deprecated_gsl_vector_free(work);
-      deprecated_gsl_matrix_free(A);
-      deprecated_gsl_matrix_free(V);
     }
   }
-
 }

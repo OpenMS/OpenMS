@@ -40,17 +40,15 @@
 
 #include <OpenMS/MATH/GSL_WRAPPER/gsl_wrapper.h>
 
+#include <Eigen/Core>
+#include <unsupported/Eigen/NonLinearOptimization>
+
 #include <iostream>
 #include <fstream>
 #include <vector>
 
 namespace OpenMS
 {
-  /** @brief Namespace for all functions and classes needed for the gsl levenberg-marquard algorithm.
-
-      We have to use function pointers for the gsl and can't put them into
-      a class, so we provide an extra namespace.
-  */
   namespace OptimizationFunctions
   {
     /// Raw data vector type
@@ -91,15 +89,6 @@ namespace OpenMS
       double rWidth;
     };
 
-    /// Evaluation of the target function for nonlinear optimization.
-    int residual(const deprecated_gsl_vector * x, void * params, deprecated_gsl_vector * f);
-
-    /// Compute the Jacobian of the residual, where each row of the matrix corresponds to a point in the data.
-    int jacobian(const deprecated_gsl_vector * x, void * params, deprecated_gsl_matrix * J);
-
-    /// Driver function for the evaluation of function and jacobian.
-    int evaluate(const deprecated_gsl_vector * x, void * params, deprecated_gsl_vector * f, deprecated_gsl_matrix * J);
-
     /// Print all peak shapes
     void printSignal(const deprecated_gsl_vector * x, void * param, float resolution = 0.25);
   }
@@ -127,6 +116,23 @@ public:
 
     };
 
+    class OptPeakFunctor
+    {
+    public:
+      int inputs() const { return m_inputs; }
+      int values() const { return m_values; }
+
+      OptPeakFunctor(unsigned dimensions, unsigned num_data_points, const OptimizePick::Data * data)
+      : m_inputs(dimensions), m_values(num_data_points), m_data(data) {}
+
+      int operator()(const Eigen::VectorXd &x, Eigen::VectorXd &fvec);
+      // compute Jacobian matrix for the different parameters
+      int df(const Eigen::VectorXd &x, Eigen::MatrixXd &J);
+
+    private:
+      const int m_inputs, m_values;
+      const Data * m_data;
+    };
 
     /// Raw data vector type
     typedef std::vector<Peak1D> RawDataVector;
@@ -136,15 +142,12 @@ public:
 
     /// Constructor
     OptimizePick() :
-      max_iteration_(0),
-      eps_abs_(0),
-      eps_rel_(0) {}
+      max_iteration_(400)
+    {}
 
     /// Constructor to set the penalty factors, the number of optimization iterations as well as the threshold for the absolute and the relative error.
     OptimizePick(const struct OptimizationFunctions::PenaltyFactors & penalties_,
-                 const int max_iteration_,
-                 const double eps_abs_,
-                 const double eps_rel_);
+                 const int max_iteration_);
 
     /// Destructor
     ~OptimizePick();
@@ -163,20 +166,6 @@ public:
     /// Mutable access to the number of iterations
     inline void setNumberIterations(const int max_iteration) { max_iteration_ = max_iteration; }
 
-    /// Non-mutable access to the maximum absolute error
-    inline DoubleReal getMaxAbsError() const { return eps_abs_; }
-    /// Mutable access to the maximum absolute error
-    inline double & getMaxAbsError() { return eps_abs_; }
-    /// Mutable access to the maximum absolute error
-    inline void setMaxAbsError(double eps_abs) { eps_abs_ = eps_abs; }
-
-    /// Non-mutable access to the maximum relative error
-    inline DoubleReal getMaxRelError() const { return eps_rel_; }
-    /// Mutable access to the maximum relative error
-    inline double & getMaxRelError() { return eps_rel_; }
-    /// Mutable access to the maximum relative error
-    inline void setMaxRelError(double eps_rel) { eps_rel_ = eps_rel; }
-
     /// Start the optimization of the peak shapes peaks. The original peak shapes will be substituted by the optimized peak shapes.
     void optimize(std::vector<PeakShape> & peaks, Data & data);
 
@@ -187,20 +176,6 @@ protected:
 
     /// Maximum number of iterations during optimization
     unsigned int max_iteration_;
-
-    /// Maximum absolute and relative error used in the optimization.
-    double eps_abs_;
-    double eps_rel_;
-
-//       /** @brief Returns the squared pearson coefficient.
-
-//         Computes the correlation of the peak and the original data given by the peak endpoints.
-//         If the value is near 1, the fitted peakshape and the raw data are expected to be very similar.
-//     */
-//     double correlate_(const PeakShape& peak,
-//                                          double left_endpoint,
-//                                          double right_endpoint,Data& data);
-
   };
 }
 

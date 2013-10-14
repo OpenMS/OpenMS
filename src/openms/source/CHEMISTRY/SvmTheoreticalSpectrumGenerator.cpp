@@ -754,8 +754,6 @@ namespace OpenMS
     std::vector<std::set<String> > possible_c_term_losses(peptide.size());
 
     UInt ion_nr = 0;
-//    deprecated_gsl_ran_discrete_t * gsl_gen = 0;
-
 
     for (Size i = 1; i < peptide.size(); ++i)
     {

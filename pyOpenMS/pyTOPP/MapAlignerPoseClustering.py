@@ -107,7 +107,7 @@ def align(in_files, out_files, out_trafos, reference_index,
 def getModelDefaults(default_model):
     params = pms.Param()
     params.setValue("type", default_model, "Type of model")
-    model_types = [ "linear", "b_spline", "interpolated"]
+    model_types = [ "linear", "interpolated"]
     if default_model not in model_types:
         model_types.insert(0, default_model)
     params.setValidStrings("type", model_types)
@@ -118,15 +118,9 @@ def getModelDefaults(default_model):
     params.insert("linear:", model_params)
     params.setSectionDescription("linear", "Parameters for 'linear' model")
 
-    pms.TransformationModelBSpline.getDefaultParameters(model_params)
-    params.insert("b_spline:", model_params)
-    params.setSectionDescription("b_spline", "Parameters for 'b_spline' model")
-
     pms.TransformationModelInterpolated.getDefaultParameters(model_params)
     entry = model_params.getEntry("interpolation_type")
     interpolation_types = entry.valid_strings
-    if "polynomial" in interpolation_types:
-        interpolation_types.remove("polynomial")
     model_params.setValidStrings("interpolation_type", interpolation_types)
 
     params.insert("interpolated:", model_params)

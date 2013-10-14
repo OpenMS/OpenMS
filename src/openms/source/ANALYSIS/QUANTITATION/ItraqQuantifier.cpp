@@ -41,10 +41,15 @@
 #include <OpenMS/MATH/MISC/NonNegativeLeastSquaresSolver.h>
 
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
+#include <OpenMS/DATASTRUCTURES/Utils/MatrixUtils.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/ProteinInference.h>
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
 
+#include <Eigen/Core>
+#include <Eigen/LU>
+
 #include <limits>
+
 
 
 //#define ITRAQ_DEBUG 1
@@ -149,14 +154,15 @@ namespace OpenMS
 #endif
 
       // ISOTOPE CORRECTION: this solves the system naively via matrix inversion
-      deprecated_gsl_matrix* m = channel_frequency.toGslMatrix();
-      deprecated_gsl_permutation* p = deprecated_gsl_permutation_alloc(channel_frequency.rows());
-      int* sign = new int(0);
-      deprecated_gsl_vector* b = deprecated_gsl_vector_alloc(CHANNEL_COUNT[itraq_type_]);
-      deprecated_gsl_vector* x = deprecated_gsl_vector_alloc(CHANNEL_COUNT[itraq_type_]);
-      // lets see if the matrix is invertible
-      int  status = deprecated_gsl_linalg_LU_decomp(m, p, sign);
-      if (status != 0)
+      EigenMatrixXdPtr m ( convertOpenMSMatrix2EigenMatrixXd( channel_frequency ) );
+      Eigen::FullPivLU<Eigen::MatrixXd> ludecomp (*m);
+      Eigen::VectorXd b;
+      b.resize(CHANNEL_COUNT[itraq_type_]);
+      b.setZero();
+      std::vector<double> x (CHANNEL_COUNT[itraq_type_], 0);
+
+
+      if(!ludecomp.isInvertible())
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "ItraqQuantifier: Invalid entry in Param 'isotope_correction_values'; the Matrix is not invertible!");
       }
@@ -188,13 +194,14 @@ namespace OpenMS
 #endif
 
           // this is deprecated, but serves as quality measurement
-          deprecated_gsl_vector_set(b, index, it_elements->getIntensity());
+          b(index) = it_elements->getIntensity();
           m_b(index, 0) = it_elements->getIntensity();
         }
 
         // solve
-        status = deprecated_gsl_linalg_LU_solve(m, p, b, x);
-        if (status != 0)
+        Eigen::MatrixXd x = ludecomp.solve( b );
+        // check if a solutioon exists
+        if (! ((*m) * x).isApprox(b))
         {
           throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "ItraqQuantifier: Invalid entry in Param 'isotope_correction_values'; Cannot multiply!");
         }
@@ -210,14 +217,15 @@ namespace OpenMS
         // ISOTOPE CORRECTION: compare solutions of Matrix inversion vs. NNLS
         for (Size index = 0; index < (Size)CHANNEL_COUNT[itraq_type_]; ++index)
         {
-          if (deprecated_gsl_vector_get(x, index) < 0.0)
+//          if (deprecated_gsl_vector_get(x, index) < 0.0)
+          if (x(index) < 0.0)
           {
             ++s_negative;
           }
-          else if (std::fabs(m_x(index, 0) - deprecated_gsl_vector_get(x, index)) > 0.000001)
+          else if (std::fabs(m_x(index, 0) - x(index)) > 0.000001)
           {
             ++s_different_count;
-            s_different_intensity += std::fabs(m_x(index, 0) - deprecated_gsl_vector_get(x, index));
+            s_different_intensity += std::fabs(m_x(index, 0) - x(index));
           }
         }
 
@@ -259,13 +267,6 @@ namespace OpenMS
           stats_.iso_total_intensity_negative += cf_intensity;
         }
       }
-
-      // clean up
-      deprecated_gsl_matrix_free(m);
-      deprecated_gsl_permutation_free(p);
-      delete sign;
-      deprecated_gsl_vector_free(b);
-      deprecated_gsl_vector_free(x);
 
     } // ! isotope_correction
     else

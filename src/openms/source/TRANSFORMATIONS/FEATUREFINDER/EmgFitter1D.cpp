@@ -40,11 +40,83 @@
 
 namespace OpenMS
 {
+  int EmgFitter1D::EgmFitterFunctor::operator()(const Eigen::VectorXd &x, Eigen::VectorXd &fvec)
+  {
+    Size n = m_data->n;
+    EmgFitter1D::RawDataArrayType set = m_data->set;
+
+    EmgFitter1D::CoordinateType h = x(0);
+    EmgFitter1D::CoordinateType w = x(1);
+    EmgFitter1D::CoordinateType s = x(2);
+    EmgFitter1D::CoordinateType z = x(3);
+
+    EmgFitter1D::CoordinateType Yi = 0.0;
+
+    // iterate over all points of the signal
+    for (Size i = 0; i < n; i++)
+    {
+      DoubleReal t = set[i].getPos();
+
+      // Simplified EMG
+      Yi = (h * w / s) * sqrt(2.0 * Constants::PI) * exp((pow(w, 2) / (2 * pow(s, 2))) - ((t - z) / s)) / (1 + exp((-2.4055 / sqrt(2.0)) * (((t - z) / w) - w / s)));
+
+      fvec(i) = Yi - set[i].getIntensity();
+    }
+    return 0;
+  }
+  // compute Jacobian matrix for the different parameters
+  int EmgFitter1D::EgmFitterFunctor::df(const Eigen::VectorXd &x, Eigen::MatrixXd &J)
+  {
+    Size n =  m_data->n;
+    EmgFitter1D::RawDataArrayType set = m_data->set;
+
+    EmgFitter1D::CoordinateType h = x(0);
+    EmgFitter1D::CoordinateType w = x(1);
+    EmgFitter1D::CoordinateType s = x(2);
+    EmgFitter1D::CoordinateType z = x(3);
+
+    const EmgFitter1D::CoordinateType emg_const = 2.4055;
+    const EmgFitter1D::CoordinateType sqrt_2pi = sqrt(2 * Constants::PI);
+    const EmgFitter1D::CoordinateType sqrt_2 = sqrt(2.0);
+
+    EmgFitter1D::CoordinateType exp1, exp2, exp3 = 0.0;
+    EmgFitter1D::CoordinateType derivative_height, derivative_width, derivative_symmetry, derivative_retention = 0.0;
+
+    // iterate over all points of the signal
+    for (Size i = 0; i < n; i++)
+    {
+        EmgFitter1D::CoordinateType t = set[i].getPos();
+
+      exp1 = exp(((w * w) / (2 * s * s)) - ((t - z) / s));
+      exp2 = (1 + exp((-emg_const / sqrt_2) * (((t - z) / w) - w / s)));
+      exp3 = exp((-emg_const / sqrt_2) * (((t - z) / w) - w / s));
+
+      // f'(h)
+      derivative_height = w / s * sqrt_2pi * exp1 / exp2;
+
+      // f'(h)
+      derivative_width = h / s * sqrt_2pi * exp1 / exp2 + (h * w * w) / (s * s * s) * sqrt_2pi * exp1 / exp2 + (emg_const * h * w) / s * sqrt_2pi * exp1 * (-(t - z) / (w * w) - 1 / s) * exp3 / ((exp2 * exp2) * sqrt_2);
+
+      // f'(s)
+      derivative_symmetry = -h * w / (s * s) * sqrt_2pi * exp1 / exp2 + h * w / s * sqrt_2pi * (-(w * w) / (s * s * s) + (t - z) / (s * s)) * exp1 / exp2 + (emg_const * h * w * w) / (s * s * s) * sqrt_2pi * exp1 * exp3 / ((exp2 * exp2) * sqrt_2);
+
+      // f'(z)
+      derivative_retention = h * w / (s * s) * sqrt_2pi * exp1 / exp2 - (emg_const * h) / s * sqrt_2pi * exp1 * exp3 / ((exp2 * exp2) * sqrt_2);
+
+      // set the jacobian matrix
+      J(i, 0) = derivative_height;
+      J(i, 1) = derivative_width;
+      J(i, 2) = derivative_symmetry;
+      J(i, 3) = derivative_retention;
+    }
+    return 0;
+  }
+
   EmgFitter1D::EmgFitter1D() :
     LevMarqFitter1D()
   {
     setName(getProductName());
-    defaults_.setValue("statistics:variance", 1.0, "Variance of the model.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("statistics:variance", 1.0, "Variance of the model.", StringList::create("advanced"));
     defaultsToParam_();
   }
 
@@ -69,103 +141,6 @@ namespace OpenMS
     updateMembers_();
 
     return *this;
-  }
-
-  Int EmgFitter1D::residual_(const deprecated_gsl_vector * x, void * params, deprecated_gsl_vector * f)
-  {
-    Size n = static_cast<EmgFitter1D::Data *>(params)->n;
-    RawDataArrayType set = static_cast<EmgFitter1D::Data *>(params)->set;
-
-    CoordinateType h = deprecated_gsl_vector_get(x, 0);
-    CoordinateType w = deprecated_gsl_vector_get(x, 1);
-    CoordinateType s = deprecated_gsl_vector_get(x, 2);
-    CoordinateType z = deprecated_gsl_vector_get(x, 3);
-
-    CoordinateType Yi = 0.0;
-
-    // iterate over all points of the signal
-    for (Size i = 0; i < n; i++)
-    {
-      DoubleReal t = set[i].getPos();
-
-      // Simplified EMG
-      Yi = (h * w / s) * sqrt(2.0 * Constants::PI) * exp((pow(w, 2) / (2 * pow(s, 2))) - ((t - z) / s)) / (1 + exp((-2.4055 / sqrt(2.0)) * (((t - z) / w) - w / s)));
-
-      deprecated_gsl_vector_set(f, i, (Yi - set[i].getIntensity()));
-    }
-
-    return deprecated_gsl_SUCCESS;
-  }
-
-  Int EmgFitter1D::jacobian_(const deprecated_gsl_vector * x, void * params, deprecated_gsl_matrix * J)
-  {
-    Size n =  static_cast<EmgFitter1D::Data *>(params)->n;
-    RawDataArrayType set = static_cast<EmgFitter1D::Data *>(params)->set;
-
-    CoordinateType h = deprecated_gsl_vector_get(x, 0);
-    CoordinateType w = deprecated_gsl_vector_get(x, 1);
-    CoordinateType s = deprecated_gsl_vector_get(x, 2);
-    CoordinateType z = deprecated_gsl_vector_get(x, 3);
-
-    const CoordinateType emg_const = 2.4055;
-    const CoordinateType sqrt_2pi = sqrt(2 * Constants::PI);
-    const CoordinateType sqrt_2 = sqrt(2.0);
-
-    CoordinateType exp1, exp2, exp3 = 0.0;
-    CoordinateType derivative_height, derivative_width, derivative_symmetry, derivative_retention = 0.0;
-
-    // iterate over all points of the signal
-    for (Size i = 0; i < n; i++)
-    {
-      CoordinateType t = set[i].getPos();
-
-      exp1 = exp(((w * w) / (2 * s * s)) - ((t - z) / s));
-      exp2 = (1 + exp((-emg_const / sqrt_2) * (((t - z) / w) - w / s)));
-      exp3 = exp((-emg_const / sqrt_2) * (((t - z) / w) - w / s));
-
-      // f'(h)
-      derivative_height = w / s * sqrt_2pi * exp1 / exp2;
-
-      // f'(h)
-      derivative_width = h / s * sqrt_2pi * exp1 / exp2 + (h * w * w) / (s * s * s) * sqrt_2pi * exp1 / exp2 + (emg_const * h * w) / s * sqrt_2pi * exp1 * (-(t - z) / (w * w) - 1 / s) * exp3 / ((exp2 * exp2) * sqrt_2);
-
-      // f'(s)
-      derivative_symmetry = -h * w / (s * s) * sqrt_2pi * exp1 / exp2 + h * w / s * sqrt_2pi * (-(w * w) / (s * s * s) + (t - z) / (s * s)) * exp1 / exp2 + (emg_const * h * w * w) / (s * s * s) * sqrt_2pi * exp1 * exp3 / ((exp2 * exp2) * sqrt_2);
-
-      // f'(z)
-      derivative_retention = h * w / (s * s) * sqrt_2pi * exp1 / exp2 - (emg_const * h) / s * sqrt_2pi * exp1 * exp3 / ((exp2 * exp2) * sqrt_2);
-
-      // set the jacobian matrix
-      deprecated_gsl_matrix_set(J, i, 0, derivative_height);
-      deprecated_gsl_matrix_set(J, i, 1, derivative_width);
-      deprecated_gsl_matrix_set(J, i, 2, derivative_symmetry);
-      deprecated_gsl_matrix_set(J, i, 3, derivative_retention);
-    }
-
-    return deprecated_gsl_SUCCESS;
-  }
-
-  Int EmgFitter1D::evaluate_(const deprecated_gsl_vector * x, void * params, deprecated_gsl_vector * f, deprecated_gsl_matrix * J)
-  {
-    EmgFitter1D::residual_(x, params, f);
-    EmgFitter1D::jacobian_(x, params, J);
-
-    return deprecated_gsl_SUCCESS;
-  }
-
-  void EmgFitter1D::printState_(Int iter, deprecated_gsl_multifit_fdfsolver * s)
-  {
-    printf("iter: %4u x = % 15.8f % 15.8f  % 15.8f  % 15.8f |f(x)| = %g\n", iter,
-           deprecated_gsl_vector_get(
-        		   deprecated_wrapper_gsl_multifit_fdfsolver_get_x(s), 0),
-           deprecated_gsl_vector_get(
-        		   deprecated_wrapper_gsl_multifit_fdfsolver_get_x(s), 1),
-           deprecated_gsl_vector_get(
-        		   deprecated_wrapper_gsl_multifit_fdfsolver_get_x(s), 2),
-           deprecated_gsl_vector_get(
-        		   deprecated_wrapper_gsl_multifit_fdfsolver_get_x(s), 3),
-           deprecated_gsl_blas_dnrm2(
-        		   deprecated_wrapper_gsl_multifit_fdfsolver_get_f(s)));
   }
 
   EmgFitter1D::QualityType EmgFitter1D::fit1d(const RawDataArrayType & set, InterpolationModel * & model)
@@ -196,11 +171,17 @@ namespace OpenMS
     // Compute start parameters
     setInitialParameters_(set);
 
-    // Optimize parameter with Levenberg-Marquardt algorithm (GLS)
-    CoordinateType x_init[4] = { height_, width_, symmetry_, retention_ };
+    // Optimize parameter with Levenberg-Marquardt algorithm
+//    CoordinateType x_init[4] = { height_, width_, symmetry_, retention_ };
+    Eigen::VectorXd x_init (4);
+    x_init(0) = height_;
+    x_init(1) = width_;
+    x_init(2) = symmetry_;
+    x_init(3) = retention_;
     if (symmetric_ == false)
     {
-      optimize_(set, 4, x_init, &(residual_), &(jacobian_), &(evaluate_), &d);
+      EgmFitterFunctor functor (4, &d);
+      optimize_(x_init, functor);
     }
 
     // Set optimized parameters

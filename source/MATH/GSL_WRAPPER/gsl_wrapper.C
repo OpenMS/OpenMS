@@ -19,8 +19,6 @@
 #include <gsl/gsl_multifit.h>
 #include <gsl/gsl_multifit_nlin.h>
 #include <gsl/gsl_multifit_nlin.h>
-/* curve fitting - spline */
-#include <gsl/gsl_spline.h>
 /* curve fitting - data sort */
 #include <gsl/gsl_sort_double.h>
 
@@ -83,7 +81,6 @@
 //#include <gsl/gsl_sort.h>
 //#include <gsl/gsl_sort_double.h>
 //#include <gsl/gsl_sort_vector.h>
-//#include <gsl/gsl_spline.h>
 //#include <gsl/gsl_statistics.h>
 //#include <gsl/gsl_statistics_double.h>
 //#include <gsl/gsl_vector.h>
@@ -104,7 +101,6 @@ struct deprecated_gsl_permutation : public gsl_permutation {};
 struct deprecated_gsl_ran_discrete_t : public gsl_ran_discrete_t {};
 struct deprecated_gsl_rng : public gsl_rng {};
 struct deprecated_gsl_rng_type : public gsl_rng_type {};
-struct deprecated_gsl_spline : public gsl_spline {};
 struct deprecated_gsl_vector : public gsl_vector {};
 struct deprecated_gsl_vector_view : public gsl_vector_view {};
 
@@ -148,6 +144,13 @@ deprecated_wrapper_gsl_matrix_get_size1( deprecated_gsl_matrix* M)
 {
 	return M->size1;
 }
+
+size_t
+deprecated_wrapper_gsl_matrix_get_size2( deprecated_gsl_matrix* M)
+{
+  return M->size2;
+}
+
 
 const deprecated_gsl_interp_type *
 deprecated_wrapper_get_gsl_interp_linear()
@@ -236,16 +239,6 @@ const deprecated_gsl_rng_type * deprecated_gsl_rng_env_setup (void)
  return  static_cast<const deprecated_gsl_rng_type*>( gsl_rng_env_setup() );
 }
 
-deprecated_gsl_fft_real_wavetable * deprecated_gsl_fft_real_wavetable_alloc (size_t n)
-{
-	return static_cast<deprecated_gsl_fft_real_wavetable*>( gsl_fft_real_wavetable_alloc (n) );
-}
-
-
-deprecated_gsl_fft_real_workspace * deprecated_gsl_fft_real_workspace_alloc (size_t n)
-{
-	return static_cast<deprecated_gsl_fft_real_workspace*>( gsl_fft_real_workspace_alloc (n) );
-}
 
 
 deprecated_gsl_matrix *deprecated_gsl_matrix_alloc (const size_t n1, const size_t n2)
@@ -326,12 +319,6 @@ deprecated_gsl_vector_view_ptr deprecated_gsl_vector_view_array (double *v, size
 }
 
 
-int deprecated_gsl_linalg_LU_decomp (deprecated_gsl_matrix * A, deprecated_gsl_permutation * p, int *signum)
-{
-	return gsl_linalg_LU_decomp (A, p, signum);
-}
-
-
 int deprecated_gsl_matrix_add (deprecated_gsl_matrix * a, const deprecated_gsl_matrix * b)
 {
 	return gsl_matrix_add (a, b);
@@ -344,11 +331,6 @@ int deprecated_gsl_matrix_fprintf (FILE * stream, const deprecated_gsl_matrix * 
 }
 
 
-int deprecated_gsl_matrix_scale (deprecated_gsl_matrix * a, const double x)
-{
-	return gsl_matrix_scale (a, x);
-}
-
 
 int deprecated_gsl_multifit_covar (const deprecated_gsl_matrix * J, double epsrel, deprecated_gsl_matrix * covar)
 {
@@ -359,12 +341,6 @@ int deprecated_gsl_multifit_covar (const deprecated_gsl_matrix * J, double epsre
 int deprecated_gsl_vector_memcpy (deprecated_gsl_vector * dest, const deprecated_gsl_vector * src)
 {
 	return gsl_vector_memcpy (dest, src);
-}
-
-
-void deprecated_gsl_fft_real_wavetable_free (deprecated_gsl_fft_real_wavetable * wavetable)
-{
-	gsl_fft_real_wavetable_free (wavetable);
 }
 
 
@@ -414,12 +390,6 @@ void deprecated_gsl_vector_set_zero (deprecated_gsl_vector * v)
 }
 
 
-int deprecated_gsl_linalg_SV_decomp (deprecated_gsl_matrix * A, deprecated_gsl_matrix * V, deprecated_gsl_vector * S, deprecated_gsl_vector * work)
-{
-	return gsl_linalg_SV_decomp(A, V, S, work);
-}
-
-
 deprecated_gsl_multifit_fdfsolver *
 deprecated_gsl_multifit_fdfsolver_alloc (
 		const deprecated_gsl_multifit_fdfsolver_type * T,
@@ -458,17 +428,6 @@ int deprecated_gsl_multifit_wlinear (const deprecated_gsl_matrix * X, const depr
 }
 
 
-int deprecated_gsl_blas_dgemm (deprecated_gsl_CBLAS_TRANSPOSE_t TransA, deprecated_gsl_CBLAS_TRANSPOSE_t TransB, double alpha, const deprecated_gsl_matrix* A, const deprecated_gsl_matrix* B, double beta, deprecated_gsl_matrix* C)
-{
-	return gsl_blas_dgemm ((CBLAS_TRANSPOSE_t)TransA, (CBLAS_TRANSPOSE_t)TransB, alpha, A, B, beta, C);
-}
-
-
-int deprecated_gsl_fft_real_transform (double data[], const size_t stride, const size_t n, const deprecated_gsl_fft_real_wavetable * wavetable, deprecated_gsl_fft_real_workspace * work)
-{
-	return gsl_fft_real_transform (data , stride, n, wavetable, work);
-}
-
 
 int deprecated_gsl_fit_linear (const double * x, const size_t xstride, const double * y, const size_t ystride, const size_t n, double * c0, double * c1, double * cov00, double * cov01, double * cov11, double * sumsq)
 {
@@ -488,31 +447,11 @@ int deprecated_gsl_fit_wlinear (const double * x, const size_t xstride, const do
 }
 
 
-int deprecated_gsl_linalg_LU_solve (const deprecated_gsl_matrix * LU, const deprecated_gsl_permutation * p, const deprecated_gsl_vector * b, deprecated_gsl_vector * x)
-{
-	return gsl_linalg_LU_solve (LU, p, b, x);
-}
-
-
 int deprecated_gsl_multifit_test_delta (const deprecated_gsl_vector * dx, const deprecated_gsl_vector * x, double epsabs, double epsrel)
 {
 	return gsl_multifit_test_delta (dx, x, epsabs, epsrel);
 }
 
-double deprecated_gsl_spline_eval_deriv(const deprecated_gsl_spline * spline, double x, deprecated_gsl_interp_accel * a)
-{
-	return gsl_spline_eval_deriv(spline, x, a);
-}
-
-double deprecated_gsl_spline_eval(const deprecated_gsl_spline * spline, double x, deprecated_gsl_interp_accel * a)
-{
-	return gsl_spline_eval(spline, x, a);
-}
-
-void deprecated_gsl_spline_free(deprecated_gsl_spline * spline)
-{
-	gsl_spline_free(spline);
-}
 deprecated_gsl_interp_accel * deprecated_gsl_interp_accel_alloc(void)
 {
 	return static_cast<deprecated_gsl_interp_accel*>( gsl_interp_accel_alloc() );
@@ -521,15 +460,6 @@ deprecated_gsl_interp_accel * deprecated_gsl_interp_accel_alloc(void)
 void deprecated_gsl_interp_accel_free(deprecated_gsl_interp_accel * a)
 {
 	gsl_interp_accel_free(a);
-}
-deprecated_gsl_spline * deprecated_gsl_spline_alloc(const deprecated_gsl_interp_type * T, size_t size)
-{
-	return static_cast<deprecated_gsl_spline*>( gsl_spline_alloc(T, size) );
-}
-
-int deprecated_gsl_spline_init(deprecated_gsl_spline * spline, const double xa[], const double ya[], size_t size)
-{
-	return gsl_spline_init(spline, xa, ya, size);
 }
 
 deprecated_gsl_bspline_workspace* deprecated_gsl_bspline_alloc(const size_t k, const size_t nbreak)
@@ -597,8 +527,4 @@ int deprecated_gsl_interp_init(deprecated_gsl_interp* obj, const double xa[], co
   return gsl_interp_init(obj, xa, ya, size);
 }
 
-void  deprecated_gsl_fft_real_workspace_free (deprecated_gsl_fft_real_workspace * workspace)
-{
-	gsl_fft_real_workspace_free (workspace);
-}
 

@@ -44,46 +44,15 @@
 
 namespace OpenMS
 {
-  EGHFitter1D::EGHFitter1D() :
-    LevMarqFitter1D()
+  int EGHFitter1D::EGHFitterFunctor::operator()(const Eigen::VectorXd &x, Eigen::VectorXd &fvec)
   {
-    setName(getProductName());
-    defaults_.setValue("statistics:variance", 1.0, "Variance of the model.", ListUtils::create<String>("advanced"));
-    defaultsToParam_();
-  }
+    Size n = m_data->n;
+    RawDataArrayType set = m_data->set;
 
-  EGHFitter1D::EGHFitter1D(const EGHFitter1D & source) :
-    LevMarqFitter1D(source)
-  {
-    setParameters(source.getParameters());
-    updateMembers_();
-  }
-
-  EGHFitter1D::~EGHFitter1D()
-  {
-  }
-
-  EGHFitter1D & EGHFitter1D::operator=(const EGHFitter1D & source)
-  {
-    if (&source == this)
-      return *this;
-
-    LevMarqFitter1D::operator=(source);
-    setParameters(source.getParameters());
-    updateMembers_();
-
-    return *this;
-  }
-
-  Int EGHFitter1D::residual_(const deprecated_gsl_vector * x, void * params, deprecated_gsl_vector * f)
-  {
-    Size n = static_cast<EGHFitter1D::Data *>(params)->n;
-    RawDataArrayType set = static_cast<EGHFitter1D::Data *>(params)->set;
-
-    CoordinateType H  = deprecated_gsl_vector_get(x, 0);
-    CoordinateType tR = deprecated_gsl_vector_get(x, 1);
-    CoordinateType sigma_square = deprecated_gsl_vector_get(x, 2);
-    CoordinateType tau = deprecated_gsl_vector_get(x, 3);
+    CoordinateType H  = x(0);
+    CoordinateType tR = x(1);
+    CoordinateType sigma_square = x(2);
+    CoordinateType tau = x(3);
 
     CoordinateType t_diff, t_diff2, denominator = 0.0;
 
@@ -108,21 +77,20 @@ namespace OpenMS
         fegh = 0.0;
       }
 
-      deprecated_gsl_vector_set(f, i, (fegh - set[i].getIntensity()));
+      fvec(i) = (fegh - set[i].getIntensity());
     }
-
-    return deprecated_gsl_SUCCESS;
+    return 0;
   }
-
-  Int EGHFitter1D::jacobian_(const deprecated_gsl_vector * x, void * params, deprecated_gsl_matrix * J)
+  // compute Jacobian matrix for the different parameters
+  int EGHFitter1D::EGHFitterFunctor::df(const Eigen::VectorXd &x, Eigen::MatrixXd &J)
   {
-    Size n =  static_cast<EGHFitter1D::Data *>(params)->n;
-    RawDataArrayType set = static_cast<EGHFitter1D::Data *>(params)->set;
+    Size n =  m_data->n;
+    RawDataArrayType set = m_data->set;
 
-    CoordinateType H  = deprecated_gsl_vector_get(x, 0);
-    CoordinateType tR = deprecated_gsl_vector_get(x, 1);
-    CoordinateType sigma_square = deprecated_gsl_vector_get(x, 2);
-    CoordinateType tau = deprecated_gsl_vector_get(x, 3);
+    CoordinateType H  = x(0);
+    CoordinateType tR = x(1);
+    CoordinateType sigma_square = x(2);
+    CoordinateType tau = x(3);
 
     CoordinateType derivative_H, derivative_tR, derivative_sigma_square, derivative_tau = 0.0;
     CoordinateType t_diff, t_diff2, exp1, denominator = 0.0;
@@ -163,36 +131,43 @@ namespace OpenMS
       }
 
       // set the jacobian matrix
-      deprecated_gsl_matrix_set(J, i, 0, derivative_H);
-      deprecated_gsl_matrix_set(J, i, 1, derivative_tR);
-      deprecated_gsl_matrix_set(J, i, 2, derivative_sigma_square);
-      deprecated_gsl_matrix_set(J, i, 3, derivative_tau);
+      J(i, 0) = derivative_H;
+      J(i, 1) = derivative_tR;
+      J(i, 2) = derivative_sigma_square;
+      J(i, 3) = derivative_tau;
     }
-
-    return deprecated_gsl_SUCCESS;
+    return 0;
   }
 
-  Int EGHFitter1D::evaluate_(const deprecated_gsl_vector * x, void * params, deprecated_gsl_vector * f, deprecated_gsl_matrix * J)
+  EGHFitter1D::EGHFitter1D() :
+    LevMarqFitter1D()
   {
-    EGHFitter1D::residual_(x, params, f);
-    EGHFitter1D::jacobian_(x, params, J);
-
-    return deprecated_gsl_SUCCESS;
+    setName(getProductName());
+    defaults_.setValue("statistics:variance", 1.0, "Variance of the model.", StringList::create("advanced"));
+    defaultsToParam_();
   }
 
-  void EGHFitter1D::printState_(Int iter, deprecated_gsl_multifit_fdfsolver * s)
+  EGHFitter1D::EGHFitter1D(const EGHFitter1D & source) :
+    LevMarqFitter1D(source)
   {
-    printf("iter: %4u x = % 15.8f % 15.8f  % 15.8f  % 15.8f |f(x)| = %g\n", iter,
-           deprecated_gsl_vector_get(
-        		   deprecated_wrapper_gsl_multifit_fdfsolver_get_x(s), 0),
-           deprecated_gsl_vector_get(
-        		   deprecated_wrapper_gsl_multifit_fdfsolver_get_x(s), 1),
-           deprecated_gsl_vector_get(
-        		   deprecated_wrapper_gsl_multifit_fdfsolver_get_x(s), 2),
-           deprecated_gsl_vector_get(
-        		   deprecated_wrapper_gsl_multifit_fdfsolver_get_x(s), 3),
-           deprecated_gsl_blas_dnrm2(
-        		   deprecated_wrapper_gsl_multifit_fdfsolver_get_f(s)));
+    setParameters(source.getParameters());
+    updateMembers_();
+  }
+
+  EGHFitter1D::~EGHFitter1D()
+  {
+  }
+
+  EGHFitter1D & EGHFitter1D::operator=(const EGHFitter1D & source)
+  {
+    if (&source == this)
+      return *this;
+
+    LevMarqFitter1D::operator=(source);
+    setParameters(source.getParameters());
+    updateMembers_();
+
+    return *this;
   }
 
   EGHFitter1D::QualityType EGHFitter1D::fit1d(const RawDataArrayType & set, InterpolationModel * & model)
@@ -223,9 +198,14 @@ namespace OpenMS
     // Compute start parameters
     setInitialParameters_(set);
 
-    // Optimize parameter with Levenberg-Marquardt algorithm (GLS)
-    CoordinateType x_init[4] = { height_, retention_, sigma_square_, tau_ };
-    optimize_(set, 4, x_init, &(residual_), &(jacobian_), &(evaluate_), &d);
+    Eigen::VectorXd x_init (4);
+    x_init(0) = height_;
+    x_init(1) = retention_;
+    x_init(2) = sigma_square_;
+    x_init(3) = tau_;
+
+    EGHFitterFunctor functor (4, &d);
+    optimize_(x_init, functor);
 
     // Set optimized parameters
     height_ = x_init[0];
@@ -239,11 +219,6 @@ namespace OpenMS
     LOG_DEBUG << "retention:    " << retention_ << "\n";
     LOG_DEBUG << "sigma_square: " << sigma_square_ << "\n";
     LOG_DEBUG << "tau:          " << tau_ << std::endl;
-
-    if (getGslStatus_() != "success")
-    {
-      std::cout << "status: " << getGslStatus_() << std::endl;
-    }
 #endif
 
     // build model

@@ -56,27 +56,12 @@ typedef  enum deprecated_gsl_CBLAS_TRANSPOSE deprecated_gsl_CBLAS_TRANSPOSE_t;
 /* FUNCTION WRAPPERS */
 const deprecated_gsl_rng_type* deprecated_gsl_rng_env_setup (void);
 
-//blas -> Eigen
-int deprecated_gsl_blas_dgemm (	deprecated_gsl_CBLAS_TRANSPOSE_t TransA, 		deprecated_gsl_CBLAS_TRANSPOSE_t TransB, 		double alpha, 		const deprecated_gsl_matrix* A, 		const deprecated_gsl_matrix* B, 		double beta, 		deprecated_gsl_matrix* C);
-double deprecated_gsl_blas_dnrm2 (const deprecated_gsl_vector* X);
-
-//fast fourier transformation -> Eigen
-int deprecated_gsl_fft_real_transform (double data[], const size_t stride, const size_t n, const deprecated_gsl_fft_real_wavetable* wavetable, deprecated_gsl_fft_real_workspace* work);
-deprecated_gsl_fft_real_wavetable* deprecated_gsl_fft_real_wavetable_alloc (size_t n);
-void deprecated_gsl_fft_real_wavetable_free (deprecated_gsl_fft_real_wavetable* wavetable);
-deprecated_gsl_fft_real_workspace* deprecated_gsl_fft_real_workspace_alloc (size_t n);
-void  deprecated_gsl_fft_real_workspace_free (deprecated_gsl_fft_real_workspace * workspace);
 
 int deprecated_gsl_fit_linear (const double* x, const size_t xstride, const double* y, const size_t ystride, const size_t n, double* c0, double* c1, double* cov00, double* cov01, double* cov11, double* sumsq);
 int deprecated_gsl_fit_mul (const double* x, const size_t xstride, const double* y, const size_t ystride, const size_t n, double* c1, double* cov11, double* sumsq);
 int deprecated_gsl_fit_wlinear (const double* x, const size_t xstride, const double* w, const size_t wstride, const double* y, const size_t ystride, const size_t n, double* c0, double* c1, double* cov00, double* cov01, double* cov11, double* chisq);
 
 void deprecated_gsl_interp_accel_free(deprecated_gsl_interp_accel* a);
-
-//lin alg -> Eigen
-int deprecated_gsl_linalg_LU_decomp (deprecated_gsl_matrix* A, deprecated_gsl_permutation* p, int* signum);
-int deprecated_gsl_linalg_LU_solve (const deprecated_gsl_matrix* LU, const deprecated_gsl_permutation* p, const deprecated_gsl_vector* b, deprecated_gsl_vector* x);
-int deprecated_gsl_linalg_SV_decomp (deprecated_gsl_matrix* A, deprecated_gsl_matrix* V, deprecated_gsl_vector* S, deprecated_gsl_vector* work);
 
 //matrix -> Eigen
 int deprecated_gsl_matrix_add (deprecated_gsl_matrix* a, const deprecated_gsl_matrix* b);
@@ -85,12 +70,13 @@ deprecated_gsl_matrix* deprecated_gsl_matrix_calloc (const size_t n1, const size
 int deprecated_gsl_matrix_fprintf (FILE* stream, const deprecated_gsl_matrix* m, const char* format);
 void deprecated_gsl_matrix_free (deprecated_gsl_matrix* m);
 double deprecated_gsl_matrix_get(const deprecated_gsl_matrix* m, const size_t i, const size_t j);
-int deprecated_gsl_matrix_scale (deprecated_gsl_matrix* a, const double x);
 void deprecated_gsl_matrix_set(deprecated_gsl_matrix* m, const size_t i, const size_t j, const double x);
 void deprecated_gsl_matrix_set_zero (deprecated_gsl_matrix* m);
 size_t deprecated_wrapper_gsl_matrix_get_size1( deprecated_gsl_matrix* M);
+size_t deprecated_wrapper_gsl_matrix_get_size2( deprecated_gsl_matrix* M);
 
 //LM-Fitter? -> Eigen unsupported!
+double deprecated_gsl_blas_dnrm2 (const deprecated_gsl_vector* X);
 int deprecated_gsl_multifit_covar ( const deprecated_gsl_matrix* J, 		double epsrel, 		deprecated_gsl_matrix* covar);
 deprecated_gsl_multifit_fdfsolver* deprecated_gsl_multifit_fdfsolver_alloc ( 		const deprecated_gsl_multifit_fdfsolver_type* T, 		size_t n, 		size_t p);
 void deprecated_gsl_multifit_fdfsolver_free (deprecated_gsl_multifit_fdfsolver* s);
@@ -129,24 +115,6 @@ deprecated_gsl_vector_view_ptr deprecated_gsl_vector_view_array (double* v, size
 size_t deprecated_wrapper_gsl_vector_get_size( const deprecated_gsl_vector* v);
 double * deprecated_wrapper_gsl_vector_get_data( const deprecated_gsl_vector* v);
 
-//splines -> Eigen unsupported !
-double deprecated_gsl_spline_eval(const deprecated_gsl_spline* spline, double x, deprecated_gsl_interp_accel* a);
-double deprecated_gsl_spline_eval_deriv(const deprecated_gsl_spline* spline, double x, deprecated_gsl_interp_accel* a);
-void deprecated_gsl_spline_free(deprecated_gsl_spline* spline);
-int deprecated_gsl_spline_init(deprecated_gsl_spline* spline, const double xa[], const double ya[], size_t size);
-deprecated_gsl_spline* deprecated_gsl_spline_alloc(const deprecated_gsl_interp_type* T, size_t size);
-
-//bsplines -> Eigen unsupported!
-deprecated_gsl_bspline_workspace* deprecated_gsl_bspline_alloc(const size_t k, const size_t nbreak);
-deprecated_gsl_bspline_deriv_workspace* deprecated_gsl_bspline_deriv_alloc(const size_t k);
-int deprecated_gsl_bspline_deriv_eval(const double x, const size_t nderiv, deprecated_gsl_matrix* dB, deprecated_gsl_bspline_workspace* w, deprecated_gsl_bspline_deriv_workspace * dw);
-void deprecated_gsl_bspline_deriv_free(deprecated_gsl_bspline_deriv_workspace* w);
-int deprecated_gsl_bspline_eval(const double x, deprecated_gsl_vector* B, deprecated_gsl_bspline_workspace* w);
-void deprecated_gsl_bspline_free(deprecated_gsl_bspline_workspace* w);
-int deprecated_gsl_bspline_knots(const deprecated_gsl_vector* breakpts, deprecated_gsl_bspline_workspace * w);
-int deprecated_gsl_bspline_knots_uniform(const double a, const double b, deprecated_gsl_bspline_workspace* w);
-size_t deprecated_gsl_bspline_ncoeffs(deprecated_gsl_bspline_workspace* w);
-deprecated_gsl_vector * deprecated_wrapper_gsl_bspline_workspace_get_knots( deprecated_gsl_bspline_workspace * w );
 
 //interpolation -> Eigen?
 deprecated_gsl_interp_accel* deprecated_gsl_interp_accel_alloc(void);

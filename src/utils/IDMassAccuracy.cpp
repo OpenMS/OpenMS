@@ -358,16 +358,12 @@ protected:
 
       // calculate histogram for gauss fitting
       GaussFitter gf;
-      GaussFitter::GaussFitResult init_param;
-      init_param.A = hist.maxValue();
-      init_param.x0 = median;
-      init_param.sigma = sdv / 500.0;
+      GaussFitter::GaussFitResult init_param (hist.maxValue(), median, sdv/500.0);
       gf.setInitialParameters(init_param);
 
       try
       {
         gf.fit(values);
-        cout << "Gauss-fit: " << gf.getGnuplotFormula() << endl;
 
         // write gnuplot scripts
         if (generate_gnuplot_scripts)
@@ -382,7 +378,6 @@ protected:
           ofstream gpl_out(String(precursor_out_file + "_gnuplot.gpl").c_str());
           gpl_out << "set terminal png" << endl;
           gpl_out << "set output \"" << precursor_out_file  << "_gnuplot.png\"" << endl;
-          gpl_out << gf.getGnuplotFormula() << endl;
           if (precursor_error_ppm)
           {
             gpl_out << "set xlabel \"error in ppm\"" << endl;
@@ -462,17 +457,13 @@ protected:
 
       // calculate histogram for gauss fitting
       GaussFitter gf;
-      GaussFitter::GaussFitResult init_param;
-      init_param.A = hist.maxValue();
-      init_param.x0 = median;
-      init_param.sigma = sdv / 100.0;
+      GaussFitter::GaussFitResult init_param (hist.maxValue(), median, sdv / 100.0);
       gf.setInitialParameters(init_param);
 
       try
       {
         gf.fit(values);
 
-        cout << "Gauss-fit: " << gf.getGnuplotFormula() << endl;
 
         // write gnuplot script
         if (generate_gnuplot_scripts)
@@ -487,7 +478,6 @@ protected:
           ofstream gpl_out(String(fragment_out_file + "_gnuplot.gpl").c_str());
           gpl_out << "set terminal png" << endl;
           gpl_out << "set output \"" << fragment_out_file  << "_gnuplot.png\"" << endl;
-          gpl_out << gf.getGnuplotFormula() << endl;
           if (fragment_error_ppm)
           {
             gpl_out << "set xlabel \"error in ppm\"" << endl;

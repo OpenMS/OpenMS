@@ -36,13 +36,12 @@
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_TRACEFITTER_H
 
 #include <OpenMS/CONCEPT/LogStream.h>
-
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
-
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
-
 #include "OpenMS/MATH/GSL_WRAPPER/gsl_wrapper.h"
+
+#include <unsupported/Eigen/NonLinearOptimization>
 
 namespace OpenMS
 {
@@ -62,13 +61,30 @@ namespace OpenMS
   {
 
 public:
+    /** Generic functor for LM-Optimization */
+    //TODO: This is copy and paste from LevMarqFitter1d.h. Make a generic wrapper for LM optimization
+    class GenericFunctor
+    {
+    public:
+      int inputs() const { return m_inputs; }
+      int values() const { return m_values; }
+
+      GenericFunctor(int dimensions, int num_data_points)
+      : m_inputs(dimensions), m_values(num_data_points) {}
+
+      virtual int operator()(const Eigen::VectorXd &x, Eigen::VectorXd &fvec) = 0;
+      // compute Jacobian matrix for the different parameters
+      virtual int df(const Eigen::VectorXd &x, Eigen::MatrixXd &J) = 0;
+
+    protected:
+      const int m_inputs, m_values;
+    };
+
     /// default constructor.
     TraceFitter() :
       DefaultParamHandler("TraceFitter")
     {
       defaults_.setValue("max_iteration", 500, "Maximum number of iterations used by the Levenberg-Marquardt algorithm.", ListUtils::create<String>("advanced"));
-      defaults_.setValue("epsilon_abs", 0.0001, "Absolute error used by the Levenberg-Marquardt algorithm.", ListUtils::create<String>("advanced"));
-      defaults_.setValue("epsilon_rel", 0.0001, "Relative error used by the Levenberg-Marquardt algorithm.", ListUtils::create<String>("advanced"));
       defaults_.setValue("weighted", "false", "Weight mass traces according to their theoretical intensities.", ListUtils::create<String>("advanced"));
       defaults_.setValidStrings("weighted", ListUtils::create<String>("true,false"));
       defaultsToParam_();
@@ -77,8 +93,6 @@ public:
     /// copy constructor
     TraceFitter(const TraceFitter& source) :
       DefaultParamHandler(source),
-      epsilon_abs_(source.epsilon_abs_),
-      epsilon_rel_(source.epsilon_rel_),
       max_iterations_(source.max_iterations_),
       weighted_(source.weighted_)
     {
@@ -90,8 +104,6 @@ public:
     {
       DefaultParamHandler::operator=(source);
       max_iterations_ = source.max_iterations_;
-      epsilon_abs_  = source.epsilon_abs_;
-      epsilon_rel_ = source.epsilon_rel_;
       weighted_ = source.weighted_;
       updateMembers_();
 
@@ -181,19 +193,9 @@ protected:
       bool weighted;
     };
 
-    /**
-     * Prints the state of the current iteration (e.g., values of the parameters)
-     *
-     * @param iter Number of current iteration.
-     * @param s The solver that also contains all the parameters.
-     */
-    virtual void printState_(SignedSize iter, deprecated_gsl_multifit_fdfsolver * s) = 0;
-
     virtual void updateMembers_()
     {
       max_iterations_ = this->param_.getValue("max_iteration");
-      epsilon_abs_ = this->param_.getValue("epsilon_abs");
-      epsilon_rel_ = this->param_.getValue("epsilon_rel");
       weighted_ = this->param_.getValue("weighted") == "true";
     }
 
@@ -202,57 +204,33 @@ protected:
      *
      * @param s The solver containing the fitted parameter values.
      */
-    virtual void getOptimizedParameters_( deprecated_gsl_multifit_fdfsolver * s) = 0;
-
+    virtual void getOptimizedParameters_(const Eigen::VectorXd&) = 0;
     /**
      * Optimize the given parameters using the Levenberg-Marquardt algorithm.
      */
-    void optimize_(FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType> & traces, const Size num_params, double x_init[],
-                   Int (* residual)(const deprecated_gsl_vector * x, void * params, deprecated_gsl_vector * f),
-                   Int (* jacobian)(const deprecated_gsl_vector * x, void * params, deprecated_gsl_matrix * J),
-                   Int (* evaluate)(const deprecated_gsl_vector * x, void * params, deprecated_gsl_vector * f, deprecated_gsl_matrix * J))
+    void optimize_(Eigen::VectorXd& x_init, GenericFunctor& functor)
     {
-      const deprecated_gsl_multifit_fdfsolver_type * T;
-      deprecated_gsl_multifit_fdfsolver * s;
+      //TODO: this function is copy&paste from LevMarqFitter1d.h. Make a generic werapper for
+      //LM optimization
+      int data_count = functor.values();
+      int num_params = functor.inputs();
 
-      const size_t data_count = traces.getPeakCount();
+      // LM always expects N>=p, cause Jacobian be rectangular M x N with M>=N
+      if (data_count < num_params) throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-FinalSet", "Skipping feature, we always expects N>=p");
 
-      // gsl always expects N>=p or default gsl error handler invoked,
-      // cause Jacobian be rectangular M x N with M>=N
-      if (data_count < num_params) throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-FinalSet", "Skipping feature, gsl always expects N>=p");
+      Eigen::LevenbergMarquardt<GenericFunctor> lmSolver (functor);
+      lmSolver.parameters.maxfev = max_iterations_;
+      Eigen::LevenbergMarquardtSpace::Status status = lmSolver.minimize(x_init);
 
-      deprecated_gsl_vector_view_ptr x = deprecated_gsl_vector_view_array(x_init, num_params);
-      deprecated_gsl_rng_env_setup();
-      // set up the function to be fit
-	  deprecated_gsl_multifit_function_fdf_ptr func
-	  	  = deprecated_wrapper_gsl_multifit_fdfsolver_lmsder_new (
-	  			residual, // the function of residuals
-	  			jacobian, // the gradient of this function
-	  			evaluate, // combined function and gradient
-	  			data_count, // number of points in the data set
-	  			num_params, // number of parameters in the fit function
-	  			&traces );// structure with the data and error bars
-      T = deprecated_wrapper_get_multifit_fdfsolver_lmsder();
-      s = deprecated_gsl_multifit_fdfsolver_alloc(T, data_count, num_params);
-      deprecated_gsl_multifit_fdfsolver_set(s, func.get(), deprecated_wrapper_gsl_vector_view_get_vector(x));
-      SignedSize iter = 0;
-      Int status;
-      do
+      //the states are poorly documented. after checking the source, we believe that
+      //all states except NotStarted, Running and ImproperInputParameters are good
+      //termination states.
+      if (status <= Eigen::LevenbergMarquardtSpace::ImproperInputParameters)
       {
-        iter++;
-        status = deprecated_gsl_multifit_fdfsolver_iterate(s);
-        printState_(iter, s);
-        if (status) break;
-        status = deprecated_gsl_multifit_test_delta(
-        		deprecated_wrapper_gsl_multifit_fdfsolver_get_dx(s),
-        		deprecated_wrapper_gsl_multifit_fdfsolver_get_x(s), epsilon_abs_, epsilon_rel_);
+          throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-FinalSet", "Could not fit the gaussian to the data: Error " + String(status));
       }
-      while (status == deprecated_gsl_CONTINUE && iter < max_iterations_);
 
-      // get the parameters out of the fdfsolver
-      getOptimizedParameters_(s);
-
-      deprecated_gsl_multifit_fdfsolver_free(s);
+      getOptimizedParameters_(x_init);
     }
 
     /** Test for the convergence of the sequence by comparing the last iteration step dx with the absolute error epsabs and relative error epsrel to the current position x */

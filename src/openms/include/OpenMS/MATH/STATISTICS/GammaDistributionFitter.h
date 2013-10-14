@@ -70,26 +70,10 @@ public:
       {
 public:
 
-        GammaDistributionFitResult() :
-          b(1.0),
-          p(5.0)
+        GammaDistributionFitResult(double bIn, double pIn) :
+          b(bIn),
+          p(pIn)
         {
-        }
-
-        GammaDistributionFitResult(const GammaDistributionFitResult & rhs) :
-          b(rhs.b),
-          p(rhs.p)
-        {
-        }
-
-        GammaDistributionFitResult & operator=(const GammaDistributionFitResult & rhs)
-        {
-          if (this != &rhs)
-          {
-            b = rhs.b;
-            p = rhs.p;
-          }
-          return *this;
         }
 
         /// parameter b of the gamma distribution
@@ -114,29 +98,16 @@ public:
 
           @exception Exception::UnableToFit is thrown if fitting cannot be performed
       */
-      GammaDistributionFitResult fit(std::vector<DPosition<2> > & points);
-
-      /// returns the gnuplot formula of the fitted gamma distribution
-      const String & getGnuplotFormula() const;
+      GammaDistributionFitResult fit(const std::vector<DPosition<2> > & points);
 
 protected:
 
-      static int gammaDistributionFitterf_(const deprecated_gsl_vector * x, void * params, deprecated_gsl_vector * f);
-
-      static int gammaDistributionFitterdf_(const deprecated_gsl_vector * x, void * params, deprecated_gsl_matrix * J);
-
-      static int gammaDistributionFitterfdf_(const deprecated_gsl_vector * x, void * params, deprecated_gsl_vector * f, deprecated_gsl_matrix * J);
-
-      void printState_(size_t iter, deprecated_gsl_multifit_fdfsolver * s);
-
       GammaDistributionFitResult init_param_;
 
-      String gnuplot_formula_;
-
 private:
-      /// Copy constructor (not implemented)
+      /// Copy constructor (not implemented to prevent usage)
       GammaDistributionFitter(const GammaDistributionFitter & rhs);
-      /// assignment operator (not implemented)
+      /// assignment operator (not implemented to prevent usage)
       GammaDistributionFitter & operator=(const GammaDistributionFitter & rhs);
     };
   }

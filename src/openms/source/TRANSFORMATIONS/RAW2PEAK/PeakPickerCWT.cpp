@@ -976,7 +976,8 @@ namespace OpenMS
                 << "peaks\n";
 #endif
 
-
+      std::vector<PeakShape> peaks_DC2 = peaks_DC;
+      OptimizePeakDeconvolution::Data data2 = data;
       opt.optimize(peaks_DC, data);
       for (Int i = 0; i < peaks; ++i)
       {

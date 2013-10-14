@@ -118,6 +118,7 @@ START_SECTION((void generateRawTandemSignals(const FeatureMapSim &, MSSimExperim
     levels.push_back(1);
     exp_no_ms2.getSpectra().erase(remove_if(exp_no_ms2.begin(), exp_no_ms2.end(), InMSLevelRange<MSSimExperiment::SpectrumType>(levels)), exp_no_ms2.end());
     exp_with_ms2.getSpectra().erase(remove_if(exp_with_ms2.begin(), exp_with_ms2.end(), InMSLevelRange<MSSimExperiment::SpectrumType>(levels)), exp_with_ms2.end());
+//    MzMLFile().store(OPENMS_GET_TEST_DATA_PATH("RawTandemMSSignalSimulation_with_ms2.mzML"), exp_no_ms2);
 
     TEST_EQUAL(exp_with_ms2.size(), exp_no_ms2.size());
     TEST_EQUAL(exp_with_ms2[0].size(), exp_no_ms2[0].size());

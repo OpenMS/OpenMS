@@ -68,23 +68,17 @@ START_SECTION((TwoDOptimization& operator=(const TwoDOptimization& opt)))
   penalties.rWidth = 5;
   opt_2d.setPenalties(penalties);
   opt_2d.setMaxIterations(10);
-  opt_2d.setMaxAbsError(0.01);
-  opt_2d.setMaxRelError(0.001);
   
   TwoDOptimization opt_2d_copy;
   opt_2d_copy = opt_2d;
   struct OptimizationFunctions::PenaltyFactorsIntensity penalties_copy = opt_2d_copy.getPenalties();
   unsigned int number = opt_2d_copy.getMaxIterations();
-  DoubleReal abs_err = opt_2d_copy.getMaxAbsError();
-  DoubleReal rel_err = opt_2d_copy.getMaxRelError();
   TEST_REAL_SIMILAR(penalties.pos,penalties_copy.pos)
   TEST_REAL_SIMILAR(penalties.lWidth,penalties_copy.lWidth)
   TEST_REAL_SIMILAR(penalties.rWidth,penalties_copy.rWidth)
   TEST_REAL_SIMILAR(penalties.height,penalties_copy.height)
     
   TEST_EQUAL(number == 10, true)
-  TEST_REAL_SIMILAR(abs_err, 0.01)
-  TEST_REAL_SIMILAR(rel_err, 0.001)
 END_SECTION
 
 START_SECTION((TwoDOptimization(const TwoDOptimization& opt)))
@@ -93,22 +87,16 @@ START_SECTION((TwoDOptimization(const TwoDOptimization& opt)))
   struct OptimizationFunctions::PenaltyFactorsIntensity penalties;
   opt_2d.setPenalties(penalties);
   opt_2d.setMaxIterations(10);
-  opt_2d.setMaxAbsError(0.01);
-  opt_2d.setMaxRelError(0.001);
   
   TwoDOptimization opt_2d_copy(opt_2d);
   struct OptimizationFunctions::PenaltyFactorsIntensity penalties_copy = opt_2d_copy.getPenalties();
   unsigned int number = opt_2d_copy.getMaxIterations();
-  DoubleReal abs_err = opt_2d_copy.getMaxAbsError();
-  DoubleReal rel_err = opt_2d_copy.getMaxRelError();
   TEST_REAL_SIMILAR(penalties.pos,penalties_copy.pos)
   TEST_REAL_SIMILAR(penalties.lWidth,penalties_copy.lWidth)
   TEST_REAL_SIMILAR(penalties.rWidth,penalties_copy.rWidth)
   TEST_REAL_SIMILAR(penalties.height,penalties_copy.height)
     
   TEST_EQUAL(number == 10, true)
-  TEST_REAL_SIMILAR(abs_err, 0.01)
-  TEST_REAL_SIMILAR(rel_err, 0.001)
 END_SECTION
 
 
@@ -347,46 +335,6 @@ START_SECTION(( template <typename InputSpectrumIterator,typename OutputPeakType
 
 END_SECTION
 
-START_SECTION((void setMaxAbsError(DoubleReal eps_abs)))
-  TOLERANCE_ABSOLUTE(0.0001)
-  DoubleReal abs_err = 0.01;
-   
-  TwoDOptimization opt_2d;
-  opt_2d.setMaxAbsError(abs_err);
-    
- 	TEST_REAL_SIMILAR(abs_err, opt_2d.getMaxAbsError())
-END_SECTION
-
-START_SECTION((void setMaxRelError(DoubleReal eps_rel)))
-  TOLERANCE_ABSOLUTE(0.0001)
-  DoubleReal rel_err = 0.01;
-   
-  TwoDOptimization opt_2d;
-  opt_2d.setMaxRelError(rel_err);
-    
- 	TEST_REAL_SIMILAR(rel_err, opt_2d.getMaxRelError())
-END_SECTION
-	
-START_SECTION((DoubleReal getMaxAbsError() const))
-  TOLERANCE_ABSOLUTE(0.0001)
-  DoubleReal abs_err = 0.01;
-   
-  TwoDOptimization opt_2d;
-  opt_2d.setMaxAbsError(abs_err);
-    
- 	TEST_REAL_SIMILAR(abs_err, opt_2d.getMaxAbsError())
-END_SECTION
-
-START_SECTION((DoubleReal getMaxRelError() const))
-  TOLERANCE_ABSOLUTE(0.0001)
-  DoubleReal rel_err = 0.01;
-   
-  TwoDOptimization opt_2d;
-  opt_2d.setMaxRelError(rel_err);
-    
- 	TEST_REAL_SIMILAR(rel_err, opt_2d.getMaxRelError())
-END_SECTION
-	
 START_SECTION((void setMaxPeakDistance(DoubleReal max_peak_distance)))
   TOLERANCE_ABSOLUTE(0.0001)
   DoubleReal max_peak_distance = 0.01;

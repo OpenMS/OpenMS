@@ -33,8 +33,10 @@
 // --------------------------------------------------------------------------
 //
 
-#include <sstream>
 
+#include <unsupported/Eigen/NonLinearOptimization>
+
+#include <sstream>
 #include <cmath>
 
 #include <OpenMS/MATH/STATISTICS/GumbelDistributionFitter.h>
@@ -50,8 +52,7 @@ namespace OpenMS
   {
     GumbelDistributionFitter::GumbelDistributionFitter()
     {
-      init_param_.a = 0.25;
-      init_param_.b = 0.1;
+      init_param_ = GumbelDistributionFitResult(0.25, 0.1);
     }
 
     GumbelDistributionFitter::~GumbelDistributionFitter()
@@ -60,165 +61,82 @@ namespace OpenMS
 
     void GumbelDistributionFitter::setInitialParameters(const GumbelDistributionFitResult & param)
     {
-      init_param_.a = param.a;
-      init_param_.b = param.b;
+      init_param_ = param;
     }
 
-    const String & GumbelDistributionFitter::getGnuplotFormula() const
+    struct GumbelDistributionFunctor
     {
-      return gnuplot_formula_;
-    }
+      int inputs() const { return m_inputs; }
+      int values() const { return m_values; }
 
-    int GumbelDistributionFitter::gumbelDistributionFitterf_(const deprecated_gsl_vector * x, void * params, deprecated_gsl_vector * f)
-    {
-      vector<DPosition<2> > * data = static_cast<vector<DPosition<2> > *>(params);
+      GumbelDistributionFunctor(unsigned dimensions, const std::vector<DPosition<2> >* data)
+      : m_inputs(dimensions), m_values(data->size()), m_data(data) {}
 
-      double a = deprecated_gsl_vector_get(x, 0);
-      double b = deprecated_gsl_vector_get(x, 1);
-
-      UInt i = 0;
-      for (vector<DPosition<2> >::iterator it = data->begin(); it != data->end(); ++it)
+      int operator()(const Eigen::VectorXd &x, Eigen::VectorXd &fvec)
       {
-        double the_x = it->getX();
-        double z = exp((a - the_x) / b);
-        deprecated_gsl_vector_set(f, i++, (z * exp(-1 * z)) / b - it->getY());
+        double a = x(0);
+        double b = x(1);
+
+        UInt i = 0;
+        for (vector<DPosition<2> >::const_iterator it = m_data->begin(); it != m_data->end(); ++it, ++i)
+        {
+          double the_x = it->getX();
+          double z = exp((a - the_x) / b);
+          fvec(i) = (z * exp(-1 * z)) / b - it->getY();
+        }
+        return 0;
+      }
+      // compute Jacobian matrix for the different parameters
+      int df(const Eigen::VectorXd &x, Eigen::MatrixXd &J)
+      {
+        double a = x(0);
+        double b = x(1);
+        UInt i = 0;
+        for (vector<DPosition<2> >::const_iterator it = m_data->begin(); it != m_data->end(); ++it, ++i)
+        {
+          double the_x = it->getX();
+          double z = exp((a - the_x) / b);
+          double f = z * exp(-1 * z);
+          double part_dev_a = (f - pow(z, 2) * exp(-1 * z)) / pow(b, 2);
+          J(i,0) = part_dev_a;
+          double dev_z =  ((the_x - a) / pow(b, 2));
+          double cum = f * dev_z;
+          double part_dev_b = ((cum - z * cum) * b - f) / pow(b, 2);
+          J(i,1) = part_dev_b;
+        }
+        return 0;
       }
 
-      return deprecated_gsl_SUCCESS;
-    }
-
-    // compute Jacobian matrix for the different parameters
-    int GumbelDistributionFitter::gumbelDistributionFitterdf_(const deprecated_gsl_vector * x, void * params, deprecated_gsl_matrix * J)
-    {
-      vector<DPosition<2> > * data = static_cast<vector<DPosition<2> > *>(params);
-
-      double a = deprecated_gsl_vector_get(x, 0);
-      double b = deprecated_gsl_vector_get(x, 1);
-      UInt i(0);
-      for (vector<DPosition<2> >::iterator it = data->begin(); it != data->end(); ++it, ++i)
-      {
-        double the_x = it->getX();
-        double z = exp((a - the_x) / b);
-        double f = z * exp(-1 * z);
-        double part_dev_a = (f - pow(z, 2) * exp(-1 * z)) / pow(b, 2);
-        deprecated_gsl_matrix_set(J, i, 0, part_dev_a);
-        double dev_z =  ((the_x - a) / pow(b, 2));
-        double cum = f * dev_z;
-        double part_dev_b = ((cum - z * cum) * b - f) / pow(b, 2);
-        deprecated_gsl_matrix_set(J, i, 1, part_dev_b);
-
-
-
-
-      }
-      return deprecated_gsl_SUCCESS;
-    }
-
-    int GumbelDistributionFitter::gumbelDistributionFitterfdf_(const deprecated_gsl_vector * x, void * params, deprecated_gsl_vector * f, deprecated_gsl_matrix * J)
-    {
-      gumbelDistributionFitterf_(x, params, f);
-      gumbelDistributionFitterdf_(x, params, J);
-      return deprecated_gsl_SUCCESS;
-    }
-
-#ifdef GUMBEL_DISTRIBUTION_FITTER_VERBOSE
-    void GumbelDistributionFitter::printState_(size_t iter, deprecated_gsl_multifit_fdfsolver * s)
-    {
-      printf("iter: %3u x = % 15.8f % 15.8f "
-             "|f(x)| = %g\n",
-             (unsigned int)iter,
-             deprecated_gsl_vector_get(s->x, 0),
-             deprecated_gsl_vector_get(s->x, 1),
-             deprecated_gsl_blas_dnrm2(s->f));
-    }
-
-#endif
+      const int m_inputs, m_values;
+      const std::vector<DPosition<2> >* m_data;
+    };
 
     GumbelDistributionFitter::GumbelDistributionFitResult GumbelDistributionFitter::fit(vector<DPosition<2> > & input)
     {
-      const deprecated_gsl_multifit_fdfsolver_type * T = NULL;
-      deprecated_gsl_multifit_fdfsolver * s = NULL;
 
-      int status = 0;
-      size_t iter = 0;
+      Eigen::VectorXd x_init (2);
+      x_init(0) = init_param_.a;
+      x_init(1) = init_param_.b;
+      GumbelDistributionFunctor functor (2, &input);
+      Eigen::LevenbergMarquardt<GumbelDistributionFunctor> lmSolver (functor);
+      Eigen::LevenbergMarquardtSpace::Status status = lmSolver.minimize(x_init);
 
-      const size_t p = 2;
-
-      double x_init[2] = { init_param_.a, init_param_.b };
-      deprecated_gsl_vector_view_ptr x = deprecated_gsl_vector_view_array(x_init, p);
-
-
-      deprecated_gsl_multifit_function_fdf_ptr f
-      		  = deprecated_wrapper_gsl_multifit_fdfsolver_lmsder_new (
-      				&gumbelDistributionFitterf_,
-      				&gumbelDistributionFitterdf_,
-      				&gumbelDistributionFitterfdf_,
-      			    input.size(),
-      				p,
-      				&input );
-
-      T = deprecated_wrapper_get_multifit_fdfsolver_lmsder();
-      s = deprecated_gsl_multifit_fdfsolver_alloc(T, input.size(), p);
-      deprecated_gsl_multifit_fdfsolver_set(s, f.get(),
-    		  deprecated_wrapper_gsl_vector_view_get_vector( x) );
-
-#ifdef GUMBEL_DISTRIBUTION_FITTER_VERBOSE
-      printState_(iter, s);
-#endif
-
-      do
+      //the states are poorly documented. after checking the source, we believe that
+      //all states except NotStarted, Running and ImproperInputParameters are good
+      //termination states.
+      if (status <= Eigen::LevenbergMarquardtSpace::ImproperInputParameters)
       {
-        ++iter;
-        status = deprecated_gsl_multifit_fdfsolver_iterate(s);
-
-#ifdef GUMBEL_DISTRIBUTION_FITTER_VERBOSE
-        printf("status = %s\n", deprecated_gsl_strerror(status));
-        printState_(iter, s);
-#endif
-        if (status)
-        {
-          break;
-        }
-
-        status = deprecated_gsl_multifit_test_delta(
-        		deprecated_wrapper_gsl_multifit_fdfsolver_get_dx(s),
-        		deprecated_wrapper_gsl_multifit_fdfsolver_get_x(s), 1e-4, 1e-4);
-#ifdef GUMBEL_DISTRIBUTION_FITTER_VERBOSE
-        printf("Status = '%s'\n", deprecated_gsl_strerror(status));
-#endif
-      }
-      while (status == deprecated_gsl_CONTINUE && iter < 1000);
-
-#ifdef GUMBEL_DISTRIBUTION_FITTER_VERBOSE
-      printf("Final status = '%s'\n", deprecated_gsl_strerror(status));
-#endif
-
-      if (status != deprecated_gsl_SUCCESS)
-      {
-        deprecated_gsl_multifit_fdfsolver_free(s);
-
         throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-GumbelDistributionFitter", "Could not fit the gumbel distribution to the data");
       }
 
-      // write the result in a GumbelDistributionFitResult struct
-      GumbelDistributionFitResult result;
-      result.a = deprecated_gsl_vector_get(
-    		  deprecated_wrapper_gsl_multifit_fdfsolver_get_x(s), 0);
-      result.b = deprecated_gsl_vector_get(
-    		  deprecated_wrapper_gsl_multifit_fdfsolver_get_x(s), 1);
-
+#ifdef GUMBEL_DISTRIBUTION_FITTER_VERBOSE
       // build a formula with the fitted parameters for gnuplot
       stringstream formula;
-      formula << "f(x)=" << "(1/" << result.b << ") * " << "exp(( " << result.a << "- x)/" << result.b << ") * exp(-exp((" << result.a << " - x)/" << result.b << "))";
-      gnuplot_formula_ = formula.str();
-
-#ifdef GUMBEL_DISTRIBUTION_FITTER_VERBOSE
-      cout << gnuplot_formula_ << endl;
+      formula << "f(x)=" << "(1/" << x_init(1) << ") * " << "exp(( " << x_init(0) << "- x)/" << x_init(1) << ") * exp(-exp((" << x_init(0) << " - x)/" << x_init(1) << "))";
+      cout << formula.str() << endl;
 #endif
 
-      deprecated_gsl_multifit_fdfsolver_free(s);
-
-      return result;
+      return GumbelDistributionFitResult (x_init(0), x_init(1));
     }
 
   }   //namespace Math

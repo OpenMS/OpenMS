@@ -68,7 +68,8 @@ public:
       struct GaussFitResult
       {
 public:
-
+        GaussFitResult(double a, double x, double s)
+        : A(a), x0(x), sigma(s) {}
         /// parameter A of gaussian distribution (amplitude)
         double A;
 
@@ -79,7 +80,7 @@ public:
         double sigma;
       };
 
-      /// Default constructor
+      /// Constructor
       GaussFitter();
 
       /// Destructor
@@ -97,22 +98,9 @@ public:
       */
       GaussFitResult fit(std::vector<DPosition<2> > & points);
 
-      /// return the gnuplot formula of the gaussian
-      const String & getGnuplotFormula() const;
-
 protected:
 
-      static int gaussFitterf_(const deprecated_gsl_vector * x, void * params, deprecated_gsl_vector * f);
-
-      static int gaussFitterdf_(const deprecated_gsl_vector * x, void * params, deprecated_gsl_matrix * J);
-
-      static int gaussFitterfdf_(const deprecated_gsl_vector * x, void * params, deprecated_gsl_vector * f, deprecated_gsl_matrix * J);
-
-      void printState_(size_t iter, deprecated_gsl_multifit_fdfsolver * s);
-
       GaussFitResult init_param_;
-
-      String gnuplot_formula_;
 
 private:
 

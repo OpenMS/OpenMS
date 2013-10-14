@@ -220,9 +220,7 @@ namespace OpenMS
     }
 
     Math::GammaDistributionFitter gdf;
-    Math::GammaDistributionFitter::GammaDistributionFitResult result_gamma_1st;
-    result_gamma_1st.b = 1.0;
-    result_gamma_1st.p = 3.0;
+    Math::GammaDistributionFitter::GammaDistributionFitResult result_gamma_1st (1.0, 3.0);
     gdf.setInitialParameters(result_gamma_1st);
     // TODO heuristic for good start parameters
     Math::GammaDistributionFitter::GammaDistributionFitResult result_gamma = gdf.fit(rev_data);
@@ -325,24 +323,33 @@ namespace OpenMS
     cerr << "setting initial parameters: " << endl;
 #endif
     Math::GaussFitter gf;
-    Math::GaussFitter::GaussFitResult result_1st;
-    result_1st.A = gauss_A; //0.06;
-    result_1st.x0 = gauss_x0; //0.7;
-    result_1st.sigma = gauss_sigma; //0.5;
+    Math::GaussFitter::GaussFitResult result_1st(gauss_A, gauss_x0, gauss_sigma);
     gf.setInitialParameters(result_1st);
 #ifdef IDDECOYPROBABILITY_DEBUG
     cerr << "Initial Gauss guess: A=" << gauss_A << ", x0=" << gauss_x0 << ", sigma=" << gauss_sigma << endl;
 #endif
 
-    Math::GaussFitter::GaussFitResult result_gauss = gf.fit(diff_data);
-
-    // fit failed?
-    if (gf.getGnuplotFormula() == "")
+    //TODO: fail-to-fit correction was done using the GNUPlotFormula. Seemed to be a hack.
+    //Changed it to try-catch-block but I am not sure if this correction should be made
+    //at all. Can someone please verify?
+    Math::GaussFitter::GaussFitResult result_gauss (gauss_A, gauss_x0, gauss_sigma);
+    try{
+        result_gauss = gf.fit(diff_data);
+    }
+    catch(Exception::UnableToFit& e)
     {
       result_gauss.A = gauss_A;
       result_gauss.x0 = gauss_x0;
       result_gauss.sigma = gauss_sigma;
     }
+
+//    // fit failed?
+//    if (gf.getGnuplotFormula() == "")
+//    {
+//      result_gauss.A = gauss_A;
+//      result_gauss.x0 = gauss_x0;
+//      result_gauss.sigma = gauss_sigma;
+//    }
 
 #ifdef IDDECOYPROBABILITY_DEBUG
     cerr << gf.getGnuplotFormula() << endl;

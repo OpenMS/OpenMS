@@ -97,7 +97,6 @@
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumPrecursorComparator.h>
 #include <OpenMS/COMPARISON/SPECTRA/SteinScottImproveScore.h>
 #include <OpenMS/COMPARISON/SPECTRA/ZhangSimilarityScore.h>
-#include <OpenMS/COMPARISON/SPECTRA/CompareFouriertransform.h>
 #include <OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>
 #include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
 #include <OpenMS/FILTERING/SMOOTHING/LowessSmoothing.h>
@@ -149,7 +148,6 @@
 #include <OpenMS/COMPARISON/SPECTRA/BinnedSumAgreeingIntensities.h>
 #include <OpenMS/COMPARISON/SPECTRA/BinnedSpectralContrastAngle.h>
 #include <OpenMS/COMPARISON/SPECTRA/PeakAlignment.h>
-#include <OpenMS/COMPARISON/SPECTRA/CompareFouriertransform.h>
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMeanIterative.h>
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
 #include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>
@@ -433,7 +431,6 @@ int main(int argc, char ** argv)
   DOCME(TwoDOptimization);
   DOCME(WindowMower);
   DOCME(ZhangSimilarityScore);
-  DOCME(CompareFouriertransform);
   DOCME(PrecursorIonSelection);
   DOCME(PrecursorIonSelectionPreprocessing);
   DOCME(MorphologicalFilter);
@@ -464,7 +461,7 @@ int main(int argc, char ** argv)
   DOCME(PeptideAndProteinQuant);
   DOCME(Math::PosteriorErrorProbabilityModel);
   // workarounds for documenting model parameters in MapAligners:
-  writeParameters("MapAlignerIdentificationModel", TOPPMapAlignerBase::getModelDefaults("b_spline"), true);
+  writeParameters("MapAlignerIdentificationModel", TOPPMapAlignerBase::getModelDefaults("interpolated"), true);
   writeParameters("MapAlignerPoseClusteringModel", TOPPMapAlignerBase::getModelDefaults("linear"), true);
   writeParameters("MapAlignerSpectrumModel", TOPPMapAlignerBase::getModelDefaults("interpolated"), true);
   writeParameters("MapRTTransformerModel", TOPPMapAlignerBase::getModelDefaults("none"), true);

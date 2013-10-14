@@ -42,9 +42,12 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
+#include <OpenMS/MATH/MISC/Spline2d.h>
+
 #include <iostream>
 #include <vector>
 #include <map>
+
 #include "OpenMS/MATH/GSL_WRAPPER/gsl_wrapper.h"
 
 //#define DEBUG_CALIBRATION
@@ -148,10 +151,6 @@ private:
     double a_, b_, c_;
 
 
-    deprecated_gsl_interp_accel * acc_;
-
-    deprecated_gsl_spline * spline_;
-
     /// Calculates the coefficients of the quadratic fit used for external calibration.
     void calculateCalibCoeffs_(MSExperiment<> & calib_peaks_ft);
 
@@ -212,13 +211,54 @@ private:
   {
     exp_masses_ = exp_masses;
     calculateCalibCoeffs_(calib_spectra);
+
+    Spline2d<double> spline (3, calib_masses_, error_medians_);
+
+#ifdef DEBUG_CALIBRATION
+    std::cout << "fehler nach spline fitting" << std::endl;
+
+    for (unsigned int spec = 0; spec <  calib_peaks_ft_.size(); ++spec)
+    {
+
+      std::vector<double> exp_masses;
+      std::vector<unsigned int> monoiso;
+      matchMasses_(calib_spectra, monoiso_peaks, monoiso, exp_masses, spec);
+      for (unsigned int p = 0; p < monoiso.size(); ++p)
+      {
+        double xi = mQ_(calib_peaks_ft_[spec][monoiso[p]].getMZ(), spec);
+        if (xi > calib_masses[error_medians_.size() - 1])
+          continue;
+        if (xi < calib_masses[0])
+          continue;
+        std::cout << exp_masses[p] << "\t"
+                  << (xi - exp_masses[p] - spline(xi)) / exp_masses[p] * 1e6
+                  << std::endl;
+
+      }
+
+    }
+
+
+    double xi, yi;
+    std::cout << "interpolation \n\n";
+    for (xi = calib_masses[0]; xi < calib_masses[error_medians_.size() - 1]; xi += 0.01)
+    {
+      yi = spline(xi);
+      std::cout << xi << "\t" << yi << std::endl;
+    }
+    std::cout << "--------------\nend interpolation \n\n";
+#endif
+
+//    delete[] calib_masses;
+//    delete[] error_medians;
+
     double m;
     for (unsigned int spec = 0; spec <  exp.size(); ++spec)
     {
       for (unsigned int peak = 0; peak <  exp[spec].size(); ++peak)
       {
         m = mQAv_(exp[spec][peak].getMZ());
-        exp[spec][peak].setPos(m - deprecated_gsl_spline_eval(spline_, m, acc_));
+        exp[spec][peak].setPos(m - spline.eval(m));
       }
     }
   }

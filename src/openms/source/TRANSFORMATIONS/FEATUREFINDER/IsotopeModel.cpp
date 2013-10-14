@@ -191,7 +191,6 @@ namespace OpenMS
       {
         boost::math::cauchy_distribution<double> cauchy(0., isotope_lorentz_fwhm_ / 2.0);
         double x = boost::math::pdf(cauchy, coord);
-        //double y = gsl_ran_cauchy_pdf(coord, isotope_lorentz_fwhm_/2.0);
         peak_shape_values_y.push_back(x); //cauchy is using HWHM not FWHM
       }
     }

@@ -150,55 +150,7 @@ namespace OpenMS
     averageCoefficients_();
 
 
-    double * calib_masses = new double[error_medians_.size()];
-    double * error_medians = new double[error_medians_.size()];
-    for (unsigned int i = 0; i < error_medians_.size(); ++i)
-    {
-      calib_masses[i] = calib_masses_[i];
-      error_medians[i] = error_medians_[i];
-    }
 
-    acc_ = deprecated_gsl_interp_accel_alloc();
-    spline_ = deprecated_gsl_spline_alloc( deprecated_wrapper_get_gsl_interp_cspline(), error_medians_.size());
-    deprecated_gsl_spline_init(spline_, calib_masses, error_medians, error_medians_.size());
-
-#ifdef DEBUG_CALIBRATION
-    std::cout << "fehler nach spline fitting" << std::endl;
-
-    for (unsigned int spec = 0; spec <  calib_peaks_ft_.size(); ++spec)
-    {
-
-      std::vector<double> exp_masses;
-      std::vector<unsigned int> monoiso;
-      matchMasses_(calib_spectra, monoiso_peaks, monoiso, exp_masses, spec);
-      for (unsigned int p = 0; p < monoiso.size(); ++p)
-      {
-        double xi = mQ_(calib_peaks_ft_[spec][monoiso[p]].getMZ(), spec);
-        if (xi > calib_masses[error_medians_.size() - 1])
-          continue;
-        if (xi < calib_masses[0])
-          continue;
-        std::cout << exp_masses[p] << "\t"
-                  << (xi - exp_masses[p] - deprecated_gsl_spline_eval(spline_, xi, acc_)) / exp_masses[p] * 1e6
-                  << std::endl;
-
-      }
-
-    }
-
-
-    double xi, yi;
-    std::cout << "interpolation \n\n";
-    for (xi = calib_masses[0]; xi < calib_masses[error_medians_.size() - 1]; xi += 0.01)
-    {
-      yi = deprecated_gsl_spline_eval(spline_, xi, acc_);
-      std::cout << xi << "\t" << yi << std::endl;
-    }
-    std::cout << "--------------\nend interpolation \n\n";
-#endif
-
-    delete[] calib_masses;
-    delete[] error_medians;
   }
 
   void TOFCalibration::averageCoefficients_()
