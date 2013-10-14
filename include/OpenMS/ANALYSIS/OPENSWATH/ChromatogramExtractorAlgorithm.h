@@ -120,7 +120,7 @@ public:
 
 private:
 
-    int get_filter_nr(String filter);
+    int get_filter_nr_(String filter);
 
   };
 
