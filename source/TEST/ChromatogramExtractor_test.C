@@ -184,13 +184,14 @@ START_SECTION(void prepare_coordinates(std::vector< OpenSwath::ChromatogramPtr >
   TraMLFile().load(OPENMS_GET_TEST_DATA_PATH("ChromatogramExtractor_input.TraML"), transitions);
   TargetedExperiment transitions_;
   TraMLFile().load(OPENMS_GET_TEST_DATA_PATH("ChromatogramExtractor_input.TraML"), transitions_);
+  double rt_extraction_window = 1.0;
 
   // Test transitions
   {
     std::vector< OpenSwath::ChromatogramPtr > output_chromatograms;
     std::vector< ChromatogramExtractor::ExtractionCoordinates > coordinates;
     ChromatogramExtractor extractor;
-    extractor.prepare_coordinates(output_chromatograms, coordinates, transitions, true, false);
+    extractor.prepare_coordinates(output_chromatograms, coordinates, transitions, rt_extraction_window, false);
 
     TEST_EQUAL(transitions == transitions_, true)
     TEST_EQUAL(output_chromatograms.size(), coordinates.size())
@@ -199,9 +200,13 @@ START_SECTION(void prepare_coordinates(std::vector< OpenSwath::ChromatogramPtr >
     TEST_EQUAL(coordinates[1].mz, 628.45)
     TEST_EQUAL(coordinates[2].mz, 654.38)
 
-    TEST_EQUAL(coordinates[0].rt, 2)
-    TEST_EQUAL(coordinates[1].rt, 44)
-    TEST_EQUAL(coordinates[2].rt, 44)
+    TEST_REAL_SIMILAR(coordinates[0].rt_start, 1.5)
+    TEST_REAL_SIMILAR(coordinates[1].rt_start, 43.5)
+    TEST_REAL_SIMILAR(coordinates[2].rt_start, 43.5)
+
+    TEST_REAL_SIMILAR(coordinates[0].rt_end, 2.5)
+    TEST_REAL_SIMILAR(coordinates[1].rt_end, 44.5)
+    TEST_REAL_SIMILAR(coordinates[2].rt_end, 44.5)
 
     // Note: they are ordered according to m/z
     TEST_EQUAL(coordinates[0].id, "tr3")
@@ -214,7 +219,7 @@ START_SECTION(void prepare_coordinates(std::vector< OpenSwath::ChromatogramPtr >
     std::vector< OpenSwath::ChromatogramPtr > output_chromatograms;
     std::vector< ChromatogramExtractor::ExtractionCoordinates > coordinates;
     ChromatogramExtractor extractor;
-    extractor.prepare_coordinates(output_chromatograms, coordinates, transitions, true, true);
+    extractor.prepare_coordinates(output_chromatograms, coordinates, transitions, rt_extraction_window, true);
 
     TEST_EQUAL(transitions == transitions_, true)
     TEST_EQUAL(output_chromatograms.size(), coordinates.size())
@@ -222,8 +227,13 @@ START_SECTION(void prepare_coordinates(std::vector< OpenSwath::ChromatogramPtr >
     TEST_EQUAL(coordinates[0].mz, 500)
     TEST_EQUAL(coordinates[1].mz, 501)
 
-    TEST_EQUAL(coordinates[0].rt, 44)
-    TEST_EQUAL(coordinates[1].rt, 2)
+    TEST_REAL_SIMILAR(coordinates[0].rt_start, 43.5)
+    TEST_REAL_SIMILAR(coordinates[1].rt_start, 1.5)
+
+    TEST_REAL_SIMILAR(coordinates[0].rt_end, 44.5)
+    TEST_REAL_SIMILAR(coordinates[1].rt_end, 2.5)
+
+
 
     TEST_EQUAL(coordinates[0].id, "tr_gr1")
     TEST_EQUAL(coordinates[1].id, "tr_gr2")
@@ -253,10 +263,10 @@ START_SECTION(void ChromatogramExtractor::return_chromatogram(std::vector< OpenS
   std::vector< OpenSwath::ChromatogramPtr > output_chromatograms;
   std::vector< ChromatogramExtractor::ExtractionCoordinates > coordinates;
   ChromatogramExtractor extractor;
-  extractor.prepare_coordinates(output_chromatograms, coordinates, transitions, true, false);
+  extractor.prepare_coordinates(output_chromatograms, coordinates, transitions, rt_extraction_window, false);
 
   extractor.extractChromatograms(expptr, output_chromatograms, coordinates, 
-      extract_window, ppm, rt_extraction_window, extraction_function);
+      extract_window, ppm, extraction_function);
   
   std::vector< OpenMS::MSChromatogram<> > chromatograms;
   extractor.return_chromatogram(output_chromatograms, coordinates, transitions, (*exp)[0], chromatograms, false);

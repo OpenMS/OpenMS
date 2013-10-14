@@ -171,10 +171,10 @@ public:
     void extractChromatograms(const OpenSwath::SpectrumAccessPtr input, 
         std::vector< OpenSwath::ChromatogramPtr >& output, 
         std::vector<ExtractionCoordinates> extraction_coordinates,
-        double& mz_extraction_window, bool ppm, double rt_extraction_window, String filter)
+        double& mz_extraction_window, bool ppm, String filter)
     {
       ChromatogramExtractorAlgorithm().extractChromatograms(input, output, 
-          extraction_coordinates, mz_extraction_window, ppm, rt_extraction_window, filter);
+          extraction_coordinates, mz_extraction_window, ppm, filter);
     }
 
 public:
@@ -191,14 +191,17 @@ public:
      *   appropriate extraction coordinates in m/z and rt and sorted by m/z (to
      *   be used as input to extractChromatograms)
      * @param transition_exp The transition experiment used as input (is constant)
-     * @param enforce_presence_rt Enforce the presence of retention times (throw otherwise)
+     * @param rt_extraction_window Full RT extraction window (rt_end - rt_start
+     *   will equal this window size). Enforces the presence of retention times
+     *   if larger than zero (throws an exception), if less than zero, rt_end
+     *   will be set to -1 and rt_start to 0.
      * @param ms1 Whether to extract for MS1 (peptide level) or MS2 (transition level)
      *
     */
     void prepare_coordinates(std::vector< OpenSwath::ChromatogramPtr > & output_chromatograms,
       std::vector< ExtractionCoordinates > & coordinates,
       OpenMS::TargetedExperiment & transition_exp,
-      const bool enforce_presence_rt,
+      const double rt_extraction_window,
       const bool ms1) const;
 
     /**

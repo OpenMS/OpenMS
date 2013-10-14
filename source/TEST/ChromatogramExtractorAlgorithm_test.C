@@ -62,7 +62,7 @@ START_SECTION(~ChromatogramExtractorAlgorithm())
 }
 END_SECTION
 
-START_SECTION(void extractChromatograms(const OpenSwath::SpectrumAccessPtr input, std::vector< OpenSwath::ChromatogramPtr >& output, std::vector<ExtractionCoordinates> extraction_coordinates, double& mz_extraction_window, bool ppm, double rt_extraction_window, String filter))
+START_SECTION(void extractChromatograms(const OpenSwath::SpectrumAccessPtr input, std::vector< OpenSwath::ChromatogramPtr >& output, std::vector<ExtractionCoordinates> extraction_coordinates, double& mz_extraction_window, bool ppm, String filter))
 {
   double extract_window = 0.05;
   boost::shared_ptr<MSExperiment<Peak1D> > exp(new MSExperiment<Peak1D>);
@@ -82,14 +82,14 @@ START_SECTION(void extractChromatograms(const OpenSwath::SpectrumAccessPtr input
 
   {
     ChromatogramExtractorAlgorithm::ExtractionCoordinates coord;
-    coord.mz = 618.31; coord.rt = -1; coord.id = "tr1";
+    coord.mz = 618.31; coord.rt_start = 0; coord.rt_end = -1; coord.id = "tr1";
     coordinates.push_back(coord);
-    coord.mz = 628.45; coord.rt = -1; coord.id = "tr2";
+    coord.mz = 628.45; coord.rt_start = 0; coord.rt_end = -1; coord.id = "tr2";
     coordinates.push_back(coord);
-    coord.mz = 654.38; coord.rt = -1; coord.id = "tr3";
+    coord.mz = 654.38; coord.rt_start = 0; coord.rt_end = -1; coord.id = "tr3";
     coordinates.push_back(coord);
   }
-  extractor.extractChromatograms(expptr, out_exp, coordinates, extract_window, false, -1, "tophat");
+  extractor.extractChromatograms(expptr, out_exp, coordinates, extract_window, false, "tophat");
 
   OpenSwath::ChromatogramPtr chrom = out_exp[0];
 

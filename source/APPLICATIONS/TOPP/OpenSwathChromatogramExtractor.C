@@ -224,8 +224,6 @@ protected:
     traml.load(tr_file, targeted_exp);
     std::cout << "Loaded TraML file" << std::endl;
 
-    bool enforce_rt = (rt_extraction_window > 0.0);
-
     // Do parallelization over the different input files
     // Only in OpenMP 3.0 are unsigned loop variables allowed
 #ifdef _OPENMP
@@ -275,14 +273,25 @@ protected:
       // continue if the map is not empty
       if (do_continue)
       {
+
+        // Prepare the coordinates (with or without rt extraction) and then extract the chromatograms
         ChromatogramExtractor extractor;
-        extractor.prepare_coordinates(chromatogram_ptrs, coordinates, transition_exp_used, enforce_rt, extract_MS1);
-        for (std::vector< ChromatogramExtractor::ExtractionCoordinates >::iterator it = coordinates.begin(); it != coordinates.end(); it++)
+        if (rt_extraction_window < 0)
         {
-          it->rt = trafo_inverse.apply(it->rt);
+          extractor.prepare_coordinates(chromatogram_ptrs, coordinates, transition_exp_used, rt_extraction_window, extract_MS1);
+        }
+        else
+        {
+          // Use an rt extraction window of 0.0 which will just write the retention time in start / end positions
+          extractor.prepare_coordinates(chromatogram_ptrs, coordinates, transition_exp_used, 0.0, extract_MS1);
+          for (std::vector< ChromatogramExtractor::ExtractionCoordinates >::iterator it = coordinates.begin(); it != coordinates.end(); it++)
+          {
+            it->rt_start = trafo_inverse.apply(it->rt_start) - rt_extraction_window / 2.0;
+            it->rt_end = trafo_inverse.apply(it->rt_end) + rt_extraction_window / 2.0;
+          }
         }
         extractor.extractChromatograms(expptr, chromatogram_ptrs, coordinates, 
-            mz_extraction_window, ppm, rt_extraction_window, extraction_function);
+            mz_extraction_window, ppm, extraction_function);
 
 #ifdef _OPENMP
 #pragma omp critical (OpenSwathChromatogramExtractor_insertMS1)

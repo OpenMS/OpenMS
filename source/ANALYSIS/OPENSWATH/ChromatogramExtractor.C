@@ -42,8 +42,7 @@ namespace OpenMS
   void ChromatogramExtractor::prepare_coordinates(std::vector< OpenSwath::ChromatogramPtr > & output_chromatograms,
     std::vector< ExtractionCoordinates > & coordinates,
     OpenMS::TargetedExperiment & transition_exp_used,
-    bool enforce_presence_rt,
-    const bool ms1) const
+    const double rt_extraction_window, const bool ms1) const
   {
     // hash of the peptide reference containing all transitions
     typedef std::map<String, std::vector<const ReactionMonitoringTransition*> > PeptideTransitionMapType;
@@ -86,17 +85,19 @@ namespace OpenMS
       {
         // we dont have retention times -> this is only a problem if we actually
         // wanted to use the RT limit feature.
-        if (enforce_presence_rt)
+        if (rt_extraction_window < 0)
         {
           throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
             "Error: Peptide " + pep.id + " does not have normalized retention times (term 1000896) which are necessary to perform an RT-limited extraction");
         }
-        coord.rt = -1;
+        coord.rt_end = -1;
+        coord.rt_start = 0;
       }
       else
       {
-        coord.rt = pep.rts[0].getCVTerms()["MS:1000896"][0].getValue().toString().toDouble();
-        // coord.rt = trafo.apply(coord.rt); // apply RT transformation if necessary
+        double rt = pep.rts[0].getCVTerms()["MS:1000896"][0].getValue().toString().toDouble();
+        coord.rt_start = rt - rt_extraction_window / 2.0;
+        coord.rt_end = rt + rt_extraction_window / 2.0;
       }
       coordinates.push_back(coord);
     }

@@ -118,7 +118,7 @@ namespace OpenMS
   void ChromatogramExtractorAlgorithm::extractChromatograms(const OpenSwath::SpectrumAccessPtr input,
       std::vector< OpenSwath::ChromatogramPtr >& output, 
       std::vector<ExtractionCoordinates> extraction_coordinates, double& mz_extraction_window,
-      bool ppm, double rt_extraction_window, String filter)
+      bool ppm, String filter)
   {
     Size input_size = input->getNrSpectra();
     if (input_size < 1)
@@ -168,9 +168,9 @@ namespace OpenMS
       {
         double integrated_intensity = 0;
         double current_rt = s_meta.RT;
-        if (rt_extraction_window > 0 && 
-            (current_rt < extraction_coordinates[k].rt - rt_extraction_window / 2.0 || 
-             current_rt > extraction_coordinates[k].rt + rt_extraction_window / 2.0) )
+        if (extraction_coordinates[k].rt_end - extraction_coordinates[k].rt_start > 0 && 
+             (current_rt < extraction_coordinates[k].rt_start || 
+              current_rt > extraction_coordinates[k].rt_end) )
         {
           continue;
         }

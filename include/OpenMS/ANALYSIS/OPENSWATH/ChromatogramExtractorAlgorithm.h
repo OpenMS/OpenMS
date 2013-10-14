@@ -65,7 +65,8 @@ public:
     struct ExtractionCoordinates
     {
       double mz; /// mz around which should be extracted
-      double rt; /// rt around which should be extracted
+      double rt_start; /// rt start of extraction (in seconds)
+      double rt_end; /// rt end of extraction (in seconds)
       std::string id; /// identifier
 
       static bool SortExtractionCoordinatesByMZ(
@@ -85,18 +86,22 @@ public:
     /**
      * @brief Extract chromatograms at the m/z and RT defined by the ExtractionCoordinates.
      *
+     * @param input Input spectral map
+     * @param output Output chromatograms (XICs)
+     * @param extraction_coordinates Extracts around these coordinates (from
+     *   rt_start to rt_end in seconds - extracts the whole chromatogram if
+     *   rt_end - rt_start < 0).
      * @param mz_extraction_window Extracts a window of this size in m/z
-     * dimension (e.g. a window of 50 ppm means an extraction of 25 ppm on
-     * either side)
-     * @param rt_extraction_window Extracts a window of this size in RT
-     * dimension (e.g. a window of 600 seconds means an extraction of 300
-     * seconds on either side)
+     * dimension in Th or ppm (e.g. a window of 50 ppm means an extraction of
+     * 25 ppm on either side)
+     * @param ppm Whether mz_extraction_window is in ppm or in Th
+     * @param filter Which function to apply in m/z space (currently "tophat" only)
      *
     */
     void extractChromatograms(const OpenSwath::SpectrumAccessPtr input, 
         std::vector< OpenSwath::ChromatogramPtr >& output, 
         std::vector<ExtractionCoordinates> extraction_coordinates, double& mz_extraction_window,
-        bool ppm, double rt_extraction_window, String filter);
+        bool ppm, String filter);
 
     /**
      * @brief Extract the next mz value and add the integrated intensity to integrated_intensity. 
