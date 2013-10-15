@@ -164,7 +164,7 @@ STRIP_FROM_PATH        = "@CF_OPENMS_SRC_PATH@"
 # definition is used. Otherwise one should specify the include paths that
 # are normally passed to the compiler using the -I flag.
 
-STRIP_FROM_INC_PATH    = "@CF_OPENMS_SRC_PATH@/include/"
+STRIP_FROM_INC_PATH    = "@CF_OPENMS_DOCUMENTATION_STRIP_INCLUDES@"
 
 # If the SHORT_NAMES tag is set to YES, doxygen will generate much shorter
 # (but less readable) file names. This can be useful if your file system
@@ -667,7 +667,7 @@ WARN_FORMAT            = "$file:$line: $text"
 # and error messages should be written. If left blank the output is written
 # to stderr.
 
-WARN_LOGFILE           = "@CF_OPENMS_BIN_PATH@/doc/doxygen/doxygen-error.log"
+WARN_LOGFILE           = "@CF_OPENMS_BIN_PATH@/doxygen/doxygen-error.log"
 
 #---------------------------------------------------------------------------
 # configuration options related to the input files
@@ -686,7 +686,8 @@ INPUT                  = "@CF_OPENMS_SRC_PATH@/include/OpenMS/" \
                          "@CF_OPENMS_SRC_PATH@/doc/TOPP_tutorial/" \
                          "@CF_OPENMS_SRC_PATH@/doc/doxygen/public/" \
                          "@CF_OPENMS_SRC_PATH@/doc/doxygen/internal/" \
-                         "@CF_OPENMS_SRC_PATH@/doc/doxygen/install/"
+                         "@CF_OPENMS_SRC_PATH@/doc/doxygen/install/" \
+                         @CF_OPENMS_DOCUMENTATION_DIRECTORIES@
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding, which is
@@ -755,8 +756,8 @@ EXCLUDE_SYMBOLS        =
 # directories that contain example code fragments that are included (see
 # the \include command).
 
-EXAMPLE_PATH           = "@CF_OPENMS_SRC_PATH@/doc/code_examples/" \
-                         "@CF_OPENMS_BIN_PATH@/doc/doxygen/parameters/output/" \
+EXAMPLE_PATH           = "@CF_OPENMS_SRC_PATH@/code_examples/" \
+                         "@CF_OPENMS_BIN_PATH@/doxygen/parameters/output/" \
                          "@CF_OPENMS_SRC_PATH@/share/OpenMS/" \
                          "@CF_OPENMS_SRC_PATH@/CHANGELOG"
 
@@ -919,7 +920,7 @@ GENERATE_HTML          = YES
 # If a relative path is entered the value of OUTPUT_DIRECTORY will be
 # put in front of it. If left blank `html' will be used as the default path.
 
-HTML_OUTPUT            = "@CF_OPENMS_BIN_PATH@/doc/html"
+HTML_OUTPUT            = "@CF_OPENMS_BIN_PATH@/html"
 
 # The HTML_FILE_EXTENSION tag can be used to specify the file extension for
 # each generated HTML page (for example: .htm,.php,.asp). If it is left blank
@@ -1515,7 +1516,7 @@ GENERATE_XML           = NO
 # If a relative path is entered the value of OUTPUT_DIRECTORY will be
 # put in front of it. If left blank `xml' will be used as the default path.
 
-XML_OUTPUT             = "@CF_OPENMS_BIN_PATH@/doc/xml_output"
+XML_OUTPUT             = "@CF_OPENMS_BIN_PATH@/xml_output"
 
 # The XML_SCHEMA tag can be used to specify an XML schema,
 # which can be used by a validating XML parser to check the

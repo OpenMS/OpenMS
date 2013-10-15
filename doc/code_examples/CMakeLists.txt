@@ -63,5 +63,3 @@ endforeach(i)
 # add collection target
 add_custom_target(Tutorials_build)
 add_dependencies(Tutorials_build ${EXAMPLES_executables})
-
-

@@ -128,6 +128,12 @@ include (${PROJECT_SOURCE_DIR}/cmake/OpenMSBuildSystem_macros.cmake)
 set(OPENMS_HOST_DIRECTORY "${PROJECT_SOURCE_DIR}")
 set(OPENMS_HOST_BINARY_DIRECTORY "${PROJECT_BINARY_DIR}")
 
+# Output directory
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${OPENMS_HOST_BINARY_DIRECTORY}/lib")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${OPENMS_HOST_BINARY_DIRECTORY}/bin")
+set(OPENMS_BINARY_DIR "${OPENMS_HOST_BINARY_DIRECTORY}/bin")
+set(OPENMS_WIN32_DLL_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+
 # (create an empty list if CMAKE_MODULE_PATH does not exist)
 if(NOT CMAKE_MODULE_PATH)
   set(CMAKE_MODULE_PATH)
@@ -150,23 +156,4 @@ add_subdirectory(openms)
 #------------------------------------------------------------------------------
 # Documentation
 #------------------------------------------------------------------------------
-set(OpenMS_doc_executables)
-include(doc/doxygen/parameters/executables.cmake)
-foreach(i ${OpenMS_doc_executables})
-	set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "doc/doxygen/parameters")
-	add_executable(${i} EXCLUDE_FROM_ALL doc/doxygen/parameters/${i}.C)
-	target_link_libraries(${i} ${OPENMS_GUI_LIBRARIES})
-	set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "bin")
-endforeach(i)
-add_custom_target(doc_progs)
-add_dependencies(doc_progs ${OpenMS_doc_executables} TOPP UTILS GUI)
-
-include(cmake/OpenMSBuildSystem_doc.cmake)
-
-#------------------------------------------------------------------------------
-# Examples / Tutorials
-#------------------------------------------------------------------------------
-option(BUILD_EXAMPLES "Compile OpenMS code examples" ON)
-if(BUILD_EXAMPLES AND "${PACKAGE_TYPE}" STREQUAL "none")
-  add_subdirectory(doc/code_examples)
-endif(BUILD_EXAMPLES AND "${PACKAGE_TYPE}" STREQUAL "none")
+add_subdirectory(doc)

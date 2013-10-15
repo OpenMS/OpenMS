@@ -32,7 +32,7 @@ SHOW_USED_FILES        = YES
 
 SHOW_DIRECTORIES       = YES
 
-WARN_LOGFILE           = @CF_OPENMS_BIN_PATH@/doc/doxygen/doxygen-dot-error.log
+WARN_LOGFILE           = @CF_OPENMS_BIN_PATH@/doxygen/doxygen-dot-error.log
 
 INPUT                  = @CF_OPENMS_SRC_PATH@/include/OpenMS/ \
                          @CF_OPENMS_SRC_PATH@/source/ \
