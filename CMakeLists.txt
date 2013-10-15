@@ -32,17 +32,124 @@
 # $Authors: Stephan Aiche $
 # --------------------------------------------------------------------------
 
-project("OpenMS_host")
 cmake_minimum_required(VERSION 2.8.3 FATAL_ERROR)
+project("OpenMS_host")
+
+#------------------------------------------------------------------------------
+# General CMake definitions & helper
+#------------------------------------------------------------------------------
+SET(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true)
+
+## CMake sanity check: sometimes CMAKE_SIZEOF_VOID_P just vanishes when
+## updating CMake.
+if (NOT CMAKE_SIZEOF_VOID_P)
+	message(FATAL_ERROR "'CMAKE_SIZEOF_VOID_P' is undefined. Thus you should"
+                      " delete CMakeFiles (the directory) and the"
+                      " CMakeCache.txt and rerun CMake again! This is some"
+                      " weird CMake bug that seems to appear when updating the"
+                      " CMake version.")
+endif()
+
+#------------------------------------------------------------------------------
+# entries meant to be configured using CMake cache
+# - do NOT hardcode them here!
+# - edit them within CMakeCache.txt using ccmake or cmake -D VAR=VALUE
+#------------------------------------------------------------------------------
+# CMAKE_FIND_ROOT_PATH
+# CMAKE_BUILD_TYPE
+# STL_DEBUG
+# DB_TEST
+# QT_DB_PLUGIN
+# MT_CUDA_BUILD_TYPE
+#------------------------------------------------------------------------------
+option(MT_ENABLE_CUDA "Enable experimental CUDA support" OFF)
+option(MT_ENABLE_TBB "Enable Intel TBB support" OFF)
+option(MT_ENABLE_OPENMP "Enable OpenMP support" ON)
+
+#------------------------------------------------------------------------------
+# OpenMS Version Information
+#------------------------------------------------------------------------------
+
+set(OPENMS_PACKAGE_VERSION_MAJOR "1")
+set(OPENMS_PACKAGE_VERSION_MINOR "12")
+set(OPENMS_PACKAGE_VERSION_PATCH "0")
+
+#------------------------------------------------------------------------------
+# Unsupported systems
+#------------------------------------------------------------------------------
+if (MINGW OR MSYS)
+  message(FATAL_ERROR "MSYS and/or MinGW are not supported! Please use a Visual Studio environment! See Windows build instructions for further information!")
+endif()
+
+#------------------------------------------------------------------------------
+# MacOS X related library extensions
+#------------------------------------------------------------------------------
+if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+	# due to some awkward updates of cmake in the 2.8.x series we need to add the
+  # following
+  find_library(CARBON NAMES Carbon)
+  find_package(OpenGL)
+  set(APPLE_EXTRA_LIBS ${CARBON} ${OPENGL_LIBRARY})
+endif()
+
+#------------------------------------------------------------------------------
+# Check architecture 32bit vs. 64bit
+#------------------------------------------------------------------------------
+
+if (CMAKE_SIZEOF_VOID_P MATCHES "8")
+	set(OPENMS_64BIT_ARCHITECTURE 1 CACHE INTERNAL "Architecture-bits")
+	message(STATUS "Architecture: 64 bit")
+else()
+	set(OPENMS_64BIT_ARCHITECTURE 0 CACHE INTERNAL "Architecture-bits")
+	message(STATUS "Architecture: 32 bit")
+endif()
+
+#------------------------------------------------------------------------------
+# Handle build type
+#------------------------------------------------------------------------------
+# Set default build type (if not set by user on command line)
+if (NOT CMAKE_BUILD_TYPE)
+	set(CMAKE_BUILD_TYPE Release)
+endif()
+
+# Force build type into the cache (needs to be set beforehand)
+set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE} CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." FORCE)
+
+#------------------------------------------------------------------------------
+# CMake Utitlities
+#------------------------------------------------------------------------------
+# include some OpenMS specific macros
+include (${PROJECT_SOURCE_DIR}/cmake/OpenMSBuildSystem_macros.cmake)
+
+#------------------------------------------------------------------------------
+# Directories
+#------------------------------------------------------------------------------
 
 set(OPENMS_HOST_DIRECTORY "${PROJECT_SOURCE_DIR}")
 set(OPENMS_HOST_BINARY_DIRECTORY "${PROJECT_BINARY_DIR}")
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake/modules)
 
+# (create an empty list if CMAKE_MODULE_PATH does not exist)
+if(NOT CMAKE_MODULE_PATH)
+  set(CMAKE_MODULE_PATH)
+endif()
+list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/modules")
+
+#------------------------------------------------------------------------------
+# OpenMS core lib
+#------------------------------------------------------------------------------
+if (MSVC)
+	## use OpenMSd.dll in debug mode
+	SET(CMAKE_DEBUG_POSTFIX d)
+endif()
+
+#------------------------------------------------------------------------------
+# OpenMS core lib
+#------------------------------------------------------------------------------
 add_subdirectory(openms)
 
-
-##### Doc progs ####
+#------------------------------------------------------------------------------
+# Documentation
+#------------------------------------------------------------------------------
 set(OpenMS_doc_executables)
 include(doc/doxygen/parameters/executables.cmake)
 foreach(i ${OpenMS_doc_executables})
@@ -54,16 +161,11 @@ endforeach(i)
 add_custom_target(doc_progs)
 add_dependencies(doc_progs ${OpenMS_doc_executables} TOPP UTILS GUI)
 
-
-########################################################
-###    Documentation                                 ###
-########################################################
-
 include(cmake/OpenMSBuildSystem_doc.cmake)
 
-########################################################
-###                   Examples                       ###
-########################################################
+#------------------------------------------------------------------------------
+# Examples / Tutorials
+#------------------------------------------------------------------------------
 option(BUILD_EXAMPLES "Compile OpenMS code examples" ON)
 if(BUILD_EXAMPLES AND "${PACKAGE_TYPE}" STREQUAL "none")
   add_subdirectory(doc/code_examples)

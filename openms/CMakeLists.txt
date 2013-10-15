@@ -1,81 +1,45 @@
-# CMake installation file
-# Created 2008/10 during OpenMS retreat by CB && AB
+# --------------------------------------------------------------------------
+#                   OpenMS -- Open-Source Mass Spectrometry
+# --------------------------------------------------------------------------
+# Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
+# ETH Zurich, and Freie Universitaet Berlin 2002-2012.
+#
+# This software is released under a three-clause BSD license:
+#  * Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+#  * Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in the
+#    documentation and/or other materials provided with the distribution.
+#  * Neither the name of any author or any participating institution
+#    may be used to endorse or promote products derived from this software
+#    without specific prior written permission.
+# For a full list of authors, refer to the file AUTHORS.
+# --------------------------------------------------------------------------
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+# INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+# OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+# WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+# OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+# ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+# --------------------------------------------------------------------------
+# $Maintainer: Stephan Aiche, Chris Bielow $
+# $Authors: Andreas Bertsch, Chris Bielow, Stephan Aiche $
+# --------------------------------------------------------------------------
 
 PROJECT("OpenMS")
+cmake_minimum_required(VERSION 2.8.3 FATAL_ERROR)
 
-########################################################
-### entries meant to be configured using CMake cache ###
-### - do NOT hardcode them here!                     ###
-### - edit them within CMakeCache.txt using ccmake	 ###
-########################################################
-# CMAKE_FIND_ROOT_PATH
-# CMAKE_BUILD_TYPE
-# STL_DEBUG
-# DB_TEST
-# QT_DB_PLUGIN
-# MT_CUDA_BUILD_TYPE
-
-########################################################
-###    manual entries (edit this for new release)    ###
-########################################################
-
-set(OPENMS_PACKAGE_VERSION_MAJOR "1")
-set(OPENMS_PACKAGE_VERSION_MINOR "12")
-set(OPENMS_PACKAGE_VERSION_PATCH "0")
-
-########################################################
-###            end manual entries                    ###
-########################################################
-
-## Heart of the BUILD system : only edit when you know what you're doing (we don't)
-## quick manual for most commands: http://www.cmake.org/cmake/help
-## useful predefined variables: http://www.paraview.org/Wiki/CMake_Useful_Variables
-##
 ## naming conventions:
 ##
 ## prefix a variable with 'CF_' if it is used to configure a file!
 ## e.g., CF_LibOpenMSExport
-
-
-cmake_minimum_required(VERSION 2.8.3 FATAL_ERROR)
-SET(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true)
 set(CF_OPENMS_PACKAGE_VERSION "${OPENMS_PACKAGE_VERSION_MAJOR}.${OPENMS_PACKAGE_VERSION_MINOR}.${OPENMS_PACKAGE_VERSION_PATCH}" CACHE INTERNAL "OpenMS VERSION" FORCE)
-
-if (MINGW OR MSYS)
-  message(FATAL_ERROR "MSYS and/or MinGW are not supported! Please use a Visual Studio environment! See Windows build instructions for further information!")
-endif()
-  
-## SOME MAC OS X STUFF
-if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-	# due to some awkward updates of cmake in the 2.8.x series we need to add the following
-  find_library(CARBON NAMES Carbon)
-  find_package(OpenGL)
-  set(APPLE_EXTRA_LIBS ${CARBON} ${OPENGL_LIBRARY})
-endif()
-
-## sanity check: sometimes CMAKE_SIZEOF_VOID_P just vanishes (when updating CMake).
-if (NOT CMAKE_SIZEOF_VOID_P)
-	message(FATAL_ERROR "'CMAKE_SIZEOF_VOID_P' is undefined. Thus you should delete CMakeFiles (the directory) and the CMakeCache.txt and rerun CMake again! This is some weird CMake bug that seems to appear when updating the CMake version.")
-endif()
-
-if (CMAKE_SIZEOF_VOID_P MATCHES "8")
-	set(OPENMS_64BIT_ARCHITECTURE 1 CACHE INTERNAL "Architecture-bits")
-	message(STATUS "Architecture: 64 bit")
-else()
-	set(OPENMS_64BIT_ARCHITECTURE 0 CACHE INTERNAL "Architecture-bits")
-	message(STATUS "Architecture: 32 bit")
-endif()
-
-# some of our own macros (OPENMS_CHECKLIB, QT4_WRAP_UI_OWN, ...)
-include (${OPENMS_HOST_DIRECTORY}/cmake/OpenMSBuildSystem_macros.cmake)
-
-
-## Set default build type (if not set by user on command line)
-if (NOT CMAKE_BUILD_TYPE)
-	set(CMAKE_BUILD_TYPE Release)
-endif()
-## force build type into the cache (needs to be set beforehand)
-set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE} CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." FORCE)
 
 if ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
 	set(CF_OPENMS_ASSERTIONS 1)
@@ -197,31 +161,27 @@ endif()
 #	     Useful third party libs (optional)       #
 #########################################################
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake/modules)
-
 ## CUDA checking
-set(MT_ENABLE_CUDA OFF CACHE BOOL "Should CUDA support be enabled (version <= 2.1 currently supported).")
 set(MT_CUDA_BUILD_TYPE Device CACHE STRING "Switch between Device and Emulation mode.")
 if (MT_ENABLE_CUDA)
-	MESSAGE(STATUS "NVIDIA CUDA: ${MT_CUDA_BUILD_TYPE} mode")
+	message(STATUS "NVIDIA CUDA: ${MT_CUDA_BUILD_TYPE} mode")
 	find_package(Cuda)
 else()
-  MESSAGE(STATUS "NVIDIA CUDA: ${MT_ENABLE_CUDA}")
+  message(STATUS "NVIDIA CUDA: ${MT_ENABLE_CUDA}")
 endif()
 
 if (FOUND_CUDART AND MT_ENABLE_CUDA) #CUDART and not CUDA!!!
 	add_definitions(/DOPENMS_HAS_CUDA)
-	MESSAGE (STATUS "Found CUDA header files in: ${FOUND_CUDA_NVCC_INCLUDE}") #Not CUDA_INCLUDE_DIR
-	MESSAGE (STATUS "Found CUDA library at: ${FOUND_CUDART}")
+	message(STATUS "Found CUDA header files in: ${FOUND_CUDA_NVCC_INCLUDE}") #Not CUDA_INCLUDE_DIR
+	message(STATUS "Found CUDA library at: ${FOUND_CUDART}")
 	INCLUDE_DIRECTORIES(${FOUND_CUDA_NVCC_INCLUDE})
   set (CUDA_NVCC_INCLUDE_ARGS ${CUDA_NVCC_INCLUDE_ARGS} -I ${PROJECT_BINARY_DIR}/include/)
 endif()
 
 ## TBB
-set(MT_ENABLE_TBB OFF CACHE BOOL "Should Intel Threading Building Blocks support be enabled.")
 set(MT_TBB_INCLUDE_DIR CACHE PATH "Intel Threading Building Blocks 'include' directory.")
 set(MT_TBB_LIBRARY_DIR CACHE PATH "Intel Threading Building Blocks libraries directory.")
-MESSAGE(STATUS "Intel TBB: ${MT_ENABLE_TBB}")
+message(STATUS "Intel TBB: ${MT_ENABLE_TBB}")
 if (MT_ENABLE_TBB)
 	find_package(TBB)
 endif()
@@ -232,11 +192,10 @@ if (TBB_FOUND)
 endif()
 
 ## OpenMP
-set(MT_ENABLE_OPENMP ON CACHE BOOL "Should OpenMP support be enabled")
 if (MT_ENABLE_OPENMP)
 	find_package(OpenMP)
 endif()
-MESSAGE(STATUS "OPENMP: ${MT_ENABLE_OPENMP}")
+message(STATUS "OpenMP: ${MT_ENABLE_OPENMP}")
 
 if (OPENMP_FOUND)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}") ## do NOT use add_definitions() here, because RC.exe on windows will fail
@@ -356,11 +315,6 @@ set(OPENMS_WIN32_DLL_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 ## big include file for headers and C files, which fills the OpenMS_sources variable
 include (${OPENMS_HOST_DIRECTORY}/cmake/includes.cmake)
 
-if (MSVC)
-	## use OpenMSd.dll in debug mode
-	SET(CMAKE_DEBUG_POSTFIX d)
-endif()
-
 ## add library target
 ## warning: set BUILD_SHARED_LIBS to decide if library is shared or static (see above)! We need the BUILD_SHARED_LIBS flag to set declspec flags for MSVC!
 if (FOUND_CUDART AND MT_ENABLE_CUDA) # we need both conditions due to possible present cached entries
@@ -382,16 +336,16 @@ if (ENABLE_SVN)
 endif()
 
 ## all the dependency libraries are linked into libOpenMS.so, except Qt and CUDA which are still dynamic
-set(OPENMS_DEP_LIBRARIES  ${CONTRIB_CBC} 
-                          ${GSL_LIBRARIES} 
-                          ${GSL_CBLAS_LIBRARIES} 
-                          ${DEP_LIBSVM_LIBRARY} 
-                          ${CONTRIB_XERCESC} 
-                          ${Boost_LIBRARIES} 
-                          ${BZIP2_LIBRARIES} 
-                          ${ZLIB_LIBRARIES} 
+set(OPENMS_DEP_LIBRARIES  ${CONTRIB_CBC}
+                          ${GSL_LIBRARIES}
+                          ${GSL_CBLAS_LIBRARIES}
+                          ${DEP_LIBSVM_LIBRARY}
+                          ${CONTRIB_XERCESC}
+                          ${Boost_LIBRARIES}
+                          ${BZIP2_LIBRARIES}
+                          ${ZLIB_LIBRARIES}
                           ${GLPK_LIBRARIES})
-                          
+
 if (TBB_FOUND)
 	list(APPEND OPENMS_DEP_LIBRARIES ${TBB_LIBRARIES})
 endif()
