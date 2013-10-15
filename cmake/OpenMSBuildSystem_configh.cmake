@@ -1,16 +1,17 @@
 
 ## define some directories
 if ("${INSTALL_PREFIX}" STREQUAL ".")
-	set(CF_OPENMS_DATA_PATH ${PROJECT_SOURCE_DIR}/share/OpenMS CACHE INTERNAL "Path to the shared documents of OpenMS.")
-	set(CF_OPENMS_DOC_PATH ${PROJECT_SOURCE_DIR}/doc CACHE INTERNAL "Path to the documentation of OpenMS.")
-	set(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR})
+	set(CF_OPENMS_DATA_PATH ${OPENMS_HOST_DIRECTORY}/share/OpenMS CACHE INTERNAL "Path to the shared documents of OpenMS.")
+	set(CF_OPENMS_DOC_PATH ${OPENMS_HOST_DIRECTORY}/doc CACHE INTERNAL "Path to the documentation of OpenMS.")
+	set(CMAKE_INSTALL_PREFIX ${OPENMS_HOST_DIRECTORY})
 else()
 	set(CF_OPENMS_DATA_PATH ${INSTALL_PREFIX}/share/OpenMS CACHE INTERNAL "Path to the shared documents of OpenMS.")
 	set(CF_OPENMS_DOC_PATH ${INSTALL_PREFIX}/doc CACHE INTERNAL "Path to the documentation of OpenMS.")
 	set(CMAKE_INSTALL_PREFIX ${INSTALL_PREFIX})
 endif()
 
-set(CF_OPENMS_TEST_DATA_PATH ${PROJECT_SOURCE_DIR}/source/TEST/data/ CACHE INTERNAL "Path to the test data")
+
+set(CF_OPENMS_TEST_DATA_PATH ${OPENMS_HOST_DIRECTORY}/openms/source/TEST/data/ CACHE INTERNAL "Path to the test data")
 
 ## check for Microsoft Visual Studio compiler
 if (MSVC)
@@ -116,7 +117,7 @@ CHECK_INCLUDE_FILE_CXX("stdint.h"  OPENMS_HAS_STDINT_H)
 ### check for libc++ bug 
 try_run(_stream_bug_run_result_var _stream_bug_compile_var
         ${CMAKE_BINARY_DIR} 
-        ${PROJECT_SOURCE_DIR}/cmake/modules/check_string_stream_bug.cxx)
+        ${OPENMS_HOST_DIRECTORY}/cmake/modules/check_string_stream_bug.cxx)
 
 # set stream variable
 if(NOT _stream_bug_run_result_var)

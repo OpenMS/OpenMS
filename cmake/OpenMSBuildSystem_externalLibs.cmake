@@ -203,19 +203,3 @@ ENDIF()
 INCLUDE(${QT_USE_FILE})
 INCLUDE(UseQt4)
 INCLUDE_DIRECTORIES(${QT_INCLUDES})
-
-## FIX
-## - QT4 library list (VS2010 requires semicolon separated lists, previous versions use space, thus a lib named "opengl32.lib glu32.lib gdi32.lib user32.lib delayimp.lib" now poses a problem)
-## - this fix will be obsolete with CMake 2.8.1
-set(QT_LIBRARIES_TMP "")
-foreach (qtlib ${QT_LIBRARIES})
-	if (${qtlib} STREQUAL "opengl32.lib glu32.lib gdi32.lib user32.lib delayimp.lib")
-		list(APPEND QT_LIBRARIES_TMP "opengl32.lib;glu32.lib;gdi32.lib;user32.lib;delayimp.lib")
-		message(STATUS "Fixing QT library list... done")
-	else()
-		list(APPEND QT_LIBRARIES_TMP ${qtlib})
-	endif()
-endforeach()
-set(QT_LIBRARIES ${QT_LIBRARIES_TMP})
-## ENDFIX
-

@@ -67,7 +67,7 @@ else()
 endif()
 
 # some of our own macros (OPENMS_CHECKLIB, QT4_WRAP_UI_OWN, ...)
-include (cmake/OpenMSBuildSystem_macros.cmake)
+include (${OPENMS_HOST_DIRECTORY}/cmake/OpenMSBuildSystem_macros.cmake)
 
 
 ## Set default build type (if not set by user on command line)
@@ -255,7 +255,7 @@ endif()
 ###    external libs (contrib or system)						 ###
 ########################################################
 
-include(cmake/OpenMSBuildSystem_externalLibs.cmake)
+include(${OPENMS_HOST_DIRECTORY}/cmake/OpenMSBuildSystem_externalLibs.cmake)
 
 ########################################################
 ###    useful programms															 ###
@@ -280,14 +280,14 @@ set(ENABLE_SVN ON CACHE STRING "Use svnversion (if available) to implant a svn r
 if (ENABLE_SVN)
 	message(STATUS "SVN revision information enabled. Use 'ENABLE_SVN=OFF' to disable!")
 	add_custom_target(svn_revision_update ALL
-										COMMAND ${CMAKE_COMMAND} -DSOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR} -DSVN_REVISION_FILE=${SVN_REVISION_FILE}
+										COMMAND ${CMAKE_COMMAND} -DSOURCE_DIR=${OPENMS_HOST_DIRECTORY} -DSVN_REVISION_FILE=${SVN_REVISION_FILE}
 																						 -DOPENMS_HAS_SVNVERSION=${OPENMS_HAS_SVNVERSION} -DSVNVERSION_EXECUTABLE=${SVNVERSION_EXECUTABLE}
 																						 -DENABLE_SVN=ON
-																						 -P ${CMAKE_CURRENT_SOURCE_DIR}/cmake/svnversion.cmake)
+																						 -P ${OPENMS_HOST_DIRECTORY}/cmake/svnversion.cmake)
 	set_source_files_properties(${SVN_REVISION_FILE} PROPERTIES GENERATED TRUE HEADER_FILE_ONLY TRUE)
 else()
   message(STATUS "SVN revision information disabled. Use 'ENABLE_SVN=ON' to enable!")
-	include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/svnversion.cmake) # generate the header once (for VersionInfo.C include)
+	include(${OPENMS_HOST_DIRECTORY}/cmake/svnversion.cmake) # generate the header once (for VersionInfo.C include)
 endif()
 
 # At this point make a summary of where data and doc will be located:
@@ -307,20 +307,13 @@ set(BUILD_SHARED_LIBS true)
 if(NOT DISABLE_OPENSWATH)
   include(source/ANALYSIS/OPENSWATH/OPENSWATHALGO/OpenSwathAlgoFilesConfigure.cmake)
 endif()
-include(cmake/OpenMSBuildSystem_configh.cmake)
+include(${OPENMS_HOST_DIRECTORY}/cmake/OpenMSBuildSystem_configh.cmake)
 
 ## add configured files (used in 'cmake/includes.cmake')
 set (OPENMS_CONFIGURED_FILES ${SVN_REVISION_FILE} ${CONFIGURED_CONFIG_H} ${CONFIGURED_OPENMS_PACKAGE_VERSION_H})
 
 ## Configures what is tested (DB-test, MS2-search engines)
-include(cmake/OpenMSBuildSystem_testConfig.cmake)
-
-
-########################################################
-###    Documentation                                 ###
-########################################################
-
-include(cmake/OpenMSBuildSystem_doc.cmake)
+include(${OPENMS_HOST_DIRECTORY}/cmake/OpenMSBuildSystem_testConfig.cmake)
 
 ########################################################
 ###    BUILD the lib                                 ###
@@ -347,7 +340,7 @@ set(OPENMS_BINARY_DIR "${PROJECT_BINARY_DIR}/bin")
 set(OPENMS_WIN32_DLL_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 
 ## big include file for headers and C files, which fills the OpenMS_sources variable
-include (cmake/includes.cmake)
+include (${OPENMS_HOST_DIRECTORY}/cmake/includes.cmake)
 
 if (MSVC)
 	## use OpenMSd.dll in debug mode
@@ -513,19 +506,6 @@ foreach(i ${executables_withGUIlibDep})
 	target_link_libraries(${i} ${OPENMS_GUI_LIBRARIES})
 endforeach(i)
 
-
-##### Doc progs ####
-set(OpenMS_doc_executables)
-include(doc/doxygen/parameters/executables.cmake)
-foreach(i ${OpenMS_doc_executables})
-	set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "doc/doxygen/parameters")
-	add_executable(${i} EXCLUDE_FROM_ALL doc/doxygen/parameters/${i}.C)
-	target_link_libraries(${i} ${OPENMS_GUI_LIBRARIES})
-	set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "bin")
-endforeach(i)
-add_custom_target(doc_progs)
-add_dependencies(doc_progs ${OpenMS_doc_executables} TOPP UTILS GUI)
-
 ##### CTDs ####
 # We will use this path for the knime packages and the osx installer
 set(SEARCH_ENGINES_DIRECTORY "" CACHE PATH "Directory containing the search engine executables that should be shipped with OpenMS. Note: We expect the layout from the SVN.")
@@ -571,15 +551,6 @@ endif("${PACKAGE_TYPE}" STREQUAL "none")
 set(ENABLE_PIPELINE_TESTING OFF CACHE BOOL "Enables the additional testing of various TOPPAS pipelines when 'make test' is called.")
 
 ########################################################
-###                   Examples                       ###
-########################################################
-option(BUILD_EXAMPLES "Compile OpenMS code examples" ON)
-if(BUILD_EXAMPLES AND "${PACKAGE_TYPE}" STREQUAL "none")
-  add_subdirectory(doc/code_examples)
-endif(BUILD_EXAMPLES AND "${PACKAGE_TYPE}" STREQUAL "none")
-
-
-########################################################
 ###              setup python wrapper                ###
 ########################################################
 OPTION(PYOPENMS "setup build system for pyOpenMS" OFF)
@@ -591,7 +562,7 @@ ENDIF()
 ########################################################
 ###    verbose Post-build messages and help targets  ###
 ########################################################
-include(cmake/OpenMSBuildSystem_messages.cmake)
+include(${OPENMS_HOST_DIRECTORY}/cmake/OpenMSBuildSystem_messages.cmake)
 
 ######################################################
 #### build settings and configs for external code ####
@@ -612,7 +583,7 @@ if ("${PACKAGE_TYPE}" STREQUAL "none")
 	## (must come after the above code that sets the variables!)
 	get_directory_property(OPENMS_INCLUDE_DIRS  INCLUDE_DIRECTORIES)
 	configure_file(
-		"${PROJECT_SOURCE_DIR}/cmake/OpenMSConfig.cmake.in"
+		"${OPENMS_HOST_DIRECTORY}/cmake/OpenMSConfig.cmake.in"
 		"${PROJECT_BINARY_DIR}/cmake/OpenMSConfig.cmake"
 		@ONLY
 	)

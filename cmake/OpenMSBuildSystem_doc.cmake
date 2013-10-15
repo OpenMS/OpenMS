@@ -7,17 +7,17 @@ find_package(Doxygen)
 find_package(LATEX)
 
 if (DOXYGEN_FOUND)
-  configure_file(${PROJECT_SOURCE_DIR}/doc/doxygen/Doxyfile.in ${PROJECT_BINARY_DIR}/doc/doxygen/Doxyfile)
-  configure_file(${PROJECT_SOURCE_DIR}/doc/doxygen/Doxyfile_dot.in ${PROJECT_BINARY_DIR}/doc/doxygen/Doxyfile_dot)
-  configure_file(${PROJECT_SOURCE_DIR}/doc/doxygen/Doxyfile_noclass.in ${PROJECT_BINARY_DIR}/doc/doxygen/Doxyfile_noclass)
-  configure_file(${PROJECT_SOURCE_DIR}/doc/doxygen/Doxyfile_xml.in ${PROJECT_BINARY_DIR}/doc/doxygen/Doxyfile_xml)
-  configure_file(${PROJECT_SOURCE_DIR}/doc/OpenMS_tutorial/Doxyfile.in ${PROJECT_BINARY_DIR}/doc/OpenMS_tutorial/Doxyfile)
-  configure_file(${PROJECT_SOURCE_DIR}/doc/TOPP_tutorial/Doxyfile.in ${PROJECT_BINARY_DIR}/doc/TOPP_tutorial/Doxyfile)
+  configure_file(${OPENMS_HOST_DIRECTORY}/doc/doxygen/Doxyfile.in ${PROJECT_BINARY_DIR}/doc/doxygen/Doxyfile)
+  configure_file(${OPENMS_HOST_DIRECTORY}/doc/doxygen/Doxyfile_dot.in ${PROJECT_BINARY_DIR}/doc/doxygen/Doxyfile_dot)
+  configure_file(${OPENMS_HOST_DIRECTORY}/doc/doxygen/Doxyfile_noclass.in ${PROJECT_BINARY_DIR}/doc/doxygen/Doxyfile_noclass)
+  configure_file(${OPENMS_HOST_DIRECTORY}/doc/doxygen/Doxyfile_xml.in ${PROJECT_BINARY_DIR}/doc/doxygen/Doxyfile_xml)
+  configure_file(${OPENMS_HOST_DIRECTORY}/doc/OpenMS_tutorial/Doxyfile.in ${PROJECT_BINARY_DIR}/doc/OpenMS_tutorial/Doxyfile)
+  configure_file(${OPENMS_HOST_DIRECTORY}/doc/TOPP_tutorial/Doxyfile.in ${PROJECT_BINARY_DIR}/doc/TOPP_tutorial/Doxyfile)
 
   #######################################################################
   #create refman files for PDF tutorials
-  configure_file(${PROJECT_SOURCE_DIR}/doc/OpenMS_tutorial/refman_overwrite.tex.in ${PROJECT_BINARY_DIR}/doc/OpenMS_tutorial/refman_overwrite.tex)
-  configure_file(${PROJECT_SOURCE_DIR}/doc/TOPP_tutorial/refman_overwrite.tex.in ${PROJECT_BINARY_DIR}/doc/TOPP_tutorial/refman_overwrite.tex)
+  configure_file(${OPENMS_HOST_DIRECTORY}/doc/OpenMS_tutorial/refman_overwrite.tex.in ${PROJECT_BINARY_DIR}/doc/OpenMS_tutorial/refman_overwrite.tex)
+  configure_file(${OPENMS_HOST_DIRECTORY}/doc/TOPP_tutorial/refman_overwrite.tex.in ${PROJECT_BINARY_DIR}/doc/TOPP_tutorial/refman_overwrite.tex)
 
 
   #######################################################################
