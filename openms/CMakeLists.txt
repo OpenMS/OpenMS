@@ -257,6 +257,20 @@ endif()
 
 include(${OPENMS_HOST_DIRECTORY}/cmake/OpenMSBuildSystem_externalLibs.cmake)
 
+# TODO: XERCESC and  CONTRIB are included only with the others
+# Expose OpenMS's public includes (including transitive dependencies)
+set(OPENMS_INCLUDE_DIRECTORIES ${PROJECT_SOURCE_DIR}/include
+                               ${PROJECT_BINARY_DIR}/include
+                               ${QT_INCLUDES}
+                               ${GSL_INCLUDE_DIRS}
+                               ${Boost_INCLUDE_DIRS}
+                               ${SEQAN_INCLUDE_DIRS}
+                               ${LIBSVM_INCLUDE_DIRS}
+                               ${GLPK_INCLUDE_DIRS}
+                               ${ZLIB_INCLUDE_DIRS}
+                               ${BZIP2_INCLUDE_DIR}
+    CACHE INTERNAL "OpenMS include directories" FORCE)
+
 ########################################################
 ###    useful programms															 ###
 ########################################################
@@ -414,7 +428,8 @@ if (MSVC) ## Windows
 endif()
 
 ## link libraries for GUI Tools
-set(OPENMS_GUI_LIBRARIES optimized OpenMS_GUI${CMAKE_RELEASE_POSTFIX} debug OpenMS_GUI${CMAKE_DEBUG_POSTFIX} OpenMS ${QT_LIBRARIES})
+set(OPENMS_GUI_LIBRARIES optimized OpenMS_GUI${CMAKE_RELEASE_POSTFIX} debug OpenMS_GUI${CMAKE_DEBUG_POSTFIX} OpenMS ${QT_LIBRARIES}
+    CACHE INTERNAL "OpenMS GUI libraries" FORCE)
 
 ## directory for OpenMS(d).lib (required for linking executables)
 if (MSVC)
