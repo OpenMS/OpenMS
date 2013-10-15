@@ -120,9 +120,9 @@ protected:
     setValidFormats_("trafo_out", StringList::create("trafoXML"));
 
     addEmptyLine_();
-    registerStringOption_("reference_rt", "<choice>", "score", "Method for selecting the reference RT, if there are multiple IDs for a peptide and charge ('score': RT of the best-scoring ID; 'intensity': RT of the ID with the most intense precursor; 'median': median RT of all IDs; 'all': no single reference, use RTs of all IDs)", false);
+    registerStringOption_("reference_rt", "<choice>", "score", "Method for selecting the reference RT, if there are multiple IDs for a peptide and charge ('score': RT of the best-scoring ID; 'intensity': RT of the ID with the most intense precursor; 'median': median RT of all IDs; 'all': no single reference, use RTs of all IDs, 'adapt': adapt RT windows based on IDs)", false);
     setValidStrings_("reference_rt", 
-                     StringList::create("score,intensity,median,all"));
+                     StringList::create("score,intensity,median,all,adapt"));
     registerDoubleOption_("rt_window", "<value>", 180, "RT window size (in sec.) for chromatogram extraction.", false);
     setMinFloat_("rt_window", 0);
     registerDoubleOption_("mz_window", "<value>", 0.03, "m/z window size (in Th) for chromatogram extraction.", false);
@@ -149,7 +149,7 @@ protected:
   typedef Map<Int, vector<vector<PeptideIdentification>::iterator> > ChargeMap;
   // mapping: sequence -> charge -> iterator to peptide
   typedef Map<AASequence, ChargeMap> PeptideMap;
-
+  // mapping: assay ID -> RT begin/end
 
   PeakMap ms_data_; // input LC-MS data
   TargetedExperiment library_; // assay library
@@ -157,7 +157,7 @@ protected:
   IsotopeDistribution iso_dist_; // isotope distribution for current peptide
   TransformationDescription trafo_; // RT transformation (to range 0-1)
   String reference_rt_; // value of "reference_rt" parameter
-
+  DoubleReal rt_tolerance_; // half the RT window width
 
   // comparator for spectrum and RT (for "lower_bound"):
   struct RTLess: public binary_function<MSSpectrum<>, DoubleReal, bool>
@@ -273,7 +273,7 @@ protected:
         }
       }    
     }
-    else // "median" or "all"
+    else // "median", "all", or "adapt"
     {
       for (ChargeMap::mapped_type::const_iterator pi_it = 
              charge_data.second.begin(); pi_it != charge_data.second.end();
@@ -281,14 +281,63 @@ protected:
       {
         rts << (*pi_it)->getMetaValue("RT");
       }
-      if (reference_rt_ == "median")
+      if (reference_rt_ != "all")
       {
-        DoubleList::iterator start = rts.begin();
-        sort(start, rts.end());
-        // even number of IDs? don't take the RT _between_ the middle ones!
-        if (rts.size() % 2 == 0) ++start;
-        rts[0] = Math::median(start, rts.end(), true);
-        rts.resize(1);
+        sort(rts.begin(), rts.end());
+        bool median_fallback = false; // use "median" to resolve ties in "adapt"
+      
+        if (reference_rt_ == "adapt")
+        {
+          // store RT region as pair (length, start point) for easier sorting:
+          vector<pair<DoubleReal, DoubleReal> > rt_regions;
+          rt_regions.push_back(make_pair(rt_tolerance_ * 2.0, 
+                                         rts[0] - rt_tolerance_));
+          for (DoubleList::iterator rt_it = ++rts.begin(); rt_it != rts.end();
+               ++rt_it)
+          {
+            pair<DoubleReal, DoubleReal>& rt_region = rt_regions.back();
+            if (rt_region.first + rt_region.second >= *rt_it - rt_tolerance_)
+            { // regions overlap, join them:
+              rt_region.first = *rt_it + rt_tolerance_;
+            }
+            else // no overlap, start new region:
+            {
+              rt_regions.push_back(make_pair(rt_tolerance_ * 2.0,
+                                             *rt_it - rt_tolerance_));
+            }
+          }
+          sort(rt_regions.begin(), rt_regions.end()); // sort regions by size
+          DoubleReal rt_window = rt_regions.back().first;
+          peptide.setMetaValue("rt_window", rt_window);
+          // are there multiple regions of maximal size?
+          Int n = rt_regions.size() - 2; // second to last, counting from zero
+          while ((n >= 0) && (rt_regions[n].first == rt_window)) --n;
+          if (n == rt_regions.size() - 2) // only one longest region
+          {
+            DoubleReal rt_start = rt_regions.back().second;
+            peptide.setMetaValue("rt_start", rt_start);
+            peptide.setMetaValue("rt_end", rt_start + rt_window);
+            rts.resize(1);
+            rts[0] = rt_start + rt_window / 2.0;
+          }
+          else // multiple longest regions -> resolve using median below
+          {
+            median_fallback = true;
+            rts.clear();
+            for (++n; n < rt_regions.size(); ++n)
+            {
+              rts << rt_regions[n].second + rt_regions[n].first / 2.0;
+            }
+          }
+        }
+        if ((reference_rt_ == "median") || median_fallback)
+        {
+          DoubleList::iterator start = rts.begin();
+          // even number of IDs? don't take the RT _between_ the middle ones!
+          if (rts.size() % 2 == 0) ++start;
+          rts[0] = Math::median(start, rts.end(), true);
+          rts.resize(1);
+        }
       }
     }
 
@@ -326,6 +375,7 @@ protected:
     String trafo_out = getStringOption_("trafo_out");
     reference_rt_ = getStringOption_("reference_rt");
     DoubleReal rt_window = getDoubleOption_("rt_window");
+    rt_tolerance_ = rt_window / 2.0;
     DoubleReal mz_window = getDoubleOption_("mz_window");
     DoubleReal isotope_pmin = getDoubleOption_("isotope_pmin");
 
@@ -432,8 +482,64 @@ protected:
     ChromatogramExtractor extractor;
     PeakMap chrom_data;
     extractor.setLogType(log_type_);
-    extractor.extractChromatograms(ms_data_, chrom_data, library_, mz_window,
-                                   false, trafo_, rt_window, "tophat");
+    if (reference_rt_ != "adapt")
+    {
+      extractor.extractChromatograms(ms_data_, chrom_data, library_, mz_window,
+                                     false, trafo_, rt_window, "tophat");
+    }
+    else
+    {
+      trafo_.invert();
+      vector<ChromatogramExtractor::ExtractionCoordinates> coords;
+      for (vector<ReactionMonitoringTransition>::const_iterator trans_it =
+             library_.getTransitions().begin(); trans_it != 
+             library_.getTransitions().end(); ++trans_it)
+      {
+        const TargetedExperiment::Peptide& peptide = 
+          library_.getPeptideByRef(trans_it->getPeptideRef());
+        ChromatogramExtractor::ExtractionCoordinates current;
+        current.id = trans_it->getNativeID();
+        current.mz = trans_it->getProductMZ();
+        if (peptide.metaValueExists("rt_start"))
+        {
+          current.rt_start = peptide.getMetaValue("rt_start");
+          current.rt_end = peptide.getMetaValue("rt_end");
+        }
+        else
+        {
+          // is this an intuitive way to store/access the RT?!
+          DoubleReal rt = peptide.rts[0].getCVTerms()["MS:1000896"][0].
+            getValue().toString().toDouble();
+          rt = trafo_.apply(rt); // reverse RT transformation
+          DoubleReal rt_win = rt_window;
+          if (peptide.metaValueExists("rt_window"))
+          {
+            rt_win = peptide.getMetaValue("rt_window");
+          }
+          current.rt_start = rt - rt_win / 2.0;
+          current.rt_end = rt + rt_win / 2.0;
+        }
+        coords.push_back(current);
+      }
+      sort(coords.begin(), coords.end(), ChromatogramExtractor::
+           ExtractionCoordinates::SortExtractionCoordinatesByMZ);
+
+      boost::shared_ptr<PeakMap> shared = boost::make_shared<PeakMap>(ms_data_);
+      OpenSwath::SpectrumAccessPtr input = 
+        SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(shared);
+      vector<OpenSwath::ChromatogramPtr> output;
+      for (Size i = 0; i < coords.size(); ++i)
+      {
+        OpenSwath::ChromatogramPtr cp(new OpenSwath::Chromatogram);
+        output.push_back(cp);
+      }
+      vector<MSChromatogram<> > chromatograms;
+      extractor.extractChromatograms(input, output, coords, mz_window,
+                                     false, "tophat");
+      extractor.return_chromatogram(output, coords, library_, (*shared)[0],
+                                    chromatograms, false);
+      chrom_data.setChromatograms(chromatograms);
+    }
     ms_data_.reset(); // not needed anymore, free up the memory
     if (!chrom_out.empty())
     {
