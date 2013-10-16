@@ -74,7 +74,8 @@ public:
         numpressErrorTolerance(BinaryDataEncoder_default_numpressErrorTolerance),
         np_compression(NONE),
         estimate_fixed_point(false)
-      {}
+      {
+      }
 
     };
 

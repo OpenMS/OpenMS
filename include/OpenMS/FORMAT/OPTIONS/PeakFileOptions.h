@@ -36,6 +36,7 @@
 #define OPENMS_FORMAT_OPTIONS_PEAKFILEOPTIONS_H
 
 #include <OpenMS/DATASTRUCTURES/DRange.h>
+#include <OpenMS/FORMAT/MSNumpressCoder.h>
 
 #include <vector>
 
@@ -169,6 +170,15 @@ public:
     /// Whether to write an index at the end of the file (e.g. indexedmzML file format)
     void setWriteIndex(bool write_index);
 
+    /// Set numpress configuration options for m/z or rt dimension
+    MSNumpressCoder::NumpressConfig getNumpressConfigurationMassTime() const;
+    /// Get numpress configuration options for m/z or rt dimension
+    void setNumpressConfigurationMassTime(MSNumpressCoder::NumpressConfig config);
+    /// Set numpress configuration options for intensity dimension
+    MSNumpressCoder::NumpressConfig getNumpressConfigurationIntensity() const;
+    /// Get numpress configuration options for intensity dimension
+    void setNumpressConfigurationIntensity(MSNumpressCoder::NumpressConfig config);
+
 private:
     bool metadata_only_;
     bool write_supplemental_data_;
@@ -186,6 +196,8 @@ private:
     bool always_append_data_;
     bool fill_data_;
     bool write_index_;
+    MSNumpressCoder::NumpressConfig np_config_mz_;
+    MSNumpressCoder::NumpressConfig np_config_int_;
   };
 
 } // namespace OpenMS

@@ -56,7 +56,9 @@ namespace OpenMS
     size_only_(false),
     always_append_data_(false),
     fill_data_(true),
-    write_index_(false)
+    write_index_(false), 
+    np_config_mz_(),
+    np_config_int_()
   {
   }
 
@@ -76,7 +78,9 @@ namespace OpenMS
     size_only_(options.size_only_),
     always_append_data_(options.always_append_data_),
     fill_data_(options.fill_data_),
-    write_index_(options.write_index_)
+    write_index_(options.write_index_),
+    np_config_mz_(options.np_config_mz_),
+    np_config_int_(options.np_config_int_)
   {
   }
 
@@ -252,4 +256,29 @@ namespace OpenMS
     write_index_ = write_index;
   }
 
+  MSNumpressCoder::NumpressConfig PeakFileOptions::getNumpressConfigurationMassTime() const
+  {
+    return np_config_mz_;
+  }
+
+  void PeakFileOptions::setNumpressConfigurationMassTime(MSNumpressCoder::NumpressConfig config)
+  {
+    if (config.np_compression == MSNumpressCoder::SLOF || config.np_compression == MSNumpressCoder::PIC)
+    {
+      std::cerr << "Warning, compression of m/z or time dimension with pic or slof algorithms can lead to data loss" << std::endl;
+    }
+    np_config_mz_ = config;
+  }
+
+  MSNumpressCoder::NumpressConfig PeakFileOptions::getNumpressConfigurationIntensity() const
+  {
+    return np_config_int_;
+  }
+
+  void PeakFileOptions::setNumpressConfigurationIntensity(MSNumpressCoder::NumpressConfig config)
+  {
+    np_config_int_ = config;
+  }
+
 } // namespace OpenMS
+
