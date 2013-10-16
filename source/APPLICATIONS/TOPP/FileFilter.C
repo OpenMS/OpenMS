@@ -275,6 +275,14 @@ protected:
     registerStringOption_("peak_options:indexed_file", "true or false", "false", "Whether to add an index to the file when writing", false);
     setValidStrings_("peak_options:indexed_file", StringList::create("true,false"));
 
+    registerTOPPSubsection_("peak_options:numpress", "Numpress compression for peak data");
+    registerStringOption_("peak_options:numpress:masstime", "<compression_scheme>", "none", "Apply MS Numpress compression algorithms in m/z or rt dimension (recommended: linear)", false);
+    setValidStrings_("peak_options:numpress:masstime", StringList::create("none,linear,pic,slof"));
+    registerDoubleOption_("peak_options:numpress:masstime_error", "<error>", 0.0001, "Maximal allowable error in m/z or rt dimension (set to 0.5 for pic)", false);
+    registerStringOption_("peak_options:numpress:intensity", "<compression_scheme>", "none", "Apply MS Numpress compression algorithms in intensity dimension (recommended: slof or pic)", false);
+    setValidStrings_("peak_options:numpress:intensity", StringList::create("none,linear,pic,slof"));
+    registerDoubleOption_("peak_options:numpress:intensity_error", "<error>", 0.0001, "Maximal allowable error in intensity dimension (set to 0.5 for pic)", false);
+
     registerTOPPSubsection_("spectra", "Remove spectra or select spectra (removing all others) with certain properties.");
     registerFlag_("spectra:remove_zoom", "Remove zoom (enhanced resolution) scans");
 
@@ -474,6 +482,37 @@ protected:
     if (getStringOption_("peak_options:indexed_file") == "true") {indexed_file = true;}
     else {indexed_file = false;}
 
+    MSNumpressCoder::NumpressConfig npconfig_mz;
+    MSNumpressCoder::NumpressConfig npconfig_int;
+    npconfig_mz.estimate_fixed_point = true; // critical
+    npconfig_int.estimate_fixed_point = true; // critical
+    npconfig_mz.numpressErrorTolerance = getDoubleOption_("peak_options:numpress:masstime_error");
+    npconfig_int.numpressErrorTolerance = getDoubleOption_("peak_options:numpress:intensity_error");
+    if (getStringOption_("peak_options:numpress:masstime") == "linear") 
+    {
+      npconfig_mz.np_compression = MSNumpressCoder::LINEAR;
+    }
+    else if (getStringOption_("peak_options:numpress:masstime") == "pic") 
+    {
+      npconfig_mz.np_compression = MSNumpressCoder::PIC;
+    }
+    else if (getStringOption_("peak_options:numpress:masstime") == "slof") 
+    {
+      npconfig_mz.np_compression = MSNumpressCoder::SLOF;
+    }
+    if (getStringOption_("peak_options:numpress:intensity") == "linear") 
+    {
+      npconfig_int.np_compression = MSNumpressCoder::LINEAR;
+    }
+    else if (getStringOption_("peak_options:numpress:intensity") == "pic") 
+    {
+      npconfig_int.np_compression = MSNumpressCoder::PIC;
+    }
+    else if (getStringOption_("peak_options:numpress:intensity") == "slof") 
+    {
+      npconfig_int.np_compression = MSNumpressCoder::SLOF;
+    }
+
     //id-filtering parameters
     bool remove_annotated_features = getFlag_("id:remove_annotated_features");
     bool remove_unannotated_features = getFlag_("id:remove_unannotated_features");
@@ -555,6 +594,9 @@ protected:
 
       // set writing index (e.g. indexedmzML)
       f.getOptions().setWriteIndex(indexed_file); 
+      // numpress compression
+      f.getOptions().setNumpressConfigurationMassTime(npconfig_mz); 
+      f.getOptions().setNumpressConfigurationIntensity(npconfig_int); 
 
       MapType exp;
       f.load(in, exp);
