@@ -988,15 +988,14 @@ add_test("TOPP_IDRipper_2_out2" ${DIFF} -in1 IDRipper_2_output_2.tmp -in2 ${DATA
 set_tests_properties("TOPP_IDRipper_2_out2" PROPERTIES DEPENDS "TOPP_IDRipper_2")
 # use IDMerger results to test. Input -> IDMerger -> IDRipper -> Output == Input
 add_test("TOPP_IDRipper_3_prep" ${TOPP_BIN_PATH}/IDMerger -test -in ${DATA_DIR_TOPP}/IDRipper_3_input1.idXML ${DATA_DIR_TOPP}/IDRipper_3_input2.idXML -out IDRipper_3_output.tmp -annotate_file_origin)
-add_test("TOPP_IDRipper_3_prep_out1" ${DIFF} -whitelist "?xml-stylesheet" "file_origin" -in1 IDRipper_3_output.tmp -in2 ${DATA_DIR_TOPP}/IDRipper_3_output.idXML )
+add_test("TOPP_IDRipper_3_prep_out1" ${DIFF} -whitelist "?xml-stylesheet" "file_origin" -in1 IDRipper_3_output.tmp -in2 ${DATA_DIR_TOPP}/IDRipper_3_output.idXML)
 set_tests_properties("TOPP_IDRipper_3_prep_out1" PROPERTIES DEPENDS "TOPP_IDRipper_3_prep")
-add_test("TOPP_IDRipper_3" ${TOPP_BIN_PATH}/IDRipper -test -in IDRipper_3_output.tmp -out dummy.tmp)
+add_test("TOPP_IDRipper_3" ${TOPP_BIN_PATH}/IDRipper -test -in IDRipper_3_output.idXML -out_path dummy.tmp)
 set_tests_properties("TOPP_IDRipper_3" PROPERTIES DEPENDS "TOPP_IDRipper_3_prep")
-add_test("TOPP_IDRipper_3_out1" ${DIFF} -in1 IDRipper_3_input1.idXML -in2 ${DATA_DIR_TOPP}/IDRipper_3_input1.idXML )
+add_test("TOPP_IDRipper_3_out1" ${DIFF} -in1 IDRipper_3_input1.tmp -in2 ${DATA_DIR_TOPP}/IDRipper_3_input1.idXML)
 set_tests_properties("TOPP_IDRipper_3_out1" PROPERTIES DEPENDS "TOPP_IDRipper_3")
-add_test("TOPP_IDRipper_3_out2" ${DIFF} -in1 IDRipper_3_input2.idXML -in2 ${DATA_DIR_TOPP}/IDRipper_3_input2.idXML )
+add_test("TOPP_IDRipper_3_out2" ${DIFF} -in1 IDRipper_3_input2.tmp -in2 ${DATA_DIR_TOPP}/IDRipper_3_input2.idXML)
 set_tests_properties("TOPP_IDRipper_3_out2" PROPERTIES DEPENDS "TOPP_IDRipper_3")
-
 
 ### ConsensusID tests
 add_test("TOPP_ConsensusID_1" ${TOPP_BIN_PATH}/ConsensusID -ini ${DATA_DIR_TOPP}/ConsensusID_1_parameters.ini -in ${DATA_DIR_TOPP}/ConsensusID_1_input.idXML -out ConsensusID_1_output.tmp)
