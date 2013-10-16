@@ -54,7 +54,7 @@ namespace OpenMS
   {
   }
 
-  void Base64::encodeStrings(std::vector<String> & in, String & out, bool zlib_compression)
+  void Base64::encodeStrings(const std::vector<String> & in, String & out, bool zlib_compression, bool append_null_byte)
   {
     out.clear();
     if (in.empty())
@@ -67,7 +67,7 @@ namespace OpenMS
     for (Size i = 0; i < in.size(); ++i)
     {
       str = str.append(in[i]);
-      str.push_back('\0');
+      if(append_null_byte) str.push_back('\0');
     }
 
     if (zlib_compression)

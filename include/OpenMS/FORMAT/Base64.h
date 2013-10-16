@@ -93,8 +93,6 @@ public:
         @brief Decodes a Base64 string to a vector of floating point numbers
 
         You have to specify the byte order of the input and if it is zlib-compressed.
-
-        @note @p in will be empty after this method
     */
     template <typename ToType>
     void decode(const String & in, ByteOrder from_byte_order, std::vector<ToType> & out, bool zlib_compression = false);
@@ -113,8 +111,6 @@ public:
         @brief Decodes a Base64 string to a vector of integer numbers
 
         You have to specify the byte order of the input and if it is zlib-compressed.
-
-        @note @p in will be empty after this method
     */
     template <typename ToType>
     void decodeIntegers(const String & in, ByteOrder from_byte_order, std::vector<ToType> & out, bool zlib_compression = false);
@@ -124,24 +120,32 @@ public:
 
         You can specify zlib-compression.
 
-        @note @p in will be empty after this method
-        TODO: is this true ? 
+        @param in A vector of data to be encoded (String)
+        @param out A String containing the Base64 encoded data
+        @param zlib_compression Whether the data should be compressed with zlib before encoding in Base64
+        @param append_null_byte Whether a null-byte should be appended after each of the Strings contained in the in vector
+      
+        @note Unless append_null_byte is false, will add a null byte ("\0") at the end of each input
     */
-    void encodeStrings(std::vector<String> & in, String & out, bool zlib_compression = false);
+    void encodeStrings(const std::vector<String> & in, String & out, bool zlib_compression = false, bool append_null_byte = true);
 
     /**
         @brief Decodes a Base64 string to a vector of (null-terminated) strings
 
         You have to specify whether the Base64 string is zlib-compressed.
 
-        @note @p in will be empty after this method
+        @param in A String containing the Base64 encoded data
+        @param out A vector containing the decoded data (split at null "\0") bytes
+        @param zlib_compression Whether the data should be decompressed with zlib after decoding in Base64
     */
     void decodeStrings(const String & in, std::vector<String> & out, bool zlib_compression = false);
 
     /**
         @brief Decodes a Base64 string to a QByteArray
 
-        You have to specify whether the Base64 string is zlib-compressed.
+        @param in A String containing the Base64 encoded data
+        @param out A ByteArray containing the decoded data
+        @param zlib_compression Whether the data should be decompressed with zlib after decoding in Base64
     */
     void decodeSingleString(const String & in, QByteArray & base64_uncompressed, bool zlib_compression);
 

@@ -180,7 +180,7 @@ END_SECTION
 START_SECTION( void decodeNP(const String & in, std::vector<double> & out,
         bool zlib_compression, NumpressConfig config) )
 {
-  String in = "ZGaMXCFQkQA=";
+  String in = "ZGaMXCFQkQ==";
 
   MSNumpressCoder::NumpressConfig config;
   config.np_compression = MSNumpressCoder::PIC;
@@ -218,13 +218,13 @@ START_SECTION(encodeNP_LINEAR)
   MSNumpressCoder().encodeNP(in, out, zlib_compression, config);
 
   TEST_EQUAL(out.size(), 28)
-  TEST_EQUAL(out, "QWR64UAAAADo//8/0P//f1kSgAA=")
+  TEST_EQUAL(out, "QWR64UAAAADo//8/0P//f1kSgA==")
 }
 END_SECTION
 
 START_SECTION(decodeNP_LINEAR)
 {
-  String in = "QWR64UAAAADo//8/0P//f1kSgAA=";
+  String in = "QWR64UAAAADo//8/0P//f1kSgA==";
 
   MSNumpressCoder::NumpressConfig config;
   config.np_compression = MSNumpressCoder::LINEAR;
@@ -257,13 +257,13 @@ START_SECTION(encodeNP_PIC)
   MSNumpressCoder().encodeNP(in, out, zlib_compression, config);
 
   TEST_EQUAL(out.size(), 12)
-  TEST_EQUAL(out, "ZGaMXCFQkQA=")
+  TEST_EQUAL(out, "ZGaMXCFQkQ==")
 }
 END_SECTION
 
 START_SECTION(decodeNP_PIC)
 {
-  String in = "ZGaMXCFQkQA=";
+  String in = "ZGaMXCFQkQ==";
 
   MSNumpressCoder::NumpressConfig config;
   config.np_compression = MSNumpressCoder::PIC;
@@ -297,13 +297,13 @@ START_SECTION(encodeNP_SLOF)
   MSNumpressCoder().encodeNP(in, out, zlib_compression, config);
 
   TEST_EQUAL(out.size(), 24)
-  TEST_EQUAL(out, "QMVagAAAAAAZxX3ivPP8/wA=")
+  TEST_EQUAL(out, "QMVagAAAAAAZxX3ivPP8/w==")
 }
 END_SECTION
 
 START_SECTION(decodeNP_SLOF)
 {
-  String in = "QMVagAAAAAAZxX3ivPP8/wA=";
+  String in = "QMVagAAAAAAZxX3ivPP8/w==";
 
   MSNumpressCoder::NumpressConfig config;
   config.np_compression = MSNumpressCoder::SLOF;

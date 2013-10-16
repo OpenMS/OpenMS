@@ -108,7 +108,7 @@ public:
       // Encode in base64 and compress
       std::vector<String> tmp;
       tmp.push_back(result);
-      base64coder.encodeStrings(tmp, result, zlib_compression);
+      base64coder.encodeStrings(tmp, result, zlib_compression, false);
     }
 
     /// encodeNP from a float (convert first to double)
@@ -133,17 +133,15 @@ public:
       QByteArray base64_uncompressed;
       base64coder.decodeSingleString(in, base64_uncompressed, zlib_compression);
 
-      // Create a temporary string (*not* null-terminated) to hold the data -
-      // note that base64_uncompressed is null terminated, so we subtract 1
-      // from the length to get the raw data
-      std::string tmpstring(base64_uncompressed.constData(), base64_uncompressed.size()-1);
+      // Create a temporary string (*not* null-terminated) to hold the data
+      std::string tmpstring(base64_uncompressed.constData(), base64_uncompressed.size());
       decodeNP_(tmpstring, out, config);
 
       // NOTE: it is possible (and likely faster) to call directly the const
       // unsigned char * function but this would make it necessary to deal with
       // reinterpret_cast ugliness here ... 
       //
-      // decodeNP_internal_(reinterpret_cast<const unsigned char*>(base64_uncompressed.constData()), base64_uncompressed.size() -1, out, config);
+      // decodeNP_internal_(reinterpret_cast<const unsigned char*>(base64_uncompressed.constData()), base64_uncompressed.size(), out, config);
     }
 
 private:

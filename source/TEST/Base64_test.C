@@ -215,7 +215,7 @@ START_SECTION([EXTRA] zlib functionality)
 	
 END_SECTION
 
-START_SECTION((void encodeStrings(std::vector<String>& in, String& out, bool zlib_compression= false)))
+START_SECTION(( void encodeStrings(const std::vector<String> & in, String & out, bool zlib_compression = false, bool append_zero_byte = true)))
 	Base64 b64;
 	String src,str;
 	
@@ -229,7 +229,8 @@ START_SECTION((void encodeStrings(std::vector<String>& in, String& out, bool zli
 	TEST_EQUAL(strings[2],"ein")
 	TEST_EQUAL(strings[3],"test")
 	TEST_EQUAL(strings[4],"1234")
-	//same as above but this time the hole String is null-terminated as well
+
+	//same as above but this time the whole String is null-terminated as well
 	src="ZGFzAGlzdABlaW4AdGVzdAAxMjM0AA==";
 	b64.decodeStrings(src,strings,false);
 	TEST_EQUAL(strings.size() == 5,true 	)

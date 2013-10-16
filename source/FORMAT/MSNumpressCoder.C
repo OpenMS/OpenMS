@@ -122,7 +122,7 @@ namespace OpenMS
 
 #ifdef NUMPRESS_DEBUG
           std::cout << "encodeNP_: numpressed array with with length " << numpressed.size() << std::endl;
-          for (int i = 0; i < numpressed.size(); i++)
+          for (int i = 0; i < byteCount; i++)
           {
             std::cout << "array[" << i << "] : " << (int)numpressed[i] << std::endl;
           }
@@ -254,6 +254,16 @@ namespace OpenMS
     {
       throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Error in Numpress decompression");
     }
+
+#ifdef NUMPRESS_DEBUG
+    std::cout << "decodeNP_: output size " << out.size() << std::endl;
+    for (int i = 0; i < out.size(); i++)
+    {
+      std::cout << "array[" << i << "] : " << out[i] << std::endl;
+    }
+#endif
+
+
   }
 
 } //namespace OpenMS
