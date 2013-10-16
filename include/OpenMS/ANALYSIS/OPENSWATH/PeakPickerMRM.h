@@ -88,7 +88,7 @@ public:
 
 protected:
 
-    void pickChromatogramCrowdad(const RichPeakChromatogram& chromatogram, RichPeakChromatogram& picked_chrom);
+    void pickChromatogramCrawdad(const RichPeakChromatogram& chromatogram, RichPeakChromatogram& picked_chrom);
 
     void pickChromatogram_(const RichPeakChromatogram& chromatogram, RichPeakChromatogram& picked_chrom);
 

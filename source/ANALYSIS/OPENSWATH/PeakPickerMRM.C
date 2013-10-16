@@ -91,7 +91,7 @@ namespace OpenMS
     // Crowdad has its own methods, so we can call the wrapper directly
     if (method_ == "crawdad")
     {
-      pickChromatogramCrowdad(chromatogram, picked_chrom);
+      pickChromatogramCrawdad(chromatogram, picked_chrom);
       return;
     }
 
@@ -219,7 +219,7 @@ namespace OpenMS
   }
 
 #ifdef WITH_CRAWDAD
-  void PeakPickerMRM::pickChromatogramCrowdad(const RichPeakChromatogram& chromatogram, RichPeakChromatogram& picked_chrom)
+  void PeakPickerMRM::pickChromatogramCrawdad(const RichPeakChromatogram& chromatogram, RichPeakChromatogram& picked_chrom)
   {
     LOG_DEBUG << "Picking chromatogram using crawdad " << std::endl;
 
@@ -278,12 +278,11 @@ namespace OpenMS
   }
 
 #else
-  void PeakPickerMRM::pickChromatogramCrowdad(const RichPeakChromatogram& /* chromatogram */, RichPeakChromatogram& /* picked_chrom */)
+  void PeakPickerMRM::pickChromatogramCrawdad(const RichPeakChromatogram& /* chromatogram */, RichPeakChromatogram& /* picked_chrom */)
   {
     throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
                                      "PeakPickerMRM was not compiled with crawdad, please choose a different algorithm!");
   }
-
 #endif
 
 
