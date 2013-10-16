@@ -47,6 +47,7 @@ InspectOutfile.h
 KroenikFile.h
 LibSVMEncoder.h
 MS2File.h
+MSNumpressCoder.h
 MSPFile.h
 MascotInfile.h
 MascotGenericFile.h

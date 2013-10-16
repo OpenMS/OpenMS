@@ -157,6 +157,22 @@ namespace OpenMS
       return;
 
     QByteArray base64_uncompressed;
+    decodeSingleString(in, base64_uncompressed, zlib_compression);
+    QList<QByteArray> null_strings = base64_uncompressed.split('\0');
+    for (QList<QByteArray>::iterator it = null_strings.begin(); it < null_strings.end(); ++it)
+    {
+      if (!it->isEmpty())
+      {
+        out.push_back(QString(*it).toStdString());
+      }
+    }
+  }
+
+  void Base64::decodeSingleString(const String & in, QByteArray & base64_uncompressed, bool zlib_compression)
+  {
+    if (in == "")
+      return;
+
     QByteArray herewego = QByteArray::fromRawData(in.c_str(), (int) in.size());
     base64_uncompressed = QByteArray::fromBase64(herewego);
     if (zlib_compression)
@@ -173,14 +189,6 @@ namespace OpenMS
       if (base64_uncompressed.isEmpty())
       {
         throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Decompression error?");
-      }
-    }
-    QList<QByteArray> null_strings = base64_uncompressed.split('\0');
-    for (QList<QByteArray>::iterator it = null_strings.begin(); it < null_strings.end(); ++it)
-    {
-      if (!it->isEmpty())
-      {
-        out.push_back(QString(*it).toStdString());
       }
     }
   }

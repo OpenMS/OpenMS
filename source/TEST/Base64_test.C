@@ -229,7 +229,7 @@ START_SECTION((void encodeStrings(std::vector<String>& in, String& out, bool zli
 	TEST_EQUAL(strings[2],"ein")
 	TEST_EQUAL(strings[3],"test")
 	TEST_EQUAL(strings[4],"1234")
-	//same as above but this time the hole Stringis null-terminated as well
+	//same as above but this time the hole String is null-terminated as well
 	src="ZGFzAGlzdABlaW4AdGVzdAAxMjM0AA==";
 	b64.decodeStrings(src,strings,false);
 	TEST_EQUAL(strings.size() == 5,true 	)
@@ -262,6 +262,11 @@ END_SECTION
 	
 START_SECTION((void decodeStrings(const String& in, std::vector<String>& out, bool zlib_compression = false)))
 	//this functionality is tested in the encodeString test
+	NOT_TESTABLE
+END_SECTION
+
+START_SECTION((void decodeSingleString(const String & in, QByteArray & base64_uncompressed, bool zlib_compression)))
+	//this functionality is tested in the decodeStrings test
 	NOT_TESTABLE
 END_SECTION
 

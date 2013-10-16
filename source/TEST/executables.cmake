@@ -136,6 +136,7 @@ set(visual_executables_list
 
 set(format_executables_list
   Base64_test
+  MSNumpressCoder_test
   BigString_test
   Bzip2Ifstream_test
   Bzip2InputStream_test

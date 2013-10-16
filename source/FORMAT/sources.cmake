@@ -29,6 +29,7 @@ InspectOutfile.C
 KroenikFile.C
 LibSVMEncoder.C
 MS2File.C
+MSNumpressCoder.C
 MSPFile.C
 MascotInfile.C
 MascotGenericFile.C

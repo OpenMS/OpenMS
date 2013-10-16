@@ -59,7 +59,7 @@ namespace OpenMS
   /**
     @brief Class to encode and decode Base64
 
-        Base64 supports two precisions: 32 bit (float) and 64 bit (double).
+    Base64 supports two precisions: 32 bit (float) and 64 bit (double).
   */
   class OPENMS_DLLAPI Base64
   {
@@ -125,6 +125,7 @@ public:
         You can specify zlib-compression.
 
         @note @p in will be empty after this method
+        TODO: is this true ? 
     */
     void encodeStrings(std::vector<String> & in, String & out, bool zlib_compression = false);
 
@@ -136,6 +137,13 @@ public:
         @note @p in will be empty after this method
     */
     void decodeStrings(const String & in, std::vector<String> & out, bool zlib_compression = false);
+
+    /**
+        @brief Decodes a Base64 string to a QByteArray
+
+        You have to specify whether the Base64 string is zlib-compressed.
+    */
+    void decodeSingleString(const String & in, QByteArray & base64_uncompressed, bool zlib_compression);
 
 private:
 

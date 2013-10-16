@@ -7,6 +7,7 @@ BilinearInterpolation.C
 LinearInterpolation.C
 MathFunctions.C
 NonNegativeLeastSquaresSolver.C
+MSNumpress.C
 )
 
 ### add path to the filenames
