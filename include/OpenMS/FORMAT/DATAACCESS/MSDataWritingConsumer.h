@@ -111,7 +111,7 @@ namespace OpenMS
         }
 
 
-        Internal::MzMLHandler<MapType>::writeFooter_(ofs);
+        Internal::MzMLHandlerHelper::writeFooter_(ofs, options_, spectra_offsets, chromatograms_offsets);
         delete validator_;
         ofs.close();
       }

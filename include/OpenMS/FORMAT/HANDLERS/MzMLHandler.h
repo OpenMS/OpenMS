@@ -85,6 +85,15 @@ namespace OpenMS
   namespace Internal
   {
 
+  namespace MzMLHandlerHelper
+  {
+    String getCompressionTerm_(const PeakFileOptions& opt, MSNumpressCoder::NumpressConfig np_compression, bool use_numpress = false);
+    void writeFooter_(std::ostream& os, const PeakFileOptions& options_,
+      std::vector< std::pair<std::string, long> > & spectra_offsets,
+      std::vector< std::pair<std::string, long> > & chromatograms_offsets
+    );
+  }
+
     /**
         @brief XML handler for MzMLFile
 
@@ -242,10 +251,6 @@ protected:
       void writeChromatogram_(std::ostream& os, const ChromatogramType& chromatogram, Size c, Internal::MzMLValidator& validator);
 
       void writeHeader_(std::ostream& os, const MapType& exp, std::vector<std::vector<DataProcessing> > & dps, Internal::MzMLValidator& validator);
-
-      String getCompressionTerm_(const PeakFileOptions& opt, MSNumpressCoder::NumpressConfig np_compression, bool use_numpress = false);
-
-      void writeFooter_(std::ostream& os);
 
       /// map pointer for reading
       MapType* exp_;
@@ -3798,7 +3803,7 @@ protected:
         os << "\t\t</chromatogramList>" << "\n";
       }
 
-      writeFooter_(os);
+      MzMLHandlerHelper::writeFooter_(os, options_, spectra_offsets, chromatograms_offsets);
       logger_.endProgress();
     }
 
@@ -4705,49 +4710,6 @@ protected:
     }
 
     template <typename MapType>
-    String MzMLHandler<MapType>::getCompressionTerm_(const PeakFileOptions& opt, MSNumpressCoder::NumpressConfig np, bool use_numpress)
-    {
-      if (np.np_compression != MSNumpressCoder::NONE && opt.getCompression() )
-      {
-        // TODO check if zlib AND numpress are allowed at the same time by the standard ... 
-        // It is technically possible but
-        //
-        // MUST supply a *child* term of MS:1000572 (binary data compression type) only once
-        //
-        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Cannot have numpress and zlib compression at the same time", "numpress, zlib");
-      }
-
-      if (np.np_compression == MSNumpressCoder::NONE || ! use_numpress)
-      {
-        if (opt.getCompression())
-        {
-          return "<cvParam cvRef=\"MS\" accession=\"MS:1000574\" name=\"zlib compression\" />";
-        }
-        else
-        {
-          return "<cvParam cvRef=\"MS\" accession=\"MS:1000576\" name=\"no compression\" />";
-        }
-      }
-      else if (np.np_compression == MSNumpressCoder::LINEAR)
-      {
-        return "<cvParam cvRef=\"MS\" accession=\"MS:1002312\" name=\"MS-Numpress linear prediction compression\" />";
-      }
-      else if (np.np_compression == MSNumpressCoder::PIC)
-      {
-        return "<cvParam cvRef=\"MS\" accession=\"MS:1002313\" name=\"MS-Numpress linear prediction compression\" />";
-      }
-      else if (np.np_compression == MSNumpressCoder::SLOF)
-      {
-        return "<cvParam cvRef=\"MS\" accession=\"MS:1002314\" name=\"MS-Numpress short logged float compression\" />";
-      }
-      else
-      {
-        // default
-        return "<cvParam cvRef=\"MS\" accession=\"MS:1000576\" name=\"no compression\" />";
-      }
-    }
-
-    template <typename MapType>
     void MzMLHandler<MapType>::writeSpectrum_(std::ostream& os,
             const SpectrumType& spec, Size s, 
             Internal::MzMLValidator& validator, bool renew_native_ids, 
@@ -4988,7 +4950,7 @@ protected:
           String encoded_string;
           os << "\t\t\t\t<binaryDataArrayList count=\"" << (2 + spec.getFloatDataArrays().size() + spec.getStringDataArrays().size() + spec.getIntegerDataArrays().size()) << "\">\n";
           //write m/z array (default 64 bit precision)
-          compression_term = getCompressionTerm_(options_, options_.getNumpressConfigurationMassTime(), true);
+          compression_term = MzMLHandlerHelper::getCompressionTerm_(options_, options_.getNumpressConfigurationMassTime(), true);
           {
 
             bool no_numpress = true;
@@ -5035,7 +4997,7 @@ protected:
             os << "\t\t\t\t\t</binaryDataArray>\n";
           }
           //write intensity array (default 32 bit precision)
-          compression_term = getCompressionTerm_(options_, options_.getNumpressConfigurationIntensity(), true);
+          compression_term = MzMLHandlerHelper::getCompressionTerm_(options_, options_.getNumpressConfigurationIntensity(), true);
           {
 
             bool no_numpress = true;
@@ -5081,7 +5043,7 @@ protected:
             os << "\t\t\t\t\t\t<binary>" << encoded_string << "</binary>\n";
             os << "\t\t\t\t\t</binaryDataArray>\n";
           }
-          compression_term = getCompressionTerm_(options_, options_.getNumpressConfigurationIntensity(), false);
+          compression_term = MzMLHandlerHelper::getCompressionTerm_(options_, options_.getNumpressConfigurationIntensity(), false);
           //write float data array
           for (Size m = 0; m < spec.getFloatDataArrays().size(); ++m)
           {
@@ -5167,9 +5129,6 @@ protected:
         }
 
         os << "\t\t\t</spectrum>\n";
-
-
-
     }
 
     template <typename MapType>
@@ -5234,7 +5193,7 @@ protected:
         String encoded_string;
         os << "\t\t\t\t<binaryDataArrayList count=\"" << (2 + chromatogram.getFloatDataArrays().size() + chromatogram.getStringDataArrays().size() + chromatogram.getIntegerDataArrays().size()) << "\">\n";
         //write m/z array (default 64 bit precision)
-        compression_term = getCompressionTerm_(options_, options_.getNumpressConfigurationMassTime(), true);
+        compression_term = MzMLHandlerHelper::getCompressionTerm_(options_, options_.getNumpressConfigurationMassTime(), true);
         {
 
           bool no_numpress = true;
@@ -5282,7 +5241,7 @@ protected:
 
         }
         //write intensity array (default 32 bit precision)
-        compression_term = getCompressionTerm_(options_, options_.getNumpressConfigurationIntensity(), true);
+        compression_term = MzMLHandlerHelper::getCompressionTerm_(options_, options_.getNumpressConfigurationIntensity(), true);
         {
 
           bool no_numpress = true;
@@ -5328,7 +5287,7 @@ protected:
           os << "\t\t\t\t\t\t<binary>" << encoded_string << "</binary>\n";
           os << "\t\t\t\t\t</binaryDataArray>\n";
         }
-        compression_term = getCompressionTerm_(options_, options_.getNumpressConfigurationIntensity(), false);
+        compression_term = MzMLHandlerHelper::getCompressionTerm_(options_, options_.getNumpressConfigurationIntensity(), false);
         //write float data array
         for (Size m = 0; m < chromatogram.getFloatDataArrays().size(); ++m)
         {
@@ -5412,63 +5371,8 @@ protected:
         }
         os << "\t\t\t\t</binaryDataArrayList>\n";
         os << "\t\t\t</chromatogram>" << "\n";
-
-
     }
 
-    template <typename MapType>
-    void MzMLHandler<MapType>::writeFooter_(std::ostream& os)
-    {
-      os << "\t</run>\n";
-      os << "</mzML>";
-
-      if (options_.getWriteIndex())
-      {
-        int indexlists = (int) !spectra_offsets.empty() + (int) !chromatograms_offsets.empty();
-
-        long indexlistoffset = os.tellp();
-        os << "\n";
-        // NOTE: indexList is required, so we need to write one 
-        os << "  <indexList count=\"" << indexlists << "\">\n";
-        if (!spectra_offsets.empty())
-        {
-          os << "    <index name=\"spectrum\">\n";
-          for (Size i = 0; i < spectra_offsets.size(); i++)
-          {
-            os << "      <offset idRef=\"" << spectra_offsets[i].first << "\">" << spectra_offsets[i].second << "</offset>\n";
-          }
-          os << "    </index>\n";
-        }
-        if (!chromatograms_offsets.empty())
-        {
-          os << "    <index name=\"chromatogram\">\n";
-          for (Size i = 0; i < chromatograms_offsets.size(); i++)
-          {
-            os << "      <offset idRef=\"" << chromatograms_offsets[i].first << "\">" << chromatograms_offsets[i].second << "</offset>\n";
-          }
-          os << "    </index>\n";
-        }
-        if (indexlists == 0)
-        {
-          // dummy: at least one index subelement is required by the standard,
-          // and at least one offset element is required so we need to handle
-          // the case where no spectra/chromatograms are present.
-          os << "    <index name=\"dummy\">\n";
-            os << "      <offset idRef=\"dummy\">-1</offset>\n";
-          os << "    </index>\n";
-        }
-        os << "  </indexList>\n";
-        os << "  <indexListOffset>" << indexlistoffset << "</indexListOffset>\n";
-        os << "<fileChecksum>";
-
-        // TODO calculate checksum here:
-        //  SHA-1 checksum from beginning of file to end of 'fileChecksum' open tag.
-        String sha1_checksum = "0";
-        os << sha1_checksum << "</fileChecksum>\n";
-
-        os << "</indexedmzML>";
-      }
-    }
 
   } // namespace Internal
 } // namespace OpenMS
