@@ -243,6 +243,8 @@ protected:
 
       void writeHeader_(std::ostream& os, const MapType& exp, std::vector<std::vector<DataProcessing> > & dps, Internal::MzMLValidator& validator);
 
+      String getCompressionTerm_(const PeakFileOptions& opt, MSNumpressCoder::NumpressConfig np_compression, bool use_numpress = false);
+
       void writeFooter_(std::ostream& os);
 
       /// map pointer for reading
@@ -4703,6 +4705,49 @@ protected:
     }
 
     template <typename MapType>
+    String MzMLHandler<MapType>::getCompressionTerm_(const PeakFileOptions& opt, MSNumpressCoder::NumpressConfig np, bool use_numpress)
+    {
+      if (np.np_compression != MSNumpressCoder::NONE && opt.getCompression() )
+      {
+        // TODO check if zlib AND numpress are allowed at the same time by the standard ... 
+        // It is technically possible but
+        //
+        // MUST supply a *child* term of MS:1000572 (binary data compression type) only once
+        //
+        throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Cannot have numpress and zlib compression at the same time", "numpress, zlib");
+      }
+
+      if (np.np_compression == MSNumpressCoder::NONE || ! use_numpress)
+      {
+        if (opt.getCompression())
+        {
+          return "<cvParam cvRef=\"MS\" accession=\"MS:1000574\" name=\"zlib compression\" />";
+        }
+        else
+        {
+          return "<cvParam cvRef=\"MS\" accession=\"MS:1000576\" name=\"no compression\" />";
+        }
+      }
+      else if (np.np_compression == MSNumpressCoder::LINEAR)
+      {
+        return "<cvParam cvRef=\"MS\" accession=\"MS:1002312\" name=\"MS-Numpress linear prediction compression\" />";
+      }
+      else if (np.np_compression == MSNumpressCoder::PIC)
+      {
+        return "<cvParam cvRef=\"MS\" accession=\"MS:1002313\" name=\"MS-Numpress linear prediction compression\" />";
+      }
+      else if (np.np_compression == MSNumpressCoder::SLOF)
+      {
+        return "<cvParam cvRef=\"MS\" accession=\"MS:1002314\" name=\"MS-Numpress short logged float compression\" />";
+      }
+      else
+      {
+        // default
+        return "<cvParam cvRef=\"MS\" accession=\"MS:1000576\" name=\"no compression\" />";
+      }
+    }
+
+    template <typename MapType>
     void MzMLHandler<MapType>::writeSpectrum_(std::ostream& os,
             const SpectrumType& spec, Size s, 
             Internal::MzMLValidator& validator, bool renew_native_ids, 
@@ -4940,21 +4985,31 @@ protected:
         if (spec.size() != 0)
         {
           String compression_term;
-          if (options_.getCompression())
-          {
-            compression_term = "<cvParam cvRef=\"MS\" accession=\"MS:1000574\" name=\"zlib compression\" />";
-          }
-          else
-          {
-            compression_term = "<cvParam cvRef=\"MS\" accession=\"MS:1000576\" name=\"no compression\" />";
-          }
           String encoded_string;
           os << "\t\t\t\t<binaryDataArrayList count=\"" << (2 + spec.getFloatDataArrays().size() + spec.getStringDataArrays().size() + spec.getIntegerDataArrays().size()) << "\">\n";
           //write m/z array (default 64 bit precision)
+          compression_term = getCompressionTerm_(options_, options_.getNumpressConfigurationMassTime(), true);
           {
 
-            if (options_.getMz32Bit())
+            bool no_numpress = true;
+            if (options_.getNumpressConfigurationMassTime().np_compression != MSNumpressCoder::NONE)
             {
+              std::vector<DoubleReal> data_to_encode(spec.size());
+              for (Size p = 0; p < spec.size(); ++p)
+                data_to_encode[p] = spec[p].getMZ();
+              MSNumpressCoder().encodeNP(data_to_encode, encoded_string, options_.getCompression(), options_.getNumpressConfigurationMassTime());
+              if (!encoded_string.empty())
+              {
+                no_numpress = false;
+                os << "\t\t\t\t\t<binaryDataArray encodedLength=\"" << encoded_string.size() << "\">\n";
+                os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000514\" name=\"m/z array\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
+                os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000523\" name=\"64-bit float\" />\n";
+              }
+            }
+            
+            if (options_.getMz32Bit() && no_numpress)
+            {
+              compression_term = MzMLHandlerHelper::getCompressionTerm_(options_, options_.getNumpressConfigurationMassTime(), false);
               std::vector<Real> data_to_encode(spec.size());
               for (Size p = 0; p < spec.size(); ++p)
                 data_to_encode[p] = spec[p].getMZ();
@@ -4963,8 +5018,9 @@ protected:
               os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000514\" name=\"m/z array\" unitAccession=\"MS:1000040\" unitName=\"m/z\" unitCvRef=\"MS\" />\n";
               os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000521\" name=\"32-bit float\" />\n";
             }
-            else
+            else if (!options_.getMz32Bit() && no_numpress)
             {
+              compression_term = MzMLHandlerHelper::getCompressionTerm_(options_, options_.getNumpressConfigurationMassTime(), false);
               std::vector<DoubleReal> data_to_encode(spec.size());
               for (Size p = 0; p < spec.size(); ++p)
                 data_to_encode[p] = spec[p].getMZ();
@@ -4979,10 +5035,28 @@ protected:
             os << "\t\t\t\t\t</binaryDataArray>\n";
           }
           //write intensity array (default 32 bit precision)
+          compression_term = getCompressionTerm_(options_, options_.getNumpressConfigurationIntensity(), true);
           {
 
-            if (options_.getIntensity32Bit())
+            bool no_numpress = true;
+            if (options_.getNumpressConfigurationIntensity().np_compression != MSNumpressCoder::NONE)
             {
+              std::vector<DoubleReal> data_to_encode(spec.size());
+              for (Size p = 0; p < spec.size(); ++p)
+                data_to_encode[p] = spec[p].getIntensity();
+              MSNumpressCoder().encodeNP(data_to_encode, encoded_string, options_.getCompression(), options_.getNumpressConfigurationIntensity());
+              if (!encoded_string.empty())
+              {
+                no_numpress = false;
+                os << "\t\t\t\t\t<binaryDataArray encodedLength=\"" << encoded_string.size() << "\">\n";
+                os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000515\" name=\"intensity array\" unitAccession=\"MS:1000131\" unitName=\"number of counts\" unitCvRef=\"MS\"/>\n";
+                os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000523\" name=\"64-bit float\" />\n";
+              }
+            }
+
+            if (options_.getIntensity32Bit() && no_numpress)
+            {
+              compression_term = MzMLHandlerHelper::getCompressionTerm_(options_, options_.getNumpressConfigurationIntensity(), false);
               std::vector<Real> data_to_encode(spec.size());
               for (Size p = 0; p < spec.size(); ++p)
                 data_to_encode[p] = spec[p].getIntensity();
@@ -4991,8 +5065,9 @@ protected:
               os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000515\" name=\"intensity array\" unitAccession=\"MS:1000131\" unitName=\"number of counts\" unitCvRef=\"MS\"/>\n";
               os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000521\" name=\"32-bit float\" />\n";
             }
-            else
+            else if (!options_.getIntensity32Bit() && no_numpress)
             {
+              compression_term = MzMLHandlerHelper::getCompressionTerm_(options_, options_.getNumpressConfigurationIntensity(), false);
               std::vector<DoubleReal> data_to_encode(spec.size());
               for (Size p = 0; p < spec.size(); ++p)
                 data_to_encode[p] = spec[p].getIntensity();
@@ -5001,10 +5076,12 @@ protected:
               os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000515\" name=\"intensity array\" unitAccession=\"MS:1000131\" unitName=\"number of counts\" unitCvRef=\"MS\"/>\n";
               os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000523\" name=\"64-bit float\" />\n";
             }
+
             os << "\t\t\t\t\t\t" << compression_term << "\n";
             os << "\t\t\t\t\t\t<binary>" << encoded_string << "</binary>\n";
             os << "\t\t\t\t\t</binaryDataArray>\n";
           }
+          compression_term = getCompressionTerm_(options_, options_.getNumpressConfigurationIntensity(), false);
           //write float data array
           for (Size m = 0; m < spec.getFloatDataArrays().size(); ++m)
           {
@@ -5012,6 +5089,7 @@ protected:
             std::vector<DoubleReal> data64_to_encode(array.size());
             for (Size p = 0; p < array.size(); ++p)
               data64_to_encode[p] = array[p];
+            // TODO also encode float data arrays using numpress? 
             decoder_.encode(data64_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string, options_.getCompression());
             String data_processing_ref_string = "";
             if (array.getDataProcessing().size() != 0)
@@ -5153,21 +5231,31 @@ protected:
         //binary data array list
         //--------------------------------------------------------------------------------------------
         String compression_term;
-        if (options_.getCompression())
-        {
-          compression_term = "<cvParam cvRef=\"MS\" accession=\"MS:1000574\" name=\"zlib compression\" />";
-        }
-        else
-        {
-          compression_term = "<cvParam cvRef=\"MS\" accession=\"MS:1000576\" name=\"no compression\" />";
-        }
         String encoded_string;
         os << "\t\t\t\t<binaryDataArrayList count=\"" << (2 + chromatogram.getFloatDataArrays().size() + chromatogram.getStringDataArrays().size() + chromatogram.getIntegerDataArrays().size()) << "\">\n";
         //write m/z array (default 64 bit precision)
+        compression_term = getCompressionTerm_(options_, options_.getNumpressConfigurationMassTime(), true);
         {
 
-          if (options_.getMz32Bit())
+          bool no_numpress = true;
+          if (options_.getNumpressConfigurationMassTime().np_compression != MSNumpressCoder::NONE)
           {
+            std::vector<DoubleReal> data_to_encode(chromatogram.size());
+            for (Size p = 0; p < chromatogram.size(); ++p)
+              data_to_encode[p] = chromatogram[p].getRT();
+            MSNumpressCoder().encodeNP(data_to_encode, encoded_string, options_.getCompression(), options_.getNumpressConfigurationMassTime());
+            if (!encoded_string.empty())
+            {
+              no_numpress = false;
+              os << "\t\t\t\t\t<binaryDataArray encodedLength=\"" << encoded_string.size() << "\">\n";
+              os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000595\" name=\"time array\" unitAccession=\"UO:0000010\" unitName=\"second\" unitCvRef=\"MS\" />\n";
+              os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000523\" name=\"64-bit float\" />\n";
+            }
+          }
+
+          if (options_.getMz32Bit() && no_numpress)
+          {
+            compression_term = MzMLHandlerHelper::getCompressionTerm_(options_, options_.getNumpressConfigurationMassTime(), false);
             std::vector<Real> data_to_encode(chromatogram.size());
             for (Size p = 0; p < chromatogram.size(); ++p)
               data_to_encode[p] = chromatogram[p].getRT();
@@ -5176,8 +5264,9 @@ protected:
             os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000595\" name=\"time array\" unitAccession=\"UO:0000010\" unitName=\"second\" unitCvRef=\"MS\" />\n";
             os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000521\" name=\"32-bit float\" />\n";
           }
-          else
+          else if (!options_.getMz32Bit() && no_numpress)
           {
+            compression_term = MzMLHandlerHelper::getCompressionTerm_(options_, options_.getNumpressConfigurationMassTime(), false);
             std::vector<DoubleReal> data_to_encode(chromatogram.size());
             for (Size p = 0; p < chromatogram.size(); ++p)
               data_to_encode[p] = chromatogram[p].getRT();
@@ -5186,15 +5275,35 @@ protected:
             os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000595\" name=\"time array\" unitAccession=\"UO:0000010\" unitName=\"second\" unitCvRef=\"MS\" />\n";
             os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000523\" name=\"64-bit float\" />\n";
           }
+
           os << "\t\t\t\t\t\t" << compression_term << "\n";
           os << "\t\t\t\t\t\t<binary>" << encoded_string << "</binary>\n";
           os << "\t\t\t\t\t</binaryDataArray>\n";
 
         }
         //write intensity array (default 32 bit precision)
+        compression_term = getCompressionTerm_(options_, options_.getNumpressConfigurationIntensity(), true);
         {
-          if (options_.getIntensity32Bit())
+
+          bool no_numpress = true;
+          if (options_.getNumpressConfigurationIntensity().np_compression != MSNumpressCoder::NONE)
           {
+            std::vector<DoubleReal> data_to_encode(chromatogram.size());
+            for (Size p = 0; p < chromatogram.size(); ++p)
+              data_to_encode[p] = chromatogram[p].getIntensity();
+            MSNumpressCoder().encodeNP(data_to_encode, encoded_string, options_.getCompression(), options_.getNumpressConfigurationIntensity());
+            if (!encoded_string.empty())
+            {
+              no_numpress = false;
+              os << "\t\t\t\t\t<binaryDataArray encodedLength=\"" << encoded_string.size() << "\">\n";
+              os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000515\" name=\"intensity array\" unitAccession=\"MS:1000131\" unitName=\"number of counts\" unitCvRef=\"MS\"/>\n";
+              os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000523\" name=\"64-bit float\" />\n";
+            }
+          }
+          
+          if (options_.getIntensity32Bit() && no_numpress)
+          {
+            compression_term = MzMLHandlerHelper::getCompressionTerm_(options_, options_.getNumpressConfigurationIntensity(), false);
             std::vector<Real> data_to_encode(chromatogram.size());
             for (Size p = 0; p < chromatogram.size(); ++p)
               data_to_encode[p] = chromatogram[p].getIntensity();
@@ -5203,8 +5312,9 @@ protected:
             os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000515\" name=\"intensity array\" unitAccession=\"MS:1000131\" unitName=\"number of counts\" unitCvRef=\"MS\"/>\n";
             os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000521\" name=\"32-bit float\" />\n";
           }
-          else
+          else if (!options_.getIntensity32Bit() && no_numpress)
           {
+            compression_term = MzMLHandlerHelper::getCompressionTerm_(options_, options_.getNumpressConfigurationIntensity(), false);
             std::vector<DoubleReal> data_to_encode(chromatogram.size());
             for (Size p = 0; p < chromatogram.size(); ++p)
               data_to_encode[p] = chromatogram[p].getIntensity();
@@ -5213,10 +5323,12 @@ protected:
             os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000515\" name=\"intensity array\" unitAccession=\"MS:1000131\" unitName=\"number of counts\" unitCvRef=\"MS\"/>\n";
             os << "\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000523\" name=\"64-bit float\" />\n";
           }
+
           os << "\t\t\t\t\t\t" << compression_term << "\n";
           os << "\t\t\t\t\t\t<binary>" << encoded_string << "</binary>\n";
           os << "\t\t\t\t\t</binaryDataArray>\n";
         }
+        compression_term = getCompressionTerm_(options_, options_.getNumpressConfigurationIntensity(), false);
         //write float data array
         for (Size m = 0; m < chromatogram.getFloatDataArrays().size(); ++m)
         {
@@ -5224,6 +5336,7 @@ protected:
           std::vector<DoubleReal> data64_to_encode(array.size());
           for (Size p = 0; p < array.size(); ++p)
             data64_to_encode[p] = array[p];
+          // TODO also encode float data arrays using numpress? 
           decoder_.encode(data64_to_encode, Base64::BYTEORDER_LITTLEENDIAN, encoded_string, options_.getCompression());
           String data_processing_ref_string = "";
           if (array.getDataProcessing().size() != 0)
