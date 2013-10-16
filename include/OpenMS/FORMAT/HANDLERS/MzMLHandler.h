@@ -47,6 +47,7 @@
 #include <OpenMS/FORMAT/VALIDATORS/MzMLValidator.h>
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
 #include <OpenMS/FORMAT/Base64.h>
+#include <OpenMS/FORMAT/MSNumpressCoder.h>
 #include <OpenMS/FORMAT/VALIDATORS/SemanticValidator.h>
 #include <OpenMS/FORMAT/CVMappingFile.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
@@ -223,7 +224,7 @@ protected:
         String base64;
         enum {PRE_NONE, PRE_32, PRE_64} precision;
         Size size;
-        bool compression;
+        bool compression; // zlib compression
         enum {DT_NONE, DT_FLOAT, DT_INT, DT_STRING} data_type;
         std::vector<Real> floats_32;
         std::vector<DoubleReal> floats_64;
@@ -231,6 +232,7 @@ protected:
         std::vector<Int64> ints_64;
         std::vector<String> decoded_char;
         MetaInfoDescription meta;
+        MSNumpressCoder::NumpressCompression np_compression;
       };
 
       void writeSpectrum_(std::ostream& os, const SpectrumType& spec, Size s, 
@@ -518,6 +520,8 @@ protected:
       else if (tag == "binaryDataArray" /* && in_spectrum_list_*/)
       {
         data_.push_back(BinaryData());
+        data_.back().np_compression = MSNumpressCoder::NONE; // ensure that numpress compression is initially set to none ...
+        data_.back().compression = false; // ensure that zlib compression is initially set to none ...
 
         //array length
         Int array_length = (Int) default_array_length_;
@@ -908,7 +912,15 @@ protected:
         //decode data and check if the length of the decoded data matches the expected length
         if (data_[i].data_type == BinaryData::DT_FLOAT)
         {
-          if (data_[i].precision == BinaryData::PRE_64)
+          if (data_[i].np_compression != MSNumpressCoder::NONE)
+          {
+            // If its numpress, we dont care about 32 / 64 bit but the numpress
+            // decoder expects std::vector<double> which are 64 bit.
+            MSNumpressCoder::NumpressConfig config;
+            config.np_compression = data_[i].np_compression;
+            MSNumpressCoder().decodeNP(data_[i].base64, data_[i].floats_64,  data_[i].compression, config);
+          }
+          else if (data_[i].precision == BinaryData::PRE_64)
           {
             decoder_.decode(data_[i].base64, Base64::BYTEORDER_LITTLEENDIAN, data_[i].floats_64, data_[i].compression);
             if (data_[i].size != data_[i].floats_64.size())
@@ -988,7 +1000,6 @@ protected:
         }
         return;
       }
-
 
       // Error if intensity or m/z is encoded as int32|64 - they should be float32|64!
       if ((data_[mz_index].ints_32.size() > 0) || (data_[mz_index].ints_64.size() > 0))
@@ -1145,7 +1156,15 @@ protected:
         data_[i].base64.removeWhitespaces();
 
         //decode data and check if the length of the decoded data matches the expected length
-        if (data_[i].data_type == BinaryData::DT_FLOAT)
+        if (data_[i].np_compression != MSNumpressCoder::NONE)
+        {
+          // If its numpress, we dont care about 32 / 64 bit but the numpress
+          // decoder expects std::vector<double> which are 64 bit.
+          MSNumpressCoder::NumpressConfig config;
+          config.np_compression = data_[i].np_compression;
+          MSNumpressCoder().decodeNP(data_[i].base64, data_[i].floats_64,  data_[i].compression, config);
+        }
+        else if (data_[i].data_type == BinaryData::DT_FLOAT)
         {
           if (data_[i].precision == BinaryData::PRE_64)
           {
@@ -1516,9 +1535,22 @@ protected:
         {
           data_.back().compression = true;
         }
+        else if (accession == "MS:1002312") //numpress compression: linear (proposed CV term)
+        {
+          data_.back().np_compression = MSNumpressCoder::LINEAR;
+        }
+        else if (accession == "MS:1002313") //numpress compression: pic (proposed CV term)
+        {
+          data_.back().np_compression = MSNumpressCoder::PIC;
+        }
+        else if (accession == "MS:1002314") //numpress compression: slof (proposed CV term)
+        {
+          data_.back().np_compression = MSNumpressCoder::SLOF;
+        }
         else if (accession == "MS:1000576") // no compression
         {
           data_.back().compression = false;
+          data_.back().np_compression = MSNumpressCoder::NONE;
         }
         else
           warning(LOAD, String("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
