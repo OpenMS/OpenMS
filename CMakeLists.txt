@@ -90,7 +90,14 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   find_library(CARBON NAMES Carbon)
   find_package(OpenGL)
   set(APPLE_EXTRA_LIBS ${CARBON} ${OPENGL_LIBRARY})
+else()
+  set(APPLE_EXTRA_LIBS "")
 endif()
+
+#------------------------------------------------------------------------------
+# All the multithreading stuff (OpenMP, CUDA, TBB) 
+#------------------------------------------------------------------------------
+include(cmake/multithreading.cmake)
 
 #------------------------------------------------------------------------------
 # Check architecture 32bit vs. 64bit
@@ -114,6 +121,24 @@ endif()
 
 # Force build type into the cache (needs to be set beforehand)
 set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE} CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." FORCE)
+
+#------------------------------------------------------------------------------
+# Project specific compiler flags
+#------------------------------------------------------------------------------
+# Fill this with compile flags that external projects should use as well
+# for OpenMS internal flags (not promoted to external compiler flags) append to CMAKE_CXX_FLAGS
+# see OpenMS/cmake/OpenMSConfig.cmake.in to see how its configured and used (i.e. as OPENMS_ADDCXX_FLAGS)
+set(CF_OPENMS_ADDCXX_FLAGS) 
+include(cmake/compiler_flags.cmake)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CF_OPENMS_ADDCXX_FLAGS}")
+
+#------------------------------------------------------------------------------
+# Enable STL debug mode (GCC only)
+#------------------------------------------------------------------------------
+option(STL_DEBUG OFF "[GCC only] Enable STL-DEBUG mode (very slow).")
+if(STL_DEBUG)
+  include(cmake/stl_debug.cmake)
+endif()
 
 #------------------------------------------------------------------------------
 # CMake Utitlities
