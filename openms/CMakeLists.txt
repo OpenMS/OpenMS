@@ -72,7 +72,12 @@ set(OPENMS_INCLUDE_DIRECTORIES ${PROJECT_SOURCE_DIR}/include
                                ${GLPK_INCLUDE_DIRS}
                                ${ZLIB_INCLUDE_DIRS}
                                ${BZIP2_INCLUDE_DIR}
+                               ${OPENSWATHALGO_INCLUDE_DIRECTORIES}
+                               ${CONTRIB_INCLUDE_DIR}
     CACHE INTERNAL "OpenMS include directories" FORCE)
+
+# add OpenMS include directories
+include_directories(${OPENMS_INCLUDE_DIRECTORIES})
 
 ########################################################
 ###    useful programms															 ###
@@ -118,12 +123,7 @@ message(STATUS "Info: CF_OPENMS_DOC_PATH: ${CF_OPENMS_DOC_PATH}")
 ## this need to be set before config.h is configured!
 set(CMAKE_INSTALL_PREFIX "" CACHE INTERNAL "This must be equal to INSTALL_PREFIX!" FORCE)
 set(INSTALL_PREFIX "." CACHE PATH "Installation prefix for OpenMS and TOPP")
-## are we building a shared or static lib?! (BOTH within the same BUILD-tree is NOT possible with OpenMS!!)
-set(BUILD_SHARED_LIBS true)
 
-if(NOT DISABLE_OPENSWATH)
-  include(source/ANALYSIS/OPENSWATH/OPENSWATHALGO/OpenSwathAlgoFilesConfigure.cmake)
-endif()
 include(${OPENMS_HOST_DIRECTORY}/cmake/OpenMSBuildSystem_configh.cmake)
 
 ## add configured files (used in 'cmake/includes.cmake')
@@ -194,20 +194,7 @@ if (WITH_CRAWDAD)
   list(APPEND OPENMS_DEP_LIBRARIES Crawdad)
 endif()
 
-########################################################
-### build openswath lib ###
-########################################################
-
-set(DISABLE_OPENSWATH OFF CACHE BOOL "Set to ON to disable building OpenSWATH library and the related parts of OpenMS.")
-if(NOT DISABLE_OPENSWATH)
-  include(source/ANALYSIS/OPENSWATH/OPENSWATHALGO/OpenSwathAlgoFiles.cmake)
-  add_library(OpenSwathAlgo ${OpenSwathAlgoFiles})
-
-  target_link_libraries(OpenMS OpenSwathAlgo ${APPLE_EXTRA_LIBS} ${QT_LIBRARIES} ${OPENMS_DEP_LIBRARIES})
-else()
-  target_link_libraries(OpenMS ${APPLE_EXTRA_LIBS} ${QT_LIBRARIES} ${OPENMS_DEP_LIBRARIES})
-endif(NOT DISABLE_OPENSWATH)
-
+target_link_libraries(OpenMS OpenSwathAlgo ${APPLE_EXTRA_LIBS} ${QT_LIBRARIES} ${OPENMS_DEP_LIBRARIES})
 target_link_libraries(OpenMS_GUI OpenMS ${QT_LIBRARIES})
 
 ## OPENMS_LIBRARIES defines the libraries used by OpenMS; this should be used to link against executables
@@ -370,81 +357,3 @@ ENDIF()
 ###    verbose Post-build messages and help targets  ###
 ########################################################
 include(${OPENMS_HOST_DIRECTORY}/cmake/OpenMSBuildSystem_messages.cmake)
-
-######################################################
-#### build settings and configs for external code ####
-######################################################
-if ("${PACKAGE_TYPE}" STREQUAL "none")
-	## grep definitions (-D<XXX>) that were set using 'add_definitions()'
-	get_property(OPENMS_CMP_DEFS DIRECTORY . PROPERTY COMPILE_DEFINITIONS)
-	## convert to CXX flags
-	foreach(i ${OPENMS_CMP_DEFS})
-		set(CF_OPENMS_ADDCXX_FLAGS "${CF_OPENMS_ADDCXX_FLAGS} -D${i}")
-	endforeach(i)
-	## for add_definition commands (currently empty, but who knows...)
-	set(CF_OPENMS_ADD_DEFINITIONS)
-	## the filename for library settings (this file will be included in OpenMSConfig.cmake)
-	set(CF_LibOpenMSExport ${PROJECT_BINARY_DIR}/cmake/OpenMSLibraryExport.cmake)
-
-	## create code that allows to call find_package()
-	## (must come after the above code that sets the variables!)
-	get_directory_property(OPENMS_INCLUDE_DIRS  INCLUDE_DIRECTORIES)
-	configure_file(
-		"${OPENMS_HOST_DIRECTORY}/cmake/OpenMSConfig.cmake.in"
-		"${PROJECT_BINARY_DIR}/cmake/OpenMSConfig.cmake"
-		@ONLY
-	)
-
-	## Create OpenMSLibraryExport.cmake:
-	## Note: export_build_settings and
-	##       export_library_dependencies are deprecated and should not be used
-	if ("${INSTALL_PREFIX}" STREQUAL ".")
-		set(CVERSION "${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}.${CMAKE_PATCH_VERSION}")
-		if (CVERSION VERSION_LESS "2.8.0")
-			message(STATUS "Info: Cannot register OpenMS with CMake! For external code, set the path to OpenMS during find_package() manually.")
-		else()
-			## register OpenMS with CMake so that it can be found easily
-			export(PACKAGE OpenMS)
-		endif()
-		## export our lib
-    if(NOT DISABLE_OPENSWATH)
-      export(TARGETS OpenMS OpenSwathAlgo FILE ${CF_LibOpenMSExport})
-    else()
-      export(TARGETS OpenMS FILE ${CF_LibOpenMSExport})
-    endif(NOT DISABLE_OPENSWATH)
-	else()
-		include(cmake/OpenMSBuildSystem_install.cmake)
-	endif()
-
-else()
-######################################################
-####          install/copy (cpack mainly)         ####
-######################################################
-	## general definitions
-	set(CPACK_PACKAGE_NAME "OpenMS")
-	set(CPACK_PACKAGE_VENDOR "OpenMS.de")
-	set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "OpenMS - A framework for mass spectrometry")
-	set(CPACK_PACKAGE_VERSION "${OPENMS_PACKAGE_VERSION_MAJOR}.${OPENMS_PACKAGE_VERSION_MINOR}.${OPENMS_PACKAGE_VERSION_PATCH}")
-	set(CPACK_PACKAGE_VERSION_MAJOR "${OPENMS_PACKAGE_VERSION_MAJOR}")
-	set(CPACK_PACKAGE_VERSION_MINOR "${OPENMS_PACKAGE_VERSION_MINOR}")
-	set(CPACK_PACKAGE_VERSION_PATCH "${OPENMS_PACKAGE_VERSION_PATCH}")
-	set(CPACK_PACKAGE_INSTALL_DIRECTORY "OpenMS-${CPACK_PACKAGE_VERSION}")
-	set(CPACK_PACKAGE_DESCRIPTION_FILE ${PROJECT_SOURCE_DIR}/cmake/OpenMSPackageDescriptionFile.cmake)
-	set(CPACK_RESOURCE_FILE_LICENSE ${PROJECT_SOURCE_DIR}/License.txt)
-	set(CPACK_RESOURCE_FILE_WELCOME ${PROJECT_SOURCE_DIR}/cmake/OpenMSPackageResourceWelcomeFile.txt)
-	set(CPACK_RESOURCE_FILE_README ${PROJECT_SOURCE_DIR}/cmake/OpenMSPackageResourceReadme.txt)
-
-	# install routines for MacOSX
-	if("${PACKAGE_TYPE}" STREQUAL "dmg")
-		include(cmake/package_dragndrop_dmg.cmake)
-	endif()
-
-	if("${PACKAGE_TYPE}" STREQUAL "rpm")
-		include(cmake/package_rpm.cmake)
-	endif()
-
-	if("${PACKAGE_TYPE}" STREQUAL "deb")
-		include(cmake/package_deb.cmake)
-	endif()
-
-endif()

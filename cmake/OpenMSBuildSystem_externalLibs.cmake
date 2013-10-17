@@ -80,7 +80,6 @@ set(Boost_ADDITIONAL_VERSIONS "1.47.0" "1.48.0" "1.49.0" "1.50.0" "1.51.0" "1.52
 FIND_PACKAGE(Boost 1.42.0 COMPONENTS iostreams date_time math_c99 regex)
 
 if(Boost_FOUND)
-	INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
   message(STATUS "Found Boost version ${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION}.${Boost_SUBMINOR_VERSION}" )
   set(CF_OPENMS_BOOST_VERSION_MAJOR ${Boost_MAJOR_VERSION})
 	set(CF_OPENMS_BOOST_VERSION_MINOR ${Boost_MINOR_VERSION})
@@ -102,7 +101,6 @@ endif()
 ## SEQAN
 FIND_PACKAGE(SEQAN 1.4.0)
 if(SEQAN_FOUND)
-	INCLUDE_DIRECTORIES(${SEQAN_INCLUDE_DIRS})
   message(STATUS "Found SEQAN version ${SEQAN_VERSION_MAJOR}.${SEQAN_VERSION_MINOR}.${SEQAN_VERSION_PATCH}" )
 else()
   message(FATAL_ERROR "SeqAn could not be found. Please install it from www.seqan.de or download and install the OpenMS contrib package.")
@@ -114,7 +112,6 @@ if (WIN32) ## find manually on Windows, as find_package() does not know about de
 endif()
 FIND_PACKAGE(libSVM 2.91) ## will not overwrite LIBSVM_LIBRARY if defined already
 if (LIBSVM_FOUND)
-	INCLUDE_DIRECTORIES(${LIBSVM_INCLUDE_DIRS})
 	message(STATUS "Found LibSVM version " ${LIBSVM_VERSION})
 	set(CF_OPENMS_LIBSVM_VERSION_MAJOR ${LIBSVM_MAJOR_VERSION})
 	set(CF_OPENMS_LIBSVM_VERSION_MINOR ${LIBSVM_MINOR_VERSION})
@@ -141,7 +138,6 @@ endif()
 ## Find GLPK
 FIND_PACKAGE(GLPK REQUIRED)
 if (GLPK_FOUND)
-	INCLUDE_DIRECTORIES(${GLPK_INCLUDE_DIRS})
 	message(STATUS "Found GLPK version " ${GLPK_VERSION_STRING})
 	set(CF_OPENMS_GLPK_VERSION_MAJOR ${GLPK_VERSION_MAJOR})
 	set(CF_OPENMS_GLPK_VERSION_MINOR ${GLPK_VERSION_MINOR})
@@ -153,7 +149,6 @@ endif()
 # Find zlib
 FIND_PACKAGE(ZLIB REQUIRED)
 if (ZLIB_FOUND)
-  include_directories(${ZLIB_INCLUDE_DIRS})
   message(STATUS "Found zlib version ${ZLIB_VERSION_STRING}")
 else()
   message(FATAL_ERROR "zlib not found!")
@@ -162,7 +157,6 @@ endif()
 # Find bzip2
 FIND_PACKAGE(BZip2 REQUIRED)
 if (BZIP2_FOUND)
-  include_directories(${BZIP2_INCLUDE_DIR})
   message(STATUS "Found bzip2 version ${BZIP2_VERSION_STRING}")
 else()
   message(FATAL_ERROR "bzip2 not found!")
@@ -172,10 +166,6 @@ if(MSVC)
 	## needed to locate libs (put this above ADD_LIBRARY() - otherwise it will not work)
 	link_directories(${CONTRIB_LIB_DIR})
 endif()
-
-INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include/)
-INCLUDE_DIRECTORIES(${PROJECT_BINARY_DIR}/include/) ## for configured files, e.g. config.h
-INCLUDE_DIRECTORIES(${CONTRIB_INCLUDE_DIR})
 
 #except for the contrib libs, prefer shared libraries
 if(NOT MSVC AND NOT APPLE)
