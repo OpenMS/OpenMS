@@ -1,0 +1,58 @@
+# --------------------------------------------------------------------------
+#                   OpenMS -- Open-Source Mass Spectrometry
+# --------------------------------------------------------------------------
+# Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
+# ETH Zurich, and Freie Universitaet Berlin 2002-2012.
+#
+# This software is released under a three-clause BSD license:
+#  * Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+#  * Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in the
+#    documentation and/or other materials provided with the distribution.
+#  * Neither the name of any author or any participating institution
+#    may be used to endorse or promote products derived from this software
+#    without specific prior written permission.
+# For a full list of authors, refer to the file AUTHORS.
+# --------------------------------------------------------------------------
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+# INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+# OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+# WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+# OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+# ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+# --------------------------------------------------------------------------
+# $Maintainer: Stephan Aiche $
+# $Authors: Stephan Aiche $
+# --------------------------------------------------------------------------
+
+cmake_minimum_required(VERSION 2.8.3 FATAL_ERROR)
+project("OpenMS_coding_tests")
+
+# --------------------------------------------------------------------------
+# cppcheck tests
+if(NOT CMAKE_COMPILER_IS_CLANG) ## cppcheck does not support clang output
+  find_package(cppcheck)
+  if( CPPCHECK_FOUND )
+    include( ${OPENMS_HOST_DIRECTORY}/cmake/modules/cppcheck.cmake )
+  endif(CPPCHECK_FOUND)
+elseif()
+  message(STATUS "CPPCheck and CLang are incompatible. Please select a GCC based compiler.")
+endif(NOT CMAKE_COMPILER_IS_CLANG)
+
+# --------------------------------------------------------------------------
+# cpplint testing
+find_program(PYTHON_EXECUTABLE
+         python
+         DOC "python executable used to perform coding convention test.")
+if("${PYTHON_EXECUTABLE}" STREQUAL "PYTHON_EXECUTABLE-NOTFOUND")
+  message(STATUS "Info: The program python could not be found. Coding convention check will not be available! Add the location of python(.exe) to your PATH environment variable.")
+else()
+  include( ${OPENMS_HOST_DIRECTORY}/cmake/createcpplinttests.cmake )
+endif("${PYTHON_EXECUTABLE}" STREQUAL "PYTHON_EXECUTABLE-NOTFOUND")

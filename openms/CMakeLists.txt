@@ -282,41 +282,6 @@ if (ENABLE_PREPARE_KNIME_PACKAGE)
 endif()
 
 ########################################################
-###                      Tests                       ###
-########################################################
-set(ENABLE_STYLE_TESTING OFF CACHE BOOL "Enables checking of code convention violations (cpplint) and static code analysis (cppchecker). Note that this will disable the regular test system.")
-
-if("${PACKAGE_TYPE}" STREQUAL "none")
-  INCLUDE(Dart) ## for Nighlty Build log
-
-  if(NOT ENABLE_STYLE_TESTING)
-    ## configure the regular class and TOPP Test project (but do not add it to OpenMS itself)
-    add_subdirectory(source/TEST EXCLUDE_FROM_ALL)
-  else()
-    ## enable cppcheck ..
-    if(NOT CMAKE_COMPILER_IS_CLANG) ## cppcheck does not support clang output
-      find_package(cppcheck)
-      if( CPPCHECK_FOUND )
-        include( cmake/modules/cppcheck.cmake )
-      endif(CPPCHECK_FOUND)
-    endif(NOT CMAKE_COMPILER_IS_CLANG)
-
-    ## .. and cpplint testing
-    find_program(PYTHON_EXECUTABLE
-             python
-             DOC "python executable used to performe coding convention test.")
-    if("${PYTHON_EXECUTABLE}" STREQUAL "PYTHON_EXECUTABLE-NOTFOUND")
-      message(STATUS "Info: The programm python could not be found. Coding convention check will not be available! Add the location of python(.exe) to your PATH environment variable.")
-    else()
-      include( cmake/createcpplinttests.cmake )
-    endif("${PYTHON_EXECUTABLE}" STREQUAL "PYTHON_EXECUTABLE-NOTFOUND")
-  endif(NOT ENABLE_STYLE_TESTING)
-endif("${PACKAGE_TYPE}" STREQUAL "none")
-
-### TOPPAS pipeline tests ###
-set(ENABLE_PIPELINE_TESTING OFF CACHE BOOL "Enables the additional testing of various TOPPAS pipelines when 'make test' is called.")
-
-########################################################
 ###              setup python wrapper                ###
 ########################################################
 OPTION(PYOPENMS "setup build system for pyOpenMS" OFF)

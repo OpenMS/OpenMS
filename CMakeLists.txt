@@ -40,6 +40,7 @@ project("OpenMS_host")
 #------------------------------------------------------------------------------
 SET(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true)
 
+#------------------------------------------------------------------------------
 ## CMake sanity check: sometimes CMAKE_SIZEOF_VOID_P just vanishes when
 ## updating CMake.
 if (NOT CMAKE_SIZEOF_VOID_P)
@@ -49,6 +50,12 @@ if (NOT CMAKE_SIZEOF_VOID_P)
                       " weird CMake bug that seems to appear when updating the"
                       " CMake version.")
 endif()
+
+#------------------------------------------------------------------------------
+# Include the standard Dart testing module
+# for Nighlty Build log
+enable_testing()
+include(Dart) 
 
 #------------------------------------------------------------------------------
 # entries meant to be configured using CMake cache
@@ -205,6 +212,11 @@ add_subdirectory(utils)
 # Documentation
 #------------------------------------------------------------------------------
 add_subdirectory(doc)
+
+#------------------------------------------------------------------------------
+# Documentation
+#------------------------------------------------------------------------------
+add_subdirectory(tests)
 
 ######################################################
 #### build settings and configs for external code ####

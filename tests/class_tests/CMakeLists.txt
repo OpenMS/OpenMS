@@ -155,16 +155,3 @@ foreach(i ${TEST_executables})
 	list(APPEND sources_VS "${i}.C")
 endforeach(i)
 source_group("" FILES ${sources_VS})
-
-############## TOPP test ####################
-#add_subdirectory(TOPP)
-
-############## TOPPAS workflow test ##############
-if(ENABLE_PIPELINE_TESTING)
-  add_subdirectory(TOPPAS)
-endif(ENABLE_PIPELINE_TESTING)
-
-############## OpenSWATH test ####################
-if(NOT DISABLE_OPENSWATH)
-  add_subdirectory(OPENSWATH)
-endif(NOT DISABLE_OPENSWATH)
