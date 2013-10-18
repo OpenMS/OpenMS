@@ -157,7 +157,7 @@ endforeach(i)
 source_group("" FILES ${sources_VS})
 
 ############## TOPP test ####################
-add_subdirectory(TOPP)
+#add_subdirectory(TOPP)
 
 ############## TOPPAS workflow test ##############
 if(ENABLE_PIPELINE_TESTING)

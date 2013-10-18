@@ -200,8 +200,10 @@ target_link_libraries(OpenMS_GUI OpenMS ${QT_LIBRARIES})
 ## OPENMS_LIBRARIES defines the libraries used by OpenMS; this should be used to link against executables
 ## somehow the link dependencies of cmake are broken such that when using POSTFIX names for libs the dependencies are not forwarded...
 ## we fix this by adding the dependencies of OpenMS directly to the executables as well.
-set(OPENMS_LIBRARIES optimized OpenMS${CMAKE_RELEASE_POSTFIX} debug OpenMS${CMAKE_DEBUG_POSTFIX} ${QT_LIBRARIES})
-if (MSVC) ## Windows
+set(OPENMS_LIBRARIES optimized OpenMS${CMAKE_RELEASE_POSTFIX} debug OpenMS${CMAKE_DEBUG_POSTFIX} ${QT_LIBRARIES}
+    CACHE INTERNAL "OpenMS libraries" FORCE)
+
+if (MSVC) # Windows
 	list(APPEND OPENMS_LIBRARIES ${OPENMS_DEP_LIBRARIES})
 	list(APPEND OPENMS_LIBRARIES OpenSwathAlgo)
 endif()
@@ -214,30 +216,6 @@ set(OPENMS_GUI_LIBRARIES optimized OpenMS_GUI${CMAKE_RELEASE_POSTFIX} debug Open
 if (MSVC)
 	link_directories(${PROJECT_BINARY_DIR})
 endif()
-
-####### TOPP #########
-set(TOPP_DIR source/APPLICATIONS/TOPP)
-include(${TOPP_DIR}/executables.cmake)
-foreach(i ${TOPP_executables})
-	add_executable(${i} ${TOPP_DIR}/${i}.C)
-	target_link_libraries(${i} ${OPENMS_LIBRARIES})
-	if (OPENMP_FOUND AND NOT MSVC)
-		set_target_properties(${i} PROPERTIES LINK_FLAGS ${OpenMP_CXX_FLAGS})
-	endif()
-endforeach(i)
-add_custom_target(TOPP)
-add_dependencies(TOPP ${TOPP_executables})
-
-##### UTILS ########
-set(UTILS_DIR source/APPLICATIONS/UTILS)
-set(UTILS_executables)
-include(${UTILS_DIR}/executables.cmake)
-foreach(i ${UTILS_executables})
-	add_executable(${i} ${UTILS_DIR}/${i}.C)
-	target_link_libraries(${i} ${OPENMS_LIBRARIES})
-endforeach(i)
-add_custom_target(UTILS)
-add_dependencies(UTILS ${UTILS_executables})
 
 ##### GUI tools ########
 set(GUI_DIR source/VISUAL/APPLICATIONS/GUITOOLS)
@@ -293,12 +271,6 @@ foreach(i ${GUI_executables})
 endforeach(i)
 add_custom_target(GUI)
 add_dependencies(GUI ${GUI_executables})
-
-## some regular TOPP/UTILS need the GUI lib
-set(executables_withGUIlibDep ${TOPP_executables_with_GUIlib} ${UTILS_executables_with_GUIlib})
-foreach(i ${executables_withGUIlibDep})
-	target_link_libraries(${i} ${OPENMS_GUI_LIBRARIES})
-endforeach(i)
 
 ##### CTDs ####
 # We will use this path for the knime packages and the osx installer
