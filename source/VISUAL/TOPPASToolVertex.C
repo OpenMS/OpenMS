@@ -629,16 +629,19 @@ namespace OpenMS
         if (store_to_ini)
         {
           if (param_tmp.getValue(param_name).valueType() == DataValue::STRING_LIST)
+		      {
             param_tmp.setValue(param_name, StringList(output_files));
+		      }
           else
           {
-            if (output_files.size() > 1)
-              throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Multiple files were given to a param which supports only single files! ('" + param_name + "')");
+            if (output_files.size() > 1) throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Multiple files were given to a param which supports only single files! ('" + param_name + "')");
             param_tmp.setValue(param_name, String(output_files[0]));
           }
         }
         else
+        {
           args << output_files;
+        }
       }
 
       // each iteration might have different params (input/output items which are registered in subsections (GenericWrapper stuff))
@@ -839,26 +842,35 @@ namespace OpenMS
 
     // look for the input with the most files in round 0 (as this is the maximal number of output files we can produce)
     // we assume the number of files is equal in all rounds...
-    // however, we upstream nodes which use 'recycling' of input, as the names will always be the same
+    // however, we delay using nodes which use 'recycling' of input, as the names will always be the same
+    //          only iff a recycling node gives the most input files we use its names
     int max_size_index = -1;
     int max_size = -1;
-    for (RoundPackageConstIt it  = pkg[0].begin();
-         it != pkg[0].end();
-         ++it)
+    for (int use_recycling=0; use_recycling < 2; ++use_recycling)
     {
-      if (it->second.filenames.size() > max_size && !it->second.edge->getSourceVertex()->isRecyclingEnabled())
+      for (RoundPackageConstIt it  = pkg[0].begin();
+           it != pkg[0].end();
+           ++it)
       {
-        max_size_index = it->first;
-        max_size       = it->second.filenames.size();
+        if (use_recycling==0 && (it->second.edge->getSourceVertex()->isRecyclingEnabled()))
+        { // first test all input nodes with disabled recycling
+          continue;
+        }
+        if (it->second.filenames.size() > max_size)
+        {
+          max_size_index = it->first;
+          max_size       = it->second.filenames.size();
+        }
+      }
+
+      if (max_size_index == -1)
+      {
+        error_msg = "Did not find upstream nodes with unrecycled names. Something is fishy!\n";
+        std::cerr << error_msg;
+        return false;
       }
     }
 
-    if (max_size_index == -1)
-    {
-      error_msg = "Did not find upstream nodes with unrecycled names. Something is fishy!\n";
-      std::cerr << error_msg;
-      return false;
-    }
 
     // use input names from the selected upstream vertex (hoping that this is the maximal number of files we are going to produce)
     std::vector<QStringList> per_round_basenames;
@@ -895,7 +907,9 @@ namespace OpenMS
         }
       }
       if (!found)
+      {
         continue;
+      }
 
       // store edge for this param for all rounds
       for (Size r = 0; r < per_round_basenames.size(); ++r)
