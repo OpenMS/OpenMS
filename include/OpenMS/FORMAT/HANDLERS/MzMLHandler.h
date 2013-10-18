@@ -87,8 +87,8 @@ namespace OpenMS
 
   namespace MzMLHandlerHelper
   {
-    String getCompressionTerm_(const PeakFileOptions& opt, MSNumpressCoder::NumpressConfig np_compression, bool use_numpress = false);
-    void writeFooter_(std::ostream& os, const PeakFileOptions& options_,
+    OPENMS_DLLAPI String getCompressionTerm_(const PeakFileOptions& opt, MSNumpressCoder::NumpressConfig np_compression, bool use_numpress = false);
+    OPENMS_DLLAPI void writeFooter_(std::ostream& os, const PeakFileOptions& options_,
       std::vector< std::pair<std::string, long> > & spectra_offsets,
       std::vector< std::pair<std::string, long> > & chromatograms_offsets
     );

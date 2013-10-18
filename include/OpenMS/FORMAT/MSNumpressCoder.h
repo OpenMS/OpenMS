@@ -62,7 +62,7 @@ public:
 
       Contains configuration options for ms numpress
     */
-    struct NumpressConfig 
+    struct OPENMS_DLLAPI NumpressConfig 
     {
       double numpressFixedPoint;  /// fixed point for numpress algorithms
       double numpressErrorTolerance;  /// check error tolerance after encoding, guarantee abs(1.0-(encoded/decoded)) <= this, 0=do not guarantee anything
@@ -115,8 +115,8 @@ public:
     void encodeNP(std::vector<float> & in, String & result,
         bool zlib_compression, NumpressConfig config)
     {
-      std::vector<float> dvector(in);
-      encodeNP(in, result, zlib_compression, config);
+      std::vector<double> dvector(in.begin(), in.end());
+      encodeNP(dvector, result, zlib_compression, config);
     }
 
     /**
