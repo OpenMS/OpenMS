@@ -122,6 +122,7 @@ using namespace std;
   Allowed tokens are:
   <ul>
   <li>%TMP  --> The current temp directory, fetched using File::getTempDirectory()
+  <li>%DIR --> directory prefix, e.g.:, c:/tmp/mzfile.mzML gives 'c:/tmp'
   <li>%BASENAME[file] --> the basename of a file, e.g. c:/tmp/myfile.mzML gives 'myfile'
   <li>%RND --> generates a long random number, which can be used to generate unique filenames in a &lt;file_pre&gt; tag
   <li>%WORKINGDIR --> expands to the current working directory (default is '.'), settable by &lt;workingdirectory&gt; tag in the .ttd file.
@@ -213,6 +214,9 @@ protected:
 
   void createFragment_(String & fragment, const Param & param)
   {
+
+    //std::cerr << "FRAGMENT: " << fragment << "\n\n";
+
     // e.g.:  -input %BASENAME[%%in].mzML
 
     // we have to make this little detour param -> vector<String>
@@ -230,9 +234,15 @@ protected:
     std::sort(param_names.begin(), param_names.end(), reverseComparator(StringSizeLess()));
 
     // iterate through all input params and replace with values:
+    SignedSize allowed_percent(0); // filenames might contain '%', which are allowed to remain there (and even must remain)
     for (vector<String>::iterator it = param_names.begin(); it != param_names.end(); ++it)
     {
-      fragment.substitute("%%" + *it, paramToString_(param.getEntry(*it)));
+      if (!fragment.hasSubstring("%%" + *it)) continue;
+
+      String s_new = paramToString_(param.getEntry(*it));
+      allowed_percent += s_new.length() - String(s_new).substitute("%", "").length();
+      //std::cerr << "IN: " << s_new << "(" << allowed_percent << "\n";
+      fragment.substitute("%%" + *it, s_new);
     }
     if (fragment.hasSubstring("%%")) throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid '%%' found in '" + fragment + "' after replacing all parameters!", fragment);
 
@@ -245,21 +255,53 @@ protected:
     // %WORKINGDIR replace:
     fragment.substitute("%WORKINGDIR", tde_.working_directory);
 
-    // %BASENAME% replace
-    QRegExp rx("%BASENAME\\[(.*)\\]");
-    rx.setMinimal(true);
-    int pos = 0;
-    QString t_tmp = fragment.toQString();
-    while ((pos = rx.indexIn(t_tmp, pos + 1)) != -1)
+    // %DIR% replace
     {
-      //std::cout << "match @ " << pos << "\n";
-      String value = rx.cap(1);   // paramname (hopefully)
-      // replace in fragment:
-      QFileInfo qfi(value.toQString());
-      fragment.substitute("%BASENAME[" + value + "]", qfi.baseName());
+      QRegExp rx("%DIR\\[(.*)\\]");
+      rx.setMinimal(true);
+      int pos = 0;
+      QString t_tmp = fragment.toQString();
+      //std::cout << "fragment is:" << fragment << std::endl;
+      while ((pos = rx.indexIn(t_tmp, pos)) != -1)
+      {
+        String value = rx.cap(1);   // param name (hopefully)
+        // replace in fragment:
+        QFileInfo qfi(value.toQString());
+        //std::cout << "match @ " << pos << " " << value << " --> " << qfi.canonicalPath() << "\n";
+        t_tmp = t_tmp.replace(String("%DIR[" + value + "]").toQString(), qfi.canonicalPath());
+      }
+      fragment = String(t_tmp);
+      //std::cout << "NEW fragment is:" << fragment << std::endl;
     }
 
-    if (fragment.has('%')) throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Mapping still contains a '%' after substitution! Did you use % instead of %%?", fragment);
+    // %BASENAME% replace
+    {
+      QRegExp rx("%BASENAME\\[(.*)\\]");
+      rx.setMinimal(true);
+      int pos = 0, count = 0;
+      QString t_tmp = fragment.toQString();
+      while ((pos = rx.indexIn(t_tmp, pos)) != -1)
+      {
+        //std::cout << "match @ " << pos << "\n";
+        String value = rx.cap(1);   // param name (hopefully)
+        // replace in fragment:
+        QFileInfo qfi(value.toQString());
+        //std::cout << "match @ " << pos << " " << value << " --> " << qfi.completeBaseName() << "\n";
+        t_tmp = t_tmp.replace(String("%BASENAME[" + value + "]").toQString(), qfi.completeBaseName());
+        ++count;
+      }
+      // update expected count of valid '%'
+      allowed_percent -= (fragment.length() - String(fragment).substitute("%", "").length()) // original # of %
+                         - (t_tmp.length() - String(t_tmp).substitute("%", "").length()) // new # of %
+                         - count; // expected # of % due to %BASENAME
+      fragment = String(t_tmp);
+    }
+
+    SignedSize diff = (fragment.length() - String(fragment).substitute("%", "").length()) - allowed_percent;
+    //std::cerr << "allowed: " << allowed_percent << "\n" << "diff: " << diff << " in: " << fragment << "\n";
+    if (diff > 0) throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Mapping still contains '%' after substitution! Did you use % instead of %%?", fragment);
+    else if (diff < 0) throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Error: '%' from a filename where accidentally considered command tags! "
+                                                                                              "This is a bug! Remove '%' from input filesnames to fix, but please report this as well!", fragment);
 
     //std::cout << fragment << "'\n";
   }
@@ -447,7 +489,7 @@ protected:
       {
         if (!File::remove(target_file))
         {
-          LOG_ERROR << "Cannot remove conflicting file '" + target_file + "'. Check permissions! Aborting ...";
+          LOG_ERROR << "Cannot remove conflicting file '" + target_file + "'. Check permissions! Aborting ..." << std::endl;
           return wrapExit(CANNOT_WRITE_OUTPUT_FILE);
         }
       }
@@ -456,7 +498,7 @@ protected:
       bool move_ok = QFile::rename(source.toQString(), target_file.toQString());
       if (!move_ok)
       {
-        LOG_ERROR << "Moving the target file '" + target_file + "' from '" + source + "' failed! Aborting ...";
+        LOG_ERROR << "Moving the target file '" + target_file + "' from '" + source + "' failed! Aborting ..." << std::endl;
         return wrapExit(CANNOT_WRITE_OUTPUT_FILE);
       }
     }
