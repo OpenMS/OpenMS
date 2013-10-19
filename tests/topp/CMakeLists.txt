@@ -34,15 +34,13 @@
 #       as output file.
 
 ### General settings
-set(TOPP_BIN_PATH ${OPENMS_BINARY_DIR})
-set(DATA_DIR_TOPP ${PROJECT_SOURCE_DIR}/TOPP)
-set(DATA_DIR_TOPP_BIN ${PROJECT_BINARY_DIR}/TOPP)
+set(TOPP_BIN_PATH ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+set(DATA_DIR_TOPP ${PROJECT_SOURCE_DIR})
+set(DATA_DIR_TOPP_BIN ${PROJECT_BINARY_DIR})
 set(DIFF ${TOPP_BIN_PATH}/FuzzyDiff -ini ${DATA_DIR_TOPP}/FuzzyDiff.ini)
 
 ## configure resource files (for TOPPAS/ExecutePipeline) - there is no other way to specify the input
-set (CONFIGURED_CONFIG_H ${PROJECT_BINARY_DIR}/include/OpenMS/config.h)
 configure_file(${DATA_DIR_TOPP}/ExecutePipeline_1.trf.in ${DATA_DIR_TOPP_BIN}/ExecutePipeline_1.trf)
-
 
 ### test if -write_wdsl works
 add_test("TOPP_WSDL_1" ${TOPP_BIN_PATH}/AdditiveSeries -write_wsdl WSDL_out.tmp)
