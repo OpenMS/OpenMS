@@ -33,11 +33,15 @@
 // --------------------------------------------------------------------------
 #include <OpenMS/config.h>
 
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/DATASTRUCTURES/StringList.h>
 #include <OpenMS/FORMAT/EDTAFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSChromatogram.h>
+#include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>
+#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
+#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
 
 #include <functional>
 #include <numeric>
@@ -71,38 +75,85 @@ using namespace std;
   Use this instead of FeatureFinder, if you have bad features  which are not recognized (much noise etc)
     or if you want to quantify non-peptides.
 
-	The EDTA file will specify where to search for signal.
-	Retention time is in seconds [s].
-	'int' and 'charge' are ignored but need to be present. However, you MUST specify a 'rank' column. Rows with equal rank are
-	summed up in intensity (e.g. useful if you have charge variants you want to sum up to enhance quantitation robustness).
-	Each rank represents a so called Master Compound, which constists of one or more sub compounds.
-	If you do not require ranks, give each row a unique number, e.g. start numbering from 1 to n.
+	The input EDTA file specifies where to search for signal in RT and m/z.
+	Retention time is in seconds [s]. A third intensity column is ignored but needs to be present.
+
+Example (replace space separator with &lt;TAB&gt;):<br>
+@code
+RT m/z int	
+19.2 431.85 0
+21.1 678.77 0
+25.7 660.76 0
+59.2 431.85 0
+@endcode
+
+  RT positions can also be automatically generated using the 'auto-RT' functionality, which can be enabled by the flag 'auto_rt:enabled'.
+  All EDTA input lines with negative RT and some m/z values are replaced by 'n' other lines, where the m/z value is identical
+  and the RT column is replaced by of the 'n' RT estimates as discovered by the auto-RT functionality.
+  This allows you to specify only the expected m/z positions and let the auto-RT function handle the RT positions.
+  Info: auto-RT positions are only generated once from the FIRST mzML input file. All other mzML input files are expected to
+        have similar RT positions!
+  To debug auto-RT, you can specify an mzML output file (see 'auto_rt:out_debug_TIC' option) which will contain four single spectra which represent:
+    1. the TIC (of the first mzML input file)
+    2. the smoothed version of #1
+    3. the signal/noise (S/N) ratio of #2
+    4. the centroided version of #2 (not #3!)
+  Since you can specify the smoothing aggressiveness using 'auto_rt:FHWM' and
+  the minimum S/N theshold for centroided using 'auto_rt:SNThreshold', this should give you all information needed to set the best parameters which fit your data.
+  Sensible default thresholds have been chosen though, such that adaption should only be required in extreme cases.
 
 	The intensity reported is the MAXIMUM intensity of all peaks each within the given tolerances for this row's position.
 
-Example:<br>
-    <pre>
-RT	m/z	int	charge	rank
-19.2	431.8599024	0	0	1
-21	678.7729237	0	0	2
-25	660.7629237	0	0	2
-59.2	431.8599024	0	0	3
-</pre>
+  As output, one file in text format is given. It contains the actual RT and m/z positions of the data,
+  as well as RT delta (in [s]) and m/z delta (in ppm) from the expected position as specified in the EDTA file or as found by the auto-RT feature.
 
-    Here, rows 2 and 3 will be summed up, as they have the same rank.
+<pre>
+  RT	 - RT position (in [s]) of the quantified entity
+  dRT	 - RT delta (in [s]) to the input RT value (as specified in input file or as computed by the auto-rt heuristic)
+  mz	 - m/z position of the quantified entity
+  dppm - m/z delta (in parts-per-million) to the input m/z value (as specified in input file) intensity	quantification (height of centroided peak)
+ </pre>
+  Each input experiment gives rise to these five columns. If multiple LC-MS maps are given each column-set is appended to the existing columns.
 
-    As output, two files in text format are given. The detail file gives RT and m/z deltas from expected to identified signal position etc, the sum file
-    represents the master compounds.
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_EICExtractor.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_EICExtractor.html
+  <B>The command line parameters of this tool are:</B>
+  @verbinclude TOPP_EICExtractor.cli
+  <B>INI file documentation of this tool:</B>
+  @htmlinclude TOPP_EICExtractor.html
 
 */
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
+
+
+struct HeaderInfo
+{
+  HeaderInfo(const String& filename)
+  {
+    header_description = "-- empty --";
+    TextFile tf;
+    tf.load(filename);
+    String content = tf.concatenate(";");
+
+    String search = "$$ Sample Description:";
+    Size pos = content.find(search);
+    if (pos != -1)
+    {
+      pos += search.size();
+      Size pos_end = content.find("$$", pos);
+      if (pos_end != -1)
+      {
+        String tmp = content.substr(pos, pos_end - pos - 1);
+        if (!tmp.trim().empty()) header_description = tmp;
+        //std::cerr << "Header info is: " << header_description << std::endl;
+      }
+    }
+  }
+
+  String header_description;
+  String filename;
+};
 
 
 class TOPPEICExtractor :
@@ -118,16 +169,45 @@ public:
   {
     registerInputFileList_("in", "<file>", StringList::create(""), "Input raw data file");
     setValidFormats_("in", StringList::create("mzML"));
+
+    registerInputFileList_("in_header", "<file>", StringList::create(""), "[for Waters data only] Read additional information from _HEADER.TXT. Provide one for each raw input file.", false);
+    setValidFormats_("in_header", StringList::create("txt"));
+
     registerInputFile_("pos", "<file>", "", "Input config file stating where to find signal");
     setValidFormats_("pos", StringList::create("edta"));
     registerDoubleOption_("rt_tol", "", 3, "RT tolerance in [s] for finding max peak (whole RT range around RT middle)", false, false);
     registerDoubleOption_("mz_tol", "", 10, "m/z tolerance in [ppm] for finding a peak", false, false);
     registerIntOption_("rt_collect", "", 1, "# of scans up & down in RT from highest point for ppm estimation in result", false, false);
-    registerOutputFile_("out", "<file>", "", "Output quantitation file (summed intensities by master compounds)");
-    setValidFormats_("out", StringList::create("txt"));
-    registerOutputFile_("out_detail", "<file>", "", "Output quantitation file");
-    setValidFormats_("out_detail", StringList::create("txt"));
+    
+    registerTOPPSubsection_("auto_rt", "Parameters for automatic detection of injection RT peaks (no need to specify them in 'pos' input file)");
+    registerFlag_("auto_rt:enabled", "Automatically detect injection peaks from TIC and quantify all m/z x RT combinations.");
+    registerDoubleOption_("auto_rt:FHWM", "<FWHM [s]>", 5, "Expected full width at half-maximum of each raw RT peak in [s]. Gaussian smoothing filter with this width is applied to TIC.", false, true);
+    registerDoubleOption_("auto_rt:SNThreshold", "<S/N>", 5, "S/N threshold for a smoothed raw peak to pass peak picking. Higher thesholds will result in less peaks.", false, true);
+    registerOutputFile_("auto_rt:out_debug_TIC", "<file>", "", "Optional output file (for first input) containing the smoothed TIC, S/N levels and picked RT positions", false, true);
+    setValidFormats_("auto_rt:out_debug_TIC", StringList::create("mzML"));
+
+    registerStringOption_("out_separator","<sep>",",","Separator character for output CSV file.", false, true);
+    //setValidStrings_("out_separator", StringList::create(",!\t! ", '!')); // comma not allowed as valid string
+
+    registerOutputFile_("out", "<file>", "", "Output quantitation file (multiple columns for each input compound)");
+    setValidFormats_("out", StringList::create("csv"));
   }
+
+  MSChromatogram<> toChromatogram(const MSSpectrum<>& in)
+  {
+    MSChromatogram<> out;
+    for (Size ic=0; ic<in.size();++ic)
+    {
+      ChromatogramPeak peak;
+      peak.setMZ(in[ic].getMZ());
+      peak.setIntensity(in[ic].getIntensity());
+      out.push_back(peak);
+    }
+    out.setChromatogramType(ChromatogramSettings::SELECTED_ION_CURRENT_CHROMATOGRAM);
+
+    return out;
+  }
+
 
   ExitCodes main_(int, const char **)
   {
@@ -137,7 +217,31 @@ public:
     StringList in = getStringList_("in");
     String edta = getStringOption_("pos");
     String out = getStringOption_("out");
-    String out_detail = getStringOption_("out_detail");
+    String out_sep = getStringOption_("out_separator");
+    String out_TIC_debug = getStringOption_("auto_rt:out_debug_TIC");
+    
+    StringList in_header = getStringList_("in_header");
+    
+
+    // number of out_debug_TIC files and input files must be identical
+    /*if (out_TIC_debug.size() > 0 && in.size() != out_TIC_debug.size())
+    {
+        LOG_FATAL_ERROR << "Error: number of input file 'in' and auto_rt:out_debug_TIC files must be identical!" << std::endl;
+        return ILLEGAL_PARAMETERS;
+    }*/
+
+    // number of header files and input files must be identical
+    if (in_header.size() > 0 && in.size() != in_header.size())
+    {
+        LOG_FATAL_ERROR << "Error: number of input file 'in' and 'in_header' files must be identical!" << std::endl;
+        return ILLEGAL_PARAMETERS;
+    }
+
+    if (!getFlag_("auto_rt:enabled") && !out_TIC_debug.empty())
+    {
+      LOG_FATAL_ERROR << "Error: TIC output file requested, but auto_rt is not enabled! Either do not request the file or switch on 'auto_rt:enabled'." << std::endl;
+      return ILLEGAL_PARAMETERS;
+    }
 
     DoubleReal rttol = getDoubleOption_("rt_tol");
     DoubleReal mztol = getDoubleOption_("mz_tol");
@@ -148,64 +252,154 @@ public:
     //-------------------------------------------------------------
     MzMLFile mzml_file;
     mzml_file.setLogType(log_type_);
-    MSExperiment<Peak1D> exp;
+    MSExperiment<Peak1D> exp, exp_pp;
 
     EDTAFile ed;
     ConsensusMap cm;
     ed.load(edta, cm);
 
-    TextFile tf_master;   // one line per master-compound, one intensity column per experiment
-    TextFile tf_single;   // one line for each compound, three columns for each experiment
+    StringList tf_single_header0, tf_single_header1, tf_single_header2; // header content, for each column
 
-    tf_master.resize(1);   // for header line
-    tf_single.resize(cm.size() + 2); // two header lines: #1 for filenames; #2 for dRT,ppm, intensity
-    tf_single[0] = "#filenames";
-    tf_single[1] = "rank";
-    for (Size i = 0; i < cm.size(); ++i)
-    {
-      if (!cm[i].metaValueExists("rank"))
-      {
-        LOG_FATAL_ERROR << "Required column 'rank' not found in EDTA file. Aborting ...\n";
-        return ILLEGAL_PARAMETERS;
-      }
-      Size rank;
-      try
-      {
-        rank = String(cm[i].getMetaValue("rank")).toInt();
-      }
-      catch (Exception::ConversionError & /*e*/)
-      {
-        LOG_FATAL_ERROR << "Entry in column 'rank' (line " << i << ") is not a valid integer! Aborting ...\n";
-        return ILLEGAL_PARAMETERS;
-      }
-      tf_single[i + 2] += rank; // rank column before first experiment
-    }
-
+    TextFile tf_single;   // one line for each compound, multiple columns per experiment
+    tf_single.resize(cm.size());
     for (Size fi = 0; fi < in.size(); ++fi)
     {
+      // load raw data
       mzml_file.load(in[fi], exp);
+      exp.sortSpectra(true);
 
       if (exp.empty())
       {
         LOG_WARN << "The given file does not contain any conventional peak data, but might"
-                    " contain chromatograms. This tool currently cannot handle them, sorry.";
+                    " contain chromatograms. This tool currently cannot handle them, sorry." << std::endl;
         return INCOMPATIBLE_INPUT_DATA;
       }
 
-      // important, since AreaIterator below depends on sorted data
-      exp.sortSpectra(true);
+      // try to detect RT peaks (only for the first input file -- all others should align!)
+      // cm.size() might change in here...
+      if (getFlag_("auto_rt:enabled") && fi==0)
+      {
+        ConsensusMap cm_local = cm; // we might have different RT peaks for each map if 'auto_rt' is enabled
+        cm.clear(false); // reset global list (about to be filled)
 
-      Map<Size, DoubleReal> quant;
+        // compute TIC
+        MSChromatogram<> tic = exp.getTIC();
+        MSSpectrum<> tics, tic_gf, tics_pp, tics_sn;
+        for (Size ic=0; ic<tic.size(); ++ic)
+        { // rewrite Chromatogram to MSSpectrum (GaussFilter requires it)
+          Peak1D peak;
+          peak.setMZ(tic[ic].getRT());
+          peak.setIntensity(tic[ic].getIntensity());
+          tics.push_back(peak);
+        }
+        // smooth (no PP_CWT here due to efficiency reasons -- large FWHM take longer!)
+        DoubleReal fwhm = getDoubleOption_("auto_rt:FHWM");
+        GaussFilter gf;
+        Param p = gf.getParameters();
+        p.setValue("gaussian_width", fwhm*2); // wider than FWHM, just to be sure we have a fully smoothed peak. Merging two peaks is unlikely
+        p.setValue("use_ppm_tolerance", "false");
+        gf.setParameters(p);
+        tic_gf = tics;
+        gf.filter(tic_gf);
+        // pick peaks
+        PeakPickerHiRes pp;
+        p = pp.getParameters();
+        p.setValue("signal_to_noise", getDoubleOption_("auto_rt:SNThreshold"));
+        pp.setParameters(p);
+        pp.pick(tic_gf, tics_pp);
 
-      tf_single[0] += "\t" + File::basename(in[fi]) + "\t\t";
-      tf_single[1] += "\tdRT\tppm\tint";
+        if (tics_pp.size()) 
+        {
+          LOG_INFO << "Found " << tics_pp.size() << " auto-rt peaks at: ";
+          for (Size ipp=0;ipp!=tics_pp.size();++ipp) LOG_INFO << " " << tics_pp[ipp].getMZ();
+        } 
+        else
+        {
+          LOG_INFO << "Found no auto-rt peaks. Change threshold parameters!";
+        }
+        LOG_INFO << std::endl;
+
+        if (!out_TIC_debug.empty()) // if debug file was given
+        { // store intermediate steps for debug
+          MSExperiment<> out_debug;
+          out_debug.addChromatogram(toChromatogram(tics));
+          out_debug.addChromatogram(toChromatogram(tic_gf));
+  
+          SignalToNoiseEstimatorMedian<MSSpectrum<> > snt;
+          snt.init(tics);
+          for (Size is=0; is<tics.size(); ++is) 
+          {
+            Peak1D peak;
+            peak.setMZ(tic[is].getMZ());
+            peak.setIntensity(snt.getSignalToNoise(tics[is]));
+            tics_sn.push_back(peak);
+          }
+          out_debug.addChromatogram(toChromatogram(tics_sn));
+
+          out_debug.addChromatogram(toChromatogram(tics_pp));
+          // get rid of "native-id" missing warning
+          for (Size id=0; id<out_debug.size(); ++id) out_debug[id].setNativeID(String("spectrum=")+id);
+
+          mzml_file.store(out_TIC_debug, out_debug);
+          LOG_DEBUG << "Storing debug AUTO-RT: " << out_TIC_debug << std::endl;
+        }
+
+        // add target EICs: for each m/z with no/negative RT, add all combinations of that m/z with auto-RTs
+        // duplicate m/z entries will be ignored!
+        // all other lines with positive RT values are copied unaffected
+        //do not allow doubles
+        std::set <DoubleReal> mz_doubles;
+        for (ConsensusMap::Iterator cit = cm_local.begin(); cit != cm_local.end(); ++cit)
+        {
+          if (cit->getRT() < 0)
+          {
+            if (mz_doubles.find(cit->getMZ()) == mz_doubles.end())
+            {
+                mz_doubles.insert(cit->getMZ());
+            }
+            else
+            {
+                LOG_INFO << "Found duplicate m/z entry (" << cit->getMZ() << ") for auto-rt. Skipping ..." << std::endl;
+                continue;
+            }
+
+            ConsensusMap cm_RT_multiplex;
+            for (MSSpectrum<>::ConstIterator itp=tics_pp.begin(); itp!=tics_pp.end(); ++itp)
+            {
+                ConsensusFeature f = *cit;
+                f.setRT(itp->getMZ());
+                cm.push_back(f);
+            }
+
+          }
+          else
+          { // default feature with no auto-rt
+              LOG_INFO << "copying feature with RT " << cit->getRT() << std::endl;
+              cm.push_back(*cit);
+          }
+        }
+
+        // resize, since we have more positions now
+        tf_single.resize(cm.size());
+      }
+
 
       // search for each EIC and add up
       Int not_found(0);
+      Map<Size, DoubleReal> quant;
+
+      tf_single_header0 << File::basename(in[fi]) << "" << "" << "" << "";
+      String description;
+      if (fi < in_header.size()) 
+      {
+        HeaderInfo info(in_header[fi]);
+        description = info.header_description;
+      }
+      tf_single_header1 << description << "" << "" << "" << "";
+      tf_single_header2 << "RT" << "dRT" << "mz" << "dppm" << "intensity";
+ 
       for (Size i = 0; i < cm.size(); ++i)
       {
-        Size rank = String(cm[i].getMetaValue("rank")).toInt();
-
         //std::cerr << "Rt" << cm[i].getRT() << "  mz: " << cm[i].getMZ() << " R " <<  cm[i].getMetaValue("rank") << "\n";
 
         DoubleReal mz_da = mztol * cm[i].getMZ() / 1e6; // mz tolerance in Dalton
@@ -227,7 +421,6 @@ public:
           }
         }
         DoubleReal ppm = 0;   // observed m/z offset
-        DoubleReal q = 0; // result of quantitation to store
 
         if (max_peak.getIntensity() == 0)
         {
@@ -256,69 +449,33 @@ public:
             ppm = (avg_mz - cm[i].getMZ()) / cm[i].getMZ() * 1e6;
           }
 
-          // intensity:
-          q = max_peak.getIntensity();   // max peak
-/*
-            // .. + left & right shoulders
-            Int rt_shape_check = 50;
-            std::vector< std::pair < DoubleReal, DoubleReal > > rt_shape_left, rt_shape_right;
-            low = std::min<SignedSize>(std::distance(exp.begin(), itm), rt_shape_check);
-            high = std::min<SignedSize>(std::distance(itm, exp.end())-1, rt_shape_check);
-            itt = exp.areaBegin( (itm - low)->getRT()-0.01, (itm + high)->getRT()+0.01, cm[i].getMZ()-mz_da, cm[i].getMZ()+mz_da);
-            for (; itt != exp.areaEnd(); ++itt)
-            {
-              if (itt.getRT() < max_peak.getRT()) rt_shape_left.push_back(make_pair(itt.getRT(), itt->getIntensity()));
-              if (itt.getRT() > max_peak.getRT()) rt_shape_right.push_back(make_pair(itt.getRT(), itt->getIntensity()));
-            }
-
-
-            if ((SignedSize)(rt_shape_left.size() + rt_shape_right.size()) > (low+high)) LOG_WARN << "Compound " << i << " has overlapping RT peaks [" << (rt_shape_left.size() + rt_shape_right.size())<< "/" << low+high << "]\n";
-            if ((rt_shape_left.size() + rt_shape_right.size()) > 0)
-            {
-              // go from RT max to left and right until 50% threshold reached
-              DoubleReal thresh = max_peak.getIntensity() * 0.1;
-              // go down shoulders:
-              for (std::vector< std::pair < DoubleReal, DoubleReal > >::const_reverse_iterator itp = rt_shape_left.rbegin(); itp != rt_shape_left.rend(); ++itp)
-              {
-                if (itp->second < thresh) break;
-                q += itp->second;
-                ++pcount;
-              }
-              for (std::vector< std::pair < DoubleReal, DoubleReal > >::const_iterator itp = rt_shape_right.begin(); itp != rt_shape_right.end(); ++itp)
-              {
-                if (itp->second < thresh) break;
-                q += itp->second;
-                ++pcount;
-              }
-            }
-*/
-
         }
 
-        quant[rank] += q;
+        // appending the second column set requires separator
+        String append_sep = (fi==0 ? "" : out_sep);
 
-        tf_single[i + 2] += "\t" + String(max_peak.getRT() - cm[i].getRT()) + "\t" + String(ppm)  + "\t" + String(q);
+        tf_single[i] += append_sep + 
+                        String(max_peak.getRT()) + out_sep +
+                        String(max_peak.getRT() - cm[i].getRT()) + out_sep +
+                        String(max_peak.getMZ()) + out_sep +
+                        String(ppm)  + out_sep +
+                        String(max_peak.getIntensity());
       }
 
       if (not_found) LOG_INFO << "Missing peaks for " << not_found << " compounds in file '" << in[fi] << "'.\n";
-
-      //-------------------------------------------------------------
-      // writing output
-      //-------------------------------------------------------------
-      if (fi != 0) tf_master[0] += "\t";
-      tf_master[0] += "sum_" + File::basename(in[fi]);
-      int line(0);
-      for (Map<Size, DoubleReal>::const_iterator it = quant.begin(); it != quant.end(); ++it)
-      {
-        String data = /*String(it->first) + "\t" +*/ String(it->second);
-        if (fi == 0) tf_master.push_back(data);
-        else tf_master[++line] += "\t" + data;
-      }
-
     }
 
-    tf_master.store(out);
-    tf_single.store(out_detail);
+    //-------------------------------------------------------------
+    // create header
+    //-------------------------------------------------------------
+    tf_single.insert(tf_single.begin(), tf_single_header2.concatenate(out_sep));
+    tf_single.insert(tf_single.begin(), tf_single_header1.concatenate(out_sep));
+    tf_single.insert(tf_single.begin(), tf_single_header0.concatenate(out_sep));
+
+    //-------------------------------------------------------------
+    // writing output
+    //-------------------------------------------------------------
+    tf_single.store(out);
 
     return EXECUTION_OK;
   }
