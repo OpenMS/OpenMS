@@ -134,9 +134,9 @@ protected:
 
 private slots:
     /// shows the horizontal projection with the given data and draw mode
-    void horizontalProjection(ExperimentSharedPtrType, Spectrum1DCanvas::DrawModes);
+    void horizontalProjection(ExperimentSharedPtrType exp);
     /// shows the vertical projection with the given data and draw mode
-    void verticalProjection(ExperimentSharedPtrType exp, Spectrum1DCanvas::DrawModes);
+    void verticalProjection(ExperimentSharedPtrType exp);
     /// shows projections information
     void projectionInfo(int peaks, double intensity, double max);
     /// slot that monitors the visible area changes and triggers the update of projections

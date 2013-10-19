@@ -603,7 +603,9 @@ namespace OpenMS
     if (!sanityCheck_(gui_))
     {
       if (!gui_)
+      {
         emit pipelineExecutionFailed();          // the user cannot interact. End processing.
+      }
       return;
     }
 

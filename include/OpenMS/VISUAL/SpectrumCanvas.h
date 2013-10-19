@@ -195,7 +195,7 @@ public:
 
         @return the current intensity mode
     */
-    inline Int getIntensityMode() const
+    inline IntensityModes getIntensityMode() const
     {
       return intensity_mode_;
     }

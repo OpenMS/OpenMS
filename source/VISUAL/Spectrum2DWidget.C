@@ -67,15 +67,39 @@ namespace OpenMS
     grid_->setColumnStretch(2, 3);
     grid_->setRowStretch(1, 3);
 
+    SpectrumCanvas::ExperimentType* dummy = new SpectrumCanvas::ExperimentType();
+    MSSpectrum<> dummy_spec;
+    dummy_spec.push_back(Peak1D());
+    dummy->addSpectrum(dummy_spec);
+    SpectrumCanvas::ExperimentSharedPtrType* shr_ptr = new SpectrumCanvas::ExperimentSharedPtrType(dummy);
+
     projection_vert_ = new  Spectrum1DWidget(Param(), this);
     projection_vert_->hide();
+    projection_vert_->canvas()->addLayer(*shr_ptr);
     grid_->addWidget(projection_vert_, 1, 3, 2, 1);
 
     projection_horz_ = new Spectrum1DWidget(Param(), this);
+    projection_horz_->canvas()->addLayer(*shr_ptr);
     projection_horz_->hide();
     grid_->addWidget(projection_horz_, 0, 1, 1, 2);
-    connect(canvas(), SIGNAL(showProjectionHorizontal(ExperimentSharedPtrType, Spectrum1DCanvas::DrawModes)), this, SLOT(horizontalProjection(ExperimentSharedPtrType, Spectrum1DCanvas::DrawModes)));
-    connect(canvas(), SIGNAL(showProjectionVertical(ExperimentSharedPtrType, Spectrum1DCanvas::DrawModes)), this, SLOT(verticalProjection(ExperimentSharedPtrType, Spectrum1DCanvas::DrawModes)));
+
+    if (canvas()->isMzToXAxis())
+    {
+      projection_horz_->canvas()->setDrawMode(Spectrum1DCanvas::DM_PEAKS);
+      projection_horz_->canvas()->setIntensityMode(SpectrumCanvas::IM_PERCENTAGE);
+      projection_vert_->canvas()->setDrawMode(Spectrum1DCanvas::DM_CONNECTEDLINES);
+      projection_vert_->canvas()->setIntensityMode(SpectrumCanvas::IM_SNAP);
+    }
+    else
+    {
+      projection_horz_->canvas()->setDrawMode(Spectrum1DCanvas::DM_CONNECTEDLINES);
+      projection_horz_->canvas()->setIntensityMode(SpectrumCanvas::IM_SNAP);
+      projection_vert_->canvas()->setDrawMode(Spectrum1DCanvas::DM_PEAKS);
+      projection_vert_->canvas()->setIntensityMode(SpectrumCanvas::IM_PERCENTAGE);
+    }
+
+    connect(canvas(), SIGNAL(showProjectionHorizontal(ExperimentSharedPtrType)), this, SLOT(horizontalProjection(ExperimentSharedPtrType)));
+    connect(canvas(), SIGNAL(showProjectionVertical(ExperimentSharedPtrType)), this, SLOT(verticalProjection(ExperimentSharedPtrType)));
     connect(canvas(), SIGNAL(showProjectionInfo(int, double, double)), this, SLOT(projectionInfo(int, double, double)));
     connect(canvas(), SIGNAL(toggleProjections()), this, SLOT(toggleProjections()));
     connect(canvas(), SIGNAL(visibleAreaChanged(DRange<2>)), this, SLOT(autoUpdateProjections()));
@@ -325,50 +349,34 @@ namespace OpenMS
     }
   }
 
-  void Spectrum2DWidget::horizontalProjection(ExperimentSharedPtrType exp, Spectrum1DCanvas::DrawModes mode)
+  void Spectrum2DWidget::horizontalProjection(ExperimentSharedPtrType exp)
   {
     projection_horz_->canvas()->mzToXAxis(true);     // determines the orientation of the data
     projection_horz_->canvas()->setSwappedAxis(canvas()->isMzToXAxis());
     projection_horz_->showLegend(false);
-    projection_horz_->canvas()->setIntensityMode(SpectrumCanvas::IM_PERCENTAGE);
-    if (!projectionsVisible() || projection_horz_->canvas()->getLayerCount() == 0)   //set draw mode
-    {
-      projection_horz_->canvas()->removeLayer(0);
-      projection_horz_->canvas()->addLayer(exp);
-      projection_horz_->canvas()->setDrawMode(mode);
-    }
-    else     //keep draw mode
-    {
-      Spectrum1DCanvas::DrawModes previous_mode = projection_horz_->canvas()->getDrawMode();
-      projection_horz_->canvas()->removeLayer(0);
-      projection_horz_->canvas()->addLayer(exp);
-      projection_horz_->canvas()->setDrawMode(previous_mode);
-    }
+
+    Spectrum1DCanvas::DrawModes mode = projection_horz_->canvas()->getDrawMode();
+    Spectrum1DCanvas::IntensityModes intensity = projection_horz_->canvas()->getIntensityMode();
+    projection_horz_->canvas()->removeLayer(0);
+    projection_horz_->canvas()->addLayer(exp);
+    projection_horz_->canvas()->setDrawMode(mode);
+    projection_horz_->canvas()->setIntensityMode(intensity);
     grid_->setColumnStretch(3, 2);
     projection_horz_->show();
     projection_box_->show();
   }
 
-  void Spectrum2DWidget::verticalProjection(ExperimentSharedPtrType exp, Spectrum1DCanvas::DrawModes mode)
+  void Spectrum2DWidget::verticalProjection(ExperimentSharedPtrType exp)
   {
     projection_vert_->canvas()->mzToXAxis(false);     // determines the orientation of the data
     projection_vert_->canvas()->setSwappedAxis(canvas()->isMzToXAxis());
     projection_vert_->showLegend(false);
-    projection_vert_->canvas()->setIntensityMode(SpectrumCanvas::IM_PERCENTAGE);
-    // todo: why would we want to retain the old draw mode (same in horizontalProjection)??
-    if (!projectionsVisible() || projection_vert_->canvas()->getLayerCount() == 0)   //set draw mode
-    {
-      projection_vert_->canvas()->removeLayer(0);
-      projection_vert_->canvas()->addLayer(exp);
-      projection_vert_->canvas()->setDrawMode(mode);
-    }
-    else     //keep draw mode
-    {
-      Spectrum1DCanvas::DrawModes previous_mode = projection_vert_->canvas()->getDrawMode();
-      projection_vert_->canvas()->removeLayer(0);
-      projection_vert_->canvas()->addLayer(exp);
-      projection_vert_->canvas()->setDrawMode(previous_mode);
-    }
+    Spectrum1DCanvas::DrawModes mode = projection_vert_->canvas()->getDrawMode();
+    Spectrum1DCanvas::IntensityModes intensity = projection_vert_->canvas()->getIntensityMode();
+    projection_vert_->canvas()->removeLayer(0);
+    projection_vert_->canvas()->addLayer(exp);
+    projection_vert_->canvas()->setDrawMode(mode);
+    projection_vert_->canvas()->setIntensityMode(intensity);
     grid_->setRowStretch(0, 2);
     projection_vert_->show();
     projection_box_->show();

@@ -1339,7 +1339,8 @@ namespace OpenMS
       QMenu * settings_menu = new QMenu("Settings");
       settings_menu->addAction("Show/hide grid lines");
       settings_menu->addAction("Show/hide axis legends");
-      settings_menu->addAction("Show as raw data/peaks");
+      settings_menu->addAction("Style: Stick <--> Area");
+      settings_menu->addAction("Intensity: Absolute <--> Percent");
       settings_menu->addSeparator();
       settings_menu->addAction("Preferences");
 
@@ -1383,15 +1384,26 @@ namespace OpenMS
         {
           spectrum_widget_->saveAsImage();
         }
-        else if (result->text() == "Show as raw data/peaks")
+        else if (result->text() == "Style: Stick <--> Area")
         {
-          if (getDrawMode() == DM_PEAKS)
+          if (getDrawMode() != DM_PEAKS)
           {
-            setDrawMode(DM_CONNECTEDLINES);
+            setDrawMode(DM_PEAKS);
           }
           else
           {
-            setDrawMode(DM_PEAKS);
+            setDrawMode(DM_CONNECTEDLINES);
+          }
+        }
+        else if (result->text() == "Intensity: Absolute <--> Percent")
+        {
+          if (getIntensityMode() != IM_PERCENTAGE)
+          {
+            setIntensityMode(IM_PERCENTAGE);
+          }
+          else
+          {
+            setIntensityMode(IM_SNAP);
           }
         }
         else if (result->text() == "Layer meta data")

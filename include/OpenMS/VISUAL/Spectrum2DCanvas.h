@@ -96,9 +96,9 @@ public:
 
 signals:
     /// Sets the data for the horizontal projection
-    void showProjectionHorizontal(ExperimentSharedPtrType, Spectrum1DCanvas::DrawModes);
+    void showProjectionHorizontal(ExperimentSharedPtrType);
     /// Sets the data for the vertical projection
-    void showProjectionVertical(ExperimentSharedPtrType, Spectrum1DCanvas::DrawModes);
+    void showProjectionVertical(ExperimentSharedPtrType);
     /// Shows the number of peaks and the intensity sum of the projection
     void showProjectionInfo(int, double, double);
     /// Signal emitted when the projections are to be shown/hidden
@@ -122,19 +122,19 @@ public slots:
     virtual void verticalScrollBarChange(int value);
 
     /**
-      @brief Updates the projection data and emits some related signals.
+    @brief Updates the projection data and emits some related signals.
 
-      Emitted signals are showProjectionHorizontal(ExperimentSharedPtrType, Spectrum1DCanvas::DrawModes) and
-      showProjectionVertical(ExperimentSharedPtrType, Spectrum1DCanvas::DrawModes).
+    Emitted signals are showProjectionHorizontal(ExperimentSharedPtrType, Spectrum1DCanvas::DrawModes, SpectrumCanvas::IntensityModes) and
+    showProjectionVertical(ExperimentSharedPtrType, Spectrum1DCanvas::DrawModes, SpectrumCanvas::IntensityModes).
 
-      @see projection_mz_
-      @see projection_rt_
+    @see projection_mz_
+    @see projection_rt_
     */
     void updateProjections();
 
 protected slots:
 
-    /// Reacts on changed layer paramters
+    /// Reacts on changed layer parameters
     void currentLayerParametersChanged_();
 
 protected:

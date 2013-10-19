@@ -1165,13 +1165,13 @@ namespace OpenMS
 
     if (isMzToXAxis())
     {
-      emit showProjectionHorizontal(projection_mz_sptr, Spectrum1DCanvas::DM_PEAKS);
-      emit showProjectionVertical(projection_rt_sptr, Spectrum1DCanvas::DM_CONNECTEDLINES);
+      emit showProjectionHorizontal(projection_mz_sptr);
+      emit showProjectionVertical(projection_rt_sptr);
     }
     else
     {
-      emit showProjectionHorizontal(projection_rt_sptr, Spectrum1DCanvas::DM_CONNECTEDLINES);
-      emit showProjectionVertical(projection_mz_sptr, Spectrum1DCanvas::DM_PEAKS);
+      emit showProjectionHorizontal(projection_rt_sptr);
+      emit showProjectionVertical(projection_mz_sptr);
     }
     showProjectionInfo(peak_count, intensity_sum, intensity_max);
   }
