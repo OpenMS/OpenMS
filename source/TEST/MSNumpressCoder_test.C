@@ -41,7 +41,7 @@
 ///////////////////////////
 
 #include <OpenMS/CONCEPT/Types.h>
-#include <math.h>       /* pow */
+#include <cmath>       /* pow */
 
 using namespace std;
 
@@ -100,7 +100,7 @@ std::vector< double > setup_test_vec2()
   for (int i = 0; i < 100; i++)
   {
     // compute a value 100 + i + i * exp(10, -i%10 -1)
-    double val = 400 + i + i * pow(10, -i%10 -1);
+    double val = 400 + i + i * pow(10.0, -i%10 -1);
     in.push_back(val);
     // std::cout << val << "\t\t\t10^" << -i%10 -1 <<std::endl;
   }
@@ -112,7 +112,7 @@ bool check_vec2_abs(std::vector<double> vec, double eps)
   if (vec.size() != 100) return false;
   for (int i = 0; i < 100; i++)
   {
-    double val = 400 + i + i * pow(10, -i%10 -1);
+    double val = 400 + i + i * pow(10.0, -i%10 -1);
     //std::cout << val << "\t\t\tvs " << vec[i] << " diff " << fabs(val-vec[i])<<std::endl;
     if (fabs(val - vec[i]) > eps) return false;
   }
@@ -124,7 +124,7 @@ bool check_vec2_rel(std::vector<double> vec, double eps)
   if (vec.size() != 100) return false;
   for (int i = 0; i < 100; i++)
   {
-    double val = 400 + i + i * pow(10, -i%10 -1);
+    double val = 400 + i + i * pow(10.0, -i%10 -1);
     double ratio = val / vec[i];
     if (ratio < 1.0) ratio = vec[i] / val;
     //std::cout << val << "\t\t\tvs " << vec[i] << " ratio " << val/vec[i]<<std::endl;
