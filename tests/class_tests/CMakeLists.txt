@@ -182,7 +182,7 @@ add_dependencies(VISUAL_TEST ${visual_executables_list})
 #------------------------------------------------------------------------------
 # Add the actual tests
 foreach(i ${TEST_executables})
-	add_executable(${i} ${i}.C)
+	add_executable(${i} source/${i}.C)
 	target_link_libraries(${i} ${OPENMS_LIBRARIES})
 	add_test(${i} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${i})
 	# only add OPENMP flags to gcc linker (execpt Mac OS X, due to compiler bug
@@ -211,7 +211,7 @@ QT4_WRAP_CPP(mocced_GUI_executables_list_C ${GUI_executables_list_C} OPTIONS ${B
 
 foreach(i ${GUI_executables_list})
 	SET_SOURCE_FILES_PROPERTIES(GUI/${i}.C PROPERTIES OBJECT_DEPENDS ${mocced_GUI_executables_list_C})
-	add_executable(${i} GUI/${i}.C)
+	add_executable(${i} source/GUI/${i}.C)
 	target_link_libraries(${i} ${OPENMS_GUI_LIBRARIES})
 	add_test(${i} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${i})
 	# only add OPENMP flags to gcc linker (execpt Mac OS X, due to compiler bug
