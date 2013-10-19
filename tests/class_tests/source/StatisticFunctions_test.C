@@ -41,6 +41,7 @@
 ///////////////////////////
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/test_config.h>
 
 using namespace OpenMS;
 using namespace OpenMS::Math;

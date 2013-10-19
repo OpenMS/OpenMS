@@ -11,8 +11,6 @@ else()
 endif()
 
 
-set(CF_OPENMS_TEST_DATA_PATH ${OPENMS_HOST_DIRECTORY}/openms/source/TEST/data/ CACHE INTERNAL "Path to the test data")
-
 ## check for Microsoft Visual Studio compiler
 if (MSVC)
 	set(OPENMS_COMPILER_MSVC "1" CACHE INTERNAL "Do we use Microsoft Compiler?")

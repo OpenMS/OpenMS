@@ -40,6 +40,7 @@
 #include <vector>
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/test_config.h>
 #include <OpenMS/KERNEL/ComparatorUtils.h>
 
 

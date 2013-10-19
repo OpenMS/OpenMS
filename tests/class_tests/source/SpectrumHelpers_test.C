@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/test_config.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/SpectrumHelpers.h>
 #include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/MockObjects.h"
@@ -93,10 +94,10 @@ START_SECTION ( [EXTRA] testscorefunction)
   TEST_REAL_SIMILAR(intensityres,273 );
 
 
-  // >>> exp = [240, 74, 39, 15, 0] >> 121 / 500.338842975207
-  // >>> theo = [1, 0.325757771553019, 0.0678711748364005, 0.0105918703087134, 0.00134955223787482]
-  // >>> from scipy.stats.stats import pearsonr
-  // >>> pearsonr(exp, theo)
+  // >> exp = [240, 74, 39, 15, 0] > 121 / 500.338842975207
+  // >> theo = [1, 0.325757771553019, 0.0678711748364005, 0.0105918703087134, 0.00134955223787482]
+  // >> from scipy.stats.stats import pearsonr
+  // >> pearsonr(exp, theo)
   // (0.99463189043051314, 0.00047175434098498532)
   //
   OpenSwath::integrateWindow(sptr,499.6,501.4,mzres, intensityres);

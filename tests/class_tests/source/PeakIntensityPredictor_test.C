@@ -34,6 +34,7 @@
 //
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/test_config.h>
 #include <OpenMS/ANALYSIS/PIP/PeakIntensityPredictor.h>
 
 using namespace OpenMS;

@@ -61,6 +61,12 @@ set(_TMP_CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
 
 #------------------------------------------------------------------------------
+# Configure test file to get the TEST_DATA_PATH into the tests
+set(CF_OPENMS_TEST_DATA_PATH "${PROJECT_SOURCE_DIR}/data/" CACHE INTERNAL "Path to the test data")
+set (CONFIGURED_TEST_CONFIG_H "${PROJECT_BINARY_DIR}/include/OpenMS/test_config.h")
+configure_file(${PROJECT_SOURCE_DIR}/include/OpenMS/test_config.h.in ${CONFIGURED_TEST_CONFIG_H})
+
+#------------------------------------------------------------------------------
 # Copy dlls to test executables dir
 if(MSVC)
   get_target_property(WIN32_DLLLOCATION OpenMS LOCATION)
@@ -94,8 +100,11 @@ include(executables.cmake)
 add_definitions(-DQT_GUI_LIB)
 
 #------------------------------------------------------------------------------
-# add OpenMS includes
-include_directories(${OPENMS_INCLUDE_DIRECTORIES})
+# Include directories for tests
+set(OPENMS_CLASS_TESTS_INCLUDE_DIRECTORIES "${PROJECT_BINARY_DIR}/include/")
+# add OpenMS directories
+set(OPENMS_CLASS_TESTS_INCLUDE_DIRECTORIES "${OPENMS_CLASS_TESTS_INCLUDE_DIRECTORIES};${OPENMS_INCLUDE_DIRECTORIES}")
+include_directories(${OPENMS_CLASS_TESTS_INCLUDE_DIRECTORIES})
 
 #------------------------------------------------------------------------------
 # disable optimization for tests for gcc like compilers

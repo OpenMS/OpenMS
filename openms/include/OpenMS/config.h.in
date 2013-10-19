@@ -175,9 +175,6 @@
 
 // class & TOPP tests
 #define DB_PLUGIN "@CF_QT_DB_PLUGIN@"
-// Macro to construct a c string containing the complete path to the test data
-#define OPENMS_GET_TEST_DATA_PATH(filename) (std::string("@CF_OPENMS_TEST_DATA_PATH@") + filename).c_str()
-#define OPENMS_GET_TEST_DATA_PATH_MESSAGE(prefix,filename,suffix) (prefix + std::string("@CF_OPENMS_TEST_DATA_PATH@") + filename + suffix).c_str()
 
 #ifdef _OPENMP
   #define IF_MASTERTHREAD if (omp_get_thread_num() ==0)  

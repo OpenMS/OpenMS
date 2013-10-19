@@ -32,6 +32,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/test_config.h>
 
 ///////////////////////////
 #include <OpenMS/DATASTRUCTURES/Adduct.h>

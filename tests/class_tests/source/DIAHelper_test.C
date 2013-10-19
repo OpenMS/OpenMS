@@ -51,6 +51,7 @@
 #include <iomanip>
 #else
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/test_config.h>
 #endif
 
 #include <iterator>

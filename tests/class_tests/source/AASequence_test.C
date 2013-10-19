@@ -34,6 +34,7 @@
 //
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/test_config.h>
 
 ///////////////////////////
 
@@ -426,7 +427,7 @@ END_SECTION
 //  // TODO
 //END_SECTION
 
-//START_SECTION(friend std::istream& operator >> (std::istream& is, const AASequence& peptide))
+//START_SECTION(friend std::istream& operator > (std::istream& is, const AASequence& peptide))
 //  // TODO
 //END_SECTION
 

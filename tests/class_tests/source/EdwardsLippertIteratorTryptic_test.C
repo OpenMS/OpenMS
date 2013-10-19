@@ -39,6 +39,7 @@ Besides we test if every result is the product of a tryptic cleavage.
 */
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/test_config.h>
 #include <OpenMS/FORMAT/FastaIterator.h>
 ///////////////////////////
 #include <OpenMS/CHEMISTRY/EdwardsLippertIteratorTryptic.h>

@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/test_config.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAHelper.h>
@@ -192,10 +193,10 @@ START_SECTION([EXTRA] forward void dia_isotope_scores(const std::vector<Transiti
   diascoring.set_dia_parameters(0.05, false, 30, 50, 4, 4); // here we use 50 ppm and a cutoff of 30 in intensity 
   double isotope_corr = 0, isotope_overlap = 0;
   diascoring.dia_isotope_scores(transitions, sptr, imrmfeature_test, isotope_corr, isotope_overlap);
-  // >>> exp = [240, 74, 39, 15, 0]
-  // >>> theo = [1, 0.325757771553019, 0.0678711748364005, 0.0105918703087134, 0.00134955223787482]
-  // >>> from scipy.stats.stats import pearsonr
-  // >>> pearsonr(exp, theo)
+  // >> exp = [240, 74, 39, 15, 0]
+  // >> theo = [1, 0.325757771553019, 0.0678711748364005, 0.0105918703087134, 0.00134955223787482]
+  // >> from scipy.stats.stats import pearsonr
+  // >> pearsonr(exp, theo)
   // (0.99463189043051314, 0.00047175434098498532)
   //
   TEST_REAL_SIMILAR(isotope_corr, 0.995361286111832)
@@ -254,10 +255,10 @@ START_SECTION([EXTRA] backward void dia_isotope_scores(const std::vector<Transit
   double isotope_corr = 0, isotope_overlap = 0;
   diascoring.dia_isotope_scores(transitions, sptr, imrmfeature_test, isotope_corr, isotope_overlap);
 
-  // >>> exp = [74, 39, 15, 0, 0]
-  // >>> theo = [1, 0.266799519434277, 0.0486475002325161, 0.0066525896497495, 0.000747236543377621]
-  // >>> from scipy.stats.stats import pearsonr
-  // >>> pearsonr(exp, theo)
+  // >> exp = [74, 39, 15, 0, 0]
+  // >> theo = [1, 0.266799519434277, 0.0486475002325161, 0.0066525896497495, 0.000747236543377621]
+  // >> from scipy.stats.stats import pearsonr
+  // >> pearsonr(exp, theo)
   // (0.959570883150479, 0.0096989307464742554)
   // there is one peak (this one) which has an overlap in isotopes
 
