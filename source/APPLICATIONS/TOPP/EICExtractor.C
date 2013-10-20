@@ -108,12 +108,16 @@ RT m/z int
   as well as RT delta (in [s]) and m/z delta (in ppm) from the expected position as specified in the EDTA file or as found by the auto-RT feature.
 
 <pre>
-  RT	 - RT position (in [s]) of the quantified entity
-  dRT	 - RT delta (in [s]) to the input RT value (as specified in input file or as computed by the auto-rt heuristic)
-  mz	 - m/z position of the quantified entity
-  dppm - m/z delta (in parts-per-million) to the input m/z value (as specified in input file) intensity	quantification (height of centroided peak)
+  RT	  - expected RT position (in [s])
+  mz    - expected m/z position
+  RTobs - RT position (in [s]) of the quantified entity
+  dRT	  - RT delta (in [s]) to the input RT value (as specified in input file or as computed by the auto-rt heuristic)
+  mzobs - m/z position of the quantified entity
+  dppm  - m/z delta (in parts-per-million) to the input m/z value (as specified in input file) intensity quantification (height of centroided peak); this is an average over multiple scans, thus does usually not correspond to the maximum peak ppm
+  intensity
  </pre>
-  Each input experiment gives rise to these five columns. If multiple LC-MS maps are given each column-set is appended to the existing columns.
+
+  Each input experiment gives rise to the two RT and mz columns plus additional five columns (starting from RTobs) for each input file.
 
 
   <B>The command line parameters of this tool are:</B>
@@ -388,15 +392,24 @@ public:
       Int not_found(0);
       Map<Size, DoubleReal> quant;
 
-      tf_single_header0 << File::basename(in[fi]) << "" << "" << "" << "";
       String description;
       if (fi < in_header.size()) 
       {
         HeaderInfo info(in_header[fi]);
         description = info.header_description;
       }
+
+      if (fi == 0)
+      { // two additional columns for first file (theoretical RT and m/z)
+        tf_single_header0 << "" << "";
+        tf_single_header1 << "" << "";
+        tf_single_header2 << "RT" << "mz";
+      }
+
+      // 5 entries for each input file
+      tf_single_header0 << File::basename(in[fi]) << "" << "" << "" << "";
       tf_single_header1 << description << "" << "" << "" << "";
-      tf_single_header2 << "RT" << "dRT" << "mz" << "dppm" << "intensity";
+      tf_single_header2 << "RTobs" << "dRT" << "mzobs" << "dppm" << "intensity";
  
       for (Size i = 0; i < cm.size(); ++i)
       {
@@ -453,9 +466,14 @@ public:
 
         // appending the second column set requires separator
         String append_sep = (fi==0 ? "" : out_sep);
-
-        tf_single[i] += append_sep + 
-                        String(max_peak.getRT()) + out_sep +
+        
+        tf_single[i] += append_sep; // new line
+        if (fi == 0)
+        {
+          tf_single[i] += String(cm[i].getRT()) + out_sep +
+                          String(cm[i].getMZ()) + out_sep;
+        }
+        tf_single[i] += String(max_peak.getRT()) + out_sep +
                         String(max_peak.getRT() - cm[i].getRT()) + out_sep +
                         String(max_peak.getMZ()) + out_sep +
                         String(ppm)  + out_sep +
