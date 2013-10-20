@@ -17,10 +17,6 @@
    limitations under the License.
  */
 
-#include <stdio.h>
-#include <stdint.h>
-#include <stdexcept>
-#include <vector>
 #include <iostream>
 #include <cmath>
 #include <OpenMS/MATH/MISC/MSNumpress.h>
