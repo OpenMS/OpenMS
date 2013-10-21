@@ -36,10 +36,13 @@
 #define OPENMS_ANALYSIS_OPENSWATH_TRANSITIONTSVREADER_H
 
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
+
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
+
 #include <fstream>
 
 namespace OpenMS
@@ -120,6 +123,8 @@ private:
     /// store a list of TSVTransition objects properly in a TargetedExperiment
     void TSVToTargetedExperiment_(std::vector<TSVTransition>& transition_list, OpenMS::TargetedExperiment& exp);
 
+    void TSVToTargetedExperiment_(std::vector<TSVTransition>& transition_list, OpenSwath::LightTargetedExperiment& exp);
+
     void createTransition_(std::vector<TSVTransition>::iterator& tr_it, OpenMS::ReactionMonitoringTransition& rm_trans);
 
     void createProtein_(std::vector<TSVTransition>::iterator& tr_it, OpenMS::TargetedExperiment::Protein& protein);
@@ -139,6 +144,9 @@ public:
 
     /// Read in a tsv file and construct a targeted experiment (TraML structure)
     void convertTSVToTargetedExperiment(const char* filename, OpenMS::TargetedExperiment& targeted_exp);
+
+    /// Read in a tsv file and construct a targeted experiment (Light transition structure)
+    void convertTSVToTargetedExperiment(const char* filename, OpenSwath::LightTargetedExperiment& targeted_exp);
 
     /// Validate a TargetedExperiment (check that all ids are unique)
     void validateTargetedExperiment(OpenMS::TargetedExperiment& targeted_exp);

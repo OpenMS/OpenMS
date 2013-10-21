@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVReader.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 
 namespace OpenMS
 {
@@ -340,6 +341,8 @@ namespace OpenMS
       {
         OpenMS::TargetedExperiment::Protein protein;
         createProtein_(tr_it, protein);
+
+
         proteins.push_back(protein);
         protein_map[tr_it->ProteinName] = 0;
       }
@@ -350,6 +353,58 @@ namespace OpenMS
 
     exp.setPeptides(peptides);
     exp.setProteins(proteins);
+  }
+
+  void TransitionTSVReader::TSVToTargetedExperiment_(std::vector<TSVTransition>& transition_list, OpenSwath::LightTargetedExperiment& exp)
+  {
+    std::map<String, int> peptide_map;
+    std::map<String, int> protein_map;
+
+    OpenMS::TargetedExperiment::Peptide tramlpeptide;
+
+    Size progress = 0;
+    startProgress(0, transition_list.size(), "converting to Transition List Format");
+    for (std::vector<TSVTransition>::iterator tr_it = transition_list.begin(); tr_it != transition_list.end(); ++tr_it)
+    {
+      OpenSwath::LightTransition transition;
+      transition.transition_name  = tr_it->transition_name;
+      transition.peptide_ref  = tr_it->group_id;
+      transition.library_intensity  = tr_it->library_intensity;
+      transition.precursor_mz  = tr_it->precursor;
+      transition.product_mz  = tr_it->product;
+      transition.charge  = tr_it->fragment_charge;
+      if (tr_it->decoy == 0)
+      {
+        transition.decoy = false;
+      }
+      else
+      {
+        transition.decoy = true;
+      }
+      exp.transitions.push_back(transition);
+
+      // check whether we need a new peptide
+      if (peptide_map.find(tr_it->group_id) == peptide_map.end())
+      {
+        OpenSwath::LightPeptide peptide;
+        createPeptide_(tr_it, tramlpeptide);
+        OpenSwathDataAccessHelper::convertTargetedPeptide(tramlpeptide, peptide);
+        exp.peptides.push_back(peptide);
+        peptide_map[peptide.id] = 0;
+      }
+
+      // check whether we need a new protein
+      if (protein_map.find(tr_it->ProteinName) == protein_map.end())
+      {
+        OpenSwath::LightProtein protein;
+        protein.id = tr_it->ProteinName;
+        protein.sequence = "";
+        exp.proteins.push_back(protein);
+        protein_map[tr_it->ProteinName] = 0;
+      }
+      setProgress(progress++);
+    }
+    endProgress();
   }
 
   void TransitionTSVReader::createTransition_(std::vector<TSVTransition>::iterator& tr_it, OpenMS::ReactionMonitoringTransition& rm_trans)
@@ -639,10 +694,26 @@ namespace OpenMS
       {
         mytransition.Annotation = it->getMetaValue("annotation").toString();
       }
-      mytransition.FullPeptideName = "NA";
-      if (pep.metaValueExists("full_peptide_name"))
+      mytransition.FullPeptideName = "";
       {
-        mytransition.FullPeptideName = pep.getMetaValue("full_peptide_name").toString();
+        // Instead of relying on the full_peptide_name, rather look at the actual modifications!
+        OpenSwath::LightPeptide lightpep;
+        OpenSwathDataAccessHelper::convertTargetedPeptide(pep, lightpep);
+        for (int loc = -1; loc <= (int)lightpep.sequence.size(); loc++)
+        {
+          if (loc > -1 && loc < (int)lightpep.sequence.size())
+          {
+            mytransition.FullPeptideName += lightpep.sequence[loc];
+          }
+          // C-terminal and N-terminal modifications may be at positions -1 or lightpep.sequence
+          for (Size modloc = 0; modloc < lightpep.modifications.size(); modloc++)
+          {
+            if (lightpep.modifications[modloc].location == loc)
+            {
+              mytransition.FullPeptideName += "(" + lightpep.modifications[modloc].unimod_id + ")";
+            }
+          }
+        }
       }
       mytransition.precursor_charge = -1;
       if (pep.getChargeState() > 0)
@@ -663,6 +734,7 @@ namespace OpenMS
 
     // start writing
     std::ofstream os(filename);
+    os.precision(writtenDigits(DoubleReal()));
     for (Size i = 0; i < header_names.size(); i++)
     {
       os << header_names[i];
@@ -676,25 +748,28 @@ namespace OpenMS
     for (std::vector<TSVTransition>::iterator it = mytransitions.begin(); it != mytransitions.end(); ++it)
     {
 
-      os << it->precursor                << "\t";
-      os << it->product                  << "\t";
-      os << it->rt_calibrated            << "\t";
-      os << it->transition_name          << "\t";
-      os << it->CE                       << "\t";
-      os << it->library_intensity        << "\t";
-      os << it->group_id                 << "\t";
-      os << it->decoy                    << "\t";
-      os << it->PeptideSequence          << "\t";
-      os << it->ProteinName              << "\t";
-      os << it->Annotation               << "\t";
-      os << it->FullPeptideName          << "\t";
-      os << 0                            << "\t";
-      os << 0                            << "\t";
-      os << 0                            << "\t";
-      os << it->precursor_charge         << "\t";
-      os << it->group_label              << "\t";
-      os << it->uniprot_id;
-      os << std::endl;
+      String line;
+      line += 
+        (String)it->precursor                + "\t"
+      + (String)it->product                  + "\t"
+      + (String)it->rt_calibrated            + "\t"
+      + (String)it->transition_name          + "\t"
+      + (String)it->CE                       + "\t"
+      + (String)it->library_intensity        + "\t"
+      + (String)it->group_id                 + "\t"
+      + (String)it->decoy                    + "\t"
+      + (String)it->PeptideSequence          + "\t"
+      + (String)it->ProteinName              + "\t"
+      + (String)it->Annotation               + "\t"
+      + (String)it->FullPeptideName          + "\t"
+      + (String)0                            + "\t"
+      + (String)0                            + "\t"
+      + (String)0                            + "\t"
+      + (String)it->precursor_charge         + "\t"
+      + (String)it->group_label              + "\t"
+      + (String)it->uniprot_id;
+
+      os << line << std::endl;
 
     }
     os.close();
@@ -710,6 +785,13 @@ namespace OpenMS
   {
     std::vector<TSVTransition> transition_list;
     // readTSVInput_(filename, transition_list);
+    readUnstructuredTSVInput_(filename, transition_list);
+    TSVToTargetedExperiment_(transition_list, targeted_exp);
+  }
+
+  void TransitionTSVReader::convertTSVToTargetedExperiment(const char* filename, OpenSwath::LightTargetedExperiment& targeted_exp)
+  {
+    std::vector<TSVTransition> transition_list;
     readUnstructuredTSVInput_(filename, transition_list);
     TSVToTargetedExperiment_(transition_list, targeted_exp);
   }
