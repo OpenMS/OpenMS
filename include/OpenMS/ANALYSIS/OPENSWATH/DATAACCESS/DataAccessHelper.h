@@ -66,6 +66,9 @@ public:
     /// convert from the OpenMS TargetedExperiment to the LightTargetedExperiment
     static void convertTargetedExp(const OpenMS::TargetedExperiment & transition_exp_, OpenSwath::LightTargetedExperiment & transition_exp);
 
+    /// convert from the OpenMS TargetedExperiment Peptide to the LightTargetedExperiment Peptide
+    static void convertTargetedPeptide(const TargetedExperiment::Peptide& pep, OpenSwath::LightPeptide & p);
+
     /// convert from the LightPeptide to an OpenMS AASequence (with correct modifications)
     static void convertPeptideToAASequence(const OpenSwath::LightPeptide & peptide, AASequence & aa_sequence);
 

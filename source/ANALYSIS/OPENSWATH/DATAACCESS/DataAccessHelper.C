@@ -93,56 +93,10 @@ namespace OpenMS
     }
 
     //copy peptides
-    OpenMS::ModificationsDB* mod_db = OpenMS::ModificationsDB::getInstance();
     for (Size i = 0; i < transition_exp_.getPeptides().size(); i++)
     {
       OpenSwath::LightPeptide p;
-      OpenSwath::LightModification m;
-
-      p.id = transition_exp_.getPeptides()[i].id;
-      if (!transition_exp_.getPeptides()[i].rts.empty())
-      {
-        p.rt = transition_exp_.getPeptides()[i].rts[0].getCVTerms()["MS:1000896"][0].getValue().toString().toDouble();
-      }
-      p.charge = transition_exp_.getPeptides()[i].getChargeState();
-      p.sequence = transition_exp_.getPeptides()[i].sequence;
-      if (!transition_exp_.getPeptides()[i].protein_refs.empty())
-      {
-        p.protein_ref = transition_exp_.getPeptides()[i].protein_refs[0];
-      }
-
-      // Mapping of peptide modifications
-      {
-        OpenMS::AASequence aa_sequence = TargetedExperimentHelper::getAASequence(transition_exp_.getPeptides()[i]);
-        if ( !aa_sequence.getNTerminalModification().empty())
-        {
-            ResidueModification rmod = mod_db->getTerminalModification(aa_sequence.getNTerminalModification(), ResidueModification::N_TERM);
-            m.location = -1;
-            m.unimod_id = rmod.getUniModAccession();
-            p.modifications.push_back(m);
-        }
-        if ( !aa_sequence.getCTerminalModification().empty())
-        {
-            ResidueModification rmod = mod_db->getTerminalModification(aa_sequence.getCTerminalModification(), ResidueModification::C_TERM);
-            m.location = boost::numeric_cast<int>(aa_sequence.size());
-            m.unimod_id = rmod.getUniModAccession();
-            p.modifications.push_back(m);
-        }
-        for (Size i = 0; i != aa_sequence.size(); i++)
-        {
-          if (aa_sequence[i].isModified())
-          {
-            // search the residue in the modification database (if the sequence is valid, we should find it)
-            ResidueModification rmod = mod_db->getModification(aa_sequence.getResidue(i).getOneLetterCode(),
-                                                               aa_sequence.getResidue(i).getModification(), ResidueModification::ANYWHERE);
-            m.location = boost::numeric_cast<int>(i);
-            m.unimod_id = rmod.getUniModAccession();
-            p.modifications.push_back(m);
-
-          }
-        }
-          
-      }
+      OpenSwathDataAccessHelper::convertTargetedPeptide(transition_exp_.getPeptides()[i], p);
       transition_exp.peptides.push_back(p);
     }
 
@@ -194,6 +148,58 @@ namespace OpenMS
 
       transition_exp.transitions.push_back(t);
     }
+  }
+
+  void OpenSwathDataAccessHelper::convertTargetedPeptide(const TargetedExperiment::Peptide& pep, OpenSwath::LightPeptide & p)
+  {
+    OpenSwath::LightModification m;
+    OpenMS::ModificationsDB* mod_db = OpenMS::ModificationsDB::getInstance();
+
+    p.id = pep.id;
+    if (!pep.rts.empty())
+    {
+      p.rt = pep.rts[0].getCVTerms()["MS:1000896"][0].getValue().toString().toDouble();
+    }
+    p.charge = pep.getChargeState();
+    p.sequence = pep.sequence;
+    if (!pep.protein_refs.empty())
+    {
+      p.protein_ref = pep.protein_refs[0];
+    }
+
+    // Mapping of peptide modifications
+    {
+      OpenMS::AASequence aa_sequence = TargetedExperimentHelper::getAASequence(pep);
+      if ( !aa_sequence.getNTerminalModification().empty())
+      {
+          ResidueModification rmod = mod_db->getTerminalModification(aa_sequence.getNTerminalModification(), ResidueModification::N_TERM);
+          m.location = -1;
+          m.unimod_id = rmod.getUniModAccession();
+          p.modifications.push_back(m);
+      }
+      if ( !aa_sequence.getCTerminalModification().empty())
+      {
+          ResidueModification rmod = mod_db->getTerminalModification(aa_sequence.getCTerminalModification(), ResidueModification::C_TERM);
+          m.location = boost::numeric_cast<int>(aa_sequence.size());
+          m.unimod_id = rmod.getUniModAccession();
+          p.modifications.push_back(m);
+      }
+      for (Size i = 0; i != aa_sequence.size(); i++)
+      {
+        if (aa_sequence[i].isModified())
+        {
+          // search the residue in the modification database (if the sequence is valid, we should find it)
+          ResidueModification rmod = mod_db->getModification(aa_sequence.getResidue(i).getOneLetterCode(),
+                                                             aa_sequence.getResidue(i).getModification(), ResidueModification::ANYWHERE);
+          m.location = boost::numeric_cast<int>(i);
+          m.unimod_id = rmod.getUniModAccession();
+          p.modifications.push_back(m);
+
+        }
+      }
+        
+    }
+    // transition_exp.peptides.push_back(p);
   }
 
   void OpenSwathDataAccessHelper::convertPeptideToAASequence(const OpenSwath::LightPeptide & peptide, AASequence & aa_sequence)
