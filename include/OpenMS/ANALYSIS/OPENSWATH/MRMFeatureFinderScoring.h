@@ -851,7 +851,7 @@ public:
 
         if (su_.use_coelution_score_) { 
           mrmfeature->addScore("var_xcorr_coelution", scores.xcorr_coelution_score);
-          mrmfeature->addScore("var_xcorr_coelution_weighted ", scores.weighted_coelution_score); }
+          mrmfeature->addScore("var_xcorr_coelution_weighted", scores.weighted_coelution_score); }
         if (su_.use_shape_score_) { 
           mrmfeature->addScore("var_xcorr_shape", scores.xcorr_shape_score);
           mrmfeature->addScore("var_xcorr_shape_weighted", scores.weighted_xcorr_shape); }
