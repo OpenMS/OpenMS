@@ -59,6 +59,12 @@ namespace OpenMS
 
   std::vector<std::pair<double, double> > MRMRTNormalizer::rm_outliers(std::vector<std::pair<double, double> >& pairs, double rsq_limit, double coverage_limit)
   {
+    if (pairs.size() < 2)
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+        "Need at least 2 points for the regression.");
+    }
+
     // Removes outliers from vector of pairs until upper rsq and lower coverage limits are reached.
     std::vector<double> x, y;
     double confidence_interval = 0.95;
