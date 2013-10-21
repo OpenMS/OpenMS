@@ -58,3 +58,7 @@ add_dependencies(TOPP ${TOPP_executables})
 foreach(i ${TOPP_executables_with_GUIlib})
 	target_link_libraries(${i} ${OPENMS_GUI_LIBRARIES})
 endforeach(i)
+
+## export the list of TOPP tools into CACHE
+set(TOPP_TOOLS ${TOPP_executables}
+    CACHE INTERNAL "OpenMS' TOPP tools" FORCE)

@@ -53,7 +53,11 @@ endforeach(i)
 add_custom_target(UTILS)
 add_dependencies(UTILS ${UTILS_executables})
 
-## some regular TOPP need the GUI lib
+## some regular UTILS need the GUI lib
 foreach(i ${UTILS_executables_with_GUIlib})
 	target_link_libraries(${i} ${OPENMS_GUI_LIBRARIES})
 endforeach(i)
+
+## export the list of UTILS tools into CACHE
+set(UTILS_TOOLS ${UTILS_executables}
+    CACHE INTERNAL "OpenMS' UTILS tools" FORCE)

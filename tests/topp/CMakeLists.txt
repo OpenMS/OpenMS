@@ -1,3 +1,40 @@
+# --------------------------------------------------------------------------
+#                   OpenMS -- Open-Source Mass Spectrometry
+# --------------------------------------------------------------------------
+# Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
+# ETH Zurich, and Freie Universitaet Berlin 2002-2012.
+#
+# This software is released under a three-clause BSD license:
+#  * Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+#  * Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in the
+#    documentation and/or other materials provided with the distribution.
+#  * Neither the name of any author or any participating institution
+#    may be used to endorse or promote products derived from this software
+#    without specific prior written permission.
+# For a full list of authors, refer to the file AUTHORS.
+# --------------------------------------------------------------------------
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+# INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+# OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+# WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+# OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+# ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+# --------------------------------------------------------------------------
+# $Maintainer: Stephan Aiche, Chris Bielow $
+# $Authors: Andreas Bertsch, Chris Bielow, Stephan Aiche $
+# --------------------------------------------------------------------------
+
+project("OpenMS_TOPP_tests")
+cmake_minimum_required(VERSION 2.8.3 FATAL_ERROR)
+
 #
 # README:
 #
@@ -52,7 +89,7 @@ set_tests_properties("TOPP_WSDL_1_out1" PROPERTIES DEPENDS "TOPP_WSDL_1")
 #####
 
 ## TOPP
-set(TOPP_executables_INI ${TOPP_executables})
+set(TOPP_executables_INI ${TOPP_TOOLS})
 list(REMOVE_ITEM TOPP_executables_INI GenericWrapper) ## GenericWrapper (has a -type flag which is required; special treatment below)
 add_test("TOPPWRITEINI_GenericWrapper" ${TOPP_BIN_PATH}/GenericWrapper -type RAWFileConvert -write_ini "GenericWrapper.ini.tmp")
 foreach (i ${TOPP_executables_INI})
@@ -62,7 +99,7 @@ foreach (i ${TOPP_executables_INI})
 endforeach(i)
 
 ## UTILS
-set(UTILS_executables_INI ${UTILS_executables})
+set(UTILS_executables_INI ${UTILS_TOOLS})
 foreach (i ${UTILS_executables_INI})
   add_test("UTILSWRITEINI_${i}" "${TOPP_BIN_PATH}/${i}" -write_ini "${i}.ini.tmp")
 	if (NOT(${i} STREQUAL "OpenMSInfo"))  ## OpenMSInfo is not derived from TOPPBase and cannot produce an INI file (even though you can pass -write_ini with no effect)
@@ -104,7 +141,7 @@ add_test("TOPP_IDMerger_3" ${TOPP_BIN_PATH}/IDMerger -test -in ${DATA_DIR_TOPP}/
 add_test("TOPP_IDMerger_3_out1" ${DIFF} -in1 IDMerger_3_output.tmp -in2 ${DATA_DIR_TOPP}/IDMerger_3_output.idXML )
 set_tests_properties("TOPP_IDMerger_3_out1" PROPERTIES DEPENDS "TOPP_IDMerger_3")
 # empty IDs:
-add_test("TOPP_IDMerger_4" ${TOPP_BIN_PATH}/IDMerger -test -in ${DATA_DIR_TOPP}/../data/degenerate_cases/empty.idXML ${DATA_DIR_TOPP}/../data/degenerate_cases/empty.idXML -out IDMerger_4_output.tmp)
+add_test("TOPP_IDMerger_4" ${TOPP_BIN_PATH}/IDMerger -test -in ${DATA_DIR_TOPP}/degenerated_empty.idXML ${DATA_DIR_TOPP}/degenerated_empty.idXML -out IDMerger_4_output.tmp)
 add_test("TOPP_IDMerger_4_out1" ${DIFF} -in1 IDMerger_4_output.tmp -in2 ${DATA_DIR_TOPP}/IDMerger_4_output.idXML )
 set_tests_properties("TOPP_IDMerger_4_out1" PROPERTIES DEPENDS "TOPP_IDMerger_4")
 # "add_to" option:
@@ -431,7 +468,7 @@ add_test("TOPP_IDRTCalibration_1" ${TOPP_BIN_PATH}/IDRTCalibration -in ${DATA_DI
 add_test("TOPP_IDRTCalibration_1_out1" ${DIFF} -in1 IDRTCalibration_1_output.tmp -in2 ${DATA_DIR_TOPP}/IDRTCalibration_1_output.idXML )
 set_tests_properties("TOPP_IDRTCalibration_1_out1" PROPERTIES DEPENDS "TOPP_IDRTCalibration_1")
 # test empty IDs
-add_test("TOPP_IDRTCalibration_2" ${TOPP_BIN_PATH}/IDRTCalibration -in ${DATA_DIR_TOPP}/../data/degenerate_cases/empty.idXML -out IDRTCalibration_2_output.tmp -calibrant_1_input 10 -calibrant_2_input 90)
+add_test("TOPP_IDRTCalibration_2" ${TOPP_BIN_PATH}/IDRTCalibration -in ${DATA_DIR_TOPP}/degenerated_empty.idXML -out IDRTCalibration_2_output.tmp -calibrant_1_input 10 -calibrant_2_input 90)
 add_test("TOPP_IDRTCalibration_2_out1" ${DIFF} -in1 IDRTCalibration_2_output.tmp -in2 ${DATA_DIR_TOPP}/IDRTCalibration_2_output.idXML )
 set_tests_properties("TOPP_IDRTCalibration_2_out1" PROPERTIES DEPENDS "TOPP_IDRTCalibration_2")
 
@@ -463,7 +500,7 @@ add_test("TOPP_IDFileConverter_1" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${D
 add_test("TOPP_IDFileConverter_1_out1" ${DIFF} -in1 IDFileConverter_1_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_1_output.idXML )
 set_tests_properties("TOPP_IDFileConverter_1_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_1")
 # pepXML to idXML (using precursor RTs):
-add_test("TOPP_IDFileConverter_2" ${TOPP_BIN_PATH}/IDFileConverter -in ${PROJECT_SOURCE_DIR}/data/PepXMLFile_test.pepxml -mz_file ${PROJECT_SOURCE_DIR}/data/PepXMLFile_test.mzML -mz_name PepXMLFile_test -use_precursor_data -out IDFileConverter_2_output.tmp -out_type idXML)
+add_test("TOPP_IDFileConverter_2" ${TOPP_BIN_PATH}/IDFileConverter -in ${DATA_DIR_TOPP}/PepXMLFile_test.pepxml -mz_file ${DATA_DIR_TOPP}/PepXMLFile_test.mzML -mz_name PepXMLFile_test -use_precursor_data -out IDFileConverter_2_output.tmp -out_type idXML)
 add_test("TOPP_IDFileConverter_2_out1" ${DIFF} -in1 IDFileConverter_2_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_2_output.idXML )
 set_tests_properties("TOPP_IDFileConverter_2_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_2")
 # protXML to idXML:
@@ -471,7 +508,7 @@ add_test("TOPP_IDFileConverter_3" ${TOPP_BIN_PATH}/IDFileConverter -in ${DATA_DI
 add_test("TOPP_IDFileConverter_3_out1" ${DIFF} -in1 IDFileConverter_3_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_3_output.idXML )
 set_tests_properties("TOPP_IDFileConverter_3_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_3")
 # pepXML to idXML (using MS2 RTs):
-add_test("TOPP_IDFileConverter_4" ${TOPP_BIN_PATH}/IDFileConverter -in ${PROJECT_SOURCE_DIR}/data/PepXMLFile_test.pepxml -mz_file ${PROJECT_SOURCE_DIR}/data/PepXMLFile_test.mzML -mz_name PepXMLFile_test -out IDFileConverter_4_output.tmp -out_type idXML)
+add_test("TOPP_IDFileConverter_4" ${TOPP_BIN_PATH}/IDFileConverter -in ${DATA_DIR_TOPP}/PepXMLFile_test.pepxml -mz_file ${DATA_DIR_TOPP}/PepXMLFile_test.mzML -mz_name PepXMLFile_test -out IDFileConverter_4_output.tmp -out_type idXML)
 add_test("TOPP_IDFileConverter_4_out1" ${DIFF} -in1 IDFileConverter_4_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_4_output.idXML )
 set_tests_properties("TOPP_IDFileConverter_4_out1" PROPERTIES DEPENDS "TOPP_IDFileConverter_4")
 # Mascot XML to idXML (with user-defined regular expression):
@@ -891,13 +928,13 @@ set_tests_properties("TOPP_InspectAdapter_2_out1" PROPERTIES DEPENDS "TOPP_Inspe
 
 
 ### SeedListGenerator tests
-add_test("TOPP_SeedListGenerator_1" ${TOPP_BIN_PATH}/SeedListGenerator -test -in ${PROJECT_SOURCE_DIR}/data/PepXMLFile_test.mzML -out SeedListGenerator_1_output.tmp)
+add_test("TOPP_SeedListGenerator_1" ${TOPP_BIN_PATH}/SeedListGenerator -test -in ${DATA_DIR_TOPP}/PepXMLFile_test.mzML -out SeedListGenerator_1_output.tmp)
 add_test("TOPP_SeedListGenerator_1_out1" ${DIFF} -in1 SeedListGenerator_1_output.tmp -in2 ${DATA_DIR_TOPP}/SeedListGenerator_1_output.featureXML )
 set_tests_properties("TOPP_SeedListGenerator_1_out1" PROPERTIES DEPENDS "TOPP_SeedListGenerator_1")
 add_test("TOPP_SeedListGenerator_2" ${TOPP_BIN_PATH}/SeedListGenerator -test -in ${DATA_DIR_TOPP}/IDMapper_1_output.featureXML -out SeedListGenerator_2_output.tmp)
 add_test("TOPP_SeedListGenerator_2_out1" ${DIFF} -in1 SeedListGenerator_2_output.tmp -in2 ${DATA_DIR_TOPP}/SeedListGenerator_2_output.featureXML )
 set_tests_properties("TOPP_SeedListGenerator_2_out1" PROPERTIES DEPENDS "TOPP_SeedListGenerator_2")
-add_test("TOPP_SeedListGenerator_3" ${TOPP_BIN_PATH}/SeedListGenerator -test -in ${PROJECT_SOURCE_DIR}/data/ConsensusXMLFile_1.consensusXML -out SeedListGenerator_3_output1.tmp SeedListGenerator_3_output2.tmp)
+add_test("TOPP_SeedListGenerator_3" ${TOPP_BIN_PATH}/SeedListGenerator -test -in ${DATA_DIR_TOPP}/ConsensusXMLFile_1.consensusXML -out SeedListGenerator_3_output1.tmp SeedListGenerator_3_output2.tmp)
 add_test("TOPP_SeedListGenerator_3_out1" ${DIFF} -in1 SeedListGenerator_3_output1.tmp -in2 ${DATA_DIR_TOPP}/SeedListGenerator_3_output1.featureXML )
 set_tests_properties("TOPP_SeedListGenerator_3_out1" PROPERTIES DEPENDS "TOPP_SeedListGenerator_3")
 add_test("TOPP_SeedListGenerator_3_out2" ${DIFF} -in1 SeedListGenerator_3_output2.tmp -in2 ${DATA_DIR_TOPP}/SeedListGenerator_3_output2.featureXML )
