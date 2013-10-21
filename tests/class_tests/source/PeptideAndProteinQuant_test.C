@@ -71,7 +71,7 @@ quantifier_identifications.setParameters(params);
 START_SECTION((void quantifyPeptides(FeatureMap<>& features)))
 {
   FeatureMap<> features;
-  FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("../TOPP/ProteinQuantifier_input.featureXML"), features);
+  FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("ProteinQuantifier_input.featureXML"), features);
   TEST_EQUAL(quantifier_features.getPeptideResults().empty(), true);
   quantifier_features.quantifyPeptides(features);
   TEST_EQUAL(quantifier_features.getPeptideResults().empty(), false);
@@ -81,7 +81,7 @@ END_SECTION
 START_SECTION((void quantifyPeptides(ConsensusMap& consensus)))
 {
   ConsensusMap consensus;
-  ConsensusXMLFile().load(OPENMS_GET_TEST_DATA_PATH("../TOPP/ProteinQuantifier_input.consensusXML"), consensus);
+  ConsensusXMLFile().load(OPENMS_GET_TEST_DATA_PATH("ProteinQuantifier_input.consensusXML"), consensus);
   TEST_EQUAL(quantifier_consensus.getPeptideResults().empty(), true);
   quantifier_consensus.quantifyPeptides(consensus);
   TEST_EQUAL(quantifier_consensus.getPeptideResults().empty(), false);
@@ -92,7 +92,7 @@ START_SECTION((void quantifyPeptides(vector<ProteinIdentification>& proteins, ve
 {
   vector<ProteinIdentification> proteins;
   vector<PeptideIdentification> peptides;
-  IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("../TOPP/ProteinQuantifier_input.idXML"), proteins, peptides);
+  IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("ProteinQuantifier_input.idXML"), proteins, peptides);
   TEST_EQUAL(quantifier_identifications.getPeptideResults().empty(), true);
   quantifier_identifications.quantifyPeptides(proteins, peptides);
   TEST_EQUAL(quantifier_identifications.getPeptideResults().empty(), false);

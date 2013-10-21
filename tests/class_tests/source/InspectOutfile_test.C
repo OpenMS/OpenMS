@@ -431,9 +431,9 @@ START_SECTION(template< typename PeakT > void getExperiment(MSExperiment< PeakT 
 	String type;
 
 	// test the actual program
-	file.getExperiment(exp, type, OPENMS_GET_TEST_DATA_PATH("../TOPP/Inspect.mzXML"));
+	file.getExperiment(exp, type, OPENMS_GET_TEST_DATA_PATH("Inspect.mzXML"));
 	TEST_STRING_EQUAL(type, "mzXML")
-	file.getExperiment(exp, type, OPENMS_GET_TEST_DATA_PATH("../TOPP/Inspect.mzData"));
+	file.getExperiment(exp, type, OPENMS_GET_TEST_DATA_PATH("Inspect.mzData"));
 	TEST_STRING_EQUAL(type, "mzData")
 END_SECTION
 
