@@ -74,7 +74,6 @@ namespace OpenMS
         ofs.close();
       }
 
-
       /// Write a spectrum
       void consumeSpectrum(SpectrumType & s)
       {
