@@ -154,7 +154,7 @@ namespace OpenMS
     tools_map["TMTAnalyzer"] = Internal::ToolDescription("TMTAnalyzer", "Quantitation");
     tools_map["TOFCalibration"] = Internal::ToolDescription("TOFCalibration", "Signal processing and preprocessing");
     tools_map["XTandemAdapter"] = Internal::ToolDescription("XTandemAdapter", "Identification");
-    // STOP! insert our tool in alphabetical order for easier maintenance
+    // STOP! insert your tool in alphabetical order for easier maintenance
 
     // INTERNAL tools
     // this operation is expensive, as we need to parse configuration files (*.ttd)
@@ -211,7 +211,7 @@ namespace OpenMS
     util_map["MRMPairFinder"] = Internal::ToolDescription("MRMPairFinder", util_category);
     util_map["MSSimulator"] = Internal::ToolDescription("MSSimulator", util_category);
     util_map["PeakPickerIterative"] = Internal::ToolDescription("PeakPickerIterative", "Signal processing and preprocessing");    
-    util_map["PeakPickerRapid"] = Internal::ToolDescription("PeakPickerRapid", "Signal processing and preprocessing");
+    //util_map["PeakPickerRapid"] = Internal::ToolDescription("PeakPickerRapid", "Signal processing and preprocessing");
     util_map["QCCalculator"] = Internal::ToolDescription("QCCalculator", util_category);
     util_map["QCEmbedder"] = Internal::ToolDescription("QCEmbedder", util_category);
     util_map["QCExtractor"] = Internal::ToolDescription("QCExtractor", util_category);
@@ -228,7 +228,7 @@ namespace OpenMS
     util_map["SvmTheoreticalSpectrumGeneratorTrainer"] = Internal::ToolDescription("SvmTheoreticalSpectrumGeneratorTrainer", util_category);
     util_map["TransformationEvaluation"] = Internal::ToolDescription("TransformationEvaluation", util_category);
     util_map["XMLValidator"] = Internal::ToolDescription("XMLValidator", util_category);
-    // STOP! insert our tool in alphabetical order for easier maintenance
+    // STOP! insert your tool in alphabetical order for easier maintenance
     return util_map;
   }
 
