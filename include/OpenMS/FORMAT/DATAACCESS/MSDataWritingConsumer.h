@@ -54,6 +54,30 @@ namespace OpenMS
       Is able to transform a spectra on the fly while it is read using a
       function pointer that can be set on the object. The spectra is then
       written to disk using the functions provided in MzMLHandler.
+
+      How to use:
+
+      MSDataWritingConsumer * ppConsumer = new MSDataWritingConsumer(outfile); // some implementation
+      ppConsumer->setExpectedSize(specsize, chromsize);
+      ppConsumer->setExperimentalSettings(exp_settings);
+      ppConsumer->addDataProcessing(dp); // optional, will be added to all spectra and chromatograms
+      [...]
+      ppConsumer->consumeSpectrum(spec);
+      ppConsumer->consumeChromatogram(chrom);
+      [...]
+
+      @note: The first usage of consumeChromatogram or consumeSpectrum will start
+      writing of the mzML header to disk (and the first element).
+
+      @note: Currently it is not possible to add spectra after having already added
+      chromatograms since this could lead to a situation with multiple
+      spectrumList in an mzML file.
+
+      @note: The expected size will _not_ be enforced but it will lead to an
+      incorrect mzML if the count attribute of spectrumList or chromatogramList
+      is incorrect.
+
+
     */
     class OPENMS_DLLAPI MSDataWritingConsumer  : 
       public Internal::MzMLHandler< MSExperiment<> >,
@@ -66,7 +90,7 @@ namespace OpenMS
       typedef MapType::ChromatogramType ChromatogramType;
 
       /**
-        @brief Proecess a spectrum before storing to disk
+        @brief Proecess a spectrum or chromatogram before storing to disk
       */
       virtual void processSpectrum_(SpectrumType & s) = 0;
 
@@ -97,23 +121,7 @@ namespace OpenMS
       /// Destructor
       virtual ~MSDataWritingConsumer()
       {
-        //--------------------------------------------------------------------------------------------
-        //cleanup
-        //--------------------------------------------------------------------------------------------
-        // make sure to close an open List tag
-        if (writing_spectra)
-        {
-          ofs << "\t\t</spectrumList>\n";
-        }
-        else if (writing_chromatograms)
-        {
-          ofs << "\t\t</chromatogramList>\n";
-        }
-
-
-        Internal::MzMLHandlerHelper::writeFooter_(ofs, options_, spectra_offsets, chromatograms_offsets);
-        delete validator_;
-        ofs.close();
+        doCleanup();
       }
 
       void setExperimentalSettings(ExperimentalSettings& exp)
@@ -221,6 +229,27 @@ namespace OpenMS
 
     protected:
 
+      void doCleanup()
+      {
+        //--------------------------------------------------------------------------------------------
+        //cleanup
+        //--------------------------------------------------------------------------------------------
+        // make sure to close an open List tag
+        if (writing_spectra)
+        {
+          ofs << "\t\t</spectrumList>\n";
+        }
+        else if (writing_chromatograms)
+        {
+          ofs << "\t\t</chromatogramList>\n";
+        }
+
+
+        Internal::MzMLHandlerHelper::writeFooter_(ofs, options_, spectra_offsets, chromatograms_offsets);
+        delete validator_;
+        ofs.close();
+      }
+
       std::ofstream ofs;
 
       bool started_writing;
@@ -251,6 +280,25 @@ namespace OpenMS
       PlainMSDataWritingConsumer(String filename) : MSDataWritingConsumer(filename) {}
       void processSpectrum_(MapType::SpectrumType & /* s */) {}
       void processChromatogram_(MapType::ChromatogramType & /* c */) {}
+    };
+
+    class OPENMS_DLLAPI NoopMSDataWritingConsumer :
+      public MSDataWritingConsumer 
+    {
+    public:
+
+      NoopMSDataWritingConsumer(String filename) : MSDataWritingConsumer(filename) {}
+      void processSpectrum_(MapType::SpectrumType & /* s */) {}
+      void processChromatogram_(MapType::ChromatogramType & /* c */) {}
+      void setExperimentalSettings(ExperimentalSettings& /* exp */) {}
+      void setExpectedSize(Size /* expectedSpectra */, Size /* expectedChromatograms */) {}
+      void consumeSpectrum(SpectrumType & /* s */) {}
+      void addDataProcessing(DataProcessing /* d */) {}
+      void consumeChromatogram(ChromatogramType & /* c */) {}
+
+    protected:
+
+      void doCleanup() {}
     };
 
 } //end namespace OpenMS
