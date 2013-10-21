@@ -45,11 +45,11 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_TEST_CONFIG_H
-#define OPENMS_TEST_CONFIG_H
+#ifndef OPENMS_IRRELEVANT_CLASS_H
+#define OPENMS_IRRELEVANT_CLASS_H
 
-// Macro to construct a c string containing the complete path to the test data
-#define OPENMS_GET_TEST_DATA_PATH(filename) (std::string("@CF_OPENMS_TEST_DATA_PATH@") + filename).c_str()
-#define OPENMS_GET_TEST_DATA_PATH_MESSAGE(prefix,filename,suffix) (prefix + std::string("@CF_OPENMS_TEST_DATA_PATH@") + filename + suffix).c_str()
-
-#endif // OPENMS_TEST_CONFIG_H
+class irrelevant_class 
+{
+};
+  
+#endif // OPENMS_IRRELEVANT_CLASS_H
