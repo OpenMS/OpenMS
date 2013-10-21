@@ -166,6 +166,12 @@ protected:
     {
       return spec.getRT() < rt;
     }
+    // this overload shouldn't be necessary according to the C++ standard, but
+    // may be required in older versions of Microsoft Visual C++:
+    inline bool operator()(DoubleReal rt, const MSSpectrum<>& spec) const
+    {
+      return rt < spec.getRT();
+    }
   };
 
   // comparator for peak and m/z (for "lower_bound"):
@@ -174,6 +180,12 @@ protected:
     inline bool operator()(const Peak1D& peak, DoubleReal mz) const
     {
       return peak.getMZ() < mz;
+    }
+    // this overload shouldn't be necessary according to the C++ standard, but
+    // may be required in older versions of Microsoft Visual C++:
+    inline bool operator()(DoubleReal mz, const Peak1D& peak) const
+    {
+      return mz < peak.getMZ();
     }
   };
 
