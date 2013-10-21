@@ -85,6 +85,8 @@ namespace OpenMS
     scores_to_use.setValidStrings("use_total_xic_score", StringList::create("true,false"));
     scores_to_use.setValue("use_sn_score", "true", "Use the SN (signal to noise) score", StringList::create("advanced"));
     scores_to_use.setValidStrings("use_sn_score", StringList::create("true,false"));
+    scores_to_use.setValue("use_dia_scores", "true", "Use the DIA (SWATH) scores", StringList::create("advanced"));
+    scores_to_use.setValidStrings("use_dia_scores", StringList::create("true,false"));
     defaults_.insert("Scores:", scores_to_use);
 
     // write defaults into Param object param_
@@ -119,6 +121,7 @@ namespace OpenMS
     su_.use_total_xic_score_     = param_.getValue("Scores:use_total_xic_score").toBool();
     su_.use_nr_peaks_score_      = param_.getValue("Scores:use_nr_peaks_score").toBool();
     su_.use_sn_score_            = param_.getValue("Scores:use_sn_score").toBool();
+    su_.use_dia_scores_          = param_.getValue("Scores:use_dia_scores").toBool();
   }
 
   void MRMFeatureFinderScoring::mapExperimentToTransitionList(OpenSwath::SpectrumAccessPtr input,

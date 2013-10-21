@@ -56,6 +56,7 @@
 // data access
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/DataStructures.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ITransition.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/MRMFeatureAccessOpenMS.h>
@@ -96,6 +97,7 @@ namespace OpenMS
     bool use_total_xic_score_;
     bool use_nr_peaks_score_;
     bool use_sn_score_;
+    bool use_dia_scores_;
   };
 
   /**
@@ -826,7 +828,7 @@ public:
         }
 
         ///////////////////////////////////
-        // call the scoring
+        // Call the scoring
         ///////////////////////////////////
 
         std::vector<double> normalized_library_intensity;
@@ -842,12 +844,11 @@ public:
         scorer.calculateChromatographicScores(imrmfeature, native_ids, normalized_library_intensity,
           signal_noise_estimators, scores);
         scorer.calculateLibraryScores(imrmfeature, transition_group.getTransitions(), *pep, trafo, scores);
-        if (swath_map->getNrSpectra() > 0)
+        if (swath_map->getNrSpectra() > 0 && su_.use_dia_scores_)
         {
           scorer.calculateDIAScores(imrmfeature, transition_group.getTransitions(),
               swath_map, diascoring_, *pep, scores);
         }
-
 
         if (su_.use_coelution_score_) { 
           mrmfeature->addScore("var_xcorr_coelution", scores.xcorr_coelution_score);
@@ -892,7 +893,7 @@ public:
         }
 
         // Add the DIA / SWATH scores
-        if (swath_present)
+        if (swath_present && su_.use_dia_scores_)
         {
           mrmfeature->addScore("var_isotope_correlation_score", scores.isotope_correlation);
           mrmfeature->addScore("var_isotope_overlap_score", scores.isotope_overlap);
