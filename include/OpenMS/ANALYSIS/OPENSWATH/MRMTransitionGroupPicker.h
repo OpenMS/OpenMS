@@ -370,6 +370,15 @@ protected:
       This is only based on the co-elution of the chromatograms and internal
       consistency without any library information.
 
+      For the final score (larger is better), consider these scores:
+      - missing_peaks (the more peaks are missing, the worse)
+      - multiple_peaks
+      - mean of the shapes (1 is very good, 0 is bad)
+      - mean of the coelutions (0 is good, 1 is ok, above 1 is pretty bad)
+
+      These scores are similar to the ones computed by MRMFeatureFinderScoring
+      and a simple sum of these scores is returned.
+
     */
     template <typename SpectrumT, typename TransitionT>
     double compute_quality(MRMTransitionGroup<SpectrumT, TransitionT>& transition_group,
@@ -449,6 +458,7 @@ protected:
       /*
       std::cout << " min shape  " << min_index_shape << " max coel " << max_index_coel << std::endl;
       std::cout << " Shape (min): " << *std::min_element(mean_shapes.begin(), mean_shapes.end())   << std::endl;
+
       std::cout << " Coelution (max): " << *std::max_element(mean_coel.begin(), mean_coel.end())    << std::endl;
       */
 
@@ -555,8 +565,9 @@ protected:
       By collecting all left and right borders of contained peaks, a consensus
       peak is computed.  By looking at the means and standard deviations of all
       the peak borders it is estimated whether the proposed peak border
-      deviates too much from the consensus one. If the deviation is too high,
-      then we fall back to the "consensus" (a median here).
+      deviates too much from the consensus one. If the deviation is too high
+      (in this case, larger than 1.5), then we fall back to the "consensus" (a
+      median here).
     */
     template <typename SpectrumT>
     void recalculatePeakBorders(std::vector<SpectrumT>& picked_chroms, double& best_left, double& best_right)
