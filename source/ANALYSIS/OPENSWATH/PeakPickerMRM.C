@@ -68,6 +68,7 @@ namespace OpenMS
     defaults_.setValue("sn_bin_count", 30, "Signal to noise bin count.");
 
     defaults_.setValue("remove_overlapping_peaks", "false", "Try to remove overlapping peaks during peak picking");
+    defaults_.setValidStrings("remove_overlapping_peaks", StringList::create("false,true"));
 
     defaults_.setValue("method", "legacy", "Which method to choose for chromatographic peak-picking (OpenSWATH legacy, corrected picking or Crawdad)");
     defaults_.setValidStrings("method", StringList::create("legacy,corrected,crawdad"));
@@ -118,6 +119,7 @@ namespace OpenMS
     // Find initial seeds (peak picking)
     PeakPickerHiRes pp;
     Param pepi_param = PeakPickerHiRes().getDefaults();
+    pepi_param.setValue("signal_to_noise", signal_to_noise_);
     pp.setParameters(pepi_param);
     pp.pick(smoothed_chrom, picked_chrom);
 
@@ -173,7 +175,10 @@ namespace OpenMS
     left_width.reserve(picked_chrom.size());
     right_width.reserve(picked_chrom.size());
 
-    snt.init(chromatogram);
+    if (signal_to_noise_ > 0.0)
+    {
+      snt.init(chromatogram);
+    }
     Size current_peak = 0;
     for (Size i = 0; i < picked_chrom.size(); i++)
     {
@@ -188,7 +193,7 @@ namespace OpenMS
             && (chromatogram[min_i - k].getIntensity() < chromatogram[min_i - k + 1].getIntensity()
                || (peak_width_ > 0.0 && std::fabs(chromatogram[min_i - k].getMZ() - central_peak_mz) < peak_width_)
                 )
-            && snt.getSignalToNoise(chromatogram[min_i - k]) >= signal_to_noise_)
+            && (signal_to_noise_ > 0.0 && snt.getSignalToNoise(chromatogram[min_i - k]) >= signal_to_noise_) )
       {
         ++k;
       }
@@ -201,7 +206,7 @@ namespace OpenMS
             && (chromatogram[min_i + k].getIntensity() < chromatogram[min_i + k - 1].getIntensity()
                || (peak_width_ > 0.0 && std::fabs(chromatogram[min_i + k].getMZ() - central_peak_mz) < peak_width_)
                 )
-            && snt.getSignalToNoise(chromatogram[min_i + k]) >= signal_to_noise_)
+            && (signal_to_noise_ > 0.0 && snt.getSignalToNoise(chromatogram[min_i + k]) >= signal_to_noise_) )
       {
         ++k;
       }
