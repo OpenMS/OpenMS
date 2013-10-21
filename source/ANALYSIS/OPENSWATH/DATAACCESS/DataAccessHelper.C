@@ -156,6 +156,42 @@ namespace OpenMS
       t.library_intensity = transition_exp_.getTransitions()[i].getLibraryIntensity();
       t.peptide_ref = transition_exp_.getTransitions()[i].getPeptideRef();
       t.charge = transition_exp_.getTransitions()[i].getProduct().getChargeState();
+      t.decoy = false;
+
+      // legacy
+#if 1
+      if (transition_exp_.getTransitions()[i].getCVTerms().has("decoy") && 
+          transition_exp_.getTransitions()[i].getCVTerms()["decoy"][0].getValue().toString() == "1" )
+      {
+        t.decoy = true;
+      }
+      else if (transition_exp_.getTransitions()[i].getCVTerms().has("MS:1002007"))    // target SRM transition
+      {
+        t.decoy = false;
+      }
+      else if (transition_exp_.getTransitions()[i].getCVTerms().has("MS:1002008"))    // decoy SRM transition
+      {
+        t.decoy = true;
+      }
+      else if (transition_exp_.getTransitions()[i].getCVTerms().has("MS:1002007") && 
+          transition_exp_.getTransitions()[i].getCVTerms().has("MS:1002008"))    // both == illegal
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+                                         "Transition " + t.transition_name + " cannot be target and decoy at the same time.");
+      }
+      else
+#endif
+      if (transition_exp_.getTransitions()[i].getDecoyTransitionType() == ReactionMonitoringTransition::UNKNOWN || 
+          transition_exp_.getTransitions()[i].getDecoyTransitionType() == ReactionMonitoringTransition::TARGET)
+      {
+        // assume its target
+        t.decoy = false;
+      }
+      else if (transition_exp_.getTransitions()[i].getDecoyTransitionType() == ReactionMonitoringTransition::DECOY)
+      {
+        t.decoy = true;
+      }
+
       transition_exp.transitions.push_back(t);
     }
   }

@@ -52,6 +52,7 @@ public:
     double product_mz;
     double precursor_mz;
     int charge;
+    bool decoy;
 
     int getProductChargeState() const
     {
@@ -138,7 +139,6 @@ public:
     }
 
   };
-
 
 } //end Namespace OpenSwath
 
