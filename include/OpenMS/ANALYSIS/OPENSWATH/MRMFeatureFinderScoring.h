@@ -780,7 +780,7 @@ public:
       std::vector<MRMFeature> feature_list;
 
       DoubleReal sn_win_len_ = (DoubleReal)param_.getValue("TransitionGroupPicker:PeakPickerMRM:sn_win_len");
-      DoubleReal sn_bin_count_ = (DoubleReal)param_.getValue("TransitionGroupPicker:PeakPickerMRM:sn_bin_count");
+      unsigned int sn_bin_count_ = (unsigned int)param_.getValue("TransitionGroupPicker:PeakPickerMRM:sn_bin_count");
       for (Size k = 0; k < transition_group.getChromatograms().size(); k++)
       {
         OpenSwath::ISignalToNoisePtr snptr(new OpenMS::SignalToNoiseOpenMS< PeakT >(transition_group.getChromatograms()[k], sn_win_len_, sn_bin_count_));
