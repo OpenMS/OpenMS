@@ -43,6 +43,8 @@ namespace OpenMS
 
     void setModification(int location, int max_size, String modification, OpenMS::AASequence& aas)
     {
+      OPENMS_PRECONDITION(location >= -1 && location <= max_size, (String("Location has invalid value") + (String)location).c_str() )
+
       if (location == -1)
       {
         aas.setNTerminalModification(modification);

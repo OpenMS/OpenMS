@@ -600,7 +600,9 @@ namespace OpenMS
     }
     else
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Warning, could not parse modifications on " + tr_it->FullPeptideName + ". Please use unimod / freetext identifiers like PEPT(Phosphorylation)IDE(UniMod:27)A.");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
+          "Error, could not parse modifications on " + tr_it->FullPeptideName + 
+          ". Please use unimod / freetext identifiers like PEPT(Phosphorylation)IDE(UniMod:27)A.");
     }
 
     peptide.mods = mods;
@@ -608,6 +610,10 @@ namespace OpenMS
     std::vector<String> tmp_proteins;
     tmp_proteins.push_back(tr_it->ProteinName);
     peptide.protein_refs = tmp_proteins;
+
+    OPENMS_POSTCONDITION(aa_sequence.toUnmodifiedString() == peptide.sequence, 
+        (String("Internal error: the sequences of the naked and modified peptide sequence are unequal(") 
+          + aa_sequence.toUnmodifiedString() + " != " + peptide.sequence).c_str())
   }
 
   void TransitionTSVReader::add_modification_(std::vector<TargetedExperiment::Peptide::Modification>& mods,
