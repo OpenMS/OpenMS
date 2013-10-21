@@ -205,24 +205,47 @@ bool generate(const ToolListType & tools, const String & prefix, const String & 
       command = binary_directory + it->first + ".app/Contents/MacOS/" + it->first;
     }
 #endif
-    process.start(String(command + " --help").toQString());
-    process.waitForFinished();
+#ifdef OPENMS_WINDOWSPLATFORM
+	command += ".exe"; // otherwise File::exists() will fail
+#endif
 
     ofstream f((String("output/") + prefix + it->first + ".cli").c_str());
-    std::string lines = QString(process.readAll()).toStdString();
-    if (process.error() != QProcess::UnknownError)
-    {
-      // error while generation cli docu
-      f << "Errors occurred while generating the command line documentation for " << it->first << "!" << endl;
-      f << "Output was: \n" << lines << endl;
-      f << "Command line was: \n " << command << endl;
+	if (!File::exists(command))
+	{
+	  stringstream ss;
+	  ss << "Errors occurred while generating the command line documentation for " << it->first << "!" << endl;
+      ss << "Tool could not be found at '" << command << "'\n " << command << endl;
+	  f << ss.str();
+	  cerr << ss.str();
       errors_occured = true;
-    }
-    else
-    {
-      // write output
-      f << lines;
-    }
+	  f.close();
+	  continue;
+ 	}
+	else
+	{
+      process.start(String(command + " --help").toQString());
+	  process.waitForFinished();
+
+	  std::string lines = QString(process.readAll()).toStdString();
+	  if (process.error() != QProcess::UnknownError)
+	  {
+	    // error while generation cli docu
+	    stringstream ss;
+	    f << "Errors occurred while generating the command line documentation for " << it->first << "!" << endl;
+	    f << "Output was: \n" << lines << endl;
+	    f << "Command line was: \n " << command << endl;
+	    f << ss.str();
+	    cerr << ss.str();
+        errors_occured = true;
+	    f.close();
+	    continue;
+	  }
+	  else
+	  {
+	  // write output
+	    f << lines;
+	  }
+	}
     f.close();
 
     //////
