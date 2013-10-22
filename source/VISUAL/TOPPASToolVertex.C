@@ -676,14 +676,15 @@ namespace OpenMS
 
       //enqueue process
       if (round == 0)
-        LOG_DEBUG << "Enqueue: \"" << File::getExecutablePath() + name_ << "\" \"" << String(args.join("\" \"")) << "\"" << std::endl;
-      toolScheduledSlot();
+	    {
+        LOG_DEBUG << "\nEnqueue: \"" << File::getExecutablePath() + name_ << "\" \"" << String(args.join("\" \"")) << "\"\n" << std::endl;
+	    }
+	    toolScheduledSlot();
       ts->enqueueProcess(TOPPASScene::TOPPProcess(p, File::findExecutable(name_).toQString(), args, this));
     }
 
     // run pending processes
     ts->runNextProcess();
-
 
     __DEBUG_END_METHOD__
   }
@@ -871,37 +872,37 @@ namespace OpenMS
       }
     }
 
-
-    // use input names from the selected upstream vertex (hoping that this is the maximal number of files we are going to produce)
+	// now we construct output filenames for this node
+    // use names from the selected upstream vertex (hoping that this is the maximal number of files we are going to produce)
     std::vector<QStringList> per_round_basenames;
     for (Size i = 0; i < pkg.size(); ++i)
     {
       per_round_basenames.push_back(pkg[i].find(max_size_index)->second.filenames);
     }
 
+	// maybe we find something more unique, e.g. last base directory if all filenames are equal
     smartFileNames_(per_round_basenames);
-
-    // now, update the output file names (each output parameter gets its name from the same input parameter, i.e. the longest one):
-    QVector<IOInfo> out_params;
-    getOutputParameters(out_params);
 
     // clear output file list
     output_files_.clear();
     output_files_.resize(pkg.size()); // #rounds
 
     TOPPASScene* ts = qobject_cast<TOPPASScene*>(scene());
-    for (int i = 0; i < out_params.size(); ++i)
+    QVector<IOInfo> out_params;
+    getOutputParameters(out_params);
+    // output names for each outgoing edge
+	for (int i = 0; i < out_params.size(); ++i)
     {
       // search for an out edge for this parameter (not required to exist)
       bool found(false);
       int param_index;
-      TOPPASEdge* param_edge;
+      TOPPASEdge* edge_out;
       for (ConstEdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
       {
         param_index = (*it)->getSourceOutParam();
         if (i == param_index) // corresponding out edge found
         {
-          param_edge = *it;
+          edge_out = *it;
           found = true;
           break;
         }
@@ -911,27 +912,26 @@ namespace OpenMS
         continue;
       }
 
-      // store edge for this param for all rounds
-      for (Size r = 0; r < per_round_basenames.size(); ++r)
-      {
-        VertexRoundPackage vrp;
-        vrp.edge = param_edge;
-        output_files_[r][param_index] = vrp; // index by index of source-out param
-      }
-
-      QString f = ts->getTempDir()
-                  + QDir::separator()
-                  + getOutputDir().toQString()
-                  + QDir::separator()
-                  + out_params[param_index].param_name.remove(':').toQString().left(50) // max 50 chars per subdir
-                  + QDir::separator();
-      if (f.length() > 150)
-        LOG_WARN << "Warning: the temporary path '" << String(f) << "' used in TOPPAS has many characters.\n"
+	  // create common path of output files
+      QString path = ts->getTempDir()
+                     + QDir::separator()
+                     + getOutputDir().toQString()
+                     + QDir::separator()
+                     + out_params[param_index].param_name.remove(':').toQString().left(50) // max 50 chars per subdir
+                     + QDir::separator();
+      if (path.length() > 150)
+	  {
+        LOG_WARN << "Warning: the temporary path '" << String(path) << "' used in TOPPAS has many characters.\n"
                  << "         TOPPAS might not be able to write files properly.\n";
+	  }
 
+      VertexRoundPackage vrp;
+      vrp.edge = edge_out;
       for (Size r = 0; r < per_round_basenames.size(); ++r)
       {
-        QString fn = f;
+	    // store edge for this param for all rounds
+        output_files_[r][param_index] = vrp; // index by index of source-out param
+        QString fn = path;
 
         // check if tool consumes list and outputs single file (such as IDMerger or FileMerger)
         if (per_round_basenames[r].size() > 1 && out_params[param_index].type == IOInfo::IOT_FILE)
@@ -953,8 +953,10 @@ namespace OpenMS
             QRegExp rx("_tmp\\d+$"); // remove "_tmp<number>" if its a suffix
             int tmp_index = rx.indexIn(fn);
             if (tmp_index != -1)
+			{
               fn = fn.left(tmp_index);
-            fn = fn.left(220); // allow max of 220 chars per path+filename (~NTFS limit)
+			}
+			fn = fn.left(220); // allow max of 220 chars per path+filename (~NTFS limit)
             fn += "_tmp" + QString::number(uid_++);
             fn = QDir::toNativeSeparators(fn);
             output_files_[r][param_index].filenames.push_back(fn);
@@ -972,36 +974,38 @@ namespace OpenMS
      * of this method in updateCurrentOutputFileNames()
      */
 
-//    // special case #1, only one filename in each round, with different directory but same basename
-//    // --> use directory as new name
-//    bool passes_constraints = true && filenames.size() > 0; // one file per round AND unique filename
-//    for (Size i = 1; i < filenames.size(); ++i)
-//    {
-//      if ((filenames[i].size() > 1)
-//         || (QFileInfo(filenames[0][0]).fileName() != QFileInfo(filenames[i][0]).fileName()))
-//      {
-//        passes_constraints = false;
-//        break;
-//      }
-//    }
-//    if (passes_constraints) // rename
-//    {
-//      for (Size i = 0; i < filenames.size(); ++i)
-//      {
-//        QString p = QDir::toNativeSeparators(QFileInfo(filenames[i][0]).canonicalPath());
-//        if (p.isEmpty()) continue;
-//        //std::cout << "PATH: " << p << "\n";
-//        String tmp = String(p).suffix(String(QString(QDir::separator()))[0]);
-//        //std::cout << "INTER: " << tmp << "\n";
-//        if (tmp.size() <= 2 || tmp.has(':')) continue;  // too small to be reliable; might even be 'c:'
-//        filenames[i][0] = tmp.toQString();
-//        //std::cout << "  -->: " << filenames[i][0] << "\n";
-//      }
-//    }
+    // special case #1, only one filename in each round, with different directory but same basename
+    // --> use LAST directory as new name, e.g. 'subdir' from 'c:\mydir\subdir\samesame.mzML'
+    bool passes_constraints = true && filenames.size() > 0; // one file per round AND unique filename
+    for (Size i = 1; i < filenames.size(); ++i)
+    {
+      if ( (filenames[i].size() > 1)
+           || (QFileInfo(filenames[0][0]).fileName() != QFileInfo(filenames[i][0]).fileName()))
+      {
+        passes_constraints = false;
+        break;
+      }
+    }
+    if (passes_constraints) // rename
+    {
+      for (Size i = 0; i < filenames.size(); ++i)
+      {
+        QString p = QDir::toNativeSeparators(QFileInfo(filenames[i][0]).canonicalPath());
+        if (p.isEmpty()) continue;
+        //std::cout << "PATH: " << p << "\n";
+        String tmp = String(p).suffix(String(QString(QDir::separator()))[0]);
+        //std::cout << "INTER: " << tmp << "\n";
+        if (tmp.size() <= 2 || tmp.has(':')) continue;  // too small to be reliable; might even be 'c:'
+        filenames[i][0] = tmp.toQString();
+        //std::cout << "  -->: " << filenames[i][0] << "\n";
+      }
+	  return; // we do not want the next special case on top of this...
+    }
 
-//    // possibilities for more good naming schemes...
+    // possibilities for more good naming schemes...
+    // special case #2 ...
 
-//    // special case #2 ...
+	return;
   }
 
   void TOPPASToolVertex::forwardTOPPOutput()
