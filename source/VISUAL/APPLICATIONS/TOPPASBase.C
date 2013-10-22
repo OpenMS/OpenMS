@@ -32,8 +32,8 @@
 // $Authors: Johannes Junker, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPASBase.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
@@ -264,7 +264,6 @@ namespace OpenMS
 
     network_manager_ = new QNetworkAccessManager(this);
     connect(network_manager_, SIGNAL(finished(QNetworkReply*)), this, SLOT(toppasFileDownloaded_(QNetworkReply*)));
-
 
     //update the menu
     updateMenu();

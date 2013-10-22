@@ -104,6 +104,7 @@ void print_usage(Logger::LogStream& stream = Log_info)
          << "\n"
          << "Options are:" << "\n"
          << "  --help           Shows this help" << "\n"
+         << "  --debug           Enables debug messages\n"
          << "  -ini <File>      Sets the INI file (default: ~/.TOPPAS.ini)" << "\n"
          << endl;
 }
@@ -113,6 +114,7 @@ int main(int argc, const char** argv)
   //list of all the valid options
   Map<String, String> valid_options, valid_flags, option_lists;
   valid_flags["--help"] = "help";
+  valid_flags["--debug"] = "debug";
   valid_options["-ini"] = "ini";
   //invalid, but keep for now in order to inform users where to find this functionality now
   valid_options["-execute"] = "execute";
@@ -126,6 +128,13 @@ int main(int argc, const char** argv)
   {
     print_usage();
     return 0;
+  }
+  
+  // '-debug' given
+  if (param.exists("debug"))
+  {
+    LOG_INFO << "Debug flag provided. Enabling 'LOG_DEBUG' ..." << std::endl;
+    Log_debug.insert(cout); // allows to use LOG_DEBUG << "something" << std::endl;
   }
 
   // test if unknown options were given
