@@ -104,19 +104,19 @@ void print_usage(Logger::LogStream& stream = Log_info)
          << "\n"
          << "Options are:" << "\n"
          << "  --help           Shows this help" << "\n"
-         << "  --debug           Enables debug messages\n"
+         << "  --debug          Enables debug messages\n"
          << "  -ini <File>      Sets the INI file (default: ~/.TOPPAS.ini)" << "\n"
          << endl;
 }
 
 int main(int argc, const char** argv)
 {
-  //list of all the valid options
+  // list of all the valid options
   Map<String, String> valid_options, valid_flags, option_lists;
   valid_flags["--help"] = "help";
   valid_flags["--debug"] = "debug";
   valid_options["-ini"] = "ini";
-  //invalid, but keep for now in order to inform users where to find this functionality now
+  // invalid, but keep for now in order to inform users where to find this functionality now
   valid_options["-execute"] = "execute";
   valid_options["-out_dir"] = "out_dir";
 
@@ -162,7 +162,7 @@ int main(int argc, const char** argv)
 
     QApplicationTOPP a(argc, const_cast<char**>(argv));
     a.connect(&a, SIGNAL(lastWindowClosed()), &a, SLOT(quit()));
-    //set plastique style unless windows / mac style is available
+    // set plastique style unless windows / mac style is available
     if (QStyleFactory::keys().contains("windowsxp", Qt::CaseInsensitive))
     {
       a.setStyle("windowsxp");
@@ -199,7 +199,7 @@ int main(int argc, const char** argv)
       mw->loadFiles((StringList)(param.getValue("misc")), splash_screen);
     }
     else // remember this new window as obsolete once a real workflow is loaded without this window being touched
-    { // if this is not desired, simply call newPipeline() without arguments
+    {    // if this is not desired, simply call newPipeline() without arguments
       mw->newPipeline(mw->IDINITIALUNTITLED);
     }
 
