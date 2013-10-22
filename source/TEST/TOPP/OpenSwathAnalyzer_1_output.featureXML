@@ -58,7 +58,7 @@
 			<userParam type="float" name="total_xic" value="3680.16062933207"/>
 			<userParam type="float" name="peak_apices_sum" value="747.118576049805"/>
 			<userParam type="float" name="var_xcorr_coelution" value="0"/>
-			<userParam type="float" name="var_xcorr_coelution_weighted " value="0"/>
+			<userParam type="float" name="var_xcorr_coelution_weighted" value="0"/>
 			<userParam type="float" name="var_xcorr_shape" value="0.998183460545928"/>
 			<userParam type="float" name="var_xcorr_shape_weighted" value="0.997577947394571"/>
 			<userParam type="float" name="var_library_corr" value="0.999999999999999"/>
@@ -136,7 +136,7 @@
 			<userParam type="float" name="total_xic" value="1610.27396595478"/>
 			<userParam type="float" name="peak_apices_sum" value="52.6924877166748"/>
 			<userParam type="float" name="var_xcorr_coelution" value="1.69946222565531"/>
-			<userParam type="float" name="var_xcorr_coelution_weighted " value="0.430576988219353"/>
+			<userParam type="float" name="var_xcorr_coelution_weighted" value="0.430576988219353"/>
 			<userParam type="float" name="var_xcorr_shape" value="0.801773648038466"/>
 			<userParam type="float" name="var_xcorr_shape_weighted" value="0.827432023818302"/>
 			<userParam type="float" name="var_library_corr" value="0.930678748454332"/>
@@ -214,7 +214,7 @@
 			<userParam type="float" name="total_xic" value="1610.27396595478"/>
 			<userParam type="float" name="peak_apices_sum" value="189.489845752716"/>
 			<userParam type="float" name="var_xcorr_coelution" value="2.26491106406735"/>
-			<userParam type="float" name="var_xcorr_coelution_weighted " value="0.904813880838571"/>
+			<userParam type="float" name="var_xcorr_coelution_weighted" value="0.904813880838571"/>
 			<userParam type="float" name="var_xcorr_shape" value="0.724571355831169"/>
 			<userParam type="float" name="var_xcorr_shape_weighted" value="0.643242628379923"/>
 			<userParam type="float" name="var_library_corr" value="-0.78414843390081"/>
