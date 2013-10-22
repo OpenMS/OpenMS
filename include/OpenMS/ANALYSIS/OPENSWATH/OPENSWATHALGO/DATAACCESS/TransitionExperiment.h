@@ -37,6 +37,7 @@
 
 #include <string>
 #include <vector>
+#include <map>
 #include <boost/shared_ptr.hpp>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/OpenSwathAlgoConfig.h>
@@ -120,6 +121,12 @@ public:
 
   struct OPENSWATHALGO_DLLAPI LightTargetedExperiment
   {
+    LightTargetedExperiment() : peptide_reference_map_dirty_(true) {}
+
+    typedef LightTransition Transition;
+    typedef LightPeptide Peptide;
+    typedef LightProtein Protein;
+
     std::vector<LightTransition> transitions;
     std::vector<LightPeptide> peptides;
     std::vector<LightProtein> proteins;
@@ -137,6 +144,29 @@ public:
     {
       return proteins;
     }
+
+    const LightPeptide& getPeptideByRef(const std::string& ref)
+    {
+      if (peptide_reference_map_dirty_)
+      {
+        createPeptideReferenceMap_();
+      }
+      return *(peptide_reference_map_[ref]);
+    }
+
+  private:
+
+    void createPeptideReferenceMap_()
+    {
+      for (size_t i = 0; i < getPeptides().size(); i++)
+      {
+        peptide_reference_map_[getPeptides()[i].id] = &getPeptides()[i];
+      }
+      peptide_reference_map_dirty_ = false;
+    }
+
+    bool peptide_reference_map_dirty_;
+    std::map<std::string, LightPeptide*> peptide_reference_map_;
 
   };
 

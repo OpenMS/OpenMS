@@ -63,6 +63,7 @@ public:
     typedef TargetedExperimentHelper::Publication Publication;
     typedef TargetedExperimentHelper::Instrument Instrument;
     typedef TargetedExperimentHelper::Prediction Prediction;
+    typedef ReactionMonitoringTransition Transition;
 
     typedef std::map<String, const Protein *> ProteinReferenceMapType;
     typedef std::map<String, const Peptide *> PeptideReferenceMapType;

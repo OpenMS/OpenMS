@@ -41,6 +41,8 @@
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
 
+#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
+
 namespace OpenMS
 {
 
@@ -217,10 +219,78 @@ public:
      * 6) the native ID from the transition
      *
      */
-    void return_chromatogram(std::vector< OpenSwath::ChromatogramPtr > & chromatograms,
+    template <typename TransitionExpT>
+    static void return_chromatogram(std::vector< OpenSwath::ChromatogramPtr > & chromatograms,
       std::vector< ChromatogramExtractor::ExtractionCoordinates > & coordinates,
-      OpenMS::TargetedExperiment & transition_exp_used, SpectrumSettings settings,
-      std::vector<OpenMS::MSChromatogram<> > & output_chromatograms, bool ms1) const;
+      TransitionExpT& transition_exp_used, SpectrumSettings settings,
+      std::vector<OpenMS::MSChromatogram<> > & output_chromatograms, bool ms1)
+    {
+      typedef std::map<String, const typename TransitionExpT::Transition* > TransitionMapType;
+      TransitionMapType trans_map;
+      for (Size i = 0; i < transition_exp_used.getTransitions().size(); i++)
+      {
+        trans_map[transition_exp_used.getTransitions()[i].getNativeID()] = &transition_exp_used.getTransitions()[i];
+      }
+
+      for (Size i = 0; i < chromatograms.size(); i++)
+      { 
+        const OpenSwath::ChromatogramPtr & chromptr = chromatograms[i];
+        const ChromatogramExtractor::ExtractionCoordinates & coord = coordinates[i];
+
+        typename TransitionExpT::Peptide pep;
+        typename TransitionExpT::Transition transition;
+        OpenMS::MSChromatogram<> chrom;
+
+        // copy data
+        OpenSwathDataAccessHelper::convertToOpenMSChromatogram(chrom, chromptr);
+        chrom.setNativeID(coord.id);
+
+        // Create precursor and set
+        // 1) the target m/z
+        // 2) the isolation window (upper/lower)
+        // 3) the peptide sequence
+        Precursor prec;
+        if (ms1) 
+        {
+          pep = transition_exp_used.getPeptideByRef(coord.id); 
+          prec.setMZ(coord.mz);
+          chrom.setChromatogramType(ChromatogramSettings::BASEPEAK_CHROMATOGRAM);
+        }
+        else 
+        {
+          transition = (*trans_map[coord.id]);
+          pep = transition_exp_used.getPeptideByRef(transition.getPeptideRef()); 
+
+          prec.setMZ(transition.getPrecursorMZ());
+          if (settings.getPrecursors().size() > 0)
+          {
+            prec.setIsolationWindowLowerOffset(settings.getPrecursors()[0].getIsolationWindowLowerOffset());
+            prec.setIsolationWindowUpperOffset(settings.getPrecursors()[0].getIsolationWindowUpperOffset());
+          }
+
+          // Create product and set its m/z
+          Product prod;
+          prod.setMZ(transition.getProductMZ());
+          chrom.setProduct(prod);
+          chrom.setChromatogramType(ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM);
+        }
+        prec.setMetaValue("peptide_sequence", pep.sequence);
+        chrom.setPrecursor(prec);
+
+        // Set the rest of the meta-data
+        chrom.setInstrumentSettings(settings.getInstrumentSettings());
+        chrom.setAcquisitionInfo(settings.getAcquisitionInfo());
+        chrom.setSourceFile(settings.getSourceFile());
+
+        for (Size i = 0; i < settings.getDataProcessing().size(); ++i)
+        {
+          DataProcessing dp = settings.getDataProcessing()[i];
+          dp.setMetaValue("performed_on_spectra", "true");
+          chrom.getDataProcessing().push_back(dp);
+        }
+        output_chromatograms.push_back(chrom);
+      }
+    }
 
     template <typename SpectrumT>
     void extract_value_tophat(const SpectrumT& input, const double& mz, Size& peak_idx,
