@@ -754,7 +754,7 @@ private:
       {
         logger_.endProgress();
       }
-      else if (equal_(qname, s_peaks))
+      else if (equal_(qname, s_peaks) && options_.getFillData())
       {
         //std::cout << "reading scan" << "\n";
         if (char_rest_ == "") // no peaks
@@ -820,6 +820,12 @@ private:
       }
       //std::cout << " -- End -- " << "\n";
       sm_.clear();
+
+      if (equal_(qname, s_peaks) )
+      {
+        // Ensure that the characters are cleared
+        char_rest_.clear();
+      }
     }
 
     template <typename MapType>
@@ -829,12 +835,14 @@ private:
       if (skip_spectrum_)
         return;
 
-      char* transcoded_chars = sm_.convert(chars);
-
       if (open_tags_.back() == "peaks")
       {
         //chars may be split to several chunks => concatenate them
-        char_rest_ += transcoded_chars;
+        if (options_.getFillData()) 
+        {
+          char* transcoded_chars = sm_.convert(chars);
+          char_rest_ += transcoded_chars;
+        }
       }
       else if (open_tags_.back() == "offset" || open_tags_.back() == "indexOffset" || open_tags_.back() == "sha1")
       {
@@ -842,6 +850,7 @@ private:
       }
       else if (open_tags_.back() == "precursorMz")
       {
+        char* transcoded_chars = sm_.convert(chars);
         DoubleReal mz_pos = asDouble_(transcoded_chars);
         //precursor m/z
         exp_->getSpectra().back().getPrecursors().back().setMZ(mz_pos);
@@ -855,6 +864,7 @@ private:
       }
       else if (open_tags_.back() == "comment")
       {
+        char* transcoded_chars = sm_.convert(chars);
         String parent_tag = *(open_tags_.end() - 2);
         //std::cout << "- Comment of parent " << parent_tag << "\n";
 
@@ -875,9 +885,13 @@ private:
           warning(LOAD, String("Unhandled comment '") + transcoded_chars + "' in element '" + open_tags_.back() + "'");
         }
       }
-      else if (String(transcoded_chars).trim() != "")
+      else 
       {
-        warning(LOAD, String("Unhandled character content '") + transcoded_chars + "' in element '" + open_tags_.back() + "'");
+        char* transcoded_chars = sm_.convert(chars);
+        if (String(transcoded_chars).trim() != "")
+        {
+          warning(LOAD, String("Unhandled character content '") + transcoded_chars + "' in element '" + open_tags_.back() + "'");
+        }
       }
     }
 
