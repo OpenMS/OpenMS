@@ -56,6 +56,7 @@ add_dependencies(UTILS ${UTILS_executables})
 ## some regular UTILS need the GUI lib
 foreach(i ${UTILS_executables_with_GUIlib})
 	target_link_libraries(${i} ${OPENMS_GUI_LIBRARIES})
+  target_include_directories(${i} PUBLIC ${OPENMS_GUI_INCLUDE_DIRECTORIES})  
 endforeach(i)
 
 ## export the list of UTILS tools into CACHE

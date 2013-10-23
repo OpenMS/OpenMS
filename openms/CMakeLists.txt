@@ -161,13 +161,6 @@ else()
 	ADD_LIBRARY(OpenMS ${OpenMS_sources})
 endif()
 
-### OpenMS_GUI lib
-ADD_LIBRARY(OpenMS_GUI ${OpenMSVisual_sources})
-if (MSVC)
-	set (GUI_lnk_flags "/FORCE:MULTIPLE /INCREMENTAL:NO /ignore:4006 /ignore:4088")
-	set_target_properties(OpenMS_GUI PROPERTIES LINK_FLAGS ${GUI_lnk_flags}) ## allow multiple definitions of symbols (e.g. from template instanciations or STL-derived classes)
-endif()
-
 ## update the openms_svn_revision.h file before compiling OpenMS
 if (ENABLE_SVN)
 	add_dependencies(OpenMS svn_revision_update)
@@ -195,7 +188,6 @@ if (WITH_CRAWDAD)
 endif()
 
 target_link_libraries(OpenMS OpenSwathAlgo ${APPLE_EXTRA_LIBS} ${QT_LIBRARIES} ${OPENMS_DEP_LIBRARIES})
-target_link_libraries(OpenMS_GUI OpenMS ${QT_LIBRARIES})
 
 ## OPENMS_LIBRARIES defines the libraries used by OpenMS; this should be used to link against executables
 ## somehow the link dependencies of cmake are broken such that when using POSTFIX names for libs the dependencies are not forwarded...
@@ -208,69 +200,10 @@ if (MSVC) # Windows
 	list(APPEND OPENMS_LIBRARIES OpenSwathAlgo)
 endif()
 
-## link libraries for GUI Tools
-set(OPENMS_GUI_LIBRARIES optimized OpenMS_GUI${CMAKE_RELEASE_POSTFIX} debug OpenMS_GUI${CMAKE_DEBUG_POSTFIX} OpenMS ${QT_LIBRARIES}
-    CACHE INTERNAL "OpenMS GUI libraries" FORCE)
-
 ## directory for OpenMS(d).lib (required for linking executables)
 if (MSVC)
 	link_directories(${PROJECT_BINARY_DIR})
 endif()
-
-##### GUI tools ########
-set(GUI_DIR source/VISUAL/APPLICATIONS/GUITOOLS)
-include(${GUI_DIR}/executables.cmake)
-foreach(i ${GUI_executables})
-	set(resource_file ${PROJECT_SOURCE_DIR}/${GUI_DIR}/${i}.rc)
-	set(resource_dir ${PROJECT_SOURCE_DIR}/${GUI_DIR}/${i}-resources/)
-	## add icons to TOPPView and INIFileEditor
-	if (MSVC AND EXISTS ${resource_file})
-		Message(STATUS "Setting resource file ${resource_file} for ${i}")
-		add_executable(${i} ${GUI_DIR}/${i}.C ${resource_file})
-	elseif(APPLE AND EXISTS ${resource_dir})
-		# the icon file
-		set(ICON_FILE_PATH "${PROJECT_SOURCE_DIR}/source/VISUAL/APPLICATIONS/GUITOOLS/${i}-resources/${i}.icns")
-    set(INFO_PLIST_TEMPLATE "${PROJECT_SOURCE_DIR}/source/VISUAL/APPLICATIONS/GUITOOLS/${i}-resources/${i}.plist.in")
-		get_filename_component(ICON_FILE_NAME "${ICON_FILE_PATH}" NAME)
-
-		# we also need the icns in the app
-		add_executable(
-			${i}
-			MACOSX_BUNDLE
-			${GUI_DIR}/${i}.C
-			${ICON_FILE_PATH})
-
-		set_target_properties(${i} PROPERTIES
-      # we want our own info.plist template
-      MACOSX_BUNDLE_INFO_PLIST "${INFO_PLIST_TEMPLATE}"
-			MACOSX_BUNDLE_INFO_STRING "${PROJECT_NAME} Version ${CF_OPENMS_PACKAGE_VERSION}, Copyright 2013 The OpenMS Team."
-			MACOSX_BUNDLE_ICON_FILE ${ICON_FILE_NAME}
-			MACOSX_BUNDLE_GUI_IDENTIFIER "de.openms.${i}"
-			MACOSX_BUNDLE_LONG_VERSION_STRING "${PROJECT_NAME} Version ${CF_OPENMS_PACKAGE_VERSION}"
-			MACOSX_BUNDLE_BUNDLE_NAME ${i}
-			MACOSX_BUNDLE_SHORT_VERSION_STRING ${CF_OPENMS_PACKAGE_VERSION}
-			MACOSX_BUNDLE_BUNDLE_VERSION ${CF_OPENMS_PACKAGE_VERSION}
-			MACOSX_BUNDLE_COPYRIGHT "Copyright 2013, The OpenMS Team. All Rights Reserved."
-		)
-
-		set_source_files_properties(${ICON_FILE_PATH} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
-	else()
-    if(APPLE)
-      message(STATUS "No icon file (${i}.icns) found in ${resource_dir}. Will not build ${i} as app bundle.")
-    else()
-  		message(STATUS "No resource file (${resource_file}) found for ${i}. No icon will be embedded.")
-    endif()
-		add_executable(${i} ${GUI_DIR}/${i}.C)
-	endif()
-
-	## append visual lib as dependency for GUI tools
-	target_link_libraries(${i} ${OPENMS_GUI_LIBRARIES})
-	if (OPENMP_FOUND AND NOT MSVC)
-		set_target_properties(${i} PROPERTIES LINK_FLAGS ${OpenMP_CXX_FLAGS})
-	endif()
-endforeach(i)
-add_custom_target(GUI)
-add_dependencies(GUI ${GUI_executables})
 
 ##### CTDs ####
 # We will use this path for the knime packages and the osx installer

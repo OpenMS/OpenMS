@@ -205,6 +205,7 @@ endforeach(i)
 # tests of classes from GUI lib:
 foreach(i ${visual_executables_list})
 	target_link_libraries(${i} ${OPENMS_GUI_LIBRARIES})
+  target_include_directories(${i} PUBLIC ${OPENMS_GUI_INCLUDE_DIRECTORIES})
 endforeach(i)
 
 #------------------------------------------------------------------------------
@@ -222,6 +223,7 @@ foreach(i ${GUI_executables_list})
 	SET_SOURCE_FILES_PROPERTIES(GUI/${i}.C PROPERTIES OBJECT_DEPENDS ${mocced_GUI_executables_list_C})
 	add_executable(${i} source/GUI/${i}.C)
 	target_link_libraries(${i} ${OPENMS_GUI_LIBRARIES})
+  target_include_directories(${i} PUBLIC ${OPENMS_GUI_INCLUDE_DIRECTORIES})  
 	add_test(${i} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${i})
 	# only add OPENMP flags to gcc linker (execpt Mac OS X, due to compiler bug
 	# see https://sourceforge.net/apps/trac/open-ms/ticket/280 for details)

@@ -57,6 +57,7 @@ add_dependencies(TOPP ${TOPP_executables})
 ## some regular TOPP need the GUI lib
 foreach(i ${TOPP_executables_with_GUIlib})
 	target_link_libraries(${i} ${OPENMS_GUI_LIBRARIES})
+  target_include_directories(${i} PUBLIC ${OPENMS_GUI_INCLUDE_DIRECTORIES})
 endforeach(i)
 
 ## export the list of TOPP tools into CACHE

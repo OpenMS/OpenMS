@@ -1,7 +1,9 @@
-### the directory name
+# --------------------------------------------------------------------------
+# the directory name
 set(directory source/EXAMPLES)
 
-### list all filenames of the directory here
+# --------------------------------------------------------------------------
+# list all filenames of the directory here
 set(executables_list
 Tutorial_AASequence
 Tutorial_Clustering
@@ -23,25 +25,34 @@ Tutorial_MSSpectrum
 Tutorial_MapAlignment
 Tutorial_MetaInfo
 Tutorial_Param
-Tutorial_GUI_ParamEditor
 Tutorial_PeakPickerCWT
 Tutorial_RangeManager
 Tutorial_Residue
 Tutorial_SavitzkyGolayFilter
-Tutorial_GUI_Spectrum1D
 Tutorial_TOFCalibration
 Tutorial_TheoreticalSpectrumGenerator
 Tutorial_MorphologicalFilter
 Tutorial_Unlabeled
 Tutorial_typeAsString
-Tutorial_GUI_ListEditor
 Tutorial_PeakIntensityPredictor
 )
 
-### pass source file list to the upper instance
+# --------------------------------------------------------------------------
+# pass source file list to the upper instance
 set(EXAMPLES_executables ${EXAMPLES_executables} ${executables_list})
 
-### add filenames to Visual Studio solution tree
+# --------------------------------------------------------------------------
+set(executables_list 
+Tutorial_GUI_Spectrum1D
+Tutorial_GUI_ParamEditor
+Tutorial_GUI_ListEditor
+)
+
+# pass source file list to the upper instance
+set(GUI_EXAMPLES_executables ${GUI_EXAMPLES_executables} ${executables_list})
+
+# --------------------------------------------------------------------------
+# add filenames to Visual Studio solution tree
 set(sources_VS)
 foreach(i ${executables_list})
 	list(APPEND sources_VS "${i}.C")
