@@ -382,27 +382,37 @@ namespace OpenMS
 
         const std::vector<Precursor>& current_precursors = current_spec.getPrecursors();
 
-        if (!current_precursors.empty())
+        if (!current_precursors.empty() || current_spec.metaValueExists("analyzer scan offset"))
         {
-          const Precursor& current_pc = current_precursors[0];
-          item->setText(3, QString::number(current_pc.getMZ()));
-          if (!current_pc.getActivationMethods().empty())
+          DoubleReal pc_val;
+          if (current_spec.metaValueExists("analyzer scan offset"))
           {
-            QString t;
-            for (std::set<Precursor::ActivationMethod>::const_iterator it = current_pc.getActivationMethods().begin(); it != current_pc.getActivationMethods().end(); ++it)
-            {
-              if (!t.isEmpty())
-              {
-                t.append(",");
-              }
-              t.append(QString::fromStdString(current_pc.NamesOfActivationMethod[*(current_pc.getActivationMethods().begin())]));
-            }
-            item->setText(4, t);
-          }
-          else
-          {
+            pc_val = current_spec.getMetaValue("analyzer scan offset");
             item->setText(4, "-");
           }
+          else 
+          {
+            const Precursor& current_pc = current_precursors[0];
+            pc_val = current_pc.getMZ();
+            if (!current_pc.getActivationMethods().empty())
+            {
+              QString t;
+              for (std::set<Precursor::ActivationMethod>::const_iterator it = current_pc.getActivationMethods().begin(); it != current_pc.getActivationMethods().end(); ++it)
+              {
+                if (!t.isEmpty())
+                {
+                  t.append(",");
+                }
+                t.append(QString::fromStdString(current_pc.NamesOfActivationMethod[*(current_pc.getActivationMethods().begin())]));
+              }
+              item->setText(4, t);
+            }
+            else
+            {
+              item->setText(4, "-");
+            }
+          }
+          item->setText(3, QString::number(pc_val));
         }
         else
         {

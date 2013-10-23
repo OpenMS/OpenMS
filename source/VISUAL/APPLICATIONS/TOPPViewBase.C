@@ -1220,11 +1220,11 @@ namespace OpenMS
             peptides_with_rt.push_back(*it);
           }
         }
-        Int diff = peptides.size() - peptides_with_rt.size();
+        Size diff = peptides.size() - peptides_with_rt.size();
         if (diff)
         {
-          String msg = String(diff) + " peptide identification(s) without "
-                                      "sequence and/or retention time information were removed.\n" +
+          String msg = String(diff) + " peptide identification(s) without"
+                                      " sequence and/or retention time information were removed.\n" +
                        peptides_with_rt.size() + " peptide identification(s) remaining.";
           showLogMessage_(LS_WARNING, "While loading file:", msg);
         }
