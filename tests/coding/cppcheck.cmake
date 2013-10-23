@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry               
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2012.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2013.
 # 
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -37,36 +37,37 @@ include(CppcheckTargets)
 ## we use only source files for cppcheck
 set(SOURCE_FILE_REGEX "\\.C$")
 
-MACRO(ADD_CPPCHECK_TEST FILE_TO_TEST)
-  string( REGEX MATCH ${SOURCE_FILE_REGEX} is_source_file ${FILE_TO_TEST} )
-  if(is_source_file)
-    add_cppcheck_sources(${FILE_TO_TEST} ${FILE_TO_TEST} STYLE FAIL_ON_WARNINGS)
-  endif(is_source_file)
-ENDMACRO()
+# --------------------------------------------------------------------------
+# add_cpp_check_tests : This macro generates cppcheck tests for files in the
+#                       given directory.
+#
+# The function searches for all sources files in the given directory and 
+# and generates a cppcheck tests for each individual file. 
+macro(add_cpp_check_tests _directory)
+  # find files in _directory
+  file(GLOB_RECURSE _source_files
+       RELATIVE ${OPENMS_HOST_DIRECTORY}/${_directory}/
+       ${OPENMS_HOST_DIRECTORY}/${_directory}/*.C)
 
-set(CPPCHECK_INCLUDEPATH_ARG ${OPENMS_INCLUDE_DIRS})
+  # add tests
+  foreach(_file_to_test ${_source_files})
+    string( REGEX MATCH ${SOURCE_FILE_REGEX} _is_source_file ${_file_to_test} )
+    if(_is_source_file)
+      add_cppcheck_sources(${_file_to_test}
+                           ${OPENMS_HOST_DIRECTORY}/${_directory}/${_file_to_test} 
+                           STYLE
+                           FAIL_ON_WARNINGS)
+    endif(_is_source_file)
+  endforeach()
+endmacro()
 
-# library checks
-set(OpenMS_cppcheck_sources)
-foreach(i ${OpenMS_sources})
-  add_cppcheck_test(${i})
-endforeach()
+# --------------------------------------------------------------------------
+# include for cppcheck
+set(CPPCHECK_INCLUDEPATH_ARG ${OPENMS_GUI_INCLUDE_DIRS})
 
-# GUI library checks
-foreach(i ${OpenMSVisual_sources})
-  add_cppcheck_test(${i})
-endforeach()
-
-# TOPP checks
-foreach(i ${TOPP_executables})
-  add_cppcheck_test(${TOPP_DIR}/${i}.C)
-endforeach()
-
-# UTILS checks
-foreach(i ${UTILS_executables})
-  add_cppcheck_test(${UTILS_DIR}/${i}.C)
-endforeach()
-
-foreach(i ${GUI_executables})
-  add_cppcheck_test(${GUI_DIR}/${i}.C)
-endforeach()
+# --------------------------------------------------------------------------
+add_cpp_check_tests("openswathalgo")
+add_cpp_check_tests("openms")
+add_cpp_check_tests("openms_gui")
+add_cpp_check_tests("topp")
+add_cpp_check_tests("utils")

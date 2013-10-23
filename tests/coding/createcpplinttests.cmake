@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry               
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2012.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2013.
 # 
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -32,45 +32,46 @@
 # $Authors: Timo Sachsenberg, Stephan Aiche $
 # --------------------------------------------------------------------------
 
+# --------------------------------------------------------------------------
 set(DO_NOT_TEST_THESE_FILES_REGEX "/(moc|ui)_")
 set(IGNORE_FILES_IN_BUILD_DIRECTORY "^${PROJECT_BINARY_DIR}")
 
-MACRO(ADD_CPPLINT_TEST FILE_TO_TEST)
-  string( REGEX MATCH ${DO_NOT_TEST_THESE_FILES_REGEX} do_not_test ${FILE_TO_TEST} )
-  string( REGEX MATCH ${IGNORE_FILES_IN_BUILD_DIRECTORY} is_in_bin_dir ${FILE_TO_TEST})
-  if(NOT do_not_test AND NOT is_in_bin_dir)
-    add_test(${FILE_TO_TEST}_cpplint_test
-      "${PYTHON_EXECUTABLE}"
-      "${PROJECT_SOURCE_DIR}/cmake/cpplint.py"
-      "--verbose=5"
-      "${PROJECT_SOURCE_DIR}/${FILE_TO_TEST}")
+# --------------------------------------------------------------------------
+# add_cpplint_tests : This macro generates cpplint tests for files in the
+#                     given directory.
+#
+# The function searches for all sources files in the given directory and 
+# and generates a cpplint tests for each individual file. 
+macro(add_cpplint_tests _directory)
+  # find files in _directory
+  file(GLOB_RECURSE _source_files
+       RELATIVE ${OPENMS_HOST_DIRECTORY}/${_directory}/
+       ${OPENMS_HOST_DIRECTORY}/${_directory}/*.C)
 
-    set_tests_properties(
-      ${FILE_TO_TEST}_cpplint_test
-      PROPERTIES
-      FAIL_REGULAR_EXPRESSION
-      "${CPPLINT_FAIL_REGULAR_EXPRESSION}")
-  endif()
-ENDMACRO()
+  # add tests
+  foreach(_file_to_test ${_source_files})  
+    string( REGEX MATCH ${DO_NOT_TEST_THESE_FILES_REGEX} _do_not_test ${_file_to_test} )
+    string( REGEX MATCH ${IGNORE_FILES_IN_BUILD_DIRECTORY} _is_in_bin_dir ${_file_to_test})
+    if(NOT _do_not_test AND NOT _is_in_bin_dir)
+      add_test(${_file_to_test}_cpplint_test
+        "${PYTHON_EXECUTABLE}"
+        "${PROJECT_SOURCE_DIR}/cpplint.py"
+        "--verbose=5"
+        "${OPENMS_HOST_DIRECTORY}/${_directory}/${_file_to_test}")
 
-## create tests for all files in the individual file groups
-foreach(i ${OpenMS_sources})
-  add_cpplint_test(${i})
-endforeach()
+      set_tests_properties(
+        ${_file_to_test}_cpplint_test
+        PROPERTIES
+        FAIL_REGULAR_EXPRESSION
+        "${CPPLINT_FAIL_REGULAR_EXPRESSION}")
+    endif()
+  endforeach()
+endmacro()
 
-foreach(i ${OpenMSVisual_sources})
-  add_cpplint_test(${i})
-endforeach()
-
-foreach(i ${TOPP_executables})
-  add_cpplint_test(${TOPP_DIR}/${i}.C)
-endforeach()
-
-foreach(i ${UTILS_executables})
-  add_cpplint_test(${UTILS_DIR}/${i}.C)
-endforeach()
-
-foreach(i ${GUI_executables})
-  add_cpplint_test(${GUI_DIR}/${i}.C)
-endforeach()
-
+# --------------------------------------------------------------------------
+# create tests for all files in the individual file groups
+add_cpplint_tests("openswathalgo")
+add_cpplint_tests("openms")
+add_cpplint_tests("openms_gui")
+add_cpplint_tests("topp")
+add_cpplint_tests("utils")
