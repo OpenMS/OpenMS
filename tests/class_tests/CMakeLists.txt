@@ -267,5 +267,9 @@ endforeach(i)
 source_group("" FILES ${sources_VS})
 
 #------------------------------------------------------------------------------
+# add OpenSWATHAlgo specific tests
+add_subdirectory(source/OPENSWATH)
+
+#------------------------------------------------------------------------------
 # restore old CMAKE_RUNTIME_OUTPUT_DIRECTORY
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${_TMP_CMAKE_RUNTIME_OUTPUT_DIRECTORY})
