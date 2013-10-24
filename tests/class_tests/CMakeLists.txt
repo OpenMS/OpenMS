@@ -202,7 +202,7 @@ foreach(i ${TEST_executables})
 endforeach(i)
 
 #------------------------------------------------------------------------------
-# tests of classes from GUI lib:
+# tests of classes from GUI lib
 foreach(i ${visual_executables_list})
 	target_link_libraries(${i} ${OPENMS_GUI_LIBRARIES})
   target_include_directories(${i} PUBLIC ${OPENMS_GUI_INCLUDE_DIRECTORIES})
@@ -210,6 +210,19 @@ endforeach(i)
 
 #------------------------------------------------------------------------------
 # GUI tests special treatment - Apply MOC compiler to GUI
+#------------------------------------------------------------------------------
+
+#------------------------------------------------------------------------------
+# Use QtTest lib
+find_package(Qt4 REQUIRED QtTest)
+if (NOT QT4_FOUND)
+  message(STATUS "QtTest module not found!")
+	message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -D QT_QMAKE_EXECUTABLE='<path_to_qmake(.exe)' <src-dir>")
+endif()
+include(${QT_USE_FILE})
+
+#------------------------------------------------------------------------------
+# Apply MOC compiler to GUI
 set(GUI_executables_list_C)
 foreach(i ${GUI_executables_list})
   list(APPEND GUI_executables_list_C GUI/${i}.C)
@@ -222,7 +235,7 @@ QT4_WRAP_CPP(mocced_GUI_executables_list_C ${GUI_executables_list_C} OPTIONS ${B
 foreach(i ${GUI_executables_list})
 	SET_SOURCE_FILES_PROPERTIES(GUI/${i}.C PROPERTIES OBJECT_DEPENDS ${mocced_GUI_executables_list_C})
 	add_executable(${i} source/GUI/${i}.C)
-	target_link_libraries(${i} ${OPENMS_GUI_LIBRARIES})
+	target_link_libraries(${i} ${OPENMS_GUI_LIBRARIES} ${QT_LIBRARIES})
   target_include_directories(${i} PUBLIC ${OPENMS_GUI_INCLUDE_DIRECTORIES})  
 	add_test(${i} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${i})
 	# only add OPENMP flags to gcc linker (execpt Mac OS X, due to compiler bug

@@ -229,17 +229,8 @@ endif()
 #------------------------------------------------------------------------------
 SET(QT_MIN_VERSION "4.5.0")
 
-# obsolete when CMake MinRequiredVersion becomes >= 2.8.5
-if ("${CMAKE_VERSION}" VERSION_LESS "2.8.5" AND NOT(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")) ##
-	set(phonon_extra QtPhonon)
-	message(STATUS "Trying to find Phonon explicitly... If you run into trouble with Qt Phonon, try to disable it in build system")
-else()
-	set(phonon_extra)
-	message(STATUS "Not trying to find Phonon explicitly... If you run into trouble with Qt Phonon, try to enable it in build system")
-endif()
-
 # find qt
-find_package(Qt4 REQUIRED QtXML QtNetwork QtSQL QtOpenGL QtSVG QtTest QtWebKit ${phonon_extra})
+find_package(Qt4 REQUIRED QtCore QtSql QtNetwork QtGui)
 
 IF (NOT QT4_FOUND)
   message(STATUS "QT4 not found!")

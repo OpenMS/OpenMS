@@ -54,6 +54,28 @@ include_directories(${OPENMS_GUI_INCLUDE_DIRECTORIES})
 # OpenMS_GUI lib
 add_library(OpenMS_GUI ${OpenMSVisual_sources})
 
+# --------------------------------------------------------------------------
+# OpenMS_GUI's additional dependencies 
+# --------------------------------------------------------------------------
+
+# obsolete when CMake MinRequiredVersion becomes >= 2.8.5
+if ("${CMAKE_VERSION}" VERSION_LESS "2.8.5" AND NOT(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")) ##
+	set(phonon_extra QtPhonon)
+	message(STATUS "Trying to find Phonon explicitly... If you run into trouble with Qt Phonon, try to disable it in build system")
+else()
+	set(phonon_extra)
+	message(STATUS "Not trying to find Phonon explicitly... If you run into trouble with Qt Phonon, try to enable it in build system")
+endif()
+
+find_package(Qt4 REQUIRED QtGui QtOpenGL QtSVG QtWebKit QtNetwork ${phonon_extra})
+if (NOT QT4_FOUND)
+  message(STATUS "Qt4 modules not found!")
+	message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -D QT_QMAKE_EXECUTABLE='<path_to_qmake(.exe)' <src-dir>")
+endif()
+include(${QT_USE_FILE})
+
+# --------------------------------------------------------------------------
+# additional linker flags required by openms_gui
 if (MSVC)
 	set (GUI_lnk_flags "/FORCE:MULTIPLE /INCREMENTAL:NO /ignore:4006 /ignore:4088")
 	set_target_properties(OpenMS_GUI PROPERTIES LINK_FLAGS ${GUI_lnk_flags}) ## allow multiple definitions of symbols (e.g. from template instanciations or STL-derived classes)
