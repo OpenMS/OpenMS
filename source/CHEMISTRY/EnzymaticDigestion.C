@@ -41,8 +41,8 @@ using namespace std;
 
 namespace OpenMS
 {
-  const std::string EnzymaticDigestion::NamesOfEnzymes[] = {"Trypsin"};
-  const std::string EnzymaticDigestion::NamesOfSpecificity[] = {"full", "semi", "none"};
+  const string EnzymaticDigestion::NamesOfEnzymes[] = {"Trypsin"};
+  const string EnzymaticDigestion::NamesOfSpecificity[] = {"full", "semi", "none"};
 
 
   EnzymaticDigestion::EnzymaticDigestion() :
@@ -168,45 +168,50 @@ namespace OpenMS
     log_model_threshold_ = threshold;
   }
 
-  bool EnzymaticDigestion::isCleavageSite_(const AASequence & protein, const AASequence::ConstIterator & iterator) const
+  bool EnzymaticDigestion::isCleavageSite_(
+    const AASequence& protein, const AASequence::ConstIterator& iterator) const
   {
     switch (enzyme_)
     {
     case ENZYME_TRYPSIN:
       if (use_log_model_)
       {
-        if (*iterator != 'R' && *iterator != 'K')   // wait for R or K
+        if (*iterator != 'R' && *iterator != 'K') // wait for R or K
         {
           return false;
         }
-        SignedSize pos = std::distance(AASequence::ConstIterator(protein.begin()), iterator) - 4;   // start position in sequence
+        SignedSize pos = distance(AASequence::ConstIterator(protein.begin()), 
+                                  iterator) - 4; // start position in sequence
         DoubleReal score_cleave = 0, score_missed = 0;
         for (SignedSize i = 0; i < 9; ++i)
         {
           if ((pos + i >= 0) && (pos + i < (SignedSize)protein.size()))
           {
-            CleavageModel p = model_data_[BindingSite(i, protein[pos + i].getOneLetterCode())]; // might not exist, but then its 0 by default
-            score_cleave += p.p_cleave;
-            score_missed += p.p_miss;
+            BindingSite bs(i, protein[pos + i].getOneLetterCode());
+            Map<BindingSite, CleavageModel>::const_iterator pos = 
+              model_data_.find(bs);
+            if (pos != model_data_.end()) // no data for non-std. amino acids
+            {
+              score_cleave += pos->second.p_cleave;
+              score_missed += pos->second.p_miss;
+            }
           }
         }
-        if (score_missed - score_cleave > log_model_threshold_) return true;
-        return false;
+        return (score_missed - score_cleave > log_model_threshold_);
       }
-      else   // naive digestion
+      else // naive digestion
       {
-        //R or K at the end and not P afterwards
-        if ((*iterator == 'R' || *iterator == 'K') && ((iterator + 1) == protein.end() || *(iterator + 1) != 'P')) return true;
-        else return false;
+        // R or K at the end and not P afterwards
+        return ((*iterator == 'R' || *iterator == 'K') && 
+                ((iterator + 1) == protein.end() || *(iterator + 1) != 'P'));
       }
       break;
     default:
       return false;
     }
-
   }
 
-  void EnzymaticDigestion::nextCleavageSite_(const AASequence & protein, AASequence::ConstIterator & iterator) const
+  void EnzymaticDigestion::nextCleavageSite_(const AASequence& protein, AASequence::ConstIterator& iterator) const
   {
     while (iterator != protein.end())
     {
@@ -224,17 +229,17 @@ namespace OpenMS
   {
     if (pep_pos >= protein.size())
     {
-      LOG_WARN << "Error: start of peptide is beyond end of protein!" << std::endl;
+      LOG_WARN << "Error: start of peptide is beyond end of protein!" << endl;
       return false;
     }
     else if (pep_pos + pep_length > protein.size())
     {
-      LOG_WARN << "Error: end of peptide is beyond end of protein!" << std::endl;
+      LOG_WARN << "Error: end of peptide is beyond end of protein!" << endl;
       return false;
     }
     else if (pep_length == 0 || protein.size() == 0)
     {
-      LOG_WARN << "Error: peptide or protein must not be empty!" << std::endl;
+      LOG_WARN << "Error: peptide or protein must not be empty!" << endl;
       return false;
     }
 
@@ -255,7 +260,7 @@ namespace OpenMS
 
   }
 
-  Size EnzymaticDigestion::peptideCount(const AASequence & protein)
+  Size EnzymaticDigestion::peptideCount(const AASequence& protein)
   {
     SignedSize count = 1;
 
@@ -264,21 +269,19 @@ namespace OpenMS
     {
       ++count;
     }
-    if (use_log_model_)
-      missed_cleavages_ = 0;                 // log model has missed cleavages build-in
+    if (use_log_model_) missed_cleavages_ = 0; // log model has missed cleavages built-in
 
-    //missed cleavages
+    // missed cleavages
     Size sum = count;
     for (SignedSize i = 1; i < count; ++i)
     {
-      if (i > missed_cleavages_)
-        break;
+      if (i > missed_cleavages_) break;
       sum += count - i;
     }
     return sum;
   }
 
-  void EnzymaticDigestion::digest(const AASequence & protein, std::vector<AASequence> & output) const
+  void EnzymaticDigestion::digest(const AASequence & protein, vector<AASequence> & output) const
   {
     //initialization
     SignedSize count = 1;
