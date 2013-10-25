@@ -125,8 +125,9 @@ protected:
                      StringList::create("score,intensity,median,all,adapt"));
     registerDoubleOption_("rt_window", "<value>", 180, "RT window size (in sec.) for chromatogram extraction.", false);
     setMinFloat_("rt_window", 0);
-    registerDoubleOption_("mz_window", "<value>", 0.03, "m/z window size (in Th) for chromatogram extraction.", false);
+    registerDoubleOption_("mz_window", "<value>", 0.03, "m/z window size for chromatogram extraction (in Th or ppm, see 'mz_window_ppm').", false);
     setMinFloat_("mz_window", 0);
+    registerFlag_("mz_window_ppm", "Interpret 'mz_window' parameter as a ppm value (default: Th)");
     registerDoubleOption_("isotope_pmin", "<value>", 0.01, "Minimum probability for an isotope to be included in the assay for a peptide.", false);
     setMinFloat_("isotope_pmin", 0);
     setMaxFloat_("isotope_pmin", 1);
@@ -389,6 +390,7 @@ protected:
     DoubleReal rt_window = getDoubleOption_("rt_window");
     rt_tolerance_ = rt_window / 2.0;
     DoubleReal mz_window = getDoubleOption_("mz_window");
+    bool mz_window_ppm = getFlag_("mz_window_ppm");
     DoubleReal isotope_pmin = getDoubleOption_("isotope_pmin");
 
     //-------------------------------------------------------------
@@ -497,7 +499,8 @@ protected:
     if (reference_rt_ != "adapt")
     {
       extractor.extractChromatograms(ms_data_, chrom_data, library_, mz_window,
-                                     false, trafo_, rt_window, "tophat");
+                                     mz_window_ppm, trafo_, rt_window, 
+                                     "tophat");
     }
     else
     {
@@ -547,7 +550,7 @@ protected:
       }
       vector<MSChromatogram<> > chromatograms;
       extractor.extractChromatograms(input, output, coords, mz_window,
-                                     false, "tophat");
+                                     mz_window_ppm, "tophat");
       extractor.return_chromatogram(output, coords, library_, (*shared)[0],
                                     chromatograms, false);
       chrom_data.setChromatograms(chromatograms);
@@ -594,11 +597,13 @@ protected:
                feat_it->getSubordinates().begin(); sub_it !=
                feat_it->getSubordinates().end(); ++sub_it)
         {
+          DoubleReal abs_mz_tol = mz_window / 2.0;
+          if (mz_window_ppm) abs_mz_tol = sub_it->getMZ() * abs_mz_tol * 1.0e-6;
           ConvexHull2D hull;
-          hull.addPoint(DPosition<2>(rt_min, sub_it->getMZ() - mz_window / 2));
-          hull.addPoint(DPosition<2>(rt_min, sub_it->getMZ() + mz_window / 2));
-          hull.addPoint(DPosition<2>(rt_max, sub_it->getMZ() - mz_window / 2));
-          hull.addPoint(DPosition<2>(rt_max, sub_it->getMZ() + mz_window / 2));
+          hull.addPoint(DPosition<2>(rt_min, sub_it->getMZ() - abs_mz_tol));
+          hull.addPoint(DPosition<2>(rt_min, sub_it->getMZ() + abs_mz_tol));
+          hull.addPoint(DPosition<2>(rt_max, sub_it->getMZ() - abs_mz_tol));
+          hull.addPoint(DPosition<2>(rt_max, sub_it->getMZ() + abs_mz_tol));
           feat_it->getConvexHulls().push_back(hull);
         }
       }
