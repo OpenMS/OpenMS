@@ -87,35 +87,40 @@ public:
      @param rnd_gen GSL random number generator which will be passed to the different classes
      @param peptides List of peptides and abundances that will be simulated
      */
-    void simulate(const SimRandomNumberGenerator & rnd_gen, SampleChannels & peptides);
+    void simulate(const SimRandomNumberGenerator& rnd_gen, SampleChannels& peptides);
 
     /// Access the simulated experiment
-    MSSimExperiment const & getExperiment() const;
+    MSSimExperiment const& getExperiment() const;
 
     /// Access the simulated features
-    FeatureMapSim const & getSimulatedFeatures() const;
+    FeatureMapSim const& getSimulatedFeatures() const;
 
     /// Access the charge consensus map of simulated features
-    ConsensusMap & getChargeConsensus();
+    ConsensusMap& getChargeConsensus();
 
     /// Access the contaminants feature map of simulated features
-    FeatureMapSim const & getContaminants() const;
+    FeatureMapSim const& getContaminants() const;
 
     /// Access the labeling consensus map of simulated features
-    ConsensusMap & getLabelingConsensus();
+    ConsensusMap& getLabelingConsensus();
 
-    /// Access the labeling consensus map of simulated features
-    MSSimExperiment const & getPeakMap() const;
+    /// Access the picked (centroided) experiment
+    MSSimExperiment const& getPeakMap() const;
+
+    /// Access the MS2 identifications (proteins and peptides)
+    void getMS2Identifications(std::vector<ProteinIdentification>& proteins, 
+                               std::vector<PeptideIdentification>& peptides) 
+      const;
 
     /// Returns the default parameters for simulation including the labeling technique with name @p labeling_name
     Param getParameters() const;
 
 protected:
     /// handle global params
-    void syncParams_(Param & p, bool to_outer);
+    void syncParams_(Param& p, bool to_outer);
 
     /// Convert a list of peptides with given abundance values into a FeatureMap
-    void createFeatureMap_(const SampleProteins & peptides, FeatureMapSim & features, Size map_index);
+    void createFeatureMap_(const SampleProteins& peptides, FeatureMapSim& features, Size map_index);
 
 private:
     /// Synchronize members with param class
@@ -132,7 +137,7 @@ private:
     FeatureMapSim contaminants_map_;
 
     /// Labeling functionality
-    BaseLabeler * labeler_;
+    BaseLabeler* labeler_;
   };
 
 }

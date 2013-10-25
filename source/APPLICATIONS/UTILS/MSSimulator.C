@@ -49,6 +49,7 @@
 
 // file types
 #include <OpenMS/FORMAT/DTA2DFile.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MzXMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
@@ -135,20 +136,22 @@ protected:
   void registerOptionsAndFlags_()
   {
     // I/O settings
-    registerInputFileList_("in", "<files>", StringList::create(""), "Input protein sequences in FASTA format", true, false);
-    setValidFormats_("in", StringList::create("fasta"));
-    registerOutputFile_("out", "<file>", "", "output (simulated MS map) in mzML format", false);
+    registerInputFileList_("in", "<files>", StringList::create(""), "Input protein sequences", true, false);
+    setValidFormats_("in", StringList::create("FASTA"));
+    registerOutputFile_("out", "<file>", "", "output: simulated MS raw (profile) data", false);
     setValidFormats_("out", StringList::create("mzML"));
-    registerOutputFile_("out_pm", "<file>", "", "output (simulated MS map) in mzML format (picked GT)", false);
+    registerOutputFile_("out_pm", "<file>", "", "output: ground-truth picked (centroided) MS data", false);
     setValidFormats_("out_pm", StringList::create("mzML"));
-    registerOutputFile_("out_fm", "<file>", "", "output (simulated MS map) in featureXML format", false);
+    registerOutputFile_("out_fm", "<file>", "", "output: ground-truth features", false);
     setValidFormats_("out_fm", StringList::create("featureXML"));
-    registerOutputFile_("out_cm", "<file>", "", "output (simulated MS map) in consensusXML format (grouping charge variants from a parent peptide from ESI)", false);
+    registerOutputFile_("out_cm", "<file>", "", "output: ground-truth features, grouping ESI charge variants of each parent peptide", false);
     setValidFormats_("out_cm", StringList::create("consensusXML"));
-    registerOutputFile_("out_lcm", "<file>", "", "output (simulated MS map) in consensusXML format (grouping labeled variants)", false);
+    registerOutputFile_("out_lcm", "<file>", "", "output: ground-truth features, grouping labeled variants", false);
     setValidFormats_("out_lcm", StringList::create("consensusXML"));
-    registerOutputFile_("out_cntm", "<file>", "", "output (simulated MS map) in featureXML format (contaminants)", false);
+    registerOutputFile_("out_cntm", "<file>", "", "output: ground-truth features caused by contaminants", false);
     setValidFormats_("out_cntm", StringList::create("featureXML"));
+    registerOutputFile_("out_id", "<file>", "", "output: ground-truth MS2 peptide identifications", false);
+    setValidFormats_("out_id", StringList::create("idXML")); 
 
     registerSubsection_("algorithm", "Algorithm parameters section");
   }
@@ -240,12 +243,13 @@ protected:
     //-------------------------------------------------------------
 
     // check if at least one output file is
-    if (getStringOption_("out") == ""
-       && getStringOption_("out_pm") == ""
-       && getStringOption_("out_fm") == ""
-       && getStringOption_("out_cm") == ""
-       && getStringOption_("out_lcm") == ""
-       && getStringOption_("out_cntm") == "")
+    if (getStringOption_("out") == "" && 
+        getStringOption_("out_pm") == "" &&
+        getStringOption_("out_fm") == "" &&
+        getStringOption_("out_cm") == "" &&
+        getStringOption_("out_lcm") == "" &&
+        getStringOption_("out_cntm") == "" &&
+        getStringOption_("out_id") == "")
     {
       LOG_ERROR << "Error: At least one output file needs to specified!" << std::endl;
       return MISSING_PARAMETERS;
@@ -284,14 +288,14 @@ protected:
     String outputfile_name = getStringOption_("out");
     if (outputfile_name != "")
     {
-      writeLog_(String("Storing simulated map in: ") + outputfile_name);
+      writeLog_(String("Storing simulated raw data in: ") + outputfile_name);
       MzMLFile().store(outputfile_name, ms_simulation.getExperiment());
     }
 
     String pxml_out = getStringOption_("out_pm");
     if (pxml_out != "")
     {
-      writeLog_(String("Storing simulated features in: ") + pxml_out);
+      writeLog_(String("Storing simulated peak/centroided data in: ") + pxml_out);
       MzMLFile().store(pxml_out, ms_simulation.getPeakMap());
     }
 
@@ -337,6 +341,16 @@ protected:
     {
       writeLog_(String("Storing simulated contaminant features in: ") + cntxml_out);
       FeatureXMLFile().store(cntxml_out, ms_simulation.getContaminants());
+    }
+
+    String id_out = getStringOption_("out_id");
+    if (id_out != "")
+    {
+      writeLog_(String("Storing ground-truth peptide IDs in: ") + id_out);
+      vector<ProteinIdentification> proteins;
+      vector<PeptideIdentification> peptides;
+      ms_simulation.getMS2Identifications(proteins, peptides);
+      IdXMLFile().store(id_out, proteins, peptides);
     }
 
     return EXECUTION_OK;

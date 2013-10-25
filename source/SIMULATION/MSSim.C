@@ -45,58 +45,60 @@
 
 //#define OPENMS_DEBUG_SIM_
 
+using namespace std;
+
 namespace OpenMS
 {
 
   void verbosePrintFeatureMap(FeatureMapSimVector feature_maps, String stage)
   {
 #ifdef OPENMS_DEBUG_SIM_
-    std::cout << "############## DEBUG (" << stage << ") -- FEATURE MAPS ##############" << std::endl;
+    cout << "############## DEBUG (" << stage << ") -- FEATURE MAPS ##############" << endl;
 
     Size map_count = 1;
     StringList keys;
     for (FeatureMapSimVector::iterator map_iter = feature_maps.begin(); map_iter != feature_maps.end(); ++map_iter)
     {
-      std::cout << "FEATURE MAP #" << map_count << std::endl;
+      cout << "FEATURE MAP #" << map_count << endl;
 
-      std::cout << "contained proteins" << std::endl;
+      cout << "contained proteins" << endl;
       ProteinIdentification protIdent = (*map_iter).getProteinIdentifications()[0];
-      for (std::vector<ProteinHit>::iterator proteinHit = protIdent.getHits().begin();
+      for (vector<ProteinHit>::iterator proteinHit = protIdent.getHits().begin();
            proteinHit != protIdent.getHits().end();
            ++proteinHit)
       {
-        std::cout << "- " << proteinHit->getAccession() << std::endl;
+        cout << "- " << proteinHit->getAccession() << endl;
       }
-      std::cout << "----------------------------------------------" << std::endl;
+      cout << "----------------------------------------------" << endl;
       for (FeatureMapSim::const_iterator feat = (*map_iter).begin();
            feat != (*map_iter).end();
            ++feat)
       {
         (*feat).getKeys(keys);
-        std::cout << " RT: " << (*feat).getRT()
-                  << " MZ: " << (*feat).getMZ()
-                  << " INT: " << (*feat).getIntensity()
-                  << " CHARGE: " << (*feat).getCharge()
-                  << " Det: " << (*feat).getMetaValue("detectibility") << std::endl
-                  << " Pep: " << feat->getPeptideIdentifications()[0].getHits()[0].getSequence().toString() << std::endl
-                  << " ID: " << feat->getUniqueId() << std::endl
-                  << " Meta: " << keys.concatenate(",") << std::endl;
-        std::cout << "derived from protein(s): ";
-        for (std::vector<String>::const_iterator it = (*feat).getPeptideIdentifications()[0].getHits()[0].getProteinAccessions().begin();
+        cout << " RT: " << (*feat).getRT()
+             << " MZ: " << (*feat).getMZ()
+             << " INT: " << (*feat).getIntensity()
+             << " CHARGE: " << (*feat).getCharge()
+             << " Det: " << (*feat).getMetaValue("detectibility") << endl
+             << " Pep: " << feat->getPeptideIdentifications()[0].getHits()[0].getSequence().toString() << endl
+             << " ID: " << feat->getUniqueId() << endl
+             << " Meta: " << keys.concatenate(",") << endl;
+        cout << "derived from protein(s): ";
+        for (vector<String>::const_iterator it = (*feat).getPeptideIdentifications()[0].getHits()[0].getProteinAccessions().begin();
              it != (*feat).getPeptideIdentifications()[0].getHits()[0].getProteinAccessions().end();
              ++it)
         {
-          std::cout << (*it) << " ";
+          cout << (*it) << " ";
         }
-        std::cout << std::endl << "----------------------------------------------" << std::endl;
+        cout << endl << "----------------------------------------------" << endl;
       }
-      std::cout << std::endl;
+      cout << endl;
       ++map_count;
     }
-    std::cout << "############## END DEBUG -- FEATURE MAPS ##############" << std::endl;
+    cout << "############## END DEBUG -- FEATURE MAPS ##############" << endl;
 #else
     if (feature_maps.empty())
-      std::cout << stage;                             // just to avoid warnings of unused parameters
+      cout << stage;                             // just to avoid warnings of unused parameters
 #endif
   }
 
@@ -132,12 +134,12 @@ namespace OpenMS
     Param tmp;
     tmp.insert("", this->param_); // get non-labeling options
 
-    std::vector<String> products = Factory<BaseLabeler>::registeredProducts();
+    vector<String> products = Factory<BaseLabeler>::registeredProducts();
 
     tmp.setValue("Labeling:type", "labelfree", "Select the labeling type you want for your experiment");
     tmp.setValidStrings("Labeling:type", products);
 
-    for (std::vector<String>::iterator product_name = products.begin(); product_name != products.end(); ++product_name)
+    for (vector<String>::iterator product_name = products.begin(); product_name != products.end(); ++product_name)
     {
       BaseLabeler * labeler = Factory<BaseLabeler>::create(*product_name);
       tmp.insert("Labeling:" + *product_name + ":", labeler->getDefaultParameters());
@@ -164,8 +166,8 @@ namespace OpenMS
 
     /*
       General progress should be
-        1. Digest Proteins
-        2. Predict retention times
+        1. digest Proteins
+        2. predict retention times
         3. predict detectability
         4. simulate ionization
         5. simulate the ms signal
@@ -234,7 +236,7 @@ namespace OpenMS
     }
     rt_sim.createExperiment(experiment_);
 
-    peak_map_ = experiment_; // initial Ground Truth for peak map is the same as for raw data
+    peak_map_ = experiment_; // initial ground-truth for peak map is the same as for raw data
 
     // post rt sim labeling
     labeler_->postRTHook(feature_maps_);
@@ -285,7 +287,7 @@ namespace OpenMS
       PeptideIdentification & pi = f.getPeptideIdentifications()[0];
       // search for closest scan index:
       MSSimExperiment::ConstIterator it_rt = experiment_.RTBegin(f.getRT());
-      SignedSize scan_index = std::distance<MSSimExperiment::ConstIterator>(experiment_.begin(), it_rt);
+      SignedSize scan_index = distance<MSSimExperiment::ConstIterator>(experiment_.begin(), it_rt);
       pi.setMetaValue("RT_index", scan_index);
       pi.setMetaValue("RT", f.getRT());
     }
@@ -326,14 +328,14 @@ namespace OpenMS
       protIdent.insertHit(protHit);
     }
 
-    std::vector<ProteinIdentification> vec_protIdent;
+    vector<ProteinIdentification> vec_protIdent;
     vec_protIdent.push_back(protIdent);
     feature_map.setProteinIdentifications(vec_protIdent);
   }
 
   void MSSim::syncParams_(Param & p, bool to_outer)
   {
-    std::vector<StringList> globals;
+    vector<StringList> globals;
     // here the globals params are listed that require to be in sync across several modules
     // - first the global param name and following that the module names where this param occurs
     // - Warning: the module params must have unchanged names and restrictions! (descriptions can differ though)
@@ -377,35 +379,80 @@ namespace OpenMS
   {
   }
 
-  MSSimExperiment const & MSSim::getExperiment() const
+  const MSSimExperiment& MSSim::getExperiment() const
   {
     return experiment_;
   }
 
-  FeatureMapSim const & MSSim::getSimulatedFeatures() const
+  const FeatureMapSim& MSSim::getSimulatedFeatures() const
   {
     OPENMS_PRECONDITION(feature_maps_.size() == 1, "More than one feature map remains after simulation. The channels should however be merged by now. Check!")
     return feature_maps_[0];
   }
 
-  ConsensusMap & MSSim::getChargeConsensus()
+  ConsensusMap& MSSim::getChargeConsensus()
   {
     return consensus_map_;
   }
 
-  ConsensusMap & MSSim::getLabelingConsensus()
+  ConsensusMap& MSSim::getLabelingConsensus()
   {
     return labeler_->getConsensus();
   }
 
-  FeatureMapSim const & MSSim::getContaminants() const
+  const FeatureMapSim& MSSim::getContaminants() const
   {
     return contaminants_map_;
   }
 
-  MSSimExperiment const & MSSim::getPeakMap() const
+  const MSSimExperiment& MSSim::getPeakMap() const
   {
     return peak_map_;
+  }
+
+  void MSSim::getMS2Identifications(vector<ProteinIdentification>& proteins, 
+                                    vector<PeptideIdentification>& peptides)
+    const
+  {
+    proteins.clear();
+    peptides.clear();
+    set<String> accessions;
+    for (MSSimExperiment::const_iterator ms_it = experiment_.begin(); 
+         ms_it != experiment_.end(); ++ms_it)
+    {
+      if (ms_it->getMSLevel() != 2) continue;
+      // "the" precursor is the one with highest intensity:
+      Size index = 0;
+      DoubleReal intensity = ms_it->getPrecursors()[0].getIntensity();
+      for (Size i = 1; i < ms_it->getPrecursors().size(); ++i)
+      {
+        if (ms_it->getPrecursors()[i].getIntensity() > intensity)
+        {
+          intensity = ms_it->getPrecursors()[i].getIntensity();
+          index = i;
+        }
+      }
+      Size feat_id = IntList(ms_it->getMetaValue("parent_feature_ids"))[index];
+      const Feature& feature = feature_maps_[0][feat_id];
+      peptides.push_back(feature.getPeptideIdentifications()[0]);
+      peptides.back().setMetaValue("RT", ms_it->getRT());
+      peptides.back().setMetaValue("MZ", ms_it->getPrecursors()[index].getMZ());
+      const PeptideHit& hit = peptides.back().getHits()[0];
+      accessions.insert(hit.getProteinAccessions().begin(), 
+                        hit.getProteinAccessions().end());
+    }
+    const ProteinIdentification& protein = 
+      feature_maps_[0].getProteinIdentifications()[0];
+    proteins.push_back(protein);
+    proteins[0].getHits().clear();
+    for (vector<ProteinHit>::const_iterator prot_it = protein.getHits().begin();
+         prot_it != protein.getHits().end(); ++prot_it)
+    {
+      if (accessions.find(prot_it->getAccession()) != accessions.end())
+      {
+        proteins[0].insertHit(*prot_it);
+      }
+    }    
   }
 
 }
