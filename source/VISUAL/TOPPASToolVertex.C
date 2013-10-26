@@ -974,18 +974,23 @@ namespace OpenMS
      * of this method in updateCurrentOutputFileNames()
      */
 
-    // special case #1, only one filename in each round, with different directory but same basename
+    // special case #1, only one filename in each round (at least 2 rounds), with different directory but same basename
     // --> use LAST directory as new name, e.g. 'subdir' from 'c:\mydir\subdir\samesame.mzML'
-    bool passes_constraints = true && filenames.size() > 0; // one file per round AND unique filename
-    for (Size i = 1; i < filenames.size(); ++i)
+    bool passes_constraints = false;
+    if (filenames.size() > 1) // more than one round
     {
-      if ( (filenames[i].size() > 1)
-           || (QFileInfo(filenames[0][0]).fileName() != QFileInfo(filenames[i][0]).fileName()))
+      passes_constraints = true;
+      for (Size i = 1; i < filenames.size(); ++i)
       {
-        passes_constraints = false;
-        break;
+        if ( (filenames[i].size() > 1)  // one file per round AND unique filename
+             || (QFileInfo(filenames[0][0]).fileName() != QFileInfo(filenames[i][0]).fileName()))
+        {
+          passes_constraints = false;
+          break;
+        }
       }
     }
+
     if (passes_constraints) // rename
     {
       for (Size i = 0; i < filenames.size(); ++i)
