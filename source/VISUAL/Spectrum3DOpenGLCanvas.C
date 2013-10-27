@@ -100,7 +100,7 @@ namespace OpenMS
   void Spectrum3DOpenGLCanvas::resizeGL(int w, int h)
   {
     width_ = (float)w;
-    heigth_ = (float)h;
+    height_ = (float)h;
     glViewport(0, 0, (GLsizei) w, (GLsizei) h);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
@@ -381,7 +381,7 @@ namespace OpenMS
             renderText(-corner_ - text.length() - width_ / 200.0 - 5.0, -corner_ + scaledIntensity(grid_intensity_[1][i], canvas_3d_.current_layer_), -near_ - 2 * corner_, text, font);
           }
         }
-        if (width_ > 800 && heigth_ > 600 && zoom_ < 2.0 && grid_intensity_.size() >= 3)
+        if (width_ > 800 && height_ > 600 && zoom_ < 2.0 && grid_intensity_.size() >= 3)
         {
           for (Size i = 0; i < grid_intensity_[2].size(); i++)
           {
@@ -967,9 +967,9 @@ namespace OpenMS
   {
     QRect rect = canvas_3d_.rubber_band_.geometry();
     x_1_ = ((rect.topLeft().x() - width_ / 2) * corner_ * 1.25 * 2) / width_;
-    y_1_ = -300 + (((rect.topLeft().y() - heigth_ / 2) * corner_ * 1.25 * 2) / heigth_);
+    y_1_ = -300 + (((rect.topLeft().y() - height_ / 2) * corner_ * 1.25 * 2) / height_);
     x_2_ = ((rect.bottomRight().x() - width_ / 2) * corner_ * 1.25 * 2) / width_;
-    y_2_ = -300 + (((rect.bottomRight().y() - heigth_ / 2) * corner_ * 1.25 * 2) / heigth_);
+    y_2_ = -300 + (((rect.bottomRight().y() - height_ / 2) * corner_ * 1.25 * 2) / height_);
     dataToZoomArray(x_1_, y_1_, x_2_, y_2_);
     canvas_3d_.rubber_band_.hide();
     canvas_3d_.update_buffer_ = true;

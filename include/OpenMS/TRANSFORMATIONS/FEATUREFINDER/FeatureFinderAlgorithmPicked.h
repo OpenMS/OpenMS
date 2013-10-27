@@ -121,7 +121,7 @@ public:
       defaults_.setMinInt("intensity:bins", 1);
       defaults_.setSectionDescription("intensity", "Settings for the calculation of a score indicating if a peak's intensity is significant in the local environment (between 0 and 1)");
       //mass trace search parameters
-      defaults_.setValue("mass_trace:mz_tolerance", 0.03, "Tolerated m/z deviation of peaks belonging to the same mass trace.\nIt should be larger than the m/z resolution of the instument.\nThis value must be smaller than that 1/charge_high!");
+      defaults_.setValue("mass_trace:mz_tolerance", 0.03, "Tolerated m/z deviation of peaks belonging to the same mass trace.\nIt should be larger than the m/z resolution of the instrument.\nThis value must be smaller than that 1/charge_high!");
       defaults_.setMinFloat("mass_trace:mz_tolerance", 0.0);
       defaults_.setValue("mass_trace:min_spectra", 10, "Number of spectra that have to show a similar peak mass in a mass trace.");
       defaults_.setMinInt("mass_trace:min_spectra", 1);
@@ -135,7 +135,7 @@ public:
       defaults_.setMinInt("isotopic_pattern:charge_low", 1);
       defaults_.setValue("isotopic_pattern:charge_high", 4, "Highest charge to search for.");
       defaults_.setMinInt("isotopic_pattern:charge_high", 1);
-      defaults_.setValue("isotopic_pattern:mz_tolerance", 0.03, "Tolerated m/z deviation from the theoretical isotopic pattern.\nIt should be larger than the m/z resolution of the instument.\nThis value must be smaller than that 1/charge_high!");
+      defaults_.setValue("isotopic_pattern:mz_tolerance", 0.03, "Tolerated m/z deviation from the theoretical isotopic pattern.\nIt should be larger than the m/z resolution of the instrument.\nThis value must be smaller than that 1/charge_high!");
       defaults_.setMinFloat("isotopic_pattern:mz_tolerance", 0.0);
       defaults_.setValue("isotopic_pattern:intensity_percentage", 10.0, "Isotopic peaks that contribute more than this percentage to the overall isotope pattern intensity must be present.", StringList::create("advanced"));
       defaults_.setMinFloat("isotopic_pattern:intensity_percentage", 0.0);

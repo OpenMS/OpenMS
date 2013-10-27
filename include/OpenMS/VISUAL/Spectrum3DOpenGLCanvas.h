@@ -133,7 +133,7 @@ public:
 
     /// return width
     float width() const { return width_; }
-    float height() const { return heigth_; }
+    float height() const { return height_; }
 
     /// return xRot_
     int xRotation() const { return xrot_; }
@@ -200,7 +200,7 @@ public:
     /// the width of the viewport
     float width_;
     /// the height of the viewport
-    float heigth_;
+    float height_;
     /// object which contains the min and max values of mz, rt and intensity
     DRange<3> overall_values_;
     ///object wich contains the values of the current min and max intensity
