@@ -812,6 +812,9 @@ protected:
       at.colTypes.push_back("RT");
       at.colTypes.push_back("Intensity");
       at.colTypes.push_back("Charge");
+      at.colTypes.push_back("Quality");
+      at.colTypes.push_back("FWHM");
+      at.colTypes.push_back("IDs");
       UInt fiter = 0;
       map.sortByRT();
       //ofstream out(outputfile_name.c_str());
@@ -822,6 +825,9 @@ protected:
         row.push_back(map[fiter].getRT());
         row.push_back(map[fiter].getIntensity());
         row.push_back(map[fiter].getCharge());
+        row.push_back(map[fiter].getOverallQuality());
+        row.push_back(map[fiter].getWidth());
+        row.push_back(map[fiter].getPeptideIdentifications().size());
         fiter++;
         at.tableRows.push_back(row);
       }     
