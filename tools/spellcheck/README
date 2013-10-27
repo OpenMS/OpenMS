@@ -1,0 +1,6 @@
+
+find include/ | xargs perl tools/spellcheck/lspell2.pl /dev/null   | cut -f 2 -d ":" |  sed -e 's/^[ \t]*//' | sort -f | uniq > stop1.txt
+cat stop1.txt tools/spellcheck/correct_words.txt > stop2.txt
+find  ./include/OpenMS/ | xargs perl tools/spellcheck/lspell.pl stop2.txt > badwords
+
+
