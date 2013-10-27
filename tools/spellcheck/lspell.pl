@@ -19,7 +19,7 @@ $STOPFILE=shift(@ARGV);
 open(STOPFILE, $STOPFILE) || die "can't open stopword file $STOPFILE";
 while (<STOPFILE>) {
 	chomp;
-	$stopped{$_}++;
+	$stopped{lc($_)}++; # ignore case
 }
 close(STOPFILE);
 
@@ -33,14 +33,23 @@ foreach $file (@ARGV) {
 	$content =~ s!/\*(.+?)\*/!check_content($1)!egs;
 	close(POUT);
 
-  `sed -i 's/[{}]/XXX/' $TEMPFILE`;
+  `sed -i 's/[{}]/ /' $TEMPFILE`;
+  # remove parameter and other doxygen names 
+  # removes SomeKindOfException from "throws SomeKindOfException"
+  `sed -i 's/\@param [^ ]*//' $TEMPFILE`;
+  `sed -i 's/\@ingroup [^ ]*//' $TEMPFILE`;
+  `sed -i 's/\@throws [^ ]*//' $TEMPFILE`;
+  # remove all CAPITAL and underscore words
+  `sed -i 's/\\b[A-Z_0-9]*\\b//' $TEMPFILE`;
 
-  # open(PIN, "aspell -a -e -l en < $TEMPFILE | sort -uf |") || die;
-  open(PIN, "aspell -a -e -l en < $TEMPFILE 2> /dev/null | sort | cut -f 2 -d ' ' | uniq |") || die;
+  ## Options:
+  # -a = pipe (ispell compatibility)
+  # -l = language
+  open(PIN, "aspell -a -l en < $TEMPFILE 2> /dev/null | sort | cut -f 2 -d ' ' | uniq |") || die;
 	undef @badwords;
 	while (<PIN>) {
 		chomp;
-    if ($stopped{$_} == 0) 
+    if ($stopped{lc($_)} == 0)  # ignore case
     {
 			push(@badwords, $_);
     }
