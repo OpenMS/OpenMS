@@ -56,6 +56,7 @@ if(NOT DISABLE_OPENSWATH)
     ConvertTraMLToTSV
     OpenSwathDIAPreScoring
     OpenSwathMzMLFileCacher
+    OpenSwathWorkflow
     OpenSwathRewriteToFeatureXML
     MRMTransitionGroupPicker
   )
