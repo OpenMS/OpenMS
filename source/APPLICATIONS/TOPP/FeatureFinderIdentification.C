@@ -309,9 +309,9 @@ protected:
                ++rt_it)
           {
             pair<DoubleReal, DoubleReal>& rt_region = rt_regions.back();
-            if (rt_region.first + rt_region.second >= *rt_it - rt_tolerance_)
-            { // regions overlap, join them:
-              rt_region.first = *rt_it + rt_tolerance_;
+            if (rt_region.second + rt_region.first >= *rt_it - rt_tolerance_)
+            { // regions overlap, join them (same start point, new length):
+              rt_region.first = *rt_it + rt_tolerance_ - rt_region.second;
             }
             else // no overlap, start new region:
             {
@@ -325,7 +325,7 @@ protected:
           // are there multiple regions of maximal size?
           Int n = rt_regions.size() - 2; // second to last, counting from zero
           while ((n >= 0) && (rt_regions[n].first == rt_window)) --n;
-          if (n == rt_regions.size() - 2) // only one longest region
+          if (n == Int(rt_regions.size()) - 2) // only one longest region
           {
             DoubleReal rt_start = rt_regions.back().second;
             peptide.setMetaValue("rt_start", rt_start);
@@ -337,7 +337,7 @@ protected:
           {
             median_fallback = true;
             rts.clear();
-            for (++n; n < rt_regions.size(); ++n)
+            for (++n; n < Int(rt_regions.size()); ++n)
             {
               rts << rt_regions[n].second + rt_regions[n].first / 2.0;
             }
@@ -504,7 +504,7 @@ protected:
     }
     else
     {
-      trafo_.invert();
+      trafo_.invert(); // needed to reverse RT transformation below
       vector<ChromatogramExtractor::ExtractionCoordinates> coords;
       for (vector<ReactionMonitoringTransition>::const_iterator trans_it =
              library_.getTransitions().begin(); trans_it != 
@@ -554,6 +554,7 @@ protected:
       extractor.return_chromatogram(output, coords, library_, (*shared)[0],
                                     chromatograms, false);
       chrom_data.setChromatograms(chromatograms);
+      trafo_.invert(); // revert the "invert" above!
     }
     ms_data_.reset(); // not needed anymore, free up the memory
     if (!chrom_out.empty())
