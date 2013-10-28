@@ -92,7 +92,7 @@ namespace OpenMS
     // Crowdad has its own methods, so we can call the wrapper directly
     if (method_ == "crawdad")
     {
-      pickChromatogramCrawdad(chromatogram, picked_chrom);
+      pickChromatogramCrawdad_(chromatogram, picked_chrom);
       return;
     }
 
@@ -152,9 +152,9 @@ namespace OpenMS
     picked_chrom.getFloatDataArrays()[2].setName("rightWidth");
     for (Size i = 0; i < picked_chrom.size(); i++)
     {
-      Real leftborder = chromatogram[left_width[i]].getMZ();
-      Real rightborder = chromatogram[right_width[i]].getMZ();
-      picked_chrom.getFloatDataArrays()[0].push_back(integrated_intensities[i]);
+      Real leftborder = chromatogram[left_width_[i]].getMZ();
+      Real rightborder = chromatogram[right_width_[i]].getMZ();
+      picked_chrom.getFloatDataArrays()[0].push_back(integrated_intensities_[i]);
       picked_chrom.getFloatDataArrays()[1].push_back(leftborder);
       picked_chrom.getFloatDataArrays()[2].push_back(rightborder);
     }
@@ -168,12 +168,12 @@ namespace OpenMS
     snt_parameters.setValue("bin_count", sn_bin_count_);
     snt.setParameters(snt_parameters);
 
-    integrated_intensities.clear();
-    left_width.clear();
-    right_width.clear();
-    integrated_intensities.reserve(picked_chrom.size());
-    left_width.reserve(picked_chrom.size());
-    right_width.reserve(picked_chrom.size());
+    integrated_intensities_.clear();
+    left_width_.clear();
+    right_width_.clear();
+    integrated_intensities_.reserve(picked_chrom.size());
+    left_width_.reserve(picked_chrom.size());
+    right_width_.reserve(picked_chrom.size());
 
     if (signal_to_noise_ > 0.0)
     {
@@ -212,19 +212,19 @@ namespace OpenMS
       }
       int right_idx = min_i + k - 1;
 
-      left_width.push_back(left_idx);
-      right_width.push_back(right_idx);
-      integrated_intensities.push_back(0);
+      left_width_.push_back(left_idx);
+      right_width_.push_back(right_idx);
+      integrated_intensities_.push_back(0);
 
       LOG_DEBUG << "Found peak at " << central_peak_mz << " and "  << picked_chrom[i].getIntensity()
-                << " with borders " << chromatogram[left_width[i]].getMZ() << " " << chromatogram[right_width[i]].getMZ() <<
-        " (" << chromatogram[right_width[i]].getMZ() - chromatogram[left_width[i]].getMZ() << ") "
+                << " with borders " << chromatogram[left_width_[i]].getMZ() << " " << chromatogram[right_width_[i]].getMZ() <<
+        " (" << chromatogram[right_width_[i]].getMZ() - chromatogram[left_width_[i]].getMZ() << ") "
                 << 0 << " weighted RT " << /* weighted_mz << */ std::endl;
     }
   }
 
 #ifdef WITH_CRAWDAD
-  void PeakPickerMRM::pickChromatogramCrawdad(const RichPeakChromatogram& chromatogram, RichPeakChromatogram& picked_chrom)
+  void PeakPickerMRM::pickChromatogramCrawdad_(const RichPeakChromatogram& chromatogram, RichPeakChromatogram& picked_chrom)
   {
     LOG_DEBUG << "Picking chromatogram using crawdad " << std::endl;
 
@@ -283,7 +283,7 @@ namespace OpenMS
   }
 
 #else
-  void PeakPickerMRM::pickChromatogramCrawdad(const RichPeakChromatogram& /* chromatogram */, RichPeakChromatogram& /* picked_chrom */)
+  void PeakPickerMRM::pickChromatogramCrawdad_(const RichPeakChromatogram& /* chromatogram */, RichPeakChromatogram& /* picked_chrom */)
   {
     throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
                                      "PeakPickerMRM was not compiled with crawdad, please choose a different algorithm!");
@@ -302,12 +302,12 @@ namespace OpenMS
       // Check whether the current right overlaps with the next left
       // See whether we can correct this and find some border between the two
       // features ...
-      if (right_width[i] > left_width[i + 1])
+      if (right_width_[i] > left_width_[i + 1])
       {
-        const int current_left_idx = left_width[i];
-        const int current_right_idx = right_width[i];
-        const int next_left_idx = left_width[i + 1];
-        const int next_right_idx = right_width[i + 1];
+        const int current_left_idx = left_width_[i];
+        const int current_right_idx = right_width_[i];
+        const int next_left_idx = left_width_[i + 1];
+        const int next_right_idx = right_width_[i + 1];
         LOG_DEBUG << " Found overlapping " << i << " : " << current_left_idx << " " << current_right_idx << std::endl;
         LOG_DEBUG << "                   -- with  " << i + 1 << " : " << next_left_idx << " " << next_right_idx << std::endl;
 
@@ -342,12 +342,12 @@ namespace OpenMS
 
         }
 
-        LOG_DEBUG << "New peak l: " << chromatogram[current_left_idx].getMZ() << " " << chromatogram[new_right_border].getMZ() << " int " << integrated_intensities[i] << std::endl;
-        LOG_DEBUG << "New peak r: " << chromatogram[new_left_border].getMZ() << " " << chromatogram[next_right_idx].getMZ() << " int " << integrated_intensities[i + 1] << std::endl;
+        LOG_DEBUG << "New peak l: " << chromatogram[current_left_idx].getMZ() << " " << chromatogram[new_right_border].getMZ() << " int " << integrated_intensities_[i] << std::endl;
+        LOG_DEBUG << "New peak r: " << chromatogram[new_left_border].getMZ() << " " << chromatogram[next_right_idx].getMZ() << " int " << integrated_intensities_[i + 1] << std::endl;
 
 
-        right_width[i] = new_right_border;
-        left_width[i + 1] = new_left_border;
+        right_width_[i] = new_right_border;
+        left_width_[i + 1] = new_left_border;
 
       }
     }
@@ -377,16 +377,16 @@ namespace OpenMS
 
   void PeakPickerMRM::integratePeaks_(const RichPeakChromatogram& chromatogram)
   {
-    for (Size i = 0; i < left_width.size(); i++)
+    for (Size i = 0; i < left_width_.size(); i++)
     {
-      const int current_left_idx = left_width[i];
-      const int current_right_idx = right_width[i];
+      const int current_left_idx = left_width_[i];
+      const int current_right_idx = right_width_[i];
 
       // Also integrate the intensities
-      integrated_intensities[i] = 0;
+      integrated_intensities_[i] = 0;
       for (Size k = current_left_idx; k <= current_right_idx; k++)
       {
-        integrated_intensities[i] += chromatogram[k].getIntensity();
+        integrated_intensities_[i] += chromatogram[k].getIntensity();
       }
     }
   }

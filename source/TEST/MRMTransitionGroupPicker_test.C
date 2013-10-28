@@ -147,8 +147,7 @@ START_SECTION((template < typename SpectrumT, typename TransitionT > void pickTr
 }
 END_SECTION
 
-START_SECTION((MRMFeature createMRMFeature(MRMTransitionGroup<SpectrumT, TransitionT> & transition_group,
-      std::vector<SpectrumT> & picked_chroms, int & chr_idx, int & peak_idx)))
+START_SECTION((template <typename SpectrumT, typename TransitionT> MRMFeature createMRMFeature(MRMTransitionGroup<SpectrumT, TransitionT>& transition_group, std::vector<SpectrumT>& picked_chroms, int& chr_idx, int& peak_idx)))
 {
   MRMTransitionGroupType transition_group;
   setup_transition_group(transition_group);

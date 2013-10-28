@@ -38,7 +38,7 @@
 namespace OpenMS
 {
 
-  const char* TransitionTSVReader::strarray[] =
+  const char* TransitionTSVReader::strarray_[] =
   {
     "PrecursorMz",
     "ProductMz",
@@ -60,7 +60,7 @@ namespace OpenMS
     "UniprotID"
   };
 
-  const std::vector<std::string> TransitionTSVReader::header_names(strarray, strarray + 18);
+  const std::vector<std::string> TransitionTSVReader::header_names_(strarray_, strarray_ + 18);
 
   void TransitionTSVReader::readTSVInput_(const char* filename, std::vector<TSVTransition>& transition_list)
   {
@@ -91,13 +91,13 @@ namespace OpenMS
       lineStream >> mytransition.precursor_charge;
       lineStream >> mytransition.group_label;
 
-      cleanUpTransition(mytransition);
+      cleanupTransitions_(mytransition);
 
       transition_list.push_back(mytransition);
     }
   }
 
-  void TransitionTSVReader::getTSVHeader(std::string& line, char& delimiter,
+  void TransitionTSVReader::getTSVHeader_(std::string& line, char& delimiter,
                                          std::vector<std::string> header, std::map<std::string, int>& header_dict)
   {
     std::string tmp;
@@ -140,10 +140,10 @@ namespace OpenMS
     int requiredFields[8] = { 0, 1, 2, 3, 5, 6, 7, 8 };
     for (int i = 0; i < 8; i++)
     {
-      if (header_dict.find(header_names[requiredFields[i]]) == header_dict.end())
+      if (header_dict.find(header_names_[requiredFields[i]]) == header_dict.end())
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "I determined that your your csv/tsv file has the delimiter " + (String)txt_delimiter + 
-            ".\nBut the parsed header does not have the required field \""+ (String)header_names[requiredFields[i]] + "\". Please check your input file.");
+            ".\nBut the parsed header does not have the required field \""+ (String)header_names_[requiredFields[i]] + "\". Please check your input file.");
       }
     }
 
@@ -162,7 +162,7 @@ namespace OpenMS
     char delimiter = ',';
     std::map<std::string, int> header_dict;
 
-    getTSVHeader(line, delimiter, header, header_dict);
+    getTSVHeader_(line, delimiter, header, header_dict);
 
     int cnt = 0;
     while (std::getline(data, line))
@@ -254,7 +254,7 @@ namespace OpenMS
         mytransition.fragment_nr                  =                      String(tmp_line[header_dict["FragmentSeriesNumber"]]).toInt();
       }
 
-      cleanUpTransition(mytransition);
+      cleanupTransitions_(mytransition);
 
       transition_list.push_back(mytransition);
 
@@ -262,7 +262,7 @@ namespace OpenMS
     }
   }
 
-  void TransitionTSVReader::cleanUpTransition(TSVTransition& mytransition)
+  void TransitionTSVReader::cleanupTransitions_(TSVTransition& mytransition)
   {
     mytransition.transition_name  = mytransition.transition_name.remove('"');
     mytransition.transition_name  = mytransition.transition_name.remove('\'');
@@ -579,12 +579,12 @@ namespace OpenMS
       if (!aa_sequence.getNTerminalModification().empty())
       {
         ResidueModification rmod = mod_db->getTerminalModification(aa_sequence.getNTerminalModification(), ResidueModification::N_TERM);
-        add_modification_(mods, -1, rmod, aa_sequence.getNTerminalModification());
+        addModification_(mods, -1, rmod, aa_sequence.getNTerminalModification());
       }
       if (!aa_sequence.getCTerminalModification().empty())
       {
         ResidueModification rmod = mod_db->getTerminalModification(aa_sequence.getCTerminalModification(), ResidueModification::C_TERM);
-        add_modification_(mods, aa_sequence.size(), rmod, aa_sequence.getCTerminalModification());
+        addModification_(mods, aa_sequence.size(), rmod, aa_sequence.getCTerminalModification());
       }
       for (Size i = 0; i != aa_sequence.size(); i++)
       {
@@ -594,7 +594,7 @@ namespace OpenMS
           TargetedExperiment::Peptide::Modification mod;
           ResidueModification rmod = mod_db->getModification(aa_sequence.getResidue(i).getOneLetterCode(),
                                                              aa_sequence.getResidue(i).getModification(), ResidueModification::ANYWHERE);
-          add_modification_(mods, i, rmod, aa_sequence.getResidue(i).getModification());
+          addModification_(mods, i, rmod, aa_sequence.getResidue(i).getModification());
         }
       }
     }
@@ -616,7 +616,7 @@ namespace OpenMS
           + aa_sequence.toUnmodifiedString() + " != " + peptide.sequence).c_str())
   }
 
-  void TransitionTSVReader::add_modification_(std::vector<TargetedExperiment::Peptide::Modification>& mods,
+  void TransitionTSVReader::addModification_(std::vector<TargetedExperiment::Peptide::Modification>& mods,
                                               int location, ResidueModification& rmod, const String& name)
   {
     TargetedExperiment::Peptide::Modification mod;
@@ -741,10 +741,10 @@ namespace OpenMS
     // start writing
     std::ofstream os(filename);
     os.precision(writtenDigits(DoubleReal()));
-    for (Size i = 0; i < header_names.size(); i++)
+    for (Size i = 0; i < header_names_.size(); i++)
     {
-      os << header_names[i];
-      if (i != header_names.size() - 1)
+      os << header_names_[i];
+      if (i != header_names_.size() - 1)
       {
         os << "\t";
       }

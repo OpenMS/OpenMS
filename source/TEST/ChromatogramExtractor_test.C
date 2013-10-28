@@ -169,16 +169,13 @@ START_SECTION((template <typename ExperimentT> void extractChromatograms(const E
 }
 END_SECTION
 
-START_SECTION(void extractChromatograms(const OpenSwath::SpectrumAccessPtr input, std::vector< OpenSwath::ChromatogramPtr >& output, std::vector<ExtractionCoordinates> extraction_coordinates, double& mz_extraction_window, bool ppm, double rt_extraction_window, String filter))
+START_SECTION(void extractChromatograms(const OpenSwath::SpectrumAccessPtr input, std::vector< OpenSwath::ChromatogramPtr >& output, std::vector<ExtractionCoordinates> extraction_coordinates, double& mz_extraction_window, bool ppm, String filter))
 {
   NOT_TESTABLE // is tested in ChromatogramExtractorAlgorithm
 }
 END_SECTION
 
-START_SECTION(void prepare_coordinates(std::vector< OpenSwath::ChromatogramPtr > & output_chromatograms,
-      std::vector< ExtractionCoordinates > & coordinates, OpenMS::TargetedExperiment & transition_exp_used,
-      const bool enforce_presence_rt,
-      const bool ms1))
+START_SECTION(void prepare_coordinates(std::vector< OpenSwath::ChromatogramPtr > & output_chromatograms, std::vector< ExtractionCoordinates > & coordinates, OpenMS::TargetedExperiment & transition_exp, const double rt_extraction_window, const bool ms1) const)
 {
   TargetedExperiment transitions;
   TraMLFile().load(OPENMS_GET_TEST_DATA_PATH("ChromatogramExtractor_input.TraML"), transitions);
@@ -242,11 +239,7 @@ START_SECTION(void prepare_coordinates(std::vector< OpenSwath::ChromatogramPtr >
 }
 END_SECTION
 
-
-START_SECTION(void ChromatogramExtractor::return_chromatogram(std::vector< OpenSwath::ChromatogramPtr > & chromatograms,
-    std::vector< ChromatogramExtractor::ExtractionCoordinates > & coordinates,
-    OpenMS::TargetedExperiment & transition_exp_used, SpectrumSettings settings,
-    std::vector<OpenMS::MSChromatogram<> > & output_chromatograms, bool ms1) const)
+START_SECTION((template <typename TransitionExpT> static void return_chromatogram(std::vector< OpenSwath::ChromatogramPtr > & chromatograms, std::vector< ChromatogramExtractor::ExtractionCoordinates > & coordinates, TransitionExpT& transition_exp_used, SpectrumSettings settings, std::vector<OpenMS::MSChromatogram<> > & output_chromatograms, bool ms1)))
 {
   double extract_window = 0.05;
   double ppm = false;

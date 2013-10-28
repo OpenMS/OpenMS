@@ -88,7 +88,7 @@ public:
 
 protected:
 
-    void pickChromatogramCrawdad(const RichPeakChromatogram& chromatogram, RichPeakChromatogram& picked_chrom);
+    void pickChromatogramCrawdad_(const RichPeakChromatogram& chromatogram, RichPeakChromatogram& picked_chrom);
 
     void pickChromatogram_(const RichPeakChromatogram& chromatogram, RichPeakChromatogram& picked_chrom);
 
@@ -134,9 +134,9 @@ protected:
     UInt sn_bin_count_;
     String method_;
 
-    std::vector<double> integrated_intensities;
-    std::vector<int> left_width;
-    std::vector<int> right_width;
+    std::vector<double> integrated_intensities_;
+    std::vector<int> left_width_;
+    std::vector<int> right_width_;
 
   };
 }

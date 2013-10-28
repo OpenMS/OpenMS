@@ -101,8 +101,8 @@ public:
         return;
       }
 
-      int used_filter = get_filter_nr_(filter);
-      populate_PeptideRTMap_(transition_exp, rt_extraction_window);
+      int used_filter = getFilterNr(filter);
+      populatePeptideRTMap_(transition_exp, rt_extraction_window);
 
       // sort the transition experiment by product mass
       // this is essential because the algorithm assumes sorted transitions!
@@ -173,7 +173,7 @@ public:
     void extractChromatograms(const OpenSwath::SpectrumAccessPtr input, 
         std::vector< OpenSwath::ChromatogramPtr >& output, 
         std::vector<ExtractionCoordinates> extraction_coordinates,
-        double& mz_extraction_window, bool ppm, String filter)
+        double mz_extraction_window, bool ppm, String filter)
     {
       ChromatogramExtractorAlgorithm().extractChromatograms(input, output, 
           extraction_coordinates, mz_extraction_window, ppm, filter);
@@ -506,9 +506,9 @@ private:
     bool outsideExtractionWindow_(const ReactionMonitoringTransition& transition, double current_rt,
                                    const TransformationDescription& trafo, double rt_extraction_window);
 
-    int get_filter_nr_(String filter);
+    int getFilterNr(String filter);
 
-    void populate_PeptideRTMap_(OpenMS::TargetedExperiment& transition_exp, double rt_extraction_window);
+    void populatePeptideRTMap_(OpenMS::TargetedExperiment& transition_exp, double rt_extraction_window);
 
     std::map<OpenMS::String, double> PeptideRTMap_;
 

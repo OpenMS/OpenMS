@@ -127,7 +127,7 @@ namespace OpenMS
     return false;
   }
 
-  int ChromatogramExtractor::get_filter_nr_(String filter)
+  int ChromatogramExtractor::getFilterNr(String filter)
   {
     if (filter == "tophat")
     {
@@ -144,7 +144,7 @@ namespace OpenMS
     }
   }
 
-  void ChromatogramExtractor::populate_PeptideRTMap_(OpenMS::TargetedExperiment& transition_exp, double rt_extraction_window)
+  void ChromatogramExtractor::populatePeptideRTMap_(OpenMS::TargetedExperiment& transition_exp, double rt_extraction_window)
   {
       // Store the peptide retention times in an intermediate map
       PeptideRTMap_.clear();

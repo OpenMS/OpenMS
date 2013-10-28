@@ -104,21 +104,21 @@ private:
       String uniprot_id;
     };
 
-    static const char* strarray[];
+    static const char* strarray_[];
 
-    static const std::vector<std::string> header_names;
+    static const std::vector<std::string> header_names_;
 
     /// read TSV input with columns in defined order
     void readTSVInput_(const char* filename, std::vector<TSVTransition>& transition_list);
 
     /// determine separater in a CSV file and check for correct headers
-    void getTSVHeader(std::string & line, char & delimiter, std::vector<std::string> header, std::map<std::string, int> & header_dict);
+    void getTSVHeader_(std::string & line, char & delimiter, std::vector<std::string> header, std::map<std::string, int> & header_dict);
 
     /// read tab or comma separated input with columns defined by their column headers only
     void readUnstructuredTSVInput_(const char* filename, std::vector<TSVTransition>& transition_list);
 
     /// do post-processing on read input data (removing quotes etc)
-    void cleanUpTransition(TSVTransition & mytransition);
+    void cleanupTransitions_(TSVTransition & mytransition);
 
     /// store a list of TSVTransition objects properly in a TargetedExperiment
     void TSVToTargetedExperiment_(std::vector<TSVTransition>& transition_list, OpenMS::TargetedExperiment& exp);
@@ -131,7 +131,7 @@ private:
 
     void createPeptide_(std::vector<TSVTransition>::iterator& tr_it, OpenMS::TargetedExperiment::Peptide& peptide);
 
-    void add_modification_(std::vector<TargetedExperiment::Peptide::Modification> & mods,
+    void addModification_(std::vector<TargetedExperiment::Peptide::Modification> & mods,
           int location, ResidueModification & rmod, const String & name);
 
 

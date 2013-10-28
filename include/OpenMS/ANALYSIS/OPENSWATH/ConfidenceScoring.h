@@ -32,8 +32,8 @@
 // $Authors: Hannes Roest, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_CONFIDENCESCORING
-#define OPENMS_ANALYSIS_OPENSWATH_CONFIDENCESCORING
+#ifndef OPENMS_ANALYSIS_OPENSWATH_CONFIDENCESCORING_H
+#define OPENMS_ANALYSIS_OPENSWATH_CONFIDENCESCORING_H
 
 #include <cmath> // for "exp"
 #include <ctime> // for "time" (random number seed)
@@ -61,11 +61,13 @@ class OPENMS_DLLAPI ConfidenceScoring :
 public:
 
     /// Constructor
-    ConfidenceScoring(bool test_mode_=false) :
+    explicit ConfidenceScoring(bool test_mode_=false) :
       generator_(), rand_gen_(generator_, boost::uniform_int<>())
     {
       if (!test_mode_) rand_gen_.engine().seed(time(0)); // seed with current time
     }
+
+    virtual ~ConfidenceScoring() {}
 
 protected:
 

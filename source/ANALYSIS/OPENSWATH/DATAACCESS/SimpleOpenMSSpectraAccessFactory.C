@@ -42,7 +42,7 @@ namespace OpenMS
   bool SimpleOpenMSSpectraFactory::isExperimentCached(boost::shared_ptr<OpenMS::MSExperiment<OpenMS::Peak1D> > exp)
   {
     bool is_cached = false;
-    for (std::size_t i = 0; i < exp->size(); ++i)
+    for (std::size_t i = 0; i < exp->getSpectra().size(); ++i)
     {
       for (std::size_t j = 0; j < exp->getSpectra()[i].getDataProcessing().size(); j++)
       {

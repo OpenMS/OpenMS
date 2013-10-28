@@ -100,7 +100,7 @@ public:
     */
     void extractChromatograms(const OpenSwath::SpectrumAccessPtr input, 
         std::vector< OpenSwath::ChromatogramPtr >& output, 
-        std::vector<ExtractionCoordinates> extraction_coordinates, double& mz_extraction_window,
+        std::vector<ExtractionCoordinates> extraction_coordinates, double mz_extraction_window,
         bool ppm, String filter);
 
     /**
@@ -121,7 +121,7 @@ public:
     */
     void extract_value_tophat(const std::vector<double>::const_iterator& mz_start, std::vector<double>::const_iterator& mz_it,
                               const std::vector<double>::const_iterator& mz_end, std::vector<double>::const_iterator& int_it,
-                              const double& mz, double& integrated_intensity, double& mz_extraction_window, bool ppm);
+                              const double& mz, double& integrated_intensity, const double& mz_extraction_window, bool ppm);
 
 private:
 

@@ -283,7 +283,11 @@ START_SECTION(OpenMS::TargetedExperiment::Peptide reversePeptide(OpenMS::Targete
 END_SECTION
 
 /// Public methods
-START_SECTION(void generateDecoys(OpenMS::TargetedExperiment& exp, OpenMS::TargetedExperiment& dec, String method, String decoy_tag, double identity_threshold, double mz_threshold, bool theoretical, double mz_shift, bool exclude_similar, bool remove_CNterminal_mods))
+START_SECTION((void generateDecoys(OpenMS::TargetedExperiment& exp,
+                        OpenMS::TargetedExperiment& dec, String method, String decoy_tag,
+                        double identity_threshold, int max_attempts, double mz_threshold, 
+                        bool theoretical, double mz_shift, bool exclude_similar, 
+                        double similarity_threshold, bool remove_CNterm_mods, double precursor_mass_shift);))
 {
   String method = "pseudo-reverse";
   DoubleReal identity_threshold = 1.0;

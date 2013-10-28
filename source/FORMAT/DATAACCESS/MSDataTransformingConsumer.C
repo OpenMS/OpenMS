@@ -37,4 +37,8 @@
 namespace OpenMS
 {
 
+    void FunctionSpectrumNOP (MSSpectrum<Peak1D> & /* s */) {;}
+
+    void FunctionChromatogramNOP (MSChromatogram<ChromatogramPeak> & /* s */) {;}
+
 } // namespace OpenMS

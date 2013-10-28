@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // 
 // --------------------------------------------------------------------------
-// $Maintainer: Hannes Roest $
+// $Maintainer: Hendrik Weisser $
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
@@ -66,7 +66,7 @@ START_TEST(ConfidenceScoring<D>, "$Id$")
 ConfidenceScoring* confidence_scoring_ptr = 0;
 ConfidenceScoring* confidence_scoring_nullPointer = 0;
 
-START_SECTION((ConfidenceScoring()))
+START_SECTION((explicit ConfidenceScoring(bool test_mode_=false)))
   confidence_scoring_ptr = new ConfidenceScoring;
   TEST_NOT_EQUAL(confidence_scoring_ptr, confidence_scoring_nullPointer)
 END_SECTION

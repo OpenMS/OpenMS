@@ -44,7 +44,7 @@ namespace OpenMS
             std::vector<double>::const_iterator& mz_it,
       const std::vector<double>::const_iterator& mz_end,
             std::vector<double>::const_iterator& int_it,
-      const double& mz, double& integrated_intensity, double& mz_extraction_window, bool ppm)
+      const double& mz, double& integrated_intensity, const double& mz_extraction_window, bool ppm)
   {
     integrated_intensity = 0;
     if (mz_start == mz_end)
@@ -117,7 +117,7 @@ namespace OpenMS
 
   void ChromatogramExtractorAlgorithm::extractChromatograms(const OpenSwath::SpectrumAccessPtr input,
       std::vector< OpenSwath::ChromatogramPtr >& output, 
-      std::vector<ExtractionCoordinates> extraction_coordinates, double& mz_extraction_window,
+      std::vector<ExtractionCoordinates> extraction_coordinates, double mz_extraction_window,
       bool ppm, String filter)
   {
     Size input_size = input->getNrSpectra();
