@@ -73,6 +73,7 @@ SequestInfile.h
 SequestOutfile.h
 SpecArrayFile.h
 SVOutStream.h
+SwathFile.h
 TextFile.h
 ToolDescriptionFile.h
 TransformationXMLFile.h

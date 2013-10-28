@@ -6,6 +6,7 @@ set(sources_list_h
 MSDataWritingConsumer.h
 MSDataTransformingConsumer.h
 MSDataCachedConsumer.h
+SwathFileConsumer.h
 )
 
 ### add path to the filenames

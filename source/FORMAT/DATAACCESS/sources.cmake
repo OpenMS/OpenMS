@@ -6,6 +6,7 @@ set(sources_list
   MSDataWritingConsumer.C
   MSDataTransformingConsumer.C
   MSDataCachedConsumer.C
+  SwathFileConsumer.C
 )
 
 ### add path to the filenames

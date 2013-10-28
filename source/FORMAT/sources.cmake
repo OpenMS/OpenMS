@@ -55,6 +55,7 @@ ProtXMLFile.C
 SequestInfile.C
 SequestOutfile.C
 SpecArrayFile.C
+SwathFile.C
 SVOutStream.C
 TextFile.C
 ToolDescriptionFile.C
