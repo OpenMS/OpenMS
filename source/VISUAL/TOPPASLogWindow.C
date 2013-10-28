@@ -34,6 +34,8 @@
 
 #include <OpenMS/VISUAL/TOPPASLogWindow.h>
 
+#include <iostream>
+
 #include <QtGui/QContextMenuEvent>
 #include <QtGui/QMenu>
 #include <QAction>
@@ -44,8 +46,11 @@ namespace OpenMS
 {
 
   TOPPASLogWindow::TOPPASLogWindow(QWidget * parent) :
-    QTextEdit(parent)
+    QTextEdit(parent),
+    max_length_(-1)
   {
+    // trim if required
+    connect (this, SIGNAL(textChanged()), this, SLOT(trimText_())); 
   }
 
   TOPPASLogWindow::~TOPPASLogWindow()
@@ -63,5 +68,28 @@ namespace OpenMS
     }
     delete menu;
   }
+
+
+  void TOPPASLogWindow::trimText_()
+  {
+     if (max_length_ <= 0) return;
+
+     if (this->toPlainText().size() > max_length_)
+     {
+       this->setPlainText(this->toPlainText().right(max_length_/2));
+       //std::cerr << "cut text to " << this->toPlainText().size() << "\n";
+     }
+  }
+  int TOPPASLogWindow::maxLength() const
+  {
+     return (max_length_);
+  }
+  
+
+  void TOPPASLogWindow::setMaxLength(int max_length)
+  {
+    max_length_ = max_length;
+  }
+
 
 } //namespace OpenMS

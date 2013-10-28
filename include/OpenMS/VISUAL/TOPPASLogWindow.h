@@ -43,8 +43,6 @@ class QContextMenuEvent;
 
 namespace OpenMS
 {
-  class String;
-
   /**
       @brief QTextEdit implementation with a "clear" button in the context menu
       @ingroup Visual
@@ -53,17 +51,32 @@ namespace OpenMS
     public QTextEdit
   {
     Q_OBJECT
-public:
+    Q_PROPERTY(int max_length READ maxLength WRITE setMaxLength)
+
+  public:
     /// Constructor
     TOPPASLogWindow(QWidget * parent = 0);
     /// Destructor
     ~TOPPASLogWindow();
 
-protected:
+    /// read max_length
+    int maxLength() const;
+    /// set max_length
+    void setMaxLength(int max_length);
+
+  protected:
     ///@name Remplemented Qt events
     //@{
     void contextMenuEvent(QContextMenuEvent * e);
     //@}
+
+    /// Members:
+    int max_length_;  /// -1 by default, which means there is no maximum length
+
+  protected slots:
+    /// if text length reached max_length_, then delete prefix until length of text is 1/2 of max_length_
+    void trimText_();
+
   };
 }
 #endif // OPENMS_VISUAL_TOPPASLOGWINDOW_H
