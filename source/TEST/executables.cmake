@@ -196,6 +196,7 @@ set(format_executables_list
   SequestOutfile_test
   SpecArrayFile_test
   SwathFile_test
+  SwathFileConsumer_test
   TextFile_test
   ToolDescriptionFile_test
   TraMLFile_test
