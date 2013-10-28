@@ -72,6 +72,7 @@ include(Dart)
 option(MT_ENABLE_CUDA "Enable experimental CUDA support" OFF)
 option(MT_ENABLE_TBB "Enable Intel TBB support" OFF)
 option(MT_ENABLE_OPENMP "Enable OpenMP support" ON)
+option(BOOST_USE_STATIC "Use Boost static libraries." ON)
 
 #------------------------------------------------------------------------------
 # OpenMS Version Information
