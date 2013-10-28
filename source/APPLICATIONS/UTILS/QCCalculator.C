@@ -189,7 +189,7 @@ protected:
     std::map<Size, UInt> mslevelcounts;
     
     qcmlfile.registerRun(base_name,base_name); //TODO use UIDs
-
+    
     //---base MS aquisition qp
     String msaq_ref = base_name + "_msaq";
     QcMLFile::QualityParameter qp;
@@ -218,7 +218,24 @@ protected:
     qp.cvAcc = "MS:1000577";
     qp.value = base_name;
     qcmlfile.addRunQualityParameter(base_name, qp);
+    
+    qp = QcMLFile::QualityParameter();
+    qp.name = "instrument model"; ///< Name
+    qp.id = base_name + "_instrument_name"; ///< Identifier
+    qp.cvRef = "MS"; ///< cv reference
+    qp.cvAcc = "MS:1000031";
+    qp.value = exp.getInstrument().getName();
+    qcmlfile.addRunQualityParameter(base_name, qp);    
 
+    qp = QcMLFile::QualityParameter();
+    qp.name = "completion time"; ///< Name
+    qp.id = base_name + "_date"; ///< Identifier
+    qp.cvRef = "MS"; ///< cv reference
+    qp.cvAcc = "MS:1000747";
+    qp.value = exp.getDateTime().getDate();
+    qcmlfile.addRunQualityParameter(base_name, qp);
+
+    //---precursors at
     QcMLFile::Attachment at;
     at.cvRef = "QC"; ///< cv reference
     at.cvAcc = "QC:0000044";
