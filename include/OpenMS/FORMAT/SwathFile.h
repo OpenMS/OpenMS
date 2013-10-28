@@ -95,48 +95,6 @@ namespace OpenMS
           // Cache and load the exp (metadata only) file again
           spectra_ptr = doCacheFile_(file_list[i], tmp, tmp_fname, exp);
         }
-        /*
-        else if (readoptions == "reduce")
-        {
-          GaussFilter gf;
-          PeakPickerHiRes pp;
-
-          Param p = gf.getParameters();
-          p.setValue("use_ppm_tolerance", "true");
-          p.setValue("ppm_tolerance", 50.0);
-          gf.setParameters(p);
-
-          // using the consumer to reduce the input data
-          DataReducer dataConsumer(gf, pp);
-          MzMLFile().transform(file_list[i], &dataConsumer, *exp.get());
-          // ownership is transferred to AccessPtr
-          spectra_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(exp);
-        }
-        else if (readoptions == "reduce_iterative")
-        {
-          GaussFilter gf;
-          PeakPickerIterative pp;
-
-          Param p = gf.getParameters();
-          p.setValue("use_ppm_tolerance", "true");
-          p.setValue("ppm_tolerance", 10.0);
-          gf.setParameters(p);
-
-          p = pp.getParameters();
-          p.setValue("peak_width", 0.04);
-          p.setValue("spacing_difference", 2.5);
-          p.setValue("signal_to_noise_", 0.0);
-          p.setValue("check_width_internally", "true");
-          p.setValue("clear_meta_data", "true");
-          pp.setParameters(p);
-
-          // using the consumer to reduce the input data
-          DataReducerIterative dataConsumer(gf, pp);
-          MzMLFile().transform(file_list[i], &dataConsumer, *exp.get());
-          // ownership is transferred to AccessPtr
-          spectra_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(exp);
-        }
-        */
         else
         {
           throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
@@ -221,8 +179,6 @@ namespace OpenMS
         dataConsumer = new CachedSwathFileConsumer(tmp, tmp_fname, nr_ms1_spectra, swath_counter);
         MzMLFile().transform(file, dataConsumer, *exp.get());
       }
-      //else if (readoptions == "reduce") { }
-      //else if (readoptions == "reduce_iterative") { }
       else
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
@@ -292,8 +248,6 @@ namespace OpenMS
         datareader.setConsumer(dataConsumer);
         MzXMLFile().load(file, datareader);
       }
-      //else if (readoptions == "reduce") { }
-      //else if (readoptions == "reduce_iterative") { }
       else
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
