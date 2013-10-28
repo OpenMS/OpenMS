@@ -91,16 +91,31 @@ namespace OpenMS
                                                OpenSwath::LightTargetedExperiment& transition_exp_used, double min_upper_edge_dist,
                                                double lower, double upper)
   {
-
-    transition_exp_used.peptides = targeted_exp.peptides;
-    transition_exp_used.proteins = targeted_exp.proteins;
+    std::set<std::string> matching_peptides;
     for (Size i = 0; i < targeted_exp.transitions.size(); i++)
     {
-      ::OpenSwath::LightTransition tr = targeted_exp.transitions[i];
+      const OpenSwath::LightTransition& tr = targeted_exp.transitions[i];
       if (lower < tr.getPrecursorMZ() && tr.getPrecursorMZ() < upper &&
           std::fabs(upper - tr.getPrecursorMZ()) >= min_upper_edge_dist)
       {
         transition_exp_used.transitions.push_back(tr);
+        matching_peptides.insert(tr.getPeptideRef());
+      }
+    }
+    std::set<std::string> matching_proteins;
+    for (Size i = 0; i < targeted_exp.peptides.size(); i++)
+    {
+      if (matching_peptides.find(targeted_exp.peptides[i].id) != matching_peptides.end())
+      {
+        transition_exp_used.peptides.push_back( targeted_exp.peptides[i] );
+        matching_proteins.insert(targeted_exp.peptides[i].protein_ref);
+      }
+    }
+    for (Size i = 0; i < targeted_exp.proteins.size(); i++)
+    {
+      if (matching_proteins.find(targeted_exp.proteins[i].id) != matching_proteins.end())
+      {
+        transition_exp_used.proteins.push_back( targeted_exp.proteins[i] );
       }
     }
   }
