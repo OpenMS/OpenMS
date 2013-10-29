@@ -36,12 +36,26 @@ project("OpenMS_GUI")
 cmake_minimum_required(VERSION 2.8.3 FATAL_ERROR)
 
 # --------------------------------------------------------------------------
+# before we do anything we try to find Qt since we rely heavily on its 
+# availability
+find_package(Qt4 REQUIRED QtGui QtOpenGL QtSVG QtWebKit QtNetwork ${phonon_extra})
+if (NOT QT4_FOUND)
+  message(STATUS "Qt4 modules not found!")
+	message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -D QT_QMAKE_EXECUTABLE='<path_to_qmake(.exe)' <src-dir>")
+endif()
+include(${QT_USE_FILE})
+
+# --------------------------------------------------------------------------
+# include custom macros for openms_gui lib
+#include(qt_wrap_ui.cmake)
+include(qt_wrap_ui.cmake)
+
+# --------------------------------------------------------------------------
 # big include file for headers and C files
 include (${PROJECT_SOURCE_DIR}/includes.cmake)
 
 # --------------------------------------------------------------------------
-# TODO: XERCESC and  CONTRIB are included only with the others
-# Expose OpenMS's public includes (including transitive dependencies)
+# Expose OpenMSGUI's public includes (including transitive dependencies)
 set(OPENMS_GUI_INCLUDE_DIRECTORIES ${PROJECT_SOURCE_DIR}/include
                                    ${PROJECT_BINARY_DIR}/include
                                    ${OPENMS_INCLUDE_DIRECTORIES}
@@ -66,13 +80,6 @@ else()
 	set(phonon_extra)
 	message(STATUS "Not trying to find Phonon explicitly... If you run into trouble with Qt Phonon, try to enable it in build system")
 endif()
-
-find_package(Qt4 REQUIRED QtGui QtOpenGL QtSVG QtWebKit QtNetwork ${phonon_extra})
-if (NOT QT4_FOUND)
-  message(STATUS "Qt4 modules not found!")
-	message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -D QT_QMAKE_EXECUTABLE='<path_to_qmake(.exe)' <src-dir>")
-endif()
-include(${QT_USE_FILE})
 
 # --------------------------------------------------------------------------
 # additional linker flags required by openms_gui

@@ -2,7 +2,7 @@
 ## @param varname Name of the variable which will hold the result string (e.g. "optimized myLib.so debug myLibDebug.so")
 ## @param libnames   List of library names which are searched (release libs)
 ## @param libnames_d List of library names which are searched (debug libs)
-## @param human_libname Name of the library (for display only) 
+## @param human_libname Name of the library (for display only)
 MACRO (OPENMS_CHECKLIB varname libnames libnames_d human_libname)
 	# force find_library to run again
 	SET(${varname}_OPT "${varname}_OPT-NOTFOUND" CACHE FILEPATH "Cleared." FORCE)
@@ -23,26 +23,3 @@ MACRO (OPENMS_CHECKLIB varname libnames libnames_d human_libname)
 	## combine result and include "optimized" and "debug" keywords which are essential for target_link_libraries()
 	set(${varname} optimized ${${varname}_OPT} debug ${${varname}_DBG})
 ENDMACRO (OPENMS_CHECKLIB)
-
-MACRO (QT4_WRAP_UI_OWN outfiles )
-  # since 2.8.12 qt4_extract_options has an additional argument
-  if(${CMAKE_VERSION} VERSION_LESS "2.8.12")
-    qt4_extract_options(ui_files ui_options ${ARGN})
-  else()
-    qt4_extract_options(ui_files ui_options ui_target ${ARGN})
-  endif()
-
-  # create output directory (will not exist for out-of-source builds)
-  file(MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/${directory})
-
-  FOREACH (it ${ui_files})
-    GET_FILENAME_COMPONENT(outfile ${it} NAME_WE)
-    GET_FILENAME_COMPONENT(infile ${it} ABSOLUTE)
-    SET(outfile ${PROJECT_BINARY_DIR}/${directory}/ui_${outfile}.h)
-    ADD_CUSTOM_COMMAND(OUTPUT ${outfile}
-      COMMAND ${QT_UIC_EXECUTABLE}
-      ARGS ${ui_options} -o ${outfile} ${infile}
-      MAIN_DEPENDENCY ${infile})
-    SET(${outfiles} ${${outfiles}} ${outfile})
-  ENDFOREACH (it)
-ENDMACRO (QT4_WRAP_UI_OWN)

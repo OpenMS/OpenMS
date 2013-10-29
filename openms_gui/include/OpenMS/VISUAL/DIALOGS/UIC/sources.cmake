@@ -33,4 +33,3 @@ QT4_WRAP_UI_OWN(uiced_sources ${sources})
 
 ### pass source file list to the upper instance
 set(OpenMSVisual_sources ${OpenMSVisual_sources} ${uiced_sources})
-
