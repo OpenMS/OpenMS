@@ -52,6 +52,10 @@
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/CachedmzML.h>
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 namespace OpenMS 
 {
 
@@ -376,7 +380,7 @@ namespace OpenMS
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-      for (Size i = 0; i < swath_consumers_size; i++)
+      for (SignedSize i = 0; i < boost::numeric_cast<SignedSize>(swath_consumers_size); i++)
       {
         boost::shared_ptr<MSExperiment<Peak1D> > exp(new MSExperiment<Peak1D>);
         String meta_file = cachedir_ + basename_ + "_" + String(i) +  ".mzML";
