@@ -44,7 +44,7 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
-
+#include <OpenMS/SYSTEM/File.h>
 
 #include <vector>
 
@@ -147,7 +147,7 @@ namespace OpenMS
     Entities with charge=0 are treated as "unknown charge" and are tested with all potential adducts and subsequently matched against the database.
 
     A list of potential adducts can be given for each mode separately.
-        
+
     Ionization mode of the observed m/z values can be determined automatically if the input map (either FeatureMap or ConsensusMap) is annotated
     with a meta value, as done by @ref TOPP_FeatureFinderMetabo.
 
@@ -200,7 +200,7 @@ private:
          if (pols.size() == 1 && pols[0].size() > 0)
          {
             pols[0].toLower();
-            if (pols[0] == "positive" || pols[0] == "negative") 
+            if (pols[0] == "positive" || pols[0] == "negative")
             {
               ion_mode_internal_ = pols[0];
               LOG_INFO << "Setting auto ion-mode to '" << ion_mode_ << "' for file " << File::basename(map.getLoadedFilePath()) << std::endl;
@@ -300,10 +300,6 @@ private:
     StringList neg_adducts_;
   };
 
-
 }
-
-
-
 
 #endif // OPENMS_ANALYSIS_ID_ACCURATEMASSSEARCHENGINE_H
