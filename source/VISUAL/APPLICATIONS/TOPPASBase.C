@@ -228,6 +228,7 @@ namespace OpenMS
     addDockWidget(Qt::BottomDockWidgetArea, log_bar);
     log_ = new TOPPASLogWindow(log_bar);
     log_->setReadOnly(true);
+    log_->setMaxLength(1e7); // limit to 10 mio characters, and trim to 5 mio upon reaching this limit
     log_bar->setWidget(log_);
     log_bar->hide();
     //windows->addAction("&Show log window",log_bar,SLOT(show()));
