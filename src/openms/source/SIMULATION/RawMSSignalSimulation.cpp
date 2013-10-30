@@ -42,8 +42,6 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/SVOutStream.h>
 
-#include <OpenMS/MATH/GSL_WRAPPER/gsl_wrapper.h>
-
 #include <fstream>
 #include <vector>
 #include <cmath>
@@ -774,7 +772,7 @@ namespace OpenMS
 #else
         // we can use the normal Gaussian ran-gen if we do not use OPENMP
         boost::random::uniform_real_distribution<double> udist (mz_error_mean_, mz_error_stddev_);
-        const double mz_err = udist(rnd_gen_->getTechnicalRng();
+        const double mz_err = udist(rnd_gen_->getTechnicalRng());
 #endif
         point.setMZ(std::fabs(point.getMZ() + mz_err));
         exp_iter->push_back(point);

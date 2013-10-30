@@ -47,7 +47,6 @@
 #include <cmath>
 #include <ctime>
 
-#include <OpenMS/MATH/GSL_WRAPPER/gsl_wrapper.h>
 #include <boost/math/distributions/normal.hpp>
 
 using namespace std;

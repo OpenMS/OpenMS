@@ -34,6 +34,7 @@
 
 
 #include <OpenMS/FILTERING/CALIBRATION/TOFCalibration.h>
+#include "OpenMS/MATH/STATISTICS/QuadraticRegression.h"
 
 namespace OpenMS
 {
@@ -70,8 +71,6 @@ namespace OpenMS
       matchMasses_(calib_spectra, monoiso_peaks, monoiso_peaks_scan, exp_masses, spec);
 
       // the actual quadratic fitting part
-      deprecated_gsl_matrix * X, * cov;
-      deprecated_gsl_vector * y, * c;
       Size n = exp_masses.size();
       if (n < 3)
       {
@@ -81,52 +80,30 @@ namespace OpenMS
       double chisq;
 
       // matrix containing the observations
-      X = deprecated_gsl_matrix_alloc(n, 3);
+      std::vector<double> x;
       // vector containing the expected masses
-      y = deprecated_gsl_vector_alloc(n);
-
-      // vector containing the coefficients of the quadratic function after the fitting
-      c = deprecated_gsl_vector_alloc(3);
-      // matrix containing the covariances
-      cov = deprecated_gsl_matrix_alloc(3, 3);
+      std::vector<double> y;
 
       for (Size i = 0; i < n; i++)
       {
         // get the flight time
         double xi = ((calib_peaks_ft_.begin() + spec)->begin() + monoiso_peaks_scan[i])->getMZ();
-        // y_i = a + b*x_i + c*x_i^2  <---- the quadratic equation, a, b, and c shall be determined
-        // x_i^0 = 1 --> enter 1 at the first position of each row
-        deprecated_gsl_matrix_set(X, i, 0, 1.0);
-
-        // x_i^1 at the second position
-        deprecated_gsl_matrix_set(X, i, 1, xi);
-        // x_i^2 at the third position
-        deprecated_gsl_matrix_set(X, i, 2, xi * xi);
-
-        // set expected mass
-        deprecated_gsl_vector_set(y, i, exp_masses[i]);
-
+        x.push_back(xi);
+        y.push_back(exp_masses[i]);
       }
 
-      deprecated_gsl_multifit_linear_workspace * work
-        = deprecated_gsl_multifit_linear_alloc(n, 3);
-
-      deprecated_gsl_multifit_linear(X, y, c, cov,
-                          &chisq, work);
-
+      Math::QuadraticRegression qr;
+      qr.computeRegression(x.begin(), x.end(), y.begin());
 
 #ifdef DEBUG_CALIBRATION
-      printf("# best fit: Y = %g + %g X + %g X^2\n",
-             deprecated_gsl_vector_get(c, (0)),
-             deprecated_gsl_vector_get(c, (1)),
-             deprecated_gsl_vector_get(c, (2)));
+      std::cout << "chi^2: " << qr.getChiSquared() << std::endl;//DEBUG
+      std::cout << "a: " << qr.getA() << "b: " << qr.getB()
+            << "c: " << qr.getC() << std::endl;//DEBUG
 #endif
       // store the coefficients
-      coeff_quad_fit_.push_back(deprecated_gsl_vector_get(c, (0)));
-      coeff_quad_fit_.push_back(deprecated_gsl_vector_get(c, (1)));
-      coeff_quad_fit_.push_back(deprecated_gsl_vector_get(c, (2)));
-
-      deprecated_gsl_multifit_linear_free(work);
+      coeff_quad_fit_.push_back(qr.getA());
+      coeff_quad_fit_.push_back(qr.getB());
+      coeff_quad_fit_.push_back(qr.getC());
 
       // determine the errors in ppm
       for (Size p = 0; p < n; ++p)
@@ -148,9 +125,6 @@ namespace OpenMS
     }
     averageErrors_();
     averageCoefficients_();
-
-
-
   }
 
   void TOFCalibration::averageCoefficients_()

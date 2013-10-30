@@ -37,7 +37,6 @@
 
 ///////////////////////////
 #include <OpenMS/SIMULATION/RTSimulation.h>
-#include <OpenMS/MATH/GSL_WRAPPER/gsl_wrapper.h>
 ///////////////////////////
 
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>

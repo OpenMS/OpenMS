@@ -40,7 +40,6 @@
 
 ///////////////////////////
 #include <OpenMS/SIMULATION/RawTandemMSSignalSimulation.h>
-#include <OpenMS/MATH/GSL_WRAPPER/gsl_wrapper.h>
 ///////////////////////////
 
 using namespace OpenMS;

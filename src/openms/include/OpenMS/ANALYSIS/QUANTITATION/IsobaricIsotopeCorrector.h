@@ -41,8 +41,6 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantifierStatistics.h>
 #include <OpenMS/DATASTRUCTURES/Matrix.h>
 
-#include <OpenMS/MATH/GSL_WRAPPER/gsl_wrapper.h>
-
 #include <Eigen/Core>
 
 namespace OpenMS

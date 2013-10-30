@@ -38,7 +38,6 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/TextFile.h>
-#include <OpenMS/MATH/GSL_WRAPPER/gsl_wrapper.h>
 
 #include <algorithm>
 #include <boost/math/special_functions/fpclassify.hpp>

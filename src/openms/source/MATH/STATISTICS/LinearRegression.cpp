@@ -105,24 +105,24 @@ namespace OpenMS
       return rsd_;
     }
 
-    void LinearRegression::computeGoodness_(double * X, double * Y, int N, double confidence_interval_P)
+    void LinearRegression::computeGoodness_(const std::vector<Wm5::Vector2d>& points, double confidence_interval_P)
     {
-	  std::vector<double> XVec;
-	  XVec.reserve(N);
-	  for(Size i=0; i<(Size)N; ++i)
-		XVec.push_back(X[i]);
-	  std::vector<double> YVec;
-	  YVec.reserve(N);
-	  for(Size i=0; i<(Size)N; ++i)
-		YVec.push_back(Y[i]);
-	  // Variance and Covariances
-      double var_X = Math::variance(XVec.begin(), XVec.end());
-      double var_Y = Math::variance(YVec.begin(),YVec.end());
-      double cov_XY = Math::covariance(XVec.begin(), XVec.end(), YVec.begin(), YVec.end());
+      int N = points.size();
+      std::vector<double> X; X.reserve(N);
+      std::vector<double> Y; Y.reserve(N);
+      for(unsigned i=0; i<N; ++i)
+      {
+        X.push_back(points.at(i).X());
+        Y.push_back(points.at(i).Y());
+      }
+      // Variance and Covariances
+      double var_X = Math::variance(X.begin(), X.end());
+      double var_Y = Math::variance(Y.begin(),Y.end());
+      double cov_XY = Math::covariance(X.begin(), X.end(), Y.begin(), Y.end());
 
       // Mean of abscissa and ordinate values
-      double x_mean = Math::mean(XVec.begin(), XVec.end());
-      double y_mean = Math::mean(YVec.begin(), YVec.end());
+      double x_mean = Math::mean(X.begin(), X.end());
+      double y_mean = Math::mean(Y.begin(), Y.end());
 
       // S_xx
       double s_XX = 0;

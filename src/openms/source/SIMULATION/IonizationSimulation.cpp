@@ -40,8 +40,6 @@
 
 #include <OpenMS/CONCEPT/Constants.h>
 
-#include <OpenMS/MATH/GSL_WRAPPER/gsl_wrapper.h>
-
 #include <cmath>
 #include <algorithm>
 

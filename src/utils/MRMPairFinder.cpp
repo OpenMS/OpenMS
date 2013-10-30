@@ -41,8 +41,6 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder_impl.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
-#include <OpenMS/MATH/GSL_WRAPPER/gsl_wrapper.h>
-
 using namespace OpenMS;
 using namespace std;
 

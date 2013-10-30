@@ -38,7 +38,7 @@
 #include <algorithm>
 #include <cstdlib>
 
-#include "OpenMS/MATH/GSL_WRAPPER/gsl_wrapper.h"
+#include "OpenMS/MATH/STATISTICS/QuadraticRegression.h"
 
 
 namespace OpenMS
@@ -58,7 +58,7 @@ namespace OpenMS
   {
     if (input_x.size() != input_y.size())
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Sizes of x and y values not equal! Aborting... ", String(input_x.size()));
+      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Sizes of x_gsl and y_gsl values not equal! Aborting... ", String(input_x.size()));
     }
 
     // unable to smooth over 2 or less data points (we need at least 3)
@@ -69,7 +69,6 @@ namespace OpenMS
     }
 
     Size input_size = input_y.size();
-    // alpha_ = 1 / ( input_size / window_size_ );
 
     // const Size q = floor( input_size * alpha );
     const Size q = (window_size_ < input_size) ? window_size_ : input_size - 1;
@@ -77,80 +76,35 @@ namespace OpenMS
     DoubleVector distances(input_size, 0.0);
     DoubleVector sortedDistances(input_size, 0.0);
 
-    // DoubleVector smooth_yvals_Vec(input_size);
-
-    deprecated_gsl_matrix * X = deprecated_gsl_matrix_alloc(input_size, 3);
-    deprecated_gsl_matrix * cov = deprecated_gsl_matrix_alloc(3, 3);
-
-    deprecated_gsl_vector * weights = deprecated_gsl_vector_alloc(input_size);
-    deprecated_gsl_vector * c = deprecated_gsl_vector_alloc(3);
-    deprecated_gsl_vector * x = deprecated_gsl_vector_alloc(3);
-    deprecated_gsl_vector * yvals_ = deprecated_gsl_vector_alloc(input_size);
-
-    DoubleReal y, yErr, chisq;
-
-    // Setup the model matrix X for a quadratic fit.
-    // yvals_ = new double[input_size];
-    // Size idx = 0;
-
-    for (Size p_idx = 0; p_idx < input_y.size(); ++p_idx)
-    {
-      DoubleReal rt = input_x[p_idx];
-
-      deprecated_gsl_matrix_set(X, p_idx, 0, 1.0);
-      deprecated_gsl_matrix_set(X, p_idx, 1, rt);
-      deprecated_gsl_matrix_set(X, p_idx, 2, rt * rt);
-
-      deprecated_gsl_vector_set(yvals_, p_idx, input_y[p_idx]);
-
-      // ++idx;
-    }
-
-
-
-    //for(DoubleVector::const_iterator outer_peak_it = input_y.begin(); outer_peak_it != input_y.end(); ++outer_peak_it )
-    for (Size outer_idx = 0; outer_idx < input_y.size(); ++outer_idx)
+    for (Size outer_idx = 0; outer_idx < input_size; ++outer_idx)
     {
       // Compute distances.
       // Size inner_idx = 0;
-      for (Size inner_idx = 0; inner_idx < input_y.size(); ++inner_idx)
+      for (Size inner_idx = 0; inner_idx < input_size; ++inner_idx)
       {
         distances[inner_idx] = std::fabs(input_x[outer_idx] - input_x[inner_idx]);
         sortedDistances[inner_idx] = distances[inner_idx];
-        // ++inner_idx;
       }
 
       // Sort distances in order from smallest to largest.
-      // std::sort(sortedDistances, sortedDistances + input_size);
       std::sort(sortedDistances.begin(), sortedDistances.end());
 
-
-      // Compute weights.
+      // Compute weigths.
+      std::vector<double> weigths (input_size, 0);
       for (Size inner_idx = 0; inner_idx < input_size; ++inner_idx)
       {
-        deprecated_gsl_vector_set(weights, inner_idx, tricube_(distances[inner_idx], sortedDistances[q]));
+        weigths.at(inner_idx) = tricube_(distances[inner_idx], sortedDistances[q]);
       }
 
+      //calculate regression
+      Math::QuadraticRegression qr;
+      std::vector<double>::const_iterator w_begin = weigths.begin();
+      qr.computeRegressionWeighted(input_x.begin(), input_x.end(), input_y.begin(), w_begin);
 
-      deprecated_gsl_multifit_linear_workspace * work = deprecated_gsl_multifit_linear_alloc(input_size, 3);
-      deprecated_gsl_multifit_wlinear(X, weights, yvals_, c, cov, &chisq, work);
-      deprecated_gsl_multifit_linear_free(work);
-
-
+      //smooth y-values
       DoubleReal rt = input_x[outer_idx];
-      deprecated_gsl_vector_set(x, 0, 1.0);
-      deprecated_gsl_vector_set(x, 1, rt);
-      deprecated_gsl_vector_set(x, 2, rt * rt);
-
-      deprecated_gsl_multifit_linear_est(x, c, cov, &y, &yErr);
-
-      smoothed_output.push_back(y);
+      smoothed_output.push_back(qr.eval(rt));
     }
-
-    deprecated_gsl_matrix_free(X);
-    deprecated_gsl_vector_free(weights);
-    deprecated_gsl_vector_free(c);
-    deprecated_gsl_matrix_free(cov);
 
     return;
   }

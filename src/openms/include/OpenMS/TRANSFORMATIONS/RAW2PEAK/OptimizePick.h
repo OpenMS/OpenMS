@@ -38,8 +38,6 @@
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakShape.h>
 #include <OpenMS/KERNEL/Peak1D.h>
 
-#include <OpenMS/MATH/GSL_WRAPPER/gsl_wrapper.h>
-
 #include <Eigen/Core>
 #include <unsupported/Eigen/NonLinearOptimization>
 
@@ -88,9 +86,6 @@ namespace OpenMS
       /// Penalty factor for the peak shape's right width parameter
       double rWidth;
     };
-
-    /// Print all peak shapes
-    void printSignal(const deprecated_gsl_vector * x, void * param, float resolution = 0.25);
   }
 
 

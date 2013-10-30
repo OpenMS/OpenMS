@@ -33,14 +33,15 @@
 // --------------------------------------------------------------------------
 
 
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/ElutionPeakDetection.h>
 #include <OpenMS/FILTERING/SMOOTHING/LowessSmoothing.h>
+#include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
-#include <sstream>
-#include <numeric>
 #include <algorithm>
+#include <numeric>
+#include <sstream>
 
 #include <boost/dynamic_bitset.hpp>
 
@@ -400,7 +401,24 @@ void ElutionPeakDetection::detectElutionPeaks_(MassTrace & mt, std::vector<MassT
 
     // use one global window size for all mass traces to smooth
     DoubleReal scan_time(mt.getScanTime());
-    Size win_size = std::ceil(chrom_fwhm_ / scan_time);
+//    Size win_size = std::ceil(chrom_fwhm_ / scan_time);
+    Size win_size = std::ceil(chrom_fwhm_);
+    std::cout << "win_size: " << win_size << std::endl;
+
+    MSSpectrum<PeakType> spectrum;
+    spectrum.insert(spectrum.begin(), mt.begin(), mt.end());
+    std::cout << "data_size: " << spectrum.size() << std::endl;
+    SavitzkyGolayFilter sg;
+    Param param;
+    param.setValue("polynomial_order",2);
+    param.setValue("frame_length",win_size);
+    sg.setParameters(param);
+    sg.filter(spectrum);
+    MSSpectrum<PeakType>::iterator iter = spectrum.begin();
+    std::vector<double> smoothed_intensities;
+    for(; iter!=spectrum.end(); ++iter)
+      smoothed_intensities.push_back( iter->getIntensity());
+    mt.setSmoothedIntensities(smoothed_intensities);
 
     // std::cout << "win_size elution: " << scan_time << " " << win_size << std::endl;
 
@@ -415,8 +433,7 @@ void ElutionPeakDetection::detectElutionPeaks_(MassTrace & mt, std::vector<MassT
     lowess_smooth.setParameters(lowess_params);
 
     lowess_smooth.smoothData(rts, ints, smoothed_data);
-
-    mt.setSmoothedIntensities(smoothed_data);
+//    mt.setSmoothedIntensities(smoothed_data);
 
     // debug intensities
 

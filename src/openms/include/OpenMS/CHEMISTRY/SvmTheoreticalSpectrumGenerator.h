@@ -43,8 +43,6 @@
 
 #include <boost/random/mersenne_twister.hpp>
 
-#include <OpenMS/MATH/GSL_WRAPPER/gsl_wrapper.h>
-
 
 
 namespace OpenMS

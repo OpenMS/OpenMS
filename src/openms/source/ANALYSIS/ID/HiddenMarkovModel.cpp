@@ -56,10 +56,6 @@
 #define EVALUATE_DEBUG
 #undef EVALUATE_DEBUG
 
-#ifdef EVALUATE_DEBUG
-#include <OpenMS/MATH/GSL_WRAPPER/gsl_wrapper.h>
-#endif
-
 using namespace std;
 
 namespace OpenMS

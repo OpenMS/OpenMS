@@ -555,28 +555,6 @@ namespace OpenMS
 
   }
 
-  bool OptimizePeakDeconvolution::checkFWHM_(std::vector<PeakShape> & peaks, deprecated_gsl_multifit_fdfsolver * & fit)
-  {
-    DoubleReal fwhm_threshold = (DoubleReal)param_.getValue("fwhm_threshold");
-
-    PeakShape p;
-    for (Size current_peak = 0; current_peak < peaks.size(); current_peak++)
-    {
-      p.left_width  = deprecated_gsl_vector_get(
-    		  deprecated_wrapper_gsl_multifit_fdfsolver_get_x(fit), 0);
-      p.right_width = deprecated_gsl_vector_get(
-    		  deprecated_wrapper_gsl_multifit_fdfsolver_get_x(fit), 1);
-      p.type        = peaks[current_peak].type;
-#ifdef DEBUG_DECONV
-      std::cout << "fwhm: " << p.getFWHM() << " > " << fwhm_threshold << " ?" << std::endl;
-#endif
-      if (p.getFWHM() > fwhm_threshold)
-        return false;
-    }
-
-    return true;
-  }
-
   void OptimizePeakDeconvolution::setNumberOfPeaks_(Data & data, const std::vector<PeakShape> & temp_shapes, Int charge)
   {
     DoubleReal dist = dist_ / charge;

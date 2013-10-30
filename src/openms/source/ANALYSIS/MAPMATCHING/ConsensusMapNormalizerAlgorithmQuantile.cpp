@@ -33,7 +33,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithmQuantile.h>
-#include <OpenMS/MATH/GSL_WRAPPER/gsl_wrapper.h>
 #include <cmath>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <algorithm>

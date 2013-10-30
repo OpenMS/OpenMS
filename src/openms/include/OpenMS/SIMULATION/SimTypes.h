@@ -53,8 +53,6 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqConstants.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 
-// GSL includes (random number generation)
-#include "OpenMS/MATH/GSL_WRAPPER/gsl_wrapper.h"
 
 namespace OpenMS
 {

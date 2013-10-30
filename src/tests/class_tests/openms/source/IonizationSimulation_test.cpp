@@ -39,7 +39,6 @@
 #include <OpenMS/SIMULATION/IonizationSimulation.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/MATH/GSL_WRAPPER/gsl_wrapper.h>
 ///////////////////////////
 
 using namespace OpenMS;

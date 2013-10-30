@@ -46,86 +46,6 @@ using std::max;
 
 namespace OpenMS
 {
-  namespace OptimizationFunctions
-  {
-
-
-
-    // Print the computed signal
-    void printSignal(const deprecated_gsl_vector * x, void * param, float resolution)
-    {
-
-      std::vector<DoubleReal> & positions = static_cast<OptimizePick::Data *>(param)->positions;
-      std::vector<PeakShape> & peaks = static_cast<OptimizePick::Data *>(param)->peaks;
-      std::cout << "Printing Signal" << std::endl;
-      if (resolution == 1.)
-      {
-        // iterate over all points of the signal
-        for (size_t current_point = 0; current_point < positions.size(); current_point++)
-        {
-          double computed_signal     = 0.;
-          double current_position    = positions[current_point];
-
-          // iterate over all peaks
-          for (size_t current_peak = 0; current_peak < peaks.size(); current_peak++)
-          {
-            // Store the current parameters for this peak
-            double p_height          = deprecated_gsl_vector_get(x, 4 * current_peak);
-            double p_position    = deprecated_gsl_vector_get(x, 4 * current_peak + 3);
-            double p_width           = (current_position <= p_position) ? deprecated_gsl_vector_get(x, 4 * current_peak + 1)
-                                       : deprecated_gsl_vector_get(x, 4 * current_peak + 2);
-
-            // is it a Lorentz or a Sech - Peak?
-            if (peaks[current_peak].type == PeakShape::LORENTZ_PEAK)
-            {
-              computed_signal += p_height / (1. + pow(p_width * (current_position - p_position), 2));
-            }
-            else // It's a Sech - Peak
-            {
-              computed_signal += p_height / pow(cosh(p_width * (current_position - p_position)), 2);
-            }
-          }
-          std::cerr << positions[current_point] << " " << computed_signal << std::endl;
-        }
-      }
-      else
-      {
-        // Compute step width
-        float sw = (positions[1] - positions[0]) / resolution;
-        for (int i = 0; i < positions.size() * resolution; i++)
-        {
-          double computed_signal     = 0.;
-          double current_position    = positions[0] + i * sw;
-
-          // iterate over all peaks
-          for (size_t current_peak = 0; current_peak < peaks.size(); current_peak++)
-          {
-            // Store the current parameters for this peak
-            double p_height          = deprecated_gsl_vector_get(x, 4 * current_peak);
-            double p_position    = deprecated_gsl_vector_get(x, 4 * current_peak + 3);
-            double p_width           = (current_position <= p_position) ? deprecated_gsl_vector_get(x, 4 * current_peak + 1)
-                                       : deprecated_gsl_vector_get(x, 4 * current_peak + 2);
-
-            // is it a Lorentz or a Sech - Peak?
-            if (peaks[current_peak].type == PeakShape::LORENTZ_PEAK)
-            {
-              computed_signal += p_height / (1. + pow(p_width * (current_position - p_position), 2));
-            }
-            else // It's a Sech - Peak
-            {
-              computed_signal += p_height / pow(cosh(p_width * (current_position - p_position)), 2);
-            }
-          }
-
-          std::cerr.precision(writtenDigits<DoubleReal>());
-
-          std::cerr << positions[0] + i * sw << " " << computed_signal << std::endl;
-        }
-      }
-    }
-
-  }
-
 
   OptimizePick::OptimizePick(
       const struct OptimizationFunctions::PenaltyFactors & penalties,
@@ -300,6 +220,8 @@ namespace OpenMS
     }
 
     fvec(positions.size()) = 100 * penalty;
+
+    return 0;
   }
   // compute Jacobian matrix for the different parameters
   int OptimizePick::OptPeakFunctor::df(const Eigen::VectorXd &x, Eigen::MatrixXd &J)
@@ -360,6 +282,7 @@ namespace OpenMS
           J(current_point, 4 * current_peak + 3) = ddx0;
         }
       }
+      return 0;
     }
 
     // Now iterate over all peaks again to compute the penalties.

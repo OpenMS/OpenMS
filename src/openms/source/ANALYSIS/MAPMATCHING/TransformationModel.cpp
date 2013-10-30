@@ -37,6 +37,9 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
+#include "Wm5Vector2.h"
+#include "Wm5ApprLineFit2.h"
+
 #include <algorithm>
 #include <numeric>
 #include <iterator>
@@ -65,6 +68,7 @@ namespace OpenMS
       symmetric_ = params_.getValue("symmetric_regression") == "true";
 
       size_t size = data.size();
+      std::vector<Wm5::Vector2d> points;
       if (size == 0)       // no data
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
@@ -77,30 +81,12 @@ namespace OpenMS
       }
       else       // compute least-squares fit
       {
-        vector<double> x(size), y(size);
         for (size_t i = 0; i < size; ++i)
         {
-          if (symmetric_)
-          {
-            x[i] = data[i].second + data[i].first;
-            y[i] = data[i].second - data[i].first;
-          }
-          else
-          {
-            x[i] = data[i].first;
-            y[i] = data[i].second;
-          }
+          points.push_back(Wm5::Vector2d(data.at(i).first, data.at(i).second));
         }
-        double cov00, cov01, cov11, sumsq;         // covariance values, sum of squares
-        double * x_start = &(x[0]), * y_start = &(y[0]);
-        deprecated_gsl_fit_linear(x_start, 1, y_start, 1, size, &intercept_, &slope_,
-                       &cov00, &cov01, &cov11, &sumsq);
-
-        if (symmetric_)         // undo coordinate transformation:
-        {
-          slope_ = (1.0 + slope_) / (1.0 - slope_);
-          intercept_ = intercept_ * 1.41421356237309504880;           // 1.41... = sqrt(2)
-        }
+        if(!Wm5::HeightLineFit2<double>(size, points.data(), slope_, intercept_))
+            throw std::runtime_error("could not fit");
       }
     }
   }

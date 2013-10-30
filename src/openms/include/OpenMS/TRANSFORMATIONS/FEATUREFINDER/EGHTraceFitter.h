@@ -39,7 +39,6 @@
 #include <sstream>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/TraceFitter.h>
-#include "OpenMS/MATH/GSL_WRAPPER/gsl_wrapper.h"
 
 namespace OpenMS
 {
@@ -73,7 +72,7 @@ public:
       {
         double H  = x(0);
         double tR = x(1);
-        double sigma_square = x(2);
+        double sigma = x(2);
         double tau = x(3);
 
         double t_diff, t_diff2, denominator = 0.0;
@@ -92,7 +91,7 @@ public:
             t_diff = rt - tR;
             t_diff2 = t_diff * t_diff; // -> (t - t_R)^2
 
-            denominator = 2 * sigma_square + tau * t_diff; // -> 2\sigma_{g}^{2} + \tau \left(t - t_R\right)
+            denominator = 2 * sigma * sigma + tau * t_diff; // -> 2\sigma_{g}^{2} + \tau \left(t - t_R\right)
 
             if (denominator > 0.0)
             {
@@ -114,10 +113,10 @@ public:
       {
         double H  = x(0);
         double tR = x(1);
-        double sigma_square = x(2);
+        double sigma = fabs(x(2));// must be non-negative!
         double tau = x(3);
 
-        double derivative_H, derivative_tR, derivative_sigma_square, derivative_tau = 0.0;
+        double derivative_H, derivative_tR, derivative_sigma, derivative_tau = 0.0;
         double t_diff, t_diff2, exp1, denominator = 0.0;
 
         UInt count = 0;
@@ -132,7 +131,7 @@ public:
             t_diff = rt - tR;
             t_diff2 = t_diff * t_diff; // -> (t - t_R)^2
 
-            denominator = 2 * sigma_square + tau * t_diff; // -> 2\sigma_{g}^{2} + \tau \left(t - t_R\right)
+            denominator = 2 * sigma * sigma + tau * t_diff; // -> 2\sigma_{g}^{2} + \tau \left(t - t_R\right)
 
             if (denominator > 0)
             {
@@ -142,26 +141,30 @@ public:
               derivative_H = trace.theoretical_int * exp1;
 
               // \partial t_R f_{egh}(t) &=& H \exp \left( \frac{-\left(t-t_R \right)}{2\sigma_{g}^{2} + \tau \left(t - t_R\right)} \right) \left( \frac{\left( 4 \sigma_{g}^{2} + \tau \left(t-t_R \right) \right) \left(t-t_R \right)}{\left( 2\sigma_{g}^{2} + \tau \left(t - t_R\right) \right)^2} \right)
-              derivative_tR = trace.theoretical_int * H * exp1 * (((4 * sigma_square + tau * t_diff) * t_diff) / (denominator * denominator));
+              derivative_tR = trace.theoretical_int * H * exp1 * ((4 * sigma * sigma + tau * t_diff) * t_diff) / (denominator * denominator);
 
               // \partial \sigma_{g}^{2} f_{egh}(t) &=& H \exp \left( \frac{-\left(t-t_R \right)^2}{2\sigma_{g}^{2} + \tau \left(t - t_R\right)} \right) \left( \frac{ 2 \left(t - t_R\right)^2}{\left( 2\sigma_{g}^{2} + \tau \left(t - t_R\right) \right)^2} \right)
-              derivative_sigma_square = trace.theoretical_int * H * exp1 * ((2 * t_diff2) / (denominator * denominator));
+              // // \partial \sigma_{g}^{2} f_{egh}(t) &=& H \exp \left( \frac{-\left(t-t_R \right)^2}{2\sigma_{g}^{2} + \tau \left(t - t_R\right)} \right) \left( \frac{ 2 \left(t - t_R\right)^2}{\left( 2\sigma_{g}^{2} + \tau \left(t - t_R\right) \right)^2} \right)
+              // derivative_sigma_square = trace.theoretical_int * H * exp1 * 2 * t_diff2 / (denominator * denominator));
+
+              // \partial \sigma_{g} f_{egh}(t) &=& H \exp \left( \frac{-\left(t-t_R \right)^2}{2\sigma_{g}^{2} + \tau \left(t - t_R\right)} \right) \left( \frac{ 4 \sigma_{g} \left(t - t_R\right)^2}{\left( 2\sigma_{g}^{2} + \tau \left(t - t_R\right) \right)^2} \right)
+              derivative_sigma = trace.theoretical_int * H * exp1 * 4 * sigma * t_diff2 / (denominator * denominator);
 
               // \partial \tau f_{egh}(t) &=& H \exp \left( \frac{-\left(t-t_R \right)^2}{2\sigma_{g}^{2} + \tau \left(t - t_R\right)} \right) \left( \frac{ \left(t - t_R\right)^3}{\left( 2\sigma_{g}^{2} + \tau \left(t - t_R\right) \right)^2} \right)
-              derivative_tau = trace.theoretical_int * H * exp1 * ((t_diff * t_diff2) / (denominator * denominator));
+              derivative_tau = trace.theoretical_int * H * exp1 * t_diff * t_diff2 / (denominator * denominator);
             }
             else
             {
               derivative_H = 0.0;
               derivative_tR = 0.0;
-              derivative_sigma_square = 0.0;
+              derivative_sigma = 0.0;
               derivative_tau = 0.0;
             }
 
             // set the jacobian matrix
             J(count, 0) = derivative_H * weight;
             J(count, 1) = derivative_tR * weight;
-            J(count, 2) = derivative_sigma_square * weight;
+            J(count, 2) = derivative_sigma * weight;
             J(count, 3) = derivative_tau * weight;
             ++count;
           }
@@ -182,7 +185,7 @@ public:
     {
       this->height_ = other.height_;
       this->apex_rt_ = other.apex_rt_;
-      this->sigma_ = other.sigma_;
+      this->sigma_= other.sigma_;
       this->tau_ = other.tau_;
 
       this->sigma_5_bound_ = other.sigma_5_bound_;
@@ -196,7 +199,7 @@ public:
 
       this->height_ = source.height_;
       this->apex_rt_ = source.apex_rt_;
-      this->sigma_ = source.sigma_;
+      this->sigma_= source.sigma_;
       this->tau_ = source.tau_;
 
       this->sigma_5_bound_ = source.sigma_5_bound_;
@@ -218,7 +221,7 @@ public:
       Eigen::VectorXd x_init(NUM_PARAMS_);
       x_init(0) = height_;
       x_init(1) = apex_rt_;
-      x_init(2) = sigma_square_;
+      x_init(2) = sigma_;
       x_init(3) = tau_;
 
       typename TraceFitter<PeakType>::ModelData data;
@@ -367,7 +370,7 @@ protected:
     {
       height_ =  x_init(0);
       apex_rt_ =  x_init(1);
-      sigma_square_ =  x_init(2);
+      sigma_ =  x_init(2);
       tau_ =  x_init(3);
 
       // we set alpha to 0.04 which is conceptually equal to
@@ -458,8 +461,8 @@ protected:
       if(tau_ == 0)
         tau_ = std::numeric_limits<double>::epsilon();
       LOG_DEBUG << "tau: " << tau_ << std::endl;
-      sigma_ = sqrt(-0.5 / log_alpha * B * A);
-      LOG_DEBUG << "sigma: " << sigma_ << std::endl;
+      sigma_= sqrt(-0.5 / log_alpha * B * A);
+      LOG_DEBUG << "sigma: " << sigma_<< std::endl;
     }
 
     virtual void updateMembers_()

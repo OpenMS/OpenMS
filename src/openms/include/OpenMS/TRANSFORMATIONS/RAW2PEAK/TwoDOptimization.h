@@ -65,7 +65,6 @@
 #endif
 
 #include <boost/math/special_functions/acosh.hpp>
-#include "OpenMS/MATH/GSL_WRAPPER/gsl_wrapper.h"
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePick.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakShape.h>
 
@@ -225,18 +224,6 @@ protected:
 
     /// Penalty factors for some parameters in the optimization
     OptimizationFunctions::PenaltyFactorsIntensity penalties_;
-
-
-    /**
-   @name Functions provided to the gsl Levenberg-Marquardt
-    */
-    //@{
-    /// Function computing estimated signal and its deviation to the experimental signal*/
-    static Int residual2D_(const deprecated_gsl_vector* x, void* params, deprecated_gsl_vector* f);
-    /// Function computing the Jacobian */
-    static Int jacobian2D_(const deprecated_gsl_vector* x, void* params, deprecated_gsl_matrix* J);
-    /// Function that calls residual2D and jacobian2D*/
-    static Int evaluate2D_(const deprecated_gsl_vector* x, void* params, deprecated_gsl_vector* f, deprecated_gsl_matrix* J);
 
 
     /**
@@ -628,8 +615,6 @@ protected:
 
       Eigen::VectorXd x_init (nr_parameters);
       x_init.setZero();
-//      deprecated_gsl_vector* start_value = deprecated_gsl_vector_alloc(nr_parameters);
-//      deprecated_gsl_vector_set_zero(start_value);
 
       // initialize parameters for optimization
       std::map<Int, std::vector<PeakIndex> >::iterator m_peaks_it = twoD_data.matching_peaks.begin();
@@ -649,15 +634,11 @@ protected:
           av_lw += ms_exp[(iter_iter)->spectrum].getFloatDataArrays()[3][(iter_iter)->peak] * height; //left width
           av_rw +=    ms_exp[(iter_iter)->spectrum].getFloatDataArrays()[4][(iter_iter)->peak] * height; //right width
           x_init(peak_counter) = height;
-//          deprecated_gsl_vector_set(start_value, peak_counter, height);
           ++peak_counter;
         }
         x_init(twoD_data.total_nr_peaks + 3 * diff_peak_counter) = av_mz / avr_height;
         x_init(twoD_data.total_nr_peaks + 3 * diff_peak_counter + 1) = av_lw / avr_height;
         x_init(twoD_data.total_nr_peaks + 3 * diff_peak_counter + 2) = av_rw / avr_height;
-//        deprecated_gsl_vector_set(start_value, d.total_nr_peaks + 3 * diff_peak_counter, av_mz / avr_height);
-//        deprecated_gsl_vector_set(start_value, d.total_nr_peaks + 3 * diff_peak_counter + 1, av_lw / avr_height);
-//        deprecated_gsl_vector_set(start_value, d.total_nr_peaks + 3 * diff_peak_counter + 2, av_rw / avr_height);
         ++diff_peak_counter;
       }
 
@@ -666,7 +647,6 @@ protected:
       for (Size k = 0; k < start_value->size; ++k)
       {
           std::cout << x_init(k) << std::endl;
-//        std::cout << deprecated_gsl_vector_get(start_value, k) << std::endl;
       }
 #endif
       Int num_positions = 0;

@@ -36,7 +36,6 @@
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_LEVMARQFITTER1D_H
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/Fitter1D.h>
-#include "OpenMS/MATH/GSL_WRAPPER/gsl_wrapper.h"
 
 #include <unsupported/Eigen/NonLinearOptimization>
 

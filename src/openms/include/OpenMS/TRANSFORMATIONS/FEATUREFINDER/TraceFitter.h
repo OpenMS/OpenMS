@@ -39,7 +39,6 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include "OpenMS/MATH/GSL_WRAPPER/gsl_wrapper.h"
 
 #include <unsupported/Eigen/NonLinearOptimization>
 

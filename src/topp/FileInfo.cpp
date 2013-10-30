@@ -52,7 +52,6 @@
 
 #include <QtCore/QString>
 
-#include <OpenMS/MATH/GSL_WRAPPER/gsl_wrapper.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
 using namespace OpenMS;

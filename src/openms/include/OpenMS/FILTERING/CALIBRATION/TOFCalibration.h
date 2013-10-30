@@ -48,8 +48,6 @@
 #include <vector>
 #include <map>
 
-#include "OpenMS/MATH/GSL_WRAPPER/gsl_wrapper.h"
-
 //#define DEBUG_CALIBRATION
 namespace OpenMS
 {

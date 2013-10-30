@@ -40,8 +40,6 @@
 
 #include <vector>
 
-#include <OpenMS/MATH/GSL_WRAPPER/gsl_wrapper.h>
-
 
 namespace OpenMS
 {

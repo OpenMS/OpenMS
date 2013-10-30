@@ -28,74 +28,31 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Sandro Andreotti $
-// $Authors: Sandro Andreotti $
+// $Maintainer: Christian Ehrlich $
+// $Authors: Christian Ehrlich $
 // --------------------------------------------------------------------------
 
 
-#ifndef OPENMS_CHEMISTRY_SVMTHEORETICALSPECTRUMGENERATORSET_H
-#define OPENMS_CHEMISTRY_SVMTHEORETICALSPECTRUMGENERATORSET_H
+#ifndef REGRESSIONUTILS_H_
+#define REGRESSIONUTILS_H_
+#include <vector>
+#include "Wm5Vector2.h"
 
-#include <OpenMS/SIMULATION/SimTypes.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/CHEMISTRY/SvmTheoreticalSpectrumGenerator.h>
-
-namespace OpenMS
-{
-  /**
-   @brief Loads SvmTheoreticalSpectrumGenerator instances for different charges
-
-   The input file contains pairs of charge and svm models separated by a ":"
-   (see share/OpenMS/examples/simulation/SvmModelSet.model)
-
-   <p>
-   Actually only a test model is shipped with OpenMS.<br>
-   Please find trained models at: http://sourceforge.net/projects/open-ms/files/Supplementary/Simulation/.
-   </p>
-
-   @ingroup Chemistry
-   */
-  class OPENMS_DLLAPI SvmTheoreticalSpectrumGeneratorSet
-  {
-public:
-
-    /** @name Constructors and Destructors
-     */
-    //@{
-    /// Default constructor
-    SvmTheoreticalSpectrumGeneratorSet();
-
-    /// Copy constructor
-    SvmTheoreticalSpectrumGeneratorSet(const SvmTheoreticalSpectrumGeneratorSet & source);
-
-    /// Destructor
-    virtual ~SvmTheoreticalSpectrumGeneratorSet();
-    //@}
-
-    /// Assignment operator
-    SvmTheoreticalSpectrumGeneratorSet & operator=(const SvmTheoreticalSpectrumGeneratorSet & tsg);
-
-    /// Generate the MS/MS according to the model for the given precursor_charge
-    void simulate(RichPeakSpectrum & spectrum, const AASequence & peptide, boost::random::mt19937_64& rng, Size precursor_charge);
-
-    ///Load a trained Svm and Prob. models
-    void load(String);
-
-    ///Return precursor charges for which a model is contained in the set
-    void getSupportedCharges(std::set<Size> & charges);
-
-    ///return a modifiable reference to the SVM model with given charge. If charge is not supported throw exception
-    SvmTheoreticalSpectrumGenerator & getSvmModel(Size);
-
-protected:
-    //map containing the simulator for each charge variant
-    std::map<Size, SvmTheoreticalSpectrumGenerator> simulators_;
-
-  };
-
-
+namespace OpenMS {
+  namespace Math {
+    /// Copies the distance(x_begin,x_end) elements starting at x_begin and y_begin into the Wm5::Vector
+    template <typename Iterator>
+    std::vector<Wm5::Vector2d> iteratorRange2Wm5Vectors(Iterator x_begin, Iterator x_end, Iterator y_begin)
+    {
+      Iterator xIter = x_begin;
+      Iterator yIter = y_begin;
+      std::vector<Wm5::Vector2d> points;
+      for(;xIter!=x_end; ++xIter, ++yIter)
+      {
+        points.push_back( Wm5::Vector2d(*xIter, *yIter) );
+      }
+      return points;
+    }
+  }
 }
-
-
-
-#endif
+#endif /* REGRESSIONUTILS_H_ */

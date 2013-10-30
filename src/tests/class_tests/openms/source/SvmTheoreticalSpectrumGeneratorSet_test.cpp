@@ -43,8 +43,6 @@
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 
-#include <OpenMS/MATH/GSL_WRAPPER/gsl_wrapper.h>
-
 ///////////////////////////
 
 START_TEST(SvmTheoreticalSpectrumGeneratorSet, "$Id$")

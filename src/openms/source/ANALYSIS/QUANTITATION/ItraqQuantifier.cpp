@@ -36,7 +36,6 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqQuantifier.h>
 
 // default isotope correction (via A^-1)
-#include <OpenMS/MATH/GSL_WRAPPER/gsl_wrapper.h>
 // NNLS isotope correction
 #include <OpenMS/MATH/MISC/NonNegativeLeastSquaresSolver.h>
 
@@ -217,7 +216,6 @@ namespace OpenMS
         // ISOTOPE CORRECTION: compare solutions of Matrix inversion vs. NNLS
         for (Size index = 0; index < (Size)CHANNEL_COUNT[itraq_type_]; ++index)
         {
-//          if (deprecated_gsl_vector_get(x, index) < 0.0)
           if (x(index) < 0.0)
           {
             ++s_negative;

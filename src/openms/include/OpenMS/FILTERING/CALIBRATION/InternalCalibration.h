@@ -44,8 +44,6 @@
 // TODO remove dependency from file reader here!
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
 
-#include <OpenMS/MATH/GSL_WRAPPER/gsl_wrapper.h>
-
 namespace OpenMS
 {
 

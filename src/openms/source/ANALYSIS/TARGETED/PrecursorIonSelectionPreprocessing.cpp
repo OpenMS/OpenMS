@@ -40,7 +40,6 @@
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/SIMULATION/DetectabilitySimulation.h>
 #include <OpenMS/SIMULATION/RTSimulation.h>
-#include <OpenMS/MATH/GSL_WRAPPER/gsl_wrapper.h>
 
 #include <boost/math/distributions/normal.hpp>
 

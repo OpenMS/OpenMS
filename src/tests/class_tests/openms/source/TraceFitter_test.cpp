@@ -38,7 +38,6 @@
 ///////////////////////////
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/TraceFitter.h>
 #include <OpenMS/KERNEL/Peak1D.h>
-#include <OpenMS/MATH/GSL_WRAPPER/gsl_wrapper.h>
 ///////////////////////////
 
 using namespace OpenMS;

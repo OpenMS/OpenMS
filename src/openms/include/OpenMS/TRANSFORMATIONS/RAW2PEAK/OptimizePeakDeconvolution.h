@@ -40,8 +40,6 @@
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePick.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
-#include <OpenMS/MATH/GSL_WRAPPER/gsl_wrapper.h>
-
 //#define DEBUG_DECONV
 #include <iostream>
 #ifdef DEBUG_DECONV
@@ -195,9 +193,6 @@ protected:
 
     /// A function to determine the number of peaks that lie in the current m/z interval given the distance between the peaks by the current charge state.
     void setNumberOfPeaks_(Data & data, const std::vector<PeakShape> & temp_shapes, Int charge);
-
-    // After each iteration the fwhm of all peaks is checked whether it isn't too large
-    bool checkFWHM_(std::vector<PeakShape> & peaks, deprecated_gsl_multifit_fdfsolver * & fit);
 
     void updateMembers_();
   }; // class

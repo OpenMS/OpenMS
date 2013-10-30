@@ -116,7 +116,7 @@ namespace OpenMS
     LevMarqFitter1D()
   {
     setName(getProductName());
-    defaults_.setValue("statistics:variance", 1.0, "Variance of the model.", StringList::create("advanced"));
+    defaults_.setValue("statistics:variance", 1.0, "Variance of the model.", ListUtils::create<String>("advanced"));
     defaultsToParam_();
   }
 
