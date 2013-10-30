@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Erhan Kenar $
-// $Authors: Erhan Kenar, $
+// $Authors: Erhan Kenar $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
@@ -54,7 +54,7 @@ using namespace std;
 /**
         @page UTILS_AccurateMassSearch AccurateMassSearch
 
-        @brief AccurateMassSearch assembles metabolite features from singleton mass traces.
+        @brief  An algorithm to search for exact mass matches from a spectrum against a database (e.g. HMDB).
 
         <CENTER>
         <table>
@@ -64,22 +64,16 @@ using namespace std;
         <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
         </tr>
         <tr>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerHiRes </td>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_TextExporter</td>
-        </tr>
-        <tr>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerWavelet </td>
+        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FeatureFinderMetabo </td>
+        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> NA</td>
         </tr>
         </table>
         </CENTER>
 
-        Mass traces alone would allow for further analyzes such as metabolite ID or statistical
-        evaluation. However, in general, monoisotopic mass traces are accompanied with satellite
-        C13 peaks and thus may render the analysis more difficult. @ref AccurateMassSearch fulfills
-        a further data reduction step by assembling compatible mass traces to metabolite features
-        (that is, mass traces all stemming from one metabolite). To this end, multiple metabolite
-        hypotheses are formulated and scored according to how well differences in RT and m/z or
-        intensity ratios match to those of theoretical isotope patterns.
+        
+        Accurate mass search against a database (usually HMDB).
+        For details see @ref OpenMS::AccurateMassSearchEngine "AccurateMassSearchEngine".
+
 
         <B>The command line parameters of this tool are:</B>
         @verbinclude UTILS_AccurateMassSearch.cli
@@ -125,28 +119,6 @@ protected:
 
         String in = getStringOption_("in");
         String out = getStringOption_("out");
-
-        //-------------------------------------------------------------
-        // loading input
-        //-------------------------------------------------------------
-
-        //        MzMLFile mz_data_file;
-        //        mz_data_file.setLogType(log_type_);
-        //        MSExperiment<Peak1D> ms_peakmap;
-        //        std::vector<Int> ms_level(1, 1);
-        //        (mz_data_file.getOptions()).setMSLevels(ms_level);
-        //        mz_data_file.load(in, ms_peakmap);
-
-        //        if (ms_peakmap.empty())
-        //        {
-        //            LOG_WARN << "The given file does not contain any conventional peak data, but might"
-        //                        " contain chromatograms. This tool currently cannot handle them, sorry.";
-        //            return INCOMPATIBLE_INPUT_DATA;
-        //        }
-
-        //-------------------------------------------------------------
-        // get parameters
-        //-------------------------------------------------------------
 
         Param ams_param = getParam_().copy("algorithm:", true);
         writeDebug_("Parameters passed to AccurateMassSearch", ams_param, 3);

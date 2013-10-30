@@ -78,6 +78,8 @@ using namespace std;
         hypotheses are formulated and scored according to how well differences in RT and m/z or
         intensity ratios match to those of theoretical isotope patterns.
 
+        If the raw data scans contain the scan polarity information, it is stored as meta value "scan_polarity" in the output file.
+
         <B>The command line parameters of this tool are:</B>
         @verbinclude TOPP_FeatureFinderMetabo.cli
 */
@@ -170,7 +172,6 @@ protected:
     // make sure the spectra are sorted by m/z
     ms_peakmap.sortSpectra(true);
 
-    FeatureMap<> ms_feat_map;
     vector<MassTrace> m_traces;
 
     //-------------------------------------------------------------
@@ -245,11 +246,32 @@ protected:
     ffm_param.remove("noise_threshold_int");
     ffm_param.remove("chrom_peak_snr");
 
+    FeatureMap<> ms_feat_map;
     ffmet.setParameters(ffm_param);
     ffmet.run(m_traces_final, ms_feat_map);
 
     ms_feat_map.sortByMZ();
     ms_feat_map.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+
+    // store ionization mode of spectra (useful for postprocessing by AccurateMassSearch tool)
+    if (ms_feat_map.size() > 0)
+    {
+      set<IonSource::Polarity> pols;
+      for (Size i=0; i < ms_peakmap.size(); ++i)
+      {
+        pols.insert(ms_peakmap[i].getInstrumentSettings().getPolarity());
+      }
+      // concat to single string
+      StringList sl_pols;
+      for (set<IonSource::Polarity>::const_iterator it = pols.begin();
+                                                    it !=pols.end();
+                                                    ++it)
+      {
+        sl_pols.push_back(String(IonSource::NamesOfPolarity[*it]));
+      }
+      ms_feat_map[0].setMetaValue("scan_polarity", sl_pols.concatenate(";"));
+    }
+
 
     //-------------------------------------------------------------
     // writing output

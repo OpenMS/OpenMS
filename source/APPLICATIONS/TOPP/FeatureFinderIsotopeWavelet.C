@@ -89,7 +89,7 @@ using namespace std;
     Specialized tools are available for some experimental techniques: @ref TOPP_SILACAnalyzer, @ref TOPP_ITRAQAnalyzer.
 
     <B>The command line parameters of this tool are:</B>
-  @verbinclude TOPP_FeatureFinderIsotopeWavelet.cli
+    @verbinclude TOPP_FeatureFinderIsotopeWavelet.cli
     <B>INI file documentation of this tool:</B>
     @htmlinclude TOPP_FeatureFinderIsotopeWavelet.html
 

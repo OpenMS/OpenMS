@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Erhan Kenar$
-// $Authors: Erhan Kenar$
+// $Authors: Erhan Kenar, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -71,19 +71,17 @@ END_SECTION
 
 AccurateMassSearchEngine ams_pos;
 AccurateMassSearchEngine ams_neg;
-FeatureMap<> dummy_fm;
-MzTab dummy_mztab;
 
-ams_pos.run(dummy_fm, dummy_mztab);
 DoubleReal query_mass_pos(308.09);
 DoubleReal query_mass_neg(306.08);
 // Param ams_param;
 // ams_param.setValue("");
 
 String id_list_pos[] = {"C10H17N3O6S", "C15H16O7", "C14H14N2OS2", "C16H15NO4", "C17H11N5", "C10H14NO6P", "C14H12O4", "C7H6O2"};
-String id_list_neg[] = {"C32H28O11", "C17H17Cl2N", "C10H13N5O5", "C6H14O6S2"};
-
-START_SECTION((void queryByMass(const DoubleReal &, const DoubleReal &, std::vector< AccurateMassSearchResult > &)))
+String id_list_neg[] = {/*"C32H28O11",*/ "C17H17Cl2N", "C10H13N5O5", "C6H14O6S2"};
+                        // 588.16316173 this cannot be since its +2, but we restrict to +1 (or -1)
+                        //                   305.073804963  283.091668551   246.02317956
+START_SECTION((void queryByMass(const DoubleReal& observed_mass, const Int& observed_charge, std::vector<AccurateMassSearchResult>& results)))
 {
     std::vector<AccurateMassSearchResult> hmdb_results_pos, hmdb_results_neg;
     ams_pos.queryByMass(query_mass_pos, 1.0, hmdb_results_pos);
@@ -96,13 +94,14 @@ START_SECTION((void queryByMass(const DoubleReal &, const DoubleReal &, std::vec
 
     if (hmdb_results_pos.size() == id_list_pos_length)
     {
-        for (Size i = 0; i < 8 /*id_list_pos_length*/; ++i)
+        for (Size i = 0; i < id_list_pos_length; ++i)
         {
             TEST_STRING_EQUAL(hmdb_results_pos[i].getFormulaString(), id_list_pos[i])
             // std::cout << hmdb_results_pos[i].getFormulaString() << std::endl;
         }
     }
-    ams_pos.queryByMass(query_mass_neg, -1.0, hmdb_results_neg);
+    ams_pos.queryByMass(query_mass_neg, -1.0, hmdb_results_neg);  // this is not 100% correct, since we are still searching with positive adducts. 
+    // However, it does not matter if +z or -z, since any FF will just give +1, even in negative mode
 
     TEST_EQUAL(hmdb_results_neg.size(), id_list_neg_length)
 
@@ -129,11 +128,10 @@ test_feat.setMetaValue("masstrace_intensity_1", 26.1);
 test_feat.setMetaValue("masstrace_intensity_2", 4.0);
 
 AccurateMassSearchEngine ams_feat_test;
-ams_feat_test.run(dummy_fm, dummy_mztab);
 
 String feat_query_pos[] = {"C23H45NO4", "C20H37NO3", "C22H41NO"};
 
-START_SECTION((void queryByFeature(const Feature &, const Size &, std::vector< AccurateMassSearchResult > &)))
+START_SECTION((void queryByFeature(const Feature& feature, const Size& feature_index, std::vector<AccurateMassSearchResult>& results)))
 {
     std::vector<AccurateMassSearchResult> results;
 
@@ -190,7 +188,7 @@ cons_feat.insert(fh3);
 cons_feat.computeConsensus();
 
 
-START_SECTION((void queryByConsensusFeature(const ConsensusFeature &, const Size &, const Size &, std::vector< AccurateMassSearchResult > &)))
+START_SECTION((void queryByConsensusFeature(const ConsensusFeature& cfeat, const Size& cf_index, const Size& number_of_maps, std::vector<AccurateMassSearchResult>& results)))
 {
     std::vector<AccurateMassSearchResult> results;
 
@@ -313,6 +311,56 @@ START_SECTION((void run(const ConsensusMap &, MzTab &)))
     }
 }
 END_SECTION
+
+
+START_SECTION((const String& getInternalIonMode()))
+{
+  AccurateMassSearchEngine ams;
+  Param p;
+  p.setValue("ionization_mode","auto");
+  ams.setParameters(p);
+  TEST_EQUAL(ams.getInternalIonMode(), "auto")
+  std::vector<AccurateMassSearchResult> hmdb_results_pos;
+  // query a mass in auto mode is invalid (auto mode requires a feature/cf map)
+  TEST_EXCEPTION(Exception::InvalidParameter, ams.queryByMass(1234, 1, hmdb_results_pos))
+
+  p.setValue("ionization_mode","negative");
+  ams.setParameters(p);
+  TEST_EQUAL(ams.getInternalIonMode(), "negative")
+  p.setValue("ionization_mode","positive");
+  ams.setParameters(p);
+  TEST_EQUAL(ams.getInternalIonMode(), "positive")
+
+
+}
+END_SECTION
+
+
+START_SECTION([EXTRA] template <typename MAPTYPE> void resolveAutoMode_(const MAPTYPE& map))
+{
+
+  FeatureMap<> fm_p = exp_fm;
+  AccurateMassSearchEngine ams;
+  MzTab mzt;
+  Param p;
+  p.setValue("ionization_mode","auto");
+  ams.setParameters(p);
+
+
+  TEST_EXCEPTION(Exception::InvalidParameter, ams.run(fm_p, mzt)); // has no scan_polarity meta value
+
+  fm_p[0].setMetaValue("scan_polarity", "positive");          // should run ok
+  ams.run(fm_p, mzt);
+
+  fm_p[0].setMetaValue("scan_polarity", "negative");          // should run ok
+  ams.run(fm_p, mzt);
+
+  fm_p[0].setMetaValue("scan_polarity", "something;somethingelse");
+  TEST_EXCEPTION(Exception::InvalidParameter, ams.run(fm_p, mzt)); // not unique
+
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

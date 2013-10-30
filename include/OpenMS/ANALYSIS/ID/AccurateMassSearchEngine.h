@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Erhan Kenar $
-// $Authors: Erhan Kenar $
+// $Authors: Erhan Kenar, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_ANALYSIS_ID_ACCURATEMASSSEARCHENGINE_H
@@ -66,72 +66,46 @@ namespace OpenMS
         AccurateMassSearchResult & operator=(const AccurateMassSearchResult& );
 
         /// getter & setter methods
-        DoubleReal getAdductMass();
         DoubleReal getAdductMass() const;
-
         void setAdductMass(const DoubleReal&);
 
-        DoubleReal getQueryMass();
+        DoubleReal getQueryMass() const;
         void setQueryMass(const DoubleReal&);
 
-        DoubleReal getFoundMass();
+        DoubleReal getFoundMass() const;
         void setFoundMass(const DoubleReal&);
 
-        DoubleReal getCharge();
-        DoubleReal getCharge() const;
-        void setCharge(const DoubleReal&);
+        Int getCharge() const;
+        void setCharge(const Int&);
 
-        DoubleReal getErrorPPM();
-
+        DoubleReal getErrorPPM() const;
         void setErrorPPM(const DoubleReal&);
 
-        DoubleReal getObservedRT();
         DoubleReal getObservedRT() const;
-
         void setObservedRT(const DoubleReal& rt);
 
-        DoubleReal getObservedIntensity();
-
         DoubleReal getObservedIntensity() const;
-
         void setObservedIntensity(const DoubleReal&);
 
-        std::vector<DoubleReal> getIndividualIntensities();
-
         std::vector<DoubleReal> getIndividualIntensities() const;
-
         void setIndividualIntensities(const std::vector<DoubleReal>&);
 
-        Size getMatchingIndex();
-
+        Size getMatchingIndex() const;
         void setMatchingIndex(const Size&);
 
-        Size getSourceFeatureIndex();
-
+        Size getSourceFeatureIndex() const;
         void setSourceFeatureIndex(const Size&);
 
-        String getFoundAdduct();
-
-        String getFoundAdduct() const;
-
+        const String& getFoundAdduct() const;
         void setFoundAdduct(const String&);
 
-        String getFormulaString();
-
-        String getFormulaString() const;
-
+        const String& getFormulaString() const;
         void setEmpiricalFormula(const String&);
 
-        std::vector<String> getMatchingHMDBids();
-
-        std::vector<String> getMatchingHMDBids() const;
-
+        const std::vector<String>& getMatchingHMDBids() const;
         void setMatchingHMDBids(const std::vector<String>&);
 
-        DoubleReal getIsotopesSimScore();
-
         DoubleReal getIsotopesSimScore() const;
-
         void setIsotopesSimScore(const DoubleReal&);
 
         // DoubleReal computeCombinedScore(); // not implemented
@@ -143,7 +117,7 @@ namespace OpenMS
         DoubleReal adduct_mass_;
         DoubleReal query_mass_;
         DoubleReal found_mass_;
-        DoubleReal charge_;
+        Int charge_;
         DoubleReal error_ppm_;
         DoubleReal observed_rt_;
         DoubleReal observed_intensity_;
@@ -158,7 +132,28 @@ namespace OpenMS
         DoubleReal isotopes_sim_score_;
     };
 
+  /**
+    @brief An algorithm to search for exact mass matches from a spectrum against a database (e.g. HMDB).
 
+    For each peak, neutral masses are reconstructed from observed (spectrum) m/z values by enumerating all possible adducts with matching charge.
+    The resulting neutral masses (can be more than one, depending on list of possible adducts) are matched against masses from
+    a database within a certain mass error (Da or ppm).
+
+    Supports any database which contains an identifier, chemical sum formula and (optional) mass.
+    If masses in the database are not given (= set to 0), they are computed from sum formulas.
+
+    Both positive and negative ion mode is supported. Charge for (Consensus-)Features can be either positive or negative, but
+    only the absolute value is used since many FeatureFinders will only report positive charges even in negative ion mode.
+    Entities with charge=0 are treated as "unknown charge" and are tested with all potential adducts and subsequently matched against the database.
+
+    A list of potential adducts can be given for each mode separately.
+        
+    Ionization mode of the observed m/z values can be determined automatically if the input map (either FeatureMap or ConsensusMap) is annotated
+    with a meta value, as done by @ref TOPP_FeatureFinderMetabo.
+
+
+    @ingroup Analysis_ID
+  */
     class OPENMS_DLLAPI AccurateMassSearchEngine :
     public DefaultParamHandler,
     public ProgressLogger
@@ -173,31 +168,84 @@ public:
     /// Default destructor
     virtual ~AccurateMassSearchEngine();
 
-    void queryByMass(const DoubleReal&, const DoubleReal&, std::vector<AccurateMassSearchResult>&);
-    void queryByFeature(const Feature&, const Size&, std::vector<AccurateMassSearchResult>&);
-    void queryByConsensusFeature(const ConsensusFeature&, const Size&, const Size&, std::vector<AccurateMassSearchResult>&);
+    /**
+      @brief search for a specific observed mass by enumerating all possible adducts and search M+X against database
+
+       */
+    void queryByMass(const DoubleReal& observed_mass, const Int& observed_charge, std::vector<AccurateMassSearchResult>& results);
+    void queryByFeature(const Feature& feature, const Size& feature_index, std::vector<AccurateMassSearchResult>& results);
+    void queryByConsensusFeature(const ConsensusFeature& cfeat, const Size& cf_index, const Size& number_of_maps, std::vector<AccurateMassSearchResult>& results);
 
     /// main method of AccurateMassSearchEngine
     void run(const FeatureMap<>&, MzTab&);
     void run(const ConsensusMap&, MzTab&);
 
+    /// the internal ion-mode used depending on annotation of input data if "ion_mode" was set to 'auto'
+    /// if run() was not called yet, this will be identical to 'ion_mode', i.e. 'auto' will no be resolved yet
+    const String& getInternalIonMode();
 
 protected:
     virtual void updateMembers_();
 
 private:
     /// private member functions
+
+    /// if ion-mode is auto, this will set the internal mode according to input data
+    template <typename MAPTYPE> void resolveAutoMode_(const MAPTYPE& map)
+    {
+       String ion_mode_detect_msg = "";
+       if (map.size() > 0 && map[0].metaValueExists("scan_polarity"))
+       {
+         StringList pols = StringList::create(String(map[0].getMetaValue("scan_polarity")), ';');
+         if (pols.size() == 1 && pols[0].size() > 0)
+         {
+            pols[0].toLower();
+            if (pols[0] == "positive" || pols[0] == "negative") 
+            {
+              ion_mode_internal_ = pols[0];
+              LOG_INFO << "Setting auto ion-mode to '" << ion_mode_ << "' for file " << File::basename(map.getLoadedFilePath()) << std::endl;
+            }
+            else ion_mode_detect_msg = String("Meta value 'scan_polarity' does not contain unknown ion mode") + String(map[0].getMetaValue("scan_polarity"));
+         }
+         else
+         {
+           ion_mode_detect_msg = String("ambiguous ion mode: ") + String(map[0].getMetaValue("scan_polarity"));
+         }
+       }
+       else
+       {
+         ion_mode_detect_msg = String("Meta value 'scan_polarity' not found in first element of (Consensus-)Feature map!");
+       }
+
+       if (ion_mode_detect_msg.size() > 0)
+       {
+         throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Auto ionization mode could not resolve ion mode of data (") + ion_mode_detect_msg + "!");
+       }
+    }
+
+    /// parse database and adduct files
+    void init_();
+
+    bool is_initialized_; // true if init_() was called without any subsequent param changes
+
     void parseMappingFile_(const String&);
     void parseStructMappingFile_(const String&);
-    void parseAdductsFile_(const String&);
+    void parseAdductsFile_(const String& filename, StringList& result);
     void searchMass_(const DoubleReal&, std::vector<Size>& hit_indices);
 
     void parseAdductString_(const String&, std::vector<String>&);
-    void computeNeutralMassFromAdduct_(const DoubleReal&, const String&, DoubleReal&, DoubleReal&);
+    /**
+      @brief given an adduct and an observed mass, we compute the neutral mass (without adduct) and the theoretical charge (of the adduct)
+
+    */
+    void computeNeutralMassFromAdduct_(const DoubleReal& observed_mass, const String& adduct_string, DoubleReal& neutral_mass, Int& charge_value);
 
     DoubleReal computeCosineSim_(const std::vector<DoubleReal>& x, const std::vector<DoubleReal>& y);
     DoubleReal computeEuclideanDist_(const std::vector<DoubleReal>& x, const std::vector<DoubleReal>& y);
     DoubleReal computeIsotopePatternSimilarity_(const Feature&, const EmpiricalFormula&);
+
+
+    String ion_mode_internal_;
 
     typedef std::vector<std::vector<AccurateMassSearchResult> > QueryResultsTable;
 
@@ -207,10 +255,34 @@ private:
     typedef std::vector<std::vector<String> > MassIDMapping;
     typedef std::map<String, std::vector<String> > HMDBPropsMapping;
 
-    std::vector<DoubleReal> masskey_table_;
-    MassIDMapping mass_id_mapping_;
+    struct MappingEntry_
+    {
+      DoubleReal mass;
+      std::vector<String> massIDs;
+      String formula;
+    };
+    std::vector<MappingEntry_> mass_mappings_;
+
+    struct CompareEntryAndMass_     // defined here to allow for inlining by compiler
+    {
+       DoubleReal asMass( const MappingEntry_& v ) const
+       {
+          return v.mass;
+       }
+
+       DoubleReal asMass( DoubleReal t ) const
+       {
+          return t;
+       }
+
+       template< typename T1, typename T2 >
+       bool operator()( T1 const& t1, T2 const& t2 ) const
+       {
+           return asMass(t1) < asMass(t2);
+       }
+    };
+
     HMDBPropsMapping hmdb_properties_mapping_;
-    std::vector<String> mass_formula_mapping_;
 
     /// parameter stuff
     DoubleReal mass_error_value_;
@@ -220,6 +292,9 @@ private:
 
     String pos_adducts_fname_;
     String neg_adducts_fname_;
+
+    String db_mapping_file_;
+    String db_struct_file_;
 
     StringList pos_adducts_;
     StringList neg_adducts_;
