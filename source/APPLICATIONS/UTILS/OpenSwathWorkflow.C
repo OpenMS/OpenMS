@@ -282,15 +282,16 @@ namespace OpenMS
 #ifdef _OPENMP
 #pragma omp parallel for schedule(dynamic,1)
 #endif
-      for(Size i = 0; i < swath_maps.size(); i++)
+      for (SignedSize i = 0; i < boost::numeric_cast<SignedSize>(swath_maps.size()); ++i)
       {
-        if (swath_maps[i].ms1) {continue;}
+        if (!swath_maps[i].ms1) { // continue if MS1
+
 
         // Step 1: select transitions
         OpenSwath::LightTargetedExperiment transition_exp_used_all;
         OpenSwathHelper::selectSwathTransitions(transition_exp, transition_exp_used_all,
             cp.min_upper_edge_dist, swath_maps[i].lower, swath_maps[i].upper);
-        if (transition_exp_used_all.getTransitions().size() == 0) { continue;}
+        if (transition_exp_used_all.getTransitions().size() > 0) { // continue if no transitions found
 
         int batch_size;
         if (batchSize <= 0 || batchSize >= (int)transition_exp_used_all.getPeptides().size()) 
@@ -384,6 +385,8 @@ namespace OpenMS
           }
         }
 
+      } // continue 2
+      } // continue 1
       }
       this->endProgress();
     }
@@ -440,13 +443,13 @@ namespace OpenMS
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-      for(Size i = 0; i < swath_maps.size(); i++)
+      for (SignedSize i = 0; i < boost::numeric_cast<SignedSize>(swath_maps.size()); ++i)
       {
-        if (swath_maps[i].ms1) {continue;}
+        if (!swath_maps[i].ms1) { // continue if MS1
         TargetedExperiment transition_exp_used;
         OpenSwathHelper::selectSwathTransitions(irt_transitions, transition_exp_used,
             cp.min_upper_edge_dist, swath_maps[i].lower, swath_maps[i].upper);
-        if (transition_exp_used.getTransitions().size() == 0) { continue;}
+        if (transition_exp_used.getTransitions().size() > 0) { // continue if no transitions found
 
         std::vector< OpenSwath::ChromatogramPtr > tmp_out;
         std::vector< ChromatogramExtractor::ExtractionCoordinates > coordinates;
@@ -468,6 +471,8 @@ namespace OpenMS
             chromatograms.push_back(chrom);
           }
         }
+      } // continue 2
+      } // continue 1
       }
     }
 
