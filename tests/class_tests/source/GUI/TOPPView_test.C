@@ -225,4 +225,4 @@ void TestTOPPView::testGui()
 using namespace OpenMS; // this is required to avoid linker errors on Windows
 
 QTEST_MAIN(TestTOPPView)		 // expands to a simple main() method that runs all the test functions
-#include <../source/TEST/GUI/moc_TOPPView_test.cxx> // for Qt's introspection
+#include <../source/GUI/moc_TOPPView_test.cxx> // for Qt's introspection

@@ -209,16 +209,16 @@ add_dependencies(VISUAL_TEST ${visual_executables_list})
 
 #------------------------------------------------------------------------------
 # Add the actual tests
-foreach(i ${TEST_executables})
-	add_executable(${i} source/${i}.C)
-	target_link_libraries(${i} ${OPENMS_LIBRARIES})
-	add_test(${i} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${i})
+foreach(_class_test ${TEST_executables})
+	add_executable(${_class_test} source/${_class_test}.C)
+	target_link_libraries(${_class_test} ${OPENMS_LIBRARIES})
+	add_test(${_class_test} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_class_test})
 	# only add OPENMP flags to gcc linker (execpt Mac OS X, due to compiler bug
 	# see https://sourceforge.net/apps/trac/open-ms/ticket/280 for details)
   if (OPENMP_FOUND AND NOT MSVC AND NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-		set_target_properties(${i} PROPERTIES LINK_FLAGS ${OpenMP_CXX_FLAGS})
+		set_target_properties(${_class_test} PROPERTIES LINK_FLAGS ${OpenMP_CXX_FLAGS})
 	endif()
-endforeach(i)
+endforeach(_class_test)
 
 #------------------------------------------------------------------------------
 # Tests with extra dependencies
@@ -258,28 +258,26 @@ endif()
 include(${QT_USE_FILE})
 
 #------------------------------------------------------------------------------
-# Apply MOC compiler to GUI
-set(GUI_executables_list_C)
-foreach(i ${GUI_executables_list})
-  list(APPEND GUI_executables_list_C GUI/${i}.C)
-endforeach(i)
-
-#------------------------------------------------------------------------------
-## create mocced files - they are included manually in the implementation files
-QT4_WRAP_CPP(mocced_GUI_executables_list_C ${GUI_executables_list_C} OPTIONS ${BOOST_MOC_ARGS})
-
-foreach(i ${GUI_executables_list})
-	SET_SOURCE_FILES_PROPERTIES(GUI/${i}.C PROPERTIES OBJECT_DEPENDS ${mocced_GUI_executables_list_C})
-	add_executable(${i} source/GUI/${i}.C)
-	target_link_libraries(${i} ${OPENMS_GUI_LIBRARIES} ${QT_LIBRARIES})
-  target_include_directories(${i} PUBLIC ${OPENMS_GUI_INCLUDE_DIRECTORIES})  
-	add_test(${i} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${i})
+# Add GUI tests
+foreach(_gui_test ${GUI_executables_list})
+	# moc the test file
+  QT4_WRAP_CPP(_mocced_test_file source/GUI/${_gui_test}.C OPTIONS ${BOOST_MOC_ARGS})
+	# define source file dependency
+	set_source_files_properties(source/GUI/${_gui_test}.C PROPERTIES OBJECT_DEPENDS ${_mocced_test_file})
+  # add the executable
+  add_executable(${_gui_test} source/GUI/${_gui_test}.C)
+  # link against openms_gui and qt
+	target_link_libraries(${_gui_test} ${OPENMS_GUI_LIBRARIES} ${QT_LIBRARIES})
+  # include gui includes
+  target_include_directories(${_gui_test} PUBLIC ${OPENMS_GUI_INCLUDE_DIRECTORIES})
+  # add the test
+	add_test(${_gui_test} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_gui_test})
 	# only add OPENMP flags to gcc linker (execpt Mac OS X, due to compiler bug
 	# see https://sourceforge.net/apps/trac/open-ms/ticket/280 for details)
   if (OPENMP_FOUND AND NOT MSVC AND NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-		set_target_properties(${i} PROPERTIES LINK_FLAGS ${OpenMP_CXX_FLAGS})
+		set_target_properties(${_gui_test} PROPERTIES LINK_FLAGS ${OpenMP_CXX_FLAGS})
 	endif()
-endforeach(i)
+endforeach(_gui_test)
 
 #------------------------------------------------------------------------------
 # GUI tests
