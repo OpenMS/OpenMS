@@ -120,12 +120,12 @@ START_SECTION((SwathFile()))
   TEST_NOT_EQUAL(swath_file_ptr, swath_file_nullPointer)
 END_SECTION
 
-START_SECTION((virtual ~SwathFile()))
+START_SECTION(([EXTRA]virtual ~SwathFile()))
     delete swath_file_ptr;
 END_SECTION
 
-START_SECTION((std::vector< OpenSwath::SwathMap > loadMzML(String file, String tmp, 
-      boost::shared_ptr<ExperimentalSettings>& exp_meta, String readoptions="normal") ))
+START_SECTION(std::vector< OpenSwath::SwathMap > loadMzML(String file, String tmp, 
+      boost::shared_ptr<ExperimentalSettings>& exp_meta, String readoptions="normal") )
 {
   storeSwathFile("swathFile_1.tmp");
   boost::shared_ptr<ExperimentalSettings> meta = boost::shared_ptr<ExperimentalSettings>(new ExperimentalSettings());
@@ -146,8 +146,8 @@ START_SECTION((std::vector< OpenSwath::SwathMap > loadMzML(String file, String t
 }
 END_SECTION
 
-START_SECTION(([EXTRA]std::vector< OpenSwath::SwathMap > loadMzML(String file, String tmp, 
-      boost::shared_ptr<ExperimentalSettings>& exp_meta, String readoptions="cache") ))
+START_SECTION([EXTRA]std::vector< OpenSwath::SwathMap > loadMzML(String file, String tmp, 
+      boost::shared_ptr<ExperimentalSettings>& exp_meta, String readoptions="cache") )
 {
   storeSwathFile("swathFile_1.tmp", 2);
   boost::shared_ptr<ExperimentalSettings> meta = boost::shared_ptr<ExperimentalSettings>(new ExperimentalSettings());
@@ -168,8 +168,8 @@ START_SECTION(([EXTRA]std::vector< OpenSwath::SwathMap > loadMzML(String file, S
 }
 END_SECTION
 
-START_SECTION((std::vector< OpenSwath::SwathMap > loadSplit(StringList file_list, String tmp, 
-      boost::shared_ptr<ExperimentalSettings>& exp_meta, String readoptions="normal")))
+START_SECTION(std::vector< OpenSwath::SwathMap > loadSplit(StringList file_list, String tmp, 
+      boost::shared_ptr<ExperimentalSettings>& exp_meta, String readoptions="normal"))
 {
   std::vector<String> swath_filenames;
   swath_filenames.push_back("swathFile_2_ms1.tmp");
@@ -200,8 +200,8 @@ START_SECTION((std::vector< OpenSwath::SwathMap > loadSplit(StringList file_list
 }
 END_SECTION
 
-START_SECTION(([EXTRA]std::vector< OpenSwath::SwathMap > loadSplit(StringList file_list, String tmp, 
-      boost::shared_ptr<ExperimentalSettings>& exp_meta, String readoptions="cache")))
+START_SECTION([EXTRA]std::vector< OpenSwath::SwathMap > loadSplit(StringList file_list, String tmp, 
+      boost::shared_ptr<ExperimentalSettings>& exp_meta, String readoptions="cache"))
 {
   std::vector<String> swath_filenames;
   swath_filenames.push_back("swathFile_2_ms1.tmp");

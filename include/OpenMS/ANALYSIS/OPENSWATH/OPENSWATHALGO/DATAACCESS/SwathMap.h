@@ -39,6 +39,10 @@
 
 namespace OpenSwath
 {
+  /**
+   * @brief Data structure to hold one SWATH map with information about upper /
+   * lower isolation window and whether the map is MS1 or MS2.
+   */
   struct SwathMap
   {
     OpenSwath::SpectrumAccessPtr sptr;

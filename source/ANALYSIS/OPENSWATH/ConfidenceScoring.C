@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Hannes Roest $
+// $Maintainer: Hendrik Weisser $
 // $Authors: Hannes Roest, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
