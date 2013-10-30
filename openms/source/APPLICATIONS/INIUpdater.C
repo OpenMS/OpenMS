@@ -36,6 +36,8 @@
 #include <OpenMS/APPLICATIONS/ToolHandler.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
+#include <QtCore/QString>
+
 namespace OpenMS
 {
   using namespace Internal;

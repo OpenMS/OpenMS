@@ -60,23 +60,23 @@ namespace OpenMS
          3. Apply process_MS1_level_data_structure to the whole map
          4. Apply feature merging (MS1FeatureMerger)**, optionally
          5. Add to all LC MS/MS runs
-      
+
          Step 2 in ProcessData::add_scan_raw_data works on centroided peaks of
           a single spectrum
            2.1 add to the background intensity controller
                BackgroundControl::addPeakMSScan which calculates intensity bins
            2.2 call "go" on Deisotoper (on single spectrum level) to "de-isotope" spectra *
-           2.3 Converts them to objects of MSPeak type (single spectrum features) 
-      
+           2.3 Converts them to objects of MSPeak type (single spectrum features)
+
          Step 3 works on an instance of ProcessData (clustering de-isotoped
           peaks from single spectra over RT) and applies the following steps:
            3.1 Extract elution peaks (call extract_elution_peaks of ProcessData)
            3.2 For all features, it creates a SuperHirn Feature (SHFeature)
            3.3 For all features, it computes the elution profile
                (FeatureLCProfile instance) and adds individual peaks to it
-         
+
          Step 3.1 calls processIntensityMaps from BackgroundController
-      
+
          * Deisotoper (Step 2.2)
            The Deisotoper works on single "peak groups" which is a set of
            peaks that has a maximal spacing of 1 + exps Da. These peak
@@ -96,7 +96,7 @@ namespace OpenMS
            whether a feature is inside another feature using
            MS1FeatureMerger::compareMZFeatureBeloning which checks whether the ppm
            tolerance is below a certain level, the charge state is equal and
-           whether both features have elution profiles. 
+           whether both features have elution profiles.
 
       @ingroup FeatureFinder
   */

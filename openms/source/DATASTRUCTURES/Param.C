@@ -42,6 +42,8 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 
+#include <QtCore/QString>
+
 using namespace std;
 using namespace OpenMS::Exception;
 

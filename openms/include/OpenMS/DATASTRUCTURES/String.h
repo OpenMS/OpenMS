@@ -42,7 +42,6 @@
 
 class QString;
 
-
 namespace OpenMS
 {
   class DataValue;

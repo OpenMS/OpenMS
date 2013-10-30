@@ -35,14 +35,13 @@
 #ifndef OPENMS_DATASTRUCTURES_DATAVALUE_H
 #define OPENMS_DATASTRUCTURES_DATAVALUE_H
 
-#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
-#include <QtCore/QString>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+
+class QString;
 
 namespace OpenMS
 {
-
   /**
     @brief Class to hold strings, numeric values, lists of strings and lists of numeric values.
 

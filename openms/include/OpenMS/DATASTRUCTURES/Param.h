@@ -46,7 +46,6 @@
 #include <set>
 #include <iostream>
 
-
 namespace OpenMS
 {
   /**

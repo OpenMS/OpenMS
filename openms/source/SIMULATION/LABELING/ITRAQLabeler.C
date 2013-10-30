@@ -33,9 +33,12 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/SIMULATION/LABELING/ITRAQLabeler.h>
+
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
+
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+
 #include <gsl/gsl_blas.h>
 
 using std::vector;

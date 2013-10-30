@@ -259,7 +259,7 @@ namespace OpenMS
       }
       if (leaders.empty()) return "";
 
-      bool all_equal = equal(leaders.begin(), --leaders.end(), 
+      bool all_equal = equal(leaders.begin(), --leaders.end(),
                              ++leaders.begin());
       if (all_equal) return leaders[0];
     }

@@ -87,7 +87,7 @@ public:
       @param map MSExperiment to receive the identifications
       @param ids PeptideIdentification for the MSExperiment
       @param protein_ids ProteinIdentification for the MSExperiment
-      @param clear_ids Reset peptide and protein identifications of each scan before annotating 
+      @param clear_ids Reset peptide and protein identifications of each scan before annotating
       @param mapMS1 attach Ids to MS1 spectra using RT mapping only (without precursor, without m/z)
 
       @exception Exception::MissingInformation is thrown if the MetaInfoInterface of @p ids does not contain 'MZ' and 'RT'.

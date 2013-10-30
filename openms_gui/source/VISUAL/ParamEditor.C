@@ -434,7 +434,7 @@ namespace OpenMS
     { // allow F2 or double click on any column in the current row
       if (trigger == QAbstractItemView::EditKeyPressed || trigger == QAbstractItemView::DoubleClicked)
       { // --> re-route to actual value column
-        return QAbstractItemView::edit(index.sibling(index.row(), 1), trigger, event); 
+        return QAbstractItemView::edit(index.sibling(index.row(), 1), trigger, event);
       }
       return QAbstractItemView::edit(index, trigger, event);
     }
@@ -734,12 +734,12 @@ namespace OpenMS
   void ParamEditor::store()
   {
     //std::cerr << "store entered ...\n";
-    
+
     // store only if no line-edit is opened (in which case data is uncommitted and will not be saved)
     // this applies only to INIFileEditor, where pressing Ctrl-s results in saving the current (but outdated) param
     if (param_ != NULL &&
         !static_cast<Internal::ParamEditorDelegate*>(this->tree_->itemDelegate())->hasUncommittedData())
-    { 
+    {
       //std::cerr << "and done!...\n";
       QTreeWidgetItem * parent = tree_->invisibleRootItem();
       //param_->clear();

@@ -38,7 +38,6 @@
 ///////////////////////////
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmLabeled.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
-
 ///////////////////////////
 
 using namespace OpenMS;

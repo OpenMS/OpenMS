@@ -38,6 +38,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithm.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <map>
 

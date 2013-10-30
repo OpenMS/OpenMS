@@ -34,6 +34,7 @@
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
+#include <OpenMS/CONCEPT/Exception.h>
 
 #include <QtCore/QString>
 

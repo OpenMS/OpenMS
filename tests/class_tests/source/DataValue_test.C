@@ -39,6 +39,7 @@
 
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+
 #include <sstream>
 
 // we ignore the -Wunused-value warning here, since we do not want the compiler

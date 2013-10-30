@@ -34,8 +34,14 @@
 
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
 
+
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+
+#include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/Exception.h>
+
+#include <QtCore/QString>
 
 #include <iostream>
 #include <sstream>
@@ -159,19 +165,19 @@ namespace OpenMS
   {
     data_.str_list_ = new StringList(p);
   }
-  
+
   DataValue::DataValue(const IntList& p) :
     value_type_(INT_LIST), unit_("")
   {
     data_.int_list_ = new IntList(p);
   }
-  
+
   DataValue::DataValue(const DoubleList& p) :
     value_type_(DOUBLE_LIST), unit_("")
   {
     data_.dou_list_ = new DoubleList(p);
   }
-  
+
   //--------------------------------------------------------------------
   //                       copy constructor
   //--------------------------------------------------------------------
@@ -313,7 +319,7 @@ namespace OpenMS
     value_type_ = STRING_LIST;
     return *this;
   }
-  
+
   DataValue& DataValue::operator=(const IntList& arg)
   {
     clear_();

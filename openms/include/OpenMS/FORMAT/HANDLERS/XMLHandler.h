@@ -81,7 +81,7 @@ public:
       char * convert(const XMLCh * str) const;
 
       /**
-       * @brief Transcodes the supplied XMLCh* and appends it to the OpenMS String 
+       * @brief Transcodes the supplied XMLCh* and appends it to the OpenMS String
        *
        * @note Assumes that the XMLCh* only contains ASCII characters
        *
