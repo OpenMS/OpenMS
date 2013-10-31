@@ -45,10 +45,6 @@ div.item {
 	color: #555555
 }
 
-span {
-	padding-left: 20px;
-}
-
 div.item span.item_name {
 	display: table-cell;
 	width:300px;
