@@ -1,3 +1,10 @@
+format-version: 1.2
+data-version: 0.1.0
+remark: creator: Mathias Walzer <walzer <-at-> informatik.uni-tuebingen.de>
+default-namespace: QC
+remark: namespace: QC
+remark: version: 0.1.0
+
 [Term]
  id: QC:0000001
  name: quality parameter
@@ -24,7 +31,7 @@
  def: "The results (e.g. counts) of the MS aquisition step of a MS experiment." [PXS:QC]
  is_a: QC:0000001 ! quality parameter
 
-remark: run name is MS:1000577 as raw data file
+remark: run name is MS:1000577 as raw data file in [PSI:MS]
  
 [Term]
  id: QC:0000005
@@ -59,6 +66,7 @@ remark: run name is MS:1000577 as raw data file
  name: MS MZ aquisition ranges
  def: "Contains the min/max MZ range boundaries observed during MS aquisition." [PXS:QC]
  is_a: QC:0000004 ! MS aquisition result details
+ is_a: QC:0000048 ! value table
  
  
  [Term]
@@ -66,6 +74,7 @@ remark: run name is MS:1000577 as raw data file
  name: MS min MZ
  def: "Contains the actual min MZ occurrence in MS aquisition." [PXS:QC]
  is_a: QC:0000009 ! MS MZ aquisition ranges
+remark: supposed as table col
 
 
 [Term]
@@ -73,13 +82,15 @@ remark: run name is MS:1000577 as raw data file
  name: MS max MZ
  def: "Contains the actual max MZ occurrence in MS aquisition." [PXS:QC]
  is_a: QC:0000009 ! MS MZ aquisition ranges
- 
+remark: supposed as table col
+
  
 [Term]
  id: QC:0000012
  name: MS RT aquisition ranges
  def: "Contains the min/max RT range boundaries observed during MS aquisition." [PXS:QC]
  is_a: QC:0000004 ! MS aquisition result details
+ is_a: QC:0000048 ! value table
 
 
 [Term]
@@ -87,12 +98,15 @@ remark: run name is MS:1000577 as raw data file
  name: MS min RT
  def: "Contains the actual min RT occurrence in MS aquisition." [PXS:QC]
  is_a: QC:0000012 ! MS RT aquisition ranges
+ is_a: QC:0000048 ! value table
+
 
 [Term]
  id: QC:0000014
  name: MS max RT
  def: "Contains the actual max RT occurrence in MS aquisition." [PXS:QC]
  is_a: QC:0000012 ! MS RT aquisition ranges
+remark: supposed as table col
 
 
 [Term]
@@ -100,6 +114,7 @@ remark: run name is MS:1000577 as raw data file
  name: MS gradient settings
  def: "Contains the min/max RT range boundaries used in machine settings during MS aquisition." [PXS:QC]
  is_a: QC:0000012 ! MS RT aquisition ranges
+ is_a: QC:0000048 ! value table
 
 
 [Term]
@@ -379,6 +394,14 @@ remark: TIC plot is MS:1000235
  id: QC:0000053
  name: mass accurracy plot
  def: "This plot visualizes the mass accurracy of identified ms2 spectra." [PXS:QC]
+ is_a: MS:1001405 ! spectrum identification result details
+ is_a: QC:0000050 ! image plot
+  
+ 
+[Term]
+ id: QC:0000054
+ name: mass accurracy over time plot
+ def: "This plot visualizes the mass accurracy over the course of RT." [PXS:QC]
  is_a: MS:1001405 ! spectrum identification result details
  is_a: QC:0000050 ! image plot
  
