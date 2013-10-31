@@ -81,7 +81,7 @@ namespace OpenMS
    * @brief Class to write out an OpenSwath TSV output (mProphet input)
    *
    */
-  class OPENMS_DLLAPI OpenSwathTSVWriter
+  class OpenSwathTSVWriter
   {
     std::ofstream ofs;
     String input_filename_;
@@ -217,7 +217,7 @@ namespace OpenMS
    * beforehand using performRTNormalization.
    *
    */
-  class OPENMS_DLLAPI OpenSwathWorkflow :
+  class OpenSwathWorkflow :
     public ProgressLogger
   {
   public:
