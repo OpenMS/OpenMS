@@ -138,7 +138,7 @@ protected:
     DoubleReal error(exp_mz - theo_mz);
     if (use_ppm)
     {
-      error = error / theo_mz * (DoubleReal)1e6;
+      error = error / (theo_mz * (DoubleReal)1e-6);
       //~ error = (1-exp_mz/theo_mz) * (DoubleReal)1e6;
     }
     return error;
