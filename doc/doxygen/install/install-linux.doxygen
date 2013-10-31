@@ -1,6 +1,6 @@
 /**
   
-  @page install_linux Building %OpenMS on GNU/Linux
+  @page install_linux Building OpenMS on GNU/Linux
   We are working on adding %OpenMS to the repositories of the most popular distributions, but for now
   the toolkit needs to be manually compiled on your system.
 
@@ -194,7 +194,7 @@
   
 <HR>
 
-  @section install_linux_testing_openms Testing your %OpenMS/TOPP installation  
+  @section install_linux_testing_openms Testing your OpenMS/TOPP installation  
   
   After you have installed %OpenMS and TOPP, you should verify your installation by executing the following command:
   <pre>

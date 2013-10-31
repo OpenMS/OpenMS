@@ -34,7 +34,7 @@
 
 /**
 
-	@page OpenMS_tutorial OpenMS tutorial
+	@page OpenMS_tutorial OpenMS tutorial (quickstart guide for developers)
 
 	First, we give a small introduction to this tutorial and %OpenMS:
 	- @subpage tutorial_general

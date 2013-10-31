@@ -44,7 +44,8 @@
 			</TD>
 			<TD width="50%" bgcolor="#cccccc">
 				<H3>%OpenMS library</H3>
-				Information for software developers for/using %OpenMS.
+					Information for developers (please make sure to read the
+					<a class="el" href="OpenMS_tutorial.html">Quickstart Guide</a>).
 				<BR>&nbsp;
 			</TD>
 		</TR>

@@ -55,8 +55,9 @@ namespace OpenMS
       function pointer that can be set on the object. The spectra is then
       written to disk using the functions provided in MzMLHandler.
 
-      How to use:
+      Example usage:
 
+      @code
       MSDataWritingConsumer * ppConsumer = new MSDataWritingConsumer(outfile); // some implementation
       ppConsumer->setExpectedSize(specsize, chromsize);
       ppConsumer->setExperimentalSettings(exp_settings);
@@ -65,17 +66,18 @@ namespace OpenMS
       ppConsumer->consumeSpectrum(spec);
       ppConsumer->consumeChromatogram(chrom);
       [...]
+      @endcode
 
-      @note: The first usage of consumeChromatogram or consumeSpectrum will start
+      @note The first usage of consumeChromatogram or consumeSpectrum will start
       writing of the mzML header to disk (and the first element).
 
-      @note: Currently it is not possible to add spectra after having already added
+      @note Currently it is not possible to add spectra after having already added
       chromatograms since this could lead to a situation with multiple
-      spectrumList in an mzML file.
+      @a spectrumList tags appear in an mzML file.
 
-      @note: The expected size will _not_ be enforced but it will lead to an
-      incorrect mzML if the count attribute of spectrumList or chromatogramList
-      is incorrect.
+      @note The expected size will @a not be enforced but it will lead to an
+      inconsistent mzML if the count attribute of spectrumList or
+      chromatogramList is incorrect.
 
 
     */

@@ -68,7 +68,7 @@
 	datastructures and algorithms, e.g. those used for peak picking, feature finding and identification
 	are presented.
 
-	All the example programs used in this tutorial, can be found in @a OpenMS/source/EXAMPLES/.
+	All the example programs used in this tutorial, can be found in @a doc/code_examples/.
 
 	If you are looking for C++ literature, we recommend the following books:
 	- <b>C++:</b> C++ Primer, Effective C++
@@ -848,7 +848,7 @@ There is a representation of Elements implemented in %OpenMS. The correcsponding
 Example (Tutorial_Element.C):
 
 @dontinclude Tutorial_Element.C
-@skip ElementDB* db
+@skip ElementDB * db
 @until endl
 
 Elements can be accessed by the @a ElementDB class. As it is implemented as a singleton, only a pointer of the singleton can be used, via @a getInstance(). The example program writes the following output to the console.
@@ -890,7 +890,7 @@ A residue is represented in %OpenMS by the class @a Residue. It provides a conta
 Example (Tutorial_Residue.C):
 
 @dontinclude Tutorial_Residue.C
-@skip  const ResidueDB* res_db = ResidueDB::getInstance();
+@skip  const ResidueDB * res_db = ResidueDB::getInstance();
 @until endl
 
 This small example show how to create a instance of ResidueDB were all Residues are stored in. The amino acids themselves can be accessed via the getResidue function. ResidueDB reads its amino acid and modification data from share/OpenMS/CHEMISTRY/.
