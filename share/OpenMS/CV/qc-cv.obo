@@ -211,7 +211,7 @@ remark: TIC plot is MS:1000235
  
 [Term]
  id: QC:0000029
- name: total number of PSM
+ name: total number of PSMs
  def: "This number indicates the number of spectra that were given peptide annotations." [PXS:QC]
  is_a: MS:1001405 ! spectrum identification result details
  is_a: QC:0000025 ! MS identification result details
