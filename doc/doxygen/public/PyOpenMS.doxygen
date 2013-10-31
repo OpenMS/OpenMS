@@ -185,14 +185,14 @@ cdef extern from "<OpenMS/path/to/header.h>" namespace "OpenMS":
   comments below that line.
 - always use "cimport" and not Python "import"
 - always add default constructor AND copy constructor to the code (note that the C++
-  compiler will add a default copy constructur to any class, so there is always
+  compiler will add a default copy constructor to any class, so there is always
   one if it is not declared, see http://www.cplusplus.com/articles/y8hv0pDG/ "The
   implicit copy constructor does a member-wise copy of the source object.")
 - to expose a function to Python, copy the signature to your pxd file, e.g.
   "DataValue getValue()" and make sure you "cimport" all corresponding classes.
   Replace std::vector with vector from libcpp.vector (see for example PepXMLFile.pxd)
 - Remember to include a copy constructor (even if none was declared in the C++
-  header file) since Cython will need it for certain oprations. Otherwise you
+  header file) since Cython will need it for certain operations. Otherwise you
   might see error messages like "item0.inst = shared_ptr[_ClassName](new _ClassNAme(deref(it_terms))) Call with wrong number of arguments"
 
 Further considerations and limitations:
@@ -225,7 +225,7 @@ These hints can be given to autowrap (also check the autowrap documentation):
 <H3 style="margin-top:40px; border-top:4px solid grey; text-align:left;">Wrapping code yourself in ./addons </H3>
 
 Not all code can be wrapped automatically (yet). Place a file with the same (!)
-name in the addons filder (e.g. myClass.px in pxds/ and myClass.pyx in addons)
+name in the addons folder (e.g. myClass.px in pxds/ and myClass.pyx in addons)
 and leave two lines empty on the top (this is important). Start with 4 spaces
 of indent and write your additional wrapper functions, adding a wrap-ignore
 comment to the pxd file. For some examples, look into the addons folder:

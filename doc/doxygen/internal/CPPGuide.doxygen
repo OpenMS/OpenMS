@@ -116,7 +116,7 @@ Windows does not support <code>log2()</code>, so use <code>log(x)/log(2)</code> 
 Except of primitive types (int, double, float, ....) all method arguments should be passed as non-mutable references.
 <p>
 Return types of methods should be non-mutable references as well, where possible.
-Sometimes you cannot use references as the retuned value is constructed in the method.
+Sometimes you cannot use references as the returned value is constructed in the method.
 If the constructed type is large, you can save computation time like that:
 
 @code
@@ -162,7 +162,7 @@ It is enough to prefix the class with the macro (do not prefix the members or me
 
 OPENMS_DLLAPI is also required for structs, global (including 'extern') variables and global functions, as long as they are not templates.<br>
 Never prefix templates with OPENMS_DLLAPI!<br>
-The only exeption to this rule is when a template is fully specialized (i.e. it can be instantiated).
+The only exception to this rule is when a template is fully specialized (i.e. it can be instantiated).
 Additionally you need to prefix nested public structs/classes with OPENMS_DLLAPI, otherwise you cannot use them from outside the library.
 
 A prominent global function is "operator <<", which is overloaded quite often for %OpenMS classes.

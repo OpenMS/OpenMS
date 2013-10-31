@@ -143,7 +143,7 @@ ccmake ~/openms-development/openms_build
     <tr>
       <td valign="top"><tt>CMAKE_BUILD_TYPE</tt></td>
       <td>Should be either 'Release' (optimization enabled) or 'Debug' (debug info and
-          precondition/postcondiction checks enabled).
+          precondition/postcondition checks enabled).
           @n The default is <tt>Release</tt>.</td>
     </tr>
     <tr>

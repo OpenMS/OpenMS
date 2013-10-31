@@ -14,14 +14,14 @@
   should be available in the repositories of your GNU/Linux distribution.
 
   For the libraries/versions often not found in those repositories, we provide sources and build scripts.
-  The Release tar.gz archive contains the libraries in the contrib/ folder, if you build the Develoment (svn) 
+  The Release tar.gz archive contains the libraries in the contrib/ folder, if you build the Development (svn) 
   version, you'll have to check them out separately (see below in @ref build_linux_contrib).
   
   <b>Required packages and libraries</b>
   
   Essential are GCC > 4.0 or other ANSI C++ compiler, CMake > 2.8.3, Qt4 > 4.5, patch, autoconf > 2.60, automake > 1.9, libtool (libtoolize/glibtoolize).
 
-  For the complete featureset to be enabled, %OpenMS needs recent versions of Boost, GSL, libSVM, SeqAn, glpk, zlib, libbz2, and Xerces-C.
+  For the complete feature set to be enabled, %OpenMS needs recent versions of Boost, GSL, libSVM, SeqAn, glpk, zlib, libbz2, and Xerces-C.
 
   Building the documentation from the Development version requires doxygen > 1.5.4 and pdflatex/texlive/texlive-full.
 

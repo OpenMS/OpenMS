@@ -48,7 +48,7 @@
         If you are using the 32bit version of OpenMS, the data you are processing is probably too big (e.g. using RAW data files bigger than 1.5 GB as input, or many featureXML files etc).
         You can now either:<br>
         <UL>
-          <LI>switch to the 64bit Version of OpenMS. Be aware though that your Operating System also needs to have 64bit. Furthermore your PC should have sufficient RAM, to hold the data. Otherwise your harddrive will be used extensively for swapping and processing will take longer.
+          <LI>switch to the 64bit Version of OpenMS. Be aware though that your Operating System also needs to have 64bit. Furthermore your PC should have sufficient RAM, to hold the data. Otherwise your hard drive will be used extensively for swapping and processing will take longer.
           <LI>on 32bit Windows systems you can try the increase the allowed amount of memory from 2GB to 3GB by using the <i>"/3GB"</i> boot switch (boot.ini). This might already do
     the trick. However, if your data again gets bigger, this solution will only help temporarily. Google "3GB windows". This trick does not depend on the amount of memory installed on your system! You can use it even if you have only 1GB or 2GB of RAM, although you hard drive will be used for swapping then.
           <LI>on 32bit Linux systems: sorry, we cannot do anything. Use a 64bit system or reduce the amount of data.
@@ -68,7 +68,7 @@
 				
 				Either of the following actions should fix your problem:
 				- Set the environment variable <i>OPENMS_DATA_PATH</i> to your &lt;%OpenMS&gt;/share/OpenMS/ folder.
-				- [developers only] Use the cmake option <i>-D INSTALL_PREFIX=...</i> to set the installtion directory.
+				- [developers only] Use the cmake option <i>-D INSTALL_PREFIX=...</i> to set the installation directory.
 				  Run '<i>make %OpenMS TOPP UTILS</i>' again.
 				- [developers only] Execute <i>cmake</i> in the new location and run '<i>make %OpenMS TOPP UTILS</i>' again.
 

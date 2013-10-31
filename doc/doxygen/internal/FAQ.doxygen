@@ -45,7 +45,7 @@
 
 			<LI><B>I am new to %OpenMS. What should I do first?</B><BR>
 				<OL>
-					<LI> Check out the developement version of %OpenMS (see website).
+					<LI> Check out the development version of %OpenMS (see website).
 					<LI> Try and build %OpenMS according to the installation instructions.
 					<Li> Read the %OpenMS Coding Convention.
 					<LI> Read the %OpenMS Tutorial.
@@ -109,7 +109,7 @@
         See Installation instructions for your platform.
         In general, you call CMake(.exe) with some parameters to create the native build-system. Afterwards you can (but usually don't have to
         edit the current configuration using a GUI named ccmake (or CMake-GUI in Windows), which ships with CMake).<BR>
-        <B>Note:</B> whenever ccmake is mentionend in this document, substitute this by CMake-GUI if your OS is Windows. You can also edit the CMakeCache.txt file directly.
+        <B>Note:</B> whenever ccmake is mentioned in this document, substitute this by CMake-GUI if your OS is Windows. You can also edit the CMakeCache.txt file directly.
 
       <LI><B>How do I generate a build-system for Eclipse, KDevelop, CodeBlocks etc?!</B><BR>
       	Type <code>cmake</code> into a console. This will list the available code generators available on your platform, which you can pass to CMake using the <TT>-G</TT> option.
@@ -211,7 +211,7 @@ svn propset svn:eol-style native MyClass.C
 			Please check the LD_LIBRARY_PATH environment variable:
 			- You can print the LD_LIBRARY_PATH with '<i>echo $LD_LIBRARY_PATH</i>'.
 			- If your <i>&lt;%OpenMS&gt;/lib/</i> folder is included, check that <i>libOpenMS.so</i> is present.
-			- With the ldd command, you can show the libraries used by an exutable, e.g. '<i>ldd &lt;%OpenMS&gt;/bin/ClassTest_test</i>'.
+			- With the ldd command, you can show the libraries used by an executable, e.g. '<i>ldd &lt;%OpenMS&gt;/bin/ClassTest_test</i>'.
 
 				
 		</UL>
@@ -219,7 +219,7 @@ svn propset svn:eol-style native MyClass.C
 		<UL>
 		
 	    <LI><b>Build with several threads.</b><BR>
-				If you have several pocessors/cores you can build %OpenMS classes/tests and TOPP tools
+				If you have several processors/cores you can build %OpenMS classes/tests and TOPP tools
 				in in several threads.
 				On Linux use the @a make option @a -j:
 				<code>make -j8 %OpenMS TOPP test_build</code>
@@ -272,7 +272,7 @@ svn propset svn:eol-style native MyClass.C
 	      To enable it, the environment variable OPENMS_DUMP_CORE has
 	      to be set.
 
-	      Each time an uncaught exception occures, the OPENMS_DUMP_CORE
+	      Each time an uncaught exception occurs, the OPENMS_DUMP_CORE
 	      variable is checked and a segmentation fault is caused, if it
 	      is set.
 
@@ -557,7 +557,7 @@ svn propset svn:eol-style native MyClass.C
 			<LI><B>What has each developer to do for a release?</B>
 				<p>
 				Each maintainer must check his/her classes and TOPP tools.
-				Keep in mind that missing documention scares off potential users!
+				Keep in mind that missing documentation scares off potential users!
 				<p>
 				Here is a list of what is to do:
 				<OL>
@@ -704,7 +704,7 @@ svn propset svn:eol-style native MyClass.C
 							<LI> <TT>'Invalid write/read ...'</TT> - Violation of container boundaries
 							<LI> <TT>'... depends on uninitialized variable'</TT>  - Uninitialized variables:
 							<LI> <TT>'... definitely lost'</TT> - Memory leak that has to be fixed
-							<LI> <TT>'... possibly lost'</TT> - Possible wemory leak, so have a look at the code
+							<LI> <TT>'... possibly lost'</TT> - Possible memory leak, so have a look at the code
 						</UL>
 					<LI> For more information see the valgrind documentation at http://valgrind.org/docs/manual/
 				</OL>

@@ -169,7 +169,7 @@ cmake -G "Visual Studio 9 2008 Win64" "c:\svn\contrib"
     <LI> MikTeX (version 2.7 and 2.9 are tested, others might work as well) - basic version (for DVIPS, LATEX etc).
       <UL>
          <LI> Download binaries for Windows (http://miktex.org/)
-         <LI> During installtion tick "install missing packages on the fly = yes"?!
+         <LI> During installation tick "install missing packages on the fly = yes"?!
          <LI> The installer SHOULD add the bin directory of MikTeX automatically to the Windows PATH Environment (please recheck)
       </UL>
     <LI> GPL Ghostscript (8.60) for Windows
@@ -188,7 +188,7 @@ cmake -G "Visual Studio 9 2008 Win64" "c:\svn\contrib"
     
     You should install the above apps prior to installing %OpenMS, because otherwise during the configuration step the documentation targets will be
     disabled.
-    If you already have a working installation of %OpenMS (without documentation), you can simply install the above programms and then delete the CMakeCache.txt file
+    If you already have a working installation of %OpenMS (without documentation), you can simply install the above programs and then delete the CMakeCache.txt file
     in your %OpenMS build directory and reconfigure %OpenMS by calling cmake (see below). No need to recompile the library!
 
 

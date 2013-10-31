@@ -68,7 +68,7 @@ cmake -G "<generator>" .
 	<li>copy all Qt4 libraries to the client <client/my_dir>/bin or on Linux/Mac make sure you have installed the Qt4 package
 	<li>[Windows only] copy Xerces dll (see contrib/lib) to <client/my_dir>/bin
 	<li>[Windows only] install the VS redistributable package (see Microsoft Homepage) on the client machine which corresponds to the VS version 
-		  that was used to compile your code (use the correct redist package! , i.e. architecture 32|64bit, VS version, VS Service Pack	version).
+		  that was used to compile your code (use the correct redistributable package! , i.e. architecture 32|64bit, VS version, VS Service Pack	version).
 			If you choose the wrong redistributable package, you will get "Application failed to initialize properly..." error messages.
 	</ul>
 	

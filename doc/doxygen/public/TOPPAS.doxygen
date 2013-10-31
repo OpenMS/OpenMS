@@ -39,7 +39,7 @@
 //   what classes are described and where these classes can be found (folder)
 // - Use @a to visually highlight class names, namespaces, etc
 // - When talking about OpenMS in general, prefix it with a '%'. Otherwise a
-//   link to the OpenMS namspace is generated automatically
+//   link to the OpenMS namespace is generated automatically
 
 /**
 	@page TOPPAS_tutorial TOPPAS tutorial

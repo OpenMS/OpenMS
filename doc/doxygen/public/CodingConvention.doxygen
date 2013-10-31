@@ -41,7 +41,7 @@
 All %OpenMS files use a tab width of two. Use the command <TT>set tabstop=2</TT> in
 <TT>vi</TT> or <TT>set-variable tab-width 2</TT> if you are using <TT>emacs</TT>. For
 those two editors, the indentation behavior should be set automatically
-throught the standard file headers (see below).
+through the standard file headers (see below).
 Due to these ugly issues with setting the tabwidth in the editor, it is
 perfectly ok not to use tabs at all.  In emacs, you can replace all tabs with
 the right number of spaces by typing the following keys: <TT>C-x h</TT> (to
@@ -85,7 +85,7 @@ if (isValid(a))
 @endcode
 
 The resulting errors are hard to find. There are two ways to avoid these
-problems: (a) always use braces around a block (b) write everyting in a single
+problems: (a) always use braces around a block (b) write everything in a single
 line. We recommend method (a).
 However, this is mainly a question of personal style, so no explicit checking
 is performed to enforce this rule. However, if there is an else following the
@@ -178,7 +178,7 @@ namespace OpenMS
   DPeak<2> default_dpeak_2;
 }
 @endcode
-The compiler does instanciate the template and detects errors at compile time that
+The compiler does instantiate the template and detects errors at compile time that
 way. Doing this saves your time! Otherwise the error is detected much later, when 
 the test is compiles.
 
@@ -198,7 +198,7 @@ the test is compiles.
  declarations of the peculiar functions. Their definition is deferred to the
  _impl.h file ("impl" for "implementation").  The _impl.h file is included only
  if the peculiar member functions have to be instantiated.  Otherwise the .h
- file should be sufficent.  No .h file should include an _impl.h file.
+ file should be sufficient.  No .h file should include an _impl.h file.
 
  
  <H1 style="margin-top:40px; border-top:4px solid grey; text-align:left;">Class requirements</H1>
@@ -222,7 +222,7 @@ class OPENMS_DLLAPI Test
     // assignment operator
     Test& operator = (const Test& test)
     {
-      //ALWAYS CHECK FOR SELF ASSIGNEMT!
+      //ALWAYS CHECK FOR SELF ASSIGNMENT!
       if (this == &test) return *this;
       //...
       return *this;
@@ -238,10 +238,10 @@ There are however circumstances that allow to omit these methods:
   Should be a virtual function, unless you have a very good reason why it shouldn't.  (E.g., saving a vtable pointer.)  Essentially,
   the reason is that otherwise an <TT>operator delete</TT> invocation on a pointer to a base class will fail badly.
 - copy constructor @n
-  Can be omitted when it will not be used anyway, e.g. for classes that represent an anlgorithm.
+  Can be omitted when it will not be used anyway, e.g. for classes that represent an algorithm.
   In this case you should declare the copy constructor private!
 - assignment operator @n
-  Can be omitted when it will not be used anyway, e.g. for classes that represent an anlgorithm.
+  Can be omitted when it will not be used anyway, e.g. for classes that represent an algorithm.
   In this case you should declare the assignment operator private!
 
 The OPENMS_DLLAPI macro on the first line is required for correctly building the DLL. The correct usage of this macro is explained in the OpenMS C++ guide!
@@ -258,7 +258,7 @@ The OPENMS_DLLAPI macro on the first line is required for correctly building the
 <H2 style="margin-top:20px; border-top:1px solid grey;">Namespaces</H2>
 
 The main %OpenMS classes are implemented in the namespace <TT>%OpenMS</TT>.
-Auxilary classes are implemented in <TT>%OpenMS::%Internal</TT>.
+Auxiliary classes are implemented in <TT>%OpenMS::%Internal</TT>.
 There are some other namespaces e.g. for constants and exceptions.
 
 Importing a whole namespace in a header files is forbidden. E.g.:
@@ -371,7 +371,7 @@ of the exception's cause.
 
 <H2 style="margin-top:20px; border-top:1px solid grey;">Catching exceptions</H2>
 
-As usual with C++, the standard way to catch an exeption should be by reference (and <i>not</i> by value).
+As usual with C++, the standard way to catch an exception should be by reference (and <i>not</i> by value).
 @code
   try
   {
@@ -389,7 +389,7 @@ Exceptions are <b>not specified in the code</b> using the throw statement, as th
 compiler to check that only the specified exceptions are thrown. This check not only increases
 the runtime, but may prevent efficient optimization of the code by the compiler.
 <p>
-However, thrown <b>exceptions must be documented</b> to tell the user which exceptions can be catched.
+However, thrown <b>exceptions must be documented</b> to tell the user which exceptions can be caught.
 @verbatim
 /**
   @brief Silly function

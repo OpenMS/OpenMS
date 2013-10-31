@@ -46,10 +46,10 @@
 // - When using example code, put it in the OpenMS/doc/code_examples folder
 //   to make sure it can be compiled. The name of the file should be in the text
 //   to make the file easy to find for the user.
-//   Dont forget to add the built example application to the svn ignore list:
+//   Don't forget to add the built example application to the svn ignore list:
 //   'svn propedit svn:ignore source/doc/code_examples'
 // - When talking about OpenMS in general, prefix it with a '%'. Otherwise a
-//   link to the OpenMS namspace is generated automatically
+//   link to the OpenMS namespace is generated automatically
 
 /**
 	
@@ -94,7 +94,7 @@
     
 	<b>Scripting with TOPP</b>
 	
-		This part of the tutorial will give you a detailled overview of the most important TOPP tools.
+		This part of the tutorial will give you a detailed overview of the most important TOPP tools.
 		First, some basics that you will need for every TOPP tool are explained, then several example pipelines are shown.
 		
 		- @subpage TOPP_general
