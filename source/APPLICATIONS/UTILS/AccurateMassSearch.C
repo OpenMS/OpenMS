@@ -100,6 +100,14 @@ protected:
         registerOutputFile_("out", "<file>", "", "mzTab file");
         setValidFormats_("out", StringList::create("csv"));
 
+        // move some params from algorithm section to top level (to support input file functionality)
+        Param p = AccurateMassSearchEngine().getDefaults();
+        registerTOPPSubsection_("db", "Database files which contain the identifications");
+        registerInputFile_("db:mapping", "<file>", p.getValue("db:mapping"), p.getDescription("db:mapping"), true, false, StringList::create("skipexists"));
+        registerInputFile_("db:struct", "<file>", p.getValue("db:struct"), p.getDescription("db:struct"), true, false, StringList::create("skipexists"));
+        registerInputFile_("positive_adducts_file", "<file>", p.getValue("positive_adducts_file"), p.getDescription("positive_adducts_file"), true, false, StringList::create("skipexists"));
+        registerInputFile_("negative_adducts_file", "<file>", p.getValue("negative_adducts_file"), p.getDescription("negative_adducts_file"), true, false, StringList::create("skipexists"));
+
         // addEmptyLine_();
         // addText_("Parameters for the accurate mass search can be given in the 'algorithm' part of INI file.");
         registerSubsection_("algorithm", "Algorithm parameters section");
@@ -107,7 +115,14 @@ protected:
 
     Param getSubsectionDefaults_(const String& /*section*/) const
     {
-        return AccurateMassSearchEngine().getDefaults();
+      Param p = AccurateMassSearchEngine().getDefaults();
+      // remove params which are already registered at top level (see registerOptionsAndFlags_())
+      p.remove("db:mapping");
+      p.remove("db:struct");
+      p.remove("positive_adducts_file");
+      p.remove("negative_adducts_file");
+      return p;
+
     }
 
     ExitCodes main_(int, const char**)
@@ -121,6 +136,12 @@ protected:
         String out = getStringOption_("out");
 
         Param ams_param = getParam_().copy("algorithm:", true);
+        // copy top-level params to algorithm      
+        ams_param.setValue("db:mapping", getStringOption_("db:mapping"));
+        ams_param.setValue("db:struct", getStringOption_("db:struct"));
+        ams_param.setValue("positive_adducts_file", getStringOption_("positive_adducts_file"));
+        ams_param.setValue("negative_adducts_file", getStringOption_("negative_adducts_file"));
+
         writeDebug_("Parameters passed to AccurateMassSearch", ams_param, 3);
 
 

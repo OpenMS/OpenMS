@@ -309,11 +309,18 @@ AccurateMassSearchEngine::AccurateMassSearchEngine() :
     defaults_.setValue("report_mode", "all", "Results are reported in one of several modes: Either (all) matching hits, the (top3) scoring hits, or the (best) scoring hit.");
     defaults_.setValidStrings("report_mode", StringList::create(("all,top3,best")));
 
-    defaults_.setValue("db:mapping", "CHEMISTRY/HMDBMappingFile.tsv", "Database input file, containing three tab-separated columns of mass, formula, identifier. If 'mass' is 0, it is re-computed from the molecular sum formula.");
-    defaults_.setValue("db:struct", "CHEMISTRY/HMDB2StructMapping.tsv", "Database input file, containing four tab-separated columns of identifier, name, SMILES, INCHI. The identifier should match with mapping file. SMILES and INCHI are reported in the output, but not used otherwise.");
-
-    defaults_.setValue("positive_adducts_file", "CHEMISTRY/PositiveAdducts.tsv", "This file contains the list of potential positive adducts that will be looked for in the database. Edit the list if you wish to exclude/include adducts. By default CHEMISTRY/PositiveAdducts.tsv in OpenMS/share is used!", StringList::create("advanced"));
-    defaults_.setValue("negative_adducts_file", "CHEMISTRY/NegativeAdducts.tsv", "This file contains the list of potential negative adducts that will be looked for in the database. Edit the list if you wish to exclude/include adducts. By default CHEMISTRY/NegativeAdducts.tsv in OpenMS/share is used!", StringList::create("advanced"));
+    defaults_.setValue("db:mapping", "CHEMISTRY/HMDBMappingFile.tsv", "Database input file, containing three tab-separated columns of mass, formula, identifier. "
+                                                                      "If 'mass' is 0, it is re-computed from the molecular sum formula. "
+                                                                      "By default CHEMISTRY/HMDBMappingFile.tsv in OpenMS/share is used! If empty, the default will be used.");
+    defaults_.setValue("db:struct", "CHEMISTRY/HMDB2StructMapping.tsv", "Database input file, containing four tab-separated columns of identifier, name, SMILES, INCHI."
+                                                                        "The identifier should match with mapping file. SMILES and INCHI are reported in the output, but not used otherwise. "
+                                                                        "By default CHEMISTRY/HMDB2StructMapping.tsv in OpenMS/share is used! If empty, the default will be used.");
+    defaults_.setValue("positive_adducts_file", "CHEMISTRY/PositiveAdducts.tsv", "This file contains the list of potential positive adducts that will be looked for in the database. "
+                                                                                 "Edit the list if you wish to exclude/include adducts. "
+                                                                                 "By default CHEMISTRY/PositiveAdducts.tsv in OpenMS/share is used! If empty, the default will be used.", StringList::create("advanced"));
+    defaults_.setValue("negative_adducts_file", "CHEMISTRY/NegativeAdducts.tsv", "This file contains the list of potential negative adducts that will be looked for in the database. "
+                                                                                 "Edit the list if you wish to exclude/include adducts. "
+                                                                                 "By default CHEMISTRY/NegativeAdducts.tsv in OpenMS/share is used! If empty, the default will be used.", StringList::create("advanced"));
 
 
     defaultsToParam_();
@@ -592,6 +599,9 @@ void AccurateMassSearchEngine::exportMzTab_(const QueryResultsTable& overall_res
 
     Size id_group(1);
 
+    std::map<String, UInt> adduct_stats;                    // adduct --> # occurences
+    std::map<String, std::set<Size>> adduct_stats_unique;   // adduct --> # occurences (count for each feature only once)
+
     for (QueryResultsTable::const_iterator tab_it = overall_results.begin(); tab_it != overall_results.end(); ++tab_it)
     {
         // std::cout << tab_it->first << std::endl;
@@ -781,6 +791,7 @@ void AccurateMassSearchEngine::exportMzTab_(const QueryResultsTable& overall_res
                 col1.first = "opt_adduct_ion";
                 col1.second = addion;
                 optionals.push_back(col1);
+                ++adduct_stats[addion_temp]; // just some stats
 
 
                 // set isotope similarity score
@@ -797,9 +808,8 @@ void AccurateMassSearchEngine::exportMzTab_(const QueryResultsTable& overall_res
 
 
                 // set id group; rows with the same id group number originated from the same feature
-                std::stringstream read_in2;
-                read_in2 << id_group;
-                String id_group_temp(read_in2.str());
+                adduct_stats_unique[addion_temp].insert(id_group); // stats ...
+                String id_group_temp(id_group);
                 MzTabString id_group_str;
                 id_group_str.set(id_group_temp);
                 MzTabOptionalColumnEntry col3;
@@ -816,6 +826,15 @@ void AccurateMassSearchEngine::exportMzTab_(const QueryResultsTable& overall_res
     sm_data_section[unit_id] = all_sm_rows;
     mztab_out.setSmallMoleculeSectionData(sm_data_section);
 
+
+    // print some adduct stats:
+    LOG_INFO << "Adduct stats as 'adduct: #peaks explained (#total db entries)'\n";
+    for (std::map<String, UInt>::const_iterator it = adduct_stats.begin(); it!= adduct_stats.end(); ++it)
+    {
+      LOG_INFO << "  " << it->first << ": " << adduct_stats_unique[it->first].size() << " (" << it->second << ")\n";
+    }
+    LOG_INFO << std::endl;
+
 }
 
 
@@ -830,14 +849,19 @@ void AccurateMassSearchEngine::updateMembers_()
     
     iso_similarity_ = param_.getValue("isotopic_similarity").toBool();
     
+    // use defaults if empty for all .tsv files
     db_mapping_file_ = (String)param_.getValue("db:mapping");
+    if (db_mapping_file_.trim().empty()) db_mapping_file_ = (String)defaults_.getValue("db:mapping");
     db_struct_file_ = (String)param_.getValue("db:struct");
+    if (db_struct_file_.trim().empty()) db_struct_file_ = (String)defaults_.getValue("db:struct");
 
     pos_adducts_fname_ = (String)param_.getValue("positive_adducts_file");
+    if (pos_adducts_fname_.trim().empty()) pos_adducts_fname_ = (String)defaults_.getValue("positive_adducts_file");
     neg_adducts_fname_ = (String)param_.getValue("negative_adducts_file");
+    if (neg_adducts_fname_.trim().empty()) neg_adducts_fname_ = (String)defaults_.getValue("negative_adducts_file");
 
+    // database names might have changed, so parse files again before next query
     is_initialized_ = false;
-
 }
 
 /// private methods
@@ -987,6 +1011,9 @@ void AccurateMassSearchEngine::parseAdductsFile_(const String& filename, StringL
       result.push_back(line);
     }
   }
+
+  LOG_INFO << "Read " << result.size() << " entries from adduct file '" << fname << "'." << std::endl;
+
   return;
 }
 
@@ -1003,7 +1030,7 @@ void AccurateMassSearchEngine::searchMass_(const DoubleReal& neutral_query_mass,
         diff_mz = mass_error_value_;
     }
 
-    LOG_INFO << "searchMass: neutral_query_mass=" << neutral_query_mass << " diff_mz=" << diff_mz << " ppm allowed:" << mass_error_value_ << std::endl;
+    //LOG_INFO << "searchMass: neutral_query_mass=" << neutral_query_mass << " diff_mz=" << diff_mz << " ppm allowed:" << mass_error_value_ << std::endl;
 
 
     // binary search for formulas which are within diff_mz distance

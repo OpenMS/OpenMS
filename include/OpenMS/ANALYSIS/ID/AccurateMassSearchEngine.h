@@ -203,7 +203,7 @@ private:
             if (pols[0] == "positive" || pols[0] == "negative")
             {
               ion_mode_internal_ = pols[0];
-              LOG_INFO << "Setting auto ion-mode to '" << ion_mode_ << "' for file " << File::basename(map.getLoadedFilePath()) << std::endl;
+              LOG_INFO << "Setting auto ion-mode to '" << ion_mode_internal_ << "' for file " << File::basename(map.getLoadedFilePath()) << std::endl;
             }
             else ion_mode_detect_msg = String("Meta value 'scan_polarity' does not contain unknown ion mode") + String(map[0].getMetaValue("scan_polarity"));
          }
