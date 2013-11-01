@@ -2236,7 +2236,7 @@ protected:
         else if (accession == "MS:1000803") //analyzer scan offset
         {
           //No member => meta data
-          spec_.setMetaValue("analyzer scan offset", termValue);
+          spec_.setMetaValue("analyzer scan offset", termValue);             // used in SpectraIdentificationViewWidget()
         }
         else if (accession == "MS:1000616") //preset scan configuration
         {
