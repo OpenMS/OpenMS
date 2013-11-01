@@ -138,10 +138,10 @@ START_SECTION(std::vector< OpenSwath::SwathMap > loadMzML(String file, String tm
     TEST_EQUAL(maps[i+1].ms1, false)
     TEST_EQUAL(maps[i+1].sptr->getNrSpectra(), 1)
     TEST_EQUAL(maps[i+1].sptr->getSpectrumById(0)->getMZArray()->data.size(), 1)
-    TEST_REAL_SIMILAR(maps[i+1].sptr->getSpectrumById(0)->getMZArray()->data[0], 101+i)
-    TEST_REAL_SIMILAR(maps[i+1].sptr->getSpectrumById(0)->getIntensityArray()->data[0], 201+i)
-    TEST_REAL_SIMILAR(maps[i+1].lower, 400+i*25)
-    TEST_REAL_SIMILAR(maps[i+1].upper, 425+i*25)
+    TEST_REAL_SIMILAR(maps[i+1].sptr->getSpectrumById(0)->getMZArray()->data[0], 101.0+i)
+    TEST_REAL_SIMILAR(maps[i+1].sptr->getSpectrumById(0)->getIntensityArray()->data[0], 201.0+i)
+    TEST_REAL_SIMILAR(maps[i+1].lower, 400+i*25.0)
+    TEST_REAL_SIMILAR(maps[i+1].upper, 425+i*25.0)
   }
 }
 END_SECTION
@@ -160,10 +160,10 @@ START_SECTION([EXTRA]std::vector< OpenSwath::SwathMap > loadMzML(String file, St
     TEST_EQUAL(maps[i+1].ms1, false)
     TEST_EQUAL(maps[i+1].sptr->getNrSpectra(), 1)
     TEST_EQUAL(maps[i+1].sptr->getSpectrumById(0)->getMZArray()->data.size(), 1)
-    TEST_REAL_SIMILAR(maps[i+1].sptr->getSpectrumById(0)->getMZArray()->data[0], 101+i)
-    TEST_REAL_SIMILAR(maps[i+1].sptr->getSpectrumById(0)->getIntensityArray()->data[0], 201+i)
-    TEST_REAL_SIMILAR(maps[i+1].lower, 400+i*25)
-    TEST_REAL_SIMILAR(maps[i+1].upper, 425+i*25)
+    TEST_REAL_SIMILAR(maps[i+1].sptr->getSpectrumById(0)->getMZArray()->data[0], 101.0+i)
+    TEST_REAL_SIMILAR(maps[i+1].sptr->getSpectrumById(0)->getIntensityArray()->data[0], 201.0+i)
+    TEST_REAL_SIMILAR(maps[i+1].lower, 400+i*25.0)
+    TEST_REAL_SIMILAR(maps[i+1].upper, 425+i*25.0)
   }
 }
 END_SECTION
@@ -191,10 +191,10 @@ START_SECTION(std::vector< OpenSwath::SwathMap > loadSplit(StringList file_list,
     TEST_EQUAL(maps[i+1].ms1, false)
     TEST_EQUAL(maps[i+1].sptr->getNrSpectra(), 1)
     TEST_EQUAL(maps[i+1].sptr->getSpectrumById(0)->getMZArray()->data.size(), 1)
-    TEST_REAL_SIMILAR(maps[i+1].sptr->getSpectrumById(0)->getMZArray()->data[0], 101+i)
-    TEST_REAL_SIMILAR(maps[i+1].sptr->getSpectrumById(0)->getIntensityArray()->data[0], 201+i)
-    TEST_REAL_SIMILAR(maps[i+1].lower, 400+i*25)
-    TEST_REAL_SIMILAR(maps[i+1].upper, 425+i*25)
+    TEST_REAL_SIMILAR(maps[i+1].sptr->getSpectrumById(0)->getMZArray()->data[0], 101.0+i)
+    TEST_REAL_SIMILAR(maps[i+1].sptr->getSpectrumById(0)->getIntensityArray()->data[0], 201.0+i)
+    TEST_REAL_SIMILAR(maps[i+1].lower, 400+i*25.0)
+    TEST_REAL_SIMILAR(maps[i+1].upper, 425+i*25.0)
   }
 
 }
@@ -223,10 +223,10 @@ START_SECTION([EXTRA]std::vector< OpenSwath::SwathMap > loadSplit(StringList fil
     TEST_EQUAL(maps[i+1].ms1, false)
     TEST_EQUAL(maps[i+1].sptr->getNrSpectra(), 1)
     TEST_EQUAL(maps[i+1].sptr->getSpectrumById(0)->getMZArray()->data.size(), 1)
-    TEST_REAL_SIMILAR(maps[i+1].sptr->getSpectrumById(0)->getMZArray()->data[0], 101+i)
-    TEST_REAL_SIMILAR(maps[i+1].sptr->getSpectrumById(0)->getIntensityArray()->data[0], 201+i)
-    TEST_REAL_SIMILAR(maps[i+1].lower, 400+i*25)
-    TEST_REAL_SIMILAR(maps[i+1].upper, 425+i*25)
+    TEST_REAL_SIMILAR(maps[i+1].sptr->getSpectrumById(0)->getMZArray()->data[0], 101.0+i)
+    TEST_REAL_SIMILAR(maps[i+1].sptr->getSpectrumById(0)->getIntensityArray()->data[0], 201.0+i)
+    TEST_REAL_SIMILAR(maps[i+1].lower, 400+i*25.0)
+    TEST_REAL_SIMILAR(maps[i+1].upper, 425+i*25.0)
   }
 
 }

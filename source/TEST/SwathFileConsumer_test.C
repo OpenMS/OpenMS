@@ -111,10 +111,10 @@ START_SECTION(([EXTRA] consumeAndRetrieve))
     TEST_EQUAL(maps[i+1].ms1, false)
     TEST_EQUAL(maps[i+1].sptr->getNrSpectra(), 1)
     TEST_EQUAL(maps[i+1].sptr->getSpectrumById(0)->getMZArray()->data.size(), 1)
-    TEST_REAL_SIMILAR(maps[i+1].sptr->getSpectrumById(0)->getMZArray()->data[0], 101+i)
-    TEST_REAL_SIMILAR(maps[i+1].sptr->getSpectrumById(0)->getIntensityArray()->data[0], 201+i)
-    TEST_REAL_SIMILAR(maps[i+1].lower, 400+i*25)
-    TEST_REAL_SIMILAR(maps[i+1].upper, 425+i*25)
+    TEST_REAL_SIMILAR(maps[i+1].sptr->getSpectrumById(0)->getMZArray()->data[0], 101.0+i)
+    TEST_REAL_SIMILAR(maps[i+1].sptr->getSpectrumById(0)->getIntensityArray()->data[0], 201.0+i)
+    TEST_REAL_SIMILAR(maps[i+1].lower, 400+i*25.0)
+    TEST_REAL_SIMILAR(maps[i+1].upper, 425+i*25.0)
   }
 
 }
@@ -142,10 +142,10 @@ START_SECTION(([EXTRA] consumeAndRetrieve_noMS1))
     TEST_EQUAL(maps[i].ms1, false)
     TEST_EQUAL(maps[i].sptr->getNrSpectra(), 1)
     TEST_EQUAL(maps[i].sptr->getSpectrumById(0)->getMZArray()->data.size(), 1)
-    TEST_REAL_SIMILAR(maps[i].sptr->getSpectrumById(0)->getMZArray()->data[0], 101+i)
-    TEST_REAL_SIMILAR(maps[i].sptr->getSpectrumById(0)->getIntensityArray()->data[0], 201+i)
-    TEST_REAL_SIMILAR(maps[i].lower, 400+i*25)
-    TEST_REAL_SIMILAR(maps[i].upper, 425+i*25)
+    TEST_REAL_SIMILAR(maps[i].sptr->getSpectrumById(0)->getMZArray()->data[0], 101.0+i)
+    TEST_REAL_SIMILAR(maps[i].sptr->getSpectrumById(0)->getIntensityArray()->data[0], 201.0+i)
+    TEST_REAL_SIMILAR(maps[i].lower, 400+i*25.0)
+    TEST_REAL_SIMILAR(maps[i].upper, 425+i*25.0)
   }
 
 }
@@ -170,8 +170,8 @@ START_SECTION(([EXTRA] consumeAndRetrieve_noMS2))
   TEST_EQUAL(maps[0].ms1, true)
   TEST_EQUAL(maps[0].sptr->getNrSpectra(), 1)
   TEST_EQUAL(maps[0].sptr->getSpectrumById(0)->getMZArray()->data.size(), 1)
-  TEST_REAL_SIMILAR(maps[0].sptr->getSpectrumById(0)->getMZArray()->data[0], 100)
-  TEST_REAL_SIMILAR(maps[0].sptr->getSpectrumById(0)->getIntensityArray()->data[0], 200)
+  TEST_REAL_SIMILAR(maps[0].sptr->getSpectrumById(0)->getMZArray()->data[0], 100.0)
+  TEST_REAL_SIMILAR(maps[0].sptr->getSpectrumById(0)->getIntensityArray()->data[0], 200.0)
 }
 END_SECTION
 
@@ -231,18 +231,18 @@ START_SECTION(([EXTRA] consumeAndRetrieve))
   TEST_EQUAL(maps[0].ms1, true)
   TEST_EQUAL(maps[0].sptr->getNrSpectra(), 1)
   TEST_EQUAL(maps[0].sptr->getSpectrumById(0)->getMZArray()->data.size(), 1)
-  TEST_REAL_SIMILAR(maps[0].sptr->getSpectrumById(0)->getMZArray()->data[0], 100)
-  TEST_REAL_SIMILAR(maps[0].sptr->getSpectrumById(0)->getIntensityArray()->data[0], 200)
+  TEST_REAL_SIMILAR(maps[0].sptr->getSpectrumById(0)->getMZArray()->data[0], 100.0)
+  TEST_REAL_SIMILAR(maps[0].sptr->getSpectrumById(0)->getIntensityArray()->data[0], 200.0)
 
   for (int i = 0; i< nr_swath; i++)
   {
     TEST_EQUAL(maps[i+1].ms1, false)
     TEST_EQUAL(maps[i+1].sptr->getNrSpectra(), 1)
     TEST_EQUAL(maps[i+1].sptr->getSpectrumById(0)->getMZArray()->data.size(), 1)
-    TEST_REAL_SIMILAR(maps[i+1].sptr->getSpectrumById(0)->getMZArray()->data[0], 101+i)
-    TEST_REAL_SIMILAR(maps[i+1].sptr->getSpectrumById(0)->getIntensityArray()->data[0], 201+i)
-    TEST_REAL_SIMILAR(maps[i+1].lower, 400+i*25)
-    TEST_REAL_SIMILAR(maps[i+1].upper, 425+i*25)
+    TEST_REAL_SIMILAR(maps[i+1].sptr->getSpectrumById(0)->getMZArray()->data[0], 101.0+i)
+    TEST_REAL_SIMILAR(maps[i+1].sptr->getSpectrumById(0)->getIntensityArray()->data[0], 201.0+i)
+    TEST_REAL_SIMILAR(maps[i+1].lower, 400+i*25.0)
+    TEST_REAL_SIMILAR(maps[i+1].upper, 425+i*25.0)
   }
 
 }
@@ -272,10 +272,10 @@ START_SECTION(([EXTRA] consumeAndRetrieve_noMS1))
     TEST_EQUAL(maps[i].ms1, false)
     TEST_EQUAL(maps[i].sptr->getNrSpectra(), 1)
     TEST_EQUAL(maps[i].sptr->getSpectrumById(0)->getMZArray()->data.size(), 1)
-    TEST_REAL_SIMILAR(maps[i].sptr->getSpectrumById(0)->getMZArray()->data[0], 101+i)
-    TEST_REAL_SIMILAR(maps[i].sptr->getSpectrumById(0)->getIntensityArray()->data[0], 201+i)
-    TEST_REAL_SIMILAR(maps[i].lower, 400+i*25)
-    TEST_REAL_SIMILAR(maps[i].upper, 425+i*25)
+    TEST_REAL_SIMILAR(maps[i].sptr->getSpectrumById(0)->getMZArray()->data[0], 101.0+i)
+    TEST_REAL_SIMILAR(maps[i].sptr->getSpectrumById(0)->getIntensityArray()->data[0], 201.0+i)
+    TEST_REAL_SIMILAR(maps[i].lower, 400+i*25.0)
+    TEST_REAL_SIMILAR(maps[i].upper, 425+i*25.0)
   }
 
 }
@@ -301,8 +301,8 @@ START_SECTION(([EXTRA] consumeAndRetrieve_noMS2))
   TEST_EQUAL(maps[0].ms1, true)
   TEST_EQUAL(maps[0].sptr->getNrSpectra(), 1)
   TEST_EQUAL(maps[0].sptr->getSpectrumById(0)->getMZArray()->data.size(), 1)
-  TEST_REAL_SIMILAR(maps[0].sptr->getSpectrumById(0)->getMZArray()->data[0], 100)
-  TEST_REAL_SIMILAR(maps[0].sptr->getSpectrumById(0)->getIntensityArray()->data[0], 200)
+  TEST_REAL_SIMILAR(maps[0].sptr->getSpectrumById(0)->getMZArray()->data[0], 100.0)
+  TEST_REAL_SIMILAR(maps[0].sptr->getSpectrumById(0)->getIntensityArray()->data[0], 200.0)
 }
 END_SECTION
 
