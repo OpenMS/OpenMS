@@ -220,6 +220,10 @@ namespace OpenMS
   {
     String filename_new = filename;
 
+    // empty string cannot be found, so throw Exception. 
+    // The code below would return success on empty string, since a path is prepended and thus the location exists
+    if (filename_new.trim().empty()) throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+
     //add data dir in OpenMS data path
     directories.push_back(getOpenMSDataPath());
 

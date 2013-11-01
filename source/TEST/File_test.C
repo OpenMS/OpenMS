@@ -57,6 +57,7 @@ END_SECTION
 
 START_SECTION((static bool exists(const String &file)))
 	TEST_EQUAL(File::exists("does_not_exists.txt"), false)
+	TEST_EQUAL(File::exists(""), false)
 	TEST_EQUAL(File::exists(OPENMS_GET_TEST_DATA_PATH("File_test_text.txt")), true)
 END_SECTION
 
@@ -84,6 +85,7 @@ START_SECTION((static bool readable(const String &file)))
 	TEST_EQUAL(File::readable("does_not_exists.txt"), false)
 	TEST_EQUAL(File::readable(OPENMS_GET_TEST_DATA_PATH("File_test_empty.txt")), true)
 	TEST_EQUAL(File::readable(OPENMS_GET_TEST_DATA_PATH("File_test_text.txt")), true)
+	TEST_EQUAL(File::readable(""), false)
 END_SECTION
 
 START_SECTION((static bool writable(const String &file)))
@@ -98,8 +100,8 @@ END_SECTION
 
 START_SECTION((static String find(const String &filename, StringList directories=StringList())))
 	TEST_EXCEPTION(Exception::FileNotFound,File::find("File.h"))
-
-	TEST_NOT_EQUAL(File::find("OpenMS_DB.sql"),"");
+  TEST_NOT_EQUAL(File::find("OpenMS_DB.sql"),"");
+  TEST_EXCEPTION(Exception::FileNotFound,File::find(""))
 END_SECTION
   
 START_SECTION((static String findDoc(const String& filename)))
@@ -119,7 +121,7 @@ START_SECTION((static String path(const String &file)))
 END_SECTION
 
 START_SECTION((static String basename(const String &file)))
-	TEST_EQUAL(File::basename("/souce/config/bla/bluff.h"),"bluff.h");
+	TEST_EQUAL(File::basename("/souce/config/bla/bluff.h"), "bluff.h");
 END_SECTION
 
 START_SECTION((static bool fileList(const String &dir, const String &file_pattern, StringList &output, bool full_path=false)))
