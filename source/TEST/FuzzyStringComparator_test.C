@@ -369,6 +369,17 @@ START_SECTION((bool compareStrings(std::string const &lhs, std::string const &rh
 		TEST_STRING_EQUAL(substrings[175],"FAILED: 'input_1 is not a number, but input_2 is'");
 		TEST_STRING_EQUAL(substrings[210],"FAILED: 'line from input_1 is shorter than line from input_2'");
 	}
+  {
+		FuzzyStringComparator fsc;
+		log.str("");
+		fsc.setLogDestination(log);
+		fsc.setVerboseLevel(2);
+		fsc.setAcceptableRelative(1.0);
+		fsc.setAcceptableAbsolute(2.0);
+		bool result = fsc.compareStrings("0.9999X","1.0001X");
+		TEST_EQUAL(result,true);
+		// STATUS(log.str());
+  }
 }
 END_SECTION
 
