@@ -25,7 +25,12 @@ MACRO (OPENMS_CHECKLIB varname libnames libnames_d human_libname)
 ENDMACRO (OPENMS_CHECKLIB)
 
 MACRO (QT4_WRAP_UI_OWN outfiles )
-  QT4_EXTRACT_OPTIONS(ui_files ui_options ${ARGN})
+  # since 2.8.12 qt4_extract_options has an additional argument
+  if(${CMAKE_VERSION} VERSION_LESS "2.8.12")
+    qt4_extract_options(ui_files ui_options ${ARGN})
+  else()
+    qt4_extract_options(ui_files ui_options ui_target ${ARGN})
+  endif()
 
   # create output directory (will not exist for out-of-source builds)
   file(MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/${directory})
