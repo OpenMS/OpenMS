@@ -196,7 +196,7 @@ public:
               }
             }
 
-            // mediumm pos_1
+            // medium pos_1
             KeyType const factor_1 = pos_1 - KeyType(lower_1);
             KeyType const factor_1_complement = KeyType(1.) - factor_1;
             return (
@@ -240,7 +240,7 @@ public:
               }
             }
 
-            // mediumm pos_1
+            // medium pos_1
             KeyType const factor_1 = pos_1 - KeyType(lower_1);
             KeyType const factor_1_complement = KeyType(1.) - factor_1;
             return (

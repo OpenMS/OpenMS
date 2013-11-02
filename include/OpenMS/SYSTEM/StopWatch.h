@@ -171,7 +171,7 @@ public:
     }
 
     /**	Equality operator.
-            Return <b>true</b> if two stop watchs are equal, i.e. they contain exactly
+            Return <b>true</b> if two stop watches are equal, i.e. they contain exactly
             the same time intervals for clock, user and system time and have the
             same running status.
             @param stop_watch the stop watch to compare with
@@ -180,7 +180,7 @@ public:
     bool operator==(const StopWatch & stop_watch) const;
 
     /**	Inequality operator.
-            Return <b>false</b> if two stop watchs differ in any way, i.e. they differ
+            Return <b>false</b> if two stop watches differ in any way, i.e. they differ
             in either the clock, user, or system time or have a different
             running status.
             @param stop_watch the stop watch to compare with
@@ -248,7 +248,7 @@ private:
 
 #ifdef OPENMS_WINDOWSPLATFORM
     static PointerSizeInt clock_speed_;
-    typedef OPENMS_UINT64_TYPE TimeType; // do not use clock_t on Windows, since its not big enough for larger time intervalls
+    typedef OPENMS_UINT64_TYPE TimeType; // do not use clock_t on Windows, since its not big enough for larger time intervals
 #else
     typedef clock_t TimeType;
 #endif

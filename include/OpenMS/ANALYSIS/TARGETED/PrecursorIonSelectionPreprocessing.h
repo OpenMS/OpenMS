@@ -75,7 +75,7 @@ public:
 
 
     /**
-      @brief Calculates tryptric peptide masses of a given database and stores masses and peptide sequences
+      @brief Calculates tryptic peptide masses of a given database and stores masses and peptide sequences
 
       @param db_path Path to database file (fasta)
       @param save Flag if preprocessing should be stored.
@@ -86,7 +86,7 @@ public:
     void dbPreprocessing(String db_path, bool save = true);
 
     /**
-      @brief Calculates tryptric peptide masses of a given database and stores masses and peptide sequences
+      @brief Calculates tryptic peptide masses of a given database and stores masses and peptide sequences
 
       @param db_path Path to database file (fasta)
       @param rt_model_path
@@ -100,7 +100,7 @@ public:
 
 
     /**
-      @brief Loads tryptric peptide masses of a given database.
+      @brief Loads tryptic peptide masses of a given database.
 
       @throws Exception::FileNotFound if file with preprocessing can't be found
       @throws Exception::InvalidParameter if precursor_mass_tolerance_unit is ppm and
@@ -141,7 +141,7 @@ protected:
     void savePreprocessedDBWithRT_(String db_path, String path);
     /// loads the preprocessed db
     void loadPreprocessedDB_(String path);
-    /// preprocess fasta identifier
+    /// pre-process fasta identifier
     void filterTaxonomyIdentifier_(FASTAFile::FASTAEntry & entry);
     Int getScanNumber_(DoubleReal rt);
     DoubleReal getRTProbability_(DoubleReal min_obs_rt, DoubleReal max_obs_rt, DoubleReal pred_rt);

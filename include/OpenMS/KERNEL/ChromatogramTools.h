@@ -45,7 +45,7 @@
 namespace OpenMS
 {
   /**
-    @brief Conversion class to interconvert chromatograms
+    @brief Conversion class to convert chromatograms
 
     There are basically two methods implemented, conversion of
     chromatograms into spectra representation and vice versa.
@@ -174,7 +174,7 @@ public:
         {
           // This does not makes sense to warn here, because it would also warn on simple mass spectra...
           // TODO think what to to here
-          //LOG_WARN << "ChromatogramTools: cannot convert other chromatrogram spectra types than 'Selected Reaction Monitoring', skipping conversion." << std::endl;
+          //LOG_WARN << "ChromatogramTools: cannot convert other chromatogram spectra types than 'Selected Reaction Monitoring', skipping conversion." << std::endl;
           //
         }
       }

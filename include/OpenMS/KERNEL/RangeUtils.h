@@ -368,7 +368,7 @@ protected:
 
     SpectrumType must have a getPrecursors() method
 
-    If multiple precursors are present, all must fulfill the range criterium.
+    If multiple precursors are present, all must fulfill the range criterion.
 
     @ingroup RangeUtils
   */

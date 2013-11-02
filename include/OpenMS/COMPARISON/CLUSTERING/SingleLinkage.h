@@ -77,7 +77,7 @@ public:
 
     @param original_distance DistanceMatrix<Real> containing the distances of the elements to be clustered
     @param cluster_tree vector< BinaryTreeNode >, represents the clustering, each node contains the next two clusters merged and their distance, strict order is kept: left_child < right_child
-    @param threshold Real value to meet Baseclass interface, will not be used because algorithm used is considerably fast and does not work by growing distances
+    @param threshold Real value to meet Base class interface, will not be used because algorithm used is considerably fast and does not work by growing distances
     @throw ClusterFunctor::InsufficientInput thrown if input is <2
         The clustering method is single linkage, where the updated distances after merging two clusters are each the minimal distance between the elements of their clusters.
     @see ClusterFunctor , BinaryTreeNode

@@ -48,7 +48,7 @@ namespace OpenMS
 
     For exact formula look in Bioinformatics, Aug 2004; 20: i49 - i54
 
-        @improvement read paper and try to confirm implementation (andreas)
+        @improvement read paper and try to confirm implementation (Andreas)
 
         @htmlinclude OpenMS_BernNorm.parameters
 

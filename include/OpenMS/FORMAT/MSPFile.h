@@ -77,7 +77,7 @@ public:
 
         @param exp RichPeakMap which contains the spectra after reading
         @param filename the filename of the experiment
-        @param ids output parameter which contains the peptide identifications from the spectra anntations
+        @param ids output parameter which contains the peptide identifications from the spectra annotations
 
         @throw FileNotFound is thrown if the file could not be found
         @throw ParseError is thrown if the given file could not be parsed

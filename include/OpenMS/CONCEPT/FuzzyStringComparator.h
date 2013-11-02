@@ -372,7 +372,7 @@ protected:
       bool ok() const
       {
         return !line_.fail(); // failbit AND badbit are both NOT set; using fail() seems the only portable solution for both C++98 and C++11
-                              // operator bool() (C++11 only) and operator void*() (C++98 only) are both not very sexy since they are not "safe bool idiomic" and would require
+                              // operator bool() (C++11 only) and operator void*() (C++98 only) are both not very sexy since they are not "safe bool idiomatic" and would require
                               // a macro here... So we use a real function name (both internally and externally)
       }
     };
@@ -401,7 +401,7 @@ protected:
     /// Maximum difference of numbers observed so far, see @em absdiff_max_allowed_.
     double absdiff_max_;
 
-    /// Stores information about characters, numbers, and whitesspaces loaded from the InputStream
+    /// Stores information about characters, numbers, and white spaces loaded from the InputStream
     struct StreamElement_
     {
       double number;
@@ -454,9 +454,9 @@ protected:
 
     };
 
-    /// Stores information about characters, numbers, and whitesspaces loaded from the first input stream
+    /// Stores information about characters, numbers, and white spaces loaded from the first input stream
     StreamElement_ element_1_;
-    /// Stores information about characters, numbers, and whitesspaces loaded from the second input stream
+    /// Stores information about characters, numbers, and white spaces loaded from the second input stream
     StreamElement_ element_2_;
 
     /// Wrapper for the prefix information computed for the failure report
@@ -494,7 +494,7 @@ protected:
     int tab_width_;
     int first_column_;
 
-    /**@brief Has comparison been sucessful so far?  Note: this flag is
+    /**@brief Has comparison been successful so far?  Note: this flag is
      changed in reportFailure_();
      */
     bool is_status_success_;

@@ -115,14 +115,14 @@ public:
     /////////////////////////////////////////////////////////////
     // reads already paths of existing LC-MS runs in xml format into the
     // memory
-    // for now, open file system for every check, but otherwise could eb done
+    // for now, open file system for every check, but otherwise could be done
     // in the constructor
     bool checkIfFeatureExtractionExists(std::string);
 
     // **** for the MS2 level post processing:
     // process MS2 level data
     void process_MS2_level_data_structure(ProcessData *);
-    // processes the tracted signals on teh MS2 level
+    // processes the extracted signals on the MS2 level
     void extract_MS2_elution_features();
     // combine the MS2 feature trace data to the MS1 features:
     void associateMS2FeatureToMS1Feature(MS2Feature *);

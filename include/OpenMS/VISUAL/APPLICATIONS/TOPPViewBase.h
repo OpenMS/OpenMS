@@ -171,7 +171,7 @@ public:
       @param show_as_1d Force dataset to be opened in 1D mode (even if it contains several spectra)
       @param show_options If the options dialog should be shown (otherwise the defaults are used)
       @param filename source file name (if the data came from a file)
-      @param caption Sets the layer name and window caption of the data. If unset the file name is used. If set, the file is not monitored foro changes.
+      @param caption Sets the layer name and window caption of the data. If unset the file name is used. If set, the file is not monitored for changes.
       @param window_id in which window the file is opened if opened as a new layer (0 or default equals current
       @param spectrum_id determines the spectrum to show in 1D view.
     */
@@ -244,13 +244,13 @@ public slots:
     void layerStatistics();
     /// lets the user edit the meta data of a layer
     void editMetadata();
-    /// get's called if a layer got activated
+    /// gets called if a layer got activated
     void layerActivated();
     /// gets called when a layer changes in zoom
     void layerZoomChanged();
     /// link the zoom of individual windows
     void linkZoom();
-    /// get's called if a layer got deactivated
+    /// gets called if a layer got deactivated
     void layerDeactivated();
     /// Activation of 1D spectrum
     void activate1DSpectrum(int index);
@@ -362,7 +362,7 @@ protected slots:
     void finishTOPPToolExecution(int exitCode, QProcess::ExitStatus exitStatus);
     /// aborts the execution of a TOPP tool
     void abortTOPPTool();
-    /// retuns the last invoked TOPP tool with the same parameters
+    /// returns the last invoked TOPP tool with the same parameters
     void rerunTOPPTool();
     /// shows the spectrum browser and updates it
     void showSpectrumBrowser();

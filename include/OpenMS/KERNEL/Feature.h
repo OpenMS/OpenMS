@@ -50,7 +50,7 @@ namespace OpenMS
   list of convex hulls (one for each isotopic peak).	There is also a convex
   hull for the entire Feature.	The model description can store the parameters
   of a two-dimensional theoretical model of the underlying signal in LC-MS.
-  Currently, non-peptidic compounds are also represented as features.
+  Currently, non-peptide compounds are also represented as features.
 
   By convention in %OpenMS, the position of a feature is defined as maximum
   position of the model for the retention time dimension and the mass of the

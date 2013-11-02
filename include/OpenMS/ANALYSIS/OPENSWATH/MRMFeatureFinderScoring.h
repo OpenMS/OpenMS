@@ -172,7 +172,7 @@ namespace OpenMS
                                double xcorr_shape_score, double log_sn_score)
     {
       // some scores based on manual evaluation of 80 chromatograms
-      // quick LDA average model on 100 2xCrossvalidated runs (0.85 TPR/0.17 FDR)
+      // quick LDA average model on 100 2 x Crossvalidated runs (0.85 TPR/0.17 FDR)
       // true: mean 4.2 with sd 1.055
       // false: mean -0.07506772  with sd 1.055
       // below -0.5 removes around 30% of the peaks
@@ -196,7 +196,7 @@ namespace OpenMS
     double calculate_lda_prescore(OpenSwath_Scores scores)
     {
 
-      // LDA average model on 100 2xCrossvalidated runs (0.91 TPR/0.20 FDR)
+      // LDA average model on 100 2 x Crossvalidated runs (0.91 TPR/0.20 FDR)
       /*
       double xx_old_lda_prescore =
       intensity_score       * -2.296679          +
@@ -224,7 +224,7 @@ namespace OpenMS
     double calculate_swath_lda_prescore(OpenSwath_Scores scores)
     {
 
-      // Swath - LDA average model on 100 2xCrossvalidated runs (0.76 TPR/0.20 FDR) [without elution model]
+      // Swath - LDA average model on 100 2 x Crossvalidated runs (0.76 TPR/0.20 FDR) [without elution model]
       /*
       double xx_old_swath_prescore =
       intensity_score              * -3.148838e+00  +
@@ -614,7 +614,7 @@ var_yseries_score   -0.0327896378737766
   };
 
   /**
-  @brief The MRMFeatureFinder finds and scores peaks of transitions that coelute.
+  @brief The MRMFeatureFinder finds and scores peaks of transitions that co-elute.
 
   It does so using an internal peakpicker for each chromatogram and then
   creating consensus / meta-peaks (MRMFeatures) that contain the information of

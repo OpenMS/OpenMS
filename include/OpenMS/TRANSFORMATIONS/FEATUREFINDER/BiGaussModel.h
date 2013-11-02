@@ -42,7 +42,7 @@
 namespace OpenMS
 {
   /**
-        @brief Bigaussian distribution approximated using linear interpolation.
+        @brief BiGaussian distribution approximated using linear interpolation.
 
         Asymmetric distribution realized via two normal distributions with
         different variances combined at the mean.

@@ -123,7 +123,7 @@ protected:
 
     void initialize_()
     {
-      // determine mininum intensity and signal-to-noise parameter for last seed
+      // determine minimum intensity and signal-to-noise parameter for last seed
       typename FeatureType::IntensityType noise_threshold  = this->param_.getValue("min_intensity");
       typename FeatureType::IntensityType sn  = this->param_.getValue("signal_to_noise");
 
@@ -189,7 +189,7 @@ protected:
       initialized_ = true;
     }
 
-    /// contains the indizes
+    /// contains the indices
     std::vector<IndexPair> indices_;
 
     /// Points to the next peak in the peak vector

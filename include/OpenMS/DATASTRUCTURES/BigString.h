@@ -45,7 +45,7 @@ namespace OpenMS
 /**
 @brief concatenates Proteins given as FASTAEntry to one big string separated by a unique character (by default $)
 
-Concatenates the strings given as FASTAEntry separating them with a unique character and storing the headers of FASTAEntry as well as the position of separator characters. So a substring can be accessed easily and the corresponding header can be found fast by using bineary search.
+Concatenates the strings given as FASTAEntry separating them with a unique character and storing the headers of FASTAEntry as well as the position of separator characters. So a substring can be accessed easily and the corresponding header can be found fast by using binary search.
 */
   class OPENMS_DLLAPI BigString
   {
@@ -65,7 +65,7 @@ public:
     BigString(const BigString & bs);
 
     /**
-    @brief desctructor
+    @brief destructor
     */
     virtual ~BigString();
 
@@ -121,7 +121,7 @@ protected:
     @brief private function to implement binary search
     @param index
     @param start start index
-    @param end end inxed
+    @param end end index
     @return int with index
     */
     Size getIndex_(Size index, Size start, Size end);

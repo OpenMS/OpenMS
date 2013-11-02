@@ -53,7 +53,7 @@ namespace OpenMS
   /**
     @brief A class for connecting to a SQL database
 
-    @note Do not use '*' in SELECT statments. The order of result columns is not definded then! Read the QT documentation for details.
+    @note Do not use '*' in SELECT statements. The order of result columns is not defined then! Read the QT documentation for details.
 
     @ingroup DatabaseIO
   */
@@ -106,7 +106,7 @@ public:
         @param password the password for the user
         @param host the host where the server is running (default: "localhost")
         @param port the port where the server is listening (default: 3306)
-        @param QTDBDriver the QT database driver used for the connection (default: "QMYSQL", unless you canged it in configure. See "OpenMS/include/OpenMS/config.h")
+        @param QTDBDriver the QT database driver used for the connection (default: "QMYSQL", unless you changed it in configure. See "OpenMS/include/OpenMS/config.h")
         @param connection_name Name of the connection (needed for several concurrent connections only)
 
       @exception InvalidQuery is thrown if the database connection could not be opened
@@ -235,7 +235,7 @@ private:
     /// Name (handle) of the connection
     QString connection_name_;
 
-    /// Retruns the current database connection defined by connection_name_
+    /// Returns the current database connection defined by connection_name_
     inline QSqlDatabase getDB_() const
     {
       return QSqlDatabase::database(connection_name_, false);

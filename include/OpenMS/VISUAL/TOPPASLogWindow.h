@@ -65,7 +65,7 @@ namespace OpenMS
     void setMaxLength(int max_length);
 
   protected:
-    ///@name Remplemented Qt events
+    ///@name Reimplemented Qt events
     //@{
     void contextMenuEvent(QContextMenuEvent * e);
     //@}

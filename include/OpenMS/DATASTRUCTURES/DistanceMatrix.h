@@ -49,7 +49,7 @@ namespace OpenMS
   /**
       @brief A two-dimensional distance matrix, similar to OpenMS::Matrix
 
-      similar to OpenMS::Matrix, but contains only elements above the main diagonal, hence translating access with operator(,) for elements of above the main diagonal to corresponing elements below the main diagonal and returning 0 for requested elements in the main diagonal, since selfdistance is assumed to be 0. Keeps track of the minimal element in the Matrix with OpenMS::DistanceMatrix::min_element_ if only for setting a value OpenMS::DistanceMatrix::setValue is used. Other OpenMS::DistanceMatrix altering methods may require a maual update by call of OpenMS::DistanceMatrix::updateMinElement, see the respective methods documentation.
+      Similar to OpenMS::Matrix, but contains only elements above the main diagonal, hence translating access with operator(,) for elements of above the main diagonal to corresponding elements below the main diagonal and returning 0 for requested elements in the main diagonal, since self-distance is assumed to be 0. Keeps track of the minimal element in the Matrix with OpenMS::DistanceMatrix::min_element_ if only for setting a value OpenMS::DistanceMatrix::setValue is used. Other OpenMS::DistanceMatrix altering methods may require a manual update by call of OpenMS::DistanceMatrix::updateMinElement, see the respective methods documentation.
 
       @ingroup Datastructures
   */
@@ -372,7 +372,7 @@ public:
         @param j the jth row (and therewith also jth col) to be removed
         @throw Exception::OutOfRange if @p j is grater than the greatest row number
 
-        may invalidates min_element_, make sure to update min_element_ if neccessary before used
+        May invalidates min_element_, make sure to update min_element_ if necessary before used
     */
     void reduce(SizeType j)
     {

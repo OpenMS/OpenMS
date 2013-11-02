@@ -137,7 +137,7 @@ protected:
      */
     double calculateMonoWeight_(const Map<UInt, double> & Z_to_mass);
 
-    /*_ read elements from a XML file, formated as a Param file.
+    /*_ read elements from a XML file, formatted as a Param file.
 
             @throw throws ParseError if the file cannot be parsed
             @throw throws FileNotFound if the file could not be found

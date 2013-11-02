@@ -149,7 +149,7 @@ public:
 
         if (is_end_ && !rhs.is_end_) return false;
 
-        //Equality of pointed to peak adresses
+        //Equality of pointed to peak addresses
         return &(*current_peak_) == &(*(rhs.current_peak_));
       }
 

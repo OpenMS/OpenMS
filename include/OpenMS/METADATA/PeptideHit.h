@@ -122,7 +122,7 @@ public:
     /// returns the peptide sequence without trailing or following spaces
     const AASequence & getSequence() const;
 
-    /// returns the carge of the peptide
+    /// returns the charge of the peptide
     Int getCharge() const;
 
     /// returns the corresponding protein accessions

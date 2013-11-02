@@ -114,7 +114,7 @@ public:
     /// returns the minimal weight isotope which is stored in the distribution
     Size getMin() const;
 
-    /// returns the size of the distribtion which is the number of isotopes in the distribution
+    /// returns the size of the distribution which is the number of isotopes in the distribution
     Size size() const;
 
     /// clears the distribution and resets max isotope to 0
@@ -128,9 +128,9 @@ public:
     */
     void estimateFromPeptideWeight(double average_weight);
 
-    /** @brief renormalizes the sum of the probabilities of the isotopes to 1
+    /** @brief re-normalizes the sum of the probabilities of the isotopes to 1
 
-            The renormalisation is needed as in distributions with a lot of isotopes (and with high max isotope)
+            The re-normalisation is needed as in distributions with a lot of isotopes (and with high max isotope)
             the calculations tend to be inexact.
     */
     void renormalize();
@@ -161,7 +161,7 @@ public:
     /// Assignment operator
     IsotopeDistribution & operator=(const IsotopeDistribution & isotope_distribution);
 
-    /// operator which adds this distribution and the @p isotope_distribution to return IsotopeDisribution (similiar to convolve distributions)
+    /// operator which adds this distribution and the @p isotope_distribution to return IsotopeDisribution (similar to convolve distributions)
     IsotopeDistribution operator+(const IsotopeDistribution & isotope_distribution) const;
 
     /// operator which adds @p isotope_distribution to this (similar to convolve distributions)

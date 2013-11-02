@@ -46,7 +46,7 @@ namespace OpenMS
 
     @c compose_f_gx_hy_t compose function adapter processes the result of two unary operations that
     use different elements as parameters. For more details, please
-    refer to the book "The C++ Standart Library" by Nicolay Josuttis.
+    refer to the book "The C++ Standard Library" by Nicolay Josuttis.
     This class is implemented in order to reduce (substitute) the usage of user defined functors.
 
     Here is the example of @c compose_f_gx_hy_t usage with @c std::mem_ref_fun function.

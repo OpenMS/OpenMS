@@ -100,9 +100,9 @@ public:
     void setComment(const String & comment);
 
     /**
-        @brief A clone methode
+        @brief A clone method
 
-        clone method that creates a copy and retuns a pointer (base class pointer).
+        clone method that creates a copy and returns a pointer (base class pointer).
         Used to copy sample treatments when only a pointer to this base class is available.
     */
     virtual SampleTreatment * clone() const = 0;

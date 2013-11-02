@@ -44,12 +44,20 @@ namespace OpenMS
 {
   class String;
 
-/**
+  /**
     @brief Class that implements a suffix array for a String. It can be used to find peptide Candidates for a MS spectrum
 
-    This class implements a suffix array. It can just be used for finding peptide Candidates for a given MS Spectrum within a certain mass tolerance. The suffix array can be saved to disc for reused so it has to be build just once. The suffix array consits of a vector of pair of ints for every suffix, a vector of LCP values and a so called skip vector.
-    Only the sufices that are matching the function isDigestingEnd are created. Besides a suffix will not reach till the end of the string but till the next occurence of the separator ($). So only the interessting sufices will be saved. This will reduce the used space.
-*/
+    This class implements a suffix array. It can just be used for finding
+    peptide Candidates for a given MS Spectrum within a certain mass tolerance.
+    The suffix array can be saved to disc for reuse so it has to be built just
+    once. The suffix array consists of a vector of pair of ints for every
+    suffix, a vector of LCP values and a so called skip vector.
+
+    Only the suffixes that are matching the function isDigestingEnd are
+    created. Besides a suffix will not reach till the end of the string but
+    till the next occurrence of the separator ($). So only the interesting
+    suffixes will be saved. This will reduce the used space.
+  */
 
   class OPENMS_DLLAPI SuffixArrayTrypticCompressed :
     public SuffixArray
@@ -62,11 +70,17 @@ public:
     @brief constructor taking the string and the filename for writing or reading
     @param st the string as const reference with which the suffix array will be build
     @param filename the filename for writing or reading the suffix array
-    @param weight_mode if not monoistopic weight should be used, this parameters can be set to AVERAGE
+    @param weight_mode if not monoisotopic weight should be used, this parameters can be set to AVERAGE
     @throw Exception::InvalidValue if string does not start with empty string ($)
     @throw FileNotFound is thrown if the given file was not found
 
-    The constructor checks if a suffix array with given filename (without file extension) exists or not. In the first case it will simple be loaded and otherwise it will be build. Bulding the suffix array consists of several steps. At first all indices for a digesting enzyme (defined by using function isDigestingEnd) are created as an vector of SignedSize pairs. After creating all relevant indices they are sorted and the lcp and skip vectors are created.
+    The constructor checks if a suffix array with given filename (without file
+    extension) exists or not. In the first case it will simple be loaded and
+    otherwise it will be build. Building the suffix array consists of several
+    steps. At first all indices for a digesting enzyme (defined by using
+    function isDigestingEnd) are created as an vector of SignedSize pairs.
+    After creating all relevant indices they are sorted and the lcp and skip
+    vectors are created.
     */
     SuffixArrayTrypticCompressed(const String & st, const String & filename, const WeightWrapper::WEIGHTMODE weight_mode = WeightWrapper::MONO);
 
@@ -92,21 +106,25 @@ public:
     @return a vector of SignedSize pairs.
     @throw InvalidValue if the spectrum is not sorted ascendingly
 
-    for every mass within the spectrum all candidates described by as pairs of ints are returned. All masses are searched for the same time in just one suffix array traversal. In order to accelerate the traversal the skip and lcp table are used. The mass wont be calculated for each entry but it will be updated during traversal using a stack datastructure
+    For every mass within the spectrum all candidates described by as pairs of
+    ints are returned. All masses are searched for the same time in just one
+    suffix array traversal. In order to accelerate the traversal the skip and
+    lcp table are used. The mass wont be calculated for each entry but it will
+    be updated during traversal using a stack data structure
     */
     void findSpec(std::vector<std::vector<std::pair<std::pair<SignedSize, SignedSize>, DoubleReal> > > & candidates, const std::vector<DoubleReal> & spec);
 
     /**
     @brief saves the suffix array to disc
     @param file_name const reference string describing the filename
-    @return bool if operation was succesful
-    @throw Exception::UnableToCreateFile if file could not be created (e.x. if you have no rigths)
+    @return bool if operation was successful
+    @throw Exception::UnableToCreateFile if file could not be created (e.g. if you have no rights)
     */
     bool save(const String & file_name);
     /**
     @brief opens the suffix array
     @param file_name const reference string describing the filename
-    @return bool if operation was succesful
+    @return bool if operation was successful
     @throw FileNotFound
     */
     bool open(const String & file_name);
@@ -126,9 +144,9 @@ public:
 
     /**
     @brief returns if an enzyme will cut after first character
-    @param aa1 const char as first aminoacid
-    @param aa2 const char as second aminoacid
-    @return bool descibing if it is a digesting site
+    @param aa1 const char as first amino acid
+    @param aa2 const char as second amino acid
+    @return bool describing if it is a digesting site
     */
     bool isDigestingEnd(const char aa1, const char aa2) const;
 
@@ -182,9 +200,9 @@ protected:
     SuffixArrayTrypticCompressed();
 
     /**
-    @brief gets the index of the next sperator for a given index
+    @brief gets the index of the next separator for a given index
     @param p const SignedSize describing a position in the string
-    @return SignedSize with the index of the next occurence of the sperator or -1 if there is no more separator
+    @return SignedSize with the index of the next occurrence of the separator or -1 if there is no more separator
     */
     SignedSize getNextSep_(const SignedSize p) const;
 
@@ -200,33 +218,35 @@ protected:
     @brief binary search for finding the index of the first element of the spectrum that matches the desired mass within the tolerance.
     @param spec const reference to spectrum
     @param m mass
-    @return SignedSize with the index of the first occurence
-    @note requires that there is at least one occurence
+    @return SignedSize with the index of the first occurrence
+    @note requires that there is at least one occurrence
     */
     SignedSize findFirst_(const std::vector<DoubleReal> & spec, DoubleReal & m);
 
     /**
-    @brief binary search for finding the index of the first element of the spectrum that matches the desired mass within the tolerance. it searches recursivly.
+    @brief binary search for finding the index of the first element of the
+    spectrum that matches the desired mass within the tolerance. It searches
+    recursively.
     @param spec const reference to spectrum
     @param m mass
     @param start start index
     @param end end index
-    @return SignedSize with the index of the first occurence
-    @note requires that there is at least one occurence
+    @return SignedSize with the index of the first occurrence
+    @note requires that there is at least one occurrence
     */
     SignedSize findFirst_(const std::vector<DoubleReal> & spec, DoubleReal & m, SignedSize start, SignedSize end);
 
     /**
-    @brief treats the suffix array as a tree and parses the tree using postorder traversion. This is realised by a recursive algorithm.
+    @brief treats the suffix array as a tree and parses the tree using postorder traversal. This is realised by a recursive algorithm.
     @param start_index SignedSize describing the start index in indices_ vector
     @param stop_index SignedSize describing the end index in indices_ vector
-    @param depth at with depth the traversion is at the actual position
+    @param depth at with depth the traversal is at the actual position
     @param walked_in how many characters we have seen from root to actual position
     @param edge_len how many characters we have seen from last node to actual position
-    @param out_number reference to vector of pairs of ints. For every node it will be filled with how many outgoing edge a node has in dependece of its depth
+    @param out_number reference to vector of pairs of ints. For every node it will be filled with how many outgoing edge a node has in dependence of its depth
     @param edge_length will be filled with the edge_length in dependence of its depth
-    @param leafe_depth will be filled with the depth of every leafe
-    @note intialize: walked_in=0, depth=1, edge_len=1
+    @param leafe_depth will be filled with the depth of every leaf
+    @note initialize: walked_in=0, depth=1, edge_len=1
     */
     void parseTree_(SignedSize start_index, SignedSize stop_index, SignedSize depth, SignedSize walked_in, SignedSize edge_len, std::vector<std::pair<SignedSize, SignedSize> > & out_number, std::vector<std::pair<SignedSize, SignedSize> > & edge_length, std::vector<SignedSize> & leafe_depth);
 
@@ -242,7 +262,7 @@ protected:
 
     DoubleReal tol_; ///< mass tolerance for finding candidates
 
-    std::vector<std::pair<SignedSize, SignedSize> > indices_; ///< vector of pairs of ints describing all relevant sufices
+    std::vector<std::pair<SignedSize, SignedSize> > indices_; ///< vector of pairs of ints describing all relevant suffixes
 
     std::vector<SignedSize> lcp_; ///< vector of ints with lcp values
 

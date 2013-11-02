@@ -80,7 +80,7 @@ public:
       DoubleReal s_witness;
       DoubleReal position;
       DoubleReal s_isotope_pattern_1;   // isotope pattern score charge 1
-      Int is_isotope_1_mono;   // 0 means not testet, 1 mean is, -1 is tail of isotopes
+      Int is_isotope_1_mono;   // 0 means not tested, 1 mean is, -1 is tail of isotopes
       DoubleReal s_isotope_pattern_2;   // "" charge 2
     };
 

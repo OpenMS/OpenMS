@@ -90,14 +90,14 @@ public:
     /**
     @brief saves the suffix array to disc
     @param filename const reference string describing the filename
-    @return bool if operation was succesful
-    @throw UnableToCreateFile if file could not be created (e.x. if you have no rigths)
+    @return bool if operation was successful
+    @throw UnableToCreateFile if file could not be created (e.g. if you have no rights)
     */
     virtual bool save(const String & filename) = 0;
     /**
     @brief opens the suffix array
     @param filename const reference string describing the filename
-    @return bool if operation was succesful
+    @return bool if operation was successful
     @throw FileNotFound
     */
     virtual bool open(const String & filename) = 0;

@@ -47,7 +47,7 @@ namespace OpenMS
   /**
     @brief IDDecoyProbability calculates probabilities using decoy approach
 
-        This class calcalates the probabilities using a target deocy approach. Like
+        This class calculates the probabilities using a target decoy approach. Like
         in peptide prophet the forward distribution is modeled using a gaussian
         distribution the reverse scores are modeled using a gamma distribution.
 
@@ -66,7 +66,7 @@ public:
     /// Copy constructor
     IDDecoyProbability(const IDDecoyProbability & rhs);
 
-    /// Desctructor
+    /// Destructor
     virtual ~IDDecoyProbability();
 
     /// assignment operator

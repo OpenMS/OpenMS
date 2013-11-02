@@ -71,10 +71,10 @@ public:
     /// Returns the default gradient for linear intensity mode
     static MultiGradient getDefaultGradientLogarithmicIntensityMode();
 
-    /// Interploation mode.
+    /// Interpolation mode.
     enum InterpolationMode
     {
-      IM_LINEAR,        ///< IM_LINEAR returns the linear interploation (default).
+      IM_LINEAR,        ///< IM_LINEAR returns the linear interpolation (default).
       IM_STAIRS         ///< IM_STAIRS returns the color of the next lower position
     };
 
@@ -154,9 +154,9 @@ public:
     /**
         @brief Returns a precalculated color.
 
-        If the @p position is out of the the range specified in activatePrecalculationMode() the behaviour depends on the debug mode:
+        If the @p position is out of the range specified in activatePrecalculationMode() the behaviour depends on the debug mode:
         - With debug information an Precondition exception is thrown
-        - Wihtout debug information array boundaries are violated, which probably causes a segmentation fault.
+        - Without debug information array boundaries are violated, which probably causes a segmentation fault.
     */
     inline QColor precalculatedColorAt(DoubleReal position) const
     {
@@ -172,9 +172,9 @@ public:
         return pre_.size();
     }
 
-    /// sets the interploation mode (default or stairs). Default is linear
+    /// sets the interpolation mode (default or stairs). Default is linear
     void setInterpolationMode(InterpolationMode mode);
-    /// returns the interpolaion mode
+    /// returns the interpolation mode
     InterpolationMode getInterpolationMode() const;
 
     ///convert to string representation
@@ -182,7 +182,7 @@ public:
     /**
         @brief Sets the gradient by string representation.
 
-        The string represenation of a gradient starts with the interpolation mode: "Linear" or "Stairs" and the separator "|".
+        The string representation of a gradient starts with the interpolation mode: "Linear" or "Stairs" and the separator "|".
         It is followed by an arbitrary number of integer-color-pairs.
 
   Such a pair consists of floating point number (0.0-100.0) followed by a comma and

@@ -43,7 +43,7 @@
 namespace OpenMS
 {
   /**
-    @brief Bigaussian distribution fitter (1-dim.) approximated using linear interpolation.
+    @brief BiGaussian distribution fitter (1-dim.) approximated using linear interpolation.
 
     @htmlinclude OpenMS_BiGaussFitter1D.parameters
   */

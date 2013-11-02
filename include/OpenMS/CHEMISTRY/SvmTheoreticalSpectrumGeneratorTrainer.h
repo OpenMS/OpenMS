@@ -52,7 +52,7 @@ namespace OpenMS
    For the primary ion types (y, b) a SVM is trained using the libSVM library.\n
    All important libSVM parameters are accessible as parameters.\n
    Please refer to the libSVM manuals for detailed description of the parameters.
-   Default values are choses as in the svm-training tool delivered with libSVM.\n
+   Default values are chosen as in the svm-training tool delivered with libSVM.\n
 
    For the secondary types (a, c, x, z, losses, b2, y2) a simple Bayesian model is used.
 

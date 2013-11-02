@@ -133,7 +133,7 @@ public:
 
 protected:
 
-    // calculates the proton distribtion
+    // calculates the proton distribution
     void calculateProtonDistribution_(const AASequence & peptide, Int charge, Residue::ResidueType res_type = Residue::YIon, bool fixed_proton = false, Size cleavage_site = 0, bool use_most_basic_site = false);
 
     void calculateProtonDistributionCharge1_(const AASequence & peptide, Residue::ResidueType res_type);

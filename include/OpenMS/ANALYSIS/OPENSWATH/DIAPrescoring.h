@@ -58,7 +58,7 @@ namespace OpenMS
     See also class DIAScoring.
 
     Simulate theoretical spectrum from library intensities of transition group
-    and compute manhattan distance and dotprod score between spectrum intentensities
+    and compute manhattan distance and dotprod score between spectrum intensities
     and simulated spectrum.
   */
 
@@ -83,7 +83,7 @@ public:
       @brief Score a spectrum given a transition group.
 
       Simulate theoretical spectrum from library intensities of transition group
-      and compute manhattan distance and dotprod score between spectrum intentensities
+      and compute manhattan distance and dotprod score between spectrum intensities
       and simulated spectrum.
     */
     void score(OpenSwath::SpectrumPtr spec,

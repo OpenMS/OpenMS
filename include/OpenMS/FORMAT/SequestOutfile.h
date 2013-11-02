@@ -109,7 +109,7 @@ public:
             @param sequences
             @param found
             @param not_found
-            @throw Exception::FileNotFound is thrown if the database filen could not be found
+            @throw Exception::FileNotFound is thrown if the database file could not be found
     */
     void getSequences(const String & database_filename, const std::map<String, Size> & ac_position_map, std::vector<String> & sequences, std::vector<std::pair<String, Size> > & found, std::map<String, Size> & not_found);
 

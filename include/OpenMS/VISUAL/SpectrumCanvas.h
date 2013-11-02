@@ -542,14 +542,14 @@ public slots:
     void setVisibleArea(AreaType area);
 
     /**
-        @brief Notifies the canvas that the horizontal scollbar has been moved.
+        @brief Notifies the canvas that the horizontal scrollbar has been moved.
 
         Reimplement this slot to react on scrollbar events.
     */
     virtual void horizontalScrollBarChange(int value);
 
     /**
-        @brief Notifies the canvas that the vertical scollbar has been moved.
+        @brief Notifies the canvas that the vertical scrollbar has been moved.
 
         Reimplement this slot to react on scrollbar events.
     */
@@ -643,7 +643,7 @@ signals:
 
 protected slots:
 
-    ///Updates the cursor accoring to the current action mode
+    ///Updates the cursor according to the current action mode
     void updateCursor_();
 
 protected:
@@ -694,7 +694,7 @@ protected:
     /**
         @brief Sets the visible area
 
-        Changes the visible area, adjustes the zoom stack and notifies interested clients about the change.
+        Changes the visible area, adjusts the zoom stack and notifies interested clients about the change.
         If parts of the area are outside of the data area, the new area will be adjusted.
 
         @param new_area The new visible area.
@@ -704,7 +704,7 @@ protected:
     virtual void changeVisibleArea_(const AreaType & new_area, bool repaint = true, bool add_to_stack = false);
 
     /**
-        @brief REcalculates the intensity scaling factor for 'snap to maximum intensity mode'.
+        @brief Recalculates the intensity scaling factor for 'snap to maximum intensity mode'.
 
         @see snap_factors_
     */
@@ -728,7 +728,7 @@ protected:
     //@{
     /// Translation bound to the 'Left' key
     virtual void translateLeft_();
-    /// Translation bound to the 'Rightt' key
+    /// Translation bound to the 'Right' key
     virtual void translateRight_();
     /// Translation bound to the 'Up' key
     virtual void translateForward_();
@@ -875,7 +875,7 @@ protected:
     std::vector<AreaType>::iterator zoom_pos_;
 
     /**
-        @brief Updates the diplayed data
+        @brief Updates the displayed data
 
         The default implementation calls QWidget::update().
 
@@ -913,7 +913,7 @@ protected:
     /**
         @brief Intensity scaling factor for 'snap to maximum intensity mode'.
 
-        In this mode the highest currently visible intensisty is treated like the maximum overall intensity.
+        In this mode the highest currently visible intensity is treated like the maximum overall intensity.
     */
     std::vector<DoubleReal> snap_factors_;
 
@@ -923,7 +923,7 @@ protected:
     /// External context menu extension
     QMenu * context_add_;
 
-    /// Flag that determines if timimg data is printed to the command line
+    /// Flag that determines if timing data is printed to the command line
     bool show_timing_;
 
     /// selected peak

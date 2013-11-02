@@ -93,7 +93,7 @@ protected:
     /// call the DAC algorithm for the subspectrum defined via left and right peaks and fill the set with candidates sequences
     void getDecompositionsDAC_(std::set<String> & sequences, Size left, Size right, DoubleReal peptide_weight, const PeakSpectrum & CID_orig_spec, const PeakSpectrum & ETD_orig_spec, Map<DoubleReal, IonScore> & CID_nodes);
 
-    /// reduces the given number of permuts by scoring the perumtations to the CID and ETD spec
+    /// reduces the given number of permuts by scoring the permutations to the CID and ETD spec
     void reducePermuts_(std::set<String> & permuts, const PeakSpectrum & CID_orig_spec, const PeakSpectrum & ETD_orig_spec, DoubleReal prefix, DoubleReal suffix);
 
     /// fills the spectrum with c and z type ions

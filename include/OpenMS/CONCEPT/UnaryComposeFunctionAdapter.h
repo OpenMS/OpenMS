@@ -101,7 +101,7 @@ int main(int argc, char** argv) {
     @endcode
 
      Copyright 1999 by Addison Wesley Longman, Inc. and Nicolai M. Josuttis.
-     All rights resuntitlederved.
+     All rights Reserved.
 
      Permission to use, copy, modify and distribute this software for personal and
      educational use is hereby granted without fee, provided that the above copyright

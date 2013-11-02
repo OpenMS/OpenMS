@@ -501,7 +501,7 @@ protected:
         Cluster & cluster = insertCluster_((**tree_it).bbox)->second;
         tree2Cluster_(*tree_it, cluster);
       }
-      // We got a finished tree but not all points in the center, readd as single points
+      // We got a finished tree but not all points in the center, read as single points
       else
       {
         tree2Points_(*tree_it);

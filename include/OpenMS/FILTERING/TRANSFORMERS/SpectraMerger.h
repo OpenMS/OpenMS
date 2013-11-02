@@ -234,7 +234,7 @@ public:
         ClusterHierarchical ch;
 
         //ch.setThreshold(0.99);
-        // clustering ; threshold is implicitly at 1.0, i.e. distances of 1.0 (== similiarity 0) will not be clustered
+        // clustering ; threshold is implicitly at 1.0, i.e. distances of 1.0 (== similarity 0) will not be clustered
         ch.cluster<BaseFeature, SpectraDistance_>(data, llc, sl, tree, dist);
       }
 

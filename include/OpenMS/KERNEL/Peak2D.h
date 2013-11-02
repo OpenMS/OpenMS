@@ -47,8 +47,8 @@ namespace OpenMS
   /**
     @brief A 2-dimensional raw data point or peak.
 
-    This datastructure is intended for continuous data or peak data.
-    If wou want to annotated single peaks with meta data, use RichPeak2D instead.
+    This data structure is intended for continuous data or peak data.
+    If you want to annotated single peaks with meta data, use RichPeak2D instead.
 
     @ingroup Kernel
   */

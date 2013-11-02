@@ -136,10 +136,10 @@ protected:
     ///
     std::vector<RichPeakSpectrum> sim_specs_;
 
-    /// flag whether the istance has a internal sequence db
+    /// flag whether the instance has a internal sequence db
     bool own_sequence_db_;
 
-    /// flag whether the istance has a internal model
+    /// flag whether the instance has a internal model
     bool own_model_;
 
     /// update members method from DefaultParamHandler to update the members

@@ -89,7 +89,7 @@ public:
           @param errors Errors during the validation are returned in this output parameter.
           @param warnings Warnings during the validation are returned in this output parameter.
 
-          @return @em true if the validation was successfull, @em false otherwise.
+          @return @em true if the validation was successful, @em false otherwise.
 
           @exception Exception::FileNotFound is thrown if the file could not be opened
       */
@@ -165,7 +165,7 @@ protected:
       /// Reference to the CVs
       const ControlledVocabulary & cv_;
 
-      /// Validation erros
+      /// Validation errors
       StringList errors_;
 
       /// Validation warnings

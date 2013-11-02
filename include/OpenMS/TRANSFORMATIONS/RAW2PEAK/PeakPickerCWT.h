@@ -51,12 +51,12 @@ namespace OpenMS
   /**
          @brief This class implements a peak picking algorithm using wavelet techniques
 
-         The algorithm is descripted in detail in Lange et al. (2006) Proc. PSB-06.
+         The algorithm is described in detail in Lange et al. (2006) Proc. PSB-06.
 
          This peak picking algorithm uses the continuous wavelet transform of a raw data signal to detect mass peaks.
          Afterwards a given asymmetric peak function is fitted to the raw data and important peak parameters (e.g. fwhm)
          are extracted.
-         In an optional step these parameters can be optimized using a non-linear opimization method.
+         In an optional step these parameters can be optimized using a non-linear optimization method.
 
          The peak parameters are stored in the meta data arrays of the spectra (see MSSpectrum) in this order:
          - rValue
@@ -162,7 +162,7 @@ protected:
     /**
              @brief Class for the internal peak representation
 
-             A regularData-Object which contents some additional useful informations
+             A regularData-Object which contents some additional useful information
              for analysing peaks and their properties
     */
     struct OPENMS_DLLAPI PeakArea_
@@ -196,7 +196,7 @@ protected:
     /**
                 @brief Returns the squared pearson coefficient.
 
-                Computes the correlation of the peak and the original data given by the peak enpoints area.left and area.right.
+                Computes the correlation of the peak and the original data given by the peak endpoints area.left and area.right.
                 If the value is near 1, the fitted peakshape and the raw data are expected to be very similar.
     */
     double correlate_(const PeakShape & peak, const PeakArea_ & area, Int direction = 0) const;
@@ -243,14 +243,14 @@ protected:
     */
     void getPeakCentroid_(PeakArea_ & area);
 
-    /// Computes the value of a theroretical lorentz peak at position x
+    /// Computes the value of a theoretical lorentz peak at position x
     double lorentz_(double height, double lambda, double pos, double x);
 
     /**
                 @brief Computes the threshold for the peak height in the wavelet transform and initializes the wavelet transform.
 
                 Given the threshold for the peak height a corresponding value peak_bound_cwt can be computed
-                for the continious wavelet transform.
+                for the continuous wavelet transform.
                 Therefore we compute a theoretical lorentzian peakshape with height=peak_bound_ and a width which
                 is similar to the width of the wavelet. Taking the maximum in the wavelet transform of the
                 lorentzian peak we have a peak bound in the wavelet transform.
@@ -265,7 +265,7 @@ protected:
             @brief Separates overlapping peaks.
 
             It determines the number of peaks lying underneath the initial peak using the cwt with different scales.
-            Then a nonlinear optimzation procedure is applied to optimize the peak parameters.
+            Then a nonlinear optimization procedure is applied to optimize the peak parameters.
     */
     bool deconvolutePeak_(PeakShape & shape, std::vector<PeakShape> & peak_shapes, DoubleReal peak_bound_cwt);
 

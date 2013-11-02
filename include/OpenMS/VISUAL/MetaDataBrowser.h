@@ -92,7 +92,7 @@ namespace OpenMS
 
       The meta info data of the tree items are shown in the right part of the viewer, when they are selected in the tree.
 
-      If the data has beed modified exec() returns @em true . Otherwise @em false is returned.
+      If the data has been modified exec() returns @em true . Otherwise @em false is returned.
 
       @improvement Add generic mechanism to add items to data vectors e.g. for Instrument - IonSource (Hiwi)
 
@@ -187,7 +187,7 @@ public:
     /// Check if mode is editable or not
     bool isEditable();
 
-    /// Defines friend classess that can use the functionality of the subclasses.
+    /// Defines friend classes that can use the functionality of the subclasses.
     friend class ProteinIdentificationVisualizer;
     friend class PeptideIdentificationVisualizer;
 
@@ -249,7 +249,7 @@ protected:
       }
     }
 
-    /// Connects the Signals of all visualier classes with Slot setStatus()
+    /// Connects the Signals of all visualiser classes with Slot setStatus()
     void connectVisualizer_(BaseVisualizerGUI * ptr);
 
     /// Filters hits according to a score @a threshold. Takes the score orientation into account

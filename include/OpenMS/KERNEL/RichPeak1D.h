@@ -42,10 +42,10 @@ namespace OpenMS
 {
 
   /**
-    @brief A 1-dimensional raw data point or peak mith meta information.
+    @brief A 1-dimensional raw data point or peak with meta information.
 
-    This datastructure is intended for continuous data or peak data.
-    If wou do not need to annotated single peaks with meta data, use Peak1D instead.
+    This data structure is intended for continuous data or peak data.
+    If you do not need to annotated single peaks with meta data, use Peak1D instead.
 
     @ingroup Kernel
   */

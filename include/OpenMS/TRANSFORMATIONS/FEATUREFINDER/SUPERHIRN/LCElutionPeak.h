@@ -105,15 +105,15 @@ protected:
 
 public:
 
-    // parameters to debug a ceratain mass range
+    // parameters to debug a certain mass range
     static double DEBUG_MASS_START;
     static double DEBUG_MASS_END;
 
-    // cut off, where everything small than this precentile of the
+    // cut off, where everything small than this percentile of the
     // apex is discarded
     // static float intensity_apex_percentil_cutoff;
 
-    // resolution of the retention time, for peak area copmuting:
+    // resolution of the retention time, for peak area computing:
     //  static float TR_RESOLUTION;
 
     // class destructor
@@ -142,7 +142,7 @@ public:
         // value:
         setSNIntensityThreshold();
 
-        // Compute a varietiy of parameters for the LC elution peak
+        // Compute a variety of parameters for the LC elution peak
         computeLCElutionPeakParameters();
 
         // define parameters such as chrg, score
@@ -163,7 +163,7 @@ public:
     void setSNIntensityThreshold();
 
     //////////////////////////////////////////////////////
-    // Compute a varietiy of parameters for the LC elution peak
+    // Compute a variety of parameters for the LC elution peak
     void computeLCElutionPeakParameters();
 
     // removes background peaks and computes the total peak area:
@@ -184,7 +184,7 @@ public:
     //////////////////////////////////////////////////////
 
     //////////////////////////////////////////////////////
-    // print all monositopic peak cluster along the LC profile:
+    // print all monoisotopic peak cluster along the LC profile:
     void createConsensIsotopPattern();
 
     // print the elution profile from a peak:
@@ -203,7 +203,7 @@ public:
     LCElutionPeak & operator>(const LCElutionPeak &);
 
     ////////////////////////////////////////////////////////////////////////////////
-    // print all monositopic peak cluster along the LC profile:
+    // print all monoisotopic peak cluster along the LC profile:
     //void printIsotopClusters();
     // print the consensus isotope pattern:
     //void printConsensIsotopPattern();
@@ -339,7 +339,7 @@ public:
     }
 
     //////////////
-    // access teh charge state of the LC elutino peak:
+    // access the charge state of the LC elution peak:
     int get_charge_state()
     {
       return fCharge;

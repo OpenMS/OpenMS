@@ -59,12 +59,12 @@ public:
     // @{
     /// default constructor
     Normalizer();
-    /// desctructor
+    /// destructor
     virtual ~Normalizer();
 
     /// assignment operator
     Normalizer & operator=(const Normalizer & source);
-    /// copy constructror
+    /// copy constructor
     Normalizer(const Normalizer & source);
 
     // @}

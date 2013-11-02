@@ -51,7 +51,7 @@ namespace OpenMS
       @brief A Type-Name-Value tuple class.
 
       MetaInfo maps an index ( an integer corresponding to a string ) to DataValue objects.
-      The mapping of strings to the index is perfomed by the MetaInfoRegistry,
+      The mapping of strings to the index is performed by the MetaInfoRegistry,
       which can be accessed by the method registry().
 
       There are two versions of nearly all members. One which operates with a string name and another

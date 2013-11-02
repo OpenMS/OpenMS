@@ -93,7 +93,7 @@ public:
       return "SpectrumCheapDPCorr";
     }
 
-    /// return consensus spectrum from last funtion call operator
+    /// return consensus spectrum from last function call operator
     const PeakSpectrum & lastconsensus() const;
 
     ///

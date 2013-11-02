@@ -52,7 +52,7 @@ namespace OpenMS
 
     Logging, filtering, and storing messages.
     Many programs emit warning messages, error messages, or simply
-    informations and remarks to their users. The  LogStream
+    information and remarks to their users. The  LogStream
     class provides a convenient and straight-forward interface
     to classify these messages according to their importance
     (via the loglevel), filter and store them in files or
@@ -62,7 +62,7 @@ namespace OpenMS
     streams with each LogStream object that catch only
     messages of certain loglevels. So the user might decide to
     redirect all error messages to cerr, all warning messages
-    to cout and all informations to a file. \par
+    to cout and all information to a file. \par
     Along with each message its time of creation and its loglevel
     is stored. So the user might also decide to store all
     errors he got in the last two hours or alike. \par
@@ -215,7 +215,7 @@ protected:
       //@{
 
       /**
-        @brief Holds a counter of occurences and an index for the occurence sequence of the corresponding log message
+        @brief Holds a counter of occurrences and an index for the occurrence sequence of the corresponding log message
       */
       struct LogCacheStruct
       {
@@ -224,14 +224,14 @@ protected:
       };
 
       /**
-        Sequential counter to remember the sequence of occurence
+        Sequential counter to remember the sequence of occurrence
         of the cached log messages
       */
       Size log_cache_counter_;
 
       /// Cache of the last two log messages
       std::map<std::string, LogCacheStruct> log_cache_;
-      /// Cache of the occurence sequence of the last two log messages
+      /// Cache of the occurrence sequence of the last two log messages
       std::map<Size, std::string> log_time_cache_;
 
       /// Checks if the line is already in the cache
@@ -242,7 +242,7 @@ protected:
         if necessary
 
         @param line The Log message that should be added to the cache
-        @return An additional massage if a reoccuring message was removed
+        @return An additional massage if a re-occurring message was removed
         from the cache
       */
       std::string addToCache_(std::string const & line);
@@ -296,7 +296,7 @@ protected:
         - LOG_DEBUG (general debugging information -  output be written to cout if debug_level > 0)
 
       To use a specific logger of a log level simply use it as cerr or cout: <br>
-      <code> LOG_ERROR << " A bad error occured ..."  </code>
+      <code> LOG_ERROR << " A bad error occurred ..."  </code>
       <br>
       Which produces an error message in the log.
     */

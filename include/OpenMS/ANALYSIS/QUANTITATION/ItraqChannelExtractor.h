@@ -50,7 +50,7 @@ namespace OpenMS
   This class supports 4 and 8 channel iTRAQ and 6 channel TMT and will optionally do peak picking
   before the quantitation step. Quantitation is done by adding all signals within a small delta
   around the expected m/z of each channel. When all channels are found to be empty, the
-  ConsensusFeature is not created. No postprocessing is done here. Use ItraqQuantifier for that!
+  ConsensusFeature is not created. No post-processing is done here. Use ItraqQuantifier for that!
 
       @htmlinclude OpenMS_ItraqChannelExtractor.parameters
   */
@@ -101,7 +101,7 @@ private:
     /// set to either ItraqConstants::FOURPLEX, ItraqConstants::EIGHTPLEX, or ItraqConstants::TMT_SIXPLEX
     Int itraq_type_;
 
-    /// map the channel-name (eg 114) onto its description and the centroid mass
+    /// map the channel-name (e.g. 114) onto its description and the centroid mass
     /// the channel-name is also the id-string in the mapList section of the ConsensusMap
     ChannelMapType channel_map_;
 

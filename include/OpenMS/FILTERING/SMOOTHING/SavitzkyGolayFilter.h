@@ -59,7 +59,7 @@ namespace OpenMS
     are usually 'washed out' by adjacent averaging.
 
     Because of the linearity of the problem, we can reduce the work computing by fitting in advance, for fictious data
-    consisiting of all zeros except for a singe 1 and then do the fits on the real data just by taking linear
+    consisting of all zeros except for a singe 1 and then do the fits on the real data just by taking linear
     combinations. There are a particular sets of filter coefficients \f$ c_n \f$ which accomplish the process of
     polynomial least-squares fit inside a moving window. To get the symmetric coefficient-matrix
     \f$C \in R^{frameSize \times frameSize}\f$ with
@@ -94,9 +94,9 @@ namespace OpenMS
     decomposition but rather susceptible to roundoff error!
 
     @note This filter works only for uniform profile data!
-          A polynom order of 4 is recommended.
+          A polynomial order of 4 is recommended.
           The bigger the frame size the smoother the signal (the more detail information get lost!). The frame size corresponds to the number
-          of filter coefficients, so the width of the smoothing intervall is given by frame_size*spacing of the profile data.
+          of filter coefficients, so the width of the smoothing interval is given by frame_size*spacing of the profile data.
 
         @note The data must be sorted according to ascending m/z!
 

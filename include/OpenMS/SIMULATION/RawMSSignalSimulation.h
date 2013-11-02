@@ -184,7 +184,7 @@ protected:
     /// get the mz grid where all m/z values will be mapped to
     void getSamplingGrid_(std::vector<SimCoordinateType> & grid, const SimCoordinateType mz_min, const SimCoordinateType mz_max, const Int step_Da);
 
-    /// Compress signales in a single RT scan (to merge signals which were sampled overlapping)
+    /// Compress signals in a single RT scan (to merge signals which were sampled overlapping)
     void compressSignals_(MSSimExperiment & experiment);
 
     /// number of points sampled per peak's FWHM

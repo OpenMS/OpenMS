@@ -47,13 +47,13 @@ namespace OpenMS
     @brief A map alignment algorithm based on pose clustering.
 
     Pose clustering analyzes pair distances to find the most probable transformation of retention times.
-        The algorithm choses the x most intensity peaks/features per map.
+        The algorithm chooses the x most intensity peaks/features per map.
     This is modeled via the parameter 'max_num_peaks_considered', which in turn influences the runtime and stability of the results.
         Bigger values prolong computation, smaller values might lead to no or unstable trafos. Set to -1 to use all features (might take very
         long for large maps).
 
     For further details see:
-    @n Eva Lange et.al
+    @n Eva Lange et al.
     @n A Geometric Approach for the Alignment of Liquid Chromatography-Mass Spectrometry Data
     @n ISMB/ECCB 2007
 

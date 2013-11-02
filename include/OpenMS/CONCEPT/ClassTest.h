@@ -1184,7 +1184,7 @@ namespace TEST = OpenMS::Internal::ClassTest;
  @brief Print a status message.
 
  If tests require longer preparations, #STATUS may be used to print some
- intermediated progress messages.  #STATUS uses <code>cout</code> to print
+ intermediate progress messages.  #STATUS uses <code>cout</code> to print
  these messages (in verbose mode only).  The given stream expression
  <code>message</code> is prefixed by the string <code>status:</code> and
  terminated with a newline. All valid operations on a stream may be performed

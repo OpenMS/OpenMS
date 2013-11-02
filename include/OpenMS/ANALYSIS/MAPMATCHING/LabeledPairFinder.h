@@ -49,7 +49,7 @@ namespace OpenMS
 
       @htmlinclude OpenMS_LabeledPairFinder.parameters
 
-      @todo Implement support for labled MRM experiments, Q1 m/z value and charges. (Andreas)
+      @todo Implement support for labeled MRM experiments, Q1 m/z value and charges. (Andreas)
       @todo Implement support for more than one mass delta, e.g. from missed cleavages and so on (Andreas)
 
       @ingroup FeatureGrouping

@@ -92,7 +92,7 @@ public:
         @brief clusters the indices according to their respective element distances
 
         @param x Real value to scale the result
-        @throw Exception::DivisionByZero if scaling is unapplicable because it is 0
+        @throw Exception::DivisionByZero if scaling is inapplicable because it is 0
 
         sets the scale so that similarities can be correctly calculated from distances. Should be set so that the greatest distance in a chosen set will be scales to 1 (i.e. @p x = greatest possible distance in the set)
 */

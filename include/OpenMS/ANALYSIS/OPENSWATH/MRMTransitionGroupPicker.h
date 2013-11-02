@@ -96,7 +96,7 @@ public:
       @brief Pick a group of chromatograms belonging to the same peptide
 
       Will identify peaks in a set of chromatograms that belong to the same
-      peptide. The chromatograms are given inthe MRMTransitionGroup container
+      peptide. The chromatograms are given in the MRMTransitionGroup container
       which also contains the mapping of the chromatograms to their metadata.
 
       The resulting features are added added to the MRMTransitionGroup. Each feature contains the following meta-data:
@@ -549,7 +549,7 @@ protected:
       // - missing_peaks (the more peaks are missing, the worse)
       // - multiple_peaks
       // - mean of the shapes (1 is very good, 0 is bad)
-      // - mean of the coelutions (0 is good, 1 is ok, above 1 is pretty bad)
+      // - mean of the co-elution scores (0 is good, 1 is ok, above 1 is pretty bad)
       double shape_score = std::accumulate(mean_shapes.begin(), mean_shapes.end(), 0.0) / mean_shapes.size();
       double coel_score = std::accumulate(mean_coel.begin(), mean_coel.end(), 0.0) / mean_coel.size();
       coel_score = (coel_score - 1.0) / 2.0;

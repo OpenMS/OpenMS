@@ -76,7 +76,7 @@ public:
     /// adds a single identification hit to the hits
     void addHit(const IdentificationHit & hit);
 
-    /// returns the identificatio hits of this spectrum identification
+    /// returns the identification hits of this spectrum identification
     const std::vector<IdentificationHit> & getHits() const;
     //@}
 

@@ -46,7 +46,7 @@ namespace OpenMS
   /**
       @brief Iterator for a FASTA file
 
-      In comparision to FastaIterator the FASTA file will be loaded first and stored to RAM, while the FastaIterator just iterates over the FASTA file without loading it completly to memory.
+      In comparison to FastaIterator the FASTA file will be loaded first and stored to RAM, while the FastaIterator just iterates over the FASTA file without loading it completely to memory.
 
       @see FastaIterator
   */
@@ -74,7 +74,7 @@ public:
     virtual ~FastaIteratorIntern();
 
     /**
-    @brief * Operator for derefering of iterator
+    @brief * Operator for dereferencing of iterator
     @return FASTEEntry iterator at actual position
     @throw Exception::InvalidIterator if iterator has not been initialized
     */
@@ -110,7 +110,7 @@ public:
 
     /**
     @brief setter for spectrum
-    @note note availeble for FastaIterator
+    @note note available for FastaIterator
     @throw Exception::NotImplemented
     */
     virtual void setSpectrum(const std::vector<DoubleReal> & /*spec*/)
@@ -120,7 +120,7 @@ public:
 
     /**
     @brief getter for spectrum
-    @note note availeble for FastaIterator
+    @note note available for FastaIterator
     @throw Exception::NotImplemented
     */
     virtual const std::vector<DoubleReal> & getSpectrum()
@@ -130,7 +130,7 @@ public:
 
     /**
     @brief setter for tolerance
-    @note note availeble for FastaIterator
+    @note note available for FastaIterator
     @throw Exception::NotImplemented
     */
     virtual void setTolerance(DoubleReal /* t */)
@@ -140,7 +140,7 @@ public:
 
     /**
     @brief getter for tolerance
-    @note note availeble for FastaIterator
+    @note note available for FastaIterator
     @return tolerance
     @throw Exception::NotImplemented
     */
@@ -151,14 +151,14 @@ public:
 
     /**
     @brief initializing of iterator
-    @return true if everything went rigth
+    @return true if everything went right
     @throw Exception::InvalidIterator if fastaFile was not set
     */
     virtual bool begin();
 
     /**
     @brief indicates whether iterator is at end
-    @return bool true if interator is at end
+    @return bool true if iterator is at end
     */
     virtual bool isAtEnd();
 
@@ -173,7 +173,7 @@ public:
 
     /**
     @brief needed by Factory
-    @return poiter to new object
+    @return pointer to new object
     */
     static PepIterator * create()
     {

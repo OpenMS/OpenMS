@@ -161,7 +161,7 @@ private:
 
     std::map<int, float> scanTRIndex_;
 
-    //    bool monoIsoDebugging_;   // to track detected monoistopic mass for debugging
+    //    bool monoIsoDebugging_;   // to track detected monoisotopic mass for debugging
     //    double debugMonoIsoMassMin_;
     //    double debugMonoIsoMassMax_;
     //    double ms1IntensityApexPercentilCutoff_;

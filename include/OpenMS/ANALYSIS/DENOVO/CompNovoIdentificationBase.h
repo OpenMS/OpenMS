@@ -114,7 +114,7 @@ protected:
     /// fills the spectrum with b,y ions, multiple charged variants; if prefix and suffix weights are given, the sequence is treated as tag
     void getCIDSpectrum_(PeakSpectrum & spec, const String & sequence, Size charge, DoubleReal prefix = 0.0, DoubleReal suffix = 0.0);
 
-    /// initializes the score distribution precalculated for the use in spectrum generation
+    /// initializes the score distribution pre-calculated for the use in spectrum generation
     void initIsotopeDistributions_();
 
     /// estimates an exact precursor weight of the ETD spectrum, because in most of the cases the precursor is found in the MS/MS spec
@@ -180,7 +180,7 @@ public:
 
     /** @brief Simple class to store permutations and a score
 
-            This class is used to store the generated perumtations
+            This class is used to store the generated permutations
             and a score to them
     */
     class Permut

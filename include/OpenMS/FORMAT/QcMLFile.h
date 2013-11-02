@@ -149,7 +149,7 @@ public:
     void/* std::vector<String>& */ collectSetParameter(const String setname, const String qp, std::vector<String>& ret);
     ///Returns a String of a tab separated rows if found empty string else from run/set by the name filename of the qualityparameter by the name qpname
     String exportAttachment(const String filename, const String qpname) const; 
-    ///Returns a String value in qutation of a qualityparameter by the name qpname in run/set by the name filename
+    ///Returns a String value in quotation of a qualityparameter by the name qpname in run/set by the name filename
     String exportQP(const String filename, const String qpname) const;
     ///Returns a String of a tab separated qualityparameter by the name qpname in run/set by the name filename
     String exportQPs(const String filename, const StringList qpnames) const;

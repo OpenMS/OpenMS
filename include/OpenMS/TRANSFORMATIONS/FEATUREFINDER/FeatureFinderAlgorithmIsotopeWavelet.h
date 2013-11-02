@@ -63,9 +63,9 @@ namespace OpenMS
   here is only marginally related to the algorithm presented in
   Schulz-Trieglaff et al. (2007, 2008), as no fitting procedure is applied anymore after the
   wavelet-based seeding step. The wavelet has been designed to extract even very lowly-abundant
-  features (see Hussong et. al (2007, 2009)), usually featuring a very low
+  features (see Hussong et al. (2007, 2009)), usually featuring a very low
   signal-to-noise ratio. The wavelet in its current implementation is not able to resolve
-  overlapping patterns (see also Hussong et. al (2009)) and slightly shifts masses to the right
+  overlapping patterns (see also Hussong et al. (2009)) and slightly shifts masses to the right
    due to the construction of the wavelet.
 
       @htmlinclude OpenMS_FeatureFinderAlgorithmIsotopeWavelet.parameters
@@ -328,7 +328,7 @@ public:
 
           if (!use_cuda_)
           {
-            if (!hr_data_)                 //Lowres data
+            if (!hr_data_)                 //LowRes data
             {
               iwt->initializeScan((*this->map_)[i]);
               for (UInt c = 0; c < max_charge_; ++c)
@@ -361,7 +361,7 @@ public:
                 this->ff_->setProgress(++progress_counter_);
               }
             }
-            else                 //Highres data
+            else                 //HighRes data
             {
               MSSpectrum<PeakType> * new_spec(NULL);
               for (UInt c = 0; c < max_charge_; ++c)

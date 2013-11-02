@@ -164,7 +164,7 @@ public:
         }
 
         // TODO
-        // find presection of separated RTs of peaks;
+        // find pre-section of separated RTs of peaks;
         // resampling to min distance?
         // for each of the section, try to estimate S/N
         // find core regions and fit them

@@ -47,7 +47,7 @@ namespace OpenMS
     /**
       @brief Implements abstract @c AlphabetParser to read data from the plain text format.
 
-      @c AlphabetTextParser parses the data source using overriden @c parse(std::istream&)
+      @c AlphabetTextParser parses the data source using overridden @c parse(std::istream&)
       and stores the parsed data permanently. That can be retrieved by @c getElements() function.
     */
     class OPENMS_DLLAPI IMSAlphabetTextParser :

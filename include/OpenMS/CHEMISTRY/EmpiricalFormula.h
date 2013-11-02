@@ -69,7 +69,7 @@ namespace OpenMS
           to specify 14C a heavy isotope of carbon it is expressed as "(14)C". The isotope distribution
           of that instance contains only one isotope, 14C itself with a frequency of 100%.
 
-          Instances EmpiricalFormula support a (limited) set of mathmatical operations. Additions and subtractions
+          Instances EmpiricalFormula support a (limited) set of mathematical operations. Additions and subtractions
           are supported in different flavors. However, one must be careful, because this can lead to negative
           frequencies. In most cases this might be misleading, however, the class therefore supports difference
           formulae. E.g. formula differences of reactions from post-translational modifications.

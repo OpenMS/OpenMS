@@ -266,7 +266,7 @@ public slots:
     /// Sets if the running_ flag to true, or false
     /// If set to false, the application emits an 'alert' sign, demanding user attention (to let him know it finished)
     void setPipelineRunning(bool b = true);
-    /// Invoked by TTV or other vectices if a parameter was edited
+    /// Invoked by TTV or other vertices if a parameter was edited
     void changedParameter(const bool invalidates_running_pipeline);
     /// Called by a finished QProcess to indicate that we are free to start a new one
     void processFinished();

@@ -56,7 +56,7 @@ namespace OpenMS
 
     Contains the data and metadata of an experiment performed with an MS (or HPLC and MS).
 
-    Be carefull when changing the order of contained MSSpectrum instances, if tandem-MS data is
+    Be careful when changing the order of contained MSSpectrum instances, if tandem-MS data is
     stored in this class. The only way to find a precursor spectrum of MSSpectrum x is to
     search for the first spectrum before x that has a lower MS-level!
 
@@ -83,7 +83,7 @@ public:
     typedef DRange<2> AreaType;
     /// Coordinate type of peak positions
     typedef typename PeakType::CoordinateType CoordinateType;
-    /// Intenstiy type of peaks
+    /// Intensity type of peaks
     typedef typename PeakType::IntensityType IntensityType;
     /// RangeManager type
     typedef RangeManager<2> RangeManagerType;
@@ -500,7 +500,7 @@ public:
         if (it->getMZ() < RangeManagerType::pos_range_.minY()) RangeManagerType::pos_range_.setMinY(it->getMZ());
         if (it->getMZ() > RangeManagerType::pos_range_.maxY()) RangeManagerType::pos_range_.setMaxY(it->getMZ());
 
-        // do not update RT and in if the specturm is empty
+        // do not update RT and in if the spectrum is empty
         if (it->size() == 0) continue;
 
         total_size_ += it->size();

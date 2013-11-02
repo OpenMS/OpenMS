@@ -97,12 +97,12 @@ public:
      * @param type  Type of the stream (e.g. FILE)
      * @param stream_name Name of the stream (e.g. the file name for a file stream).
      *
-     * @return An integer indicating if the operation was completed succesfully (@p value != 1 means a failure occured).
+     * @return An integer indicating if the operation was completed successfully (@p value != 1 means a failure occurred).
      */
     Int registerStream(StreamType const type, const String & stream_name);
 
     /**
-     * @brief Deregisters a stream of type @p type and with name @p stream_name from the handler.
+     * @brief De-registers a stream of type @p type and with name @p stream_name from the handler.
      *
      * It also decreases the reference counter for the named stream. If the counter
      * reaches 0. The stream will be closed.
@@ -168,7 +168,7 @@ private:
     friend OPENMS_DLLAPI std::ostream & operator<<(std::ostream & os, StreamHandler const & stream_handler);
   };
 
-  /// Overload for the \a insertion \a operator (operator<<) to have a formated output of the StreamHandler
+  /// Overload for the \a insertion \a operator (operator<<) to have a formatted output of the StreamHandler
   OPENMS_DLLAPI std::ostream & operator<<(std::ostream & os, StreamHandler const & stream_handler);
 
   /// Global StreamHandler instance.

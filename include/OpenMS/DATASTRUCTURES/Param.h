@@ -223,14 +223,14 @@ protected:
       const Param::ParamNode* root_;
       /// Index of the current ParamEntry (-1 means invalid)
       Int current_;
-      /// Pointers to the ParmNodes we are in
+      /// Pointers to the ParamNodes we are in
       std::vector<const Param::ParamNode*> stack_;
       /// Node traversal data during last ++ operation.
       std::vector<TraceInfo> trace_;
 
     };
 
-    /// Default construtor
+    /// Default constructor
     Param();
 
     /// Copy constructor
@@ -329,7 +329,7 @@ protected:
     /**
       @brief Returns if the parameter @p key has a tag
 
-      Example: The tag 'advanced' is used in the GUI to determine which parmeters are always displayed
+      Example: The tag 'advanced' is used in the GUI to determine which parameters are always displayed
       and which parameters are displayed only in 'advanced mode'.
 
       @exception Exception::ElementNotFound is thrown if the parameter does not exists.
@@ -553,7 +553,7 @@ protected:
       "prefix:misc" -> list("misc1","misc2")<BR>
 
       @param argc argc variable from command line
-      @param argv argv varaible from command line
+      @param argv argv variable from command line
       @param prefix prefix for all options
     */
     void parseCommandLine(const int argc, const char** argv, const String& prefix = "");
@@ -583,7 +583,7 @@ protected:
     */
     ParamEntry& getEntry_(const String& key) const;
 
-    /// Constructor from a node wich is used as root node
+    /// Constructor from a node which is used as root node
     Param(const Param::ParamNode& node);
 
     /// Invisible root node that stores all the data

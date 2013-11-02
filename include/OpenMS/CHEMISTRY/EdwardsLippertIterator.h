@@ -73,14 +73,14 @@ public:
     virtual FASTAEntry operator*();
 
     /**
-    @brief opperator ++ for postincrement
+    @brief operator ++ for postincrement
     @return Reference to PepIterator
     @throw InvalidIterator if iterator has not been initialized
     */
     virtual PepIterator & operator++();
 
     /**
-    @brief opperator ++ for preincrement
+    @brief operator ++ for preincrement
     @return pointer to PepIterator
     @throw InvalidIterator if iterator has not been initialized
     */
@@ -141,7 +141,7 @@ public:
 
     /**
     @brief indicated if a digesting enzyme will cut at this position
-    @return true if digenting enzym cuts the sequence
+    @return true if digesting enzyme cuts the sequence
     */
     virtual bool isDigestingEnd(char, char);
 
@@ -156,7 +156,7 @@ public:
 
     /**
     @brief needed by Factory
-    @return poiter to new object
+    @return pointer to new object
     */
     static PepIterator * create()
     {

@@ -95,7 +95,7 @@ protected:
       /// Version string
       String schema_version_;
 
-      /// Encoding string that replaces the encoding (system dependend or specified in the XML). Disabled if empty. Used as a workaround for XTandem output xml.
+      /// Encoding string that replaces the encoding (system dependent or specified in the XML). Disabled if empty. Used as a workaround for XTandem output xml.
       String enforced_encoding_;
 
       void enforceEncoding_(const String& encoding);

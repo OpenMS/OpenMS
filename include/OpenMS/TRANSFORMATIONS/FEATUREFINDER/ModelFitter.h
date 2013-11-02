@@ -211,7 +211,7 @@ public:
     }
 
     /** @brief Sets or fixed the monoisotopic m/z at a specific position.
-    * @param mz The monoisotopic m/z that occurres in the current data set. */
+    * @param mz The monoisotopic m/z that occurs in the current data set. */
     void setMonoIsotopicMass(CoordinateType mz)
     {
       monoisotopic_mz_ = mz;
@@ -754,7 +754,7 @@ protected:
     RawDataArrayType rt_input_data_;
     /// tolerance used for bounding box
     CoordinateType tolerance_stdev_box_;
-    /// monoistopic mass
+    /// monoisotopic mass
     CoordinateType monoisotopic_mz_;
 #ifdef DEBUG_FEATUREFINDER
     /// counts features (used for debug output only)

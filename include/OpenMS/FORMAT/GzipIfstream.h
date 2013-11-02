@@ -61,7 +61,7 @@ public:
             @return the number of actually read bytes. If it is 0 the end of the file was reached and the stream is closed
 
             @exception Exception::ConversionError is thrown if decompression fails
-            @exception Exception::IllegalArgument is thrwon if no file for decompression is given. This can happen even happen if a file was already open but read until the end.
+            @exception Exception::IllegalArgument is thrown if no file for decompression is given. This can happen even happen if a file was already open but read until the end.
     */
     size_t read(char * s, size_t n);
 
@@ -110,16 +110,16 @@ protected:
 
     ///a gzFile object(void*) . Necessary for decompression
     gzFile gzfile_;
-    ///counts the last read bufffer
+    ///counts the last read duffer
     int     n_buffer_;
     ///saves the last returned error by the read function
     int     gzerror_;
     ///true if end of file is reached
     bool stream_at_end_;
 
-    //needed if one wants to know whetther file is okay
+    //needed if one wants to know whether file is okay
     //unsigned long original_crc;
-    //needed if one wants to know whetther file is okay
+    //needed if one wants to know whether file is okay
     //unsigned long crc;
 
     ///not implemented

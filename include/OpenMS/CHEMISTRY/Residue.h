@@ -389,7 +389,7 @@ public:
     /** @name Constructors
     */
     //@{
-    /// default contructor
+    /// default constructor
     Residue();
 
     /// copy constructor
@@ -433,7 +433,7 @@ public:
     /// adds a synonym
     void addSynonym(const String & synonym);
 
-    /// returns the sysnonyms
+    /// returns the synonyms
     const std::set<String> & getSynonyms() const;
 
     /// sets the name of the residue as three letter code

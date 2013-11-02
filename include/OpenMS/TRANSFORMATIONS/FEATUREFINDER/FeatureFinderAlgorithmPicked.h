@@ -498,7 +498,7 @@ public:
           }
           isotope_distributions_[index].optional_begin = begin;
           isotope_distributions_[index].optional_end = end;
-          //scale the distibution to a maximum of 1
+          //scale the distribution to a maximum of 1
           DoubleReal max = 0.0;
           for (Size i = 0; i < isotope_distributions_[index].intensity.size(); ++i)
           {
@@ -513,7 +513,7 @@ public:
             isotope_distributions_[index].intensity[i] /= max;
           }
 
-          //if(debug_) log_ << " - optinal begin/end:" << begin << " / " << end << std::endl;
+          //if(debug_) log_ << " - optional begin/end:" << begin << " / " << end << std::endl;
         }
 
         ff_->endProgress();
@@ -1133,10 +1133,10 @@ protected:
     DoubleReal slope_bound_; ///< Max slope of mass trace intensities
     DoubleReal intensity_percentage_; ///< Isotope pattern intensity contribution of required peaks
     DoubleReal intensity_percentage_optional_; ///< Isotope pattern intensity contribution of optional peaks
-    DoubleReal optional_fit_improvement_; ///< Minimal imrovment for leaving out optional isotope
+    DoubleReal optional_fit_improvement_; ///< Minimal improvement for leaving out optional isotope
     DoubleReal mass_window_width_; ///< Width of the isotope pattern mass bins
     UInt intensity_bins_; ///< Number of bins (in RT and MZ) for intensity significance estimation
-    DoubleReal min_isotope_fit_; ///< Mimimum isotope pattern fit for a feature
+    DoubleReal min_isotope_fit_; ///< Minimum isotope pattern fit for a feature
     DoubleReal min_trace_score_; ///< Minimum quality of a traces
     DoubleReal min_rt_span_; ///< Minimum RT range that has to be left after the fit
     DoubleReal max_rt_span_; ///< Maximum RT range the model is allowed to span
@@ -1265,7 +1265,7 @@ protected:
 
       @param center the maximum peak of the isotope distribution (contains charge as well)
       @param charge The charge of the pattern
-      @param best_pattern Returns the indices of the isotopic peaks. If a isopopic peak is missing -1 is returned.
+      @param best_pattern Returns the indices of the isotopic peaks. If a isotopic peak is missing -1 is returned.
     */
     DoubleReal findBestIsotopeFit_(const Seed& center, UInt charge, IsotopePattern& best_pattern) const
     {
@@ -1362,7 +1362,7 @@ protected:
 
       @param pattern The IsotopePattern that should be extended.
       @param traces The MassTraces datastructure where the extended mass traces will be stored in.
-      @param meta_index_overall The index of the data array where the qualtiy scores for the given charge are stored.
+      @param meta_index_overall The index of the data array where the quality scores for the given charge are stored.
     */
     void extendMassTraces_(const IsotopePattern& pattern, MassTraces& traces, Size meta_index_overall) const
     {
@@ -1527,7 +1527,7 @@ protected:
         boundaries = true;
       }
 
-      //Relax slope theshold if there is a hard boundary for the extension
+      //Relax slope threshold if there is a hard boundary for the extension
       DoubleReal current_slope_bound = (1.0 + (DoubleReal)boundaries) * slope_bound_;
 
       Size delta_count = min_spectra_;
@@ -1774,7 +1774,7 @@ protected:
       {
         for (Size e = best_end; e <= isotopes.optional_end; ++e)
         {
-          //Make sure we have more than 2 peaks (unless in the first loop interation, there we allow two points)
+          //Make sure we have more than 2 peaks (unless in the first loop iteration, there we allow two points)
           if (isotopes.size() - b - e > 2 || (b == best_begin &&
                                               e == best_end &&
                                               isotopes.size() - b - e > 1))

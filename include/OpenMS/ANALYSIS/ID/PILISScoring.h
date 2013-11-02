@@ -56,7 +56,7 @@ namespace OpenMS
       Identifications Using General Scoring Schemes.
 
       The bases for the calculation are the similarity scores of the simulated
-      and experimental spectra. The scores are tranformed into a discrete
+      and experimental spectra. The scores are transformed into a discrete
       score distribution and from this distribution E-values are calculated for
       the peptide hits.
 

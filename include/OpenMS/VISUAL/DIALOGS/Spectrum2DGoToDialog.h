@@ -83,7 +83,7 @@ public:
 
     ///@name Methods for feature numbers
     //@{
-    ///Returns the selected feature numbers. If a number is retuned, the feature rather than the range should be displayed.
+    ///Returns the selected feature numbers. If a number is returned, the feature rather than the range should be displayed.
     String getFeatureNumber() const;
     ///Disables the feature number field
     void enableFeatureNumber(bool);

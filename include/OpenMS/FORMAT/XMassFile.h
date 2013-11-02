@@ -52,7 +52,7 @@ namespace OpenMS
       instrument specification and acquisition method.<br />
       <b>fid</b> : contains intensity array. Intensity for each point are coded in 4 bytes integer.
 
-      @note MZ ratio are calculed with forumla based on article :<br />
+      @note MZ ratio are calculated with formula based on article :<br />
   <i>A database application for pre-processing, storage and comparison of mass spectra
   derived from patients and controls</i><br />
   <b>Mark K Titulaer, Ivar Siccama, Lennard J Dekker, Angelique LCT van Rijswijk,
@@ -235,7 +235,7 @@ public:
     }
 
     /**
-        @brief Stores a spectrum in a XMass file (not avaible)
+        @brief Stores a spectrum in a XMass file (not available)
 
         @exception Exception::FileNotWritable is thrown
     */

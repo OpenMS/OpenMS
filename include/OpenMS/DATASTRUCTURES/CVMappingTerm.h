@@ -46,7 +46,7 @@ namespace OpenMS
 
       @ingroup Datastructures
   */
-  ///Represenation of a CV term used by CVMappings
+  ///Representation of a CV term used by CVMappings
   class OPENMS_DLLAPI CVMappingTerm
   {
 public:

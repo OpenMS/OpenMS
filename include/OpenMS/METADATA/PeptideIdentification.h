@@ -50,7 +50,7 @@ namespace OpenMS
       This class is closely related to ProteinIdentification, which stores the protein hits
       and the general information about the identification run. More than one PeptideIdentification
       can belong to one ProteinIdentification. The general information about a
-      PeptideIdentification has to be looked up in the correpsonding ProteinIndentification, using
+      PeptideIdentification has to be looked up in the corresponding ProteinIndentification, using
       the unique <i>identifier</i> that links the two.
 
       When loading PeptideHit instances from a File, the retention time and mass-to-charge ratio
@@ -110,10 +110,10 @@ public:
 
     /// returns the identifier
     const String & getIdentifier() const;
-    /// sets the indentifier
+    /// sets the identifier
     void setIdentifier(const String & id);
 
-    /// Sorts the hits by score and assigns ranks coording to the scores
+    /// Sorts the hits by score and assigns ranks according to the scores
     void assignRanks();
 
     /**

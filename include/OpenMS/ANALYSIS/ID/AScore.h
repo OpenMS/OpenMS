@@ -68,7 +68,7 @@ public:
     ~AScore();
 
     /**
-        @brief Computes the AScore and returns all computed phospho-sites. The saved sequences contain only phospho informations. All other modifications are dropped due to simplicity.
+        @brief Computes the AScore and returns all computed phospho-sites. The saved sequences contain only phospho information. All other modifications are dropped due to simplicity.
 
         @param	hit a PeptideHit
         @param real_spectrum spectrum mapped to hit
@@ -83,7 +83,7 @@ public:
     DoubleReal computeCumulativeScore(UInt N, UInt n, DoubleReal p);
 
     /**
-        @brief Finds the peptides with the highest PeptideScores and outputs all informations for computing the AScore
+        @brief Finds the peptides with the highest PeptideScores and outputs all information for computing the AScore
         @note This function assumes that there are more permutations than the assumed number of phosphorylations!
     */
     void computeHighestPeptides(std::vector<std::vector<DoubleReal> > & peptide_site_scores, std::vector<ProbablePhosphoSites> & sites, std::vector<std::vector<Size> > & permutations);

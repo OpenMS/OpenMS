@@ -56,7 +56,7 @@ public:
     /**
       @brief C'tor to create a new channel extractor for the given quantitation method.
 
-      @param quant_method IsobaricQuantitationMethod providing the necessery information which channels should be extracted.
+      @param quant_method IsobaricQuantitationMethod providing the necessary information which channels should be extracted.
     */
     IsobaricChannelExtractor(const IsobaricQuantitationMethod* const quant_method);
 
@@ -93,7 +93,7 @@ private:
     /// Minimum reporter ion intensity to be considered for quantitation.
     Peak2D::IntensityType min_reporter_intensity_;
 
-    /// Flag if complete qunatification should be discarded if a single reporter ion has an intensity below the threshold given in IsobaricChannelExtractor::min_reporter_intensity_ .
+    /// Flag if complete quantification should be discarded if a single reporter ion has an intensity below the threshold given in IsobaricChannelExtractor::min_reporter_intensity_ .
     bool remove_low_intensity_quantifications_;
 
     /// Minimum precursor purity to accept the spectrum for quantitation.
@@ -114,7 +114,7 @@ private:
     bool isValidPrecursor_(const Precursor& precursor) const;
 
     /**
-      @brief Checks wether the given ConsensusFeature contains a channel that is below the given intensity threshold.
+      @brief Checks whether the given ConsensusFeature contains a channel that is below the given intensity threshold.
 
       @param cf The ConsensusFeature to check.
       @return $true$ if a low intensity reporter is contained, $false$ otherwise.

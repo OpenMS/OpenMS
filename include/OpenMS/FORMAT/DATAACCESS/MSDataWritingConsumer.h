@@ -92,7 +92,7 @@ namespace OpenMS
       typedef MapType::ChromatogramType ChromatogramType;
 
       /**
-        @brief Proecess a spectrum or chromatogram before storing to disk
+        @brief Process a spectrum or chromatogram before storing to disk
       */
       virtual void processSpectrum_(SpectrumType & s) = 0;
 

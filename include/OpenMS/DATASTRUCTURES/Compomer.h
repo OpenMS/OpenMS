@@ -58,7 +58,7 @@ namespace OpenMS
   class OPENMS_DLLAPI Compomer
   {
 public:
-    /// side of compomer (LEFT ^ substract; RIGHT ^ add)
+    /// side of compomer (LEFT ^ subtract; RIGHT ^ add)
     enum SIDE {LEFT, RIGHT, BOTH};
 
     typedef Map<String, Adduct> CompomerSide; /// adducts and their abundance etc

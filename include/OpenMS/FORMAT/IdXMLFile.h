@@ -137,7 +137,7 @@ protected:
     PeptideHit pep_hit_;
     /// Map from protein id to accession
     std::map<String, String> proteinid_to_accession_;
-    /// Document identitifier
+    /// Document identifier
     String * document_id_;
     /// true if a prot id is contained in the current run
     bool prot_id_in_run_;

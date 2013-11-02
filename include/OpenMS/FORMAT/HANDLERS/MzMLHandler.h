@@ -1027,7 +1027,7 @@ protected:
         {
           if (data_[i].np_compression != MSNumpressCoder::NONE)
           {
-            // If its numpress, we dont care about 32 / 64 bit but the numpress
+            // If its numpress, we don't care about 32 / 64 bit but the numpress
             // decoder expects std::vector<double> which are 64 bit.
             MSNumpressCoder::NumpressConfig config;
             config.np_compression = data_[i].np_compression;
@@ -1271,7 +1271,7 @@ protected:
         //decode data and check if the length of the decoded data matches the expected length
         if (data_[i].np_compression != MSNumpressCoder::NONE)
         {
-          // If its numpress, we dont care about 32 / 64 bit but the numpress
+          // If its numpress, we don't care about 32 / 64 bit but the numpress
           // decoder expects std::vector<double> which are 64 bit.
           MSNumpressCoder::NumpressConfig config;
           config.np_compression = data_[i].np_compression;
@@ -2403,7 +2403,7 @@ protected:
         //instrument model
         if (accession == "MS:1000031")
         {
-          //unknown instrument => notthing to do
+          //unknown instrument => nothing to do
         }
         else if (cv_.isChildOf(accession, "MS:1000031")) //instrument name as string
         {
@@ -3054,7 +3054,7 @@ protected:
         {
           instruments_[current_id_].getIonDetectors().back().setADCSamplingFrequency(value.toDouble());
         }
-        //dectector acquisition mode
+        //detector acquisition mode
         else if (accession == "MS:1000117") //analog-digital converter
         {
           instruments_[current_id_].getIonDetectors().back().setAcquisitionMode(IonDetector::ADC);

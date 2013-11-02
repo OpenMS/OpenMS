@@ -115,7 +115,7 @@ protected:
         @brief find modification name given a modified AA mass
 
         Matches a mass of a modified AA to a mod in our modification db
-        For ambigious mods, the first (arbitrary) is returned
+        For ambiguous mods, the first (arbitrary) is returned
         If no mod is found an error is issued and the return string is empty
         @note A duplicate of this function is also used in PepXMLFile
 

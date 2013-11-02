@@ -44,7 +44,7 @@ namespace OpenMS
   namespace ims
   {
     /**
-      @brief An inteface to handle decomposing of integer values/masses
+      @brief An interface to handle decomposing of integer values/masses
       over a set of integer weights (alphabet).
 
       An interface that addresses the following "mass decomposition" problems:
@@ -55,7 +55,7 @@ namespace OpenMS
       - Number of Decompositions Problem (returns the number of possible
        decompositions).
 
-      Those problems are solved in integer arithmetics, i.e. only exact
+      Those problems are solved in integer arithmetic, i.e. only exact
       solutions are found with no error allowed.
 
       @param ValueType Type of values to be decomposed.

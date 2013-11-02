@@ -456,11 +456,11 @@ private:
       Size exclusion_specs = (Size)(floor((DoubleReal)param_.getValue("Exclusion:exclusion_time") / (DoubleReal) rt_dist));
       if (!dynamic_exclusion)
       {
-        //if the dynamic exclusion if not active we use the eclusion list to guarantee no two peaks within min_peak_distance are selected for single scan
+        //if the dynamic exclusion if not active we use the exclusion list to guarantee no two peaks within min_peak_distance are selected for single scan
         exclusion_specs = 0;
       }
 
-      //cache bounding boxes of features and mass traces (mass trace bb are also widened for effective discovery of enclosing peaks in intervalls)
+      //cache bounding boxes of features and mass traces (mass trace bb are also widened for effective discovery of enclosing peaks in intervals)
       std::map<Size, typename OpenMS::DBoundingBox<2> > bounding_boxes_f;
       std::map<std::pair<Size, Size>, typename OpenMS::DBoundingBox<2> > bounding_boxes;
       for (Size feature_num = 0; feature_num < features.size(); ++feature_num)

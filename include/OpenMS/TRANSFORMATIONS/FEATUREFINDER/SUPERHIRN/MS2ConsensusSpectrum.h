@@ -120,7 +120,7 @@ public:
 
 
     //////////////////////////////////////////////////////
-    // copmute the similarity of the elution shape of the
+    // compute the similarity of the elution shape of the
     // MS2 fragment to this MS2 consensus spectrum
     double getLCElutionPeakSimilarity(MS2Fragment *);
 

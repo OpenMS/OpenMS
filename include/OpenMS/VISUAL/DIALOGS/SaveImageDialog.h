@@ -69,13 +69,13 @@ public:
     QString getFormat();
 
 public slots:
-    ///changes width keeping proprotions
+    ///changes width keeping proportions
     void xSizeChanged(const QString & s);
-    ///changes height keeping proprotions
+    ///changes height keeping proportions
     void ySizeChanged(const QString & s);
     ///set size ratio when proportions checkbox is activated
     void proportionsActivated(bool state);
-    ///checks if the values for width and heigth are ok before accepting the dialog
+    ///checks if the values for width and height are ok before accepting the dialog
     void checkSize();
 
 private:

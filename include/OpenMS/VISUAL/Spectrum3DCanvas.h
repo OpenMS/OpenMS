@@ -51,7 +51,7 @@ namespace OpenMS
 
         The Spectrum3DCanvas uses the helper class Spectrum3DOpenGLCanvas for the actual 3D rendering.
         Deriving Spectrum3DCanvas directly from QGLWidget is not possible due to the "Deadly Diamond" shape
-        of inheritence.
+        of inheritance.
 
         @image html Spectrum3DWidget.png
 
@@ -83,7 +83,7 @@ public:
     ///returns the Spectrum3DOpenGLcanvas
     Spectrum3DOpenGLCanvas * openglwidget();
 
-    ///@name Remplemented Qt events
+    ///@name Reimplemented Qt events
     //@{
     void resizeEvent(QResizeEvent * e);
     void contextMenuEvent(QContextMenuEvent * e);
@@ -115,7 +115,7 @@ public slots:
     virtual void updateLayer(Size i);
 protected slots:
 
-    /// Reacts on changed layer paramters
+    /// Reacts on changed layer parameters
     void currentLayerParamtersChanged_();
 
 protected:
@@ -126,7 +126,7 @@ protected:
     // Reimplementation in order to update the OpenGL widget
     virtual void update_(const char * caller_name = 0);
 
-    ///whether the legend is shoen or not
+    ///whether the legend is shown or not
     bool legend_shown_;
 
     //docu in base class

@@ -93,7 +93,7 @@ public:
     OPENMS_DLLAPI String(const char * s);
     /// Constructor from a char
     OPENMS_DLLAPI String(const char c);
-    /// Constructor from char* (only @p length chracters)
+    /// Constructor from char* (only @p length characters)
     OPENMS_DLLAPI String(const char * s, SizeType length);
     /// Constructor from char (repeats the char @p len times)
     OPENMS_DLLAPI String(size_t len, char c);
@@ -178,19 +178,19 @@ public:
       @brief returns the suffix of length @p length
 
       @exception Exception::IndexUnderflow is thrown if @p length is smaller than zero
-      @exception Exception::IndexOverflowis thrown if @p length is bigger than the size
+      @exception Exception::IndexOverflow is thrown if @p length is bigger than the size
     */
     OPENMS_DLLAPI String suffix(Int length) const;
 
     /**
-      @brief returns the prefix up to the first occurence of char @p delim (excluding it)
+      @brief returns the prefix up to the first occurrence of char @p delim (excluding it)
 
       @exception Exception::ElementNotFound is thrown if @p delim is not found
     */
     OPENMS_DLLAPI String prefix(char delim) const;
 
     /**
-      @brief returns the suffix up to the last occurence of char @p delim (excluding it)
+      @brief returns the suffix up to the last occurrence of char @p delim (excluding it)
 
       @exception Exception::ElementNotFound is thrown if @p delim is not found
     */
@@ -272,13 +272,13 @@ public:
     ///Converts the first letter of the string to uppercase
     OPENMS_DLLAPI String & firstToUpper();
 
-    ///Replaces all occurences of the character @p from by the character @p to.
+    ///Replaces all occurrences of the character @p from by the character @p to.
     OPENMS_DLLAPI String & substitute(char from, char to);
 
-    ///Replaces all occurences of the string @p from by the string @p to.
+    ///Replaces all occurrences of the string @p from by the string @p to.
     OPENMS_DLLAPI String & substitute(const String & from, const String & to);
 
-    ///Remove all occurences of the character @p what.
+    ///Remove all occurrences of the character @p what.
     OPENMS_DLLAPI String & remove(char what);
 
     ///Makes sure the string ends with the character @p end
@@ -348,7 +348,7 @@ public:
     OPENMS_DLLAPI String operator+(char c) const;
     /// Sum operator for char*
     OPENMS_DLLAPI String operator+(const char * s) const;
-    /// Sum operatr for String
+    /// Sum operator for String
     OPENMS_DLLAPI String operator+(const String & s) const;
     /// Sum operator for std::string
     OPENMS_DLLAPI String operator+(const std::string & s) const;
@@ -381,7 +381,7 @@ public:
     OPENMS_DLLAPI String & operator+=(char c);
     /// Sum operator for char*
     OPENMS_DLLAPI String & operator+=(const char * s);
-    /// Sum operatr for String
+    /// Sum operator for String
     OPENMS_DLLAPI String & operator+=(const String & s);
     /// Sum operator for std::string
     OPENMS_DLLAPI String & operator+=(const std::string & s);

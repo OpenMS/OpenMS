@@ -100,7 +100,7 @@ protected:
     /// Driver function for the evaluation of function and jacobian
     static Int evaluate_(const gsl_vector * x, void * params, gsl_vector * f, gsl_matrix * J);
 
-    /** Diplay the intermediate state of the solution. The solver state contains
+    /** Display the intermediate state of the solution. The solver state contains
         the vector s->x which is the current position, and the vector s->f with
         corresponding function values */
     void printState_(Int iter, gsl_multifit_fdfsolver * s);

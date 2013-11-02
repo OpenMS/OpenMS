@@ -54,7 +54,7 @@ namespace OpenMS
 
         This class fits either a Gumbel distribution and a Gauss distribution to a set of data points or two Gaussian distributions using the EM algorithm.
         One can output the fit as a gnuplot formula using getGumbelGnuplotFormula() and getGaussGnuplotFormula() after fitting.
-        @note All paremters are stored in GaussFitResult. In the case of the gumbel distribution x0 and sigma represent the local parameter alpha and the scale parameter beta, respectively.
+        @note All parameters are stored in GaussFitResult. In the case of the gumbel distribution x0 and sigma represent the local parameter alpha and the scale parameter beta, respectively.
 
   @htmlinclude OpenMS_Math::PosteriorErrorProbabilityModel.parameters
 
@@ -74,27 +74,27 @@ public:
       /**
           @brief fits the distributions to the data points(search_engine_scores). Estimated parameters for the distributions are saved in member variables. computeProbability can be used afterwards.
           @param search_engine_scores a vector which holds the data points
-          @return true if algorithm has run thourgh. Else false will be returned. In that case no plot and no probabilities are calculated.
+          @return true if algorithm has run through. Else false will be returned. In that case no plot and no probabilities are calculated.
           @note the vector is sorted from smallest to biggest value!
       */
       bool fit(std::vector<double> & search_engine_scores);
 
       /**
-          @brief fits the distributions to the data points(search_engine_scores) and writes the computed probabilites into the given vector (the second one).
+          @brief fits the distributions to the data points(search_engine_scores) and writes the computed probabilities into the given vector (the second one).
           @param search_engine_scores a vector which holds the data points
           @param probabilities a vector which holds the probability for each data point after running this function. If it has some content it will be overwritten.
-          @return true if algorithm has run thourgh. Else false will be returned. In that case no plot and no probabilities are calculated.
+          @return true if algorithm has run through. Else false will be returned. In that case no plot and no probabilities are calculated.
           @note the vectors are sorted from smallest to biggest value!
       */
       bool fit(std::vector<double> & search_engine_scores, std::vector<double> & probabilities);
 
-      ///Writes the distributions densities into the two vectors for a set of scores. Incorrect_densities represent the incorreclty assigned seqeuences.
+      ///Writes the distributions densities into the two vectors for a set of scores. Incorrect_densities represent the incorrectly assigned sequences.
       void fillDensities(std::vector<double> & x_scores, std::vector<DoubleReal> & incorrect_density, std::vector<DoubleReal> & correct_density);
-      ///computes the Maximum Likelihood with a log-likelihood funciotn.
+      ///computes the Maximum Likelihood with a log-likelihood function.
       DoubleReal computeMaxLikelihood(std::vector<DoubleReal> & incorrect_density, std::vector<DoubleReal> & correct_density);
-      ///sums (1 - posterior porbabilities)
+      ///sums (1 - posterior probabilities)
       DoubleReal one_minus_sum_post(std::vector<DoubleReal> & incorrect_density, std::vector<DoubleReal> & correct_density);
-      ///sums  posterior porbabilities
+      ///sums  posterior probabilities
       DoubleReal sum_post(std::vector<DoubleReal> & incorrect_density, std::vector<DoubleReal> & correct_density);
       ///helper function for the EM algorithm (for fitting)
       DoubleReal sum_pos_x0(std::vector<double> & x_scores, std::vector<DoubleReal> & incorrect_density, std::vector<DoubleReal> & correct_density);
@@ -183,9 +183,9 @@ private:
       DoubleReal smallest_score_;
       ///points to getGauss
       DoubleReal (PosteriorErrorProbabilityModel::* calc_incorrect_)(DoubleReal x, const GaussFitter::GaussFitResult & params);
-      ///points either to getGumbel or getGauss depending on whether on uses the gumbel or th gausian distribution for incorrectly assigned sequences.
+      ///points either to getGumbel or getGauss depending on whether on uses the gumbel or th gaussian distribution for incorrectly assigned sequences.
       DoubleReal (PosteriorErrorProbabilityModel::* calc_correct_)(DoubleReal x, const GaussFitter::GaussFitResult & params);
-      ///points either to getGumbelGnuplotFormula or getGaussGnuplotFormula depending on whether on uses the gumbel or th gausian distribution for incorrectly assigned sequences.
+      ///points either to getGumbelGnuplotFormula or getGaussGnuplotFormula depending on whether on uses the gumbel or th gaussian distribution for incorrectly assigned sequences.
       const String (PosteriorErrorProbabilityModel::* getNegativeGnuplotFormula_)(const GaussFitter::GaussFitResult & params) const;
       ///points to getGumbelGnuplotFormula
       const String (PosteriorErrorProbabilityModel::* getPositiveGnuplotFormula_)(const GaussFitter::GaussFitResult & params) const;

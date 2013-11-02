@@ -47,8 +47,8 @@ namespace OpenMS
   /**
     @brief A 1-dimensional raw data point or peak.
 
-    This datastructure is intended for continuous data or peak data.
-    If wou want to annotated single peaks with meta data, use RichPeak1D instead.
+    This data structure is intended for continuous data or peak data.
+    If you want to annotated single peaks with meta data, use RichPeak1D instead.
 
     @ingroup Kernel
   */

@@ -103,7 +103,7 @@ public:
       <code>INFO add string_stream1 STRING</code><br>
 
       @throw Exception::ElementNotFound If the LogStream (first argument) does not exist.
-      @throw Exception::FileNotWritable If a file (or stream) should be opened as log file (or stream) that is not accesible.
+      @throw Exception::FileNotWritable If a file (or stream) should be opened as log file (or stream) that is not accessible.
       @throw Exception::IllegalArgument If a stream should be registered, that was already registered with a different type.
      */
     void configure(const Param & param);
@@ -184,7 +184,7 @@ private:
     virtual LogConfigHandler & operator=(const LogConfigHandler & source);
   };
 
-  /// Overload for the \a insertion \a operator (operator<<) to have a formated output of the LogConfigHandler
+  /// Overload for the \a insertion \a operator (operator<<) to have a formatted output of the LogConfigHandler
   OPENMS_DLLAPI std::ostream & operator<<(std::ostream & os, LogConfigHandler const & lch);
 
 } // end namespace OpenMS

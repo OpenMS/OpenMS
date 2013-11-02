@@ -105,7 +105,7 @@ public:
     /**
     @brief setter for spectrum
     @param s ms spectrum given as vector of DoubleReals
-    @throw Exception::InvalidValue if spectrum is not sorted acendingly
+    @throw Exception::InvalidValue if spectrum is not sorted ascendingly
     */
     virtual void setSpectrum(const std::vector<DoubleReal> & s) = 0;
 
@@ -134,7 +134,7 @@ public:
     virtual bool begin() = 0;
 
     /**
-    @brief idicator where iterator is at end
+    @brief indicator where iterator is at end
     */
     virtual bool isAtEnd() = 0;
 

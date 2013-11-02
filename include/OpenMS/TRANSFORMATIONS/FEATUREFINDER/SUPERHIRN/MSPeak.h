@@ -150,7 +150,7 @@ public:
       return extraMSPeakInfo;
     }
 
-    // precursor mass of the ms2 scane:
+    // precursor mass of the MS2 scan:
     void setPrecursorMZ(double in)
     {
       precursorMZ = in;

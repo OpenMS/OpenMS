@@ -45,7 +45,7 @@ namespace OpenMS
   class String;
 
   /**
-  @brief Base class for all classes that want to report their progess.
+  @brief Base class for all classes that want to report their progress.
 
   Per default the progress log is disabled. Use setLogType to enable it.
 

@@ -59,11 +59,11 @@ public:
       AA       ///< specified amino acids are modified
       , AA_AT_CTERM      ///< specified amino acids are modified, if they are at the C-terminus
       , AA_AT_NTERM      ///< specified amino acids are modified, if they are at the N-terminus
-      , CTERM      ///< the C-termiuns is modified
-      , NTERM      ///< the N-termiuns is modified
+      , CTERM      ///< the C-terminus is modified
+      , NTERM      ///< the N-terminus is modified
       , SIZE_OF_SPECIFICITYTYPE
     };
-    /// Names of specifitiy types
+    /// Names of specificity types
     static const std::string NamesOfSpecificityType[SIZE_OF_SPECIFICITYTYPE];
 
     /// default constructor

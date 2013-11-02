@@ -179,7 +179,7 @@ public:
     /// Mutable access to the maximum relative error
     inline void setMaxRelError(double eps_rel) { eps_rel_ = eps_rel; }
 
-    /// Start the optimization of the peak shapes peaks. The original peak shapes will be subsituted by the optimized peak shapes.
+    /// Start the optimization of the peak shapes peaks. The original peak shapes will be substituted by the optimized peak shapes.
     void optimize(std::vector<PeakShape> & peaks, Data & data);
 
 
@@ -196,7 +196,7 @@ protected:
 
 //       /** @brief Returns the squared pearson coefficient.
 
-//         Computes the correlation of the peak and the original data given by the peak enpoints.
+//         Computes the correlation of the peak and the original data given by the peak endpoints.
 //         If the value is near 1, the fitted peakshape and the raw data are expected to be very similar.
 //     */
 //     double correlate_(const PeakShape& peak,

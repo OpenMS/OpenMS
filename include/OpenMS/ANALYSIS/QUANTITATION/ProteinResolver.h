@@ -62,7 +62,7 @@ namespace OpenMS
 
 public:
 
-    //default construtor
+    //default constructor
     ProteinResolver();
 
     //copy constructor
@@ -98,7 +98,7 @@ public:
       Size number_of_experimental_peptides;
     };
 
-    //represents a peptide. First in silco. If experimental is set to true it is MS/MS derived.
+    //represents a peptide. First in silico. If experimental is set to true it is MS/MS derived.
     struct PeptideEntry
     {
       std::list<ProteinEntry *> proteins;
@@ -114,7 +114,7 @@ public:
       String origin;
     };
 
-    //representation of an msd group. contains peptides, proteins and a pointer to its ISD group
+    //representation of an msd group. Contains peptides, proteins and a pointer to its ISD group
     struct MSDGroup
     {
       std::list<ProteinEntry *> proteins;
@@ -249,7 +249,7 @@ private:
 
     void computeIntensityOfMSD_(std::vector<MSDGroup> & msd_groups);
 
-    //travers Protein and peptide nodes. Once for building ISD groups and once for building MSD groups
+    //traverse protein and peptide nodes. Once for building ISD groups and once for building MSD groups
     void traversProtein_(ProteinEntry * prot_node, ISDGroup & group);
     void traversProtein_(ProteinEntry * prot_node, MSDGroup & group);
     void traversPeptide_(PeptideEntry * pep_node, ISDGroup & group);
@@ -258,10 +258,10 @@ private:
     Size findPeptideEntry_(String seq, std::vector<PeptideEntry> & nodes);
     //helper function for findPeptideEntry.
     Size binarySearchNodes_(String & seq, std::vector<PeptideEntry> & nodes, Size start, Size end);
-    //includes all MSMS derived peptides into the graph --idXML
+    //includes all MS/MS derived peptides into the graph --idXML
     Size includeMSMSPeptides_(std::vector<PeptideIdentification> & peptide_identifications, std::vector<PeptideEntry> & peptide_nodes);
     //TODO include run information for each peptide
-    //includes all MSMS derived peptides into the graph --consensusXML
+    //includes all MS/MS derived peptides into the graph --consensusXML
     Size includeMSMSPeptides_(ConsensusMap & consensus, std::vector<PeptideEntry> & peptide_nodes);
     //Proteins and Peptides get reindexed, based on whether they belong to msd groups or not. Indexes of Proteins which are in an ISD group but in none of the MSD groups will not be used anymore.
     void reindexingNodes_(std::vector<MSDGroup> & msd_groups, std::vector<Size> & reindexed_proteins, std::vector<Size> & reindexed_peptides);

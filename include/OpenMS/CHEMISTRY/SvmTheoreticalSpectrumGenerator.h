@@ -49,7 +49,7 @@
 namespace OpenMS
 {
   /**
-   @brief Simulates ms2 spectra with support vector machines.
+   @brief Simulates MS2 spectra with support vector machines.
 
    The models are generated with the @ref UTILS_SvmTheoreticalSpectrumGeneratorTrainer. \n
    Two modes are supported:\n
@@ -93,7 +93,7 @@ public:
       {
       }
 
-      //Custom construtor
+      //Custom constructor
       IonType(Residue::ResidueType residue, EmpiricalFormula loss = EmpiricalFormula(), Int charge = 1) :
         residue(residue),
         loss(loss),
@@ -244,13 +244,13 @@ protected:
     /// whether ion types are hidden or not
     std::map<IonType, bool> hide_type_;
 
-    /// scale value to the intervall [lower,max] given the maximal and minimal entries for a feature
+    /// scale value to the interval [lower,max] given the maximal and minimal entries for a feature
     inline void scaleSingleFeature_(double & value, double feature_min, double feature_max, double lower = -1.0, double upper = 1.0);
 
-    /// scale value to the intervall [lower,max] given the maximal and minimal entries for a feature
+    /// scale value to the interval [lower,max] given the maximal and minimal entries for a feature
     void scaleDescriptorSet_(DescriptorSet & desc, double lower, double upper);
 
-    /// generate the desciptors for an input peptide and a given fragmentation position
+    /// generate the descriptors for an input peptide and a given fragmentation position
     Size generateDescriptorSet_(AASequence peptide, Size position, IonType type, Size precursor_charge, DescriptorSet & desc_set);
 
     /// Returns the ResidueType (e.g. AIon, BIon) as string for peak annotation

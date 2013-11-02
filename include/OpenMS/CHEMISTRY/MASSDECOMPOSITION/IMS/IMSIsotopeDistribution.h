@@ -79,7 +79,7 @@ namespace OpenMS
 
       @c IsotopeDistribution implements folding with other distribution using an
       algorithm described in details in paper:
-      Boecker et al. "Decomposing metabolic isotope patterns" WABI 2006.
+      Boecker et al. "Decomposing metabolic isotope patterns" WABI 2006. doi: 10.1007/11851561_2
 
       Folding with itself is done using Russian Multiplication Scheme.
 
@@ -218,7 +218,7 @@ public:
       bool operator!=(const IMSIsotopeDistribution & distribution) const;
 
       /**
-        Operator for folding this distributoin with a given @c distribution.
+        Operator for folding this distribution with a given @c distribution.
         @note Operator is unary, so result is stored in this
         object itself.
 
@@ -281,7 +281,7 @@ public:
       /**
         Sets a nominal mass for distribution.
 
-        @param nominalMass The new nominal mass for the distributoin.
+        @param nominalMass The new nominal mass for the distribution.
       */
       void setNominalMass(nominal_mass_type nominalMass)
       {

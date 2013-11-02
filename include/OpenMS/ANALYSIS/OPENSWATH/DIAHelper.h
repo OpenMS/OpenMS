@@ -71,11 +71,11 @@ namespace OpenMS
                               std::vector<std::pair<double, double> >& modmass, //!< [out]
                               double charge = 1.);
 
-    /// add negative preisotope weights to spectrum
+    /// add negative pre-isotope weights to spectrum
     OPENMS_DLLAPI void addPreisotopeWeights(const std::vector<double>& firstIsotopeMasses,
                               std::vector<std::pair<double, double> >& isotopeSpec, // output
-                              UInt nrpeaks = 2, //nr of preisotope peaks
-                              double preIsotopePeaksWeight = -0.5, // weight of preisotope peaks
+                              UInt nrpeaks = 2, //nr of pre-isotope peaks
+                              double preIsotopePeaksWeight = -0.5, // weight of pre-isotope peaks
                               double mannmass = 1.000482, //
                               double charge = 1.);
 

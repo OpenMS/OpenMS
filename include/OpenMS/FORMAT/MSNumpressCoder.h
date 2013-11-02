@@ -44,7 +44,7 @@ namespace OpenMS
   /**
     @brief Class to encode and decode data encoded with MSNumpress
 
-    MSNumpress supports three encoding schemas: 
+    MSNumpress supports three encoding schemata: 
       - Linear (MS:1002312, MS-Numpress linear prediction compression)
       - Pic (MS:1002313, MS-Numpress positive integer compression)
       - Slof (MS:1002314, MS-Numpress short logged float compression)

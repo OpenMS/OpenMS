@@ -156,7 +156,7 @@ namespace OpenMS
     @brief Serves as a wrapper for the libsvm
 
     This class can be used for svm predictions. You can either perform classification or regression and
-        choose certain kernel fuctions and additional parameters. Furthermore the models can be saved and
+        choose certain kernel functions and additional parameters. Furthermore the models can be saved and
         loaded and we support also a new kernel function that was specially designed for learning with
         small sequences of different lengths.
   */
@@ -277,7 +277,7 @@ public:
        DEGREE:       the degree for the polynomial- kernel and the
                      locality- improved kernel
 
-       SVM_TYPE:     the SVm type of the svm: can be NU_SVR or EPSILON_SVR
+       SVM_TYPE:     the SVM type of the svm: can be NU_SVR or EPSILON_SVR
     */
     Int getIntParameter(SVM_parameter_type type);
 
@@ -310,13 +310,13 @@ public:
                                        Size                                  number,
                                        std::vector<SVMData> & problems);
     /**
-      @brief You can merge partitions excuding the partition with index 'except'
+      @brief You can merge partitions excluding the partition with index 'except'
 
     */
     static svm_problem * mergePartitions(const std::vector<svm_problem *> & problems, Size except);
 
     /**
-      @brief You can merge partitions excuding the partition with index 'except'
+      @brief You can merge partitions excluding the partition with index 'except'
 
     */
     static void mergePartitions(const std::vector<SVMData> & problems,
@@ -357,9 +357,9 @@ public:
 
 
     /**
-          @brief Returns the probability parameter sigma of the fitted laplace model.
+          @brief Returns the probability parameter sigma of the fitted Laplace model.
 
-          The libsvm is used to fit a laplace model to the prediction values by performing
+          The libsvm is used to fit a Laplace model to the prediction values by performing
           an internal cv using the training set if setParameter(PROBABILITY, 1) was invoked
           before using train. Look for your libsvm documentation for more details.
           The model parameter sigma is returned by this method.	If no model was fitted during
@@ -436,7 +436,7 @@ public:
     void getDecisionValues(svm_problem * data, std::vector<DoubleReal> & decision_values);
 
     /**
-      @brief Scales the data such that every coloumn is scaled to [-1, 1].
+      @brief Scales the data such that every column is scaled to [-1, 1].
 
       Scales the x[][].value values of the svm_problem* structure. If the second
       parameter is omitted, the data is scaled to [-1, 1]. Otherwise the data is scaled to [0, max_scale_value]

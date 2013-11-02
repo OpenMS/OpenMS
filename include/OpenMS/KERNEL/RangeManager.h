@@ -40,7 +40,7 @@
 namespace OpenMS
 {
   /**
-    @brief Handles the managment of a position and intensity range.
+    @brief Handles the management of a position and intensity range.
 
     This is needed for all peak and feature container like Spectrum, MSExperiment and FeatureMap.
   */

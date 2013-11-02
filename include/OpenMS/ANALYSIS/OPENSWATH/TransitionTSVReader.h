@@ -111,7 +111,7 @@ private:
     /// read TSV input with columns in defined order
     void readTSVInput_(const char* filename, std::vector<TSVTransition>& transition_list);
 
-    /// determine separater in a CSV file and check for correct headers
+    /// determine separator in a CSV file and check for correct headers
     void getTSVHeader_(std::string & line, char & delimiter, std::vector<std::string> header, std::map<std::string, int> & header_dict);
 
     /// read tab or comma separated input with columns defined by their column headers only

@@ -81,7 +81,7 @@ namespace OpenSwath
   };
 
   /**
-  @brief compute dotprod of vecotrs
+  @brief compute dotprod of vectors
   */
   template <typename Texp, typename Ttheo>
   double dotProd(Texp intExpBeg, Texp intExpEnd, Ttheo intTheo)
@@ -128,7 +128,7 @@ namespace OpenSwath
 
 
 /**
-  @brief compute prearson correlation of vector x and y
+  @brief compute pearson correlation of vector x and y
 */
   template <typename TInputIterator, typename TInputIteratorY>
   typename std::iterator_traits<TInputIterator>::value_type cor_pearson(

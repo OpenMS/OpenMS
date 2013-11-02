@@ -108,7 +108,7 @@ public:
 
       @param filename The file name of the file to load.
       @param exp The experiment to load the data into.
-      @param force_type Forces to load the file with that file type. If no type is forced, it is determined from the extention ( or from the content if that fails).
+      @param force_type Forces to load the file with that file type. If no type is forced, it is determined from the extension (or from the content if that fails).
       @param log Progress logging mode
       @param compute_hash Computes a hash value for the loaded file and stores it in the SourceFile
 
@@ -314,7 +314,7 @@ public:
 
       @param filename the file name of the file to load.
       @param map The FeatureMap to load the data into.
-      @param force_type Forces to load the file with that file type. If no type is forced, it is determined from the extention (or from the content if that fails).
+      @param force_type Forces to load the file with that file type. If no type is forced, it is determined from the extension (or from the content if that fails).
 
       @return true if the file could be loaded, false otherwise
 

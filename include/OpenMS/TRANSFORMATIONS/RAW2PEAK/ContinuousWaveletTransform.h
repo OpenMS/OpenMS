@@ -137,7 +137,7 @@ public:
       spacing_ = spacing;
     }
 
-    /// Non-mutable access to the position where the signal starts (in the intervall [0,end_left_padding_) are the padded zeros)
+    /// Non-mutable access to the position where the signal starts (in the interval [0,end_left_padding_) are the padded zeros)
     inline SignedSize getLeftPaddingIndex() const
     {
       return end_left_padding_;
@@ -155,7 +155,7 @@ public:
       end_left_padding_ = end_left_padding;
     }
 
-    /// Non-mutable access to the position where the signal ends (in the intervall (begin_right_padding_,end] are the padded zeros)
+    /// Non-mutable access to the position where the signal ends (in the interval (begin_right_padding_,end] are the padded zeros)
     inline SignedSize getRightPaddingIndex() const
     {
       return begin_right_padding_;
@@ -218,7 +218,7 @@ protected:
     /// The transformed signal
     std::vector<Peak1D> signal_;
 
-    /// The pretabulated wavelet used for the transform
+    /// The pre-tabulated wavelet used for the transform
     std::vector<double> wavelet_;
 
     /// Spacing and scale of the wavelet and length of the signal.

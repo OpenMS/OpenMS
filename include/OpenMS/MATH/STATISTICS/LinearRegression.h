@@ -51,7 +51,7 @@ namespace OpenMS
     /**
             @brief This class offers functions to perform least-squares fits to a straight line model, \f$ Y(c,x) = c_0 + c_1 x \f$.
 
-            It capsulates the GSL methods for a weighted and an unweighted linear regression.
+            It encapsulates the GSL methods for a weighted and an unweighted linear regression.
 
             Next to the intercept with the y-axis and the slope of the fitted line, this class computes the:
             - squared pearson coefficient
@@ -104,7 +104,7 @@ public:
           For example the 95% Confidence Interval is supposed to be an interval that has a 95% chance of
           containing the true value of the parameter.
 
-          @return If an error occured during the fit.
+          @return If an error occurred during the fit.
 
           @exception Exception::UnableToFit is thrown if fitting cannot be performed
       */
@@ -122,7 +122,7 @@ public:
           For example the 95% Confidence Interval is supposed to be an interval that has a 95% chance of
           containing the true value of the parameter.
 
-          @return If an error occured during the fit.
+          @return If an error occurred during the fit.
 
           @exception Exception::UnableToFit is thrown if fitting cannot be performed
       */
@@ -141,7 +141,7 @@ public:
           For example the 95% Confidence Interval is supposed to be an interval that has a 95% chance of
           containing the true value of the parameter.
 
-          @return If an error occured during the fit.
+          @return If an error occurred during the fit.
 
           @exception Exception::UnableToFit is thrown if fitting cannot be performed
       */
@@ -171,7 +171,7 @@ public:
       DoubleReal getStandErrSlope() const;
       /// Non-mutable access to the chi squared value
       DoubleReal getChiSquared() const;
-      /// Non-mutable access to relelative standard deviation
+      /// Non-mutable access to relative standard deviation
       DoubleReal getRSD() const;
 
 protected:
@@ -182,9 +182,9 @@ protected:
       double slope_;
       /// The intercept of the fitted line with the x-axis
       double x_intercept_;
-      /// The lower bound of the confidence intervall
+      /// The lower bound of the confidence interval
       double lower_;
-      /// The upper bound of the confidence intervall
+      /// The upper bound of the confidence interval
       double upper_;
       /// The value of the t-statistic
       double t_star_;

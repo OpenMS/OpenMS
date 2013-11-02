@@ -40,7 +40,7 @@
 namespace OpenMS
 {
 /**
-@brief EdwardsLippertIterator that only retrieves tryptic seqences
+@brief EdwardsLippertIterator that only retrieves tryptic sequences
 */
   class OPENMS_DLLAPI EdwardsLippertIteratorTryptic :
     public EdwardsLippertIterator
@@ -77,7 +77,7 @@ public:
 
     /**
     @brief needed by Factory
-    @return poiter to new object
+    @return pointer to new object
     */
     static PepIterator * create()
     {

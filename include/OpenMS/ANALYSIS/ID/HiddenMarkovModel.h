@@ -127,7 +127,7 @@ protected:
   /**
     @brief  Hidden Markov Model implementation of PILIS
 
-                      Hidden Markov Model implementation suitable for forward conncected HMMs.
+                      Hidden Markov Model implementation suitable for forward connected HMMs.
                       The HMM is mostly used within PILIS. For further details have a look at
                       the docs of PILIS.
   */
@@ -203,7 +203,7 @@ public:
     /// enables a transition; adds s1 to the predecessor list of s2 and s2 to the successor list of s1
     void enableTransition(const String & s1, const String & s2);
 
-    /// disables the transition; deletes the nodes from the predeccessor/successor list repsectively
+    /// disables the transition; deletes the nodes from the predecessor/successor list respectively
     void disableTransition(const String & s1, const String & s2);
 
     /// disables all transitions
@@ -244,7 +244,7 @@ public:
 
 protected:
 
-    /// disables the transition; deletes the nodes from the predeccessor/successor list repsectively
+    /// disables the transition; deletes the nodes from the predecessor/successor list respectively
     void disableTransition_(HMMState * s1, HMMState * s2);
 
     /// enables a transition; adds s1 to the predecessor list of s2 and s2 to the successor list of s1

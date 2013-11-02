@@ -206,7 +206,7 @@ protected:
         }
       }
 
-      /// data processing auxilary variable
+      /// data processing auxiliary variable
       std::vector<DataProcessing> data_processing_;
 
 private:
@@ -391,7 +391,7 @@ private:
         logger_.startProgress(0, count, "loading mzXML file");
         scan_count = 0;
         data_processing_.clear();
-        //start and end time are xs:duration. This makes no senes => ignore them
+        //start and end time are xs:duration. This makes no sense => ignore them
       }
       else if (tag == "parentFile")
       {
@@ -829,7 +829,7 @@ private:
     }
 
     template <typename MapType>
-    void MzXMLHandler<MapType>::characters(const XMLCh* const chars, const XMLSize_t /*length*/)
+    void MzXMLHandler<MapType>::characters(const XMLCh* const chars, const XMLSize_t length)
     {
       //Abort if this spectrum should be skipped
       if (skip_spectrum_)
@@ -840,8 +840,18 @@ private:
         //chars may be split to several chunks => concatenate them
         if (options_.getFillData()) 
         {
-          char* transcoded_chars = sm_.convert(chars);
-          char_rest_ += transcoded_chars;
+          // XMLCh are characters in UTF16 (usually stored as 16bit unsigned
+          // short but this is not guaranteed).
+          // We know that the Base64 string here can only contain plain ASCII
+          // and all bytes except the least significant one will be zero. Thus
+          // we can convert to char directly (only keeping the least
+          // significant byte).
+          int curr_size = char_rest_.size();
+          char_rest_.resize( curr_size + length);
+          for (size_t i = 0; i < length; i++) 
+          {
+            char_rest_[curr_size + i] = (char)chars[i];
+          }
         }
       }
       else if (open_tags_.back() == "offset" || open_tags_.back() == "indexOffset" || open_tags_.back() == "sha1")

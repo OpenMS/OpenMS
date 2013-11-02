@@ -74,7 +74,7 @@ public:
     /**
         @brief sets date from a string
 
-        Reads both english, german and iso/ansi date formats: 'MM/dd/yyyy', 'dd.MM.yyyy' or 'yyyy-MM-dd'
+        Reads both English, German and iso/ansi date formats: 'MM/dd/yyyy', 'dd.MM.yyyy' or 'yyyy-MM-dd'
 
         @exception Exception::ParseError
     */

@@ -90,7 +90,7 @@ private:
     /**
         @brief innerclass necessary for using the sort algo.
 
-        Defines serveral overloaded operator() for using the std::sort  algorithm
+        Defines several overloaded operator() for using the std::sort  algorithm
 
         @experimental This algorithm is work in progress and might change.
 
@@ -108,7 +108,7 @@ public:
       {
       }
 
-      ///overloaded operator() for comparing maps of maps std::pair<std::pair<Int,Real>,Real>. If flag is false the second argument of the outer map is selected. The output is an ascending order. If the order flag is true, the first argument of the inner class is selected to get a descending oder.
+      ///overloaded operator() for comparing maps of maps std::pair<std::pair<Int,Real>,Real>. If flag is false the second argument of the outer map is selected. The output is an ascending order. If the order flag is true, the first argument of the inner class is selected to get a descending order.
       inline bool operator()(const std::pair<std::pair<Int, Real>, Real> & c1, const std::pair<std::pair<Int, Real>, Real> & c2)
       {
         if (!flag)
@@ -142,8 +142,8 @@ public:
         This function takes two arguments. These argument types are two MSExperiments.
         The first argument should have been filtered, so that only the type of MSLevel 1 exists in the Sequence.
         The second argument doesn't have to fulfill this restriction. It's going to be filtered automatically.
-        With these two arguments a precalculation is done to find some corresponding data points(maximum 4) for building alignment blocks.
-        After the alignment a retransformation is done, the new Retention Times appear in the original data.
+        With these two arguments a pre-calculation is done to find some corresponding data points(maximum 4) for building alignment blocks.
+        After the alignment a re-transformation is done, the new Retention Times appear in the original data.
 
       The parameters are MSExperiments.
         @param pattern template map.
@@ -185,7 +185,7 @@ public:
 
         The function returns true if the cell underlie these conditions:
         -k<=i-j<=k+n-m
-        else retun false.
+        else return false.
         @param i coordinate i
         @param j coordinate j
         @param n size of column
@@ -212,9 +212,9 @@ public:
     Int bestk_(const std::vector<MSSpectrum<> *> & pattern, std::vector<MSSpectrum<> *> & aligned, std::map<Size, std::map<Size, Real> > & buffer, bool column_row_orientation, Size xbegin, Size xend, Size ybegin, Size yend);
 
     /**
-        @brief calculate the score of two given MSSpectrums calls intern scoring_
+        @brief calculate the score of two given MSSpectra calls intern scoring_
 
-        This function calculates the score from two MSSpectrums. These two MSSpectrums are chosen by the coordinates i,j.
+        This function calculates the score from two MSSpectra. These two MSSpectra are chosen by the coordinates i,j.
         I,j indicate the index in the matrix. To find the right index on the sequence, each beginning is also given to the function.
         A flag indicates the labeling of the axes. The buffermatrix stores the result of the scoring. If the band expands only a lookup of known scores is done.
 
@@ -230,7 +230,7 @@ public:
     Real scoreCalculation_(Size i, Size j, Size patternbegin, Size alignbegin, const std::vector<MSSpectrum<> *> & pattern, std::vector<MSSpectrum<> *> & aligned, std::map<Size, std::map<Size, Real> > & buffer, bool column_row_orientation);
 
     /**
-        @brief return the score of two given MSSpectrums by calling the scorefunction
+        @brief return the score of two given MSSpectra by calling the scorefunction
     */
     Real scoring_(const MSSpectrum<> & a, MSSpectrum<> & b);
 
@@ -244,15 +244,15 @@ public:
         The first sequence is used as a template for the alignment.
 
 
-        @param xbegin cordinate for the beginning of the template sequence.
-        @param ybegin cordinate for the beginning of the aligend sequence .
-        @param xend cordinate for the end of the template sequence.
-        @param yend cordinate for the end of the aligend sequence.
+        @param xbegin coordinate for the beginning of the template sequence.
+        @param ybegin coordinate for the beginning of the aligned sequence .
+        @param xend coordinate for the end of the template sequence.
+        @param yend coordinate for the end of the aligned sequence.
         @param pattern template map.
         @param aligned map to be aligned.
-        @param xcoordinate save the postion of ankerpoints
-    @param ycoordinate save the retentiontimes of an ankerpoints
-    @param xcoordinatepattern save the reference position of the ankerpoints from the pattern
+        @param xcoordinate save the position of anchor points
+        @param ycoordinate save the retentiontimes of an anchor points
+        @param xcoordinatepattern save the reference position of the anchor points from the pattern
 
         @exception Exception::OutOfRange if a out of bound appear @p pattern or @p aligned
     */
@@ -276,7 +276,7 @@ public:
     /**
         @brief Creates files for the debugging
 
-        This function is only active if the debugflag ist true. The debugfileCreator creates following files debugtraceback.txt(gnuplotScript), debugscoreheatmap.r and debugRscript. Debugscoreheatmap.r contains the scores of the Spectra to each other from the alignment and also the traceback. DebugRscript is the R script which reads those data. So both files are only working under R. Start R and type main(location of debugscoreheatmap.r). The output will be a heatmap of each sub-alignment. Debugtraceback.txt shows the way of the Traceback by using gnuplot.
+        This function is only active if the debugflag is true. The debugfileCreator creates following files debugtraceback.txt(gnuplotScript), debugscoreheatmap.r and debugRscript. Debugscoreheatmap.r contains the scores of the Spectra to each other from the alignment and also the traceback. DebugRscript is the R script which reads those data. So both files are only working under R. Start R and type main(location of debugscoreheatmap.r). The output will be a heatmap of each sub-alignment. Debugtraceback.txt shows the way of the Traceback by using gnuplot.
 
         @param pattern template map.
         @param aligned map to be aligned.
@@ -291,32 +291,32 @@ public:
     void eraseFloatDataArrayEntry_(std::vector<MSSpectrum<> *> & spectrum_pointer_container);
 
     /**
-        @brief Rounding the score of two spectras, only necessary for debugging
+        @brief Rounding the score of two spectra, only necessary for debugging
 
-        This function rounded the score of two spectras.This is necessary for some function in the Debug-Mode
+        This function rounded the score of two spectra. This is necessary for some function in the Debug-Mode
     */
     void debugscoreDistributionCalculation_(Real score);
-    ///Represent the gap cost for opening o closing a gap in the alignment
+    ///Represent the gap cost for opening or closing a gap in the alignment
     Real gap_;
-    ///Extension cost after a gap ist open
+    ///Extension cost after a gap is open
     Real e_;
-    ///Pointer holds the scoringfunction, which can be selected
+    ///Pointer holds the scoring function, which can be selected
     PeakSpectrumCompareFunctor * c1_;
     ///This is the minimal score to be count as a mismatch(range 0.0 - 1.0)
     Real cutoffScore_;
     ///Defines the size of one bucket
     Size bucketsize_;
-    ///Defines the amount of ankerpoints which are selected within one bucket.
+    ///Defines the amount of anchor points which are selected within one bucket.
     Size anchorPoints_;
     ///Debug mode flag default: False
     bool debug_;
-    ///Represent the cost of a mismath in the alignment
+    ///Represent the cost of a mismatch in the alignment
     Real mismatchscore_;
     ///This is the minimum score for counting as a match(1-cutoffScore_)
     Real threshold_;
     ///Container holding the score of the matchmatrix and also the insertmatrix
     std::vector<std::vector<Real> > debugmatrix_;
-    ///Container holding the only the score of Spectrums
+    ///Container holding the only the score of Spectra
     std::vector<std::vector<Real> > debugscorematrix_;
     ///Container holding the path of the traceback
     std::vector<std::pair<Real, Real> > debugtraceback_;
@@ -325,8 +325,6 @@ public:
     //docu in base class
     void updateMembers_();
   };
-
-
 
 } // namespace OpenMS
 

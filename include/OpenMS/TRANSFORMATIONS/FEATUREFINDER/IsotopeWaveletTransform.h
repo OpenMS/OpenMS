@@ -257,7 +257,7 @@ protected:
         * @param candidates A isotope wavelet transformed spectrum. Entry "number i" in this vector must correspond to the
         * charge-"(i-1)"-transform of its mass signal. (This is exactly the output of the function @see getTransforms.)
         * @param ref The reference scan (the untransformed raw data) corresponding to @p candidates.
-        * @param c The corrsponding charge state minus 1 (e.g. c=2 means charge state 3)
+        * @param c The corresponding charge state minus 1 (e.g. c=2 means charge state 3)
         * @param scan_index The index of the scan (w.r.t. to some map) currently under consideration.
         * @param ampl_cutoff The thresholding parameter. This parameter is the only (and hence a really important)
         * parameter of the isotope wavelet transform. On the basis of @p ampl_cutoff the program tries to distinguish between
@@ -290,7 +290,7 @@ protected:
     /** @brief Essentially the same as its namesake CPU-version, but on a CUDA compatible GPU device.
 * @param candidates A isotope wavelet transformed spectrum. Entry "number i" in this vector must correspond to the
     * charge-"(i-1)"-transform of its mass signal. (This is exactly the output of the function @see getTransforms.)
-    * @param c The corrsponding charge state minus 1 (e.g. c=2 means charge state 3)
+    * @param c The corresponding charge state minus 1 (e.g. c=2 means charge state 3)
     * @param scan_index The index of the scan (w.r.t. to some map) currently under consideration.
     * @param ampl_cutoff The thresholding parameter. This parameter is the only (and hence a really important)
     * parameter of the isotope wavelet transform. On the basis of @p ampl_cutoff the program tries to distinguish between

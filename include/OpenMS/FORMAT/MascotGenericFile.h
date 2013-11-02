@@ -129,7 +129,7 @@ public:
 
           for (Size i = 0; i < spec.size(); ++i)
           {
-            p.setPosition(spec[i].first.toDouble()); // toDouble() is expensive (nothing can be done about this - boost::lexical_cast does not help), thats why we do it in threads
+            p.setPosition(spec[i].first.toDouble()); // toDouble() is expensive (nothing can be done about this - boost::lexical_cast does not help), that's why we do it in threads
             p.setIntensity(spec[i].second.toDouble());
             spectrum[i] = p;
           }

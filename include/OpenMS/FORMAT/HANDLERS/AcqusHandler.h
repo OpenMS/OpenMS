@@ -54,7 +54,7 @@ namespace OpenMS
     {
 public:
       /**
-              @brief Contructor with filename.
+              @brief Constructor with filename.
 
         Open acqus File as stream and import params.
 

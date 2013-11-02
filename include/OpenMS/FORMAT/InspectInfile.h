@@ -168,7 +168,7 @@ private:
 
     Real maxptmsize_;         ///< For blind search, specifies the maximum modification size (in Da) to consider. Defaults to 200. Larger values require more time to search. <0 is not set
 
-    Real precursor_mass_tolerance_;         ///< Specifies the parent mass tolerance, in Daltons. A candidate's flanking mass can differ from the tag's flanking mass by no more than ths amount. <0 is not set
+    Real precursor_mass_tolerance_;         ///< Specifies the parent mass tolerance, in Daltons. A candidate's flanking mass can differ from the tag's flanking mass by no more than this amount. <0 is not set
 
     Real peak_mass_tolerance_;         ///< How far b and y peaks can be shifted from their expected masses. Default is 0.5. Higher values produce a more sensitive but much slower search. <0 is not set
 

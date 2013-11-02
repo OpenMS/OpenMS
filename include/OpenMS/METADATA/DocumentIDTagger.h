@@ -61,7 +61,7 @@ private:
     /**
         @brief retrieve an ID from the pool
 
-        Uses boost filelocks to safely retrieve an ID from an ID pool.
+        Uses boost file locks to safely retrieve an ID from an ID pool.
 
         @param id Unique identifier returned from ID pool
         @param free Number of available identifiers in ID pool (before this query)
@@ -107,7 +107,7 @@ public:
         Returns true if ID could be assigned, otherwise an Exception::DepletedIDPool is thrown
 
         @param map Some class (derived from a DocumentIdentifier class) which needs a unique id
-        @exception Exception::DepletedIDPool when no identifier (for whatever reason) could be aquired
+        @exception Exception::DepletedIDPool when no identifier (for whatever reason) could be acquired
     */
     bool tag(DocumentIdentifier & map) const;
 

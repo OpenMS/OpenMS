@@ -75,31 +75,31 @@ public:
     virtual ~PeakIntensityPredictor();
     //@}
 
-    ///Returns predicted peak heights (intensites) of a single peptide
+    ///Returns predicted peak heights (intensities) of a single peptide
     DoubleReal predict(const AASequence & sequence);
 
     /**
-  @brief Returns predicted peak heights (intensites) of a single peptide
+      @brief Returns predicted peak heights (intensities) of a single peptide
 
-  Some additional information is returned in @p add_info :
-  - 0: x coordinates of associated cluster (first column)
-  - 1: y coordinates of associated cluster (2nd column)
-  - 2: error (RMSE) of the peptide to the associated next prototype (cluster center)
-*/
+      Some additional information is returned in @p add_info :
+      - 0: x coordinates of associated cluster (first column)
+      - 1: y coordinates of associated cluster (2nd column)
+      - 2: error (RMSE) of the peptide to the associated next prototype (cluster center)
+    */
     DoubleReal predict(const AASequence & sequence, std::vector<DoubleReal> & add_info);
 
-    ///Returns predicted peak heights (intensites) of several peptides
+    ///Returns predicted peak heights (intensities) of several peptides
     std::vector<DoubleReal> predict(const std::vector<AASequence> & sequences);
 
     /**
-  @brief Returns predicted peak heights (intensites) of several peptides
+      @brief Returns predicted peak heights (intensities) of several peptides
 
-  Some additional information foreach peptide is returned in @p add_info .
-  For each peptide a row with the following components is returned:
-  - 0: x coordinates of associated cluster (first column)
-  - 1: y coordinates of associated cluster (2nd column)
-  - 2: error (RMSE) of the peptide to the associated next prototype (cluster center)
-*/
+      Some additional information for each peptide is returned in @p add_info .
+      For each peptide a row with the following components is returned:
+      - 0: x coordinates of associated cluster (first column)
+      - 1: y coordinates of associated cluster (2nd column)
+      - 2: error (RMSE) of the peptide to the associated next prototype (cluster center)
+    */
     std::vector<DoubleReal> predict(const std::vector<AASequence> & sequences, std::vector<std::vector<DoubleReal> > & add_info);
 
 private:
@@ -141,9 +141,9 @@ private:
     /// Local Linear %Map model
     LocalLinearMap llm_;
 
-    /// copy constructor not impemented => private
+    /// copy constructor not implemented => private
     PeakIntensityPredictor(const PeakIntensityPredictor & llmModel);
-    /// assignment operator not impemented => private
+    /// assignment operator not implemented => private
     PeakIntensityPredictor & operator=(const PeakIntensityPredictor & peakIntensityPredictor);
 
   };

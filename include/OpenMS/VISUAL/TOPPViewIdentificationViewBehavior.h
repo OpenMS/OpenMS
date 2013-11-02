@@ -76,7 +76,7 @@ public:
     TOPPViewIdentificationViewBehavior(TOPPViewBase * parent);
 
 public slots:
-    /// Behavior for showSpectraumAs1D
+    /// Behavior for showSpectrumAs1D
     virtual void showSpectrumAs1D(int index);
 
     /// Behavior for activate1DSpectrum
@@ -111,7 +111,7 @@ private:
 
 private:
     TOPPViewBase * tv_;
-    /// Used to check which annotation handles have been added automaticaly by the identification view. Ownership
+    /// Used to check which annotation handles have been added automatically by the identification view. Ownership
     /// of the AnnotationItems has the Annotation1DContainer
     std::vector<Annotation1DItem *> temporary_annotations_;
   };

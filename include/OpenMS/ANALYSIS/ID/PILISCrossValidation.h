@@ -47,7 +47,7 @@ namespace OpenMS
   class PILISModel;
 
 
-  /** @brief Implementation of a cross valdidation training for the PILIS model
+  /** @brief Implementation of a cross validation training for the PILIS model
 
     This class serves as an implementation of a cross validation training for
     the PILIS model. It includes a range of parameters which can be set to
@@ -218,7 +218,7 @@ public:
     /// copy constructor
     PILISCrossValidation(const PILISCrossValidation & rhs);
 
-    /// desctructor
+    /// destructor
     virtual ~PILISCrossValidation();
 
     /// assignment operator

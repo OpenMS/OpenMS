@@ -73,7 +73,7 @@ namespace OpenMS
     @brief This class provides the two-dimensional optimization of the picked peak parameters.
 
     Given the picked peaks, this class optimizes the peak parameters of each isotope pattern using
-    a non-linear optimization. The peaks of adjacent scans are adjusted to achieve that a peak occuring in
+    a non-linear optimization. The peaks of adjacent scans are adjusted to achieve that a peak occurring in
     several scans has always the same m/z position. For the optimization the Levenberg-Marquardt algorithm
     provided from the GSL is used. The optimized parameters are the m/z values,
     the left and right width, which shall be equal for a peak in all scans,
@@ -168,7 +168,7 @@ public:
         - peakShape (index:5)
 
         @param first begin of the raw data spectra iterator range
-        @param last end of the raw data spectra interator range
+        @param last end of the raw data spectra iterator range
         @param ms_exp peak map corresponding to the raw data in the range from @p first to @p last
         @param real2D flag if the optimization should be two dimensional or on each scan separately
         @exception Exception::IllegalArgument is thrown if required meta information from peak picking is missing (area, shape, left width, right width) or if the input data is invalid in some other way
@@ -387,7 +387,7 @@ protected:
             if (!iso_last_scan.empty()) // Did we find any isotopic cluster in the last scan?
             {
               std::sort(iso_last_scan.begin(), iso_last_scan.end());
-              // there were some isotopic clustures in the last scan...
+              // there were some isotopic clusters in the last scan...
               std::vector<DoubleReal>::iterator it =
                 searchInScan_(iso_last_scan.begin(), iso_last_scan.end(), curr_mz);
 
@@ -474,7 +474,7 @@ protected:
               cluster_iter->second.peaks.insert(std::pair<UInt, UInt>(curr_scan, curr_peak + 1)); // save peak in cluster
               iso_curr_scan.push_back((peak_it + curr_peak + 1)->getMZ());
               clusters_curr_scan.push_back(cluster_iter);
-              // std::cout << "new enter'd: "<<(peak_it+curr_peak+1)->getMZ()<<" im while"<<std::endl;
+              // std::cout << "new entered: "<<(peak_it+curr_peak+1)->getMZ()<<" im while"<<std::endl;
               ++curr_peak;
               if (curr_peak >= nr_peaks_in_scan - 1)
                 break;

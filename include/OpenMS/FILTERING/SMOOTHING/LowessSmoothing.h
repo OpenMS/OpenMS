@@ -45,7 +45,7 @@ namespace OpenMS
 
     A smoothing technique that fits simple models (linear, quadratic) to localized subsets of the data, point by point.
     This is particularly useful for smoothing intensities in spectra or chromatograms. In this case, the window size for the smoothing
-    should be setted proportional to the peak width (see LowessSmoothing parameters).
+    should be set proportional to the peak width (see LowessSmoothing parameters).
 
     @htmlinclude OpenMS_LowessSmoothing.parameters
 

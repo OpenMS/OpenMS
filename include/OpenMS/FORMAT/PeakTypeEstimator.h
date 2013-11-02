@@ -53,7 +53,7 @@ public:
     /**
         @brief Estimates the peak type of the peaks in the iterator range based on the variance of inter-peak distances
 
-        @note if there are fewer than 5 peaks in the iterator range SpectrumSettings::UNKOWN is returned
+        @note if there are fewer than 5 peaks in the iterator range SpectrumSettings::UNKNOWN is returned
        */
     template <typename PeakConstIterator>
     SpectrumSettings::SpectrumType estimateType(const PeakConstIterator & begin, const PeakConstIterator & end) const

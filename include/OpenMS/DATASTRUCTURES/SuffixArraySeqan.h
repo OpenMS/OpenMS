@@ -72,7 +72,7 @@ public:
     @brief constructor
     @param st const string reference with the string for which the suffix array should be build
     @param filename const string reference with filename for opening or saving the suffix array
-    @param weight_mode if not monoistopic weight should be used, this parameters can be set to AVERAGE
+    @param weight_mode if not monoisotopic weight should be used, this parameters can be set to AVERAGE
     @throw FileNotFound is thrown if the given file is not found
     @throw InvalidValue if the given suffix array string is invalid
     */
@@ -99,14 +99,18 @@ public:
     @param candidates output parameters which holds the candidates of the masses given in spec after call
     @return a vector of SignedSize pairs.
 
-    for every mass within the spectrum all candidates described by as pairs of ints are returned. All masses are searched for the same time in just one suffix array traversal. In order to accelerate the traversal the skip and lcp table are used. The mass wont be calculated for each entry but it will be updated during traversal using a stack datastructure
+    For every mass within the spectrum all candidates described by as pairs of
+    ints are returned. All masses are searched for the same time in just one
+    suffix array traversal. In order to accelerate the traversal the skip and
+    lcp table are used. The mass wont be calculated for each entry but it will
+    be updated during traversal using a stack data structure
     */
     void findSpec(std::vector<std::vector<std::pair<std::pair<SignedSize, SignedSize>, DoubleReal> > > & candidates, const std::vector<DoubleReal> & spec);
 
     /**
     @brief saves the suffix array to disc
     @param filename const reference string describing the filename
-    @return bool if operation was succesful
+    @return bool if operation was successful
     @throw UnableToCreateFile is thrown if the output files could not be created
     */
     bool save(const String & filename);
@@ -115,7 +119,7 @@ public:
     @brief opens the suffix array
 
     @param filename const reference string describing the filename
-    @return bool if operation was succesful
+    @return bool if operation was successful
     @throw FileNotFound is thrown if the given file could not be found
     */
     bool open(const String & filename);
@@ -135,9 +139,9 @@ public:
 
     /**
     @brief returns if an enzyme will cut after first character
-    @param aa1 const char as first aminoacid
-    @param aa2 const char as second aminoacid
-    @return bool descibing if it is a digesting site
+    @param aa1 const char as first amino acid
+    @param aa2 const char as second amino acid
+    @return bool describing if it is a digesting site
     */
     bool isDigestingEnd(const char aa1, const char aa2) const;
 
@@ -190,7 +194,7 @@ protected:
     @param it reference to the suffix array iterator
     @param m reference to actual mass
     @param allm reference to the stack with history of traversal
-    @param mod_map input parameters which specifies the modification massen allowed in the candidates
+    @param mod_map input parameters which specifies the modification masses allowed in the candidates
 
     @see goNext
     */
@@ -341,19 +345,21 @@ protected:
     @brief binary search for finding the index of the first element of the spectrum that matches the desired mass within the tolerance.
     @param spec const reference to spectrum
     @param m mass
-    @return SignedSize with the index of the first occurence
-    @note requires that there is at least one occurence
+    @return SignedSize with the index of the first occurrence
+    @note requires that there is at least one occurrence
     */
     SignedSize findFirst_(const std::vector<DoubleReal> & spec, DoubleReal & m);
 
     /**
-    @brief binary search for finding the index of the first element of the spectrum that matches the desired mass within the tolerance. it searches recursivly.
+    @brief binary search for finding the index of the first element of the
+    spectrum that matches the desired mass within the tolerance. It searches
+    recursively.
     @param spec const reference to spectrum
     @param m mass
     @param start start index
     @param end end index
-    @return SignedSize with the index of the first occurence
-    @note requires that there is at least one occurence
+    @return SignedSize with the index of the first occurrence
+    @note requires that there is at least one occurrence
     */
     SignedSize findFirst_(const std::vector<DoubleReal> & spec, DoubleReal & m, SignedSize start, SignedSize  end);
 

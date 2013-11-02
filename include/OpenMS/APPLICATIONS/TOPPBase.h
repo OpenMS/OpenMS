@@ -247,11 +247,11 @@ private:
     /**
       @brief This method should return the default parameters for subsections.
 
-      It is called once for each registered subsection, when writing the an example ini file.
+      It is called once for each registered subsection, when writing the example ini file.
 
       Reimplement this method to set the defaults written in the 'write_ini' method.
 
-      @note Make sure to set the 'advanced' flag of the parameters right in order to hide certain parameters from unexperienced users.
+      @note Make sure to set the 'advanced' flag of the parameters right in order to hide certain parameters from inexperienced users.
     */
     virtual Param getSubsectionDefaults_(const String& section) const;
 
@@ -798,7 +798,7 @@ protected:
     void inputFileReadable_(const String& filename, const String& param_name) const;
 
     /**
-      @brief Checks if an output file is writeable
+      @brief Checks if an output file is writable
 
       The @em filename is a URI to the file to be written and @em param_name gives the name of the parameter
       , e.g. "out" which specified the filename (this is useful for error messages when the file cannot be written, so the
@@ -819,7 +819,7 @@ protected:
     ///Type of progress logging
     ProgressLogger::LogType log_type_;
 
-    ///@name Data processing auxilary functions
+    ///@name Data processing auxiliary functions
     //@{
 
     ///Data processing setter for consensus maps
@@ -848,10 +848,10 @@ protected:
       map.setChromatograms(chromatograms);
     }
 
-    ///Returns the the data processing information
+    ///Returns the data processing information
     DataProcessing getProcessingInfo_(DataProcessing::ProcessingAction action) const;
 
-    ///Returns the the data processing information
+    ///Returns the data processing information
     DataProcessing getProcessingInfo_(const std::set<DataProcessing::ProcessingAction>& actions) const;
 
     //@}

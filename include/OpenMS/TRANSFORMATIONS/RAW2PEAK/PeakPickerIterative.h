@@ -345,7 +345,7 @@ public:
         snt.init(input);
       }
 
-      // The peak candidates are recentered and the width is computed for each peak
+      // The peak candidates are re-centered and the width is computed for each peak
       for (int i = 0; i < nr_iterations_; i++)
       {
         _pick_recenter_peaks(input, PeakCandidates, snt);

@@ -52,7 +52,7 @@ namespace OpenMS
   /**
       @brief MetaInfoVisualizer is a visualizer class for all classes that use one MetaInfo object as member.
 
-      Meta information is an array of Type-Name-Value tupels. Classes that have a MetaInfo objects as a member can use this class to edit the MetaInfo object.
+      Meta information is an array of Type-Name-Value tuples. Classes that have a MetaInfo objects as a member can use this class to edit the MetaInfo object.
   */
   class OPENMS_GUI_DLLAPI MetaInfoVisualizer :
     public BaseVisualizerGUI,

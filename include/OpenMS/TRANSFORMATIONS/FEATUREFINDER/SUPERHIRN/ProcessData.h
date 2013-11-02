@@ -123,7 +123,7 @@ public:
 
   static std::map<int, float> scan_TR_index;
 
-  // to track detected monoistopic mass for debugging:
+  // to track detected monoisotopic mass for debugging:
   static bool MonoIsoDebugging;
   static double DebugMonoIsoMassMin;
   static double DebugMonoIsoMassMax;

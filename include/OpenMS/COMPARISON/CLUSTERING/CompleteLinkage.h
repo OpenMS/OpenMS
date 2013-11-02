@@ -79,7 +79,7 @@ public:
     @param cluster_tree vector< BinaryTreeNode >, represents the clustering, each node contains the next merged clusters (not element indices) and their distance, strict order is kept: left_child < right_child
     @param threshold Real value, the minimal distance from which on cluster merging is considered unrealistic. By default set to 1, i.e. complete clustering until only one cluster remains
     @throw ClusterFunctor::InsufficientInput thrown if input is <2
-        The clustering method is complete linkage, where the updated distances after merging two clusters are each the maximal distance between the elements of their clusters. After @p theshold is exceeded, @p cluster_tree is filled with dummy clusteringsteps (children: (0,1), distance:-1) to the root.
+        The clustering method is complete linkage, where the updated distances after merging two clusters are each the maximal distance between the elements of their clusters. After @p threshold is exceeded, @p cluster_tree is filled with dummy clusteringsteps (children: (0,1), distance:-1) to the root.
     @see ClusterFunctor , BinaryTreeNode
     */
     void operator()(DistanceMatrix<Real> & original_distance, std::vector<BinaryTreeNode> & cluster_tree, const Real threshold = 1) const;

@@ -94,7 +94,7 @@ public:
     virtual const String& getName() const = 0;
 
     /**
-      @brief Returns information on the different channels used by the qunatitation method.
+      @brief Returns information on the different channels used by the quantitation method.
 
       @return A st::vector containing the channel information for this quantitation method.
     */

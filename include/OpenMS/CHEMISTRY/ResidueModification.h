@@ -181,10 +181,10 @@ public:
     /// returns the terminal specificity name which is set or given as parameter
     String getTermSpecificityName(Term_Specificity = NUMBER_OF_TERM_SPECIFICITY) const;
 
-    ///sets the origin (ie amino acid)
+    ///sets the origin (i.e. amino acid)
     void setOrigin(const String & origin);
 
-    /// returns the origin (ie amino acid) if set
+    /// returns the origin (i.e. amino acid) if set
     const String & getOrigin() const;
 
     /// classification as defined by the PSI-MOD

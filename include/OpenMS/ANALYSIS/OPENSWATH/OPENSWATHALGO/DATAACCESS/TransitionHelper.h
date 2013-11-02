@@ -54,6 +54,7 @@ namespace OpenSwath
                                  std::vector<OpenSwath::LightTransition> >& transmap);
 
 
+    // TODO : remove and explain German comments
     // spiegel
     static bool findPeptide(const LightTargetedExperiment& lte,
                             const std::string& peptideRef,

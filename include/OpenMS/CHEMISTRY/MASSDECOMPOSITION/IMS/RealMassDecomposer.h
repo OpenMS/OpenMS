@@ -124,7 +124,7 @@ private:
 
       /**
         Decomposer to be used for exact decomposing using
-        integer arithmetics.
+        integer arithmetic.
       */
       std::auto_ptr<integer_decomposer_type> decomposer_;
     };

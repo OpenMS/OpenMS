@@ -129,10 +129,10 @@ public:
     // variables of the class
 
 
-    // get hte averaged precurso mass:
+    // get the averaged precursor mass:
     double getPrecursorMZ(){ return precursorMZ; }
     void setPrecursorMZ(double iMZ){ precursorMZ = iMZ; }
-    // get hte averaged precurso chrg:
+    // get the averaged precursor charge:
     int getPrecursorCHRG(){ return precursorCHRG; }
     // retention time:
     double getTR(){return TR; }
@@ -143,7 +143,7 @@ public:
     // get the Fragment MZ:
     double getFragmentMz(){return fragmentMZ; }
     void setFragmentMz(double iMz){fragmentMZ = iMz; }
-    // get teh charge state:
+    // get the charge state:
     int getCHRG(){return z; }
     // get the apex scan:
     int getApexScan(){return scan; }

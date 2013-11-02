@@ -73,7 +73,7 @@ public:
     /**
         @brief sets data from a string
 
-        The following date formats are supoported:
+        The following date formats are supported:
         - mm/dd/yyyy
         - dd.mm.yyyy
         - yyyy-mm-dd

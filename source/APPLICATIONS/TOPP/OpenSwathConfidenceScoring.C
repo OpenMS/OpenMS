@@ -85,7 +85,15 @@ using namespace std;
 
     @f$ \Delta_{RT} @f$: Observed retention times are first mapped to the scale of the assays (parameter @p trafo), then all RTs are scaled to the range 0 to 100 (based on the lowest/highest RT in the assay library). @f$ \Delta_{RT} @f$ is the absolute difference of the scaled RTs; note that this is squared in the scoring model.
 
-    @f$ d_{int} @f$: To compute the intensity distance, the @e n (advanced parameter @p transitions) most intensive transitions of the feature are selected. For comparing against the "true" assay, the same transitions are considered; otherwise, the same number of most intensive transitions from the decoy assay. Transition intensities are scaled to a total of 1 per feature/assay and are ordered by the product (Q3) m/z value. Then the Manhattan distance of the intensity vectors is calculated (Malmstroem et. al used the RMSD instead, which has been replaced here to be independent of the number of transitions).
+    @f$ d_{int} @f$: To compute the intensity distance, the @e n (advanced
+    parameter @p transitions) most intensive transitions of the feature are
+    selected. For comparing against the "true" assay, the same transitions are
+    considered; otherwise, the same number of most intensive transitions from
+    the decoy assay. Transition intensities are scaled to a total of 1 per
+    feature/assay and are ordered by the product (Q3) m/z value. Then the
+    Manhattan distance of the intensity vectors is calculated (Malmstroem et
+    al. used the RMSD instead, which has been replaced here to be independent
+    of the number of transitions).
 
     @f$ a, b, c @f$: Model coefficients, stored in the advanced parameters @p GLM:intercept, @p GLM:delta_rt, and @p GLM:dist_int. The default values were estimated based on the training dataset used in the Malmstroem et al. study, reprocessed with the OpenSwath pipeline.
 

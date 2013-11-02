@@ -174,7 +174,7 @@ private:
   void DBAdapter::storeExperiment(ExperimentType & exp)
   {
     std::stringstream query;     // query to build
-    String end;                  // end of the query that is added afer all fields
+    String end;                  // end of the query that is added after all fields
     String tmp;                  // temporary data
     bool new_entry(false);              // stores if the current object is already in the DB
     QSqlQuery result;            // place to store the query results in

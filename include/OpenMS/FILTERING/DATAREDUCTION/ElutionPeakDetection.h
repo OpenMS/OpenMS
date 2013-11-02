@@ -47,7 +47,7 @@ namespace OpenMS
 /**
   @brief Extracts chromatographic peaks from a mass trace.
 
-    Mass traces may consist of several consequitively (partly overlapping) eluting peaks, e.g., stemming
+    Mass traces may consist of several consecutively (partly overlapping) eluting peaks, e.g., stemming
     from isomeric compounds with exactly the same mass but different retentional behaviour. This method
     first applies LOWESS smoothing on the mass trace's intensities, then detects local minima/maxima in
     order to separate the chromatographic peaks from each other. This results in a vector that gathers

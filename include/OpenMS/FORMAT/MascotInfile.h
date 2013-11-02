@@ -137,7 +137,7 @@ public:
 
     /// returns the search type
     const String & getSearchType();
-    /// sets the seach type (default: MIS). So far only MIS is supported!<br>Valid types are "MIS" (MS/MS Ion Search), "PMF" (Peptide Mass Fingerprint) , "SQ" (Sequence Query)
+    /// sets the search type (default: MIS). So far only MIS is supported!<br>Valid types are "MIS" (MS/MS Ion Search), "PMF" (Peptide Mass Fingerprint) , "SQ" (Sequence Query)
     void setSearchType(const String & search_type);
 
     /// returns the number of hits to report back
@@ -231,13 +231,13 @@ protected:
     /// variable Modifications
     std::vector<String> variable_mods_;
 
-    /// the used instument
+    /// the used instrument
     String instrument_;
 
     /// number of missed cleavages
     UInt missed_cleavages_;
 
-    /// precursor mass toerance in Da
+    /// precursor mass tolerance in Da
     Real precursor_mass_tolerance_;
 
     /// m/z tolerance of ions  in Da

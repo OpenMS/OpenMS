@@ -64,7 +64,7 @@ private:
 
     //////
     // the common lc-ms spectrum,
-    // created from teh overlap of A and B
+    // created from the overlap of A and B
     LCMS * lcmsMap;
 
     std::vector<int> idsToRemove;
@@ -96,7 +96,7 @@ public:
     //////////////////////////////////////////////////
     // start the merging process
     void startFeatureMerging();
-    // create a distribution of delta Tr for the splited features
+    // create a distribution of delta Tr for the split features
     void createMZFeatureClusters();
     // process a vector of m/z features
     void processMZFeatureVector(std::vector<SHFeature *> *);
@@ -106,7 +106,7 @@ public:
     bool compareMZFeatureBeloning(SHFeature *, SHFeature *);
     // merge the target to the search feature
     void mergeFeatures(SHFeature *, SHFeature *);
-    // copmute new parameters for the merged MS1 feature
+    // compute new parameters for the merged MS1 feature
     void computeNewMS1FeatureParameters(SHFeature *);
     // computes the area of between 2 peaks:
     double computeDeltaArea(double, double, double, double);

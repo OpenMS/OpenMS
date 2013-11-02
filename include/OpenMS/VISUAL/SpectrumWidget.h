@@ -159,7 +159,7 @@ public slots:
     void showStatistics();
     /// Shows the intensity distribution of the current layer
     void showIntensityDistribution();
-    /// Shows the meta data distribution of vlaue @p name of the current layer
+    /// Shows the meta data distribution of value @p name of the current layer
     void showMetaDistribution(const String & name);
     /// Updates the axes by setting the right labels and calling recalculateAxes_();
     void updateAxes();
@@ -199,7 +199,7 @@ protected:
         Axes and scrollbars are added to the left and bottom of the canvas.
     */
     void setCanvas_(SpectrumCanvas * canvas, UInt row = 0, UInt col = 2);
-    /// Switch between different intensitiy modes
+    /// Switch between different intensity modes
     virtual void intensityModeChange_();
     /// creates the intensity distribution of the current layer
     virtual Math::Histogram<> createIntensityDistribution_() const = 0;

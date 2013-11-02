@@ -57,7 +57,7 @@ namespace OpenMS
       - one or many mass analyzers
       - one ion detector
 
-      For more complex instuments, the order should be defined.
+      For more complex instruments, the order should be defined.
 
       @ingroup Metadata
   */
@@ -94,7 +94,7 @@ public:
     /// Destructor
     ~Instrument();
 
-    /// Assignement operator
+    /// Assignment operator
     Instrument & operator=(const Instrument & source);
 
     /// Equality operator
@@ -119,7 +119,7 @@ public:
 
     /// returns a description of customizations
     const String & getCustomizations() const;
-    /// sets the a description of customizations
+    /// sets a description of customizations
     void setCustomizations(const String & customizations);
 
     /// returns a const reference to the ion source list
@@ -129,7 +129,7 @@ public:
     /// sets the ion source list
     void setIonSources(const std::vector<IonSource> & ion_sources);
 
-    /// returns a const reference to the mass analyer list
+    /// returns a const reference to the mass analyzer list
     const std::vector<MassAnalyzer> & getMassAnalyzers() const;
     /// returns a mutable reference to the mass analyzer list
     std::vector<MassAnalyzer> & getMassAnalyzers();

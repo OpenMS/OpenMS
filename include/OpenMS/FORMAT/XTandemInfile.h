@@ -152,7 +152,7 @@ public:
     /// returns the filename of the taxonomy file
     const String& getTaxonomyFilename() const;
 
-    /// sets the default paramters file
+    /// sets the default parameters file
     void setDefaultParametersFilename(const String& filename);
 
     /// returns the default parameters file

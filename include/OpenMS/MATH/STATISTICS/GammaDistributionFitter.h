@@ -58,7 +58,7 @@ namespace OpenMS
           GammaDistributionFitResult.
 
       The formula with the fitted parameters can be transformed into a
-      gnuplot formula using getGnuplotFormulai() after fitting.
+      gnuplot formula using getGnuplotFormula() after fitting.
 
           The implementation is done using GSL fitting algorithms.
 

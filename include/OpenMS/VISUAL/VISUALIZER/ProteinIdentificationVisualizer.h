@@ -110,7 +110,7 @@ protected:
     QComboBox * enzyme_;
     //@}
 
-    /// Threshold for foltering by score
+    /// Threshold for filtering by score
     QLineEdit * filter_threshold_;
   };
 }

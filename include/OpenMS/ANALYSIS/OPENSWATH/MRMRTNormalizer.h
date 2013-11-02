@@ -107,7 +107,7 @@ public:
       @brief This function computes Chauvenet's criterion for a vector and a value
        whose position is submitted.
 
-      @return TRUE, if Chauvenet's criterion is fullfilled and the outlier can be removed.
+      @return TRUE, if Chauvenet's criterion is fulfilled and the outlier can be removed.
     */
     static bool chauvenet(std::vector<double>& residuals, int pos);
   };

@@ -53,7 +53,7 @@ namespace OpenMS
 
 public:
 
-    // @name Constructors and Destrutors
+    // @name Constructors and Destructors
     // @{
     /// default constructor
     IsotopeDiffFilter();

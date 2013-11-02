@@ -58,7 +58,7 @@ public:
     PTMXMLFile();
 
     /**
-        @brief Loads the informations of a PTMXML file
+        @brief Loads the information of a PTMXML file
 
         @param filename The name of the file
         @param ptm_informations the PTM information from the file are stored herein

@@ -88,7 +88,7 @@
 #endif
 
 
-// let Cmake decide if we are using Windows (ie if windows.h is available). 
+// let Cmake decide if we are using Windows (i.e. if windows.h is available). 
 //   GCC and MSVC have pre-defined macros for this as well but using -ansi in GCC will disable those, thus asking the compiler is fragile
 #ifndef WIN32  //avoid warning of redefinition
 #cmakedefine WIN32

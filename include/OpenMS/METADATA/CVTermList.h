@@ -50,7 +50,7 @@ namespace OpenMS
 
       @ingroup Metadata
   */
-  ///Represenation of a CV term used by CVMappings
+  ///Representation of a CV term used by CVMappings
   class OPENMS_DLLAPI CVTermList :
     public MetaInfoInterface
   {
@@ -108,7 +108,7 @@ public:
     /// checks whether the term has a value
     bool hasCVTerm(const String & accession) const;
 
-    /// checks whether the stored terms fullfil a given CVMappingRule
+    /// checks whether the stored terms fulfil a given CVMappingRule
     /// TODO : implement
     //bool checkCVTerms(const CVMappingRule & rule, const ControlledVocabulary & cv) const;
 

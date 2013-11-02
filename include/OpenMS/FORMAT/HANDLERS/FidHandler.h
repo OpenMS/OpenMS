@@ -54,7 +54,7 @@ namespace OpenMS
     {
 public:
       /**
-              @brief Contructor with filename.
+              @brief Constructor with filename.
 
         Open fid File as stream and initialize index.
 

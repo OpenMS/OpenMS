@@ -51,7 +51,7 @@ namespace OpenMS
 
     The identifications are filtered by significance thresholds and
     by sequences. The filtering by significance thresholds looks for the
-    best ProteinIdentification that fullfills the significance threshold criterium.
+    best ProteinIdentification that fulfills the significance threshold criterion.
     score > significance-threshold * significance_fraction.
     The filtering by sequences looks for the best ProteinIdentification that
     is contained in one of the protein sequences.

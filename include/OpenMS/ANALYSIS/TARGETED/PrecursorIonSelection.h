@@ -67,7 +67,7 @@ public:
       The downshift strategy assigns a lower priority to precursors  whose masses are matching
       peptide masses of safe protein identifications.
 
-      The dynamic exclusion exludes precursors whose masses are matching peptide masses of safe protein identifications.
+      The dynamic exclusion excludes precursors whose masses are matching peptide masses of safe protein identifications.
 
       The static selection uses precomputed scores to rank the precursor, the order of precursors isn't
       changed throughout the run.

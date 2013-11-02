@@ -87,14 +87,14 @@ public:
     {
     }
 
-    /// Assignement operator
+    /// Assignment operator
     DBoundingBox & operator=(const DBoundingBox & rhs)
     {
       Base::operator=(rhs);
       return *this;
     }
 
-    /// Assignement operator for the base class
+    /// Assignment operator for the base class
     DBoundingBox & operator=(const Base & rhs)
     {
       Base::operator=(rhs);

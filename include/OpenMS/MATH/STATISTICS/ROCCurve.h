@@ -46,7 +46,7 @@ namespace OpenMS
   namespace Math
   {
     /**
-      @brief ROCCurves show the tradeoff in sensitivity and specitivity for binary classifiers using different cutoff values
+      @brief ROCCurves show the trade-off in sensitivity and specificity for binary classifiers using different cutoff values
 
     [This class is buggy and usage is discouraged!]
 

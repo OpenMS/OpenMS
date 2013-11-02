@@ -129,10 +129,10 @@ public:
     /// unique id of the file, set of files or repository
     void setId(const String & id);
 
-    /// returns the unqiue id of the instance
+    /// returns the unique id of the instance
     const String & getId() const;
 
-    /// sets the potentially ambigous but human readable name
+    /// sets the potentially ambiguous but human readable name
     void setName(const String & name);
 
     /// returns the human readable name

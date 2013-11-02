@@ -60,7 +60,7 @@ public:
     /// Destructor
     virtual ~Spectrum3DWidget();
 
-    /// This method is overwritten to make the class specific members accessable
+    /// This method is overwritten to make the class specific members accessible
     inline Spectrum3DCanvas * canvas()
     {
       return static_cast<Spectrum3DCanvas *>(canvas_);

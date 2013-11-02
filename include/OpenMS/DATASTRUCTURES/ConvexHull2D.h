@@ -55,7 +55,7 @@ namespace OpenMS
       and you will get an exception. As an alternative, you can use my_hull.getBoundingBox().encloses(), which yields similar results,
       and will always work.
 
-      If you are creating new hull from peaks (eg during FeatureFinding), the generated hulls of a feature are defined as
+      If you are creating new hull from peaks (e.g. during FeatureFinding), the generated hulls of a feature are defined as
       a range in m/z dimension for each RT scan (thus might be non-convex). This has the advantage that one can clearly see
       where points range within each scan (although missing points within this range are still not shown).
       When hulls are created like this, the encloses() function is supported, and works as expected, i.e.

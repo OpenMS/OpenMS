@@ -87,7 +87,7 @@ signals:
     // void dropOnWidget(const QMimeData* data, QWidget* source);
 
 protected:
-    ///@name Remplemented Qt events
+    ///@name Reimplemented Qt events
     //@{
     void mouseDoubleClickEvent(QMouseEvent * e);
     void contextMenuEvent(QContextMenuEvent * e);

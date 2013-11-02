@@ -42,7 +42,7 @@
 namespace OpenMS
 {
   /**
-      @brief Map class based on the STL map (containing serveral convenience functions)
+      @brief Map class based on the STL map (containing several convenience functions)
 
       @ingroup Datastructures
   */

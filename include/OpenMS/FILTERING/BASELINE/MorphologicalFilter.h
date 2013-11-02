@@ -193,7 +193,7 @@ public:
     @param input_end  the end of the input range
     @param output_begin the begin of the output range
 
-    @exception Exception::IllegalArgument The given method is not one of the values defined in the @em method paramter.
+    @exception Exception::IllegalArgument The given method is not one of the values defined in the @em method parameter.
     */
     template <typename InputIterator, typename OutputIterator>
     void filterRange(InputIterator input_begin, InputIterator input_end, OutputIterator output_begin)

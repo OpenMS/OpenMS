@@ -63,7 +63,7 @@ private:
     /////////////////////////////////////////////
 
     /////////////////////////////////////////////
-    // raw MS peak paramaters:
+    // raw MS peak parameters:
     int scan_apex;
     int scan_start;
     int scan_end;
@@ -147,7 +147,7 @@ public:
     void showMS2consensSpectraInfo();
 
     //////////////////////////////////
-    // comparision operators:
+    // comparison operators:
     bool operator==(const SHFeature &);
 
     // add MS/MS info to the SHFeature:
@@ -189,7 +189,7 @@ public:
     std::string getFeatureExtraInformation()
     {   return featureExtraInformation; }
 
-    // functions to set/access machted features:
+    // functions to set/access matched features:
     void add_matched_feature(SHFeature *);
     std::map<int, SHFeature> * get_match_list_REFERENCE()
     {   return &matched_feature_list; }
@@ -382,10 +382,10 @@ public:
     void set_peak_score(double in)
     {   PEAK_SCORE = in; }
 
-    // get the molecular mass of the corrsponding peptide!
+    // get the molecular mass of the corresponding peptide!
     double get_Molecular_Mass();
 
-    // fetaure PI:
+    // feature PI:
     double get_FEATURE_PI()
     {   return PI; }
     void set_FEATURE_PI(double IN)
@@ -393,7 +393,7 @@ public:
 
     // check charge states, in cases where a feature was
     // created based on a MS2 trace, charge state is unknown ( = -1 )
-    // -> derivce the charge state from the matched feature (if this is
+    // -> derive the charge state from the matched feature (if this is
     // also not -1
     void deriveChargeStates(SHFeature *);
 

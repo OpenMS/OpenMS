@@ -288,7 +288,7 @@ protected:
       /**
           @brief Conversion of a string to a boolean value
 
-          'true', 'false', '1' and '0' are accpeted.
+          'true', 'false', '1' and '0' are accepted.
           @n For all other values a parse error is produced.
       */
       inline bool asBool_(const String & in)

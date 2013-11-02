@@ -119,7 +119,7 @@ private:
         @brief find modification name given a modified AA mass
 
         Matches a mass of a modified AA to a mod in our modification db
-        For ambigious mods, the first (arbitrary) is returned
+        For ambiguous mods, the first (arbitrary) is returned
         If no mod is found an error is issued and the return string is empty
         @note A duplicate of this function is also used in ProtXMLFile
 
@@ -216,7 +216,7 @@ private:
     /// Search parameters of the current identification run
     ProteinIdentification::SearchParameters params_;
 
-    /// Enyzme associated with the current identification run
+    /// Enzyme associated with the current identification run
     ProteinIdentification::DigestionEnzyme enzyme_;
 
     /// PeptideIdentification instance currently being processed

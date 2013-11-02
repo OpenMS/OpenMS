@@ -50,7 +50,7 @@ namespace OpenMS
 
         BinnedSpectrumCompareFunctor classes return a value for a pair of BinnedSpectrum objects (or a single one with itself).
         Ideally the value should reflect the similarity of the pair. For methods of computing the similarity see the
-        documetation of the concrete functors.
+        documentation of the concrete functors.
         Functors normalized in the range [0,1] are identifiable at the set "normalized" parameter of the ParameterHandler
 
         @ingroup SpectraComparison

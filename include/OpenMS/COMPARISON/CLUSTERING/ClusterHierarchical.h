@@ -136,7 +136,7 @@ public:
         @param comparator a BinnedSpectrumCompareFunctor
         @param sz the desired binsize for the @ref BinnedSpectrum s
         @param sp the desired binspread for the @ref BinnedSpectrum s
-        @param clusterer a clustermethod implementation, baseclass ClusterFunctor
+        @param clusterer a clustermethod implementation, base class ClusterFunctor
         @param cluster_tree the vector that will hold the BinaryTreeNodes representing the clustering (for further investigation with the ClusterAnalyzer methods)
         @param original_distance the DistanceMatrix holding the pairwise distances of the elements in @p data, will be made newly if given size does not fit to the number of elements given in @p data
         @see ClusterFunctor, BinaryTreeNode, ClusterAnalyzer, BinnedSpectrum, BinnedSpectrumCompareFunctor

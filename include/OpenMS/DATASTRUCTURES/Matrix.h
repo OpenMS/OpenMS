@@ -328,7 +328,7 @@ public:
     /**
       @brief Equality comparator.
 
-      If matrices have different row or colmn numbers, throws a precondition exception.
+      If matrices have different row or column numbers, throws a precondition exception.
     */
     bool operator==(Matrix const& rhs) const
     {

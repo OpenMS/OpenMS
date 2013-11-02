@@ -50,7 +50,7 @@ namespace OpenMS
       @brief MS2 input file adapter.
 
       For the format description take a look at:
-      Rapid Commun Mass Spectrom. 2004;18(18):2162-8.
+      Rapid Communications in Mass Spectrometry. 2004;18(18):2162-8.
 
       MS1, MS2, and SQT-three unified, compact, and easily parsed file formats for the
       storage of shotgun proteomic spectra and identifications.

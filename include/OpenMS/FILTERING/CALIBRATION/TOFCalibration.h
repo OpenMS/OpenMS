@@ -57,7 +57,7 @@ namespace OpenMS
    The procedure is very similar to the one described in Gobom et al. (Anal Chem. 2002, 74 (15) pp 3915-23).
    The input experiment data need to be flight times. They are converted into m/z-values using the
        calibrant spectra. The calibrant spectra and their expected masses are used to determine the
-       quadratic dependance of tof and m/z values.
+       quadratic dependence of TOF and m/z values.
 
        @note The input spectra need to contain flight times.
 
@@ -166,7 +166,7 @@ private:
              Either a 2-point or a 3-point time of flight conversion can be used, as well as
              different constants for each calibrant spectra or one set for all of them.
 
-             The 2-point equation is mass = ml1/10^12 * (tof * 1000 - ml2).
+             The 2-point equation is mass = ml1/10^12 * (TOF * 1000 - ml2).
              The 3-point equation is time = ml2 + sqrt(10^12/ml1 * mass) +  ml3*mass.
 
         */

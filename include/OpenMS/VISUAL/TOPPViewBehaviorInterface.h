@@ -54,7 +54,7 @@ public:
     virtual ~TOPPViewBehaviorInterface() {}
 
 public slots:
-    /// Behavior for showSpectraumAs1D
+    /// Behavior for showSpectrumAs1D
     virtual void showSpectrumAs1D(int index) = 0;
 
     /// Behavior for activate1DSpectrum

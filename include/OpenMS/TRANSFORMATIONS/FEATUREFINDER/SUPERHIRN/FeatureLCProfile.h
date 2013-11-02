@@ -78,7 +78,7 @@ private:
     // elution area
     double LCelutionArea;
 
-    // apex signale:
+    // apex signal:
     MS1Signal apexMS1Signal;
 
     ////////////////////////////////////////////////

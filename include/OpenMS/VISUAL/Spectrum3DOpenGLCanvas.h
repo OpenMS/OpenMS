@@ -112,7 +112,7 @@ public:
     /// updates the min and max values of the intensity
     void updateIntensityScale();
 
-    /// calcualtes the zoom area , which is shown
+    /// calculates the zoom area , which is shown
     void dataToZoomArray(double x_1, double y_1, double x_2, double y_2);
 
     /// returns the BB-rt-coordinate :  value --> BB-coordinates
@@ -126,7 +126,7 @@ public:
     /// returns the BB-intensity -coordinate :  values --> BB-coordinates
     double scaledIntensity(Real intensity, Size layer_index);
 
-    /// recalculates the dot gradient inerpolation values.
+    /// recalculates the dot gradient interpolation values.
     void recalculateDotGradient_(Size layer);
     ///calculate the ticks for the gridlines
     void calculateGridLines_();
@@ -183,7 +183,7 @@ public:
 
 
 
-    /// member variables fot the zoom-modus
+    /// member variables for the zoom-mode
     QPoint mouse_move_end_, mouse_move_begin_;
 
     ///member variable for the x and y axis of the BB
@@ -203,7 +203,7 @@ public:
     float height_;
     /// object which contains the min and max values of mz, rt and intensity
     DRange<3> overall_values_;
-    ///object wich contains the values of the current min and max intensity
+    ///object which contains the values of the current min and max intensity
     DRange<1> int_scale_;
     ///member gridvectors which contains the data for the mz-axis-ticks
     AxisTickVector grid_mz_;

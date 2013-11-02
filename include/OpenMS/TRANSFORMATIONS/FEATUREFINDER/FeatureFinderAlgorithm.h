@@ -105,9 +105,9 @@ public:
     virtual void run() = 0;
 
     /**
-        @brief Returns the default parameters. Reimplment
+        @brief Returns the default parameters. Reimplement
 
-        Reimplment if you derive a class and have to incoopreate sub-algorithm default parameters.
+        Reimplement if you derive a class and have to incorporate sub-algorithm default parameters.
     */
     virtual Param getDefaultParameters() const
     {

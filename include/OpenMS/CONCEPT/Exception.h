@@ -68,7 +68,7 @@ namespace OpenMS
       This class is intended as a base class for all other exceptions.
 
         Each exception class should define a constructor taking a filename (string), line (int) and function name (string)
-        as first agruments. This information is usually printed in case of an uncaught exception.
+        as first arguments. This information is usually printed in case of an uncaught exception.
 
         To support this feature, each @em throw directive should look as follows:
         @code throw Exception::Exception(__FILE__, __LINE__, __PRETTY_FUNCTION__,...); @endcode
@@ -122,13 +122,13 @@ public:
       /// Returns the error message of the exception
       virtual const char * what() const throw();
 
-      /// Returns the line number where it occured
+      /// Returns the line number where it occurred
       int getLine() const throw();
 
-      /// Returns the file where it occured
+      /// Returns the file where it occurred
       const char * getFile() const throw();
 
-      /// Returns the function where it occured
+      /// Returns the function where it occurred
       const char * getFunction() const throw();
 
       /// Returns the message
@@ -189,7 +189,7 @@ public:
         @brief Not all required information provided.
 
         Information that are required are not provided.
-        Especially usefull for missing MetaInfo values.
+        Especially useful for missing MetaInfo values.
 
         @ingroup Exceptions
     */
@@ -263,7 +263,7 @@ public:
         @brief A call to an external library (other than OpenMS) went wrong.
 
         Throw this exception to indicate that an external library call came
-        back unsuccessfull.
+        back unsuccessful.
 
         @param	size the size causing the problem
 
@@ -684,7 +684,7 @@ public:
     /**
         @brief Exception used if no more unique document ID's can be drawn from ID pool.
 
-        The ID pool of OpenMS is either depleted or not existant.
+        The ID pool of OpenMS is either depleted or not existent.
 
         @ingroup Exceptions
     */

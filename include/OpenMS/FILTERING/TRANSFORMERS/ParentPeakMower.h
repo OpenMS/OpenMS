@@ -97,7 +97,7 @@ public:
         return;
       }
 
-      //get precursor peak position precursorpeak
+      //get precursor peak position precursor peak
       double pre_pos = 0.0;
       if (!spectrum.getPrecursors().empty()) pre_pos = spectrum.getPrecursors()[0].getMZ();
 

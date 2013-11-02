@@ -88,7 +88,7 @@ private:
     Internal::ListTable * listTable_;
     ///Delegate between view and model
     Internal::ListEditorDelegate * listDelegate_;
-    /// buttton for new Row
+    /// button for new Row
     QPushButton * newRowButton_;
     ///button for removing row
     QPushButton * removeRowButton_;

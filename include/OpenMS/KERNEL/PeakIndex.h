@@ -56,7 +56,7 @@ namespace OpenMS
       spectrum((std::numeric_limits<Size>::max)())
     {}
 
-    /// Constructor that sets the peak index (for feaure maps)
+    /// Constructor that sets the peak index (for feature maps)
     explicit inline PeakIndex(Size peak) :
       peak(peak),
       spectrum((std::numeric_limits<Size>::max)())

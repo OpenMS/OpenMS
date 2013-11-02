@@ -115,7 +115,7 @@ public:
 
 protected:
 
-    // main data struture:
+    // main data structure:
     MZ_LIST DATA;
 
 

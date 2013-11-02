@@ -71,7 +71,7 @@ public:
         * Note that this functions returns the pure function value of psi and not the normalized (average=0)
         * value given by Psi.
         * @param t The position at which the wavelet has to be drawn (within the coordinate system of the wavelet).
-        * @param m The m/z position within the signal (i.e. the mass not decharged) within the signal.
+        * @param m The m/z position within the signal (i.e. the mass not de-charged) within the signal.
         * @param z The charge @p z we want to detect.
         * @param mode Indicates whether positive mode (+1) or negative mode (-1) has been used for ionization. */
     static DoubleReal getValueByMass(const DoubleReal t, const DoubleReal m, const UInt z, const Int mode = +1)
@@ -147,8 +147,8 @@ public:
     static DoubleReal getLambdaL(const DoubleReal m);
 
 
-    /** @brief Computes the averagine isotopic distribution we would expect at the deconvoluted mass.
-        * @param m The deconvoluted mass m.
+    /** @brief Computes the averagine isotopic distribution we would expect at the de-convoluted mass.
+        * @param m The de-convoluted mass m.
         * @param size Returns the number of significant peaks within a pattern occurring at mass @p m.
         * @return The isotopic distribution. */
     static const IsotopeDistribution::ContainerType & getAveragine(const DoubleReal m, UInt * size = NULL);
@@ -186,7 +186,7 @@ protected:
     IsotopeWavelet();
 
     /** @brief Constructor
-        * @param max_m The maximal deconvoluted mass that occurs in the current data set.
+        * @param max_m The maximal de-convoluted mass that occurs in the current data set.
         * @param max_charge The maximal charge state we would like to analyze. */
     IsotopeWavelet(const DoubleReal max_m, const UInt max_charge);
 
@@ -202,12 +202,12 @@ protected:
         * @see max_charge_ and @see peak_cutoff_. If both of these are set correctly @see getValue will never compute
         * the gamma function online.
         *
-        * @param max_m The maximal deconvoluted mass that occurs in the current data set. */
+        * @param max_m The maximal de-convoluted mass that occurs in the current data set. */
     static void preComputeExpensiveFunctions_(const DoubleReal max_m);
 
 
     /** @brief Initializes the internally used averagine model; automatically called by the public constructor.
-        * @param max_m The maximal deconvoluted mass that occurs in the current data set.	*/
+        * @param max_m The maximal de-convoluted mass that occurs in the current data set.	*/
     static void computeIsotopeDistributionSize_(const DoubleReal max_m);
 
 

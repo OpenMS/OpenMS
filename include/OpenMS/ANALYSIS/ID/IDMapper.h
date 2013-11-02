@@ -311,7 +311,7 @@ public:
             {
               if (use_centroid_mz)
               {
-                // only one m/z value to check, which was alredy incorporated
+                // only one m/z value to check, which was already incorporated
                 // into the overall bounding box -> success!
                 feat.getPeptideIdentifications().push_back(*id_it);
                 ++matching_features;

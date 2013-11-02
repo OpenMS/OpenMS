@@ -66,7 +66,7 @@ private:
     // vector of object feature:
     std::vector<SHFeature> feature_list;
 
-    // a unique specrum id to identify a spectrum:
+    // a unique spectrum id to identify a spectrum:
     int spectrum_id;
 
     // MASTER RUN ID:
@@ -200,7 +200,7 @@ public:
     // remove a feature from the LC/MS run by ID:
     void remove_feature_by_ID(SHFeature *);
     void remove_feature_by_ID(int);
-    // remove a feature from teh LC/MS run:
+    // remove a feature from the LC/MS run:
     void remove_feature(SHFeature *);
     void remove_feature(int i)
     {

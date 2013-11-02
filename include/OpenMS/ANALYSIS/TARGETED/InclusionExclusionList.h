@@ -42,7 +42,7 @@
 namespace OpenMS
 {
   /**
-    @brief Provides functionalty for writing inclusion or exclusion lists.
+    @brief Provides functionality for writing inclusion or exclusion lists.
 
     @htmlinclude OpenMS_InclusionExclusionList.parameters
     @todo allow modifications (fixed?)

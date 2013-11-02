@@ -161,7 +161,7 @@ public:
       return THEO_MZ;
     }
 
-    // sets modificatied SQ:
+    // sets modification SQ:
     void set_FULL_SQ();
     void set_SQ(std::string IN)
     {
@@ -173,7 +173,7 @@ public:
     // show info:
     void show_info();
 
-    // check whethere proteotypic peptide:
+    // check whether proteotypic peptide:
     bool get_PROTEO_TYPE();
     // check the tryptic state:
     // 2: full tryptic
@@ -334,7 +334,7 @@ public:
         }
 */
 
-    // access the retentino parameter:
+    // access the retention parameter:
     double getRetentionTime()
     {
       return TR;

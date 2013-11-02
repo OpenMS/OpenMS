@@ -44,7 +44,7 @@
 namespace OpenMS
 {
   /**
-      @brief Descripton of the applied preprocessing steps
+      @brief Description of the applied preprocessing steps
 
       @ingroup Metadata
   */
@@ -73,7 +73,7 @@ public:
       FEATURE_GROUPING,                     ///< %Feature grouping
       IDENTIFICATION_MAPPING,           ///< %Identification mapping
       FORMAT_CONVERSION,              ///< General file format conversion (if no other term applies)
-      CONVERSION_MZDATA,                  ///< Convertion to mzData format
+      CONVERSION_MZDATA,                  ///< Conversion to mzData format
       CONVERSION_MZML,                        ///< Conversion to mzML format
       CONVERSION_MZXML,                       ///< Conversion to mzXML format
       CONVERSION_DTA,                 ///< Conversion to DTA format
@@ -84,12 +84,12 @@ public:
 
     /// Constructor
     DataProcessing();
-    /// Copy construcor
+    /// Copy constructor
     DataProcessing(const DataProcessing & source);
     /// Destructor
     ~DataProcessing();
 
-    /// Assignement operator
+    /// Assignment operator
     DataProcessing & operator=(const DataProcessing & source);
 
     /// Equality operator
@@ -111,9 +111,9 @@ public:
     /// sets the description of the applied processing
     void setProcessingActions(const std::set<ProcessingAction> & actions);
 
-    /// returns the time of completition of the processing
+    /// returns the time of completion of the processing
     const DateTime & getCompletionTime() const;
-    /// sets the time of completition taking a DateTime object
+    /// sets the time of completion taking a DateTime object
     void setCompletionTime(const DateTime & completion_time);
 
 protected:

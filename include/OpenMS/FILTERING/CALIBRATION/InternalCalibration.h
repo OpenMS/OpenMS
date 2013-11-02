@@ -51,7 +51,7 @@ namespace OpenMS
   /**
      @brief A simple calibration method using linear interpolation of given reference masses.
 
-     This class implements a simle calibration method: given a list of reference masses,
+     This class implements a simple calibration method: given a list of reference masses,
      the relative errors of the peaks in the data are approximated by linear interpolation and
      subtracted from the data.
 

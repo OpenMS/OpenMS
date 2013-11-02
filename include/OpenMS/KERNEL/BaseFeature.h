@@ -148,7 +148,7 @@ public:
     /// Equality operator
     bool operator==(const BaseFeature & rhs) const;
 
-    /// Unequality operator
+    /// Inequality operator
     bool operator!=(const BaseFeature & rhs) const;
 
     /// returns a const reference to the PeptideIdentification vector

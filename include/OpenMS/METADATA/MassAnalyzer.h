@@ -41,7 +41,7 @@
 namespace OpenMS
 {
   /**
-      @brief Descripton of a mass analyzer (part of a MS Instrument)
+      @brief Description of a mass analyzer (part of a MS Instrument)
 
       @ingroup Metadata
   */
@@ -85,7 +85,7 @@ public:
       BASELINE,                             ///< Baseline
       SIZE_OF_RESOLUTIONMETHOD
     };
-    /// Names of resolustion methods
+    /// Names of resolution methods
     static const std::string NamesOfResolutionMethod[SIZE_OF_RESOLUTIONMETHOD];
 
     /// Resolution type
@@ -96,7 +96,7 @@ public:
       PROPORTIONAL,             ///< Proportional
       SIZE_OF_RESOLUTIONTYPE
     };
-    /// Names of resulution type
+    /// Names of resolution type
     static const std::string NamesOfResolutionType[SIZE_OF_RESOLUTIONTYPE];
 
     /// direction of scanning
@@ -131,7 +131,7 @@ public:
       NONE,                                 ///< None
       SIZE_OF_REFLECTRONSTATE
     };
-    /// Names of reclectron states
+    /// Names of reflectron states
     static const std::string NamesOfReflectronState[SIZE_OF_REFLECTRONSTATE];
 
     /// Constructor
@@ -231,7 +231,7 @@ public:
         - one or many mass analyzers
         - one ion detector
 
-        For more complex instuments, the order should be defined.
+        For more complex instruments, the order should be defined.
 */
     Int getOrder() const;
     /// sets the order

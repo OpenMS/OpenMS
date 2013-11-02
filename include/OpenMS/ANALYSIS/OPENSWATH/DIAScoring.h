@@ -173,7 +173,7 @@ private:
       @brief Compare an experimental isotope pattern to a theoretical one
 
       This function will take an array of isotope intensities and compare them
-      to the theoritcally expected ones using pearson correlation.
+      to the theoretically expected ones using pearson correlation.
     */
     DoubleReal scoreIsotopePattern_(double product_mz,
                                    const std::vector<double>& isotopes_int, int putative_fragment_charge);

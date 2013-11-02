@@ -126,7 +126,7 @@ private:
       MzQuantMLHandler(const MzQuantMLHandler & rhs);
       MzQuantMLHandler & operator=(const MzQuantMLHandler & rhs);
 
-      std::map<String, std::vector<ExperimentalSettings> > current_files_;           // 1.rawfilesgroup_ref 2.inputfiles for each assay as experimentalsettings
+      std::map<String, std::vector<ExperimentalSettings> > current_files_;           // 1.rawfilesgroup_ref 2.inputfiles for each assay as ExperimentalSettings
       String current_id_;
       String current_cf_id_;
       Size current_count_;

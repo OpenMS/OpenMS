@@ -229,7 +229,7 @@ public:
       size_ = 0;
     }
 
-    /// resizes the the vector to param newsize
+    /// resizes the vector to param newsize
     void resize(size_type newsize)
     {
       // if the vector is to be smaller
@@ -253,7 +253,7 @@ public:
       size_ = newsize;
     }
 
-    /** erase indicated element(iterator) and imediately update indices in map
+    /** erase indicated element(iterator) and immediately update indices in map
 
             @param it parameter which specifies the element which should be deleted
             @throw OutOfRange is thrown if the iterator does not point to an element
@@ -288,7 +288,7 @@ public:
       --size_;
     }
 
-    /** erase indicated element(halfopen iterator-range) and imediately update indices in map
+    /** erase indicated element(half open iterator-range) and immediately update indices in map
             @param first iterator that points to the begin of the range which should be erased
             @param last iterator that points one position behind the last position which should be erased
     */
@@ -353,7 +353,7 @@ public:
 
         while (second != last)
         {
-          if (second->second < lowest->second)                 //the first element is covered by initial lowest == frst
+          if (second->second < lowest->second)                 //the first element is covered by initial lowest == first
           {
             lowest = second;
           }
@@ -1103,7 +1103,7 @@ public:
         return *this;
       }
 
-      /// immidiate increment operator
+      /// immediate increment operator
       SparseVectorConstIterator operator++(int)
       {
         SparseVectorConstIterator tmp(*this);
@@ -1120,7 +1120,7 @@ public:
         return *this;
       }
 
-      /// immidiate increment operator
+      /// immediate increment operator
       SparseVectorConstIterator operator--(int)
       {
         SparseVectorConstIterator tmp(*this);
@@ -1129,7 +1129,7 @@ public:
         return tmp;
       }
 
-      /// derefence operator
+      /// dereference operator
       const Value operator*() const
       {
         assert(position_ < vector_.size_);
@@ -1309,7 +1309,7 @@ public:
         return *this;
       }
 
-      /// immidiate increment operator
+      /// immediate increment operator
       SparseVectorConstReverseIterator operator++(int)
       {
         SparseVectorConstIterator tmp(*this);
@@ -1326,7 +1326,7 @@ public:
         return *this;
       }
 
-      /// immidiate decrement operator
+      /// immediate decrement operator
       SparseVectorConstReverseIterator operator--(int)
       {
         SparseVectorConstIterator tmp(*this);
@@ -1335,7 +1335,7 @@ public:
         return tmp;
       }
 
-      /// derefence operator
+      /// dereference operator
       ValueProxy operator*()
       {
         assert(position_ <= vector_.size_);
@@ -1396,7 +1396,7 @@ private:
       // the position in SparseVector
       mutable size_type position_;
 
-      /// referenc to the vector operating on
+      /// reference to the vector operating on
       const SparseVector & vector_;
 
       // the position in the underlying map of SparseVector

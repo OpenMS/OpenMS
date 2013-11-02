@@ -46,7 +46,7 @@
 namespace OpenMS
 {
   /**
-    @brief Tabular visualization / selection of identified specra.
+    @brief Tabular visualization / selection of identified spectra.
   
     @htmlinclude OpenMS_DigestSimulation.parameters
   */

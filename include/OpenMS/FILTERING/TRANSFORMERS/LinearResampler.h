@@ -53,7 +53,7 @@ namespace OpenMS
       This method preserves the area of the input signal and also the centroid position of a peak.
       Therefore it is recommended for quantitation as well as for ProteinIdentification experiments.
 
-      @note Use this method only for high resoluted data (< 0.1 Th between two adjacent raw data points).
+      @note Use this method only for high resolution data (< 0.1 Th between two adjacent raw data points).
            The resampling rate should be >= the precision.
 
       @htmlinclude OpenMS_LinearResampler.parameters

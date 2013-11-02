@@ -45,7 +45,7 @@ namespace OpenMS
       This class describes a range in D-dimensional space delimited
       by two points (i.e. a D-dimensional hyper-rectangle). The
       two points define the lower left and the upper right corner
-      in 2D and analogous points in higer dimensions.
+      in 2D and analogous points in higher dimensions.
 
       A range is a pair of positions in D-space represented by DPosition.
       The two limiting points are accessed as minPosition() and maxPosition().
@@ -126,21 +126,21 @@ public:
       max_[1] = maxy;
     }
 
-    /// Assignement operator
+    /// Assignment operator
     DRange & operator=(const DRange & rhs)
     {
       Base::operator=(rhs);
       return *this;
     }
 
-    /// Assignement operator for the base class
+    /// Assignment operator for the base class
     DRange & operator=(const Base & rhs)
     {
       Base::operator=(rhs);
       return *this;
     }
 
-    /// Destuctor
+    /// Destructor
     ~DRange()
     {
     }

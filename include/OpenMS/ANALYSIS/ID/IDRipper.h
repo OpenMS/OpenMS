@@ -58,7 +58,7 @@ public:
     /// Default constructor
     IDRipper();
 
-    /// Desctructor
+    /// Destructor
     virtual ~IDRipper();
 
     /**

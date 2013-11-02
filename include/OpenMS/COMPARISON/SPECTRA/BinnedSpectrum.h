@@ -176,7 +176,7 @@ public:
       return (UInt) this->bins_.nonzero_size();
     }
 
-    /** unmutable access to the Bincontainer
+    /** immutable access to the Bincontainer
 
             @throw NoSpectrumIntegrated is thrown if no spectrum was integrated
     */
@@ -254,7 +254,7 @@ public:
       }
     }
 
-    /** sets the BinSpread_ (and rebinnes)
+    /** sets the BinSpread_ (and rebins)
 
             @param s defines the binning spread, given as positive integer
             @throw NoSpectrumIntegrated is thrown if no spec was integrated into the instance

@@ -226,7 +226,7 @@ namespace OpenMS
     }
 
     /**
-     * @brief Returns the list of mass shifts calcualted
+     * @brief Returns the list of mass shifts calculated
      */
     std::vector<std::vector<DoubleReal> > & getMassShifts()
     {

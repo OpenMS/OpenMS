@@ -85,7 +85,7 @@ private:
     gsl_vector* gsl_b_;
     gsl_vector* gsl_x_;
 
-    /// Indicates wether memory was allocated for the gsl vector/matrix pointers.
+    /// Indicates whether memory was allocated for the gsl vector/matrix pointers.
     bool gsl_allocated_;
 
     /// Free all memory allocated by GSL objects.

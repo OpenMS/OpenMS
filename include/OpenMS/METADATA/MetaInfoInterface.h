@@ -52,8 +52,8 @@ namespace OpenMS
 
       MetaInfoInterface is a base class for all classes that use one MetaInfo
       object as member.  If you want to add meta information to a class, let it
-      publically inherit the MetaInfoInterface.  Meta information is an array of
-      Type-Name-Value tupels.
+      publicly inherit the MetaInfoInterface.  Meta information is an array of
+      Type-Name-Value tuples.
 
       @ingroup Metadata
   */
@@ -97,7 +97,7 @@ public:
     /// Removes the DataValue corresponding to @p index if it exists
     void removeMetaValue(UInt index);
 
-    /// retuns a reference to the MetaInfoRegistry
+    /// returns a reference to the MetaInfoRegistry
     static MetaInfoRegistry & metaRegistry();
 
     /// fills the given vector with a list of all keys for which a value is set

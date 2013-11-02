@@ -51,7 +51,7 @@ namespace OpenMS
   The first line contains the singly protonated peptide mass (MH+) and the peptide charge state separated by a space.
   Subsequent lines contain space separated pairs of fragment ion m/z and intensity values.
 
-  From precusor mass and charge state the mass-charge-ratio is calculated and stored in the spectrum as precursor mass.
+  From precursor mass and charge state the mass-charge-ratio is calculated and stored in the spectrum as precursor mass.
 
   @ingroup FileIO
 */

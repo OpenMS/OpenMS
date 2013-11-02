@@ -48,7 +48,7 @@ namespace OpenMS
     @brief A 1-dimensional raw data point or peak for chromatograms.
 
     This datastructure is intended for chromatograms.
-    If wou want to annotated single peaks with meta data, use RichChromatogramPeak instead.
+    If you want to annotated single peaks with meta data, use RichChromatogramPeak instead.
 
     @ingroup Kernel
   */

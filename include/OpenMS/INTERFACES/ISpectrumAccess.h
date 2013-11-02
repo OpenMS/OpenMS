@@ -66,7 +66,7 @@ public:
 
     /*
      * Do we need an Iterator here? 
-     * We would have to provide our own iterator wrapper class because we dont
+     * We would have to provide our own iterator wrapper class because we don't
      * know whether all the spectra are loaded at any given timepoint
     typedef SpectrumPtr const ConstSpectraIterator;
     ConstSpectraIterator beginSpectra() const;
@@ -96,7 +96,7 @@ public:
 
     /*
      * Do we need an Iterator here? 
-     * We would have to provide our own iterator wrapper class because we dont
+     * We would have to provide our own iterator wrapper class because we don't
      * know whether all the chromatograms are loaded at any given timepoint
     ConstChromatogramIterator beginChromatograms() const;
     ConstChromatogramIterator endChromatograms() const;

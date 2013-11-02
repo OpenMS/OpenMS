@@ -117,7 +117,7 @@ namespace OpenMS
     }
 
     /**
-        @brief Returns true if the given interger is odd
+        @brief Returns true if the given integer is odd
 
         @ingroup MathFunctionsMisc
     */

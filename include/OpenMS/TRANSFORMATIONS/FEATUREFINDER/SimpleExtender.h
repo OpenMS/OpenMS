@@ -58,7 +58,7 @@ namespace OpenMS
       the seed at the beginning.
 
       At each step, we choose a data point from the boundary,
-      move it into the region and explore the neigbourhood of
+      move it into the region and explore the neighbourhood of
       this point in a cross-wise manner (m/z up, m/z down, rt up
   and rt down). During this exploration we compute the priority
       of all encountered points as a function of the distance from
@@ -222,7 +222,7 @@ public:
     }     // end of extend
 
     /**
-     @brief A helper structure to sort indizes by their priority.
+     @brief A helper structure to sort indices by their priority.
 
      This structure is used to keep track of the boundary of a
      feature. After a peak is found during the extension phase,
@@ -244,7 +244,7 @@ public:
       IndexPair index;
       ProbabilityType priority;
 
-      ///Compares two indizes by priority.
+      ///Compares two indices by priority.
       struct PriorityLess
       {
         inline bool operator()(const IndexWithPriority & x, const IndexWithPriority & y) const
@@ -417,7 +417,7 @@ protected:
     /// Represents the boundary of a feature
     std::priority_queue<IndexWithPriority, std::vector<IndexWithPriority>, typename IndexWithPriority::PriorityLess> boundary_;
 
-    /// Mininum intensity of a boundary point. Calculated from 'intensity_factor' and the seed intensity
+    /// Minimum intensity of a boundary point. Calculated from 'intensity_factor' and the seed intensity
     IntensityType intensity_threshold_;
 
     /// Maximum distance to seed in positive m/z
@@ -429,7 +429,7 @@ protected:
     /// Maximum distance to seed in negative retention time
     CoordinateType dist_rt_down_;
 
-    /// Minium priority for points in the feature region (priority is function of intensity and distance to seed)
+    /// Minimum priority for points in the feature region (priority is function of intensity and distance to seed)
     ProbabilityType priority_threshold_;
 
     /// charged index set

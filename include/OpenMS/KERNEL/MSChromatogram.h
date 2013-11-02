@@ -593,7 +593,7 @@ protected:
     /// String data arrays
     StringDataArrays string_data_arrays_;
 
-    /// Intager data arrays
+    /// Integer data arrays
     IntegerDataArrays integer_data_arrays_;
   };
 

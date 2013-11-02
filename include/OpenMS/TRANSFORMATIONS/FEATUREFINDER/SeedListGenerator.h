@@ -68,7 +68,7 @@ public:
     /**
          @brief Generate a seed list based on an MS experiment
 
-         This uses the locations of MS2 precurors as seed positions.
+         This uses the locations of MS2 precursors as seed positions.
     */
     void generateSeedList(const MSExperiment<> & experiment, SeedList & seeds);
 

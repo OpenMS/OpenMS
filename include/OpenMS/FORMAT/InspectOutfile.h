@@ -81,7 +81,7 @@ public:
             @param database_filename
             @throw FileNotFound is thrown if the given file could not be found
             @throw ParseError is thrown if the given file could not be parsed
-            @throw FileEmptry is thrown if the given file is empty
+            @throw FileEmpty is thrown if the given file is empty
     */
     std::vector<Size> load(const String & result_filename, std::vector<PeptideIdentification> & peptide_identifications, ProteinIdentification & protein_identification, const DoubleReal p_value_threshold, const String & database_filename = "");
 
@@ -120,7 +120,7 @@ public:
     */
     void getPrecursorRTandMZ(const std::vector<std::pair<String, std::vector<std::pair<Size, Size> > > > & files_and_peptide_identification_with_scan_number, std::vector<PeptideIdentification> & ids);
 
-    /** retrieve the labes of a given database (at the moment FASTA and Swissprot)
+    /** retrieve the labels of a given database (at the moment FASTA and Swissprot)
 
             @throw Exception::FileNotFound
             @throw Exception::ParseError
@@ -161,7 +161,7 @@ public:
     */
     bool getSearchEngineAndVersion(const String & cmd_output, ProteinIdentification & protein_identification);
 
-    /** read the header of an inspect output file and retrieve various informations
+    /** read the header of an inspect output file and retrieve various information
             @throw Exception::ParseError
     */
     void readOutHeader(const String & filename, const String & header_line, Int & spectrum_file_column, Int & scan_column, Int & peptide_column, Int & protein_column, Int & charge_column, Int & MQ_score_column, Int & p_value_column, Int & record_number_column, Int & DB_file_pos_column, Int & spec_file_pos_column, Size & number_of_columns);
@@ -169,7 +169,7 @@ public:
 protected:
     /// a record in the index file that belongs to a trie database consists of three parts
     /// 1) the protein's position in the original database
-    /// 2) the proteins's position in the trie database
+    /// 2) the protein's position in the trie database
     /// 3) the name of the protein (the line with the accession identifier)
     static const Size db_pos_length_;         ///< length of 1)
     static const Size trie_db_pos_length_;         ///< length of 2)

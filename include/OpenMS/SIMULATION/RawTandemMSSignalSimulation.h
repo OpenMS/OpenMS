@@ -42,9 +42,9 @@ namespace OpenMS
 {
 
   /**
-   @brief Simulates tandem MS signales for a given set of peptides
+   @brief Simulates tandem MS signals for a given set of peptides
 
-   Simulates tandem MS signales for a given set of peptides, with charge annotation,
+   Simulates tandem MS signals for a given set of peptides, with charge annotation,
    given detectabilities, predicted retention times and charge values.
 
    @htmlinclude OpenMS_RawTandemMSSignalSimulation.parameters

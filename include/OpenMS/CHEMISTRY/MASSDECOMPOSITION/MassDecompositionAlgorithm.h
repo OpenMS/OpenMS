@@ -72,7 +72,7 @@ namespace OpenMS
 public:
 
     /**
-      @name constructors and desctructor
+      @name constructors and destructor
     */
     //@{
     /// Default constructor

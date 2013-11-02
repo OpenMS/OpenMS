@@ -53,7 +53,7 @@ namespace OpenMS
     /**
       @brief Implements @c MassDecomposer interface using algorithm and data
       structures described in paper "Efficient Mass Decomposition"
-      S. Bcker, Zs. Liptk, ACM SAC-BIO, 2004.
+      S. Böcker, Z. Lipták, ACM SAC-BIO, 2004 doi:10.1145/1066677.1066715.
 
       The main idea is instead of using the classical dynamic programming
       algorithm, store the residues of the smallest decomposable numbers
@@ -165,7 +165,7 @@ private:
 
       /**
         List of the counters for the least common multiples that store the number
-        how often the smallest alphabet mass fits into the correcponding least
+        how often the smallest alphabet mass fits into the corresponding least
         common multiple(lcm).
       */
       residues_table_row_type mass_in_lcms_;

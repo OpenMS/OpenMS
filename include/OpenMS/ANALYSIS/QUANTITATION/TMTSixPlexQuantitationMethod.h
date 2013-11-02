@@ -78,7 +78,7 @@ public:
     /// @}
     
   private:
-    /// the actuacl information on the different itraq4plex channels.
+    /// the actual information on the different itraq4plex channels.
     IsobaricChannelList channels_;
     
     /// The name of the quantitation method.

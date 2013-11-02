@@ -86,7 +86,7 @@ public:
 @param mod_map reference to the map holding the possible modifications
 @param c const character for the amino acid
 
-all modification for the given amino acid are added to the map. The key is the mass, the value is the number of modifications for that mass. So the advantage of using a map is that a value will occure only once. the mass of the modification is added to all elements in the map whose number of modifications is smaller than the maximal number of modifications.
+All modification for the given amino acid are added to the map. The key is the mass, the value is the number of modifications for that mass. So the advantage of using a map is that a value will occur only once. The mass of the modification is added to all elements in the map whose number of modifications is smaller than the maximal number of modifications.
 */
     void refreshModificationList(std::map<double, SignedSize> & mod_map, const char & c);
 
@@ -106,10 +106,10 @@ therefor at first the massmapping is calculated. This massmapping will be saved 
 
 /**
 @brief gets all modification possibilities for a given mass and for the given peptide
-@param m masse
+@param m mass
 @param seq peptide sequence
 @return vector of strings
-the getModificationsForMass (double & m) will be used. then a chacater histogramm of the sequence is created as well as for every possible combination of modifications. Then only modifications that are possible are returned.
+the getModificationsForMass (double & m) will be used. then a character histogram of the sequence is created as well as for every possible combination of modifications. Then only modifications that are possible are returned.
 */
     std::vector<String> getModificationsForMass(double & m, const String & seq);
 

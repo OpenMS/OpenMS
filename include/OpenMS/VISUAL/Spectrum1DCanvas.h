@@ -66,7 +66,7 @@ namespace OpenMS
     Q_OBJECT
 
 public:
-    /// Label modes (percentage or absolut) of x axis and y axis
+    /// Label modes (percentage or absolute) of x axis and y axis
     enum LabelMode
     {
       LM_XABSOLUTE_YABSOLUTE,
@@ -80,7 +80,7 @@ public:
     /// Destructor
     virtual ~Spectrum1DCanvas();
 
-    ///Enumerate all avaiable paint styles
+    ///Enumerate all available paint styles
     enum DrawModes
     {
       DM_PEAKS,                                 //< draw data as peak
@@ -188,7 +188,7 @@ public slots:
 
 protected slots:
 
-    /// Reacts on changed layer paramters
+    /// Reacts on changed layer parameters
     void currentLayerParamtersChanged_();
 
 protected:
@@ -219,11 +219,11 @@ protected:
     /**
         @brief Sets the visible area
 
-        Changes the visible area, adjustes the zoom stack and notifies interested clients about the change.
+        Changes the visible area, adjusts the zoom stack and notifies interested clients about the change.
         If parts of the area are outside of the data area, the new area will be adjusted.
 
         @param new_area The new visible area.
-        @param repaint if repainting of the widget should ne triggered
+        @param repaint if repainting of the widget should be triggered
         @param add_to_stack If the new area is to add to the zoom_stack_
     */
     virtual void changeVisibleArea_(const AreaType & new_area, bool repaint = true, bool add_to_stack = false);
@@ -255,7 +255,7 @@ protected:
     Size alignment_layer_2_;
     /// Stores the alignment as MZ values of pairs of aligned peaks in both spectra
     std::vector<std::pair<DoubleReal, DoubleReal> > aligned_peaks_mz_delta_;
-    /// Stores the peak indizes of pairs of aligned peaks in both spectra
+    /// Stores the peak indices of pairs of aligned peaks in both spectra
     std::vector<std::pair<Size, Size> > aligned_peaks_indices_;
 
     /// Stores the score of the last alignment

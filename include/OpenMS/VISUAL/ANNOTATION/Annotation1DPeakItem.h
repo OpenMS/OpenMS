@@ -69,7 +69,7 @@ public:
     /// Sets the position of the label (in MZ / intensity coordinates)
     void setPosition(const PointType & position);
 
-    /// Sets the anker position of the label (peak) (in MZ / intensity coordinates)
+    /// Sets the anchor position of the label (peak) (in MZ / intensity coordinates)
     const PointType & getPeakPosition() const;
 
     /// Returns the position of the peak (in MZ / intensity coordinates)
@@ -81,7 +81,7 @@ public:
     /// Returns the color of the label
     const QColor & getColor() const;
 protected:
-    /// The position of the anker (peak) (in MZ / intensity coordinates)
+    /// The position of the anchor (peak) (in MZ / intensity coordinates)
     PointType peak_position_;
 
     /// The position of the label (in MZ / intensity coordinates)

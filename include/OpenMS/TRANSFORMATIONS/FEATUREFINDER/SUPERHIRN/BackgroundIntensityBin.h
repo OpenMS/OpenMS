@@ -87,7 +87,7 @@ public:
     BackgroundIntensityBin(double, double);
 
     /*
-     * @brief Check if a peak belongs to this intenisty bin
+     * @brief Check if a peak belongs to this intensity bin
      */
     bool checkBelonging(MSPeak *);
 

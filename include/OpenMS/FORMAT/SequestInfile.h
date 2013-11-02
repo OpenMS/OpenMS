@@ -91,14 +91,14 @@ public:
     /// sets the weights for the a-, b-, c-, d-, v-, w-, x-, y- and z-ion series
     void setIonSeriesWeights(const String & ion_series_weights);
 
-    /// returns the partial sequences (space delimited) that have to occur in the theortical spectra
+    /// returns the partial sequences (space delimited) that have to occur in the theoretical spectra
     const String & getPartialSequence() const;
-    /// sets the partial sequences (space delimited) that have to occur in the theortical spectra
+    /// sets the partial sequences (space delimited) that have to occur in the theoretical spectra
     void setPartialSequence(const String & partial_sequence);
 
-    /// returns the sequences (space delimited) that have to occur, or be absent (preceeded by a tilde) in the header of a protein to be considered
+    /// returns the sequences (space delimited) that have to occur, or be absent (preceded by a tilde) in the header of a protein to be considered
     const String & getSequenceHeaderFilter() const;
-    /// sets the sequences (space delimited) that have to occur, or be absent (preceeded by a tilde) in the header of a protein to be considered
+    /// sets the sequences (space delimited) that have to occur, or be absent (preceded by a tilde) in the header of a protein to be considered
     void setSequenceHeaderFilter(const String & sequence_header_filter);
 
     /// returns the protein mass filter (either min and max mass, or mass and tolerance value in percent)
@@ -221,7 +221,7 @@ public:
     void setResiduesInUpperCase(bool residues_in_upper_case);
 
     /// adds an enzyme to the list and sets is as used
-    /// the vector constists of four strings:
+    /// the vector consists of four strings:
     /// name, cut direction: 0 (N to C) / 1, cuts after (list of aa), doesn't cut before (list of aa)
     void addEnzymeInfo(std::vector<String> & enzyme_info);
 
@@ -253,8 +253,8 @@ protected:
     String snd_database_;         ///< second database used
     String neutral_losses_for_ions_;         ///< whether neutral losses are considered for the a-; b- and y-ions (e.g. 011 for b- and y-ions)
     String ion_series_weights_;        ///< weights for the a-; b-; c-; d-; v-; w-; x-; y- and z-ion series; space delimited
-    String partial_sequence_;         ///< space-delimited list of sequence parts that have to occur in the theortical spectra
-    String sequence_header_filter_;        ///< space-delimited list of sequences that have to occur or be absend (preceeded by a tilde) in a protein header; to be considered
+    String partial_sequence_;         ///< space-delimited list of sequence parts that have to occur in the theoretical spectra
+    String sequence_header_filter_;        ///< space-delimited list of sequences that have to occur or be absent (preceded by a tilde) in a protein header; to be considered
     String protein_mass_filter_;
 
     Real precursor_mass_tolerance_;        ///< tolerance for matching a theoretical to an experimental peptide

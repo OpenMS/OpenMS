@@ -59,7 +59,7 @@ public:
 
             @param st the suffix array string, which is used to build the suffix array
             @param filename filename of fasta file
-            @param weight_mode if not monoistopic weight should be used, this parameters can be set to AVERAGE
+            @param weight_mode if not monoisotopic weight should be used, this parameters can be set to AVERAGE
             @throw InvalidValue is thrown if string st if invalid
             @throw FileNotFound is thrown if given file is not found
     */
@@ -67,9 +67,9 @@ public:
 
     /**
     @brief returns if an enzyme will cut after first character
-    @param aa1 const char as first aminoacid
-    @param aa2 const char as second aminoacid
-    @return bool descibing if it is a digesting site
+    @param aa1 const char as first amino acid
+    @param aa2 const char as second amino acid
+    @return bool describing if it is a digesting site
     */
     bool isDigestingEnd(const char aa1, const char aa2) const;
 

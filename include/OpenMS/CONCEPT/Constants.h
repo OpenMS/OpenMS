@@ -77,7 +77,7 @@ namespace OpenMS
     /// Euler's number - base of the natural logarithm
     extern OPENMS_DLLAPI const double  E;
 
-    /**	Internal theshold for equality comparisons.
+    /**	Internal threshold for equality comparisons.
             Default value is 1e-6.
     */
     extern OPENMS_DLLAPI double EPSILON;

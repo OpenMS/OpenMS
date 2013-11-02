@@ -45,7 +45,7 @@ namespace OpenMS
   the individual chromatograms as well as the transitions it refers to.
 
   This means that the MRM Transition Group establishes the mapping between the
-  individual Transition (containind the meta-data) and the Chromatogram data
+  individual Transition (containing the meta-data) and the Chromatogram data
   points (measured data).
 
   Since not all the functions in OpenMS will work with MSChromatogram data

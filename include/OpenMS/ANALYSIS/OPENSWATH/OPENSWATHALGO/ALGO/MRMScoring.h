@@ -63,9 +63,9 @@ namespace OpenSwath
         2011 May;8(5):430-5. Epub 2011 Mar 20.
 
       The currently implemented scores include:
-      - xcorr_coelution: Crosscorrelation of the different transitions
-      - xcorr_shape: Crosscorrelation shape score (whether the maximal
-                     crosscorrelation coincides with the maximal intensity)
+      - xcorr_coelution: Cross-correlation of the different transitions
+      - xcorr_shape: Cross-correlation shape score (whether the maximal
+                     Cross-correlation coincides with the maximal intensity)
       - library_rmsd: normalized RMSD of the measured intensities to the expected intensities
       - library_correlation: correlation of the measured intensities to the expected intensities
       - rt_score: deviation from the expected retention time
@@ -96,7 +96,7 @@ public:
 
     /** @name Accessors */
     //@{
-    /// non-muteable access to the Cross-correlation matrix
+    /// non-mutable access to the Cross-correlation matrix
     const XCorrMatrixType& getXCorrMatrix() const;
     //@}
 

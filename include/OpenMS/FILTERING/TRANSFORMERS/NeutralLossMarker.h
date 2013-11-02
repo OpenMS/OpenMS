@@ -96,7 +96,7 @@ public:
           double curmz = spectrum[j].getPosition()[0];
           double curIntensity = spectrum[j].getIntensity();
 
-          // check for peak thats a a water or ammonia away
+          // check for peak that's a water or ammonia away
           if (std::fabs(mz - curmz - 17) < tolerance || std::fabs(mz - curmz - 18) < tolerance)
           {
             // neutral loss peak should be smaller

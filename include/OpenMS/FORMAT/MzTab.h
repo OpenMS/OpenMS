@@ -831,7 +831,7 @@ public:
       }
     }
 
-    // set (potentially ambigous) position(s) with associated parameter (might be null if not set)
+    // set (potentially ambiguous) position(s) with associated parameter (might be null if not set)
     void setPositionsAndParameters(const std::vector<std::pair<Int, MzTabParameter> >& ppp)
     {
       pos_param_pairs_ = ppp;
@@ -873,7 +873,7 @@ public:
             pos_param_string += pos_param_pairs_[i].second.toCellString();
           }
 
-          // add | as separator (exept for last one)
+          // add | as separator (except for last one)
           if (i < pos_param_pairs_.size() - 1)
           {
             pos_param_string += String("|");
@@ -1220,7 +1220,7 @@ protected:
     std::vector<MzTabParameter> instrument_analyzer; // 0..* The instrument’s analyzer
     std::vector<MzTabParameter> instrument_detector; // 0..* The instrument’s detector
     std::vector<MzTabParameter> software; // 0..* Analysis software used in the order it was used.
-    std::vector<std::vector<String> > software_setting; // 0..* A sotware setting used. This field MAY occur multiple times for a single software (=same index).
+    std::vector<std::vector<String> > software_setting; // 0..* A software setting used. This field MAY occur multiple times for a single software (=same index).
     MzTabParameterList false_discovery_rate; // 0..1 False discovery rate(s)for the experiment.
     std::vector<MzTabStringList> publication; // 0..* Publication ids (pubmed / doi).
     std::vector<MzTabString> contact_name; // 0..* Contact name.
@@ -1297,7 +1297,7 @@ protected:
     MzTabDoubleList retention_time; // Time points in seconds. Semantics may vary.
     MzTabDouble charge; // Precursor ion’s charge.
     MzTabDouble mass_to_charge; // Precursor ion’s m/z.
-    MzTabString uri; // Location of the PSM’s source entry.
+    MzTabString uri; // Location of the PSMs source entry.
     MzTabSpectraRef spectra_ref; // Spectra identifying the peptide.
     std::vector<MzTabDouble> peptide_abundance_sub; // Peptide abundance in the subsample;
     std::vector<MzTabDouble> peptide_abundance_stdev_sub; // Peptide abundance standard deviation.

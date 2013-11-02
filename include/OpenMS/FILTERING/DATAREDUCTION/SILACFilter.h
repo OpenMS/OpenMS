@@ -113,7 +113,7 @@ private:
     std::vector<DoubleReal> peak_positions_;
 
     /**
-     * @brief m/z separtion between individual peptides [e.g. {0 Th, 4 Th, 5 Th}]
+     * @brief m/z separation between individual peptides [e.g. {0 Th, 4 Th, 5 Th}]
      */
     std::vector<DoubleReal> mz_peptide_separations_;
 

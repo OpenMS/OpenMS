@@ -68,7 +68,7 @@ namespace OpenMS
 public:
     ///Constructor
     MultiGradientSelector(QWidget * parent = 0);
-    ///Desctructor
+    ///Destructor
     ~MultiGradientSelector();
 
     ///returns a const reference to the gradient
@@ -76,9 +76,9 @@ public:
     ///returns a mutable reference to the gradient
     MultiGradient & gradient();
 
-    /// sets the interploation mode
+    /// sets the interpolation mode
     void setInterpolationMode(MultiGradient::InterpolationMode mode);
-    /// returns the interpolaion mode
+    /// returns the interpolation mode
     MultiGradient::InterpolationMode getInterpolationMode() const;
 
 public slots:
@@ -86,7 +86,7 @@ public slots:
     void stairsInterpolation(bool state);
 
 protected:
-    ///@name Reimpelented Qt events
+    ///@name re-implemented Qt events
     //@{
     void paintEvent(QPaintEvent * e);
     void mousePressEvent(QMouseEvent * e);
@@ -104,7 +104,7 @@ protected:
     Int margin_;
     // height of the gradient area
     Int gradient_area_width_;
-    // heigth of the lever area
+    // height of the lever area
     Int lever_area_height_;
 
     //position (0-100) in the vector of the selected lever

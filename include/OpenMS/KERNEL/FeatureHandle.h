@@ -243,6 +243,7 @@ private:
   inline FeatureHandle::FeatureHandleMutable_ & FeatureHandle::asMutable() const
   {
     // the const cast is to remove constness, but note that FeatureHandleMutable_ lacks some mutators
+    // TODO use const_cast
     return static_cast<FeatureHandleMutable_ &>(const_cast<FeatureHandle &>(*this));
   }
 

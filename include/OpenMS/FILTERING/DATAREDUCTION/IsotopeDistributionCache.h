@@ -41,7 +41,7 @@
 namespace OpenMS
 {
   /**
-   * @brief Prealculate isotope distributions for interesting mass ranges
+   * @brief Pre-calculate isotope distributions for interesting mass ranges
    */
   class OPENMS_DLLAPI IsotopeDistributionCache
   {
@@ -54,7 +54,7 @@ public:
     const TheoreticalIsotopePattern & getIsotopeDistribution(DoubleReal mass) const;
 
 private:
-    /// Vector of precalculated isotope distributions for several mass winows
+    /// Vector of pre-calculated isotope distributions for several mass windows
     std::vector<TheoreticalIsotopePattern> isotope_distributions_;
 
     DoubleReal mass_window_width_;

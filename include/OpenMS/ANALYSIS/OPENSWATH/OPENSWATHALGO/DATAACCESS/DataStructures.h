@@ -68,7 +68,7 @@ namespace OpenSwath
   /// The structure into which encoded binary data goes.
   struct BinaryDataArray
   {
-    /// this optional attribute may reference the 'id' attribute of the appropiate dataProcessing.
+    /// this optional attribute may reference the 'id' attribute of the appropriate dataProcessing.
     //DataProcessingPtr dataProcessingPtr;
 
     /// the binary data.

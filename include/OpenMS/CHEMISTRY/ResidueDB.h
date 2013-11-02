@@ -108,7 +108,7 @@ public:
             The possible residues are defined in share/OpenMS/CHEMISTRY/Residues.xml. At
             the moment the following sets are available:
                 All - all residues stored in the file
-                Natural20 - default 20 naturally occuring residues
+                Natural20 - default 20 naturally occurring residues
                 Natural19WithoutI - default natural amino acids, excluding isoleucine (isobaric to leucine)
                 Natural19WithoutL - default natural amino acids, excluding leucine (isobaric to isoleucine)
                 Natural19J - default natural amino acids,  (isobaric leucine/isoleucine are marked by 'J')
@@ -117,7 +117,7 @@ public:
                                                          Z (glutamine or glutamate)
                                                          J (isoleucine or leucine)
                 Ambiguous - all amino acids including all ambiguous ones (X can be every other amino acid)
-                AllNatural - naturally occuring residues, including selenocysteine (U)
+                AllNatural - naturally occurring residues, including selenocysteine (U)
     */
     const std::set<const Residue *> getResidues(const String & residue_set = "All") const;
 
@@ -127,7 +127,7 @@ public:
     /// sets the residues from given file
     void setResidues(const String & filename);
 
-    /// adds a residue, i.e. a unkown residue, where only the weight is known
+    /// adds a residue, i.e. a unknown residue, where only the weight is known
     void addResidue(const Residue & residue);
     //@}
 

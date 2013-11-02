@@ -94,7 +94,7 @@ protected:
 
     String generateMzTabSmallMoleculeSectionRow_(const MzTabSmallMoleculeSectionRow& row, const String& unit_id) const;
 
-    // auxiliar functions
+    // auxiliary functions
 
     static void sortPSM_(std::vector<PeptideIdentification>::iterator begin, std::vector<PeptideIdentification>::iterator end);
 
@@ -129,7 +129,7 @@ protected:
     static String extractNumPeptidesDistinct_(String common_identifier, String protein_accession,
                                              const MapAccPepType & map_run_accesion_to_peptides);
 
-    // same as distinct but additional constraint of uniquenes (=maps to exactly one Protein)
+    // same as distinct but additional constraint of uniqueness (=maps to exactly one Protein)
     static String extractNumPeptidesUnambiguous_(String common_identifier, String protein_accession,
                                                 const MapAccPepType & map_run_accesion_to_peptides);
 

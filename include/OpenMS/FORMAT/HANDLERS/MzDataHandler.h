@@ -327,7 +327,7 @@ protected:
            << "</data>\n\t\t\t</" << tag << ">\n";
       }
 
-      //Data processing auxilary variable
+      //Data processing auxiliary variable
       DataProcessing data_processing_;
 
     };
@@ -1180,7 +1180,7 @@ protected:
             os << String(6, '\t') << "<cvParam cvLabel=\"psi\" accession=\"PSI:1000037\" name=\"Polarity\" value=\"Negative\"/>\n";
           }
 
-          //Retiontion time already in TimeInSeconds
+          //Retention time already in TimeInSeconds
           writeCVS_(os, spec.getRT(), "1000039", "TimeInSeconds", 6);
           writeUserParam_(os, spec.getInstrumentSettings(), 6);
           os << "\t\t\t\t\t</spectrumInstrument>\n\t\t\t\t</spectrumSettings>\n";

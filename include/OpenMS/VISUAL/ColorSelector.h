@@ -77,7 +77,7 @@ public:
     /// Qt size hint
     QSize sizeHint() const;
 protected:
-    ///@name Remplemented Qt events
+    ///@name Reimplemented Qt events
     //@{
     void paintEvent(QPaintEvent * e);
     void mousePressEvent(QMouseEvent * e);

@@ -273,8 +273,8 @@ signals:
     void somethingHasChanged();
     /// Emitted when the item is dragged
     void itemDragged(qreal dx, qreal dy);
-    /// Emitted if an INI parameter or recyling mode or whatever was edited by the user - depending on the current state of the tool an action is taken
-    /// each node type decides itself if this will invalide the pipeline, depending on its internal status
+    /// Emitted if an INI parameter or recycling mode or whatever was edited by the user - depending on the current state of the tool an action is taken
+    /// each node type decides itself if this will invalidate the pipeline, depending on its internal status
     void parameterChanged(const bool invalidates_running_pipeline);
 
 protected:

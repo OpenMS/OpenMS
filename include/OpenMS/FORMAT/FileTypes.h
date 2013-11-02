@@ -53,7 +53,7 @@ namespace OpenMS
   */
   struct OPENMS_DLLAPI FileTypes
   {
-    //NOTE: if you change/add something here, do not forget to change FileTyoes::initializeMap_
+    //NOTE: if you change/add something here, do not forget to change FileTypes::initializeMap_
 
     ///Actual file types enum.
     enum Type
@@ -69,7 +69,7 @@ namespace OpenMS
       MGF,                ///< Mascot Generic Format (.mgf)
       INI,                ///< %OpenMS parameters file (.ini)
       TOPPAS,             ///< %OpenMS parameters file with workflow information (.toppas)
-      TRANSFORMATIONXML,  ///< Tranformation description file (.trafoXML)
+      TRANSFORMATIONXML,  ///< Transformation description file (.trafoXML)
       MZML,               ///< MzML file (.mzML)
       MS2,                ///< MS2 file (.ms2)
       PEPXML,             ///< TPP pepXML file (.pepXML)

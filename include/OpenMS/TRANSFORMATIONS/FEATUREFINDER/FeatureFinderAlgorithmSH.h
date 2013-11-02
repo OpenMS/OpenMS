@@ -63,7 +63,7 @@ namespace OpenMS
           a single spectrum
            2.1 add to the background intensity controller
                BackgroundControl::addPeakMSScan which calculates intensity bins
-           2.2 call "go" on Deisotoper (on single spectrum level) to "de-istope" spectra *
+           2.2 call "go" on Deisotoper (on single spectrum level) to "de-isotope" spectra *
            2.3 Converts them to objects of MSPeak type (single spectrum features) 
       
          Step 3 works on an instance of ProcessData (clustering de-isotoped

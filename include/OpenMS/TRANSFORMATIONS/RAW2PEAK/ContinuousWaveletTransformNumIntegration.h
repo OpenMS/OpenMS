@@ -79,7 +79,7 @@ public:
     virtual ~ContinuousWaveletTransformNumIntegration() {}
 
     /**
-        @brief Computes the wavelet transform of a given raw data intervall [begin_input,end_input)
+        @brief Computes the wavelet transform of a given raw data interval [begin_input,end_input)
 
         - Resolution = 1: the wavelet transform will be computed at every position of the raw data,
         - Resolution = 2: the wavelet transform will be computed at 2x(number of raw data positions) positions

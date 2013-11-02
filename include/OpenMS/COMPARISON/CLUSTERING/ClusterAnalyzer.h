@@ -72,9 +72,9 @@ public:
 
         @param tree vector of BinaryTreeNode's representing the clustering
         @param original DistanceMatrix for all clustered elements started from
-        @return a vector filled with the average silhouette widths for each clusterstep
+        @return a vector filled with the average silhouette widths for each cluster step
 
-        The average silhouette width will becalculated for each clustering step beginning with the first step(n-1 cluster) ending with the last (1 cluster, average silhouette width is 0 by definition).
+        The average silhouette width will be calculated for each clustering step beginning with the first step(n-1 cluster) ending with the last (1 cluster, average silhouette width is 0 by definition).
         @see BinaryTreeNode
     */
     std::vector<Real> averageSilhouetteWidth(const std::vector<BinaryTreeNode> & tree, const DistanceMatrix<Real> & original);
@@ -113,7 +113,7 @@ public:
         @brief Method to calculate a partition resulting from a certain step in clustering given by the number of clusters
 
     If you want to fetch all clusters which were created with a threshold, you simply count the number of tree-nodes which are
-    not -1, and substract that from the number of leafes, to get the number of clusters formed
+    not -1, and subtract that from the number of leaves, to get the number of clusters formed
     , i.e. cluster_quantity = data.size() - real_leaf_count;
 
         @param cluster_quantity Size giving the number of clusters (i.e. starting elements - cluster_quantity = cluster step)

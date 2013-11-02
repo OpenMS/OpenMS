@@ -88,7 +88,7 @@ public:
       /// Destructor
       virtual ~GaussFitter();
 
-      /// sets the initial parameters used by the fit method as inital guess for the gaussian
+      /// sets the initial parameters used by the fit method as initial guess for the gaussian
       void setInitialParameters(const GaussFitResult & result);
 
       /**

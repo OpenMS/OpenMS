@@ -60,7 +60,7 @@ namespace OpenMS
 
       No matter if you have extra variables or not, do the following:
       - Set defaults_ and subsections_ in the derived classes' default constructor.
-      - Make sure to set the 'advanced' flag of the parameters right in order to hide certain parameters from unexperienced users.
+      - Make sure to set the 'advanced' flag of the parameters right in order to hide certain parameters from inexperienced users.
       - Set the range restrictions for numeric defaults and valid strings for string defaults (if possible)
       - Call defaultsToParam_() at the end of derived classes' default constructor.
           It copies the defaults to param_ (and calls updateMembers_()).

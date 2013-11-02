@@ -82,7 +82,7 @@ public:
     /**
         @brief Adds a timepoint at the end of the timepoint array
 
-        @exception Exception::OutOfRange is thrown if the new timpoint is before the last timepoint.
+        @exception Exception::OutOfRange is thrown if the new timepoint is before the last timepoint.
     */
     void addTimepoint(Int timepoint);
     /// removes all timepoints
@@ -111,7 +111,7 @@ public:
     */
     UInt getPercentage(const String & eluent, Int timepoint) const;
 
-    /// sets all precentage values to 0
+    /// sets all percentage values to 0
     void clearPercentages();
 
     /// checks if the percentages of all timepoints add up to 100%
