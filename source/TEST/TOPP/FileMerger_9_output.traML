@@ -45,7 +45,7 @@
     <Software id="Skyline0.5" version="0.5">
       <cvParam cvRef="MS" accession="MS:1000922" name="Skyline"/>
     </Software>
-    <Software id="FileMerger" version="1.10.0">
+    <Software id="FileMerger" version="1.12.0">
     </Software>
   </SoftwareList>
   <ProteinList>

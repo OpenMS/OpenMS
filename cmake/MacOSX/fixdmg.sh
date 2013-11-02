@@ -9,9 +9,9 @@
 # <wait 1-2min>
 # defaults write com.apple.Finder AppleShowAllFiles FALSE && killall Finder
 
-DISK_NAME=OpenMS-1.11.0-Darwin
+DISK_NAME=OpenMS-1.12.0-Darwin
 DMG_NAME=${DISK_NAME}.dmg
-OPENMS_NAME=OpenMS-1.11.0
+OPENMS_NAME=OpenMS-1.12.0
 backgroundPictureName=.background.png
 LICENSE=${PWD}/_CPack_Packages/Darwin/DragNDrop/sla.r
 
