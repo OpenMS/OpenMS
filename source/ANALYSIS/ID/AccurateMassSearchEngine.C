@@ -600,7 +600,7 @@ void AccurateMassSearchEngine::exportMzTab_(const QueryResultsTable& overall_res
     Size id_group(1);
 
     std::map<String, UInt> adduct_stats;                    // adduct --> # occurences
-    std::map<String, std::set<Size>> adduct_stats_unique;   // adduct --> # occurences (count for each feature only once)
+    std::map<String, std::set<Size> > adduct_stats_unique;   // adduct --> # occurences (count for each feature only once)
 
     for (QueryResultsTable::const_iterator tab_it = overall_results.begin(); tab_it != overall_results.end(); ++tab_it)
     {
