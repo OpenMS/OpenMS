@@ -165,6 +165,10 @@ protected:
     // reading input
     //-------------------------------------------------------------
     const String in = getStringOption_("in");
+    
+    ProgressLogger logger;
+    logger.setLogType(ProgressLogger::CMD);
+    logger.startProgress(0,1,"Loading...");
 
     if (File::isDirectory(in))
     {
@@ -345,6 +349,7 @@ protected:
         return ILLEGAL_PARAMETERS;
       }
     }
+    logger.endProgress();
 
     //-------------------------------------------------------------
     // writing output
@@ -361,6 +366,7 @@ protected:
       return PARSE_ERROR;
     }
 
+    logger.startProgress(0,1,"Storing...");
     if (out_type == FileTypes::PEPXML)
     {
       PepXMLFile().store(out, protein_identifications, peptide_identifications);
@@ -400,6 +406,8 @@ protected:
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
+    logger.endProgress();
+    
 
     return EXECUTION_OK;
   }

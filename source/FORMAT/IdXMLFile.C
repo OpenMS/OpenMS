@@ -505,7 +505,7 @@ namespace OpenMS
       prot_id_.setScoreType(attributeAsString_(attributes, "score_type"));
 
       //optional significance threshold
-      DoubleReal tmp = 0.0;
+      DoubleReal tmp(0.0);
       optionalAttributeAsDouble_(tmp, attributes, "significance_threshold");
       if (tmp != 0.0)
       {
@@ -525,7 +525,7 @@ namespace OpenMS
       prot_hit_.setScore(attributeAsDouble_(attributes, "score"));
 
       //sequence
-      String tmp = "";
+      String tmp;
       optionalAttributeAsString_(tmp, attributes, "sequence");
       prot_hit_.setSequence(tmp);
 
@@ -550,7 +550,7 @@ namespace OpenMS
       pep_id_.setScoreType(attributeAsString_(attributes, "score_type"));
 
       //optional significance threshold
-      DoubleReal tmp = 0.0;
+      DoubleReal tmp(0.0);
       optionalAttributeAsDouble_(tmp, attributes, "significance_threshold");
       if (tmp != 0.0)
       {
@@ -592,7 +592,7 @@ namespace OpenMS
       pep_hit_.setSequence(AASequence(attributeAsString_(attributes, "sequence")));
 
       //aa_before
-      String tmp = "";
+      String tmp;
       optionalAttributeAsString_(tmp, attributes, "aa_before");
       if (!tmp.empty())
       {
@@ -641,32 +641,25 @@ namespace OpenMS
         fatalError(LOAD, "Unexpected tag 'UserParam'!");
       }
 
-      static const XMLCh * s_name = xercesc::XMLString::transcode("name");
-      static const XMLCh * s_value = xercesc::XMLString::transcode("value");
-      static const XMLCh * s_type = xercesc::XMLString::transcode("type");
-      static const XMLCh * s_int = xercesc::XMLString::transcode("int");
-      static const XMLCh * s_float = xercesc::XMLString::transcode("float");
-      static const XMLCh * s_string = xercesc::XMLString::transcode("string");
-
-      const XMLCh * value = attributes.getValue(s_value);
-      const XMLCh * type = attributes.getValue(s_type);
-      String name = sm_.convert(attributes.getValue(s_name));
-
-      if (*type == *s_int)
+      String name = attributeAsString_(attributes, "name");
+      String type = attributeAsString_(attributes, "type");
+      String value = attributeAsString_(attributes, "value");
+      
+      if (type == "string")
       {
-        last_meta_->setMetaValue(name, xercesc::XMLString::parseInt(value));
+        last_meta_->setMetaValue(name, value);
       }
-      else if (*type == *s_float)
+      else if (type == "float")
       {
-        last_meta_->setMetaValue(name, String(sm_.convert(value)).toDouble());
+        last_meta_->setMetaValue(name, value.toDouble());
       }
-      else if (*type == *s_string)
+      else if (type == "int")
       {
-        last_meta_->setMetaValue(name, (String)sm_.convert(value));
+        last_meta_->setMetaValue(name, value.toInt());
       }
       else
       {
-        fatalError(LOAD, String("Invalid UserParam type '") + sm_.convert(type) + "' of parameter '" + name + "'");
+        fatalError(LOAD, String("Invalid UserParam type '") + type + "' of parameter '" + name + "'");
       }
     }
   }
