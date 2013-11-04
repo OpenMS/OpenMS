@@ -184,32 +184,23 @@ private:
       os.close();
     }
 
-    void writeXMLEscape(const String & to_escape, ostream & os)
+    String writeXMLEscape(const String& to_escape)
     {
-      XMLCh * xmlch = xercesc::XMLString::transcode(to_escape.c_str());
+      String _copy = to_escape;
+      // has() is cheap, so check before calling substitute(), since substitute() will usually happen rarely
+      if (_copy.has('&')) _copy.substitute("&","&amp;");
+      if (_copy.has('>')) _copy.substitute(">","&gt;");
+      if (_copy.has('"')) _copy.substitute("\"","&quot;");
+      if (_copy.has('<')) _copy.substitute("<","&lt;");
+      if (_copy.has('\'')) _copy.substitute("'","&apos;");
 
-      std::string out = "";
-      OpenMSXMLFormatTarget ft(out);
-      xercesc::XMLFormatter f("UTF-8", /* XMLUni::fgVersion1_1 */ "1.1", &ft);
-      f << xercesc::XMLFormatter::StdEscapes << xmlch;
-      os << out;
-      xercesc::XMLString::release(&xmlch);
-      return;
-
-    }
-
-    String writeXMLEscape(const String & to_escape)
-    {
-      stringstream ss;
-      writeXMLEscape(to_escape, ss);
-      return String(ss.str());
+      return _copy;
     }
     
-    String encodeTab(const String & to_encode)
+    String encodeTab(const String& to_encode)
     {
-      String _copy = to_encode;
-      _copy.substitute("\t", "&#x9;");
-      return _copy;
+      if (!to_encode.has('\t')) return to_encode;
+      else return String(to_encode).substitute("\t", "&#x9;");
     }
 
     bool XMLFile::isValid(const String & filename, std::ostream & os)

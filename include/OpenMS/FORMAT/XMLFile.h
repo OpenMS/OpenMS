@@ -101,40 +101,12 @@ protected:
       void enforceEncoding_(const String& encoding);
     };
 
-    // implementation of an XMLFormatTarget
-    class OPENMS_DLLAPI OpenMSXMLFormatTarget :
-      public xercesc::XMLFormatTarget
-    {
-
-public:
-
-      OpenMSXMLFormatTarget(std::string & str) :
-        XMLFormatTarget(),
-        str_(str)
-      {
-      }
-
-      virtual void writeChars(const XMLByte * const toWrite, const XMLSize_t count, xercesc::XMLFormatter * const /*formatter*/)
-      {
-        str_.append((const char * const)toWrite, count);
-      }
-
-      std::string & str_;
-    };
-
-    /**
-      @brief Escapes a string to be storable into an XML File
-
-      Some characters must be escaped which are allowed in user params. E.g. > and & are not in XML and
-      need to be escaped. Parsing those escaped strings is automatically done by xerces
-    */
-    void OPENMS_DLLAPI writeXMLEscape(const String & to_escape, std::ostream & os);
-
     /**
       @brief Escapes a string and returns the escaped string
 
       Some characters must be escaped which are allowed in user params. E.g. > and & are not in XML and
-      need to be escaped. Parsing those escaped strings is automatically done by xerces
+      need to be escaped. Parsing those escaped strings from file again is automatically done by Xerces.
+      Escaped characters are: & < > " ' 
     */
     String OPENMS_DLLAPI writeXMLEscape(const String & to_escape);
 
