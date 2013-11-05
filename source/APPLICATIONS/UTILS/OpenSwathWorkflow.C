@@ -870,7 +870,7 @@ protected:
 
     registerDoubleOption_("min_upper_edge_dist", "<double>", 0.0, "Minimal distance to the edge to still consider a precursor, in Thomson", false);
     registerDoubleOption_("extraction_window", "<double>", 0.05, "Extraction window used (in Thomson, to use ppm see -ppm flag)", false);
-    registerDoubleOption_("rt_extraction_window", "<double>", 300.0, "Only extract RT around this value (-1 means extract over the whole range, a value of 600 means to extract around +/- 300 s of the expected elution).", false);
+    registerDoubleOption_("rt_extraction_window", "<double>", 600.0, "Only extract RT around this value (-1 means extract over the whole range, a value of 600 means to extract around +/- 300 s of the expected elution).", false);
     setMinFloat_("extraction_window", 0.0);
 
     registerDoubleOption_("min_rsq", "<double>", 0.95, "Minimum r-squared of RT peptides regression", false);
@@ -903,7 +903,7 @@ protected:
       feature_finder_param.remove("rt_extraction_window");
       feature_finder_param.setValue("rt_normalization_factor", 100.0); // for iRT peptides between 0 and 100 (more or less)
 
-      feature_finder_param.setValue("TransitionGroupPicker:min_peak_width", 12.0);
+      feature_finder_param.setValue("TransitionGroupPicker:min_peak_width", 14.0);
       feature_finder_param.setValue("TransitionGroupPicker:recalculate_peaks", "true");
       feature_finder_param.setValue("TransitionGroupPicker:compute_peak_quality", "true");
       feature_finder_param.setValue("TransitionGroupPicker:minimal_quality", -1.5);
@@ -913,9 +913,10 @@ protected:
       // Peak Picker
       feature_finder_param.setValue("TransitionGroupPicker:PeakPickerMRM:use_gauss", "false");
       feature_finder_param.setValue("TransitionGroupPicker:PeakPickerMRM:sgolay_polynomial_order", 3);
-      feature_finder_param.setValue("TransitionGroupPicker:PeakPickerMRM:sgolay_frame_length", 9);
+      feature_finder_param.setValue("TransitionGroupPicker:PeakPickerMRM:sgolay_frame_length", 11);
       feature_finder_param.setValue("TransitionGroupPicker:PeakPickerMRM:peak_width", -1.0);
       feature_finder_param.setValue("TransitionGroupPicker:PeakPickerMRM:remove_overlapping_peaks", "true");
+      feature_finder_param.setValue("TransitionGroupPicker:PeakPickerMRM:recalculate_peaks_max_z", 0.75);
       // TODO it seems that the legacy method produces slightly larger peaks, e.g. it will not cut off peaks too early
       // however the same can be achieved by using a relatively low SN cutoff in the -Scoring:TransitionGroupPicker:PeakPickerMRM:signal_to_noise 0.5
       feature_finder_param.setValue("TransitionGroupPicker:PeakPickerMRM:method", "corrected");
@@ -925,7 +926,8 @@ protected:
       feature_finder_param.remove("TransitionGroupPicker:PeakPickerMRM:sn_win_len");
       feature_finder_param.remove("TransitionGroupPicker:PeakPickerMRM:sn_bin_count");
 
-      // EMG Scoring
+      // EMG Scoring - turn off by default since it is very CPU-intensive
+      feature_finder_param.setValue("Scores:use_elution_model_score", "false");
       feature_finder_param.setValue("EMGScoring:max_iteration", 10);
       feature_finder_param.setValue("EMGScoring:deltaRelError", 0.1);
       feature_finder_param.remove("EMGScoring:interpolation_step");
