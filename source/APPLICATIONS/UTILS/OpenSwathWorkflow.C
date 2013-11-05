@@ -227,11 +227,18 @@ namespace OpenMS
     */
     struct ChromExtractParams 
     {
+      /// Whether to not extract anything closer than this (in Da) from the upper edge
       double min_upper_edge_dist;
-      double extraction_window;
+      /// Extraction window in Da or ppm (e.g. 50ppm means extraction +/- 25ppm)
+      double mz_extraction_window;
+      /// Whether the extraction window is given in ppm or Da
       bool ppm; 
-      double rt_extraction_window; 
+      /// The extraction function in mass space 
       String extraction_function;
+      /// The retention time extraction window 
+      double rt_extraction_window; 
+      /// Whether to extract some extra in the retention time (can be useful if one wants to look at the chromatogram outside the window)
+      double extra_rt_extract; 
     };
 
     /** @brief Compute the alignment against a set of RT-normalization peptides
@@ -330,16 +337,17 @@ namespace OpenMS
           else
           {
             // Use an rt extraction window of 0.0 which will just write the retention time in start / end positions
+            // Then correct the start/end positions and add the extra_rt_extract parameter
             prepare_coordinates(chrom_list, coordinates, transition_exp_used, 0.0, false);
             for (std::vector< ChromatogramExtractor::ExtractionCoordinates >::iterator it = coordinates.begin(); it != coordinates.end(); it++)
             {
-              it->rt_start = trafo_inverse.apply(it->rt_start) - cp.rt_extraction_window / 2.0;
-              it->rt_end = trafo_inverse.apply(it->rt_end) + cp.rt_extraction_window / 2.0;
+              it->rt_start = trafo_inverse.apply(it->rt_start) - (cp.rt_extraction_window + cp.extra_rt_extract)/ 2.0;
+              it->rt_end = trafo_inverse.apply(it->rt_end) + (cp.rt_extraction_window + cp.extra_rt_extract)/ 2.0;
             }
           }
 
           // Step 2.2: extract chromatograms
-          extractor.extractChromatograms(swath_maps[i].sptr, chrom_list, coordinates, cp.extraction_window,
+          extractor.extractChromatograms(swath_maps[i].sptr, chrom_list, coordinates, cp.mz_extraction_window,
               cp.ppm, cp.extraction_function);
 
           // Step 2.3: convert chromatograms back and write to output
@@ -456,7 +464,7 @@ namespace OpenMS
         ChromatogramExtractor extractor;
         // TODO for lrage rt extraction windows!
         extractor.prepare_coordinates(tmp_out, coordinates, transition_exp_used,  cp.rt_extraction_window, false);
-        extractor.extractChromatograms(swath_maps[i].sptr, tmp_out, coordinates, cp.extraction_window,
+        extractor.extractChromatograms(swath_maps[i].sptr, tmp_out, coordinates, cp.mz_extraction_window,
             cp.ppm, cp.extraction_function);
 
 #ifdef _OPENMP
@@ -869,14 +877,16 @@ protected:
     setValidFormats_("out_chrom", StringList::create("mzML"));
 
     registerDoubleOption_("min_upper_edge_dist", "<double>", 0.0, "Minimal distance to the edge to still consider a precursor, in Thomson", false);
-    registerDoubleOption_("extraction_window", "<double>", 0.05, "Extraction window used (in Thomson, to use ppm see -ppm flag)", false);
+    registerDoubleOption_("mz_extraction_window", "<double>", 0.05, "Extraction window used (in Thomson, to use ppm see -ppm flag)", false);
     registerDoubleOption_("rt_extraction_window", "<double>", 600.0, "Only extract RT around this value (-1 means extract over the whole range, a value of 600 means to extract around +/- 300 s of the expected elution).", false);
-    setMinFloat_("extraction_window", 0.0);
+    registerDoubleOption_("extra_rt_extraction_window", "<double>", 0.0, "Output an XIC with a RT-window that by this much larger (e.g. to visually inspect a larger area of the chromatogram)", false);
+    setMinFloat_("mz_extraction_window", 0.0);
+    setMinFloat_("extra_rt_extraction_window", 0.0);
 
     registerDoubleOption_("min_rsq", "<double>", 0.95, "Minimum r-squared of RT peptides regression", false);
     registerDoubleOption_("min_coverage", "<double>", 0.6, "Minimum relative amount of RT peptides to keep", false);
 
-    registerFlag_("ppm", "extraction_window is in ppm");
+    registerFlag_("ppm", "m/z extraction_window is in ppm");
     registerFlag_("split_file_input", "The input files each contain one single SWATH (alternatively: all SWATH are in separate files)");
 
     registerStringOption_("readOptions", "<name>", "normal", "Whether to run OpenSWATH directly on the input data, cache data to disk first or to perform a datareduction step first", false);
@@ -1085,8 +1095,9 @@ protected:
     bool ppm = getFlag_("ppm");
     bool split_file = getFlag_("split_file_input");
     DoubleReal min_upper_edge_dist = getDoubleOption_("min_upper_edge_dist");
-    DoubleReal extraction_window = getDoubleOption_("extraction_window");
+    DoubleReal mz_extraction_window = getDoubleOption_("mz_extraction_window");
     DoubleReal rt_extraction_window = getDoubleOption_("rt_extraction_window");
+    DoubleReal extra_rt_extract = getDoubleOption_("extra_rt_extraction_window");
     String extraction_function = getStringOption_("extraction_function");
     String swath_windows_file = getStringOption_("swath_windows_file");
     int batchSize = (int)getIntOption_("batchSize");
@@ -1106,10 +1117,11 @@ protected:
 
     OpenSwathWorkflow::ChromExtractParams cp;
     cp.min_upper_edge_dist   = min_upper_edge_dist;
-    cp.extraction_window     = extraction_window;
+    cp.mz_extraction_window  = mz_extraction_window;
     cp.ppm                   = ppm;
     cp.rt_extraction_window  = rt_extraction_window, 
     cp.extraction_function   = extraction_function;
+    cp.extra_rt_extract      = extra_rt_extract; 
 
     OpenSwathWorkflow::ChromExtractParams cp_irt = cp;
     cp_irt.rt_extraction_window = -1; // extract the whole RT range
