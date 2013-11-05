@@ -49,8 +49,8 @@
 #include <numeric>
 
 // Cross-correlation
-#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/Scoring.h"
-#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/StatsHelpers.h"
+#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/Scoring.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/StatsHelpers.h>
 
 //#define DEBUG_TRANSITIONGROUPPICKER
 
@@ -167,7 +167,7 @@ public:
       mrmFeature.setIntensity(0.0);
       double best_left = picked_chroms[chr_idx].getFloatDataArrays()[1][peak_idx];
       double best_right = picked_chroms[chr_idx].getFloatDataArrays()[2][peak_idx];
-      const double peak_apex = picked_chroms[chr_idx][peak_idx].getRT();
+      double peak_apex = picked_chroms[chr_idx][peak_idx].getRT();
       LOG_DEBUG << "Creating MRMFeature for peak " << chr_idx << " " << peak_idx << " " <<
         picked_chroms[chr_idx][peak_idx] << " with borders " << best_left << " " <<
         best_right << " (" << best_right - best_left << ")" << std::endl;
@@ -179,7 +179,12 @@ public:
       if (recalculate_peaks_)
       {
         // This may change best_left / best_right
-        recalculatePeakBorders(picked_chroms, best_left, best_right);
+        recalculatePeakBorders(picked_chroms, best_left, best_right, recalculate_peaks_max_z_);
+        if (peak_apex < best_left || peak_apex > best_right)
+        {
+          // apex fell out of range, lets correct it
+          peak_apex = (best_left + best_right) / 2.0;
+        }
       }
       picked_chroms[chr_idx][peak_idx].setIntensity(0.0);
 
@@ -291,7 +296,7 @@ public:
         mrmFeature.addFeature(f, chromatogram.getNativeID()); //map index and feature
       }
 
-      mrmFeature.setRT(picked_chroms[chr_idx][peak_idx].getMZ());
+      mrmFeature.setRT(peak_apex);
       mrmFeature.setIntensity(total_intensity);
       mrmFeature.setMetaValue("PeptideRef", transition_group.getTransitionGroupID());
       mrmFeature.setMetaValue("leftWidth", best_left);
@@ -299,6 +304,7 @@ public:
       mrmFeature.setMetaValue("total_xic", total_xic);
       mrmFeature.setMetaValue("peak_apices_sum", total_peak_apices);
 
+      mrmFeature.ensureUniqueId();
       return mrmFeature;
     }
 
@@ -570,20 +576,37 @@ protected:
       median here).
     */
     template <typename SpectrumT>
-    void recalculatePeakBorders(std::vector<SpectrumT>& picked_chroms, double& best_left, double& best_right)
+    void recalculatePeakBorders(std::vector<SpectrumT>& picked_chroms, double& best_left, double& best_right, double max_z)
     {
-      // collect all seeds that lie within the current seed
+      // 1. Collect all seeds that lie within the current seed 
+      // - Per chromatogram only the most intense one counts, otherwise very
+      // - low intense peaks can contribute disproportionally to the voting
+      // - procedure.
       std::vector<double> left_borders;
       std::vector<double> right_borders;
       for (Size k = 0; k < picked_chroms.size(); k++)
       {
+        double max_int = -1;
+        double left = -1;
+        double right = -1;
         for (Size i = 0; i < picked_chroms[k].size(); i++)
         {
           if (picked_chroms[k][i].getMZ() >= best_left && picked_chroms[k][i].getMZ() <= best_right)
           {
-            left_borders.push_back(picked_chroms[k].getFloatDataArrays()[1][i]);
-            right_borders.push_back(picked_chroms[k].getFloatDataArrays()[2][i]);
+            if (picked_chroms[k].getFloatDataArrays()[0][i] > max_int)
+            {
+              max_int = picked_chroms[k].getFloatDataArrays()[0][i];
+              left = picked_chroms[k].getFloatDataArrays()[1][i];
+              right = picked_chroms[k].getFloatDataArrays()[2][i];
+            }
           }
+        }
+        if (max_int > -1 )
+        {
+          left_borders.push_back(left);
+          right_borders.push_back(right);
+          LOG_DEBUG << " * " << k << " left boundary " << left_borders.back()   <<  " with int " << max_int << std::endl;
+          LOG_DEBUG << " * " << k << " right boundary " << right_borders.back() <<  " with int " << max_int << std::endl;
         }
       }
 
@@ -593,24 +616,42 @@ protected:
         return;
       }
 
-      // Calculate mean and standard deviation
-      double mean = std::accumulate(right_borders.begin(), right_borders.end(), 0.0) / (double) right_borders.size();
-      double stdev = std::sqrt(std::inner_product(right_borders.begin(), right_borders.end(), right_borders.begin(), 0.0)
+      // FEATURE IDEA: instead of Z-score use modified Z-score for small datasets 
+      // http://d-scholarship.pitt.edu/7948/1/Seo.pdf
+      // http://www.itl.nist.gov/div898/handbook/eda/section3/eda35h.htm
+      // 1. calculate median
+      // 2. MAD = calculate difference to median for each value -> take median of that
+      // 3. Mi = 0.6745*(xi - median) / MAD
+
+      // 2. Calculate mean and standard deviation
+      // If the coefficient of variation is too large for one border, we use a
+      // "pseudo-median" instead of the border of the most intense peak.
+      double mean, stdev;
+
+      mean = std::accumulate(right_borders.begin(), right_borders.end(), 0.0) / (double) right_borders.size();
+      stdev = std::sqrt(std::inner_product(right_borders.begin(), right_borders.end(), right_borders.begin(), 0.0)
                                / right_borders.size() - mean * mean);
       std::sort(right_borders.begin(), right_borders.end());
-      if (std::fabs(best_right - mean) / stdev > 1.5)
+      LOG_DEBUG << " - Recalculating right peak boundaries " << mean << " mean / best " 
+                << best_right << " std " << stdev << " : "  << std::fabs(best_right - mean) / stdev 
+                << " coefficient of variation" << std::endl;
+      if (std::fabs(best_right - mean) / stdev > max_z)
       {
         best_right = right_borders[right_borders.size() / 2]; // pseudo median
+        LOG_DEBUG << " - Setting right boundary to  " << best_right << std::endl;
       }
 
       mean = std::accumulate(left_borders.begin(), left_borders.end(), 0.0) / (double) left_borders.size();
       stdev = std::sqrt(std::inner_product(left_borders.begin(), left_borders.end(), left_borders.begin(), 0.0)
                         / left_borders.size() - mean * mean);
       std::sort(left_borders.begin(), left_borders.end());
-
-      if (std::fabs(best_left - mean)  / stdev > 1.5)
+      LOG_DEBUG << " - Recalculating left peak boundaries " << mean << " mean / best " 
+                << best_left << " std " << stdev << " : "  << std::fabs(best_left - mean) / stdev 
+                << " coefficient of variation" << std::endl;
+      if (std::fabs(best_left - mean)  / stdev > max_z)
       {
         best_left = left_borders[left_borders.size() / 2]; // pseudo median
+        LOG_DEBUG << " - Setting left boundary to  " << best_left << std::endl;
       }
 
     }
@@ -682,6 +723,7 @@ protected:
     int stop_after_feature_;
     DoubleReal stop_after_intensity_ratio_;
     DoubleReal min_peak_width_;
+    DoubleReal recalculate_peaks_max_z_;
   };
 }
 

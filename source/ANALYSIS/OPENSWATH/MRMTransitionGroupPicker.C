@@ -52,7 +52,8 @@ namespace OpenMS
     defaults_.setValue("background_subtraction", "none", "Try to apply a background subtraction to the peak (experimental). The background is estimated at the peak boundaries, either the smoothed or the raw chromatogram data can be used for that.", StringList::create("advanced"));
     defaults_.setValidStrings("background_subtraction", StringList::create("none,smoothed,original"));
 
-    defaults_.setValue("recalculate_peaks", "false", "Tries to get better peak picking by looking at peak consistency of all picked peaks. Tries to use the consensus (median) peak border if the standard deviation within the picked peaks of a transition group is larger than 1.5.", StringList::create("advanced"));
+    defaults_.setValue("recalculate_peaks", "false", "Tries to get better peak picking by looking at peak consistency of all picked peaks. Tries to use the consensus (median) peak border if theof variation within the picked peaks is too large.", StringList::create("advanced"));
+    defaults_.setValue("recalculate_peaks_max_z", 1.0, "Determines the maximal Z-Score (difference measured in standard deviations) that is considered too large for peak boundaries. If the Z-Score is above this value, the median is used for peak boundaries (default value 1.0).", StringList::create("advanced"));
     // defaults_.setValue("detect_outliers", "false", "Tries to detect outlier transitions", StringList::create("advanced"));
     defaults_.setValue("minimal_quality", -10000.0, "Only if compute_peak_quality is set, this parameter will not consider peaks below this quality threshold", StringList::create("advanced"));
     defaults_.setValue("compute_peak_quality", "false", "Tries to compute a quality value for each peakgroup and detect outlier transitions. The resulting score is centered around zero and values above 0 are generally good and below -1 or -2 are usually bad.", StringList::create("advanced"));
@@ -84,6 +85,7 @@ namespace OpenMS
     stop_after_intensity_ratio_ = (DoubleReal)param_.getValue("stop_after_intensity_ratio");
     background_subtraction_ = param_.getValue("background_subtraction");
     recalculate_peaks_ = (bool)param_.getValue("recalculate_peaks").toBool();
+    recalculate_peaks_max_z_ = (DoubleReal)param_.getValue("recalculate_peaks_max_z");
     // detect_outliers_ = (bool)param_.getValue("detect_outliers").toBool();
     compute_peak_quality_ = (bool)param_.getValue("compute_peak_quality").toBool();
     min_qual_ = (DoubleReal)param_.getValue("minimal_quality");
