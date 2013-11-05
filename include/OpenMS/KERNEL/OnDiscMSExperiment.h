@@ -62,16 +62,23 @@ namespace OpenMS
   {
 public:
 
+    OnDiscMSExperiment() {}
+
     /**
       @brief Constructor
 
       This initializes the object and attempts to read the indexed mzML by
       parsing the index and then reading the meta information into memory.
     */
-    OnDiscMSExperiment(String filename) :
-      filename_(filename),
-      indexed_mzml_file_(filename)
+    OnDiscMSExperiment(const String& filename)
     {
+      openFile(filename);
+    }
+
+    bool openFile(const String& filename)
+    {
+      filename_ = filename;
+      indexed_mzml_file_.openFile(filename);
       if (filename != "")
       {
         meta_ms_experiment_ = boost::shared_ptr< MSExperiment<> >(new MSExperiment<>);
@@ -82,6 +89,7 @@ public:
         f.setOptions(options);
         f.load(filename, *meta_ms_experiment_.get());
       }
+      return indexed_mzml_file_.getParsingSuccess();
     }
 
     /// Copy constructor
@@ -232,7 +240,7 @@ private:
 protected:
 
     /// The filename of the underlying data file
-    const String filename_;
+    String filename_;
     /// The index of the underlying data file
     IndexedMzMLFile indexed_mzml_file_;
     /// The meta-data 

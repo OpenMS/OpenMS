@@ -93,6 +93,11 @@ namespace OpenMS
 
     /**
       @brief Constructor
+    */
+    IndexedMzMLFile() {};
+
+    /**
+      @brief Constructor
 
       Tries to parse the file, success can be checked with getParsingSuccess()
     */
@@ -103,6 +108,13 @@ namespace OpenMS
 
     /// Destructor
     ~IndexedMzMLFile();
+
+    /**
+      @brief Open a file
+
+      Tries to parse the file, success can be checked with getParsingSuccess()
+    */
+    void openFile(String filename);
 
     /// Returns whether parsing was successful
     bool getParsingSuccess() const;

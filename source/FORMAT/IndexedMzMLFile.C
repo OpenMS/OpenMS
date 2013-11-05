@@ -57,11 +57,9 @@ namespace OpenMS
     else parsing_success_ = false;
   }
 
-  IndexedMzMLFile::IndexedMzMLFile(String filename) :
-    filename_(filename),
-    filestream(filename.c_str())
+  IndexedMzMLFile::IndexedMzMLFile(String filename) 
   {
-    parseFooter(filename);
+    openFile(filename);
   }
 
   IndexedMzMLFile::IndexedMzMLFile(const IndexedMzMLFile& source) :
@@ -77,6 +75,17 @@ namespace OpenMS
 
   IndexedMzMLFile::~IndexedMzMLFile()
   {
+  }
+
+  void IndexedMzMLFile::openFile(String filename) 
+  {
+    if (filestream.is_open())
+    {
+      filestream.close();
+    }
+    filename_ = filename;
+    filestream.open(filename.c_str());
+    parseFooter(filename);
   }
 
   bool IndexedMzMLFile::getParsingSuccess() const

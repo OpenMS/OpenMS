@@ -64,6 +64,12 @@ START_SECTION((~IndexedMzMLFile()))
 	delete ptr;
 END_SECTION
 
+START_SECTION((IndexedMzMLFile() ))
+	ptr = new IndexedMzMLFile();
+	TEST_NOT_EQUAL(ptr, nullPointer)
+	delete ptr;
+END_SECTION
+
 START_SECTION(( bool getParsingSuccess() ))
 {
   {
@@ -80,6 +86,18 @@ START_SECTION(( bool getParsingSuccess() ))
     IndexedMzMLFile file(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
     TEST_EQUAL(file.getParsingSuccess(), true)
   }
+}
+END_SECTION
+
+START_SECTION(( void openFile(String filename) ))
+{
+  IndexedMzMLFile file;
+  file.openFile(OPENMS_GET_TEST_DATA_PATH("fileDoesNotExist"));
+  TEST_EQUAL(file.getParsingSuccess(), false)
+  file.openFile(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"));
+  TEST_EQUAL(file.getParsingSuccess(), false)
+  file.openFile(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
+  TEST_EQUAL(file.getParsingSuccess(), true)
 }
 END_SECTION
 
