@@ -35,15 +35,9 @@
 #ifndef OPENMS_INTERFACES_IMSDATACONSUMER_H
 #define OPENMS_INTERFACES_IMSDATACONSUMER_H
 
-#include <OpenMS/INTERFACES/DataStructures.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
-
-#include <vector>
-#include <string>
-#include <iostream>
-#include <boost/shared_ptr.hpp>
 
 namespace OpenMS
 {
@@ -51,14 +45,23 @@ namespace Interfaces
 {
 
     /**
-      @brief The interface of a consumer of spectra
+      @brief The interface of a consumer of spectra and chromatograms
 
-      The spectra consumer is able to consume MSSpectrum and MSChromatogram and
-      process them. It also expects to be informed about the number of spectra
-      and chromatograms that it needs to consume and about the
-      ExperimentalSettings _before_ consuming any spectra. Depending on the
-      implementation, an exception may occur if the ExperimentalSettings and
-      the size of the experiment are not set before consuming any spectra. 
+      The data consumer is able to consume data of type MSSpectrum and
+      MSChromatogram and process them (it may modify the spectra). The consumer
+      interface may be used when data is generated sequentially (e.g. by
+      reading from disc) and needs to be processed as fast as possible without
+      ever holding the full set of data in memory.
+      
+      The consumer expects to be informed about the number of spectra and
+      chromatograms to consume and potentially about the ExperimentalSettings
+      @a before_consuming any spectra. This can be critical for consumers who
+      write data to disk. Depending on the implementation, an exception may
+      occur if the ExperimentalSettings and the size of the experiment are not
+      set before consuming any spectra. 
+
+      @note The member functions setExpectedSize and setExperimentalSettings
+      are expected to be called before consuming starts.
 
     */
     template <typename MapType = MSExperiment<> >
@@ -68,7 +71,6 @@ namespace Interfaces
       typedef typename MapType::SpectrumType SpectrumType;
       typedef typename MapType::ChromatogramType ChromatogramType;
 
-      // IMSDataConsumer() = 0;
       virtual ~IMSDataConsumer() {};
       virtual void consumeSpectrum(SpectrumType & s) = 0;
       virtual void consumeChromatogram(ChromatogramType &) = 0;

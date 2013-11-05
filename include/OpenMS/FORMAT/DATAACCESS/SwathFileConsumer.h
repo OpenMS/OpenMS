@@ -67,15 +67,15 @@ namespace OpenMS
    * the order of the SWATH spectra to be preserved. For example, the spectra
    * could be arranged in the following fashion:
    *
-   * - MS1 Spectrum Precursor = [0,0]
-   * - MS2 Spectrum Precursor = [400,425]
-   * - MS2 Spectrum Precursor = [425,450]
-   * [...]
-   * - MS2 Spectrum Precursor = [1175,1200]
-   * - MS1 Spectrum Precursor = [0,0]
-   * - MS2 Spectrum Precursor = [400,425]
-   * - MS2 Spectrum Precursor = [425,450]
-   * [...]
+   * - MS1 Spectrum (no precursor)
+   * - MS2 Spectrum (precursor = [400,425])
+   * - MS2 Spectrum (precursor = [425,450])
+   * - [...]
+   * - MS2 Spectrum (precursor = [1175,1200])
+   * - MS1 Spectrum (no precursor)
+   * - MS2 Spectrum (precursor = [400,425])
+   * - MS2 Spectrum (precursor = [425,450])
+   * - [...]
    *
    * Base classes are expected to implement functions consuming a spectrum coming
    * from a specific SWATH or an MS1 spectrum and a final function
@@ -84,10 +84,12 @@ namespace OpenMS
    *
    * Usage:
    *
+   * @code
    * FullSwathFileConsumer * dataConsumer;
    * // assign dataConsumer to an implementation of FullSwathFileConsumer
    * MzMLFile().transform(file, dataConsumer);
    * dataConsumer->retrieveSwathMaps(maps);
+   * @endcode
    *
    */
   class OPENMS_DLLAPI FullSwathFileConsumer :
@@ -285,7 +287,7 @@ namespace OpenMS
    *
    * Writes all spectra immediately to disk in a user-specified caching
    * location using the CachedMzMLConsumer. Internally, it handles 
-   * n+1 (n SWATH + 1 MS1 map) CachedMzMLConsumers which can consume the
+   * n+1 (n SWATH + 1 MS1 map) objects of CachedMzMLConsumers which can consume the
    * spectra and write them to disk immediately.
    *
    */

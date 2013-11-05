@@ -276,6 +276,7 @@ file formats, data reduction functionality and all other analysis algorithms.
   First we need to include the header file for @a DPosition and @a iostream. Then we
   import all the %OpenMS symbols to the scope with the @a using directive.
   @dontinclude Tutorial_DPosition.C
+  @skip DPosition
   @until namespace
   The first commands in the main method initialize a 2-dimensional @a DPosition :
   @until 47.11
@@ -605,8 +606,8 @@ file formats, data reduction functionality and all other analysis algorithms.
   a @a load and a @a store method, that take a file name and the appropriate
   data structure.
 
-  The following example (Tutorial_FileIO.C) demonstrates the use of @a MzMLFile
-  and @a MzXMLFile to convert one format into another using @a MSExperiment to hold the temporary data:
+  The following example (Tutorial_FileIO.C) demonstrates the use of @a OpenMS::MzMLFile
+  and @a OpenMS::MzXMLFile to convert one format into another using @a OpenMS::MSExperiment to hold the temporary data:
   @dontinclude Tutorial_FileIO.C
   @skip main
   @until end of main
