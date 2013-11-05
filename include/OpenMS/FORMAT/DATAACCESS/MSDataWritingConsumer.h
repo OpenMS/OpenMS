@@ -107,13 +107,13 @@ namespace OpenMS
       MSDataWritingConsumer(String filename) :
         Internal::MzMLHandler<MapType>(MapType(), filename, MzMLFile().getVersion(), ProgressLogger()),
         ofs(filename.c_str()), 
-        started_writing(false),
-        writing_spectra(false),
-        writing_chromatograms(false),
-        spectra_written(0),
-        chromatograms_written(0),
-        spectra_expected(0),
-        chromatograms_expected(0),
+        started_writing_(false),
+        writing_spectra_(false),
+        writing_chromatograms_(false),
+        spectra_written_(0),
+        chromatograms_written_(0),
+        spectra_expected_(0),
+        chromatograms_expected_(0),
         add_dataprocessing_(false)
       {
         validator_ = new Internal::MzMLValidator(this->mapping_, this->cv_);
@@ -126,20 +126,22 @@ namespace OpenMS
         doCleanup();
       }
 
+      /// Set experimental settings for the whole file
       void setExperimentalSettings(ExperimentalSettings& exp)
       {
-        settings = exp;
+        settings_ = exp;
       }
 
+      /// Set expected size -> these numbers will be written in the spectrumList and chromatogramList tag
       void setExpectedSize(Size expectedSpectra, Size expectedChromatograms)
       {
-        spectra_expected = expectedSpectra;
-        chromatograms_expected = expectedChromatograms;
+        spectra_expected_ = expectedSpectra;
+        chromatograms_expected_ = expectedChromatograms;
       }
 
       void consumeSpectrum(SpectrumType & s)
       {
-        if (writing_chromatograms)
+        if (writing_chromatograms_)
         {
           throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
               "Cannot write spectra after writing chromatograms.");
@@ -154,31 +156,31 @@ namespace OpenMS
           scpy.getDataProcessing().push_back(additional_dataprocessing_);
         }
 
-        if (!started_writing)
+        if (!started_writing_)
         {
-          // this is the first spectrum -> start writing the header
+          // this is the first data to be written -> start writing the header
           // We also need to modify the map and add this dummy spectrum in
           // order to write the header correctly
           MapType dummy;
-          dummy = settings;
+          dummy = settings_;
           dummy.addSpectrum(scpy);
 
           //--------------------------------------------------------------------
           //header
           //--------------------------------------------------------------------
-          Internal::MzMLHandler<MapType>::writeHeader_(ofs, dummy, dps, *validator_);
-          started_writing = true;
+          Internal::MzMLHandler<MapType>::writeHeader_(ofs, dummy, dps_, *validator_);
+          started_writing_ = true;
         }
-        if (!writing_spectra)
+        if (!writing_spectra_)
         {
-          ofs << "\t\t<spectrumList count=\"" << spectra_expected << "\" defaultDataProcessingRef=\"dp_sp_0\">\n";
-          writing_spectra = true;
+          ofs << "\t\t<spectrumList count=\"" << spectra_expected_ << "\" defaultDataProcessingRef=\"dp_sp_0\">\n";
+          writing_spectra_ = true;
         }
         bool renew_native_ids = false;
-        // TODO writeSpectrum assumes that dps has at least one value -> assert
+        // TODO writeSpectrum assumes that dps_ has at least one value -> assert
         // this here ...
         Internal::MzMLHandler<MapType>::writeSpectrum_(ofs, scpy,
-                spectra_written++, *validator_, renew_native_ids, dps);
+                spectra_written_++, *validator_, renew_native_ids, dps_);
       }
 
       void addDataProcessing(DataProcessing d)
@@ -190,7 +192,7 @@ namespace OpenMS
       void consumeChromatogram(ChromatogramType & c)
       {
         // make sure to close an open List tag
-        if (writing_spectra)
+        if (writing_spectra_)
         {
           ofs << "\t\t</spectrumList>\n";
         }
@@ -204,30 +206,33 @@ namespace OpenMS
           ccpy.getDataProcessing().push_back(additional_dataprocessing_);
         }
 
-        if (!started_writing)
+        if (!started_writing_)
         {
-          // this is the first chromatogram -> start writing the header
+          // this is the first data to be written -> start writing the header
           // We also need to modify the map and add this dummy chromatogram in
           // order to write the header correctly
           MapType dummy;
-          dummy = settings;
+          dummy = settings_;
           dummy.addChromatogram(ccpy);
 
           //--------------------------------------------------------------------
-          //header
+          //header (fill also dps_ variable)
           //--------------------------------------------------------------------
-          Internal::MzMLHandler<MapType>::writeHeader_(ofs, dummy, dps, *validator_);
-          started_writing = true;
+          Internal::MzMLHandler<MapType>::writeHeader_(ofs, dummy, dps_, *validator_);
+          started_writing_ = true;
         }
-        if (!writing_chromatograms)
+        if (!writing_chromatograms_)
         {
-          ofs << "\t\t<chromatogramList count=\"" << chromatograms_expected << "\" defaultDataProcessingRef=\"dp_sp_0\">\n";
-          writing_chromatograms = true;
-          writing_spectra = false;
+          ofs << "\t\t<chromatogramList count=\"" << chromatograms_expected_ << "\" defaultDataProcessingRef=\"dp_sp_0\">\n";
+          writing_chromatograms_ = true;
+          writing_spectra_ = false;
         }
         Internal::MzMLHandler<MapType>::writeChromatogram_(ofs, ccpy,
-                chromatograms_written++, *validator_);
+                chromatograms_written_++, *validator_);
       }
+
+      Size getNrSpectraWritten() {return spectra_written_;}
+      Size getNrChromatogramsWritten() {return chromatograms_written_;}
 
     protected:
 
@@ -237,40 +242,50 @@ namespace OpenMS
         //cleanup
         //--------------------------------------------------------------------------------------------
         // make sure to close an open List tag
-        if (writing_spectra)
+        if (writing_spectra_)
         {
           ofs << "\t\t</spectrumList>\n";
         }
-        else if (writing_chromatograms)
+        else if (writing_chromatograms_)
         {
           ofs << "\t\t</chromatogramList>\n";
         }
 
+        // Only write the footer if we actually did start writing ... 
+        if (started_writing_) 
+          Internal::MzMLHandlerHelper::writeFooter_(ofs, options_, spectra_offsets, chromatograms_offsets);
 
-        Internal::MzMLHandlerHelper::writeFooter_(ofs, options_, spectra_offsets, chromatograms_offsets);
         delete validator_;
         ofs.close();
       }
 
       std::ofstream ofs;
 
-      bool started_writing;
-      bool writing_spectra;
-      bool writing_chromatograms;
-      Size spectra_written;
-      Size chromatograms_written;
-      Size spectra_expected;
-      Size chromatograms_expected;
+      /// Stores whether we have already started writing any data
+      bool started_writing_;
+      /// Stores whether we are currently writing spectra
+      bool writing_spectra_;
+      /// Stores whether we are currently writing chromatograms
+      bool writing_chromatograms_;
+      /// Number of spectra written
+      Size spectra_written_;
+      /// Number of chromatograms written
+      Size chromatograms_written_;
+      /// Number of spectra expected
+      Size spectra_expected_;
+      /// Number of chromatograms expected
+      Size chromatograms_expected_;
+      /// Whether to add dataprocessing term to the data before writing
       bool add_dataprocessing_;
 
-      /*
-      ControlledVocabulary cv_;
-      CVMappings mapping_;
-      */
+      /// Validator that knows about CV terms
       Internal::MzMLValidator * validator_;
 
-      ExperimentalSettings settings;
-      std::vector<std::vector<DataProcessing> > dps;
+      /// Experimental settings to use for the whole file
+      ExperimentalSettings settings_;
+      /// Vector of data processing objects -> will be filled by writeHeader_
+      std::vector<std::vector<DataProcessing> > dps_;
+      /// The dataprocessing to be added to each spectrum/chromatogram
       DataProcessing additional_dataprocessing_;
     };
 
