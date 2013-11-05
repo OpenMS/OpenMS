@@ -264,7 +264,7 @@ namespace OpenMS
       const ChromExtractParams cp, const Param& feature_finder_param,
       const OpenSwath::LightTargetedExperiment& transition_exp, 
       FeatureMap<>& out_featureFile, String out, 
-      OpenSwathTSVWriter & tsv_writer, MSDataWritingConsumer * chromConsumer, 
+      OpenSwathTSVWriter & tsv_writer, Interfaces::IMSDataConsumer<> * chromConsumer, 
       int batchSize)
     {
       tsv_writer.writeHeader();
