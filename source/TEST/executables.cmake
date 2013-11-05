@@ -156,6 +156,7 @@ set(format_executables_list
   GzipInputStream_test
   IdXMLFile_test
   IndexedMzMLFile_test
+  IndexedMzMLFileLoader_test
   InspectInfile_test
   InspectOutfile_test
   KroenikFile_test
