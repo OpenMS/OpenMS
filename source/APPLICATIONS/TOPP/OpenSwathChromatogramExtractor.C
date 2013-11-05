@@ -297,7 +297,14 @@ protected:
 #pragma omp critical (OpenSwathChromatogramExtractor_insertMS1)
 #endif
         {
-          extractor.return_chromatogram(chromatogram_ptrs, coordinates, transition_exp_used, (*exp)[0], chromatograms, extract_MS1);
+          // Remove potential meta value indicating cached data
+          SpectrumSettings exp_settings = (*exp)[0];
+          for (Size j = 0; j < exp_settings.getDataProcessing().size(); j++)
+          {
+            if (exp_settings.getDataProcessing()[j].metaValueExists("cached_data"))
+            { exp_settings.getDataProcessing()[j].removeMetaValue("cached_data"); }
+          }
+          extractor.return_chromatogram(chromatogram_ptrs, coordinates, transition_exp_used, exp_settings, chromatograms, extract_MS1);
         }
 
       } // end of do_continue

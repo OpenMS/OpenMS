@@ -242,6 +242,7 @@ protected:
     OpenSwath::SpectrumAccessPtr input = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(exp);
     run_(input, output, transition_exp);
 
+    output.ensureUniqueId();
     FeatureXMLFile().store(out, output);
 
     return EXECUTION_OK;
