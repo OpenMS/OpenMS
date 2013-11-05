@@ -49,7 +49,7 @@
 //   Dont forget to add the built example application to the svn ignore list:
 //   'svn propedit svn:ignore source/EXAMPLES/'
 // - When talking about OpenMS in general, prefix it with a '%'. Otherwise a
-//   link to the OpenMS namspace is generated automatically
+//   link to the OpenMS namespace is generated automatically
 
 //####################################### GENERAL #######################################
 
@@ -63,7 +63,7 @@
 
 	The structure of this tutorial is similar to the modules of the class documentation.
 	First, the basic concepts and datastructures of %OpenMS are explained. The next chapter is
-	about the kernel datastructures. These datastructures represent the actual mass spectronomy
+	about the kernel datastructures. These datastructures represent the actual mass spectrometric
 	data: raw data, peaks, spectra and maps. In the following chapters, the more sophisticated
 	datastructures and algorithms, e.g. those used for peak picking, feature finding and identification
 	are presented.
@@ -77,7 +77,7 @@
 
 	@section general_search Class search engine
 
-	You can search for Classes in the %OpenMS documentation using the the class search engine
+	You can search for Classes in the %OpenMS documentation using the class search engine
 	that can be found at http://open-ms.sourceforge.net/documentation.php .
 
 	The search engine can e.g. be used to
@@ -257,7 +257,7 @@ file formats, data reduction functionality and all other analysis algorithms.
   The %OpenMS string implementation @a String is based on the STL @a std::string.
   In order to make the %OpenMS string class more convenient, a lot of methods have been
   implemented in addition to the methods provided by the base class.
-  A selection of the added functionaliy is given here:
+  A selection of the added functionality is given here:
   - Checking for a substring (suffix, prefix, substring, char)
   - Extracting a substring (suffix, prefix, substring)
   - Trimming (left, right, both sides)
@@ -299,7 +299,7 @@ file formats, data reduction functionality and all other analysis algorithms.
   i.e. @f$ minPosition()[x] \le maxPosition()[x]@f$ for each dimension @a x. The following example (Tutorial_DRange.C) demonstrates this behavior.
 
   This time, we skip everything before the main method. In the main method, we
-  create a range and assign values to @a min and @a max. Note that the the minimum
+  create a range and assign values to @a min and @a max. Note that the minimum
   value of the first dimension is larger than the maximum value.
   @dontinclude Tutorial_DRange.C
   @skip main
@@ -486,7 +486,7 @@ file formats, data reduction functionality and all other analysis algorithms.
   and the intensity range of the container.
 
   The following example (Tutorial_RangeManager.C) shows the functionality of the class @a RangeManger using a @a FeatureMap.
-  First a @a FeatureMap with two features is created, then the ranges are calulated and printed:
+  First a @a FeatureMap with two features is created, then the ranges are calculated and printed:
   @dontinclude Tutorial_RangeManager.C
   @skip main
   @until end of main
@@ -517,12 +517,12 @@ file formats, data reduction functionality and all other analysis algorithms.
   or string information. It also supports casting of the stored
   value back to its original type.
 
-  @a MetaInfo is used to easily store information of any type, that does not fit into the the other
+  @a MetaInfo is used to easily store information of any type, that does not fit into the other
   classes. It implements type-name-value triplets.
   The main datastructure is an associative container that stores
   @a DataValue instances as values associated to string keys.
   Internally, the string keys are converted to integer keys for
-  performance resaons i.e. a @a map<UInt,DataValue> is used.
+  performance reasons i.e. a @a map<UInt,DataValue> is used.
 
   The @a MetaInfoRegistry associates the string keys used in
   @a MetaValue with the integer values that are used for
@@ -731,7 +731,7 @@ container or with iterators that define a range on the input container along wit
 The classes described in this section can be found in the @a FILTERING folder.
 
 @section filtering_baseline Baseline filters
-Baseline reduction can be perfomed by the @a TopHatFilter. The top-hat filter is a morphological filter
+Baseline reduction can be performed by the @a TopHatFilter. The top-hat filter is a morphological filter
 which uses the basic morphological operations "erosion" and "dilatation" to remove the baseline in raw data.
 Because both operations are implemented as described by Van Herk the top-hat filter expects equally spaced raw
 data points. If your data is not uniform yet, please use the @a LinearResampler to generate equally spaced data.
@@ -843,7 +843,7 @@ The classes described in this section can be found in the @a CHEMISTRY folder.
 
 @section Elements
 
-There is a representation of Elements implemented in %OpenMS. The correcsponding class is named @a Element. This class stores the relevant information about an element. The handling of the Elements is done by the class ElementDB, which is implemented as a singleton. This means there is only one instance of the class in %OpenMS. This is straightforward because the Elements do not change during execution. Data stored in an Element spans its name, symbol, atomic weight, and isotope distribution beside others.
+There is a representation of Elements implemented in %OpenMS. The corresponding class is named @a Element. This class stores the relevant information about an element. The handling of the Elements is done by the class ElementDB, which is implemented as a singleton. This means there is only one instance of the class in %OpenMS. This is straightforward because the Elements do not change during execution. Data stored in an Element spans its name, symbol, atomic weight, and isotope distribution beside others.
 
 Example (Tutorial_Element.C):
 
@@ -885,7 +885,7 @@ The isotopic distribution can be simply accessed by the @a getIsotopeDistributio
 
 @section Residue
 
-A residue is represented in %OpenMS by the class @a Residue. It provides a container for the amino acids as well as some functionality. The class is able to provide information such as the isotope distribution of the residue, the average and monoisotopic weight. The residues can be identified by their full name, their three letter abbreviation or the single letter abreviation. The residue can also be modified, which is implemented in the Modification class. Additional less frequently used parameters of a residue like the gas-phase basicity and pk values are also available.
+A residue is represented in %OpenMS by the class @a Residue. It provides a container for the amino acids as well as some functionality. The class is able to provide information such as the isotope distribution of the residue, the average and monoisotopic weight. The residues can be identified by their full name, their three letter abbreviation or the single letter abbreviation. The residue can also be modified, which is implemented in the Modification class. Additional less frequently used parameters of a residue like the gas-phase basicity and pk values are also available.
 
 Example (Tutorial_Residue.C):
 
@@ -961,7 +961,7 @@ First, we load two feature maps:
 	@skip main
 	@until Tutorial_MapAlignment_2
 
-Then, we instanciate the algorithm and align the feature maps:
+Then, we instantiate the algorithm and align the feature maps:
 	@until alignFeatureMaps
 
 Finally, the aligned maps are written to files:
@@ -999,7 +999,7 @@ two labels and another for label-free quantitation.
 	In order to write the a valid output file, we need to set the input file names and sizes.
 		@until maps[1].size()
 
-	Then, we instanciate the algorithm and group the features:
+	Then, we instantiate the algorithm and group the features:
 		@until algorithm.group
 
 	Finally, we store the grouped features in a consensusXML file.
@@ -1078,12 +1078,12 @@ When it is closed, we store the result back to the @a Param object and then to t
 @page tutorial_clustering Clustering
 
 In OpenMS, generic hierarchical clustering is available, the example (Tutorial_Clustering.C)
-shows how to build a rudimental clustering pipeline.
+shows how to build a rudimentary clustering pipeline.
 
 @section Inputdata
 
 All types of data can be clustered, as long as a SimilarityComparator for the type is provided.
-This Comparator has to produce a similarity measurment with the @a ()-operator in the
+This Comparator has to produce a similarity measurement with the @a ()-operator in the
 range of @a [0,1] for each two elements of this type, so it can be transformed to a
 distance. Some SimilarityComparators are already implemented, e.g. the baseclass for the
 PeakSpectrum-type SimilarityComparator is OpenMS::PeakSpectrumCompareFunctor.
@@ -1092,7 +1092,7 @@ PeakSpectrum-type SimilarityComparator is OpenMS::PeakSpectrumCompareFunctor.
   @skip LowLevelComparator
   @until end of LowLevelComparator
 
-This example of a SimilarityComparator is very basic and takes onedimensional input of @a doubles
+This example of a SimilarityComparator is very basic and takes one-dimensional input of @a doubles
 in the range of @a [0,1]. Real input will generally be more complex and so has to be the
 corresponding SimilarityComparator. Note that similarity in the example is calculated by
 @a 1-distance, whereas generally distance is obtained by getting the similarity and not the other
@@ -1113,13 +1113,13 @@ optional (per default set to 1,0). The template-arguments have to be set to the 
   @skip clustering
   @until ch.cluster
 
-This function will create a hirarchical clustering up to the threshold. See @ref Output.
+This function will create a hierarchical clustering up to the threshold. See @ref Output.
 
 @section Output
 
 If known, at what threshold (see @a OpenMS::ClusterHierarchical::cluster) a reasonable clustering is produced,
-the setting of the right threshold can potentually speed up the clustering process. After exceeding the threshold,
-the resulting tree (std::vector of OpenMS::BinaryTreeNode) is filled with dummy nodes. The tree represents the hirarchy of
+the setting of the right threshold can potentially speed up the clustering process. After exceeding the threshold,
+the resulting tree (std::vector of OpenMS::BinaryTreeNode) is filled with dummy nodes. The tree represents the hierarchy of
 clusters by storing the stepwise merging process. It can eventually be transformed to a tree-representation in Newick-format
 and/or be analyzed with other methods the OpenMS::ClusterAnalyzer class provides.
 
@@ -1134,7 +1134,7 @@ So the output will look something like this (may actually vary since random numb
 @endcode
 
 
-For closer survey of the clustering process one can also view the whole hirarchy by viewing the tree in Newick-format
+For closer survey of the clustering process one can also view the whole hierarchy by viewing the tree in Newick-format
 with a tree viewer such as TreeViewX. A visualization of a particular cluster step (which gives rise
 to a certain partition of the data clustered) can be created with heatmaps (for example with gnuplot 4.3 heatmaps and the
 corresponding distance matrix).

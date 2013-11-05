@@ -42,7 +42,7 @@
 	
 	<b>Global database for search engine adapters</b>
 		
-		In your $HOME directoy you will find an OpenMS.ini file in the @a .%OpenMS subfolder.
+		In your $HOME directory you will find an OpenMS.ini file in the @a .%OpenMS subfolder.
     This INI file contains global parameters which are honored by many/all TOPP tools - depending on
     what the parameters refer to.
     The @a id_db_dir parameter allows you to specify one or more directories where you have placed

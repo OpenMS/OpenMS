@@ -36,7 +36,7 @@
 //##############################################################################
 
 /**
-	@page TOPPView_baseline_reduction Substracting a baseline from a spectrum
+	@page TOPPView_baseline_reduction Subtracting a baseline from a spectrum
 	
 	First we load the spectrum to be analyzed in TOPPView. If you want to
 	test the described tools, you can open the tutorial data via the File-menu
@@ -74,7 +74,7 @@
 	@image html TOPPView_tools_noisefilter.png 
 	@image latex TOPPView_tools_noisefilter.png "" width=14cm
 
-	The following image shows a part of the spectrum after smoothing as red line with the unsmoothed
+	The following image shows a part of the spectrum after smoothing as red line with the un-smoothed
 	data in green.
 		
 	@image html TOPPView_tools_noisefilter_filtered.png
@@ -136,7 +136,7 @@
 	
 	@b Mass @b trace
 	@n For the mass traces, you have to define the number of adjacent spectra in which a mass has to occur (@a mass_trace:min_spectra).
-	In oder to compensate for peak picking errors, missing peaks can be allowed (@a mass_trace:max_missing) and a tolerated mass deviation
+	In order to compensate for peak picking errors, missing peaks can be allowed (@a mass_trace:max_missing) and a tolerated mass deviation
 	must be set (@a mass_trace:mz_tolerance).
 	
 	@b Isotope @b pattern

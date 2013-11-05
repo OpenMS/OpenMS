@@ -57,7 +57,7 @@
 		To create a new TOPPAS file, you can either: 
 
 			- open TOPPAS without providing any existing workflow - an empty workflow will be opened automatically
-			- in a running TOPPAS programm choose: @a File @a > @a New
+			- in a running TOPPAS program choose: @a File @a > @a New
 			- create an empty file in your file browser (explorer) with the suffix @a .toppas and double-click it (on Windows systems all @a .toppas files are 
 				associated with TOPPAS automatically during installation of %OpenMS, on Linux and MacOS you might need to manually associate the extension)
 		
@@ -108,7 +108,7 @@
 			then the files are recycled until all rounds are satisfied. This might be useful if one input node specifies a single database file (for a Search-Adapter like Mascot) and another 
 			input node has the actual MS2 experiments (which is usually more than one). Then the database input node would be set to "recycle" the database file, i.e. use it for every
 			run of the MascotAdapter node. The input list can be recycled an arbitrary number of times, but the recycling has to be @em complete, i.e. the number of rounds of the
-			downstream node have to be a multiple of the number of input files. Recycling mode can be actived by right-clicking the input node and selecting the according entry from the context menu.
+			downstream node have to be a multiple of the number of input files. Recycling mode can be activated by right-clicking the input node and selecting the according entry from the context menu.
 
 			Finally, if you have
       input and output nodes at every end of your pipeline and all connections are green,
@@ -160,7 +160,7 @@
 				- configure parameters of tools (by double-clicking a tool node)
 				- specify the input/output mapping of connections (by double-clicking a connection)
 				- translate the view (by dragging anywhere but on an item)
-				- zoom in and out (using the mousewheel)
+				- zoom in and out (using the mouse wheel)
 				- make the context menu of an item appear (by right-clicking it)
 				
 				@n
@@ -337,7 +337,7 @@
 		@image latex TOPPAS_example_merger.png "" width=14cm
 		
 		As its name suggests, a merger merges its incoming file lists, i.e.,
-		files of all incoming egdes are appended into new lists (which
+		files of all incoming edges are appended into new lists (which
 		have as many elements as the merger has incoming connections). All tools this merger has outgoing
 		connections to are called with these merged lists as input files. All incoming connections should
         pass the same number of files (unless the corresponding preceding tool is in recycling mode).

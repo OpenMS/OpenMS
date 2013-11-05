@@ -66,7 +66,7 @@
 		in the @em OpenMS/share/OpenMS/XSLT/ folder of your %OpenMS installation.
 		@n If you want to view the file on the computer with the %OpenMS installation, you can just open it in your
 		browser. 
-		@n If you copy the file to another computer, you have must copy the XSLT stylesheet to that coputer and
+		@n If you copy the file to another computer, you have must copy the XSLT stylesheet to that computer and
 		change the second line in the XML file. The following example shows how to change the stylesheet location for
 		an idXML file. You simply have to change the *PATH* in the line
 		@code<?xml-stylesheet type="text/xsl" href="file:///*PATH*idXML.xsl"?>@endcode
@@ -98,7 +98,7 @@
 		to store all settings of such a pipeline in a single place.
 
 		Note that the issue of finding suitable parameters for the tools is not
-		adressed here. If you encounter problems during the execution of the example
+		addressed here. If you encounter problems during the execution of the example
 		pipelines on your data, you probably have to adapt the parameters. Have a
 		look at the documentation of the corresponding TOPP tool in that case.
 
@@ -134,7 +134,7 @@
 			
 		@subsection TOPP_parameter_structure General structure of an INI file
 
-		An INI file is always enclosed by the @a &lt;PARAMETERS&gt; tag. Inside this tag, a tree-like hierachy
+		An INI file is always enclosed by the @a &lt;PARAMETERS&gt; tag. Inside this tag, a tree-like hierarchy
 		is created with @a &lt;NODE&gt; tags that represent sections and @a &lt;ITEM&gt; tags, each of which stores one of the
 		parameters.  The first two level of the hierarchy have a special meaning.
 
@@ -212,7 +212,7 @@ FileInfo -v -in infile.mzML
 			@endcode
 			Validation is available for several file formats including mzML, mzData, mzXML, featureXML and idXML.
 			
-			Another frequently-occuring problem is currupt data. You can check for corrupt data in peak files
+			Another frequently-occurring problem is corrupt data. You can check for corrupt data in peak files
 			with @b FileInfo as well:
 			@code
 FileInfo -c -in infile.mzML
@@ -241,7 +241,7 @@ DTAExtractor -in infile.mzML -out outfile
 			@code
 FileMerger -in infile_list.txt -out outfile.mzML
 			@endcode
-			The retention times of the scans can be generated, taken from the @a infile_list.txt or can be extrated
+			The retention times of the scans can be generated, taken from the @a infile_list.txt or can be extracted
 			from the DTA file names. See the FileMerger documentation for details.
 
 		@section TOPP_files_filter Extracting part of the data from a file
@@ -288,9 +288,9 @@ FileFilter -in infile.mzML -levels 2 -rt 100:1500 -out outfile.mzML
 			@b Description: <br>			
 			This peak picking algorithm uses the continuous wavelet transform of a raw data signal to detect mass peaks.
 			Afterwards a given asymmetric peak function is fitted to the raw data and important peak parameters (e.g. fwhm)
-			are extracted. In an optional step these parameters can be optimized using a non-linear opimization method. <br>
+			are extracted. In an optional step these parameters can be optimized using a non-linear optimization method. <br>
 			
-			The algorithm is descripted in detail in Lange et al. (2006) Proc. PSB-06.
+			The algorithm is described in detail in Lange et al. (2006) Proc. PSB-06.
 		
 			@b Application:<br>
 			This algorithm was designed for low and medium resolution data. 
@@ -319,7 +319,7 @@ FileFilter -in infile.mzML -levels 2 -rt 100:1500 -out outfile.mzML
 			<br>The algorithm is best suited for high-resolution MS data (FT-ICR-MS, Orbitrap). In 
 			high-resolution data, the signals of ions with similar mass-to-charge ratios (m/z) exhibit 
 			little or no overlapping and therefore allow for a clear separation. Furthermore, ion signals 
-			tend to show well-defined peak shapes with narrow peak width. These properties faciliate a 
+			tend to show well-defined peak shapes with narrow peak width. These properties facilitate a 
 			fast computation of picked peaks so that even large data sets can be processed very quickly.
 
 			See the PeakPickerHiRes class documentation for a parameter list.
@@ -363,7 +363,7 @@ FileFilter -in infile.mzML -levels 2 -rt 100:1500 -out outfile.mzML
 
 		@b Goal: Combine quantitation and identification results.
 		
-		Protein/peptide identifications can be annotated to quantitation results (featureXML, conensusXML)
+		Protein/peptide identifications can be annotated to quantitation results (featureXML, consensusXML)
 		by the @b IDMapper tool. The combined results can then be exported by the @b TextExporter tool: @ref TOPP_example_convert .
 */
 
@@ -375,7 +375,7 @@ FileFilter -in infile.mzML -levels 2 -rt 100:1500 -out outfile.mzML
 	The goal of map alignment is to transform different HPLC-MS maps (or derived maps) to a common retention time axis.
 	It corrects for shifted and scaled retention times, which may result from changes of the chromatography.
 	
-	The different @b MapAligner tools take @em n input maps, dewarp them and store the @em n dewarped maps.
+	The different @b MapAligner tools take @em n input maps, de-warp them and store the @em n de-warped maps.
 	The following image shows the general procedure:
 	
 	@image html TOPP_alignment.png
@@ -390,7 +390,7 @@ FileFilter -in infile.mzML -levels 2 -rt 100:1500 -out outfile.mzML
 		<TR>
 			<TD>
 				@b Description: <br>
-				This algorihtm does a star-wise alignment of the input data. The center of the star is the map with
+				This algorithm does a star-wise alignment of the input data. The center of the star is the map with
 				most data points. All other maps are then aligned to the center map by estimating a linear transformation
 				(shift and scaling) of retention times. The transformation is estimated using a pose clustering approach
 				as described in doi:10.1093/bioinformatics/btm209
@@ -420,7 +420,7 @@ FileFilter -in infile.mzML -levels 2 -rt 100:1500 -out outfile.mzML
 		<TR>
 			<TD>
 				@b Description: <br>
-				This <i>experimental</i> algorithm uses a dynamic-programming approach based on spectrum similariy for the alignment.
+				This <i>experimental</i> algorithm uses a dynamic-programming approach based on spectrum similarity for the alignment.
 				The resulting retention time mapping of dynamic-programming is then smoothed by fitting a spline 
 				to the retention time pairs.
 			</TD>
@@ -800,7 +800,7 @@ TextImporter -in infile.txt -out outfile.featureXML
 		- pepXML file
 		- idXML file
 
-		It can currently write the folling formats:
+		It can currently write the following formats:
 		- pepXML
 		- idXML
 		
