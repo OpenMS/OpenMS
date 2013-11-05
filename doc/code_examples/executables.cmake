@@ -13,6 +13,7 @@ Tutorial_EmpiricalFormula
 Tutorial_FeatureFinder
 Tutorial_FeatureMap
 Tutorial_FileIO
+Tutorial_FileIO_mzML
 Tutorial_GaussFilter
 Tutorial_InternalCalibration
 Tutorial_Labeled

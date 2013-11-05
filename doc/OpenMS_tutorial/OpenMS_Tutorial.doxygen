@@ -599,6 +599,10 @@ file formats, data reduction functionality and all other analysis algorithms.
 @page tutorial_format File and DB access
 
   All classes for file and database IO can be found in the @a FORMAT folder.
+  For most file formats, you can use the generic interfaces described in the
+  section "File adapter classes" but for some applications (e.g. where CPU or
+  memory usage are of concern), also consult the specific interfaces that
+  OpenMS provides for the mzML data format (see section "File I/O for MzML").
 
 @section format_file File adapter classes
 
@@ -607,7 +611,8 @@ file formats, data reduction functionality and all other analysis algorithms.
   data structure.
 
   The following example (Tutorial_FileIO.C) demonstrates the use of @a OpenMS::MzMLFile
-  and @a OpenMS::MzXMLFile to convert one format into another using @a OpenMS::MSExperiment to hold the temporary data:
+  and @a OpenMS::MzXMLFile to convert one format into another using @a
+  OpenMS::MSExperiment to hold the temporary data:
   @dontinclude Tutorial_FileIO.C
   @skip main
   @until end of main
@@ -622,6 +627,47 @@ file formats, data reduction functionality and all other analysis algorithms.
   FileHandler handler();
   handler.loadExperiment("input.mzML",in);
   @endcode
+
+@section format_mzml File I/O for MzML
+
+  For MzML, several additional interfaces exist which make some data processing
+  tasks easier. Specifically, it is not always feasible to load the complete
+  data of an LC-MS/MS run into memory and for these cases, special interfaces
+  exist. One such interface is the OpenMS::OnDiscMSExperiment which abstracts
+  an mzML file that contains an index. The spectra and chromatogram can be
+  obtained by calling 
+  \link OpenMS::OnDiscMSExperiment::getSpectrum getSpectrum \endlink or
+  \link OpenMS::OnDiscMSExperiment::getChromatogram getChromatogram \endlink.
+   
+
+  The following example (Tutorial_FileIO_mzML.C) demonstrates the use of 
+  OpenMS::IndexedMzMLFileHandler to obtain a representation of a mass
+  spectrometric experiment in the form of an \link OpenMS::OnDiscMSExperiment
+  OnDiscMSExperiment\endlink:
+
+  @dontinclude Tutorial_FileIO_mzML.C
+  @skip main
+  @until end of main
+
+  In addition, the OpenMS::MzMLFile also offers the OpenMS::MzMLFile::transform
+  function which allows to load an MzML file and while loading the spectra and
+  chromatograms are fed into the provided MSDataConsumer (which inherits from
+  the interface \link OpenMS::IMSDataConsumer IMSDataConsumer\endlink). This
+  can allow for memory-efficient implementation of algorithms which only need
+  to access spectra and chromatograms sequentially. Of course several
+  MSDataConsumer implementations can be chained by writing an implementation
+  which hands the results of its computation directly to the next consumer. One
+  common usage scenario uses an OpenMS::PlainMSDataWritingConsumer or an
+  OpenMS::CachedMzMLConsumer as a final consumer which writes the data to disk
+  after usage.  In this way, only the memory to keep a single spectrum in
+  memory is used and algorithms that are constant in memory usage with respect
+  to the amount of data to be processed can be implemented.
+
+  However, if random access to the data is needed, then the consumer-based
+  approach will not suffice. Here one can either use the
+  OpenMS::OnDiscMSExperiment approach as discussed above or for very fast
+  access to individual spectra (no parsing of base64-encoded needed) one can
+  first cache the data to disk using the OpenMS::CachedmzML class.
 
 @section format_db DB access
 
