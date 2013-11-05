@@ -77,7 +77,7 @@ namespace Interfaces
       // of the experiment, such as the number of spectra and chromatograms
       // and the experimental settings.
       virtual void setExpectedSize(Size expectedSpectra, Size expectedChromatograms) = 0;
-      virtual void setExperimentalSettings(ExperimentalSettings& exp) = 0;
+      virtual void setExperimentalSettings(const ExperimentalSettings& exp) = 0;
     };
 
 } //end namespace Interfaces

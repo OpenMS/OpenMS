@@ -109,7 +109,7 @@ namespace OpenMS
     ~FullSwathFileConsumer() { }
 
     void setExpectedSize(Size, Size) {}
-    void setExperimentalSettings(ExperimentalSettings& exp) {settings_ = exp;}
+    void setExperimentalSettings(const ExperimentalSettings& exp) {settings_ = exp;}
 
     /**
      * @brief Populate the vector of swath maps after consuming all spectra. 

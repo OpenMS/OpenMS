@@ -118,7 +118,7 @@ namespace OpenMS
         ofs.write((char*)&chromatograms_expected, sizeof(chromatograms_expected));
       }
 
-      void setExperimentalSettings(ExperimentalSettings& /* exp */) {;}
+      void setExperimentalSettings(const ExperimentalSettings& /* exp */) {;}
 
     protected:
       std::ofstream ofs;

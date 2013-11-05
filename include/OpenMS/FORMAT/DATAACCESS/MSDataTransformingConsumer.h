@@ -103,7 +103,7 @@ namespace OpenMS
         cprocessing_ptr_ = cproptr;
       }
 
-      virtual void setExperimentalSettings(OpenMS::ExperimentalSettings&) {};
+      virtual void setExperimentalSettings(const OpenMS::ExperimentalSettings&) {};
 
     protected:
       void (*sprocessing_ptr_)(SpectrumType&);

@@ -127,7 +127,7 @@ namespace OpenMS
       }
 
       /// Set experimental settings for the whole file
-      void setExperimentalSettings(ExperimentalSettings& exp)
+      void setExperimentalSettings(const ExperimentalSettings& exp)
       {
         settings_ = exp;
       }
@@ -307,7 +307,7 @@ namespace OpenMS
       NoopMSDataWritingConsumer(String filename) : MSDataWritingConsumer(filename) {}
       void processSpectrum_(MapType::SpectrumType & /* s */) {}
       void processChromatogram_(MapType::ChromatogramType & /* c */) {}
-      void setExperimentalSettings(ExperimentalSettings& /* exp */) {}
+      void setExperimentalSettings(const ExperimentalSettings& /* exp */) {}
       void setExpectedSize(Size /* expectedSpectra */, Size /* expectedChromatograms */) {}
       void consumeSpectrum(SpectrumType & /* s */) {}
       void addDataProcessing(DataProcessing /* d */) {}
