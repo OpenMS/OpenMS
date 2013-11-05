@@ -599,17 +599,20 @@ protected:
 
   /// Print the contents to a stream.
   template <typename PeakT>
-  std::ostream & operator<<(std::ostream & os, const MSChromatogram<PeakT> & spec)
+  std::ostream & operator<<(std::ostream & os, const MSChromatogram<PeakT> & chrom)
   {
-    os << "-- MSSPECTRUM BEGIN --" << std::endl;
+    os << "-- MSCHROMATOGRAM BEGIN --" << std::endl;
 
     //chromatogram settings
-    os << static_cast<const ChromatogramSettings &>(spec);
+    os << static_cast<const ChromatogramSettings &>(chrom);
 
-    //peaklist
-    os << static_cast<const typename MSChromatogram<PeakT>::ContainerType &>(spec);
+    //data list
+    for (typename MSChromatogram<PeakT>::ConstIterator it = chrom.begin(); it != chrom.end(); ++it)
+    {
+      os << *it << std::endl;
+    }
 
-    os << "-- MSSPECTRUM END --" << std::endl;
+    os << "-- MSCHROMATOGRAM END --" << std::endl;
 
     return os;
   }
