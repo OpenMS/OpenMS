@@ -136,6 +136,7 @@ public:
       // a feature. Whenever we run out of peaks, we will get -1 back as index
       // and terminate.
       int chr_idx, peak_idx, cnt = 0;
+      std::vector<MRMFeature> features;
       while (true)
       {
         chr_idx = -1; peak_idx = -1;
@@ -146,7 +147,7 @@ public:
         MRMFeature mrm_feature = createMRMFeature(transition_group, picked_chroms_, chr_idx, peak_idx);
         if (mrm_feature.getIntensity() > 0)
         {
-          transition_group.addFeature(mrm_feature);
+          features.push_back(mrm_feature);
         }
 
         cnt++;
@@ -156,6 +157,24 @@ public:
           break;
         }
       }
+
+      // Check for completely overlapping features
+      for (Size i = 0; i < features.size(); i++)
+      {
+        MRMFeature& mrm_feature = features[i];
+        bool skip = false;
+        for (Size j = 0; j < i; j++)
+        {
+          if ((double)mrm_feature.getMetaValue("leftWidth") >=  (double)features[j].getMetaValue("leftWidth") && 
+              (double)mrm_feature.getMetaValue("rightWidth") <= (double)features[j].getMetaValue("rightWidth") )
+          { skip = true; }
+        }
+        if (mrm_feature.getIntensity() > 0 && !skip)
+        {
+          transition_group.addFeature(mrm_feature);
+        }
+      }
+
     }
 
     /// Create feature from a vector of chromatograms and a specified peak
@@ -168,7 +187,7 @@ public:
       double best_left = picked_chroms[chr_idx].getFloatDataArrays()[1][peak_idx];
       double best_right = picked_chroms[chr_idx].getFloatDataArrays()[2][peak_idx];
       double peak_apex = picked_chroms[chr_idx][peak_idx].getRT();
-      LOG_DEBUG << "Creating MRMFeature for peak " << chr_idx << " " << peak_idx << " " <<
+      LOG_DEBUG << "**** Creating MRMFeature for peak " << chr_idx << " " << peak_idx << " " <<
         picked_chroms[chr_idx][peak_idx] << " with borders " << best_left << " " <<
         best_right << " (" << best_right - best_left << ")" << std::endl;
 
@@ -572,8 +591,7 @@ protected:
       peak is computed.  By looking at the means and standard deviations of all
       the peak borders it is estimated whether the proposed peak border
       deviates too much from the consensus one. If the deviation is too high
-      (in this case, larger than 1.5), then we fall back to the "consensus" (a
-      median here).
+      (in this case), then we fall back to the "consensus" (a median here).
     */
     template <typename SpectrumT>
     void recalculatePeakBorders(std::vector<SpectrumT>& picked_chroms, double& best_left, double& best_right, double max_z)
