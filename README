@@ -25,4 +25,24 @@ Pipeline' - TOPP is also included in this package.
 The installation instructions for OpenMS also contain 
 installation instructions for TOPP!
 
+------------------------------
+--      Contributing       --
+------------------------------
+
+If you would like to contribute to OpenMS, this is how 
+to best get started: 
+
+- Familiarize yourself with our online documentation, 
+  available at http://www.openms.de/current_doxygen/html/
+
+- Learn how to build OpenMS (by reading the building 
+  instructions at the online documentation)
+
+- Start reading the OpenMS tutorial for developers at 
+  http://www.openms.de/current_doxygen/html/OpenMS_tutorial.html
+
+- Any questions can be directed at the mailing list, 
+  see http://openms.de/support for up-to-date information
+  about how to contact the OpenMS developers.
+
 
