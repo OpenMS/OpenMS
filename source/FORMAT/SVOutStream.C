@@ -42,8 +42,8 @@ using namespace std;
 namespace OpenMS
 {
 
-  SVOutStream::SVOutStream(ostream & out, const String & sep,
-                           const String & replacement,
+  SVOutStream::SVOutStream(ostream& out, const String& sep,
+                           const String& replacement,
                            String::QuotingMethod quoting) :
     ostream(out.rdbuf()), sep_(sep), replacement_(replacement), nan_("nan"),
     inf_("inf"), quoting_(quoting), modify_strings_(true), newline_(true)
@@ -52,7 +52,7 @@ namespace OpenMS
     precision(std::numeric_limits<double>::digits10);
   }
 
-  SVOutStream & SVOutStream::operator<<(String str)
+  SVOutStream& SVOutStream::operator<<(String str)
   {
     if (str.find('\n') != String::npos)
     {
@@ -61,7 +61,7 @@ namespace OpenMS
 
     if (!newline_)
     {
-      (ostream &) * this << sep_;
+      (ostream&) *this << sep_;
     }
     else
     {
@@ -70,44 +70,58 @@ namespace OpenMS
 
     if (!modify_strings_)
     {
-      (ostream &) * this << str;
+      (ostream&) *this << str;
     }
     else if (quoting_ != String::NONE)
     {
-      (ostream &) * this << str.quote('"', quoting_);
+      (ostream&) *this << str.quote('"', quoting_);
     }
     else
     {
-      (ostream &) * this << str.substitute(sep_, replacement_);
+      (ostream&) *this << str.substitute(sep_, replacement_);
     }
     return *this;
   }
 
-  SVOutStream & SVOutStream::operator<<(const char * c_str)
+  SVOutStream& SVOutStream::operator<<(const char* c_str)
   {
     return operator<<(String(c_str));
   }
 
-  SVOutStream & SVOutStream::operator<<(const char c)
+  SVOutStream& SVOutStream::operator<<(const char c)
   {
     return operator<<(String(c));
   }
 
-  SVOutStream & SVOutStream::operator<<(const string & str)
+  SVOutStream& SVOutStream::operator<<(const string& str)
   {
-    return operator<<((String &)str);
+    return operator<<((String&)str);
   }
 
-  SVOutStream & SVOutStream::operator<<(ostream & (*fp)(ostream &))
+  SVOutStream& SVOutStream::operator<<(ostream& (*fp)(ostream&))
   {
-    ostream & (*const endlPointer)(ostream &) = &endl;
-    if (fp == endlPointer)
+    // check for "std::endl":
+    // this doesn't work in LLVM/clang's libc++ (used on Mac OS X 10.9):
+    // ostream& (*const endlPointer)(ostream&) = &endl;
+    // if (fp == endlPointer) newline_ = true;
+    fp(ss_);
+    if (ss_.str() == "\n")
+    {
       newline_ = true;
-    (ostream &) * this << fp;
+      ss_.str("");
+    }
+    (ostream&) *this << fp;
     return *this;
   }
 
-  SVOutStream & SVOutStream::write(const String & str)
+  SVOutStream& SVOutStream::operator<<(enum Newline)
+  {
+    newline_ = true;
+    (ostream&) *this << "\n";
+    return *this;
+  }
+
+  SVOutStream& SVOutStream::write(const String& str)
   {
     ostream::write(str.c_str(), str.size());
     return *this;

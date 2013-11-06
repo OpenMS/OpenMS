@@ -41,10 +41,13 @@
 
 namespace OpenMS
 {
+  /// custom newline indicator
+  enum Newline {nl};
+
   /**
       @brief Stream class for writing to comma/tab/...-separated values files.
 
-      Automatically inserts separators between items and handles quoting of strings. Requires @p std::endl as the line delimiter - @p "\n" won't be accepted.
+      Automatically inserts separators between items and handles quoting of strings. Requires @p nl (preferred) or @p std::endl as the line delimiter - @p "\n" won't be accepted.
 
       @ingroup Format
   */
@@ -60,8 +63,8 @@ public:
          @param replacement If @p quoting is @p NONE, used to replace occurrences of @p sep within strings before writing them
          @param quoting Quoting method for strings (see @p String::quote)
     */
-    SVOutStream(std::ostream & out, const String & sep = "\t",
-                const String & replacement = "_",
+    SVOutStream(std::ostream& out, const String& sep = "\t",
+                const String& replacement = "_",
                 String::QuotingMethod quoting = String::DOUBLE);
 
 
@@ -70,7 +73,7 @@ public:
 
          The argument is quoted before writing; it must not contain the newline character
     */
-    SVOutStream & operator<<(String str);    // use call-by-value here
+    SVOutStream& operator<<(String str);    // use call-by-value here
 
 
     /**
@@ -78,7 +81,7 @@ public:
 
          The argument is quoted before writing; it must not contain the newline character
     */
-    SVOutStream & operator<<(const std::string & str);
+    SVOutStream& operator<<(const std::string& str);
 
 
     /**
@@ -86,7 +89,7 @@ public:
 
          The argument is quoted before writing; it must not contain the newline character
     */
-    SVOutStream & operator<<(const char * c_str);
+    SVOutStream& operator<<(const char* c_str);
 
 
     /**
@@ -94,25 +97,30 @@ public:
 
          The argument is quoted before writing; it must not contain the newline character
     */
-    SVOutStream & operator<<(const char c);
-
+    SVOutStream& operator<<(const char c);
 
     /// Stream output operator for manipulators (used to catch @p std::endl)
-    SVOutStream & operator<<(std::ostream & (*fp)(std::ostream &));
+    SVOutStream& operator<<(std::ostream& (*fp)(std::ostream&));
 
+    /**
+       @brief Stream output operator for custom newline (@p nl) without flushing
+
+       Use "nl" instead of "endl" for improved performance
+    */
+    SVOutStream& operator<<(enum Newline);
 
     /// Generic stream output operator (for non-character-based types)
     template <typename T>
-    SVOutStream & operator<<(const T & value)
+    SVOutStream& operator<<(const T& value)
     {
-      if (!newline_) (std::ostream &) * this << sep_;
+      if (!newline_) (std::ostream&) *this << sep_;
       else newline_ = false;
-      (std::ostream &) * this << value;
+      (std::ostream&) *this << value;
       return *this;
     }
 
     /// Unformatted output (no quoting: useful for comments, but use only on a line of its own!)
-    SVOutStream & write(const String & str);   // write unmodified string
+    SVOutStream& write(const String& str);   // write unmodified string
 
 
     /**
@@ -125,7 +133,7 @@ public:
 
     /// Write a numeric value or "nan"/"inf"/"-inf", if applicable (would not be needed for Linux)
     template <typename NumericT>
-    SVOutStream & writeValueOrNan(NumericT thing)
+    SVOutStream& writeValueOrNan(NumericT thing)
     {
       if ((boost::math::isfinite)(thing)) return operator<<(thing);
 
@@ -158,6 +166,9 @@ protected:
 
     /// Are we at the beginning of a line? (Otherwise, insert separator before next item.)
     bool newline_;
+
+    /// Stream for testing if a manipulator is "std::endl"
+    std::stringstream ss_;
   };
 
 }
