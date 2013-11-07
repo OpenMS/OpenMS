@@ -205,6 +205,11 @@ public:
         options_ = opt;
       }
 
+      PeakFileOptions& getOptions()
+      {
+        return options_;
+      }
+
       void getCounts(Size& spectra_counts, Size& chromatogram_counts)
       {
         spectra_counts = scan_count;
