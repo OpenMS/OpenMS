@@ -770,11 +770,32 @@ public:
       return chromatograms_;
     }
 
+    /// @name Easy Access interface
+    //@{
     /// returns a single chromatogram 
     MSChromatogram<ChromatogramPeakType> & getChromatogram(Size id) 
     {
       return chromatograms_[id];
     }
+
+    /// returns a single spectrum 
+    MSSpectrum<PeakT> & getSpectrum(Size id) 
+    {
+      return spectra_[id];
+    }
+
+    /// get the total number of spectra available
+    inline Size getNrSpectra() const
+    {
+      return spectra_.size();
+    }
+
+    /// get the total number of chromatograms available
+    inline Size getNrChromatograms() const
+    {
+      return chromatograms_.size();
+    }
+    //@}
 
     /// returns the total ion chromatogram (TIC)
     const MSChromatogram<ChromatogramPeakType> getTIC() const
