@@ -1144,7 +1144,7 @@ protected:
         fatalError(LOAD, "Encoding intensity array as integer is not allowed!");
       }
 
-      // Warn if the decoded data has a different size than the the defaultArrayLength
+      // Warn if the decoded data has a different size than the defaultArrayLength
       Size mz_size = mz_precision_64 ? data_[mz_index].floats_64.size() : data_[mz_index].floats_32.size();
       Size int_size = int_precision_64 ? data_[int_index].floats_64.size() : data_[int_index].floats_32.size();
       // Check if int-size and mz-size are equal
@@ -1375,7 +1375,7 @@ protected:
         return;
       }
 
-      //Warn if the decoded data has a different size than the the defaultArrayLength
+      //Warn if the decoded data has a different size than the defaultArrayLength
       Size rt_size = rt_precision_64 ? data_[rt_index].floats_64.size() : data_[rt_index].floats_32.size();
       if (default_array_length_ != rt_size)
       {

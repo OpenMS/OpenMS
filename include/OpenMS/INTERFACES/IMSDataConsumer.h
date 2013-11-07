@@ -103,6 +103,7 @@ namespace Interfaces
         @param expectedChromatograms Number of chromatograms expected
       */
       virtual void setExpectedSize(Size expectedSpectra, Size expectedChromatograms) = 0;
+
       /**
         @brief Set experimental settings (meta-data) of the data to be consumed
 

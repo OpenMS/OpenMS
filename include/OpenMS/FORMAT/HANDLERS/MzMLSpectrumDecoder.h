@@ -78,67 +78,96 @@ namespace OpenMS
       MetaInfoDescription meta;
     };
 
-    /// void MzMLHandler<MapType>::fillData_() first 60 LOC
-    /// TODO -> keep at one place!
+    /**
+      @brief Decode base64 arrays
+
+      @TODO Duplicated code from MzMLHandler, need to clean up
+      see void MzMLHandler<MapType>::fillData_() first 60 LOC
+
+    */
     void decode64arrays(std::vector<BinaryData> & data_);
 
-    /// void MzMLHandler<MapType>::fillData_() 
-    /// TODO -> keep at one place!
+    /**
+      @brief compute data properties
+
+      @TODO Duplicated code from MzMLHandler, need to clean up
+      see void MzMLHandler<MapType>::fillData_() 
+
+    */
     void computeDataProperties_(std::vector<BinaryData> & data_, 
       bool& precision_64, SignedSize& index, String index_name);
     
-    /// void MzMLHandler<MapType>::fillData_() 
-    /// TODO -> keep at one place!
+    /**
+      @brief decode binary data
+
+      @TODO Duplicated code from MzMLHandler, need to clean up
+      see void MzMLHandler<MapType>::fillData_() 
+
+    */
     OpenMS::Interfaces::SpectrumPtr decodeBinaryData(std::vector<BinaryData> & data_);
 
-    /// void MzMLHandler<MapType>::fillData_() 
-    /// TODO -> keep at one place!
+    /**
+      @brief decode binary data
+
+      @TODO Duplicated code from MzMLHandler, need to clean up
+      see void MzMLHandler<MapType>::fillData_() 
+
+    */
     OpenMS::Interfaces::ChromatogramPtr decodeBinaryDataChrom(std::vector<BinaryData> & data_);
 
-    /// Handle (parent_tag == "binaryDataArray") cv term
-    /// see void MzMLHandler<MapType>::handleCVParam_(...) 
-    /// TODO -> keep at one place!
+    /**
+      @brief Handle (parent_tag == "binaryDataArray") cv term
+
+      @TODO Duplicated code from MzMLHandler, need to clean up
+      see void MzMLHandler<MapType>::handleCVParam_(...) 
+
+    */
     void handleCVParam(std::vector<BinaryData> & data_, 
         const String& accession, const String& value, const String& name);
 
     /**
-      @brief Convert a single DOMNode to of binaryDataArray to BinaryData object.
+      @brief Convert a single DOMNode of type binaryDataArray to BinaryData object.
 
-          This function will extract the data from a xerces DOMNode which
-          points to a binaryDataArray tag and store the result as a BinaryData
-          object. The result will be appended to the data_ vector
+      This function will extract the data from a xerces DOMNode which points to
+      a binaryDataArray tag and store the result as a BinaryData object. The
+      result will be appended to the data_ vector.
+
+      @param in DOMNode of type binaryDataArray
+      @param data_ Binary data extracted from the string
     */
     void handleBinaryDataArray(xercesc::DOMNode * indexListNode, std::vector<BinaryData>& data_);
 
     /**
       @brief Extract data from a string containing multiple binaryDataArray tags.
 
-          This may be a string from <spectrum> to </spectrum> or <chromatogram>
-          to </chromatogram> tag which contains one or more binaryDataArray.
-          The function will return a vector with all binary data found in the
-          string in the binaryDataArray tags.
+      This may be a string from <spectrum> to </spectrum> or <chromatogram> to
+      </chromatogram> tag which contains one or more binaryDataArray.  The
+      function will return a vector with all binary data found in the string in
+      the binaryDataArray tags.
+
+      @param in Input string containing the raw XML
+      @param data_ Binary data extracted from the string
     */
-    void domParseString(std::string& in, std::vector<BinaryData>& data_);
+    void domParseString(const std::string& in, std::vector<BinaryData>& data_);
 
   public:
 
     /**
       @brief Extract data from a string which contains a full mzML spectrum.
 
-          Extracts data from the input string which is expected to contain
-          exactly one <spectrum> tag (from <spectrum> to </spectrum>). This
-          function will extract the contained binaryDataArray and provide the
-          result as Spectrum.
+      Extracts data from the input string which is expected to contain exactly
+      one <spectrum> tag (from <spectrum> to </spectrum>). This function will
+      extract the contained binaryDataArray and provide the result as Spectrum.
     */
     void domParseSpectrum(std::string& in, OpenMS::Interfaces::SpectrumPtr & sptr);
 
     /**
       @brief Extract data from a string which contains a full mzML chromatogram.
 
-          Extracts data from the input string which is expected to contain
-          exactly one <chromatogram> tag (from <chromatogram> to
-          </chromatogram>). This function will extract the contained
-          binaryDataArray and provide the result as Chromatogram.
+      Extracts data from the input string which is expected to contain exactly
+      one <chromatogram> tag (from <chromatogram> to </chromatogram>). This
+      function will extract the contained binaryDataArray and provide the
+      result as Chromatogram.
     */
     void domParseChromatogram(std::string& in, OpenMS::Interfaces::ChromatogramPtr & sptr);
 

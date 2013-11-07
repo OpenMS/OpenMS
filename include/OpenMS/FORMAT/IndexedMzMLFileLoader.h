@@ -74,6 +74,9 @@ namespace OpenMS
 
       Tries to parse the file, success needs to be checked with the return value.
 
+      @param filename Filename determines where the file is located
+      @param exp Object which will contain the data after the call
+
       @return Indicates whether parsing was successful (if it is false, the file most likely was not an mzML or not indexed).
     */
     bool load(const String& filename, OnDiscMSExperiment<>& exp)
@@ -83,6 +86,9 @@ namespace OpenMS
 
     /**
       @brief Store a file from an on-disc data-structure
+
+      @param filename Filename determines where the file will be stored 
+      @param exp MS data to be stored
     */
     void store(const String& filename, OnDiscMSExperiment<>& exp)
     {
@@ -106,6 +112,9 @@ namespace OpenMS
 
     /**
       @brief Store a file from an in-memory data-structure
+
+      @param filename Filename determines where the file will be stored 
+      @param exp MS data to be stored
     */
     void store(const String& filename, MSExperiment<>& exp)
     {

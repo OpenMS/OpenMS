@@ -154,7 +154,7 @@ namespace OpenMS
       //fatalError(LOAD, "Encoding intensity array as integer is not allowed!");
     }
 
-    // Warn if the decoded data has a different size than the the defaultArrayLength
+    // Warn if the decoded data has a different size than the defaultArrayLength
     Size mz_size = x_precision_64 ? data_[x_index].floats_64.size() : data_[x_index].floats_32.size();
     Size int_size = int_precision_64 ? data_[int_index].floats_64.size() : data_[int_index].floats_32.size();
     // Check if int-size and mz-size are equal
@@ -351,7 +351,7 @@ namespace OpenMS
         xercesc::DOMElement* currentElement = dynamic_cast<xercesc::DOMElement*>(currentNode);
         if (xercesc::XMLString::equals(currentElement->getTagName(), TAG_binary))
         {
-          //char * binaryArray =
+          // TODO do not use expensive xercesc transcoding!
           data_.back().base64 = xercesc::XMLString::transcode(currentNode->getTextContent());
         }
         else if (xercesc::XMLString::equals(currentElement->getTagName(), TAG_CV))
@@ -383,9 +383,11 @@ namespace OpenMS
     xercesc::XMLString::release(&TAG_referenceableParamGroupRef);
   }
 
-  void MzMLSpectrumDecoder::domParseString(std::string& in, std::vector<BinaryData>& data_)
+  void MzMLSpectrumDecoder::domParseString(const std::string& in, std::vector<BinaryData>& data_)
   {
-    // see http://www.yolinux.com/TUTORIALS/XML-Xerces-C.html
+    //-------------------------------------------------------------
+    // Create parser from input string using MemBufInputSource
+    //-------------------------------------------------------------
     xercesc::MemBufInputSource myxml_buf(reinterpret_cast<const unsigned char*>(in.c_str()), in.length(), "myxml (in memory)");
     xercesc::XercesDOMParser* parser = new xercesc::XercesDOMParser();
     parser->setDoNamespaces(false);
@@ -393,9 +395,14 @@ namespace OpenMS
     parser->setLoadExternalDTD(false);
     parser->parse(myxml_buf);
 
+    //-------------------------------------------------------------
+    // Start parsing
+    // see http://www.yolinux.com/TUTORIALS/XML-Xerces-C.html
+    //-------------------------------------------------------------
+
     // no need to free this pointer - owned by the parent parser object
     xercesc::DOMDocument* doc =  parser->getDocument();
-    // Get the top-level element ("indexedmzML")
+    // Get the top-level element (for example <spectrum> or <chromatogram>)
     xercesc::DOMElement* elementRoot = doc->getDocumentElement();
     if (!elementRoot)
     {

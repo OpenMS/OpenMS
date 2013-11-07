@@ -47,12 +47,12 @@
 
 namespace OpenMS
 {
-  int IndexedMzMLDecoder::parseOffsets(String in, int indexoffset, OffsetVector& spectra_offsets, OffsetVector& chromatograms_offsets)
+  int IndexedMzMLDecoder::parseOffsets(String filename, int indexoffset, OffsetVector& spectra_offsets, OffsetVector& chromatograms_offsets)
   {
     //-------------------------------------------------------------
     // Open file, jump to end and read last indexoffset bytes into buffer.
     //-------------------------------------------------------------
-    std::ifstream f(in.c_str());
+    std::ifstream f(filename.c_str());
     // get length of file:
     f.seekg(0, f.end);
     int length = f.tellg();
@@ -85,7 +85,7 @@ namespace OpenMS
     return res;
   }
 
-  int IndexedMzMLDecoder::findIndexListOffset(String in, int buffersize)
+  int IndexedMzMLDecoder::findIndexListOffset(String filename, int buffersize)
   {
     // return value
     int indexoffset = -1;
@@ -93,7 +93,7 @@ namespace OpenMS
     //-------------------------------------------------------------
     // Open file, jump to end and read last n bytes into buffer.
     //-------------------------------------------------------------
-    std::ifstream f(in.c_str());
+    std::ifstream f(filename.c_str());
 
     if (!f.is_open())
     {
@@ -107,7 +107,7 @@ namespace OpenMS
     buffer[buffersize] = '\0';
 
 #ifdef DEBUG_READER
-    std::cout << " reading file " << in  << " with size " << buffersize << std::endl;
+    std::cout << " reading file " << filename  << " with size " << buffersize << std::endl;
     std::cout << buffer << std::endl;
 #endif
 
@@ -138,13 +138,20 @@ namespace OpenMS
 
   int IndexedMzMLDecoder::domParseIndexedEnd(std::string in, OffsetVector& spectra_offsets, OffsetVector& chromatograms_offsets)
   {
-    // see http://www.yolinux.com/TUTORIALS/XML-Xerces-C.html
+    //-------------------------------------------------------------
+    // Create parser from input string using MemBufInputSource
+    //-------------------------------------------------------------
     xercesc::MemBufInputSource myxml_buf(reinterpret_cast<const unsigned char*>(in.c_str()), in.length(), "myxml (in memory)");
     xercesc::XercesDOMParser* parser = new xercesc::XercesDOMParser();
     parser->setDoNamespaces(false);
     parser->setDoSchema(false);
     parser->setLoadExternalDTD(false);
     parser->parse(myxml_buf);
+
+    //-------------------------------------------------------------
+    // Start parsing
+    // see http://www.yolinux.com/TUTORIALS/XML-Xerces-C.html
+    //-------------------------------------------------------------
 
     // no need to free this pointer - owned by the parent parser object
     xercesc::DOMDocument* doc =  parser->getDocument();

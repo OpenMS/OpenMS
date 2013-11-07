@@ -116,7 +116,15 @@ namespace OpenMS
     */
     void openFile(String filename);
 
-    /// Returns whether parsing was successful
+    /**
+      @brief Returns whether parsing was successful
+
+      @note Callable after openFile or the constructor using a filename
+      @note It is invalid to call getSpectrumById or getChromatogramById if this function returns false
+
+      @return Whether the parsing of the file was successful (if false, the
+      file most likely was not an indexed mzML file)
+    */
     bool getParsingSuccess() const;
 
     /// Returns the number of spectra available
@@ -125,10 +133,24 @@ namespace OpenMS
     /// Returns the number of chromatograms available
     size_t getNrChromatograms() const;
 
-    /// Returns the raw data for the spectrum at position "id"
+    /**
+      @brief Retrieve the raw data for the spectrum at position "id"
+
+      @throw Exception if getParsingSuccess() returns false 
+      @throw Exception if id is not within [0, getNrSpectra()-1] 
+
+      @return The spectrum at position id
+    */
     OpenMS::Interfaces::SpectrumPtr getSpectrumById(int id);
 
-    /// Returns the raw data for the chromatogram at position "id"
+    /**
+      @brief Retrieve the raw data for the chromatogram at position "id"
+
+      @throw Exception if getParsingSuccess() returns false 
+      @throw Exception if id is not within [0, getNrChromatograms()-1] 
+
+      @return The chromatogram at position id
+    */
     OpenMS::Interfaces::ChromatogramPtr getChromatogramById(int id);
   };
 }
