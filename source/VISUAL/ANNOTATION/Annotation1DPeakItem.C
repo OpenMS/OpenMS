@@ -111,7 +111,7 @@ namespace OpenMS
       }
     }
 
-    // draw connection line between anker point and current position if pixel coordinates differ significantly
+    // draw connection line between anchor point and current position if pixel coordinates differ significantly
     if ((position_widget - peak_position_widget).manhattanLength() > 2)
     {
       // check if line crosses bounding box, if so move line startpoint to correct bounding box intersection

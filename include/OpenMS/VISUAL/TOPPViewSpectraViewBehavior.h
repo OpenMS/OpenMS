@@ -53,21 +53,21 @@ namespace OpenMS
     Q_OBJECT
     ///@name Type definitions
     //@{
-    //Feature map type
+    /// Feature map type
     typedef LayerData::FeatureMapType FeatureMapType;
-    //Feature map managed type
+    /// Feature map managed type
     typedef LayerData::FeatureMapSharedPtrType FeatureMapSharedPtrType;
 
-    //Consensus feature map type
+    /// Consensus feature map type
     typedef LayerData::ConsensusMapType ConsensusMapType;
-    //Consensus  map managed type
+    /// Consensus  map managed type
     typedef LayerData::ConsensusMapSharedPtrType ConsensusMapSharedPtrType;
 
-    //Peak map type
+    /// Peak map type
     typedef LayerData::ExperimentType ExperimentType;
-    //Main managed data type (experiment)
+    /// Main managed data type (experiment)
     typedef LayerData::ExperimentSharedPtrType ExperimentSharedPtrType;
-    ///Peak spectrum type
+    /// Peak spectrum type
     typedef ExperimentType::SpectrumType SpectrumType;
     //@}
 

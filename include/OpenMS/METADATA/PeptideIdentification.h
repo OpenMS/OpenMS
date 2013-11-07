@@ -85,9 +85,9 @@ public:
     //@}
 
     /// returns the peptide hits as const
-    const std::vector<PeptideHit> & getHits() const;
+    const std::vector<PeptideHit>& getHits() const;
     /// returns the peptide hits
-    std::vector<PeptideHit> & getHits();
+    std::vector<PeptideHit>& getHits();
     /// Appends a peptide hit
     void insertHit(const PeptideHit & hit);
     /// Sets the peptide hits
