@@ -49,23 +49,29 @@
 namespace OpenMS
 {
     /**
-      @brief Transforming and writing consumer of MS data
+      @brief Consumer class that writes MS data to disk using the mzML format.
 
-      Is able to transform a spectra on the fly while it is read using a
-      function pointer that can be set on the object. The spectra is then
-      written to disk using the functions provided in MzMLHandler.
+      The MSDataWritingConsumer is able to write spectra and chromatograms to
+      disk on the fly (as soon as they are consumed). This class is abstract
+      and allows the derived class to define how spectra and chromatograms are
+      processed before being written to disk.
+      
+      If you are looking for class that simply takes spectra and chromatograms
+      and writes them to disk, please use the PlainMSDataWritingConsumer.
 
       Example usage:
 
       @code
-      MSDataWritingConsumer * ppConsumer = new MSDataWritingConsumer(outfile); // some implementation
-      ppConsumer->setExpectedSize(specsize, chromsize);
-      ppConsumer->setExperimentalSettings(exp_settings);
-      ppConsumer->addDataProcessing(dp); // optional, will be added to all spectra and chromatograms
+      MSDataWritingConsumer * consumer = new MSDataWritingConsumer(outfile); // some implementation
+      consumer->setExpectedSize(specsize, chromsize);
+      consumer->setExperimentalSettings(exp_settings);
+      consumer->addDataProcessing(dp); // optional, will be added to all spectra and chromatograms
       [...]
-      ppConsumer->consumeSpectrum(spec);
-      ppConsumer->consumeChromatogram(chrom);
+      // multiple times ... 
+      consumer->consumeSpectrum(spec);
+      consumer->consumeChromatogram(chrom);
       [...]
+      delete consumer;
       @endcode
 
       @note The first usage of consumeChromatogram or consumeSpectrum will start
@@ -79,9 +85,8 @@ namespace OpenMS
       inconsistent mzML if the count attribute of spectrumList or
       chromatogramList is incorrect.
 
-
     */
-    class OPENMS_DLLAPI MSDataWritingConsumer  : 
+    class OPENMS_DLLAPI MSDataWritingConsumer : 
       public Internal::MzMLHandler< MSExperiment<> >,
       public Interfaces::IMSDataConsumer< MSExperiment<> >
     {
@@ -92,17 +97,9 @@ namespace OpenMS
       typedef MapType::ChromatogramType ChromatogramType;
 
       /**
-        @brief Process a spectrum or chromatogram before storing to disk
-      */
-      virtual void processSpectrum_(SpectrumType & s) = 0;
-
-      virtual void processChromatogram_(ChromatogramType & c) = 0;
-
-      /**
         @brief Constructor
 
-        MzMLHandler and the std::ofstream require us to know the output filename in advance.
-
+        @param filename Filename for the output mzML
       */
       MSDataWritingConsumer(String filename) :
         Internal::MzMLHandler<MapType>(MapType(), filename, MzMLFile().getVersion(), ProgressLogger()),
@@ -126,20 +123,45 @@ namespace OpenMS
         doCleanup();
       }
 
-      /// Set experimental settings for the whole file
-      void setExperimentalSettings(const ExperimentalSettings& exp)
+      /// @name IMSDataConsumer interface
+      //@{
+      /**
+        @brief Set experimental settings for the whole file
+
+        @param exp Experimental settings to be used for this file (from this
+          and the first spectrum/chromatogram, the class will deduce most of
+          the header of the mzML file)
+      */
+      virtual void setExperimentalSettings(const ExperimentalSettings& exp)
       {
         settings_ = exp;
       }
 
-      /// Set expected size -> these numbers will be written in the spectrumList and chromatogramList tag
-      void setExpectedSize(Size expectedSpectra, Size expectedChromatograms)
+      /**
+        @brief Set expected size of spectra and chromatograms to be written.
+
+        These numbers will be written in the spectrumList and chromatogramList
+        tag in the mzML file. Therefore, these will contain wrong numbers if
+        the expected size is not set correctly.
+
+        @param expectedSpectra Number of spectra expected
+        @param expectedChromatograms Number of chromatograms expected
+      */
+      virtual void setExpectedSize(Size expectedSpectra, Size expectedChromatograms)
       {
         spectra_expected_ = expectedSpectra;
         chromatograms_expected_ = expectedChromatograms;
       }
 
-      void consumeSpectrum(SpectrumType & s)
+      /**
+        @brief Consume a spectrum
+
+        The spectrum will be processed using the processSpectrum_ method of the
+        current implementation and then written to the mzML file.
+
+        @param s The spectrum to be written to mzML
+      */
+      virtual void consumeSpectrum(SpectrumType & s)
       {
         if (writing_chromatograms_)
         {
@@ -147,10 +169,11 @@ namespace OpenMS
               "Cannot write spectra after writing chromatograms.");
         }
 
-        // Create copy and add dataprocessing if required
+        // Process the spectrum 
         SpectrumType scpy = s;
         processSpectrum_(scpy);
 
+        // Add dataprocessing if required
         if (add_dataprocessing_)
         {
           scpy.getDataProcessing().push_back(additional_dataprocessing_);
@@ -158,7 +181,7 @@ namespace OpenMS
 
         if (!started_writing_)
         {
-          // this is the first data to be written -> start writing the header
+          // This is the first data to be written -> start writing the header
           // We also need to modify the map and add this dummy spectrum in
           // order to write the header correctly
           MapType dummy;
@@ -173,6 +196,7 @@ namespace OpenMS
         }
         if (!writing_spectra_)
         {
+          // This is the first spectrum, thus write the spectrumList header
           ofs << "\t\t<spectrumList count=\"" << spectra_expected_ << "\" defaultDataProcessingRef=\"dp_sp_0\">\n";
           writing_spectra_ = true;
         }
@@ -183,13 +207,15 @@ namespace OpenMS
                 spectra_written_++, *validator_, renew_native_ids, dps_);
       }
 
-      void addDataProcessing(DataProcessing d)
-      {
-        additional_dataprocessing_ = d;
-        add_dataprocessing_ = true;
-      }
+      /**
+        @brief Consume a chromatogram
 
-      void consumeChromatogram(ChromatogramType & c)
+        The chromatogram will be processed using the processChromatogram_
+        method of the current implementation and then written to the mzML file.
+
+        @param c The chromatogram to be written to mzML
+      */
+      virtual void consumeChromatogram(ChromatogramType & c)
       {
         // make sure to close an open List tag
         if (writing_spectra_)
@@ -230,13 +256,56 @@ namespace OpenMS
         Internal::MzMLHandler<MapType>::writeChromatogram_(ofs, ccpy,
                 chromatograms_written_++, *validator_);
       }
+      //@}
 
-      Size getNrSpectraWritten() {return spectra_written_;}
-      Size getNrChromatogramsWritten() {return chromatograms_written_;}
+      /**
+        @brief Optionally add a data processing method to each chromatogram and spectrum.
 
-    protected:
+        The provided DataProcessing object will be added to each chromatogram
+        and spectrum written to to the mzML file.
 
-      void doCleanup()
+        @param d The DataProcessing object to be added
+      */
+      virtual void addDataProcessing(DataProcessing d)
+      {
+        additional_dataprocessing_ = d;
+        add_dataprocessing_ = true;
+      }
+
+      /**
+        @brief Return the number of spectra written.
+      */
+      virtual Size getNrSpectraWritten() {return spectra_written_;}
+      /**
+        @brief Return the number of chromatograms written.
+      */
+      virtual Size getNrChromatogramsWritten() {return chromatograms_written_;}
+
+    private:
+
+      /// @name Data Processing using the template method pattern
+      //@{
+      /**
+        @brief Process a spectrum before storing to disk
+
+        Redefine this function to determine spectra processing before writing to disk.
+      */
+      virtual void processSpectrum_(SpectrumType & s) = 0;
+
+      /**
+        @brief Process a chromatogram before storing to disk
+
+        Redefine this function to determine chromatogram processing before writing to disk.
+      */
+      virtual void processChromatogram_(ChromatogramType & c) = 0;
+      //@}
+
+      /**
+        @brief Cleanup function called by the destructor.
+
+        Will write the last tags to the file and close the file stream.
+      */
+      virtual void doCleanup()
       {
         //--------------------------------------------------------------------------------------------
         //cleanup
@@ -259,6 +328,9 @@ namespace OpenMS
         ofs.close();
       }
 
+    protected:
+
+      /// File stream (to write mzML)
       std::ofstream ofs;
 
       /// Stores whether we have already started writing any data
@@ -289,34 +361,50 @@ namespace OpenMS
       DataProcessing additional_dataprocessing_;
     };
 
+    /**
+      @brief Consumer class that writes MS data to disk using the mzML format.
+
+      A very simple implementation of MSDataWritingConsumer, not offering the
+      ability to modify the spectra before writing. This is probably the class
+      you want if you want to write mzML files to disk by providing spectra and
+      chromatograms sequentially.
+
+    */
     class OPENMS_DLLAPI PlainMSDataWritingConsumer :
       public MSDataWritingConsumer 
     {
+      void processSpectrum_(MapType::SpectrumType & /* s */) {}
+      void processChromatogram_(MapType::ChromatogramType & /* c */) {}
+
     public:
 
       PlainMSDataWritingConsumer(String filename) : MSDataWritingConsumer(filename) {}
-      void processSpectrum_(MapType::SpectrumType & /* s */) {}
-      void processChromatogram_(MapType::ChromatogramType & /* c */) {}
     };
 
+    /**
+      @brief Consumer class that perform no operation.
+
+      This is sometimes necessary to fulfill the requirement of passing an
+      valid MSDataWritingConsumer object or pointer but no operation is
+      required.
+    */
     class OPENMS_DLLAPI NoopMSDataWritingConsumer :
       public MSDataWritingConsumer 
     {
     public:
 
       NoopMSDataWritingConsumer(String filename) : MSDataWritingConsumer(filename) {}
-      void processSpectrum_(MapType::SpectrumType & /* s */) {}
-      void processChromatogram_(MapType::ChromatogramType & /* c */) {}
       void setExperimentalSettings(const ExperimentalSettings& /* exp */) {}
-      void setExpectedSize(Size /* expectedSpectra */, Size /* expectedChromatograms */) {}
       void consumeSpectrum(SpectrumType & /* s */) {}
-      void addDataProcessing(DataProcessing /* d */) {}
       void consumeChromatogram(ChromatogramType & /* c */) {}
 
-    protected:
+    private:
 
       void doCleanup() {}
+      void processSpectrum_(MapType::SpectrumType & /* s */) {}
+      void processChromatogram_(MapType::ChromatogramType & /* c */) {}
     };
+
 
 } //end namespace OpenMS
 

@@ -72,13 +72,48 @@ namespace Interfaces
       typedef typename MapType::ChromatogramType ChromatogramType;
 
       virtual ~IMSDataConsumer() {};
+
+      /**
+        @brief Consume a spectrum
+
+        The spectrum will be consumed by the implementation and possibly modified.
+
+        @param s The spectrum to be consumed
+      */
       virtual void consumeSpectrum(SpectrumType & s) = 0;
+      /**
+        @brief Consume a chromatogram
+
+        The chromatogram will be consumed by the implementation and possibly modified.
+
+        @param s The spectrum to be chromatogram
+      */
       virtual void consumeChromatogram(ChromatogramType &) = 0;
 
-      // for some applications its very important to know about the meta-data
-      // of the experiment, such as the number of spectra and chromatograms
-      // and the experimental settings.
+      /**
+        @brief Set expected size of spectra and chromatograms to be consumed.
+
+        Some implementations might care about the the number of spectra and
+        chromatograms to be consumed and need to be informed about this
+        (usually before consuming starts). 
+        
+        @note Calling this method is optional but good practice.
+
+        @param expectedSpectra Number of spectra expected
+        @param expectedChromatograms Number of chromatograms expected
+      */
       virtual void setExpectedSize(Size expectedSpectra, Size expectedChromatograms) = 0;
+      /**
+        @brief Set experimental settings (meta-data) of the data to be consumed
+
+        Some implementations might need to know about the meta-data (or the
+        context) of the spectra and chromatograms to be consumed. This method
+        allows them learn this.
+
+        @note Calling this method is optional but good practice.
+
+        @param exp Experimental settings meta data for the data to be consumed
+      */
       virtual void setExperimentalSettings(const ExperimentalSettings& exp) = 0;
     };
 

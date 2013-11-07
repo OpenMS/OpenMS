@@ -6,6 +6,7 @@ set(sources_list
   MSDataWritingConsumer.C
   MSDataTransformingConsumer.C
   MSDataCachedConsumer.C
+  NoopMSDataConsumer.C
   SwathFileConsumer.C
 )
 
