@@ -28,12 +28,35 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 
-#include <OpenMS/KERNEL/OnDiscMSExperiment.h>
-#include <OpenMS/FORMAT/IndexedMzMLFileLoader.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
 #include <iostream>
 
 using namespace OpenMS;
 using namespace std;
+
+class TICWritingConsumer : public MSDataWritingConsumer 
+{
+  // Inheriting from MSDataWritingConsumer allows to change the data before
+  // they are written to disk (to "filename") using the processSpectrum_ and
+  // processChromatogram_ functions.
+public:
+  double TIC;
+  int nr_spectra;
+
+  // Create new consumer, set TIC to zero
+  TICWritingConsumer(String filename) : MSDataWritingConsumer(filename) 
+    { TIC = 0.0; nr_spectra = 0;}
+
+  // Add a data processing step for spectra before they are written to disk
+  void processSpectrum_(MSDataWritingConsumer::SpectrumType & s)
+  {
+    for (Size i = 0; i < s.size(); i++) { TIC += s[i].getIntensity(); }
+    nr_spectra++;
+  }
+  // Empty chromatogram data processing
+  void processChromatogram_(MSDataWritingConsumer::ChromatogramType& /* c */) {}
+};
 
 int main(int argc, const char** argv)
 {
@@ -41,18 +64,13 @@ int main(int argc, const char** argv)
   // the path to the data should be given on the command line
   String tutorial_data_path(argv[1]);
   
-  IndexedMzMLFileLoader imzml;
+  // Create the consumer, set output file name, transform
+  TICWritingConsumer * consumer = new TICWritingConsumer("Tutorial_FileIO_output.mzML");
+  MzMLFile().transform(tutorial_data_path + "/data/Tutorial_FileIO_indexed.mzML", consumer);
 
-  // load data from an indexed MzML file
-  OnDiscMSExperiment<> map;
-  imzml.load(tutorial_data_path + "/data/Tutorial_FileIO_indexed.mzML", map);
-  // Get the first spectrum in memory, do some constant (non-changing) data processing
-  MSSpectrum<> s = map.getSpectrum(0);
-  std::cout << "There are " << map.getNrSpectra() << " spectra in the input file." << std::endl;
-  std::cout << "The first spectrum has " << s.size() << " peaks." << std::endl;
-
-  // store the (unmodified) data in a different file
-  imzml.store("Tutorial_FileIO_output.mzML", map);
+  std::cout << "There are " << consumer->nr_spectra << " spectra in the input file." << std::endl;
+  std::cout << "The total ion current is " << consumer->TIC << std::endl;
+  delete consumer;
 
   return 0;
 } //end of main

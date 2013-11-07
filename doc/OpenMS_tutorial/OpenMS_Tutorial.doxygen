@@ -608,7 +608,8 @@ file formats, data reduction functionality and all other analysis algorithms.
 
   The interface of most file adapter classes is very similar. They implement
   a @a load and a @a store method, that take a file name and the appropriate
-  data structure.
+  data structure. Usually these methods expect a complete in-memory
+  representation of an MS run (see below for other ways to access MS data).
 
   The following example (Tutorial_FileIO.C) demonstrates the use of @a OpenMS::MzMLFile
   and @a OpenMS::MzXMLFile to convert one format into another using @a
@@ -639,15 +640,18 @@ file formats, data reduction functionality and all other analysis algorithms.
   \link OpenMS::OnDiscMSExperiment::getSpectrum getSpectrum \endlink or
   \link OpenMS::OnDiscMSExperiment::getChromatogram getChromatogram \endlink.
    
+@subsection format_mzml_indexed Indexed mzML
 
   The following example (Tutorial_FileIO_mzML.C) demonstrates the use of 
-  OpenMS::IndexedMzMLFileHandler to obtain a representation of a mass
+  OpenMS::IndexedMzMLFileLoader to obtain a representation of a mass
   spectrometric experiment in the form of an \link OpenMS::OnDiscMSExperiment
   OnDiscMSExperiment\endlink:
 
   @dontinclude Tutorial_FileIO_mzML.C
   @skip main
   @until end of main
+
+@subsection format_mzml_sequential Sequential Reading/Writing of mzML
 
   In addition, the OpenMS::MzMLFile also offers the OpenMS::MzMLFile::transform
   function which allows to load an MzML file and while loading the spectra and
@@ -663,11 +667,68 @@ file formats, data reduction functionality and all other analysis algorithms.
   memory is used and algorithms that are constant in memory usage with respect
   to the amount of data to be processed can be implemented.
 
+  The following example (Tutorial_FileIO_Consumer.C) demonstrates the use of 
+  a consumer to obtain all spectra contained in a file sequentially and apply
+  some data processing and then writing them to disk to them without ever
+  loading the whole file into memory:
+
+  @dontinclude Tutorial_FileIO_Consumer.C
+  @skip TICWritingConsumer
+  @until end of main
+
+@subsection format_mzml_summary Summary
+
   However, if random access to the data is needed, then the consumer-based
   approach will not suffice. Here one can either use the
   OpenMS::OnDiscMSExperiment approach as discussed above or for very fast
   access to individual spectra (no parsing of base64-encoded needed) one can
   first cache the data to disk using the OpenMS::CachedmzML class.
+
+\htmlonly
+  In summary, here is a short table when to use which File access mode:
+
+<table border="1"> 
+  <tr>
+    <th>Use Case</th>
+    <th colspan="2">Access Type</th>
+  </tr>
+
+  <tr>
+    <td rowspan="2">Random Access in Memory</td>
+    <td>Read</td>
+    <td><a class="el" href="classOpenMS_1_1MSExperiment.html" title="Representation of a mass spectrometry experiment.">MSExperiment</a> 
+      (through <a class="el" href="classOpenMS_1_1MzMLFile.html" title="File adapter for MzML files.">MzMLFile</a>.load)</td>
+  </tr>
+  <tr>
+    <td>Write</td>
+    <td><a class="el" href="classOpenMS_1_1MSExperiment.html" title="Representation of a mass spectrometry experiment.">MSExperiment</a> 
+      (through <a class="el" href="classOpenMS_1_1MzMLFile.html" title="File adapter for MzML files.">MzMLFile</a>.load)</td>
+  </tr>
+
+  <tr>
+    <td rowspan="2">Random Access on Disc (indexed)</td>
+    <td>Read</td>
+    <td><a class="el" href="classOpenMS_1_1OnDiscMSExperiment.html">OnDiscMSExperiment</a> 
+      (through <a class="el" href="classOpenMS_1_1IndexedMzMLFileLoader.html">IndexedMzMLFileLoader</a>.load)</td>
+  </tr>
+  <tr>
+    <td>Write</td>
+    <td>random write access not possible</td>
+  </tr>
+
+  <tr>
+    <td rowspan="2">Sequential Processing</td>
+    <td>Read</td>
+    <td><a class="el" href="classOpenMS_1_1Interfaces_1_1IMSDataConsumer.html">IMSDataConsumer</a> 
+      (through <a class="el" href="classOpenMS_1_1MzMLFile.html" title="File adapter for MzML files.">MzMLFile</a>.transform)</td>
+  </tr>
+  <tr>
+    <td>Write</td>
+    <td><a class="el" href="classOpenMS_1_1MSDataWritingConsumer.html">MSDataWritingConsumer</a> (through consumeSpectrum or consumeChromatogram)</td>
+  </tr>
+
+</table>
+\endhtmlonly
 
 @section format_db DB access
 
