@@ -258,24 +258,39 @@ protected:
         if (! is32Bit || pf_options_.getNumpressConfigurationMassTime().np_compression != MSNumpressCoder::NONE)
         {
           std::vector<DoubleReal> data_to_encode(container.size());
-          for (Size p = 0; p < container.size(); ++p)
+          if (array_type == "intensity")
           {
-            if (array_type == "intensity")
+            for (Size p = 0; p < container.size(); ++p)
+            {
               data_to_encode[p] = container[p].getIntensity();
-            else
-              data_to_encode[p] = container[p].getMZ();
+            }
+          }
+          else
+          {
+            for (Size p = 0; p < container.size(); ++p)
+            {
+                data_to_encode[p] = container[p].getMZ();
+            }
           }
           writeBinaryDataArray(os, pf_options_, data_to_encode, false, array_type);
         }
         else
         {
           std::vector<Real> data_to_encode(container.size());
-          for (Size p = 0; p < container.size(); ++p)
+
+          if (array_type == "intensity")
           {
-            if (array_type == "intensity")
+            for (Size p = 0; p < container.size(); ++p)
+            {
               data_to_encode[p] = container[p].getIntensity();
-            else
-              data_to_encode[p] = container[p].getMZ();
+            }
+          }
+          else
+          {
+            for (Size p = 0; p < container.size(); ++p)
+            {
+                data_to_encode[p] = container[p].getMZ();
+            }
           }
           writeBinaryDataArray(os, pf_options_, data_to_encode, true, array_type);
         }
