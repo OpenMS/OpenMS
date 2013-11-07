@@ -46,6 +46,8 @@
 #include <string>
 #include <xercesc/dom/DOMNode.hpp>
 
+#include <OpenMS/FORMAT/HANDLERS/MzMLHandlerHelper.h>
+
 namespace OpenMS
 {
 
@@ -62,41 +64,9 @@ namespace OpenMS
   class OPENMS_DLLAPI MzMLSpectrumDecoder
   {
   protected:
-    /// Spectrum representation
-    struct BinaryData
-    {
-      String base64;
-      enum {PRE_NONE, PRE_32, PRE_64} precision;
-      Size size;
-      bool compression;
-      enum {DT_NONE, DT_FLOAT, DT_INT, DT_STRING} data_type;
-      std::vector<Real> floats_32;
-      std::vector<DoubleReal> floats_64;
-      std::vector<Int32> ints_32;
-      std::vector<Int64> ints_64;
-      std::vector<String> decoded_char;
-      MetaInfoDescription meta;
-    };
 
-    /**
-      @brief Decode base64 arrays
+    typedef Internal::MzMLHandlerHelper::BinaryData BinaryData;
 
-      @TODO Duplicated code from MzMLHandler, need to clean up
-      see void MzMLHandler<MapType>::fillData_() first 60 LOC
-
-    */
-    void decode64arrays(std::vector<BinaryData> & data_);
-
-    /**
-      @brief compute data properties
-
-      @TODO Duplicated code from MzMLHandler, need to clean up
-      see void MzMLHandler<MapType>::fillData_() 
-
-    */
-    void computeDataProperties_(std::vector<BinaryData> & data_, 
-      bool& precision_64, SignedSize& index, String index_name);
-    
     /**
       @brief decode binary data
 
@@ -114,16 +84,6 @@ namespace OpenMS
 
     */
     OpenMS::Interfaces::ChromatogramPtr decodeBinaryDataChrom(std::vector<BinaryData> & data_);
-
-    /**
-      @brief Handle (parent_tag == "binaryDataArray") cv term
-
-      @TODO Duplicated code from MzMLHandler, need to clean up
-      see void MzMLHandler<MapType>::handleCVParam_(...) 
-
-    */
-    void handleCVParam(std::vector<BinaryData> & data_, 
-        const String& accession, const String& value, const String& name);
 
     /**
       @brief Convert a single DOMNode of type binaryDataArray to BinaryData object.

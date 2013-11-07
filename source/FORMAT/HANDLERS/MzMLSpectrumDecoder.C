@@ -44,89 +44,9 @@
 namespace OpenMS
 {
 
-  void MzMLSpectrumDecoder::decode64arrays(std::vector<BinaryData>& data_)
-  {
-    /// Decoder/Encoder for Base64-data in MzML
-    Base64 decoder_;
-
-    //decode all base64 arrays
-    for (Size i = 0; i < data_.size(); i++)
-    {
-      //remove whitespaces from binary data
-      //this should not be necessary, but linebreaks inside the base64 data are unfortunately no exception
-      data_[i].base64.removeWhitespaces();
-
-      //decode data and check if the length of the decoded data matches the expected length
-      if (data_[i].data_type == BinaryData::DT_FLOAT)
-      {
-        if (data_[i].precision == BinaryData::PRE_64)
-        {
-          decoder_.decode(data_[i].base64, Base64::BYTEORDER_LITTLEENDIAN, data_[i].floats_64, data_[i].compression);
-          if (data_[i].size != data_[i].floats_64.size())
-          {
-            //warning(LOAD, String("Float binary data array '") + data_[i].meta.getName() + "' of spectrum '" + spec_.getNativeID() + "' has length " + data_[i].floats_64.size() + ", but should have length " + data_[i].size + ".");
-            data_[i].size = data_[i].floats_64.size();
-          }
-        }
-        else if (data_[i].precision == BinaryData::PRE_32)
-        {
-          decoder_.decode(data_[i].base64, Base64::BYTEORDER_LITTLEENDIAN, data_[i].floats_32, data_[i].compression);
-          if (data_[i].size != data_[i].floats_32.size())
-          {
-            //warning(LOAD, String("Float binary data array '") + data_[i].meta.getName() + "' of spectrum '" + spec_.getNativeID() + "' has length " + data_[i].floats_32.size() + ", but should have length " + data_[i].size + ".");
-            data_[i].size = data_[i].floats_32.size();
-          }
-        }
-      }
-      else if (data_[i].data_type == BinaryData::DT_INT)
-      {
-        if (data_[i].precision == BinaryData::PRE_64)
-        {
-          decoder_.decodeIntegers(data_[i].base64, Base64::BYTEORDER_LITTLEENDIAN, data_[i].ints_64, data_[i].compression);
-          if (data_[i].size != data_[i].ints_64.size())
-          {
-            //warning(LOAD, String("Integer binary data array '") + data_[i].meta.getName() + "' of spectrum '" + spec_.getNativeID() + "' has length " + data_[i].ints_64.size() + ", but should have length " + data_[i].size + ".");
-            data_[i].size = data_[i].ints_64.size();
-          }
-        }
-        else if (data_[i].precision == BinaryData::PRE_32)
-        {
-          decoder_.decodeIntegers(data_[i].base64, Base64::BYTEORDER_LITTLEENDIAN, data_[i].ints_32, data_[i].compression);
-          if (data_[i].size != data_[i].ints_32.size())
-          {
-            //warning(LOAD, String("Integer binary data array '") + data_[i].meta.getName() + "' of spectrum '" + spec_.getNativeID() + "' has length " + data_[i].ints_32.size() + ", but should have length " + data_[i].size + ".");
-            data_[i].size = data_[i].ints_32.size();
-          }
-        }
-      }
-      else if (data_[i].data_type == BinaryData::DT_STRING)
-      {
-        decoder_.decodeStrings(data_[i].base64, data_[i].decoded_char, data_[i].compression);
-        if (data_[i].size != data_[i].decoded_char.size())
-        {
-          //warning(LOAD, String("String binary data array '") + data_[i].meta.getName() + "' of spectrum '" + spec_.getNativeID() + "' has length " + data_[i].decoded_char.size() + ", but should have length " + data_[i].size + ".");
-          data_[i].size = data_[i].decoded_char.size();
-        }
-      }
-    }
-  }
-
-  void MzMLSpectrumDecoder::computeDataProperties_(std::vector<BinaryData>& data_,
-                                                   bool& precision_64, SignedSize& index, String index_name)
-  {
-    for (Size i = 0; i < data_.size(); i++)
-    {
-      if (data_[i].meta.getName() == index_name)
-      {
-        index = i;
-        precision_64 = (data_[i].precision == BinaryData::PRE_64);
-      }
-    }
-  }
-
   OpenMS::Interfaces::SpectrumPtr MzMLSpectrumDecoder::decodeBinaryData(std::vector<BinaryData>& data_)
   {
-    decode64arrays(data_);
+    Internal::MzMLHandlerHelper::decodeBase64Arrays(data_);
     OpenMS::Interfaces::SpectrumPtr sptr(new OpenMS::Interfaces::Spectrum);
 
     //look up the precision and the index of the intensity and m/z array
@@ -134,8 +54,8 @@ namespace OpenMS
     bool int_precision_64 = true;
     SignedSize x_index = -1;
     SignedSize int_index = -1;
-    computeDataProperties_(data_, x_precision_64, x_index, "m/z array");
-    computeDataProperties_(data_, int_precision_64, int_index, "intensity array");
+    Internal::MzMLHandlerHelper::computeDataProperties_(data_, x_precision_64, x_index, "m/z array");
+    Internal::MzMLHandlerHelper::computeDataProperties_(data_, int_precision_64, int_index, "intensity array");
 
     //Abort if no m/z or intensity array is present
     if (int_index == -1 || x_index == -1)
@@ -195,7 +115,7 @@ namespace OpenMS
 
   OpenMS::Interfaces::ChromatogramPtr MzMLSpectrumDecoder::decodeBinaryDataChrom(std::vector<BinaryData>& data_)
   {
-    decode64arrays(data_);
+    Internal::MzMLHandlerHelper::decodeBase64Arrays(data_);
     OpenMS::Interfaces::ChromatogramPtr sptr(new OpenMS::Interfaces::Chromatogram);
 
     //look up the precision and the index of the intensity and m/z array
@@ -203,8 +123,8 @@ namespace OpenMS
     bool int_precision_64 = true;
     SignedSize x_index = -1;
     SignedSize int_index = -1;
-    computeDataProperties_(data_, x_precision_64, x_index, "time array");
-    computeDataProperties_(data_, int_precision_64, int_index, "intensity array");
+    Internal::MzMLHandlerHelper::computeDataProperties_(data_, x_precision_64, x_index, "time array");
+    Internal::MzMLHandlerHelper::computeDataProperties_(data_, int_precision_64, int_index, "intensity array");
 
     //Abort if no m/z or intensity array is present
     if (int_index == -1 || x_index == -1)
@@ -262,68 +182,6 @@ namespace OpenMS
     return sptr;
   }
 
-  void MzMLSpectrumDecoder::handleCVParam(std::vector<BinaryData>& data_,
-                                          const String& accession, const String& value, const String& name)
-  {
-    //MS:1000518 ! binary data type
-    if (accession == "MS:1000523")   //64-bit float
-    {
-      data_.back().precision = BinaryData::PRE_64;
-      data_.back().data_type = BinaryData::DT_FLOAT;
-    }
-    else if (accession == "MS:1000521")   //32-bit float
-    {
-      data_.back().precision = BinaryData::PRE_32;
-      data_.back().data_type = BinaryData::DT_FLOAT;
-    }
-    else if (accession == "MS:1000519")   //32-bit integer
-    {
-      data_.back().precision = BinaryData::PRE_32;
-      data_.back().data_type = BinaryData::DT_INT;
-    }
-    else if (accession == "MS:1000522")   //64-bit integer
-    {
-      data_.back().precision = BinaryData::PRE_64;
-      data_.back().data_type = BinaryData::DT_INT;
-    }
-    else if (accession == "MS:1001479")
-    {
-      data_.back().precision = BinaryData::PRE_NONE;
-      data_.back().data_type = BinaryData::DT_STRING;
-    }
-    //MS:1000513 ! binary data array
-    else if (accession == "MS:1000786")   // non-standard binary data array (with name as value)
-    {
-      data_.back().meta.setName(value);
-    }
-    else if (accession == "MS:1000514" || accession == "MS:1000515" || accession == "MS:1000595")    // handle m/z, intensity, rt
-    {
-      data_.back().meta.setName(name);
-    }
-    /*
-    // TODO for this we would need an instance of
-    // ControlledVocabulary cv_;
-    else if (cv_.isChildOf(accession, "MS:1000513")) //other array names as string
-    {
-      data_.back().meta.setName(cv_.getTerm(accession).name);
-    }
-    */
-    //MS:1000572 ! binary data compression type
-    else if (accession == "MS:1000574")   //zlib compression
-    {
-      data_.back().compression = true;
-    }
-    else if (accession == "MS:1000576")   // no compression
-    {
-      data_.back().compression = false;
-    }
-    else
-    {
-      //  warning(LOAD, String("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
-    }
-
-  }
-
   void MzMLSpectrumDecoder::handleBinaryDataArray(xercesc::DOMNode* indexListNode, std::vector<BinaryData>& data_)
   {
     // access result through data_.back()
@@ -360,7 +218,9 @@ namespace OpenMS
           std::string value = xercesc::XMLString::transcode(currentElement->getAttribute(xercesc::XMLString::transcode("value")));
           std::string name = xercesc::XMLString::transcode(currentElement->getAttribute(xercesc::XMLString::transcode("name")));
 
-          handleCVParam(data_, accession, value, name);
+          //handleCVParam(data_, accession, value, name);
+
+          Internal::MzMLHandlerHelper::handleBinaryDataArrayCVParam(data_, accession, value, name);
         }
         else if (xercesc::XMLString::equals(currentElement->getTagName(), TAG_userParam))
         {
