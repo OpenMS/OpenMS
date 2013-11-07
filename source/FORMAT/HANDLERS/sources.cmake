@@ -11,6 +11,7 @@ set(sources_list
 	MzIdentMLHandler.C
 	MzQuantMLHandler.C
 	MzMLHandler.C
+  MzMLHandlerHelper.C
   MzMLSpectrumDecoder.C
 	MzXMLHandler.C
 	PTMXMLHandler.C

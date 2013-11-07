@@ -9,6 +9,7 @@ IndexedMzMLDecoder.h
 MascotXMLHandler.h
 MzDataHandler.h
 MzMLHandler.h
+MzMLHandlerHelper.h
 MzMLSpectrumDecoder.h
 MzXMLHandler.h
 PTMXMLHandler.h

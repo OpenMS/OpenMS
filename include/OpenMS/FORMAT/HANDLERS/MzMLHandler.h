@@ -44,6 +44,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
+#include <OpenMS/FORMAT/HANDLERS/MzMLHandlerHelper.h>
 #include <OpenMS/FORMAT/VALIDATORS/MzMLValidator.h>
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
 #include <OpenMS/FORMAT/Base64.h>
@@ -84,15 +85,6 @@ namespace OpenMS
   class ControlledVocabulary;
   namespace Internal
   {
-
-  namespace MzMLHandlerHelper
-  {
-    OPENMS_DLLAPI String getCompressionTerm_(const PeakFileOptions& opt, MSNumpressCoder::NumpressConfig np_compression, bool use_numpress = false);
-    OPENMS_DLLAPI void writeFooter_(std::ostream& os, const PeakFileOptions& options_,
-      std::vector< std::pair<std::string, long> > & spectra_offsets,
-      std::vector< std::pair<std::string, long> > & chromatograms_offsets
-    );
-  }
 
     /**
         @brief XML handler for MzMLFile
@@ -232,22 +224,7 @@ protected:
       /// Spectrum type
       typedef MSChromatogram<ChromatogramPeakType> ChromatogramType;
 
-      /// Spectrum representation
-      struct BinaryData
-      {
-        String base64;
-        enum {PRE_NONE, PRE_32, PRE_64} precision;
-        Size size;
-        bool compression; // zlib compression
-        enum {DT_NONE, DT_FLOAT, DT_INT, DT_STRING} data_type;
-        std::vector<Real> floats_32;
-        std::vector<DoubleReal> floats_64;
-        std::vector<Int32> ints_32;
-        std::vector<Int64> ints_64;
-        std::vector<String> decoded_char;
-        MetaInfoDescription meta;
-        MSNumpressCoder::NumpressCompression np_compression;
-      };
+      typedef MzMLHandlerHelper::BinaryData BinaryData;
 
       void writeSpectrum_(std::ostream& os, const SpectrumType& spec, Size s, 
               Internal::MzMLValidator& validator, bool renew_native_ids, 
@@ -1036,92 +1013,15 @@ protected:
     void MzMLHandler<MapType>::fillData_()
     {
       //decode all base64 arrays
-      for (Size i = 0; i < data_.size(); i++)
-      {
-        //remove whitespaces from binary data
-        //this should not be necessary, but linebreaks inside the base64 data are unfortunately no exception
-        data_[i].base64.removeWhitespaces();
-
-        //decode data and check if the length of the decoded data matches the expected length
-        if (data_[i].data_type == BinaryData::DT_FLOAT)
-        {
-          if (data_[i].np_compression != MSNumpressCoder::NONE)
-          {
-            // If its numpress, we don't care about 32 / 64 bit but the numpress
-            // decoder expects std::vector<double> which are 64 bit.
-            MSNumpressCoder::NumpressConfig config;
-            config.np_compression = data_[i].np_compression;
-            MSNumpressCoder().decodeNP(data_[i].base64, data_[i].floats_64,  data_[i].compression, config);
-          }
-          else if (data_[i].precision == BinaryData::PRE_64)
-          {
-            decoder_.decode(data_[i].base64, Base64::BYTEORDER_LITTLEENDIAN, data_[i].floats_64, data_[i].compression);
-            if (data_[i].size != data_[i].floats_64.size())
-            {
-              warning(LOAD, String("Float binary data array '") + data_[i].meta.getName() + "' of spectrum '" + spec_.getNativeID() + "' has length " + data_[i].floats_64.size() + ", but should have length " + data_[i].size + ".");
-              data_[i].size = data_[i].floats_64.size();
-            }
-          }
-          else if (data_[i].precision == BinaryData::PRE_32)
-          {
-            decoder_.decode(data_[i].base64, Base64::BYTEORDER_LITTLEENDIAN, data_[i].floats_32, data_[i].compression);
-            if (data_[i].size != data_[i].floats_32.size())
-            {
-              warning(LOAD, String("Float binary data array '") + data_[i].meta.getName() + "' of spectrum '" + spec_.getNativeID() + "' has length " + data_[i].floats_32.size() + ", but should have length " + data_[i].size + ".");
-              data_[i].size = data_[i].floats_32.size();
-            }
-          }
-        }
-        else if (data_[i].data_type == BinaryData::DT_INT)
-        {
-          if (data_[i].precision == BinaryData::PRE_64)
-          {
-            decoder_.decodeIntegers(data_[i].base64, Base64::BYTEORDER_LITTLEENDIAN, data_[i].ints_64, data_[i].compression);
-            if (data_[i].size != data_[i].ints_64.size())
-            {
-              warning(LOAD, String("Integer binary data array '") + data_[i].meta.getName() + "' of spectrum '" + spec_.getNativeID() + "' has length " + data_[i].ints_64.size() + ", but should have length " + data_[i].size + ".");
-              data_[i].size = data_[i].ints_64.size();
-            }
-          }
-          else if (data_[i].precision == BinaryData::PRE_32)
-          {
-            decoder_.decodeIntegers(data_[i].base64, Base64::BYTEORDER_LITTLEENDIAN, data_[i].ints_32, data_[i].compression);
-            if (data_[i].size != data_[i].ints_32.size())
-            {
-              warning(LOAD, String("Integer binary data array '") + data_[i].meta.getName() + "' of spectrum '" + spec_.getNativeID() + "' has length " + data_[i].ints_32.size() + ", but should have length " + data_[i].size + ".");
-              data_[i].size = data_[i].ints_32.size();
-            }
-          }
-        }
-        else if (data_[i].data_type == BinaryData::DT_STRING)
-        {
-          decoder_.decodeStrings(data_[i].base64, data_[i].decoded_char, data_[i].compression);
-          if (data_[i].size != data_[i].decoded_char.size())
-          {
-            warning(LOAD, String("String binary data array '") + data_[i].meta.getName() + "' of spectrum '" + spec_.getNativeID() + "' has length " + data_[i].decoded_char.size() + ", but should have length " + data_[i].size + ".");
-            data_[i].size = data_[i].decoded_char.size();
-          }
-        }
-      }
+      MzMLHandlerHelper::decodeBase64Arrays(data_);
 
       //look up the precision and the index of the intensity and m/z array
       bool mz_precision_64 = true;
       bool int_precision_64 = true;
       SignedSize mz_index = -1;
       SignedSize int_index = -1;
-      for (Size i = 0; i < data_.size(); i++)
-      {
-        if (data_[i].meta.getName() == "m/z array")
-        {
-          mz_index = i;
-          mz_precision_64 = (data_[i].precision == BinaryData::PRE_64);
-        }
-        if (data_[i].meta.getName() == "intensity array")
-        {
-          int_index = i;
-          int_precision_64 = (data_[i].precision == BinaryData::PRE_64);
-        }
-      }
+      MzMLHandlerHelper::computeDataProperties_(data_, mz_precision_64, mz_index, "m/z array");
+      MzMLHandlerHelper::computeDataProperties_(data_, int_precision_64, int_index, "intensity array");
 
       //Abort if no m/z or intensity array is present
       if (int_index == -1 || mz_index == -1)
@@ -1282,87 +1182,15 @@ protected:
     void MzMLHandler<MapType>::fillChromatogramData_()
     {
       //decode all base64 arrays
-      for (Size i = 0; i < data_.size(); i++)
-      {
-        //remove whitespaces from binary data
-        //this should not be necessary, but linebreaks inside the base64 data are unfortunately no exception
-        data_[i].base64.removeWhitespaces();
-
-        //decode data and check if the length of the decoded data matches the expected length
-        if (data_[i].np_compression != MSNumpressCoder::NONE)
-        {
-          // If its numpress, we don't care about 32 / 64 bit but the numpress
-          // decoder expects std::vector<double> which are 64 bit.
-          MSNumpressCoder::NumpressConfig config;
-          config.np_compression = data_[i].np_compression;
-          MSNumpressCoder().decodeNP(data_[i].base64, data_[i].floats_64,  data_[i].compression, config);
-        }
-        else if (data_[i].data_type == BinaryData::DT_FLOAT)
-        {
-          if (data_[i].precision == BinaryData::PRE_64)
-          {
-            decoder_.decode(data_[i].base64, Base64::BYTEORDER_LITTLEENDIAN, data_[i].floats_64, data_[i].compression);
-            if (data_[i].size != data_[i].floats_64.size())
-            {
-              warning(LOAD, String("Float binary data array '") + data_[i].meta.getName() + "' of chromatogram '" + chromatogram_.getNativeID() + "' has length " + data_[i].floats_64.size() + ", but should have length " + data_[i].size + ".");
-            }
-          }
-          else if (data_[i].precision == BinaryData::PRE_32)
-          {
-            decoder_.decode(data_[i].base64, Base64::BYTEORDER_LITTLEENDIAN, data_[i].floats_32, data_[i].compression);
-            if (data_[i].size != data_[i].floats_32.size())
-            {
-              warning(LOAD, String("Float binary data array '") + data_[i].meta.getName() + "' of chromatogram '" + chromatogram_.getNativeID() + "' has length " + data_[i].floats_32.size() + ", but should have length " + data_[i].size + ".");
-            }
-          }
-        }
-        else if (data_[i].data_type == BinaryData::DT_INT)
-        {
-          if (data_[i].precision == BinaryData::PRE_64)
-          {
-            decoder_.decodeIntegers(data_[i].base64, Base64::BYTEORDER_LITTLEENDIAN, data_[i].ints_64, data_[i].compression);
-            if (data_[i].size != data_[i].ints_64.size())
-            {
-              warning(LOAD, String("Integer binary data array '") + data_[i].meta.getName() + "' of chromatogram '" + chromatogram_.getNativeID() + "' has length " + data_[i].ints_64.size() + ", but should have length " + data_[i].size + ".");
-            }
-          }
-          else if (data_[i].precision == BinaryData::PRE_32)
-          {
-            decoder_.decodeIntegers(data_[i].base64, Base64::BYTEORDER_LITTLEENDIAN, data_[i].ints_32, data_[i].compression);
-            if (data_[i].size != data_[i].ints_32.size())
-            {
-              warning(LOAD, String("Integer binary data array '") + data_[i].meta.getName() + "' of chromatogram '" + chromatogram_.getNativeID() + "' has length " + data_[i].ints_32.size() + ", but should have length " + data_[i].size + ".");
-            }
-          }
-        }
-        else if (data_[i].data_type == BinaryData::DT_STRING)
-        {
-          decoder_.decodeStrings(data_[i].base64, data_[i].decoded_char, data_[i].compression);
-          if (data_[i].size != data_[i].decoded_char.size())
-          {
-            warning(LOAD, String("String binary data array '") + data_[i].meta.getName() + "' of chromatogram '" + chromatogram_.getNativeID() + "' has length " + data_[i].decoded_char.size() + ", but should have length " + data_[i].size + ".");
-          }
-        }
-      }
+      MzMLHandlerHelper::decodeBase64Arrays(data_);
 
       //look up the precision and the index of the intensity and m/z array
       bool int_precision_64 = true;
       bool rt_precision_64 = true;
       SignedSize int_index = -1;
       SignedSize rt_index = -1;
-      for (Size i = 0; i < data_.size(); i++)
-      {
-        if (data_[i].meta.getName() == "intensity array")
-        {
-          int_index = i;
-          int_precision_64 = (data_[i].precision == BinaryData::PRE_64);
-        }
-        if (data_[i].meta.getName() == "time array")
-        {
-          rt_index = i;
-          rt_precision_64 = (data_[i].precision == BinaryData::PRE_64);
-        }
-      }
+      MzMLHandlerHelper::computeDataProperties_(data_, rt_precision_64, rt_index, "time array");
+      MzMLHandlerHelper::computeDataProperties_(data_, int_precision_64, int_index, "intensity array");
 
       //Abort if no m/z or intensity array is present
       if (int_index == -1 || rt_index == -1)
@@ -1628,65 +1456,17 @@ protected:
       //------------------------- binaryDataArray ----------------------------
       else if (parent_tag == "binaryDataArray")
       {
-        //MS:1000518 ! binary data type
-        if (accession == "MS:1000523") //64-bit float
+        if (!MzMLHandlerHelper::handleBinaryDataArrayCVParam(data_, accession, value, name))
         {
-          data_.back().precision = BinaryData::PRE_64;
-          data_.back().data_type = BinaryData::DT_FLOAT;
+          if (cv_.isChildOf(accession, "MS:1000513")) //other array names as string
+          {
+            data_.back().meta.setName(cv_.getTerm(accession).name);
+          }
+          else
+          {
+            warning(LOAD, String("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
+          }
         }
-        else if (accession == "MS:1000521") //32-bit float
-        {
-          data_.back().precision = BinaryData::PRE_32;
-          data_.back().data_type = BinaryData::DT_FLOAT;
-        }
-        else if (accession == "MS:1000519") //32-bit integer
-        {
-          data_.back().precision = BinaryData::PRE_32;
-          data_.back().data_type = BinaryData::DT_INT;
-        }
-        else if (accession == "MS:1000522") //64-bit integer
-        {
-          data_.back().precision = BinaryData::PRE_64;
-          data_.back().data_type = BinaryData::DT_INT;
-        }
-        else if (accession == "MS:1001479")
-        {
-          data_.back().precision = BinaryData::PRE_NONE;
-          data_.back().data_type = BinaryData::DT_STRING;
-        }
-        //MS:1000513 ! binary data array
-        else if (accession == "MS:1000786") // non-standard binary data array (with name as value)
-        {
-          data_.back().meta.setName(value);
-        }
-        else if (cv_.isChildOf(accession, "MS:1000513")) //other array names as string
-        {
-          data_.back().meta.setName(cv_.getTerm(accession).name);
-        }
-        //MS:1000572 ! binary data compression type
-        else if (accession == "MS:1000574") //zlib compression
-        {
-          data_.back().compression = true;
-        }
-        else if (accession == "MS:1002312") //numpress compression: linear (proposed CV term)
-        {
-          data_.back().np_compression = MSNumpressCoder::LINEAR;
-        }
-        else if (accession == "MS:1002313") //numpress compression: pic (proposed CV term)
-        {
-          data_.back().np_compression = MSNumpressCoder::PIC;
-        }
-        else if (accession == "MS:1002314") //numpress compression: slof (proposed CV term)
-        {
-          data_.back().np_compression = MSNumpressCoder::SLOF;
-        }
-        else if (accession == "MS:1000576") // no compression
-        {
-          data_.back().compression = false;
-          data_.back().np_compression = MSNumpressCoder::NONE;
-        }
-        else
-          warning(LOAD, String("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
       }
       //------------------------- spectrum ----------------------------
       else if (parent_tag == "spectrum")
