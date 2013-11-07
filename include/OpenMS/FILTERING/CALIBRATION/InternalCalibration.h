@@ -40,7 +40,8 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
+// TODO remove dependency from file reader here!
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
 
 #include <gsl/gsl_fit.h>
