@@ -1820,6 +1820,8 @@ namespace OpenMS
     DoubleReal mz = 0.0;
     DoubleReal rt = 0.0;
     Real it = 0.0;
+    Real ppm;
+
     if (getCurrentLayer().type == LayerData::DT_FEATURE)
     {
       if (end.isValid())
@@ -1835,6 +1837,7 @@ namespace OpenMS
         rt = point[1] - start.getFeature(*getCurrentLayer().getFeatureMap()).getRT();
         it = std::numeric_limits<DoubleReal>::quiet_NaN();
       }
+      ppm = (mz / start.getFeature(*getCurrentLayer().getFeatureMap()).getMZ()) * 1e6;
     }
     else if (getCurrentLayer().type == LayerData::DT_PEAK)
     {
@@ -1851,6 +1854,7 @@ namespace OpenMS
         rt = point[1] - start.getSpectrum(*getCurrentLayer().getPeakData()).getRT();
         it = std::numeric_limits<DoubleReal>::quiet_NaN();
       }
+      ppm = (mz / start.getPeak(*getCurrentLayer().getPeakData()).getMZ()) * 1e6;
     }
     else if (getCurrentLayer().type == LayerData::DT_CONSENSUS)
     {
@@ -1867,6 +1871,7 @@ namespace OpenMS
         rt = point[1] - start.getFeature(*getCurrentLayer().getConsensusMap()).getRT();
         it = std::numeric_limits<DoubleReal>::quiet_NaN();
       }
+      ppm = (mz / start.getFeature(*getCurrentLayer().getConsensusMap()).getMZ()) * 1e6;
     }
     else if (getCurrentLayer().type == LayerData::DT_CHROMATOGRAM)
     {
@@ -1880,7 +1885,7 @@ namespace OpenMS
     //draw text
     QStringList lines;
     lines.push_back("RT delta:  " + QString::number(rt, 'f', 2));
-    lines.push_back("m/z delta: " + QString::number(mz, 'f', 6));
+    lines.push_back("m/z delta: " + QString::number(mz, 'f', 6) + " (" + QString::number(ppm, 'f', 1) +" ppm)");
     if (boost::math::isinf(it) || boost::math::isnan(it))
     {
       lines.push_back("Int ratio: n/a");

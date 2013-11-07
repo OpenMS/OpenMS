@@ -1137,9 +1137,9 @@ namespace OpenMS
       return;
 
     //determine coordinates;
-    DoubleReal mz = 0.0;
-    //DoubleReal rt = 0.0;
-    Real it = 0.0;
+    DoubleReal mz;
+    Real it;
+    Real ppm;
 
     if (getCurrentLayer().type != LayerData::DT_PEAK)
     {
@@ -1160,6 +1160,7 @@ namespace OpenMS
       //rt = point[1] - start.getSpectrum(*getCurrentLayer().getPeakData()).getRT();
       it = std::numeric_limits<DoubleReal>::quiet_NaN();
     }
+    ppm = (mz / start.getPeak(*getCurrentLayer().getPeakData()).getMZ()) * 1e6;
 
     //draw text
     QStringList lines;
@@ -1175,7 +1176,7 @@ namespace OpenMS
       text = "m/z delta: ";
       precision = 6;
     }
-    lines.push_back(text.c_str() + QString::number(mz, 'f', precision));
+    lines.push_back(text.c_str() + QString::number(mz, 'f', precision) + " (" + QString::number(ppm, 'f', 1) +" ppm)");
 
     if (boost::math::isinf(it) || boost::math::isnan(it))
     {
