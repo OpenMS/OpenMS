@@ -47,27 +47,31 @@
 #include <sstream>
 #include <map>
 
+#ifdef OPENMS_HAS_STREAM_EXTRACTION_BUG
+#include <boost/lexical_cast.hpp>
+#endif OPENMS_HAS_STREAM_EXTRACTION_BUG
+
 namespace OpenMS
 {
   namespace Internal
   {
     namespace ClassTest
     {
-      void OPENMS_DLLAPI
-      testStringSimilar(const char * file, int line,
-                        const std::string & string_1,
-                        const char * string_1_stringified,
-                        const std::string & string_2,
-                        const char * string_2_stringified);
-      bool OPENMS_DLLAPI
-      isFileSimilar(const std::string &, const std::string &);
+      void OPENMS_DLLAPI testStringSimilar(const char * file, 
+                                           int line,
+                                           const std::string & string_1,
+                                           const char * string_1_stringified,
+                                           const std::string & string_2,
+                                           const char * string_2_stringified);
+
+      bool OPENMS_DLLAPI isFileSimilar(const std::string &, 
+                                       const std::string &);
     }
   }
 
   /**
-   @brief Fuzzy comparison of strings, tolerates numeric differences.
-
-   */
+    @brief Fuzzy comparison of strings, tolerates numeric differences.
+  */
   class OPENMS_DLLAPI FuzzyStringComparator
   {
 
@@ -79,6 +83,7 @@ namespace OpenMS
       const char * string_1_stringified,
       const std::string & string_2,
       const char * string_2_stringified);
+
     friend bool OPENMS_DLLAPI
     Internal::ClassTest::isFileSimilar(const std::string &,
                                        const std::string &);
@@ -104,210 +109,145 @@ public:
     FuzzyStringComparator(const FuzzyStringComparator & rhs);
 
     /// Assignment operator intentionally not implemented
-    FuzzyStringComparator &
-    operator=(const FuzzyStringComparator & rhs);
+    FuzzyStringComparator & operator=(const FuzzyStringComparator & rhs);
 
     //@}
 
     /// Acceptable relative error (a number >= 1.0)
-    const double &
-    getAcceptableRelative() const
-    {
-      return ratio_max_allowed_;
-    }
-
+    const double & getAcceptableRelative() const;
+    
     /// Acceptable relative error (a number >= 1.0)
-    void
-    setAcceptableRelative(const double rhs)
-    {
-      this->ratio_max_allowed_ = rhs;
-      if (ratio_max_allowed_ < 1.0)
-        ratio_max_allowed_ = 1
-                             / ratio_max_allowed_;
-
-    }
+    void setAcceptableRelative(const double rhs);
 
     /// Acceptable absolute difference (a number >= 0.0)
-    const double &
-    getAcceptableAbsolute() const
-    {
-      return absdiff_max_allowed_;
-    }
+    const double & getAcceptableAbsolute() const;
 
     /// Acceptable absolute difference (a number >= 0.0)
-    void
-    setAcceptableAbsolute(const double rhs)
-    {
-      this->absdiff_max_allowed_ = rhs;
-      if (absdiff_max_allowed_ < 0.0)
-        absdiff_max_allowed_
-          = -absdiff_max_allowed_;
-    }
+    void setAcceptableAbsolute(const double rhs);
 
     /// White list.  If both lines contain the same element from this list, they are skipped over.
-    const StringList &
-    getWhitelist() const
-    {
-      return whitelist_;
-    }
+    const StringList & getWhitelist() const;
 
     /// White list.  If both lines contain the same element from this list, they are skipped over.
-    StringList &
-    getWhitelist()
-    {
-      return whitelist_;
-    }
+    StringList & getWhitelist();
 
     /// White list.  If both lines contain the same element from this list, they are skipped over.
-    void
-    setWhitelist(const StringList & rhs)
-    {
-      whitelist_ = rhs;
-    }
+    void setWhitelist(const StringList & rhs);
 
-    /**@brief verbose level
+    /**
+      @brief verbose level
 
-     - 0 = very quiet mode (absolutely no output)
-     - 1 = quiet mode (no output unless differences detected)
-     - 2 = default (include summary at end)
-     - 3 = continue after errors
-     .
+      - 0 = very quiet mode (absolutely no output)
+      - 1 = quiet mode (no output unless differences detected)
+      - 2 = default (include summary at end)
+      - 3 = continue after errors
+    */
+    const int & getVerboseLevel() const;
+
+    /**
+      @brief verbose level
+
+      - 0 = very quiet mode (absolutely no output)
+      - 1 = quiet mode (no output unless differences detected)
+      - 2 = default (include summary at end)
+      - 3 = continue after errors
      */
-    const int &
-    getVerboseLevel() const
-    {
-      return verbose_level_;
-    }
+    void setVerboseLevel(const int rhs);
 
-    /**@brief verbose level
+    /**
+      @brief get tab width (for column numbers)
+    */
+    const int & getTabWidth() const;
 
-     - 0 = very quiet mode (absolutely no output)
-     - 1 = quiet mode (no output unless differences detected)
-     - 2 = default (include summary at end)
-     - 3 = continue after errors
-     .
-     */
-    void
-    setVerboseLevel(const int rhs)
-    {
-      this->verbose_level_ = rhs;
-    }
+    /**
+      @brief set tab width (for column numbers)
+    */
+    void setTabWidth(const int rhs);
 
-    /**@brief get tab width (for column numbers)
-     */
-    const int &
-    getTabWidth() const
-    {
-      return tab_width_;
-    }
+    /**
+      @brief get first column (for column numbers)
+    */
+    const int & getFirstColumn() const;
 
-    /**@brief set tab width (for column numbers)
-     */
-    void
-    setTabWidth(const int rhs)
-    {
-      this->tab_width_ = rhs;
-    }
+    /**
+      @brief set first column (for column numbers)
+    */
+    void setFirstColumn(const int rhs);
 
-    /**@brief get first column (for column numbers)
-     */
-    const int &
-    getFirstColumn() const
-    {
-      return first_column_;
-    }
+    /**
+      @brief Log output is written to this destination.
 
-    /**@brief set first column (for column numbers)
-     */
-    void
-    setFirstColumn(const int rhs)
-    {
-      this->first_column_ = rhs;
-    }
+      The default is std::cout. Use std::ostringstream etc. to save the output
+      in a string.
+    */
+    std::ostream & getLogDestination() const;
 
-    /**@brief Log output is written to this destination.
+    /**
+      @brief Log output is written to this destination.
 
-     The default is std::cout.  Use std::ostringstream etc. to save the output
-     in a string.
-     */
-    std::ostream &
-    getLogDestination() const
-    {
-      return *log_dest_;
-    }
+      The default is std::cout. Use std::ostringstream etc. to save the output
+      in a string.
 
-    /**@brief Log output is written to this destination.
+      @internal There seems to be an issue with this under Windows, see comment
+      in FuzzyStringComparator_test.C
 
-     The default is std::cout.  Use std::ostringstream etc. to save the output
-     in a string.
+    */
+    void setLogDestination(std::ostream & rhs);
 
-     @internal There seems to be an issue with this under Windows, see comment
-     in FuzzyStringComparator_test.C
+    /**
+      @brief Compare two strings.
 
-     */
-    void
-    setLogDestination(std::ostream & rhs)
-    {
-      this->log_dest_ = &rhs;
-    }
+      This compares all lines of the input.
 
-    /**@brief Compare two strings.
+      @return true in case of no differences found
+    */
+    bool compareStrings(std::string const & lhs, std::string const & rhs);
 
-     This compares all lines of the input.
+    /**
+      @brief Compare two streams of input.
 
-     returns true in case of no differences found
-     */
-    bool
-    compareStrings(std::string const & lhs, std::string const & rhs);
+      This compares all lines of the input.  Intended to be used for file
+      streams.
 
-    /**@brief Compare two streams of input.
+      @return true in case of no differences found
+    */
+    bool compareStreams(std::istream & input_1, std::istream & input_2);
 
-     This compares all lines of the input.  Intended to be used for file
-     streams.
+    /**
+      @brief Simple diff-like application to compare two input files.
+      Numeric differences are tolerated up to a certain ratio or absolute
+      difference.
 
-     returns true in case of no differences found
-     */
-    bool
-    compareStreams(std::istream & input_1, std::istream & input_2);
+      where
+      @param filename_1 first input file
+      @param filename_2 second input file
+      @return true in case of no differences found
 
-    /**@brief Simple diff-like application to compare two input files.
-     Numeric differences are tolerated up to a certain ratio or absolute
-     difference.
-
-     where
-     @param filename_1 first input file
-     @param filename_2 second input file
-     @return true in case of no differences found
-
-     @sa ratio_max_allowed_
-     @sa absdiff_max_allowed_
-     @sa verbose_level_
-     */
-    bool
-    compareFiles(const std::string & filename_1,
-                 const std::string & filename_2);
+      @sa ratio_max_allowed_
+      @sa absdiff_max_allowed_
+      @sa verbose_level_
+    */
+    bool compareFiles(const std::string & filename_1, 
+                      const std::string & filename_2);
 
 protected:
 
-    /**@brief Compare two lines of input.
+    /**
+      @brief Compare two lines of input.
 
-     This implements the core functionality.  Intended to be used for a single
-     line of input.
+      This implements the core functionality.  Intended to be used for a single
+      line of input.
 
-     returns true (non-zero) in case of success
+      @return true (non-zero) in case of success
      */
-    bool
-    compareLines_(std::string const & line_str_1,
-                  std::string const & line_str_2);
+    bool compareLines_(std::string const & line_str_1, std::string const & line_str_2);
 
     /// Report good news.
-    void
-    reportSuccess_() const;
+    void reportSuccess_() const;
 
     /// Report bad news.
     /// @exception AbortComparison
-    void
-    reportFailure_(char const * const message) const;
+    void reportFailure_(char const * const message) const;
 
     /// Write info about hits in the whitelist
     void writeWhitelistCases_(const std::string & prefix) const;
@@ -333,48 +273,25 @@ protected:
       std::stringstream line_;
       std::ios::pos_type line_position_;
 
-      InputLine() :
-        line_()
-      {
-      }
+      InputLine();
 
       /// Initialize the input line to the passed string
-      void setToString(const std::string & s)
-      {
-        line_.str(s);
-        line_.seekp(0);
-        line_.clear();
-        line_.unsetf(std::ios::skipws);
-
-        line_position_ = line_.tellg();
-      }
+      void setToString(const std::string & s);
 
       /// Save current position of the stream
-      void updatePosition()
-      {
-        line_position_ = (Int(line_.tellg()) != -1 ? line_.tellg() : std::ios::pos_type(line_.str().length()));             // save current reading position
-      }
+      void updatePosition();
 
       /// Resets the stream to the last saved position
-      void seekGToSavedPosition()
-      {
-        line_.clear();             // reset status
-        line_.seekg(line_position_);             // rewind to saved position
-      }
+      void seekGToSavedPosition();
 
       /**
-          Convert to bool
+        @brief Convert to bool
 
-		      The function indicates success when none of the error flags (either failbit or badbit of the nested std::stringstream) are set.
+        The function indicates success when none of the error flags (either failbit or badbit of the nested std::stringstream) are set.
 
-          @return False on error, true otherwise.
-          */
-      bool ok() const
-      {
-        return !line_.fail(); // failbit AND badbit are both NOT set; using fail() seems the only portable solution for both C++98 and C++11
-                              // operator bool() (C++11 only) and operator void*() (C++98 only) are both not very sexy since they are not "safe bool idiomatic" and would require
-                              // a macro here... So we use a real function name (both internally and externally)
-      }
+        @return False on error, true otherwise.
+      */
+      bool ok() const;
     };
 
     InputLine input_line_1_;
@@ -409,49 +326,33 @@ protected:
       bool is_number;
       bool is_space;
 
-      StreamElement_() :
-        number(0),
-        letter(0),
-        is_number(false),
-        is_space(false)
-      {}
+      StreamElement_();
 
       /// reset all elements of the element to default value
-      void reset()
-      {
-        is_number = false;
-        is_space = false;
-        letter = '\0';
-        number = std::numeric_limits<double>::quiet_NaN();
-      }
-
+      void reset();
+#ifdef OPENMS_HAS_STREAM_EXTRACTION_BUG
+      /**
+        @brief Tries to extract digits from the stream in InputLine.
+      
+        @param input_line The stream from which the digits should be extracted.
+        @param target_buffer The target string where the digits should be stored.
+        @param c_buffer The current peek of the stream.
+        
+        @return Returns true if at least one digit was extracted from the stream.
+      */
+      bool readdigits(InputLine & input_line, std::string & target_buffer, char & c_buffer);
+      
+      /** 
+        @brief Try to extract a double from the InputLine
+      
+        @param input_line The input line where the double should be extracted
+        @param target Target variable where the double should be stored
+        @return True if extraction succeeded, false otherwise.
+      */
+      bool tryExtractDouble(InputLine & input_line, double & target);
+#endif
       /// Read the next element from an InputLine and update the InputLine accordingly
-      void fillFromInputLine(InputLine & input_line)
-      {
-        // first reset all internal variables so we do not mess with
-        // old values
-        reset();
-
-        input_line.updatePosition();
-        input_line.line_ >> letter;             // read letter
-        if ((is_space = (isspace(letter) != 0)))               // is whitespace?
-        {
-          input_line.line_ >> std::ws;               // skip over further whitespace
-        }
-        else
-        {
-          input_line.seekGToSavedPosition();
-          if ((is_number = (bool(input_line.line_ >> number))))       // is a number? (explicit bool op for C11)
-          {
-          }
-          else
-          {
-            input_line.seekGToSavedPosition();
-            input_line.line_ >> letter;                 // read letter
-          }
-        }
-      }
-
+      void fillFromInputLine(InputLine & input_line);
     };
 
     /// Stores information about characters, numbers, and white spaces loaded from the first input stream
@@ -466,26 +367,7 @@ protected:
       OpenMS::String prefix_whitespaces;
       int line_column;
 
-      PrefixInfo_(const InputLine & input_line, const int tab_width_, const int first_column_) :
-        prefix(input_line.line_.str()), line_column(0)
-      {
-        prefix = prefix.prefix(size_t(input_line.line_position_));
-        prefix_whitespaces = prefix;
-        for (String::iterator iter = prefix_whitespaces.begin(); iter != prefix_whitespaces.end(); ++iter)
-        {
-          if (*iter != '\t')
-          {
-            * iter = ' ';
-            ++line_column;
-          }
-          else
-          {
-            line_column = (line_column / tab_width_ + 1) * tab_width_;
-          }
-        }
-        line_column += first_column_;
-      }
-
+      PrefixInfo_(const InputLine & input_line, const int tab_width_, const int first_column_);
     };
 
     bool is_absdiff_small_;
@@ -494,15 +376,18 @@ protected:
     int tab_width_;
     int first_column_;
 
-    /**@brief Has comparison been successful so far?  Note: this flag is
-     changed in reportFailure_();
+    /**
+      @brief Has comparison been successful so far?  Note: this flag is
+             changed in reportFailure_();
      */
     bool is_status_success_;
 
     /// use a prefix when reporting
     bool use_prefix_;
 
+    /// Whitelist
     StringList whitelist_;
+    /// Occurences of whitelist entries
     std::map<String, UInt> whitelist_cases_;
 
   }; // class FuzzyStringComparator

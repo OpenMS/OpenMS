@@ -72,7 +72,89 @@ namespace OpenMS
   FuzzyStringComparator::~FuzzyStringComparator()
   {
   }
+  
+  const double & FuzzyStringComparator::getAcceptableRelative() const
+  {
+    return ratio_max_allowed_;
+  }
 
+  void FuzzyStringComparator::setAcceptableRelative(const double rhs)
+  {
+    this->ratio_max_allowed_ = rhs;
+    if (ratio_max_allowed_ < 1.0)
+      ratio_max_allowed_ = 1
+                           / ratio_max_allowed_;
+
+  }
+
+  const double & FuzzyStringComparator::getAcceptableAbsolute() const
+  {
+    return absdiff_max_allowed_;
+  }
+
+  void FuzzyStringComparator::setAcceptableAbsolute(const double rhs)
+  {
+    this->absdiff_max_allowed_ = rhs;
+    if (absdiff_max_allowed_ < 0.0)
+      absdiff_max_allowed_
+        = -absdiff_max_allowed_;
+  }
+
+  const StringList & FuzzyStringComparator::getWhitelist() const
+  {
+    return whitelist_;
+  }
+
+  StringList & FuzzyStringComparator::getWhitelist()
+  {
+    return whitelist_;
+  }
+
+  void FuzzyStringComparator::setWhitelist(const StringList & rhs)
+  {
+    whitelist_ = rhs;
+  }
+
+  const int & FuzzyStringComparator::getVerboseLevel() const
+  {
+    return verbose_level_;
+  }
+
+  void FuzzyStringComparator::setVerboseLevel(const int rhs)
+  {
+    this->verbose_level_ = rhs;
+  }
+
+  const int & FuzzyStringComparator::getTabWidth() const
+  {
+    return tab_width_;
+  }
+
+  void FuzzyStringComparator::setTabWidth(const int rhs)
+  {
+    this->tab_width_ = rhs;
+  }
+
+  const int & FuzzyStringComparator::getFirstColumn() const
+  {
+    return first_column_;
+  }
+
+  void FuzzyStringComparator::setFirstColumn(const int rhs)
+  {
+    this->first_column_ = rhs;
+  }
+
+  std::ostream & FuzzyStringComparator::getLogDestination() const
+  {
+    return *log_dest_;
+  }
+
+  void FuzzyStringComparator::setLogDestination(std::ostream & rhs)
+  {
+    this->log_dest_ = &rhs;
+  }
+  
   void FuzzyStringComparator::reportFailure_(char const * const message) const
   {
     // We neither want this entire method be non-const nor make
@@ -526,6 +608,237 @@ namespace OpenMS
         wlcit->second << "x\n";
       }
     }
+  }
+
+// we need this only for the stream extraction bug 
+#ifdef OPENMS_HAS_STREAM_EXTRACTION_BUG
+  bool FuzzyStringComparator::StreamElement_::readdigits(InputLine & input_line, std::string & target_buffer, char & c_buffer)
+  {
+    // we want at least one digit, otherwise it is false
+    c_buffer = input_line.line_.peek();
+    if (c_buffer == EOF || !isdigit(c_buffer))
+    {
+      return false;
+    }
+    else
+    {
+      target_buffer.push_back(c_buffer);
+      c_buffer = input_line.line_.get();          
+    }
+    
+    // try to get more numbers
+    while (true)
+    {
+      c_buffer = input_line.line_.peek();
+      if (isdigit(c_buffer) && c_buffer != EOF)
+      {
+        target_buffer.push_back(c_buffer);
+        c_buffer = input_line.line_.get();
+      }
+      else 
+      {
+        break;
+      }
+    }
+    
+    return true;
+  }
+
+
+  bool FuzzyStringComparator::StreamElement_::tryExtractDouble(InputLine & input_line, double & target)
+  {
+    char c_peek;
+    std::string buffer;
+
+    if (input_line.line_.eof())
+        return false;
+
+    c_peek = input_line.line_.peek();
+
+    // .99
+    bool have_seen_decimal_separator = false;
+
+    // read sign or first number, otherwise abort
+    if ((c_peek == '+' || c_peek == '-' || isdigit(c_peek) || c_peek == '.') && c_peek != EOF)
+    {
+      buffer.push_back(c_peek);
+      c_peek = input_line.line_.get();
+      have_seen_decimal_separator = (c_peek == '.');
+    }
+    else
+    {
+      return false;
+    }
+
+    // try to accumulate more numbers
+    readdigits(input_line, buffer, c_peek);
+    
+    // if we have no decimal separator, return what we already accumulated
+    if (c_peek != '.' && !have_seen_decimal_separator)
+    {
+      // have we accumulated more then +/-
+      if (buffer.size() > 1 || isdigit(buffer[0]))
+      {
+        target = boost::lexical_cast<double>(buffer);
+        return true;
+      }
+      else
+      {
+        return false;
+      }
+    }
+    else if(!have_seen_decimal_separator)
+    {
+      buffer.push_back(c_peek);
+      c_peek = input_line.line_.get();      
+      
+      // try to read the rest of the float
+      readdigits(input_line, buffer, c_peek);      
+    }
+        
+    // check if the number is followed by an e+/- something
+    if (c_peek == 'e' || c_peek == 'E')
+    {
+      // add char to buffer
+      buffer.push_back(c_peek);
+      c_peek = input_line.line_.get();
+      // get next char
+      c_peek = input_line.line_.peek();
+
+      // check if we have a sign          
+      if (c_peek == '+' || c_peek == '-')
+      {
+        buffer.push_back(c_peek);
+        c_peek = input_line.line_.get();            
+      }
+      
+      // try to accumulate the rest of scientific notation
+      if (readdigits(input_line, buffer, c_peek))
+      {
+        target = boost::lexical_cast<double>(buffer);
+        return true;            
+      }
+      else 
+      {
+        return false;
+      }
+    }
+    else // just a simple floating point number, convert
+    {
+      // have we accumulated more then +/-
+      if (buffer.size() > 1 || isdigit(buffer[0]))
+      {
+        target = boost::lexical_cast<double>(buffer);
+        return true;        
+      }
+      else 
+      {
+        // not enough content for cast
+        return false;
+      }
+    }
+  }
+#endif
+
+  void FuzzyStringComparator::StreamElement_::fillFromInputLine(InputLine & input_line)
+  {
+    // first reset all internal variables so we do not mess with
+    // old values
+    reset();
+
+    input_line.updatePosition();
+    input_line.line_ >> letter;             // read letter
+    if ((is_space = (isspace(letter) != 0)))               // is whitespace?
+    {
+      input_line.line_ >> std::ws;               // skip over further whitespace
+    }
+    else
+    {
+      input_line.seekGToSavedPosition();
+#ifdef OPENMS_HAS_STREAM_EXTRACTION_BUG
+      // is a number? (explicit bool op for C11)
+      if (tryExtractDouble(input_line, number))
+#else
+      if ((is_number = (bool(input_line.line_ >> number))))
+#endif
+      {
+        is_number = true;
+      }
+      else
+      {
+        input_line.seekGToSavedPosition();
+        input_line.line_ >> letter;                 // read letter
+      }
+    }
+  }
+  
+  void FuzzyStringComparator::StreamElement_::reset()
+  {
+    is_number = false;
+    is_space = false;
+    letter = '\0';
+    number = std::numeric_limits<double>::quiet_NaN();
+  }
+  
+  FuzzyStringComparator::StreamElement_::StreamElement_()
+    : number(0),
+      letter(0),
+      is_number(false),
+      is_space(false)
+  {}
+    
+    
+  FuzzyStringComparator::InputLine::InputLine() :
+    line_()
+  {
+  }
+
+  void FuzzyStringComparator::InputLine::setToString(const std::string & s)
+  {
+    line_.str(s);
+    line_.seekp(0);
+    line_.clear();
+    line_.unsetf(std::ios::skipws);
+
+    line_position_ = line_.tellg();
+  }
+
+  void FuzzyStringComparator::InputLine::updatePosition()
+  {
+    line_position_ = (Int(line_.tellg()) != -1 ? line_.tellg() : std::ios::pos_type(line_.str().length()));             // save current reading position
+  }
+
+  void FuzzyStringComparator::InputLine::seekGToSavedPosition()
+  {
+    line_.clear();             // reset status
+    line_.seekg(line_position_);             // rewind to saved position
+  }
+
+  bool FuzzyStringComparator::InputLine::ok() const
+  {
+    return !line_.fail(); // failbit AND badbit are both NOT set; using fail() seems the only portable solution for both C++98 and C++11
+                          // operator bool() (C++11 only) and operator void*() (C++98 only) are both not very sexy since they are not "safe bool idiomatic" and would require
+                          // a macro here... So we use a real function name (both internally and externally)
+  }
+
+  FuzzyStringComparator::PrefixInfo_::PrefixInfo_(const InputLine & input_line, const int tab_width_, const int first_column_) :
+    prefix(input_line.line_.str()), line_column(0)
+  {
+    prefix = prefix.prefix(size_t(input_line.line_position_));
+    prefix_whitespaces = prefix;
+    for (String::iterator iter = prefix_whitespaces.begin(); iter != prefix_whitespaces.end(); ++iter)
+    {
+      if (*iter != '\t')
+      {
+        * iter = ' ';
+        ++line_column;
+      }
+      else
+      {
+        line_column = (line_column / tab_width_ + 1) * tab_width_;
+      }
+    }
+    line_column += first_column_;
   }
 
 } //namespace OpenMS
