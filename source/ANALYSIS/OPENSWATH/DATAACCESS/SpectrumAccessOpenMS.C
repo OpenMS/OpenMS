@@ -46,7 +46,7 @@ namespace OpenMS
   {
   }
 
-  OpenSwath::SpectrumPtr SpectrumAccessOpenMS::getSpectrumById(int id) const
+  OpenSwath::SpectrumPtr SpectrumAccessOpenMS::getSpectrumById(int id)
   {
     const MSSpectrumType& spectrum = (*ms_experiment_)[id];
     OpenSwath::BinaryDataArrayPtr intensity_array(new OpenSwath::BinaryDataArray);
@@ -71,7 +71,7 @@ namespace OpenMS
     return meta;
   }
 
-  OpenSwath::ChromatogramPtr SpectrumAccessOpenMS::getChromatogramById(int id) const
+  OpenSwath::ChromatogramPtr SpectrumAccessOpenMS::getChromatogramById(int id)
   {
     const MSChromatogramType& chromatogram = ms_experiment_->getChromatograms()[id];
     OpenSwath::BinaryDataArrayPtr intensity_array(new OpenSwath::BinaryDataArray);

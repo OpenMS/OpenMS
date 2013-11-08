@@ -36,7 +36,8 @@
 
 namespace OpenMS
 {
-  OpenSwath::SpectrumPtr SpectrumAccessOpenMSCached::getSpectrumById(int id) const
+
+  OpenSwath::SpectrumPtr SpectrumAccessOpenMSCached::getSpectrumById(int id) 
   {
     if (cache_.getSpectraIndex().empty())
     {
@@ -68,7 +69,7 @@ namespace OpenMS
     return meta;
   }
 
-  OpenSwath::ChromatogramPtr SpectrumAccessOpenMSCached::getChromatogramById(int id) const
+  OpenSwath::ChromatogramPtr SpectrumAccessOpenMSCached::getChromatogramById(int id) 
   {
     if (cache_.getChromatogramIndex().empty())
     {

@@ -61,7 +61,7 @@ public:
 
     ~SpectrumAccessOpenMS();
 
-    OpenSwath::SpectrumPtr getSpectrumById(int id) const;
+    OpenSwath::SpectrumPtr getSpectrumById(int id);
 
     OpenSwath::SpectrumMeta getSpectrumMetaById(int id) const;
 
@@ -71,7 +71,7 @@ public:
 
     SpectrumSettings getSpectraMetaInfo(int id) const;
 
-    OpenSwath::ChromatogramPtr getChromatogramById(int id) const;
+    OpenSwath::ChromatogramPtr getChromatogramById(int id);
 
     // FEATURE ?
     // ChromatogramPtr getChromatogramByPrecursorMZ(double mz, double deltaMZ);

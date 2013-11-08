@@ -46,11 +46,16 @@ namespace OpenMS
 {
 
   /**
-    @brief An implementation of the OpenSWATH Spectrum Access interface using Disk caching
+    @brief An implementation of the Spectrum Access interface using on-disk caching
 
     This class implements the OpenSWATH Spectrum Access interface
     (ISpectrumAccess) using the CachedmzML class which is able to read and
     write a cached mzML file.
+
+    @note This implementation is @a not thread-safe since it keeps internally a
+    single file access pointer which it moves when accessing a specific
+    data item. The caller is responsible to ensure that access is performed
+    atomically.
 
   */
   class OPENMS_DLLAPI SpectrumAccessOpenMSCached :
@@ -65,7 +70,7 @@ public:
 
     ~SpectrumAccessOpenMSCached();
 
-    OpenSwath::SpectrumPtr getSpectrumById(int id) const;
+    OpenSwath::SpectrumPtr getSpectrumById(int id);
 
     OpenSwath::SpectrumMeta getSpectrumMetaById(int id) const;
 
@@ -75,7 +80,7 @@ public:
 
     SpectrumSettings getSpectraMetaInfo(int id) const;
 
-    OpenSwath::ChromatogramPtr getChromatogramById(int id) const;
+    OpenSwath::ChromatogramPtr getChromatogramById(int id);
 
     // FEATURE ?
     // ChromatogramPtr getChromatogramByPrecursorMZ(double mz, double deltaMZ);

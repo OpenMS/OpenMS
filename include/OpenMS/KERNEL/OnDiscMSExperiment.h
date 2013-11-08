@@ -56,6 +56,12 @@ namespace OpenMS
     @brief Representation of a mass spectrometry experiment on disk.
 
     @ingroup Kernel
+
+    @note This implementation is @a not thread-safe since it keeps internally a
+    single file access pointer which it moves when accessing a specific
+    data item. The caller is responsible to ensure that access is performed
+    atomically.
+
   */
   template <typename PeakT = Peak1D, typename ChromatogramPeakT = ChromatogramPeak>
   class OnDiscMSExperiment

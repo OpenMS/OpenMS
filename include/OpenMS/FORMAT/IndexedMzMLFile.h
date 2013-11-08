@@ -63,6 +63,12 @@ namespace OpenMS
     Internally it uses the IndexedMzMLDecoder for initial parsing and
     extracting all the offsets of the <chromatogram> and <spectrum> tags. These
     offsets are stored as members of this class as well as the offset to the <indexList> element
+
+    @note This implementation is @a not thread-safe since it keeps internally a
+    single file access pointer which it moves when accessing a specific
+    data item. The caller is responsible to ensure that access is performed
+    atomically.
+
   */
   class OPENMS_DLLAPI IndexedMzMLFile
   {

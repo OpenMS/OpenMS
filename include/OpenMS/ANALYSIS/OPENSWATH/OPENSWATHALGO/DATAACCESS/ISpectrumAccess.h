@@ -52,7 +52,7 @@ namespace OpenSwath
 public:
     virtual ~ISpectrumAccess();
     /// Return a pointer to a spectrum at the given id
-    virtual SpectrumPtr getSpectrumById(int id) const = 0;
+    virtual SpectrumPtr getSpectrumById(int id) = 0;
     /// Return a vector of ids of spectra that are within RT +/- deltaRT
     virtual std::vector<std::size_t> getSpectraByRT(double RT, double deltaRT) const = 0;
     /// Returns the number of spectra available
@@ -61,7 +61,7 @@ public:
     virtual SpectrumMeta getSpectrumMetaById(int id) const = 0;
 
     /// Return a pointer to a chromatogram at the given id
-    virtual ChromatogramPtr getChromatogramById(int id) const = 0;
+    virtual ChromatogramPtr getChromatogramById(int id) = 0;
     //virtual std::vector<std::size_t> getChromatogramByPrecursorMZ(double mz,
     //    double deltaMZ) const = 0;
     /// Returns the number of chromatograms available
