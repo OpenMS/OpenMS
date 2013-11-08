@@ -4,6 +4,7 @@ from libcpp cimport bool
 from libcpp.vector cimport vector as libcpp_vector
 from libcpp.pair cimport pair as libcpp_pair
 from libcpp.map cimport map as libcpp_map
+from smart_ptr cimport shared_ptr
 
 # include macros
 cdef extern from "<OpenMS/config.h>":
