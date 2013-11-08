@@ -151,6 +151,9 @@
 #cmakedefine OPENMS_HAS_KILL
 #cmakedefine OPENMS_HAS_SYSCONF
 
+// is libc++ or has stream bug 
+#cmakedefine OPENMS_HAS_STREAM_EXTRACTION_BUG
+
 // library versions
 #define OPENMS_LIBSVM_VERSION @CF_OPENMS_LIBSVM_VERSION@
 #define OPENMS_LIBSVM_VERSION_MAJOR @CF_OPENMS_LIBSVM_VERSION_MAJOR@
