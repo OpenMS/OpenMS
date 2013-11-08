@@ -66,8 +66,17 @@ public:
     typedef OpenMS::MSExperiment<Peak1D> MSExperimentType;
     typedef OpenMS::MSSpectrum<Peak1D> MSSpectrumType;
 
+    /**
+      @brief Constructor, opens the file stream
+
+      @param filename The filename of the .mzML file (it is assumed a second
+      file .mzML.cached exists).
+    */
     explicit SpectrumAccessOpenMSCached(String filename);
 
+    /**
+      @brief Destructor
+    */
     ~SpectrumAccessOpenMSCached();
 
     OpenSwath::SpectrumPtr getSpectrumById(int id);
@@ -82,9 +91,6 @@ public:
 
     OpenSwath::ChromatogramPtr getChromatogramById(int id);
 
-    // FEATURE ?
-    // ChromatogramPtr getChromatogramByPrecursorMZ(double mz, double deltaMZ);
-
     size_t getNrChromatograms() const;
 
     ChromatogramSettings getChromatogramMetaInfo(int id) const;
@@ -92,11 +98,22 @@ public:
     std::string getChromatogramNativeID(int id) const;
 
 private:
+
+    /// Meta data
     MSExperimentType meta_ms_experiment_;
+
+    /// Internal filestream 
     std::ifstream ifs_;
-    CachedmzML cache_;
+
+    /// Name of the mzML file
     String filename_;
+
+    /// Name of the cached mzML file
     String filename_cached_;
+
+    /// Indices
+    std::vector<Size> spectra_index_;
+    std::vector<Size> chrom_index_;
   };
 
 } //end namespace

@@ -37,23 +37,37 @@
 namespace OpenMS
 {
 
+  SpectrumAccessOpenMSCached::SpectrumAccessOpenMSCached(String filename)
+  {
+    filename_cached_ = filename + ".cached";
+    filename_ = filename;
+
+    // Create the index from the given file
+    CachedmzML cache;
+    cache.createMemdumpIndex(filename_cached_);
+    spectra_index_ = cache.getSpectraIndex();
+    chrom_index_ = cache.getChromatogramIndex();;
+
+    // open the filestream
+    ifs_.open(filename_cached_.c_str(), std::ios::binary);
+
+    // load the meta data from disk
+    MzMLFile().load(filename, meta_ms_experiment_);
+  }
+
+  SpectrumAccessOpenMSCached::~SpectrumAccessOpenMSCached()
+  {
+    ifs_.close();
+  }
+
   OpenSwath::SpectrumPtr SpectrumAccessOpenMSCached::getSpectrumById(int id) 
   {
-    if (cache_.getSpectraIndex().empty())
-    {
-      // remove const from the cache since we need to recalculate the index
-      // and re-read the data.
-      (const_cast<CachedmzML*>(&cache_))->createMemdumpIndex(filename_cached_);
-    }
     OpenSwath::BinaryDataArrayPtr mz_array(new OpenSwath::BinaryDataArray);
     OpenSwath::BinaryDataArrayPtr intensity_array(new OpenSwath::BinaryDataArray);
     int ms_level = -1;
     double rt = -1.0;
-    // FEATURE check if we can keep the filestream open -> risky if someone else
-    // accesses the file in the meantime
-    std::ifstream ifs_((filename_cached_).c_str(), std::ios::binary);
-    ifs_.seekg(cache_.getSpectraIndex()[id]);
-    cache_.readSpectrumFast(mz_array, intensity_array, ifs_, ms_level, rt);
+    ifs_.seekg(spectra_index_[id]);
+    CachedmzML::readSpectrumFast(mz_array, intensity_array, ifs_, ms_level, rt);
 
     OpenSwath::SpectrumPtr sptr(new OpenSwath::Spectrum);
     sptr->setMZArray(mz_array);
@@ -71,41 +85,15 @@ namespace OpenMS
 
   OpenSwath::ChromatogramPtr SpectrumAccessOpenMSCached::getChromatogramById(int id) 
   {
-    if (cache_.getChromatogramIndex().empty())
-    {
-      // remove const from the cache since we need to recalculate the index
-      // and re-read the data.
-      (const_cast<CachedmzML*>(&cache_))->createMemdumpIndex(filename_cached_);
-    }
     OpenSwath::BinaryDataArrayPtr rt_array(new OpenSwath::BinaryDataArray);
     OpenSwath::BinaryDataArrayPtr intensity_array(new OpenSwath::BinaryDataArray);
-    std::ifstream ifs_((filename_cached_).c_str(), std::ios::binary);
-    ifs_.seekg(cache_.getChromatogramIndex()[id]);
-    cache_.readChromatogramFast(rt_array, intensity_array, ifs_);
-
-    // push back rt first, then intensity.
-    // FEATURE (hroest) annotate which is which
-    std::vector<OpenSwath::BinaryDataArrayPtr> binaryDataArrayPtrs;
-    binaryDataArrayPtrs.push_back(rt_array);
-    binaryDataArrayPtrs.push_back(intensity_array);
+    ifs_.seekg(chrom_index_[id]);
+    CachedmzML::readChromatogramFast(rt_array, intensity_array, ifs_);
 
     OpenSwath::ChromatogramPtr cptr(new OpenSwath::Chromatogram);
-    cptr->binaryDataArrayPtrs = binaryDataArrayPtrs;
+    cptr->setTimeArray(rt_array);
+    cptr->setIntensityArray(intensity_array);
     return cptr;
-  }
-
-  SpectrumAccessOpenMSCached::SpectrumAccessOpenMSCached(String filename)
-  {
-    filename_cached_ = filename + ".cached";
-    // currently we re-open the filestream with each read access
-    // std::ifstream ifs_((filename_cached_).c_str(), std::ios::binary);
-    MzMLFile f;
-    f.load(filename, meta_ms_experiment_);
-    filename_ = filename;
-  }
-
-  SpectrumAccessOpenMSCached::~SpectrumAccessOpenMSCached()
-  {
   }
 
   std::vector<std::size_t> SpectrumAccessOpenMSCached::getSpectraByRT(double RT, double deltaRT) const

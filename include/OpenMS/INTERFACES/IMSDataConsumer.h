@@ -81,6 +81,7 @@ namespace Interfaces
         @param s The spectrum to be consumed
       */
       virtual void consumeSpectrum(SpectrumType & s) = 0;
+
       /**
         @brief Consume a chromatogram
 

@@ -49,12 +49,14 @@
 
 namespace OpenMS
 {
+
   /**
     @brief An class that uses on-disk caching to read and write spectra and chromatograms
 
-    This class implements the OpenSWATH Spectrum Access interface
-    (ISpectrumAccess) using the CachedmzML class which is able to read and
-    write a cached mzML file.
+    This class provides functions to read and write spectra and chromatograms
+    to disk using a time-efficient format. Reading the data items from disk can
+    be very fast and done in random order (once the in-memory index is built
+    for the file).
 
   */
   class OPENMS_DLLAPI CachedmzML :
@@ -68,13 +70,10 @@ public:
     typedef MSExperiment<Peak1D> MapType;
     typedef MSSpectrum<Peak1D> SpectrumType;
     typedef MSChromatogram<ChromatogramPeak> ChromatogramType;
-#if 1
-    // double means twice the file size
+
+    // using double precision to store all data (has to agree with type of BinaryDataArrayPtr)
     typedef double DatumSingleton;
-#else
-    // float means half the file size
-    typedef float DatumSingleton;
-#endif
+
     typedef std::vector<DatumSingleton> Datavector;
 
     /** @name Constructors and Destructor
@@ -104,9 +103,10 @@ public:
 
     //@}
 
-    /** @name Read / Write an MSExperiment
+    /** @name Read / Write a complete MSExperiment
     */
     //@{
+
     /// Write complete spectra as a dump to the disk
     void writeMemdump(MapType& exp, String out)
     {
@@ -136,6 +136,7 @@ public:
     }
 
     /// Read all spectra from a dump from the disk
+    /// TODO use real exception
     void readMemdump(MapType& exp_reading, String filename) const
     {
       std::ifstream ifs(filename.c_str(), std::ios::binary);
@@ -201,6 +202,7 @@ public:
     /** @name Access to the binary indices
     */
     //@{
+
     const std::vector<Size>& getSpectraIndex() const
     {
       return spectra_index_;
@@ -214,6 +216,7 @@ public:
     //@}
 
     /// Create an index on the location of all the spectra and chromatograms
+    /// TODO use real exception
     void createMemdumpIndex(String filename)
     {
       std::ifstream ifs(filename.c_str(), std::ios::binary);
@@ -257,7 +260,6 @@ public:
         chrom_index_.push_back(ifs.tellg());
         ifs.read((char*)&chrom_size, sizeof(chrom_size));
         ifs.seekg((int)ifs.tellg() + chrom_offset + (sizeof(DatumSingleton)) * 2 * (chrom_size));
-
       }
 
       ifs.close();
@@ -268,15 +270,14 @@ public:
     void writeMetadata(MapType exp, String out_meta, bool addCacheMetaValue=false)
     {
       // delete the actual data for all spectra and chromatograms, leave only metadata
-      std::vector<MSChromatogram<ChromatogramPeak> > chromatograms = exp.getChromatograms(); // copy
+      // TODO : remove copy
+      std::vector<MSChromatogram<ChromatogramPeak> > chromatograms = exp.getChromatograms(); // copy 
       for (Size i = 0; i < exp.size(); i++)
       {
         exp[i].clear(false);
       }
       for (Size i = 0; i < exp.getChromatograms().size(); i++)
       {
-        // delete the actual data, leave only metadata
-        //exp.getChromatograms()[i].clear(false);
         chromatograms[i].clear(false);
       }
       exp.setChromatograms(chromatograms);
@@ -412,10 +413,6 @@ protected:
       dbl_field_ = spectrum.getRT();
       ofs.write((char*)&dbl_field_, sizeof(dbl_field_));
 
-#if 0
-      ofs.write((char*)&exp[i].front(), exp[i].size() * sizeof(exp[i].front()));
-      std::cout << " storing spectrum " << i << " with size " << exp[i].size() << std::endl;
-#else
       Datavector mz_data;
       Datavector int_data;
       for (Size j = 0; j < spectrum.size(); j++)
@@ -425,8 +422,6 @@ protected:
       }
       ofs.write((char*)&mz_data.front(), mz_data.size() * sizeof(mz_data.front()));
       ofs.write((char*)&int_data.front(), int_data.size() * sizeof(int_data.front()));
-#endif
-      //std::cout << exp[i] << std::endl;
     }
 
     // write a single chromatogram to filestream
@@ -445,6 +440,7 @@ protected:
       ofs.write((char*)&int_data.front(), int_data.size() * sizeof(int_data.front()));
     }
 
+    /// Members
     std::vector<Size> spectra_index_;
     std::vector<Size> chrom_index_;
 

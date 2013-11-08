@@ -82,7 +82,7 @@ namespace OpenMS
       long index_offset_;
       /// Whether spectra are written before chromatograms in this file
       bool spectra_before_chroms_;
-      /// The current filestream (is opened upon construction)
+      /// The current filestream (opened by openFile)
       std::ifstream filestream; 
       /// Whether parsing the indexedmzML file was successful
       bool parsing_success_;
