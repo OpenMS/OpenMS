@@ -35,6 +35,7 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
