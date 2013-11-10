@@ -71,6 +71,9 @@ namespace OpenMS
       /// Default destructor
       ~CachedMzMLConsumer()
       {
+        // Close file stream: close() _should_ call flush() but it might not in
+        // all cases. To be sure call flush() first.
+        ofs.flush();
         ofs.close();
       }
 
