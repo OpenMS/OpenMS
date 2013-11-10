@@ -71,6 +71,9 @@ public:
 
       @param filename The filename of the .mzML file (it is assumed a second
       file .mzML.cached exists).
+
+      @throws Exception::FileNotFound is thrown if the file is not found
+      @throws Exception::ParseError is thrown if the file cannot be parsed
     */
     explicit SpectrumAccessOpenMSCached(String filename);
 

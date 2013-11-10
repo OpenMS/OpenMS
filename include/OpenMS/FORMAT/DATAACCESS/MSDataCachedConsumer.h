@@ -83,7 +83,7 @@ namespace OpenMS
         if (spectra_written >= spectra_expected || chromatograms_written > 0)
         {
           throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-                  "Cannot write spectra, reached expected spectra or have already written chromagrams.");
+                  "Cannot write spectra, reached expected spectra or have already written chromatograms.");
         }
         writeSpectrum_(s, ofs);
         spectra_written++;
@@ -96,7 +96,7 @@ namespace OpenMS
         if (chromatograms_written >= chromatograms_expected || spectra_written != spectra_expected)
         {
           throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-                  "Cannot write spectra, reached expected spectra or have already written chromagrams.");
+                  "Cannot write spectra, reached expected spectra or have already written chromatograms.");
         }
         writeChromatogram_(c, ofs);
         chromatograms_written++;

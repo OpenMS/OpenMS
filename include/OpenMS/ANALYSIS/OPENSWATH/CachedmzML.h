@@ -140,6 +140,11 @@ public:
     void readMemdump(MapType& exp_reading, String filename) const
     {
       std::ifstream ifs(filename.c_str(), std::ios::binary);
+      if (ifs.fail())
+      {
+        throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+      }
+
       Size exp_size, chrom_size;
       Peak1D current_peak;
 
@@ -147,7 +152,9 @@ public:
       ifs.read((char*)&magic_number, sizeof(magic_number));
       if (magic_number != MAGIC_NUMBER)
       {
-        throw "wrong file, does not start with MAGIC_NUMBER";
+        throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
+            "File might not be a cached mzML file (wrong magic number). Aborting!", filename);
+
       }
 
       ifs.read((char*)&exp_size, sizeof(exp_size));
@@ -220,6 +227,11 @@ public:
     void createMemdumpIndex(String filename)
     {
       std::ifstream ifs(filename.c_str(), std::ios::binary);
+      if (ifs.fail())
+      {
+        throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
+      }
+
       Size exp_size, chrom_size;
       Peak1D current_peak;
 
@@ -232,7 +244,8 @@ public:
       ifs.read((char*)&magic_number, sizeof(magic_number));
       if (magic_number != MAGIC_NUMBER)
       {
-        throw "wrong file, does not start with MAGIC_NUMBER";
+        throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
+            "File might not be a cached mzML file (wrong magic number). Aborting!", filename);
       }
 
       // For spectra and chromatograms go through file, read the size of the
