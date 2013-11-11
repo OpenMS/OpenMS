@@ -96,9 +96,9 @@ private:
       String identifier_;
       String actual_title_;
       std::map<String, std::vector<AASequence> > & modified_peptides_;
-      String warning_msg_;
 
       StringList tags_open_; ///< tracking the current XML tree
+      String character_buffer_; ///< filled by MascotXMLHandler::characters
       String major_version_;
       String minor_version_;
 

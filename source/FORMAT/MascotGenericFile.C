@@ -195,20 +195,37 @@ namespace OpenMS
     writeParameterHeader_("MASS", os);
     os << param_.getValue("mass_type") << "\n";
 
+    // @TODO remove "Deamidated (NQ)" special cases below when a general
+    // solution for specificity groups in UniMod is implemented (ticket #387) 
+
     //fixed modifications
     StringList fixed_mods((StringList)param_.getValue("fixed_modifications"));
     for (StringList::const_iterator it = fixed_mods.begin(); it != fixed_mods.end(); ++it)
     {
+      if ((*it == "Deamidated (N)") || (*it == "Deamidated (Q)")) continue;
       writeParameterHeader_("MODS", os);
       os << *it << "\n";
+    }
+    if (fixed_mods.contains("Deamidated (N)") || 
+        fixed_mods.contains("Deamidated (Q)"))
+    {
+      writeParameterHeader_("MODS", os);
+      os << "Deamidated (NQ)" << "\n";
     }
 
     //variable modifications
     StringList var_mods((StringList)param_.getValue("variable_modifications"));
     for (StringList::const_iterator it = var_mods.begin(); it != var_mods.end(); ++it)
     {
+      if ((*it == "Deamidated (N)") || (*it == "Deamidated (Q)")) continue;
       writeParameterHeader_("IT_MODS", os);
       os << *it << "\n";
+    }
+    if (var_mods.contains("Deamidated (N)") || 
+        var_mods.contains("Deamidated (Q)"))
+    {
+      writeParameterHeader_("IT_MODS", os);
+      os << "Deamidated (NQ)" << "\n";
     }
 
     //instrument
