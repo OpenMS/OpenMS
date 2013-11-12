@@ -100,7 +100,7 @@ namespace OpenMS
 
     void writeHeader()
     {
-      ofs << "transition_group_id\trun_id\tfilename\tRT\tid\tSequence\tFullPeptideName\tCharge\tm/z\tIntensity\tProteinName\tdecoy\tassay_rt\tdelta_rt\tleftWidth\tmain_var_xx_swath_prelim_score\tnorm_RT\tnr_peaks\tpeak_apices_sum\tpotentialOutlier\trightWidth\trt_score\tsn_ratio\ttotal_xic\tvar_bseries_score\tvar_dotprod_score\tvar_intensity_score\tvar_isotope_correlation_score\tvar_isotope_overlap_score\tvar_library_corr\tvar_library_dotprod\tvar_library_manhattan\tvar_library_rmsd\tvar_library_rootmeansquare\tvar_library_sangle\tvar_log_sn_score\tvar_manhatt_score\tvar_massdev_score\tvar_massdev_score_weighted\tvat_norm_rt_score\tvar_xcorr_coelution\tvar_xcorr_coelution_weighted\tvar_xcorr_shape\tvar_xcorr_shape_weighted\tvar_yseries_score\txx_lda_prelim_score\txx_swath_prelim_score\taggr_Peak_Area\taggr_Peak_Apex\taggr_Fragment_Annotation\n";
+      ofs << "transition_group_id\trun_id\tfilename\tRT\tid\tSequence\tFullPeptideName\tCharge\tm/z\tIntensity\tProteinName\tdecoy\tassay_rt\tdelta_rt\tleftWidth\tmain_var_xx_swath_prelim_score\tnorm_RT\tnr_peaks\tpeak_apices_sum\tpotentialOutlier\trightWidth\trt_score\tsn_ratio\ttotal_xic\tvar_bseries_score\tvar_dotprod_score\tvar_intensity_score\tvar_isotope_correlation_score\tvar_isotope_overlap_score\tvar_library_corr\tvar_library_dotprod\tvar_library_manhattan\tvar_library_rmsd\tvar_library_rootmeansquare\tvar_library_sangle\tvar_log_sn_score\tvar_manhatt_score\tvar_massdev_score\tvar_massdev_score_weighted\tvat_norm_rt_score\tvar_xcorr_coelution\tvar_xcorr_coelution_weighted\tvar_xcorr_shape\tvar_xcorr_shape_weighted\tvar_yseries_score\tvar_elution_model_fit_score\txx_lda_prelim_score\txx_swath_prelim_score\taggr_Peak_Area\taggr_Peak_Apex\taggr_Fragment_Annotation\n";
     }
 
     String prepareLine(const OpenSwath::LightPeptide & pep,
@@ -195,6 +195,7 @@ namespace OpenMS
             + "\t" + (String)feature_it->getMetaValue("var_xcorr_shape") 
             + "\t" + (String)feature_it->getMetaValue("var_xcorr_shape_weighted") 
             + "\t" + (String)feature_it->getMetaValue("var_yseries_score") 
+            + "\t" + (String)feature_it->getMetaValue("var_elution_model_fit_score") 
             + "\t" + (String)feature_it->getMetaValue("xx_lda_prelim_score") 
             + "\t" + (String)feature_it->getMetaValue("xx_swath_prelim_score") 
             + "\t" + aggr_Peak_Area + "\t" + aggr_Peak_Apex + "\t" + aggr_Fragment_Annotation + "\n";
@@ -508,7 +509,6 @@ namespace OpenMS
 
       MRMFeatureFinderScoring featureFinder;
       feature_finder_param.setValue("Scores:use_rt_score", "false");
-      feature_finder_param.setValue("Scores:use_elution_model_score", "false");
       feature_finder_param.setValue("Scores:use_elution_model_score", "false");
       feature_finder_param.setValue("rt_extraction_window", -1.0);
       feature_finder_param.setValue("TransitionGroupPicker:PeakPickerMRM:signal_to_noise", 1.0); // set to 1.0 in all cases
@@ -863,43 +863,44 @@ protected:
     registerInputFile_("tr_irt", "<file>", "", "transition file ('TraML' or 'csv')", false);
     setValidFormats_("tr_irt", StringList::create("csv,traML"));
 
-    registerInputFile_("rt_norm", "<file>", "", "RT normalization file (how to map the RTs of this run to the ones stored in the library). If set, tr_irt may be omitted.", false);
+    registerInputFile_("rt_norm", "<file>", "", "RT normalization file (how to map the RTs of this run to the ones stored in the library). If set, tr_irt may be omitted.", false, true);
     setValidFormats_("rt_norm", StringList::create("trafoXML"));
 
-    registerStringOption_("swath_windows_file", "<file>", "", "Optional, tab separated file containing the SWATH windows: lower_offset upper_offset \\newline 400 425 \\newline ... ", false);
+    registerStringOption_("swath_windows_file", "<file>", "", "Optional, tab separated file containing the SWATH windows: lower_offset upper_offset \\newline 400 425 \\newline ... ", false, true);
 
     // one of the following two needs to be set
     registerOutputFile_("out_features", "<file>", "", "output file", false);
     setValidFormats_("out_features", StringList::create("featureXML"));
 
-    registerStringOption_("out_tsv", "<file>", "", "tsv output file (mProphet compatible)", false);
+    registerStringOption_("out_tsv", "<file>", "", "TSV output file (mProphet compatible)", false);
 
-    registerOutputFile_("out_chrom", "<file>", "", ".chrom.mzML output (all chromatograms)", false);
+    registerOutputFile_("out_chrom", "<file>", "", "Also output all computed chromatograms (chrom.mzML) output", false, true);
     setValidFormats_("out_chrom", StringList::create("mzML"));
 
-    registerDoubleOption_("min_upper_edge_dist", "<double>", 0.0, "Minimal distance to the edge to still consider a precursor, in Thomson", false);
-    registerDoubleOption_("mz_extraction_window", "<double>", 0.05, "Extraction window used (in Thomson, to use ppm see -ppm flag)", false);
+    registerDoubleOption_("min_upper_edge_dist", "<double>", 0.0, "Minimal distance to the edge to still consider a precursor, in Thomson", false, true);
     registerDoubleOption_("rt_extraction_window", "<double>", 600.0, "Only extract RT around this value (-1 means extract over the whole range, a value of 600 means to extract around +/- 300 s of the expected elution).", false);
-    registerDoubleOption_("extra_rt_extraction_window", "<double>", 0.0, "Output an XIC with a RT-window that by this much larger (e.g. to visually inspect a larger area of the chromatogram)", false);
+    registerDoubleOption_("extra_rt_extraction_window", "<double>", 0.0, "Output an XIC with a RT-window that by this much larger (e.g. to visually inspect a larger area of the chromatogram)", false, true);
+    registerDoubleOption_("mz_extraction_window", "<double>", 0.05, "Extraction window used (in Thomson, to use ppm see -ppm flag)", false);
     setMinFloat_("mz_extraction_window", 0.0);
     setMinFloat_("extra_rt_extraction_window", 0.0);
-
-    registerDoubleOption_("min_rsq", "<double>", 0.95, "Minimum r-squared of RT peptides regression", false);
-    registerDoubleOption_("min_coverage", "<double>", 0.6, "Minimum relative amount of RT peptides to keep", false);
-
     registerFlag_("ppm", "m/z extraction_window is in ppm");
-    registerFlag_("split_file_input", "The input files each contain one single SWATH (alternatively: all SWATH are in separate files)");
 
-    registerStringOption_("readOptions", "<name>", "normal", "Whether to run OpenSWATH directly on the input data, cache data to disk first or to perform a datareduction step first", false);
-    setValidStrings_("readOptions", StringList::create("normal,cache,reduce,reduce_iterative"));
+    registerDoubleOption_("min_rsq", "<double>", 0.95, "Minimum r-squared of RT peptides regression", false, true);
+    registerDoubleOption_("min_coverage", "<double>", 0.6, "Minimum relative amount of RT peptides to keep", false, true);
+
+    registerFlag_("split_file_input", "The input files each contain one single SWATH (alternatively: all SWATH are in separate files)", true);
+    registerFlag_("use_elution_model_score", "Turn on elution model score (EMG fit to peak)", true);
+
+    registerStringOption_("readOptions", "<name>", "normal", "Whether to run OpenSWATH directly on the input data, cache data to disk first or to perform a datareduction step first. If you choose cache, make sure to also set tempDirectory", false, true);
+    setValidStrings_("readOptions", StringList::create("normal,cache"));
 
     // TODO terminal slash !
-    registerStringOption_("tempDirectory", "<tmp>", "/tmp/", "Temporary directory to store cached files for example", false);
+    registerStringOption_("tempDirectory", "<tmp>", "/tmp/", "Temporary directory to store cached files for example", false, true);
 
-    registerStringOption_("extraction_function", "<name>", "tophat", "Function used to extract the signal", false);
+    registerStringOption_("extraction_function", "<name>", "tophat", "Function used to extract the signal", false, true);
     setValidStrings_("extraction_function", StringList::create("tophat,bartlett"));
 
-    registerIntOption_("batchSize", "<number>", 0, "The batch size of chromatograms to process (0 means to only have one batch, sensible values are around 500-1000)", false);
+    registerIntOption_("batchSize", "<number>", 0, "The batch size of chromatograms to process (0 means to only have one batch, sensible values are around 500-1000)", false, true);
     setMinInt_("batchSize", 0);
 
     registerSubsection_("Scoring", "Scoring parameters section");
@@ -927,9 +928,9 @@ protected:
       feature_finder_param.setValue("TransitionGroupPicker:PeakPickerMRM:sgolay_frame_length", 11);
       feature_finder_param.setValue("TransitionGroupPicker:PeakPickerMRM:peak_width", -1.0);
       feature_finder_param.setValue("TransitionGroupPicker:PeakPickerMRM:remove_overlapping_peaks", "true");
-      feature_finder_param.setValue("TransitionGroupPicker:PeakPickerMRM:recalculate_peaks_max_z", 0.75);
       // TODO it seems that the legacy method produces slightly larger peaks, e.g. it will not cut off peaks too early
       // however the same can be achieved by using a relatively low SN cutoff in the -Scoring:TransitionGroupPicker:PeakPickerMRM:signal_to_noise 0.5
+      feature_finder_param.setValue("TransitionGroupPicker:recalculate_peaks_max_z", 0.75);
       feature_finder_param.setValue("TransitionGroupPicker:PeakPickerMRM:method", "corrected");
       feature_finder_param.setValue("TransitionGroupPicker:PeakPickerMRM:signal_to_noise", 0.1);
       feature_finder_param.setValue("TransitionGroupPicker:PeakPickerMRM:gauss_width", 30);
@@ -938,7 +939,7 @@ protected:
       feature_finder_param.remove("TransitionGroupPicker:PeakPickerMRM:sn_bin_count");
 
       // EMG Scoring - turn off by default since it is very CPU-intensive
-      feature_finder_param.setValue("Scores:use_elution_model_score", "false");
+      feature_finder_param.remove("Scores:use_elution_model_score");
       feature_finder_param.setValue("EMGScoring:max_iteration", 10);
       feature_finder_param.setValue("EMGScoring:deltaRelError", 0.1);
       feature_finder_param.remove("EMGScoring:interpolation_step");
@@ -1095,6 +1096,7 @@ protected:
     String out_chrom = getStringOption_("out_chrom");
     bool ppm = getFlag_("ppm");
     bool split_file = getFlag_("split_file_input");
+    bool use_emg_score = getFlag_("use_elution_model_score");
     DoubleReal min_upper_edge_dist = getDoubleOption_("min_upper_edge_dist");
     DoubleReal mz_extraction_window = getDoubleOption_("mz_extraction_window");
     DoubleReal rt_extraction_window = getDoubleOption_("rt_extraction_window");
@@ -1128,6 +1130,8 @@ protected:
     cp_irt.rt_extraction_window = -1; // extract the whole RT range
 
     Param feature_finder_param = getParam_().copy("Scoring:", true);
+    if (use_emg_score) { feature_finder_param.setValue("Scores:use_elution_model_score", "true");}
+    else { feature_finder_param.setValue("Scores:use_elution_model_score", "false");}
 
     ///////////////////////////////////
     // Load the SWATH files
