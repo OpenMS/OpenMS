@@ -49,7 +49,7 @@
 
 #ifdef OPENMS_HAS_STREAM_EXTRACTION_BUG
 #include <boost/lexical_cast.hpp>
-#endif OPENMS_HAS_STREAM_EXTRACTION_BUG
+#endif // OPENMS_HAS_STREAM_EXTRACTION_BUG
 
 namespace OpenMS
 {
