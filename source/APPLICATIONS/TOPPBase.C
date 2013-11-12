@@ -187,7 +187,7 @@ namespace OpenMS
       return ILLEGAL_PARAMETERS;
     }
 
-    // for now cmdline is all we have, final assembly will follow below
+    // for now command line is all we have, final assembly will follow below
     param_ = param_cmdline_;
 
     // assign instance number
@@ -324,7 +324,7 @@ namespace OpenMS
 
         checkIfIniParametersAreApplicable_(param_inifile_);
 
-        // set type on commandline if given in .ini file
+        // set type on command line if given in .ini file
         if (param_inifile_.exists(getIniLocation_() + "type") && !param_cmdline_.exists("type"))
           param_cmdline_.setValue("type", param_inifile_.getValue(getIniLocation_() + "type"));
       }
@@ -554,9 +554,9 @@ namespace OpenMS
          << "  " << tool_name_ << " <options>" << "\n"
          << "\n";
 
-    // print warning regarding unshown parameters
+    // print warning regarding not shown parameters
     if (!subsections_.empty() && !verbose)
-      cerr << ConsoleUtils::breakString("This tool has algoritm parameters that are not shown here! Please check the ini file for a detailed description or use the --helphelp option.", 0, 10) + "\n\n";
+      cerr << ConsoleUtils::breakString("This tool has algorithm parameters that are not shown here! Please check the ini file for a detailed description or use the --helphelp option.", 0, 10) + "\n\n";
 
     if (verbose)
     {
@@ -574,7 +574,7 @@ namespace OpenMS
 
     cerr << "Options (mandatory options marked with '*'):" << "\n";
 
-    //determine max length of parameters (including argument) for intendation
+    //determine max length of parameters (including argument) for indentation
     UInt max_size = 0;
     for (vector<ParameterInformation>::const_iterator it = parameters_.begin(); it != parameters_.end(); ++it)
     {
@@ -680,7 +680,7 @@ namespace OpenMS
               it->type == ParameterInformation::INPUT_FILE_LIST || it->type == ParameterInformation::OUTPUT_FILE_LIST)
             add = " formats";
 
-          addons.push_back(String("valid") + add + ": " + copy.concatenate(", ")); // concat restrictions by comma
+          addons.push_back(String("valid") + add + ": " + copy.concatenate(", ")); // concatenate restrictions by comma
         }
         break;
 
@@ -719,7 +719,7 @@ namespace OpenMS
       }
 
       if (it->type == ParameterInformation::TEXT)
-        cerr << ConsoleUtils::breakString(tmp + desc_tmp, 0, 10); // no intendation for text
+        cerr << ConsoleUtils::breakString(tmp + desc_tmp, 0, 10); // no indentation for text
       else
         cerr << ConsoleUtils::breakString(tmp + desc_tmp, offset, 10);
       cerr << "\n";
@@ -728,7 +728,7 @@ namespace OpenMS
     // SUBSECTION's at the end
     if (subsections_.size() != 0 && !verbose)
     {
-      //determine intendation of description
+      //determine indentation of description
       UInt indent = 0;
       for (map<String, String>::const_iterator it = subsections_.begin(); it != subsections_.end(); ++it)
       {
@@ -2075,7 +2075,7 @@ namespace OpenMS
       }
     }
 
-    //subsections intrinsic to TOPP tool (i.e. a commandline param with a ':')
+    //subsections intrinsic to TOPP tool (i.e. a command line param with a ':')
     for (map<String, String>::const_iterator it = subsections_TOPP_.begin(); it != subsections_TOPP_.end(); ++it)
     {
       tmp.setSectionDescription(loc + it->first, it->second);
@@ -2213,7 +2213,7 @@ namespace OpenMS
   {
     map.getDataProcessing().push_back(dp);
 
-    //remove abolute map paths
+    //remove absolute map paths
     if (test_mode_)
     {
       for (Size d = 0; d < map.getFileDescriptions().size(); ++d)
@@ -2240,7 +2240,7 @@ namespace OpenMS
       QString write_ctd_file = out_dir_str + QDir::separator() + tool_name_.toQString() + type_list[i].toQString() + ".ctd";
       outputFileWritable_(write_ctd_file, "write_ctd");
 
-      // set type on commandline, so that getDefaultParameters_() does not fail (as it calls getSubSectionDefaults() of tool)
+      // set type on command line, so that getDefaultParameters_() does not fail (as it calls getSubSectionDefaults() of tool)
       if (type_list[i] != "")
         param_cmdline_.setValue("type", type_list[i]);
       Param default_params = getDefaultParameters_();
