@@ -20,6 +20,7 @@ TOPP:
 - XMLValidator can now be used on mzML files
 - fixed bug in MSSimulator/EnzymaticDigestion where amino acid "U" was leading to crash
 - fixed some problems with protein modifications in MascotAdapterOnline
+- fixed potential problems of TOPP help screens on small screens / small terminal windows
 
 Build system:
 - fixed issues with CMake 2.8.12
@@ -34,7 +35,8 @@ Resolved issues:
   #614 Amino acid "U" leads to crash in MSSimulator/EnzymaticDigestion
   #629 OpenMS is incompatible with CMake 2.8.12
   #630 Knime mime.types file should have lower case mime type names
-
+  #633 ConsoleUtils::breakString triggers uncaught exception if terminal size is too small
+  
 ------------------------------------------------------------------------------------------ 
 ----                                  OpenMS 1.11                                     ---- 
 ------------------------------------------------------------------------------------------ 

@@ -167,8 +167,7 @@ namespace OpenMS
 
       // check if we are using the full length and split a word at the same time
       // cut a little earlier in that case for nicer looks
-      //std::cerr << line.size() << " "<< (result.size() == 0 ? line_len : short_line_len) << " " << short_line_len << "\n";
-      if (line.size() ==  (result.size() == 0 ? line_len : short_line_len) && short_line_len > 8)
+      if (line.size() ==  (result.size() == 0 ? line_len : short_line_len) && short_line_len > 8 && line.rfind(' ') != String::npos)
       {
         String last_word = line.suffix(' ');
         if (last_word.length() < 4)
