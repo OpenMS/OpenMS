@@ -191,6 +191,12 @@ public:
     /// set state of refine setting
     void setRefine(const bool refine);
 
+    /// set the cleavage site with a xtandem conform regex
+    void setCleavageSite(const String& cleavage_site);
+    
+    /// returns the cleavage site regex
+    const String& getCleavageSite() const;
+
     /** 
       @brief Writes the XTandemInfile to the given file
 
