@@ -53,6 +53,9 @@
 // The path to the directory where OpenMS data is installed
 #define OPENMS_DATA_PATH "@CF_OPENMS_DATA_PATH@"
 
+// The path to the directory where OpenMS doc is installed
+#define OPENMS_DOC_PATH "@CF_OPENMS_DOC_PATH@"
+
 // The directory where OpenMS is build
 #define OPENMS_SOURCE_PATH "@PROJECT_SOURCE_DIR@"
 

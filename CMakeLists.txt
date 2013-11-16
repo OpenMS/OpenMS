@@ -290,6 +290,9 @@ else()
 	include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/svnversion.cmake) # generate the header once (for VersionInfo.C include)
 endif()
 
+# At this point make a summary of where data and doc will be located:
+message(STATUS "Info: CF_OPENMS_DATA_PATH: ${CF_OPENMS_DATA_PATH}")
+message(STATUS "Info: CF_OPENMS_DOC_PATH: ${CF_OPENMS_DOC_PATH}")
 
 ########################################################
 ###    configure config.h														 ###

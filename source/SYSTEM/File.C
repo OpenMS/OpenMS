@@ -290,6 +290,7 @@ namespace OpenMS
     search_dirs.push_back(String(OPENMS_BINARY_PATH) + "/doc/");
     search_dirs.push_back(String(OPENMS_SOURCE_PATH) + "/doc/");
     search_dirs.push_back(getOpenMSDataPath() + "/../../doc/");
+    search_dirs.push_back(OPENMS_DOC_PATH);
     
     // needed for OpenMS Mac OS X packages where documentation is stored in <package-root>/Documentation
 #if defined(__APPLE__)

@@ -2,13 +2,13 @@
 ## define some directories
 if ("${INSTALL_PREFIX}" STREQUAL ".")
 	set(CF_OPENMS_DATA_PATH ${PROJECT_SOURCE_DIR}/share/OpenMS CACHE INTERNAL "Path to the shared documents of OpenMS.")
+	set(CF_OPENMS_DOC_PATH ${PROJECT_SOURCE_DIR}/doc CACHE INTERNAL "Path to the documentation of OpenMS.")
 	set(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR})
 else()
 	set(CF_OPENMS_DATA_PATH ${INSTALL_PREFIX}/share/OpenMS CACHE INTERNAL "Path to the shared documents of OpenMS.")
+	set(CF_OPENMS_DOC_PATH ${INSTALL_PREFIX}/doc CACHE INTERNAL "Path to the documentation of OpenMS.")
 	set(CMAKE_INSTALL_PREFIX ${INSTALL_PREFIX})
 endif()
-
-
 
 set(CF_OPENMS_TEST_DATA_PATH ${PROJECT_SOURCE_DIR}/source/TEST/data/ CACHE INTERNAL "Path to the test data")
 
