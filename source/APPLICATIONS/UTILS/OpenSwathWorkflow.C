@@ -100,7 +100,17 @@ namespace OpenMS
 
     void writeHeader()
     {
-      ofs << "transition_group_id\trun_id\tfilename\tRT\tid\tSequence\tFullPeptideName\tCharge\tm/z\tIntensity\tProteinName\tdecoy\tassay_rt\tdelta_rt\tleftWidth\tmain_var_xx_swath_prelim_score\tnorm_RT\tnr_peaks\tpeak_apices_sum\tpotentialOutlier\trightWidth\trt_score\tsn_ratio\ttotal_xic\tvar_bseries_score\tvar_dotprod_score\tvar_intensity_score\tvar_isotope_correlation_score\tvar_isotope_overlap_score\tvar_library_corr\tvar_library_dotprod\tvar_library_manhattan\tvar_library_rmsd\tvar_library_rootmeansquare\tvar_library_sangle\tvar_log_sn_score\tvar_manhatt_score\tvar_massdev_score\tvar_massdev_score_weighted\tvat_norm_rt_score\tvar_xcorr_coelution\tvar_xcorr_coelution_weighted\tvar_xcorr_shape\tvar_xcorr_shape_weighted\tvar_yseries_score\tvar_elution_model_fit_score\txx_lda_prelim_score\txx_swath_prelim_score\taggr_Peak_Area\taggr_Peak_Apex\taggr_Fragment_Annotation\n";
+      ofs << "transition_group_id\trun_id\tfilename\tRT\tid\tSequence\tFullPeptideName" <<
+        "\tCharge\tm/z\tIntensity\tProteinName\tdecoy\tassay_rt\tdelta_rt\tleftWidth" << 
+        "\tmain_var_xx_swath_prelim_score\tnorm_RT\tnr_peaks\tpeak_apices_sum\tpotentialOutlier" <<
+        "\trightWidth\trt_score\tsn_ratio\ttotal_xic\tvar_bseries_score\tvar_dotprod_score" <<
+        "\tvar_intensity_score\tvar_isotope_correlation_score\tvar_isotope_overlap_score" << 
+        "\tvar_library_corr\tvar_library_dotprod\tvar_library_manhattan\tvar_library_rmsd" <<
+        "\tvar_library_rootmeansquare\tvar_library_sangle\tvar_log_sn_score\tvar_manhatt_score" <<
+        "\tvar_massdev_score\tvar_massdev_score_weighted\tvar_norm_rt_score\tvar_xcorr_coelution" <<
+        "\tvar_xcorr_coelution_weighted\tvar_xcorr_shape\tvar_xcorr_shape_weighted" <<
+        "\tvar_yseries_score\tvar_elution_model_fit_score\txx_lda_prelim_score\txx_swath_prelim_score" <<
+        "\taggr_Peak_Area\taggr_Peak_Apex\taggr_Fragment_Annotation\n";
     }
 
     String prepareLine(const OpenSwath::LightPeptide & pep,
