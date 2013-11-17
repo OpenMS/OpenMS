@@ -478,6 +478,18 @@ namespace OpenMS
               i << " with m/z " << swath_maps[i].lower << " to " << swath_maps[i].upper << ":" << std::endl;
           for (Size i = 0; i < tmp_out.size(); i++)
           { 
+            // Check TIC and remove empty chromatograms (can happen if the
+            // extraction window is outside the mass spectrometric acquisition
+            // window).
+            double tic = std::accumulate(tmp_out[i]->getIntensityArray()->data.begin(),tmp_out[i]->getIntensityArray()->data.end(),0);
+            LOG_DEBUG << "Chromatogram "  << coordinates[i].id << " with size " 
+                << tmp_out[i]->getIntensityArray()->size() << " and TIC " << tic  << std::endl;
+            if (tic <= 0.0) 
+            {
+              std::cerr  << " - Warning: Empty chromatogram " << coordinates[i].id << " detected. Will skip it!" << std::endl;
+              continue;
+            }
+
             OpenMS::MSChromatogram<> chrom;
             OpenSwathDataAccessHelper::convertToOpenMSChromatogram(chrom, tmp_out[i]);
             chrom.setNativeID(coordinates[i].id);
@@ -521,6 +533,7 @@ namespace OpenMS
       feature_finder_param.setValue("Scores:use_elution_model_score", "false");
       feature_finder_param.setValue("rt_extraction_window", -1.0);
       feature_finder_param.setValue("TransitionGroupPicker:PeakPickerMRM:signal_to_noise", 1.0); // set to 1.0 in all cases
+      feature_finder_param.setValue("TransitionGroupPicker:compute_peak_quality", "false"); // no peak quality -> take all peaks!
 
       featureFinder.setParameters(feature_finder_param);
       
