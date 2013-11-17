@@ -129,6 +129,7 @@ namespace OpenMS
 #pragma omp critical (load)
 #endif
         {
+          LOG_DEBUG << "Adding Swath file " << file_list[i] << " with " << swath_map.lower << " to " << swath_map.upper << std::endl;
           swath_maps.push_back( swath_map );
           setProgress(progress++);
         }

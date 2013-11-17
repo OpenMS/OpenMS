@@ -86,9 +86,18 @@ namespace OpenMS
                                        "Chromatogram must be sorted by position");
     }
 
-    LOG_DEBUG << " ====  Picking chromatogram " << chromatogram.getNativeID() << std::endl;
-    picked_chrom.clear(true);
+    LOG_DEBUG << " ====  Picking chromatogram " << chromatogram.getNativeID() << 
+        " with " << chromatogram.size() << " peaks ";
+    if (chromatogram.empty())
+    {
+        LOG_DEBUG << std::endl; 
+        LOG_DEBUG << " - Error:  chromatogram is empty, abort picking."  << std::endl;
+        return;
+    }
+    LOG_DEBUG << "(start at RT " << chromatogram[0].getMZ() << " to RT " << chromatogram[ chromatogram.size() -1].getMZ() << ") "
+        "using method \'" << method_ << "\'" << std::endl;
 
+    picked_chrom.clear(true);
     // Crowdad has its own methods, so we can call the wrapper directly
     if (method_ == "crawdad")
     {

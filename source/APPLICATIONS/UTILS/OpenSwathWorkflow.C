@@ -250,9 +250,10 @@ namespace OpenMS
             const std::vector< OpenSwath::SwathMap > & swath_maps, double min_rsq, double min_coverage, 
             const Param& feature_finder_param, const ChromExtractParams cp_irt)
     {
+      LOG_DEBUG << "performRTNormalization method starting" << std::endl;
       std::vector< OpenMS::MSChromatogram<> > irt_chromatograms;
       simpleExtractChromatograms(swath_maps, irt_transitions, irt_chromatograms, cp_irt);
-      std::cout << "Extracted iRT files: " << irt_chromatograms.size() <<  std::endl;
+      LOG_DEBUG << "Extracted number of chromatograms from iRT files: " << irt_chromatograms.size() <<  std::endl;
       // get RT normalization from data
       return RTNormalization(irt_transitions,
               irt_chromatograms, min_rsq, min_coverage, feature_finder_param);
@@ -473,6 +474,8 @@ namespace OpenMS
 #pragma omp critical (featureFinder)
 #endif
         {
+          LOG_DEBUG << "Extracted "  << tmp_out.size() << " chromatograms from SWATH map " << 
+              i << " with m/z " << swath_maps[i].lower << " to " << swath_maps[i].upper << ":" << std::endl;
           for (Size i = 0; i < tmp_out.size(); i++)
           { 
             OpenMS::MSChromatogram<> chrom;
@@ -482,6 +485,11 @@ namespace OpenMS
           }
         }
       } // continue 2
+      else
+      {
+        LOG_DEBUG << "Extracted no transitions from SWATH map " << i << " with m/z " << 
+            swath_maps[i].lower << " to " << swath_maps[i].upper << ":" << std::endl;
+      }
       } // continue 1
       }
     }
@@ -491,6 +499,7 @@ namespace OpenMS
             std::vector< OpenMS::MSChromatogram<> > chromatograms, double min_rsq, double min_coverage, 
             Param feature_finder_param)
     {
+      LOG_DEBUG << "Start of RTNormalization method" << std::endl;
       this->startProgress(0, 1, "Retention time normalization");
 
       OpenSwath::LightTargetedExperiment targeted_exp;
@@ -1143,6 +1152,9 @@ protected:
     // Allow the user to specify the SWATH windows
     if (!swath_windows_file.empty())
       annotateSwathMapsFromFile(swath_windows_file, swath_maps);
+
+    for (Size i = 0; i < swath_maps.size(); i++)
+        LOG_DEBUG << "Found swath map " << i << " with lower " << swath_maps[i].lower << " and upper " << swath_maps[i].upper << std::endl;
 
     ///////////////////////////////////
     // Get the transformation information (using iRT peptides)
