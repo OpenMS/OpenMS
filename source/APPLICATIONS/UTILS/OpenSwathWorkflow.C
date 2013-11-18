@@ -493,7 +493,7 @@ namespace OpenMS
             // window).
             double tic = std::accumulate(tmp_out[i]->getIntensityArray()->data.begin(),tmp_out[i]->getIntensityArray()->data.end(),0);
             LOG_DEBUG << "Chromatogram "  << coordinates[i].id << " with size " 
-                << tmp_out[i]->getIntensityArray()->size() << " and TIC " << tic  << std::endl;
+                << tmp_out[i]->getIntensityArray()->data.size() << " and TIC " << tic  << std::endl;
             if (tic <= 0.0) 
             {
               std::cerr  << " - Warning: Empty chromatogram " << coordinates[i].id << " detected. Will skip it!" << std::endl;
