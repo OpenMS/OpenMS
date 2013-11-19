@@ -43,24 +43,24 @@ namespace OpenMS
   namespace Internal
   {
     /**
-        @brief Read-only fid File handler for XMass Analysis.
+      @brief Read-only fid File handler for XMass Analysis.
 
-        fid File contains intensity array. Intensity for each point are coded in 4 bytes integer.
+      fid File contains intensity array. Intensity for each point are coded in 4 bytes integer.
 
-        @note Do not use this class directly. It is only needed for XMassFile.
+      @note Do not use this class directly. It is only needed for XMassFile.
     */
     class OPENMS_DLLAPI FidHandler :
       public std::ifstream
     {
 public:
       /**
-              @brief Constructor with filename.
+        @brief Constructor with filename.
 
         Open fid File as stream and initialize index.
 
-              @param filename to fid File.
-          */
-      FidHandler(const String & filename);
+        @param filename to fid File.
+      */
+      explicit FidHandler(const String & filename);
 
       /// Destructor
       virtual ~FidHandler();

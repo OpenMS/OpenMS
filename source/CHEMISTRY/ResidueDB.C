@@ -279,7 +279,7 @@ namespace OpenMS
       if (key.hasSuffix(":Formula"))
       {
         EmpiricalFormula formula(value);
-        res_ptr->setFormula(value);
+        res_ptr->setFormula(EmpiricalFormula(value));
         res_ptr->setAverageWeight(formula.getAverageWeight());
         res_ptr->setMonoWeight(formula.getMonoWeight());
         continue;
@@ -315,7 +315,7 @@ namespace OpenMS
         // no markers defined?
         if (!key.hasSuffix(":"))
         {
-          low_mass_ions.push_back(value);
+          low_mass_ions.push_back(EmpiricalFormula(value));
         }
         continue;
       }

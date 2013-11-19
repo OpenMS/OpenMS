@@ -64,7 +64,7 @@ public:
     ModificationDefinition(const ModificationDefinition & rhs);
 
     /// detailed constructor specifying the modifications name
-    ModificationDefinition(const String & mod);
+    explicit ModificationDefinition(const String & mod);
 
     /// destructor
     virtual ~ModificationDefinition();

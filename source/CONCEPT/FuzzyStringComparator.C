@@ -72,8 +72,8 @@ namespace OpenMS
   FuzzyStringComparator::~FuzzyStringComparator()
   {
   }
-  
-  const double & FuzzyStringComparator::getAcceptableRelative() const
+
+  const double& FuzzyStringComparator::getAcceptableRelative() const
   {
     return ratio_max_allowed_;
   }
@@ -87,7 +87,7 @@ namespace OpenMS
 
   }
 
-  const double & FuzzyStringComparator::getAcceptableAbsolute() const
+  const double& FuzzyStringComparator::getAcceptableAbsolute() const
   {
     return absdiff_max_allowed_;
   }
@@ -100,22 +100,22 @@ namespace OpenMS
         = -absdiff_max_allowed_;
   }
 
-  const StringList & FuzzyStringComparator::getWhitelist() const
+  const StringList& FuzzyStringComparator::getWhitelist() const
   {
     return whitelist_;
   }
 
-  StringList & FuzzyStringComparator::getWhitelist()
+  StringList& FuzzyStringComparator::getWhitelist()
   {
     return whitelist_;
   }
 
-  void FuzzyStringComparator::setWhitelist(const StringList & rhs)
+  void FuzzyStringComparator::setWhitelist(const StringList& rhs)
   {
     whitelist_ = rhs;
   }
 
-  const int & FuzzyStringComparator::getVerboseLevel() const
+  const int& FuzzyStringComparator::getVerboseLevel() const
   {
     return verbose_level_;
   }
@@ -125,7 +125,7 @@ namespace OpenMS
     this->verbose_level_ = rhs;
   }
 
-  const int & FuzzyStringComparator::getTabWidth() const
+  const int& FuzzyStringComparator::getTabWidth() const
   {
     return tab_width_;
   }
@@ -135,7 +135,7 @@ namespace OpenMS
     this->tab_width_ = rhs;
   }
 
-  const int & FuzzyStringComparator::getFirstColumn() const
+  const int& FuzzyStringComparator::getFirstColumn() const
   {
     return first_column_;
   }
@@ -145,22 +145,22 @@ namespace OpenMS
     this->first_column_ = rhs;
   }
 
-  std::ostream & FuzzyStringComparator::getLogDestination() const
+  std::ostream& FuzzyStringComparator::getLogDestination() const
   {
     return *log_dest_;
   }
 
-  void FuzzyStringComparator::setLogDestination(std::ostream & rhs)
+  void FuzzyStringComparator::setLogDestination(std::ostream& rhs)
   {
     this->log_dest_ = &rhs;
   }
-  
-  void FuzzyStringComparator::reportFailure_(char const * const message) const
+
+  void FuzzyStringComparator::reportFailure_(char const* const message) const
   {
     // We neither want this entire method be non-const nor make
     // is_status_success_ a mutable.  So lets hack around it.  (Documented in
     // class.)
-    const_cast<bool &>(is_status_success_) = false;
+    const_cast<bool&>(is_status_success_) = false;
 
     if (verbose_level_ >= 1)
     {
@@ -174,53 +174,53 @@ namespace OpenMS
       }
 
       *log_dest_ << std::boolalpha <<
-      prefix << "FAILED: '" << message << "'\n" <<
-      prefix << "\n" <<
-      prefix << "  input:\tin1\tin2\n" <<
-      prefix << "  line:\t" << line_num_1_ << '\t' << line_num_2_ << "\n" <<
-      prefix << "  pos/col:\t" << input_line_1_.line_position_ << '/' << prefix1.line_column << '\t' << input_line_2_.line_position_ << '/' << prefix2.line_column << "\n" <<
-      prefix << " --------------------------------\n" <<
-      prefix << "  is_number:\t" << element_1_.is_number << '\t' << element_2_.is_number << "\n" <<
-      prefix << "  numbers:\t" << element_1_.number << '\t' << element_2_.number << "\n" <<
-      prefix << "  is_space:\t" << element_1_.is_space << '\t' << element_2_.is_space << "\n" <<
-      prefix << "  is_letter:\t" << (!element_1_.is_number && !element_1_.is_space) << '\t' << (!element_2_.is_number && !element_2_.is_space) << "\n" <<
-      prefix << "  letters:\t\"" << element_1_.letter << "\"\t\"" << element_2_.letter << "\"\n" <<
-      prefix << "  char_codes:\t" << static_cast<UInt>(element_1_.letter) << "\t" << static_cast<UInt>(element_2_.letter) << "\n" <<
-      prefix << " --------------------------------\n" <<
-      prefix << "  relative_max:        " << ratio_max_ << "\n" <<
-      prefix << "  relative_acceptable: " << ratio_max_allowed_ << "\n" <<
-      prefix << " --------------------------------\n" <<
-      prefix << "  absolute_max:        " << absdiff_max_ << "\n" <<
-      prefix << "  absolute_acceptable: " << absdiff_max_allowed_ << std::endl;
+        prefix << "FAILED: '" << message << "'\n" <<
+        prefix << "\n" <<
+        prefix << "  input:\tin1\tin2\n" <<
+        prefix << "  line:\t" << line_num_1_ << '\t' << line_num_2_ << "\n" <<
+        prefix << "  pos/col:\t" << input_line_1_.line_position_ << '/' << prefix1.line_column << '\t' << input_line_2_.line_position_ << '/' << prefix2.line_column << "\n" <<
+        prefix << " --------------------------------\n" <<
+        prefix << "  is_number:\t" << element_1_.is_number << '\t' << element_2_.is_number << "\n" <<
+        prefix << "  numbers:\t" << element_1_.number << '\t' << element_2_.number << "\n" <<
+        prefix << "  is_space:\t" << element_1_.is_space << '\t' << element_2_.is_space << "\n" <<
+        prefix << "  is_letter:\t" << (!element_1_.is_number && !element_1_.is_space) << '\t' << (!element_2_.is_number && !element_2_.is_space) << "\n" <<
+        prefix << "  letters:\t\"" << element_1_.letter << "\"\t\"" << element_2_.letter << "\"\n" <<
+        prefix << "  char_codes:\t" << static_cast<UInt>(element_1_.letter) << "\t" << static_cast<UInt>(element_2_.letter) << "\n" <<
+        prefix << " --------------------------------\n" <<
+        prefix << "  relative_max:        " << ratio_max_ << "\n" <<
+        prefix << "  relative_acceptable: " << ratio_max_allowed_ << "\n" <<
+        prefix << " --------------------------------\n" <<
+        prefix << "  absolute_max:        " << absdiff_max_ << "\n" <<
+        prefix << "  absolute_acceptable: " << absdiff_max_allowed_ << std::endl;
 
       writeWhitelistCases_(prefix);
 
       *log_dest_
-      << prefix << "\n"
-      << prefix << "Offending lines:\t\t\t(tab_width = " << tab_width_ << ", first_column = " << first_column_ << ")\n"
-      << prefix << "\n"
-      << prefix << "in1:  " << QDir::toNativeSeparators(File::absolutePath(input_1_name_).toQString()).toStdString() << "   (line: " << line_num_1_ << ", position/column: " << input_line_1_.line_position_ << '/' << prefix1.line_column << ")\n"
-      << prefix << prefix1.prefix << "!\n"
-      << prefix << prefix1.prefix_whitespaces << OpenMS::String(input_line_1_.line_.str()).suffix(input_line_1_.line_.str().size() - prefix1.prefix.size()) << "\n"
-      << prefix <<  "\n"
-      << prefix << "in2:  " << QDir::toNativeSeparators(File::absolutePath(input_2_name_).toQString()).toStdString() << "   (line: " << line_num_2_ << ", position/column: " << input_line_2_.line_position_ << '/' << prefix2.line_column << ")\n"
-      << prefix << prefix2.prefix << "!\n"
-      << prefix << prefix2.prefix_whitespaces << OpenMS::String(input_line_2_.line_.str()).suffix(input_line_2_.line_.str().size() - prefix2.prefix.size()) << "\n"
-      << prefix << "\n\n"
-      << "Easy Access:" << "\n"
-      << QDir::toNativeSeparators(File::absolutePath(input_1_name_).toQString()).toStdString() << ':' << line_num_1_ << ":" << prefix1.line_column << ":\n"
-      << QDir::toNativeSeparators(File::absolutePath(input_2_name_).toQString()).toStdString() << ':' << line_num_2_ << ":" << prefix2.line_column << ":\n"
-      << "\n"
-#ifdef WIN32
-      << "TortoiseMerge"
-      << " /base:\"" << QDir::toNativeSeparators(File::absolutePath(input_1_name_).toQString()).toStdString() << "\""
-      << " /mine:\"" << QDir::toNativeSeparators(File::absolutePath(input_2_name_).toQString()).toStdString() << "\""
-#else
-      << "diff"
-      << " " << QDir::toNativeSeparators(File::absolutePath(input_1_name_).toQString()).toStdString()
-      << " " << QDir::toNativeSeparators(File::absolutePath(input_2_name_).toQString()).toStdString()
-#endif
-      << std::endl;
+        << prefix << "\n"
+        << prefix << "Offending lines:\t\t\t(tab_width = " << tab_width_ << ", first_column = " << first_column_ << ")\n"
+        << prefix << "\n"
+        << prefix << "in1:  " << QDir::toNativeSeparators(File::absolutePath(input_1_name_).toQString()).toStdString() << "   (line: " << line_num_1_ << ", position/column: " << input_line_1_.line_position_ << '/' << prefix1.line_column << ")\n"
+        << prefix << prefix1.prefix << "!\n"
+        << prefix << prefix1.prefix_whitespaces << OpenMS::String(input_line_1_.line_.str()).suffix(input_line_1_.line_.str().size() - prefix1.prefix.size()) << "\n"
+        << prefix <<  "\n"
+        << prefix << "in2:  " << QDir::toNativeSeparators(File::absolutePath(input_2_name_).toQString()).toStdString() << "   (line: " << line_num_2_ << ", position/column: " << input_line_2_.line_position_ << '/' << prefix2.line_column << ")\n"
+        << prefix << prefix2.prefix << "!\n"
+        << prefix << prefix2.prefix_whitespaces << OpenMS::String(input_line_2_.line_.str()).suffix(input_line_2_.line_.str().size() - prefix2.prefix.size()) << "\n"
+        << prefix << "\n\n"
+        << "Easy Access:" << "\n"
+        << QDir::toNativeSeparators(File::absolutePath(input_1_name_).toQString()).toStdString() << ':' << line_num_1_ << ":" << prefix1.line_column << ":\n"
+        << QDir::toNativeSeparators(File::absolutePath(input_2_name_).toQString()).toStdString() << ':' << line_num_2_ << ":" << prefix2.line_column << ":\n"
+        << "\n"
+        #ifdef WIN32
+        << "TortoiseMerge"
+        << " /base:\"" << QDir::toNativeSeparators(File::absolutePath(input_1_name_).toQString()).toStdString() << "\""
+        << " /mine:\"" << QDir::toNativeSeparators(File::absolutePath(input_2_name_).toQString()).toStdString() << "\""
+        #else
+        << "diff"
+        << " " << QDir::toNativeSeparators(File::absolutePath(input_1_name_).toQString()).toStdString()
+        << " " << QDir::toNativeSeparators(File::absolutePath(input_2_name_).toQString()).toStdString()
+        #endif
+        << std::endl;
     }
 
     // If verbose level is low, report only the first error.
@@ -243,13 +243,13 @@ namespace OpenMS
       }
 
       *log_dest_ <<
-      prefix << "PASSED.\n" <<
-      prefix << '\n' <<
-      prefix << "  relative_max:        " << ratio_max_ << '\n' <<
-      prefix << "  relative_acceptable: " << ratio_max_allowed_ << '\n' <<
-      prefix << '\n' <<
-      prefix << "  absolute_max:        " << absdiff_max_ << '\n' <<
-      prefix << "  absolute_acceptable: " << absdiff_max_allowed_ << std::endl;
+        prefix << "PASSED.\n" <<
+        prefix << '\n' <<
+        prefix << "  relative_max:        " << ratio_max_ << '\n' <<
+        prefix << "  relative_acceptable: " << ratio_max_allowed_ << '\n' <<
+        prefix << '\n' <<
+        prefix << "  absolute_max:        " << absdiff_max_ << '\n' <<
+        prefix << "  absolute_acceptable: " << absdiff_max_allowed_ << std::endl;
 
       writeWhitelistCases_(prefix);
 
@@ -258,26 +258,26 @@ namespace OpenMS
       if (line_num_1_max_ == -1 && line_num_2_max_ == -1)
       {
         *log_dest_ <<
-        prefix << "No numeric differences were found.\n" <<
-        prefix << std::endl;
+          prefix << "No numeric differences were found.\n" <<
+          prefix << std::endl;
       }
       else
       {
         *log_dest_ <<
-        prefix << "Maximum relative error was attained at these lines, enclosed in \"\":\n" <<
-        prefix << '\n' <<
-        QDir::toNativeSeparators(input_1_name_.c_str()).toStdString() << ':' << line_num_1_max_ << ":\n" <<
-        "\"" << line_str_1_max_ << "\"\n" <<
-        '\n' <<
-        QDir::toNativeSeparators(input_2_name_.c_str()).toStdString() << ':' << line_num_2_max_ << ":\n" <<
-        "\"" << line_str_2_max_ << "\"\n" <<
-        std::endl;
+          prefix << "Maximum relative error was attained at these lines, enclosed in \"\":\n" <<
+          prefix << '\n' <<
+          QDir::toNativeSeparators(input_1_name_.c_str()).toStdString() << ':' << line_num_1_max_ << ":\n" <<
+          "\"" << line_str_1_max_ << "\"\n" <<
+          '\n' <<
+          QDir::toNativeSeparators(input_2_name_.c_str()).toStdString() << ':' << line_num_2_max_ << ":\n" <<
+          "\"" << line_str_2_max_ << "\"\n" <<
+          std::endl;
       }
     }
     return;
   }
 
-  bool FuzzyStringComparator::compareLines_(std::string const & line_str_1, std::string const & line_str_2)
+  bool FuzzyStringComparator::compareLines_(std::string const& line_str_1, std::string const& line_str_2)
   {
 
     for (StringList::const_iterator slit = whitelist_.begin();
@@ -308,7 +308,7 @@ namespace OpenMS
         if (element_1_.is_number)
         {
           if (element_2_.is_number) // we are comparing numbers
-          {             // check if absolute difference is small
+          { // check if absolute difference is small
             double absdiff = element_1_.number - element_2_.number;
             if (absdiff < 0)
             {
@@ -340,7 +340,7 @@ namespace OpenMS
                 }
               }
             }
-            else          // element_1_.number_ is not zero
+            else // element_1_.number_ is not zero
             {
               if (!element_2_.number)
               {
@@ -350,7 +350,7 @@ namespace OpenMS
                   continue;
                 }
               }
-              else            // both numbers are not zero
+              else // both numbers are not zero
               {
                 double ratio = element_1_.number / element_2_.number;
                 if (ratio < 0)
@@ -361,9 +361,9 @@ namespace OpenMS
                     continue;
                   }
                 }
-                else              // ok, numbers have same sign, but we still need to check their ratio
+                else // ok, numbers have same sign, but we still need to check their ratio
                 {
-                  if (ratio < 1)      // take reciprocal value
+                  if (ratio < 1) // take reciprocal value
                   {
                     ratio = 1.0 / ratio;
                   }
@@ -396,14 +396,14 @@ namespace OpenMS
             continue;
           }
         }
-        else      // input_1 is not a number
+        else // input_1 is not a number
         {
           if (element_2_.is_number)
           {
             reportFailure_("input_1 is not a number, but input_2 is");
             continue;
           }
-          else        // ok, both inputs are not numbers, let us compare them as characters or whitespace
+          else // ok, both inputs are not numbers, let us compare them as characters or whitespace
           {
             if (element_1_.is_space)
             {
@@ -413,11 +413,11 @@ namespace OpenMS
               }
               else
               {
-                if (element_1_.letter == ASCII__CARRIAGE_RETURN)                   // should be 13 == ascii carriage return char
+                if (element_1_.letter == ASCII__CARRIAGE_RETURN) // should be 13 == ascii carriage return char
                 {
                   // we skip over '\r'
-                  input_line_2_.line_.clear();                   // reset status
-                  input_line_2_.line_.seekg(input_line_2_.line_position_);                   // rewind to saved position
+                  input_line_2_.line_.clear(); // reset status
+                  input_line_2_.line_.seekg(input_line_2_.line_position_); // rewind to saved position
                   continue;
                   //reportFailure_("input_1 is carriage return, but input_2_ is not whitespace");
                 }
@@ -428,15 +428,15 @@ namespace OpenMS
                 continue;
               }
             }
-            else          // input_1 is not whitespace
+            else // input_1 is not whitespace
             {
               if (element_2_.is_space)
               {
-                if (element_2_.letter == ASCII__CARRIAGE_RETURN)                   // should be 13 == ascii carriage return char
+                if (element_2_.letter == ASCII__CARRIAGE_RETURN) // should be 13 == ascii carriage return char
                 {
                   // we skip over '\r'
-                  input_line_1_.line_.clear();                   // reset status
-                  input_line_1_.line_.seekg(input_line_1_.line_position_);                   // rewind to saved position
+                  input_line_1_.line_.clear(); // reset status
+                  input_line_1_.line_.seekg(input_line_1_.line_position_); // rewind to saved position
                   continue;
                   //reportFailure_("input_1 is not whitespace, but input_2 is carriage return");
                 }
@@ -446,7 +446,7 @@ namespace OpenMS
                 }
                 continue;
               }
-              else            // both inputs are neither numbers nor whitespace, let us compare them as characters
+              else // both inputs are neither numbers nor whitespace, let us compare them as characters
               {
                 if (element_1_.letter == element_2_.letter) // ok, same characters
                 {
@@ -474,7 +474,7 @@ namespace OpenMS
            "please report this bug along with the data that produced it."
           );
 
-      }       // while ( input_line_1_ || input_line_2_ )
+      } // while ( input_line_1_ || input_line_2_ )
       if (input_line_1_.ok() && !input_line_2_.ok())
       {
         reportFailure_("line from input_2 is shorter than line from input_1");
@@ -484,7 +484,7 @@ namespace OpenMS
         reportFailure_("line from input_1 is shorter than line from input_2");
       }
     }
-    catch (FuzzyStringComparator::AbortComparison const &)
+    catch (FuzzyStringComparator::AbortComparison const&)
     {
       // *log_dest_ << "compareLines_(): Caught FuzzyStringComparator::AbortComparison\n";
     }
@@ -492,7 +492,7 @@ namespace OpenMS
     return is_status_success_;
   } // compareLines_()
 
-  bool FuzzyStringComparator::compareStrings(std::string const & lhs, std::string const & rhs)
+  bool FuzzyStringComparator::compareStrings(std::string const& lhs, std::string const& rhs)
   {
     std::istringstream input_1(lhs);
     std::istringstream input_2(rhs);
@@ -501,7 +501,7 @@ namespace OpenMS
 
   } // compareStrings()
 
-  bool FuzzyStringComparator::compareStreams(std::istream & input_1, std::istream & input_2)
+  bool FuzzyStringComparator::compareStreams(std::istream& input_1, std::istream& input_2)
   {
     std::string line_str_1;
     std::string line_str_2;
@@ -527,23 +527,23 @@ namespace OpenMS
 
   } // compareStreams()
 
-  void FuzzyStringComparator::readNextLine_(std::istream & input_stream, std::string & line_string, int & line_number) const
+  void FuzzyStringComparator::readNextLine_(std::istream& input_stream, std::string& line_string, int& line_number) const
   {
     for (line_string.clear(); ++line_number, std::getline(input_stream, line_string); )
     {
       if (line_string.empty())
-        continue;                                // shortcut
-      std::string::const_iterator iter = line_string.begin();       // loop initialization
+        continue; // shortcut
+      std::string::const_iterator iter = line_string.begin(); // loop initialization
       for (; iter != line_string.end() && isspace((unsigned char)*iter); ++iter)
       {
       }
-                                                                                        // skip over whitespace
+      // skip over whitespace
       if (iter != line_string.end())
-        break;                                      // line is not empty or whitespace only
+        break; // line is not empty or whitespace only
     }
   }
 
-  bool FuzzyStringComparator::compareFiles(const std::string & filename_1, const std::string & filename_2)
+  bool FuzzyStringComparator::compareFiles(const std::string& filename_1, const std::string& filename_2)
   {
     input_1_name_ = filename_1;
     input_2_name_ = filename_2;
@@ -569,9 +569,9 @@ namespace OpenMS
 
     return is_status_success_;
 
-  }   // compareFiles()
+  } // compareFiles()
 
-  bool FuzzyStringComparator::openInputFileStream_(const std::string & filename, std::ifstream & input_stream) const
+  bool FuzzyStringComparator::openInputFileStream_(const std::string& filename, std::ifstream& input_stream) const
   {
     input_stream.open(filename.c_str(), std::ios::in | std::ios::binary);
     if (!input_stream)
@@ -583,13 +583,13 @@ namespace OpenMS
     return true;
   }
 
-  void FuzzyStringComparator::writeWhitelistCases_(const std::string & prefix) const
+  void FuzzyStringComparator::writeWhitelistCases_(const std::string& prefix) const
   {
     if (!whitelist_cases_.empty())
     {
       *log_dest_ <<
-      prefix << '\n' <<
-      prefix << "  whitelist cases:\n";
+        prefix << '\n' <<
+        prefix << "  whitelist cases:\n";
       Size length = 0;
       for (std::map<String, UInt>::const_iterator wlcit =
              whitelist_cases_.begin(); wlcit != whitelist_cases_.end();
@@ -603,16 +603,16 @@ namespace OpenMS
            ++wlcit)
       {
         *log_dest_ <<
-        prefix << "    " << std::setw(length + 3) << std::left <<
-        ("\"" + wlcit->first + "\"") << std::setw(3) << std::right <<
-        wlcit->second << "x\n";
+          prefix << "    " << std::setw(length + 3) << std::left <<
+          ("\"" + wlcit->first + "\"") << std::setw(3) << std::right <<
+          wlcit->second << "x\n";
       }
     }
   }
 
-// we need this only for the stream extraction bug 
+// we need this only for the stream extraction bug
 #ifdef OPENMS_HAS_STREAM_EXTRACTION_BUG
-  bool FuzzyStringComparator::StreamElement_::readdigits(InputLine & input_line, std::string & target_buffer, char & c_buffer)
+  bool FuzzyStringComparator::StreamElement_::readdigits(InputLine& input_line, std::string& target_buffer, char& c_buffer)
   {
     // we want at least one digit, otherwise it is false
     c_buffer = input_line.line_.peek();
@@ -623,9 +623,9 @@ namespace OpenMS
     else
     {
       target_buffer.push_back(c_buffer);
-      c_buffer = input_line.line_.get();          
+      c_buffer = input_line.line_.get();
     }
-    
+
     // try to get more numbers
     while (true)
     {
@@ -635,23 +635,22 @@ namespace OpenMS
         target_buffer.push_back(c_buffer);
         c_buffer = input_line.line_.get();
       }
-      else 
+      else
       {
         break;
       }
     }
-    
+
     return true;
   }
 
-
-  bool FuzzyStringComparator::StreamElement_::tryExtractDouble(InputLine & input_line, double & target)
+  bool FuzzyStringComparator::StreamElement_::tryExtractDouble(InputLine& input_line, double& target)
   {
     char c_peek;
     std::string buffer;
 
     if (input_line.line_.eof())
-        return false;
+      return false;
 
     c_peek = input_line.line_.peek();
 
@@ -672,7 +671,7 @@ namespace OpenMS
 
     // try to accumulate more numbers
     readdigits(input_line, buffer, c_peek);
-    
+
     // if we have no decimal separator, return what we already accumulated
     if (c_peek != '.' && !have_seen_decimal_separator)
     {
@@ -687,15 +686,15 @@ namespace OpenMS
         return false;
       }
     }
-    else if(!have_seen_decimal_separator)
+    else if (!have_seen_decimal_separator)
     {
       buffer.push_back(c_peek);
-      c_peek = input_line.line_.get();      
-      
+      c_peek = input_line.line_.get();
+
       // try to read the rest of the float
-      readdigits(input_line, buffer, c_peek);      
+      readdigits(input_line, buffer, c_peek);
     }
-        
+
     // check if the number is followed by an e+/- something
     if (c_peek == 'e' || c_peek == 'E')
     {
@@ -705,20 +704,20 @@ namespace OpenMS
       // get next char
       c_peek = input_line.line_.peek();
 
-      // check if we have a sign          
+      // check if we have a sign
       if (c_peek == '+' || c_peek == '-')
       {
         buffer.push_back(c_peek);
-        c_peek = input_line.line_.get();            
+        c_peek = input_line.line_.get();
       }
-      
+
       // try to accumulate the rest of scientific notation
       if (readdigits(input_line, buffer, c_peek))
       {
         target = boost::lexical_cast<double>(buffer);
-        return true;            
+        return true;
       }
-      else 
+      else
       {
         return false;
       }
@@ -729,28 +728,29 @@ namespace OpenMS
       if (buffer.size() > 1 || isdigit(buffer[0]))
       {
         target = boost::lexical_cast<double>(buffer);
-        return true;        
+        return true;
       }
-      else 
+      else
       {
         // not enough content for cast
         return false;
       }
     }
   }
+
 #endif
 
-  void FuzzyStringComparator::StreamElement_::fillFromInputLine(InputLine & input_line)
+  void FuzzyStringComparator::StreamElement_::fillFromInputLine(InputLine& input_line)
   {
     // first reset all internal variables so we do not mess with
     // old values
     reset();
 
     input_line.updatePosition();
-    input_line.line_ >> letter;             // read letter
-    if ((is_space = (isspace(letter) != 0)))               // is whitespace?
+    input_line.line_ >> letter; // read letter
+    if ((is_space = (isspace(letter) != 0))) // is whitespace?
     {
-      input_line.line_ >> std::ws;               // skip over further whitespace
+      input_line.line_ >> std::ws; // skip over further whitespace
     }
     else
     {
@@ -767,11 +767,11 @@ namespace OpenMS
       else
       {
         input_line.seekGToSavedPosition();
-        input_line.line_ >> letter;                 // read letter
+        input_line.line_ >> letter; // read letter
       }
     }
   }
-  
+
   void FuzzyStringComparator::StreamElement_::reset()
   {
     is_number = false;
@@ -779,21 +779,21 @@ namespace OpenMS
     letter = '\0';
     number = std::numeric_limits<double>::quiet_NaN();
   }
-  
-  FuzzyStringComparator::StreamElement_::StreamElement_()
-    : number(0),
-      letter(0),
-      is_number(false),
-      is_space(false)
-  {}
-    
-    
+
+  FuzzyStringComparator::StreamElement_::StreamElement_() :
+    number(0),
+    letter(0),
+    is_number(false),
+    is_space(false)
+  {
+  }
+
   FuzzyStringComparator::InputLine::InputLine() :
     line_()
   {
   }
 
-  void FuzzyStringComparator::InputLine::setToString(const std::string & s)
+  void FuzzyStringComparator::InputLine::setToString(const std::string& s)
   {
     line_.str(s);
     line_.seekp(0);
@@ -805,13 +805,13 @@ namespace OpenMS
 
   void FuzzyStringComparator::InputLine::updatePosition()
   {
-    line_position_ = (Int(line_.tellg()) != -1 ? line_.tellg() : std::ios::pos_type(line_.str().length()));             // save current reading position
+    line_position_ = (Int(line_.tellg()) != -1 ? line_.tellg() : std::ios::pos_type(line_.str().length())); // save current reading position
   }
 
   void FuzzyStringComparator::InputLine::seekGToSavedPosition()
   {
-    line_.clear();             // reset status
-    line_.seekg(line_position_);             // rewind to saved position
+    line_.clear(); // reset status
+    line_.seekg(line_position_); // rewind to saved position
   }
 
   bool FuzzyStringComparator::InputLine::ok() const
@@ -821,7 +821,7 @@ namespace OpenMS
                           // a macro here... So we use a real function name (both internally and externally)
   }
 
-  FuzzyStringComparator::PrefixInfo_::PrefixInfo_(const InputLine & input_line, const int tab_width_, const int first_column_) :
+  FuzzyStringComparator::PrefixInfo_::PrefixInfo_(const InputLine& input_line, const int tab_width_, const int first_column_) :
     prefix(input_line.line_.str()), line_column(0)
   {
     prefix = prefix.prefix(size_t(input_line.line_position_));
@@ -830,7 +830,7 @@ namespace OpenMS
     {
       if (*iter != '\t')
       {
-        * iter = ' ';
+        *iter = ' ';
         ++line_column;
       }
       else

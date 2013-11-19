@@ -80,7 +80,7 @@ public:
     IsotopeDistribution();
 
     /// Detailed constructor which sets the @p max_isotope
-    IsotopeDistribution(Size max_isotope);
+    explicit IsotopeDistribution(Size max_isotope);
 
     /// Copy constructor
     IsotopeDistribution(const IsotopeDistribution & isotope_distribution);

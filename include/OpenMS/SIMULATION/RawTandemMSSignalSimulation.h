@@ -60,7 +60,7 @@ public:
       */
     //@{
     /// Constructor taking a random generator
-    RawTandemMSSignalSimulation(const SimRandomNumberGenerator & rng);
+    explicit RawTandemMSSignalSimulation(const SimRandomNumberGenerator & rng);
 
     /// Copy constructor
     RawTandemMSSignalSimulation(const RawTandemMSSignalSimulation & source);

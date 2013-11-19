@@ -101,7 +101,7 @@ namespace OpenMS
 
         @param filename Filename for the output mzML
       */
-      MSDataWritingConsumer(String filename) :
+      explicit MSDataWritingConsumer(String filename) :
         Internal::MzMLHandler<MapType>(MapType(), filename, MzMLFile().getVersion(), ProgressLogger()),
         ofs(filename.c_str()), 
         started_writing_(false),
@@ -378,7 +378,7 @@ namespace OpenMS
 
     public:
 
-      PlainMSDataWritingConsumer(String filename) : MSDataWritingConsumer(filename) {}
+      explicit PlainMSDataWritingConsumer(String filename) : MSDataWritingConsumer(filename) {}
     };
 
     /**
@@ -393,7 +393,7 @@ namespace OpenMS
     {
     public:
 
-      NoopMSDataWritingConsumer(String filename) : MSDataWritingConsumer(filename) {}
+      explicit NoopMSDataWritingConsumer(String filename) : MSDataWritingConsumer(filename) {}
       void setExperimentalSettings(const ExperimentalSettings& /* exp */) {}
       void consumeSpectrum(SpectrumType & /* s */) {}
       void consumeChromatogram(ChromatogramType & /* c */) {}

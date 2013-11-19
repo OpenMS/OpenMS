@@ -62,7 +62,7 @@ public:
     /**
     @brief constructor
     */
-    WeightWrapper(const WEIGHTMODE weight_mode);
+    explicit WeightWrapper(const WEIGHTMODE weight_mode);
 
     /**
     @brief destructor

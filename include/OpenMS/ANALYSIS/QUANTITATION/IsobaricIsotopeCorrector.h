@@ -53,7 +53,7 @@ public:
 
       @param quant_method The quantification method used for the data set to analyze.
      */
-    IsobaricIsotopeCorrector(const IsobaricQuantitationMethod* const quant_method);
+    explicit IsobaricIsotopeCorrector(const IsobaricQuantitationMethod* const quant_method);
 
     /// Copy c'tor
     IsobaricIsotopeCorrector(const IsobaricIsotopeCorrector& other);

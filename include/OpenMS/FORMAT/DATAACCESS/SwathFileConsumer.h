@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2013.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
 // $Authors: Hannes Roest $
@@ -56,7 +56,7 @@
 #include <omp.h>
 #endif
 
-namespace OpenMS 
+namespace OpenMS
 {
 
   /**
@@ -93,10 +93,10 @@ namespace OpenMS
    *
    */
   class OPENMS_DLLAPI FullSwathFileConsumer :
-    public Interfaces::IMSDataConsumer<> 
+    public Interfaces::IMSDataConsumer<>
   {
 
-  public:
+public:
     typedef MSExperiment<> MapType;
     typedef MapType::SpectrumType SpectrumType;
     typedef MapType::ChromatogramType ChromatogramType;
@@ -108,13 +108,13 @@ namespace OpenMS
       consuming_possible_(true)
     {}
 
-    ~FullSwathFileConsumer() { }
+    ~FullSwathFileConsumer() {}
 
     void setExpectedSize(Size, Size) {}
-    void setExperimentalSettings(const ExperimentalSettings& exp) {settings_ = exp;}
+    void setExperimentalSettings(const ExperimentalSettings& exp) {settings_ = exp; }
 
     /**
-     * @brief Populate the vector of swath maps after consuming all spectra. 
+     * @brief Populate the vector of swath maps after consuming all spectra.
      *
      * Will populate the input vector with SwathMap objects which correspond to
      * the MS1 map (if present) and the MS2 maps (SWATH maps). This should be
@@ -124,7 +124,7 @@ namespace OpenMS
      * function (it contains finalization code and may close filestreams).
      *
      */
-    void retrieveSwathMaps(std::vector< OpenSwath::SwathMap > & maps)
+    void retrieveSwathMaps(std::vector<OpenSwath::SwathMap>& maps)
     {
       consuming_possible_ = false; // make consumption of further spectra / chromatograms impossble
       ensureMapsAreFilled_();
@@ -154,18 +154,18 @@ namespace OpenMS
     }
 
     /// Consume a chromatogram -> should not happen when dealing with SWATH maps
-    void consumeChromatogram(MapType::ChromatogramType &) 
+    void consumeChromatogram(MapType::ChromatogramType&)
     {
       std::cerr << "Read spectrum while reading SWATH files, did not expect that!" << std::endl;
     }
 
     /// Consume a spectrum which may belong either to an MS1 scan or one of n MS2 (SWATH) scans
-    void consumeSpectrum(MapType::SpectrumType & s)
+    void consumeSpectrum(MapType::SpectrumType& s)
     {
-      if (!consuming_possible_) 
+      if (!consuming_possible_)
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-            "FullSwathFileConsumer cannot consume any more spectra after retrieveSwathMaps has been called already");
+                                         "FullSwathFileConsumer cannot consume any more spectra after retrieveSwathMaps has been called already");
       }
       if (s.getMSLevel() == 1)
       {
@@ -174,7 +174,7 @@ namespace OpenMS
         ms2_counter_ = 0;
         ms1_counter_++;
       }
-      else 
+      else
       {
         // If this is the first encounter of this SWATH map, try to read the isolation windows
         if (ms2_counter_ == swath_maps_.size())
@@ -184,22 +184,22 @@ namespace OpenMS
             const std::vector<Precursor> prec = s.getPrecursors();
             double lower = prec[0].getIsolationWindowLowerOffset();
             double upper = prec[0].getIsolationWindowUpperOffset();
-            if ( prec[0].getIsolationWindowLowerOffset() > 0.0) swath_prec_lower_.push_back(lower);
-            if ( prec[0].getIsolationWindowUpperOffset() > 0.0) swath_prec_upper_.push_back(upper);
-            swath_prec_center_.push_back( prec[0].getMZ() );
+            if (prec[0].getIsolationWindowLowerOffset() > 0.0) swath_prec_lower_.push_back(lower);
+            if (prec[0].getIsolationWindowUpperOffset() > 0.0) swath_prec_upper_.push_back(upper);
+            swath_prec_center_.push_back(prec[0].getMZ());
           }
         }
         else if (ms2_counter_ > swath_prec_center_.size() && ms2_counter_ > swath_prec_lower_.size())
         {
           throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-              "FullSwathFileConsumer: MS2 counter is larger than size of swath maps! Are the swath_maps representing the number of read in maps?");
+                                           "FullSwathFileConsumer: MS2 counter is larger than size of swath maps! Are the swath_maps representing the number of read in maps?");
         }
         consumeSwathSpectrum_(s, ms2_counter_);
         ms2_counter_++;
       }
     }
 
-  protected:
+protected:
     /**
      * @brief Consume an MS2 spectrum belonging to SWATH "swath_nr"
      *
@@ -210,11 +210,11 @@ namespace OpenMS
      * ms2_counter_ == swath_maps_.size() (i.e. if a new swath was encountered
      * the first time)
      */
-    virtual void consumeSwathSpectrum_(MapType::SpectrumType & s, int swath_nr) = 0;
+    virtual void consumeSwathSpectrum_(MapType::SpectrumType& s, int swath_nr) = 0;
     /// @brief Consume an MS1 spectrum
-    virtual void consumeMS1Spectrum_(MapType::SpectrumType & s) = 0;
+    virtual void consumeMS1Spectrum_(MapType::SpectrumType& s) = 0;
     /**
-     * @brief Callback function after the reading is complete 
+     * @brief Callback function after the reading is complete
      *
      * Has to ensure that swath_maps_ and ms1_map_ are correctly populated.
      */
@@ -224,14 +224,14 @@ namespace OpenMS
     size_t ms2_counter_;
 
     /// A list of SWATH maps and the MS1 map
-    std::vector< boost::shared_ptr<MSExperiment<> > > swath_maps_;
+    std::vector<boost::shared_ptr<MSExperiment<> > > swath_maps_;
     boost::shared_ptr<MSExperiment<> > ms1_map_;
 
     /// Values of lower limit, center and upper limit of the isolation windows
     std::vector<double> swath_prec_center_;
     std::vector<double> swath_prec_lower_;
     std::vector<double> swath_prec_upper_;
-    /// The Experimental settings 
+    /// The Experimental settings
     // (MSExperiment has no constructor using ExperimentalSettings)
     MSExperiment<> settings_;
 
@@ -240,7 +240,7 @@ namespace OpenMS
   };
 
   /**
-   * @brief In-memory implementation of FullSwathFileConsumer 
+   * @brief In-memory implementation of FullSwathFileConsumer
    *
    * Keeps all the spectra in memory by just appending them to an MSExperiment.
    *
@@ -249,20 +249,21 @@ namespace OpenMS
     public FullSwathFileConsumer
   {
 
-  public:
+public:
     typedef MSExperiment<> MapType;
     typedef MapType::SpectrumType SpectrumType;
     typedef MapType::ChromatogramType ChromatogramType;
 
-  protected:
+protected:
     void addNewSwathMap_()
     {
       boost::shared_ptr<MSExperiment<Peak1D> > exp(new MSExperiment<Peak1D>(settings_));
       swath_maps_.push_back(exp);
     }
-    void consumeSwathSpectrum_(MapType::SpectrumType & s, int swath_nr)
+
+    void consumeSwathSpectrum_(MapType::SpectrumType& s, int swath_nr)
     {
-      if (swath_nr == (int)swath_maps_.size() )
+      if (swath_nr == (int)swath_maps_.size())
         addNewSwathMap_();
       swath_maps_[swath_nr]->addSpectrum(s);
     }
@@ -272,9 +273,10 @@ namespace OpenMS
       boost::shared_ptr<MSExperiment<Peak1D> > exp(new MSExperiment<Peak1D>(settings_));
       ms1_map_ = exp;
     }
-    void consumeMS1Spectrum_(MapType::SpectrumType & s)
+
+    void consumeMS1Spectrum_(MapType::SpectrumType& s)
     {
-      if (! ms1_map_ )
+      if (!ms1_map_)
         addMS1Map_();
       ms1_map_->addSpectrum(s);
     }
@@ -283,10 +285,10 @@ namespace OpenMS
   };
 
   /**
-   * @brief On-disked cached implementation of FullSwathFileConsumer 
+   * @brief On-disked cached implementation of FullSwathFileConsumer
    *
    * Writes all spectra immediately to disk in a user-specified caching
-   * location using the CachedMzMLConsumer. Internally, it handles 
+   * location using the CachedMzMLConsumer. Internally, it handles
    * n+1 (n SWATH + 1 MS1 map) objects of CachedMzMLConsumers which can consume the
    * spectra and write them to disk immediately.
    *
@@ -295,7 +297,7 @@ namespace OpenMS
     public FullSwathFileConsumer
   {
 
-  public:
+public:
     typedef MSExperiment<> MapType;
     typedef MapType::SpectrumType SpectrumType;
     typedef MapType::ChromatogramType ChromatogramType;
@@ -309,19 +311,19 @@ namespace OpenMS
       nr_ms2_spectra_(nr_ms2_spectra)
     {}
 
-    ~CachedSwathFileConsumer() 
-    { 
+    ~CachedSwathFileConsumer()
+    {
       // Properly delete the CachedMzMLConsumers -> free memory and _close_ filestream
-      while(!swath_consumers_.empty()) {delete swath_consumers_.back(); swath_consumers_.pop_back();}
-      if (ms1_consumer_ != NULL) { delete ms1_consumer_; ms1_consumer_ = NULL;}
+      while (!swath_consumers_.empty()) {delete swath_consumers_.back(); swath_consumers_.pop_back(); }
+      if (ms1_consumer_ != NULL) { delete ms1_consumer_; ms1_consumer_ = NULL; }
     }
 
-  protected:
+protected:
     void addNewSwathMap_()
     {
       String meta_file = cachedir_ + basename_ + "_" + String(swath_consumers_.size()) +  ".mzML";
       String cached_file = meta_file + ".cached";
-      CachedMzMLConsumer * consumer = new CachedMzMLConsumer(cached_file, true);
+      CachedMzMLConsumer* consumer = new CachedMzMLConsumer(cached_file, true);
       consumer->setExpectedSize(nr_ms2_spectra_[swath_consumers_.size()], 0);
       swath_consumers_.push_back(consumer);
 
@@ -329,9 +331,10 @@ namespace OpenMS
       boost::shared_ptr<MSExperiment<Peak1D> > exp(new MSExperiment<Peak1D>(settings_));
       swath_maps_.push_back(exp);
     }
-    void consumeSwathSpectrum_(MapType::SpectrumType & s, int swath_nr)
+
+    void consumeSwathSpectrum_(MapType::SpectrumType& s, int swath_nr)
     {
-      if (swath_nr == (int)swath_consumers_.size() )
+      if (swath_nr == (int)swath_consumers_.size())
         addNewSwathMap_();
 
       swath_consumers_[swath_nr]->consumeSpectrum(s);
@@ -347,7 +350,8 @@ namespace OpenMS
       boost::shared_ptr<MSExperiment<Peak1D> > exp(new MSExperiment<Peak1D>(settings_));
       ms1_map_ = exp;
     }
-    void consumeMS1Spectrum_(MapType::SpectrumType & s)
+
+    void consumeMS1Spectrum_(MapType::SpectrumType& s)
     {
       if (ms1_consumer_ == NULL)
         addMS1Map_();
@@ -355,7 +359,7 @@ namespace OpenMS
       ms1_map_->addSpectrum(s); // append for the metadata (actual data is deleted)
     }
 
-    void ensureMapsAreFilled_() 
+    void ensureMapsAreFilled_()
     {
       size_t swath_consumers_size = swath_consumers_.size();
       bool have_ms1 = (ms1_consumer_ != NULL);
@@ -366,8 +370,8 @@ namespace OpenMS
       // the spectra, there will be no more spectra to append but the client
       // might already want to read after this call, so all data needs to be
       // present on disc and the filestreams closed.
-      while(!swath_consumers_.empty()) { delete swath_consumers_.back(); swath_consumers_.pop_back(); }
-      if (ms1_consumer_ != NULL) { delete ms1_consumer_; ms1_consumer_ = NULL;}
+      while (!swath_consumers_.empty()) { delete swath_consumers_.back(); swath_consumers_.pop_back(); }
+      if (ms1_consumer_ != NULL) { delete ms1_consumer_; ms1_consumer_ = NULL; }
 
       if (have_ms1)
       {
@@ -393,8 +397,8 @@ namespace OpenMS
       }
     }
 
-    CachedMzMLConsumer * ms1_consumer_;
-    std::vector< CachedMzMLConsumer * > swath_consumers_;
+    CachedMzMLConsumer* ms1_consumer_;
+    std::vector<CachedMzMLConsumer*> swath_consumers_;
 
     String cachedir_;
     String basename_;
@@ -404,4 +408,3 @@ namespace OpenMS
 }
 
 #endif
-

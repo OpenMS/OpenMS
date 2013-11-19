@@ -100,7 +100,7 @@ public:
 
             @throw throws ParseError if the formula cannot be parsed
     */
-    EmpiricalFormula(const String & rhs);
+    explicit EmpiricalFormula(const String & rhs);
 
     /// constructor with element pointer and number
     EmpiricalFormula(SignedSize number, const Element * element, SignedSize charge = 0);

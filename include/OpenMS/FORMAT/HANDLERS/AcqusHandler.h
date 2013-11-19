@@ -43,27 +43,27 @@ namespace OpenMS
   namespace Internal
   {
     /**
-        @brief Read-only acqus File handler for XMass Analysis.
+      @brief Read-only acqus File handler for XMass Analysis.
 
-        acqus File contains meta data about calibration (conversion for time to mz ratio),
-        instrument specification and acquisition method.
+      acqus File contains meta data about calibration (conversion for time to mz ratio),
+      instrument specification and acquisition method.
 
-        @note Do not use this class directly. It is only needed for XMassFile.
+      @note Do not use this class directly. It is only needed for XMassFile.
     */
     class OPENMS_DLLAPI AcqusHandler
     {
 public:
       /**
-              @brief Constructor with filename.
+        @brief Constructor with filename.
 
         Open acqus File as stream and import params.
 
-              @param filename to acqus File.
+        @param filename to acqus File.
 
-              @exception Exception::FileNotFound is thrown if the file could not be opened.
-              @exception Exception::ConversionError is thrown if error conversion from String to calibration param.
-          */
-      AcqusHandler(const String & filename);
+        @exception Exception::FileNotFound is thrown if the file could not be opened.
+        @exception Exception::ConversionError is thrown if error conversion from String to calibration param.
+      */
+      explicit AcqusHandler(const String & filename);
 
       /// Destructor
       virtual ~AcqusHandler();

@@ -71,7 +71,7 @@ private:
     ConsoleUtils();
 
     /// Copy C'tor
-    ConsoleUtils(ConsoleUtils const&);
+    ConsoleUtils(const ConsoleUtils &);
 
     /// Assignment operator
     void operator=(ConsoleUtils const&);

@@ -49,7 +49,7 @@ public:
     ///Default Constructor
     GzipIfstream();
     /// Detailed constructor with filename
-    GzipIfstream(const char * filename);
+    explicit GzipIfstream(const char * filename);
     ///Destructor
     virtual ~GzipIfstream();
 

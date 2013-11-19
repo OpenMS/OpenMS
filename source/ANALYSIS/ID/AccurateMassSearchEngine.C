@@ -523,7 +523,7 @@ void AccurateMassSearchEngine::run(const FeatureMap<>& fmap, MzTab& mztab_out)
             for (Size hit_idx = 0; hit_idx < query_results.size(); ++hit_idx)
             {
                 String emp_formula(query_results[hit_idx].getFormulaString());
-                DoubleReal iso_sim(computeIsotopePatternSimilarity_(fmap[i], emp_formula));
+                DoubleReal iso_sim(computeIsotopePatternSimilarity_(fmap[i], EmpiricalFormula(emp_formula)));
                 query_results[hit_idx].setIsotopesSimScore(iso_sim);
 
                 if (iso_sim > best_iso_sim)

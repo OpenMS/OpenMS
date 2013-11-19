@@ -59,7 +59,7 @@ public:
 
       @param quant_method The quantification method used for the data set to analyze.
     */
-    IsobaricQuantifier(const IsobaricQuantitationMethod* const quant_method);
+    explicit IsobaricQuantifier(const IsobaricQuantitationMethod* const quant_method);
 
     /// Copy c'tor
     IsobaricQuantifier(const IsobaricQuantifier& other);

@@ -78,7 +78,7 @@ public:
       */
     //@{
     ///
-    IonizationSimulation(const SimRandomNumberGenerator &);
+    explicit IonizationSimulation(const SimRandomNumberGenerator &);
 
     /// Copy constructor
     IonizationSimulation(const IonizationSimulation & source);

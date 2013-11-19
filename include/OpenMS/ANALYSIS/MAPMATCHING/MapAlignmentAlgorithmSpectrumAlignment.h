@@ -103,7 +103,7 @@ protected:
 public:
 
       /// Default constructor with an order flag
-      Compare(bool b = false) :
+      explicit Compare(bool b = false) :
         flag(b)
       {
       }

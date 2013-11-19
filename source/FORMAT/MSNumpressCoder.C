@@ -43,9 +43,10 @@ namespace OpenMS
 {
   using namespace ms; // numpress namespace
 
-  void MSNumpressCoder::encodeNP_(std::vector<double> & in, String & result, NumpressConfig config)
+  void MSNumpressCoder::encodeNP_(std::vector<double>& in, String& result, NumpressConfig config)
   {
     if (in.empty()) return;
+
     if (config.np_compression == NONE) return;
 
     Size dataSize = in.size();
@@ -59,84 +60,87 @@ namespace OpenMS
 
     double fixedPoint  = config.numpressFixedPoint;
 
-    try 
+    try
     {
       // 1. Resize the data
-      switch(config.np_compression)
+      switch (config.np_compression)
       {
-        case LINEAR:
-          numpressed.resize(dataSize * sizeof(std::vector<double>::value_type) + 8);
-          break;
-        case PIC:
-          numpressed.resize(dataSize * sizeof(std::vector<double>::value_type));
-          break;
-        case SLOF:
-          numpressed.resize(dataSize * 2 + 8);
-          break;
-        case NONE:
-          break;
+      case LINEAR:
+        numpressed.resize(dataSize * sizeof(std::vector<double>::value_type) + 8);
+        break;
+
+      case PIC:
+        numpressed.resize(dataSize * sizeof(std::vector<double>::value_type));
+        break;
+
+      case SLOF:
+        numpressed.resize(dataSize * 2 + 8);
+        break;
+
+      case NONE:
+        break;
       }
 
       // 2. Convert the data
       std::vector<double> unpressed; // for checking excessive accurary loss
-      switch (config.np_compression) 
+      switch (config.np_compression)
       {
-        case LINEAR:
+      case LINEAR:
+      {
+        if (config.estimate_fixed_point) {fixedPoint = numpress::MSNumpress::optimalLinearFixedPoint(&in[0], dataSize); }
+        byteCount = numpress::MSNumpress::encodeLinear(&in[0], dataSize, &numpressed[0], fixedPoint);
+        if (config.numpressErrorTolerance)   // decompress to check accuracy loss
         {
-          if (config.estimate_fixed_point) {fixedPoint = numpress::MSNumpress::optimalLinearFixedPoint(&in[0], dataSize);}
-          byteCount = numpress::MSNumpress::encodeLinear(&in[0], dataSize, &numpressed[0], fixedPoint);
-          if (config.numpressErrorTolerance) // decompress to check accuracy loss
-          {
-            numpress::MSNumpress::decodeLinear(numpressed,unpressed); 
-          }
-          break;
+          numpress::MSNumpress::decodeLinear(numpressed, unpressed);
         }
+        break;
+      }
 
-        case PIC:
+      case PIC:
+      {
+        byteCount = numpress::MSNumpress::encodePic(&in[0], dataSize, &numpressed[0]);
+        if (config.numpressErrorTolerance)   // decompress to check accuracy loss
         {
-          byteCount = numpress::MSNumpress::encodePic(&in[0], dataSize, &numpressed[0]);
-          if (config.numpressErrorTolerance) // decompress to check accuracy loss
-          {
-            numpress::MSNumpress::decodePic(numpressed,unpressed); 
-          }
-          break;
+          numpress::MSNumpress::decodePic(numpressed, unpressed);
         }
+        break;
+      }
 
-        case SLOF:
+      case SLOF:
+      {
+        if (config.estimate_fixed_point) {fixedPoint = numpress::MSNumpress::optimalSlofFixedPoint(&in[0], dataSize); }
+        byteCount = numpress::MSNumpress::encodeSlof(&in[0], dataSize, &numpressed[0], fixedPoint);
+        if (config.numpressErrorTolerance)   // decompress to check accuracy loss
         {
-          if (config.estimate_fixed_point) {fixedPoint = numpress::MSNumpress::optimalSlofFixedPoint(&in[0], dataSize);}
-          byteCount = numpress::MSNumpress::encodeSlof(&in[0], dataSize, &numpressed[0], fixedPoint);
-          if (config.numpressErrorTolerance) // decompress to check accuracy loss
-          {
-            numpress::MSNumpress::decodeSlof(numpressed,unpressed); 
-          }
-          break;
+          numpress::MSNumpress::decodeSlof(numpressed, unpressed);
         }
+        break;
+      }
 
-        case NONE:
-        {
-          // already checked above ... 
-          break;
-        }
+      case NONE:
+      {
+        // already checked above ...
+        break;
+      }
       }
 
 #ifdef NUMPRESS_DEBUG
-          std::cout << "encodeNP_: numpressed array with with length " << numpressed.size() << std::endl;
-          for (int i = 0; i < byteCount; i++)
-          {
-            std::cout << "array[" << i << "] : " << (int)numpressed[i] << std::endl;
-          }
+      std::cout << "encodeNP_: numpressed array with with length " << numpressed.size() << std::endl;
+      for (int i = 0; i < byteCount; i++)
+      {
+        std::cout << "array[" << i << "] : " << (int)numpressed[i] << std::endl;
+      }
 #endif
 
       // 3. Now check to see if encoding introduces excessive error
-      int n=-1;
-      if (config.numpressErrorTolerance) 
+      int n = -1;
+      if (config.numpressErrorTolerance)
       {
-        if (PIC == config.np_compression)  // integer rounding, abs accuracy is +- 0.5
+        if (PIC == config.np_compression) // integer rounding, abs accuracy is +- 0.5
         {
-          for (n=(int)dataSize;n--;) // check for overflow, strange rounding
+          for (n = (int)dataSize; n--; ) // check for overflow, strange rounding
           {
-            if ((!boost::math::isfinite(unpressed[n])) || (fabs(in[n]-unpressed[n])>=1.0)) 
+            if ((!boost::math::isfinite(unpressed[n])) || (fabs(in[n] - unpressed[n]) >= 1.0))
             {
               break;
             }
@@ -144,10 +148,10 @@ namespace OpenMS
         }
         else // check for tolerance as well as overflow
         {
-          for (n=(int)dataSize;n--;)
+          for (n = (int)dataSize; n--; )
           {
-            double d,u;
-            if (!boost::math::isfinite(u = unpressed[n])||!boost::math::isfinite(d = in[n]))
+            double d, u;
+            if (!boost::math::isfinite(u = unpressed[n]) || !boost::math::isfinite(d = in[n]))
             {
               break;
             }
@@ -165,41 +169,43 @@ namespace OpenMS
                 break;
               }
             }
-            else if (fabs(1.0-(d/u)) > config.numpressErrorTolerance)
+            else if (fabs(1.0 - (d / u)) > config.numpressErrorTolerance)
             {
               break;
             }
           }
         }
       }
-      if (n>=0)
+      if (n >= 0)
       {
 #ifdef NUMPRESS_DEBUG
-        std::cout << "Error occured with n = " << n <<std::endl;
+        std::cout << "Error occured with n = " << n << std::endl;
 #endif
       }
       else
       {
-        result = String(std::string(reinterpret_cast<const char *>(&numpressed[0]), byteCount));
+        result = String(std::string(reinterpret_cast<const char*>(&numpressed[0]), byteCount));
         // Other solution:
         // http://stackoverflow.com/questions/2840835/way-to-get-unsigned-char-into-a-stdstring-without-reinterpret-cast
         // result = String( std::string(&numpressed[0], &numpressed[0] + byteCount) );
       }
-    } catch (int e) 
+    }
+    catch (int e)
     {
       std::cerr << "MZNumpress encoder threw exception: " << e << std::endl;
-    } catch (...) 
+    }
+    catch (...)
     {
       std::cerr << "Unknown exception while encoding " << dataSize << " doubles" << std::endl;
     }
   }
 
-  void MSNumpressCoder::decodeNP_(std::string in, std::vector<double> & out, NumpressConfig config)
+  void MSNumpressCoder::decodeNP_(std::string in, std::vector<double>& out, NumpressConfig config)
   {
     decodeNP_internal_(reinterpret_cast<const unsigned char*>(in.c_str()), in.size(), out, config);
   }
 
-  void MSNumpressCoder::decodeNP_internal_(const unsigned char* in, size_t in_size, std::vector<double> & out, NumpressConfig config)
+  void MSNumpressCoder::decodeNP_internal_(const unsigned char* in, size_t in_size, std::vector<double>& out, NumpressConfig config)
   {
     out.clear();
     if (in_size == 0) return;
@@ -215,42 +221,47 @@ namespace OpenMS
     }
 #endif
 
-    try 
+    try
     {
-      switch(config.np_compression)
+      switch (config.np_compression)
       {
-        case LINEAR:
-        {
-          initialSize = byteCount * 2;
-          if (out.size() < initialSize) { out.resize(initialSize); }
-          size_t count = numpress::MSNumpress::decodeLinear(in, byteCount, &out[0]);
-          out.resize(count);
-          break;
-        }
-        case PIC:
-        {
-          initialSize = byteCount * 2;
-          if (out.size() < initialSize) { out.resize(initialSize); }
-          size_t count = numpress::MSNumpress::decodePic(in, byteCount, &out[0]);
-          out.resize(count);
-          break;
-        }
-        case SLOF:
-        {
-          initialSize = byteCount / 2;
-          if (out.size() < initialSize) { out.resize(initialSize); }
-          size_t count = numpress::MSNumpress::decodeSlof(in, byteCount, &out[0]);
-          out.resize(count);
-          break;
-        }
-        case NONE:
-        {
-          return;
-          break;
-        }
+      case LINEAR:
+      {
+        initialSize = byteCount * 2;
+        if (out.size() < initialSize) { out.resize(initialSize); }
+        size_t count = numpress::MSNumpress::decodeLinear(in, byteCount, &out[0]);
+        out.resize(count);
+        break;
       }
 
-    } catch (...) 
+      case PIC:
+      {
+        initialSize = byteCount * 2;
+        if (out.size() < initialSize) { out.resize(initialSize); }
+        size_t count = numpress::MSNumpress::decodePic(in, byteCount, &out[0]);
+        out.resize(count);
+        break;
+      }
+
+      case SLOF:
+      {
+        initialSize = byteCount / 2;
+        if (out.size() < initialSize) { out.resize(initialSize); }
+        size_t count = numpress::MSNumpress::decodeSlof(in, byteCount, &out[0]);
+        out.resize(count);
+        break;
+      }
+
+      case NONE:
+      {
+        return;
+
+        break;
+      }
+      }
+
+    }
+    catch (...)
     {
       throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Error in Numpress decompression");
     }
@@ -267,4 +278,3 @@ namespace OpenMS
   }
 
 } //namespace OpenMS
-

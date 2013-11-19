@@ -62,7 +62,7 @@ public:
     //@{
 
     /// Constructor taking a random generator
-    RTSimulation(const SimRandomNumberGenerator & random_generator);
+    explicit RTSimulation(const SimRandomNumberGenerator & random_generator);
 
     /// Copy constructor
     RTSimulation(const RTSimulation & source);

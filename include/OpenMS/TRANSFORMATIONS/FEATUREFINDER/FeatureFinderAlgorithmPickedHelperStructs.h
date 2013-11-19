@@ -313,7 +313,7 @@ namespace OpenMS
       TheoreticalIsotopePattern theoretical_pattern;
 
       /// Constructor that resizes the internal vectors
-      IsotopePattern(Size size) :
+      explicit IsotopePattern(Size size) :
         peak(size, -1),
         spectrum(size),
         intensity(size),

@@ -49,7 +49,7 @@ namespace OpenMS
   {
 public:
     /// Default c'tor
-    IsobaricNormalizer(const IsobaricQuantitationMethod* const quant_method);
+    explicit IsobaricNormalizer(const IsobaricQuantitationMethod* const quant_method);
 
     /// Copy c'tor
     IsobaricNormalizer(const IsobaricNormalizer& other);

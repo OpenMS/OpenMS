@@ -52,9 +52,9 @@ namespace OpenMS
   {
 public:
     ///Constructor
-    Bzip2InputStream(const   String & file_name);
+    explicit Bzip2InputStream(const String& file_name);
 
-    Bzip2InputStream(const   char * const     file_name);
+    explicit Bzip2InputStream(const char* const file_name);
 
 
     ///Destructor
@@ -77,24 +77,24 @@ public:
         @return returns the number of bytes which were actually read
 
     */
-    virtual XMLSize_t readBytes(XMLByte * const  to_fill, const XMLSize_t max_to_read);
+    virtual XMLSize_t readBytes(XMLByte* const  to_fill, const XMLSize_t max_to_read);
     /**
         @brief returns 0
     @note Implementation of the xerces-c input stream interface
     */
-    virtual const XMLCh * getContentType() const;
+    virtual const XMLCh* getContentType() const;
 
 
 private:
     ///pointer to an compression stream
-    Bzip2Ifstream * bzip2_;
+    Bzip2Ifstream* bzip2_;
     ///current index of the actual file
     XMLSize_t       file_current_index_;
 
     //not implemented
     Bzip2InputStream();
-    Bzip2InputStream(const Bzip2InputStream & stream);
-    Bzip2InputStream & operator=(const Bzip2InputStream & stream);
+    Bzip2InputStream(const Bzip2InputStream& stream);
+    Bzip2InputStream& operator=(const Bzip2InputStream& stream);
   };
 
   inline XMLFilePos Bzip2InputStream::curPos() const

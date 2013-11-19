@@ -70,7 +70,7 @@ public:
     /// Default constructor
     TransformationDescription();
     /// Constructor from data
-    TransformationDescription(const DataPoints & data);
+    explicit TransformationDescription(const DataPoints & data);
     /// Destructor
     ~TransformationDescription();
 

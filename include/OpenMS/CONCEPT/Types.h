@@ -313,7 +313,7 @@ http://msdn.microsoft.com/ + search: "long double".
   struct PrecisionWrapper
   {
     /// Constructor.  Note: Normally you will prefer to use the "make"-function precisionWrapper(), which see.
-    PrecisionWrapper(const FloatingPointType rhs) :
+    explicit PrecisionWrapper(const FloatingPointType rhs) :
       ref_(rhs) {}
     PrecisionWrapper(const PrecisionWrapper & rhs) :
       ref_(rhs.ref_) {}

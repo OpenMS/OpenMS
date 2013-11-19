@@ -58,7 +58,7 @@ public:
 
       @param quant_method IsobaricQuantitationMethod providing the necessary information which channels should be extracted.
     */
-    IsobaricChannelExtractor(const IsobaricQuantitationMethod* const quant_method);
+    explicit IsobaricChannelExtractor(const IsobaricQuantitationMethod* const quant_method);
 
     /// Copy c'tor
     IsobaricChannelExtractor(const IsobaricChannelExtractor& other);

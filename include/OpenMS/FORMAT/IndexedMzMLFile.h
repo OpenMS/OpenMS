@@ -107,7 +107,7 @@ namespace OpenMS
 
       Tries to parse the file, success can be checked with getParsingSuccess()
     */
-    IndexedMzMLFile(String filename);
+    explicit IndexedMzMLFile(String filename);
 
     /// Copy constructor
     IndexedMzMLFile(const IndexedMzMLFile & source);

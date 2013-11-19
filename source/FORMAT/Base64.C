@@ -54,7 +54,7 @@ namespace OpenMS
   {
   }
 
-  void Base64::encodeStrings(const std::vector<String> & in, String & out, bool zlib_compression, bool append_null_byte)
+  void Base64::encodeStrings(const std::vector<String>& in, String& out, bool zlib_compression, bool append_null_byte)
   {
     out.clear();
     if (in.empty())
@@ -62,25 +62,25 @@ namespace OpenMS
 
     std::string str;
     std::string compressed;
-    Byte * it;
-    Byte * end;
+    Byte* it;
+    Byte* end;
     for (Size i = 0; i < in.size(); ++i)
     {
       str = str.append(in[i]);
-      if(append_null_byte) str.push_back('\0');
+      if (append_null_byte) str.push_back('\0');
     }
 
     if (zlib_compression)
     {
       unsigned long sourceLen =   (unsigned long)str.size();
-      unsigned long compressed_length =       //compressBound((unsigned long)str.size());
+      unsigned long compressed_length = //compressBound((unsigned long)str.size());
                                         sourceLen + (sourceLen >> 12) + (sourceLen >> 14) + 11; // taken from zlib's compress.c, as we cannot use compressBound*
 
       int zlib_error;
       do
       {
         compressed.resize(compressed_length);
-        zlib_error = compress(reinterpret_cast<Bytef *>(&compressed[0]), &compressed_length, reinterpret_cast<Bytef *>(&str[0]), (unsigned long) str.size());
+        zlib_error = compress(reinterpret_cast<Bytef*>(&compressed[0]), &compressed_length, reinterpret_cast<Bytef*>(&str[0]), (unsigned long) str.size());
 
         switch (zlib_error)
         {
@@ -99,17 +99,17 @@ namespace OpenMS
         throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Compression error?");
       }
 
-      it = reinterpret_cast<Byte *>(&compressed[0]);
+      it = reinterpret_cast<Byte*>(&compressed[0]);
       end = it + compressed_length;
-      out.resize((Size)ceil(compressed_length / 3.) * 4);   //resize output array in order to have enough space for all characters
+      out.resize((Size)ceil(compressed_length / 3.) * 4); //resize output array in order to have enough space for all characters
     }
     else
     {
-      out.resize((Size)ceil(str.size() / 3.) * 4);     //resize output array in order to have enough space for all characters
-      it = reinterpret_cast<Byte *>(&str[0]);
+      out.resize((Size)ceil(str.size() / 3.) * 4); //resize output array in order to have enough space for all characters
+      it = reinterpret_cast<Byte*>(&str[0]);
       end = it + str.size();
     }
-    Byte * to = reinterpret_cast<Byte *>(&out[0]);
+    Byte* to = reinterpret_cast<Byte*>(&out[0]);
     Size written = 0;
 
     while (it != end)
@@ -147,10 +147,10 @@ namespace OpenMS
       written += 4;
     }
 
-    out.resize(written);         //no more space is needed
+    out.resize(written); //no more space is needed
   }
 
-  void Base64::decodeStrings(const String & in, std::vector<String> & out, bool zlib_compression)
+  void Base64::decodeStrings(const String& in, std::vector<String>& out, bool zlib_compression)
   {
     out.clear();
     if (in == "")
@@ -168,7 +168,7 @@ namespace OpenMS
     }
   }
 
-  void Base64::decodeSingleString(const String & in, QByteArray & base64_uncompressed, bool zlib_compression)
+  void Base64::decodeSingleString(const String& in, QByteArray& base64_uncompressed, bool zlib_compression)
   {
     if (in == "")
       return;

@@ -203,7 +203,7 @@ namespace OpenMS
       std::vector<String> copy = colTypes;
       for (std::vector<String>::iterator it = copy.begin(); it != copy.end(); ++it)
       {
-        it->substitute(separator,replacement);
+        it->substitute(separator, replacement);
       }
       s += StringList(copy).concatenate(separator).trim();
       s += "\n";
@@ -212,7 +212,7 @@ namespace OpenMS
         std::vector<String> copy_row = *it;
         for (std::vector<String>::iterator sit = copy_row.begin(); sit != copy_row.end(); ++sit)
         {
-          sit->substitute(separator,replacement);
+          sit->substitute(separator, replacement);
         }
         s += StringList(copy_row).concatenate(separator).trim();
         s += "\n";
@@ -228,7 +228,7 @@ namespace OpenMS
     String indent = String(indentation_level, '\t');
     String s = indent;
     s += "<attachment ";
-    s += " name=\"" + name + "\"" +" ID=\"" + id + "\"" + " cvRef=\"" + cvRef + "\"" + " accession=\"" + cvAcc + "\"";
+    s += " name=\"" + name + "\"" + " ID=\"" + id + "\"" + " cvRef=\"" + cvRef + "\"" + " accession=\"" + cvAcc + "\"";
     if (value != "")
     {
       s += " value=\"" + value + "\"";
@@ -257,11 +257,11 @@ namespace OpenMS
       s += ">\n";
       s += "<table>";
       s += indent + "\t" + "<tableColumnTypes>";
-      
+
       std::vector<String> copy = colTypes;
       for (std::vector<String>::iterator it = copy.begin(); it != copy.end(); ++it)
       {
-        it->substitute(String(" "),String("_"));
+        it->substitute(String(" "), String("_"));
       }
 
       s += StringList(copy).concatenate(" ").trim();
@@ -269,13 +269,13 @@ namespace OpenMS
       for (std::vector<std::vector<String> >::const_iterator it = tableRows.begin(); it != tableRows.end(); ++it)
       {
         s += indent + "\t" + "<tableRowValues>";
-        
+
         std::vector<String> copy_row = *it;
         for (std::vector<String>::iterator sit = copy_row.begin(); sit != copy_row.end(); ++sit)
         {
-          sit->substitute(String(" "),String("_"));
+          sit->substitute(String(" "), String("_"));
         }
-        
+
         s += StringList(*it).concatenate(" ").trim();
         s += "</tableRowValues>\n";
       }
@@ -311,8 +311,8 @@ namespace OpenMS
     }
     else
     {
-      std::map<String, String >::const_iterator qpsit = run_Name_ID_map_.find(run_id); //if 'filename' is a name
-      if (qpsit != run_Name_ID_map_.end()) 
+      std::map<String, String>::const_iterator qpsit = run_Name_ID_map_.find(run_id); //if 'filename' is a name
+      if (qpsit != run_Name_ID_map_.end())
       {
         runQualityQPs_[qpsit->second].push_back(qp);
       }
@@ -330,8 +330,8 @@ namespace OpenMS
     }
     else
     {
-      std::map<String, String >::const_iterator qpsit = set_Name_ID_map_.find(set_id); //if 'filename' is a name
-      if (qpsit != set_Name_ID_map_.end()) 
+      std::map<String, String>::const_iterator qpsit = set_Name_ID_map_.find(set_id); //if 'filename' is a name
+      if (qpsit != set_Name_ID_map_.end())
       {
         setQualityQPs_[qpsit->second].push_back(qp);
       }
@@ -354,7 +354,7 @@ namespace OpenMS
     ids.clear();
     boost::copy(run_Name_ID_map_ | boost::adaptors::map_keys, std::back_inserter(ids));
   }
-  
+
   void QcMLFile::getRunIDs(std::vector<String>& ids) const
   {
     ids.clear();
@@ -370,7 +370,7 @@ namespace OpenMS
     }
     else if (checkname)
     {
-      std::map<String, String >::const_iterator qpsit = run_Name_ID_map_.find(filename); //if 'filename' is a name
+      std::map<String, String>::const_iterator qpsit = run_Name_ID_map_.find(filename); //if 'filename' is a name
       if (qpsit != run_Name_ID_map_.end()) //NO, do not!: permit AT without a QP
       {
         return true;
@@ -389,7 +389,7 @@ namespace OpenMS
     }
     else if (checkname)
     {
-      std::map<String, String >::const_iterator qpsit = set_Name_ID_map_.find(filename); //if 'filename' is a name
+      std::map<String, String>::const_iterator qpsit = set_Name_ID_map_.find(filename); //if 'filename' is a name
       if (qpsit != set_Name_ID_map_.end()) //NO, do not!: permit AT without a QP
       {
         return true;
@@ -404,7 +404,7 @@ namespace OpenMS
     std::map<String, std::vector<QcMLFile::QualityParameter> >::const_iterator qpsit = runQualityQPs_.find(filename);
     if (qpsit == runQualityQPs_.end()) //try name mapping if 'filename' is no ID but name
     {
-      std::map<String, String >::const_iterator mapsit = run_Name_ID_map_.find(filename);
+      std::map<String, String>::const_iterator mapsit = run_Name_ID_map_.find(filename);
       if (mapsit != run_Name_ID_map_.end())
       {
         qpsit = runQualityQPs_.find(mapsit->second);
@@ -428,7 +428,7 @@ namespace OpenMS
     std::map<String, std::vector<QcMLFile::QualityParameter> >::const_iterator qpsit = setQualityQPs_.find(filename);
     if (qpsit == setQualityQPs_.end()) //try name mapping if 'filename' is no ID but name
     {
-      std::map<String, String >::const_iterator mapsit = set_Name_ID_map_.find(filename);
+      std::map<String, String>::const_iterator mapsit = set_Name_ID_map_.find(filename);
       if (mapsit != set_Name_ID_map_.end())
       {
         qpsit = setQualityQPs_.find(mapsit->second);
@@ -555,18 +555,18 @@ namespace OpenMS
       removeAttachment(it->first, at);
     }
   }
-  
+
   void QcMLFile::registerRun(const String id, const String name)
   {
-    runQualityQPs_[id] = std::vector< QualityParameter >();
-    runQualityAts_[id] = std::vector< Attachment >();
+    runQualityQPs_[id] = std::vector<QualityParameter>();
+    runQualityAts_[id] = std::vector<Attachment>();
     run_Name_ID_map_[name] = id;
-  }  
-  
+  }
+
   void QcMLFile::registerSet(const String id, const String name, const std::set<String>& names)
   {
-    setQualityQPs_[id] = std::vector< QualityParameter >();
-    setQualityAts_[id] = std::vector< Attachment >();
+    setQualityQPs_[id] = std::vector<QualityParameter>();
+    setQualityAts_[id] = std::vector<Attachment>();
     set_Name_ID_map_[name] = id;
     setQualityQPs_members_[id] = names;
   }
@@ -618,7 +618,7 @@ namespace OpenMS
     std::map<String, std::vector<QcMLFile::Attachment> >::const_iterator qpsit = runQualityAts_.find(filename);
     if (qpsit == runQualityAts_.end()) //try name mapping if 'filename' is no ID but name
     {
-      std::map<String, String >::const_iterator mapsit = run_Name_ID_map_.find(filename);
+      std::map<String, String>::const_iterator mapsit = run_Name_ID_map_.find(filename);
       if (mapsit != run_Name_ID_map_.end())
       {
         qpsit = runQualityAts_.find(mapsit->second);
@@ -628,7 +628,7 @@ namespace OpenMS
     {
       for (std::vector<QcMLFile::Attachment>::const_iterator qit = qpsit->second.begin(); qit != qpsit->second.end(); ++qit)
       {
-        if ( (qpname == qit->name) || (qpname == qit->cvAcc) )
+        if ((qpname == qit->name) || (qpname == qit->cvAcc))
         {
           return qit->toCSVString("\t");
           //~ return qit->toXMLString(1);
@@ -640,7 +640,7 @@ namespace OpenMS
     qpsit = setQualityAts_.find(filename);
     if (qpsit == setQualityAts_.end()) //try name mapping if 'filename' is no ID but name
     {
-      std::map<String, String >::const_iterator mapsit = set_Name_ID_map_.find(filename);
+      std::map<String, String>::const_iterator mapsit = set_Name_ID_map_.find(filename);
       if (mapsit != set_Name_ID_map_.end())
       {
         qpsit = setQualityAts_.find(mapsit->second);
@@ -650,7 +650,7 @@ namespace OpenMS
     {
       for (std::vector<QcMLFile::Attachment>::const_iterator qit = qpsit->second.begin(); qit != qpsit->second.end(); ++qit)
       {
-        if ( (qpname == qit->name) || (qpname == qit->cvAcc) )
+        if ((qpname == qit->name) || (qpname == qit->cvAcc))
         {
           return qit->toCSVString("\t");
           //~ return qit->toXMLString(1);
@@ -660,13 +660,13 @@ namespace OpenMS
 
     return "";
   }
-  
+
   String QcMLFile::exportQP(const String filename, const String qpname) const
   {
     std::map<String, std::vector<QcMLFile::QualityParameter> >::const_iterator qpsit = runQualityQPs_.find(filename);
     if (qpsit == runQualityQPs_.end()) //try name mapping if 'filename' is no ID but name
     {
-      std::map<String, String >::const_iterator mapsit = run_Name_ID_map_.find(filename);
+      std::map<String, String>::const_iterator mapsit = run_Name_ID_map_.find(filename);
       if (mapsit != run_Name_ID_map_.end())
       {
         qpsit = runQualityQPs_.find(mapsit->second);
@@ -678,7 +678,7 @@ namespace OpenMS
       {
         if (qpname == qit->cvAcc)
         {
-          return /* "\""+ */qit->value/* +"\"" */;
+          return /* "\""+ */ qit->value /* +"\"" */;
         }
       }
     }
@@ -687,37 +687,37 @@ namespace OpenMS
     qpsit = setQualityQPs_.find(filename);
     if (qpsit == setQualityQPs_.end()) //try name mapping if 'filename' is no ID but name
     {
-      std::map<String, String >::const_iterator mapsit = set_Name_ID_map_.find(filename);
+      std::map<String, String>::const_iterator mapsit = set_Name_ID_map_.find(filename);
       if (mapsit != set_Name_ID_map_.end())
       {
         qpsit = setQualityQPs_.find(mapsit->second);
       }
     }
     if (qpsit != setQualityQPs_.end())
-    {    
+    {
       for (std::vector<QcMLFile::QualityParameter>::const_iterator qit = qpsit->second.begin(); qit != qpsit->second.end(); ++qit)
       {
         if (qpname == qit->name)
         {
-          return /* "\""+ */qit->value/* +"\"" */;
+          return /* "\""+ */ qit->value /* +"\"" */;
         }
       }
     }
 
     return "N/A";
   }
-  
-   String QcMLFile::exportQPs(const String filename, const StringList qpnames) const
+
+  String QcMLFile::exportQPs(const String filename, const StringList qpnames) const
   {
     String ret = "";
     for (StringList::const_iterator qit = qpnames.begin(); qit != qpnames.end(); ++qit)
     {
-       ret += exportQP(filename,*qit);
-       ret += ",";
+      ret += exportQP(filename, *qit);
+      ret += ",";
     }
     return ret;
   }
-  
+
   String QcMLFile::map2csv(const std::map<String, std::map<String, String> >& cvs_table, const String& separator) const
   {
     String ret = "";
@@ -760,7 +760,7 @@ namespace OpenMS
     std::map<String, std::vector<QualityParameter> >::const_iterator found = setQualityQPs_.find(filename);
     if (found == setQualityQPs_.end()) //try name mapping if 'filename' is no ID but name
     {
-      std::map<String, String >::const_iterator mapsit = set_Name_ID_map_.find(filename);
+      std::map<String, String>::const_iterator mapsit = set_Name_ID_map_.find(filename);
       if (mapsit != set_Name_ID_map_.end())
       {
         found = setQualityQPs_.find(mapsit->second);
@@ -1001,7 +1001,7 @@ namespace OpenMS
         //~ name_ = String(UniqueIdGenerator::getUniqueId());
         //TODO give warning that a run should have a name cv!!!
       }
-      registerRun(run_id_,name_);
+      registerRun(run_id_, name_);
       for (std::vector<QualityParameter>::const_iterator it = qps_.begin(); it != qps_.end(); ++it)
       {
         addRunQualityParameter(run_id_, *it);
@@ -1059,104 +1059,104 @@ namespace OpenMS
        << "  id  ID  #REQUIRED>\n"
        << "  ]>\n";
     os << "<qcML xmlns=\"http://www.prime-xs.eu/ms/qcml\" >\n"; //TODO creation date into schema!!
-    os <<"<xsl:stylesheet id=\"stylesheet\" version=\"1.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\" xmlns:ns=\"http://www.prime-xs.eu/ms/qcml\" xmlns=\"\">" << "\n"
-      << "	<xsl:template match=\"/\">" << "\n"
-      << "		<html>" << "\n"
-      << "			<body>" << "\n"
-      << "				<h2>Run QC</h2>" << "\n"
-      << "				<xsl:for-each select=\"ns:qcML/ns:runQuality\">" << "\n"
-      << "					<xsl:apply-templates select=\"ns:qualityParameter[@accession = 'MS:1000577']\"/>" << "\n"
-      << "					<xsl:apply-templates select=\"ns:qualityParameter[not(@accession = 'MS:1000577')]\"/>" << "\n"
-      << "				<!--<xsl:apply-templates select=\"ns:qualityParameter[not(@accession = 'MS:1000577') and @value]\" />" << "\n"
-      << "					<xsl:apply-templates select=\"ns:qualityParameter[not(@value)]\" />-->" << "\n"
-      << "				</xsl:for-each>" << "\n"
-      << "				<h2>Set QC</h2>" << "\n"
-      << "				<xsl:for-each select=\"ns:qcML/ns:setQuality\">" << "\n"
-      << "					<xsl:apply-templates/>" << "\n"
-      << "				</xsl:for-each>" << "\n"
-      << "			</body>" << "\n"
-      << "		</html>" << "\n"
-      << "	</xsl:template>" << "\n"
-      << "	<xsl:template match=\"ns:qualityParameter[@accession = 'MS:1000577']\">" << "\n"
-      << "		<h3>" << "\n"
-      << "			<xsl:value-of select=\"@value\"/>" << "\n"
-      << "		</h3>" << "\n"
-      << "	</xsl:template>" << "\n"
-      << "	<xsl:template match=\"ns:qualityParameter[not(@accession = 'MS:1000577') and @value]\">" << "\n"
-      << "		<xsl:value-of select=\"@name\"/>: <xsl:value-of select=\"@value\"/><br/>" << "\n"
-      << "		<xsl:call-template name=\"qp-attachments\">" << "\n"
-      << "			<xsl:with-param name=\"qpref\" select=\"@ID\"/>" << "\n"
-      << "		</xsl:call-template>" << "\n"
-      << "	</xsl:template>" << "\n"
-      << "	<xsl:template match=\"ns:qualityParameter[not(@value)]\">" << "\n"
-      << "		<xsl:value-of select=\"@name\"/>:<br/>" << "\n"
-      << "		<xsl:call-template name=\"qp-attachments\">" << "\n"
-      << "			<xsl:with-param name=\"qpref\" select=\"@ID\"/>" << "\n"
-      << "		</xsl:call-template>" << "\n"
-      << "	</xsl:template>" << "\n"
-      << "	<xsl:template match=\"ns:attachment\">" << "\n"
-      << "		<!--Attachments handled otherwise below -->" << "\n"
-      << "	</xsl:template>" << "\n"
-      << "	<xsl:template name=\"qp-attachments\">" << "\n"
-      << "		<xsl:param name=\"qpref\"/>" << "\n"
-      << "		<xsl:for-each select=\"../ns:attachment[@qualityParameterRef=$qpref]\"> +<xsl:value-of select=\"@name\"/>+<br/>" << "\n"
-      << "			<xsl:choose>" << "\n"
-      << "				<xsl:when test=\"ns:binary\">" << "\n"
-      << "					<img>" << "\n"
-      << "						<xsl:attribute name=\"src\"> data:image/png;base64,<xsl:value-of select=\"ns:binary\"/>" << "\n"
-      << "						</xsl:attribute>" << "\n"
-      << "					</img>" << "\n"
-      << "					<br/>" << "\n"
-      << "				</xsl:when>" << "\n"
-      << "				<xsl:otherwise>" << "\n"
-      << "					<table border=\"0\">" << "\n"
-      << "						<tr bgcolor=\"#B2CCFF\">" << "\n"
-      << "							<xsl:call-template name=\"output-header\">" << "\n"
-      << "								<xsl:with-param name=\"list\"><xsl:value-of select=\"ns:table/ns:tableColumnTypes\"/></xsl:with-param>" << "\n"
-      << "							</xsl:call-template>" << "\n"
-      << "						</tr>" << "\n"
-      << "						<xsl:for-each select=\"ns:table/ns:tableRowValues\">" << "\n"
-      << "							<tr>" << "\n"
-      << "								<xsl:call-template name=\"output-row\">" << "\n"
-      << "									<xsl:with-param name=\"list\"><xsl:value-of select=\".\" /></xsl:with-param>" << "\n"
-      << "								</xsl:call-template>" << "\n"
-      << "							</tr>" << "\n"
-      << "						</xsl:for-each>" << "\n"
-      << "					</table><br/>" << "\n"
-      << "				</xsl:otherwise>" << "\n"
-      << "			</xsl:choose>" << "\n"
-      << "		</xsl:for-each>" << "\n"
-      << "	</xsl:template>" << "\n"
-      << "	<xsl:template name=\"output-header\">" << "\n"
-      << "		<xsl:param name=\"list\"/>" << "\n"
-      << "		<xsl:variable name=\"newlist\" select=\"concat(normalize-space($list), ' ')\"/>" << "\n"
-      << "		<xsl:variable name=\"first\" select=\"substring-before($newlist, ' ')\"/>" << "\n"
-      << "		<xsl:variable name=\"remaining\" select=\"substring-after($newlist, ' ')\"/>" << "\n"
-      << "		<th>" << "\n"
-      << "			<xsl:value-of select=\"$first\"/>" << "\n"
-      << "		</th>" << "\n"
-      << "		<xsl:if test=\"$remaining\">" << "\n"
-      << "			<xsl:call-template name=\"output-header\">" << "\n"
-      << "				<xsl:with-param name=\"list\" select=\"$remaining\"/>" << "\n"
-      << "			</xsl:call-template>" << "\n"
-      << "		</xsl:if>" << "\n"
-      << "	</xsl:template>" << "\n"
-      << "	<xsl:template name=\"output-row\">" << "\n"
-      << "		<xsl:param name=\"list\"/>" << "\n"
-      << "		<xsl:variable name=\"newlist\" select=\"concat(normalize-space($list), ' ')\"/>" << "\n"
-      << "		<xsl:variable name=\"first\" select=\"substring-before($newlist, ' ')\"/>" << "\n"
-      << "		<xsl:variable name=\"remaining\" select=\"substring-after($newlist, ' ')\"/>" << "\n"
-      << "		<td>" << "\n"
-      << "			<xsl:value-of select=\"$first\"/>" << "\n"
-      << "		</td>" << "\n"
-      << "		<xsl:if test=\"$remaining\">" << "\n"
-      << "			<xsl:call-template name=\"output-row\">" << "\n"
-      << "				<xsl:with-param name=\"list\" select=\"$remaining\"/>" << "\n"
-      << "			</xsl:call-template>" << "\n"
-      << "		</xsl:if>" << "\n"
-      << "	</xsl:template>" << "\n"
-      << "</xsl:stylesheet>" << "\n";
-    
+    os << "<xsl:stylesheet id=\"stylesheet\" version=\"1.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\" xmlns:ns=\"http://www.prime-xs.eu/ms/qcml\" xmlns=\"\">" << "\n"
+       << "	<xsl:template match=\"/\">" << "\n"
+       << "		<html>"<< "\n"
+       << "			<body>"<< "\n"
+       << "				<h2>Run QC</h2>"<< "\n"
+       << "				<xsl:for-each select=\"ns:qcML/ns:runQuality\">"<< "\n"
+       << "					<xsl:apply-templates select=\"ns:qualityParameter[@accession = 'MS:1000577']\"/>"<< "\n"
+       << "					<xsl:apply-templates select=\"ns:qualityParameter[not(@accession = 'MS:1000577')]\"/>"<< "\n"
+       << "				<!--<xsl:apply-templates select=\"ns:qualityParameter[not(@accession = 'MS:1000577') and @value]\" />"<< "\n"
+       << "					<xsl:apply-templates select=\"ns:qualityParameter[not(@value)]\" />-->"<< "\n"
+       << "				</xsl:for-each>"<< "\n"
+       << "				<h2>Set QC</h2>"<< "\n"
+       << "				<xsl:for-each select=\"ns:qcML/ns:setQuality\">"<< "\n"
+       << "					<xsl:apply-templates/>"<< "\n"
+       << "				</xsl:for-each>"<< "\n"
+       << "			</body>"<< "\n"
+       << "		</html>"<< "\n"
+       << "	</xsl:template>" << "\n"
+       << "	<xsl:template match=\"ns:qualityParameter[@accession = 'MS:1000577']\">" << "\n"
+       << "		<h3>"<< "\n"
+       << "			<xsl:value-of select=\"@value\"/>"<< "\n"
+       << "		</h3>"<< "\n"
+       << "	</xsl:template>" << "\n"
+       << "	<xsl:template match=\"ns:qualityParameter[not(@accession = 'MS:1000577') and @value]\">" << "\n"
+       << "		<xsl:value-of select=\"@name\"/>: <xsl:value-of select=\"@value\"/><br/>"<< "\n"
+       << "		<xsl:call-template name=\"qp-attachments\">"<< "\n"
+       << "			<xsl:with-param name=\"qpref\" select=\"@ID\"/>"<< "\n"
+       << "		</xsl:call-template>"<< "\n"
+       << "	</xsl:template>" << "\n"
+       << "	<xsl:template match=\"ns:qualityParameter[not(@value)]\">" << "\n"
+       << "		<xsl:value-of select=\"@name\"/>:<br/>"<< "\n"
+       << "		<xsl:call-template name=\"qp-attachments\">"<< "\n"
+       << "			<xsl:with-param name=\"qpref\" select=\"@ID\"/>"<< "\n"
+       << "		</xsl:call-template>"<< "\n"
+       << "	</xsl:template>" << "\n"
+       << "	<xsl:template match=\"ns:attachment\">" << "\n"
+       << "		<!--Attachments handled otherwise below -->"<< "\n"
+       << "	</xsl:template>" << "\n"
+       << "	<xsl:template name=\"qp-attachments\">" << "\n"
+       << "		<xsl:param name=\"qpref\"/>"<< "\n"
+       << "		<xsl:for-each select=\"../ns:attachment[@qualityParameterRef=$qpref]\"> +<xsl:value-of select=\"@name\"/>+<br/>"<< "\n"
+       << "			<xsl:choose>"<< "\n"
+       << "				<xsl:when test=\"ns:binary\">"<< "\n"
+       << "					<img>"<< "\n"
+       << "						<xsl:attribute name=\"src\"> data:image/png;base64,<xsl:value-of select=\"ns:binary\"/>"<< "\n"
+       << "						</xsl:attribute>"<< "\n"
+       << "					</img>"<< "\n"
+       << "					<br/>"<< "\n"
+       << "				</xsl:when>"<< "\n"
+       << "				<xsl:otherwise>"<< "\n"
+       << "					<table border=\"0\">"<< "\n"
+       << "						<tr bgcolor=\"#B2CCFF\">"<< "\n"
+       << "							<xsl:call-template name=\"output-header\">"<< "\n"
+       << "								<xsl:with-param name=\"list\"><xsl:value-of select=\"ns:table/ns:tableColumnTypes\"/></xsl:with-param>"<< "\n"
+       << "							</xsl:call-template>"<< "\n"
+       << "						</tr>"<< "\n"
+       << "						<xsl:for-each select=\"ns:table/ns:tableRowValues\">"<< "\n"
+       << "							<tr>"<< "\n"
+       << "								<xsl:call-template name=\"output-row\">"<< "\n"
+       << "									<xsl:with-param name=\"list\"><xsl:value-of select=\".\" /></xsl:with-param>"<< "\n"
+       << "								</xsl:call-template>"<< "\n"
+       << "							</tr>"<< "\n"
+       << "						</xsl:for-each>"<< "\n"
+       << "					</table><br/>"<< "\n"
+       << "				</xsl:otherwise>"<< "\n"
+       << "			</xsl:choose>"<< "\n"
+       << "		</xsl:for-each>"<< "\n"
+       << "	</xsl:template>" << "\n"
+       << "	<xsl:template name=\"output-header\">" << "\n"
+       << "		<xsl:param name=\"list\"/>"<< "\n"
+       << "		<xsl:variable name=\"newlist\" select=\"concat(normalize-space($list), ' ')\"/>"<< "\n"
+       << "		<xsl:variable name=\"first\" select=\"substring-before($newlist, ' ')\"/>"<< "\n"
+       << "		<xsl:variable name=\"remaining\" select=\"substring-after($newlist, ' ')\"/>"<< "\n"
+       << "		<th>"<< "\n"
+       << "			<xsl:value-of select=\"$first\"/>"<< "\n"
+       << "		</th>"<< "\n"
+       << "		<xsl:if test=\"$remaining\">"<< "\n"
+       << "			<xsl:call-template name=\"output-header\">"<< "\n"
+       << "				<xsl:with-param name=\"list\" select=\"$remaining\"/>"<< "\n"
+       << "			</xsl:call-template>"<< "\n"
+       << "		</xsl:if>"<< "\n"
+       << "	</xsl:template>" << "\n"
+       << "	<xsl:template name=\"output-row\">" << "\n"
+       << "		<xsl:param name=\"list\"/>"<< "\n"
+       << "		<xsl:variable name=\"newlist\" select=\"concat(normalize-space($list), ' ')\"/>"<< "\n"
+       << "		<xsl:variable name=\"first\" select=\"substring-before($newlist, ' ')\"/>"<< "\n"
+       << "		<xsl:variable name=\"remaining\" select=\"substring-after($newlist, ' ')\"/>"<< "\n"
+       << "		<td>"<< "\n"
+       << "			<xsl:value-of select=\"$first\"/>"<< "\n"
+       << "		</td>"<< "\n"
+       << "		<xsl:if test=\"$remaining\">"<< "\n"
+       << "			<xsl:call-template name=\"output-row\">"<< "\n"
+       << "				<xsl:with-param name=\"list\" select=\"$remaining\"/>"<< "\n"
+       << "			</xsl:call-template>"<< "\n"
+       << "		</xsl:if>"<< "\n"
+       << "	</xsl:template>" << "\n"
+       << "</xsl:stylesheet>" << "\n";
+
     //content runs
     std::set<String> keys;
     for (std::map<String, std::vector<QualityParameter> >::const_iterator it = runQualityQPs_.begin(); it != runQualityQPs_.end(); ++it)
@@ -1219,9 +1219,9 @@ namespace OpenMS
           for (std::set<String>::const_iterator kt = jt->second.begin(); kt != jt->second.end(); ++kt)
           {
             QcMLFile::QualityParameter qp;
-            qp.name = "mzML file";             ///< Name
-            qp.id = *kt + "_run_name";             ///< Identifier
-            qp.cvRef = "MS";             ///< cv reference
+            qp.name = "mzML file"; ///< Name
+            qp.id = *kt + "_run_name"; ///< Identifier
+            qp.cvRef = "MS"; ///< cv reference
             qp.cvAcc = "MS:1000584";
             qp.value = *kt;
             os << qp.toXMLString(4);

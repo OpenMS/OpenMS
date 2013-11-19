@@ -68,7 +68,7 @@ public:
       */
     //@{
     /// Constructor taking a random generator
-    RawMSSignalSimulation(const SimRandomNumberGenerator & rng);
+    explicit RawMSSignalSimulation(const SimRandomNumberGenerator & rng);
 
     /// Copy constructor
     RawMSSignalSimulation(const RawMSSignalSimulation & source);

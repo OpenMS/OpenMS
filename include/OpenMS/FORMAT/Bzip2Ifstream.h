@@ -50,7 +50,7 @@ public:
     ///Default Constructor
     Bzip2Ifstream();
     /// Detailed constructor with filename
-    Bzip2Ifstream(const char * filename);
+    explicit Bzip2Ifstream(const char * filename);
     ///Destructor
     virtual ~Bzip2Ifstream();
 

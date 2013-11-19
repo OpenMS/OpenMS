@@ -70,7 +70,7 @@ namespace OpenMS
   {
 public:
     /// Constructor
-    DBAdapter(DBConnection & db_con);
+    explicit DBAdapter(DBConnection & db_con);
 
     /// Destructor
     ~DBAdapter();
