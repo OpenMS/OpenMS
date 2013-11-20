@@ -44,6 +44,8 @@
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/TraMLFile.h>
+#include <OpenMS/FORMAT/TransformationXMLFile.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
@@ -71,7 +73,7 @@ using namespace std;
         </tr>
         <tr>
         <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerHiRes </td>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_MapAlignerIdentification</td>
+        <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_ProteinQuantifier</td>
         </tr>
         <tr>
         <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFilter </td>
@@ -93,7 +95,7 @@ class TOPPFeatureFinderIdentification :
 {
 public:
   TOPPFeatureFinderIdentification() :
-    TOPPBase("FeatureFinderIdentification", "Detects features in MS1 data based on peptide identifications.", false)
+    TOPPBase("FeatureFinderIdentification", "Detects features in MS1 data based on peptide identifications.")
   {
     rt_term_.setCVIdentifierRef("MS");
     rt_term_.setAccession("MS:1000896");
@@ -162,36 +164,6 @@ protected:
   String reference_rt_; // value of "reference_rt" parameter
   DoubleReal rt_tolerance_; // half the RT window width
 
-  // comparator for spectrum and RT (for "lower_bound"):
-  struct RTLess: public binary_function<MSSpectrum<>, DoubleReal, bool>
-  {
-    inline bool operator()(const MSSpectrum<>& spec, DoubleReal rt) const
-    {
-      return spec.getRT() < rt;
-    }
-    // this overload shouldn't be necessary according to the C++ standard, but
-    // may be required in older versions of Microsoft Visual C++:
-    inline bool operator()(DoubleReal rt, const MSSpectrum<>& spec) const
-    {
-      return rt < spec.getRT();
-    }
-  };
-
-  // comparator for peak and m/z (for "lower_bound"):
-  struct MZLess: public binary_function<Peak1D, DoubleReal, bool>
-  {
-    inline bool operator()(const Peak1D& peak, DoubleReal mz) const
-    {
-      return peak.getMZ() < mz;
-    }
-    // this overload shouldn't be necessary according to the C++ standard, but
-    // may be required in older versions of Microsoft Visual C++:
-    inline bool operator()(DoubleReal mz, const Peak1D& peak) const
-    {
-      return mz < peak.getMZ();
-    }
-  };
-
 
   // add transitions for a peptide ion to the library:
   void addTransitions_(const String& peptide_id, DoubleReal mz, Int charge)
@@ -257,9 +229,17 @@ protected:
         // find precursor:
         DoubleReal ms2_rt = (*pi_it)->getMetaValue("RT");
         DoubleReal prec_mz = (*pi_it)->getMetaValue("MZ");
+        // construct objects for use in "lower_bound" (custom comparison 
+        // functions involving different types don't work in older version of
+        // MS Visual Studio):
+        MSSpectrum<> rt_compare;
+        rt_compare.setRT(ms2_rt);
+        Peak1D mz_compare;
+        mz_compare.setMZ(prec_mz);
         // "lower_bound" gives the MS1 spectrum _after_ the MS2 of the ID:
-        PeakMap::ConstIterator ms1_it = 
-          lower_bound(ms_data_.begin(), ms_data_.end(), ms2_rt, RTLess());
+        PeakMap::ConstIterator ms1_it = lower_bound(ms_data_.begin(), 
+                                                    ms_data_.end(), rt_compare, 
+                                                    MSSpectrum<>::RTLess());
         // the following shouldn't happen, but might if input is combined IDs
         // from different samples - use the current ID only if we have to:
         if ((ms1_it == ms_data_.begin()) && (highest_intensity < 0))
@@ -269,7 +249,8 @@ protected:
         }
         --ms1_it;
         MSSpectrum<>::ConstIterator peak_it = 
-          lower_bound(ms1_it->begin(), ms1_it->end(), prec_mz, MZLess());
+          lower_bound(ms1_it->begin(), ms1_it->end(), mz_compare, 
+                      Peak1D::MZLess());
         if (peak_it == ms1_it->end())
         {
           --peak_it; // assuming the spectrum isn't empty, which it shouldn't be
