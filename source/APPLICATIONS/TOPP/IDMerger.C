@@ -266,17 +266,25 @@ protected:
     {
       bool annotate_file_origin = getFlag_("annotate_file_origin");
       map<String, ProteinIdentification> proteins_by_id;
-      for (StringList::Iterator file_it = file_names.begin();
-           file_it != file_names.end(); ++file_it)
+      vector<vector<PeptideIdentification> > peptides_by_file;
+      StringList add_to_ids; // IDs from the "add_to" file (if any)
+
+      if (!add_to.empty()) {
+        remove(file_names.begin(), file_names.end(), add_to);
+        file_names.insert(file_names.begin(), add_to);
+      }
+
+      peptides_by_file.resize(file_names.size());
+      for (Size i = 0; i < file_names.size(); ++i)
       {
+        const String& file_name = file_names[i];
         vector<ProteinIdentification> additional_proteins;
-        vector<PeptideIdentification> additional_peptides;
-        IdXMLFile().load(*file_it, additional_proteins, additional_peptides);
+        IdXMLFile().load(file_name, additional_proteins, peptides_by_file[i]);
 
         if (annotate_file_origin) // set MetaValue "file_origin" if flag is set
         {
-          annotateFileOrigin_(additional_proteins, additional_peptides, 
-                              *file_it);
+          annotateFileOrigin_(additional_proteins, peptides_by_file[i], 
+                              file_name);
         }
 
         for (vector<ProteinIdentification>::iterator prot_it =
@@ -298,24 +306,26 @@ protected:
             prot_it->setIdentifier(new_id);
             prot_it->setDateTime(date_time);
             for (vector<PeptideIdentification>::iterator pep_it =
-                   additional_peptides.begin(); pep_it != 
-                   additional_peptides.end(); ++pep_it)
+                   peptides_by_file[i].begin(); pep_it != 
+                   peptides_by_file[i].end(); ++pep_it)
             {
               if (pep_it->getIdentifier() == id) pep_it->setIdentifier(new_id);
             }
             id = new_id;
           }
           proteins_by_id[id] = *prot_it;
+          if (i == 0) add_to_ids << id;
         }
-
-        peptides.insert(peptides.end(), additional_peptides.begin(),
-                        additional_peptides.end());
       }
-      LOG_DEBUG << "protein IDs: " << proteins_by_id.size() << endl
-                << "peptide IDs: " << peptides.size() << endl;
 
       if (add_to.empty()) // copy proteins from map into vector for writing
       {
+        for (vector<vector<PeptideIdentification> >::iterator pep_it =
+               peptides_by_file.begin(); pep_it != peptides_by_file.end();
+             ++pep_it)
+        {
+          peptides.insert(peptides.end(), pep_it->begin(), pep_it->end());
+        }
         for (map<String, ProteinIdentification>::iterator map_it = 
                proteins_by_id.begin(); map_it != proteins_by_id.end(); ++map_it)
         {
@@ -324,21 +334,16 @@ protected:
       }
       else // add only new IDs to an existing file
       {
-        map<String, ProteinIdentification> base_proteins;
-        vector<PeptideIdentification> base_peptides;
-        set<String> accessions;
-        IdXMLFile().load(add_to, proteins, base_peptides);
-        for (vector<ProteinIdentification>::iterator prot_it = proteins.begin();
-             prot_it != proteins.end(); ++prot_it)
+        // copy over data from reference file ("add_to"):
+        map<String, ProteinIdentification> selected_proteins;
+        for (StringList::iterator ids_it = add_to_ids.begin(); 
+             ids_it != add_to_ids.end(); ++ids_it)
         {
-          base_proteins[prot_it->getIdentifier()] = *prot_it;
-          for (vector<ProteinHit>::iterator hit_it = prot_it->getHits().begin();
-               hit_it != prot_it->getHits().end(); ++hit_it)
-          {
-            accessions.insert(hit_it->getAccession());
-          }
+          selected_proteins[*ids_it] = proteins_by_id[*ids_it];
         }
+        // keep track of peptides that shouldn't be duplicated:
         set<AASequence> sequences;
+        vector<PeptideIdentification>& base_peptides = peptides_by_file[0];
         for (vector<PeptideIdentification>::iterator pep_it = 
                base_peptides.begin(); pep_it != base_peptides.end(); ++pep_it)
         {
@@ -346,68 +351,75 @@ protected:
           pep_it->sort();
           sequences.insert(pep_it->getHits()[0].getSequence());
         }
-        LOG_DEBUG << "accessions: " << accessions.size() << endl;
-        for (vector<PeptideIdentification>::iterator pep_it = peptides.begin(); 
-             pep_it != peptides.end(); ++pep_it)
+        peptides.insert(peptides.end(), base_peptides.begin(), 
+                        base_peptides.end());
+        // merge in data from other files:
+        for (vector<vector<PeptideIdentification> >::iterator file_it =
+               ++peptides_by_file.begin(); file_it != peptides_by_file.end();
+             ++file_it)
         {
-          if (pep_it->getHits().empty()) continue;
-          pep_it->sort();
-          const PeptideHit& hit = pep_it->getHits()[0];
-          LOG_DEBUG << "peptide: " << hit.getSequence().toString() << endl;
-          // skip ahead if peptide is not new:
-          if (sequences.find(hit.getSequence()) != sequences.end()) continue;
-          LOG_DEBUG << "new peptide!" << endl;
-          pep_it->getHits().resize(1); // restrict to best hit for simplicity
-          base_peptides.push_back(*pep_it);
-          // copy over proteins:
-          for (vector<String>::const_iterator acc_it = 
-                 hit.getProteinAccessions().begin();  acc_it !=
-                 hit.getProteinAccessions().end(); ++acc_it)
+          set<String> accessions; // keep track to avoid duplicates
+          for (vector<PeptideIdentification>::iterator pep_it = 
+                 file_it->begin(); pep_it != file_it->end(); ++pep_it)
           {
-            LOG_DEBUG << "accession: " << *acc_it << endl;
-            // skip ahead if accession is not new:
-            if (accessions.find(*acc_it) != accessions.end()) continue;
-            LOG_DEBUG << "new accession!" << endl;
-            // first find the right protein identification:
-            const String& id = pep_it->getIdentifier();
-            LOG_DEBUG << "identifier: " << id << endl;
-            if (proteins_by_id.find(id) == proteins_by_id.end()) 
+            if (pep_it->getHits().empty()) continue;
+            pep_it->sort();
+            const PeptideHit& hit = pep_it->getHits()[0];
+            LOG_DEBUG << "peptide: " << hit.getSequence().toString() << endl;
+            // skip ahead if peptide is not new:
+            if (sequences.find(hit.getSequence()) != sequences.end()) continue;
+            LOG_DEBUG << "new peptide!" << endl;
+            pep_it->getHits().resize(1); // restrict to best hit for simplicity
+            peptides.push_back(*pep_it);
+            // copy over proteins:
+            for (vector<String>::const_iterator acc_it = 
+                   hit.getProteinAccessions().begin(); acc_it !=
+                   hit.getProteinAccessions().end(); ++acc_it)
             {
-              writeLog_("Error: identifier '" + id + 
-                        "' linking peptides and proteins not found. Skipping.");
-              continue;
+              LOG_DEBUG << "accession: " << *acc_it << endl;
+              // skip ahead if accession is not new:
+              if (accessions.find(*acc_it) != accessions.end()) continue;
+              LOG_DEBUG << "new accession!" << endl;
+              // first find the right protein identification:
+              const String& id = pep_it->getIdentifier();
+              LOG_DEBUG << "identifier: " << id << endl;
+              if (proteins_by_id.find(id) == proteins_by_id.end()) 
+              {
+                writeLog_("Error: identifier '" + id + "' linking peptides and proteins not found. Skipping.");
+                continue;
+              }
+              ProteinIdentification& protein = proteins_by_id[id];
+              // now find the protein hit:
+              vector<ProteinHit>::iterator hit_it = protein.findHit(*acc_it);
+              if (hit_it == protein.getHits().end())
+              {
+                writeLog_("Error: accession '" + *acc_it + "' not found in "
+                          "protein identification '" + id + "'. Skipping.");
+                continue;
+              }
+              // we may need to copy protein ID meta data, if we haven't yet:
+              if (selected_proteins.find(id) == selected_proteins.end())
+              {
+                LOG_DEBUG << "adding protein identification" << endl;
+                selected_proteins[id] = protein;
+                selected_proteins[id].getHits().clear();
+                // remove potentially invalid information:
+                selected_proteins[id].getProteinGroups().clear();
+                selected_proteins[id].getIndistinguishableProteins().clear();
+              }
+              selected_proteins[id].insertHit(*hit_it);
+              accessions.insert(*acc_it);
+              // NOTE: we're only adding the first protein hit for each
+              // accession, not taking into account scores or any meta data
             }
-            ProteinIdentification& protein = proteins_by_id[id];
-            // now find the protein hit:
-            vector<ProteinHit>::iterator hit_it = protein.findHit(*acc_it);
-            if (hit_it == protein.getHits().end())
-            {
-              writeLog_("Error: accession '" + *acc_it + "' not found in "
-                        "protein identification '" + id + "'. Skipping.");
-              continue;
-            }
-            if (base_proteins.find(id) == base_proteins.end()) // not copied yet
-            {
-              LOG_DEBUG << "adding protein identification" << endl;
-              base_proteins[id] = protein;
-              base_proteins[id].getHits().clear();
-              // remove potentially invalid information:
-              base_proteins[id].getProteinGroups().clear();
-              base_proteins[id].getIndistinguishableProteins().clear();
-            }
-            base_proteins[id].insertHit(*hit_it);
-            accessions.insert(*acc_it);
-            // NOTE: we're only adding the first protein hit for each accession,
-            // not taking into account scores or any meta data
           }
         }
-        proteins.clear();
         for (map<String, ProteinIdentification>::iterator map_it = 
-               base_proteins.begin(); map_it != base_proteins.end(); ++map_it)
+               selected_proteins.begin(); map_it != selected_proteins.end();
+             ++map_it)
         {
           proteins.push_back(map_it->second);
         }
-        peptides.swap(base_peptides);
       }
     }
 
@@ -415,6 +427,8 @@ protected:
     // writing output
     //-------------------------------------------------------------
 
+    LOG_DEBUG << "protein IDs: " << proteins.size() << endl
+              << "peptide IDs: " << peptides.size() << endl;
     IdXMLFile().store(out, proteins, peptides);
 
     return EXECUTION_OK;
