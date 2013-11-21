@@ -1,9 +1,32 @@
 format-version: 1.2
 data-version: 0.1.0
+date: 20:11:2013 11:03
+saved-by: Mathias Walzer
 remark: creator: Mathias Walzer <walzer <-at-> informatik.uni-tuebingen.de>
+import: http://unit-ontology.googlecode.com/svn/trunk/unit.obo
+import: http://psidev.cvs.sourceforge.net/viewvc/psidev/psi/psi-ms/mzML/controlledVocabulary/psi-ms.obo
 default-namespace: QC
 remark: namespace: QC
 remark: version: 0.1.0
+ontology: uo
+ontology: ms
+
+[Typedef]
+id: has_regexp
+name: has regexp
+
+[Typedef]
+id: has_units
+name: has_units
+
+[Typedef]
+id: part_of
+name: part_of
+is_transitive: true
+
+[Typedef]
+id: has_order
+name: has_order
 
 [Term]
  id: QC:0000001
@@ -69,7 +92,7 @@ remark: run name is MS:1000577 as raw data file in [PSI:MS]
  is_a: QC:0000048 ! value table
  
  
- [Term]
+[Term]
  id: QC:0000010
  name: MS min MZ
  def: "Contains the actual min MZ occurrence in MS aquisition." [PXS:QC]
