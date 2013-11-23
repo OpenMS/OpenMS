@@ -1,26 +1,27 @@
 <?xml version="1.0"?>
 <?xml-stylesheet type="text/xsl" href="tandem-input-style.xsl"?>
 <bioml>
-  <note type="input" label="list path, default parameters">blubb_new_default_parameters_file</note>
-  <note type="input" label="list path, taxonomy information">blubb_new_taxonomy_file</note>
-  <note type="input" label="spectrum, path">blubb_new_inputfilename</note>
-  <note type="input" label="spectrum, fragment monoisotopic mass error">13</note>
-  <note type="input" label="spectrum, parent monoisotopic mass error plus">14</note>
-  <note type="input" label="spectrum, parent monoisotopic mass error minus">15</note>
-  <note type="input" label="spectrum, parent monoisotopic mass isotope error">no</note>
-  <note type="input" label="spectrum, fragment monoisotopic mass error units">ppm</note>
-  <note type="input" label="spectrum, parent monoisotopic mass error units">ppm</note>
-  <note type="input" label="spectrum, fragment mass type">monoisotopic</note>
-  <note type="input" label="spectrum, maximum parent charge">17</note>
-  <note type="input" label="spectrum, threads">16</note>
-  <note type="input" label="residue, modification mass">+28.0313@[,+15.994915@M</note>
-  <note type="input" label="residue, potential modification mass">+17.026549@],+58.005479@C</note>
-  <note type="input" label="protein, taxon">blubb_taxon</note>
-  <note type="input" label="output, path">blubb_new_outputfilename</note>
-  <note type="input" label="protein, cleavage semi">yes</note>
-  <note type="input" label="refine">yes</note>
-  <note type="input" label="scoring, maximum missed cleavage sites">18</note>
-  <note type="input" label="output, sort results by">spectrum</note>
-  <note type="input" label="output, results">all</note>
-  <note type="input" label="output, maximum valid expectation value">19</note>
+	<note type="input" label="list path, default parameters">blubb_new_default_parameters_file</note>
+	<note type="input" label="list path, taxonomy information">blubb_new_taxonomy_file</note>
+	<note type="input" label="spectrum, path">blubb_new_inputfilename</note>
+	<note type="input" label="spectrum, fragment monoisotopic mass error">13</note>
+	<note type="input" label="spectrum, parent monoisotopic mass error plus">14</note>
+	<note type="input" label="spectrum, parent monoisotopic mass error minus">15</note>
+	<note type="input" label="spectrum, parent monoisotopic mass isotope error">no</note>
+	<note type="input" label="spectrum, fragment monoisotopic mass error units">ppm</note>
+	<note type="input" label="spectrum, parent monoisotopic mass error units">ppm</note>
+	<note type="input" label="spectrum, fragment mass type">monoisotopic</note>
+	<note type="input" label="spectrum, maximum parent charge">17</note>
+	<note type="input" label="spectrum, threads">16</note>
+	<note type="input" label="residue, modification mass">+28.0313@[,+15.994915@M</note>
+	<note type="input" label="residue, potential modification mass">+17.026549@],+58.005479@C</note>
+	<note type="input" label="protein, taxon">blubb_taxon</note>
+	<note type="input" label="output, path">blubb_new_outputfilename</note>
+	<note type="input" label="protein, cleavage site">[RK]|{P}</note>
+	<note type="input" label="protein, cleavage semi">yes</note>
+	<note type="input" label="refine">yes</note>
+	<note type="input" label="scoring, maximum missed cleavage sites">18</note>
+	<note type="input" label="output, sort results by">spectrum</note>
+	<note type="input" label="output, results">all</note>
+	<note type="input" label="output, maximum valid expectation value">19</note>
 </bioml>
