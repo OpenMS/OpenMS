@@ -1216,11 +1216,12 @@ protected:
       expected_chromatograms = computeExpectedChromatograms(swath_maps, transition_exp); 
       chromConsumer->setExpectedSize(0, expected_chromatograms);
       chromConsumer->setExperimentalSettings(*exp_meta);
+      chromConsumer->getOptions().setWriteIndex(true);  // ensure that we write the index
       chromConsumer->addDataProcessing(getProcessingInfo_(DataProcessing::SMOOTHING));
     }
     else
     {
-      chromConsumer = new NoopMSDataWritingConsumer(out_chrom);
+      chromConsumer = new NoopMSDataWritingConsumer("");
     }
 
     ///////////////////////////////////
