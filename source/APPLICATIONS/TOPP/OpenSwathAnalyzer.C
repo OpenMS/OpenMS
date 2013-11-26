@@ -221,7 +221,7 @@ protected:
     mzmlfile.setLogType(log_type_);
     mzmlfile.load(in, *exp.get());
 
-    // If there are no SWATH files its, just regular SRM/MRM Scoring
+    // If there are no SWATH files, it's just regular SRM/MRM Scoring
     if (file_list.size() == 0)
     {
       MRMFeatureFinderScoring featureFinder;
