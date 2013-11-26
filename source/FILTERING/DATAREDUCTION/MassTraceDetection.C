@@ -130,7 +130,7 @@ void updateMeanEstimate(const DoubleReal & x_t, DoubleReal & mean_t, Size t)
 {
     DoubleReal tmp(mean_t);
 
-    tmp = mean_t + (1.0 / (t + 1)) * (x_t - mean_t);
+    tmp = mean_t + (1.0 / ((DoubleReal)t + 1.0)) * (x_t - mean_t);
 
     mean_t = tmp;
 }

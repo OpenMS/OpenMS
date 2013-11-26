@@ -25,6 +25,7 @@ LabeledEval
 LowMemPeakPickerHiRes
 LowMemPeakPickerHiRes_RandomAccess
 MassCalculator
+MetaboliteSpectralMatcher
 MRMPairFinder
 MSSimulator
 MapAlignmentEvaluation

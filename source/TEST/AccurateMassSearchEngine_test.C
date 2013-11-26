@@ -62,7 +62,7 @@ START_SECTION(AccurateMassSearchEngine())
 }
 END_SECTION
 
-START_SECTION(~AccurateMassSearchEngine())
+START_SECTION(virtual ~AccurateMassSearchEngine())
 {
     delete ptr;
 }

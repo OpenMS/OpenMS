@@ -75,6 +75,9 @@ public:
     virtual ~MetaboliteSpectralMatching();
 
 
+    /// hyperscore computation
+    DoubleReal computeHyperScore(MSSpectrum<Peak1D>, MSSpectrum<Peak1D>, const DoubleReal&, const DoubleReal&);
+
     /// main method of MetaboliteSpectralMatching
     void run(MSExperiment<>&, MzTab&);
 
@@ -85,9 +88,9 @@ protected:
 private:
     /// private member functions
 
-    DoubleReal precursor_mz_error;
-    DoubleReal fragment_mz_error;
-    String precursor_mz_error_unit;
+    DoubleReal precursor_mz_error_;
+    DoubleReal fragment_mz_error_;
+    String mz_error_unit_;
 };
 
 

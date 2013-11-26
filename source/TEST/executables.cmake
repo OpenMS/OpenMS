@@ -504,7 +504,7 @@ set(transformations_executables_list
   OptimizePick_test
   PeakPickerCWT_test
   PeakPickerHiRes_test
-  PeakWidthEstimator_test
+PeakWidthEstimator_test
   PeakShape_test
   ProductModel_test
   SeedListGenerator_test

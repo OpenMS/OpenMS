@@ -78,81 +78,77 @@ MetaboliteSpectralMatching::~MetaboliteSpectralMatching()
 
 /// public methods
 
-DoubleReal computeHyperScore(DoubleReal min_frag_mz, DoubleReal frag_tol_ppm,
-                             MSSpectrum<Peak1D> exp_spectrum,
-                             MSSpectrum<Peak1D> theo_spectrum) {
+DoubleReal MetaboliteSpectralMatching::computeHyperScore(MSSpectrum<Peak1D> exp_spectrum, MSSpectrum<Peak1D> db_spectrum,
+                                                         const DoubleReal& fragment_mass_error, const DoubleReal& mz_lower_bound)
+{
 
-    DoubleReal dotProduct = 0.0;
+    DoubleReal dot_product(0.0);
     Size matched_ions_count(0);
 
-    //iterate over peaks in exp spectrum and find overlapping peaks in theo spectrum
-    for (MSSpectrum<Peak1D>::iterator peak_it = exp_spectrum.begin(); peak_it != exp_spectrum.end(); ++peak_it)
+    // scan for matching peaks between observed and DB stored spectra
+    for (MSSpectrum<Peak1D>::iterator frag_it = exp_spectrum.MZBegin(mz_lower_bound); frag_it != exp_spectrum.end(); ++frag_it)
     {
-        DoubleReal mz = peak_it->getMZ();
-        if (mz >= min_frag_mz)
+        DoubleReal frag_mz = frag_it->getMZ();
+
+        DoubleReal mz_offset = fragment_mass_error;
+
+        if (mz_error_unit_ == "ppm")
         {
-            DoubleReal maxDist = mz * frag_tol_ppm * 1e-6;
+            mz_offset = frag_mz * 1e-6 * fragment_mass_error;
+        }
 
-            //iterate over peaks in theo spectrum in given fragment tolerance
-            MSSpectrum<Peak1D>::iterator theo_begin =
-                    theo_spectrum.MZBegin(mz - maxDist);
-            MSSpectrum<Peak1D>::iterator theo_end = theo_spectrum.MZEnd(
-                        mz + maxDist);
+        MSSpectrum<Peak1D>::iterator db_mass_it = db_spectrum.MZBegin(frag_mz - mz_offset);
+        MSSpectrum<Peak1D>::iterator db_mass_end = db_spectrum.MZEnd(frag_mz + mz_offset);
 
-            std::pair<DoubleReal, Peak1D> bestPeak(maxDist + 1, Peak1D());
+        std::pair<DoubleReal, Peak1D> nearest_peak(mz_offset + 1.0, Peak1D());
 
-            //find best peak
-            for (; theo_begin != theo_end; ++theo_begin)
-            {
-                DoubleReal theo_mz = theo_begin->getMZ();
-                DoubleReal dist = std::abs(mz - theo_mz);
-                if (dist < bestPeak.first) {
-                    bestPeak.first = dist;
-                    bestPeak.second = *theo_begin;
-                }
+        // linear search for peak nearest to observed fragment peak
+        for (; db_mass_it != db_mass_end; ++db_mass_it)
+        {
+            DoubleReal db_mz(db_mass_it->getMZ());
+            DoubleReal abs_mass_diff(std::abs(frag_mz - db_mz));
+
+            if (abs_mass_diff < nearest_peak.first) {
+                nearest_peak.first = abs_mass_diff;
+                nearest_peak.second = *db_mass_it;
             }
-            // update dotproduct
-            // look if matching peak was found
-            if (bestPeak.second.getIntensity() > 0.0)
-            {
-                ++matched_ions_count;
+        }
 
-                //add intensity of exp peak to dotproduct
-                dotProduct += peak_it->getIntensity() * bestPeak.second.getIntensity();
-            }
-
+        // update dot product
+        if (nearest_peak.second.getIntensity() > 0.0)
+        {
+            ++matched_ions_count;
+            dot_product += frag_it->getIntensity() * nearest_peak.second.getIntensity();
         }
     }
 
-    //		compute hyperscore from dotproduct
-    // std::cout << "matched ions: " << matched_ions_count << std::endl;
-    DoubleReal matchedFact;
+    DoubleReal matched_ions_term(0.0);
 
+    // return score 0 if too few matched ions
     if (matched_ions_count < 3)
     {
-        return 0.0;
+        return matched_ions_term;
     }
 
 
     if (matched_ions_count <= boost::math::max_factorial<DoubleReal>::value)
     {
-        matchedFact = std::log(boost::math::factorial<DoubleReal>((DoubleReal)matched_ions_count));
+        matched_ions_term = std::log(boost::math::factorial<DoubleReal>((DoubleReal)matched_ions_count));
     }
     else
     {
-        matchedFact = std::log(boost::math::factorial<DoubleReal>(boost::math::max_factorial<DoubleReal>::value));
+        matched_ions_term = std::log(boost::math::factorial<DoubleReal>(boost::math::max_factorial<DoubleReal>::value));
     }
 
-    DoubleReal hyperScore = std::log(dotProduct) + matchedFact;
+    DoubleReal hyperscore(std::log(dot_product) + matched_ions_term);
 
 
-    if (hyperScore < 0)
+    if (hyperscore < 0)
     {
-        hyperScore = 0;
+        hyperscore = 0;
     }
-    //round to one decimal point
-    return std::floor(hyperScore * 10) / 10;
 
+    return hyperscore;
 }
 
 void MetaboliteSpectralMatching::run(MSExperiment<> & msexp, MzTab& mztab_out)
@@ -164,10 +160,7 @@ void MetaboliteSpectralMatching::run(MSExperiment<> & msexp, MzTab& mztab_out)
     (mzfile.getOptions()).setMSLevels(ms_level);
     mzfile.load(File::find("CHEMISTRY/MetaboliteSpectralDB.mzML"), spec_db);
 
-    std::cout << "size: " << spec_db.size() << std::endl;
-    std::cout << "sort start..." << std::endl;
     std::sort(spec_db.begin(), spec_db.end(), PrecursorMZLess);
-    std::cout << "sort end..." << std::endl;
 
     std::vector<DoubleReal> mz_keys;
 
@@ -177,88 +170,90 @@ void MetaboliteSpectralMatching::run(MSExperiment<> & msexp, MzTab& mztab_out)
         mz_keys.push_back(spec_db[spec_idx].getPrecursors()[0].getMZ());
     }
 
-    // remove potential noise peaks by selecting the two most intense peak per 50 Da window
+    // remove potential noise peaks by selecting the ten most intense peak per 100 Da window
     WindowMower wm;
     Param wm_param;
 
-    wm_param.setValue("movetype", "jump");
-    wm_param.setValue("peakcount", 4);
-    // wm_param.setValue("windowsize", 100.0);
+    wm_param.setValue("windowsize", 100.0);
+    wm_param.setValue("movetype", "slide");
+    wm_param.setValue("peakcount", 10);
     wm.setParameters(wm_param);
 
     wm.filterPeakMap(msexp);
 
     // merge MS2 spectra with same precursor mass
-    std::cout << "num of specs before merge:" << msexp.size() << std::endl;
     SpectraMerger spme;
     spme.mergeSpectraPrecursors(msexp);
     wm.filterPeakMap(msexp);
 
-    std::cout << "num of specs AFTER merge:" << msexp.size() << std::endl;
-    std::cout << "peaks in spec: " << msexp[0].size() << std::endl;
-
-
-std::cout << "peaks in spec after mowing: " << msexp[0].size() << std::endl;
-
 
     for (Size spec_idx = 0; spec_idx < msexp.size(); ++spec_idx)
     {
-        // get precursor m/z
-        DoubleReal precursor_mz(msexp[spec_idx].getPrecursors()[0].getMZ());
+        std::cout << "merged spectrum no. " << spec_idx << " with #fragment ions: " << msexp[spec_idx].size() << std::endl;
 
-
-        std::cout <<  precursor_mz << " with " << msexp[spec_idx].size() << " " << msexp[spec_idx].getPrecursors().size() << std::endl;
-
-        DoubleReal prec_mz_lowerbound, prec_mz_upperbound;
-
-        if (precursor_mz_error_unit == "Da")
+        // iterate over all precursor masses
+        for (Size prec_idx = 0; prec_idx < msexp[spec_idx].getPrecursors().size(); ++prec_idx)
         {
-            prec_mz_lowerbound = precursor_mz - precursor_mz_error;
-            prec_mz_upperbound = precursor_mz + precursor_mz_error;
-        }
-        else
-        {
-            DoubleReal ppm_offset(precursor_mz * 1e-6 * precursor_mz_error);
-            prec_mz_lowerbound = precursor_mz - ppm_offset;
-            prec_mz_upperbound = precursor_mz + ppm_offset;
-        }
+            // get precursor m/z
+            DoubleReal precursor_mz(msexp[spec_idx].getPrecursors()[prec_idx].getMZ());
 
+            std::cout << "precursor no. " << prec_idx << ": mz " << precursor_mz << " ";
 
-        std::cout << "lower mz: " << prec_mz_lowerbound << std::endl;
-        std::cout << "upper mz: " << prec_mz_upperbound << std::endl;
+            DoubleReal prec_mz_lowerbound, prec_mz_upperbound;
 
-        std::vector<DoubleReal>::const_iterator lower_it = std::lower_bound(mz_keys.begin(), mz_keys.end(), prec_mz_lowerbound);
-        std::vector<DoubleReal>::const_iterator upper_it = std::upper_bound(mz_keys.begin(), mz_keys.end(), prec_mz_upperbound);
-
-        Size start_idx(lower_it - mz_keys.begin());
-        Size end_idx(upper_it - mz_keys.begin());
-
-        DoubleReal max_hyper_score(0);
-        Size best_idx(start_idx);
-
-//std::cout << "identifying " << msexp[spec_idx].getMetaValue("Massbank_Accession_ID") << std::endl;
-
-        for (Size search_idx = start_idx; search_idx < end_idx; ++search_idx)
-        {
-            // do spectral matching
-            // std::cout << "scanning " << spec_db[search_idx].getPrecursors()[0].getMZ() << " " << spec_db[search_idx].getMetaValue("Metabolite_Name") << std::endl;
-            DoubleReal hyperScore = computeHyperScore(0.0, fragment_mz_error, msexp[spec_idx], spec_db[search_idx]);
-
-            if (hyperScore > max_hyper_score)
+            if (mz_error_unit_ == "Da")
             {
-                max_hyper_score = hyperScore;
-                best_idx = search_idx;
+                prec_mz_lowerbound = precursor_mz - precursor_mz_error_;
+                prec_mz_upperbound = precursor_mz + precursor_mz_error_;
+            }
+            else
+            {
+                DoubleReal ppm_offset(precursor_mz * 1e-6 * precursor_mz_error_);
+                prec_mz_lowerbound = precursor_mz - ppm_offset;
+                prec_mz_upperbound = precursor_mz + ppm_offset;
             }
 
-            // std::cout << " scored with " << hyperScore << std::endl;
-            std::cout << "detected " << spec_db[search_idx].getMetaValue("Massbank_Accession_ID") << " " << spec_db[search_idx].getMetaValue("Metabolite_Name") << " scored best with " << hyperScore << std::endl;
-        }
 
-        if (max_hyper_score > 0.0)
-        {
-            std::cout << spec_db[best_idx].getMetaValue("Massbank_Accession_ID") << " " << spec_db[best_idx].getMetaValue("Metabolite_Name") << " scored best with " << max_hyper_score << std::endl;
-        }
-    }
+            std::cout << "lower mz: " << prec_mz_lowerbound << " ";
+            std::cout << "upper mz: " << prec_mz_upperbound << std::endl;
+
+            std::vector<DoubleReal>::const_iterator lower_it = std::lower_bound(mz_keys.begin(), mz_keys.end(), prec_mz_lowerbound);
+            std::vector<DoubleReal>::const_iterator upper_it = std::upper_bound(mz_keys.begin(), mz_keys.end(), prec_mz_upperbound);
+
+            Size start_idx(lower_it - mz_keys.begin());
+            Size end_idx(upper_it - mz_keys.begin());
+
+            DoubleReal max_hyper_score(0.0);
+            Size best_idx(start_idx);
+
+            //std::cout << "identifying " << msexp[spec_idx].getMetaValue("Massbank_Accession_ID") << std::endl;
+
+            for (Size search_idx = start_idx; search_idx < end_idx; ++search_idx)
+            {
+                // do spectral matching
+                // std::cout << "scanning " << spec_db[search_idx].getPrecursors()[0].getMZ() << " " << spec_db[search_idx].getMetaValue("Metabolite_Name") << std::endl;
+                DoubleReal hyperscore(computeHyperScore(msexp[spec_idx], spec_db[search_idx], fragment_mz_error_, 0.0));
+
+                if (hyperscore > max_hyper_score)
+                {
+                    max_hyper_score = hyperscore;
+                    best_idx = search_idx;
+                }
+
+                // std::cout << " scored with " << hyperScore << std::endl;
+                if (hyperscore > 0)
+                {
+                    std::cout << "  ** detected " << spec_db[search_idx].getMetaValue("Massbank_Accession_ID") << " " << spec_db[search_idx].getMetaValue("Metabolite_Name") << " scored with " << hyperscore << std::endl;
+                }
+            }
+
+            if (max_hyper_score > 0.0)
+            {
+                std::cout << "best scored result: " << spec_db[best_idx].getMetaValue("Massbank_Accession_ID") << " " << spec_db[best_idx].getMetaValue("Metabolite_Name") << " scored best with " << max_hyper_score << std::endl;
+            }
+
+        } // end precursor loop
+    } // end spectra loop
 
 }
 
@@ -266,9 +261,10 @@ std::cout << "peaks in spec after mowing: " << msexp[0].size() << std::endl;
 
 void MetaboliteSpectralMatching::updateMembers_()
 {
-    precursor_mz_error = (DoubleReal)param_.getValue("prec_mass_error_value");
-    fragment_mz_error = (DoubleReal)param_.getValue("frag_mass_error_value");
-    precursor_mz_error_unit = (String)param_.getValue("mass_error_unit");
+    precursor_mz_error_ = (DoubleReal)param_.getValue("prec_mass_error_value");
+    fragment_mz_error_ = (DoubleReal)param_.getValue("frag_mass_error_value");
+
+    mz_error_unit_ = (String)param_.getValue("mass_error_unit");
 }
 
 

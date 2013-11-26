@@ -11,6 +11,7 @@ HiddenMarkovModel.h
 IDDecoyProbability.h
 IDMapper.h
 IDRipper.h
+MetaboliteSpectralMatching.h
 PILISIdentification.h
 PILISModel.h
 PILISModelGenerator.h

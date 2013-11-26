@@ -11,6 +11,7 @@ HiddenMarkovModel.C
 IDMapper.C
 IDRipper.C
 IDDecoyProbability.C
+MetaboliteSpectralMatching.C
 PILISIdentification.C
 PILISModel.C
 PILISModelGenerator.C
