@@ -128,9 +128,11 @@ START_SECTION(void store(const String& filename, OnDiscMSExperiment<>& exp))
   file.load(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"),exp_);
   std::string tmp_filename;
   NEW_TMP_FILE(tmp_filename);
+  std::cout << "Storing in file " << tmp_filename << std::endl;
   file.store(tmp_filename,exp_);
 
-  file.load(tmp_filename,exp);
+  bool success = file.load(tmp_filename,exp);
+  TEST_EQUAL(success, true)
 
   MSExperiment<> exp2;
   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"),exp2);
@@ -163,9 +165,11 @@ START_SECTION(void store(const String& filename, MSExperiment<>& exp))
 
   std::string tmp_filename;
   NEW_TMP_FILE(tmp_filename);
+  std::cout << "Storing in file " << tmp_filename << std::endl;
   file.store(tmp_filename,exp2);
 
-  file.load(tmp_filename,exp);
+  bool success = file.load(tmp_filename,exp);
+  TEST_EQUAL(success, true)
 
   TEST_EQUAL(exp.getNrSpectra(), exp2.getSpectra().size())
   TEST_EQUAL(exp.getNrChromatograms(), exp2.getChromatograms().size())
