@@ -564,7 +564,7 @@ namespace OpenMS
       simple_find_best_feature(transition_group_map, pairs, PeptideRTMap);
 
       std::vector<std::pair<double, double> > pairs_corrected;
-      pairs_corrected = MRMRTNormalizer::rm_outliers(pairs, min_rsq, min_coverage);
+      pairs_corrected = MRMRTNormalizer::rm_outliers(pairs, min_rsq, min_coverage, false);
 
       // store transformation, using a linear model as default
       TransformationDescription trafo_out;

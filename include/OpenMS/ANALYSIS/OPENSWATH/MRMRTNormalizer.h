@@ -53,7 +53,7 @@ namespace OpenMS
     retention time to write out a transformation file on how to transform the
     RT space into the normalized space.
 
-    The principle is adapted from Escher et al.
+    The principle is adapted from the following publication:
     Escher, C. et al. (2012), Using iRT, a normalized retention time for more 
     targeted measurement of peptides. Proteomics, 12: 1111-1121.
   */
@@ -65,7 +65,7 @@ public:
     /**
       @brief This function computes a candidate outlier peptide by iteratively
        leaving one peptide out to find the one which results in the maximum R^2
-       of a first order linear regression of the remaining ones. The datapoints
+       of a first order linear regression of the remaining ones. The data points
        are submitted as two vectors of doubles (x- and y-coordinates).
 
       @return The position of the candidate outlier peptide as supplied by the
@@ -84,6 +84,14 @@ public:
        distributed to determine whether the peptides can be removed. This is done
        iteratively until both limits are reached.
 
+      @param pairs Input data
+      @param rsq_limit Minimal R^2 required
+      @param coverage_limit Minimal coverage required (the number of points
+      falls below this fraction, the algorithm aborts)
+      @param use_chauvenet Whether to use Chauvenet's criterion to remove
+      outliers (if false, removes any outlier candidate regardless of the
+      criterion)
+
       @return A vector of pairs is returned if the R^2 limit was reached without
        reaching the coverage limit. If the limits are reached, an exception is
        thrown.
@@ -92,7 +100,8 @@ public:
     */
     static std::vector<std::pair<double, double> > rm_outliers(std::vector<std::pair<double, double> >& pairs,
                                                                double rsq_limit, 
-                                                               double coverage_limit);
+                                                               double coverage_limit, 
+                                                               bool use_chauvenet);
 
     /**
       @brief This function computes Chauvenet's criterion probability for a vector

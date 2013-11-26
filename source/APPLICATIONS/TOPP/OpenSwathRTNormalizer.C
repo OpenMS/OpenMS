@@ -189,7 +189,7 @@ protected:
     TransformationDescription trafo;
 
     // If we have a transformation file, trafo will transform the RT in the
-    // scoring according to the model. If we dont have one, it will apply the
+    // scoring according to the model. If we don't have one, it will apply the
     // null transformation.
     if (getStringOption_("rt_norm").size() > 0)
     {
@@ -236,7 +236,7 @@ protected:
     }
 
     std::vector<std::pair<double, double> > pairs_corrected;
-    pairs_corrected = MRMRTNormalizer::rm_outliers(pairs, min_rsq, min_coverage);
+    pairs_corrected = MRMRTNormalizer::rm_outliers(pairs, min_rsq, min_coverage, false);
 
     // store transformation, using a linear model as default
     TransformationDescription trafo_out;
