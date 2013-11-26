@@ -169,7 +169,8 @@ private:
 
     void XMLFile::save_(const String & filename, XMLHandler * handler) const
     {
-      std::ofstream os(filename.c_str());
+      // open file in binary mode to avoid any line ending conversions
+      std::ofstream os(filename.c_str(), std::ios::out | std::ios::binary);
 
       //set high precision for writing of floating point numbers
       os.precision(writtenDigits(DoubleReal()));

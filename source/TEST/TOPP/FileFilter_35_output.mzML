@@ -346,20 +346,20 @@
 		</spectrumList>
 	</run>
 </mzML>
-  <indexList count="1">
-    <index name="spectrum">
-      <offset idRef="spectrum=1">5373</offset>
-      <offset idRef="spectrum=2">19476</offset>
-      <offset idRef="spectrum=3">31887</offset>
-      <offset idRef="spectrum=4">33408</offset>
-      <offset idRef="spectrum=5">34965</offset>
-      <offset idRef="spectrum=6">36570</offset>
-      <offset idRef="spectrum=7">52209</offset>
-      <offset idRef="spectrum=8">53766</offset>
-      <offset idRef="spectrum=9">55355</offset>
-      <offset idRef="spectrum=10">56876</offset>
-    </index>
-  </indexList>
-  <indexListOffset>70598</indexListOffset>
+<indexList count="1">
+	<index name="spectrum">
+		<offset idRef="spectrum=1">5373</offset>
+		<offset idRef="spectrum=2">19476</offset>
+		<offset idRef="spectrum=3">31887</offset>
+		<offset idRef="spectrum=4">33408</offset>
+		<offset idRef="spectrum=5">34965</offset>
+		<offset idRef="spectrum=6">36570</offset>
+		<offset idRef="spectrum=7">52209</offset>
+		<offset idRef="spectrum=8">53766</offset>
+		<offset idRef="spectrum=9">55355</offset>
+		<offset idRef="spectrum=10">56876</offset>
+	</index>
+</indexList>
+<indexListOffset>70598</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

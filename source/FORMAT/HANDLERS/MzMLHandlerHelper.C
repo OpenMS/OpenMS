@@ -110,36 +110,36 @@ namespace OpenMS
       long indexlistoffset = os.tellp();
       os << "\n";
       // NOTE: indexList is required, so we need to write one 
-      os << "  <indexList count=\"" << indexlists << "\">\n";
+      os << "<indexList count=\"" << indexlists << "\">\n";
       if (!spectra_offsets.empty())
       {
-        os << "    <index name=\"spectrum\">\n";
+        os << "\t<index name=\"spectrum\">\n";
         for (Size i = 0; i < spectra_offsets.size(); i++)
         {
-          os << "      <offset idRef=\"" << spectra_offsets[i].first << "\">" << spectra_offsets[i].second << "</offset>\n";
+          os << "\t\t<offset idRef=\"" << spectra_offsets[i].first << "\">" << spectra_offsets[i].second << "</offset>\n";
         }
-        os << "    </index>\n";
+        os << "\t</index>\n";
       }
       if (!chromatograms_offsets.empty())
       {
-        os << "    <index name=\"chromatogram\">\n";
+        os << "\t<index name=\"chromatogram\">\n";
         for (Size i = 0; i < chromatograms_offsets.size(); i++)
         {
-          os << "      <offset idRef=\"" << chromatograms_offsets[i].first << "\">" << chromatograms_offsets[i].second << "</offset>\n";
+          os << "\t\t<offset idRef=\"" << chromatograms_offsets[i].first << "\">" << chromatograms_offsets[i].second << "</offset>\n";
         }
-        os << "    </index>\n";
+        os << "\t</index>\n";
       }
       if (indexlists == 0)
       {
         // dummy: at least one index subelement is required by the standard,
         // and at least one offset element is required so we need to handle
         // the case where no spectra/chromatograms are present.
-        os << "    <index name=\"dummy\">\n";
-          os << "      <offset idRef=\"dummy\">-1</offset>\n";
-        os << "    </index>\n";
+        os << "\t<index name=\"dummy\">\n";
+          os << "\t\t<offset idRef=\"dummy\">-1</offset>\n";
+        os << "\t</index>\n";
       }
-      os << "  </indexList>\n";
-      os << "  <indexListOffset>" << indexlistoffset << "</indexListOffset>\n";
+      os << "</indexList>\n";
+      os << "<indexListOffset>" << indexlistoffset << "</indexListOffset>\n";
       os << "<fileChecksum>";
 
       // TODO calculate checksum here:

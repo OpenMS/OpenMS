@@ -46,15 +46,15 @@
 namespace OpenMS
 {
   /**
-      @brief File adapter for MzML files
+    @brief File adapter for MzML files
 
-      This implementation does currently not support the whole functionality of MzML.
-      Some minor features are still missing:
-          - chromatograms
+    This implementation does currently not support the whole functionality of MzML.
+    Some minor features are still missing:
+        - chromatograms
 
-      @todo Implement chromatograms (Andreas)
+    @todo Implement chromatograms (Andreas)
 
-      @ingroup FileIO
+    @ingroup FileIO
   */
   class OPENMS_DLLAPI MzMLFile :
     public Internal::XMLFile,
@@ -76,12 +76,12 @@ public:
     void setOptions(const PeakFileOptions &);
 
     /**
-        @brief Loads a map from a MzML file.
+      @brief Loads a map from a MzML file.
 
-        @p map has to be a MSExperiment or have the same interface.
+      @p map has to be a MSExperiment or have the same interface.
 
-        @exception Exception::FileNotFound is thrown if the file could not be opened
-        @exception Exception::ParseError is thrown if an error occurs during parsing
+      @exception Exception::FileNotFound is thrown if the file could not be opened
+      @exception Exception::ParseError is thrown if an error occurs during parsing
     */
     template <typename MapType>
     void load(const String& filename, MapType& map)
@@ -117,16 +117,16 @@ public:
     }
 
     /**
-        @brief Only count he number of spectra and chromatograms from a file
+      @brief Only count he number of spectra and chromatograms from a file
     */
     void loadSize(const String & filename, Size& scount, Size& ccount);
 
     /**
-        @brief Stores a map in a MzML file.
+      @brief Stores a map in a MzML file.
 
-        @p map has to be a MSExperiment or have the same interface.
+      @p map has to be a MSExperiment or have the same interface.
 
-        @exception Exception::UnableToCreateFile is thrown if the file could not be created
+      @exception Exception::UnableToCreateFile is thrown if the file could not be created
     */
     template <typename MapType>
     void store(const String& filename, const MapType& map) const
@@ -137,9 +137,9 @@ public:
     }
 
     /**
-        @brief Transforms a map while loading using the supplied MSDataConsumer.
+      @brief Transforms a map while loading using the supplied MSDataConsumer.
 
-        The result will not be stored by this class.
+      The result will not be stored by this class.
     */
     template <typename MapType>
     void transform(const String& filename_in, /* const String& filename_out, */ Interfaces::IMSDataConsumer<MapType> * consumer/* , const MapType& map */)
@@ -173,9 +173,9 @@ public:
     }
 
     /**
-        @brief Transforms a map while loading using the supplied MSDataConsumer
+      @brief Transforms a map while loading using the supplied MSDataConsumer
 
-        The result will be stored in the supplied map.
+      The result will be stored in the supplied map.
     */
     template <typename MapType>
     void transform(const String& filename_in, /* const String& filename_out, */ Interfaces::IMSDataConsumer<MapType> * consumer, MapType& map)
@@ -210,20 +210,20 @@ public:
     }
 
     /**
-        @brief Checks if a file validates against the XML schema.
+      @brief Checks if a file validates against the XML schema.
 
-    @exception Exception::FileNotFound is thrown if the file cannot be found.
+      @exception Exception::FileNotFound is thrown if the file cannot be found.
     */
     bool isValid(const String& filename, std::ostream& os = std::cerr);
 
     /**
-        @brief Checks if a file is valid with respect to the mapping file and the controlled vocabulary.
+      @brief Checks if a file is valid with respect to the mapping file and the controlled vocabulary.
 
-        @param filename File name of the file to be checked.
-        @param errors Errors during the validation are returned in this output parameter.
-        @param warnings Warnings during the validation are returned in this output parameter.
+      @param filename File name of the file to be checked.
+      @param errors Errors during the validation are returned in this output parameter.
+      @param warnings Warnings during the validation are returned in this output parameter.
 
-        @exception Exception::FileNotFound is thrown if the file could not be opened
+      @exception Exception::FileNotFound is thrown if the file could not be opened
     */
     bool isSemanticallyValid(const String& filename, StringList& errors, StringList& warnings);
 
