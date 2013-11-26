@@ -68,7 +68,7 @@ public:
     TraceFitter() :
       DefaultParamHandler("TraceFitter")
     {
-      this->defaults_.setValue("max_iteration", 500, "Maximum number of iterations using by Levenberg-Marquardt algorithm.", StringList::create("advanced"));
+      this->defaults_.setValue("max_iteration", 500, "Maximum number of iterations used by the Levenberg-Marquardt algorithm.", StringList::create("advanced"));
       this->defaults_.setValue("epsilon_abs", 0.0001, "Absolute error used by the Levenberg-Marquardt algorithm.", StringList::create("advanced"));
       this->defaults_.setValue("epsilon_rel", 0.0001, "Relative error used by the Levenberg-Marquardt algorithm.", StringList::create("advanced"));
     }
