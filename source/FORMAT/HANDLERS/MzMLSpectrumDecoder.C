@@ -46,6 +46,34 @@
 namespace OpenMS
 {
 
+  /// Small internal function to check the default data vectors
+  void checkData_(std::vector<Internal::MzMLHandlerHelper::BinaryData>& data_, 
+      SignedSize x_index, SignedSize int_index, 
+      bool x_precision_64, bool int_precision_64)
+  {
+    // Error if intensity or m/z (RT) is encoded as int32|64 - they should be float32|64!
+    if ((data_[x_index].ints_32.size() > 0) || (data_[x_index].ints_64.size() > 0))
+    {
+      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
+          "", "Encoding m/z or RT array as integer is not allowed!");
+    }
+    if ((data_[int_index].ints_32.size() > 0) || (data_[int_index].ints_64.size() > 0))
+    {
+      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
+          "", "Encoding intensity array as integer is not allowed!");
+    }
+
+    Size mz_size = x_precision_64 ? data_[x_index].floats_64.size() : data_[x_index].floats_32.size();
+    Size int_size = int_precision_64 ? data_[int_index].floats_64.size() : data_[int_index].floats_32.size();
+
+    // Check if int-size and mz-size are equal
+    if (mz_size != int_size)
+    {
+      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
+          "", "Error, intensity and m/z array length are unequal");
+    }
+  }
+
   OpenMS::Interfaces::SpectrumPtr MzMLSpectrumDecoder::decodeBinaryData(std::vector<BinaryData>& data_)
   {
     Internal::MzMLHandlerHelper::decodeBase64Arrays(data_);
@@ -62,41 +90,24 @@ namespace OpenMS
     //Abort if no m/z or intensity array is present
     if (int_index == -1 || x_index == -1)
     {
-      // Warning ...
+      std::cerr << "Error, intensity or m/z array is missing, skipping this spectrum" << std::endl;
       return sptr;
     }
 
-    // Error if intensity or m/z is encoded as int32|64 - they should be float32|64!
-    if ((data_[x_index].ints_32.size() > 0) || (data_[x_index].ints_64.size() > 0))
-    {
-      //fatalError(LOAD, "Encoding m/z array as integer is not allowed!");
-    }
-    if ((data_[int_index].ints_32.size() > 0) || (data_[int_index].ints_64.size() > 0))
-    {
-      //fatalError(LOAD, "Encoding intensity array as integer is not allowed!");
-    }
+    checkData_(data_, x_index, int_index, x_precision_64, int_precision_64);
 
-    // Warn if the decoded data has a different size than the defaultArrayLength
-    Size mz_size = x_precision_64 ? data_[x_index].floats_64.size() : data_[x_index].floats_32.size();
-    Size int_size = int_precision_64 ? data_[int_index].floats_64.size() : data_[int_index].floats_32.size();
-    // Check if int-size and mz-size are equal
-    if (mz_size != int_size)
-    {
-      std::cout << "Warning, intensity and m/z array length are unequal" << std::endl;
-      return sptr;
-    }
-    Size default_array_length_ = mz_size;
-    // maybe some checks here about internal consistency e.g. with defaultArrayLength ...
+    // At this point, we could check whether the defaultArrayLength from the
+    // spectrum/chromatogram tag is equivalent to size of the decoded data
+    Size default_array_length_ = x_precision_64 ? data_[x_index].floats_64.size() : data_[x_index].floats_32.size();
 
-    //create meta data arrays and reserve enough space for the content
+    // TODO: also handle non-default arrays
     if (data_.size() > 2)
     {
-      // --> TODO the other arrays ... create and resize those ...
+      std::cout << "MzMLSpectrumDecoder currently cannot handle meta data arrays, they are ignored." << std::endl;
     }
 
-    // Copy meta data from m/z and intensity binary
-    // We don't have this as a separate location => store it in spectrum
-    // --> maybe TODO
+    // TODO: handle meta data from the binaryDataArray tag -> currently ignored
+    // since we have no place to store them
 
     OpenMS::Interfaces::BinaryDataArrayPtr intensity_array(new OpenMS::Interfaces::BinaryDataArray);
     OpenMS::Interfaces::BinaryDataArrayPtr x_array(new OpenMS::Interfaces::BinaryDataArray);
@@ -108,7 +119,7 @@ namespace OpenMS
       x_array->data.push_back(xcoord);
       intensity_array->data.push_back(intensity);
 
-      // TODO the other arrays
+      // TODO: also handle non-default arrays
     }
     sptr->setMZArray(x_array);
     sptr->setIntensityArray(intensity_array);
@@ -131,41 +142,24 @@ namespace OpenMS
     //Abort if no m/z or intensity array is present
     if (int_index == -1 || x_index == -1)
     {
-      // Warning ...
+      std::cerr << "Error, intensity or RT array is missing, skipping this spectrum" << std::endl;
       return sptr;
     }
 
-    // Error if intensity or m/z is encoded as int32|64 - they should be float32|64!
-    if ((data_[x_index].ints_32.size() > 0) || (data_[x_index].ints_64.size() > 0))
-    {
-      //fatalError(LOAD, "Encoding m/z array as integer is not allowed!");
-    }
-    if ((data_[int_index].ints_32.size() > 0) || (data_[int_index].ints_64.size() > 0))
-    {
-      //fatalError(LOAD, "Encoding intensity array as integer is not allowed!");
-    }
+    checkData_(data_, x_index, int_index, x_precision_64, int_precision_64);
 
-    // Warn if the decoded data has a different size than the the defaultArrayLength
-    Size mz_size = x_precision_64 ? data_[x_index].floats_64.size() : data_[x_index].floats_32.size();
-    Size int_size = int_precision_64 ? data_[int_index].floats_64.size() : data_[int_index].floats_32.size();
-    // Check if int-size and mz-size are equal
-    if (mz_size != int_size)
-    {
-      std::cout << "Warning, intensity and m/z array length are unequal" << std::endl;
-      return sptr;
-    }
-    Size default_array_length_ = mz_size;
-    // maybe some checks here about internal consistency e.g. with defaultArrayLength ...
+    // At this point, we could check whether the defaultArrayLength from the
+    // spectrum/chromatogram tag is equivalent to size of the decoded data
+    Size default_array_length_ = x_precision_64 ? data_[x_index].floats_64.size() : data_[x_index].floats_32.size();
 
-    //create meta data arrays and reserve enough space for the content
+    // TODO: also handle non-default arrays
     if (data_.size() > 2)
     {
-      // --> TODO the other arrays ... create and resize those ...
+      std::cout << "MzMLSpectrumDecoder currently cannot handle meta data arrays, they are ignored." << std::endl;
     }
 
-    // Copy meta data from m/z and intensity binary
-    // We don't have this as a separate location => store it in spectrum
-    // --> maybe TODO
+    // TODO: handle meta data from the binaryDataArray tag -> currently ignored
+    // since we have no place to store them
 
     OpenMS::Interfaces::BinaryDataArrayPtr intensity_array(new OpenMS::Interfaces::BinaryDataArray);
     OpenMS::Interfaces::BinaryDataArrayPtr x_array(new OpenMS::Interfaces::BinaryDataArray);
@@ -222,6 +216,7 @@ namespace OpenMS
 
           //handleCVParam(data_, accession, value, name);
 
+          // set precision, data_type
           Internal::MzMLHandlerHelper::handleBinaryDataArrayCVParam(data_, accession, value, name);
         }
         else if (xercesc::XMLString::equals(currentElement->getTagName(), TAG_userParam))
@@ -272,8 +267,8 @@ namespace OpenMS
     xercesc::DOMElement* elementRoot = doc->getDocumentElement();
     if (!elementRoot)
     {
-      std::cerr << "MzMLSpectrumDecoder::domParseString Error: No root element" << std::endl;
       delete parser;
+      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, in, "No root element");
     }
 
     OPENMS_PRECONDITION(
@@ -282,8 +277,15 @@ namespace OpenMS
           (String("The input needs to contain a <spectrum> or <chromatgram> tag as root element. Got instead '") +
           std::string(xercesc::XMLString::transcode(elementRoot->getTagName())) + "'.").c_str() )
 
-    // defaultArrayLength is required for the spectrum and the chromatogram tag, thus we can parse it here
-    int array_length = xercesc::XMLString::parseInt(elementRoot->getAttribute(default_array_length_tag));
+    // defaultArrayLength is a required attribute for the spectrum and the
+    // chromatogram tag (but still check for it first to be safe).
+    if (elementRoot->getAttributeNode(default_array_length_tag) == NULL)
+    {
+      delete parser;
+      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
+          in, "Root element does not contain defaultArrayLength XML tag.");
+    }
+    int default_array_length = xercesc::XMLString::parseInt(elementRoot->getAttribute(default_array_length_tag));
 
     // Extract the binaryDataArray elements (there may be multiple) and process them
     xercesc::DOMNodeList* li = elementRoot->getElementsByTagName(binary_data_array_tag);
@@ -292,7 +294,7 @@ namespace OpenMS
       // Will append one single BinaryData object to data_
       handleBinaryDataArray(li->item(i), data_);
       // Set the size correctly (otherwise MzMLHandlerHelper complains).
-      data_.back().size = array_length;
+      data_.back().size = default_array_length;
     }
 
     delete parser;

@@ -69,54 +69,7 @@ START_SECTION(( void domParseSpectrum(std::string& in, OpenMS::Interfaces::Spect
 {
   ptr = new MzMLSpectrumDecoder();
   std::string testString = MULTI_LINE_STRING(
-      <spectrum index="2" id="index=2" spotID="M2" defaultArrayLength="15" dataProcessingRef="dp_sp_2">
-        <referenceableParamGroupRef ref="CommonMS1SpectrumParams"/>
-        <cvParam cvRef="MS" accession="MS:1000579" name="MS1 spectrum" value=""/>
-        <cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" value=""/>
-        <cvParam cvRef="MS" accession="MS:1000528" name="lowest observed m/z" value="400.39" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-        <cvParam cvRef="MS" accession="MS:1000527" name="highest observed m/z" value="1795.56" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-        <cvParam cvRef="MS" accession="MS:1000504" name="base peak m/z" value="445.347" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-        <cvParam cvRef="MS" accession="MS:1000505" name="base peak intensity" value="120054" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
-        <cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="16675500"/>
-        <cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1"/>
-        <userParam name="sdname" value="spectrumdescription3"/>
-        <scanList count="2">
-          <cvParam cvRef="MS" accession="MS:1000573" name="median of spectra"/>
-          <userParam name="name" value="acquisition_list"/>
-          <scan externalSpectrumID="4711">
-            <cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="5.3" unitAccession="UO:0000010" unitName="second" unitCvRef="UO"/>
-            <cvParam cvRef="MS" accession="MS:1000512" name="filter string" value="+ c NSI Full ms [ 400.00-1800.00]"/>
-            <cvParam cvRef="MS" accession="MS:1000616" name="preset scan configuration" value="3"/>
-            <userParam name="name" value="acquisition1"/>
-            <scanWindowList count="1">
-              <scanWindow>
-                <cvParam cvRef="MS" accession="MS:1000501" name="scan window lower limit" value="400" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-                <cvParam cvRef="MS" accession="MS:1000500" name="scan window upper limit" value="1800" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-              </scanWindow>
-            </scanWindowList>
-          </scan>
-          <scan externalSpectrumID="4712">
-            <userParam name="name" value="acquisition2"/>
-          </scan>
-        </scanList>
-        <productList count="1">
-          <product>
-            <isolationWindow>
-              <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="18.88"  unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-              <cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="1.0"  unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-              <cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="2.0"  unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-              <userParam name="iwname" value="isolationwindow3"/>
-            </isolationWindow>
-          </product>
-          <product>
-            <isolationWindow>
-              <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="19.99"  unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-              <cvParam cvRef="MS" accession="MS:1000828" name="isolation window lower offset" value="3.0"  unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-              <cvParam cvRef="MS" accession="MS:1000829" name="isolation window upper offset" value="4.0"  unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-              <userParam name="iwname" value="isolationwindow4"/>
-            </isolationWindow>
-          </product>
-        </productList>
+      <spectrum index="2" id="index=2" defaultArrayLength="15">
         <binaryDataArrayList count="2">
           <binaryDataArray encodedLength="160" >
             <cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" value=""/>
@@ -132,7 +85,7 @@ START_SECTION(( void domParseSpectrum(std::string& in, OpenMS::Interfaces::Spect
           </binaryDataArray>
         </binaryDataArrayList>
       </spectrum>
-  );  
+  );
 
   OpenMS::Interfaces::SpectrumPtr cptr(new OpenMS::Interfaces::Spectrum);
   ptr->domParseSpectrum(testString, cptr);
@@ -145,6 +98,246 @@ START_SECTION(( void domParseSpectrum(std::string& in, OpenMS::Interfaces::Spect
 }
 END_SECTION
 
+START_SECTION(([EXTRA] void domParseSpectrum(std::string& in, OpenMS::Interfaces::SpectrumPtr & sptr) ))
+{
+  // missing defaultArrayLength -> should give an exception of ParseError
+  ptr = new MzMLSpectrumDecoder();
+  std::string testString = MULTI_LINE_STRING(
+      <spectrum index="2" id="index=2">
+        <binaryDataArrayList count="2">
+          <binaryDataArray encodedLength="160" >
+            <cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" value=""/>
+            <cvParam cvRef="MS" accession="MS:1000576" name="no compression" value=""/>
+            <cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+            <binary>AAAAAAAAAAAAAAAAAADwPwAAAAAAAABAAAAAAAAACEAAAAAAAAAQQAAAAAAAABRAAAAAAAAAGEAAAAAAAAAcQAAAAAAAACBAAAAAAAAAIkAAAAAAAAAkQAAAAAAAACZAAAAAAAAAKEAAAAAAAAAqQAAAAAAAACxA</binary>
+          </binaryDataArray>
+          <binaryDataArray encodedLength="160" >
+            <cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" value=""/>
+            <cvParam cvRef="MS" accession="MS:1000576" name="no compression" value=""/>
+            <cvParam cvRef="MS" accession="MS:1000515" name="intensity array" value="" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
+            <binary>AAAAAAAALkAAAAAAAAAsQAAAAAAAACpAAAAAAAAAKEAAAAAAAAAmQAAAAAAAACRAAAAAAAAAIkAAAAAAAAAgQAAAAAAAABxAAAAAAAAAGEAAAAAAAAAUQAAAAAAAABBAAAAAAAAACEAAAAAAAAAAQAAAAAAAAPA/</binary>
+          </binaryDataArray>
+        </binaryDataArrayList>
+      </spectrum>
+  );
+
+  OpenMS::Interfaces::SpectrumPtr cptr(new OpenMS::Interfaces::Spectrum);
+  TEST_EXCEPTION(Exception::ParseError,ptr->domParseSpectrum(testString, cptr))
+}
+END_SECTION
+
+START_SECTION(([EXTRA] void domParseSpectrum(std::string& in, OpenMS::Interfaces::SpectrumPtr & sptr) ))
+{
+  // root tag is neither spectrum or chromatogram
+  //
+  // this does not generate a runtime error but rather a precondition violation
+  // -> it should allow a developer to easily spot a problem with the code if
+  // some other XML tag is used.
+  ptr = new MzMLSpectrumDecoder();
+  std::string testString = MULTI_LINE_STRING(
+      <NotASpectrum index="2" id="index=2">
+        <binaryDataArrayList count="2">
+          <binaryDataArray encodedLength="160" >
+            <cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" value=""/>
+            <cvParam cvRef="MS" accession="MS:1000576" name="no compression" value=""/>
+            <cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+            <binary>AAAAAAAAAAAAAAAAAADwPwAAAAAAAABAAAAAAAAACEAAAAAAAAAQQAAAAAAAABRAAAAAAAAAGEAAAAAAAAAcQAAAAAAAACBAAAAAAAAAIkAAAAAAAAAkQAAAAAAAACZAAAAAAAAAKEAAAAAAAAAqQAAAAAAAACxA</binary>
+          </binaryDataArray>
+          <binaryDataArray encodedLength="160" >
+            <cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" value=""/>
+            <cvParam cvRef="MS" accession="MS:1000576" name="no compression" value=""/>
+            <cvParam cvRef="MS" accession="MS:1000515" name="intensity array" value="" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
+            <binary>AAAAAAAALkAAAAAAAAAsQAAAAAAAACpAAAAAAAAAKEAAAAAAAAAmQAAAAAAAACRAAAAAAAAAIkAAAAAAAAAgQAAAAAAAABxAAAAAAAAAGEAAAAAAAAAUQAAAAAAAABBAAAAAAAAACEAAAAAAAAAAQAAAAAAAAPA/</binary>
+          </binaryDataArray>
+        </binaryDataArrayList>
+      </NotASpectrum>
+  );
+
+  OpenMS::Interfaces::SpectrumPtr cptr(new OpenMS::Interfaces::Spectrum);
+  TEST_PRECONDITION_VIOLATED(ptr->domParseSpectrum(testString, cptr))
+}
+END_SECTION
+
+START_SECTION(([EXTRA] void domParseSpectrum(std::string& in, OpenMS::Interfaces::SpectrumPtr & sptr) ))
+{
+  // no XML at all here ... 
+  ptr = new MzMLSpectrumDecoder();
+  std::string testString = MULTI_LINE_STRING(
+      Lorem ipsum
+  );  
+
+  OpenMS::Interfaces::SpectrumPtr cptr(new OpenMS::Interfaces::Spectrum);
+  TEST_EXCEPTION(Exception::ParseError,ptr->domParseSpectrum(testString, cptr))
+}
+END_SECTION
+
+START_SECTION(([EXTRA] void domParseSpectrum(std::string& in, OpenMS::Interfaces::SpectrumPtr & sptr) ))
+{
+  // missing 64 bit float tag
+  ptr = new MzMLSpectrumDecoder();
+  std::string testString = MULTI_LINE_STRING(
+      <spectrum index="2" id="index=2" defaultArrayLength="15">
+        <binaryDataArrayList count="2">
+          <binaryDataArray encodedLength="160" >
+            <cvParam cvRef="MS" accession="MS:1000576" name="no compression" value=""/>
+            <cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+            <binary>AAAAAAAAAAAAAAAAAADwPwAAAAAAAABAAAAAAAAACEAAAAAAAAAQQAAAAAAAABRAAAAAAAAAGEAAAAAAAAAcQAAAAAAAACBAAAAAAAAAIkAAAAAAAAAkQAAAAAAAACZAAAAAAAAAKEAAAAAAAAAqQAAAAAAAACxA</binary>
+          </binaryDataArray>
+          <binaryDataArray encodedLength="160" >
+            <cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" value=""/>
+            <cvParam cvRef="MS" accession="MS:1000576" name="no compression" value=""/>
+            <cvParam cvRef="MS" accession="MS:1000515" name="intensity array" value="" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
+            <binary>AAAAAAAALkAAAAAAAAAsQAAAAAAAACpAAAAAAAAAKEAAAAAAAAAmQAAAAAAAACRAAAAAAAAAIkAAAAAAAAAgQAAAAAAAABxAAAAAAAAAGEAAAAAAAAAUQAAAAAAAABBAAAAAAAAACEAAAAAAAAAAQAAAAAAAAPA/</binary>
+          </binaryDataArray>
+        </binaryDataArrayList>
+      </spectrum>
+  );
+  OpenMS::Interfaces::SpectrumPtr cptr(new OpenMS::Interfaces::Spectrum);
+  TEST_EXCEPTION(Exception::ParseError,ptr->domParseSpectrum(testString, cptr))
+}
+END_SECTION
+
+START_SECTION(([EXTRA] void domParseSpectrum(std::string& in, OpenMS::Interfaces::SpectrumPtr & sptr) ))
+{
+  // encode as int instead of float 
+  ptr = new MzMLSpectrumDecoder();
+  std::string testString = MULTI_LINE_STRING(
+      <spectrum index="2" id="index=2" defaultArrayLength="15">
+        <binaryDataArrayList count="2">
+          <binaryDataArray encodedLength="160" >
+            <cvParam cvRef="MS" accession="MS:1000519" name="32-bit int" value=""/>
+            <cvParam cvRef="MS" accession="MS:1000576" name="no compression" value=""/>
+            <cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+            <binary>AAAAAAAAAAAAAAAAAADwPwAAAAAAAABAAAAAAAAACEAAAAAAAAAQQAAAAAAAABRAAAAAAAAAGEAAAAAAAAAcQAAAAAAAACBAAAAAAAAAIkAAAAAAAAAkQAAAAAAAACZAAAAAAAAAKEAAAAAAAAAqQAAAAAAAACxA</binary>
+          </binaryDataArray>
+          <binaryDataArray encodedLength="160" >
+            <cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" value=""/>
+            <cvParam cvRef="MS" accession="MS:1000576" name="no compression" value=""/>
+            <cvParam cvRef="MS" accession="MS:1000515" name="intensity array" value="" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
+            <binary>AAAAAAAALkAAAAAAAAAsQAAAAAAAACpAAAAAAAAAKEAAAAAAAAAmQAAAAAAAACRAAAAAAAAAIkAAAAAAAAAgQAAAAAAAABxAAAAAAAAAGEAAAAAAAAAUQAAAAAAAABBAAAAAAAAACEAAAAAAAAAAQAAAAAAAAPA/</binary>
+          </binaryDataArray>
+        </binaryDataArrayList>
+      </spectrum>
+  );
+  OpenMS::Interfaces::SpectrumPtr cptr(new OpenMS::Interfaces::Spectrum);
+  TEST_EXCEPTION(Exception::ParseError,ptr->domParseSpectrum(testString, cptr))
+}
+END_SECTION
+
+START_SECTION(([EXTRA] void domParseSpectrum(std::string& in, OpenMS::Interfaces::SpectrumPtr & sptr) ))
+{
+  // missing m/z array 
+  ptr = new MzMLSpectrumDecoder();
+  std::string testString = MULTI_LINE_STRING(
+      <spectrum index="2" id="index=2" defaultArrayLength="15">
+        <binaryDataArrayList count="2">
+          <binaryDataArray encodedLength="160" >
+            <cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" value=""/>
+            <cvParam cvRef="MS" accession="MS:1000576" name="no compression" value=""/>
+            <binary>AAAAAAAAAAAAAAAAAADwPwAAAAAAAABAAAAAAAAACEAAAAAAAAAQQAAAAAAAABRAAAAAAAAAGEAAAAAAAAAcQAAAAAAAACBAAAAAAAAAIkAAAAAAAAAkQAAAAAAAACZAAAAAAAAAKEAAAAAAAAAqQAAAAAAAACxA</binary>
+          </binaryDataArray>
+          <binaryDataArray encodedLength="160" >
+            <cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" value=""/>
+            <cvParam cvRef="MS" accession="MS:1000576" name="no compression" value=""/>
+            <cvParam cvRef="MS" accession="MS:1000515" name="intensity array" value="" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
+            <binary>AAAAAAAALkAAAAAAAAAsQAAAAAAAACpAAAAAAAAAKEAAAAAAAAAmQAAAAAAAACRAAAAAAAAAIkAAAAAAAAAgQAAAAAAAABxAAAAAAAAAGEAAAAAAAAAUQAAAAAAAABBAAAAAAAAACEAAAAAAAAAAQAAAAAAAAPA/</binary>
+          </binaryDataArray>
+        </binaryDataArrayList>
+      </spectrum>
+  );
+  OpenMS::Interfaces::SpectrumPtr cptr(new OpenMS::Interfaces::Spectrum);
+  ptr->domParseSpectrum(testString, cptr);
+
+  TEST_EQUAL(cptr->getMZArray()->data.size(), 0) // failed since no m/z array is present
+  TEST_EQUAL(cptr->getIntensityArray()->data.size(), 0) // failed since no m/z array is present
+}
+END_SECTION
+
+START_SECTION(( void domParseSpectrum(std::string& in, OpenMS::Interfaces::SpectrumPtr & sptr) ))
+{
+  // TODO detect multiple occurences of an array
+  ptr = new MzMLSpectrumDecoder();
+  std::string testString = MULTI_LINE_STRING(
+      <spectrum index="2" id="index=2" defaultArrayLength="15">
+        <binaryDataArrayList count="3">
+          <binaryDataArray encodedLength="160" >
+            <cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" value=""/>
+            <cvParam cvRef="MS" accession="MS:1000576" name="no compression" value=""/>
+            <cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+            <binary>AAAAAAAAAAAAAAAAAADwPwAAAAAAAABAAAAAAAAACEAAAAAAAAAQQAAAAAAAABRAAAAAAAAAGEAAAAAAAAAcQAAAAAAAACBAAAAAAAAAIkAAAAAAAAAkQAAAAAAAACZAAAAAAAAAKEAAAAAAAAAqQAAAAAAAACxA</binary>
+          </binaryDataArray>
+          <binaryDataArray encodedLength="160" >
+            <cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" value=""/>
+            <cvParam cvRef="MS" accession="MS:1000576" name="no compression" value=""/>
+            <cvParam cvRef="MS" accession="MS:1000515" name="intensity array" value="" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
+            <binary>AAAAAAAALkAAAAAAAAAsQAAAAAAAACpAAAAAAAAAKEAAAAAAAAAmQAAAAAAAACRAAAAAAAAAIkAAAAAAAAAgQAAAAAAAABxAAAAAAAAAGEAAAAAAAAAUQAAAAAAAABBAAAAAAAAACEAAAAAAAAAAQAAAAAAAAPA/</binary>
+          </binaryDataArray>
+          <binaryDataArray encodedLength="160" >
+            <cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" value=""/>
+            <cvParam cvRef="MS" accession="MS:1000576" name="no compression" value=""/>
+            <cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+            <binary>AAAAAAAAAAAAAAAAAADwPwAAAAAAAABAAAAAAAAACEAAAAAAAAAQQAAAAAAAABRAAAAAAAAAGEAAAAAAAAAcQAAAAAAAACBAAAAAAAAAIkAAAAAAAAAkQAAAAAAAACZAAAAAAAAAKEAAAAAAAAAqQAAAAAAAACxA</binary>
+          </binaryDataArray>
+        </binaryDataArrayList>
+      </spectrum>
+  );
+
+  OpenMS::Interfaces::SpectrumPtr cptr(new OpenMS::Interfaces::Spectrum);
+  ptr->domParseSpectrum(testString, cptr);
+
+  TEST_EQUAL(cptr->getMZArray()->data.size(), 15)
+  TEST_EQUAL(cptr->getIntensityArray()->data.size(), 15)
+
+  TEST_REAL_SIMILAR(cptr->getMZArray()->data[7], 7)
+  TEST_REAL_SIMILAR(cptr->getIntensityArray()->data[7], 8)
+}
+END_SECTION
+
+START_SECTION(( void domParseSpectrum(std::string& in, OpenMS::Interfaces::SpectrumPtr & sptr) ))
+{
+  // TODO detect multiple occurences of an array
+  ptr = new MzMLSpectrumDecoder();
+  std::string testString = MULTI_LINE_STRING(
+      <spectrum index="2" id="index=2" defaultArrayLength="15">
+        <binaryDataArrayList count="3">
+          <binaryDataArray encodedLength="160" >
+            <cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" value=""/>
+            <cvParam cvRef="MS" accession="MS:1000576" name="no compression" value=""/>
+            <cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+            <binary>AAAAAAAAAAAAAAAAAADwPwAAAAAAAABAAAAAAAAACEAAAAAAAAAQQAAAAAAAABRAAAAAAAAAGEAAAAAAAAAcQAAAAAAAACBAAAAAAAAAIkAAAAAAAAAkQAAAAAAAACZAAAAAAAAAKEAAAAAAAAAqQAAAAAAAACxA</binary>
+          </binaryDataArray>
+          <binaryDataArray encodedLength="160" >
+            <cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" value=""/>
+            <cvParam cvRef="MS" accession="MS:1000576" name="no compression" value=""/>
+            <cvParam cvRef="MS" accession="MS:1000515" name="intensity array" value="" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
+            <binary>AAAAAAAALkAAAAAAAAAsQAAAAAAAACpAAAAAAAAAKEAAAAAAAAAmQAAAAAAAACRAAAAAAAAAIkAAAAAAAAAgQAAAAAAAABxAAAAAAAAAGEAAAAAAAAAUQAAAAAAAABBAAAAAAAAACEAAAAAAAAAAQAAAAAAAAPA/</binary>
+          </binaryDataArray>
+
+          <binaryDataArray arrayLength="10" encodedLength="108">
+            <cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+            <cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+            <cvParam cvRef="MS" accession="MS:1000517" name="signal to noise array" />
+            <userParam name="name" type="xsd:string" value="binaryDataArray_sn"/>
+            <userParam name="name2" type="xsd:string" value="binaryDataArray_sn2"/>
+            <binary>AAAAAAAANEAAAAAAAAAyQAAAAAAAADBAAAAAAAAALEAAAAAAAAAoQAAAAAAAACRAAAAAAAAAIEAAAAAAAAAYQAAAAAAAABBAAAAAAAAAAEA=</binary>
+          </binaryDataArray>
+
+        </binaryDataArrayList>
+      </spectrum>
+  );
+
+  OpenMS::Interfaces::SpectrumPtr cptr(new OpenMS::Interfaces::Spectrum);
+  ptr->domParseSpectrum(testString, cptr);
+
+  TEST_EQUAL(cptr->getMZArray()->data.size(), 15)
+  TEST_EQUAL(cptr->getIntensityArray()->data.size(), 15)
+
+  TEST_REAL_SIMILAR(cptr->getMZArray()->data[7], 7)
+  TEST_REAL_SIMILAR(cptr->getIntensityArray()->data[7], 8)
+}
+END_SECTION
+
+/// Chromatogram
 START_SECTION(( void domParseChromatogram(std::string& in, OpenMS::Interfaces::ChromatogramPtr & sptr) ))
 {
   ptr = new MzMLSpectrumDecoder();
@@ -178,9 +371,6 @@ START_SECTION(( void domParseChromatogram(std::string& in, OpenMS::Interfaces::C
 }
 END_SECTION
 
-    
-
-    
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
