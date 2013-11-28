@@ -38,7 +38,8 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMRTNormalizer.h>" namespace "Open
     libcpp_vector[libcpp_pair[double,double]] rm_outliers(
             libcpp_vector[libcpp_pair[double,double]] & pairs,
             double rsq_limit,
-            double coverage_limit
+            double coverage_limit, 
+            bool use_chauvenet
             ) nogil except + # wrap-attach:MRMRTNormalizer
 
     # @brief This function computes Chauvenet's criterion probability for a vector
