@@ -489,10 +489,6 @@ set(transformations_executables_list
   IsotopeWaveletTransform_test
   IsotopeWavelet_test
   LevMarqFitter1D_test
-  LmaGaussFitter1D_test
-  LmaGaussModel_test
-  LmaIsotopeFitter1D_test
-  LmaIsotopeModel_test
   MaxLikeliFitter1D_test
   ModelDescription_test
   ModelFitter_test

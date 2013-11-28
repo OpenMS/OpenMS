@@ -129,10 +129,6 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussTraceFitter.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeFitter1D.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeModel.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/LmaGaussFitter1D.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/LmaGaussModel.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/LmaIsotopeFitter1D.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/LmaIsotopeModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MaxLikeliFitter1D.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ModelFitter.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SimpleExtender.h>
@@ -386,10 +382,6 @@ int main(int argc, char ** argv)
   DOCME(ItraqFourPlexQuantitationMethod);
   DOCME(LabeledPairFinder);
   DOCME(LinearResampler);
-  DOCME(LmaGaussFitter1D);
-  DOCME(LmaGaussModel);
-  DOCME(LmaIsotopeFitter1D);
-  DOCME(LmaIsotopeModel);
   DOCME(MSPFile);
   DOCME(MSSim);
   DOCME(MapAlignmentAlgorithmPoseClustering);

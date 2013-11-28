@@ -40,7 +40,6 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ProductModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ExtendedIsotopeModel.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/LmaIsotopeModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/Fitter1D.h>
 #include <OpenMS/MATH/STATISTICS/AsymmetricStatistics.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
@@ -348,11 +347,7 @@ public:
           // feature charge ...
           // if we used a simple Gaussian model to fit the feature, we can't say anything about
           // its charge state. The value 0 indicates that charge state is undetermined.
-          if (model2D_.getModel(MZ)->getName() == "LmaIsotopeModel")
-          {
-            f.setCharge(static_cast<LmaIsotopeModel *>(model2D_.getModel(MZ))->getCharge());
-          }
-          else if (model2D_.getModel(MZ)->getName() == "IsotopeModel")
+          if (model2D_.getModel(MZ)->getName() == "IsotopeModel")
           {
             f.setCharge(static_cast<IsotopeModel *>(model2D_.getModel(MZ))->getCharge());
           }
@@ -665,30 +660,10 @@ protected:
         param.setValue("statistics:mean", monoisotopic_mz_);
       }
 
-      if (charge != 0)       // charge is not zero
-      {
-        param.setValue("charge", charge);
-        param.setValue("isotope:stdev", isotope_stdev_);
-        param.setValue("isotope:maximum", max_isotope_);
-        fitter = Factory<Fitter1D>::create("IsotopeFitter1D");
-      }
-      else       // charge is zero
-      {
-        if (algorithm_ == "simplest")       // Fit with GaussModel
-        {
-          param.setValue("charge", charge);
-          param.setValue("isotope:stdev", isotope_stdev_);
-          param.setValue("isotope:maximum", max_isotope_);
-          fitter = Factory<Fitter1D>::create("IsotopeFitter1D");
-        }
-        else         // Fit with LmaGaussModel
-        {
-          param.setValue("max_iteration", max_iteration_);
-          param.setValue("deltaAbsError", deltaAbsError_);
-          param.setValue("deltaRelError", deltaRelError_);
-          fitter = Factory<Fitter1D>::create("LmaGaussFitter1D");
-        }
-      }
+      param.setValue("charge", charge);
+      param.setValue("isotope:stdev", isotope_stdev_);
+      param.setValue("isotope:maximum", max_isotope_);
+      fitter = Factory<Fitter1D>::create("IsotopeFitter1D");
 
       // Set parameter for fitter
       fitter->setParameters(param);
