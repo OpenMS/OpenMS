@@ -34,6 +34,8 @@
 
 #include <OpenMS/FORMAT/HANDLERS/MzMLSpectrumDecoder.h>
 
+#include <OpenMS/CONCEPT/Macros.h> // OPENMS_PRECONDITION
+
 #include <xercesc/framework/MemBufInputSource.hpp>
 #include <xercesc/parsers/XercesDOMParser.hpp>
 #include <xercesc/dom/DOMNode.hpp>
@@ -245,6 +247,10 @@ namespace OpenMS
 
   void MzMLSpectrumDecoder::domParseString(const std::string& in, std::vector<BinaryData>& data_)
   {
+    // PRECONDITON is below (since we first need to do XML parsing before validating)
+    static const XMLCh* default_array_length_tag = xercesc::XMLString::transcode("defaultArrayLength");
+    static const XMLCh* binary_data_array_tag = xercesc::XMLString::transcode("binaryDataArray");
+
     //-------------------------------------------------------------
     // Create parser from input string using MemBufInputSource
     //-------------------------------------------------------------
@@ -262,22 +268,31 @@ namespace OpenMS
 
     // no need to free this pointer - owned by the parent parser object
     xercesc::DOMDocument* doc =  parser->getDocument();
-    // Get the top-level element (for example <spectrum> or <chromatogram>)
+    // Get the top-level element (needs to be <spectrum> or <chromatogram>)
     xercesc::DOMElement* elementRoot = doc->getDocumentElement();
     if (!elementRoot)
     {
+      std::cerr << "MzMLSpectrumDecoder::domParseString Error: No root element" << std::endl;
       delete parser;
     }
 
-    // Extract the binaryDataArray tag (there may be multiple)
-    XMLCh* tag = xercesc::XMLString::transcode("binaryDataArray");
-    xercesc::DOMNodeList* li = elementRoot->getElementsByTagName(tag);
-    xercesc::XMLString::release(&tag);
+    OPENMS_PRECONDITION(
+        std::string(xercesc::XMLString::transcode(elementRoot->getTagName())) == "spectrum" || 
+        std::string(xercesc::XMLString::transcode(elementRoot->getTagName())) == "chromatogram",
+          (String("The input needs to contain a <spectrum> or <chromatgram> tag as root element. Got instead '") +
+          std::string(xercesc::XMLString::transcode(elementRoot->getTagName())) + "'.").c_str() )
 
-    /// Do the processing of the DOM
+    // defaultArrayLength is required for the spectrum and the chromatogram tag, thus we can parse it here
+    int array_length = xercesc::XMLString::parseInt(elementRoot->getAttribute(default_array_length_tag));
+
+    // Extract the binaryDataArray elements (there may be multiple) and process them
+    xercesc::DOMNodeList* li = elementRoot->getElementsByTagName(binary_data_array_tag);
     for (Size i = 0; i < li->getLength(); i++)
     {
+      // Will append one single BinaryData object to data_
       handleBinaryDataArray(li->item(i), data_);
+      // Set the size correctly (otherwise MzMLHandlerHelper complains).
+      data_.back().size = array_length;
     }
 
     delete parser;
