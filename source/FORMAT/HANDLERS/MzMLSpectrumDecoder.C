@@ -283,14 +283,14 @@ namespace OpenMS
     delete parser;
   }
 
-  void MzMLSpectrumDecoder::domParseSpectrum(std::string& in, OpenMS::Interfaces::SpectrumPtr& sptr)
+  void MzMLSpectrumDecoder::domParseSpectrum(const std::string& in, OpenMS::Interfaces::SpectrumPtr& sptr)
   {
     std::vector<BinaryData> data_;
     domParseString(in, data_);
     sptr = decodeBinaryData(data_);
   }
 
-  void MzMLSpectrumDecoder::domParseChromatogram(std::string& in, OpenMS::Interfaces::ChromatogramPtr& sptr)
+  void MzMLSpectrumDecoder::domParseChromatogram(const std::string& in, OpenMS::Interfaces::ChromatogramPtr& sptr)
   {
     std::vector<BinaryData> data_;
     domParseString(in, data_);

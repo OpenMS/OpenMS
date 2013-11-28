@@ -59,6 +59,8 @@ namespace OpenMS
 
     if (indexoffset < 0 || indexoffset > length)
     {
+      std::cerr << "IndexedMzMLDecoder::parseOffsets Error: Offset was " << 
+        indexoffset << " (not between 0 and " << length << ")." << std::endl;
       return -1;
     }
 
@@ -127,7 +129,8 @@ namespace OpenMS
     }
     else
     {
-      std::cout << "Something is wrong here, could not find indexListOffset -- maybe this is not a indexedmzML? " << std::endl;
+      std::cerr << "IndexedMzMLDecoder::findIndexListOffset Error: Could not find element indexListOffset in the last " << 
+        buffersize << " bytes. Maybe this is not a indexedmzML." << std::endl;
     }
 
     f.close();
@@ -159,6 +162,7 @@ namespace OpenMS
     xercesc::DOMElement* elementRoot = doc->getDocumentElement();
     if (!elementRoot)
     {
+      std::cerr << "IndexedMzMLDecoder::domParseIndexedEnd Error: No root element found." << std::endl;
       delete parser;
       return -1;
     }
@@ -169,6 +173,7 @@ namespace OpenMS
     xercesc::XMLString::release(&tag);
     if (li->getLength() != 1)
     {
+      std::cerr << "IndexedMzMLDecoder::domParseIndexedEnd Error: no indexList element found." << std::endl;
       delete parser;
       return -1;
     }
@@ -211,8 +216,8 @@ namespace OpenMS
         }
         else
         {
-          // TODO
-          //throw 1;
+          std::cerr << "IndexedMzMLDecoder::domParseIndexedEnd Error: expected only " << 
+            "'spectrum' or 'chromatogram' below indexList but found instead '" << name << "'." << std::endl;
           delete parser;
           return -1;
         }

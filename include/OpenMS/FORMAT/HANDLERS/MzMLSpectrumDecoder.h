@@ -98,15 +98,19 @@ namespace OpenMS
     void handleBinaryDataArray(xercesc::DOMNode * indexListNode, std::vector<BinaryData>& data_);
 
     /**
-      @brief Extract data from a string containing multiple binaryDataArray tags.
+      @brief Extract data from a string containing multiple <binaryDataArray> tags.
 
       This may be a string from <spectrum> to </spectrum> or <chromatogram> to
-      </chromatogram> tag which contains one or more binaryDataArray.  The
-      function will return a vector with all binary data found in the string in
-      the binaryDataArray tags.
+      </chromatogram> tag which contains one or more <binaryDataArray>. These
+      XML tags need to conform to the mzML standard. The function will return a
+      vector with all binary data found in the string in the binaryDataArray
+      tags.
 
       @param in Input string containing the raw XML
       @param data_ Binary data extracted from the string
+
+      @pre in must have <spectrum> or <chromatogram> as root element.
+
     */
     void domParseString(const std::string& in, std::vector<BinaryData>& data_);
 
@@ -118,8 +122,14 @@ namespace OpenMS
       Extracts data from the input string which is expected to contain exactly
       one <spectrum> tag (from <spectrum> to </spectrum>). This function will
       extract the contained binaryDataArray and provide the result as Spectrum.
+
+      @param in Input string containing the raw XML
+      @param sptr Resulting spectrum
+
+      @pre in must have <spectrum> as root element.
+
     */
-    void domParseSpectrum(std::string& in, OpenMS::Interfaces::SpectrumPtr & sptr);
+    void domParseSpectrum(const std::string& in, OpenMS::Interfaces::SpectrumPtr & sptr);
 
     /**
       @brief Extract data from a string which contains a full mzML chromatogram.
@@ -128,8 +138,13 @@ namespace OpenMS
       one <chromatogram> tag (from <chromatogram> to </chromatogram>). This
       function will extract the contained binaryDataArray and provide the
       result as Chromatogram.
+
+      @param in Input string containing the raw XML
+      @param cptr Resulting chromatogram
+
+      @pre in must have <chromatogram> as root element.
     */
-    void domParseChromatogram(std::string& in, OpenMS::Interfaces::ChromatogramPtr & sptr);
+    void domParseChromatogram(const std::string& in, OpenMS::Interfaces::ChromatogramPtr & cptr);
 
   };
 }
