@@ -43,6 +43,8 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/PepXMLFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/IndexedMzMLFile.h>
 #include <OpenMS/FORMAT/PeakTypeEstimator.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/DATASTRUCTURES/StringList.h>
@@ -177,6 +179,7 @@ protected:
     registerFlag_("d", "Show detailed listing of all spectra and chromatograms (peak files only)");
     registerFlag_("c", "Check for corrupt data in the file (peak files only)");
     registerFlag_("v", "Validate the file only (for mzML, mzData, mzXML, featureXML, idXML, consensusXML, pepXML)");
+    registerFlag_("i", "Check whether a given mzML file contains valid indices (conforming to the indexedmzML standard)");
   }
 
   template <class Map>
@@ -343,6 +346,44 @@ protected:
       }
 
       return EXECUTION_OK;
+    }
+
+    //-------------------------------------------------------------
+    // Validation of indices
+    //-------------------------------------------------------------
+    if (getFlag_("i"))
+    {
+      if (in_type != FileTypes::MZML)
+      {
+        writeLog_("Error: Can only validate indices for mzML files");
+        printUsage_();
+        return ILLEGAL_PARAMETERS;
+      }
+
+      std::cout << "Checking mzML file for valid indices ... " << std::endl;
+      IndexedMzMLFile ifile;
+      ifile.openFile(in);
+      if (ifile.getParsingSuccess())
+      {
+        // Validate that we can access each single spectrum and chromatogram
+        for (Size i = 0; i < ifile.getNrSpectra(); i++)
+        {
+          OpenMS::Interfaces::SpectrumPtr p = ifile.getSpectrumById(i);
+        }
+        for (Size i = 0; i < ifile.getNrChromatograms(); i++)
+        {
+          OpenMS::Interfaces::ChromatogramPtr p = ifile.getChromatogramById(i);
+        }
+
+        std::cout << "Found a valid indexedmzML XML File with " << 
+          ifile.getNrSpectra() << " spectra and " << 
+          ifile.getNrChromatograms() << " chromatograms." << std::endl << std::endl;
+      }
+      else
+      {
+        std::cout << "Could not detect a valid index for the mzML file " << in << "\nEither the index is not present or is not correct." << std::endl;
+        return ILLEGAL_PARAMETERS;
+      }
     }
 
     //-------------------------------------------------------------
