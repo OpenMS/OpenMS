@@ -93,18 +93,18 @@ START_SECTION(bool load(const String& filename, OnDiscMSExperiment<>& exp))
   TEST_EQUAL(exp.getNrChromatograms(), exp2.getChromatograms().size())
   TEST_EQUAL(exp.getNrSpectra(), 2)
   TEST_EQUAL(exp.getNrChromatograms(), 1)
-  TEST_EQUAL(exp.getSpectrum(0), exp2.getSpectra()[0])
+  TEST_EQUAL(exp.getSpectrum(0) == exp2.getSpectra()[0], true)
 
   for (Size i = 0; i < exp.getNrSpectra(); i++)
   {
-    TEST_EQUAL(exp.getSpectrum(i), exp2.getSpectra()[i])
+    TEST_EQUAL(exp.getSpectrum(i) == exp2.getSpectra()[i], true)
   }
   for (Size i = 0; i < exp.getNrChromatograms(); i++)
   {
-    TEST_EQUAL(exp.getChromatogram(i), exp2.getChromatograms()[i])
+    TEST_EQUAL(exp.getChromatogram(i) == exp2.getChromatograms()[i], true)
   }
 
-  TEST_EQUAL(*exp.getExperimentalSettings(), (OpenMS::ExperimentalSettings)exp2)
+  TEST_EQUAL(*exp.getExperimentalSettings() == (OpenMS::ExperimentalSettings)exp2, true)
 }
 END_SECTION
 
@@ -141,18 +141,18 @@ START_SECTION(void store(const String& filename, OnDiscMSExperiment<>& exp))
   TEST_EQUAL(exp.getNrChromatograms(), exp2.getChromatograms().size())
   TEST_EQUAL(exp.getNrSpectra(), 2)
   TEST_EQUAL(exp.getNrChromatograms(), 1)
-  TEST_EQUAL(exp.getSpectrum(0), exp2.getSpectra()[0])
+  TEST_EQUAL(exp.getSpectrum(0) == exp2.getSpectra()[0], true)
 
   for (Size i = 0; i < exp.getNrSpectra(); i++)
   {
-    TEST_EQUAL(exp.getSpectrum(i), exp2.getSpectra()[i])
+    TEST_EQUAL(exp.getSpectrum(i) == exp2.getSpectra()[i], true)
   }
   for (Size i = 0; i < exp.getNrChromatograms(); i++)
   {
-    TEST_EQUAL(exp.getChromatogram(i), exp2.getChromatograms()[i])
+    TEST_EQUAL(exp.getChromatogram(i) == exp2.getChromatograms()[i], true)
   }
 
-  TEST_EQUAL(*exp.getExperimentalSettings(), (OpenMS::ExperimentalSettings)exp2)
+  TEST_EQUAL(*exp.getExperimentalSettings() == (OpenMS::ExperimentalSettings)exp2, true)
 }
 END_SECTION
 
@@ -175,18 +175,18 @@ START_SECTION(void store(const String& filename, MSExperiment<>& exp))
   TEST_EQUAL(exp.getNrChromatograms(), exp2.getChromatograms().size())
   TEST_EQUAL(exp.getNrSpectra(), 2)
   TEST_EQUAL(exp.getNrChromatograms(), 1)
-  TEST_EQUAL(exp.getSpectrum(0), exp2.getSpectra()[0])
+  TEST_EQUAL(exp.getSpectrum(0) == exp2.getSpectra()[0], true)
 
   for (Size i = 0; i < exp.getNrSpectra(); i++)
   {
-    TEST_EQUAL(exp.getSpectrum(i), exp2.getSpectra()[i])
+    TEST_EQUAL(exp.getSpectrum(i) == exp2.getSpectra()[i], true)
   }
   for (Size i = 0; i < exp.getNrChromatograms(); i++)
   {
-    TEST_EQUAL(exp.getChromatogram(i), exp2.getChromatograms()[i])
+    TEST_EQUAL(exp.getChromatogram(i) == exp2.getChromatograms()[i], true)
   }
 
-  TEST_EQUAL(*exp.getExperimentalSettings(), (OpenMS::ExperimentalSettings)exp2)
+  TEST_EQUAL(*exp.getExperimentalSettings() == (OpenMS::ExperimentalSettings)exp2, true)
 }
 END_SECTION
 
