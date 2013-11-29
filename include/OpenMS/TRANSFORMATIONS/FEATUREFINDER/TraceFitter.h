@@ -74,7 +74,7 @@ public:
     }
 
     /// copy constructor
-    TraceFitter(const TraceFitter & source) :
+    TraceFitter(const TraceFitter& source) :
       DefaultParamHandler(source),
       epsilon_abs_(source.epsilon_abs_),
       epsilon_rel_(source.epsilon_rel_),
@@ -83,7 +83,7 @@ public:
     }
 
     /// assignment operator
-    virtual TraceFitter & operator=(const TraceFitter & source)
+    virtual TraceFitter& operator=(const TraceFitter& source)
     {
       DefaultParamHandler::operator=(source);
       max_iterations_ = source.max_iterations_;
@@ -102,7 +102,7 @@ public:
     /**
      * Main method of the TraceFitter which triggers the actual fitting.
      */
-    virtual void fit(FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType> & traces) = 0;
+    virtual void fit(FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType>& traces) = 0;
 
     /**
      * Returns the lower bound of the fitted RT model
@@ -135,7 +135,7 @@ public:
      * @param trace the mass trace for which the value should be computed
      * @param k  use the position of the k-th peak to compute the value
      */
-    virtual DoubleReal computeTheoretical(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType> & trace, Size k) = 0;
+    virtual DoubleReal computeTheoretical(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType>& trace, Size k) = 0;
 
     /**
      * Checks if the fitted model fills out at least 'min_rt_span' of the RT span
@@ -143,7 +143,7 @@ public:
      * @param rt_bounds RT boundaries of the fitted model
      * @param min_rt_span Minimum RT span in relation to extended area that has to remain after model fitting
      */
-    virtual bool checkMinimalRTSpan(const std::pair<DoubleReal, DoubleReal> & rt_bounds, const DoubleReal min_rt_span) = 0;
+    virtual bool checkMinimalRTSpan(const std::pair<DoubleReal, DoubleReal>& rt_bounds, const DoubleReal min_rt_span) = 0;
 
     /**
      * Checks if the fitted model is not to big
@@ -167,7 +167,7 @@ public:
      * @param rt_shift A shift value, that allows to plot all RT profiles side by side, even if they would overlap in reality.
      *                 This should be 0 for the first mass trace and increase by a fixed value for each mass trace.
      */
-    virtual String getGnuplotFormula(FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType> const & trace, const char function_name, const DoubleReal baseline, const DoubleReal rt_shift) = 0;
+    virtual String getGnuplotFormula(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType>& trace, const char function_name, const DoubleReal baseline, const DoubleReal rt_shift) = 0;
 
 protected:
 
@@ -177,7 +177,7 @@ protected:
      * @param iter Number of current iteration.
      * @param s The solver that also contains all the parameters.
      */
-    virtual void printState_(SignedSize iter, gsl_multifit_fdfsolver * s) = 0;
+    virtual void printState_(SignedSize iter, gsl_multifit_fdfsolver* s) = 0;
 
     virtual void updateMembers_()
     {
@@ -191,18 +191,18 @@ protected:
      *
      * @param s The solver containing the fitted parameter values.
      */
-    virtual void getOptimizedParameters_(gsl_multifit_fdfsolver * s) = 0;
+    virtual void getOptimizedParameters_(gsl_multifit_fdfsolver* s) = 0;
 
     /**
      * Optimize the given parameters using the Levenberg-Marquardt algorithm.
      */
     void optimize_(FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType> & traces, const Size num_params, double x_init[],
-                   Int (* residual)(const gsl_vector * x, void * params, gsl_vector * f),
-                   Int (* jacobian)(const gsl_vector * x, void * params, gsl_matrix * J),
-                   Int (* evaluate)(const gsl_vector * x, void * params, gsl_vector * f, gsl_matrix * J))
+                   Int (* residual)(const gsl_vector* x, void* params, gsl_vector* f),
+                   Int (* jacobian)(const gsl_vector* x, void* params, gsl_matrix* J),
+                   Int (* evaluate)(const gsl_vector* x, void* params, gsl_vector* f, gsl_matrix * J))
     {
-      const gsl_multifit_fdfsolver_type * T;
-      gsl_multifit_fdfsolver * s;
+      const gsl_multifit_fdfsolver_type* T;
+      gsl_multifit_fdfsolver* s;
 
       const size_t data_count = traces.getPeakCount();
 

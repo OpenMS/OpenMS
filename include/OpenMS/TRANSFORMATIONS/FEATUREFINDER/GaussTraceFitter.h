@@ -59,7 +59,7 @@ public:
       //setName("GaussTraceFitter");
     }
 
-    GaussTraceFitter(const GaussTraceFitter & other) :
+    GaussTraceFitter(const GaussTraceFitter& other) :
       TraceFitter<PeakType>(other)
     {
       this->height_ = other.height_;
@@ -69,7 +69,7 @@ public:
       updateMembers_();
     }
 
-    GaussTraceFitter & operator=(const GaussTraceFitter & source)
+    GaussTraceFitter& operator=(const GaussTraceFitter& source)
     {
       TraceFitter<PeakType>::operator=(source);
 
@@ -87,7 +87,7 @@ public:
     }
 
     // override important methods
-    void fit(FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType> & traces)
+    void fit(FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType>& traces)
     {
       LOG_DEBUG << "Traces length: " << traces.size() << std::endl;
       setInitialParameters_(traces);
@@ -140,12 +140,12 @@ public:
       return 5.0 * sigma_ > max_rt_span * region_rt_span_;
     }
 
-    bool checkMinimalRTSpan(const std::pair<DoubleReal, DoubleReal> & rt_bounds, const DoubleReal min_rt_span)
+    bool checkMinimalRTSpan(const std::pair<DoubleReal, DoubleReal>& rt_bounds, const DoubleReal min_rt_span)
     {
       return (rt_bounds.second - rt_bounds.first) < (min_rt_span * 5.0 * sigma_);
     }
 
-    DoubleReal computeTheoretical(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType> & trace, Size k)
+    DoubleReal computeTheoretical(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType>& trace, Size k)
     {
       return trace.theoretical_int *  height_ * exp(-0.5 * pow(trace.peaks[k].first - x0_, 2) / pow(sigma_, 2));
     }
@@ -155,7 +155,7 @@ public:
       return 2.5 * height_ * sigma_;
     }
 
-    String getGnuplotFormula(FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType> const & trace, const char function_name, const DoubleReal baseline, const DoubleReal rt_shift)
+    String getGnuplotFormula(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType>& trace, const char function_name, const DoubleReal baseline, const DoubleReal rt_shift)
     {
       std::stringstream s;
       s << String(function_name)  << "(x)= " << baseline << " + ";
@@ -171,16 +171,16 @@ protected:
 
     static const Size NUM_PARAMS_ = 3;
 
-    void getOptimizedParameters_(gsl_multifit_fdfsolver * s)
+    void getOptimizedParameters_(gsl_multifit_fdfsolver* s)
     {
       height_ = gsl_vector_get(s->x, 0);
       x0_ = gsl_vector_get(s->x, 1);
       sigma_ = std::fabs(gsl_vector_get(s->x, 2));
     }
 
-    static Int residual_(const gsl_vector * param, void * data, gsl_vector * f)
+    static Int residual_(const gsl_vector* param, void* data, gsl_vector* f)
     {
-      FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType> * traces = static_cast<FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType> *>(data);
+      FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType>* traces = static_cast<FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType>*>(data);
       double height = gsl_vector_get(param, 0);
       double x0 = gsl_vector_get(param, 1);
       double sig = gsl_vector_get(param, 2);
@@ -189,7 +189,7 @@ protected:
       Size count = 0;
       for (Size t = 0; t < traces->size(); ++t)
       {
-        const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType> & trace = (*traces)[t];
+        const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType>& trace = (*traces)[t];
         for (Size i = 0; i < trace.peaks.size(); ++i)
         {
           gsl_vector_set(f, count, traces->baseline + trace.theoretical_int * height * exp(c_fac * pow(trace.peaks[i].first - x0, 2)) - trace.peaks[i].second->getIntensity());
@@ -199,9 +199,9 @@ protected:
       return GSL_SUCCESS;
     }
 
-    static Int jacobian_(const gsl_vector * param, void * data, gsl_matrix * J)
+    static Int jacobian_(const gsl_vector* param, void* data, gsl_matrix* J)
     {
-      FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType> * traces = static_cast<FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType> *>(data);
+      FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType>* traces = static_cast<FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType>*>(data);
       double height = gsl_vector_get(param, 0);
       double x0 = gsl_vector_get(param, 1);
       double sig = gsl_vector_get(param, 2);
@@ -212,7 +212,7 @@ protected:
       Size count = 0;
       for (Size t = 0; t < traces->size(); ++t)
       {
-        const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType> & trace = (*traces)[t];
+        const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType>& trace = (*traces)[t];
         for (Size i = 0; i < trace.peaks.size(); ++i)
         {
           DoubleReal rt = trace.peaks[i].first;
@@ -226,14 +226,14 @@ protected:
       return GSL_SUCCESS;
     }
 
-    static Int evaluate_(const gsl_vector * param, void * data, gsl_vector * f, gsl_matrix * J)
+    static Int evaluate_(const gsl_vector* param, void* data, gsl_vector* f, gsl_matrix* J)
     {
       residual_(param, data, f);
       jacobian_(param, data, J);
       return GSL_SUCCESS;
     }
 
-    void setInitialParameters_(FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType> & traces)
+    void setInitialParameters_(FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType>& traces)
     {
       LOG_DEBUG << "GaussTraceFitter->setInitialParameters(..)" << std::endl;
       LOG_DEBUG << "Traces length: " << traces.size() << std::endl;
@@ -255,7 +255,7 @@ protected:
       TraceFitter<PeakType>::updateMembers_();
     }
 
-    void printState_(SignedSize iter, gsl_multifit_fdfsolver * s)
+    void printState_(SignedSize iter, gsl_multifit_fdfsolver* s)
     {
       LOG_DEBUG << "iter " << iter << ": " <<
       "height: " << gsl_vector_get(s->x, 0) << " " <<
