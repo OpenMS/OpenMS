@@ -275,7 +275,7 @@ namespace OpenMS
         std::string(xercesc::XMLString::transcode(elementRoot->getTagName())) == "spectrum" || 
         std::string(xercesc::XMLString::transcode(elementRoot->getTagName())) == "chromatogram",
           (String("The input needs to contain a <spectrum> or <chromatgram> tag as root element. Got instead '") +
-          std::string(xercesc::XMLString::transcode(elementRoot->getTagName())) + "'.").c_str() )
+          String(xercesc::XMLString::transcode(elementRoot->getTagName())) + String("'.")).c_str() )
 
     // defaultArrayLength is a required attribute for the spectrum and the
     // chromatogram tag (but still check for it first to be safe).
