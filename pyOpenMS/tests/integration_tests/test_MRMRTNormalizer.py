@@ -61,7 +61,7 @@ class TestMRMRTNormalizer(unittest.TestCase):
         # get the pairs
         pairs=[]
         simple_find_best_feature(output, pairs, targeted)
-        pairs_corrected = pyopenms.MRMRTNormalizer().rm_outliers( pairs, 0.95, 0.6)
+        pairs_corrected = pyopenms.MRMRTNormalizer().rm_outliers( pairs, 0.95, 0.6, True)
         pairs_corrected = [ list(p) for p in pairs_corrected]
 
         expected = [(1497.56884765625, 1881.0),
