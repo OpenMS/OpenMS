@@ -1,30 +1,51 @@
 /**
   
   @page install_linux Building OpenMS on GNU/Linux
-  We are working on adding %OpenMS to the repositories of the most popular distributions, but for now
-  the toolkit needs to be manually compiled on your system.
 
-  You can find the Release and Development (svn) versions on http://open-ms.sourceforge.net/downloads/.
+  This document describes how to build OpenMS on a GNU/Linux system from source. 
 
-  From here on the instructions assume you have an extracted tar.gz of the <a href="https://sourceforge.net/projects/open-ms/files/OpenMS/">Release</a>, or checked out the 
-  Development (svn) version by <pre>svn co https://open-ms.svn.sourceforge.net/svnroot/open-ms/OpenMS</pre>
+  We are working on adding %OpenMS to the repositories of the most popular
+  distributions, but for now the toolkit needs to be manually compiled on your
+  system.
 
-  @section Dependencies
-  Before building from source, %OpenMS requires several other libraries to be present on your system. Most of these 
-  should be available in the repositories of your GNU/Linux distribution.
+  @section checkout_and_build Checkout OpenMS
 
-  For the libraries/versions often not found in those repositories, we provide sources and build scripts.
-  The Release tar.gz archive contains the libraries in the contrib/ folder, if you build the Development (svn) 
-  version, you'll have to check them out separately (see below in @ref build_linux_contrib).
+  You can find the links to the release and development (svn) versions on the
+  <a href="http://open-ms.sourceforge.net/downloads/">Downloads</a> page of the
+  %OpenMS project.
+
+  From here on the instructions assume you have an extracted tar.gz of the
+  Release and are inside its root, or checked out the development (svn) version
+  by:
+
+  \code
+  svn co https://open-ms.svn.sourceforge.net/svnroot/open-ms/OpenMS
+  cd OpenMS
+  \endcode
+
+  @section bin_dep Dependencies obtainable in binary form
+
+  Before building from source, %OpenMS requires several other libraries to be
+  present on your system. Most of these should be available in the repositories
+  of your GNU/Linux distribution.
+
+  For the libraries/versions often not found in those repositories, we provide
+  sources and build scripts.  The Release tar.gz archive contains the libraries
+  in the contrib/ folder, if you build the Development (svn) version, you'll
+  have to check them out separately (see below in @ref build_linux_contrib).
   
   <b>Required packages and libraries</b>
   
-  Essential are GCC > 4.0 or other ANSI C++ compiler, CMake > 2.8.3, Qt4 > 4.5, patch, autoconf > 2.60, automake > 1.9, libtool (libtoolize/glibtoolize).
+  Essential are GCC > 4.0 or other ANSI C++ compiler, CMake > 2.8.3, Qt4 > 4.5,
+  patch, autoconf > 2.60, automake > 1.9, libtool (libtoolize/glibtoolize).
 
-  For the complete feature set to be enabled, %OpenMS needs recent versions of Boost, GSL, libSVM, SeqAn, glpk, zlib, libbz2, and Xerces-C.
+  For the complete feature set to be enabled, %OpenMS needs recent versions of
+  Boost (1.46 or higher works), GSL (1.15 or higher works), 
+  libSVM (2.91 or higher and 3.x for x <= 14 works), SeqAn (1.4.0 or higher needed), 
+  glpk (4.45 or higher works), zlib, libbz2, and Xerces-C (3.1.1 or higher works).
 
-  Building the documentation from the Development version requires doxygen > 1.5.4 and pdflatex/texlive/texlive-full.
-
+  Building the documentation from the development version requires doxygen > 1.5.4 and 
+  pdflatex/texlive/texlive-full.
 
   For the most common distributions, these commands will install most of the libraries:
 
@@ -45,10 +66,11 @@
     </pre></td>
   </tr>
   <tr>
-    <td><B>Ubuntu/Debian (12.04/6.0 or later recommended)</B></td>
+    <td><B>Ubuntu/Debian <br/>(10.04/6.0 or later recommended)</B></td>
     <td><pre>
-    sudo apt-get install cmake g++ autoconf qt4-dev-tools patch libtool make libxerces-c-dev libgsl0-dev libboost-regex-dev \
-    libboost-iostreams-dev libboost-date-time-dev libboost-math-dev libsvm-dev libglpk-dev libzip-dev zlib1g-dev
+    sudo apt-get install cmake g++ autoconf qt4-dev-tools patch libtool make 
+    sudo apt-get install libboost-regex-dev libboost-iostreams-dev libboost-date-time-dev libboost-math-dev \
+      libsvm-dev libglpk-dev libzip-dev zlib1g-dev libxerces-c-dev libgsl0-dev 
     </pre></td>
 
   </tr>
@@ -56,78 +78,112 @@
 
 
   @section build_linux_contrib Building remaining dependencies
-  @note In most cases, the only dependency left unresolved at this point is SeqAn. You can check which dependencies you still need by attempting to configure %OpenMS (see the next section), it will complain about anything unusual. Contact us if you still have trouble with the dependencies after these instructions.
 
-  The %OpenMS Release package (https://sourceforge.net/projects/open-ms/files/OpenMS/) contains the sources of all
-  dependencies in the contrib/ folder.
+  @note In most cases, the only dependency left unresolved (e.g. not easily
+  available through your distribution) at this point is SeqAn. You can check
+  which dependencies you still need by attempting to configure %OpenMS (see the
+  next section), it will complain about anything unusual. Contact us if you
+  still have trouble with the dependencies after these instructions.
 
-  For the Development (svn) version, this folder is not included, it has to be checked out separately (and referred to later):
-  <pre>svn co https://open-ms.svn.sourceforge.net/svnroot/open-ms/contrib</pre>
-  
-  from the contrib/ folder, execute the following command to build SeqAn: (The other build scripts can be listed by substituting <i>SEQAN</i> with <i>LIST</i>)
+  OpenMS conveniently provides its dependencies for download.  The %OpenMS
+  Release package (https://sourceforge.net/projects/open-ms/files/OpenMS/)
+  contains the sources of all dependencies in the contrib/ folder.  For the
+  Development (svn) version, this folder is not included, it has to be checked
+  out separately (and referred to later):
 
-  <pre>
-  cmake -DBUILD_TYPE=SEQAN ./
-  </pre>
+  \code
+  # Assuming you are in ./OpenMS
+  svn co https://open-ms.svn.sourceforge.net/svnroot/open-ms/contrib
+  cd ./contrib
+  \endcode
 
-  To avoid problems while building the libraries contained in the contrib package, the path
-  to your contrib directory should not have any spaces in it.
+  From the <i>./contrib/</i> folder, execute the following command to show the
+  available build types and then build SeqAn (the other build scripts may be
+  executed if your distribution does not provide a package for the dependency):
 
-  
+  \code
+  cmake -DBUILD_TYPE=LIST .
+  cmake -DBUILD_TYPE=SEQAN .
+  \endcode
+
+  To avoid problems while building the libraries contained in the contrib
+  package, the path to your contrib directory should not have any spaces in it.
+
   @section install_linux_openms Configuring and building OpenMS/TOPP
+
+  It is assumed that you have successfully built and installed all dependencies
+  and are in the root folder of the OpenMS tree (see above in @ref
+  checkout_and_build for instructions how to obtain OpenMS sources).
 
   <a href="http://www.cmake.org/">CMake</a> is used to check the system and create the 'Makefile'.
 
-  From the root directory of the package (or the checked out svn branch of %OpenMS), execute the following command to <i>configure</i> %OpenMS to build in bin/ and lib/,<br>
-  substituting <b>/PATH/TO/contrib/</b> by the actual path to the directory of the previous step (for the Release package it is just <i>contrib/</i>):
-  <pre>
+  From the root directory of the package (or the checked out svn branch of
+  %OpenMS), execute the following command to <i>configure</i> %OpenMS to build
+  in bin/ and lib/,<br> substituting <b>/PATH/TO/contrib/</b> by the actual
+  path to the directory of the previous step (if your contrib directory is
+  directly inside your OpenMS root (e.g. for the Release package) it is just
+  <i>./contrib/</i>):
+
+  \code
   cmake -DCMAKE_FIND_ROOT_PATH="/usr;/usr/local;/PATH/TO/contrib" -DBOOST_USE_STATIC=OFF .
-  </pre>
+  \endcode
   
   In order to <i>build</i> the %OpenMS library and TOPP tools execute the following command:
-  <pre>
+
+  \code
   make
-  </pre>
+  \endcode
   
+
   @subsection linux_openms_environment Getting your environment ready to use OpenMS
 
-  The previous step takes the most time, in the meanwhile you can prepare your environment for easy %OpenMS usage:
+  The previous step takes the most time, in the meanwhile you can prepare your
+  environment for easy %OpenMS usage:
   
-  Make sure to add <b>/PATH/TO/OpenMS/lib/</b> (e.g. <i>/home/smith/OpenMS/lib/</i>) to the environment variable <b>LD_LIBRARY_PATH</b>.
-  The best way is to edit $HOME/.bashrc and add the following
-  <pre>
+  Make sure to add <b>/PATH/TO/OpenMS/lib/</b> (e.g.
+  <i>/home/smith/OpenMS/lib/</i>) to the environment variable
+  <b>LD_LIBRARY_PATH</b>.  The best way is to edit $HOME/.bashrc and add the
+  following
+  \code
   export LD_LIBRARY_PATH="/PATH/TO/OpenMS/lib:$LD_LIBRARY_PATH"
-  </pre>
+  \endcode
   
-  The TOPP tools will be built in the <b>/PATH/TO/OpenMS/bin/</b> folder. Add this path to the environment variable <b>PATH</b> to use the commands anywhere on your system. 
+  The TOPP tools will be built in the <b>/PATH/TO/OpenMS/bin/</b> folder. Add
+  this path to the environment variable <b>PATH</b> to use the commands
+  anywhere on your system. 
   
   This is necessary to use the TOPP tools from TOPPView.
   
   You can do this by appending the following also to your $HOME/.bashrc
   (Do not use the tilde character @em ~ to abbreviate your home folder) 
-  <pre>
+  \code
   export PATH=$PATH:/PATH/TO/OpenMS/bin
-  </pre>
+  \endcode
 
   Apply both changes by executing <pre>. ~/.bashrc </pre>
   
+
   @section running_linux_openms Running OpenMS
-  If the build from @ref install_linux_openms is ready, you can now run a GNU/Linux %OpenMS tool by e.g. executing
-  <pre>
+  If the build from @ref install_linux_openms is ready, you can now run a
+  GNU/Linux %OpenMS tool by e.g. executing
+
+  \code
   FileInfo
-  </pre>
+  \endcode
 
+  From here on you should be good to go! See below for advanced installation and configuration options.
 
-<hr>
+  <br/>
+  <br/>
+
+<hr/>
+
   @section advanced_linux_openms Advanced Options
 
-
-
-
   Advanced users can list the separate make targets by calling:
-  <pre>
+  \code
   make targets
-  </pre>
+  \endcode
   
   You can set more CMake variables adding <code>-DVARIABLE=VALUE</code> options in step @ref install_linux_openms.
   
@@ -169,13 +225,18 @@
     </tr>
     <tr>
       <td valign="top"><pre>CMAKE_C_COMPILER</pre></td>
-      <td>Defines the C compiler to use. This should match the C++ compiler. Mixing compilers (e.g., <pre>clang++</pre> for C++ and <pre>gcc</pre> for C)
-       can lead to undefined behavior as some internal settings (e.g., %OpenMP support) are determined using the C compiler and are assumed to be the 
-       same for the C++ compiler.</td>
+      <td>Defines the C compiler to use. This should match the C++ compiler.
+      Mixing compilers (e.g., <i>clang++</i> for C++ and <i>gcc</i> for C) can
+      lead to undefined behavior as some internal settings (e.g., %OpenMP
+      support) are determined using the C compiler and are assumed to be the
+      same for the C++ compiler.</td>
     </tr>    
     <tr>
       <td valign="top"><pre>SEARCH_ENGINES_DIRECTORY</pre> (optional)</td>
-      <td>The location where the ID search engines (X!Tandem, OMMSA, MyriMatch) are located. This directory should have the same structure as the example in the %OpenMS svn repository: https://open-ms.svn.sourceforge.net/svnroot/open-ms/THIRDPARTY/SEARCHENGINES/.
+      <td>The location where the ID search engines (X!Tandem, OMMSA, MyriMatch)
+      are located. This directory should have the same structure as the example
+      in the %OpenMS svn repository:
+      https://open-ms.svn.sourceforge.net/svnroot/open-ms/THIRDPARTY/SEARCHENGINES/.
 
       This directory is needed to build the installer for %OpenMS.</td>
     </tr>        
@@ -186,21 +247,26 @@
   </table>
   
   A full list of the CMake variables is shown when you execute
-  <pre>
-  ccmake .
-  </pre>
-  This works only after having executed <pre>cmake .</pre>
 
-  
-<HR>
+  \code
+  ccmake .
+  \endcode
+
+  This works only after having executed \code cmake . \endcode
+
+<br/>
+<br/>
+
+<hr/>
 
   @section install_linux_testing_openms Testing your OpenMS/TOPP installation  
   
   After you have installed %OpenMS and TOPP, you should verify your installation by executing the following command:
-  <pre>
+
+  \code
   make test_build
   make test
-  </pre>
+  \endcode
   
   @note To enable DB connectivity tests, use the following CMake parameters:
   - DB_TEST
