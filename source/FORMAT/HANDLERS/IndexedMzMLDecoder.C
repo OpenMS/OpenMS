@@ -163,7 +163,7 @@ namespace OpenMS
     xercesc::DOMElement* elementRoot = doc->getDocumentElement();
     if (!elementRoot)
     {
-      std::cerr << "IndexedMzMLDecoder::domParseIndexedEnd Error: No root element found." << std::endl;
+      std::cerr << "IndexedMzMLDecoder::domParseIndexedEnd Error: No root element found:" << std::endl << std::endl << in << std::endl;
       delete parser;
       return -1;
     }
@@ -174,7 +174,7 @@ namespace OpenMS
     xercesc::XMLString::release(&tag);
     if (li->getLength() != 1)
     {
-      std::cerr << "IndexedMzMLDecoder::domParseIndexedEnd Error: no indexList element found." << std::endl;
+      std::cerr << "IndexedMzMLDecoder::domParseIndexedEnd Error: no indexList element found:" << std::endl << std::endl << in << std::endl;
       delete parser;
       return -1;
     }
