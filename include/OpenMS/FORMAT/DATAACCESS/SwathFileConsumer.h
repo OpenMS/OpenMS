@@ -121,12 +121,12 @@ public:
      * called after all spectra are consumed.
      *
      * @note It is not possible to consume any more spectra after calling this
-     * function (it contains finalization code and may close filestreams).
+     * function (it contains finalization code and may close file streams).
      *
      */
     void retrieveSwathMaps(std::vector<OpenSwath::SwathMap>& maps)
     {
-      consuming_possible_ = false; // make consumption of further spectra / chromatograms impossble
+      consuming_possible_ = false; // make consumption of further spectra / chromatograms impossible
       ensureMapsAreFilled_();
       if (ms1_map_)
       {
@@ -159,24 +159,26 @@ public:
       std::cerr << "Read spectrum while reading SWATH files, did not expect that!" << std::endl;
     }
 
-    /// Consume a spectrum which may belong either to an MS1 scan or one of n MS2 (SWATH) scans
+    /// Consume a spectrum which may belong either to an MS1 scan or one of n
+    /// MS2 (SWATH) scans
     void consumeSpectrum(MapType::SpectrumType& s)
     {
       if (!consuming_possible_)
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-                                         "FullSwathFileConsumer cannot consume any more spectra after retrieveSwathMaps has been called already");
+          "FullSwathFileConsumer cannot consume any more spectra after retrieveSwathMaps has been called already");
       }
       if (s.getMSLevel() == 1)
       {
-        // append a new MS1 scan, set the ms2 counter to zero and proceed
+        // append a new MS1 scan, set the MS2 counter to zero and proceed
         consumeMS1Spectrum_(s);
         ms2_counter_ = 0;
         ms1_counter_++;
       }
       else
       {
-        // If this is the first encounter of this SWATH map, try to read the isolation windows
+        // If this is the first encounter of this SWATH map, try to read the
+        // isolation windows
         if (ms2_counter_ == swath_maps_.size())
         {
           if (!s.getPrecursors().empty())
@@ -192,7 +194,7 @@ public:
         else if (ms2_counter_ > swath_prec_center_.size() && ms2_counter_ > swath_prec_lower_.size())
         {
           throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-                                           "FullSwathFileConsumer: MS2 counter is larger than size of swath maps! Are the swath_maps representing the number of read in maps?");
+            "FullSwathFileConsumer: MS2 counter is larger than size of swath maps! Are the swath_maps representing the number of read in maps?");
         }
         consumeSwathSpectrum_(s, ms2_counter_);
         ms2_counter_++;
@@ -210,7 +212,7 @@ protected:
      * ms2_counter_ == swath_maps_.size() (i.e. if a new swath was encountered
      * the first time)
      */
-    virtual void consumeSwathSpectrum_(MapType::SpectrumType& s, int swath_nr) = 0;
+    virtual void consumeSwathSpectrum_(MapType::SpectrumType& s, size_t swath_nr) = 0;
     /// @brief Consume an MS1 spectrum
     virtual void consumeMS1Spectrum_(MapType::SpectrumType& s) = 0;
     /**
@@ -261,10 +263,12 @@ protected:
       swath_maps_.push_back(exp);
     }
 
-    void consumeSwathSpectrum_(MapType::SpectrumType& s, int swath_nr)
+    void consumeSwathSpectrum_(MapType::SpectrumType& s, size_t swath_nr)
     {
-      if (swath_nr == (int)swath_maps_.size())
+      if (swath_nr == swath_maps_.size())
+      {
         addNewSwathMap_();
+      }
       swath_maps_[swath_nr]->addSpectrum(s);
     }
 
@@ -277,7 +281,9 @@ protected:
     void consumeMS1Spectrum_(MapType::SpectrumType& s)
     {
       if (!ms1_map_)
+      {
         addMS1Map_();
+      }
       ms1_map_->addSpectrum(s);
     }
 
@@ -313,9 +319,17 @@ public:
 
     ~CachedSwathFileConsumer()
     {
-      // Properly delete the CachedMzMLConsumers -> free memory and _close_ filestream
-      while (!swath_consumers_.empty()) {delete swath_consumers_.back(); swath_consumers_.pop_back(); }
-      if (ms1_consumer_ != NULL) { delete ms1_consumer_; ms1_consumer_ = NULL; }
+      // Properly delete the CachedMzMLConsumers -> free memory and _close_ file stream
+      while (!swath_consumers_.empty()) 
+      {
+        delete swath_consumers_.back();
+        swath_consumers_.pop_back(); 
+      }
+      if (ms1_consumer_ != NULL) 
+      { 
+        delete ms1_consumer_;
+        ms1_consumer_ = NULL; 
+      }
     }
 
 protected:
@@ -332,10 +346,12 @@ protected:
       swath_maps_.push_back(exp);
     }
 
-    void consumeSwathSpectrum_(MapType::SpectrumType& s, int swath_nr)
+    void consumeSwathSpectrum_(MapType::SpectrumType& s, size_t swath_nr)
     {
-      if (swath_nr == (int)swath_consumers_.size())
+      if (swath_nr == swath_consumers_.size())
+      {
         addNewSwathMap_();
+      }
 
       swath_consumers_[swath_nr]->consumeSpectrum(s);
       swath_maps_[swath_nr]->addSpectrum(s); // append for the metadata (actual data is deleted)
@@ -354,7 +370,9 @@ protected:
     void consumeMS1Spectrum_(MapType::SpectrumType& s)
     {
       if (ms1_consumer_ == NULL)
+      {
         addMS1Map_();
+      }
       ms1_consumer_->consumeSpectrum(s);
       ms1_map_->addSpectrum(s); // append for the metadata (actual data is deleted)
     }
@@ -364,14 +382,24 @@ protected:
       size_t swath_consumers_size = swath_consumers_.size();
       bool have_ms1 = (ms1_consumer_ != NULL);
 
-      // Properly delete the CachedMzMLConsumers -> free memory and _close_ filestream
-      // The filestreams to the cached data on disc can and should be closed
+      // Properly delete the CachedMzMLConsumers -> free memory and _close_ file stream
+      // The file streams to the cached data on disc can and should be closed
       // here safely. Since ensureMapsAreFilled_ is called after consuming all
       // the spectra, there will be no more spectra to append but the client
       // might already want to read after this call, so all data needs to be
-      // present on disc and the filestreams closed.
-      while (!swath_consumers_.empty()) { delete swath_consumers_.back(); swath_consumers_.pop_back(); }
-      if (ms1_consumer_ != NULL) { delete ms1_consumer_; ms1_consumer_ = NULL; }
+      // present on disc and the file streams closed.
+      //
+      // TODO merge with destructor code into own function!
+      while (!swath_consumers_.empty()) 
+      { 
+        delete swath_consumers_.back();
+        swath_consumers_.pop_back(); 
+      }
+      if (ms1_consumer_ != NULL) 
+      { 
+        delete ms1_consumer_;
+        ms1_consumer_ = NULL; 
+      }
 
       if (have_ms1)
       {
