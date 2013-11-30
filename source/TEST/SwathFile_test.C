@@ -128,7 +128,7 @@ END_SECTION
 START_SECTION(std::vector< OpenSwath::SwathMap > loadMzML(String file, String tmp, 
       boost::shared_ptr<ExperimentalSettings>& exp_meta, String readoptions="normal") )
 {
-  int nr_swathes = 6;
+  Size nr_swathes = 6;
   storeSwathFile("swathFile_1.tmp", nr_swathes);
   boost::shared_ptr<ExperimentalSettings> meta = boost::shared_ptr<ExperimentalSettings>(new ExperimentalSettings());
   std::vector< OpenSwath::SwathMap > maps = SwathFile().loadMzML("swathFile_1.tmp", "./", meta);
@@ -152,7 +152,7 @@ END_SECTION
 START_SECTION([EXTRA]std::vector< OpenSwath::SwathMap > loadMzML(String file, String tmp, 
       boost::shared_ptr<ExperimentalSettings>& exp_meta, String readoptions="cache") )
 {
-  int nr_swathes = 2;
+  Size nr_swathes = 2;
   storeSwathFile("swathFile_1.tmp", nr_swathes);
   boost::shared_ptr<ExperimentalSettings> meta = boost::shared_ptr<ExperimentalSettings>(new ExperimentalSettings());
   std::vector< OpenSwath::SwathMap > maps = SwathFile().loadMzML("swathFile_1.tmp", "./", meta, "cache");
@@ -177,7 +177,7 @@ START_SECTION(std::vector< OpenSwath::SwathMap > loadSplit(StringList file_list,
       boost::shared_ptr<ExperimentalSettings>& exp_meta, String readoptions="normal"))
 {
   std::vector<String> swath_filenames;
-  int nr_swathes = 3;
+  Size nr_swathes = 3;
   swath_filenames.push_back("swathFile_2_ms1.tmp");
   for (Size i = 0; i < nr_swathes; i++)
   {
@@ -211,14 +211,14 @@ START_SECTION([EXTRA]std::vector< OpenSwath::SwathMap > loadSplit(StringList fil
       boost::shared_ptr<ExperimentalSettings>& exp_meta, String readoptions="cache"))
 {
   std::vector<String> swath_filenames;
-  int nr_swathes = 2;
+  Size nr_swathes = 2;
   swath_filenames.push_back("swathFile_3_ms1.tmp");
   for (Size i = 0; i < nr_swathes; i++)
   {
     swath_filenames.push_back( String("swathFile_3_sw" ) + String(i) + ".tmp");
   }
-  storeSplitSwathFile(swath_filenames); // 2 seconds
-  boost::shared_ptr<ExperimentalSettings> meta = boost::shared_ptr<ExperimentalSettings>(new ExperimentalSettings()); // 12 seconds
+  storeSplitSwathFile(swath_filenames);
+  boost::shared_ptr<ExperimentalSettings> meta = boost::shared_ptr<ExperimentalSettings>(new ExperimentalSettings());
   std::vector< OpenSwath::SwathMap > maps = SwathFile().loadSplit(swath_filenames, "./", meta, "cache");
   // ensure they are sorted ... 
   std::sort(maps.begin(), maps.end(), sortSwathMaps);
