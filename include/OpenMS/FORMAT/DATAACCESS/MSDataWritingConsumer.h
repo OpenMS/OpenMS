@@ -103,7 +103,6 @@ namespace OpenMS
       */
       explicit MSDataWritingConsumer(String filename) :
         Internal::MzMLHandler<MapType>(MapType(), filename, MzMLFile().getVersion(), ProgressLogger()),
-        ofs(filename.c_str()), 
         started_writing_(false),
         writing_spectra_(false),
         writing_chromatograms_(false),
@@ -114,6 +113,9 @@ namespace OpenMS
         add_dataprocessing_(false)
       {
         validator_ = new Internal::MzMLValidator(this->mapping_, this->cv_);
+
+        // open file in binary mode to avoid any line ending conversions
+        ofs.open(filename.c_str(), std::ios::out | std::ios::binary);
         ofs.precision(writtenDigits(DoubleReal()));
       }
 
