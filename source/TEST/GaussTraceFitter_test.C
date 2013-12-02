@@ -301,6 +301,18 @@ START_SECTION((void fit(FeatureFinderAlgorithmPickedHelperStructs::MassTraces< P
   TEST_REAL_SIMILAR(gaussian_trace_fitter.getCenter(), expected_x0)
   TEST_REAL_SIMILAR(gaussian_trace_fitter.getHeight(), expected_H)
   TEST_REAL_SIMILAR(gaussian_trace_fitter.getSigma(), expected_sigma)
+  GaussTraceFitter<Peak1D> weighted_fitter;
+  Param params = weighted_fitter.getDefaults();
+  params.setValue("weighted", "true");
+  weighted_fitter.setParameters(params);
+  weighted_fitter.fit(mts);
+  TEST_REAL_SIMILAR(weighted_fitter.getCenter(), expected_x0)
+  TEST_REAL_SIMILAR(weighted_fitter.getHeight(), expected_H - 0.0025)
+  mts[0].theoretical_int = 0.4;
+  mts[1].theoretical_int = 0.6;
+  weighted_fitter.fit(mts);
+  TEST_REAL_SIMILAR(weighted_fitter.getCenter(), expected_x0)
+  TEST_REAL_SIMILAR(weighted_fitter.getHeight(), 6.082)  
 }
 END_SECTION
 

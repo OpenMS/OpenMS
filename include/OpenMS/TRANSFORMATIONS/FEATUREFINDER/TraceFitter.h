@@ -71,6 +71,8 @@ public:
       this->defaults_.setValue("max_iteration", 500, "Maximum number of iterations used by the Levenberg-Marquardt algorithm.", StringList::create("advanced"));
       this->defaults_.setValue("epsilon_abs", 0.0001, "Absolute error used by the Levenberg-Marquardt algorithm.", StringList::create("advanced"));
       this->defaults_.setValue("epsilon_rel", 0.0001, "Relative error used by the Levenberg-Marquardt algorithm.", StringList::create("advanced"));
+      this->defaults_.setValue("weighted", "false", "Weight mass traces according to their theoretical intensities.", StringList::create("advanced"));
+      this->defaults_.setValidStrings("weighted", StringList::create("true,false"));
     }
 
     /// copy constructor
@@ -78,7 +80,8 @@ public:
       DefaultParamHandler(source),
       epsilon_abs_(source.epsilon_abs_),
       epsilon_rel_(source.epsilon_rel_),
-      max_iterations_(source.max_iterations_)
+      max_iterations_(source.max_iterations_),
+      weighted_(source.weighted_)
     {
     }
 
@@ -89,6 +92,7 @@ public:
       max_iterations_ = source.max_iterations_;
       epsilon_abs_  = source.epsilon_abs_;
       epsilon_rel_ = source.epsilon_rel_;
+      weighted_ = source.weighted_;
       updateMembers_();
 
       return *this;
@@ -171,6 +175,13 @@ public:
 
 protected:
 
+    /// Structure for passing data to GSL functions
+    struct ModelData
+    {
+      FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType>* traces_ptr;
+      bool weighted;
+    };
+
     /**
      * Prints the state of the current iteration (e.g., values of the parameters)
      *
@@ -184,6 +195,7 @@ protected:
       max_iterations_ = this->param_.getValue("max_iteration");
       epsilon_abs_ = this->param_.getValue("epsilon_abs");
       epsilon_rel_ = this->param_.getValue("epsilon_rel");
+      weighted_ = this->param_.getValue("weighted") == "true";
     }
 
     /**
@@ -218,7 +230,8 @@ protected:
       func.fdf = (evaluate);
       func.n = data_count;
       func.p = num_params;
-      func.params = &traces;
+      ModelData params = {&traces, weighted_};
+      func.params = &params;
       T = gsl_multifit_fdfsolver_lmsder;
       s = gsl_multifit_fdfsolver_alloc(T, data_count, num_params);
       gsl_multifit_fdfsolver_set(s, &func, &x.vector);
@@ -247,6 +260,8 @@ protected:
     DoubleReal epsilon_rel_;
     /// Maximum number of iterations
     SignedSize max_iterations_;
+    /// Whether to weight mass traces by theoretical intensity during the optimization
+    bool weighted_;
 
   };
 

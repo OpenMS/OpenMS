@@ -298,11 +298,23 @@ START_SECTION((EGHTraceFitter& operator=(const EGHTraceFitter &source)))
 }
 END_SECTION
 
-START_SECTION((void fit(FeatureFinderAlgorithmPickedHelperStructs::MassTraces< PeakType > &traces)))
+START_SECTION((void fit(FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType>& traces)))
 {
   // fit was already done before
-  TEST_REAL_SIMILAR(egh_trace_fitter.getCenter(),expected_x0)
-  TEST_REAL_SIMILAR(egh_trace_fitter.getHeight(),expected_H)
+  TEST_REAL_SIMILAR(egh_trace_fitter.getCenter(), expected_x0)
+  TEST_REAL_SIMILAR(egh_trace_fitter.getHeight(), expected_H)
+  EGHTraceFitter<Peak1D> weighted_fitter;
+  Param params = weighted_fitter.getDefaults();
+  params.setValue("weighted", "true");
+  weighted_fitter.setParameters(params);
+  weighted_fitter.fit(mts);
+  TEST_REAL_SIMILAR(weighted_fitter.getCenter(), expected_x0)
+  TEST_REAL_SIMILAR(weighted_fitter.getHeight(), expected_H)
+  mts[0].theoretical_int = 0.4;
+  mts[1].theoretical_int = 0.6;
+  weighted_fitter.fit(mts);
+  TEST_REAL_SIMILAR(weighted_fitter.getCenter(), expected_x0)
+  TEST_REAL_SIMILAR(weighted_fitter.getHeight(), 6.0825)  
 }
 END_SECTION
 

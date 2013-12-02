@@ -251,7 +251,8 @@ protected:
 
     static Int residual_(const gsl_vector* param, void* data, gsl_vector* f)
     {
-      FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType>* traces = static_cast<FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType>*>(data);
+      typename TraceFitter<PeakType>::ModelData* model_data = static_cast<typename TraceFitter<PeakType>::ModelData*>(data);
+      FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType>* traces = model_data->traces_ptr;
 
       double H  = gsl_vector_get(param, 0);
       double tR = gsl_vector_get(param, 1);
@@ -266,6 +267,7 @@ protected:
       for (Size t = 0; t < traces->size(); ++t)
       {
         FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType>& trace = traces->at(t);
+        DoubleReal weight = model_data->weighted ? trace.theoretical_int : 1.0;
         for (Size i = 0; i < trace.peaks.size(); ++i)
         {
           DoubleReal rt = trace.peaks[i].first;
@@ -277,14 +279,14 @@ protected:
 
           if (denominator > 0.0)
           {
-            fegh =  traces->baseline + trace.theoretical_int * H * exp(-t_diff2 / denominator);
+            fegh = traces->baseline + trace.theoretical_int * H * exp(-t_diff2 / denominator);
           }
           else
           {
             fegh = 0.0;
           }
 
-          gsl_vector_set(f, count, (fegh - trace.peaks[i].second->getIntensity()));
+          gsl_vector_set(f, count, (fegh - trace.peaks[i].second->getIntensity()) * weight);
           ++count;
         }
       }
@@ -293,7 +295,8 @@ protected:
 
     static Int jacobian_(const gsl_vector* param, void* data, gsl_matrix* J)
     {
-      FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType>* traces = static_cast<FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType> *>(data);
+      typename TraceFitter<PeakType>::ModelData* model_data = static_cast<typename TraceFitter<PeakType>::ModelData*>(data);
+      FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType>* traces = model_data->traces_ptr;
 
       double H  = gsl_vector_get(param, 0);
       double tR = gsl_vector_get(param, 1);
@@ -307,6 +310,7 @@ protected:
       for (Size t = 0; t < traces->size(); ++t)
       {
         FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType>& trace = traces->at(t);
+        DoubleReal weight = model_data->weighted ? trace.theoretical_int : 1.0;
         for (Size i = 0; i < trace.peaks.size(); ++i)
         {
           DoubleReal rt = trace.peaks[i].first;
@@ -341,10 +345,10 @@ protected:
           }
 
           // set the jacobian matrix
-          gsl_matrix_set(J, count, 0, derivative_H);
-          gsl_matrix_set(J, count, 1, derivative_tR);
-          gsl_matrix_set(J, count, 2, derivative_sigma_square);
-          gsl_matrix_set(J, count, 3, derivative_tau);
+          gsl_matrix_set(J, count, 0, derivative_H * weight);
+          gsl_matrix_set(J, count, 1, derivative_tR * weight);
+          gsl_matrix_set(J, count, 2, derivative_sigma_square * weight);
+          gsl_matrix_set(J, count, 3, derivative_tau * weight);
 
           ++count;
         }

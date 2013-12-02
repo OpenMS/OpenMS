@@ -43,7 +43,7 @@ namespace OpenMS
 {
 
   /**
-   * @brief Fitter for RT profiles using a gaussian background model
+   * @brief Fitter for RT profiles using a Gaussian background model
    *
    * @htmlinclude OpenMS_GaussTraceFitter.parameters
    *
@@ -180,7 +180,9 @@ protected:
 
     static Int residual_(const gsl_vector* param, void* data, gsl_vector* f)
     {
-      FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType>* traces = static_cast<FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType>*>(data);
+      typename TraceFitter<PeakType>::ModelData* model_data = static_cast<typename TraceFitter<PeakType>::ModelData*>(data);
+      FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType>* traces = model_data->traces_ptr;
+
       double height = gsl_vector_get(param, 0);
       double x0 = gsl_vector_get(param, 1);
       double sig = gsl_vector_get(param, 2);
@@ -190,9 +192,11 @@ protected:
       for (Size t = 0; t < traces->size(); ++t)
       {
         const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType>& trace = (*traces)[t];
+        DoubleReal weight = model_data->weighted ? trace.theoretical_int : 1.0;
         for (Size i = 0; i < trace.peaks.size(); ++i)
         {
-          gsl_vector_set(f, count, traces->baseline + trace.theoretical_int * height * exp(c_fac * pow(trace.peaks[i].first - x0, 2)) - trace.peaks[i].second->getIntensity());
+          DoubleReal fgauss = traces->baseline + trace.theoretical_int * height * exp(c_fac * pow(trace.peaks[i].first - x0, 2));
+          gsl_vector_set(f, count, (fgauss - trace.peaks[i].second->getIntensity()) * weight);
           ++count;
         }
       }
@@ -201,7 +205,9 @@ protected:
 
     static Int jacobian_(const gsl_vector* param, void* data, gsl_matrix* J)
     {
-      FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType>* traces = static_cast<FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType>*>(data);
+      typename TraceFitter<PeakType>::ModelData* model_data = static_cast<typename TraceFitter<PeakType>::ModelData*>(data);
+      FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType>* traces = model_data->traces_ptr;
+
       double height = gsl_vector_get(param, 0);
       double x0 = gsl_vector_get(param, 1);
       double sig = gsl_vector_get(param, 2);
@@ -213,13 +219,14 @@ protected:
       for (Size t = 0; t < traces->size(); ++t)
       {
         const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType>& trace = (*traces)[t];
+        DoubleReal weight = model_data->weighted ? trace.theoretical_int : 1.0;
         for (Size i = 0; i < trace.peaks.size(); ++i)
         {
           DoubleReal rt = trace.peaks[i].first;
           DoubleReal e = exp(c_fac * pow(rt - x0, 2));
-          gsl_matrix_set(J, count, 0, trace.theoretical_int * e);
-          gsl_matrix_set(J, count, 1, trace.theoretical_int * height * e * (rt - x0) / sig_sq);
-          gsl_matrix_set(J, count, 2, 0.125 * trace.theoretical_int * height * e * pow(rt - x0, 2) / sig_3);
+          gsl_matrix_set(J, count, 0, trace.theoretical_int * e * weight);
+          gsl_matrix_set(J, count, 1, trace.theoretical_int * height * e * (rt - x0) / sig_sq * weight);
+          gsl_matrix_set(J, count, 2, 0.125 * trace.theoretical_int * height * e * pow(rt - x0, 2) / sig_3 * weight);
           ++count;
         }
       }
