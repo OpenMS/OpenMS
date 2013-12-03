@@ -68,11 +68,12 @@ public:
     TraceFitter() :
       DefaultParamHandler("TraceFitter")
     {
-      this->defaults_.setValue("max_iteration", 500, "Maximum number of iterations used by the Levenberg-Marquardt algorithm.", StringList::create("advanced"));
-      this->defaults_.setValue("epsilon_abs", 0.0001, "Absolute error used by the Levenberg-Marquardt algorithm.", StringList::create("advanced"));
-      this->defaults_.setValue("epsilon_rel", 0.0001, "Relative error used by the Levenberg-Marquardt algorithm.", StringList::create("advanced"));
-      this->defaults_.setValue("weighted", "false", "Weight mass traces according to their theoretical intensities.", StringList::create("advanced"));
-      this->defaults_.setValidStrings("weighted", StringList::create("true,false"));
+      defaults_.setValue("max_iteration", 500, "Maximum number of iterations used by the Levenberg-Marquardt algorithm.", StringList::create("advanced"));
+      defaults_.setValue("epsilon_abs", 0.0001, "Absolute error used by the Levenberg-Marquardt algorithm.", StringList::create("advanced"));
+      defaults_.setValue("epsilon_rel", 0.0001, "Relative error used by the Levenberg-Marquardt algorithm.", StringList::create("advanced"));
+      defaults_.setValue("weighted", "false", "Weight mass traces according to their theoretical intensities.", StringList::create("advanced"));
+      defaults_.setValidStrings("weighted", StringList::create("true,false"));
+      defaultsToParam_();
     }
 
     /// copy constructor
@@ -83,6 +84,7 @@ public:
       max_iterations_(source.max_iterations_),
       weighted_(source.weighted_)
     {
+      updateMembers_();
     }
 
     /// assignment operator
