@@ -47,6 +47,8 @@
 
 #ifdef _OPENMP
 #include <omp.h>
+#include <OpenMS/ANALYSIS/SVM/SVMWrapper.h>
+#include <boost/shared_ptr.hpp>
 #endif
 
 #define DEBUG

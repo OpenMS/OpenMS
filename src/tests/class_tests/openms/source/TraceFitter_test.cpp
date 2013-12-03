@@ -106,11 +106,6 @@ public:
         throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
     }
 
-    void printState_(SignedSize, deprecated_gsl_multifit_fdfsolver*)
-    {
-        throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
-    }
-
     void getOptimizedParameters_(const Eigen::VectorXd& x_init)
     {
         throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);

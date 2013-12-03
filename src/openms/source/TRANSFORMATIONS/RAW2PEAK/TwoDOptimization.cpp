@@ -53,8 +53,8 @@ namespace OpenMS
                                                     "If the left width gets too broad or negative during the fitting it can be penalized.");
     defaults_.setValue("penalties:right_width", 0.0, "penalty term for the fitting of the right width:" \
                                                      "If the right width gets too broad or negative during the fitting it can be penalized.");
-    defaults_.setValue("2d:tolerance_mz", 2.2, "mz tolerance for cluster construction", StringList::create("advanced"));
-    defaults_.setValue("2d:max_peak_distance", 1.2, "maximal peak distance in mz in a cluster", StringList::create("advanced"));
+    defaults_.setValue("2d:tolerance_mz", 2.2, "mz tolerance for cluster construction", ListUtils::create<String>("advanced"));
+    defaults_.setValue("2d:max_peak_distance", 1.2, "maximal peak distance in mz in a cluster", ListUtils::create<String>("advanced"));
     defaults_.setValue("iterations", 10, "maximal number of iterations for the fitting step");
 
 
@@ -180,8 +180,6 @@ namespace OpenMS
     const MSExperiment<> & picked_peaks = m_data->picked_peaks;
     MSExperiment<Peak1D>::ConstIterator raw_data_first = m_data->raw_data_first;
     const OptimizationFunctions::PenaltyFactorsIntensity & penalties = m_data->penalties;
-//          const std::vector<DoubleReal> &positions=static_cast<TwoDOptimization::Data*> m_data ->positions;
-//          const std::vector<DoubleReal> &signal=static_cast<TwoDOptimization::Data*> m_data ->signal;
 
     Size num_scans = signal2D.size() / 2;
     IsotopeCluster::ChargedIndexSet::iterator peak_iter = iso_map_iter->second.peaks.begin();
@@ -358,7 +356,6 @@ namespace OpenMS
     }
 
     fvec(fvec.size()-1) = penalty;
-    return deprecated_gsl_SUCCESS;
 
     return 0;
   }

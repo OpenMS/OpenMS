@@ -80,6 +80,7 @@ namespace OpenMS
 
     size_t num_dimensions = 4 * data.peaks.size();
     Eigen::VectorXd x_init (num_dimensions);
+    x_init.setZero();
     // We have to initialize the parameters for the optimization
     for (size_t i = 0; i < data.peaks.size(); i++)
     {
@@ -226,6 +227,7 @@ namespace OpenMS
   // compute Jacobian matrix for the different parameters
   int OptimizePick::OptPeakFunctor::df(const Eigen::VectorXd &x, Eigen::MatrixXd &J)
   {
+    std::cout << "rows: " << J.rows() << " colums: " << J.cols() << std::endl;//DEBUG
     const std::vector<DoubleReal> & positions = m_data->positions;
     const std::vector<PeakShape> & peaks = m_data->peaks;
     const OptimizationFunctions::PenaltyFactors & penalties = m_data->penalties;
@@ -282,7 +284,6 @@ namespace OpenMS
           J(current_point, 4 * current_peak + 3) = ddx0;
         }
       }
-      return 0;
     }
 
     // Now iterate over all peaks again to compute the penalties.
@@ -310,5 +311,6 @@ namespace OpenMS
       J(positions.size(), 4 * current_peak + 2) = 100 * penalty_r;
       J(positions.size(), 4 * current_peak + 3) = 100 * penalty_p;
     }
+    return 0;
   }
 }//namespace

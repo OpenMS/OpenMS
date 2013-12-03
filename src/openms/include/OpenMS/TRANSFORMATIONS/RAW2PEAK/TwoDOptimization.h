@@ -613,10 +613,10 @@ protected:
 
       Size nr_parameters = nr_diff_peaks * 3 + twoD_data.total_nr_peaks;
 
+      // initialize and set parameters for optimization
       Eigen::VectorXd x_init (nr_parameters);
       x_init.setZero();
 
-      // initialize parameters for optimization
       std::map<Int, std::vector<PeakIndex> >::iterator m_peaks_it = twoD_data.matching_peaks.begin();
       DoubleReal av_mz = 0, av_lw = 0, av_rw = 0, avr_height = 0, height;
       Int peak_counter = 0;

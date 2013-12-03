@@ -39,8 +39,7 @@
 #include <utility>
 #include <map>
 #include <utility>
-
-#include <tr1/memory>
+#include <boost/shared_ptr.hpp>
 
 #include <boost/random/mersenne_twister.hpp>
 
@@ -52,6 +51,7 @@
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqConstants.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
+
 
 
 namespace OpenMS
@@ -87,7 +87,7 @@ namespace OpenMS
   typedef MSExperiment<SimPointType> MSSimExperiment;
 
   //Sim Shared Pointer type
-  typedef boost::shared_ptr< SimRandomNumberGenerator > MutableSimRandomNumberGeneratorPtr;
+  typedef boost::shared_ptr<SimRandomNumberGenerator> MutableSimRandomNumberGeneratorPtr;
   /**
     @brief Wrapper class for random number generators used by the simulation classes
 
