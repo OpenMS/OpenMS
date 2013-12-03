@@ -48,6 +48,9 @@
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EGHTraceFitter.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussTraceFitter.h>
 
 #include <boost/shared_ptr.hpp>
 #include <boost/make_shared.hpp>
@@ -106,21 +109,21 @@ protected:
 
   void registerOptionsAndFlags_()
   {
-    registerInputFile_("in", "<file>", "", "input file (LC-MS raw data)");
+    registerInputFile_("in", "<file>", "", "Input file (LC-MS raw data)");
     setValidFormats_("in", StringList::create("mzML"));
     registerInputFile_("id", "<file>", "", 
-                       "input file (peptide identifications)");
+                       "Input file (peptide identifications)");
     setValidFormats_("id", StringList::create("idXML"));
-    registerOutputFile_("out", "<file>", "", "output file (features)");
+    registerOutputFile_("out", "<file>", "", "Output file (features)");
     setValidFormats_("out", StringList::create("featureXML"));
-    registerOutputFile_("lib_out","<file>", "", "output file (assay library)",
+    registerOutputFile_("lib_out","<file>", "", "Output file (assay library)",
                         false);
     setValidFormats_("lib_out", StringList::create("traML"));
-    registerOutputFile_("chrom_out","<file>", "", "output file (chromatograms)",
+    registerOutputFile_("chrom_out","<file>", "", "Output file (chromatograms)",
                         false);
     setValidFormats_("chrom_out", StringList::create("mzML"));
     registerOutputFile_("trafo_out","<file>", "", 
-                        "output file (RT transformation)", false);
+                        "Output file (RT transformation)", false);
     setValidFormats_("trafo_out", StringList::create("trafoXML"));
 
     addEmptyLine_();
@@ -129,12 +132,15 @@ protected:
                      StringList::create("score,intensity,median,all,adapt"));
     registerDoubleOption_("rt_window", "<value>", 180, "RT window size (in sec.) for chromatogram extraction.", false);
     setMinFloat_("rt_window", 0);
-    registerDoubleOption_("mz_window", "<value>", 0.03, "m/z window size for chromatogram extraction (in Th or ppm, see 'mz_window_ppm').", false);
+    registerDoubleOption_("mz_window", "<value>", 10, "m/z window size for chromatogram extraction (unit: ppm if 1 or greater, else Th or Da)", false);
     setMinFloat_("mz_window", 0);
-    registerFlag_("mz_window_ppm", "Interpret 'mz_window' parameter as a ppm value (default: Th)");
     registerDoubleOption_("isotope_pmin", "<value>", 0.01, "Minimum probability for an isotope to be included in the assay for a peptide.", false);
     setMinFloat_("isotope_pmin", 0);
     setMaxFloat_("isotope_pmin", 1);
+    StringList model_choices = StringList::create("none,symmetric,asymmetric");
+    registerStringOption_("elution_model", "<choice>", model_choices[0], "Elution model to fit to features", false);
+    setValidStrings_("elution_model", model_choices);
+    registerFlag_("unweighted_fit", "Suppress weighting of mass traces according to theoretical intensities when fitting elution models", true);
 
     // addEmptyLine_();
     // registerSubsection_("algorithm", "Algorithm parameters section");
@@ -181,7 +187,7 @@ protected:
       transition.setPrecursorMZ(mz);
       transition.setProductMZ(mz + Constants::C13C12_MASSDIFF_U * 
                               float(counter) / charge);
-      transition.setLibraryIntensity(iso_it->second * 100);
+      transition.setLibraryIntensity(iso_it->second);
       transition.setMetaValue("annotation", annotation);
       transition.setPeptideRef(peptide_id);
       library_.addTransition(transition);
@@ -267,7 +273,7 @@ protected:
           highest_intensity = peak_it->getIntensity();
           rts[0] = ms2_rt;
         }
-      }    
+      }
     }
     else // "median", "all", or "adapt"
     {
@@ -358,6 +364,120 @@ protected:
   }
 
 
+  void fitElutionModels_(FeatureMap<>& features, bool asymmetric=true, 
+                         bool weighted=true)
+  {
+    // assumptions:
+    // - all features have subordinates (for the mass traces/transitions)
+    // - all subordinates have one convex hull
+    // - all convex hulls in one feature contain the same number (> 0) of points
+    // - the y coordinates of the hull points store the intensities
+
+    // prepare look-up of transitions by native ID:
+    map<String, vector<ReactionMonitoringTransition>::const_iterator> trans_ids;
+    for (vector<ReactionMonitoringTransition>::const_iterator trans_it =
+           library_.getTransitions().begin(); trans_it != 
+           library_.getTransitions().end(); ++trans_it)
+    {
+      trans_ids[trans_it->getNativeID()] = trans_it;
+    }
+
+    TraceFitter<Peak1D>* fitter;
+    if (asymmetric)
+    {
+      fitter = new EGHTraceFitter<Peak1D>();
+    }
+    else fitter = new GaussTraceFitter<Peak1D>();
+    if (weighted)
+    {
+      Param params = fitter->getDefaults();
+      params.setValue("weighted", "true");
+      fitter->setParameters(params);
+    }
+
+    // collect peaks that constitute mass traces:
+    LOG_DEBUG << "Fitting elution models to features:" << endl;
+    for (FeatureMap<>::Iterator feat_it = features.begin(); 
+         feat_it != features.end(); ++feat_it)
+    {
+      LOG_DEBUG << String(feat_it->getMetaValue("PeptideRef")) << endl;
+      vector<Peak1D> peaks;
+      // reserve space once, to avoid copying and invalidating pointers:
+      Size points_per_hull = feat_it->
+        getSubordinates()[0].getConvexHulls()[0].getHullPoints().size();
+      peaks.reserve(feat_it->getSubordinates().size() * points_per_hull);
+      FeatureFinderAlgorithmPickedHelperStructs::MassTraces<Peak1D> traces;
+      traces.max_trace = 0;
+      traces.reserve(feat_it->getSubordinates().size());
+      for (vector<Feature>::iterator sub_it = 
+             feat_it->getSubordinates().begin(); sub_it !=
+             feat_it->getSubordinates().end(); ++sub_it)
+      {
+        const ConvexHull2D& hull = sub_it->getConvexHulls()[0];
+        String native_id = sub_it->getMetaValue("native_id");
+        FeatureFinderAlgorithmPickedHelperStructs::MassTrace<Peak1D> trace;
+        trace.theoretical_int = trans_ids[native_id]->getLibraryIntensity();
+        sub_it->setMetaValue("isotope_probability", trace.theoretical_int);
+        trace.peaks.reserve(points_per_hull);
+        for (ConvexHull2D::PointArrayTypeConstIterator point_it = 
+               hull.getHullPoints().begin(); point_it !=
+               hull.getHullPoints().end(); ++point_it)
+        {
+          Peak1D peak;
+          peak.setMZ(sub_it->getMZ());
+          peak.setIntensity(point_it->getY());
+          peaks.push_back(peak);
+          trace.peaks.push_back(make_pair(point_it->getX(), &peaks.back()));
+        }
+        trace.updateMaximum();
+        // leave out mass traces with all-zero intensities:
+        if (trace.max_peak->getIntensity() > 0) traces.push_back(trace);
+        // else sub_it->setMetaValue("model_excluded", "");
+        // @TODO: what about traces that are almost completely zero (e.g. except
+        // for the first/last value)? require a certain number of non-zeros?
+      }
+      Size max_trace = 0;
+      DoubleReal max_intensity = 0;
+      for (Size i = 0; i < traces.size(); ++i)
+      {
+        if (traces[i].max_peak->getIntensity() > max_intensity)
+        {
+          max_trace = i;
+          max_intensity = traces[i].max_peak->getIntensity();
+        }
+      }
+      traces.max_trace = max_trace;
+      traces.updateBaseline();
+      // ??? (from "FeatureFinderAlgorithmPicked.h"):
+      traces.baseline = 0.75 * traces.baseline;
+
+      // fit the model:
+      fitter->fit(traces);
+
+      // record model parameters:
+      feat_it->setMetaValue("model_height", fitter->getHeight());
+      feat_it->setMetaValue("model_FWHM", fitter->getFWHM());
+      feat_it->setMetaValue("model_center", fitter->getCenter());
+      feat_it->setMetaValue("model_lower", fitter->getLowerRTBound());
+      feat_it->setMetaValue("model_upper", fitter->getUpperRTBound());
+      if (asymmetric)
+      {
+        EGHTraceFitter<Peak1D>* egh = 
+          static_cast<EGHTraceFitter<Peak1D>*>(fitter);
+        feat_it->setMetaValue("model_EGH_tau", egh->getTau());
+        feat_it->setMetaValue("model_EGH_sigmasquare", egh->getSigmaSquare());
+      }
+      else
+      {
+        GaussTraceFitter<Peak1D>* gauss = 
+          static_cast<GaussTraceFitter<Peak1D>*>(fitter);
+        feat_it->setMetaValue("model_Gauss_sigma", gauss->getSigma());
+      }
+    }
+    delete fitter;
+  }
+
+
   ExitCodes main_(int, const char**)
   {
     //-------------------------------------------------------------
@@ -373,8 +493,10 @@ protected:
     DoubleReal rt_window = getDoubleOption_("rt_window");
     rt_tolerance_ = rt_window / 2.0;
     DoubleReal mz_window = getDoubleOption_("mz_window");
-    bool mz_window_ppm = getFlag_("mz_window_ppm");
+    bool mz_window_ppm = mz_window >= 1;
     DoubleReal isotope_pmin = getDoubleOption_("isotope_pmin");
+    String elution_model = getStringOption_("elution_model");
+    bool weighted_fit = !getFlag_("unweighted_fit");
 
     //-------------------------------------------------------------
     // load input
@@ -553,6 +675,7 @@ protected:
     MRMFeatureFinderScoring mrm_finder;
     Param params = mrm_finder.getParameters();
     params.setValue("stop_report_after_feature", 1);
+    if (elution_model != "none") params.setValue("write_convex_hull", "true");
     params.setValue("TransitionGroupPicker:PeakPickerMRM:use_gauss", "false");
     params.setValue("TransitionGroupPicker:PeakPickerMRM:peak_width", -1.0);
     params.setValue("TransitionGroupPicker:PeakPickerMRM:method", "corrected");
@@ -562,6 +685,10 @@ protected:
     mrm_finder.pickExperiment(chrom_data, features, library_, trafo_, ms_data_);
 
     // @TODO add method for resolving overlaps if "reference_rt" is "all"
+    if (elution_model != "none")
+    {
+      fitElutionModels_(features, elution_model == "asymmetric", weighted_fit);
+    }
 
     //-------------------------------------------------------------
     // fill in missing feature data
