@@ -73,7 +73,6 @@ public:
       this->tau_ = other.tau_;
 
       this->sigma_5_bound_ = other.sigma_5_bound_;
-      this->fwhm_bound_ = other.fwhm_bound_;
 
       updateMembers_();
     }
@@ -88,7 +87,6 @@ public:
       this->tau_ = source.tau_;
 
       this->sigma_5_bound_ = source.sigma_5_bound_;
-      this->fwhm_bound_ = source.fwhm_bound_;
 
       updateMembers_();
 
@@ -175,12 +173,22 @@ public:
 
     virtual DoubleReal getFeatureIntensityContribution()
     {
-      return height_ * (fwhm_bound_.second - fwhm_bound_.first);
+      // equation 21 from Lan & Jorgenson paper:
+      DoubleReal sigma = sqrt(sigma_square_);
+      DoubleReal abs_tau = fabs(tau_);
+      DoubleReal phi = atan(abs_tau / sigma);
+      DoubleReal epsilon = EPSILON_COEFS[0];
+      DoubleReal phi_pow = phi;
+      for (Size i = 1; i < 7; ++i) {
+        epsilon += phi_pow * EPSILON_COEFS[i];
+        phi_pow *= phi;
+      }
+      // 0.62... is approx. sqrt(pi / 8):
+      return height_ * (sigma * 0.6266571 + abs_tau) * epsilon;
     }
 
     DoubleReal getFWHM() const
     {
-
       std::pair<DoubleReal, DoubleReal> bounds = getAlphaBoundaries_(0.5);
       return bounds.second - bounds.first;
     }
@@ -206,9 +214,11 @@ protected:
     DoubleReal tau_;
 
     std::pair<DoubleReal, DoubleReal> sigma_5_bound_;
-    std::pair<DoubleReal, DoubleReal> fwhm_bound_;
 
     DoubleReal region_rt_span_;
+
+    /// Coefficients to calculate the proportionality factor for the peak area
+    static const DoubleReal EPSILON_COEFS[];
 
     static const Size NUM_PARAMS_ = 4;
 
@@ -220,6 +230,8 @@ protected:
     std::pair<DoubleReal, DoubleReal> getAlphaBoundaries_(const DoubleReal alpha) const
     {
       std::pair<DoubleReal, DoubleReal> bounds;
+      // solved equations A.2 and A.3 from the Lan & Jorgenson paper (Appendix
+      // A) for the boundaries A_alpha and B_alpha:
       DoubleReal L = log(alpha);
       DoubleReal s = sqrt(((L * tau_) * (L * tau_) / 4) - 2 * L * sigma_square_);
 
@@ -245,8 +257,6 @@ protected:
       // we set alpha to 0.04 which is conceptually equal to
       // 2.5 sigma for lower and upper bound
       sigma_5_bound_ = getAlphaBoundaries_(0.043937);
-      // this is needed for the intensity contribution -> this is the 1.25 sigma region
-      fwhm_bound_ = getAlphaBoundaries_(0.45783);
     }
 
     static Int residual_(const gsl_vector* param, void* data, gsl_vector* f)

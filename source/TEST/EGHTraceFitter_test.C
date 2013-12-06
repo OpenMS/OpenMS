@@ -400,7 +400,7 @@ END_SECTION
 
 START_SECTION((virtual DoubleReal getFeatureIntensityContribution()))
 {
-  TEST_REAL_SIMILAR(egh_trace_fitter.getFeatureIntensityContribution(), 2.5 * expected_sigma * expected_H)
+  TEST_REAL_SIMILAR(egh_trace_fitter.getFeatureIntensityContribution(), sqrt(2 * M_PI) * expected_sigma * expected_H)
 }
 END_SECTION
 
