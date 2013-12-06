@@ -55,6 +55,215 @@
 namespace OpenMS
 {
 
+SpectralMatch::SpectralMatch() :
+    observed_precursor_mass_(),
+    observed_precursor_rt_(),
+    found_precursor_mass_(),
+    found_precursor_charge_(),
+    matching_score_(),
+    observed_spectrum_idx_(),
+    matching_spectrum_idx_(),
+    primary_id_(),
+    secondary_id_(),
+    common_name_(),
+    sum_formula_(),
+    inchi_string_(),
+    smiles_string_(),
+    precursor_adduct_()
+{
+
+}
+
+/// Default destructor
+SpectralMatch::~SpectralMatch()
+{
+
+}
+
+/// Copy constructor
+SpectralMatch::SpectralMatch(const SpectralMatch& sm) :
+    observed_precursor_mass_(sm.observed_precursor_mass_),
+    observed_precursor_rt_(sm.observed_precursor_rt_),
+    found_precursor_mass_(sm.found_precursor_mass_),
+    found_precursor_charge_(sm.found_precursor_charge_),
+    matching_score_(sm.matching_score_),
+    observed_spectrum_idx_(sm.observed_spectrum_idx_),
+    matching_spectrum_idx_(sm.matching_spectrum_idx_),
+    primary_id_(sm.primary_id_),
+    secondary_id_(sm.secondary_id_),
+    common_name_(sm.common_name_),
+    sum_formula_(sm.sum_formula_),
+    inchi_string_(sm.inchi_string_),
+    smiles_string_(sm.smiles_string_),
+    precursor_adduct_(sm.precursor_adduct_)
+{
+
+}
+
+/// Assignment operator
+SpectralMatch& SpectralMatch::operator=(const SpectralMatch& rhs)
+{
+    if (this == &rhs)
+        return *this;
+
+    observed_precursor_mass_ = rhs.observed_precursor_mass_;
+    observed_precursor_rt_ = rhs.observed_precursor_rt_;
+    found_precursor_mass_ = rhs.found_precursor_mass_;
+    found_precursor_charge_ = rhs.found_precursor_charge_;
+    matching_score_ = rhs.matching_score_;
+    observed_spectrum_idx_ = rhs.observed_spectrum_idx_;
+    matching_spectrum_idx_ = rhs.matching_spectrum_idx_;
+    primary_id_ = rhs.primary_id_;
+    secondary_id_ = rhs.secondary_id_;
+    common_name_ = rhs.common_name_;
+    sum_formula_ = rhs.sum_formula_;
+    inchi_string_ = rhs.inchi_string_;
+    smiles_string_ = rhs.smiles_string_;
+    precursor_adduct_ = rhs.precursor_adduct_;
+
+    return *this;
+}
+
+DoubleReal SpectralMatch::getObservedPrecursorMass() const
+{
+    return observed_precursor_mass_;
+}
+
+void SpectralMatch::setObservedPrecursorMass(const DoubleReal& qmass)
+{
+    observed_precursor_mass_ = qmass;
+}
+
+DoubleReal SpectralMatch::getObservedPrecursorRT() const
+{
+    return observed_precursor_rt_;
+}
+
+void SpectralMatch::setObservedPrecursorRT(const DoubleReal& prt)
+{
+    observed_precursor_rt_ = prt;
+}
+
+DoubleReal SpectralMatch::getFoundPrecursorMass() const
+{
+    return found_precursor_mass_;
+}
+
+void SpectralMatch::setFoundPrecursorMass(const DoubleReal& fmass)
+{
+    found_precursor_mass_ = fmass;
+}
+
+DoubleReal SpectralMatch::getFoundPrecursorCharge() const
+{
+    return found_precursor_charge_;
+}
+
+void SpectralMatch::setFoundPrecursorCharge(const DoubleReal& pch)
+{
+    found_precursor_charge_ = pch;
+}
+
+DoubleReal SpectralMatch::getMatchingScore() const
+{
+    return matching_score_;
+}
+
+void SpectralMatch::setMatchingScore(const DoubleReal& mscore)
+{
+    matching_score_ = mscore;
+}
+
+Size SpectralMatch::getObservedSpectrumIndex() const
+{
+    return observed_spectrum_idx_;
+}
+
+void SpectralMatch::setObservedSpectrumIndex(const Size& obs_spec_idx)
+{
+    observed_spectrum_idx_ = obs_spec_idx;
+}
+
+Size SpectralMatch::getMatchingSpectrumIndex() const
+{
+    return matching_spectrum_idx_;
+}
+
+void SpectralMatch::setMatchingSpectrumIndex(const Size& match_spec_idx)
+{
+    matching_spectrum_idx_ = match_spec_idx;
+}
+
+String SpectralMatch::getPrimaryIdentifier() const
+{
+    return primary_id_;
+}
+
+void SpectralMatch::setPrimaryIdentifier(const String& pid)
+{
+    primary_id_ = pid;
+}
+
+String SpectralMatch::getSecondaryIdentifier() const
+{
+    return secondary_id_;
+}
+
+void SpectralMatch::setSecondaryIdentifier(const String& sid)
+{
+    secondary_id_ = sid;
+}
+
+String SpectralMatch::getCommonName() const
+{
+    return common_name_;
+}
+
+void SpectralMatch::setCommonName(const String& cname)
+{
+    common_name_ = cname;
+}
+
+String SpectralMatch::getSumFormula() const
+{
+    return sum_formula_;
+}
+
+void SpectralMatch::setSumFormula(const String& sf)
+{
+    sum_formula_ = sf;
+}
+
+String SpectralMatch::getInchiString() const
+{
+    return inchi_string_;
+}
+
+void SpectralMatch::setInchiString(const String& istr)
+{
+    inchi_string_ = istr;
+}
+
+String SpectralMatch::getSMILESString() const
+{
+    return smiles_string_;
+}
+
+void SpectralMatch::setSMILESString(const String& sstr)
+{
+    smiles_string_ = sstr;
+}
+
+String SpectralMatch::getPrecursorAdduct() const
+{
+    return precursor_adduct_;
+}
+
+void SpectralMatch::setPrecursorAdduct(const String& padd)
+{
+    precursor_adduct_ = padd;
+}
+
 
 MetaboliteSpectralMatching::MetaboliteSpectralMatching() :
     DefaultParamHandler("MetaboliteSpectralMatching"), ProgressLogger()
@@ -64,6 +273,9 @@ MetaboliteSpectralMatching::MetaboliteSpectralMatching() :
 
     defaults_.setValue("mass_error_unit", "ppm", "Unit of mass error (ppm or Da)");
     defaults_.setValidStrings("mass_error_unit", StringList::create(("ppm,Da")));
+
+    defaults_.setValue("report_mode", "top3", "Which results shall be reported: the top-three scoring ones or the best scoring one?");
+    defaults_.setValidStrings("report_mode", StringList::create(("top3,best")));
 
     defaultsToParam_();
 
@@ -174,9 +386,9 @@ void MetaboliteSpectralMatching::run(MSExperiment<> & msexp, MzTab& mztab_out)
     WindowMower wm;
     Param wm_param;
 
-    wm_param.setValue("windowsize", 100.0);
+    wm_param.setValue("windowsize", 20.0);
     wm_param.setValue("movetype", "slide");
-    wm_param.setValue("peakcount", 10);
+    wm_param.setValue("peakcount", 5);
     wm.setParameters(wm_param);
 
     wm.filterPeakMap(msexp);
@@ -187,9 +399,13 @@ void MetaboliteSpectralMatching::run(MSExperiment<> & msexp, MzTab& mztab_out)
     wm.filterPeakMap(msexp);
 
 
+    // container storing results
+    std::vector<SpectralMatch> matching_results;
+
+
     for (Size spec_idx = 0; spec_idx < msexp.size(); ++spec_idx)
     {
-        std::cout << "merged spectrum no. " << spec_idx << " with #fragment ions: " << msexp[spec_idx].size() << std::endl;
+        // std::cout << "merged spectrum no. " << spec_idx << " with #fragment ions: " << msexp[spec_idx].size() << std::endl;
 
         // iterate over all precursor masses
         for (Size prec_idx = 0; prec_idx < msexp[spec_idx].getPrecursors().size(); ++prec_idx)
@@ -197,7 +413,7 @@ void MetaboliteSpectralMatching::run(MSExperiment<> & msexp, MzTab& mztab_out)
             // get precursor m/z
             DoubleReal precursor_mz(msexp[spec_idx].getPrecursors()[prec_idx].getMZ());
 
-            std::cout << "precursor no. " << prec_idx << ": mz " << precursor_mz << " ";
+            // std::cout << "precursor no. " << prec_idx << ": mz " << precursor_mz << " ";
 
             DoubleReal prec_mz_lowerbound, prec_mz_upperbound;
 
@@ -214,8 +430,8 @@ void MetaboliteSpectralMatching::run(MSExperiment<> & msexp, MzTab& mztab_out)
             }
 
 
-            std::cout << "lower mz: " << prec_mz_lowerbound << " ";
-            std::cout << "upper mz: " << prec_mz_upperbound << std::endl;
+            // std::cout << "lower mz: " << prec_mz_lowerbound << " ";
+            // std::cout << "upper mz: " << prec_mz_upperbound << std::endl;
 
             std::vector<DoubleReal>::const_iterator lower_it = std::lower_bound(mz_keys.begin(), mz_keys.end(), prec_mz_lowerbound);
             std::vector<DoubleReal>::const_iterator upper_it = std::upper_bound(mz_keys.begin(), mz_keys.end(), prec_mz_upperbound);
@@ -228,33 +444,70 @@ void MetaboliteSpectralMatching::run(MSExperiment<> & msexp, MzTab& mztab_out)
 
             //std::cout << "identifying " << msexp[spec_idx].getMetaValue("Massbank_Accession_ID") << std::endl;
 
+            std::vector<SpectralMatch> partial_results;
+
             for (Size search_idx = start_idx; search_idx < end_idx; ++search_idx)
             {
                 // do spectral matching
                 // std::cout << "scanning " << spec_db[search_idx].getPrecursors()[0].getMZ() << " " << spec_db[search_idx].getMetaValue("Metabolite_Name") << std::endl;
                 DoubleReal hyperscore(computeHyperScore(msexp[spec_idx], spec_db[search_idx], fragment_mz_error_, 0.0));
 
-                if (hyperscore > max_hyper_score)
-                {
-                    max_hyper_score = hyperscore;
-                    best_idx = search_idx;
-                }
-
                 // std::cout << " scored with " << hyperScore << std::endl;
                 if (hyperscore > 0)
                 {
-                    std::cout << "  ** detected " << spec_db[search_idx].getMetaValue("Massbank_Accession_ID") << " " << spec_db[search_idx].getMetaValue("Metabolite_Name") << " scored with " << hyperscore << std::endl;
+                    // std::cout << "  ** detected " << spec_db[search_idx].getMetaValue("Massbank_Accession_ID") << " " << spec_db[search_idx].getMetaValue("Metabolite_Name") << " scored with " << hyperscore << std::endl;
+
+                    // score result temporarily
+                    SpectralMatch tmp_match;
+                    tmp_match.setObservedPrecursorMass(precursor_mz);
+                    tmp_match.setFoundPrecursorMass(spec_db[search_idx].getPrecursors()[0].getMZ());
+                    tmp_match.setMatchingScore(hyperscore);
+                    tmp_match.setObservedSpectrumIndex(spec_idx);
+                    tmp_match.setMatchingSpectrumIndex(search_idx);
+
+                    tmp_match.setPrimaryIdentifier(spec_db[search_idx].getMetaValue("Massbank_Accession_ID"));
+                    tmp_match.setSecondaryIdentifier(spec_db[search_idx].getMetaValue("HMDB_ID"));
+                    tmp_match.setCommonName(spec_db[search_idx].getMetaValue("Metabolite_Name"));
+                    tmp_match.setInchiString(spec_db[search_idx].getMetaValue("Inchi_String"));
+                    tmp_match.setSMILESString(spec_db[search_idx].getMetaValue("SMILES_String"));
+                    tmp_match.setPrecursorAdduct(spec_db[search_idx].getMetaValue("Precursor_Ion"));
+
+
+                    partial_results.push_back(tmp_match);
+
                 }
             }
 
-            if (max_hyper_score > 0.0)
+            // sort results by decreasing store
+            std::sort(partial_results.begin(), partial_results.end(), SpectralMatchScoreGreater);
+
+            // report mode: top3 or best?
+            if (report_mode_ == "top3")
             {
-                std::cout << "best scored result: " << spec_db[best_idx].getMetaValue("Massbank_Accession_ID") << " " << spec_db[best_idx].getMetaValue("Metabolite_Name") << " scored best with " << max_hyper_score << std::endl;
+                Size num_results(partial_results.size());
+
+                Size last_result_idx = (num_results >= 3) ? 3 : num_results;
+
+                for (Size result_idx = 0; result_idx < last_result_idx; ++result_idx)
+                {
+                    // std::cout << "score: " << partial_results[result_idx].getMatchingScore() << " " << partial_results[result_idx].getMatchingSpectrumIndex() << std::endl;
+                    matching_results.push_back(partial_results[result_idx]);
+                }
+            }
+
+            if (report_mode_ == "best")
+            {
+                if (partial_results.size() > 0)
+                {
+                    matching_results.push_back(partial_results[0]);
+                }
             }
 
         } // end precursor loop
     } // end spectra loop
 
+    // write final results to MzTab
+    exportMzTab_(matching_results, mztab_out);
 }
 
 /// protected methods
@@ -265,11 +518,209 @@ void MetaboliteSpectralMatching::updateMembers_()
     fragment_mz_error_ = (DoubleReal)param_.getValue("frag_mass_error_value");
 
     mz_error_unit_ = (String)param_.getValue("mass_error_unit");
+    report_mode_ = (String)param_.getValue("report_mode");
 }
 
 
 /// private methods
 
+void MetaboliteSpectralMatching::exportMzTab_(const std::vector<SpectralMatch>& overall_results, MzTab& mztab_out)
+{
+    // iterate the overall results table
 
+    String unit_id("MetSpecMatch");
+    MzTabSmallMoleculeSectionData sm_data_section;
+    MzTabSmallMoleculeSectionRows all_sm_rows;
+
+    Size id_group(1);
+
+
+    for (Size id_idx = 0; id_idx < overall_results.size(); ++id_idx)
+    {
+        SpectralMatch current_id(overall_results[id_idx]);
+
+        MzTabSmallMoleculeSectionRow mztab_row_record;
+
+        // set the identifier field
+        String hid_temp = current_id.getPrimaryIdentifier();
+        MzTabString prim_id;
+        prim_id.set(hid_temp);
+        std::vector<MzTabString> id_dummy;
+        id_dummy.push_back(prim_id);
+        MzTabStringList string_dummy_list;
+        string_dummy_list.set(id_dummy);
+
+        mztab_row_record.identifier = string_dummy_list;
+
+        // set the chemical formula field
+        MzTabString chem_form;
+        String form_temp = current_id.getSumFormula();
+        chem_form.set(form_temp);
+
+        mztab_row_record.chemical_formula = chem_form;
+
+        // set the smiles field
+        String smi_temp = current_id.getSMILESString();       // extract SMILES from struct mapping file
+        MzTabString smi_string;
+        smi_string.set(smi_temp);
+
+        mztab_row_record.smiles = smi_string;
+
+        // set the inchi_key field
+        String inchi_temp = current_id.getInchiString();      // extract INCHIKEY from struct mapping file
+        MzTabString inchi_key;
+        inchi_key.set(inchi_temp);
+
+        mztab_row_record.inchi_key = inchi_key;
+
+        // set description field (we use it for the common name of the compound)
+        String name_temp = current_id.getCommonName();
+        MzTabString common_name;
+        common_name.set(name_temp);
+
+        mztab_row_record.description = common_name;
+
+
+        // set mass_to_charge field (precursor mass here)
+        DoubleReal mz_temp = current_id.getFoundPrecursorMass();
+        MzTabDouble mass_to_charge;
+        mass_to_charge.set(mz_temp);
+
+        mztab_row_record.mass_to_charge = mass_to_charge;
+
+
+        // set charge field
+        Int ch_temp = current_id.getFoundPrecursorCharge();
+        MzTabDouble mcharge;
+        mcharge.set(ch_temp);
+
+        mztab_row_record.charge = mcharge;
+
+
+        // set RT field
+        DoubleReal rt_temp = current_id.getObservedPrecursorRT();
+        MzTabDouble rt_temp2;
+        rt_temp2.set(rt_temp);
+        std::vector<MzTabDouble> rt_temp3;
+        rt_temp3.push_back(rt_temp2);
+        MzTabDoubleList observed_rt;
+        observed_rt.set(rt_temp3);
+
+        mztab_row_record.retention_time = observed_rt;
+
+
+        // set database field
+        String dbname_temp = "MassBank";
+        MzTabString dbname;
+        dbname.set(dbname_temp);
+
+        mztab_row_record.database = dbname;
+
+
+        // set database_version field
+        String dbver_temp = "Sep 27, 2013";
+        MzTabString dbversion;
+        dbversion.set(dbver_temp);
+
+        mztab_row_record.database_version = dbversion;
+
+
+        // set smallmolecule_abundance_sub
+        // check if we deal with a feature or consensus feature
+        std::vector<MzTabDouble> int_temp3;
+
+        DoubleReal int_temp(0.0);
+        MzTabDouble int_temp2;
+        int_temp2.set(int_temp);
+        int_temp3.push_back(int_temp2);
+
+        mztab_row_record.smallmolecule_abundance_sub = int_temp3;
+
+
+        // set smallmolecule_abundance_stdev_sub; not applicable for a single feature intensity, however must be filled. Otherwise, the mzTab export fails.
+        DoubleReal stdev_temp(0.0);
+        MzTabDouble stdev_temp2;
+        stdev_temp2.set(stdev_temp);
+        std::vector<MzTabDouble> stdev_temp3;
+
+        stdev_temp3.push_back(stdev_temp2);
+
+        mztab_row_record.smallmolecule_abundance_stdev_sub = stdev_temp3;
+
+
+        // set smallmolecule_abundance_std_error_sub; not applicable for a single feature intensity, however must be filled. Otherwise, the mzTab export fails.
+        DoubleReal stderr_temp(0.0);
+        MzTabDouble stderr_temp2;
+        stderr_temp2.set(stderr_temp);
+        std::vector<MzTabDouble> stderr_temp3;
+
+        stderr_temp3.push_back(stderr_temp2);
+
+        mztab_row_record.smallmolecule_abundance_std_error_sub = stderr_temp3;
+
+
+        // optional columns:
+        std::vector<MzTabOptionalColumnEntry> optionals;
+
+        // ppm error
+        DoubleReal error_ppm(((current_id.getFoundPrecursorMass() - current_id.getObservedPrecursorMass())/current_id.getFoundPrecursorMass())*1e6);
+        error_ppm = std::floor(error_ppm*100)/100;
+
+        MzTabString ppmerr;
+        ppmerr.set(String(error_ppm));
+        MzTabOptionalColumnEntry col0;
+        col0.first = "opt_ppm_error";
+        col0.second = ppmerr;
+        optionals.push_back(col0);
+
+        // set found adduct ion
+        String addion_temp = current_id.getPrecursorAdduct();
+        MzTabString addion;
+        addion.set(addion_temp);
+        MzTabOptionalColumnEntry col1;
+        col1.first = "opt_adduct_ion";
+        col1.second = addion;
+        optionals.push_back(col1);
+
+        // set isotope similarity score
+        DoubleReal sim_score_temp = current_id.getMatchingScore();
+        std::stringstream read_in;
+        read_in << sim_score_temp;
+        String sim_score_temp2(read_in.str());
+        MzTabString sim_score;
+        sim_score.set(sim_score_temp2);
+        MzTabOptionalColumnEntry col2;
+        col2.first = "opt_match_score";
+        col2.second = sim_score;
+        optionals.push_back(col2);
+
+
+        // set secondary ID (here HMDB id)
+        String sec_id = current_id.getSecondaryIdentifier();
+        MzTabString sec_id_str;
+        sec_id_str.set(sec_id);
+        MzTabOptionalColumnEntry col3;
+        col3.first = "opt_sec_id";
+        col3.second = sec_id_str;
+        optionals.push_back(col3);
+
+        // set source spectra index
+        String source_idx = String(current_id.getObservedSpectrumIndex());
+        MzTabString source_idx_str;
+        source_idx_str.set(source_idx);
+        MzTabOptionalColumnEntry col4;
+        col4.first = "opt_source_idx";
+        col4.second = source_idx_str;
+        optionals.push_back(col4);
+
+        mztab_row_record.opt_ = optionals;
+
+        all_sm_rows.push_back(mztab_row_record);
+    }
+
+    sm_data_section[unit_id] = all_sm_rows;
+    mztab_out.setSmallMoleculeSectionData(sm_data_section);
+
+}
 
 } // closing namespace OpenMS

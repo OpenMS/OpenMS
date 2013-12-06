@@ -60,6 +60,96 @@ struct OPENMS_DLLAPI PrecursorMassComparator
 
 } PrecursorMZLess;
 
+class OPENMS_DLLAPI SpectralMatch
+{
+public:
+    /// Default constructor
+    SpectralMatch();
+
+    /// Default destructor
+    ~SpectralMatch();
+
+    /// Copy constructor
+    SpectralMatch(const SpectralMatch&);
+
+    /// Assignment operator
+    SpectralMatch& operator=(const SpectralMatch&);
+
+    DoubleReal getObservedPrecursorMass() const;
+    void setObservedPrecursorMass(const DoubleReal&);
+
+    DoubleReal getObservedPrecursorRT() const;
+    void setObservedPrecursorRT(const DoubleReal&);
+
+    DoubleReal getFoundPrecursorMass() const;
+    void setFoundPrecursorMass(const DoubleReal&);
+
+    DoubleReal getFoundPrecursorCharge() const;
+    void setFoundPrecursorCharge(const DoubleReal&);
+
+    DoubleReal getMatchingScore() const;
+    void setMatchingScore(const DoubleReal&);
+
+    Size getObservedSpectrumIndex() const;
+    void setObservedSpectrumIndex(const Size&);
+
+    Size getMatchingSpectrumIndex() const;
+    void setMatchingSpectrumIndex(const Size&);
+
+    String getPrimaryIdentifier() const;
+    void setPrimaryIdentifier(const String&);
+
+    String getSecondaryIdentifier() const;
+    void setSecondaryIdentifier(const String&);
+
+    String getCommonName() const;
+    void setCommonName(const String&);
+
+    String getSumFormula() const;
+    void setSumFormula(const String&);
+
+    String getInchiString() const;
+    void setInchiString(const String&);
+
+    String getSMILESString() const;
+    void setSMILESString(const String&);
+
+    String getPrecursorAdduct() const;
+    void setPrecursorAdduct(const String&);
+
+
+private:
+    DoubleReal observed_precursor_mass_;
+    DoubleReal observed_precursor_rt_;
+    DoubleReal found_precursor_mass_;
+    DoubleReal found_precursor_charge_;
+    DoubleReal matching_score_;
+    Size observed_spectrum_idx_;
+    Size matching_spectrum_idx_;
+
+    // further meta information
+    String primary_id_;
+    String secondary_id_;
+    String common_name_;
+    String sum_formula_;
+    String inchi_string_;
+    String smiles_string_;
+    String precursor_adduct_;
+
+};
+
+struct OPENMS_DLLAPI SpectralMatchScoreComparator
+{
+    bool operator() (const SpectralMatch& a, const SpectralMatch& b)
+    {
+        return a.getMatchingScore() > b.getMatchingScore();
+    }
+
+} SpectralMatchScoreGreater;
+
+
+
+
 class OPENMS_DLLAPI MetaboliteSpectralMatching :
 public DefaultParamHandler,
 public ProgressLogger
@@ -68,12 +158,8 @@ public:
     /// Default constructor
     MetaboliteSpectralMatching();
 
-    // Explicit constructor
-    MetaboliteSpectralMatching(const String& map_fname);
-
     /// Default destructor
     virtual ~MetaboliteSpectralMatching();
-
 
     /// hyperscore computation
     DoubleReal computeHyperScore(MSSpectrum<Peak1D>, MSSpectrum<Peak1D>, const DoubleReal&, const DoubleReal&);
@@ -87,10 +173,13 @@ protected:
 
 private:
     /// private member functions
+    void exportMzTab_(const std::vector<SpectralMatch>&, MzTab&);
 
     DoubleReal precursor_mz_error_;
     DoubleReal fragment_mz_error_;
     String mz_error_unit_;
+
+    String report_mode_;
 };
 
 
