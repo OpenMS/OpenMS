@@ -152,6 +152,7 @@ public:
 
     DoubleReal getFeatureIntensityContribution()
     {
+      // area under the curve, 2.5 is approx. sqrt(2 * pi):
       return 2.5 * height_ * sigma_;
     }
 
