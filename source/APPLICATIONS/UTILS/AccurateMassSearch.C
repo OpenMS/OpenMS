@@ -70,7 +70,7 @@ using namespace std;
         </table>
         </CENTER>
 
-        
+
         Accurate mass search against a database (usually HMDB).
         For details see @ref OpenMS::AccurateMassSearchEngine "AccurateMassSearchEngine".
 
@@ -104,10 +104,13 @@ protected:
         Param p = AccurateMassSearchEngine().getDefaults();
         registerTOPPSubsection_("db", "Database files which contain the identifications");
         registerInputFile_("db:mapping", "<file>", p.getValue("db:mapping"), p.getDescription("db:mapping"), true, false, StringList::create("skipexists"));
+        setValidFormats_("db:mapping", StringList::create("tsv"));
         registerInputFile_("db:struct", "<file>", p.getValue("db:struct"), p.getDescription("db:struct"), true, false, StringList::create("skipexists"));
+        setValidFormats_("db:struct", StringList::create("tsv"));
         registerInputFile_("positive_adducts_file", "<file>", p.getValue("positive_adducts_file"), p.getDescription("positive_adducts_file"), true, false, StringList::create("skipexists"));
+        setValidFormats_("positive_adducts_file", StringList::create("tsv"));
         registerInputFile_("negative_adducts_file", "<file>", p.getValue("negative_adducts_file"), p.getDescription("negative_adducts_file"), true, false, StringList::create("skipexists"));
-
+        setValidFormats_("negative_adducts_file", StringList::create("tsv"));
         // addEmptyLine_();
         // addText_("Parameters for the accurate mass search can be given in the 'algorithm' part of INI file.");
         registerSubsection_("algorithm", "Algorithm parameters section");
@@ -136,7 +139,7 @@ protected:
         String out = getStringOption_("out");
 
         Param ams_param = getParam_().copy("algorithm:", true);
-        // copy top-level params to algorithm      
+        // copy top-level params to algorithm
         ams_param.setValue("db:mapping", getStringOption_("db:mapping"));
         ams_param.setValue("db:struct", getStringOption_("db:struct"));
         ams_param.setValue("positive_adducts_file", getStringOption_("positive_adducts_file"));
