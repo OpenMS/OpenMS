@@ -84,8 +84,8 @@ public:
     DoubleReal getFoundPrecursorMass() const;
     void setFoundPrecursorMass(const DoubleReal&);
 
-    DoubleReal getFoundPrecursorCharge() const;
-    void setFoundPrecursorCharge(const DoubleReal&);
+    Int getFoundPrecursorCharge() const;
+    void setFoundPrecursorCharge(const Int&);
 
     DoubleReal getMatchingScore() const;
     void setMatchingScore(const DoubleReal&);
@@ -122,7 +122,7 @@ private:
     DoubleReal observed_precursor_mass_;
     DoubleReal observed_precursor_rt_;
     DoubleReal found_precursor_mass_;
-    DoubleReal found_precursor_charge_;
+    Int found_precursor_charge_;
     DoubleReal matching_score_;
     Size observed_spectrum_idx_;
     Size matching_spectrum_idx_;
@@ -178,6 +178,7 @@ private:
     DoubleReal precursor_mz_error_;
     DoubleReal fragment_mz_error_;
     String mz_error_unit_;
+    String ion_mode_;
 
     String report_mode_;
 };

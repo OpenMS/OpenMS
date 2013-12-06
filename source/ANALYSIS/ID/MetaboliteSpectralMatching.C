@@ -154,12 +154,12 @@ void SpectralMatch::setFoundPrecursorMass(const DoubleReal& fmass)
     found_precursor_mass_ = fmass;
 }
 
-DoubleReal SpectralMatch::getFoundPrecursorCharge() const
+Int SpectralMatch::getFoundPrecursorCharge() const
 {
     return found_precursor_charge_;
 }
 
-void SpectralMatch::setFoundPrecursorCharge(const DoubleReal& pch)
+void SpectralMatch::setFoundPrecursorCharge(const Int& pch)
 {
     found_precursor_charge_ = pch;
 }
@@ -276,6 +276,10 @@ MetaboliteSpectralMatching::MetaboliteSpectralMatching() :
 
     defaults_.setValue("report_mode", "top3", "Which results shall be reported: the top-three scoring ones or the best scoring one?");
     defaults_.setValidStrings("report_mode", StringList::create(("top3,best")));
+
+    defaults_.setValue("ionization_mode", "positive", "Positive or negative ionization mode?");
+    defaults_.setValidStrings("ionization_mode", StringList::create(("positive,negative")));
+
 
     defaultsToParam_();
 
@@ -450,6 +454,13 @@ void MetaboliteSpectralMatching::run(MSExperiment<> & msexp, MzTab& mztab_out)
             {
                 // do spectral matching
                 // std::cout << "scanning " << spec_db[search_idx].getPrecursors()[0].getMZ() << " " << spec_db[search_idx].getMetaValue("Metabolite_Name") << std::endl;
+
+                // check for charge state of precursor ions: do they match?
+                if ( (ion_mode_ == "positive" && spec_db[search_idx].getPrecursors()[0].getCharge() < 0) || (ion_mode_ == "negative" && spec_db[search_idx].getPrecursors()[0].getCharge() > 0))
+                {
+                    continue;
+                }
+
                 DoubleReal hyperscore(computeHyperScore(msexp[spec_idx], spec_db[search_idx], fragment_mz_error_, 0.0));
 
                 // std::cout << " scored with " << hyperScore << std::endl;
@@ -461,12 +472,16 @@ void MetaboliteSpectralMatching::run(MSExperiment<> & msexp, MzTab& mztab_out)
                     SpectralMatch tmp_match;
                     tmp_match.setObservedPrecursorMass(precursor_mz);
                     tmp_match.setFoundPrecursorMass(spec_db[search_idx].getPrecursors()[0].getMZ());
+                    DoubleReal obs_rt = std::floor(msexp[spec_idx].getRT() * 10)/10.0;
+                    tmp_match.setObservedPrecursorRT(obs_rt);
+                    tmp_match.setFoundPrecursorCharge(spec_db[search_idx].getPrecursors()[0].getCharge());
                     tmp_match.setMatchingScore(hyperscore);
                     tmp_match.setObservedSpectrumIndex(spec_idx);
                     tmp_match.setMatchingSpectrumIndex(search_idx);
 
                     tmp_match.setPrimaryIdentifier(spec_db[search_idx].getMetaValue("Massbank_Accession_ID"));
                     tmp_match.setSecondaryIdentifier(spec_db[search_idx].getMetaValue("HMDB_ID"));
+                    tmp_match.setSumFormula(spec_db[search_idx].getMetaValue("Sum_Formula"));
                     tmp_match.setCommonName(spec_db[search_idx].getMetaValue("Metabolite_Name"));
                     tmp_match.setInchiString(spec_db[search_idx].getMetaValue("Inchi_String"));
                     tmp_match.setSMILESString(spec_db[search_idx].getMetaValue("SMILES_String"));
@@ -516,6 +531,7 @@ void MetaboliteSpectralMatching::updateMembers_()
 {
     precursor_mz_error_ = (DoubleReal)param_.getValue("prec_mass_error_value");
     fragment_mz_error_ = (DoubleReal)param_.getValue("frag_mass_error_value");
+    ion_mode_ = (String)param_.getValue("ionization_mode");
 
     mz_error_unit_ = (String)param_.getValue("mass_error_unit");
     report_mode_ = (String)param_.getValue("report_mode");
