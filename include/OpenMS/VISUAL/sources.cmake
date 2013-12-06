@@ -49,7 +49,7 @@ foreach(i ${sources_list})
 endforeach(i)
 
 ### Apply MOC compiler
-QT4_WRAP_CPP(mocced_sources ${sources})
+QT4_WRAP_CPP(mocced_sources ${sources} OPTIONS "-DBOOST_NO_TEMPLATE_PARTIAL_SPECIALIZATION")
 
 ### pass source file list to the upper instance
 set(OpenMSVisual_sources ${OpenMSVisual_sources} ${mocced_sources})
