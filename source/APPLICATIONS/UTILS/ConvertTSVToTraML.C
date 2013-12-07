@@ -55,15 +55,15 @@ using namespace OpenMS;
         <ul>
           <li> PrecursorMz (float) </li>
           <li> ProductMz (float) </li>
-          <li> Tr_calibrated (float) </li>
+          <li> Tr_recalibrated (float) (normalized retention time) </li>
           <li> transition_name (free text, needs to be unique for each transition [in this file]) </li>
-          <li> Collision Energy (float) </li>
+          <li> CollisionEnergy (float) </li>
           <li> LibraryIntensity (float) </li>
           <li> transition_group_id (free text, designates the transition group [e.g. peptide] to which this transition belongs) </li>
           <li> decoy (1==decoy, 0== no decoy; determines whether the transition is a decoy transition or not) </li>
           <li> PeptideSequence  (free text, sequence only (no modifications) ) </li>
-          <li> ProteinName  (free text) </li>
-          <li> Annotation  (free text, e.g. y7) </li>
+          <li> ProteinName (free text) </li>
+          <li> Annotation (free text, e.g. y7) </li>
           <li> FullUniModPeptideName  (free text, should contain modifications*)  </li>
           <li> PrecursorCharge (integer, contains the charge of the precursor) </li>
           <li> GroupLabel (free text, e.g. heavy or light) </li>
@@ -72,7 +72,6 @@ using namespace OpenMS;
           <li> FragmentCharge (integer, contains the fragment charge) </li>
           <li> FragmentSeriesNumber (integer, e.g. for y7 use "7" here) </li>
         </ul>
-
 
 <p>
 * modifications should be supplied inside the sequence using UniMod

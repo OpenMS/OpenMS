@@ -207,6 +207,10 @@ namespace OpenMS
       {
         mytransition.CE                           =                      String(tmp_line[header_dict["CE"]]).toDouble();
       }
+      if (header_dict.find("CollisionEnergy") != header_dict.end())
+      {
+        mytransition.CE                           =                      String(tmp_line[header_dict["CollisionEnergy"]]).toDouble();
+      }
       if (header_dict.find("decoy") != header_dict.end())
       {
         mytransition.decoy                        =                      String(tmp_line[header_dict["decoy"]]).toInt();
