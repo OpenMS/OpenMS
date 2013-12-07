@@ -13,7 +13,7 @@ foreach(i ${sources_list})
 endforeach(i)
 
 ### Apply MOC compiler
-QT4_WRAP_CPP(mocced_sources ${sources} OPTIONS "-DBOOST_NO_TEMPLATE_PARTIAL_SPECIALIZATION")
+QT4_WRAP_CPP(mocced_sources ${sources} OPTIONS ${BOOST_MOC_ARGS})
 
 ### pass source file list to the upper instance
 set(OpenMS_sources ${OpenMS_sources} ${mocced_sources})

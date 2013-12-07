@@ -90,6 +90,15 @@ else()
   message(FATAL_ERROR "Boost or one of its components not found!")
 endif()
 
+set(BOOST_MOC_ARGS "")
+
+# see: https://bugreports.qt-project.org/browse/QTBUG-22829
+# Confirmed only on mac os x and leads to problems on win32 and lnx
+# so we handle it for now only on mac os x
+if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+	set(BOOST_MOC_ARGS "-DBOOST_NO_TEMPLATE_PARTIAL_SPECIALIZATION")
+endif()
+
 ## SEQAN
 FIND_PACKAGE(SEQAN 1.4.0)
 if(SEQAN_FOUND)
@@ -115,8 +124,8 @@ else()
 	message(FATAL_ERROR "LibSVM not found!")
 endif()
 
-if (${USE_COINOR}) 
-	set(CF_USECOINOR 1) 
+if (${USE_COINOR})
+	set(CF_USECOINOR 1)
 	OPENMS_CHECKLIB(CONTRIB_CBC1 "libCbc;Cbc" "libCbcd;Cbc" "COIN-OR Cbc")
 	OPENMS_CHECKLIB(CONTRIB_CBC2 "libCgl;Cgl" "libCgld;Cgl" "COIN-OR Cgl")
 	OPENMS_CHECKLIB(CONTRIB_CBC3 "libClp;Clp" "libClpd;Clp" "COIN-OR Clp")
@@ -126,7 +135,7 @@ if (${USE_COINOR})
 	set(CONTRIB_CBC ${CONTRIB_CBC1} ${CONTRIB_CBC2} ${CONTRIB_CBC3} ${CONTRIB_CBC4} ${CONTRIB_CBC5} ${CONTRIB_CBC6} )
 else()
 	set(CF_USECOINOR 0)
-	set(CONTRIB_CBC)	
+	set(CONTRIB_CBC)
 endif()
 
 ## Find GLPK
