@@ -40,7 +40,8 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/CachedmzML.h>
+
+#include <fstream>
 
 namespace OpenMS
 {

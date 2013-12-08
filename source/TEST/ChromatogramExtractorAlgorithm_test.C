@@ -62,7 +62,7 @@ START_SECTION(~ChromatogramExtractorAlgorithm())
 }
 END_SECTION
 
-START_SECTION(void extractChromatograms(const OpenSwath::SpectrumAccessPtr input, std::vector< OpenSwath::ChromatogramPtr >& output, std::vector<ExtractionCoordinates> extraction_coordinates, double& mz_extraction_window, bool ppm, String filter))
+START_SECTION(void extractChromatograms(const OpenSwath::SpectrumAccessPtr input, std::vector< OpenSwath::ChromatogramPtr > &output, std::vector< ExtractionCoordinates > extraction_coordinates, double mz_extraction_window, bool ppm, String filter))
 {
   double extract_window = 0.05;
   boost::shared_ptr<MSExperiment<Peak1D> > exp(new MSExperiment<Peak1D>);
@@ -205,9 +205,7 @@ static const double int_arr[] = {
   10.0, 
 };
 
-START_SECTION( void extract_value_tophat(const std::vector<double>::const_iterator& mz_start, std::vector<double>::const_iterator& mz_it,
-                              const std::vector<double>::const_iterator& mz_end, std::vector<double>::const_iterator& int_it,
-                              const double& mz, double& integrated_intensity, double& mz_extraction_window, bool ppm) )
+START_SECTION(void extract_value_tophat(const std::vector< double >::const_iterator &mz_start, std::vector< double >::const_iterator &mz_it, const std::vector< double >::const_iterator &mz_end, std::vector< double >::const_iterator &int_it, const double &mz, double &integrated_intensity, const double &mz_extraction_window, bool ppm))
 { 
   std::vector<double> mz (mz_arr, mz_arr + sizeof(mz_arr) / sizeof(mz_arr[0]) );
   std::vector<double> intensities (int_arr, int_arr + sizeof(int_arr) / sizeof(int_arr[0]) );

@@ -70,7 +70,38 @@ START_SECTION((IndexedMzMLFile() ))
 	delete ptr;
 END_SECTION
 
-START_SECTION(( bool getParsingSuccess() ))
+START_SECTION((IndexedMzMLFile() ))
+	ptr = new IndexedMzMLFile();
+	TEST_NOT_EQUAL(ptr, nullPointer)
+	delete ptr;
+END_SECTION
+
+START_SECTION((IndexedMzMLFile(const IndexedMzMLFile &source)))
+{
+  IndexedMzMLFile file(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
+
+  IndexedMzMLFile file2(file);
+
+  TEST_EQUAL(file.getParsingSuccess(), file2.getParsingSuccess())
+  TEST_EQUAL(file.getNrSpectra(), file2.getNrSpectra())
+  TEST_EQUAL(file.getNrChromatograms(), file2.getNrChromatograms())
+
+  ABORT_IF(file.getNrSpectra() != 2)
+  TEST_EQUAL(file.getSpectrumById(0)->getMZArray()->data == file2.getSpectrumById(0)->getMZArray()->data, true)
+  TEST_EQUAL(file.getSpectrumById(0)->getIntensityArray()->data == file2.getSpectrumById(0)->getIntensityArray()->data, true)
+  TEST_EQUAL(file.getSpectrumById(1)->getMZArray()->data == file2.getSpectrumById(1)->getMZArray()->data, true)
+  TEST_EQUAL(file.getSpectrumById(1)->getIntensityArray()->data == file2.getSpectrumById(1)->getIntensityArray()->data, true)
+  ABORT_IF(file.getNrChromatograms() != 1)
+  TEST_EQUAL(file.getChromatogramById(0)->getTimeArray()->data == file2.getChromatogramById(0)->getTimeArray()->data, true)
+  TEST_EQUAL(file.getChromatogramById(0)->getIntensityArray()->data == file2.getChromatogramById(0)->getIntensityArray()->data, true)
+  /*
+  TEST_EQUAL(file.getChromatogramById(0) == file2.getChromatogramById(0), true)
+  TEST_EQUAL(file.getSpectrumById(1), file2.getSpectrumById(1))
+  */
+}
+END_SECTION
+
+START_SECTION(( bool getParsingSuccess() const))
 {
   {
     IndexedMzMLFile file(OPENMS_GET_TEST_DATA_PATH("fileDoesNotExist"));
@@ -101,14 +132,14 @@ START_SECTION(( void openFile(String filename) ))
 }
 END_SECTION
 
-START_SECTION(( bool getNrSpectra() ))
+START_SECTION(( bool getNrSpectra() const ))
 {
   IndexedMzMLFile file(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
   TEST_EQUAL(file.getNrSpectra(), 2)
 }
 END_SECTION
 
-START_SECTION(( bool getNrChromatograms() ))
+START_SECTION(( bool getNrChromatograms() const ))
 {
   IndexedMzMLFile file(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
   TEST_EQUAL(file.getNrChromatograms(), 1)
@@ -127,6 +158,16 @@ START_SECTION(( OpenMS::Interfaces::SpectrumPtr getSpectrumById(int id)  ))
   OpenMS::Interfaces::SpectrumPtr spec = file.getSpectrumById(0);
   TEST_EQUAL(spec->getMZArray()->data.size(), exp.getSpectra()[0].size() )
   TEST_EQUAL(spec->getIntensityArray()->data.size(), exp.getSpectra()[0].size() )
+
+  // Test Exceptions
+  TEST_EXCEPTION(Exception::IllegalArgument,file.getSpectrumById(-1));
+  TEST_EXCEPTION(Exception::IllegalArgument,file.getSpectrumById( file.getNrSpectra()+1));
+
+  {
+    IndexedMzMLFile file(OPENMS_GET_TEST_DATA_PATH("fileDoesNotExist"));
+    TEST_EQUAL(file.getParsingSuccess(), false)
+    TEST_EXCEPTION(Exception::ParseError,file.getSpectrumById( 0 ));
+  }
 }
 END_SECTION
 

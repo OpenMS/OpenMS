@@ -72,6 +72,8 @@ namespace OpenMS
       PrecursorCharge (integer)
       Labelgroup (free text, e.g. heavy or light)
 
+  @htmlinclude OpenMS_TransitionTSVReader.parameters
+
   */
   class OPENMS_DLLAPI TransitionTSVReader :
     public ProgressLogger,

@@ -125,7 +125,7 @@ public:
 
 private:
 
-    int get_filter_nr_(String filter);
+    int getFilterNr_(String filter);
 
   };
 

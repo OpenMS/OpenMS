@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2012.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2013.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,6 +32,9 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
+#ifndef OPENMS_TRANSFORMATIONS_RAW2PEAK_PEAKPICKERITERATIVE_H
+#define OPENMS_TRANSFORMATIONS_RAW2PEAK_PEAKPICKERITERATIVE_H
+
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
@@ -40,6 +43,11 @@
 
 namespace OpenMS
 {
+
+  /**
+   * @brief A small structure to hold peak candidates
+   *
+  */
   struct PeakCandidate
   {
     int index;
@@ -157,7 +165,7 @@ private:
      *
     */
     template <typename PeakType>
-    void _pick_recenter_peaks(const MSSpectrum<PeakType>& input,
+    void pick_recenter_peaks_(const MSSpectrum<PeakType>& input,
                               std::vector<PeakCandidate>& PeakCandidates,
                               SignalToNoiseEstimatorMedian<MSSpectrum<PeakType> >& snt)
     {
@@ -348,7 +356,7 @@ public:
       // The peak candidates are re-centered and the width is computed for each peak
       for (int i = 0; i < nr_iterations_; i++)
       {
-        _pick_recenter_peaks(input, PeakCandidates, snt);
+        pick_recenter_peaks_(input, PeakCandidates, snt);
       }
 
       output.getFloatDataArrays().resize(3);
@@ -426,3 +434,5 @@ public:
   };
 
 }
+
+#endif

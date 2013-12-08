@@ -199,7 +199,7 @@ public:
       if (recalculate_peaks_)
       {
         // This may change best_left / best_right
-        recalculatePeakBorders(picked_chroms, best_left, best_right, recalculate_peaks_max_z_);
+        recalculatePeakBorders_(picked_chroms, best_left, best_right, recalculate_peaks_max_z_);
         if (peak_apex < best_left || peak_apex > best_right)
         {
           // apex fell out of range, lets correct it
@@ -214,7 +214,7 @@ public:
       if (compute_peak_quality_)
       {
         String outlier = "none";
-        double qual = compute_quality(transition_group, picked_chroms, chr_idx, best_left, best_right, outlier);
+        double qual = computeQuality_(transition_group, picked_chroms, chr_idx, best_left, best_right, outlier);
         if (qual < min_qual_) {return mrmFeature; }
         mrmFeature.setMetaValue("potentialOutlier", outlier);
         mrmFeature.setOverallQuality(qual);
@@ -407,7 +407,7 @@ protected:
 
     */
     template <typename SpectrumT, typename TransitionT>
-    double compute_quality(MRMTransitionGroup<SpectrumT, TransitionT>& transition_group,
+    double computeQuality_(MRMTransitionGroup<SpectrumT, TransitionT>& transition_group,
                            std::vector<SpectrumT>& picked_chroms, const int chr_idx, const double best_left, const double best_right, String& outlier)
     {
 
@@ -595,7 +595,7 @@ protected:
       (in this case), then we fall back to the "consensus" (a median here).
     */
     template <typename SpectrumT>
-    void recalculatePeakBorders(std::vector<SpectrumT>& picked_chroms, double& best_left, double& best_right, double max_z)
+    void recalculatePeakBorders_(std::vector<SpectrumT>& picked_chroms, double& best_left, double& best_right, double max_z)
     {
       // 1. Collect all seeds that lie within the current seed 
       // - Per chromatogram only the most intense one counts, otherwise very

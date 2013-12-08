@@ -58,7 +58,7 @@ START_TEST(MzMLFile, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-//Note: This code generates the test files for meta data arrays of differnet types. Do not delete it!
+//Note: This code generates the test files for meta data arrays of different types. Do not delete it!
 
 ////template spectrum with 100 peaks
 //MSSpectrum<> template_spec;

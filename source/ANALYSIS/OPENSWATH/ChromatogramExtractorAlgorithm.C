@@ -132,7 +132,7 @@ namespace OpenMS
         "Output and extraction coordinates need to have the same size");
     }
 
-    int used_filter = get_filter_nr_(filter);
+    int used_filter = getFilterNr_(filter);
     // assert that they are sorted!
     if (std::adjacent_find(extraction_coordinates.begin(), extraction_coordinates.end(), 
           ExtractionCoordinates::SortExtractionCoordinatesReverseByMZ) != extraction_coordinates.end())
@@ -193,7 +193,7 @@ namespace OpenMS
     endProgress();
   }
 
-  int ChromatogramExtractorAlgorithm::get_filter_nr_(String filter)
+  int ChromatogramExtractorAlgorithm::getFilterNr_(String filter)
   {
     if (filter == "tophat")
     {

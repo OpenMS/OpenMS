@@ -32,8 +32,8 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_FORMAT_NUMPRESSCODER_H
-#define OPENMS_FORMAT_NUMPRESSCODER_H
+#ifndef OPENMS_FORMAT_MSNUMPRESSCODER_H
+#define OPENMS_FORMAT_MSNUMPRESSCODER_H
 
 #include <OpenMS/FORMAT/Base64.h>
 

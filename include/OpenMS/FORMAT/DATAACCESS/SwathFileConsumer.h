@@ -294,8 +294,8 @@ protected:
    * @brief On-disked cached implementation of FullSwathFileConsumer
    *
    * Writes all spectra immediately to disk in a user-specified caching
-   * location using the CachedMzMLConsumer. Internally, it handles
-   * n+1 (n SWATH + 1 MS1 map) objects of CachedMzMLConsumers which can consume the
+   * location using the MSDataCachedConsumer. Internally, it handles
+   * n+1 (n SWATH + 1 MS1 map) objects of MSDataCachedConsumer which can consume the
    * spectra and write them to disk immediately.
    *
    */
@@ -319,7 +319,7 @@ public:
 
     ~CachedSwathFileConsumer()
     {
-      // Properly delete the CachedMzMLConsumers -> free memory and _close_ file stream
+      // Properly delete the MSDataCachedConsumer -> free memory and _close_ file stream
       while (!swath_consumers_.empty()) 
       {
         delete swath_consumers_.back();
@@ -337,7 +337,7 @@ protected:
     {
       String meta_file = cachedir_ + basename_ + "_" + String(swath_consumers_.size()) +  ".mzML";
       String cached_file = meta_file + ".cached";
-      CachedMzMLConsumer* consumer = new CachedMzMLConsumer(cached_file, true);
+      MSDataCachedConsumer* consumer = new MSDataCachedConsumer(cached_file, true);
       consumer->setExpectedSize(nr_ms2_spectra_[swath_consumers_.size()], 0);
       swath_consumers_.push_back(consumer);
 
@@ -361,7 +361,7 @@ protected:
     {
       String meta_file = cachedir_ + basename_ + "_ms1.mzML";
       String cached_file = meta_file + ".cached";
-      ms1_consumer_ = new CachedMzMLConsumer(cached_file, true);
+      ms1_consumer_ = new MSDataCachedConsumer(cached_file, true);
       ms1_consumer_->setExpectedSize(nr_ms1_spectra_, 0);
       boost::shared_ptr<MSExperiment<Peak1D> > exp(new MSExperiment<Peak1D>(settings_));
       ms1_map_ = exp;
@@ -382,7 +382,7 @@ protected:
       size_t swath_consumers_size = swath_consumers_.size();
       bool have_ms1 = (ms1_consumer_ != NULL);
 
-      // Properly delete the CachedMzMLConsumers -> free memory and _close_ file stream
+      // Properly delete the MSDataCachedConsumer -> free memory and _close_ file stream
       // The file streams to the cached data on disc can and should be closed
       // here safely. Since ensureMapsAreFilled_ is called after consuming all
       // the spectra, there will be no more spectra to append but the client
@@ -425,8 +425,8 @@ protected:
       }
     }
 
-    CachedMzMLConsumer* ms1_consumer_;
-    std::vector<CachedMzMLConsumer*> swath_consumers_;
+    MSDataCachedConsumer* ms1_consumer_;
+    std::vector<MSDataCachedConsumer*> swath_consumers_;
 
     String cachedir_;
     String basename_;

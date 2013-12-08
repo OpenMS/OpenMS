@@ -74,7 +74,7 @@ namespace OpenMS
       see void MzMLHandler<MapType>::fillData_() 
 
     */
-    OpenMS::Interfaces::SpectrumPtr decodeBinaryData(std::vector<BinaryData> & data_);
+    OpenMS::Interfaces::SpectrumPtr decodeBinaryDataSpectrum_(std::vector<BinaryData> & data_);
 
     /**
       @brief decode binary data
@@ -83,7 +83,7 @@ namespace OpenMS
       see void MzMLHandler<MapType>::fillData_() 
 
     */
-    OpenMS::Interfaces::ChromatogramPtr decodeBinaryDataChrom(std::vector<BinaryData> & data_);
+    OpenMS::Interfaces::ChromatogramPtr decodeBinaryDataChrom_(std::vector<BinaryData> & data_);
 
     /**
       @brief Convert a single DOMNode of type binaryDataArray to BinaryData object.
@@ -95,7 +95,7 @@ namespace OpenMS
       @param in DOMNode of type binaryDataArray
       @param data_ Binary data extracted from the string
     */
-    void handleBinaryDataArray(xercesc::DOMNode * indexListNode, std::vector<BinaryData>& data_);
+    void handleBinaryDataArray_(xercesc::DOMNode * indexListNode, std::vector<BinaryData>& data_);
 
     /**
       @brief Extract data from a string containing multiple <binaryDataArray> tags.
@@ -112,7 +112,7 @@ namespace OpenMS
       @pre in must have <spectrum> or <chromatogram> as root element.
 
     */
-    void domParseString(const std::string& in, std::vector<BinaryData>& data_);
+    void domParseString_(const std::string& in, std::vector<BinaryData>& data_);
 
   public:
 

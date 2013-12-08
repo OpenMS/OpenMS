@@ -48,7 +48,7 @@ namespace OpenMS
       function pointer that can be set on the object. The spectra is then
       cached to disk using the functions provided in CachedmzML.
     */
-    class OPENMS_DLLAPI CachedMzMLConsumer :
+    class OPENMS_DLLAPI MSDataCachedConsumer :
       public CachedmzML,
       public Interfaces::IMSDataConsumer<>
     {
@@ -58,7 +58,7 @@ namespace OpenMS
 
     public:
       /// Default constructor
-      CachedMzMLConsumer(String filename, bool clearData=true) :
+      MSDataCachedConsumer(String filename, bool clearData=true) :
         ofs(filename.c_str(), std::ios::binary),
         clearData_(clearData),
         spectra_written(0),
@@ -69,7 +69,7 @@ namespace OpenMS
       }
 
       /// Default destructor
-      ~CachedMzMLConsumer()
+      ~MSDataCachedConsumer()
       {
         // Close file stream: close() _should_ call flush() but it might not in
         // all cases. To be sure call flush() first.

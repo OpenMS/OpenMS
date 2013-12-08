@@ -75,15 +75,15 @@ namespace OpenMS
       /// Name of the file
       String filename_;
       /// Binary offsets to all spectra
-      std::vector< std::pair<std::string, long> > spectra_offsets;
+      std::vector< std::pair<std::string, long> > spectra_offsets_;
       /// Binary offsets to all chromatograms
-      std::vector< std::pair<std::string, long> > chromatograms_offsets;
+      std::vector< std::pair<std::string, long> > chromatograms_offsets_;
       /// offset to the <indexList> element
       long index_offset_;
       /// Whether spectra are written before chromatograms in this file
       bool spectra_before_chroms_;
       /// The current filestream (opened by openFile)
-      std::ifstream filestream; 
+      std::ifstream filestream_; 
       /// Whether parsing the indexedmzML file was successful
       bool parsing_success_;
 
@@ -93,7 +93,7 @@ namespace OpenMS
       Upon success, the chromatogram and spectra offsets will be populated and
       parsing_success_ will be set to true.
     */
-    void parseFooter(String filename);
+    void parseFooter_(String filename);
 
     public:
 

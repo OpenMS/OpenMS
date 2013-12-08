@@ -59,23 +59,35 @@ START_TEST(IndexedMzMLFileLoader, "$Id$")
 IndexedMzMLFileLoader* ptr = 0;
 IndexedMzMLFileLoader* nullPointer = 0;
 START_SECTION((IndexedMzMLFileLoader()))
-	ptr = new IndexedMzMLFileLoader;
-	TEST_NOT_EQUAL(ptr, nullPointer)
+  ptr = new IndexedMzMLFileLoader;
+  TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION((~IndexedMzMLFileLoader()))
-	delete ptr;
+  delete ptr;
 END_SECTION
 
 START_SECTION(const PeakFileOptions& getOptions() const)
-	IndexedMzMLFileLoader file;
-	TEST_EQUAL(file.getOptions().hasMSLevels(),false)
+  IndexedMzMLFileLoader file;
+  const PeakFileOptions& options = file.getOptions();
+  TEST_EQUAL(options.hasMSLevels(),false)
 END_SECTION
 
 START_SECTION(PeakFileOptions& getOptions())
-	IndexedMzMLFileLoader file;
-	file.getOptions().addMSLevel(1);
-	TEST_EQUAL(file.getOptions().hasMSLevels(),true);
+  IndexedMzMLFileLoader file;
+  file.getOptions().addMSLevel(1);
+  TEST_EQUAL(file.getOptions().hasMSLevels(),true);
+END_SECTION
+
+START_SECTION(void setOptions(const PeakFileOptions & options))
+  IndexedMzMLFileLoader file;
+  const PeakFileOptions& options = file.getOptions();
+  TEST_EQUAL(options.hasMSLevels(),false)
+  TEST_EQUAL(file.getOptions().hasMSLevels(),false);
+  PeakFileOptions new_options(options);
+  new_options.addMSLevel(1);
+  file.setOptions(new_options);
+  TEST_EQUAL(file.getOptions().hasMSLevels(),true);
 END_SECTION
 
 TOLERANCE_ABSOLUTE(0.01)
@@ -112,7 +124,7 @@ START_SECTION([EXTRA]CheckParsing)
 {
   // Check return value of load
   IndexedMzMLFileLoader file;
-	OnDiscMSExperiment<> exp;
+  OnDiscMSExperiment<> exp;
   bool success;
   success = file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), exp);
   TEST_EQUAL(success, false)

@@ -101,7 +101,7 @@ public:
         return;
       }
 
-      int used_filter = getFilterNr(filter);
+      int used_filter = getFilterNr_(filter);
       populatePeptideRTMap_(transition_exp, rt_extraction_window);
 
       // sort the transition experiment by product mass
@@ -506,7 +506,7 @@ private:
     bool outsideExtractionWindow_(const ReactionMonitoringTransition& transition, double current_rt,
                                    const TransformationDescription& trafo, double rt_extraction_window);
 
-    int getFilterNr(String filter);
+    int getFilterNr_(String filter);
 
     void populatePeptideRTMap_(OpenMS::TargetedExperiment& transition_exp, double rt_extraction_window);
 

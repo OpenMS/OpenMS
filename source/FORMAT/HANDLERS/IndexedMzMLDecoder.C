@@ -80,7 +80,7 @@ namespace OpenMS
     //-------------------------------------------------------------
     // http://stackoverflow.com/questions/4691039/making-xerces-parse-a-string-insted-of-a-file
     std::string tmp_fixed_xml = "<indexedmzML>" +  String(buffer) + "\n";
-    int res = domParseIndexedEnd(tmp_fixed_xml, spectra_offsets, chromatograms_offsets);
+    int res = domParseIndexedEnd_(tmp_fixed_xml, spectra_offsets, chromatograms_offsets);
 
     delete[] buffer;
 
@@ -140,7 +140,7 @@ namespace OpenMS
     return indexoffset;
   }
 
-  int IndexedMzMLDecoder::domParseIndexedEnd(std::string in, OffsetVector& spectra_offsets, OffsetVector& chromatograms_offsets)
+  int IndexedMzMLDecoder::domParseIndexedEnd_(std::string in, OffsetVector& spectra_offsets, OffsetVector& chromatograms_offsets)
   {
     //-------------------------------------------------------------
     // Create parser from input string using MemBufInputSource

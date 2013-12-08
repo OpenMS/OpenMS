@@ -273,7 +273,7 @@ protected:
       String meta_file = tmp + tmp_fname;
 
       // Create new consumer, transform infile, write out metadata
-      CachedMzMLConsumer* cachedConsumer = new CachedMzMLConsumer(cached_file, true);
+      MSDataCachedConsumer* cachedConsumer = new MSDataCachedConsumer(cached_file, true);
       MzMLFile().transform(in, cachedConsumer, *experiment_metadata.get());
       CachedmzML().writeMetadata(*experiment_metadata.get(), meta_file, true);
       delete cachedConsumer; // ensure that filestream gets closed

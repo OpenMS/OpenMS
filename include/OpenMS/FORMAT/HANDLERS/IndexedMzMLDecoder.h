@@ -139,7 +139,7 @@ namespace OpenMS
       @param spectra_offsets Output vector containing the positions of all spectra in the file
       @param chromatograms_offsets Output vector containing the positions of all chromatograms in the file
     */
-    int domParseIndexedEnd(std::string in, OffsetVector & spectra_offsets, OffsetVector& chromatograms_offsets);
+    int domParseIndexedEnd_(std::string in, OffsetVector & spectra_offsets, OffsetVector& chromatograms_offsets);
   };
 
 }

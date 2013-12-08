@@ -29,8 +29,8 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
+// $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
-//
 
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerIterative.h>
 

@@ -34,6 +34,8 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMSCached.h>
 
+#include <OpenMS/ANALYSIS/OPENSWATH/CachedmzML.h>
+
 namespace OpenMS
 {
 

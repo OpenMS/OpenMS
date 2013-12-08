@@ -235,7 +235,7 @@ START_SECTION((Feature(const Feature &feature)))
   desc.setName("gauss");
   p.setModelDescription(desc);
   p.setConvexHulls(hulls);
-	p.getConvexHull(); //this precalculates the overall convex hull
+	p.getConvexHull(); //this pre-calculates the overall convex hull
 
 	Feature::PositionType pos2;
 	Feature::IntensityType i2;
@@ -283,7 +283,7 @@ START_SECTION((Feature& operator = (const Feature& rhs)))
 	Feature::IntensityType i2;
 
 	Feature copy_of_p;
-	copy_of_p.getConvexHull(); //this precalculates the overall convex hull in order to check that the recalculation flag is copied correctly
+	copy_of_p.getConvexHull(); //this pre-calculates the overall convex hull in order to check that the recalculation flag is copied correctly
 	copy_of_p = p;
 
 	i2 = copy_of_p.getIntensity();

@@ -65,7 +65,7 @@ START_SECTION((~MzMLSpectrumDecoder()))
 }
 END_SECTION
 
-START_SECTION(( void domParseSpectrum(std::string& in, OpenMS::Interfaces::SpectrumPtr & sptr) ))
+START_SECTION(( void domParseSpectrum(const std::string& in, OpenMS::Interfaces::SpectrumPtr & sptr) ))
 {
   ptr = new MzMLSpectrumDecoder();
   std::string testString = MULTI_LINE_STRING(
@@ -155,6 +155,9 @@ START_SECTION(([EXTRA] void domParseSpectrum(std::string& in, OpenMS::Interfaces
 
   OpenMS::Interfaces::SpectrumPtr cptr(new OpenMS::Interfaces::Spectrum);
   TEST_PRECONDITION_VIOLATED(ptr->domParseSpectrum(testString, cptr))
+
+  // TEST_PRECONDITION_VIOLATED should already be sufficient to not trigger the "no subtests performed in"
+  TEST_EQUAL(cptr->getMZArray()->data.size(), 0)
 }
 END_SECTION
 
@@ -253,9 +256,11 @@ START_SECTION(([EXTRA] void domParseSpectrum(std::string& in, OpenMS::Interfaces
 }
 END_SECTION
 
-START_SECTION(( void domParseSpectrum(std::string& in, OpenMS::Interfaces::SpectrumPtr & sptr) ))
+START_SECTION(([EXTRA] void domParseSpectrum(std::string& in, OpenMS::Interfaces::SpectrumPtr & sptr) ))
 {
-  // TODO detect multiple occurences of an array
+  // missing: detect semantically invalid XML structures
+  // for example: multiple occurences of an array
+  // (fix in MzMLHandlerHelper::computeDataProperties_)
   ptr = new MzMLSpectrumDecoder();
   std::string testString = MULTI_LINE_STRING(
       <spectrum index="2" id="index=2" defaultArrayLength="15">
@@ -278,50 +283,6 @@ START_SECTION(( void domParseSpectrum(std::string& in, OpenMS::Interfaces::Spect
             <cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
             <binary>AAAAAAAAAAAAAAAAAADwPwAAAAAAAABAAAAAAAAACEAAAAAAAAAQQAAAAAAAABRAAAAAAAAAGEAAAAAAAAAcQAAAAAAAACBAAAAAAAAAIkAAAAAAAAAkQAAAAAAAACZAAAAAAAAAKEAAAAAAAAAqQAAAAAAAACxA</binary>
           </binaryDataArray>
-        </binaryDataArrayList>
-      </spectrum>
-  );
-
-  OpenMS::Interfaces::SpectrumPtr cptr(new OpenMS::Interfaces::Spectrum);
-  ptr->domParseSpectrum(testString, cptr);
-
-  TEST_EQUAL(cptr->getMZArray()->data.size(), 15)
-  TEST_EQUAL(cptr->getIntensityArray()->data.size(), 15)
-
-  TEST_REAL_SIMILAR(cptr->getMZArray()->data[7], 7)
-  TEST_REAL_SIMILAR(cptr->getIntensityArray()->data[7], 8)
-}
-END_SECTION
-
-START_SECTION(( void domParseSpectrum(std::string& in, OpenMS::Interfaces::SpectrumPtr & sptr) ))
-{
-  // TODO detect multiple occurences of an array
-  ptr = new MzMLSpectrumDecoder();
-  std::string testString = MULTI_LINE_STRING(
-      <spectrum index="2" id="index=2" defaultArrayLength="15">
-        <binaryDataArrayList count="3">
-          <binaryDataArray encodedLength="160" >
-            <cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" value=""/>
-            <cvParam cvRef="MS" accession="MS:1000576" name="no compression" value=""/>
-            <cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-            <binary>AAAAAAAAAAAAAAAAAADwPwAAAAAAAABAAAAAAAAACEAAAAAAAAAQQAAAAAAAABRAAAAAAAAAGEAAAAAAAAAcQAAAAAAAACBAAAAAAAAAIkAAAAAAAAAkQAAAAAAAACZAAAAAAAAAKEAAAAAAAAAqQAAAAAAAACxA</binary>
-          </binaryDataArray>
-          <binaryDataArray encodedLength="160" >
-            <cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" value=""/>
-            <cvParam cvRef="MS" accession="MS:1000576" name="no compression" value=""/>
-            <cvParam cvRef="MS" accession="MS:1000515" name="intensity array" value="" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
-            <binary>AAAAAAAALkAAAAAAAAAsQAAAAAAAACpAAAAAAAAAKEAAAAAAAAAmQAAAAAAAACRAAAAAAAAAIkAAAAAAAAAgQAAAAAAAABxAAAAAAAAAGEAAAAAAAAAUQAAAAAAAABBAAAAAAAAACEAAAAAAAAAAQAAAAAAAAPA/</binary>
-          </binaryDataArray>
-
-          <binaryDataArray arrayLength="10" encodedLength="108">
-            <cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
-            <cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-            <cvParam cvRef="MS" accession="MS:1000517" name="signal to noise array" />
-            <userParam name="name" type="xsd:string" value="binaryDataArray_sn"/>
-            <userParam name="name2" type="xsd:string" value="binaryDataArray_sn2"/>
-            <binary>AAAAAAAANEAAAAAAAAAyQAAAAAAAADBAAAAAAAAALEAAAAAAAAAoQAAAAAAAACRAAAAAAAAAIEAAAAAAAAAYQAAAAAAAABBAAAAAAAAAAEA=</binary>
-          </binaryDataArray>
-
         </binaryDataArrayList>
       </spectrum>
   );
@@ -338,7 +299,7 @@ START_SECTION(( void domParseSpectrum(std::string& in, OpenMS::Interfaces::Spect
 END_SECTION
 
 /// Chromatogram
-START_SECTION(( void domParseChromatogram(std::string& in, OpenMS::Interfaces::ChromatogramPtr & sptr) ))
+START_SECTION(( void domParseChromatogram(const std::string& in, OpenMS::Interfaces::ChromatogramPtr & sptr) ))
 {
   ptr = new MzMLSpectrumDecoder();
   std::string testString = MULTI_LINE_STRING( 

@@ -115,14 +115,14 @@ namespace OpenMS
         validator_ = new Internal::MzMLValidator(this->mapping_, this->cv_);
 
         // open file in binary mode to avoid any line ending conversions
-        ofs.open(filename.c_str(), std::ios::out | std::ios::binary);
-        ofs.precision(writtenDigits(DoubleReal()));
+        ofs_.open(filename.c_str(), std::ios::out | std::ios::binary);
+        ofs_.precision(writtenDigits(DoubleReal()));
       }
 
       /// Destructor
       virtual ~MSDataWritingConsumer()
       {
-        doCleanup();
+        doCleanup_();
       }
 
       /// @name IMSDataConsumer interface
@@ -193,19 +193,19 @@ namespace OpenMS
           //--------------------------------------------------------------------
           //header
           //--------------------------------------------------------------------
-          Internal::MzMLHandler<MapType>::writeHeader_(ofs, dummy, dps_, *validator_);
+          Internal::MzMLHandler<MapType>::writeHeader_(ofs_, dummy, dps_, *validator_);
           started_writing_ = true;
         }
         if (!writing_spectra_)
         {
           // This is the first spectrum, thus write the spectrumList header
-          ofs << "\t\t<spectrumList count=\"" << spectra_expected_ << "\" defaultDataProcessingRef=\"dp_sp_0\">\n";
+          ofs_ << "\t\t<spectrumList count=\"" << spectra_expected_ << "\" defaultDataProcessingRef=\"dp_sp_0\">\n";
           writing_spectra_ = true;
         }
         bool renew_native_ids = false;
         // TODO writeSpectrum assumes that dps_ has at least one value -> assert
         // this here ...
-        Internal::MzMLHandler<MapType>::writeSpectrum_(ofs, scpy,
+        Internal::MzMLHandler<MapType>::writeSpectrum_(ofs_, scpy,
                 spectra_written_++, *validator_, renew_native_ids, dps_);
       }
 
@@ -222,7 +222,7 @@ namespace OpenMS
         // make sure to close an open List tag
         if (writing_spectra_)
         {
-          ofs << "\t\t</spectrumList>\n";
+          ofs_ << "\t\t</spectrumList>\n";
         }
 
         // Create copy and add dataprocessing if required
@@ -246,16 +246,16 @@ namespace OpenMS
           //--------------------------------------------------------------------
           //header (fill also dps_ variable)
           //--------------------------------------------------------------------
-          Internal::MzMLHandler<MapType>::writeHeader_(ofs, dummy, dps_, *validator_);
+          Internal::MzMLHandler<MapType>::writeHeader_(ofs_, dummy, dps_, *validator_);
           started_writing_ = true;
         }
         if (!writing_chromatograms_)
         {
-          ofs << "\t\t<chromatogramList count=\"" << chromatograms_expected_ << "\" defaultDataProcessingRef=\"dp_sp_0\">\n";
+          ofs_ << "\t\t<chromatogramList count=\"" << chromatograms_expected_ << "\" defaultDataProcessingRef=\"dp_sp_0\">\n";
           writing_chromatograms_ = true;
           writing_spectra_ = false;
         }
-        Internal::MzMLHandler<MapType>::writeChromatogram_(ofs, ccpy,
+        Internal::MzMLHandler<MapType>::writeChromatogram_(ofs_, ccpy,
                 chromatograms_written_++, *validator_);
       }
       //@}
@@ -307,7 +307,7 @@ namespace OpenMS
 
         Will write the last tags to the file and close the file stream.
       */
-      virtual void doCleanup()
+      virtual void doCleanup_()
       {
         //--------------------------------------------------------------------------------------------
         //cleanup
@@ -315,25 +315,25 @@ namespace OpenMS
         // make sure to close an open List tag
         if (writing_spectra_)
         {
-          ofs << "\t\t</spectrumList>\n";
+          ofs_ << "\t\t</spectrumList>\n";
         }
         else if (writing_chromatograms_)
         {
-          ofs << "\t\t</chromatogramList>\n";
+          ofs_ << "\t\t</chromatogramList>\n";
         }
 
         // Only write the footer if we actually did start writing ... 
         if (started_writing_) 
-          Internal::MzMLHandlerHelper::writeFooter_(ofs, options_, spectra_offsets, chromatograms_offsets);
+          Internal::MzMLHandlerHelper::writeFooter_(ofs_, options_, spectra_offsets, chromatograms_offsets);
 
         delete validator_;
-        ofs.close();
+        ofs_.close();
       }
 
     protected:
 
       /// File stream (to write mzML)
-      std::ofstream ofs;
+      std::ofstream ofs_;
 
       /// Stores whether we have already started writing any data
       bool started_writing_;
@@ -402,7 +402,7 @@ namespace OpenMS
 
     private:
 
-      void doCleanup() {}
+      void doCleanup_() {}
       void processSpectrum_(MapType::SpectrumType & /* s */) {}
       void processChromatogram_(MapType::ChromatogramType & /* c */) {}
     };

@@ -37,19 +37,19 @@
 namespace OpenMS
 {
 
-  void IndexedMzMLFile::parseFooter(String filename)
+  void IndexedMzMLFile::parseFooter_(String filename)
   {
     //-------------------------------------------------------------
     // Find offset
     //-------------------------------------------------------------
 
     index_offset_ = IndexedMzMLDecoder().findIndexListOffset(filename);
-    int res = IndexedMzMLDecoder().parseOffsets(filename, index_offset_, spectra_offsets, chromatograms_offsets);
+    int res = IndexedMzMLDecoder().parseOffsets(filename, index_offset_, spectra_offsets_, chromatograms_offsets_);
 
     spectra_before_chroms_ = true;
-    if (!spectra_offsets.empty() && !chromatograms_offsets.empty())
+    if (!spectra_offsets_.empty() && !chromatograms_offsets_.empty())
     {
-      if (spectra_offsets[0].second < chromatograms_offsets[0].second) spectra_before_chroms_ = true;
+      if (spectra_offsets_[0].second < chromatograms_offsets_[0].second) spectra_before_chroms_ = true;
       else spectra_before_chroms_ = false;
     }
 
@@ -64,11 +64,11 @@ namespace OpenMS
 
   IndexedMzMLFile::IndexedMzMLFile(const IndexedMzMLFile& source) :
     filename_(source.filename_),
-    spectra_offsets(source.spectra_offsets),
-    chromatograms_offsets(source.chromatograms_offsets),
+    spectra_offsets_(source.spectra_offsets_),
+    chromatograms_offsets_(source.chromatograms_offsets_),
     index_offset_(source.index_offset_),
     spectra_before_chroms_(source.spectra_before_chroms_),
-    filestream(source.filename_.c_str()),
+    filestream_(source.filename_.c_str()),
     parsing_success_(source.parsing_success_)
   {
   }
@@ -79,13 +79,13 @@ namespace OpenMS
 
   void IndexedMzMLFile::openFile(String filename) 
   {
-    if (filestream.is_open())
+    if (filestream_.is_open())
     {
-      filestream.close();
+      filestream_.close();
     }
     filename_ = filename;
-    filestream.open(filename.c_str());
-    parseFooter(filename);
+    filestream_.open(filename.c_str());
+    parseFooter_(filename);
   }
 
   bool IndexedMzMLFile::getParsingSuccess() const
@@ -95,12 +95,12 @@ namespace OpenMS
 
   size_t IndexedMzMLFile::getNrSpectra() const
   {
-    return spectra_offsets.size();
+    return spectra_offsets_.size();
   }
 
   size_t IndexedMzMLFile::getNrChromatograms() const
   {
-    return chromatograms_offsets.size();
+    return chromatograms_offsets_.size();
   }
 
   OpenMS::Interfaces::SpectrumPtr IndexedMzMLFile::getSpectrumById(int id)
@@ -108,19 +108,23 @@ namespace OpenMS
     int spectrumToGet = id;
 
     if (!parsing_success_)
-      throw "Parsing was unsuccessful, cannot read file";
+      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
+          "Parsing was unsuccessful, cannot read file", "");
     if (spectrumToGet < 0)
-      throw "id needs to be positive";
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
+          String( "id needs to be positive, was " + String(id) ));
     if (spectrumToGet >= (int)getNrSpectra())
-      throw "id needs to be smaller than total number of spectra ";
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, String( 
+        "id needs to be smaller than the number of spectra, was " + String(id) 
+        + " maximal allowed is " + String(getNrSpectra()) ));
 
     long startidx = -1;
     long endidx = -1;
 
     if (spectrumToGet == int(getNrSpectra() - 1))
     {
-      startidx = spectra_offsets[spectrumToGet].second;
-      if (chromatograms_offsets.empty() || !spectra_before_chroms_)
+      startidx = spectra_offsets_[spectrumToGet].second;
+      if (chromatograms_offsets_.empty() || !spectra_before_chroms_)
       {
         // just take everything until the index starts
         endidx = index_offset_;
@@ -128,19 +132,19 @@ namespace OpenMS
       else
       {
         // just take everything until the chromatograms start
-        endidx = chromatograms_offsets[0].second;
+        endidx = chromatograms_offsets_[0].second;
       }
     }
     else
     {
-      startidx = spectra_offsets[spectrumToGet].second;
-      endidx = spectra_offsets[spectrumToGet + 1].second;
+      startidx = spectra_offsets_[spectrumToGet].second;
+      endidx = spectra_offsets_[spectrumToGet + 1].second;
     }
 
     int readl = endidx - startidx;
     char* buffer = new char[readl + 1];
-    filestream.seekg(startidx, filestream.beg);
-    filestream.read(buffer, readl);
+    filestream_.seekg(startidx, filestream_.beg);
+    filestream_.read(buffer, readl);
     buffer[readl] = '\0';
     std::string text(buffer);
     delete[] buffer;
@@ -176,8 +180,8 @@ namespace OpenMS
 
     if (chromToGet == int(getNrChromatograms() - 1))
     {
-      startidx = chromatograms_offsets[chromToGet].second;
-      if (spectra_offsets.empty() || spectra_before_chroms_)
+      startidx = chromatograms_offsets_[chromToGet].second;
+      if (spectra_offsets_.empty() || spectra_before_chroms_)
       {
         // just take everything until the index starts
         endidx = index_offset_;
@@ -185,19 +189,19 @@ namespace OpenMS
       else
       {
         // just take everything until the chromatograms start
-        endidx = spectra_offsets[0].second;
+        endidx = spectra_offsets_[0].second;
       }
     }
     else
     {
-      startidx = chromatograms_offsets[chromToGet].second;
-      endidx = chromatograms_offsets[chromToGet + 1].second;
+      startidx = chromatograms_offsets_[chromToGet].second;
+      endidx = chromatograms_offsets_[chromToGet + 1].second;
     }
 
     int readl = endidx - startidx;
     char* buffer = new char[readl + 1];
-    filestream.seekg(startidx, filestream.beg);
-    filestream.read(buffer, readl);
+    filestream_.seekg(startidx, filestream_.beg);
+    filestream_.read(buffer, readl);
     buffer[readl] = '\0';
     std::string text(buffer);
     delete[] buffer;

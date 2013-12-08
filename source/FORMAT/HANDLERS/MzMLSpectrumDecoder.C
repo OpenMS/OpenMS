@@ -76,7 +76,7 @@ namespace OpenMS
     }
   }
 
-  OpenMS::Interfaces::SpectrumPtr MzMLSpectrumDecoder::decodeBinaryData(std::vector<BinaryData>& data_)
+  OpenMS::Interfaces::SpectrumPtr MzMLSpectrumDecoder::decodeBinaryDataSpectrum_(std::vector<BinaryData>& data_)
   {
     Internal::MzMLHandlerHelper::decodeBase64Arrays(data_);
     OpenMS::Interfaces::SpectrumPtr sptr(new OpenMS::Interfaces::Spectrum);
@@ -128,7 +128,7 @@ namespace OpenMS
     return sptr;
   }
 
-  OpenMS::Interfaces::ChromatogramPtr MzMLSpectrumDecoder::decodeBinaryDataChrom(std::vector<BinaryData>& data_)
+  OpenMS::Interfaces::ChromatogramPtr MzMLSpectrumDecoder::decodeBinaryDataChrom_(std::vector<BinaryData>& data_)
   {
     Internal::MzMLHandlerHelper::decodeBase64Arrays(data_);
     OpenMS::Interfaces::ChromatogramPtr sptr(new OpenMS::Interfaces::Chromatogram);
@@ -180,7 +180,7 @@ namespace OpenMS
     return sptr;
   }
 
-  void MzMLSpectrumDecoder::handleBinaryDataArray(xercesc::DOMNode* indexListNode, std::vector<BinaryData>& data_)
+  void MzMLSpectrumDecoder::handleBinaryDataArray_(xercesc::DOMNode* indexListNode, std::vector<BinaryData>& data_)
   {
     // access result through data_.back()
     data_.push_back(BinaryData());
@@ -250,7 +250,7 @@ namespace OpenMS
     }
   }
 
-  void MzMLSpectrumDecoder::domParseString(const std::string& in, std::vector<BinaryData>& data_)
+  void MzMLSpectrumDecoder::domParseString_(const std::string& in, std::vector<BinaryData>& data_)
   {
     // PRECONDITON is below (since we first need to do XML parsing before validating)
     static const XMLCh* default_array_length_tag = xercesc::XMLString::transcode("defaultArrayLength");
@@ -302,7 +302,7 @@ namespace OpenMS
     for (Size i = 0; i < li->getLength(); i++)
     {
       // Will append one single BinaryData object to data_
-      handleBinaryDataArray(li->item(i), data_);
+      handleBinaryDataArray_(li->item(i), data_);
       // Set the size correctly (otherwise MzMLHandlerHelper complains).
       data_.back().size = default_array_length;
     }
@@ -313,15 +313,15 @@ namespace OpenMS
   void MzMLSpectrumDecoder::domParseSpectrum(const std::string& in, OpenMS::Interfaces::SpectrumPtr& sptr)
   {
     std::vector<BinaryData> data_;
-    domParseString(in, data_);
-    sptr = decodeBinaryData(data_);
+    domParseString_(in, data_);
+    sptr = decodeBinaryDataSpectrum_(data_);
   }
 
   void MzMLSpectrumDecoder::domParseChromatogram(const std::string& in, OpenMS::Interfaces::ChromatogramPtr& sptr)
   {
     std::vector<BinaryData> data_;
-    domParseString(in, data_);
-    sptr = decodeBinaryDataChrom(data_);
+    domParseString_(in, data_);
+    sptr = decodeBinaryDataChrom_(data_);
   }
 
 }
