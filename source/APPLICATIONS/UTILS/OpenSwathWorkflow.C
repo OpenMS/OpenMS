@@ -805,6 +805,80 @@ namespace OpenMS
 
   };
 
+  /**
+   * @brief Class to read a file describing the Swath Windows
+   *
+   */
+  class SwathWindowLoader
+  {
+
+  public:
+    
+    /**
+     * @brief Annotate a Swath map using a Swath window file specifying the individual windows
+     *
+     * @note It is assumed that the files in the swath_maps vector are in the
+     * same order as the windows in the provided file (usually from lowest to
+     * highest).
+     *
+     * @param filename The filename of the tab delimited file
+     * @param swath_maps The list of SWATH maps (assumed to be in the same order as in the file)
+     *
+     */
+    static void annotateSwathMapsFromFile(const String filename,
+      std::vector< OpenSwath::SwathMap >& swath_maps)
+    {
+      std::vector<double> swath_prec_lower_, swath_prec_upper_;
+      SwathWindowLoader::readSwathWindows(filename, swath_prec_lower_, swath_prec_upper_);
+      assert(swath_prec_lower_.size() == swath_maps.size());
+      for (Size i = 0; i < swath_maps.size(); i++)
+      {
+        swath_maps[i].lower = swath_prec_lower_[i];
+        swath_maps[i].upper = swath_prec_upper_[i];
+      }
+    }
+
+
+    /**
+     * @brief Reading a tab delimited file specifying the SWATH windows
+     *
+     * The file must of be tab delimited and of the following format:
+     *    window_lower window_upper
+     *    400 425
+     *    425 450
+     *    ...
+     *
+     * Note that the first line is a header and will be skipped.
+     *
+     * @param filename The filename of the tab delimited file
+     * @param swath_prec_lower_ The output vector for the window start
+     * @param swath_prec_upper_ The output vector for the window end
+     *
+     */
+    static void readSwathWindows(const String filename,
+      std::vector<double> & swath_prec_lower_,
+      std::vector<double> & swath_prec_upper_ )
+    {
+      std::ifstream data(filename.c_str());
+      std::string   line;
+      std::string   tmp;
+      std::getline(data, line); //skip header
+      double lower, upper;
+      while (std::getline(data, line))
+      {
+        std::stringstream lineStream(line);
+
+        lineStream >> lower;
+        lineStream >> upper;
+
+        swath_prec_lower_.push_back(lower);
+        swath_prec_upper_.push_back(upper);
+      }
+      assert(swath_prec_lower_.size() == swath_prec_upper_.size());
+    }
+
+  };
+
 }
 
 // OpenMS base classes
@@ -898,7 +972,7 @@ protected:
     registerInputFile_("rt_norm", "<file>", "", "RT normalization file (how to map the RTs of this run to the ones stored in the library). If set, tr_irt may be omitted.", false, true);
     setValidFormats_("rt_norm", StringList::create("trafoXML"));
 
-    registerStringOption_("swath_windows_file", "<file>", "", "Optional, tab separated file containing the SWATH windows: lower_offset upper_offset \\newline 400 425 \\newline ... ", false, true);
+    registerStringOption_("swath_windows_file", "<file>", "", "Optional, tab separated file containing the SWATH windows: lower_offset upper_offset \\newline 400 425 \\newline ... Note that the first line is a header and will be skipped.", false, true);
 
     // one of the following two needs to be set
     registerOutputFile_("out_features", "<file>", "", "output file", false);
@@ -992,40 +1066,6 @@ protected:
     }
   }
 
-  void readSwathWindows(String filename, std::vector<double> & swath_prec_lower_,
-    std::vector<double> & swath_prec_upper_ )
-  {
-    std::ifstream data(filename.c_str());
-    std::string   line;
-    std::string   tmp;
-    std::getline(data, line); //skip header
-    double lower, upper;
-    while (std::getline(data, line))
-    {
-      std::stringstream lineStream(line);
-
-      lineStream >> lower;
-      lineStream >> upper;
-
-      swath_prec_lower_.push_back(lower);
-      swath_prec_upper_.push_back(upper);
-    }
-    assert(swath_prec_lower_.size() == swath_prec_upper_.size());
-  }
-
-  void annotateSwathMapsFromFile(String filename,
-    std::vector< OpenSwath::SwathMap >& swath_maps)
-  {
-    std::vector<double> swath_prec_lower_, swath_prec_upper_;
-    readSwathWindows(filename, swath_prec_lower_, swath_prec_upper_);
-    assert(swath_prec_lower_.size() == swath_maps.size());
-    for (Size i = 0; i < swath_maps.size(); i++)
-    {
-      swath_maps[i].lower = swath_prec_lower_[i];
-      swath_maps[i].upper = swath_prec_upper_[i];
-    }
-  }
-
   void loadSwathFiles(StringList& file_list, bool split_file, String tmp, String readoptions,
     boost::shared_ptr<ExperimentalSettings > & exp_meta,
     std::vector< OpenSwath::SwathMap > & swath_maps)
@@ -1089,7 +1129,7 @@ protected:
     return trafo_rtnorm;
   }
 
-  int computeExpectedChromatograms(const std::vector< OpenSwath::SwathMap > & swath_maps,
+  static int computeExpectedChromatograms(const std::vector< OpenSwath::SwathMap > & swath_maps,
     const OpenSwath::LightTargetedExperiment & transition_exp)
   {
     int expected_chromatograms = 0;
@@ -1174,7 +1214,7 @@ protected:
 
     // Allow the user to specify the SWATH windows
     if (!swath_windows_file.empty())
-      annotateSwathMapsFromFile(swath_windows_file, swath_maps);
+      SwathWindowLoader::annotateSwathMapsFromFile(swath_windows_file, swath_maps);
 
     for (Size i = 0; i < swath_maps.size(); i++)
         LOG_DEBUG << "Found swath map " << i << " with lower " << swath_maps[i].lower << " and upper " << swath_maps[i].upper << std::endl;
