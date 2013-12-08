@@ -147,7 +147,7 @@ public:
     template <typename MapType>
     void mergeSpectraBlockWise(MapType & exp)
     {
-      IntList ms_levels = (IntList) (param_.getValue("block_method:ms_levels"));
+      IntList ms_levels = param_.getValue("block_method:ms_levels");
       Int rt_block_size(param_.getValue("block_method:rt_block_size"));
       DoubleReal rt_max_length = (param_.getValue("block_method:rt_max_length"));
 

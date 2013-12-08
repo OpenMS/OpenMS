@@ -37,6 +37,7 @@
 ///////////////////////////
 
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <sstream>
 
 // we ignore the -Wunused-value warning here, since we do not want the compiler
@@ -177,9 +178,10 @@ END_SECTION
 
 START_SECTION((DataValue(const IntList &)))
 	IntList il;
-	il << 1 <<2 ;
+	il.push_back(1);
+  il.push_back(2);
 	DataValue d(il);
-	TEST_EQUAL((IntList)d,il)
+	TEST_EQUAL(d == il, true)
 END_SECTION
 
 START_SECTION((DataValue(const DoubleList &)))
@@ -199,7 +201,7 @@ START_SECTION((DataValue(const DataValue&)))
 	DataValue p7(std::string("test string"));
 	DataValue p8(StringList::create("test string,string2,last string"));
 	DataValue p9;
-	DataValue p10(IntList::create("1,2,3,4,5"));
+	DataValue p10(ListUtils::create<Int>("1,2,3,4,5"));
 	DataValue p11(DoubleList::create("1.2,2.3,3.4"));
 	DataValue copy_of_p1(p1);
 	DataValue copy_of_p3(p3);
@@ -219,8 +221,8 @@ START_SECTION((DataValue(const DataValue&)))
 	TEST_EQUAL( (std::string) copy_of_p7, "test string")
 	TEST_EQUAL( (StringList) copy_of_p8, StringList::create("test string,string2,last string"))
 	TEST_EQUAL( (copy_of_p9.isEmpty()),true)
-	TEST_EQUAL((IntList)copy_of_p10,IntList::create("1,2,3,4,5"))
-	TEST_EQUAL((DoubleList)copy_of_p11,DoubleList::create("1.2,2.3,3.4"))
+	TEST_EQUAL(copy_of_p10 == ListUtils::create<Int>("1,2,3,4,5"), true)
+	TEST_EQUAL((DoubleList)copy_of_p11 == DoubleList::create("1.2,2.3,3.4"), true)
 END_SECTION
 
 // assignment operator
@@ -234,7 +236,7 @@ START_SECTION((DataValue& operator = (const DataValue&)))
 	DataValue p7(std::string("test string"));
 	DataValue p8(StringList::create("test string,string2,last string"));
 	DataValue p9;
-	DataValue p10(IntList::create("1,2,3,4,5"));
+	DataValue p10(ListUtils::create<Int>("1,2,3,4,5"));
 	DataValue p11(DoubleList::create("1.2,2.3,3.4"));
 	DataValue copy_of_p;
 	copy_of_p = p1;
@@ -254,7 +256,7 @@ START_SECTION((DataValue& operator = (const DataValue&)))
 	copy_of_p = p9;
 	TEST_EQUAL( (copy_of_p.isEmpty()),true)
 	copy_of_p = p10;
-	TEST_EQUAL((IntList)copy_of_p,IntList::create("1,2,3,4,5"))
+	TEST_EQUAL(copy_of_p == ListUtils::create<Int>("1,2,3,4,5"), true)
 	copy_of_p = p11;
 	TEST_EQUAL((DoubleList)copy_of_p,DoubleList::create("1.2,2.3,3.4"))
 END_SECTION
@@ -293,12 +295,11 @@ END_SECTION
 
 START_SECTION((operator IntList() const))
 	IntList il;
-	il << 1<< 2;
+	il.push_back(1);
+  il.push_back(2);
 	DataValue d(il);
 	IntList il_op = d;
-	TEST_EQUAL(il_op,d);
-
-
+	TEST_EQUAL(il_op == il, true)
   TEST_EXCEPTION(Exception::ConversionError, (StringList)DataValue("abc,ab"))
 END_SECTION
 
@@ -471,7 +472,7 @@ START_SECTION((String toString() const))
   TEST_EQUAL(a.toString(), "-23456.78")
   a = DataValue(StringList::create("test string,string2,last string"));
   TEST_EQUAL(a.toString(), "[test string, string2, last string]")
-  a = DataValue(IntList::create("1,2,3,4,5"));
+  a = DataValue(ListUtils::create<Int>("1,2,3,4,5"));
   TEST_EQUAL(a.toString(),"[1, 2, 3, 4, 5]")
   a= DataValue(DoubleList::create("1.2,23.3333"));
   TEST_EQUAL(a.toString(),"[1.2, 23.3333]")
@@ -508,7 +509,7 @@ START_SECTION((QString toQString() const))
   TEST_EQUAL(a.toQString().toStdString(), "-23456.780000")
   a = DataValue(StringList::create("test string,string2,last string"));
   TEST_EQUAL(a.toQString().toStdString(), "[test string, string2, last string]")
-  a =DataValue(IntList::create("1,2,3"));
+  a =DataValue(ListUtils::create<Int>("1,2,3"));
   TEST_EQUAL(a.toQString().toStdString(), "[1, 2, 3]")
   a = DataValue(DoubleList::create("1.22,43.23232"));
   TEST_EQUAL(a.toQString().toStdString(),"[1.22, 43.23232]")
@@ -543,7 +544,7 @@ START_SECTION((DataType valueType() const))
 	DataValue a6(UInt(2));
 	TEST_EQUAL(a6.valueType(), DataValue::INT_VALUE);
 
-	DataValue a7(IntList::create("1,2,3"));
+	DataValue a7(ListUtils::create<Int>("1,2,3"));
 	TEST_EQUAL(a7.valueType(),DataValue::INT_LIST)
 
 	DataValue a8(DoubleList::create("1.2,32.4567"));
@@ -643,13 +644,14 @@ END_SECTION
 
 START_SECTION((DataValue& operator=(const IntList&)))
 {
-  IntList v = IntList::create("2,-3");
+  IntList v = ListUtils::create<Int>("2,-3");
   DataValue a("v");
   a = v;
-  TEST_EQUAL(((IntList)a).size(), 2)
-  ABORT_IF(((IntList)a).size() != 2)
-  TEST_EQUAL(((IntList)a)[0], 2)
-  TEST_EQUAL(((IntList)a)[1], -3)
+  IntList dv = a;
+  TEST_EQUAL(dv.size(), 2)
+  ABORT_IF(dv.size() != 2)
+  TEST_EQUAL(dv[0], 2)
+  TEST_EQUAL(dv[1], -3)
 }
 END_SECTION
 

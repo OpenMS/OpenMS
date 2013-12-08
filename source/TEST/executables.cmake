@@ -37,7 +37,6 @@ set(datastructures_executables_list
 	DoubleList_test
 	GridFeature_test
 	HashGrid_test
-	IntList_test
   ListUtils_test
   LPWrapper_test
 	Map_test
@@ -381,15 +380,15 @@ set(analysis_executables_list
 	InclusionExclusionList_test
   IsobaricChannelExtractor_test
   IsobaricIsotopeCorrector_test
-  IsobaricNormalizer_test  
+  IsobaricNormalizer_test
   IsobaricQuantitationMethod_test
   IsobaricQuantifier_test
   IsobaricQuantifierStatistics_test
 	ItraqChannelExtractor_test
 	ItraqConstants_test
   ItraqFourPlexQuantitationMethod_test
-  ItraqEightPlexQuantitationMethod_test  
-  TMTSixPlexQuantitationMethod_test  
+  ItraqEightPlexQuantitationMethod_test
+  TMTSixPlexQuantitationMethod_test
 	ItraqQuantifier_test
 	LabeledPairFinder_test
 	LocalLinearMap_test

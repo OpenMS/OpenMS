@@ -36,6 +36,7 @@
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/FORMAT/SVOutStream.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <iostream>
 #include <ostream>
 
@@ -110,7 +111,7 @@ protected:
     registerOutputFile_("out", "<file>", "", "Output file; if empty, output is written to the screen", false);
     setValidFormats_("out",StringList::create("txt"));
 
-    registerIntList_("charge", "<numbers>", IntList::create("0"), "List of charge states; required if 'in_seq' is given", false);
+    registerIntList_("charge", "<numbers>", ListUtils::create<Int>("0"), "List of charge states; required if 'in_seq' is given", false);
     registerStringOption_("format", "<choice>", "list", "Output format ('list': human-readable list, 'table': CSV-like table, 'mass_only': mass values only, 'mz_only': m/z values only)\n", false);
     setValidStrings_("format", StringList::create("list,table,mass_only,mz_only"));
     registerFlag_("average_mass", "Compute average (instead of monoisotopic) peptide masses");

@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2013.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Stephan Aiche $
 // $Authors: Marc Sturm, Clemens Groepl, Stephan Aiche $
@@ -40,6 +40,7 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 ///////////////////////////
 
 using namespace OpenMS;
@@ -67,7 +68,7 @@ class TOPPBaseTest
       registerStringOption_("stringoption","<string>","string default","string description",false);
       registerIntOption_("intoption","<int>",4711,"int description",false);
       registerDoubleOption_("doubleoption","<double>",0.4711,"double description",false);
-      registerIntList_("intlist","<intlist>",IntList::create("1,2,3,4"),"intlist description",false);
+      registerIntList_("intlist","<intlist>",ListUtils::create<Int>("1,2,3,4"),"intlist description",false);
       registerDoubleList_("doublelist","<doublelist>",DoubleList::create("0.4711,1.022,4.0"),"doubelist description",false);
       registerStringList_("stringlist","<stringlist>",StringList::create("abc,def,ghi,jkl"),"stringlist description",false);
       registerFlag_("flag","flag description");
@@ -79,7 +80,7 @@ class TOPPBaseTest
       rest.push_back("dude");
       setValidStrings_("stringlist2",rest);
 
-      registerIntList_("intlist2","<int>",IntList::create("3,4,5"),"intlist with restrictions",false);
+      registerIntList_("intlist2","<int>",ListUtils::create<Int>("3,4,5"),"intlist with restrictions",false);
       setMinInt_("intlist2",2);
       setMaxInt_("intlist2",6);
 
@@ -151,13 +152,13 @@ class TOPPBaseTest
     void addDataProcessing(MSExperiment<>& map, DataProcessing::ProcessingAction action)
     {
     	DataProcessing dp = getProcessingInfo_(action);
-    	
+
       addDataProcessing_(map, dp);
-      
+
       //additionally test FeatureMap and ConsensusMap
       FeatureMap<> f_map;
       addDataProcessing_(f_map, dp);
-      
+
       ConsensusMap c_map;
       addDataProcessing_(c_map, dp);
     }
@@ -193,7 +194,7 @@ class TOPPBaseTestNOP
       registerDoubleOption_("doubleoption","<double>", -1.0,"double description", false);
       registerFlag_("flag","flag description");
       registerStringList_("stringlist","<stringlist>",StringList::create(""),"stringlist description");
-      registerIntList_("intlist","<intlist>",IntList::create(""),"intlist description");
+      registerIntList_("intlist","<intlist>",ListUtils::create<Int>(""),"intlist description");
       registerDoubleList_("doublelist","<doublelist>",DoubleList::create(""),"doubelist description");
     }
 
@@ -236,7 +237,7 @@ class TOPPBaseTestNOP
 class TOPPBaseTestParam: public TOPPBase
 {
   public:
-    TOPPBaseTestParam(const Param& param): 
+    TOPPBaseTestParam(const Param& param):
 			TOPPBase("TOPPBaseTestParam", "A test class with parameters derived from Param", false), test_param_(param)
     {
       main(0, 0);
@@ -270,16 +271,16 @@ public:
   TOPPBaseCmdParseTest()
     : TOPPBase("TOPPBaseCmdParseTest", "A test class to test parts of the cmd parser functionality", false)
   {}
-  
+
   virtual void registerOptionsAndFlags_()
   {
   }
-  
+
   ExitCodes run(int argc , const char** argv)
   {
     return main(argc, argv);
   }
-  
+
   virtual ExitCodes main_(int /*argc*/ , const char** /*argv*/)
   {
     return EXECUTION_OK;
@@ -290,19 +291,19 @@ public:
 class TOPPBaseCmdParseSubsectionsTest
 : public TOPPBase
 {
-  
+
 public:
   TOPPBaseCmdParseSubsectionsTest()
   : TOPPBase("TOPPBaseCmdParseSubsectionsTest", "A test class to test parts of the cmd parser functionality", false)
   {}
-  
+
   void registerOptionsAndFlags_()
   {
     registerStringOption_("stringoption","<string>","","string description");
     registerSubsection_("algorithm", "Algorithm parameters section");
     registerSubsection_("other", "Other parameters section");
   }
-  
+
   Param getSubsectionDefaults_(const String & section) const
   {
     Param p;
@@ -318,22 +319,22 @@ public:
     }
     return p;
   }
-  
+
   ExitCodes run(int argc , const char** argv)
   {
     return main(argc, argv);
   }
-  
+
   virtual ExitCodes main_(int /*argc*/ , const char** /*argv*/)
   {
     return EXECUTION_OK;
   }
-  
+
   String getStringOption(String name)
   {
     return getStringOption_(name);
   }
-  
+
   Param getParam()
   {
     return getParam_();
@@ -462,7 +463,7 @@ START_SECTION(([EXTRA]String getStringOption_(const String& name) const))
 	p2.setValue("TOPPBaseTest:1:stringoption","string default","string description");
 	p2.setValue("TOPPBaseTest:1:intoption",4711,"int description");
 	p2.setValue("TOPPBaseTest:1:doubleoption",0.4711,"double description");
-	p2.setValue("TOPPBaseTest:1:intlist",IntList::create("1,2,3,4"),"intlist description");
+	p2.setValue("TOPPBaseTest:1:intlist",ListUtils::create<Int>("1,2,3,4"),"intlist description");
 	p2.setValue("TOPPBaseTest:1:doublelist",DoubleList::create("0.4711,1.022,4.0"),"doubelist description");
 	p2.setValue("TOPPBaseTest:1:stringlist",StringList::create("abc,def,ghi,jkl"),"stringlist description");
 	p2.setValue("TOPPBaseTest:1:flag","false","flag description");
@@ -480,7 +481,7 @@ START_SECTION(([EXTRA]String getStringOption_(const String& name) const))
 	p2.setValidStrings(stringlist2,rest);
 	String intlist2 = "TOPPBaseTest:1:intlist2";
 	String doublelist2 = "TOPPBaseTest:1:doublelist2";
-	p2.setValue(intlist2,IntList::create("3,4,5"),"intlist with restriction");
+	p2.setValue(intlist2,ListUtils::create<Int>("3,4,5"),"intlist with restriction");
 	p2.setMinInt(intlist2,2);
 	p2.setMaxInt(intlist2,6);
 	p2.setValue(doublelist2,DoubleList::create("1.2,2.33"),"doubelist with restrictions");
@@ -521,15 +522,15 @@ END_SECTION
 START_SECTION(([EXTRA] String getIntList_(const String& name) const))
 	//default
 	TOPPBaseTest tmp;
-	TEST_EQUAL(tmp.getIntList("intlist"),IntList::create("1,2,3,4"))
+	TEST_EQUAL(tmp.getIntList("intlist") == ListUtils::create<Int>("1,2,3,4"), true)
 	//command line
 	const char* string_cl[5]={a1, a18, a6 ,a9 ,a16}; //commandline: "TOPPBaseTest -intlist 6 5 4711"
 	TOPPBaseTest tmp2(5, string_cl);
-	TEST_EQUAL(tmp2.getIntList("intlist"),IntList::create("6,5,4711"))
+	TEST_EQUAL(tmp2.getIntList("intlist") == ListUtils::create<Int>("6,5,4711"), true)
 
 	const char* string_cl1[3]={a1, a18, a6}; //commandline: "TOPPBaseTest -intlist 6"
 	TOPPBaseTest tmp3(3, string_cl1);
-	TEST_EQUAL(tmp3.getIntList("intlist"),IntList::create("6"))
+	TEST_EQUAL(tmp3.getIntList("intlist") == ListUtils::create<Int>("6"), true)
 
 	TEST_EXCEPTION(Exception::WrongParameterType,tmp2.getIntList("intoption"));
 	TEST_EXCEPTION(Exception::UnregisteredParameter,tmp2.getIntList("imleeewenit"));
@@ -673,7 +674,7 @@ START_SECTION(([EXTRA] data processing methods))
 
 	TOPPBaseTest topp;
 	topp.addDataProcessing(exp, DataProcessing::ALIGNMENT);
-	
+
 	for (Size i=0; i<exp.size(); ++i)
 	{
 		TEST_EQUAL(exp[i].getDataProcessing().size(),1)
@@ -692,7 +693,7 @@ START_SECTION(([EXTRA] const Param& getParam_()))
 	test_param.setValue("param_double", -4.56, "param double description");
 	test_param.setValue("param_string", "test", "param string description");
 	test_param.setValue("param_stringlist", StringList::create("this,is,a,test"), "param stringlist description");
-	test_param.setValue("param_intlist", IntList::create("7,-8,9"), "param intlist description");
+	test_param.setValue("param_intlist", ListUtils::create<Int>("7,-8,9"), "param intlist description");
 	test_param.setValue("param_doublelist", DoubleList::create("123,-4.56,0.789"), "param doublelist description");
 	test_param.setValue("param_flag", "true", "param flag description");
 	test_param.setValidStrings("param_flag", StringList::create("true,false"));
@@ -753,7 +754,7 @@ START_SECTION(([EXTRA] test subsection parameters))
   TEST_EQUAL(tmp1.getParam().getValue("algorithm:param2"), "param2_value");
   TEST_EQUAL(tmp1.getParam().getValue("other:param3"), "param3_value");
   TEST_EQUAL(tmp1.getParam().getValue("other:param4"), "param4_value");
-  
+
   // overwrite from cmd
   const char* string_cl_2[11] = {a1, a10, a12, a22, a26, a23, a27, a24, a28, a25, a29}; //command line: "TOPPBaseTest -algorithm:param1 val1 -algorithm:param2 val2 -algorithm:param3 val3 -algorithm:param4 val4 -stringoption commandline"
 	TOPPBaseCmdParseSubsectionsTest tmp2;
@@ -764,7 +765,7 @@ START_SECTION(([EXTRA] test subsection parameters))
   TEST_EQUAL(tmp2.getParam().getValue("algorithm:param2"), "val2");
   TEST_EQUAL(tmp2.getParam().getValue("other:param3"), "val3");
   TEST_EQUAL(tmp2.getParam().getValue("other:param4"), "val4");
-    
+
   // overwrite ini values from cmd
   const char* string_cl_3[9] = {a1, a3, a30, a22, a26, a25, a29, a10, a12 }; //command line: "TOPPBaseTest -ini TOPPBaseCmdParseSubsectionsTest.ini -algorithm:param1 val1 -algorithm:param4 val4"
 	TOPPBaseCmdParseSubsectionsTest tmp3;

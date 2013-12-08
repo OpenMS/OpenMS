@@ -32,7 +32,9 @@
 // $Authors: Chris Bielow, Andreas Bertsch $
 // --------------------------------------------------------------------------
 //
+
 #include <OpenMS/FILTERING/TRANSFORMERS/SpectraMerger.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 using namespace std;
 namespace OpenMS
@@ -52,7 +54,7 @@ namespace OpenMS
     defaults_.setValidStrings("sort_blocks", StringList::create("RT_ascending, RT_descending"));
 
     // block merging
-    defaults_.setValue("block_method:ms_levels", IntList::create("1"), "Merge spectra of this level. All spectra with other MS levels remain untouched.");
+    defaults_.setValue("block_method:ms_levels", ListUtils::create<Int>("1"), "Merge spectra of this level. All spectra with other MS levels remain untouched.");
     defaults_.setMinInt("block_method:ms_levels", 1);
     defaults_.setValue("block_method:rt_block_size", 5, "Maximum number of scans to be summed up.");
     defaults_.setMinInt("block_method:rt_block_size", 1);

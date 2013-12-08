@@ -171,7 +171,7 @@ namespace OpenMS
     else if (value.valueType() == DataValue::INT_LIST)
     {
       Int int_value;
-      IntList ls_value = (IntList) value;
+      IntList ls_value = value;
       for (Size i = 0; i < ls_value.size(); ++i)
       {
         int_value = ls_value[i];

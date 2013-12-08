@@ -1,3 +1,4 @@
+
 // --------------------------------------------------------------------------
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
@@ -37,10 +38,7 @@
 
 //OpenMS
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
-#include <OpenMS/KERNEL/MSSpectrum.h>
-#include <OpenMS/VISUAL/Spectrum1DWidget.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 //QT
 #include <QtGui/QMainWindow>
@@ -63,10 +61,13 @@ class QNetworkReply;
 
 namespace OpenMS
 {
+  // openms forwad declarations
   class TOPPASWidget;
   class TOPPASScene;
   class TOPPASTabBar;
   class TOPPASResources;
+
+  class Spectrum1DWidget;
 
   /**
     @brief Main window of the IDEvaluation tool
@@ -105,7 +106,7 @@ public slots:
     /// compute q-values from ids and store as vector of points for plotting
     /// returns false on error, the return vector 'points' will also be empty in this case
     bool getPoints(std::vector<PeptideIdentification> & peptides /* cannot be const, to avoid copy */, const std::vector<DoubleReal> & q_value_thresholds, MSSpectrum<> & points);
-    
+
     /// calls 'getPoints()' after loading the idXML file and returns the result
     bool loadCurve(const String& file_name, MSSpectrum<>& points);
     /// opens the file in a new window
@@ -136,7 +137,7 @@ public slots:
     /// updates the toolbar
     //void updateToolBar();
 
-    /// load Target/Decoy annotated files, return FALSE if any of these files did 
+    /// load Target/Decoy annotated files, return FALSE if any of these files did
     /// not contain target/decoy information or any other error which prevents FDR calculation
     bool loadFiles(const StringList & list);
 

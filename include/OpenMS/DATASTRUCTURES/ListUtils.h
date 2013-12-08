@@ -37,9 +37,13 @@
 
 #include <vector>
 #include <algorithm>
+#include <ostream>
+#include <iterator>
 
 #include <OpenMS/DATASTRUCTURES/String.h>
+
 #include <boost/lexical_cast.hpp>
+#include <boost/algorithm/string/trim.hpp>
 
 namespace OpenMS
 {
@@ -105,13 +109,21 @@ public:
       @return A vector containing the elements of input vector converted into type T.
     */
     template<typename T>
-    static std::vector<T> create(const std::vector<String> & s)
+    static std::vector<T> create(const std::vector<String>& s)
     {
       std::vector<T> c;
       c.reserve(s.size());
       for (std::vector<String>::const_iterator it = s.begin(); it != s.end(); ++it)
       {
-        c.push_back(boost::lexical_cast<T>(*it));
+        try
+        {
+          c.push_back(boost::lexical_cast<T>(boost::trim_copy(*it)));
+        }
+        catch (boost::bad_lexical_cast&)
+        {
+          throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Could not convert string '") + *it + "'");
+        }
+
       }
             
       return c;      
@@ -125,8 +137,8 @@ public:
      
       @return True if @p elem is contained in @p container, false otherwise.
     */
-    template<typename ContainerType, typename T>
-    static bool contains(const std::vector<ContainerType>& container, const T& elem )
+    template<typename T, typename E>
+    static bool contains(const std::vector<T>& container, const E& elem )
     {
       return find(container.begin(), container.end(), elem) != container.end();
     }
@@ -151,13 +163,13 @@ public:
       @param container The container to concatenate.
       @param glue The string to add in between elements.
     */
-    template<typename ContainerType>
-    static String concatenate(const std::vector<ContainerType>& container, const String & glue = "")
+    template<typename T>
+    static String concatenate(const std::vector<T>& container, const String& glue = "")
     {
       // handle empty containers
       if (container.empty()) return "";
       
-      typename std::vector<ContainerType>::const_iterator it = container.begin();
+      typename std::vector<T>::const_iterator it = container.begin();
       String ret = String(*it);
       // we have handled the first element
       ++it;
@@ -169,7 +181,29 @@ public:
       
       return ret;
     }
+    
   };
+  
+  /**
+    @brief Output stream operator for std::vectors.
+
+    @param os The target stream.
+    @param v The vector to write to stream.
+  */
+  template <typename T>
+  inline std::ostream& operator<<(std::ostream & os, const std::vector<T>& v)
+  {
+    os << "[";
+    
+    if (!v.empty())
+    {
+      std::copy(v.begin(), v.end()-1, std::ostream_iterator<int>(os, ", "));
+      os << v.back();
+    }
+    
+    os << "]";
+    return os;
+  }
   
 } // namespace OpenMS
 

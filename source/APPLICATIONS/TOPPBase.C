@@ -1512,7 +1512,7 @@ namespace OpenMS
     {
       throw RequiredParameterNotGiven(__FILE__, __LINE__, __PRETTY_FUNCTION__, name);
     }
-    IntList tmp_list = getParamAsIntList_(name, (IntList)p.default_value);
+    IntList tmp_list = getParamAsIntList_(name, p.default_value);
     if (p.required && tmp_list.size() == 0)
     {
       throw RequiredParameterNotGiven(__FILE__, __LINE__, __PRETTY_FUNCTION__, name);
@@ -1525,7 +1525,7 @@ namespace OpenMS
       writeDebug_(String("Value of string option '") + name + "': " + String(tmp), 1);
 
       //check if in valid range
-      if (p.required || (!getParam_(name).isEmpty() && tmp_list != (IntList)p.default_value))
+      if (p.required || (!getParam_(name).isEmpty() && tmp_list != p.default_value))
       {
         if (tmp < p.min_int || tmp > p.max_int)
         {
@@ -1646,7 +1646,7 @@ namespace OpenMS
     {
       if (tmp.valueType() == DataValue::INT_LIST)
       {
-        return (IntList)tmp;
+        return tmp;
       }
       throw WrongParameterType(__FILE__, __LINE__, __PRETTY_FUNCTION__, key);
     }
@@ -2047,7 +2047,7 @@ namespace OpenMS
         break;
 
       case ParameterInformation::INTLIST:
-        tmp.setValue(name, (IntList)it->default_value, it->description, tags);
+        tmp.setValue(name, it->default_value, it->description, tags);
         if (it->min_int != -std::numeric_limits<Int>::max())
         {
           tmp.setMinInt(name, it->min_int);
@@ -2542,7 +2542,7 @@ namespace OpenMS
               IntList arg_list;
               for (list<String>::iterator it = queue.begin(); it != queue.end(); ++it)
               {
-                arg_list << it->toInt();
+                arg_list.push_back(it->toInt());
               }
               value = arg_list;
               queue.clear();

@@ -36,10 +36,17 @@
 #include <stdlib.h>
 
 #include <OpenMS/VISUAL/APPLICATIONS/IDEvaluationBase.h>
+
 #include <OpenMS/CONCEPT/VersionInfo.h>
+
 #include <OpenMS/SYSTEM/File.h>
+
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
+
+#include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
+
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+
 #include <OpenMS/VISUAL/TOPPASScene.h>
 #include <OpenMS/VISUAL/TOPPASWidget.h>
 #include <OpenMS/VISUAL/TOPPASToolVertex.h>
@@ -48,9 +55,12 @@
 #include <OpenMS/VISUAL/TOPPASMergerVertex.h>
 #include <OpenMS/VISUAL/TOPPASTabBar.h>
 #include <OpenMS/VISUAL/TOPPASResources.h>
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/VISUAL/Spectrum1DWidget.h>
 #include <OpenMS/VISUAL/AxisWidget.h>
+
+#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
+
 
 //Qt
 #include <QtGui/QToolBar>

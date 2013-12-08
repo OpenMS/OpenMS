@@ -34,6 +34,7 @@
 
 #include <OpenMS/VISUAL/ParamEditor.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/VISUAL/ListEditor.h>
 #include <OpenMS/SYSTEM/File.h>
 
@@ -926,7 +927,7 @@ namespace OpenMS
       }
       else if (child->text(2) == "int list")
       {
-        param_->setValue(path, IntList::create(rlist), description, tag_list);
+        param_->setValue(path, ListUtils::create<Int>(rlist), description, tag_list);
         String restrictions = child->data(2, Qt::UserRole).toString();
         vector<String> parts;
         if (restrictions.split(' ', parts))

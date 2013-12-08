@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2013.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Stephan Aiche $
 // $Authors: Stephan Aiche $
@@ -38,6 +38,7 @@
 
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 ///////////////////////////
 
@@ -60,7 +61,7 @@ END_SECTION
 START_SECTION((void load(const String& filename, Param& param)))
 	Param p2;
   ParamXMLFile paramFile;
-	TEST_EXCEPTION(Exception::FileNotFound, paramFile.load("FileDoesNotExist.xml",p2))	
+	TEST_EXCEPTION(Exception::FileNotFound, paramFile.load("FileDoesNotExist.xml",p2))
 END_SECTION
 
 Param p;
@@ -83,11 +84,11 @@ START_SECTION((void store(const String& filename, const Param& param) const))
 	p2.setValue("test2:a:a1", 47.1);
 	p2.setValue("test2:b:b1", 47.1,"",StringList::create("advanced"));
 	p2.setSectionDescription("test2:a","adesc");
-	
+
 	//exception
 	Param p300;
-	TEST_EXCEPTION(Exception::UnableToCreateFile, paramFile.store("/does/not/exist/FileDoesNotExist.xml",p300))	
-	
+	TEST_EXCEPTION(Exception::UnableToCreateFile, paramFile.store("/does/not/exist/FileDoesNotExist.xml",p300))
+
 	String filename;
 	NEW_TMP_FILE(filename);
 	paramFile.store(filename,p2);
@@ -98,8 +99,8 @@ START_SECTION((void store(const String& filename, const Param& param) const))
 	TEST_EQUAL(p2.getValue("test:int"), p3.getValue("test:int"))
 	TEST_REAL_SIMILAR(float(p2.getValue("test2:float")), float(p3.getValue("test2:float")))
 	TEST_EQUAL(p2.getValue("test2:string"), p3.getValue("test2:string"))
-	TEST_EQUAL(p2.getValue("test2:int"), p3.getValue("test2:int"))	
-	
+	TEST_EQUAL(p2.getValue("test2:int"), p3.getValue("test2:int"))
+
 	TEST_STRING_EQUAL(p2.getDescription("test:float"), p3.getDescription("test:float"))
 	TEST_STRING_EQUAL(p2.getDescription("test:string"), p3.getDescription("test:string"))
 	TEST_STRING_EQUAL(p2.getDescription("test:int"), p3.getDescription("test:int"))
@@ -110,18 +111,18 @@ START_SECTION((void store(const String& filename, const Param& param) const))
 	TEST_EQUAL(p3.hasTag("test2:b:b1","advanced"),true)
 	TEST_EQUAL(p3.hasTag("test2:a:a1","advanced"),false)
 	TEST_EQUAL(ParamXMLFile().isValid(filename),true)
-	
+
 	//advanced
 	NEW_TMP_FILE(filename);
 	Param p7;
 	p7.setValue("true",5,"",StringList::create("advanced"));
 	p7.setValue("false",5,"");
-	
+
 	paramFile.store(filename,p7);
 	TEST_EQUAL(ParamXMLFile().isValid(filename),true)
 	Param p8;
 	paramFile.load(filename,p8);
-	
+
 	TEST_EQUAL(p8.getEntry("true").tags.count("advanced")==1, true)
 	TEST_EQUAL(p8.getEntry("false").tags.count("advanced")==1, false)
 
@@ -136,7 +137,7 @@ START_SECTION((void store(const String& filename, const Param& param) const))
 	p5.setValue("int_min_max",5);
 	p5.setMinInt("int_min_max",0);
 	p5.setMaxInt("int_min_max",10);
-	
+
 	p5.setValue("float",5.1);
 	p5.setValue("float_min",5.1);
 	p5.setMinFloat("float_min",4.1);
@@ -152,7 +153,7 @@ START_SECTION((void store(const String& filename, const Param& param) const))
 	strings.push_back("bluff");
 	p5.setValue("string_2","bla");
 	p5.setValidStrings("string_2",strings);
-	
+
 		//list restrictions
 	vector<String> strings2;
 	strings2.push_back("xml");
@@ -160,33 +161,33 @@ START_SECTION((void store(const String& filename, const Param& param) const))
 	p5.setValue("stringlist2",StringList::create("a.txt,b.xml,c.pdf"));
 	p5.setValue("stringlist",StringList::create("aa.C,bb.h,c.doxygen"));
 	p5.setValidStrings("stringlist2",strings2);
-	
-	p5.setValue("intlist",IntList::create("2,5,10"));
-	p5.setValue("intlist2",IntList::create("2,5,10"));
-	p5.setValue("intlist3",IntList::create("2,5,10"));
-	p5.setValue("intlist4",IntList::create("2,5,10"));
+
+	p5.setValue("intlist",ListUtils::create<Int>("2,5,10"));
+	p5.setValue("intlist2",ListUtils::create<Int>("2,5,10"));
+	p5.setValue("intlist3",ListUtils::create<Int>("2,5,10"));
+	p5.setValue("intlist4",ListUtils::create<Int>("2,5,10"));
 	p5.setMinInt("intlist2",1);
 	p5.setMaxInt("intlist3",11);
 	p5.setMinInt("intlist4",0);
 	p5.setMaxInt("intlist4",15);
-	
+
 	p5.setValue("doublelist",DoubleList::create("1.2,3.33,4.44"));
 	p5.setValue("doublelist2",DoubleList::create("1.2,3.33,4.44"));
 	p5.setValue("doublelist3",DoubleList::create("1.2,3.33,4.44"));
-	p5.setValue("doublelist4",DoubleList::create("1.2,3.33,4.44"));			
-	
+	p5.setValue("doublelist4",DoubleList::create("1.2,3.33,4.44"));
+
 	p5.setMinFloat("doublelist2",1.1);
 	p5.setMaxFloat("doublelist3",4.45);
 	p5.setMinFloat("doublelist4",0.1);
 	p5.setMaxFloat("doublelist4",5.8);
-	
-	
+
+
 	paramFile.store(filename,p5);
 	TEST_EQUAL(paramFile.isValid(filename),true)
 	Param p6;
 	paramFile.load(filename,p6);
-	
-	
+
+
 	TEST_EQUAL(p6.getEntry("int").min_int, -numeric_limits<Int>::max())
 	TEST_EQUAL(p6.getEntry("int").max_int, numeric_limits<Int>::max())
 	TEST_EQUAL(p6.getEntry("int_min").min_int, 4)
@@ -211,12 +212,12 @@ START_SECTION((void store(const String& filename, const Param& param) const))
 	TEST_EQUAL(p6.getEntry("string_2").valid_strings[1],"bluff")
 
 
-	
+
 	TEST_EQUAL(p6.getEntry("stringlist").valid_strings.size(),0)
 	TEST_EQUAL(p6.getEntry("stringlist2").valid_strings.size(),2)
 	TEST_EQUAL(p6.getEntry("stringlist2").valid_strings[0],"xml")
 	TEST_EQUAL(p6.getEntry("stringlist2").valid_strings[1],"txt")
-	
+
 	TEST_EQUAL(p6.getEntry("intlist").min_int, -numeric_limits<Int>::max())
 	TEST_EQUAL(p6.getEntry("intlist").max_int, numeric_limits<Int>::max())
 	TEST_EQUAL(p6.getEntry("intlist2").min_int, 1)
@@ -225,7 +226,7 @@ START_SECTION((void store(const String& filename, const Param& param) const))
 	TEST_EQUAL(p6.getEntry("intlist3").max_int, 11)
 	TEST_EQUAL(p6.getEntry("intlist4").min_int, 0)
 	TEST_EQUAL(p6.getEntry("intlist4").max_int, 15)
-	
+
 	TEST_REAL_SIMILAR(p6.getEntry("doublelist").min_float, -numeric_limits<DoubleReal>::max())
 	TEST_REAL_SIMILAR(p6.getEntry("doublelist").max_float, numeric_limits<DoubleReal>::max())
 	TEST_REAL_SIMILAR(p6.getEntry("doublelist2").min_float, 1.1)
@@ -242,15 +243,15 @@ START_SECTION((void store(const String& filename, const Param& param) const))
 END_SECTION
 
 START_SECTION((void writeXMLToStream(std::ostream *os_ptr, const Param &param) const ))
-{  
+{
 	Param p;
 	p.setValue("stringlist", StringList::create("a,bb,ccc"), "StringList Description");
-	p.setValue("intlist", IntList::create("1,22,333"));
+	p.setValue("intlist", ListUtils::create<Int>("1,22,333"));
 	p.setValue("item", String("bla"));
 	p.setValue("stringlist2", StringList::create(""));
-	p.setValue("intlist2", IntList::create(""));
+	p.setValue("intlist2", ListUtils::create<Int>(""));
 	p.setValue("item1", 7);
-	p.setValue("intlist3", IntList::create("1"));	
+	p.setValue("intlist3", ListUtils::create<Int>("1"));
 	p.setValue("stringlist3", StringList::create("1"));
 	p.setValue("item3", 7.6);
 	p.setValue("doublelist",DoubleList::create("1.22,2.33,4.55"));
@@ -259,7 +260,7 @@ START_SECTION((void writeXMLToStream(std::ostream *os_ptr, const Param &param) c
   p.addTag("file_parameter", "input file");
   p.setValidStrings("file_parameter", StringList::create("*.mzML,*.mzXML"));
   p.setValue("advanced_parameter", "", "This is an advanced parameter.", StringList::create("advanced"));
-  
+
   String filename;
   NEW_TMP_FILE(filename)
   std::ofstream s(filename.c_str(), std::ios::out);
@@ -267,19 +268,19 @@ START_SECTION((void writeXMLToStream(std::ostream *os_ptr, const Param &param) c
   paramFile.writeXMLToStream(&s,p);
   TEST_FILE_EQUAL(filename.c_str(), OPENMS_GET_TEST_DATA_PATH("ParamXMLFile_test_writeXMLToStream.xml"))
 }
-END_SECTION  
-  
+END_SECTION
+
 START_SECTION([EXTRA] loading and storing of lists)
   ParamXMLFile paramFile;
-  
+
 	Param p;
 	p.setValue("stringlist", StringList::create("a,bb,ccc"));
-	p.setValue("intlist", IntList::create("1,22,333"));
+	p.setValue("intlist", ListUtils::create<Int>("1,22,333"));
 	p.setValue("item", String("bla"));
 	p.setValue("stringlist2", StringList::create(""));
-	p.setValue("intlist2", IntList::create(""));
+	p.setValue("intlist2", ListUtils::create<Int>(""));
 	p.setValue("item1", 7);
-	p.setValue("intlist3", IntList::create("1"));	
+	p.setValue("intlist3", ListUtils::create<Int>("1"));
 	p.setValue("stringlist3", StringList::create("1"));
 	p.setValue("item3", 7.6);
 	p.setValue("doublelist",DoubleList::create("1.22,2.33,4.55"));
@@ -292,64 +293,64 @@ START_SECTION([EXTRA] loading and storing of lists)
 	//load
 	Param p2;
 	paramFile.load(filename,p2);
-	
+
 	TEST_EQUAL(p2.size(),12);
-	
+
 	TEST_EQUAL(p2.getValue("stringlist").valueType(), DataValue::STRING_LIST)
 	StringList list = p2.getValue("stringlist");
 	TEST_EQUAL(list.size(),3)
 	TEST_EQUAL(list[0],"a")
 	TEST_EQUAL(list[1],"bb")
 	TEST_EQUAL(list[2],"ccc")
-	
+
 	TEST_EQUAL(p2.getValue("stringlist2").valueType(), DataValue::STRING_LIST)
 	list = p2.getValue("stringlist2");
 	TEST_EQUAL(list.size(),0)
-	
+
 	TEST_EQUAL(p2.getValue("stringlist").valueType(), DataValue::STRING_LIST)
 	list = p2.getValue("stringlist3");
 	TEST_EQUAL(list.size(),1)
 	TEST_EQUAL(list[0],"1")
-	
+
 	TEST_EQUAL(p2.getValue("intlist").valueType(), DataValue::INT_LIST)
 	IntList intlist = p2.getValue("intlist");
 	TEST_EQUAL(intlist.size(),3);
 	TEST_EQUAL(intlist[0], 1)
 	TEST_EQUAL(intlist[1], 22)
 	TEST_EQUAL(intlist[2], 333)
-	
+
 	TEST_EQUAL(p2.getValue("intlist2").valueType(),DataValue::INT_LIST)
 	intlist = p2.getValue("intlist2");
 	TEST_EQUAL(intlist.size(),0)
-	
+
 	TEST_EQUAL(p2.getValue("intlist3").valueType(),DataValue::INT_LIST)
 	intlist = p2.getValue("intlist3");
 	TEST_EQUAL(intlist.size(),1)
 	TEST_EQUAL(intlist[0],1)
-	
+
 	TEST_EQUAL(p2.getValue("doublelist").valueType(), DataValue::DOUBLE_LIST)
 	DoubleList doublelist = p2.getValue("doublelist");
 	TEST_EQUAL(doublelist.size(),3);
 	TEST_EQUAL(doublelist[0], 1.22)
 	TEST_EQUAL(doublelist[1], 2.33)
 	TEST_EQUAL(doublelist[2], 4.55)
-	
+
 	TEST_EQUAL(p2.getValue("doublelist2").valueType(),DataValue::DOUBLE_LIST)
 	doublelist = p2.getValue("doublelist2");
 	TEST_EQUAL(doublelist.size(),0)
-	
+
 	TEST_EQUAL(p2.getValue("doublelist3").valueType(),DataValue::DOUBLE_LIST)
 	doublelist = p2.getValue("doublelist3");
 	TEST_EQUAL(doublelist.size(),1)
 	TEST_EQUAL(doublelist[0],1.4)
-	
+
 END_SECTION
 
 
 START_SECTION(([EXTRA] Escaping of characters))
 	Param p;
   ParamXMLFile paramFile;
-  
+
 	p.setValue("string",String("bla"),"string");
 	p.setValue("string_with_ampersand", String("bla2&blubb"), "string with ampersand");
 	p.setValue("string_with_ampersand_in_descr", String("blaxx"), "String with & in description");
@@ -389,13 +390,13 @@ START_SECTION([EXTRA] loading pre 1.6.2 files and storing them in 1.6.2 format)
 	Param p;
   ParamXMLFile paramFile;
   paramFile.load(OPENMS_GET_TEST_DATA_PATH("Param_pre16_update.ini"), p);
-  
+
   // test some of the former tags if they were loaded correctly
   TEST_EQUAL(p.getValue("SpectraFilterMarkerMower:version"), "1.11.0")
   TEST_EQUAL(p.hasTag("SpectraFilterMarkerMower:1:in", "input file"), true)
   TEST_EQUAL(p.hasTag("SpectraFilterMarkerMower:1:in", "required"), true)
   TEST_EQUAL(p.hasTag("SpectraFilterMarkerMower:1:in", "advanced"), false)
-  
+
   TEST_EQUAL(p.hasTag("SpectraFilterMarkerMower:1:out", "output file"), true)
   TEST_EQUAL(p.hasTag("SpectraFilterMarkerMower:1:in", "required"), true)
   TEST_EQUAL(p.hasTag("SpectraFilterMarkerMower:1:in", "advanced"), false)
@@ -405,12 +406,12 @@ START_SECTION([EXTRA] loading pre 1.6.2 files and storing them in 1.6.2 format)
 
   TEST_EQUAL(p.hasTag("SpectraFilterMarkerMower:1:no_progress", "advanced"), true)
   TEST_EQUAL(p.hasTag("SpectraFilterMarkerMower:1:no_progress", "required"), false)
-      
+
   // write as 1.6.2 ini and check if the output is as expected
 	String filename;
 	NEW_TMP_FILE(filename)
 	paramFile.store(filename,p);
-  
+
   TEST_FILE_EQUAL(filename.c_str(), OPENMS_GET_TEST_DATA_PATH("Param_post16_update.ini"))
 }
 END_SECTION
@@ -426,7 +427,7 @@ START_SECTION([EXTRA] loading 1.6.2 files)
   TEST_EQUAL(p.hasTag("SpectraFilterMarkerMower:1:in", "input file"), true)
   TEST_EQUAL(p.hasTag("SpectraFilterMarkerMower:1:in", "required"), true)
   TEST_EQUAL(p.hasTag("SpectraFilterMarkerMower:1:in", "advanced"), false)
-  
+
   TEST_EQUAL(p.hasTag("SpectraFilterMarkerMower:1:out", "output file"), true)
   TEST_EQUAL(p.hasTag("SpectraFilterMarkerMower:1:in", "required"), true)
   TEST_EQUAL(p.hasTag("SpectraFilterMarkerMower:1:in", "advanced"), false)
@@ -438,7 +439,7 @@ START_SECTION([EXTRA] loading 1.6.2 files)
   TEST_EQUAL(p.hasTag("SpectraFilterMarkerMower:1:no_progress", "required"), false)
 }
 END_SECTION
-  
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2013.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Stephan Aiche $
 // $Authors: Marc Sturm, Clemens Groepl $
@@ -39,6 +39,7 @@
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h> // for "ParameterInformation"
 ///////////////////////////
 
@@ -72,7 +73,7 @@ START_SECTION(([Param::ParamEntry] ParamEntry(const String &n, const DataValue &
 	TEST_EQUAL(pe.description,"d")
 	TEST_EQUAL(pe.value,"v")
 	TEST_EQUAL(pe.tags.count("advanced")==1,true)
-	
+
 	 pe = Param::ParamEntry("n1","v1","d1");
 	TEST_EQUAL(pe.name,"n1")
 	TEST_EQUAL(pe.description,"d1")
@@ -119,33 +120,33 @@ START_SECTION(([Param::ParamEntry] bool isValid(String& message) const))
 	TEST_EQUAL(p.getEntry("string").isValid(m),true);
 	p.setValidStrings("string",strings);
 	TEST_EQUAL(p.getEntry("string").isValid(m),false);
-	
+
 	p.setValue("string_2","bla");
 	TEST_EQUAL(p.getEntry("string_2").isValid(m),true);
 	p.setValidStrings("string_2",strings);
 	TEST_EQUAL(p.getEntry("string_2").isValid(m),true);
-	
+
 END_SECTION
 
 START_SECTION(([Param::ParamEntry] bool operator==(const ParamEntry& rhs) const))
 	Param::ParamEntry n1("n","d","v",StringList::create("advanced"));
 	Param::ParamEntry n2("n","d","v",StringList::create("advanced"));
-	
+
 	TEST_EQUAL(n1==n2,true)
-	
+
 	n2.name = "name";
 	TEST_EQUAL(n1==n2,false)
 	n2 = n1;
 
 	n2.value = "bla";
 	TEST_EQUAL(n1==n2,false)
-	n2 = n1;	
+	n2 = n1;
 
 	n2.description = "bla";
 	TEST_EQUAL(n1==n2,true)
 
 	n2.tags.clear();
-	TEST_EQUAL(n1==n2,true)	
+	TEST_EQUAL(n1==n2,true)
 END_SECTION
 
 ////////////////// Param::ParamNode ////////////////////////////////
@@ -166,7 +167,7 @@ START_SECTION(([Param::ParamNode] ParamNode(const String& n, const String& d)))
 	Param::ParamNode n("n","d");
 	TEST_EQUAL(n.name,"n")
 	TEST_EQUAL(n.description,"d")
-	
+
 	n = Param::ParamNode("n1","d1");
 	TEST_EQUAL(n.name,"n1")
 	TEST_EQUAL(n.description,"d1")
@@ -177,7 +178,7 @@ START_SECTION(([Param::ParamNode] bool operator==(const ParamNode& rhs) const))
 	Param::ParamNode n2("n","d");
 
 	TEST_EQUAL(n1==n2,true)
-	
+
 	n2.name = "name";
 	TEST_EQUAL(n1==n2,false)
 	n2 = n1;
@@ -185,7 +186,7 @@ START_SECTION(([Param::ParamNode] bool operator==(const ParamNode& rhs) const))
 	n2.description = "bla";
 	TEST_EQUAL(n1==n2,true)
 	n2 = n1;
-	
+
 	n2.nodes.resize(5);
 	TEST_EQUAL(n1==n2,false)
 	n2 = n1;
@@ -193,18 +194,18 @@ START_SECTION(([Param::ParamNode] bool operator==(const ParamNode& rhs) const))
 	n2.entries.resize(5);
 	TEST_EQUAL(n1==n2,false)
 	n2 = n1;
-	
+
 	n2.entries.push_back(Param::ParamEntry("a","x",""));
 	n2.entries.push_back(Param::ParamEntry("b","y",""));
 	n1.entries.push_back(Param::ParamEntry("b","y",""));
 	n1.entries.push_back(Param::ParamEntry("a","x",""));
 	TEST_EQUAL(n1==n2,true)
-	
+
 	n2.nodes.push_back(Param::ParamNode("a","x"));
 	n2.nodes.push_back(Param::ParamNode("b","y"));
 	n1.nodes.push_back(Param::ParamNode("b","y"));
 	n1.nodes.push_back(Param::ParamNode("a","x"));
-	TEST_EQUAL(n1==n2,true)	
+	TEST_EQUAL(n1==n2,true)
 END_SECTION
 
 START_SECTION(([Param::ParamNode] String suffix(const String &key) const ))
@@ -317,7 +318,7 @@ START_SECTION(([Param::ParamNode] void insert(const ParamNode& node, const Strin
 
 	pn.insert(node,"FD:ZD:D");
   TEST_NOT_EQUAL(pn.findEntryRecursive("FD:ZD:D:H"),pe_nullPointer)
-	
+
 	node.name = "W";
 	pn.insert(node);
   TEST_NOT_EQUAL(pn.findEntryRecursive("W:H"),pe_nullPointer)
@@ -331,7 +332,7 @@ START_SECTION(([Param::ParamNode] void insert(const ParamEntry& entry, const Str
 
 	pn.insert(entry);
   TEST_NOT_EQUAL(pn.findEntryRecursive("H"),pe_nullPointer)
-		
+
 	pn.insert(entry,"F");
   TEST_NOT_EQUAL(pn.findEntryRecursive("FH"),pe_nullPointer)
 
@@ -379,7 +380,7 @@ START_SECTION(([Param::ParamIterator] const Param::ParamEntry* operator->()))
 	node.entries.push_back(Param::ParamEntry("name","value","description",StringList::create("advanced")));
 	Param::ParamIterator it(node);
 	TEST_EQUAL(it->name,"name");
-	TEST_EQUAL(it->value,"value");	
+	TEST_EQUAL(it->value,"value");
 	TEST_EQUAL(it->description,"description");
 	TEST_EQUAL(it->tags.count("advanced")==1,true);
 END_SECTION
@@ -418,16 +419,16 @@ START_SECTION(([Param::ParamIterator] ParamIterator& operator++()))
 	Param::ParamIterator it(node);
 	++it;
 	TEST_EQUAL(it->name,"name2");
-	TEST_EQUAL(it->value,"value2");	
+	TEST_EQUAL(it->value,"value2");
 	TEST_EQUAL(it->description,"description2");
 	TEST_EQUAL(it->tags.count("advanced")==1,false);
 
 	++it;
 	TEST_EQUAL(it->name,"name3");
-	TEST_EQUAL(it->value,"value3");	
+	TEST_EQUAL(it->value,"value3");
 	TEST_EQUAL(it->description,"description3");
 	TEST_EQUAL(it->tags.count("advanced")==1,true);
-	
+
 	++it;
 
 	//subtree
@@ -437,62 +438,62 @@ START_SECTION(([Param::ParamIterator] ParamIterator& operator++()))
 	node.nodes[0].entries[0].name = "name4";
 	node.nodes[0].entries[1].name = "name5";
 	node.nodes[0].entries[2].name = "name6";
-	
+
 	it = Param::ParamIterator(node);
 	TEST_EQUAL(it->name,"name");
-	TEST_EQUAL(it->value,"value");	
+	TEST_EQUAL(it->value,"value");
 	TEST_EQUAL(it->description,"description");
 	TEST_EQUAL(it->tags.count("advanced")==1,true);
-	
+
 	++it;
 	TEST_EQUAL(it->name,"name2");
-	TEST_EQUAL(it->value,"value2");	
+	TEST_EQUAL(it->value,"value2");
 	TEST_EQUAL(it->description,"description2");
 	TEST_EQUAL(it->tags.count("advanced")==1,false);
 
 	++it;
 	TEST_EQUAL(it->name,"name3");
-	TEST_EQUAL(it->value,"value3");	
+	TEST_EQUAL(it->value,"value3");
 	TEST_EQUAL(it->description,"description3");
 	TEST_EQUAL(it->tags.count("advanced")==1,true);
-	
+
 	++it;
 	TEST_EQUAL(it->name,"name4");
-	TEST_EQUAL(it->value,"value");	
+	TEST_EQUAL(it->value,"value");
 	TEST_EQUAL(it->description,"description");
 	TEST_EQUAL(it->tags.count("advanced")==1,true);
-	
+
 	++it;
 	TEST_EQUAL(it->name,"name5");
-	TEST_EQUAL(it->value,"value2");	
+	TEST_EQUAL(it->value,"value2");
 	TEST_EQUAL(it->description,"description2");
 	TEST_EQUAL(it->tags.count("advanced")==1,false);
 
 	++it;
 	TEST_EQUAL(it->name,"name6");
-	TEST_EQUAL(it->value,"value3");	
+	TEST_EQUAL(it->value,"value3");
 	TEST_EQUAL(it->description,"description3");
 	TEST_EQUAL(it->tags.count("advanced")==1,true);
 
 	++it;
-	
+
 	//complicated subtree
 	Param::ParamIterator it2(root);
-	
+
 	TEST_EQUAL(it2->name,"A");
-	TEST_EQUAL(it2->value,"1");	
+	TEST_EQUAL(it2->value,"1");
 	++it2;
 
 	TEST_EQUAL(it2->name,"B");
-	TEST_EQUAL(it2->value,"2");	
+	TEST_EQUAL(it2->value,"2");
 	++it2;
 
 	TEST_EQUAL(it2->name,"C");
-	TEST_EQUAL(it2->value,"3");	
+	TEST_EQUAL(it2->value,"3");
 	++it2;
 
 	TEST_EQUAL(it2->name,"D");
-	TEST_EQUAL(it2->value,"4");	
+	TEST_EQUAL(it2->value,"4");
 	++it2;
 END_SECTION
 
@@ -504,21 +505,21 @@ START_SECTION(([Param::ParamIterator] ParamIterator operator++(int)))
 
 	//linear list
 	Param::ParamIterator it(node), it2(node);
-	
+
 	it2 = it++;
 	TEST_EQUAL(it->name,"name2");
-	TEST_EQUAL(it->value,"value2");	
+	TEST_EQUAL(it->value,"value2");
 	TEST_EQUAL(it->description,"description2");
 	TEST_EQUAL(it->tags.count("advanced")==1,false);
 	TEST_EQUAL(it2->name,"name");
-	TEST_EQUAL(it2->value,"value");	
+	TEST_EQUAL(it2->value,"value");
 	TEST_EQUAL(it2->description,"description");
 	TEST_EQUAL(it2->tags.count("advanced")==1,true);
 END_SECTION
 
 START_SECTION(([Param::ParamIterator] String getName() const))
 	Param::ParamIterator it(root);
-	
+
 	TEST_EQUAL(it.getName(),"A");
 	++it;
 
@@ -544,7 +545,7 @@ START_SECTION(([Param::ParamIterator] bool operator==(const ParamIterator& rhs) 
 	TEST_EQUAL(begin==begin2, false)
 	TEST_EQUAL(begin==end, false)
 	TEST_EQUAL(begin2==end, false)
-	
+
 	++begin2;
 	TEST_EQUAL(begin==begin2, true)
 	TEST_EQUAL(begin==end, false)
@@ -554,7 +555,7 @@ START_SECTION(([Param::ParamIterator] bool operator==(const ParamIterator& rhs) 
 	TEST_EQUAL(begin==begin2, false)
 	TEST_EQUAL(begin==end, false)
 	TEST_EQUAL(begin2==end, false)
-	
+
 	++begin2;
 	TEST_EQUAL(begin==begin2, true)
 	TEST_EQUAL(begin==end, false)
@@ -564,7 +565,7 @@ START_SECTION(([Param::ParamIterator] bool operator==(const ParamIterator& rhs) 
 	TEST_EQUAL(begin==begin2, false)
 	TEST_EQUAL(begin==end, false)
 	TEST_EQUAL(begin2==end, false)
-	
+
 	++begin2;
 	TEST_EQUAL(begin==begin2, true)
 	TEST_EQUAL(begin==end, false)
@@ -574,7 +575,7 @@ START_SECTION(([Param::ParamIterator] bool operator==(const ParamIterator& rhs) 
 	TEST_EQUAL(begin==begin2, false)
 	TEST_EQUAL(begin==end, true)
 	TEST_EQUAL(begin2==end, false)
-	
+
 	++begin2;
 	TEST_EQUAL(begin==begin2, true)
 	TEST_EQUAL(begin==end, true)
@@ -593,25 +594,25 @@ END_SECTION
 
 
 START_SECTION(([Param::ParamIterator] const std::vector< TraceInfo>& getTrace() const))
-	
-	//A	
+
+	//A
 	Param::ParamIterator it(root);
 	TEST_EQUAL(it.getTrace().size(),0);
 	++it;
-	
+
 	//r:s:B
 	TEST_EQUAL(it.getTrace().size(),2);
 	TEST_EQUAL(it.getTrace()[0].name,"r");
 	TEST_EQUAL(it.getTrace()[0].opened,true);
 	TEST_EQUAL(it.getTrace()[1].name,"s");
 	TEST_EQUAL(it.getTrace()[1].opened,true);
-	TEST_EQUAL(it.getTrace()[1].description,"s_desc");	
+	TEST_EQUAL(it.getTrace()[1].description,"s_desc");
 	++it;
-	
+
 	//r:s:C
 	TEST_EQUAL(it.getTrace().size(),0);
 	++it;
-	
+
 	//t:D
 	TEST_EQUAL(it.getTrace().size(),3);
 	TEST_EQUAL(it.getTrace()[0].name,"s");
@@ -621,7 +622,7 @@ START_SECTION(([Param::ParamIterator] const std::vector< TraceInfo>& getTrace() 
 	TEST_EQUAL(it.getTrace()[2].name,"t");
 	TEST_EQUAL(it.getTrace()[2].opened,true);
 	++it;
-	
+
 	//end()
 	TEST_EQUAL(it.getTrace().size(),1);
 	TEST_EQUAL(it.getTrace()[0].name,"t");
@@ -647,7 +648,7 @@ END_SECTION
 START_SECTION((bool exists(const String& key) const))
 	Param p;
 	TEST_EQUAL(p.exists(""), false)
-	TEST_EQUAL(p.exists("key"), false)	
+	TEST_EQUAL(p.exists("key"), false)
 	TEST_EQUAL(p.exists("key:value"), false)
 END_SECTION
 
@@ -812,7 +813,7 @@ END_SECTION
 
 START_SECTION((void setSectionDescription(const String &key, const String &description)))
 	Param p;
-	
+
 	p.setValue("test:test",47.1);
 	p.setValue("test2:test",47.1);
 	p.setValue("test:test2:test",47.1);
@@ -833,7 +834,7 @@ START_SECTION([EXTRA](friend std::ostream& operator << (std::ostream& os, const 
 	stringstream ss;
 	ss << p;
 	TEST_EQUAL(ss.str(), "\"key\" -> \"17.4\"\n")
-	
+
 	ss.str("");
 	p.setValue("key",17.4, "thiskey");
 	ss<<p;
@@ -855,7 +856,7 @@ START_SECTION((void insert(const String& prefix, const Param &param)))
 	p.setSectionDescription("n1","sectiondesc");
 
 	Param p2;
-	
+
 	p2.insert("prefix",p);
 	TEST_EQUAL(p2.size(),4)
 	TEST_EQUAL(Int(p2.getValue("prefixa")), 17)
@@ -867,7 +868,7 @@ START_SECTION((void insert(const String& prefix, const Param &param)))
 	TEST_REAL_SIMILAR(float(p2.getValue("prefixn2:d")), 17.5)
 	TEST_STRING_EQUAL(p2.getDescription("prefixn2:d"), String::EMPTY)
 	TEST_EQUAL(p2.getSectionDescription("prefixn1"),"sectiondesc")
-		
+
 	p2.insert("",p);
 	TEST_EQUAL(p2.size(),8)
 	TEST_EQUAL(Int(p2.getValue("a")), 17)
@@ -891,13 +892,13 @@ START_SECTION((void insert(const String& prefix, const Param &param)))
 	TEST_REAL_SIMILAR(float(p2.getValue("n3:n2:d")), 17.5)
 	TEST_STRING_EQUAL(p2.getDescription("n3:n2:d"), String::EMPTY)
 	TEST_EQUAL(p2.getSectionDescription("n3:n1"),"sectiondesc")
-	
+
 	p.clear();
 	p.setValue("a",18,"intdesc");
 	p.setValue("n1:b",17.7f,"floatdesc");
 	p.setValue("n1:c","test,test,test,test","stringdesc");
 	p.setValue("n2:d",17.8f);
-	
+
 	p2.insert("",p);
 	TEST_EQUAL(p2.size(),12)
 	TEST_EQUAL(Int(p2.getValue("a")), 18)
@@ -962,7 +963,7 @@ START_SECTION((Param copy(const String &prefix, bool remove_prefix=false) const)
 	TEST_EQUAL((p2==Param()),true)
 
 	p2 = p.copy("test:");
-	
+
 	TEST_REAL_SIMILAR(float(p2.getValue("test:float")), 17.4)
 	TEST_STRING_EQUAL(p2.getDescription("test:float"), "floatdesc")
 	TEST_EQUAL(p2.getValue("test:string"), "test,test,test")
@@ -997,18 +998,18 @@ START_SECTION((void remove(const String& key)))
 
 	Param p2(p);
 	p2.setValue("test:string2","test,test");
-	
+
 	TEST_EQUAL(p2.size(),7)
-	
+
 	p2.remove("test");
 	TEST_EQUAL(p2.size(),7)
-	
+
 	p2.remove("test2");
 	TEST_EQUAL(p2.size(),7)
-	
+
 	p2.remove("test:strin");
 	TEST_EQUAL(p2.size(),7)
-	
+
 	p2.remove("test:string");
 	TEST_EQUAL(p2.size(),6)
 
@@ -1028,7 +1029,7 @@ START_SECTION((void remove(const String& key)))
   p2.setValue("test:string2:sn2","subsubnode with entries");
   p2.setValue("test:string2:sn2:e1","subsubnode with entries");
   p2.setValue("test:string2:sn2:e2","subsubnode with entries");
-  
+
   Param p3 = p2;
 
   TEST_EQUAL(p2.size(),11)
@@ -1053,7 +1054,7 @@ END_SECTION
 
 START_SECTION((void removeAll(const String& prefix)))
 	Param p2(p);
-	
+
 	p2.removeAll("test:float");
 	TEST_EXCEPTION(Exception::ElementNotFound, p2.getValue("test:float"))
 	TEST_EQUAL(p2.getValue("test:string"), "test,test,test")
@@ -1088,7 +1089,7 @@ START_SECTION((bool operator == (const Param& rhs) const))
 	p2 = p;
 	p2.removeAll("test:float");
 	TEST_EQUAL(p==p2, false)
-	
+
 	//it should be independent of entry order
 	Param p3,p4;
 	p3.setValue("1",1);
@@ -1109,16 +1110,16 @@ END_SECTION
 
 START_SECTION((void setDefaults(const Param& defaults, const String& prefix="", bool showMessage=false)))
 	Param defaults;
-	defaults.setValue("float",1.0f,"float");	
+	defaults.setValue("float",1.0f,"float");
 	defaults.setValue("float2",2.0f,"float2");
 	defaults.setValue("string","default string1","string");
 	defaults.setValue("string2","default string2","string2");
 	defaults.setValue("PATH:onlyfordescription",45.2);
-	
+
 	defaults.setValue("stringlist",StringList::create("a,b,c"),"stringlist");
 	defaults.setValue("stringlist2",StringList::create("d,e,f"),"stringlist2");
-	defaults.setValue("intlist",IntList::create("1,2,3"),"intlist");
-	defaults.setValue("intlist2",IntList::create("11,22,33"),"intlist2");
+	defaults.setValue("intlist",ListUtils::create<Int>("1,2,3"),"intlist");
+	defaults.setValue("intlist2",ListUtils::create<Int>("11,22,33"),"intlist2");
 	defaults.setValue("doublelist",DoubleList::create("1.2,2.3"),"doublelist");
 	defaults.setValue("doublelist2",DoubleList::create("11.22,22.33"),"doublelist2");
 	defaults.setSectionDescription("PATH","PATHdesc");
@@ -1127,16 +1128,16 @@ START_SECTION((void setDefaults(const Param& defaults, const String& prefix="", 
 	p2.setValue("PATH:string","some string","PATH:string");
 	p2.setValue("float",-2.0f,"float");
 	p2.setValue("string","other string","string");
-	
+
 	p2.setValue("PATH:stringlist",StringList::create("d,a,v,i,d"),"PATH:stringlist");
 	p2.setValue("stringlist",StringList::create("r,o,c,k,s"),"stringlist");
-	p2.setValue("PATH:intlist2",IntList::create("14,9"),"PATH:intlist2");
-	p2.setValue("intlist", IntList::create("16,9"),"intlist");
+	p2.setValue("PATH:intlist2",ListUtils::create<Int>("14,9"),"PATH:intlist2");
+	p2.setValue("intlist", ListUtils::create<Int>("16,9"),"intlist");
 	p2.setValue("PATH:doublelist2",DoubleList::create("6.66,6.16"),"PATH:doublelist2");
 	p2.setValue("doublelist",DoubleList::create("1.2,5.55"),"doublelist");
-	
+
 	TEST_EQUAL(p2.size(),10);
-	
+
 	p2.setDefaults(defaults);
 	TEST_EQUAL(p2.size(),16);
 	TEST_REAL_SIMILAR(float(p2.getValue("float")),-2.0);
@@ -1148,16 +1149,16 @@ START_SECTION((void setDefaults(const Param& defaults, const String& prefix="", 
 	TEST_EQUAL(string(p2.getValue("string2")),"default string2");
 	TEST_STRING_EQUAL(p2.getDescription("string2"),"string2");
 	TEST_STRING_EQUAL(p2.getSectionDescription("PATH"),"PATHdesc");
-	
+
 	TEST_EQUAL(p2.getValue("stringlist"), StringList::create("r,o,c,k,s"))
-	TEST_EQUAL(p2.getValue("intlist"),IntList::create("16,9"))
+	TEST_EQUAL(p2.getValue("intlist") == ListUtils::create<Int>("16,9"), true)
 	TEST_EQUAL(p2.getValue("doublelist"),DoubleList::create("1.2,5.55"))
 	TEST_EQUAL(p2.getValue("stringlist2"),StringList::create("d,e,f"))
-	TEST_EQUAL(p2.getValue("intlist2"),IntList::create("11,22,33"))
+	TEST_EQUAL(p2.getValue("intlist2") == ListUtils::create<Int>("11,22,33"), true)
 	TEST_EQUAL(p2.getValue("doublelist2"),DoubleList::create("11.22,22.33"))
-	
-	
-	
+
+
+
 	p2.setDefaults(defaults,"PATH");
 
 	TEST_EQUAL(p2.size(),22);
@@ -1171,11 +1172,11 @@ START_SECTION((void setDefaults(const Param& defaults, const String& prefix="", 
 	TEST_STRING_EQUAL(p2.getDescription("PATH:string2"),"string2");
 	TEST_STRING_EQUAL(p2.getSectionDescription("PATH"),"PATHdesc");
 	TEST_STRING_EQUAL(p2.getSectionDescription("PATH:PATH"),"PATHdesc");
-	
+
 	TEST_EQUAL(p2.getValue("PATH:stringlist"),StringList::create("d,a,v,i,d"))
-	TEST_EQUAL(p2.getValue("PATH:intlist"), IntList::create("1,2,3"))
+	TEST_EQUAL(p2.getValue("PATH:intlist") == ListUtils::create<Int>("1,2,3"), true)
 	TEST_EQUAL(p2.getValue("PATH:doublelist"),DoubleList::create("1.2,2.3"))
-	
+
 END_SECTION
 
 const char* a1 ="executable";
@@ -1236,7 +1237,7 @@ START_SECTION((void parseCommandLine(const int argc, const char **argv, const St
 	p3.setValue("test4:-c","cv");
 	p3.setValue("test4:misc",StringList::create("rv1,rv2"));
 	TEST_EQUAL(p2==p3,true)
-	
+
 	Param p20,p30;
 	p20.parseCommandLine(6,command_line2);
 	p30.setValue("-a","av");
@@ -1281,7 +1282,7 @@ START_SECTION((void parseCommandLine(const int argc, const char **argv, const Ma
 	with_one["-a"]="a";
 	with_one["-b"]="b";
 	with_one["-c"]="c";
-	
+
 	with_multiple["-d"] = "d";
 	with_multiple["-e"] = "e";
 	with_multiple["-f"] = "f";
@@ -1294,7 +1295,7 @@ START_SECTION((void parseCommandLine(const int argc, const char **argv, const Ma
 	p3.setValue("c","cv");
 	p3.setValue("misc_",StringList::create("rv1,rv2,-1.0"));
 	TEST_EQUAL(p2==p3,true)
-	
+
 	Param p4,p5;
 	p4.parseCommandLine(9,command_line,with_one,without,with_multiple,"misc_","unknown_");
 	p5.setValue("a","av");
@@ -1306,7 +1307,7 @@ START_SECTION((void parseCommandLine(const int argc, const char **argv, const Ma
 	with_one.clear();
 	with_one["-a"]="a";
 	without["-b"]="b";
-	
+
 	Param p40,p50;
 	p40.parseCommandLine(9,command_line,with_one,without,with_multiple,"misc__","unknown__");
 	p50.setValue("a","av");
@@ -1315,7 +1316,7 @@ START_SECTION((void parseCommandLine(const int argc, const char **argv, const Ma
 	p50.setValue("unknown__",StringList::create("-c"));
 	TEST_EQUAL(p40==p50,true)
 	TEST_EQUAL(p40,p50)
-	//"executable -a av -b -c cv"	
+	//"executable -a av -b -c cv"
 	Param p400,p500;
 	p400.parseCommandLine(6,command_line2,with_one,without,with_multiple,"misc__","unknown__");
 	p500.setValue("a","av");
@@ -1332,7 +1333,7 @@ START_SECTION((void parseCommandLine(const int argc, const char **argv, const Ma
 	p5000.setValue("misc__",StringList::create("cv,rv1"));
 	p5000.setValue("unknown__",StringList::create("-c"));
 	TEST_EQUAL(p4000==p5000,true)
-		
+
 	// list options:
 	Param p6,p7;
 	p6.parseCommandLine(9,command_line_mult,with_one,without,with_multiple,"misc__","unkown__");
@@ -1346,7 +1347,7 @@ START_SECTION((void parseCommandLine(const int argc, const char **argv, const Ma
 	p9.parseCommandLine(4,command_line_mult,with_one,without,with_multiple,"misc__","unkown__");
 	p8.setValue("d", StringList::create("1.333,2.23"));
 	TEST_EQUAL(p9,p8);
-	
+
 END_SECTION
 
 START_SECTION((void setValidStrings(const String &key, const std::vector< String > &strings)))
@@ -1355,7 +1356,7 @@ START_SECTION((void setValidStrings(const String &key, const std::vector< String
   Param d;
   d.setValue("ok","string");
   d.setValue("dummy",5);
-  
+
   d.setValidStrings("ok",strings);
   TEST_EQUAL(d.getEntry("ok").valid_strings==strings, true);
   TEST_EXCEPTION(Exception::ElementNotFound, d.setValidStrings("dummy",strings))
@@ -1367,7 +1368,7 @@ START_SECTION((void setMinInt(const String &key, Int min)))
   Param d;
   d.setValue("ok",4);
   d.setValue("dummy",5.5);
-  
+
   d.setMinInt("ok",4);
   TEST_EQUAL(d.getEntry("ok").min_int,4);
   TEST_EXCEPTION(Exception::ElementNotFound, d.setMinInt("dummy",4))
@@ -1377,7 +1378,7 @@ START_SECTION((void setMaxInt(const String &key, Int max)))
   Param d;
   d.setValue("ok",4);
   d.setValue("dummy",5.5);
-  
+
   d.setMaxInt("ok",4);
   TEST_EQUAL(d.getEntry("ok").max_int,4);
   TEST_EXCEPTION(Exception::ElementNotFound, d.setMaxInt("dummy",4))
@@ -1387,7 +1388,7 @@ START_SECTION((void setMinFloat(const String &key, DoubleReal min)))
   Param d;
   d.setValue("ok",4.5);
   d.setValue("dummy",4);
-  
+
   d.setMinFloat("ok",4.0);
   TEST_REAL_SIMILAR(d.getEntry("ok").min_float,4.0);
   TEST_EXCEPTION(Exception::ElementNotFound, d.setMinFloat("dummy",4.5))
@@ -1397,7 +1398,7 @@ START_SECTION((void setMaxFloat(const String &key, DoubleReal max)))
   Param d;
   d.setValue("ok",4.5);
   d.setValue("dummy",4);
-  
+
   d.setMaxFloat("ok",4.0);
   TEST_REAL_SIMILAR(d.getEntry("ok").max_float,4.0);
   TEST_EXCEPTION(Exception::ElementNotFound, d.setMaxFloat("dummy",4.5))
@@ -1411,16 +1412,16 @@ START_SECTION((void checkDefaults(const String &name, const Param &defaults, con
 	p.setValue("string",String("bla"),"string");
 	p.setValue("int",5,"int");
 	p.setValue("double",47.11,"double");
-		
+
 	p.checkDefaults("Test",d,"",os);
 	TEST_EQUAL(os.str()=="",false);
-	
+
 	d.setValue("int",5,"int");
 	d.setValue("double",47.11,"double");
 	os.str("");
 	p.checkDefaults("Test",d,"",os);
 	TEST_EQUAL(os.str()=="",false);
-	
+
 	p.clear();
 	p.setValue("pref:string",String("bla"),"pref:string");
 	p.setValue("pref:int",5,"pref:int");
@@ -1432,7 +1433,7 @@ START_SECTION((void checkDefaults(const String &name, const Param &defaults, con
 	os.str("");
 	p.checkDefaults("Test",d,"pref:",os);
 	TEST_EQUAL(os.str()=="",false);
-	
+
 	//check string restrictions
 	vector<String> s_rest;
 	s_rest.push_back("a");
@@ -1479,7 +1480,7 @@ START_SECTION((void checkDefaults(const String &name, const Param &defaults, con
 	p.checkDefaults("Param_test",d,"",os);
 	p.setValue("doublev",-4.1);
 	TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,"",os));
-	
+
 	d.setValue("doublev2",4.0,"desc");
 	d.setMaxFloat("doublev2",4.0);
 	p.clear();
@@ -1489,7 +1490,7 @@ START_SECTION((void checkDefaults(const String &name, const Param &defaults, con
 	p.checkDefaults("Param_test",d,"",os);
 	p.setValue("doublev2",4.1);
 	TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,"",os));
-	
+
 	//check list restrictions
 	vector<String> s_rest1;
 	s_rest1.push_back("a");
@@ -1502,8 +1503,8 @@ START_SECTION((void checkDefaults(const String &name, const Param &defaults, con
 	p.checkDefaults("Param_test",d,"",os);
 	p.setValue("stringlist",StringList::create("aa,dd,cc"));
 	TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,"",os))
-	
-	
+
+
 	//wrong type
 	p.clear();
 	p.setValue("doublev",4);
@@ -1518,15 +1519,15 @@ END_SECTION
 
 START_SECTION((void update(const Param& old_version, const bool add_unknown = false, Logger::LogStream& stream = LOG_WARN)))
 	Param common;
-	common.setValue("float",1.0f,"float");	
+	common.setValue("float",1.0f,"float");
 	common.setValue("float2",2.0f,"float2");
 	common.setValue("string","default string1","string");
 	common.setValue("string2","default string2","string2");
 	common.setValue("PATH:onlyfordescription",45.2);
-	
+
 	common.setValue("stringlist",StringList::create("a,b,c"),"stringlist");
 	common.setValue("stringlist2",StringList::create("d,e,f"),"stringlist2");
-	common.setValue("intlist",IntList::create("1,2,3"),"intlist");
+	common.setValue("intlist",ListUtils::create<Int>("1,2,3"),"intlist");
 
   // copy and alter
   Param old = common;
@@ -1536,58 +1537,58 @@ START_SECTION((void update(const Param& old_version, const bool add_unknown = fa
   old.setValue("some:1:type","unlabeled","type");
   old.setValue("some:type","unlabeled","type");
 	old.setValue("stringlist2",StringList::create("d,e,f,altered"),"stringlist2"); // change some values, we expect them to show up after update()
-	old.setValue("intlist",IntList::create("3"),"intlist");
-  
+	old.setValue("intlist",ListUtils::create<Int>("3"),"intlist");
+
   Param defaults = common;
   defaults.setValue("old_type",3,"old_type has evolved from string to int"); // as type has changed, this value should be kept
   defaults.setValue("some:version","1.9","new version"); // this value should be kept (due to its reserved name)
   defaults.setValue("some:1:type","information","type");   // this value should be kept (due to its reserved name at depth 2)
   defaults.setValue("some:type","information","type");   // this value should NOT be kept (wrong depth)
   defaults.setValue("new_value",3,"new param not present in old");
-  
+
   Param expected = defaults;
 	expected.setValue("stringlist2",StringList::create("d,e,f,altered"),"stringlist2"); // change some values, we expect them to show up after update()
-	expected.setValue("intlist",IntList::create("3"),"intlist");
+	expected.setValue("intlist",ListUtils::create<Int>("3"),"intlist");
   expected.setValue("some:type","unlabeled","type");
-  
+
   // update()
   defaults.update(old);
-  
+
   TEST_EQUAL(defaults,expected);
 END_SECTION
-  
+
 START_SECTION((void merge(const Param& toMerge)))
 {
   Param original;
   original.setValue("a", 2.0f, "a value");
   original.setMinFloat("a", 0.0f);
-  original.setValue("b", "value", "b value");  
-  
+  original.setValue("b", "value", "b value");
+
   Param toMerge;
-  toMerge.setValue("b", "value", "a value");  
+  toMerge.setValue("b", "value", "a value");
   toMerge.setValue("section:a", "a-value", "section:a");
   toMerge.setSectionDescription("section", "section description");
   toMerge.setValue("section:b", "b-value", "section:b");
-  
+
   Param expected;
   expected.setValue("a", 2.0f, "a value");
   expected.setMinFloat("a", 0.0f);
-  expected.setValue("b", "value", "b value");  
+  expected.setValue("b", "value", "b value");
   expected.setValue("section:a", "a-value", "section:a");
   expected.setValue("section:b", "b-value", "section:b");
   expected.setSectionDescription("section", "section description");
-  
+
   original.merge(toMerge);
   TEST_EQUAL(original, expected)
   TEST_EQUAL(original.getSectionDescription("section"),expected.getSectionDescription("section"))
-  
+
   Param p1;
   p1.setValue("in", "in-value", "in-description");
   p1.setValue("out", "out-value", "out-description");
 	p1.setValue("reference:index", "reference:index value", "reference:index description");
   p1.setSectionDescription("reference", "reference description");
   p1.setValue("algorithm:sub_param", "algorithm:sub_param value", "algorithm:sub_param description");
-  
+
   Param p2;
   p2.setValue("reference:index", "reference:index value", "reference:index description");
   p2.setSectionDescription("reference", "reference description");
@@ -1595,7 +1596,7 @@ START_SECTION((void merge(const Param& toMerge)))
   p2.setValue("algorithm:superimposer:mz_pair_max_distance", "algorithm:superimposer:mz_pair_max_distance value", "algorithm:superimposer:mz_pair_max_distance description");
 	p2.setSectionDescription("algorithm", "algorithm description");
 	p2.setSectionDescription("algorithm:superimposer", "algorithm:superimposer description");
-  
+
 	Param expected_2;
   expected_2.setValue("in", "in-value", "in-description");
   expected_2.setValue("out", "out-value", "out-description");
@@ -1605,7 +1606,7 @@ START_SECTION((void merge(const Param& toMerge)))
   expected_2.setValue("algorithm:superimposer:mz_pair_max_distance", "algorithm:superimposer:mz_pair_max_distance value", "algorithm:superimposer:mz_pair_max_distance description");
 	expected_2.setSectionDescription("algorithm", "algorithm description");
 	expected_2.setSectionDescription("algorithm:superimposer", "algorithm:superimposer description");
-  
+
   p1.merge(p2);
 	TEST_EQUAL(p1, expected_2)
   TEST_EQUAL(p1.getSectionDescription("algorithm"),expected_2.getSectionDescription("algorithm"))
@@ -1621,18 +1622,18 @@ START_SECTION((ParamIterator findFirst(const String &leaf) const ))
   p.setValue("b:a:leaf", "leaf_val2", "leaf 2");
   p.setValue("a:c:leaf", "leaf_val3", "leaf 3");
   p.setValue("a:c:another-leaf", "leaf_val4", "leaf 3");
-  
+
   Param::ParamIterator pI = p.findFirst("leaf");
   TEST_EQUAL(pI.getName(), "a:b:leaf")
-  
+
   p.remove("a:b:leaf");
   pI = p.findFirst("leaf");
   TEST_EQUAL(pI.getName(), "a:c:leaf")
-  
+
   p.remove("a:c:leaf");
   pI = p.findFirst("leaf");
   TEST_EQUAL(pI.getName(), "b:a:leaf")
-  
+
   p.remove("b:a:leaf");
   pI = p.findFirst("leaf");
   TEST_EQUAL(pI == p.end(), true)
@@ -1646,16 +1647,16 @@ START_SECTION((ParamIterator findNext(const String &leaf, const ParamIterator &s
   p.setValue("b:a:leaf", "leaf_val2", "leaf 2");
   p.setValue("a:c:leaf", "leaf_val3", "leaf 3");
   p.setValue("a:c:another-leaf", "leaf_val4", "leaf 3");
-  
+
   Param::ParamIterator pI = p.findFirst("leaf");
   TEST_EQUAL(pI.getName(), "a:b:leaf")
-  
+
   pI = p.findNext("leaf", pI);
   TEST_EQUAL(pI.getName(), "a:c:leaf")
-  
+
   pI = p.findNext("leaf", pI);
   TEST_EQUAL(pI.getName(), "b:a:leaf")
-  
+
   pI = p.findNext("leaf", pI);
   TEST_EQUAL(pI == p.end(), true)
 }
@@ -1671,7 +1672,7 @@ START_SECTION((ParamIterator end() const))
 	p.setValue("b:a",6);
 	p.setValue("b:b",7);
 	p.setValue("c",8);
-	
+
 	Param::ParamIterator it = p.begin();
 	TEST_EQUAL(it->name, "a")
 	TEST_EQUAL(it.getName(), "a")
@@ -1681,17 +1682,17 @@ START_SECTION((ParamIterator end() const))
 	TEST_EQUAL(it->name, "c")
 	TEST_EQUAL(it.getName(), "c")
 	TEST_EQUAL((UInt)it->value, 8)
-	
+
 	++it;
 	TEST_EQUAL(it->name, "a")
 	TEST_EQUAL(it.getName(), "b:a")
 	TEST_EQUAL((UInt)it->value, 6)
-	
+
 	++it;
 	TEST_EQUAL(it->name, "b")
 	TEST_EQUAL(it.getName(), "b:b")
 	TEST_EQUAL((UInt)it->value, 7)
-	
+
 	++it;
 	TEST_EQUAL(it==p.end(),true)
 END_SECTION

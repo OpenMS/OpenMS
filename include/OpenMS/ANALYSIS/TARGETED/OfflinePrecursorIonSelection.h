@@ -41,6 +41,7 @@
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/ANALYSIS/TARGETED/PSLPFormulation.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 namespace OpenMS
 {
@@ -395,7 +396,7 @@ private:
         // link ms2 spectrum with features overlapping its precursor
         // Warning: this depends on the current order of features in the map
         // Attention: make sure to name ALL features that overlap, not only one!
-        ms2_spec.setMetaValue("parent_feature_ids", IntList::create(String(feature_index)));
+        ms2_spec.setMetaValue("parent_feature_ids", ListUtils::create<Int>(String(feature_index)));
         ms2.addSpectrum(ms2_spec);
         std::cout << " MS2 spectra generated at: " << scan->getRT() << " x " << p.getMZ() << "\n";
 

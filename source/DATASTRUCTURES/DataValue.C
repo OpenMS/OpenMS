@@ -33,7 +33,10 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
+
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+
 #include <iostream>
 #include <sstream>
 #include <cstdlib>
@@ -162,7 +165,7 @@ namespace OpenMS
   {
     data_.int_list_ = new IntList(p);
   }
-
+  
   DataValue::DataValue(const DoubleList& p) :
     value_type_(DOUBLE_LIST), unit_("")
   {
@@ -310,7 +313,7 @@ namespace OpenMS
     value_type_ = STRING_LIST;
     return *this;
   }
-
+  
   DataValue& DataValue::operator=(const IntList& arg)
   {
     clear_();

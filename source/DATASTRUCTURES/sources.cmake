@@ -25,7 +25,6 @@ DefaultParamHandler.C
 DistanceMatrix.C
 DoubleList.C
 GridFeature.C
-IntList.C
 Map.C
 MassExplainer.C
 Matrix.C

@@ -410,14 +410,14 @@ namespace OpenMS
     return peak_map_;
   }
 
-  void MSSim::getMS2Identifications(vector<ProteinIdentification>& proteins, 
+  void MSSim::getMS2Identifications(vector<ProteinIdentification>& proteins,
                                     vector<PeptideIdentification>& peptides)
     const
   {
     proteins.clear();
     peptides.clear();
     set<String> accessions;
-    for (MSSimExperiment::const_iterator ms_it = experiment_.begin(); 
+    for (MSSimExperiment::const_iterator ms_it = experiment_.begin();
          ms_it != experiment_.end(); ++ms_it)
     {
       if (ms_it->getMSLevel() != 2) continue;
@@ -432,16 +432,16 @@ namespace OpenMS
           index = i;
         }
       }
-      Size feat_id = IntList(ms_it->getMetaValue("parent_feature_ids"))[index];
-      const Feature& feature = feature_maps_[0][feat_id];
+      IntList feat_ids = ms_it->getMetaValue("parent_feature_ids");
+      const Feature& feature = feature_maps_[0][feat_ids[index]];
       peptides.push_back(feature.getPeptideIdentifications()[0]);
       peptides.back().setMetaValue("RT", ms_it->getRT());
       peptides.back().setMetaValue("MZ", ms_it->getPrecursors()[index].getMZ());
       const PeptideHit& hit = peptides.back().getHits()[0];
-      accessions.insert(hit.getProteinAccessions().begin(), 
+      accessions.insert(hit.getProteinAccessions().begin(),
                         hit.getProteinAccessions().end());
     }
-    const ProteinIdentification& protein = 
+    const ProteinIdentification& protein =
       feature_maps_[0].getProteinIdentifications()[0];
     proteins.push_back(protein);
     proteins[0].getHits().clear();
@@ -452,7 +452,7 @@ namespace OpenMS
       {
         proteins[0].insertHit(*prot_it);
       }
-    }    
+    }
   }
 
 }

@@ -264,7 +264,7 @@ protected:
     registerTOPPSubsection_("peak_options", "Peak data options");
     registerDoubleOption_("peak_options:sn", "<s/n ratio>", 0, "write peaks with S/N > 'sn' values only", false);
     registerIntList_("peak_options:rm_pc_charge", "i j ...", IntList(), "Remove MS(2) spectra with these precursor charges. All spectra without precursor are kept!", false);
-    registerIntList_("peak_options:level", "i j ...", IntList::create("1,2,3"), "MS levels to extract", false);
+    registerIntList_("peak_options:level", "i j ...", ListUtils::create<Int>("1,2,3"), "MS levels to extract", false);
     registerFlag_("peak_options:sort_peaks", "sorts the peaks according to m/z.");
     registerFlag_("peak_options:no_chromatograms", "No conversion to space-saving real chromatograms, e.g. from SRM scans.");
     registerFlag_("peak_options:remove_chromatograms", "Removes chromatograms stored in a file.");
@@ -319,7 +319,7 @@ protected:
 
     addEmptyLine_();
     registerTOPPSubsection_("consensus", "Consensus feature data options");
-    registerIntList_("consensus:map", "i j ...", IntList::create(""), "maps to be extracted from a consensus", false);
+    registerIntList_("consensus:map", "i j ...", ListUtils::create<Int>(""), "maps to be extracted from a consensus", false);
     registerFlag_("consensus:map_and", "Consensus features are kept only if they contain exactly one feature from each map (as given above in 'map').");
 
     // black and white listing
@@ -333,7 +333,7 @@ protected:
                        "Matching tolerances are taken from 'consensus:blackorwhitelist:rt' and 'consensus:blackorwhitelist:mz' options.\n"
                        "If consensus:blackorwhitelist:maps is specified, only these will be used.\n", false);
     setValidFormats_("consensus:blackorwhitelist:file", StringList::create("consensusXML"));
-    registerIntList_("consensus:blackorwhitelist:maps", "i j ...", IntList::create(""), "maps used for black/white list filtering.", false);
+    registerIntList_("consensus:blackorwhitelist:maps", "i j ...", ListUtils::create<Int>(""), "maps used for black/white list filtering.", false);
 
     registerDoubleOption_("consensus:blackorwhitelist:rt", "tolerance", 60.0, "retention tolerance [s] for precursor to consensus feature position", false);
     registerDoubleOption_("consensus:blackorwhitelist:mz", "tolerance", 0.01, "m/z tolerance [Th] for precursor to consensus feature position", false);
@@ -393,7 +393,7 @@ protected:
     else if (v_data.valueType() == DataValue::INT_VALUE) v_user = String(meta_info[2]).toInt();
     else if (v_data.valueType() == DataValue::DOUBLE_VALUE) v_user = String(meta_info[2]).toDouble();
     else if (v_data.valueType() == DataValue::STRING_LIST) v_user = StringList::create(meta_info[2]);
-    else if (v_data.valueType() == DataValue::INT_LIST) v_user = IntList::create(meta_info[2]);
+    else if (v_data.valueType() == DataValue::INT_LIST) v_user = ListUtils::create<Int>(meta_info[2]);
     else if (v_data.valueType() == DataValue::DOUBLE_LIST) v_user = DoubleList::create(meta_info[2]);
     else if (v_data.valueType() == DataValue::EMPTY_VALUE) v_user = DataValue::EMPTY;
     if (meta_info[1] == "lt")
@@ -1002,7 +1002,7 @@ protected:
             ConsensusFeature::HandleSetType::const_iterator fh_it_end = cm_it->getFeatures().end();
             for (; fh_it != fh_it_end; ++fh_it) // iterate over features in consensus
             {
-              if (maps.contains(fh_it->getMapIndex()))
+              if (ListUtils::contains(maps, fh_it->getMapIndex()))
               {
                 consensus_feature_new.insert(*fh_it);
               }

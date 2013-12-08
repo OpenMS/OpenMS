@@ -43,6 +43,7 @@
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <fstream>
 #include <iostream>
 
@@ -167,7 +168,7 @@ protected:
   bool getVersion_(const String & version, OMSSAVersion & omssa_version_i) const
   {
     // we expect three components
-    IntList nums = IntList::create(StringList::create(version, '.'));
+    IntList nums = ListUtils::create<Int>(StringList::create(version, '.'));
     if (nums.size() != 3) return false;
 
     omssa_version_i.omssa_major = nums[0];

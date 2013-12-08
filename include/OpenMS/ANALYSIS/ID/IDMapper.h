@@ -38,6 +38,9 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
+
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+
 #include <OpenMS/CONCEPT/LogStream.h>
 
 #include <algorithm>
@@ -292,7 +295,7 @@ public:
           bool check_charge = !ignore_charge_;
           if (check_charge && (mz_values.size() == 1))               // check now
           {
-            if (!charges.contains(feat.getCharge())) continue;
+            if (!ListUtils::contains(charges, feat.getCharge())) continue;
             check_charge = false;                 // don't need to check later
           }
 

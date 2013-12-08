@@ -39,6 +39,7 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/FORMAT/OPTIONS/FeatureFileOptions.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -152,7 +153,7 @@ START_SECTION((void load(const String &filename, FeatureMap<>&feature_map)))
   TEST_EQUAL(e.getUnassignedPeptideIdentifications()[1].getHits()[1].getSequence(), "H")
 
   // test meta values:
-  TEST_EQUAL(e[0].getMetaValue("myIntList") == IntList::create("1,10,12"), true);
+  TEST_EQUAL(e[0].getMetaValue("myIntList") == ListUtils::create<Int>("1,10,12"), true);
   TEST_EQUAL(e[0].getMetaValue("myDoubleList") == DoubleList::create("1.111,10.999,12.45"), true);
   TEST_EQUAL(e[0].getMetaValue("myStringList") == StringList::create("myABC1,Stuff,12"), true);
   TEST_EQUAL(e[1].getMetaValue("myDoubleList") == DoubleList::create("6.442"), true);

@@ -41,6 +41,7 @@
 #include <OpenMS/CONCEPT/Macros.h>
 
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 
 #include <xercesc/sax2/DefaultHandler.hpp>
@@ -369,7 +370,7 @@ protected:
       inline IntList attributeAsIntList_(const xercesc::Attributes & a, const char * name) const
       {
         String tmp(expectList_(attributeAsString_(a, name)));
-        return IntList::create(tmp.substr(1, tmp.size() - 2));
+        return ListUtils::create<Int>(tmp.substr(1, tmp.size() - 2));
       }
 
       /// Converts an attribute to an StringList
@@ -526,7 +527,7 @@ protected:
       inline IntList attributeAsIntList_(const xercesc::Attributes & a, const XMLCh * name) const
       {
         String tmp(expectList_(attributeAsString_(a, name)));
-        return IntList::create(tmp.substr(1, tmp.size() - 2));
+        return ListUtils::create<Int>(tmp.substr(1, tmp.size() - 2));
       }
 
       /// Converts an attribute to a StringList

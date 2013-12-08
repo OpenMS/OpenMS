@@ -44,6 +44,7 @@
 #include <string>
 #include <iostream>
 #include <iomanip>
+#include <vector>
 
 // If possible use the ISO C99-compliant header stdint.h
 // to define the portable integer types.
@@ -95,10 +96,19 @@ namespace OpenMS
       @brief Signed integer type
 
       @ingroup Concept
-*/
+  */
   //typedef OPENMS_SIZE_T_SIGNED Int;
   typedef int Int;
 
+  /**
+    @brief Vector of signed integers. 
+   
+    @note Typedef replaces former IntList class.
+
+    @ingroup Concept
+  */
+  typedef std::vector<Int> IntList;
+  
   /**
       @brief Real type
 

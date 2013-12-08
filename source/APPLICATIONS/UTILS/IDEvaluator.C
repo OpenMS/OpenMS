@@ -38,6 +38,7 @@
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/VISUAL/APPLICATIONS/IDEvaluationBase.h>
 #include <OpenMS/VISUAL/APPLICATIONS/MISC/QApplicationTOPP.h>
+#include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 
 #include <QtGui/QImage>
 #include <QPainter>

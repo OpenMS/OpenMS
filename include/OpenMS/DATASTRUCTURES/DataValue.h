@@ -38,7 +38,6 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/StringList.h>
-#include <OpenMS/DATASTRUCTURES/IntList.h>
 #include <OpenMS/DATASTRUCTURES/DoubleList.h>
 #include <QtCore/QString>
 

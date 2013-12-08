@@ -38,6 +38,7 @@
 #include <OpenMS/FILTERING/TRANSFORMERS/SpectraMerger.h>
 #include <OpenMS/SYSTEM/File.h>
 
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 namespace OpenMS
 {
@@ -53,7 +54,7 @@ namespace OpenMS
     subsections_.push_back("Precursor:");
     defaults_.insert("Precursor:", OfflinePrecursorIonSelection().getDefaults());
     defaults_.remove("Precursor:peptides_per_protein");
-    defaults_.setValue("Precursor:charge_filter", IntList::create(StringList::create("2,3")), "Charges considered for MS2 fragmentation.");
+    defaults_.setValue("Precursor:charge_filter", ListUtils::create<Int>("2,3"), "Charges considered for MS2 fragmentation.");
     defaults_.setMinInt("Precursor:charge_filter", 1);
     defaults_.setMaxInt("Precursor:charge_filter", 5);
 
@@ -134,7 +135,7 @@ namespace OpenMS
 
     Param p;
     p.setValue("block_method:rt_block_size", features.size()); // merge all single spectra
-    p.setValue("block_method:ms_levels", IntList::create("2"));
+    p.setValue("block_method:ms_levels", ListUtils::create<Int>("2"));
     SpectraMerger sm;
     sm.setParameters(p);
 
@@ -269,7 +270,7 @@ namespace OpenMS
 
   void RawTandemMSSignalSimulation::generatePrecursorSpectra_(const FeatureMapSim & features, const MSSimExperiment & experiment, MSSimExperiment & ms2)
   {
-    IntList qs = (IntList) param_.getValue("Precursor:charge_filter");
+    IntList qs = param_.getValue("Precursor:charge_filter");
     std::set<Int> qs_set(qs.begin(), qs.end());
 
     //** precursor selection **//
@@ -320,7 +321,7 @@ namespace OpenMS
 
     for (Size i = 0; i < ms2.size(); ++i)
     {
-      IntList ids = (IntList) ms2[i].getMetaValue("parent_feature_ids");
+      IntList ids = ms2[i].getMetaValue("parent_feature_ids");
 
       OPENMS_POSTCONDITION(ids.size() == ms2[i].getPrecursors().size(), "#parent features should be equal to # of precursors")
 
@@ -357,7 +358,7 @@ namespace OpenMS
       {
         Param p;
         p.setValue("block_method:rt_block_size", ids.size()); // merge all single spectra from (multiple) precursors
-        p.setValue("block_method:ms_levels", IntList::create("2"));
+        p.setValue("block_method:ms_levels", ListUtils::create<Int>("2"));
         SpectraMerger sm;
         sm.setParameters(p);
         sm.mergeSpectraBlockWise(tmp_spectra);

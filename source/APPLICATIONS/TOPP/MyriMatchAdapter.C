@@ -36,11 +36,14 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/PepXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/TextFile.h>
+
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
-#include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+
 #include <OpenMS/SYSTEM/File.h>
 #include <fstream>
 #include <iostream>
@@ -134,7 +137,7 @@ protected:
   bool getVersion_(const String& version, MyriMatchVersion& myrimatch_version_i) const
   {
     // we expect three components
-    IntList nums = IntList::create(StringList::create(version, '.'));
+    IntList nums = ListUtils::create<Int>(StringList::create(version, '.'));
     if (nums.size() != 3) return false;
 
     myrimatch_version_i.myrimatch_major = nums[0];

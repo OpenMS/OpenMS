@@ -143,14 +143,16 @@ namespace OpenMS
               current_charges = charges;
             }
             else
-              current_charges << charges[i_mz];
-            current_charges << 0;             // "not specified" always matches
+            {
+              current_charges.push_back(charges[i_mz]);
+            }
+            current_charges.push_back(0);             // "not specified" always matches
           }
 
           //check if we compare distance from centroid or subelements
           if (!measure_from_subelements)
           {
-            if (isMatch_(rt_pep - map[cm_index].getRT(), mz_pep, map[cm_index].getMZ()) && (ignore_charge_ || current_charges.contains(map[cm_index].getCharge())))
+            if (isMatch_(rt_pep - map[cm_index].getRT(), mz_pep, map[cm_index].getMZ()) && (ignore_charge_ || ListUtils::contains(current_charges, map[cm_index].getCharge())))
             {
               was_added = true;
               map[cm_index].getPeptideIdentifications().push_back(ids[i]);
@@ -163,7 +165,7 @@ namespace OpenMS
                  it_handle != map[cm_index].getFeatures().end();
                  ++it_handle)
             {
-              if (isMatch_(rt_pep - it_handle->getRT(), mz_pep, it_handle->getMZ())  && (ignore_charge_ || current_charges.contains(it_handle->getCharge())))
+              if (isMatch_(rt_pep - it_handle->getRT(), mz_pep, it_handle->getMZ())  && (ignore_charge_ || ListUtils::contains(current_charges, it_handle->getCharge())))
               {
                 was_added = true;
                 if (mapping[cm_index].count(i) == 0)
@@ -278,7 +280,7 @@ namespace OpenMS
          hit_it != id.getHits().end(); ++hit_it)
     {
       Int charge = hit_it->getCharge();
-      charges << charge;
+      charges.push_back(charge);
 
       if (param_.getValue("mz_reference") == "peptide") // use mass of each pepHit (assuming H+ adducts)
       {
