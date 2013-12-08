@@ -202,11 +202,11 @@ protected:
   virtual void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "Input file");
-    setValidFormats_("in", StringList::create("featureXML,consensusXML"));
+    setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML"));
     registerStringOption_("in_type", "<type>", "", "Input file type -- default: determined from file extension or content", false);
-    setValidStrings_("in_type", StringList::create("featureXML,consensusXML"));
+    setValidStrings_("in_type", ListUtils::create<String>("featureXML,consensusXML"));
     registerOutputFile_("out", "<file>", "", "Optional output txt file. If '-' or left out, the output is written to the command line.", false);
-    setValidFormats_("out", StringList::create("txt"));
+    setValidFormats_("out", ListUtils::create<String>("txt"));
 
     registerIntOption_("n", "<n>", 4, // 4 slices is the default
                        "Report separate statistics for each of n RT slices of the map.",

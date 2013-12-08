@@ -549,29 +549,29 @@ namespace OpenMS
                        (itraq_type_ == TMT_SIXPLEX
                         ? "Enable isotope correction (highly recommended). Note that you need to provide a correction matrix (see isotope_correction:tmt-6plex otherwise the tool will fail."
                         : "Enable isotope correction (highly recommended)."),
-                       StringList::create("advanced"));
-    defaults_.setValidStrings("isotope_correction", StringList::create("true,false"));
+                       ListUtils::create<String>("advanced"));
+    defaults_.setValidStrings("isotope_correction", ListUtils::create<String>("true,false"));
 
-    defaults_.setValue("do_normalization", "false", "Normalize channels? Done by using the Median of Ratios (every channel / Reference). Also the ratio of medians (from any channel and reference) is provided as control measure!", StringList::create("advanced"));
-    defaults_.setValidStrings("do_normalization", StringList::create("true,false"));
+    defaults_.setValue("do_normalization", "false", "Normalize channels? Done by using the Median of Ratios (every channel / Reference). Also the ratio of medians (from any channel and reference) is provided as control measure!", ListUtils::create<String>("advanced"));
+    defaults_.setValidStrings("do_normalization", ListUtils::create<String>("true,false"));
 
     if (itraq_type_ == TMT_SIXPLEX)
     {
       defaults_.setValue("isotope_correction:tmt-6plex",
                          ItraqConstants::getIsotopeMatrixAsStringList(ItraqConstants::TMT_SIXPLEX, isotope_corrections_),
                          "Override default values (see Documentation); use the following format: <channel>:<-2Da>/<-1Da>/<+1Da>/<+2Da> ; e.g. '126:0/0.3/4/0' , '128:0.1/0.3/3/0.2'.",
-                         StringList::create("advanced"));
+                         ListUtils::create<String>("advanced"));
     }
     else
     {
       defaults_.setValue("isotope_correction:4plex",
                          ItraqConstants::getIsotopeMatrixAsStringList(ItraqConstants::FOURPLEX, isotope_corrections_),
                          "Override default values (see Documentation); use the following format: <channel>:<-2Da>/<-1Da>/<+1Da>/<+2Da> ; e.g. '114:0/0.3/4/0' , '116:0.1/0.3/3/0.2'.",
-                         StringList::create("advanced"));
+                         ListUtils::create<String>("advanced"));
       defaults_.setValue("isotope_correction:8plex",
                          ItraqConstants::getIsotopeMatrixAsStringList(ItraqConstants::EIGHTPLEX, isotope_corrections_),
                          "Override default values (see Documentation); use the following format: <channel>:<-2Da>/<-1Da>/<+1Da>/<+2Da> ; e.g. '114:0/0.3/4/0' , '116:0.1/0.3/3/0.2'.",
-                         StringList::create("advanced"));
+                         ListUtils::create<String>("advanced"));
     }
 
     defaults_.setSectionDescription("isotope_correction",

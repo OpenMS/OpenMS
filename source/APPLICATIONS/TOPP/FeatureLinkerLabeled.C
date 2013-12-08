@@ -94,9 +94,9 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "Input file", true);
-    setValidFormats_("in", StringList::create("featureXML"));
+    setValidFormats_("in", ListUtils::create<String>("featureXML"));
     registerOutputFile_("out", "<file>", "", "Output file", true);
-    setValidFormats_("out", StringList::create("consensusXML"));
+    setValidFormats_("out", ListUtils::create<String>("consensusXML"));
     registerSubsection_("algorithm", "Algorithm parameters section");
   }
 

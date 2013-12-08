@@ -199,7 +199,7 @@ namespace OpenMS
           String list;
           list = str.mid(1, str.length() - 2);
           QString type = index.sibling(index.row(), 2).data(Qt::DisplayRole).toString();
-          StringList rlist = StringList::create(list);
+          StringList rlist = ListUtils::create<String>(list);
           for (UInt i = 0; i < rlist.size(); ++i)
           {
             rlist[i]  = rlist[i].trim();
@@ -546,7 +546,7 @@ namespace OpenMS
       if (it->value.valueType() == DataValue::STRING_LIST)
       {
         StringList string_list = it->value;
-        String list_string = String("[") + string_list.concatenate(",\n") + "]";
+        String list_string = String("[") + ListUtils::concatenate(string_list, ",\n") + "]";
         item->setText(1, list_string.toQString());
       }
       else if (it->value.valueType() == DataValue::INT_LIST)
@@ -557,7 +557,7 @@ namespace OpenMS
         {
           string_list.push_back(list[i]);
         }
-        String list_string = String("[") + string_list.concatenate(",\n") + "]";
+        String list_string = String("[") + ListUtils::concatenate(string_list, ",\n") + "]";
         item->setText(1, list_string.toQString());
       }
       else if (it->value.valueType() == DataValue::DOUBLE_LIST)
@@ -568,7 +568,7 @@ namespace OpenMS
         {
           string_list.push_back(list[i]);
         }
-        String list_string = String("[") + string_list.concatenate(",\n") + "]";
+        String list_string = String("[") + ListUtils::concatenate(string_list, ",\n") + "]";
         item->setText(1, list_string.toQString());
       }
       else
@@ -870,7 +870,7 @@ namespace OpenMS
       }
       String list;
       list = child->text(1).mid(1, child->text(1).length() - 2);
-      StringList rlist = StringList::create(list);
+      StringList rlist = ListUtils::create<String>(list);
       for (UInt i = 0; i < rlist.size(); ++i)
       {
         rlist[i] = rlist[i].trim();

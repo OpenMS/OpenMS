@@ -214,7 +214,7 @@ START_SECTION((void load(const String &filename, ProteinIdentification &protein_
     NEW_TMP_FILE(filename)
     IdXMLFile().store(filename, pids, peptide_identifications);
     FuzzyStringComparator fuzzy;
-    fuzzy.setWhitelist(StringList::create("<?xml-stylesheet"));
+    fuzzy.setWhitelist(ListUtils::create<String>("<?xml-stylesheet"));
     fuzzy.setAcceptableAbsolute(0.0001);
     bool result = fuzzy.compareFiles(OPENMS_GET_TEST_DATA_PATH("MascotXMLFile_test_out_3.idXML"), filename);
     TEST_EQUAL(result, true);

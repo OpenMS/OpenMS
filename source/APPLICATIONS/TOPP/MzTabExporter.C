@@ -98,9 +98,9 @@ protected:
     void registerOptionsAndFlags_()
     {
       registerInputFile_("in", "<file>", "", "Input file annotated by ProteinQuantifier");
-      setValidFormats_("in", StringList::create("idXML"));
+      setValidFormats_("in", ListUtils::create<String>("idXML"));
       registerOutputFile_("out", "<file>", "", "Output file (mzTab)", true);
-      setValidFormats_("out", StringList::create("csv"));
+      setValidFormats_("out", ListUtils::create<String>("csv"));
     }
 
     ExitCodes main_(int, const char **)

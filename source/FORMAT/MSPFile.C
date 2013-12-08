@@ -37,6 +37,7 @@
 #include <OpenMS/KERNEL/RichPeak1D.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <fstream>
 
 using namespace std;
@@ -54,7 +55,7 @@ namespace OpenMS
     defaults_.setValue("parse_peakinfo", "true", "Flag whether the peak annotation information should be parsed and stored for each peak");
     defaults_.setValidStrings("parse_peakinfo", parse_strings);
     defaults_.setValue("instrument", "", "If instrument given, only spectra of these type of instrument (Inst= in header) are parsed");
-    defaults_.setValidStrings("instrument", StringList::create(",it,qtof,toftof"));
+    defaults_.setValidStrings("instrument", ListUtils::create<String>(",it,qtof,toftof"));
 
     defaultsToParam_();
   }

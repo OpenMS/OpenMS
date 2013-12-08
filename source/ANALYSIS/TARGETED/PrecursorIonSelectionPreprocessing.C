@@ -65,7 +65,7 @@ namespace OpenMS
     defaults_.setValue("rt_settings:gauss_mean", -1.0, "mean of the gauss curve");
     defaults_.setValue("rt_settings:gauss_sigma", 3., "std of the gauss curve");
     defaults_.setValue("precursor_mass_tolerance_unit", "ppm", "Precursor mass tolerance unit.");
-    defaults_.setValidStrings("precursor_mass_tolerance_unit", StringList::create("ppm,Da"));
+    defaults_.setValidStrings("precursor_mass_tolerance_unit", ListUtils::create<String>("ppm,Da"));
     defaults_.setValue("preprocessed_db_path", "", "Path where the preprocessed database should be stored");
     defaults_.setValue("preprocessed_db_pred_rt_path", "", "Path where the predicted rts of the preprocessed database should be stored");
     defaults_.setValue("preprocessed_db_pred_dt_path", "", "Path where the predicted rts of the preprocessed database should be stored");

@@ -34,6 +34,7 @@
 
 #include <OpenMS/APPLICATIONS/INIUpdater.h>
 #include <OpenMS/APPLICATIONS/ToolHandler.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 namespace OpenMS
 {
@@ -64,30 +65,30 @@ namespace OpenMS
   {
     if (map_.empty())
     {
-      map_[TDE("FeatureFinder", StringList::create("centroided"))] = TDE("FeatureFinderCentroided", StringList::create(""));
-      map_[TDE("FeatureFinder", StringList::create("isotope_wavelet"))] = TDE("FeatureFinderIsotopeWavelet", StringList::create(""));
-      map_[TDE("FeatureFinder", StringList::create("mrm"))] = TDE("FeatureFinderMRM", StringList::create(""));
+      map_[TDE("FeatureFinder", ListUtils::create<String>("centroided"))] = TDE("FeatureFinderCentroided", ListUtils::create<String>(""));
+      map_[TDE("FeatureFinder", ListUtils::create<String>("isotope_wavelet"))] = TDE("FeatureFinderIsotopeWavelet", ListUtils::create<String>(""));
+      map_[TDE("FeatureFinder", ListUtils::create<String>("mrm"))] = TDE("FeatureFinderMRM", ListUtils::create<String>(""));
 
-      map_[TDE("FeatureLinker", StringList::create("labeled"))] = TDE("FeatureLinkerLabeled", StringList::create(""));
-      map_[TDE("FeatureLinker", StringList::create("unlabeled"))] = TDE("FeatureLinkerUnlabeled", StringList::create(""));
-      map_[TDE("FeatureLinker", StringList::create("unlabeled_qt"))] = TDE("FeatureLinkerUnlabeledQT", StringList::create(""));
+      map_[TDE("FeatureLinker", ListUtils::create<String>("labeled"))] = TDE("FeatureLinkerLabeled", ListUtils::create<String>(""));
+      map_[TDE("FeatureLinker", ListUtils::create<String>("unlabeled"))] = TDE("FeatureLinkerUnlabeled", ListUtils::create<String>(""));
+      map_[TDE("FeatureLinker", ListUtils::create<String>("unlabeled_qt"))] = TDE("FeatureLinkerUnlabeledQT", ListUtils::create<String>(""));
 
-      map_[TDE("NoiseFilter", StringList::create("gaussian"))] = TDE("NoiseFilterGaussian", StringList::create(""));
-      map_[TDE("NoiseFilter", StringList::create("sgolay"))] = TDE("NoiseFilterSGolay", StringList::create(""));
+      map_[TDE("NoiseFilter", ListUtils::create<String>("gaussian"))] = TDE("NoiseFilterGaussian", ListUtils::create<String>(""));
+      map_[TDE("NoiseFilter", ListUtils::create<String>("sgolay"))] = TDE("NoiseFilterSGolay", ListUtils::create<String>(""));
 
-      map_[TDE("MapAligner", StringList::create("apply_given_trafo"))] = TDE("MapRTTransformer", StringList::create(""));
-      map_[TDE("MapAligner", StringList::create("identification"))] = TDE("MapAlignerIdentification", StringList::create(""));
-      map_[TDE("MapAligner", StringList::create("pose_clustering"))] = TDE("MapAlignerPoseClustering", StringList::create(""));
-      map_[TDE("MapAligner", StringList::create("spectrum_alignment"))] = TDE("MapAlignerSpectrum", StringList::create(""));
+      map_[TDE("MapAligner", ListUtils::create<String>("apply_given_trafo"))] = TDE("MapRTTransformer", ListUtils::create<String>(""));
+      map_[TDE("MapAligner", ListUtils::create<String>("identification"))] = TDE("MapAlignerIdentification", ListUtils::create<String>(""));
+      map_[TDE("MapAligner", ListUtils::create<String>("pose_clustering"))] = TDE("MapAlignerPoseClustering", ListUtils::create<String>(""));
+      map_[TDE("MapAligner", ListUtils::create<String>("spectrum_alignment"))] = TDE("MapAlignerSpectrum", ListUtils::create<String>(""));
 
-      map_[TDE("CompNovo", StringList::create("CompNovo"))] = TDE("CompNovo", StringList::create(""));
-      map_[TDE("CompNovo", StringList::create("CompNovoCID"))] = TDE("CompNovoCID", StringList::create(""));
+      map_[TDE("CompNovo", ListUtils::create<String>("CompNovo"))] = TDE("CompNovo", ListUtils::create<String>(""));
+      map_[TDE("CompNovo", ListUtils::create<String>("CompNovoCID"))] = TDE("CompNovoCID", ListUtils::create<String>(""));
 
       // SpectraFilter ...
       // PILISModel ...
 
-      map_[TDE("PeakPicker", StringList::create("wavelet"))] = TDE("PeakPickerWavelet", StringList::create(""));
-      map_[TDE("PeakPicker", StringList::create("high_res"))] = TDE("PeakPickerHiRes", StringList::create(""));
+      map_[TDE("PeakPicker", ListUtils::create<String>("wavelet"))] = TDE("PeakPickerWavelet", ListUtils::create<String>(""));
+      map_[TDE("PeakPicker", ListUtils::create<String>("high_res"))] = TDE("PeakPickerHiRes", ListUtils::create<String>(""));
 
       // ITRAQAnalyzer && MSSimulator: no need to list here, as the type simply was made optional (no additional tools)
 
@@ -101,7 +102,7 @@ namespace OpenMS
     new_name = "";
     // try with type (as some new tools for one type might have the exact same name as old ones with several types
     //                e.g., CompNovo
-    TDE old_withtype(old_name, StringList::create(tools_type));
+    TDE old_withtype(old_name, ListUtils::create<String>(tools_type));
     if (map_.has(old_withtype))
     {
       new_name = map_[old_withtype].name;

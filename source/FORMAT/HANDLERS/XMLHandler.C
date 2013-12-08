@@ -183,7 +183,8 @@ namespace OpenMS
         else if (d.valueType() == DataValue::STRING_LIST)
         {
           os << "stringList";
-          val = "[" + StringList(d).concatenate(",") + "]"; // manual concatenate, as operator<< inserts spaces, which are bad for reconstructing the list
+          StringList sld = d;
+          val = "[" + ListUtils::concatenate(sld, ",") + "]"; // manual concatenate, as operator<< inserts spaces, which are bad for reconstructing the list
         }
         else
         {

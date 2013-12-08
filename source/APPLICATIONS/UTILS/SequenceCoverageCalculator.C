@@ -75,11 +75,11 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in_database", "<file>", "", "input file containing the database in FASTA format");
-    setValidFormats_("in_database", StringList::create("fasta"));
+    setValidFormats_("in_database", ListUtils::create<String>("fasta"));
     registerInputFile_("in_peptides", "<file>", "", "input file containing the identified peptides");
-    setValidFormats_("in_peptides", StringList::create("idXML"), true);
+    setValidFormats_("in_peptides", ListUtils::create<String>("idXML"), true);
     registerOutputFile_("out", "<file>", "", "Optional text output file. If left out, the output is written to the command line.", false);
-    setValidFormats_("out", StringList::create("txt"));
+    setValidFormats_("out", ListUtils::create<String>("txt"));
   }
 
   void getStartAndEndIndex(const String & sequence, const String & substring, pair<Size, Size> & indices)

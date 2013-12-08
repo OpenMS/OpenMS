@@ -106,14 +106,14 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "Input qcml file");
-    setValidFormats_("in", StringList::create("qcML"));
+    setValidFormats_("in", ListUtils::create<String>("qcML"));
     //~ registerFlag_("tables", "Remove all tables. (Of all runs and sets if these are not given with parameter name or run.)");
     registerStringList_("qp_accessions", "<names>", StringList(), "A list of cv accessions that should be removed. If empty, the usual suspects will be removed!", false);
     registerStringOption_("name", "<string>", "", "The name of the target run or set that contains the requested quality parameter.", false);
     registerInputFile_("run", "<file>", "", "The file from which the name of the target run that contains the requested quality parameter is taken. This overrides the name parameter!", false);
-    setValidFormats_("run", StringList::create("mzML"));
+    setValidFormats_("run", ListUtils::create<String>("mzML"));
     registerOutputFile_("out", "<file>", "", "Output extended/reduced qcML file");
-    setValidFormats_("out", StringList::create("qcML"));
+    setValidFormats_("out", ListUtils::create<String>("qcML"));
   }
 
   ExitCodes main_(int, const char**)
@@ -142,11 +142,11 @@ protected:
 
     if (qp_accs.empty())
     {
-      qp_accs << "QC:0000044";
-      qp_accs << "QC:0000047";
-      qp_accs << "QC:0000022";
-      qp_accs << "QC:0000038";
-      qp_accs << "QC:0000049";
+      qp_accs.push_back("QC:0000044");
+      qp_accs.push_back("QC:0000047");
+      qp_accs.push_back("QC:0000022");
+      qp_accs.push_back("QC:0000038");
+      qp_accs.push_back("QC:0000049");
     }
 
     //TODO care for QualityParameter s

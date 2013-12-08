@@ -102,15 +102,15 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "input peak file ");
-    setValidFormats_("in", StringList::create("mzML,featureXML"));
+    setValidFormats_("in", ListUtils::create<String>("mzML,featureXML"));
     registerOutputFile_("out", "<file>", "", "output file ");
-    setValidFormats_("out", StringList::create("mzML,featureXML"));
+    setValidFormats_("out", ListUtils::create<String>("mzML,featureXML"));
     registerInputFile_("ref_peaks", "<file>", "", "input file containing reference m/z values (either as textfile with one m/z per line and no header or as idXML file)", false);
-    setValidFormats_("ref_peaks", StringList::create("csv,idXML"));
+    setValidFormats_("ref_peaks", ListUtils::create<String>("csv,idXML"));
     registerStringOption_("type", "<calibration type>", "spectrumwise", "The kind of internal calibration that should be applied.", false);
-    setValidStrings_("type", StringList::create("spectrumwise,global"));
+    setValidStrings_("type", ListUtils::create<String>("spectrumwise,global"));
     registerOutputFile_("trafo", "<file>", "", "output transformation file (only for global calibration)", false);
-    setValidFormats_("trafo", StringList::create("trafoXML"));
+    setValidFormats_("trafo", ListUtils::create<String>("trafoXML"));
     addEmptyLine_();
     registerSubsection_("algorithm", "Settings for the internal calibration.");
   }

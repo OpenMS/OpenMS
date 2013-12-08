@@ -33,6 +33,9 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ExtendedIsotopeFitter1D.h>
+
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+
 #include <numeric>
 #include <boost/math/special_functions/fpclassify.hpp>
 
@@ -44,12 +47,12 @@ namespace OpenMS
   {
     setName(getProductName());
 
-    defaults_.setValue("statistics:variance", 1.0, "Variance of the model.", StringList::create("advanced"));
-    defaults_.setValue("charge", 1, "Charge state of the model.", StringList::create("advanced"));
-    defaults_.setValue("isotope:stdev", 0.1, "Standard deviation of gaussian applied to the averagine isotopic pattern to simulate the inaccuracy of the mass spectrometer.", StringList::create("advanced"));
-    defaults_.setValue("isotope:monoisotopic_mz", 1.0, "Monoisotopic m/z of the model.", StringList::create("advanced"));
-    defaults_.setValue("isotope:maximum", 100, "Maximum isotopic rank to be considered.", StringList::create("advanced"));
-    defaults_.setValue("interpolation_step", 0.2, "Sampling rate for the interpolation of the model function.", StringList::create("advanced"));
+    defaults_.setValue("statistics:variance", 1.0, "Variance of the model.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("charge", 1, "Charge state of the model.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("isotope:stdev", 0.1, "Standard deviation of gaussian applied to the averagine isotopic pattern to simulate the inaccuracy of the mass spectrometer.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("isotope:monoisotopic_mz", 1.0, "Monoisotopic m/z of the model.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("isotope:maximum", 100, "Maximum isotopic rank to be considered.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("interpolation_step", 0.2, "Sampling rate for the interpolation of the model function.", ListUtils::create<String>("advanced"));
 
     defaultsToParam_();
   }

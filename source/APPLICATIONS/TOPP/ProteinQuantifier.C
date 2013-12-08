@@ -338,15 +338,15 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "Input file");
-    setValidFormats_("in", StringList::create("featureXML,consensusXML,idXML"));
+    setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML,idXML"));
     registerInputFile_("protxml", "<file>", "", "ProteinProphet results (protXML converted to idXML) for the identification runs that were used to annotate the input.\nInformation about indistinguishable proteins will be used for protein quantification.", false);
-    setValidFormats_("protxml", StringList::create("idXML"));
+    setValidFormats_("protxml", ListUtils::create<String>("idXML"));
     registerOutputFile_("out", "<file>", "", "Output file for protein abundances", false);
-    setValidFormats_("out", StringList::create("csv"));
+    setValidFormats_("out", ListUtils::create<String>("csv"));
     registerOutputFile_("peptide_out", "<file>", "", "Output file for peptide abundances", false);
-    setValidFormats_("peptide_out", StringList::create("csv"));
+    setValidFormats_("peptide_out", ListUtils::create<String>("csv"));
     registerOutputFile_("mzTab_out", "<file>", "", "Export to mzTab.\nEither 'out', 'peptide_out', or 'mzTab_out' are required. They can be used together.", false);
-    setValidFormats_("mzTab_out", StringList::create("csv"));
+    setValidFormats_("mzTab_out", ListUtils::create<String>("csv"));
 
     // algorithm parameters:
     addEmptyLine_();
@@ -358,7 +358,7 @@ protected:
     registerTOPPSubsection_("format", "Output formatting options");
     registerStringOption_("format:separator", "<sep>", "", "Character(s) used to separate fields; by default, the 'tab' character is used", false);
     registerStringOption_("format:quoting", "<method>", "double", "Method for quoting of strings: 'none' for no quoting, 'double' for quoting with doubling of embedded quotes,\n'escape' for quoting with backslash-escaping of embedded quotes", false);
-    setValidStrings_("format:quoting", StringList::create("none,double,escape"));
+    setValidStrings_("format:quoting", ListUtils::create<String>("none,double,escape"));
     registerStringOption_("format:replacement", "<x>", "_", "If 'quoting' is 'none', used to replace occurrences of the separator in strings before writing", false);
 
     // registerSubsection_("algorithm", "Algorithm parameters section");
@@ -400,9 +400,9 @@ protected:
            q_it->second.accessions.end(); ++acc_it)
       {
         String acc = *acc_it;
-        accessions << acc.substitute('/', '_');
+        accessions.push_back(acc.substitute('/', '_'));
       }
-      String protein = accessions.concatenate("/");
+      String protein = ListUtils::concatenate(accessions, "/");
       if (filter_charge)
       {
         // write individual abundances (one line for each charge state):
@@ -488,7 +488,7 @@ protected:
         StringList& accessions = leader_to_accessions[group_it->
                                                       accessions[0]];
         accessions = group_it->accessions;
-        for (StringList::Iterator acc_it = accessions.begin();
+        for (StringList::iterator acc_it = accessions.begin();
              acc_it != accessions.end(); ++acc_it)
         {
           acc_it->substitute('/', '_'); // to allow concatenation later
@@ -507,7 +507,7 @@ protected:
       }
       else
       {
-        out << leader_to_accessions[q_it->first].concatenate('/')
+        out << ListUtils::concatenate(leader_to_accessions[q_it->first], '/')
             << leader_to_accessions[q_it->first].size();
       }
       if (proteins_.getHits().empty())
@@ -566,16 +566,18 @@ protected:
     StringList relevant_params;
     if (proteins) // parameters relevant only for protein output
     {
-      relevant_params << "top" << "average" << "include_all";
+      relevant_params.push_back("top");
+      relevant_params.push_back("average");
+      relevant_params.push_back("include_all");
     }
-    relevant_params << "filter_charge"; // also relevant for peptide output
+    relevant_params.push_back("filter_charge"); // also relevant for peptide output
     if (files_.size() > 1) // flags only for consensusXML input
     {
-      relevant_params << "consensus:normalize";
-      if (proteins) relevant_params << "consensus:fix_peptides";
+      relevant_params.push_back("consensus:normalize");
+      if (proteins) relevant_params.push_back("consensus:fix_peptides");
     }
     String params;
-    for (StringList::Iterator it = relevant_params.begin();
+    for (StringList::iterator it = relevant_params.begin();
          it != relevant_params.end(); ++it)
     {
       String value = algo_params_.getValue(*it);
@@ -713,7 +715,7 @@ protected:
         if (la_it != leader_to_accessions.end()) // protein is group member
         {
           quantified_prot.back().setMetaValue("mzTab:ambiguity_members",
-                                              la_it->second.concatenate(","));
+                                              ListUtils::concatenate(la_it->second, ","));
         }
       }
       // annotate with abundance values:

@@ -37,6 +37,7 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeaFiModule.h>
 #include <OpenMS/MATH/STATISTICS/AveragePosition.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <queue>
 #include <iostream>
@@ -109,7 +110,7 @@ public:
       // priority check is per default switched off
       // these values were used for the Myoglobin quantification project
       // DON'T REMOVE THIS
-      this->defaults_.setValue("priority_thr", -0.1, "Minimum priority for data points to be included into the boundary of the feature (default 0.0). The priority of a data point is a function of its intensity and its distance to the last point included into the feature region. Setting this threshold to zero or a very small value is usually a good idea.", StringList::create("advanced"));
+      this->defaults_.setValue("priority_thr", -0.1, "Minimum priority for data points to be included into the boundary of the feature (default 0.0). The priority of a data point is a function of its intensity and its distance to the last point included into the feature region. Setting this threshold to zero or a very small value is usually a good idea.", ListUtils::create<String>("advanced"));
 
       this->defaults_.setValue("intensity_factor", 0.03, "Influences for intensity (ion count) threshold in the feature extension. We include only raw data points into this region if their intensity is larger than [intensity_factor * (intensity of the seed)].");
       this->defaults_.setMinFloat("intensity_factor", 0.0);

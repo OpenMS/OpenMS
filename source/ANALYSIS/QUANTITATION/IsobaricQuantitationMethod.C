@@ -60,7 +60,7 @@ namespace OpenMS
     Size channel_index = 0;
 
     // fill row-wise
-    for (StringList::ConstIterator it = stringlist.begin(); it != stringlist.end(); ++it)
+    for (StringList::const_iterator it = stringlist.begin(); it != stringlist.end(); ++it)
     {
       StringList corrections;
       it->split('/', corrections);

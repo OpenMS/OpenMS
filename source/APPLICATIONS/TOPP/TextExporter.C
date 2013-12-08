@@ -194,9 +194,9 @@ namespace OpenMS
   void writeFeatureHeader(SVOutStream& out, const String& suffix = "",
                           bool incl_quality = true, bool comment = true)
   {
-    StringList elements = StringList::create("#rt,mz,intensity,charge,width");
+    StringList elements = ListUtils::create<String>("#rt,mz,intensity,charge,width");
     if (!comment) elements[0] = "rt";
-    if (incl_quality) elements << "quality";
+    if (incl_quality) elements.push_back("quality");
     bool old = out.modifyStrings(false);
     for (StringList::iterator it = elements.begin(); it != elements.end(); ++it)
     {
@@ -394,13 +394,13 @@ namespace OpenMS
     void registerOptionsAndFlags_()
     {
       registerInputFile_("in", "<file>", "", "Input file ");
-      setValidFormats_("in", StringList::create("featureXML,consensusXML,idXML,mzML"));
+      setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML,idXML,mzML"));
       registerOutputFile_("out", "<file>", "", "Output file (mandatory for featureXML and idXML)", false);
-      setValidFormats_("out", StringList::create("csv"));
+      setValidFormats_("out", ListUtils::create<String>("csv"));
       registerStringOption_("separator", "<sep>", "", "The used separator character(s); if not set the 'tab' character is used", false);
       registerStringOption_("replacement", "<string>", "_", "Used to replace occurrences of the separator in strings before writing, if 'quoting' is 'none'", false);
       registerStringOption_("quoting", "<method>", "none", "Method for quoting of strings: 'none' for no quoting, 'double' for quoting with doubling of embedded quotes,\n'escape' for quoting with backslash-escaping of embedded quotes", false);
-      setValidStrings_("quoting", StringList::create("none,double,escape"));
+      setValidStrings_("quoting", ListUtils::create<String>("none,double,escape"));
       registerFlag_("no_ids", "Supresses output of identification data.");
       addEmptyLine_();
 
@@ -416,13 +416,13 @@ namespace OpenMS
 
       registerTOPPSubsection_("consensus", "Options for consensusXML input files");
       registerOutputFile_("consensus:centroids", "<file>", "", "Output file for centroids of consensus features", false);
-      setValidFormats_("consensus:centroids", StringList::create("csv"));
+      setValidFormats_("consensus:centroids", ListUtils::create<String>("csv"));
       registerOutputFile_("consensus:elements", "<file>", "", "Output file for elements of consensus features", false);
-      setValidFormats_("consensus:elements", StringList::create("csv"));
+      setValidFormats_("consensus:elements", ListUtils::create<String>("csv"));
       registerOutputFile_("consensus:features", "<file>", "", "Output file for consensus features and contained elements from all maps (writes 'nan's if elements are missing)", false);
-      setValidFormats_("consensus:features", StringList::create("csv"));
+      setValidFormats_("consensus:features", ListUtils::create<String>("csv"));
       registerStringOption_("consensus:sorting_method", "<method>", "none", "Sorting options can be combined. The precedence is: sort_by_size, sort_by_maps, sorting_method", false);
-      setValidStrings_("consensus:sorting_method", StringList::create("none,RT,MZ,RT_then_MZ,intensity,quality_decreasing,quality_increasing"));
+      setValidStrings_("consensus:sorting_method", ListUtils::create<String>("none,RT,MZ,RT_then_MZ,intensity,quality_decreasing,quality_increasing"));
       registerFlag_("consensus:sort_by_maps", "Apply a stable sort by the covered maps, lexicographically", false);
       registerFlag_("consensus:sort_by_size", "Apply a stable sort by decreasing size (i.e., the number of elements)", false);
     }
@@ -780,7 +780,7 @@ namespace OpenMS
             {
               --max_prot_run; // increased beyond max. at end of for-loop
             }
-            comments << pep_line;
+            comments.push_back(pep_line);
           }
 
           writeConsensusHeader(output, "Consensus features", in,
@@ -853,8 +853,8 @@ namespace OpenMS
                 {
                   acc_it->substitute('/', '_');
                 }
-                output << seqs.concatenate("/") << seqs.size()
-                       << accs.concatenate("/") << accs.size();
+                output << ListUtils::concatenate(seqs, "/") << seqs.size()
+                       << ListUtils::concatenate(accs, "/") << accs.size();
               }
             }
             output << nl;

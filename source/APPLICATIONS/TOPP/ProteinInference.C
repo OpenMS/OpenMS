@@ -100,9 +100,9 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "input file");
-    setValidFormats_("in", StringList::create("idXML"));
+    setValidFormats_("in", ListUtils::create<String>("idXML"));
     registerOutputFile_("out", "<file>", "", "output file");
-    setValidFormats_("out", StringList::create("idXML"));
+    setValidFormats_("out", ListUtils::create<String>("idXML"));
 
     addEmptyLine_();
     registerIntOption_("min_peptides_per_protein", "<num>", 2, "Minimal number of peptides needed for a protein identification", false);

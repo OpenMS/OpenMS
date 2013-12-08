@@ -121,9 +121,9 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "input file in mzML format.\n");
-    setValidFormats_("in", StringList::create("mzML"));
+    setValidFormats_("in", ListUtils::create<String>("mzML"));
     registerOutputFile_("out", "<file>", "", "output file in idXML format.\n");
-    setValidFormats_("out", StringList::create("idXML"));
+    setValidFormats_("out", ListUtils::create<String>("idXML"));
 
     registerSubsection_("Mascot_server", "Mascot server details");
     registerSubsection_("Mascot_parameters", "Mascot parameters used for searching");
@@ -179,9 +179,9 @@ protected:
     MascotGenericFile mgf_file;
     Param p;
     // TODO: switch this to mzML (much smaller)
-    p.setValue("internal:format", "Mascot generic", "Sets the format type of the peak list, this should not be changed unless you write the header only.", StringList::create("advanced"));
-    p.setValue("internal:HTTP_format", "true", "Write header with MIME boundaries instead of simple key-value pairs. For HTTP submission only.", StringList::create("advanced"));
-    p.setValue("internal:content", "all", "Use parameter header + the peak lists with BEGIN IONS... or only one of them.", StringList::create("advanced"));
+    p.setValue("internal:format", "Mascot generic", "Sets the format type of the peak list, this should not be changed unless you write the header only.", ListUtils::create<String>("advanced"));
+    p.setValue("internal:HTTP_format", "true", "Write header with MIME boundaries instead of simple key-value pairs. For HTTP submission only.", ListUtils::create<String>("advanced"));
+    p.setValue("internal:content", "all", "Use parameter header + the peak lists with BEGIN IONS... or only one of them.", ListUtils::create<String>("advanced"));
     mgf_file.setParameters(mascot_param);
 
     // get the spectra into string stream

@@ -97,18 +97,38 @@ START_SECTION((static std::vector<T> create(const String& s)))
 	TEST_EQUAL(dv[1], 3.5)
 
 	std::vector<Int> iv = ListUtils::create<Int>("1,5");
-	TEST_EQUAL(iv.size(),2);
+	TEST_EQUAL(iv.size(),2)
   ABORT_IF(iv.size() != 2)
 	TEST_EQUAL(iv[0], 1)
 	TEST_EQUAL(iv[1], 5)
 
 	IntList iv2 = ListUtils::create<Int>("2");
-	TEST_EQUAL(iv2.size(),1);
-	TEST_EQUAL(iv2[0],2);
+	TEST_EQUAL(iv2.size(),1)
+	TEST_EQUAL(iv2[0],2)
 
 	IntList iv3 = ListUtils::create<Int>("");
-	TEST_EQUAL(iv3.size(),0);
+	TEST_EQUAL(iv3.size(),0)
 
+  StringList sl1 = ListUtils::create<String>("test string,string2,last string");
+	TEST_EQUAL(sl1.size(),3)
+  ABORT_IF(sl1.size() != 3)
+  TEST_EQUAL(sl1[0], "test string")
+  TEST_EQUAL(sl1[1], "string2")
+  TEST_EQUAL(sl1[2], "last string")
+
+	StringList list = ListUtils::create<String>("yes,no");
+	TEST_EQUAL(list.size(),2)
+  ABORT_IF(list.size() != 2)
+	TEST_STRING_EQUAL(list[0],"yes")
+	TEST_STRING_EQUAL(list[1],"no")
+
+	StringList list2 = ListUtils::create<String>("no");
+	TEST_EQUAL(list2.size(),1)
+  ABORT_IF(list2.size() != 1)
+	TEST_STRING_EQUAL(list2[0],"no")
+
+	StringList list3 = ListUtils::create<String>("");
+	TEST_EQUAL(list3.size(),0)
 }
 END_SECTION
 
@@ -136,5 +156,39 @@ START_SECTION((static String concatenate(const std::vector<ContainerType>& conta
 	TEST_EQUAL(ListUtils::concatenate(tmp),"1\n2\n3\n")
 }
 END_SECTION
+
+START_SECTION((template<typename StringType> StringList& operator<<(StringList& sl, const StringType& string)))
+	StringList list;
+	list << "a" << "b" << "c" << "a";
+	TEST_EQUAL(list.size(),4)
+	ABORT_IF(list.size() != 4)
+	TEST_STRING_EQUAL(list[0],"a")
+	TEST_STRING_EQUAL(list[1],"b")
+	TEST_STRING_EQUAL(list[2],"c")
+	TEST_STRING_EQUAL(list[3],"a")
+END_SECTION
+
+START_SECTION((bool contains(const String& s) const))
+	StringList list = ListUtils::create<String>("yes,no");
+	TEST_EQUAL(ListUtils::contains(list, "yes"),true)
+	TEST_EQUAL(ListUtils::contains(list, "no"),true)
+	TEST_EQUAL(ListUtils::contains(list, "jup"),false)
+	TEST_EQUAL(ListUtils::contains(list, ""),false)
+	TEST_EQUAL(ListUtils::contains(list, "noe"),false)
+END_SECTION
+
+START_SECTION(bool contains(DoubleReal s, DoubleReal tolerance=0.00001) const)
+  DoubleList list = ListUtils::create<DoubleReal>("1.2,3.4");
+  TEST_EQUAL(ListUtils::contains(list, 1.2),true)
+  TEST_EQUAL(ListUtils::contains(list, 1.21),false)
+  TEST_EQUAL(ListUtils::contains(list, 1.19),false)
+  TEST_EQUAL(ListUtils::contains(list, 1.21,0.02),true)
+  TEST_EQUAL(ListUtils::contains(list, 1.19,0.02),true)
+  TEST_EQUAL(ListUtils::contains(list, 3.4),true)
+  TEST_EQUAL(ListUtils::contains(list, 4.2),false)
+  TEST_EQUAL(ListUtils::contains(list, 2),false)
+  TEST_EQUAL(ListUtils::contains(list, 0),false)
+END_SECTION
+
 
 END_TEST

@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2013.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
 // $Authors: Chris Bielow $
@@ -37,6 +37,8 @@
 ///////////////////////////
 #include <OpenMS/SIMULATION/LABELING/ITRAQLabeler.h>
 ///////////////////////////
+
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -68,7 +70,7 @@ START_SECTION((void preCheck(Param &param) const ))
   Param p;
   p.setValue("RawTandemSignal:status", "MS^E");
   TEST_EXCEPTION(Exception::InvalidParameter, i.preCheck(p));
-  
+
   p.setValue("RawTandemSignal:status", "precursor");
   i.preCheck(p); // should work
 }
@@ -84,7 +86,7 @@ START_SECTION((void setUpHook(FeatureMapSimVector &)))
 
   // add another map
   Param p = i.getParameters();
-  p.setValue("channel_active_4plex", StringList::create("114:myReference, 117:blabla"), "Four-plex only: Each channel that was used in the experiment and its description (114-117) in format <channel>:<name>, e.g. \"114:myref\",\"115:liver\"."); 
+  p.setValue("channel_active_4plex", ListUtils::create<String>("114:myReference, 117:blabla"), "Four-plex only: Each channel that was used in the experiment and its description (114-117) in format <channel>:<name>, e.g. \"114:myref\",\"115:liver\".");
   i.setParameters(p);
   f_maps.push_back(FeatureMap<>());
   i.setUpHook(f_maps);
@@ -98,7 +100,7 @@ END_SECTION
 START_SECTION((void postDigestHook(FeatureMapSimVector &)))
 {
   ITRAQLabeler i;
-  
+
   FeatureMapSimVector f_maps;
   FeatureMap<> fm1, fm2, fm3;
 
@@ -124,19 +126,19 @@ START_SECTION((void postDigestHook(FeatureMapSimVector &)))
   PeptideIdentification pep_id3;
   pep_id3.insertHit(pep_hit3);
 
-  // generate Feature 
-  Feature f1;        
+  // generate Feature
+  Feature f1;
   f1.getPeptideIdentifications().push_back(pep_id);
   fm1.push_back(f1);
   fm2.push_back(f1);
 
-  // generate Feature 
-  Feature f2;        
+  // generate Feature
+  Feature f2;
   f2.getPeptideIdentifications().push_back(pep_id2);
   fm3.push_back(f2);
 
-  // generate Feature 
-  Feature f3;        
+  // generate Feature
+  Feature f3;
   f3.getPeptideIdentifications().push_back(pep_id3);
   fm3.push_back(f3);
 
@@ -152,7 +154,7 @@ START_SECTION((void postDigestHook(FeatureMapSimVector &)))
   TEST_EQUAL(f_maps.size(), 1)
 
   TEST_EQUAL(f_maps[0].size(), 2)
-  
+
   TEST_EQUAL(f_maps[0][0].getPeptideIdentifications()[0].getHits()[0].getProteinAccessions().size(), 1)
   TEST_EQUAL(f_maps[0][1].getPeptideIdentifications()[0].getHits()[0].getProteinAccessions().size(), 2)
 
@@ -204,7 +206,7 @@ START_SECTION((void postRawTandemMSHook(FeatureMapSimVector &, MSSimExperiment &
   exp.addSpectrum(spec);
 
   MSSimExperiment exp2=exp;
-  
+
   std::vector<DoubleReal> eb(4);
   DoubleList elution_bounds(eb);
   elution_bounds[0] = 100; elution_bounds[1] = 509.2; elution_bounds[2] = 120; elution_bounds[3] = 734.3;
@@ -230,9 +232,9 @@ START_SECTION((void postRawTandemMSHook(FeatureMapSimVector &, MSSimExperiment &
   Param p;
   p = i.getParameters();
   // no isotope skewing
-  StringList iso = StringList::create("114:0/0/100/0,115:0/0/0/0,116:0/0/0/0,117:0/100/0/0");
+  StringList iso = ListUtils::create<String>("114:0/0/100/0,115:0/0/0/0,116:0/0/0/0,117:0/100/0/0");
   p.setValue("isotope_correction_values_4plex", iso);
-  StringList ch = StringList::create("114:c1,115:c2,116:c3,117:c4");
+  StringList ch = ListUtils::create<String>("114:c1,115:c2,116:c3,117:c4");
   p.setValue("channel_active_4plex", ch);
   p.setValue("iTRAQ", "4plex");
   i.setParameters(p);
@@ -250,7 +252,7 @@ START_SECTION((void postRawTandemMSHook(FeatureMapSimVector &, MSSimExperiment &
   exp=exp2;//revert
 
   // with isotope skewing
-  iso = StringList::create("113:0/0/100/0,"
+  iso = ListUtils::create<String>("113:0/0/100/0,"
                            "114:0/0/50 /0,"
                            "115:0/100/0/0,"
                            "116:0/0/100/0,"
@@ -259,7 +261,7 @@ START_SECTION((void postRawTandemMSHook(FeatureMapSimVector &, MSSimExperiment &
                            "119:0/0/100/0,"
                            "121:0/100/0/0");
   p.setValue("isotope_correction_values_8plex", iso);
-  ch = StringList::create("113:ch0,114:c1,115:c2,116:c3,117:c4,118:c5,119:c6,121:c7");
+  ch = ListUtils::create<String>("113:ch0,114:c1,115:c2,116:c3,117:c4,118:c5,119:c6,121:c7");
   p.setValue("channel_active_8plex", ch);
   p.setValue("iTRAQ", "8plex");
   i.setParameters(p);

@@ -42,7 +42,6 @@
 namespace OpenMS
 {
   class Identification;
-  class StringList;
 
   /**
       @brief File adapter for HUPO PSI TraML files

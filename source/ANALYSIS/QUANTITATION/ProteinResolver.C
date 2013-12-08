@@ -37,6 +37,7 @@
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 //#include <algorithm>
 
@@ -58,7 +59,7 @@ namespace OpenMS
     defaults_.setValue("resolver:min_length", 6, "Minimum length of peptide");
     defaults_.setMinInt("resolver:min_length", 1);
     defaults_.setValue("resolver:enzyme", "Trypsin", "Digestion enzyme");
-    defaults_.setValidStrings("resolver:enzyme", StringList::create("Trypsin"));
+    defaults_.setValidStrings("resolver:enzyme", ListUtils::create<String>("Trypsin"));
 
     defaults_.setSectionDescription("resolver", "Additional options for algorithm");
 

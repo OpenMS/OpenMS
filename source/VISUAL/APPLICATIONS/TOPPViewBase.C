@@ -440,7 +440,7 @@ namespace OpenMS
     //button menu
     group_unassigned_2d_ = new QActionGroup(dm_unassigned_2d_);
     menu = new QMenu(dm_unassigned_2d_);
-    StringList options = StringList::create(
+    StringList options = ListUtils::create<String>(
       "Don't show,Show by precursor m/z,Show by peptide mass");
     for (StringList::iterator opt_it = options.begin(); opt_it != options.end();
          ++opt_it)
@@ -585,22 +585,22 @@ namespace OpenMS
   {
     //general
     defaults_.setValue("preferences:default_map_view", "2d", "Default visualization mode for maps.");
-    defaults_.setValidStrings("preferences:default_map_view", StringList::create("2d,3d"));
+    defaults_.setValidStrings("preferences:default_map_view", ListUtils::create<String>("2d,3d"));
     defaults_.setValue("preferences:default_path", ".", "Default path for loading and storing files.");
     defaults_.setValue("preferences:default_path_current", "true", "If the current path is preferred over the default path.");
-    defaults_.setValidStrings("preferences:default_path_current", StringList::create("true,false"));
+    defaults_.setValidStrings("preferences:default_path_current", ListUtils::create<String>("true,false"));
     defaults_.setValue("preferences:tmp_file_path", QDir::tempPath(), "Path where temporary files can be created.");
     defaults_.setValue("preferences:number_of_recent_files", 15, "Number of recent files in the main menu.");
     defaults_.setMinInt("preferences:number_of_recent_files", 5);
     defaults_.setMaxInt("preferences:number_of_recent_files", 20);
     defaults_.setValue("preferences:legend", "show", "Legend visibility");
-    defaults_.setValidStrings("preferences:legend", StringList::create("show,hide"));
+    defaults_.setValidStrings("preferences:legend", ListUtils::create<String>("show,hide"));
     defaults_.setValue("preferences:intensity_cutoff", "off", "Low intensity cutoff for maps.");
-    defaults_.setValidStrings("preferences:intensity_cutoff", StringList::create("on,off"));
+    defaults_.setValidStrings("preferences:intensity_cutoff", ListUtils::create<String>("on,off"));
     defaults_.setValue("preferences:on_file_change", "ask", "What action to take, when a data file changes. Do nothing, update automatically or ask the user.");
-    defaults_.setValidStrings("preferences:on_file_change", StringList::create("none,ask,update automatically"));
+    defaults_.setValidStrings("preferences:on_file_change", ListUtils::create<String>("none,ask,update automatically"));
     defaults_.setValue("preferences:topp_cleanup", "true", "If the temporary files for calling of TOPP tools should be removed after the call.");
-    defaults_.setValidStrings("preferences:topp_cleanup", StringList::create("true,false"));
+    defaults_.setValidStrings("preferences:topp_cleanup", ListUtils::create<String>("true,false"));
     //db
     defaults_.setValue("preferences:db:host", "localhost", "Database server host name.");
     defaults_.setValue("preferences:db:login", "NoName", "Database login.");

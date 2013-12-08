@@ -418,7 +418,7 @@ namespace OpenMS
     setParameter(SVM_TYPE, svm_get_svm_type(model_));
     file.load(model_filename, true);
 
-    it = file.search("kernel_type");
+    it = StringListUtils::searchPrefix(file.begin(), file.end(), "kernel_type");
     if (it != file.end())
     {
       it->split(' ', parts);

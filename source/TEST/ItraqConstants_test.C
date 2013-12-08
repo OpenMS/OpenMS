@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2013.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
 // $Authors: Chris Bielow $
@@ -37,6 +37,8 @@
 ///////////////////////////
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqConstants.h>
 ///////////////////////////
+
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -71,17 +73,17 @@ START_SECTION((static StringList getIsotopeMatrixAsStringList(const int itraq_ty
 
   {
 		StringList ics = ItraqConstants::getIsotopeMatrixAsStringList(ItraqConstants::FOURPLEX, ic);
-		StringList t_ics = StringList::create("114:0/1/5.9/0.2,115:0/2/5.6/0.1,116:0/3/4.5/0.1,117:0.1/4/3.5/0.1");
+		StringList t_ics = ListUtils::create<String>("114:0/1/5.9/0.2,115:0/2/5.6/0.1,116:0/3/4.5/0.1,117:0.1/4/3.5/0.1");
 		TEST_EQUAL(ics, t_ics);
 	}
-	{	
+	{
 		StringList ics = ItraqConstants::getIsotopeMatrixAsStringList(ItraqConstants::EIGHTPLEX, ic);
-		StringList t_ics = StringList::create("113:0/0/6.89/0.22,114:0/0.94/5.9/0.16,115:0/1.88/4.9/0.1,116:0/2.82/3.9/0.07,117:0.06/3.77/2.99/0,118:0.09/4.71/1.88/0,119:0.14/5.66/0.87/0,121:0.27/7.44/0.18/0");
+		StringList t_ics = ListUtils::create<String>("113:0/0/6.89/0.22,114:0/0.94/5.9/0.16,115:0/1.88/4.9/0.1,116:0/2.82/3.9/0.07,117:0.06/3.77/2.99/0,118:0.09/4.71/1.88/0,119:0.14/5.66/0.87/0,121:0.27/7.44/0.18/0");
 		TEST_EQUAL(ics, t_ics);
-	}	 
+	}
   {
     StringList ics = ItraqConstants::getIsotopeMatrixAsStringList(ItraqConstants::TMT_SIXPLEX, ic);
-    StringList t_ics = StringList::create("126:0/0/0/0,127:0/0/0/0,128:0/0/0/0,129:0/0/0/0,130:0/0/0/0,131:0/0/0/0");
+    StringList t_ics = ListUtils::create<String>("126:0/0/0/0,127:0/0/0/0,128:0/0/0/0,129:0/0/0/0,130:0/0/0/0,131:0/0/0/0");
     TEST_EQUAL(ics, t_ics);
   }
 }
@@ -95,13 +97,13 @@ START_SECTION((static void updateIsotopeMatrixFromStringList(const int itraq_typ
 	ic[1].setMatrix<8,4>(ItraqConstants::ISOTOPECORRECTIONS_EIGHTPLEX);
   ic[2].setMatrix<6,4>(ItraqConstants::ISOTOPECORRECTIONS_TMT_SIXPLEX);
 
-//StringList t_ics = StringList::create("114:0/1/5.9/0.2,115:0/2/5.6/0.1,116:0/3/4.5/0.1,117:0.1/4/3.5/0.1"); // the default
-	StringList t_ics = StringList::create("114:0/1/5.9/4.2,115:3/2/5.6/0.1,116:0/3/4.5/0.1,117:0.1/4/3.5/2");
-	
+//StringList t_ics = ListUtils::create<String>("114:0/1/5.9/0.2,115:0/2/5.6/0.1,116:0/3/4.5/0.1,117:0.1/4/3.5/0.1"); // the default
+	StringList t_ics = ListUtils::create<String>("114:0/1/5.9/4.2,115:3/2/5.6/0.1,116:0/3/4.5/0.1,117:0.1/4/3.5/2");
+
 	ic[0].setValue(0,3,4.2);
-	ic[0].setValue(1,0,3); 
+	ic[0].setValue(1,0,3);
 	ic[0].setValue(3,3,2);
-	 
+
 	ItraqConstants::IsotopeMatrices ic_new;
   ItraqConstants::updateIsotopeMatrixFromStringList(ItraqConstants::FOURPLEX, t_ics, ic_new);
 
@@ -117,8 +119,8 @@ START_SECTION((static void updateIsotopeMatrixFromStringList(const int itraq_typ
   ic[2].setValue(1,0,2.1);
   ic[2].setValue(4,3,5.1);
 
-  // StringList tmt_ics = StringList::create("126:0/0/0/0,127:0/0/0/0,128:0/0/0/0,129:0/0/0/0,130:0/0/0/0,131:0/0/0/0"); // the original one
-  StringList tmt_ics = StringList::create("126:0/0/3.4/0,127:2.1/0/0/0,128:0/0/0/0,129:0/0/0/0,130:0/0/0/5.1,131:0/0/0/0");
+  // StringList tmt_ics = ListUtils::create<String>("126:0/0/0/0,127:0/0/0/0,128:0/0/0/0,129:0/0/0/0,130:0/0/0/0,131:0/0/0/0"); // the original one
+  StringList tmt_ics = ListUtils::create<String>("126:0/0/3.4/0,127:2.1/0/0/0,128:0/0/0/0,129:0/0/0/0,130:0/0/0/5.1,131:0/0/0/0");
 
   ItraqConstants::IsotopeMatrices ic_tmt;
   ItraqConstants::updateIsotopeMatrixFromStringList(ItraqConstants::TMT_SIXPLEX, tmt_ics, ic_tmt);
@@ -135,18 +137,18 @@ START_SECTION((static void initChannelMap(const int itraq_type, ChannelMapType &
 {
 	ItraqConstants::ChannelMapType map;
   ItraqConstants::initChannelMap(ItraqConstants::EIGHTPLEX, map);
-  
+
   TEST_EQUAL(8, map.size());
   TEST_EQUAL(map[119].id, 6);
   TEST_EQUAL(map[119].active, false);
-  
+
 	ItraqConstants::ChannelMapType map4;
   ItraqConstants::initChannelMap(ItraqConstants::FOURPLEX, map4);
-  
+
   TEST_EQUAL(4, map4.size());
   TEST_EQUAL(map4[114].id, 0);
   TEST_EQUAL(map4[114].active, false);
-  
+
   ItraqConstants::ChannelMapType mapTMT;
   ItraqConstants::initChannelMap(ItraqConstants::TMT_SIXPLEX, mapTMT);
 
@@ -160,18 +162,18 @@ END_SECTION
 
 START_SECTION((static void updateChannelMap(const StringList& active_channels, ChannelMapType& map)))
 {
-	StringList active_channels = StringList::create("114:myReference");
+	StringList active_channels = ListUtils::create<String>("114:myReference");
 	ItraqConstants::ChannelMapType map;
-	
+
 	ItraqConstants::initChannelMap(ItraqConstants::FOURPLEX, map);
-	
+
   ItraqConstants::updateChannelMap(active_channels, map);
-  
+
   TEST_EQUAL(map[114].description, String("myReference"))
 	TEST_EQUAL(map[114].active, true);
-  
+
   // TMT
-  StringList activeTmtChannels = StringList::create("126:myReference,129:treated,131:control");
+  StringList activeTmtChannels = ListUtils::create<String>("126:myReference,129:treated,131:control");
   ItraqConstants::ChannelMapType tmtMap;
 
   ItraqConstants::initChannelMap(ItraqConstants::TMT_SIXPLEX, tmtMap);
@@ -202,7 +204,7 @@ START_SECTION((static Matrix<double> translateIsotopeMatrix(const int &itraq_typ
   ic[2].setMatrix<6,4>(ItraqConstants::ISOTOPECORRECTIONS_TMT_SIXPLEX);
 
   Matrix<double> channel_frequency = ItraqConstants::translateIsotopeMatrix(ItraqConstants::FOURPLEX, ic);
-	
+
 	std::cout << "CF: \n" << channel_frequency << "\n";
 	TEST_REAL_SIMILAR(channel_frequency.getValue(0,0), 0.929)
 	TEST_REAL_SIMILAR(channel_frequency.getValue(3,0), 0)

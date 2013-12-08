@@ -120,17 +120,17 @@ protected:
   {
 
     registerInputFile_("in", "<file>", "", "Input file");
-    setValidFormats_("in", StringList::create("mzML"));
+    setValidFormats_("in", ListUtils::create<String>("mzML"));
     registerOutputFile_("out", "<file>", "", "Output file");
-    setValidFormats_("out", StringList::create("idXML"));
+    setValidFormats_("out", ListUtils::create<String>("idXML"));
     registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 1.5, "Precursor mass tolerance", false);
     registerDoubleOption_("fragment_mass_tolerance", "<tolerance>", 0.3, "Fragment mass error", false);
 
     addEmptyLine_();
     registerStringOption_("precursor_error_units", "<unit>", "ppm", "Parent monoisotopic mass error units", false);
     registerStringOption_("fragment_error_units", "<unit>", "Da", "Fragment monoisotopic mass error units", false);
-    registerInputFile_("database", "<file>", "", "FASTA file or pro file. Non-existing relative file-names are looked up via'OpenMS.ini:id_db_dir'", true, false, StringList::create("skipexists"));
-    setValidFormats_("database", StringList::create("FASTA"));
+    registerInputFile_("database", "<file>", "", "FASTA file or pro file. Non-existing relative file-names are looked up via'OpenMS.ini:id_db_dir'", true, false, ListUtils::create<String>("skipexists"));
+    setValidFormats_("database", ListUtils::create<String>("FASTA"));
     vector<String> valid_strings;
     valid_strings.push_back("ppm");
     valid_strings.push_back("Da");
@@ -139,11 +139,11 @@ protected:
     registerIntOption_("min_precursor_charge", "<charge>", 1, "Minimum precursor charge", false);
     registerIntOption_("max_precursor_charge", "<charge>", 4, "Maximum precursor charge", false);
 
-    registerStringList_("fixed_modifications", "<mods>", StringList::create(""), "Fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
+    registerStringList_("fixed_modifications", "<mods>", ListUtils::create<String>(""), "Fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
     vector<String> all_mods;
     ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
     setValidStrings_("fixed_modifications", all_mods);
-    registerStringList_("variable_modifications", "<mods>", StringList::create(""), "Variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
+    registerStringList_("variable_modifications", "<mods>", ListUtils::create<String>(""), "Variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
     setValidStrings_("variable_modifications", all_mods);
     registerIntOption_("missed_cleavages", "<num>", 1, "Number of possible cleavage sites missed by the enzyme", false);
 
@@ -156,7 +156,7 @@ protected:
 #else
                        "tandem.exe",
 #endif
-                       "X!Tandem executable of the installation e.g. 'tandem.exe'", true, false, StringList::create("skipexists"));
+                       "X!Tandem executable of the installation e.g. 'tandem.exe'", true, false, ListUtils::create<String>("skipexists"));
     registerInputFile_("default_input_file", "<file>", "", "Default parameters input file, if not given default parameters are used", false);
     registerDoubleOption_("minimum_fragment_mz", "<num>", 150.0, "Minimum fragment mz", false);
     registerStringOption_("cleavage_site", "<cleavage site>", "[RK]|{P}", "Cleavage site of the used enzyme as regular expression ([RK]|{P} (i.e. tryptic clevage) is default, [X]|[X] (i.e. every site, \"...reset the scoring, maximum missed cleavage site parameter to something like 50\" - from the xtandem documentation).", false);

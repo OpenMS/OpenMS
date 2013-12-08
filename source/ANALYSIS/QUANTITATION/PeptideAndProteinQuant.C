@@ -35,6 +35,7 @@
 
 #include <OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <algorithm> // for "equal"
 
@@ -51,9 +52,9 @@ namespace OpenMS
     defaults_.setMinInt("top", 0);
 
     defaults_.setValue("average", "median", "Averaging method used to compute protein abundances from peptide abundances");
-    defaults_.setValidStrings("average", StringList::create("median,mean,sum"));
+    defaults_.setValidStrings("average", ListUtils::create<String>("median,mean,sum"));
 
-    StringList true_false = StringList::create("true,false");
+    StringList true_false = ListUtils::create<String>("true,false");
 
     defaults_.setValue("include_all", "false", "Include results for proteins with fewer proteotypic peptides than indicated by 'top' (no effect if 'top' is 0 or 1)");
     defaults_.setValidStrings("include_all", true_false);
@@ -251,7 +252,7 @@ namespace OpenMS
            it != pep_accessions.end(); ++it)
       {
         map<String, String>::const_iterator pos = accession_to_leader.find(*it);
-        if (pos != accession_to_leader.end()) leaders << pos->second;
+        if (pos != accession_to_leader.end()) leaders.push_back(pos->second);
         // if the protein accession was not found, this is not an error:
         // if there's not enough evidence for a protein, it won't occur in
         // the protXML - so we also won't quantify it
@@ -278,7 +279,7 @@ namespace OpenMS
              proteins.getIndistinguishableProteins().begin(); pg_it !=
            proteins.getIndistinguishableProteins().end(); ++pg_it)
       {
-        for (StringList::ConstIterator acc_it = pg_it->accessions.begin();
+        for (StringList::const_iterator acc_it = pg_it->accessions.begin();
              acc_it != pg_it->accessions.end(); ++acc_it)
         {
           // each accession should only occur once, but we don't check...

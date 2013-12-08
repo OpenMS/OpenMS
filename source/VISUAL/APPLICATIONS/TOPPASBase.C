@@ -39,6 +39,7 @@
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/VISUAL/TOPPASScene.h>
 #include <OpenMS/VISUAL/TOPPASWidget.h>
@@ -206,7 +207,7 @@ namespace OpenMS
     //general
     defaults_.setValue("preferences:default_path", ".", "Default path for loading and storing files.");
     defaults_.setValue("preferences:default_path_current", "true", "If the current path is preferred over the default path.");
-    defaults_.setValidStrings("preferences:default_path_current", StringList::create("true,false"));
+    defaults_.setValidStrings("preferences:default_path_current", ListUtils::create<String>("true,false"));
     defaults_.setValue("preferences:version", "none", "OpenMS version, used to check if the TOPPAS.ini is up-to-date");
 
     defaultsToParam_();

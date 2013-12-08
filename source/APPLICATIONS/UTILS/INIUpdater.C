@@ -100,12 +100,12 @@ protected:
   virtual void registerOptionsAndFlags_()
   {
     registerInputFileList_("in", "<files>", StringList(), "INI/TOPPAS files that need updating.");
-    setValidFormats_("in", StringList::create("ini,toppas"));
+    setValidFormats_("in", ListUtils::create<String>("ini,toppas"));
 
     registerFlag_("i", "in-place: Override given INI/TOPPAS files with new content (not compatible with -out)");
 
     registerOutputFileList_("out", "<files>", StringList(), "Optional list of output files (not compatible with -i).", false, false);
-    setValidFormats_("out", StringList::create("ini,toppas"));
+    setValidFormats_("out", ListUtils::create<String>("ini,toppas"));
   }
 
   void updateTOPPAS(const String& infile, const String& outfile)
@@ -284,7 +284,7 @@ protected:
 
 
     // update sections
-    writeDebug_("Section names: " + sections.concatenate(", "), 1);
+    writeDebug_("Section names: " + ListUtils::concatenate(sections, ", "), 1);
     bool update_success = true;
     for (Size s = 0; s < sections.size(); ++s)
     {
@@ -397,7 +397,7 @@ protected:
 
     if (failed_.size() > 0)
     {
-      writeLog_("The following INI/TOPPAS files could not be updated:\n  " + failed_.concatenate("\n  "));
+      writeLog_("The following INI/TOPPAS files could not be updated:\n  " + ListUtils::concatenate(failed_, "\n  "));
       return INPUT_FILE_CORRUPT;
     }
 

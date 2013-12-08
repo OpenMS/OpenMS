@@ -132,17 +132,17 @@ protected:
                                                 "mascotXML: Single Mascot XML file.\n"
                                                 "omssaXML: Single OMSSA XML file.\n"
                                                 "idXML: Single idXML file.\n", true);
-    setValidFormats_("in", StringList::create("pepXML,protXML,mascotXML,omssaXML,idXML"));
+    setValidFormats_("in", ListUtils::create<String>("pepXML,protXML,mascotXML,omssaXML,idXML"));
 
     registerOutputFile_("out", "<file>", "", "Output file", true);
     String formats("idXML,mzid,pepXML,FASTA");
-    setValidFormats_("out", StringList::create(formats));
+    setValidFormats_("out", ListUtils::create<String>(formats));
     registerStringOption_("out_type", "<type>", "", "output file type -- default: determined from file extension or content\n", false);
-    setValidStrings_("out_type", StringList::create(formats));
+    setValidStrings_("out_type", ListUtils::create<String>(formats));
 
     addEmptyLine_();
     registerInputFile_("mz_file", "<file>", "", "[Sequest, pepXML, mascotXML only] Retention times will be looked up in this file", false);
-    setValidFormats_("mz_file", StringList::create("mzML,mzXML,mzData"));
+    setValidFormats_("mz_file", ListUtils::create<String>("mzML,mzXML,mzData"));
     addEmptyLine_();
     registerFlag_("ignore_proteins_per_peptide", "[Sequest only] Workaround to deal with .out files that contain e.g. \"+1\" in references column,\n"
                                                  "but do not list extra references in subsequent lines (try -debug 3 or 4)", true);

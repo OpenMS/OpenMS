@@ -98,12 +98,12 @@ public:
 protected:
   void registerOptionsAndFlags_()
   {
-    registerInputFileList_("in", "<files>", StringList::create(""), "Input files");
-    setValidFormats_("in", StringList::create("mzML"));
+    registerInputFileList_("in", "<files>", ListUtils::create<String>(""), "Input files");
+    setValidFormats_("in", ListUtils::create<String>("mzML"));
     registerInputFile_("lib", "<file>", "", "searchable spectral library (MSP format)");
-    setValidFormats_("lib", StringList::create("msp"));
-    registerOutputFileList_("out", "<files>", StringList::create(""), "Output files. Have to be as many as input files");
-    setValidFormats_("out", StringList::create("idXML"));
+    setValidFormats_("lib", ListUtils::create<String>("msp"));
+    registerOutputFileList_("out", "<files>", ListUtils::create<String>(""), "Output files. Have to be as many as input files");
+    setValidFormats_("out", ListUtils::create<String>("idXML"));
     registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 3, "Precursor mass tolerance, (Th)", false);
     registerIntOption_("round_precursor_to_integer", "<number>", 10, "many precursor m/z multipling number lead to the same number; are packed in the same vector for faster search.Should be higher for high-resolution data", false, true);
     // registerDoubleOption_("fragment_mass_tolerance","<tolerance>",0.3,"Fragment mass error",false);
@@ -130,10 +130,10 @@ protected:
 
     vector<String> all_mods;
     ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
-    registerStringList_("fixed_modifications", "<mods>", StringList::create(""), "fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
+    registerStringList_("fixed_modifications", "<mods>", ListUtils::create<String>(""), "fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
     setValidStrings_("fixed_modifications", all_mods);
 
-    registerStringList_("variable_modifications", "<mods>", StringList::create(""), "variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
+    registerStringList_("variable_modifications", "<mods>", ListUtils::create<String>(""), "variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
     setValidStrings_("variable_modifications", all_mods);
     addEmptyLine_();
   }

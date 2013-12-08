@@ -35,6 +35,7 @@
 #include <OpenMS/ANALYSIS/ID/ConsensusID.h>
 #include <OpenMS/DATASTRUCTURES/StringList.h>
 #include <OpenMS/DATASTRUCTURES/SeqanIncludeWrapper.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 
 #include <map>
@@ -138,7 +139,7 @@ namespace OpenMS
                                                  "PEPMatrix -- calculates a consensus score based on posterior error probabilities and scoring matrices for siimilarity. This algorithm uses the PAM30MS matrix to score sequences not listed by all engines. Make sure to use PeptideIdentifications with score types converted to PEPs only!\n"
                                                  "PEPIons -- calculates a consensus score based on posterior error probabilities and fragment ion siimilarity. Make sure to use PeptideIdentifications with score types converted to PEPs only!\n"
                                                  "Minimum -- calculates a consensus score based on the minimal score. Make sure to use PeptideIdentifications with score types converted to PEPs only!\n");
-    defaults_.setValidStrings("algorithm", StringList::create("ranked,average,PEPMatrix,PEPIons,Minimum"));
+    defaults_.setValidStrings("algorithm", ListUtils::create<String>("ranked,average,PEPMatrix,PEPIons,Minimum"));
     defaults_.setValue("considered_hits", 10, "The number of top hits that are used for the consensus scoring.");
     defaults_.setMinInt("considered_hits", 1);
     defaults_.setValue("PEPIons:MinNumberOfFragments", 2, "The minimal number of similar (between two suggested sequences) fragment ion masses that is necessary to evaluate the shared peak count similarity (SPC).");
@@ -188,7 +189,7 @@ namespace OpenMS
     }
     else
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Algorithm '" + algorithm + "' was used but is not known! Please fix to something valid: " + StringList(defaults_.getEntry("algorithm").valid_strings).concatenate(", ") + "!");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Algorithm '" + algorithm + "' was used but is not known! Please fix to something valid: " + ListUtils::concatenate(StringList(defaults_.getEntry("algorithm").valid_strings), ", ") + "!");
     }
     ids[0].assignRanks();
 

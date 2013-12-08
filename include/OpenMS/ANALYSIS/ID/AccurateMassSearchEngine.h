@@ -43,6 +43,7 @@
 #include <OpenMS/FORMAT/MzTab.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/SYSTEM/File.h>
 
@@ -196,7 +197,7 @@ private:
        String ion_mode_detect_msg = "";
        if (map.size() > 0 && map[0].metaValueExists("scan_polarity"))
        {
-         StringList pols = StringList::create(String(map[0].getMetaValue("scan_polarity")), ';');
+         StringList pols = ListUtils::create<String>(String(map[0].getMetaValue("scan_polarity")), ';');
          if (pols.size() == 1 && pols[0].size() > 0)
          {
             pols[0].toLower();

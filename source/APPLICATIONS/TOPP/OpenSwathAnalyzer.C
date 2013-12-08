@@ -115,7 +115,7 @@ protected:
     registerStringOption_("model:type", "<name>", default_model, "Type of model", false, true);
     StringList model_types;
     TransformationDescription::getModelTypes(model_types);
-    if (!model_types.contains(default_model))
+    if (!ListUtils::contains(model_types, default_model))
     {
       model_types.insert(model_types.begin(), default_model);
     }
@@ -133,18 +133,18 @@ protected:
   {
     registerInputFile_("in", "<file>", "",
                        "input file containing the chromatograms." /* , false */);
-    setValidFormats_("in", StringList::create("mzML"));
+    setValidFormats_("in", ListUtils::create<String>("mzML"));
 
     registerInputFile_("tr", "<file>", "", "transition file");
-    setValidFormats_("tr", StringList::create("TraML"));
+    setValidFormats_("tr", ListUtils::create<String>("TraML"));
 
     registerInputFile_("rt_norm", "<file>", "",
                        "RT normalization file (how to map the RTs of this run to the ones stored in the library)",
                        false);
-    setValidFormats_("rt_norm", StringList::create("trafoXML"));
+    setValidFormats_("rt_norm", ListUtils::create<String>("trafoXML"));
 
     registerOutputFile_("out", "<file>", "", "output file");
-    setValidFormats_("out", StringList::create("featureXML"));
+    setValidFormats_("out", ListUtils::create<String>("featureXML"));
 
     registerFlag_("no-strict",
                   "run in non-strict mode and allow some chromatograms to not be mapped.");
@@ -155,7 +155,7 @@ protected:
                            "Swath files that were used to extract the transitions. "
                            "If present, SWATH specific scoring will be used.",
                            false);
-    setValidFormats_("swath_files", StringList::create("mzML"));
+    setValidFormats_("swath_files", ListUtils::create<String>("mzML"));
 
     registerDoubleOption_("min_upper_edge_dist", "<double>", 0.0,
                           "[applies only if you have full MS2 spectra maps] "
@@ -274,7 +274,7 @@ protected:
       }
 
       OpenSwath::LightTargetedExperiment transition_exp_used;
-      bool do_continue = OpenSwathHelper::checkSwathMapAndSelectTransitions(*swath_map.get(), transition_exp, transition_exp_used, min_upper_edge_dist);  
+      bool do_continue = OpenSwathHelper::checkSwathMapAndSelectTransitions(*swath_map.get(), transition_exp, transition_exp_used, min_upper_edge_dist);
 
       if (do_continue)
       {

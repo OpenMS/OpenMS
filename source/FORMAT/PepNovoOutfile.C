@@ -35,6 +35,7 @@
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/PepNovoOutfile.h>
 #include <OpenMS/SYSTEM/File.h>
 
@@ -205,7 +206,7 @@ namespace OpenMS
           {
             if (substrings.size() >= 4)
             {
-              StringList parts = StringList::create(substrings[3], '_');
+              StringList parts = ListUtils::create<String>(substrings[3], '_');
               if (parts.size() >= 2)
               {
                 peptide_identification.setMetaValue("RT", parts[1].toDouble());

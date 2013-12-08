@@ -34,6 +34,7 @@
 
 #include <OpenMS/CHEMISTRY/SvmTheoreticalSpectrumGenerator.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/CONCEPT/Constants.h>
@@ -190,42 +191,42 @@ namespace OpenMS
     defaults_.setValue("model_file_name", "examples/simulation/SvmMSim.model", "Name of the probabilistic Model file");
 
     defaults_.setValue("add_isotopes", "false", "If set to 1 isotope peaks of the product ion peaks are added");
-    defaults_.setValidStrings("add_isotopes", StringList::create("true,false"));
+    defaults_.setValidStrings("add_isotopes", ListUtils::create<String>("true,false"));
 
     defaults_.setValue("max_isotope", 2, "Defines the maximal isotopic peak which is added, add_isotopes must be set to 1");
 
     defaults_.setValue("add_metainfo", "false", "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
-    defaults_.setValidStrings("add_metainfo", StringList::create("true,false"));
+    defaults_.setValidStrings("add_metainfo", ListUtils::create<String>("true,false"));
 
     defaults_.setValue("add_first_prefix_ion", "false", "If set to true e.g. b1 ions are added");
-    defaults_.setValidStrings("add_first_prefix_ion", StringList::create("true,false"));
+    defaults_.setValidStrings("add_first_prefix_ion", ListUtils::create<String>("true,false"));
 
     defaults_.setValue("hide_y_ions", "false", "Add peaks of y-ions to the spectrum");
-    defaults_.setValidStrings("hide_y_ions", StringList::create("true,false"));
+    defaults_.setValidStrings("hide_y_ions", ListUtils::create<String>("true,false"));
 
     defaults_.setValue("hide_y2_ions", "false", "Add peaks of y-ions to the spectrum");
-    defaults_.setValidStrings("hide_y2_ions", StringList::create("true,false"));
+    defaults_.setValidStrings("hide_y2_ions", ListUtils::create<String>("true,false"));
 
     defaults_.setValue("hide_b_ions", "false", "Add peaks of b-ions to the spectrum");
-    defaults_.setValidStrings("hide_b_ions", StringList::create("true,false"));
+    defaults_.setValidStrings("hide_b_ions", ListUtils::create<String>("true,false"));
 
     defaults_.setValue("hide_b2_ions", "false", "Add peaks of b-ions to the spectrum");
-    defaults_.setValidStrings("hide_b2_ions", StringList::create("true,false"));
+    defaults_.setValidStrings("hide_b2_ions", ListUtils::create<String>("true,false"));
 
     defaults_.setValue("hide_a_ions", "false", "Add peaks of a-ions to the spectrum");
-    defaults_.setValidStrings("hide_a_ions", StringList::create("true,false"));
+    defaults_.setValidStrings("hide_a_ions", ListUtils::create<String>("true,false"));
 
     defaults_.setValue("hide_c_ions", "false", "Add peaks of c-ions to the spectrum");
-    defaults_.setValidStrings("hide_c_ions", StringList::create("true,false"));
+    defaults_.setValidStrings("hide_c_ions", ListUtils::create<String>("true,false"));
 
     defaults_.setValue("hide_x_ions", "false", "Add peaks of  x-ions to the spectrum");
-    defaults_.setValidStrings("hide_x_ions", StringList::create("true,false"));
+    defaults_.setValidStrings("hide_x_ions", ListUtils::create<String>("true,false"));
 
     defaults_.setValue("hide_z_ions", "false", "Add peaks of z-ions to the spectrum");
-    defaults_.setValidStrings("hide_z_ions", StringList::create("true,false"));
+    defaults_.setValidStrings("hide_z_ions", ListUtils::create<String>("true,false"));
 
     defaults_.setValue("hide_losses", "false", "Adds common losses to those ion expect to have them, only water and ammonia loss is considered");
-    defaults_.setValidStrings("hide_losses", StringList::create("true,false"));
+    defaults_.setValidStrings("hide_losses", ListUtils::create<String>("true,false"));
 
     // intensity options of the ions
     defaults_.setValue("y_intensity", 1.0, "Intensity of the y-ions");
@@ -564,8 +565,8 @@ namespace OpenMS
     String path_to_models = File().path(svm_info_file) + "/";
     info_file.load(svm_info_file);
 
-    TextFile::iterator left_marker = info_file.search("<PrecursorCharge>");
-    TextFile::iterator right_marker = info_file.search("</PrecursorCharge>");
+    TextFile::iterator left_marker = StringListUtils::searchPrefix(info_file, "<PrecursorCharge>");
+    TextFile::iterator right_marker = StringListUtils::searchPrefix(info_file, "</PrecursorCharge>");
     if (left_marker == right_marker)
     {
       //Todo throw different exception (File Corrupt)
@@ -574,8 +575,8 @@ namespace OpenMS
     ++left_marker;
     precursor_charge_ = left_marker->toInt();
 
-    left_marker = info_file.search("<PrimaryTypes>");
-    right_marker = info_file.search("</PrimaryTypes>");
+    left_marker = StringListUtils::searchPrefix(info_file, "<PrimaryTypes>");
+    right_marker = StringListUtils::searchPrefix(info_file, "</PrimaryTypes>");
     if (left_marker == right_marker)
     {
       //Todo throw different exception (File Corrupt)
@@ -583,8 +584,8 @@ namespace OpenMS
     }
 
     //Now read the primary types and load the corresponding svm models
-    left_marker = info_file.search(left_marker, "<IonType>");
-    right_marker = info_file.search(left_marker, "<ScalingUpper>");
+    left_marker = StringListUtils::searchPrefix(left_marker, info_file.end(), "<IonType>");
+    right_marker = StringListUtils::searchPrefix(left_marker, info_file.end(), "<ScalingUpper>");
     while (left_marker < right_marker)
     {
       ++left_marker;
@@ -593,7 +594,7 @@ namespace OpenMS
       UInt charge = (left_marker++)->toInt();
       mp_.ion_types.push_back(IonType(res, loss, charge));
 
-      left_marker = info_file.search(left_marker, "<SvmModelFileClass>");
+      left_marker = StringListUtils::searchPrefix(left_marker, info_file.end(), "<SvmModelFileClass>");
       String svm_filename(*(++left_marker));
 
       boost::shared_ptr<SVMWrapper> sh_ptr_c(new SVMWrapper);
@@ -603,7 +604,7 @@ namespace OpenMS
       LOG_INFO << "SVM model file loaded: " << svm_filename << std::endl;
 
 
-      left_marker = info_file.search(left_marker, "<SvmModelFileReg>");
+      left_marker = StringListUtils::searchPrefix(left_marker, info_file.end(), "<SvmModelFileReg>");
       svm_filename = *(++left_marker);
 
       boost::shared_ptr<SVMWrapper> sh_ptr_r(new SVMWrapper);
@@ -612,24 +613,24 @@ namespace OpenMS
       mp_.reg_models.push_back(sh_ptr_r);
       LOG_INFO << "SVM model file loaded: " << svm_filename << std::endl;
 
-      left_marker = info_file.search(left_marker, "<IonType>");
+      left_marker = StringListUtils::searchPrefix(left_marker, info_file.end(), "<IonType>");
     }
 
     //Read the upper and lower bounds for the feature vectors (used for scaling)
     left_marker = right_marker;
     mp_.scaling_upper = (++left_marker)->toDouble();
 
-    left_marker = info_file.search(left_marker, "<ScalingLower>");
+    left_marker = StringListUtils::searchPrefix(left_marker, info_file.end(), "<ScalingLower>");
     mp_.scaling_lower = (++left_marker)->toDouble();
 
-    left_marker = info_file.search(left_marker, "<MaxFeatures>");
-    right_marker = info_file.search(left_marker, "</MaxFeatures>");
+    left_marker = StringListUtils::searchPrefix(left_marker, info_file.end(), "<MaxFeatures>");
+    right_marker = StringListUtils::searchPrefix(left_marker, info_file.end(), "</MaxFeatures>");
     while (++left_marker != right_marker)
     {
       mp_.feature_max.push_back(left_marker->toDouble());
     }
-    left_marker = info_file.search(right_marker, "<MinFeatures>");
-    right_marker = info_file.search(right_marker, "</MinFeatures>");
+    left_marker = StringListUtils::searchPrefix(right_marker, info_file.end(), "<MinFeatures>");
+    right_marker = StringListUtils::searchPrefix(right_marker, info_file.end(), "</MinFeatures>");
     while (++left_marker != right_marker)
     {
       mp_.feature_min.push_back(left_marker->toDouble());
@@ -638,8 +639,8 @@ namespace OpenMS
     std::vector<IonType> sec_ion_types;
 
     //Load the secondary types
-    left_marker = info_file.search(left_marker, "<SecondaryTypes>");
-    right_marker = info_file.search(left_marker, "</SecondaryTypes>");
+    left_marker = StringListUtils::searchPrefix(left_marker, info_file.end(), "<SecondaryTypes>");
+    right_marker = StringListUtils::searchPrefix(left_marker, info_file.end(), "</SecondaryTypes>");
 
     if (++left_marker == right_marker)
     {
@@ -647,29 +648,29 @@ namespace OpenMS
       return; //if no secondary types are set we quit
     }
 
-    left_marker = info_file.search(left_marker, "<IntensityLevels>");
-    right_marker = info_file.search(left_marker, "</IntensityLevels>");
+    left_marker = StringListUtils::searchPrefix(left_marker, info_file.end(), "<IntensityLevels>");
+    right_marker = StringListUtils::searchPrefix(left_marker, info_file.end(), "</IntensityLevels>");
     if (left_marker != right_marker)
     {
       mp_.number_intensity_levels = (++left_marker)->toInt();
     }
 
-    left_marker = info_file.search(left_marker, "<IntensityBinBoarders>");
-    right_marker = info_file.search(left_marker, "</IntensityBinBoarders>");
+    left_marker = StringListUtils::searchPrefix(left_marker, info_file.end(), "<IntensityBinBoarders>");
+    right_marker = StringListUtils::searchPrefix(left_marker, info_file.end(), "</IntensityBinBoarders>");
     while (++left_marker != right_marker)
     {
       mp_.intensity_bin_boarders.push_back(left_marker->toDouble());
     }
 
-    left_marker = info_file.search(left_marker, "<IntensityBinValues>");
-    right_marker = info_file.search(left_marker, "</IntensityBinValues>");
+    left_marker = StringListUtils::searchPrefix(left_marker, info_file.end(), "<IntensityBinValues>");
+    right_marker = StringListUtils::searchPrefix(left_marker, info_file.end(), "</IntensityBinValues>");
     while (++left_marker != right_marker)
     {
       mp_.intensity_bin_values.push_back(left_marker->toDouble());
     }
 
-    left_marker = info_file.search(left_marker, "<IonType>");
-    right_marker = info_file.search(left_marker, "</IonType>");
+    left_marker = StringListUtils::searchPrefix(left_marker, info_file.end(), "<IonType>");
+    right_marker = StringListUtils::searchPrefix(left_marker, info_file.end(), "</IonType>");
     while (left_marker != right_marker)
     {
       //load type information
@@ -681,11 +682,11 @@ namespace OpenMS
       sec_ion_types.push_back(actual_type);
 
       //load conditional probabilities
-      left_marker = info_file.search(left_marker, "<ConditionalProbabilities>");
+      left_marker = StringListUtils::searchPrefix(left_marker, info_file.end(), "<ConditionalProbabilities>");
 
       Size region = 0;
-      left_marker = info_file.search(left_marker, "<Region " + String(region) + ">");
-      right_marker = info_file.search(left_marker, "</IonType>");
+      left_marker = StringListUtils::searchPrefix(left_marker, info_file.end(), "<Region " + String(region) + ">");
+      right_marker = StringListUtils::searchPrefix(left_marker, info_file.end(), "</IonType>");
       while (left_marker < right_marker)
       {
         mp_.conditional_prob[std::make_pair(actual_type, region)].assign(mp_.number_intensity_levels, std::vector<DoubleReal>(mp_.number_intensity_levels));
@@ -697,12 +698,12 @@ namespace OpenMS
           }
         }
         ++region;
-        left_marker = info_file.search(left_marker, "<Region " + String(region) + ">");
+        left_marker = StringListUtils::searchPrefix(left_marker, info_file.end(), "<Region " + String(region) + ">");
       }
       mp_.number_regions = region;
 
-      left_marker = info_file.search(right_marker, "<IonType>");
-      right_marker = info_file.search(left_marker, "</IonType>");
+      left_marker = StringListUtils::searchPrefix(right_marker, info_file.end(), "<IonType>");
+      right_marker = StringListUtils::searchPrefix(left_marker, info_file.end(), "</IonType>");
     }
 
 

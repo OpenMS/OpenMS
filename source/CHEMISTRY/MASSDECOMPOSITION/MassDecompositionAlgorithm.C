@@ -48,16 +48,16 @@ namespace OpenMS
     alphabet_(0),
     decomposer_(0)
   {
-    defaults_.setValue("decomp_weights_precision", 0.01, "precision used to calculate the decompositions, this only affects cache usage!", StringList::create("advanced"));
+    defaults_.setValue("decomp_weights_precision", 0.01, "precision used to calculate the decompositions, this only affects cache usage!", ListUtils::create<String>("advanced"));
     defaults_.setValue("tolerance", 0.3, "tolerance which is allowed for the decompositions");
 
     vector<String> all_mods;
     ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
-    defaults_.setValue("fixed_modifications", StringList::create(""), "fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'");
+    defaults_.setValue("fixed_modifications", ListUtils::create<String>(""), "fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'");
     defaults_.setValidStrings("fixed_modifications", all_mods);
-    defaults_.setValue("variable_modifications", StringList::create(""), "variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'");
+    defaults_.setValue("variable_modifications", ListUtils::create<String>(""), "variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'");
     defaults_.setValidStrings("variable_modifications", all_mods);
-    defaults_.setValue("residue_set", "Natural19WithoutI", "The predefined amino acid set that should be used, see doc of ResidueDB for possible residue sets", StringList::create("advanced"));
+    defaults_.setValue("residue_set", "Natural19WithoutI", "The predefined amino acid set that should be used, see doc of ResidueDB for possible residue sets", ListUtils::create<String>("advanced"));
     set<String> residue_sets = ResidueDB::getInstance()->getResidueSets();
     vector<String> valid_strings;
     for (set<String>::const_iterator it = residue_sets.begin(); it != residue_sets.end(); ++it)
@@ -111,7 +111,7 @@ namespace OpenMS
     }
 
     // now handle the modifications
-    ModificationDefinitionsSet mod_set((StringList) param_.getValue("fixed_modifications"), (StringList) param_.getValue("variable_modifications"));
+    ModificationDefinitionsSet mod_set(param_.getValue("fixed_modifications"), param_.getValue("variable_modifications"));
     set<ModificationDefinition> fixed_mods = mod_set.getFixedModifications();
     for (set<ModificationDefinition>::const_iterator it = fixed_mods.begin(); it != fixed_mods.end(); ++it)
     {
@@ -145,7 +145,7 @@ namespace OpenMS
       }
     }
 
-    const StringList mod_names(StringList::create("a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z"));
+    const StringList mod_names(ListUtils::create<String>("a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z"));
     vector<String>::const_iterator actual_mod_name = mod_names.begin();
     set<ModificationDefinition> var_mods = mod_set.getVariableModifications();
     for (set<ModificationDefinition>::const_iterator it = var_mods.begin(); it != var_mods.end(); ++it)

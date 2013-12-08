@@ -40,6 +40,7 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <gsl/gsl_rng.h>
 #include <gsl/gsl_vector.h>
@@ -68,11 +69,11 @@ public:
     TraceFitter() :
       DefaultParamHandler("TraceFitter")
     {
-      defaults_.setValue("max_iteration", 500, "Maximum number of iterations used by the Levenberg-Marquardt algorithm.", StringList::create("advanced"));
-      defaults_.setValue("epsilon_abs", 0.0001, "Absolute error used by the Levenberg-Marquardt algorithm.", StringList::create("advanced"));
-      defaults_.setValue("epsilon_rel", 0.0001, "Relative error used by the Levenberg-Marquardt algorithm.", StringList::create("advanced"));
-      defaults_.setValue("weighted", "false", "Weight mass traces according to their theoretical intensities.", StringList::create("advanced"));
-      defaults_.setValidStrings("weighted", StringList::create("true,false"));
+      defaults_.setValue("max_iteration", 500, "Maximum number of iterations used by the Levenberg-Marquardt algorithm.", ListUtils::create<String>("advanced"));
+      defaults_.setValue("epsilon_abs", 0.0001, "Absolute error used by the Levenberg-Marquardt algorithm.", ListUtils::create<String>("advanced"));
+      defaults_.setValue("epsilon_rel", 0.0001, "Relative error used by the Levenberg-Marquardt algorithm.", ListUtils::create<String>("advanced"));
+      defaults_.setValue("weighted", "false", "Weight mass traces according to their theoretical intensities.", ListUtils::create<String>("advanced"));
+      defaults_.setValidStrings("weighted", ListUtils::create<String>("true,false"));
       defaultsToParam_();
     }
 

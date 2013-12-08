@@ -137,7 +137,7 @@ protected:
   bool getVersion_(const String& version, MyriMatchVersion& myrimatch_version_i) const
   {
     // we expect three components
-    IntList nums = ListUtils::create<Int>(StringList::create(version, '.'));
+    IntList nums = ListUtils::create<Int>(ListUtils::create<String>(version, '.'));
     if (nums.size() != 3) return false;
 
     myrimatch_version_i.myrimatch_major = nums[0];
@@ -214,44 +214,44 @@ protected:
     addEmptyLine_();
 
     registerInputFile_("in", "<file>", "", "Input file ");
-    setValidFormats_("in", StringList::create("mzML"));
+    setValidFormats_("in", ListUtils::create<String>("mzML"));
     registerOutputFile_("out", "<file>", "", "Output file ");
-    setValidFormats_("out", StringList::create("idXML"));
+    setValidFormats_("out", ListUtils::create<String>("idXML"));
     registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 1.5, "Precursor mono mass tolerance.", false);
 
     registerStringOption_("precursor_mass_tolerance_unit", "<unit>", "Da", "Unit to be used for precursor mass tolerance.", false);
-    setValidStrings_("precursor_mass_tolerance_unit", StringList::create("Da,ppm"));
+    setValidStrings_("precursor_mass_tolerance_unit", ListUtils::create<String>("Da,ppm"));
 
     registerFlag_("precursor_mass_tolerance_avg", "If this flag is set, the average mass is used in the precursor mass tolerance.");
     registerDoubleOption_("fragment_mass_tolerance", "<tolerance>", 0.3, "Fragment mass error in Dalton", false);
 
     registerStringOption_("fragment_mass_tolerance_unit", "<unit>", "Da", "Unit to be used for fragment mass tolerance.", false);
-    setValidStrings_("fragment_mass_tolerance_unit", StringList::create("Da,ppm"));
+    setValidStrings_("fragment_mass_tolerance_unit", ListUtils::create<String>("Da,ppm"));
 
     registerInputFile_("database", "<fasta-file>", "", "FASTA protein database.", true, false);
-    setValidFormats_("database", StringList::create("FASTA"));
+    setValidFormats_("database", ListUtils::create<String>("FASTA"));
 
     registerIntOption_("min_precursor_charge", "<charge>", 1, "Minimum precursor ion charge", false);
     registerIntOption_("max_precursor_charge", "<charge>", 3, "Maximum precursor ion charge", false);
     vector<String> all_mods;
     ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
-    registerStringList_("fixed_modifications", "<mods>", StringList::create(""),
+    registerStringList_("fixed_modifications", "<mods>", ListUtils::create<String>(""),
                         "Fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
     setValidStrings_("fixed_modifications", all_mods);
-    registerStringList_("variable_modifications", "<mods>", StringList::create(""),
+    registerStringList_("variable_modifications", "<mods>", ListUtils::create<String>(""),
                         "Variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'.", false);
     setValidStrings_("variable_modifications", all_mods);
 
     addEmptyLine_();
     registerInputFile_("myrimatch_executable", "<executable>", "myrimatch",
-                       "The 'myrimatch' executable of the MyriMatch installation", true, false, StringList::create("skipexists"));
+                       "The 'myrimatch' executable of the MyriMatch installation", true, false, ListUtils::create<String>("skipexists"));
     registerIntOption_("NumChargeStates", "<num>", 3, "The number of charge states that MyriMatch will handle during all stages of the program.", false);
     registerDoubleOption_("TicCutoffPercentage", "<percentage>", 0.98, "Noise peaks are filtered out by sorting the original peaks in descending order of intensity, and then picking peaks from that list until the cumulative ion current of the picked peaks divided by the total ion current (TIC) is greater than or equal to this parameter.", false);
 
     registerIntOption_("MaxDynamicMods", "<num>", 2, "This parameter sets the maximum number of modified residues that may be in any candidate sequence.", false);
     registerIntOption_("MaxResultRank", "<rank>", 5, "This parameter sets the maximum rank of peptide-spectrum-matches to report for each spectrum.", false);
     registerStringOption_("CleavageRules", "<rule>", "", "This parameter allows the user to control the way peptides are generated from the protein database.", false);
-    setValidStrings_("CleavageRules", StringList::create("Trypsin,Trypsin/P,Chymotrypsin,TrypChymo,Lys-C,Lys-C/P,Asp-N,PepsinA,CNBr,Formic_acid,NoEnzyme"));
+    setValidStrings_("CleavageRules", ListUtils::create<String>("Trypsin,Trypsin/P,Chymotrypsin,TrypChymo,Lys-C,Lys-C/P,Asp-N,PepsinA,CNBr,Formic_acid,NoEnzyme"));
 
     registerIntOption_("MinTerminiCleavages", "<num>", 2, "By default, when generating peptides from the protein database, a peptide must start and end at a valid cleavage site. Setting this parameter to 0 or 1 will reduce that requirement, so that neither terminus or only one terminus of the peptide must match one of the cleavage rules specified in the CleavageRules parameter. This parameter is useful to turn a tryptic digest into a semi-tryptic digest.", false); // TODO: Description copied from MM doc
     registerIntOption_("MaxMissedCleavages", "<num>", -1, "By default, when generating peptides from the protein database, a peptide may contain any number of missed cleavages. A missed cleavage is a site within the peptide that matches one of the cleavage rules (refer to CleavageRules). Settings this parameter to some other number will stop generating peptides from a sequence if it contains more than the specified number of missed cleavages.", false); // TODO: Description copied from MM doc
@@ -338,9 +338,9 @@ protected:
     StringList dynamic_mod_list;
     translateModifications(static_mod_list, dynamic_mod_list);
     if (!static_mod_list.empty())
-      parameters << "-StaticMods" << static_mod_list.concatenate(" ");
+      parameters << "-StaticMods" << ListUtils::concatenate(static_mod_list, " ");
     if (!dynamic_mod_list.empty())
-      parameters << "-DynamicMods" << dynamic_mod_list.concatenate(" ");
+      parameters << "-DynamicMods" << ListUtils::concatenate(dynamic_mod_list, " ");
 
     parameters << "-ProteinDatabase"  << File::absolutePath(db_name);
 
@@ -409,7 +409,7 @@ protected:
     //-------------------------------------------------------------
     QStringList qparam;
     writeDebug_("MyriMatch arguments:", 1);
-    writeDebug_(String("\"") + parameters.concatenate("\" \"") + "\"", 1);
+    writeDebug_(String("\"") + ListUtils::concatenate(parameters, "\" \"") + "\"", 1);
     for (Size i = 0; i < parameters.size(); ++i)
     {
       qparam << parameters[i].toQString();

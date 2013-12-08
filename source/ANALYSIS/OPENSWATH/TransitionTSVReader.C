@@ -41,8 +41,8 @@ namespace OpenMS
   TransitionTSVReader::TransitionTSVReader() :
     DefaultParamHandler("TransitionTSVReader")
   {
-    defaults_.setValue("retentionTimeInterpretation", "iRT", "How to interpret the provided retention time (the retention time column can either be interpreted to be in iRT, minutes or seconds)", StringList::create("advanced"));
-    defaults_.setValidStrings("retentionTimeInterpretation", StringList::create("iRT,seconds,minutes"));
+    defaults_.setValue("retentionTimeInterpretation", "iRT", "How to interpret the provided retention time (the retention time column can either be interpreted to be in iRT, minutes or seconds)", ListUtils::create<String>("advanced"));
+    defaults_.setValidStrings("retentionTimeInterpretation", ListUtils::create<String>("iRT,seconds,minutes"));
 
     // write defaults into Param object param_
     defaultsToParam_();
@@ -162,7 +162,7 @@ namespace OpenMS
     {
       if (header_dict.find(header_names_[requiredFields[i]]) == header_dict.end())
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "I determined that your your csv/tsv file has the delimiter " + (String)txt_delimiter + 
+        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "I determined that your your csv/tsv file has the delimiter " + (String)txt_delimiter +
             ".\nBut the parsed header does not have the required field \""+ (String)header_names_[requiredFields[i]] + "\". Please check your input file.");
       }
     }
@@ -197,8 +197,8 @@ namespace OpenMS
 
       if (tmp_line.size() != header_dict.size())
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
-            "Error reading the file on line " + String(cnt) + ": length of the header and length of the line" + 
+        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+            "Error reading the file on line " + String(cnt) + ": length of the header and length of the line" +
             " do not match: " + String(tmp_line.size()) + " != " + String(header_dict.size()) );
       }
       TSVTransition mytransition;
@@ -222,7 +222,7 @@ namespace OpenMS
       }
       else
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
+        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
             "Expected a header named RetentionTime or Tr_recalibrated but found none");
       }
 
@@ -687,8 +687,8 @@ namespace OpenMS
     }
     else
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
-          "Error, could not parse modifications on " + tr_it->FullPeptideName + 
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+          "Error, could not parse modifications on " + tr_it->FullPeptideName +
           ". Please use unimod / freetext identifiers like PEPT(Phosphorylation)IDE(UniMod:27)A.");
     }
 
@@ -698,8 +698,8 @@ namespace OpenMS
     tmp_proteins.push_back(tr_it->ProteinName);
     peptide.protein_refs = tmp_proteins;
 
-    OPENMS_POSTCONDITION(aa_sequence.toUnmodifiedString() == peptide.sequence, 
-        (String("Internal error: the sequences of the naked and modified peptide sequence are unequal(") 
+    OPENMS_POSTCONDITION(aa_sequence.toUnmodifiedString() == peptide.sequence,
+        (String("Internal error: the sequences of the naked and modified peptide sequence are unequal(")
           + aa_sequence.toUnmodifiedString() + " != " + peptide.sequence).c_str())
   }
 
@@ -842,7 +842,7 @@ namespace OpenMS
     {
 
       String line;
-      line += 
+      line +=
         (String)it->precursor                + "\t"
       + (String)it->product                  + "\t"
       + (String)it->rt_calibrated            + "\t"

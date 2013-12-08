@@ -108,9 +108,9 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "idXML-file, whereas the protein/peptide identifications must be tagged with file_origin");
-    setValidFormats_("in", StringList::create("idXML"));
+    setValidFormats_("in", ListUtils::create<String>("idXML"));
     registerOutputFile_("out", "<file>", "", "The path to the file is used as the output directory.", false, false);
-    setValidFormats_("out", StringList::create("idXML"));
+    setValidFormats_("out", ListUtils::create<String>("idXML"));
     registerStringOption_("out_path", "<file>", "", "Directory for the idXML-files after ripping according file_origin tag. If out_path is set, out is ignored.", false, false);
   }
 

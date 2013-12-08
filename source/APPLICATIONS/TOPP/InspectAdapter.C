@@ -150,10 +150,10 @@ protected:
   {
     registerInputFile_("in", "<file>", "", "input file in mzXML or mzData format.\n"
                                            "Note: In mode 'inspect_out' an Inspect results file is read.");
-    setValidFormats_("in", StringList::create("mzXML,mzData"));
+    setValidFormats_("in", ListUtils::create<String>("mzXML,mzData"));
     registerOutputFile_("out", "<file>", "", "output file in idXML format.\n"
                                              "Note: In mode 'inspect_in' an Inspect input file is written.");
-    setValidFormats_("out", StringList::create("idXML"));
+    setValidFormats_("out", ListUtils::create<String>("idXML"));
     registerFlag_("inspect_in", "if this flag is set the InspectAdapter will read in mzXML,\n"
                                 "write an Inspect input file and generate a trie database");
     registerFlag_("inspect_out", "if this flag is set the InspectAdapter will read in a Inspect results file\n"
@@ -166,7 +166,7 @@ protected:
     registerStringOption_("instrument", "<i>", "", "the instrument that was used to measure the spectra\n"
                                                    "(If set to QTOF, uses a QTOF-derived fragmentation model,\n"
                                                    "and does not attempt to correct the parent mass.)", false);
-    setValidStrings_("instrument", StringList::create("ESI-ION-TRAP,QTOF,FT-Hybrid"));
+    setValidStrings_("instrument", ListUtils::create<String>("ESI-ION-TRAP,QTOF,FT-Hybrid"));
     registerDoubleOption_("precursor_mass_tolerance", "<tol>", 2.0, "the precursor mass tolerance", false);
     registerDoubleOption_("peak_mass_tolerance", "<tol>", 1.0, "the peak mass tolerance", false);
     registerFlag_("list_modifications", "show a list of the available modifications");
@@ -755,7 +755,7 @@ protected:
       Int status = QProcess::execute((inspect_directory + "inspect").toQString(), QStringList(call.toQString().split(" ", QString::SkipEmptyParts))); // does automatic escaping etc...
       if (status != 0)
       {
-        string_buffer = TextFile(inspect_logfile).concatenate();
+        string_buffer = ListUtils::concatenate(TextFile(inspect_logfile));
         writeLog_("Inspect problem: " + string_buffer + " Aborting!");
 
         exit_code = EXTERNAL_PROGRAM_ERROR;
@@ -802,7 +802,7 @@ protected:
       Int status = QProcess::execute((inspect_directory + "inspect").toQString(), QStringList(call.toQString().split(" ", QString::SkipEmptyParts))); // does automatic escaping etc...
       if (status != 0)
       {
-        string_buffer = TextFile(inspect_logfile).concatenate();
+        string_buffer = ListUtils::concatenate(TextFile(inspect_logfile));
         writeLog_("Inspect problem: " + string_buffer + ". Aborting!");
         exit_code =  EXTERNAL_PROGRAM_ERROR;
       }

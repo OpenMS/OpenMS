@@ -85,9 +85,9 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "file to validate");
-    setValidFormats_("in", StringList::create("mzML,mzData,featureXML,idXML,consensusXML,mzXML,ini,pepXML"));
+    setValidFormats_("in", ListUtils::create<String>("mzML,mzData,featureXML,idXML,consensusXML,mzXML,ini,pepXML"));
     registerInputFile_("schema", "<file>", "", "schema to validate against.\nIf no schema is given, the file is validated against the latest schema of the file type.", false);
-    setValidFormats_("schema", StringList::create("xsd"));    
+    setValidFormats_("schema", ListUtils::create<String>("xsd"));    
   }
 
   ExitCodes main_(int, const char**)

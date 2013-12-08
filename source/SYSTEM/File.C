@@ -41,6 +41,7 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 
@@ -509,7 +510,7 @@ namespace OpenMS
     p.setValue("version", VersionInfo::getVersion());
     p.setValue("home_dir", ""); // only active when user enters something in this value
     p.setValue("temp_dir", ""); // only active when user enters something in this value
-    p.setValue("id_db_dir", StringList::create(""),
+    p.setValue("id_db_dir", ListUtils::create<String>(""),
                String("Default directory for FASTA and psq files used as databased for id engines. ") + \
                "This allows you to specify just the filename of the DB in the " + \
                "respective TOPP tool, and the database will be searched in the directories specified here " + \

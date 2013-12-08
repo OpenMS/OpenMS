@@ -34,6 +34,7 @@
 
 #include <OpenMS/FORMAT/MascotRemoteQuery.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <QtGui/QTextDocument>
 #include <iostream>
@@ -60,27 +61,27 @@ namespace OpenMS
                                         "This is NOT the whole time the search takes, but the time in between two progress steps. Some Mascot servers freeze during this (unstable network etc) and idle forever"
                                         ", the connection is killed. Set this to 0 to disable timeout!");
     defaults_.setMinInt("timeout", 0);
-    defaults_.setValue("boundary", "GZWgAaYKjHFeUaLOLEIOMq", "Boundary for the MIME section", StringList::create("advanced"));
+    defaults_.setValue("boundary", "GZWgAaYKjHFeUaLOLEIOMq", "Boundary for the MIME section", ListUtils::create<String>("advanced"));
 
     // proxy settings
-    defaults_.setValue("use_proxy", "false", "Flag which enables the proxy usage for the http requests, please specify at least 'proxy_host' and 'proxy_port'", StringList::create("advanced"));
-    defaults_.setValidStrings("use_proxy", StringList::create("true,false"));
-    defaults_.setValue("proxy_host", "", "Host where the proxy server runs on", StringList::create("advanced"));
-    defaults_.setValue("proxy_port", 0, "Port where the proxy server listens", StringList::create("advanced"));
+    defaults_.setValue("use_proxy", "false", "Flag which enables the proxy usage for the http requests, please specify at least 'proxy_host' and 'proxy_port'", ListUtils::create<String>("advanced"));
+    defaults_.setValidStrings("use_proxy", ListUtils::create<String>("true,false"));
+    defaults_.setValue("proxy_host", "", "Host where the proxy server runs on", ListUtils::create<String>("advanced"));
+    defaults_.setValue("proxy_port", 0, "Port where the proxy server listens", ListUtils::create<String>("advanced"));
     defaults_.setMinInt("proxy_port", 0);
-    defaults_.setValue("proxy_username", "", "Login name for the proxy server, if needed", StringList::create("advanced"));
-    defaults_.setValue("proxy_password", "", "Login password for the proxy server, if needed", StringList::create("advanced"));
+    defaults_.setValue("proxy_username", "", "Login name for the proxy server, if needed", ListUtils::create<String>("advanced"));
+    defaults_.setValue("proxy_password", "", "Login password for the proxy server, if needed", ListUtils::create<String>("advanced"));
 
     // login for Mascot security
     defaults_.setValue("login", "false", "Flag which should be set 'true' if Mascot security is enabled; also set 'username' and 'password' then.");
-    defaults_.setValidStrings("login", StringList::create("true,false"));
+    defaults_.setValidStrings("login", ListUtils::create<String>("true,false"));
     defaults_.setValue("username", "", "Name of the user if login is used (Mascot security must be enabled!)");
     defaults_.setValue("password", "", "Password of the user if login is used (Mascot security must be enabled!)");
     defaults_.setValue("use_ssl", "false", "Flag indicating wether the server uses https or not.");
-    defaults_.setValidStrings("use_ssl", StringList::create("true,false"));
+    defaults_.setValidStrings("use_ssl", ListUtils::create<String>("true,false"));
 
     // Mascot export options
-    defaults_.setValue("export_params", "_sigthreshold=0.99&_showsubsets=1&show_same_sets=1&report=0&percolate=0&query_master=0", "Adjustable export parameters (passed to Mascot's 'export_dat_2.pl' script). Generally only parameters that control which hits to export are safe to adjust/add. Many settings that govern what types of information to include are required by OpenMS and cannot be changed. Note that setting 'query_master' to 1 may lead to incorrect protein references for peptides.", StringList::create("advanced"));
+    defaults_.setValue("export_params", "_sigthreshold=0.99&_showsubsets=1&show_same_sets=1&report=0&percolate=0&query_master=0", "Adjustable export parameters (passed to Mascot's 'export_dat_2.pl' script). Generally only parameters that control which hits to export are safe to adjust/add. Many settings that govern what types of information to include are required by OpenMS and cannot be changed. Note that setting 'query_master' to 1 may lead to incorrect protein references for peptides.", ListUtils::create<String>("advanced"));
     defaultsToParam_();
   }
 

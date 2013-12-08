@@ -31,12 +31,13 @@
 // $Maintainer: Clemens Groepl $
 // $Authors: Marc Sturm, Clemens Groepl, Steffen Sass $
 // --------------------------------------------------------------------------
+
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithm.h>
-
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
@@ -70,10 +71,10 @@ public:
 protected:
   void registerOptionsAndFlags_()   // only for "unlabeled" algorithms!
   {
-    registerInputFileList_("in", "<files>", StringList(), "input files separated by blanks", true);
-    setValidFormats_("in", StringList::create("featureXML,consensusXML"));
+    registerInputFileList_("in", "<files>", ListUtils::create<String>(""), "input files separated by blanks", true);
+    setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML"));
     registerOutputFile_("out", "<file>", "", "Output file", true);
-    setValidFormats_("out", StringList::create("consensusXML"));
+    setValidFormats_("out", ListUtils::create<String>("consensusXML"));
     addEmptyLine_();
     registerFlag_("keep_subelements", "For consensusXML input only: If set, the sub-features of the inputs are transferred to the output.");
   }
@@ -85,7 +86,7 @@ protected:
     // parameter handling
     //-------------------------------------------------------------
     StringList ins;
-    if (labeled) ins << getStringOption_("in");
+    if (labeled) ins.push_back(getStringOption_("in"));
     else ins = getStringList_("in");
     String out = getStringOption_("out");
 

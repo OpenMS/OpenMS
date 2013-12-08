@@ -43,6 +43,8 @@
 
 #include <OpenMS/SIMULATION/LABELING/BaseLabeler.h>
 
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+
 //#define OPENMS_DEBUG_SIM_
 
 using namespace std;
@@ -339,7 +341,7 @@ namespace OpenMS
     // here the globals params are listed that require to be in sync across several modules
     // - first the global param name and following that the module names where this param occurs
     // - Warning: the module params must have unchanged names and restrictions! (descriptions can differ though)
-    globals.push_back(StringList::create("ionization_type,Ionization,RawSignal,RawTandemSignal"));
+    globals.push_back(ListUtils::create<String>("ionization_type,Ionization,RawSignal,RawTandemSignal"));
 
     String global_prefix = "Global";
     // remove or add local params

@@ -95,9 +95,9 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "input file ");
-    setValidFormats_("in", StringList::create("idXML"));
+    setValidFormats_("in", ListUtils::create<String>("idXML"));
     registerOutputFile_("out", "<file>", "", "output file ");
-    setValidFormats_("out", StringList::create("idXML"));
+    setValidFormats_("out", ListUtils::create<String>("idXML"));
     registerDoubleOption_("calibrant_1_reference", "<RT>", 0.1, "The RT of the first calibrant in the reference file.", false);
     registerDoubleOption_("calibrant_2_reference", "<RT>", 0.9, "The RT of the second calibrant in the reference file.", false);
     registerDoubleOption_("calibrant_1_input", "<RT>", -1.0, "The RT of the first calibrant in the input file. Please note that this value needs to be set. The default value -1.0 is not allowed.", false);

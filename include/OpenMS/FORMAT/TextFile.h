@@ -45,11 +45,24 @@ namespace OpenMS
   @ingroup FileIO
   */
   class OPENMS_DLLAPI TextFile :
-    public StringList
+    public std::vector<String>
   {
 
 public:
-
+    /** @name Type definitions
+     */
+    //@{
+    /// Mutable iterator
+    typedef std::vector<String>::iterator Iterator;
+    /// Non-mutable iterator
+    typedef std::vector<String>::const_iterator ConstIterator;
+    /// Mutable reverse iterator
+    typedef std::vector<String>::reverse_iterator ReverseIterator;
+    /// Non-mutable reverse iterator
+    typedef std::vector<String>::const_reverse_iterator ConstReverseIterator;
+    //@}
+    
+    
     ///Default constructor
     TextFile();
 
@@ -57,35 +70,43 @@ public:
     virtual ~TextFile();
 
     /**
-        @brief Constructor with filename
+      @brief Constructor with filename
 
-        @param filename The input file name.
-        @param trim_lines Whether or not the lines are trimmed when reading them from file.
-        @param first_n If set, only @p first_n lines the lines from the beginning of the file are read.
+      @param filename The input file name.
+      @param trim_lines Whether or not the lines are trimmed when reading them from file.
+      @param first_n If set, only @p first_n lines the lines from the beginning of the file are read.
 
-            @exception Exception::FileNotFound is thrown if the file could not be opened.
+      @exception Exception::FileNotFound is thrown if the file could not be opened.
     */
     TextFile(const String & filename, bool trim_lines = false, Int first_n = -1);
 
     /**
-        @brief Loads data from a text file.
+      @brief Loads data from a text file.
 
-        @param filename The input file name.
-        @param trim_lines Whether or not the lines are trimmed when reading them from file.
-        @param first_n If set, only @p first_n lines the lines from the beginning of the file are read.
+      @param filename The input file name.
+      @param trim_lines Whether or not the lines are trimmed when reading them from file.
+      @param first_n If set, only @p first_n lines the lines from the beginning of the file are read.
 
-            @exception Exception::FileNotFound is thrown if the file could not be opened.
+      @exception Exception::FileNotFound is thrown if the file could not be opened.
     */
     void load(const String & filename, bool trim_lines = false, Int first_n = -1);
 
     /**
-        @brief Writes the data to a file
+      @brief Writes the data to a file
 
-        @note this function uses unix-style linebreaks
+      @note this function uses unix-style linebreaks
 
-            @exception Exception::UnableToCreateFile is thrown if the file could not be created
+      @exception Exception::UnableToCreateFile is thrown if the file could not be created
     */
     void store(const String & filename);
+    
+    /// Operator for appending entries with less code
+    template <typename StringType>
+    TextFile & operator<<(const StringType & string)
+    {
+      this->push_back(string);
+      return *this;
+    }
   };
 
 } // namespace OpenMS

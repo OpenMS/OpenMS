@@ -115,7 +115,7 @@ public:
     {
       //debugging
       defaults_.setValue("debug", "false", "When debug mode is activated, several files with intermediate results are written to the folder 'debug' (do not use in parallel mode).");
-      defaults_.setValidStrings("debug", StringList::create("true,false"));
+      defaults_.setValidStrings("debug", ListUtils::create<String>("true,false"));
       //intensity
       defaults_.setValue("intensity:bins", 10, "Number of bins per dimension (RT and m/z). The higher this value, the more local the intensity significance score is.\nThis parameter should be decreased, if the algorithm is used on small regions of a map.");
       defaults_.setMinInt("intensity:bins", 1);
@@ -137,22 +137,22 @@ public:
       defaults_.setMinInt("isotopic_pattern:charge_high", 1);
       defaults_.setValue("isotopic_pattern:mz_tolerance", 0.03, "Tolerated m/z deviation from the theoretical isotopic pattern.\nIt should be larger than the m/z resolution of the instrument.\nThis value must be smaller than that 1/charge_high!");
       defaults_.setMinFloat("isotopic_pattern:mz_tolerance", 0.0);
-      defaults_.setValue("isotopic_pattern:intensity_percentage", 10.0, "Isotopic peaks that contribute more than this percentage to the overall isotope pattern intensity must be present.", StringList::create("advanced"));
+      defaults_.setValue("isotopic_pattern:intensity_percentage", 10.0, "Isotopic peaks that contribute more than this percentage to the overall isotope pattern intensity must be present.", ListUtils::create<String>("advanced"));
       defaults_.setMinFloat("isotopic_pattern:intensity_percentage", 0.0);
       defaults_.setMaxFloat("isotopic_pattern:intensity_percentage", 100.0);
-      defaults_.setValue("isotopic_pattern:intensity_percentage_optional", 0.1, "Isotopic peaks that contribute more than this percentage to the overall isotope pattern intensity can be missing.", StringList::create("advanced"));
+      defaults_.setValue("isotopic_pattern:intensity_percentage_optional", 0.1, "Isotopic peaks that contribute more than this percentage to the overall isotope pattern intensity can be missing.", ListUtils::create<String>("advanced"));
       defaults_.setMinFloat("isotopic_pattern:intensity_percentage_optional", 0.0);
       defaults_.setMaxFloat("isotopic_pattern:intensity_percentage_optional", 100.0);
-      defaults_.setValue("isotopic_pattern:optional_fit_improvement", 2.0, "Minimal percental improvement of isotope fit to allow leaving out an optional peak.", StringList::create("advanced"));
+      defaults_.setValue("isotopic_pattern:optional_fit_improvement", 2.0, "Minimal percental improvement of isotope fit to allow leaving out an optional peak.", ListUtils::create<String>("advanced"));
       defaults_.setMinFloat("isotopic_pattern:optional_fit_improvement", 0.0);
       defaults_.setMaxFloat("isotopic_pattern:optional_fit_improvement", 100.0);
-      defaults_.setValue("isotopic_pattern:mass_window_width", 25.0, "Window width in Dalton for precalculation of estimated isotope distributions.", StringList::create("advanced"));
+      defaults_.setValue("isotopic_pattern:mass_window_width", 25.0, "Window width in Dalton for precalculation of estimated isotope distributions.", ListUtils::create<String>("advanced"));
       defaults_.setMinFloat("isotopic_pattern:mass_window_width", 1.0);
       defaults_.setMaxFloat("isotopic_pattern:mass_window_width", 200.0);
-      defaults_.setValue("isotopic_pattern:abundance_12C", 98.93, "Rel. abundance of the light carbon. Modify if labeled.", StringList::create("advanced"));
+      defaults_.setValue("isotopic_pattern:abundance_12C", 98.93, "Rel. abundance of the light carbon. Modify if labeled.", ListUtils::create<String>("advanced"));
       defaults_.setMinFloat("isotopic_pattern:abundance_12C", 0.0);
       defaults_.setMaxFloat("isotopic_pattern:abundance_12C", 100.0);
-      defaults_.setValue("isotopic_pattern:abundance_14N", 99.632, "Rel. abundance of the light nitrogen. Modify if labeled.", StringList::create("advanced"));
+      defaults_.setValue("isotopic_pattern:abundance_14N", 99.632, "Rel. abundance of the light nitrogen. Modify if labeled.", ListUtils::create<String>("advanced"));
       defaults_.setMinFloat("isotopic_pattern:abundance_14N", 0.0);
       defaults_.setMaxFloat("isotopic_pattern:abundance_14N", 100.0);
 
@@ -163,35 +163,35 @@ public:
       defaults_.setMaxFloat("seed:min_score", 1.0);
       defaults_.setSectionDescription("seed", "Settings that determine which peaks are considered a seed");
       //Fitting settings
-      defaults_.setValue("fit:epsilon_abs", 0.0001, "Absolute epsilon used for convergence of the fit.", StringList::create("advanced"));
+      defaults_.setValue("fit:epsilon_abs", 0.0001, "Absolute epsilon used for convergence of the fit.", ListUtils::create<String>("advanced"));
       defaults_.setMinFloat("fit:epsilon_abs", 0.0);
-      defaults_.setValue("fit:epsilon_rel", 0.0001, "Relative epsilon used for convergence of the fit.", StringList::create("advanced"));
+      defaults_.setValue("fit:epsilon_rel", 0.0001, "Relative epsilon used for convergence of the fit.", ListUtils::create<String>("advanced"));
       defaults_.setMinFloat("fit:epsilon_rel", 0.0);
-      defaults_.setValue("fit:max_iterations", 500, "Maximum number of iterations of the fit.", StringList::create("advanced"));
+      defaults_.setValue("fit:max_iterations", 500, "Maximum number of iterations of the fit.", ListUtils::create<String>("advanced"));
       defaults_.setMinInt("fit:max_iterations", 1);
       defaults_.setSectionDescription("fit", "Settings for the model fitting");
       //Feature settings
       defaults_.setValue("feature:min_score", 0.7, "Feature score threshold for a feature to be reported.\nThe feature score is the geometric mean of the average relative deviation and the correlation between the model and the observed peaks.");
       defaults_.setMinFloat("feature:min_score", 0.0);
       defaults_.setMaxFloat("feature:min_score", 1.0);
-      defaults_.setValue("feature:min_isotope_fit", 0.8, "Minimum isotope fit of the feature before model fitting.", StringList::create("advanced"));
+      defaults_.setValue("feature:min_isotope_fit", 0.8, "Minimum isotope fit of the feature before model fitting.", ListUtils::create<String>("advanced"));
       defaults_.setMinFloat("feature:min_isotope_fit", 0.0);
       defaults_.setMaxFloat("feature:min_isotope_fit", 1.0);
-      defaults_.setValue("feature:min_trace_score", 0.5, "Trace score threshold.\nTraces below this threshold are removed after the model fitting.\nThis parameter is important for features that overlap in m/z dimension.", StringList::create("advanced"));
+      defaults_.setValue("feature:min_trace_score", 0.5, "Trace score threshold.\nTraces below this threshold are removed after the model fitting.\nThis parameter is important for features that overlap in m/z dimension.", ListUtils::create<String>("advanced"));
       defaults_.setMinFloat("feature:min_trace_score", 0.0);
       defaults_.setMaxFloat("feature:min_trace_score", 1.0);
-      defaults_.setValue("feature:min_rt_span", 0.333, "Minimum RT span in relation to extended area that has to remain after model fitting.", StringList::create("advanced"));
+      defaults_.setValue("feature:min_rt_span", 0.333, "Minimum RT span in relation to extended area that has to remain after model fitting.", ListUtils::create<String>("advanced"));
       defaults_.setMinFloat("feature:min_rt_span", 0.0);
       defaults_.setMaxFloat("feature:min_rt_span", 1.0);
-      defaults_.setValue("feature:max_rt_span", 2.5, "Maximum RT span in relation to extended area that the model is allowed to have.", StringList::create("advanced"));
+      defaults_.setValue("feature:max_rt_span", 2.5, "Maximum RT span in relation to extended area that the model is allowed to have.", ListUtils::create<String>("advanced"));
       defaults_.setMinFloat("feature:max_rt_span", 0.5);
-      defaults_.setValue("feature:rt_shape", "symmetric", "Choose model used for RT profile fitting. If set to symmetric a gauss shape is used, in case of asymmetric an EGH shape is used.", StringList::create("advanced"));
-      defaults_.setValidStrings("feature:rt_shape", StringList::create("symmetric,asymmetric"));
-      defaults_.setValue("feature:max_intersection", 0.35, "Maximum allowed intersection of features.", StringList::create("advanced"));
+      defaults_.setValue("feature:rt_shape", "symmetric", "Choose model used for RT profile fitting. If set to symmetric a gauss shape is used, in case of asymmetric an EGH shape is used.", ListUtils::create<String>("advanced"));
+      defaults_.setValidStrings("feature:rt_shape", ListUtils::create<String>("symmetric,asymmetric"));
+      defaults_.setValue("feature:max_intersection", 0.35, "Maximum allowed intersection of features.", ListUtils::create<String>("advanced"));
       defaults_.setMinFloat("feature:max_intersection", 0.0);
       defaults_.setMaxFloat("feature:max_intersection", 1.0);
       defaults_.setValue("feature:reported_mz", "monoisotopic", "The mass type that is reported for features.\n'maximum' returns the m/z value of the highest mass trace.\n'average' returns the intensity-weighted average m/z value of all contained peaks.\n'monoisotopic' returns the monoisotopic m/z value derived from the fitted isotope model.");
-      defaults_.setValidStrings("feature:reported_mz", StringList::create("maximum,average,monoisotopic"));
+      defaults_.setValidStrings("feature:reported_mz", ListUtils::create<String>("maximum,average,monoisotopic"));
       defaults_.setSectionDescription("feature", "Settings for the features (intensity, quality assessment, ...)");
       //user-specified seed settings
       defaults_.setValue("user-seed:rt_tolerance", 5.0, "Allowed RT deviation of seeds from the user-specified seed position.");
@@ -203,7 +203,7 @@ public:
       defaults_.setMaxFloat("user-seed:min_score", 1.0);
       defaults_.setSectionDescription("user-seed", "Settings for user-specified seeds.");
       //debug settings
-      defaults_.setValue("debug:pseudo_rt_shift", 500.0, "Pseudo RT shift used when .", StringList::create("advanced"));
+      defaults_.setValue("debug:pseudo_rt_shift", 500.0, "Pseudo RT shift used when .", ListUtils::create<String>("advanced"));
       defaults_.setMinFloat("debug:pseudo_rt_shift", 1.0);
       this->defaultsToParam_();
     }

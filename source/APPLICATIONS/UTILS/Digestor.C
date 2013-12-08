@@ -94,18 +94,18 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "input file");
-    setValidFormats_("in", StringList::create("fasta"));
+    setValidFormats_("in", ListUtils::create<String>("fasta"));
     registerOutputFile_("out", "<file>", "", "Output file (peptides)");
-    setValidFormats_("out", StringList::create("idXML,fasta"));
+    setValidFormats_("out", ListUtils::create<String>("idXML,fasta"));
     registerStringOption_("out_type", "<type>", "", "Set this if you cannot control the filename of 'out', e.g., in TOPPAS.", false);
-    setValidStrings_("out_type", StringList::create("idXML,fasta"));
+    setValidStrings_("out_type", ListUtils::create<String>("idXML,fasta"));
 
     registerIntOption_("missed_cleavages", "<number>", 1, "The number of allowed missed cleavages", false);
     setMinInt_("missed_cleavages", 0);
     registerIntOption_("min_length", "<number>", 6, "Minimum length of peptide", false);
     registerIntOption_("max_length", "<number>", 40, "Maximum length of peptide", false);
     registerStringOption_("enzyme", "<string>", "Trypsin", "The type of digestion enzyme", false);
-    setValidStrings_("enzyme", StringList::create("Trypsin,none"));
+    setValidStrings_("enzyme", ListUtils::create<String>("Trypsin,none"));
   }
 
   ExitCodes main_(int, const char **)

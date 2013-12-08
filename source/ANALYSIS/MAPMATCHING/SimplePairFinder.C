@@ -34,6 +34,8 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/SimplePairFinder.h>
 
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+
 namespace OpenMS
 {
   SimplePairFinder::SimplePairFinder() :
@@ -42,11 +44,11 @@ namespace OpenMS
     //set the name for DefaultParamHandler error messages
     setName(getProductName());
 
-    defaults_.setValue("similarity:diff_intercept:RT", 1.0, "This parameter controls the asymptotic decay rate for large differences (for more details see the similarity measurement).", StringList::create("advanced"));
-    defaults_.setValue("similarity:diff_intercept:MZ", 0.1, "This parameter controls the asymptotic decay rate for large differences (for more details see the similarity measurement).", StringList::create("advanced"));
-    defaults_.setValue("similarity:diff_exponent:RT", 2.0, "This parameter is important for small differences (for more details see the similarity measurement).", StringList::create("advanced"));
-    defaults_.setValue("similarity:diff_exponent:MZ", 1.0, "This parameter is important for small differences (for more details see the similarity measurement).", StringList::create("advanced"));
-    defaults_.setValue("similarity:pair_min_quality", 0.01, "Minimum required pair quality.", StringList::create("advanced"));
+    defaults_.setValue("similarity:diff_intercept:RT", 1.0, "This parameter controls the asymptotic decay rate for large differences (for more details see the similarity measurement).", ListUtils::create<String>("advanced"));
+    defaults_.setValue("similarity:diff_intercept:MZ", 0.1, "This parameter controls the asymptotic decay rate for large differences (for more details see the similarity measurement).", ListUtils::create<String>("advanced"));
+    defaults_.setValue("similarity:diff_exponent:RT", 2.0, "This parameter is important for small differences (for more details see the similarity measurement).", ListUtils::create<String>("advanced"));
+    defaults_.setValue("similarity:diff_exponent:MZ", 1.0, "This parameter is important for small differences (for more details see the similarity measurement).", ListUtils::create<String>("advanced"));
+    defaults_.setValue("similarity:pair_min_quality", 0.01, "Minimum required pair quality.", ListUtils::create<String>("advanced"));
 
     Base::defaultsToParam_();
   }

@@ -95,12 +95,12 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "Input mzML file.");
-    setValidFormats_("in", StringList::create("mzML"));
+    setValidFormats_("in", ListUtils::create<String>("mzML"));
     registerOutputFile_("out", "<file>", "", "Output mzML file with merged spectra.");
-    setValidFormats_("out", StringList::create("mzML"));
+    setValidFormats_("out", ListUtils::create<String>("mzML"));
 
     registerStringOption_("merging_method", "<method>", "block_method", "Method of merging which should be used.", false);
-    setValidStrings_("merging_method", StringList::create("precursor_method,block_method"));
+    setValidStrings_("merging_method", ListUtils::create<String>("precursor_method,block_method"));
 
     registerSubsection_("algorithm", "Algorithm section for merging spectra");
   }

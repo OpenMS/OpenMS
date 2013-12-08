@@ -35,6 +35,8 @@
 #include <OpenMS/SIMULATION/DetectabilitySimulation.h>
 #include <OpenMS/ANALYSIS/SVM/SVMWrapper.h>
 
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+
 #include <OpenMS/FORMAT/LibSVMEncoder.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 
@@ -235,7 +237,7 @@ namespace OpenMS
   void DetectabilitySimulation::setDefaultParams_()
   {
     defaults_.setValue("dt_simulation_on", "false", "Modelling detectibility enabled? This can serve as a filter to remove peptides which ionize badly, thus reducing peptide count");
-    defaults_.setValidStrings("dt_simulation_on", StringList::create("true,false"));
+    defaults_.setValidStrings("dt_simulation_on", ListUtils::create<String>("true,false"));
     defaults_.setValue("min_detect", 0.5, "Minimum peptide detectability accepted. Peptides with a lower score will be removed");
     defaults_.setValue("dt_model_file", "examples/simulation/DTPredict.model", "SVM model for peptide detectability prediction");
     defaultsToParam_();

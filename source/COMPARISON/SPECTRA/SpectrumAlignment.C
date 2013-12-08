@@ -34,6 +34,7 @@
 //
 
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 using namespace std;
 
@@ -44,7 +45,7 @@ namespace OpenMS
   {
     defaults_.setValue("tolerance", 0.3, "Defines the absolute (in Da) or relative (in ppm) tolerance");
     defaults_.setValue("is_relative_tolerance", "false", "If true, the 'tolerance' is interpreted as ppm-value");
-    defaults_.setValidStrings("is_relative_tolerance", StringList::create("true,false"));
+    defaults_.setValidStrings("is_relative_tolerance", ListUtils::create<String>("true,false"));
     defaultsToParam_();
   }
 

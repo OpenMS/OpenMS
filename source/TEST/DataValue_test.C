@@ -173,7 +173,7 @@ START_SECTION((DataValue(const StringList &)))
 	StringList sl;
 	sl << "test string" << "test String 2";
 	DataValue d(sl);
-	TEST_EQUAL((StringList)d, sl)
+	TEST_EQUAL(d == sl, true)
 END_SECTION
 
 START_SECTION((DataValue(const IntList &)))
@@ -201,7 +201,7 @@ START_SECTION((DataValue(const DataValue&)))
 	DataValue p5((UInt) 123);
 	DataValue p6("test char");
 	DataValue p7(std::string("test string"));
-	DataValue p8(StringList::create("test string,string2,last string"));
+	DataValue p8(ListUtils::create<String>("test string,string2,last string"));
 	DataValue p9;
 	DataValue p10(ListUtils::create<Int>("1,2,3,4,5"));
 	DataValue p11(ListUtils::create<DoubleReal>("1.2,2.3,3.4"));
@@ -221,10 +221,10 @@ START_SECTION((DataValue(const DataValue&)))
 	TEST_EQUAL( (UInt) copy_of_p5, 123)
 	TEST_EQUAL( (std::string) copy_of_p6, "test char")
 	TEST_EQUAL( (std::string) copy_of_p7, "test string")
-	TEST_EQUAL( (StringList) copy_of_p8, StringList::create("test string,string2,last string"))
-	TEST_EQUAL( (copy_of_p9.isEmpty()),true)
-	TEST_EQUAL(copy_of_p10 == ListUtils::create<Int>("1,2,3,4,5"), true)
-	TEST_EQUAL(copy_of_p11 == ListUtils::create<DoubleReal>("1.2,2.3,3.4"), true)
+	TEST_EQUAL( copy_of_p8 == ListUtils::create<String>("test string,string2,last string"), true)
+	TEST_EQUAL( (copy_of_p9.isEmpty()), true)
+	TEST_EQUAL( copy_of_p10 == ListUtils::create<Int>("1,2,3,4,5"), true)
+	TEST_EQUAL( copy_of_p11 == ListUtils::create<DoubleReal>("1.2,2.3,3.4"), true)
 END_SECTION
 
 // assignment operator
@@ -236,7 +236,7 @@ START_SECTION((DataValue& operator = (const DataValue&)))
 	DataValue p5((UInt) 123);
 	DataValue p6("test char");
 	DataValue p7(std::string("test string"));
-	DataValue p8(StringList::create("test string,string2,last string"));
+	DataValue p8(ListUtils::create<String>("test string,string2,last string"));
 	DataValue p9;
 	DataValue p10(ListUtils::create<Int>("1,2,3,4,5"));
 	DataValue p11(ListUtils::create<DoubleReal>("1.2,2.3,3.4"));
@@ -254,9 +254,9 @@ START_SECTION((DataValue& operator = (const DataValue&)))
 	copy_of_p = p7;
 	TEST_EQUAL( (std::string) copy_of_p, "test string")
 	copy_of_p = p8;
-	TEST_EQUAL( (StringList) copy_of_p, StringList::create("test string,string2,last string"))
+	TEST_EQUAL( copy_of_p == ListUtils::create<String>("test string,string2,last string"), true)
 	copy_of_p = p9;
-	TEST_EQUAL( (copy_of_p.isEmpty()),true)
+	TEST_EQUAL( (copy_of_p.isEmpty()), true)
 	copy_of_p = p10;
 	TEST_EQUAL(copy_of_p == ListUtils::create<Int>("1,2,3,4,5"), true)
 	copy_of_p = p11;
@@ -292,7 +292,7 @@ START_SECTION((operator StringList() const))
 	sl << "test string list";
 	DataValue d(sl);
 	StringList sl_op = d;
-	TEST_EQUAL(sl_op, d)
+	TEST_EQUAL(sl_op == d, true)
 END_SECTION
 
 START_SECTION((operator IntList() const))
@@ -302,7 +302,7 @@ START_SECTION((operator IntList() const))
 	DataValue d(il);
 	IntList il_op = d;
 	TEST_EQUAL(il_op == il, true)
-  TEST_EXCEPTION(Exception::ConversionError, (StringList)DataValue("abc,ab"))
+  TEST_EXCEPTION(Exception::ConversionError, StringList sl = DataValue("abc,ab");)
 END_SECTION
 
 START_SECTION((operator DoubleList() const))
@@ -473,7 +473,7 @@ START_SECTION((String toString() const))
   TEST_EQUAL(a.toString(), "47.11")
   a = DataValue(-23456.78);
   TEST_EQUAL(a.toString(), "-23456.78")
-  a = DataValue(StringList::create("test string,string2,last string"));
+  a = DataValue(ListUtils::create<String>("test string,string2,last string"));
   TEST_EQUAL(a.toString(), "[test string, string2, last string]")
   a = DataValue(ListUtils::create<Int>("1,2,3,4,5"));
   TEST_EQUAL(a.toString(),"[1, 2, 3, 4, 5]")
@@ -510,7 +510,7 @@ START_SECTION((QString toQString() const))
   TEST_EQUAL(a.toQString().toStdString(), "47.110000")
   a = DataValue(-23456.78);
   TEST_EQUAL(a.toQString().toStdString(), "-23456.780000")
-  a = DataValue(StringList::create("test string,string2,last string"));
+  a = DataValue(ListUtils::create<String>("test string,string2,last string"));
   TEST_EQUAL(a.toQString().toStdString(), "[test string, string2, last string]")
   a =DataValue(ListUtils::create<Int>("1,2,3"));
   TEST_EQUAL(a.toQString().toStdString(), "[1, 2, 3]")
@@ -541,7 +541,7 @@ START_SECTION((DataType valueType() const))
 	DataValue a4("bla");
 	TEST_EQUAL(a4.valueType(), DataValue::STRING_VALUE);
 
-	DataValue a5(StringList::create("test string,string2,last string"));
+	DataValue a5(ListUtils::create<String>("test string,string2,last string"));
 	TEST_EQUAL(a5.valueType(), DataValue::STRING_LIST)
 
 	DataValue a6(UInt(2));
@@ -635,13 +635,14 @@ END_SECTION
 
 START_SECTION((DataValue& operator=(const StringList&)))
 {
-  StringList v = StringList::create("value,value2");
+  StringList v = ListUtils::create<String>("value,value2");
   DataValue a("v");
   a = v;
-  TEST_EQUAL(((StringList)a).size(), 2)
-  ABORT_IF(((StringList)a).size() != 2)
-  TEST_EQUAL(((StringList)a)[0], "value")
-  TEST_EQUAL(((StringList)a)[1], "value2")
+  StringList sla = a;
+  TEST_EQUAL(sla.size(), 2)
+  ABORT_IF(sla.size() != 2)
+  TEST_EQUAL(sla[0], "value")
+  TEST_EQUAL(sla[1], "value2")
 }
 END_SECTION
 

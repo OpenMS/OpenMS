@@ -33,9 +33,10 @@
 // --------------------------------------------------------------------------
 
 
-#include "OpenMS/FILTERING/DATAREDUCTION/ElutionPeakDetection.h"
-#include "OpenMS/FILTERING/SMOOTHING/LowessSmoothing.h"
+#include <OpenMS/FILTERING/DATAREDUCTION/ElutionPeakDetection.h>
+#include <OpenMS/FILTERING/SMOOTHING/LowessSmoothing.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <sstream>
 #include <numeric>
@@ -57,15 +58,15 @@ ElutionPeakDetection::ElutionPeakDetection() :
     defaults_.setValue("noise_threshold_int", 10.0, "Intensity threshold below which peaks are regarded as noise.");
 
     defaults_.setValue("width_filtering", "fixed", "Enable filtering of unlikely peak widths. The fixed setting filters out mass traces outside the [min_fwhm, max_fwhm] interval (set parameters accordingly!). The auto setting filters with the 5 and 95% quantiles of the peak width distribution.");
-    defaults_.setValidStrings("width_filtering", StringList::create(("off,fixed,auto")));
-    defaults_.setValue("min_fwhm", 3.0, "Minimum full-width-at-half-maximum of chromatographic peaks (in seconds). Ignored if paramter width_filtering is off or auto.", StringList::create("advanced"));
-    defaults_.setValue("max_fwhm", 60.0, "Maximum full-width-at-half-maximum of chromatographic peaks (in seconds). Ignored if paramter width_filtering is off or auto.", StringList::create("advanced"));
+    defaults_.setValidStrings("width_filtering", ListUtils::create<String>("off,fixed,auto"));
+    defaults_.setValue("min_fwhm", 3.0, "Minimum full-width-at-half-maximum of chromatographic peaks (in seconds). Ignored if paramter width_filtering is off or auto.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("max_fwhm", 60.0, "Maximum full-width-at-half-maximum of chromatographic peaks (in seconds). Ignored if paramter width_filtering is off or auto.", ListUtils::create<String>("advanced"));
 
-    defaults_.setValue("masstrace_snr_filtering", "false", "Apply post-filtering by signal-to-noise ratio after smoothing.", StringList::create("advanced"));
-    defaults_.setValidStrings("masstrace_snr_filtering", StringList::create(("false,true")));
+    defaults_.setValue("masstrace_snr_filtering", "false", "Apply post-filtering by signal-to-noise ratio after smoothing.", ListUtils::create<String>("advanced"));
+  defaults_.setValidStrings("masstrace_snr_filtering", ListUtils::create<String>("false,true"));
 
-    // defaults_.setValue("min_trace_length", 5.0, "Minimum length of a mass trace (in seconds).", StringList::create("advanced"));
-    // defaults_.setValue("max_trace_length", 300.0, "Maximum length of a mass trace (in seconds).", StringList::create("advanced"));
+    // defaults_.setValue("min_trace_length", 5.0, "Minimum length of a mass trace (in seconds).", ListUtils::create<String>("advanced"));
+    // defaults_.setValue("max_trace_length", 300.0, "Maximum length of a mass trace (in seconds).", ListUtils::create<String>("advanced"));
 
 
     defaultsToParam_();

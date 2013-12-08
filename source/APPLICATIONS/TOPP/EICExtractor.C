@@ -138,7 +138,7 @@ struct HeaderInfo
     header_description = "-- empty --";
     TextFile tf;
     tf.load(filename);
-    String content = tf.concatenate(";");
+    String content = ListUtils::concatenate(tf, ";");
 
     String search = "$$ Sample Description:";
     Size pos = content.find(search);
@@ -171,14 +171,14 @@ public:
 
   void registerOptionsAndFlags_()
   {
-    registerInputFileList_("in", "<file>", StringList::create(""), "Input raw data file");
-    setValidFormats_("in", StringList::create("mzML"));
+    registerInputFileList_("in", "<file>", ListUtils::create<String>(""), "Input raw data file");
+    setValidFormats_("in", ListUtils::create<String>("mzML"));
 
-    registerInputFileList_("in_header", "<file>", StringList::create(""), "[for Waters data only] Read additional information from _HEADER.TXT. Provide one for each raw input file.", false);
-    setValidFormats_("in_header", StringList::create("txt"));
+    registerInputFileList_("in_header", "<file>", ListUtils::create<String>(""), "[for Waters data only] Read additional information from _HEADER.TXT. Provide one for each raw input file.", false);
+    setValidFormats_("in_header", ListUtils::create<String>("txt"));
 
     registerInputFile_("pos", "<file>", "", "Input config file stating where to find signal");
-    setValidFormats_("pos", StringList::create("edta"));
+    setValidFormats_("pos", ListUtils::create<String>("edta"));
     registerDoubleOption_("rt_tol", "", 3, "RT tolerance in [s] for finding max peak (whole RT range around RT middle)", false, false);
     registerDoubleOption_("mz_tol", "", 10, "m/z tolerance in [ppm] for finding a peak", false, false);
     registerIntOption_("rt_collect", "", 1, "# of scans up & down in RT from highest point for ppm estimation in result", false, false);
@@ -188,13 +188,13 @@ public:
     registerDoubleOption_("auto_rt:FHWM", "<FWHM [s]>", 5, "Expected full width at half-maximum of each raw RT peak in [s]. Gaussian smoothing filter with this width is applied to TIC.", false, true);
     registerDoubleOption_("auto_rt:SNThreshold", "<S/N>", 5, "S/N threshold for a smoothed raw peak to pass peak picking. Higher thesholds will result in less peaks.", false, true);
     registerOutputFile_("auto_rt:out_debug_TIC", "<file>", "", "Optional output file (for first input) containing the smoothed TIC, S/N levels and picked RT positions", false, true);
-    setValidFormats_("auto_rt:out_debug_TIC", StringList::create("mzML"));
+    setValidFormats_("auto_rt:out_debug_TIC", ListUtils::create<String>("mzML"));
 
     registerStringOption_("out_separator","<sep>",",","Separator character for output CSV file.", false, true);
-    //setValidStrings_("out_separator", StringList::create(",!\t! ", '!')); // comma not allowed as valid string
+    //setValidStrings_("out_separator", ListUtils::create<String>(",!\t! ", '!')); // comma not allowed as valid string
 
     registerOutputFile_("out", "<file>", "", "Output quantitation file (multiple columns for each input compound)");
-    setValidFormats_("out", StringList::create("csv"));
+    setValidFormats_("out", ListUtils::create<String>("csv"));
   }
 
   MSChromatogram<> toChromatogram(const MSSpectrum<>& in)
@@ -486,9 +486,9 @@ public:
     //-------------------------------------------------------------
     // create header
     //-------------------------------------------------------------
-    tf_single.insert(tf_single.begin(), tf_single_header2.concatenate(out_sep));
-    tf_single.insert(tf_single.begin(), tf_single_header1.concatenate(out_sep));
-    tf_single.insert(tf_single.begin(), tf_single_header0.concatenate(out_sep));
+    tf_single.insert(tf_single.begin(), ListUtils::concatenate(tf_single_header2, out_sep));
+    tf_single.insert(tf_single.begin(), ListUtils::concatenate(tf_single_header1, out_sep));
+    tf_single.insert(tf_single.begin(), ListUtils::concatenate(tf_single_header0, out_sep));
 
     //-------------------------------------------------------------
     // writing output

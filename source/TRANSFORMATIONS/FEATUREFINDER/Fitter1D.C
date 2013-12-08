@@ -48,10 +48,10 @@ namespace OpenMS
   Fitter1D::Fitter1D() :
     DefaultParamHandler("Fitter1D")
   {
-    defaults_.setValue("interpolation_step", 0.2, "Sampling rate for the interpolation of the model function.", StringList::create("advanced"));
-    defaults_.setValue("statistics:mean", 1.0, "Centroid position of the model.", StringList::create("advanced"));
-    defaults_.setValue("statistics:variance", 1.0, "The variance of the model.", StringList::create("advanced"));
-    defaults_.setValue("tolerance_stdev_bounding_box", 3.0, "Bounding box has range [minimim of data, maximum of data] enlarged by tolerance_stdev_bounding_box times the standard deviation of the data.", StringList::create("advanced"));
+    defaults_.setValue("interpolation_step", 0.2, "Sampling rate for the interpolation of the model function.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("statistics:mean", 1.0, "Centroid position of the model.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("statistics:variance", 1.0, "The variance of the model.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("tolerance_stdev_bounding_box", 3.0, "Bounding box has range [minimim of data, maximum of data] enlarged by tolerance_stdev_bounding_box times the standard deviation of the data.", ListUtils::create<String>("advanced"));
 
     defaultsToParam_();
   }

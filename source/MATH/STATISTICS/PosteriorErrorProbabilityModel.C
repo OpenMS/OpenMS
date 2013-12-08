@@ -36,6 +36,7 @@
 
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/TextFile.h>
 
 #include <algorithm>
@@ -51,12 +52,12 @@ namespace OpenMS
     PosteriorErrorProbabilityModel::PosteriorErrorProbabilityModel() :
       DefaultParamHandler("PosteriorErrorProbabilityModel"), negative_prior_(0.5), max_incorrectly_(0), max_correctly_(0), smallest_score_(0)
     {
-      defaults_.setValue("number_of_bins", 100, "Number of bins used for visualization. Only needed if each iteration step of the EM-Algorithm will be visualized", StringList::create("advanced"));
-      defaults_.setValue("output_plots", "false", "If true every step of the EM-algorithm will be written to a file as a gnuplot formula", StringList::create("advanced"));
-      defaults_.setValidStrings("output_plots", StringList::create("true,false"));
-      defaults_.setValue("output_name", "", "If output_plots is on, the output files will be saved in the following manner: <output_name>scores.txt for the scores and <output_name> which contains each step of the EM-algorithm e.g. output_name = /usr/home/OMSSA123 then /usr/home/OMSSA123_scores.txt, /usr/home/OMSSA123 will be written. If no directory is specified, e.g. instead of '/usr/home/OMSSA123' just OMSSA123, the files will be written into the working directory.", StringList::create("advanced,output file"));
-      defaults_.setValue("incorrectly_assigned", "Gumbel", "for 'Gumbel', the Gumbel distribution is used to plot incorrectly assigned sequences. For 'Gauss', the Gauss distribution is used.", StringList::create("advanced"));
-      defaults_.setValidStrings("incorrectly_assigned", StringList::create("Gumbel,Gauss"));
+      defaults_.setValue("number_of_bins", 100, "Number of bins used for visualization. Only needed if each iteration step of the EM-Algorithm will be visualized", ListUtils::create<String>("advanced"));
+      defaults_.setValue("output_plots", "false", "If true every step of the EM-algorithm will be written to a file as a gnuplot formula", ListUtils::create<String>("advanced"));
+      defaults_.setValidStrings("output_plots", ListUtils::create<String>("true,false"));
+      defaults_.setValue("output_name", "", "If output_plots is on, the output files will be saved in the following manner: <output_name>scores.txt for the scores and <output_name> which contains each step of the EM-algorithm e.g. output_name = /usr/home/OMSSA123 then /usr/home/OMSSA123_scores.txt, /usr/home/OMSSA123 will be written. If no directory is specified, e.g. instead of '/usr/home/OMSSA123' just OMSSA123, the files will be written into the working directory.", ListUtils::create<String>("advanced,output file"));
+      defaults_.setValue("incorrectly_assigned", "Gumbel", "for 'Gumbel', the Gumbel distribution is used to plot incorrectly assigned sequences. For 'Gauss', the Gauss distribution is used.", ListUtils::create<String>("advanced"));
+      defaults_.setValidStrings("incorrectly_assigned", ListUtils::create<String>("Gumbel,Gauss"));
       defaultsToParam_();
       calc_incorrect_ = &PosteriorErrorProbabilityModel::getGumbel;
       calc_correct_ = &PosteriorErrorProbabilityModel::getGauss;
@@ -190,7 +191,7 @@ namespace OpenMS
           formula1 = ((this)->*(getNegativeGnuplotFormula_))(incorrectly_assigned_fit_param_) + "* " + String(negative_prior_);         //String(incorrectly_assigned_fit_param_.A) +" * exp(-(x - " + String(incorrectly_assigned_fit_param_.x0) + ") ** 2 / 2 / (" + String(incorrectly_assigned_fit_param_.sigma) + ") ** 2)"+ "*" + String(negative_prior_);
           formula2 = ((this)->*(getPositiveGnuplotFormula_))(correctly_assigned_fit_param_) + "* (1 - " + String(negative_prior_) + ")";         //String(correctly_assigned_fit_param_.A) +" * exp(-(x - " + String(correctly_assigned_fit_param_.x0) + ") ** 2 / 2 / (" + String(correctly_assigned_fit_param_.sigma) + ") ** 2)"+ "* (1 - " + String(negative_prior_) + ")";
           formula3 = getBothGnuplotFormula(incorrectly_assigned_fit_param_, correctly_assigned_fit_param_);
-          (*file) << ("plot \"" + (String)param_.getValue("output_name") + "_scores.txt\" with boxes, " + formula1 + " , " + formula2 + " , " + formula3);
+          (*file).push_back("plot \"" + (String)param_.getValue("output_name") + "_scores.txt\" with boxes, " + formula1 + " , " + formula2 + " , " + formula3);
         }
         //update maximum likelihood
         maxlike = new_maxlike;
@@ -212,7 +213,7 @@ namespace OpenMS
         formula1 = ((this)->*(getNegativeGnuplotFormula_))(incorrectly_assigned_fit_param_) + "*" + String(negative_prior_);       //String(incorrectly_assigned_fit_param_.A) +" * exp(-(x - " + String(incorrectly_assigned_fit_param_.x0) + ") ** 2 / 2 / (" + String(incorrectly_assigned_fit_param_.sigma) + ") ** 2)"+ "*" + String(negative_prior_);
         formula2 = ((this)->*(getPositiveGnuplotFormula_))(correctly_assigned_fit_param_) + "* (1 - " + String(negative_prior_) + ")";       // String(correctly_assigned_fit_param_.A) +" * exp(-(x - " + String(correctly_assigned_fit_param_.x0) + ") ** 2 / 2 / (" + String(correctly_assigned_fit_param_.sigma) + ") ** 2)"+ "* (1 - " + String(negative_prior_) + ")";
         formula3 = getBothGnuplotFormula(incorrectly_assigned_fit_param_, correctly_assigned_fit_param_);
-        (*file) << ("plot \"" + (String)param_.getValue("output_name") + "_scores.txt\" with boxes, " + formula1 + " , " + formula2 + " , " + formula3);
+        (*file).push_back("plot \"" + (String)param_.getValue("output_name") + "_scores.txt\" with boxes, " + formula1 + " , " + formula2 + " , " + formula3);
         file->store((String)param_.getValue("output_name"));
         delete file;
       }

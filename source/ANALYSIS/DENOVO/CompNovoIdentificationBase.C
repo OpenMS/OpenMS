@@ -62,37 +62,37 @@ namespace OpenMS
     max_subscore_number_(30),
     max_isotope_(3)
   {
-    defaults_.setValue("max_number_aa_per_decomp", 4, "maximal amino acid frequency per decomposition", StringList::create("advanced"));
+    defaults_.setValue("max_number_aa_per_decomp", 4, "maximal amino acid frequency per decomposition", ListUtils::create<String>("advanced"));
     defaults_.setValue("tryptic_only", "true", "if set to true only tryptic peptides are reported");
     defaults_.setValue("precursor_mass_tolerance", 1.5, "precursor mass tolerance");
     defaults_.setValue("fragment_mass_tolerance", 0.3, "fragment mass tolerance");
-    defaults_.setValue("max_number_pivot", 9, "maximal number of pivot ions to be used", StringList::create("advanced"));
-    defaults_.setValue("max_subscore_number", 40, "maximal number of solutions of a subsegment that are kept", StringList::create("advanced"));
-    defaults_.setValue("decomp_weights_precision", 0.01, "precision used to calculate the decompositions, this only affects cache usage!", StringList::create("advanced"));
-    defaults_.setValue("double_charged_iso_threshold", 0.6, "minimal isotope intensity correlation of doubly charged ions to be used to score the single scored ions", StringList::create("advanced"));
+    defaults_.setValue("max_number_pivot", 9, "maximal number of pivot ions to be used", ListUtils::create<String>("advanced"));
+    defaults_.setValue("max_subscore_number", 40, "maximal number of solutions of a subsegment that are kept", ListUtils::create<String>("advanced"));
+    defaults_.setValue("decomp_weights_precision", 0.01, "precision used to calculate the decompositions, this only affects cache usage!", ListUtils::create<String>("advanced"));
+    defaults_.setValue("double_charged_iso_threshold", 0.6, "minimal isotope intensity correlation of doubly charged ions to be used to score the single scored ions", ListUtils::create<String>("advanced"));
     defaults_.setValue("max_mz", 2000.0, "maximal m/z value used to calculate isotope distributions");
     defaults_.setValue("min_mz", 200.0, "minimal m/z value used to calculate the isotope distributions");
-    defaults_.setValue("max_isotope_to_score", 3, "max isotope peak to be considered in the scoring", StringList::create("advanced"));
-    defaults_.setValue("max_decomp_weight", 450.0, "maximal m/z difference used to calculate the decompositions", StringList::create("advanced"));
-    defaults_.setValue("max_isotope", 3, "max isotope used in the theoretical spectra to score", StringList::create("advanced"));
+    defaults_.setValue("max_isotope_to_score", 3, "max isotope peak to be considered in the scoring", ListUtils::create<String>("advanced"));
+    defaults_.setValue("max_decomp_weight", 450.0, "maximal m/z difference used to calculate the decompositions", ListUtils::create<String>("advanced"));
+    defaults_.setValue("max_isotope", 3, "max isotope used in the theoretical spectra to score", ListUtils::create<String>("advanced"));
     defaults_.setValue("missed_cleavages", 1, "maximal number of missed cleavages allowed per peptide");
     defaults_.setValue("number_of_hits", 100, "maximal number of hits which are reported per spectrum");
     defaults_.setValue("estimate_precursor_mz", "true", "If set to true, the precursor charge will be estimated, e.g. from the precursor peaks of the ETD spectrum.\n"
                                                         "The input is believed otherwise.");
-    defaults_.setValidStrings("estimate_precursor_mz", StringList::create("true,false"));
-    defaults_.setValue("number_of_prescoring_hits", 250, "how many sequences are kept after first rough scoring for better scoring", StringList::create("advanced"));
+    defaults_.setValidStrings("estimate_precursor_mz", ListUtils::create<String>("true,false"));
+    defaults_.setValue("number_of_prescoring_hits", 250, "how many sequences are kept after first rough scoring for better scoring", ListUtils::create<String>("advanced"));
 
     // set all known modifications as restriction
     vector<String> all_mods;
     ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
 
-    defaults_.setValue("fixed_modifications", StringList::create(""), "fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'");
+    defaults_.setValue("fixed_modifications", ListUtils::create<String>(""), "fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'");
     defaults_.setValidStrings("fixed_modifications", all_mods);
 
-    defaults_.setValue("variable_modifications", StringList::create(""), "variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'");
+    defaults_.setValue("variable_modifications", ListUtils::create<String>(""), "variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'");
     defaults_.setValidStrings("variable_modifications", all_mods);
 
-    defaults_.setValue("residue_set", "Natural19WithoutI", "The predefined amino acid set that should be used, see doc of ResidueDB for possible residue sets", StringList::create("advanced"));
+    defaults_.setValue("residue_set", "Natural19WithoutI", "The predefined amino acid set that should be used, see doc of ResidueDB for possible residue sets", ListUtils::create<String>("advanced"));
 
     defaultsToParam_();
   }
@@ -661,7 +661,7 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
     residue_to_name_.clear();
 
     // now handle the modifications
-    ModificationDefinitionsSet mod_set((StringList)param_.getValue("fixed_modifications"), (StringList)param_.getValue("variable_modifications"));
+    ModificationDefinitionsSet mod_set(param_.getValue("fixed_modifications"), param_.getValue("variable_modifications"));
     set<ModificationDefinition> fixed_mods = mod_set.getFixedModifications();
 
     for (set<ModificationDefinition>::const_iterator it = fixed_mods.begin(); it != fixed_mods.end(); ++it)
@@ -702,7 +702,7 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
       residue_to_name_[res] = aa;
     }
 
-    const StringList mod_names(StringList::create("a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z"));
+    const StringList mod_names(ListUtils::create<String>("a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z"));
     vector<String>::const_iterator actual_mod_name = mod_names.begin();
     set<ModificationDefinition> var_mods = mod_set.getVariableModifications();
     for (set<ModificationDefinition>::const_iterator it = var_mods.begin(); it != var_mods.end(); ++it)
@@ -757,8 +757,8 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
 
     Param decomp_param(mass_decomp_algorithm_.getParameters());
     decomp_param.setValue("tolerance", fragment_mass_tolerance_);
-    decomp_param.setValue("fixed_modifications", (StringList)param_.getValue("fixed_modifications"));
-    decomp_param.setValue("variable_modifications", (StringList)param_.getValue("variable_modifications"));
+    decomp_param.setValue("fixed_modifications", param_.getValue("fixed_modifications"));
+    decomp_param.setValue("variable_modifications", param_.getValue("variable_modifications"));
     mass_decomp_algorithm_.setParameters(decomp_param);
 
     min_aa_weight_ = numeric_limits<DoubleReal>::max();

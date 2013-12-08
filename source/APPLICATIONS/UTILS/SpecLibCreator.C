@@ -83,17 +83,17 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("info", "<file>", "", "Holds id, peptide, retention time etc.");
-    setValidFormats_("info", StringList::create("csv"));
+    setValidFormats_("info", ListUtils::create<String>("csv"));
     
     registerStringOption_("itemseperator", "<char>", ",", " Seperator between items. e.g. ,", false);
     registerStringOption_("itemenclosed", "<bool>", "false", "'true' or 'false' if true every item is enclosed e.g. '$peptide$,$run$...", false);
-    setValidStrings_("itemenclosed", StringList::create("true,false"));
+    setValidStrings_("itemenclosed", ListUtils::create<String>("true,false"));
     
     registerInputFile_("spec", "<file>", "", "spectra");
-    setValidFormats_("spec", StringList::create("mzData,mzXML"));
+    setValidFormats_("spec", ListUtils::create<String>("mzData,mzXML"));
 
     registerOutputFile_("out", "<file>", "", "output MSP formated spectra library");
-    setValidFormats_("out",StringList::create("msp"));
+    setValidFormats_("out",ListUtils::create<String>("msp"));
   }
 
   ExitCodes main_(int, const char **)

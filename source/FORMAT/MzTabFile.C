@@ -918,7 +918,7 @@ namespace OpenMS
 
     std::copy(optional_protein_columns.begin(), optional_protein_columns.end(), std::back_inserter(header));
 
-    return header.concatenate("\t");
+    return ListUtils::concatenate(header, "\t");
   }
 
   String MzTabFile::generateMzTabProteinSectionRow_(const MzTabProteinSectionRow& row, const String& unit_id) const
@@ -951,7 +951,7 @@ namespace OpenMS
       s << row.opt_[i].second.toCellString();
     }
 
-    return s.concatenate("\t");
+    return ListUtils::concatenate(s, "\t");
   }
 
   void MzTabFile::generateMzTabProteinSection_(const MzTabProteinSectionData& map, StringList& sl) const
@@ -1012,7 +1012,7 @@ namespace OpenMS
 
     std::copy(optional_peptide_columns.begin(), optional_peptide_columns.end(), std::back_inserter(header));
 
-    return header.concatenate("\t");
+    return ListUtils::concatenate(header, "\t");
   }
 
   String MzTabFile::generateMzTabPeptideSectionRow_(const MzTabPeptideSectionRow& row, const String& unit_id) const
@@ -1045,7 +1045,7 @@ namespace OpenMS
       s << row.opt_[i].second.toCellString();
     }
 
-    return s.concatenate("\t");
+    return ListUtils::concatenate(s, "\t");
   }
 
   String MzTabFile::generateMzTabSmallMoleculeHeader_(Int n_subsamples, const vector<String>& optional_smallmolecule_columns) const
@@ -1069,7 +1069,7 @@ namespace OpenMS
     // copy optional column names to header
     std::copy(optional_smallmolecule_columns.begin(), optional_smallmolecule_columns.end(), std::back_inserter(header));
 
-    return header.concatenate("\t");
+    return ListUtils::concatenate(header, "\t");
   }
 
   String MzTabFile::generateMzTabSmallMoleculeSectionRow_(const MzTabSmallMoleculeSectionRow& row, const String& unit_id) const
@@ -1104,7 +1104,7 @@ namespace OpenMS
       s << row.opt_[i].second.toCellString();
     }
 
-    return s.concatenate("\t");
+    return ListUtils::concatenate(s, "\t");
   }
 
   void MzTabFile::store(const String& filename, const MzTab& mz_tab) const

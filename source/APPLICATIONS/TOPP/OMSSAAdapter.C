@@ -168,7 +168,7 @@ protected:
   bool getVersion_(const String & version, OMSSAVersion & omssa_version_i) const
   {
     // we expect three components
-    IntList nums = ListUtils::create<Int>(StringList::create(version, '.'));
+    IntList nums = ListUtils::create<Int>(ListUtils::create<String>(version, '.'));
     if (nums.size() != 3) return false;
 
     omssa_version_i.omssa_major = nums[0];
@@ -180,29 +180,29 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "Input file ");
-    setValidFormats_("in", StringList::create("mzML"));
+    setValidFormats_("in", ListUtils::create<String>("mzML"));
     registerOutputFile_("out", "<file>", "", "Output file ");
-    setValidFormats_("out", StringList::create("idXML"));
+    setValidFormats_("out", ListUtils::create<String>("idXML"));
 
     registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 1.5, "Precursor mass tolerance (Default: Dalton)", false);
     registerFlag_("precursor_mass_tolerance_unit_ppm", "If this flag is set, ppm is used as precursor mass tolerance unit");
     registerDoubleOption_("fragment_mass_tolerance", "<tolerance>", 0.3, "Fragment mass error in Dalton", false);
-    registerInputFile_("database", "<psq-file>", "", "NCBI formatted FASTA files. Only the .psq filename should be given, e.g. 'SwissProt.fasta.psq'. If the filename does not end in '.psq' the suffix will be added automatically. Non-existing relative file-names are looked up via'OpenMS.ini:id_db_dir'", true, false, StringList::create("skipexists"));
-    setValidFormats_("database",StringList::create("psq,fasta"));
+    registerInputFile_("database", "<psq-file>", "", "NCBI formatted FASTA files. Only the .psq filename should be given, e.g. 'SwissProt.fasta.psq'. If the filename does not end in '.psq' the suffix will be added automatically. Non-existing relative file-names are looked up via'OpenMS.ini:id_db_dir'", true, false, ListUtils::create<String>("skipexists"));
+    setValidFormats_("database",ListUtils::create<String>("psq,fasta"));
     registerIntOption_("min_precursor_charge", "<charge>", 1, "Minimum precursor ion charge", false);
     registerIntOption_("max_precursor_charge", "<charge>", 3, "Maximum precursor ion charge", false);
     vector<String> all_mods;
     ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
-    registerStringList_("fixed_modifications", "<mods>", StringList::create(""), "Fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
+    registerStringList_("fixed_modifications", "<mods>", ListUtils::create<String>(""), "Fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
     setValidStrings_("fixed_modifications", all_mods);
-    registerStringList_("variable_modifications", "<mods>", StringList::create(""), "Variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
+    registerStringList_("variable_modifications", "<mods>", ListUtils::create<String>(""), "Variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
     setValidStrings_("variable_modifications", all_mods);
 
     //Sequence library
     //-d <String> Blast sequence library to search.  Do not include .p* filename suffixes.
     //-pc <Integer> The number of pseudocounts to add to each precursor mass bin.
     //registerStringOption_("d", "<file>", "", "Blast sequence library to search.  Do not include .p* filename suffixes", true);
-    registerInputFile_("omssa_executable", "<executable>", "omssacl", "The 'omssacl' executable of the OMSSA installation", true, false, StringList::create("skipexists"));
+    registerInputFile_("omssa_executable", "<executable>", "omssacl", "The 'omssacl' executable of the OMSSA installation", true, false, ListUtils::create<String>("skipexists"));
     registerIntOption_("pc", "<Integer>", 1, "The number of pseudocounts to add to each precursor mass bin", false, true);
 
     //registerFlag_("omssa_out", "If this flag is set, the parameter 'in' is considered as an output file of OMSSA and will be converted to idXML");
@@ -571,7 +571,7 @@ protected:
       }
       if (mod_list.size() > 0)
       {
-        parameters << "-mf" << mod_list.concatenate(",");
+        parameters << "-mf" << ListUtils::concatenate(mod_list, ",");
       }
     }
 
@@ -597,7 +597,7 @@ protected:
 
       if (mod_list.size() > 0)
       {
-        parameters << "-mv" << mod_list.concatenate(",");
+        parameters << "-mv" << ListUtils::concatenate(mod_list, ",");
       }
     }
 
@@ -746,11 +746,11 @@ protected:
       status = system(call_string.c_str());
     } else
     {
-      writeDebug_(omssa_executable + " " + parameters.concatenate(" "), 5);
+      writeDebug_(omssa_executable + " " + ListUtils::concatenate(parameters, " "), 5);
       status = QProcess::execute(omssa_executable.toQString(), qparam);      
     }
 #else
-    writeDebug_(omssa_executable + " " + parameters.concatenate(" "), 5);
+    writeDebug_(omssa_executable + " " + ListUtils::concatenate(parameters, " "), 5);
     status = QProcess::execute(omssa_executable.toQString(), qparam);
 #endif
     

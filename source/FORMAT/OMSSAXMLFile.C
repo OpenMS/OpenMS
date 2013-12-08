@@ -363,7 +363,7 @@ namespace OpenMS
       {
         if (value.has('_'))
         {
-          StringList sp = StringList::create(value, '_');
+          StringList sp = ListUtils::create<String>(value, '_');
           try
           {
             actual_peptide_id_.setMetaValue("MZ", sp[0].toDouble());

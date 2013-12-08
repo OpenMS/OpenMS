@@ -91,11 +91,11 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "input file ");
-    setValidFormats_("in", StringList::create("idXML"));
+    setValidFormats_("in", ListUtils::create<String>("idXML"));
     registerOutputFile_("out", "<file>", "", "output file\n", false);
-    setValidFormats_("out", StringList::create("idXML"));
+    setValidFormats_("out", ListUtils::create<String>("idXML"));
     registerInputFile_("svm_model", "<file>", "", "svm model in libsvm format (can be produced by PTModel)");
-    setValidFormats_("svm_model", StringList::create("txt"));
+    setValidFormats_("svm_model", ListUtils::create<String>("txt"));
     registerIntOption_("max_number_of_peptides", "<int>", 100000, "the maximum number of peptides considered at once (bigger number will lead to faster results but needs more memory).\n", false);
   }
 

@@ -122,16 +122,16 @@ START_SECTION((void ionize(FeatureMapSim &features, ConsensusMap &charge_consens
   IonizationSimulation esi_sim(rnd_gen);
   Param esi_param = esi_sim.getParameters();
   esi_param.setValue("ionization_type","ESI");
-  esi_param.setValue("esi:ionized_residues",StringList::create("Arg,Lys,His"));
+  esi_param.setValue("esi:ionized_residues",ListUtils::create<String>("Arg,Lys,His"));
   esi_param.setValue("esi:ionization_probability", 0.8);
-  esi_param.setValue("esi:charge_impurity", StringList::create("H+:1,NH4+:0.2,Ca++:0.1"));
+  esi_param.setValue("esi:charge_impurity", ListUtils::create<String>("H+:1,NH4+:0.2,Ca++:0.1"));
   esi_param.setValue("esi:max_impurity_set_size", 3);
 
   esi_sim.setParameters(esi_param);
 
   FeatureMapSim esi_features;
   ConsensusMap cm;
-  StringList peps = StringList::create("TVQMENQFVAFVDK,ACHKKKKHHACAC,AAAAHTKLRTTIPPEFG,RYCNHKTUIKL");
+  StringList peps = ListUtils::create<String>("TVQMENQFVAFVDK,ACHKKKKHHACAC,AAAAHTKLRTTIPPEFG,RYCNHKTUIKL");
   for (StringList::const_iterator it=peps.begin(); it!=peps.end(); ++it)
   {
     Feature f;

@@ -49,7 +49,7 @@ namespace OpenMS
   {
     // Tandem MS params
     defaults_.setValue("status", "disabled", "Create Tandem-MS scans?");
-    defaults_.setValidStrings("status", StringList::create("disabled,precursor,MS^E"));
+    defaults_.setValidStrings("status", ListUtils::create<String>("disabled,precursor,MS^E"));
 
     subsections_.push_back("Precursor:");
     defaults_.insert("Precursor:", OfflinePrecursorIonSelection().getDefaults());
@@ -59,7 +59,7 @@ namespace OpenMS
     defaults_.setMaxInt("Precursor:charge_filter", 5);
 
     defaults_.setValue("MS_E:add_single_spectra", "false", "If true, the MS2 spectra for each peptide signal are included in the output (might be a lot). They will have a meta value 'MSE_DebugSpectrum' attached, so they can be filtered out. Native MS_E spectra will have 'MSE_Spectrum' instead.");
-    defaults_.setValidStrings("MS_E:add_single_spectra", StringList::create("true,false"));
+    defaults_.setValidStrings("MS_E:add_single_spectra", ListUtils::create<String>("true,false"));
     defaults_.setValue("tandem_mode", 0, "Algorithm to generate the tandem-MS spectra. 0 - fixed intensities, 1 - SVC prediction (abundant/missing), 2 - SVR prediction of peak intensity \n");
     defaults_.setMinInt("tandem_mode", 0);
     defaults_.setMaxInt("tandem_mode", 2);
@@ -74,7 +74,7 @@ namespace OpenMS
 
     // sync'ed Param (also appears in IonizationSimulation)
     defaults_.setValue("ionization_type", "ESI", "Type of Ionization (MALDI or ESI)");
-    defaults_.setValidStrings("ionization_type", StringList::create("MALDI,ESI"));
+    defaults_.setValidStrings("ionization_type", ListUtils::create<String>("MALDI,ESI"));
 
     defaultsToParam_();
   }

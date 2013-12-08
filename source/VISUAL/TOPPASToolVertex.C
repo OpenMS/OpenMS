@@ -591,7 +591,7 @@ namespace OpenMS
         if (store_to_ini)
         {
           if (param_tmp.getValue(param_name).valueType() == DataValue::STRING_LIST)
-            param_tmp.setValue(param_name, StringList(file_list));
+            param_tmp.setValue(param_name, StringListUtils::fromQStringList(file_list));
           else
           {
             if (file_list.size() > 1)
@@ -630,7 +630,7 @@ namespace OpenMS
         {
           if (param_tmp.getValue(param_name).valueType() == DataValue::STRING_LIST)
 		      {
-            param_tmp.setValue(param_name, StringList(output_files));
+            param_tmp.setValue(param_name, StringListUtils::fromQStringList(output_files));
 		      }
           else
           {

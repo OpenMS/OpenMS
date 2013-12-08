@@ -136,22 +136,22 @@ protected:
   void registerOptionsAndFlags_()
   {
     // I/O settings
-    registerInputFileList_("in", "<files>", StringList::create(""), "Input protein sequences", true, false);
-    setValidFormats_("in", StringList::create("FASTA"));
+    registerInputFileList_("in", "<files>", ListUtils::create<String>(""), "Input protein sequences", true, false);
+    setValidFormats_("in", ListUtils::create<String>("FASTA"));
     registerOutputFile_("out", "<file>", "", "output: simulated MS raw (profile) data", false);
-    setValidFormats_("out", StringList::create("mzML"));
+    setValidFormats_("out", ListUtils::create<String>("mzML"));
     registerOutputFile_("out_pm", "<file>", "", "output: ground-truth picked (centroided) MS data", false);
-    setValidFormats_("out_pm", StringList::create("mzML"));
+    setValidFormats_("out_pm", ListUtils::create<String>("mzML"));
     registerOutputFile_("out_fm", "<file>", "", "output: ground-truth features", false);
-    setValidFormats_("out_fm", StringList::create("featureXML"));
+    setValidFormats_("out_fm", ListUtils::create<String>("featureXML"));
     registerOutputFile_("out_cm", "<file>", "", "output: ground-truth features, grouping ESI charge variants of each parent peptide", false);
-    setValidFormats_("out_cm", StringList::create("consensusXML"));
+    setValidFormats_("out_cm", ListUtils::create<String>("consensusXML"));
     registerOutputFile_("out_lcm", "<file>", "", "output: ground-truth features, grouping labeled variants", false);
-    setValidFormats_("out_lcm", StringList::create("consensusXML"));
+    setValidFormats_("out_lcm", ListUtils::create<String>("consensusXML"));
     registerOutputFile_("out_cntm", "<file>", "", "output: ground-truth features caused by contaminants", false);
-    setValidFormats_("out_cntm", StringList::create("featureXML"));
+    setValidFormats_("out_cntm", ListUtils::create<String>("featureXML"));
     registerOutputFile_("out_id", "<file>", "", "output: ground-truth MS2 peptide identifications", false);
-    setValidFormats_("out_id", StringList::create("idXML")); 
+    setValidFormats_("out_id", ListUtils::create<String>("idXML")); 
 
     registerSubsection_("algorithm", "Algorithm parameters section");
   }
@@ -164,9 +164,9 @@ protected:
     // set parameters for the different types of random number generators
     // we support one for the technical and one for the biological variability
     tmp.setValue("RandomNumberGenerators:biological", "random", "Controls the 'biological' randomness of the generated data (e.g. systematic effects like deviations in RT). If set to 'random' each experiment will look different. If set to 'reproducible' each experiment will have the same outcome (given that the input data is the same).");
-    tmp.setValidStrings("RandomNumberGenerators:biological", StringList::create("reproducible,random"));
+    tmp.setValidStrings("RandomNumberGenerators:biological", ListUtils::create<String>("reproducible,random"));
     tmp.setValue("RandomNumberGenerators:technical", "random", "Controls the 'technical' randomness of the generated data (e.g. noise in the raw signal). If set to 'random' each experiment will look different. If set to 'reproducible' each experiment will have the same outcome (given that the input data is the same).");
-    tmp.setValidStrings("RandomNumberGenerators:technical", StringList::create("reproducible,random"));
+    tmp.setValidStrings("RandomNumberGenerators:technical", ListUtils::create<String>("reproducible,random"));
     tmp.setSectionDescription("RandomNumberGenerators", "Parameters for generating the random aspects (e.g. noise) in the simulated data. The generation is separated into two parts, the technical part, like noise in the raw signal, and the biological part, like systematic deviations in the predicted retention times.");
     return tmp;
   }
@@ -186,7 +186,7 @@ protected:
     // add data from file to protein storage
     String::size_type index;
 
-    StringList valid_meta_values = StringList::create("intensity,RT,rt");
+    StringList valid_meta_values = ListUtils::create<String>("intensity,RT,rt");
     // re-parse FASTA description to obtain quantitation info
     for (FASTAdata::iterator it = fastadata.begin(); it != fastadata.end(); ++it)
     {
@@ -210,14 +210,14 @@ protected:
         if (index_end == String::npos) throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "MSSimulator: Invalid entry (" + it->identifier + ") in FASTA file; abundance section has open tag '[#' but missing close tag ']'.");
 
         //std::cout << (it->description).substr(index+2,index_end-index-2) << std::endl;
-        StringList meta_values = StringList::create((it->description).substr(index + 2, index_end - index - 3).removeWhitespaces(), ',');
+        StringList meta_values = ListUtils::create<String>((it->description).substr(index + 2, index_end - index - 3).removeWhitespaces(), ',');
         for (Size i = 0; i < meta_values.size(); ++i)
         {
           StringList components;
           meta_values[i].split('=', components);
           if (components.size() != 2) throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "MSSimulator: Invalid entry (" + it->identifier + ") in FASTA file; the component '" + meta_values[i] + "' is missing an assignment ('=').");
           // check if component is known
-          if (!valid_meta_values.contains(components[0])) throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "MSSimulator: Invalid entry (" + it->identifier + ") in FASTA file; the component '" + meta_values[i] + "' has an unsupported meta value.");
+          if (!ListUtils::contains(valid_meta_values, components[0])) throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "MSSimulator: Invalid entry (" + it->identifier + ") in FASTA file; the component '" + meta_values[i] + "' has an unsupported meta value.");
 
           if (components[0] == "intensity" || String(components[0]).toUpper() == "RT")
           {

@@ -166,13 +166,13 @@ protected:
   virtual void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "input file ");
-    setValidFormats_("in", StringList::create("mzData,mzXML,mzML,dta,dta2d,mgf,featureXML,consensusXML,idXML,pepXML,fid"));
+    setValidFormats_("in", ListUtils::create<String>("mzData,mzXML,mzML,dta,dta2d,mgf,featureXML,consensusXML,idXML,pepXML,fid"));
     registerStringOption_("in_type", "<type>", "", "input file type -- default: determined from file extension or content", false);
-    setValidStrings_("in_type", StringList::create("mzData,mzXML,mzML,dta,dta2d,mgf,featureXML,consensusXML,idXML,pepXML,fid"));
+    setValidStrings_("in_type", ListUtils::create<String>("mzData,mzXML,mzML,dta,dta2d,mgf,featureXML,consensusXML,idXML,pepXML,fid"));
     registerOutputFile_("out", "<file>", "", "Optional output file. If left out, the output is written to the command line.", false);
-    setValidFormats_("out", StringList::create("txt"));
+    setValidFormats_("out", ListUtils::create<String>("txt"));
     registerOutputFile_("out_tsv", "<file>", "", "Second optional output file. Tab separated flat text file.", false, true);
-    setValidFormats_("out_tsv", StringList::create("csv")); 
+    setValidFormats_("out_tsv", ListUtils::create<String>("csv")); 
     registerFlag_("m", "Show meta information about the whole experiment");
     registerFlag_("p", "Shows data processing information");
     registerFlag_("s", "Computes a five-number statistics of intensities, qualities, and widths");

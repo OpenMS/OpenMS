@@ -118,7 +118,7 @@ public:
     {
       // ----------------------------------------------------------------------------------------------------
       this->defaults_.setValue("centroiding:active", "false", "MS1 data centroid data");
-      this->defaults_.setValidStrings("centroiding:active", StringList::create("true,false"));
+      this->defaults_.setValidStrings("centroiding:active", ListUtils::create<String>("true,false"));
       // ----------------------------------------------------------------------------------------------------
       this->defaults_.setValue("ms1:precursor_detection_scan_levels", ListUtils::create<Int>("1"), "Precursor detection scan levels");
       // ----------------------------------------------------------------------------------------------------
@@ -165,7 +165,7 @@ public:
       this->defaults_.setMinFloat("ms1:mz_tolerance", 0.0);
       // ----------------------------------------------------------------------------------------------------
       this->defaults_.setValue("ms1_feature_merger:active", "true", "Activation of MS1 feature merging post processing");
-      this->defaults_.setValidStrings("ms1_feature_merger:active", StringList::create("true,false"));
+      this->defaults_.setValidStrings("ms1_feature_merger:active", ListUtils::create<String>("true,false"));
       // ----------------------------------------------------------------------------------------------------
       this->defaults_.setValue("ms1_feature_merger:tr_resolution", 0.01, "MS1 LC retention time resolution");
       this->defaults_.setMinFloat("ms1_feature_merger:tr_resolution", 0.0);

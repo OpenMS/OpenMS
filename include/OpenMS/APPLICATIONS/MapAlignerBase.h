@@ -80,8 +80,8 @@ public:
     Param params;
     params.setValue("type", default_model, "Type of model");
     // TODO: avoid referring to each TransformationModel subclass explicitly
-    StringList model_types = StringList::create("linear,b_spline,interpolated");
-    if (!model_types.contains(default_model))
+    StringList model_types = ListUtils::create<String>("linear,b_spline,interpolated");
+    if (!ListUtils::contains(model_types,default_model))
     {
       model_types.insert(model_types.begin(), default_model);
     }
@@ -99,7 +99,7 @@ public:
     const Param::ParamEntry & entry =
       model_params.getEntry("interpolation_type");
     StringList interpolation_types = entry.valid_strings;
-    StringList::Iterator pos = find(interpolation_types.begin(),
+    StringList::iterator pos = find(interpolation_types.begin(),
                                     interpolation_types.end(), "polynomial");
     interpolation_types.erase(pos);
     model_params.setValidStrings("interpolation_type", interpolation_types);
@@ -113,17 +113,17 @@ protected:
   void registerOptionsAndFlags_(const String & file_formats, const bool add_reference = false)
   {
     registerInputFileList_("in", "<files>", StringList(), "Input files separated by blanks (all must have the same file type)", true);
-    setValidFormats_("in", StringList::create(file_formats));
+    setValidFormats_("in", ListUtils::create<String>(file_formats));
     registerOutputFileList_("out", "<files>", StringList(), "Output files separated by blanks. Either 'out' or 'trafo_out' has to be provided. They can be used together.", false);
-    setValidFormats_("out", StringList::create(file_formats));
+    setValidFormats_("out", ListUtils::create<String>(file_formats));
     registerOutputFileList_("trafo_out", "<files>", StringList(), "Transformation output files separated by blanks. Either 'out' or 'trafo_out' has to be provided. They can be used together.", false);
-    setValidFormats_("trafo_out", StringList::create("trafoXML"));
+    setValidFormats_("trafo_out", ListUtils::create<String>("trafoXML"));
     addEmptyLine_();
     if (add_reference)
     {
       registerTOPPSubsection_("reference", "Options to define a reference file (use either 'file' or 'index', not both; if neither is given 'index' is used).");
       registerInputFile_("reference:file", "<file>", "", "File to use as reference (same file format as input files required)", false);
-      setValidFormats_("reference:file", StringList::create(file_formats));
+      setValidFormats_("reference:file", ListUtils::create<String>(file_formats));
       registerIntOption_("reference:index", "<number>", 0, "Use one of the input files as reference ('1' for the first file, etc.).\nIf '0', no explicit reference is set - the algorithm will select a reference.", false);
       setMinInt_("reference:index", 0);
     }

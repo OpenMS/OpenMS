@@ -35,6 +35,7 @@
 
 #include <OpenMS/ANALYSIS/DENOVO/CompNovoIonScoringBase.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <numeric>
 
@@ -93,13 +94,13 @@ namespace OpenMS
     fragment_mass_tolerance_(0)
   {
     defaults_.setValue("fragment_mass_tolerance", 0.4, "fragment mass tolerance");
-    defaults_.setValue("decomp_weights_precision", 0.01, "precision used to calculate the decompositions, this only affects cache usage!", StringList::create("advanced"));
-    defaults_.setValue("double_charged_iso_threshold", 0.9, "minimal isotope intensity correlation of doubly charged ions to be used to score the single scored ions", StringList::create("advanced"));
-    defaults_.setValue("double_charged_iso_threshold_single", 0.99, "Isotope scoring threshold used for doubly charged ions to infer singly charged variants", StringList::create("advanced"));
-    defaults_.setValue("max_isotope_to_score", 3, "max isotope peak to be considered in the scoring", StringList::create("advanced"));
-    defaults_.setValue("max_decomp_weight", 600, "maximal m/z difference used to calculate the decompositions", StringList::create("advanced"));
-    defaults_.setValue("max_isotope", 3, "max isotope used in the theoretical spectra to score", StringList::create("advanced"));
-    defaults_.setValue("max_mz", 2000.0, "maximal m/z value used to calculate isotope distributions", StringList::create("advanced"));
+    defaults_.setValue("decomp_weights_precision", 0.01, "precision used to calculate the decompositions, this only affects cache usage!", ListUtils::create<String>("advanced"));
+    defaults_.setValue("double_charged_iso_threshold", 0.9, "minimal isotope intensity correlation of doubly charged ions to be used to score the single scored ions", ListUtils::create<String>("advanced"));
+    defaults_.setValue("double_charged_iso_threshold_single", 0.99, "Isotope scoring threshold used for doubly charged ions to infer singly charged variants", ListUtils::create<String>("advanced"));
+    defaults_.setValue("max_isotope_to_score", 3, "max isotope peak to be considered in the scoring", ListUtils::create<String>("advanced"));
+    defaults_.setValue("max_decomp_weight", 600, "maximal m/z difference used to calculate the decompositions", ListUtils::create<String>("advanced"));
+    defaults_.setValue("max_isotope", 3, "max isotope used in the theoretical spectra to score", ListUtils::create<String>("advanced"));
+    defaults_.setValue("max_mz", 2000.0, "maximal m/z value used to calculate isotope distributions", ListUtils::create<String>("advanced"));
 
     defaultsToParam_();
   }

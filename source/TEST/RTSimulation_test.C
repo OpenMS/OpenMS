@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2013.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Stephan Aiche$
 // $Authors: Stephan Aiche, Chris Bielow$
@@ -37,6 +37,8 @@
 ///////////////////////////
 #include <OpenMS/SIMULATION/RTSimulation.h>
 ///////////////////////////
+
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -70,7 +72,7 @@ START_SECTION((RTSimulation(const RTSimulation &source)))
   Param p = source.getParameters();
   p.setValue("total_gradient_time",4000.0);
   source.setParameters(p);
-  
+
   RTSimulation target(source);
   TEST_EQUAL(source.getParameters(), target.getParameters())
   TEST_EQUAL(source.getGradientTime(), target.getGradientTime())
@@ -81,11 +83,11 @@ START_SECTION((RTSimulation& operator=(const RTSimulation &source)))
 {
   RTSimulation source(empty_rnd_gen);
   RTSimulation target(source);
-  
+
   Param p = source.getParameters();
   p.setValue("total_gradient_time",4000.0);
   source.setParameters(p);
-  
+
   TEST_NOT_EQUAL(source.getParameters(), target.getParameters())
   target = source;
   TEST_EQUAL(source.getParameters(), target.getParameters())
@@ -121,11 +123,11 @@ START_SECTION(([EXTRA] Prediction Test - HPLC with relative RTs))
   svm_params.setValue("auto_scale", "true");
   svm_params.setValue("variation:affine_offset", 0);
   svm_params.setValue("variation:feature_stddev", 0);
-  
+
   svm_rt_sim.setParameters(svm_params);
-  
+
   FeatureMapSim svm_rt_features;
-  StringList peps = StringList::create("TVQMENQFVAFVDK,ACHKKKKHHACAC,AAAAHTKLRTTIPPEFG,RYCNHKTUIKL");
+  StringList peps = ListUtils::create<String>("TVQMENQFVAFVDK,ACHKKKKHHACAC,AAAAHTKLRTTIPPEFG,RYCNHKTUIKL");
 	for (StringList::const_iterator it=peps.begin(); it!=peps.end(); ++it)
 	{
 		Feature f;
@@ -134,19 +136,19 @@ START_SECTION(([EXTRA] Prediction Test - HPLC with relative RTs))
 		f.getPeptideIdentifications().push_back(pep_id);
 		f.setIntensity(10);
 		svm_rt_features.push_back(f);
-	}  
+	}
 
-  MSSimExperiment experiment_rt;  
+  MSSimExperiment experiment_rt;
   svm_rt_sim.predictRT(svm_rt_features);
 
 	TEST_EQUAL(svm_rt_features.size(), 4)
-		 
+
   TEST_REAL_SIMILAR(svm_rt_features[0].getRT(), 234.247)
   TEST_EQUAL(svm_rt_features[0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "TVQMENQFVAFVDK")
 
   TEST_REAL_SIMILAR(svm_rt_features[1].getRT(), 471.292)
 	TEST_EQUAL(svm_rt_features[1].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "RYCNHKTUIKL")
-  
+
 	TEST_REAL_SIMILAR(svm_rt_features[2].getRT(), 934.046)
   TEST_EQUAL(svm_rt_features[2].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "AAAAHTKLRTTIPPEFG")
 
@@ -182,7 +184,7 @@ START_SECTION((void createExperiment(MSSimExperiment & experiment)))
   svm_rt_sim.setParameters(svm_params);
 
   FeatureMapSim svm_rt_features;
-  StringList peps = StringList::create("TVQMENQFVAFVDK,RYCNHKTUIKL");
+  StringList peps = ListUtils::create<String>("TVQMENQFVAFVDK,RYCNHKTUIKL");
   for (StringList::const_iterator it=peps.begin(); it!=peps.end(); ++it)
   {
     Feature f;
@@ -232,7 +234,7 @@ START_SECTION(([EXTRA] Prediction Test - No RT column))
   no_rt_sim.setParameters(p);
 
   FeatureMapSim no_rt_features;
-  StringList peps = StringList::create("TVQMENQFVAFVDK,ACHKKKKHHACAC,AAAAHTKLRTTIPPEFG,RYCNHKTUIKL");
+  StringList peps = ListUtils::create<String>("TVQMENQFVAFVDK,ACHKKKKHHACAC,AAAAHTKLRTTIPPEFG,RYCNHKTUIKL");
   for (StringList::const_iterator it=peps.begin(); it!=peps.end(); ++it)
   {
     Feature f;
@@ -283,7 +285,7 @@ START_SECTION(([EXTRA] Prediction Test - HPLC with absolute RTs))
   FeatureMapSim features;
 
   // 2070, 1470, 2310, 3150
-  StringList abs_peps = StringList::create("QEFEVMEDHAGTYGLGDR,KGHHEAEIKPLAQSHATK,STPTAEDVTAPLVDEGAPGK,LSLEFPSGYPYNAPTVK");
+  StringList abs_peps = ListUtils::create<String>("QEFEVMEDHAGTYGLGDR,KGHHEAEIKPLAQSHATK,STPTAEDVTAPLVDEGAPGK,LSLEFPSGYPYNAPTVK");
 
   for (StringList::const_iterator it=abs_peps.begin(); it!=abs_peps.end(); ++it)
   {
@@ -332,13 +334,13 @@ START_SECTION((bool isRTColumnOn() const ))
 
   Param p = rt_sim.getParameters();
   p.setValue("rt_column","HPLC");
-  rt_sim.setParameters(p);  
-  
+  rt_sim.setParameters(p);
+
   TEST_EQUAL(rt_sim.isRTColumnOn(), true);
-  
+
   p.setValue("rt_column","none");
-  rt_sim.setParameters(p);  
-  
+  rt_sim.setParameters(p);
+
   TEST_EQUAL(rt_sim.isRTColumnOn(), false);
 }
 END_SECTION
@@ -346,16 +348,16 @@ END_SECTION
 START_SECTION((SimCoordinateType getGradientTime() const ))
 {
   RTSimulation rt_sim(empty_rnd_gen);
-  
+
   Param p = rt_sim.getParameters();
   p.setValue("total_gradient_time",1000.0);
-  rt_sim.setParameters(p);  
-  
+  rt_sim.setParameters(p);
+
   TEST_EQUAL(rt_sim.getGradientTime(), 1000.0);
-  
+
   p.setValue("total_gradient_time",4000.0);
-  rt_sim.setParameters(p);  
-  
+  rt_sim.setParameters(p);
+
   TEST_EQUAL(rt_sim.getGradientTime(), 4000.0);
 }
 END_SECTION

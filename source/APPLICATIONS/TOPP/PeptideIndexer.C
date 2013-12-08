@@ -402,14 +402,14 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "Input idXML file containing the identifications.");
-    setValidFormats_("in", StringList::create("idXML"));
-    registerInputFile_("fasta", "<file>", "", "Input sequence database in FASTA format. Non-existing relative file-names are looked up via'OpenMS.ini:id_db_dir'", true, false, StringList::create("skipexists"));
-    setValidFormats_("fasta", StringList::create("fasta"));
+    setValidFormats_("in", ListUtils::create<String>("idXML"));
+    registerInputFile_("fasta", "<file>", "", "Input sequence database in FASTA format. Non-existing relative file-names are looked up via'OpenMS.ini:id_db_dir'", true, false, ListUtils::create<String>("skipexists"));
+    setValidFormats_("fasta", ListUtils::create<String>("fasta"));
     registerOutputFile_("out", "<file>", "", "Output idXML file.");
-    setValidFormats_("out", StringList::create("idXML"));
+    setValidFormats_("out", ListUtils::create<String>("idXML"));
     registerStringOption_("decoy_string", "<string>", "_rev", "String that was appended (or prepended - see 'prefix' flag below) to the accession of the protein database to indicate a decoy protein.", false);
     registerStringOption_("missing_decoy_action", "<action>", "error", "Action to take if NO peptide was assigned to a decoy protein (which indicates wrong database or decoy string): 'error' (exit with error, no output), 'warn' (exit with success, warning message)", false);
-    setValidStrings_("missing_decoy_action", StringList::create("error,warn"));
+    setValidStrings_("missing_decoy_action", ListUtils::create<String>("error,warn"));
     
     registerTOPPSubsection_("enzyme", "The enzyme determines valid cleavage-sites and the cleavage specificity set by the user determines how these are enforced.");
     

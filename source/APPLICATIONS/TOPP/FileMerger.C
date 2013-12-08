@@ -103,13 +103,13 @@ protected:
 
   void registerOptionsAndFlags_()
   {
-    StringList valid_in = StringList::create("mzData,mzXML,mzML,dta,dta2d,mgf,featureXML,consensusXML,fid,traML");
+    StringList valid_in = ListUtils::create<String>("mzData,mzXML,mzML,dta,dta2d,mgf,featureXML,consensusXML,fid,traML");
     registerInputFileList_("in", "<files>", StringList(), "Input files separated by blank");
     setValidFormats_("in", valid_in);
     registerStringOption_("in_type", "<type>", "", "Input file type (default: determined from file extension or content)", false);
     setValidStrings_("in_type", valid_in);
     registerOutputFile_("out", "<file>", "", "Output file");
-    setValidFormats_("out", StringList::create("mzML,featureXML,consensusXML,traML"));
+    setValidFormats_("out", ListUtils::create<String>("mzML,featureXML,consensusXML,traML"));
 
     registerFlag_("annotate_file_origin", "Store the original filename in each feature using meta value \"file_origin\" (for featureXML and consensusXML only).");
 

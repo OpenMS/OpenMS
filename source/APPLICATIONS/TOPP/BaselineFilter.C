@@ -101,14 +101,14 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "input raw data file ");
-    setValidFormats_("in", StringList::create("mzML"));
+    setValidFormats_("in", ListUtils::create<String>("mzML"));
     registerOutputFile_("out", "<file>", "", "output raw data file ");
-    setValidFormats_("out", StringList::create("mzML"));
+    setValidFormats_("out", ListUtils::create<String>("mzML"));
     registerDoubleOption_("struc_elem_length", "<size>", 3, "Length of the structuring element (should be wider than maximal peak width - see documentation).", false);
     registerStringOption_("struc_elem_unit", "<unit>", "Thomson", "Unit of 'struc_elem_length' parameter.", false);
-    setValidStrings_("struc_elem_unit", StringList::create("Thomson,DataPoints"));
+    setValidStrings_("struc_elem_unit", ListUtils::create<String>("Thomson,DataPoints"));
     registerStringOption_("method", "<string>", "tophat", "The name of the morphological filter to be applied. If you are unsure, use the default.", false);
-    setValidStrings_("method", StringList::create("identity,erosion,dilation,opening,closing,gradient,tophat,bothat,erosion_simple,dilation_simple"));
+    setValidStrings_("method", ListUtils::create<String>("identity,erosion,dilation,opening,closing,gradient,tophat,bothat,erosion_simple,dilation_simple"));
   }
 
   ExitCodes main_(int, const char **)

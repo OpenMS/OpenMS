@@ -73,9 +73,9 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "Feature result file");
-    setValidFormats_("in", StringList::create("featureXML"));
+    setValidFormats_("in", ListUtils::create<String>("featureXML"));
     registerInputFile_("truth", "<file>", "", "Expected result file.");
-    setValidFormats_("truth", StringList::create("consensusXML"));
+    setValidFormats_("truth", ListUtils::create<String>("consensusXML"));
     registerDoubleOption_("rt_tol", "<tol>", 20.0, "Maximum allowed retention time deviation", false);
     registerDoubleOption_("mz_tol", "<tol>", 0.25, "Maximum allowed m/z deviation (divided by charge)", false);
   }

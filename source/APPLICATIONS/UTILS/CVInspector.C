@@ -79,17 +79,17 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFileList_("cv_files", "<files>", StringList(), "List of ontology files in OBO format.");
-    setValidFormats_("cv_files", StringList::create("obo"));
+    setValidFormats_("cv_files", ListUtils::create<String>("obo"));
 
     registerStringList_("cv_names", "<names>", StringList(), "List of identifiers (one for each ontology file).");
 
     registerInputFile_("mapping_file", "<file>", "", "Mapping file in CVMapping (XML) format.", false);
-    setValidFormats_("mapping_file", StringList::create("XML"));
+    setValidFormats_("mapping_file", ListUtils::create<String>("XML"));
 
-    registerStringList_("ignore_cv", "<list>", StringList::create("UO,PATO,BTO"), "A list of CV identifiers which should be ignored.", false);
+    registerStringList_("ignore_cv", "<list>", ListUtils::create<String>("UO,PATO,BTO"), "A list of CV identifiers which should be ignored.", false);
 
     registerOutputFile_("html", "<file>", "", "Writes an HTML version of the mapping file with annotated CV terms", false);
-    setValidFormats_("html", StringList::create("HTML"));
+    setValidFormats_("html", ListUtils::create<String>("HTML"));
   }
 
   void writeTermTree_(const String& accession, const ControlledVocabulary& cv, TextFile& file, UInt indent)
@@ -103,7 +103,7 @@ protected:
       String description = child_term.description;
       if (child_term.synonyms.size() != 0)
       {
-        description += String(" -- Synonyms: '") + child_term.synonyms.concatenate(", ") + "'";
+        description += String(" -- Synonyms: '") + ListUtils::concatenate(child_term.synonyms, ", ") + "'";
       }
       subterm_line += "- <span title=\"" + description + "\">" + child_term.id + " ! " + child_term.name + "</span>";
       StringList tags;
@@ -122,7 +122,7 @@ protected:
         {
           units.push_back(*u_it + "!" + cv.getTerm(*u_it).name);
         }
-        tags.push_back(String("units=") + units.concatenate(","));
+        tags.push_back(String("units=") + ListUtils::concatenate(units, ","));
       }
       if (child_term.xref_binary.size() > 0)
       {
@@ -131,11 +131,11 @@ protected:
         {
           types.push_back(*u_it + "!" + cv.getTerm(*u_it).name);
         }
-        tags.push_back(String("binary-array-types=") + types.concatenate(","));
+        tags.push_back(String("binary-array-types=") + ListUtils::concatenate(types, ","));
       }
       if (tags.size() != 0)
       {
-        subterm_line += String("<FONT color=\"grey\"> (") + tags.concatenate(", ") + ")</FONT>";
+        subterm_line += String("<FONT color=\"grey\"> (") + ListUtils::concatenate(tags, ", ") + ")</FONT>";
       }
       file.push_back(subterm_line + "<BR>");
       writeTermTree_(child_term.id, cv, file, indent + 1);
@@ -261,7 +261,7 @@ protected:
             String description = child_term.description;
             if (child_term.synonyms.size() != 0)
             {
-              description += String(" -- Synonyms: '") + child_term.synonyms.concatenate(", ") + "'";
+              description += String(" -- Synonyms: '") + ListUtils::concatenate(child_term.synonyms, ", ") + "'";
             }
             term_line += "<span title=\"" + description + "\">";
           }
@@ -304,7 +304,7 @@ protected:
               {
                 units.push_back(*u_it + "!" + cv.getTerm(*u_it).name);
               }
-              tags.push_back(String("units=") + units.concatenate(","));
+              tags.push_back(String("units=") + ListUtils::concatenate(units, ","));
             }
             if (term.xref_binary.size() > 0)
             {
@@ -313,12 +313,12 @@ protected:
               {
                 types.push_back(*u_it + "!" + cv.getTerm(*u_it).name);
               }
-              tags.push_back(String("binary-array-types=") + types.concatenate(","));
+              tags.push_back(String("binary-array-types=") + ListUtils::concatenate(types, ","));
             }
           }
           if (tags.size() != 0)
           {
-            term_line += String("<FONT color=\"grey\"> (") + tags.concatenate(", ") + ")</FONT>";
+            term_line += String("<FONT color=\"grey\"> (") + ListUtils::concatenate(tags, ", ") + ")</FONT>";
           }
           file.push_back(term_line);
 

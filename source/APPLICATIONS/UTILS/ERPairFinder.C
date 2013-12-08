@@ -134,16 +134,16 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "Input mzML file containing the ER spectra.");
-    setValidFormats_("in", StringList::create("mzML"));
+    setValidFormats_("in", ListUtils::create<String>("mzML"));
 
     registerInputFile_("pair_in", "<file>", "", "Pair-file in the format: m/z-light m/z-heavy charge rt");
-    setValidFormats_("pair_in", StringList::create("txt"));
+    setValidFormats_("pair_in", ListUtils::create<String>("txt"));
 
     registerOutputFile_("out", "<file>", "", "Output consensusXML file were the pairs of the feature are written into.");
-    setValidFormats_("out", StringList::create("consensusXML"));
+    setValidFormats_("out", ListUtils::create<String>("consensusXML"));
 
     registerOutputFile_("feature_out", "<file>", "", "Output featureXML file, only written if given, skipped otherwise.", false, false);
-    setValidFormats_("feature_out", StringList::create("featureXML"));
+    setValidFormats_("feature_out", ListUtils::create<String>("featureXML"));
 
     registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 0.3, "Precursor mass tolerance which is used for the pair finding and the matching of the given pair m/z values to the features.", false, false);
     setMinFloat_("precursor_mass_tolerance", 0.0);

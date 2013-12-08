@@ -104,13 +104,13 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "Input file containing chromatograms (converted mzXML file)");
-    setValidFormats_("in", StringList::create("mzML"));
+    setValidFormats_("in", ListUtils::create<String>("mzML"));
 
     registerInputFile_("tr", "<file>", "", "transition file");
-    setValidFormats_("tr", StringList::create("TraML"));
+    setValidFormats_("tr", ListUtils::create<String>("TraML"));
 
     registerOutputFile_("out", "<file>", "", "Output file containing mapped chromatograms");
-    setValidFormats_("out", StringList::create("mzML"));
+    setValidFormats_("out", ListUtils::create<String>("mzML"));
 
     registerDoubleOption_("precursor_tolerance", "<double>", 0.1, "Precursor tolerance when mapping (in Th)", false);
     registerDoubleOption_("product_tolerance", "<double>", 0.1, "Product tolerance when mapping (in Th)", false);

@@ -90,7 +90,7 @@ namespace OpenMS
     Param p;
     String suffix = " FILE";
     StringList commands;
-    for (StringList::ConstIterator iter = settings.begin(); iter != settings.end(); ++iter)
+    for (StringList::const_iterator iter = settings.begin(); iter != settings.end(); ++iter)
     {
       // split by " " to get all keywords
       StringList l;
@@ -115,9 +115,9 @@ namespace OpenMS
 
   void LogConfigHandler::configure(const Param & param)
   {
-    StringList configurations = (StringList) param.getValue(LogConfigHandler::PARAM_NAME);
+    StringList configurations = param.getValue(LogConfigHandler::PARAM_NAME);
 
-    for (StringList::ConstIterator iter = configurations.begin(); iter != configurations.end(); ++iter)
+    for (StringList::const_iterator iter = configurations.begin(); iter != configurations.end(); ++iter)
     {
       // split by " " to get the commands
       StringList commands;

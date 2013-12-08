@@ -103,21 +103,21 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFileList_("in", "<file list>", StringList(), "Input mzML file list, containing the spectra.");
-    setValidFormats_("in", StringList::create("mzML"));
+    setValidFormats_("in", ListUtils::create<String>("mzML"));
     registerInputFileList_("id_in", "<file list>", StringList(), "Input idXML file list, containing the identifications.");
-    setValidFormats_("id_in", StringList::create("idXML"));
+    setValidFormats_("id_in", ListUtils::create<String>("idXML"));
 
     registerOutputFile_("precursor_out", "<file>", "", "Output file which contains the deviations from the precursors", false, false);
-    setValidFormats_("precursor_out", StringList::create("csv"));
+    setValidFormats_("precursor_out", ListUtils::create<String>("csv"));
 
-    registerStringList_("precursor_columns", "<columns>", StringList::create("MassDifference"), "Columns which will be written to the output file", false);
-    setValidStrings_("precursor_columns", StringList::create("MassDifference"));
+    registerStringList_("precursor_columns", "<columns>", ListUtils::create<String>("MassDifference"), "Columns which will be written to the output file", false);
+    setValidStrings_("precursor_columns", ListUtils::create<String>("MassDifference"));
     registerFlag_("precursor_error_ppm", "If this flag is used, the precursor mass tolerances are estimated in ppm instead of Da.");
 
     registerOutputFile_("fragment_out", "<file>", "", "Output file which contains the fragment ion m/z deviations", false, false);
-    setValidFormats_("fragment_out", StringList::create("csv"));
-    registerStringList_("fragment_columns", "<columns>", StringList::create("MassDifference"), "Columns which will be written to the output file", false);
-    setValidStrings_("fragment_columns", StringList::create("MassDifference"));
+    setValidFormats_("fragment_out", ListUtils::create<String>("csv"));
+    registerStringList_("fragment_columns", "<columns>", ListUtils::create<String>("MassDifference"), "Columns which will be written to the output file", false);
+    setValidStrings_("fragment_columns", ListUtils::create<String>("MassDifference"));
     registerFlag_("fragment_error_ppm", "If this flag is used, the fragment mass tolerances are estimated in ppm instead of Da.");
 
     registerDoubleOption_("fragment_mass_tolerance", "<tolerance>", 0.5, "Maximal fragment mass tolerance which is allowed for MS/MS spectra, used for the calculation of matching ions.", false, false);
@@ -127,7 +127,7 @@ protected:
     setMinInt_("number_of_bins", 10);
 
     registerStringOption_("generate_gnuplot_scripts", "<false>", "false", "If this option is set to true, the distributions and the fits are used to generate a gnuplot script, that can be used to generate plots. The options 'precursor_out' and 'fragment_out' must be set to take this effect.", false, true);
-    setValidStrings_("generate_gnuplot_scripts", StringList::create("true,false"));
+    setValidStrings_("generate_gnuplot_scripts", ListUtils::create<String>("true,false"));
   }
 
   DoubleReal getMassDifference(DoubleReal theo_mz, DoubleReal exp_mz, bool use_ppm)

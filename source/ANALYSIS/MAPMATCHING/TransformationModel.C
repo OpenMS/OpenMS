@@ -34,6 +34,7 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <gsl/gsl_fit.h>
 #include <gsl/gsl_multifit.h>
@@ -143,7 +144,7 @@ namespace OpenMS
     params.setValue("symmetric_regression", "false", "Perform linear regression"
                                                      " on 'y - x' vs. 'y + x', instead of on 'y' vs. 'x'.");
     params.setValidStrings("symmetric_regression",
-                           StringList::create("true,false"));
+                           ListUtils::create<String>("true,false"));
   }
 
   TransformationModelInterpolated::TransformationModelInterpolated(
@@ -231,7 +232,7 @@ namespace OpenMS
     params.clear();
     params.setValue("interpolation_type", "cspline",
                     "Type of interpolation to apply.");
-    StringList types = StringList::create("linear,polynomial,cspline,akima");
+    StringList types = ListUtils::create<String>("linear,polynomial,cspline,akima");
     params.setValidStrings("interpolation_type", types);
   }
 
@@ -413,7 +414,7 @@ namespace OpenMS
     params.setValue("num_breakpoints", 5, "Number of breakpoints of the cubic spline in the smoothing step. More breakpoints mean less smoothing. Reduce this number if the transformation has an unexpected shape.");
     params.setMinInt("num_breakpoints", 2);
     params.setValue("break_positions", "uniform", "How to distribute the breakpoints on the retention time scale. 'uniform': intervals of equal size; 'quantiles': equal number of data points per interval.");
-    params.setValidStrings("break_positions", StringList::create("uniform,quantiles"));
+    params.setValidStrings("break_positions", ListUtils::create<String>("uniform,quantiles"));
   }
 
 }

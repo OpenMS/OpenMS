@@ -37,6 +37,7 @@
 
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 
@@ -171,10 +172,10 @@ public:
       //structuring element
       defaults_.setValue("struc_elem_length", 3.0, "Length of the structuring element. This should be wider than the expected peak width.");
       defaults_.setValue("struc_elem_unit", "Thomson", "The unit of the 'struct_elem_length'.");
-      defaults_.setValidStrings("struc_elem_unit", StringList::create("Thomson,DataPoints"));
+      defaults_.setValidStrings("struc_elem_unit", ListUtils::create<String>("Thomson,DataPoints"));
       //methods
       defaults_.setValue("method", "tophat", "Method to use, the default is 'tophat'.  Do not change this unless you know what you are doing.  The other methods may be useful for tuning the parameters, see the class documentation of MorpthologicalFilter.");
-      defaults_.setValidStrings("method", StringList::create("identity,erosion,dilation,opening,closing,gradient,tophat,bothat,erosion_simple,dilation_simple"));
+      defaults_.setValidStrings("method", ListUtils::create<String>("identity,erosion,dilation,opening,closing,gradient,tophat,bothat,erosion_simple,dilation_simple"));
 
       defaultsToParam_();
     }

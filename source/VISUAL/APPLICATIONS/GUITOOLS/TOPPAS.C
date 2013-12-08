@@ -196,7 +196,7 @@ int main(int argc, const char** argv)
 
     if (param.exists("misc"))
     {
-      mw->loadFiles((StringList)(param.getValue("misc")), splash_screen);
+      mw->loadFiles(param.getValue("misc"), splash_screen);
     }
     else // remember this new window as obsolete once a real workflow is loaded without this window being touched
     {    // if this is not desired, simply call newPipeline() without arguments

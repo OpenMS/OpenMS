@@ -155,9 +155,9 @@ protected:
     setValidStrings_("type", valid_types);
 
     registerInputFile_("in", "<file>", "", "input raw/picked data file ");
-    setValidFormats_("in", StringList::create("mzML"));
+    setValidFormats_("in", ListUtils::create<String>("mzML"));
     registerOutputFile_("out", "<file>", "", "output consensusXML file with quantitative information");
-    setValidFormats_("out", StringList::create("consensusXML"));
+    setValidFormats_("out", ListUtils::create<String>("consensusXML"));
 
     registerSubsection_("extraction", "Parameters for the channel extraction.");
     registerSubsection_("quantification", "Parameters for the peptide quantification.");

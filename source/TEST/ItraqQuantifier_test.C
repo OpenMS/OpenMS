@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2013.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
 // $Authors: Chris Bielow $
@@ -91,17 +91,17 @@ END_SECTION
 START_SECTION((ItraqQuantifier(Int itraq_type, const Param &param)))
 {
 	Param p;
-	p.setValue("isotope_correction:4plex", StringList::create("114:0/0.3/4/0 , 116:0.1/0.3/3/0.2"));
+	p.setValue("isotope_correction:4plex", ListUtils::create<String>("114:0/0.3/4/0 , 116:0.1/0.3/3/0.2"));
 	ItraqQuantifier iq(ItraqQuantifier::FOURPLEX, p);
-	TEST_EQUAL((StringList) iq.getParameters().getValue("isotope_correction:4plex"),StringList::create( "114:0/0.3/4/0 , 116:0.1/0.3/3/0.2"));
-	
+	TEST_EQUAL(iq.getParameters().getValue("isotope_correction:4plex") == ListUtils::create<String>( "114:0/0.3/4/0 , 116:0.1/0.3/3/0.2"), true)
+
 	// this should go wrong
-	p.setValue("isotope_correction:4plex", StringList::create("114:0/0.3/0 , 116:0.1/0.3/3/0.2"));	
-	TEST_EXCEPTION(Exception::InvalidParameter, ItraqQuantifier iq2(ItraqQuantifier::FOURPLEX, p));	
+	p.setValue("isotope_correction:4plex", ListUtils::create<String>("114:0/0.3/0 , 116:0.1/0.3/3/0.2"));
+	TEST_EXCEPTION(Exception::InvalidParameter, ItraqQuantifier iq2(ItraqQuantifier::FOURPLEX, p));
 
 	// this should go wrong too
-	p.setValue("isotope_correction:4plex", StringList::create("113:0/0.3/0/0.3 , 116:0.1/0.3/3/0.2"));	
-	TEST_EXCEPTION(Exception::InvalidParameter, ItraqQuantifier iq2(ItraqQuantifier::FOURPLEX, p));	
+	p.setValue("isotope_correction:4plex", ListUtils::create<String>("113:0/0.3/0/0.3 , 116:0.1/0.3/3/0.2"));
+	TEST_EXCEPTION(Exception::InvalidParameter, ItraqQuantifier iq2(ItraqQuantifier::FOURPLEX, p));
 }
 END_SECTION
 
@@ -109,11 +109,11 @@ END_SECTION
 START_SECTION((ItraqQuantifier(const ItraqQuantifier &cp)))
 {
 	Param p;
-	p.setValue("isotope_correction:4plex", StringList::create("114:0/0.3/4/0 , 116:0.1/0.3/3/0.2"));
+	p.setValue("isotope_correction:4plex", ListUtils::create<String>("114:0/0.3/4/0 , 116:0.1/0.3/3/0.2"));
 	ItraqQuantifier iq(ItraqQuantifier::EIGHTPLEX, p);
 
 	ItraqQuantifier iq_cp(iq);
-	
+
 	TEST_EQUAL(iq_cp.getParameters(), iq.getParameters());
 
 }
@@ -122,12 +122,12 @@ END_SECTION
 START_SECTION((ItraqQuantifier& operator=(const ItraqQuantifier &rhs)))
 {
 	Param p;
-	p.setValue("isotope_correction:4plex", StringList::create("114:0/0.3/4/0 , 116:0.1/0.3/3/0.2"));
+	p.setValue("isotope_correction:4plex", ListUtils::create<String>("114:0/0.3/4/0 , 116:0.1/0.3/3/0.2"));
 	ItraqQuantifier iq(ItraqQuantifier::EIGHTPLEX, p);
 
 	ItraqQuantifier iq_cp;
 	iq_cp = iq;
-	
+
 	TEST_EQUAL(iq_cp.getParameters(), iq.getParameters());
 
 }
@@ -159,7 +159,7 @@ END_SECTION
 
 START_SECTION((ItraqQuantifierStats getStats() const))
 {
-  /* 
+  /*
   // prep: for data generation
   ItraqConstants::IsotopeMatrices isotope_corrections_;
   isotope_corrections_.resize(2);
@@ -223,7 +223,7 @@ START_SECTION((ItraqQuantifierStats getStats() const))
   // add some target results
   double v1[4] = {1.071,  95.341,  101.998,  96.900}; // naive yields: {-1,100,100,100};  NNLS: {0.00000  99.91414 100.00375  99.99990}
   cm_in.push_back(getCFWithIntensites(v1));
-  
+
   iq.run(cm_in, cm_out);
 
   stats = iq.getStats();

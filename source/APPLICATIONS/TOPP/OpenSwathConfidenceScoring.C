@@ -126,15 +126,15 @@ public:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "Input file (OpenSwath results)");
-    setValidFormats_("in", StringList::create("featureXML"));
+    setValidFormats_("in", ListUtils::create<String>("featureXML"));
     registerInputFile_("lib", "<file>", "", "Assay library");
-    setValidFormats_("lib", StringList::create("traML"));
+    setValidFormats_("lib", ListUtils::create<String>("traML"));
     registerOutputFile_("out", "<file>", "", 
                         "Output file (results with confidence scores)");
-    setValidFormats_("out", StringList::create("featureXML"));
+    setValidFormats_("out", ListUtils::create<String>("featureXML"));
     registerInputFile_("trafo", "<file>", "", "Retention time transformation",
                        false);
-    setValidFormats_("trafo", StringList::create("trafoXML"));
+    setValidFormats_("trafo", ListUtils::create<String>("trafoXML"));
     registerIntOption_("decoys", "<number>", 1000, "Number of decoy assays to "
                        "select from the library for every true assay (0 for "
                        "\"all\")", false);

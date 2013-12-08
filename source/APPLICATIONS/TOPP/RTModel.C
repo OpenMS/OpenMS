@@ -177,22 +177,22 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "This is the name of the input file (RT prediction). It is assumed that the file type is idXML. Alternatively you can provide a .txt file having a sequence and the corresponding rt per line.\n", false);
-    setValidFormats_("in", StringList::create("idXML,txt"));
+    setValidFormats_("in", ListUtils::create<String>("idXML,txt"));
     registerInputFile_("in_positive", "<file>", "", "input file with positive examples (peptide separation prediction)\n", false);
-    setValidFormats_("in_positive", StringList::create("idXML"));
+    setValidFormats_("in_positive", ListUtils::create<String>("idXML"));
     registerInputFile_("in_negative", "<file>", "", "input file with negative examples (peptide separation prediction)\n", false);
-    setValidFormats_("in_negative", StringList::create("idXML"));
+    setValidFormats_("in_negative", ListUtils::create<String>("idXML"));
     registerOutputFile_("out", "<file>", "", "output file: the model in libsvm format");
-    setValidFormats_("out", StringList::create("txt"));
+    setValidFormats_("out", ListUtils::create<String>("txt"));
     registerStringOption_("svm_type", "<type>", "NU_SVR", "the type of the svm (NU_SVR or EPSILON_SVR for RT prediction, automatically set\nto C_SVC for separation prediction)\n", false);
-    setValidStrings_("svm_type", StringList::create("NU_SVR,NU_SVC,EPSILON_SVR,C_SVC"));
+    setValidStrings_("svm_type", ListUtils::create<String>("NU_SVR,NU_SVC,EPSILON_SVR,C_SVC"));
     registerDoubleOption_("nu", "<float>", 0.5, "the nu parameter [0..1] of the svm (for nu-SVR)", false);
     setMinFloat_("nu", 0);
     setMaxFloat_("nu", 1);
     registerDoubleOption_("p", "<float>", 0.1, "the epsilon parameter of the svm (for epsilon-SVR)", false);
     registerDoubleOption_("c", "<float>", 1, "the penalty parameter of the svm", false);
     registerStringOption_("kernel_type", "<type>", "OLIGO", "the kernel type of the svm", false);
-    setValidStrings_("kernel_type", StringList::create("LINEAR,RBF,POLY,OLIGO"));
+    setValidStrings_("kernel_type", ListUtils::create<String>("LINEAR,RBF,POLY,OLIGO"));
     registerIntOption_("degree", "<int>", 1, "the degree parameter of the kernel function of the svm (POLY kernel)\n", false);
     setMinInt_("degree", 1);
     registerIntOption_("border_length", "<int>", 22, "length of the POBK", false);

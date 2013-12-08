@@ -35,6 +35,7 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/QTClusterFinder.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 using namespace std;
 
@@ -47,7 +48,7 @@ namespace OpenMS
     setName(getProductName());
 
     defaults_.setValue("use_identifications", "false", "Never link features that are annotated with different peptides (only the best hit per peptide identification is taken into account).");
-    defaults_.setValidStrings("use_identifications", StringList::create("true,false"));
+    defaults_.setValidStrings("use_identifications", ListUtils::create<String>("true,false"));
 
     defaults_.insert("", feature_distance_.getDefaults());
 

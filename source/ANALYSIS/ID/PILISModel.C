@@ -36,6 +36,7 @@
 #include <OpenMS/ANALYSIS/ID/PILISModel.h>
 #include <OpenMS/ANALYSIS/ID/PILISModelGenerator.h>
 
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
@@ -85,8 +86,8 @@ namespace OpenMS
     defaults_.setValue("lower_mz", 200.0, "Lowest m/z value of product ions in the simulated spectrum");
     defaults_.setValue("charge_remote_threshold", 0.3, "If the probability for the proton at the N-terminus is lower than this value, enable charge-remote pathways");
     defaults_.setValue("charge_directed_threshold", 0.3, "Limit the proton availability at the N-terminus to at least this value for charge-directed pathways");
-    defaults_.setValue("model_depth", 10, "The number of explicitly modeled backbone cleavages from N-terminus and C-terminus, would be 9 for the default value", StringList::create("advanced"));
-    defaults_.setValue("visible_model_depth", 50, "The maximal possible size of a peptide to be modeled", StringList::create("advanced"));
+    defaults_.setValue("model_depth", 10, "The number of explicitly modeled backbone cleavages from N-terminus and C-terminus, would be 9 for the default value", ListUtils::create<String>("advanced"));
+    defaults_.setValue("visible_model_depth", 50, "The maximal possible size of a peptide to be modeled", ListUtils::create<String>("advanced"));
 
     // tolerances
     defaults_.setValue("precursor_mass_tolerance", 3.0, "Mass tolerance of the precursor peak, used to identify the precursor peak and its loss peaks for training");
@@ -95,22 +96,22 @@ namespace OpenMS
     // modification parameters
     vector<String> all_mods;
     ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
-    defaults_.setValue("variable_modifications", StringList::create("Oxidation (M),Carbamyl (K)"), "Modifications which should be included in the model, represented by PSI-MOD accessions.");
+    defaults_.setValue("variable_modifications", ListUtils::create<String>("Oxidation (M),Carbamyl (K)"), "Modifications which should be included in the model, represented by PSI-MOD accessions.");
     defaults_.setValidStrings("variable_modifications", all_mods);
-    defaults_.setValue("fixed_modifications", StringList::create(""), "Modifications which should replace the unmodified amino acid, represented by PSI-MOD accessions.");
+    defaults_.setValue("fixed_modifications", ListUtils::create<String>(""), "Modifications which should replace the unmodified amino acid, represented by PSI-MOD accessions.");
     defaults_.setValidStrings("fixed_modifications", all_mods);
 
 
-    defaults_.setValue("min_enhancement_factor", 2.0, "Minimal factor for bxyz backbone cleavages.", StringList::create("advanced"));
+    defaults_.setValue("min_enhancement_factor", 2.0, "Minimal factor for bxyz backbone cleavages.", ListUtils::create<String>("advanced"));
 
-    defaults_.setValue("min_y_ion_intensity", 0.0, "Minimal intensity for y ions.", StringList::create("advanced"));
-    defaults_.setValue("min_b_ion_intensity", 0.0, "Minimal intensity for b ions.", StringList::create("advanced"));
-    defaults_.setValue("min_a_ion_intensity", 0.0, "Minimal intensity for a ions.", StringList::create("advanced"));
-    defaults_.setValue("min_y_loss_intensity", 0.0, "Minimal intensity for y ions with neutral loss.", StringList::create("advanced"));
-    defaults_.setValue("min_b_loss_intensity", 0.0, "Minimal intensity for b ions with neutral loss.", StringList::create("advanced"));
+    defaults_.setValue("min_y_ion_intensity", 0.0, "Minimal intensity for y ions.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("min_b_ion_intensity", 0.0, "Minimal intensity for b ions.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("min_a_ion_intensity", 0.0, "Minimal intensity for a ions.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("min_y_loss_intensity", 0.0, "Minimal intensity for y ions with neutral loss.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("min_b_loss_intensity", 0.0, "Minimal intensity for b ions with neutral loss.", ListUtils::create<String>("advanced"));
 
     defaults_.setValue("side_chain_activation", 0.2, "Additional activation of proton sitting at side chain, especially important at lysine and histidine residues");
-    defaults_.setValue("pseudo_counts", 1e-15, "Value which is added for every transition trained of the underlying hidden Markov model", StringList::create("advanced"));
+    defaults_.setValue("pseudo_counts", 1e-15, "Value which is added for every transition trained of the underlying hidden Markov model", ListUtils::create<String>("advanced"));
     defaults_.setValue("max_isotope", 2, "Maximal isotope peak which is reported by the model, 0 means all isotope peaks are reported");
 
     defaults_.setValue("max_fragment_charge_training", 2, "Maximal allowed charge states for ions to be considered for training");
@@ -183,8 +184,8 @@ namespace OpenMS
     {
       PILISModelGenerator gen;
       Param gen_param(gen.getParameters());
-      gen_param.setValue("variable_modifications", (StringList)param_.getValue("variable_modifications"));
-      gen_param.setValue("fixed_modifications", (StringList)param_.getValue("fixed_modifications"));
+      gen_param.setValue("variable_modifications", param_.getValue("variable_modifications"));
+      gen_param.setValue("fixed_modifications", param_.getValue("fixed_modifications"));
       gen_param.setValue("model_depth", param_.getValue("model_depth"));
       gen_param.setValue("visible_model_depth", param_.getValue("visible_model_depth"));
       gen.setParameters(gen_param);
@@ -194,8 +195,8 @@ namespace OpenMS
 
     Param pre_param(precursor_model_cr_.getParameters());
     pre_param.setValue("fragment_mass_tolerance", (DoubleReal)param_.getValue("fragment_mass_tolerance"));
-    pre_param.setValue("variable_modifications", (StringList)param_.getValue("variable_modifications"));
-    pre_param.setValue("fixed_modifications", (StringList)param_.getValue("fixed_modifications"));
+    pre_param.setValue("variable_modifications", param_.getValue("variable_modifications"));
+    pre_param.setValue("fixed_modifications", param_.getValue("fixed_modifications"));
     pre_param.setValue("pseudo_counts", (DoubleReal)param_.getValue("pseudo_counts"));
     pre_param.setValue("C_term_H2O_loss", "true");
     pre_param.setValue("ion_name", "p");
@@ -275,21 +276,21 @@ namespace OpenMS
     file.load(filename, true);
 
     TextFile::Iterator it_begin(file.begin()), it_end(file.begin());
-    it_begin = file.search(it_begin, "BASE_MODEL_BEGIN");
-    it_end = file.search(it_begin, "BASE_MODEL_END");
+    it_begin = StringListUtils::searchPrefix(it_begin, file.end(), "BASE_MODEL_BEGIN");
+    it_end = StringListUtils::searchPrefix(it_begin, file.end(), "BASE_MODEL_END");
     parseHMMModel_(++it_begin, it_end, hmm_, param_);
 
     // seek to next interval
-    it_begin = file.search(it_end, "PRECURSOR_MODEL_CR_BEGIN");
-    it_end = file.search(it_begin, "PRECURSOR_MODEL_CR_END");
+    it_begin = StringListUtils::searchPrefix(it_end, file.end(), "PRECURSOR_MODEL_CR_BEGIN");
+    it_end = StringListUtils::searchPrefix(it_begin, file.end(), "PRECURSOR_MODEL_CR_END");
     Param p;
     HiddenMarkovModel precursor_model_cr_hmm;
     parseHMMModel_(++it_begin, it_end, precursor_model_cr_hmm, p);
     precursor_model_cr_.setHMM(precursor_model_cr_hmm);
     precursor_model_cr_.setParameters(p);
 
-    it_begin = file.search(it_end, "PRECURSOR_MODEL_CD_BEGIN");
-    it_end = file.search(it_begin, "PRECURSOR_MODEL_CD_END");
+    it_begin = StringListUtils::searchPrefix(it_end, file.end(), "PRECURSOR_MODEL_CD_BEGIN");
+    it_end = StringListUtils::searchPrefix(it_begin, file.end(), "PRECURSOR_MODEL_CD_END");
     p.clear();
     HiddenMarkovModel precursor_model_cd_hmm;
     parseHMMModel_(++it_begin, it_end, precursor_model_cd_hmm, p);
@@ -298,32 +299,32 @@ namespace OpenMS
 
 
     // b loss models
-    it_begin = file.search(it_end, "BION_LOSS_MODEL_CR_BEGIN");
-    it_end = file.search(it_begin, "BION_LOSS_MODEL_CR_END");
+    it_begin = StringListUtils::searchPrefix(it_end, file.end(), "BION_LOSS_MODEL_CR_BEGIN");
+    it_end = StringListUtils::searchPrefix(it_begin, file.end(), "BION_LOSS_MODEL_CR_END");
     p.clear();
     HiddenMarkovModel b_ion_loss_hmm_cr;
     parseHMMModel_(++it_begin, it_end, b_ion_loss_hmm_cr, p);
     b_ion_losses_cr_.setHMM(b_ion_loss_hmm_cr);
     b_ion_losses_cr_.setParameters(p);
 
-    it_begin = file.search(it_end, "BION_LOSS_MODEL_CD_BEGIN");
-    it_end = file.search(it_begin, "BION_LOSS_MODEL_CD_END");
+    it_begin = StringListUtils::searchPrefix(it_end, file.end(), "BION_LOSS_MODEL_CD_BEGIN");
+    it_end = StringListUtils::searchPrefix(it_begin, file.end(), "BION_LOSS_MODEL_CD_END");
     p.clear();
     HiddenMarkovModel b_ion_loss_hmm_cd;
     parseHMMModel_(++it_begin, it_end, b_ion_loss_hmm_cd, p);
     b_ion_losses_cd_.setHMM(b_ion_loss_hmm_cd);
     b_ion_losses_cd_.setParameters(p);
 
-    it_begin = file.search(it_end, "B2ION_LOSS_MODEL_CR_BEGIN");
-    it_end = file.search(it_begin, "B2ION_LOSS_MODEL_CR_END");
+    it_begin = StringListUtils::searchPrefix(it_end, file.end(), "B2ION_LOSS_MODEL_CR_BEGIN");
+    it_end = StringListUtils::searchPrefix(it_begin, file.end(), "B2ION_LOSS_MODEL_CR_END");
     p.clear();
     HiddenMarkovModel b2_ion_loss_hmm_cr;
     parseHMMModel_(++it_begin, it_end, b2_ion_loss_hmm_cr, p);
     b2_ion_losses_cr_.setHMM(b2_ion_loss_hmm_cr);
     b2_ion_losses_cr_.setParameters(p);
 
-    it_begin = file.search(it_end, "B2ION_LOSS_MODEL_CD_BEGIN");
-    it_end = file.search(it_begin, "B2ION_LOSS_MODEL_CD_END");
+    it_begin = StringListUtils::searchPrefix(it_end, file.end(), "B2ION_LOSS_MODEL_CD_BEGIN");
+    it_end = StringListUtils::searchPrefix(it_begin, file.end(), "B2ION_LOSS_MODEL_CD_END");
     p.clear();
     HiddenMarkovModel b2_ion_loss_hmm_cd;
     parseHMMModel_(++it_begin, it_end, b2_ion_loss_hmm_cd, p);
@@ -331,16 +332,16 @@ namespace OpenMS
     b2_ion_losses_cd_.setParameters(p);
 
     // a-ion loss model
-    it_begin = file.search(it_end, "AION_LOSS_MODEL_CR_BEGIN");
-    it_end = file.search(it_begin, "AION_LOSS_MODEL_CR_END");
+    it_begin = StringListUtils::searchPrefix(it_end, file.end(), "AION_LOSS_MODEL_CR_BEGIN");
+    it_end = StringListUtils::searchPrefix(it_begin, file.end(), "AION_LOSS_MODEL_CR_END");
     p.clear();
     HiddenMarkovModel a_ion_loss_hmm_cr;
     parseHMMModel_(++it_begin, it_end, a_ion_loss_hmm_cr, p);
     a_ion_losses_cr_.setHMM(a_ion_loss_hmm_cr);
     a_ion_losses_cr_.setParameters(p);
 
-    it_begin = file.search(it_end, "AION_LOSS_MODEL_CD_BEGIN");
-    it_end = file.search(it_begin, "AION_LOSS_MODEL_CD_END");
+    it_begin = StringListUtils::searchPrefix(it_end, file.end(), "AION_LOSS_MODEL_CD_BEGIN");
+    it_end = StringListUtils::searchPrefix(it_begin, file.end(), "AION_LOSS_MODEL_CD_END");
     p.clear();
     HiddenMarkovModel a_ion_loss_hmm_cd;
     parseHMMModel_(++it_begin, it_end, a_ion_loss_hmm_cd, p);
@@ -348,16 +349,16 @@ namespace OpenMS
     a_ion_losses_cd_.setParameters(p);
 
     // y-ion loss model
-    it_begin = file.search(it_end, "YION_LOSS_MODEL_CR_BEGIN");
-    it_end = file.search(it_begin, "YION_LOSS_MODEL_CR_END");
+    it_begin = StringListUtils::searchPrefix(it_end, file.end(), "YION_LOSS_MODEL_CR_BEGIN");
+    it_end = StringListUtils::searchPrefix(it_begin, file.end(), "YION_LOSS_MODEL_CR_END");
     p.clear();
     HiddenMarkovModel y_ion_loss_hmm_cr;
     parseHMMModel_(++it_begin, it_end, y_ion_loss_hmm_cr, p);
     y_ion_losses_cr_.setHMM(y_ion_loss_hmm_cr);
     y_ion_losses_cr_.setParameters(p);
 
-    it_begin = file.search(it_end, "YION_LOSS_MODEL_CD_BEGIN");
-    it_end = file.search(it_begin, "YION_LOSS_MODEL_CD_END");
+    it_begin = StringListUtils::searchPrefix(it_end, file.end(), "YION_LOSS_MODEL_CD_BEGIN");
+    it_end = StringListUtils::searchPrefix(it_begin, file.end(), "YION_LOSS_MODEL_CD_END");
     p.clear();
     HiddenMarkovModel y_ion_loss_hmm_cd;
     parseHMMModel_(++it_begin, it_end, y_ion_loss_hmm_cd, p);
@@ -825,7 +826,7 @@ namespace OpenMS
     y_ion_losses_cr_.evaluate();
     y_ion_losses_cd_.evaluate();
 
-    hmm_.setVariableModifications((StringList)param_.getValue("variable_modifications"));
+    hmm_.setVariableModifications(param_.getValue("variable_modifications"));
     hmm_.estimateUntrainedTransitions();
   }
 
@@ -1711,7 +1712,7 @@ namespace OpenMS
             {
               tmp_list += split[i];
             }
-            param.setValue(split[1], StringList::create(tmp_list));
+            param.setValue(split[1], ListUtils::create<String>(tmp_list));
           }
           else if (split[split.size() - 1] == "string")
           {
@@ -1750,7 +1751,7 @@ namespace OpenMS
       }
       if (it->value.valueType() == DataValue::STRING_LIST)
       {
-        StringList value = (StringList)it->value;
+        StringList value = it->value;
         String tmp;
         tmp.concatenate(value.begin(), value.end(), ",");
         os << it->name << " \"" << tmp << "\" string_list" << endl;

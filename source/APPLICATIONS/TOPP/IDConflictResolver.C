@@ -141,9 +141,9 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "Input file (data annotated with identifications)");
-    setValidFormats_("in", StringList::create("featureXML,consensusXML"));
+    setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML"));
     registerOutputFile_("out", "<file>", "", "Output file (data with one peptide identification per feature)");
-    setValidFormats_("out", StringList::create("featureXML,consensusXML"));
+    setValidFormats_("out", ListUtils::create<String>("featureXML,consensusXML"));
   }
 
   ExitCodes main_(int, const char **)

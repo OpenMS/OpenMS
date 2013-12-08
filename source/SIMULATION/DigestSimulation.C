@@ -34,6 +34,7 @@
 
 #include <OpenMS/SIMULATION/DigestSimulation.h>
 
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/KERNEL/Feature.h>
 
@@ -77,7 +78,7 @@ namespace OpenMS
 
     // cleavages
     defaults_.setValue("model", "naive", "The cleavage model to use for digestion. 'Trained' is based on a log likelihood model (see DOI:10.1021/pr060507u).");
-    defaults_.setValidStrings("model", StringList::create("trained,naive"));
+    defaults_.setValidStrings("model", ListUtils::create<String>("trained,naive"));
 
     defaults_.setValue("model_trained:threshold", 0.50, "Model threshold for calling a cleavage. Higher values increase the number of cleavages. -2 will give no cleavages, +4 almost full cleavage.");
     defaults_.setMinFloat("model_trained:threshold", -2);
@@ -220,7 +221,7 @@ namespace OpenMS
           // copy all non-intensity meta values
           StringList keys;
           protein_hit->getKeys(keys);
-          for (StringList::Iterator key = keys.begin(); key != keys.end(); ++key)
+          for (StringList::iterator key = keys.begin(); key != keys.end(); ++key)
           {
             if (!key->hasPrefix("intensity"))
             {

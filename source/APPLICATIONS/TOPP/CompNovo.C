@@ -108,10 +108,10 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "input file in mzML format", true);
-    setValidFormats_("in", StringList::create("mzML"));
+    setValidFormats_("in", ListUtils::create<String>("mzML"));
 
     registerOutputFile_("out", "<file>", "", "output file in idXML format", true);
-    setValidFormats_("out", StringList::create("idXML"));
+    setValidFormats_("out", ListUtils::create<String>("idXML"));
 
     registerSubsection_("algorithm", "Algorithm section");
     addEmptyLine_();
@@ -185,8 +185,8 @@ protected:
       search_parameters.enzyme = ProteinIdentification::NO_ENZYME;
     }
     search_parameters.mass_type = ProteinIdentification::MONOISOTOPIC;
-    search_parameters.fixed_modifications = (StringList)algorithm_param.getValue("fixed_modifications");
-    search_parameters.variable_modifications = (StringList)algorithm_param.getValue("variable_modifications");
+    search_parameters.fixed_modifications = algorithm_param.getValue("fixed_modifications");
+    search_parameters.variable_modifications = algorithm_param.getValue("variable_modifications");
 
     search_parameters.missed_cleavages = (UInt)algorithm_param.getValue("missed_cleavages");
     search_parameters.peak_mass_tolerance = (DoubleReal)algorithm_param.getValue("fragment_mass_tolerance");

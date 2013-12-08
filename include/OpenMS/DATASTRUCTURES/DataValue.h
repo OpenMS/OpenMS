@@ -86,8 +86,6 @@ public:
     DataValue(const QString&);
     /// specific constructor for string lists
     DataValue(const StringList&);
-    /// specific constructor for string lists
-    DataValue(const std::vector<String>&);
     /// specific constructor for integer lists
     DataValue(const IntList&);
     /// specific constructor for double lists

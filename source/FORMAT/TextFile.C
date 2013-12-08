@@ -34,6 +34,7 @@
 
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <fstream>
 #include <iostream>
@@ -83,7 +84,7 @@ namespace OpenMS
       //    we just read the whole file into a string: split it
       StringList lines;
       if (str.hasSubstring("\r"))
-        lines = StringList::create(str, '\r');
+        lines = ListUtils::create<String>(str, '\r');
       else
         lines.push_back(str);
 

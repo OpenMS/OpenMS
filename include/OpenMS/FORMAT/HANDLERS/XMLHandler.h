@@ -377,7 +377,7 @@ protected:
       inline StringList attributeAsStringList_(const xercesc::Attributes & a, const char * name) const
       {
         String tmp(expectList_(attributeAsString_(a, name)));
-        return StringList::create(tmp.substr(1, tmp.size() - 2));
+        return ListUtils::create<String>(tmp.substr(1, tmp.size() - 2));
       }
 
       /**
@@ -534,7 +534,7 @@ protected:
       inline StringList attributeAsStringList_(const xercesc::Attributes & a, const XMLCh * name) const
       {
         String tmp(expectList_(attributeAsString_(a, name)));
-        return StringList::create(tmp.substr(1, tmp.size() - 2));
+        return ListUtils::create<String>(tmp.substr(1, tmp.size() - 2));
       }
 
       /// Assigns the attribute content to the String @a value if the attribute is present

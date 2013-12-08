@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2013.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Stephan Aiche $
 // $Authors: Andreas Bertsch $
@@ -57,8 +57,8 @@ XTandemInfile xml_file;
 XTandemInfile* ptr;
 XTandemInfile* nullPointer = 0;
 ProteinIdentification protein_identification;
-vector<PeptideIdentification> peptide_identifications; 
-vector<PeptideIdentification> peptide_identifications2; 
+vector<PeptideIdentification> peptide_identifications;
+vector<PeptideIdentification> peptide_identifications2;
 String date_string_1;
 String date_string_2;
 PeptideHit peptide_hit;
@@ -78,7 +78,7 @@ START_SECTION(void setFragmentMassTolerance(double tolerance))
 	ptr->setFragmentMassTolerance(13.0);
 	TEST_REAL_SIMILAR(ptr->getFragmentMassTolerance(), 13.0)
 END_SECTION
- 
+
 START_SECTION(double getFragmentMassTolerance() const)
   // will be filled by load -> see load test
   NOT_TESTABLE
@@ -114,7 +114,7 @@ END_SECTION
 START_SECTION(ErrorUnit getPrecursorMassErrorUnit() const)
 	NOT_TESTABLE
 END_SECTION
-  
+
 START_SECTION(void setNumberOfThreads(UInt threads))
 	ptr->setNumberOfThreads(16);
 	TEST_EQUAL(ptr->getNumberOfThreads(), 16)
@@ -126,7 +126,7 @@ START_SECTION(UInt getNumberOfThreads() const)
 END_SECTION
 
 START_SECTION(void setModifications(const ModificationDefinitionsSet &mods))
-	ModificationDefinitionsSet sets("Oxidation (M)", "Carboxymethyl (C)");
+	ModificationDefinitionsSet sets(ListUtils::create<String>("Oxidation (M)"), ListUtils::create<String>("Carboxymethyl (C)"));
 	ptr->setModifications(sets);
 	TEST_EQUAL(ptr->getModifications() == sets, true)
 END_SECTION
@@ -177,7 +177,7 @@ START_SECTION(void setTaxon(const String &taxon))
 END_SECTION
 
 START_SECTION(const String& getTaxon() const)
-  // will be filled by load -> see load test    
+  // will be filled by load -> see load test
 	NOT_TESTABLE
 END_SECTION
 
@@ -187,7 +187,7 @@ START_SECTION(void setMaxPrecursorCharge(Int max_charge))
 END_SECTION
 
 START_SECTION(Int getMaxPrecursorCharge() const)
-  // will be filled by load -> see load test    
+  // will be filled by load -> see load test
 	NOT_TESTABLE
 END_SECTION
 
@@ -240,7 +240,7 @@ START_SECTION(ErrorUnit getFragmentMassErrorUnit() const)
 END_SECTION
 
 START_SECTION(const ModificationDefinitionsSet& getModifications() const)
-  ModificationDefinitionsSet sets("Oxidation (M)", "Carboxymethyl (C)");
+  ModificationDefinitionsSet sets(ListUtils::create<String>("Oxidation (M)"), ListUtils::create<String>("Carboxymethyl (C)"));
   ptr->setModifications(sets);
   TEST_EQUAL(ptr->getModifications() == sets, true)
 END_SECTION
@@ -248,7 +248,7 @@ END_SECTION
 START_SECTION(void write(const String &filename))
 	String filename("XTandemInfile_test.tmp");
 	NEW_TMP_FILE(filename);
-  ModificationDefinitionsSet sets(StringList::create("Oxidation (M),Dimethyl (N-term)"), StringList::create("Ammonium (C-term),Carboxymethyl (C)"));
+  ModificationDefinitionsSet sets(ListUtils::create<String>("Oxidation (M),Dimethyl (N-term)"), ListUtils::create<String>("Ammonium (C-term),Carboxymethyl (C)"));
   ptr->setModifications(sets);
 	ptr->write(filename);
 	XTandemInfile file;
@@ -262,7 +262,7 @@ START_SECTION(void load(const String &filename))
 	file.load(OPENMS_GET_TEST_DATA_PATH("XTandemInfile_test.xml"));
   NOT_TESTABLE
   /*
-  TEST_STRING_EQUAL(file.getOutputFilename(), "/tmp/2008-07-29_214248_prejudice_30269_1_tandem_output_file.xml") 
+  TEST_STRING_EQUAL(file.getOutputFilename(), "/tmp/2008-07-29_214248_prejudice_30269_1_tandem_output_file.xml")
 	TEST_EQUAL(file.getNumberOfThreads(), 1)
   TEST_EQUAL(file.getPrecursorMassToleranceMinus(), 3)
   TEST_EQUAL(file.getPrecursorMassTolerancePlus(), 3)
@@ -283,7 +283,7 @@ END_SECTION
 START_SECTION(bool isRefining() const )
   XTandemInfile file;
   TEST_EQUAL(file.isRefining()==true, true)
-  
+
 END_SECTION
 
 START_SECTION(void setRefine(const bool refine))

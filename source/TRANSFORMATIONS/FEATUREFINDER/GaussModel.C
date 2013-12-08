@@ -33,6 +33,9 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussModel.h>
+
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+
 #include <numeric>
 
 namespace OpenMS
@@ -43,10 +46,10 @@ namespace OpenMS
   {
     setName(getProductName());
 
-    defaults_.setValue("bounding_box:min", 0.0, "Lower end of bounding box enclosing the data used to fit the model.", StringList::create("advanced"));
-    defaults_.setValue("bounding_box:max", 1.0, "Upper end of bounding box enclosing the data used to fit the model.", StringList::create("advanced"));
-    defaults_.setValue("statistics:mean", 0.0, "Centroid position of the model (Gaussian).", StringList::create("advanced"));
-    defaults_.setValue("statistics:variance", 1.0, "The variance of the Gaussian.", StringList::create("advanced"));
+    defaults_.setValue("bounding_box:min", 0.0, "Lower end of bounding box enclosing the data used to fit the model.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("bounding_box:max", 1.0, "Upper end of bounding box enclosing the data used to fit the model.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("statistics:mean", 0.0, "Centroid position of the model (Gaussian).", ListUtils::create<String>("advanced"));
+    defaults_.setValue("statistics:variance", 1.0, "The variance of the Gaussian.", ListUtils::create<String>("advanced"));
 
     defaultsToParam_();
   }

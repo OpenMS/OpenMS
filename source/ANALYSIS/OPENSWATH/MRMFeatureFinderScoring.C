@@ -50,13 +50,13 @@ namespace OpenMS
     defaults_.setValue("stop_report_after_feature", -1, "Stop reporting after feature (ordered by quality; -1 means do not stop).");
     defaults_.setValue("rt_extraction_window", -1.0, "Only extract RT around this value (-1 means extract over the whole range, a value of 500 means to extract around +/- 500 s of the expected elution). For this to work, the TraML input file needs to contain normalized RT values.");
     defaults_.setValue("rt_normalization_factor", 1.0, "The normalized RT is expected to be between 0 and 1. If your normalized RT has a different range, pass this here (e.g. it goes from 0 to 100, set this value to 100)");
-    defaults_.setValue("quantification_cutoff", 0.0, "Cutoff below which peaks should not be used for quantification any more", StringList::create("advanced"));
+    defaults_.setValue("quantification_cutoff", 0.0, "Cutoff below which peaks should not be used for quantification any more", ListUtils::create<String>("advanced"));
     defaults_.setMinFloat("quantification_cutoff", 0.0);
-    defaults_.setValue("write_convex_hull", "false", "Whether to write out all points of all features into the featureXML", StringList::create("advanced"));
-    defaults_.setValidStrings("write_convex_hull", StringList::create("true,false"));
-    defaults_.setValue("add_up_spectra", 1, "Add up spectra around the peak apex (needs to be a non-even integer)", StringList::create("advanced"));
+    defaults_.setValue("write_convex_hull", "false", "Whether to write out all points of all features into the featureXML", ListUtils::create<String>("advanced"));
+    defaults_.setValidStrings("write_convex_hull", ListUtils::create<String>("true,false"));
+    defaults_.setValue("add_up_spectra", 1, "Add up spectra around the peak apex (needs to be a non-even integer)", ListUtils::create<String>("advanced"));
     defaults_.setMinInt("add_up_spectra", 1);
-    defaults_.setValue("spacing_for_spectra_resampling", 0.005, "If spectra are to be added, use this spacing to add them up", StringList::create("advanced"));
+    defaults_.setValue("spacing_for_spectra_resampling", 0.005, "If spectra are to be added, use this spacing to add them up", ListUtils::create<String>("advanced"));
     defaults_.setMinFloat("spacing_for_spectra_resampling", 0.0);
 
     defaults_.insert("TransitionGroupPicker:", MRMTransitionGroupPicker().getDefaults());
@@ -67,26 +67,26 @@ namespace OpenMS
 
     // One can turn on / off each score individually
     Param scores_to_use;
-    scores_to_use.setValue("use_shape_score", "true", "Use the shape score (this score measures the similarity in shape of the transitions using a cross-correlation)", StringList::create("advanced"));
-    scores_to_use.setValidStrings("use_shape_score", StringList::create("true,false"));
-    scores_to_use.setValue("use_coelution_score", "true", "Use the coelution score (this score measures the similarity in coelution of the transitions using a cross-correlation)", StringList::create("advanced"));
-    scores_to_use.setValidStrings("use_coelution_score", StringList::create("true,false"));
-    scores_to_use.setValue("use_rt_score", "true", "Use the retention time score (this score measure the difference in retention time)", StringList::create("advanced"));
-    scores_to_use.setValidStrings("use_rt_score", StringList::create("true,false"));
-    scores_to_use.setValue("use_library_score", "true", "Use the library score", StringList::create("advanced"));
-    scores_to_use.setValidStrings("use_library_score", StringList::create("true,false"));
-    scores_to_use.setValue("use_elution_model_score", "true", "Use the elution model (EMG) score (this score fits a gaussian model to the peak and checks the fit)", StringList::create("advanced"));
-    scores_to_use.setValidStrings("use_elution_model_score", StringList::create("true,false"));
-    scores_to_use.setValue("use_intensity_score", "true", "Use the intensity score", StringList::create("advanced"));
-    scores_to_use.setValidStrings("use_intensity_score", StringList::create("true,false"));
-    scores_to_use.setValue("use_nr_peaks_score", "true", "Use the number of peaks score", StringList::create("advanced"));
-    scores_to_use.setValidStrings("use_nr_peaks_score", StringList::create("true,false"));
-    scores_to_use.setValue("use_total_xic_score", "true", "Use the total XIC score", StringList::create("advanced"));
-    scores_to_use.setValidStrings("use_total_xic_score", StringList::create("true,false"));
-    scores_to_use.setValue("use_sn_score", "true", "Use the SN (signal to noise) score", StringList::create("advanced"));
-    scores_to_use.setValidStrings("use_sn_score", StringList::create("true,false"));
-    scores_to_use.setValue("use_dia_scores", "true", "Use the DIA (SWATH) scores", StringList::create("advanced"));
-    scores_to_use.setValidStrings("use_dia_scores", StringList::create("true,false"));
+    scores_to_use.setValue("use_shape_score", "true", "Use the shape score (this score measures the similarity in shape of the transitions using a cross-correlation)", ListUtils::create<String>("advanced"));
+    scores_to_use.setValidStrings("use_shape_score", ListUtils::create<String>("true,false"));
+    scores_to_use.setValue("use_coelution_score", "true", "Use the coelution score (this score measures the similarity in coelution of the transitions using a cross-correlation)", ListUtils::create<String>("advanced"));
+    scores_to_use.setValidStrings("use_coelution_score", ListUtils::create<String>("true,false"));
+    scores_to_use.setValue("use_rt_score", "true", "Use the retention time score (this score measure the difference in retention time)", ListUtils::create<String>("advanced"));
+    scores_to_use.setValidStrings("use_rt_score", ListUtils::create<String>("true,false"));
+    scores_to_use.setValue("use_library_score", "true", "Use the library score", ListUtils::create<String>("advanced"));
+    scores_to_use.setValidStrings("use_library_score", ListUtils::create<String>("true,false"));
+    scores_to_use.setValue("use_elution_model_score", "true", "Use the elution model (EMG) score (this score fits a gaussian model to the peak and checks the fit)", ListUtils::create<String>("advanced"));
+    scores_to_use.setValidStrings("use_elution_model_score", ListUtils::create<String>("true,false"));
+    scores_to_use.setValue("use_intensity_score", "true", "Use the intensity score", ListUtils::create<String>("advanced"));
+    scores_to_use.setValidStrings("use_intensity_score", ListUtils::create<String>("true,false"));
+    scores_to_use.setValue("use_nr_peaks_score", "true", "Use the number of peaks score", ListUtils::create<String>("advanced"));
+    scores_to_use.setValidStrings("use_nr_peaks_score", ListUtils::create<String>("true,false"));
+    scores_to_use.setValue("use_total_xic_score", "true", "Use the total XIC score", ListUtils::create<String>("advanced"));
+    scores_to_use.setValidStrings("use_total_xic_score", ListUtils::create<String>("true,false"));
+    scores_to_use.setValue("use_sn_score", "true", "Use the SN (signal to noise) score", ListUtils::create<String>("advanced"));
+    scores_to_use.setValidStrings("use_sn_score", ListUtils::create<String>("true,false"));
+    scores_to_use.setValue("use_dia_scores", "true", "Use the DIA (SWATH) scores", ListUtils::create<String>("advanced"));
+    scores_to_use.setValidStrings("use_dia_scores", ListUtils::create<String>("true,false"));
     defaults_.insert("Scores:", scores_to_use);
 
     // write defaults into Param object param_

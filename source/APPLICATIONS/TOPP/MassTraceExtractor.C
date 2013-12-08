@@ -100,11 +100,11 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "input centroided mzML file");
-    setValidFormats_("in", StringList::create("mzML"));
+    setValidFormats_("in", ListUtils::create<String>("mzML"));
     registerOutputFile_("out", "<file>", "", "output featureXML file with mass traces");
-    setValidFormats_("out", StringList::create("featureXML,consensusXML"));
+    setValidFormats_("out", ListUtils::create<String>("featureXML,consensusXML"));
     registerStringOption_("out_type", "<type>", "", "output file type -- default: determined from file extension or content\n", false);
-    setValidStrings_("out_type", StringList::create("featureXML,consensusXML"));
+    setValidStrings_("out_type", ListUtils::create<String>("featureXML,consensusXML"));
 
     addEmptyLine_();
     registerSubsection_("algorithm", "Algorithm parameters section");
@@ -133,7 +133,7 @@ protected:
     p_epd.remove("chrom_fwhm");
 
     p_epd.setValue("enabled", "true", "Enables/disables the chromatographic peak detection of mass traces");
-    p_epd.setValidStrings("enabled", StringList::create("true,false"));
+    p_epd.setValidStrings("enabled", ListUtils::create<String>("true,false"));
     combined.insert("epd:", p_epd);
 
     return combined;

@@ -35,6 +35,7 @@
 
 #include <OpenMS/ANALYSIS/ID/PILISScoring.h>
 #include <OpenMS/MATH/STATISTICS/LinearRegression.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 using namespace std;
 
@@ -45,10 +46,10 @@ namespace OpenMS
     DefaultParamHandler("PILISScoring")
   {
     defaults_.setValue("use_local_scoring", 1, "If set to 1, a E-Value of an identification run of one spectrum is used additionally");
-    defaults_.setValue("survival_function_bin_size", 20, "Bin size of the survival function", StringList::create("advanced"));
-    defaults_.setValue("global_linear_fitting_threshold", 0.1, "Fitting threshold of the survival function of the global E-Value calculation", StringList::create("advanced"));
-    defaults_.setValue("local_linear_fitting_threshold", 0.5, "Fitting threshold of the survival function of the local E-Value calculation", StringList::create("advanced"));
-    defaults_.setValue("score_default_value", 10e10, "If no score can be assigned use this one", StringList::create("advanced"));
+    defaults_.setValue("survival_function_bin_size", 20, "Bin size of the survival function", ListUtils::create<String>("advanced"));
+    defaults_.setValue("global_linear_fitting_threshold", 0.1, "Fitting threshold of the survival function of the global E-Value calculation", ListUtils::create<String>("advanced"));
+    defaults_.setValue("local_linear_fitting_threshold", 0.5, "Fitting threshold of the survival function of the local E-Value calculation", ListUtils::create<String>("advanced"));
+    defaults_.setValue("score_default_value", 10e10, "If no score can be assigned use this one", ListUtils::create<String>("advanced"));
     defaultsToParam_();
   }
 

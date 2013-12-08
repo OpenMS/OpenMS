@@ -92,9 +92,9 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "input file");
-    setValidFormats_("in", StringList::create("idXML"));
+    setValidFormats_("in", ListUtils::create<String>("idXML"));
     registerOutputFile_("out", "<file>", "", "output file");
-    setValidFormats_("out", StringList::create("idXML"));
+    setValidFormats_("out", ListUtils::create<String>("idXML"));
     registerIntOption_("number_of_peptides", "<int>", 10, "Number of randomly chosen peptides", false);
     setMinInt_("number_of_peptides", 1);
     registerIntOption_("number_of_rand_invokations", "<int>", 0, "Number of rand invocations before random draw", false);

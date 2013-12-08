@@ -91,12 +91,12 @@ class TOPPOpenSwathMzMLFileCacher
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in","<file>","","transition file ('csv')");
-    setValidFormats_("in", StringList::create("mzML"));
+    setValidFormats_("in", ListUtils::create<String>("mzML"));
 
     registerOutputFile_("out","<file>","","output file");
 
     //registerStringOption_("out_meta","<file>","","output file", false);
-    //setValidFormats_("out_meta",StringList::create("mzML"));
+    //setValidFormats_("out_meta",ListUtils::create<String>("mzML"));
 
     registerFlag_("convert_back", "Convert back to mzML");
 

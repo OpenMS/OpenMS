@@ -35,6 +35,7 @@
 #include <OpenMS/config.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CONCEPT/FuzzyStringComparator.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -85,7 +86,7 @@ protected:
     setMinFloat_("absdiff", 0);
     addEmptyLine_();
 
-    registerStringList_("whitelist", "<string list>", StringList::create("<?xml-stylesheet"), "Lines containing one of these strings are skipped", false, true);
+    registerStringList_("whitelist", "<string list>", ListUtils::create<String>("<?xml-stylesheet"), "Lines containing one of these strings are skipped", false, true);
 
     registerIntOption_("verbose", "<int>", 2, "set verbose level:\n"
                                               "0 = very quiet mode (absolutely no output)\n"

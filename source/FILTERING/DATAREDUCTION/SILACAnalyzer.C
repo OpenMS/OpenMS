@@ -874,17 +874,17 @@ namespace OpenMS
 
       pattern.isotopes_per_peptide = pattern_it->getMetaValue("Peaks per peptide");
 
-      StringList text = StringList::create(pattern_it->getMetaValue("Mass shifts [Da]"), ';');
+      StringList text = ListUtils::create<String>(pattern_it->getMetaValue("Mass shifts [Da]"), ';');
       pattern.mass_shifts.push_back(0);
       for (StringList::const_iterator text_it = text.begin(); text_it != text.end(); ++text_it)
       {
         pattern.mass_shifts.push_back(text_it->toDouble() / pattern.charge);
       }
 
-      text = StringList::create(pattern_it->getMetaValue("Intensities"), ';');
+      text = ListUtils::create<String>(pattern_it->getMetaValue("Intensities"), ';');
       for (StringList::const_iterator text_it = text.begin(); text_it != text.end(); ++text_it)
       {
-        StringList text2 = StringList::create(*text_it, ',');
+        StringList text2 = ListUtils::create<String>(*text_it, ',');
         vector<DoubleReal> inten;
         for (StringList::const_iterator text2_it = text2.begin(); text2_it != text2.end(); ++text2_it)
         {

@@ -109,12 +109,12 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "Input qcml file");
-    setValidFormats_("in", StringList::create("qcML"));
+    setValidFormats_("in", ListUtils::create<String>("qcML"));
     registerStringList_("names", "<names>", StringList(), "The name of the target runs or sets to be exported from. If empty, from all will be exported.",false);
     registerInputFile_("mapping", "<file>", "", "The mapping of the exported table's headers to the according qp cvs. The first row is considered containing the headers as for the exported the table. The second row is considered the according qp cv accessions of the qp to be exported.", true);
-    setValidFormats_("mapping", StringList::create("csv"));
+    setValidFormats_("mapping", ListUtils::create<String>("csv"));
     registerOutputFile_("out_csv", "<file>", "", "Output csv formatted quality parameter.");
-    setValidFormats_("out_csv", StringList::create("csv"));
+    setValidFormats_("out_csv", ListUtils::create<String>("csv"));
   }
 
   ExitCodes main_(int, const char**)
@@ -190,7 +190,7 @@ protected:
         names = StringList(ns); //TODO also  sets
       } 
     
-      String csv_str = header.concatenate(",");
+      String csv_str = ListUtils::concatenate(header, ",");
       csv_str += '\n';
       for (Size i = 0; i < names.size(); ++i)
       {

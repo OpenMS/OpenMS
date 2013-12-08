@@ -107,13 +107,13 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "Input qcml file");
-    setValidFormats_("in", StringList::create("qcML"));
+    setValidFormats_("in", ListUtils::create<String>("qcML"));
     registerStringOption_("qp", "<string>", "", "Target attachment qp.");
     registerInputFile_("run", "<file>", "", "The file that defined the run under which the qp for the attachment is aggregated as mzML file. The file is only used to extract the run name from the file name.", false);
-    setValidFormats_("run", StringList::create("mzML"));
+    setValidFormats_("run", ListUtils::create<String>("mzML"));
     registerStringOption_("name", "<string>", "", "If no file for the run was given (or if the target qp is contained in a set), at least a name of the target run/set containing the the qp for the attachment has to be given.", false);
     registerOutputFile_("out_csv", "<file>", "", "Output csv formatted table.");
-    setValidFormats_("out_csv", StringList::create("csv"));
+    setValidFormats_("out_csv", ListUtils::create<String>("csv"));
   }
 
   ExitCodes main_(int, const char**)

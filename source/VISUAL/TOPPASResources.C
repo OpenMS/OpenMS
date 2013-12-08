@@ -82,9 +82,9 @@ namespace OpenMS
       }
 
       QString key = (substrings[0]).toQString();
-      StringList url_list = (StringList)(it->value);
+      StringList url_list = (it->value);
       QList<TOPPASResource> resource_list;
-      for (StringList::ConstIterator it = url_list.begin(); it != url_list.end(); ++it)
+      for (StringList::const_iterator it = url_list.begin(); it != url_list.end(); ++it)
       {
         resource_list << TOPPASResource(QUrl(it->toQString()));
       }
@@ -109,7 +109,7 @@ namespace OpenMS
       StringList url_list;
       foreach(const TOPPASResource &res, resource_list)
       {
-        url_list << String(res.getURL().toString());
+        url_list.push_back(String(res.getURL().toString()));
       }
       save_param.setValue(key + ":url_list", DataValue(url_list));
     }

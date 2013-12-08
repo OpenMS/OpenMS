@@ -38,6 +38,7 @@
 #include <OpenMS/SYSTEM/StopWatch.h>
 #include <OpenMS/KERNEL/FeatureHandle.h>
 #include <OpenMS/KERNEL/ConsensusFeature.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #ifdef Debug_StablePairFinder
 #define V_(bla) std::cout << __FILE__ ":" << __LINE__ << ": " << bla << std::endl;
@@ -61,7 +62,7 @@ namespace OpenMS
     defaults_.setMinFloat("second_nearest_gap", 1.0);
 
     defaults_.setValue("use_identifications", "false", "Never link features that are annotated with different peptides (only the best hit per peptide identification is taken into account).");
-    defaults_.setValidStrings("use_identifications", StringList::create("true,false"));
+    defaults_.setValidStrings("use_identifications", ListUtils::create<String>("true,false"));
 
     defaults_.insert("", FeatureDistance().getDefaults());
 

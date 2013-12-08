@@ -125,10 +125,9 @@ protected:
     {
       registerInputFile_("in", "<file>", "",
                          "Input file (see below for details)");
-      setValidFormats_("in", StringList::
-                       create("mzML,idXML,featureXML,consensusXML"));
+      setValidFormats_("in", ListUtils::create<String>("mzML,idXML,featureXML,consensusXML"));
       registerOutputFileList_("out", "<file(s)>", StringList(), "Output file(s)");
-      setValidFormats_("out", StringList::create("featureXML"));
+      setValidFormats_("out", ListUtils::create<String>("featureXML"));
       addEmptyLine_();
       registerFlag_("use_peptide_mass", "[idXML input only] Use the monoisotopic mass of the best peptide hit for the m/z position (default: use precursor m/z)");
     }

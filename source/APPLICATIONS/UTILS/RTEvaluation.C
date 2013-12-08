@@ -84,12 +84,12 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "input file");
-    setValidFormats_("in", StringList::create("idXML"));
+    setValidFormats_("in", ListUtils::create<String>("idXML"));
     registerOutputFile_("out", "<file>", "", "output file ");
-    setValidFormats_("out", StringList::create("csv"));
+    setValidFormats_("out", ListUtils::create<String>("csv"));
     registerInputFile_("sequences_file", "<file>", "", "Filename of a FASTA file containing protein sequences.\n"
                                                        "All peptides that are not a substring of a sequence in this file are considered as false", false);
-    setValidFormats_("sequences_file", StringList::create("fasta"));
+    setValidFormats_("sequences_file", ListUtils::create<String>("fasta"));
     registerFlag_("latex", "indicates whether the output file format of the table should be latex or csv");
     registerDoubleOption_("p_value_dim_1", "<float>", 0.01, "Significance level of first dimension RT filter", false);
     setMinFloat_("p_value_dim_1", 0);

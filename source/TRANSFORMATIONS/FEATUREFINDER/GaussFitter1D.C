@@ -33,6 +33,9 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussFitter1D.h>
+
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+
 #include <boost/math/special_functions/fpclassify.hpp>
 
 namespace OpenMS
@@ -42,8 +45,8 @@ namespace OpenMS
   {
     setName(getProductName());
 
-    defaults_.setValue("statistics:variance", 1.0, "Variance of the model.", StringList::create("advanced"));
-    defaults_.setValue("statistics:mean", 1.0, "Mean value of the model.", StringList::create("advanced"));
+    defaults_.setValue("statistics:variance", 1.0, "Variance of the model.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("statistics:mean", 1.0, "Mean value of the model.", ListUtils::create<String>("advanced"));
     defaultsToParam_();
   }
 

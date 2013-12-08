@@ -1206,7 +1206,7 @@ namespace OpenMS
             {
               dis.push_back(sit->second);
             }
-            peptide_xml += StringList(dis).concatenate(" ").trim() + String("</Row>\n");
+            peptide_xml += ListUtils::concatenate(dis, " ").trim() + String("</Row>\n");
           }
           peptide_xml += String("\t\t\t\t</DataMatrix>\n");
           peptide_xml += String("\t\t</RatioQuantLayer>\n");

@@ -80,12 +80,12 @@ namespace OpenMS
     defaults_.setMaxInt("interpolation_steps", 1000);
     defaults_.setValue("dot:gradient", "Linear|0,#eeeeee;1,#ffea00;6,#ff0000;14,#aa00ff;23,#5500ff;100,#000000", "Multi-color gradient for peaks.");
     defaults_.setValue("dot:feature_icon", "circle", "Icon used for features and consensus features.");
-    defaults_.setValidStrings("dot:feature_icon", StringList::create("diamond,square,circle,triangle"));
+    defaults_.setValidStrings("dot:feature_icon", ListUtils::create<String>("diamond,square,circle,triangle"));
     defaults_.setValue("dot:feature_icon_size", 4, "Icon size used for features and consensus features.");
     defaults_.setMinInt("dot:feature_icon_size", 1);
     defaults_.setMaxInt("dot:feature_icon_size", 999);
     defaults_.setValue("mapping_of_mz_to", "y_axis", "Determines which axis is the m/z axis.");
-    defaults_.setValidStrings("mapping_of_mz_to", StringList::create("x_axis,y_axis"));
+    defaults_.setValidStrings("mapping_of_mz_to", ListUtils::create<String>("x_axis,y_axis"));
     defaultsToParam_();
     setName("Spectrum2DCanvas");
     setParameters(preferences);

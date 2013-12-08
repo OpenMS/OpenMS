@@ -36,6 +36,7 @@
 #include <OpenMS/FILTERING/BASELINE/MorphologicalFilter.h>
 #include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
 #include <OpenMS/DATASTRUCTURES/ConstRefVector.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/MATH/MISC/LinearInterpolation.h>
 
 #include <fstream>
@@ -67,7 +68,7 @@ namespace OpenMS
 
     defaults_.setValue("rt_pair_distance_fraction", 0.1, "Within each of the two maps, the pairs considered for pose clustering "
                                                          "must be separated by at least this fraction of the total elution time "
-                                                         "interval (i.e., max - min).  ", StringList::create("advanced"));
+                                                         "interval (i.e., max - min).  ", ListUtils::create<String>("advanced"));
     defaults_.setMinFloat("rt_pair_distance_fraction", 0.);
     defaults_.setMaxFloat("rt_pair_distance_fraction", 1.);
 
@@ -89,18 +90,18 @@ namespace OpenMS
     defaults_.setMinFloat("shift_bucket_size", 0.);
 
     defaults_.setValue("max_shift", 1000.0, "Maximal shift which is considered during histogramming.  "
-                                            "This applies for both directions.", StringList::create("advanced"));
+                                            "This applies for both directions.", ListUtils::create<String>("advanced"));
     defaults_.setMinFloat("max_shift", 0.);
 
     defaults_.setValue("max_scaling", 2.0, "Maximal scaling which is considered during histogramming.  "
-                                           "The minimal scaling is the reciprocal of this.", StringList::create("advanced"));
+                                           "The minimal scaling is the reciprocal of this.", ListUtils::create<String>("advanced"));
     defaults_.setMinFloat("max_scaling", 1.);
 
     defaults_.setValue("dump_buckets", "", "[DEBUG] If non-empty, base filename where hash table buckets will be dumped to.  "
-                                           "A serial number for each invocation will be appended automatically.", StringList::create("advanced"));
+                                           "A serial number for each invocation will be appended automatically.", ListUtils::create<String>("advanced"));
 
     defaults_.setValue("dump_pairs", "", "[DEBUG] If non-empty, base filename where the individual hashed pairs will be dumped to (large!).  "
-                                         "A serial number for each invocation will be appended automatically.", StringList::create("advanced"));
+                                         "A serial number for each invocation will be appended automatically.", ListUtils::create<String>("advanced"));
 
     defaultsToParam_();
     return;

@@ -1,34 +1,34 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2013.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
-// $Maintainer: Chris Bielow, Hendrik Weisser $ 
+// $Maintainer: Chris Bielow, Hendrik Weisser $
 // $Authors: Chris Bielow, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
@@ -107,7 +107,7 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
 	{ // should be the same for all peptides from the first search run:
 		accu_result &= (first.getIdentifier() == peptides[i].getIdentifier());
 		accu_result &= (first.getScoreType() == peptides[i].getScoreType());
-		accu_result &= (first.isHigherScoreBetter() == 
+		accu_result &= (first.isHigherScoreBetter() ==
 										peptides[i].isHigherScoreBetter());
 		accu_result &= (first.getSignificanceThreshold() ==
 										peptides[i].getSignificanceThreshold());
@@ -131,7 +131,7 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
 
 	TEST_EQUAL(first.getHits()[0].getSequence().isModified(), true);
 	TEST_EQUAL(first.getHits()[0].getSequence().hasNTerminalModification(), true);
-	TEST_EQUAL(first.getHits()[0].getSequence().hasCTerminalModification(), 
+	TEST_EQUAL(first.getHits()[0].getSequence().hasCTerminalModification(),
 false);
 
   TEST_EQUAL(peptides[1].getHits()[0].getSequence().isModified(), true);
@@ -165,9 +165,9 @@ false);
 		accessions << it->getAccession();
 	}
 	// check a sample of the IDs that should be present:
-	TEST_EQUAL(accessions.contains("ddb000449223"), true);
-	TEST_EQUAL(accessions.contains("ddb000626346"), true);
-	TEST_EQUAL(accessions.contains("rev000409159"), true);
+	TEST_EQUAL(ListUtils::contains(accessions, "ddb000449223"), true);
+	TEST_EQUAL(ListUtils::contains(accessions, "ddb000626346"), true);
+	TEST_EQUAL(ListUtils::contains(accessions, "rev000409159"), true);
 
 	// search parameters:
 	ProteinIdentification::SearchParameters params = proteins[0].getSearchParameters();
@@ -184,9 +184,9 @@ false);
 	TEST_EQUAL(find(var_mods.begin(), var_mods.end(), "M+15.9949") != var_mods.end(), true)
 	TEST_EQUAL(find(var_mods.begin(), var_mods.end(), "Q-17.0265") != var_mods.end(), true)
 
-	//TEST_EQUAL(find(var_mods.begin(), var_mods.end(), "Carbamidometyhl (C)") != var_mods.end(), true)	
-	//TEST_EQUAL(find(var_mods.begin(), var_mods.end(), "Gln->pyro-Glu (Q)") != var_mods.end(), true)	
-	//TEST_EQUAL(find(var_mods.begin(), var_mods.end(), "Glu->pyro-Glu (E)") != var_mods.end(), true)	
+	//TEST_EQUAL(find(var_mods.begin(), var_mods.end(), "Carbamidometyhl (C)") != var_mods.end(), true)
+	//TEST_EQUAL(find(var_mods.begin(), var_mods.end(), "Gln->pyro-Glu (Q)") != var_mods.end(), true)
+	//TEST_EQUAL(find(var_mods.begin(), var_mods.end(), "Glu->pyro-Glu (E)") != var_mods.end(), true)
 
 	// wrong "experiment_name" produces an exception:
 	TEST_EXCEPTION(Exception::ParseError, file.load(filename, proteins, peptides, "abcxyz"));
@@ -203,16 +203,16 @@ START_SECTION(void store(const String& filename, std::vector<ProteinIdentificati
 	vector<PeptideIdentification> peptides;
 	String filename = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test_store.pepxml");
 	file.load(filename, proteins, peptides);
-	
+
 	String cm_file_out;
 	NEW_TMP_FILE(cm_file_out);
 	file.store(cm_file_out, proteins, peptides);
-	
+
 	FuzzyStringComparator fsc;
-	fsc.setWhitelist (StringList::create("base_name"));
+	fsc.setWhitelist (ListUtils::create<String>("base_name"));
 	String filename_out = OPENMS_GET_TEST_DATA_PATH("PepXMLFile_test_out.pepxml");
 	TEST_EQUAL(fsc.compareFiles (cm_file_out.c_str(), filename_out.c_str()), true)
-}	
+}
 END_SECTION
 
 /////////////////////////////////////////////////////////////

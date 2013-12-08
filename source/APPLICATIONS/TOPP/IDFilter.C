@@ -170,9 +170,9 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "input file ");
-    setValidFormats_("in", StringList::create("idXML"));
+    setValidFormats_("in", ListUtils::create<String>("idXML"));
     registerOutputFile_("out", "<file>", "", "output file ");
-    setValidFormats_("out", StringList::create("idXML"));
+    setValidFormats_("out", ListUtils::create<String>("idXML"));
 
     registerTOPPSubsection_("precursor", "Filtering by precursor RT or m/z");
     registerStringOption_("precursor:rt", "[min]:[max]", ":", "Retention time range to extract.", false);
@@ -190,12 +190,12 @@ protected:
     registerInputFile_("whitelist:proteins", "<file>", "", "filename of a FASTA file containing protein sequences.\n"
                                                            "All peptides that are not a substring of a sequence in this file are removed\n"
                                                            "All proteins whose accession is not present in this file are removed.", false);
-    setValidFormats_("whitelist:proteins", StringList::create("fasta"));
+    setValidFormats_("whitelist:proteins", ListUtils::create<String>("fasta"));
     registerFlag_("whitelist:by_seq_only", "Match peptides with FASTA file by sequence instead of accession and disable protein filtering.");
 
     registerTOPPSubsection_("blacklist", "Filtering by blacklisting (only instances not present in a blacklist file can pass)");
     registerInputFile_("blacklist:peptides", "<file>", "", "Peptides having the same sequence as any peptide in this file will be filtered out\n", false);
-    setValidFormats_("blacklist:peptides", StringList::create("idXML"));
+    setValidFormats_("blacklist:peptides", ListUtils::create<String>("idXML"));
 
     registerTOPPSubsection_("rt", "Filtering by RT predicted by 'RTPredict'");
     registerDoubleOption_("rt:p_value", "<float>", 0.0, "Retention time filtering by the p-value predicted by RTPredict.", false);
@@ -208,7 +208,7 @@ protected:
     registerTOPPSubsection_("mz", "Filtering by mz");
     registerDoubleOption_("mz:error", "<float>", -1, "Filtering by deviation to theoretical mass (disabled for negative values).", false);
     registerStringOption_("mz:unit", "<String>", "ppm", "Absolute or relativ error.", false);
-    setValidStrings_("mz:unit", StringList::create("Da,ppm"));
+    setValidStrings_("mz:unit", ListUtils::create<String>("Da,ppm"));
 
     registerTOPPSubsection_("best", "Filtering best hits per spectrum (for peptides) or from proteins");
     registerIntOption_("best:n_peptide_hits", "<integer>", 0, "Keep only the 'n' highest scoring peptide hits per spectrum (for n>0).", false);

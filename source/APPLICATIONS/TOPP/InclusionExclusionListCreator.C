@@ -110,28 +110,28 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("include", "<file>", "", "Inclusion list input file in FASTA or featureXML format.", false);
-    setValidFormats_("include", StringList::create("featureXML,fasta"));
+    setValidFormats_("include", ListUtils::create<String>("featureXML,fasta"));
     registerInputFile_("exclude", "<file>", "", "Exclusion list input file in featureXML, idXML or FASTA format.", false);
-    setValidFormats_("exclude", StringList::create("featureXML,idXML,fasta"));
+    setValidFormats_("exclude", ListUtils::create<String>("featureXML,idXML,fasta"));
     registerOutputFile_("out", "<file>", "", "Output file (tab delimited csv file).");
-    setValidFormats_("out", StringList::create("csv"));
+    setValidFormats_("out", ListUtils::create<String>("csv"));
     registerInputFile_("rt_model", "<file>", "", "RTModel file used for the rt prediction of peptides in FASTA files.", false);
-    setValidFormats_("rt_model", StringList::create("txt"));
+    setValidFormats_("rt_model", ListUtils::create<String>("txt"));
 
     registerInputFile_("pt_model", "<file>", "", "PTModel file used for the pt prediction of peptides in FASTA files (only needed for inclusion_strategy PreotinBased_LP).", false);
-    setValidFormats_("pt_model", StringList::create("txt"));
+    setValidFormats_("pt_model", ListUtils::create<String>("txt"));
 
     //in FASTA or featureXML
     registerIntList_("inclusion_charges", "<charge>", IntList(), "List containing the charge states to be considered for the inclusion list compounds, space separated.", false);
     setMinInt_("inclusion_charges", 1);
     registerStringOption_("inclusion_strategy", "<name>", "ALL", "strategy to be used for selection", false);
-    setValidStrings_("inclusion_strategy", StringList::create("FeatureBased_LP,ProteinBased_LP,ALL"));
+    setValidStrings_("inclusion_strategy", ListUtils::create<String>("FeatureBased_LP,ProteinBased_LP,ALL"));
     registerIntList_("exclusion_charges", "<charge>", IntList(), "List containing the charge states to be considered for the exclusion list compounds (for idXML and FASTA input), space separated.", false);
     setMinInt_("exclusion_charges", 1);
     registerInputFile_("raw_data", "<mzMLFile>", "", "File containing the raw data (only needed for FeatureBased_LP).", false);
-    setValidFormats_("raw_data", StringList::create("mzML"));
+    setValidFormats_("raw_data", ListUtils::create<String>("mzML"));
 
-    //    setValidFormats_("out", StringList::create("traML"));
+    //    setValidFormats_("out", ListUtils::create<String>("traML"));
 
     registerSubsection_("algorithm", "Inclusion/Exclusion algorithm section");
   }

@@ -68,10 +68,10 @@ namespace OpenMS
     defaults_.setValue("sn_bin_count", 30, "Signal to noise bin count.");
 
     defaults_.setValue("remove_overlapping_peaks", "false", "Try to remove overlapping peaks during peak picking");
-    defaults_.setValidStrings("remove_overlapping_peaks", StringList::create("false,true"));
+    defaults_.setValidStrings("remove_overlapping_peaks", ListUtils::create<String>("false,true"));
 
     defaults_.setValue("method", "legacy", "Which method to choose for chromatographic peak-picking (OpenSWATH legacy, corrected picking or Crawdad).");
-    defaults_.setValidStrings("method", StringList::create("legacy,corrected,crawdad"));
+    defaults_.setValidStrings("method", ListUtils::create<String>("legacy,corrected,crawdad"));
 
     // write defaults into Param object param_
     defaultsToParam_();

@@ -130,7 +130,7 @@ struct RNPxlReportRow
          << String::number(m_4H, 4);
     }
 
-    return sl.concatenate(separator);
+    return ListUtils::concatenate(sl, separator);
   }
 
 };
@@ -208,7 +208,7 @@ struct RNPxlReportRowHeader
       }
     }
     sl << "abs prec. error Da" << "rel. prec. error ppm" << "M+H" << "M+2H" << "M+3H" << "M+4H";
-    return sl.concatenate(separator);
+    return ListUtils::concatenate(sl, separator);
   }
 
 };
@@ -253,7 +253,7 @@ protected:
   {
     // input files
     registerInputFile_("in_mzML", "<file>", "", "Input file");
-    setValidFormats_("in_mzML", StringList::create("mzML"));
+    setValidFormats_("in_mzML", ListUtils::create<String>("mzML"));
 
     registerIntOption_("length", "", 4, "Oligonucleotide maximum length.", false);
 
@@ -282,18 +282,18 @@ protected:
 
     // search
     registerInputFile_("in_OMSSA_ini", "<file>", "", "Ini file for the OMSSA search engine\n");
-    setValidFormats_("in_OMSSA_ini", StringList::create("ini"));
+    setValidFormats_("in_OMSSA_ini", ListUtils::create<String>("ini"));
 
     // indexing
     registerInputFile_("in_fasta", "<file>", "", "Fasta file for search result annotation\n");
-    setValidFormats_("in_fasta", StringList::create("fasta"));
+    setValidFormats_("in_fasta", ListUtils::create<String>("fasta"));
 
     // reporting
     registerDoubleOption_("marker_ions_tolerance", "<tolerance>", 0.05, "mz tolerance used to determine marker ions.", false);
     registerOutputFile_("out_idXML", "<file>", "", "idXML output file\n");
-    setValidFormats_("out_idXML", StringList::create("idXML"));
+    setValidFormats_("out_idXML", ListUtils::create<String>("idXML"));
     registerOutputFile_("out_csv", "<file>", "", "csv output file\n");
-    setValidFormats_("out_csv", StringList::create("csv"));
+    setValidFormats_("out_csv", ListUtils::create<String>("csv"));
   }
 
   ExitCodes main_(int, const char**)

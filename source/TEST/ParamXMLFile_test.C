@@ -72,7 +72,7 @@ p.setValue("test2:float",17.5f);
 p.setValue("test2:string","test2");
 p.setValue("test2:int",18);
 p.setSectionDescription("test","sectiondesc");
-p.addTags("test:float", StringList::create("a,b,c"));
+p.addTags("test:float", ListUtils::create<String>("a,b,c"));
 
 START_SECTION((void store(const String& filename, const Param& param) const))
   ParamXMLFile paramFile;
@@ -82,7 +82,7 @@ START_SECTION((void store(const String& filename, const Param& param) const))
 	p2.setValue("test:b:b1", 47.1);
 	p2.setSectionDescription("test:b","bdesc\"<>\nnewline");
 	p2.setValue("test2:a:a1", 47.1);
-	p2.setValue("test2:b:b1", 47.1,"",StringList::create("advanced"));
+	p2.setValue("test2:b:b1", 47.1,"",ListUtils::create<String>("advanced"));
 	p2.setSectionDescription("test2:a","adesc");
 
 	//exception
@@ -115,7 +115,7 @@ START_SECTION((void store(const String& filename, const Param& param) const))
 	//advanced
 	NEW_TMP_FILE(filename);
 	Param p7;
-	p7.setValue("true",5,"",StringList::create("advanced"));
+	p7.setValue("true",5,"",ListUtils::create<String>("advanced"));
 	p7.setValue("false",5,"");
 
 	paramFile.store(filename,p7);

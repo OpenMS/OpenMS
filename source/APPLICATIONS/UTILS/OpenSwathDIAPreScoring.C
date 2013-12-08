@@ -86,15 +86,15 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("tr", "<file>", "", "transition file");
-    setValidFormats_("tr", StringList::create("TraML"));
+    setValidFormats_("tr", ListUtils::create<String>("TraML"));
 
     registerOutputFile_("out", "<file>", "", "output file");
-    setValidFormats_("out", StringList::create("tsv"));
+    setValidFormats_("out", ListUtils::create<String>("tsv"));
 
     registerInputFileList_("swath_files", "<files>", StringList(),
                            "Swath files that were used to extract the transitions. If present, SWATH specific scoring will be applied.",
                            false);
-    setValidFormats_("swath_files", StringList::create("mzML"));
+    setValidFormats_("swath_files", ListUtils::create<String>("mzML"));
 
     registerDoubleOption_("min_upper_edge_dist", "<double>", 0.0,
                           "Minimal distance to the edge to still consider a precursor, in Thomson (only in SWATH)",

@@ -36,6 +36,7 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeModel.h>
 #include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <numeric>
 
@@ -50,24 +51,24 @@ namespace OpenMS
   {
     setName(getProductName());
 
-    defaults_.setValue("averagines:C", 0.04443989f, "Number of C atoms per Dalton of mass.", StringList::create("advanced"));
-    defaults_.setValue("averagines:H", 0.06981572f, "Number of H atoms per Dalton of mass.", StringList::create("advanced"));
-    defaults_.setValue("averagines:N", 0.01221773f, "Number of N atoms per Dalton of mass.", StringList::create("advanced"));
-    defaults_.setValue("averagines:O", 0.01329399f, "Number of O atoms per Dalton of mass.", StringList::create("advanced"));
-    defaults_.setValue("averagines:S", 0.00037525f, "Number of S atoms per Dalton of mass.", StringList::create("advanced"));
-    defaults_.setValue("isotope:trim_right_cutoff", 0.001, "Cutoff in averagine distribution, trailing isotopes below this relative intensity are not considered.", StringList::create("advanced"));
-    defaults_.setValue("isotope:maximum", 100, "Maximum isotopic rank to be considered.", StringList::create("advanced"));
-    defaults_.setValue("isotope:distance", 1.000495, "Distance between consecutive isotopic peaks.", StringList::create("advanced"));
+    defaults_.setValue("averagines:C", 0.04443989f, "Number of C atoms per Dalton of mass.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("averagines:H", 0.06981572f, "Number of H atoms per Dalton of mass.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("averagines:N", 0.01221773f, "Number of N atoms per Dalton of mass.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("averagines:O", 0.01329399f, "Number of O atoms per Dalton of mass.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("averagines:S", 0.00037525f, "Number of S atoms per Dalton of mass.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("isotope:trim_right_cutoff", 0.001, "Cutoff in averagine distribution, trailing isotopes below this relative intensity are not considered.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("isotope:maximum", 100, "Maximum isotopic rank to be considered.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("isotope:distance", 1.000495, "Distance between consecutive isotopic peaks.", ListUtils::create<String>("advanced"));
 
 
-    defaults_.setValue("isotope:mode:mode", "Gaussian", "Peak Shape used around each isotope peak.", StringList::create("advanced"));
-    defaults_.setValidStrings("isotope:mode:mode", StringList::create("Gaussian,Lorentzian"));
-    defaults_.setValue("isotope:mode:LorentzFWHM", 0.3, "Full width of the Lorentzian (Cauchy) function applied to the averagine isotopic pattern to simulate the inaccuracy of the mass spectrometer.", StringList::create("advanced"));
-    defaults_.setValue("isotope:mode:GaussianSD", 0.1, "Standard deviation of Gaussian applied to the averagine isotopic pattern to simulate the inaccuracy of the mass spectrometer.", StringList::create("advanced"));
+    defaults_.setValue("isotope:mode:mode", "Gaussian", "Peak Shape used around each isotope peak.", ListUtils::create<String>("advanced"));
+    defaults_.setValidStrings("isotope:mode:mode", ListUtils::create<String>("Gaussian,Lorentzian"));
+    defaults_.setValue("isotope:mode:LorentzFWHM", 0.3, "Full width of the Lorentzian (Cauchy) function applied to the averagine isotopic pattern to simulate the inaccuracy of the mass spectrometer.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("isotope:mode:GaussianSD", 0.1, "Standard deviation of Gaussian applied to the averagine isotopic pattern to simulate the inaccuracy of the mass spectrometer.", ListUtils::create<String>("advanced"));
 
 
-    defaults_.setValue("charge", 1, "Charge state of the model.", StringList::create("advanced"));
-    defaults_.setValue("statistics:mean", 0.0, "Centroid m/z (as opposed to monoisotopic m/z).", StringList::create("advanced"));
+    defaults_.setValue("charge", 1, "Charge state of the model.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("statistics:mean", 0.0, "Centroid m/z (as opposed to monoisotopic m/z).", ListUtils::create<String>("advanced"));
 
     defaultsToParam_();
   }

@@ -104,13 +104,13 @@ protected:
   {
     String file_formats = "mzML,featureXML,consensusXML,idXML";
     registerInputFileList_("in", "<files>", StringList(), "Input files to transform (separated by blanks)", false);
-    setValidFormats_("in", StringList::create(file_formats));
+    setValidFormats_("in", ListUtils::create<String>(file_formats));
     registerOutputFileList_("out", "<files>", StringList(), "Output files separated by blanks. Either this option or 'trafo_out' have to be provided. They can be used together.", false);
-    setValidFormats_("out", StringList::create(file_formats));
+    setValidFormats_("out", ListUtils::create<String>(file_formats));
     registerInputFileList_("trafo_in", "<files>", StringList(), "Transformations to apply (files separated by blanks)");
-    setValidFormats_("trafo_in", StringList::create("trafoXML"));
+    setValidFormats_("trafo_in", ListUtils::create<String>("trafoXML"));
     registerOutputFileList_("trafo_out", "<files>", StringList(), "Transformation output files separated by blanks. Either this option or 'out' have to be provided. They can be used together.", false);
-    setValidFormats_("trafo_out", StringList::create("trafoXML"));
+    setValidFormats_("trafo_out", ListUtils::create<String>("trafoXML"));
     registerFlag_("invert", "Invert transformations (approximatively) before applying them");
     addEmptyLine_();
 

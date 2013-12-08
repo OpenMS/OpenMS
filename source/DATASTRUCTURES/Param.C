@@ -131,7 +131,7 @@ namespace OpenMS
     else if (value.valueType() == DataValue::STRING_LIST)
     {
       String str_value;
-      StringList ls_value = (StringList) value;
+      StringList ls_value = value;
       for (Size i = 0; i < ls_value.size(); ++i)
       {
         str_value = ls_value[i];
@@ -870,14 +870,14 @@ namespace OpenMS
         if (misc_entry == 0)
         {
           StringList sl;
-          sl << arg;
+          sl.push_back(arg);
           // create "misc"-Node:
           root_.insert(ParamEntry("misc", sl, ""), prefix2);
         }
         else
         {
-          StringList sl = (StringList)misc_entry->value;
-          sl << arg;
+          StringList sl = misc_entry->value;
+          sl.push_back(arg);
           misc_entry->value = sl;
         }
       }
@@ -928,7 +928,7 @@ namespace OpenMS
           int j = (i + 1);
           while (j < argc && !(arg1.size() >= 2 && arg1[0] == '-' && arg1[1] != '0' && arg1[1] != '1' && arg1[1] != '2' && arg1[1] != '3' && arg1[1] != '4' && arg1[1] != '5' && arg1[1] != '6' && arg1[1] != '7' && arg1[1] != '8' && arg1[1] != '9'))
           {
-            sl << arg1;
+            sl.push_back(arg1);
             ++j;
             if (j < argc)
               arg1 = argv[j];
@@ -966,13 +966,13 @@ namespace OpenMS
         if (unknown_entry == 0)
         {
           StringList sl;
-          sl << arg;
+          sl.push_back(arg);
           root_.insert(ParamEntry("", sl, ""), unknown);
         }
         else
         {
-          StringList sl = (StringList)unknown_entry->value;
-          sl << arg;
+          StringList sl = unknown_entry->value;
+          sl.push_back(arg);
           unknown_entry->value = sl;
         }
       }
@@ -983,14 +983,14 @@ namespace OpenMS
         if (misc_entry == 0)
         {
           StringList sl;
-          sl << arg;
+          sl.push_back(arg);
           // create "misc"-Node:
           root_.insert(ParamEntry("", sl, ""), misc);
         }
         else
         {
-          StringList sl = (StringList)misc_entry->value;
-          sl << arg;
+          StringList sl = misc_entry->value;
+          sl.push_back(arg);
           misc_entry->value = sl;
         }
       }

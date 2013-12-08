@@ -134,16 +134,16 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFileList_("in", "<files>", StringList(), "Input files separated by blank");
-    setValidFormats_("in", StringList::create("mzML"));
+    setValidFormats_("in", ListUtils::create<String>("mzML"));
 
     registerInputFile_("tr", "<file>", "", "transition file ('TraML' or 'csv')");
-    setValidFormats_("tr", StringList::create("csv,traML"));
+    setValidFormats_("tr", ListUtils::create<String>("csv,traML"));
     
     registerInputFile_("rt_norm", "<file>", "", "RT normalization file (how to map the RTs of this run to the ones stored in the library)", false);
-    setValidFormats_("rt_norm", StringList::create("trafoXML"));
+    setValidFormats_("rt_norm", ListUtils::create<String>("trafoXML"));
 
     registerOutputFile_("out", "<file>", "", "output file");
-    setValidFormats_("out", StringList::create("mzML"));
+    setValidFormats_("out", ListUtils::create<String>("mzML"));
 
     registerDoubleOption_("min_upper_edge_dist", "<double>", 0.0, "Minimal distance to the edge to still consider a precursor, in Thomson", false);
     registerDoubleOption_("mz_window", "<double>", 0.05, "Extraction window in m/z dimension (in Thomson, to use ppm see -ppm flag). This is the full window size, e.g. 100 ppm would extract 50 ppm on either side.", false);
@@ -170,7 +170,7 @@ protected:
     registerStringOption_("model:type", "<name>", default_model, "Type of model", false);
     StringList model_types;
     TransformationDescription::getModelTypes(model_types);
-    if (!model_types.contains(default_model)) {
+    if (!ListUtils::contains(model_types, default_model)) {
       model_types.insert(model_types.begin(), default_model);
     }
     setValidStrings_("model:type", model_types);

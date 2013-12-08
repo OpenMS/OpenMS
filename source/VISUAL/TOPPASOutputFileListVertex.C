@@ -121,7 +121,7 @@ namespace OpenMS
       else
         text_l.push_back(String(".") + sit->first);
     }
-    text = text_l.concatenate(" | ").toQString();
+    text = ListUtils::concatenate(text_l, " | ").toQString();
     // might get very long, especially if node was not reached yet, so trim
     text = text.left(15) + " ...";
     text_boundings = painter->boundingRect(QRectF(0, 0, 0, 0), Qt::AlignCenter, text);

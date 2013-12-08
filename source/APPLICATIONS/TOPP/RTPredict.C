@@ -117,26 +117,26 @@ protected:
   {
     //input
     registerInputFile_("in_id", "<file>", "", "peptides with precursor information", false);
-    setValidFormats_("in_id", StringList::create("idXML"));
+    setValidFormats_("in_id", ListUtils::create<String>("idXML"));
     registerInputFile_("in_text", "<file>", "", "peptides as text-based file", false);
-    setValidFormats_("in_text", StringList::create("txt"));
+    setValidFormats_("in_text", ListUtils::create<String>("txt"));
 
     //output
     registerTOPPSubsection_("out_id", "Output files in idXML format");
     registerOutputFile_("out_id:file", "<file>", "", "Output file with peptide RT prediction", false);
-    setValidFormats_("out_id:file", StringList::create("idXML"));
+    setValidFormats_("out_id:file", ListUtils::create<String>("idXML"));
     registerOutputFile_("out_id:positive", "<file>", "", "Output file in idXML format containing positive predictions (peptide separation prediction - requires negative file to be present as well)\n", false);
-    setValidFormats_("out_id:positive", StringList::create("idXML"));
+    setValidFormats_("out_id:positive", ListUtils::create<String>("idXML"));
     registerOutputFile_("out_id:negative", "<file>", "", "Output file in idXML format containing negative predictions (peptide separation prediction - requires positive file to be present as well)\n", false);
-    setValidFormats_("out_id:negative", StringList::create("idXML"));
+    setValidFormats_("out_id:negative", ListUtils::create<String>("idXML"));
     registerFlag_("out_id:rewrite_peptideidentification_rtmz", "rewrites each peptideidentification's rt and mz from prediction and calculation (according to the best hit)", true);
 
     registerTOPPSubsection_("out_text", "Output files in text format");
     registerOutputFile_("out_text:file", "<file>", "", "Output file with predicted RT values", false);
-    setValidFormats_("out_text:file", StringList::create("csv"));
+    setValidFormats_("out_text:file", ListUtils::create<String>("csv"));
 
     registerInputFile_("svm_model", "<file>", "", "svm model in libsvm format (can be produced by RTModel)");
-    setValidFormats_("svm_model", StringList::create("txt"));
+    setValidFormats_("svm_model", ListUtils::create<String>("txt"));
 
     registerDoubleOption_("total_gradient_time", "<time>", 1.0, "the time (in seconds) of the gradient (peptide RT prediction)", false);
     setMinFloat_("total_gradient_time", 0.00001);

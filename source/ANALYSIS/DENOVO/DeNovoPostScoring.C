@@ -41,7 +41,7 @@ namespace OpenMS
   DeNovoPostScoring::DeNovoPostScoring() :
     DefaultParamHandler("DeNovoPostScoring")
   {
-    //defaults_.setValidStrings("q_value", StringList::create("true,false"));
+    //defaults_.setValidStrings("q_value", ListUtils::create<String>("true,false"));
     //defaultsToParam_();
   }
 

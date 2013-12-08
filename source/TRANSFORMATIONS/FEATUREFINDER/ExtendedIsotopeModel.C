@@ -36,6 +36,7 @@
 #include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
 #include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <numeric>
 
@@ -48,18 +49,18 @@ namespace OpenMS
   {
     setName(getProductName());
 
-    defaults_.setValue("averagines:C", 0.04443989f, "Number of C atoms per Dalton of mass.", StringList::create("advanced"));
-    defaults_.setValue("averagines:H", 0.06981572f, "Number of H atoms per Dalton of mass.", StringList::create("advanced"));
-    defaults_.setValue("averagines:N", 0.01221773f, "Number of N atoms per Dalton of mass.", StringList::create("advanced"));
-    defaults_.setValue("averagines:O", 0.01329399f, "Number of O atoms per Dalton of mass.", StringList::create("advanced"));
-    defaults_.setValue("averagines:S", 0.00037525f, "Number of S atoms per Dalton of mass.", StringList::create("advanced"));
+    defaults_.setValue("averagines:C", 0.04443989f, "Number of C atoms per Dalton of mass.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("averagines:H", 0.06981572f, "Number of H atoms per Dalton of mass.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("averagines:N", 0.01221773f, "Number of N atoms per Dalton of mass.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("averagines:O", 0.01329399f, "Number of O atoms per Dalton of mass.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("averagines:S", 0.00037525f, "Number of S atoms per Dalton of mass.", ListUtils::create<String>("advanced"));
 
-    defaults_.setValue("isotope:trim_right_cutoff", 0.001, "Cutoff in averagine distribution, trailing isotopes below this relative intensity are not considered.", StringList::create("advanced"));
-    defaults_.setValue("isotope:maximum", 100, "Maximum isotopic rank to be considered.", StringList::create("advanced"));
-    defaults_.setValue("isotope:distance", 1.000495, "Distance between consecutive isotopic peaks.", StringList::create("advanced"));
-    defaults_.setValue("isotope:stdev", 0.1, "Standard deviation of gaussian applied to the averagine isotopic pattern to simulate the inaccuracy of the mass spectrometer.", StringList::create("advanced"));
-    defaults_.setValue("charge", 1, "Charge state of the model.", StringList::create("advanced"));
-    defaults_.setValue("isotope:monoisotopic_mz", 1.0, "Monoisotopic m/z of the model.", StringList::create("advanced"));
+    defaults_.setValue("isotope:trim_right_cutoff", 0.001, "Cutoff in averagine distribution, trailing isotopes below this relative intensity are not considered.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("isotope:maximum", 100, "Maximum isotopic rank to be considered.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("isotope:distance", 1.000495, "Distance between consecutive isotopic peaks.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("isotope:stdev", 0.1, "Standard deviation of gaussian applied to the averagine isotopic pattern to simulate the inaccuracy of the mass spectrometer.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("charge", 1, "Charge state of the model.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("isotope:monoisotopic_mz", 1.0, "Monoisotopic m/z of the model.", ListUtils::create<String>("advanced"));
 
     defaultsToParam_();
   }

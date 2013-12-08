@@ -83,7 +83,7 @@ protected:
     registerIntOption_("port", "<port>", 3306, "port the DB server is running on", false);
     registerStringOption_("db", "<name>", "", "DB name");
     registerInputFile_("in", "<file>", "", "input file ", false);
-    setValidFormats_("in", StringList::create("mzML"));
+    setValidFormats_("in", ListUtils::create<String>("mzML"));
     registerFlag_("init", "Deletes all tables and sets up a new OpenMS database.\n"
                           "The data of 'in' is not imported!");
   }

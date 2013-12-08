@@ -36,6 +36,7 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/StringList.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #ifdef OPENMS_WINDOWSPLATFORM
 #include <windows.h> // for GetConsoleScreenBufferInfo()
@@ -191,7 +192,7 @@ namespace OpenMS
     }
     // remove last " " from last line to prevent automatic linebreak
     //if (result.size()>0 && result[result.size()-1].hasSuffix(" ")) result[result.size()-1] = result[result.size()-1].substr(0,result[result.size()-1].size()-1);
-    return result.concatenate("\n");
+    return ListUtils::concatenate(result, "\n");
   }
 
 }

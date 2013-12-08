@@ -205,7 +205,7 @@ namespace OpenMS
       {
         it->substitute(separator, replacement);
       }
-      s += StringList(copy).concatenate(separator).trim();
+      s += ListUtils::concatenate(copy, separator).trim();
       s += "\n";
       for (std::vector<std::vector<String> >::const_iterator it = tableRows.begin(); it != tableRows.end(); ++it)
       {
@@ -214,7 +214,7 @@ namespace OpenMS
         {
           sit->substitute(separator, replacement);
         }
-        s += StringList(copy_row).concatenate(separator).trim();
+        s += ListUtils::concatenate(copy_row, separator).trim();
         s += "\n";
       }
     }
@@ -264,7 +264,7 @@ namespace OpenMS
         it->substitute(String(" "), String("_"));
       }
 
-      s += StringList(copy).concatenate(" ").trim();
+      s += ListUtils::concatenate(copy, " ").trim();
       s += "</tableColumnTypes>\n";
       for (std::vector<std::vector<String> >::const_iterator it = tableRows.begin(); it != tableRows.end(); ++it)
       {
@@ -276,7 +276,7 @@ namespace OpenMS
           sit->substitute(String(" "), String("_"));
         }
 
-        s += StringList(*it).concatenate(" ").trim();
+        s += ListUtils::concatenate(*it, " ").trim();
         s += "</tableRowValues>\n";
       }
       s += "</table>";

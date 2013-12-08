@@ -319,12 +319,14 @@ std::cout << "16: " << x << '\n'; // writes: 16: 88.98999999999999
 #endif
   }
 
-  /// The general template definition will force a compile-time error if FloatingPointType is in fact not a floating point type.  Only the template specializations for float, double, long double shall be used.
+  /** 
+    @brief The general template definition will return the default precision of 
+           6 according to 27.4.4.1 basic_iosconstructors (C++ Standard).
+  */
   template <typename FloatingPointType>
   inline Int writtenDigits(const FloatingPointType & /* unused */)
   {
-    // Self-explanatory compile time error!
-    return FloatingPointType::Sorry_but_writtenDigits_is_designed_to_work_for_floating_point_types_only;
+    return 6;
   }
 
   // Note: I once tried to move PrecisionWrapper to namespace Internal, but oops! operator <<  won't be found (through ADL?) anymore.

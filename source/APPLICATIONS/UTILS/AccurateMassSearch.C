@@ -96,21 +96,21 @@ protected:
     void registerOptionsAndFlags_()
     {
         registerInputFile_("in", "<file>", "", "featureXML or consensusXML file");
-        setValidFormats_("in", StringList::create("featureXML,consensusXML"));
+        setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML"));
         registerOutputFile_("out", "<file>", "", "mzTab file");
-        setValidFormats_("out", StringList::create("csv"));
+        setValidFormats_("out", ListUtils::create<String>("csv"));
 
         // move some params from algorithm section to top level (to support input file functionality)
         Param p = AccurateMassSearchEngine().getDefaults();
         registerTOPPSubsection_("db", "Database files which contain the identifications");
-        registerInputFile_("db:mapping", "<file>", p.getValue("db:mapping"), p.getDescription("db:mapping"), true, false, StringList::create("skipexists"));
-        setValidFormats_("db:mapping", StringList::create("tsv"));
-        registerInputFile_("db:struct", "<file>", p.getValue("db:struct"), p.getDescription("db:struct"), true, false, StringList::create("skipexists"));
-        setValidFormats_("db:struct", StringList::create("tsv"));
-        registerInputFile_("positive_adducts_file", "<file>", p.getValue("positive_adducts_file"), p.getDescription("positive_adducts_file"), true, false, StringList::create("skipexists"));
-        setValidFormats_("positive_adducts_file", StringList::create("tsv"));
-        registerInputFile_("negative_adducts_file", "<file>", p.getValue("negative_adducts_file"), p.getDescription("negative_adducts_file"), true, false, StringList::create("skipexists"));
-        setValidFormats_("negative_adducts_file", StringList::create("tsv"));
+        registerInputFile_("db:mapping", "<file>", p.getValue("db:mapping"), p.getDescription("db:mapping"), true, false, ListUtils::create<String>("skipexists"));
+        setValidFormats_("db:mapping", ListUtils::create<String>("tsv"));
+        registerInputFile_("db:struct", "<file>", p.getValue("db:struct"), p.getDescription("db:struct"), true, false, ListUtils::create<String>("skipexists"));
+        setValidFormats_("db:struct", ListUtils::create<String>("tsv"));
+        registerInputFile_("positive_adducts_file", "<file>", p.getValue("positive_adducts_file"), p.getDescription("positive_adducts_file"), true, false, ListUtils::create<String>("skipexists"));
+        setValidFormats_("positive_adducts_file", ListUtils::create<String>("tsv"));
+        registerInputFile_("negative_adducts_file", "<file>", p.getValue("negative_adducts_file"), p.getDescription("negative_adducts_file"), true, false, ListUtils::create<String>("skipexists"));
+        setValidFormats_("negative_adducts_file", ListUtils::create<String>("tsv"));
         // addEmptyLine_();
         // addText_("Parameters for the accurate mass search can be given in the 'algorithm' part of INI file.");
         registerSubsection_("algorithm", "Algorithm parameters section");

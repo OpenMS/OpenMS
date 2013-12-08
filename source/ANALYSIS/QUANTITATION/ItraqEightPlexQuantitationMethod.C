@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqEightPlexQuantitationMethod.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 namespace OpenMS
 {
@@ -105,7 +106,7 @@ namespace OpenMS
 //    {0.09, 4.71, 1.88, 0.00},
 //    {0.14, 5.66, 0.87, 0.00},
 //    {0.27, 7.44, 0.18, 0.00}    //121
-    defaults_.setValue("correction_matrix", StringList::create("0.00/0.00/6.89/0.22," //113
+    defaults_.setValue("correction_matrix", ListUtils::create<String>("0.00/0.00/6.89/0.22," //113
                                                                "0.00/0.94/5.90/0.16,"
                                                                "0.00/1.88/4.90/0.10,"
                                                                "0.00/2.82/3.90/0.07,"

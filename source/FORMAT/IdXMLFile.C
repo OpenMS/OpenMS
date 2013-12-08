@@ -739,7 +739,7 @@ namespace OpenMS
         warning(LOAD, String("Metavalue '") + name + "' already exists. Overwriting...");
       }
       String accessions;
-      for (StringList::ConstIterator acc_it = groups[g].accessions.begin();
+      for (StringList::const_iterator acc_it = groups[g].accessions.begin();
            acc_it != groups[g].accessions.end(); ++acc_it)
       {
         if (acc_it != groups[g].accessions.begin())

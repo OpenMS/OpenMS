@@ -178,10 +178,10 @@ public:
   {
     // create flag for input file (.mzML)
     registerInputFile_("in", "<file>", "", "Raw LC-MS data to be analyzed. (Profile data required. Will not work with centroided data!)");
-    setValidFormats_("in", StringList::create("mzML"));
+    setValidFormats_("in", ListUtils::create<String>("mzML"));
     // create flag for output file (.featureXML)
     registerOutputFile_("out", "<file>", "", "Set of all identified peptides. The m/z-RT positions correspond to the lightest peptide in each group.", false);
-    setValidFormats_("out", StringList::create("featureXML"));
+    setValidFormats_("out", ListUtils::create<String>("featureXML"));
 
     // create section "sample" for adjusting sample parameters
     registerSubsection_("sample", "Parameters describing the sample and its labels.");
@@ -202,7 +202,7 @@ public:
     if (section == "sample")
     {
       defaults.setValue("charge", "2:4", "Range of charge states in the sample, i.e. min charge : max charge.");
-      defaults.setValue("peaks_per_peptide", "3:5", "Range of peaks per peptide in the sample, i.e. min peaks per peptide : max peaks per peptide. For example 3:6, if isotopic peptide patterns in the sample consist of either three, four, five or six isotopic peaks. ", StringList::create("advanced"));
+      defaults.setValue("peaks_per_peptide", "3:5", "Range of peaks per peptide in the sample, i.e. min peaks per peptide : max peaks per peptide. For example 3:6, if isotopic peptide patterns in the sample consist of either three, four, five or six isotopic peaks. ", ListUtils::create<String>("advanced"));
     }
 
 
@@ -214,7 +214,7 @@ public:
     {
       defaults.setValue("rt_threshold", 30.0, "Typical retention time [s] over which a characteristic peptide elutes. (This is not an upper bound. Peptides that elute for longer will be reported.)");
       defaults.setMinFloat("rt_threshold", 0.0);
-      defaults.setValue("rt_min", 0.0, "Lower bound for the retention time [s].", StringList::create("advanced"));
+      defaults.setValue("rt_min", 0.0, "Lower bound for the retention time [s].", ListUtils::create<String>("advanced"));
       defaults.setMinFloat("rt_min", 0.0);
       defaults.setValue("intensity_cutoff", 1000.0, "Lower bound for the intensity of isotopic peaks in a SILAC pattern.");
       defaults.setMinFloat("intensity_cutoff", 0.0);

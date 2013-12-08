@@ -34,6 +34,8 @@
 
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTSixPlexQuantitationMethod.h>
 
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+
 namespace OpenMS
 {
   const String TMTSixPlexQuantitationMethod::name_ = "tmt6plex";
@@ -76,7 +78,7 @@ namespace OpenMS
     //    {0.0, 2.0, 5.6, 0.1},
     //    {0.0, 3.0, 4.5, 0.1},
     //    {0.1, 4.0, 3.5, 0.1}    //117
-    defaults_.setValue("correction_matrix", StringList::create("0.0/0.0/0.0/0.0,"
+    defaults_.setValue("correction_matrix", ListUtils::create<String>("0.0/0.0/0.0/0.0,"
                                                                "0.0/0.0/0.0/0.0,"
                                                                "0.0/0.0/0.0/0.0,"
                                                                "0.0/0.0/0.0/0.0,"

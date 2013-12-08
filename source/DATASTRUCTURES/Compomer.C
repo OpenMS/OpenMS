@@ -33,7 +33,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/DATASTRUCTURES/Compomer.h>
-#include <OpenMS/DATASTRUCTURES/StringList.h>
 #include <OpenMS/DATASTRUCTURES/Adduct.h>
 
 #include <cmath>

@@ -119,18 +119,18 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerStringOption_("type", "<mode>", "4plex", "iTRAQ experiment type\n", false);
-    setValidStrings_("type", StringList::create("4plex,8plex"));
+    setValidStrings_("type", ListUtils::create<String>("4plex,8plex"));
 
     registerInputFile_("in", "<file>", "", "input raw/picked data file ");
-    setValidFormats_("in", StringList::create("mzML"));
+    setValidFormats_("in", ListUtils::create<String>("mzML"));
     registerOutputFile_("out", "<file>", "", "output consensusXML file with quantitative information");
-    setValidFormats_("out", StringList::create("consensusXML"));
+    setValidFormats_("out", ListUtils::create<String>("consensusXML"));
 
     registerOutputFile_("out_mzq", "<file>", "", "Optional output file of MzQuantML.", false, true);
-    setValidFormats_("out_mzq", StringList::create("mzq"));
+    setValidFormats_("out_mzq", ListUtils::create<String>("mzq"));
 
     registerOutputFile_("out_stats", "<file>", "", "output statistics as tab-separated file (readable by R or Excel or ...)", false);
-    setValidFormats_("out_stats", StringList::create("tsv"));
+    setValidFormats_("out_stats", ListUtils::create<String>("tsv"));
 
     addEmptyLine_();
 
@@ -142,7 +142,7 @@ protected:
     Param tmp;
     tmp.insert("Extraction:", ItraqChannelExtractor(ItraqQuantifier::FOURPLEX).getParameters());    // type is irrelevant - ini is the same
     tmp.insert("Quantification:", ItraqQuantifier(ItraqQuantifier::FOURPLEX).getParameters());    // type is irrelevant - ini is the same
-    tmp.setValue("MetaInformation:Program", "OpenMS::ITRAQAnalyzer", "", StringList::create("advanced"));
+    tmp.setValue("MetaInformation:Program", "OpenMS::ITRAQAnalyzer", "", ListUtils::create<String>("advanced"));
     return tmp;
   }
 

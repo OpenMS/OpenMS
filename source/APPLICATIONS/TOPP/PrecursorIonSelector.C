@@ -133,29 +133,29 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<input file>", "", "Input feature map file (featureXML)");
-    setValidFormats_("in", StringList::create("featureXML"));
+    setValidFormats_("in", ListUtils::create<String>("featureXML"));
 
     registerOutputFile_("out", "<output file>", "", "modified feature map", false);
-    setValidFormats_("out", StringList::create("featureXML"));
+    setValidFormats_("out", ListUtils::create<String>("featureXML"));
 
     registerOutputFile_("next_feat", "<output file>", "", "feature map (featureXML) file with the selected precursors", false);
-    setValidFormats_("next_feat", StringList::create("featureXML"));
+    setValidFormats_("next_feat", ListUtils::create<String>("featureXML"));
 
     registerStringOption_("ids", "<idxml file>", "", "file containing results of identification (idXML)");
     registerIntOption_("num_precursors", "<Int>", 1, "number of precursors to be selected", false);
     registerInputFile_("raw_data", "<file>", "", "Input profile data.", false);
-    setValidFormats_("raw_data", StringList::create("mzML"));
+    setValidFormats_("raw_data", ListUtils::create<String>("mzML"));
     registerFlag_("load_preprocessing", "The preprocessed db is loaded from file, not calculated.");
     registerFlag_("store_preprocessing", "The preprocessed db is stored.");
     registerFlag_("simulation", "Simulate the whole LC-MS/MS run.");
     registerStringOption_("sim_results", "<output file>", "", "File containing the results of the simulation run", false);
     registerInputFile_("db_path", "<db-file>", "", "db file", false);
-    setValidFormats_("db_path", StringList::create("fasta"));
+    setValidFormats_("db_path", ListUtils::create<String>("fasta"));
 
     registerStringOption_("rt_model", "<rt-model-file>", "", "SVM Model for RTPredict", false);
     registerStringOption_("dt_model", "<dt-model-file>", "", "SVM Model for PTPredict", false);
     registerStringOption_("solver", "<solver-type>", "GLPK", "LP solver type", false, true);
-    setValidStrings_("solver", StringList::create("GLPK,COINOR"));
+    setValidStrings_("solver", ListUtils::create<String>("GLPK,COINOR"));
     registerStringList_("fixed_modifications", "<mods>", StringList(), "the modifications i.e. Carboxymethyl (C)", false);
     addEmptyLine_();
     registerSubsection_("algorithm", "Settings for the compound list creation and rescoring.");

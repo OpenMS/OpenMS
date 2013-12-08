@@ -39,6 +39,7 @@
 #include <OpenMS/VISUAL/APPLICATIONS/IDEvaluationBase.h>
 #include <OpenMS/VISUAL/APPLICATIONS/MISC/QApplicationTOPP.h>
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <QtGui/QImage>
 #include <QPainter>
@@ -109,14 +110,14 @@ protected:
 
   void registerOptionsAndFlags_()
   {
-    registerInputFileList_("in", "<file>", StringList::create(""), "Input file(s)", false);
-    setValidFormats_("in", StringList::create("idXML"));
+    registerInputFileList_("in", "<file>", ListUtils::create<String>(""), "Input file(s)", false);
+    setValidFormats_("in", ListUtils::create<String>("idXML"));
     registerOutputFile_("out", "<file>", "", "Output file (if given, no GUI will be displayed)", false);
     setValidFormats_("out", out_formats_, false);
     registerStringOption_("out_type", "<file type>", "", "The image format. Set this if you want to force a format not reflected by the 'out' filename.", false);
     setValidStrings_("out_type", out_formats_);
     registerOutputFile_("out_csv", "<file>", "", "Optional output of points as table for manual post-processing.", false);
-    setValidFormats_("out_csv", StringList::create("csv"));
+    setValidFormats_("out_csv", ListUtils::create<String>("csv"));
 
     registerDoubleOption_("q_min", "<float>", 0.0, "Minimal q-value in plot.", false);
     setMinFloat_("q_min", 0.0);
@@ -155,7 +156,7 @@ protected:
         format = "nosuffix";
       }
       // check if format is valid:
-      if (!out_formats_.contains(format.toLower()))
+      if (!ListUtils::contains(out_formats_, format.toLower()))
       {
         LOG_ERROR << "No explicit image output format was provided via 'out_type', and the suffix ('" << format << "') does not resemble a valid type. Please fix one of them." << std::endl;
         return ILLEGAL_PARAMETERS;
@@ -205,12 +206,12 @@ protected:
         StringList sl2;
         for (Size j=0;j<s.size();++j)
         {
-          sl1 << s[j].getMZ();
-          sl2 << s[j].getIntensity();
+          sl1.push_back(s[j].getMZ());
+          sl2.push_back(s[j].getIntensity());
         }
         tf.push_back(String("# ") + String(s.getMetaValue("search_engine")));
-        tf.push_back(sl1.concatenate(","));
-        tf.push_back(sl2.concatenate(","));
+        tf.push_back(ListUtils::concatenate(sl1, ","));
+        tf.push_back(ListUtils::concatenate(sl2, ","));
       }
       tf.store(out_csv);
     }

@@ -129,11 +129,11 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("id", "<file>", "", "Protein/peptide identifications file");
-    setValidFormats_("id", StringList::create("idXML"));
+    setValidFormats_("id", ListUtils::create<String>("idXML"));
     registerInputFile_("in", "<file>", "", "Feature map/consensus map file");
-    setValidFormats_("in", StringList::create("featureXML,consensusXML,mzq"));
+    setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML,mzq"));
     registerOutputFile_("out", "<file>", "", "Output file (the format depends on the input file format).");
-    setValidFormats_("out", StringList::create("featureXML,consensusXML,mzq"));
+    setValidFormats_("out", ListUtils::create<String>("featureXML,consensusXML,mzq"));
 
     addEmptyLine_();
     IDMapper mapper;

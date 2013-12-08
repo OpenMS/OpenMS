@@ -123,12 +123,12 @@ class TOPPPepNovoAdapter :
     void registerOptionsAndFlags_()
     {
       registerInputFile_("in", "<file>", "", "input file ");
-      setValidFormats_("in", StringList::create("mzML"));
+      setValidFormats_("in", ListUtils::create<String>("mzML"));
 
       registerOutputFile_("out", "<file>", "", "output file ");
-      setValidFormats_("out",StringList::create("idXML"));
+      setValidFormats_("out",ListUtils::create<String>("idXML"));
 
-      registerInputFile_("pepnovo_executable","<file>", "", "The \"PepNovo\" executable of the PepNovo installation", true, false, StringList::create("skipexists"));
+      registerInputFile_("pepnovo_executable","<file>", "", "The \"PepNovo\" executable of the PepNovo installation", true, false, ListUtils::create<String>("skipexists"));
       registerStringOption_("model_directory", "<file>", "", "Name of the directory where the model files are kept.",true);
 
       addEmptyLine_ ();
@@ -141,7 +141,7 @@ class TOPPPepNovoAdapter :
       registerStringOption_("model", "<file>", "CID_IT_TRYP", "Name of the model that should be used", false);
 
       registerStringOption_("digest", "", "TRYPSIN", "Enzyme used for digestion (default TRYPSIN)", false);
-      setValidStrings_("digest", StringList::create("TRYPSIN,NON_SPECIFIC"));
+      setValidStrings_("digest", ListUtils::create<String>("TRYPSIN,NON_SPECIFIC"));
 
       registerIntOption_("tag_length", "<num>", -1, "Returns peptide sequence of the specified length (only lengths 3-6 are allowed)", false);
 
@@ -151,9 +151,9 @@ class TOPPPepNovoAdapter :
 
       std::vector<String>all_possible_modifications;
       ModificationsDB::getInstance()->getAllSearchModifications(all_possible_modifications);
-      registerStringList_("fixed_modifications", "<mod1,mod2,...>", StringList::create(""), "List of fixed modifications", false);
+      registerStringList_("fixed_modifications", "<mod1,mod2,...>", ListUtils::create<String>(""), "List of fixed modifications", false);
       setValidStrings_("fixed_modifications", all_possible_modifications);
-      registerStringList_("variable_modifications", "<mod1,mod2,...>", StringList::create(""), "List of variable modifications", false);
+      registerStringList_("variable_modifications", "<mod1,mod2,...>", ListUtils::create<String>(""), "List of variable modifications", false);
       setValidStrings_("variable_modifications", all_possible_modifications);
     }
 

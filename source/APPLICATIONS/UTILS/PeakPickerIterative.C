@@ -104,10 +104,10 @@ class TOPPPeakPickerIterative
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in","<file>","","input file ");
-    setValidFormats_("in",StringList::create("mzML"));
+    setValidFormats_("in",ListUtils::create<String>("mzML"));
 
     registerOutputFile_("out","<file>","","output file");
-    setValidFormats_("out",StringList::create("mzML"));
+    setValidFormats_("out",ListUtils::create<String>("mzML"));
 
     registerSubsection_("algorithm", "Algorithm parameters section");
   }

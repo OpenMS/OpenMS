@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureDistance.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 using namespace std;
 
@@ -51,30 +52,30 @@ namespace OpenMS
   {
     defaults_.setValue("distance_RT:max_difference", 100.0, "Maximum allowed difference in RT in seconds");
     defaults_.setMinFloat("distance_RT:max_difference", 0.0);
-    defaults_.setValue("distance_RT:exponent", 1.0, "Normalized RT differences are raised to this power (using 1 or 2 will be fast, everything else is REALLY slow)", StringList::create("advanced"));
+    defaults_.setValue("distance_RT:exponent", 1.0, "Normalized RT differences are raised to this power (using 1 or 2 will be fast, everything else is REALLY slow)", ListUtils::create<String>("advanced"));
     defaults_.setMinFloat("distance_RT:exponent", 0.0);
-    defaults_.setValue("distance_RT:weight", 1.0, "RT distances are weighted by this factor", StringList::create("advanced"));
+    defaults_.setValue("distance_RT:weight", 1.0, "RT distances are weighted by this factor", ListUtils::create<String>("advanced"));
     defaults_.setMinFloat("distance_RT:weight", 0.0);
     defaults_.setSectionDescription("distance_RT", "Distance component based on RT differences");
 
     defaults_.setValue("distance_MZ:max_difference", 0.3, "Maximum allowed difference in m/z (unit defined by 'unit')");
     defaults_.setMinFloat("distance_MZ:max_difference", 0.0);
     defaults_.setValue("distance_MZ:unit", "Da", "Unit of the 'max_difference' parameter");
-    defaults_.setValidStrings("distance_MZ:unit", StringList::create("Da,ppm"));
-    defaults_.setValue("distance_MZ:exponent", 2.0, "Normalized m/z differences are raised to this power (using 1 or 2 will be fast, everything else is REALLY slow)", StringList::create("advanced"));
+    defaults_.setValidStrings("distance_MZ:unit", ListUtils::create<String>("Da,ppm"));
+    defaults_.setValue("distance_MZ:exponent", 2.0, "Normalized m/z differences are raised to this power (using 1 or 2 will be fast, everything else is REALLY slow)", ListUtils::create<String>("advanced"));
     defaults_.setMinFloat("distance_MZ:exponent", 0.0);
-    defaults_.setValue("distance_MZ:weight", 1.0, "m/z distances are weighted by this factor", StringList::create("advanced"));
+    defaults_.setValue("distance_MZ:weight", 1.0, "m/z distances are weighted by this factor", ListUtils::create<String>("advanced"));
     defaults_.setMinFloat("distance_MZ:weight", 0.0);
     defaults_.setSectionDescription("distance_MZ", "Distance component based on m/z differences");
 
-    defaults_.setValue("distance_intensity:exponent", 1.0, "Differences in relative intensity are raised to this power (using 1 or 2 will be fast, everything else is REALLY slow)", StringList::create("advanced"));
+    defaults_.setValue("distance_intensity:exponent", 1.0, "Differences in relative intensity are raised to this power (using 1 or 2 will be fast, everything else is REALLY slow)", ListUtils::create<String>("advanced"));
     defaults_.setMinFloat("distance_intensity:exponent", 0.0);
-    defaults_.setValue("distance_intensity:weight", 0.0, "Distances based on relative intensity are weighted by this factor", StringList::create("advanced"));
+    defaults_.setValue("distance_intensity:weight", 0.0, "Distances based on relative intensity are weighted by this factor", ListUtils::create<String>("advanced"));
     defaults_.setMinFloat("distance_intensity:weight", 0.0);
     defaults_.setSectionDescription("distance_intensity", "Distance component based on differences in relative intensity");
 
     defaults_.setValue("ignore_charge", "false", "Compare features normally even if their charge states are different");
-    defaults_.setValidStrings("ignore_charge", StringList::create("true,false"));
+    defaults_.setValidStrings("ignore_charge", ListUtils::create<String>("true,false"));
 
     defaultsToParam_();
   }

@@ -134,7 +134,7 @@ namespace OpenMS
     //delete log file if empty
     StringList log_files;
     if (!getParam_("log").isEmpty())
-      log_files << (String)(getParam_("log"));
+      log_files.push_back((String)(getParam_("log")));
     for (Size i = 0; i < log_files.size(); ++i)
     {
       if (File::empty(log_files[i]))
@@ -209,7 +209,7 @@ namespace OpenMS
       if (String(argv[i]).has(' ')) args.push_back(String("\"") + argv[i] + String("\"")); // surround with quotes if argument contains a space
       else args.push_back(argv[i]);
     }
-    writeDebug_(String(" >> ") + args.concatenate(" "), 1);
+    writeDebug_(String(" >> ") + ListUtils::concatenate(args, " "), 1);
 
 
     // test if no options were given
@@ -680,7 +680,7 @@ namespace OpenMS
               it->type == ParameterInformation::INPUT_FILE_LIST || it->type == ParameterInformation::OUTPUT_FILE_LIST)
             add = " formats";
 
-          addons.push_back(String("valid") + add + ": " + copy.concatenate(", ")); // concatenate restrictions by comma
+          addons.push_back(String("valid") + add + ": " + ListUtils::concatenate(copy, ", ")); // concatenate restrictions by comma
         }
         break;
 
@@ -715,7 +715,7 @@ namespace OpenMS
       //add DEFAULT and RESTRICTIONS
       if (addons.size() != 0)
       {
-        desc_tmp += String(" (") + addons.concatenate(" ") + ")";
+        desc_tmp += String(" (") + ListUtils::concatenate(addons, " ") + ")";
       }
 
       if (it->type == ParameterInformation::TEXT)
@@ -951,7 +951,7 @@ namespace OpenMS
 
     for (Size j = 0; j < defaults.size(); ++j) // allow the empty string even if not in restrictions
     {
-      if (defaults[j].size() > 0 && !valids.contains(defaults[j]))
+      if (defaults[j].size() > 0 && !ListUtils::contains(valids, defaults[j]))
       {
         throw InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "TO THE DEVELOPER: The TOPP/UTILS tool option '" + name + "' with default value " + String(p.default_value) + " does not meet restrictions!");
       }
@@ -1094,7 +1094,7 @@ namespace OpenMS
 
   void TOPPBase::registerInputFile_(const String& name, const String& argument, const String& default_value, const String& description, bool required, bool advanced, const StringList& tags)
   {
-    if (required && default_value != "" && !tags.contains("skipexists"))
+    if (required && default_value != "" && !ListUtils::contains(tags, "skipexists"))
       throw InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Registering a required InputFile param (" + name + ") with a non-empty default is forbidden!", default_value);
     parameters_.push_back(ParameterInformation(name, ParameterInformation::INPUT_FILE, argument, default_value, description, required, advanced, tags));
   }
@@ -1127,21 +1127,21 @@ namespace OpenMS
   void TOPPBase::registerOutputFileList_(const String& name, const String& argument, StringList default_value, const String& description, bool required, bool advanced)
   {
     if (required && default_value.size() > 0)
-      throw InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Registering a required OutputFileList param (" + name + ") with a non-empty default is forbidden!", default_value.concatenate(","));
+      throw InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Registering a required OutputFileList param (" + name + ") with a non-empty default is forbidden!", ListUtils::concatenate(default_value, ","));
     parameters_.push_back(ParameterInformation(name, ParameterInformation::OUTPUT_FILE_LIST, argument, default_value, description, required, advanced));
   }
 
   void TOPPBase::registerInputFileList_(const String& name, const String& argument, StringList default_value, const String& description, bool required, bool advanced)
   {
     if (required && default_value.size() > 0)
-      throw InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Registering a required InputFileList param (" + name + ") with a non-empty default is forbidden!", default_value.concatenate(","));
+      throw InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Registering a required InputFileList param (" + name + ") with a non-empty default is forbidden!", ListUtils::concatenate(default_value, ","));
     parameters_.push_back(ParameterInformation(name, ParameterInformation::INPUT_FILE_LIST, argument, default_value, description, required, advanced));
   }
 
   void TOPPBase::registerStringList_(const String& name, const String& argument, StringList default_value, const String& description, bool required, bool advanced)
   {
     if (required && default_value.size() > 0)
-      throw InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Registering a required StringList param (" + name + ") with a non-empty default is forbidden!", default_value.concatenate(","));
+      throw InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Registering a required StringList param (" + name + ") with a non-empty default is forbidden!", ListUtils::concatenate(default_value, ","));
     parameters_.push_back(ParameterInformation(name, ParameterInformation::STRINGLIST, argument, default_value, description, required, advanced));
   }
 
@@ -1202,7 +1202,7 @@ namespace OpenMS
     String message = "'" + name + "'";
     if (p.valid_strings.size() > 0)
     {
-      message += " [valid: " + StringList(p.valid_strings).concatenate(", ") + "]";
+      message += " [valid: " + ListUtils::concatenate(p.valid_strings, ", ") + "]";
     }
     if (p.required && (getParam_(name).isEmpty() || getParam_(name) == ""))
     {
@@ -1217,7 +1217,7 @@ namespace OpenMS
       //check if files are readable/writable
       if (p.type == ParameterInformation::INPUT_FILE)
       {
-        if (!p.tags.contains("skipexists"))
+        if (!ListUtils::contains(p.tags, "skipexists"))
           inputFileReadable_(tmp, name);
       }
       else if (p.type == ParameterInformation::OUTPUT_FILE)
@@ -1232,28 +1232,28 @@ namespace OpenMS
         {
           if (find(p.valid_strings.begin(), p.valid_strings.end(), tmp) == p.valid_strings.end())
           {
-            String valid_strings = StringList(p.valid_strings).concatenate("', '");
+            String valid_strings = ListUtils::concatenate(p.valid_strings, "', '");
             throw InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Invalid value '") + tmp + "' for string parameter '" + name + "' given. Valid strings are: '" + valid_strings + "'.");
           }
         }
         else if (p.type == ParameterInformation::INPUT_FILE)
         {
-          if (!p.tags.contains("skipexists"))
+          if (!ListUtils::contains(p.tags, "skipexists"))
             inputFileReadable_(tmp, name);
 
           //create upper case list of valid formats
           StringList formats = p.valid_strings;
-          formats.toUpper();
+          StringListUtils::toUpper(formats);
           //determine file type as string
           String format = FileTypes::typeToName(FileHandler::getTypeByFileName(tmp)).toUpper();
           bool invalid = false;
           //Wrong or unknown ending
-          if (!formats.contains(format))
+          if (!ListUtils::contains(formats, format))
           {
             if (format == "UNKNOWN") //Unknown ending => check content
             {
               format = FileTypes::typeToName(FileHandler::getTypeByContent(tmp)).toUpper();
-              if (!formats.contains(format))
+              if (!ListUtils::contains(formats, format))
               {
                 if (format == "UNKNOWN") //Unknown format => warning as this might by the wrong format
                 {
@@ -1283,11 +1283,11 @@ namespace OpenMS
 
           //create upper case list of valid formats
           StringList formats = p.valid_strings;
-          formats.toUpper();
+          StringListUtils::toUpper(formats);
           //determine file type as string
           String format = FileTypes::typeToName(FileHandler::getTypeByFileName(tmp)).toUpper();
           //Wrong or unknown ending
-          if (!formats.contains(format) && format != "UNKNOWN")
+          if (!ListUtils::contains(formats, format) && format != "UNKNOWN")
           {
             String valid_formats = "";
             valid_formats.concatenate(p.valid_strings.begin(), p.valid_strings.end(), "','");
@@ -1368,7 +1368,7 @@ namespace OpenMS
     {
       throw RequiredParameterNotGiven(__FILE__, __LINE__, __PRETTY_FUNCTION__, name);
     }
-    StringList tmp_list = getParamAsStringList_(name, (StringList)p.default_value);
+    StringList tmp_list = getParamAsStringList_(name, p.default_value);
     if (p.required && tmp_list.size() == 0)
     {
       throw RequiredParameterNotGiven(__FILE__, __LINE__, __PRETTY_FUNCTION__, name);
@@ -1410,17 +1410,17 @@ namespace OpenMS
 
             //create upper case list of valid formats
             StringList formats = p.valid_strings;
-            formats.toUpper();
+            StringListUtils::toUpper(formats);
             //determine file type as string
             String format = FileTypes::typeToName(FileHandler::getTypeByFileName(tmp)).toUpper();
             bool invalid = false;
             //Wrong or unknown ending
-            if (!formats.contains(format))
+            if (!ListUtils::contains(formats, format))
             {
               if (format == "UNKNOWN") //Unknown ending => check content
               {
                 format = FileTypes::typeToName(FileHandler::getTypeByContent(tmp)).toUpper();
-                if (!formats.contains(format))
+                if (!ListUtils::contains(formats, format))
                 {
                   if (format == "UNKNOWN") //Unknown format => warning as this might by the wrong format
                   {
@@ -1450,11 +1450,11 @@ namespace OpenMS
 
             //create upper case list of valid formats
             StringList formats = p.valid_strings;
-            formats.toUpper();
+            StringListUtils::toUpper(formats);
             //determine file type as string
             String format = FileTypes::typeToName(FileHandler::getTypeByFileName(tmp)).toUpper();
             //Wrong or unknown ending
-            if (!formats.contains(format) && format != "UNKNOWN")
+            if (!ListUtils::contains(formats, format) && format != "UNKNOWN")
             {
               String valid_formats = "";
               valid_formats.concatenate(p.valid_strings.begin(), p.valid_strings.end(), "','");
@@ -1631,7 +1631,7 @@ namespace OpenMS
     const DataValue& tmp = getParam_(key);
     if (!tmp.isEmpty())
     {
-      return (StringList)tmp;
+      return tmp;
     }
     else
     {
@@ -2020,12 +2020,12 @@ namespace OpenMS
 
       case ParameterInformation::FLAG:
         tmp.setValue(name, "false", it->description, tags);
-        tmp.setValidStrings(name, StringList::create("true,false"));
+        tmp.setValidStrings(name, ListUtils::create<String>("true,false"));
         break;
 
       case ParameterInformation::INPUT_FILE_LIST:
       case ParameterInformation::OUTPUT_FILE_LIST:
-        tmp.setValue(name, (StringList)it->default_value, it->description, tags);
+        tmp.setValue(name, it->default_value, it->description, tags);
         if (it->valid_strings.size() != 0)
         {
           StringList vss_tmp = it->valid_strings;
@@ -2039,7 +2039,7 @@ namespace OpenMS
         break;
 
       case ParameterInformation::STRINGLIST:
-        tmp.setValue(name, (StringList)it->default_value, it->description, tags);
+        tmp.setValue(name, it->default_value, it->description, tags);
         if (it->valid_strings.size() != 0)
         {
           tmp.setValidStrings(name, it->valid_strings);
@@ -2082,7 +2082,7 @@ namespace OpenMS
     }
 
     // set tool version
-    tmp.setValue(tool_name_ + ":version", version_, "Version of the tool that generated this parameters file.", StringList::create("advanced"));
+    tmp.setValue(tool_name_ + ":version", version_, "Version of the tool that generated this parameters file.", ListUtils::create<String>("advanced"));
 
     // Descriptions
     tmp.setSectionDescription(tool_name_, tool_description_);
@@ -2572,7 +2572,7 @@ namespace OpenMS
         }
         else // unknown argument -> append to "unknown" list
         {
-          misc_unknown[unknown] << arg;
+          misc_unknown[unknown].push_back(arg);
         }
         // rest of the queue is just text -> insert into "misc" list:
         StringList& misc_list = misc_unknown[misc];

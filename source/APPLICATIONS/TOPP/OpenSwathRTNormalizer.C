@@ -90,16 +90,16 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFileList_("in", "<files>", StringList(), "Input files separated by blank");
-    setValidFormats_("in", StringList::create("mzML"));
+    setValidFormats_("in", ListUtils::create<String>("mzML"));
 
     registerInputFile_("tr", "<file>", "", "transition file with the RT peptides ('TraML' or 'csv')");
-    setValidFormats_("tr", StringList::create("csv,traML"));
+    setValidFormats_("tr", ListUtils::create<String>("csv,traML"));
     
     registerOutputFile_("out", "<file>", "", "output file");
-    setValidFormats_("out", StringList::create("trafoXML"));
+    setValidFormats_("out", ListUtils::create<String>("trafoXML"));
 
     registerInputFile_("rt_norm", "<file>", "", "RT normalization file (how to map the RTs of this run to the ones stored in the library)", false);
-    setValidFormats_("rt_norm", StringList::create("trafoXML"));
+    setValidFormats_("rt_norm", ListUtils::create<String>("trafoXML"));
 
     registerDoubleOption_("min_rsq", "<double>", 0.95, "Minimum r-squared of RT peptides regression", false);
     registerDoubleOption_("min_coverage", "<double>", 0.6, "Minimum relative amount of RT peptides to keep", false);

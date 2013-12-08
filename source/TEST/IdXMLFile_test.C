@@ -220,7 +220,7 @@ START_SECTION(void store(String filename, const std::vector<ProteinIdentificatio
 	IdXMLFile().store(filename, protein_ids2, peptide_ids2, document_id2);
 
   FuzzyStringComparator fuzzy;
-  fuzzy.setWhitelist(StringList::create("<?xml-stylesheet"));
+  fuzzy.setWhitelist(ListUtils::create<String>("<?xml-stylesheet"));
   fuzzy.setAcceptableAbsolute(0.0001);
   bool result = fuzzy.compareFiles(input_path, filename);
   TEST_EQUAL(result, true);

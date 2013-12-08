@@ -41,12 +41,51 @@
 #include <iterator>
 
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/CONCEPT/Exception.h>
 
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string/trim.hpp>
 
 namespace OpenMS
 {
+  /// @cond INTERNAL
+  /**
+    @brief Internal wrapper for the create functions that allows specialization by the return type.
+    
+    Explicit specialization for String exists, all other types are handled by boost::lexical_cast.
+  */
+  namespace _convert_wrapper
+  {
+    /// generic create using boost::lexical_cast
+    template<typename T>
+    inline std::vector<T> create_(const std::vector<String>& s, const T* )
+    {
+      std::vector<T> c;
+      c.reserve(s.size());
+      for (std::vector<String>::const_iterator it = s.begin(); it != s.end(); ++it)
+      {
+        try
+        {
+          c.push_back(boost::lexical_cast<T>(boost::trim_copy(*it)));
+        }
+        catch (boost::bad_lexical_cast&)
+        {
+          throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Could not convert string '") + *it + "'");
+        }
+      }
+      
+      return c;
+    }
+
+    /// create specialization for String since we do not need to cast here
+    template<>
+    inline std::vector<String> create_(const std::vector<String>& s, const String* )
+    {
+      return s;
+    }
+  }
+  /// @endcond
+  
   /**
     @brief Collection of utility functions for management of vectors.
    
@@ -56,7 +95,7 @@ namespace OpenMS
   {
 private:
     /**
-      @brief Predicate that to check boolean equality with a given toleracnce.
+      @brief Predicate that to check double equality with a given toleracnce.
     */
     struct DoubleTolerancePredicate_
     {
@@ -92,14 +131,14 @@ public:
       @return A vector containing the elements of the string converted into type T.
     */
     template<typename T>
-    static std::vector<T> create(const String& str)
+    static std::vector<T> create(const String& str, const char splitter = ',')
     {
       // temporary storage for the individual elements of the string
       std::vector<String> temp_string_vec;
-      str.split(',', temp_string_vec);
+      str.split(splitter, temp_string_vec);
       return create<T>(temp_string_vec);
     }
-
+    
     /**
       @brief Converts a vector of strings to a vector of the target type T.
       @note The strings are not trimmed.
@@ -111,22 +150,7 @@ public:
     template<typename T>
     static std::vector<T> create(const std::vector<String>& s)
     {
-      std::vector<T> c;
-      c.reserve(s.size());
-      for (std::vector<String>::const_iterator it = s.begin(); it != s.end(); ++it)
-      {
-        try
-        {
-          c.push_back(boost::lexical_cast<T>(boost::trim_copy(*it)));
-        }
-        catch (boost::bad_lexical_cast&)
-        {
-          throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Could not convert string '") + *it + "'");
-        }
-
-      }
-            
-      return c;      
+      return _convert_wrapper::create_(s, (T*) NULL);
     }
     
     /**
@@ -210,6 +234,14 @@ public:
     // set precision settings back to original values
     os << std::setprecision(prec_save);
     return os;
+  }
+  
+  /// Operator for appending entries with less code
+  template <typename TString>
+  inline std::vector<String> & operator<<(std::vector<String> & sl, const TString & string)
+  {
+    sl.push_back(string);
+    return sl;
   }
 
 } // namespace OpenMS

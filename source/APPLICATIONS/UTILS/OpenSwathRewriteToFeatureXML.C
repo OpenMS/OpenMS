@@ -68,13 +68,13 @@ class TOPPOpenSwathRewriteToFeatureXML
   void registerOptionsAndFlags_()
   {
     registerInputFile_("csv","<file>","","mProphet tsv output file: \"all_peakgroups.xls\"", false);
-    setValidFormats_("csv", StringList::create("csv"));
+    setValidFormats_("csv", ListUtils::create<String>("csv"));
     
     registerInputFile_("featureXML","<file>","","input featureXML file");
-    setValidFormats_("featureXML", StringList::create("featureXML"));
+    setValidFormats_("featureXML", ListUtils::create<String>("featureXML"));
 
     registerOutputFile_("out","<file>","","output featureXML file");
-    setValidFormats_("out", StringList::create("featureXML"));
+    setValidFormats_("out", ListUtils::create<String>("featureXML"));
 
     registerDoubleOption_("FDR_cutoff", "<double>", -1, "FDR cutoff (e.g. to remove all features with a an m_score above 0.05 use 0.05 here)", false);
   }

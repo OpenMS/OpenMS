@@ -114,7 +114,7 @@ namespace OpenMS
 
     String mode = (String) param_.getValue("select_activation");
     std::cout << "Selecting scans with activation mode: " << (mode == "" ? "any" : mode) << "\n";
-    HasActivationMethod<MSExperiment<Peak1D>::SpectrumType> activation_predicate(StringList::create(mode));
+    HasActivationMethod<MSExperiment<Peak1D>::SpectrumType> activation_predicate(ListUtils::create<String>(mode));
 
     for (size_t idx = 0; idx < ms_exp_data.size(); ++idx)
     {
@@ -239,7 +239,8 @@ namespace OpenMS
   void ItraqChannelExtractor::setDefaultParams_()
   {
     defaults_.setValue("select_activation", Precursor::NamesOfActivationMethod[Precursor::HCID], "Operate only on MSn scans where any of its precursors features a certain activation method (usually HCD for iTRAQ). Set to empty string if you want to disable filtering.");
-    StringList activation_list(std::vector<std::string>(Precursor::NamesOfActivationMethod, &Precursor::NamesOfActivationMethod[Precursor::SIZE_OF_ACTIVATIONMETHOD - 1]));
+    StringList activation_list;
+    activation_list.insert(activation_list.begin(), Precursor::NamesOfActivationMethod, Precursor::NamesOfActivationMethod + Precursor::SIZE_OF_ACTIVATIONMETHOD - 1);
     activation_list.push_back(""); // allow disabling this
     defaults_.setValidStrings("select_activation", activation_list);
 
@@ -249,8 +250,8 @@ namespace OpenMS
 
     defaults_.setValue("channel_active",
                        (itraq_type_ == TMT_SIXPLEX
-                        ? StringList::create("126:liver,131:lung")
-                        : StringList::create("114:liver,117:lung")),
+                        ? ListUtils::create<String>("126:liver,131:lung")
+                        : ListUtils::create<String>("114:liver,117:lung")),
                        String("Each channel that was used in the experiment and its description (")
                        + (itraq_type_ == TMT_SIXPLEX
                           ? String("126-131 for TMT-6-plex")
@@ -267,7 +268,7 @@ namespace OpenMS
   {
     // extract channel names
     ItraqConstants::initChannelMap(itraq_type_, channel_map_);
-    ItraqConstants::updateChannelMap(StringList(param_.getValue("channel_active")), channel_map_);
+    ItraqConstants::updateChannelMap(param_.getValue("channel_active"), channel_map_);
   }
 
   /// initialize

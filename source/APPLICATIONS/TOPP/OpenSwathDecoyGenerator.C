@@ -35,6 +35,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMDecoy.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
 
 using namespace OpenMS;
@@ -104,10 +105,10 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "input file ('traML')");
-    setValidFormats_("in", StringList::create("traML"));
+    setValidFormats_("in", ListUtils::create<String>("traML"));
     
     registerOutputFile_("out", "<file>", "", "output file");
-    setValidFormats_("out", StringList::create("traML"));
+    setValidFormats_("out", ListUtils::create<String>("traML"));
 
     registerStringOption_("method", "<type>", "shuffle", "decoy generation method ('shuffle','pseudo-reverse','reverse','shift')", false);
     registerStringOption_("decoy_tag", "<type>", "DECOY_", "decoy tag", false);

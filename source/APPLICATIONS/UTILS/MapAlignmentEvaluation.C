@@ -93,9 +93,9 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "input file: tool", true);
-    setValidFormats_("in", StringList::create("consensusXML"));
+    setValidFormats_("in", ListUtils::create<String>("consensusXML"));
     registerInputFile_("gt", "<file>", "", "input file: ground truth", true);
-    setValidFormats_("gt", StringList::create("consensusXML"));
+    setValidFormats_("gt", ListUtils::create<String>("consensusXML"));
     registerStringOption_("type", "<name>", "", "Caap Evaluation type", true);
     StringList types = Factory<MapAlignmentEvaluationAlgorithm>::registeredProducts();
     types.push_back("F1");

@@ -34,6 +34,7 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 using namespace std;
 
@@ -131,7 +132,7 @@ namespace OpenMS
 
   void TransformationDescription::getModelTypes(StringList & result)
   {
-    result = StringList::create("linear,b_spline,interpolated");
+    result = ListUtils::create<String>("linear,b_spline,interpolated");
     // "none" and "identity" don't count
   }
 

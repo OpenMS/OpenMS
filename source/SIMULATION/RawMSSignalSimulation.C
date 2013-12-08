@@ -137,18 +137,18 @@ namespace OpenMS
   void RawMSSignalSimulation::setDefaultParams_()
   {
     defaults_.setValue("enabled", "true", "Enable RAW signal simulation? (select 'false' if you only need feature-maps)");
-    defaults_.setValidStrings("enabled", StringList::create("true,false"));
+    defaults_.setValidStrings("enabled", ListUtils::create<String>("true,false"));
 
     defaults_.setValue("ionization_type", "ESI", "Type of Ionization (MALDI or ESI)");
-    defaults_.setValidStrings("ionization_type", StringList::create("MALDI,ESI"));
+    defaults_.setValidStrings("ionization_type", ListUtils::create<String>("MALDI,ESI"));
 
     // peak and instrument parameter
     defaults_.setValue("resolution:value", 50000, "Instrument resolution at 400 Th.");
     defaults_.setValue("resolution:type", "linear", "How does resolution change with increasing m/z?! QTOFs usually show 'constant' behavior, FTs have linear degradation, and on Orbitraps the resolution decreases with square root of mass.");
-    defaults_.setValidStrings("resolution:type", StringList::create("constant,linear,sqrt"));
+    defaults_.setValidStrings("resolution:type", ListUtils::create<String>("constant,linear,sqrt"));
 
     defaults_.setValue("peak_shape", "Gaussian", "Peak Shape used around each isotope peak (be aware that the area under the curve is constant for both types, but the maximal height will differ (~ 2:3 = Lorentz:Gaussian) due to the wider base of the Lorentzian.");
-    defaults_.setValidStrings("peak_shape", StringList::create("Gaussian,Lorentzian"));
+    defaults_.setValidStrings("peak_shape", ListUtils::create<String>("Gaussian,Lorentzian"));
 
 
     // baseline

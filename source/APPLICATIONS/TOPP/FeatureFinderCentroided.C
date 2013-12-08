@@ -146,14 +146,14 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "input file");
-    setValidFormats_("in", StringList::create("mzML"));
+    setValidFormats_("in", ListUtils::create<String>("mzML"));
     registerOutputFile_("out", "<file>", "", "output file");
-    setValidFormats_("out", StringList::create("featureXML"));
+    setValidFormats_("out", ListUtils::create<String>("featureXML"));
     registerInputFile_("seeds", "<file>", "", "User specified seed list", false);
-    setValidFormats_("seeds", StringList::create("featureXML"));
+    setValidFormats_("seeds", ListUtils::create<String>("featureXML"));
     
     registerOutputFile_("out_mzq", "<file>", "", "Optional output file of MzQuantML.", false, true);
-    setValidFormats_("out_mzq", StringList::create("mzq"));
+    setValidFormats_("out_mzq", ListUtils::create<String>("mzq"));
     
     addEmptyLine_();
 

@@ -115,15 +115,15 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "input raw/picked data file ");
-    setValidFormats_("in", StringList::create("mzML"));
+    setValidFormats_("in", ListUtils::create<String>("mzML"));
     registerOutputFile_("out", "<file>", "", "output consensusXML file with quantitative information");
-    setValidFormats_("out", StringList::create("consensusXML"));
+    setValidFormats_("out", ListUtils::create<String>("consensusXML"));
 
     registerOutputFile_("out_mzq", "<file>", "", "Optional output file of MzQuantML.", false, true);
-    setValidFormats_("out_mzq", StringList::create("mzq"));
+    setValidFormats_("out_mzq", ListUtils::create<String>("mzq"));
 
     registerOutputFile_("out_stats", "<file>", "", "output statistics as tab-separated file (readable by R or Excel or ...)", false);
-    setValidFormats_("out_stats", StringList::create("tsv"));
+    setValidFormats_("out_stats", ListUtils::create<String>("tsv"));
 
     addEmptyLine_();
 
@@ -135,7 +135,7 @@ protected:
     Param tmp;
     tmp.insert("Extraction:", ItraqChannelExtractor(ItraqQuantifier::TMT_SIXPLEX).getParameters());
     tmp.insert("Quantification:", ItraqQuantifier(ItraqQuantifier::TMT_SIXPLEX).getParameters());
-    tmp.setValue("MetaInformation:Program", "OpenMS::TMTAnalyzer", "", StringList::create("advanced"));
+    tmp.setValue("MetaInformation:Program", "OpenMS::TMTAnalyzer", "", ListUtils::create<String>("advanced"));
     return tmp;
   }
 

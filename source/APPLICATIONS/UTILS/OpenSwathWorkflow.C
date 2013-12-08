@@ -960,28 +960,28 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFileList_("in", "<files>", StringList(), "Input files separated by blank");
-    setValidFormats_("in", StringList::create("mzML,mzXML"));
+    setValidFormats_("in", ListUtils::create<String>("mzML,mzXML"));
 
     registerInputFile_("tr", "<file>", "", "transition file ('TraML' or 'csv')");
-    setValidFormats_("tr", StringList::create("csv,traML"));
+    setValidFormats_("tr", ListUtils::create<String>("csv,traML"));
 
     // one of the following two needs to be set
     registerInputFile_("tr_irt", "<file>", "", "transition file ('TraML' or 'csv')", false);
-    setValidFormats_("tr_irt", StringList::create("csv,traML"));
+    setValidFormats_("tr_irt", ListUtils::create<String>("csv,traML"));
 
     registerInputFile_("rt_norm", "<file>", "", "RT normalization file (how to map the RTs of this run to the ones stored in the library). If set, tr_irt may be omitted.", false, true);
-    setValidFormats_("rt_norm", StringList::create("trafoXML"));
+    setValidFormats_("rt_norm", ListUtils::create<String>("trafoXML"));
 
     registerStringOption_("swath_windows_file", "<file>", "", "Optional, tab separated file containing the SWATH windows: lower_offset upper_offset \\newline 400 425 \\newline ... Note that the first line is a header and will be skipped.", false, true);
 
     // one of the following two needs to be set
     registerOutputFile_("out_features", "<file>", "", "output file", false);
-    setValidFormats_("out_features", StringList::create("featureXML"));
+    setValidFormats_("out_features", ListUtils::create<String>("featureXML"));
 
     registerStringOption_("out_tsv", "<file>", "", "TSV output file (mProphet compatible)", false);
 
     registerOutputFile_("out_chrom", "<file>", "", "Also output all computed chromatograms (chrom.mzML) output", false, true);
-    setValidFormats_("out_chrom", StringList::create("mzML"));
+    setValidFormats_("out_chrom", ListUtils::create<String>("mzML"));
 
     registerDoubleOption_("min_upper_edge_dist", "<double>", 0.0, "Minimal distance to the edge to still consider a precursor, in Thomson", false, true);
     registerDoubleOption_("rt_extraction_window", "<double>", 600.0, "Only extract RT around this value (-1 means extract over the whole range, a value of 600 means to extract around +/- 300 s of the expected elution).", false);
@@ -998,13 +998,13 @@ protected:
     registerFlag_("use_elution_model_score", "Turn on elution model score (EMG fit to peak)", true);
 
     registerStringOption_("readOptions", "<name>", "normal", "Whether to run OpenSWATH directly on the input data, cache data to disk first or to perform a datareduction step first. If you choose cache, make sure to also set tempDirectory", false, true);
-    setValidStrings_("readOptions", StringList::create("normal,cache"));
+    setValidStrings_("readOptions", ListUtils::create<String>("normal,cache"));
 
     // TODO terminal slash !
     registerStringOption_("tempDirectory", "<tmp>", "/tmp/", "Temporary directory to store cached files for example", false, true);
 
     registerStringOption_("extraction_function", "<name>", "tophat", "Function used to extract the signal", false, true);
-    setValidStrings_("extraction_function", StringList::create("tophat,bartlett"));
+    setValidStrings_("extraction_function", ListUtils::create<String>("tophat,bartlett"));
 
     registerIntOption_("batchSize", "<number>", 0, "The batch size of chromatograms to process (0 means to only have one batch, sensible values are around 500-1000)", false, true);
     setMinInt_("batchSize", 0);

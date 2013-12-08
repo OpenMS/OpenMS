@@ -101,17 +101,17 @@ public:
                                                            "Depending on the dynamic range of your spectra, suitable value ranges include: -1, [0:10], and if your data "
                                                            "features even very high intensity values, t can also adopt values up to around 30. "
                                                            "Please note that this parameter is not of an integer type, s.t. you can also use t:=0.1, e.g.");
-      this->defaults_.setValue("intensity_type", "ref", "Determines the intensity type returned for the identified features. 'ref' (default) returns the sum of the intensities of each isotopic peak within an isotope pattern. 'trans' refers to the intensity of the monoisotopic peak within the wavelet transform. 'corrected' refers also to the transformed intensity with an attempt to remove the effects of the convolution. While the latter ones might be preferable for qualitative analyses, 'ref' might be the best option to obtain quantitative results. Please note that intensity values might be spoiled (in particular for the option 'ref'), as soon as patterns overlap (see also the explanations given in the class documentation of FeatureFinderAlgorihtmIsotopeWavelet).", StringList::create("advanced"));
-      this->defaults_.setValidStrings("intensity_type", StringList::create("ref,trans,corrected"));
+      this->defaults_.setValue("intensity_type", "ref", "Determines the intensity type returned for the identified features. 'ref' (default) returns the sum of the intensities of each isotopic peak within an isotope pattern. 'trans' refers to the intensity of the monoisotopic peak within the wavelet transform. 'corrected' refers also to the transformed intensity with an attempt to remove the effects of the convolution. While the latter ones might be preferable for qualitative analyses, 'ref' might be the best option to obtain quantitative results. Please note that intensity values might be spoiled (in particular for the option 'ref'), as soon as patterns overlap (see also the explanations given in the class documentation of FeatureFinderAlgorihtmIsotopeWavelet).", ListUtils::create<String>("advanced"));
+      this->defaults_.setValidStrings("intensity_type", ListUtils::create<String>("ref,trans,corrected"));
 
       this->defaults_.setValue("check_ppm", "false", "Enables/disables a ppm test vs. the averagine model, i.e. "
-                                                     "potential peptide masses are checked for plausibility. In addition, a heuristic correcting potential mass shifts induced by the wavelet is applied.", StringList::create("advanced"));
-      this->defaults_.setValidStrings("check_ppm", StringList::create("true,false"));
+                                                     "potential peptide masses are checked for plausibility. In addition, a heuristic correcting potential mass shifts induced by the wavelet is applied.", ListUtils::create<String>("advanced"));
+      this->defaults_.setValidStrings("check_ppm", ListUtils::create<String>("true,false"));
 
       this->defaults_.setValue("hr_data", "false", "Must be true in case of high-resolution data, i.e. "
                                                    "for spectra featuring large m/z-gaps (present in FTICR and Orbitrap data, e.g.). Please check "
                                                    "a single MS scan out of your recording, if you are unsure.");
-      this->defaults_.setValidStrings("hr_data", StringList::create("true,false"));
+      this->defaults_.setValidStrings("hr_data", ListUtils::create<String>("true,false"));
 
 #if (defined(OPENMS_HAS_CUDA) || defined(OPENMS_HAS_TBB))
       this->defaults_.setValue("parallel:use_gpus", "-1", "A comma-separated list of IDs corresponding to the GPU devices to use.\n"
@@ -119,10 +119,10 @@ public:
 #endif
 
       this->defaults_.setValue("sweep_line:rt_votes_cutoff", 5, "Defines the minimum number of "
-                                                                "subsequent scans where a pattern must occur to be considered as a feature.", StringList::create("advanced"));
+                                                                "subsequent scans where a pattern must occur to be considered as a feature.", ListUtils::create<String>("advanced"));
       this->defaults_.setMinInt("sweep_line:rt_votes_cutoff", 0);
       this->defaults_.setValue("sweep_line:rt_interleave", 1, "Defines the maximum number of "
-                                                              "scans (w.r.t. rt_votes_cutoff) where an expected pattern is missing. There is usually no reason to change the default value.", StringList::create("advanced"));
+                                                              "scans (w.r.t. rt_votes_cutoff) where an expected pattern is missing. There is usually no reason to change the default value.", ListUtils::create<String>("advanced"));
       this->defaults_.setMinInt("sweep_line:rt_interleave", 0);
 
       this->defaultsToParam_();

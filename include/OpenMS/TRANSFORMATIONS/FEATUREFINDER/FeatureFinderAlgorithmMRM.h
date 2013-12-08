@@ -103,18 +103,18 @@ public:
     {
       defaults_.setValue("min_rt_distance", 10.0, "Minimal distance of MRM features in seconds.");
       defaults_.setMinFloat("min_rt_distance", 0.0);
-      defaults_.setValue("min_num_peaks_per_feature", 5, "Minimal number of peaks which are needed for a single feature", StringList::create("advanced"));
+      defaults_.setValue("min_num_peaks_per_feature", 5, "Minimal number of peaks which are needed for a single feature", ListUtils::create<String>("advanced"));
       defaults_.setMinInt("min_num_peaks_per_feature", 1);
       defaults_.setValue("min_signal_to_noise_ratio", 2.0, "Minimal S/N ratio a peak must have to be taken into account. Set to zero if the MRM-traces contains mostly signals, and no noise.");
       defaults_.setMinFloat("min_signal_to_noise_ratio", 0);
-      defaults_.setValue("write_debug_files", "false", "If set to true, for each feature a plot will be created, in the subdirectory 'debug'", StringList::create("advanced"));
-      defaults_.setValidStrings("write_debug_files", StringList::create("true,false"));
+      defaults_.setValue("write_debug_files", "false", "If set to true, for each feature a plot will be created, in the subdirectory 'debug'", ListUtils::create<String>("advanced"));
+      defaults_.setValidStrings("write_debug_files", ListUtils::create<String>("true,false"));
 
-      defaults_.setValue("resample_traces", "false", "If set to true, each trace, which is in this case a part of the MRM monitoring trace with signal is resampled, using the minimal distance of two data points in RT dimension", StringList::create("advanced"));
-      defaults_.setValidStrings("resample_traces", StringList::create("true,false"));
+      defaults_.setValue("resample_traces", "false", "If set to true, each trace, which is in this case a part of the MRM monitoring trace with signal is resampled, using the minimal distance of two data points in RT dimension", ListUtils::create<String>("advanced"));
+      defaults_.setValidStrings("resample_traces", ListUtils::create<String>("true,false"));
 
-      defaults_.setValue("write_debuginfo", "false", "If set to true, debug messages are written, the output can be somewhat lengthy.", StringList::create("advanced"));
-      defaults_.setValidStrings("write_debuginfo", StringList::create("true,false"));
+      defaults_.setValue("write_debuginfo", "false", "If set to true, debug messages are written, the output can be somewhat lengthy.", ListUtils::create<String>("advanced"));
+      defaults_.setValidStrings("write_debuginfo", ListUtils::create<String>("true,false"));
 
       this->defaultsToParam_();
     }

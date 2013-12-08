@@ -32,8 +32,9 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 //
-#include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
 
+#include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <cmath>
 #include <set>
 
@@ -44,7 +45,7 @@ namespace OpenMS
     DefaultParamHandler("Normalizer")
   {
     defaults_.setValue("method", "to_one", "Normalize by deviding though the TIC ('to_TIC') or normalize to max intensity of one ('to_one').");
-    defaults_.setValidStrings("method", StringList::create("to_one,to_TIC"));
+    defaults_.setValidStrings("method", ListUtils::create<String>("to_one,to_TIC"));
     defaultsToParam_();
   }
 

@@ -93,13 +93,13 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "Input file");
-    setValidFormats_("in", StringList::create("mzML"));
+    setValidFormats_("in", ListUtils::create<String>("mzML"));
 
     registerInputFile_("tr", "<file>", "", "transition file ('TraML' or 'csv')");
-    setValidFormats_("tr", StringList::create("csv,traML"));
+    setValidFormats_("tr", ListUtils::create<String>("csv,traML"));
 
     registerOutputFile_("out", "<file>", "", "output file");
-    setValidFormats_("out", StringList::create("featureXML"));
+    setValidFormats_("out", ListUtils::create<String>("featureXML"));
 
     registerSubsection_("algorithm", "Algorithm parameters section");
   }

@@ -91,9 +91,9 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "Input file which contains MSMS spectra", false);
-    setValidFormats_("in", StringList::create("mzML"));
+    setValidFormats_("in", ListUtils::create<String>("mzML"));
     registerInputFile_("id", "<file>", "", "Identification input file which contains a search against a concatenated sequence database", false);
-    setValidFormats_("id", StringList::create("idXML"));
+    setValidFormats_("id", ListUtils::create<String>("idXML"));
     registerOutputFile_("out", "<file>", "", "Identification output with annotated phosphorylation scores");
     registerDoubleOption_("fragment_mass_tolerance", "<tolerance>", 0.5, "Fragment mass error", false);
 

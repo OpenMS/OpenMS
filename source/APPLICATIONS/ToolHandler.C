@@ -354,7 +354,7 @@ namespace OpenMS
       }
       all_files << files;
     }
-    //StringList list = StringList::create(getExternalToolsPath() + "/" + "msconvert.ttd");
+    //StringList list = ListUtils::create<String>(getExternalToolsPath() + "/" + "msconvert.ttd");
     return all_files;
   }
 

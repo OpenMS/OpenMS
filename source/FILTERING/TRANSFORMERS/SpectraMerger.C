@@ -44,14 +44,14 @@ namespace OpenMS
     DefaultParamHandler("SpectraMerger")
   {
     // common
-    defaults_.setValue("mz_binning_width", 10e-5, "Max m/z distance of two peaks to be merged.", StringList::create("advanced"));
+    defaults_.setValue("mz_binning_width", 10e-5, "Max m/z distance of two peaks to be merged.", ListUtils::create<String>("advanced"));
     defaults_.setMinFloat("mz_binning_width", 0);
 
-    defaults_.setValue("mz_binning_width_unit", "Da", "Unit in which the distance between two peaks is given.", StringList::create("advanced"));
-    defaults_.setValidStrings("mz_binning_width_unit", StringList::create("Da,ppm"));
+    defaults_.setValue("mz_binning_width_unit", "Da", "Unit in which the distance between two peaks is given.", ListUtils::create<String>("advanced"));
+    defaults_.setValidStrings("mz_binning_width_unit", ListUtils::create<String>("Da,ppm"));
 
-    defaults_.setValue("sort_blocks", "RT_ascending", "Sort blocks by <?> before merging them (useful for precursor order)", StringList::create("advanced"));
-    defaults_.setValidStrings("sort_blocks", StringList::create("RT_ascending, RT_descending"));
+    defaults_.setValue("sort_blocks", "RT_ascending", "Sort blocks by <?> before merging them (useful for precursor order)", ListUtils::create<String>("advanced"));
+    defaults_.setValidStrings("sort_blocks", ListUtils::create<String>("RT_ascending, RT_descending"));
 
     // block merging
     defaults_.setValue("block_method:ms_levels", ListUtils::create<Int>("1"), "Merge spectra of this level. All spectra with other MS levels remain untouched.");

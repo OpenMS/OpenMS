@@ -101,9 +101,9 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "input centroided mzML file");
-    setValidFormats_("in", StringList::create("mzML"));
+    setValidFormats_("in", ListUtils::create<String>("mzML"));
     registerOutputFile_("out", "<file>", "", "output featureXML file with metabolite features");
-    setValidFormats_("out", StringList::create("featureXML"));
+    setValidFormats_("out", ListUtils::create<String>("featureXML"));
 
     addEmptyLine_();
     registerSubsection_("algorithm", "Algorithm parameters section");
@@ -131,7 +131,7 @@ protected:
     p_epd.remove("chrom_fwhm");
 
     // p_epd.setValue("enabled", "true", "Enables/disables the chromatographic peak detection of mass traces");
-    // p_epd.setValidStrings("enabled", StringList::create("true,false"));
+    // p_epd.setValidStrings("enabled", ListUtils::create<String>("true,false"));
     combined.insert("epd:", p_epd);
 
     Param p_ffm = FeatureFindingMetabo().getDefaults();
@@ -269,7 +269,7 @@ protected:
       {
         sl_pols.push_back(String(IonSource::NamesOfPolarity[*it]));
       }
-      ms_feat_map[0].setMetaValue("scan_polarity", sl_pols.concatenate(";"));
+      ms_feat_map[0].setMetaValue("scan_polarity", ListUtils::concatenate(sl_pols, ";"));
     }
 
 

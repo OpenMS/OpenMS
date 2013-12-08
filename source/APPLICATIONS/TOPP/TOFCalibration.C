@@ -98,21 +98,21 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "input peak or raw data file ");
-    setValidFormats_("in", StringList::create("mzML"));
+    setValidFormats_("in", ListUtils::create<String>("mzML"));
     registerOutputFile_("out", "<file>", "", "output file ");
-    setValidFormats_("out", StringList::create("mzML"));
+    setValidFormats_("out", ListUtils::create<String>("mzML"));
     addEmptyLine_();
     registerInputFile_("ext_calibrants", "<file>", "", "input file containing the external calibrant spectra (peak or raw data)\n");
-    setValidFormats_("ext_calibrants", StringList::create("mzML"));
+    setValidFormats_("ext_calibrants", ListUtils::create<String>("mzML"));
     registerInputFile_("ref_masses", "<file>", "", "input file containing reference masses of the external calibrant spectra (one per line)", true);
-    setValidFormats_("ref_masses", StringList::create("txt"));
+    setValidFormats_("ref_masses", ListUtils::create<String>("txt"));
     registerInputFile_("tof_const", "<file>", "", "File containing TOF conversion constants."
                                                   " These can be either two or three constants\n"
                                                   "per set, depending on the conversion type. Either one set for all calibrant spectra \n"
                                                   "(tab separated), or one for each spectrum.\n"
                                                   "For a detailed description, please have a look at the doxygen documentation."
                                                   "(one set, tab separated, per line)", true);
-    setValidFormats_("tof_const", StringList::create("csv"));
+    setValidFormats_("tof_const", ListUtils::create<String>("csv"));
     registerFlag_("peak_data", "set this flag, if you have peak data, not raw data (the picking parameters are accessible only from the INI file).");
 
     registerSubsection_("algorithm", "Algorithm section for peak picking");

@@ -40,6 +40,7 @@
 #include <vector>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/METADATA/Precursor.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 namespace OpenMS
 {
@@ -344,7 +345,7 @@ public:
              it_a != it->getActivationMethods().end();
              ++it_a)
         {
-          if (methods_.contains(Precursor::NamesOfActivationMethod[*it_a]))
+          if (ListUtils::contains(methods_, Precursor::NamesOfActivationMethod[*it_a]))
           {
             // found matching activation method
             if (reverse_) return false;

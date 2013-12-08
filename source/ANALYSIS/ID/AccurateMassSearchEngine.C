@@ -37,7 +37,7 @@
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
-
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 
 #include <OpenMS/SYSTEM/File.h>
@@ -298,16 +298,16 @@ AccurateMassSearchEngine::AccurateMassSearchEngine() :
     defaults_.setValue("mass_error_value", 5.0, "Tolerance allowed for accurate mass search.");
 
     defaults_.setValue("mass_error_unit", "ppm", "Unit of mass error (ppm or Da)");
-    defaults_.setValidStrings("mass_error_unit", StringList::create(("ppm,Da")));
+    defaults_.setValidStrings("mass_error_unit", ListUtils::create<String>(("ppm,Da")));
 
     defaults_.setValue("ionization_mode", "positive", "Positive or negative ionization mode? If 'auto' is used, the first feature of the input map must contain the meta-value 'scan_polarity'. If its missing, the tool will exit with error.");
-    defaults_.setValidStrings("ionization_mode", StringList::create(("positive,negative,auto")));
+    defaults_.setValidStrings("ionization_mode", ListUtils::create<String>(("positive,negative,auto")));
 
     defaults_.setValue("isotopic_similarity", "false", "Computes a similarity score for each hit (only if the feature exhibits at least two isotopic mass traces).");
-    defaults_.setValidStrings("isotopic_similarity", StringList::create(("false,true")));
+    defaults_.setValidStrings("isotopic_similarity", ListUtils::create<String>(("false,true")));
 
     defaults_.setValue("report_mode", "all", "Results are reported in one of several modes: Either (all) matching hits, the (top3) scoring hits, or the (best) scoring hit.");
-    defaults_.setValidStrings("report_mode", StringList::create(("all,top3,best")));
+    defaults_.setValidStrings("report_mode", ListUtils::create<String>(("all,top3,best")));
 
     defaults_.setValue("db:mapping", "CHEMISTRY/HMDBMappingFile.tsv", "Database input file, containing three tab-separated columns of mass, formula, identifier. "
                                                                       "If 'mass' is 0, it is re-computed from the molecular sum formula. "
@@ -317,10 +317,10 @@ AccurateMassSearchEngine::AccurateMassSearchEngine() :
                                                                         "By default CHEMISTRY/HMDB2StructMapping.tsv in OpenMS/share is used! If empty, the default will be used.");
     defaults_.setValue("positive_adducts_file", "CHEMISTRY/PositiveAdducts.tsv", "This file contains the list of potential positive adducts that will be looked for in the database. "
                                                                                  "Edit the list if you wish to exclude/include adducts. "
-                                                                                 "By default CHEMISTRY/PositiveAdducts.tsv in OpenMS/share is used! If empty, the default will be used.", StringList::create("advanced"));
+                                                                                 "By default CHEMISTRY/PositiveAdducts.tsv in OpenMS/share is used! If empty, the default will be used.", ListUtils::create<String>("advanced"));
     defaults_.setValue("negative_adducts_file", "CHEMISTRY/NegativeAdducts.tsv", "This file contains the list of potential negative adducts that will be looked for in the database. "
                                                                                  "Edit the list if you wish to exclude/include adducts. "
-                                                                                 "By default CHEMISTRY/NegativeAdducts.tsv in OpenMS/share is used! If empty, the default will be used.", StringList::create("advanced"));
+                                                                                 "By default CHEMISTRY/NegativeAdducts.tsv in OpenMS/share is used! If empty, the default will be used.", ListUtils::create<String>("advanced"));
 
 
     defaultsToParam_();
@@ -339,7 +339,7 @@ void AccurateMassSearchEngine::queryByMass(const DoubleReal& adduct_mass, const 
     if (!is_initialized_) init_(); // parse DB
 
     // Depending on ion_mode_internal_, the file containing the rules for positive or negative adducts is loaded
-    StringList::ConstIterator it_s, it_e;
+    StringListUtils::ConstIterator it_s, it_e;
     if (ion_mode_internal_ == "positive")
     {
       it_s = pos_adducts_.begin();  
@@ -356,7 +356,7 @@ void AccurateMassSearchEngine::queryByMass(const DoubleReal& adduct_mass, const 
     }
     
     
-    for (StringList::ConstIterator it = it_s; it != it_e; ++it)
+    for (StringListUtils::ConstIterator it = it_s; it != it_e; ++it)
     {
         DoubleReal query_mass;
         Int charge;

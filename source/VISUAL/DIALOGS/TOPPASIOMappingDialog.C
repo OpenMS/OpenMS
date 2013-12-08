@@ -39,6 +39,8 @@
 #include <OpenMS/VISUAL/TOPPASMergerVertex.h>
 #include <OpenMS/VISUAL/TOPPASEdge.h>
 
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+
 #include <QtGui/QMessageBox>
 
 #include <iostream>

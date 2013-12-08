@@ -104,19 +104,19 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "Input file with peptide sequences and optionally charge numbers (mutually exclusive to 'in_seq')", false);
-    setValidFormats_("in",StringList::create("txt"));
+    setValidFormats_("in",ListUtils::create<String>("txt"));
 
     registerStringList_("in_seq", "<peptide_sequences>", StringList(), "List of peptide sequences (mutually exclusive to 'in')", false, false);
 
     registerOutputFile_("out", "<file>", "", "Output file; if empty, output is written to the screen", false);
-    setValidFormats_("out",StringList::create("txt"));
+    setValidFormats_("out",ListUtils::create<String>("txt"));
 
     registerIntList_("charge", "<numbers>", ListUtils::create<Int>("0"), "List of charge states; required if 'in_seq' is given", false);
     registerStringOption_("format", "<choice>", "list", "Output format ('list': human-readable list, 'table': CSV-like table, 'mass_only': mass values only, 'mz_only': m/z values only)\n", false);
-    setValidStrings_("format", StringList::create("list,table,mass_only,mz_only"));
+    setValidStrings_("format", ListUtils::create<String>("list,table,mass_only,mz_only"));
     registerFlag_("average_mass", "Compute average (instead of monoisotopic) peptide masses");
     registerStringOption_("fragment_type", "<choice>", "full", "For what type of sequence/fragment the mass should be computed\n", false);
-    setValidStrings_("fragment_type", StringList::create("full,internal,N-terminal,C-terminal,a-ion,b-ion,c-ion,x-ion,y-ion,z-ion"));
+    setValidStrings_("fragment_type", ListUtils::create<String>("full,internal,N-terminal,C-terminal,a-ion,b-ion,c-ion,x-ion,y-ion,z-ion"));
     registerStringOption_("separator", "<sep>", "", "Field separator for 'table' output format; by default, the 'tab' character is used", false);
   }
 

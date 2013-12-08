@@ -207,11 +207,11 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFileList_("in", "<files>", StringList(), "Input files separated by blanks");
-    setValidFormats_("in", StringList::create("idXML"));
+    setValidFormats_("in", ListUtils::create<String>("idXML"));
     registerOutputFile_("out", "<file>", "", "Output file");
-    setValidFormats_("out", StringList::create("idXML"));
+    setValidFormats_("out", ListUtils::create<String>("idXML"));
     registerInputFile_("add_to", "<file>", "", "Optional input file. IDs from 'in' are added to this file, but only if the (modified) peptide sequences are not present yet (considering only best hits per spectrum).", false);
-    setValidFormats_("add_to", StringList::create("idXML"));
+    setValidFormats_("add_to", ListUtils::create<String>("idXML"));
     registerFlag_("annotate_file_origin", "Store the original filename in each protein/peptide identification (meta value: file_origin).");
     registerFlag_("pepxml_protxml", "Merge idXML files derived from a pepXML and corresponding protXML file.\nExactly two input files are expected in this case. Not compatible with 'add_to'.");
   }
@@ -314,7 +314,7 @@ protected:
             id = new_id;
           }
           proteins_by_id[id] = *prot_it;
-          if (i == 0) add_to_ids << id;
+          if (i == 0) add_to_ids.push_back(id);
         }
       }
 

@@ -91,8 +91,10 @@ namespace OpenMS
   void IsobaricChannelExtractor::setDefaultParams_()
   {
     defaults_.setValue("select_activation", Precursor::NamesOfActivationMethod[Precursor::HCID], "Operate only on MSn scans where any of its precursors features a certain activation method (e.g., usually HCD for iTRAQ). Set to empty string if you want to disable filtering.");
-    StringList activation_list(std::vector<std::string>(Precursor::NamesOfActivationMethod, &Precursor::NamesOfActivationMethod[Precursor::SIZE_OF_ACTIVATIONMETHOD - 1]));
+    StringList activation_list;
+    activation_list.insert(activation_list.begin(), Precursor::NamesOfActivationMethod, Precursor::NamesOfActivationMethod + Precursor::SIZE_OF_ACTIVATIONMETHOD - 1);
     activation_list.push_back(""); // allow disabling this
+    
     defaults_.setValidStrings("select_activation", activation_list);
 
     defaults_.setValue("reporter_mass_shift", 0.1, "Allowed shift (left to right) in Da from the expected position.");
@@ -103,13 +105,13 @@ namespace OpenMS
     defaults_.setMinFloat("min_precursor_intensity", 0.0);
 
     defaults_.setValue("keep_unannotated_precursor", "true", "Flag if precursor with missing intensity value or missing precursor spectrum should be included or not.");
-    defaults_.setValidStrings("keep_unannotated_precursor", StringList::create("true,false"));
+    defaults_.setValidStrings("keep_unannotated_precursor", ListUtils::create<String>("true,false"));
 
     defaults_.setValue("min_reporter_intensity", 0.0, "Minimum intenesity of the individual reporter ions to be used extracted.");
     defaults_.setMinFloat("min_reporter_intensity", 0.0);
 
     defaults_.setValue("discard_low_intensity_quantifications", "false", "Remove all reporter intensities if a single reporter is below the threshold given in min_reporter_intensity.");
-    defaults_.setValidStrings("discard_low_intensity_quantifications", StringList::create("true,false"));
+    defaults_.setValidStrings("discard_low_intensity_quantifications", ListUtils::create<String>("true,false"));
 
     defaults_.setValue("min_precursor_purity", 0.0, "Minimum fraction of the total intensity in the isolation window of the precursor spectrum attributable to the selected precursor.");
     defaults_.setMinFloat("min_precursor_purity", 0.0);
@@ -242,7 +244,7 @@ namespace OpenMS
 
     // create predicate for spectrum checking
     LOG_INFO << "Selecting scans with activation mode: " << (selected_activation_ == "" ? "any" : selected_activation_) << "\n";
-    HasActivationMethod<MSExperiment<Peak1D>::SpectrumType> activation_predicate(StringList::create(selected_activation_));
+    HasActivationMethod<MSExperiment<Peak1D>::SpectrumType> activation_predicate(ListUtils::create<String>(selected_activation_));
 
     // now we have picked data
     // --> assign peaks to channels

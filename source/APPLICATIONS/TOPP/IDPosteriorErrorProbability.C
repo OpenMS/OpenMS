@@ -116,11 +116,11 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "input file ");
-    setValidFormats_("in", StringList::create("idXML"));
+    setValidFormats_("in", ListUtils::create<String>("idXML"));
     registerOutputFile_("out", "<file>", "", "output file ");
-    setValidFormats_("out", StringList::create("idXML"));
+    setValidFormats_("out", ListUtils::create<String>("idXML"));
     registerOutputFile_("output_name", "<file>", "", "gnuplot file as txt");
-    setValidFormats_("output_name", StringList::create("txt"));
+    setValidFormats_("output_name", ListUtils::create<String>("txt"));
 
     registerDoubleOption_("smallest_e_value", "<value>", 10e-20, "This value gives a lower bound to E-Values. It should not be 0, as transformation in a real number (log of E-value) is not possible for certain values then.", false, true);
     registerFlag_("split_charge", "The search engine scores are split by charge if this flag is set. Thus, for each charge state a new model will be computed.");
@@ -217,7 +217,7 @@ protected:
     vector<Int> charges;
     PosteriorErrorProbabilityModel PEP_model;
     PEP_model.setParameters(fit_algorithm);
-    StringList search_engines = StringList::create("XTandem,OMSSA,MASCOT,SpectraST,MyriMatch,SimTandem");
+    StringList search_engines = ListUtils::create<String>("XTandem,OMSSA,MASCOT,SpectraST,MyriMatch,SimTandem");
     //-------------------------------------------------------------
     // calculations
     //-------------------------------------------------------------
@@ -347,7 +347,7 @@ protected:
       if (split_charge)
       {
         String output_name  = fit_algorithm.getValue("output_name");
-        fit_algorithm.setValue("output_name", output_name + "_charge_" + String(charge), "...", StringList::create("advanced,output file"));
+        fit_algorithm.setValue("output_name", output_name + "_charge_" + String(charge), "...", ListUtils::create<String>("advanced,output file"));
         PEP_model.setParameters(fit_algorithm);
       }
 

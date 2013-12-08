@@ -110,19 +110,19 @@ public:
       defaults_.setValue("peak_width", 0.0, "Expected peak width half width in Dalton - peaks will be extended until this half width is reached (even if the intensitity is increasing). In conjunction with check_width_internally it will also be used to remove peaks whose spacing is larger than this value.");
 
 
-      defaults_.setValue("spacing_difference", 1.5, "Difference between peaks in multiples of the minimal difference to continue. The higher this value is set, the further apart peaks are allowed to be to still extend a peak. E.g. if the value is set to 1.5 and in a current peak the minimal spacing between peaks is 10 mDa, then only peaks at most 15 mDa apart will be added to the peak.", StringList::create("advanced"));
-      defaults_.setValue("sn_bin_count_", 30, "Bin count for the Signal to Noise estimation.", StringList::create("advanced"));
-      defaults_.setValue("nr_iterations_", 5, "Nr of iterations to perform (how many times the peaks are re-centered).", StringList::create("advanced"));
+      defaults_.setValue("spacing_difference", 1.5, "Difference between peaks in multiples of the minimal difference to continue. The higher this value is set, the further apart peaks are allowed to be to still extend a peak. E.g. if the value is set to 1.5 and in a current peak the minimal spacing between peaks is 10 mDa, then only peaks at most 15 mDa apart will be added to the peak.", ListUtils::create<String>("advanced"));
+      defaults_.setValue("sn_bin_count_", 30, "Bin count for the Signal to Noise estimation.", ListUtils::create<String>("advanced"));
+      defaults_.setValue("nr_iterations_", 5, "Nr of iterations to perform (how many times the peaks are re-centered).", ListUtils::create<String>("advanced"));
       defaults_.setMinInt("nr_iterations_", 1);
-      defaults_.setValue("sn_win_len_", 20.0, "Window length for the Signal to Noise estimation.", StringList::create("advanced"));
+      defaults_.setValue("sn_win_len_", 20.0, "Window length for the Signal to Noise estimation.", ListUtils::create<String>("advanced"));
 
-      defaults_.setValue("check_width_internally", "false", "Delete peaks where the spacing is larger than the peak width (should be set to true to avoid artefacts)", StringList::create("advanced"));
-      defaults_.setValidStrings("check_width_internally", StringList::create("true,false"));
+      defaults_.setValue("check_width_internally", "false", "Delete peaks where the spacing is larger than the peak width (should be set to true to avoid artefacts)", ListUtils::create<String>("advanced"));
+      defaults_.setValidStrings("check_width_internally", ListUtils::create<String>("true,false"));
 
       defaults_.setValue("ms1_only", "false", "Only do MS1");
-      defaults_.setValidStrings("ms1_only", StringList::create("true,false"));
+      defaults_.setValidStrings("ms1_only", ListUtils::create<String>("true,false"));
       defaults_.setValue("clear_meta_data", "false", "Delete meta data about peak width");
-      defaults_.setValidStrings("clear_meta_data", StringList::create("true,false"));
+      defaults_.setValidStrings("clear_meta_data", ListUtils::create<String>("true,false"));
 
       // write defaults into Param object param_
       defaultsToParam_();

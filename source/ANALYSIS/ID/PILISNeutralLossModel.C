@@ -35,6 +35,7 @@
 
 #include <OpenMS/ANALYSIS/ID/PILISNeutralLossModel.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 // TODOs
 //
@@ -63,8 +64,8 @@ namespace OpenMS
   {
     defaults_.setValue("fragment_mass_tolerance", 0.4, "Peak mass tolerance of the product ions, used to identify the ions for training");
 
-    defaults_.setValue("fixed_modifications", StringList::create(""), "Fixed modifications");
-    defaults_.setValue("variable_modifications", StringList::create(""), "Variable modifications");
+    defaults_.setValue("fixed_modifications", ListUtils::create<String>(""), "Fixed modifications");
+    defaults_.setValue("variable_modifications", ListUtils::create<String>(""), "Variable modifications");
 
     defaults_.setValue("pseudo_counts", 1e-15, "Value which is added for every transition trained of the underlying hidden Markov model");
     defaults_.setValue("num_explicit", 2, "Number of explicitly modeled losses from the same kind of amino acid or combinations thereof");
@@ -72,13 +73,13 @@ namespace OpenMS
     defaults_.setValue("min_int_to_train", 0.1, "Minimal intensity a ion and its losses must have to be considered for training.");
 
     defaults_.setValue("C_term_H2O_loss", "true", "enable water loss of the C-terminus");
-    defaults_.setValidStrings("C_term_H2O_loss", StringList::create("true,false"));
+    defaults_.setValidStrings("C_term_H2O_loss", ListUtils::create<String>("true,false"));
 
     defaults_.setValue("ion_name", "p", "Ion base names used to set in meta values");
-    defaults_.setValidStrings("ion_name", StringList::create("p,a,b,b2,y"));
+    defaults_.setValidStrings("ion_name", ListUtils::create<String>("p,a,b,b2,y"));
 
     defaults_.setValue("enable_double_losses", "true", "if true, two different losses can occur at the same time, e.g. -H2O and -NH3 forming loss of -35Da");
-    defaults_.setValidStrings("enable_double_losses", StringList::create("true,false"));
+    defaults_.setValidStrings("enable_double_losses", ListUtils::create<String>("true,false"));
 
     defaultsToParam_();
   }

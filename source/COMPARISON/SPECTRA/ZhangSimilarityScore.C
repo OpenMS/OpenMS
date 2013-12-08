@@ -33,7 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/COMPARISON/SPECTRA/ZhangSimilarityScore.h>
-
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <boost/math/special_functions/erf.hpp>
 
 #include <cmath>
@@ -48,11 +48,11 @@ namespace OpenMS
     setName(ZhangSimilarityScore::getProductName());
     defaults_.setValue("tolerance", 0.2, "defines the absolute (in Da) or relative (in ppm) tolerance");
     defaults_.setValue("is_relative_tolerance", "false", "If set to true, the tolerance is interpreted as relative");
-    defaults_.setValidStrings("is_relative_tolerance", StringList::create("true,false"));
+    defaults_.setValidStrings("is_relative_tolerance", ListUtils::create<String>("true,false"));
     defaults_.setValue("use_linear_factor", "false", "if true, the intensities are weighted with the relative m/z difference");
-    defaults_.setValidStrings("use_linear_factor", StringList::create("true,false"));
+    defaults_.setValidStrings("use_linear_factor", ListUtils::create<String>("true,false"));
     defaults_.setValue("use_gaussian_factor", "false", "if true, the intensities are weighted with the relative m/z difference using a gaussian");
-    defaults_.setValidStrings("use_gaussian_factor", StringList::create("true,false"));
+    defaults_.setValidStrings("use_gaussian_factor", ListUtils::create<String>("true,false"));
     defaultsToParam_();
   }
 

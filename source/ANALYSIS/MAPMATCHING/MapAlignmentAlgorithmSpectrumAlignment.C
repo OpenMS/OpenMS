@@ -34,6 +34,7 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmSpectrumAlignment.h>
 
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 namespace OpenMS
 {
@@ -47,20 +48,20 @@ namespace OpenMS
     defaults_.setMinFloat("gapcost", 0.0);
     defaults_.setValue("affinegapcost", 0.5, " This Parameter controls the cost of extension a already open gap. The idea behind the affine gapcost lies under the assumption, that it is better to get a long distance of connected gaps than to have a structure gap match gap match.  There for the punishment for the extension of a gap has to be lower than the normal gapcost. If the the result of the aligmnet show high compression, it is a good idea to lower the affine gapcost or the normal gapcost.");
     defaults_.setMinFloat("affinegapcost", 0.0);
-    defaults_.setValue("cutoff_score", 0.70, "The Parameter defines the threshold which filtered Spectra, these Spectra are high potential candidate for deciding the interval of a sub-alignment.  Only those pair of Spectra are selected, which has a score higher or same of the threshold.", StringList::create("advanced"));
+    defaults_.setValue("cutoff_score", 0.70, "The Parameter defines the threshold which filtered Spectra, these Spectra are high potential candidate for deciding the interval of a sub-alignment.  Only those pair of Spectra are selected, which has a score higher or same of the threshold.", ListUtils::create<String>("advanced"));
     defaults_.setMinFloat("cutoff_score", 0.0);
     defaults_.setMaxFloat("cutoff_score", 1.0);
-    defaults_.setValue("bucketsize", 100, "Defines the numbers of buckets. It is a quantize of the interval of those points, which defines the main alignment(match points). These points have to filtered, to reduce the amount of points for the calculating a smoother spline curve.", StringList::create("advanced"));
+    defaults_.setValue("bucketsize", 100, "Defines the numbers of buckets. It is a quantize of the interval of those points, which defines the main alignment(match points). These points have to filtered, to reduce the amount of points for the calculating a smoother spline curve.", ListUtils::create<String>("advanced"));
     defaults_.setMinInt("bucketsize", 1);
-    defaults_.setValue("anchorpoints", 100, "Defines the percent of numbers of match points which a selected from one bucket. The high score pairs are previously selected. The reduction of match points helps to get a smoother spline curve.", StringList::create("advanced"));
-    defaults_.setValue("debug", "false", "active the debug mode, there a files written starting with debug prefix.", StringList::create("advanced"));
+    defaults_.setValue("anchorpoints", 100, "Defines the percent of numbers of match points which a selected from one bucket. The high score pairs are previously selected. The reduction of match points helps to get a smoother spline curve.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("debug", "false", "active the debug mode, there a files written starting with debug prefix.", ListUtils::create<String>("advanced"));
     defaults_.setMinInt("anchorpoints", 1);
     defaults_.setMaxInt("anchorpoints", 100);
-    defaults_.setValidStrings("debug", StringList::create("true,false"));
-    defaults_.setValue("mismatchscore", -5.0, "Defines the score of two Spectra if they have no similarity to each other. ", StringList::create("advanced"));
+    defaults_.setValidStrings("debug", ListUtils::create<String>("true,false"));
+    defaults_.setValue("mismatchscore", -5.0, "Defines the score of two Spectra if they have no similarity to each other. ", ListUtils::create<String>("advanced"));
     defaults_.setMaxFloat("mismatchscore", 0.0);
     defaults_.setValue("scorefunction", "SteinScottImproveScore", " The score function is the core of an alignment. The success of an alignment depends mostly of the elected score function. The score function return the similarity of two Spectrum back. The score influence defines later the way of possible traceback. There exist many way of algorithm to calculate the score.");
-    defaults_.setValidStrings("scorefunction", StringList::create("SteinScottImproveScore,ZhangSimilarityScore"));   //Factory<PeakSpectrumCompareFunctor>::registeredProducts());
+    defaults_.setValidStrings("scorefunction", ListUtils::create<String>("SteinScottImproveScore,ZhangSimilarityScore"));   //Factory<PeakSpectrumCompareFunctor>::registeredProducts());
     defaultsToParam_();
     setLogType(CMD);
   }

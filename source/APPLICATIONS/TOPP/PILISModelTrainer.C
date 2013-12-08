@@ -144,9 +144,9 @@ protected:
   {
     // input
     registerInputFileList_("in", "<file>", StringList(), "Input files for the spectra in MzML or MSP format.", false);
-    setValidFormats_("in", StringList::create("mzML,msp"));
+    setValidFormats_("in", ListUtils::create<String>("mzML,msp"));
     registerInputFileList_("id_in", "<file>", StringList(), "Input files for the annotations in idXML format (if not given in MSP format).", false);
-    setValidFormats_("id_in", StringList::create("idXML"));
+    setValidFormats_("id_in", ListUtils::create<String>("idXML"));
     registerInputFile_("model_file", "<file>", "", "Input model file, used for generation mode or as basis for training. If not given, a default parameters are used for training.", false);
 
     // output
@@ -215,7 +215,7 @@ protected:
     }
 
     Param pilis_param(model.getParameters());
-    ModificationDefinitionsSet mod_set((StringList)pilis_param.getValue("fixed_modifications"), (StringList)pilis_param.getValue("variable_modifications"));
+    ModificationDefinitionsSet mod_set(pilis_param.getValue("fixed_modifications"), pilis_param.getValue("variable_modifications"));
 
     // read spectra file (if available)
     vector<RichPeakMap> exp;

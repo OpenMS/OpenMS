@@ -36,6 +36,7 @@
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <QFileInfo>
 #include <QtCore/QRegExp>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 using namespace std;
 
@@ -47,8 +48,8 @@ namespace OpenMS
     DefaultParamHandler("MascotGenericFile")
   {
     defaults_.setValue("database", "MSDB", "Name of the sequence database");
-    defaults_.setValue("search_type", "MIS", "Name of the search type for the query", StringList::create("advanced"));
-    defaults_.setValidStrings("search_type", StringList::create("MIS,SQ,PMF"));
+    defaults_.setValue("search_type", "MIS", "Name of the search type for the query", ListUtils::create<String>("advanced"));
+    defaults_.setValidStrings("search_type", ListUtils::create<String>("MIS,SQ,PMF"));
     defaults_.setValue("enzyme", "Trypsin", "The enzyme descriptor to the enzyme used for digestion. (Trypsin is default, None would be best for peptide input or unspecific digestion, for more please refer to your mascot server).");
     defaults_.setValue("instrument", "Default", "Instrument definition which specifies the fragmentation rules");
     defaults_.setValue("missed_cleavages", 1, "Number of missed cleavages allowed for the enzyme");
@@ -56,40 +57,40 @@ namespace OpenMS
     defaults_.setValue("precursor_mass_tolerance", 3.0, "Tolerance of the precursor peaks");
     defaults_.setMinFloat("precursor_mass_tolerance", 0.0);
     defaults_.setValue("precursor_error_units", "Da", "Units of the precursor mass tolerance");
-    defaults_.setValidStrings("precursor_error_units", StringList::create("%,ppm,mmu,Da"));
+    defaults_.setValidStrings("precursor_error_units", ListUtils::create<String>("%,ppm,mmu,Da"));
     defaults_.setValue("fragment_mass_tolerance", 0.3, "Tolerance of the peaks in the fragment spectrum");
     defaults_.setMinFloat("fragment_mass_tolerance", 0.0);
     defaults_.setValue("fragment_error_units", "Da", "Units of the fragment peaks tolerance");
-    defaults_.setValidStrings("fragment_error_units", StringList::create("mmu,Da"));
+    defaults_.setValidStrings("fragment_error_units", ListUtils::create<String>("mmu,Da"));
     defaults_.setValue("charges", "1,2,3", "Allowed charge states, given as a comma separated list of integers");
     defaults_.setValue("taxonomy", "All entries", "Taxonomy specification of the sequences");
     vector<String> all_mods;
     ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
-    defaults_.setValue("fixed_modifications", StringList::create(""), "List of fixed modifications, according to UniMod definitions.");
+    defaults_.setValue("fixed_modifications", ListUtils::create<String>(""), "List of fixed modifications, according to UniMod definitions.");
     defaults_.setValidStrings("fixed_modifications", all_mods);
-    defaults_.setValue("variable_modifications", StringList::create(""), "Variable modifications given as UniMod definitions.");
+    defaults_.setValue("variable_modifications", ListUtils::create<String>(""), "Variable modifications given as UniMod definitions.");
     defaults_.setValidStrings("variable_modifications", all_mods);
 
     defaults_.setValue("mass_type", "monoisotopic", "Defines the mass type, either monoisotopic or average");
-    defaults_.setValidStrings("mass_type", StringList::create("monoisotopic,average"));
+    defaults_.setValidStrings("mass_type", ListUtils::create<String>("monoisotopic,average"));
     defaults_.setValue("number_of_hits", 0, "Number of hits which should be returned, if 0 AUTO mode is enabled.");
     defaults_.setMinInt("number_of_hits", 0);
     defaults_.setValue("skip_spectrum_charges", "false", "Sometimes precursor charges are given for each spectrum but are wrong, setting this to 'true' does not write any charge information to the spectrum, the general charge information is however kept.");
-    defaults_.setValidStrings("skip_spectrum_charges", StringList::create("true,false"));
+    defaults_.setValidStrings("skip_spectrum_charges", ListUtils::create<String>("true,false"));
 
-    defaults_.setValue("search_title", "OpenMS_search", "Sets the title of the search.", StringList::create("advanced"));
-    defaults_.setValue("username", "OpenMS", "Sets the username which is mentioned in the results file.", StringList::create("advanced"));
+    defaults_.setValue("search_title", "OpenMS_search", "Sets the title of the search.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("username", "OpenMS", "Sets the username which is mentioned in the results file.", ListUtils::create<String>("advanced"));
     defaults_.setValue("email", "", "Sets the email which is mentioned in the results file. Note: Some server require that a proper email is provided.");
 
     // the next section should not be shown to TOPP users
     Param p;
-    p.setValue("format", "Mascot generic", "Sets the format type of the peak list, this should not be changed unless you write the header only.", StringList::create("advanced"));
-    p.setValidStrings("format", StringList::create("Mascot generic,mzData (.XML),mzML (.mzML)")); // Mascot's HTTP interface supports more, but we don't :)
-    p.setValue("boundary", "GZWgAaYKjHFeUaLOLEIOMq", "MIME boundary for parameter header (if using HTTP format)", StringList::create("advanced"));
-    p.setValue("HTTP_format", "false", "Write header with MIME boundaries instead of simple key-value pairs. For HTTP submission only.", StringList::create("advanced"));
-    p.setValidStrings("HTTP_format", StringList::create("true,false"));
-    p.setValue("content", "all", "Use parameter header + the peak lists with BEGIN IONS... or only one of them.", StringList::create("advanced"));
-    p.setValidStrings("content", StringList::create("all,peaklist_only,header_only"));
+    p.setValue("format", "Mascot generic", "Sets the format type of the peak list, this should not be changed unless you write the header only.", ListUtils::create<String>("advanced"));
+    p.setValidStrings("format", ListUtils::create<String>("Mascot generic,mzData (.XML),mzML (.mzML)")); // Mascot's HTTP interface supports more, but we don't :)
+    p.setValue("boundary", "GZWgAaYKjHFeUaLOLEIOMq", "MIME boundary for parameter header (if using HTTP format)", ListUtils::create<String>("advanced"));
+    p.setValue("HTTP_format", "false", "Write header with MIME boundaries instead of simple key-value pairs. For HTTP submission only.", ListUtils::create<String>("advanced"));
+    p.setValidStrings("HTTP_format", ListUtils::create<String>("true,false"));
+    p.setValue("content", "all", "Use parameter header + the peak lists with BEGIN IONS... or only one of them.", ListUtils::create<String>("advanced"));
+    p.setValidStrings("content", ListUtils::create<String>("all,peaklist_only,header_only"));
     defaults_.insert("internal:", p);
 
     defaultsToParam_();
@@ -199,30 +200,30 @@ namespace OpenMS
     // solution for specificity groups in UniMod is implemented (ticket #387) 
 
     //fixed modifications
-    StringList fixed_mods((StringList)param_.getValue("fixed_modifications"));
+    StringList fixed_mods = param_.getValue("fixed_modifications");
     for (StringList::const_iterator it = fixed_mods.begin(); it != fixed_mods.end(); ++it)
     {
       if ((*it == "Deamidated (N)") || (*it == "Deamidated (Q)")) continue;
       writeParameterHeader_("MODS", os);
       os << *it << "\n";
     }
-    if (fixed_mods.contains("Deamidated (N)") || 
-        fixed_mods.contains("Deamidated (Q)"))
+    if (ListUtils::contains(fixed_mods, "Deamidated (N)") ||
+        ListUtils::contains(fixed_mods, "Deamidated (Q)"))
     {
       writeParameterHeader_("MODS", os);
       os << "Deamidated (NQ)" << "\n";
     }
 
     //variable modifications
-    StringList var_mods((StringList)param_.getValue("variable_modifications"));
+    StringList var_mods = param_.getValue("variable_modifications");
     for (StringList::const_iterator it = var_mods.begin(); it != var_mods.end(); ++it)
     {
       if ((*it == "Deamidated (N)") || (*it == "Deamidated (Q)")) continue;
       writeParameterHeader_("IT_MODS", os);
       os << *it << "\n";
     }
-    if (var_mods.contains("Deamidated (N)") || 
-        var_mods.contains("Deamidated (Q)"))
+    if (ListUtils::contains(var_mods, "Deamidated (N)") ||
+        ListUtils::contains(var_mods, "Deamidated (Q)"))
     {
       writeParameterHeader_("IT_MODS", os);
       os << "Deamidated (NQ)" << "\n";

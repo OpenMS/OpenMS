@@ -158,7 +158,7 @@ namespace OpenMS
         //if both are parsed, check if they match
         if (binary_data_type_ != "" && binary_data_array_ != "")
         {
-          if (!cv_.getTerm(binary_data_array_).xref_binary.contains(binary_data_type_))
+          if (!ListUtils::contains(cv_.getTerm(binary_data_array_).xref_binary, binary_data_type_))
           {
             errors_.push_back(String("Binary data array of type '") + binary_data_array_ + " ! " + cv_.getTerm(binary_data_array_).name + "' cannot have the value type '" + binary_data_type_ + " ! " + cv_.getTerm(binary_data_type_).name + "'.");
           }

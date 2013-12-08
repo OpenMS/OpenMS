@@ -196,7 +196,7 @@ private:
         for (vector<PeptideHit>::const_iterator pep_hit_it = pep_id_it->getHits().begin(); pep_hit_it != pep_id_it->getHits().end(); ++pep_hit_it)
         {
           //loop over all sequence entries of the StringList
-          for (StringList::ConstIterator seq_it = sequences.begin(); seq_it != sequences.end(); ++seq_it)
+          for (StringList::const_iterator seq_it = sequences.begin(); seq_it != sequences.end(); ++seq_it)
           {
             if (pep_hit_it->getSequence().toString().hasSubstring(*seq_it)
               || pep_hit_it->getSequence().toUnmodifiedString().hasSubstring(*seq_it))
@@ -208,7 +208,7 @@ private:
           for (vector<String>::const_iterator p_acc_it = pep_hit_it->getProteinAccessions().begin(); p_acc_it != pep_hit_it->getProteinAccessions().end(); ++p_acc_it)
           {
             //loop over all accessions entries of the StringList
-            for (StringList::ConstIterator acc_it = accessions.begin(); acc_it != accessions.end(); ++acc_it)
+            for (StringList::const_iterator acc_it = accessions.begin(); acc_it != accessions.end(); ++acc_it)
             {
               if (p_acc_it->hasSubstring(*acc_it))
               {
@@ -243,16 +243,16 @@ protected:
     String formats("mzML,featureXML,consensusXML");
 
     registerInputFile_("in", "<file>", "", "input file ");
-    setValidFormats_("in", StringList::create(formats));
+    setValidFormats_("in", ListUtils::create<String>(formats));
 
     registerStringOption_("in_type", "<type>", "", "input file type -- default: determined from file extension or content\n", false);
-    setValidStrings_("in_type", StringList::create(formats));
+    setValidStrings_("in_type", ListUtils::create<String>(formats));
 
     registerOutputFile_("out", "<file>", "", "output file");
-    setValidFormats_("out", StringList::create(formats));
+    setValidFormats_("out", ListUtils::create<String>(formats));
 
     registerStringOption_("out_type", "<type>", "", "output file type -- default: determined from file extension or content\n", false);
-    setValidStrings_("out_type", StringList::create(formats));
+    setValidStrings_("out_type", ListUtils::create<String>(formats));
 
     registerStringOption_("rt", "[min]:[max]", ":", "retention time range to extract", false);
     registerStringOption_("mz", "[min]:[max]", ":", "m/z range to extract (applies to ALL ms levels!)", false);
@@ -269,18 +269,18 @@ protected:
     registerFlag_("peak_options:no_chromatograms", "No conversion to space-saving real chromatograms, e.g. from SRM scans.");
     registerFlag_("peak_options:remove_chromatograms", "Removes chromatograms stored in a file.");
     registerStringOption_("peak_options:mz_precision", "32 or 64", 64, "Store base64 encoded m/z data using 32 or 64 bit precision.", false);
-    setValidStrings_("peak_options:mz_precision", StringList::create("32,64"));
+    setValidStrings_("peak_options:mz_precision", ListUtils::create<String>("32,64"));
     registerStringOption_("peak_options:int_precision", "32 or 64", 32, "Store base64 encoded intensity data using 32 or 64 bit precision.", false);
-    setValidStrings_("peak_options:int_precision", StringList::create("32,64"));
+    setValidStrings_("peak_options:int_precision", ListUtils::create<String>("32,64"));
     registerStringOption_("peak_options:indexed_file", "true or false", "false", "Whether to add an index to the file when writing", false);
-    setValidStrings_("peak_options:indexed_file", StringList::create("true,false"));
+    setValidStrings_("peak_options:indexed_file", ListUtils::create<String>("true,false"));
 
     registerTOPPSubsection_("peak_options:numpress", "Numpress compression for peak data");
     registerStringOption_("peak_options:numpress:masstime", "<compression_scheme>", "none", "Apply MS Numpress compression algorithms in m/z or rt dimension (recommended: linear)", false);
-    setValidStrings_("peak_options:numpress:masstime", StringList::create("none,linear,pic,slof"));
+    setValidStrings_("peak_options:numpress:masstime", ListUtils::create<String>("none,linear,pic,slof"));
     registerDoubleOption_("peak_options:numpress:masstime_error", "<error>", 0.0001, "Maximal allowable error in m/z or rt dimension (set to 0.5 for pic)", false);
     registerStringOption_("peak_options:numpress:intensity", "<compression_scheme>", "none", "Apply MS Numpress compression algorithms in intensity dimension (recommended: slof or pic)", false);
-    setValidStrings_("peak_options:numpress:intensity", StringList::create("none,linear,pic,slof"));
+    setValidStrings_("peak_options:numpress:intensity", ListUtils::create<String>("none,linear,pic,slof"));
     registerDoubleOption_("peak_options:numpress:intensity_error", "<error>", 0.0001, "Maximal allowable error in intensity dimension (set to 0.5 for pic)", false);
 
     registerTOPPSubsection_("spectra", "Remove spectra or select spectra (removing all others) with certain properties.");
@@ -324,22 +324,20 @@ protected:
 
     // black and white listing
     registerTOPPSubsection_("consensus:blackorwhitelist", "Black or white listing of of MS2 spectra by consensus features.");
-    StringList truefalse;
-    truefalse << "false" << "true";
     registerStringOption_("consensus:blackorwhitelist:blacklist", "", "true", "True: remove matched MS2. False: retain matched MS2 spectra. Other levels are kept.", false, false);
-    setValidStrings_("consensus:blackorwhitelist:blacklist", truefalse);
+    setValidStrings_("consensus:blackorwhitelist:blacklist", ListUtils::create<String>("false,true"));
 
     registerInputFile_("consensus:blackorwhitelist:file", "<file>", "", "Input file containing consensus features whose corresponding MS2 spectra should be removed from the mzML file!\n"
                        "Matching tolerances are taken from 'consensus:blackorwhitelist:rt' and 'consensus:blackorwhitelist:mz' options.\n"
                        "If consensus:blackorwhitelist:maps is specified, only these will be used.\n", false);
-    setValidFormats_("consensus:blackorwhitelist:file", StringList::create("consensusXML"));
+    setValidFormats_("consensus:blackorwhitelist:file", ListUtils::create<String>("consensusXML"));
     registerIntList_("consensus:blackorwhitelist:maps", "i j ...", ListUtils::create<Int>(""), "maps used for black/white list filtering.", false);
 
     registerDoubleOption_("consensus:blackorwhitelist:rt", "tolerance", 60.0, "retention tolerance [s] for precursor to consensus feature position", false);
     registerDoubleOption_("consensus:blackorwhitelist:mz", "tolerance", 0.01, "m/z tolerance [Th] for precursor to consensus feature position", false);
     registerStringOption_("consensus:blackorwhitelist:use_ppm_tolerance", "", "false", "If ppm tolerance should be used. Otherwise Da are used.", false, false);
 
-    setValidStrings_("consensus:blackorwhitelist:use_ppm_tolerance", truefalse);
+    setValidStrings_("consensus:blackorwhitelist:use_ppm_tolerance", ListUtils::create<String>("false,true"));
 
     setMinFloat_("consensus:blackorwhitelist:rt", 0);
     setMinFloat_("consensus:blackorwhitelist:mz", 0);
@@ -362,7 +360,7 @@ protected:
     registerInputFile_("id:blacklist", "<file>", "", "Input file containing MS2 identifications whose corresponding MS2 spectra should be removed from the mzML file!\n"
                        "Matching tolerances are taken from 'id:rt' and 'id:mz' options.\n"
                        "This tool will require all IDs to be matched to an MS2 spectrum, and quit with error otherwise. Use 'id:blacklist_imperfect' to allow for mismatches.", false);
-    setValidFormats_("id:blacklist", StringList::create("idXML"));
+    setValidFormats_("id:blacklist", ListUtils::create<String>("idXML"));
     registerDoubleOption_("id:rt", "tolerance", 0.1, "retention tolerance [s] for precursor to id position", false);
     registerDoubleOption_("id:mz", "tolerance", 0.001, "m/z tolerance [Th] for precursor to id position", false);
     setMinFloat_("id:rt", 0);
@@ -392,7 +390,7 @@ protected:
     if (v_data.valueType() == DataValue::STRING_VALUE) v_user = String(meta_info[2]);
     else if (v_data.valueType() == DataValue::INT_VALUE) v_user = String(meta_info[2]).toInt();
     else if (v_data.valueType() == DataValue::DOUBLE_VALUE) v_user = String(meta_info[2]).toDouble();
-    else if (v_data.valueType() == DataValue::STRING_LIST) v_user = StringList::create(meta_info[2]);
+    else if (v_data.valueType() == DataValue::STRING_LIST) v_user = (StringList)ListUtils::create<String>(meta_info[2]);
     else if (v_data.valueType() == DataValue::INT_LIST) v_user = ListUtils::create<Int>(meta_info[2]);
     else if (v_data.valueType() == DataValue::DOUBLE_LIST) v_user = ListUtils::create<DoubleReal>(meta_info[2]);
     else if (v_data.valueType() == DataValue::EMPTY_VALUE) v_user = DataValue::EMPTY;
@@ -679,7 +677,7 @@ protected:
         {
           if (Precursor::NamesOfActivationMethod[i] == remove_activation)
           {
-            exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), HasActivationMethod<MapType::SpectrumType>(StringList::create(remove_activation))), exp.end());
+            exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), HasActivationMethod<MapType::SpectrumType>(ListUtils::create<String>(remove_activation))), exp.end());
           }
         }
       }
@@ -693,7 +691,7 @@ protected:
         {
           if (Precursor::NamesOfActivationMethod[i] == select_activation)
           {
-            exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), HasActivationMethod<MapType::SpectrumType>(StringList::create(select_activation), true)), exp.end());
+            exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), HasActivationMethod<MapType::SpectrumType>(ListUtils::create<String>(select_activation), true)), exp.end());
           }
         }
       }

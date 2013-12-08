@@ -90,11 +90,11 @@ protected:
   {
     // input files
     registerInputFile_("in", "<file>", "", "input file (centroided data)");
-    setValidFormats_("in", StringList::create("mzML"));
+    setValidFormats_("in", ListUtils::create<String>("mzML"));
     registerOutputFile_("out", "<file>", "", "output file");
-    setValidFormats_("out", StringList::create("mzML"));
+    setValidFormats_("out", ListUtils::create<String>("mzML"));
     registerOutputFile_("out_csv", "<file>", "", "Optional csv output file containing columns: precursor rt, uncorrected mz, corrected mz, delta mz\n", false);
-    setValidFormats_("out_csv", StringList::create("csv"));
+    setValidFormats_("out_csv", ListUtils::create<String>("csv"));
   }
 
   void getPrecursors_(const PeakMap & exp, vector<Precursor> & precursors, vector<double> & precursors_rt)

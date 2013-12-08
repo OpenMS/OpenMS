@@ -104,9 +104,9 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "input file in MzML format", true);
-    setValidFormats_("in", StringList::create("mzML"));
+    setValidFormats_("in", ListUtils::create<String>("mzML"));
     registerOutputFile_("out", "<file>", "", "output file in idXML format", true);
-    setValidFormats_("out", StringList::create("idXML"));
+    setValidFormats_("out", ListUtils::create<String>("idXML"));
     registerInputFile_("model_file", "<file", "", "the model file of the PILISModel", true);
     registerInputFile_("peptide_db_file", "<file>", "", "a file which should contain peptides in the format\n"
                                                         "DFPIANGER 1019.09 1\n"

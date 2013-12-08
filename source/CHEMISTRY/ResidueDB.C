@@ -39,6 +39,7 @@
 #include <OpenMS/CHEMISTRY/Residue.h>
 
 #include <OpenMS/DATASTRUCTURES/Param.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 
@@ -372,7 +373,7 @@ namespace OpenMS
       }
       if (key.hasSubstring("ResidueSets"))
       {
-        StringList residue_sets = StringList::create(value);
+        StringList residue_sets = ListUtils::create<String>(value);
         for (StringList::const_iterator it = residue_sets.begin(); it != residue_sets.end(); ++it)
         {
           res_ptr->addResidueSet(*it);

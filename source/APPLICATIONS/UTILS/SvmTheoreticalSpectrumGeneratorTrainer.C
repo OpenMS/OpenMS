@@ -83,9 +83,9 @@ protected:
   {
     // I/O settings
     registerInputFile_("in_spectra", "<file>", "", "Input Training Spectra in mzML", true);
-    setValidFormats_("in_spectra",  StringList::create("mzML"));
+    setValidFormats_("in_spectra",  ListUtils::create<String>("mzML"));
     registerInputFile_("in_identifications", "<file>", "", "Input file with corresponding sequences in idXML", true);
-    setValidFormats_("in_identifications",  StringList::create("idXML"));
+    setValidFormats_("in_identifications",  ListUtils::create<String>("idXML"));
     registerOutputFile_("model_output_file", "<file>", "",
                         "Name for output files. For each ion_type one file <filename>_residue_loss_charge.svm and one <filename>.info which has to be passed to the SvmTheoretical SpectrumGenerator", true);
     //TODO: check how to handle file prefix properly for TOPPAS/KNIME/CTD

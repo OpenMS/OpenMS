@@ -59,7 +59,7 @@ namespace OpenMS
     precursor_lower_mz_(500.0),
     fragment_lower_mz_(150.0),
     number_of_threads_(1),
-    modifications_(""),
+    modifications_(),
     input_filename_(""),
     output_filename_(""),
     cleavage_site_("[RK]|{P}"),
@@ -128,7 +128,7 @@ namespace OpenMS
       }
       xtandem_mods.push_back(mod_string);
     }
-    return xtandem_mods.concatenate(",");
+    return ListUtils::concatenate(xtandem_mods, ",");
   }
 
   void XTandemInfile::writeTo_(ostream& os)

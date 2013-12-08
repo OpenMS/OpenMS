@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/DATASTRUCTURES/ToolDescription.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 using namespace std;
 
@@ -96,7 +97,7 @@ namespace OpenMS
       if (this == &rhs)
         return false;
 
-      return name + "." + types.concatenate(",") < rhs.name + "." + rhs.types.concatenate(",");
+      return name + "." + ListUtils::concatenate(types, ",") < rhs.name + "." + ListUtils::concatenate(rhs.types, ",");
     }
 
     // default CTor
@@ -141,7 +142,7 @@ namespace OpenMS
       unique_check.insert(types.begin(), types.end());
       if (unique_check.size() != types.size())
       {
-        LOG_ERROR << "A type appears at least twice for the TOPP/UTIL '" << name << "'. Types given are '" << types.concatenate(", ") << "'\n";
+        LOG_ERROR << "A type appears at least twice for the TOPP/UTIL '" << name << "'. Types given are '" << ListUtils::concatenate(types, ", ") << "'\n";
         if (name == "GenericWrapper")
         {
           LOG_ERROR << "Check the .ttd files in your share/ folder and remove duplicate types!\n";

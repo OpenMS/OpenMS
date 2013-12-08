@@ -82,9 +82,9 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "Feature input file, which contains the data to be tested against the truth file.");
-    setValidFormats_("in", StringList::create("featureXML"));
+    setValidFormats_("in", ListUtils::create<String>("featureXML"));
     registerInputFile_("truth", "<file>", "", "Truth feature file that defines what features should be found.");
-    setValidFormats_("truth", StringList::create("featureXML"));
+    setValidFormats_("truth", ListUtils::create<String>("featureXML"));
     registerDoubleOption_("rt_tol", "<double>", 0.3, "Allowed tolerance of RT relative to average feature RT span.", false);
     setMinFloat_("rt_tol", 0);
     registerDoubleOption_("rt_tol_abs", "<double>", -1.0, "Allowed absolute tolerance of RT (overwrites 'rt_tol' if set above zero).", false);
@@ -92,11 +92,11 @@ protected:
     registerDoubleOption_("mz_tol", "<double>", 0.25, "Allowed tolerance in m/z (is divided by charge).", false);
     setMinFloat_("mz_tol", 0);
     registerOutputFile_("out", "<file>", "", "Feature output file. If given, an annotated input file is written.", false);
-    setValidFormats_("out", StringList::create("featureXML"));
+    setValidFormats_("out", ListUtils::create<String>("featureXML"));
     registerInputFile_("abort_reasons", "<file>", "", "Feature file containing seeds with abort reasons.", false);
-    setValidFormats_("abort_reasons", StringList::create("featureXML"));
+    setValidFormats_("abort_reasons", ListUtils::create<String>("featureXML"));
     registerOutputFile_("out_roc", "<file>", "", "If given, a ROC curve file is created (ROC points based on intensity threshold)", false);
-    setValidFormats_("out_roc", StringList::create("csv"));
+    setValidFormats_("out_roc", ListUtils::create<String>("csv"));
   }
 
   /// Counts the number of features with meta value @p name equal to @p value

@@ -102,12 +102,12 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "input file");
-    setValidFormats_("in", StringList::create("consensusXML"));
+    setValidFormats_("in", ListUtils::create<String>("consensusXML"));
     registerOutputFile_("out", "<file>", "", "output file");
-    setValidFormats_("out", StringList::create("consensusXML"));
+    setValidFormats_("out", ListUtils::create<String>("consensusXML"));
     addEmptyLine_();
     registerStringOption_("algorithm_type", "<type>", "robust_regression", "The normalization algorithm that is applied.", false, false);
-    setValidStrings_("algorithm_type", StringList::create("robust_regression,median,quantile"));
+    setValidStrings_("algorithm_type", ListUtils::create<String>("robust_regression,median,quantile"));
     registerDoubleOption_("ratio_threshold", "<ratio>", 0.67, "Only for 'robust_regression': the parameter is used to distinguish between non-outliers (ratio_threshold < intensity ratio < 1/ratio_threshold) and outliers.", false);
     setMinFloat_("ratio_threshold", 0.001);
     setMaxFloat_("ratio_threshold", 1.0);

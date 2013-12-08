@@ -43,6 +43,8 @@
 #include <gsl/gsl_multifit_nlin.h> // gsl multidimensional fitting
 #include <gsl/gsl_blas.h> // gsl linear algebra stuff
 
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+
 namespace OpenMS
 {
 
@@ -61,9 +63,9 @@ public:
     LevMarqFitter1D() :
       Fitter1D()
     {
-      this->defaults_.setValue("max_iteration", 500, "Maximum number of iterations using by Levenberg-Marquardt algorithm.", StringList::create("advanced"));
-      this->defaults_.setValue("deltaAbsError", 0.0001, "Absolute error used by the Levenberg-Marquardt algorithm.", StringList::create("advanced"));
-      this->defaults_.setValue("deltaRelError", 0.0001, "Relative error used by the Levenberg-Marquardt algorithm.", StringList::create("advanced"));
+      this->defaults_.setValue("max_iteration", 500, "Maximum number of iterations using by Levenberg-Marquardt algorithm.", ListUtils::create<String>("advanced"));
+      this->defaults_.setValue("deltaAbsError", 0.0001, "Absolute error used by the Levenberg-Marquardt algorithm.", ListUtils::create<String>("advanced"));
+      this->defaults_.setValue("deltaRelError", 0.0001, "Relative error used by the Levenberg-Marquardt algorithm.", ListUtils::create<String>("advanced"));
     }
 
     /// copy constructor

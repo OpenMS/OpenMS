@@ -82,13 +82,13 @@ public:
 protected:
   void registerOptionsAndFlags_()
   {
-    registerInputFileList_("in", "<file(s)>", StringList::create(""), "Input FASTA file(s), each containing a database. It is recommended to include a contaminant database as well.");
-    setValidFormats_("in", StringList::create("fasta"));
+    registerInputFileList_("in", "<file(s)>", ListUtils::create<String>(""), "Input FASTA file(s), each containing a database. It is recommended to include a contaminant database as well.");
+    setValidFormats_("in", ListUtils::create<String>("fasta"));
     registerOutputFile_("out", "<file>", "", "Output FASTA file where the decoy database will be written to.");
-    setValidFormats_("out", StringList::create("fasta"));
+    setValidFormats_("out", ListUtils::create<String>("fasta"));
     registerStringOption_("decoy_string", "<string>", "_rev", "String that is appended to the accession of the protein database to indicate a decoy protein.", false);
     registerStringOption_("decoy_string_position", "<enum>", "suffix", "Should the 'decoy_string' be prepended (prefix) or appended (suffix) to the protein accession?", false);
-    setValidStrings_("decoy_string_position", StringList::create("prefix,suffix"));
+    setValidStrings_("decoy_string_position", ListUtils::create<String>("prefix,suffix"));
     registerFlag_("append", "If this flag is used, the decoy database is appended to the target database, allowing combined target decoy searches.");
     registerFlag_("shuffle", "If 'true' then the decoy hit are shuffled from the target sequences, otherwise they are reversed");
   }

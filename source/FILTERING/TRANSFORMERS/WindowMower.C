@@ -32,9 +32,12 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 //
+
 #include <OpenMS/FILTERING/TRANSFORMERS/WindowMower.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 using namespace std;
+
 namespace OpenMS
 {
   WindowMower::WindowMower() :
@@ -43,7 +46,7 @@ namespace OpenMS
     defaults_.setValue("windowsize", 50.0, "The size of the sliding window along the m/z axis.");
     defaults_.setValue("peakcount", 2, "The number of peaks that should be kept.");
     defaults_.setValue("movetype", "slide", "Whether sliding window (one peak steps) or jumping window (window size steps) should be used.");
-    defaults_.setValidStrings("movetype", StringList::create("slide,jump"));
+    defaults_.setValidStrings("movetype", ListUtils::create<String>("slide,jump"));
     defaultsToParam_();
   }
 

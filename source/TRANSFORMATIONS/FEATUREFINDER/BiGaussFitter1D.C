@@ -34,7 +34,9 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BiGaussFitter1D.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/InterpolationModel.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <boost/math/special_functions/fpclassify.hpp>
+
 namespace OpenMS
 {
   BiGaussFitter1D::BiGaussFitter1D() :
@@ -42,8 +44,8 @@ namespace OpenMS
   {
     setName(getProductName());
 
-    defaults_.setValue("statistics:variance1", 1.0, "Variance of the first gaussian, used for the lower half of the model.", StringList::create("advanced"));
-    defaults_.setValue("statistics:variance2", 1.0, "Variance of the second gaussian, used for the upper half of the model.", StringList::create("advanced"));
+    defaults_.setValue("statistics:variance1", 1.0, "Variance of the first gaussian, used for the lower half of the model.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("statistics:variance2", 1.0, "Variance of the second gaussian, used for the upper half of the model.", ListUtils::create<String>("advanced"));
 
     defaultsToParam_();
   }

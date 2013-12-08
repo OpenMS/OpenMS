@@ -38,6 +38,7 @@
 #include <OpenMS/VISUAL/DIALOGS/TOPPASInputFilesDialog.h>
 #include <OpenMS/VISUAL/TOPPASScene.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <QtCore/QFileInfo>
 #include <QtCore/QDir>
@@ -156,7 +157,7 @@ namespace OpenMS
       else
         text_l.push_back(String(".") + sit->first);
     }
-    text = text_l.concatenate(" | ").toQString();
+    text = ListUtils::concatenate(text_l, " | ").toQString();
     text_boundings = painter->boundingRect(QRectF(0, 0, 0, 0), Qt::AlignCenter, text);
     painter->drawText(-(int)(text_boundings.width() / 2.0), 35 - (int)(text_boundings.height() / 4.0), text);
 

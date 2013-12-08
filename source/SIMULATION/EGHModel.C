@@ -37,6 +37,7 @@
 
 #include <OpenMS/SIMULATION/EGHModel.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 using std::endl;
 
@@ -49,16 +50,16 @@ namespace OpenMS
 
     // Since the interpolation table is (re-)initialized after setting
     // parameters, we set an empty bounding_box to avoid silly computations.
-    defaults_.setValue("interpolation_step", 0.1, "Sampling rate for the interpolation of the model function.", StringList::create("advanced"));
+    defaults_.setValue("interpolation_step", 0.1, "Sampling rate for the interpolation of the model function.", ListUtils::create<String>("advanced"));
 
-    defaults_.setValue("statistics:mean", 0.0f, "Centroid position of the model.", StringList::create("advanced"));
-    defaults_.setValue("statistics:variance", 1.0f, "The variance of the model.", StringList::create("advanced"));
+    defaults_.setValue("statistics:mean", 0.0f, "Centroid position of the model.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("statistics:variance", 1.0f, "The variance of the model.", ListUtils::create<String>("advanced"));
 
     defaults_.setValue("egh:height", 1000.0f, "Height of the exponential-Gaussian hybrid.");
-    defaults_.setValue("egh:retention", 1200.0f, "Retention time of the exponential-Gaussian hybrid.", StringList::create("advanced"));
+    defaults_.setValue("egh:retention", 1200.0f, "Retention time of the exponential-Gaussian hybrid.", ListUtils::create<String>("advanced"));
 
     defaults_.setValue("egh:guess_parameter", "true", "If set to true, the EGHModel will try to estimate the model parameters (tau and sigma-square) based on A,B, and alpha. If set to false, it will use the parameters tau and sigma-square directly.");
-    defaults_.setValidStrings("egh:guess_parameter", StringList::create("true,false"));
+    defaults_.setValidStrings("egh:guess_parameter", ListUtils::create<String>("true,false"));
 
     defaults_.setValue("egh:A", 100.0f, "Horizontal distance between the vertical line at the peak maximum (H) and the leading line where the EGH has H*alpha (e.g. the left half-max for alpha=0.5).");
     defaults_.setValue("egh:B", 100.0f, "Horizontal distance between the vertical line at the peak maximum (H) and the trailing line where the EGH has H*alpha (e.g. the right half-max for alpha=0.5).");
@@ -67,15 +68,15 @@ namespace OpenMS
     defaults_.setMaxFloat("egh:alpha", 1.0);
 
 
-    defaults_.setValue("egh:tau", 0.0, "Time constant of the exponential decay (tau is zero for gaussian peaks).", StringList::create("advanced"));
-    defaults_.setValue("egh:sigma_square", 1803.4, "Standard deviation of the peak.", StringList::create("advanced"));
+    defaults_.setValue("egh:tau", 0.0, "Time constant of the exponential decay (tau is zero for gaussian peaks).", ListUtils::create<String>("advanced"));
+    defaults_.setValue("egh:sigma_square", 1803.4, "Standard deviation of the peak.", ListUtils::create<String>("advanced"));
     defaults_.setMinFloat("egh:sigma_square", 0.0);
 
     defaults_.setValue("bounding_box:compute", "true", "If true, the EGHModel will compute its own bounding box.");
-    defaults_.setValidStrings("bounding_box:compute", StringList::create("true,false"));
+    defaults_.setValidStrings("bounding_box:compute", ListUtils::create<String>("true,false"));
 
-    defaults_.setValue("bounding_box:min", 0.0, "Lower end of bounding box enclosing the data used to fit the model.", StringList::create("advanced"));
-    defaults_.setValue("bounding_box:max", 0.0, "Upper end of bounding box enclosing the data used to fit the model.", StringList::create("advanced"));
+    defaults_.setValue("bounding_box:min", 0.0, "Lower end of bounding box enclosing the data used to fit the model.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("bounding_box:max", 0.0, "Upper end of bounding box enclosing the data used to fit the model.", ListUtils::create<String>("advanced"));
 
     defaultsToParam_();
   }

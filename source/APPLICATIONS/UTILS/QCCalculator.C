@@ -119,15 +119,15 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "raw data input file (this is relevant if you want to look at MS1, MS2 and precursor peak information)");
-    setValidFormats_("in", StringList::create("mzML"));
+    setValidFormats_("in", ListUtils::create<String>("mzML"));
     registerOutputFile_("out", "<file>", "", "Your qcML file.");
-    setValidFormats_("out", StringList::create("qcML"));
+    setValidFormats_("out", ListUtils::create<String>("qcML"));
     registerInputFile_("id", "<file>", "", "Input idXML file containing the identifications. Your identifications will be exported in an easy-to-read format", false);
-    setValidFormats_("id", StringList::create("idXML"));
+    setValidFormats_("id", ListUtils::create<String>("idXML"));
     registerInputFile_("feature", "<file>", "", "feature input file (this is relevant for most QC issues)", false);
-    setValidFormats_("feature", StringList::create("featureXML"));
+    setValidFormats_("feature", ListUtils::create<String>("featureXML"));
     registerInputFile_("consensus", "<file>", "", "consensus input file (this is only used for charge state deconvoluted output. Use the consensusXML output form the DeCharger)", false);
-    setValidFormats_("consensus", StringList::create("consensusXML"));
+    setValidFormats_("consensus", ListUtils::create<String>("consensusXML"));
     registerFlag_("remove_duplicate_features", "This flag should be set, if you work with a set of merged features.");
     //~ registerFlag_("MS1", "This flag should be set, if you want to work with MS1 stats.");
     //~ registerFlag_("MS2", "This flag should be set, if you want to work with MS2 stats.");

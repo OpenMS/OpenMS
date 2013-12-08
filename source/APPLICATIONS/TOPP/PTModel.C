@@ -155,19 +155,19 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in_positive", "<file>", "", "input file with positive examples");
-    setValidFormats_("in_positive", StringList::create("idXML"));
+    setValidFormats_("in_positive", ListUtils::create<String>("idXML"));
     registerInputFile_("in_negative", "<file>", "", "input file with negative examples");
-    setValidFormats_("in_negative", StringList::create("idXML"));
+    setValidFormats_("in_negative", ListUtils::create<String>("idXML"));
     registerOutputFile_("out", "<file>", "", "output file: the model in libsvm format");
-    setValidFormats_("out", StringList::create("txt"));
+    setValidFormats_("out", ListUtils::create<String>("txt"));
     registerDoubleOption_("c", "<float>", 1, "the penalty parameter of the svm", false);
     registerStringOption_("svm_type", "<type>", "C_SVC", "the type of the svm (NU_SVC or C_SVC)", false);
-    setValidStrings_("svm_type", StringList::create("NU_SVC,C_SVC"));
+    setValidStrings_("svm_type", ListUtils::create<String>("NU_SVC,C_SVC"));
     registerDoubleOption_("nu", "<float>", 0.5, "the nu parameter [0..1] of the svm (for nu-SVR)", false);
     setMinFloat_("nu", 0);
     setMaxFloat_("nu", 1);
     registerStringOption_("kernel_type", "<type>", "OLIGO", "the kernel type of the svm", false);
-    setValidStrings_("kernel_type", StringList::create("LINEAR,RBF,POLY,OLIGO"));
+    setValidStrings_("kernel_type", ListUtils::create<String>("LINEAR,RBF,POLY,OLIGO"));
     registerIntOption_("degree", "<int>", 1, "the degree parameter of the kernel function of the svm (POLY kernel)", false);
     setMinInt_("degree", 1);
     registerIntOption_("border_length", "<int>", 22, "length of the POBK", false);

@@ -159,13 +159,6 @@ namespace OpenMS
   {
     data_.str_list_ = new StringList(p);
   }
-
-  DataValue::DataValue(const std::vector<String>& p) :
-    value_type_(STRING_LIST), unit_("")
-  {
-    data_.str_list_ = new StringList(p);
-  }
-
   
   DataValue::DataValue(const IntList& p) :
     value_type_(INT_LIST), unit_("")

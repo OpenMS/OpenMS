@@ -37,6 +37,7 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/VISUAL/APPLICATIONS/IDEvaluationBase.h>
 #include <OpenMS/VISUAL/APPLICATIONS/MISC/QApplicationTOPP.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <QtGui/QImage>
 #include <QPainter>
@@ -96,8 +97,8 @@ protected:
 
   void registerOptionsAndFlags_()
   {
-    registerInputFileList_("in", "<file>", StringList::create(""), "Input file(s)", false);
-    setValidFormats_("in", StringList::create("idXML"));
+    registerInputFileList_("in", "<file>", ListUtils::create<String>(""), "Input file(s)", false);
+    setValidFormats_("in", ListUtils::create<String>("idXML"));
   }
 
   ExitCodes main_(int argc, const char ** argv)

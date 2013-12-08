@@ -34,6 +34,7 @@
 
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantifier.h>
 
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricIsotopeCorrector.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricNormalizer.h>
 
@@ -68,12 +69,12 @@ namespace OpenMS
     defaults_.setValue("isotope_correction", "true", "Enable isotope correction (highly recommended). "
                                                      "Note that you need to provide a correct isotope correction matrix "
                                                      "otherwise the tool will fail or produce invalid results.");
-    defaults_.setValidStrings("isotope_correction", StringList::create("true,false"));
+    defaults_.setValidStrings("isotope_correction", ListUtils::create<String>("true,false"));
 
     defaults_.setValue("normalization", "false", "Enable normalization of channel intensities with respect to the reference channel. "
                                                  "The normalization is done by using the Median of Ratios (every channel / Reference). "
                                                  "Also the ratio of medians (from any channel and reference) is provided as control measure!");
-    defaults_.setValidStrings("normalization", StringList::create("true,false"));
+    defaults_.setValidStrings("normalization", ListUtils::create<String>("true,false"));
 
     defaultsToParam_();
   }

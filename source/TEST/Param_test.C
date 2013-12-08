@@ -68,7 +68,7 @@ START_SECTION(([Param::ParamEntry] ~ParamEntry()))
 END_SECTION
 
 START_SECTION(([Param::ParamEntry] ParamEntry(const String &n, const DataValue &v, const String &d, const StringList &t=StringList())))
-	Param::ParamEntry pe("n","v","d",StringList::create("advanced"));
+	Param::ParamEntry pe("n","v","d",ListUtils::create<String>("advanced"));
 	TEST_EQUAL(pe.name,"n")
 	TEST_EQUAL(pe.description,"d")
 	TEST_EQUAL(pe.value,"v")
@@ -129,8 +129,8 @@ START_SECTION(([Param::ParamEntry] bool isValid(String& message) const))
 END_SECTION
 
 START_SECTION(([Param::ParamEntry] bool operator==(const ParamEntry& rhs) const))
-	Param::ParamEntry n1("n","d","v",StringList::create("advanced"));
-	Param::ParamEntry n2("n","d","v",StringList::create("advanced"));
+	Param::ParamEntry n1("n","d","v",ListUtils::create<String>("advanced"));
+	Param::ParamEntry n2("n","d","v",ListUtils::create<String>("advanced"));
 
 	TEST_EQUAL(n1==n2,true)
 
@@ -306,7 +306,7 @@ END_SECTION
 
 START_SECTION(([Param::ParamNode] void insert(const ParamNode& node, const String& prefix = "")))
 	Param::ParamNode node("","");
-	node.entries.push_back(Param::ParamEntry("H",5,"",StringList::create("advanced")));
+	node.entries.push_back(Param::ParamEntry("H",5,"",ListUtils::create<String>("advanced")));
 	pn.insert(node,"F");
   TEST_NOT_EQUAL(pn.findEntryRecursive("F:H"),pe_nullPointer)
 
@@ -328,7 +328,7 @@ START_SECTION(([Param::ParamNode] void insert(const ParamNode& node, const Strin
 END_SECTION
 
 START_SECTION(([Param::ParamNode] void insert(const ParamEntry& entry, const String& prefix = "")))
-	Param::ParamEntry entry("H","",5,StringList::create("advanced"));
+	Param::ParamEntry entry("H","",5,ListUtils::create<String>("advanced"));
 
 	pn.insert(entry);
   TEST_NOT_EQUAL(pn.findEntryRecursive("H"),pe_nullPointer)
@@ -367,7 +367,7 @@ END_SECTION
 
 START_SECTION(([Param::ParamIterator] const Param::ParamEntry& operator*()))
 	Param::ParamNode node;
-	node.entries.push_back(Param::ParamEntry("name","value","description",StringList::create("advanced")));
+	node.entries.push_back(Param::ParamEntry("name","value","description",ListUtils::create<String>("advanced")));
 	Param::ParamIterator it(node);
 	TEST_EQUAL((*it).name,"name")
 	TEST_EQUAL((*it).value,"value");
@@ -377,7 +377,7 @@ END_SECTION
 
 START_SECTION(([Param::ParamIterator] const Param::ParamEntry* operator->()))
 	Param::ParamNode node;
-	node.entries.push_back(Param::ParamEntry("name","value","description",StringList::create("advanced")));
+	node.entries.push_back(Param::ParamEntry("name","value","description",ListUtils::create<String>("advanced")));
 	Param::ParamIterator it(node);
 	TEST_EQUAL(it->name,"name");
 	TEST_EQUAL(it->value,"value");
@@ -411,9 +411,9 @@ root.nodes.push_back(t);
 
 START_SECTION(([Param::ParamIterator] ParamIterator& operator++()))
 	Param::ParamNode node;
-	node.entries.push_back(Param::ParamEntry("name","value","description",StringList::create("advanced")));
+	node.entries.push_back(Param::ParamEntry("name","value","description",ListUtils::create<String>("advanced")));
 	node.entries.push_back(Param::ParamEntry("name2","value2","description2"));
-	node.entries.push_back(Param::ParamEntry("name3","value3","description3",StringList::create("advanced")));
+	node.entries.push_back(Param::ParamEntry("name3","value3","description3",ListUtils::create<String>("advanced")));
 
 	//linear list
 	Param::ParamIterator it(node);
@@ -499,9 +499,9 @@ END_SECTION
 
 START_SECTION(([Param::ParamIterator] ParamIterator operator++(int)))
 	Param::ParamNode node;
-	node.entries.push_back(Param::ParamEntry("name","value","description",StringList::create("advanced")));
+	node.entries.push_back(Param::ParamEntry("name","value","description",ListUtils::create<String>("advanced")));
 	node.entries.push_back(Param::ParamEntry("name2","value2","description2"));
-	node.entries.push_back(Param::ParamEntry("name3","value3","description3",StringList::create("advanced")));
+	node.entries.push_back(Param::ParamEntry("name3","value3","description3",ListUtils::create<String>("advanced")));
 
 	//linear list
 	Param::ParamIterator it(node), it2(node);
@@ -688,7 +688,7 @@ START_SECTION((void setValue(const String &key, const DataValue& value, const St
 	TEST_EQUAL(p.getDescription("key"), "")
 	TEST_EQUAL(p.hasTag("key","advanced"), false)
 
-	p.setValue("key","value","description",StringList::create("advanced"));
+	p.setValue("key","value","description",ListUtils::create<String>("advanced"));
 	TEST_EQUAL(p.exists("key"), true)
 	TEST_EQUAL(p.getValue("key"), "value")
 	TEST_EQUAL(p.getDescription("key"), "description")
@@ -755,7 +755,7 @@ START_SECTION((void addTags(const String& key, const StringList& tags)))
 	p.setValue("key","value");
 	TEST_EQUAL(p.hasTag("key","advanced"),false)
 	TEST_EQUAL(p.hasTag("key","advanced2"),false)
-	p.addTags("key",StringList::create("advanced,advanced2"));
+	p.addTags("key",ListUtils::create<String>("advanced,advanced2"));
 	TEST_EQUAL(p.hasTag("key","advanced"),true)
 	TEST_EQUAL(p.hasTag("key","advanced2"),true)
 END_SECTION
@@ -915,7 +915,7 @@ p.setValue("test2:float",17.5f);
 p.setValue("test2:string","test2");
 p.setValue("test2:int",18);
 p.setSectionDescription("test","sectiondesc");
-p.addTags("test:float", StringList::create("a,b,c"));
+p.addTags("test:float", ListUtils::create<String>("a,b,c"));
 
 START_SECTION((Param(const Param& rhs)))
 	Param p2(p);
@@ -933,7 +933,7 @@ START_SECTION((Param(const Param& rhs)))
 	TEST_STRING_EQUAL(p2.getDescription("test2:int"), String::EMPTY)
 	TEST_EQUAL(p2.getSectionDescription("test"),"sectiondesc")
 	TEST_EQUAL(p2.getTags("test:float").size(), 3)
-	TEST_EQUAL(p2.getTags("test:float") == StringList::create("a,b,c"), true)
+	TEST_EQUAL(p2.getTags("test:float") == ListUtils::create<String>("a,b,c"), true)
 END_SECTION
 
 START_SECTION((Param& operator = (const Param& rhs)))
@@ -953,7 +953,7 @@ START_SECTION((Param& operator = (const Param& rhs)))
 	TEST_STRING_EQUAL(p2.getDescription("test2:int"), String::EMPTY)
 	TEST_EQUAL(p2.getSectionDescription("test"),"sectiondesc")
 	TEST_EQUAL(p2.getTags("test:float").size(), 3)
-	TEST_EQUAL(p2.getTags("test:float") == StringList::create("a,b,c"), true)
+	TEST_EQUAL(p2.getTags("test:float") == ListUtils::create<String>("a,b,c"), true)
 END_SECTION
 
 START_SECTION((Param copy(const String &prefix, bool remove_prefix=false) const))
@@ -1235,7 +1235,7 @@ START_SECTION((void parseCommandLine(const int argc, const char **argv, const St
 	p3.setValue("test4:-a","av");
 	p3.setValue("test4:-b","bv");
 	p3.setValue("test4:-c","cv");
-	p3.setValue("test4:misc",StringList::create("rv1,rv2"));
+	p3.setValue("test4:misc",ListUtils::create<String>("rv1,rv2"));
 	TEST_EQUAL(p2==p3,true)
 
 	Param p20,p30;
@@ -1250,7 +1250,7 @@ START_SECTION((void parseCommandLine(const int argc, const char **argv, const St
 	p300.setValue("test4:-a","-1.0");
 	p300.setValue("test4:-b","bv");
 	p300.setValue("test4:-c","cv");
-	p300.setValue("test4:misc",StringList::create("rv1,rv2,-1.0"));
+	p300.setValue("test4:misc",ListUtils::create<String>("rv1,rv2,-1.0"));
 	TEST_EQUAL(p200==p300,true)
 
 END_SECTION
@@ -1293,7 +1293,7 @@ START_SECTION((void parseCommandLine(const int argc, const char **argv, const Ma
 	p3.setValue("a","-1.0");
 	p3.setValue("b","bv");
 	p3.setValue("c","cv");
-	p3.setValue("misc_",StringList::create("rv1,rv2,-1.0"));
+	p3.setValue("misc_",ListUtils::create<String>("rv1,rv2,-1.0"));
 	TEST_EQUAL(p2==p3,true)
 
 	Param p4,p5;
@@ -1301,7 +1301,7 @@ START_SECTION((void parseCommandLine(const int argc, const char **argv, const Ma
 	p5.setValue("a","av");
 	p5.setValue("b","bv");
 	p5.setValue("c","cv");
-	p5.setValue("misc_",StringList::create("rv1,rv2"));
+	p5.setValue("misc_",ListUtils::create<String>("rv1,rv2"));
 	TEST_EQUAL(p4==p5,true)
 
 	with_one.clear();
@@ -1312,8 +1312,8 @@ START_SECTION((void parseCommandLine(const int argc, const char **argv, const Ma
 	p40.parseCommandLine(9,command_line,with_one,without,with_multiple,"misc__","unknown__");
 	p50.setValue("a","av");
 	p50.setValue("b","true");
-	p50.setValue("misc__",StringList::create("bv,cv,rv1,rv2"));
-	p50.setValue("unknown__",StringList::create("-c"));
+	p50.setValue("misc__",ListUtils::create<String>("bv,cv,rv1,rv2"));
+	p50.setValue("unknown__",ListUtils::create<String>("-c"));
 	TEST_EQUAL(p40==p50,true)
 	TEST_EQUAL(p40,p50)
 	//"executable -a av -b -c cv"
@@ -1321,8 +1321,8 @@ START_SECTION((void parseCommandLine(const int argc, const char **argv, const Ma
 	p400.parseCommandLine(6,command_line2,with_one,without,with_multiple,"misc__","unknown__");
 	p500.setValue("a","av");
 	p500.setValue("b","true");
-	p500.setValue("misc__",StringList::create("cv"));
-	p500.setValue("unknown__",StringList::create("-c"));
+	p500.setValue("misc__",ListUtils::create<String>("cv"));
+	p500.setValue("unknown__",ListUtils::create<String>("-c"));
 	TEST_EQUAL(p400==p500,true)
 
 	//"executable -a -b -c cv rv1"
@@ -1330,22 +1330,22 @@ START_SECTION((void parseCommandLine(const int argc, const char **argv, const Ma
 	p4000.parseCommandLine(6,command_line3,with_one,without,with_multiple,"misc__","unknown__");
 	p5000.setValue("a","");
 	p5000.setValue("b","true");
-	p5000.setValue("misc__",StringList::create("cv,rv1"));
-	p5000.setValue("unknown__",StringList::create("-c"));
+	p5000.setValue("misc__",ListUtils::create<String>("cv,rv1"));
+	p5000.setValue("unknown__",ListUtils::create<String>("-c"));
 	TEST_EQUAL(p4000==p5000,true)
 
 	// list options:
 	Param p6,p7;
 	p6.parseCommandLine(9,command_line_mult,with_one,without,with_multiple,"misc__","unkown__");
-	p7.setValue("d",StringList::create("1.333,2.23,3"));
-	p7.setValue("e",StringList::create("4"));
+	p7.setValue("d",ListUtils::create<String>("1.333,2.23,3"));
+	p7.setValue("e",ListUtils::create<String>("4"));
 	p7.setValue("f",StringList());
 	p7.setValue("g",StringList());
 	TEST_EQUAL(p6,p7);
 
 	Param p8,p9;
 	p9.parseCommandLine(4,command_line_mult,with_one,without,with_multiple,"misc__","unkown__");
-	p8.setValue("d", StringList::create("1.333,2.23"));
+	p8.setValue("d", ListUtils::create<String>("1.333,2.23"));
 	TEST_EQUAL(p9,p8);
 
 END_SECTION
@@ -1496,12 +1496,12 @@ START_SECTION((void checkDefaults(const String &name, const Param &defaults, con
 	s_rest1.push_back("a");
 	s_rest1.push_back("b");
 	s_rest1.push_back("c");
-	d.setValue("stringlist",StringList::create("aaa,abc,cab"),"desc");
+	d.setValue("stringlist",ListUtils::create<String>("aaa,abc,cab"),"desc");
 	d.setValidStrings("stringlist", s_rest);
 	p.clear();
-	p.setValue("stringlist",StringList::create("a,c"));
+	p.setValue("stringlist",ListUtils::create<String>("a,c"));
 	p.checkDefaults("Param_test",d,"",os);
-	p.setValue("stringlist",StringList::create("aa,dd,cc"));
+	p.setValue("stringlist",ListUtils::create<String>("aa,dd,cc"));
 	TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,"",os))
 
 
@@ -1525,8 +1525,8 @@ START_SECTION((void update(const Param& old_version, const bool add_unknown = fa
 	common.setValue("string2","default string2","string2");
 	common.setValue("PATH:onlyfordescription",45.2);
 
-	common.setValue("stringlist",StringList::create("a,b,c"),"stringlist");
-	common.setValue("stringlist2",StringList::create("d,e,f"),"stringlist2");
+	common.setValue("stringlist",ListUtils::create<String>("a,b,c"),"stringlist");
+	common.setValue("stringlist2",ListUtils::create<String>("d,e,f"),"stringlist2");
 	common.setValue("intlist",ListUtils::create<Int>("1,2,3"),"intlist");
 
   // copy and alter
@@ -1536,7 +1536,7 @@ START_SECTION((void update(const Param& old_version, const bool add_unknown = fa
   old.setValue("some:version","1.2","old version");
   old.setValue("some:1:type","unlabeled","type");
   old.setValue("some:type","unlabeled","type");
-	old.setValue("stringlist2",StringList::create("d,e,f,altered"),"stringlist2"); // change some values, we expect them to show up after update()
+	old.setValue("stringlist2",ListUtils::create<String>("d,e,f,altered"),"stringlist2"); // change some values, we expect them to show up after update()
 	old.setValue("intlist",ListUtils::create<Int>("3"),"intlist");
 
   Param defaults = common;
@@ -1547,7 +1547,7 @@ START_SECTION((void update(const Param& old_version, const bool add_unknown = fa
   defaults.setValue("new_value",3,"new param not present in old");
 
   Param expected = defaults;
-	expected.setValue("stringlist2",StringList::create("d,e,f,altered"),"stringlist2"); // change some values, we expect them to show up after update()
+	expected.setValue("stringlist2",ListUtils::create<String>("d,e,f,altered"),"stringlist2"); // change some values, we expect them to show up after update()
 	expected.setValue("intlist",ListUtils::create<Int>("3"),"intlist");
   expected.setValue("some:type","unlabeled","type");
 

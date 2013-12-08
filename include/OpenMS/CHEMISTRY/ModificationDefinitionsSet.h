@@ -39,6 +39,7 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/StringList.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/CHEMISTRY/ModificationDefinition.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 
@@ -67,11 +68,8 @@ public:
     /// copy constructor
     ModificationDefinitionsSet(const ModificationDefinitionsSet & rhs);
 
-    /// detailed constructor with comma separated list of modifications
-    ModificationDefinitionsSet(const String & fixed_modifications, const String & variable_modifications = "");
-
     /// detailed constructor with StringLists
-    ModificationDefinitionsSet(const StringList & fixed_modifications, const StringList & variable_modifications = StringList::create(""));
+    ModificationDefinitionsSet(const StringList & fixed_modifications, const StringList & variable_modifications = ListUtils::create<String>(""));
 
     /// destructor
     virtual ~ModificationDefinitionsSet();

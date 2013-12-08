@@ -55,10 +55,10 @@ namespace OpenMS
     defaults_.setMinFloat("selection_window", 0.);
 
     defaults_.setValue("exclude_overlapping_peaks", "false", "If true overlapping or nearby peaks (within min_peak_distance) are excluded for selection.");
-    defaults_.setValidStrings("exclude_overlapping_peaks", StringList::create("true,false"));
+    defaults_.setValidStrings("exclude_overlapping_peaks", ListUtils::create<String>("true,false"));
 
     defaults_.setValue("Exclusion:use_dynamic_exclusion", "false", "If true dynamic exclusion is applied.");
-    defaults_.setValidStrings("Exclusion:use_dynamic_exclusion", StringList::create("true,false"));
+    defaults_.setValidStrings("Exclusion:use_dynamic_exclusion", ListUtils::create<String>("true,false"));
 
     defaults_.setValue("Exclusion:exclusion_time", 100., "The time (in seconds) a feature is excluded.");
     defaults_.setMinFloat("Exclusion:exclusion_time", 0.);

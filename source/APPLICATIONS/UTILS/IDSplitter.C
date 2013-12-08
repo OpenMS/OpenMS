@@ -104,11 +104,11 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "Input file (data annotated with identifications)");
-    setValidFormats_("in", StringList::create("mzML,featureXML,consensusXML"));
+    setValidFormats_("in", ListUtils::create<String>("mzML,featureXML,consensusXML"));
     registerOutputFile_("out", "<file>", "", "Output file (data without identifications). Either 'out' or 'id_out' are required. They can be used together.", false);
-    setValidFormats_("out", StringList::create("mzML,featureXML,consensusXML"));
+    setValidFormats_("out", ListUtils::create<String>("mzML,featureXML,consensusXML"));
     registerOutputFile_("id_out", "<file>", "", "Output file (identifications). Either 'out' or 'id_out' are required. They can be used together.", false);
-    setValidFormats_("id_out", StringList::create("idXML"));
+    setValidFormats_("id_out", ListUtils::create<String>("idXML"));
   }
 
   ExitCodes main_(int, const char **)

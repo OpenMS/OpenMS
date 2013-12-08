@@ -233,27 +233,27 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("fasta", "<file>", "", "Input database file", true, false);
-    setValidFormats_("fasta", StringList::create("fasta"));
+    setValidFormats_("fasta", ListUtils::create<String>("fasta"));
 
     registerInputFileList_("in", "<file(s)>", StringList(), "Input file(s) holding experimental data", false, false);
-    setValidFormats_("in", StringList::create("idXML,consensusXML"));
+    setValidFormats_("in", ListUtils::create<String>("idXML,consensusXML"));
 
     registerStringOption_("in_path", "<file>", "", "Path to idXMLs or consensusXMLs files. Ignored if 'in' is given.", false, false);
 
     registerInputFile_("design", "<file>", "", "Text file containing the experimental design. See documentation for specific format requirements", false, false);
-    setValidFormats_("design", StringList::create("txt"));
+    setValidFormats_("design", ListUtils::create<String>("txt"));
 
     registerOutputFile_("protein_groups", "<file>", "", "output file. Contains all protein groups", false);
-    setValidFormats_("protein_groups", StringList::create("csv"));
+    setValidFormats_("protein_groups", ListUtils::create<String>("csv"));
 
     registerOutputFile_("peptide_table", "<file>", "", "output file. Contains one peptide per line and all proteins which contain that peptide", false);
-    setValidFormats_("peptide_table", StringList::create("csv"));
+    setValidFormats_("peptide_table", ListUtils::create<String>("csv"));
 
     registerOutputFile_("protein_table", "<file>", "", "output file. Contains one protein per line", false);
-    setValidFormats_("protein_table", StringList::create("csv"));
+    setValidFormats_("protein_table", ListUtils::create<String>("csv"));
 
     registerOutputFile_("additional_info", "<file>", "", "output file for additional info", false, true);
-    setValidFormats_("additional_info", StringList::create("csv"));
+    setValidFormats_("additional_info", ListUtils::create<String>("csv"));
 
     Param temp = ProteinResolver().getParameters();
     registerFullParam_(temp);
@@ -622,7 +622,7 @@ protected:
       }
       else // otherwise batch processing
       {
-        for (StringList::Iterator iter = input_list.begin(); iter != input_list.end(); ++iter)
+        for (StringList::iterator iter = input_list.begin(); iter != input_list.end(); ++iter)
         {
           FileTypes::Type in_type = FileHandler::getType(*iter);
           if (in_type == FileTypes::IDXML)

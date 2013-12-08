@@ -83,7 +83,7 @@ public:
     TOPPBase("ImageCreator",
              "Transforms an LC-MS map into an image.", false)
   {
-    out_formats_ = StringList::create("png,jpg,bmp,tiff,ppm");
+    out_formats_ = ListUtils::create<String>("png,jpg,bmp,tiff,ppm");
   }
 
 protected:
@@ -217,9 +217,9 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "input file ");
-    setValidFormats_("in", StringList::create("mzML"));
+    setValidFormats_("in", ListUtils::create<String>("mzML"));
     registerInputFile_("in_featureXML", "<file>", "", "input file ", false);
-    setValidFormats_("in_featureXML", StringList::create("featureXML"));
+    setValidFormats_("in_featureXML", ListUtils::create<String>("featureXML"));
 
     registerOutputFile_("out", "<file>", "", "output file");
     setValidFormats_("out", out_formats_, false);
@@ -267,8 +267,8 @@ protected:
       {
         format = "nosuffix";
       }
-      out_formats_.toUpper();
-      if (!out_formats_.contains(format.toUpper()))
+      StringListUtils::toUpper(out_formats_);
+      if (!ListUtils::contains(out_formats_, format.toUpper()))
       {
         LOG_ERROR << "No explicit image output format was provided via 'out_type', and the suffix ('" << format << "') does not resemble a valid type. Please fix one of them." << std::endl;
         return ILLEGAL_PARAMETERS;

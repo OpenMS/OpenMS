@@ -206,25 +206,25 @@ public:
   {
     // create parameter for input file (.mzML)
     registerInputFile_("in", "<file>", "", "Raw LC-MS data to be analyzed. (Profile data required. Will not work with centroided data!)");
-    setValidFormats_("in", StringList::create("mzML"));
+    setValidFormats_("in", ListUtils::create<String>("mzML"));
     // create parameter for output file (.consensusXML)
     registerOutputFile_("out", "<file>", "", "Set of all identified peptide groups (i.e. peptide pairs or triplets or singlets or ..). The m/z-RT positions correspond to the lightest peptide in each group.", false);
-    setValidFormats_("out", StringList::create("consensusXML"));
+    setValidFormats_("out", ListUtils::create<String>("consensusXML"));
     // create optional parameter for additional clusters output file (.featureXML)
     registerOutputFile_("out_clusters", "<file>", "", "Optional debug output containing data points passing all filters, hence belonging to a SILAC pattern. Points of the same colour correspond to the mono-isotopic peak of the lightest peptide in a pattern.", false, true);
-    setValidFormats_("out_clusters", StringList::create("consensusXML"));
+    setValidFormats_("out_clusters", ListUtils::create<String>("consensusXML"));
     // create optional parameter for additional clusters output file (.featureXML)
     registerOutputFile_("out_features", "<file>", "", "Optional output file containing the individual peptide features in \'out\'.", false, true);
-    setValidFormats_("out_features", StringList::create("featureXML"));
+    setValidFormats_("out_features", ListUtils::create<String>("featureXML"));
     registerOutputFile_("out_mzq", "<file>", "", "Optional output file of MzQuantML.", false, true);
-    setValidFormats_("out_mzq", StringList::create("mzq"));
+    setValidFormats_("out_mzq", ListUtils::create<String>("mzq"));
 
     // create optional parameter for additional output file (.consensusXML) to store filter results
     registerOutputFile_("out_filters", "<file>", "", "Optional output file containing all points that passed the filters as txt. Suitable as input for \'in_filters\' to perform clustering without preceding filtering process.", false, true);
-    setValidFormats_("out_filters", StringList::create("consensusXML"));
+    setValidFormats_("out_filters", ListUtils::create<String>("consensusXML"));
     // create optional parameter for additional input file (.consensusXML) to load filter results
     registerInputFile_("in_filters", "<file>", "", "Optional input file containing all points that passed the filters as txt. Use output from \'out_filters\' to perform clustering only.", false, true);
-    setValidFormats_("in_filters", StringList::create("consensusXML"));
+    setValidFormats_("in_filters", ListUtils::create<String>("consensusXML"));
     registerStringOption_("out_debug", "<filebase>", "", "Filename base for debug output.", false, true);
 
     // create section "labels" for adjusting masses of labels
@@ -251,33 +251,33 @@ public:
     if (section == "labels")
     {
       // create labels that can be chosen in section "sample/labels"
-      defaults.setValue("Arg6", 6.0201290268, "Arg6 mass shift", StringList::create("advanced"));
+      defaults.setValue("Arg6", 6.0201290268, "Arg6 mass shift", ListUtils::create<String>("advanced"));
       defaults.setMinFloat("Arg6", 0.0);
-      defaults.setValue("Arg10", 10.008268600, "Arg10 mass shift", StringList::create("advanced"));
+      defaults.setValue("Arg10", 10.008268600, "Arg10 mass shift", ListUtils::create<String>("advanced"));
       defaults.setMinFloat("Arg10", 0.0);
-      defaults.setValue("Lys4", 4.0251069836, "Lys4 mass shift", StringList::create("advanced"));
+      defaults.setValue("Lys4", 4.0251069836, "Lys4 mass shift", ListUtils::create<String>("advanced"));
       defaults.setMinFloat("Lys4", 0.0);
-      defaults.setValue("Lys6", 6.0201290268, "Lys6 mass shift", StringList::create("advanced"));
+      defaults.setValue("Lys6", 6.0201290268, "Lys6 mass shift", ListUtils::create<String>("advanced"));
       defaults.setMinFloat("Lys6", 0.0);
-      defaults.setValue("Lys8", 8.0141988132, "Lys8 mass shift", StringList::create("advanced"));
+      defaults.setValue("Lys8", 8.0141988132, "Lys8 mass shift", ListUtils::create<String>("advanced"));
       defaults.setMinFloat("Lys8", 0.0);
-      defaults.setValue("dICPL4", 4.025107, "mass difference between isotope-coded protein labels ICPL 4 and ICPL 0", StringList::create("advanced"));
+      defaults.setValue("dICPL4", 4.025107, "mass difference between isotope-coded protein labels ICPL 4 and ICPL 0", ListUtils::create<String>("advanced"));
       defaults.setMinFloat("dICPL4", 0.0);
-      defaults.setValue("dICPL6", 6.020129, "mass difference between isotope-coded protein labels ICPL 6 and ICPL 0", StringList::create("advanced"));
+      defaults.setValue("dICPL6", 6.020129, "mass difference between isotope-coded protein labels ICPL 6 and ICPL 0", ListUtils::create<String>("advanced"));
       defaults.setMinFloat("dICPL6", 0.0);
-      defaults.setValue("dICPL10", 10.045236, "mass difference between isotope-coded protein labels ICPL 10 and ICPL 0", StringList::create("advanced"));
+      defaults.setValue("dICPL10", 10.045236, "mass difference between isotope-coded protein labels ICPL 10 and ICPL 0", ListUtils::create<String>("advanced"));
       defaults.setMinFloat("dICPL10", 0.0);
-      defaults.setValue("Methyl4", 4.0202, "Methyl4 mass shift", StringList::create("advanced"));
+      defaults.setValue("Methyl4", 4.0202, "Methyl4 mass shift", ListUtils::create<String>("advanced"));
       defaults.setMinFloat("Methyl4", 0.0);
-      defaults.setValue("Methyl8", 8.0202, "Methyl8 mass shift", StringList::create("advanced"));
+      defaults.setValue("Methyl8", 8.0202, "Methyl8 mass shift", ListUtils::create<String>("advanced"));
       defaults.setMinFloat("Methyl8", 0.0);
-      defaults.setValue("Methyl12", 12.0202, "Methyl12 mass shift", StringList::create("advanced"));
+      defaults.setValue("Methyl12", 12.0202, "Methyl12 mass shift", ListUtils::create<String>("advanced"));
       defaults.setMinFloat("Methyl12", 0.0);
-      defaults.setValue("Methyl16", 16.0202, "Methyl16 mass shift", StringList::create("advanced"));
+      defaults.setValue("Methyl16", 16.0202, "Methyl16 mass shift", ListUtils::create<String>("advanced"));
       defaults.setMinFloat("Methyl16", 0.0);
-      defaults.setValue("Methyl24", 24.0202, "Methyl24 mass shift", StringList::create("advanced"));
+      defaults.setValue("Methyl24", 24.0202, "Methyl24 mass shift", ListUtils::create<String>("advanced"));
       defaults.setMinFloat("Methyl24", 0.0);
-      defaults.setValue("Methyl32", 32.0202, "Methyl32 mass shift", StringList::create("advanced"));
+      defaults.setValue("Methyl32", 32.0202, "Methyl32 mass shift", ListUtils::create<String>("advanced"));
       defaults.setMinFloat("Methyl32", 0.0);
     }
 
@@ -292,7 +292,7 @@ public:
       defaults.setValue("charge", "2:4", "Range of charge states in the sample, i.e. min charge : max charge.");
       defaults.setValue("missed_cleavages", 0, "Maximum number of missed cleavages.");
       defaults.setMinInt("missed_cleavages", 0);
-      defaults.setValue("peaks_per_peptide", "3:5", "Range of peaks per peptide in the sample, i.e. min peaks per peptide : max peaks per peptide. For example 3:6, if isotopic peptide patterns in the sample consist of either three, four, five or six isotopic peaks. ", StringList::create("advanced"));
+      defaults.setValue("peaks_per_peptide", "3:5", "Range of peaks per peptide in the sample, i.e. min peaks per peptide : max peaks per peptide. For example 3:6, if isotopic peptide patterns in the sample consist of either three, four, five or six isotopic peaks. ", ListUtils::create<String>("advanced"));
     }
 
 
@@ -644,7 +644,7 @@ public:
         else it->second.filename = File::basename(in);
         // Write correct label
         // (this would crash if used without a label!)
-        if (id > 0) it->second.label = StringList(analyzer.getSILAClabels()[id - 1]).concatenate(""); // skip first round (empty label is not listed)
+        if (id > 0) it->second.label = ListUtils::concatenate(analyzer.getSILAClabels()[id - 1], ""); // skip first round (empty label is not listed)
         ++id;
       }
 

@@ -36,6 +36,7 @@
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CONCEPT/Macros.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <iostream>
 #include <fstream>
@@ -327,7 +328,7 @@ namespace OpenMS
     trained_trans_.clear();
     synonym_trans_.clear();
     synonym_trans_names_.clear();
-    var_modifications_ = StringList::create("");
+    var_modifications_ = ListUtils::create<String>("");
     return;
   }
 
@@ -885,7 +886,7 @@ namespace OpenMS
     // pathways axyz and bxyz and the first two explicitly modeled ones
     HMMState * s2 = 0;
     HMMState * end_state = name_to_state_["end"];
-    StringList pathways = StringList::create("axyz,axyz1,axyz1,bxyz,bxyz1,bxyz2");
+    StringList pathways = ListUtils::create<String>("axyz,axyz1,axyz1,bxyz,bxyz1,bxyz2");
     for (StringList::const_iterator pathway_it = pathways.begin(); pathway_it != pathways.end(); ++pathway_it)
     {
       String pathway = *pathway_it;
@@ -995,7 +996,7 @@ namespace OpenMS
       }
     }
 
-    StringList bk_pathways = StringList::create("bk-1,bk-2");
+    StringList bk_pathways = ListUtils::create<String>("bk-1,bk-2");
 
     for (StringList::const_iterator pathway_it = bk_pathways.begin(); pathway_it != bk_pathways.end(); ++pathway_it)
     {

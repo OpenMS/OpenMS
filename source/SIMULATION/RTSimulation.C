@@ -39,6 +39,7 @@
 #include <OpenMS/FORMAT/LibSVMEncoder.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <vector>
 #include <iostream>
@@ -82,11 +83,11 @@ namespace OpenMS
   void RTSimulation::setDefaultParams_()
   {
     defaults_.setValue("rt_column", "HPLC", "Modelling of an RT or CE column");
-    defaults_.setValidStrings("rt_column", StringList::create("none,HPLC,CE"));
+    defaults_.setValidStrings("rt_column", ListUtils::create<String>("none,HPLC,CE"));
 
     // scaling
     defaults_.setValue("auto_scale", "true", "Scale predicted RT's/MT's to given 'total_gradient_time'? If 'true', for CE this means that 'CE:lenght_d', 'CE:length_total', 'CE:voltage' have no influence.");
-    defaults_.setValidStrings("auto_scale", StringList::create("true,false"));
+    defaults_.setValidStrings("auto_scale", ListUtils::create<String>("true,false"));
 
     // column settings
     defaults_.setValue("total_gradient_time", 2500.0, "The duration [s] of the gradient.");
@@ -318,7 +319,7 @@ namespace OpenMS
     {
       LOG_WARN << "RT prediction gave 'invalid' results for " << deleted_features.size() << " peptide(s), making them unobservable.\n";
       if (deleted_features.size() < 100)
-        LOG_WARN << "  " << deleted_features.concatenate("\n  ") << std::endl;
+        LOG_WARN << "  " << ListUtils::concatenate(deleted_features, "\n  ") << std::endl;
       else
         LOG_WARN << "  (List is too big to show)" << std::endl;
     }

@@ -117,9 +117,9 @@ START_SECTION((template < typename MapType > void mergeSpectraPrecursors(MapType
 	TEST_EQUAL(exp.size(), 17)
 
   Param p;
-  p.setValue("mz_binning_width", 0.3, "Max m/z distance of two peaks to be merged.", StringList::create("advanced"));
+  p.setValue("mz_binning_width", 0.3, "Max m/z distance of two peaks to be merged.", ListUtils::create<String>("advanced"));
 
-  p.setValue("mz_binning_width_unit", "Da", "Unit in which the distance between two peaks is given.", StringList::create("advanced"));
+  p.setValue("mz_binning_width_unit", "Da", "Unit in which the distance between two peaks is given.", ListUtils::create<String>("advanced"));
 
   // same precursor MS/MS merging
  	p.setValue("precursor_method:mz_tolerance", 10e-5, "Max m/z distance of the precursor entries of two spectra to be merged in [Da].");

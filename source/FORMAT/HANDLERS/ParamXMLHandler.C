@@ -78,7 +78,7 @@ namespace OpenMS
         //tags
         String tags_string;
         optionalAttributeAsString_(tags_string, attributes, "tags");
-        StringList tags = StringList::create(tags_string);
+        StringList tags = ListUtils::create<String>(tags_string);
 
         //advanced
         String advanced_string;
@@ -181,7 +181,7 @@ namespace OpenMS
         }
 
         // check for supported_formats -> supported_formats overwrites restrictions in case of files
-        if ((tags.contains("input file") || tags.contains("output file")) && (type == "string" || type == "input-file" || type == "output-file"))
+        if ((ListUtils::contains(tags, "input file") || ListUtils::contains(tags, "output file")) && (type == "string" || type == "input-file" || type == "output-file"))
         {
           Int supported_formats_index = attributes.getIndex(s_supported_formats);
           if (supported_formats_index != -1)
@@ -215,7 +215,7 @@ namespace OpenMS
         //tags
         String tags_string;
         optionalAttributeAsString_(tags_string, attributes, "tags");
-        list_.tags = StringList::create(tags_string);
+        list_.tags = ListUtils::create<String>(tags_string);
         
         
         //parse name/type
@@ -262,7 +262,7 @@ namespace OpenMS
         }
 
         // check for supported_formats -> supported_formats overwrites restrictions in case of files
-        if ((list_.tags.contains("input file") || list_.tags.contains("output file")) && list_.type == "string")
+        if ((ListUtils::contains(list_.tags, "input file") || ListUtils::contains(list_.tags, "output file")) && list_.type == "string")
         {
           Int supported_formats_index = attributes.getIndex(s_supported_formats);
           if (supported_formats_index != -1)

@@ -32,13 +32,15 @@
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/ANALYSIS/ID/PILISCrossValidation.h>
+
 #include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignmentScore.h>
 #include <OpenMS/CONCEPT/Factory.h>
-#include <OpenMS/ANALYSIS/ID/PILISCrossValidation.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/ANALYSIS/ID/PILISModel.h>
 #include <OpenMS/ANALYSIS/MRM/MRMFragmentSelection.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 using namespace std;
 
@@ -49,14 +51,14 @@ namespace OpenMS
   {
     defaults_.setValue("nfold", 10, "Number of partitions to use for cross validation");
     defaults_.setValue("optimization_method", "tophit_against_all_others", "Scoring method used for optimization");
-    defaults_.setValidStrings("optimization_method", StringList::create("tophit_against_all_others,only_top_hit,top_n_ions,top_n_ions_by"));
+    defaults_.setValidStrings("optimization_method", ListUtils::create<String>("tophit_against_all_others,only_top_hit,top_n_ions,top_n_ions_by"));
     defaults_.setValue("compare_function", "SpectrumAlignmentScore", "Spectra scoring function to use");
-    defaults_.setValidStrings("compare_function", StringList::create("SpectrumAlignmentScore,ZhangSimilarityScore"));
+    defaults_.setValidStrings("compare_function", ListUtils::create<String>("SpectrumAlignmentScore,ZhangSimilarityScore"));
     defaults_.setValue("num_top_peaks", 2, "Number of highest abundant peaks to consider with top_n_ion and top_n_ions_by optimization_methods");
     defaults_.setValue("min_intensity", 0.30, "Min relative intensity of highest abundant peaks to consider in top_n_ions_by");
     defaults_.setValue("fragment_mass_tolerance", 0.5, "Fragment mass tolerance, mainly used in compare function.");
     defaults_.setValue("normalize_to_TIC", "true", "Whether the spectra should be normalized to TIC before training, to max of one otherwise.");
-    defaults_.setValidStrings("normalize_to_TIC", StringList::create("true,false"));
+    defaults_.setValidStrings("normalize_to_TIC", ListUtils::create<String>("true,false"));
     defaultsToParam_();
   }
 

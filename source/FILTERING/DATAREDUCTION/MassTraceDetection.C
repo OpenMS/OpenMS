@@ -36,6 +36,7 @@
 
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <vector>
 #include <map>
@@ -56,16 +57,16 @@ MassTraceDetection::MassTraceDetection() :
     defaults_.setValue("chrom_peak_snr", 3.0, "Minimum signal-to-noise a mass trace should have.");
 
     defaults_.setValue("reestimate_mt_sd", "true", "Enables dynamic re-estimation of m/z variance during mass trace collection stage.");
-    defaults_.setValidStrings("reestimate_mt_sd", StringList::create(("true,false")));
+    defaults_.setValidStrings("reestimate_mt_sd", ListUtils::create<String>("true,false"));
 
     // advanced parameters
-    defaults_.setValue("trace_termination_criterion", "outlier", "Termination criterion for the extension of mass traces. In 'outlier' mode, trace extension cancels if a predefined number of consecutive outliers are found (see trace_termination_outliers parameter). In 'sample_rate' mode, trace extension in both directions stops if ratio of found peaks versus visited spectra falls below the 'min_sample_rate' threshold.", StringList::create("advanced"));
-    defaults_.setValidStrings("trace_termination_criterion", StringList::create(("outlier,sample_rate")));
-    defaults_.setValue("trace_termination_outliers", 5, "Mass trace extension in one direction cancels if this number of consecutive spectra with no detectable peaks is reached.", StringList::create("advanced"));
+    defaults_.setValue("trace_termination_criterion", "outlier", "Termination criterion for the extension of mass traces. In 'outlier' mode, trace extension cancels if a predefined number of consecutive outliers are found (see trace_termination_outliers parameter). In 'sample_rate' mode, trace extension in both directions stops if ratio of found peaks versus visited spectra falls below the 'min_sample_rate' threshold.", ListUtils::create<String>("advanced"));
+    defaults_.setValidStrings("trace_termination_criterion", ListUtils::create<String>("outlier,sample_rate"));
+    defaults_.setValue("trace_termination_outliers", 5, "Mass trace extension in one direction cancels if this number of consecutive spectra with no detectable peaks is reached.", ListUtils::create<String>("advanced"));
 
-    defaults_.setValue("min_sample_rate", 0.5, "Minimum fraction of scans along the mass trace that must contain a peak.", StringList::create("advanced"));
-    defaults_.setValue("min_trace_length", 5.0, "Minimum expected length of a mass trace (in seconds).", StringList::create("advanced"));
-    defaults_.setValue("max_trace_length", 300.0, "Minimum expected length of a mass trace (in seconds).", StringList::create("advanced"));
+    defaults_.setValue("min_sample_rate", 0.5, "Minimum fraction of scans along the mass trace that must contain a peak.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("min_trace_length", 5.0, "Minimum expected length of a mass trace (in seconds).", ListUtils::create<String>("advanced"));
+    defaults_.setValue("max_trace_length", 300.0, "Minimum expected length of a mass trace (in seconds).", ListUtils::create<String>("advanced"));
 
 
 

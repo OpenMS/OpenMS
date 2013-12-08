@@ -176,7 +176,7 @@ int main(int argc, const char** argv)
     //load command line files
     if (param.exists("misc"))
     {
-      mw->loadFiles((StringList)(param.getValue("misc")), splash_screen);
+      mw->loadFiles(param.getValue("misc"), splash_screen);
     }
 
     // We are about to show the application.

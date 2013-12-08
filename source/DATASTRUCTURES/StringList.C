@@ -34,284 +34,76 @@
 
 #include <OpenMS/DATASTRUCTURES/StringList.h>
 
+#include <boost/mem_fn.hpp>
+
 #include <QStringList>
 
 using namespace std;
 
 namespace OpenMS
 {
-
-  StringList::StringList()
+  
+  StringList StringListUtils::fromQStringList(const QStringList & rhs)
   {
-  }
-
-  StringList::StringList(const StringList & rhs) :
-    vector<String>(rhs)
-  {
-  }
-
-  StringList::StringList(const vector<String> & rhs) :
-    vector<String>(rhs)
-  {
-  }
-
-  StringList::StringList(const vector<string> & rhs) :
-    vector<String>(rhs.begin(), rhs.end())
-  {
-  }
-
-  StringList::StringList(const QStringList & rhs)
-  {
-    for (int i = 0; i < rhs.size(); ++i)
+    StringList sl;
+    sl.reserve(rhs.size());
+    
+    for (QStringList::const_iterator it = rhs.begin(); it != rhs.end(); ++it)
     {
-      this->push_back(rhs[i].toStdString());
+      sl.push_back(it->toStdString());
     }
+    
+    return sl;
   }
 
-  StringList & StringList::operator=(const StringList & rhs)
+  void StringListUtils::toUpper(StringList & sl)
   {
-    vector<String>::operator=(rhs);
-    return *this;
+    std::for_each(sl.begin(), sl.end(), boost::mem_fn(&String::toUpper));
   }
 
-  StringList & StringList::operator=(const vector<String> & rhs)
+  void StringListUtils::toLower(StringList & sl)
   {
-    vector<String>::operator=(rhs);
-    return *this;
+    std::for_each(sl.begin(), sl.end(), boost::mem_fn(&String::toLower));
   }
-
-  StringList & StringList::operator=(const vector<string> & rhs)
+  
+  StringListUtils::Iterator StringListUtils::searchPrefix(const Iterator & start, const Iterator & end, const String & text, bool trim)
   {
-    this->resize(rhs.size());
-    for (Size i = 0; i < rhs.size(); ++i)
-    {
-      this->operator[](i) = rhs[i];
-    }
-    return *this;
+    return find_if(start, end, PrefixPredicate_(text, trim));
   }
-
-  StringList StringList::create(const String & list, const char splitter)
+  
+  StringListUtils::ConstIterator StringListUtils::searchPrefix(const ConstIterator & start, const ConstIterator & end, const String & text, bool trim)
   {
-    StringList out;
-    list.split(splitter, out);
-    return out;
+    return find_if(start, end, PrefixPredicate_(text, trim));
   }
-
-  StringList StringList::create(const char * const * list, UInt size)
+  
+  StringListUtils::ConstIterator StringListUtils::searchPrefix(const StringList & container, const String & text, bool trim)
   {
-    StringList out;
-    for (UInt i = 0; i < size; ++i)
-    {
-      out.push_back(list[i]);
-    }
-    return out;
+    return searchPrefix(container.begin(), container.end(), text, trim);
   }
 
-  bool StringList::contains(const String & s) const
+  StringListUtils::Iterator StringListUtils::searchPrefix(StringList & container, const String & text, bool trim)
   {
-    for (Size i = 0; i < this->size(); ++i)
-    {
-      if (this->operator[](i) == s)
-        return true;
-    }
-    return false;
+    return searchPrefix(container.begin(), container.end(), text, trim);
   }
-
-  void StringList::toUpper()
+  
+  StringListUtils::Iterator StringListUtils::searchSuffix(const Iterator & start, const Iterator & end, const String & text, bool trim)
   {
-    for (Size i = 0; i < this->size(); ++i)
-    {
-      this->operator[](i).toUpper();
-    }
+    return find_if(start, end, SuffixPredicate_(text, trim));
   }
-
-  void StringList::toLower()
+  
+  StringListUtils::ConstIterator StringListUtils::searchSuffix(const ConstIterator & start, const ConstIterator & end, const String & text, bool trim)
   {
-    for (Size i = 0; i < this->size(); ++i)
-    {
-      this->operator[](i).toLower();
-    }
+    return find_if(start, end, SuffixPredicate_(text, trim));
   }
 
-  String StringList::concatenate(const String & glue) const
+  StringListUtils::ConstIterator StringListUtils::searchSuffix(const StringList & container, const String & text, bool trim)
   {
-
-    if (size() == 0)
-      return "";
-
-    String output = *(begin());
-    for (const_iterator it = begin() + 1; it != end(); ++it)
-    {
-      output += (glue + *it);
-    }
-
-    return output;
+    return searchSuffix(container.begin(), container.end(), text, trim);
   }
-
-  // ----------------- Output operator ----------------------
-
-  ostream & operator<<(std::ostream & os, const StringList & p)
+  
+  StringListUtils::Iterator StringListUtils::searchSuffix(StringList & container, const String & text, bool trim)
   {
-    os << "[";
-    if (p.size() > 0)
-    {
-      os << p[0];
-    }
-
-    for (Size i = 1; i < p.size(); ++i)
-    {
-      os << ", " << p[i];
-    }
-    os << "]";
-    return os;
+    return searchSuffix(container.begin(), container.end(), text, trim);
   }
-
-  StringList::Iterator StringList::search(const String & text, bool trim)
-  {
-    return search(begin(), text, trim);
-  }
-
-  StringList::ConstIterator StringList::search(const String & text, bool trim) const
-  {
-    return search(begin(), text, trim);
-  }
-
-  StringList::Iterator StringList::search(const Iterator & start, const String & text, bool trim)
-  {
-    String pattern = text;
-    if (trim)
-    {
-      pattern.trim();
-    }
-
-    String tmp;
-
-    Iterator it = start;
-
-    while (it != end())
-    {
-      tmp = *it;
-      if (trim)
-      {
-        if (tmp.trim().hasPrefix(pattern))
-          return it;
-      }
-      else
-      {
-        if (tmp.hasPrefix(pattern))
-          return it;
-      }
-      ++it;
-    }
-
-    //nothing found
-    return end();
-  }
-
-  StringList::ConstIterator StringList::search(const ConstIterator & start, const String & text, bool trim) const
-  {
-    String pattern = text;
-    if (trim)
-    {
-      pattern.trim();
-    }
-
-    String tmp;
-
-    ConstIterator it = start;
-
-    while (it != end())
-    {
-      tmp = *it;
-      if (trim)
-      {
-        if (tmp.trim().hasPrefix(pattern))
-          return it;
-      }
-      else
-      {
-        if (tmp.hasPrefix(pattern))
-          return it;
-      }
-      ++it;
-    }
-
-    //nothing found
-    return end();
-  }
-
-  StringList::Iterator StringList::searchSuffix(const Iterator & start, const String & text, bool trim)
-  {
-    String pattern = text;
-    if (trim)
-    {
-      pattern.trim();
-    }
-
-    String tmp;
-
-    Iterator it = start;
-
-    while (it != end())
-    {
-      tmp = *it;
-      if (trim)
-      {
-        if (tmp.trim().hasSuffix(pattern))
-          return it;
-      }
-      else
-      {
-        if (tmp.hasSuffix(pattern))
-          return it;
-      }
-      ++it;
-    }
-
-    //nothing found
-    return end();
-  }
-
-  StringList::ConstIterator StringList::searchSuffix(const ConstIterator & start, const String & text, bool trim) const
-  {
-    String pattern = text;
-    if (trim)
-    {
-      pattern.trim();
-    }
-
-    String tmp;
-
-    ConstIterator it = start;
-
-    while (it != end())
-    {
-      tmp = *it;
-      if (trim)
-      {
-        if (tmp.trim().hasSuffix(pattern))
-          return it;
-      }
-      else
-      {
-        if (tmp.hasSuffix(pattern))
-          return it;
-      }
-      ++it;
-    }
-
-    //nothing found
-    return end();
-  }
-
-  StringList::Iterator StringList::searchSuffix(const String & text, bool trim)
-  {
-    return searchSuffix(begin(), text, trim);
-  }
-
-  StringList::ConstIterator StringList::searchSuffix(const String & text, bool trim) const
-  {
-    return searchSuffix(begin(), text, trim);
-  }
-
+  
 } // namespace OpenMS

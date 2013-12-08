@@ -38,6 +38,7 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 using namespace OpenMS;
 
@@ -95,10 +96,10 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "Input TraML file");
-    setValidFormats_("in", StringList::create("TraML"));
+    setValidFormats_("in", ListUtils::create<String>("TraML"));
 
     registerOutputFile_("out", "<file>", "", "Output OpenSWATH transition TSV file");
-    setValidFormats_("out", StringList::create("csv"));
+    setValidFormats_("out", ListUtils::create<String>("csv"));
   }
 
   ExitCodes main_(int, const char **)

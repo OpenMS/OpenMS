@@ -36,6 +36,7 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/VISUAL/TOPPASScene.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/VISUAL/TOPPASResources.h>
 
 #include <QtGui/QApplication>
@@ -104,7 +105,7 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "The workflow to be executed.");
-    setValidFormats_("in", StringList::create("toppas"));
+    setValidFormats_("in", ListUtils::create<String>("toppas"));
     registerStringOption_("out_dir", "<directory>", "", "Directory for output files (default: user's home directory)", false);
     registerStringOption_("resource_file", "<file>", "", "A TOPPAS resource file (*.trf) specifying the files this workflow is to be applied to", false);
     registerIntOption_("num_jobs", "<integer>", 1, "Maximum number of jobs running in parallel", false, false);

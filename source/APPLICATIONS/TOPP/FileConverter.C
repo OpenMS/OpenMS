@@ -131,14 +131,14 @@ protected:
     registerInputFile_("in", "<file>", "", "input file ");
     registerStringOption_("in_type", "<type>", "", "input file type -- default: determined from file extension or content\n", false);
     String formats("mzData,mzXML,mzML,dta,dta2d,mgf,featureXML,consensusXML,ms2,fid,tsv,peplist,kroenik,edta");
-    setValidFormats_("in", StringList::create(formats));
-    setValidStrings_("in_type", StringList::create(formats));
+    setValidFormats_("in", ListUtils::create<String>(formats));
+    setValidStrings_("in_type", ListUtils::create<String>(formats));
 
     formats = "mzData,mzXML,mzML,dta2d,mgf,featureXML,consensusXML,edta";
     registerOutputFile_("out", "<file>", "", "output file ");
-    setValidFormats_("out", StringList::create(formats));
+    setValidFormats_("out", ListUtils::create<String>(formats));
     registerStringOption_("out_type", "<type>", "", "output file type -- default: determined from file extension or content\n", false);
-    setValidStrings_("out_type", StringList::create(formats));
+    setValidStrings_("out_type", ListUtils::create<String>(formats));
     registerFlag_("TIC_DTA2D", "Export the TIC instead of the entire experiment in mzML/mzData/mzXML -> DTA2D conversions.", true);
   }
 

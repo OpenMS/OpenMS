@@ -34,6 +34,7 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithm.h>
@@ -60,7 +61,7 @@ namespace OpenMS
     defaults_.setValue("dia_extraction_window", 0.05, "DIA extraction window in Th.");
     defaults_.setMinFloat("dia_extraction_window", 0.0);
     defaults_.setValue("dia_centroided", "false", "Use centroded DIA data.");
-    defaults_.setValidStrings("dia_centroided", StringList::create("true,false"));
+    defaults_.setValidStrings("dia_centroided", ListUtils::create<String>("true,false"));
     defaults_.setValue("dia_byseries_intensity_min", 300.0, "DIA b/y series minimum intensity to consider.");
     defaults_.setMinFloat("dia_byseries_intensity_min", 0.0);
     defaults_.setValue("dia_byseries_ppm_diff", 10.0, "DIA b/y series minimal difference in ppm to consider.");

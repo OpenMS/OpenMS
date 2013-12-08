@@ -175,7 +175,7 @@ protected:
 
     if (p.value.valueType() == DataValue::STRING_LIST) // quote each element
     {
-      StringList val(p.value);
+      StringList val = p.value;
       if (p.tags.count("input file") || p.tags.count("output file"))
       {
         for (Size i = 0; i < val.size(); ++i)
@@ -183,7 +183,7 @@ protected:
           val[i] = QDir::toNativeSeparators(val[i].toQString());
         }
       }
-      return "\"" + val.concatenate("\" \"") + "\"";
+      return "\"" + ListUtils::concatenate(val, "\" \"") + "\"";
     }
     if (p.tags.count("input file") || p.tags.count("output file"))
     {

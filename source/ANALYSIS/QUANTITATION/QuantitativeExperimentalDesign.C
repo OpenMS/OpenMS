@@ -56,7 +56,7 @@ namespace OpenMS
     defaults_.setValue("designer:file", "File", "Identifier for the file name.");
 
     defaults_.setValue("designer:separator", "tab", "Separator, which should be used to split a row into columns");
-    defaults_.setValidStrings("designer:separator", StringList::create("tab,semi-colon,comma,whitespace"));
+    defaults_.setValidStrings("designer:separator", ListUtils::create<String>("tab,semi-colon,comma,whitespace"));
 
     defaults_.setSectionDescription("designer", "Additional options for quantitative experimental design");
 
@@ -156,7 +156,7 @@ namespace OpenMS
 
     LOG_INFO << "Merge consensus maps: " << endl;
     UInt counter = 1;
-    for (StringList::Iterator file_it = file_paths.begin(); file_it != file_paths.end(); ++file_it, ++counter)
+    for (StringList::iterator file_it = file_paths.begin(); file_it != file_paths.end(); ++file_it, ++counter)
     {
       //load should clear the map
       ConsensusXMLFile().load(*file_it, map);
@@ -175,7 +175,7 @@ namespace OpenMS
 
     LOG_INFO << "Merge feature maps: " << endl;
     UInt counter = 1;
-    for (StringList::Iterator file_it = file_paths.begin(); file_it != file_paths.end(); ++file_it, ++counter)
+    for (StringList::iterator file_it = file_paths.begin(); file_it != file_paths.end(); ++file_it, ++counter)
     {
       //load should clear the map
       FeatureXMLFile().load(*file_it, map);
@@ -194,7 +194,7 @@ namespace OpenMS
     vector<PeptideIdentification> additional_peptides;
 
     LOG_INFO << "Merge idXML-files:" << endl;
-    for (StringList::Iterator file_it = file_paths.begin(); file_it != file_paths.end(); ++file_it)
+    for (StringList::iterator file_it = file_paths.begin(); file_it != file_paths.end(); ++file_it)
     {
       // load should clear the vectors
       IdXMLFile().load(*file_it, additional_proteins, additional_peptides);
@@ -263,10 +263,10 @@ namespace OpenMS
       StringList existing_files_input;
 
       // for every base file name
-      for (StringList::Iterator it = files_base_name_design.begin(); it != files_base_name_design.end(); ++it)
+      for (StringList::iterator it = files_base_name_design.begin(); it != files_base_name_design.end(); ++it)
       {
         // search against all files from the user input
-        for (StringList::Iterator it2 = filePaths.begin(); it2 != filePaths.end(); ++it2)
+        for (StringList::iterator it2 = filePaths.begin(); it2 != filePaths.end(); ++it2)
         {
           // QFileInfo fi("/tmp/archive.tar.gz");
           // QString name = fi.baseName(); --> name = "archive"
@@ -292,7 +292,7 @@ namespace OpenMS
 
     // iterate through header strings to look for matching identifier
     UInt col = 0;
-    for (StringList::Iterator iter = header.begin(); iter != header.end(); ++iter, ++col)
+    for (StringList::iterator iter = header.begin(); iter != header.end(); ++iter, ++col)
     {
       if (experiment.compare(*iter) == 0)
         expCol = col;

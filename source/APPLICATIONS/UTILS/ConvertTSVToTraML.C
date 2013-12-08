@@ -38,6 +38,7 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 using namespace OpenMS;
 
@@ -120,10 +121,10 @@ protected:
      FragmentCharge (integer, contains the fragment charge) \n \
      FragmentSeriesNumber (integer, e.g. for y7 use '7' here) \n \
     */
-    setValidFormats_("in", StringList::create("csv"));
+    setValidFormats_("in", ListUtils::create<String>("csv"));
 
     registerOutputFile_("out", "<file>", "", "Output TraML file");
-    setValidFormats_("out", StringList::create("TraML"));
+    setValidFormats_("out", ListUtils::create<String>("TraML"));
 
     registerSubsection_("algorithm", "Algorithm parameters section");
 

@@ -73,9 +73,9 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<mzML-file>", "", "Input experiment file, containing the wrongly sorted spectra.");
-    setValidFormats_("in", StringList::create("mzML"));
+    setValidFormats_("in", ListUtils::create<String>("mzML"));
     registerOutputFile_("out", "<mzML-file>", "", "Output experiment file with correctly sorted spectra.");
-    setValidFormats_("out", StringList::create("mzML"));
+    setValidFormats_("out", ListUtils::create<String>("mzML"));
     registerIntOption_("num_spots_per_row", "<integer>", 48, "Number of spots in one column, until next row is spotted.", false);
     setMinInt_("num_spots_per_row", 1);
     registerDoubleOption_("RT_distance", "<integer>", 1.0, "RT distance between two spots which is used to calculated pseudo RT.", false, true);

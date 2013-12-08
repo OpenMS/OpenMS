@@ -101,9 +101,9 @@ protected:
     void registerOptionsAndFlags_()
     {
         registerInputFile_("in", "<file>", "", "mzML file");
-        setValidFormats_("in", StringList::create("mzML"));
+        setValidFormats_("in", ListUtils::create<String>("mzML"));
         registerOutputFile_("out", "<file>", "", "mzTab file");
-        setValidFormats_("out", StringList::create("csv"));
+        setValidFormats_("out", ListUtils::create<String>("csv"));
 
         // addEmptyLine_();
         // addText_("Parameters for the accurate mass search can be given in the 'algorithm' part of INI file.");

@@ -34,7 +34,7 @@
 
 #include <OpenMS/FILTERING/DATAREDUCTION/FeatureFindingMetabo.h>
 #include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
-
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <vector>
@@ -155,24 +155,24 @@ FeatureFindingMetabo::FeatureFindingMetabo() :
     DefaultParamHandler("FeatureFindingMetabo"), ProgressLogger()
 {
     // defaults_.setValue( "name" , 1 , "descript" );
-    defaults_.setValue("local_rt_range", 10.0, "RT range where to look for coeluting mass traces", StringList::create("advanced")); // 5.0
-    defaults_.setValue("local_mz_range", 6.5, "MZ range where to look for isotopic mass traces", StringList::create("advanced")); // 6.5
+    defaults_.setValue("local_rt_range", 10.0, "RT range where to look for coeluting mass traces", ListUtils::create<String>("advanced")); // 5.0
+    defaults_.setValue("local_mz_range", 6.5, "MZ range where to look for isotopic mass traces", ListUtils::create<String>("advanced")); // 6.5
     defaults_.setValue("charge_lower_bound", 1, "Lowest charge state to consider"); // 1
     defaults_.setValue("charge_upper_bound", 3, "Highest charge state to consider"); // 3
     //defaults_.setValue("mass_error_ppm", 20.0, "Allowed mass error deviation in ppm");  // 20.0
     defaults_.setValue("chrom_fwhm", 5.0, "Expected chromatographic peak width (in seconds)."); // 5.0
-    defaults_.setValue("report_summed_ints", "false", "Set to true for a feature intensity summed up over all traces rather than using monoisotopic trace intensity alone.", StringList::create("advanced"));
-    defaults_.setValidStrings("report_summed_ints", StringList::create(("false,true")));
-    defaults_.setValue("disable_isotope_filtering", "false", "Disable isotope filtering.", StringList::create("advanced"));
-    defaults_.setValidStrings("disable_isotope_filtering", StringList::create(("false,true")));
-    defaults_.setValue("isotope_model", "metabolites", "Change type of isotope model.", StringList::create("advanced"));
-    defaults_.setValidStrings("isotope_model", StringList::create(("metabolites,peptides")));
+    defaults_.setValue("report_summed_ints", "false", "Set to true for a feature intensity summed up over all traces rather than using monoisotopic trace intensity alone.", ListUtils::create<String>("advanced"));
+    defaults_.setValidStrings("report_summed_ints", ListUtils::create<String>("false,true"));
+    defaults_.setValue("disable_isotope_filtering", "false", "Disable isotope filtering.", ListUtils::create<String>("advanced"));
+    defaults_.setValidStrings("disable_isotope_filtering", ListUtils::create<String>("false,true"));
+    defaults_.setValue("isotope_model", "metabolites", "Change type of isotope model.", ListUtils::create<String>("advanced"));
+    defaults_.setValidStrings("isotope_model", ListUtils::create<String>("metabolites,peptides"));
 
-    defaults_.setValue("isotope_noisemodel", "5%RMS", "SVM isotope models were trained with either 2% or 5% RMS error. Select the appropriate noise model according to the quality of measurement or MS device.", StringList::create("advanced"));
-    defaults_.setValidStrings("isotope_noisemodel", StringList::create(("5%RMS,2%RMS")));
+    defaults_.setValue("isotope_noisemodel", "5%RMS", "SVM isotope models were trained with either 2% or 5% RMS error. Select the appropriate noise model according to the quality of measurement or MS device.", ListUtils::create<String>("advanced"));
+    defaults_.setValidStrings("isotope_noisemodel", ListUtils::create<String>("5%RMS,2%RMS"));
 
-    defaults_.setValue("use_smoothed_intensities", "true", "Use LOWESS intensities instead of raw intensities.", StringList::create("advanced"));
-    defaults_.setValidStrings("use_smoothed_intensities", StringList::create(("false,true")));
+    defaults_.setValue("use_smoothed_intensities", "true", "Use LOWESS intensities instead of raw intensities.", ListUtils::create<String>("advanced"));
+    defaults_.setValidStrings("use_smoothed_intensities", ListUtils::create<String>("false,true"));
 
 
     defaultsToParam_();

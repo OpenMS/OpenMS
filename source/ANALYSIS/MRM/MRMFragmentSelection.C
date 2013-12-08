@@ -34,6 +34,8 @@
 
 #include <OpenMS/ANALYSIS/MRM/MRMFragmentSelection.h>
 
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+
 #include <algorithm>
 
 using namespace std;
@@ -49,11 +51,11 @@ namespace OpenMS
     defaults_.setValue("min_mz", 400.0, "Minimal m/z value that is allowed for selection.");
     defaults_.setValue("max_mz", 1200.0, "Maximal m/z value that is allowed for selection.");
     defaults_.setValue("consider_names", "true", "Should names be considered when selecting ions?");
-    defaults_.setValidStrings("consider_names", StringList::create("true,false"));
+    defaults_.setValidStrings("consider_names", ListUtils::create<String>("true,false"));
     defaults_.setValue("allow_loss_ions", "false", "Should loss ions allowed to be selected?");
-    defaults_.setValidStrings("allow_loss_ions", StringList::create("true,false"));
-    defaults_.setValue("allowed_ion_types", StringList::create("y"), "The one-character-typenames of the ion types allowed");
-    defaults_.setValue("allowed_charges", StringList::create("1"), "List of allowed charge states for selection.");
+    defaults_.setValidStrings("allow_loss_ions", ListUtils::create<String>("true,false"));
+    defaults_.setValue("allowed_ion_types", ListUtils::create<String>("y"), "The one-character-typenames of the ion types allowed");
+    defaults_.setValue("allowed_charges", ListUtils::create<String>("1"), "List of allowed charge states for selection.");
 
     defaultsToParam_();
   }
@@ -123,7 +125,7 @@ namespace OpenMS
 
     if (name != "")
     {
-      StringList allowed_types((StringList)param_.getValue("allowed_ion_types"));
+      StringList allowed_types = param_.getValue("allowed_ion_types");
       bool type_found(false);
       for (StringList::const_iterator it = allowed_types.begin(); it != allowed_types.end(); ++it)
       {
@@ -136,7 +138,7 @@ namespace OpenMS
       {
         bool allow_loss_ions(param_.getValue("allow_loss_ions").toBool());
         Size charges = count(name.begin(), name.end(), '+');
-        bool charges_ok = allowed_charges.contains(String(charges));
+        bool charges_ok = ListUtils::contains(allowed_charges, String(charges));
         if (allow_loss_ions && charges_ok)
         {
           // TODO implement charges
@@ -147,7 +149,7 @@ namespace OpenMS
           if (!(name.hasSubstring("-H") || name.hasSubstring("-C") || name.hasSubstring("-N")))
           {
             Size c = count(name.begin(), name.end(), '+');
-            if (allowed_charges.contains(c))
+            if (ListUtils::contains(allowed_charges, String(c)))
             {
               return true;
             }

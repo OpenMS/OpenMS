@@ -108,9 +108,9 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFileList_("in", "<files>", StringList(), "List of qcml files to be merged.");
-    setValidFormats_("in", StringList::create("qcML"));
+    setValidFormats_("in", ListUtils::create<String>("qcML"));
     registerOutputFile_("out", "<file>", "", "Output extended/reduced qcML file");
-    setValidFormats_("out",StringList::create("qcML"));
+    setValidFormats_("out",ListUtils::create<String>("qcML"));
     registerStringOption_("setname", "<string>", "", "Use only when all given qcml files belong to one set, which will be held under the given name.", false);
   }
 

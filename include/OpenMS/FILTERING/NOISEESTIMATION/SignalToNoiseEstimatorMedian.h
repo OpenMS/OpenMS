@@ -40,6 +40,7 @@
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimator.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <vector>
 
 namespace OpenMS
@@ -100,18 +101,18 @@ public:
                                               " All intensities EQUAL/ABOVE 'max_intensity' will be added to the LAST histogram bin." \
                                               " If you choose 'max_intensity' too small, the noise estimate might be too small as well. " \
                                               " If chosen too big, the bins become quite large (which you could counter by increasing 'bin_count', which increases runtime)." \
-                                              " In general, the Median-S/N estimator is more robust to a manual max_intensity than the MeanIterative-S/N.", StringList::create("advanced"));
+                                              " In general, the Median-S/N estimator is more robust to a manual max_intensity than the MeanIterative-S/N.", ListUtils::create<String>("advanced"));
       defaults_.setMinInt("max_intensity", -1);
 
-      defaults_.setValue("auto_max_stdev_factor", 3.0, "parameter for 'max_intensity' estimation (if 'auto_mode' == 0): mean + 'auto_max_stdev_factor' * stdev", StringList::create("advanced"));
+      defaults_.setValue("auto_max_stdev_factor", 3.0, "parameter for 'max_intensity' estimation (if 'auto_mode' == 0): mean + 'auto_max_stdev_factor' * stdev", ListUtils::create<String>("advanced"));
       defaults_.setMinFloat("auto_max_stdev_factor", 0.0);
       defaults_.setMaxFloat("auto_max_stdev_factor", 999.0);
 
-      defaults_.setValue("auto_max_percentile", 95, "parameter for 'max_intensity' estimation (if 'auto_mode' == 1): auto_max_percentile th percentile", StringList::create("advanced"));
+      defaults_.setValue("auto_max_percentile", 95, "parameter for 'max_intensity' estimation (if 'auto_mode' == 1): auto_max_percentile th percentile", ListUtils::create<String>("advanced"));
       defaults_.setMinInt("auto_max_percentile", 0);
       defaults_.setMaxInt("auto_max_percentile", 100);
 
-      defaults_.setValue("auto_mode", 0, "method to use to determine maximal intensity: -1 --> use 'max_intensity'; 0 --> 'auto_max_stdev_factor' method (default); 1 --> 'auto_max_percentile' method", StringList::create("advanced"));
+      defaults_.setValue("auto_mode", 0, "method to use to determine maximal intensity: -1 --> use 'max_intensity'; 0 --> 'auto_max_stdev_factor' method (default); 1 --> 'auto_max_percentile' method", ListUtils::create<String>("advanced"));
       defaults_.setMinInt("auto_mode", -1);
       defaults_.setMaxInt("auto_mode", 1);
 
@@ -124,7 +125,7 @@ public:
       defaults_.setValue("min_required_elements", 10, "minimum number of elements required in a window (otherwise it is considered sparse)");
       defaults_.setMinInt("min_required_elements", 1);
 
-      defaults_.setValue("noise_for_empty_window", std::pow(10.0, 20), "noise value used for sparse windows", StringList::create("advanced"));
+      defaults_.setValue("noise_for_empty_window", std::pow(10.0, 20), "noise value used for sparse windows", ListUtils::create<String>("advanced"));
 
 
       SignalToNoiseEstimator<Container>::defaultsToParam_();

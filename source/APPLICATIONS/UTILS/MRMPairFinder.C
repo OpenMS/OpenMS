@@ -120,16 +120,16 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "Input featureXML file containing the features of the MRM experiment spectra.");
-    setValidFormats_("in", StringList::create("featureXML"));
+    setValidFormats_("in", ListUtils::create<String>("featureXML"));
 
     registerInputFile_("pair_in", "<file>", "", "Pair-file in the format: prec-m/z-light prec-m/z-heavy frag-m/z-light frag-m/z-heavy rt");
-    setValidFormats_("pair_in", StringList::create("csv"));
+    setValidFormats_("pair_in", ListUtils::create<String>("csv"));
 
     registerOutputFile_("out", "<file>", "", "Output consensusXML file were the pairs of the features will be written to.");
-    setValidFormats_("out", StringList::create("consensusXML"));
+    setValidFormats_("out", ListUtils::create<String>("consensusXML"));
 
     registerOutputFile_("feature_out", "<file>", "", "Output featureXML file, only written if given, skipped otherwise.", false);
-    setValidFormats_("feature_out", StringList::create("featureXML"));
+    setValidFormats_("feature_out", ListUtils::create<String>("featureXML"));
 
     registerDoubleOption_("mass_tolerance", "<tolerance>", 0.01, "Precursor mass tolerance which is used for the pair finding and the matching of the given pair m/z values to the features.", false, true);
     setMinFloat_("mass_tolerance", 0.0);
