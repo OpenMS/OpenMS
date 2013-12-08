@@ -23,7 +23,6 @@ Date.C
 DateTime.C
 DefaultParamHandler.C
 DistanceMatrix.C
-DoubleList.C
 GridFeature.C
 Map.C
 MassExplainer.C

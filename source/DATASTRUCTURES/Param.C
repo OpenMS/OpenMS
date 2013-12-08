@@ -194,7 +194,7 @@ namespace OpenMS
     else if (value.valueType() == DataValue::DOUBLE_LIST)
     {
       DoubleReal dou_value;
-      DoubleList ls_value = (DoubleList)value;
+      DoubleList ls_value = value;
       for (Size i = 0; i < ls_value.size(); ++i)
       {
         dou_value = ls_value[i];

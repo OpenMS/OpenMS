@@ -1478,7 +1478,7 @@ namespace OpenMS
     {
       throw RequiredParameterNotGiven(__FILE__, __LINE__, __PRETTY_FUNCTION__, name);
     }
-    DoubleList tmp_list = getParamAsDoubleList_(name, (DoubleList)p.default_value);
+    DoubleList tmp_list = getParamAsDoubleList_(name, p.default_value);
     if (p.required && tmp_list.size() == 0)
     {
       throw RequiredParameterNotGiven(__FILE__, __LINE__, __PRETTY_FUNCTION__, name);
@@ -1490,7 +1490,7 @@ namespace OpenMS
       writeDebug_(String("Value of string option '") + name + "': " + String(tmp), 1);
 
       //check if in valid range
-      if (p.required || (!getParam_(name).isEmpty() && tmp_list != (DoubleList)p.default_value))
+      if (p.required || (!getParam_(name).isEmpty() && tmp_list != p.default_value))
       {
         if (tmp < p.min_float || tmp > p.max_float)
         {
@@ -1663,7 +1663,7 @@ namespace OpenMS
     {
       if (tmp.valueType() == DataValue::DOUBLE_LIST)
       {
-        return (DoubleList)tmp;
+        return tmp;
       }
       throw WrongParameterType(__FILE__, __LINE__, __PRETTY_FUNCTION__, key);
     }
@@ -2059,7 +2059,7 @@ namespace OpenMS
         break;
 
       case ParameterInformation::DOUBLELIST:
-        tmp.setValue(name, (DoubleList)it->default_value, it->description, tags);
+        tmp.setValue(name, it->default_value, it->description, tags);
         if (it->min_float != -std::numeric_limits<DoubleReal>::max())
         {
           tmp.setMinFloat(name, it->min_float);
@@ -2554,7 +2554,7 @@ namespace OpenMS
               DoubleList arg_list;
               for (list<String>::iterator it = queue.begin(); it != queue.end(); ++it)
               {
-                arg_list << it->toDouble();
+                arg_list.push_back(it->toDouble());
               }
               value = arg_list;
               queue.clear();

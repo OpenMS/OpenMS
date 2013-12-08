@@ -363,7 +363,7 @@ protected:
       inline DoubleList attributeAsDoubleList_(const xercesc::Attributes & a, const char * name) const
       {
         String tmp(expectList_(attributeAsString_(a, name)));
-        return DoubleList::create(tmp.substr(1, tmp.size() - 2));
+        return ListUtils::create<DoubleReal>(tmp.substr(1, tmp.size() - 2));
       }
 
       /// Converts an attribute to an IntList
@@ -520,7 +520,7 @@ protected:
       inline DoubleList attributeAsDoubleList_(const xercesc::Attributes & a, const XMLCh * name) const
       {
         String tmp(expectList_(attributeAsString_(a, name)));
-        return DoubleList::create(tmp.substr(1, tmp.size() - 2));
+        return ListUtils::create<DoubleReal>(tmp.substr(1, tmp.size() - 2));
       }
 
       /// Converts an attribute to a IntList

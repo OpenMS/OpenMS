@@ -394,7 +394,7 @@ protected:
     else if (v_data.valueType() == DataValue::DOUBLE_VALUE) v_user = String(meta_info[2]).toDouble();
     else if (v_data.valueType() == DataValue::STRING_LIST) v_user = StringList::create(meta_info[2]);
     else if (v_data.valueType() == DataValue::INT_LIST) v_user = ListUtils::create<Int>(meta_info[2]);
-    else if (v_data.valueType() == DataValue::DOUBLE_LIST) v_user = DoubleList::create(meta_info[2]);
+    else if (v_data.valueType() == DataValue::DOUBLE_LIST) v_user = ListUtils::create<DoubleReal>(meta_info[2]);
     else if (v_data.valueType() == DataValue::EMPTY_VALUE) v_user = DataValue::EMPTY;
     if (meta_info[1] == "lt")
     {

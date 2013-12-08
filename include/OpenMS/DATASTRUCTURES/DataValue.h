@@ -38,7 +38,6 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/StringList.h>
-#include <OpenMS/DATASTRUCTURES/DoubleList.h>
 #include <QtCore/QString>
 
 namespace OpenMS
@@ -87,6 +86,8 @@ public:
     DataValue(const QString&);
     /// specific constructor for string lists
     DataValue(const StringList&);
+    /// specific constructor for string lists
+    DataValue(const std::vector<String>&);
     /// specific constructor for integer lists
     DataValue(const IntList&);
     /// specific constructor for double lists

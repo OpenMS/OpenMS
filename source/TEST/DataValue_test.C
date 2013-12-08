@@ -186,9 +186,11 @@ END_SECTION
 
 START_SECTION((DataValue(const DoubleList &)))
 	DoubleList dl;
-	dl << 1.2 << 22.3333;
+	dl.push_back(1.2);
+  dl.push_back(22.3333);
 	DataValue d(dl);
-	TEST_EQUAL((DoubleList)d,dl);
+  DoubleList dldv = d;
+	TEST_EQUAL(dldv == dl, true);
 END_SECTION
 // copy ctor
 
@@ -202,7 +204,7 @@ START_SECTION((DataValue(const DataValue&)))
 	DataValue p8(StringList::create("test string,string2,last string"));
 	DataValue p9;
 	DataValue p10(ListUtils::create<Int>("1,2,3,4,5"));
-	DataValue p11(DoubleList::create("1.2,2.3,3.4"));
+	DataValue p11(ListUtils::create<DoubleReal>("1.2,2.3,3.4"));
 	DataValue copy_of_p1(p1);
 	DataValue copy_of_p3(p3);
 	DataValue copy_of_p4(p4);
@@ -222,7 +224,7 @@ START_SECTION((DataValue(const DataValue&)))
 	TEST_EQUAL( (StringList) copy_of_p8, StringList::create("test string,string2,last string"))
 	TEST_EQUAL( (copy_of_p9.isEmpty()),true)
 	TEST_EQUAL(copy_of_p10 == ListUtils::create<Int>("1,2,3,4,5"), true)
-	TEST_EQUAL((DoubleList)copy_of_p11 == DoubleList::create("1.2,2.3,3.4"), true)
+	TEST_EQUAL(copy_of_p11 == ListUtils::create<DoubleReal>("1.2,2.3,3.4"), true)
 END_SECTION
 
 // assignment operator
@@ -237,7 +239,7 @@ START_SECTION((DataValue& operator = (const DataValue&)))
 	DataValue p8(StringList::create("test string,string2,last string"));
 	DataValue p9;
 	DataValue p10(ListUtils::create<Int>("1,2,3,4,5"));
-	DataValue p11(DoubleList::create("1.2,2.3,3.4"));
+	DataValue p11(ListUtils::create<DoubleReal>("1.2,2.3,3.4"));
 	DataValue copy_of_p;
 	copy_of_p = p1;
 	TEST_REAL_SIMILAR( (DoubleReal) copy_of_p, 1.23)
@@ -258,7 +260,7 @@ START_SECTION((DataValue& operator = (const DataValue&)))
 	copy_of_p = p10;
 	TEST_EQUAL(copy_of_p == ListUtils::create<Int>("1,2,3,4,5"), true)
 	copy_of_p = p11;
-	TEST_EQUAL((DoubleList)copy_of_p,DoubleList::create("1.2,2.3,3.4"))
+	TEST_EQUAL(copy_of_p == ListUtils::create<DoubleReal>("1.2,2.3,3.4"), true)
 END_SECTION
 
 // Is DataValue object empty?
@@ -305,10 +307,11 @@ END_SECTION
 
 START_SECTION((operator DoubleList() const))
 	DoubleList dl;
-	dl<< 1.2 <<22.34455;
+	dl.push_back(1.2);
+  dl.push_back(22.34455);
 	DataValue d(dl);
 	DoubleList dl_op = d;
-	TEST_EQUAL(dl_op,d);
+	TEST_EQUAL(dl_op == d, true);
 END_SECTION
 
 START_SECTION((operator long double() const))
@@ -474,7 +477,7 @@ START_SECTION((String toString() const))
   TEST_EQUAL(a.toString(), "[test string, string2, last string]")
   a = DataValue(ListUtils::create<Int>("1,2,3,4,5"));
   TEST_EQUAL(a.toString(),"[1, 2, 3, 4, 5]")
-  a= DataValue(DoubleList::create("1.2,23.3333"));
+  a= DataValue(ListUtils::create<DoubleReal>("1.2,23.3333"));
   TEST_EQUAL(a.toString(),"[1.2, 23.3333]")
 END_SECTION
 
@@ -511,7 +514,7 @@ START_SECTION((QString toQString() const))
   TEST_EQUAL(a.toQString().toStdString(), "[test string, string2, last string]")
   a =DataValue(ListUtils::create<Int>("1,2,3"));
   TEST_EQUAL(a.toQString().toStdString(), "[1, 2, 3]")
-  a = DataValue(DoubleList::create("1.22,43.23232"));
+  a = DataValue(ListUtils::create<DoubleReal>("1.22,43.23232"));
   TEST_EQUAL(a.toQString().toStdString(),"[1.22, 43.23232]")
 END_SECTION
 
@@ -547,7 +550,7 @@ START_SECTION((DataType valueType() const))
 	DataValue a7(ListUtils::create<Int>("1,2,3"));
 	TEST_EQUAL(a7.valueType(),DataValue::INT_LIST)
 
-	DataValue a8(DoubleList::create("1.2,32.4567"));
+	DataValue a8(ListUtils::create<DoubleReal>("1.2,32.4567"));
 	TEST_EQUAL(a8.valueType(),DataValue::DOUBLE_LIST);
 END_SECTION
 
@@ -657,13 +660,14 @@ END_SECTION
 
 START_SECTION((DataValue& operator=(const DoubleList&)))
 {
-  DoubleList v = DoubleList::create("2.14,-3.45");
+  DoubleList v = ListUtils::create<DoubleReal>("2.14,-3.45");
   DataValue a("v");
   a = v;
-  TEST_EQUAL(((DoubleList)a).size(), 2)
-  ABORT_IF(((DoubleList)a).size() != 2)
-  TEST_EQUAL(((DoubleList)a)[0], 2.14)
-  TEST_EQUAL(((DoubleList)a)[1], -3.45)
+  DoubleList adl = a;
+  TEST_EQUAL(adl.size(), 2)
+  ABORT_IF(adl.size() != 2)
+  TEST_EQUAL(adl[0], 2.14)
+  TEST_EQUAL(adl[1], -3.45)
 }
 END_SECTION
 

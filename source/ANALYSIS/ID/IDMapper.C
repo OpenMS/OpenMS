@@ -273,7 +273,7 @@ namespace OpenMS
     // collect m/z values of pepId
     if (param_.getValue("mz_reference") == "precursor") // use precursor m/z of pepId
     {
-      mz_values << id.getMetaValue("MZ");
+      mz_values.push_back(id.getMetaValue("MZ"));
     }
 
     for (vector<PeptideHit>::const_iterator hit_it = id.getHits().begin();
@@ -288,7 +288,7 @@ namespace OpenMS
                           hit_it->getSequence().getAverageWeight(Residue::Full, charge) :
                           hit_it->getSequence().getMonoWeight(Residue::Full, charge);
 
-        mz_values << mass / (DoubleReal) charge;
+        mz_values.push_back( mass / (DoubleReal) charge);
       }
     }
   }

@@ -69,12 +69,12 @@ class TOPPBaseTest
       registerIntOption_("intoption","<int>",4711,"int description",false);
       registerDoubleOption_("doubleoption","<double>",0.4711,"double description",false);
       registerIntList_("intlist","<intlist>",ListUtils::create<Int>("1,2,3,4"),"intlist description",false);
-      registerDoubleList_("doublelist","<doublelist>",DoubleList::create("0.4711,1.022,4.0"),"doubelist description",false);
-      registerStringList_("stringlist","<stringlist>",StringList::create("abc,def,ghi,jkl"),"stringlist description",false);
+      registerDoubleList_("doublelist","<doublelist>", ListUtils::create<DoubleReal>("0.4711,1.022,4.0"),"doubelist description",false);
+      registerStringList_("stringlist","<stringlist>", ListUtils::create<String>("abc,def,ghi,jkl"),"stringlist description",false);
       registerFlag_("flag","flag description");
 
       //for testing write_ini parameter (and with it setDefaults)
-      registerStringList_("stringlist2","<stringlist>",StringList::create("hopla,dude"),"stringlist with restrictions",false);
+      registerStringList_("stringlist2","<stringlist>", ListUtils::create<String>("hopla,dude"),"stringlist with restrictions",false);
       vector<String> rest;
       rest.push_back("hopla");
       rest.push_back("dude");
@@ -84,7 +84,7 @@ class TOPPBaseTest
       setMinInt_("intlist2",2);
       setMaxInt_("intlist2",6);
 
-      registerDoubleList_("doublelist2","<double>",DoubleList::create("1.2,2.33"),"doublelist with restrictions",false);
+      registerDoubleList_("doublelist2","<double>", ListUtils::create<DoubleReal>("1.2,2.33"),"doublelist with restrictions",false);
       setMinFloat_("doublelist2",0.2);
       setMaxFloat_("doublelist2",5.4);
     }
@@ -193,9 +193,9 @@ class TOPPBaseTestNOP
       registerIntOption_("intoption","<int>",0,"int description",false);
       registerDoubleOption_("doubleoption","<double>", -1.0,"double description", false);
       registerFlag_("flag","flag description");
-      registerStringList_("stringlist","<stringlist>",StringList::create(""),"stringlist description");
+      registerStringList_("stringlist","<stringlist>", ListUtils::create<String>(""),"stringlist description");
       registerIntList_("intlist","<intlist>",ListUtils::create<Int>(""),"intlist description");
-      registerDoubleList_("doublelist","<doublelist>",DoubleList::create(""),"doubelist description");
+      registerDoubleList_("doublelist","<doublelist>", ListUtils::create<DoubleReal>(""),"doubelist description");
     }
 
     String getStringOption(const String& name) const
@@ -464,8 +464,8 @@ START_SECTION(([EXTRA]String getStringOption_(const String& name) const))
 	p2.setValue("TOPPBaseTest:1:intoption",4711,"int description");
 	p2.setValue("TOPPBaseTest:1:doubleoption",0.4711,"double description");
 	p2.setValue("TOPPBaseTest:1:intlist",ListUtils::create<Int>("1,2,3,4"),"intlist description");
-	p2.setValue("TOPPBaseTest:1:doublelist",DoubleList::create("0.4711,1.022,4.0"),"doubelist description");
-	p2.setValue("TOPPBaseTest:1:stringlist",StringList::create("abc,def,ghi,jkl"),"stringlist description");
+	p2.setValue("TOPPBaseTest:1:doublelist", ListUtils::create<DoubleReal>("0.4711,1.022,4.0"),"doubelist description");
+	p2.setValue("TOPPBaseTest:1:stringlist", ListUtils::create<String>("abc,def,ghi,jkl"),"stringlist description");
 	p2.setValue("TOPPBaseTest:1:flag","false","flag description");
   p2.setValue("TOPPBaseTest:1:log","","Name of log file (created only when specified)");
 	p2.setValue("TOPPBaseTest:1:debug",0,"Sets the debug level");
@@ -473,7 +473,7 @@ START_SECTION(([EXTRA]String getStringOption_(const String& name) const))
 	p2.setValue("TOPPBaseTest:1:no_progress","false","Disables progress logging to command line");
 	p2.setValue("TOPPBaseTest:1:test","false","Enables the test mode (needed for software testing only)");
 	//with restriction
-  p2.setValue("TOPPBaseTest:1:stringlist2",StringList::create("hopla,dude"),"stringlist with restrictions");
+  p2.setValue("TOPPBaseTest:1:stringlist2", ListUtils::create<String>("hopla,dude"),"stringlist with restrictions");
 	vector<String> rest;
 	rest.push_back("hopla");
 	rest.push_back("dude");
@@ -484,7 +484,7 @@ START_SECTION(([EXTRA]String getStringOption_(const String& name) const))
 	p2.setValue(intlist2,ListUtils::create<Int>("3,4,5"),"intlist with restriction");
 	p2.setMinInt(intlist2,2);
 	p2.setMaxInt(intlist2,6);
-	p2.setValue(doublelist2,DoubleList::create("1.2,2.33"),"doubelist with restrictions");
+	p2.setValue(doublelist2, ListUtils::create<DoubleReal>("1.2,2.33"),"doubelist with restrictions");
 	p2.setMinFloat(doublelist2,0.2);
 	p2.setMaxFloat(doublelist2,5.4);
 	TEST_EQUAL(p1,p2)
@@ -544,19 +544,19 @@ END_SECTION
 START_SECTION(([EXTRA] String getDoubleList_(const String& name) const))
 	//default
 	TOPPBaseTest tmp;
-	TEST_EQUAL(tmp.getDoubleList("doublelist"),DoubleList::create("0.4711,1.022,4.0"));
+	TEST_EQUAL(tmp.getDoubleList("doublelist") == ListUtils::create<DoubleReal>("0.4711,1.022,4.0"), true)
 	//command line
 	const char* string_cl[3]={a1, a19, a20}; //commandline:"TOPPBaseTest -doublelist 0.411"
 	TOPPBaseTest tmp2(3, string_cl);
-	TEST_EQUAL(tmp2.getDoubleList("doublelist"),DoubleList::create("0.411"));
+	TEST_EQUAL(tmp2.getDoubleList("doublelist") == ListUtils::create<DoubleReal>("0.411"), true)
 	const char* a21 = "4.0";
 	const char* string_cl2[5]={a1,a19,a20,a13,a21};//commandline :"TOPPBaseTest -doublelist 0.411 4.5 4.0
 	TOPPBaseTest tmp3(5,string_cl2);
-	TEST_EQUAL(tmp3.getDoubleList("doublelist"),DoubleList::create("0.411,4.5,4.0"));
+	TEST_EQUAL(tmp3.getDoubleList("doublelist") == ListUtils::create<DoubleReal>("0.411,4.5,4.0"), true)
 
 	const char* string_cl21[4]={a1,a19,a20,a13};//commandline :"TOPPBaseTest -doublelist 0.411 4.5
 	TOPPBaseTest tmp31(4,string_cl21);
-	TEST_EQUAL(tmp31.getDoubleList("doublelist"),DoubleList::create("0.411,4.5"));
+	TEST_EQUAL(tmp31.getDoubleList("doublelist") == ListUtils::create<DoubleReal>("0.411,4.5"), true)
 
 	TEST_EXCEPTION(Exception::WrongParameterType,tmp2.getDoubleList("intoption"));
 	TEST_EXCEPTION(Exception::UnregisteredParameter,tmp2.getDoubleList("imleeewenit"));
@@ -569,11 +569,11 @@ END_SECTION
 START_SECTION(([EXTRA] String getStringList_(const String& name) const))
 	//default
 	TOPPBaseTest tmp;
-	TEST_EQUAL(tmp.getStringList("stringlist"),StringList::create("abc,def,ghi,jkl"));
+	TEST_EQUAL(tmp.getStringList("stringlist") == ListUtils::create<String>("abc,def,ghi,jkl"), true)
 	//command line
 	const char* string_cl[3]={a1,a17,a12};	//commandline: "TOPPBaseTest -stringlist conmandline"
 	TOPPBaseTest tmp2(3, string_cl);
-	TEST_EQUAL(tmp2.getStringList("stringlist"),StringList::create("commandline"))
+	TEST_EQUAL(tmp2.getStringList("stringlist") == ListUtils::create<String>("commandline"), true)
 
 	const char* string_cl2[5]={a1,a17,a12,a7, a8};	//commandline: "TOPPBaseTest -stringlist conmandline data/TOPPBase_toolcommon.ini data/TOPPBase_common.ini"
 	TOPPBaseTest tmp3(5, string_cl2);
@@ -692,11 +692,11 @@ START_SECTION(([EXTRA] const Param& getParam_()))
 	test_param.setValue("param_int", 123, "param int description");
 	test_param.setValue("param_double", -4.56, "param double description");
 	test_param.setValue("param_string", "test", "param string description");
-	test_param.setValue("param_stringlist", StringList::create("this,is,a,test"), "param stringlist description");
+	test_param.setValue("param_stringlist", ListUtils::create<String>("this,is,a,test"), "param stringlist description");
 	test_param.setValue("param_intlist", ListUtils::create<Int>("7,-8,9"), "param intlist description");
-	test_param.setValue("param_doublelist", DoubleList::create("123,-4.56,0.789"), "param doublelist description");
+	test_param.setValue("param_doublelist", ListUtils::create<DoubleReal>("123,-4.56,0.789"), "param doublelist description");
 	test_param.setValue("param_flag", "true", "param flag description");
-	test_param.setValidStrings("param_flag", StringList::create("true,false"));
+	test_param.setValidStrings("param_flag", ListUtils::create<String>("true,false"));
 
 	TOPPBaseTestParam temp(test_param);
 	Param result = temp.getParam(); // contains "test_param" + some default stuff

@@ -44,7 +44,6 @@
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/StringList.h>
-#include <OpenMS/DATASTRUCTURES/DoubleList.h>
 
 #include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/METADATA/DocumentIDTagger.h>

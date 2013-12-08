@@ -36,6 +36,7 @@
 
 #include <OpenMS/DATASTRUCTURES/Adduct.h>
 #include <OpenMS/DATASTRUCTURES/Compomer.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <cmath>
 
@@ -145,7 +146,7 @@ namespace OpenMS
 
     // ionization probabilities
     defaults_.setValue("esi:ionization_probability", 0.8, "Probability for the binomial distribution of the ESI charge states");
-    defaults_.setValue("maldi:ionization_probabilities", DoubleList::create("0.9,0.1"), "List of probabilities for the different charge states during MALDI ionization (the list must sum up to 1.0)");
+    defaults_.setValue("maldi:ionization_probabilities", ListUtils::create<DoubleReal>("0.9,0.1"), "List of probabilities for the different charge states during MALDI ionization (the list must sum up to 1.0)");
 
     // maximal size of map in mz dimension
     defaults_.setValue("mz:lower_measurement_limit", 200.0, "Lower m/z detector limit.");
@@ -500,7 +501,7 @@ public:
       for (SignedSize index = 0; index < (SignedSize)features.size(); ++index)
       {
         Int abundance = (Int) ceil(features[index].getIntensity());
-        std::vector<UInt> charge_states(((DoubleList) param_.getValue("maldi:ionization_probabilities")).size() + 1);
+        std::vector<UInt> charge_states(maldi_probabilities_.size() + 1);
         // sample different charge states
         for (Int j = 0; j < abundance; ++j)
         {

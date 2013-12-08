@@ -154,9 +154,9 @@ START_SECTION((void load(const String &filename, FeatureMap<>&feature_map)))
 
   // test meta values:
   TEST_EQUAL(e[0].getMetaValue("myIntList") == ListUtils::create<Int>("1,10,12"), true);
-  TEST_EQUAL(e[0].getMetaValue("myDoubleList") == DoubleList::create("1.111,10.999,12.45"), true);
+  TEST_EQUAL(e[0].getMetaValue("myDoubleList") == ListUtils::create<DoubleReal>("1.111,10.999,12.45"), true);
   TEST_EQUAL(e[0].getMetaValue("myStringList") == StringList::create("myABC1,Stuff,12"), true);
-  TEST_EQUAL(e[1].getMetaValue("myDoubleList") == DoubleList::create("6.442"), true);
+  TEST_EQUAL(e[1].getMetaValue("myDoubleList") == ListUtils::create<DoubleReal>("6.442"), true);
 
   //test if loading a second file works (initialization)
   FeatureMap<> e2;

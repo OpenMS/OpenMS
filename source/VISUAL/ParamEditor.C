@@ -910,7 +910,7 @@ namespace OpenMS
       }
       else if (child->text(2) == "double list")
       {
-        param_->setValue(path, DoubleList::create(rlist), description, tag_list);
+        param_->setValue(path, ListUtils::create<DoubleReal>(rlist), description, tag_list);
         String restrictions = child->data(2, Qt::UserRole).toString();
         vector<String> parts;
         if (restrictions.split(' ', parts))

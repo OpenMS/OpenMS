@@ -1116,12 +1116,12 @@ START_SECTION((void setDefaults(const Param& defaults, const String& prefix="", 
 	defaults.setValue("string2","default string2","string2");
 	defaults.setValue("PATH:onlyfordescription",45.2);
 
-	defaults.setValue("stringlist",StringList::create("a,b,c"),"stringlist");
-	defaults.setValue("stringlist2",StringList::create("d,e,f"),"stringlist2");
+	defaults.setValue("stringlist",ListUtils::create<String>("a,b,c"),"stringlist");
+	defaults.setValue("stringlist2",ListUtils::create<String>("d,e,f"),"stringlist2");
 	defaults.setValue("intlist",ListUtils::create<Int>("1,2,3"),"intlist");
 	defaults.setValue("intlist2",ListUtils::create<Int>("11,22,33"),"intlist2");
-	defaults.setValue("doublelist",DoubleList::create("1.2,2.3"),"doublelist");
-	defaults.setValue("doublelist2",DoubleList::create("11.22,22.33"),"doublelist2");
+	defaults.setValue("doublelist",ListUtils::create<DoubleReal>("1.2,2.3"),"doublelist");
+	defaults.setValue("doublelist2",ListUtils::create<DoubleReal>("11.22,22.33"),"doublelist2");
 	defaults.setSectionDescription("PATH","PATHdesc");
 	Param p2;
 	p2.setValue("PATH:float",-1.0f,"PATH:float");
@@ -1129,12 +1129,12 @@ START_SECTION((void setDefaults(const Param& defaults, const String& prefix="", 
 	p2.setValue("float",-2.0f,"float");
 	p2.setValue("string","other string","string");
 
-	p2.setValue("PATH:stringlist",StringList::create("d,a,v,i,d"),"PATH:stringlist");
-	p2.setValue("stringlist",StringList::create("r,o,c,k,s"),"stringlist");
+	p2.setValue("PATH:stringlist",ListUtils::create<String>("d,a,v,i,d"),"PATH:stringlist");
+	p2.setValue("stringlist",ListUtils::create<String>("r,o,c,k,s"),"stringlist");
 	p2.setValue("PATH:intlist2",ListUtils::create<Int>("14,9"),"PATH:intlist2");
 	p2.setValue("intlist", ListUtils::create<Int>("16,9"),"intlist");
-	p2.setValue("PATH:doublelist2",DoubleList::create("6.66,6.16"),"PATH:doublelist2");
-	p2.setValue("doublelist",DoubleList::create("1.2,5.55"),"doublelist");
+	p2.setValue("PATH:doublelist2",ListUtils::create<DoubleReal>("6.66,6.16"),"PATH:doublelist2");
+	p2.setValue("doublelist",ListUtils::create<DoubleReal>("1.2,5.55"),"doublelist");
 
 	TEST_EQUAL(p2.size(),10);
 
@@ -1150,12 +1150,12 @@ START_SECTION((void setDefaults(const Param& defaults, const String& prefix="", 
 	TEST_STRING_EQUAL(p2.getDescription("string2"),"string2");
 	TEST_STRING_EQUAL(p2.getSectionDescription("PATH"),"PATHdesc");
 
-	TEST_EQUAL(p2.getValue("stringlist"), StringList::create("r,o,c,k,s"))
+	TEST_EQUAL(p2.getValue("stringlist") == ListUtils::create<String>("r,o,c,k,s"), true)
 	TEST_EQUAL(p2.getValue("intlist") == ListUtils::create<Int>("16,9"), true)
-	TEST_EQUAL(p2.getValue("doublelist"),DoubleList::create("1.2,5.55"))
-	TEST_EQUAL(p2.getValue("stringlist2"),StringList::create("d,e,f"))
+	TEST_EQUAL(p2.getValue("doublelist") == ListUtils::create<DoubleReal>("1.2,5.55"), true)
+	TEST_EQUAL(p2.getValue("stringlist2") == ListUtils::create<String>("d,e,f"), true)
 	TEST_EQUAL(p2.getValue("intlist2") == ListUtils::create<Int>("11,22,33"), true)
-	TEST_EQUAL(p2.getValue("doublelist2"),DoubleList::create("11.22,22.33"))
+	TEST_EQUAL(p2.getValue("doublelist2") == ListUtils::create<DoubleReal>("11.22,22.33"), true)
 
 
 
@@ -1173,9 +1173,9 @@ START_SECTION((void setDefaults(const Param& defaults, const String& prefix="", 
 	TEST_STRING_EQUAL(p2.getSectionDescription("PATH"),"PATHdesc");
 	TEST_STRING_EQUAL(p2.getSectionDescription("PATH:PATH"),"PATHdesc");
 
-	TEST_EQUAL(p2.getValue("PATH:stringlist"),StringList::create("d,a,v,i,d"))
+	TEST_EQUAL(p2.getValue("PATH:stringlist") == ListUtils::create<String>("d,a,v,i,d"), true)
 	TEST_EQUAL(p2.getValue("PATH:intlist") == ListUtils::create<Int>("1,2,3"), true)
-	TEST_EQUAL(p2.getValue("PATH:doublelist"),DoubleList::create("1.2,2.3"))
+	TEST_EQUAL(p2.getValue("PATH:doublelist") == ListUtils::create<DoubleReal>("1.2,2.3"), true)
 
 END_SECTION
 

@@ -183,7 +183,7 @@ namespace OpenMS
              q_it->second.total_abundances.begin(); samp_it !=
            q_it->second.total_abundances.end(); ++samp_it)
       {
-        abundances[samp_it->first] << samp_it->second;
+        abundances[samp_it->first].push_back(samp_it->second);
       }
     }
     if (abundances.size() <= 1) return;
@@ -200,7 +200,7 @@ namespace OpenMS
     for (SampleAbundances::iterator med_it = medians.begin();
          med_it != medians.end(); ++med_it)
     {
-      all_medians << med_it->second;
+      all_medians.push_back(med_it->second);
     }
     DoubleReal overall_median = Math::median(all_medians.begin(),
                                              all_medians.end());
@@ -364,7 +364,7 @@ namespace OpenMS
         for (SampleAbundances::iterator samp_it = current_ab.begin();
              samp_it != current_ab.end(); ++samp_it)
         {
-          abundances[samp_it->first] << samp_it->second;
+          abundances[samp_it->first].push_back(samp_it->second);
         }
       }
 

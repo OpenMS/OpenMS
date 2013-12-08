@@ -103,7 +103,8 @@ namespace OpenMS
       for (BimapType::left_map::iterator int_it = intensity_map.left.begin();
            int_it != intensity_map.left.end(); ++int_it)
       {
-        intensities << max(0.0, int_it->second); // missing values might be "-1"
+        // missing values might be "-1"
+        intensities.push_back(max(0.0, int_it->second));
       }
     }
 
@@ -209,8 +210,8 @@ namespace OpenMS
         throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
                                          "Feature does not contain meta value 'PeptideRef' (reference to assay)");
       }
-      scores << scoreAssay_(library_.getPeptideByRef(true_id), feature_rt, 
-                            feature_intensities, transition_ids);
+      scores.push_back(scoreAssay_(library_.getPeptideByRef(true_id), feature_rt,
+                            feature_intensities, transition_ids));
 
       // compare to decoy assays:
       chooseDecoys_();
@@ -231,7 +232,7 @@ namespace OpenMS
         LOG_DEBUG << "Decoy assay " << scores.size() << " (ID '" << decoy_assay.id
                   << "')" << endl;
 
-        scores << scoreAssay_(decoy_assay, feature_rt, feature_intensities);
+        scores.push_back(scoreAssay_(decoy_assay, feature_rt, feature_intensities));
 
         if ((n_decoys_ > 0) && (++counter >= n_decoys_)) break; // enough decoys
       }

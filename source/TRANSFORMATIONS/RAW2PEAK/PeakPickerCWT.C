@@ -34,6 +34,8 @@
 
 #include <cmath>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
+
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMeanIterative.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/TwoDOptimization.h>
@@ -1648,7 +1650,7 @@ namespace OpenMS
   {
     // the peak widths that are tested
     //DoubleList widths = DoubleList::create("0.5,0.4,0.3,0.25,0.2,0.15,0.1,0.075,0.05,0.025,0.0125,0.01,0.005,0.0025,0.00125,0.0005,0.0001");
-    DoubleList widths = DoubleList::create("1.,0.5,0.25,0.125,0.1,0.05,0.025,0.0125,0.01,0.005,0.0025,0.00125,0.0005,0.0001");
+    DoubleList widths = ListUtils::create<DoubleReal>("1.,0.5,0.25,0.125,0.1,0.05,0.025,0.0125,0.01,0.005,0.0025,0.00125,0.0005,0.0001");
 #ifdef DEBUG_PEAK_PICKING
     std::cout << "calculating max tic" << std::endl;
 #endif

@@ -23,7 +23,6 @@ Date.h
 DateTime.h
 DefaultParamHandler.h
 DistanceMatrix.h
-DoubleList.h
 GridFeature.h
 IsotopeCluster.h
 ListUtils.h

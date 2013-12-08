@@ -271,8 +271,7 @@ namespace OpenMS
     {
       if (hasGoodHit_(*pep_it))
       {
-        rt_data[pep_it->getHits()[0].getSequence().toString()] <<
-        pep_it->getMetaValue("RT");
+        rt_data[pep_it->getHits()[0].getSequence().toString()].push_back(pep_it->getMetaValue("RT"));
       }
     }
   }
@@ -321,7 +320,7 @@ namespace OpenMS
         }
 
         if (any_good_hit)
-          rt_data[sequence] << feat_it->getRT();
+          rt_data[sequence].push_back(feat_it->getRT());
 
       }
       else
@@ -372,7 +371,7 @@ namespace OpenMS
       for (SeqToValue::iterator med_it = run_it->begin();
            med_it != run_it->end(); ++med_it)
       {
-        medians_per_seq[med_it->first] << med_it->second;
+        medians_per_seq[med_it->first].push_back(med_it->second);
       }
     }
 

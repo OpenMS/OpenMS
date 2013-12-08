@@ -34,7 +34,6 @@ set(datastructures_executables_list
 	Date_test
 	DefaultParamHandler_test
 	DistanceMatrix_test
-	DoubleList_test
 	GridFeature_test
 	HashGrid_test
   ListUtils_test

@@ -183,7 +183,8 @@ public:
     }
     
   };
-  
+
+
   /**
     @brief Output stream operator for std::vectors.
 
@@ -193,18 +194,24 @@ public:
   template <typename T>
   inline std::ostream& operator<<(std::ostream & os, const std::vector<T>& v)
   {
+    // handle precision settings
+    const std::streamsize prec_save = os.precision();
+    os << std::setprecision(writtenDigits(T()));
+    
     os << "[";
     
     if (!v.empty())
     {
-      std::copy(v.begin(), v.end()-1, std::ostream_iterator<int>(os, ", "));
+      std::copy(v.begin(), v.end()-1, std::ostream_iterator<T>(os, ", "));
       os << v.back();
     }
     
     os << "]";
+    // set precision settings back to original values
+    os << std::setprecision(prec_save);
     return os;
   }
-  
+
 } // namespace OpenMS
 
 #endif // OPENMS_DATASTRUCTURES_LISTUTILS_H

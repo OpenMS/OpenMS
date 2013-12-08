@@ -281,7 +281,7 @@ protected:
              charge_data.second.begin(); pi_it != charge_data.second.end();
            ++pi_it)
       {
-        rts << (*pi_it)->getMetaValue("RT");
+        rts.push_back((*pi_it)->getMetaValue("RT"));
       }
       if (reference_rt_ != "all")
       {
@@ -328,7 +328,7 @@ protected:
             rts.clear();
             for (++n; n < Int(rt_regions.size()); ++n)
             {
-              rts << rt_regions[n].second + rt_regions[n].first / 2.0;
+              rts.push_back(rt_regions[n].second + rt_regions[n].first / 2.0);
             }
           }
         }

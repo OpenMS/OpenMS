@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2013.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow$
 // $Authors: Stephan Aiche$
@@ -36,6 +36,7 @@
 
 ///////////////////////////
 #include <OpenMS/SIMULATION/IonizationSimulation.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 ///////////////////////////
 
@@ -86,10 +87,10 @@ START_SECTION((IonizationSimulation(const IonizationSimulation &source)))
   Param p = source.getParameters();
   p.setValue("ionization_type","MALDI");
   source.setParameters(p);
-  
+
   IonizationSimulation target(source);
   TEST_EQUAL(source.getParameters(), target.getParameters())
-  
+
 }
 END_SECTION
 
@@ -97,7 +98,7 @@ START_SECTION((IonizationSimulation& operator=(const IonizationSimulation &sourc
 {
   IonizationSimulation ion_sim1(rnd_gen);
   IonizationSimulation ion_sim2(ion_sim1);
-  
+
 	Param p = ion_sim1.getParameters();
 	p.setValue("ionization_type", "MALDI");
 	ion_sim1.setParameters(p);
@@ -109,14 +110,14 @@ END_SECTION
 
 START_SECTION((void ionize(FeatureMapSim &features, ConsensusMap &charge_consensus, MSSimExperiment &experiment)))
 {
-  // init rng 
+  // init rng
   SimRandomNumberGenerator rnd_gen;
 
   rnd_gen.biological_rng = gsl_rng_alloc (gsl_rng_taus);
   gsl_rng_set(rnd_gen.biological_rng, rnd_gen_seed);
   rnd_gen.technical_rng = gsl_rng_alloc (gsl_rng_taus);
   gsl_rng_set(rnd_gen.technical_rng, rnd_gen_seed);
-  
+
   // testing ESI
   IonizationSimulation esi_sim(rnd_gen);
   Param esi_param = esi_sim.getParameters();
@@ -125,9 +126,9 @@ START_SECTION((void ionize(FeatureMapSim &features, ConsensusMap &charge_consens
   esi_param.setValue("esi:ionization_probability", 0.8);
   esi_param.setValue("esi:charge_impurity", StringList::create("H+:1,NH4+:0.2,Ca++:0.1"));
   esi_param.setValue("esi:max_impurity_set_size", 3);
-  
+
   esi_sim.setParameters(esi_param);
-  
+
   FeatureMapSim esi_features;
   ConsensusMap cm;
   StringList peps = StringList::create("TVQMENQFVAFVDK,ACHKKKKHHACAC,AAAAHTKLRTTIPPEFG,RYCNHKTUIKL");
@@ -140,13 +141,13 @@ START_SECTION((void ionize(FeatureMapSim &features, ConsensusMap &charge_consens
     f.setIntensity(10);
     esi_features.push_back(f);
   }
-  
+
   MSSimExperiment exp;
   MSSimExperiment::SpectrumType spec;
   exp.addSpectrum(spec);
 
   esi_sim.ionize(esi_features, cm, exp);
-    
+
   TEST_EQUAL(esi_features.size(), 22)
   ABORT_IF(esi_features.size()!=22)
 
@@ -161,7 +162,7 @@ START_SECTION((void ionize(FeatureMapSim &features, ConsensusMap &charge_consens
 
   TEST_EQUAL(esi_features[3].getCharge(), 5)
   TEST_EQUAL(esi_features[3].getIntensity(), 3)
-  
+
   TEST_EQUAL(esi_features[4].getCharge(), 7)
   TEST_EQUAL(esi_features[4].getIntensity(), 1)
 
@@ -185,7 +186,7 @@ START_SECTION((void ionize(FeatureMapSim &features, ConsensusMap &charge_consens
 
   TEST_EQUAL(esi_features[11].getCharge(), 5)
   TEST_EQUAL(esi_features[11].getIntensity(), 1)
-  
+
   TEST_EQUAL(esi_features[12].getCharge(), 4)
   TEST_EQUAL(esi_features[12].getIntensity(), 1)
 
@@ -219,15 +220,15 @@ START_SECTION((void ionize(FeatureMapSim &features, ConsensusMap &charge_consens
   for(FeatureMapSim::const_iterator fmIt = esi_features.begin(); fmIt != esi_features.end();
       ++fmIt)
   {
-    std::cout << (*fmIt).getCharge() << " " 
-							<< (*fmIt).getIntensity() << " " 
-							<< (*fmIt).getPeptideIdentifications()[0].getHits()[0].getSequence().toString() 
+    std::cout << (*fmIt).getCharge() << " "
+							<< (*fmIt).getIntensity() << " "
+							<< (*fmIt).getPeptideIdentifications()[0].getHits()[0].getSequence().toString()
 							<< " Adducts: " << (*fmIt).getMetaValue("charge_adducts")
 							<< " Parent: " << (*fmIt).getMetaValue("parent_feature_number")
 							<< std::endl;
   }
-  
-  
+
+
   SimRandomNumberGenerator rnd_gen_maldi;
 
   rnd_gen_maldi.biological_rng = gsl_rng_alloc (gsl_rng_taus);
@@ -239,10 +240,10 @@ START_SECTION((void ionize(FeatureMapSim &features, ConsensusMap &charge_consens
   IonizationSimulation maldi_sim(rnd_gen_maldi);
   Param maldi_param = maldi_sim.getParameters();
   maldi_param.setValue("ionization_type","MALDI");
-  maldi_param.setValue("maldi:ionization_probabilities", DoubleList::create("0.9,0.1"));
-  
+  maldi_param.setValue("maldi:ionization_probabilities", ListUtils::create<DoubleReal>("0.9,0.1"));
+
   maldi_sim.setParameters(maldi_param);
-  
+
   FeatureMapSim maldi_features;
 	for (StringList::const_iterator it=peps.begin(); it!=peps.end(); ++it)
 	{
@@ -253,7 +254,7 @@ START_SECTION((void ionize(FeatureMapSim &features, ConsensusMap &charge_consens
 		f.setIntensity(10);
     maldi_features.push_back(f);
 	}
-  
+
 	MSSimExperiment expt;
 	MSSimExperiment::SpectrumType spect;
 	expt.addSpectrum(spect);
@@ -263,7 +264,7 @@ START_SECTION((void ionize(FeatureMapSim &features, ConsensusMap &charge_consens
 
   TEST_EQUAL(maldi_features[0].getCharge(), 1)
   TEST_EQUAL(maldi_features[0].getIntensity(), 7)
-  
+
   TEST_EQUAL(maldi_features[1].getCharge(), 2)
   TEST_EQUAL(maldi_features[1].getIntensity(), 3)
 
@@ -281,8 +282,8 @@ START_SECTION((void ionize(FeatureMapSim &features, ConsensusMap &charge_consens
 
   TEST_EQUAL(maldi_features[6].getCharge(), 2)
   TEST_EQUAL(maldi_features[6].getIntensity(), 1)
-  
- 
+
+
   for(FeatureMapSim::const_iterator fmIt = maldi_features.begin(); fmIt != maldi_features.end();
       ++fmIt)
   {

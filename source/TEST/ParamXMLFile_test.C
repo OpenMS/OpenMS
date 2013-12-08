@@ -158,8 +158,8 @@ START_SECTION((void store(const String& filename, const Param& param) const))
 	vector<String> strings2;
 	strings2.push_back("xml");
 	strings2.push_back("txt");
-	p5.setValue("stringlist2",StringList::create("a.txt,b.xml,c.pdf"));
-	p5.setValue("stringlist",StringList::create("aa.C,bb.h,c.doxygen"));
+	p5.setValue("stringlist2",ListUtils::create<String>("a.txt,b.xml,c.pdf"));
+	p5.setValue("stringlist",ListUtils::create<String>("aa.C,bb.h,c.doxygen"));
 	p5.setValidStrings("stringlist2",strings2);
 
 	p5.setValue("intlist",ListUtils::create<Int>("2,5,10"));
@@ -171,10 +171,10 @@ START_SECTION((void store(const String& filename, const Param& param) const))
 	p5.setMinInt("intlist4",0);
 	p5.setMaxInt("intlist4",15);
 
-	p5.setValue("doublelist",DoubleList::create("1.2,3.33,4.44"));
-	p5.setValue("doublelist2",DoubleList::create("1.2,3.33,4.44"));
-	p5.setValue("doublelist3",DoubleList::create("1.2,3.33,4.44"));
-	p5.setValue("doublelist4",DoubleList::create("1.2,3.33,4.44"));
+	p5.setValue("doublelist",ListUtils::create<DoubleReal>("1.2,3.33,4.44"));
+	p5.setValue("doublelist2",ListUtils::create<DoubleReal>("1.2,3.33,4.44"));
+	p5.setValue("doublelist3",ListUtils::create<DoubleReal>("1.2,3.33,4.44"));
+	p5.setValue("doublelist4",ListUtils::create<DoubleReal>("1.2,3.33,4.44"));
 
 	p5.setMinFloat("doublelist2",1.1);
 	p5.setMaxFloat("doublelist3",4.45);
@@ -245,21 +245,21 @@ END_SECTION
 START_SECTION((void writeXMLToStream(std::ostream *os_ptr, const Param &param) const ))
 {
 	Param p;
-	p.setValue("stringlist", StringList::create("a,bb,ccc"), "StringList Description");
+	p.setValue("stringlist", ListUtils::create<String>("a,bb,ccc"), "StringList Description");
 	p.setValue("intlist", ListUtils::create<Int>("1,22,333"));
 	p.setValue("item", String("bla"));
-	p.setValue("stringlist2", StringList::create(""));
+	p.setValue("stringlist2", ListUtils::create<String>(""));
 	p.setValue("intlist2", ListUtils::create<Int>(""));
 	p.setValue("item1", 7);
 	p.setValue("intlist3", ListUtils::create<Int>("1"));
-	p.setValue("stringlist3", StringList::create("1"));
+	p.setValue("stringlist3", ListUtils::create<String>("1"));
 	p.setValue("item3", 7.6);
-	p.setValue("doublelist",DoubleList::create("1.22,2.33,4.55"));
-	p.setValue("doublelist3",DoubleList::create("1.4"));
+	p.setValue("doublelist", ListUtils::create<DoubleReal>("1.22,2.33,4.55"));
+	p.setValue("doublelist3", ListUtils::create<DoubleReal>("1.4"));
   p.setValue("file_parameter", "", "This is a file parameter.");
   p.addTag("file_parameter", "input file");
-  p.setValidStrings("file_parameter", StringList::create("*.mzML,*.mzXML"));
-  p.setValue("advanced_parameter", "", "This is an advanced parameter.", StringList::create("advanced"));
+  p.setValidStrings("file_parameter", ListUtils::create<String>("*.mzML,*.mzXML"));
+  p.setValue("advanced_parameter", "", "This is an advanced parameter.", ListUtils::create<String>("advanced"));
 
   String filename;
   NEW_TMP_FILE(filename)
@@ -274,18 +274,18 @@ START_SECTION([EXTRA] loading and storing of lists)
   ParamXMLFile paramFile;
 
 	Param p;
-	p.setValue("stringlist", StringList::create("a,bb,ccc"));
+	p.setValue("stringlist", ListUtils::create<String>("a,bb,ccc"));
 	p.setValue("intlist", ListUtils::create<Int>("1,22,333"));
 	p.setValue("item", String("bla"));
-	p.setValue("stringlist2", StringList::create(""));
+	p.setValue("stringlist2", ListUtils::create<String>(""));
 	p.setValue("intlist2", ListUtils::create<Int>(""));
 	p.setValue("item1", 7);
 	p.setValue("intlist3", ListUtils::create<Int>("1"));
-	p.setValue("stringlist3", StringList::create("1"));
+	p.setValue("stringlist3", ListUtils::create<String>("1"));
 	p.setValue("item3", 7.6);
-	p.setValue("doublelist",DoubleList::create("1.22,2.33,4.55"));
-	p.setValue("doublelist2",DoubleList::create(""));
-	p.setValue("doublelist3",DoubleList::create("1.4"));
+	p.setValue("doublelist", ListUtils::create<DoubleReal>("1.22,2.33,4.55"));
+	p.setValue("doublelist2", ListUtils::create<DoubleReal>(""));
+	p.setValue("doublelist3", ListUtils::create<DoubleReal>("1.4"));
 	//store
 	String filename;
 	NEW_TMP_FILE(filename);

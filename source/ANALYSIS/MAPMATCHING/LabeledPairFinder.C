@@ -34,6 +34,7 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/LabeledPairFinder.h>
 #include <OpenMS/DATASTRUCTURES/ConstRefVector.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/MATH/STATISTICS/Histogram.h>
 #include <OpenMS/MATH/STATISTICS/GaussFitter.h>
 
@@ -58,7 +59,7 @@ namespace OpenMS
     defaults_.setValue("rt_dev_high", 15.0, "maximum allowed deviation above optimal retention time distance");
     defaults_.setMinFloat("rt_dev_high", 0.0);
 
-    defaults_.setValue("mz_pair_dists", DoubleList::create(4.0), "optimal pair distances in m/z [Th] for features with charge +1 (adapted to +2, +3, .. by division through charge)");
+    defaults_.setValue("mz_pair_dists", ListUtils::create<DoubleReal>("4.0"), "optimal pair distances in m/z [Th] for features with charge +1 (adapted to +2, +3, .. by division through charge)");
     defaults_.setValue("mz_dev", 0.05, "maximum allowed deviation from optimal m/z distance\n");
     defaults_.setMinFloat("mz_dev", 0.0);
     defaults_.setValue("mrm", "false", "this option should be used if the features correspond mrm chromatograms (additionally the precursor is taken into account)", StringList::create("advanced"));
