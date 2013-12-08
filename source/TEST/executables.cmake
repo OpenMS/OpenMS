@@ -38,6 +38,7 @@ set(datastructures_executables_list
 	GridFeature_test
 	HashGrid_test
 	IntList_test
+  ListUtils_test
   LPWrapper_test
 	Map_test
 	MassExplainer_test

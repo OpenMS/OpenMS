@@ -27,6 +27,7 @@ DoubleList.h
 GridFeature.h
 IntList.h
 IsotopeCluster.h
+ListUtils.h
 Map.h
 MassExplainer.h
 Matrix.h
