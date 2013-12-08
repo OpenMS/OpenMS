@@ -33,12 +33,14 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/HANDLERS/MzMLSpectrumDecoder.h>
+#include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 
 #include <OpenMS/CONCEPT/Macros.h> // OPENMS_PRECONDITION
 
 #include <xercesc/framework/MemBufInputSource.hpp>
 #include <xercesc/parsers/XercesDOMParser.hpp>
 #include <xercesc/dom/DOMNode.hpp>
+#include <xercesc/dom/DOMText.hpp>
 #include <xercesc/dom/DOMElement.hpp>
 #include <xercesc/dom/DOMNodeList.hpp>
 #include <xercesc/util/XMLString.hpp>
@@ -183,10 +185,15 @@ namespace OpenMS
     // access result through data_.back()
     data_.push_back(BinaryData());
 
-    XMLCh* TAG_CV = xercesc::XMLString::transcode("cvParam");
-    XMLCh* TAG_binary = xercesc::XMLString::transcode("binary");
-    XMLCh* TAG_userParam = xercesc::XMLString::transcode("userParam");
-    XMLCh* TAG_referenceableParamGroupRef = xercesc::XMLString::transcode("referenceableParamGroupRef");
+    static const XMLCh* TAG_CV = xercesc::XMLString::transcode("cvParam");
+    static const XMLCh* TAG_binary = xercesc::XMLString::transcode("binary");
+    static const XMLCh* TAG_userParam = xercesc::XMLString::transcode("userParam");
+    static const XMLCh* TAG_referenceableParamGroupRef = xercesc::XMLString::transcode("referenceableParamGroupRef");
+    static const XMLCh* TAG_accession = xercesc::XMLString::transcode("accession");
+    static const XMLCh* TAG_value = xercesc::XMLString::transcode("value");
+    static const XMLCh* TAG_name = xercesc::XMLString::transcode("name");
+
+    OpenMS::Internal::StringManager sm;
 
     // Iterate through binaryDataArray elements
     // only allowed subelements:
@@ -205,16 +212,24 @@ namespace OpenMS
         xercesc::DOMElement* currentElement = dynamic_cast<xercesc::DOMElement*>(currentNode);
         if (xercesc::XMLString::equals(currentElement->getTagName(), TAG_binary))
         {
-          // TODO do not use expensive xercesc transcoding!
-          data_.back().base64 = xercesc::XMLString::transcode(currentNode->getTextContent());
+          xercesc::DOMNode* textNode_ = currentNode->getFirstChild();
+          if (textNode_->getNodeType() == xercesc::DOMNode::TEXT_NODE)
+          {
+            xercesc::DOMText* textNode (static_cast<xercesc::DOMText*> (textNode_));
+            sm.appendASCII(textNode->getData(), 
+                textNode->getLength(), data_.back().base64);
+          }
+          else
+          {
+            throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
+                "", "Binary element can only have a single, text node child element.");
+          }
         }
         else if (xercesc::XMLString::equals(currentElement->getTagName(), TAG_CV))
         {
-          std::string accession = xercesc::XMLString::transcode(currentElement->getAttribute(xercesc::XMLString::transcode("accession")));
-          std::string value = xercesc::XMLString::transcode(currentElement->getAttribute(xercesc::XMLString::transcode("value")));
-          std::string name = xercesc::XMLString::transcode(currentElement->getAttribute(xercesc::XMLString::transcode("name")));
-
-          //handleCVParam(data_, accession, value, name);
+          std::string accession = sm.convert(currentElement->getAttribute(TAG_accession));
+          std::string value = sm.convert(currentElement->getAttribute(TAG_value));
+          std::string name = sm.convert(currentElement->getAttribute(TAG_name));
 
           // set precision, data_type
           Internal::MzMLHandlerHelper::handleBinaryDataArrayCVParam(data_, accession, value, name);
@@ -233,11 +248,6 @@ namespace OpenMS
         }
       }
     }
-
-    xercesc::XMLString::release(&TAG_CV);
-    xercesc::XMLString::release(&TAG_binary);
-    xercesc::XMLString::release(&TAG_userParam);
-    xercesc::XMLString::release(&TAG_referenceableParamGroupRef);
   }
 
   void MzMLSpectrumDecoder::domParseString(const std::string& in, std::vector<BinaryData>& data_)
