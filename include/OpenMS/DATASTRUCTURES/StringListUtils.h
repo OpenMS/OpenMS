@@ -166,7 +166,7 @@ public:
     /**
       @brief Transforms all strings contained in the passed StringList to lower case.
 
-      @param sl The StringList to convert to lower case.
+      @param The StringList to convert to lower case.
     */
     static void toLower(StringList& sl);
 

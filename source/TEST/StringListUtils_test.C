@@ -49,19 +49,7 @@ START_TEST(StringList, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
-StringList* ptr = 0;
-StringList* nullPointer = 0;
-START_SECTION((StringList()))
-	ptr = new StringList;
-	TEST_NOT_EQUAL(ptr, nullPointer)
-END_SECTION
-
-START_SECTION(~StringList())
-	delete ptr;
-END_SECTION
-
-
-START_SECTION((StringList(const QStringList &rhs)))
+START_SECTION((static StringList fromQStringList(const QStringList &rhs)))
 {
   QStringList q_str_list;
   q_str_list << "First Element" << "Second Element" << "Third Element";
@@ -76,57 +64,23 @@ START_SECTION((StringList(const QStringList &rhs)))
 }
 END_SECTION
 
-START_SECTION((StringList(const StringList& rhs)))
-	StringList list = ListUtils::create<String>("yes,no");
-	StringList list2(list);
-	TEST_EQUAL(list2.size(),2);
-	TEST_STRING_EQUAL(list2[0],"yes");
-	TEST_STRING_EQUAL(list2[1],"no");
-END_SECTION
 
-START_SECTION((StringList(const std::vector<String>& rhs)))
-	std::vector<String> list;
-	list.push_back("yes");
-	list.push_back("no");
-	StringList list2(list);
-	TEST_EQUAL(list2.size(),2);
-	TEST_STRING_EQUAL(list2[0],"yes");
-	TEST_STRING_EQUAL(list2[1],"no");
-END_SECTION
-
-START_SECTION((StringList& operator=(const StringList& rhs)))
-	StringList list = ListUtils::create<String>("yes,no");
-	StringList list2;
-	list2 = list;
-	TEST_EQUAL(list2.size(),2);
-	TEST_STRING_EQUAL(list2[0],"yes");
-	TEST_STRING_EQUAL(list2[1],"no");
-END_SECTION
-
-START_SECTION((StringList& operator=(const std::vector<String>& rhs)))
-	std::vector<String> list;
-	list.push_back("yes");
-	list.push_back("no");
-	StringList list2;
-	list2 = list;
-	TEST_EQUAL(list2.size(),2);
-	TEST_STRING_EQUAL(list2[0],"yes");
-	TEST_STRING_EQUAL(list2[1],"no");
-
-END_SECTION
-
-START_SECTION((void toUpper()))
+START_SECTION((static void toUpper(StringList &sl)))
+{
 	StringList list = ListUtils::create<String>("yes,no");
 	StringListUtils::toUpper(list);
 	TEST_EQUAL(list[0],"YES")
 	TEST_EQUAL(list[1],"NO")
+}
 END_SECTION
 
-START_SECTION((void toLower()))
+START_SECTION((static void toLower(StringList &sl)))
+{
 	StringList list = ListUtils::create<String>("yES,nO");
 	StringListUtils::toLower(list);
 	TEST_EQUAL(list[0],"yes")
 	TEST_EQUAL(list[1],"no")
+}
 END_SECTION
 
 StringList tmp_list;
@@ -155,7 +109,8 @@ tmp_list2.push_back("back_tab_line");
 tmp_list2.push_back("");
 tmp_list2.push_back("last_line");
 
-START_SECTION((Iterator searchPrefix(const Iterator& start, const Iterator& end, const String& text, bool trim=false)))
+START_SECTION((static Iterator searchPrefix(const Iterator &start, const Iterator &end, const String &text, bool trim=false)))
+{
 	StringList list(tmp_list);
 
 	TEST_EQUAL(StringListUtils::searchPrefix(list.begin(), list.end(), "first_line") == list.begin(), true)
@@ -192,10 +147,12 @@ START_SECTION((Iterator searchPrefix(const Iterator& start, const Iterator& end,
 	TEST_EQUAL(StringListUtils::searchPrefix(list.begin(), list.end(), "space_line",true) == (list.begin()+5), true)
 	TEST_EQUAL(StringListUtils::searchPrefix(list.begin(), list.end(), "tab_line",true) == (list.begin()+6), true)
 	TEST_EQUAL(StringListUtils::searchPrefix(list.begin(), list.end(), "invented_line",true) == list.end(), true)
-	TEST_EQUAL(StringListUtils::searchPrefix(list.begin()+1, list.end(), "first_line",true) == list.end(), true)
+	TEST_EQUAL(StringListUtils::searchPrefix(list.begin()+1, list.end(), "first_line",true) == list.end(), true)	}
+
 END_SECTION
 
-START_SECTION((Iterator searchPrefix(const StringList& container, const String& text, bool trim=false)))
+START_SECTION((static Iterator searchPrefix(StringList &container, const String &text, bool trim=false)))
+{
 	StringList list(tmp_list);
 
 	TEST_EQUAL(StringListUtils::searchPrefix(list, "first_line") == list.begin(), true)
@@ -228,9 +185,11 @@ START_SECTION((Iterator searchPrefix(const StringList& container, const String& 
 	TEST_EQUAL(StringListUtils::searchPrefix(list, "space_line",true) == (list.begin()+5), true)
 	TEST_EQUAL(StringListUtils::searchPrefix(list, "tab_line",true) == (list.begin()+6), true)
 	TEST_EQUAL(StringListUtils::searchPrefix(list, "invented_line",true) == list.end(), true)
+}
 END_SECTION
 
-START_SECTION((Iterator searchSuffix(const Iterator& start, const Iterator& start, const String& text, bool trim=false)))
+START_SECTION((static Iterator searchSuffix(const Iterator &start, const Iterator &end, const String &text, bool trim=false)))
+{
 	StringList list(tmp_list);
 
 	TEST_EQUAL(StringListUtils::searchSuffix(list.begin(), list.end(), "invented_line",true) == list.end(), true)
@@ -241,9 +200,11 @@ START_SECTION((Iterator searchSuffix(const Iterator& start, const Iterator& star
 	TEST_EQUAL(StringListUtils::searchSuffix(list.begin(), list.end(), "invented_line") == list.end(), true)
 	TEST_EQUAL(StringListUtils::searchSuffix(list.begin(), list.end(), "back_space_line") == list.end(), true)
 	TEST_EQUAL(StringListUtils::searchSuffix(list.begin(), list.end(), "back_tab_line") == list.end(), true)
+}
 END_SECTION
 
-START_SECTION((Iterator searchSuffix(const StringList& container, const String& text, bool trim=false)))
+START_SECTION((static Iterator searchSuffix(StringList &container, const String &text, bool trim=false)))
+{
 	StringList list(tmp_list);
 
 	TEST_EQUAL(StringListUtils::searchSuffix(list, "invented_line",true) == list.end(), true)
@@ -253,9 +214,11 @@ START_SECTION((Iterator searchSuffix(const StringList& container, const String& 
 	TEST_EQUAL(StringListUtils::searchSuffix(list, "invented_line") == list.end(), true)
 	TEST_EQUAL(StringListUtils::searchSuffix(list, "back_space_line") == list.end(), true)
 	TEST_EQUAL(StringListUtils::searchSuffix(list, "back_tab_line") == list.end(), true)
+}
 END_SECTION
 
-START_SECTION((ConstIterator search(const ConstIterator& start, const String& text, bool trim=false) const))
+START_SECTION((static ConstIterator searchPrefix(const ConstIterator &start, const ConstIterator &end, const String &text, bool trim=false)))
+{
 	const StringList list(tmp_list);
 
 	TEST_EQUAL(StringListUtils::searchPrefix(list.begin(), list.end(), "first_line") == list.begin(), true)
@@ -293,9 +256,11 @@ START_SECTION((ConstIterator search(const ConstIterator& start, const String& te
 	TEST_EQUAL(StringListUtils::searchPrefix(list2.begin(), list2.end(), "tab_line",true) == (list2.begin()+6), true)
 	TEST_EQUAL(StringListUtils::searchPrefix(list2.begin(), list2.end(), "invented_line",true) == list2.end(), true)
 	TEST_EQUAL(StringListUtils::searchPrefix(list2.begin()  + 1, list2.end(), "first_line",true) == list2.end(), true)
+}
 END_SECTION
 
-START_SECTION((ConstIterator searchPrefix(const StringList& container, const String& text, bool trim=false) const))
+START_SECTION((static ConstIterator searchPrefix(const StringList &container, const String &text, bool trim=false)))
+{
 	const StringList list(tmp_list);
 
 	TEST_EQUAL(StringListUtils::searchPrefix(list, "first_line") == list.begin(), true)
@@ -328,9 +293,11 @@ START_SECTION((ConstIterator searchPrefix(const StringList& container, const Str
 	TEST_EQUAL(StringListUtils::searchPrefix(list2, "space_line",true) == (list2.begin()+5), true)
 	TEST_EQUAL(StringListUtils::searchPrefix(list2, "tab_line",true) == (list2.begin()+6), true)
 	TEST_EQUAL(StringListUtils::searchPrefix(list2, "invented_line",true) == list2.end(), true)
+}
 END_SECTION
 
-START_SECTION((ConstIterator searchSuffix(const ConstIterator& start, const ConstIterator& end, const String& text, bool trim=false) const))
+START_SECTION((static ConstIterator searchSuffix(const ConstIterator &start, const ConstIterator &end, const String &text, bool trim=false)))
+{
 	const StringList list(tmp_list);
 
 	TEST_EQUAL(StringListUtils::searchSuffix(list.begin(), list.end(), "invented_line",true) == list.end(), true)
@@ -341,9 +308,11 @@ START_SECTION((ConstIterator searchSuffix(const ConstIterator& start, const Cons
 	TEST_EQUAL(StringListUtils::searchSuffix(list.begin(), list.end(), "invented_line") == list.end(), true)
 	TEST_EQUAL(StringListUtils::searchSuffix(list.begin(), list.end(), "back_space_line") == list.end(), true)
 	TEST_EQUAL(StringListUtils::searchSuffix(list.begin(), list.end(), "back_tab_line") == list.end(), true)
+}
 END_SECTION
 
-START_SECTION((ConstIterator searchSuffix(const StringList & container, const String& text, bool trim=false) const))
+START_SECTION((static ConstIterator searchSuffix(const StringList &container, const String &text, bool trim=false)))
+{
 	const StringList list(tmp_list);
 
 	TEST_EQUAL(StringListUtils::searchSuffix(list, "invented_line",true) == list.end(), true)
@@ -353,6 +322,7 @@ START_SECTION((ConstIterator searchSuffix(const StringList & container, const St
 	TEST_EQUAL(StringListUtils::searchSuffix(list, "invented_line") == list.end(), true)
 	TEST_EQUAL(StringListUtils::searchSuffix(list, "back_space_line") == list.end(), true)
 	TEST_EQUAL(StringListUtils::searchSuffix(list, "back_tab_line") == list.end(), true)
+}
 END_SECTION
 
 /////////////////////////////////////////////////////////////

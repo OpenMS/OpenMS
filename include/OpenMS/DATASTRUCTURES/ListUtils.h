@@ -53,16 +53,12 @@ namespace OpenMS
   /**
     @brief Vector of signed integers.
 
-    @note Typedef replaces former IntList class.
-
     @ingroup Datastructures
   */
   typedef std::vector<Int> IntList;
 
   /**
    @brief Vector of double precision real types.
-
-   @note Typedef replaces former DoubleList class.
 
    @ingroup Datastructures
    */
@@ -72,8 +68,6 @@ namespace OpenMS
   /**
    @brief Vector of String.
 
-   @note Typedef replaces former StringList class.
-
    @ingroup Datastructures
    */
   typedef std::vector<String> StringList;
@@ -81,40 +75,43 @@ namespace OpenMS
 
   /// @cond INTERNAL
   /**
-    @brief Internal wrapper for the create functions that allows specialization by the return type.
+    @brief Internal wrapper for the create functions that allows specialisation by the return type.
 
-    Explicit specialization for String exists, all other types are handled by boost::lexical_cast.
+    Explicit specialisation for String exists, all other types are handled by boost::lexical_cast.
   */
-  namespace _convert_wrapper
+  namespace Internal
   {
-    /// generic create using boost::lexical_cast
-    template <typename T>
-    inline std::vector<T> create_(const std::vector<String>& s, const T*)
+    namespace _convert_wrapper
     {
-      std::vector<T> c;
-      c.reserve(s.size());
-      for (std::vector<String>::const_iterator it = s.begin(); it != s.end(); ++it)
+      /// generic create using boost::lexical_cast
+      template <typename T>
+      inline std::vector<T> create_(const std::vector<String>& s, const T*)
       {
-        try
+        std::vector<T> c;
+        c.reserve(s.size());
+        for (std::vector<String>::const_iterator it = s.begin(); it != s.end(); ++it)
         {
-          c.push_back(boost::lexical_cast<T>(boost::trim_copy(*it)));
+          try
+          {
+            c.push_back(boost::lexical_cast<T>(boost::trim_copy(*it)));
+          }
+          catch (boost::bad_lexical_cast&)
+          {
+            throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Could not convert string '") + *it + "'");
+          }
         }
-        catch (boost::bad_lexical_cast&)
-        {
-          throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Could not convert string '") + *it + "'");
-        }
+
+        return c;
       }
 
-      return c;
-    }
+      /// create specialisation for String since we do not need to cast here
+      template <>
+      inline std::vector<String> create_(const std::vector<String>& s, const String*)
+      {
+        return s;
+      }
 
-    /// create specialization for String since we do not need to cast here
-    template <>
-    inline std::vector<String> create_(const std::vector<String>& s, const String*)
-    {
-      return s;
     }
-
   }
   /// @endcond
 
@@ -127,7 +124,7 @@ namespace OpenMS
   {
 private:
     /**
-      @brief Predicate that to check double equality with a given toleracnce.
+      @brief Predicate that to check double equality with a given tolerance.
     */
     struct DoubleTolerancePredicate_
     {
@@ -157,10 +154,10 @@ private:
 public:
     /**
       @brief Returns a list that is created by splitting the given comma-separated string.
-      @note The strings are not trimmed.
+      @note If converted to vector<String> the strings are not trimmed.
       @note The values get converted by boost::lexical_cast so a valid conversion from String to T needs to be available.
 
-      @param str The string that should be splitted and converted to a list.
+      @param str The string that should be split and converted to a list.
       @return A vector containing the elements of the string converted into type T.
     */
     template <typename T>
@@ -183,11 +180,11 @@ public:
     template <typename T>
     static std::vector<T> create(const std::vector<String>& s)
     {
-      return _convert_wrapper::create_(s, (T*) NULL);
+      return Internal::_convert_wrapper::create_(s, (T*) NULL);
     }
 
     /**
-      @brief Checkes wether the element @p elem is contained in the given container.
+      @brief Checks whether the element @p elem is contained in the given container.
 
       @param container The container to check.
       @param elem The element to check whether it is in the container or not.
@@ -201,7 +198,7 @@ public:
     }
 
     /**
-      @brief Checkes wether the element @p elem is contained in the given container of floating point numbers.
+      @brief Checks whether the element @p elem is contained in the given container of floating point numbers.
 
       @param container The container of doubles to check.
       @param elem The element to check whether it is in the container or not.
@@ -240,7 +237,6 @@ public:
     }
 
   };
-
 
   /**
     @brief Output stream operator for std::vectors.
