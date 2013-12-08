@@ -207,6 +207,9 @@ set(format_executables_list
   XMLValidator_test
   XTandemInfile_test
   XTandemXMLFile_test
+  # DATAACCESS
+  MSDataCachedConsumer_test
+  MSDataTransformingConsumer_test
 )
 
 if (DB_TEST)

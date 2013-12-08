@@ -47,7 +47,7 @@ namespace OpenMS
     /**
       @brief Empty (NOP) function
     */
-    extern void FunctionChromatogramNOP (MSChromatogram<ChromatogramPeak> & /* s */);
+    extern void FunctionChromatogramNOP (MSChromatogram<ChromatogramPeak> & /* c */);
 
     /**
       @brief Transforming consumer of MS data
