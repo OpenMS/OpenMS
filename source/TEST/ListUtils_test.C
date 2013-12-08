@@ -120,11 +120,12 @@ END_SECTION
 
 START_SECTION((template < typename T > static std::vector<T> create(const String &str, const char splitter= ',')))
 {
-  std::vector<String> sv = ListUtils::create<String>("yes,no");
-  TEST_EQUAL(sv.size(), 2)
-  ABORT_IF(sv.size() != 2)
+  std::vector<String> sv = ListUtils::create<String>("yes,no, maybe");
+  TEST_EQUAL(sv.size(), 3)
+  ABORT_IF(sv.size() != 3)
   TEST_EQUAL(sv[0], "yes")
   TEST_EQUAL(sv[1], "no")
+  TEST_EQUAL(sv[2], " maybe")
 
   std::vector<DoubleReal> dv = ListUtils::create<DoubleReal>("1.2,3.5");
   TEST_EQUAL(dv.size(), 2)

@@ -72,49 +72,6 @@ namespace OpenMS
    */
   typedef std::vector<String> StringList;
 
-
-  /// @cond INTERNAL
-  /**
-    @brief Internal wrapper for the create functions that allows specialisation by the return type.
-
-    Explicit specialisation for String exists, all other types are handled by boost::lexical_cast.
-  */
-  namespace Internal
-  {
-    namespace _convert_wrapper
-    {
-      /// generic create using boost::lexical_cast
-      template <typename T>
-      inline std::vector<T> create_(const std::vector<String>& s, const T*)
-      {
-        std::vector<T> c;
-        c.reserve(s.size());
-        for (std::vector<String>::const_iterator it = s.begin(); it != s.end(); ++it)
-        {
-          try
-          {
-            c.push_back(boost::lexical_cast<T>(boost::trim_copy(*it)));
-          }
-          catch (boost::bad_lexical_cast&)
-          {
-            throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Could not convert string '") + *it + "'");
-          }
-        }
-
-        return c;
-      }
-
-      /// create specialisation for String since we do not need to cast here
-      template <>
-      inline std::vector<String> create_(const std::vector<String>& s, const String*)
-      {
-        return s;
-      }
-
-    }
-  }
-  /// @endcond
-
   /**
     @brief Collection of utility functions for management of vectors.
 
@@ -178,10 +135,7 @@ public:
       @return A vector containing the elements of input vector converted into type T.
     */
     template <typename T>
-    static std::vector<T> create(const std::vector<String>& s)
-    {
-      return Internal::_convert_wrapper::create_(s, (T*) NULL);
-    }
+    static std::vector<T> create(const std::vector<String>& s);
 
     /**
       @brief Checks whether the element @p elem is contained in the given container.
@@ -271,6 +225,33 @@ public:
   {
     sl.push_back(string);
     return sl;
+  }
+
+  template <typename T>
+  inline std::vector<T> ListUtils::create(const std::vector<String>& s)
+  {
+    std::vector<T> c;
+    c.reserve(s.size());
+    for (std::vector<String>::const_iterator it = s.begin(); it != s.end(); ++it)
+    {
+      try
+      {
+        c.push_back(boost::lexical_cast<T>(boost::trim_copy(*it)));
+      }
+      catch (boost::bad_lexical_cast&)
+      {
+        throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Could not convert string '") + *it + "'");
+      }
+    }
+    
+    return c;
+  }
+
+  /// create specialization for String since we do not need to cast here
+  template <>
+  inline std::vector<String> ListUtils::create(const std::vector<String>& s)
+  {
+    return s;
   }
 
 } // namespace OpenMS
