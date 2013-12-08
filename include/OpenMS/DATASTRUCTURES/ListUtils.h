@@ -48,17 +48,48 @@
 
 namespace OpenMS
 {
+
+
+  /**
+    @brief Vector of signed integers.
+
+    @note Typedef replaces former IntList class.
+
+    @ingroup Datastructures
+  */
+  typedef std::vector<Int> IntList;
+
+  /**
+   @brief Vector of double precision real types.
+
+   @note Typedef replaces former DoubleList class.
+
+   @ingroup Datastructures
+   */
+  typedef std::vector<DoubleReal> DoubleList;
+
+
+  /**
+   @brief Vector of String.
+
+   @note Typedef replaces former StringList class.
+
+   @ingroup Datastructures
+   */
+  typedef std::vector<String> StringList;
+
+
   /// @cond INTERNAL
   /**
     @brief Internal wrapper for the create functions that allows specialization by the return type.
-    
+
     Explicit specialization for String exists, all other types are handled by boost::lexical_cast.
   */
   namespace _convert_wrapper
   {
     /// generic create using boost::lexical_cast
-    template<typename T>
-    inline std::vector<T> create_(const std::vector<String>& s, const T* )
+    template <typename T>
+    inline std::vector<T> create_(const std::vector<String>& s, const T*)
     {
       std::vector<T> c;
       c.reserve(s.size());
@@ -73,22 +104,23 @@ namespace OpenMS
           throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Could not convert string '") + *it + "'");
         }
       }
-      
+
       return c;
     }
 
     /// create specialization for String since we do not need to cast here
-    template<>
-    inline std::vector<String> create_(const std::vector<String>& s, const String* )
+    template <>
+    inline std::vector<String> create_(const std::vector<String>& s, const String*)
     {
       return s;
     }
+
   }
   /// @endcond
-  
+
   /**
     @brief Collection of utility functions for management of vectors.
-   
+
     @ingroup Datastructures
   */
   class OPENMS_DLLAPI ListUtils
@@ -106,31 +138,32 @@ private:
 
       /**
         @brief Returns true if \| @p value - @p target \| \< @p tolerance.
-       
+
         @param value The value to test.
         @return true if \| @p value - @p target \| \< @p tolerance, false otherwise.
       */
-      inline bool operator()(const DoubleReal &value)
+      inline bool operator()(const DoubleReal& value)
       {
         return std::fabs(value - target_) < tolerance_;
       }
-    private:
+
+private:
       /// The allowed tolerance.
       DoubleReal tolerance_;
       /// The target value that should be found.
       DoubleReal target_;
     };
-    
+
 public:
     /**
       @brief Returns a list that is created by splitting the given comma-separated string.
       @note The strings are not trimmed.
       @note The values get converted by boost::lexical_cast so a valid conversion from String to T needs to be available.
-     
+
       @param str The string that should be splitted and converted to a list.
       @return A vector containing the elements of the string converted into type T.
     */
-    template<typename T>
+    template <typename T>
     static std::vector<T> create(const String& str, const char splitter = ',')
     {
       // temporary storage for the individual elements of the string
@@ -138,7 +171,7 @@ public:
       str.split(splitter, temp_string_vec);
       return create<T>(temp_string_vec);
     }
-    
+
     /**
       @brief Converts a vector of strings to a vector of the target type T.
       @note The strings are not trimmed.
@@ -147,22 +180,22 @@ public:
       @param s The vector of strings that should be converted.
       @return A vector containing the elements of input vector converted into type T.
     */
-    template<typename T>
+    template <typename T>
     static std::vector<T> create(const std::vector<String>& s)
     {
       return _convert_wrapper::create_(s, (T*) NULL);
     }
-    
+
     /**
       @brief Checkes wether the element @p elem is contained in the given container.
-     
+
       @param container The container to check.
       @param elem The element to check whether it is in the container or not.
-     
+
       @return True if @p elem is contained in @p container, false otherwise.
     */
-    template<typename T, typename E>
-    static bool contains(const std::vector<T>& container, const E& elem )
+    template <typename T, typename E>
+    static bool contains(const std::vector<T>& container, const E& elem)
     {
       return find(container.begin(), container.end(), elem) != container.end();
     }
@@ -176,36 +209,36 @@ public:
 
       @return True if @p elem is contained in @p container, false otherwise.
     */
-    static bool contains(const std::vector<DoubleReal>& container, const DoubleReal& elem, DoubleReal tolerance = 0.00001 )
+    static bool contains(const std::vector<DoubleReal>& container, const DoubleReal& elem, DoubleReal tolerance = 0.00001)
     {
       return find_if(container.begin(), container.end(), DoubleTolerancePredicate_(elem, tolerance)) != container.end();
     }
-    
+
     /**
       @brief Concatenates all elements of the @p container and puts the @p glue string between elements.
-     
+
       @param container The container to concatenate.
       @param glue The string to add in between elements.
     */
-    template<typename T>
+    template <typename T>
     static String concatenate(const std::vector<T>& container, const String& glue = "")
     {
       // handle empty containers
       if (container.empty()) return "";
-      
+
       typename std::vector<T>::const_iterator it = container.begin();
       String ret = String(*it);
       // we have handled the first element
       ++it;
       // add the rest
-      for ( ; it != container.end() ; ++it)
+      for (; it != container.end(); ++it)
       {
         ret += (glue + String(*it));
       }
-      
+
       return ret;
     }
-    
+
   };
 
 
@@ -216,29 +249,29 @@ public:
     @param v The vector to write to stream.
   */
   template <typename T>
-  inline std::ostream& operator<<(std::ostream & os, const std::vector<T>& v)
+  inline std::ostream& operator<<(std::ostream& os, const std::vector<T>& v)
   {
     // handle precision settings
     const std::streamsize prec_save = os.precision();
     os << std::setprecision(writtenDigits(T()));
-    
+
     os << "[";
-    
+
     if (!v.empty())
     {
-      std::copy(v.begin(), v.end()-1, std::ostream_iterator<T>(os, ", "));
+      std::copy(v.begin(), v.end() - 1, std::ostream_iterator<T>(os, ", "));
       os << v.back();
     }
-    
+
     os << "]";
     // set precision settings back to original values
     os << std::setprecision(prec_save);
     return os;
   }
-  
+
   /// Operator for appending entries with less code
   template <typename TString>
-  inline std::vector<String> & operator<<(std::vector<String> & sl, const TString & string)
+  inline std::vector<String>& operator<<(std::vector<String>& sl, const TString& string)
   {
     sl.push_back(string);
     return sl;

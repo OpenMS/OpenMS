@@ -36,25 +36,13 @@
 #define OPENMS_DATASTRUCTURES_STRINGLIST_H
 
 #include <OpenMS/DATASTRUCTURES/String.h>
-
-#ifdef OPENMS_COMPILER_MSVC
-#pragma warning( push )
-#pragma warning( disable : 4251 )     // disable MSVC dll-interface warning
-#endif
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 class QStringList;
 
 namespace OpenMS
 {
-  /**
-    @brief Vector of String.
 
-    @note Typedef replaces former StringList class.
-
-    @ingroup Concept
-  */
-  typedef std::vector<String> StringList;
-  
   /**
     @brief Utilities operating on lists of Strings
 
@@ -77,8 +65,8 @@ public:
     //@}
 
     /// Creates a StringList from a QStringList
-    static StringList fromQStringList(const QStringList & rhs);
-    
+    static StringList fromQStringList(const QStringList& rhs);
+
     ///@name Search methods
     //@{
     /**
@@ -90,7 +78,7 @@ public:
       @param trim Whether the line is trimmed before
       @return Returns an iterator to the matching entry. If no line matches end is returned.
     */
-    static Iterator searchPrefix(const Iterator & start, const Iterator & end, const String & text, bool trim = false);
+    static Iterator searchPrefix(const Iterator& start, const Iterator& end, const String& text, bool trim = false);
 
     /**
       @brief Searches for the first line that starts with @p text beginning at line @p start
@@ -101,7 +89,7 @@ public:
       @param trim Whether the line is trimmed before
       @return Returns an iterator to the matching entry. If no line matches end is returned.
     */
-    static ConstIterator searchPrefix(const ConstIterator & start, const ConstIterator & end, const String & text, bool trim = false);
+    static ConstIterator searchPrefix(const ConstIterator& start, const ConstIterator& end, const String& text, bool trim = false);
 
     /**
       @brief Searches for the first line that starts with @p text in the StringList @p container.
@@ -111,7 +99,7 @@ public:
       @param trim Whether the line is trimmed before
       @return Returns an iterator to the matching entry. If no line matches end is returned.
     */
-    static ConstIterator searchPrefix(const StringList & container, const String & text, bool trim = false);
+    static ConstIterator searchPrefix(const StringList& container, const String& text, bool trim = false);
 
     /**
       @brief Searches for the first line that starts with @p text in the StringList @p container.
@@ -121,18 +109,7 @@ public:
       @param trim Whether the line is trimmed before
       @return Returns an iterator to the matching entry. If no line matches end is returned.
     */
-    static Iterator searchPrefix(StringList & container, const String & text, bool trim = false);
-    
-    /**
-      @brief Searches for the first line that ends with @p text beginning at line @p start
-
-      @param start Iterator pointing to the initial position to search. (note: that this does not need to correspond to the beginning of the container.
-      @param end Iterator pointing to the end final position of the sequence to search.
-      @param text The text to find
-      @param trim Whether the line is trimmed before
-      @return Returns an iterator to the matching entry. If no line matches end is returned.
-    */
-    static Iterator searchSuffix(const Iterator & start, const Iterator & end, const String & text, bool trim = false);
+    static Iterator searchPrefix(StringList& container, const String& text, bool trim = false);
 
     /**
       @brief Searches for the first line that ends with @p text beginning at line @p start
@@ -143,7 +120,18 @@ public:
       @param trim Whether the line is trimmed before
       @return Returns an iterator to the matching entry. If no line matches end is returned.
     */
-    static ConstIterator searchSuffix(const ConstIterator & start, const ConstIterator & end, const String & text, bool trim = false);
+    static Iterator searchSuffix(const Iterator& start, const Iterator& end, const String& text, bool trim = false);
+
+    /**
+      @brief Searches for the first line that ends with @p text beginning at line @p start
+
+      @param start Iterator pointing to the initial position to search. (note: that this does not need to correspond to the beginning of the container.
+      @param end Iterator pointing to the end final position of the sequence to search.
+      @param text The text to find
+      @param trim Whether the line is trimmed before
+      @return Returns an iterator to the matching entry. If no line matches end is returned.
+    */
+    static ConstIterator searchSuffix(const ConstIterator& start, const ConstIterator& end, const String& text, bool trim = false);
 
     /**
       @brief Searches for the first line that ends with @p text in the StringList @p container.
@@ -153,8 +141,8 @@ public:
       @param trim Whether the line is trimmed before
       @return Returns an iterator to the matching entry. If no line matches end is returned.
     */
-    static ConstIterator searchSuffix(const StringList & container, const String & text, bool trim = false);
-    
+    static ConstIterator searchSuffix(const StringList& container, const String& text, bool trim = false);
+
     /**
       @brief Searches for the first line that ends with @p text in the StringList @p container.
 
@@ -163,24 +151,24 @@ public:
       @param trim Whether the line is trimmed before
       @return Returns an iterator to the matching entry. If no line matches end is returned.
     */
-    static Iterator searchSuffix(StringList & container, const String & text, bool trim = false);
+    static Iterator searchSuffix(StringList& container, const String& text, bool trim = false);
 
-    
+
     //@}
 
     /**
       @brief Transforms all strings contained in the passed StringList to upper case.
-      
+
       @param sl The StringList to convert to upper case.
     */
-    static void toUpper(StringList & sl);
+    static void toUpper(StringList& sl);
 
     /**
       @brief Transforms all strings contained in the passed StringList to lower case.
-     
+
       @param sl The StringList to convert to lower case.
     */
-    static void toLower(StringList & sl);
+    static void toLower(StringList& sl);
 
 private:
     /// @cond INTERNAL
@@ -190,12 +178,12 @@ private:
         trim_(trim),
         target_(target)
       {
-        if(trim_) target_.trim();
+        if (trim_) target_.trim();
       }
-      
-      inline String getValue(const String &value)
+
+      inline String getValue(const String& value)
       {
-        if(trim_)
+        if (trim_)
         {
           // trim is not a const function so we need to create a copy first
           String cp = value;
@@ -206,62 +194,63 @@ private:
           return value;
         }
       }
-    protected:
+
+protected:
       /// Should the strings be trimmed.
       bool trim_;
       /// The target value that should be found.
       String target_;
     };
-  
+
     /// Predicate to search in a StringList for a specific prefix.
-    struct PrefixPredicate_ : TrimmableStringPredicate_
+    struct PrefixPredicate_ :
+      TrimmableStringPredicate_
     {
       PrefixPredicate_(const String& target, const bool trim) :
         TrimmableStringPredicate_(target, trim)
       {}
-      
+
       /**
         @brief Returns true if the (trimmed) value has the prefix @p target_.
 
         @param value The value to test.
         @return true if value has prefix target, false otherwise.
       */
-      inline bool operator()(const String &value)
+      inline bool operator()(const String& value)
       {
         return getValue(value).hasPrefix(target_);
       }
+
     };
-    
+
     /// Predicate to search in a StringList for a specific suffix.
-    struct SuffixPredicate_ : TrimmableStringPredicate_
+    struct SuffixPredicate_ :
+      TrimmableStringPredicate_
     {
       SuffixPredicate_(const String& target, const bool trim) :
-        TrimmableStringPredicate_(target,trim)
+        TrimmableStringPredicate_(target, trim)
       {}
-      
+
       /**
        @brief Returns true if the (trimmed) value has the suffix @p target_.
-       
+
        @param value The value to test.
        @return true if value has suffix target, false otherwise.
        */
-      inline bool operator()(const String &value)
+      inline bool operator()(const String& value)
       {
         return getValue(value).hasSuffix(target_);
       }
+
     };
     /// @endcond INTERNAL
-    
+
     /// hide c'tors to avoid instantiation of utils class
     StringListUtils() {}
-    StringListUtils(const StringListUtils& ){}
-    StringListUtils& operator=(StringListUtils& ){return *this;}
+    StringListUtils(const StringListUtils&){}
+    StringListUtils& operator=(StringListUtils&){return *this; }
   };
 
 } // namespace OPENMS
-
-#ifdef OPENMS_COMPILER_MSVC
-#pragma warning( pop )
-#endif
 
 #endif // OPENMS_DATASTRUCTURES_STRINGLIST_H
