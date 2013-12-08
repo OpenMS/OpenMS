@@ -70,13 +70,13 @@ public:
       int progress = 0;
       startProgress(0, file_list.size(), "Loading data");
 
-      std::vector<OpenSwath::SwathMap> swath_maps;
+      std::vector<OpenSwath::SwathMap> swath_maps(file_list.size());
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
       for (SignedSize i = 0; i < boost::numeric_cast<SignedSize>(file_list.size()); ++i)
       {
-        std::cout << "Loading file " << file_list[i] << std::endl;
+        std::cout << "Loading file " << i << " with name " << file_list[i] << std::endl;
         String tmp_fname = "openswath_tmpfile_" + String(i) + ".mzML";
 
         boost::shared_ptr<MSExperiment<Peak1D> > exp(new MSExperiment<Peak1D>);
@@ -130,7 +130,7 @@ public:
 #endif
         {
           LOG_DEBUG << "Adding Swath file " << file_list[i] << " with " << swath_map.lower << " to " << swath_map.upper << std::endl;
-          swath_maps.push_back(swath_map);
+          swath_maps[i] = swath_map;
           setProgress(progress++);
         }
       }
