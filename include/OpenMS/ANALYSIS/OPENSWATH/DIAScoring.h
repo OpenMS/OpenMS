@@ -145,7 +145,7 @@ private:
     /// Synchronize members with param class
     void updateMembers_();
 
-    /// Subfunction of dia_isotop_scores
+    /// Subfunction of dia_isotope_scores
     void diaIsotopeScoresSub_(const std::vector<TransitionType>& transitions,
                                 SpectrumType spectrum, std::map<std::string, double>& intensities,
                                 double& isotope_corr, double& isotope_overlap);

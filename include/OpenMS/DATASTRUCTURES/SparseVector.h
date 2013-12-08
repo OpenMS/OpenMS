@@ -1250,7 +1250,7 @@ protected:
       }
 
 private:
-      /// position in reffered SparseVector
+      /// position in referred SparseVector
       mutable size_type position_;
 
       /// referring to this SparseVector

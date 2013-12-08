@@ -291,7 +291,7 @@ protected:
   };
 
   /**
-   * @brief On-disked cached implementation of FullSwathFileConsumer
+   * @brief On-disk cached implementation of FullSwathFileConsumer
    *
    * Writes all spectra immediately to disk in a user-specified caching
    * location using the MSDataCachedConsumer. Internally, it handles

@@ -11,6 +11,7 @@ Freie
 Karls
 ETH
 Universitaet
+Lund
 # }}}
 
 ###################################
@@ -588,6 +589,7 @@ SpectrumList
 DataProcessingPtr
 FullId
 Indices
+FeatureFinderMetabo
 #  }}}
 
 # Functions {{{ 
@@ -1023,6 +1025,7 @@ oligos
 RMSD
 Chauvenet's
 iRT
+hyperscore
 # }}}
 
 ###################################

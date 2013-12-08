@@ -233,7 +233,7 @@ public:
       return bins_.end();
     }
 
-    /** sets the BinSize_ (and rebinnes)
+    /** sets the BinSize_ (and re-bins)
 
             @param s defines the size of the bins
             @throw NoSpectrumIntegrated is thrown if no spectrum is integrated
@@ -254,7 +254,7 @@ public:
       }
     }
 
-    /** sets the BinSpread_ (and rebins)
+    /** sets the BinSpread_ (and re-bins)
 
             @param s defines the binning spread, given as positive integer
             @throw NoSpectrumIntegrated is thrown if no spec was integrated into the instance

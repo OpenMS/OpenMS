@@ -61,7 +61,7 @@ class QNetworkReply;
 
 namespace OpenMS
 {
-  // openms forwad declarations
+  // OpenMS forward declarations
   class TOPPASWidget;
   class TOPPASScene;
   class TOPPASTabBar;

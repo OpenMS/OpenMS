@@ -80,7 +80,7 @@ public:
 
         @param spec1 First spectrum given in a binned representation
         @param spec2 Second spectrum given in a binned representation
-        @throw IncompatibleBinning is thrown if the binnings of the spectra are not the same
+        @throw IncompatibleBinning is thrown if the bins of the spectra are not the same
     */
     double operator()(const BinnedSpectrum & spec1, const BinnedSpectrum & spec2) const;
 
