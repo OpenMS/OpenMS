@@ -45,6 +45,7 @@
 #include <OpenMS/FILTERING/TRANSFORMERS/LinearResamplerAlign.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/PeakPickerMRM.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
 #include <numeric>
 

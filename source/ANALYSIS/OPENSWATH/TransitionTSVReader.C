@@ -38,6 +38,26 @@
 namespace OpenMS
 {
 
+  TransitionTSVReader::TransitionTSVReader() :
+    DefaultParamHandler("TransitionTSVReader")
+  {
+    defaults_.setValue("retentionTimeInterpretation", "iRT", "How to interpret the provided retention time (the retention time column can either be interpreted to be in iRT, minutes or seconds)", StringList::create("advanced"));
+    defaults_.setValidStrings("retentionTimeInterpretation", StringList::create("iRT,seconds,minutes"));
+
+    // write defaults into Param object param_
+    defaultsToParam_();
+    updateMembers_();
+  }
+
+  TransitionTSVReader::~TransitionTSVReader()
+  {
+  }
+
+  void TransitionTSVReader::updateMembers_()
+  {
+    retentionTimeInterpretation_ = param_.getValue("retentionTimeInterpretation");
+  }
+
   const char* TransitionTSVReader::strarray_[] =
   {
     "PrecursorMz",
@@ -137,8 +157,8 @@ namespace OpenMS
       throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Determined your csv/tsv file to have delimiter " + (String)txt_delimiter + ", but the parsed header has only " + (String)header.size() + " fields instead of the minimal " + (String)min_header_size + ". Please check your input file.");
     }
 
-    int requiredFields[8] = { 0, 1, 2, 3, 5, 6, 7, 8 };
-    for (int i = 0; i < 8; i++)
+    int requiredFields[7] = { 0, 1, 3, 5, 6, 7, 8 };
+    for (int i = 0; i < 7; i++)
     {
       if (header_dict.find(header_names_[requiredFields[i]]) == header_dict.end())
       {
@@ -191,7 +211,20 @@ namespace OpenMS
       mytransition.group_id                     =                             tmp_line[header_dict["transition_group_id"]];
       mytransition.PeptideSequence              =                             tmp_line[header_dict["PeptideSequence"]];
       mytransition.ProteinName                  =                             tmp_line[header_dict["ProteinName"]];
-      mytransition.rt_calibrated                =                      String(tmp_line[header_dict["Tr_recalibrated"]]).toDouble();
+
+      if (header_dict.find("RetentionTime") != header_dict.end())
+      {
+        mytransition.rt_calibrated = String(tmp_line[header_dict["RetentionTime"]]).toDouble();
+      }
+      else if (header_dict.find("Tr_recalibrated") != header_dict.end())
+      {
+        mytransition.rt_calibrated = String(tmp_line[header_dict["Tr_recalibrated"]]).toDouble();
+      }
+      else
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
+            "Expected a header named RetentionTime or Tr_recalibrated but found none");
+      }
 
       // optional columns, set defaults first
       mytransition.CE                           =  -1.0;
@@ -201,16 +234,17 @@ namespace OpenMS
       mytransition.fragment_nr                  =  -1;
       if (header_dict.find("Annotation") != header_dict.end())
       {
-        mytransition.Annotation                   =                             tmp_line[header_dict["Annotation"]];
+        mytransition.Annotation = tmp_line[header_dict["Annotation"]];
       }
       if (header_dict.find("CE") != header_dict.end())
       {
-        mytransition.CE                           =                      String(tmp_line[header_dict["CE"]]).toDouble();
+        mytransition.CE = String(tmp_line[header_dict["CE"]]).toDouble();
       }
-      if (header_dict.find("CollisionEnergy") != header_dict.end())
+      else if (header_dict.find("CollisionEnergy") != header_dict.end())
       {
-        mytransition.CE                           =                      String(tmp_line[header_dict["CollisionEnergy"]]).toDouble();
+        mytransition.CE = String(tmp_line[header_dict["CollisionEnergy"]]).toDouble();
       }
+
       if (header_dict.find("decoy") != header_dict.end())
       {
         mytransition.decoy                        =                      String(tmp_line[header_dict["decoy"]]).toInt();
@@ -556,16 +590,65 @@ namespace OpenMS
     }
 
     // add retention time for the peptide
-    CVTerm rt;
     std::vector<TargetedExperiment::RetentionTime> retention_times;
-    TargetedExperiment::RetentionTime retention_time;
-    OpenMS::DataValue dtype(tr_it->rt_calibrated);
-    rt.setCVIdentifierRef("MS");
-    rt.setAccession("MS:1000896"); // normalized RT
-    rt.setName("normalized retention time");
-    rt.setValue(dtype);
-    retention_time.addCVTerm(rt);
-    retention_times.push_back(retention_time);
+    OpenMS::DataValue rt_value(tr_it->rt_calibrated);
+
+    if (retentionTimeInterpretation_ == "iRT")
+    {
+      std::cout << " i am here, its irt " << std::endl;
+      TargetedExperiment::RetentionTime retention_time;
+
+      {
+        CVTerm rt;
+        rt.setCVIdentifierRef("MS");
+        rt.setAccession("MS:1000896"); // normalized RT
+        rt.setName("normalized retention time");
+        rt.setValue(rt_value);
+        retention_time.addCVTerm(rt);
+      }
+
+      {
+        CVTerm rt;
+        rt.setCVIdentifierRef("MS");
+        rt.setAccession("MS:1002005"); // iRT
+        rt.setName("iRT retention time normalization standard");
+        retention_time.addCVTerm(rt);
+      }
+
+      retention_times.push_back(retention_time);
+    }
+    else if (retentionTimeInterpretation_ == "seconds" || retentionTimeInterpretation_ == "minutes")
+    {
+      std::cout << " i am here, its seconds or mintues " << std::endl;
+      TargetedExperiment::RetentionTime retention_time;
+
+      {
+        CVTerm rt;
+
+        CVTerm::Unit u;
+        if (retentionTimeInterpretation_ == "seconds")
+        {
+          u.accession = "UO:0000010";
+          u.name = "second";
+          u.cv_ref = "UO";
+        }
+        else if (retentionTimeInterpretation_ == "minutes")
+        {
+          u.accession = "UO:0000031";
+          u.name = "minute";
+          u.cv_ref = "UO";
+        }
+
+        rt.setCVIdentifierRef("MS");
+        rt.setAccession("MS:1000895"); // local RT
+        rt.setName("local retention time");
+        rt.setValue(rt_value);
+        rt.setUnit(u);
+        retention_time.addCVTerm(rt);
+      }
+
+      retention_times.push_back(retention_time);
+    }
     peptide.rts = retention_times;
 
     // try to parse it and get modifications out

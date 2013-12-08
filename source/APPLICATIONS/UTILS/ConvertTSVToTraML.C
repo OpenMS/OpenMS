@@ -125,6 +125,13 @@ protected:
     registerOutputFile_("out", "<file>", "", "Output TraML file");
     setValidFormats_("out", StringList::create("TraML"));
 
+    registerSubsection_("algorithm", "Algorithm parameters section");
+
+  }
+
+  Param getSubsectionDefaults_(const String &) const
+  {
+    return TransitionTSVReader().getDefaults();
   }
 
   ExitCodes main_(int, const char **)
@@ -132,6 +139,7 @@ protected:
     String in = getStringOption_("in");
     String out = getStringOption_("out");
     const char * tr_file = in.c_str();
+    Param reader_parameters = getParam_().copy("algorithm:", true);
 
     TraMLFile traml;
     TargetedExperiment targeted_exp;
@@ -139,6 +147,7 @@ protected:
     TransitionTSVReader tsv_reader = TransitionTSVReader();
     std::cout << "Reading " << in << std::endl;
     tsv_reader.setLogType(log_type_);
+    tsv_reader.setParameters(reader_parameters);
     tsv_reader.convertTSVToTargetedExperiment(tr_file, targeted_exp);
     tsv_reader.validateTargetedExperiment(targeted_exp);
 

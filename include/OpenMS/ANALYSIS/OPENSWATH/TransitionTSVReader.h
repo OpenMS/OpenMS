@@ -42,6 +42,7 @@
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
 #include <fstream>
 
@@ -73,11 +74,15 @@ namespace OpenMS
 
   */
   class OPENMS_DLLAPI TransitionTSVReader :
-    public ProgressLogger
+    public ProgressLogger,
+    public DefaultParamHandler
   {
 
 private:
+    /// Members
+    String retentionTimeInterpretation_;
 
+    /// Typedefs
     typedef std::vector<OpenMS::TargetedExperiment::Protein> ProteinVectorType;
     typedef std::vector<OpenMS::TargetedExperiment::Peptide> PeptideVectorType;
     typedef std::vector<OpenMS::ReactionMonitoringTransition> TransitionVectorType;
@@ -134,11 +139,24 @@ private:
     void addModification_(std::vector<TargetedExperiment::Peptide::Modification> & mods,
           int location, ResidueModification & rmod, const String & name);
 
-
     /// write a TargetedExperiment to a file
     void writeTSVOutput_(const char* filename, OpenMS::TargetedExperiment& targeted_exp);
 
+protected:
+
+    /// Synchronize members with param class
+    void updateMembers_();
+
 public:
+
+    //@{
+    /// Constructor
+    TransitionTSVReader();
+
+    /// Destructor
+    ~TransitionTSVReader();
+    //@}
+
     /// Write out a targeted experiment (TraML structure) into a tsv file
     void convertTargetedExperimentToTSV(const char* filename, OpenMS::TargetedExperiment& targeted_exp);
 
