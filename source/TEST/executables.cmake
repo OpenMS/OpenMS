@@ -45,7 +45,7 @@ set(datastructures_executables_list
 	QTCluster_test
 	RangeManager_test
 	SparseVector_test
-	StringList_test
+	StringListUtils_test
 	String_test
 	SuffixArrayPeptideFinder_test
 	SuffixArraySeqan_test

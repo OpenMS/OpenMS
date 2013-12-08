@@ -36,7 +36,7 @@
 #define OPENMS_FORMAT_CSVFILE_H
 
 #include <OpenMS/FORMAT/TextFile.h>
-#include <OpenMS/DATASTRUCTURES/StringList.h>
+#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 
 namespace OpenMS
 {

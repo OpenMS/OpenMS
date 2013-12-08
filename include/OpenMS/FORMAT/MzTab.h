@@ -41,7 +41,7 @@
 #include <vector>
 #include <list>
 #include <algorithm>
-#include <OpenMS/DATASTRUCTURES/StringList.h>
+#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 
 namespace OpenMS
 {

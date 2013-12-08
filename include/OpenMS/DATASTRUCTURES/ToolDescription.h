@@ -36,7 +36,7 @@
 #define OPENMS_DATASTRUCTURES_TOOLDESCRIPTION_H
 
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/DATASTRUCTURES/StringList.h>
+#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Exception.h>

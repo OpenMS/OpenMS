@@ -41,7 +41,7 @@
 
 #include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/DATASTRUCTURES/StringList.h>
+#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <utility>

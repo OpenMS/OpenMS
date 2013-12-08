@@ -47,7 +47,7 @@
 #include <OpenMS/FORMAT/IndexedMzMLFile.h>
 #include <OpenMS/FORMAT/PeakTypeEstimator.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/DATASTRUCTURES/StringList.h>
+#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
 
 #include <QtCore/QString>

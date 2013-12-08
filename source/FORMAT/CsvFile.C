@@ -33,7 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/CsvFile.h>
-#include <OpenMS/DATASTRUCTURES/StringList.h>
+#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
 using namespace std;

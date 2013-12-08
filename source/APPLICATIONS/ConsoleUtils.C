@@ -35,7 +35,7 @@
 #include <OpenMS/APPLICATIONS/ConsoleUtils.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/DATASTRUCTURES/StringList.h>
+#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #ifdef OPENMS_WINDOWSPLATFORM

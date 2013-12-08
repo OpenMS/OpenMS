@@ -35,7 +35,7 @@
 #ifndef OPENMS_SYSTEM_FILE_H
 #define OPENMS_SYSTEM_FILE_H
 
-#include <OpenMS/DATASTRUCTURES/StringList.h>
+#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/config.h>
 

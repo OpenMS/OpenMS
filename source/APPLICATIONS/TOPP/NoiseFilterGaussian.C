@@ -38,7 +38,7 @@
 #include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/PeakTypeEstimator.h>
-#include <OpenMS/DATASTRUCTURES/StringList.h>
+#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 
 using namespace OpenMS;
 using namespace std;

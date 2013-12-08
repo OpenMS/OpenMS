@@ -34,7 +34,7 @@
 //
 
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqChannelExtractor.h>
-#include <OpenMS/DATASTRUCTURES/StringList.h>
+#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/FORMAT/PeakTypeEstimator.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
 

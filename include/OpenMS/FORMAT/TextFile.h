@@ -35,7 +35,7 @@
 #ifndef OPENMS_FORMAT_TEXTFILE_H
 #define OPENMS_FORMAT_TEXTFILE_H
 
-#include <OpenMS/DATASTRUCTURES/StringList.h>
+#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 
 namespace OpenMS
 {

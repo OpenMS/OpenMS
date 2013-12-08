@@ -42,7 +42,7 @@
 // NNLS isotope correction
 #include <OpenMS/MATH/MISC/NonNegativeLeastSquaresSolver.h>
 
-#include <OpenMS/DATASTRUCTURES/StringList.h>
+#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/ProteinInference.h>
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
 

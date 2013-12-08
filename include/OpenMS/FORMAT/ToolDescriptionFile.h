@@ -37,7 +37,7 @@
 
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
-#include <OpenMS/DATASTRUCTURES/StringList.h>
+#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/METADATA/Identification.h>
 #include <OpenMS/DATASTRUCTURES/ToolDescription.h>
 

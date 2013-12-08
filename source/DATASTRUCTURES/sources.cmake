@@ -31,7 +31,7 @@ Param.C
 QTCluster.C
 SparseVector.C
 String.C
-StringList.C
+StringListUtils.C
 SuffixArray.C
 SuffixArrayPeptideFinder.C
 SuffixArraySeqan.C

@@ -34,7 +34,7 @@
 #include <OpenMS/config.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/DATASTRUCTURES/StringList.h>
+#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/FORMAT/EDTAFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>

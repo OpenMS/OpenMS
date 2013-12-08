@@ -36,7 +36,7 @@
 #include <OpenMS/KERNEL/ChromatogramTools.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/DATASTRUCTURES/StringList.h>
+#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>

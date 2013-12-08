@@ -36,7 +36,7 @@
 
 ///////////////////////////
 
-#include <OpenMS/DATASTRUCTURES/StringList.h>
+#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <QStringList>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 

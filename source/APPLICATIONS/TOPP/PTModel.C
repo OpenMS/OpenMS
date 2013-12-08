@@ -40,7 +40,7 @@
 
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/DATASTRUCTURES/StringList.h>
+#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 
 #include <map>
 

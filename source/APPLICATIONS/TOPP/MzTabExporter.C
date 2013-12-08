@@ -34,7 +34,7 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
-#include <OpenMS/DATASTRUCTURES/StringList.h>
+#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/MzTabFile.h>

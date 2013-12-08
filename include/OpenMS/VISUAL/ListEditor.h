@@ -35,8 +35,10 @@
 #ifndef OPENMS_VISUAL_LISTEDITOR_H
 #define OPENMS_VISUAL_LISTEDITOR_H
 
+#ifndef Q_MOC_RUN
+  #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#endif
 
-#include <OpenMS/DATASTRUCTURES/StringList.h>
 #include <QtGui/QDialog>
 #include <QtGui/QListWidget>
 #include <QtGui/QItemDelegate>
@@ -174,13 +176,8 @@ private:
       ///used to set input and output values in setModelData
       mutable QString file_name_;
 
-
     };
   }
-
-
-
-
 
 } // namespace OpenMS
 #endif //OPENMS_VISUAL_LISTEDITOR_H

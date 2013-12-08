@@ -39,7 +39,7 @@
 #include <OpenMS/FORMAT/TraMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/DATASTRUCTURES/StringList.h>
+#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 

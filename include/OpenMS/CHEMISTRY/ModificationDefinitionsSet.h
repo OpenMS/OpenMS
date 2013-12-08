@@ -38,7 +38,7 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/DATASTRUCTURES/StringList.h>
+#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/CHEMISTRY/ModificationDefinition.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>

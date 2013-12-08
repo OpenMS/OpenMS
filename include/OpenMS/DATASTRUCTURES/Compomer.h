@@ -39,7 +39,7 @@
 
 #include <OpenMS/CONCEPT/Macros.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
-#include <OpenMS/DATASTRUCTURES/StringList.h>
+#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 
 namespace OpenMS
 {
