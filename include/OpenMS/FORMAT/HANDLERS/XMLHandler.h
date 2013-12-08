@@ -79,6 +79,15 @@ public:
 
       /// Transcode the supplied XMLCh* to a C string and take ownership of the C string
       char * convert(const XMLCh * str) const;
+
+      /**
+       * @brief Transcodes the supplied XMLCh* and appends it to the OpenMS String 
+       *
+       * @note Assumes that the XMLCh* only contains ASCII characters
+       *
+      */
+      static void appendASCII(const XMLCh * str, const XMLSize_t length, String & result);
+
 private:
       mutable std::vector<XMLCh *> xml_strings_;
       mutable std::vector<char *> c_strings_;

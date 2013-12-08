@@ -466,21 +466,19 @@ protected:
     //--------------------------------------------------------------------------------
 
     template <typename MapType>
-    void MzMLHandler<MapType>::characters(const XMLCh* const chars, const XMLSize_t /*length*/)
+    void MzMLHandler<MapType>::characters(const XMLCh* const chars, const XMLSize_t length)
     {
       if (skip_spectrum_ || skip_chromatogram_)
         return;
 
-      char* transcoded_chars = sm_.convert(chars);
-
       String& current_tag = open_tags_.back();
 
-      if (current_tag == "binary" /* && in_spectrum_list_*/)
+      if (current_tag == "binary")
       {
-        //chars may be split to several chunks => concatenate them
-        data_.back().base64 += transcoded_chars;
+        // Since we convert a Base64 string here, it can only contain plain ASCII
+        sm_.appendASCII(chars, length, data_.back().base64);
       }
-      else if (current_tag == "offset" || current_tag == "indexListOffset" || current_tag == "fileChecksum" /* || current_tag == "binary"*/)
+      else if (current_tag == "offset" || current_tag == "indexListOffset" || current_tag == "fileChecksum")
       {
         //do nothing for
         // - index
@@ -489,6 +487,7 @@ protected:
       }
       else
       {
+        char* transcoded_chars = sm_.convert(chars);
         String transcoded_chars2 = transcoded_chars;
         transcoded_chars2.trim();
         if (transcoded_chars2 != "")

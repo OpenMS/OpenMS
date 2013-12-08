@@ -829,7 +829,7 @@ private:
     }
 
     template <typename MapType>
-    void MzXMLHandler<MapType>::characters(const XMLCh* const chars, const XMLSize_t /*length*/)
+    void MzXMLHandler<MapType>::characters(const XMLCh* const chars, const XMLSize_t length)
     {
       //Abort if this spectrum should be skipped
       if (skip_spectrum_)
@@ -840,8 +840,8 @@ private:
         //chars may be split to several chunks => concatenate them
         if (options_.getFillData()) 
         {
-          char* transcoded_chars = sm_.convert(chars);
-          char_rest_ += transcoded_chars;
+          // Since we convert a Base64 string here, it can only contain plain ASCII
+          sm_.appendASCII(chars, length, char_rest_);
         }
       }
       else if (open_tags_.back() == "offset" || open_tags_.back() == "indexOffset" || open_tags_.back() == "sha1")

@@ -250,5 +250,21 @@ namespace OpenMS
       return result;
     }
 
+    void StringManager::appendASCII(const XMLCh * chars, const XMLSize_t length, String & result)
+    {
+      // XMLCh are characters in UTF16 (usually stored as 16bit unsigned
+      // short but this is not guaranteed).
+      // We know that the Base64 string here can only contain plain ASCII
+      // and all bytes except the least significant one will be zero. Thus
+      // we can convert to char directly (only keeping the least
+      // significant byte).
+      int curr_size = result.size();
+      result.resize(curr_size + length);
+      for (size_t i = 0; i < length; i++) 
+      {
+        result[curr_size + i] = (char)chars[i];
+      }
+    }
+
   }   // namespace Internal
 } // namespace OpenMS
