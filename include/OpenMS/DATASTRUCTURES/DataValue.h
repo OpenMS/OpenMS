@@ -258,6 +258,27 @@ public:
       If the DataValue is empty, NULL is returned.
     */
     const char* toChar() const;
+
+    /**
+      @brief Explicitly convert DataValue to StringList
+
+      @exception Exception::ConversionError is thrown if a cast from the the wrong type is requested
+    */
+    StringList toStringList() const;
+
+    /**
+      @brief Explicitly convert DataValue to IntList
+
+      @exception Exception::ConversionError is thrown if a cast from the the wrong type is requested
+    */
+    IntList toIntList() const;
+
+    /**
+      @brief Explicitly convert DataValue to DoubleList
+
+      @exception Exception::ConversionError is thrown if a cast from the the wrong type is requested
+    */
+    DoubleList toDoubleList() const;
     //@}
 
     ///@name assignment/conversion operators

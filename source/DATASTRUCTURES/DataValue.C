@@ -559,29 +559,17 @@ namespace OpenMS
 
   DataValue::operator StringList() const
   {
-    if (value_type_ != STRING_LIST)
-    {
-      throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert non-StringList DataValue to StringList");
-    }
-    return *(data_.str_list_);
+    return this->toStringList();
   }
 
   DataValue::operator IntList() const
   {
-    if (value_type_ != INT_LIST)
-    {
-      throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert non-IntList DataValue to IntList");
-    }
-    return *(data_.int_list_);
+    return this->toIntList();
   }
 
   DataValue::operator DoubleList() const
   {
-    if (value_type_ != DOUBLE_LIST)
-    {
-      throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert non-DoubleList DataValue to DoubleList");
-    }
-    return *(data_.dou_list_);
+    return this->toDoubleList();
   }
 
   // Convert DataValues to char*
@@ -595,6 +583,33 @@ namespace OpenMS
 
     default: throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert DataValue to char*");
     }
+  }
+
+  StringList DataValue::toStringList() const
+  {
+    if (value_type_ != STRING_LIST)
+    {
+      throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert non-StringList DataValue to StringList");
+    }
+    return *(data_.str_list_);
+  }
+
+  IntList DataValue::toIntList() const
+  {
+    if (value_type_ != INT_LIST)
+    {
+      throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert non-IntList DataValue to IntList");
+    }
+    return *(data_.int_list_);
+  }
+
+  DoubleList DataValue::toDoubleList() const
+  {
+    if (value_type_ != DOUBLE_LIST)
+    {
+      throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert non-DoubleList DataValue to DoubleList");
+    }
+    return *(data_.dou_list_);
   }
 
   // Convert DataValues to String
