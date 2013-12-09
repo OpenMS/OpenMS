@@ -858,8 +858,8 @@ private:
         DoubleReal window_width = exp_->getSpectra().back().getPrecursors().back().getIsolationWindowLowerOffset();
         if (window_width != 0.0)
         {
-          exp_->getSpectra().back().getPrecursors().back().setIsolationWindowLowerOffset(mz_pos - 0.5 * window_width);
-          exp_->getSpectra().back().getPrecursors().back().setIsolationWindowUpperOffset(mz_pos + 0.5 * window_width);
+          exp_->getSpectra().back().getPrecursors().back().setIsolationWindowLowerOffset(0.5 * window_width);
+          exp_->getSpectra().back().getPrecursors().back().setIsolationWindowUpperOffset(0.5 * window_width);
         }
       }
       else if (open_tags_.back() == "comment")
@@ -1214,8 +1214,8 @@ private:
           if (precursor.getCharge() != 0)
             os << "\" precursorCharge=\"" << precursor.getCharge();
           //window size
-          if (precursor.getIsolationWindowLowerOffset() != precursor.getIsolationWindowUpperOffset())
-            os << "\" windowWideness=\"" << (precursor.getIsolationWindowUpperOffset() - precursor.getIsolationWindowLowerOffset());
+          if (precursor.getIsolationWindowLowerOffset() + precursor.getIsolationWindowUpperOffset() > 0.0)
+            os << "\" windowWideness=\"" << (precursor.getIsolationWindowUpperOffset() + precursor.getIsolationWindowLowerOffset());
           //m/z
           os << "\">" << precursor.getMZ() << "</precursorMz>\n";
         }

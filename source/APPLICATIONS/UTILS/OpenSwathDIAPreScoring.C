@@ -178,8 +178,8 @@ protected:
       OpenSwath::LightTargetedExperiment transition_exp_used;
       double upper, lower;
       const std::vector<Precursor> prec = (*swath_map)[0].getPrecursors();
-      lower = prec[0].getIsolationWindowLowerOffset();
-      upper = prec[0].getIsolationWindowUpperOffset();
+      lower = prec[0].getMZ() - prec[0].getIsolationWindowLowerOffset();
+      upper = prec[0].getMZ() + prec[0].getIsolationWindowUpperOffset();
       OpenSwathHelper::selectSwathTransitions(transition_exp, transition_exp_used,
                                               min_upper_edge_dist, lower, upper);
       if (transition_exp_used.getTransitions().size() == 0)

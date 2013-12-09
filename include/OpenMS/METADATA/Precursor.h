@@ -108,12 +108,28 @@ public:
     /// sets the activation energy (in electronvolt)
     void setActivationEnergy(DoubleReal activation_energy);
 
-    /// returns the lower offset from the target m/z
+    /**
+     * @brief Returns the lower offset from the target m/z
+     *
+     * @note This is an offset relative to the target m/z. The start of the
+     * mass isolation window should thus be computed as:
+     *  p.getMZ() - p.getIsolationWindowLowerOffset()
+     *
+     * @return the lower offset from the target m/z
+     */
     DoubleReal getIsolationWindowLowerOffset() const;
     /// sets the lower offset from the target m/z
     void setIsolationWindowLowerOffset(DoubleReal bound);
 
-    /// returns the upper offset from the target m/z
+    /**
+     * @brief Returns the upper offset from the target m/z
+     *
+     * @note This is an offset relative to the target m/z. The end of the mass
+     * isolation window should thus be computed as:
+     *  p.getMZ() + p.getIsolationWindowUpperOffset()
+     *
+     * @return the upper offset from the target m/z
+     */
     DoubleReal getIsolationWindowUpperOffset() const;
     /// sets the upper offset from the target m/z
     void setIsolationWindowUpperOffset(DoubleReal bound);

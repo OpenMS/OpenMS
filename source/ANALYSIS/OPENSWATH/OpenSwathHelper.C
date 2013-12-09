@@ -60,9 +60,9 @@ namespace OpenMS
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Swath map has no Spectra");
     }
-    const std::vector<Precursor> prec = swath_map[0].getPrecursors();
-    lower = prec[0].getIsolationWindowLowerOffset();
-    upper = prec[0].getIsolationWindowUpperOffset();
+    const std::vector<Precursor> first_prec = swath_map[0].getPrecursors();
+    lower = first_prec[0].getMZ() - first_prec[0].getIsolationWindowLowerOffset();
+    upper = first_prec[0].getMZ() + first_prec[0].getIsolationWindowUpperOffset();
     UInt expected_mslevel = swath_map[0].getMSLevel();
 
     for (Size index = 0; index < swath_map.size(); index++)
@@ -77,8 +77,9 @@ namespace OpenMS
         throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Scan " + String(index) + " if of a different MS level than the first scan.");
       }
       if (
-        fabs(lower - prec[0].getIsolationWindowLowerOffset()) > 0.1 ||
-        fabs(upper - prec[0].getIsolationWindowUpperOffset()) > 0.1
+        fabs(prec[0].getMZ() - first_prec[0].getMZ()) > 0.1 ||
+        fabs(prec[0].getIsolationWindowLowerOffset() - first_prec[0].getIsolationWindowLowerOffset()) > 0.1 ||
+        fabs(prec[0].getIsolationWindowUpperOffset() - first_prec[0].getIsolationWindowUpperOffset()) > 0.1
         )
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Scan " + String(index) + " has a different precursor isolation window than the first scan.");

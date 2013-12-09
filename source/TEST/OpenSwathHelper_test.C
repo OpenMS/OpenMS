@@ -132,8 +132,9 @@ START_SECTION(static void checkSwathMap(const OpenMS::MSExperiment< Peak1D > &sw
   OpenMS::MSSpectrum<Peak1D> spectrum;
   OpenMS::Precursor prec;
   std::vector<Precursor> precursors;
-  prec.setIsolationWindowLowerOffset(200);
-  prec.setIsolationWindowUpperOffset(300);
+  prec.setMZ(250);
+  prec.setIsolationWindowLowerOffset(50);
+  prec.setIsolationWindowUpperOffset(50);
   precursors.push_back(prec);
   spectrum.setPrecursors(precursors);
   swath_map.addSpectrum(spectrum);

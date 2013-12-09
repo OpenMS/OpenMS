@@ -184,11 +184,12 @@ public:
           if (!s.getPrecursors().empty())
           {
             const std::vector<Precursor> prec = s.getPrecursors();
-            double lower = prec[0].getIsolationWindowLowerOffset();
-            double upper = prec[0].getIsolationWindowUpperOffset();
+            double lower = prec[0].getMZ() - prec[0].getIsolationWindowLowerOffset();
+            double upper = prec[0].getMZ() + prec[0].getIsolationWindowUpperOffset();
             if (prec[0].getIsolationWindowLowerOffset() > 0.0) swath_prec_lower_.push_back(lower);
             if (prec[0].getIsolationWindowUpperOffset() > 0.0) swath_prec_upper_.push_back(upper);
             swath_prec_center_.push_back(prec[0].getMZ());
+            LOG_DEBUG << "Adding Swath " << " with " << lower << " to " << upper << " isolation window." << std::endl;
           }
         }
         else if (ms2_counter_ > swath_prec_center_.size() && ms2_counter_ > swath_prec_lower_.size())
