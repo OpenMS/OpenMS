@@ -447,9 +447,10 @@ protected:
         }
       }
       traces.max_trace = max_trace;
-      traces.updateBaseline();
       // ??? (from "FeatureFinderAlgorithmPicked.h"):
-      traces.baseline = 0.75 * traces.baseline;
+      // traces.updateBaseline();
+      // traces.baseline = 0.75 * traces.baseline;
+      traces.baseline = 0.0;
 
       // fit the model:
       fitter->fit(traces);
@@ -473,6 +474,7 @@ protected:
           static_cast<GaussTraceFitter<Peak1D>*>(fitter);
         feat_it->setMetaValue("model_Gauss_sigma", gauss->getSigma());
       }
+      feat_it->setMetaValue("model_area", fitter->getArea());
     }
     delete fitter;
   }
