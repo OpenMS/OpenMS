@@ -63,7 +63,7 @@ void getSwathFile(MSExperiment<>& exp, int nr_swathes=32, bool ms1=true)
     std::vector<Precursor> prec(1);
     prec[0].setIsolationWindowLowerOffset(12.5);
     prec[0].setIsolationWindowUpperOffset(12.5);
-    prec[0].setMZ(400 + i/2.0 *25);
+    prec[0].setMZ(400 + i*25 + 12.5);
     s.setPrecursors(prec);
     Peak1D p; p.setMZ(101 + i); p.setIntensity(201 + i);
     s.push_back(p);
