@@ -195,7 +195,7 @@ class AbstractOpenMSListConverter(TypeConverterBase):
         return self.openms_type,
 
     def matches(self, cpp_type):
-        return  not cpp_type.is_ptr
+        return not cpp_type.is_ptr
 
     def matching_python_type(self, cpp_type):
         return "list"
@@ -239,21 +239,11 @@ class AbstractOpenMSListConverter(TypeConverterBase):
             """, locals())
         return code
 
-
 class OpenMSIntListConverter(AbstractOpenMSListConverter):
 
     openms_type = "IntList"
     inner_py_type = "int"
     inner_cpp_type = "int"
-    # mark as non abstract:
-    def __init__(self):
-        pass
-
-class OpenMSStringListConverter(AbstractOpenMSListConverter):
-
-    openms_type = "StringList"
-    inner_py_type = "bytes"
-    inner_cpp_type = "libcpp_string"
     # mark as non abstract:
     def __init__(self):
         pass
@@ -287,6 +277,7 @@ class StdVectorStringConverter(TypeConverterBase):
 
     def input_conversion(self, cpp_type, argument_var, arg_num):
         temp_var = "v%d" % arg_num
+        temp_it = "it_%d" % arg_num
         item = "item%d" % arg_num
         code = Code().add("""
             |cdef libcpp_vector[_String] * $temp_var = new libcpp_vector[_String]()
@@ -296,11 +287,11 @@ class StdVectorStringConverter(TypeConverterBase):
             """, locals())
         if cpp_type.is_ref:
             cleanup_code = Code().add("""
-                |cdef replace = []
-                |cdef libcpp_vector[_String].iterator it = $temp_var.begin()
-                |while it != $temp_var.end():
-                |   replace.append(<char*>deref(it).c_str())
-                |   inc(it)
+                |replace = []
+                |cdef libcpp_vector[_String].iterator $temp_it = $temp_var.begin()
+                |while $temp_it != $temp_var.end():
+                |   replace.append(<char*>deref($temp_it).c_str())
+                |   inc($temp_it)
                 |$argument_var[:] = replace
                 |del $temp_var
                 """, locals())
@@ -310,7 +301,6 @@ class StdVectorStringConverter(TypeConverterBase):
 
     def call_method(self, res_type, cy_call_str):
         return "_r = %s" % (cy_call_str)
-
 
     def output_conversion(self, cpp_type, input_cpp_var, output_py_var):
 
@@ -325,6 +315,33 @@ class StdVectorStringConverter(TypeConverterBase):
             |   inc($it)
             """, locals())
         return code
+
+class OpenMSStringListConverter(StdVectorStringConverter):
+    """
+    StringList is now a std::vector<String> so we can directly
+    inherit all methods from StdVectorStringConverter but need 
+    to add the matching rules for StringList.
+    """
+    openms_type = "StringList"
+    inner_py_type = "bytes"
+    inner_cpp_type = "libcpp_string"
+    # mark as non abstract:
+    def __init__(self):
+        pass
+
+    def get_base_types(self):
+        return self.openms_type,
+
+    def matches(self, cpp_type):
+        return not cpp_type.is_ptr
+
+    def matching_python_type(self, cpp_type):
+        return "list"
+
+    def type_check_expression(self, cpp_type, argument_var):
+        return\
+            "isinstance(%s, list) and all(isinstance(li, %s) for li in %s)"\
+            % (argument_var, self.inner_py_type, argument_var)
 
 class StdSetStringConverter(TypeConverterBase):
 
@@ -385,7 +402,6 @@ class StdSetStringConverter(TypeConverterBase):
             |   inc($it)
             """, locals())
         return code
-
 
 
 class OpenMSMapConverter(StdMapConverter):
