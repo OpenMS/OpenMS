@@ -35,9 +35,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 
 ///////////////////////////
-
 #include <OpenMS/FORMAT/DATAACCESS/MSDataCachedConsumer.h>
-
 ///////////////////////////
 
 #include <OpenMS/FORMAT/MzMLFile.h>
@@ -147,25 +145,50 @@ START_SECTION((void consumeChromatogram(ChromatogramType & c)))
 }
 END_SECTION
       
-START_SECTION(([EXTRA] void consumeSpectrum(SpectrumType & s)))
+START_SECTION((MSDataCachedConsumer(String filename, bool clearData=true)))
 {
-  std::string tmp_filename;
-  NEW_TMP_FILE(tmp_filename);
-  MSDataCachedConsumer * cached_consumer = new MSDataCachedConsumer(tmp_filename, true);
+  {
+    std::string tmp_filename;
+    NEW_TMP_FILE(tmp_filename);
+    MSDataCachedConsumer * cached_consumer = new MSDataCachedConsumer(tmp_filename, true);
 
-  MSExperiment<> exp;
-  MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), exp);
-  TEST_EQUAL(exp.getNrSpectra() > 0, true)
+    MSExperiment<> exp;
+    MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), exp);
+    TEST_EQUAL(exp.getNrSpectra() > 0, true)
+    MSSpectrum<> first_spectrum = exp.getSpectrum(0);
 
-  cached_consumer->setExpectedSize(2,0);
+    cached_consumer->setExpectedSize(2,0);
 
-  TEST_EQUAL(exp.getSpectrum(0).size() > 0, true)
+    TEST_EQUAL(exp.getSpectrum(0).size() > 0, true)
 
-  cached_consumer->consumeSpectrum(exp.getSpectrum(0));
+    cached_consumer->consumeSpectrum(exp.getSpectrum(0));
 
-  TEST_EQUAL(exp.getSpectrum(0).size(), 0)
+    TEST_EQUAL(exp.getSpectrum(0).size(), 0)
+    TEST_EQUAL(exp.getSpectrum(0) == first_spectrum, false)
 
-  delete cached_consumer;
+    delete cached_consumer;
+  }
+  {
+    std::string tmp_filename;
+    NEW_TMP_FILE(tmp_filename);
+    MSDataCachedConsumer * cached_consumer = new MSDataCachedConsumer(tmp_filename, false);
+
+    MSExperiment<> exp;
+    MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), exp);
+    TEST_EQUAL(exp.getNrSpectra() > 0, true)
+    MSSpectrum<> first_spectrum = exp.getSpectrum(0);
+
+    cached_consumer->setExpectedSize(2,0);
+
+    TEST_EQUAL(exp.getSpectrum(0).size() > 0, true)
+
+    cached_consumer->consumeSpectrum(exp.getSpectrum(0));
+
+    TEST_EQUAL(exp.getSpectrum(0).size() > 0, true)
+    TEST_EQUAL(exp.getSpectrum(0) == first_spectrum, true)
+
+    delete cached_consumer;
+  }
 }
 END_SECTION
 
@@ -173,7 +196,7 @@ START_SECTION((void setExpectedSize(Size expectedSpectra, Size expectedChromatog
   NOT_TESTABLE // tested above
 END_SECTION
       
-START_SECTION((void setExperimentalSettings(const ExperimentalSettings& /* exp */)))
+START_SECTION((void setExperimentalSettings(const ExperimentalSettings&)))
 {
   std::string tmp_filename;
   NEW_TMP_FILE(tmp_filename);
@@ -183,6 +206,7 @@ START_SECTION((void setExperimentalSettings(const ExperimentalSettings& /* exp *
   ExperimentalSettings s;
   cached_consumer->setExperimentalSettings( s );
 
+  TEST_NOT_EQUAL(cached_consumer, cached_consumer_nullPointer)
   delete cached_consumer;
 }
 END_SECTION

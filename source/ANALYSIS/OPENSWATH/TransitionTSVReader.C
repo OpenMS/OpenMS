@@ -595,7 +595,6 @@ namespace OpenMS
 
     if (retentionTimeInterpretation_ == "iRT")
     {
-      std::cout << " i am here, its irt " << std::endl;
       TargetedExperiment::RetentionTime retention_time;
 
       {
@@ -619,7 +618,6 @@ namespace OpenMS
     }
     else if (retentionTimeInterpretation_ == "seconds" || retentionTimeInterpretation_ == "minutes")
     {
-      std::cout << " i am here, its seconds or mintues " << std::endl;
       TargetedExperiment::RetentionTime retention_time;
 
       {

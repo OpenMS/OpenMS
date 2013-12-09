@@ -59,12 +59,12 @@ namespace OpenMS
     public:
       /// Default constructor
       MSDataCachedConsumer(String filename, bool clearData=true) :
-        ofs(filename.c_str(), std::ios::binary),
+        ofs_(filename.c_str(), std::ios::binary),
         clearData_(clearData),
-        spectra_written(0),
-        chromatograms_written(0),
-        spectra_expected(0),
-        chromatograms_expected(0)
+        spectra_written_(0),
+        chromatograms_written_(0),
+        spectra_expected_(0),
+        chromatograms_expexted_(0)
       {
       }
 
@@ -73,63 +73,63 @@ namespace OpenMS
       {
         // Close file stream: close() _should_ call flush() but it might not in
         // all cases. To be sure call flush() first.
-        ofs.flush();
-        ofs.close();
+        ofs_.flush();
+        ofs_.close();
       }
 
       /// Write a spectrum
       void consumeSpectrum(SpectrumType & s)
       {
-        if (spectra_written >= spectra_expected || chromatograms_written > 0)
+        if (spectra_written_ >= spectra_expected_ || chromatograms_written_ > 0)
         {
           throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
                   "Cannot write spectra, reached expected spectra or have already written chromatograms.");
         }
-        writeSpectrum_(s, ofs);
-        spectra_written++;
+        writeSpectrum_(s, ofs_);
+        spectra_written_++;
         if (clearData_) {s.clear(false);}
       }
 
       /// Write a chromatogram
       void consumeChromatogram(ChromatogramType & c)
       {
-        if (chromatograms_written >= chromatograms_expected || spectra_written != spectra_expected)
+        if (chromatograms_written_ >= chromatograms_expexted_ || spectra_written_ != spectra_expected_)
         {
           throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
                   "Cannot write spectra, reached expected spectra or have already written chromatograms.");
         }
-        writeChromatogram_(c, ofs);
-        chromatograms_written++;
+        writeChromatogram_(c, ofs_);
+        chromatograms_written_++;
         if (clearData_) {c.clear(false);}
       }
 
       /// Write the header of a file to disk
       void setExpectedSize(Size expectedSpectra, Size expectedChromatograms)
       {
-        if (spectra_expected != 0)
+        if (spectra_expected_ != 0)
         {
           throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
                   "Can only set expected size of the experiment once since this will open the file.");
         }
 
-        spectra_expected = expectedSpectra;
-        chromatograms_expected = expectedChromatograms;
+        spectra_expected_ = expectedSpectra;
+        chromatograms_expexted_ = expectedChromatograms;
 
         int magic_number = MAGIC_NUMBER;
-        ofs.write((char*)&magic_number, sizeof(magic_number));
-        ofs.write((char*)&spectra_expected, sizeof(spectra_expected));
-        ofs.write((char*)&chromatograms_expected, sizeof(chromatograms_expected));
+        ofs_.write((char*)&magic_number, sizeof(magic_number));
+        ofs_.write((char*)&spectra_expected_, sizeof(spectra_expected_));
+        ofs_.write((char*)&chromatograms_expexted_, sizeof(chromatograms_expexted_));
       }
 
       void setExperimentalSettings(const ExperimentalSettings& /* exp */) {;}
 
     protected:
-      std::ofstream ofs;
+      std::ofstream ofs_;
       bool clearData_;
-      Size spectra_written;
-      Size chromatograms_written;
-      Size spectra_expected;
-      Size chromatograms_expected;
+      Size spectra_written_;
+      Size chromatograms_written_;
+      Size spectra_expected_;
+      Size chromatograms_expexted_;
 
     };
 

@@ -108,11 +108,11 @@ START_SECTION((void consumeChromatogram(ChromatogramType & c)))
 }
 END_SECTION
       
-START_SECTION((void setExpectedSize(Size expectedSpectra, Size expectedChromatograms)))
+START_SECTION((void setExpectedSize(Size, Size)))
   NOT_TESTABLE // tested above
 END_SECTION
       
-START_SECTION((void setExperimentalSettings(const ExperimentalSettings& /* exp */)))
+START_SECTION((void setExperimentalSettings(const ExperimentalSettings&)))
 {
   MSDataTransformingConsumer * transforming_consumer = new MSDataTransformingConsumer();
 
@@ -120,6 +120,7 @@ START_SECTION((void setExperimentalSettings(const ExperimentalSettings& /* exp *
   ExperimentalSettings s;
   transforming_consumer->setExperimentalSettings( s );
 
+  TEST_NOT_EQUAL(transforming_consumer, transforming_consumer_nullPointer)
   delete transforming_consumer;
 }
 END_SECTION
@@ -146,7 +147,7 @@ START_SECTION((virtual void setSpectraProcessingPtr( void (*sproptr)(SpectrumTyp
 }
 END_SECTION
 
-START_SECTION((virtual void setChromatogramProcessingPtr( void (*sproptr)(ChromatogramType&) )))
+START_SECTION((virtual void setChromatogramProcessingPtr( void (*cproptr)(ChromatogramType&) )))
 {
   MSDataTransformingConsumer * transforming_consumer = new MSDataTransformingConsumer();
 
