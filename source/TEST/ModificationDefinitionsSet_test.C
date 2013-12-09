@@ -101,7 +101,7 @@ START_SECTION((Size getNumberOfModifications() const ))
 	ModificationDefinitionsSet mod_set2(ListUtils::create<String>(""), ListUtils::create<String>("Carbamidomethyl (C)"));
 	TEST_EQUAL(mod_set2.getNumberOfModifications(), 1)
 
-	ModificationDefinitionsSet mod_set3(ListUtils::create<String>("Phospho (S)"));
+	ModificationDefinitionsSet mod_set3(ListUtils::create<String>("Phospho (S)"), ListUtils::create<String>(""));
 	TEST_EQUAL(mod_set3.getNumberOfModifications(), 1)
 }
 END_SECTION
@@ -113,7 +113,7 @@ START_SECTION((Size getNumberOfFixedModifications() const ))
   ModificationDefinitionsSet mod_set2(ListUtils::create<String>(""), ListUtils::create<String>("Carbamidomethyl (C)"));
   TEST_EQUAL(mod_set2.getNumberOfFixedModifications(), 0)
 
-  ModificationDefinitionsSet mod_set3(ListUtils::create<String>("Phospho (S)"));
+  ModificationDefinitionsSet mod_set3(ListUtils::create<String>("Phospho (S)"), ListUtils::create<String>(""));
   TEST_EQUAL(mod_set3.getNumberOfFixedModifications(), 1)
 }
 END_SECTION
@@ -125,7 +125,7 @@ START_SECTION((Size getNumberOfVariableModifications() const ))
   ModificationDefinitionsSet mod_set2(ListUtils::create<String>(""), ListUtils::create<String>("Carbamidomethyl (C)"));
   TEST_EQUAL(mod_set2.getNumberOfVariableModifications(), 1)
 
-  ModificationDefinitionsSet mod_set3(ListUtils::create<String>("Phospho (S)"));
+  ModificationDefinitionsSet mod_set3(ListUtils::create<String>("Phospho (S)"), ListUtils::create<String>(""));
   TEST_EQUAL(mod_set3.getNumberOfVariableModifications(), 0)
 }
 END_SECTION

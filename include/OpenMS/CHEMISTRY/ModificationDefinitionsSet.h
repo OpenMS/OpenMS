@@ -69,7 +69,7 @@ public:
     ModificationDefinitionsSet(const ModificationDefinitionsSet & rhs);
 
     /// detailed constructor with StringLists
-    ModificationDefinitionsSet(const StringList & fixed_modifications, const StringList & variable_modifications = ListUtils::create<String>(""));
+    ModificationDefinitionsSet(const StringList & fixed_modifications, const StringList & variable_modifications);
 
     /// destructor
     virtual ~ModificationDefinitionsSet();
