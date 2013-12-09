@@ -150,7 +150,7 @@ public:
       return trace.theoretical_int *  height_ * exp(-0.5 * pow(trace.peaks[k].first - x0_, 2) / pow(sigma_, 2));
     }
 
-    DoubleReal getFeatureIntensityContribution()
+    DoubleReal getArea()
     {
       // area under the curve, 2.5 is approx. sqrt(2 * pi):
       return 2.5 * height_ * sigma_;

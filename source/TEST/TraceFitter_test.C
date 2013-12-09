@@ -95,7 +95,7 @@ public:
         throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
     }
 
-    DoubleReal getFeatureIntensityContribution()
+    DoubleReal getArea()
     {
         throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
     }
@@ -206,9 +206,9 @@ START_SECTION((virtual bool checkMaximalRTSpan(const DoubleReal max_rt_span)=0))
 }
 END_SECTION
 
-START_SECTION((virtual DoubleReal getFeatureIntensityContribution()))
+START_SECTION((virtual DoubleReal getArea()))
 {
-  TEST_EXCEPTION(Exception::NotImplemented, trace_fitter.getFeatureIntensityContribution())
+  TEST_EXCEPTION(Exception::NotImplemented, trace_fitter.getArea())
 }
 END_SECTION
 

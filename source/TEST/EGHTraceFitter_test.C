@@ -398,9 +398,9 @@ START_SECTION((bool checkMinimalRTSpan(const std::pair< DoubleReal, DoubleReal >
 }
 END_SECTION
 
-START_SECTION((virtual DoubleReal getFeatureIntensityContribution()))
+START_SECTION((virtual DoubleReal getArea()))
 {
-  TEST_REAL_SIMILAR(egh_trace_fitter.getFeatureIntensityContribution(), sqrt(2 * M_PI) * expected_sigma * expected_H)
+  TEST_REAL_SIMILAR(egh_trace_fitter.getArea(), sqrt(2 * M_PI) * expected_sigma * expected_H)
 }
 END_SECTION
 

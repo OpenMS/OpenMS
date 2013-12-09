@@ -171,7 +171,7 @@ public:
       return fegh;
     }
 
-    virtual DoubleReal getFeatureIntensityContribution()
+    virtual DoubleReal getArea()
     {
       // equation 21 from Lan & Jorgenson paper:
       DoubleReal sigma = sqrt(sigma_square_);

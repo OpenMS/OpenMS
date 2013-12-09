@@ -25,6 +25,6 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussTraceFitter.h>" nam
         bool checkMaximalRTSpan(DoubleReal max_rt_span) nogil except +
         bool checkMinimalRTSpan(libcpp_pair[ DoubleReal, DoubleReal ] & rt_bounds, DoubleReal min_rt_span) nogil except +
         DoubleReal computeTheoretical(MassTrace[ Peak1D ] & trace, Size k) nogil except +
-        DoubleReal getFeatureIntensityContribution() nogil except +
+        DoubleReal getArea() nogil except +
         String getGnuplotFormula(MassTrace[ Peak1D ] & trace, char function_name, DoubleReal baseline, DoubleReal rt_shift) nogil except +
 

@@ -880,9 +880,7 @@ public:
                 // Calculate intensity based on model only
                 // - the model does not include the baseline, so we ignore it here
                 // - as we scaled the isotope distribution to
-                f.setIntensity(
-                  fitter->getFeatureIntensityContribution() // was 2.5 * fitter->getHeight() * sigma
-                  / getIsotopeDistribution_(f.getMZ()).max);
+                f.setIntensity(fitter->getArea() / getIsotopeDistribution_(f.getMZ()).max);
 
                 // we do not need the fitter anymore
                 delete fitter;

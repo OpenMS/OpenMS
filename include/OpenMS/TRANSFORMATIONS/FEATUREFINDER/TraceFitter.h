@@ -160,10 +160,9 @@ public:
     virtual bool checkMaximalRTSpan(const DoubleReal max_rt_span) = 0;
 
     /**
-     * ???
-     * @todo docu needs update
+     * Returns the peak area of the fitted model
      */
-    virtual DoubleReal getFeatureIntensityContribution() = 0;
+    virtual DoubleReal getArea() = 0;
 
     /**
      * Returns a textual representation of the fitted model function, that can be plotted using Gnuplot
