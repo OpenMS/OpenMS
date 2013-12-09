@@ -35,17 +35,17 @@
 #ifndef OPENMS_ANALYSIS_OPENSWATH_SPECTRUMADDITION_H
 #define OPENMS_ANALYSIS_OPENSWATH_SPECTRUMADDITION_H
 
-#include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/KERNEL/MSSpectrum.h>
-
-#include <OpenMS/FILTERING/TRANSFORMERS/LinearResamplerAlign.h>
-
-#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
+#include <OpenMS/config.h> // OPENMS_DLLAPI
+#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
 
 namespace OpenMS
 {
   /**
-  @brief The SpectrumAddition adds together a list of spectra
+  @brief The SpectrumAddition is used to add up individual spectra 
+  
+  It uses the given sampling rate to resample the spectra in m/z domain and
+  then add them up. This may lead to a certain inaccuracy, especially if a
+  inappropriate resampling rate is chosen.
 
   */
   class OPENMS_DLLAPI SpectrumAddition
@@ -54,7 +54,8 @@ namespace OpenMS
 public:
 
     /// adds up a list of Spectra by resampling them and then addition of intensities
-    static OpenSwath::SpectrumPtr addUpSpectra(std::vector<OpenSwath::SpectrumPtr> all_spectra, double sampling_rate, double filter_zeros);
+    static OpenSwath::SpectrumPtr addUpSpectra(std::vector<OpenSwath::SpectrumPtr> all_spectra,
+        double sampling_rate, double filter_zeros);
 
   };
 }

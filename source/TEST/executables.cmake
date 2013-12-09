@@ -549,6 +549,7 @@ if(NOT DISABLE_OPENSWATH)
     ChromatogramExtractor_test
     ChromatogramExtractorAlgorithm_test
     OpenSwathHelper_test
+    OpenSwathScoring_test
     PeakPickerMRM_test
     MRMTransitionGroupPicker_test
     DIAHelper_test

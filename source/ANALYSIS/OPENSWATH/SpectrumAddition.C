@@ -34,10 +34,16 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/SpectrumAddition.h>
 
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/LinearResamplerAlign.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
+
 namespace OpenMS
 {
 
-    OpenSwath::SpectrumPtr SpectrumAddition::addUpSpectra(std::vector<OpenSwath::SpectrumPtr> all_spectra, double sampling_rate, double filter_zeros)
+    OpenSwath::SpectrumPtr SpectrumAddition::addUpSpectra(std::vector<OpenSwath::SpectrumPtr> all_spectra,
+        double sampling_rate, double filter_zeros)
     {
       if (all_spectra.size() == 0)
       {

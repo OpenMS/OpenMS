@@ -33,7 +33,19 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>
+
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
+
+// data access
+#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/MRMFeatureAccessOpenMS.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
+
+// peak picking & noise estimation
+#include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h>
+
+#define run_identifier "unique_run_identifier"
 
 bool SortDoubleDoublePairFirst(const std::pair<double, double>& left, const std::pair<double, double>& right)
 {
@@ -99,6 +111,299 @@ namespace OpenMS
   {
   }
 
+  void MRMFeatureFinderScoring::pickExperiment(MSExperiment<Peak1D> & chromatograms, 
+        FeatureMap<Feature>& output, TargetedExperiment& transition_exp_,
+        TransformationDescription trafo, MSExperiment<Peak1D>& swath_map)
+  {
+    OpenSwath::LightTargetedExperiment transition_exp;
+    OpenSwathDataAccessHelper::convertTargetedExp(transition_exp_, transition_exp);
+    TransitionGroupMapType transition_group_map;
+
+    boost::shared_ptr<MSExperiment<Peak1D> > sh_chromatograms = boost::make_shared<MSExperiment<Peak1D> >(chromatograms);
+    boost::shared_ptr<MSExperiment<Peak1D> > sh_swath_map = boost::make_shared<MSExperiment<Peak1D> >(swath_map);
+
+    OpenSwath::SpectrumAccessPtr chromatogram_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(sh_chromatograms);
+    OpenSwath::SpectrumAccessPtr empty_swath_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(sh_swath_map);
+
+    pickExperiment(chromatogram_ptr, output, transition_exp, trafo, empty_swath_ptr, transition_group_map);
+  }
+
+  void MRMFeatureFinderScoring::pickExperiment(OpenSwath::SpectrumAccessPtr input,
+        FeatureMap<Feature>& output, OpenSwath::LightTargetedExperiment& transition_exp,
+        TransformationDescription trafo, OpenSwath::SpectrumAccessPtr swath_map, 
+        TransitionGroupMapType& transition_group_map)
+  {
+    updateMembers_();
+
+    //
+    // Step 1
+    //
+    // Store the peptide retention times in an intermediate map
+    prepareProteinPeptideMaps_(transition_exp);
+
+    // Store the proteins from the input in the output feature map
+    std::vector<ProteinHit> protein_hits;
+    for (Size i = 0; i < transition_exp.getProteins().size(); i++)
+    {
+      const ProteinType& prot = transition_exp.getProteins()[i];
+      ProteinHit prot_hit = ProteinHit();
+      prot_hit.setSequence(prot.sequence);
+      prot_hit.setAccession(prot.id);
+      protein_hits.push_back(prot_hit);
+    }
+
+    ProteinIdentification prot_id = ProteinIdentification();
+    prot_id.setHits(protein_hits);
+    prot_id.setIdentifier(run_identifier);
+    output.getProteinIdentifications().push_back(prot_id);
+
+    //
+    // Step 2
+    //
+    // Create all MRM transition groups from the individual transitions.
+    mapExperimentToTransitionList(input, transition_exp, transition_group_map, trafo, rt_extraction_window_);
+    int counter = 0;
+    for (TransitionGroupMapType::iterator trgroup_it = transition_group_map.begin(); trgroup_it != transition_group_map.end(); trgroup_it++)
+    {
+      if (trgroup_it->second.getChromatograms().size() > 0) {counter++; }
+    }
+    std::cout << "Will analyse " << counter << " peptides with a total of " << transition_exp.getTransitions().size() << " transitions " << std::endl;
+
+    //
+    // Step 3
+    //
+    // Go through all transition groups: first create consensus features, then score them
+    Size progress = 0;
+    startProgress(0, transition_group_map.size(), "picking peaks");
+    for (TransitionGroupMapType::iterator trgroup_it = transition_group_map.begin(); trgroup_it != transition_group_map.end(); trgroup_it++)
+    {
+
+      setProgress(++progress);
+      MRMTransitionGroupType& transition_group = trgroup_it->second;
+      if (transition_group.getChromatograms().size() == 0 || transition_group.getTransitions().size() == 0)
+      {
+        continue;
+      }
+
+      MRMTransitionGroupPicker trgroup_picker;
+      trgroup_picker.setParameters(param_.copy("TransitionGroupPicker:", true));
+      trgroup_picker.pickTransitionGroup(transition_group);
+      scorePeakgroups(trgroup_it->second, trafo, swath_map, output);
+
+    }
+    endProgress();
+
+    //output.sortByPosition(); // if the exact same order is needed
+    return;
+  }
+
+  void MRMFeatureFinderScoring::prepareProteinPeptideMaps_(OpenSwath::LightTargetedExperiment& transition_exp)
+  {
+    for (Size i = 0; i < transition_exp.getPeptides().size(); i++)
+    {
+      PeptideRefMap_[transition_exp.getPeptides()[i].id] = &transition_exp.getPeptides()[i];
+    }
+
+    for (Size i = 0; i < transition_exp.getProteins().size(); i++)
+    {
+      ProteinRefMap_[transition_exp.getProteins()[i].id] = &transition_exp.getProteins()[i];
+    }
+  }
+
+  void MRMFeatureFinderScoring::scorePeakgroups(MRMTransitionGroupType& transition_group,
+        TransformationDescription & trafo, OpenSwath::SpectrumAccessPtr swath_map, 
+        FeatureMap<Feature>& output)
+  {
+    typedef MRMTransitionGroupType::PeakType PeakT;
+    std::vector<OpenSwath::ISignalToNoisePtr> signal_noise_estimators;
+    std::vector<MRMFeature> feature_list;
+
+    DoubleReal sn_win_len_ = (DoubleReal)param_.getValue("TransitionGroupPicker:PeakPickerMRM:sn_win_len");
+    unsigned int sn_bin_count_ = (unsigned int)param_.getValue("TransitionGroupPicker:PeakPickerMRM:sn_bin_count");
+    for (Size k = 0; k < transition_group.getChromatograms().size(); k++)
+    {
+      OpenSwath::ISignalToNoisePtr snptr(new OpenMS::SignalToNoiseOpenMS< PeakT >(transition_group.getChromatograms()[k], sn_win_len_, sn_bin_count_));
+      signal_noise_estimators.push_back(snptr);
+    }
+
+    const PeptideType* pep = PeptideRefMap_[transition_group.getTransitionGroupID()];
+    String protein_id = "";
+    if (!pep->protein_ref.empty())
+    {
+      protein_id = ProteinRefMap_[pep->protein_ref]->id;
+    }
+
+    // get the expected rt value for this peptide
+    double expected_rt = pep->rt;
+    TransformationDescription newtr = trafo;
+    newtr.invert();
+    expected_rt = newtr.apply(expected_rt);
+
+    OpenSwathScoring scorer;
+    scorer.initialize(rt_normalization_factor_, add_up_spectra_, spacing_for_spectra_resampling_, su_);
+
+    // Go through all peak groups (found MRM features) and score them
+    for (std::vector<MRMFeature>::iterator mrmfeature = transition_group.getFeaturesMuteable().begin();
+         mrmfeature != transition_group.getFeaturesMuteable().end(); mrmfeature++)
+    {
+      OpenSwath::IMRMFeature* imrmfeature;
+      imrmfeature = new MRMFeatureOpenMS(*mrmfeature);
+
+      LOG_DEBUG << "scoring feature " << (*mrmfeature) << " == " << mrmfeature->getMetaValue("PeptideRef") <<
+      " [ expected RT " << PeptideRefMap_[mrmfeature->getMetaValue("PeptideRef")]->rt << " / " << expected_rt << " ]" <<
+      " with " << transition_group.size()  << " nr transitions and nr chromats " << transition_group.getChromatograms().size() << std::endl;
+
+      int group_size = boost::numeric_cast<int>(transition_group.size());
+      if (group_size == 0)
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+          "Error: Transition group " + transition_group.getTransitionGroupID() + " has no chromatograms.");
+      }
+      if (group_size < 2)
+      {
+        LOG_ERROR << "Error: Transition group " << transition_group.getTransitionGroupID() 
+          << " has only one chromatogram." << std::endl;
+        continue;
+      }
+
+      ///////////////////////////////////
+      // Call the scoring
+      ///////////////////////////////////
+
+      std::vector<double> normalized_library_intensity;
+      transition_group.getLibraryIntensity(normalized_library_intensity);
+      OpenSwath::Scoring::normalize_sum(&normalized_library_intensity[0], boost::numeric_cast<int>(normalized_library_intensity.size()));
+      std::vector<std::string> native_ids;
+      for (Size i = 0; i < transition_group.size(); i++) 
+      {
+        native_ids.push_back(transition_group.getTransitions()[i].getNativeID());
+      }
+
+      OpenSwath_Scores scores;
+      scorer.calculateChromatographicScores(imrmfeature, native_ids, normalized_library_intensity,
+        signal_noise_estimators, scores);
+
+      double normalized_experimental_rt = trafo.apply(imrmfeature->getRT());
+      scorer.calculateLibraryScores(imrmfeature, transition_group.getTransitions(), *pep, normalized_experimental_rt, scores);
+      if (swath_map->getNrSpectra() > 0 && su_.use_dia_scores_)
+      {
+        scorer.calculateDIAScores(imrmfeature, transition_group.getTransitions(),
+            swath_map, diascoring_, *pep, scores);
+      }
+
+      if (su_.use_coelution_score_) { 
+        mrmfeature->addScore("var_xcorr_coelution", scores.xcorr_coelution_score);
+        mrmfeature->addScore("var_xcorr_coelution_weighted", scores.weighted_coelution_score); }
+      if (su_.use_shape_score_) { 
+        mrmfeature->addScore("var_xcorr_shape", scores.xcorr_shape_score);
+        mrmfeature->addScore("var_xcorr_shape_weighted", scores.weighted_xcorr_shape); }
+      if (su_.use_library_score_) { 
+        mrmfeature->addScore("var_library_corr", scores.library_corr);
+        mrmfeature->addScore("var_library_rmsd", scores.library_norm_manhattan);
+        mrmfeature->addScore("var_library_sangle", scores.library_sangle);
+        mrmfeature->addScore("var_library_rootmeansquare", scores.library_rootmeansquare); 
+        mrmfeature->addScore("var_library_manhattan", scores.library_manhattan);
+        mrmfeature->addScore("var_library_dotprod", scores.library_dotprod); 
+      }
+      if (su_.use_rt_score_) { 
+        mrmfeature->addScore("delta_rt", mrmfeature->getRT() - expected_rt);
+        mrmfeature->addScore("assay_rt", expected_rt);
+        mrmfeature->addScore("norm_RT", scores.normalized_experimental_rt);
+        mrmfeature->addScore("rt_score", scores.raw_rt_score);
+        mrmfeature->addScore("var_norm_rt_score", scores.norm_rt_score); }
+      // TODO do we really want these intensity scores ?
+      if (su_.use_intensity_score_) { mrmfeature->addScore("var_intensity_score", mrmfeature->getIntensity() / (double)mrmfeature->getMetaValue("total_xic")); }
+      if (su_.use_total_xic_score_) { mrmfeature->addScore("total_xic", (double)mrmfeature->getMetaValue("total_xic")); }
+      if (su_.use_nr_peaks_score_) { mrmfeature->addScore("nr_peaks", scores.nr_peaks); }
+      if (su_.use_sn_score_) { mrmfeature->addScore("sn_ratio", scores.sn_ratio); mrmfeature->addScore("var_log_sn_score", scores.log_sn_score); }
+      // TODO get it working with imrmfeature
+      if (su_.use_elution_model_score_) { 
+        scores.elution_model_fit_score = emgscoring_.calcElutionFitScore((*mrmfeature), transition_group);
+        mrmfeature->addScore("var_elution_model_fit_score", scores.elution_model_fit_score); }
+
+      double xx_lda_prescore = -scores.calculate_lda_prescore(scores);
+      bool swath_present = (swath_map->getNrSpectra() > 0);
+      if (!swath_present)
+      {
+        mrmfeature->addScore("main_var_xx_lda_prelim_score", xx_lda_prescore);
+        mrmfeature->setOverallQuality(xx_lda_prescore);
+      }
+      else
+      {
+        mrmfeature->addScore("xx_lda_prelim_score", xx_lda_prescore);
+      }
+
+      // Add the DIA / SWATH scores
+      if (swath_present && su_.use_dia_scores_)
+      {
+        mrmfeature->addScore("var_isotope_correlation_score", scores.isotope_correlation);
+        mrmfeature->addScore("var_isotope_overlap_score", scores.isotope_overlap);
+        mrmfeature->addScore("var_massdev_score", scores.massdev_score);
+        mrmfeature->addScore("var_massdev_score_weighted", scores.weighted_massdev_score);
+        mrmfeature->addScore("var_bseries_score", scores.bseries_score);
+        mrmfeature->addScore("var_yseries_score", scores.yseries_score);
+        mrmfeature->addScore("var_dotprod_score", scores.dotprod_score_dia);
+        mrmfeature->addScore("var_manhatt_score", scores.manhatt_score_dia);
+
+        double xx_swath_prescore = -scores.calculate_swath_lda_prescore(scores);
+        mrmfeature->addScore("main_var_xx_swath_prelim_score", xx_swath_prescore);
+        mrmfeature->setOverallQuality(xx_swath_prescore);
+      }
+
+      ///////////////////////////////////////////////////////////////////////////
+      // add the peptide hit information to the feature
+      ///////////////////////////////////////////////////////////////////////////
+      PeptideIdentification pep_id_ = PeptideIdentification();
+      PeptideHit pep_hit_ = PeptideHit();
+
+      if (pep->getChargeState() != -1)
+      {
+        pep_hit_.setCharge(pep->getChargeState());
+      }
+      pep_hit_.setScore(xx_lda_prescore);
+      if (swath_present)
+      {
+        pep_hit_.setScore(mrmfeature->getScore("xx_swath_prelim_score"));
+      }
+      pep_hit_.setSequence(AASequence(pep->sequence));
+      pep_hit_.addProteinAccession(protein_id);
+      pep_id_.insertHit(pep_hit_);
+      pep_id_.setIdentifier(run_identifier);
+
+      mrmfeature->getPeptideIdentifications().push_back(pep_id_);
+      mrmfeature->ensureUniqueId();
+      mrmfeature->setMetaValue("PrecursorMZ", transition_group.getTransitions()[0].getPrecursorMZ());
+      mrmfeature->setSubordinates(mrmfeature->getFeatures()); // add all the subfeatures as subordinates
+      double total_intensity = 0, total_peak_apices = 0;
+      for (std::vector<Feature>::iterator sub_it = mrmfeature->getSubordinates().begin(); sub_it != mrmfeature->getSubordinates().end(); sub_it++)
+      {
+        if (!write_convex_hull_) {sub_it->getConvexHulls().clear(); }
+        sub_it->ensureUniqueId();
+        if (sub_it->getMZ() > quantification_cutoff_)
+        {
+          total_intensity += sub_it->getIntensity();
+          total_peak_apices += (DoubleReal)sub_it->getMetaValue("peak_apex_int");
+        }
+      }
+      // overwrite the reported intensities with those above the m/z cutoff
+      mrmfeature->setIntensity(total_intensity);
+      mrmfeature->setMetaValue("peak_apices_sum", total_peak_apices);
+      feature_list.push_back((*mrmfeature));
+
+      delete imrmfeature;
+    }
+
+    // Order by quality
+    std::sort(feature_list.begin(), feature_list.end(), OpenMS::Feature::OverallQualityLess());
+    std::reverse(feature_list.begin(), feature_list.end());
+
+    for (Size i = 0; i < feature_list.size(); i++)
+    {
+      if (stop_report_after_feature_ >= 0 && i >= (Size)stop_report_after_feature_) {break;}
+      output.push_back(feature_list[i]);
+    }
+  }
+
   void MRMFeatureFinderScoring::updateMembers_()
   {
     stop_report_after_feature_ = (int)param_.getValue("stop_report_after_feature");
@@ -125,8 +430,8 @@ namespace OpenMS
   }
 
   void MRMFeatureFinderScoring::mapExperimentToTransitionList(OpenSwath::SpectrumAccessPtr input,
-                                                              TargetedExpType& transition_exp, TransitionGroupMapType& transition_group_map,
-                                                              TransformationDescription trafo, double rt_extraction_window)
+         TargetedExpType& transition_exp, TransitionGroupMapType& transition_group_map,
+         TransformationDescription trafo, double rt_extraction_window)
   {
     double rt_min, rt_max, expected_rt;
     trafo.invert();

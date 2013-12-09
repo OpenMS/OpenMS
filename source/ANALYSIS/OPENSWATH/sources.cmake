@@ -7,6 +7,7 @@ MRMDecoy.C
 MRMRTNormalizer.C
 TransitionTSVReader.C
 OpenSwathHelper.C
+OpenSwathScoring.C
 ChromatogramExtractor.C
 ChromatogramExtractorAlgorithm.C
 SpectrumAddition.C

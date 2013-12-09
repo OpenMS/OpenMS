@@ -635,7 +635,7 @@ protected:
         return;
       }
 
-      // FEATURE IDEA: instead of Z-score use modified Z-score for small datasets 
+      // FEATURE IDEA: instead of Z-score use modified Z-score for small data sets 
       // http://d-scholarship.pitt.edu/7948/1/Seo.pdf
       // http://www.itl.nist.gov/div898/handbook/eda/section3/eda35h.htm
       // 1. calculate median

@@ -15,6 +15,7 @@ set(sources_list_h
   MRMRTNormalizer.h
   MRMTransitionGroupPicker.h
   OpenSwathHelper.h
+  OpenSwathScoring.h
   SpectrumAddition.h
   TransitionTSVReader.h
 )
