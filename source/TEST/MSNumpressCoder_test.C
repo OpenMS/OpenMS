@@ -155,8 +155,7 @@ START_SECTION((virtual ~MSNumpressCoder()))
 	delete ptr;
 END_SECTION
 
-START_SECTION( void encodeNP(std::vector<double> & in, String & result,
-        bool zlib_compression, NumpressConfig config))
+START_SECTION(( void encodeNP(const std::vector<double> & in, String & result, bool zlib_compression, const NumpressConfig & config)))
 {
   std::vector< double > in = setup_test_vec1();
   String out;
@@ -169,16 +168,15 @@ START_SECTION( void encodeNP(std::vector<double> & in, String & result,
   TEST_EQUAL(out.size(), 12)
 }
 END_SECTION
-START_SECTION( void encodeNP(std::vector<float> & in, String & result,
-        bool zlib_compression, NumpressConfig config))
+
+START_SECTION(( void encodeNP(const std::vector<float> & in, String & result, bool zlib_compression, const NumpressConfig & config)))
 {
   // tested using the encodeNP double function
   NOT_TESTABLE
 }
 END_SECTION
 
-START_SECTION( void decodeNP(const String & in, std::vector<double> & out,
-        bool zlib_compression, NumpressConfig config) )
+START_SECTION(( void decodeNP(const String & in, std::vector<double> & out, bool zlib_compression, const NumpressConfig & config) ))
 {
   String in = "ZGaMXCFQkQ==";
 
@@ -201,11 +199,20 @@ START_SECTION( void decodeNP(const String & in, std::vector<double> & out,
 }
 END_SECTION
 
+START_SECTION(([MSNumpressCoder::NumpressConfig] NumpressConfig()))
+{
+  MSNumpressCoder::NumpressConfig * config = new MSNumpressCoder::NumpressConfig();
+  MSNumpressCoder::NumpressConfig * nullConfigPtr = 0;
+	TEST_NOT_EQUAL(config, nullConfigPtr)
+  delete config;
+}
+END_SECTION
+
 ///////////////////////////////////////////////////////////////////////////
 // Encode / Decode a small vector
 ///////////////////////////////////////////////////////////////////////////
 
-START_SECTION(encodeNP_LINEAR)
+START_SECTION([EXTRA] encodeNP_LINEAR)
 {
   std::vector< double > in = setup_test_vec1();
   String out;
@@ -222,7 +229,7 @@ START_SECTION(encodeNP_LINEAR)
 }
 END_SECTION
 
-START_SECTION(decodeNP_LINEAR)
+START_SECTION([EXTRA] decodeNP_LINEAR)
 {
   String in = "QWR64UAAAADo//8/0P//f1kSgA==";
 
@@ -245,7 +252,7 @@ START_SECTION(decodeNP_LINEAR)
 }
 END_SECTION
 
-START_SECTION(encodeNP_PIC)
+START_SECTION([EXTRA] encodeNP_PIC)
 {
   std::vector< double > in = setup_test_vec1();
   String out;
@@ -261,7 +268,7 @@ START_SECTION(encodeNP_PIC)
 }
 END_SECTION
 
-START_SECTION(decodeNP_PIC)
+START_SECTION([EXTRA] decodeNP_PIC)
 {
   String in = "ZGaMXCFQkQ==";
 
@@ -284,7 +291,7 @@ START_SECTION(decodeNP_PIC)
 }
 END_SECTION
 
-START_SECTION(encodeNP_SLOF)
+START_SECTION([EXTRA] encodeNP_SLOF)
 {
   std::vector< double > in = setup_test_vec1();
   String out;
@@ -301,7 +308,7 @@ START_SECTION(encodeNP_SLOF)
 }
 END_SECTION
 
-START_SECTION(decodeNP_SLOF)
+START_SECTION([EXTRA] decodeNP_SLOF)
 {
   String in = "QMVagAAAAAAZxX3ivPP8/w==";
 
@@ -330,7 +337,7 @@ END_SECTION
 // Large test
 ///////////////////////////////////////////////////////////////////////////
 
-START_SECTION(test_large_LINEAR)
+START_SECTION([EXTRA] test_large_LINEAR)
 {
   std::vector< double > in = setup_test_vec2();
   String base64_string;
@@ -351,7 +358,7 @@ START_SECTION(test_large_LINEAR)
 }
 END_SECTION
 
-START_SECTION(test_large_PIC)
+START_SECTION([EXTRA] test_large_PIC)
 {
   std::vector< double > in = setup_test_vec2();
   String base64_string;
@@ -371,7 +378,7 @@ START_SECTION(test_large_PIC)
 }
 END_SECTION
 
-START_SECTION(test_large_SLOF)
+START_SECTION([EXTRA] test_large_SLOF)
 {
   std::vector< double > in = setup_test_vec2();
   String base64_string;

@@ -295,6 +295,14 @@ START_SECTION((operator StringList() const))
 	TEST_EQUAL(sl_op == d, true)
 END_SECTION
 
+START_SECTION((StringList toStringList() const))
+	StringList sl;
+	sl << "test string list";
+	DataValue d(sl);
+	StringList sl_op = d.toStringList();
+	TEST_EQUAL(sl_op == d, true)
+END_SECTION
+
 START_SECTION((operator IntList() const))
 	IntList il;
 	il.push_back(1);
@@ -305,12 +313,31 @@ START_SECTION((operator IntList() const))
   TEST_EXCEPTION(Exception::ConversionError, StringList sl = DataValue("abc,ab");)
 END_SECTION
 
+START_SECTION((IntList toIntList() const))
+	IntList il;
+	il.push_back(1);
+  il.push_back(2);
+	DataValue d(il);
+	IntList il_op = d.toIntList();
+	TEST_EQUAL(il_op == il, true)
+  TEST_EXCEPTION(Exception::ConversionError, StringList sl = DataValue("abc,ab").toStringList();)
+END_SECTION
+
 START_SECTION((operator DoubleList() const))
 	DoubleList dl;
 	dl.push_back(1.2);
   dl.push_back(22.34455);
 	DataValue d(dl);
 	DoubleList dl_op = d;
+	TEST_EQUAL(dl_op == d, true);
+END_SECTION
+
+START_SECTION((DoubleList toDoubleList() const))
+	DoubleList dl;
+	dl.push_back(1.2);
+  dl.push_back(22.34455);
+	DataValue d(dl);
+	DoubleList dl_op = d.toDoubleList();
 	TEST_EQUAL(dl_op == d, true);
 END_SECTION
 

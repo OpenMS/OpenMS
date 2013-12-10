@@ -79,7 +79,7 @@ START_SECTION(PeakFileOptions& getOptions())
   TEST_EQUAL(file.getOptions().hasMSLevels(),true);
 END_SECTION
 
-START_SECTION(void setOptions(const PeakFileOptions & options))
+START_SECTION(void setOptions(const PeakFileOptions &))
   IndexedMzMLFileLoader file;
   const PeakFileOptions& options = file.getOptions();
   TEST_EQUAL(options.hasMSLevels(),false)

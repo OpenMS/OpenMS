@@ -86,17 +86,25 @@ public:
     virtual ~MSNumpressCoder() {}
 
     /**
-        @brief Encodes a vector of floating point numbers into a Base64 string using numpress
-
-        This code is obtained from the proteowizard implementation
-        ./pwiz/pwiz/data/msdata/BinaryDataEncoder.cpp
-
-        adapted by Hannes Roest
-
-        In case of error, result is empty
+     * @brief Encodes a vector of floating point numbers into a Base64 string using numpress
+     *
+     * This code is obtained from the proteowizard implementation
+     * ./pwiz/pwiz/data/msdata/BinaryDataEncoder.cpp (adapted by Hannes Roest).
+     *
+     * This function will first apply the numpress encoding to the data, then
+     * encode the result in base64 (with optional zlib compression before
+     * base64 encoding).
+     *
+     * @note In case of error, result string is empty
+     *
+     * @param in The vector of floating point numbers to be encoded
+     * @param result The resulting string
+     * @param zlib_compression Whether to apply zlib compression after numpress compression
+     * @param config The numpress configuration defining the compression strategy
+     *
     */
-    void encodeNP(std::vector<double> & in, String & result,
-        bool zlib_compression, NumpressConfig config)
+    void encodeNP(const std::vector<double> & in, String & result,
+        bool zlib_compression, const NumpressConfig & config)
     {
       result.clear();
       encodeNP_(in, result, config);
@@ -108,30 +116,40 @@ public:
       // Encode in base64 and compress
       std::vector<String> tmp;
       tmp.push_back(result);
-      base64coder.encodeStrings(tmp, result, zlib_compression, false);
+      base64coder_.encodeStrings(tmp, result, zlib_compression, false);
     }
 
     /// encodeNP from a float (convert first to double)
-    void encodeNP(std::vector<float> & in, String & result,
-        bool zlib_compression, NumpressConfig config)
+    void encodeNP(const std::vector<float> & in, String & result,
+        bool zlib_compression, const NumpressConfig & config)
     {
       std::vector<double> dvector(in.begin(), in.end());
       encodeNP(dvector, result, zlib_compression, config);
     }
 
     /**
-        @brief Decodes a Base64 string to a vector of floating point numbers using numpress
-
-        This code is obtained from the proteowizard implementation
-        ./pwiz/pwiz/data/msdata/BinaryDataEncoder.cpp
-
-        adapted by Hannes Roest
+     * @brief Decodes a Base64 string to a vector of floating point numbers using numpress
+     *
+     * This code is obtained from the proteowizard implementation
+     * ./pwiz/pwiz/data/msdata/BinaryDataEncoder.cpp (adapted by Hannes Roest).
+     *
+     * This function will first decode the input base64 string (with optional
+     * zlib decompression after decoding) and then apply numpress decoding to
+     * the data.
+     *
+     * @param in The base64 encoded string
+     * @param out The resulting vector of doubles
+     * @param zlib_compression Whether to apply zlib de-compression before numpress de-compression
+     * @param config The numpress configuration defining the compression strategy
+     *
+     * @throw throws Exception::ConversionError if the string cannot be converted
+     *
     */
     void decodeNP(const String & in, std::vector<double> & out,
-        bool zlib_compression, NumpressConfig config)
+        bool zlib_compression, const NumpressConfig & config)
     {
       QByteArray base64_uncompressed;
-      base64coder.decodeSingleString(in, base64_uncompressed, zlib_compression);
+      base64coder_.decodeSingleString(in, base64_uncompressed, zlib_compression);
 
       // Create a temporary string (*not* null-terminated) to hold the data
       std::string tmpstring(base64_uncompressed.constData(), base64_uncompressed.size());
@@ -147,25 +165,27 @@ public:
 private:
 
     /**
-        @brief Encode the vector in to the result string
-
-        In case of error, result is given back unmodified
+     * @brief Encode the vector in to the result string using numpress
+     *
+     * @note In case of error, result is given back unmodified
+     *
     */
-    void encodeNP_(std::vector<double> & in, String & result, NumpressConfig config);
+    void encodeNP_(const std::vector<double> & in, String & result, const NumpressConfig & config);
 
     /**
-        @brief Decode the (not necessary null terminated) string in to the result vector out
-
-        In case of error, an exception is thrown
-
-        @note that the string in should *only* contain the data and _no_ extra
-        null terminating byte (unless of course the last data byte is null)
+     * @brief Decode the (not necessary null terminated) string in to the result vector out
+     *
+     * @note that the string in should *only* contain the data and _no_ extra
+     * null terminating byte (unless of course the last data byte is null)
+     *
+     * @throw throws Exception::ConversionError if the string cannot be converted
+     *
     */
-    void decodeNP_(std::string in, std::vector<double> & out, NumpressConfig config);
+    void decodeNP_(const std::string & in, std::vector<double> & out, const NumpressConfig & config);
 
-    void decodeNP_internal_(const unsigned char* in, size_t in_size, std::vector<double> & out, NumpressConfig config);
+    void decodeNPInternal_(const unsigned char* in, size_t in_size, std::vector<double>& out, const NumpressConfig & config);
 
-    Base64 base64coder;
+    Base64 base64coder_;
   };
 
 } //namespace OpenMS

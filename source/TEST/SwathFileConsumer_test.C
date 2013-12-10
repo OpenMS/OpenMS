@@ -81,12 +81,12 @@ START_TEST(SwathFileConsumer, "$Id$")
 RegularSwathFileConsumer* regular_sfc_ptr = 0;
 RegularSwathFileConsumer* regular_sfc_nullPointer = 0;
 
-START_SECTION((RegularSwathFileConsumer()))
+START_SECTION(([EXTRA] RegularSwathFileConsumer()))
   regular_sfc_ptr = new RegularSwathFileConsumer;
   TEST_NOT_EQUAL(regular_sfc_ptr, regular_sfc_nullPointer)
 END_SECTION
 
-START_SECTION((virtual ~RegularSwathFileConsumer()))
+START_SECTION(([EXTRA] virtual ~RegularSwathFileConsumer()))
     delete regular_sfc_ptr;
 END_SECTION
 
@@ -175,19 +175,19 @@ START_SECTION(([EXTRA] consumeAndRetrieve_noMS2))
 }
 END_SECTION
 
-START_SECTION((void retrieveSwathMaps(std::vector< OpenSwath::SwathMap > & maps))) 
+START_SECTION(([EXTRA] void retrieveSwathMaps(std::vector< OpenSwath::SwathMap > & maps))) 
 {
   NOT_TESTABLE // already tested consumeAndRetrieve
 }
 END_SECTION
 
-START_SECTION((void consumeChromatogram(MapType::ChromatogramType &) )) 
+START_SECTION(([EXTRA] void consumeChromatogram(MapType::ChromatogramType &) )) 
 {
   NOT_TESTABLE // already tested consumeAndRetrieve
 }
 END_SECTION
 
-START_SECTION((void consumeSpectrum(MapType::SpectrumType & s))) 
+START_SECTION(([EXTRA] void consumeSpectrum(MapType::SpectrumType & s))) 
 {
   NOT_TESTABLE // already tested consumeAndRetrieve
 }
@@ -200,12 +200,12 @@ CachedSwathFileConsumer* cached_sfc_ptr = 0;
 CachedSwathFileConsumer* cached_sfc_nullPointer = 0;
 
     // CachedSwathFileConsumer(String cachedir, String basename, Size nr_ms1_spectra, std::vector<int> nr_ms2_spectra) :
-START_SECTION((CachedSwathFileConsumer()))
+START_SECTION(([EXTRA] CachedSwathFileConsumer()))
   cached_sfc_ptr = new CachedSwathFileConsumer("./", "tmp_osw_cached", 0, std::vector<int>());
   TEST_NOT_EQUAL(cached_sfc_ptr, cached_sfc_nullPointer)
 END_SECTION
 
-START_SECTION((virtual ~CachedSwathFileConsumer()))
+START_SECTION(([EXTRA] virtual ~CachedSwathFileConsumer()))
     delete cached_sfc_ptr;
 END_SECTION
 
@@ -306,19 +306,19 @@ START_SECTION(([EXTRA] consumeAndRetrieve_noMS2))
 }
 END_SECTION
 
-START_SECTION((void retrieveSwathMaps(std::vector< OpenSwath::SwathMap > & maps))) 
+START_SECTION(([EXTRA] void retrieveSwathMaps(std::vector< OpenSwath::SwathMap > & maps))) 
 {
   NOT_TESTABLE // already tested consumeAndRetrieve
 }
 END_SECTION
 
-START_SECTION((void consumeChromatogram(MapType::ChromatogramType &) )) 
+START_SECTION(([EXTRA] void consumeChromatogram(MapType::ChromatogramType &) )) 
 {
   NOT_TESTABLE // already tested consumeAndRetrieve
 }
 END_SECTION
 
-START_SECTION((void consumeSpectrum(MapType::SpectrumType & s))) 
+START_SECTION(([EXTRA] void consumeSpectrum(MapType::SpectrumType & s))) 
 {
   NOT_TESTABLE // already tested consumeAndRetrieve
 }

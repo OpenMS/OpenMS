@@ -71,9 +71,7 @@ START_SECTION(~OpenSwathScoring())
 }
 END_SECTION
 
-START_SECTION( void initialize(DoubleReal rt_normalization_factor_,
-      int add_up_spectra_, DoubleReal spacing_for_spectra_resampling_,
-      OpenSwath_Scores_Usage & su_))
+START_SECTION((void initialize(DoubleReal rt_normalization_factor_, int add_up_spectra_, DoubleReal spacing_for_spectra_resampling_, OpenSwath_Scores_Usage & su_)))
 {
 	ptr = new OpenSwathScoring();
   OpenSwath_Scores_Usage su;
@@ -83,52 +81,35 @@ START_SECTION( void initialize(DoubleReal rt_normalization_factor_,
 }
 END_SECTION
     
-START_SECTION( void calculateChromatographicScores(
-          OpenSwath::IMRMFeature* imrmfeature,
-          const std::vector<std::string>& native_ids,
-          const std::vector<double>& normalized_library_intensity,
-          std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators,
-          OpenSwath_Scores & scores) )
+START_SECTION((void calculateChromatographicScores( OpenSwath::IMRMFeature* imrmfeature, const std::vector<std::string>& native_ids, const std::vector<double>& normalized_library_intensity, std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators, OpenSwath_Scores & scores) ))
 {
   NOT_TESTABLE // see MRMFeatureFinderScoring_test.C 
   // - the OpenSwathScoring is a facade and thus does not need testing on its own
 }
 END_SECTION
 
-START_SECTION(void calculateLibraryScores(
-          OpenSwath::IMRMFeature* imrmfeature,
-          const std::vector<TransitionType> & transitions,
-          const PeptideType& pep,
-          const double normalized_feature_rt,
-          OpenSwath_Scores & scores))
+START_SECTION((void calculateLibraryScores( OpenSwath::IMRMFeature* imrmfeature, const std::vector<TransitionType> & transitions, const PeptideType& pep, const double normalized_feature_rt, OpenSwath_Scores & scores)))
 {
   NOT_TESTABLE // see MRMFeatureFinderScoring_test.C
   // - the OpenSwathScoring is a facade and thus does not need testing on its own
 }
 END_SECTION
 
-START_SECTION(void calculateDIAScores(OpenSwath::IMRMFeature* imrmfeature, 
-        const std::vector<TransitionType> & transitions,
-        OpenSwath::SpectrumAccessPtr swath_map,
-        OpenMS::DIAScoring & diascoring,
-        const PeptideType& pep,
-        OpenSwath_Scores & scores))
+START_SECTION((void calculateDIAScores(OpenSwath::IMRMFeature* imrmfeature, const std::vector<TransitionType> & transitions, OpenSwath::SpectrumAccessPtr swath_map, OpenMS::DIAScoring & diascoring, const PeptideType& pep, OpenSwath_Scores & scores)))
 {
   NOT_TESTABLE // see MRMFeatureFinderScoring_test.C
   // - the OpenSwathScoring is a facade and thus does not need testing on its own
 }
 END_SECTION
 
-START_SECTION(void getNormalized_library_intensities_(const std::vector<TransitionType> & transitions,
-        std::vector<double>& normalized_library_intensity))
+START_SECTION((void getNormalized_library_intensities_(const std::vector<TransitionType> & transitions, std::vector<double>& normalized_library_intensity)))
 {
   NOT_TESTABLE // see MRMFeatureFinderScoring_test.C
   // - the OpenSwathScoring is a facade and thus does not need testing on its own
 }
 END_SECTION
 
-START_SECTION(OpenSwath::SpectrumPtr getAddedSpectra_(OpenSwath::SpectrumAccessPtr swath_map, 
-        double RT, int nr_spectra_to_add))
+START_SECTION((OpenSwath::SpectrumPtr getAddedSpectra_(OpenSwath::SpectrumAccessPtr swath_map, double RT, int nr_spectra_to_add)))
 {
   NOT_TESTABLE // see MRMFeatureFinderScoring_test.C
   // - the OpenSwathScoring is a facade and thus does not need testing on its own

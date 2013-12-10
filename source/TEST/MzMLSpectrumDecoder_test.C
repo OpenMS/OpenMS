@@ -299,7 +299,7 @@ START_SECTION(([EXTRA] void domParseSpectrum(std::string& in, OpenMS::Interfaces
 END_SECTION
 
 /// Chromatogram
-START_SECTION(( void domParseChromatogram(const std::string& in, OpenMS::Interfaces::ChromatogramPtr & sptr) ))
+START_SECTION(( void domParseChromatogram(const std::string& in, OpenMS::Interfaces::ChromatogramPtr & cptr) ))
 {
   ptr = new MzMLSpectrumDecoder();
   std::string testString = MULTI_LINE_STRING( 

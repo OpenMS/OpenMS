@@ -165,7 +165,7 @@ private:
      *
     */
     template <typename PeakType>
-    void pick_recenter_peaks_(const MSSpectrum<PeakType>& input,
+    void pickRecenterPeaks_(const MSSpectrum<PeakType>& input,
                               std::vector<PeakCandidate>& PeakCandidates,
                               SignalToNoiseEstimatorMedian<MSSpectrum<PeakType> >& snt)
     {
@@ -356,7 +356,7 @@ public:
       // The peak candidates are re-centered and the width is computed for each peak
       for (int i = 0; i < nr_iterations_; i++)
       {
-        pick_recenter_peaks_(input, PeakCandidates, snt);
+        pickRecenterPeaks_(input, PeakCandidates, snt);
       }
 
       output.getFloatDataArrays().resize(3);

@@ -43,7 +43,7 @@ namespace OpenMS
 {
   using namespace ms; // numpress namespace
 
-  void MSNumpressCoder::encodeNP_(std::vector<double>& in, String& result, NumpressConfig config)
+  void MSNumpressCoder::encodeNP_(const std::vector<double>& in, String& result, const NumpressConfig & config)
   {
     if (in.empty()) return;
 
@@ -200,12 +200,12 @@ namespace OpenMS
     }
   }
 
-  void MSNumpressCoder::decodeNP_(std::string in, std::vector<double>& out, NumpressConfig config)
+  void MSNumpressCoder::decodeNP_(const std::string & in, std::vector<double>& out, const NumpressConfig & config)
   {
-    decodeNP_internal_(reinterpret_cast<const unsigned char*>(in.c_str()), in.size(), out, config);
+    decodeNPInternal_(reinterpret_cast<const unsigned char*>(in.c_str()), in.size(), out, config);
   }
 
-  void MSNumpressCoder::decodeNP_internal_(const unsigned char* in, size_t in_size, std::vector<double>& out, NumpressConfig config)
+  void MSNumpressCoder::decodeNPInternal_(const unsigned char* in, size_t in_size, std::vector<double>& out, const NumpressConfig & config)
   {
     out.clear();
     if (in_size == 0) return;

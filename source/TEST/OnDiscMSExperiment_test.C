@@ -63,7 +63,7 @@ START_SECTION((~OnDiscMSExperiment()))
 }
 END_SECTION
 
-START_SECTION((OnDiscMSExperiment(const OnDiscMSExperiment& source)))
+START_SECTION((OnDiscMSExperiment(const OnDiscMSExperiment& filename)))
 {
   OnDiscMSExperiment<> tmp(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
   OnDiscMSExperiment<> tmp2(tmp);
@@ -75,7 +75,7 @@ START_SECTION((OnDiscMSExperiment(const OnDiscMSExperiment& source)))
 }
 END_SECTION
 
-START_SECTION((OnDiscMSExperiment(const String& source)))
+START_SECTION((OnDiscMSExperiment(const String& filename)))
 {
   OnDiscMSExperiment<> tmp(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
   TEST_EQUAL(tmp.size(), 2);
@@ -166,7 +166,7 @@ START_SECTION((boost::shared_ptr<const ExperimentalSettings> getExperimentalSett
 }
 END_SECTION
 
-START_SECTION((MSSpectrum<PeakT>& operator[] (Size n) const))
+START_SECTION((MSSpectrum<PeakT> operator[] (Size n) const))
 {
   OnDiscMSExperiment<> tmp(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
   TEST_EQUAL(tmp.empty(), false);
@@ -198,7 +198,7 @@ START_SECTION(OpenMS::Interfaces::SpectrumPtr getSpectrumById(Size id))
 }
 END_SECTION
 
-START_SECTION((MSChromatogram<ChromatogramPeak> getChromatogram(Size id)))
+START_SECTION((MSChromatogram<ChromatogramPeakT> getChromatogram(Size id)))
 {
   OnDiscMSExperiment<> tmp(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
   TEST_EQUAL(tmp.getNrChromatograms(), 1);

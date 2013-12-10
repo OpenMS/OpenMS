@@ -70,12 +70,6 @@ START_SECTION((IndexedMzMLFile() ))
 	delete ptr;
 END_SECTION
 
-START_SECTION((IndexedMzMLFile() ))
-	ptr = new IndexedMzMLFile();
-	TEST_NOT_EQUAL(ptr, nullPointer)
-	delete ptr;
-END_SECTION
-
 START_SECTION((IndexedMzMLFile(const IndexedMzMLFile &source)))
 {
   IndexedMzMLFile file(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
@@ -132,14 +126,14 @@ START_SECTION(( void openFile(String filename) ))
 }
 END_SECTION
 
-START_SECTION(( bool getNrSpectra() const ))
+START_SECTION(( size_t getNrSpectra() const ))
 {
   IndexedMzMLFile file(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
   TEST_EQUAL(file.getNrSpectra(), 2)
 }
 END_SECTION
 
-START_SECTION(( bool getNrChromatograms() const ))
+START_SECTION(( size_t getNrChromatograms() const ))
 {
   IndexedMzMLFile file(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
   TEST_EQUAL(file.getNrChromatograms(), 1)

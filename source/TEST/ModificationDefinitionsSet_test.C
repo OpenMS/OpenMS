@@ -225,23 +225,26 @@ START_SECTION((std::set<ModificationDefinition> getModifications() const ))
 END_SECTION
 
 START_SECTION(const std::set<ModificationDefinition>& getFixedModifications() const)
+{
   ModificationDefinitionsSet mod_set1(ListUtils::create<String>("Phospho (S),Phospho (T),Phospho (Y)"), ListUtils::create<String>("Carbamidomethyl (C)"));
   set<String> fixed_mods;
   fixed_mods.insert("Phospho (S)");
   fixed_mods.insert("Phospho (T)");
   fixed_mods.insert("Phospho (Y)");
 
-	set<ModificationDefinition> mod_defs = mod_set1.getFixedModifications();
-	TEST_EQUAL(mod_defs.size(), 3)
+  set<ModificationDefinition> mod_defs = mod_set1.getFixedModifications();
+  TEST_EQUAL(mod_defs.size(), 3)
   for (set<ModificationDefinition>::const_iterator it = mod_defs.begin(); it != mod_defs.end(); ++it)
   {
-		TEST_EQUAL(it->isFixedModification(), true)
-		TEST_EQUAL(fixed_mods.find(it->getModification()) != fixed_mods.end(), true)
+    TEST_EQUAL(it->isFixedModification(), true)
+    TEST_EQUAL(fixed_mods.find(it->getModification()) != fixed_mods.end(), true)
   }
+}
 END_SECTION
 
 START_SECTION(const std::set<ModificationDefinition>& getVariableModifications() const)
-	ModificationDefinitionsSet mod_set1(ListUtils::create<String>("Phospho (S),Phospho (T),Phospho (Y)"), ListUtils::create<String>("Carbamidomethyl (C),Phospho (S)"));
+{
+  ModificationDefinitionsSet mod_set1(ListUtils::create<String>("Phospho (S),Phospho (T),Phospho (Y)"), ListUtils::create<String>("Carbamidomethyl (C),Phospho (S)"));
   set<String> mods;
   mods.insert("Phospho (S)");
   mods.insert("Carbamidomethyl (C)");
@@ -253,8 +256,8 @@ START_SECTION(const std::set<ModificationDefinition>& getVariableModifications()
     TEST_EQUAL(it->isFixedModification(), false)
     TEST_EQUAL(mods.find(it->getModification()) != mods.end(), true)
   }
+}
 END_SECTION
-
 
 START_SECTION((std::set<String> getModificationNames() const ))
 {
@@ -351,8 +354,8 @@ START_SECTION((bool operator!=(const ModificationDefinitionsSet& rhs) const))
 }
 END_SECTION
 
-
-START_SECTION((ModificationDefinitionsSet(const StringList &fixed_modifications, const StringList &variable_modifications=ListUtils::create<String>(""))))
+START_SECTION((ModificationDefinitionsSet(const StringList &fixed_modifications, const StringList &variable_modifications)))
+{
   ModificationDefinitionsSet mod_set(ListUtils::create<String>("Phospho (S),Phospho (T),Phospho (Y)"), ListUtils::create<String>("Carbamidomethyl (C)"));
   set<String> fixed_mods;
   fixed_mods.insert("Phospho (S)");
@@ -364,34 +367,38 @@ START_SECTION((ModificationDefinitionsSet(const StringList &fixed_modifications,
 
   TEST_EQUAL(mod_set.getFixedModificationNames() == fixed_mods, true)
   TEST_EQUAL(mod_set.getVariableModificationNames() == var_mods, true)
+}
 END_SECTION
 
-
 START_SECTION((void setModifications(const StringList &fixed_modifications, const StringList &variable_modifications)))
+{
   ModificationDefinitionsSet mod_set;
   mod_set.setModifications(ListUtils::create<String>("Phospho (T)"), ListUtils::create<String>("Phospho (S)"));
   TEST_EQUAL(mod_set.getNumberOfModifications(), 2)
   TEST_EQUAL(mod_set.getNumberOfFixedModifications(), 1)
   TEST_EQUAL(mod_set.getNumberOfVariableModifications(), 1)
+}
 END_SECTION
 
 START_SECTION((bool isCompatible(const AASequence &peptide) const))
-	ModificationDefinitionsSet mod_set(ListUtils::create<String>("Carbamidomethyl (C)"), ListUtils::create<String>("Phospho (S),Phospho (T),Phospho (Y)"));
-	AASequence pep1("CCTKPESER");
-	AASequence pep2("C(Carbamidomethyl)CTKPESER");
-	AASequence pep3("C(Carbamidomethyl)C(Carbamidomethyl)TKPESER");
-	AASequence pep4("C(Carbamidomethyl)C(Carbamidomethyl)T(Phospho)TKPESER");
-	AASequence pep5("(Acetyl)CCTKPESER");
-	AASequence pep6("(Acetyl)C(Carbamidomethyl)C(Carbamidomethyl)TKPES(Phospho)ER");
-	AASequence pep7("(Acetyl)C(Carbamidomethyl)C(Carbamidomethyl)T(Phospho)KPES(Phospho)ER");
+{
+  ModificationDefinitionsSet mod_set(ListUtils::create<String>("Carbamidomethyl (C)"), ListUtils::create<String>("Phospho (S),Phospho (T),Phospho (Y)"));
+  AASequence pep1("CCTKPESER");
+  AASequence pep2("C(Carbamidomethyl)CTKPESER");
+  AASequence pep3("C(Carbamidomethyl)C(Carbamidomethyl)TKPESER");
+  AASequence pep4("C(Carbamidomethyl)C(Carbamidomethyl)T(Phospho)TKPESER");
+  AASequence pep5("(Acetyl)CCTKPESER");
+  AASequence pep6("(Acetyl)C(Carbamidomethyl)C(Carbamidomethyl)TKPES(Phospho)ER");
+  AASequence pep7("(Acetyl)C(Carbamidomethyl)C(Carbamidomethyl)T(Phospho)KPES(Phospho)ER");
 
-	TEST_EQUAL(mod_set.isCompatible(pep1), false);
-	TEST_EQUAL(mod_set.isCompatible(pep2), false);
-	TEST_EQUAL(mod_set.isCompatible(pep3), true);
-	TEST_EQUAL(mod_set.isCompatible(pep4), true);
-	TEST_EQUAL(mod_set.isCompatible(pep5), false);
-	TEST_EQUAL(mod_set.isCompatible(pep6), false);
-	TEST_EQUAL(mod_set.isCompatible(pep7), false);
+  TEST_EQUAL(mod_set.isCompatible(pep1), false);
+  TEST_EQUAL(mod_set.isCompatible(pep2), false);
+  TEST_EQUAL(mod_set.isCompatible(pep3), true);
+  TEST_EQUAL(mod_set.isCompatible(pep4), true);
+  TEST_EQUAL(mod_set.isCompatible(pep5), false);
+  TEST_EQUAL(mod_set.isCompatible(pep6), false);
+  TEST_EQUAL(mod_set.isCompatible(pep7), false);
+}
 END_SECTION
 
 /////////////////////////////////////////////////////////////
