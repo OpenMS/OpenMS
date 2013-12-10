@@ -489,6 +489,11 @@ protected:
 
   };
 
+  // from table 1 in the Lan & Jorgenson paper (see header file for ref.):
+  template <class PeakType>
+  const DoubleReal EGHTraceFitter<PeakType>::EPSILON_COEFS[] = 
+  {4.0, -6.293724, 9.232834, -11.342910, 9.123978, -4.173753, 0.827797};
+
 } // namespace OpenMS
 
 #endif // #ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_FEATUREFINDERALGORITHMPICKEDTRACEFITTERGAUSS_H
