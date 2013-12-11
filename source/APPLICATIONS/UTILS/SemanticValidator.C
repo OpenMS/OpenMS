@@ -52,11 +52,17 @@ using namespace std;
 /**
     @page UTILS_SemanticValidator SemanticValidator
 
-    @brief SemanticValidator for analysisXML and mzML files.
+    @brief SemanticValidator for XML files which can be semantically validated.
 
-    This util is able to validate analysisXML and mzML files
-    using an instance document and a mapping file.
+    This tool is able to semantically validate an XML file against a CV-mapping
+    file. The CV-mapping file describes the validity of CV-terms for a given
+    tag inside the XML. The CV-mapping file conforms to the CvMapping XML
+    schema (found at /share/OpenMS/SCHEMAS/CvMapping.xsd or
+    http://www.psidev.info/sites/default/files/CvMapping.xsd). 
 
+    Example files that can be semantically validated using this tool are mzML,
+    TraML, mzIdentML, mzData or any XML file.
+    
     <B>The command line parameters of this tool are:</B>
     @verbinclude UTILS_SemanticValidator.cli
     <B>INI file documentation of this tool:</B>
@@ -71,7 +77,7 @@ class TOPPSemanticValidator :
 {
 public:
   TOPPSemanticValidator() :
-    TOPPBase("SemanticValidator", "SemanticValidator for analysisXML and mzML files.", false)
+    TOPPBase("SemanticValidator", "SemanticValidator for semantically validating certain XML files.", false)
   {
   }
 
@@ -79,29 +85,46 @@ protected:
 
   void registerOptionsAndFlags_()
   {
-    registerInputFile_("in", "<file>", "", "Input file, either analysisXML or mzML.");
-    setValidFormats_("in", ListUtils::create<String>("analysisXML,mzML"));
+    registerInputFile_("in", "<file>", "", "Input file (any xml file)");
+    setValidFormats_("in", ListUtils::create<String>("analysisXML,mzML,TraML,mzid,mzData,xml"));
 
     registerInputFile_("mapping_file", "<file>", "", "Mapping file which is used to semantically validate the given XML file against this mapping file (see 'share/OpenMS/MAPPING' for templates).");
     setValidFormats_("mapping_file", ListUtils::create<String>("xml"));
+
+    registerInputFileList_("cv", "<files>", ListUtils::create<String>(""), "Controlled Vocabulary files containg the CV terms (if left empty, a set of default files are used)", false);
+    setValidFormats_("cv", ListUtils::create<String>("obo"));
   }
 
   ExitCodes main_(int, const char**)
   {
     String in_file = getStringOption_("in");
     String mapping_file = getStringOption_("mapping_file");
+    StringList cv_list = getStringList_("cv");
 
     CVMappings mappings;
     CVMappingFile().load(mapping_file, mappings, false);
 
+    // Allow definition of the controlled vocabulary files on the commandlines.
+    // If none are defined, the hardcoded obo files are used
     ControlledVocabulary cv;
-    cv.loadFromOBO("PSI-MOD", File::find("/CHEMISTRY/PSI-MOD.obo"));
-    cv.loadFromOBO("PATO", File::find("/CV/quality.obo"));
-    cv.loadFromOBO("UO", File::find("/CV/unit.obo"));
-    cv.loadFromOBO("brenda", File::find("/CV/brenda.obo"));
-    cv.loadFromOBO("GO", File::find("/CV/goslim_goa.obo"));
-    cv.loadFromOBO("UNIMOD", File::find("/CV/unimod.obo"));
-    cv.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));
+    if (!cv_list.empty())
+    {
+      for (Size i = 0; i < cv_list.size(); i++)
+      {
+        // TODO do we need to provide the name of the namespace here?
+        cv.loadFromOBO("", cv_list[i]);
+      }
+    }
+    else
+    {
+      cv.loadFromOBO("PSI-MOD", File::find("/CHEMISTRY/PSI-MOD.obo"));
+      cv.loadFromOBO("PATO", File::find("/CV/quality.obo"));
+      cv.loadFromOBO("UO", File::find("/CV/unit.obo"));
+      cv.loadFromOBO("brenda", File::find("/CV/brenda.obo"));
+      cv.loadFromOBO("GO", File::find("/CV/goslim_goa.obo"));
+      cv.loadFromOBO("UNIMOD", File::find("/CV/unimod.obo"));
+      cv.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));
+    }
 
     // check cv params
     Internal::SemanticValidator semantic_validator(mappings, cv);
@@ -110,7 +133,7 @@ protected:
 
     StringList errors, warnings;
 
-    /*bool valid =*/ semantic_validator.validate(in_file, errors, warnings);
+    bool valid = semantic_validator.validate(in_file, errors, warnings);
     for (Size i = 0; i < warnings.size(); ++i)
     {
       cout << "Warning: " << warnings[i] << endl;
@@ -120,12 +143,16 @@ protected:
       cout << "Error: " << errors[i] << endl;
     }
 
-    if (warnings.empty() && errors.empty())
+    if (valid && warnings.empty() && errors.empty())
     {
       cout << "Congratulations, the file is valid!" << endl;
+      return EXECUTION_OK;
+    }
+    else
+    {
+      return PARSE_ERROR;
     }
 
-    return EXECUTION_OK;
   }
 
 };

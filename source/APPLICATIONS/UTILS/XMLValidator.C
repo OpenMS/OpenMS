@@ -38,6 +38,7 @@
 #include <OpenMS/FORMAT/VALIDATORS/XMLValidator.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/PepXMLFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -56,10 +57,11 @@ using namespace std;
 
     When a schema file is given, the input file is simply validated against the schema.
 
-    When no schema file is given, the tool tries to determine the file type and validates the file against
-    the latest schema version.
+    When no schema file is given, the tool tries to determine the file type and
+    validates the file against the latest schema version.
 
-    @note XML schema files for the %OpenMS XML formats and several other XML formats can be found in the folder
+    @note XML schema files for the %OpenMS XML formats and several other XML
+    formats can be found in the folder
           OpenMS/share/OpenMS/SCHEMAS/
 
     <B>The command line parameters of this tool are:</B>
@@ -85,7 +87,7 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "file to validate");
-    setValidFormats_("in", ListUtils::create<String>("mzML,mzData,featureXML,idXML,consensusXML,mzXML,ini,pepXML"));
+    setValidFormats_("in", ListUtils::create<String>("mzML,mzData,featureXML,idXML,consensusXML,mzXML,ini,pepXML,xml"));
     registerInputFile_("schema", "<file>", "", "schema to validate against.\nIf no schema is given, the file is validated against the latest schema of the file type.", false);
     setValidFormats_("schema", ListUtils::create<String>("xsd"));    
   }
@@ -94,20 +96,19 @@ protected:
   {
     String in = getStringOption_("in");
     String schema = getStringOption_("schema");
-    bool valid = true;
+    bool valid = false;
 
-    if (schema != "") //schema explicitly given
+    if (!schema.empty()) //schema explicitly given
     {
-      XMLValidator xmlv;
-      valid = xmlv.isValid(in, schema);
+      valid = XMLValidator().isValid(in, schema);
     }
-    else     //no schema given
+    else //no schema given
     {
       //determine input type
       FileTypes::Type in_type = FileHandler::getType(in);
       if (in_type == FileTypes::UNKNOWN)
       {
-        writeLog_("Error: Could not determine input file type!");
+        writeLog_("Error: Could not determine input file type and no xsd schema was provided!");
         return PARSE_ERROR;
       }
 
@@ -156,7 +157,7 @@ protected:
 
       default:
         cout << endl << "Aborted: Validation of this file type is not supported!" << endl;
-        return EXECUTION_OK;
+        return PARSE_ERROR;
       }
     }
 
@@ -164,13 +165,13 @@ protected:
     if (valid)
     {
       cout << "Success: the file is valid!" << endl;
+      return EXECUTION_OK;
     }
     else
     {
       cout << "Failed: errors are listed above!" << endl;
+      return PARSE_ERROR;
     }
-
-    return EXECUTION_OK;
   }
 
 };
