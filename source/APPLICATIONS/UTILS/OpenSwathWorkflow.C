@@ -120,7 +120,7 @@ namespace OpenMS
         String result = "";
         String decoy = "0"; // 0 = false
         if (transition->decoy) decoy = "1";
-        for (FeatureMap<>::iterator feature_it = output.begin(); feature_it != output.end(); feature_it++)
+        for (FeatureMap<>::iterator feature_it = output.begin(); feature_it != output.end(); ++feature_it)
         {
 
           char intensity_char[40];
@@ -258,7 +258,7 @@ namespace OpenMS
     */
     TransformationDescription performRTNormalization(const OpenMS::TargetedExperiment & irt_transitions,
             const std::vector< OpenSwath::SwathMap > & swath_maps, double min_rsq, double min_coverage,
-            const Param& feature_finder_param, const ChromExtractParams cp_irt)
+            const Param & feature_finder_param, const ChromExtractParams & cp_irt)
     {
       LOG_DEBUG << "performRTNormalization method starting" << std::endl;
       std::vector< OpenMS::MSChromatogram<> > irt_chromatograms;
@@ -281,7 +281,7 @@ namespace OpenMS
     */
     void performExtraction(const std::vector< OpenSwath::SwathMap > & swath_maps,
       const TransformationDescription trafo,
-      const ChromExtractParams cp, const Param& feature_finder_param,
+      const ChromExtractParams & cp, const Param & feature_finder_param,
       const OpenSwath::LightTargetedExperiment& transition_exp,
       FeatureMap<>& out_featureFile, String out,
       OpenSwathTSVWriter & tsv_writer, Interfaces::IMSDataConsumer<> * chromConsumer,
@@ -352,7 +352,7 @@ namespace OpenMS
             // Use an rt extraction window of 0.0 which will just write the retention time in start / end positions
             // Then correct the start/end positions and add the extra_rt_extract parameter
             prepare_coordinates(chrom_list, coordinates, transition_exp_used, 0.0, false);
-            for (std::vector< ChromatogramExtractor::ExtractionCoordinates >::iterator it = coordinates.begin(); it != coordinates.end(); it++)
+            for (std::vector< ChromatogramExtractor::ExtractionCoordinates >::iterator it = coordinates.begin(); it != coordinates.end(); ++it)
             {
               it->rt_start = trafo_inverse.apply(it->rt_start) - (cp.rt_extraction_window + cp.extra_rt_extract)/ 2.0;
               it->rt_end = trafo_inverse.apply(it->rt_end) + (cp.rt_extraction_window + cp.extra_rt_extract)/ 2.0;
@@ -390,14 +390,14 @@ namespace OpenMS
             if (!out.empty())
             {
               for (FeatureMap<Feature>::iterator feature_it = featureFile.begin();
-                   feature_it != featureFile.end(); feature_it++)
+                   feature_it != featureFile.end(); ++feature_it)
               {
                 out_featureFile.push_back(*feature_it);
               }
               for (std::vector<ProteinIdentification>::iterator protid_it =
                      featureFile.getProteinIdentifications().begin();
                    protid_it != featureFile.getProteinIdentifications().end();
-                   protid_it++)
+                   ++protid_it)
               {
                 out_featureFile.getProteinIdentifications().push_back(*protid_it);
               }
@@ -459,7 +459,7 @@ namespace OpenMS
     /// Simple method to extract chromatograms (for the RT-normalization peptides)
     void simpleExtractChromatograms(const std::vector< OpenSwath::SwathMap > & swath_maps,
       const OpenMS::TargetedExperiment & irt_transitions,
-      std::vector< OpenMS::MSChromatogram<> > & chromatograms, ChromExtractParams cp)
+      std::vector< OpenMS::MSChromatogram<> > & chromatograms, const ChromExtractParams & cp)
     {
 #ifdef _OPENMP
 #pragma omp parallel for
@@ -584,7 +584,7 @@ namespace OpenMS
         std::vector<std::pair<double, double> > & pairs, std::map<OpenMS::String, double> PeptideRTMap)
     {
       for (OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType::iterator trgroup_it = transition_group_map.begin();
-          trgroup_it != transition_group_map.end(); trgroup_it++)
+          trgroup_it != transition_group_map.end(); ++trgroup_it)
       {
         // we need at least one feature to find the best one
         OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType * transition_group = &trgroup_it->second;
@@ -598,7 +598,7 @@ namespace OpenMS
         double bestRT = -1;
         double highest_score = -1000;
         for (std::vector<MRMFeature>::iterator mrmfeature = transition_group->getFeaturesMuteable().begin();
-             mrmfeature != transition_group->getFeaturesMuteable().end(); mrmfeature++)
+             mrmfeature != transition_group->getFeaturesMuteable().end(); ++mrmfeature)
         {
           if (mrmfeature->getOverallQuality() > highest_score)
           {
@@ -630,7 +630,6 @@ namespace OpenMS
       // this is the type in which we store the chromatograms for this analysis
       typedef MSSpectrum<ChromatogramPeak> RichPeakChromatogram;
 
-      double expected_rt;
       TransformationDescription trafo_inv = trafo;
       trafo_inv.invert();
 
@@ -663,13 +662,13 @@ namespace OpenMS
 
       std::vector<String> to_output;
       // Iterating over all the assays
-      for (AssayMapT::iterator assay_it = assay_map.begin(); assay_it != assay_map.end(); assay_it++)
+      for (AssayMapT::iterator assay_it = assay_map.begin(); assay_it != assay_map.end(); ++assay_it)
       {
         // Create new MRMTransitionGroup
         String id = assay_it->first;
         MRMTransitionGroupType transition_group;
         transition_group.setTransitionGroupID(id);
-        expected_rt = transition_exp.getPeptides()[ assay_peptide_map[id] ].rt;
+        double expected_rt = transition_exp.getPeptides()[ assay_peptide_map[id] ].rt;
 
         // Go through all transitions, for each transition get chromatogram and
         // the chromatogram and the assay to the MRMTransitionGroup
@@ -718,7 +717,7 @@ namespace OpenMS
       }
 
       // Only write at the very end since this is a step needs a barrier
-      if(tsv_writer.isActive())
+      if (tsv_writer.isActive())
       {
 #ifdef _OPENMP
 #pragma omp critical (scoreAll)
@@ -829,7 +828,7 @@ namespace OpenMS
       std::vector< OpenSwath::SwathMap >& swath_maps)
     {
       std::vector<double> swath_prec_lower_, swath_prec_upper_;
-      SwathWindowLoader::readSwathWindows(filename, swath_prec_lower_, swath_prec_upper_);
+      readSwathWindows(filename, swath_prec_lower_, swath_prec_upper_);
       assert(swath_prec_lower_.size() == swath_maps.size());
       for (Size i = 0; i < swath_maps.size(); i++)
       {
@@ -860,8 +859,7 @@ namespace OpenMS
       std::vector<double> & swath_prec_upper_ )
     {
       std::ifstream data(filename.c_str());
-      std::string   line;
-      std::string   tmp;
+      std::string line;
       std::getline(data, line); //skip header
       double lower, upper;
       while (std::getline(data, line))

@@ -69,13 +69,12 @@ namespace OpenMS
       throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "The degree of the polynomial has to be less than the frame length.", String(order_));
     }
 
-    int nr, m = frame_size_ / 2;
+    int m = frame_size_ / 2;
     for (int nl = 0; nl <= m; ++nl)
     {
-      nr = frame_size_ - 1 - nl;
+      int nr = frame_size_ - 1 - nl;
 
       int i, j;
-      double help;
 
       gsl_vector * sv = gsl_vector_alloc((int)order_ + 1);
       gsl_vector * work = gsl_vector_alloc((int)order_ + 1);
@@ -104,7 +103,7 @@ namespace OpenMS
         // compute B*transpose(U)*b, where b is the unit vector b=[1 0 ... 0]
         for (i = 0; i < (int)frame_size_; ++i)
         {
-          help = 0;
+          double help = 0;
           for (j = 0; j <= (int)order_; ++j)
           {
             help += gsl_vector_get(sv, j) * gsl_matrix_get(A, i, j);

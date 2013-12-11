@@ -54,7 +54,7 @@ namespace OpenMS
    *
    * This can be used to turn on/off individual scores.
   */
-  struct OpenSwath_Scores_Usage
+  struct OPENMS_DLLAPI OpenSwath_Scores_Usage
   {
     // Which scores to use
     bool use_coelution_score_;
@@ -77,7 +77,7 @@ namespace OpenMS
    * LDA.
    *
   */
-  struct OpenSwath_Scores
+  struct OPENMS_DLLAPI OpenSwath_Scores
   {
     double elution_model_fit_score;
     double library_corr;
@@ -371,7 +371,7 @@ var_yseries_score   -0.0327896378737766
    * Use this class to invoke the individual OpenSWATH scoring routines.
    * 
   */
-  class OpenSwathScoring 
+  class OPENMS_DLLAPI OpenSwathScoring 
   {
     typedef OpenSwath::LightPeptide PeptideType;
     typedef OpenSwath::LightTransition TransitionType;
