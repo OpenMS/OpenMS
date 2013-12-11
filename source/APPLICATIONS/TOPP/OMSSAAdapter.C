@@ -741,7 +741,7 @@ protected:
     {
       // for some reason QProcess doesn't handle escaped " in arguments properly so we use a system call
       // see http://www.ncbi.nlm.nih.gov/books/NBK1763/ for the format the ncbi library is expecting internally if spaces are in file/path names
-      String call_string = omssa_executable + " " + parameters.concatenate(" ");
+      String call_string = omssa_executable + " " + ListUtils::concatenate(parameters, " ");
       writeDebug_(call_string, 5);   
       status = system(call_string.c_str());
     } else
