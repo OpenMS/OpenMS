@@ -577,10 +577,10 @@ PyOpenMSChecker:
   IgnoreNames: 
     - OpenMS::SimpleOpenMSSpectraFactory
 
-    # Do not expose List and String methods - Python has better ones
-    - OpenMS::StringList
-    - OpenMS::DoubleList
+    # Do not expose List, String and Utils methods - Python has better ones
     - OpenMS::String
+    - OpenMS::StringUtils
+    - OpenMS::ListUtils
 
     # External libraries
     # -- Seqan

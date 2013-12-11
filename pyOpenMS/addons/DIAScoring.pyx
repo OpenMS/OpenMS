@@ -1,12 +1,12 @@
 
 
-    def dia_by_ion_score(self, Spectrum spectrum , AASequence sequence ,  charge , float bseries_score , float yseries_score ):
-        assert isinstance(spectrum, Spectrum), 'arg spectrum wrong type'
+    def dia_by_ion_score(self, OSSpectrum spectrum , AASequence sequence ,  charge , float bseries_score , float yseries_score ):
+        assert isinstance(spectrum, OSSpectrum), 'arg spectrum wrong type'
         assert isinstance(sequence, AASequence), 'arg sequence wrong type'
         assert isinstance(charge, (int, long)), 'arg charge wrong type'
         assert isinstance(bseries_score, float), 'arg bseries_score wrong type'
         assert isinstance(yseries_score, float), 'arg yseries_score wrong type'
-        cdef shared_ptr[_Spectrum] input_spectrum = spectrum.inst
+        cdef shared_ptr[_OSSpectrum] input_spectrum = spectrum.inst
 
 
         cdef double input_bseries_score = (<double>bseries_score)

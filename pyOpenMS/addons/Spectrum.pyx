@@ -27,3 +27,4 @@
         cdef libcpp_vector[double] _vec = data
         v0.get().data = data
         self.inst.get().setIntensityArray(v0)
+

@@ -54,7 +54,6 @@ namespace OpenSwath
     Copyright 2007 Spielberg Family Center for Applied Proteomics
       Cedars-Sinai Medical Center, Los Angeles, California  90048
 
-
     The following datastructures are used :
     - BinaryDataArray : a struct that holds a std::vector<double> with the data
     - ChromatogramMeta : meta information of a chromatogram (index)
@@ -66,7 +65,7 @@ namespace OpenSwath
   */
 
   /// The structure into which encoded binary data goes.
-  struct BinaryDataArray
+  struct OSBinaryDataArray
   {
     /// this optional attribute may reference the 'id' attribute of the appropriate dataProcessing.
     //DataProcessingPtr dataProcessingPtr;
@@ -74,25 +73,27 @@ namespace OpenSwath
     /// the binary data.
     std::vector<double> data;
   };
+  OPENSWATHALGO_DLLAPI typedef OSBinaryDataArray BinaryDataArray;
   OPENSWATHALGO_DLLAPI typedef boost::shared_ptr<BinaryDataArray> BinaryDataArrayPtr;
 
   /// Identifying information for a chromatogram
-  struct ChromatogramMeta
+  struct OSChromatogramMeta
   {
     /// the zero-based, consecutive index of the chromatogram in the ChromatogramList.
     std::size_t index;
     /// a unique identifier for this chromatogram.
     std::string id;
-    ChromatogramMeta() :
+    OSChromatogramMeta() :
       index()
     {
     }
 
   };
+  OPENSWATHALGO_DLLAPI typedef OSChromatogramMeta ChromatogramMeta;
   OPENSWATHALGO_DLLAPI typedef boost::shared_ptr<ChromatogramMeta> ChromatogramMetaPtr;
 
   /// A single chromatogram.
-  struct Chromatogram
+  struct OSChromatogram
   {
     /// default length of binary data arrays contained in this element.
     std::size_t defaultArrayLength;
@@ -107,7 +108,7 @@ namespace OpenSwath
     /// list of binary data arrays.
     std::vector<BinaryDataArrayPtr> binaryDataArrayPtrs;
 
-    Chromatogram() :
+    OSChromatogram() :
       defaultArrayLength(2),
       binaryDataArrayPtrs(defaultArrayLength)
     {
@@ -149,10 +150,11 @@ public:
     }
 
   };
+  OPENSWATHALGO_DLLAPI typedef OSChromatogram Chromatogram;
   OPENSWATHALGO_DLLAPI typedef boost::shared_ptr<Chromatogram> ChromatogramPtr;
 
   /// Identifying information for a spectrum
-  struct SpectrumMeta
+  struct OSSpectrumMeta
   {
     /// the zero-based, consecutive index of the spectrum in the SpectrumList.
     size_t index;
@@ -164,15 +166,17 @@ public:
 
     int ms_level;
 
-    SpectrumMeta() :
+    OSSpectrumMeta() :
       index(0)
     {
     }
 
   };
+  OPENSWATHALGO_DLLAPI typedef OSSpectrumMeta SpectrumMeta;
+  OPENSWATHALGO_DLLAPI typedef boost::shared_ptr<SpectrumMeta> SpectrumMetaPtr;
 
   /// The structure that captures the generation of a peak list (including the underlying acquisitions)
-  struct Spectrum
+  struct OSSpectrum
   {
     /// default length of binary data arrays contained in this element.
     std::size_t defaultArrayLength;
@@ -181,7 +185,7 @@ public:
 private:
     std::vector<BinaryDataArrayPtr> binaryDataArrayPtrs;
 public:
-    Spectrum() :
+    OSSpectrum() :
       defaultArrayLength(2),
       binaryDataArrayPtrs(defaultArrayLength)
     {
@@ -224,6 +228,7 @@ public:
     }
 
   };
+  OPENSWATHALGO_DLLAPI typedef OSSpectrum Spectrum;
   OPENSWATHALGO_DLLAPI typedef boost::shared_ptr<Spectrum> SpectrumPtr;
 } //end Namespace OpenSwath
 
