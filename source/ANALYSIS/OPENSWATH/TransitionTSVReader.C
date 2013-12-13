@@ -187,6 +187,7 @@ namespace OpenMS
     int cnt = 0;
     while (std::getline(data, line))
     {
+      line.push_back(delimiter);        // avoid losing last column if it is empty
       std::stringstream lineStream(line);
 
       while (std::getline(lineStream, tmp, delimiter))
