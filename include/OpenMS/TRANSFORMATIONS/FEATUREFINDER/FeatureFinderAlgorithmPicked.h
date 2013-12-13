@@ -847,7 +847,7 @@ public:
                   egh_tau = (static_cast<EGHTraceFitter<PeakType>*>(fitter))->getTau();
                   f.setMetaValue("EGH_tau", egh_tau);
                   f.setMetaValue("EGH_height", (static_cast<EGHTraceFitter<PeakType>*>(fitter))->getHeight());
-                  f.setMetaValue("EGH_sigma", (static_cast<EGHTraceFitter<PeakType>*>(fitter))->getSigmaSquare());
+                  f.setMetaValue("EGH_sigma", (static_cast<EGHTraceFitter<PeakType>*>(fitter))->getSigma());
                 }
 
                 // Calculate the mass of the feature: maximum, average, monoisotopic

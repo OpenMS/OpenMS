@@ -348,9 +348,9 @@ START_SECTION((DoubleReal getTau() const ))
 }
 END_SECTION
 
-START_SECTION((DoubleReal getSigmaSquare() const))
+START_SECTION((DoubleReal getSigma() const))
 {
-  TEST_REAL_SIMILAR(egh_trace_fitter.getSigmaSquare(), pow(expected_sigma, 2.0))
+  TEST_REAL_SIMILAR(egh_trace_fitter.getSigma(), expected_sigma)
 }
 END_SECTION
 

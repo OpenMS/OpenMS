@@ -69,7 +69,7 @@ public:
     {
       this->height_ = other.height_;
       this->apex_rt_ = other.apex_rt_;
-      this->sigma_square_ = other.sigma_square_;
+      this->sigma_ = other.sigma_;
       this->tau_ = other.tau_;
 
       this->sigma_5_bound_ = other.sigma_5_bound_;
@@ -83,7 +83,7 @@ public:
 
       this->height_ = source.height_;
       this->apex_rt_ = source.apex_rt_;
-      this->sigma_square_ = source.sigma_square_;
+      this->sigma_ = source.sigma_;
       this->tau_ = source.tau_;
 
       this->sigma_5_bound_ = source.sigma_5_bound_;
@@ -102,7 +102,7 @@ public:
     {
       setInitialParameters_(traces);
 
-      double x_init[NUM_PARAMS_] = {height_, apex_rt_, sigma_square_, tau_};
+      double x_init[NUM_PARAMS_] = {height_, apex_rt_, sigma_, tau_};
 
       Size num_params = NUM_PARAMS_;
 
@@ -132,9 +132,9 @@ public:
       return height_;
     }
 
-    DoubleReal getSigmaSquare() const
+    DoubleReal getSigma() const
     {
-      return sigma_square_;
+      return sigma_;
     }
 
     DoubleReal getCenter() const
@@ -161,7 +161,7 @@ public:
       t_diff = rt - apex_rt_;
       t_diff2 = t_diff * t_diff; // -> (t - t_R)^2
 
-      denominator = 2 * sigma_square_ + tau_ * t_diff; // -> 2\sigma_{g}^{2} + \tau \left(t - t_R\right)
+      denominator = 2 * sigma_ * sigma_ + tau_ * t_diff; // -> 2\sigma_{g}^{2} + \tau \left(t - t_R\right)
 
       if (denominator > 0.0)
       {
@@ -174,9 +174,8 @@ public:
     virtual DoubleReal getArea()
     {
       // equation 21 from Lan & Jorgenson paper:
-      DoubleReal sigma = sqrt(sigma_square_);
       DoubleReal abs_tau = fabs(tau_);
-      DoubleReal phi = atan(abs_tau / sigma);
+      DoubleReal phi = atan(abs_tau / sigma_);
       DoubleReal epsilon = EPSILON_COEFS[0];
       DoubleReal phi_pow = phi;
       for (Size i = 1; i < 7; ++i) {
@@ -184,7 +183,7 @@ public:
         phi_pow *= phi;
       }
       // 0.62... is approx. sqrt(pi / 8):
-      return height_ * (sigma * 0.6266571 + abs_tau) * epsilon;
+      return height_ * (sigma_ * 0.6266571 + abs_tau) * epsilon;
     }
 
     DoubleReal getFWHM() const
@@ -198,10 +197,10 @@ public:
       std::stringstream s;
       s << String(function_name)  << "(x)= " << baseline << " + ";
       s << "("; // the overall bracket
-      s << "((" << 2 * sigma_square_ << " + " << tau_ << " * (x - " << (rt_shift + apex_rt_) << " )) > 0) ? "; // condition
+      s << "((" << 2 * sigma_ * sigma_ << " + " << tau_ << " * (x - " << (rt_shift + apex_rt_) << " )) > 0) ? "; // condition
       s <<  (trace.theoretical_int *  height_) << " * exp(-1 * (x - " << (rt_shift + apex_rt_) << ")**2 " <<
       "/" <<
-      " ( " << 2 * sigma_square_ << " + " << tau_ << " * (x - " << (rt_shift + apex_rt_) << " )))";
+      " ( " << 2 * sigma_ * sigma_ << " + " << tau_ << " * (x - " << (rt_shift + apex_rt_) << " )))";
       s << " : 0)";
       return String(s.str());
     }
@@ -210,7 +209,7 @@ protected:
     DoubleReal apex_rt_;
     DoubleReal height_;
 
-    DoubleReal sigma_square_;
+    DoubleReal sigma_;
     DoubleReal tau_;
 
     std::pair<DoubleReal, DoubleReal> sigma_5_bound_;
@@ -233,7 +232,7 @@ protected:
       // solved equations A.2 and A.3 from the Lan & Jorgenson paper (Appendix
       // A) for the boundaries A_alpha and B_alpha:
       DoubleReal L = log(alpha);
-      DoubleReal s = sqrt(((L * tau_) * (L * tau_) / 4) - 2 * L * sigma_square_);
+      DoubleReal s = sqrt(((L * tau_) * (L * tau_) / 4) - 2 * L * sigma_ * sigma_);
 
       DoubleReal s1, s2;
       s1 = (-1 * (L * tau_) / 2) + s;
@@ -249,10 +248,10 @@ protected:
 
     void getOptimizedParameters_(gsl_multifit_fdfsolver* fdfsolver)
     {
-      height_ =  gsl_vector_get(fdfsolver->x, 0);
-      apex_rt_ =  gsl_vector_get(fdfsolver->x, 1);
-      sigma_square_ =  gsl_vector_get(fdfsolver->x, 2);
-      tau_ =  gsl_vector_get(fdfsolver->x, 3);
+      height_ = gsl_vector_get(fdfsolver->x, 0);
+      apex_rt_ = gsl_vector_get(fdfsolver->x, 1);
+      sigma_ = fabs(gsl_vector_get(fdfsolver->x, 2)); // must be non-negative!
+      tau_ = gsl_vector_get(fdfsolver->x, 3);
 
       // we set alpha to 0.04 which is conceptually equal to
       // 2.5 sigma for lower and upper bound
@@ -266,7 +265,7 @@ protected:
 
       double H  = gsl_vector_get(param, 0);
       double tR = gsl_vector_get(param, 1);
-      double sigma_square = gsl_vector_get(param, 2);
+      double sigma = gsl_vector_get(param, 2);
       double tau = gsl_vector_get(param, 3);
 
       double t_diff, t_diff2, denominator = 0.0;
@@ -285,7 +284,7 @@ protected:
           t_diff = rt - tR;
           t_diff2 = t_diff * t_diff; // -> (t - t_R)^2
 
-          denominator = 2 * sigma_square + tau * t_diff; // -> 2\sigma_{g}^{2} + \tau \left(t - t_R\right)
+          denominator = 2 * sigma * sigma + tau * t_diff; // -> 2\sigma_{g}^{2} + \tau \left(t - t_R\right)
 
           if (denominator > 0.0)
           {
@@ -310,10 +309,10 @@ protected:
 
       double H  = gsl_vector_get(param, 0);
       double tR = gsl_vector_get(param, 1);
-      double sigma_square = gsl_vector_get(param, 2);
+      double sigma = fabs(gsl_vector_get(param, 2)); // must be non-negative!
       double tau = gsl_vector_get(param, 3);
 
-      double derivative_H, derivative_tR, derivative_sigma_square, derivative_tau = 0.0;
+      double derivative_H, derivative_tR, derivative_sigma, derivative_tau = 0.0;
       double t_diff, t_diff2, exp1, denominator = 0.0;
 
       UInt count = 0;
@@ -328,7 +327,7 @@ protected:
           t_diff = rt - tR;
           t_diff2 = t_diff * t_diff; // -> (t - t_R)^2
 
-          denominator = 2 * sigma_square + tau * t_diff; // -> 2\sigma_{g}^{2} + \tau \left(t - t_R\right)
+          denominator = 2 * sigma * sigma + tau * t_diff; // -> 2\sigma_{g}^{2} + \tau \left(t - t_R\right)
 
           if (denominator > 0)
           {
@@ -338,26 +337,29 @@ protected:
             derivative_H = trace.theoretical_int * exp1;
 
             // \partial t_R f_{egh}(t) &=& H \exp \left( \frac{-\left(t-t_R \right)}{2\sigma_{g}^{2} + \tau \left(t - t_R\right)} \right) \left( \frac{\left( 4 \sigma_{g}^{2} + \tau \left(t-t_R \right) \right) \left(t-t_R \right)}{\left( 2\sigma_{g}^{2} + \tau \left(t - t_R\right) \right)^2} \right)
-            derivative_tR = trace.theoretical_int * H * exp1 * (((4 * sigma_square + tau * t_diff) * t_diff) / (denominator * denominator));
+            derivative_tR = trace.theoretical_int * H * exp1 * ((4 * sigma * sigma + tau * t_diff) * t_diff) / (denominator * denominator);
 
-            // \partial \sigma_{g}^{2} f_{egh}(t) &=& H \exp \left( \frac{-\left(t-t_R \right)^2}{2\sigma_{g}^{2} + \tau \left(t - t_R\right)} \right) \left( \frac{ 2 \left(t - t_R\right)^2}{\left( 2\sigma_{g}^{2} + \tau \left(t - t_R\right) \right)^2} \right)
-            derivative_sigma_square = trace.theoretical_int * H * exp1 * ((2 * t_diff2) / (denominator * denominator));
+            // // \partial \sigma_{g}^{2} f_{egh}(t) &=& H \exp \left( \frac{-\left(t-t_R \right)^2}{2\sigma_{g}^{2} + \tau \left(t - t_R\right)} \right) \left( \frac{ 2 \left(t - t_R\right)^2}{\left( 2\sigma_{g}^{2} + \tau \left(t - t_R\right) \right)^2} \right)
+            // derivative_sigma_square = trace.theoretical_int * H * exp1 * 2 * t_diff2 / (denominator * denominator));
+
+            // \partial \sigma_{g} f_{egh}(t) &=& H \exp \left( \frac{-\left(t-t_R \right)^2}{2\sigma_{g}^{2} + \tau \left(t - t_R\right)} \right) \left( \frac{ 4 \sigma_{g} \left(t - t_R\right)^2}{\left( 2\sigma_{g}^{2} + \tau \left(t - t_R\right) \right)^2} \right)
+            derivative_sigma = trace.theoretical_int * H * exp1 * 4 * sigma * t_diff2 / (denominator * denominator);
 
             // \partial \tau f_{egh}(t) &=& H \exp \left( \frac{-\left(t-t_R \right)^2}{2\sigma_{g}^{2} + \tau \left(t - t_R\right)} \right) \left( \frac{ \left(t - t_R\right)^3}{\left( 2\sigma_{g}^{2} + \tau \left(t - t_R\right) \right)^2} \right)
-            derivative_tau = trace.theoretical_int * H * exp1 * ((t_diff * t_diff2) / (denominator * denominator));
+            derivative_tau = trace.theoretical_int * H * exp1 * t_diff * t_diff2 / (denominator * denominator);
           }
           else
           {
             derivative_H = 0.0;
             derivative_tR = 0.0;
-            derivative_sigma_square = 0.0;
+            derivative_sigma = 0.0;
             derivative_tau = 0.0;
           }
 
           // set the jacobian matrix
           gsl_matrix_set(J, count, 0, derivative_H * weight);
           gsl_matrix_set(J, count, 1, derivative_tR * weight);
-          gsl_matrix_set(J, count, 2, derivative_sigma_square * weight);
+          gsl_matrix_set(J, count, 2, derivative_sigma * weight);
           gsl_matrix_set(J, count, 3, derivative_tau * weight);
 
           ++count;
@@ -378,7 +380,7 @@ protected:
       LOG_DEBUG << "EGHTraceFitter->setInitialParameters(..)" << std::endl;
       LOG_DEBUG << "Traces length: " << traces.size() << std::endl;
       LOG_DEBUG << "Max trace: " << traces.max_trace << std::endl;
-
+      
       // initial values for externals
       height_ = traces[traces.max_trace].max_peak->getIntensity() - traces.baseline;
       LOG_DEBUG << "height: " << height_ << std::endl;
@@ -463,13 +465,13 @@ protected:
       //LOG_DEBUG << "A: " << A << std::endl;
       //LOG_DEBUG << "B: " << B << std::endl;
 
-      // compute estimates for tau / sigma_square based on A/B
+      // compute estimates for tau / sigma based on A/B
       double log_alpha = log(0.5);
 
-      tau_ = (-1 / log_alpha) * (B - A);
+      tau_ = -1 / log_alpha * (B - A);
       LOG_DEBUG << "tau: " << tau_ << std::endl;
-      sigma_square_ = (-1 / (2 * log_alpha)) * (B * A);
-      LOG_DEBUG << "sigma_square: " << sigma_square_ << std::endl;
+      sigma_ = sqrt(-0.5 / log_alpha * B * A);
+      LOG_DEBUG << "sigma: " << sigma_ << std::endl;
     }
 
     virtual void updateMembers_()
@@ -482,7 +484,7 @@ protected:
       LOG_DEBUG << "iter: " << iter << " "
                 << "height: " << gsl_vector_get(s->x, 0) << " "
                 << "apex_rt: " << gsl_vector_get(s->x, 1) << " "
-                << "sigma_square: " << gsl_vector_get(s->x, 2) << " "
+                << "sigma: " << gsl_vector_get(s->x, 2) << " "
                 << "tau: " << gsl_vector_get(s->x, 3) << " "
                 << "|f(x)| = " << gsl_blas_dnrm2(s->f) << std::endl;
     }
