@@ -199,7 +199,7 @@ namespace OpenMS
     // compute boundaries
     const MSExperiment<>::SpectrumType::ConstIterator isolation_lower_mz = precursor->MZBegin(ms2_spec->getPrecursors()[0].getMZ() - ms2_spec->getPrecursors()[0].getIsolationWindowLowerOffset());
     const MSExperiment<>::SpectrumType::ConstIterator isolation_upper_mz = precursor->MZEnd(ms2_spec->getPrecursors()[0].getMZ() + ms2_spec->getPrecursors()[0].getIsolationWindowUpperOffset());
-
+    
     Peak1D::IntensityType total_intensity = 0;
 
     // get total intensity
@@ -212,7 +212,7 @@ namespace OpenMS
 
     // now get the intensity of the precursor .. we assume everything in the distance of 1/c to belong to the precursor
     // for c == charge of precursor
-
+    
     // precursor mz
     Size precursor_peak_idx = precursor->findNearest(ms2_spec->getPrecursors()[0].getMZ());
     Peak1D precursor_peak = (*precursor)[precursor_peak_idx];
@@ -256,7 +256,12 @@ namespace OpenMS
     for (MSExperiment<Peak1D>::ConstIterator it = ms_exp_data.begin(); it != ms_exp_data.end(); ++it)
     {
       // remember the last MS1 spectra as we assume it to be the precursor spectrum
-      if (it->getMSLevel() ==  1) prec_spec = it;
+      if (it->getMSLevel() ==  1)
+      {
+        // remember potential precursor and continue
+        prec_spec = it;
+        continue;
+      }
 
       if (selected_activation_ == "" || activation_predicate(*it))
       {
@@ -274,23 +279,20 @@ namespace OpenMS
         }
 
         // check precursor purity if we have a valid precursor ..
+        DoubleReal precursor_purity = -1.0;
         if (prec_spec != ms_exp_data.end())
         {
-          const DoubleReal purity = computePrecursorPurity_(it, prec_spec);
-          if (purity < min_precursor_purity_)
+          precursor_purity = computePrecursorPurity_(it, prec_spec);
+          // check if purity is high enough
+          if (precursor_purity < min_precursor_purity_)
           {
-            LOG_DEBUG << "Skip spectrum " << it->getNativeID() << ": Precursor purity is below the threshold. [purity = " << purity << "]" << std::endl;
+            LOG_DEBUG << "Skip spectrum " << it->getNativeID() << ": Precursor purity is below the threshold. [purity = " << precursor_purity << "]" << std::endl;
             continue;
           }
         }
         else
         {
           LOG_INFO << "No precursor available for spectrum: " << it->getNativeID() << std::endl;
-        }
-        if (!(prec_spec == ms_exp_data.end()) && computePrecursorPurity_(it, prec_spec) < min_precursor_purity_)
-        {
-          LOG_DEBUG << "Skip spectrum " << it->getNativeID() << ": Precursor purity is below the threshold." << std::endl;
-          continue;
         }
 
         // store RT&MZ of parent ion as centroid of ConsensusFeature
@@ -346,6 +348,12 @@ namespace OpenMS
         {
           cf.setMetaValue("all_empty", String("true"));
         }
+        // add purity information if we could compute it
+        if (precursor_purity != -1.0)
+        {
+          cf.setMetaValue("precursor_purity", precursor_purity);
+        }
+        
         cf.setIntensity(overall_intensity);
         consensus_map.push_back(cf);
 
