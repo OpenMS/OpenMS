@@ -103,10 +103,35 @@ protected:
 
     registerDoubleOption_("min_rsq", "<double>", 0.95, "Minimum r-squared of RT peptides regression", false);
     registerDoubleOption_("min_coverage", "<double>", 0.6, "Minimum relative amount of RT peptides to keep", false);
+
+    registerFlag_("estimateBestPeptides", "Whether the algorithms should choose the best peptides for normalization. Use this option you do not expect all your peptides to be detected in a sample (e.g. due to them being endogenous peptides or using a less curated list of peptides).", false);
+
+    registerSubsection_("algorithm", "Algorithm parameters section");
+
+    registerSubsection_("peptideEstimation", "Parameters for the peptide estimation (use -estimateBestPeptides to enable).");
+  }
+
+  Param getSubsectionDefaults_(const String & section) const
+  {
+    if (section == "algorithm")
+    {
+      return MRMFeatureFinderScoring().getDefaults();
+    }
+    else if (section == "peptideEstimation")
+    {
+      Param p;
+      p.setValue("InitialQualityCutoff", 0.5, "The initial overall quality cutoff for a peak to be scored (range ca. -2 to 2)");
+      p.setValue("OverallQualityCutoff", 5.5, "The overall quality cutoff for a peak to go into the retention time estimation (range ca. 0 to 10)");
+      p.setValue("NrRTBins", 10, "Number of RT bins to use to compute coverage");
+      p.setValue("MinPeptidesPerBin", 1, "Minimal number of peptides that are required for a bin to counted as 'covered'");
+      p.setValue("MinBinsFilled", 8, "Minimal number of bins required to be covered");
+      return p;
+    }
+    return Param();
   }
 
   void simple_find_best_feature(OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType & transition_group_map, 
-      std::vector<std::pair<double, double> > & pairs)
+      std::vector<std::pair<double, double> > & pairs, bool useQualCutoff = false, double qualCutoff = 0.0)
   {
     for (OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType::iterator trgroup_it = transition_group_map.begin(); trgroup_it != transition_group_map.end(); trgroup_it++)
     {
@@ -114,8 +139,8 @@ protected:
       OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType * transition_group = &trgroup_it->second;
       if (transition_group->getFeatures().size() == 0)
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-            "Did not find any features for group " + transition_group->getTransitionGroupID());
+        std::cout << "Did not find any features for group " + transition_group->getTransitionGroupID() << std::endl;
+        continue;
       }
 
       MRMFeature * bestf = 0;
@@ -151,9 +176,59 @@ protected:
         //   secondbest = &(*mrmfeature);
         // }
       }
+
+      if (useQualCutoff && bestf->getOverallQuality() < qualCutoff) {continue;}
+
+      std::cout << " found best feature : " << bestf->getMetaValue("initialPeakQuality") << " and final " << bestf->getOverallQuality() << std::endl;
       String pepref = trgroup_it->second.getTransitions()[0].getPeptideRef();
       if (bestf) {pairs.push_back(std::make_pair(bestf->getRT(), PeptideRTMap[pepref]));}
     }
+  }
+
+  bool computeBinnedCoverage(const std::pair<double,double> & rtRange, 
+      const std::vector<std::pair<double, double> > & pairs, int nrBins, 
+      int minPeptidesPerBin, int minBinsFilled)
+  {
+    std::vector<int> binCounter(nrBins, 0);
+    for (std::vector<std::pair<double, double> >::const_iterator pair_it = pairs.begin(); pair_it != pairs.end(); pair_it++)
+    {
+      double normRT = (pair_it->second - rtRange.first) / (rtRange.second - rtRange.first); // compute a value between [0,1)
+      normRT *= nrBins;
+      int bin = (int)normRT;
+      if (bin >= nrBins)
+      {
+        // this should never happen, but just to make sure
+        std::cerr << "MRMRTNormalizer::countPeptidesInBins : computed bin was too large (" << bin << "), setting it to the maximum of " << nrBins << std::endl;
+        bin = nrBins - 1;
+      }
+      binCounter[ bin ]++;
+    }
+    int binsFilled = 0;
+    for (Size i = 0; i < binCounter.size(); i++)
+    {
+      std::cout <<" In bin " << i << " out of " << binCounter.size() << " we have " << binCounter[i] << " peptides " << std::endl;
+      if (binCounter[i] >= minPeptidesPerBin) binsFilled++;
+    }
+    if (binsFilled >= minBinsFilled) return true;
+    else return false;
+  }
+
+  std::pair<double,double> estimateRTRange(OpenSwath::LightTargetedExperiment & exp)
+  {
+    if (exp.getPeptides().empty()) 
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+        "Input list of targets is empty.");
+    }
+    double max = exp.getPeptides()[0].rt;
+    double min = exp.getPeptides()[0].rt;
+    for (Size i = 0; i < exp.getPeptides().size(); i++)
+    {
+      if (exp.getPeptides()[i].rt < min) min = exp.getPeptides()[i].rt;
+      if (exp.getPeptides()[i].rt > max) max = exp.getPeptides()[i].rt;
+    }
+    return std::make_pair(min,max);
+
   }
 
   ExitCodes main_(int, const char **)
@@ -164,6 +239,7 @@ protected:
     String out = getStringOption_("out");
     DoubleReal min_rsq = getDoubleOption_("min_rsq");
     DoubleReal min_coverage = getDoubleOption_("min_coverage");
+    bool estimateBestPeptides = getFlag_("estimateBestPeptides");
     const char * tr_file  = tr_file_str.c_str();
 
     MapType all_xic_maps; // all XICs from all files
@@ -175,6 +251,10 @@ protected:
       TraMLFile().load(tr_file, transition_exp_);
       OpenSwathDataAccessHelper::convertTargetedExp(transition_exp_, targeted_exp);
     }
+    std::pair<double,double> RTRange = estimateRTRange(targeted_exp);
+    std::cout << "Rt range from " << RTRange.first << " to " << RTRange.second << std::endl;
+
+   Param pepEstimationParams = getParam_().copy("peptideEstimation:", true);
 
     // Store the peptide retention times in an intermediate map
     PeptideRTMap.clear();
@@ -217,9 +297,16 @@ protected:
       OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType transition_group_map;
 
       MRMFeatureFinderScoring featureFinder;
-      Param scoring_params = MRMFeatureFinderScoring().getDefaults();
+      Param scoring_params = getParam_().copy("algorithm:", true);
       scoring_params.setValue("Scores:use_rt_score", "false");
+      scoring_params.setValue("Scores:use_elution_model_score", "false");
+      if (estimateBestPeptides)
+      {
+        scoring_params.setValue("TransitionGroupPicker:compute_peak_quality", "true");
+        scoring_params.setValue("TransitionGroupPicker:minimal_quality", pepEstimationParams.getValue("InitialQualityCutoff"));
+      }
       featureFinder.setParameters(scoring_params);
+      featureFinder.setStrictFlag(false);
       
       OpenSwath::SpectrumAccessPtr swath_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(swath_map);
       OpenSwath::SpectrumAccessPtr chromatogram_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(xic_map);
@@ -232,7 +319,24 @@ protected:
       }
 
       // find most likely correct feature for each group
-      simple_find_best_feature(transition_group_map, pairs);
+      if (estimateBestPeptides)
+      {
+        simple_find_best_feature(transition_group_map, pairs, true, pepEstimationParams.getValue("OverallQualityCutoff"));
+      }
+      else
+      {
+        simple_find_best_feature(transition_group_map, pairs);
+      }
+    }
+
+    bool enoughPeptides = computeBinnedCoverage(RTRange, pairs, 10, 
+        pepEstimationParams.getValue("MinPeptidesPerBin"),
+        pepEstimationParams.getValue("MinBinsFilled") );
+    // When estimating the best peptides from the data, we need to fulfill the binned coverage
+    if (estimateBestPeptides && !enoughPeptides)
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+        "There were not enough bins with the minimal number of peptides");
     }
 
     std::vector<std::pair<double, double> > pairs_corrected;
