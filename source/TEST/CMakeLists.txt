@@ -19,7 +19,7 @@ add_custom_target(svn_revision_update_forTests ALL
 add_dependencies(OpenMS svn_revision_update_forTests)
 ## - END OF WORKAROUND
 
-## Warning: in this directory the OpenMS.dll should already be present (e.g. by using the Dll's POST_BUILD command to copy it)  
+## Warning: in this directory the OpenMS.dll should already be present (e.g. by using the Dll's POST_BUILD command to copy it)
 ##          - otherwise the tests might not run!
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
 include(executables.cmake)
@@ -99,7 +99,7 @@ foreach(i ${TEST_executables})
 	# see https://sourceforge.net/apps/trac/open-ms/ticket/280 for details)
   if (OPENMP_FOUND AND NOT MSVC AND NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 		set_target_properties(${i} PROPERTIES LINK_FLAGS ${OpenMP_CXX_FLAGS})
-	endif()  
+	endif()
 endforeach(i)
 
 ### tests of classes from GUI lib:
@@ -114,7 +114,7 @@ foreach(i ${GUI_executables_list})
   list(APPEND GUI_executables_list_C GUI/${i}.C)
 endforeach(i)
 ## create mocced files - they are included manually in the implementation files
-QT4_WRAP_CPP(mocced_GUI_executables_list_C ${GUI_executables_list_C})
+QT4_WRAP_CPP(mocced_GUI_executables_list_C ${GUI_executables_list_C} OPTIONS ${BOOST_MOC_ARGS})
 
 foreach(i ${GUI_executables_list})
 	SET_SOURCE_FILES_PROPERTIES(GUI/${i}.C PROPERTIES OBJECT_DEPENDS ${mocced_GUI_executables_list_C})
@@ -125,7 +125,7 @@ foreach(i ${GUI_executables_list})
 	# see https://sourceforge.net/apps/trac/open-ms/ticket/280 for details)
   if (OPENMP_FOUND AND NOT MSVC AND NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 		set_target_properties(${i} PROPERTIES LINK_FLAGS ${OpenMP_CXX_FLAGS})
-	endif()  
+	endif()
 endforeach(i)
 
 ### GUI tests
