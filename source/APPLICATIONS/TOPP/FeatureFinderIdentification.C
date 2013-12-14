@@ -466,7 +466,7 @@ protected:
         EGHTraceFitter<Peak1D>* egh =
           static_cast<EGHTraceFitter<Peak1D>*>(fitter);
         feat_it->setMetaValue("model_EGH_tau", egh->getTau());
-        feat_it->setMetaValue("model_EGH_sigmasquare", egh->getSigmaSquare());
+        feat_it->setMetaValue("model_EGH_sigma", egh->getSigma());
       }
       else
       {
