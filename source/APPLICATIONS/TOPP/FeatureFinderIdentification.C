@@ -395,6 +395,10 @@ protected:
       fitter->setParameters(params);
     }
 
+    // save data to impute approximate results for failed model fits:
+    TransformationModel::DataPoints quant_values;
+    vector<FeatureMap<>::Iterator> failed_models;
+
     // collect peaks that constitute mass traces:
     LOG_DEBUG << "Fitting elution models to features:" << endl;
     for (FeatureMap<>::Iterator feat_it = features.begin();
@@ -423,18 +427,18 @@ protected:
                hull.getHullPoints().begin(); point_it !=
                hull.getHullPoints().end(); ++point_it)
         {
-          Peak1D peak;
-          peak.setMZ(sub_it->getMZ());
-          peak.setIntensity(point_it->getY());
-          peaks.push_back(peak);
-          trace.peaks.push_back(make_pair(point_it->getX(), &peaks.back()));
+          DoubleReal intensity = point_it->getY();
+          if (intensity > 0) // only use non-zero intensities for fitting
+          {
+            Peak1D peak;
+            peak.setMZ(sub_it->getMZ());
+            peak.setIntensity(intensity);
+            peaks.push_back(peak);
+            trace.peaks.push_back(make_pair(point_it->getX(), &peaks.back()));
+          }
         }
         trace.updateMaximum();
-        // leave out mass traces with all-zero intensities:
-        if (trace.max_peak->getIntensity() > 0) traces.push_back(trace);
-        // else sub_it->setMetaValue("model_excluded", "");
-        // @TODO: what about traces that are almost completely zero (e.g. except
-        // for the first/last value)? require a certain number of non-zeros?
+        if (!trace.peaks.empty()) traces.push_back(trace);
       }
       Size max_trace = 0;
       DoubleReal max_intensity = 0;
@@ -453,12 +457,22 @@ protected:
       traces.baseline = 0.0;
 
       // fit the model:
-      fitter->fit(traces);
+      try
+      {
+        fitter->fit(traces);
+      }
+      catch (Exception::UnableToFit& except)
+      {
+        LOG_ERROR << "Error fitting model to feature '" 
+                  << feat_it->getUniqueId() << "': " << except.getName()
+                  << " - " << except.getMessage() << endl;
+      }
 
       // record model parameters:
+      DoubleReal center = fitter->getCenter();
       feat_it->setMetaValue("model_height", fitter->getHeight());
       feat_it->setMetaValue("model_FWHM", fitter->getFWHM());
-      feat_it->setMetaValue("model_center", fitter->getCenter());
+      feat_it->setMetaValue("model_center", center);
       feat_it->setMetaValue("model_lower", fitter->getLowerRTBound());
       feat_it->setMetaValue("model_upper", fitter->getUpperRTBound());
       if (asymmetric)
@@ -474,9 +488,43 @@ protected:
           static_cast<GaussTraceFitter<Peak1D>*>(fitter);
         feat_it->setMetaValue("model_Gauss_sigma", gauss->getSigma());
       }
-      feat_it->setMetaValue("model_area", fitter->getArea());
+
+      // @TODO: more checking of model validity
+      bool center_in_bounds = 
+        (center >= DoubleReal(feat_it->getMetaValue("leftWidth"))) && 
+        (center <= DoubleReal(feat_it->getMetaValue("rightWidth")));
+      DoubleReal area = fitter->getArea();
+      if ((area != area) || // test for NaN
+          (area <= 0.0) || !center_in_bounds)
+      {
+        failed_models.push_back(feat_it);
+        feat_it->setMetaValue("model_success", "false");
+      }
+      else
+      {
+        // apply log-transform to weight down high outliers:
+        quant_values.push_back(make_pair(log(feat_it->getIntensity()),
+                                         log(area)));
+        feat_it->setIntensity(area);
+        feat_it->setMetaValue("model_success", "true");
+      }
     }
     delete fitter;
+
+    LOG_INFO << "Model fitting: " << quant_values.size() << " successes, "
+             << failed_models.size() << " failures" << endl;
+
+    // impute results for cases where the model fit failed:
+    TransformationModelLinear lm(quant_values, Param());
+    DoubleReal slope, intercept;
+    lm.getParameters(slope, intercept);
+    LOG_DEBUG << "LM slope: " << slope << ", intercept: " << intercept << endl;
+    for (vector<FeatureMap<>::Iterator>::iterator it = failed_models.begin();
+         it != failed_models.end(); ++it)
+    {
+      DoubleReal area = exp(lm.evaluate(log((*it)->getIntensity())));
+      (*it)->setIntensity(area);
+    }
   }
 
 
