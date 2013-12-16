@@ -35,6 +35,7 @@
 #ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_EGHTRACEFITTER_H
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_EGHTRACEFITTER_H
 
+#include <numeric> // for "accumulate"
 #include <sstream>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/TraceFitter.h>
@@ -377,91 +378,73 @@ protected:
 
     void setInitialParameters_(FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType>& traces)
     {
-      LOG_DEBUG << "EGHTraceFitter->setInitialParameters(..)" << std::endl;
-      LOG_DEBUG << "Traces length: " << traces.size() << std::endl;
-      LOG_DEBUG << "Max trace: " << traces.max_trace << std::endl;
-      
-      // initial values for externals
-      height_ = traces[traces.max_trace].max_peak->getIntensity() - traces.baseline;
-      LOG_DEBUG << "height: " << height_ << std::endl;
-      apex_rt_ = traces[traces.max_trace].max_rt;
-      LOG_DEBUG << "apex_rt: " << apex_rt_ << std::endl;
-      region_rt_span_ = traces[traces.max_trace].peaks.back().first - traces[traces.max_trace].peaks[0].first;
-      LOG_DEBUG << "region_rt_span_: " << region_rt_span_ << std::endl;
+      LOG_DEBUG << "EGHTraceFitter->setInitialParameters(...)" << std::endl;
+      LOG_DEBUG << "Number of traces: " << traces.size() << std::endl;
 
-      const PeakType* max_peak = traces[traces.max_trace].peaks.begin()->second;
-      Size max_pos = 0;
-
-      for (Size i = 1; i < traces[traces.max_trace].peaks.size(); ++i)
+      // aggregate data; some peaks (where intensity is zero) can be missing!
+      // mapping: RT -> total intensity over all mass traces
+      std::map<DoubleReal, DoubleReal> total_intensities;
+      for (typename FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType>::iterator t_it = traces.begin(); t_it != traces.end(); ++t_it)
       {
-        if (traces[traces.max_trace].peaks[i].second->getIntensity() > max_peak->getIntensity())
+        for (typename std::vector<std::pair<DoubleReal, const PeakType*> >::iterator p_it = t_it->peaks.begin(); p_it != t_it->peaks.end(); ++p_it)
         {
-          max_peak = traces[traces.max_trace].peaks[i].second;
-          max_pos = i;
+          total_intensities[p_it->first] += p_it->second->getIntensity();
         }
       }
 
-      Size i = max_pos;
-      LOG_DEBUG << "max_pos: " << max_pos << std::endl;
-      if (traces[traces.max_trace].peaks.size() < 3)
+      // compute moving average for smoothing:
+      const Size N = total_intensities.size();
+      const Size LEN = 2; // window size: 2 * LEN + 1
+      std::vector<DoubleReal> totals(N + 2 * LEN); // pad with zeros at ends
+      Int index = LEN;
+      // LOG_DEBUG << "Summed intensities:\n";
+      for (std::map<DoubleReal, DoubleReal>::iterator it =
+             total_intensities.begin(); it != total_intensities.end(); ++it)
       {
-        // TODO: abort the whole thing here??
-        //       because below we REQUIRE at least three peaks!!!
+        totals[index++] = it->second;
+        // LOG_DEBUG << it->second << std::endl;
       }
-
-      Size filter_max_pos = traces[traces.max_trace].peaks.size() - 2;
-
-      // compute a smoothed value for the maxima
-      // if the maximum is close to the borders, we need to think of something...
-      DoubleReal smoothed_height;
-      if ((max_pos < 2) || (max_pos + 2 >= traces[traces.max_trace].peaks.size()))
+      std::vector<DoubleReal> smoothed(N);
+      Size max_index = 0; // index of max. smoothed intensity
+      // LOG_DEBUG << "Smoothed intensities:\n";
+      DoubleReal sum = std::accumulate(&totals[LEN], &totals[2 * LEN], 0.0);
+      for (Size i = 0; i < N; ++i)
       {
-        // ... too close to border... no smoothing
-        smoothed_height = traces[traces.max_trace].peaks[max_pos].second->getIntensity();
-        // TODO: does this trace even make sense?! why wasn't it extended it further? or should we have skipped it beforehand?
+        sum += totals[i + 2 * LEN];
+        smoothed[i] = sum / (2 * LEN + 1);
+        sum -= totals[i];
+        if (smoothed[i] > smoothed[max_index]) max_index = i;
+        // LOG_DEBUG << smoothed[i] << std::endl;
       }
-      else
-      {
-        smoothed_height = (traces[traces.max_trace].peaks[max_pos - 2].second->getIntensity()
-                           + traces[traces.max_trace].peaks[max_pos - 1].second->getIntensity()
-                           + traces[traces.max_trace].peaks[max_pos].second->getIntensity()
-                           + traces[traces.max_trace].peaks[max_pos + 1].second->getIntensity()
-                           + traces[traces.max_trace].peaks[max_pos + 2].second->getIntensity()) / 5.0;
-      }
+      LOG_DEBUG << "Maximum at index " << max_index << std::endl;
+      height_ = smoothed[max_index] - traces.baseline;
+      LOG_DEBUG << "height: " << height_ << std::endl;
+      std::map<DoubleReal, DoubleReal>::iterator it = total_intensities.begin();
+      std::advance(it, max_index);
+      apex_rt_ = it->first;
+      LOG_DEBUG << "apex_rt: " << apex_rt_ << std::endl;
+      region_rt_span_ = (total_intensities.rbegin()->first - 
+                         total_intensities.begin()->first);
+      LOG_DEBUG << "region_rt_span: " << region_rt_span_ << std::endl;
 
-      // use  moving average filter to avoid bad initial values
-      // moving average of size 5
-      // TODO: optimize windows size
-      while (i > 2 && i < filter_max_pos)
-      {
-        // compute smoothed
-        DoubleReal smoothed = (traces[traces.max_trace].peaks[i - 2].second->getIntensity()
-                               + traces[traces.max_trace].peaks[i - 1].second->getIntensity()
-                               + traces[traces.max_trace].peaks[i].second->getIntensity()
-                               + traces[traces.max_trace].peaks[i + 1].second->getIntensity()
-                               + traces[traces.max_trace].peaks[i + 2].second->getIntensity()) / 5.0;
+      // find RT values where intensity is at half-maximum:
+      index = max_index;
+      while ((index > 0) && (smoothed[index] > height_ * 0.5)) --index;
+      it = total_intensities.begin();
+      std::advance(it, index);
+      DoubleReal left_rt = it->first;
+      LOG_DEBUG << "Left half-maximum at index " << index << ", RT " << left_rt
+                << std::endl;
+      index = max_index;
+      while ((index < Int(N - 1)) && (smoothed[index] > height_ * 0.5)) ++index;
+      it = total_intensities.end();
+      std::advance(it, index - Int(N));
+      DoubleReal right_rt = it->first;
+      LOG_DEBUG << "Right half-maximum at index " << index << ", RT "
+                << right_rt << std::endl;
 
-        if (smoothed / smoothed_height < 0.5) break;
-        else --i;
-      }
-      LOG_DEBUG << "Left alpha at " << i << " with " << traces[traces.max_trace].peaks[i].first << std::endl;
-      double A = apex_rt_ - traces[traces.max_trace].peaks[i].first;
-
-      i = max_pos;
-      while (i < filter_max_pos && i > 2)
-      {
-        DoubleReal smoothed = (traces[traces.max_trace].peaks[i - 2].second->getIntensity()
-                               + traces[traces.max_trace].peaks[i - 1].second->getIntensity()
-                               + traces[traces.max_trace].peaks[i].second->getIntensity()
-                               + traces[traces.max_trace].peaks[i + 1].second->getIntensity()
-                               + traces[traces.max_trace].peaks[i + 2].second->getIntensity()) / 5.0;
-
-        if (smoothed / smoothed_height < 0.5) break;
-        else ++i;
-      }
-      LOG_DEBUG << "Right alpha at " << i << " with " << traces[traces.max_trace].peaks[i].first << std::endl;
-      double B = traces[traces.max_trace].peaks[i].first - apex_rt_;
-
+      double A = apex_rt_ - left_rt;
+      double B = right_rt - apex_rt_;
       //LOG_DEBUG << "A: " << A << std::endl;
       //LOG_DEBUG << "B: " << B << std::endl;
 
