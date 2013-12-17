@@ -430,6 +430,7 @@ protected:
       // find RT values where intensity is at half-maximum:
       index = max_index;
       while ((index > 0) && (smoothed[index] > height_ * 0.5)) --index;
+      DoubleReal left_height = smoothed[index];
       it = total_intensities.begin();
       std::advance(it, index);
       DoubleReal left_rt = it->first;
@@ -437,19 +438,21 @@ protected:
                 << std::endl;
       index = max_index;
       while ((index < Int(N - 1)) && (smoothed[index] > height_ * 0.5)) ++index;
+      DoubleReal right_height = smoothed[index];
       it = total_intensities.end();
       std::advance(it, index - Int(N));
       DoubleReal right_rt = it->first;
       LOG_DEBUG << "Right half-maximum at index " << index << ", RT "
                 << right_rt << std::endl;
 
-      double A = apex_rt_ - left_rt;
-      double B = right_rt - apex_rt_;
+      DoubleReal A = apex_rt_ - left_rt;
+      DoubleReal B = right_rt - apex_rt_;
       //LOG_DEBUG << "A: " << A << std::endl;
       //LOG_DEBUG << "B: " << B << std::endl;
 
-      // compute estimates for tau / sigma based on A/B
-      double log_alpha = log(0.5);
+      // compute estimates for tau / sigma based on A and B:
+      DoubleReal alpha = (left_height + right_height) * 0.5 / height_; // ~0.5
+      DoubleReal log_alpha = log(alpha);
 
       tau_ = -1 / log_alpha * (B - A);
       LOG_DEBUG << "tau: " << tau_ << std::endl;
