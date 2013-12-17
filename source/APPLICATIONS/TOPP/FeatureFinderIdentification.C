@@ -140,12 +140,13 @@ protected:
     StringList model_choices = ListUtils::create<String>("none,symmetric,asymmetric");
     registerStringOption_("elution_model", "<choice>", model_choices[0], "Elution model to fit to features", false);
     setValidStrings_("elution_model", model_choices);
+    // advanced parameters:
     registerFlag_("unweighted_fit", "Suppress weighting of mass traces according to theoretical intensities when fitting elution models", true);
+    registerFlag_("no_imputation", "If fitting the elution model fails for a feature, set its intensity to zero instead of imputing a value from the OpenSWATH intensity", true);
 
     // addEmptyLine_();
     // registerSubsection_("algorithm", "Algorithm parameters section");
   }
-
 
   // Param getSubsectionDefaults_(const String& /*section*/) const
   // {
@@ -365,7 +366,7 @@ protected:
 
 
   void fitElutionModels_(FeatureMap<>& features, bool asymmetric=true,
-                         bool weighted=true)
+                         bool weighted=true, bool impute=true)
   {
     // assumptions:
     // - all features have subordinates (for the mass traces/transitions)
@@ -398,6 +399,7 @@ protected:
     // save data to impute approximate results for failed model fits:
     TransformationModel::DataPoints quant_values;
     vector<FeatureMap<>::Iterator> failed_models;
+    Size model_successes = 0, model_failures = 0;
 
     // collect peaks that constitute mass traces:
     LOG_DEBUG << "Fitting elution models to features:" << endl;
@@ -497,33 +499,41 @@ protected:
       if ((area != area) || // test for NaN
           (area <= 0.0) || !center_in_bounds)
       {
-        failed_models.push_back(feat_it);
+        if (impute) failed_models.push_back(feat_it);
+        else feat_it->setIntensity(0.0);
         feat_it->setMetaValue("model_success", "false");
+        model_failures++;
       }
       else
       {
-        // apply log-transform to weight down high outliers:
-        quant_values.push_back(make_pair(log(feat_it->getIntensity()),
-                                         log(area)));
+        if (impute)
+        { // apply log-transform to weight down high outliers:
+          quant_values.push_back(make_pair(log(feat_it->getIntensity()),
+                                           log(area)));
+        }
         feat_it->setIntensity(area);
         feat_it->setMetaValue("model_success", "true");
+        model_successes++;
       }
     }
     delete fitter;
 
-    LOG_INFO << "Model fitting: " << quant_values.size() << " successes, "
-             << failed_models.size() << " failures" << endl;
+    LOG_INFO << "Model fitting: " << model_successes << " successes, " 
+             << model_failures << " failures" << endl;
 
-    // impute results for cases where the model fit failed:
-    TransformationModelLinear lm(quant_values, Param());
-    DoubleReal slope, intercept;
-    lm.getParameters(slope, intercept);
-    LOG_DEBUG << "LM slope: " << slope << ", intercept: " << intercept << endl;
-    for (vector<FeatureMap<>::Iterator>::iterator it = failed_models.begin();
-         it != failed_models.end(); ++it)
-    {
-      DoubleReal area = exp(lm.evaluate(log((*it)->getIntensity())));
-      (*it)->setIntensity(area);
+    if (impute)
+    { // impute results for cases where the model fit failed:
+      TransformationModelLinear lm(quant_values, Param());
+      DoubleReal slope, intercept;
+      lm.getParameters(slope, intercept);
+      LOG_DEBUG << "LM slope: " << slope << ", intercept: " << intercept 
+                << endl;
+      for (vector<FeatureMap<>::Iterator>::iterator it = failed_models.begin();
+           it != failed_models.end(); ++it)
+      {
+        DoubleReal area = exp(lm.evaluate(log((*it)->getIntensity())));
+        (*it)->setIntensity(area);
+      }
     }
   }
 
@@ -547,6 +557,7 @@ protected:
     DoubleReal isotope_pmin = getDoubleOption_("isotope_pmin");
     String elution_model = getStringOption_("elution_model");
     bool weighted_fit = !getFlag_("unweighted_fit");
+    bool impute = !getFlag_("no_imputation");
 
     //-------------------------------------------------------------
     // load input
@@ -737,7 +748,8 @@ protected:
     // @TODO add method for resolving overlaps if "reference_rt" is "all"
     if (elution_model != "none")
     {
-      fitElutionModels_(features, elution_model == "asymmetric", weighted_fit);
+      fitElutionModels_(features, elution_model == "asymmetric", weighted_fit,
+                        impute);
     }
 
     //-------------------------------------------------------------
