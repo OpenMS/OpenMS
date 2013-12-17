@@ -1,4 +1,4 @@
-from Types  cimport *
+from Types cimport *
 
 from PeakFileOptions cimport *
 from MzMLFile cimport *
@@ -10,7 +10,7 @@ cdef extern from "<OpenMS/FORMAT/IndexedMzMLFileLoader.h>" namespace "OpenMS":
 
         IndexedMzMLFileLoader() nogil except +
 
-        void load(String, OnDiscMSExperiment[Peak1D, ChromatogramPeak] &) nogil except+
+        bool load(String, OnDiscMSExperiment[Peak1D, ChromatogramPeak] &) nogil except+
         void store(String, OnDiscMSExperiment[Peak1D, ChromatogramPeak] &) nogil except+
         void store(String, MSExperiment[Peak1D, ChromatogramPeak] &) nogil except+
 

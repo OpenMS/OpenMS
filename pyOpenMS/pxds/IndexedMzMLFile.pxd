@@ -12,6 +12,7 @@ cdef extern from "<OpenMS/FORMAT/IndexedMzMLFile.h>" namespace "OpenMS":
         IndexedMzMLFile() nogil except +
         IndexedMzMLFile(IndexedMzMLFile) nogil except +
         IndexedMzMLFile(String filename) nogil except +
+        void openFile(String filename) nogil except +
         bool getParsingSuccess() nogil except +
         size_t getNrSpectra() nogil except +
         size_t getNrChromatograms() nogil except +
