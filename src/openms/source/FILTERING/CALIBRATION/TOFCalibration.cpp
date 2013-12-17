@@ -77,8 +77,6 @@ namespace OpenMS
         continue;
       }
 
-      double chisq;
-
       // matrix containing the observations
       std::vector<double> x;
       // vector containing the expected masses

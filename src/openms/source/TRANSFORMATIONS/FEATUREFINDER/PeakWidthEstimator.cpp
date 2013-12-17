@@ -126,7 +126,7 @@ namespace OpenMS
         X.push_back( it->first );//mz
         Y.push_back( it->second );//intensity
       }
-      Wm5::IntpAkimaNonuniform1<double> peak_spline (values.size(), X.data(), Y.data());
+      Wm5::IntpAkimaNonuniform1<double> peak_spline (values.size(), &X.front(), &Y.front());
 
       // search for half intensity to the left
       DoubleReal MZ_THRESHOLD = 0.00000001;

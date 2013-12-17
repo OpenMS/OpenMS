@@ -37,6 +37,9 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <map>
+#include <eigen3/Eigen/Core>
+
+using Eigen::VectorXd;
 
 
 namespace OpenMS
@@ -517,7 +520,7 @@ namespace OpenMS
 
     for (Size cluster = 0; cluster < matching_peaks.size(); ++cluster)
     {
-      for (UInt j = 0; j < J.rows() - 1; ++j)
+      for (int j = 0; j < J.rows() - 1; ++j)
       {
         J(j, total_nr_peaks + 3 * cluster)
               = J(j, total_nr_peaks + 3 * cluster) / ov_weight[cluster];

@@ -85,7 +85,7 @@ namespace OpenMS
         {
           points.push_back(Wm5::Vector2d(data.at(i).first, data.at(i).second));
         }
-        if(!Wm5::HeightLineFit2<double>(size, points.data(), slope_, intercept_))
+        if(!Wm5::HeightLineFit2<double>(size, &points.front(), slope_, intercept_))
             throw std::runtime_error("could not fit");
       }
     }

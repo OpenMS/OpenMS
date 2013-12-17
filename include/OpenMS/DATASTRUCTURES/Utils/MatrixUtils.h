@@ -12,7 +12,7 @@
 
 #include <Eigen/Core>
 
-#include <tr1/memory>
+#include <boost/shared_ptr.hpp>
 
 namespace OpenMS
 {
@@ -20,8 +20,8 @@ namespace OpenMS
    *
    */
 
-  typedef std::tr1::shared_ptr< const Eigen::MatrixXd > EigenMatrixXdPtr;
-  typedef std::tr1::shared_ptr< Eigen::MatrixXd > MutableEigenMatrixXdPtr;
+  typedef boost::shared_ptr< const Eigen::MatrixXd > EigenMatrixXdPtr;
+  typedef boost::shared_ptr< Eigen::MatrixXd > MutableEigenMatrixXdPtr;
 
   static EigenMatrixXdPtr
   convertOpenMSMatrix2EigenMatrixXd( const Matrix<double>& m )

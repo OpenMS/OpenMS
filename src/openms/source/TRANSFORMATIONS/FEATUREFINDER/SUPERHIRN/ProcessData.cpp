@@ -304,7 +304,7 @@ namespace OpenMS
 
 ///////////////////////////////////////////////////////////////////////////////
 // inputs raw /centroided  data into the object:
-  void ProcessData::add_scan_raw_data(int SCAN, float TR, CentroidData * centroidedData)
+  void ProcessData::add_scan_raw_data(int SCAN, double TR, CentroidData * centroidedData)
   {
 
     Deisotoper dei;

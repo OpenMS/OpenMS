@@ -217,6 +217,7 @@ protected:
       // LM always expects N>=p, cause Jacobian be rectangular M x N with M>=N
       if (data_count < num_params) throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-FinalSet", "Skipping feature, we always expects N>=p");
 
+
       Eigen::LevenbergMarquardt<GenericFunctor> lmSolver (functor);
       lmSolver.parameters.maxfev = max_iterations_;
       Eigen::LevenbergMarquardtSpace::Status status = lmSolver.minimize(x_init);
@@ -232,11 +233,6 @@ protected:
       getOptimizedParameters_(x_init);
     }
 
-    /** Test for the convergence of the sequence by comparing the last iteration step dx with the absolute error epsabs and relative error epsrel to the current position x */
-    /// Absolute error
-    DoubleReal epsilon_abs_;
-    /// Relative error
-    DoubleReal epsilon_rel_;
     /// Maximum number of iterations
     SignedSize max_iterations_;
     /// Whether to weight mass traces by theoretical intensity during the optimization

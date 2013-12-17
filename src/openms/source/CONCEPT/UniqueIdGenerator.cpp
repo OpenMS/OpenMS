@@ -51,14 +51,14 @@ namespace OpenMS
     return (*instance.dist_)(*instance.rng_);
   }
 
-  UInt
+  UInt64
   UniqueIdGenerator::getSeed()
   {
     return getInstance_().seed_;
   }
 
   void
-  UniqueIdGenerator::setSeed(UInt seed)
+  UniqueIdGenerator::setSeed(UInt64 seed)
   {
     UniqueIdGenerator& instance = getInstance_();
     instance.seed_ = seed;

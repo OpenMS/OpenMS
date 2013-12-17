@@ -179,7 +179,7 @@ protected:
       std::vector<DoubleReal> signal;
     };
 
-    class TwoDOptFunctor
+    class OPENMS_DLLAPI TwoDOptFunctor
     {
     public:
       int inputs() const { return m_inputs; }

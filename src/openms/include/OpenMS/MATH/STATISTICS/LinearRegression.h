@@ -255,7 +255,7 @@ private:
       // Compute the unweighted linear fit.
       // Get the intercept and the slope of the regression Y_hat=intercept_+slope_*X
       // and the value of Chi squared (sum( (y - evel(x))^2)
-      bool pass = Wm5::HeightLineFit2<double>(points.size(), points.data(), slope_, intercept_);
+      bool pass = Wm5::HeightLineFit2<double>(points.size(), &points.front(), slope_, intercept_);
       chi_squared_ = computeChiSquare(x_begin, x_end, y_begin, slope_, intercept_);
 
       if (pass)

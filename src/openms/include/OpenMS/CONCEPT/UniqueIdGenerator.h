@@ -63,10 +63,10 @@ public:
 
     /// Initializes random generator using the given value.
     static void
-    setSeed(UInt seed);
+    setSeed(UInt64 seed);
 
     /// Get the seed
-    static UInt
+    static UInt64
     getSeed();
 
 protected:
