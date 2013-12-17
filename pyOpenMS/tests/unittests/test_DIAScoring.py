@@ -24,7 +24,7 @@ class TestDIAScoring(unittest.TestCase):
                 809.39466 + 79.9657 #// y + P
           ]
 
-          spectrum = pyopenms.Spectrum()
+          spectrum = pyopenms.OSSpectrum()
           spectrum.setMZArray(mz)
           spectrum.setIntensityArray(intensity)
 

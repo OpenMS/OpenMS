@@ -79,7 +79,7 @@ IF(AUTOWRAP_MISSING)
 ELSE()
     execute_process(
         COMMAND
-        ${PYTHON_EXECUTABLE} -c "import autowrap; exit(autowrap.version >= (0, 3, 1))"
+        ${PYTHON_EXECUTABLE} -c "import autowrap; exit(autowrap.version >= (0, 3, 2))"
         RESULT_VARIABLE AUTOWRAP_VERSION_OK
         ERROR_QUIET
         OUTPUT_QUIET
