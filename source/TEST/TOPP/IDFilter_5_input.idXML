@@ -112,7 +112,7 @@
       </PeptideHit>
       <PeptideHit score="33.85" sequence="MRSLGYVAVISAVATDTDK" charge="2" protein_refs="PH_1" >
       </PeptideHit>
-      <PeptideHit score="12.73" sequence="EGASTDFAALRTFLAEDGK" charge="2" >
+      <PeptideHit score="12.73" sequence="EGASTDFAALRTFLAEDGK" charge="2" protein_refs="PH_47"  >
       </PeptideHit>
       <PeptideHit score="11.79" sequence="DLEPGTDYEVTVSTLFGR" charge="2" >
       </PeptideHit>

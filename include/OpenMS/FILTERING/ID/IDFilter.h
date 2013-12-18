@@ -68,6 +68,47 @@ public:
     /// Destructor
     virtual ~IDFilter();
 
+    /// gets the best scoring peptide hit from a vecor of peptide identifications
+    /// @param identifications Vector of peptide ids, each containing one or more peptide hits
+    /// @param assume_sorted are hits sorted by score (best score first) already? This allows for faster query, since only the first hit needs to be looked at
+    /// @return true if a hit was present, false otherwise
+    template <class IdentificationType>
+    bool getBestHit(const std::vector<IdentificationType> identifications, bool assume_sorted, PeptideHit& best_hit)
+    {
+      if (identifications.size() == 0) return false;
+
+      bool is_higher_score_better = identifications[0].isHigherScoreBetter();
+      DoubleReal best_score = (is_higher_score_better ? -1 : 1) * std::numeric_limits<DoubleReal>::max(); // worst score we can think of
+
+      Size best_i_index(0), best_h_index(0);
+      Size max_h(-1);
+      // determine best scoring hit
+      for (Size i = 0; i != identifications.size(); ++i)
+      {
+        if (identifications[i].getHits().size() == 0) continue; // empty hits
+        
+        is_higher_score_better = identifications[i].isHigherScoreBetter();
+        max_h = (assume_sorted ? 1 : identifications[i].getHits().size());        
+        for (Size h = 0; h < max_h; ++h)
+        {
+          DoubleReal score = identifications[i].getHits()[h].getScore();
+          // better score?
+          if (score > best_score * (is_higher_score_better ? 1 : -1))
+          {
+            best_score = score;
+            best_i_index = i;
+            best_h_index = h;
+          }
+        }
+      }
+
+      if (max_h == -1) return false;// all hits were empty 
+
+      best_hit = identifications[best_i_index].getHits()[best_h_index];
+      return true;
+
+    }
+
     /// filters a ProteinIdentification or PeptideIdentification by only allowing peptides/proteins which reach a score above @p threshold_fraction * SignificanceThreshold
     template <class IdentificationType>
     void filterIdentificationsByThreshold(const IdentificationType& identification, DoubleReal threshold_fraction, IdentificationType& filtered_identification)
@@ -260,6 +301,9 @@ public:
 
     /// only protein hits in 'identification' which are referenced by a peptide in 'peptide_identifications' are kept
     void removeUnreferencedProteinHits(const ProteinIdentification& identification, const std::vector<PeptideIdentification> peptide_identifications, ProteinIdentification& filtered_identification);
+
+    /// only peptide hits in 'peptide_identifications' which are referenced by a protein in 'identification' are kept
+    void removeUnreferencedPeptideHits(const ProteinIdentification& identification, std::vector<PeptideIdentification>& peptide_identifications, bool delete_unreferenced_peptide_hits = false);
 
     /// if a peptide hit occurs more than once per PSM, only one instance is kept
     void filterIdentificationsUnique(const PeptideIdentification& identification, PeptideIdentification& filtered_identification);

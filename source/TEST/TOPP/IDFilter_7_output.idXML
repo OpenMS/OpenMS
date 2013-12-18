@@ -17,22 +17,22 @@
       </PeptideHit>
       <PeptideHit score="33.85" sequence="MRSLGYVAVISAVATDTDK" charge="2" protein_refs="PH_1" >
       </PeptideHit>
-      <PeptideHit score="12.73" sequence="EGASTDFAALRTFLAEDGK" charge="2" >
-      </PeptideHit>
-      <PeptideHit score="11.79" sequence="DLEPGTDYEVTVSTLFGR" charge="2" >
-      </PeptideHit>
-      <PeptideHit score="11.38" sequence="FINFGVNVEVLSRFQTK" charge="2" >
-      </PeptideHit>
-      <PeptideHit score="11.32" sequence="MSLLSNMISIVKVGYNAR" charge="2" >
-      </PeptideHit>
-      <PeptideHit score="11.26" sequence="THPYGHAIVAGIERYPSK" charge="2" >
-      </PeptideHit>
-      <PeptideHit score="11.1" sequence="AITSDFANQAKTVLQNFK" charge="2" >
-      </PeptideHit>
-      <PeptideHit score="10.93" sequence="TGCDTWGQGTLVTVSSASTK" charge="2" >
-      </PeptideHit>
-      <PeptideHit score="10.37" sequence="TLCHHDATFDNLVWTPK" charge="2" >
-      </PeptideHit>
-    </PeptideIdentification>
-  </IdentificationRun>
+			<PeptideHit score="12.73" sequence="EGASTDFAALRTFLAEDGK" charge="2" protein_refs="PH_0" >
+			</PeptideHit>
+			<PeptideHit score="11.79" sequence="DLEPGTDYEVTVSTLFGR" charge="2" protein_refs="PH_0" >
+			</PeptideHit>
+			<PeptideHit score="11.38" sequence="FINFGVNVEVLSRFQTK" charge="2" protein_refs="PH_0" >
+			</PeptideHit>
+			<PeptideHit score="11.32" sequence="MSLLSNMISIVKVGYNAR" charge="2" protein_refs="PH_0" >
+			</PeptideHit>
+			<PeptideHit score="11.26" sequence="THPYGHAIVAGIERYPSK" charge="2" protein_refs="PH_0" >
+			</PeptideHit>
+			<PeptideHit score="11.1" sequence="AITSDFANQAKTVLQNFK" charge="2" protein_refs="PH_0" >
+			</PeptideHit>
+			<PeptideHit score="10.93" sequence="TGCDTWGQGTLVTVSSASTK" charge="2" protein_refs="PH_0" >
+			</PeptideHit>
+			<PeptideHit score="10.37" sequence="TLCHHDATFDNLVWTPK" charge="2" protein_refs="PH_0" >
+			</PeptideHit>
+		</PeptideIdentification>
+	</IdentificationRun>
 </IdXML>

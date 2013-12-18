@@ -514,6 +514,60 @@ namespace OpenMS
     filtered_identification.setHits(filtered_protein_hits);
   }
 
+  void IDFilter::removeUnreferencedPeptideHits(const ProteinIdentification& identification, 
+                                               std::vector<PeptideIdentification>& peptide_identifications,
+                                               bool delete_unreferenced_peptide_hits /* = false */)
+  {
+    const String& run_identifier = identification.getIdentifier();
+
+    // build set of protein accessions
+    set<String> all_prots;
+    const vector<ProteinHit>& temp_protein_hits = identification.getHits();
+    for (Size j = 0; j != temp_protein_hits.size(); ++j)
+    {
+      all_prots.insert(temp_protein_hits[j].getAccession());
+    }
+
+    std::vector<PeptideIdentification> filtered_peptide_identifications;
+    // remove peptides which are not referenced
+    for (Size i = 0; i != peptide_identifications.size(); ++i)
+    {
+      // run id of protein and peptide identification must match
+      if (run_identifier == peptide_identifications[i].getIdentifier())
+      {
+        const vector<PeptideHit>& tmp_pep_hits = peptide_identifications[i].getHits();
+        vector<PeptideHit> filtered_pep_hits;
+        // check protein accessions of each peptide hit
+        for (Size j = 0; j != tmp_pep_hits.size(); ++j)
+        {
+          const std::vector<String>& acc = tmp_pep_hits[j].getProteinAccessions();
+          std::vector<String> valid_prots;
+          for (Size k = 0; k != acc.size(); ++k)
+          { // find valid proteins
+            if (all_prots.find(acc[k]) != all_prots.end())
+            {
+              valid_prots.push_back(acc[k]);
+            }
+          }
+          if (valid_prots.size() > 0 || !delete_unreferenced_peptide_hits)
+          { // if present, copy the hit
+            filtered_pep_hits.push_back(tmp_pep_hits[j]);
+            filtered_pep_hits.back().setProteinAccessions(valid_prots);
+          }
+        }
+        // if the peptide has hits, we use it
+        if (filtered_pep_hits.size() > 0)
+        {
+          filtered_peptide_identifications.push_back(peptide_identifications[i]);
+          filtered_peptide_identifications.back().setHits(filtered_pep_hits);
+        }
+      }
+    }
+
+    // exchange with new hits
+    filtered_peptide_identifications.swap(peptide_identifications);
+  }
+
 
   bool IDFilter::filterIdentificationsByMetaValueRange(const PeptideIdentification& identification, const String& key, DoubleReal low, DoubleReal high, bool missing)
   {

@@ -500,9 +500,22 @@ set_tests_properties("TOPP_IDFilter_3_out1" PROPERTIES DEPENDS "TOPP_IDFilter_3"
 add_test("TOPP_IDFilter_4" ${TOPP_BIN_PATH}/IDFilter -in ${DATA_DIR_TOPP}/IDFilter_4_input.idXML -out IDFilter_4_output.tmp -rt:p_value 0.08)
 add_test("TOPP_IDFilter_4_out1" ${DIFF} -in1 IDFilter_4_output.tmp -in2 ${DATA_DIR_TOPP}/IDFilter_4_output.idXML )
 set_tests_properties("TOPP_IDFilter_4_out1" PROPERTIES DEPENDS "TOPP_IDFilter_4")
+
 add_test("TOPP_IDFilter_5" ${TOPP_BIN_PATH}/IDFilter -in ${DATA_DIR_TOPP}/IDFilter_5_input.idXML -out IDFilter_5_output.tmp -score:pep 32 -score:prot 25)
 add_test("TOPP_IDFilter_5_out1" ${DIFF} -in1 IDFilter_5_output.tmp -in2 ${DATA_DIR_TOPP}/IDFilter_5_output.idXML )
 set_tests_properties("TOPP_IDFilter_5_out1" PROPERTIES DEPENDS "TOPP_IDFilter_5")
+add_test("TOPP_IDFilter_5a" ${TOPP_BIN_PATH}/IDFilter -in ${DATA_DIR_TOPP}/IDFilter_5_input.idXML -out IDFilter_5a_output.tmp -score:pep 32 )
+add_test("TOPP_IDFilter_5a_out1" ${DIFF} -in1 IDFilter_5a_output.tmp -in2 ${DATA_DIR_TOPP}/IDFilter_5_output.idXML )
+set_tests_properties("TOPP_IDFilter_5a_out1" PROPERTIES DEPENDS "TOPP_IDFilter_5a")
+
+add_test("TOPP_IDFilter_5b" ${TOPP_BIN_PATH}/IDFilter -in ${DATA_DIR_TOPP}/IDFilter_5_input.idXML -out IDFilter_5b_output.tmp -score:prot 25)
+add_test("TOPP_IDFilter_5b_out1" ${DIFF} -in1 IDFilter_5b_output.tmp -in2 ${DATA_DIR_TOPP}/IDFilter_5b_output.idXML )
+set_tests_properties("TOPP_IDFilter_5b_out1" PROPERTIES DEPENDS "TOPP_IDFilter_5b")
+
+add_test("TOPP_IDFilter_5c" ${TOPP_BIN_PATH}/IDFilter -in ${DATA_DIR_TOPP}/IDFilter_5_input.idXML -out IDFilter_5c_output.tmp -score:prot 25 -delete_unreferenced_peptide_hits)
+add_test("TOPP_IDFilter_5c_out1" ${DIFF} -in1 IDFilter_5c_output.tmp -in2 ${DATA_DIR_TOPP}/IDFilter_5c_output.idXML )
+set_tests_properties("TOPP_IDFilter_5c_out1" PROPERTIES DEPENDS "TOPP_IDFilter_5c")
+
 add_test("TOPP_IDFilter_6" ${TOPP_BIN_PATH}/IDFilter -in ${DATA_DIR_TOPP}/IDFilter_6_input.idXML -out IDFilter_6_output.tmp -best:n_peptide_hits 2 -best:n_protein_hits 10)
 add_test("TOPP_IDFilter_6_out1" ${DIFF} -in1 IDFilter_6_output.tmp -in2 ${DATA_DIR_TOPP}/IDFilter_6_output.idXML )
 set_tests_properties("TOPP_IDFilter_6_out1" PROPERTIES DEPENDS "TOPP_IDFilter_6")
