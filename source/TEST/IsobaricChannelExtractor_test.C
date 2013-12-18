@@ -101,9 +101,9 @@ START_SECTION((void extractChannels(const MSExperiment<Peak1D>&ms_exp_data, Cons
 {
   {
     // load test data
-    MzDataFile mz_data_file;
     MSExperiment<Peak1D> exp;
-    mz_data_file.load(OPENMS_GET_TEST_DATA_PATH("ItraqChannelExtractor.mzData"), exp);
+    MzMLFile mzmlfile;
+    mzmlfile.load(OPENMS_GET_TEST_DATA_PATH("IsobaricChannelExtractor_6.mzML"), exp);
 
     // add some more information to the quant method
     Param pItraq = q_method->getParameters();
@@ -123,19 +123,120 @@ START_SECTION((void extractChannels(const MSExperiment<Peak1D>&ms_exp_data, Cons
     ConsensusMap cm_out;
     ice.extractChannels(exp, cm_out);
 
+    // check channel meta information
+    TEST_EQUAL(cm_out.getFileDescriptions().size(), 4)
+    ABORT_IF(cm_out.getFileDescriptions().size() != 4)
+
+    TEST_EQUAL(cm_out.getFileDescriptions()[0].label, "itraq4plex_114")
+    TEST_EQUAL(cm_out.getFileDescriptions()[0].getMetaValue("channel_name"), 114)
+    TEST_EQUAL(cm_out.getFileDescriptions()[0].getMetaValue("channel_id"), 0)
+    TEST_EQUAL(cm_out.getFileDescriptions()[0].getMetaValue("channel_description"), "ref")
+    TEST_EQUAL(cm_out.getFileDescriptions()[0].getMetaValue("channel_center"), 114.1112)
+
+    TEST_EQUAL(cm_out.getFileDescriptions()[1].label, "itraq4plex_115")
+    TEST_EQUAL(cm_out.getFileDescriptions()[1].getMetaValue("channel_name"), 115)
+    TEST_EQUAL(cm_out.getFileDescriptions()[1].getMetaValue("channel_id"), 1)
+    TEST_EQUAL(cm_out.getFileDescriptions()[1].getMetaValue("channel_description"), "something")
+    TEST_EQUAL(cm_out.getFileDescriptions()[1].getMetaValue("channel_center"), 115.1082)
+
+    TEST_EQUAL(cm_out.getFileDescriptions()[2].label, "itraq4plex_116")
+    TEST_EQUAL(cm_out.getFileDescriptions()[2].getMetaValue("channel_name"), 116)
+    TEST_EQUAL(cm_out.getFileDescriptions()[2].getMetaValue("channel_id"), 2)
+    TEST_EQUAL(cm_out.getFileDescriptions()[2].getMetaValue("channel_description"), "else")
+    TEST_EQUAL(cm_out.getFileDescriptions()[2].getMetaValue("channel_center"), 116.1116)
+
+    TEST_EQUAL(cm_out.getFileDescriptions()[3].label, "itraq4plex_117")
+    TEST_EQUAL(cm_out.getFileDescriptions()[3].getMetaValue("channel_name"), 117)
+    TEST_EQUAL(cm_out.getFileDescriptions()[3].getMetaValue("channel_id"), 3)
+    TEST_EQUAL(cm_out.getFileDescriptions()[3].getMetaValue("channel_description"), "")
+    TEST_EQUAL(cm_out.getFileDescriptions()[3].getMetaValue("channel_center"), 117.1149)
+
     // compare results
-    ConsensusXMLFile cm_file;
-    String cm_file_out;
-    NEW_TMP_FILE(cm_file_out);
-    cm_file.store(cm_file_out, cm_out);
-    WHITELIST("<?xml-stylesheet");
-    TEST_FILE_SIMILAR(cm_file_out, OPENMS_GET_TEST_DATA_PATH("IsobaricChannelExtractor.consensusXML"));
+    TEST_EQUAL(cm_out.size(), 5)
+    ABORT_IF(cm_out.size() != 5)
+    ConsensusFeature::iterator cf_it;
+
+    TEST_EQUAL(cm_out[0].size(), 4)
+    TEST_EQUAL(cm_out[0].getMetaValue("scan_id"), "controllerType=0 controllerNumber=1 scan=2")
+    TEST_REAL_SIMILAR(cm_out[0].getMetaValue("precursor_intensity"), 5251952.5)
+    TEST_REAL_SIMILAR(cm_out[0].getIntensity(), 1490501.21)
+    cf_it = cm_out[0].begin();
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 643005.56)
+    ++cf_it;
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 458708.97)
+    ++cf_it;
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 182238.38)
+    ++cf_it;
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 206543.3)
+    ++cf_it;
+    ABORT_IF(cf_it != cm_out[0].end())
+
+
+    TEST_EQUAL(cm_out[1].size(), 4)
+    TEST_EQUAL(cm_out[1].getMetaValue("scan_id"), "controllerType=0 controllerNumber=1 scan=4")
+    TEST_REAL_SIMILAR(cm_out[1].getMetaValue("precursor_intensity"), 7365030)
+    TEST_REAL_SIMILAR(cm_out[1].getIntensity(), 2358063.25)
+    cf_it = cm_out[1].begin();
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 851248.38)
+    ++cf_it;
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 875994.77)
+    ++cf_it;
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 322173.1)
+    ++cf_it;
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 308647)
+    ++cf_it;
+    ABORT_IF(cf_it != cm_out[1].end())
+
+    TEST_EQUAL(cm_out[2].size(), 4)
+    TEST_EQUAL(cm_out[2].getMetaValue("scan_id"), "controllerType=0 controllerNumber=1 scan=6")
+    TEST_REAL_SIMILAR(cm_out[2].getMetaValue("precursor_intensity"), 6835636)
+    TEST_REAL_SIMILAR(cm_out[2].getIntensity(), 2623415.33)
+    cf_it = cm_out[2].begin();
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 898583.7)
+    ++cf_it;
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 977466.23)
+    ++cf_it;
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 406220.4)
+    ++cf_it;
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 341145)
+    ++cf_it;
+    ABORT_IF(cf_it != cm_out[2].end())
+
+    TEST_EQUAL(cm_out[3].size(), 4)
+    TEST_EQUAL(cm_out[3].getMetaValue("scan_id"), "controllerType=0 controllerNumber=1 scan=8")
+    TEST_REAL_SIMILAR(cm_out[3].getMetaValue("precursor_intensity"), 6762358)
+    TEST_REAL_SIMILAR(cm_out[3].getIntensity(), 1692679.37)
+    cf_it = cm_out[3].begin();
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 593009)
+    ++cf_it;
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 661448.27)
+    ++cf_it;
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 249740.1)
+    ++cf_it;
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 188482)
+    ++cf_it;
+    ABORT_IF(cf_it != cm_out[3].end())
+
+    TEST_EQUAL(cm_out[4].size(), 4)
+    TEST_EQUAL(cm_out[4].getMetaValue("scan_id"), "controllerType=0 controllerNumber=1 scan=10")
+    TEST_REAL_SIMILAR(cm_out[4].getMetaValue("precursor_intensity"), 5464634.5)
+    TEST_REAL_SIMILAR(cm_out[4].getIntensity(), 1746368)
+    cf_it = cm_out[4].begin();
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 648863)
+    ++cf_it;
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 632090)
+    ++cf_it;
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 229391)
+    ++cf_it;
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 236024)
+    ++cf_it;
+    ABORT_IF(cf_it != cm_out[4].end())
   }
-  {
+  { // test -> keep_unannotated_precursor
     // load test data
-    MzDataFile mz_data_file;
     MSExperiment<Peak1D> exp;
-    mz_data_file.load(OPENMS_GET_TEST_DATA_PATH("ItraqChannelExtractor.mzData"), exp);
+    MzMLFile mzmlfile;
+    mzmlfile.load(OPENMS_GET_TEST_DATA_PATH("IsobaricChannelExtractor_7.mzML"), exp);
 
     // add some more information to the quant method
     Param pItraq = q_method->getParameters();
@@ -156,53 +257,25 @@ START_SECTION((void extractChannels(const MSExperiment<Peak1D>&ms_exp_data, Cons
     ConsensusMap cm_out;
     ice.extractChannels(exp, cm_out);
 
-    // compare results
-    ConsensusXMLFile cm_file;
-    String cm_file_out;
-    NEW_TMP_FILE(cm_file_out);
-    cm_file.store(cm_file_out, cm_out);
-    WHITELIST("<?xml-stylesheet,<consensusElement");
-    TEST_FILE_SIMILAR(cm_file_out, OPENMS_GET_TEST_DATA_PATH("IsobaricChannelExtractor_2.consensusXML"));
-  }
-  {
-    // load test data
-    MzDataFile mz_data_file;
-    MSExperiment<Peak1D> exp;
-    mz_data_file.load(OPENMS_GET_TEST_DATA_PATH("ItraqChannelExtractor.mzData"), exp);
+    TEST_EQUAL(cm_out.size(), 4)
+    ABORT_IF(cm_out.size() != 4)
+    TEST_EQUAL(((DoubleReal)cm_out[0].getMetaValue("precursor_intensity")) != 0.0, true)
 
-    // add some more information to the quant method
-    Param pItraq = q_method->getParameters();
-    pItraq.setValue("channel_114_description", "ref");
-    pItraq.setValue("channel_115_description", "something");
-    pItraq.setValue("channel_116_description", "else");
-    q_method->setParameters(pItraq);
-
-    IsobaricChannelExtractor ice(q_method);
-
-    // disable activation filtering
-    Param p = ice.getParameters();
-    p.setValue("select_activation", "");
     p.setValue("keep_unannotated_precursor", "true");
-    p.setValue("min_precursor_intensity", 7.0);
     ice.setParameters(p);
 
-    // extract channels
-    ConsensusMap cm_out;
-    ice.extractChannels(exp, cm_out);
+    ConsensusMap cm_out_w_unannotated;
+    ice.extractChannels(exp, cm_out_w_unannotated);
 
-    // compare results
-    ConsensusXMLFile cm_file;
-    String cm_file_out;
-    NEW_TMP_FILE(cm_file_out);
-    cm_file.store(cm_file_out, cm_out);
-    WHITELIST("<?xml-stylesheet,<consensusElement");
-    TEST_FILE_SIMILAR(cm_file_out, OPENMS_GET_TEST_DATA_PATH("IsobaricChannelExtractor_3.consensusXML"));
+    TEST_EQUAL(cm_out_w_unannotated.size(), 5)
+    ABORT_IF(cm_out_w_unannotated.size() != 5)
+    TEST_REAL_SIMILAR(cm_out_w_unannotated[0].getMetaValue("precursor_intensity"), 0.0)
   }
   {
     // load test data
-    MzDataFile mz_data_file;
     MSExperiment<Peak1D> exp;
-    mz_data_file.load(OPENMS_GET_TEST_DATA_PATH("ItraqChannelExtractor.mzData"), exp);
+    MzMLFile mzmlfile;
+    mzmlfile.load(OPENMS_GET_TEST_DATA_PATH("IsobaricChannelExtractor_6.mzML"), exp);
 
     // add some more information to the quant method
     Param pItraq = q_method->getParameters();
@@ -216,7 +289,7 @@ START_SECTION((void extractChannels(const MSExperiment<Peak1D>&ms_exp_data, Cons
     // disable activation filtering
     Param p = ice.getParameters();
     p.setValue("select_activation", "");
-    p.setValue("min_reporter_intensity", 4.0);
+    p.setValue("min_precursor_intensity", 5300000.0);
     ice.setParameters(p);
 
     // extract channels
@@ -224,18 +297,19 @@ START_SECTION((void extractChannels(const MSExperiment<Peak1D>&ms_exp_data, Cons
     ice.extractChannels(exp, cm_out);
 
     // compare results
-    ConsensusXMLFile cm_file;
-    String cm_file_out;
-    NEW_TMP_FILE(cm_file_out);
-    cm_file.store(cm_file_out, cm_out);
-    WHITELIST("<?xml-stylesheet,<consensusElement");
-    TEST_FILE_SIMILAR(cm_file_out, OPENMS_GET_TEST_DATA_PATH("IsobaricChannelExtractor_4.consensusXML"));
+    TEST_EQUAL(cm_out.size(), 4)
+    ABORT_IF(cm_out.size() != 4)
+    for(ConsensusMap::Iterator cf = cm_out.begin(); cf != cm_out.end(); ++cf)
+    {
+      DoubleReal prec_intensity = cf->getMetaValue("precursor_intensity");
+      TEST_EQUAL(prec_intensity > 5300000.0, true)
+    }
   }
   {
     // load test data
-    MzDataFile mz_data_file;
     MSExperiment<Peak1D> exp;
-    mz_data_file.load(OPENMS_GET_TEST_DATA_PATH("ItraqChannelExtractor.mzData"), exp);
+    MzMLFile mzmlfile;
+    mzmlfile.load(OPENMS_GET_TEST_DATA_PATH("IsobaricChannelExtractor_6.mzML"), exp);
 
     // add some more information to the quant method
     Param pItraq = q_method->getParameters();
@@ -249,21 +323,135 @@ START_SECTION((void extractChannels(const MSExperiment<Peak1D>&ms_exp_data, Cons
     // disable activation filtering
     Param p = ice.getParameters();
     p.setValue("select_activation", "");
-    p.setValue("min_reporter_intensity", 3.0);
+    p.setValue("min_reporter_intensity", 200000.0);
+    ice.setParameters(p);
+
+    // extract channels
+    ConsensusMap cm_out;
+    ConsensusFeature::iterator cf_it;
+    ice.extractChannels(exp, cm_out);
+
+    TEST_EQUAL(cm_out.size(), 5)
+    ABORT_IF(cm_out.size() != 5)
+
+    TEST_EQUAL(cm_out[0].size(), 4)
+    cf_it = cm_out[0].begin();
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 643005.56)
+    ++cf_it;
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 458708.97)
+    ++cf_it;
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 0.0) // is 182238.38 < 200.000
+    ++cf_it;
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 206543.3)
+    ++cf_it;
+    ABORT_IF(cf_it != cm_out[0].end())
+
+    cf_it = cm_out[1].begin();
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 851248.38)
+    ++cf_it;
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 875994.77)
+    ++cf_it;
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 322173.1)
+    ++cf_it;
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 308647)
+    ++cf_it;
+    ABORT_IF(cf_it != cm_out[1].end())
+
+    cf_it = cm_out[2].begin();
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 898583.7)
+    ++cf_it;
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 977466.23)
+    ++cf_it;
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 406220.4)
+    ++cf_it;
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 341145)
+    ++cf_it;
+    ABORT_IF(cf_it != cm_out[2].end())
+
+    cf_it = cm_out[3].begin();
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 593009)
+    ++cf_it;
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 661448.27)
+    ++cf_it;
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 249740.1)
+    ++cf_it;
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 0.0) // is 188482 < 200.000
+    ++cf_it;
+    ABORT_IF(cf_it != cm_out[3].end())
+
+    cf_it = cm_out[4].begin();
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 648863)
+    ++cf_it;
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 632090)
+    ++cf_it;
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 229391)
+    ++cf_it;
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 236024)
+    ++cf_it;
+    ABORT_IF(cf_it != cm_out[4].end())
+  }
+  {
+    // load test data
+    MSExperiment<Peak1D> exp;
+    MzMLFile mzmlfile;
+    mzmlfile.load(OPENMS_GET_TEST_DATA_PATH("IsobaricChannelExtractor_6.mzML"), exp);
+
+    // add some more information to the quant method
+    Param pItraq = q_method->getParameters();
+    pItraq.setValue("channel_114_description", "ref");
+    pItraq.setValue("channel_115_description", "something");
+    pItraq.setValue("channel_116_description", "else");
+    q_method->setParameters(pItraq);
+
+    IsobaricChannelExtractor ice(q_method);
+
+    // disable activation filtering
+    Param p = ice.getParameters();
+    p.setValue("select_activation", "");
+    p.setValue("min_reporter_intensity", 200000.0);
     p.setValue("discard_low_intensity_quantifications", "true");
     ice.setParameters(p);
 
     // extract channels
     ConsensusMap cm_out;
+    ConsensusFeature::iterator cf_it;
     ice.extractChannels(exp, cm_out);
 
-    // compare results
-    ConsensusXMLFile cm_file;
-    String cm_file_out;
-    NEW_TMP_FILE(cm_file_out);
-    cm_file.store(cm_file_out, cm_out);
-    WHITELIST("<?xml-stylesheet,<consensusElement");
-    TEST_FILE_SIMILAR(cm_file_out, OPENMS_GET_TEST_DATA_PATH("IsobaricChannelExtractor_5.consensusXML"));
+    TEST_EQUAL(cm_out.size(), 3)
+    ABORT_IF(cm_out.size() != 3)
+
+    cf_it = cm_out[0].begin();
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 851248.38)
+    ++cf_it;
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 875994.77)
+    ++cf_it;
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 322173.1)
+    ++cf_it;
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 308647)
+    ++cf_it;
+    ABORT_IF(cf_it != cm_out[0].end())
+
+    cf_it = cm_out[1].begin();
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 898583.7)
+    ++cf_it;
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 977466.23)
+    ++cf_it;
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 406220.4)
+    ++cf_it;
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 341145)
+    ++cf_it;
+    ABORT_IF(cf_it != cm_out[1].end())
+
+    cf_it = cm_out[2].begin();
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 648863)
+    ++cf_it;
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 632090)
+    ++cf_it;
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 229391)
+    ++cf_it;
+    TEST_REAL_SIMILAR(cf_it->getIntensity(), 236024)
+    ++cf_it;
+    ABORT_IF(cf_it != cm_out[2].end())
   }
   {
     // check precursor purity computation

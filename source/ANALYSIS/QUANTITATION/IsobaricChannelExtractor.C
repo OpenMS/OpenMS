@@ -353,6 +353,10 @@ namespace OpenMS
         {
           cf.setMetaValue("precursor_purity", precursor_purity);
         }
+
+        // embed the id of the scan from which the quantitative information was extracted
+        cf.setMetaValue("scan_id", it->getNativeID());
+        cf.setMetaValue("precursor_intensity", it->getPrecursors()[0].getIntensity());
         
         cf.setIntensity(overall_intensity);
         consensus_map.push_back(cf);
