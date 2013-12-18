@@ -159,6 +159,7 @@ START_SECTION((void extractChannels(const MSExperiment<Peak1D>&ms_exp_data, Cons
     TEST_EQUAL(cm_out[0].size(), 4)
     TEST_EQUAL(cm_out[0].getMetaValue("scan_id"), "controllerType=0 controllerNumber=1 scan=2")
     TEST_REAL_SIMILAR(cm_out[0].getMetaValue("precursor_intensity"), 5251952.5)
+    TEST_REAL_SIMILAR(cm_out[0].getMetaValue("precursor_charge"), 2)
     TEST_REAL_SIMILAR(cm_out[0].getIntensity(), 1490501.21)
     cf_it = cm_out[0].begin();
     TEST_REAL_SIMILAR(cf_it->getIntensity(), 643005.56)
@@ -175,6 +176,7 @@ START_SECTION((void extractChannels(const MSExperiment<Peak1D>&ms_exp_data, Cons
     TEST_EQUAL(cm_out[1].size(), 4)
     TEST_EQUAL(cm_out[1].getMetaValue("scan_id"), "controllerType=0 controllerNumber=1 scan=4")
     TEST_REAL_SIMILAR(cm_out[1].getMetaValue("precursor_intensity"), 7365030)
+    TEST_REAL_SIMILAR(cm_out[1].getMetaValue("precursor_charge"), 3)
     TEST_REAL_SIMILAR(cm_out[1].getIntensity(), 2358063.25)
     cf_it = cm_out[1].begin();
     TEST_REAL_SIMILAR(cf_it->getIntensity(), 851248.38)
@@ -190,6 +192,7 @@ START_SECTION((void extractChannels(const MSExperiment<Peak1D>&ms_exp_data, Cons
     TEST_EQUAL(cm_out[2].size(), 4)
     TEST_EQUAL(cm_out[2].getMetaValue("scan_id"), "controllerType=0 controllerNumber=1 scan=6")
     TEST_REAL_SIMILAR(cm_out[2].getMetaValue("precursor_intensity"), 6835636)
+    TEST_REAL_SIMILAR(cm_out[2].getMetaValue("precursor_charge"), 3)
     TEST_REAL_SIMILAR(cm_out[2].getIntensity(), 2623415.33)
     cf_it = cm_out[2].begin();
     TEST_REAL_SIMILAR(cf_it->getIntensity(), 898583.7)
@@ -205,6 +208,7 @@ START_SECTION((void extractChannels(const MSExperiment<Peak1D>&ms_exp_data, Cons
     TEST_EQUAL(cm_out[3].size(), 4)
     TEST_EQUAL(cm_out[3].getMetaValue("scan_id"), "controllerType=0 controllerNumber=1 scan=8")
     TEST_REAL_SIMILAR(cm_out[3].getMetaValue("precursor_intensity"), 6762358)
+    TEST_REAL_SIMILAR(cm_out[3].getMetaValue("precursor_charge"), 3)
     TEST_REAL_SIMILAR(cm_out[3].getIntensity(), 1692679.37)
     cf_it = cm_out[3].begin();
     TEST_REAL_SIMILAR(cf_it->getIntensity(), 593009)
@@ -220,6 +224,7 @@ START_SECTION((void extractChannels(const MSExperiment<Peak1D>&ms_exp_data, Cons
     TEST_EQUAL(cm_out[4].size(), 4)
     TEST_EQUAL(cm_out[4].getMetaValue("scan_id"), "controllerType=0 controllerNumber=1 scan=10")
     TEST_REAL_SIMILAR(cm_out[4].getMetaValue("precursor_intensity"), 5464634.5)
+    TEST_REAL_SIMILAR(cm_out[4].getMetaValue("precursor_charge"), 2)
     TEST_REAL_SIMILAR(cm_out[4].getIntensity(), 1746368)
     cf_it = cm_out[4].begin();
     TEST_REAL_SIMILAR(cf_it->getIntensity(), 648863)

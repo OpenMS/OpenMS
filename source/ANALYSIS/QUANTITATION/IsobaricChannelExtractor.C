@@ -356,7 +356,9 @@ namespace OpenMS
 
         // embed the id of the scan from which the quantitative information was extracted
         cf.setMetaValue("scan_id", it->getNativeID());
+        // .. as well as additional meta information
         cf.setMetaValue("precursor_intensity", it->getPrecursors()[0].getIntensity());
+        cf.setMetaValue("precursor_charge", it->getPrecursors()[0].getCharge());
         
         cf.setIntensity(overall_intensity);
         consensus_map.push_back(cf);

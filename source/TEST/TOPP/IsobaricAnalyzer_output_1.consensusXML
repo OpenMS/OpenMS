@@ -46,6 +46,7 @@
 			<userParam type="float" name="precursor_purity" value="1"/>
 			<userParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=2"/>
 			<userParam type="float" name="precursor_intensity" value="5251952.5"/>
+			<userParam type="int" name="precursor_charge" value="2"/>
 		</consensusElement>
 		<consensusElement id="e_13229490167902618598" quality="0">
 			<centroid rt="3611.39772" mz="421.558584883603" it="2.37883e+06"/>
@@ -58,6 +59,7 @@
 			<userParam type="float" name="precursor_purity" value="0.654721856117249"/>
 			<userParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=4"/>
 			<userParam type="float" name="precursor_intensity" value="7365030"/>
+			<userParam type="int" name="precursor_charge" value="3"/>
 		</consensusElement>
 		<consensusElement id="e_5024549519481199379" quality="0">
 			<centroid rt="3611.7015" mz="447.907085078449" it="2.64587e+06"/>
@@ -70,6 +72,7 @@
 			<userParam type="float" name="precursor_purity" value="0.775739431381226"/>
 			<userParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=6"/>
 			<userParam type="float" name="precursor_intensity" value="6835636"/>
+			<userParam type="int" name="precursor_charge" value="3"/>
 		</consensusElement>
 		<consensusElement id="e_6211693768620736135" quality="0">
 			<centroid rt="3612.0051" mz="407.579288484896" it="1.70608e+06"/>
@@ -82,6 +85,7 @@
 			<userParam type="float" name="precursor_purity" value="0.720097899436951"/>
 			<userParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=8"/>
 			<userParam type="float" name="precursor_intensity" value="6762358"/>
+			<userParam type="int" name="precursor_charge" value="3"/>
 		</consensusElement>
 		<consensusElement id="e_2727934422266510952" quality="0">
 			<centroid rt="3612.31176" mz="748.901794746371" it="1.76225e+06"/>
@@ -94,6 +98,7 @@
 			<userParam type="float" name="precursor_purity" value="1"/>
 			<userParam type="string" name="scan_id" value="controllerType=0 controllerNumber=1 scan=10"/>
 			<userParam type="float" name="precursor_intensity" value="5464634.5"/>
+			<userParam type="int" name="precursor_charge" value="2"/>
 		</consensusElement>
 	</consensusElementList>
 </consensusXML>
