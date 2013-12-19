@@ -561,7 +561,7 @@ protected:
         // remove non-existant protein references from peptides (and optionally: remove peptides with no proteins)
         filter.removeUnreferencedPeptideHits(filtered_protein_identification, filtered_peptide_identifications, delete_unreferenced_peptide_hits);
         
-        // might not contain any proteinHits (in this case filtered_peptide_identifications will also be empty)
+        // might have empty proteinHits
         filtered_protein_identifications.push_back(filtered_protein_identification);
       }
       else
