@@ -674,7 +674,7 @@ namespace OpenMS
       // let this node know that round is done
       connect(p, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(executionFinished(int, QProcess::ExitStatus)));
 
-      //enqueue process
+      // enqueue process
       if (round == 0)
 	    {
         LOG_DEBUG << "\nEnqueue: \"" << File::getExecutablePath() + name_ << "\" \"" << String(args.join("\" \"")) << "\"\n" << std::endl;
