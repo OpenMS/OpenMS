@@ -174,28 +174,12 @@ namespace OpenMS
     painter->setPen(pen);
 
     // angle of line
-    QPointF delta = endPos() - startPos();
-    qreal angle;
-    if (delta.x() == 0.0)
-    {
-      angle = endPos().y() > startPos().y() ? 90.0 : 270.0;
-    }
-    else
-    {
-      angle = delta.y() / delta.x();
-      angle = std::atan(angle);
-      angle = (angle / 3.14159265) * 180.0;
-      if (delta.x() < 0.0)
-      {
-        angle += 180;
-      }
-    }
+    qreal angle = -QLineF(endPos(), startPos()).angle() + 180; // negate since angle() reports counter-clockwise; +180 since painter.rotate() is more intuivite then
 
+    // draw the actual line
     QPainterPath path_line(startPos());
     path_line.lineTo(endPos());
     painter->drawPath(path_line);
-
-    const qreal arrow_width = 10; // required multiple times, so defined here to avoid inconsistencies
 
     // print names
     qreal text_angle = angle;
@@ -206,25 +190,33 @@ namespace OpenMS
     }
     QPainterPath path_line_short(borderPoint_(false));
     path_line_short.lineTo(endPos());
+
+    // y offset for printing text; we add -1 to make "_" in param names visible (e.g. in "out_annotation")
+    //                             otherwise they are too close to the edge itself
+    int y_text = -pen.width() - 1;
+
+    // source name
     QString str = getSourceOutParamName();
     if (!str.isEmpty())
     {
-      painter->save();
+      painter->save();     // hard to avoid multiple calls to save() and restore() since we first translate and then rotate
       QPointF point = path_line_short.pointAtPercent(0.05);
       painter->translate(point);
       painter->rotate(text_angle);
       if (invert_text_direction)
       {
         QFontMetrics fm(painter->fontMetrics());
-        int width=fm.width(str);
-        painter->drawText(QPoint(-width, -pen.width()), str);
+        int text_width=fm.width(str);
+        painter->drawText(QPoint(-text_width, y_text), str);
       }
       else
       {
-        painter->drawText(QPoint(0, -pen.width()), str);
+        painter->drawText(QPoint(0, y_text), str);
       }
       painter->restore();
     }
+    // target name
+    const qreal arrow_width = 10; // required multiple times, so defined here to avoid inconsistencies
     str = getTargetInParamName();
     if (!str.isEmpty())
     {
@@ -234,14 +226,15 @@ namespace OpenMS
       painter->translate(point);
       painter->rotate(text_angle);
       QFontMetrics fm(painter->fontMetrics());
-      int width=fm.width(str);
+      int text_width = fm.width(str);
+      int text_height = fm.height();   // shift text below the edge by its own height
       if (invert_text_direction)
       {
-        painter->drawText(QPoint(arrow_width, -pen.width()), str); // for text length and arrow
+        painter->drawText(QPoint(arrow_width, text_height + y_text), str);
       }
       else
       {
-        painter->drawText(QPoint(-width - arrow_width, -pen.width()), str); // for text length and arrow
+        painter->drawText(QPoint(-text_width - arrow_width, text_height + y_text), str);
       }
       painter->restore();
     }
