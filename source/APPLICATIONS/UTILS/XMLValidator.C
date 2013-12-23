@@ -41,6 +41,7 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
+#include <OpenMS/FORMAT/TraMLFile.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 using namespace OpenMS;
@@ -87,7 +88,7 @@ protected:
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "file to validate");
-    setValidFormats_("in", ListUtils::create<String>("mzML,mzData,featureXML,idXML,consensusXML,mzXML,ini,pepXML,xml"));
+    setValidFormats_("in", ListUtils::create<String>("mzML,mzData,featureXML,idXML,consensusXML,mzXML,ini,pepXML,TraML,xml"));
     registerInputFile_("schema", "<file>", "", "schema to validate against.\nIf no schema is given, the file is validated against the latest schema of the file type.", false);
     setValidFormats_("schema", ListUtils::create<String>("xsd"));    
   }
@@ -153,6 +154,11 @@ protected:
       case FileTypes::MZML:
         cout << " against schema version " << MzMLFile().getVersion() << endl;
         valid = MzMLFile().isValid(in);
+        break;
+
+      case FileTypes::TRAML:
+        cout << " against schema version " << TraMLFile().getVersion() << endl;
+        valid = TraMLFile().isValid(in);
         break;
 
       default:
