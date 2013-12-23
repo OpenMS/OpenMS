@@ -49,37 +49,37 @@ namespace OpenMS
   {
 public:
     /// Constructor
-    Annotation1DPeakItem(const PointType & peak_position, const QString & text, const QColor & color);
+    Annotation1DPeakItem(const PointType& peak_position, const QString& text, const QColor& color);
 
     /// Copy constructor
-    Annotation1DPeakItem(const Annotation1DPeakItem & rhs);
+    Annotation1DPeakItem(const Annotation1DPeakItem& rhs);
 
     /// Destructor
     virtual ~Annotation1DPeakItem();
 
     /// Docu in base class
-    virtual void ensureWithinDataRange(Spectrum1DCanvas * const canvas);
+    virtual void ensureWithinDataRange(Spectrum1DCanvas* const canvas);
 
     /// Docu in base class
-    virtual void draw(Spectrum1DCanvas * const canvas, QPainter & painter, bool flipped = false);
+    virtual void draw(Spectrum1DCanvas* const canvas, QPainter& painter, bool flipped = false);
 
     /// Docu in base class
-    virtual void move(const PointType & /*delta*/);
+    virtual void move(const PointType& /*delta*/);
 
-    /// Sets the position of the label (in MZ / intensity coordinates)
-    void setPosition(const PointType & position);
+    /// Returns the position of the label (peak) (in MZ/intensity coordinates)
+    const PointType& getPeakPosition() const;
 
-    /// Sets the anchor position of the label (peak) (in MZ / intensity coordinates)
-    const PointType & getPeakPosition() const;
+    /// Sets the position of the label (in MZ/intensity coordinates)
+    void setPosition(const PointType& position);
 
-    /// Returns the position of the peak (in MZ / intensity coordinates)
-    const PointType & getPosition() const;
+    /// Returns the position of the annotated peak (in MZ/intensity coordinates)
+    const PointType& getPosition() const;
 
     /// Set the color of the label
-    void setColor(const QColor & color);
+    void setColor(const QColor& color);
 
     /// Returns the color of the label
-    const QColor & getColor() const;
+    const QColor& getColor() const;
 protected:
     /// The position of the anchor (peak) (in MZ / intensity coordinates)
     PointType peak_position_;
