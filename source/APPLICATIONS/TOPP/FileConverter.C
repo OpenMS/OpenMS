@@ -237,8 +237,8 @@ protected:
           (out_type != FileTypes::CONSENSUSXML))
       {
         // You will lose information and waste memory. Enough reasons to issue a warning!
-        writeLog_("Warning: Converting features to peaks. You will lose information!");
-        exp.set2DData(fm);
+        writeLog_("Warning: Converting features to peaks. You will lose information! Mass traces are added, if present as 'num_of_masstraces' and 'masstrace_intensity_<X>' (X>=0) meta values.");
+        exp.set2DData<true>(fm);
       }
     }
     else

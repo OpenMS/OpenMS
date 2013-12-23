@@ -37,6 +37,8 @@
 ///////////////////////////
 
 #include <OpenMS/KERNEL/MSExperiment.h>
+
+#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/Peak2D.h>
 
 ///////////////////////////
@@ -223,7 +225,11 @@ START_SECTION((template<class Container> void get2DData(Container& cont) const))
 	TEST_REAL_SIMILAR(it->getMZ(),25);
 END_SECTION
 
-START_SECTION((template<class Container> void set2DData(const Container& cont)))
+START_SECTION((template <class Container> void set2DData(const Container& cont)))
+   NOT_TESTABLE // tested below
+END_SECTION
+
+START_SECTION((template <bool add_mass_traces, class Container> void set2DData(const Container& cont)))
 	MSExperiment<> exp;
 
 	// create sample data
@@ -255,7 +261,39 @@ START_SECTION((template<class Container> void set2DData(const Container& cont)))
 	exp.get2DData(output);
 	TEST_EQUAL(output==input,true);
 
-	//test precondition
+  ///////////////////////////////////////
+  // test adding of mass traces
+	FeatureMap<> fm, fm2, fm_out;
+  Feature f1;
+	f1.setIntensity(7.5f);
+	f1.setRT(8.5);
+	f1.setMZ(9.5);
+  Feature f2;
+	f2.setIntensity(17.5f);
+	f2.setRT(18.5);
+	f2.setMZ(19.5);
+  fm.push_back(f1);
+  fm.push_back(f2);  
+  fm2 = fm; // copy without meta values (get2DData will not have them)
+  fm.back().setMetaValue("num_of_masstraces", 2);
+  fm.back().setMetaValue("masstrace_intensity_0", 11.0f);
+  fm.back().setMetaValue("masstrace_intensity_1", 12.0f);
+  fm.back().setCharge(2);
+  exp.set2DData<true>(fm);
+	exp.get2DData(fm_out);
+  Feature f2_x = f2;
+  f2_x.setIntensity(11.0f);
+  f2_x.setMZ(f2_x.getMZ() + Constants::C13C12_MASSDIFF_U/2*0);
+  fm2.back() = (f2_x);   // replace
+  f2_x.setIntensity(12.0f);
+  f2_x.setMZ(f2_x.getMZ() + Constants::C13C12_MASSDIFF_U/2*1);
+  fm2.push_back(f2_x);  // add +1Th trace
+	TEST_EQUAL(fm_out.size(), fm2.size());
+  //std::cout << fm_out[1] << "\n\n" << fm2[1] << std::endl;
+  //std::cout << fm_out.back() << "\n\n" << fm2.back() << std::endl;
+	TEST_EQUAL(fm_out==fm2,true);
+
+	// test precondition (input sorted by RT)
 	input.push_back(p1);
 	TEST_PRECONDITION_VIOLATED(exp.set2DData(input));
 

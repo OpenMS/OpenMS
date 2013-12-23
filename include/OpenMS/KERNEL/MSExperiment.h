@@ -35,13 +35,13 @@
 #ifndef OPENMS_KERNEL_MSEXPERIMENT_H
 #define OPENMS_KERNEL_MSEXPERIMENT_H
 
-#include <OpenMS/KERNEL/MSSpectrum.h>
-#include <OpenMS/KERNEL/MSChromatogram.h>
-#include <OpenMS/METADATA/ExperimentalSettings.h>
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
 #include <OpenMS/FORMAT/DB/PersistentObject.h>
-#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/KERNEL/AreaIterator.h>
+#include <OpenMS/KERNEL/MSChromatogram.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/METADATA/ExperimentalSettings.h>
 
 #include <vector>
 #include <algorithm>
@@ -264,27 +264,55 @@ public:
     }
 
     /**
-      @brief Assignment of a 2D spectrum to MSExperiment
+      @brief Assignment of a data container with RT and MZ to an MSExperiment
 
-      Container can be a PeakArray or an STL container of peaks.
+      Fill MSExperiment with data.
+      Note that all data present (including meta-data) will be deleted prior to adding new data!
+
+      @param container An iteratable type whose elements support getRT(), getMZ() and getIntensity()
 
       @exception Exception::Precondition is thrown if the container is not sorted according to
-      retention time (not only in debug mode)
+      retention time (in debug AND release mode)
     */
     template <class Container>
-    void set2DData(const Container & cont)
+    void set2DData(const Container& container)
     {
-      SpectrumType * spectrum = 0;
-      // If the container is empty, nothing will happen
-      if (cont.empty()) return;
+      set2DData<false, Container>(container);
+    }
 
-      typename PeakType::CoordinateType current_rt = -(std::numeric_limits<typename PeakType::CoordinateType>::max)();
+     /**
+      @brief Assignment of a data container with RT and MZ to an MSExperiment
 
-      for (typename Container::const_iterator iter = cont.begin(); iter != cont.end(); ++iter)
+      Fill MSExperiment with data.
+      Note that all data present (including meta-data) will be deleted prior to adding new data!
+
+      @param container An iteratable type whose elements support getRT(), getMZ() and getIntensity()
+      @param add_mass_traces If true, each container element is searched for the metavalue
+                             "num_of_masstraces".
+                             If found, "masstrace_intensity_<X>" (X>=0) meta values are added as data points (with 13C spacing).
+                             This is useful for, e.g., FF-Metabo output.
+                             Note that the actual feature will NOT be added if mass traces are found (since MT0 is usually identical)
+
+      @exception Exception::Precondition is thrown if the container is not sorted according to
+      retention time (in debug AND release mode) OR a "masstrace_intensity_<X>" value is expected but not found
+         
+    */
+    template <bool add_mass_traces, class Container>
+    void set2DData(const Container& container)
+    {
+      // clean up the container first
+      clear(true);
+
+      SpectrumType* spectrum = 0;
+
+      typename PeakType::CoordinateType current_rt = -std::numeric_limits<typename PeakType::CoordinateType>::max();
+
+      for (typename Container::const_iterator iter = container.begin(); iter != container.end(); ++iter)
       {
-        // check if the retention time time has changed
+        // check if the retention time has changed
         if (current_rt != iter->getRT() || spectrum == 0)
         {
+          // append new spectrum
           if (current_rt > iter->getRT())
           {
             throw Exception::Precondition(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Input container is not sorted!");
@@ -296,14 +324,13 @@ public:
           spectrum->setMSLevel(1);
         }
 
-        // create temporary peak and insert it into spectrum
-        spectrum->insert(spectrum->end(), PeakType());
-        spectrum->back().setIntensity(iter->getIntensity());
-        spectrum->back().setPosition(iter->getMZ());
+        // add either datapoint or mass traces (depending on template argument value)
+        ContainerAdd_<Container::const_iterator>::addData_<add_mass_traces>(spectrum, iter);
       }
     }
 
     //@}
+
 
     ///@name Iterating ranges and areas
     //@{
@@ -863,6 +890,48 @@ protected:
 
     /// spectra
     std::vector<SpectrumType> spectra_;
+
+private:
+   
+    /// Helper class to add either general data points in set2DData or use mass traces from meta values
+    template<class ContainerIterator>
+    class ContainerAdd_
+    {
+    public:
+      /// general method for adding data points (no mass traces desired or found)
+      template <bool var> 
+      static void addData_(SpectrumType* spectrum, typename ContainerIterator& iter)
+      {
+        // create temporary peak and insert it into spectrum
+        spectrum->insert(spectrum->end(), PeakType());
+        spectrum->back().setIntensity(iter->getIntensity());
+        spectrum->back().setPosition(iter->getMZ());
+      }
+    
+      /// specialization for adding feature mass traces
+      template <> 
+      static void addData_<true>(SpectrumType* spectrum, typename ContainerIterator& iter)
+      {
+        if (iter->metaValueExists("num_of_masstraces"))
+        {
+          Size mts = iter->getMetaValue("num_of_masstraces");
+          for (Size i=0; i<mts; ++i)
+          {
+            String meta_name = String("masstrace_intensity_") + i;
+            if (!iter->metaValueExists(meta_name))
+            {
+              throw Exception::Precondition(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Meta value '") + meta_name + "' expected but not found in container.");
+            }
+            spectrum->insert(spectrum->end(), PeakType());
+            spectrum->back().setIntensity(iter->getMetaValue(meta_name));
+            spectrum->back().setPosition(iter->getMZ() + Constants::C13C12_MASSDIFF_U/iter->getCharge()*i);
+          }
+        }
+        else addData_<false>(spectrum, iter);
+      }
+
+    };
+
   };
 
 
