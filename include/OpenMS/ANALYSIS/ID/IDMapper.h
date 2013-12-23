@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Chris Bielow $
-// $Authors: Marc Sturm, Hendrik Weisser $
+// $Authors: Marc Sturm, Hendrik Weisser, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_ANALYSIS_ID_IDMAPPER_H
@@ -85,34 +85,47 @@ public:
       corresponding spectrum.
 
       @param map MSExperiment to receive the identifications
-      @param ids PeptideIdentification for the ConsensusFeatures
-      @param protein_ids ProteinIdentification for the ConsensusMap
+      @param ids PeptideIdentification for the MSExperiment
+      @param protein_ids ProteinIdentification for the MSExperiment
+      @param clear_ids Reset peptide and protein identifications of each scan before annotating 
+      @param mapMS1 attach Ids to MS1 spectra using RT mapping only (without precursor, without m/z)
 
       @exception Exception::MissingInformation is thrown if the MetaInfoInterface of @p ids does not contain 'MZ' and 'RT'.
 */
     template <typename PeakType>
-    void annotate(MSExperiment<PeakType> & map, const std::vector<PeptideIdentification> & ids, const std::vector<ProteinIdentification> & protein_ids)
+    void annotate(MSExperiment<PeakType>& map, const std::vector<PeptideIdentification>& ids, const std::vector<ProteinIdentification>& protein_ids, const bool clear_ids = false, const bool mapMS1 = false)
     {
       checkHits_(ids);
 
-      //append protein identifications
+      if (clear_ids)
+      { // start with empty IDs
+        vector<PeptideIdentification> empty_ids;
+        for (MSExperiment<PeakType>::iterator it = map.begin(); it != map.end(); ++it)
+        {
+          it->setPeptideIdentifications(empty_ids);
+        }
+        std::vector<ProteinIdentification> empty_prot_ids;
+        map.setProteinIdentifications(empty_prot_ids);
+      }
+
+      // append protein identifications
       map.getProteinIdentifications().insert(map.getProteinIdentifications().end(), protein_ids.begin(), protein_ids.end());
 
-      //store mapping of scan RT to index
+      // store mapping of scan RT to index
       std::multimap<DoubleReal, Size> experiment_precursors;
       for (Size i = 0; i < map.size(); i++)
       {
         experiment_precursors.insert(std::make_pair(map[i].getRT(), i));
       }
 
-      //store mapping of identification RT to index
+      // store mapping of identification RT to index
       std::multimap<DoubleReal, Size> identifications_precursors;
       for (Size i = 0; i < ids.size(); i++)
       {
         identifications_precursors.insert(std::make_pair(ids[i].getMetaValue("RT"), i));
       }
 
-      //calculate the actual mapping
+      // calculate the actual mapping
       std::multimap<DoubleReal, Size>::iterator experiment_iterator = experiment_precursors.begin();
       std::multimap<DoubleReal, Size>::iterator identifications_iterator = identifications_precursors.begin();
       Size matches(0);
@@ -124,9 +137,9 @@ public:
           if (fabs(experiment_iterator->first - identifications_iterator->first) < rt_tolerance_)
           {
             // testing whether the m/z fits
-            if (!map[experiment_iterator->second].getPrecursors().empty())
+            if (!map[experiment_iterator->second].getPrecursors().empty() || mapMS1)
             {
-              if (fabs((DoubleReal)(ids[identifications_iterator->second].getMetaValue("MZ")) - map[experiment_iterator->second].getPrecursors()[0].getMZ()) < mz_tolerance_)
+              if (mapMS1 || (fabs((DoubleReal)(ids[identifications_iterator->second].getMetaValue("MZ")) - map[experiment_iterator->second].getPrecursors()[0].getMZ()) < mz_tolerance_))
               {
                 if (!(ids[identifications_iterator->second].empty()))
                 {
