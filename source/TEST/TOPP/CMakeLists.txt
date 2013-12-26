@@ -746,6 +746,7 @@ add_test("TOPP_NoiseFilterGaussian_2" ${TOPP_BIN_PATH}/NoiseFilterGaussian -test
 add_test("TOPP_NoiseFilterGaussian_2_out1" ${DIFF} -in1 NoiseFilterGaussian_2.tmp -in2 ${DATA_DIR_TOPP}/NoiseFilterGaussian_2_output.chrom.mzML )
 set_tests_properties("TOPP_NoiseFilterGaussian_2_out1" PROPERTIES DEPENDS "TOPP_NoiseFilterGaussian_2")
 
+# lowmem variation of the algorithm
 add_test("TOPP_NoiseFilterGaussian_3" ${TOPP_BIN_PATH}/NoiseFilterGaussian -test -ini ${DATA_DIR_TOPP}/NoiseFilterGaussian_1_parameters.ini -in ${DATA_DIR_TOPP}/NoiseFilterGaussian_1_input.mzML -out NoiseFilterGaussian_3.tmp -processOption lowmemory)
 add_test("TOPP_NoiseFilterGaussian_3_out1" ${DIFF} -in1 NoiseFilterGaussian_3.tmp -in2 ${DATA_DIR_TOPP}/NoiseFilterGaussian_1_output.mzML )
 set_tests_properties("TOPP_NoiseFilterGaussian_3_out1" PROPERTIES DEPENDS "TOPP_NoiseFilterGaussian_3")
@@ -759,6 +760,14 @@ set_tests_properties("TOPP_NoiseFilterSGolay_1_out1" PROPERTIES DEPENDS "TOPP_No
 add_test("TOPP_NoiseFilterSGolay_2" ${TOPP_BIN_PATH}/NoiseFilterSGolay -test -ini ${DATA_DIR_TOPP}/NoiseFilterSGolay_2_parameters.ini -in ${DATA_DIR_TOPP}/NoiseFilterSGolay_2_input.chrom.mzML -out NoiseFilterSGolay_2.tmp)
 add_test("TOPP_NoiseFilterSGolay_2_out1" ${DIFF} -in1 NoiseFilterSGolay_2.tmp -in2 ${DATA_DIR_TOPP}/NoiseFilterSGolay_2_output.chrom.mzML )
 set_tests_properties("TOPP_NoiseFilterSGolay_2_out1" PROPERTIES DEPENDS "TOPP_NoiseFilterSGolay_2")
+
+# lowmem variation of the algorithm
+add_test("TOPP_NoiseFilterSGolay_3" ${TOPP_BIN_PATH}/NoiseFilterSGolay -test -ini ${DATA_DIR_TOPP}/NoiseFilterSGolay_1_parameters.ini -in ${DATA_DIR_TOPP}/NoiseFilterSGolay_1_input.mzML -out NoiseFilterSGolay_3.tmp -processOption lowmemory)
+add_test("TOPP_NoiseFilterSGolay_3_out1" ${DIFF} -in1 NoiseFilterSGolay_3.tmp -in2 ${DATA_DIR_TOPP}/NoiseFilterSGolay_1_output.mzML )
+set_tests_properties("TOPP_NoiseFilterSGolay_3_out1" PROPERTIES DEPENDS "TOPP_NoiseFilterSGolay_3")
+add_test("TOPP_NoiseFilterSGolay_4" ${TOPP_BIN_PATH}/NoiseFilterSGolay -test -ini ${DATA_DIR_TOPP}/NoiseFilterSGolay_2_parameters.ini -in ${DATA_DIR_TOPP}/NoiseFilterSGolay_2_input.chrom.mzML -out NoiseFilterSGolay_4.tmp -processOption lowmemory)
+add_test("TOPP_NoiseFilterSGolay_4_out1" ${DIFF} -in1 NoiseFilterSGolay_4.tmp -in2 ${DATA_DIR_TOPP}/NoiseFilterSGolay_2_output.chrom.mzML )
+set_tests_properties("TOPP_NoiseFilterSGolay_4_out1" PROPERTIES DEPENDS "TOPP_NoiseFilterSGolay_4")
 
 ### PeakPicker tests
 add_test("TOPP_PeakPickerWavelet_1" ${TOPP_BIN_PATH}/PeakPickerWavelet  -test -ini ${DATA_DIR_TOPP}/PeakPickerWavelet_parameters.ini -in ${DATA_DIR_TOPP}/PeakPickerWavelet_input.mzML -out PeakPickerWavelet_1.tmp)

@@ -40,6 +40,8 @@
 #include <OpenMS/FORMAT/PeakTypeEstimator.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 
+#include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -100,12 +102,43 @@ public:
   {
   }
 
+  /**
+    @brief Helper class for the Low Memory Noise filtering
+  */
+  class NFSGolayMzMLConsumer :
+    public MSDataWritingConsumer 
+  {
+
+  public:
+
+    NFSGolayMzMLConsumer(String filename, SavitzkyGolayFilter sgf) :
+      MSDataWritingConsumer(filename) 
+    {
+      sgf_ = sgf;
+    }
+
+    void processSpectrum_(MapType::SpectrumType & s)
+    {
+      sgf_.filter(s);
+    }
+
+    void processChromatogram_(MapType::ChromatogramType & c) 
+    {
+      sgf_.filter(c);
+    }
+
+    SavitzkyGolayFilter sgf_;
+  };
+
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "input raw data file ");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
     registerOutputFile_("out", "<file>", "", "output raw data file ");
     setValidFormats_("out", ListUtils::create<String>("mzML"));
+
+    registerStringOption_("processOption", "<name>", "inmemory", "Whether to load all data and process them in-memory or whether to process the data on the fly (lowmemory) without loading the whole file into memory first", false, true);
+    setValidStrings_("processOption", ListUtils::create<String>("inmemory,lowmemory"));
 
     registerSubsection_("algorithm", "Algorithm parameters section");
   }
@@ -115,13 +148,43 @@ public:
     return SavitzkyGolayFilter().getDefaults();
   }
 
+  ExitCodes doLowMemAlgorithm(SavitzkyGolayFilter & sgolay)
+  {
+    ///////////////////////////////////
+    // Create the consumer object, add data processing
+    ///////////////////////////////////
+    NFSGolayMzMLConsumer * sgolayConsumer = new NFSGolayMzMLConsumer(out, sgolay);
+    sgolayConsumer->addDataProcessing(getProcessingInfo_(DataProcessing::SMOOTHING));
+
+    ///////////////////////////////////
+    // Create new MSDataReader and set our consumer
+    ///////////////////////////////////
+    MzMLFile mz_data_file;
+    mz_data_file.transform(in, sgolayConsumer);
+
+    delete sgolayConsumer;
+
+    return EXECUTION_OK;
+  }
+
   ExitCodes main_(int, const char **)
   {
     //-------------------------------------------------------------
     // parameter handling
     //-------------------------------------------------------------
-    String in = getStringOption_("in");
-    String out = getStringOption_("out");
+    in = getStringOption_("in");
+    out = getStringOption_("out");
+    String processOption = getStringOption_("processOption");
+
+    Param filter_param = getParam_().copy("algorithm:", true);
+    writeDebug_("Parameters passed to filter", filter_param, 3);
+
+    SavitzkyGolayFilter sgolay;
+    sgolay.setLogType(log_type_);
+    sgolay.setParameters(filter_param);
+
+    if (processOption == "lowmemory")
+      return doLowMemAlgorithm(sgolay);
 
     //-------------------------------------------------------------
     // loading input
@@ -166,12 +229,6 @@ public:
     //-------------------------------------------------------------
     // calculations
     //-------------------------------------------------------------
-    Param filter_param = getParam_().copy("algorithm:", true);
-    writeDebug_("Parameters passed to filter", filter_param, 3);
-
-    SavitzkyGolayFilter sgolay;
-    sgolay.setLogType(log_type_);
-    sgolay.setParameters(filter_param);
     sgolay.filterExperiment(exp);
 
     //-------------------------------------------------------------
@@ -185,6 +242,9 @@ public:
 
     return EXECUTION_OK;
   }
+
+  String in;
+  String out;
 
 };
 
