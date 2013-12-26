@@ -736,9 +736,8 @@ if(NOT DISABLE_OPENSWATH)
   ADD_TEST("TOPP_OpenSwathWorkflow_1_out2" ${DIFF} -in1 OpenSwathWorkflow_1.chrom.mzML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_1_output.chrom.mzML)
   set_tests_properties("TOPP_OpenSwathWorkflow_1_out1" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_1")
   set_tests_properties("TOPP_OpenSwathWorkflow_1_out2" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_1")
-
-
 endif(NOT DISABLE_OPENSWATH)
+
 ### NoiseFilter tests
 add_test("TOPP_NoiseFilterGaussian_1" ${TOPP_BIN_PATH}/NoiseFilterGaussian -test -ini ${DATA_DIR_TOPP}/NoiseFilterGaussian_1_parameters.ini -in ${DATA_DIR_TOPP}/NoiseFilterGaussian_1_input.mzML -out NoiseFilterGaussian_1.tmp)
 add_test("TOPP_NoiseFilterGaussian_1_out1" ${DIFF} -in1 NoiseFilterGaussian_1.tmp -in2 ${DATA_DIR_TOPP}/NoiseFilterGaussian_1_output.mzML )
@@ -746,6 +745,13 @@ set_tests_properties("TOPP_NoiseFilterGaussian_1_out1" PROPERTIES DEPENDS "TOPP_
 add_test("TOPP_NoiseFilterGaussian_2" ${TOPP_BIN_PATH}/NoiseFilterGaussian -test -ini ${DATA_DIR_TOPP}/NoiseFilterGaussian_2_parameters.ini -in ${DATA_DIR_TOPP}/NoiseFilterGaussian_2_input.chrom.mzML -out NoiseFilterGaussian_2.tmp)
 add_test("TOPP_NoiseFilterGaussian_2_out1" ${DIFF} -in1 NoiseFilterGaussian_2.tmp -in2 ${DATA_DIR_TOPP}/NoiseFilterGaussian_2_output.chrom.mzML )
 set_tests_properties("TOPP_NoiseFilterGaussian_2_out1" PROPERTIES DEPENDS "TOPP_NoiseFilterGaussian_2")
+
+add_test("TOPP_NoiseFilterGaussian_3" ${TOPP_BIN_PATH}/NoiseFilterGaussian -test -ini ${DATA_DIR_TOPP}/NoiseFilterGaussian_1_parameters.ini -in ${DATA_DIR_TOPP}/NoiseFilterGaussian_1_input.mzML -out NoiseFilterGaussian_3.tmp -processOption lowmemory)
+add_test("TOPP_NoiseFilterGaussian_3_out1" ${DIFF} -in1 NoiseFilterGaussian_3.tmp -in2 ${DATA_DIR_TOPP}/NoiseFilterGaussian_1_output.mzML )
+set_tests_properties("TOPP_NoiseFilterGaussian_3_out1" PROPERTIES DEPENDS "TOPP_NoiseFilterGaussian_3")
+add_test("TOPP_NoiseFilterGaussian_4" ${TOPP_BIN_PATH}/NoiseFilterGaussian -test -ini ${DATA_DIR_TOPP}/NoiseFilterGaussian_2_parameters.ini -in ${DATA_DIR_TOPP}/NoiseFilterGaussian_2_input.chrom.mzML -out NoiseFilterGaussian_4.tmp -processOption lowmemory)
+add_test("TOPP_NoiseFilterGaussian_4_out1" ${DIFF} -in1 NoiseFilterGaussian_4.tmp -in2 ${DATA_DIR_TOPP}/NoiseFilterGaussian_2_output.chrom.mzML )
+set_tests_properties("TOPP_NoiseFilterGaussian_4_out1" PROPERTIES DEPENDS "TOPP_NoiseFilterGaussian_4")
 
 add_test("TOPP_NoiseFilterSGolay_1" ${TOPP_BIN_PATH}/NoiseFilterSGolay -test -ini ${DATA_DIR_TOPP}/NoiseFilterSGolay_1_parameters.ini -in ${DATA_DIR_TOPP}/NoiseFilterSGolay_1_input.mzML -out NoiseFilterSGolay_1.tmp)
 add_test("TOPP_NoiseFilterSGolay_1_out1" ${DIFF} -in1 NoiseFilterSGolay_1.tmp -in2 ${DATA_DIR_TOPP}/NoiseFilterSGolay_1_output.mzML )

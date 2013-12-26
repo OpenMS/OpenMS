@@ -40,6 +40,8 @@
 #include <OpenMS/FORMAT/PeakTypeEstimator.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 
+#include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -97,12 +99,43 @@ public:
   {
   }
 
+  /**
+    @brief Helper class for the Low Memory Noise filtering
+  */
+  class NFGaussMzMLConsumer :
+    public MSDataWritingConsumer 
+  {
+
+  public:
+
+    NFGaussMzMLConsumer(String filename, GaussFilter gf) :
+      MSDataWritingConsumer(filename) 
+    {
+      gf_ = gf;
+    }
+
+    void processSpectrum_(MapType::SpectrumType & s)
+    {
+      gf_.filter(s);
+    }
+
+    void processChromatogram_(MapType::ChromatogramType & c) 
+    {
+      gf_.filter(c);
+    }
+
+    GaussFilter gf_;
+  };
+
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "input raw data file ");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
     registerOutputFile_("out", "<file>", "", "output raw data file ");
     setValidFormats_("out", ListUtils::create<String>("mzML"));
+
+    registerStringOption_("processOption", "<name>", "inmemory", "Whether to load all data and process them in-memory or whether to process the data on the fly (lowmemory) without loading the whole file into memory first", false, true);
+    setValidStrings_("processOption", ListUtils::create<String>("inmemory,lowmemory"));
 
     registerSubsection_("algorithm", "Algorithm parameters section");
   }
@@ -112,13 +145,43 @@ public:
     return GaussFilter().getDefaults();
   }
 
+  ExitCodes doLowMemAlgorithm(GaussFilter & gauss)
+  {
+    ///////////////////////////////////
+    // Create the consumer object, add data processing
+    ///////////////////////////////////
+    NFGaussMzMLConsumer * gaussConsumer = new NFGaussMzMLConsumer(out, gauss);
+    gaussConsumer->addDataProcessing(getProcessingInfo_(DataProcessing::SMOOTHING));
+
+    ///////////////////////////////////
+    // Create new MSDataReader and set our consumer
+    ///////////////////////////////////
+    MzMLFile mz_data_file;
+    mz_data_file.transform(in, gaussConsumer);
+
+    delete gaussConsumer;
+
+    return EXECUTION_OK;
+  }
+
   ExitCodes main_(int, const char **)
   {
     //-------------------------------------------------------------
     // parameter handling
     //-------------------------------------------------------------
-    String in = getStringOption_("in");
-    String out = getStringOption_("out");
+    in = getStringOption_("in");
+    out = getStringOption_("out");
+    String processOption = getStringOption_("processOption");
+
+    Param filter_param = getParam_().copy("algorithm:", true);
+    writeDebug_("Parameters passed to filter", filter_param, 3);
+
+    GaussFilter gauss;
+    gauss.setLogType(log_type_);
+    gauss.setParameters(filter_param);
+
+    if (processOption == "lowmemory")
+      return doLowMemAlgorithm(gauss);
 
     //-------------------------------------------------------------
     // loading input
@@ -163,12 +226,6 @@ public:
     //-------------------------------------------------------------
     // calculations
     //-------------------------------------------------------------
-    Param filter_param = getParam_().copy("algorithm:", true);
-    writeDebug_("Parameters passed to filter", filter_param, 3);
-
-    GaussFilter gauss;
-    gauss.setLogType(log_type_);
-    gauss.setParameters(filter_param);
     try
     {
       gauss.filterExperiment(exp);
@@ -191,6 +248,8 @@ public:
     return EXECUTION_OK;
   }
 
+  String in;
+  String out;
 };
 
 
