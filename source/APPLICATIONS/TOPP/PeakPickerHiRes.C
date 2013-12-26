@@ -37,6 +37,8 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/PeakTypeEstimator.h>
 
+#include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -119,12 +121,51 @@ public:
 
 protected:
 
+  /**
+    @brief Helper class for the Low Memory peak-picking
+  */
+  class PPHiResMzMLConsumer :
+    public MSDataWritingConsumer 
+  {
+
+  public:
+
+    PPHiResMzMLConsumer(String filename, PeakPickerHiRes pp) :
+      MSDataWritingConsumer(filename) 
+    {
+      pp_ = pp;
+      ms1_only_ = pp.getParameters().getValue("ms1_only").toBool();
+    }
+
+    void processSpectrum_(MapType::SpectrumType & s)
+    {
+      if (ms1_only_ && (s.getMSLevel() != 1)) {return;}
+
+      MapType::SpectrumType sout;
+      pp_.pick(s, sout);
+      s = sout;
+    }
+
+    void processChromatogram_(MapType::ChromatogramType & c) 
+    {
+      MapType::ChromatogramType cout;
+      pp_.pick(c, cout);
+      c = cout;
+    }
+
+    PeakPickerHiRes pp_;
+    bool ms1_only_;
+  };
+
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in", "<file>", "", "input profile data file ");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
     registerOutputFile_("out", "<file>", "", "output peak file ");
     setValidFormats_("out", ListUtils::create<String>("mzML"));
+
+    registerStringOption_("processOption", "<name>", "inmemory", "Whether to load all data and process them in-memory or whether to process the data on the fly (lowmemory) without loading the whole file into memory first", false, true);
+    setValidStrings_("processOption", ListUtils::create<String>("inmemory,lowmemory"));
 
     registerSubsection_("algorithm", "Algorithm parameters section");
   }
@@ -134,14 +175,44 @@ protected:
     return PeakPickerHiRes().getDefaults();
   }
 
+  ExitCodes doLowMemAlgorithm(PeakPickerHiRes & pp)
+  {
+    ///////////////////////////////////
+    // Create the consumer object, add data processing
+    ///////////////////////////////////
+    PPHiResMzMLConsumer * ppConsumer = new PPHiResMzMLConsumer(out, pp);
+    ppConsumer->addDataProcessing(getProcessingInfo_(DataProcessing::PEAK_PICKING));
+
+    ///////////////////////////////////
+    // Create new MSDataReader and set our consumer
+    ///////////////////////////////////
+    MzMLFile mz_data_file;
+    mz_data_file.transform(in, ppConsumer);
+
+    delete ppConsumer;
+
+    return EXECUTION_OK;
+  }
+
   ExitCodes main_(int, const char **)
   {
     //-------------------------------------------------------------
     // parameter handling
     //-------------------------------------------------------------
 
-    String in = getStringOption_("in");
-    String out = getStringOption_("out");
+    in = getStringOption_("in");
+    out = getStringOption_("out");
+    String processOption = getStringOption_("processOption");
+
+    Param pepi_param = getParam_().copy("algorithm:", true);
+    writeDebug_("Parameters passed to PeakPickerHiRes", pepi_param, 3);
+
+    PeakPickerHiRes pp;
+    pp.setLogType(log_type_);
+    pp.setParameters(pepi_param);
+
+    if (processOption == "lowmemory")
+      return doLowMemAlgorithm(pp);
 
     //-------------------------------------------------------------
     // loading input
@@ -189,13 +260,6 @@ protected:
     // pick
     //-------------------------------------------------------------
     MSExperiment<> ms_exp_peaks;
-
-    Param pepi_param = getParam_().copy("algorithm:", true);
-    writeDebug_("Parameters passed to PeakPickerHiRes", pepi_param, 3);
-
-    PeakPickerHiRes pp;
-    pp.setLogType(log_type_);
-    pp.setParameters(pepi_param);
     pp.pickExperiment(ms_exp_raw, ms_exp_peaks);
 
     //-------------------------------------------------------------
@@ -208,6 +272,9 @@ protected:
     return EXECUTION_OK;
   }
 
+  // parameters
+  String in;
+  String out;
 };
 
 
