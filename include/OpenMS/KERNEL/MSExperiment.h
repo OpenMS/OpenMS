@@ -325,7 +325,7 @@ public:
         }
 
         // add either datapoint or mass traces (depending on template argument value)
-        ContainerAdd_<Container::const_iterator, add_mass_traces>::addData_(spectrum, iter);
+        ContainerAdd_<typename Container::const_iterator, add_mass_traces>::addData_(spectrum, iter);
       }
     }
 
@@ -897,14 +897,14 @@ private:
     template<typename ContainerIterator, bool addMassTraces>
     struct ContainerAdd_
     {
-      static void addData_(SpectrumType* spectrum, typename ContainerIterator& iter);      
+      static void addData_(SpectrumType* spectrum, ContainerIterator& iter);      
     };
 
     template<typename ContainerIterator>
     struct ContainerAdd_<ContainerIterator, false>
     {
       /// general method for adding data points (no mass traces desired or found)
-      static void addData_(SpectrumType* spectrum, typename ContainerIterator& iter)
+      static void addData_(SpectrumType* spectrum, ContainerIterator& iter)
       {
         // create temporary peak and insert it into spectrum
         spectrum->insert(spectrum->end(), PeakType());
