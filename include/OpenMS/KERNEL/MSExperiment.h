@@ -325,7 +325,7 @@ public:
         }
 
         // add either datapoint or mass traces (depending on template argument value)
-        ContainerAdd_<Container::const_iterator>::addData_<add_mass_traces>(spectrum, iter);
+        ContainerAdd_<Container::const_iterator, add_mass_traces>::addData_(spectrum, iter);
       }
     }
 
@@ -894,12 +894,16 @@ protected:
 private:
    
     /// Helper class to add either general data points in set2DData or use mass traces from meta values
-    template<class ContainerIterator>
-    class ContainerAdd_
+    template<typename ContainerIterator, bool addMassTraces>
+    struct ContainerAdd_
     {
-    public:
+      static void addData_(SpectrumType* spectrum, typename ContainerIterator& iter);      
+    };
+
+    template<typename ContainerIterator>
+    struct ContainerAdd_<ContainerIterator, false>
+    {
       /// general method for adding data points (no mass traces desired or found)
-      template <bool var> 
       static void addData_(SpectrumType* spectrum, typename ContainerIterator& iter)
       {
         // create temporary peak and insert it into spectrum
@@ -907,10 +911,13 @@ private:
         spectrum->back().setIntensity(iter->getIntensity());
         spectrum->back().setPosition(iter->getMZ());
       }
-    
+    };
+
+    template<typename ContainerIterator>
+    struct ContainerAdd_<ContainerIterator, true>
+    {
       /// specialization for adding feature mass traces
-      template <> 
-      static void addData_<true>(SpectrumType* spectrum, typename ContainerIterator& iter)
+      static void addData_(SpectrumType* spectrum, ContainerIterator& iter)
       {
         if (iter->metaValueExists("num_of_masstraces"))
         {
@@ -927,9 +934,8 @@ private:
             spectrum->back().setPosition(iter->getMZ() + Constants::C13C12_MASSDIFF_U/iter->getCharge()*i);
           }
         }
-        else addData_<false>(spectrum, iter);
+        else ContainerAdd_<ContainerIterator, false>::addData_(spectrum, iter);
       }
-
     };
 
   };
