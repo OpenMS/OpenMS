@@ -99,8 +99,8 @@ public:
 
       if (clear_ids)
       { // start with empty IDs
-        vector<PeptideIdentification> empty_ids;
-        for (MSExperiment<PeakType>::iterator it = map.begin(); it != map.end(); ++it)
+        std::vector<PeptideIdentification> empty_ids;
+        for (typename MSExperiment<PeakType>::iterator it = map.begin(); it != map.end(); ++it)
         {
           it->setPeptideIdentifications(empty_ids);
         }
