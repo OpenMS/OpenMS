@@ -297,7 +297,7 @@ protected:
     //-no <Integer> minimum size of peptides for no-enzyme and semi-tryptic searches
     //-nox <Integer> maximum size of peptides for no-enzyme and semi-tryptic searches
     registerIntOption_("v", "<Integer>", 1, "number of missed cleavages allowed", false);
-    registerIntOption_("e", "<Integer>", 0, "id number of enzyme to use (0 (i.e. trypsin) is the default, 17 would be no enzyme (i.e. unspecific digestion), for more please refer to omssacl -help).", false);
+    registerIntOption_("e", "<Integer>", 0, "id number of enzyme to use (0 (i.e. trypsin) is the default, 17 would be no enzyme (i.e. unspecific digestion). Please refer to 'omssacl -el' for a listing.", false);
     registerIntOption_("no", "<Integer>", 4, "minimum size of peptides for no-enzyme and semi-tryptic searches", false, true);
     registerIntOption_("nox", "<Integer>", 40, "maximum size of peptides for no-enzyme and semi-tryptic searches", false, true);
 
