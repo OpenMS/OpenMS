@@ -253,9 +253,10 @@ public:
         {
           continue;
         }
+				typename Container::value_type s; // explicit object here, since instanciation within push_back() fails on VS<12
         for (typename SpectrumType::const_iterator it = spec->begin(); it != spec->end(); ++it)
         {
-          cont.push_back(typename Container::value_type());
+          cont.push_back(s);
           cont.back().setRT(spec->getRT());
           cont.back().setMZ(it->getMZ());
           cont.back().setIntensity(it->getIntensity());
