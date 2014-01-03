@@ -130,20 +130,20 @@ protected:
 
   public:
 
-    PPHiResMzMLConsumer(String filename, PeakPickerHiRes pp) :
+    PPHiResMzMLConsumer(String filename, const PeakPickerHiRes& pp) :
       MSDataWritingConsumer(filename) 
     {
       pp_ = pp;
       ms1_only_ = pp.getParameters().getValue("ms1_only").toBool();
     }
 
-    void processSpectrum_(MapType::SpectrumType & s)
+    void processSpectrum_(MapType::SpectrumType& s)
     {
       if (ms1_only_ && (s.getMSLevel() != 1)) {return;}
 
       MapType::SpectrumType sout;
       pp_.pick(s, sout);
-      s = sout;
+      s = sout;  // todo: swap? (requires implementation)
     }
 
     void processChromatogram_(MapType::ChromatogramType & c) 
@@ -152,6 +152,8 @@ protected:
       pp_.pick(c, cout);
       c = cout;
     }
+
+  private:
 
     PeakPickerHiRes pp_;
     bool ms1_only_;
@@ -175,21 +177,19 @@ protected:
     return PeakPickerHiRes().getDefaults();
   }
 
-  ExitCodes doLowMemAlgorithm(PeakPickerHiRes & pp)
+  ExitCodes doLowMemAlgorithm(const PeakPickerHiRes& pp)
   {
     ///////////////////////////////////
     // Create the consumer object, add data processing
     ///////////////////////////////////
-    PPHiResMzMLConsumer * ppConsumer = new PPHiResMzMLConsumer(out, pp);
-    ppConsumer->addDataProcessing(getProcessingInfo_(DataProcessing::PEAK_PICKING));
+    PPHiResMzMLConsumer pp_consumer(out, pp);
+    pp_consumer.addDataProcessing(getProcessingInfo_(DataProcessing::PEAK_PICKING));
 
     ///////////////////////////////////
     // Create new MSDataReader and set our consumer
     ///////////////////////////////////
     MzMLFile mz_data_file;
-    mz_data_file.transform(in, ppConsumer);
-
-    delete ppConsumer;
+    mz_data_file.transform(in, &pp_consumer);
 
     return EXECUTION_OK;
   }
@@ -202,7 +202,7 @@ protected:
 
     in = getStringOption_("in");
     out = getStringOption_("out");
-    String processOption = getStringOption_("processOption");
+    String process_option = getStringOption_("processOption");
 
     Param pepi_param = getParam_().copy("algorithm:", true);
     writeDebug_("Parameters passed to PeakPickerHiRes", pepi_param, 3);
@@ -211,8 +211,10 @@ protected:
     pp.setLogType(log_type_);
     pp.setParameters(pepi_param);
 
-    if (processOption == "lowmemory")
+    if (process_option == "lowmemory")
+    {
       return doLowMemAlgorithm(pp);
+    }
 
     //-------------------------------------------------------------
     // loading input
