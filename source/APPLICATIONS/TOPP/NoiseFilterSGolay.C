@@ -111,22 +111,23 @@ public:
 
   public:
 
-    NFSGolayMzMLConsumer(String filename, SavitzkyGolayFilter sgf) :
+    NFSGolayMzMLConsumer(const String& filename, const SavitzkyGolayFilter& sgf) :
       MSDataWritingConsumer(filename) 
     {
       sgf_ = sgf;
     }
 
-    void processSpectrum_(MapType::SpectrumType & s)
+    void processSpectrum_(MapType::SpectrumType& s)
     {
       sgf_.filter(s);
     }
 
-    void processChromatogram_(MapType::ChromatogramType & c) 
+    void processChromatogram_(MapType::ChromatogramType& c) 
     {
       sgf_.filter(c);
     }
 
+  private:
     SavitzkyGolayFilter sgf_;
   };
 
@@ -148,21 +149,19 @@ public:
     return SavitzkyGolayFilter().getDefaults();
   }
 
-  ExitCodes doLowMemAlgorithm(SavitzkyGolayFilter & sgolay)
+  ExitCodes doLowMemAlgorithm(const SavitzkyGolayFilter& sgolay)
   {
     ///////////////////////////////////
     // Create the consumer object, add data processing
     ///////////////////////////////////
-    NFSGolayMzMLConsumer * sgolayConsumer = new NFSGolayMzMLConsumer(out, sgolay);
-    sgolayConsumer->addDataProcessing(getProcessingInfo_(DataProcessing::SMOOTHING));
+    NFSGolayMzMLConsumer sgolayConsumer(out, sgolay);
+    sgolayConsumer.addDataProcessing(getProcessingInfo_(DataProcessing::SMOOTHING));
 
     ///////////////////////////////////
     // Create new MSDataReader and set our consumer
     ///////////////////////////////////
     MzMLFile mz_data_file;
-    mz_data_file.transform(in, sgolayConsumer);
-
-    delete sgolayConsumer;
+    mz_data_file.transform(in, &sgolayConsumer);
 
     return EXECUTION_OK;
   }
@@ -174,7 +173,7 @@ public:
     //-------------------------------------------------------------
     in = getStringOption_("in");
     out = getStringOption_("out");
-    String processOption = getStringOption_("processOption");
+    String process_option = getStringOption_("processOption");
 
     Param filter_param = getParam_().copy("algorithm:", true);
     writeDebug_("Parameters passed to filter", filter_param, 3);
@@ -183,8 +182,10 @@ public:
     sgolay.setLogType(log_type_);
     sgolay.setParameters(filter_param);
 
-    if (processOption == "lowmemory")
+    if (process_option == "lowmemory")
+    {
       return doLowMemAlgorithm(sgolay);
+    }
 
     //-------------------------------------------------------------
     // loading input

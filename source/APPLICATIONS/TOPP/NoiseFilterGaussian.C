@@ -108,22 +108,23 @@ public:
 
   public:
 
-    NFGaussMzMLConsumer(String filename, GaussFilter gf) :
+    NFGaussMzMLConsumer(const String& filename, const GaussFilter& gf) :
       MSDataWritingConsumer(filename) 
     {
       gf_ = gf;
     }
 
-    void processSpectrum_(MapType::SpectrumType & s)
+    void processSpectrum_(MapType::SpectrumType& s)
     {
       gf_.filter(s);
     }
 
-    void processChromatogram_(MapType::ChromatogramType & c) 
+    void processChromatogram_(MapType::ChromatogramType& c) 
     {
       gf_.filter(c);
     }
 
+  private:
     GaussFilter gf_;
   };
 
@@ -145,21 +146,19 @@ public:
     return GaussFilter().getDefaults();
   }
 
-  ExitCodes doLowMemAlgorithm(GaussFilter & gauss)
+  ExitCodes doLowMemAlgorithm(const GaussFilter& gauss)
   {
     ///////////////////////////////////
     // Create the consumer object, add data processing
     ///////////////////////////////////
-    NFGaussMzMLConsumer * gaussConsumer = new NFGaussMzMLConsumer(out, gauss);
-    gaussConsumer->addDataProcessing(getProcessingInfo_(DataProcessing::SMOOTHING));
+    NFGaussMzMLConsumer gaussConsumer(out, gauss);
+    gaussConsumer.addDataProcessing(getProcessingInfo_(DataProcessing::SMOOTHING));
 
     ///////////////////////////////////
     // Create new MSDataReader and set our consumer
     ///////////////////////////////////
     MzMLFile mz_data_file;
-    mz_data_file.transform(in, gaussConsumer);
-
-    delete gaussConsumer;
+    mz_data_file.transform(in, &gaussConsumer);
 
     return EXECUTION_OK;
   }
@@ -171,7 +170,7 @@ public:
     //-------------------------------------------------------------
     in = getStringOption_("in");
     out = getStringOption_("out");
-    String processOption = getStringOption_("processOption");
+    String process_option = getStringOption_("processOption");
 
     Param filter_param = getParam_().copy("algorithm:", true);
     writeDebug_("Parameters passed to filter", filter_param, 3);
@@ -180,8 +179,10 @@ public:
     gauss.setLogType(log_type_);
     gauss.setParameters(filter_param);
 
-    if (processOption == "lowmemory")
+    if (process_option == "lowmemory")
+    {
       return doLowMemAlgorithm(gauss);
+    }
 
     //-------------------------------------------------------------
     // loading input
