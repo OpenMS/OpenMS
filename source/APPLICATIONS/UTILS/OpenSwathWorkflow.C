@@ -1127,28 +1127,6 @@ protected:
     return trafo_rtnorm;
   }
 
-  static int computeExpectedChromatograms(const std::vector< OpenSwath::SwathMap > & swath_maps,
-    const OpenSwath::LightTargetedExperiment & transition_exp)
-  {
-    int expected_chromatograms = 0;
-    for (Size i = 0; i < transition_exp.transitions.size(); i++)
-    {
-      for (Size j = 0; j < swath_maps.size(); j++)
-      {
-        if (!swath_maps[j].ms1 && transition_exp.transitions[i].precursor_mz >= swath_maps[j].lower
-          && transition_exp.transitions[i].precursor_mz <= swath_maps[j].upper)
-        {
-          // here we just check whether there is a SWATH from which we could
-          // potentially extract this transition, if we find one we abort (e.g.
-          // dont consider min_upper_edge_dist here).
-          expected_chromatograms++;
-          break;
-        }
-      }
-    }
-    return expected_chromatograms;
-  }
-
   ExitCodes main_(int, const char **)
   {
     ///////////////////////////////////
@@ -1251,7 +1229,7 @@ protected:
     if (!out_chrom.empty())
     {
       chromConsumer = new PlainMSDataWritingConsumer(out_chrom);
-      expected_chromatograms = computeExpectedChromatograms(swath_maps, transition_exp);
+      expected_chromatograms = transition_exp.transitions.size()
       chromConsumer->setExpectedSize(0, expected_chromatograms);
       chromConsumer->setExperimentalSettings(*exp_meta);
       chromConsumer->getOptions().setWriteIndex(true);  // ensure that we write the index
@@ -1278,26 +1256,6 @@ protected:
       addDataProcessing_(out_featureFile, getProcessingInfo_(DataProcessing::QUANTITATION));
       out_featureFile.ensureUniqueId();
       FeatureXMLFile().store(out, out_featureFile);
-    }
-
-    // Check that the number in <chromatogramList count=...> is equal to the
-    // number of actually written chromatograms.
-    if (!out_chrom.empty() && (int)chromConsumer->getNrChromatogramsWritten() != expected_chromatograms)
-    {
-      std::cerr << "Expected to extract " << transition_exp.transitions.size() <<
-        " chromatograms, however " << chromConsumer->getNrChromatogramsWritten() <<
-        " were written to disk. Something is off here!" << std::endl;
-      if ( chromConsumer->getNrChromatogramsWritten() < transition_exp.transitions.size() )
-      {
-      std::cerr << "Will try to rescue by writing " <<
-        transition_exp.transitions.size() - chromConsumer->getNrChromatogramsWritten() <<
-        " extra empty chromatograms." << std::endl;
-        for (Size i = 0; i < transition_exp.transitions.size() - chromConsumer->getNrChromatogramsWritten(); i++)
-        {
-          OpenMS::MSChromatogram<> c;
-          chromConsumer->consumeChromatogram(c);
-        }
-      }
     }
 
     delete chromConsumer;
