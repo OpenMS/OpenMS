@@ -458,7 +458,7 @@ namespace OpenMS
       // for that we look at the first point in the first pattern
       const SILACPattern & firstPattern = *(cluster_it->second.begin())->second;
       const SILACPoint & firstPoint = *(firstPattern.points.begin());
-      UInt numberPeptides = firstPoint.intensities.size();
+      Size numberPeptides = firstPoint.intensities.size();
       UInt charge = firstPoint.charge;
 
       // sums for each peptide of the pair (triplet, singlet, ...)
