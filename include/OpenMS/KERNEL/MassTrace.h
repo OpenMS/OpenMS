@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Erhan Kenar $
-// $Authors: Erhan Kenar, Holger Franken $
+// $Authors: Erhan Kenar, Holger Franken, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #ifndef OPENMS_KERNEL_MASSTRACE_H
@@ -65,10 +65,10 @@ public:
     MassTrace();
 
     /// Detailed constructor 1
-    MassTrace(const std::list<PeakType> &, const DoubleReal & scan_time = 1.0);
+    MassTrace(const std::list<PeakType>& trace_peaks, const DoubleReal & scan_time = 1.0);
 
     /// Detailed constructor 2
-    MassTrace(const std::vector<PeakType> &, const DoubleReal & scan_time = 1.0);
+    MassTrace(const std::vector<PeakType>& trace_peaks, const DoubleReal & scan_time = 1.0);
 
     /// Destructor
     ~MassTrace();
@@ -80,8 +80,8 @@ public:
     MassTrace & operator=(const MassTrace &);
 
     /// Random access operator
-    PeakType & operator[](const Size & mt_idx);
-    const PeakType & operator[](const Size & mt_idx) const;
+    PeakType& operator[](const Size & mt_idx);
+    const PeakType& operator[](const Size & mt_idx) const;
 
 
     /** @name Iterators
@@ -154,30 +154,15 @@ public:
     }
 
     /// Returns the centroid m/z.
-    DoubleReal getCentroidMZ()
-    {
-      return centroid_mz_;
-    }
-
     DoubleReal getCentroidMZ() const
     {
       return centroid_mz_;
     }
 
     /// Returns the centroid RT.
-    DoubleReal getCentroidRT()
-    {
-      return centroid_rt_;
-    }
-
     DoubleReal getCentroidRT() const
     {
       return centroid_rt_;
-    }
-
-    DoubleReal getCentroidSD()
-    {
-      return centroid_sd_;
     }
 
     DoubleReal getCentroidSD() const
@@ -185,31 +170,9 @@ public:
       return centroid_sd_;
     }
 
-    void setCentroidSD(const DoubleReal & tmp_sd)
-    {
-      centroid_sd_ = tmp_sd;
-    }
-
-    DoubleReal getFWHM()
-    {
-        return fwhm_;
-    }
-
     DoubleReal getFWHM() const
     {
         return fwhm_;
-    }
-
-    DoubleReal getTraceLength()
-    {
-        DoubleReal length(0.0);
-
-        if (trace_peaks_.size() > 1)
-        {
-            length = std::fabs(trace_peaks_.rbegin()->getRT() - trace_peaks_.begin()->getRT());
-        }
-
-        return length;
     }
 
     DoubleReal getTraceLength() const
@@ -224,23 +187,13 @@ public:
         return length;
     }
 
-    std::pair<Size, Size> getFWHMborders()
-    {
-      return std::make_pair(fwhm_start_idx_, fwhm_end_idx_);
-    }
-
     std::pair<Size, Size> getFWHMborders() const
     {
       return std::make_pair(fwhm_start_idx_, fwhm_end_idx_);
     }
 
     /// Gets smoothed intensities (empty if no smoothing was explicitly done beforehand!).
-    std::vector<DoubleReal> getSmoothedIntensities()
-    {
-      return smoothed_intensities_;
-    }
-
-    std::vector<DoubleReal> getSmoothedIntensities() const
+    const std::vector<DoubleReal>& getSmoothedIntensities() const
     {
       return smoothed_intensities_;
     }
@@ -257,35 +210,38 @@ public:
     }
 
     /// Get scan time of mass trace
-    DoubleReal getScanTime()
+    DoubleReal getScanTime() const
     {
       return scan_time_;
     }
 
     /** @name Computational methods
         */
-    /// Sum up mass trace peak intensities for chromatographic peak area estimation.
-    DoubleReal computeSmoothedPeakArea();
+    /// Sum all non-negative (smoothed!) intensities  in the mass trace
+    DoubleReal computeSmoothedPeakArea() const;
 
-    DoubleReal computePeakArea();
+    /// Sum intensities of all peaks in the mass trace
     DoubleReal computePeakArea() const;
 
-
     /// Return the index of the mass trace's highest peak within the MassTrace container (based either on raw or smoothed intensities).
-    Size findMaxByIntPeak(bool) const;
+    Size findMaxByIntPeak(bool use_smoothed_ints = false) const;
 
-    /// Estimate FWHM of chromatographic peak in seconds (based on either raw or smoothed intensities). As a side-effect, the rough estimation of the number of scans within the FWHM range will be updated (see setFWHMScansNum).
-    DoubleReal estimateFWHM(bool);
+    /// Estimate FWHM of chromatographic peak in seconds (based on either raw or smoothed intensities).
+    /// stores result internally, use getFWHM().
+    DoubleReal estimateFWHM(bool use_smoothed_ints = false);
+
+    /// Instead of estimating a FWHM and LC peak borders, use the whole mass trace, i.e. set borders to the margins of the array.
+    /// Useful for direct injection data.
+    void disableFHWM();
 
     /// Compute chromatographic peak area within the FWHM range.
-    DoubleReal computeFwhmAreaSmooth();
-    DoubleReal computeFwhmArea();
-    DoubleReal computeFwhmAreaSmoothRobust();
-    DoubleReal computeFwhmAreaRobust();
+    DoubleReal computeFwhmAreaSmooth() const;
+    DoubleReal computeFwhmArea() const;
+    DoubleReal computeFwhmAreaSmoothRobust() const;
+    DoubleReal computeFwhmAreaRobust() const;
 
-    DoubleReal getIntensity(bool);
-    DoubleReal getMaxIntensity(bool);
-    DoubleReal getMaxIntensity(bool) const;
+    DoubleReal getIntensity(bool smoothed) const;
+    DoubleReal getMaxIntensity(bool smoothed) const;
 
     /// Return the mass trace's convex hull.
     ConvexHull2D getConvexhull() const;
@@ -313,6 +269,9 @@ public:
     /// Compute & update centroid m/z as weighted mean of m/z values.
     void updateWeightedMeanMZ();
 
+    /// Compute & update m/z standard deviation of mass trace as weighted mean of m/z values.
+    /// Make sure to call update(Weighted)(Mean|Median)MZ() first!
+    /// use getCentroidSD() to get result
     void updateWeightedMZsd();
 
 private:

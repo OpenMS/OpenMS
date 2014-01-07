@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Erhan Kenar $
-// $Authors: Erhan Kenar, Holger Franken $
+// $Authors: Erhan Kenar, Holger Franken, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/KERNEL/MassTrace.h>
@@ -46,45 +46,41 @@ namespace OpenMS
     label_(),
     smoothed_intensities_(),
     fwhm_(0.0),
-    //fwhm_num_scans_(),
     scan_time_(1.0),
     fwhm_start_idx_(0),
     fwhm_end_idx_(0)
   {
   }
 
-  MassTrace::MassTrace(const std::list<PeakType>& tmp_lst, const DoubleReal& scan_time) :
+  MassTrace::MassTrace(const std::list<PeakType>& trace_peaks, const DoubleReal& scan_time) :
     centroid_mz_(),
     centroid_sd_(),
     centroid_rt_(),
     label_(),
     smoothed_intensities_(),
     fwhm_(0.0),
+    scan_time_(scan_time),
     fwhm_start_idx_(0),
     fwhm_end_idx_(0)
   {
-    trace_peaks_.clear();
-
-    for (std::list<PeakType>::const_iterator l_it = tmp_lst.begin(); l_it != tmp_lst.end(); ++l_it)
+    for (std::list<PeakType>::const_iterator l_it = trace_peaks.begin(); l_it != trace_peaks.end(); ++l_it)
     {
       trace_peaks_.push_back((*l_it));
     }
-
-    scan_time_ = scan_time;
   }
 
-  MassTrace::MassTrace(const std::vector<PeakType>& tmp_vec, const DoubleReal& scan_time) :
+  MassTrace::MassTrace(const std::vector<PeakType>& trace_peaks, const DoubleReal& scan_time) :
+    trace_peaks_(trace_peaks),
     centroid_mz_(),
     centroid_sd_(),
     centroid_rt_(),
     label_(),
     smoothed_intensities_(),
     fwhm_(0.0),
+    scan_time_(scan_time),
     fwhm_start_idx_(0),
     fwhm_end_idx_(0)
   {
-    trace_peaks_ = tmp_vec;
-    scan_time_ = scan_time;
   }
 
   MassTrace::~MassTrace()
@@ -99,7 +95,6 @@ namespace OpenMS
     label_(mt.label_),
     smoothed_intensities_(mt.smoothed_intensities_),
     fwhm_(mt.fwhm_),
-    //fwhm_num_scans_(mt.fwhm_num_scans_),
     scan_time_(mt.scan_time_),
     fwhm_start_idx_(mt.fwhm_start_idx_),
     fwhm_end_idx_(mt.fwhm_end_idx_)
@@ -118,7 +113,6 @@ namespace OpenMS
     label_ = rhs.label_;
     smoothed_intensities_ = rhs.smoothed_intensities_;
     fwhm_ = rhs.fwhm_;
-    // fwhm_num_scans_ = rhs.fwhm_num_scans_;
     scan_time_ = rhs.scan_time_;
     fwhm_start_idx_ = rhs.fwhm_start_idx_;
     fwhm_end_idx_ = rhs.fwhm_end_idx_;
@@ -136,7 +130,7 @@ namespace OpenMS
     return trace_peaks_[mt_idx];
   }
 
-  DoubleReal MassTrace::computeSmoothedPeakArea()
+  DoubleReal MassTrace::computeSmoothedPeakArea() const
   {
     // sum all non-negative (smoothed!) intensities in MassTrace
     DoubleReal peak_area(0.0);
@@ -147,23 +141,6 @@ namespace OpenMS
       {
         peak_area += smoothed_intensities_[i];
       }
-    }
-
-    peak_area *= scan_time_;
-
-    return peak_area;
-  }
-
-  DoubleReal MassTrace::computePeakArea()
-  {
-    DoubleReal peak_area(0.0);
-
-    if (trace_peaks_.empty())
-      return peak_area;
-
-    for (MassTrace::const_iterator l_it = trace_peaks_.begin(); l_it != trace_peaks_.end(); ++l_it)
-    {
-      peak_area += (*l_it).getIntensity();
     }
 
     peak_area *= scan_time_;
@@ -188,7 +165,7 @@ namespace OpenMS
     return peak_area;
   }
 
-  Size MassTrace::findMaxByIntPeak(bool use_smoothed_ints = false) const
+  Size MassTrace::findMaxByIntPeak(bool use_smoothed_ints) const
   {
     if (use_smoothed_ints && smoothed_intensities_.empty())
     {
@@ -227,7 +204,7 @@ namespace OpenMS
     return max_idx;
   }
 
-  DoubleReal MassTrace::estimateFWHM(bool use_smoothed_ints = false)
+  DoubleReal MassTrace::estimateFWHM(bool use_smoothed_ints)
   {
     Size max_idx(this->findMaxByIntPeak(use_smoothed_ints));
 
@@ -267,7 +244,18 @@ namespace OpenMS
     return fwhm_;
   }
 
-  DoubleReal MassTrace::computeFwhmAreaSmooth()
+  void MassTrace::disableFHWM()
+  {
+    if (trace_peaks_.empty())
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "MassTrace appears to be empty! Aborting...", String(trace_peaks_.size()));
+    }
+    fwhm_start_idx_ = 0;
+    fwhm_end_idx_ = trace_peaks_.size()-1;
+    fwhm_ = std::fabs(trace_peaks_[fwhm_end_idx_].getRT() - trace_peaks_[fwhm_start_idx_].getRT());
+  }
+
+  DoubleReal MassTrace::computeFwhmAreaSmooth() const
   {
     if (fwhm_start_idx_ == 0 && fwhm_end_idx_ == 0)
     {
@@ -284,7 +272,7 @@ namespace OpenMS
     return t_area * scan_time_;
   }
 
-  DoubleReal MassTrace::computeFwhmArea()
+  DoubleReal MassTrace::computeFwhmArea() const
   {
     DoubleReal t_area(0.0);
 
@@ -296,7 +284,7 @@ namespace OpenMS
     return t_area * scan_time_;
   }
 
-  DoubleReal MassTrace::computeFwhmAreaSmoothRobust()
+  DoubleReal MassTrace::computeFwhmAreaSmoothRobust() const 
   {
     if (fwhm_start_idx_ == 0 && fwhm_end_idx_ == 0)
     {
@@ -327,7 +315,7 @@ namespace OpenMS
     return t_area;
   }
 
-  DoubleReal MassTrace::computeFwhmAreaRobust()
+  DoubleReal MassTrace::computeFwhmAreaRobust() const
   {
     if (fwhm_start_idx_ == 0 && fwhm_end_idx_ == 0)
     {
@@ -358,7 +346,7 @@ namespace OpenMS
     return t_area;
   }
 
-  DoubleReal MassTrace::getIntensity(bool smoothed)
+  DoubleReal MassTrace::getIntensity(bool smoothed) const
   {
     // std::cout << "area old:\t" << computeFwhmAreaSmooth() << "\tarea new:\t" << computeFwhmAreaSmoothRobust() << "area old:\t" << computeFwhmArea() << "\tarea new:\t" << computeFwhmAreaRobust() << std::endl;
 
@@ -368,34 +356,6 @@ namespace OpenMS
     }
 
     return computeFwhmAreaRobust();
-  }
-
-  DoubleReal MassTrace::getMaxIntensity(bool smoothed)
-  {
-    DoubleReal max_int(0.0);
-
-    if (smoothed)
-    {
-      for (Size i = 0; i < smoothed_intensities_.size(); ++i)
-      {
-        if (smoothed_intensities_[i] > max_int)
-        {
-          max_int = smoothed_intensities_[i];
-        }
-      }
-    }
-    else
-    {
-      for (Size i = 0; i < trace_peaks_.size(); ++i)
-      {
-        if (trace_peaks_[i].getIntensity() > max_int)
-        {
-          max_int = trace_peaks_[i].getIntensity();
-        }
-      }
-    }
-
-    return max_int;
   }
 
   DoubleReal MassTrace::getMaxIntensity(bool smoothed) const
@@ -656,9 +616,9 @@ namespace OpenMS
 
     for (MassTrace::const_iterator l_it = trace_peaks_.begin(); l_it != trace_peaks_.end(); ++l_it)
     {
-      DoubleReal w_i = (*l_it).getIntensity();
+      DoubleReal w_i = l_it->getIntensity();
       total_weight += w_i;
-      weighted_sum += w_i * std::exp(2 * std::log(std::abs((*l_it).getMZ() - centroid_mz_)));
+      weighted_sum += w_i * std::exp(2 * std::log(std::abs(l_it->getMZ() - centroid_mz_)));
     }
 
     if (total_weight < std::numeric_limits<DoubleReal>::epsilon())
