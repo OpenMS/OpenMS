@@ -77,7 +77,9 @@
   @em MyriMatch must be installed on the system to be able to use the @em MyriMatchAdapter. See http://fenchurch.mc.vanderbilt.edu/bumbershoot/myrimatch/
   for further information on how to download and install @em MyriMatch on your system.
 
-  This wrapper has been tested successfully with MyriMatch, version 2.1.x
+  This wrapper has been tested successfully with MyriMatch, version 2.1.x.
+
+  Use debug level >=1 to keep intermediate PepXML and config files for manual inspection.
 
   <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_MyriMatchAdapter.cli
@@ -460,8 +462,16 @@ protected:
       return EXTERNAL_PROGRAM_ERROR;
     }
 
-    QFile(pep_file.toQString()).remove();
-    QFile(cfg_file.toQString()).remove();
+    if (debug_level_ == 0)
+    {
+      QFile(pep_file.toQString()).remove();
+      QFile(cfg_file.toQString()).remove();
+    }
+    else
+    {
+      writeDebug_(String("Not removing '") + pep_file + "' for debugging purposes. Please delete manually!", 1);
+      writeDebug_(String("Not removing '") + cfg_file + "' for debugging purposes. Please delete manually!", 1);
+    }
     //-------------------------------------------------------------
     // writing results
     //-------------------------------------------------------------
