@@ -258,7 +258,7 @@ namespace OpenMS
       // and all bytes except the least significant one will be zero. Thus
       // we can convert to char directly (only keeping the least
       // significant byte).
-      int curr_size = result.size();
+      size_t curr_size = result.size();
       result.resize(curr_size + length);
       for (size_t i = 0; i < length; i++) 
       {

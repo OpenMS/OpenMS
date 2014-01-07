@@ -264,7 +264,7 @@ namespace OpenMS
       // cerr << *it << "\n";
       // }
 
-      // maybe we missed the real modification, even it is not terminal
+      // maybe we missed the real modification, even if it's not terminal
       if (possible_mods.empty() && mod_pos == 0)
       {
         vector<String> new_possible_mass_mods;
