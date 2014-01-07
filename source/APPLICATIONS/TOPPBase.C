@@ -352,7 +352,7 @@ namespace OpenMS
       // note the copy(getIniLocation_(),..) as we want the param tree without instance
       // information
       param_ = this->getDefaultParameters_().copy(getIniLocation_(), true);
-      Logger::LogStream noOutput;
+      Logger::LogStream noOutput(new Logger::LogStreamBuf("NO_OUTPUT"), true);
       param_.update(finalParam, true, noOutput);
 
       if (finalParam.exists("type"))
