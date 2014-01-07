@@ -1229,7 +1229,7 @@ protected:
     if (!out_chrom.empty())
     {
       chromConsumer = new PlainMSDataWritingConsumer(out_chrom);
-      expected_chromatograms = transition_exp.transitions.size()
+      expected_chromatograms = transition_exp.transitions.size();
       chromConsumer->setExpectedSize(0, expected_chromatograms);
       chromConsumer->setExperimentalSettings(*exp_meta);
       chromConsumer->getOptions().setWriteIndex(true);  // ensure that we write the index
