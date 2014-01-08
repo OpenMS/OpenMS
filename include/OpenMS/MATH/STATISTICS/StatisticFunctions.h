@@ -32,15 +32,17 @@
 // $Authors: Clemens Groepl, Johannes Junker, Mathias Walzer$
 // --------------------------------------------------------------------------
 
+#ifndef OPENMS_MATH_STATISTICS_STATISTICFUNCTIONS_H
+#define OPENMS_MATH_STATISTICS_STATISTICFUNCTIONS_H
+
 #include <numeric>
 #include <algorithm>
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <boost/lambda/lambda.hpp>
 #include <boost/lambda/casts.hpp>
 #include <boost/function/function_base.hpp>
-
-#ifndef OPENMS_MATH_STATISTICS_STATISTICFUNCTIONS_H
-#define OPENMS_MATH_STATISTICS_STATISTICFUNCTIONS_H
+#include <QtCore/QDateTime> // for TRUE and FALSE
 
 namespace OpenMS
 {

@@ -32,17 +32,15 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/CONCEPT/ClassTest.h>
-
 ///////////////////////////
-
 // This one is going to be tested.
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <boost/math/special_functions/fpclassify.hpp>
-
 ///////////////////////////
+
+#include <OpenMS/CONCEPT/ClassTest.h>
 
 using namespace OpenMS;
 using namespace OpenMS::Math;
