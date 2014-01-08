@@ -170,6 +170,11 @@ public:
       return centroid_sd_;
     }
 
+    void setCentroidSD(const DoubleReal & tmp_sd)
+    {
+      centroid_sd_ = tmp_sd;
+    }
+
     DoubleReal getFWHM() const
     {
         return fwhm_;
