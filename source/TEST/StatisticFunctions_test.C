@@ -84,7 +84,7 @@ END_SECTION
 START_SECTION([EXTRA](template <typename IteratorType> static DoubleReal median(IteratorType begin, IteratorType end)))
 {
 	int x[] = {-1, 0, 1, 2, 3};
-	TEST_EQUAL(Math::median(x, x + 5, TRUE), 1);
+	TEST_EQUAL(Math::median(x, x + 5, true), 1);
 	TEST_EXCEPTION(Exception::InvalidRange, Math::median(x, x));
 
   // unsorted

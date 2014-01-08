@@ -154,7 +154,7 @@ protected:
       {
         if (temp_peptides[j].size() >= min_size)
         {
-          if (temp_peptides[j].hasSubsequence(M) == TRUE)
+          if (temp_peptides[j].hasSubsequence(M))
           {
             temp_peptide_hit.setSequence(temp_peptides[j]);
             peptide_identification.insertHit(temp_peptide_hit);
@@ -220,7 +220,7 @@ protected:
           }
           if (temp_peptides[j].size() >= min_size)
           {
-            if (temp_peptides[j].hasSubsequence(M) == TRUE)
+            if (temp_peptides[j].hasSubsequence(M))
             {
               OVER.push_back((-1)); //because the increment of the first will always be counted;
               //IonCounter.push_back(0);

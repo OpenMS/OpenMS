@@ -491,7 +491,7 @@ namespace OpenMS
     ids.clear();
     ids.resize(1);
     ids[0].setScoreType(String("Consensus_PEPMatrix (") + score_type + ")");
-    ids[0].setHigherScoreBetter(FALSE);
+    ids[0].setHigherScoreBetter(false);
     for (Map<AASequence, vector<DoubleReal> >::const_iterator it = scores.begin(); it != scores.end(); ++it)
     {
       PeptideHit hit;
@@ -655,7 +655,7 @@ namespace OpenMS
     ids.clear();
     ids.resize(1);
     ids[0].setScoreType(String("Consensus_PEPIons (") + score_type + ")");
-    ids[0].setHigherScoreBetter(FALSE);
+    ids[0].setHigherScoreBetter(false);
     for (Map<AASequence, vector<DoubleReal> >::const_iterator it = scores.begin(); it != scores.end(); ++it)
     {
       PeptideHit hit;
@@ -718,7 +718,7 @@ namespace OpenMS
     ids.clear();
     ids.resize(1);
     ids[0].setScoreType(String("Consensus_Minimum(") + score_type + ")");
-    ids[0].setHigherScoreBetter(FALSE);
+    ids[0].setHigherScoreBetter(false);
 
     for (Map<AASequence, DoubleReal>::const_iterator it = scores.begin(); it != scores.end(); ++it)
     {
@@ -749,7 +749,7 @@ namespace OpenMS
         DoubleReal mz2(it2->getMetaValue("MZ"));
         if (fabs(rt1 - rt2) < rt_delta && fabs(mz1 - mz2) < mz_delta)
         {
-          if (new_ids.empty() == TRUE)
+          if (new_ids.empty())
           {
             new_ids = (*it1);
           }
