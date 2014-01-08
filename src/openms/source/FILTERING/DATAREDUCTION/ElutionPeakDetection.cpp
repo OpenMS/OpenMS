@@ -64,7 +64,7 @@ ElutionPeakDetection::ElutionPeakDetection() :
     defaults_.setValue("max_fwhm", 60.0, "Maximum full-width-at-half-maximum of chromatographic peaks (in seconds). Ignored if paramter width_filtering is off or auto.", ListUtils::create<String>("advanced"));
 
     defaults_.setValue("masstrace_snr_filtering", "false", "Apply post-filtering by signal-to-noise ratio after smoothing.", ListUtils::create<String>("advanced"));
-  defaults_.setValidStrings("masstrace_snr_filtering", ListUtils::create<String>("false,true"));
+    defaults_.setValidStrings("masstrace_snr_filtering", ListUtils::create<String>("false,true"));
 
     // defaults_.setValue("min_trace_length", 5.0, "Minimum length of a mass trace (in seconds).", ListUtils::create<String>("advanced"));
     // defaults_.setValue("max_trace_length", 300.0, "Maximum length of a mass trace (in seconds).", ListUtils::create<String>("advanced"));
@@ -381,59 +381,14 @@ void ElutionPeakDetection::filterByPeakWidth(std::vector<MassTrace> & mt_vec, st
 
 void ElutionPeakDetection::detectElutionPeaks_(MassTrace & mt, std::vector<MassTrace> & single_mtraces)
 {
-    std::vector<DoubleReal> rts, ints;
-
-    for (MassTrace::const_iterator c_it = mt.begin(); c_it != mt.end(); ++c_it)
-    {
-        rts.push_back(c_it->getRT());
-        ints.push_back(c_it->getIntensity());
-    }
-
+    //smooth data
     std::vector<DoubleReal> smoothed_data;
-
-
-    LowessSmoothing lowess_smooth;
-    Param lowess_params;
-
-    // use dynamically computed window sizes
-
     // Size win_size = mt.getFWHMScansNum();
-
-    // use one global window size for all mass traces to smooth
     DoubleReal scan_time(mt.getScanTime());
-//    Size win_size = std::ceil(chrom_fwhm_ / scan_time);
-    Size win_size = std::ceil(chrom_fwhm_);
-    std::cout << "win_size: " << win_size << std::endl;
+    Size win_size = std::ceil(chrom_fwhm_ / scan_time);
+    smoothData(mt, win_size);
 
-    MSSpectrum<PeakType> spectrum;
-    spectrum.insert(spectrum.begin(), mt.begin(), mt.end());
-    std::cout << "data_size: " << spectrum.size() << std::endl;
-    SavitzkyGolayFilter sg;
-    Param param;
-    param.setValue("polynomial_order",2);
-    param.setValue("frame_length",win_size);
-    sg.setParameters(param);
-    sg.filter(spectrum);
-    MSSpectrum<PeakType>::iterator iter = spectrum.begin();
-    std::vector<double> smoothed_intensities;
-    for(; iter!=spectrum.end(); ++iter)
-      smoothed_intensities.push_back( iter->getIntensity());
-    mt.setSmoothedIntensities(smoothed_intensities);
 
-    // std::cout << "win_size elution: " << scan_time << " " << win_size << std::endl;
-
-    // if there is no previous FWHM estimation... do it now
-    //    if (win_size == 0)
-    //    {
-    //        mt.estimateFWHM(false); // estimate FWHM
-    //        win_size = mt.getFWHMScansNum();
-    //    }
-
-    lowess_params.setValue("window_size", win_size);
-    lowess_smooth.setParameters(lowess_params);
-
-    lowess_smooth.smoothData(rts, ints, smoothed_data);
-//    mt.setSmoothedIntensities(smoothed_data);
 
     // debug intensities
 
@@ -681,6 +636,53 @@ void ElutionPeakDetection::detectElutionPeaks_(MassTrace & mt, std::vector<MassT
      //   }
     }
     return;
+}
+
+void ElutionPeakDetection::smoothData(MassTrace & mt, int win_size)
+{
+  //alternative smoothing using SavitzkyGolay
+    //looking at the unit test, this mehtod gives better fits than lowess smoothing
+    //reference paper uses lowess smoothing
+
+//    MSSpectrum<PeakType> spectrum;
+//    spectrum.insert(spectrum.begin(), mt.begin(), mt.end());
+//    SavitzkyGolayFilter sg;
+//    Param param;
+//    param.setValue("polynomial_order",2);
+//    param.setValue("frame_length",win_size);
+//    sg.setParameters(param);
+//    sg.filter(spectrum);
+//    MSSpectrum<PeakType>::iterator iter = spectrum.begin();
+//    std::vector<double> smoothed_intensities;
+//    for(; iter!=spectrum.end(); ++iter)
+//      smoothed_intensities.push_back( iter->getIntensity());
+//    mt.setSmoothedIntensities(smoothed_intensities);
+  //alternative end
+
+  // std::cout << "win_size elution: " << scan_time << " " << win_size << std::endl;
+
+  // if there is no previous FWHM estimation... do it now
+  //    if (win_size == 0)
+  //    {
+  //        mt.estimateFWHM(false); // estimate FWHM
+  //        win_size = mt.getFWHMScansNum();
+  //    }
+
+  // use one global window size for all mass traces to smooth
+  std::vector<DoubleReal> rts, ints;
+
+  for (MassTrace::const_iterator c_it = mt.begin(); c_it != mt.end(); ++c_it)
+  {
+      rts.push_back(c_it->getRT());
+      ints.push_back(c_it->getIntensity());
+  }
+  LowessSmoothing lowess_smooth;
+  Param lowess_params;
+  lowess_params.setValue("window_size", win_size);
+  lowess_smooth.setParameters(lowess_params);
+  std::vector<DoubleReal> smoothed_data;
+  lowess_smooth.smoothData(rts, ints, smoothed_data);
+  mt.setSmoothedIntensities(smoothed_data);
 }
 
 void ElutionPeakDetection::updateMembers_()
