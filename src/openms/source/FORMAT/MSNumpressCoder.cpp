@@ -74,8 +74,10 @@ namespace OpenMS
         break;
 
       case SLOF:
+      {
         numpressed.resize(dataSize * 2 + 8);
         break;
+      }
 
       case NONE:
         break;
@@ -135,13 +137,14 @@ namespace OpenMS
       }
 #endif
 
+
       // 3. Now check to see if encoding introduces excessive error
       int n = -1;
       if (config.numpressErrorTolerance)
       {
         if (PIC == config.np_compression) // integer rounding, abs accuracy is +- 0.5
         {
-          for (n = (int)dataSize; n--; ) // check for overflow, strange rounding
+          for (n = static_cast<int>(dataSize)-1; n>=0; n-- ) // check for overflow, strange rounding
           {
             if ((!boost::math::isfinite(unpressed[n])) || (fabs(in[n] - unpressed[n]) >= 1.0))
             {
@@ -151,17 +154,24 @@ namespace OpenMS
         }
         else // check for tolerance as well as overflow
         {
-          for (n = (int)dataSize; n--; )
+          for (n=static_cast<int>(dataSize)-1; n>=0; n--)
           {
-            double d, u;
-            if (!boost::math::isfinite(u = unpressed[n]) || !boost::math::isfinite(d = in[n]))
+            double u = unpressed[n];
+            double d = in[n];
+            if (!boost::math::isfinite(u) || !boost::math::isfinite(d))
             {
+#ifdef NUMPRESS_DEBUG
+              std::cout << "infinite u: " << u << " d: " << d << std::endl;
+#endif
               break;
             }
             if (!d)
             {
               if (fabs(u) > config.numpressErrorTolerance)
               {
+#ifdef NUMPRESS_DEBUG
+                std::cout << "fabs(u): " << fabs(u) << " > config.numpressErrorTolerance: " << config.numpressErrorTolerance << std::endl;
+#endif
                 break;
               }
             }
@@ -169,11 +179,18 @@ namespace OpenMS
             {
               if (fabs(d) > config.numpressErrorTolerance)
               {
+#ifdef NUMPRESS_DEBUG
+                std::cout << "fabs(d): " << fabs(d) << " > config.numpressErrorTolerance: " << config.numpressErrorTolerance << std::endl;
+#endif
                 break;
               }
             }
             else if (fabs(1.0 - (d / u)) > config.numpressErrorTolerance)
             {
+#ifdef NUMPRESS_DEBUG
+              std::cout << "d: " << d << " u: " << u << std::endl;
+              std::cout << "fabs(1.0 - (d / u)): " << fabs(1.0 - (d / u)) << " > config.numpressErrorTolerance: " << config.numpressErrorTolerance << std::endl;
+#endif
               break;
             }
           }
@@ -181,9 +198,8 @@ namespace OpenMS
       }
       if (n >= 0)
       {
-#ifdef NUMPRESS_DEBUG
-        std::cout << "Error occured with n = " << n << std::endl;
-#endif
+        //Comment: throw?
+        std::cerr << "Error occured at position n = " << n << ". Enable NUMPRESS_DEBUG to get more info." << std::endl;
       }
       else
       {
