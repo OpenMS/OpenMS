@@ -644,19 +644,19 @@ void ElutionPeakDetection::smoothData(MassTrace & mt, int win_size)
     //looking at the unit test, this mehtod gives better fits than lowess smoothing
     //reference paper uses lowess smoothing
 
-//    MSSpectrum<PeakType> spectrum;
-//    spectrum.insert(spectrum.begin(), mt.begin(), mt.end());
-//    SavitzkyGolayFilter sg;
-//    Param param;
-//    param.setValue("polynomial_order",2);
-//    param.setValue("frame_length",win_size);
-//    sg.setParameters(param);
-//    sg.filter(spectrum);
-//    MSSpectrum<PeakType>::iterator iter = spectrum.begin();
-//    std::vector<double> smoothed_intensities;
-//    for(; iter!=spectrum.end(); ++iter)
-//      smoothed_intensities.push_back( iter->getIntensity());
-//    mt.setSmoothedIntensities(smoothed_intensities);
+    MSSpectrum<PeakType> spectrum;
+    spectrum.insert(spectrum.begin(), mt.begin(), mt.end());
+    SavitzkyGolayFilter sg;
+    Param param;
+    param.setValue("polynomial_order",2);
+    param.setValue("frame_length",win_size);
+    sg.setParameters(param);
+    sg.filter(spectrum);
+    MSSpectrum<PeakType>::iterator iter = spectrum.begin();
+    std::vector<double> smoothed_intensities;
+    for(; iter!=spectrum.end(); ++iter)
+      smoothed_intensities.push_back(iter->getIntensity());
+    mt.setSmoothedIntensities(smoothed_intensities);
   //alternative end
 
   // std::cout << "win_size elution: " << scan_time << " " << win_size << std::endl;
@@ -669,20 +669,20 @@ void ElutionPeakDetection::smoothData(MassTrace & mt, int win_size)
   //    }
 
   // use one global window size for all mass traces to smooth
-  std::vector<DoubleReal> rts, ints;
-
-  for (MassTrace::const_iterator c_it = mt.begin(); c_it != mt.end(); ++c_it)
-  {
-      rts.push_back(c_it->getRT());
-      ints.push_back(c_it->getIntensity());
-  }
-  LowessSmoothing lowess_smooth;
-  Param lowess_params;
-  lowess_params.setValue("window_size", win_size);
-  lowess_smooth.setParameters(lowess_params);
-  std::vector<DoubleReal> smoothed_data;
-  lowess_smooth.smoothData(rts, ints, smoothed_data);
-  mt.setSmoothedIntensities(smoothed_data);
+//  std::vector<DoubleReal> rts, ints;
+//
+//  for (MassTrace::const_iterator c_it = mt.begin(); c_it != mt.end(); ++c_it)
+//  {
+//      rts.push_back(c_it->getRT());
+//      ints.push_back(c_it->getIntensity());
+//  }
+//  LowessSmoothing lowess_smooth;
+//  Param lowess_params;
+//  lowess_params.setValue("window_size", win_size);
+//  lowess_smooth.setParameters(lowess_params);
+//  std::vector<DoubleReal> smoothed_data;
+//  lowess_smooth.smoothData(rts, ints, smoothed_data);
+//  mt.setSmoothedIntensities(smoothed_data);
 }
 
 void ElutionPeakDetection::updateMembers_()
