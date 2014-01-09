@@ -1335,6 +1335,7 @@ add_test("UTILS_DecoyDatabase_2_out" ${DIFF} -in1 DecoyDatabase_2.fasta.tmp -in2
 set_tests_properties("UTILS_DecoyDatabase_2_out" PROPERTIES DEPENDS "UTILS_DecoyDatabase_2")
 
 
+
 ### FeatureFinder of SuperHirn -- test on centroided data
 add_test("UTILS_FeatureFinderSuperHirn_1" ${TOPP_BIN_PATH}/FeatureFinderSuperHirn -test -in ${DATA_DIR_TOPP}/FeatureFinderSuperHirn_input_1.mzML -out FeatureFinderSuperHirn_1_output.featureXML.tmp -ini ${DATA_DIR_TOPP}/FeatureFinderSuperHirn_1_parameters.ini)
 add_test("UTILS_FeatureFinderSuperHirn_1_out1" ${DIFF} -whitelist "id=" -in1 FeatureFinderSuperHirn_1_output.featureXML.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderSuperHirn_1_output.featureXML)

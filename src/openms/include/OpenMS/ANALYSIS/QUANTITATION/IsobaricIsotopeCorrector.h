@@ -68,7 +68,7 @@ public:
 
 private:
     /**
-     @brief Fills the input vector for the gsl/NNLS step given the ConsensusFeature.
+     @brief Fills the input vector for the Eigen/NNLS step given the ConsensusFeature.
      */
     static void
     fillInputVector_(Eigen::VectorXd& b, Matrix<double>& m_b,

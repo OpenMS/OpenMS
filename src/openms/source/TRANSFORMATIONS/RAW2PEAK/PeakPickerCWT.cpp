@@ -997,7 +997,7 @@ namespace OpenMS
 
       std::cout << " \nLM results:\n";
 
-      //print gsl results:
+      //print results:
       for (Int i = 0; i < (Int)peaks_DC.size(); ++i)
       {
         std::cout << "\nposLM(" << i + 1 << ")=" << peaks_DC[i].mz_position;
