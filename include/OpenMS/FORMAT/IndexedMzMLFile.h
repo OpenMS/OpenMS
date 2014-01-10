@@ -41,9 +41,6 @@
 #include <OpenMS/INTERFACES/DataStructures.h>
 #include <OpenMS/INTERFACES/ISpectrumAccess.h>
 
-#include <OpenMS/FORMAT/HANDLERS/IndexedMzMLDecoder.h>
-#include <OpenMS/FORMAT/HANDLERS/MzMLSpectrumDecoder.h>
-
 #include <string>
 #include <fstream>
 

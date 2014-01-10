@@ -34,6 +34,9 @@
 
 #include <OpenMS/FORMAT/IndexedMzMLFile.h>
 
+#include <OpenMS/FORMAT/HANDLERS/IndexedMzMLDecoder.h>
+#include <OpenMS/FORMAT/HANDLERS/MzMLSpectrumDecoder.h>
+
 namespace OpenMS
 {
 
