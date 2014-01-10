@@ -32,15 +32,16 @@
 // $Authors: Clemens Groepl, Johannes Junker, Mathias Walzer$
 // --------------------------------------------------------------------------
 
+#ifndef OPENMS_MATH_STATISTICS_STATISTICFUNCTIONS_H
+#define OPENMS_MATH_STATISTICS_STATISTICFUNCTIONS_H
+
 #include <numeric>
 #include <algorithm>
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <boost/lambda/lambda.hpp>
 #include <boost/lambda/casts.hpp>
 #include <boost/function/function_base.hpp>
-
-#ifndef OPENMS_MATH_STATISTICS_STATISTICFUNCTIONS_H
-#define OPENMS_MATH_STATISTICS_STATISTICFUNCTIONS_H
 
 namespace OpenMS
 {
@@ -88,7 +89,7 @@ namespace OpenMS
       @ingroup MathFunctionsStatistics
     */
     template <typename IteratorType>
-    static DoubleReal median(IteratorType begin, IteratorType end, bool sorted = FALSE)
+    static DoubleReal median(IteratorType begin, IteratorType end, bool sorted = false)
     {
       Size size = std::distance(begin, end);
 
@@ -130,7 +131,7 @@ namespace OpenMS
       @ingroup MathFunctionsStatistics
     */
     template <typename IteratorType>
-    static DoubleReal quantile(IteratorType begin, IteratorType end, UInt quantile, bool sorted = FALSE)
+    static DoubleReal quantile(IteratorType begin, IteratorType end, UInt quantile, bool sorted = false)
     {
       Size size = std::distance(begin, end);
 

@@ -32,17 +32,15 @@
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/CONCEPT/ClassTest.h>
-
 ///////////////////////////
-
 // This one is going to be tested.
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <boost/math/special_functions/fpclassify.hpp>
-
 ///////////////////////////
+
+#include <OpenMS/CONCEPT/ClassTest.h>
 
 using namespace OpenMS;
 using namespace OpenMS::Math;
@@ -86,7 +84,7 @@ END_SECTION
 START_SECTION([EXTRA](template <typename IteratorType> static DoubleReal median(IteratorType begin, IteratorType end)))
 {
 	int x[] = {-1, 0, 1, 2, 3};
-	TEST_EQUAL(Math::median(x, x + 5, TRUE), 1);
+	TEST_EQUAL(Math::median(x, x + 5, true), 1);
 	TEST_EXCEPTION(Exception::InvalidRange, Math::median(x, x));
 
   // unsorted
