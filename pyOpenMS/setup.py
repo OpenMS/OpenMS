@@ -224,6 +224,7 @@ include_dirs = [
     QT_HEADERS_DIR,
     QT_QTCORE_INCLUDE_DIR,
     j(OPEN_MS_CONTRIB_BUILD_DIR, "include"),
+    j(OPEN_MS_CONTRIB_BUILD_DIR, "include", "libsvm"),
     # j(OPEN_MS_CONTRIB_BUILD_DIR, "src", "boost_1_52_0")
     j(OPEN_MS_CONTRIB_BUILD_DIR, "include", "boost"),
     j(OPEN_MS_BUILD_DIR, "include"),
