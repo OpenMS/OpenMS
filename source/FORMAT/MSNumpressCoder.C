@@ -82,13 +82,14 @@ namespace OpenMS
       }
 
       // 2. Convert the data
-      std::vector<double> unpressed; // for checking excessive accurary loss
+      std::vector<double> unpressed; // for checking excessive accuracy loss
       switch (config.np_compression)
       {
       case LINEAR:
       {
         if (config.estimate_fixed_point) {fixedPoint = numpress::MSNumpress::optimalLinearFixedPoint(&in[0], dataSize); }
         byteCount = numpress::MSNumpress::encodeLinear(&in[0], dataSize, &numpressed[0], fixedPoint);
+        numpressed.resize(byteCount);
         if (config.numpressErrorTolerance)   // decompress to check accuracy loss
         {
           numpress::MSNumpress::decodeLinear(numpressed, unpressed);
@@ -99,6 +100,7 @@ namespace OpenMS
       case PIC:
       {
         byteCount = numpress::MSNumpress::encodePic(&in[0], dataSize, &numpressed[0]);
+        numpressed.resize(byteCount);
         if (config.numpressErrorTolerance)   // decompress to check accuracy loss
         {
           numpress::MSNumpress::decodePic(numpressed, unpressed);
@@ -110,6 +112,7 @@ namespace OpenMS
       {
         if (config.estimate_fixed_point) {fixedPoint = numpress::MSNumpress::optimalSlofFixedPoint(&in[0], dataSize); }
         byteCount = numpress::MSNumpress::encodeSlof(&in[0], dataSize, &numpressed[0], fixedPoint);
+        numpressed.resize(byteCount);
         if (config.numpressErrorTolerance)   // decompress to check accuracy loss
         {
           numpress::MSNumpress::decodeSlof(numpressed, unpressed);
