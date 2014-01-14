@@ -103,7 +103,7 @@
 					<binaryDataArray encodedLength="1808">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
-						<cvParam cvRef="MS" accession="MS:1002313" name="MS-Numpress linear prediction compression" />
+						<cvParam cvRef="MS" accession="MS:1002313" name="MS-Numpress positive integer compression" />
 						<binary>XzRfUWd0QQFXRlVCWvJgpfM1JUV2Fkdr9YlV0iVAJdIV0yWORaUV0xaWYMWZJkVe8VIyboXHFUYlOSX2pbGGOm9mHliBUSFaQlkDaaYrb3WNNSAlVDZ5VGhJQhWeNaZFPCU9JWZlPCVAVRNWqV5xWSJTYluBWyFQ0VmUXsFdU1HBWSFWUlLxXpJYBVwkVdlVJVqRVlhXglgUaWWaJTUWz1XDXXNu5WgWkVZBb8X3FlNhpbcVCBWjRQAWd1bjUFFaAm2W41EBWM1eZFREWONc0VPBY3VJFUAl9DVMJdkWmFBRXqFhtWEW+F5xWAFmpTwlOiWFFXwmKlASY4VSJSZG/GzGVFMSZeZoaOa1Z2W/FfgmSlZCWBJQM2jVEhZ6b6XrNlZrRjNTEWd282elMBVTFYoVW6YYatXjFeYW6VUTVJFuNfIW9lUyXaVu5ZcVAhVmFXo1eyXrFuRUAWFm2VQSUBFVImj1ByXWFWQW81tSYzUuFSkV3BUwFYFF4CViJutvtUgm525FjBXIJlpTwlYhapakZmUnFcElehXfFmteIWjGPmrmqGGm9VDxYJYPUKFWgWRF2SX2FRYV7xWdFbUWiVEBW9FRclfBY+ZUVOdXE10SVKFbMVRBXRFnpuVTEW/Gh2hlWRV+FZ4VwBaZVkJsheU2mVwxXhFW8VchV1JqRcMlNTXeFnlSIVIDbObJa5ZFYlWGFWsW+FtRX5Fk5rRVYWDFo1ZOUAFmpnNpdjRaYmOldSbaXEFRAlNBaGV+JgthhsdvNVoVwjVNFdYmv1pRbHZjbBYvb5aHUVFmhgdYQVoCYuXxFnZvVrRcAV+BY2VVFohZkWbGaldxW1FqdgJbYWY1pBUGFihfEWdWHm5F9xb/XYFWcWflGRX/FSEVJhYraEZ9ZqXeJdUmrWfWkmvlBCVAFgFpVh5UUVnSZNUWFgleImC1oCaGWNFSAmS1ExYsajbnWRFnVkZkxlhcQWbFBRV0FmVrtTIlExVUFhtg9Sol0SVZVd0VM0afXVJYolexZfbJa+ZiU+NgpUwmS2O2ilwTUrFYYWf1ySWiFhlaE1eiaca+aTWQFphr5Rc2dGrmKmU1uhUBFuleoWVW6lc0ZzVnFsZRMlYRXtFf8l4xb4YTZ8ZSacZdbRakbEYqayYPWMFrNdgmsl+yWTFohtpcIWy2zWNVOyWAJaQWi2k2q2vG82A1nRVfJSAVBRaFZmYkUZFkNsZfQVdCYlb3aDXLFbUVoBZEWOFlZqRrRtJtlVQWx1QCVrFsVVYVzhbVY7aYYIa0WiFr1p1oJeUWRWw2JlhBV0Ft5jhtJqRo5vZuJtNh1oZiFoZixjJcAVKzVAFqtsxn1nJSol9iXzFUgWTWiWnWllsCaLZ/YxaSbDb1YJZTZaVlFl1hlTAWFmo2/Gpm2mA2Q2UlkRVdFm5lpqNRcW6FUBbMXwJTEW/G1lmRaebvXUJthslndutgJtNQQVjBYbZ8ZubjbRWjFYIWFW6FRxa3Z1azYSaHXxFZgWaWwmzmMm4lBxVNFslgNQcWk1wxbSYyXZFk9cAWGWomx2GmC22Wq2uGUWS2KmeFlRYSZoa2ZkY6auXoJmFmJtVvdhJeEWmmnW2GgWpGMmQmtG7GlGgmt1XSZkYCbBWhFfIm1mRGfWt29GUW0lshaxYaZjaGbFZ2bGYVa2YmYEbmXxFrRrFsFgJhVhZuFlJtNoRrVqJa4WImkmGGFW6Gt2OGImCWVGg2SmgW0W4l4RaraVZlaEYra2aiasbzYJYCYnaXZybFbzaTZXZEbTVSFhJqFkZtRhJqRsJiVpptVmI=</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
@@ -129,7 +129,7 @@
 					<binaryDataArray encodedLength="1680">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
-						<cvParam cvRef="MS" accession="MS:1002313" name="MS-Numpress linear prediction compression" />
+						<cvParam cvRef="MS" accession="MS:1002313" name="MS-Numpress positive integer compression" />
 						<binary>UhJS00JmJKkRVZZfw1hHUgZes1HmWihTklyxbYWgRU81FYVlJqxeEVbmVqJTA100Y9WORbdltbVCpe2FblWgFaFVmxV+NvdXElhKXyFSpmWl0EV7VmxaIl/CV5NR31XNXJtSE14BXhdd9V0TWoNdRVllW5NWo1ZCU2FQZVlRWbFSgVgBVQFSRlhkWntQ72S1rXVVlexFlxXRNW8V/SVZNcEWa11xYmUMVX9G9lRyb6URRSQVakX3RRh14mVCZfH1oMWoxWqlOmXQNdM1BVWeNX+l/FWjJTZFHyaUWXFW41MpWINYNVkjXYdVUVZJVEhcGlSXVkNjdglcNlMxVjRbUV6yWcVQIVHSVoNRI1e0VrJZSGNlN0XQJVNV1UUaJSN1/iU4NWclaxVvNdkV6xYKX3FdUlmUavU0Jm9adFkGXgNYkVmSY8aSXSFWolmhUtRcMlRnWMJvxaQmw2LGtlshVWJeYWN1+BUbRV41A0XKFSUmrlUaXdNaIloxWRReYWplVSWlJodl5RElxCURNUkVsUXNNh9bE1xCU1JQIWx12EZFYYVJFm5YMlyCVGJaoluSWMJcYVgBUDJp5QYVEubKXQRq9doVxFVwVSwVjEaaVGFd8WPFWSV6Nr9dA18yZXVUlcV17CUUVWVFJxblYLQqEVIzVKFv5Wk1ijW2JrpSgmSGh1qhbVYXUWFcQVhBZbU8VdcVRlV2FphthdQVMyVzVfVVChWHFd81YxWIFZklIxZmVGFQs2XWI23m11ASW3JaAlmRb9XvJXdFDSauU8Jm1otWcl8RYpa1YNXrFWUWnG2GLV3kXIJmtYeF8TXKNqVltp5j9odaVmm1GxY1W2FtRX8ltSY5a2VKVdIm5V0RXmFmVSAWb2alekVYJUol0CVPdm5b8291S1WTVfkm61TiVsFagVGFU2Jekmk1SCZPWlJXcV1VU+FbVFJEXlJRYVTVUZFfQloBb0ZTVzFUBVghUBVccldDVjRdIWslSWaJWrFeIV5IWdJSImGWfFLzZjVuVYYVSxXzFUY1IxVKFQoWKlSxWjNS5FTxbGZZWEFVVlSVWWNcIlbBaca2W/FSMliyVXFsZboVqia8WyFe1G/lSSUsFZcV1BbmVgFm1V4laiW5NRdVkRX8FeslWSV2JYYVRxVjFnln5vdbQVkBWnJYYVdyVlNi1aoW9V1yUAFXo1O0X6FbdFOxZ7a1WlJYEm5lQzXVFj1oRrpcwVMRXFFlppRpVWEW7GNm01mibWWnFYYlt0VGFeEmLmW2HVnSXjNqpVAmG2RVYxVLFgtmpWEloyXtNsldFVkxZoa5WsJT41mxWLFjppReM11BZratVWFVEV5BVXFulmZhlQAVnxbfWwJs1TwWF14VUSFn5vhpVckWxG7lExamayWxNmZZA2KVOSabXxFVQVghWlFlhSsVYyaNVoFepFoSV7JvNdEW2mX1UxWQFjxZol2TbUUFFYEWHF5yXEJiVn5dQm2GHVsRWBFgxldQEWCGHWVlmyUlFkpeMmd1phbtVOFsNiRYQWX2JVwxV+NtVXIWY2dmNlMxYfVAFbBG62FVhya4VIFsRhRf8miGpWNm+lthY+akX1NtVm1lNhZmVcMWpFIhbzXWRlVqhohmZd8WnW82BVJxaHZJYUZVU5JmhXwV9xYqXYFktRYW2mhWo26lJyA=</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
@@ -155,7 +155,7 @@
 					<binaryDataArray encodedLength="8">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
-						<cvParam cvRef="MS" accession="MS:1002313" name="MS-Numpress linear prediction compression" />
+						<cvParam cvRef="MS" accession="MS:1002313" name="MS-Numpress positive integer compression" />
 						<binary>aJblWjE=</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
@@ -181,7 +181,7 @@
 					<binaryDataArray encodedLength="12">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
-						<cvParam cvRef="MS" accession="MS:1002313" name="MS-Numpress linear prediction compression" />
+						<cvParam cvRef="MS" accession="MS:1002313" name="MS-Numpress positive integer compression" />
 						<binary>aBUTFpRoFgI=</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
@@ -207,7 +207,7 @@
 					<binaryDataArray encodedLength="20">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
-						<cvParam cvRef="MS" accession="MS:1002313" name="MS-Numpress linear prediction compression" />
+						<cvParam cvRef="MS" accession="MS:1002313" name="MS-Numpress positive integer compression" />
 						<binary>YubCa0YNXKFllt1ukA==</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
@@ -233,7 +233,7 @@
 					<binaryDataArray encodedLength="2252">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
-						<cvParam cvRef="MS" accession="MS:1002313" name="MS-Numpress linear prediction compression" />
+						<cvParam cvRef="MS" accession="MS:1002313" name="MS-Numpress positive integer compression" />
 						<binary>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</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
@@ -259,7 +259,7 @@
 					<binaryDataArray encodedLength="12">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
-						<cvParam cvRef="MS" accession="MS:1002313" name="MS-Numpress linear prediction compression" />
+						<cvParam cvRef="MS" accession="MS:1002313" name="MS-Numpress positive integer compression" />
 						<binary>YiV0FrFZsWqQ</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
@@ -285,7 +285,7 @@
 					<binaryDataArray encodedLength="16">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
-						<cvParam cvRef="MS" accession="MS:1002313" name="MS-Numpress linear prediction compression" />
+						<cvParam cvRef="MS" accession="MS:1002313" name="MS-Numpress positive integer compression" />
 						<binary>WtJs1mNpZtZlJqE=</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
@@ -311,7 +311,7 @@
 					<binaryDataArray encodedLength="8">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
-						<cvParam cvRef="MS" accession="MS:1002313" name="MS-Numpress linear prediction compression" />
+						<cvParam cvRef="MS" accession="MS:1002313" name="MS-Numpress positive integer compression" />
 						<binary>bDYjbiA=</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
@@ -337,7 +337,7 @@
 					<binaryDataArray encodedLength="1996">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
-						<cvParam cvRef="MS" accession="MS:1002313" name="MS-Numpress linear prediction compression" />
+						<cvParam cvRef="MS" accession="MS:1002313" name="MS-Numpress positive integer compression" />
 						<binary>Xt1dMl2xSws0nmFRVFpLXeRfnl0lRFkU4hFcMVllVh5VrVfNVuhV5lFZV7pICJRl8VCBXWtX+k9FJOshVEtOQiRhcVM2UDJZCVSEXjpQ3V4nSjMVKsW3hUcV9SXCFY9FkVX6lRwl8lQeYkr6FP+RXV5QqFNxVcNZr19lUdVAohUjhc6F4tWgFuxY4lVZXLZORhX9dKwCVWRcZVIzVDNW8VBoSyUlAGQgAVoVU09QZVk4SNQUGgFYT1CFURhRMVgRQFAW9lyZVCdYKFPiWXxaalf0XcdWQl7UWxNR8lhsWWdUX04sFZmlx2WN5SyFAZXJpZyFMiU3tYFFGDVaZQ9lajXIlYqFL0WwFFyBUz9bNUOmFYBVPoWRRUPVB2VRxTiUD7FQ5V0oVQVYA1xUWQVXzF9qWrZUB1+zWXlVXVaTUzFYslpyXz5R9lOFXn1SGFE0XxddFVjGXc5EMhUd9WqlTyXvRWwVhCV0JboliKWJtT51OmVtVWO1h1WuJTBFgTXlJYiFKzW0dllQ81sPWJlYL1kkXBZcKVh8W/Rfil8BW5FRh1Yza6X6FZc1PCXBdel1cEXVJTw0kFFQKF8cRi8VXqXRVW11ZyTaAV7xUHNfc1XUWjph9TZFUzZbXvNZe1y5VhJcnViXWltjZXmFdUa8VtRVh1YjWmNSal8xVYdYA1pjV3VZwlWUX4FSxF5GX5FaMVRnTIoVB2UBZXVlTmUmRUnFOEX9hZJ1lSXGleOkCgFXZF/cUhpTw1wDU+NTsl0xUNJMMxRtMVCOVvJUs17jXHheG1NrVeNY0VihVARbtlKyXMJeM14iVRVdUV7zUxpa9VeZR4EVlZW9NbJ1uGWdFZFVWkX3RXqlXmWZJSF1wTVR1SElFnX9VXImnVcDXqhdYVM1VL5Xs1B2Z9WsNcUU6VFbJV7aVUlbeFFEXSNVBFm+VoFVZl9SVHNekVhEVFlftFXDUEdZ0V9RU3hXB2r1YEW/JaQlHjUrJfU1RxUHNdk1F3W6pWPFXDT9MVVFViNVtGG1biWnRSo1+UV9NZkV5qVPFaIVQUWzNaIl9CVDRYEVISWhFR61QIXLFQUlrCV2NYUV8IUrJvdWJlCzUvNaHFQWU0ZcglyFU5ZQ1VABbHb3UdFVWFbyUcFf51cyUJFs9SgVUDVxlZw1goU4VWUlLCWTRU4l8CVmNr5XUVWyWgNf8V4iWyNXd1eYUzFac1eXULZRUlHTXjFeB1UGUrNU0lUhUsFUQVhBW0JT0lBDUwdd4VuDVnNWAVS0UEFt9eA1L2VqJcFlNjU/dllYwlRhZXaLWAVdlFZFWLNmxUAV4EWiJXJFiDV+VSY1MGWvFeQlwTXhJqxrtbBVphaZbeVwJeLVgVUjNe5FvTX1NSUl0BaYbcVuNQQlYRWNZipZYVCXVbJcoV66Z6XCNcxVM3UmhcsVhTUDRdwlGFVYJRglfnWQJd8VATUpZUdF7EV7JUU1nxWQFVwW6VYdbqXhVeI211/WXfRQ81dSXmNbs17iazZoXPFb01GyUXRYMVDRatUCFbZVyEYXVLNXVV4DV9FXwl0zWWVaYVISV0JfElNzUZJfFFoyVzhXQW+lQjVjFkpZ5FyDUnJnxUQVS0UPRplTMlzyasVpFVpGl1DUWnFb8W217DV3NmxXs1NzXDFl5RkV/xUPFRkVRhX6NZU15TZ5XPNTQVEhV6JvdZVVHRXldRAWd1YlYYWcFtlnxQIlLRXUJQA1XRW+JSA2uV1kV9JYNFJ1ZYb/UvFmtjdYYm5WGFZzYIaJacaeWxFt5vtc8W/1eSVhFnVhhllQcWBWDloyWYFYkWK1HDbJb2WCFsxrVWIVXyXYZp5dA2WWumeV+hVINd8VpzWOJcQVNhZ1U7RV4ViBW7FTkVUha3WoNQQVRxYHYqYFXcFQwWLVMza5VgJUclISUWJt1ndq1dJVtxUUJg9RBGvFMBVXJYMVQ5VLRl9UgVqTV9FuRac2PVTiXQFSUVZBboXMFqc=</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
