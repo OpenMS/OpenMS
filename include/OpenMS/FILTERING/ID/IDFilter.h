@@ -68,7 +68,7 @@ public:
     /// Destructor
     virtual ~IDFilter();
 
-    /// gets the best scoring peptide hit from a vecor of peptide identifications
+    /// gets the best scoring peptide hit from a vector of peptide identifications
     /// @param identifications Vector of peptide ids, each containing one or more peptide hits
     /// @param assume_sorted are hits sorted by score (best score first) already? This allows for faster query, since only the first hit needs to be looked at
     /// @return true if a hit was present, false otherwise

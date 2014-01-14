@@ -1041,7 +1041,7 @@ protected:
       size_type position_;
 
 private:
-      /// reffered sparseVector
+      /// referred sparseVector
       SparseVector & vector_;
 
       /// the position in the underlying map of SparseVector

@@ -66,9 +66,9 @@ public:
     /// Equality operator
     bool operator!=(const HPLC & source) const;
 
-    /// returns a const reference to the instument name
+    /// returns a const reference to the instrument name
     const String & getInstrument() const;
-    /// sets the instument name
+    /// sets the instrument name
     void setInstrument(const String & instrument);
 
     /// returns a const reference to the column description

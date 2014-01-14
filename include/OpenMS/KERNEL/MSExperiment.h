@@ -253,7 +253,7 @@ public:
         {
           continue;
         }
-				typename Container::value_type s; // explicit object here, since instanciation within push_back() fails on VS<12
+				typename Container::value_type s; // explicit object here, since instantiation within push_back() fails on VS<12
         for (typename SpectrumType::const_iterator it = spec->begin(); it != spec->end(); ++it)
         {
           cont.push_back(s);
@@ -287,7 +287,7 @@ public:
       Fill MSExperiment with data.
       Note that all data present (including meta-data) will be deleted prior to adding new data!
 
-      @param container An iteratable type whose elements support getRT(), getMZ() and getIntensity()
+      @param container An iterable type whose elements support getRT(), getMZ() and getIntensity()
       @param add_mass_traces If true, each container element is searched for the metavalue
                              "num_of_masstraces".
                              If found, "masstrace_intensity_<X>" (X>=0) meta values are added as data points (with 13C spacing).
