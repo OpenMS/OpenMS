@@ -42,6 +42,9 @@
 
 #include <numeric>
 #include <boost/math/special_functions/erf.hpp>
+#include <algorithm>
+#include <gsl/gsl_fit.h>
+#include <gsl/gsl_statistics.h>
 
 namespace OpenMS
 {
@@ -61,6 +64,17 @@ namespace OpenMS
   {
 
 public:
+
+    static std::pair<double, double > llsm_fit(std::vector<std::pair<double, double> >& pairs);
+  
+    static double llsm_rsq(std::vector<std::pair<double, double> >& pairs);
+  
+    static double llsm_rss(std::vector<std::pair<double, double> >& pairs, std::pair<double, double >& coefficients  );
+  
+    static std::vector<std::pair<double, double> > llsm_rss_inliers(std::vector<std::pair<double, double> >&   pairs, std::pair<double, double >& coefficients, double max_threshold);
+  
+    static std::vector<std::pair<double, double> > rm_outliers_ransac(std::vector<std::pair<double, double> >&   pairs, double min_rsq, double min_coverage, int max_iterations, double max_rt_threshold);
+  
 
     /**
       @brief This function computes a candidate outlier peptide by iteratively

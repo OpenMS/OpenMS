@@ -36,7 +36,120 @@
 
 namespace OpenMS
 {
+  std::pair<double, double > MRMRTNormalizer::llsm_fit(std::vector<std::pair<double, double> >& pairs) {
+    // standard least-squares fit to a straight line
+    // takes as input a standard vector of a standard pair of points in a 2D space
+    // and returns the coefficients of the linear regression Y(c,x) = c0 + c1 * x
+    std::vector<double> x, y;
+  
+    for (std::vector<std::pair<double, double> >::iterator it = pairs.begin(); it != pairs.end(); ++it)
+    {
+      x.push_back(it->first);
+      y.push_back(it->second);
+    }
+  
+    double c0, c1, cov00, cov01, cov11, sumsq;
+    double* xa = &x[0];
+    double* ya = &y[0];
+    gsl_fit_linear(xa, 1, ya, 1, pairs.size(), &c0, &c1, &cov00, &cov01, &cov11, &sumsq);
+  
+    return(std::make_pair(c0,c1));
+  }
+  
+  double MRMRTNormalizer::llsm_rsq(std::vector<std::pair<double, double> >& pairs) {
+    // standard least-squares fit to a straight line
+    // takes as input a standard vector of a standard pair of points in a 2D space
+    // and returns the coefficients of the linear regression Y(c,x) = c0 + c1 * x
+    std::vector<double> x, y;
 
+    for (std::vector<std::pair<double, double> >::iterator it = pairs.begin(); it != pairs.end(); ++it)
+    {
+      x.push_back(it->first);
+      y.push_back(it->second);
+    }
+
+    double* xa = &x[0];
+    double* ya = &y[0];
+ 
+    double r = gsl_stats_correlation(xa, 1, ya, 1, pairs.size());
+  
+    return(pow(r,2));
+  }
+  
+  double MRMRTNormalizer::llsm_rss(std::vector<std::pair<double, double> >& pairs, std::pair<double, double >& coefficients  ) {
+    // calculates the residual sum of squares of the input points and the linear fit with coefficients c0 & c1.
+    double rss = 0;
+  
+    for (std::vector<std::pair<double, double> >::iterator it = pairs.begin(); it != pairs.end(); ++it)
+    {
+      rss += pow( it->second - (coefficients.first + ( coefficients.second * it->first)), 2);
+    }
+  
+    return(rss);
+  }
+  
+  std::vector<std::pair<double, double> > MRMRTNormalizer::llsm_rss_inliers(std::vector<std::pair<double, double> >&   pairs, std::pair<double, double >& coefficients, double max_threshold) {
+    // calculates the residual sum of squares of the input points and the linear fit with coefficients c0 & c1.
+    // further removes all points that have an error larger or equal than max_threshold.
+  
+    std::vector<std::pair<double, double> > alsoinliers;
+  
+    for (std::vector<std::pair<double, double> >::iterator it = pairs.begin(); it != pairs.end(); ++it)
+    {
+      if(pow( it->second - (coefficients.first + ( coefficients.second * it->first)), 2) < max_threshold) {
+        alsoinliers.push_back(*it);
+      }
+    }
+  
+    return alsoinliers;
+  }
+  
+  std::vector<std::pair<double, double> > MRMRTNormalizer::rm_outliers_ransac(std::vector<std::pair<double, double> >&   pairs, double min_rsq, double min_coverage, int max_iterations, double max_rt_threshold) {
+    // implementation of the RANSAC algorithm according to http://wiki.scipy.org/Cookbook/RANSAC.
+    // adaptations for MRMRTNormalizer: estimation of parameters.
+    double max_threshold = pow(max_rt_threshold,2);
+    size_t coverage_num = (int)(min_coverage*pairs.size());
+    size_t min_points = (size_t)(coverage_num/3);
+  
+    std::vector<std::pair<double, double> > maybeinliers, test_points, alsoinliers, betterdata, bestdata;
+    std::pair<double, double > bestcoeff;
+    double besterror = std::numeric_limits<double>::max();
+    double bettererror;
+    double rsq = 0;
+  
+    for (int ransac_int=0; ransac_int<max_iterations && rsq < min_rsq; ransac_int++) {
+      std::vector<std::pair<double, double> > pairs_shuffled = pairs;
+      std::random_shuffle(pairs_shuffled.begin(), pairs_shuffled.end());
+  
+      maybeinliers.clear();
+      test_points.clear();
+      std::copy( pairs_shuffled.begin(), pairs_shuffled.begin()+min_points, std::back_inserter(maybeinliers) );
+      std::copy( pairs_shuffled.begin()+min_points, pairs_shuffled.end(), std::back_inserter(test_points) );
+  
+      std::pair<double, double > coeff = llsm_fit(maybeinliers);
+  
+      alsoinliers = llsm_rss_inliers(test_points,coeff,max_threshold);
+  
+      if (alsoinliers.size() > coverage_num) {
+        betterdata = maybeinliers;
+        betterdata.insert( betterdata.end(), alsoinliers.begin(), alsoinliers.end() );
+        std::pair<double, double > bettercoeff = llsm_fit(betterdata);
+        bettererror = llsm_rss(betterdata,bettercoeff);
+  
+        if (bettererror < besterror) {
+          besterror = bettererror;
+          bestcoeff = bettercoeff;
+          bestdata = betterdata;
+          rsq = llsm_rsq(betterdata);
+  
+          std::cout << besterror << " " << rsq << " " << ransac_int << std::endl;
+        }
+      }
+    }
+  
+    return(bestdata);
+  } 
+ 
   int MRMRTNormalizer::outlier_candidate(std::vector<double>& x, std::vector<double>& y)
   {
     // Returns candidate outlier: A linear regression and rsq is calculated for
