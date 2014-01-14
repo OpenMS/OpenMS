@@ -41,7 +41,7 @@ namespace OpenMS
     // takes as input a standard vector of a standard pair of points in a 2D space
     // and returns the coefficients of the linear regression Y(c,x) = c0 + c1 * x
     std::vector<double> x, y;
-  
+
     for (std::vector<std::pair<double, double> >::iterator it = pairs.begin(); it != pairs.end(); ++it)
     {
       x.push_back(it->first);
@@ -109,15 +109,19 @@ namespace OpenMS
     // adaptations for MRMRTNormalizer: estimation of parameters.
     double max_threshold = pow(max_rt_threshold,2);
     size_t coverage_num = (int)(min_coverage*pairs.size());
-    size_t min_points = (size_t)(coverage_num/3);
+    size_t min_points = (size_t)(coverage_num/6);
   
     std::vector<std::pair<double, double> > maybeinliers, test_points, alsoinliers, betterdata, bestdata;
     std::pair<double, double > bestcoeff;
     double besterror = std::numeric_limits<double>::max();
     double bettererror;
-    double rsq = 0;
+    double betterrsq = 0;
+    double bestrsq = 0;
+
+    // start RANSAC
+    std::cout << "RANSAC" << std::endl;
   
-    for (int ransac_int=0; ransac_int<max_iterations && rsq < min_rsq; ransac_int++) {
+    for (int ransac_int=0; ransac_int<max_iterations && betterrsq < min_rsq; ransac_int++) {
       std::vector<std::pair<double, double> > pairs_shuffled = pairs;
       std::random_shuffle(pairs_shuffled.begin(), pairs_shuffled.end());
   
@@ -125,28 +129,45 @@ namespace OpenMS
       test_points.clear();
       std::copy( pairs_shuffled.begin(), pairs_shuffled.begin()+min_points, std::back_inserter(maybeinliers) );
       std::copy( pairs_shuffled.begin()+min_points, pairs_shuffled.end(), std::back_inserter(test_points) );
-  
+ 
       std::pair<double, double > coeff = llsm_fit(maybeinliers);
-  
+
       alsoinliers = llsm_rss_inliers(test_points,coeff,max_threshold);
   
-      if (alsoinliers.size() > coverage_num) {
+      if (alsoinliers.size() > coverage_num - min_points) {
         betterdata = maybeinliers;
         betterdata.insert( betterdata.end(), alsoinliers.begin(), alsoinliers.end() );
         std::pair<double, double > bettercoeff = llsm_fit(betterdata);
         bettererror = llsm_rss(betterdata,bettercoeff);
-  
-        if (bettererror < besterror) {
+        betterrsq = llsm_rsq(betterdata);
+ 
+        if (bettererror < besterror && betterrsq >= bestrsq) {
           besterror = bettererror;
           bestcoeff = bettercoeff;
           bestdata = betterdata;
-          rsq = llsm_rsq(betterdata);
+          bestrsq = betterrsq;
   
-          std::cout << besterror << " " << rsq << " " << ransac_int << std::endl;
+          std::cout << "RANSAC " << ransac_int << ": Points: " << betterdata.size() << " RSQ: " << bestrsq << " Error: " << besterror << " c0: " << bestcoeff.first << " c1: " << bestcoeff.second << std::endl;
         }
       }
     }
-  
+   
+    if (1) {
+      std::cout << "=======STARTPOINTS=======" << std::endl;
+      for (std::vector<std::pair<double, double> >::iterator it = bestdata.begin(); it != bestdata.end(); ++it)
+      {
+        std::cout << it->first << "\t" << it->second << std::endl;
+      }
+      std::cout << "=======ENDPOINTS=======" << std::endl;
+    }
+ 
+    if (bestdata.size() < coverage_num) {
+      throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-LinearRegression-RTNormalizer", "WARNING: number of data points: " + boost::lexical_cast<std::string>(bestdata.size()) + " is below limit of " + boost::lexical_cast<std::string>(coverage_num) + ". Validate assays for RT-peptides and adjust the limit for rsq or coverage.");
+    }
+    if (bestrsq < min_rsq) {
+      throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-LinearRegression-RTNormalizer", "WARNING: rsq: " + boost::lexical_cast<std::string>(bestrsq) + " is below limit of " + boost::lexical_cast<std::string>(min_rsq) + ". Validate assays for RT-peptides and adjust the limit for rsq or coverage.");
+    }
+
     return(bestdata);
   } 
  
@@ -252,6 +273,15 @@ namespace OpenMS
     for (Size i = 0; i < x.size(); i++)
     {
       pairs_corrected.push_back(std::make_pair(x[i], y[i]));
+    }
+
+    if (1) {
+      std::cout << "=======STARTPOINTS=======" << std::endl;
+      for (std::vector<std::pair<double, double> >::iterator it = pairs_corrected.begin(); it != pairs_corrected.end(); ++it)
+      {
+        std::cout << it->first << "\t" << it->second << std::endl;
+      }
+      std::cout << "=======ENDPOINTS=======" << std::endl;
     }
 
     return pairs_corrected;
