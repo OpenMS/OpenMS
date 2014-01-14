@@ -105,6 +105,7 @@ protected:
     registerDoubleOption_("min_coverage", "<double>", 0.6, "Minimum relative amount of RT peptides to keep", false);
 
     registerFlag_("estimateBestPeptides", "Whether the algorithms should choose the best peptides for normalization. Use this option you do not expect all your peptides to be detected in a sample (e.g. due to them being endogenous peptides or using a less curated list of peptides).", false);
+    registerFlag_("useChauvenet", "Whether to use Chauvenet's criterion when testing for a single outlier (using this option is more stringent and can lead to outliers being retained).", false);
 
     registerSubsection_("algorithm", "Algorithm parameters section");
 
@@ -240,6 +241,7 @@ protected:
     DoubleReal min_rsq = getDoubleOption_("min_rsq");
     DoubleReal min_coverage = getDoubleOption_("min_coverage");
     bool estimateBestPeptides = getFlag_("estimateBestPeptides");
+    bool useChauvenet = getFlag_("useChauvenet");
     const char * tr_file  = tr_file_str.c_str();
 
     MapType all_xic_maps; // all XICs from all files
@@ -340,7 +342,7 @@ protected:
     }
 
     std::vector<std::pair<double, double> > pairs_corrected;
-    pairs_corrected = MRMRTNormalizer::rm_outliers(pairs, min_rsq, min_coverage, false);
+    pairs_corrected = MRMRTNormalizer::rm_outliers(pairs, min_rsq, min_coverage, useChauvenet);
 
     // store transformation, using a linear model as default
     TransformationDescription trafo_out;
