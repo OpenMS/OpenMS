@@ -69,6 +69,10 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmUnlabeled.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/LabeledPairFinder.h>
 #include <OpenMS/ANALYSIS/MRM/MRMFragmentSelection.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/PeakPickerMRM.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqChannelExtractor.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqQuantifier.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricChannelExtractor.h>
@@ -353,6 +357,7 @@ int main(int argc, char ** argv)
   DOCME(ComplementMarker);
   DOCME(ConsensusID);
   DOCME(DetectabilitySimulation);
+  DOCME(DIAScoring);
   DOCME(DigestSimulation);
   DOCME(EmgFitter1D);
   DOCME(EmgModel);
@@ -392,6 +397,8 @@ int main(int argc, char ** argv)
   DOCME(MapAlignmentAlgorithmPoseClustering);
   DOCME(MapAlignmentAlgorithmSpectrumAlignment);
   DOCME(MapAlignmentAlgorithmIdentification);
+  DOCME(MRMFeatureFinderScoring);
+  DOCME(MRMTransitionGroupPicker);
   DOCME(NLargest);
   DOCME(NeutralLossDiffFilter);
   DOCME(NeutralLossMarker);
@@ -403,6 +410,7 @@ int main(int argc, char ** argv)
   DOCME(PeakAlignment);
   DOCME(PeakPickerCWT);
   DOCME(PeakPickerHiRes);
+  DOCME(PeakPickerMRM);
   DOCME(PoseClusteringAffineSuperimposer);
   DOCME(PoseClusteringShiftSuperimposer);
   DOCME(QTClusterFinder);
@@ -490,3 +498,4 @@ int main(int argc, char ** argv)
   DOCME2(IsobaricQuantifier, IsobaricQuantifier(new ItraqFourPlexQuantitationMethod()));
   return 0;
 }
+
