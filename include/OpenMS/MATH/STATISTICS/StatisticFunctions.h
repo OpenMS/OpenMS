@@ -37,6 +37,7 @@
 
 #include <numeric>
 #include <algorithm>
+#include <vector>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <boost/lambda/lambda.hpp>
