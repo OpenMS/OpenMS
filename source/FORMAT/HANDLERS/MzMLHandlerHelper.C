@@ -83,7 +83,7 @@ namespace OpenMS
     }
     else if (np.np_compression == MSNumpressCoder::PIC)
     {
-      return "<cvParam cvRef=\"MS\" accession=\"MS:1002313\" name=\"MS-Numpress linear prediction compression\" />";
+      return "<cvParam cvRef=\"MS\" accession=\"MS:1002313\" name=\"MS-Numpress positive integer compression\" />";
     }
     else if (np.np_compression == MSNumpressCoder::SLOF)
     {

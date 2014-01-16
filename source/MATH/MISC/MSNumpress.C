@@ -94,9 +94,9 @@ void encodeInt(
 		unsigned char* res,
 		size_t *res_length	
 ) {
-	int i, l, m;
-	int mask = 0xf0000000;
-	int init = x & mask;
+    int i, l, m;
+    unsigned int mask = 0xf0000000;
+    int init = x & mask;
 
 	if (init == 0) {
 		l = 8;
@@ -146,14 +146,15 @@ void encodeInt(
 void decodeInt(
 		const unsigned char *data,
 		size_t *di,
-		int *half,
+		size_t max_di,
+		size_t *half,
 		int *res
 ) {
-	size_t n;
-	size_t i;
-	int mask, m;
-	unsigned char head;
-	unsigned char hb;
+    size_t n;
+    size_t i;
+    unsigned int mask, m;
+    unsigned char head;
+    unsigned char hb;
 
 	if (*half == 0) {
 		head = data[*di] >> 4;
@@ -178,6 +179,10 @@ void decodeInt(
 	
 	if (n == 8) {
 		return;
+	}
+	
+	if (*di + ((8 - n) - (1 - *half)) / 2 >= max_di) {
+		throw "[MSNumpress::decodeInt] Corrupt input data! ";
 	}
 	
 	for (i=n; i<8; i++) {
@@ -316,21 +321,23 @@ size_t decodeLinear(
 	long long ints[3];
 	//double d;
 	size_t di;
-	int half;
+	size_t half;
 	long long extrapol;
 	long long y;
 	double fixedPoint;
 	
 	//printf("Decoding %d bytes with fixed point %f\n", (int)dataSize, fixedPoint);
 
-	if (dataSize < 8) return -1;
+	if (dataSize < 8) 
+		throw "[MSNumpress::decodeLinear] Corrupt input data: not enough bytes to read fixed point! ";
 	
 	fixedPoint = decodeFixedPoint(data);
 
 
-	if (dataSize < 12) return -1;
+	if (dataSize < 12) 
+		throw "[MSNumpress::decodeLinear] Corrupt input data: not enough bytes to read first value! ";
 	
-	try {
+	//try {
 		ints[1] = 0;
 		for (i=0; i<4; i++) {
 			ints[1] = ints[1] | ((0xff & (init = data[8+i])) << (i*8));
@@ -338,7 +345,8 @@ size_t decodeLinear(
 		result[0] = ints[1] / fixedPoint;
 
 		if (dataSize == 12) return 1;
-		if (dataSize < 16) return -1;
+		if (dataSize < 16) 
+			throw "[MSNumpress::decodeLinear] Corrupt input data: not enough bytes to read second value! ";
 
 		ints[2] = 0;
 		for (i=0; i<4; i++) {
@@ -350,23 +358,27 @@ size_t decodeLinear(
 		ri = 2;
 		di = 16;
 		
+		//printf("   di     ri      half    int[0]    int[1]    extrapol   diff\n");
+		
 		while (di < dataSize) {
-			ints[0] = ints[1];
-			ints[1] = ints[2];
 			if (di == (dataSize - 1) && half == 1) {
-				if ((data[di] & 0xf) != 0x8) {
+				if ((data[di] & 0xf) == 0x0) {
 					break;
 				}
 			}
-			decodeInt(data, &di, &half, &diff);
+			//printf("%7d %7d %7d %lu %lu %ld", di, ri, half, ints[0], ints[1], extrapol);
+			
+			ints[0] = ints[1];
+			ints[1] = ints[2];
+			decodeInt(data, &di, dataSize, &half, &diff);
 			
 			extrapol = ints[1] + (ints[1] - ints[0]);
 			y = extrapol + diff;
-			//printf("%lu %lu,   extrapol: %ld    diff: %d \n", ints[0], ints[1], extrapol, diff);
+			//printf(" %d \n", diff);
 			result[ri++] 	= y / fixedPoint;
 			ints[2] 		= y;
 		}
-	} catch (...) {
+	/*} catch (...) {
 		cerr << "DECODE ERROR" << endl;
 		cerr << "i: " << i << endl;
 		cerr << "ri: " << ri << endl;
@@ -382,7 +394,7 @@ size_t decodeLinear(
 		}
 		cerr << endl;
 	}
-	
+	*/
 	return ri;
 }
 
@@ -405,6 +417,110 @@ void decodeLinear(
 	result.resize(dataSize * 2);
 	size_t decodedLength = decodeLinear(&data[0], dataSize, &result[0]);
 	result.resize(decodedLength);
+}
+
+/////////////////////////////////////////////////////////////
+
+
+size_t encodeSafe(
+		const double *data, 
+		const size_t dataSize, 
+		unsigned char *result
+) {
+	size_t i, j, ri = 0;
+	double latest[3];
+	double extrapol, diff;
+	const unsigned char *fp; 
+	
+	//printf("d0 d1 d2 extrapol diff\n");
+		
+	if (dataSize == 0) return ri;
+
+	latest[1] = data[0];
+	fp = (unsigned char*)data;
+	for (i=0; i<8; i++) {
+		result[ri++] = fp[IS_BIG_ENDIAN ? (7-i) : i];
+	}
+	
+	if (dataSize == 1) return ri;
+
+	latest[2] = data[1];
+	fp = (unsigned char*)&(data[1]);
+	for (i=0; i<8; i++) {
+		result[ri++] = fp[IS_BIG_ENDIAN ? (7-i) : i];
+	}
+
+	fp = (unsigned char*)&diff;
+	for (i=2; i<dataSize; i++) {
+		latest[0] = latest[1];
+		latest[1] = latest[2];
+		latest[2] = data[i];
+		extrapol = latest[1] + (latest[1] - latest[0]);
+		diff = latest[2] - extrapol;
+		//printf("%f %f %f %f %f\n", latest[0], latest[1], latest[2], extrapol, diff);
+		for (j=0; j<8; j++) {
+			result[ri++] = fp[IS_BIG_ENDIAN ? (7-j) : j];
+		}
+	}
+	
+	return ri;
+}
+
+
+int decodeSafe(
+		const unsigned char *data,
+		const size_t dataSize,
+		double *result
+) {
+	size_t i, di, ri;
+	double extrapol, diff;
+	double latest[3];
+	unsigned char *fp;
+	
+	if (dataSize % 8 != 0) 
+		throw "[MSNumpress::decodeSafe] Corrupt input data: number of bytes needs to be multiple of 8! ";
+	
+	//printf("d0 d1 extrapol diff\td2\n");
+	
+	try {
+		fp = (unsigned char*)&(latest[1]);
+		for (i=0; i<8; i++) {
+			fp[i] = data[IS_BIG_ENDIAN ? (7-i) : i];
+		}
+		result[0] = latest[1];
+
+		if (dataSize == 8) return 1;
+
+		fp = (unsigned char*)&(latest[2]);
+		for (i=0; i<8; i++) {
+			fp[i] = data[8 + (IS_BIG_ENDIAN ? (7-i) : i)];
+		}
+		result[1] = latest[2];
+		
+		ri = 2;
+		
+		fp = (unsigned char*)&diff;
+		for (di = 16; di < dataSize; di += 8) {
+			latest[0] = latest[1];
+			latest[1] = latest[2];
+			
+			for (i=0; i<8; i++) {
+				fp[i] = data[di + (IS_BIG_ENDIAN ? (7-i) : i)];
+			}
+			
+			extrapol = latest[1] + (latest[1] - latest[0]);
+			latest[2] = extrapol + diff;
+			
+			//printf("%f %f %f %f\t%f \n", latest[0], latest[1], extrapol, diff, latest[2]);
+		
+			result[ri++] = latest[2];
+		}
+	} catch (...) {
+		cerr << "got some error" << endl;
+		return -1;
+	}
+	
+	return ri;
 }
 
 /////////////////////////////////////////////////////////////
@@ -469,25 +585,30 @@ size_t decodePic(
 	int count;
 	//double d;
 	size_t di;
-	int half;
+	size_t half;
 
-	try {
+	//printf("ri      di      half    dSize   count\n");
+	
+	//try {
 		half = 0;
 		ri = 0;
 		di = 0;
 		
 		while (di < dataSize) {
 			if (di == (dataSize - 1) && half == 1) {
-				if ((data[di] & 0xf) != 0x8) {
+				if ((data[di] & 0xf) == 0x0) {
 					break;
 				}
 			}
-			decodeInt(&data[0], &di, &half, &count);
+			
+			decodeInt(&data[0], &di, dataSize, &half, &count);
+			
+			//printf("%7d %7d %7d %7d %7d\n", ri, di, half, dataSize, count);
 			
 			//printf("count: %d \n", count);
 			result[ri++] 	= count;
 		}
-	} catch (...) {
+	/*} catch (...) {
 		cerr << "DECODE ERROR" << endl;
 		cerr << "ri: " << ri << endl;
 		cerr << "di: " << di << endl;
@@ -499,7 +620,7 @@ size_t decodePic(
 			cerr << "data[" << i << "] = " << data[i];
 		}
 		cerr << endl;
-	}
+	}*/
 	return ri;
 }
 
@@ -582,7 +703,9 @@ size_t decodeSlof(
 	ri = 0;
 	double fixedPoint;
 
-	if (dataSize < 8) return -1;
+	if (dataSize < 8) 
+		throw "[MSNumpress::decodeSlof] Corrupt input data: not enough bytes to read fixed point! ";
+	
 	fixedPoint = decodeFixedPoint(data);
 
 	for (i=8; i<dataSize; i+=2) {
