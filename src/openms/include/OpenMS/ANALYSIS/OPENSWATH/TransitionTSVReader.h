@@ -107,6 +107,8 @@ private:
       String group_label;
       int fragment_charge;
       int fragment_nr;
+      double fragment_mzdelta;
+      int fragment_modification;
       String fragment_type;
       String uniprot_id;
     };
@@ -119,13 +121,13 @@ private:
     void readTSVInput_(const char* filename, std::vector<TSVTransition>& transition_list);
 
     /// determine separator in a CSV file and check for correct headers
-    void getTSVHeader_(std::string & line, char & delimiter, std::vector<std::string> header, std::map<std::string, int> & header_dict);
+    void getTSVHeader_(std::string& line, char& delimiter, std::vector<std::string> header, std::map<std::string, int>& header_dict);
 
     /// read tab or comma separated input with columns defined by their column headers only
-    void readUnstructuredTSVInput_(const char* filename, std::vector<TSVTransition>& transition_list);
+    void readUnstructuredTSVInput_(const char* filename, FileTypes::Type filetype, std::vector<TSVTransition>& transition_list);
 
     /// do post-processing on read input data (removing quotes etc)
-    void cleanupTransitions_(TSVTransition & mytransition);
+    void cleanupTransitions_(TSVTransition& mytransition);
 
     /// store a list of TSVTransition objects properly in a TargetedExperiment
     void TSVToTargetedExperiment_(std::vector<TSVTransition>& transition_list, OpenMS::TargetedExperiment& exp);
@@ -138,8 +140,8 @@ private:
 
     void createPeptide_(std::vector<TSVTransition>::iterator& tr_it, OpenMS::TargetedExperiment::Peptide& peptide);
 
-    void addModification_(std::vector<TargetedExperiment::Peptide::Modification> & mods,
-          int location, ResidueModification & rmod, const String & name);
+    void addModification_(std::vector<TargetedExperiment::Peptide::Modification>& mods,
+                          int location, ResidueModification& rmod, const String& name);
 
     /// write a TargetedExperiment to a file
     void writeTSVOutput_(const char* filename, OpenMS::TargetedExperiment& targeted_exp);
@@ -163,10 +165,10 @@ public:
     void convertTargetedExperimentToTSV(const char* filename, OpenMS::TargetedExperiment& targeted_exp);
 
     /// Read in a tsv file and construct a targeted experiment (TraML structure)
-    void convertTSVToTargetedExperiment(const char* filename, OpenMS::TargetedExperiment& targeted_exp);
+    void convertTSVToTargetedExperiment(const char* filename, FileTypes::Type filetype, OpenMS::TargetedExperiment& targeted_exp);
 
     /// Read in a tsv file and construct a targeted experiment (Light transition structure)
-    void convertTSVToTargetedExperiment(const char* filename, OpenSwath::LightTargetedExperiment& targeted_exp);
+    void convertTSVToTargetedExperiment(const char* filename, FileTypes::Type filetype, OpenSwath::LightTargetedExperiment& targeted_exp);
 
     /// Validate a TargetedExperiment (check that all ids are unique)
     void validateTargetedExperiment(OpenMS::TargetedExperiment& targeted_exp);
@@ -175,4 +177,3 @@ public:
 }
 
 #endif
-

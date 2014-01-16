@@ -98,6 +98,7 @@ namespace OpenMS
       ANALYSISXML,        ///< analysisXML format
       XSD,                ///< XSD schema format
       PSQ,                ///< NCBI binary blast db
+      MRM,                ///< SpectraST MRM List
       SIZE_OF_TYPE        ///< No file type. Simply stores the number of types
     };
 
