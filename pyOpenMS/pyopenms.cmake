@@ -373,6 +373,7 @@ test_FileIO.py
 test_Isobaric_Quantitation.py
 testLightTargetedExperiment.py
 test_MRMFeatureFinderScoring.py
+test_MSNumpressCoder.py
 test_MSSpectrumAndRichSpectrum.py
 test_OpenSwathDataStructures.py
 test_Smoothing.py
@@ -384,7 +385,7 @@ test_MzMLConsumer.py
 test_MzXMLConsumer.py
 )
 
-# Please add your test here when you decide to write a new testfile in the tests/unittests folder
+# Please add your test here when you decide to write a new testfile in the tests/integration_tests folder
 set(pyopenms_integrationtest_testfiles
 test_MRMRTNormalizer.py
 )
