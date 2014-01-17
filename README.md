@@ -25,29 +25,6 @@ Initiative (PSI) formats for MS data. The main contributors of OpenMS are
 currently the Eberhard-Karls Universität in Tübingen, the Freie Universität
 Berlin and the ETH Zurich.
 
-Documentation
--------------
-There is a documentation which is included in the stable releases under
-doc/index.html and can be built from source. It can also be accessed
-[online](http://www.openms.de/current_doxygen/html/index.html).
-
-Contributing
---------
-
-If you would like to contribute to OpenMS, this is how 
-to best get started: 
-
-- Familiarize yourself with our [online documentation](http://www.openms.de/current_doxygen/html/).
-
-- Learn how to build OpenMS (by reading the building 
-  instructions at the online documentation).
-
-- Start reading the [OpenMS tutorial for developers](http://www.openms.de/current_doxygen/html/OpenMS_tutorial.html).
-
-- Any questions can be directed at the mailing list, see [our
-  website](http://openms.de/support) for up-to-date information about how to
-  contact the OpenMS developers.
-
 Features
 --------
 - Core C++ library
@@ -62,3 +39,6 @@ Authors
 -------
 The file AUTHORS contains a full list of all authors who worked on OpenMS
 
+Wiki
+-------------
+Users and developers should start by reading the OpenMS wiki:  https://github.com/OpenMS/OpenMS/wiki
