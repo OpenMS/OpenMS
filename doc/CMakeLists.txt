@@ -54,8 +54,9 @@ include(doxygen/parameters/executables.cmake)
 set(OPENMS_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "doxygen/parameters")
 
-# add OpenMS includes 
+# add OpenMS includes
 include_directories(${OPENMS_INCLUDE_DIRECTORIES})
+include_directories(${OPENMS_GUI_INCLUDE_DIRECTORIES})
 
 # build doc executables
 foreach(i ${OpenMS_doc_executables})
@@ -74,17 +75,19 @@ set(CF_OPENMS_BIN_PATH ${PROJECT_BINARY_DIR})
 set(CF_OPENMS_SRC_PATH ${OPENMS_HOST_DIRECTORY})
 
 set(OPENMS_DOCUMENTATION_DIRECTORIES)
-list(APPEND OPENMS_DOCUMENTATION_DIRECTORIES "${OPENMS_HOST_DIRECTORY}/openms/include/OpenMS")
-list(APPEND OPENMS_DOCUMENTATION_DIRECTORIES "${OPENMS_HOST_DIRECTORY}/openms/source/APPLICATIONS/TOPP/")
-list(APPEND OPENMS_DOCUMENTATION_DIRECTORIES "${OPENMS_HOST_DIRECTORY}/openms/source/APPLICATIONS/UTILS/")
-list(APPEND OPENMS_DOCUMENTATION_DIRECTORIES "${OPENMS_HOST_DIRECTORY}/openms/source/VISUAL/APPLICATIONS/")
+list(APPEND OPENMS_DOCUMENTATION_DIRECTORIES "${OPENMS_HOST_DIRECTORY}/src/openswathalgo/include/OpenMS")
+list(APPEND OPENMS_DOCUMENTATION_DIRECTORIES "${OPENMS_HOST_DIRECTORY}/src/openms/include/OpenMS")
+list(APPEND OPENMS_DOCUMENTATION_DIRECTORIES "${OPENMS_HOST_DIRECTORY}/src/openms_gui/include/OpenMS")
+list(APPEND OPENMS_DOCUMENTATION_DIRECTORIES "${OPENMS_HOST_DIRECTORY}/src/openms_gui/source/VISUAL/APPLICATIONS/")
+list(APPEND OPENMS_DOCUMENTATION_DIRECTORIES "${OPENMS_HOST_DIRECTORY}/src/topp/")
+list(APPEND OPENMS_DOCUMENTATION_DIRECTORIES "${OPENMS_HOST_DIRECTORY}/src/utils/")
 
 # make it a doxygen conform list
 make_doxygen_path(CF_OPENMS_DOCUMENTATION_DIRECTORIES OPENMS_DOCUMENTATION_DIRECTORIES)
 
 # strip include path
 set(DOC_OPENMS_INCLUDE_DIRECTORIES)
-list(APPEND DOC_OPENMS_INCLUDE_DIRECTORIES "${OPENMS_HOST_DIRECTORY}/openms/include/")
+list(APPEND DOC_OPENMS_INCLUDE_DIRECTORIES "${OPENMS_HOST_DIRECTORY}/src/openms/include/")
 
 # make it a doxygen conform list
 make_doxygen_path(CF_OPENMS_DOCUMENTATION_STRIP_INCLUDES DOC_OPENMS_INCLUDE_DIRECTORIES)
@@ -114,21 +117,21 @@ if (DOXYGEN_FOUND)
 
   #------------------------------------------------------------------------------
   # doc paths (bin path, topp documenter, defaultparamhandler documenter)
-  #------------------------------------------------------------------------------  
+  #------------------------------------------------------------------------------
 	if(NOT MSVC)
 		set(_TOPPDOCUMENTER_EXECUTABLE "${PROJECT_BINARY_DIR}/doxygen/parameters/TOPPDocumenter")
 		set(_DEFAULTPARAMHANDLERDOCUMENTER_EXECUTABLE "${PROJECT_BINARY_DIR}/doxygen/parameters/DefaultParamHandlerDocumenter")
 		set(_BINARY_PATH "${OPENMS_RUNTIME_OUTPUT_DIRECTORY}")
 	else()
 		set(_TOPPDOCUMENTER_EXECUTABLE "${PROJECT_BINARY_DIR}/doxygen/parameters/$(ConfigurationName)/TOPPDocumenter")
-		set(_DEFAULTPARAMHANDLERDOCUMENTER_EXECUTABLE "${PROJECT_BINARY_DIR}/doxygen/parameters/$(ConfigurationName)/DefaultParamHandlerDocumenter")		
+		set(_DEFAULTPARAMHANDLERDOCUMENTER_EXECUTABLE "${PROJECT_BINARY_DIR}/doxygen/parameters/$(ConfigurationName)/DefaultParamHandlerDocumenter")
 		set(_BINARY_PATH "${OPENMS_RUNTIME_OUTPUT_DIRECTORY}/$(ConfigurationName)")
 	endif()
-	
+
 	file(TO_NATIVE_PATH "${_TOPPDOCUMENTER_EXECUTABLE}" TOPPDOCUMENTER_EXECUTABLE)
 	file(TO_NATIVE_PATH "${_DEFAULTPARAMHANDLERDOCUMENTER_EXECUTABLE}" DEFAULTPARAMHANDLERDOCUMENTER_EXECUTABLE)
 	file(TO_NATIVE_PATH "${_BINARY_PATH}" BINARY_PATH)
-	
+
   #------------------------------------------------------------------------------
   # doc_param_internal targets
   add_custom_target(doc_param_internal
@@ -261,7 +264,7 @@ endif()
 #------------------------------------------------------------------------------
 if (DOXYGEN_FOUND AND LATEX_COMPILER AND DVIPS_CONVERTER)
   set(DOC_TUTORIALS_ACTIVE TRUE)
-  
+
   set(DOXYGEN_START_BUGGY "1.6.3")
   set(DOXYGEN_END_BUGGY "1.7.2")
   exec_program(${DOXYGEN_EXECUTABLE}
@@ -271,7 +274,7 @@ if (DOXYGEN_FOUND AND LATEX_COMPILER AND DVIPS_CONVERTER)
   if (DOXYGEN_VERSION STRGREATER DOXYGEN_START_BUGGY AND DOXYGEN_VERSION STRLESS DOXYGEN_END_BUGGY )
     message(ERROR "Warning, DoxygenBug ( 1.6.? < vers. installed < 1.7.3 ) disguises generated tex inputfiles and files will not be recognized")
   endif ()
-  
+
   #------------------------------------------------------------------------------
   # doc_tutorials target
   add_custom_target(doc_tutorials

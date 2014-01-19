@@ -678,11 +678,7 @@ WARN_LOGFILE           = "@CF_OPENMS_BIN_PATH@/doxygen/doxygen-error.log"
 # directories like "/usr/src/myproject". Separate the files or directories
 # with spaces.
 
-INPUT                  = "@CF_OPENMS_SRC_PATH@/include/OpenMS/" \
-                         "@CF_OPENMS_SRC_PATH@/source/APPLICATIONS/TOPP/" \
-                         "@CF_OPENMS_SRC_PATH@/source/APPLICATIONS/UTILS/" \
-                         "@CF_OPENMS_SRC_PATH@/source/VISUAL/APPLICATIONS/" \
-                         "@CF_OPENMS_SRC_PATH@/doc/OpenMS_tutorial/" \
+INPUT                  = "@CF_OPENMS_SRC_PATH@/doc/OpenMS_tutorial/" \
                          "@CF_OPENMS_SRC_PATH@/doc/TOPP_tutorial/" \
                          "@CF_OPENMS_SRC_PATH@/doc/doxygen/public/" \
                          "@CF_OPENMS_SRC_PATH@/doc/doxygen/internal/" \
@@ -756,7 +752,7 @@ EXCLUDE_SYMBOLS        =
 # directories that contain example code fragments that are included (see
 # the \include command).
 
-EXAMPLE_PATH           = "@CF_OPENMS_SRC_PATH@/code_examples/" \
+EXAMPLE_PATH           = "@CF_OPENMS_SRC_PATH@/doc/code_examples/" \
                          "@CF_OPENMS_BIN_PATH@/doxygen/parameters/output/" \
                          "@CF_OPENMS_SRC_PATH@/share/OpenMS/" \
                          "@CF_OPENMS_SRC_PATH@/CHANGELOG"
