@@ -55,7 +55,7 @@ endif()
 # Include the standard Dart testing module
 # for Nighlty Build log
 enable_testing()
-include(Dart) 
+include(Dart)
 
 #------------------------------------------------------------------------------
 # entries meant to be configured using CMake cache
@@ -103,7 +103,7 @@ else()
 endif()
 
 #------------------------------------------------------------------------------
-# All the multithreading stuff (OpenMP, CUDA, TBB) 
+# All the multithreading stuff (OpenMP, CUDA, TBB)
 #------------------------------------------------------------------------------
 include(cmake/multithreading.cmake)
 
@@ -136,7 +136,7 @@ set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE} CACHE STRING "Choose the type of build,
 # Fill this with compile flags that external projects should use as well
 # for OpenMS internal flags (not promoted to external compiler flags) append to CMAKE_CXX_FLAGS
 # see OpenMS/cmake/OpenMSConfig.cmake.in to see how its configured and used (i.e. as OPENMS_ADDCXX_FLAGS)
-set(CF_OPENMS_ADDCXX_FLAGS) 
+set(CF_OPENMS_ADDCXX_FLAGS)
 include(cmake/compiler_flags.cmake)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CF_OPENMS_ADDCXX_FLAGS}")
 
@@ -149,7 +149,7 @@ if(STL_DEBUG)
 endif()
 
 #------------------------------------------------------------------------------
-# we build shared libraries 
+# we build shared libraries
 set(BUILD_SHARED_LIBS true)
 
 #------------------------------------------------------------------------------
@@ -178,7 +178,7 @@ endif()
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/modules")
 
 #------------------------------------------------------------------------------
-# lib naming when building with msvc 
+# lib naming when building with msvc
 if (MSVC)
 	## use OpenMSd.dll in debug mode
 	SET(CMAKE_DEBUG_POSTFIX d)
@@ -193,6 +193,17 @@ add_subdirectory(src)
 # Documentation
 #------------------------------------------------------------------------------
 add_subdirectory(doc)
+
+#------------------------------------------------------------------------------
+# GKN Package building
+#------------------------------------------------------------------------------
+# We will use this path for the knime packages and the osx installer
+set(SEARCH_ENGINES_DIRECTORY "" CACHE PATH "Directory containing the search engine executables that should be shipped with OpenMS. Note: We expect the layout from the SVN.")
+
+set(ENABLE_PREPARE_KNIME_PACKAGE OFF CACHE BOOL "If enabled, targets to prepare KNIME packages will be generated. Main target will be 'prepare_knime_package'.")
+if (ENABLE_PREPARE_KNIME_PACKAGE)
+	include(${OPENMS_HOST_DIRECTORY}/cmake/OpenMSBuildSystem_ctdSupport.cmake)
+endif()
 
 ######################################################
 #### build settings and configs for external code ####

@@ -67,7 +67,7 @@ else()
   set(PLATFORM "lnx")
 endif()
 
-## 
+##
 function(remove_parameter_from_ctd toolname param)
   set(FILE_CONTENT "")
   file(READ ${CTD_PATH}/${toolname}.ctd FILE_CONTENT)
@@ -89,9 +89,9 @@ add_custom_target(
 file(COPY        ${PROJECT_SOURCE_DIR}/cmake/knime/icons
      DESTINATION ${KNIME_PLUGIN_DIRECTORY}
      PATTERN ".svn" EXCLUDE)
-     
+
 # list of all tools that can generate CTDs
-set(CTD_executables ${TOPP_executables} ${UTILS_executables})
+set(CTD_executables ${TOPP_TOOLS} ${UTILS_TOOLS})
 
 # remove tools that do not produce CTDs
 list(REMOVE_ITEM CTD_executables PhosphoScoring OpenMSInfo FuzzyDiff GenericWrapper InspectAdapter MascotAdapter PILISIdentification PILISModelCV PILISModelTrainer PILISSpectraGenerator SvmTheoreticalSpectrumGeneratorTrainer OpenSwathMzMLFileCacher PepNovoAdapter)
@@ -100,7 +100,7 @@ list(REMOVE_ITEM CTD_executables PhosphoScoring OpenMSInfo FuzzyDiff GenericWrap
 add_custom_target(
   create_ctds
   # we first create the directory to make sure that the remove command does not fail
-  COMMAND ${CMAKE_COMMAND} -E make_directory ${CTD_PATH}  
+  COMMAND ${CMAKE_COMMAND} -E make_directory ${CTD_PATH}
   COMMAND ${CMAKE_COMMAND} -E remove_directory ${CTD_PATH}
   COMMAND ${CMAKE_COMMAND} -E make_directory ${CTD_PATH}
   DEPENDS TOPP UTILS
@@ -119,7 +119,7 @@ add_custom_target(
   final_ctds
   # OMSSAAdapter
   COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=OMSSAAdapter -DPARAM=omssa_executable -D CTD_PATH=${CTD_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
-  # XTandemAdapter 
+  # XTandemAdapter
   COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=XTandemAdapter -DPARAM=xtandem_executable -D CTD_PATH=${CTD_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
   COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=XTandemAdapter -DPARAM=default_input_file -D CTD_PATH=${CTD_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
   # IDPosteriorErrorProbability
@@ -133,14 +133,14 @@ add_custom_target(
 add_custom_target(
   prepare_knime_descriptors
   COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/cmake/knime/mimetypes.xml ${CTD_PATH}
-  COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/cmake/knime/mime.types ${CTD_PATH}  
+  COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/cmake/knime/mime.types ${CTD_PATH}
   DEPENDS final_ctds
 )
 
 add_custom_target(
   prepare_knime_payload_binaries
   # 1st create the directory to make sure that the remove_directory does not fail
-  COMMAND ${CMAKE_COMMAND} -E make_directory ${PAYLOAD_PATH}  
+  COMMAND ${CMAKE_COMMAND} -E make_directory ${PAYLOAD_PATH}
   COMMAND ${CMAKE_COMMAND} -E remove_directory ${PAYLOAD_PATH}
   COMMAND ${CMAKE_COMMAND} -E make_directory ${PAYLOAD_PATH}
   COMMAND ${CMAKE_COMMAND} -E make_directory ${PAYLOAD_BIN_PATH}
@@ -151,7 +151,7 @@ add_custom_target(
   create_payload_share
   # 1st create the directory to make sure that the remove_directory does not fail
   COMMAND ${CMAKE_COMMAND} -E make_directory ${PAYLOAD_SHARE_PATH}
-  # remove old directory 
+  # remove old directory
   COMMAND ${CMAKE_COMMAND} -E remove_directory ${PAYLOAD_SHARE_PATH}
   # create new one and fill with the appropriate content
   COMMAND ${CMAKE_COMMAND} -E make_directory ${PAYLOAD_SHARE_PATH}
@@ -173,8 +173,8 @@ endforeach()
 
 add_custom_target(
   prepare_knime_payload_libs
-  # 1st create the directory to make sure that the remove_directory does not fail  
-  COMMAND ${CMAKE_COMMAND} -E make_directory ${PAYLOAD_LIB_PATH}  
+  # 1st create the directory to make sure that the remove_directory does not fail
+  COMMAND ${CMAKE_COMMAND} -E make_directory ${PAYLOAD_LIB_PATH}
   COMMAND ${CMAKE_COMMAND} -E remove_directory ${PAYLOAD_LIB_PATH}
   COMMAND ${CMAKE_COMMAND} -E make_directory ${PAYLOAD_LIB_PATH}
   # we need the binaries to determine what libraries we need
@@ -182,7 +182,7 @@ add_custom_target(
 )
 
 # assemble the libraries, this differs drastically between the different platforms
-if (APPLE) 
+if (APPLE)
   add_custom_command(
     TARGET prepare_knime_payload_libs POST_BUILD
     COMMAND ${PROJECT_SOURCE_DIR}/cmake/MacOSX/fix_dependencies.rb -l ${PAYLOAD_LIB_PATH} -b ${PAYLOAD_BIN_PATH}
@@ -192,12 +192,12 @@ elseif(WIN32)
   # OpenMS, OpenMS_GUI, OpenSWATHAlgo, Qt, xerces
   get_target_property(WIN32_DLLLOCATION OpenMS LOCATION)
   get_filename_component(WIN32_DLLPATH ${WIN32_DLLLOCATION} PATH)
-  
+
   add_custom_command(
     TARGET prepare_knime_payload_libs POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy ${WIN32_DLLPATH}/OpenMS.dll ${PAYLOAD_LIB_PATH}
     COMMAND ${CMAKE_COMMAND} -E copy ${WIN32_DLLPATH}/OpenMS_GUI.dll ${PAYLOAD_LIB_PATH}
-    COMMAND ${CMAKE_COMMAND} -E copy ${WIN32_DLLPATH}/OpenSwathAlgo.dll ${PAYLOAD_LIB_PATH}  
+    COMMAND ${CMAKE_COMMAND} -E copy ${WIN32_DLLPATH}/OpenSwathAlgo.dll ${PAYLOAD_LIB_PATH}
   )
 
   function(copy_library lib target_path)
@@ -208,7 +208,7 @@ elseif(WIN32)
       COMMAND ${CMAKE_COMMAND} -E copy "${target_native}" "${target_path}"
     )
   endfunction()
-  
+
   set(QT_PAYLOAD_LIBS "QTCORE;QTGUI;QTNETWORK;QTOPENGL;QTSQL;QTSVG;QTWEBKIT;PHONON")
   foreach(QT_PAYLOAD_LIB ${QT_PAYLOAD_LIBS})
     set(target_lib "${QT_${QT_PAYLOAD_LIB}_LIBRARY_RELEASE}")
@@ -240,7 +240,7 @@ else()
 		TARGET prepare_knime_payload_libs POST_BUILD
 		COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_BINARY_DIR}/lib/libOpenMS.so ${PAYLOAD_LIB_PATH}
 		COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_BINARY_DIR}/lib/libOpenMS_GUI.so ${PAYLOAD_LIB_PATH}
-		COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_BINARY_DIR}/lib/libOpenSwathAlgo.so ${PAYLOAD_LIB_PATH}  
+		COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_BINARY_DIR}/lib/libOpenSwathAlgo.so ${PAYLOAD_LIB_PATH}
 	)
 endif()
 
@@ -266,7 +266,7 @@ add_custom_target(
   # We need the folder layout from the bin target
   DEPENDS prepare_knime_payload_binaries
 )
-  
+
 # the complete payload target
 add_custom_target(
   prepare_knime_payload
@@ -278,7 +278,7 @@ add_custom_target(
   prepare_meta_information
   COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/cmake/knime/LICENSE ${KNIME_PLUGIN_DIRECTORY}/
   COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/cmake/knime/COPYRIGHT ${KNIME_PLUGIN_DIRECTORY}/
-  COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/cmake/knime/DESCRIPTION ${KNIME_PLUGIN_DIRECTORY}/  
+  COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/cmake/knime/DESCRIPTION ${KNIME_PLUGIN_DIRECTORY}/
 )
 
 add_custom_target(
