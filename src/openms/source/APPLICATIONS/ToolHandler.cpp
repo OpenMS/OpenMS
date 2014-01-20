@@ -68,7 +68,6 @@ namespace OpenMS
     tools_map["FeatureFinderIsotopeWavelet"] = Internal::ToolDescription("FeatureFinderIsotopeWavelet", "Quantitation");
     tools_map["FeatureFinderMetabo"] = Internal::ToolDescription("FeatureFinderMetabo", "Quantitation");
     tools_map["FeatureFinderMRM"] = Internal::ToolDescription("FeatureFinderMRM", "Quantitation");
-    tools_map["FeatureFinderRaw"] = Internal::ToolDescription("FeatureFinderRaw", "Quantitation");
     tools_map["FeatureFinderSuperHirn"] = Internal::ToolDescription("FeatureFinderSuperHirn", "Quantitation");
     tools_map["FeatureLinkerLabeled"] = Internal::ToolDescription("FeatureLinkerLabeled", "Map Alignment");
     tools_map["FeatureLinkerUnlabeled"] = Internal::ToolDescription("FeatureLinkerUnlabeled", "Map Alignment");
@@ -135,7 +134,6 @@ namespace OpenMS
     tools_map["Resampler"] = Internal::ToolDescription("Resampler", "Signal processing and preprocessing");
     tools_map["SeedListGenerator"] = Internal::ToolDescription("SeedListGenerator", "Quantitation");
     //tools_map["SequestAdapter"] = Internal::ToolDescription("SequestAdapter", "Identification");
-    tools_map["SILACAnalyzer"] = Internal::ToolDescription("SILACAnalyzer", "Quantitation");
     tools_map["SpecLibSearcher"] = Internal::ToolDescription("SpecLibSearcher", "Identification");
     tools_map["SpectraFilterBernNorm"] = Internal::ToolDescription("SpectraFilterBernNorm", "Identification");
     tools_map["SpectraFilterMarkerMower"] = Internal::ToolDescription("SpectraFilterMarkerMower", "Identification");

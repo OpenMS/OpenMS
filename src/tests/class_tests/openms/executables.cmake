@@ -260,8 +260,6 @@ MassTraceDetection_test
   Normalizer_test
   ParentPeakMower_test
   PeakMarker_test
-  SILACFilter_test
-  SILACFiltering_test
   SILACPattern_test
   SILACPoint_test
   SavitzkyGolayFilter_test

@@ -52,24 +52,6 @@ PyOpenMSChecker:
         - colunit_peptide
         - colunit_small_molecule
 
-    # SILAC
-    OpenMS::SILACAnalyzer:
-        - calculateLabelsAndMassShifts
-        - filterData
-        - clusterData
-        - getSILAClabels
-        - getMassShifts
-        - generateClusterConsensusByCluster
-        - generateClusterConsensusByPattern
-        - generateClusterDebug
-        - generateFilterConsensusByPattern
-        - generateClusterFeatureByCluster
-        - readFilterConsensusByPattern
-    OpenMS::SILACFiltering:
-        - peak_width
-        - blacklist
-    OpenMS::SILACFiltering::BlacklistEntry:
-        - range
     OpenMS::SILACPoint:
         - mz_positions
         - intensities

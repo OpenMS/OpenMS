@@ -1010,25 +1010,6 @@ add_test("TOPP_TextExporter_8" ${TOPP_BIN_PATH}/TextExporter -in ${DATA_DIR_TOPP
 add_test("TOPP_TextExporter_8_out1" ${DIFF} -in1 TextExporter_8_output.tmp -in2 ${DATA_DIR_TOPP}/TextExporter_8_output.txt )
 set_tests_properties("TOPP_TextExporter_8_out1" PROPERTIES DEPENDS "TOPP_TextExporter_8")
 
-### SILACAnalyzer tests
-# mzML
-add_test("TOPP_SILACAnalyzer_1" ${TOPP_BIN_PATH}/SILACAnalyzer -test -ini ${DATA_DIR_TOPP}/SILACAnalyzer.ini -in ${DATA_DIR_TOPP}/SILACAnalyzer.mzML -out SILACAnalyzer.consensusXML.tmp -out_features SILACAnalyzer.featureXML.tmp)
-add_test("TOPP_SILACAnalyzer_1_out1" ${DIFF} -whitelist "id=" "href=" -in1 SILACAnalyzer.consensusXML.tmp -in2 ${DATA_DIR_TOPP}/SILACAnalyzer.consensusXML )
-set_tests_properties("TOPP_SILACAnalyzer_1_out1" PROPERTIES DEPENDS "TOPP_SILACAnalyzer_1")
-add_test("TOPP_SILACAnalyzer_1_out2" ${DIFF} -whitelist "id=" "href=" -in1 SILACAnalyzer.featureXML.tmp -in2 ${DATA_DIR_TOPP}/SILACAnalyzer.featureXML )
-set_tests_properties("TOPP_SILACAnalyzer_1_out2" PROPERTIES DEPENDS "TOPP_SILACAnalyzer_1")
-# empty mzML
-add_test("TOPP_SILACAnalyzer_2" ${TOPP_BIN_PATH}/SILACAnalyzer -test -ini ${DATA_DIR_TOPP}/SILACAnalyzer.ini -in ${DATA_DIR_TOPP}/SILACAnalyzer_empty.mzML)
-set_tests_properties("TOPP_SILACAnalyzer_2" PROPERTIES WILL_FAIL 1)
-# mzML with negative RT
-add_test("TOPP_SILACAnalyzer_3" ${TOPP_BIN_PATH}/SILACAnalyzer -test -ini ${DATA_DIR_TOPP}/SILACAnalyzer.ini -in ${DATA_DIR_TOPP}/SILACAnalyzer_negativ.mzML -out SILACAnalyzer_negativ.consensusXML.tmp)
-add_test("TOPP_SILACAnalyzer_3_out1" ${DIFF} -whitelist "id=" "href=" -in1 SILACAnalyzer_negativ.consensusXML.tmp -in2 ${DATA_DIR_TOPP}/SILACAnalyzer_negativ.consensusXML )
-set_tests_properties("TOPP_SILACAnalyzer_3_out1" PROPERTIES DEPENDS "TOPP_SILACAnalyzer_3")
-add_test("TOPP_FeatureFinderRaw_1" ${TOPP_BIN_PATH}/FeatureFinderRaw -test -ini ${DATA_DIR_TOPP}/FeatureFinderRaw.ini -in ${DATA_DIR_TOPP}/FeatureFinderRaw_1.mzML -out FeatureFinderRaw_1.featureXML.tmp)
-add_test("TOPP_FeatureFinderRaw_1_out" ${DIFF} -whitelist "id=" "href=" -in1 FeatureFinderRaw_1.featureXML.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderRaw_1.featureXML )
-set_tests_properties("TOPP_FeatureFinderRaw_1_out" PROPERTIES DEPENDS "TOPP_FeatureFinderRaw_1")
-
-
 ### FeatureLinker tests
 # "labeled" algorithm:
 add_test("TOPP_FeatureLinkerLabeled_1" ${TOPP_BIN_PATH}/FeatureLinkerLabeled -test -ini ${DATA_DIR_TOPP}/FeatureLinkerLabeled_1_parameters.ini -in ${DATA_DIR_TOPP}/FeatureLinkerLabeled_1_input.featureXML -out FeatureLinkerLabeled_1_output.tmp)
