@@ -1631,21 +1631,6 @@ def testFASTAEntry():
     ff = pyopenms.FASTAEntry()
 
 @report
-def testSILACAnalyzer():
-    """
-    @tests:
-     SILACAnalyzer.__init__
-     SILACAnalyzer.initialize
-     SILACAnalyzer.run_all
-     SILACAnalyzer.writeConsensus
-    """
-    ff = pyopenms.SILACAnalyzer()
-
-    assert pyopenms.SILACAnalyzer().initialize is not None
-    assert pyopenms.SILACAnalyzer().run_all is not None
-    assert pyopenms.SILACAnalyzer().writeConsensus is not None
-
-@report
 def testInternalCalibration():
     """
     @tests:
