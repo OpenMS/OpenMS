@@ -395,7 +395,8 @@ namespace TEST = OpenMS::Internal::ClassTest;
 #define START_TEST(class_name, version)                                                  \
   int main(int argc, char** argv)                                                        \
   {                                                                                       \
-    OpenMS::UniqueIdGenerator::setSeed(2453440375);                                      \
+    OpenMS::UInt64 seed = 2453440375;                                                     \
+    OpenMS::UniqueIdGenerator::setSeed(seed);                                             \
     TEST::version_string = version;                                                       \
                                                                                           \
     if (argc > 1)                                                                         \

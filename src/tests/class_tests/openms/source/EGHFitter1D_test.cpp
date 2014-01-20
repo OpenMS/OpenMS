@@ -150,7 +150,6 @@ START_SECTION((QualityType fit1d(const RawDataArrayType &range, InterpolationMod
   // make some noise
   boost::random::mt19937 rnd_gen_ (0.0);
   boost::random::uniform_real_distribution<Real> udist (-0.1, 0.1);
-  DoubleReal distortion = 0.1;
   for (Size i = 0; i < data_to_fit.size(); ++i)
   {
     Real distort = std::exp(udist(rnd_gen_));

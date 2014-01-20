@@ -52,7 +52,7 @@ namespace OpenMS
     Size dataSize = in.size();
 
     // using MSNumpress, from johan.teleman@immun.lth.se
-    size_t byteCount;
+    size_t byteCount = 0;
     std::vector<unsigned char> compressed;
     std::vector<unsigned char> numpressed;
     std::vector<float> data32;

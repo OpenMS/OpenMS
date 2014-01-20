@@ -97,13 +97,20 @@ START_SECTION((static void setSeed(UInt seed)))
 //  OpenMS::UniqueIdGenerator::setSeed(one_moment_in_time);
 
   /* check if the generator changed */
+  UInt64 large_int = 0;
   std::vector<UInt64> unique_ids;
-  unique_ids.push_back(4039984684862977299);
-  unique_ids.push_back(11561668883169444769);
-  unique_ids.push_back(8153960635892418594);
-  unique_ids.push_back(12940485248168291983);
-  unique_ids.push_back(11522917731873626020);
-  unique_ids.push_back(4387255872055054320);
+  large_int = 4039984684862977299;
+  unique_ids.push_back(large_int);
+  large_int = 11561668883169444769;
+  unique_ids.push_back(large_int);
+  large_int = 8153960635892418594;
+  unique_ids.push_back(large_int);
+  large_int = 12940485248168291983;
+  unique_ids.push_back(large_int);
+  large_int = 11522917731873626020;
+  unique_ids.push_back(large_int);
+  large_int = 4387255872055054320;
+  unique_ids.push_back(large_int);
 
   OpenMS::UniqueIdGenerator::setSeed(one_moment_in_time);
   for (int i=0; i<unique_ids.size(); ++i)
@@ -127,7 +134,7 @@ START_SECTION((static void setSeed(UInt seed)))
     ids2.push_back(OpenMS::UniqueIdGenerator::getUniqueId());
   }
 
-  for ( int i = 0; i < nofIdsToGenerate; ++i )
+  for ( unsigned i = 0; i < nofIdsToGenerate; ++i )
   {
     if(ids[i] != ids2[i])
     {

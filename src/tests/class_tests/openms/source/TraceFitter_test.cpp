@@ -106,7 +106,7 @@ public:
         throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
     }
 
-    void getOptimizedParameters_(const Eigen::VectorXd& x_init)
+    void getOptimizedParameters_(const Eigen::VectorXd&)
     {
         throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
     }

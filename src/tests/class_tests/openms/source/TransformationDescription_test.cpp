@@ -199,8 +199,6 @@ END_SECTION
 START_SECTION((void invert()))
 {
 
-	DoubleReal value = 57.12;
-
 	// test null transformation:
 	TransformationDescription td;
 	td.fitModel("none", Param());

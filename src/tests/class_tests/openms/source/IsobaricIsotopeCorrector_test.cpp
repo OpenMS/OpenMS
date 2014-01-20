@@ -63,9 +63,6 @@ START_TEST(IsobaricIsotopeCorrector, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-IsobaricIsotopeCorrector* ptr = 0;
-IsobaricIsotopeCorrector* null_ptr = 0;
-
 // 
 ItraqFourPlexQuantitationMethod quant_meth;
 
