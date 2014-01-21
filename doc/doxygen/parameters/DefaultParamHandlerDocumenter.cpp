@@ -476,10 +476,10 @@ int main(int argc, char ** argv)
   DOCME2(Spectrum1DCanvas, Spectrum1DCanvas(Param(), 0));
   DOCME2(Spectrum2DCanvas, Spectrum2DCanvas(Param(), 0));
   DOCME2(Spectrum3DCanvas, Spectrum3DCanvas(Param(), 0));
-  DOCME2(IonizationSimulation, IonizationSimulation(OpenMS::SimRandomNumberGenerator()));
-  DOCME2(RawMSSignalSimulation, RawMSSignalSimulation(OpenMS::SimRandomNumberGenerator()));
-  DOCME2(RawTandemMSSignalSimulation, RawTandemMSSignalSimulation(OpenMS::SimRandomNumberGenerator()))
-  DOCME2(RTSimulation, RTSimulation(OpenMS::SimRandomNumberGenerator()))
+  DOCME2(IonizationSimulation, IonizationSimulation(MutableSimRandomNumberGeneratorPtr()));
+  DOCME2(RawMSSignalSimulation, RawMSSignalSimulation(MutableSimRandomNumberGeneratorPtr()));
+  DOCME2(RawTandemMSSignalSimulation, RawTandemMSSignalSimulation(MutableSimRandomNumberGeneratorPtr()))
+  DOCME2(RTSimulation, RTSimulation(MutableSimRandomNumberGeneratorPtr()))
   DOCME2(GaussTraceFitter, (GaussTraceFitter<Peak1D>()))
   DOCME2(EGHTraceFitter, (EGHTraceFitter<Peak1D>()))
 
