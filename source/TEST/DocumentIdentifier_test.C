@@ -71,7 +71,7 @@ START_SECTION((DocumentIdentifier(const DocumentIdentifier &source)))
 
 	DocumentIdentifier di2(di1);
 	TEST_EQUAL(di2.getIdentifier(), "this is a test");
-	TEST_EQUAL(di2.getLoadedFilePath() == File::absolutePath( OPENMS_GET_TEST_DATA_PATH("File_test_empty.txt")), true)
+	TEST_EQUAL(di2.getLoadedFilePath(), OPENMS_GET_TEST_DATA_PATH("File_test_empty.txt"))
   TEST_EQUAL(FileTypes::typeToName(di2.getLoadedFileType()) == "unknown", true)
 }
 END_SECTION
@@ -85,7 +85,7 @@ START_SECTION((DocumentIdentifier& operator=(const DocumentIdentifier &source)))
 
 	DocumentIdentifier di2 = di1;
 	TEST_EQUAL(di2.getIdentifier(), "this is a test");
-	TEST_EQUAL(di2.getLoadedFilePath() == File::absolutePath( OPENMS_GET_TEST_DATA_PATH("File_test_empty.txt")), true)
+	TEST_EQUAL(di2.getLoadedFilePath(), OPENMS_GET_TEST_DATA_PATH("File_test_empty.txt"))
   TEST_EQUAL(FileTypes::typeToName(di2.getLoadedFileType()) == "unknown", true)
 }
 END_SECTION
@@ -133,7 +133,7 @@ START_SECTION((void setLoadedFilePath(const String &file_name)))
 {
   DocumentIdentifier di1;
 	di1.setLoadedFilePath( OPENMS_GET_TEST_DATA_PATH("File_test_empty.txt"));
-	TEST_EQUAL(di1.getLoadedFilePath(), File::absolutePath( OPENMS_GET_TEST_DATA_PATH("File_test_empty.txt")))
+	TEST_EQUAL(di1.getLoadedFilePath(), OPENMS_GET_TEST_DATA_PATH("File_test_empty.txt"))
 }
 END_SECTION
 
@@ -156,7 +156,7 @@ START_SECTION((void swap(DocumentIdentifier& from)))
 	TEST_EQUAL(di1.getIdentifier() == "", true)
 	TEST_EQUAL(di1.getIdentifier() == "", true)
 	TEST_EQUAL(di2.getIdentifier() == "this is a test", true)
-  TEST_EQUAL(di2.getLoadedFilePath() == File::absolutePath( OPENMS_GET_TEST_DATA_PATH("File_test_empty.txt")), true)
+  TEST_EQUAL(di2.getLoadedFilePath(), OPENMS_GET_TEST_DATA_PATH("File_test_empty.txt"))
   TEST_EQUAL(FileTypes::typeToName(di2.getLoadedFileType()) == "unknown", true)
 
 }

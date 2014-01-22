@@ -984,7 +984,7 @@ set_tests_properties("TOPP_SILACAnalyzer_1_out2" PROPERTIES DEPENDS "TOPP_SILACA
 # empty mzML
 add_test("TOPP_SILACAnalyzer_2" ${TOPP_BIN_PATH}/SILACAnalyzer -test -ini ${DATA_DIR_TOPP}/SILACAnalyzer.ini -in ${DATA_DIR_TOPP}/SILACAnalyzer_empty.mzML)
 set_tests_properties("TOPP_SILACAnalyzer_2" PROPERTIES WILL_FAIL 1)
-# mzML with negativ RT
+# mzML with negative RT
 add_test("TOPP_SILACAnalyzer_3" ${TOPP_BIN_PATH}/SILACAnalyzer -test -ini ${DATA_DIR_TOPP}/SILACAnalyzer.ini -in ${DATA_DIR_TOPP}/SILACAnalyzer_negativ.mzML -out SILACAnalyzer_negativ.consensusXML.tmp)
 add_test("TOPP_SILACAnalyzer_3_out1" ${DIFF} -in1 SILACAnalyzer_negativ.consensusXML.tmp -in2 ${DATA_DIR_TOPP}/SILACAnalyzer_negativ.consensusXML )
 set_tests_properties("TOPP_SILACAnalyzer_3_out1" PROPERTIES DEPENDS "TOPP_SILACAnalyzer_3")
@@ -1001,7 +1001,7 @@ set_tests_properties("TOPP_FeatureLinkerLabeled_1_out1" PROPERTIES DEPENDS "TOPP
 add_test("TOPP_FeatureLinkerLabeled_2" ${TOPP_BIN_PATH}/FeatureLinkerLabeled -test -ini ${DATA_DIR_TOPP}/FeatureLinkerLabeled_2_parameters.ini -in ${DATA_DIR_TOPP}/FeatureLinkerLabeled_2_input.featureXML -out FeatureLinkerLabeled_2_output.tmp)
 add_test("TOPP_FeatureLinkerLabeled_2_out1" ${DIFF} -in1 FeatureLinkerLabeled_2_output.tmp -in2 ${DATA_DIR_TOPP}/FeatureLinkerLabeled_2_output.consensusXML )
 set_tests_properties("TOPP_FeatureLinkerLabeled_2_out1" PROPERTIES DEPENDS "TOPP_FeatureLinkerLabeled_2")
-# "unlabeled" algorithm:
+# "unlabelled" algorithm:
 add_test("TOPP_FeatureLinkerUnlabeled_1" ${TOPP_BIN_PATH}/FeatureLinkerUnlabeled -test -ini ${DATA_DIR_TOPP}/FeatureLinkerUnlabeled_1_parameters.ini -in ${DATA_DIR_TOPP}/FeatureLinkerUnlabeled_1_input1.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeled_1_input2.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeled_1_input3.featureXML -out FeatureLinkerUnlabeled_1_output.tmp)
 add_test("TOPP_FeatureLinkerUnlabeled_1_out1" ${DIFF} -in1 FeatureLinkerUnlabeled_1_output.tmp -in2 ${DATA_DIR_TOPP}/FeatureLinkerUnlabeled_1_output.consensusXML )
 set_tests_properties("TOPP_FeatureLinkerUnlabeled_1_out1" PROPERTIES DEPENDS "TOPP_FeatureLinkerUnlabeled_1")
@@ -1257,6 +1257,13 @@ set_tests_properties("TOPP_PeptideIndexer_8_out" PROPERTIES DEPENDS "TOPP_Peptid
 add_test("TOPP_PeptideIndexer_9" ${TOPP_BIN_PATH}/PeptideIndexer -test -fasta ${DATA_DIR_TOPP}/PeptideIndexer_1.fasta -in ${DATA_DIR_TOPP}/PeptideIndexer_3.idXML -out PeptideIndexer_9_out.tmp -allow_unmatched -enzyme:specificity none)
 add_test("TOPP_PeptideIndexer_9_out" ${DIFF} -in1 PeptideIndexer_9_out.tmp -in2 ${DATA_DIR_TOPP}/PeptideIndexer_9_out.idXML )
 set_tests_properties("TOPP_PeptideIndexer_9_out" PROPERTIES DEPENDS "TOPP_PeptideIndexer_9")
+# empty input
+add_test("TOPP_PeptideIndexer_10" ${TOPP_BIN_PATH}/PeptideIndexer -test -fasta ${DATA_DIR_TOPP}/PeptideIndexer_1.fasta -in ${DATA_DIR_TOPP}/../data/degenerate_cases/empty.idXML -out PeptideIndexer_10_out.tmp)
+add_test("TOPP_PeptideIndexer_10_out" ${DIFF} -in1 PeptideIndexer_10_out.tmp -in2 ${DATA_DIR_TOPP}/../data/degenerate_cases/empty.idXML )
+set_tests_properties("TOPP_PeptideIndexer_10_out" PROPERTIES DEPENDS "TOPP_PeptideIndexer_10")
+# empty FASTA
+add_test("TOPP_PeptideIndexer_11" ${TOPP_BIN_PATH}/PeptideIndexer -test -fasta ${DATA_DIR_TOPP}/../data/degenerate_cases/empty.fasta -in ${DATA_DIR_TOPP}/PeptideIndexer_1.idXML -out PeptideIndexer_11_out.tmp)
+set_tests_properties("TOPP_PeptideIndexer_11" PROPERTIES WILL_FAIL 1)
 
 
 ### ExecutePipeline tests (as substitute for TOPPAS) - the ResourceFiles are in binary tree, as they have been configured from a .in file (see above)!
