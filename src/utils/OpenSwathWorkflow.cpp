@@ -1074,7 +1074,6 @@ protected:
       feature_finder_param.setValue("TransitionGroupPicker:PeakPickerMRM:method", "corrected");
       feature_finder_param.setValue("TransitionGroupPicker:PeakPickerMRM:signal_to_noise", 0.1);
       feature_finder_param.setValue("TransitionGroupPicker:PeakPickerMRM:gauss_width", 30);
-      feature_finder_param.remove("TransitionGroupPicker:PeakPickerMRM:gauss_width");
       feature_finder_param.remove("TransitionGroupPicker:PeakPickerMRM:sn_win_len");
       feature_finder_param.remove("TransitionGroupPicker:PeakPickerMRM:sn_bin_count");
 
