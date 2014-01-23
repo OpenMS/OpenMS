@@ -211,7 +211,7 @@ endif()
 OPTION(PYOPENMS "setup build system for pyOpenMS" OFF)
 IF (PYOPENMS)
   MESSAGE(STATUS "run cmake files for pyopenms")
-	include(pyOpenMS/pyopenms.cmake)
+	include(${OPENMS_HOST_DIRECTORY}/pyOpenMS/pyopenms.cmake)
 ENDIF()
 
 ########################################################

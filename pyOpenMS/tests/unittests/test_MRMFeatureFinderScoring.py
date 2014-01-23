@@ -11,7 +11,7 @@ class TestMRMFeatureFinderScoring(unittest.TestCase):
 
     def setUp(self):
         self.dirname = os.path.dirname(os.path.abspath(__file__))
-        self.testdirname = os.path.join(env.OPEN_MS_SRC, "source/TEST/TOPP")
+        self.testdirname = os.path.join(env.OPEN_MS_SRC, "src/tests/topp")
         # set up files
         self.chromatograms = os.path.join(self.testdirname, "OpenSwathAnalyzer_1_input_chrom.mzML")
         self.tramlfile = os.path.join(self.testdirname, "OpenSwathAnalyzer_1_input.TraML")
