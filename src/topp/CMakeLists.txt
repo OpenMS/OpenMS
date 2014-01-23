@@ -38,7 +38,7 @@ cmake_minimum_required(VERSION 2.8.3 FATAL_ERROR)
 # --------------------------------------------------------------------------
 # OpenMS' TOPP tools
 
-# add OpenMS includes 
+# add OpenMS includes
 include_directories(${OPENMS_INCLUDE_DIRECTORIES})
 
 include(executables.cmake)
@@ -50,14 +50,14 @@ foreach(i ${TOPP_executables})
 	endif()
 endforeach(i)
 
-# collection target 
+# collection target
 add_custom_target(TOPP)
 add_dependencies(TOPP ${TOPP_executables})
 
-## some regular TOPP need the GUI lib
+## some regular TOPP tools need the GUI lib
+include_directories(${OPENMS_GUI_INCLUDE_DIRECTORIES})
 foreach(i ${TOPP_executables_with_GUIlib})
 	target_link_libraries(${i} ${OPENMS_GUI_LIBRARIES})
-  target_include_directories(${i} PUBLIC ${OPENMS_GUI_INCLUDE_DIRECTORIES})
 endforeach(i)
 
 ## export the list of TOPP tools into CACHE

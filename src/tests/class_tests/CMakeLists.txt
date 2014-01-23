@@ -239,9 +239,9 @@ add_definitions(-DQT_GUI_LIB)
 
 #------------------------------------------------------------------------------
 # tests of classes from GUI lib
+include_directories(${OPENMS_GUI_INCLUDE_DIRECTORIES})
 foreach(i ${visual_executables_list})
 	target_link_libraries(${i} ${OPENMS_GUI_LIBRARIES})
-  target_include_directories(${i} PUBLIC ${OPENMS_GUI_INCLUDE_DIRECTORIES})
 endforeach(i)
 
 #------------------------------------------------------------------------------
@@ -268,8 +268,6 @@ foreach(_gui_test ${GUI_executables_list})
   add_executable(${_gui_test} source/GUI/${_gui_test}.C)
   # link against openms_gui and qt
 	target_link_libraries(${_gui_test} ${OPENMS_GUI_LIBRARIES} ${QT_LIBRARIES})
-  # include gui includes
-  target_include_directories(${_gui_test} PUBLIC ${OPENMS_GUI_INCLUDE_DIRECTORIES})
   # add the test
 	add_test(${_gui_test} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_gui_test})
 	# only add OPENMP flags to gcc linker (execpt Mac OS X, due to compiler bug

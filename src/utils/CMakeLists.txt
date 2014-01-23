@@ -38,7 +38,7 @@ cmake_minimum_required(VERSION 2.8.3 FATAL_ERROR)
 # --------------------------------------------------------------------------
 # OpenMS' UTILS tools
 
-# add OpenMS includes 
+# add OpenMS includes
 include_directories(${OPENMS_INCLUDE_DIRECTORIES})
 
 # add all the tools
@@ -49,14 +49,14 @@ foreach(i ${UTILS_executables})
 	target_link_libraries(${i} ${OPENMS_LIBRARIES})
 endforeach(i)
 
-# collection target 
+# collection target
 add_custom_target(UTILS)
 add_dependencies(UTILS ${UTILS_executables})
 
 ## some regular UTILS need the GUI lib
+include_directories(${OPENMS_GUI_INCLUDE_DIRECTORIES})
 foreach(i ${UTILS_executables_with_GUIlib})
 	target_link_libraries(${i} ${OPENMS_GUI_LIBRARIES})
-  target_include_directories(${i} PUBLIC ${OPENMS_GUI_INCLUDE_DIRECTORIES})  
 endforeach(i)
 
 ## export the list of UTILS tools into CACHE
