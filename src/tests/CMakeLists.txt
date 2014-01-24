@@ -44,9 +44,9 @@ if("${PACKAGE_TYPE}" STREQUAL "none")
   if(ENABLE_STYLE_TESTING)
     add_subdirectory(coding)
   else()
-    ## configure the regular class .. 
-    add_subdirectory(class_tests EXCLUDE_FROM_ALL)
-    # TOPP Test project .. 
+    ## configure the regular class ..
+    add_subdirectory(class_tests)
+    # TOPP Test project ..
     add_subdirectory(topp)
     # and if requested also toppas pipeline tests
     if(ENABLE_PIPELINE_TESTING)

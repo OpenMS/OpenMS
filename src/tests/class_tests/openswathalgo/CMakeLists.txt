@@ -33,7 +33,11 @@
 # --------------------------------------------------------------------------
 
 cmake_minimum_required(VERSION 2.8.3 FATAL_ERROR)
-project("OpenSWATHAlgo_class_tests")
+project("OpenMS_class_tests_openswathalgo")
+
+# --------------------------------------------------------------------------
+# add include directories
+include_directories(${OPENMS_INCLUDE_DIRECTORIES})
 
 # --------------------------------------------------------------------------
 # list of available tests
@@ -51,9 +55,3 @@ foreach(i ${openswath_algo_tests})
   target_link_libraries(${i} OpenSwathAlgo OpenMS)
   add_test(${i} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${i})
 endforeach(i)
-
-# --------------------------------------------------------------------------
-# add dependency
-add_dependencies(test_build ${openswath_algo_tests})
-
-enable_testing()

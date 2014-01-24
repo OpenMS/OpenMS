@@ -33,56 +33,75 @@
 # --------------------------------------------------------------------------
 
 cmake_minimum_required(VERSION 2.8.3 FATAL_ERROR)
-project("OpenMS_class_tests")
+project("OpenMS_class_tests_openms_gui")
+
+set(visual_executables_list
+  AxisTickCalculator_test
+  MultiGradient_test
+)
+
+set(GUI_executables_list
+	TOPPView_test
+)
 
 #------------------------------------------------------------------------------
-# ensure dlls get copied there
+# required to build GUI tests (e.g., TOPPView_test)
+add_definitions(-DQT_GUI_LIB)
+include_directories(${OPENMS_GUI_INCLUDE_DIRECTORIES})
+# add include to find moced files
+include_directories(${PROJECT_BINARY_DIR})
 
-if(MSVC)
-  # copy OpenMS.dll to test executables dir
-  get_target_property(WIN32_DLLLOCATION OpenMS LOCATION)
-  get_filename_component(WIN32_DLLPATH ${WIN32_DLLLOCATION} PATH)
+#------------------------------------------------------------------------------
+# VISUAL
+add_custom_target(VISUAL_TEST)
+add_dependencies(VISUAL_TEST ${visual_executables_list})
 
-  # copy OpenMS.dll to test executables dir "$(TargetFileName)" is a placeholder filled by VS at runtime
-  file(TO_NATIVE_PATH "${WIN32_DLLPATH}/$(TargetFileName)" DLL_SOURCE)
-  file(TO_NATIVE_PATH "${PROJECT_BINARY_DIR}/bin/$(ConfigurationName)/$(TargetFileName)" DLL_TARGET)
+foreach(_class_test ${visual_executables_list})
+	add_executable(${_class_test} source/${_class_test}.C)
+	target_link_libraries(${_class_test} ${OPENMS_GUI_LIBRARIES})
+	add_test(${_class_test} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_class_test})
+	# only add OPENMP flags to gcc linker (execpt Mac OS X, due to compiler bug
+	# see https://sourceforge.net/apps/trac/open-ms/ticket/280 for details)
+  if (OPENMP_FOUND AND NOT MSVC AND NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+		set_target_properties(${_class_test} PROPERTIES LINK_FLAGS ${OpenMP_CXX_FLAGS})
+	endif()
+endforeach(_class_test)
 
-  # copy OpenMS(d).dll
-  add_custom_command(TARGET OpenMS
-    POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E make_directory "${PROJECT_BINARY_DIR}/bin/$(ConfigurationName)"
-    COMMAND copy ${DLL_SOURCE} ${DLL_TARGET} /Y )
+#------------------------------------------------------------------------------
+# GUI tests special treatment - Apply MOC compiler to GUI
+#------------------------------------------------------------------------------
 
-  # copy OpenMS_GUI(d).dll
-  add_custom_command(TARGET OpenMS_GUI
-    POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E make_directory "${PROJECT_BINARY_DIR}/bin/$(ConfigurationName)"
-    COMMAND copy ${DLL_SOURCE} ${DLL_TARGET} /Y)
-
-  # copy OpenSWATHAlgo(d).dll
-  add_custom_command(TARGET OpenSwathAlgo
-    POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E make_directory "${PROJECT_BINARY_DIR}/bin/$(ConfigurationName)"
-    COMMAND copy ${DLL_SOURCE} ${DLL_TARGET} /Y)
+#------------------------------------------------------------------------------
+# Use QtTest lib
+find_package(Qt4 REQUIRED QtTest)
+if (NOT QT4_FOUND)
+  message(STATUS "QtTest module not found!")
+	message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -D QT_QMAKE_EXECUTABLE='<path_to_qmake(.exe)' <src-dir>")
 endif()
+include(${QT_USE_FILE})
 
 #------------------------------------------------------------------------------
-# set new CMAKE_RUNTIME_OUTPUT_DIRECTORY for tests and remember old setting
-set(_TMP_CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
+# Add GUI tests
+foreach(_gui_test ${GUI_executables_list})
+	# moc the test file
+  QT4_WRAP_CPP(_mocced_test_file source/GUI/${_gui_test}.C OPTIONS ${BOOST_MOC_ARGS})
+	# define source file dependency
+	set_source_files_properties(source/GUI/${_gui_test}.C PROPERTIES OBJECT_DEPENDS ${_mocced_test_file})
+  # add the executable
+  add_executable(${_gui_test} source/GUI/${_gui_test}.C)
+  # link against openms_gui and qt
+	target_link_libraries(${_gui_test} ${OPENMS_GUI_LIBRARIES} ${QT_LIBRARIES})
+  # add the test
+	add_test(${_gui_test} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_gui_test})
+	# only add OPENMP flags to gcc linker (execpt Mac OS X, due to compiler bug
+	# see https://sourceforge.net/apps/trac/open-ms/ticket/280 for details)
+  if (OPENMP_FOUND AND NOT MSVC AND NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+		set_target_properties(${_gui_test} PROPERTIES LINK_FLAGS ${OpenMP_CXX_FLAGS})
+	endif()
+endforeach(_gui_test)
 
 #------------------------------------------------------------------------------
-# add OpenSWATHAlgo specific tests
-add_subdirectory(openswathalgo)
+# GUI tests
+add_custom_target(GUI_TEST)
+add_dependencies(GUI_TEST ${GUI_executables_list})
 
-#------------------------------------------------------------------------------
-# add OpenMS specific tests
-add_subdirectory(openms)
-
-#------------------------------------------------------------------------------
-# add OpenMS_GUI specific tests
-add_subdirectory(openms_gui)
-
-#------------------------------------------------------------------------------
-# restore old CMAKE_RUNTIME_OUTPUT_DIRECTORY
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${_TMP_CMAKE_RUNTIME_OUTPUT_DIRECTORY})

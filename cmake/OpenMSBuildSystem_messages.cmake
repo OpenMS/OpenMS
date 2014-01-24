@@ -1,14 +1,14 @@
 
 IF (PYOPENMS)
-set(pyopenms_targets 
+set(pyopenms_targets
 										COMMAND ${CMAKE_COMMAND} -E echo "    pyopenms           builds pyOpenMS inplace"
 										COMMAND ${CMAKE_COMMAND} -E echo "    pyopenms_bdist_egg builds pyOpenMS bdist_egg"
 										COMMAND ${CMAKE_COMMAND} -E echo "    pyopenms_bdist     builds pyOpenMS bdist as zip file"
 										COMMAND ${CMAKE_COMMAND} -E echo "    pyopenms_rpm       builds pyOpenMS rpm"
-  
+
   )
 ELSE()
-set(pyopenms_targets 
+set(pyopenms_targets
 										COMMAND ${CMAKE_COMMAND} -E echo ""
 										COMMAND ${CMAKE_COMMAND} -E echo "The pyopenms targets are not enabled (to enable use -D PYOPENMS=ON)."
   )
@@ -76,14 +76,6 @@ endif()
 
 ##### Message after OpenMS has been built #####
 if (MSVC)
-	## copy OpenMS.dll to test executables dir
-	get_target_property(WIN32_DLLLOCATION OpenMS LOCATION)
-	get_filename_component(WIN32_DLLPATH ${WIN32_DLLLOCATION} PATH)
-
-	## copy OpenMS.dll to test executables dir "$(TargetFileName)" is a placeholder filled by VS at runtime
-	file(TO_NATIVE_PATH "${WIN32_DLLPATH}/$(TargetFileName)" DLL_SOURCE)
-	file(TO_NATIVE_PATH "${PROJECT_BINARY_DIR}/source/TEST/bin/$(ConfigurationName)/$(TargetFileName)" DLL_TARGET)
-	# create target path if not exists
 	add_custom_command(TARGET OpenMS
                     POST_BUILD
                     COMMAND ${CMAKE_COMMAND} -E echo ""
@@ -94,31 +86,15 @@ if (MSVC)
                     COMMAND ${CMAKE_COMMAND} -E echo "You should now build the TOPP tools and tests."
                     COMMAND ${CMAKE_COMMAND} -E echo "Then you should test your installation by executing the tests."
                     COMMAND ${CMAKE_COMMAND} -E echo ""
+                    COMMAND ${CMAKE_COMMAND} -E echo "Make sure that all required dlls (qt, contrib) are in the PATH environment"
+                    COMMAND ${CMAKE_COMMAND} -E echo "variable. Otherwise the tests and TOPP tools will not work."
+                    COMMAND ${CMAKE_COMMAND} -E echo ""
                     COMMAND ${CMAKE_COMMAND} -E echo "Execute the 'targets' project to see prominent targets!"
                     COMMAND ${CMAKE_COMMAND} -E echo ""
                     COMMAND ${CMAKE_COMMAND} -E echo "=========================================================================="
                     COMMAND ${CMAKE_COMMAND} -E echo ""
-                    COMMAND ${CMAKE_COMMAND} -E make_directory "${PROJECT_BINARY_DIR}/source/TEST/bin/$(ConfigurationName)"
-										COMMAND copy ${DLL_SOURCE} ${DLL_TARGET} /Y
-                    COMMENT "Library build. Copying OpenMS(d).dll to test binary dir"
                     VERBATIM)
 
-	## copy OpenMS_GUI.dll
-	add_custom_command(TARGET OpenMS_GUI
-                    POST_BUILD
-										COMMAND copy ${DLL_SOURCE} ${DLL_TARGET} /Y
-                    COMMENT "GUI Library build. Copying OpenMS_GUI(d).dll to test binary dir"
-                    VERBATIM)
-
-	if(NOT DISABLE_OPENSWATH)
-		## copy OpenSWATHAlgo(d).dll
-		add_custom_command(TARGET OpenSwathAlgo
-											POST_BUILD
-											COMMAND ${CMAKE_COMMAND} -E make_directory "${PROJECT_BINARY_DIR}/source/TEST/bin/$(ConfigurationName)"
-											COMMAND copy ${DLL_SOURCE} ${DLL_TARGET} /Y
-											COMMENT "OpenSwathAlgo Library build. Copying OpenSwathAlgo(d).dll to test binary dir"
-											VERBATIM)
-	endif(NOT DISABLE_OPENSWATH)
 else()
   add_custom_command(TARGET OpenMS
                     POST_BUILD
