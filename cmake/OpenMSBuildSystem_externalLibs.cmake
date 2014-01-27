@@ -181,25 +181,28 @@ else()
 endif()
 
 #------------------------------------------------------------------------------
-# Done finding contrib libraries
-#------------------------------------------------------------------------------
-
+# Find eigen3
+FIND_PACKAGE(Eigen3 REQUIRED)
+if (EIGEN3_FOUND)
   message(STATUS "Found eigen3 version ${EIGEN3_VERSION}")
 else()
   message(FATAL_ERROR "eigen3 not found!")
 endif()
 
+#------------------------------------------------------------------------------
 # Find geometric tools - wildmagick 5
 SET(WM5_FIND_REQUIRED_COMPONENTS WM5_WM5CORE WM5_WM5MATHEMATICS )
 find_package(WM5 REQUIRED)
 if (WM5_FOUND)
-  include_directories(${WM5_INCLUDE_DIRS})
   add_definitions(${WM5_DEFINITIONS})
   message(STATUS "Found WM5")
 else()
   message(FATAL_ERROR "WM5 not found!")
 endif()
 
+#------------------------------------------------------------------------------
+# Done finding contrib libraries
+#------------------------------------------------------------------------------
 
 if(MSVC)
 	## needed to locate libs (put this above ADD_LIBRARY() - otherwise it will not work)

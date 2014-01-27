@@ -38,8 +38,8 @@
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakShape.h>
 #include <OpenMS/KERNEL/Peak1D.h>
 
-#include <Eigen/Core>
-#include <unsupported/Eigen/NonLinearOptimization>
+#include <eigen3/Eigen/Core>
+#include <eigen3/unsupported/Eigen/NonLinearOptimization>
 
 #include <iostream>
 #include <fstream>

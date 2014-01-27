@@ -72,6 +72,8 @@ set(OPENMS_INCLUDE_DIRECTORIES ${PROJECT_SOURCE_DIR}/include
                                ${GLPK_INCLUDE_DIRS}
                                ${ZLIB_INCLUDE_DIRS}
                                ${BZIP2_INCLUDE_DIR}
+                               ${EIGEN3_INCLUDE_DIR}
+                               ${_WM5_INCLUDE_DIR}
                                ${OPENSWATHALGO_INCLUDE_DIRECTORIES}
                                ${CONTRIB_INCLUDE_DIR}
     CACHE INTERNAL "OpenMS include directories" FORCE)
@@ -140,6 +142,7 @@ set(OPENMS_DEP_LIBRARIES  ${CONTRIB_CBC}
                           ${DEP_LIBSVM_LIBRARY}
                           ${CONTRIB_XERCESC}
                           ${Boost_LIBRARIES}
+                          ${WM5_LIBRARIES}
                           ${BZIP2_LIBRARIES}
                           ${ZLIB_LIBRARIES}
                           ${GLPK_LIBRARIES})
