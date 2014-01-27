@@ -67,7 +67,7 @@ namespace OpenMS
           "Please provide a valid isotope_correction matrix as it was provided with the sample kit!");
     }
 
-    // convert to GSL matrix and setup required gsl datastructures
+    // convert to Eigen matrix
     EigenMatrixXdPtr m ( convertOpenMSMatrix2EigenMatrixXd( correction_matrix ) );
     Eigen::FullPivLU<Eigen::MatrixXd> ludecomp (*m);
     Eigen::VectorXd b;
@@ -97,7 +97,7 @@ namespace OpenMS
       // fill b vector
       fillInputVector_(b, m_b, consensus_map_in[i], consensus_map_in);
 
-      // solve using gsl and NNLS for stability and QC reasons
+      //solve
       Eigen::MatrixXd x = ludecomp.solve( b );
       if (! ((*m) * x).isApprox(b))
       {
@@ -108,12 +108,9 @@ namespace OpenMS
       // update the ouput consensus map with the corrected intensities
       ConsensusFeature::IntensityType cf_intensity = updateOutpuMap_(consensus_map_in, consensus_map_out, i, m_x);
 
-      // check consistency between GSL and NNLS results
+      // check consistency
       computeStats_(m_x, x, cf_intensity, quant_method, stats);
     }
-
-    // free all memory allocated by GSL objects
-//    freeGSLMemory_();
 
     return stats;
   }

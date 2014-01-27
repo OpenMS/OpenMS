@@ -71,7 +71,6 @@ namespace OpenMS
       // m_data might contain any additional parameters. We handle these using class members
       // instead.
       // The vector f is supposed to contain the result when we return from this function.
-      // Note: GSL wants the values for each data point i as one component of the results vector
       const std::vector<DoubleReal>& signal = m_data->signal;
       const std::vector<DoubleReal>& positions = m_data->positions;
       const std::vector<PeakShape>& peaks = m_data->peaks;

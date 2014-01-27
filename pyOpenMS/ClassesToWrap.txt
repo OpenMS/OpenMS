@@ -139,7 +139,7 @@ n    LabeledEval.cpp
 n    MapAlignmentEvaluation.cpp
 n    MassCalculator.cpp
 n    MRMPairFinder.cpp
-?    MSSimulator.cpp  # 250 lines => would need some work in gsl rng wrapping
+?    MSSimulator.cpp  # 250 lines =
 n    OpenMSInfo.cpp
 n    OpenSwathDIAPreScoring.cpp
 ?    OpenSwathMzMLFileCacher.cpp

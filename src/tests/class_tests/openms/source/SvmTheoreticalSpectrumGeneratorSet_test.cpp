@@ -108,7 +108,7 @@ START_SECTION(SvmTheoreticalSpectrumGenerator & getSvmModel(Size))
     NOT_TESTABLE
 END_SECTION
 
-START_SECTION(void simulate(RichPeakSpectrum &spectrum, const AASequence &peptide, const deprecated_gsl_rng *rng, Size precursor_charge))
+START_SECTION(void simulate(RichPeakSpectrum & spectrum, const AASequence & peptide, boost::random::mt19937_64& rng, Size precursor_charge))
 
     RichPeakMap exp;
     boost::random::mt19937_64 rnd_gen (0);

@@ -1043,7 +1043,6 @@ namespace OpenMS
 
         boost::math::exponential_distribution<double> ed (shape);
         double bx = boost::math::pdf(ed, x);
-        //DoubleReal b = deprecated_gsl_ran_exponential_pdf(x, shape);
         bx *= scale;
         experiment[i][j].setIntensity(experiment[i][j].getIntensity() + bx);
       }

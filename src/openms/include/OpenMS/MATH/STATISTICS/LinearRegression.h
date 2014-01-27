@@ -56,8 +56,6 @@ namespace OpenMS
     /**
             @brief This class offers functions to perform least-squares fits to a straight line model, \f$ Y(c,x) = c_0 + c_1 x \f$.
 
-            It encapsulates the GSL methods for a weighted and an unweighted linear regression.
-
             Next to the intercept with the y-axis and the slope of the fitted line, this class computes the:
             - squared pearson coefficient
             - value of the t-distribution

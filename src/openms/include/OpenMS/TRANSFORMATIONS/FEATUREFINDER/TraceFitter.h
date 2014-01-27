@@ -184,8 +184,6 @@ public:
     virtual String getGnuplotFormula(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType>& trace, const char function_name, const DoubleReal baseline, const DoubleReal rt_shift) = 0;
 
 protected:
-
-    /// Structure for passing data to GSL functions
     struct ModelData
     {
       FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType>* traces_ptr;

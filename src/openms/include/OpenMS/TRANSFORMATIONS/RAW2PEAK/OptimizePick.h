@@ -93,7 +93,7 @@ namespace OpenMS
     @brief This class provides the non-linear optimization of the peak parameters.
 
     Given a vector of peak shapes, this class optimizes all peak shapes parameters using a non-linear optimization.
-    For the non-linear optimization we use the Levenberg-Marquardt algorithm provided by the gsl.
+    For the non-linear optimization we use the Levenberg-Marquardt algorithm provided by the Eigen.
   */
   class OPENMS_DLLAPI OptimizePick
   {

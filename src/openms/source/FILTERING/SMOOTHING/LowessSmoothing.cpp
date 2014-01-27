@@ -58,7 +58,7 @@ namespace OpenMS
   {
     if (input_x.size() != input_y.size())
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Sizes of x_gsl and y_gsl values not equal! Aborting... ", String(input_x.size()));
+      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Sizes of x and y values not equal! Aborting... ", String(input_x.size()));
     }
 
     // unable to smooth over 2 or less data points (we need at least 3)

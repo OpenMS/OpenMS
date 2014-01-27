@@ -42,7 +42,7 @@
 namespace OpenMS
 {
   /**
-    @brief Exponential-Gaussian hybrid distribution fitter (1-dim.) using Levenberg-Marquardt algorithm (GSL implementation) for parameter optimization.
+    @brief Exponential-Gaussian hybrid distribution fitter (1-dim.) using Levenberg-Marquardt algorithm (Eigen implementation) for parameter optimization.
 
     @htmlinclude OpenMS_EGHFitter1D.parameters
   */

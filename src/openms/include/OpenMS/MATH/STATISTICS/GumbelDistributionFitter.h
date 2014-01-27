@@ -55,8 +55,6 @@ namespace OpenMS
       The formula with the fitted parameters can be transformed into a
       gnuplot formula using getGnuplotFormula() after fitting.
 
-          The implementation is done using GSL fitting algorithms.
-
           @ingroup Math
       */
     class OPENMS_DLLAPI GumbelDistributionFitter

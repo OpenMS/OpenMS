@@ -77,7 +77,7 @@ namespace OpenMS
     Given the picked peaks, this class optimizes the peak parameters of each isotope pattern using
     a non-linear optimization. The peaks of adjacent scans are adjusted to achieve that a peak occurring in
     several scans has always the same m/z position. For the optimization the Levenberg-Marquardt algorithm
-    provided from the GSL is used. The optimized parameters are the m/z values,
+    provided from the Eigen is used. The optimized parameters are the m/z values,
     the left and right width, which shall be equal for a peak in all scans,
     and the peaks' heights.
 

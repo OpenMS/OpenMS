@@ -235,7 +235,7 @@ namespace OpenMS
       max_adduct_charge_ = std::max(max_adduct_charge_, l_charge);
     }
 
-    // scale probability to 1 (the later GSL step does this as well, but just to be sure)
+    // scale probability to 1 
     for (Size i = 0; i < esi_charge_impurity.size(); ++i)
     {
       esi_impurity_probabilities_[i] /= summed_probability;
@@ -276,7 +276,6 @@ public:
     for(size_t i=0; i<weights.size(); ++i )
       std::cout << "weights[" << i << "]: " << weights.at(i) << std::endl;
     boost::random::discrete_distribution<Size, double> ddist (weights.begin(), weights.end());
-//    deprecated_gsl_ran_discrete_t * ran_lookup_esi_charge_impurity = deprecated_gsl_ran_discrete_preproc(esi_impurity_probabilities_.size(), &esi_impurity_probabilities_[0]);
 
     try
     {

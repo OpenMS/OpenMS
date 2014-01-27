@@ -96,16 +96,6 @@ endif()
 OPENMS_CHECKLIB(CONTRIB_XERCESC "xerces-c_3;xerces-c_static_3;libxerces-c;xerces-c" "xerces-c_3D;xerces-c_static_3D;libxerces-c;xerces-c" "xerces_c")
 
 #------------------------------------------------------------------------------
-# GSL and GSL-CBLAS
-find_package(GSL)
-if (GSL_FOUND)
-	include_directories(${GSL_INCLUDE_DIRS})
-  message(STATUS "Found GSL version " ${GSL_VERSION_STRING})
-else()
-  message(FATAL_ERROR "GSL not found!")
-endif()
-
-#------------------------------------------------------------------------------
 # BOOST
 find_boost(iostreams date_time math_c99 regex)
 

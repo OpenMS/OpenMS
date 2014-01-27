@@ -89,12 +89,10 @@ using namespace std;
 
 namespace OpenMS
 {
-  /// A little helper class to gather (and dump) some statistics from a vector<double>.  Uses statistical functions implemented in GSL.
+  /// A little helper class to gather (and dump) some statistics from a vector<double>.
   struct SomeStatistics
   {
     /**@brief Initialize SomeStatistics from data.
-
-    @note: GSL statistics uses double and so we write double not DoubleReal here and where we use this.
     */
     SomeStatistics& operator()(vector<double>& data)
     {

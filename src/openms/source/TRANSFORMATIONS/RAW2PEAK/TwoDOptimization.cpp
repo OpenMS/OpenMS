@@ -171,7 +171,6 @@ namespace OpenMS
     // Params might contain any additional parameters. We handle these using class members
     // instead.
     // The vector f is supposed to contain the result when we return from this function.
-    // Note: GSL wants the values for each data point i as one component of the results vector
     DoubleReal computed_signal, current_position, experimental_signal, step, last_position;
     DoubleReal p_height, p_position, p_width;
     Int count = 0;
@@ -238,12 +237,6 @@ namespace OpenMS
             ++map_idx;
             ++m_spec_iter;
           }
-          // if the current peak is in the reference scan take all parameters from the vector x
-#ifdef DEBUG_2D
-          std::cout << "ref_scan : " << current_peak << "\t "
-                    << deprecated_gsl_vector_get(x, 3 * current_peak) << "\t" << deprecated_gsl_vector_get(x, 3 * current_peak + 1)
-                    << "\t" << deprecated_gsl_vector_get(x, 3 * current_peak + 2) << std::endl;
-#endif
           //Store the current parameters for this peak
           p_position    = x(total_nr_peaks + 3 * map_idx);
           p_height      = x(peak_idx);
@@ -372,7 +365,7 @@ namespace OpenMS
     //          - each row corresponds to one data point
     //          - each column corresponds to one parameter
 
-    DoubleReal computed_signal, current_position, experimental_signal, last_position, step;
+    DoubleReal current_position, last_position, step;
     DoubleReal p_height, p_position, p_width;
     DoubleReal diff, denom_inv, ddl_left, ddl_right, ddx0, sinh_term;
     Int count = 0;
@@ -404,12 +397,11 @@ namespace OpenMS
            ++current_point)
       {
         last_position = current_position;
-        computed_signal   = 0.;
         current_position  = ((raw_data_first
                               + signal2D[2 * current_scan].first)->begin()
                              + signal2D[2 * current_scan].second + current_point)->getMZ();
-        experimental_signal = ((raw_data_first + signal2D[2 * current_scan].first)->begin()
-                               + signal2D[2 * current_scan].second + current_point)->getIntensity();
+//       DoubleReal experimental_signal = ((raw_data_first + signal2D[2 * current_scan].first)->begin()
+//                               + signal2D[2 * current_scan].second + current_point)->getIntensity();
 
         step = current_position - last_position;
 

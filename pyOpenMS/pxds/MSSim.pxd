@@ -20,7 +20,7 @@ cdef extern from "<OpenMS/SIMULATION/MSSim.h>" namespace "OpenMS":
 
         # General purpose function to simulate a mass spectrometry run
         #
-        #@param rnd_gen GSL random number generator which will be passed to the different classes
+        #@param rnd_gen random number generator which will be passed to the different classes
         #@param peptides List of peptides and abundances that will be simulated
         void simulate(SimRandomNumberGenerator rnd_gen, SampleChannels peptides) nogil except +
 
