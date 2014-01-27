@@ -107,7 +107,7 @@ using namespace std;
   So unless the peptide coincides with C- and/or N-terminus of the protein, the peptide's cleavage pattern should fulfill the trypsin cleavage rule [KR][^P].
   We make one exception for peptides which start at the second AA of the protein where the first AA of the protein is methionin (M), which is usually cleaved off in vivo, e.g.,
   the two peptides AAAR and MAAAR would both match a protein starting with MAAAR.
-  
+
   You can relax the requirements further by chosing <tt>semi-tryptic</tt> (only one of two "internal" termini must match requirements) or <tt>none</tt> (essentially allowing all hits, no matter their context).
 
 
@@ -125,9 +125,9 @@ namespace seqan
   {
   public:
     typedef OpenMS::Map<OpenMS::Size, std::set<OpenMS::Size> > MapType;
-    
+
     /// peptide index --> protein indices
-    MapType pep_to_prot; 
+    MapType pep_to_prot;
 
     /// number of accepted hits (passing addHit() constraints)
     OpenMS::Size filter_passed;
@@ -410,14 +410,14 @@ protected:
     registerStringOption_("decoy_string", "<string>", "_rev", "String that was appended (or prepended - see 'prefix' flag below) to the accession of the protein database to indicate a decoy protein.", false);
     registerStringOption_("missing_decoy_action", "<action>", "error", "Action to take if NO peptide was assigned to a decoy protein (which indicates wrong database or decoy string): 'error' (exit with error, no output), 'warn' (exit with success, warning message)", false);
     setValidStrings_("missing_decoy_action", ListUtils::create<String>("error,warn"));
-    
+
     registerTOPPSubsection_("enzyme", "The enzyme determines valid cleavage-sites and the cleavage specificity set by the user determines how these are enforced.");
-    
+
     registerStringOption_("enzyme:name", "", EnzymaticDigestion::NamesOfEnzymes[0], "Enzyme which determines valid cleavage sites, e.g., for trypsin it should (unless at protein terminus) end on K or R and the AA-before should also be K or R, and not followed by proline.", false);
     StringList enzymes;
     enzymes.assign(EnzymaticDigestion::NamesOfEnzymes, EnzymaticDigestion::NamesOfEnzymes + EnzymaticDigestion::SIZE_OF_ENZYMES);
     setValidStrings_("enzyme:name", enzymes);
-    
+
     registerStringOption_("enzyme:specificity", "", EnzymaticDigestion::NamesOfSpecificity[0], "Specificity of the enzyme."
                                                                             "\n  '" + EnzymaticDigestion::NamesOfSpecificity[0] + "': both internal cleavage-sites must match."
                                                                             "\n  '" + EnzymaticDigestion::NamesOfSpecificity[1] + "': one of two internal cleavage-sites must match."
@@ -425,7 +425,7 @@ protected:
     StringList spec;
     spec.assign(EnzymaticDigestion::NamesOfSpecificity, EnzymaticDigestion::NamesOfSpecificity + EnzymaticDigestion::SIZE_OF_SPECIFICITY);
     setValidStrings_("enzyme:specificity", spec);
-    
+
     registerFlag_("write_protein_sequence", "If set, the protein sequences are stored as well.");
     registerFlag_("prefix", "If set, the database has protein accessions with 'decoy_string' as prefix.");
     registerFlag_("keep_unreferenced_proteins", "If set, protein hits which are not referenced by any peptide are kept.");
@@ -489,7 +489,7 @@ protected:
     if (proteins.size() == 0) // we do not allow an empty database
     {
       LOG_ERROR << "Error: An empty FASTA file was provided. Mapping makes no sense. Aborting..." << std::endl;
-      return ExitCodes::INPUT_FILE_EMPTY;
+      return INPUT_FILE_EMPTY;
     }
 
 
@@ -569,13 +569,13 @@ protected:
             while (find(finder, pattern))
             {
               //seqan::appendValue(pat_hits, seqan::Pair<Size, Size>(position(pattern), position(finder)));
-              
+
               //func_threads.pep_to_prot[position(pattern)].insert(i);
               // String(seqan::String<char, seqan::CStyle>(prot_DB[i])), position(finder))
               // target.assign(begin(source, Standard()), end(source, Standard()));
               const seqan::Peptide& tmp_pep = pep_DB[position(pattern)];
               const seqan::Peptide& tmp_prot = prot_DB[i];
-              
+
               func_threads.addHit(position(pattern), i, String(begin(tmp_pep), end(tmp_pep)), String(begin(tmp_prot), end(tmp_prot)), position(finder));
             }
           }
