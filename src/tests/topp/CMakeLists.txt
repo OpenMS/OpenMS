@@ -1293,11 +1293,11 @@ add_test("TOPP_PeptideIndexer_9" ${TOPP_BIN_PATH}/PeptideIndexer -test -fasta ${
 add_test("TOPP_PeptideIndexer_9_out" ${DIFF} -in1 PeptideIndexer_9_out.tmp -in2 ${DATA_DIR_TOPP}/PeptideIndexer_9_out.idXML )
 set_tests_properties("TOPP_PeptideIndexer_9_out" PROPERTIES DEPENDS "TOPP_PeptideIndexer_9")
 # empty input
-add_test("TOPP_PeptideIndexer_10" ${TOPP_BIN_PATH}/PeptideIndexer -test -fasta ${DATA_DIR_TOPP}/PeptideIndexer_1.fasta -in ${DATA_DIR_TOPP}/../data/degenerate_cases/empty.idXML -out PeptideIndexer_10_out.tmp)
-add_test("TOPP_PeptideIndexer_10_out" ${DIFF} -in1 PeptideIndexer_10_out.tmp -in2 ${DATA_DIR_TOPP}/../data/degenerate_cases/empty.idXML )
+add_test("TOPP_PeptideIndexer_10" ${TOPP_BIN_PATH}/PeptideIndexer -test -fasta ${DATA_DIR_TOPP}/PeptideIndexer_1.fasta -in ${DATA_DIR_TOPP}/degenerate_cases/empty.idXML -out PeptideIndexer_10_out.tmp)
+add_test("TOPP_PeptideIndexer_10_out" ${DIFF} -in1 PeptideIndexer_10_out.tmp -in2 ${DATA_DIR_TOPP}/degenerate_cases/empty.idXML )
 set_tests_properties("TOPP_PeptideIndexer_10_out" PROPERTIES DEPENDS "TOPP_PeptideIndexer_10")
 # empty FASTA
-add_test("TOPP_PeptideIndexer_11" ${TOPP_BIN_PATH}/PeptideIndexer -test -fasta ${DATA_DIR_TOPP}/../data/degenerate_cases/empty.fasta -in ${DATA_DIR_TOPP}/PeptideIndexer_1.idXML -out PeptideIndexer_11_out.tmp)
+add_test("TOPP_PeptideIndexer_11" ${TOPP_BIN_PATH}/PeptideIndexer -test -fasta ${DATA_DIR_TOPP}/degenerate_cases/empty.fasta -in ${DATA_DIR_TOPP}/PeptideIndexer_1.idXML -out PeptideIndexer_11_out.tmp)
 set_tests_properties("TOPP_PeptideIndexer_11" PROPERTIES WILL_FAIL 1)
 
 
