@@ -82,31 +82,6 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 endif()
 
 #------------------------------------------------------------------------------
-# Copy dlls to test executables dir
-if(MSVC)
-  get_target_property(WIN32_DLLLOCATION OpenMS LOCATION)
-  get_filename_component(WIN32_DLLPATH ${WIN32_DLLLOCATION} PATH)
-
-  ## copy OpenMS.dll to test executables dir "$(TargetFileName)" is a placeholder filled by VS at runtime
-  file(TO_NATIVE_PATH "${WIN32_DLLPATH}/$(TargetFileName)" DLL_SOURCE)
-  file(TO_NATIVE_PATH "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/$(ConfigurationName)/$(TargetFileName)" DLL_TARGET)
-
-	## copy dlls to test runtime folder
-	add_custom_command(TARGET OpenMS
-                    POST_BUILD
-										COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/$(ConfigurationName)"
-										COMMAND ${CMAKE_COMMAND} -E copy ${DLL_SOURCE} ${DLL_TARGET})
-	add_custom_command(TARGET OpenMS_GUI
-                    POST_BUILD
-										COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/$(ConfigurationName)"
-										COMMAND ${CMAKE_COMMAND} -E copy ${DLL_SOURCE} ${DLL_TARGET})
-	add_custom_command(TARGET OpenSwathAlgo
-                    POST_BUILD
-										COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/$(ConfigurationName)"
-                    COMMAND ${CMAKE_COMMAND} -E copy ${DLL_SOURCE} ${DLL_TARGET})
-endif(MSVC)
-
-#------------------------------------------------------------------------------
 # get the test executables
 include(executables.cmake)
 

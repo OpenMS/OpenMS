@@ -40,6 +40,7 @@ cmake_minimum_required(VERSION 2.8.3 FATAL_ERROR)
 
 # add OpenMS includes
 include_directories(${OPENMS_INCLUDE_DIRECTORIES})
+add_definitions(/DBOOST_ALL_NO_LIB)
 
 include(executables.cmake)
 foreach(i ${TOPP_executables})

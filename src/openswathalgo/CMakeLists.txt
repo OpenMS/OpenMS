@@ -80,3 +80,7 @@ include(source/ANALYSIS/OPENSWATH/OPENSWATHALGO/OpenSwathAlgoFiles.cmake)
 #------------------------------------------------------------------------------
 # The OpenSWATHAlgo library
 add_library(OpenSwathAlgo ${OpenSwathAlgoFiles})
+
+#------------------------------------------------------------------------------
+# copy dll to test/doc bin folder on MSVC systems
+copy_dll_to_extern_bin(OpenSwathAlgo)

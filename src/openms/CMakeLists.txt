@@ -161,6 +161,10 @@ else()
 	ADD_LIBRARY(OpenMS ${OpenMS_sources})
 endif()
 
+#------------------------------------------------------------------------------
+# copy dll to test/doc bin folder on MSVC systems
+copy_dll_to_extern_bin(OpenMS)
+
 ## update the openms_svn_revision.h file before compiling OpenMS
 if (ENABLE_SVN)
 	add_dependencies(OpenMS svn_revision_update)

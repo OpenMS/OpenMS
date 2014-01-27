@@ -68,6 +68,10 @@ include_directories(${OPENMS_GUI_INCLUDE_DIRECTORIES})
 # OpenMS_GUI lib
 add_library(OpenMS_GUI ${OpenMSVisual_sources})
 
+#------------------------------------------------------------------------------
+# copy dll to test/doc bin folder on MSVC systems
+copy_dll_to_extern_bin(OpenMS_GUI)
+
 # --------------------------------------------------------------------------
 # OpenMS_GUI's additional dependencies 
 # --------------------------------------------------------------------------

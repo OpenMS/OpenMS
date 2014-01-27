@@ -23,3 +23,30 @@ MACRO (OPENMS_CHECKLIB varname libnames libnames_d human_libname)
 	## combine result and include "optimized" and "debug" keywords which are essential for target_link_libraries()
 	set(${varname} optimized ${${varname}_OPT} debug ${${varname}_DBG})
 ENDMACRO (OPENMS_CHECKLIB)
+
+## Copy the dll produced by the given target to the test/doc binary path.
+## @param targetname The target to modify.
+## @note This macro will do nothing with non MSVC generators.
+macro(copy_dll_to_extern_bin targetname)
+  if(MSVC)
+    get_target_property(WIN32_DLLLOCATION ${targetname} LOCATION)
+    get_filename_component(WIN32_DLLPATH ${WIN32_DLLLOCATION} PATH)
+
+    ## copy OpenMS.dll to test executables dir "$(TargetFileName)" is a placeholder filled by VS at runtime
+    file(TO_NATIVE_PATH "${WIN32_DLLPATH}/$(TargetFileName)" DLL_SOURCE)
+
+    file(TO_NATIVE_PATH "${OPENMS_HOST_BINARY_DIRECTORY}/src/tests/class_tests/bin/$(ConfigurationName)/$(TargetFileName)" DLL_TEST_TARGET)
+    file(TO_NATIVE_PATH "${OPENMS_HOST_BINARY_DIRECTORY}/src/tests/class_tests/bin/$(ConfigurationName)" DLL_TEST_TARGET_PATH)
+
+    file(TO_NATIVE_PATH "${OPENMS_HOST_BINARY_DIRECTORY}/doc/doxygen/parameters/$(ConfigurationName)/$(TargetFileName)" DLL_DOC_TARGET)
+    file(TO_NATIVE_PATH "${OPENMS_HOST_BINARY_DIRECTORY}/doc/doxygen/parameters/$(ConfigurationName)" DLL_DOC_TARGET_PATH)
+
+
+    add_custom_command(TARGET ${targetname}
+                      POST_BUILD
+                      COMMAND ${CMAKE_COMMAND} -E make_directory "${DLL_TEST_TARGET_PATH}"
+                      COMMAND ${CMAKE_COMMAND} -E copy ${DLL_SOURCE} ${DLL_TEST_TARGET}
+                      COMMAND ${CMAKE_COMMAND} -E make_directory "${DLL_DOC_TARGET_PATH}"
+                      COMMAND ${CMAKE_COMMAND} -E copy ${DLL_SOURCE} ${DLL_DOC_TARGET})
+  endif(MSVC)
+endmacro()

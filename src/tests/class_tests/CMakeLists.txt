@@ -36,37 +36,6 @@ cmake_minimum_required(VERSION 2.8.3 FATAL_ERROR)
 project("OpenMS_class_tests")
 
 #------------------------------------------------------------------------------
-# ensure dlls get copied there
-
-if(MSVC)
-  # copy OpenMS.dll to test executables dir
-  get_target_property(WIN32_DLLLOCATION OpenMS LOCATION)
-  get_filename_component(WIN32_DLLPATH ${WIN32_DLLLOCATION} PATH)
-
-  # copy OpenMS.dll to test executables dir "$(TargetFileName)" is a placeholder filled by VS at runtime
-  file(TO_NATIVE_PATH "${WIN32_DLLPATH}/$(TargetFileName)" DLL_SOURCE)
-  file(TO_NATIVE_PATH "${PROJECT_BINARY_DIR}/bin/$(ConfigurationName)/$(TargetFileName)" DLL_TARGET)
-
-  # copy OpenMS(d).dll
-  add_custom_command(TARGET OpenMS
-    POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E make_directory "${PROJECT_BINARY_DIR}/bin/$(ConfigurationName)"
-    COMMAND copy ${DLL_SOURCE} ${DLL_TARGET} /Y )
-
-  # copy OpenMS_GUI(d).dll
-  add_custom_command(TARGET OpenMS_GUI
-    POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E make_directory "${PROJECT_BINARY_DIR}/bin/$(ConfigurationName)"
-    COMMAND copy ${DLL_SOURCE} ${DLL_TARGET} /Y)
-
-  # copy OpenSWATHAlgo(d).dll
-  add_custom_command(TARGET OpenSwathAlgo
-    POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E make_directory "${PROJECT_BINARY_DIR}/bin/$(ConfigurationName)"
-    COMMAND copy ${DLL_SOURCE} ${DLL_TARGET} /Y)
-endif()
-
-#------------------------------------------------------------------------------
 # set new CMAKE_RUNTIME_OUTPUT_DIRECTORY for tests and remember old setting
 set(_TMP_CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/bin)
