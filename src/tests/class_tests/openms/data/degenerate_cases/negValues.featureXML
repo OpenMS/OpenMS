@@ -1,0 +1,639 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<featureMap version="1.4" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_4.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<dataProcessing completion_time="2011-02-17T10:50:26">
+		<software name="FileConverter" version="1.8.0" />
+		<processingAction name="File format conversion" />
+		<userParam type="string" name="parameter: in" value="test.dta2d"/>
+		<userParam type="string" name="parameter: out" value="test.featureXML"/>
+		<userParam type="string" name="parameter: in_type" value=""/>
+		<userParam type="string" name="parameter: out_type" value=""/>
+		<userParam type="string" name="parameter: log" value=""/>
+		<userParam type="int" name="parameter: debug" value="0"/>
+		<userParam type="int" name="parameter: threads" value="1"/>
+		<userParam type="string" name="parameter: no_progress" value="false"/>
+		<userParam type="string" name="parameter: test" value="false"/>
+	</dataProcessing>
+	<featureList count="69">
+		<feature id="f_18213770910675354071">
+			<position dim="0">926.264</position>
+			<position dim="1">520.32412142848</position>
+			<intensity>4.34208</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_792816298919545562">
+			<position dim="0">926.985</position>
+			<position dim="1">524.372741878352</position>
+			<intensity>257.816</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_7896225344170144765">
+			<position dim="0">930.103</position>
+			<position dim="1">519.158602432927</position>
+			<intensity>10.2647</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_5438606509006755641">
+			<position dim="0">935.586</position>
+			<position dim="1">524.276732137824</position>
+			<intensity>320.487</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_2947022775441048173">
+			<position dim="0">936.309</position>
+			<position dim="1">523.26662676273</position>
+			<intensity>50.7312</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_10642319233918869264">
+			<position dim="0">936.786</position>
+			<position dim="1">522.351210999667</position>
+			<intensity>596.035</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_226891898884354050">
+			<position dim="0">937.027</position>
+			<position dim="1">518.30224219742</position>
+			<intensity>-3.46093</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_6119729723657444683">
+			<position dim="0">937.027</position>
+			<position dim="1">521.345737577734</position>
+			<intensity>3059.07</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_11418370041452885603">
+			<position dim="0">-937.027</position>
+			<position dim="1">523.358679719088</position>
+			<intensity>100.574</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_5755319001950795299">
+			<position dim="0">937.268</position>
+			<position dim="1">520.341915759318</position>
+			<intensity>9492.43</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_11931753488196331507">
+			<position dim="0">937.744</position>
+			<position dim="1">518.788168385388</position>
+			<intensity>0.960957</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_9642653917435807281">
+			<position dim="0">939.185</position>
+			<position dim="1">521.665524478714</position>
+			<intensity>12.1434</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_1518472563945201872">
+			<position dim="0">957.629</position>
+			<position dim="1">524.370810798446</position>
+			<intensity>257.546</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_8581373949444877472">
+			<position dim="0">958.592</position>
+			<position dim="1">523.360544415433</position>
+			<intensity>846.947</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_6281669451447301137">
+			<position dim="0">958.828</position>
+			<position dim="1">522.348890866743</position>
+			<intensity>4539.04</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_18116411400502139324">
+			<position dim="0">-959.309</position>
+			<position dim="1">521.345642566446</position>
+			<intensity>-22412</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_2853400483534169098">
+			<position dim="0">959.55</position>
+			<position dim="1">520.341186473717</position>
+			<intensity>71892</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_13889721636939601600">
+			<position dim="0">961.232</position>
+			<position dim="1">524.799837351307</position>
+			<intensity>22.7009</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_16111868975617914015">
+			<position dim="0">961.468</position>
+			<position dim="1">524.187508445783</position>
+			<intensity>13.5314</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_6452138283800273579">
+			<position dim="0">974.39</position>
+			<position dim="1">523.266688518685</position>
+			<intensity>2.67713</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_12166741552923570136">
+			<position dim="0">979.669</position>
+			<position dim="1">521.343653354135</position>
+			<intensity>559.746</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_338422229106773093">
+			<position dim="0">979.669</position>
+			<position dim="1">522.349942861554</position>
+			<intensity>138.578</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_16611059268397805118">
+			<position dim="0">981.549</position>
+			<position dim="1">520.341227279964</position>
+			<intensity>1747.68</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_4426465639326336047">
+			<position dim="0">985.63</position>
+			<position dim="1">524.370080542969</position>
+			<intensity>90.9042</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_16620138042224286865">
+			<position dim="0">-991.387</position>
+			<position dim="1">522.279738465939</position>
+			<intensity>5.30018</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_2386469878012094544">
+			<position dim="0">994.749</position>
+			<position dim="1">520.941089027526</position>
+			<intensity>11.7621</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_3247033088087181652">
+			<position dim="0">994.989</position>
+			<position dim="1">525.798366136079</position>
+			<intensity>107.836</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_13537800470064722856">
+			<position dim="0">995.23</position>
+			<position dim="1">520.129757522804</position>
+			<intensity>9.82048</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_1996726551910633407">
+			<position dim="0">995.23</position>
+			<position dim="1">524.800345681063</position>
+			<intensity>-288.826</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_365905936964999078">
+			<position dim="0">995.23</position>
+			<position dim="1">525.296205520062</position>
+			<intensity>227.782</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_5120353701905206973">
+			<position dim="0">-995.471</position>
+			<position dim="1">523.803606210069</position>
+			<intensity>29.2817</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_7638595115476886357">
+			<position dim="0">995.711</position>
+			<position dim="1">523.297914144785</position>
+			<intensity>43.5451</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_13878590555129423784">
+			<position dim="0">995.951</position>
+			<position dim="1">519.330616072569</position>
+			<intensity>2220.71</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_1868664863446682371">
+			<position dim="0">995.951</position>
+			<position dim="1">521.344847205394</position>
+			<intensity>159.066</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_14279550332887149451">
+			<position dim="0">996.192</position>
+			<position dim="1">518.325838150609</position>
+			<intensity>7629.65</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_7333867576630799848">
+			<position dim="0">996.192</position>
+			<position dim="1">520.340414425237</position>
+			<intensity>1136.87</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_15680628335123753316">
+			<position dim="0">-996.192</position>
+			<position dim="1">524.297995637335</position>
+			<intensity>462.715</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_18159161471223463104">
+			<position dim="0">996.428</position>
+			<position dim="1">519.996215196511</position>
+			<intensity>-18.831</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_10165825365817864777">
+			<position dim="0">996.428</position>
+			<position dim="1">520.551962566583</position>
+			<intensity>6.90577</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_6453341857988716956">
+			<position dim="0">997.349</position>
+			<position dim="1">522.797832705882</position>
+			<intensity>34.0646</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_9410804354297906192">
+			<position dim="0">997.59</position>
+			<position dim="1">520.761723960057</position>
+			<intensity>2.42633</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_5943422315514802226">
+			<position dim="0">1009.35</position>
+			<position dim="1">521.342399955584</position>
+			<intensity>54.7104</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_8148675924768267322">
+			<position dim="0">1021.31</position>
+			<position dim="1">523.808035552931</position>
+			<intensity>139.609</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_7651545729136153169">
+			<position dim="0">1021.55</position>
+			<position dim="1">-521.347610186853</position>
+			<intensity>216.666</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_267547763110850531">
+			<position dim="0">1022.27</position>
+			<position dim="1">518.325185985542</position>
+			<intensity>35576</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_14680090839464739487">
+			<position dim="0">1022.27</position>
+			<position dim="1">519.329848243988</position>
+			<intensity>10318.8</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_13441205860985264412">
+			<position dim="0">1022.51</position>
+			<position dim="1">525.806074150536</position>
+			<intensity>-355.548</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_7754946163598202264">
+			<position dim="0">1022.75</position>
+			<position dim="1">522.808303813752</position>
+			<intensity>137.949</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_1324475527359727409">
+			<position dim="0">1022.75</position>
+			<position dim="1">524.807301863511</position>
+			<intensity>1884.16</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_12589219311613102702">
+			<position dim="0">1022.99</position>
+			<position dim="1">520.691545346634</position>
+			<intensity>29.0649</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_2337289879149510344">
+			<position dim="0">1024.19</position>
+			<position dim="1">525.30148278464</position>
+			<intensity>871.14</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_9675665186876057546">
+			<position dim="0">1024.67</position>
+			<position dim="1">520.337510572312</position>
+			<intensity>2041.1</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_9777661307167830732">
+			<position dim="0">1024.67</position>
+			<position dim="1">521.515035809242</position>
+			<intensity>29.6889</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_13694298811856826525">
+			<position dim="0">1024.91</position>
+			<position dim="1">525.805128276069</position>
+			<intensity>458.49</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_9559001340774283961">
+			<position dim="0">1026.35</position>
+			<position dim="1">-523.367206996501</position>
+			<intensity>1657.1</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_17651286613606416726">
+			<position dim="0">1027.07</position>
+			<position dim="1">522.36297241945</position>
+			<intensity>5666.17</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_6544203266088276463">
+			<position dim="0">1051.23</position>
+			<position dim="1">523.361068954457</position>
+			<intensity>-17976.7</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_18277936671469494960">
+			<position dim="0">1051.71</position>
+			<position dim="1">524.363984093754</position>
+			<intensity>-4043.71</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_8698487666424100191">
+			<position dim="0">1051.95</position>
+			<position dim="1">522.357202095523</position>
+			<intensity>62104.2</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_10635071203855586641">
+			<position dim="0">1052.91</position>
+			<position dim="1">525.372244171421</position>
+			<intensity>778.994</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_2201278337448121759">
+			<position dim="0">1057.71</position>
+			<position dim="1">522.882268082737</position>
+			<intensity>2.43038</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_9854386625476064143">
+			<position dim="0">1067.03</position>
+			<position dim="1">520.335397217087</position>
+			<intensity>36.1431</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_18195814648619607636">
+			<position dim="0">1073.75</position>
+			<position dim="1">-523.36291911259</position>
+			<intensity>2981.3</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_13606144229046670947">
+			<position dim="0">1074.71</position>
+			<position dim="1">-522.358782161192</position>
+			<intensity>10445.8</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_16807208487143059365">
+			<position dim="0">1074.95</position>
+			<position dim="1">-524.367251272774</position>
+			<intensity>698.76</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_11747192884245760820">
+			<position dim="0">1076.35</position>
+			<position dim="1">525.140510000501</position>
+			<intensity>4.10847</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_10023567130201568393">
+			<position dim="0">1078.03</position>
+			<position dim="1">524.985176075798</position>
+			<intensity>8.26329</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_16374482030343658222">
+			<position dim="0">1078.75</position>
+			<position dim="1">525.372357828749</position>
+			<intensity>101.865</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+		</feature>
+		<feature id="f_11264138664657777358">
+			<position dim="0">1088.83</position>
+			<position dim="1">517.378032479061</position>
+			<intensity>145.33</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>0</charge>
+		</feature>
+	</featureList>
+</featureMap>

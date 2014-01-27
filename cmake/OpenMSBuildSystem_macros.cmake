@@ -2,7 +2,7 @@
 ## @param varname Name of the variable which will hold the result string (e.g. "optimized myLib.so debug myLibDebug.so")
 ## @param libnames   List of library names which are searched (release libs)
 ## @param libnames_d List of library names which are searched (debug libs)
-## @param human_libname Name of the library (for display only) 
+## @param human_libname Name of the library (for display only)
 MACRO (OPENMS_CHECKLIB varname libnames libnames_d human_libname)
 	# force find_library to run again
 	SET(${varname}_OPT "${varname}_OPT-NOTFOUND" CACHE FILEPATH "Cleared." FORCE)
@@ -24,25 +24,29 @@ MACRO (OPENMS_CHECKLIB varname libnames libnames_d human_libname)
 	set(${varname} optimized ${${varname}_OPT} debug ${${varname}_DBG})
 ENDMACRO (OPENMS_CHECKLIB)
 
-MACRO (QT4_WRAP_UI_OWN outfiles )
-  # since 2.8.12 qt4_extract_options has an additional argument
-  if(${CMAKE_VERSION} VERSION_LESS "2.8.12")
-    qt4_extract_options(ui_files ui_options ${ARGN})
-  else()
-    qt4_extract_options(ui_files ui_options ui_target ${ARGN})
-  endif()
+## Copy the dll produced by the given target to the test/doc binary path.
+## @param targetname The target to modify.
+## @note This macro will do nothing with non MSVC generators.
+macro(copy_dll_to_extern_bin targetname)
+  if(MSVC)
+    get_target_property(WIN32_DLLLOCATION ${targetname} LOCATION)
+    get_filename_component(WIN32_DLLPATH ${WIN32_DLLLOCATION} PATH)
 
-  # create output directory (will not exist for out-of-source builds)
-  file(MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/${directory})
+    ## copy OpenMS.dll to test executables dir "$(TargetFileName)" is a placeholder filled by VS at runtime
+    file(TO_NATIVE_PATH "${WIN32_DLLPATH}/$(TargetFileName)" DLL_SOURCE)
 
-  FOREACH (it ${ui_files})
-    GET_FILENAME_COMPONENT(outfile ${it} NAME_WE)
-    GET_FILENAME_COMPONENT(infile ${it} ABSOLUTE)
-    SET(outfile ${PROJECT_BINARY_DIR}/${directory}/ui_${outfile}.h)
-    ADD_CUSTOM_COMMAND(OUTPUT ${outfile}
-      COMMAND ${QT_UIC_EXECUTABLE}
-      ARGS ${ui_options} -o ${outfile} ${infile}
-      MAIN_DEPENDENCY ${infile})
-    SET(${outfiles} ${${outfiles}} ${outfile})
-  ENDFOREACH (it)
-ENDMACRO (QT4_WRAP_UI_OWN)
+    file(TO_NATIVE_PATH "${OPENMS_HOST_BINARY_DIRECTORY}/src/tests/class_tests/bin/$(ConfigurationName)/$(TargetFileName)" DLL_TEST_TARGET)
+    file(TO_NATIVE_PATH "${OPENMS_HOST_BINARY_DIRECTORY}/src/tests/class_tests/bin/$(ConfigurationName)" DLL_TEST_TARGET_PATH)
+
+    file(TO_NATIVE_PATH "${OPENMS_HOST_BINARY_DIRECTORY}/doc/doxygen/parameters/$(ConfigurationName)/$(TargetFileName)" DLL_DOC_TARGET)
+    file(TO_NATIVE_PATH "${OPENMS_HOST_BINARY_DIRECTORY}/doc/doxygen/parameters/$(ConfigurationName)" DLL_DOC_TARGET_PATH)
+
+
+    add_custom_command(TARGET ${targetname}
+                      POST_BUILD
+                      COMMAND ${CMAKE_COMMAND} -E make_directory "${DLL_TEST_TARGET_PATH}"
+                      COMMAND ${CMAKE_COMMAND} -E copy ${DLL_SOURCE} ${DLL_TEST_TARGET}
+                      COMMAND ${CMAKE_COMMAND} -E make_directory "${DLL_DOC_TARGET_PATH}"
+                      COMMAND ${CMAKE_COMMAND} -E copy ${DLL_SOURCE} ${DLL_DOC_TARGET})
+  endif(MSVC)
+endmacro()

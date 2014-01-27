@@ -10,7 +10,7 @@ class TestSILACAnalyzer(unittest.TestCase):
     """Emulates the behavior of SILACAnalyzer"""
 
     def setUp(self):
-        self.testdirname = os.path.join(env.OPEN_MS_SRC, "source/TEST/TOPP")
+        self.testdirname = os.path.join(env.OPEN_MS_SRC, "src/tests/topp")
         # set up files
         self.infile = os.path.join(self.testdirname, "SILACAnalyzer.mzML")
 

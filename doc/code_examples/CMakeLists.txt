@@ -45,20 +45,30 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 # get the actual code examples
 include(${CMAKE_CURRENT_LIST_DIR}/executables.cmake)
 
+# add OpenMS includes
+include_directories(${OPENMS_INCLUDE_DIRECTORIES})
+
 # add the targets
 foreach(i ${EXAMPLES_executables})
   add_executable(${i} ${CMAKE_CURRENT_LIST_DIR}/${i}.C)
-  target_link_libraries(${i} ${OPENMS_GUI_LIBRARIES})
-  
+  target_link_libraries(${i} ${OPENMS_LIBRARIES})
+
   # if not GUI and no style tests requested -> add as test
-  if(NOT ${i} MATCHES "_GUI_" AND NOT ENABLE_STYLE_TESTING)
+  if(NOT ENABLE_STYLE_TESTING)
   	add_test(NAME ${i}
 						 COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${i} ${CMAKE_CURRENT_LIST_DIR})
   endif()
 endforeach(i)
 
+# add OpenMS GUI includes
+include_directories(${OPENMS_GUI_INCLUDE_DIRECTORIES})
+
+# add the GUI tutorials -- no tests
+foreach(i ${GUI_EXAMPLES_executables})
+  add_executable(${i} ${CMAKE_CURRENT_LIST_DIR}/${i}.C)
+  target_link_libraries(${i} ${OPENMS_GUI_LIBRARIES})
+endforeach(i)
+
 # add collection target
 add_custom_target(Tutorials_build)
 add_dependencies(Tutorials_build ${EXAMPLES_executables})
-
-

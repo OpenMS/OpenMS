@@ -34,7 +34,7 @@
 
 CMAKE_MINIMUM_REQUIRED (VERSION 2.8)
 
-# include helper functions 
+# include helper functions
 include ( ${SCRIPT_DIR}common.cmake )
 
 set(required_variables "SOURCE_PATH;TARGET_PATH;OPENMS_VERSION")
@@ -52,5 +52,5 @@ else()
 endif()
 
 # create plugin.properties file
-configure_file(${SOURCE_PATH}/cmake/knime/plugin.properties.in 
+configure_file(${SOURCE_PATH}/cmake/knime/plugin.properties.in
                ${TARGET_PATH}/plugin.properties)
