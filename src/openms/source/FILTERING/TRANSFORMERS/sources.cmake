@@ -3,29 +3,29 @@ set(directory source/FILTERING/TRANSFORMERS)
 
 ### list all filenames of the directory here
 set(sources_list
-BernNorm.C
-ComplementFilter.C
-ComplementMarker.C
-FilterFunctor.C
-GoodDiffFilter.C
-IntensityBalanceFilter.C
-IsotopeDiffFilter.C
-IsotopeMarker.C
-LinearResampler.C
-MarkerMower.C
-NLargest.C
-NeutralLossDiffFilter.C
-NeutralLossMarker.C
-Normalizer.C
-ParentPeakMower.C
-PeakMarker.C
-#~ PreprocessingFunctor.C
-Scaler.C
-SqrtMower.C
-TICFilter.C
-ThresholdMower.C
-WindowMower.C
-SpectraMerger.C
+BernNorm.cpp
+ComplementFilter.cpp
+ComplementMarker.cpp
+FilterFunctor.cpp
+GoodDiffFilter.cpp
+IntensityBalanceFilter.cpp
+IsotopeDiffFilter.cpp
+IsotopeMarker.cpp
+LinearResampler.cpp
+MarkerMower.cpp
+NLargest.cpp
+NeutralLossDiffFilter.cpp
+NeutralLossMarker.cpp
+Normalizer.cpp
+ParentPeakMower.cpp
+PeakMarker.cpp
+#~ PreprocessingFunctor.cpp
+Scaler.cpp
+SqrtMower.cpp
+TICFilter.cpp
+ThresholdMower.cpp
+WindowMower.cpp
+SpectraMerger.cpp
 )
 
 ### add path to the filenames

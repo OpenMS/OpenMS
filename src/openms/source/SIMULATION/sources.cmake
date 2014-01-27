@@ -3,15 +3,15 @@ set(directory source/SIMULATION)
 
 ### list all header files of the directory here
 set(sources_list
-DetectabilitySimulation.C
-DigestSimulation.C
-EGHModel.C
-EGHFitter1D.C
-IonizationSimulation.C
-MSSim.C
-RTSimulation.C
-RawMSSignalSimulation.C
-RawTandemMSSignalSimulation.C
+DetectabilitySimulation.cpp
+DigestSimulation.cpp
+EGHModel.cpp
+EGHFitter1D.cpp
+IonizationSimulation.cpp
+MSSim.cpp
+RTSimulation.cpp
+RawMSSignalSimulation.cpp
+RawTandemMSSignalSimulation.cpp
 )
 
 ### add path to the filenames

@@ -441,7 +441,7 @@ namespace OpenMS
         }
         // We should never get here ... must have forgotten an condition branch above ... and then we need to fix that.
         fuzzy_message
-          = "error: ClassTest.C:  You should never see this message.  Please report this bug along with the data that produced it.";
+          = "error: ClassTest.cpp:  You should never see this message.  Please report this bug along with the data that produced it.";
         return false;
       }
 

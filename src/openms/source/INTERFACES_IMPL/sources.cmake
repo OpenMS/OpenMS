@@ -3,7 +3,7 @@ set(directory source/INTERFACES_IMPL)
 
 ### list all filenames of the directory here
 set(sources_list
-MockImplementation.C
+MockImplementation.cpp
 )
 
 ### add path to the filenames

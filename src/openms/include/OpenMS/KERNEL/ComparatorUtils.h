@@ -60,7 +60,7 @@
 
   We explain this with a simple example.  First a few prerequisites.
 
-  @dontinclude Tutorial_ComparatorUtils.C
+  @dontinclude Tutorial_ComparatorUtils.cpp
   @until String;
 
   The class IntRealString has three data members.  The class

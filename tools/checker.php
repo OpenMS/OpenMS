@@ -113,7 +113,7 @@ $GLOBALS["all_tests"] = array(
   "guards"               => "check if header guards present and correct",
   "maintainers"          => "check if maintainers are consistent in header, source and test file",
   "missing_tests"        => "check for missing tests",
-  "old_files"            => "check for unneeded .C files",
+  "old_files"            => "check for unneeded .cpp files",
   "brief"                => "check for doxygen tag @brief",
   "doxygen_errors"       => "check for errors in dogygen-error.log",
   "check_test"           => "check the class test for completeness",
@@ -393,7 +393,7 @@ $sourcePaths = array("src/openms/source",
                      "src/utils");
 
 exec("cd $src_path && find ".implode(" ", $includePaths)." -name \"*.h\" ! -name \"ui_*.h\" ! -name \"nnls.h\"", $files);
-exec("cd $src_path && find ".implode(" ", $sourcePaths)." -name \"*.C\" ! -regex \".*/EXAMPLES/.*\" ! -regex \".*/tools/.*\" ! -name \"*_moc.C\" ! -name \"moc_*.C\" ! -name \"*Template.C\"", $files);
+exec("cd $src_path && find ".implode(" ", $sourcePaths)." -name \"*.cpp\" ! -regex \".*/EXAMPLES/.*\" ! -regex \".*/tools/.*\" ! -name \"*_moc.cpp\" ! -name \"moc_*.cpp\" ! -name \"*Template.cpp\"", $files);
 
 //look up Maintainer in first 40 lines of files
 $GLOBALS["maintainer_info"]  = array();
@@ -483,11 +483,11 @@ foreach ($makefile as $line)
     if (strpos($line, "APPEND") !== FALSE)
     {
       $line = substr($line, strrpos($line, ' ')+1,-1);
-      $called_tests[] = "src/tests/class_tests/source/".$line.".C";
+      $called_tests[] = "src/tests/class_tests/source/".$line.".cpp";
     }
     else
     {
-      $called_tests[] = "src/tests/class_tests/source/".strtr($line, array("_1" => "", "_2" => "")).".C";
+      $called_tests[] = "src/tests/class_tests/source/".strtr($line, array("_1" => "", "_2" => "")).".cpp";
     }
   }
 }
@@ -532,7 +532,7 @@ foreach ($files_todo as $f)
   //class name (for source and header files)
   $classname = substr($basename, 0,-2);
   //test name (for source and header files)
-  $testname = "src/tests/class_tests/source/".$classname."_test.C";
+  $testname = "src/tests/class_tests/source/".$classname."_test.cpp";
 
   // file content
   $file = file($src_path."/".$f);
@@ -645,7 +645,7 @@ foreach ($files_todo as $f)
       }
 
       # maintainer of source file
-      $source_name = "source/".substr($f, 15,-2).".C";
+      $source_name = "source/".substr($f, 15,-2).".cpp";
       if (in_array($source_name, $files))
       {
         if ($file_maintainers[$source_name] != $file_maintainers[$f])
@@ -776,18 +776,18 @@ foreach ($files_todo as $f)
   if (in_array("old_files", $tests))
   {
     $ignore = array(
-      "SampleTreatment_test.C",
-      "Exception_Base_test.C",
-      "NumericDiff.C",
-      "ExampleLibraryFile.C",
-      "TestExternalCode.C",
+      "SampleTreatment_test.cpp",
+      "Exception_Base_test.cpp",
+      "NumericDiff.cpp",
+      "ExampleLibraryFile.cpp",
+      "TestExternalCode.cpp",
     );
 
     if (!in_array($basename, $ignore) && !beginsWith($f, "src/topp/") && !beginsWith($f, "src/utils/") && !beginsWith($f, "src/openms_gui/source/VISUAL/APPLICATIONS/GUITOOLS/"))
     {
       $message = "";
       $result = true;
-      if (endsWith($f, "_test.C"))
+      if (endsWith($f, "_test.cpp"))
       {
         $hits = array();
         foreach ($file as $line)
@@ -807,7 +807,7 @@ foreach ($files_todo as $f)
           $file_exists = false;
           foreach($hits as $h)
           {
-            if(endsWith($f, "String_test.C"))
+            if(endsWith($f, "String_test.cpp"))
             {
               echo "String_test -> ".$src_path."/".$h."\n";
             }
@@ -824,7 +824,7 @@ foreach ($files_todo as $f)
         }
       }
       //source file -> look for header
-      elseif (endsWith($f, ".C"))
+      elseif (endsWith($f, ".cpp"))
       {
         # $h_file = substr($f, 7,-2).".h";
         $h_file = $src_path."/".str_replace("source", "include/OpenMS", $f);
@@ -1167,10 +1167,10 @@ foreach ($files_todo as $f)
       {
         $is_dph = true;
       }
-      //check if defaults are set in .C file
+      //check if defaults are set in .cpp file
       else
       {
-        $c_file = "$src_path/source/".substr($f, 15,-2).".C";
+        $c_file = "$src_path/source/".substr($f, 15,-2).".cpp";
         if (file_exists($c_file))
         {
           exec("grep -l defaults_.setValue $c_file", $output);
@@ -1284,7 +1284,7 @@ if (in_array("topp_output", $tests))
     {
       $name      = substr($name, 5);
       $name      = substr($name, 0, strpos($name, '_'));
-      $topp_file = "src/topp/".$name.".C";
+      $topp_file = "src/topp/".$name.".cpp";
       if (in_array($topp_file, $files_todo))
       {
         if (!isset($file_warnings[$topp_file]))

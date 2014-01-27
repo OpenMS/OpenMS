@@ -3,29 +3,29 @@ set(directory source/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN)
 
 ### list all filenames of the directory here
 set(sources_list
-BackgroundControl.C
-BackgroundIntensityBin.C
-CentroidData.C
-CentroidPeak.C
-ClusteredMS2ConsensusSpectrum.C
-Deisotoper.C
-FTPeakDetectController.C
-IsotopicDist.C
-LCMSCData.C
-LCMS.C
-SuperHirnParameters.C
-LCElutionPeak.C
-MS1FeatureMerger.C
-MS2ConsensusSpectrum.C
-MS2Fragment.C
-MS2Feature.C
-ProcessData.C
-RawData.C
-ConsensusIsotopePattern.C
-SHFeature.C
-FeatureLCProfile.C
-MS2Info.C
-MSPeak.C
+BackgroundControl.cpp
+BackgroundIntensityBin.cpp
+CentroidData.cpp
+CentroidPeak.cpp
+ClusteredMS2ConsensusSpectrum.cpp
+Deisotoper.cpp
+FTPeakDetectController.cpp
+IsotopicDist.cpp
+LCMSCData.cpp
+LCMS.cpp
+SuperHirnParameters.cpp
+LCElutionPeak.cpp
+MS1FeatureMerger.cpp
+MS2ConsensusSpectrum.cpp
+MS2Fragment.cpp
+MS2Feature.cpp
+ProcessData.cpp
+RawData.cpp
+ConsensusIsotopePattern.cpp
+SHFeature.cpp
+FeatureLCProfile.cpp
+MS2Info.cpp
+MSPeak.cpp
 )
 
 ### add path to the filenames

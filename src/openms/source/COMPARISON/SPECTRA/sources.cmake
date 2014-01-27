@@ -3,21 +3,21 @@ set(directory source/COMPARISON/SPECTRA)
 
 ### list all filenames of the directory here
 set(sources_list
-BinnedSharedPeakCount.C
-BinnedSpectralContrastAngle.C
-BinnedSpectrum.C
-BinnedSpectrumCompareFunctor.C
-BinnedSumAgreeingIntensities.C
-CompareFouriertransform.C
-PeakAlignment.C
-PeakSpectrumCompareFunctor.C
-SpectraSTSimilarityScore.C
-SpectrumAlignment.C
-SpectrumAlignmentScore.C
-SpectrumCheapDPCorr.C
-SpectrumPrecursorComparator.C
-SteinScottImproveScore.C
-ZhangSimilarityScore.C
+BinnedSharedPeakCount.cpp
+BinnedSpectralContrastAngle.cpp
+BinnedSpectrum.cpp
+BinnedSpectrumCompareFunctor.cpp
+BinnedSumAgreeingIntensities.cpp
+CompareFouriertransform.cpp
+PeakAlignment.cpp
+PeakSpectrumCompareFunctor.cpp
+SpectraSTSimilarityScore.cpp
+SpectrumAlignment.cpp
+SpectrumAlignmentScore.cpp
+SpectrumCheapDPCorr.cpp
+SpectrumPrecursorComparator.cpp
+SteinScottImproveScore.cpp
+ZhangSimilarityScore.cpp
 )
 
 ### add path to the filenames

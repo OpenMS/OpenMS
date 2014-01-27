@@ -3,24 +3,24 @@ set(directory source/FORMAT/HANDLERS)
 
 ### list all filenames of the directory here
 set(sources_list
-	AcqusHandler.C
-	FidHandler.C
-  IndexedMzMLDecoder.C
-	MascotXMLHandler.C
-	MzDataHandler.C
-	MzIdentMLHandler.C
-	MzQuantMLHandler.C
-	MzMLHandler.C
-  MzMLHandlerHelper.C
-  MzMLSpectrumDecoder.C
-	MzXMLHandler.C
-	PTMXMLHandler.C
-	ParamXMLHandler.C
-	ToolDescriptionHandler.C
-	TraMLHandler.C
-	UnimodXMLHandler.C
-	XMLHandler.C
-	XTandemInfileXMLHandler.C
+	AcqusHandler.cpp
+	FidHandler.cpp
+  IndexedMzMLDecoder.cpp
+	MascotXMLHandler.cpp
+	MzDataHandler.cpp
+	MzIdentMLHandler.cpp
+	MzQuantMLHandler.cpp
+	MzMLHandler.cpp
+  MzMLHandlerHelper.cpp
+  MzMLSpectrumDecoder.cpp
+	MzXMLHandler.cpp
+	PTMXMLHandler.cpp
+	ParamXMLHandler.cpp
+	ToolDescriptionHandler.cpp
+	TraMLHandler.cpp
+	UnimodXMLHandler.cpp
+	XMLHandler.cpp
+	XTandemInfileXMLHandler.cpp
 )
 
 ### add path to the filenames

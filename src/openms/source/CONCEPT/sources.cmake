@@ -3,21 +3,21 @@ set(directory source/CONCEPT)
 
 ### list all filenames of the directory here
 set(sources_list
-ClassTest.C
-Constants.C
-Exception.C
-FuzzyStringComparator.C
-LogStream.C
-LogConfigHandler.C
-GlobalExceptionHandler.C
-ProgressLogger.C
-SingletonRegistry.C
-StreamHandler.C
-Types.C
-UniqueIdGenerator.C
-UniqueIdInterface.C
-UniqueIdIndexer.C
-VersionInfo.C
+ClassTest.cpp
+Constants.cpp
+Exception.cpp
+FuzzyStringComparator.cpp
+LogStream.cpp
+LogConfigHandler.cpp
+GlobalExceptionHandler.cpp
+ProgressLogger.cpp
+SingletonRegistry.cpp
+StreamHandler.cpp
+Types.cpp
+UniqueIdGenerator.cpp
+UniqueIdInterface.cpp
+UniqueIdIndexer.cpp
+VersionInfo.cpp
 )
 
 ### add path to the filenames

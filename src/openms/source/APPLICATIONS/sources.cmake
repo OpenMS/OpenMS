@@ -3,11 +3,11 @@ set(directory source/APPLICATIONS)
 
 ### list all filenames of the directory here
 set(sources_list
-INIUpdater.C
-ToolHandler.C
-TOPPBase.C
-ParameterInformation.C
-ConsoleUtils.C
+INIUpdater.cpp
+ToolHandler.cpp
+TOPPBase.cpp
+ParameterInformation.cpp
+ConsoleUtils.cpp
 )
 
 ### add path to the filenames
@@ -17,8 +17,8 @@ foreach(i ${sources_list})
 endforeach(i)
 
 if (MSVC)
-	## apparently TOPPBase.C has more than 2^16 sections in its obj file (C1128). we need to increase to 2^32
-	SET_SOURCE_FILES_PROPERTIES(${directory}/TOPPBase.C	PROPERTIES COMPILE_FLAGS "/bigobj")
+	## apparently TOPPBase.cpp has more than 2^16 sections in its obj file (C1128). we need to increase to 2^32
+	set_source_files_properties(${directory}/TOPPBase.cpp PROPERTIES COMPILE_FLAGS "/bigobj")
 endif()
 
 ### pass source file list to the upper instance

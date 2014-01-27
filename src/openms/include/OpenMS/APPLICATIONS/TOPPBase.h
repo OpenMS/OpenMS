@@ -887,7 +887,7 @@ private:
     /// This should not be usable for derived classes, since this formatting is not carried over to INI files
     /// and thus INI files might lack important information.
     /// Instead, subdivision of parameters should be achieved using TOPPSubsections with appropriate description
-    /// Currently only used for "Common TOPP options" within TOPPBase.C
+    /// Currently only used for "Common TOPP options" within TOPPBase.cpp
     void addText_(const String& text);
 
     /**

@@ -3,21 +3,21 @@ set(directory source/ANALYSIS/OPENSWATH)
 
 ### list all header files of the directory here
 set(sources_list
-MRMDecoy.C
-MRMRTNormalizer.C
-TransitionTSVReader.C
-OpenSwathHelper.C
-OpenSwathScoring.C
-ChromatogramExtractor.C
-ChromatogramExtractorAlgorithm.C
-SpectrumAddition.C
-MRMTransitionGroupPicker.C
-DIAHelper.C
-DIAScoring.C
-DIAPrescoring.C
-MRMFeatureFinderScoring.C
-ConfidenceScoring.C
-PeakPickerMRM.C
+MRMDecoy.cpp
+MRMRTNormalizer.cpp
+TransitionTSVReader.cpp
+OpenSwathHelper.cpp
+OpenSwathScoring.cpp
+ChromatogramExtractor.cpp
+ChromatogramExtractorAlgorithm.cpp
+SpectrumAddition.cpp
+MRMTransitionGroupPicker.cpp
+DIAHelper.cpp
+DIAScoring.cpp
+DIAPrescoring.cpp
+MRMFeatureFinderScoring.cpp
+ConfidenceScoring.cpp
+PeakPickerMRM.cpp
 )
 
 ### add path to the filenames

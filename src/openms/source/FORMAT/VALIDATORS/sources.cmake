@@ -3,13 +3,13 @@ set(directory source/FORMAT/VALIDATORS)
 
 ### list all filenames of the directory here
 set(sources_list
-XMLValidator.C
-MzMLValidator.C
-MzDataValidator.C
-SemanticValidator.C
-MzIdentMLValidator.C
-MzQuantMLValidator.C
-TraMLValidator.C
+XMLValidator.cpp
+MzMLValidator.cpp
+MzDataValidator.cpp
+SemanticValidator.cpp
+MzIdentMLValidator.cpp
+MzQuantMLValidator.cpp
+TraMLValidator.cpp
 )
 
 ### add path to the filenames

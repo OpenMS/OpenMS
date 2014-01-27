@@ -89,7 +89,7 @@ namespace OpenMS
 
   };
 
-  
+
   /// Print content of an AnnotationStatistics object to a stream
   OPENMS_DLLAPI std::ostream & operator<<(std::ostream & os, const AnnotationStatistics& ann);
 
@@ -130,22 +130,22 @@ public:
     using typename privvec::reference;        // ConstRefVector
     using typename privvec::const_reference;  // ConstRefVector
     using typename privvec::difference_type;  // ConstRefVector
- 
-    // functions
-    using privvec::begin; 
-    using privvec::end; 
 
-    using privvec::size; 
+    // functions
+    using privvec::begin;
+    using privvec::end;
+
+    using privvec::size;
     using privvec::resize;  // ConsensusMap, FeatureXMLFile
-    using privvec::empty; 
-    using privvec::reserve; 
-    using privvec::operator[]; 
+    using privvec::empty;
+    using privvec::reserve;
+    using privvec::operator[];
     using privvec::at;    // UniqueIdIndexer
     using privvec::back;  // FeatureXMLFile
 
-    using privvec::push_back; 
+    using privvec::push_back;
     using privvec::pop_back;  // FeatureXMLFile
-    using privvec::erase;     // source/VISUAL/Spectrum2DCanvas.C 2871, FeatureMap_test 599
+    using privvec::erase;     // source/VISUAL/Spectrum2DCanvas.cpp 2871, FeatureMap_test 599
 
     //@{
     typedef FeatureT FeatureType;
@@ -378,7 +378,7 @@ public:
     {
       // TODO used by FeatureFinderAlgorithmPicked -- could it also use regular swap?
       Base::swap(from);
-      
+
       // swap range information (otherwise its false in both maps)
       FeatureMap tmp;
       tmp.RangeManagerType::operator=(* this);

@@ -3,12 +3,12 @@ set(directory source/SIMULATION/LABELING)
 
 ### list all header files of the directory here
 set(sources_list
-BaseLabeler.C
-ITRAQLabeler.C
-LabelFreeLabeler.C
-O18Labeler.C
-SILACLabeler.C
-ICPLLabeler.C
+BaseLabeler.cpp
+ITRAQLabeler.cpp
+LabelFreeLabeler.cpp
+O18Labeler.cpp
+SILACLabeler.cpp
+ICPLLabeler.cpp
 )
 
 ### add path to the filenames

@@ -44,7 +44,7 @@
 using namespace OpenMS;
 using namespace std;
 
-START_TEST(ModifiedPeptideGenerator, "$Id ModifiedPeptideGenerator_test.C 11707 2013-08-28 15:35:07Z timosachsenberg $")
+START_TEST(ModifiedPeptideGenerator, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

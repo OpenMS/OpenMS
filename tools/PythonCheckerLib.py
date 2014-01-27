@@ -84,7 +84,7 @@ def parse_pxd_file(path):
 
 
 def create_pxd_file_map(bin_path):
-    # Finds all .pxd files given an OpenMS 
+    # Finds all .pxd files given an OpenMS
     import glob, os, re
     pxd_path = os.path.join(bin_path, "pyOpenMS/pxds/")
     include_path = os.path.join(bin_path, "include")
@@ -98,5 +98,5 @@ def create_pxd_file_map(bin_path):
             res = pxd_file_matching.get(fm, set([]))
             res.update([pfile])
             pxd_file_matching[fm] = res
-    return pxd_file_matching 
+    return pxd_file_matching
 

@@ -3,16 +3,16 @@ set(directory source/TRANSFORMATIONS/RAW2PEAK)
 
 ### list all filenames of the directory here
 set(sources_list
-ContinuousWaveletTransform.C
-ContinuousWaveletTransformNumIntegration.C
-OptimizePeakDeconvolution.C
-OptimizePick.C
-PeakPickerCWT.C
-PeakPickerHiRes.C
-PeakPickerIterative.C
-PeakPickerSH.C
-PeakShape.C
-TwoDOptimization.C
+ContinuousWaveletTransform.cpp
+ContinuousWaveletTransformNumIntegration.cpp
+OptimizePeakDeconvolution.cpp
+OptimizePick.cpp
+PeakPickerCWT.cpp
+PeakPickerHiRes.cpp
+PeakPickerIterative.cpp
+PeakPickerSH.cpp
+PeakShape.cpp
+TwoDOptimization.cpp
 )
 
 ### add path to the filenames

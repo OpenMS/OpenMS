@@ -44,7 +44,7 @@ add_definitions(/DBOOST_ALL_NO_LIB)
 
 include(executables.cmake)
 foreach(i ${TOPP_executables})
-	add_executable(${i} ${i}.C)
+	add_executable(${i} ${i}.cpp)
 	target_link_libraries(${i} ${OPENMS_LIBRARIES})
 	if (OPENMP_FOUND AND NOT MSVC)
 		set_target_properties(${i} PROPERTIES LINK_FLAGS ${OpenMP_CXX_FLAGS})

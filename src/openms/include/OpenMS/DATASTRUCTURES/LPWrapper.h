@@ -39,7 +39,7 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 
 // do NOT include glpk and CoinOr headers here, as they define bad stuff, which ripples through OpenMS then...
-// include them in LPWrapper.C where they do not harm
+// include them in LPWrapper.cpp where they do not harm
 // only declare them here
 class CoinModel;
 #define GLP_PROB_DEFINED

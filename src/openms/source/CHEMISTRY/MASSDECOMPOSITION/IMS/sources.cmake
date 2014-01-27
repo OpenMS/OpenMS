@@ -3,12 +3,12 @@ set(directory source/CHEMISTRY/MASSDECOMPOSITION/IMS)
 
 ### list all filenames of the directory here
 set(sources_list
-IMSAlphabet.C
-IMSElement.C
-IMSIsotopeDistribution.C
-RealMassDecomposer.C
-Weights.C
-IMSAlphabetTextParser.C
+IMSAlphabet.cpp
+IMSElement.cpp
+IMSIsotopeDistribution.cpp
+RealMassDecomposer.cpp
+Weights.cpp
+IMSAlphabetTextParser.cpp
 )
 
 ### add path to the filenames

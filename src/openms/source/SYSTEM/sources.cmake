@@ -3,9 +3,9 @@ set(directory source/SYSTEM)
 
 ### list all filenames of the directory here
 set(sources_list
-File.C
-FileWatcher.C
-StopWatch.C
+File.cpp
+FileWatcher.cpp
+StopWatch.cpp
 )
 
 ### add path to the filenames

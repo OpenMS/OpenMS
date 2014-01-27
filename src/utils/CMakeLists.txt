@@ -45,7 +45,7 @@ include_directories(${OPENMS_INCLUDE_DIRECTORIES})
 set(UTILS_executables)
 include(executables.cmake)
 foreach(i ${UTILS_executables})
-	add_executable(${i} ${i}.C)
+	add_executable(${i} ${i}.cpp)
 	target_link_libraries(${i} ${OPENMS_LIBRARIES})
 endforeach(i)
 

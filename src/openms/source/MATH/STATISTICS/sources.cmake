@@ -3,16 +3,16 @@ set(directory source/MATH/STATISTICS)
 
 ### list all filenames of the directory here
 set(sources_list
-AsymmetricStatistics.C
-AveragePosition.C
-BasicStatistics.C
-GammaDistributionFitter.C
-GaussFitter.C
-GumbelDistributionFitter.C
-Histogram.C
-LinearRegression.C
-PosteriorErrorProbabilityModel.C
-ROCCurve.C
+AsymmetricStatistics.cpp
+AveragePosition.cpp
+BasicStatistics.cpp
+GammaDistributionFitter.cpp
+GaussFitter.cpp
+GumbelDistributionFitter.cpp
+Histogram.cpp
+LinearRegression.cpp
+PosteriorErrorProbabilityModel.cpp
+ROCCurve.cpp
 )
 
 ### add path to the filenames

@@ -3,8 +3,8 @@ set(directory source/CHEMISTRY/MASSDECOMPOSITION)
 
 ### list all filenames of the directory here
 set(sources_list
-MassDecomposition.C
-MassDecompositionAlgorithm.C
+MassDecomposition.cpp
+MassDecompositionAlgorithm.cpp
 )
 
 ### add path to the filenames
