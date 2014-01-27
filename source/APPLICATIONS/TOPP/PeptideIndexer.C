@@ -486,6 +486,24 @@ protected:
     // calculations
     //-------------------------------------------------------------
 
+    if (proteins.size() == 0) // we do not allow an empty database
+    {
+      LOG_ERROR << "Error: An empty FASTA file was provided. Mapping makes no sense. Aborting..." << std::endl;
+      return ExitCodes::INPUT_FILE_EMPTY;
+    }
+
+
+    if (pep_ids.size() == 0) // Aho-Corasick requires non-empty input
+    {
+      LOG_WARN << "Warning: An empty idXML file was provided. Output will be empty as well." << std::endl;
+      if (!getFlag_("keep_unreferenced_proteins"))
+      {
+        prot_ids.clear();
+      }
+      IdXMLFile().store(out, prot_ids, pep_ids);
+      return EXECUTION_OK;
+    }
+
     writeDebug_("Collecting peptides...", 1);
 
     seqan::FoundProteinFunctor func(enzyme); // stores the matches (need to survive local scope which follows)
@@ -514,7 +532,7 @@ protected:
       }
 
       /**
-       BUILD Peptide DB
+        BUILD Peptide DB
       */
       seqan::StringSet<seqan::Peptide> pep_DB;
       for (vector<PeptideIdentification>::const_iterator it1 = pep_ids.begin(); it1 != pep_ids.end(); ++it1)
@@ -543,8 +561,6 @@ protected:
           seqan::Pattern<seqan::StringSet<seqan::Peptide>, seqan::AhoCorasick> pattern(pep_DB);
           seqan::FoundProteinFunctor func_threads(enzyme);
           writeDebug_("Finding peptide/protein matches...", 1);
-
-          Size hits_threads(0);
 
 #pragma omp for
           for (SignedSize i = 0; i < protDB_length; ++i)
@@ -645,7 +661,6 @@ protected:
       }
 
     } // end local scope
-
 
     // write some stats
     LOG_INFO << "Peptide hits which passed enzyme filter: " << func.filter_passed << "\n"
