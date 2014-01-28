@@ -17,7 +17,7 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>" nam
         void fitModel(String model_type)  nogil except +
 
         String getModelType()  nogil except +
-        void getModelParameters(Param & params) nogil except +
+        Param getModelParameters() nogil except +
 
         void invert() nogil except +
 

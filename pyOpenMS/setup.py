@@ -138,7 +138,6 @@ if iswin:
         new_p = p.replace("-mt.lib", "-vc90-mt-1_52.lib")
         shutil.copy(p, new_p)
 
-
 # Package data expected to be installed. On Linux the debian package
 # contains share/ data and must be installed to get access to the OpenMS shared
 # library.

@@ -881,9 +881,6 @@ PyOpenMSChecker:
     
     - OpenMS::SvmTheoreticalSpectrumGenerator::DescriptorSet # no public members that we could wrap 
 
-    # models
-    - OpenMS::TransformationModelBSpline
-
     # Internal OpenMS algorithm datastructures that cannot be used in Python
     - OpenMS::TwoDOptimization::Data
     - OpenMS::PoseClusteringAffineSuperimposer

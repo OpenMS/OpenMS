@@ -842,7 +842,7 @@ def testGaussFitResult():
     @tests:
      GaussFitResult.__init__
     """
-    ins = pyopenms.GaussFitResult()
+    ins = pyopenms.GaussFitResult(0.0, 0.0, 0.0)
     ins.A = 5.0
     ins.x0 = 5.0
     ins.sigma = 5.0
@@ -3601,8 +3601,7 @@ def testTransformationDescription():
     assert isinstance(td.apply(0.0), float)
 
     td.fitModel
-    p = pyopenms.Param()
-    td.getModelParameters(p)
+    p = td.getModelParameters()
     td.getModelType()
     td.invert
 
@@ -3610,15 +3609,12 @@ def testTransformationDescription():
 def testTransformationModels():
     """
     @tests:
-     TransformationModelBSpline.getDefaultParameters
-     TransformationModelBSpline.getParameters
      TransformationModelInterpolated.getDefaultParameters
      TransformationModelInterpolated.getParameters
      TransformationModelLinear.getDefaultParameters
      TransformationModelLinear.getParameters
     """
-    for clz in [pyopenms.TransformationModelBSpline,
-                pyopenms.TransformationModelLinear,
+    for clz in [pyopenms.TransformationModelLinear,
                 pyopenms.TransformationModelInterpolated]:
         mod = clz()
         p = pyopenms.Param()

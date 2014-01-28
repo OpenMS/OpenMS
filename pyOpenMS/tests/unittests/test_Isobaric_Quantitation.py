@@ -72,23 +72,16 @@ class TestIsobaricNormalizer(unittest.TestCase):
             assert inst.normalize is not None
             inst.normalize(map1)
 
-class TestIsobaricIsotopeCorrector(unittest.TestCase):
+#class TestIsobaricIsotopeCorrector(unittest.TestCase):
 
-    def setUp(self):
-        general_setup(self)
+#    def setUp(self):
+#        general_setup(self)
 
-    def testInit(self):
-        assert pyopenms.IsobaricIsotopeCorrector(self.eightplex) is not None
-        assert pyopenms.IsobaricIsotopeCorrector(self.fourplex) is not None
-        assert pyopenms.IsobaricIsotopeCorrector(self.tmt) is not None
+    #method not testable since it contains inherited class member in its signature (is there a way to test it?)
+    #def testFunction(self):
 
-    def testFunction(self):
-
-        for method in [self.eightplex, self.fourplex, self.tmt]:
-            inst = pyopenms.IsobaricIsotopeCorrector(method)
-            map1 = pyopenms.ConsensusMap()
-            map2 = pyopenms.ConsensusMap()
-            assert inst.correctIsotopicImpurities(map1, map2)
+        #for method in [self.eightplex, self.fourplex, self.tmt]:
+        #    assert correctIsotopicImpurities(map1, map2, method)
 
 
 if __name__ == '__main__':

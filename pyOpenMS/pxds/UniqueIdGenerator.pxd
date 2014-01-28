@@ -12,8 +12,8 @@ cdef extern from "<OpenMS/CONCEPT/UniqueIdGenerator.h>" namespace "OpenMS":
         UInt64 getUniqueId() nogil except +
 
         # Initializes random generator using the given DateTime instead of DateTime::now().  This is intended for debugging and testing.
-        void setSeed(DateTime) nogil except +
+        void setSeed(UInt64) nogil except +
 
-        # Returns a summary of internal status
-        Param getInfo() nogil except +
+        # Returns the seed
+        UInt64 getSeed() nogil except +
 

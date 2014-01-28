@@ -64,6 +64,8 @@ public:
       struct GaussFitResult
       {
 public:
+        GaussFitResult()
+        : A(-1.0), x0(-1.0), sigma(-1.0) {}
         GaussFitResult(double a, double x, double s)
         : A(a), x0(x), sigma(s) {}
         /// parameter A of gaussian distribution (amplitude)
