@@ -203,6 +203,8 @@ include_dirs = [
     j(OPEN_MS_CONTRIB_BUILD_DIR, "include", "libsvm"),
     # j(OPEN_MS_CONTRIB_BUILD_DIR, "src", "boost_1_52_0")
     j(OPEN_MS_CONTRIB_BUILD_DIR, "include", "boost"),
+    j(OPEN_MS_CONTRIB_BUILD_DIR, "include", "WildMagic"),
+    j(OPEN_MS_CONTRIB_BUILD_DIR, "include", "eigen3"),
     j(OPEN_MS_BUILD_DIR, "src/openswathalgo/include"),
     j(OPEN_MS_BUILD_DIR, "src/openms/include"),
     j(OPEN_MS_BUILD_DIR, "src/openms_gui/include"),
