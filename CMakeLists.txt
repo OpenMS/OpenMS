@@ -282,3 +282,26 @@ else()
 	endif()
 
 endif()
+
+#------------------------------------------------------------------------------
+# Some final messages for the users
+#------------------------------------------------------------------------------
+
+message(STATUS "")
+message(STATUS "-----------------------------------------------------------------")
+message(STATUS "")
+message(STATUS "You have successfully configured OpenMS.")
+message(STATUS "")
+if (MSVC)
+  message(STATUS "Execute the 'targets' project to see prominent targets!")
+  message(STATUS "For faster loading see the individual solution files located in")
+  message(STATUS "the src/ and doc/ folder and their subfolders")
+  message(STATUS "  e.g., src/openms/OpenMS.sln")
+  message(STATUS "for the solution containing the OpenMS library.")
+else()
+  message(STATUS "For a full list of make targets execute:")
+  message(STATUS "'make targets'")
+endif()
+message(STATUS "")
+message(STATUS "-----------------------------------------------------------------")
+message(STATUS "")
