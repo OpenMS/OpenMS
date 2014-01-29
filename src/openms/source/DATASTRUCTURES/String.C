@@ -720,6 +720,14 @@ namespace OpenMS
     }
     catch (boost::bad_lexical_cast&)
     {
+    // TODO check for 
+  /*
+  s = "nan";
+  TEST_EQUAL(boost::math::isnan(s.toDouble()),true);  
+  s = "NaN";
+  TEST_EQUAL(boost::math::isnan(s.toDouble()),true);    
+  s = "not a number";
+  */
       throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Could not convert string '") + *this + "' to a float value");
     }
     return ret;
@@ -734,6 +742,14 @@ namespace OpenMS
     }
     catch (boost::bad_lexical_cast&)
     {
+    // TODO check explicitly for 
+  /*
+  s = "nan";
+  TEST_EQUAL(boost::math::isnan(s.toDouble()),true);  
+  s = "NaN";
+  TEST_EQUAL(boost::math::isnan(s.toDouble()),true);    
+  s = "not a number";
+  */
       throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Could not convert string '") + *this + "' to a double value");
     }
     return ret;
