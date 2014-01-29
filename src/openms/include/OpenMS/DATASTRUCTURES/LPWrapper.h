@@ -42,15 +42,19 @@
 // include them in LPWrapper.C where they do not harm
 // only declare them here
 class CoinModel;
-#define GLP_PROB_DEFINED
+#define GLP_PROB_DEFINED // for 4.43 and above
+#define GLPAPI_H // for 4.41/42
+#define GLP_PROB // for 4.40 and below
 
 // depending on the glpk version
 // define glp_prob as forward or struct
-#if OPENMS_GLPK_VERSION_MINOR < 48
+#if OPENMS_GLPK_VERSION_MINOR < 48 && OPENMS_GLPK_VERSION_MINOR > 40
 typedef struct
 {
   double _opaque_prob[100];
 } glp_prob;
+#elif OPENMS_GLPK_VERSION_MINOR < 41
+  typedef struct { double _opaque_prob; } glp_prob;
 #else
 class glp_prob;
 #endif
