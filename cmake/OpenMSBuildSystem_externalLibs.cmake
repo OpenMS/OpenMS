@@ -153,7 +153,7 @@ endif()
 if (WIN32) ## find manually on Windows, as find_package() does not know about debug lib
 	OPENMS_CHECKLIB(LIBSVM_LIBRARY "libsvm;svm" "libsvmd;svmd;libsvm;svm" "libSVM")
 endif()
-find_package(libSVM 2.91) ## will not overwrite LIBSVM_LIBRARY if defined already
+find_package(libSVM 2.90) ## will not overwrite LIBSVM_LIBRARY if defined already
 if (LIBSVM_FOUND)
 	message(STATUS "Found LibSVM version " ${LIBSVM_VERSION})
 	set(CF_OPENMS_LIBSVM_VERSION_MAJOR ${LIBSVM_MAJOR_VERSION})
