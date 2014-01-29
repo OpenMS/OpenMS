@@ -14,8 +14,7 @@ IS_DEBUG = OPEN_MS_BUILD_TYPE.upper() == "DEBUG"
 if iswin and IS_DEBUG:
     raise Exception("building pyopenms on windows in debug mode not tested yet.")
 
-
-# use autowrap to generate cython  and cpp file for wrapping openms:
+# use autowrap to generate Cython and .cpp file for wrapping OpenMS:
 import autowrap.Main
 import glob
 import cPickle
@@ -25,39 +24,15 @@ import shutil
 
 j = os.path.join
 
-pxd_files = glob.glob("pxds/*.pxd")
-addons = glob.glob("addons/*.pyx")
-converters = ["converters"]
+src_pyopenms = j(OPEN_MS_SRC, "pyOpenMS")
+pxd_files = glob.glob(src_pyopenms + "/pxds/*.pxd")
+addons = glob.glob(src_pyopenms + "/addons/*.pyx")
+converters = [j(src_pyopenms, "converters")]
 
-
-def copy_files_if_updated(src, target, ext):
-    getf = lambda d: [f for f in os.listdir(d) if os.path.splitext(f)[1] == ext]
-    files_target = getf(src)
-    files_src = getf(target)
-
-    for f in files_src:
-        src_f = j(src, f)
-        if f not in files_target:
-            print "COPY NEW", src_f
-            shutil.copy(src_f, target)
-        else:
-            src_time = os.path.getmtime(src_f)
-            target_time = os.path.getmtime(j(target, f))
-            if src_time > target_time:
-                print "UPDATE", src_f
-                shutil.copy(src_f, target)
-
-
-pp = j(OPEN_MS_SRC, "pyOpenMS")
-copy_files_if_updated(j(pp, "pxds"), "pxds", ".pxd")
-copy_files_if_updated(j(pp, "addons"), "addons", ".pyx")
-copy_files_if_updated(j(pp, "converters"), "converters", ".py")
-
-# sometimes I use symlinks for restricting pxd folder and others, so
-# resolve, else os.path.getmtime will not work
+# Check the mtime for each file and compare with the pyx file
+# Resolve symlinks to make os.path.getmtime work correctly
 real_pathes = [os.path.realpath(p) for p in pxd_files + addons + converters]
 mtimes = [os.path.getmtime(f) for f in real_pathes]
-
 if os.path.exists("pyopenms/pyopenms.pyx"):
     mtime_result = os.path.getmtime("pyopenms/pyopenms.pyx")
 else:
@@ -65,6 +40,8 @@ else:
 
 persisted_data_path = "include_dir.bin"
 
+# If any file is newer than the pyx file, we need to re-run autowrap and
+# recreate the Cython input pyx file.
 if not os.path.exists(persisted_data_path)\
         or any(m > mtime_result for m in mtimes):
 
@@ -140,7 +117,6 @@ from version import version
 print >> open("pyopenms/version.py", "w"), "version=%r\n" % version
 print >> open("pyopenms/qt_version_info.py", "w"), "info=%r\n" % QT_QMAKE_VERSION_INFO
 
-
 # parse config
 
 if OPEN_MS_CONTRIB_BUILD_DIRS.endswith(";"):
@@ -163,8 +139,8 @@ if iswin:
         shutil.copy(p, new_p)
 
 
-# package data expected to be installed. on linux the debian package
-# contains share/ data and must be intalled to get access to the openms shared
+# Package data expected to be installed. On Linux the debian package
+# contains share/ data and must be installed to get access to the OpenMS shared
 # library.
 #
 if iswin:
