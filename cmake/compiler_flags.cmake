@@ -91,6 +91,16 @@ elseif (MSVC)
   endif()
 elseif ("${CMAKE_C_COMPILER_ID}" MATCHES "Clang")
   set(CMAKE_COMPILER_IS_CLANG true CACHE INTERNAL "Is CLang compiler (clang++)")
+  # add clang specifc warning levels
+  add_definitions(-Weverything)
+  # .. and disable some of the harmless ones
+  add_definitions(-Wno-long-long
+                  -Wno-sign-conversion
+                  -Wno-padded
+                  -Wno-global-constructors
+                  -Wno-exit-time-destructors
+                  -Wno-weak-vtables
+                  -Wfloat-equal)
 else()
 	set(CMAKE_COMPILER_IS_INTELCXX true CACHE INTERNAL "Is Intel C++ compiler (icpc)")
 endif()
