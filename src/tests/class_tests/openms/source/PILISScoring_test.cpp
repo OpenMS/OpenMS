@@ -28,68 +28,75 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Florian Zeller $
-// $Authors: Florian Zeller $
+// $Maintainer: Andreas Bertsch $
+// $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerSH.h>
+#include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/test_config.h>
 
-#include <vector>
+///////////////////////////
 
-namespace OpenMS
-{
-  PeakPickerSH::PeakPickerSH() :
-    DefaultParamHandler("PeakPickerSH"),
-    ProgressLogger()
-  {
-    defaultsToParam_();
-  }
+#include <OpenMS/ANALYSIS/ID/PILISScoring.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
 
-  PeakPickerSH::~PeakPickerSH()
-  {
-    // FLO: Do not care at the moment
-  }
+///////////////////////////
 
-  void PeakPickerSH::pickExperiment(const MSExperiment<> & input, MSExperiment<> & output)
-  {
-    // make sure that output is clear
-    output.clear(true);
+START_TEST(PILISScoring_test, "$Id$")
 
-    // copy experimental settings
-    static_cast<ExperimentalSettings &>(output) = input;
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
 
-    // resize output with respect to input
-    output.resize(input.size());
+using namespace OpenMS;
+using namespace std;
 
-    std::cout << "Before loop, input size = " << input.size() << std::endl;
-    Size progress = 0;
-    for (Size scan_idx = 0; scan_idx != input.size(); ++scan_idx)
-    {
-      output[scan_idx].clear(true);
-      output[scan_idx].SpectrumSettings::operator=(input[scan_idx]);
-      output[scan_idx].MetaInfoInterface::operator=(input[scan_idx]);
-      output[scan_idx].setRT(input[scan_idx].getRT());
-      output[scan_idx].setMSLevel(input[scan_idx].getMSLevel());
-      output[scan_idx].setName(input[scan_idx].getName());
-      output[scan_idx].setType(SpectrumSettings::PEAKS);
+PILISScoring* ptr = 0;
+PILISScoring* nullPointer = 0;
+String filename(OPENMS_GET_TEST_DATA_PATH("IDFilter_test2.idXML"));
+START_SECTION(PILISScoring())
+	ptr = new PILISScoring();
+	TEST_NOT_EQUAL(ptr, nullPointer)
+END_SECTION
 
-      if (input[scan_idx].getMSLevel() != 1)
-      {
-        // When not considering MS2 data (MS2 fragment mass tracing=0), Lukas leaves out
-        // the entire scan (instead of just copying it to the output as seen in
-        // another plugin).
-        // pick(input[scan_idx], output[scan_idx], 4.0);
-      }
-      else
-      {
-        // TODO: Read value 4.0 from parameters # PeakPickerSH.C
-        pick(input[scan_idx], output[scan_idx], 5.0);
-      }
-      setProgress(++progress);
-    }
-    std::cout << "After loop" << std::endl;
+START_SECTION(~PILISScoring())
+	delete ptr;
+END_SECTION
 
-    endProgress();
-  }
+ptr = new PILISScoring();
 
-}
+START_SECTION(PILISScoring(const PILISScoring& source))
+	PILISScoring copy(*ptr);
+	TEST_EQUAL(copy.getParameters(), ptr->getParameters())
+END_SECTION
+
+START_SECTION(PILISScoring& operator = (const PILISScoring& source))
+	PILISScoring copy;
+	copy = *ptr;
+	TEST_EQUAL(copy.getParameters(), ptr->getParameters())
+END_SECTION
+
+START_SECTION(void getScores(std::vector<PeptideIdentification>& ids))
+	vector<PeptideIdentification> ids;
+	vector<ProteinIdentification> prot_ids;
+	String document_id;
+	IdXMLFile().load(filename, prot_ids, ids, document_id);
+	ptr->getScores(ids);
+	for (vector<PeptideIdentification>::const_iterator it = ids.begin(); it != ids.end(); ++it)
+	{
+		TEST_EQUAL(it->getScoreType(), "PILIS-E-value")
+	}
+END_SECTION
+
+START_SECTION(void getScore(PeptideIdentification& id))
+	vector<PeptideIdentification> ids;
+	vector<ProteinIdentification> prot_ids;
+	String document_id;
+	IdXMLFile().load(filename, prot_ids, ids, document_id);
+	ptr->getScore(ids[0]);
+	TEST_REAL_SIMILAR(ids[0].getHits().begin()->getScore(), 33.85)
+END_SECTION
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+
+END_TEST

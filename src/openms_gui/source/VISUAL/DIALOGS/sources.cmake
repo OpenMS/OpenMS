@@ -3,28 +3,28 @@ set(directory source/VISUAL/DIALOGS)
 
 ### list all filenames of the directory here
 set(sources_list
-DBOpenDialog.C
-DataFilterDialog.C
-FeatureEditDialog.C
-HistogramDialog.C
-LayerStatisticsDialog.C
-SaveImageDialog.C
-Spectrum1DGoToDialog.C
-Spectrum1DPrefDialog.C
-Spectrum2DGoToDialog.C
-Spectrum2DPrefDialog.C
-Spectrum3DPrefDialog.C
-TOPPViewOpenDialog.C
-TOPPViewPrefDialog.C
-ToolsDialog.C
-TheoreticalSpectrumGenerationDialog.C
-SpectrumAlignmentDialog.C
-TOPPASInputFileDialog.C
-TOPPASInputFilesDialog.C
-TOPPASOutputFilesDialog.C
-TOPPASToolConfigDialog.C
-TOPPASIOMappingDialog.C
-TOPPASVertexNameDialog.C
+DBOpenDialog.cpp
+DataFilterDialog.cpp
+FeatureEditDialog.cpp
+HistogramDialog.cpp
+LayerStatisticsDialog.cpp
+SaveImageDialog.cpp
+Spectrum1DGoToDialog.cpp
+Spectrum1DPrefDialog.cpp
+Spectrum2DGoToDialog.cpp
+Spectrum2DPrefDialog.cpp
+Spectrum3DPrefDialog.cpp
+TOPPViewOpenDialog.cpp
+TOPPViewPrefDialog.cpp
+ToolsDialog.cpp
+TheoreticalSpectrumGenerationDialog.cpp
+SpectrumAlignmentDialog.cpp
+TOPPASInputFileDialog.cpp
+TOPPASInputFilesDialog.cpp
+TOPPASOutputFilesDialog.cpp
+TOPPASToolConfigDialog.cpp
+TOPPASIOMappingDialog.cpp
+TOPPASVertexNameDialog.cpp
 )
 
 ### add path to the filenames

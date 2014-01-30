@@ -47,7 +47,7 @@
 using namespace OpenMS;
 using namespace std;
 
-START_TEST(LabeledPairFinder, "$Id LabeledPairFinder_test.C 139 2006-07-14 10:08:39Z jjoachim $")
+START_TEST(LabeledPairFinder, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

@@ -284,7 +284,7 @@ namespace OpenMS
     return t_area * scan_time_;
   }
 
-  DoubleReal MassTrace::computeFwhmAreaSmoothRobust() const 
+  DoubleReal MassTrace::computeFwhmAreaSmoothRobust() const
   {
     if (fwhm_start_idx_ == 0 && fwhm_end_idx_ == 0)
     {
@@ -630,4 +630,4 @@ namespace OpenMS
 
   }
 
-} // end of MassTrace.C
+} // end of MassTrace.cpp

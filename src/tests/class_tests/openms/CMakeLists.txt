@@ -172,7 +172,7 @@ add_dependencies(SIMULATION_TEST ${simulation_executables_list})
 #------------------------------------------------------------------------------
 # Add the actual tests
 foreach(_class_test ${TEST_executables})
-	add_executable(${_class_test} source/${_class_test}.C)
+	add_executable(${_class_test} source/${_class_test}.cpp)
 	target_link_libraries(${_class_test} ${OPENMS_LIBRARIES})
 	add_test(${_class_test} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_class_test})
 	# only add OPENMP flags to gcc linker (execpt Mac OS X, due to compiler bug
@@ -211,6 +211,6 @@ add_dependencies(extra_targets Tutorials_build)
 # add filenames to Visual Studio solution tree
 set(sources_VS)
 foreach(i ${TEST_executables})
-	list(APPEND sources_VS "${i}.C")
+	list(APPEND sources_VS "${i}.cpp")
 endforeach(i)
 source_group("" FILES ${sources_VS})

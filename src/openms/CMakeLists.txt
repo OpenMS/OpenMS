@@ -109,7 +109,7 @@ if (ENABLE_SVN)
 	set_source_files_properties(${SVN_REVISION_FILE} PROPERTIES GENERATED TRUE HEADER_FILE_ONLY TRUE)
 else()
   message(STATUS "SVN revision information disabled. Use 'ENABLE_SVN=ON' to enable!")
-	include(${OPENMS_HOST_DIRECTORY}/cmake/svnversion.cmake) # generate the header once (for VersionInfo.C include)
+	include(${OPENMS_HOST_DIRECTORY}/cmake/svnversion.cmake) # generate the header once (for VersionInfo.cpp include)
 endif()
 
 # At this point make a summary of where data and doc will be located:

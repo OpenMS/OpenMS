@@ -67,7 +67,7 @@ namespace OpenMS
       for (std::vector<OpenMS::TargetedExperiment::Peptide::Modification>::const_iterator it = peptide.mods.begin(); it != peptide.mods.end(); ++it)
       {
         // Step 1: First look for a cv term that says which unimod nr it is...
-        // compare with code in source/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.C
+        // compare with code in source/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.cpp
         int nr_modifications_added = 0;
         Map<String, std::vector<CVTerm> > cv_terms = it->getCVTerms();
         for (Map<String, std::vector<CVTerm> >::iterator li = cv_terms.begin(); li != cv_terms.end(); ++li)

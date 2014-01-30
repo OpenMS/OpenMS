@@ -3,22 +3,22 @@ set(directory source/ANALYSIS/ID)
 
 ### list all filenames of the directory here
 set(sources_list
-AccurateMassSearchEngine.C
-AScore.C
-ConsensusID.C
-FalseDiscoveryRate.C
-HiddenMarkovModel.C
-IDMapper.C
-IDRipper.C
-IDDecoyProbability.C
-MetaboliteSpectralMatching.C
-PILISIdentification.C
-PILISModel.C
-PILISModelGenerator.C
-PILISNeutralLossModel.C
-PILISScoring.C
-PILISCrossValidation.C
-ProtonDistributionModel.C
+AccurateMassSearchEngine.cpp
+AScore.cpp
+ConsensusID.cpp
+FalseDiscoveryRate.cpp
+HiddenMarkovModel.cpp
+IDMapper.cpp
+IDRipper.cpp
+IDDecoyProbability.cpp
+MetaboliteSpectralMatching.cpp
+PILISIdentification.cpp
+PILISModel.cpp
+PILISModelGenerator.cpp
+PILISNeutralLossModel.cpp
+PILISScoring.cpp
+PILISCrossValidation.cpp
+ProtonDistributionModel.cpp
 )
 
 ### add path to the filenames

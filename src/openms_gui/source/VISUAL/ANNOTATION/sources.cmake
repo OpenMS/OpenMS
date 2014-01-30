@@ -3,12 +3,12 @@ set(directory source/VISUAL/ANNOTATION)
 
 ### list all filenames of the directory here
 set(sources_list
-Annotation1DDistanceItem.C
-Annotation1DItem.C
-Annotation1DPeakItem.C
-Annotation1DCaret.C
-Annotation1DTextItem.C
-Annotations1DContainer.C
+Annotation1DDistanceItem.cpp
+Annotation1DItem.cpp
+Annotation1DPeakItem.cpp
+Annotation1DCaret.cpp
+Annotation1DTextItem.cpp
+Annotations1DContainer.cpp
 )
 
 ### add path to the filenames

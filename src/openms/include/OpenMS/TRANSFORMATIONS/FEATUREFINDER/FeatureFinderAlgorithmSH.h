@@ -51,7 +51,7 @@ namespace OpenMS
       class, which in turn calls the FeatureFinderAlgorithmSHCtrl to execute
       the following algorithm:
 
-       START by feeding the datavector into startScanParsing (FTPeakDetectController.C)
+       START by feeding the datavector into startScanParsing (FTPeakDetectController.cpp)
          For each scan
            1. Centroid it (new CentroidData instance), centroiding is done in
               CentroidData::calcCentroids

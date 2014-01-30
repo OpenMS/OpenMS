@@ -3,14 +3,14 @@ set(directory source/COMPARISON/CLUSTERING)
 
 ### list all filenames of the directory here
 set(sources_list
-AverageLinkage.C
-ClusterAnalyzer.C
-ClusterFunctor.C
-ClusterHierarchical.C
-CompleteLinkage.C
-EuclideanSimilarity.C
-SingleLinkage.C
-SILACClustering.C
+AverageLinkage.cpp
+ClusterAnalyzer.cpp
+ClusterFunctor.cpp
+ClusterHierarchical.cpp
+CompleteLinkage.cpp
+EuclideanSimilarity.cpp
+SingleLinkage.cpp
+SILACClustering.cpp
 )
 
 ### add path to the filenames

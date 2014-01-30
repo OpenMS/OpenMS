@@ -44,7 +44,7 @@
 
 // we ignore the -Wunused-value warning here, since we do not want the compiler
 // to report problems like
-// DataValue_test.C:285:3: warning: expression result unused [-Wunused-value]
+// DataValue_test.cpp:285:3: warning: expression result unused [-Wunused-value]
 //   TEST_EXCEPTION(Exception::ConversionError, (StringList)DataValue("abc,ab"))
 
 #ifdef __clang__

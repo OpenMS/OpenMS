@@ -3,8 +3,8 @@ set(directory source/FORMAT/OPTIONS)
 
 ### list all filenames of the directory here
 set(sources_list
-FeatureFileOptions.C
-PeakFileOptions.C
+FeatureFileOptions.cpp
+PeakFileOptions.cpp
 )
 
 ### add path to the filenames

@@ -98,7 +98,7 @@ namespace OpenMS
   */
   //typedef OPENMS_SIZE_T_SIGNED Int;
   typedef int Int;
-  
+
   /**
     @brief Real type
 
@@ -116,7 +116,7 @@ namespace OpenMS
     @ingroup Concept
   */
   typedef double DoubleReal;
-  
+
   /**
     @brief Byte type
 
@@ -300,8 +300,8 @@ std::cout << "16: " << x << '\n'; // writes: 16: 88.98999999999999
 #endif
   }
 
-  /** 
-    @brief The general template definition will return the default precision of 
+  /**
+    @brief The general template definition will return the default precision of
            6 according to 27.4.4.1 basic_iosconstructors (C++ Standard).
   */
   template <typename FloatingPointType>
@@ -404,9 +404,9 @@ private:
     The argument given to the function is never used, it only serves to infer the type.
     You can even supply function pointers, etc.
 
-    Example (Tutorial_typeAsString.C):
-    @dontinclude Tutorial_typeAsString.C
-    @until end of Tutorial_typeAsString.C
+    Example (Tutorial_typeAsString.cpp):
+    @dontinclude Tutorial_typeAsString.cpp
+    @until end of Tutorial_typeAsString.cpp
     On a 64 bit platform running GCC 4.3.1, this produced the following output:
     @code
     int
@@ -453,7 +453,7 @@ private:
 
   namespace Internal
   {
-    /** 
+    /**
       Used to set the locale to "C", to avoid
       problems on machines with incompatible
       locale settings (this overwrites the

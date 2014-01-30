@@ -3,15 +3,15 @@ set(directory source/ANALYSIS/TARGETED)
 
 ### list all filenames of the directory here
 set(sources_list
-PrecursorIonSelectionPreprocessing.C
-PrecursorIonSelection.C
-OfflinePrecursorIonSelection.C
-PSLPFormulation.C
-PSProteinInference.C
-IncludeExcludeTarget.C
-TargetedExperiment.C
-TargetedExperimentHelper.C
-InclusionExclusionList.C
+PrecursorIonSelectionPreprocessing.cpp
+PrecursorIonSelection.cpp
+OfflinePrecursorIonSelection.cpp
+PSLPFormulation.cpp
+PSProteinInference.cpp
+IncludeExcludeTarget.cpp
+TargetedExperiment.cpp
+TargetedExperimentHelper.cpp
+InclusionExclusionList.cpp
 )
 
 ### add path to the filenames

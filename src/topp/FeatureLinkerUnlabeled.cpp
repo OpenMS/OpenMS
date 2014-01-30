@@ -33,7 +33,7 @@
 // --------------------------------------------------------------------------
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmUnlabeled.h>
 
-#include "FeatureLinkerBase.C"
+#include "FeatureLinkerBase.cpp"
 
 using namespace OpenMS;
 using namespace std;
@@ -202,7 +202,7 @@ protected:
           // store some meta-data about the maps in the "dummy" object -> try to
           // keep the same order as they were given in the input independent of
           // which map is the reference.
-          
+
           dummy.getFileDescriptions()[i].filename = ins[i];
           dummy.getFileDescriptions()[i].size = tmp_map.size();
           dummy.getFileDescriptions()[i].unique_id = tmp_map.getUniqueId();
@@ -240,12 +240,12 @@ protected:
         }
       }
 
-      // get the resulting map 
+      // get the resulting map
       out_map = algorithm->getResultMap();
 
-      // 
+      //
       // Copy back meta-data (Protein / Peptide ids / File descriptions)
-      // 
+      //
 
       // add protein identifications to result map
       out_map.getProteinIdentifications().insert(

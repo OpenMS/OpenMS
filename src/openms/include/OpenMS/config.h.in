@@ -7,37 +7,37 @@
 // This is config.h / config.h.in
 // Please do ONLY change config.h.in, as config.h is automagically
 // created by CMAKE from config.h.in
-// 
+//
 // Use appropriate options to configure instead of changing config.h.
 // Changes made in config.h will be lost as soon as you call CMAKE again.
 //
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2012.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
@@ -62,7 +62,7 @@
 // The directory where the OpenMS sources are located
 #define OPENMS_BINARY_PATH "@PROJECT_BINARY_DIR@"
 
-// do we use SVN revision in VersionInfo.C?! [depending on the availability of svnversion(.exe)]
+// do we use SVN revision in VersionInfo.cpp?! [depending on the availability of svnversion(.exe)]
 #cmakedefine OPENMS_HAS_SVNVERSION
 
 // Define compiler specifics (used in VERY few places only)
@@ -72,7 +72,7 @@
 #cmakedefine OPENMS_COMPILER_GXX
 
 // __PRETTY_FUNCTION__ is a GNU G++ extension.  It is used in exceptions to indicate their origin.
-#ifndef OPENMS_COMPILER_GXX 
+#ifndef OPENMS_COMPILER_GXX
 #define __PRETTY_FUNCTION__ "<unknown>"
 #endif
 
@@ -91,7 +91,7 @@
 #endif
 
 
-// let Cmake decide if we are using Windows (i.e. if windows.h is available). 
+// let Cmake decide if we are using Windows (i.e. if windows.h is available).
 //   GCC and MSVC have pre-defined macros for this as well but using -ansi in GCC will disable those, thus asking the compiler is fragile
 #ifndef WIN32  //avoid warning of redefinition
 #cmakedefine WIN32
@@ -154,7 +154,7 @@
 #cmakedefine OPENMS_HAS_KILL
 #cmakedefine OPENMS_HAS_SYSCONF
 
-// is libc++ or has stream bug 
+// is libc++ or has stream bug
 #cmakedefine OPENMS_HAS_STREAM_EXTRACTION_BUG
 
 // library versions
@@ -167,7 +167,7 @@
 #define OPENMS_BOOST_VERSION_SUBMINOR @CF_OPENMS_BOOST_VERSION_SUBMINOR@
 #define OPENMS_BOOST_VERSION @CF_OPENMS_BOOST_VERSION@
 
-#define COINOR_SOLVER @CF_USECOINOR@ 
+#define COINOR_SOLVER @CF_USECOINOR@
 
 #define OPENMS_GLPK_VERSION @CF_OPENMS_GLPK_VERSION@
 #define OPENMS_GLPK_VERSION_MAJOR @CF_OPENMS_GLPK_VERSION_MAJOR@
@@ -177,11 +177,11 @@
 #define DB_PLUGIN "@CF_QT_DB_PLUGIN@"
 
 #ifdef _OPENMP
-  #define IF_MASTERTHREAD if (omp_get_thread_num() ==0)  
+  #define IF_MASTERTHREAD if (omp_get_thread_num() ==0)
 #else
-  #define IF_MASTERTHREAD 
-#endif    
-   
+  #define IF_MASTERTHREAD
+#endif
+
 #cmakedefine WITH_CRAWDAD 1
 
 #endif // OPENMS_CONFIG_H

@@ -236,7 +236,7 @@ namespace OpenMS
           {
             char * line_start = pbase();
             char * line_end = pbase();
-            
+
             static char buf[BUFFER_LENGTH];
 
             while (line_end < pptr())
@@ -560,7 +560,7 @@ namespace OpenMS
   OPENMS_DLLAPI Logger::LogStream Log_error(new Logger::LogStreamBuf("ERROR"), true, &cerr);
   OPENMS_DLLAPI Logger::LogStream Log_warn(new Logger::LogStreamBuf("WARNING"), true, &cout);
   OPENMS_DLLAPI Logger::LogStream Log_info(new Logger::LogStreamBuf("INFO"), true, &cout);
-  // LOG_DEBUG is disabled by default, but will be enabled in TOPPAS.C or TOPPBase.C if started in debug mode (--debug or -debug X)
+  // LOG_DEBUG is disabled by default, but will be enabled in TOPPAS.cpp or TOPPBase.cpp if started in debug mode (--debug or -debug X)
   OPENMS_DLLAPI Logger::LogStream Log_debug(new Logger::LogStreamBuf("DEBUG"), false); // last param should be 'true', but segfaults...
 
 } // namespace OpenMS

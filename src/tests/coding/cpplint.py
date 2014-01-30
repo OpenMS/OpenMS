@@ -211,16 +211,16 @@ _ERROR_CATEGORIES = [
 # flag. By default all errors are on, so only add here categories that should be
 # off by default (i.e., categories that must be enabled by the --filter= flags).
 # All entries here should start with a '-' or '+', as in the --filter= flag.
-_DEFAULT_FILTERS = ['-build/include_alpha', 
+_DEFAULT_FILTERS = ['-build/include_alpha',
                     '-whitespace/braces',
-                    '-whitespace/blank_line', 
-                    '-readability/todo', 
-                    '-readability/streams', 
+                    '-whitespace/blank_line',
+                    '-readability/todo',
+                    '-readability/streams',
                     '-build/header_guard',
-                    '-legal/copyright', 
-                    '-runtime/printf', 
-                    '-readability/braces', 
-                    '-readability/multiline_comment', 
+                    '-legal/copyright',
+                    '-runtime/printf',
+                    '-readability/braces',
+                    '-readability/multiline_comment',
                     '-runtime/rtti',
                     '-build/namespace']
 
@@ -2943,9 +2943,9 @@ def FilesBelongToSameModule(filename_cc, filename_h):
     string: the additional prefix needed to open the header file.
   """
 
-  if not filename_cc.endswith('.C'):
+  if not filename_cc.endswith('.cpp'):
     return (False, '')
-  filename_cc = filename_cc[:-len('.C')]
+  filename_cc = filename_cc[:-len('.cpp')]
   if filename_cc.endswith('_unittest'):
     filename_cc = filename_cc[:-len('_unittest')]
   elif filename_cc.endswith('_test'):
@@ -3078,7 +3078,7 @@ def CheckForIncludeWhatYouUse(filename, clean_lines, include_state, error,
   # didn't include it in the .h file.
   # TODO(unknown): Do a better job of finding .h files so we are confident that
   # not having the .h file means there isn't one.
-  if filename.endswith('.C') and not header_found:
+  if filename.endswith('.cpp') and not header_found:
     return
 
   # All the lines have been processed, report the errors found.
@@ -3250,7 +3250,7 @@ def ProcessFile(filename, vlevel, extra_check_functions=[]):
   # should rely on the extension.
   if (filename != '-' and file_extension != 'C' and file_extension != 'h'
       and file_extension != 'cpp'):
-    sys.stderr.write('Ignoring %s; not a .C or .h file\n' % filename)
+    sys.stderr.write('Ignoring %s; not a .cpp or .h file\n' % filename)
   else:
     ProcessFileData(filename, file_extension, lines, Error,
                     extra_check_functions)

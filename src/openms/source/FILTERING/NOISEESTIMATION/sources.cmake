@@ -3,9 +3,9 @@ set(directory source/FILTERING/NOISEESTIMATION)
 
 ### list all filenames of the directory here
 set(sources_list
-SignalToNoiseEstimator.C
-SignalToNoiseEstimatorMeanIterative.C
-SignalToNoiseEstimatorMedian.C
+SignalToNoiseEstimator.cpp
+SignalToNoiseEstimatorMeanIterative.cpp
+SignalToNoiseEstimatorMedian.cpp
 )
 
 ### add path to the filenames

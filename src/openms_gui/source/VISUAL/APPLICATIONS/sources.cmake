@@ -3,11 +3,11 @@ set(directory source/VISUAL/APPLICATIONS)
 
 ### list all filenames of the directory here
 set(sources_list
-IDEvaluationBase.C
-INIFileEditorWindow.C
-TOPPViewBase.C
-TOPPASBase.C
-MISC/QApplicationTOPP.C
+IDEvaluationBase.cpp
+INIFileEditorWindow.cpp
+TOPPViewBase.cpp
+TOPPASBase.cpp
+MISC/QApplicationTOPP.cpp
 )
 
 ### add path to the filenames

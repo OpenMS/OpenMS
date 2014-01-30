@@ -3,7 +3,7 @@ set(directory source/MATH/MISC/NNLS)
 
 ### list all filenames of the directory here
 set(sources_list
-NNLS.C
+NNLS.cpp
 )
 
 ### add path to the filenames

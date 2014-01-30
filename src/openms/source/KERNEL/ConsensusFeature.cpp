@@ -288,7 +288,7 @@ namespace OpenMS
     setCharge(0);
     return;
   }
-  
+
   void ConsensusFeature::addRatio(const ConsensusFeature::Ratio & r)
   {
     ratios_.push_back(r);
@@ -310,7 +310,7 @@ namespace OpenMS
   }
 
   Size ConsensusFeature::size() const
-  { 
+  {
     return handles_.size();
   }
 

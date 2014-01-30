@@ -3,16 +3,16 @@ set(directory source/ANALYSIS/DENOVO)
 
 ### list all filenames of the directory here
 set(sources_list
-DeNovoIonScoring.C
-DeNovoAlgorithm.C
-DeNovoPostScoring.C
-DeNovoIdentification.C
-CompNovoIdentificationBase.C
-CompNovoIdentificationCID.C
-CompNovoIonScoring.C
-CompNovoIdentification.C
-CompNovoIonScoringBase.C
-CompNovoIonScoringCID.C
+DeNovoIonScoring.cpp
+DeNovoAlgorithm.cpp
+DeNovoPostScoring.cpp
+DeNovoIdentification.cpp
+CompNovoIdentificationBase.cpp
+CompNovoIdentificationCID.cpp
+CompNovoIonScoring.cpp
+CompNovoIdentification.cpp
+CompNovoIonScoringBase.cpp
+CompNovoIonScoringCID.cpp
 )
 
 ### add path to the filenames

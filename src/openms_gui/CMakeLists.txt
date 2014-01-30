@@ -36,7 +36,7 @@ project("OpenMS_GUI")
 cmake_minimum_required(VERSION 2.8.3 FATAL_ERROR)
 
 # --------------------------------------------------------------------------
-# before we do anything we try to find Qt since we rely heavily on its 
+# before we do anything we try to find Qt since we rely heavily on its
 # availability
 find_package(Qt4 REQUIRED QtGui QtOpenGL QtSVG QtWebKit QtNetwork ${phonon_extra})
 if (NOT QT4_FOUND)
@@ -73,7 +73,7 @@ add_library(OpenMS_GUI ${OpenMSVisual_sources})
 copy_dll_to_extern_bin(OpenMS_GUI)
 
 # --------------------------------------------------------------------------
-# OpenMS_GUI's additional dependencies 
+# OpenMS_GUI's additional dependencies
 # --------------------------------------------------------------------------
 
 # obsolete when CMake MinRequiredVersion becomes >= 2.8.5
@@ -97,7 +97,7 @@ target_link_libraries(OpenMS_GUI OpenMS ${QT_LIBRARIES})
 ## link libraries for GUI Tools
 set(OPENMS_GUI_LIBRARIES optimized OpenMS_GUI${CMAKE_RELEASE_POSTFIX} debug OpenMS_GUI${CMAKE_DEBUG_POSTFIX} OpenMS ${QT_LIBRARIES}
     CACHE INTERNAL "OpenMS GUI libraries" FORCE)
-    
+
 ##### GUI tools ########
 set(GUI_DIR source/VISUAL/APPLICATIONS/GUITOOLS)
 include(${GUI_DIR}/executables.cmake)
@@ -107,7 +107,7 @@ foreach(i ${GUI_executables})
 	## add icons to TOPPView and INIFileEditor
 	if (MSVC AND EXISTS ${resource_file})
 		Message(STATUS "Setting resource file ${resource_file} for ${i}")
-		add_executable(${i} ${GUI_DIR}/${i}.C ${resource_file})
+		add_executable(${i} ${GUI_DIR}/${i}.cpp ${resource_file})
 	elseif(APPLE AND EXISTS ${resource_dir})
 		# the icon file
 		set(ICON_FILE_PATH "${PROJECT_SOURCE_DIR}/source/VISUAL/APPLICATIONS/GUITOOLS/${i}-resources/${i}.icns")
@@ -118,7 +118,7 @@ foreach(i ${GUI_executables})
 		add_executable(
 			${i}
 			MACOSX_BUNDLE
-			${GUI_DIR}/${i}.C
+			${GUI_DIR}/${i}.cpp
 			${ICON_FILE_PATH})
 
 		set_target_properties(${i} PROPERTIES
@@ -141,7 +141,7 @@ foreach(i ${GUI_executables})
     else()
   		message(STATUS "No resource file (${resource_file}) found for ${i}. No icon will be embedded.")
     endif()
-		add_executable(${i} ${GUI_DIR}/${i}.C)
+		add_executable(${i} ${GUI_DIR}/${i}.cpp)
 	endif()
 
 	## append visual lib as dependency for GUI tools

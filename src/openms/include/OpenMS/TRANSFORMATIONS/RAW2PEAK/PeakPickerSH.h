@@ -65,14 +65,14 @@ public:
 
       // Hack: Prepare data structures for Lukas' algorithm
       std::vector<double> masses, intens;
-      // TODO: Probably we could save some time when we resize the vectors... # PeakPickerSH.C
+      // TODO: Probably we could save some time when we resize the vectors... # PeakPickerSH.cpp
       //masses.resize(input.size());
       //intens.resize(input.size());
       for (Size k = 0; k < input.size() - 1; ++k)
       {
         // Lukas requires a minimum of intensity (=50). His vectors do not contain
         // other data, so I strip the low ones out right here.
-        // TODO: Read 50.0 from parameters  # PeakPickerSH.C
+        // TODO: Read 50.0 from parameters  # PeakPickerSH.cpp
         if (input[k].getIntensity() >= 50.0)
         {
           masses.push_back(input[k].getMZ());
@@ -113,7 +113,7 @@ public:
 
     /**
      @brief Applies the peak-picking algorithm to a map (MSExperiment).
-     
+
      This method picks peaks for each scan in the map consecutively. The
      resulting picked peaks are written to the output map.
     */

@@ -3,10 +3,10 @@ set(directory source/FILTERING/SMOOTHING)
 
 ### list all filenames of the directory here
 set(sources_list
-GaussFilter.C
-GaussFilterAlgorithm.C
-LowessSmoothing.C
-SavitzkyGolayFilter.C
+GaussFilter.cpp
+GaussFilterAlgorithm.cpp
+LowessSmoothing.cpp
+SavitzkyGolayFilter.cpp
 )
 
 ### add path to the filenames

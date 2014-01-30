@@ -28,71 +28,68 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Sven Nahnsen $
-// $Authors: Andreas Bertsch, Marc Sturm, Sven Nahnsen $
+// $Maintainer: Florian Zeller $
+// $Authors: Florian Zeller $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_ID_CONSENSUSID_H
-#define OPENMS_ANALYSIS_ID_CONSENSUSID_H
-
-#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerSH.h>
 
 #include <vector>
 
 namespace OpenMS
 {
-  /**
-    @brief Calculates a consensus ID from several ID runs
-
-    This class combines several ID runs using one of several, available algorithms.
-
-        @htmlinclude OpenMS_ConsensusID.parameters
-
-        @ingroup Analysis_ID
-  */
-  class OPENMS_DLLAPI ConsensusID :
-    public DefaultParamHandler
+  PeakPickerSH::PeakPickerSH() :
+    DefaultParamHandler("PeakPickerSH"),
+    ProgressLogger()
   {
-public:
-    ///Default constructor
-    ConsensusID();
+    defaultsToParam_();
+  }
 
-    /**
-        @brief Calculates the consensus ID for a set of PeptideIdentification instances of the same spectrum
+  PeakPickerSH::~PeakPickerSH()
+  {
+    // FLO: Do not care at the moment
+  }
 
-        @note Make sure that the score orientation (PeptideIdentification::isHigherScoreBetter())is set properly!
-    */
-    void apply(std::vector<PeptideIdentification> & ids);
+  void PeakPickerSH::pickExperiment(const MSExperiment<> & input, MSExperiment<> & output)
+  {
+    // make sure that output is clear
+    output.clear(true);
 
-private:
-    ///Not implemented
-    ConsensusID(const ConsensusID &);
+    // copy experimental settings
+    static_cast<ExperimentalSettings &>(output) = input;
 
-    ///Not implemented
-    ConsensusID & operator=(const ConsensusID &);
+    // resize output with respect to input
+    output.resize(input.size());
 
-    /// Ranked algorithm
-    void ranked_(std::vector<PeptideIdentification> & ids);
+    std::cout << "Before loop, input size = " << input.size() << std::endl;
+    Size progress = 0;
+    for (Size scan_idx = 0; scan_idx != input.size(); ++scan_idx)
+    {
+      output[scan_idx].clear(true);
+      output[scan_idx].SpectrumSettings::operator=(input[scan_idx]);
+      output[scan_idx].MetaInfoInterface::operator=(input[scan_idx]);
+      output[scan_idx].setRT(input[scan_idx].getRT());
+      output[scan_idx].setMSLevel(input[scan_idx].getMSLevel());
+      output[scan_idx].setName(input[scan_idx].getName());
+      output[scan_idx].setType(SpectrumSettings::PEAKS);
 
-    /// Average score algorithm
-    void average_(std::vector<PeptideIdentification> & ids);
+      if (input[scan_idx].getMSLevel() != 1)
+      {
+        // When not considering MS2 data (MS2 fragment mass tracing=0), Lukas leaves out
+        // the entire scan (instead of just copying it to the output as seen in
+        // another plugin).
+        // pick(input[scan_idx], output[scan_idx], 4.0);
+      }
+      else
+      {
+        // TODO: Read value 4.0 from parameters # PeakPickerSH.cpp
+        pick(input[scan_idx], output[scan_idx], 5.0);
+      }
+      setProgress(++progress);
+    }
+    std::cout << "After loop" << std::endl;
 
-    /// PEP and scoring matrix based algorithm
-    void PEPMatrix_(std::vector<PeptideIdentification> & ids);
+    endProgress();
+  }
 
-    /// PEP and ion similarity based algorithm
-    void PEPIons_(std::vector<PeptideIdentification> & ids);
-
-    /// use minimal PEP score
-    void Minimum_(std::vector<PeptideIdentification> & ids);
-
-//already done in APPLICATIONS/TOPP/ConsensusID.cpp
-    /// Merge peptide hits from different engines
-    void mapIdentifications_(std::vector<PeptideIdentification> & sorted_ids, const std::vector<PeptideIdentification> & ids);
-
-  };
-
-} // namespace OpenMS
-
-#endif // OPENMS_ANALYSIS_ID_CONSENSUSID_H
+}

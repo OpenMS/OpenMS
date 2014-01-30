@@ -3,11 +3,11 @@ set(directory source/FORMAT/DATAACCESS)
 
 ### list all filenames of the directory here
 set(sources_list
-  MSDataWritingConsumer.C
-  MSDataTransformingConsumer.C
-  MSDataCachedConsumer.C
-  NoopMSDataConsumer.C
-  SwathFileConsumer.C
+  MSDataWritingConsumer.cpp
+  MSDataTransformingConsumer.cpp
+  MSDataCachedConsumer.cpp
+  NoopMSDataConsumer.cpp
+  SwathFileConsumer.cpp
 )
 
 ### add path to the filenames

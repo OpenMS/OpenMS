@@ -3,28 +3,28 @@ set(directory source/CHEMISTRY)
 
 ### list all filenames of the directory here
 set(sources_list
-AASequence.C
-EdwardsLippertIterator.C
-EdwardsLippertIteratorTryptic.C
-Element.C
-ElementDB.C
-EmpiricalFormula.C
-EnzymaticDigestion.C
-IsotopeDistribution.C
-ModificationDefinition.C
-ModificationDefinitionsSet.C
-ModificationsDB.C
-ModifierRep.C
-PepIterator.C
-Residue.C
-ResidueDB.C
-ResidueModification.C
-TheoreticalSpectrumGenerator.C
-SvmTheoreticalSpectrumGenerator.C
-SvmTheoreticalSpectrumGeneratorTrainer.C
-SvmTheoreticalSpectrumGeneratorSet.C
-TrypticIterator.C
-WeightWrapper.C
+AASequence.cpp
+EdwardsLippertIterator.cpp
+EdwardsLippertIteratorTryptic.cpp
+Element.cpp
+ElementDB.cpp
+EmpiricalFormula.cpp
+EnzymaticDigestion.cpp
+IsotopeDistribution.cpp
+ModificationDefinition.cpp
+ModificationDefinitionsSet.cpp
+ModificationsDB.cpp
+ModifierRep.cpp
+PepIterator.cpp
+Residue.cpp
+ResidueDB.cpp
+ResidueModification.cpp
+TheoreticalSpectrumGenerator.cpp
+SvmTheoreticalSpectrumGenerator.cpp
+SvmTheoreticalSpectrumGeneratorTrainer.cpp
+SvmTheoreticalSpectrumGeneratorSet.cpp
+TrypticIterator.cpp
+WeightWrapper.cpp
 )
 
 ### add path to the filenames

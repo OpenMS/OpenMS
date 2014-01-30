@@ -3,22 +3,22 @@ set(directory source/ANALYSIS/QUANTITATION)
 
 ### list all filenames of the directory here
 set(sources_list
-ItraqChannelExtractor.C
-ItraqConstants.C
-ItraqQuantifier.C
-PeptideAndProteinQuant.C
-ProteinInference.C
-ProteinResolver.C
-QuantitativeExperimentalDesign.C
-IsobaricQuantitationMethod.C
-IsobaricChannelExtractor.C
-ItraqFourPlexQuantitationMethod.C
-IsobaricQuantifier.C
-IsobaricNormalizer.C
-IsobaricQuantifierStatistics.C
-IsobaricIsotopeCorrector.C
-ItraqEightPlexQuantitationMethod.C
-TMTSixPlexQuantitationMethod.C
+ItraqChannelExtractor.cpp
+ItraqConstants.cpp
+ItraqQuantifier.cpp
+PeptideAndProteinQuant.cpp
+ProteinInference.cpp
+ProteinResolver.cpp
+QuantitativeExperimentalDesign.cpp
+IsobaricQuantitationMethod.cpp
+IsobaricChannelExtractor.cpp
+ItraqFourPlexQuantitationMethod.cpp
+IsobaricQuantifier.cpp
+IsobaricNormalizer.cpp
+IsobaricQuantifierStatistics.cpp
+IsobaricIsotopeCorrector.cpp
+ItraqEightPlexQuantitationMethod.cpp
+TMTSixPlexQuantitationMethod.cpp
 )
 
 ### add path to the filenames

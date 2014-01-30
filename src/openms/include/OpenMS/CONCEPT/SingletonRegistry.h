@@ -49,7 +49,7 @@ namespace OpenMS
   /**
     @brief Holds pointers to unique instance of a singleton factory.
 
-        @note: NEVER(!) include this file anywhere (except for the SingletonRegistry.C)! :D
+        @note: NEVER(!) include this file anywhere (except for the SingletonRegistry.cpp)! :D
 
         @ingroup Concept
   */

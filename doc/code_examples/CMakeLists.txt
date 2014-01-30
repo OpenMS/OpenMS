@@ -50,7 +50,7 @@ include_directories(${OPENMS_INCLUDE_DIRECTORIES})
 
 # add the targets
 foreach(i ${EXAMPLES_executables})
-  add_executable(${i} ${CMAKE_CURRENT_LIST_DIR}/${i}.C)
+  add_executable(${i} ${CMAKE_CURRENT_LIST_DIR}/${i}.cpp)
   target_link_libraries(${i} ${OPENMS_LIBRARIES})
 
   # if not GUI and no style tests requested -> add as test
@@ -65,7 +65,7 @@ include_directories(${OPENMS_GUI_INCLUDE_DIRECTORIES})
 
 # add the GUI tutorials -- no tests
 foreach(i ${GUI_EXAMPLES_executables})
-  add_executable(${i} ${CMAKE_CURRENT_LIST_DIR}/${i}.C)
+  add_executable(${i} ${CMAKE_CURRENT_LIST_DIR}/${i}.cpp)
   target_link_libraries(${i} ${OPENMS_GUI_LIBRARIES})
 endforeach(i)
 

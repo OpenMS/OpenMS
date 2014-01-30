@@ -43,7 +43,7 @@ namespace OpenMS
   // keep this in sync with enum ChromatogramType
   const char * const ChromatogramSettings::ChromatogramNames[] = {"mass chromatogram", "total ion current chromatogram", "selected ion current chromatogram" ,"base peak chromatogram",
                                                                   "selected ion monitoring chromatogram" ,"selected reaction monitoring chromatogram" ,"electromagnetic radiation chromatogram",
-                                                                  "absorption chromatogram", "emission chromatogram", "unknown chromatogram"}; // last entry should be "unknown", since this is the default in FileInfo.C
+                                                                  "absorption chromatogram", "emission chromatogram", "unknown chromatogram"}; // last entry should be "unknown", since this is the default in FileInfo.cpp
 
   ChromatogramSettings::ChromatogramSettings() :
     MetaInfoInterface(),

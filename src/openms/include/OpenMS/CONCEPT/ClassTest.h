@@ -61,9 +61,9 @@
 #include <cstdlib> // getenv()
 
 // Empty declaration to avoid problems in case the namespace is not
-// yet defined (e.g. TEST/ClassTest_test.C)
+// yet defined (e.g. TEST/ClassTest_test.cpp)
 
-/// Provide a point of redirection for testing the test macros, see ClassTest_test.C
+/// Provide a point of redirection for testing the test macros, see ClassTest_test.cpp
 #ifndef std__cout
 #define std__cout std::cout
 #endif
@@ -377,7 +377,7 @@ namespace TEST = OpenMS::Internal::ClassTest;
  The second argument version should take the form "$Id:$".  The actual
  version info will then be filled in by Subversion (the revision control
  system).  If it does not, use "svn help propset" to find out how to include
- "Id" in the property "svn:keywords" for the *_test.C file in question.
+ "Id" in the property "svn:keywords" for the *_test.cpp file in question.
 
  The #START_TEST macro should be the first one to call in a test program. It
  opens a global <code>try</code> block to catch any unwanted exceptions.  If
@@ -1134,7 +1134,7 @@ namespace TEST = OpenMS::Internal::ClassTest;
 
  This macro assigns a new temporary filename to the string variable given as
  its argument. The filename is created using the filename of the test and the
- line number where this macro is invoked, for example 'Matrix_test.C' might
+ line number where this macro is invoked, for example 'Matrix_test.cpp' might
  create a temporary file 'Matrix_test_268.tmp' if NEW_TMP_FILE is used in
  line 268.  All temporary files are deleted if #END_TEST is called.  @param
  filename string will contain the filename on completion of the macro.

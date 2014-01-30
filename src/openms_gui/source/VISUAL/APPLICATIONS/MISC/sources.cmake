@@ -3,7 +3,7 @@ set(directory source/VISUAL/APPLICATIONS/MISC)
 
 ### list all filenames of the directory here
 set(sources_list
-QApplicationTOPP.C
+QApplicationTOPP.cpp
 )
 
 ### add path to the filenames

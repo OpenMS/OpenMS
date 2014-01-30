@@ -3,7 +3,7 @@ set(directory source/FILTERING/ID)
 
 ### list all filenames of the directory here
 set(sources_list
-IDFilter.C
+IDFilter.cpp
 )
 
 ### add path to the filenames

@@ -3,11 +3,11 @@ set(directory source/MATH/MISC)
 
 ### list all filenames of the directory here
 set(sources_list
-BilinearInterpolation.C
-LinearInterpolation.C
-MathFunctions.C
-NonNegativeLeastSquaresSolver.C
-MSNumpress.C
+BilinearInterpolation.cpp
+LinearInterpolation.cpp
+MathFunctions.cpp
+NonNegativeLeastSquaresSolver.cpp
+MSNumpress.cpp
 )
 
 ### add path to the filenames

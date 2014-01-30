@@ -70,28 +70,28 @@ public:
     typedef std::vector<ConsensusFeature> privvec;
 
     // types
-    using privvec::value_type; 
-    using privvec::iterator; 
-    using privvec::const_iterator; 
-    using privvec::size_type; 
+    using privvec::value_type;
+    using privvec::iterator;
+    using privvec::const_iterator;
+    using privvec::size_type;
     using privvec::pointer;          // ConstRefVector
     using privvec::reference;        // ConstRefVector
     using privvec::const_reference;  // ConstRefVector
     using privvec::difference_type;  // ConstRefVector
- 
+
     // functions
-    using privvec::begin; 
-    using privvec::end; 
+    using privvec::begin;
+    using privvec::end;
 
-    using privvec::size; 
+    using privvec::size;
     using privvec::resize;
-    using privvec::empty; 
-    using privvec::reserve; 
-    using privvec::operator[]; 
+    using privvec::empty;
+    using privvec::reserve;
+    using privvec::operator[];
     using privvec::at;          // UniqueIdIndexer
-    using privvec::back;     // source/ANALYSIS/DECHARGING/FeatureDeconvolution.C:977:
+    using privvec::back;     // source/ANALYSIS/DECHARGING/FeatureDeconvolution.cpp:977:
 
-    using privvec::push_back; 
+    using privvec::push_back;
 
     /// Source file description for input files
     struct OPENMS_DLLAPI FileDescription :

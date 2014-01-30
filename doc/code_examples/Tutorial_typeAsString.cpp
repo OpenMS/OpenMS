@@ -73,4 +73,4 @@ int main()
   cout << typeAsString(&WOW<char, 8>::memberFunc) << endl;
 
   return 0;
-} // end of Tutorial_typeAsString.C
+} // end of Tutorial_typeAsString.cpp

@@ -57,14 +57,14 @@ namespace OpenMS
   {
     namespace ClassTest
     {
-      void OPENMS_DLLAPI testStringSimilar(const char * file, 
+      void OPENMS_DLLAPI testStringSimilar(const char * file,
                                            int line,
                                            const std::string & string_1,
                                            const char * string_1_stringified,
                                            const std::string & string_2,
                                            const char * string_2_stringified);
 
-      bool OPENMS_DLLAPI isFileSimilar(const std::string &, 
+      bool OPENMS_DLLAPI isFileSimilar(const std::string &,
                                        const std::string &);
     }
   }
@@ -115,7 +115,7 @@ public:
 
     /// Acceptable relative error (a number >= 1.0)
     const double & getAcceptableRelative() const;
-    
+
     /// Acceptable relative error (a number >= 1.0)
     void setAcceptableRelative(const double rhs);
 
@@ -189,7 +189,7 @@ public:
       in a string.
 
       @internal There seems to be an issue with this under Windows, see comment
-      in FuzzyStringComparator_test.C
+      in FuzzyStringComparator_test.cpp
 
     */
     void setLogDestination(std::ostream & rhs);
@@ -227,7 +227,7 @@ public:
       @sa absdiff_max_allowed_
       @sa verbose_level_
     */
-    bool compareFiles(const std::string & filename_1, 
+    bool compareFiles(const std::string & filename_1,
                       const std::string & filename_2);
 
 protected:
@@ -333,18 +333,18 @@ protected:
 #ifdef OPENMS_HAS_STREAM_EXTRACTION_BUG
       /**
         @brief Tries to extract digits from the stream in InputLine.
-      
+
         @param input_line The stream from which the digits should be extracted.
         @param target_buffer The target string where the digits should be stored.
         @param c_buffer The current peek of the stream.
-        
+
         @return Returns true if at least one digit was extracted from the stream.
       */
       bool readdigits(InputLine & input_line, std::string & target_buffer, char & c_buffer);
-      
-      /** 
+
+      /**
         @brief Try to extract a double from the InputLine
-      
+
         @param input_line The input line where the double should be extracted
         @param target Target variable where the double should be stored
         @return True if extraction succeeded, false otherwise.

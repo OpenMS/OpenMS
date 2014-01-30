@@ -3,8 +3,8 @@ set(directory source/ANALYSIS/PIP)
 
 ### list all filenames of the directory here
 set(sources_list
-LocalLinearMap.C
-PeakIntensityPredictor.C
+LocalLinearMap.cpp
+PeakIntensityPredictor.cpp
 )
 
 ### add path to the filenames

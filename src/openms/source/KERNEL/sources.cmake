@@ -3,31 +3,31 @@ set(directory source/KERNEL)
 
 ### list all filenames of the directory here
 set(sources_list
-AreaIterator.C
-BaseFeature.C
-ConsensusFeature.C
-ConsensusMap.C
-DPeak.C
-DRichPeak.C
-Feature.C
-FeatureHandle.C
-FeatureMap.C
-MassTrace.C
-MRMFeature.C
-MRMTransitionGroup.C
-MSExperiment.C
-MSSpectrum.C
-OnDiscMSExperiment.C
-Peak1D.C
-Peak2D.C
-PeakIndex.C
-RangeManager.C
-RichPeak1D.C
-RichPeak2D.C
-StandardTypes.C
-ChromatogramPeak.C
-MSChromatogram.C
-ChromatogramTools.C
+AreaIterator.cpp
+BaseFeature.cpp
+ConsensusFeature.cpp
+ConsensusMap.cpp
+DPeak.cpp
+DRichPeak.cpp
+Feature.cpp
+FeatureHandle.cpp
+FeatureMap.cpp
+MassTrace.cpp
+MRMFeature.cpp
+MRMTransitionGroup.cpp
+MSExperiment.cpp
+MSSpectrum.cpp
+OnDiscMSExperiment.cpp
+Peak1D.cpp
+Peak2D.cpp
+PeakIndex.cpp
+RangeManager.cpp
+RichPeak1D.cpp
+RichPeak2D.cpp
+StandardTypes.cpp
+ChromatogramPeak.cpp
+MSChromatogram.cpp
+ChromatogramTools.cpp
 )
 
 ### add path to the filenames

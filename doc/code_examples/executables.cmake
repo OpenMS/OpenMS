@@ -42,7 +42,7 @@ Tutorial_PeakIntensityPredictor
 set(EXAMPLES_executables ${EXAMPLES_executables} ${executables_list})
 
 # --------------------------------------------------------------------------
-set(executables_list 
+set(executables_list
 Tutorial_GUI_Spectrum1D
 Tutorial_GUI_ParamEditor
 Tutorial_GUI_ListEditor
@@ -55,6 +55,6 @@ set(GUI_EXAMPLES_executables ${GUI_EXAMPLES_executables} ${executables_list})
 # add filenames to Visual Studio solution tree
 set(sources_VS)
 foreach(i ${executables_list})
-	list(APPEND sources_VS "${i}.C")
+	list(APPEND sources_VS "${i}.cpp")
 endforeach(i)
 source_group("EXAMPLES" FILES ${sources_VS})

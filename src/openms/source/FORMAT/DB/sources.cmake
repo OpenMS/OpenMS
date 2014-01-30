@@ -3,9 +3,9 @@ set(directory source/FORMAT/DB)
 
 ### list all filenames of the directory here
 set(sources_list
-PersistentObject.C
-DBAdapter.C
-DBConnection.C
+PersistentObject.cpp
+DBAdapter.cpp
+DBConnection.cpp
 )
 
 ### add path to the filenames

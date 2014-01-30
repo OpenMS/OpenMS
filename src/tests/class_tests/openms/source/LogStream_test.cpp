@@ -417,7 +417,7 @@ START_SECTION(([EXTRA] Macro test - LOG_FATAL_ERROR))
   TEST_EQUAL(to_validate_list.size(),3)
 
   int pos(0);
-  QRegExp rx(".*LogStream_test\\.C\\(\\d+\\): \\d");
+  QRegExp rx(".*LogStream_test\\.cpp\\(\\d+\\): \\d");
   for (Size i=0;i<to_validate_list.size() - 1;++i) // there is an extra line since we ended with endl
   {
     QString to_validate = to_validate_list[i].toQString();
@@ -508,7 +508,7 @@ START_SECTION(([EXTRA] Macro test - LOG_DEBUG))
   TEST_EQUAL(to_validate_list.size(),3)
 
   int pos(0);
-  QRegExp rx(".*LogStream_test\\.C\\(\\d+\\): \\d");
+  QRegExp rx(".*LogStream_test\\.cpp\\(\\d+\\): \\d");
   for (Size i=0;i<to_validate_list.size() - 1;++i) // there is an extra line since we ended with endl
   {
     std::cerr << i << ":" << to_validate_list[i] << std::endl;

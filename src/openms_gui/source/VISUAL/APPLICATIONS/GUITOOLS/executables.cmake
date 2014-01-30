@@ -13,6 +13,6 @@ TOPPView
 ### add filenames to Visual Studio solution tree
 set(sources_VS)
 foreach(i ${GUI_executables})
-	list(APPEND sources_VS "${i}.C")
+	list(APPEND sources_VS "${i}.cpp")
 endforeach(i)
 source_group("" FILES ${sources_VS})

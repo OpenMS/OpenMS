@@ -57,7 +57,7 @@ add_custom_target(VISUAL_TEST)
 add_dependencies(VISUAL_TEST ${visual_executables_list})
 
 foreach(_class_test ${visual_executables_list})
-	add_executable(${_class_test} source/${_class_test}.C)
+	add_executable(${_class_test} source/${_class_test}.cpp)
 	target_link_libraries(${_class_test} ${OPENMS_GUI_LIBRARIES})
 	add_test(${_class_test} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_class_test})
 	# only add OPENMP flags to gcc linker (execpt Mac OS X, due to compiler bug
@@ -84,11 +84,11 @@ include(${QT_USE_FILE})
 # Add GUI tests
 foreach(_gui_test ${GUI_executables_list})
 	# moc the test file
-  QT4_WRAP_CPP(_mocced_test_file source/GUI/${_gui_test}.C OPTIONS ${BOOST_MOC_ARGS})
+  QT4_WRAP_CPP(_mocced_test_file source/GUI/${_gui_test}.cpp OPTIONS ${BOOST_MOC_ARGS})
 	# define source file dependency
-	set_source_files_properties(source/GUI/${_gui_test}.C PROPERTIES OBJECT_DEPENDS ${_mocced_test_file})
+	set_source_files_properties(source/GUI/${_gui_test}.cpp PROPERTIES OBJECT_DEPENDS ${_mocced_test_file})
   # add the executable
-  add_executable(${_gui_test} source/GUI/${_gui_test}.C)
+  add_executable(${_gui_test} source/GUI/${_gui_test}.cpp)
   # link against openms_gui and qt
 	target_link_libraries(${_gui_test} ${OPENMS_GUI_LIBRARIES} ${QT_LIBRARIES})
   # add the test
