@@ -6,7 +6,7 @@ set(sources_list_h
 Annotation1DDistanceItem.h
 Annotation1DItem.h
 Annotation1DPeakItem.h
-Annotation1DCaret.h
+# Annotation1DCaret.h
 Annotation1DTextItem.h
 Annotations1DContainer.h
 )

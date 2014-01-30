@@ -118,7 +118,7 @@ set(Boost_COMPILER "")
 set(Boost_ADDITIONAL_VERSIONS "1.47.0" "1.48.0" "1.49.0" "1.50.0" "1.51.0" "1.52.0" "1.53.0" "1.54.0")
 
 # 1st attempt does not explicitly requires boost to enable second check (see below)
-find_package(Boost 1.42.0 COMPONENTS iostreams date_time math_c99 regex)
+find_package(Boost 1.40.0 COMPONENTS iostreams date_time math_c99 regex)
 
 if(Boost_FOUND)
   message(STATUS "Found Boost version ${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION}.${Boost_SUBMINOR_VERSION}" )
@@ -153,7 +153,7 @@ endif()
 if (WIN32) ## find manually on Windows, as find_package() does not know about debug lib
 	OPENMS_CHECKLIB(LIBSVM_LIBRARY "libsvm;svm" "libsvmd;svmd;libsvm;svm" "libSVM")
 endif()
-find_package(libSVM 2.91) ## will not overwrite LIBSVM_LIBRARY if defined already
+find_package(libSVM 2.90) ## will not overwrite LIBSVM_LIBRARY if defined already
 if (LIBSVM_FOUND)
 	message(STATUS "Found LibSVM version " ${LIBSVM_VERSION})
 	set(CF_OPENMS_LIBSVM_VERSION_MAJOR ${LIBSVM_MAJOR_VERSION})

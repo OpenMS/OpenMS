@@ -61,6 +61,10 @@
 #endif
 #endif
 
+#if OPENMS_GLPK_VERSION_MINOR > 41
+#define GLPK_FORMAT_AVAILABLE
+#endif
+
 #include <glpk.h>
 
 namespace OpenMS
@@ -572,10 +576,13 @@ namespace OpenMS
       {
         glp_read_mps(lp_problem_, GLP_MPS_FILE, NULL, filename.c_str());
       }
+#ifdef GLPK_FORMAT_AVAILABLE
+      // only since 4.42 is GLPK format available
       else if (format == "GLPK")
       {
         glp_read_prob(lp_problem_, 0, filename.c_str());
       }
+#endif
       else
         throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "invalid LP format, allowed are LP, MPS, GLPK");
     }
@@ -601,10 +608,13 @@ namespace OpenMS
       {
         glp_write_mps(lp_problem_, GLP_MPS_FILE, NULL, filename.c_str());
       }
+#ifdef GLPK_FORMAT_AVAILABLE
+      // only since 4.42 is GLPK format available
       else if (format == FORMAT_GLPK)
       {
         glp_write_prob(lp_problem_, 0, filename.c_str());
       }
+#endif
       else
         throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid LP format, allowed are LP, MPS, GLPK");
     }

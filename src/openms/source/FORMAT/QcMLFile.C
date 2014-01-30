@@ -36,8 +36,10 @@
 #include <fstream>
 #include <iostream>
 #include <algorithm>
+/*
 #include <boost/range/adaptor/map.hpp>
 #include <boost/range/algorithm/copy.hpp>
+*/
 
 using namespace std;
 
@@ -352,13 +354,13 @@ namespace OpenMS
   void QcMLFile::getRunNames(std::vector<String>& ids) const
   {
     ids.clear();
-    boost::copy(run_Name_ID_map_ | boost::adaptors::map_keys, std::back_inserter(ids));
+    // boost::copy(run_Name_ID_map_ | boost::adaptors::map_keys, std::back_inserter(ids));
   }
 
   void QcMLFile::getRunIDs(std::vector<String>& ids) const
   {
     ids.clear();
-    boost::copy(runQualityQPs_ | boost::adaptors::map_keys, std::back_inserter(ids));
+    // boost::copy(runQualityQPs_ | boost::adaptors::map_keys, std::back_inserter(ids));
   }
 
   bool QcMLFile::existsRun(const String filename, bool checkname) const

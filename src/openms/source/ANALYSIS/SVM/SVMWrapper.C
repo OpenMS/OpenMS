@@ -1324,8 +1324,12 @@ namespace OpenMS
     param_->weight_label = NULL; // for C_SVC
     param_->weight = NULL; // for C_SVC
 
-    // silence libsvm
+    // silence libsvm, available since 2.94
+#if OPENMS_LIBSVM_VERSION_MAJOR == 3 || \
+    (OPENMS_LIBSVM_VERSION_MAJOR == 2 && OPENMS_LIBSVM_VERSION_MINOR > 90)
     svm_set_print_string_function(&printToVoid_);
+#endif
+
   }
 
   void SVMWrapper::printToVoid_(const char* /*s*/)

@@ -37,9 +37,8 @@
 
 ///////////////////////////
 #include <OpenMS/FORMAT/GzipIfstream.h>
+
 using namespace OpenMS;
-
-
 
 ///////////////////////////
 
@@ -94,6 +93,7 @@ START_SECTION(size_t read(char *s, size_t n))
 	buffer[29] = '\0';
 	size_t len = 29;
 #ifndef OPENMS_WINDOWSPLATFORM
+    // also it seems not on all versions of the library - definitely not zlib 1.2.3.3
 	TEST_EXCEPTION(Exception::ConversionError,gzip.read(buffer,10));
 #endif
 	//gzip.updateCRC32(buffer,10);
@@ -112,6 +112,7 @@ START_SECTION(size_t read(char *s, size_t n))
 	gzip2.open(OPENMS_GET_TEST_DATA_PATH("GzipIfStream_1_corrupt.gz"));
 
 #ifndef OPENMS_WINDOWSPLATFORM
+   // also it seems not on all versions of the library - definitely not zlib 1.2.3.3
   TEST_EXCEPTION(Exception::ConversionError,gzip2.read(buffer,30));
 #endif
 	 //gzip2.updateCRC32(buffer,(size_t)30);

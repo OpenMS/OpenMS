@@ -60,6 +60,7 @@ if (NOT LIBSVM_INCLUDE_DIR)
     PATH_SUFFIXES
       libsvm
       libsvm-3.1/libsvm
+      libsvm-2.0/libsvm
     DOC
       "LibSVM include directory"
   )

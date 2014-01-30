@@ -70,7 +70,7 @@ set(Boost_COMPILER "")
 set(Boost_ADDITIONAL_VERSIONS "1.47.0" "1.48.0" "1.49.0" "1.50.0" "1.51.0" "1.52.0" "1.53.0" "1.54.0")
 
 # 1st attempt does not explicitly requires boost to enable second check (see below)
-find_package(Boost 1.42.0 COMPONENTS math_c99)
+find_package(Boost 1.40.0 COMPONENTS math_c99)
 
 set(BOOST_MOC_ARGS "")
 
