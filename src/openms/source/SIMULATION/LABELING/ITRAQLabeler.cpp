@@ -41,7 +41,7 @@
 
 #include <Eigen/Dense>
 
-#include <boost/random/uniform_real_distribution.hpp>
+#include <boost/random/uniform_real.hpp>
 
 using std::vector;
 using std::pair;
@@ -239,7 +239,7 @@ namespace OpenMS
     channel_names[0].setMatrix<4, 1>(ItraqConstants::CHANNELS_FOURPLEX);
     channel_names[1].setMatrix<8, 1>(ItraqConstants::CHANNELS_EIGHTPLEX);
 
-    boost::random::uniform_real_distribution<DoubleReal> udist (0.0,1.0);
+    boost::uniform_real<DoubleReal> udist (0.0,1.0);
 
     // add signal...
     for (MSSimExperiment::iterator it = exp.begin(); it != exp.end(); ++it)

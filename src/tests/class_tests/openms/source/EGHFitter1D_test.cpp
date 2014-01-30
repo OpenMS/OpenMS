@@ -39,7 +39,7 @@
 #include <OpenMS/SIMULATION/EGHFitter1D.h>
 #include <OpenMS/SIMULATION/EGHModel.h>
 #include <boost/random/mersenne_twister.hpp>
-#include <boost/random/uniform_real_distribution.hpp>
+#include <boost/random/uniform_real.hpp>
 #include <cmath>//toberemoved
 ///////////////////////////
 
@@ -149,7 +149,7 @@ START_SECTION((QualityType fit1d(const RawDataArrayType &range, InterpolationMod
 
   // make some noise
   boost::random::mt19937 rnd_gen_ (0.0);
-  boost::random::uniform_real_distribution<Real> udist (-0.1, 0.1);
+  boost::uniform_real<Real> udist (-0.1, 0.1);
   for (Size i = 0; i < data_to_fit.size(); ++i)
   {
     Real distort = std::exp(udist(rnd_gen_));

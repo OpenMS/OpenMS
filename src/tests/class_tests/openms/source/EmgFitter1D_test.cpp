@@ -47,7 +47,7 @@
 
 using namespace OpenMS;
 using namespace std;
-using boost::random::normal_distribution;
+using boost::normal_distribution;
 
 START_TEST(EmgFitter1D, "$Id$")
 

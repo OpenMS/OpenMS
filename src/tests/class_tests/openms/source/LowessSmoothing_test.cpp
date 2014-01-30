@@ -85,7 +85,7 @@ for (DoubleReal i = 1.0; i <= 20.0; i += 1.0)
 boost::random::mt19937 rnd_gen_;
 for (Size i = 0; i < y.size(); ++i)
 {
-  boost::random::normal_distribution<Real> udist (y.at(i), 0.05);
+  boost::normal_distribution<Real> udist (y.at(i), 0.05);
   y_noisy.push_back( udist(rnd_gen_) );
 }
 

@@ -46,7 +46,7 @@
 #include <vector>
 #include <cmath>
 
-#include <boost/random/uniform_real_distribution.hpp>
+#include <boost/random/uniform_real.hpp>
 #include <boost/random/poisson_distribution.hpp>
 #include <boost/random/exponential_distribution.hpp>
 #include <boost/random/normal_distribution.hpp>
@@ -655,7 +655,7 @@ namespace OpenMS
     }
 
     std::vector<SimCoordinateType>::const_iterator it_grid = lower_bound(grid_.begin(), grid_.end(), mz_start);
-    boost::random::uniform_real_distribution<double> udist (mz_error_mean_, mz_error_stddev_);
+    boost::uniform_real<double> udist (mz_error_mean_, mz_error_stddev_);
     for (; it_grid != grid_.end() && (*it_grid) < mz_end; ++it_grid)
     {
       point.setMZ(*it_grid);
@@ -752,7 +752,7 @@ namespace OpenMS
           {
 #pragma omp critical(generate_random_number_for_thread)
             {
-              boost::random::uniform_real_distribution<double> udist (mz_error_mean_, mz_error_stddev_);
+              boost::uniform_real<double> udist (mz_error_mean_, mz_error_stddev_);
               for (Size i = 0; i < THREADED_RANDOM_NUMBER_POOL_SIZE_; ++i)
               {
                 threaded_random_numbers_[CURRENT_THREAD][i] = udist(rnd_gen_->getTechnicalRng());
@@ -771,7 +771,7 @@ namespace OpenMS
         const double mz_err = threaded_random_numbers_[CURRENT_THREAD][threaded_random_numbers_index_[CURRENT_THREAD]++];
 #else
         // we can use the normal Gaussian ran-gen if we do not use OPENMP
-        boost::random::uniform_real_distribution<double> udist (mz_error_mean_, mz_error_stddev_);
+        boost::uniform_real<double> udist (mz_error_mean_, mz_error_stddev_);
         const double mz_err = udist(rnd_gen_->getTechnicalRng());
 #endif
         point.setMZ(std::fabs(point.getMZ() + mz_err));
@@ -992,7 +992,7 @@ namespace OpenMS
 
     //distributions to sample from
     boost::random::poisson_distribution<UInt,DoubleReal> pdist (scaled_rate);
-    boost::random::uniform_real_distribution<SimCoordinateType> udist (mz_lw, mz_up);
+    boost::uniform_real<SimCoordinateType> udist (mz_lw, mz_up);
     boost::random::exponential_distribution<SimCoordinateType> edist (intensity_mean);
 
     LOG_INFO << "Adding shot noise to spectra ..." << std::endl;
@@ -1062,7 +1062,7 @@ namespace OpenMS
       return;
     }
 
-    boost::random::normal_distribution<SimIntensityType> ndist (white_noise_mean, white_noise_stddev);
+    boost::normal_distribution<SimIntensityType> ndist (white_noise_mean, white_noise_stddev);
 
     for (MSSimExperiment::iterator spectrum_it = experiment.begin(); spectrum_it != experiment.end(); ++spectrum_it)
     {
@@ -1097,7 +1097,7 @@ namespace OpenMS
       return;
     }
 
-    boost::random::normal_distribution<SimIntensityType> ndist (detector_noise_mean, detector_noise_stddev);
+    boost::normal_distribution<SimIntensityType> ndist (detector_noise_mean, detector_noise_stddev);
     for (MSSimExperiment::iterator spectrum_it = experiment.begin(); spectrum_it != experiment.end(); ++spectrum_it)
     {
       MSSimExperiment::SpectrumType new_spec = (*spectrum_it);
@@ -1278,7 +1278,7 @@ namespace OpenMS
     // add some noise
     // TODO: variables model f??r den intensit??ts-einfluss
     // e.g. sqrt(intensity) || ln(intensity)
-    boost::random::normal_distribution<SimIntensityType> ndist (0, intensity_scale_stddev_ * intensity);
+    boost::normal_distribution<SimIntensityType> ndist (0, intensity_scale_stddev_ * intensity);
     intensity += ndist(rnd_gen_->getTechnicalRng());
 
     return intensity;
