@@ -1,0 +1,10 @@
+language: cpp
+compiler:
+  - gcc
+  - clang
+cache: apt
+before_script:
+   ./tools/lnx-cibuild.before.sh
+script:
+  ./tools/lnx-cibuild.sh
+
