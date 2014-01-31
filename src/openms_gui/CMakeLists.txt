@@ -51,7 +51,7 @@ include(${QT_USE_FILE})
 include(qt_wrap_ui.cmake)
 
 # --------------------------------------------------------------------------
-# big include file for headers and C files
+# big include file for headers and cpp files
 include (${PROJECT_SOURCE_DIR}/includes.cmake)
 
 # --------------------------------------------------------------------------

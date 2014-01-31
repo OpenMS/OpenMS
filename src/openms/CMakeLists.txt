@@ -150,8 +150,9 @@ if( ${list_pos} EQUAL -1 )
 	message(FATAL_ERROR "Aborting ...")
 endif()
 
-## big include file for headers and C files, which fills the OpenMS_sources variable
-include (${OPENMS_HOST_DIRECTORY}/cmake/includes.cmake)
+#------------------------------------------------------------------------------
+# big include file for headers and cpp files, that fills the OpenMS_sources variable
+include (${PROJECT_SOURCE_DIR}/includes.cmake)
 
 ## add library target
 ## warning: set BUILD_SHARED_LIBS to decide if library is shared or static (see above)! We need the BUILD_SHARED_LIBS flag to set declspec flags for MSVC!
