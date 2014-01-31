@@ -58,13 +58,11 @@ START_SECTION(static String getTime())
 }
 END_SECTION
 
-
 START_SECTION(static String getVersion() )
 {
 	TEST_STRING_EQUAL(VersionInfo::getVersion(),String(OPENMS_PACKAGE_VERSION).trim());
 }
 END_SECTION
-
 
 START_SECTION((static VersionDetails getVersionStruct()))
 {
@@ -75,17 +73,6 @@ START_SECTION((static VersionDetails getVersionStruct()))
 	TEST_EQUAL(VersionInfo::getVersionStruct() == detail, true);
 }
 END_SECTION
-
-START_SECTION(static String getRevision() )
-{
-	// just to call the method
-	STATUS("If you have compiled from an SVN sandbox, then this should print a revision number, or a range of revisions followed by \"M\", or something similar.");
-  STATUS("Compare with \"svnversion\" or \"svn info\".")
-	STATUS(VersionInfo::getRevision());
-	NOT_TESTABLE;
-}
-END_SECTION
-
 
 START_SECTION(([VersionInfo::VersionDetails] VersionDetails()))
 {

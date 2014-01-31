@@ -62,9 +62,6 @@
 // The directory where the OpenMS sources are located
 #define OPENMS_BINARY_PATH "@PROJECT_BINARY_DIR@"
 
-// do we use SVN revision in VersionInfo.cpp?! [depending on the availability of svnversion(.exe)]
-#cmakedefine OPENMS_HAS_SVNVERSION
-
 // Define compiler specifics (used in VERY few places only)
 // Microsoft Visual Studio .NET, 2005, 2008
 #cmakedefine OPENMS_COMPILER_MSVC

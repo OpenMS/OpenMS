@@ -562,7 +562,6 @@ foreach ($files_todo as $f)
     "IsotopeWaveletConstants.h",
     "IsotopeWaveletCudaKernel.h",
     "IsotopeWaveletParallelFor.h",
-    "openms_svn_revision.h",
     "openms_package_version.h",
   );
 
@@ -724,7 +723,6 @@ foreach ($files_todo as $f)
       "IsotopeWaveletCudaKernel.h",
       "IsotopeWaveletConstants.h",
       "IsotopeWaveletParallelFor.h",
-      "include/OpenMS/openms_svn_revision.h",
       "include/OpenMS/openms_package_version.h",
       "include/OpenMS/SIMULATION/SimTypes.h",
       "include/OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h",
