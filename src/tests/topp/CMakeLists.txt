@@ -678,7 +678,7 @@ if(NOT DISABLE_OPENSWATH)
   ADD_TEST("TOPP_ConvertTSVToTraML_test_2" ${TOPP_BIN_PATH}/ConvertTSVToTraML -in ${DATA_DIR_TOPP}/ConvertTSVToTraML_2_input.csv -out ConvertTSVToTraML_2_output.TraML.tmp -algorithm:retentionTimeInterpretation minutes)
   ADD_TEST("TOPP_ConvertTSVToTraML_test_2_out1" ${DIFF} -in1 ConvertTSVToTraML_2_output.TraML.tmp -in2 ${DATA_DIR_TOPP}/ConvertTSVToTraML_2_output.TraML)
   set_tests_properties("TOPP_ConvertTSVToTraML_test_2_out1" PROPERTIES DEPENDS "TOPP_ConvertTSVToTraML_test_2")
-  ADD_TEST("TOPP_ConvertTSVToTraML_test_3" ${TOPP_BIN_PATH}/ConvertTSVToTraML -in ${DATA_DIR_TOPP}/ConvertTSVToTraML_2_input.csv -out ConvertTSVToTraML_2_output.TraML.tmp -algorithm:retentionTimeInterpretation seconds)
+  ADD_TEST("TOPP_ConvertTSVToTraML_test_3" ${TOPP_BIN_PATH}/ConvertTSVToTraML -in ${DATA_DIR_TOPP}/ConvertTSVToTraML_2_input.csv -out ConvertTSVToTraML_3_output.TraML.tmp -algorithm:retentionTimeInterpretation seconds)
   ADD_TEST("TOPP_ConvertTSVToTraML_test_3_out1" ${DIFF} -in1 ConvertTSVToTraML_2_output.TraML.tmp -in2 ${DATA_DIR_TOPP}/ConvertTSVToTraML_3_output.TraML)
   set_tests_properties("TOPP_ConvertTSVToTraML_test_3_out1" PROPERTIES DEPENDS "TOPP_ConvertTSVToTraML_test_3")
 
