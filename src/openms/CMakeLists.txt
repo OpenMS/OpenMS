@@ -197,17 +197,11 @@ target_link_libraries(OpenMS OpenSwathAlgo ${APPLE_EXTRA_LIBS} ${QT_LIBRARIES} $
 ## OPENMS_LIBRARIES defines the libraries used by OpenMS; this should be used to link against executables
 ## somehow the link dependencies of cmake are broken such that when using POSTFIX names for libs the dependencies are not forwarded...
 ## we fix this by adding the dependencies of OpenMS directly to the executables as well.
-set(OPENMS_LIBRARIES optimized OpenMS${CMAKE_RELEASE_POSTFIX} debug OpenMS${CMAKE_DEBUG_POSTFIX} ${QT_LIBRARIES}
-    CACHE INTERNAL "OpenMS libraries" FORCE)
+set(OPENMS_LIBRARIES OpenMS ${QT_LIBRARIES} CACHE INTERNAL "OpenMS libraries" FORCE)
 
 if (MSVC) # Windows
 	list(APPEND OPENMS_LIBRARIES ${OPENMS_DEP_LIBRARIES})
 	list(APPEND OPENMS_LIBRARIES OpenSwathAlgo)
-endif()
-
-## directory for OpenMS(d).lib (required for linking executables)
-if (MSVC)
-	link_directories(${PROJECT_BINARY_DIR})
 endif()
 
 ########################################################

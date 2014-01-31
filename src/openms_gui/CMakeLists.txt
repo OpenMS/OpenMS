@@ -94,11 +94,12 @@ endif()
 
 target_link_libraries(OpenMS_GUI OpenMS ${QT_LIBRARIES})
 
-## link libraries for GUI Tools
-set(OPENMS_GUI_LIBRARIES optimized OpenMS_GUI${CMAKE_RELEASE_POSTFIX} debug OpenMS_GUI${CMAKE_DEBUG_POSTFIX} OpenMS ${QT_LIBRARIES}
-    CACHE INTERNAL "OpenMS GUI libraries" FORCE)
+# --------------------------------------------------------------------------
+# link libraries for GUI Tools
+set(OPENMS_GUI_LIBRARIES OpenMS_GUI OpenMS ${QT_LIBRARIES} CACHE INTERNAL "OpenMS GUI libraries" FORCE)
 
-##### GUI tools ########
+# --------------------------------------------------------------------------
+# GUI tools
 set(GUI_DIR source/VISUAL/APPLICATIONS/GUITOOLS)
 include(${GUI_DIR}/executables.cmake)
 foreach(i ${GUI_executables})
