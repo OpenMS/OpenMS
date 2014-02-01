@@ -45,8 +45,8 @@ set(IGNORE_FILES_IN_BUILD_DIRECTORY "^${PROJECT_BINARY_DIR}")
 macro(add_cpplint_tests _directory)
   # find files in _directory
   file(GLOB_RECURSE _source_files
-       RELATIVE ${OPENMS_HOST_DIRECTORY}/${_directory}/
-       ${OPENMS_HOST_DIRECTORY}/${_directory}/*.cpp)
+       RELATIVE ${OPENMS_HOST_DIRECTORY}/src/${_directory}/
+       ${OPENMS_HOST_DIRECTORY}/src/${_directory}/*.cpp)
 
   # add tests
   foreach(_file_to_test ${_source_files})
@@ -57,7 +57,7 @@ macro(add_cpplint_tests _directory)
         "${PYTHON_EXECUTABLE}"
         "${PROJECT_SOURCE_DIR}/cpplint.py"
         "--verbose=5"
-        "${OPENMS_HOST_DIRECTORY}/${_directory}/${_file_to_test}")
+        "${OPENMS_HOST_DIRECTORY}/src/${_directory}/${_file_to_test}")
 
       set_tests_properties(
         ${_file_to_test}_cpplint_test

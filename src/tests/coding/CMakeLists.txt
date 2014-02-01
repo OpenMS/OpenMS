@@ -54,5 +54,5 @@ find_program(PYTHON_EXECUTABLE
 if("${PYTHON_EXECUTABLE}" STREQUAL "PYTHON_EXECUTABLE-NOTFOUND")
   message(STATUS "Info: The program python could not be found. Coding convention check will not be available! Add the location of python(.exe) to your PATH environment variable.")
 else()
-  include( ${PROJECT_SOURCE_DIR}//createcpplinttests.cmake )
+  include( ${PROJECT_SOURCE_DIR}/createcpplinttests.cmake )
 endif("${PYTHON_EXECUTABLE}" STREQUAL "PYTHON_EXECUTABLE-NOTFOUND")
