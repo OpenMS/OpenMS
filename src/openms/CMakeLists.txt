@@ -79,39 +79,6 @@ set(OPENMS_INCLUDE_DIRECTORIES ${PROJECT_SOURCE_DIR}/include
 # add OpenMS include directories
 include_directories(${OPENMS_INCLUDE_DIRECTORIES})
 
-########################################################
-###    useful programms															 ###
-########################################################
-
-find_program(SVNVERSION_EXECUTABLE
-             svnversion
-             PATHS "c:/programme/subversion/bin" "c:/program files/subversion/bin"   ### additional search paths (along with $PATH)
-             DOC "svnversion executable which helps in determining the svn revision when building TOPP tools")
-
-if ("${SVNVERSION_EXECUTABLE}" STREQUAL "SVNVERSION_EXECUTABLE-NOTFOUND")
-	message(STATUS "Info: The programm svnversion could not be found. SVN-revision information will not be available! Add the location of svnversion(.exe) to your PATH environment variable if you require SVN-revision.")
-	set(OPENMS_HAS_SVNVERSION OFF CACHE INTERNAL "SVNVersion(.exe) present?")
-else()
-	set(OPENMS_HAS_SVNVERSION ON CACHE INTERNAL "SVNVersion(.exe) present?")
-endif()
-
-set(SVN_REVISION_FILE "${PROJECT_BINARY_DIR}/include/OpenMS/openms_svn_revision.h")
-
-## update the openms_svn_revision.h file before compiling OpenMS
-set(ENABLE_SVN ON CACHE STRING "Use svnversion (if available) to implant a svn revision number into the library!")
-if (ENABLE_SVN)
-	message(STATUS "SVN revision information enabled. Use 'ENABLE_SVN=OFF' to disable!")
-	add_custom_target(svn_revision_update ALL
-										COMMAND ${CMAKE_COMMAND} -DSOURCE_DIR=${OPENMS_HOST_DIRECTORY} -DSVN_REVISION_FILE=${SVN_REVISION_FILE}
-																						 -DOPENMS_HAS_SVNVERSION=${OPENMS_HAS_SVNVERSION} -DSVNVERSION_EXECUTABLE=${SVNVERSION_EXECUTABLE}
-																						 -DENABLE_SVN=ON
-																						 -P ${OPENMS_HOST_DIRECTORY}/cmake/svnversion.cmake)
-	set_source_files_properties(${SVN_REVISION_FILE} PROPERTIES GENERATED TRUE HEADER_FILE_ONLY TRUE)
-else()
-  message(STATUS "SVN revision information disabled. Use 'ENABLE_SVN=ON' to enable!")
-	include(${OPENMS_HOST_DIRECTORY}/cmake/svnversion.cmake) # generate the header once (for VersionInfo.cpp include)
-endif()
-
 # At this point make a summary of where data and doc will be located:
 message(STATUS "Info: CF_OPENMS_DATA_PATH: ${CF_OPENMS_DATA_PATH}")
 message(STATUS "Info: CF_OPENMS_DOC_PATH: ${CF_OPENMS_DOC_PATH}")
@@ -150,25 +117,21 @@ if( ${list_pos} EQUAL -1 )
 	message(FATAL_ERROR "Aborting ...")
 endif()
 
-## big include file for headers and C files, which fills the OpenMS_sources variable
-include (${OPENMS_HOST_DIRECTORY}/cmake/includes.cmake)
+#------------------------------------------------------------------------------
+# big include file for headers and cpp files, that fills the OpenMS_sources variable
+include (${PROJECT_SOURCE_DIR}/includes.cmake)
 
 ## add library target
 ## warning: set BUILD_SHARED_LIBS to decide if library is shared or static (see above)! We need the BUILD_SHARED_LIBS flag to set declspec flags for MSVC!
 if (FOUND_CUDART AND MT_ENABLE_CUDA) # we need both conditions due to possible present cached entries
 	CUDA_ADD_LIBRARY(OpenMS ${OpenMS_sources} ${Cuda_sources})
 else()
-	ADD_LIBRARY(OpenMS ${OpenMS_sources})
+	add_library(OpenMS ${OpenMS_sources})
 endif()
 
 #------------------------------------------------------------------------------
 # copy dll to test/doc bin folder on MSVC systems
 copy_dll_to_extern_bin(OpenMS)
-
-## update the openms_svn_revision.h file before compiling OpenMS
-if (ENABLE_SVN)
-	add_dependencies(OpenMS svn_revision_update)
-endif()
 
 ## all the dependency libraries are linked into libOpenMS.so, except Qt and CUDA which are still dynamic
 set(OPENMS_DEP_LIBRARIES  ${CONTRIB_CBC}
@@ -196,25 +159,19 @@ target_link_libraries(OpenMS OpenSwathAlgo ${APPLE_EXTRA_LIBS} ${QT_LIBRARIES} $
 ## OPENMS_LIBRARIES defines the libraries used by OpenMS; this should be used to link against executables
 ## somehow the link dependencies of cmake are broken such that when using POSTFIX names for libs the dependencies are not forwarded...
 ## we fix this by adding the dependencies of OpenMS directly to the executables as well.
-set(OPENMS_LIBRARIES optimized OpenMS${CMAKE_RELEASE_POSTFIX} debug OpenMS${CMAKE_DEBUG_POSTFIX} ${QT_LIBRARIES}
-    CACHE INTERNAL "OpenMS libraries" FORCE)
+set(OPENMS_LIBRARIES OpenMS ${QT_LIBRARIES} CACHE INTERNAL "OpenMS libraries" FORCE)
 
 if (MSVC) # Windows
 	list(APPEND OPENMS_LIBRARIES ${OPENMS_DEP_LIBRARIES})
 	list(APPEND OPENMS_LIBRARIES OpenSwathAlgo)
 endif()
 
-## directory for OpenMS(d).lib (required for linking executables)
-if (MSVC)
-	link_directories(${PROJECT_BINARY_DIR})
-endif()
-
 ########################################################
 ###              setup python wrapper                ###
 ########################################################
-OPTION(PYOPENMS "setup build system for pyOpenMS" OFF)
+option(PYOPENMS "setup build system for pyOpenMS" OFF)
 IF (PYOPENMS)
-  MESSAGE(STATUS "run cmake files for pyopenms")
+  message(STATUS "run cmake files for pyopenms")
 	include(${OPENMS_HOST_DIRECTORY}/pyOpenMS/pyopenms.cmake)
 ENDIF()
 

@@ -46,15 +46,15 @@ set(SOURCE_FILE_REGEX "\\.cpp$")
 macro(add_cpp_check_tests _directory)
   # find files in _directory
   file(GLOB_RECURSE _source_files
-       RELATIVE ${OPENMS_HOST_DIRECTORY}/${_directory}/
-       ${OPENMS_HOST_DIRECTORY}/${_directory}/*.cpp)
+       RELATIVE ${OPENMS_HOST_DIRECTORY}/src/${_directory}/
+       ${OPENMS_HOST_DIRECTORY}/src/${_directory}/*.cpp)
 
   # add tests
   foreach(_file_to_test ${_source_files})
     string( REGEX MATCH ${SOURCE_FILE_REGEX} _is_source_file ${_file_to_test} )
     if(_is_source_file)
       add_cppcheck_sources(${_file_to_test}
-                           ${OPENMS_HOST_DIRECTORY}/${_directory}/${_file_to_test}
+                           ${OPENMS_HOST_DIRECTORY}/src/${_directory}/${_file_to_test}
                            STYLE
                            FAIL_ON_WARNINGS)
     endif(_is_source_file)

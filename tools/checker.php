@@ -562,7 +562,6 @@ foreach ($files_todo as $f)
     "IsotopeWaveletConstants.h",
     "IsotopeWaveletCudaKernel.h",
     "IsotopeWaveletParallelFor.h",
-    "openms_svn_revision.h",
     "openms_package_version.h",
   );
 
@@ -724,7 +723,6 @@ foreach ($files_todo as $f)
       "IsotopeWaveletCudaKernel.h",
       "IsotopeWaveletConstants.h",
       "IsotopeWaveletParallelFor.h",
-      "include/OpenMS/openms_svn_revision.h",
       "include/OpenMS/openms_package_version.h",
       "include/OpenMS/SIMULATION/SimTypes.h",
       "include/OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h",
@@ -828,7 +826,7 @@ foreach ($files_todo as $f)
       {
         # $h_file = substr($f, 7,-2).".h";
         $h_file = $src_path."/".str_replace("source", "include/OpenMS", $f);
-        $h_file = preg_replace("/C$/", "h", $h_file);
+        $h_file = preg_replace("/cpp$/", "h", $h_file);
         if (!file_exists($h_file))
         {
           $message = "Outdated source file '$f' (no header -> $h_file)";

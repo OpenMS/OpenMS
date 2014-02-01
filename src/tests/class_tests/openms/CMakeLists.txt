@@ -36,23 +36,6 @@ cmake_minimum_required(VERSION 2.8.3 FATAL_ERROR)
 project("OpenMS_class_tests_openms")
 
 #------------------------------------------------------------------------------
-# -- BEGIN OF WORKAROUND --
-# this is a workaround for a CMake-Bug (http://www.cmake.org/Bug/view.php?id=12419)
-# , which prevents the orginal svn_revision_update target to be build prior to OpenMS.lib on Win-VS
-# Delete when bug is fixed.
-set(SVN_REVISION_FILE "${OPENMS_HOST_BINARY_DIRECTORY}/openms/include/OpenMS/openms_svn_revision.h")
-add_custom_target(svn_revision_update_forTests ALL
-	    COMMAND ${CMAKE_COMMAND} -DSOURCE_DIR=${OPENMS_HOST_DIRECTORY}
-                               -DSVN_REVISION_FILE=${SVN_REVISION_FILE}
-                               -DOPENMS_HAS_SVNVERSION=${OPENMS_HAS_SVNVERSION}
-                               -DSVNVERSION_EXECUTABLE=${SVNVERSION_EXECUTABLE}
-	                             -P ${OPENMS_HOST_DIRECTORY}/cmake/svnversion.cmake)
-add_dependencies(OpenMS svn_revision_update_forTests)
-
-# -- END OF WORKAROUND --
-#------------------------------------------------------------------------------
-
-#------------------------------------------------------------------------------
 # Configure test file to get the TEST_DATA_PATH into the tests
 set(CF_OPENMS_TEST_DATA_PATH "${PROJECT_SOURCE_DIR}/data/" CACHE INTERNAL "Path to the test data")
 set (CONFIGURED_TEST_CONFIG_H "${PROJECT_BINARY_DIR}/include/OpenMS/test_config.h")
