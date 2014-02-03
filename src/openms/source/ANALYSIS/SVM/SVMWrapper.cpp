@@ -1025,9 +1025,9 @@ namespace OpenMS
         {
           free(training_data_ul[k]->x);
           free(training_data_ul[k]->y);
-          delete training_data_ul[k];
+          delete training_data_ul[k]; // delete individual objects
         }
-        delete training_data_ul;
+        delete[] training_data_ul; // delete array of pointers
       }
 
       // not essential...
