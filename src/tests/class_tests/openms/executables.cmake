@@ -148,6 +148,7 @@ set(format_executables_list
   FileTypes_test
   GzipIfstream_test
   GzipInputStream_test
+  IBSpectraFile_test
   IdXMLFile_test
   IndexedMzMLFile_test
   IndexedMzMLFileLoader_test
