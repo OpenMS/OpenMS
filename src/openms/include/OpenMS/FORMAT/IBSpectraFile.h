@@ -45,11 +45,11 @@ namespace OpenMS
   class ConsensusMap;
   class String;
   class IsobaricQuantitationMethod;
-
+  class AASequence;
+  
   /**
     @brief Implements the export of consensusmaps into the ibspectra format
            used by isobar to load quantification results.
-
   */
   class OPENMS_DLLAPI IBSpectraFile
   {
@@ -90,8 +90,17 @@ private:
     /**
       @brief Constructs the matching file header for the given quantitation method.
       @param quantMethod The used quantitation method.
+      @return The header of the ibspectra file for the given quantiation method.
     */
     StringList constructHeader_(const IsobaricQuantitationMethod& quantMethod);
+    
+    /**
+      @brief Generates the modif string for the given AASequence.
+     
+      @param seqeunce The sequence for which the modif string should be generated.
+      @return The modif string for the given seequence.
+    */
+    String getModifString_(const AASequence& sequence);
   };
 
 }

@@ -173,6 +173,23 @@ namespace OpenMS
 
     return header;
   }
+  
+  String IBSpectraFile::getModifString_(const AASequence& sequence)
+  {
+    String modif = sequence.getNTerminalModification();
+    for (AASequence::ConstIterator aa_it = sequence.begin();
+         aa_it != sequence.end();
+         ++aa_it)
+    {
+      modif += ":" + aa_it->getModification();
+    }
+    if(sequence.getCTerminalModification() != "")
+    {
+      modif += ":" + sequence.getCTerminalModification();
+    }
+
+    return modif;
+  }
 
   void IBSpectraFile::store(const String& filename, const ConsensusMap& cm)
   {
@@ -236,17 +253,7 @@ namespace OpenMS
           entry.theo_mass = cFeature.getPeptideIdentifications()[0].getHits()[0].getSequence().getMonoWeight(Residue::Full, cFeature.getPeptideIdentifications()[0].getHits()[0].getCharge());
 
           // write modif
-          entry.modif = cFeature.getPeptideIdentifications()[0].getHits()[0].getSequence().getNTerminalModification();
-          for (AASequence::ConstIterator aa_it = cFeature.getPeptideIdentifications()[0].getHits()[0].getSequence().begin();
-               aa_it != cFeature.getPeptideIdentifications()[0].getHits()[0].getSequence().end();
-               ++aa_it)
-          {
-            entry.modif += ":" + aa_it->getModification();
-          }
-          if(cFeature.getPeptideIdentifications()[0].getHits()[0].getSequence().getCTerminalModification() != "")
-          {
-            entry.modif += ":" + cFeature.getPeptideIdentifications()[0].getHits()[0].getSequence().getCTerminalModification();
-          }
+          entry.modif = getModifString_(cFeature.getPeptideIdentifications()[0].getHits()[0].getSequence());
 
           ProtHitIt proteinHit = protIdent.findHit(*prot_ac);
           if (proteinHit == protIdent.getHits().end())
