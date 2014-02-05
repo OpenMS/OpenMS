@@ -233,10 +233,13 @@ namespace OpenMS
   {
     Spectrum1DGoToDialog goto_dialog(this);
     goto_dialog.setRange(canvas()->getVisibleArea().minX(), canvas()->getVisibleArea().maxX());
+    goto_dialog.setMinMaxOfRange(canvas()->getDataRange().minX(), canvas()->getDataRange().maxX());
     if (goto_dialog.exec())
     {
       goto_dialog.fixRange();
-      canvas()->setVisibleArea(SpectrumCanvas::AreaType(goto_dialog.getMin(), 0, goto_dialog.getMax(), 0));
+      SpectrumCanvas::AreaType area (goto_dialog.getMin(), 0, goto_dialog.getMax(), 0);
+      correctAreaToObeyMinMaxRanges_(area);
+      canvas()->setVisibleArea(area);
     }
   }
 

@@ -104,6 +104,18 @@ namespace OpenMS
     emit aboutToBeDestroyed(window_id_);
   }
 
+  void SpectrumWidget::correctAreaToObeyMinMaxRanges_(SpectrumCanvas::AreaType& area)
+  {
+    if(area.maxX() > canvas()->getDataRange().maxX())
+      area.setMaxX(canvas()->getDataRange().maxX());
+    if(area.minX() < canvas()->getDataRange().minX())
+      area.setMinX(canvas()->getDataRange().minX());
+    if(area.maxY() > canvas()->getDataRange().maxY())
+      area.setMaxY(canvas()->getDataRange().maxY());
+    if(area.minY() < canvas()->getDataRange().minY())
+      area.setMinY(canvas()->getDataRange().minY());
+  }
+
   Int SpectrumWidget::getActionMode() const
   {
     return canvas_->getActionMode();
