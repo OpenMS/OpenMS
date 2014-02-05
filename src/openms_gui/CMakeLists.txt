@@ -50,6 +50,14 @@ include(${QT_USE_FILE})
 #include(qt_wrap_ui.cmake)
 include(qt_wrap_ui.cmake)
 
+#------------------------------------------------------------------------------
+# we need to handle boost > 1.52 when moc-ing so we explicitely find boost here
+find_boost()
+
+if(NOT Boost_FOUND)
+  message(FATAL_ERROR "Boost was not found!")
+endif()
+
 # --------------------------------------------------------------------------
 # big include file for headers and cpp files
 include (${PROJECT_SOURCE_DIR}/includes.cmake)

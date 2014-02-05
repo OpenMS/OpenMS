@@ -38,10 +38,12 @@
 #include <QTimer>
 #include <QQueue>
 
+// see https://bugreports.qt-project.org/browse/QTBUG-22829
+#ifndef Q_MOC_RUN
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/VISUAL/EnhancedTabBar.h>
-
+#endif
 
 namespace OpenMS
 {
