@@ -263,11 +263,18 @@ namespace OpenMS
     */
     TransformationDescription performRTNormalization(const OpenMS::TargetedExperiment & irt_transitions,
             const std::vector< OpenSwath::SwathMap > & swath_maps, double min_rsq, double min_coverage,
-            const Param & feature_finder_param, const ChromExtractParams & cp_irt)
+            const Param & feature_finder_param, const ChromExtractParams & cp_irt, Size debug_level)
     {
       LOG_DEBUG << "performRTNormalization method starting" << std::endl;
       std::vector< OpenMS::MSChromatogram<> > irt_chromatograms;
       simpleExtractChromatograms(swath_maps, irt_transitions, irt_chromatograms, cp_irt);
+      // debug output of the iRT chromatograms
+      if (debug_level > 1)
+      {
+        MSExperiment<> exp;
+        exp.setChromatograms(irt_chromatograms);
+        MzMLFile().store("debug_irts.mzML", exp);
+      }
       LOG_DEBUG << "Extracted number of chromatograms from iRT files: " << irt_chromatograms.size() <<  std::endl;
       // get RT normalization from data
       return RTNormalization(irt_transitions,
@@ -471,44 +478,45 @@ namespace OpenMS
 #endif
       for (SignedSize i = 0; i < boost::numeric_cast<SignedSize>(swath_maps.size()); ++i)
       {
-        if (!swath_maps[i].ms1) { // continue if MS1
+        std::vector< OpenMS::MSChromatogram<> > tmp_chromatograms;
+        if (!swath_maps[i].ms1) { // continue 1 (if MS1)
         TargetedExperiment transition_exp_used;
         OpenSwathHelper::selectSwathTransitions(irt_transitions, transition_exp_used,
             cp.min_upper_edge_dist, swath_maps[i].lower, swath_maps[i].upper);
-        if (transition_exp_used.getTransitions().size() > 0) { // continue if no transitions found
+        if (transition_exp_used.getTransitions().size() > 0) { // continue 2 (if no transitions found)
 
         std::vector< OpenSwath::ChromatogramPtr > tmp_out;
         std::vector< ChromatogramExtractor::ExtractionCoordinates > coordinates;
         ChromatogramExtractor extractor;
-        // TODO for lrage rt extraction windows!
         extractor.prepare_coordinates(tmp_out, coordinates, transition_exp_used,  cp.rt_extraction_window, false);
         extractor.extractChromatograms(swath_maps[i].sptr, tmp_out, coordinates, cp.mz_extraction_window,
             cp.ppm, cp.extraction_function);
+        extractor.return_chromatogram(tmp_out, coordinates,
+            transition_exp_used, SpectrumSettings(), tmp_chromatograms, false);
 
 #ifdef _OPENMP
 #pragma omp critical (featureFinder)
 #endif
         {
-          LOG_DEBUG << "Extracted "  << tmp_out.size() << " chromatograms from SWATH map " <<
-              i << " with m/z " << swath_maps[i].lower << " to " << swath_maps[i].upper << ":" << std::endl;
-          for (Size i = 0; i < tmp_out.size(); i++)
+          LOG_DEBUG << "Extracted "  << tmp_chromatograms.size() << " chromatograms from SWATH map " <<
+            i << " with m/z " << swath_maps[i].lower << " to " << swath_maps[i].upper << ":" << std::endl;
+          for (Size i = 0; i < tmp_chromatograms.size(); i++)
           {
             // Check TIC and remove empty chromatograms (can happen if the
             // extraction window is outside the mass spectrometric acquisition
             // window).
             double tic = std::accumulate(tmp_out[i]->getIntensityArray()->data.begin(),tmp_out[i]->getIntensityArray()->data.end(),0);
             LOG_DEBUG << "Chromatogram "  << coordinates[i].id << " with size "
-                << tmp_out[i]->getIntensityArray()->data.size() << " and TIC " << tic  << std::endl;
-            if (tic <= 0.0)
+              << tmp_out[i]->getIntensityArray()->data.size() << " and TIC " << tic  << std::endl;
+            if (tic > 0.0)
+            {
+              // add the chromatogram to the output
+              chromatograms.push_back(tmp_chromatograms[i]);
+            }
+            else
             {
               std::cerr  << " - Warning: Empty chromatogram " << coordinates[i].id << " detected. Will skip it!" << std::endl;
-              continue;
             }
-
-            OpenMS::MSChromatogram<> chrom;
-            OpenSwathDataAccessHelper::convertToOpenMSChromatogram(chrom, tmp_out[i]);
-            chrom.setNativeID(coordinates[i].id);
-            chromatograms.push_back(chrom);
           }
         }
       } // continue 2
@@ -1132,9 +1140,17 @@ protected:
     }
   }
 
+  /**
+   * @brief Load the retention time transformation file
+   *
+   * This function will create the retention time transformation either by
+   * loading a provided .trafoXML file or determine it from the data itself by
+   * extracting the transitions specified in the irt_tr_file TraML file.
+   *
+   */
   TransformationDescription loadTrafoFile(String trafo_in, String irt_tr_file,
     const std::vector< OpenSwath::SwathMap > & swath_maps, double min_rsq, double min_coverage,
-    const Param& feature_finder_param, const OpenSwathWorkflow::ChromExtractParams& cp_irt)
+    const Param& feature_finder_param, const OpenSwathWorkflow::ChromExtractParams& cp_irt, Size debug_level)
   {
     TransformationDescription trafo_rtnorm;
     if (!trafo_in.empty())
@@ -1157,7 +1173,7 @@ protected:
       OpenMS::TargetedExperiment irt_transitions;
       traml.load(irt_tr_file, irt_transitions);
       trafo_rtnorm = wf.performRTNormalization(irt_transitions, swath_maps, min_rsq, min_coverage,
-          feature_finder_param, cp_irt);
+          feature_finder_param, cp_irt, debug_level);
     }
     return trafo_rtnorm;
   }
@@ -1188,6 +1204,7 @@ protected:
     String extraction_function = getStringOption_("extraction_function");
     String swath_windows_file = getStringOption_("swath_windows_file");
     int batchSize = (int)getIntOption_("batchSize");
+    Size debug_level = (Size)getIntOption_("debug");
 
     DoubleReal min_rsq = getDoubleOption_("min_rsq");
     DoubleReal min_coverage = getDoubleOption_("min_coverage");
@@ -1235,7 +1252,7 @@ protected:
     // Get the transformation information (using iRT peptides)
     ///////////////////////////////////
     TransformationDescription trafo_rtnorm = loadTrafoFile(trafo_in, irt_tr_file,
-        swath_maps, min_rsq, min_coverage, feature_finder_param, cp_irt);
+        swath_maps, min_rsq, min_coverage, feature_finder_param, cp_irt, debug_level);
 
     ///////////////////////////////////
     // Load the transitions
