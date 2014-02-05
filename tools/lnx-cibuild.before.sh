@@ -9,7 +9,7 @@ cmake . -DBUILD_TYPE=SEQAN
 cmake . -DBUILD_TYPE=GSL -DNUMBER_OF_JOBS=4
 
 # add alternative repo for newer boost version
-echo 'yes' | sudo add-apt-repository ppa:boost-latest/ppa	
+sudo add-apt-repository --yes ppa:boost-latest/ppa
 sudo apt-get update
 
 # install required packages
