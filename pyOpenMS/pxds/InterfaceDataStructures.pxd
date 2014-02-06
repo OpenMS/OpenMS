@@ -4,14 +4,24 @@ from libcpp.vector cimport vector as libcpp_vector
 cdef extern from "<OpenMS/INTERFACES/DataStructures.h>" namespace "OpenMS::Interfaces":
 
   cdef cppclass BinaryDataArray:
+        # here we misuse wrap-instances for renaming the instance, wrap-as is not supported for
+        # classes, only for methods
+        #
+        # wrap-instances:
+        #   _Interfaces_BinaryDataArray := BinaryDataArray
         BinaryDataArray()
         BinaryDataArray(BinaryDataArray)
         libcpp_vector[double] data
-      
+
   ctypedef shared_ptr[BinaryDataArray] BinaryDataArrayPtr
 
   # See addons/Spectrum.pyx
   cdef cppclass Spectrum:
+        # here we misuse wrap-instances for renaming the instance, wrap-as is not supported for
+        # classes, only for methods
+        #
+        # wrap-instances:
+        #   _Interfaces_Spectrum := Spectrum
         Spectrum()
         Spectrum(Spectrum)
         BinaryDataArrayPtr getMZArray() #wrap-ignore
@@ -23,6 +33,11 @@ cdef extern from "<OpenMS/INTERFACES/DataStructures.h>" namespace "OpenMS::Inter
 
   # See addons/Chromatogram.pyx
   cdef cppclass Chromatogram:
+        # here we misuse wrap-instances for renaming the instance, wrap-as is not supported for
+        # classes, only for methods
+        #
+        # wrap-instances:
+        #   _Interfaces_Chromatogram := Chromatogram
         Chromatogram()
         Chromatogram(Chromatogram)
         BinaryDataArrayPtr getTimeArray() #wrap-ignore
