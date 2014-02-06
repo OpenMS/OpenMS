@@ -73,6 +73,14 @@ END_SECTION
 AccurateMassSearchEngine ams_pos;
 AccurateMassSearchEngine ams_neg;
 
+Param ams_param;
+ams_param.setValue("db:mapping", OPENMS_GET_TEST_DATA_PATH("reducedHMDBMapping.tsv"));
+ams_param.setValue("db:struct", OPENMS_GET_TEST_DATA_PATH("reducedHMDB2StructMapping.tsv"));
+ams_pos.setParameters(ams_param);
+ams_neg.setParameters(ams_param);
+
+
+
 DoubleReal query_mass_pos(308.09);
 DoubleReal query_mass_neg(306.08);
 // Param ams_param;
@@ -101,7 +109,7 @@ START_SECTION((void queryByMass(const DoubleReal& observed_mass, const Int& obse
             // std::cout << hmdb_results_pos[i].getFormulaString() << std::endl;
         }
     }
-    ams_pos.queryByMass(query_mass_neg, -1.0, hmdb_results_neg);  // this is not 100% correct, since we are still searching with positive adducts. 
+    ams_pos.queryByMass(query_mass_neg, -1.0, hmdb_results_neg);  // this is not 100% correct, since we are still searching with positive adducts.
     // However, it does not matter if +z or -z, since any FF will just give +1, even in negative mode
 
     TEST_EQUAL(hmdb_results_neg.size(), id_list_neg_length)
@@ -129,6 +137,8 @@ test_feat.setMetaValue("masstrace_intensity_1", 26.1);
 test_feat.setMetaValue("masstrace_intensity_2", 4.0);
 
 AccurateMassSearchEngine ams_feat_test;
+ams_feat_test.setParameters(ams_param);
+
 
 String feat_query_pos[] = {"C23H45NO4", "C20H37NO3", "C22H41NO"};
 
@@ -234,7 +244,7 @@ FeatureMap<> exp_fm;
 FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("AccurateMassSearchEngine_input1.featureXML"), exp_fm);
 MzTab test_mztab;
 
-Param ams_param;
+// Param ams_param;
 ams_param.setValue("isotopic_similarity", "true");
 
 String fm_id_list[] = {"C17H25ClO2","C10H19N3O4S","C10H19N3O4S","C10H19N3O4S","C10H19N3O4S","C18H15NO2","C18H15NO2","C8H16N2O4S","C8H16N2O4S","C10H9NO","C8H8N4","C10H9NO","C8H8N4","C8H18NO2","C8H18NO2","C10H8O2","C10H8O2","C10H8O2","C17H20N2S","C17H20N2S","C17H20N2S","C17H20N2S"};
@@ -319,6 +329,10 @@ START_SECTION((const String& getInternalIonMode()))
   AccurateMassSearchEngine ams;
   Param p;
   p.setValue("ionization_mode","auto");
+  p.setValue("db:mapping", OPENMS_GET_TEST_DATA_PATH("reducedHMDBMapping.tsv"));
+  p.setValue("db:struct", OPENMS_GET_TEST_DATA_PATH("reducedHMDB2StructMapping.tsv"));
+
+
   ams.setParameters(p);
   TEST_EQUAL(ams.getInternalIonMode(), "auto")
   std::vector<AccurateMassSearchResult> hmdb_results_pos;
@@ -345,6 +359,8 @@ START_SECTION([EXTRA] template <typename MAPTYPE> void resolveAutoMode_(const MA
   MzTab mzt;
   Param p;
   p.setValue("ionization_mode","auto");
+  p.setValue("db:mapping", OPENMS_GET_TEST_DATA_PATH("reducedHMDBMapping.tsv"));
+  p.setValue("db:struct", OPENMS_GET_TEST_DATA_PATH("reducedHMDB2StructMapping.tsv"));
   ams.setParameters(p);
 
 

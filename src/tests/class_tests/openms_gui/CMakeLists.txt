@@ -81,6 +81,11 @@ endif()
 include(${QT_USE_FILE})
 
 #------------------------------------------------------------------------------
+# We need some special treatments of boost in moc, hence we search for boost
+# here
+find_boost()
+
+#------------------------------------------------------------------------------
 # Add GUI tests
 foreach(_gui_test ${GUI_executables_list})
 	# moc the test file

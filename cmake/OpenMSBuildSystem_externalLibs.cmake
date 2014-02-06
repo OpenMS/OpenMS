@@ -107,18 +107,7 @@ endif()
 
 #------------------------------------------------------------------------------
 # BOOST
-option(BOOST_USE_STATIC "Use Boost static libraries." ON)
-set(Boost_USE_STATIC_LIBS ${BOOST_USE_STATIC})
-set(Boost_USE_MULTITHREADED  ON)
-set(Boost_USE_STATIC_RUNTIME OFF)
-add_definitions(/DBOOST_ALL_NO_LIB) ## disable auto-linking of boost libs (boost tends to guess wrong lib names)
-set(Boost_COMPILER "")
-
-# help boost finding it's packages
-set(Boost_ADDITIONAL_VERSIONS "1.47.0" "1.48.0" "1.49.0" "1.50.0" "1.51.0" "1.52.0" "1.53.0" "1.54.0")
-
-# 1st attempt does not explicitly requires boost to enable second check (see below)
-find_package(Boost 1.42.0 COMPONENTS iostreams date_time math_c99 regex)
+find_boost(iostreams date_time math_c99 regex)
 
 if(Boost_FOUND)
   message(STATUS "Found Boost version ${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION}.${Boost_SUBMINOR_VERSION}" )
@@ -128,15 +117,6 @@ if(Boost_FOUND)
 	set(CF_OPENMS_BOOST_VERSION ${Boost_VERSION})
 else()
   message(FATAL_ERROR "Boost or one of its components not found!")
-endif()
-
-set(BOOST_MOC_ARGS "")
-
-# see: https://bugreports.qt-project.org/browse/QTBUG-22829
-# Confirmed only on mac os x and leads to problems on win32 and lnx
-# so we handle it for now only on mac os x
-if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-	set(BOOST_MOC_ARGS "-DBOOST_NO_TEMPLATE_PARTIAL_SPECIALIZATION")
 endif()
 
 #------------------------------------------------------------------------------

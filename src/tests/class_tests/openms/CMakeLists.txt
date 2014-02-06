@@ -43,25 +43,10 @@ configure_file(${PROJECT_SOURCE_DIR}/include/OpenMS/test_config.h.in ${CONFIGURE
 
 #------------------------------------------------------------------------------
 # Some tests have a link dependency to boost so we find our own boost here
-set(Boost_USE_STATIC_LIBS ${BOOST_USE_STATIC})
-set(Boost_USE_MULTITHREADED  ON)
-set(Boost_USE_STATIC_RUNTIME OFF)
-add_definitions(/DBOOST_ALL_NO_LIB) ## disable auto-linking of boost libs (boost tends to guess wrong lib names)
-set(Boost_COMPILER "")
+find_boost(math_c99)
 
-# help boost finding it's packages
-set(Boost_ADDITIONAL_VERSIONS "1.47.0" "1.48.0" "1.49.0" "1.50.0" "1.51.0" "1.52.0" "1.53.0" "1.54.0")
-
-# 1st attempt does not explicitly requires boost to enable second check (see below)
-find_package(Boost 1.42.0 COMPONENTS math_c99)
-
-set(BOOST_MOC_ARGS "")
-
-# see: https://bugreports.qt-project.org/browse/QTBUG-22829
-# Confirmed only on mac os x and leads to problems on win32 and lnx
-# so we handle it for now only on mac os x
-if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-	set(BOOST_MOC_ARGS "-DBOOST_NO_TEMPLATE_PARTIAL_SPECIALIZATION")
+if(NOT Boost_FOUND)
+  message(FATAL_ERROR "Boost was not found!")
 endif()
 
 #------------------------------------------------------------------------------
@@ -164,13 +149,6 @@ foreach(_class_test ${TEST_executables})
 		set_target_properties(${_class_test} PROPERTIES LINK_FLAGS ${OpenMP_CXX_FLAGS})
 	endif()
 endforeach(_class_test)
-
-#------------------------------------------------------------------------------
-# Tests with extra dependencies
-#------------------------------------------------------------------------------
-if(NOT Boost_FOUND)
-  message(FATAL_ERROR "Boost was not found!")
-endif()
 
 #------------------------------------------------------------------------------
 # 2 - add link dependency
