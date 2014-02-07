@@ -4,6 +4,8 @@
 git clone https://github.com/OpenMS/contrib.git
 cd contrib
 cmake . -DBUILD_TYPE=SEQAN
+cmake . -DBUILD_TYPE=WILDMAGIC -DNUMBER_OF_JOBS=4
+cmake . -DBUILD_TYPE=EIGEN -DNUMBER_OF_JOBS=4
 
 # add alternative repo for newer boost version
 sudo add-apt-repository --yes ppa:boost-latest/ppa
@@ -22,4 +24,5 @@ sudo apt-get install -qq  boost1.54\
                           libsvm3 \
                           glpk \
                           doxygen \
-													graphviz
+                          graphviz 
+
