@@ -148,14 +148,13 @@ public:
       return (sigma_5_bound_.second - sigma_5_bound_.first) > max_rt_span * region_rt_span_;
     }
 
-    virtual bool checkMinimalRTSpan(const std::pair<DoubleReal, DoubleReal>& rt_bounds, const DoubleReal min_rt_span)
+    bool checkMinimalRTSpan(const std::pair<DoubleReal, DoubleReal>& rt_bounds, const DoubleReal min_rt_span)
     {
       return (rt_bounds.second - rt_bounds.first) < min_rt_span * (sigma_5_bound_.second - sigma_5_bound_.first);
     }
 
-    DoubleReal computeTheoretical(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType>& trace, Size k)
+    DoubleReal getValue(DoubleReal rt) const
     {
-      double rt = trace.peaks[k].first;
       double t_diff, t_diff2, denominator = 0.0;
       double fegh = 0.0;
 
@@ -166,13 +165,13 @@ public:
 
       if (denominator > 0.0)
       {
-        fegh =  trace.theoretical_int * height_ * exp(-t_diff2 / denominator);
+        fegh = height_ * exp(-t_diff2 / denominator);
       }
 
       return fegh;
     }
 
-    virtual DoubleReal getArea()
+    DoubleReal getArea()
     {
       // equation 21 from Lan & Jorgenson paper:
       DoubleReal abs_tau = fabs(tau_);
@@ -193,7 +192,7 @@ public:
       return bounds.second - bounds.first;
     }
 
-    virtual String getGnuplotFormula(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType>& trace, const char function_name, const DoubleReal baseline, const DoubleReal rt_shift)
+    String getGnuplotFormula(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType>& trace, const char function_name, const DoubleReal baseline, const DoubleReal rt_shift)
     {
       std::stringstream s;
       s << String(function_name)  << "(x)= " << baseline << " + ";
