@@ -214,6 +214,58 @@ START_SECTION (  bool hasChromatogram(String key))
 }
 END_SECTION
 
+START_SECTION (  void addPrecusorChromatogram(SpectrumType &chromatogram, String key)) 
+{
+  // tested below
+  NOT_TESTABLE
+}
+END_SECTION
+
+START_SECTION (  SpectrumType& getPrecursorChromatogram(String key))
+{
+  MRMTransitionGroupType mrmtrgroup;
+  chrom1.setMetaValue("some_value", 1);
+  mrmtrgroup.addPrecursorChromatogram(chrom1, "dummy1");
+  TEST_EQUAL(mrmtrgroup.getPrecursorChromatogram("dummy1").getMetaValue("some_value"), 1)
+
+  // Add a few feature chromatograms and then add a precursor chromatogram -> it should still work
+  mrmtrgroup.addChromatogram(chrom1, "feature1");
+  mrmtrgroup.addChromatogram(chrom1, "feature2");
+  mrmtrgroup.addChromatogram(chrom1, "feature3");
+  mrmtrgroup.addPrecursorChromatogram(chrom1, "dummy2");
+  TEST_EQUAL(mrmtrgroup.getPrecursorChromatogram("dummy2").getMetaValue("some_value"), 1)
+}
+END_SECTION
+
+START_SECTION (  bool hasPrecursorChromatogram(String key))
+{
+  MRMTransitionGroupType mrmtrgroup;
+  mrmtrgroup.addPrecursorChromatogram(chrom1, "dummy1");
+  TEST_EQUAL(mrmtrgroup.hasPrecursorChromatogram("dummy1"), true)
+  TEST_EQUAL(mrmtrgroup.hasPrecursorChromatogram("dummy2"), false)
+}
+END_SECTION
+
+/*
+START_SECTION ( SpectrumType & getMS1Chromatogram() )
+{
+  MRMTransitionGroupType mrmtrgroup;
+  TEST_EQUAL(mrmtrgroup.getMS1Chromatogram().empty(), true) // default MS1 chrom is empty
+
+  mrmtrgroup.setMS1Chromatogram(chrom1);
+  TEST_EQUAL(chrom1 == mrmtrgroup.getMS1Chromatogram(), true)
+}
+END_SECTION
+
+START_SECTION ( void setMS1Chromatogram(SpectrumType & chromatogram) )
+{
+  MRMTransitionGroupType mrmtrgroup;
+  mrmtrgroup.setMS1Chromatogram(chrom1);
+  TEST_EQUAL(chrom1 == mrmtrgroup.getMS1Chromatogram(), true)
+}
+END_SECTION
+*/
+
 START_SECTION (  const std::vector<MRMFeature> & getFeatures() const)
 {
   MRMTransitionGroupType mrmtrgroup;

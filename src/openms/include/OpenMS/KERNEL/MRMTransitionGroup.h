@@ -78,8 +78,10 @@ public:
       tr_gr_id_(rhs.tr_gr_id_),
       transitions_(rhs.transitions_),
       chromatograms_(rhs.chromatograms_),
+      precursor_chromatograms_(rhs.precursor_chromatograms_),
       cons_features_(rhs.cons_features_),
       chromatogram_map_(rhs.chromatogram_map_),
+      precursor_chromatogram_map_(rhs.precursor_chromatogram_map_),
       transition_map_(rhs.transition_map_)
     {
     }
@@ -96,10 +98,11 @@ public:
         tr_gr_id_ = rhs.tr_gr_id_;
         transitions_ = rhs.transitions_;
         chromatograms_ = rhs.chromatograms_;
+        precursor_chromatograms_ = rhs.precursor_chromatograms_;
         cons_features_ = rhs.cons_features_;
-
         transition_map_ = rhs.transition_map_;
         chromatogram_map_ = rhs.chromatogram_map_;
+        precursor_chromatogram_map_ = rhs.precursor_chromatogram_map_;
       }
       return *this;
     }
@@ -166,9 +169,35 @@ public:
       return chromatograms_[chromatogram_map_[key]];
     }
 
-    inline bool hasChromatogram(String key)
+    inline bool hasChromatogram(String key) const
     {
       return chromatogram_map_.find(key) != chromatogram_map_.end();
+    }
+
+    /** Add a precursor chromatogram (extracted from an MS1 map) to the feature
+     *
+     * While any key can be used, it is expected that the monoisotopic trace is
+     * called "Precursor_i0" and subsequent traces "Precursor_i1" etc. This
+     * policy is not enforced but highly encouraged.
+     *
+     * @param chromatogram Chromatographic traces from the MS1 map to be added
+     * @param key Identifier for this trace, please use use consistent naming like "Precursor_i0", "Precursor_i1", "Precursor_i2" ...
+     *
+     */
+    inline void addPrecursorChromatogram(SpectrumType & chromatogram, String key)
+    {
+      precursor_chromatograms_.push_back(chromatogram);
+      precursor_chromatogram_map_[key] = boost::numeric_cast<int>(precursor_chromatogram_map_.size()) - 1;
+    }
+
+    inline SpectrumType & getPrecursorChromatogram(String key)
+    {
+      return precursor_chromatograms_[precursor_chromatogram_map_[key]];
+    }
+
+    inline bool hasPrecursorChromatogram(String key) const
+    {
+      return precursor_chromatogram_map_.find(key) != precursor_chromatogram_map_.end();
     }
 
     inline const std::vector<MRMFeature> & getFeatures() const
@@ -213,10 +242,14 @@ protected:
     /// chromatogram list
     std::vector<SpectrumType> chromatograms_;
 
+    /// precursor chromatogram list
+    std::vector<SpectrumType> precursor_chromatograms_;
+
     /// feature list
     MRMFeatureListType cons_features_;
 
     std::map<String, int> chromatogram_map_;
+    std::map<String, int> precursor_chromatogram_map_;
     std::map<String, int> transition_map_;
 
   };
