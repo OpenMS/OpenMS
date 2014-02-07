@@ -44,32 +44,38 @@ using namespace OpenMS;
 using namespace std;
 
 /**
-    @page TOPP_PhosphoScoring PhosphoScoring
+  @page TOPP_PhosphoScoring PhosphoScoring
 
-    @brief Tool to score phosphorylation sites of a peptide.
-<CENTER>
+  @brief Tool to score phosphorylation sites of a peptide.
+
+  <CENTER>
     <table>
-        <tr>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ PhosphoScoring \f$ \longrightarrow \f$</td>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
-        </tr>
-        <tr>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_MascotAdapter (or other ID engines) </td>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_PeptideIndexer </td>
-        </tr>
+      <tr>
+        <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+        <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ PhosphoScoring \f$ \longrightarrow \f$</td>
+        <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+      </tr>
+      <tr>
+        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_MascotAdapter (or other ID engines) </td>
+        <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref TOPP_PeptideIndexer </td>
+      </tr>
     </table>
-</CENTER>
-    @experimental This TOPP-tool is not well tested and not all features might be properly implemented and tested.
+  </CENTER>
 
-    Tool for phosphorylation analysis and site localization.
-    Input files are a MSMS spectrum file as well as the corresponding identification file. Firstly, the two files are mapped. Secondly, The tools uses at the moment an implementation of the Ascore according to Beausoleil et al. in order to localize the most probable phosphorylation sites.
-For details: Beausoleil et al.
+  @experimental This TOPP-tool is not well tested and not all features might be properly implemented and tested.
+
+  Tool for phosphorylation analysis and site localization.
+  Input files are a MSMS spectrum file as well as the corresponding identification file.
+  Firstly, the two files are mapped.
+  Secondly, The tools uses at the moment an implementation of the Ascore according
+  to Beausoleil et al. in order to localize the most probable phosphorylation sites.
+
+  For details: Beausoleil et al.
 
   <!-- <B>The command line parameters of this tool are:</B>
   @verbinclude UTILS_PhosphoScoring.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude UTILS_PhosphoScoring.html -->
+  <B>INI file documentation of this tool:</B>
+  @htmlinclude UTILS_PhosphoScoring.html -->
 */
 
 
@@ -81,7 +87,7 @@ class TOPPPhosphoScoring :
 {
 public:
   TOPPPhosphoScoring() :
-    TOPPBase("PhosphoScoring", "Scores potential phosphorylation sites and therby tries to localize the most probable sites.")
+    TOPPBase("PhosphoScoring", "Scores potential phosphorylation sites and thereby tries to localize the most probable sites.")
   {
   }
 
@@ -100,7 +106,7 @@ protected:
     addEmptyLine_();
   }
 
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**)
   {
     //-------------------------------------------------------------
     // parameter handling
@@ -142,7 +148,7 @@ protected:
         for (vector<PeptideHit>::const_iterator hit = hits->getHits().begin(); hit < hits->getHits().end(); ++hit)
         {
           PeptideHit scored_hit = *hit;
-          RichPeakSpectrum & temp  = *it;
+          RichPeakSpectrum& temp  = *it;
           //compute number of possible phosphorylation sites
           Int number_of_phospho_sites = 0;
           {
@@ -159,7 +165,7 @@ protected:
             prec_mz -= scored_hit.getCharge();
             DoubleReal mono_weight = without_phospho.getMonoWeight();
             DoubleReal ha = prec_mz - mono_weight;
-            DoubleReal nps = ha / 79.966331;                 // 79.966331 = mass of HPO3
+            DoubleReal nps = ha / 79.966331; // 79.966331 = mass of HPO3
             number_of_phospho_sites = (Int)floor(nps + 0.5);
           }
           PeptideHit phospho_sites;
@@ -183,11 +189,10 @@ protected:
 
 };
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPPhosphoScoring tool;
   return tool.main(argc, argv);
 }
 
 /// @endcond
-

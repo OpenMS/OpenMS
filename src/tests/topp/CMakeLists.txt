@@ -108,6 +108,19 @@ foreach (i ${UTILS_executables_INI})
 	endif()
 endforeach(i)
 
+## CTD tests
+set(UTILS_executables_CTD ${UTILS_TOOLS})
+list(REMOVE_ITEM UTILS_executables_CTD OpenMSInfo)
+foreach (i ${UTILS_executables_CTD})
+  add_test("UTILSWRITECTD_${i}" "${TOPP_BIN_PATH}/${i}" -write_ctd)
+endforeach()
+
+set(TOPP_executables_CTD ${TOPP_TOOLS})
+list(REMOVE_ITEM TOPP_executables_CTD GenericWrapper PhosphoScoring)
+foreach (i ${TOPP_executables_CTD})
+  add_test("TOPPWRITECTD_${i}" "${TOPP_BIN_PATH}/${i}" -write_ctd)
+endforeach()
+
 ### test if write_ini does the correct updates when given an old INI file (using one arbitrary TOPP tool)
 add_test("TOPPWRITEINI_OVERWRITE" ${TOPP_BIN_PATH}/PeakPickerWavelet -write_ini "WRITE_INI.ini.tmp" -ini "${DATA_DIR_TOPP}/WRITE_INI_IN.ini")
 add_test("TOPPWRITEINI_OVERWRITE_out" ${DIFF} -in1 WRITE_INI.ini.tmp -in2 "${DATA_DIR_TOPP}/WRITE_INI_OUT.ini")
