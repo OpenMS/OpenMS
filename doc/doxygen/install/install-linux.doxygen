@@ -70,7 +70,7 @@
     <td><pre>
     sudo apt-get install cmake g++ autoconf qt4-dev-tools patch libtool make
     sudo apt-get install libboost-regex-dev libboost-iostreams-dev libboost-date-time-dev libboost-math-dev \
-      libsvm-dev libglpk-dev libzip-dev zlib1g-dev libxerces-c-dev libgsl0-dev
+      libsvm-dev libglpk-dev libzip-dev zlib1g-dev libxerces-c-dev 
     </pre></td>
 
   </tr>

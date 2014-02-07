@@ -13,10 +13,6 @@ in the "contrib" package root directory or online.
 libSVM
 	- URL: http://www.csie.ntu.edu.tw/~cjlin/libsvm/
 	- License.libSVM.txt
-
-GSL
-	- URL: http://www.gnu.org/software/gsl/
-	- License.gpl-2.0.txt
 	
 GLPK
 	- URL: http://www.gnu.org/s/glpk/

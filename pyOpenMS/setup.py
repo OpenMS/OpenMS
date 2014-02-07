@@ -167,13 +167,13 @@ if iswin:
                     "pyopenms")
 
 elif sys.platform == "linux2":
-    libraries = ["OpenMS", "OpenSwathAlgo", "xerces-c", "QtCore", "gslcblas"]
+    libraries = ["OpenMS", "OpenSwathAlgo", "xerces-c", "QtCore"]
 
     shutil.copy(j(OPEN_MS_BUILD_DIR, "lib", "libOpenMS.so"), "pyopenms")
     shutil.copy(j(OPEN_MS_BUILD_DIR, "lib", "libOpenSwathAlgo.so"), "pyopenms")
 
 elif sys.platform == "darwin":
-    libraries = ["OpenMS", "OpenSwathAlgo", "xerces-c", "gsl", "gslcblas"]
+    libraries = ["OpenMS", "OpenSwathAlgo", "xerces-c"]
 
     shutil.copy(j(OPEN_MS_BUILD_DIR, "lib", "libOpenMS.dylib"), "pyopenms")
     shutil.copy(j(OPEN_MS_BUILD_DIR, "lib", "libOpenSwathAlgo.dylib"), "pyopenms")

@@ -335,7 +335,6 @@ public:
 
         // precompute random numbers:
         std::vector<UInt> prec_rndbin(abundance);
-#pragma omp critical (OPENMS_gsl)
         {
           boost::random::binomial_distribution<Int, DoubleReal> bdist (basic_residues_c, esi_probability_);
           for (Int j = 0; j < abundance; ++j)
@@ -384,7 +383,6 @@ public:
               if (prec_rnduni_remaining == 0)
               {
                 // refill discrete rnd numbers if container is depleted
-#pragma omp critical (OPENMS_gsl)
                 {
                   for (Size i_rnd = 0; i_rnd < prec_rnduni.size(); ++i_rnd)
                   {
