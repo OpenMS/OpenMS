@@ -92,6 +92,8 @@ public:
 
     boost::shared_ptr<OpenSwath::IFeature> getFeature(std::string nativeID);
 
+    boost::shared_ptr<OpenSwath::IFeature> getPrecursorFeature(std::string nativeID);
+
     float getIntensity();
 
     double getRT();
@@ -101,6 +103,7 @@ public:
 private:
     const MRMFeature& mrmfeature_;
     std::map<std::string, boost::shared_ptr<FeatureOpenMS> > features_;
+    std::map<std::string, boost::shared_ptr<FeatureOpenMS> > precursor_features_;
   };
 
   /**

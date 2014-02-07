@@ -86,6 +86,8 @@ public:
 
     boost::shared_ptr<OpenSwath::IFeature> getFeature(std::string nativeID);
 
+    boost::shared_ptr<OpenSwath::IFeature> getPrecursorFeature(std::string nativeID);
+
     float getIntensity();
 
     double getRT();
@@ -93,6 +95,7 @@ public:
     size_t size();
 
     std::map<std::string, boost::shared_ptr<MockFeature> > m_features;
+    std::map<std::string, boost::shared_ptr<MockFeature> > m_precursor_features;
     float m_intensity;
     double m_rt;
   };
