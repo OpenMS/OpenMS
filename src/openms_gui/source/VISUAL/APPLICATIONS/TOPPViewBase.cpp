@@ -227,7 +227,7 @@ namespace OpenMS
     //Tools menu
     QMenu* tools = new QMenu("&Tools", this);
     menuBar()->addMenu(tools);
-    tools->addAction("&Go to", this, SLOT(showGoToDialog()), Qt::CTRL + Qt::Key_G);
+    tools->addAction("&Select data range", this, SLOT(showGoToDialog()), Qt::CTRL + Qt::Key_G);
     tools->addAction("&Edit meta data", this, SLOT(editMetadata()), Qt::CTRL + Qt::Key_M);
     tools->addAction("&Statistics", this, SLOT(layerStatistics()));
     tools->addSeparator();
@@ -3682,7 +3682,7 @@ namespace OpenMS
           actions[i]->setEnabled(true);
         }
       }
-      else if (text == "&Go to" || text == "&Edit meta data" || text == "&Statistics" || text == "&Annotate with identification"  || text == "Save all data"  || text == "Save visible data"  || text == "Preferences")
+      else if (text == "&Select data range" || text == "&Edit meta data" || text == "&Statistics" || text == "&Annotate with identification"  || text == "Save all data"  || text == "Save visible data"  || text == "Preferences")
       {
         actions[i]->setEnabled(false);
         if (canvas_exists && layer_exists)

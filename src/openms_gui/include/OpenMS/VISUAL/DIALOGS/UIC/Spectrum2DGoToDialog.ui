@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>434</width>
-    <height>266</height>
+    <height>240</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -17,10 +17,10 @@
    </sizepolicy>
   </property>
   <property name="windowTitle">
-   <string>go to</string>
+   <string>Select data range</string>
   </property>
   <layout class="QGridLayout">
-   <item row="2" column="0">
+   <item row="1" column="0">
     <layout class="QHBoxLayout">
      <item>
       <spacer>
@@ -50,19 +50,6 @@
       </widget>
      </item>
     </layout>
-   </item>
-   <item row="1" column="0">
-    <spacer>
-     <property name="orientation">
-      <enum>Qt::Vertical</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>416</width>
-       <height>16</height>
-      </size>
-     </property>
-    </spacer>
    </item>
    <item row="0" column="0">
     <layout class="QGridLayout">
