@@ -119,7 +119,6 @@ $GLOBALS["all_tests"] = array(
   "check_test"           => "check the class test for completeness",
   "test_output"          => "check test output for warnings and errors",
   "topp_output"          => "check TOPP test output for warnings and errors",
-  "svn_keywords"         => "check if the SVN keywords are set for tests",
   "coding"               => "check if coding convention is followed",
   "defaults"             => "check if DefautParamHandler classes all have a linked parameters section",
   "license"              => "check if the license header is correctly included in the file",
@@ -268,7 +267,7 @@ if ($rebuilt_xml)
   {
     print "Rebuilding doxygen XML output\n";
   }
-  exec("cd $bin_path && make doc_xml");
+  exec("cd $bin_path && cmake --build $bin_path --target doc_xml");
   if ($debug > 0)
   {
     print "Done\n";
@@ -383,12 +382,14 @@ $files = array();
 $includePaths = array("src/openms/include/OpenMS",
                       "src/openms_gui/include/OpenMS",
                       "src/openswathalgo/include/OpenMS",
-                      "src/tests/class_tests/include/OpenMS");
+                      "src/tests/class_tests/openms/include/OpenMS");
 
 $sourcePaths = array("src/openms/source",
                      "src/openms_gui/source",
                      "src/openswathalgo/source",
-                     "src/tests/class_tests/source",
+                     "src/tests/class_tests/openms/source",
+                     "src/tests/class_tests/openms_gui/source",
+                     "src/tests/class_tests/openswathalgo/",
                      "src/topp",
                      "src/utils");
 
@@ -473,7 +474,7 @@ if ($user == "all")
 
 ########################### auxilary files #############################
 $called_tests = array();
-$makefile = file("$src_path/src/tests/class_tests/executables.cmake");
+$makefile = file("$src_path/src/tests/class_tests/openms/executables.cmake");
 foreach ($makefile as $line)
 {
   $line = trim($line);
@@ -483,11 +484,11 @@ foreach ($makefile as $line)
     if (strpos($line, "APPEND") !== FALSE)
     {
       $line = substr($line, strrpos($line, ' ')+1,-1);
-      $called_tests[] = "src/tests/class_tests/source/".$line.".cpp";
+      $called_tests[] = "src/tests/class_tests/openms/source/".$line.".cpp";
     }
     else
     {
-      $called_tests[] = "src/tests/class_tests/source/".strtr($line, array("_1" => "", "_2" => "")).".cpp";
+      $called_tests[] = "src/tests/class_tests/openms/source/".strtr($line, array("_1" => "", "_2" => "")).".cpp";
     }
   }
 }
@@ -532,7 +533,10 @@ foreach ($files_todo as $f)
   //class name (for source and header files)
   $classname = substr($basename, 0,-2);
   //test name (for source and header files)
-  $testname = "src/tests/class_tests/source/".$classname."_test.cpp";
+  $testnames = array(
+    "src/tests/class_tests/openms/source/".$classname."_test.cpp",
+    "src/tests/class_tests/openms_gui/source/".$classname."_test.cpp"
+                    );
 
   // file content
   $file = file($src_path."/".$f);
@@ -627,7 +631,8 @@ foreach ($files_todo as $f)
     if (endsWith($f, ".h"))
     {
       # maintainer of test file
-      if (in_array($testname, $files))
+      $testname = current(array_intersect($testnames, $files));
+      if ($testname == FALSE)
       {
         if (isset($file_maintainers[$testname]) && $file_maintainers[$testname] != $file_maintainers[$f])
         {
@@ -751,7 +756,8 @@ foreach ($files_todo as $f)
       if (!$ignore)
       {
         # check if test exists
-        if (!in_array($testname, $files))
+        $testname = current(array_intersect($testnames, $files));
+        if (!$testname)
         {
           realOutput("Missing test for '$f'", $user, $f);
           reportTestResult("Missing test for '$f'", $user, "missing_tests", $f, false);
@@ -898,7 +904,9 @@ foreach ($files_todo as $f)
   ########################### test errors  #####################################
   if (isset($class_info) && in_array("check_test", $tests))
   {
-    if (in_array($testname, $files))
+    # get the actual test name -> if it exists
+    $testname = current(array_intersect($testnames, $files));
+    if (!$testname)
     {
       #parse test
       $tmp        = parseTestFile("$src_path/$testname");
@@ -1035,7 +1043,10 @@ foreach ($files_todo as $f)
   ########################### warnings test  #####################################
   if (in_array("test_output", $tests))
   {
-    if (endsWith($f, ".h") && in_array($testname, $files))
+    # get the actual test name
+    $testname = current(array_intersect($testnames, $files));
+
+    if (endsWith($f, ".h") && !$testname)
     {
       $errors = array();
       if (isset($test_log[$classname."_test"]))
@@ -1054,80 +1065,6 @@ foreach ($files_todo as $f)
       else
       {
         reportTestResult("", $user, "test_output", $f, true);
-      }
-    }
-  }
-
-  ######################### quote212'Id' keyword in tests  ###############################
-  if (in_array("svn_keywords", $tests))
-  {
-    if (endsWith($f, ".h"))
-    {
-      if (in_array($testname, $files))
-      {
-        $out = array();
-
-        exec("svn proplist -v $src_path/$testname", $out);
-        $kw = false;
-        $kw_id = false;
-        foreach ($out as $line)
-        {
-          if (strpos($line, "svn:keywords") !== FALSE)
-          {
-            $kw = true;
-          }
-          if (strpos($line, "Id") !== FALSE)
-          {
-            $kw_id = true;
-          }
-        }
-
-        /* Deactivated since it crashed on the test machine in tuebingen
-         *  - check used SVN version
-         *  - check output of --xml
-
-				// use xml output since svn 1.5 and 1.6 have different output formats
-				// when used wo --xml
-				exec("svn proplist -v --xml $src_path/$testname",$out);
-
-				// concat
-				$xml_out = "";
-				foreach($out as $line)
-				{
-					$xml_out .= $line."\n";
-				}
-
-				$svn_xml   = simplexml_load_string($xml_out);
-				$kw        = false;
-        $kw_id = false;
-				foreach($svn_xml->target as $target)
-				{
-					foreach($target->property as $prop)
-					{
-						if($prop["name"] == "svn:keywords")
-						{
-							$kw=true;
-							if (strpos($prop,"Id")!==FALSE)
-							{
-                $kw_id=true;
-								break;
-							}
-						}
-					}
-				}
-				*/
-        $message = "";
-        if (!$kw)
-        {
-          $message = "svn:keywords section does not exist for '$testname'\n";
-          realOutput("svn:keywords section does not exist for '$testname'", $user, $testname);
-        }
-        if (!$kw_id)
-        {
-          $message .= "svn:keyword 'Id' not set for '$testname'";
-          realOutput("svn:keyword 'Id' not set for '$testname'", $user, $testname);
-        }
-        reportTestResult($message, $user, "svn_keywords", $f, ($kw_id && $kw));
       }
     }
   }
