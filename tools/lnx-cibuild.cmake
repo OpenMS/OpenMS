@@ -21,6 +21,7 @@ set(CTEST_CUSTOM_TESTS_IGNORE
   TOPPView_test
   UTILSWRITEINI_IDEvaluator
   UTILSWRITEINI_IDEvaluator_SectionName
+  UTILSWRITECTD_IDEvaluator
 	GzipIfstream_test
 )
 
