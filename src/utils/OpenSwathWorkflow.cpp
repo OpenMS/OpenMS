@@ -109,6 +109,15 @@ public:
         
     ~SpectrumAccessQuadMZTransforming() {}
 
+    boost::shared_ptr<OpenSwath::ISpectrumAccess> lightClone() const
+    {
+      // Create a light clone of *this by initializing a new
+      // SpectrumAccessQuadMZTransforming with a light clone of the underlying
+      // SpectrumAccess object and the parameters.
+      return boost::shared_ptr<SpectrumAccessQuadMZTransforming>(
+          new SpectrumAccessQuadMZTransforming(sptr_->lightClone(), a_, b_, c_));
+    }
+
     OpenSwath::SpectrumPtr getSpectrumById(int id)
     {
       OpenSwath::SpectrumPtr s = sptr_->getSpectrumById(id);
