@@ -152,7 +152,7 @@ protected:
         // }
       }
       String pepref = trgroup_it->second.getTransitions()[0].getPeptideRef();
-      pairs.push_back(std::make_pair(bestf->getRT(), PeptideRTMap[pepref]));
+      if (bestf) {pairs.push_back(std::make_pair(bestf->getRT(), PeptideRTMap[pepref]));}
     }
   }
 

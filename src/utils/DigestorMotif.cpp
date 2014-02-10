@@ -111,7 +111,7 @@ protected:
     DoubleReal accurate_mass, min_mass, max_mass;
     UInt mass_acc, out_opt;
     EmpiricalFormula EF;
-    UInt zero_count;
+    UInt zero_count = 0;
     ProteinIdentification::SearchParameters search_parameters;
 
     protein_identifications.push_back(ProteinIdentification());

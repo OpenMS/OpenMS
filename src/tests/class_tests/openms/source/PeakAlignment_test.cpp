@@ -91,6 +91,14 @@ START_SECTION((double operator()(const PeakSpectrum &spec1, const PeakSpectrum &
 	s2.pop_back();
 	double score = pa(s1, s2);
 	TEST_REAL_SIMILAR(score, 0.997477)
+
+  // Test empty spectra - they should return zero
+  PeakSpectrum empty_spectrum;
+	score = pa(empty_spectrum, s2);
+	TEST_REAL_SIMILAR(score, 0.0)
+
+	score = pa(s1, empty_spectrum);
+	TEST_REAL_SIMILAR(score, 0.0)
 }
 END_SECTION
 

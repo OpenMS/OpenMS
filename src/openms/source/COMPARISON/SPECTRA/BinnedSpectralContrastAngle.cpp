@@ -83,7 +83,7 @@ namespace OpenMS
     if (!spec1.getPrecursors().empty())
       pre_mz1 = spec1.getPrecursors()[0].getMZ();
     DoubleReal pre_mz2 = 0.0;
-    if (!spec1.getPrecursors().empty())
+    if (!spec2.getPrecursors().empty())
       pre_mz2 = spec2.getPrecursors()[0].getMZ();
     if (fabs(pre_mz1 - pre_mz2) > (double)param_.getValue("precursor_mass_tolerance"))
     {
