@@ -4,13 +4,15 @@ from ChromatogramSettings cimport *
 from MetaInfoInterface cimport *
 from ChromatogramPeak cimport *
 from String cimport *
+from RangeManager cimport *
 
 cdef extern from "<OpenMS/KERNEL/MSChromatogram.h>" namespace "OpenMS":
 
-    cdef cppclass MSChromatogram[ChromatogramPeakT] (ChromatogramSettings, MetaInfoInterface):
+    cdef cppclass MSChromatogram[ChromatogramPeakT] (ChromatogramSettings, MetaInfoInterface, RangeManager1):
         # wrap-inherits:
         #  ChromatogramSettings
         #  MetaInfoInterface
+        #  RangeManager1
 
         # wrap-instances:
         #   MSChromatogram := MSChromatogram[ChromatogramPeak]

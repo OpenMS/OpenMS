@@ -21,6 +21,15 @@ class TestMSSpectrumAndRichSpectrum(unittest.TestCase):
         assert p_back.getMZ() == 500.0
         assert p_back.getIntensity() == 1e5
 
+        spec.updateRanges()
+        assert isinstance(spec.getMin()[0], float)
+        assert isinstance(spec.getMax()[0], float)
+        assert isinstance(spec.getMinInt(), float)
+        assert isinstance(spec.getMaxInt(), float)
+
+        assert spec.getMaxInt() == 1e5
+        assert spec.getMinInt() == 1e5
+
     def testRichMSSpectrum(self):
         spec = pyopenms.RichMSSpectrum()
         p = pyopenms.RichPeak1D()
@@ -32,6 +41,14 @@ class TestMSSpectrumAndRichSpectrum(unittest.TestCase):
         assert isinstance(p_back, pyopenms.RichPeak1D)
         assert p_back.getMZ() == 500.0
         assert p_back.getIntensity() == 1e5
+
+        spec.updateRanges()
+        assert isinstance(spec.getMin()[0], float)
+        assert isinstance(spec.getMax()[0], float)
+        assert isinstance(spec.getMinInt(), float)
+        assert isinstance(spec.getMaxInt(), float)
+        assert spec.getMaxInt() == 1e5
+        assert spec.getMinInt() == 1e5
 
 
 if __name__ == '__main__':
