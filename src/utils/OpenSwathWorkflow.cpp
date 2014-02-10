@@ -113,7 +113,9 @@ namespace OpenMS
         "\tvar_library_rootmeansquare\tvar_library_sangle\tvar_log_sn_score\tvar_manhatt_score" <<
         "\tvar_massdev_score\tvar_massdev_score_weighted\tvar_norm_rt_score\tvar_xcorr_coelution" <<
         "\tvar_xcorr_coelution_weighted\tvar_xcorr_shape\tvar_xcorr_shape_weighted" <<
-        "\tvar_yseries_score\tvar_elution_model_fit_score\txx_lda_prelim_score\txx_swath_prelim_score" <<
+        "\tvar_yseries_score\tvar_elution_model_fit_score" << 
+        "\tvar_ms1_ppm_diff\tvar_ms1_xcorr_coelution\tvar_ms1_xcorr_shape" << 
+        "\txx_lda_prelim_score\txx_swath_prelim_score" <<
         "\taggr_Peak_Area\taggr_Peak_Apex\taggr_Fragment_Annotation\n";
     }
 
@@ -210,6 +212,9 @@ namespace OpenMS
             + "\t" + (String)feature_it->getMetaValue("var_xcorr_shape_weighted")
             + "\t" + (String)feature_it->getMetaValue("var_yseries_score")
             + "\t" + (String)feature_it->getMetaValue("var_elution_model_fit_score")
+            + "\t" + (String)feature_it->getMetaValue("var_ms1_ppm_diff")
+            + "\t" + (String)feature_it->getMetaValue("var_ms1_xcorr_coelution")
+            + "\t" + (String)feature_it->getMetaValue("var_ms1_xcorr_shape")
             + "\t" + (String)feature_it->getMetaValue("xx_lda_prelim_score")
             + "\t" + (String)feature_it->getMetaValue("xx_swath_prelim_score")
             + "\t" + aggr_Peak_Area + "\t" + aggr_Peak_Apex + "\t" + aggr_Fragment_Annotation + "\n";
@@ -307,6 +312,47 @@ namespace OpenMS
       int progress = 0;
       this->startProgress(0, swath_maps.size(), "Extracting and scoring transitions");
 
+      std::map< std::string, OpenSwath::ChromatogramPtr > ms1_chromatograms;
+      for (SignedSize i = 0; i < boost::numeric_cast<SignedSize>(swath_maps.size()); ++i)
+      {
+        if (swath_maps[i].ms1) 
+        {
+          // store reference to MS1 map for later -> note that this is *not* threadsafe!
+          ms1_map_ = swath_maps[i].sptr;
+
+          OpenSwath::LightTargetedExperiment transition_exp_used = transition_exp;
+          std::vector< OpenSwath::ChromatogramPtr > chrom_list;
+          std::vector< ChromatogramExtractor::ExtractionCoordinates > coordinates;
+
+          // Step 2.1: prepare the extraction coordinates
+          if (cp.rt_extraction_window < 0)
+          {
+            prepare_coordinates(chrom_list, coordinates, transition_exp_used, cp.rt_extraction_window, true);
+          }
+          else
+          {
+            // Use an rt extraction window of 0.0 which will just write the retention time in start / end positions
+            // Then correct the start/end positions and add the extra_rt_extract parameter
+            prepare_coordinates(chrom_list, coordinates, transition_exp_used, 0.0, true);
+            for (std::vector< ChromatogramExtractor::ExtractionCoordinates >::iterator it = coordinates.begin(); it != coordinates.end(); ++it)
+            {
+              it->rt_start = trafo_inverse.apply(it->rt_start) - (cp.rt_extraction_window + cp.extra_rt_extract)/ 2.0;
+              it->rt_end = trafo_inverse.apply(it->rt_end) + (cp.rt_extraction_window + cp.extra_rt_extract)/ 2.0;
+            }
+          }
+
+          // Step 2.2: extract chromatograms
+          ChromatogramExtractor extractor;
+          extractor.extractChromatograms(swath_maps[i].sptr, chrom_list, coordinates, cp.mz_extraction_window,
+              cp.ppm, cp.extraction_function);
+
+          for (Size j = 0; j < coordinates.size(); j++)
+          {
+            ms1_chromatograms [ coordinates[j].id ] = chrom_list[j];
+          }
+        }
+      }
+
       // We set dynamic scheduling such that the maps are worked on in the order
       // in which they were given to the program / acquired. This gives much
       // better load balancing than static allocation.
@@ -316,7 +362,6 @@ namespace OpenMS
       for (SignedSize i = 0; i < boost::numeric_cast<SignedSize>(swath_maps.size()); ++i)
       {
         if (!swath_maps[i].ms1) { // continue if MS1
-
 
         // Step 1: select transitions
         OpenSwath::LightTargetedExperiment transition_exp_used_all;
@@ -383,7 +428,8 @@ namespace OpenMS
           // Step 3: score these extracted transitions
           FeatureMap<> featureFile;
           scoreAllChromatograms(chromatogram_ptr, swath_maps[i].sptr, transition_exp_used,
-              feature_finder_param, trafo, cp.rt_extraction_window, featureFile, tsv_writer);
+              feature_finder_param, trafo, cp.rt_extraction_window, featureFile, tsv_writer, 
+              ms1_chromatograms);
 
           // Step 4: write all chromatograms and features out into an output object / file
           // (this needs to be done in a critical section since we only have one
@@ -487,7 +533,7 @@ namespace OpenMS
         std::vector< OpenSwath::ChromatogramPtr > tmp_out;
         std::vector< ChromatogramExtractor::ExtractionCoordinates > coordinates;
         ChromatogramExtractor extractor;
-        extractor.prepare_coordinates(tmp_out, coordinates, transition_exp_used,  cp.rt_extraction_window, false);
+        extractor.prepare_coordinates(tmp_out, coordinates, transition_exp_used, cp.rt_extraction_window, false);
         extractor.extractChromatograms(swath_maps[i].sptr, tmp_out, coordinates, cp.mz_extraction_window,
             cp.ppm, cp.extraction_function);
         extractor.return_chromatogram(tmp_out, coordinates,
@@ -606,7 +652,9 @@ namespace OpenMS
         OpenSwath::LightTargetedExperiment& transition_exp,
         const Param& feature_finder_param,
         TransformationDescription trafo, const double rt_extraction_window,
-        FeatureMap<Feature>& output, OpenSwathTSVWriter & tsv_writer)
+        FeatureMap<Feature>& output, OpenSwathTSVWriter & tsv_writer, 
+        std::map< std::string, OpenSwath::ChromatogramPtr > & ms1_chromatograms
+        )
     {
       typedef OpenSwath::LightTransition TransitionType;
       // a transition group holds the MSSpectra with the Chromatogram peaks from above
@@ -618,6 +666,13 @@ namespace OpenMS
       trafo_inv.invert();
 
       MRMFeatureFinderScoring featureFinder;
+
+      // To ensure multi-threading safe access to the individual spectra, we
+      // need to use a light clone of the spectrum access (if multiple threads
+      // share a single filestream and call seek on it, chaos will ensue).
+      OpenSwath::SpectrumAccessPtr threadsafe_ms1 = ms1_map_->lightClone();
+
+      featureFinder.setMS1Map( threadsafe_ms1 );
       MRMTransitionGroupPicker trgroup_picker;
 
       trgroup_picker.setParameters(feature_finder_param.copy("TransitionGroupPicker:", true));
@@ -686,6 +741,17 @@ namespace OpenMS
 
         // currently .tsv and .featureXML are mutually exclusive
         if (tsv_writer.isActive()) { output.clear(); }
+
+        // Set the MS1 chromatogram if available
+        if (!ms1_chromatograms.empty() )
+        {
+          OpenSwath::ChromatogramPtr cptr = ms1_chromatograms[ transition_group.getTransitionGroupID() ];
+          MSChromatogram<ChromatogramPeak> chromatogram_old;
+          OpenSwathDataAccessHelper::convertToOpenMSChromatogram(chromatogram_old, cptr);
+          RichPeakChromatogram chromatogram;
+          selectChrom_(chromatogram_old, chromatogram, -1, -1);
+          transition_group.addPrecursorChromatogram(chromatogram, "Precursor_i0");
+        }
 
         // Process the MRMTransitionGroup: find peakgroups and score them
         trgroup_picker.pickTransitionGroup(transition_group);
@@ -785,6 +851,9 @@ namespace OpenMS
         chromatogram.push_back(peak);
       }
     }
+
+    /// Spectrum Access to the MS1 map (note that this is *not* threadsafe!)
+    OpenSwath::SpectrumAccessPtr ms1_map_;
 
   };
 
