@@ -246,8 +246,6 @@ mts.max_trace = 0;
 
 Param p;
 p.setValue("max_iteration",500);
-p.setValue("epsilon_abs",0.000001);
-p.setValue("epsilon_rel",0.000001);
 
 GTF gaussian_trace_fitter;
 gaussian_trace_fitter.setParameters(p);
