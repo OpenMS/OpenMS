@@ -109,8 +109,8 @@ public:
                         OpenMS::TargetedExperiment& dec, String method, String decoy_tag,
                         double identity_threshold, int max_attempts, double mz_threshold, 
                         bool theoretical, double mz_shift, bool exclude_similar, 
-                        double similarity_threshold, bool remove_CNterm_mods, double precursor_mass_shift);
-
+                        double similarity_threshold, bool remove_CNterm_mods, 
+                        double precursor_mass_shift, bool enable_losses, bool enable_isotopes);
     /**
       @brief Remove transitions s.t. all peptides have a defined set of transitions.
 
@@ -140,8 +140,8 @@ public:
       @brief Selects a target ion from a set of ions.
     */
     std::pair<String, double> getTargetIon(double ProductMZ, double mz_threshold,
-                                           std::map<String, std::map<String, double> > target_ionseries);
-
+                                           std::map<String, std::map<String, double> > target_ionseries,
+                                           bool enable_losses, bool enable_isotopes);
     /**
       @brief Generate all ion series for an input AASequence
 
@@ -179,7 +179,7 @@ public:
     /**
       @brief Correct the masses according to theoretically computed masses
     */
-    void correctMasses(OpenMS::TargetedExperiment& exp, double mz_threshold);
+    void correctMasses(OpenMS::TargetedExperiment& exp, double mz_threshold, bool enable_losses, bool enable_isotopes);
 
     /**
       @brief Shuffle a peptide (with its modifications) sequence

@@ -175,7 +175,7 @@
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="728.3017" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="515.793989194921"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="601.347618246238"/>
       </Product>
       <cvParam cvRef="MS" accession="MS:1000045" name="collision energy" value="-1"/>
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="6840.3"/>
@@ -187,7 +187,7 @@
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="728.3017" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="591.10767838099"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="709.297390600371"/>
       </Product>
       <cvParam cvRef="MS" accession="MS:1000045" name="collision energy" value="-1"/>
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="6805.1"/>
@@ -199,7 +199,7 @@
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="728.3017" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="725.15816585429"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="1113.50336249357"/>
       </Product>
       <cvParam cvRef="MS" accession="MS:1000045" name="collision energy" value="-1"/>
       <cvParam cvRef="MS" accession="MS:1001226" name="product ion intensity" value="4477.1"/>
@@ -236,7 +236,7 @@
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="726.935" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="416.253942435131"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="482.242735019471"/>
       </Product>
       <cvParam cvRef="" accession="" name="annotation" value="ADVTPADFSEWSK0"/>
       <cvParam cvRef="MS" accession="MS:1000045" name="collision energy" value="37.48"/>
@@ -275,7 +275,7 @@
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="644.922" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="914.461038424031"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="732.352264029871"/>
       </Product>
       <cvParam cvRef="" accession="" name="annotation" value="GAGSSEPVTGLDAK0"/>
       <cvParam cvRef="MS" accession="MS:1000045" name="collision energy" value="33.87"/>
@@ -444,7 +444,7 @@
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="683.953" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="949.496694519731"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="743.441018316971"/>
       </Product>
       <cvParam cvRef="" accession="" name="annotation" value="TPVITGAPYEYR0"/>
       <cvParam cvRef="MS" accession="MS:1000045" name="collision energy" value="35.59"/>
@@ -457,7 +457,7 @@
         <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="683.927" unitCvRef="MS" unitAccession="MS:1000040" unitName="m/z"/>
       </Precursor>
       <Product>
-        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="850.466899476471"/>
+        <cvParam cvRef="MS" accession="MS:1000827" name="isolation window target m/z" value="820.347179029871"/>
       </Product>
       <cvParam cvRef="" accession="" name="annotation" value="VEATFGVDESNAK0"/>
       <cvParam cvRef="MS" accession="MS:1000045" name="collision energy" value="35.59"/>

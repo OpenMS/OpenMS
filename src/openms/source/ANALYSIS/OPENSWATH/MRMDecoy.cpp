@@ -67,24 +67,36 @@ namespace OpenMS
     return ion;
   }
 
-  std::pair<String, double> MRMDecoy::getTargetIon(double ProductMZ, double mz_threshold, std::map<String, std::map<String, double> > target_ionseries)
+  std::pair<String, double> MRMDecoy::getTargetIon(double ProductMZ, double mz_threshold, std::map<String, std::map<String, double> > target_ionseries, bool enable_losses, bool enable_isotopes)
   {
     // make sure to only use annotated transitions and to use the theoretical MZ
     using namespace boost::assign;
     // Select SpectraST Style
     std::vector<String> SpectraST_order;
-    SpectraST_order += "b", "b_loss", "y", "y_loss", "a", "b_isotopes", "b_isotopes_loss", "y_isotopes", "y_isotopes_loss", "a_isotopes";
+    SpectraST_order += "b", "y", "a";
+
+    if (enable_losses) {
+      SpectraST_order += "b_loss", "y_loss";
+    }
+    if (enable_isotopes) {
+      SpectraST_order += "b_isotopes", "y_isotopes", "a_isotopes";
+    }
+    if (enable_isotopes && enable_losses) {
+      SpectraST_order += "b_isotopes_loss", "y_isotopes_loss";
+    }
 
     // Iterate over ion type and then ordinal
     std::pair<String, double> ion;
     String unannotated = "unannotated";
     ion = make_pair(unannotated, -1);
+    double closest_delta = std::numeric_limits<double>::max();
     for (std::vector<String>::iterator iontype = SpectraST_order.begin(); iontype != SpectraST_order.end(); ++iontype)
     {
       for (std::map<String, double>::iterator ordinal = target_ionseries[*iontype].begin(); ordinal != target_ionseries[*iontype].end(); ++ordinal)
       {
-        if (std::fabs(ordinal->second - ProductMZ) <= mz_threshold)
+        if (std::fabs(ordinal->second - ProductMZ) <= mz_threshold && std::fabs(ordinal->second - ProductMZ) <= closest_delta)
         {
+          closest_delta = std::fabs(ordinal->second - ProductMZ);
           ion = make_pair(ordinal->first, ordinal->second);
           break;
         }
@@ -526,8 +538,8 @@ namespace OpenMS
   void MRMDecoy::generateDecoys(OpenMS::TargetedExperiment& exp, OpenMS::TargetedExperiment& dec,
                                 String method, String decoy_tag, double identity_threshold, int max_attempts, 
                                 double mz_threshold, bool theoretical, double mz_shift, bool exclude_similar, 
-                                double similarity_threshold, bool remove_CNterminal_mods, double precursor_mass_shift)
-  {
+                                double similarity_threshold, bool remove_CNterminal_mods, double precursor_mass_shift,
+                                bool enable_losses, bool enable_isotopes)  {
     MRMDecoy::PeptideVectorType peptides;
     MRMDecoy::ProteinVectorType proteins;
     MRMDecoy::TransitionVectorType decoy_transitions;
@@ -621,7 +633,7 @@ namespace OpenMS
 
         // determine the current annotation for the target ion and then select
         // the appropriate decoy ion for this target transition
-        std::pair<String, double> targetion = getTargetIon(tr.getProductMZ(), mz_threshold, target_ionseries);
+        std::pair<String, double> targetion = getTargetIon(tr.getProductMZ(), mz_threshold, target_ionseries, enable_losses, enable_isotopes);
         std::pair<String, double> decoyion = getDecoyIon(targetion.first, decoy_ionseries);
         if (method == "shift")
         {
@@ -671,11 +683,11 @@ namespace OpenMS
 
     if (theoretical)
     {
-      correctMasses(exp, mz_threshold);
+      correctMasses(exp, mz_threshold, enable_losses, enable_isotopes);
     }
   }
 
-  void MRMDecoy::correctMasses(OpenMS::TargetedExperiment& exp, double mz_threshold) 
+  void MRMDecoy::correctMasses(OpenMS::TargetedExperiment& exp, double mz_threshold, bool enable_losses, bool enable_isotopes)
   {
     MRMDecoy::TransitionVectorType target_transitions;
     // hash of the peptide reference containing all transitions
@@ -701,7 +713,7 @@ namespace OpenMS
           const ReactionMonitoringTransition tr = *(pep_it->second[i]);
 
           // determine the current annotation for the target ion 
-          std::pair<String, double> targetion = getTargetIon(tr.getProductMZ(), mz_threshold, target_ionseries);
+          std::pair<String, double> targetion = getTargetIon(tr.getProductMZ(), mz_threshold, target_ionseries, enable_losses, enable_isotopes);
           // correct the masses of the input experiment 
           {
             ReactionMonitoringTransition transition = *(pep_it->second[i]); // copy the transition
