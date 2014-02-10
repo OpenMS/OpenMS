@@ -320,29 +320,13 @@ namespace OpenMS
           // store reference to MS1 map for later -> note that this is *not* threadsafe!
           ms1_map_ = swath_maps[i].sptr;
 
-          OpenSwath::LightTargetedExperiment transition_exp_used = transition_exp;
           std::vector< OpenSwath::ChromatogramPtr > chrom_list;
           std::vector< ChromatogramExtractor::ExtractionCoordinates > coordinates;
-
-          // Step 2.1: prepare the extraction coordinates
-          if (cp.rt_extraction_window < 0)
-          {
-            prepare_coordinates(chrom_list, coordinates, transition_exp_used, cp.rt_extraction_window, true);
-          }
-          else
-          {
-            // Use an rt extraction window of 0.0 which will just write the retention time in start / end positions
-            // Then correct the start/end positions and add the extra_rt_extract parameter
-            prepare_coordinates(chrom_list, coordinates, transition_exp_used, 0.0, true);
-            for (std::vector< ChromatogramExtractor::ExtractionCoordinates >::iterator it = coordinates.begin(); it != coordinates.end(); ++it)
-            {
-              it->rt_start = trafo_inverse.apply(it->rt_start) - (cp.rt_extraction_window + cp.extra_rt_extract)/ 2.0;
-              it->rt_end = trafo_inverse.apply(it->rt_end) + (cp.rt_extraction_window + cp.extra_rt_extract)/ 2.0;
-            }
-          }
-
-          // Step 2.2: extract chromatograms
+          OpenSwath::LightTargetedExperiment transition_exp_used = transition_exp; // copy for const correctness
           ChromatogramExtractor extractor;
+
+          // prepare the extraction coordinates & extract chromatogram
+          prepare_coordinates_wrap(chrom_list, coordinates, transition_exp_used, true, trafo_inverse, cp);
           extractor.extractChromatograms(swath_maps[i].sptr, chrom_list, coordinates, cp.mz_extraction_window,
               cp.ppm, cp.extraction_function);
 
@@ -391,35 +375,18 @@ namespace OpenMS
           OpenSwath::LightTargetedExperiment transition_exp_used;
           selectPeptidesForBatch_(transition_exp_used_all, transition_exp_used, batch_size, j);
 
-          // Step 2: extract these transitions
+          // Step 2.1: extract these transitions
           ChromatogramExtractor extractor;
           boost::shared_ptr<MSExperiment<Peak1D> > chrom_exp(new MSExperiment<Peak1D>);
-
           std::vector< OpenSwath::ChromatogramPtr > chrom_list;
           std::vector< ChromatogramExtractor::ExtractionCoordinates > coordinates;
 
-          // Step 2.1: prepare the extraction coordinates
-          if (cp.rt_extraction_window < 0)
-          {
-            prepare_coordinates(chrom_list, coordinates, transition_exp_used, cp.rt_extraction_window, false);
-          }
-          else
-          {
-            // Use an rt extraction window of 0.0 which will just write the retention time in start / end positions
-            // Then correct the start/end positions and add the extra_rt_extract parameter
-            prepare_coordinates(chrom_list, coordinates, transition_exp_used, 0.0, false);
-            for (std::vector< ChromatogramExtractor::ExtractionCoordinates >::iterator it = coordinates.begin(); it != coordinates.end(); ++it)
-            {
-              it->rt_start = trafo_inverse.apply(it->rt_start) - (cp.rt_extraction_window + cp.extra_rt_extract)/ 2.0;
-              it->rt_end = trafo_inverse.apply(it->rt_end) + (cp.rt_extraction_window + cp.extra_rt_extract)/ 2.0;
-            }
-          }
-
-          // Step 2.2: extract chromatograms
+          // prepare the extraction coordinates & extract chromatograms
+          prepare_coordinates_wrap(chrom_list, coordinates, transition_exp_used, false, trafo_inverse, cp);
           extractor.extractChromatograms(swath_maps[i].sptr, chrom_list, coordinates, cp.mz_extraction_window,
               cp.ppm, cp.extraction_function);
 
-          // Step 2.3: convert chromatograms back and write to output
+          // Step 2.2: convert chromatograms back and write to output
           std::vector< OpenMS::MSChromatogram<> > chromatograms;
           extractor.return_chromatogram(chrom_list, coordinates, transition_exp_used,  SpectrumSettings(), chromatograms, false);
           chrom_exp->setChromatograms(chromatograms);
@@ -774,6 +741,30 @@ namespace OpenMS
 #endif
         {
           tsv_writer.writeLines(to_output);
+        }
+      }
+    }
+
+    /// Wrap around prepare coordinates that also correctly handles transformations
+    void prepare_coordinates_wrap(std::vector< OpenSwath::ChromatogramPtr > & chrom_list,
+      std::vector< ChromatogramExtractorAlgorithm::ExtractionCoordinates > & coordinates,
+      OpenSwath::LightTargetedExperiment & transition_exp_used,
+      const bool ms1, const TransformationDescription trafo_inverse,
+      const ChromExtractParams & cp) const
+    {
+      if (cp.rt_extraction_window < 0)
+      {
+        prepare_coordinates(chrom_list, coordinates, transition_exp_used, cp.rt_extraction_window, ms1);
+      }
+      else
+      {
+        // Use an rt extraction window of 0.0 which will just write the retention time in start / end positions
+        // Then correct the start/end positions and add the extra_rt_extract parameter
+        prepare_coordinates(chrom_list, coordinates, transition_exp_used, 0.0, ms1);
+        for (std::vector< ChromatogramExtractor::ExtractionCoordinates >::iterator it = coordinates.begin(); it != coordinates.end(); ++it)
+        {
+          it->rt_start = trafo_inverse.apply(it->rt_start) - (cp.rt_extraction_window + cp.extra_rt_extract)/ 2.0;
+          it->rt_end = trafo_inverse.apply(it->rt_end) + (cp.rt_extraction_window + cp.extra_rt_extract)/ 2.0;
         }
       }
     }
