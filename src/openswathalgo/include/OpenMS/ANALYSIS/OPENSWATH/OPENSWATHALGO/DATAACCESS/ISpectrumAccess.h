@@ -50,7 +50,23 @@ namespace OpenSwath
   class OPENSWATHALGO_DLLAPI ISpectrumAccess
   {
 public:
+    /// Destructor
     virtual ~ISpectrumAccess();
+
+    /**
+      @brief Light clone operator to produce a threadsafe copy.
+
+      This function guarantees to produce a copy of the underlying object that
+      provides thread-safe concurrent access to the underlying data. It is
+      should be implemented with minimal copy-overhead to make this operation
+      as fast as possible. 
+      
+      To use this function, each thread should call this function to produce an
+      individual copy on which it can operate.
+
+    */
+    virtual boost::shared_ptr<ISpectrumAccess> lightClone() const = 0;
+
     /// Return a pointer to a spectrum at the given id
     virtual SpectrumPtr getSpectrumById(int id) = 0;
     /// Return a vector of ids of spectra that are within RT +/- deltaRT
