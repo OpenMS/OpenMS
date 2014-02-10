@@ -52,14 +52,38 @@ typedef MRMTransitionGroup<RichPeakChromatogram, ReactionMonitoringTransition> M
 void setup_transition_group(MRMTransitionGroupType & transition_group)
 {
   // this is a simulated SRM experiment where the two traces are not sampled at
-  // the exact same time points, thus a resampling is necessary before applying
+  // the exact same time points, thus a re-sampling is necessary before applying
   // the algorithm.
-  static const double rtdata_1[] = {1474.34, 1477.11, 1479.88, 1482.64, 1485.41, 1488.19, 1490.95, 1493.72, 1496.48, 1499.25, 1502.03, 1504.8 , 1507.56, 1510.33, 1513.09, 1515.87, 1518.64, 1521.42};
-  static const double rtdata_2[] = {1473.55, 1476.31, 1479.08, 1481.84, 1484.61, 1487.39, 1490.15, 1492.92, 1495.69, 1498.45, 1501.23, 1504   , 1506.76, 1509.53, 1512.29, 1515.07, 1517.84, 1520.62};
+  // The MS1 trace intensity is a simple quadratic function.
+  //
 
-  static const double intdata_1[] = {3.26958, 3.74189, 3.31075, 86.1901, 3.47528, 387.864, 13281  , 6375.84, 39852.6, 2.66726, 612.747, 3.34313, 793.12 , 3.29156, 4.00586, 4.1591 , 3.23035, 3.90591};
-  static const double intdata_2[] =  {3.44054 , 2142.31 , 3.58763 , 3076.97 , 6663.55 , 45681   , 157694  , 122844  , 86034.7 , 85391.1 , 15992.8 , 2293.94 , 6934.85 , 2735.18 , 459.413 , 3.93863 , 3.36564 , 3.44005};
+/*
+ * Python code to create the MS1 trace :
+ *
+ 
+datapoints = [-100*(x-9)*(x-9)+9000 for x in range(18) ] 
+sum(datapoints[3:10])
+53900
 
+*/
+
+  static const double rtdata_1[] = {1474.34, 1477.11, 1479.88, 1482.64,
+    1485.41, 1488.19, 1490.95, 1493.72, 1496.48, 1499.25, 1502.03, 1504.8 ,
+    1507.56, 1510.33, 1513.09, 1515.87, 1518.64, 1521.42};
+  static const double rtdata_2[] = {1473.55, 1476.31, 1479.08, 1481.84,
+    1484.61, 1487.39, 1490.15, 1492.92, 1495.69, 1498.45, 1501.23, 1504   ,
+    1506.76, 1509.53, 1512.29, 1515.07, 1517.84, 1520.62};
+
+  static const double intdata_1[] = {3.26958, 3.74189, 3.31075, 86.1901,
+    3.47528, 387.864, 13281  , 6375.84, 39852.6, 2.66726, 612.747, 3.34313,
+    793.12 , 3.29156, 4.00586, 4.1591 , 3.23035, 3.90591};
+  static const double intdata_2[] =  {3.44054 , 2142.31 , 3.58763 , 3076.97 ,
+    6663.55 , 45681   , 157694  , 122844  , 86034.7 , 85391.1 , 15992.8 ,
+    2293.94 , 6934.85 , 2735.18 , 459.413 , 3.93863 , 3.36564 , 3.44005};
+  static const double ms1_intdata[] =  {900, 2600, 4100, 5400, 6500, 7400,
+    8100, 8600, 8900, 9000, 8900, 8600, 8100, 7400, 6500, 5400, 4100, 2600};
+
+  // Transition trace 1
   {
   RichPeakChromatogram chromatogram;
   for (int k = 0; k < 18; k++)
@@ -74,6 +98,7 @@ void setup_transition_group(MRMTransitionGroupType & transition_group)
   transition_group.addChromatogram(chromatogram, chromatogram.getNativeID());
   }
 
+  // Transition trace 2
   {
   RichPeakChromatogram chromatogram;
   for (int k = 0; k < 18; k++)
@@ -86,6 +111,19 @@ void setup_transition_group(MRMTransitionGroupType & transition_group)
   chromatogram.setMetaValue("product_mz", 619.31);
   chromatogram.setNativeID("2");
   transition_group.addChromatogram(chromatogram, chromatogram.getNativeID());
+  }
+
+  // MS1 trace
+  {
+  RichPeakChromatogram chromatogram;
+  for (int k = 0; k < 18; k++)
+  {   
+    ChromatogramPeak peak;
+    peak.setMZ(rtdata_2[k] + 0.5); // shift the "MS1" retention time as well 
+    peak.setIntensity(ms1_intdata[k]);
+    chromatogram.push_back(peak);
+  } 
+  transition_group.addPrecursorChromatogram(chromatogram, "Precursor_i0");
   }
 }
 
@@ -129,6 +167,8 @@ START_SECTION((template < typename SpectrumT, typename TransitionT > void pickTr
   TEST_EQUAL( mrmfeature.getFeature("2").getConvexHulls()[0].getHullPoints().size(), 7);
 
   // the intensity of the hull points should not have changed
+
+  // Check Feature 2
   ConvexHull2D::PointArrayType data1_points = mrmfeature.getFeature("2").getConvexHulls()[0].getHullPoints();
   double sum = 0.0;
   for (ConvexHull2D::PointArrayType::iterator it = data1_points.begin(); it != data1_points.end(); it++)
@@ -137,6 +177,8 @@ START_SECTION((template < typename SpectrumT, typename TransitionT > void pickTr
   }
   TEST_REAL_SIMILAR(sum, 507385.32);
   TEST_REAL_SIMILAR(mrmfeature.getFeature("2").getIntensity(), 507385.32);
+
+  // Check Feature 1
   ConvexHull2D::PointArrayType data2_points = mrmfeature.getFeature("1").getConvexHulls()[0].getHullPoints();
   sum = 0.0;
   for (ConvexHull2D::PointArrayType::iterator it = data2_points.begin(); it != data2_points.end(); it++)
@@ -145,6 +187,25 @@ START_SECTION((template < typename SpectrumT, typename TransitionT > void pickTr
   }
   TEST_REAL_SIMILAR(sum, 59989.8287208466);
   TEST_REAL_SIMILAR(mrmfeature.getFeature("1").getIntensity(), 59989.8287208466);
+
+  // Also check the MS1
+  std::vector<String> result;
+  mrmfeature.getPrecursorFeatureIDs(result);
+  TEST_EQUAL(result.size(), 1);
+  TEST_EQUAL(result[0], "Precursor_i0");
+  data2_points = mrmfeature.getPrecursorFeature("Precursor_i0").getConvexHulls()[0].getHullPoints();
+  sum = 0.0;
+  for (ConvexHull2D::PointArrayType::iterator it = data2_points.begin(); it != data2_points.end(); it++)
+  {
+    sum += it->getY();
+  }
+  // Part of the signal gets lost due to the re-sampling since the MS1 sampling
+  // positions are not at the same place as the MS2 sampling positions
+  double resampling_loss = 875.9514;
+  TEST_REAL_SIMILAR(sum, 53900 - resampling_loss);
+  TEST_REAL_SIMILAR(mrmfeature.getPrecursorFeature("Precursor_i0").getIntensity(),
+  // mrmfeature.getMS1Feature().getIntensity(), 53900 - resampling_loss);
+  53900 - resampling_loss);
 }
 END_SECTION
 
@@ -156,7 +217,6 @@ START_SECTION((template <typename SpectrumT, typename TransitionT> MRMFeature cr
 
   double left_start = 1481.840;
   double right_end = 1512.290;
-
 
   // do "peakpicking", create one peak
   for(Size k = 0; k < transition_group.getChromatograms().size(); k++)
