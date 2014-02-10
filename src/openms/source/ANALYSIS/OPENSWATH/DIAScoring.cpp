@@ -38,8 +38,8 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithm.h>
-#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/StatsHelpers.h"
-#include "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/SpectrumHelpers.h"
+#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/ALGO/StatsHelpers.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/SpectrumHelpers.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAHelper.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAPrescoring.h>
@@ -129,17 +129,40 @@ namespace OpenMS
       integrateWindow(spectrum, left, right, mz, intensity, dia_centroided_);
       if (mz == -1)
       {
+        // TODO this gives a perfect score...
         mz = (left + right) / 2.0;
       }
 
-      //double diff = std::fabs( mz - transition->getProductMZ() );
       double diff_ppm = std::fabs(mz - transition->getProductMZ()) * 1000000 / transition->getProductMZ();
-      //ppm_score += diff_ppm * diff_ppm;
       ppm_score += diff_ppm;
       ppm_score_weighted += diff_ppm * normalized_library_intensity[k];
 #ifdef MRMSCORING_TESTING
       std::cout << " weighted int of the peak is " << mz << " diff is in ppm " << diff_ppm << " thus append " << diff_ppm * diff_ppm << " or weighted " << diff_ppm * normalized_library_intensity[k] << std::endl;
 #endif
+    }
+  }
+
+  void DIAScoring::dia_ms1_massdiff_score(double precursor_mz, SpectrumType spectrum,
+                                          double& ppm_score)
+  {
+    ppm_score = -1;
+    double mz, intensity;
+    {
+      // Calculate the difference of the theoretical mass and the actually measured mass
+      double left = precursor_mz - dia_extract_window_ / 2.0;
+      double right = precursor_mz + dia_extract_window_ / 2.0;
+      integrateWindow(spectrum, left, right, mz, intensity, dia_centroided_);
+
+      // Catch a value of -1 (no signal found inside the window) 
+      // else calculate the difference in ppm
+      if (mz == -1)
+      {
+        ppm_score = -1;
+      }
+      else
+      {
+        ppm_score = std::fabs(mz - precursor_mz) * 1000000 / precursor_mz;
+      }
     }
   }
 

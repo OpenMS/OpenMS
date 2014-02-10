@@ -298,6 +298,25 @@ START_SECTION ( void dia_massdiff_score(const std::vector< TransitionType > &tra
 }
 END_SECTION
 
+START_SECTION ( void DIAScoring::dia_ms1_massdiff_score(double precursor_mz, transitions, SpectrumType spectrum, double& ppm_score) )
+{ 
+  OpenSwath::SpectrumPtr sptr = prepareShiftedSpectrum();
+  DIAScoring diascoring;
+  diascoring.set_dia_parameters(0.5, false, 30, 50, 4, 4); // here we use a large enough window so that none of our peaks falls out
+  double ppm_score = 0;
+
+  diascoring.dia_ms1_massdiff_score(500.0, sptr, ppm_score);
+  TEST_REAL_SIMILAR(ppm_score, 15); // 15 ppm shifted
+
+  diascoring.dia_ms1_massdiff_score(600.0, sptr, ppm_score);
+  TEST_REAL_SIMILAR(ppm_score, 10); // 10 ppm shifted
+
+  diascoring.dia_ms1_massdiff_score(100.0, sptr, ppm_score);
+  TEST_REAL_SIMILAR(ppm_score, -1); // not present
+
+}
+END_SECTION
+
 START_SECTION ( void dia_by_ion_score(SpectrumType spectrum, AASequence &sequence, int charge, double &bseries_score, double &yseries_score) )
 {
   OpenSwath::SpectrumPtr sptr = (OpenSwath::SpectrumPtr)(new OpenSwath::Spectrum);
@@ -350,7 +369,6 @@ START_SECTION ( void dia_by_ion_score(SpectrumType spectrum, AASequence &sequenc
 }
 END_SECTION
 
-
 START_SECTION((void set_dia_parameters(double dia_extract_window, double dia_centroided, double dia_byseries_intensity_min, double dia_byseries_ppm_diff, double dia_nr_isotopes, double dia_nr_charges)))
 {
   NOT_TESTABLE
@@ -390,19 +408,3 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 END_TEST
 
-
-/*
-------> Test errors in 'include/OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h' (Hannes Roest)
-  Tests of unknown methods:
-    - 'void MRMFeatureScoring::getBYSeries(AASequence& a, int charge, std::vector<double>& bseries, std::vector<double>& yseries)'
-    - '( forward'
-    - '( backward'
-  Tests that contain 'TODO' or '????':
-    - 'void MRMFeatureScoring::getBYSeries(AASequence& a, int charge, std::vector<double>& bseries, std::vector<double>& yseries)'
-------> Coding convention violation in 'include/OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h' (Hannes Roest)
-  - invalid non-public method name 'dia_isotope_scores_sub'
-  - invalid non-public method name 'getFirstIsotopeRelativeIntensities'
-  - invalid non-public method name 'largePeaksBeforeFirstIsotope'
-  - invalid non-public method name 'scoreIsotopePattern'
-------> Missing reference to parameters page in 'include/OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h' unless abstract base class (Hannes Roest)
-*/

@@ -125,6 +125,9 @@ public:
                             SpectrumType spectrum, const std::vector<double>& normalized_library_intensity,
                             double& ppm_score, double& ppm_score_weighted);
 
+    void dia_ms1_massdiff_score(double precursor_mz, SpectrumType spectrum,
+                                double& ppm_score);
+
     /// b/y ion scores
     void dia_by_ion_score(SpectrumType spectrum, AASequence& sequence,
                           int charge, double& bseries_score, double& yseries_score);
