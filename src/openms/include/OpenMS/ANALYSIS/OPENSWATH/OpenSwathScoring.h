@@ -81,6 +81,8 @@ namespace OpenMS
       use_dia_scores_(true)
     {}
 
+    bool use_ms1_correlation;
+    bool use_ms1_ppm;
   };
 
   /** @brief A structure to hold the different scores computed by OpenSWATH
@@ -111,6 +113,10 @@ namespace OpenMS
     double weighted_coelution_score;
     double weighted_xcorr_shape;
     double weighted_massdev_score;
+   
+    double xcorr_ms1_coelution_score;
+    double xcorr_ms1_shape_score;
+    double ms1_ppm_score;
 
     double library_manhattan;
     double library_dotprod;
@@ -144,6 +150,9 @@ namespace OpenMS
       weighted_coelution_score(0),
       weighted_xcorr_shape(0),
       weighted_massdev_score(0),
+      xcorr_ms1_coelution_score(0),
+      xcorr_ms1_shape_score(0),
+      ms1_ppm_score(0),
       library_manhattan(0),
       library_dotprod(0),
       intensity(0),
@@ -478,6 +487,7 @@ var_yseries_score   -0.0327896378737766
     void calculateDIAScores(OpenSwath::IMRMFeature* imrmfeature, 
         const std::vector<TransitionType> & transitions,
         OpenSwath::SpectrumAccessPtr swath_map,
+        OpenSwath::SpectrumAccessPtr ms1_map,
         OpenMS::DIAScoring & diascoring,
         const PeptideType& pep,
         OpenSwath_Scores & scores);

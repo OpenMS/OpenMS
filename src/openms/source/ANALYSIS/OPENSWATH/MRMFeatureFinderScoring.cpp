@@ -99,6 +99,10 @@ namespace OpenMS
     scores_to_use.setValidStrings("use_sn_score", ListUtils::create<String>("true,false"));
     scores_to_use.setValue("use_dia_scores", "true", "Use the DIA (SWATH) scores", ListUtils::create<String>("advanced"));
     scores_to_use.setValidStrings("use_dia_scores", ListUtils::create<String>("true,false"));
+    scores_to_use.setValue("use_ms1_correlation", "true", "Use the correlation scores with the MS1 elution profiles", ListUtils::create<String>("advanced"));
+    scores_to_use.setValidStrings("use_ms1_correlation", ListUtils::create<String>("true,false"));
+    scores_to_use.setValue("use_ms1_ppm", "true", "Use the ppm accuracy of the MS1 scan for DIA (SWATH) scores", ListUtils::create<String>("advanced"));
+    scores_to_use.setValidStrings("use_ms1_ppm", ListUtils::create<String>("true,false"));
     defaults_.insert("Scores:", scores_to_use);
 
     // write defaults into Param object param_
@@ -289,7 +293,7 @@ namespace OpenMS
       if (swath_map->getNrSpectra() > 0 && su_.use_dia_scores_)
       {
         scorer.calculateDIAScores(imrmfeature, transition_group.getTransitions(),
-            swath_map, diascoring_, *pep, scores);
+            swath_map, ms1_map_, diascoring_, *pep, scores);
       }
 
       if (su_.use_coelution_score_) {
@@ -428,6 +432,8 @@ namespace OpenMS
     su_.use_nr_peaks_score_      = param_.getValue("Scores:use_nr_peaks_score").toBool();
     su_.use_sn_score_            = param_.getValue("Scores:use_sn_score").toBool();
     su_.use_dia_scores_          = param_.getValue("Scores:use_dia_scores").toBool();
+    su_.use_ms1_correlation      = param_.getValue("Scores:use_ms1_correlation").toBool();
+    su_.use_ms1_ppm              = param_.getValue("Scores:use_ms1_ppm").toBool();
   }
 
   void MRMFeatureFinderScoring::mapExperimentToTransitionList(OpenSwath::SpectrumAccessPtr input,

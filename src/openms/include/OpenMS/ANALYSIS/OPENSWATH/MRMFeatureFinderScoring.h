@@ -39,6 +39,7 @@
 
 // Actual scoring
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathScoring.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgScoring.h>
 
 // Kernel classes
@@ -175,6 +176,20 @@ public:
       strict_ = f;
     }
 
+    /** @brief Add an MS1 map containing spectra
+     *
+     * For DIA (SWATH-MS), an optional MS1 map can be supplied which can be
+     * used to extract precursor ion signal and provides additional scores. If
+     * no MS1 map is provided, the respective scores are not calculated.
+     *
+     * @param ms1_map The raw mass spectrometric MS1 data
+     *
+    */
+    void setMS1Map(OpenSwath::SpectrumAccessPtr ms1_map)
+    {
+      ms1_map_ = ms1_map;
+    }
+
     /** @brief Map the chromatograms to the transitions.
      *
      * Map an input chromatogram experiment (mzML) and transition list (TraML)
@@ -215,6 +230,10 @@ private:
     OpenSwath_Scores_Usage su_;
     OpenMS::DIAScoring diascoring_;
     OpenMS::EmgScoring emgscoring_;
+
+    // data 
+    OpenSwath::SpectrumAccessPtr ms1_map_;
+
   };
 }
 
