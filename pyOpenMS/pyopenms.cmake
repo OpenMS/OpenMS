@@ -216,6 +216,7 @@ FILE(COPY ${OPENMS_HOST_DIRECTORY}/pyOpenMS/License.txt DESTINATION ${CMAKE_BINA
 FILE(COPY ${OPENMS_HOST_DIRECTORY}/pyOpenMS/MANIFEST.in DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/)
 FILE(COPY ${OPENMS_HOST_DIRECTORY}/pyOpenMS/README.rst DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/)
 FILE(COPY ${OPENMS_HOST_DIRECTORY}/pyOpenMS/setup.py DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS)
+FILE(COPY ${OPENMS_HOST_DIRECTORY}/pyOpenMS/create_cpp_extension.py DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS)
 FILE(COPY ${OPENMS_HOST_DIRECTORY}/pyOpenMS/distribute_setup.py DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS)
 FILE(COPY ${OPENMS_HOST_DIRECTORY}/pyOpenMS/version.py DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS)
 FILE(COPY ${OPENMS_HOST_DIRECTORY}/pyOpenMS/version.py DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms)
@@ -287,34 +288,36 @@ if(WIN32)
         FILE(APPEND ${ENVPATH} OPEN_MS_LIB="${OpenMS_BINARY_DIR}/bin/Release/OpenMS.dll" "\n")
         FILE(APPEND ${ENVPATH} OPEN_SWATH_ALGO_LIB="${OpenMS_BINARY_DIR}/bin/Release/OpenSwathAlgo.dll" "\n")
     endif()
+else()
+    FILE(APPEND ${ENVPATH} OPEN_MS_LIB="" "\n")
+    FILE(APPEND ${ENVPATH} OPEN_SWATH_ALGO_LIB="" "\n")
+
 endif()
 
 #------------------------------------------------------------------------------
 # create targets in makefile
 add_custom_target(Name ALL
+  COMMAND ${PYTHON_EXECUTABLE} create_cpp_extension.py
   COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext --inplace
   DEPENDS OpenMS
   WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS)
 
 add_custom_target(pyopenms
+	COMMAND ${PYTHON_EXECUTABLE} create_cpp_extension.py
 	COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext --inplace
+    DEPENDS OpenMS
 	WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
 add_dependencies(pyopenms OpenMS)
 
-add_custom_target(pyopenms_bdist_egg
+add_custom_target(pyopenms_dist 
+    COMMAND ${PYTHON_EXECUTABLE} create_cpp_extension.py
+	COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext
 	COMMAND ${PYTHON_EXECUTABLE} setup.py bdist_egg
-	WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
-add_dependencies(pyopenms_bdist_egg OpenMS)
-
-add_custom_target(pyopenms_bdist
-	COMMAND ${PYTHON_EXECUTABLE} setup.py bdist  --format=zip
-	WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
-add_dependencies(pyopenms_bdist OpenMS)
-
-add_custom_target(pyopenms_rpm
+	COMMAND ${PYTHON_EXECUTABLE} setup.py bdist --format=zip
 	COMMAND ${PYTHON_EXECUTABLE} setup.py bdist_rpm
+    DEPENDS OpenMS
 	WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
-add_dependencies(pyopenms_rpm OpenMS)
+add_dependencies(pyopenms_dist OpenMS)
 
 ###########################################################################
 #####                      Testing pyOpenMS                           #####
