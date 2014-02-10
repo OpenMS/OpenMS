@@ -129,6 +129,7 @@ START_SECTION(( template <typename InputSpectrumIterator,typename OutputPeakType
   //******************************************************************
 // test for 2D optimization
   TOLERANCE_ABSOLUTE(0.04)
+  TOLERANCE_RELATIVE(1.001)
   MSSpectrum<> peaks;
   peaks.getFloatDataArrays().resize(6);
   peaks.getFloatDataArrays()[1].setName("maximumIntensity");
