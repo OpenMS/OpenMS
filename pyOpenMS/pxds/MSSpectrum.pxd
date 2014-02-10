@@ -5,15 +5,17 @@ from MetaInfoInterface cimport *
 from Peak1D cimport *
 from RichPeak1D cimport *
 from String cimport *
+from RangeManager cimport *
 
 # this class has addons, see the ./addons folder
 
 cdef extern from "<OpenMS/KERNEL/MSSpectrum.h>" namespace "OpenMS":
 
-    cdef cppclass MSSpectrum[PeakT](SpectrumSettings, MetaInfoInterface):
+    cdef cppclass MSSpectrum[PeakT](SpectrumSettings, MetaInfoInterface, RangeManager1):
         # wrap-inherits:
         #  SpectrumSettings
         #  MetaInfoInterface
+        #  RangeManager1
 
         # wrap-instances:
         #   MSSpectrum := MSSpectrum[Peak1D]

@@ -699,6 +699,13 @@ def testConsensusMap():
     m.sortBySize()
     m.updateRanges()
 
+    assert isinstance(m.getMin()[0], float)
+    assert isinstance(m.getMin()[0], float)
+    assert isinstance(m.getMax()[1], float)
+    assert isinstance(m.getMax()[1], float)
+    assert isinstance(m.getMinInt(), float)
+    assert isinstance(m.getMaxInt(), float)
+
     m.getIdentifier()
     m.getLoadedFileType()
     m.getLoadedFilePath()
@@ -1923,6 +1930,13 @@ def testFeatureMap():
 
     fm2.updateRanges()
 
+    assert isinstance(fm2.getMin()[0], float)
+    assert isinstance(fm2.getMin()[1], float)
+    assert isinstance(fm2.getMax()[0], float)
+    assert isinstance(fm2.getMax()[1], float)
+    assert isinstance(fm2.getMinInt(), float)
+    assert isinstance(fm2.getMaxInt(), float)
+
     assert fm2.getProteinIdentifications() == []
     fm2.setProteinIdentifications([])
 
@@ -2617,6 +2631,13 @@ def testMSExperiment():
     assert isinstance(mse.getMaxMZ(), float)
     assert isinstance(mse.getMinMZ(), float)
     assert isinstance(mse.getLoadedFilePath(), str)
+    assert isinstance(mse.getMinInt(), float)
+    assert isinstance(mse.getMaxInt(), float)
+
+    assert isinstance(mse.getMin()[0], float)
+    assert isinstance(mse.getMin()[1], float)
+    assert isinstance(mse.getMax()[0], float)
+    assert isinstance(mse.getMax()[1], float)
     mse.setLoadedFilePath("")
     assert mse.size() == 0
 
@@ -2758,6 +2779,11 @@ def testMSSpectrum():
 
     spec.updateRanges()
     assert isinstance(spec.findNearest(0.0), int)
+
+    assert isinstance(spec.getMin()[0], float)
+    assert isinstance(spec.getMax()[0], float)
+    assert isinstance(spec.getMinInt(), float)
+    assert isinstance(spec.getMaxInt(), float)
 
     assert spec == spec
     assert not spec != spec

@@ -12,6 +12,7 @@ from DataProcessing cimport *
 from Types cimport *
 from Map cimport *
 from DocumentIdentifier cimport *
+from RangeManager cimport *
 
 # this class has addons, see the ./addons folder
 
@@ -35,11 +36,12 @@ cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS::ConsensusMa
 
 cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS":
 
-    cdef cppclass ConsensusMap(UniqueIdInterface, DocumentIdentifier):
+    cdef cppclass ConsensusMap(UniqueIdInterface, DocumentIdentifier, RangeManager2):
 
         # wrap-inherits:
         #   UniqueIdInterface
         #   DocumentIdentifier
+        #   RangeManager2
 
         ConsensusMap() nogil except +
         ConsensusMap(ConsensusMap) nogil except + # wrap-ignore
