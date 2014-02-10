@@ -138,9 +138,30 @@ public:
         maps.push_back(map);
       }
 
-      // TODO handle if this goes wrong ...
-      assert(swath_prec_lower_.size() == swath_maps_.size());
-      assert(swath_prec_upper_.size() == swath_maps_.size());
+      // Handle error condition if the lower/upper window could not be determined ...
+      if ( swath_prec_upper_.size() != swath_maps_.size() || swath_prec_lower_.size() != swath_maps_.size() )
+      {
+        std::cout << "Could not correctly read the upper/lower limits of the SWATH windows from your input file. Read " <<
+          swath_prec_upper_.size() << " upper window limits and " << swath_prec_lower_.size() 
+          << " lower window limits (expected " << swath_maps_.size() << " windows)." << std::endl;
+        if (swath_prec_center_.size() == swath_maps_.size() )
+        {
+          std::cout << " ... Using your center windows to annotate the SWATH maps" << std::endl;
+          for (Size i = 0; i < swath_maps_.size(); i++)
+          {
+            swath_prec_upper_.push_back(swath_prec_center_[i]);
+            swath_prec_lower_.push_back(swath_prec_center_[i]);
+          }
+        }
+        else
+        {
+          for (Size i = 0; i < swath_maps_.size(); i++)
+          {
+            swath_prec_upper_.push_back(0.0);
+            swath_prec_lower_.push_back(0.0);
+          }
+        }
+      }
 
       for (Size i = 0; i < swath_maps_.size(); i++)
       {
@@ -189,7 +210,7 @@ public:
             if (prec[0].getIsolationWindowLowerOffset() > 0.0) swath_prec_lower_.push_back(lower);
             if (prec[0].getIsolationWindowUpperOffset() > 0.0) swath_prec_upper_.push_back(upper);
             swath_prec_center_.push_back(prec[0].getMZ());
-            LOG_DEBUG << "Adding Swath " << " with " << lower << " to " << upper << " isolation window." << std::endl;
+            LOG_DEBUG << "Adding Swath centered at " << swath_prec_center_.back() << " m/z with an isolation window of " << lower << " to " << upper << " m/z." << std::endl;
           }
         }
         else if (ms2_counter_ > swath_prec_center_.size() && ms2_counter_ > swath_prec_lower_.size())
@@ -203,6 +224,7 @@ public:
     }
 
 protected:
+
     /**
      * @brief Consume an MS2 spectrum belonging to SWATH "swath_nr"
      *
@@ -214,6 +236,7 @@ protected:
      * the first time)
      */
     virtual void consumeSwathSpectrum_(MapType::SpectrumType& s, size_t swath_nr) = 0;
+
     /// @brief Consume an MS1 spectrum
     virtual void consumeMS1Spectrum_(MapType::SpectrumType& s) = 0;
     /**
@@ -221,6 +244,7 @@ protected:
      *
      * Has to ensure that swath_maps_ and ms1_map_ are correctly populated.
      */
+
     virtual void ensureMapsAreFilled_() = 0;
 
     size_t ms1_counter_;
