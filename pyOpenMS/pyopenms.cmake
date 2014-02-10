@@ -304,20 +304,13 @@ add_custom_target(Name ALL
 
 add_custom_target(pyopenms
 	COMMAND ${PYTHON_EXECUTABLE} create_cpp_extension.py
+	COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext
+	COMMAND ${PYTHON_EXECUTABLE} setup.py bdist_egg
+	COMMAND ${PYTHON_EXECUTABLE} setup.py bdist --format=zip
 	COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext --inplace
     DEPENDS OpenMS
 	WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
 add_dependencies(pyopenms OpenMS)
-
-add_custom_target(pyopenms_dist 
-    COMMAND ${PYTHON_EXECUTABLE} create_cpp_extension.py
-	COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext
-	COMMAND ${PYTHON_EXECUTABLE} setup.py bdist_egg
-	COMMAND ${PYTHON_EXECUTABLE} setup.py bdist --format=zip
-	COMMAND ${PYTHON_EXECUTABLE} setup.py bdist_rpm
-    DEPENDS OpenMS
-	WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
-add_dependencies(pyopenms_dist OpenMS)
 
 ###########################################################################
 #####                      Testing pyOpenMS                           #####
