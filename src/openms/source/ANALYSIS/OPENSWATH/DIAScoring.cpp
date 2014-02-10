@@ -153,11 +153,12 @@ namespace OpenMS
       double right = precursor_mz + dia_extract_window_ / 2.0;
       integrateWindow(spectrum, left, right, mz, intensity, dia_centroided_);
 
-      // Catch a value of -1 (no signal found inside the window) 
-      // else calculate the difference in ppm
+      // Catch a value of -1 (no signal found inside the window) and replace it
+      // with the most extreme value.
+      // Otherwise calculate the difference in ppm.
       if (mz == -1)
       {
-        ppm_score = -1;
+        ppm_score = dia_extract_window_ / precursor_mz * 1000000;
       }
       else
       {
