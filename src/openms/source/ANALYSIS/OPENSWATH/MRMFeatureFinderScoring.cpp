@@ -349,6 +349,15 @@ namespace OpenMS
         mrmfeature->addScore("var_yseries_score", scores.yseries_score);
         mrmfeature->addScore("var_dotprod_score", scores.dotprod_score_dia);
         mrmfeature->addScore("var_manhatt_score", scores.manhatt_score_dia);
+        if (su_.use_ms1_correlation)
+        {
+          mrmfeature->addScore("var_ms1_xcorr_shape", scores.xcorr_ms1_shape_score);
+          mrmfeature->addScore("var_ms1_xcorr_coelution", scores.xcorr_ms1_coelution_score);
+        }
+        if (su_.use_ms1_ppm)
+        {
+          mrmfeature->addScore("var_ms1_ppm_diff", scores.ms1_ppm_score);
+        }
 
         double xx_swath_prescore = -scores.calculate_swath_lda_prescore(scores);
         mrmfeature->addScore("main_var_xx_swath_prelim_score", xx_swath_prescore);
