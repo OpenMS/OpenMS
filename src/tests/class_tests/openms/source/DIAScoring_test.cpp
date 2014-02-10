@@ -58,6 +58,60 @@ void getMRMFeatureTest(MockMRMFeature * imrmfeature_test)
   imrmfeature_test->m_intensity = 1.0;
 }
 
+OpenSwath::SpectrumPtr prepareSpectrum()
+{
+  OpenSwath::SpectrumPtr sptr = (OpenSwath::SpectrumPtr)(new OpenSwath::Spectrum);
+  std::vector<OpenSwath::BinaryDataArrayPtr> binaryDataArrayPtrs;
+  OpenSwath::BinaryDataArrayPtr data1 = (OpenSwath::BinaryDataArrayPtr)(new OpenSwath::BinaryDataArray);
+  OpenSwath::BinaryDataArrayPtr data2 = (OpenSwath::BinaryDataArrayPtr)(new OpenSwath::BinaryDataArray);
+
+  static const double arr1[] = {
+    10, 20, 50, 100, 50, 20, 10, // peak at 499
+    3, 7, 15, 30, 15, 7, 3,      // peak at 500
+    1, 3, 9, 15, 9, 3, 1,        // peak at 501
+    3, 9, 3,                     // peak at 502
+
+    10, 20, 50, 100, 50, 20, 10, // peak at 600
+    3, 7, 15, 30, 15, 7, 3,      // peak at 601
+    1, 3, 9, 15, 9, 3, 1,        // peak at 602
+    3, 9, 3                      // peak at 603
+  };
+  std::vector<double> intensity (arr1, arr1 + sizeof(arr1) / sizeof(arr1[0]) );
+  static const double arr2[] = {
+    498.97, 498.98, 498.99, 499.0, 499.01, 499.02, 499.03,
+    499.97, 499.98, 499.99, 500.0, 500.01, 500.02, 500.03,
+    500.97, 500.98, 500.99, 501.0, 501.01, 501.02, 501.03,
+    501.99, 502.0, 502.01,
+
+    599.97, 599.98, 599.99, 600.0, 600.01, 600.02, 600.03,
+    600.97, 600.98, 600.99, 601.0, 601.01, 601.02, 601.03,
+    601.97, 601.98, 601.99, 602.0, 602.01, 602.02, 602.03,
+    602.99, 603.0, 603.01
+  };
+  std::vector<double> mz (arr2, arr2 + sizeof(arr2) / sizeof(arr2[0]) );
+  data1->data = mz;
+  data2->data = intensity;
+
+  sptr->setMZArray(data1);
+  sptr->setIntensityArray( data2 );
+  return sptr;
+}
+
+OpenSwath::SpectrumPtr prepareShiftedSpectrum()
+{
+  OpenSwath::SpectrumPtr sptr = prepareSpectrum();
+  // shift the peaks by a fixed amount in ppm
+  for (std::size_t i = 0; i < sptr->getMZArray()->data.size() / 2.0; i++)
+  {
+    sptr->getMZArray()->data[i] +=  sptr->getMZArray()->data[i] / 1000000 * 15; // shift first peak by 15 ppm
+  }
+  for (std::size_t i = sptr->getMZArray()->data.size() / 2.0; i < sptr->getMZArray()->data.size(); i++)
+  {
+    sptr->getMZArray()->data[i] +=  sptr->getMZArray()->data[i] / 1000000 * 10; // shift second peak by 10 ppm
+  }
+  return sptr;
+}
+
 START_TEST(DIAScoring, "$Id$")
 
 /////////////////////////////////////////////////////////////
@@ -270,40 +324,7 @@ END_SECTION
 
 START_SECTION ( void dia_isotope_scores(const std::vector< TransitionType > &transitions, SpectrumType spectrum, OpenSwath::IMRMFeature *mrmfeature, double &isotope_corr, double &isotope_overlap) )
 {
-  OpenSwath::SpectrumPtr sptr = (OpenSwath::SpectrumPtr)(new OpenSwath::Spectrum);
-  std::vector<OpenSwath::BinaryDataArrayPtr> binaryDataArrayPtrs;
-  OpenSwath::BinaryDataArrayPtr data1 = (OpenSwath::BinaryDataArrayPtr)(new OpenSwath::BinaryDataArray);
-  OpenSwath::BinaryDataArrayPtr data2 = (OpenSwath::BinaryDataArrayPtr)(new OpenSwath::BinaryDataArray);
-
-  static const double arr1[] = {
-    10, 20, 50, 100, 50, 20, 10, // peak at 499
-    3, 7, 15, 30, 15, 7, 3,      // peak at 500
-    1, 3, 9, 15, 9, 3, 1,        // peak at 501
-    3, 9, 3,                     // peak at 502
-
-    10, 20, 50, 100, 50, 20, 10, // peak at 600
-    3, 7, 15, 30, 15, 7, 3,      // peak at 601
-    1, 3, 9, 15, 9, 3, 1,        // peak at 602
-    3, 9, 3                      // peak at 603
-  };
-  std::vector<double> intensity (arr1, arr1 + sizeof(arr1) / sizeof(arr1[0]) );
-  static const double arr2[] = {
-    498.97, 498.98, 498.99, 499.0, 499.01, 499.02, 499.03,
-    499.97, 499.98, 499.99, 500.0, 500.01, 500.02, 500.03,
-    500.97, 500.98, 500.99, 501.0, 501.01, 501.02, 501.03,
-    501.99, 502.0, 502.01,
-
-    599.97, 599.98, 599.99, 600.0, 600.01, 600.02, 600.03,
-    600.97, 600.98, 600.99, 601.0, 601.01, 601.02, 601.03,
-    601.97, 601.98, 601.99, 602.0, 602.01, 602.02, 602.03,
-    602.99, 603.0, 603.01
-  };
-  std::vector<double> mz (arr2, arr2 + sizeof(arr2) / sizeof(arr2[0]) );
-  data1->data = mz;
-  data2->data = intensity;
-
-  sptr->setMZArray(data1);
-  sptr->setIntensityArray( data2 );
+  OpenSwath::SpectrumPtr sptr = prepareSpectrum();
 
   MockMRMFeature * imrmfeature_test = new MockMRMFeature();
   getMRMFeatureTest(imrmfeature_test);
@@ -327,51 +348,7 @@ END_SECTION
 
 START_SECTION ( void dia_massdiff_score(const std::vector< TransitionType > &transitions, SpectrumType spectrum, const std::vector< double > &normalized_library_intensity, double &ppm_score, double &ppm_score_weighted) )
 {
-  OpenSwath::SpectrumPtr sptr = (OpenSwath::SpectrumPtr)(new OpenSwath::Spectrum);
-  std::vector<OpenSwath::BinaryDataArrayPtr> binaryDataArrayPtrs;
-  OpenSwath::BinaryDataArrayPtr data1 = (OpenSwath::BinaryDataArrayPtr)(new OpenSwath::BinaryDataArray);
-  OpenSwath::BinaryDataArrayPtr data2 = (OpenSwath::BinaryDataArrayPtr)(new OpenSwath::BinaryDataArray);
-
-  static const double arr1[] = {
-    10, 20, 50, 100, 50, 20, 10, // peak at 499
-    3, 7, 15, 30, 15, 7, 3,      // peak at 500
-    1, 3, 9, 15, 9, 3, 1,        // peak at 501
-    3, 9, 3,                     // peak at 502
-
-    10, 20, 50, 100, 50, 20, 10, // peak at 600
-    3, 7, 15, 30, 15, 7, 3,      // peak at 601
-    1, 3, 9, 15, 9, 3, 1,        // peak at 602
-    3, 9, 3                      // peak at 603
-  };
-  std::vector<double> intensity (arr1, arr1 + sizeof(arr1) / sizeof(arr1[0]) );
-  static const double arr2[] = {
-    498.97, 498.98, 498.99, 499.0, 499.01, 499.02, 499.03,
-    499.97, 499.98, 499.99, 500.0, 500.01, 500.02, 500.03,
-    500.97, 500.98, 500.99, 501.0, 501.01, 501.02, 501.03,
-    501.99, 502.0, 502.01,
-
-    599.97, 599.98, 599.99, 600.0, 600.01, 600.02, 600.03,
-    600.97, 600.98, 600.99, 601.0, 601.01, 601.02, 601.03,
-    601.97, 601.98, 601.99, 602.0, 602.01, 602.02, 602.03,
-    602.99, 603.0, 603.01
-  };
-  std::vector<double> mz (arr2, arr2 + sizeof(arr2) / sizeof(arr2[0]) );
-
-  // shift the peaks by a fixed amount in ppm
-  for (std::size_t i = 0; i < mz.size() / 2.0; i++)
-  {
-    mz[i] +=  mz[i] / 1000000 * 15; // shift first peak by 15 ppm
-    //std::cout << " new mz " << mz[i] << std::endl;
-  }
-  for (std::size_t i = mz.size() / 2.0; i < mz.size(); i++)
-  {
-    mz[i] +=  mz[i] / 1000000 * 10; // shift second peak by 10 ppm
-    //std::cout << " new mz " << mz[i] << std::endl;
-  }
-  data1->data = mz;
-  data2->data = intensity;
-  sptr->setMZArray( data1 );
-  sptr->setIntensityArray( data2 );
+  sptr = prepareShiftedSpectrum();
 
   MockMRMFeature * imrmfeature_test = new MockMRMFeature();
   getMRMFeatureTest(imrmfeature_test);
