@@ -82,6 +82,22 @@ namespace OpenSwath
     }
   }
 
+  void MRMScoring::initializeMS1XCorr(OpenSwath::IMRMFeature* mrmfeature, std::vector<String> native_ids, std::string precursor_id)
+  {
+    std::vector<double> intensityi, intensity_ms1;
+    mrmfeature->getPrecursorFeature(precursor_id)->getIntensity(intensity_ms1);
+    ms1_xcorr_vector_.resize(native_ids.size());
+    for (std::size_t i = 0; i < native_ids.size(); i++)
+    {
+      String native_id = native_ids[i];
+      FeatureType fi = mrmfeature->getFeature(native_id);
+      intensityi.clear();
+      fi->getIntensity(intensityi);
+      ms1_xcorr_vector_[i] = Scoring::normalizedCrossCorrelation(
+        intensityi, intensity_ms1, boost::numeric_cast<int>(intensityi.size()), 1);
+    }
+  }
+
   // see /IMSB/users/reiterl/bin/code/biognosys/trunk/libs/mrm_libs/MRM_pgroup.pm
   // _calc_xcorr_coelution_score
   //
@@ -213,6 +229,43 @@ namespace OpenSwath
       }
     }
     return std::accumulate(intensities.begin(), intensities.end(), 0.0);
+  }
+
+  double MRMScoring::calcMS1XcorrCoelutionScore()
+  {
+    OPENMS_PRECONDITION(ms1_xcorr_vector_.size() > 1, "Expect cross-correlation vector of a size of least 2");
+
+    std::vector<int> deltas;
+    for (std::size_t i = 0; i < ms1_xcorr_vector_.size(); i++)
+    {
+      // first is the X value (RT), should be an int
+      deltas.push_back(std::abs(Scoring::xcorrArrayGetMaxPeak(ms1_xcorr_vector_[i])->first));
+    }
+
+    OpenSwath::mean_and_stddev msc;
+    msc = std::for_each(deltas.begin(), deltas.end(), msc);
+    double deltas_mean = msc.mean();
+    double deltas_stdv = msc.sample_stddev();
+    //double deltas_mean = gsl_stats_int_mean(&deltas[0], 1, deltas.size());
+    //double deltas_stdv = gsl_stats_int_sd(&deltas[0], 1, deltas.size());
+
+    double xcorr_coelution_score = deltas_mean + deltas_stdv;
+    return xcorr_coelution_score;
+  }
+
+  double MRMScoring::calcMS1XcorrShape_score()
+  {
+    OPENMS_PRECONDITION(ms1_xcorr_vector_.size() > 1, "Expect cross-correlation vector of a size of least 2");
+
+    std::vector<double> intensities;
+    for (std::size_t i = 0; i < ms1_xcorr_vector_.size(); i++)
+    {
+      // second is the Y value (intensity)
+      intensities.push_back(Scoring::xcorrArrayGetMaxPeak(ms1_xcorr_vector_[i])->second);
+    }
+    OpenSwath::mean_and_stddev msc;
+    msc = std::for_each(intensities.begin(), intensities.end(), msc);
+    return msc.mean();
   }
 
   void MRMScoring::calcLibraryScore(OpenSwath::IMRMFeature* mrmfeature, const std::vector<TransitionType>& transitions,
