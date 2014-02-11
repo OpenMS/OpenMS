@@ -50,13 +50,6 @@ cdef extern from "<OpenMS/KERNEL/MSSpectrum.h>" namespace "OpenMS":
         bool operator==(MSSpectrum[PeakT]) nogil except +
         bool operator!=(MSSpectrum[PeakT]) nogil except +
 
-        # FloatDataArrays  getFloatDataArrays()
-        # FloatDataArrays  getFloatDataArrays()
-        # StringDataArrays  getStringDataArrays()
-        # StringDataArrays  getStringDataArrays()
-        # IntegerDataArrays  getIntegerDataArrays()
-        # IntegerDataArrays  getIntegerDataArrays()
-
         void sortByIntensity(bool reverse)
         void sortByPosition()
 
