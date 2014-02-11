@@ -40,6 +40,7 @@ FeatureXMLFile.h
 FileHandler.h
 GzipIfstream.h
 GzipInputStream.h
+IBSpectraFile.h
 IdXMLFile.h
 IndexedMzMLFile.h
 IndexedMzMLFileLoader.h

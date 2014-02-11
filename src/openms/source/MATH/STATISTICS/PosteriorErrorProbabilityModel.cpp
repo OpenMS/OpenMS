@@ -175,6 +175,7 @@ namespace OpenMS
         DoubleReal new_maxlike(computeMaxLikelihood(incorrect_density, correct_density));
         if (boost::math::isnan(new_maxlike - maxlike))
         {
+          delete file; // free resources before returning
           return false;
           //throw Exception::UnableToFit(__FILE__,__LINE__,__PRETTY_FUNCTION__,"UnableToFit-PosteriorErrorProbability","Could not fit mixture model to data");
         }
