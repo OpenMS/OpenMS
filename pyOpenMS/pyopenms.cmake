@@ -299,7 +299,7 @@ endif()
 
 add_custom_target(pyopenms_create_cpp
 	COMMAND ${PYTHON_EXECUTABLE} create_cpp_extension.py
-    DEPENDS OpenMS
+	DEPENDS OpenMS
 	WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
 
 add_custom_target(pyopenms
@@ -308,7 +308,7 @@ add_custom_target(pyopenms
 	COMMAND ${PYTHON_EXECUTABLE} setup.py bdist_egg
 	COMMAND ${PYTHON_EXECUTABLE} setup.py bdist --format=zip
 	COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext --inplace
-    DEPENDS OpenMS
+	DEPENDS OpenMS
 	WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
 
 add_dependencies(pyopenms OpenMS)
