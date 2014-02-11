@@ -300,6 +300,7 @@ cdef extern from "<OpenMS/CHEMISTRY/Residue.h>" namespace "OpenMS":
 cdef extern from "<OpenMS/CHEMISTRY/Residue.h>" namespace "OpenMS::Residue":
 
     cdef enum ResidueType:
+      # wrap-attach: Residue
       Full = 0,           # with N-terminus and C-terminus
       Internal,           # internal, without any termini
       NTerminal,           # only N-terminus
