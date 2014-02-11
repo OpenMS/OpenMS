@@ -32,7 +32,7 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/OPENSWATH/CachedmzML.h>
+#include <OpenMS/FORMAT/CachedMzML.h>
 
 namespace OpenMS
 {

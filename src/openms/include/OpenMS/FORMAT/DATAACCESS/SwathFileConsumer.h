@@ -50,7 +50,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
 
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/CachedmzML.h>
+#include <OpenMS/FORMAT/CachedMzML.h>
 
 #ifdef _OPENMP
 #include <omp.h>

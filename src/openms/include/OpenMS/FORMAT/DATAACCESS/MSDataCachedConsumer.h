@@ -37,7 +37,7 @@
 
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
 
-#include <OpenMS/ANALYSIS/OPENSWATH/CachedmzML.h>
+#include <OpenMS/FORMAT/CachedMzML.h>
 
 namespace OpenMS
 {

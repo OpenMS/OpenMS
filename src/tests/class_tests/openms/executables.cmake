@@ -559,7 +559,7 @@ if(NOT DISABLE_OPENSWATH)
     MRMFeatureFinderScoring_test
     SpectrumHelpers_test
     StatsHelpers_test
-    CachedmzML_test
+    CachedMzML_test
   )
 endif(NOT DISABLE_OPENSWATH)
 

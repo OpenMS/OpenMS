@@ -18,7 +18,6 @@ DIAPrescoring.cpp
 MRMFeatureFinderScoring.cpp
 ConfidenceScoring.cpp
 PeakPickerMRM.cpp
-CachedmzML.cpp
 )
 
 ### add path to the filenames

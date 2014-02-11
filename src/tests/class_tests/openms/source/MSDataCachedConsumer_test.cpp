@@ -41,7 +41,7 @@
 
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/CachedmzML.h>
+#include <OpenMS/FORMAT/CachedMzML.h>
 
 START_TEST(MSDataCachedConsumer, "$Id$")
 
