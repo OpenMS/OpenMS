@@ -175,6 +175,16 @@ def testSpectrumAlignment():
     aligner.getSpectrumAlignment(result, rich_spec, rich_spec)
     assert result == [ (0,0), (1,1), (2,2) ], result
 
+    aligner = pyopenms.SpectrumAlignmentScore()
+    assert isinstance(aligner(spec), float)
+    assert isinstance(aligner(rich_spec), float)
+
+    assert isinstance(aligner(spec, rich_spec), float)
+    assert isinstance(aligner(rich_spec, spec), float)
+
+    assert isinstance(aligner(spec, spec), float)
+    assert isinstance(aligner(rich_spec, rich_spec), float)
+
 
 @report
 def testAASequence():
