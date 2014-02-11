@@ -296,11 +296,11 @@ endif()
 
 #------------------------------------------------------------------------------
 # create targets in makefile
-add_custom_target(Name ALL
-  COMMAND ${PYTHON_EXECUTABLE} create_cpp_extension.py
-  COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext --inplace
-  DEPENDS OpenMS
-  WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS)
+
+add_custom_target(pyopenms_create_cpp
+	COMMAND ${PYTHON_EXECUTABLE} create_cpp_extension.py
+    DEPENDS OpenMS
+	WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
 
 add_custom_target(pyopenms
 	COMMAND ${PYTHON_EXECUTABLE} create_cpp_extension.py
@@ -310,6 +310,7 @@ add_custom_target(pyopenms
 	COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext --inplace
     DEPENDS OpenMS
 	WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
+
 add_dependencies(pyopenms OpenMS)
 
 ###########################################################################
