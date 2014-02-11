@@ -260,6 +260,24 @@ def testResidue():
     """
     ins = pyopenms.Residue()
 
+    pyopenms.Residue.ResidueType.Full
+    pyopenms.Residue.ResidueType.Internal
+    pyopenms.Residue.ResidueType.NTerminal
+    pyopenms.Residue.ResidueType.CTerminal
+    pyopenms.Residue.ResidueType.AIon
+    pyopenms.Residue.ResidueType.BIon
+    pyopenms.Residue.ResidueType.CIonMinusOne
+    pyopenms.Residue.ResidueType.CIon
+    pyopenms.Residue.ResidueType.CIonPlusOne
+    pyopenms.Residue.ResidueType.CIonPlusTwo
+    pyopenms.Residue.ResidueType.XIon
+    pyopenms.Residue.ResidueType.YIon
+    pyopenms.Residue.ResidueType.ZIonMinusOne
+    pyopenms.Residue.ResidueType.ZIon
+    pyopenms.Residue.ResidueType.ZIonPlusOne
+    pyopenms.Residue.ResidueType.ZIonPlusTwo
+    pyopenms.Residue.ResidueType.SizeOfResidueType
+
 @report
 def testIsotopeDistribution():
     """
