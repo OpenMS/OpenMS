@@ -76,7 +76,7 @@ public:
 #endif
       for (SignedSize i = 0; i < boost::numeric_cast<SignedSize>(file_list.size()); ++i)
       {
-        std::cout << "Loading file " << i << " with name " << file_list[i] << std::endl;
+        std::cout << "Loading file " << i << " with name " << file_list[i] << " using readoptions " << readoptions << std::endl;
         String tmp_fname = "openswath_tmpfile_" + String(i) + ".mzML";
 
         boost::shared_ptr<MSExperiment<Peak1D> > exp(new MSExperiment<Peak1D>);
@@ -142,6 +142,8 @@ public:
     std::vector<OpenSwath::SwathMap> loadMzML(String file, String tmp,
                                               boost::shared_ptr<ExperimentalSettings>& exp_meta, String readoptions = "normal")
     {
+      std::cout << "Loading mzML file " << file << " using readoptions " << readoptions << std::endl;
+
       startProgress(0, 1, "Loading data file " + file);
       std::vector<OpenSwath::SwathMap> swath_maps;
       FullSwathFileConsumer* dataConsumer;
@@ -205,6 +207,8 @@ public:
     std::vector<OpenSwath::SwathMap> loadMzXML(String file, String tmp,
                                                boost::shared_ptr<ExperimentalSettings>& exp_meta, String readoptions = "normal")
     {
+      std::cout << "Loading mzXML file " << file << " using readoptions " << readoptions << std::endl;
+
       startProgress(0, 1, "Loading data file " + file);
       std::vector<OpenSwath::SwathMap> swath_maps;
       boost::shared_ptr<FullSwathFileConsumer> dataConsumer;

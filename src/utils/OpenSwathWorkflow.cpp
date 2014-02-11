@@ -807,6 +807,14 @@ namespace OpenMS
   /**
    * @brief Class to read a file describing the Swath Windows
    *
+   * The file must of be tab delimited and of the following format:
+   *    window_lower window_upper
+   *    400 425
+   *    425 450
+   *    ...
+   *
+   * Note that the first line is a header and will be skipped.
+   *
    */
   class SwathWindowLoader
   {
@@ -829,14 +837,32 @@ namespace OpenMS
     {
       std::vector<double> swath_prec_lower_, swath_prec_upper_;
       readSwathWindows(filename, swath_prec_lower_, swath_prec_upper_);
-      assert(swath_prec_lower_.size() == swath_maps.size());
-      for (Size i = 0; i < swath_maps.size(); i++)
+
+      Size i = 0, j = 0;
+      for (; i < swath_maps.size(); i++)
       {
-        swath_maps[i].lower = swath_prec_lower_[i];
-        swath_maps[i].upper = swath_prec_upper_[i];
+        if (swath_maps[i].ms1)
+        {
+          // skip to next map (only increase i)
+          continue;
+        }
+        std::cout << "Re-annotate from file: SWATH " << 
+          swath_maps[i].lower << " / " << swath_maps[i].upper << " is annotated with " << 
+          swath_prec_lower_[j] << " / " << swath_prec_upper_[j] << std::endl;
+
+        swath_maps[i].lower = swath_prec_lower_[j];
+        swath_maps[i].upper = swath_prec_upper_[j];
+        j++;
+      }
+
+      if (j != swath_prec_upper_.size() )
+      {
+        std::cerr << "The number of SWATH maps read from the raw data (" << 
+          j << ") and from the annotation file (" << swath_prec_upper_.size() << ") do not match." << std::endl;
+        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
+            "The number of SWATH maps read from the raw data and from the annotation file do not match.");
       }
     }
-
 
     /**
      * @brief Reading a tab delimited file specifying the SWATH windows
@@ -1193,7 +1219,7 @@ protected:
       SwathWindowLoader::annotateSwathMapsFromFile(swath_windows_file, swath_maps);
 
     for (Size i = 0; i < swath_maps.size(); i++)
-        LOG_DEBUG << "Found swath map " << i << " with lower " << swath_maps[i].lower << " and upper " << swath_maps[i].upper << std::endl;
+      LOG_DEBUG << "Found swath map " << i << " with lower " << swath_maps[i].lower << " and upper " << swath_maps[i].upper << std::endl;
 
     ///////////////////////////////////
     // Get the transformation information (using iRT peptides)
