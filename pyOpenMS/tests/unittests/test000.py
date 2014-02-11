@@ -128,7 +128,52 @@ def _testProgressLogger(ff):
     ff.setProgress(3)
     ff.endProgress()
 
+@report
+def testSpectrumAlignment():
+    """
+    @tests:
+        SpectrumAlignment.__init__
+        SpectrumAlignment.getSpectrumAlignment
+    """
+    # test existence of some methods
+    pyopenms.SpectrumAlignment
+    pyopenms.SpectrumAlignment.__init__
+    pyopenms.SpectrumAlignment.getDefaults
+    pyopenms.SpectrumAlignment.getParameters
+    pyopenms.SpectrumAlignment.setParameters
 
+    spec = pyopenms.MSSpectrum()
+    p = pyopenms.Peak1D()
+    p.setMZ(1000.0)
+    p.setIntensity(200.0)
+    spec.push_back(p)
+    p.setMZ(2000.0)
+    p.setIntensity(200.0)
+    spec.push_back(p)
+
+    rich_spec = pyopenms.RichMSSpectrum()
+    p = pyopenms.RichPeak1D()
+    p.setMZ(1000.001)
+    p.setIntensity(200.0)
+    rich_spec.push_back(p)
+    p.setMZ(2000.001)
+    p.setIntensity(200.0)
+    rich_spec.push_back(p)
+    p.setMZ(3000.001)
+    p.setIntensity(200.0)
+    rich_spec.push_back(p)
+
+    aligner = pyopenms.SpectrumAlignment()
+    result = []
+
+    aligner.getSpectrumAlignment(result, spec, spec)
+    assert result == [ (0,0), (1,1) ], result
+    aligner.getSpectrumAlignment(result, rich_spec, spec)
+    assert result == [ (0,0), (1,1) ], result
+    aligner.getSpectrumAlignment(result, spec, rich_spec)
+    assert result == [ (0,0), (1,1) ], result
+    aligner.getSpectrumAlignment(result, rich_spec, rich_spec)
+    assert result == [ (0,0), (1,1), (2,2) ], result
 
 
 @report
