@@ -130,6 +130,16 @@ def _testProgressLogger(ff):
 
 
 
+    aligner = pyopenms.SpectrumAlignmentScore()
+    assert isinstance(aligner(spec), float)
+    assert isinstance(aligner(rich_spec), float)
+
+    assert isinstance(aligner(spec, rich_spec), float)
+    assert isinstance(aligner(rich_spec, spec), float)
+
+    assert isinstance(aligner(spec, spec), float)
+    assert isinstance(aligner(rich_spec, rich_spec), float)
+
 
 @report
 def testAASequence():
