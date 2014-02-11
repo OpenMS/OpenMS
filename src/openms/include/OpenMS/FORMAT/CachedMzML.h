@@ -32,8 +32,8 @@
 // $Authors: Hannes Roest $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_ANALYSIS_OPENSWATH_CACHEDMZML_H
-#define OPENMS_ANALYSIS_OPENSWATH_CACHEDMZML_H
+#ifndef OPENMS_FORMAT_CACHEDMZML_H
+#define OPENMS_FORMAT_CACHEDMZML_H
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
 
@@ -45,7 +45,7 @@
 
 #include <fstream>
 
-#define MAGIC_NUMBER 8093
+#define CACHED_MZML_FILE_IDENTIFIER 8093
 
 namespace OpenMS
 {

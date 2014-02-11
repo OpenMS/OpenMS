@@ -193,17 +193,24 @@ START_SECTION(( void writeMetadata(MapType exp, String out_meta, bool addCacheMe
 }
 END_SECTION
 
+// Create a single CachedMzML file and use it for the following computations
+// (may be somewhat faster)
+std::string tmp_filename;
+MSExperiment<> exp;
+CachedmzML cache_ = cacheFile(tmp_filename, exp);
+
 START_SECTION(( void readMemdump(MapType& exp_reading, String filename) const ))
 {
-  std::string tmp_filename;
-  MSExperiment<> exp;
-  CachedmzML cache = cacheFile(tmp_filename, exp);
-
   MSExperiment<> exp_new;
-  cache.readMemdump(exp_new, tmp_filename);
+  cache_.readMemdump(exp_new, tmp_filename);
 
   TEST_EQUAL(exp_new.size(), exp.size())
   TEST_EQUAL(exp_new.getChromatograms().size(), exp.getChromatograms().size())
+
+  std::string unused_tmp_filename;
+  NEW_TMP_FILE(unused_tmp_filename);
+  TEST_EXCEPTION(Exception::FileNotFound, cache_.readMemdump(exp_new, unused_tmp_filename) )
+  TEST_EXCEPTION(Exception::ParseError, cache_.readMemdump(exp_new, OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML") ) )
 }
 END_SECTION
 
@@ -211,12 +218,10 @@ START_SECTION(( void createMemdumpIndex(String filename) ))
 {
   std::string tmp_filename;
   NEW_TMP_FILE(tmp_filename);
-
   // Load experiment
   MSExperiment<> exp;
   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), exp);
   TEST_EQUAL(exp.getNrSpectra() > 0, true)
-
   // Cache the experiment to a temporary file
   CachedmzML cache;
   cache.writeMemdump(exp, tmp_filename);
@@ -227,38 +232,34 @@ START_SECTION(( void createMemdumpIndex(String filename) ))
   // check whether we actually did read something
   TEST_EQUAL( cache.getSpectraIndex().size(), 4);
   TEST_EQUAL( cache.getChromatogramIndex().size(), 2);
+
+  // Test error conditions
+  std::string unused_tmp_filename;
+  NEW_TMP_FILE(unused_tmp_filename);
+  TEST_EXCEPTION(Exception::FileNotFound, cache.createMemdumpIndex(unused_tmp_filename) )
+  TEST_EXCEPTION(Exception::ParseError, cache.createMemdumpIndex(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML") ) )
 }
 END_SECTION
 
 START_SECTION(( const std::vector<Size>& getSpectraIndex() const ))
 {
-  std::string tmp_filename;
-  MSExperiment<> exp;
-  CachedmzML cache = cacheFile(tmp_filename, exp);
-  TEST_EQUAL( cache.getSpectraIndex().size(), 4);
+  TEST_EQUAL( cache_.getSpectraIndex().size(), 4);
 }
 END_SECTION
 
 START_SECTION(( const std::vector<Size>& getChromatogramIndex() const ))
 {
-  std::string tmp_filename;
-  MSExperiment<> exp;
-  CachedmzML cache = cacheFile(tmp_filename, exp);
-  TEST_EQUAL( cache.getChromatogramIndex().size(), 2);
+  TEST_EQUAL( cache_.getChromatogramIndex().size(), 2);
 }
 END_SECTION
 
 START_SECTION(static inline void readSpectrumFast(OpenSwath::BinaryDataArrayPtr data1, OpenSwath::BinaryDataArrayPtr data2, std::ifstream& ifs, int& ms_level, double& rt))
 {
-  std::string tmp_filename;
-  MSExperiment<> exp;
-  CachedmzML cache = cacheFile(tmp_filename, exp);
 
   // Check whether spectra were written to disk correctly...
   {
     // Create the index from the given file
-    cache.createMemdumpIndex(tmp_filename);
-    std::vector<Size> spectra_index = cache.getSpectraIndex();
+    std::vector<Size> spectra_index = cache_.getSpectraIndex();
     TEST_EQUAL(spectra_index.size(), 4)
     std::ifstream ifs_(tmp_filename.c_str(), std::ios::binary);
 
@@ -289,15 +290,10 @@ END_SECTION
 
 START_SECTION( static inline void readChromatogramFast(OpenSwath::BinaryDataArrayPtr data1, OpenSwath::BinaryDataArrayPtr data2, std::ifstream& ifs) )
 {
-  std::string tmp_filename;
-  MSExperiment<> exp;
-  CachedmzML cache = cacheFile(tmp_filename, exp);
-
   // Check whether chromatograms were written to disk correctly...
   {
     // Create the index from the given file
-    cache.createMemdumpIndex(tmp_filename);
-    std::vector<Size> chrom_index = cache.getChromatogramIndex();;
+    std::vector<Size> chrom_index = cache_.getChromatogramIndex();;
     TEST_EQUAL(chrom_index.size(), 2)
     std::ifstream ifs_(tmp_filename.c_str(), std::ios::binary);
 

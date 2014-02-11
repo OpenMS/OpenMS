@@ -61,8 +61,8 @@ namespace OpenMS
     std::ofstream ofs(out.c_str(), std::ios::binary);
     Size exp_size = exp.size();
     Size chrom_size = exp.getChromatograms().size();
-    int magic_number = MAGIC_NUMBER;
-    ofs.write((char*)&magic_number, sizeof(magic_number));
+    int file_identifier = CACHED_MZML_FILE_IDENTIFIER;
+    ofs.write((char*)&file_identifier, sizeof(file_identifier));
     ofs.write((char*)&exp_size, sizeof(exp_size));
     ofs.write((char*)&chrom_size, sizeof(chrom_size));
 
@@ -94,13 +94,12 @@ namespace OpenMS
     Size exp_size, chrom_size;
     Peak1D current_peak;
 
-    int magic_number;
-    ifs.read((char*)&magic_number, sizeof(magic_number));
-    if (magic_number != MAGIC_NUMBER)
+    int file_identifier;
+    ifs.read((char*)&file_identifier, sizeof(file_identifier));
+    if (file_identifier != CACHED_MZML_FILE_IDENTIFIER)
     {
       throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
-          "File might not be a cached mzML file (wrong magic number). Aborting!", filename);
-
+          "File might not be a cached mzML file (wrong file magic number). Aborting!", filename);
     }
 
     ifs.read((char*)&exp_size, sizeof(exp_size));
@@ -152,15 +151,15 @@ namespace OpenMS
 
     spectra_index_.clear();
     chrom_index_.clear();
-    int magic_number;
+    int file_identifier;
     int extra_offset = sizeof(dbl_field_) + sizeof(int_field_);
     int chrom_offset = 0;
 
-    ifs.read((char*)&magic_number, sizeof(magic_number));
-    if (magic_number != MAGIC_NUMBER)
+    ifs.read((char*)&file_identifier, sizeof(file_identifier));
+    if (file_identifier != CACHED_MZML_FILE_IDENTIFIER)
     {
       throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
-          "File might not be a cached mzML file (wrong magic number). Aborting!", filename);
+          "File might not be a cached mzML file (wrong file magic number). Aborting!", filename);
     }
 
     // For spectra and chromatograms go through file, read the size of the
@@ -330,3 +329,4 @@ namespace OpenMS
   }
 
 }
+
