@@ -56,16 +56,16 @@ namespace OpenMS
   */
   struct IdCSV
   {
-    String accession; // ￼ Protein AC
-    String peptide; // ￼ Peptide sequence
-    String modif; //￼ Peptide modification string
-    Int charge; // ￼ Charge state
+    String accession; // Protein AC
+    String peptide; // Peptide sequence
+    String modif; // Peptide modification string
+    Int charge; // Charge state
     DoubleReal theo_mass; // Theoretical peptide mass
-    DoubleReal exp_mass; //￼ Experimentally observed mass
-    DoubleReal parent_intens; //￼ Parent intensity
+    DoubleReal exp_mass; // Experimentally observed mass
+    DoubleReal parent_intens; // Parent intensity
     DoubleReal retention_time; // Retention time
-    String spectrum; // ￼ Spectrum identifier
-    String search_engine; // ￼ Protein search engine and score
+    String spectrum; // Spectrum identifier
+    String search_engine; // Protein search engine and score
 
     void toStringList(StringList& target_list)
     {
@@ -99,11 +99,12 @@ namespace OpenMS
   {
   }
 
-  IBSpectraFile::IBSpectraFile(const IBSpectraFile& other)
+  IBSpectraFile::IBSpectraFile(const IBSpectraFile& /* other */)
   {
+    // no members
   }
 
-  IBSpectraFile& IBSpectraFile::operator=(const IBSpectraFile& rhs)
+  IBSpectraFile& IBSpectraFile::operator=(const IBSpectraFile& /* rhs */)
   {
     return *this;
   }
@@ -146,16 +147,16 @@ namespace OpenMS
     StringList header;
 
 
-    header.push_back("accession"); // ￼ Protein AC
-    header.push_back("peptide"); // ￼ Peptide sequence
-    header.push_back("modif"); // ￼ Peptide modification string
-    header.push_back("charge"); // ￼ Charge state
-    header.push_back("theo.mass"); // ￼ Theoretical peptide mass
-    header.push_back("exp.mass"); // ￼ Experimentally observed mass
-    header.push_back("parent.intens"); // ￼ Parent intensity
-    header.push_back("retention.time"); // ￼ Retention time
-    header.push_back("spectrum"); // ￼ Spectrum identifier
-    header.push_back("search.engine"); // ￼ Protein search engine and score
+    header.push_back("accession"); // Protein AC
+    header.push_back("peptide"); // Peptide sequence
+    header.push_back("modif"); // Peptide modification string
+    header.push_back("charge"); // Charge state
+    header.push_back("theo.mass"); // Theoretical peptide mass
+    header.push_back("exp.mass"); // Experimentally observed mass
+    header.push_back("parent.intens"); // Parent intensity
+    header.push_back("retention.time"); // Retention time
+    header.push_back("spectrum"); // Spectrum identifier
+    header.push_back("search.engine"); // Protein search engine and score
 
     for (IsobaricQuantitationMethod::IsobaricChannelList::const_iterator it = quantMethod.getChannelInformation().begin();
          it != quantMethod.getChannelInformation().end();
