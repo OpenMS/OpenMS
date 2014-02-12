@@ -27,8 +27,8 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentificati
         void fitModel(String model_type, Param & params, libcpp_vector[TransformationDescription] & trafos) nogil except +
 
         # TEMPLATE
-        void alignMaps(libcpp_vector[ FeatureMap[Feature] ] & maps, libcpp_vector[ TransformationDescription ] & transformations)
-        void alignMaps(libcpp_vector[ MSExperiment[Peak1D, ChromatogramPeak] ] & maps, libcpp_vector[ TransformationDescription ] & transformations)
-        void alignMaps(libcpp_vector[ ConsensusMap] & maps, libcpp_vector[ TransformationDescription ] & transformations)
-        String getProductName()
+        void alignMaps(libcpp_vector[ FeatureMap[Feature] ] & maps, libcpp_vector[ TransformationDescription ] & transformations) nogil except +
+        void alignMaps(libcpp_vector[ MSExperiment[Peak1D, ChromatogramPeak] ] & maps, libcpp_vector[ TransformationDescription ] & transformations) nogil except +
+        void alignMaps(libcpp_vector[ ConsensusMap] & maps, libcpp_vector[ TransformationDescription ] & transformations) nogil except +
+        String getProductName() nogil except +
 
