@@ -1,7 +1,7 @@
 OpenMS
 ====== 
 
-OpenMS is an open-source software C++ library for LC/MS data management and
+OpenMS is an open-source software C++ library for LC-MS data management and
 analyses. It offers an infrastructure for the rapid development of mass
 spectrometry related software. OpenMS is free software available under the
 three clause BSD license and runs under Windows, MacOSX and Linux. 
@@ -17,7 +17,7 @@ It provides built-in algorithms for de-novo identification and database search,
 as well as adapters to other state-of-the art tools like XTandem, Mascot,
 OMSSA, etc. It supports easy integration of OpenMS built tools into workflow
 engines like Knime, Galaxy, WS-Pgrade, and TOPPAS via the TOPPtools concept and
-a unified parameter handling (CTD).
+a unified parameter handling via a 'common tool description' (CTD) scheme.
 
 With PyOpenMS, OpenMS offers Python bindings to a large part of the OpenMS API
 to enable rapid algorithm development. OpenMS supports the Proteomics Standard
@@ -28,7 +28,7 @@ Berlin and the ETH Zurich.
 Features
 --------
 - Core C++ library
-- TOPP Tools, 150+ analysis tools (150+), covering most MS and LC/MS data processing and mining tasks. 
+- TOPP Tools, 150+ analysis tools (150+), covering most MS and LC-MS data processing and mining tasks. 
 - Support for all major platforms (Windows [XP, 7, 8], Linux, MacOS).
 
 Licence
