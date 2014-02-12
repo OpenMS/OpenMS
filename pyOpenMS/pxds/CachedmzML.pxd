@@ -5,7 +5,7 @@ from Peak1D cimport *
 from String cimport *
 from ProgressLogger cimport *
 
-cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/CachedmzML.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/FORMAT/CachedMzML.h>" namespace "OpenMS":
 
     cdef cppclass CachedmzML(ProgressLogger):
         # wrap-inherits:
@@ -20,7 +20,6 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/CachedmzML.h>" namespace "OpenMS":
 
         void readMemdump(MSExperiment[Peak1D,ChromatogramPeak] exp, String filename) nogil except +
 
-        void readSingleSpectrum(MSSpectrum[ Peak1D ] & spectrum, String & filename, Size & idx)
         libcpp_vector[ size_t ]  getSpectraIndex()
         libcpp_vector[ size_t ]  getChromatogramIndex()
         void createMemdumpIndex(String filename)
