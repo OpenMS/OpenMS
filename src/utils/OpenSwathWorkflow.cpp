@@ -49,7 +49,7 @@
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVReader.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/CachedmzML.h>
+#include <OpenMS/FORMAT/CachedMzML.h>
 #ifdef OPENMS_FORMAT_SWATHFILE_MZXMLSUPPORT
 #include "MSDataReader.h"
 #endif

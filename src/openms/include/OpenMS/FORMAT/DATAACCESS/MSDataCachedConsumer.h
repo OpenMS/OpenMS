@@ -37,7 +37,7 @@
 
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
 
-#include <OpenMS/ANALYSIS/OPENSWATH/CachedmzML.h>
+#include <OpenMS/FORMAT/CachedMzML.h>
 
 namespace OpenMS
 {
@@ -115,8 +115,8 @@ namespace OpenMS
         spectra_expected_ = expectedSpectra;
         chromatograms_expexted_ = expectedChromatograms;
 
-        int magic_number = MAGIC_NUMBER;
-        ofs_.write((char*)&magic_number, sizeof(magic_number));
+        int file_identifier = CACHED_MZML_FILE_IDENTIFIER;
+        ofs_.write((char*)&file_identifier, sizeof(file_identifier));
         ofs_.write((char*)&spectra_expected_, sizeof(spectra_expected_));
         ofs_.write((char*)&chromatograms_expexted_, sizeof(chromatograms_expexted_));
       }

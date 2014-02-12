@@ -6,6 +6,7 @@ set(sources_list
 Base64.cpp
 Bzip2Ifstream.cpp
 Bzip2InputStream.cpp
+CachedMzML.cpp
 CompressedInputSource.cpp
 CVMappingFile.cpp
 ConsensusXMLFile.cpp
