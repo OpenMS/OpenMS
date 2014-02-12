@@ -50,7 +50,7 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/IncludeExcludeTarget.h>" namespace "
         void replaceCVTerms(Map[String, libcpp_vector[CVTerm] ] cv_term_map
                            ) nogil except +
 
-        Map[String, libcpp_vector[CVTerm] ] getCVTerms()
+        Map[String, libcpp_vector[CVTerm] ] getCVTerms() nogil except +
         void addCVTerm(CVTerm & term)                   nogil except +
 
         bool hasCVTerm(String accession)  nogil except +

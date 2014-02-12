@@ -19,11 +19,11 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPi
 
         FeatureFinderAlgorithmPicked()      nogil except +
 
-        void setData(MSExperiment[Peak1D, ChromatogramPeak] & input, FeatureMap[Feature] & output, FeatureFinder & ff)
-        void run()
+        void setData(MSExperiment[Peak1D, ChromatogramPeak] & input, FeatureMap[Feature] & output, FeatureFinder & ff) nogil except +
+        void run() nogil except +
 
 
-        void setSeeds(FeatureMap[Feature]& seeds)
+        void setSeeds(FeatureMap[Feature]& seeds) nogil except +
 
         # static FeatureFinderAlgorithm<PeakType, FeatureType>* create()
 

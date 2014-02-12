@@ -52,11 +52,11 @@ cdef extern from "<OpenMS/KERNEL/MSSpectrum.h>" namespace "OpenMS":
         bool operator==(MSSpectrum[PeakT]) nogil except +
         bool operator!=(MSSpectrum[PeakT]) nogil except +
 
-        void sortByIntensity(bool reverse)
-        void sortByPosition()
+        void sortByIntensity(bool reverse) nogil except +
+        void sortByPosition() nogil except +
 
-        void getKeys(libcpp_vector[String] & keys)
-        void getKeys(libcpp_vector[unsigned int] & keys)
+        void getKeys(libcpp_vector[String] & keys) nogil except +
+        void getKeys(libcpp_vector[unsigned int] & keys) nogil except +
         DataValue getMetaValue(unsigned int) nogil except +
         DataValue getMetaValue(String) nogil except +
         void setMetaValue(unsigned int, DataValue) nogil except +

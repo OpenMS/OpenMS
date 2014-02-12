@@ -19,9 +19,9 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ProteinResolver.h>" namespace "O
         void setProteinData(libcpp_vector[FASTAEntry] & protein_data) nogil except +
         libcpp_vector[ResolverResult] getResults() nogil except +
 
-        void countTargetDecoy(libcpp_vector[ MSDGroup ] & msd_groups, ConsensusMap & consensus)
-        void countTargetDecoy(libcpp_vector[ MSDGroup ] & msd_groups, libcpp_vector[ PeptideIdentification ] & peptide_nodes)
-        void clearResult()
+        void countTargetDecoy(libcpp_vector[ MSDGroup ] & msd_groups, ConsensusMap & consensus) nogil except +
+        void countTargetDecoy(libcpp_vector[ MSDGroup ] & msd_groups, libcpp_vector[ PeptideIdentification ] & peptide_nodes) nogil except +
+        void clearResult() nogil except +
 
         # POINTER # PeptideIdentification  getPeptideIdentification(ConsensusMap & consensus, PeptideEntry * peptide)
         # POINTER # PeptideHit  getPeptideHit(ConsensusMap & consensus, PeptideEntry * peptide)

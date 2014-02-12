@@ -35,8 +35,8 @@ cdef extern from "<OpenMS/METADATA/ProteinHit.h>" namespace "OpenMS":
         # cython has a problem with inheritance of overloaded methods,
         # so we do not declare them here, but separately in each derived
         # class which we want to be wrapped:
-        void getKeys(libcpp_vector[String] & keys)
-        void getKeys(libcpp_vector[unsigned int] & keys)
+        void getKeys(libcpp_vector[String] & keys) nogil except +
+        void getKeys(libcpp_vector[unsigned int] & keys) nogil except +
         DataValue getMetaValue(unsigned int) nogil except +
         DataValue getMetaValue(String) nogil except +
         void setMetaValue(unsigned int, DataValue) nogil except +

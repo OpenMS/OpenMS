@@ -93,8 +93,8 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Param.h>" namespace "OpenMS::Param::Par
 
     cdef cppclass TraceInfo:
 
-        TraceInfo(String n, String d, bool o)
-        TraceInfo(TraceInfo)
+        TraceInfo(String n, String d, bool o) nogil except +
+        TraceInfo(TraceInfo) nogil except +
 
         # name of the node
         String name
