@@ -232,6 +232,9 @@ namespace OpenMS
     }
     xercesc::DOMNode* indexListNode = li->item(0);
 
+    XMLCh* idref_tag = xercesc::XMLString::transcode("idRef");
+    XMLCh* name_tag = xercesc::XMLString::transcode("name");
+
     // Iterate through indexList elements
     xercesc::DOMNodeList* index_elems = indexListNode->getChildNodes();
     const  XMLSize_t nodeCount_ = index_elems->getLength();
@@ -250,15 +253,24 @@ namespace OpenMS
               currentONode->getNodeType() == xercesc::DOMNode::ELEMENT_NODE) // is element
           {
             xercesc::DOMElement* currentElement = dynamic_cast<xercesc::DOMElement*>(currentONode);
-            std::string name = xercesc::XMLString::transcode(currentElement->getAttribute(xercesc::XMLString::transcode("idRef")));
-            std::streampos thisOffset = OpenMS::StringUtils::stringToStreampos( String(xercesc::XMLString::transcode(currentONode->getTextContent())) );
-            result.push_back(std::make_pair(name, thisOffset));
+
+            char* name = xercesc::XMLString::transcode(currentElement->getAttribute(idref_tag));
+            char* offset = xercesc::XMLString::transcode(currentONode->getTextContent());
+
+            std::streampos thisOffset = OpenMS::StringUtils::stringToStreampos( String(offset) );
+            result.push_back(std::make_pair(std::string(name), thisOffset));
+
+            xercesc::XMLString::release(&name); 
+            xercesc::XMLString::release(&offset); 
           }
         }
 
         // should be either spectrum or chromatogram ...
         xercesc::DOMElement* currentElement = dynamic_cast<xercesc::DOMElement*>(currentNode);
-        std::string name = xercesc::XMLString::transcode(currentElement->getAttribute(xercesc::XMLString::transcode("name")));
+        char* tmp_name = xercesc::XMLString::transcode(currentElement->getAttribute(name_tag));
+        std::string name(tmp_name);
+        xercesc::XMLString::release(&tmp_name); 
+
         if (name == "spectrum")
         {
           spectra_offsets = result;
@@ -271,11 +283,16 @@ namespace OpenMS
         {
           std::cerr << "IndexedMzMLDecoder::domParseIndexedEnd Error: expected only " << 
             "'spectrum' or 'chromatogram' below indexList but found instead '" << name << "'." << std::endl;
+          xercesc::XMLString::release(&idref_tag);
+          xercesc::XMLString::release(&name_tag);
           delete parser;
           return -1;
         }
       }
     }
+    xercesc::XMLString::release(&idref_tag);
+    xercesc::XMLString::release(&name_tag);
+
 
     delete parser;
     return 0;
