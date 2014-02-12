@@ -86,7 +86,7 @@ START_SECTION((void consumeSpectrum(SpectrumType & s)))
     // Create the index from the given file
     CachedmzML cache;
     cache.createMemdumpIndex(tmp_filename);
-    std::vector<Size> spectra_index = cache.getSpectraIndex();
+    std::vector<std::streampos> spectra_index = cache.getSpectraIndex();
     std::ifstream ifs_(tmp_filename.c_str(), std::ios::binary);
 
     // retrieve the spectrum
@@ -131,7 +131,7 @@ START_SECTION((void consumeChromatogram(ChromatogramType & c)))
     // Create the index from the given file
     CachedmzML cache;
     cache.createMemdumpIndex(tmp_filename);
-    std::vector<Size> chrom_index = cache.getChromatogramIndex();;
+    std::vector<std::streampos> chrom_index = cache.getChromatogramIndex();;
     std::ifstream ifs_(tmp_filename.c_str(), std::ios::binary);
 
     // retrieve the chromatogram
