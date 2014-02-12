@@ -136,21 +136,23 @@ class OpenMSDataValue(TypeConverterBase):
         # this one is slow as it uses construction of python type DataValue for
         # delegating conversion to this type, which reduces code below:
         return Code().add("""
-                    |cdef DataValue _vvv = DataValue.__new__(DataValue)
-                    |_vvv.inst = shared_ptr[_DataValue](new _DataValue($input_cpp_var))
-                    |cdef int _value_type_x = $input_cpp_var.valueType()
-                    |if _value_type_x == DataType.STRING_VALUE:
-                    |    $output_py_var = _vvv.toString()
-                    |elif _value_type_x == DataType.INT_VALUE:
-                    |    $output_py_var = _vvv.toInt()
-                    |elif _value_type_x == DataType.DOUBLE_VALUE:
-                    |    $output_py_var = _vvv.toDouble()
-                    |elif _value_type_x == DataType.INT_LIST:
-                    |    $output_py_var = _vvv.toIntList()
-                    |elif _value_type_x == DataType.DOUBLE_LIST:
-                    |    $output_py_var = _vvv.toDoubleList()
-                    |elif _value_type_x == DataType.STRING_LIST:
-                    |    $output_py_var = _vvv.toStringList()
+                    |cdef DataValue _value = DataValue.__new__(DataValue)
+                    |_value.inst = shared_ptr[_DataValue](new _DataValue($input_cpp_var))
+                    |cdef int _type = $input_cpp_var.valueType()
+                    |if _type == DataType.STRING_VALUE:
+                    |    $output_py_var = _value.toString()
+                    |elif _type == DataType.INT_VALUE:
+                    |    $output_py_var = _value.toInt()
+                    |elif _type == DataType.DOUBLE_VALUE:
+                    |    $output_py_var = _value.toDouble()
+                    |elif _type == DataType.INT_LIST:
+                    |    $output_py_var = _value.toIntList()
+                    |elif _type == DataType.DOUBLE_LIST:
+                    |    $output_py_var = _value.toDoubleList()
+                    |elif _type == DataType.STRING_LIST:
+                    |    $output_py_var = _value.toStringList()
+                    |else:
+                    |    raise Exception("DataValue instance has invalid value type %d" % _type)
                 """, locals())
 
 
