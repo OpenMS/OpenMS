@@ -114,6 +114,10 @@ public:
         spectrum.getPrecursors().resize(1);
         typename MapType::PeakType p;
         UInt thread_spectrum_number(-1);
+        // It is essential that each thread has its own continue variable which
+        // indicates whether the current thread should finish its task even if
+        // the end is reached and other threads already abort the loop.
+        bool threadContinue = true;
         while (has_next)
         {
 #ifdef _OPENMP
@@ -121,37 +125,43 @@ public:
 #endif
           {
             has_next = getNextSpectrum_(is, spec, charge, pre_mz, pre_int, rt, title, line_number);
+            threadContinue = has_next;
             ++spectrum_number;
             thread_spectrum_number = spectrum_number;
           }
-          if (!has_next) break;
-          spectrum.resize(spec.size());
+          if (threadContinue)
+          {
+            spectrum.resize(spec.size());
 
-          for (Size i = 0; i < spec.size(); ++i)
-          {
-            p.setPosition(spec[i].first.toDouble()); // toDouble() is expensive (nothing can be done about this - boost::lexical_cast does not help), that's why we do it in threads
-            p.setIntensity(spec[i].second.toDouble());
-            spectrum[i] = p;
-          }
-          spectrum.getPrecursors()[0].setMZ(pre_mz);
-          spectrum.getPrecursors()[0].setIntensity(pre_int);
-          spectrum.getPrecursors()[0].setCharge(charge);
-          spectrum.setRT(rt);
-          if (title != "")
-          {
-            spectrum.setMetaValue("TITLE", title);
-          }
-          else
-          {
-            spectrum.removeMetaValue("TITLE");
-          }
+            for (Size i = 0; i < spec.size(); ++i)
+            {
+              // toDouble() is expensive (nothing can be done about this -
+              // boost::lexical_cast does not help), that's why we do it in
+              // multiple threads.
+              p.setPosition(spec[i].first.toDouble()); 
+              p.setIntensity(spec[i].second.toDouble());
+              spectrum[i] = p;
+            }
+            spectrum.getPrecursors()[0].setMZ(pre_mz);
+            spectrum.getPrecursors()[0].setIntensity(pre_int);
+            spectrum.getPrecursors()[0].setCharge(charge);
+            spectrum.setRT(rt);
+            if (title != "")
+            {
+              spectrum.setMetaValue("TITLE", title);
+            }
+            else
+            {
+              spectrum.removeMetaValue("TITLE");
+            }
 
-          spectrum.setNativeID(String("index=") + (thread_spectrum_number));
+            spectrum.setNativeID(String("index=") + (thread_spectrum_number));
 #ifdef _OPENMP
 #pragma omp critical
 #endif
-          {
-            exp.addSpectrum(spectrum);
+            {
+              exp.addSpectrum(spectrum);
+            }
           }
         } // next spectrum
       } // OMP parallel
