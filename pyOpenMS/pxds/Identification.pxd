@@ -16,17 +16,17 @@ cdef extern from "<OpenMS/METADATA/Identification.h>" namespace "OpenMS":
         Identification(Identification) nogil except + # wrap-ignore
 
 
-        void setCreationDate(DateTime date)
-        DateTime getCreationDate()
+        void setCreationDate(DateTime date) nogil except +
+        DateTime getCreationDate() nogil except +
 
         # /// sets the spectrum identifications
-        void setSpectrumIdentifications(libcpp_vector[SpectrumIdentification] & ids)
+        void setSpectrumIdentifications(libcpp_vector[SpectrumIdentification] & ids) nogil except +
 
         # /// adds a spectrum identification
-        void addSpectrumIdentification(SpectrumIdentification & id)
+        void addSpectrumIdentification(SpectrumIdentification & id) nogil except +
 
         # /// returns the spectrum identifications stored
-        libcpp_vector[SpectrumIdentification] getSpectrumIdentifications() 
+        libcpp_vector[SpectrumIdentification] getSpectrumIdentifications()  nogil except +
 
         # COPY-PASTE from MetaInfoInterface
         void getKeys(libcpp_vector[String] & keys) nogil except +

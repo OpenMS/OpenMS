@@ -4,16 +4,16 @@ from libcpp.vector cimport vector as libcpp_vector
 cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/DataStructures.h>" namespace "OpenSwath":
 
   cdef cppclass OSBinaryDataArray:
-        OSBinaryDataArray()
-        OSBinaryDataArray(OSBinaryDataArray)
+        OSBinaryDataArray() nogil except +
+        OSBinaryDataArray(OSBinaryDataArray) nogil except +
         libcpp_vector[double] data
       
   ctypedef shared_ptr[OSBinaryDataArray] OSBinaryDataArrayPtr
 
   # See addons/OSSpectrum.pyx
   cdef cppclass OSSpectrum:
-        OSSpectrum()
-        OSSpectrum(OSSpectrum)
+        OSSpectrum() nogil except +
+        OSSpectrum(OSSpectrum) nogil except +
         OSBinaryDataArrayPtr getMZArray() #wrap-ignore
         OSBinaryDataArrayPtr getIntensityArray() #wrap-ignore
         void setMZArray(OSBinaryDataArrayPtr data) #wrap-ignore
@@ -23,8 +23,8 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/DataStruct
 
   # See addons/OSChromatogram.pyx
   cdef cppclass OSChromatogram:
-        OSChromatogram()
-        OSChromatogram(OSChromatogram)
+        OSChromatogram() nogil except +
+        OSChromatogram(OSChromatogram) nogil except +
         OSBinaryDataArrayPtr getTimeArray() #wrap-ignore
         OSBinaryDataArrayPtr getIntensityArray() #wrap-ignore
         void setTimeArray(OSBinaryDataArrayPtr data) #wrap-ignore

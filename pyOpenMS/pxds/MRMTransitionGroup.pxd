@@ -19,31 +19,31 @@ cdef extern from "<OpenMS/KERNEL/MRMTransitionGroup.h>" namespace "OpenMS":
 
         String getTransitionGroupID() nogil except+
 
-        void setTransitionGroupID(String tr_gr_id)
+        void setTransitionGroupID(String tr_gr_id) nogil except +
 
         libcpp_vector[TransitionT] getTransitions() nogil except+
 
-        libcpp_vector[TransitionT] getTransitionsMuteable()
+        libcpp_vector[TransitionT] getTransitionsMuteable() nogil except +
 
-        void addTransition(TransitionT transition, String key)
+        void addTransition(TransitionT transition, String key) nogil except +
 
-        TransitionT getTransition(String key) 
+        TransitionT getTransition(String key)  nogil except +
 
-        bool hasTransition(String key)
+        bool hasTransition(String key) nogil except +
 
         libcpp_vector[SpectrumT] getChromatograms() nogil except+
 
-        void addChromatogram(SpectrumT chromatogram, String key)
+        void addChromatogram(SpectrumT chromatogram, String key) nogil except +
 
-        SpectrumT getChromatogram(String key)
+        SpectrumT getChromatogram(String key) nogil except +
 
-        bool hasChromatogram(String key)
+        bool hasChromatogram(String key) nogil except +
 
         libcpp_vector[MRMFeature] getFeatures() nogil except+
 
-        libcpp_vector[MRMFeature] getFeaturesMuteable()
+        libcpp_vector[MRMFeature] getFeaturesMuteable() nogil except +
 
-        void addFeature(MRMFeature feature)
+        void addFeature(MRMFeature feature) nogil except +
 
         void getLibraryIntensity(libcpp_vector[double] result) nogil except+
 

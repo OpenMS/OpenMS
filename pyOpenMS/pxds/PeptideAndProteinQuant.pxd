@@ -24,7 +24,7 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>" names
         void quantifyPeptides(ConsensusMap & map_in) nogil except +
         void quantifyProteins(ProteinIdentification & proteins) nogil except +
 
-        PeptideAndProteinQuant_Statistics getStatistics()
+        PeptideAndProteinQuant_Statistics getStatistics() nogil except +
 
         # ctypedef libcpp_map<String, ProteinData] ProteinQuant
         # ctypedef libcpp_map<AASequence, PeptideData] PeptideQuant
@@ -52,7 +52,7 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>" names
       Size ambig_features 
 
       # constructor
-      PeptideAndProteinQuant_Statistics() 
+      PeptideAndProteinQuant_Statistics()  nogil except +
       PeptideAndProteinQuant_Statistics(PeptideAndProteinQuant_Statistics) # wrap-ignore
 
     cdef cppclass PeptideAndProteinQuant_PeptideData "OpenMS::PeptideAndProteinQuant::PeptideData":
@@ -67,7 +67,7 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>" names
       Size id_count
 
       # constructor
-      PeptideAndProteinQuant_PeptideData() 
+      PeptideAndProteinQuant_PeptideData()  nogil except +
       PeptideAndProteinQuant_PeptideData(PeptideAndProteinQuant_PeptideData) # wrap-ignore
 
     # Quantitative and associated data for a protein
@@ -80,6 +80,6 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>" names
       Size id_count
 
       # constructor
-      PeptideAndProteinQuant_ProteinData() 
+      PeptideAndProteinQuant_ProteinData()  nogil except +
       PeptideAndProteinQuant_ProteinData(PeptideAndProteinQuant_ProteinData) # wrap-ignore
 

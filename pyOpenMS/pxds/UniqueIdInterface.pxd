@@ -6,8 +6,8 @@ cdef extern from "<OpenMS/CONCEPT/UniqueIdInterface.h>" namespace "OpenMS":
     cdef cppclass UniqueIdInterface:
         # wrap-ignore
 
-        UniqueIdInterface()
-        UniqueIdInterface(UniqueIdInterface)
+        UniqueIdInterface() nogil except +
+        UniqueIdInterface(UniqueIdInterface) nogil except +
 
         Size getUniqueId() nogil except +
         Size clearUniqueId() nogil except +
@@ -21,11 +21,11 @@ cdef extern from "<OpenMS/CONCEPT/UniqueIdInterface.h>" namespace "OpenMS":
         # Size setUniqueId() nogil except +
         # void setUniqueId(String & rhs) nogil except +
 
-        bool isValid(UInt64 unique_id)
+        bool isValid(UInt64 unique_id) nogil except +
 
 cdef extern from "<OpenMS/CONCEPT/UniqueIdInterface.h>" namespace "OpenMS::UniqueIdInterface":
 
-        Size setUniqueId()  # wrap-ignore
+        Size setUniqueId() # wrap-ignore
 
 
 

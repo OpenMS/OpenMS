@@ -11,40 +11,40 @@ cdef extern from "<OpenMS/KERNEL/MassTrace.h>" namespace "OpenMS":
         Kernel_MassTrace()  nogil except +
         Kernel_MassTrace(Kernel_MassTrace &) nogil except + # wrap-ignore
 
-        Size getSize()
-        String getLabel()
-        void setLabel(String label)
+        Size getSize() nogil except +
+        String getLabel() nogil except +
+        void setLabel(String label) nogil except +
 
-        DoubleReal getCentroidMZ()
-        DoubleReal getCentroidRT()
-        DoubleReal getCentroidSD()
-        DoubleReal getFWHM()
-        DoubleReal getTraceLength()
-        libcpp_pair[Size,Size] getFWHMborders()
-        libcpp_vector[DoubleReal] getSmoothedIntensities()
-        DoubleReal getScanTime()
+        DoubleReal getCentroidMZ() nogil except +
+        DoubleReal getCentroidRT() nogil except +
+        DoubleReal getCentroidSD() nogil except +
+        DoubleReal getFWHM() nogil except +
+        DoubleReal getTraceLength() nogil except +
+        libcpp_pair[Size,Size] getFWHMborders() nogil except +
+        libcpp_vector[DoubleReal] getSmoothedIntensities() nogil except +
+        DoubleReal getScanTime() nogil except +
 
-        DoubleReal computeSmoothedPeakArea()
-        DoubleReal computePeakArea()
-        Size       findMaxByIntPeak(bool)
-        Size       estimateFWHM(bool)
-        DoubleReal computeFwhmArea()
-        DoubleReal computeFwhmAreaSmooth()
-        DoubleReal computeFwhmAreaRobust()
-        DoubleReal computeFwhmAreaSmoothRobust()
-        DoubleReal getIntensity(bool)
-        DoubleReal getMaxIntensity(bool)
+        DoubleReal computeSmoothedPeakArea() nogil except +
+        DoubleReal computePeakArea() nogil except +
+        Size       findMaxByIntPeak(bool) nogil except +
+        Size       estimateFWHM(bool) nogil except +
+        DoubleReal computeFwhmArea() nogil except +
+        DoubleReal computeFwhmAreaSmooth() nogil except +
+        DoubleReal computeFwhmAreaRobust() nogil except +
+        DoubleReal computeFwhmAreaSmoothRobust() nogil except +
+        DoubleReal getIntensity(bool) nogil except +
+        DoubleReal getMaxIntensity(bool) nogil except +
 
-        ConvexHull2D getConvexhull()
+        ConvexHull2D getConvexhull() nogil except +
 
-        void setCentroidSD(DoubleReal &tmp_sd)
-        void setSmoothedIntensities(libcpp_vector[ double ] &db_vec)
-        void updateSmoothedMaxRT()
-        void updateWeightedMeanRT()
-        void updateSmoothedWeightedMeanRT()
-        void updateMedianRT()
-        void updateMedianMZ()
-        void updateMeanMZ()
-        void updateWeightedMeanMZ()
-        void updateWeightedMZsd()
+        void setCentroidSD(DoubleReal &tmp_sd) nogil except +
+        void setSmoothedIntensities(libcpp_vector[ double ] &db_vec) nogil except +
+        void updateSmoothedMaxRT() nogil except +
+        void updateWeightedMeanRT() nogil except +
+        void updateSmoothedWeightedMeanRT() nogil except +
+        void updateMedianRT() nogil except +
+        void updateMedianMZ() nogil except +
+        void updateMeanMZ() nogil except +
+        void updateWeightedMeanMZ() nogil except +
+        void updateWeightedMZsd() nogil except +
 

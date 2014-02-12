@@ -39,7 +39,7 @@ cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
         MSChromatogram[ ChromoPeakT ]  getChromatogram(Size id_) nogil except +
 
         MSChromatogram[ChromoPeakT] getTIC() nogil except +
-        void clear(bool clear_meta_data)
+        void clear(bool clear_meta_data) nogil except +
 
         void   updateRanges() nogil except +
         void   updateRanges(int msLevel) nogil except +
