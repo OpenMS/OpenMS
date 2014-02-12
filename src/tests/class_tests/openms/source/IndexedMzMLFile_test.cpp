@@ -180,6 +180,52 @@ START_SECTION(( OpenMS::Interfaces::ChromatogramPtr getChromatogramById(int id) 
   TEST_EQUAL(chrom->getIntensityArray()->data.size(), exp.getChromatograms()[0].size() )
 }
 END_SECTION
+
+START_SECTION(([EXTRA] load broken file))
+{
+
+  // Contains an unparseable value (2^64) in the indexListOffset field that
+  // will not fit into a long long.
+  // NOTE: this will not be true on all systems, if long long is larger than 64
+  // bits it will fit, however parsing will fail since the file is not actually
+  // 2^64 bit long...
+  if ( sizeof(long long)*8 <= 64 )
+  {
+    TEST_EXCEPTION(Exception::ConversionError, new IndexedMzMLFile(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_2_broken.mzML")))
+  }
+  else
+  {
+    IndexedMzMLFile file(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_2_broken.mzML"));
+    TEST_EQUAL(file.getParsingSuccess(), false)
+  }
+}
+END_SECTION
+
+START_SECTION(([EXTRA] load broken file))
+{
+
+  // Contains an value (2^63-1) in the indexListOffset field that should not
+  // trigger an exception - however parsing will fail since the file is
+  // actually shorter.
+  if (sizeof(std::streampos)*8 > 32 )
+  {
+    IndexedMzMLFile file(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_3_broken.mzML"));
+    TEST_EQUAL(file.getParsingSuccess(), false)
+  }
+  else
+  {
+    // Most likely a 32 bit system, the value in the indexListOffset (2^63-1)
+    // will not fit into std::streampos -> this should throw an exception in
+    // the constructor.
+    //
+    // This code path is hard to test on other machines but one can cast the
+    // indexoffset variable to int to trigger this behavior 
+    TEST_EXCEPTION_WITH_MESSAGE (Exception::ConversionError, 
+      new IndexedMzMLFile(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_3_broken.mzML")), 
+      "Could not convert string '9223372036854775807' to an integer on your system." )
+  }
+}
+END_SECTION
     
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

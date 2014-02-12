@@ -61,7 +61,7 @@ namespace OpenMS
   public:
 
     /// The vector containing binary offsets
-    typedef std::vector< std::pair<std::string, long> > OffsetVector;
+    typedef std::vector< std::pair<std::string, std::streampos> > OffsetVector;
 
     /**
       @brief Tries to extract the offsets of all spectra and chromatograms from an indexedmzML.
@@ -78,7 +78,7 @@ namespace OpenMS
       @return 0 in case of success and -1 otherwise (failure, no offset was found)
 
     */
-    int parseOffsets(String filename, int indexoffset, OffsetVector & spectra_offsets, OffsetVector& chromatograms_offsets);
+    int parseOffsets(String filename, std::streampos indexoffset, OffsetVector & spectra_offsets, OffsetVector& chromatograms_offsets);
 
     /**
       @brief Tries to extract the indexList offset from an indexedmzML.
@@ -100,7 +100,7 @@ namespace OpenMS
       @return A positive integer containing the content of the indexListOffset tag, returns -1 in case of failure no tag was found
 
     */
-    int findIndexListOffset(String filename, int buffersize = 1023);
+    std::streampos findIndexListOffset(String filename, int buffersize = 1023);
 
   protected:
 

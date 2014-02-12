@@ -128,12 +128,12 @@ namespace OpenMS
     endProgress();
   }
 
-  const std::vector<Size>& CachedmzML::getSpectraIndex() const
+  const std::vector<std::streampos>& CachedmzML::getSpectraIndex() const
   {
     return spectra_index_;
   }
 
-  const std::vector<Size>& CachedmzML::getChromatogramIndex() const
+  const std::vector<std::streampos>& CachedmzML::getChromatogramIndex() const
   {
     return chrom_index_;
   }
@@ -149,6 +149,7 @@ namespace OpenMS
     Size exp_size, chrom_size;
     Peak1D current_peak;
 
+    ifs.seekg(0, ifs.beg); // set file pointer to beginning, start reading
     spectra_index_.clear();
     chrom_index_.clear();
     int file_identifier;
@@ -175,7 +176,7 @@ namespace OpenMS
       Size spec_size;
       spectra_index_.push_back(ifs.tellg());
       ifs.read((char*)&spec_size, sizeof(spec_size));
-      ifs.seekg((int)ifs.tellg() + extra_offset + (sizeof(DatumSingleton)) * 2 * (spec_size));
+      ifs.seekg(extra_offset + (sizeof(DatumSingleton)) * 2 * (spec_size), ifs.cur);
     }
 
     for (Size i = 0; i < chrom_size; i++)
@@ -185,7 +186,7 @@ namespace OpenMS
       Size chrom_size;
       chrom_index_.push_back(ifs.tellg());
       ifs.read((char*)&chrom_size, sizeof(chrom_size));
-      ifs.seekg((int)ifs.tellg() + chrom_offset + (sizeof(DatumSingleton)) * 2 * (chrom_size));
+      ifs.seekg(chrom_offset + (sizeof(DatumSingleton)) * 2 * (chrom_size), ifs.cur);
     }
 
     ifs.close();

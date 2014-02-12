@@ -116,8 +116,8 @@ private:
     String filename_cached_;
 
     /// Indices
-    std::vector<Size> spectra_index_;
-    std::vector<Size> chrom_index_;
+    std::vector<std::streampos> spectra_index_;
+    std::vector<std::streampos> chrom_index_;
   };
 
 } //end namespace

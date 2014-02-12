@@ -68,7 +68,15 @@ namespace OpenMS
     OpenSwath::BinaryDataArrayPtr intensity_array(new OpenSwath::BinaryDataArray);
     int ms_level = -1;
     double rt = -1.0;
-    ifs_.seekg(spectra_index_[id]);
+
+    if ( !ifs_.seekg(spectra_index_[id]) )
+    {
+      std::cerr << "Error while reading spectrum " << id << " - seekg created an error when trying to change position to " << spectra_index_[id] << "." << std::endl;
+      std::cerr << "Maybe an invalid position was supplied to seekg, this can happen for example when reading large files (>2GB) on 32bit systems." << std::endl;
+      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+        "Error while changing position of input stream pointer.", filename_cached_);
+    }
+
     CachedmzML::readSpectrumFast(mz_array, intensity_array, ifs_, ms_level, rt);
 
     OpenSwath::SpectrumPtr sptr(new OpenSwath::Spectrum);
@@ -89,7 +97,15 @@ namespace OpenMS
   {
     OpenSwath::BinaryDataArrayPtr rt_array(new OpenSwath::BinaryDataArray);
     OpenSwath::BinaryDataArrayPtr intensity_array(new OpenSwath::BinaryDataArray);
-    ifs_.seekg(chrom_index_[id]);
+
+    if ( !ifs_.seekg(chrom_index_[id]) )
+    {
+      std::cerr << "Error while reading chromatogram " << id << " - seekg created an error when trying to change position to " << chrom_index_[id] << "." << std::endl;
+      std::cerr << "Maybe an invalid position was supplied to seekg, this can happen for example when reading large files (>2GB) on 32bit systems." << std::endl;
+      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+        "Error while changing position of input stream pointer.", filename_cached_);
+    }
+
     CachedmzML::readChromatogramFast(rt_array, intensity_array, ifs_);
 
     OpenSwath::ChromatogramPtr cptr(new OpenSwath::Chromatogram);

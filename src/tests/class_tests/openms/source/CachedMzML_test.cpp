@@ -102,7 +102,7 @@ START_SECTION(( [EXTRA] testCaching))
   {
     // Create the index from the given file
     cache.createMemdumpIndex(tmp_filename);
-    std::vector<Size> spectra_index = cache.getSpectraIndex();
+    std::vector<std::streampos> spectra_index = cache.getSpectraIndex();
     TEST_EQUAL(spectra_index.size(), 4)
     std::ifstream ifs_(tmp_filename.c_str(), std::ios::binary);
 
@@ -125,7 +125,7 @@ START_SECTION(( [EXTRA] testCaching))
   {
     // Create the index from the given file
     cache.createMemdumpIndex(tmp_filename);
-    std::vector<Size> chrom_index = cache.getChromatogramIndex();;
+    std::vector<std::streampos> chrom_index = cache.getChromatogramIndex();;
     TEST_EQUAL(chrom_index.size(), 2)
     std::ifstream ifs_(tmp_filename.c_str(), std::ios::binary);
 
@@ -201,16 +201,21 @@ CachedmzML cache_ = cacheFile(tmp_filename, exp);
 
 START_SECTION(( void readMemdump(MapType& exp_reading, String filename) const ))
 {
+
+  std::string tmp_filename;
+  MSExperiment<> exp;
+  CachedmzML cache = cacheFile(tmp_filename, exp);
+
   MSExperiment<> exp_new;
-  cache_.readMemdump(exp_new, tmp_filename);
+  cache.readMemdump(exp_new, tmp_filename);
 
   TEST_EQUAL(exp_new.size(), exp.size())
   TEST_EQUAL(exp_new.getChromatograms().size(), exp.getChromatograms().size())
 
   std::string unused_tmp_filename;
   NEW_TMP_FILE(unused_tmp_filename);
-  TEST_EXCEPTION(Exception::FileNotFound, cache_.readMemdump(exp_new, unused_tmp_filename) )
-  TEST_EXCEPTION(Exception::ParseError, cache_.readMemdump(exp_new, OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML") ) )
+  TEST_EXCEPTION(Exception::FileNotFound, cache.readMemdump(exp_new, unused_tmp_filename) )
+  TEST_EXCEPTION(Exception::ParseError, cache.readMemdump(exp_new, OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML") ) )
 }
 END_SECTION
 
@@ -241,13 +246,13 @@ START_SECTION(( void createMemdumpIndex(String filename) ))
 }
 END_SECTION
 
-START_SECTION(( const std::vector<Size>& getSpectraIndex() const ))
+START_SECTION(( const std::vector<std::streampos>& getSpectraIndex() const ))
 {
   TEST_EQUAL( cache_.getSpectraIndex().size(), 4);
 }
 END_SECTION
 
-START_SECTION(( const std::vector<Size>& getChromatogramIndex() const ))
+START_SECTION(( const std::vector<std::streampos>& getChromatogramIndex() const ))
 {
   TEST_EQUAL( cache_.getChromatogramIndex().size(), 2);
 }
@@ -259,7 +264,7 @@ START_SECTION(static inline void readSpectrumFast(OpenSwath::BinaryDataArrayPtr 
   // Check whether spectra were written to disk correctly...
   {
     // Create the index from the given file
-    std::vector<Size> spectra_index = cache_.getSpectraIndex();
+    std::vector<std::streampos> spectra_index = cache_.getSpectraIndex();
     TEST_EQUAL(spectra_index.size(), 4)
     std::ifstream ifs_(tmp_filename.c_str(), std::ios::binary);
 
@@ -285,6 +290,30 @@ START_SECTION(static inline void readSpectrumFast(OpenSwath::BinaryDataArrayPtr 
     }
   }
 
+  // Check error conditions
+  {
+    // Create the index from the given file
+    std::vector<std::streampos> spectra_index = cache_.getSpectraIndex();
+    TEST_EQUAL(spectra_index.size(), 4)
+    std::ifstream ifs_(tmp_filename.c_str(), std::ios::binary);
+
+    // retrieve the spectrum
+    OpenSwath::BinaryDataArrayPtr mz_array(new OpenSwath::BinaryDataArray);
+    OpenSwath::BinaryDataArrayPtr intensity_array(new OpenSwath::BinaryDataArray);
+    int ms_level = -1;
+    double rt = -1.0;
+
+    // should not read before the file starts
+    ifs_.seekg( -1 );
+    TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, CachedmzML::readSpectrumFast(mz_array, intensity_array, ifs_, ms_level, rt),
+      "filestream in: Read an invalid spectrum length, something is wrong here. Aborting.")
+
+    // should not read after the file ends
+    ifs_.seekg(spectra_index.back() * 20);
+    TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, CachedmzML::readSpectrumFast(mz_array, intensity_array, ifs_, ms_level, rt),
+      "filestream in: Read an invalid spectrum length, something is wrong here. Aborting.")
+  }
+
 }
 END_SECTION
 
@@ -293,7 +322,7 @@ START_SECTION( static inline void readChromatogramFast(OpenSwath::BinaryDataArra
   // Check whether chromatograms were written to disk correctly...
   {
     // Create the index from the given file
-    std::vector<Size> chrom_index = cache_.getChromatogramIndex();;
+    std::vector<std::streampos> chrom_index = cache_.getChromatogramIndex();;
     TEST_EQUAL(chrom_index.size(), 2)
     std::ifstream ifs_(tmp_filename.c_str(), std::ios::binary);
 
@@ -313,6 +342,28 @@ START_SECTION( static inline void readChromatogramFast(OpenSwath::BinaryDataArra
       TEST_REAL_SIMILAR(time_array->data[i], exp.getChromatogram(0)[i].getRT())
       TEST_REAL_SIMILAR(intensity_array->data[i], exp.getChromatogram(0)[i].getIntensity())
     }
+  }
+
+  // Check error conditions
+  {
+    // Create the index from the given file
+    std::vector<std::streampos> chrom_index = cache_.getChromatogramIndex();;
+    TEST_EQUAL(chrom_index.size(), 2)
+    std::ifstream ifs_(tmp_filename.c_str(), std::ios::binary);
+
+    // retrieve the chromatogram
+    OpenSwath::BinaryDataArrayPtr time_array(new OpenSwath::BinaryDataArray);
+    OpenSwath::BinaryDataArrayPtr intensity_array(new OpenSwath::BinaryDataArray);
+
+    // should not read before the file starts
+    ifs_.seekg( -1 );
+    TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, CachedmzML::readChromatogramFast(time_array, intensity_array, ifs_),
+      "filestream in: Read an invalid chromatogram length, something is wrong here. Aborting.")
+
+    // should not read after the file ends
+    ifs_.seekg(chrom_index.back() * 20);
+    TEST_EXCEPTION_WITH_MESSAGE(Exception::ParseError, CachedmzML::readChromatogramFast(time_array, intensity_array, ifs_),
+      "filestream in: Read an invalid chromatogram length, something is wrong here. Aborting.")
   }
 }
 END_SECTION

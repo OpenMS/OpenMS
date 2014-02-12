@@ -110,16 +110,21 @@ public:
     void createMemdumpIndex(String filename);
 
     /// Access to a constant copy of the binary spectra index
-    const std::vector<Size>& getSpectraIndex() const;
+    const std::vector<std::streampos>& getSpectraIndex() const;
 
     /// Access to a constant copy of the binary chromatogram index
-    const std::vector<Size>& getChromatogramIndex() const;
+    const std::vector<std::streampos>& getChromatogramIndex() const;
     //@}
 
     /** @name Direct access to a single Spectrum or Chromatogram
     */
     //@{
-    /// fast access to a spectrum (a direct copy of the data into the provided arrays)
+
+    /**
+      @brief fast access to a spectrum (a direct copy of the data into the provided arrays)
+
+      @throws Exception::ParseError is thrown if the spectrum size cannot be read
+    */
     static inline void readSpectrumFast(OpenSwath::BinaryDataArrayPtr data1,
                                         OpenSwath::BinaryDataArrayPtr data2, std::ifstream& ifs, int& ms_level,
                                         double& rt)
@@ -129,20 +134,36 @@ public:
       ifs.read((char*) &ms_level, sizeof(ms_level));
       ifs.read((char*) &rt, sizeof(rt));
 
+      if ( static_cast<int>(spec_size) < 0)
+      {
+        throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
+          "Read an invalid spectrum length, something is wrong here. Aborting.", "filestream");
+      }
+
       data1->data.resize(spec_size);
       data2->data.resize(spec_size);
       ifs.read((char*) &(data1->data)[0], spec_size * sizeof(double));
       ifs.read((char*) &(data2->data)[0], spec_size * sizeof(double));
     }
 
-    /// fast access to a chromatogram (a direct copy of the data into the provided arrays)
+    /**
+      @brief fast access to a chromatogram (a direct copy of the data into the provided arrays)
+
+      @throws Exception::ParseError is thrown if the chromatogram size cannot be read
+    */
     static inline void readChromatogramFast(OpenSwath::BinaryDataArrayPtr data1,
                                             OpenSwath::BinaryDataArrayPtr data2, std::ifstream& ifs)
     {
       Size spec_size = -1;
       ifs.read((char*) &spec_size, sizeof(spec_size));
-      data1->data.resize(spec_size);
 
+      if ( static_cast<int>(spec_size) < 0)
+      {
+        throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
+          "Read an invalid chromatogram length, something is wrong here. Aborting.", "filestream");
+      }
+
+      data1->data.resize(spec_size);
       data2->data.resize(spec_size);
       ifs.read((char*) &(data1->data)[0], spec_size * sizeof(double));
       ifs.read((char*) &(data2->data)[0], spec_size * sizeof(double));
@@ -170,8 +191,8 @@ protected:
     void writeChromatogram_(const ChromatogramType& chromatogram, std::ofstream& ofs);
 
     /// Members
-    std::vector<Size> spectra_index_;
-    std::vector<Size> chrom_index_;
+    std::vector<std::streampos> spectra_index_;
+    std::vector<std::streampos> chrom_index_;
 
   };
 }
