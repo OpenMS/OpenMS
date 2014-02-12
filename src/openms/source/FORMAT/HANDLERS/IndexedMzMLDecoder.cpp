@@ -35,6 +35,7 @@
 #include <OpenMS/FORMAT/HANDLERS/IndexedMzMLDecoder.h>
 
 #include <boost/regex.hpp>
+#include <boost/lexical_cast.hpp>
 #include <fstream>
 #include <string>
 
@@ -47,6 +48,48 @@
 
 namespace OpenMS
 {
+
+  namespace StringUtils
+  {
+    std::streampos stringToStreampos(std::string s)
+    {
+      // Try to cast the string to a type that can hold the integer value
+      // stored in the std::streampos type (which can vary from 32 to 128 bits
+      // depending on the system).
+      //
+      // long long has a minimal size of 64 bits and can address a range up to
+      // 16 Exbibit (or 2 Exbibyte), we can hopefully expect our files to be
+      // smaller than an Exabyte and should be safe.
+      std::streampos res;
+      try
+      {
+
+        res = boost::lexical_cast< unsigned long long >(s);
+        // TESTING CAST: res = (int) res; // use this only when emulating 32 bit systems
+
+      }
+      catch (boost::bad_lexical_cast&)
+      {
+        std::cerr << "Trying to convert corrupted / unreadable value to std::streampos : " << s << std::endl;
+        std::cerr << "This can also happen if the value exceeds 63 bits, please check your input." << std::endl;
+        throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+            String("Could not convert string '") + s + "' to a 64 bit integer.");
+      }
+
+      // Check if the value can fit into std::streampos
+      if ( fabs( boost::lexical_cast< long double >(s) - res) > 0.1)
+      {
+        std::cerr << "Your system may not support addressing a file of this size,"
+          << " only addresses that fit into a " << sizeof(std::streampos)*8 << 
+          " bit integer are supported on your system." << std::endl;
+        throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+            String("Could not convert string '") + s + "' to an integer on your system.");
+      }
+
+      return res;
+    }
+  }
+
   int IndexedMzMLDecoder::parseOffsets(String filename, std::streampos indexoffset, OffsetVector& spectra_offsets, OffsetVector& chromatograms_offsets)
   {
     //-------------------------------------------------------------
@@ -123,8 +166,18 @@ namespace OpenMS
     String thismatch(matches[1].first, matches[1].second);
     if (thismatch.size() > 0)
     {
-      // TODO catch if it throws
-      indexoffset = thismatch.toInt();
+      try
+      {
+        indexoffset = OpenMS::StringUtils::stringToStreampos(thismatch);
+      }
+      catch (Exception::ConversionError& e)
+      {
+        std::cerr << "Corrupted / unreadable value in <indexListOffset> : " << thismatch << std::endl;
+        // free resources and re-throw
+        delete[] buffer;
+        f.close();
+        throw e;
+      }
     }
     else
     {
@@ -198,7 +251,7 @@ namespace OpenMS
           {
             xercesc::DOMElement* currentElement = dynamic_cast<xercesc::DOMElement*>(currentONode);
             std::string name = xercesc::XMLString::transcode(currentElement->getAttribute(xercesc::XMLString::transcode("idRef")));
-            long thisOffset = String(xercesc::XMLString::transcode(currentONode->getTextContent())).toInt();
+            std::streampos thisOffset = OpenMS::StringUtils::stringToStreampos( String(xercesc::XMLString::transcode(currentONode->getTextContent())) );
             result.push_back(std::make_pair(name, thisOffset));
           }
         }
