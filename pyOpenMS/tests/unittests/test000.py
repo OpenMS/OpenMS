@@ -1135,6 +1135,7 @@ def _testParam(p):
      Param.clearTags
      Param.copy
      Param.exists
+     Param.get
      Param.getDescription
      Param.getEntry
      Param.getSectionDescription
@@ -1200,6 +1201,12 @@ def _testParam(p):
         p.setSectionDescription(f, k)
         assert p.getSectionDescription(f) == k
 
+        assert p.get(k) is not None
+
+    assert sorted(p.items()) == sorted((k, p[k]) for k in p.keys())
+    assert sorted(p.values()) == sorted(p[k] for k in p.keys())
+
+
     assert not p.exists("asdflkj01231321321v")
     p.addTag(k, "a")
     p.addTags(k, ["b", "c"])
@@ -1236,6 +1243,9 @@ def _testParam(p):
         assert getattr(e1, f) is not None
 
     assert e1 == e1
+
+    assert p1.get("abcde", 7) == 7
+
 
 
 
