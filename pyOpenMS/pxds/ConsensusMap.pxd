@@ -24,7 +24,7 @@ cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS::ConsensusMa
         Size size
         UInt64 unique_id
 
-        FileDescription()
+        FileDescription() nogil except +
         FileDescription(FileDescription &)  # wrap-ignore
 
     # for msvc++ compiler, see addons/ConsensusMap.pyx
@@ -49,10 +49,10 @@ cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS":
         bool operator==(ConsensusMap) nogil except +
         bool operator!=(ConsensusMap) nogil except +
 
-        void clear(bool clear_meta_data)
-        void clear()
+        void clear(bool clear_meta_data) nogil except +
+        void clear() nogil except +
 
-        void updateRanges()
+        void updateRanges() nogil except +
 
         libcpp_vector[ProteinIdentification] getProteinIdentifications(
                 ) nogil except+
@@ -82,7 +82,7 @@ cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS":
         ConsensusFeature operator[](int)      nogil except +
 
         # wrapped in ../addons/ConsensusMap.pyx:
-        void applyMemberFunction(Size(* fun)())  nogil except + # wrap-ignore
+        void applyMemberFunction(Size(* fun)()) nogil except + # wrap-ignore
 
         void sortByIntensity(bool reverse) nogil except +
         void sortByIntensity() nogil except +

@@ -22,7 +22,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractor.h>" namespace
                                   bool ppm,
                                   TransformationDescription trafo,
                                   double rt_extraction_window,
-                                  String filter)
+                                  String filter) nogil except +
 
         # TODO immutable types by reference
         # void extract_value_tophat(MSSpectrum[Peak1D] input, double mz,

@@ -29,6 +29,6 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmPoseClusteri
 
         void setReference (FeatureMap[Feature]) nogil except +
         void setReference (MSExperiment[Peak1D,ChromatogramPeak]) nogil except +
-        String getProductName()
+        String getProductName() nogil except +
 
 

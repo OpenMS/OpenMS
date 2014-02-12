@@ -38,21 +38,21 @@ cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/SILACAnalyzer.h>" namespace "O
         void writeConsensus(String & filename, ConsensusMap & cmap) nogil except +
 
         # void calculateLabelsAndMassShifts(libcpp_map[ String, DoubleReal ] label_identifiers)
-        Result estimatePeakWidth(MSExperiment[ Peak1D, ChromatogramPeak ] & exp)
+        Result estimatePeakWidth(MSExperiment[ Peak1D, ChromatogramPeak ] & exp) nogil except +
         # TODO add SILACPattern, Clustering
-        # NAMESPACE # void filterData(MSExperiment[ Peak1D, ChromatogramPeak ] & exp, PeakWidthEstimator::Result & peak_width, vector[ vector[ SILACPattern ] ] & data)
+        # NAMESPACE # void filterData(MSExperiment[ Peak1D, ChromatogramPeak ] & exp, PeakWidthEstimator::Result & peak_width, vector[ vector[ SILACPattern ] ] & data) nogil except +
         # TODO nested STL
-        # libcpp_vector[ libcpp_vector[ String ] ]  getSILAClabels()
-        libcpp_vector[ libcpp_vector[ double ] ]  getMassShifts()
+        # libcpp_vector[ libcpp_vector[ String ] ]  getSILAClabels() nogil except +
+        libcpp_vector[ libcpp_vector[ double ] ]  getMassShifts() nogil except +
 
-        void generateClusterConsensusByCluster(ConsensusMap & , SILACClustering & )
-        void generateClusterConsensusByPattern(ConsensusMap & , SILACClustering & , UInt & cluster_id)
-        # void generateClusterDebug(std::ostream & out, Clustering & clustering, UInt & cluster_id)
-        void generateFilterConsensusByPattern(ConsensusMap & , libcpp_vector[ SILACPattern ] & )
-        void generateClusterFeatureByCluster(FeatureMap[Feature] & , SILACClustering & )
-        # void readFilterConsensusByPattern(ConsensusMap & , libcpp_vector[ libcpp_vector[ SILACPattern ] ] & )
-        void readConsensus(String & filename, ConsensusMap & in_)
-        void writeMzQuantML(String & filename, MSQuantifications & msq)
-        void writeFeatures(String & filename, FeatureMap[Feature] & out)
-        String selectColor(UInt nr)
+        void generateClusterConsensusByCluster(ConsensusMap & , SILACClustering & ) nogil except +
+        void generateClusterConsensusByPattern(ConsensusMap & , SILACClustering & , UInt & cluster_id) nogil except +
+        # void generateClusterDebug(std::ostream & out, Clustering & clustering, UInt & cluster_id) nogil except +
+        void generateFilterConsensusByPattern(ConsensusMap & , libcpp_vector[ SILACPattern ] & ) nogil except +
+        void generateClusterFeatureByCluster(FeatureMap[Feature] & , SILACClustering & ) nogil except +
+        # void readFilterConsensusByPattern(ConsensusMap & , libcpp_vector[ libcpp_vector[ SILACPattern ] ] & ) nogil except +
+        void readConsensus(String & filename, ConsensusMap & in_) nogil except +
+        void writeMzQuantML(String & filename, MSQuantifications & msq) nogil except +
+        void writeFeatures(String & filename, FeatureMap[Feature] & out) nogil except +
+        String selectColor(UInt nr) nogil except +
         

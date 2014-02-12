@@ -36,5 +36,5 @@ cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/ElutionPeakDetection.h>" names
         DoubleReal computeMassTraceSNR(Kernel_MassTrace &) nogil except +
         DoubleReal computeApexSNR(Kernel_MassTrace &) nogil except +
 
-        void findLocalExtrema(Kernel_MassTrace & , Size & , libcpp_vector[ size_t ] & , libcpp_vector[ size_t ] & )
+        void findLocalExtrema(Kernel_MassTrace & , Size & , libcpp_vector[ size_t ] & , libcpp_vector[ size_t ] & ) nogil except +
 

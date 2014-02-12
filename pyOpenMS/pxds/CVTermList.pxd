@@ -28,7 +28,7 @@ cdef extern from "<OpenMS/METADATA/CVTermList.h>" namespace "OpenMS":
         void replaceCVTerms(Map[String, libcpp_vector[CVTerm] ] cv_term_map
                            ) nogil except +
 
-        Map[String, libcpp_vector[CVTerm] ] getCVTerms()
+        Map[String, libcpp_vector[CVTerm] ] getCVTerms() nogil except +
         void addCVTerm(CVTerm & term)                   nogil except +
 
         bool operator==(CVTermList)  nogil except +
