@@ -19,109 +19,109 @@ cdef extern from "<OpenMS/CHEMISTRY/Residue.h>" namespace "OpenMS":
                 EmpiricalFormula formula) nogil except +
 
         # Internal
-        EmpiricalFormula getInternalToFull()
+        EmpiricalFormula getInternalToFull() nogil except +
 
-        DoubleReal getInternalToFullAverageWeight()
+        DoubleReal getInternalToFullAverageWeight() nogil except +
 
-        DoubleReal getInternalToFullMonoWeight()
+        DoubleReal getInternalToFullMonoWeight() nogil except +
 
         # N-terminal
-        EmpiricalFormula getNTerminalToFull()
+        EmpiricalFormula getNTerminalToFull() nogil except +
 
-        DoubleReal getNTerminalToFullAverageWeight()
+        DoubleReal getNTerminalToFullAverageWeight() nogil except +
 
-        DoubleReal getNTerminalToFullMonoWeight()
+        DoubleReal getNTerminalToFullMonoWeight() nogil except +
 
         # C-terminal
-        EmpiricalFormula getCTerminalToFull()
+        EmpiricalFormula getCTerminalToFull() nogil except +
 
-        DoubleReal getCTerminalToFullAverageWeight()
+        DoubleReal getCTerminalToFullAverageWeight() nogil except +
 
-        DoubleReal getCTerminalToFullMonoWeight()
+        DoubleReal getCTerminalToFullMonoWeight() nogil except +
 
         # b ion
-        EmpiricalFormula getBIonToFull()
+        EmpiricalFormula getBIonToFull() nogil except +
 
-        DoubleReal getBIonToFullAverageWeight()
+        DoubleReal getBIonToFullAverageWeight() nogil except +
 
-        DoubleReal getBIonToFullMonoWeight()
+        DoubleReal getBIonToFullMonoWeight() nogil except +
 
         # a ion
-        EmpiricalFormula getAIonToFull()
+        EmpiricalFormula getAIonToFull() nogil except +
 
-        DoubleReal getAIonToFullAverageWeight()
+        DoubleReal getAIonToFullAverageWeight() nogil except +
 
-        DoubleReal getAIonToFullMonoWeight()
+        DoubleReal getAIonToFullMonoWeight() nogil except +
 
         # y ion
-        EmpiricalFormula getYIonToFull()
+        EmpiricalFormula getYIonToFull() nogil except +
 
-        DoubleReal getYIonToFullAverageWeight()
+        DoubleReal getYIonToFullAverageWeight() nogil except +
 
-        DoubleReal getYIonToFullMonoWeight()
+        DoubleReal getYIonToFullMonoWeight() nogil except +
 
         # c ion
-        EmpiricalFormula getCIonToFull()
+        EmpiricalFormula getCIonToFull() nogil except +
 
-        DoubleReal getCIonToFullAverageWeight()
+        DoubleReal getCIonToFullAverageWeight() nogil except +
 
-        DoubleReal getCIonToFullMonoWeight()
+        DoubleReal getCIonToFullMonoWeight() nogil except +
 
         # c-1 ion
-        EmpiricalFormula getCIonMinusOneToFull()
+        EmpiricalFormula getCIonMinusOneToFull() nogil except +
 
-        DoubleReal getCIonMinusOneToFullAverageWeight()
+        DoubleReal getCIonMinusOneToFullAverageWeight() nogil except +
 
-        DoubleReal getCIonMinusOneToFullMonoWeight()
+        DoubleReal getCIonMinusOneToFullMonoWeight() nogil except +
 
         # c+1 ion
-        EmpiricalFormula getCIonPlusOneToFull()
+        EmpiricalFormula getCIonPlusOneToFull() nogil except +
 
-        DoubleReal getCIonPlusOneToFullAverageWeight()
+        DoubleReal getCIonPlusOneToFullAverageWeight() nogil except +
 
-        DoubleReal getCIonPlusOneToFullMonoWeight()
+        DoubleReal getCIonPlusOneToFullMonoWeight() nogil except +
 
         # c+2 ion
-        EmpiricalFormula getCIonPlusTwoToFull()
+        EmpiricalFormula getCIonPlusTwoToFull() nogil except +
 
-        DoubleReal getCIonPlusTwoToFullAverageWeight()
+        DoubleReal getCIonPlusTwoToFullAverageWeight() nogil except +
 
-        DoubleReal getCIonPlusTwoToFullMonoWeight()
+        DoubleReal getCIonPlusTwoToFullMonoWeight() nogil except +
 
         # x ion
-        EmpiricalFormula getXIonToFull()
+        EmpiricalFormula getXIonToFull() nogil except +
 
-        DoubleReal getXIonToFullAverageWeight()
+        DoubleReal getXIonToFullAverageWeight() nogil except +
 
-        DoubleReal getXIonToFullMonoWeight()
+        DoubleReal getXIonToFullMonoWeight() nogil except +
 
         # z ion
-        EmpiricalFormula getZIonToFull()
+        EmpiricalFormula getZIonToFull() nogil except +
 
-        DoubleReal getZIonToFullAverageWeight()
+        DoubleReal getZIonToFullAverageWeight() nogil except +
 
-        DoubleReal getZIonToFullMonoWeight()
+        DoubleReal getZIonToFullMonoWeight() nogil except +
 
         # z-1 ion
-        EmpiricalFormula getZIonMinusOneToFull()
+        EmpiricalFormula getZIonMinusOneToFull() nogil except +
 
-        DoubleReal getZIonMinusOneToFullAverageWeight()
+        DoubleReal getZIonMinusOneToFullAverageWeight() nogil except +
 
-        DoubleReal getZIonMinusOneToFullMonoWeight()
+        DoubleReal getZIonMinusOneToFullMonoWeight() nogil except +
 
         # z+1 ion
-        EmpiricalFormula getZIonPlusOneToFull()
+        EmpiricalFormula getZIonPlusOneToFull() nogil except +
 
-        DoubleReal getZIonPlusOneToFullAverageWeight()
+        DoubleReal getZIonPlusOneToFullAverageWeight() nogil except +
 
-        DoubleReal getZIonPlusOneToFullMonoWeight()
+        DoubleReal getZIonPlusOneToFullMonoWeight() nogil except +
 
         # z+2 ion
-        EmpiricalFormula getZIonPlusTwoToFull()
+        EmpiricalFormula getZIonPlusTwoToFull() nogil except +
 
-        DoubleReal getZIonPlusTwoToFullAverageWeight()
+        DoubleReal getZIonPlusTwoToFullAverageWeight() nogil except +
 
-        DoubleReal getZIonPlusTwoToFullMonoWeight()
+        DoubleReal getZIonPlusTwoToFullMonoWeight() nogil except +
 
         # returns the ion name given as a residue type
         String getResidueTypeName(ResidueType res_type) nogil except +
@@ -300,6 +300,7 @@ cdef extern from "<OpenMS/CHEMISTRY/Residue.h>" namespace "OpenMS":
 cdef extern from "<OpenMS/CHEMISTRY/Residue.h>" namespace "OpenMS::Residue":
 
     cdef enum ResidueType:
+      # wrap-attach: Residue
       Full = 0,           # with N-terminus and C-terminus
       Internal,           # internal, without any termini
       NTerminal,           # only N-terminus

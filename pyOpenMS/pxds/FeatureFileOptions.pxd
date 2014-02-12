@@ -22,13 +22,13 @@ cdef extern from "<OpenMS/FORMAT/OPTIONS/FeatureFileOptions.h>" namespace "OpenM
         void setLoadSubordinates(bool) nogil except +
         bool getLoadSubordinates()     nogil except +
 
-        void setRTRange(DRange1 & range_)
-        bool hasRTRange()
-        DRange1 getRTRange()
-        void setMZRange(DRange1 & range_)
-        bool hasMZRange()
-        DRange1 getMZRange()
-        void setIntensityRange(DRange1 & range_)
-        bool hasIntensityRange()
-        DRange1 getIntensityRange()
+        void setRTRange(DRange1 & range_) nogil except +
+        bool hasRTRange() nogil except +
+        DRange1 getRTRange() nogil except +
+        void setMZRange(DRange1 & range_) nogil except +
+        bool hasMZRange() nogil except +
+        DRange1 getMZRange() nogil except +
+        void setIntensityRange(DRange1 & range_) nogil except +
+        bool hasIntensityRange() nogil except +
+        DRange1 getIntensityRange() nogil except +
 

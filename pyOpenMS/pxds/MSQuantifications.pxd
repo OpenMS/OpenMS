@@ -59,8 +59,8 @@ cdef extern from "<OpenMS/METADATA/MSQuantifications.h>" namespace "OpenMS::MSQu
     cdef cppclass AnalysisSummary:
         # wrap-attach:
         #     MSQuantifications
-        AnalysisSummary() 
-        AnalysisSummary(AnalysisSummary)
+        AnalysisSummary()  nogil except +
+        AnalysisSummary(AnalysisSummary) nogil except +
 
         MetaInfo user_params_
         CVTermList cv_params_
@@ -69,8 +69,8 @@ cdef extern from "<OpenMS/METADATA/MSQuantifications.h>" namespace "OpenMS::MSQu
     cdef cppclass Assay:
         # wrap-attach:
         #     MSQuantifications
-        Assay()
-        Assay(Assay)
+        Assay() nogil except +
+        Assay(Assay) nogil except +
 
         String uid_ 
         libcpp_vector[libcpp_pair[String, double] ] mods_ # wrap-ignore

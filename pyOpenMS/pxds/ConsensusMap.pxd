@@ -12,6 +12,7 @@ from DataProcessing cimport *
 from Types cimport *
 from Map cimport *
 from DocumentIdentifier cimport *
+from RangeManager cimport *
 
 # this class has addons, see the ./addons folder
 
@@ -23,7 +24,7 @@ cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS::ConsensusMa
         Size size
         UInt64 unique_id
 
-        FileDescription()
+        FileDescription() nogil except +
         FileDescription(FileDescription &)  # wrap-ignore
 
     # for msvc++ compiler, see addons/ConsensusMap.pyx
@@ -35,11 +36,12 @@ cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS::ConsensusMa
 
 cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS":
 
-    cdef cppclass ConsensusMap(UniqueIdInterface, DocumentIdentifier):
+    cdef cppclass ConsensusMap(UniqueIdInterface, DocumentIdentifier, RangeManager2):
 
         # wrap-inherits:
         #   UniqueIdInterface
         #   DocumentIdentifier
+        #   RangeManager2
 
         ConsensusMap() nogil except +
         ConsensusMap(ConsensusMap) nogil except + # wrap-ignore
@@ -47,10 +49,10 @@ cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS":
         bool operator==(ConsensusMap) nogil except +
         bool operator!=(ConsensusMap) nogil except +
 
-        void clear(bool clear_meta_data)
-        void clear()
+        void clear(bool clear_meta_data) nogil except +
+        void clear() nogil except +
 
-        void updateRanges()
+        void updateRanges() nogil except +
 
         libcpp_vector[ProteinIdentification] getProteinIdentifications(
                 ) nogil except+
@@ -80,7 +82,7 @@ cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS":
         ConsensusFeature operator[](int)      nogil except +
 
         # wrapped in ../addons/ConsensusMap.pyx:
-        void applyMemberFunction(Size(* fun)())  nogil except + # wrap-ignore
+        void applyMemberFunction(Size(* fun)()) nogil except + # wrap-ignore
 
         void sortByIntensity(bool reverse) nogil except +
         void sortByIntensity() nogil except +

@@ -19,9 +19,9 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmSH
 
         FeatureFinderAlgorithmSH()      nogil except +
 
-        void setData(MSExperiment[Peak1D, ChromatogramPeak] & input, FeatureMap[Feature] & output, FeatureFinder & ff)
-        void run()
-        unsigned int getNativeScanId(String native_id)
+        void setData(MSExperiment[Peak1D, ChromatogramPeak] & input, FeatureMap[Feature] & output, FeatureFinder & ff) nogil except +
+        void run() nogil except +
+        unsigned int getNativeScanId(String native_id) nogil except +
 
 cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmSH.h>" namespace "OpenMS::FeatureFinderAlgorithmSH<OpenMS::Peak1D,OpenMS::Feature>":
 
