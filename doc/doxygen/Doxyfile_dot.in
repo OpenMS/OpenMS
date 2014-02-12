@@ -3,7 +3,7 @@
 
 @INCLUDE = doxygen/Doxyfile
 
-INLINE_INHERITED_MEMB  = YES 
+INLINE_INHERITED_MEMB  = YES
 
 HIDE_SCOPE_NAMES       = NO
 
@@ -11,7 +11,7 @@ SORT_BY_SCOPE_NAME     = YES
 
 GENERATE_TODOLIST      = YES
 
-GENERATE_TESTLIST      = YES 
+GENERATE_TESTLIST      = YES
 
 GENERATE_BUGLIST       = YES
 
@@ -32,7 +32,7 @@ SHOW_USED_FILES        = YES
 
 SHOW_DIRECTORIES       = YES
 
-WARN_LOGFILE           = @CF_OPENMS_BIN_PATH@/doc/doxygen/doxygen-dot-error.log
+WARN_LOGFILE           = @CF_OPENMS_BIN_PATH@/doxygen/doxygen-dot-error.log
 
 INPUT                  = @CF_OPENMS_SRC_PATH@/include/OpenMS/ \
                          @CF_OPENMS_SRC_PATH@/source/ \
@@ -42,7 +42,8 @@ INPUT                  = @CF_OPENMS_SRC_PATH@/include/OpenMS/ \
 												 @CF_OPENMS_SRC_PATH@/doc//doxygen/internal/ \
 												 @CF_OPENMS_SRC_PATH@/doc//doxygen/install/
 
-FILE_PATTERNS          = *.C \
+FILE_PATTERNS          = *.cpp \
+                         *.C \
                          *.h \
                          *.doxygen
 
@@ -74,8 +75,8 @@ VERBATIM_HEADERS       = YES
 # configuration options related to the alphabetical class index
 #---------------------------------------------------------------------------
 ALPHABETICAL_INDEX     = YES
-# COLS_IN_ALPHA_INDEX    = 2 
-IGNORE_PREFIX          = 
+# COLS_IN_ALPHA_INDEX    = 2
+IGNORE_PREFIX          =
 
 # configuration options related to the HTML output
 #---------------------------------------------------------------------------
@@ -106,9 +107,9 @@ COMPACT_LATEX          = NO
 
 PAPER_TYPE             = a4wide
 
-EXTRA_PACKAGES         = 
+EXTRA_PACKAGES         =
 
-LATEX_HEADER           = 
+LATEX_HEADER           =
 
 PDF_HYPERLINKS         = NO
 
@@ -129,9 +130,9 @@ COMPACT_RTF            = NO
 
 RTF_HYPERLINKS         = NO
 
-RTF_STYLESHEET_FILE    = 
+RTF_STYLESHEET_FILE    =
 
-RTF_EXTENSIONS_FILE    = 
+RTF_EXTENSIONS_FILE    =
 
 #---------------------------------------------------------------------------
 # configuration options related to the man page output
@@ -160,7 +161,7 @@ GENERATE_AUTOGEN_DEF   = NO
 GENERATE_PERLMOD       = NO
 
 #---------------------------------------------------------------------------
-# Configuration options related to the preprocessor   
+# Configuration options related to the preprocessor
 #---------------------------------------------------------------------------
 ENABLE_PREPROCESSING   = YES
 
@@ -170,22 +171,22 @@ EXPAND_ONLY_PREDEF     = NO
 
 SEARCH_INCLUDES        = YES
 
-INCLUDE_PATH           = 
+INCLUDE_PATH           =
 
-INCLUDE_FILE_PATTERNS  = 
+INCLUDE_FILE_PATTERNS  =
 
-PREDEFINED             = 
+PREDEFINED             =
 
-EXPAND_AS_DEFINED      = 
+EXPAND_AS_DEFINED      =
 
 SKIP_FUNCTION_MACROS   = YES
 
 #---------------------------------------------------------------------------
-# Configuration::additions related to external references   
+# Configuration::additions related to external references
 #---------------------------------------------------------------------------
-TAGFILES               = 
+TAGFILES               =
 
-GENERATE_TAGFILE       = 
+GENERATE_TAGFILE       =
 
 ALLEXTERNALS           = NO
 
@@ -194,7 +195,7 @@ EXTERNAL_GROUPS        = YES
 PERL_PATH              = /usr/bin/perl
 
 #---------------------------------------------------------------------------
-# Configuration options related to the dot tool   
+# Configuration options related to the dot tool
 #---------------------------------------------------------------------------
 CLASS_DIAGRAMS         = YES
 
@@ -228,7 +229,7 @@ DOT_IMAGE_FORMAT       = png
 
 DOT_PATH               = @CF_OPENMS_SRC_PATH@/doc/doxygen
 
-DOTFILE_DIRS           = 
+DOTFILE_DIRS           =
 
 MAX_DOT_GRAPH_WIDTH    = 1024
 
@@ -245,6 +246,6 @@ GENERATE_LEGEND        = YES
 DOT_CLEANUP            = YES
 
 #---------------------------------------------------------------------------
-# Configuration::additions related to the search engine   
+# Configuration::additions related to the search engine
 #---------------------------------------------------------------------------
 SEARCHENGINE           = NO

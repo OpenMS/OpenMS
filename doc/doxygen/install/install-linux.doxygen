@@ -1,8 +1,8 @@
 /**
-  
+
   @page install_linux Building OpenMS on GNU/Linux
 
-  This document describes how to build OpenMS on a GNU/Linux system from source. 
+  This document describes how to build OpenMS on a GNU/Linux system from source.
 
   We are working on adding %OpenMS to the repositories of the most popular
   distributions, but for now the toolkit needs to be manually compiled on your
@@ -33,32 +33,32 @@
   sources and build scripts.  The Release tar.gz archive contains the libraries
   in the contrib/ folder, if you build the Development (svn) version, you'll
   have to check them out separately (see below in @ref build_linux_contrib).
-  
+
   <b>Required packages and libraries</b>
-  
+
   Essential are GCC > 4.0 or other ANSI C++ compiler, CMake > 2.8.3, Qt4 > 4.5,
   patch, autoconf > 2.60, automake > 1.9, libtool (libtoolize/glibtoolize).
 
   For the complete feature set to be enabled, %OpenMS needs recent versions of
-  Boost (1.46 or higher works), GSL (1.15 or higher works), 
-  libSVM (2.91 or higher and 3.x for x <= 14 works), SeqAn (1.4.0 or higher needed), 
+  Boost (1.46 or higher works), GSL (1.15 or higher works),
+  libSVM (2.91 or higher and 3.x for x <= 14 works), SeqAn (1.4.0 or higher needed),
   glpk (4.45 or higher works), zlib, libbz2, and Xerces-C (3.1.1 or higher works).
 
-  Building the documentation from the development version requires doxygen > 1.5.4 and 
+  Building the documentation from the development version requires doxygen > 1.5.4 and
   pdflatex/texlive/texlive-full.
 
   For the most common distributions, these commands will install most of the libraries:
 
   <table style="border-style:solid; border-collapse:collapse; border-color:#c0c0c0;" cellpadding="3px">
   <tr>
-    <td><B>Fedora </B> 
+    <td><B>Fedora </B>
     also look <a href="http://koji.fedoraproject.org/koji/packages">here</a>
 	</td>
     <td><pre>
     sudo yum install cmake gcc gcc-g++ autoconf autoconf-2.6 qt-devel
     </pre>
     </td>
-  </tr>                
+  </tr>
   <tr>
     <td><B>OpenSuse 11.1</B></td>
     <td><pre>
@@ -68,9 +68,9 @@
   <tr>
     <td><B>Ubuntu/Debian <br/>(10.04/6.0 or later recommended)</B></td>
     <td><pre>
-    sudo apt-get install cmake g++ autoconf qt4-dev-tools patch libtool make 
+    sudo apt-get install cmake g++ autoconf qt4-dev-tools patch libtool make
     sudo apt-get install libboost-regex-dev libboost-iostreams-dev libboost-date-time-dev libboost-math-dev \
-      libsvm-dev libglpk-dev libzip-dev zlib1g-dev libxerces-c-dev libgsl0-dev 
+      libsvm-dev libglpk-dev libzip-dev zlib1g-dev libxerces-c-dev libgsl0-dev
     </pre></td>
 
   </tr>
@@ -127,19 +127,19 @@
   \code
   cmake -DCMAKE_FIND_ROOT_PATH="/usr;/usr/local;/PATH/TO/contrib" -DBOOST_USE_STATIC=OFF .
   \endcode
-  
+
   In order to <i>build</i> the %OpenMS library and TOPP tools execute the following command:
 
   \code
   make
   \endcode
-  
+
 
   @subsection linux_openms_environment Getting your environment ready to use OpenMS
 
   The previous step takes the most time, in the meanwhile you can prepare your
   environment for easy %OpenMS usage:
-  
+
   Make sure to add <b>/PATH/TO/OpenMS/lib/</b> (e.g.
   <i>/home/smith/OpenMS/lib/</i>) to the environment variable
   <b>LD_LIBRARY_PATH</b>.  The best way is to edit $HOME/.bashrc and add the
@@ -147,21 +147,21 @@
   \code
   export LD_LIBRARY_PATH="/PATH/TO/OpenMS/lib:$LD_LIBRARY_PATH"
   \endcode
-  
+
   The TOPP tools will be built in the <b>/PATH/TO/OpenMS/bin/</b> folder. Add
   this path to the environment variable <b>PATH</b> to use the commands
-  anywhere on your system. 
-  
+  anywhere on your system.
+
   This is necessary to use the TOPP tools from TOPPView.
-  
+
   You can do this by appending the following also to your $HOME/.bashrc
-  (Do not use the tilde character @em ~ to abbreviate your home folder) 
+  (Do not use the tilde character @em ~ to abbreviate your home folder)
   \code
   export PATH=$PATH:/PATH/TO/OpenMS/bin
   \endcode
 
   Apply both changes by executing <pre>. ~/.bashrc </pre>
-  
+
 
   @section running_linux_openms Running OpenMS
   If the build from @ref install_linux_openms is ready, you can now run a
@@ -184,9 +184,9 @@
   \code
   make targets
   \endcode
-  
+
   You can set more CMake variables adding <code>-DVARIABLE=VALUE</code> options in step @ref install_linux_openms.
-  
+
   The most important CMake variables are:
 
   <table style="border-style:solid; border-collapse:collapse; border-color:#c0c0c0;">
@@ -194,7 +194,7 @@
       <td valign="top">INSTALL_PREFIX</td>
       <td>the path where the bin/ and lib/ directories should be installed to (when <pre>sudo make install</pre> is wished for a system-wide install: e.g. -DINSTALL_PREFIX=/usr/local/)
           <BR>
-          <b>Note:</b> Moving these directories after installing is not supported. 
+          <b>Note:</b> Moving these directories after installing is not supported.
 
 	<b>For development, install prefixes are not supported. In this case %OpenMS must
 	be built in place!</b>
@@ -211,7 +211,7 @@
     </tr>
     <tr>
       <td valign="top">CMAKE_BUILD_TYPE</td>
-      <td>Should be either 'Release' (optimization enabled) or 'Debug' (debug info and 
+      <td>Should be either 'Release' (optimization enabled) or 'Debug' (debug info and
           precondition/postcondition checks enabled).
           @n The default is 'Release'.</td>
     </tr>
@@ -230,7 +230,7 @@
       lead to undefined behavior as some internal settings (e.g., %OpenMP
       support) are determined using the C compiler and are assumed to be the
       same for the C++ compiler.</td>
-    </tr>    
+    </tr>
     <tr>
       <td valign="top"><pre>SEARCH_ENGINES_DIRECTORY</pre> (optional)</td>
       <td>The location where the ID search engines (X!Tandem, OMMSA, MyriMatch)
@@ -239,13 +239,13 @@
       https://open-ms.svn.sourceforge.net/svnroot/open-ms/THIRDPARTY/SEARCHENGINES/.
 
       This directory is needed to build the installer for %OpenMS.</td>
-    </tr>        
+    </tr>
     <tr>
       <td valign="top">PYOPENMS</td>
       <td>Use ON to also build the Python bindings, see also @ref pyOpenMS.</td>
     </tr>
   </table>
-  
+
   A full list of the CMake variables is shown when you execute
 
   \code
@@ -259,15 +259,32 @@
 
 <hr/>
 
-  @section install_linux_testing_openms Testing your OpenMS/TOPP installation  
-  
-  After you have installed %OpenMS and TOPP, you should verify your installation by executing the following command:
+  @section install_linux_testing_openms Testing your OpenMS/TOPP installation
 
-  \code
-  make test_build
-  make test
-  \endcode
-  
+  After you have installed %OpenMS and TOPP, you should test your installation by executing the following command:
+
+@code
+make test
+@endcode
+
+or
+
+@code
+ctest
+@endcode
+
+  Using ctest you can also execute only single tests by using the -R switch or run tests in parallel using the -j switch.
+
+@code
+ctest -R TOPP_ -j 4
+@endcode
+
+  Will run all TOPP test using 4 jobs. Make sure that you have build all tests beforehand by executing.
+
+@code
+make
+@endcode
+
   @note To enable DB connectivity tests, use the following CMake parameters:
   - DB_TEST
   - DB_TEST_HOST

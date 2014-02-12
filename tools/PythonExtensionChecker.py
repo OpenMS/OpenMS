@@ -57,7 +57,7 @@ def handle_member_definition(mdef, pxd_class, cnt):
     """
     tres = TestResult()
     protection = mdef.get_prot() # DoxProtectionKind: public, protected, private, package
-    kind = mdef.get_kind() # DoxMemberKind: define property event variable typedef enum function signal prototype friend dcop slot 
+    kind = mdef.get_kind() # DoxMemberKind: define property event variable typedef enum function signal prototype friend dcop slot
     if not protection in "public protected private package".split(" "):
         raise Exception("Error; something is wrong")
     if not kind in "define property event variable typedef enum function signal prototype friend dcop slot".split(" "):
@@ -105,7 +105,7 @@ def handle_member_definition(mdef, pxd_class, cnt):
             tres.setPassed(True)
 
     elif kind == "function" and protection == "public":
-        # Wrap of public member functions ... 
+        # Wrap of public member functions ...
         cnt.public_methods += 1
         c_return_type = mdef.resolve_return_type()
         if mdef.name in pxd_class.methods:
@@ -121,7 +121,7 @@ def handle_member_definition(mdef, pxd_class, cnt):
                 tres.setPassed(True)
             elif "void" in py_return_type and not "void" in c_return_type:
                 tres.setPassed(False)
-                tres.setMessage( "TODO: Mismatch between C++ return type (%s) and Python return type (%s) in %s %s %s:" % ( 
+                tres.setMessage( "TODO: Mismatch between C++ return type (%s) and Python return type (%s) in %s %s %s:" % (
                      str(c_return_type), str(py_return_type), mdef.kind, mdef.prot, mdef.name) )
             else:
                 tres.setPassed(True)
@@ -150,7 +150,7 @@ def handle_member_definition(mdef, pxd_class, cnt):
     return tres
 #
 ## Class for counting occurances
-# 
+#
 class Counter(object):
     def __init__(self):
         self.total = 0
@@ -163,10 +163,10 @@ class Counter(object):
         self.skipped_no_pxd_file = 0
         self.skipped_no_pxd_match = 0
         self.parsed = 0
-        # 
+        #
         self.public_enums_total = 0
         self.public_enums_missing = 0
-        # 
+        #
         self.public_methods = 0
         self.public_methods_missing = 0
         self.public_methods_missing_nowrapping = 0
@@ -180,7 +180,7 @@ class Counter(object):
             self.skipped_no_location + \
             self.skipped_no_sections + \
             self.skipped_no_pxd_file + \
-            self.skipped_no_pxd_match  
+            self.skipped_no_pxd_match
 
     def print_skipping_reason(self):
         self.computed_skipped()
@@ -205,11 +205,11 @@ class Counter(object):
         print "Parsed public enums %s (of which were missing %s) " % (self.public_enums_total, self.public_enums_missing)
         print "Parsed public attributes %s (of which were missing %s) " % (self.public_variables, self.public_variables_missing)
         print "Note that this script counts each method name only once and only maps from \n"+ \
-              "C++ to Python (not the other way around), thus the numbers are slightly inaccurate." 
+              "C++ to Python (not the other way around), thus the numbers are slightly inaccurate."
 
 #
 ## Class for an OpenMS .h file
-# 
+#
 class OpenMSSourceFile(object):
     def __init__(self, fname):
         self.fname = fname
@@ -237,7 +237,7 @@ class OpenMSSourceFile(object):
 
 #
 ## Class holding Doxygen XML file and next one function declaration
-# 
+#
 class DoxygenXMLFile(object):
     """The doxygen XML file
     """
@@ -261,7 +261,7 @@ class DoxygenXMLFile(object):
             return None
 
     def getCompoundFileLocation(self):
-        location = self.parsed_file.get_compounddef().get_location() 
+        location = self.parsed_file.get_compounddef().get_location()
         if location is None:
             return None
         return os.path.realpath(location.get_file())
@@ -275,7 +275,7 @@ class DoxygenXMLFile(object):
         empty = True
         for mdef in self.iterMemberDef():
             if not mdef.get_kind() in ["define", "typedef", "slot", "signal"]:
-                # DoxMemberKind: define property event variable typedef enum function signal prototype friend dcop slot 
+                # DoxMemberKind: define property event variable typedef enum function signal prototype friend dcop slot
                 empty = False
         if empty and not len(compound.get_sectiondef()) == 0:
             # contains only typedefs etc
@@ -287,7 +287,7 @@ class DoxygenXMLFile(object):
         comp_name = compound.get_compoundname()
         #
         # Step 1: print includes
-        # 
+        #
         includes = ""
         if len(compound.get_includes()) == 1:
             try:
@@ -315,7 +315,7 @@ class DoxygenXMLFile(object):
             return None
         #
         # Step 2: class definition
-        # 
+        #
         internal_file_name = "OpenMS" + file_location.split("/include/OpenMS")[1]
         # for n in compound.get_inheritancegraph().get_node():
         parent_classes = [n.getValueOf_() for n in compound.basecompoundref]
@@ -349,7 +349,7 @@ class DoxygenXMLFile(object):
 
         #
         # Step 3: methods
-        # 
+        #
         methods = ""
         default_ctor = False
         copy_ctor = False
@@ -409,7 +409,7 @@ class DoxygenXMLFile(object):
 
     def iterMemberDef(self):
         """Iterate over all members of this class.
-        
+
         We do not care about the sections defined in the documentation here."""
         for sdef in self.compound.get_sectiondef():
             for mdef_ in sdef.get_memberdef():
@@ -433,7 +433,7 @@ class DoxygenCppFunction(object):
     def generate_from_obj(mdef):
         """Attaches the functionality of this object to the given input object"""
         for k,v in DoxygenCppFunction.__dict__.iteritems():
-            if callable(v) and not k == "__init__": 
+            if callable(v) and not k == "__init__":
                 import types
                 mdef.__dict__[k] = types.MethodType(v, mdef)
         mdef.initialize_dgencpp()
@@ -492,10 +492,10 @@ class DoxygenCppFunction(object):
 
         arguments = "("
         nested = False
-        for i,p in enumerate(self.get_param()): 
+        for i,p in enumerate(self.get_param()):
             ptype = self._resolve_type(p.get_type().content_)
             dname = p.declname
-            # ignore default arguments etc ... Cython cannot use them 
+            # ignore default arguments etc ... Cython cannot use them
             # p.defval.content_
             # replace python keywords in argument name: except, type, lamdba, map ...
             import keyword
@@ -511,7 +511,7 @@ class DoxygenCppFunction(object):
                 arguments += tojoin
             else:
                 arguments += ", " + "".join(ptype) + " " + dname.strip()
-                
+
         arguments += ")"
         # arguments = (std::vector<  Int  > column_indices, std::vector<  DoubleReal  > column_values, const  String  & name)
 
@@ -522,15 +522,15 @@ class DoxygenCppFunction(object):
         return_type = "".join(c_return_type)
         return_type = return_type.replace("&", "")
         cpp_def = return_type + " " + function_name + arguments
-        cpp_def = cpp_def.replace("///", "#")    
-        cpp_def = cpp_def.replace("//", "#")    
+        cpp_def = cpp_def.replace("///", "#")
+        cpp_def = cpp_def.replace("//", "#")
         if replace_nogil:
-            cpp_def = cpp_def.replace(";", "nogil except +")    
-            cpp_def = cpp_def.replace("const;", "nogil except +")    
+            cpp_def = cpp_def.replace(";", "nogil except +")
+            cpp_def = cpp_def.replace("const;", "nogil except +")
         else:
             cpp_def = cpp_def.replace("const;", "")
             cpp_def = cpp_def.replace(";", "")
-        # TODO handle static ...  
+        # TODO handle static ...
         cpp_def = cpp_def.replace("static", "")
         cpp_def = cpp_def.replace("MSSpectrum<>", "MSSpectrum[Peak1D]")
         cpp_def = cpp_def.replace("MSChromatogram<>", "MSChromatogram[ChromatogramPeak]")
@@ -545,10 +545,10 @@ class DoxygenCppFunction(object):
         cpp_def = cpp_def.replace("operator]", "operator>")
         cpp_def = cpp_def.replace("operator[", "operator<")
         cpp_def = cpp_def.replace("operator__[]", "operator[]")
-        cpp_def = cpp_def.replace("const ", "")    
-        cpp_def = cpp_def.replace("[ DoubleReal ]", "[ double ]")    
-        cpp_def = cpp_def.replace("[ Size ]", "[ size_t ]")    
-        cpp_def = cpp_def.replace("[ Int ]", "[ int ]")    
+        cpp_def = cpp_def.replace("const ", "")
+        cpp_def = cpp_def.replace("[ DoubleReal ]", "[ double ]")
+        cpp_def = cpp_def.replace("[ Size ]", "[ size_t ]")
+        cpp_def = cpp_def.replace("[ Int ]", "[ int ]")
         cpp_def = cpp_def.replace("RichPeakSpectrum", "MSSpectrum[RichPeak1D]")
         cpp_def = cpp_def.replace("RichPeakMap", "MSExperiment[RichPeak1D, ChromatogramPeak]")
         cpp_def = cpp_def.replace("FeatureMap[]", "FeatureMap[Feature]")
@@ -576,7 +576,7 @@ class DoxygenCppFunction(object):
 
 #
 ## Class for the ignore file
-# 
+#
 class IgnoreFile(object):
 
     def __init__(self):
@@ -594,13 +594,13 @@ class IgnoreFile(object):
 
     def getIgnoredMethods(self, name):
         res = self.data["IgnoreMethods"].get(name, [])
-        if res is None: 
+        if res is None:
             return []
         return res
 
 #
 ## Class for the .pxd file
-# 
+#
 class PXDFileParseError(Exception):
     pass
 
@@ -634,14 +634,14 @@ class PXDFile(object):
                 if found: break
             if found: break
 
-        if not found: 
+        if not found:
             error_str = "Could not find a match for class %s in file %s" % (comp_name, pxdfile)
             raise PXDFileParseError(error_str)
 
         # Check if we really have a class, then initialize it
         if isinstance(klass[0], CppClassNode):
             cl = CppClassDecl.parseTree(klass[0], klass[1], klass[2])
-        else: 
+        else:
             print "Something is wrong, not a class"
             raise PXDFileParseError("wrong")
 
@@ -748,7 +748,7 @@ class TestResultHandler:
             for tres in classtestresults:
                 xml_output.append("    <Test>%s</Test>\n" % xml_escape(tres.getXMLName() )  )
         xml_output.append("  </TestList>\n")
-        
+
         for classtestresults in self:
             for tres in classtestresults:
                 status = ""
@@ -781,7 +781,7 @@ class TestResultHandler:
                 xml_output.append(" " * 2 + '</Test>\n')
 
 
-        xml_output.append("<EndDateTime>%s</EndDateTime>\n" % (time.strftime('%b %d %H:%M') ) ) 
+        xml_output.append("<EndDateTime>%s</EndDateTime>\n" % (time.strftime('%b %d %H:%M') ) )
         xml_output.append("<EndTestTime>%s</EndTestTime>\n" % (time.time()) )
         xml_output.append("<ElapsedMinutes></ElapsedMinutes>\n")
         xml_output.append("</Testing>\n")
@@ -842,7 +842,7 @@ class TestResultHandler:
               <EndDateTime>Oct 22 18:43 CEST</EndDateTime>
               <EndTestTime>1350924239</EndTestTime>
           <ElapsedMinutes>7.2</ElapsedMinutes></Testing>
-        </Site>      
+        </Site>
           */
                 """
 
@@ -869,7 +869,7 @@ def checkPythonPxdHeader(src_path, bin_path, ignorefilename, pxds_out, print_pxd
 
     TODO also look at ./doc/doxygen/doxygen-error.log ?
 
-    Make sure to build the doxygen xmls first with 
+    Make sure to build the doxygen xmls first with
     $ make doc_xml
 
     """
@@ -891,7 +891,7 @@ def checkPythonPxdHeader(src_path, bin_path, ignorefilename, pxds_out, print_pxd
         ignorefile.load(ignorefilename)
 
     def pxd_text_printout(pxd_text, pxds_out, comp_name, print_pxd):
-        if print_pxd: 
+        if print_pxd:
             print ""
             print pxd_text
         if len(pxds_out) > 0 and pxd_text is not None:
@@ -943,7 +943,7 @@ def checkPythonPxdHeader(src_path, bin_path, ignorefilename, pxds_out, print_pxd
         openms_file = OpenMSSourceFile(file_location)
         maintainer = openms_file.getMaintainer()
         if dfile.isEmpty(True):
-            msg = "Skip:: No-data :: File is empty (no section definitions found or only definitions found) in file %s" % f 
+            msg = "Skip:: No-data :: File is empty (no section definitions found or only definitions found) in file %s" % f
             tres = TestResult(True, msg, log_level=10, name="%s_test" % comp_name)
             tres.maintainer = maintainer
             testresults.append([ tres ])
@@ -975,7 +975,7 @@ def checkPythonPxdHeader(src_path, bin_path, ignorefilename, pxds_out, print_pxd
             continue
 
         cnt.parsed += 1
-        # Loop through all methods 
+        # Loop through all methods
         classtestresults = []
         for method_cntr,mdef in enumerate(dfile.iterMemberDef()):
 
@@ -1019,8 +1019,8 @@ def checkPythonPxdHeader(src_path, bin_path, ignorefilename, pxds_out, print_pxd
     elif output_format == "xml":
 
         # check if all files required to report in CDash are present
-        tag_file = os.path.join(bin_path, "Testing", "TAG" ) 
-        try: 
+        tag_file = os.path.join(bin_path, "Testing", "TAG" )
+        try:
             # read the first line of tagfile (TAG) -> if it does not exist,
             # an IOError is thrown
             with open(tag_file) as f:
@@ -1044,7 +1044,7 @@ def main(options):
     checkPythonPxdHeader(options.src_path, options.bin_path, options.ignorefile, options.pxds_out, options.print_pxd, options.output_format, options.generate_pxd)
 
 def handle_args():
-    usage = "" 
+    usage = ""
 
     parser = argparse.ArgumentParser(description = usage )
     parser.add_argument("--bin_path", dest="bin_path", default=".", help="OpenMS build path")
@@ -1067,13 +1067,13 @@ if __name__=="__main__":
 """
 offending doxygen lines that fail to parse:
 
-include/source/APPLICATIONS/TOPP/IDRipper.C
+include/source/APPLICATIONS/TOPP/IDRipper.cpp
   <B>NOTE: The meta value file origin is removed by the @p IDSplitter!!</B>
   generates
-  the <computeroutput>IDSplitter!!</bold></computeroutput> 
+  the <computeroutput>IDSplitter!!</bold></computeroutput>
 
 doc/OpenMS_tutorial/OpenMS_Tutorial.doxygen
-  \arg \c <b>[1]</b>:<A HREF="http://bieson.ub.uni-bielefeld.de/frontdoor.php?source_opus=1370"> 
+  \arg \c <b>[1]</b>:<A HREF="http://bieson.ub.uni-bielefeld.de/frontdoor.php?source_opus=1370">
   generates
   <listitem><para><computeroutput><bold></computeroutput>[1]</bold>:
 

@@ -28,7 +28,7 @@ class TestMRMRTNormalizer(unittest.TestCase):
     """Emulates the behavior of OpenSwathMRMRTNormalizer"""
 
     def setUp(self):
-        self.testdirname = os.path.join(env.OPEN_MS_SRC, "source/TEST/TOPP")
+        self.testdirname = os.path.join(env.OPEN_MS_SRC, "src/tests/topp")
         # set up files
         self.chromatograms = os.path.join(self.testdirname, "OpenSwathRTNormalizer_1_input.mzML")
         self.tramlfile = os.path.join(self.testdirname, "OpenSwathRTNormalizer_1_input.TraML")

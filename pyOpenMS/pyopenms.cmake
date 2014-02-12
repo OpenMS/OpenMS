@@ -1,10 +1,39 @@
-#IF (CMAKE_BUILD_TYPE STREQUAL "Debug")
-    #IF (WIN32)
-        #MESSAGE(STATUS "building debug version on Windows not supported yet")
-        #RETURN()
-    #ENDIF()
-#ENDIF()
+# --------------------------------------------------------------------------
+#                   OpenMS -- Open-Source Mass Spectrometry
+# --------------------------------------------------------------------------
+# Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
+# ETH Zurich, and Freie Universitaet Berlin 2002-2012.
+#
+# This software is released under a three-clause BSD license:
+#  * Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+#  * Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in the
+#    documentation and/or other materials provided with the distribution.
+#  * Neither the name of any author or any participating institution
+#    may be used to endorse or promote products derived from this software
+#    without specific prior written permission.
+# For a full list of authors, refer to the file AUTHORS.
+# --------------------------------------------------------------------------
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+# INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+# OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+# WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+# OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+# ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+# --------------------------------------------------------------------------
+# $Maintainer: Hannes Röst $
+# $Authors: Hannes Röst, Uwe Schmitt $
+# --------------------------------------------------------------------------
 
+#------------------------------------------------------------------------------
+# find and handle python
 find_package(PythonInterp REQUIRED)
 
 # find out python version info
@@ -15,44 +44,42 @@ execute_process(
      OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 
-message(STATUS "Python found at ${PYTHON_EXECUTABLE} with version ${PY_VERSION} (if this is
-wrong, configure with -DPYTHON_EXECUTABLE:FILEPATH=/path/to/python)")
+message(STATUS "Python found at ${PYTHON_EXECUTABLE} with version ${PY_VERSION} (if this is wrong, configure with -DPYTHON_EXECUTABLE:FILEPATH=/path/to/python)")
 
+#------------------------------------------------------------------------------
 # Windows support restricted to Python 2.7 at the moment!
-IF (WIN32)
-
-    IF (NOT MSVC90)
-        MESSAGE(STATUS "Need visual C++ 2008 compiler for building Python 2.[67] extensions")
-        RETURN()
-    ENDIF()
-
+#  * we also require VC 2008 and the corresponding vcredist to be installed
+if(WIN32)
+    if(NOT MSVC90)
+        message(STATUS "Need Visual C++ 2008 compiler for building Python 2.[67] extensions")
+        message(FATAL_ERROR "Either reconfigure with Visual Studio 9 2008 generator or disable pyOpenMS.")
+    endif()
 
     include(InstallRequiredSystemLibraries)
-    SET(MSVCR90DLL ${MSVC90_CRT_DIR}/msvcr90.dll)
-    IF (NOT EXISTS ${MSVCR90DLL})
-        MESSAGE(STATUS "missed msvcr90.dll - need visual c++ 2008 runtime (called vcredist)")
-        RETURN()
-    ENDIF()
-    SET(MSVCP90DLL ${MSVC90_CRT_DIR}/msvcp90.dll)
-    IF (NOT EXISTS ${MSVCP90DLL})
-        MESSAGE(STATUS "missed msvcp90.dll - need visual c++ 2008 runtime (called vcredist)")
-        RETURN()
-    ENDIF()
+    set(MSVCR90DLL ${MSVC90_CRT_DIR}/msvcr90.dll)
+    if(NOT EXISTS ${MSVCR90DLL})
+        message(STATUS "Missing msvcr90.dll - Visual C++ 2008 Runtime (called vcredist)")
+        message(FATAL_ERROR "Please install VC 2008 runtime package or disable pyOpenMS.")
+    endif()
+    set(MSVCP90DLL ${MSVC90_CRT_DIR}/msvcp90.dll)
+    if(NOT EXISTS ${MSVCP90DLL})
+        message(STATUS "Missing msvcp90.dll - Visual C++ 2008 Runtime (called vcredist)")
+        message(FATAL_ERROR "Please install VC 2008 runtime package or disable pyOpenMS.")
+    endif()
+endif(WIN32)
 
-ENDIF(WIN32)
-
-
+#------------------------------------------------------------------------------
 # Find Cython
 find_program( CYTHON_EXECUTABLE NAMES cython )
 
-SET(CYTHON-MISSING FALSE)
-IF (DEFINED CYTHON_EXECUTABLE-NOTFOUND)
-	SET(CYTHON-MISSING TRUE)
-ENDIF()
+set(CYTHON_MISSING FALSE)
+if(DEFINED CYTHON_EXECUTABLE-NOTFOUND)
+	set(CYTHON_MISSING TRUE)
+endif()
 
-IF (CYTHON-MISSING)
-	MESSAGE(STATUS "Looking for cython - not found")
-ELSE()
+if(CYTHON_MISSING)
+	message(FATAL_ERROR "Looking for cython - not found")
+else()
   # find out cython version info
   execute_process(
        COMMAND
@@ -60,9 +87,10 @@ ELSE()
        OUTPUT_VARIABLE CYTHON_VERSION
        OUTPUT_STRIP_TRAILING_WHITESPACE
   )
-  MESSAGE(STATUS "Looking for cython - found version ${CYTHON_VERSION}")
-ENDIF()
+  message(STATUS "Looking for cython - found version ${CYTHON_VERSION}")
+endif()
 
+#------------------------------------------------------------------------------
 # Check for autowrap Cython
 execute_process(
      COMMAND
@@ -72,15 +100,15 @@ execute_process(
      OUTPUT_QUIET
 )
 
-SET(AUTOWRAP-VERSION-OK FALSE)
+set(AUTOWRAP_VERSION_OK FALSE)
 
-IF(AUTOWRAP_MISSING)
-	MESSAGE(STATUS "Looking for autowrap - not found")
-ELSE()
+if(AUTOWRAP_MISSING)
+	message(STATUS "Looking for autowrap - not found")
+else()
     execute_process(
         COMMAND
         ${PYTHON_EXECUTABLE} -c "import autowrap; exit(autowrap.version >= (0, 3, 2))"
-        RESULT_VARIABLE AUTOWRAP_VERSION_OK
+        RESULT_VARIABLE _AUTOWRAP_VERSION_OK
         ERROR_QUIET
         OUTPUT_QUIET
     )
@@ -90,136 +118,128 @@ ELSE()
         OUTPUT_VARIABLE AUTOWRAP_VERSION
         OUTPUT_STRIP_TRAILING_WHITESPACE
     )
-    IF(AUTOWRAP_VERSION_OK)
-        MESSAGE(STATUS "Looking for autowrap - found autowrap ${AUTOWRAP_VERSION}, version ok")
-        SET(AUTOWRAP-VERSION-OK TRUE)
-    ELSE()
-        MESSAGE(STATUS "Looking for autowrap - version ${AUTOWRAP_VERSION} is to old, please upgrade")
-    ENDIF()
-ENDIF()
+    if(_AUTOWRAP_VERSION_OK)
+        message(STATUS "Looking for autowrap - found autowrap ${AUTOWRAP_VERSION}, version ok")
+        set(AUTOWRAP_VERSION_OK TRUE)
+    else()
+        message(STATUS "Found autowrap version ${AUTOWRAP_VERSION}. The version is to old (>= 0.3.2 is required)")
+        message(FATAL_ERROR "Please upgrade autowrap or disable pyOpenMS.")
+    endif()
+endif()
 
-# Check for Nose Test Framework
-execute_process(
-     COMMAND
-     ${PYTHON_EXECUTABLE} -c "import nose"
-     RESULT_VARIABLE NOSE_MISSING
-     ERROR_QUIET
-     OUTPUT_QUIET
-)
-
+#------------------------------------------------------------------------------
+# get the qt version
 execute_process(
     COMMAND ${QT_QMAKE_EXECUTABLE} -v
     OUTPUT_VARIABLE QT_QMAKE_VERSION_INFO
     )
 
 
-SET(NOSE-MISSING TRUE)
-IF( NOSE_MISSING EQUAL 0)
-    SET(NOSE-MISSING FALSE)
-ENDIF()
-IF(NOSE_MISSING)
-	MESSAGE(STATUS "Looking for nose testing framework - not found")
-ELSE()
-	MESSAGE(STATUS "Looking for nose testing framework - found")
-ENDIF()
-
-
-# Check for Numpy
+#------------------------------------------------------------------------------
+# Check for Nose Test Framework
 execute_process(
      COMMAND
-     ${PYTHON_EXECUTABLE} -c "import numpy"
-     RESULT_VARIABLE NUMPY_MISSING
+     ${PYTHON_EXECUTABLE} -c "import nose"
+     RESULT_VARIABLE _NOSE_MISSING
      ERROR_QUIET
      OUTPUT_QUIET
 )
 
-SET(NUMPY-MISSING TRUE)
-IF( NUMPY_MISSING EQUAL 0)
-  SET(NUMPY-MISSING FALSE)
-ENDIF()
-IF(NUMPY_MISSING)
-	MESSAGE(STATUS "Looking for numpy - not found")
-ELSE()
-	MESSAGE(STATUS "Looking for numpy - found")
-ENDIF()
+set(NOSE_MISSING TRUE)
+if( _NOSE_MISSING EQUAL 0)
+    set(NOSE_MISSING FALSE)
+endif()
+if(NOSE_MISSING)
+	message(FATAL_ERROR "Looking for nose testing framework - not found")
+else()
+	message(STATUS "Looking for nose testing framework - found")
+endif()
 
+#------------------------------------------------------------------------------
+# Check for Numpy
+execute_process(
+     COMMAND
+     ${PYTHON_EXECUTABLE} -c "import numpy"
+     RESULT_VARIABLE _NUMPY_MISSING
+     ERROR_QUIET
+     OUTPUT_QUIET
+)
 
-IF (NUMPY-MISSING OR CYTHON-MISSING OR NOT AUTOWRAP-VERSION-OK OR NOSE-MISSING)
-  MESSAGE(FATAL_ERROR "Required Python modules not found or out of date")
-  RETURN()
-ENDIF()
+set(NUMPY_MISSING TRUE)
+if( _NUMPY_MISSING EQUAL 0)
+  set(NUMPY_MISSING FALSE)
+endif()
+if(NUMPY_MISSING)
+	message(FATAL_ERROR "Looking for numpy - not found")
+else()
+	message(STATUS "Looking for numpy - found")
+endif()
 
+#------------------------------------------------------------------------------
+# Handle missing libraries (this should never be reached, as the individual
+#  parts should fire FATAL_ERRORs if something is missing)
+if(NUMPY_MISSING OR CYTHON_MISSING OR NOT AUTOWRAP_VERSION_OK OR NOSE_MISSING)
+  message(FATAL_ERROR "Required Python modules not found or out of date")
+endif()
 
+#------------------------------------------------------------------------------
 # copy files
-# MESSAGE(STATUS ${CMAKE_BINARY_DIR}/pyOpenMS/tests/unittests)
-
 FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS)
 FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/tests/unittests)
 FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/tests/memoryleaktests)
 FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/tests/integration_tests)
 FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms)
 FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/pyTOPP)
-FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/pxds)
-FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/addons)
-FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/converters)
 
-FILE(GLOB _python_files "pyOpenMS/pyopenms/*.py")
+FILE(GLOB _python_files "${OPENMS_HOST_DIRECTORY}/pyOpenMS/pyopenms/*.py")
 FILE(COPY ${_python_files} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms)
 
-FILE(GLOB _python_files "pyOpenMS/pyopenms/*.sh")
+FILE(GLOB _python_files "${OPENMS_HOST_DIRECTORY}/pyOpenMS/pyopenms/*.sh")
 FILE(COPY ${_python_files} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms)
 
-FILE(GLOB _python_files "pyOpenMS/pyTOPP/*.py")
+FILE(GLOB _python_files "${OPENMS_HOST_DIRECTORY}/pyOpenMS/pyTOPP/*.py")
 FILE(COPY ${_python_files} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyTOPP)
 
-FILE(GLOB _python_files "pyOpenMS/tests/unittests/*")
+FILE(GLOB _python_files "${OPENMS_HOST_DIRECTORY}/pyOpenMS/tests/unittests/*")
 FILE(COPY ${_python_files} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/tests/unittests)
 
-FILE(GLOB _python_files "pyOpenMS/tests/*.mzXML")
+FILE(GLOB _python_files "${OPENMS_HOST_DIRECTORY}/pyOpenMS/tests/*.mzXML")
 FILE(COPY ${_python_files} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/tests)
 
-FILE(GLOB _python_files "pyOpenMS/tests/memoryleaktests/*")
+FILE(GLOB _python_files "${OPENMS_HOST_DIRECTORY}/pyOpenMS/tests/memoryleaktests/*")
 FILE(COPY ${_python_files} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/tests/memoryleaktests)
 
-FILE(GLOB _python_files "pyOpenMS/tests/integration_tests/*")
+FILE(GLOB _python_files "${OPENMS_HOST_DIRECTORY}/pyOpenMS/tests/integration_tests/*")
 FILE(COPY ${_python_files} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/tests/integration_tests)
 
-FILE(GLOB _files "pyOpenMS/pxds/*.pxd")
-FILE(COPY ${_files} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pxds)
+FILE(COPY ${OPENMS_HOST_DIRECTORY}/pyOpenMS/License.txt DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms)
+FILE(COPY ${OPENMS_HOST_DIRECTORY}/pyOpenMS/MANIFEST.in DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/)
+FILE(COPY ${OPENMS_HOST_DIRECTORY}/pyOpenMS/README.rst DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/)
+FILE(COPY ${OPENMS_HOST_DIRECTORY}/pyOpenMS/setup.py DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS)
+FILE(COPY ${OPENMS_HOST_DIRECTORY}/pyOpenMS/distribute_setup.py DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS)
+FILE(COPY ${OPENMS_HOST_DIRECTORY}/pyOpenMS/version.py DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS)
+FILE(COPY ${OPENMS_HOST_DIRECTORY}/pyOpenMS/version.py DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms)
+FILE(COPY ${OPENMS_HOST_DIRECTORY}/pyOpenMS/run_nose.py DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS)
+FILE(COPY ${OPENMS_HOST_DIRECTORY}/pyOpenMS/run_memleaks.py DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS)
+FILE(COPY ${OPENMS_HOST_DIRECTORY}/pyOpenMS/doCythonCompileOnly.py DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS)
 
-FILE(GLOB _python_files "pyOpenMS/addons/*.pyx")
-FILE(COPY ${_python_files} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/addons)
-
-FILE(GLOB _python_files "pyOpenMS/converters/*.py")
-FILE(COPY ${_python_files} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/converters)
-
-FILE(COPY pyOpenMS/License.txt DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms)
-FILE(COPY pyOpenMS/MANIFEST.in DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/)
-FILE(COPY pyOpenMS/README.rst DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/)
-FILE(COPY pyOpenMS/setup.py DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS)
-FILE(COPY pyOpenMS/distribute_setup.py DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS)
-FILE(COPY pyOpenMS/version.py DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS)
-FILE(COPY pyOpenMS/version.py DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms)
-FILE(COPY pyOpenMS/run_nose.py DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS)
-FILE(COPY pyOpenMS/run_memleaks.py DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS)
-
-IF (WIN32)
+if(WIN32)
     FILE(COPY ${MSVCR90DLL} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms)
     FILE(COPY ${MSVCP90DLL} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms)
-    SET(FOUND_XERCES FALSE)
-    FOREACH(CONTRIB_PATH ${CONTRIB_DIR})
-        IF (EXISTS ${CONTRIB_PATH}/lib/xerces-c_3_1.dll)
+    set(FOUND_XERCES FALSE)
+    foreach(CONTRIB_PATH ${CONTRIB_DIR})
+        if(EXISTS ${CONTRIB_PATH}/lib/xerces-c_3_1.dll)
             FILE(COPY ${CONTRIB_PATH}/lib/xerces-c_3_1.dll DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms)
-            SET(FOUND_XERCES TRUE)
-        ENDIF()
-    ENDFOREACH()
-    IF (NOT FOUND_XERCES)
-        MESSAGE(STATUS "could not find xerces dll in contrib dir")
+            set(FOUND_XERCES TRUE)
+        endif()
+    endforeach()
+    if(NOT FOUND_XERCES)
+        message(STATUS "could not find xerces dll in contrib dir")
         RETURN()
-    ENDIF()
-ENDIF()
+    endif()
+endif()
 
-
+#------------------------------------------------------------------------------
 # write variables for setup.py as Python script into pyOpenMS/env.py
 
 set(ENVPATH ${CMAKE_BINARY_DIR}/pyOpenMS/env.py)
@@ -229,9 +249,9 @@ FILE(APPEND ${ENVPATH} OPEN_MS_BUILD_DIR="${CMAKE_BINARY_DIR}" "\n")
 FILE(APPEND ${ENVPATH} QT_QMAKE_VERSION_INFO="""${QT_QMAKE_VERSION_INFO}""" "\n")
 
 FILE(APPEND ${ENVPATH} OPEN_MS_CONTRIB_BUILD_DIRS=\")
-FOREACH(CONTRIB_PATH ${CONTRIB_DIR})
+foreach(CONTRIB_PATH ${CONTRIB_DIR})
 	FILE(APPEND ${ENVPATH} ${CONTRIB_PATH} ";")
-ENDFOREACH()
+endforeach()
 FILE(APPEND ${ENVPATH} "\"\n")
 
 # If there are other, external libraries that we would like to link, we can
@@ -259,17 +279,18 @@ FILE(APPEND ${ENVPATH} QT_QTCORE_INCLUDE_DIR="${QT_QTCORE_INCLUDE_DIR}" "\n")
 FILE(APPEND ${ENVPATH} MSVCR90DLL="${MSVCR90DLL}" "\n")
 FILE(APPEND ${ENVPATH} MSVCP90DLL="${MSVCP90DLL}" "\n")
 FILE(APPEND ${ENVPATH} OPEN_MS_BUILD_TYPE="${CMAKE_BUILD_TYPE}" "\n")
-IF (WIN32)
-    IF (CMAKE_BUILD_TYPE STREQUAL "Debug")
+if(WIN32)
+    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
         FILE(APPEND ${ENVPATH} OPEN_MS_LIB="${OpenMS_BINARY_DIR}/bin/Debug/OpenMSd.dll" "\n")
         FILE(APPEND ${ENVPATH} OPEN_SWATH_ALGO_LIB="${OpenMS_BINARY_DIR}/bin/Debug/OpenSwathAlgod.dll" "\n")
-    ELSE()
+    else()
         FILE(APPEND ${ENVPATH} OPEN_MS_LIB="${OpenMS_BINARY_DIR}/bin/Release/OpenMS.dll" "\n")
         FILE(APPEND ${ENVPATH} OPEN_SWATH_ALGO_LIB="${OpenMS_BINARY_DIR}/bin/Release/OpenSwathAlgo.dll" "\n")
-    ENDIF()
-ENDIF()
+    endif()
+endif()
 
-# create targets in makefile 
+#------------------------------------------------------------------------------
+# create targets in makefile
 add_custom_target(Name ALL
   COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext --inplace
   DEPENDS OpenMS
@@ -280,18 +301,18 @@ add_custom_target(pyopenms
 	WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
 add_dependencies(pyopenms OpenMS)
 
-add_custom_target(pyopenms_bdist_egg 
+add_custom_target(pyopenms_bdist_egg
 	COMMAND ${PYTHON_EXECUTABLE} setup.py bdist_egg
 	WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
 add_dependencies(pyopenms_bdist_egg OpenMS)
 
-add_custom_target(pyopenms_bdist 
+add_custom_target(pyopenms_bdist
 	COMMAND ${PYTHON_EXECUTABLE} setup.py bdist  --format=zip
 	WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
 add_dependencies(pyopenms_bdist OpenMS)
 
-add_custom_target(pyopenms_rpm 
-	COMMAND ${PYTHON_EXECUTABLE} setup.py bdist_rpm  
+add_custom_target(pyopenms_rpm
+	COMMAND ${PYTHON_EXECUTABLE} setup.py bdist_rpm
 	WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
 add_dependencies(pyopenms_rpm OpenMS)
 
@@ -301,15 +322,15 @@ add_dependencies(pyopenms_rpm OpenMS)
 
 # Original test using the "run_nose.py" script, testing all unittests at once
 # => this is suboptimal for ctest and cdash because we dont see which tests
-# actually have gone wrong. Thus we add additional tests below ... 
+# actually have gone wrong. Thus we add additional tests below ...
 enable_testing()
 add_test(NAME test_pyopenms_unittests
          COMMAND ${PYTHON_EXECUTABLE} run_nose.py
-         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS 
+         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS
         )
-IF(NOT WIN32)
+if(NOT WIN32)
     set_tests_properties(test_pyopenms_unittests PROPERTIES ENVIRONMENT "LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/lib")
-ENDIF()
+endif()
 
 # Please add your test here when you decide to write a new testfile in the tests/unittests folder
 set(pyopenms_unittest_testfiles
@@ -338,30 +359,30 @@ test_MRMRTNormalizer.py
 test_SILACAnalyzer.py
 )
 
-# Loop through all the test files 
+# Loop through all the test files
 foreach (t ${pyopenms_unittest_testfiles})
   add_test(NAME "pyopenms_unittest_${t}"
     COMMAND ${PYTHON_EXECUTABLE} -c  "import nose; nose.run_exit()" ${CMAKE_BINARY_DIR}/pyOpenMS/tests/unittests/${t} -s -v)
-  IF(NOT WIN32)
-    set_tests_properties("pyopenms_unittest_${t}" PROPERTIES ENVIRONMENT "LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/lib" 
+  if(NOT WIN32)
+    set_tests_properties("pyopenms_unittest_${t}" PROPERTIES ENVIRONMENT "LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/lib"
       WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS)
-  ENDIF()
+  endif()
 endforeach(t)
 
 foreach (t ${pyopenms_integrationtest_testfiles})
   add_test(NAME "pyopenms_integrationtest_${t}"
     COMMAND ${PYTHON_EXECUTABLE} -c  "import nose; nose.run_exit()" ${CMAKE_BINARY_DIR}/pyOpenMS/tests/integration_tests/${t} -s -v)
-  IF(NOT WIN32)
-    set_tests_properties("pyopenms_integrationtest_${t}" PROPERTIES ENVIRONMENT "LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/lib" 
+  if(NOT WIN32)
+    set_tests_properties("pyopenms_integrationtest_${t}" PROPERTIES ENVIRONMENT "LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/lib"
       WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS)
-  ENDIF()
+  endif()
 endforeach(t)
 
 # Finally add the memory leaks test (in folder tests/memoryleaktests/)
 add_test(NAME pyopenms_test_memoryleaktests
-  COMMAND ${PYTHON_EXECUTABLE} -c  "import nose; nose.run_exit()" ${CMAKE_BINARY_DIR}/pyOpenMS/tests/memoryleaktests/ -s -v 
+  COMMAND ${PYTHON_EXECUTABLE} -c  "import nose; nose.run_exit()" ${CMAKE_BINARY_DIR}/pyOpenMS/tests/memoryleaktests/ -s -v
   WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS)
-IF(NOT WIN32)
+if(NOT WIN32)
     set_tests_properties(pyopenms_test_memoryleaktests PROPERTIES ENVIRONMENT "LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/lib")
-ENDIF()
+endif()
 

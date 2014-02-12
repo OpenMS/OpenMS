@@ -10,4 +10,5 @@ WARN_IF_DOC_ERROR      = YES
 WARN_NO_PARAMDOC       = YES
 
 FILE_PATTERNS          = *.doxygen \
+												 *.cpp \
 												 *.C

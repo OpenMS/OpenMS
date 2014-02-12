@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2012.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer:  $
 // $Authors: Marc Sturm $
@@ -63,7 +63,7 @@
 				In the TRAC has a Wiki with important links, the svn timeline and more.
 
 			<LI><B>How do I update the website?</B><BR>
-				 
+
 				 Login to the wordpress admin area at www.openms.de/wp-admin
 				 with your username and password assigned by the current Homepage maintainers.
 
@@ -84,7 +84,7 @@
 
 	        <LI>Derive the class <TT>Widget</TT> from
 	        <TT>WidgetTemplate</TT>. You need to check in the
-	        <TT>Widget.h</TT> and <TT>Widget.C</TT> files.
+	        <TT>Widget.h</TT> and <TT>Widget.cpp</TT> files.
 	      </UL>
 
 			<LI><b>Can the START_SECTION-macro not handle template methods that have two or more arguments?</b><BR>
@@ -146,9 +146,9 @@
         <BR>
 				The 'Debug' configuration enabled debug information.
 				The 'Release' configuration disables debug information and enables optimization.
-				
+
       <LI><B>I changed the contrib path, but re-running CMake won't change the library paths?!</B><BR>
-      	Once a library is found and its location is stored in a cache variable, it will only be searched again if the corresponding entry in the cache file is set to false. 
+      	Once a library is found and its location is stored in a cache variable, it will only be searched again if the corresponding entry in the cache file is set to false.
 				You can simply delete the CMakeCache.txt, but all other custom settings will be lost as well.
 
       <LI><B>What are the most useful (make) targets?!</B><BR>
@@ -170,42 +170,43 @@
 
       <LI><b>How do I add a new class <TT>MyClass</TT> to the build system?</b><BR>
         <OL>
-          <LI>Create the new class (header in include/ and C file in source/)
+          <LI>Create the new class (header in include/ and C file in source/) of the respective library (e.g., src/openms if it should go to %OpenMS)
           <LI>Add both to the respective sources.cmake file in the same directory.
           <LI>Add them to svn version control and set the svn:eol-style property to native<BR>
-              e.g. 
+              e.g.
 @code
 svn propset svn:eol-style native MyClass.h
-svn propset svn:eol-style native MyClass.C
+svn propset svn:eol-style native MyClass.cpp
 @endcode
         </OL>
 
 	    <LI><b>How do I add a new directory <TT>MYDIR</TT> to the build system?</b><BR>
         <OL>
-          <LI>Create two new sources.cmake files (one for %OpenMS/source/MYDIR, one for %OpenMS/include/MYDIR), using existing sources.cmake files as template
-					<LI>Add the new sources.cmake file from %OpenMS/source/MYDIR and %OpenMS/include/MYDIR to %OpenMS/cmake/includes.cmake.
-					<LI>If you created a new directory directly under %OpenMS/source, then have a look at %OpenMS/source/TEST/executables.cmake (1. add a new section that
+          <LI>Create two new sources.cmake files (one for source/MYDIR, one for include/MYDIR) in the respective subprojects (e.g., src/openms) using existing sources.cmake files as template
+					<LI>Add the new sources.cmake file from source/MYDIR and include/MYDIR to %OpenMS/cmake/includes.cmake.
+					<LI>If you created a new directory directly under %OpenMS/source, then have a look at %OpenMS/src/tests/class_test/openms/executables.cmake (1. add a new section that
 							makes the unit testing system aware of the new (upcoming) tests, 2. look at the very bottom and augment "TEST_executables").
-							Add a new group target to %OpenMS/source/TEST/CMakeLists.txt
+							Add a new group target to %OpenMS/src/tests/class_tests/CMakeLists.txt
         </OL>
 
 	    <LI><b>How do I add a new test for the class <TT>MyClass</TT>?</b><BR>
         <OL>
-          <LI> Create the @em MyClass_test.C in @em source/TEST/
-          <LI> Add it to @em %OpenMS/source/TEST/executables.cmake in the correct section. For a new section: register it at the bottom of the file
-		  and add a target in @em %OpenMS/source/TEST/CMakeLists.txt that builds all targets of the new section.
-		  A test template for your specific class can be generated by the create_test.php script found in @em %OpenMS/tools/.	
-		</OL>
+          <LI> Create the @em MyClass_test.cpp in @em src/tests/class_tests/(openswathalgo|openms|openms_gui)
+          <LI> Add it to @em %OpenMS/src/tests/class_tests/(openswathalgo|openms|openms_gui)/executables.cmake in the correct section.
+               For a new section: register it at the bottom of the file and add a target in @em %OpenMS/src/tests/class_tests/(openswathalgo|openms|openms_gui)/CMakeLists.txt
+               that builds all targets of the new section.
+              A test template for your specific class can be generated by the create_test.php script found in @em %OpenMS/tools/.
+      </OL>
 
 	    <LI><b>How do I add a new TOPP test?</b><BR>
-        Add commands to @em %OpenMS/source/TEST/TOPP/CMakeLists.txt (where it fits alphabetically).
+        Add commands to @em %OpenMS/src/tests/topp/CMakeLists.txt (where it fits alphabetically).
 
 	    <LI><b>How do I add a new GUI test (for QT Gui classes) for the class <TT>MyClass</TT>?</b><BR>
         <OL>
-          <LI> Create the @em MyClass_test.C in @em source/TEST/GUI
-          <LI> Add it to @em %OpenMS/source/TEST/executables.cmake in the GUI section.
+          <LI> Create the @em MyClass_test.cpp in @em src/tests/class_tests/openms_gui
+          <LI> Add it to @em %OpenMS/src/tests/class_tests/openms_gui/CMakeLists.txt
 		  <LI> Have a look at existing GUI tests, as they use the QT TestLib framework and not the %OpenMS macros.
-        </OL>		
+        </OL>
 
 			<LI><B>(Linux) When executing 'make test', all tests fail.</B><BR>
 			Please check the LD_LIBRARY_PATH environment variable:
@@ -213,26 +214,27 @@ svn propset svn:eol-style native MyClass.C
 			- If your <i>&lt;%OpenMS&gt;/lib/</i> folder is included, check that <i>libOpenMS.so</i> is present.
 			- With the ldd command, you can show the libraries used by an executable, e.g. '<i>ldd &lt;%OpenMS&gt;/bin/ClassTest_test</i>'.
 
-				
+
 		</UL>
 	<H2 style="border-top:2px solid grey;">How can I speed up the compile process of %OpenMS?</H2>
 		<UL>
-		
+
 	    <LI><b>Build with several threads.</b><BR>
 				If you have several processors/cores you can build %OpenMS classes/tests and TOPP tools
 				in in several threads.
 				On Linux use the @a make option @a -j:
-				<code>make -j8 %OpenMS TOPP test_build</code>
-				
+				<code>make -j8 %OpenMS TOPP UTILS</code>
+
 				On Windows, Visual Studio solution files are automatically build with the /MP flag, such that VS uses all
-				available cores of the machine.
-		
+				available cores of the machine. From the command line you can use msbuild combined with the /
+
+        <code>msbuild.exe OpenMS_host.sln /maxcpucount:3</code>
 		</UL>
 	<H2 style="border-top:2px solid grey;">Working in IDE's</H2>
 		<UL>
-		
-			<LI><b>Why are there no source/TEST and source/APPLICATIONS/TOPP|UTILS folder?</b><BR>
-				All source files added to an IDE are associated with their targets. You can find the 
+
+			<LI><b>Why are there no src/tests/.. and src/topp|utils folders?</b><BR>
+				All source files added to an IDE are associated with their targets. You can find the
 				source files for each test within its own subproject.<BR>
 				The same is true for the TOPP and UTILS classes.
 			<LI><b>[Visual Studio] I'm getting the error "Error C2471: cannot update program database".</b><br>
@@ -252,19 +254,19 @@ svn propset svn:eol-style native MyClass.C
 		</UL>
 	<H2 style="border-top:2px solid grey;">Debugging</H2>
 		<UL>
-		
+
 			<LI><b>How do I run a single test?</b><BR>
-			
+
 				You can can execute an %OpenMS class test using the CTest regular expressions:
 				@n <code>&gt; ctest -V -R "^<class>_test"</code>
-				@n To build a class test, you simply call the respective make target in ./source/TEST:
+				@n To build a class test, you simply call the respective make target:
 				@n <code>&gt; make &lt;class&gt;_test</code>
-				
+
 				To run a TOPP test, you can use:
 				@n <code>&gt; ctest -V -R "TOPP_<tool>"</code>
 				@n To build the tool, use:
 				@n <code>&gt; make &lt;tool&gt;</code>
-				
+
 	    <LI><b>How do I debug uncaught exceptions?</b><BR>
 	      There is a mechanism to have a core dumped if an uncaught
 	      exception occurs.
@@ -288,7 +290,7 @@ svn propset svn:eol-style native MyClass.C
 
 	    <LI><b>(Linux) How can I set breakpoints in @a gdb to debug %OpenMS?</b><BR>
 	      Imagine you want to debug the @a TOPPView application and
-	      you want it to stop at line 341 of @a SpectrumMDIWindow.C.
+	      you want it to stop at line 341 of @a SpectrumMDIWindow.cpp.
 	      <BR>
 	      <OL>
 	        <LI>Run gdb:
@@ -303,7 +305,7 @@ svn propset svn:eol-style native MyClass.C
 
 	        <LI>Set the breakpoint:
 	        <BR>
-	        <TT>gdb&gt; break SpectrumMDIWindow.C:341</TT>
+	        <TT>gdb&gt; break SpectrumMDIWindow.cpp:341</TT>
 
 
 	        <LI>Start the application again (with the same arguments):
@@ -336,27 +338,27 @@ svn propset svn:eol-style native MyClass.C
 		</UL>
 
 	<H2 style="border-top:2px solid grey;">Cross-platform thoughts</H2>
-    
+
     %OpenMS runs on three major platforms, each one having its own ways of doing things. Here are the most
     prominent causes of "it runs on Platform A, but not on B. What now?"
-    
+
     <UL>
 
 	    <LI><b>Reading/Writing binary files causes different behaviour ...</b><BR>
       Usually Linux does not make a difference between text-mode and binary-mode when reading files.
       This is quite different on Windows as some bytes are interpreted as EOF, which lead might to a premature end of the reading process.
       Thus, if reading binary files make sure that you explicitly state that the file is binary when opening it!
-      
+
       During writing in text-mode on windows a line-break (\\n) is expanded to (\\r\\n). Keep this in mind or use the eol-style property of subversion to
       ensure that line endings are correctly checked out on non-Windows systems.
-      
+
       <LI><b>unsigned int vs size_t (UInt and Size)</b><BR>
       UInt and Size are the same on Linux GCC (i.e. both have the same size, 32bit on 32bit systems, 64bit on 64 bit systems), however on Windows this only holds
       for 32bit. On a 64bit Windows the UInt type is still 32bit, Size is (obviously) 64bit. This might lead to warnings (at best) or
       overflows and other nasty stuff. So make sure you do not rely on UInt being equal to Size - because they're not.
-      
+
       <LI><b>Paths and system functions...</b><BR>
-      This is trivial but hardcoding something like 
+      This is trivial but hardcoding something like
  @code
  String tmp_dir = "/tmp";
  @endcode
@@ -365,10 +367,10 @@ svn propset svn:eol-style native MyClass.C
       When working with files or directories, it is usually safe to use "/" on all platforms. Even Windows understands that.
       Take care of spaces in directory names though. You should always quote paths if they are used in a system call
       to ensure that the subsequent interpreter takes the spaced path as a single entity.
-      
-      
+
+
     </UL>
-    
+
 	<H2 style="border-top:2px solid grey;">SVN</H2>
 		<UL>
 
@@ -395,9 +397,9 @@ svn propset svn:eol-style native MyClass.C
 					<LI> Resolve conflicts and make sure all tests run
 					<LI> Commit the changes
 				</OL>
-				
+
 				<b>Example 1: From HEAD to release branch</b><br>
-			  Suppose you want to merge the changes you made in revision 2325 of the 
+			  Suppose you want to merge the changes you made in revision 2325 of the
 			  HEAD (/OpenMS) into the current revision of the release branch for target branch
 			  (see http://open-ms.svn.sourceforge.net/viewvc/open-ms for the actual names of branches).
 			  <OL>
@@ -408,9 +410,9 @@ svn propset svn:eol-style native MyClass.C
 			  	<LI> Resolve conflicts and run tests
 			  	<LI> Commit
 			  </OL>
-	
+
 	 			<b>Example 2: Merge branch into HEAD</b><BR>
-	 			Suppose you want to merge the changes you made to a branch into the HEAD. 
+	 			Suppose you want to merge the changes you made to a branch into the HEAD.
 	 			The current revision is 25 and you added the branch in revision 10.
 	 			<OL>
 					<LI>Go to the HEAD and update it:<BR>
@@ -421,16 +423,16 @@ svn propset svn:eol-style native MyClass.C
 	      	<LI> Resolve conflicts and run tests
 	      	<LI> Commit
 				</OL>
-		
+
 				<LI><b>How do I speed up the SVN Repo and/or upgrade to a new SVN version on the server?</b><BR>
 
 				This should only be done if you are sure what you are doing! You might destroy the whole %OpenMS SVN!!!
 				Make a backup before (preferably not on SF servers, e.g. by using
-				
+
 				$ rsync -av open-ms.svn.sourceforge.net::svn/open-ms/* .
 
 				Now here's how you do the upgrade
-				
+
 				@code
 				## login to SF
 				ssh -t <yourusername>,open-ms@shell.sf.net create
@@ -447,24 +449,24 @@ svn propset svn:eol-style native MyClass.C
 
 				## increase speed (can be done regularly, without dump/load block above)
 				svnadmin pack /svnroot/open-ms
-				
+
 				## check integrity
 				svnadmin verify /svnroot/open-ms
 				## get latest revision number
 				svnlook youngest /svnroot/open-ms
 				## check some revisions
 				svnlook info -r <XXX> /svnroot/open-ms
-				# e.g. 
+				# e.g.
 				# svnlook info -r 100 /svnroot/open-ms
 				# svnlook info -r 8635 /svnroot/open-ms
 
 				adminrepo --save svn
-				@endcode		
-				
+				@endcode
+
 		</UL>
-		
-		
-		
+
+
+
 	<H2 style="border-top:2px solid grey;">Doxygen documentation</H2>
 		<UL>
 
@@ -475,13 +477,13 @@ svn propset svn:eol-style native MyClass.C
 	    @a %OpenMS/doc/doxygen/public/Modules.doxygen
 
 	    <LI><b>How is the parameter documentation for classes derived from DefaultParamHandler created?</b><BR>
-				You have to add your class to the program @a OpenMS/doc/doxygen/parameters/DefaultParamHandlerDocumenter.C.
+				You have to add your class to the program @a OpenMS/doc/doxygen/parameters/DefaultParamHandlerDocumenter.cpp.
 				This program generates a html table with the parameters. This table can then be included into the
 				class documentation using the following doxygen command:
 				@code
 @htmlinclude OpenMS_<class name>.parameters
 				@endcode
-				Note that parameter documentation is automatically generated for TOPP/UTILS included in the static ToolHandler.C tools list.
+				Note that parameter documentation is automatically generated for TOPP/UTILS included in the static ToolHandler.cpp tools list.
 				To include TOPP/UTILS parameter documentation use following doxygen command:
 				@code
 @htmlinclude TOPP_<tool name>.parameters
@@ -496,8 +498,8 @@ svn propset svn:eol-style native MyClass.C
 				The parameters documentation is written to @a OpenMS/doc/doxygen/parameters/output/.
 
 	    <LI><b>How is the command line documentation for TOPP/UTILS tools created?</b><BR>
-				The program @a OpenMS/doc/doxygen/parameters/TOPPDocumenter.C creates the command line documentation
-				for all classes that are included in the static ToolHandler.C tools list.
+				The program @a OpenMS/doc/doxygen/parameters/TOPPDocumenter.cpp creates the command line documentation
+				for all classes that are included in the static ToolHandler.cpp tools list.
 				It can be included into the documentation using the following doxygen command:
 				@code
 @verbinclude TOPP_<tool name>.cli
@@ -517,7 +519,7 @@ svn propset svn:eol-style native MyClass.C
 		</UL>
 	<H2 style="border-top:2px solid grey;">Bug fixes</H2>
 		<UL>
-		
+
 			<LI><B>What is to do for a bugfix?</B>
 				<UL>
 					<LI> Submit the bug to the tracker (TRAC)
@@ -526,7 +528,7 @@ svn propset svn:eol-style native MyClass.C
 					<LI> Close the bug in the tracker and add the the revision of the fix to the comment.<BR>E.g.: "Fixed in revision [3005]"
 					<LI> Merge the revision into the current release branch (see SVN section above)
 				</UL>
-				
+
 		</UL>
 	<H2 style="border-top:2px solid grey;">Releases</H2>
 		<UL>
@@ -616,15 +618,15 @@ svn propset svn:eol-style native MyClass.C
 								<LI> All headers and C files and License.txt (adapt years accordingly)
 										<code>
 										cd &lt;%OpenMS&gt;
-										find . -name "*.h" -o -name "*.C" -o -name "*.txt" | xargs sed -i 's/(C) 2003-2011/(C) 2003-2012/g' 
+										find . -name "*.h" -o -name "*.cpp" -o -name "*.txt" | xargs sed -i 's/(C) 2003-2011/(C) 2003-2014/g'
 										</code>
-							</OL>	
+							</OL>
 						<LI> Version Number update in:
 							<OL>
 								<LI> <TT>CMakeLists.txt</TT> of contrib.
 								<LI> <TT>CMakeLists.txt</TT> of %OpenMS (three OPENMS_PACKAGE_VERSION_* variables, and the contrib version check)
-								<LI> <TT>source/TEST/VersionInfo_test.C</TT>
-								<LI> TOPPView and TOPPAS splash screen <TT>source/VISUAL/ICONS/</TT>.@n
+								<LI> <TT>src/tests/class_tests/openms/source/VersionInfo_test.cpp</TT>
+								<LI> TOPPView and TOPPAS splash screen <TT>src/openms_gui/source/VISUAL/ICONS/</TT>.@n
 									 The GIMP/PhotoShop files can be found in the @em images SVN module.
 							</OL>
 						<LI> Run cmake
@@ -641,7 +643,7 @@ svn propset svn:eol-style native MyClass.C
 						<LI> Run the script <TT>tools/make_source_package.sh</TT> according to the help shown when executed.
 						<LI> Test installation of contrib and %OpenMS from release package
 					</OL>
-				
+
 				<LI><B>How is the Windows binary release package created?</B>
 					<OL>
 						<LI> Check out the Windows installer scripts from <TT>https://open-ms.svn.sourceforge.net/svnroot/open-ms/win_installer</TT>
@@ -667,11 +669,11 @@ svn propset svn:eol-style native MyClass.C
 
 		</UL>
 	<H2 style="border-top:2px solid grey;">Profiling and memory leaks and strange behaviour</H2>
-		
+
 		<b> First check that the executable you are calling actually is the correct one (in case you have multiple %OpenMS version installed),
 		and also that it uses the correct %OpenMS library (check PATH (Win) or LD_LIBRARY_PATH (Linux)).</b>
 		Otherwise you might get the strangest access violations, pointing to arbitrary code.
-		
+
 		<UL>
 
 			<LI><B>How can I profile my code?</B>
@@ -713,7 +715,7 @@ svn propset svn:eol-style native MyClass.C
 	<H2 style="border-top:2px solid grey;">TOPP/UTILS</H2>
 		<UL>
 
-			<LI><B>How to create an icon file for a TOPP tool under Windows?</B>
+			<LI><B>How to create an icon file for a GUI based TOPP tool under Windows?</B>
 			<OL>
 				<LI> Create an <i>.ico</i> file:
 					<OL>
@@ -735,35 +737,33 @@ svn propset svn:eol-style native MyClass.C
 								 <i>101 ICON "TOPPView.ico"</i><BR>
 								 , replacing TOPPView with your binary name.
 					</OL>
-				<LI> Put both files in <i>%OpenMS/source/APPLICATIONS/TOPP/</i> (you should find some similar files for other TOPP tools already present).
+				<LI> Put both files in <i>%OpenMS/src/openms_gui/source/VISUAL/APPLICATIONS/GUITOOLS/</i> (you should find some similar files for other TOPP tools already present).
 				<LI> Re-run cmake and re-link your TOPP tool.
 				<LI> Voila. You should have an iconized TOPP tool.
 			</OL>
 
 			<LI><B>What do I have to do to add a new TOPP tool?</B>
 			<OL>
-				<LI> Add your tool (with the correct category) to getTOPPToolList() in <TT>source/APPLICATIONS/ToolHandler.C</TT>
+				<LI> Add your tool (with the correct category) to getTOPPToolList() in <TT>src/openms/source/APPLICATIONS/ToolHandler.cpp</TT>
 						 @n This creates a doxygen page with the @em --help output of the tool (using TOPPDocumenter).
 						 @n This page must be included at the end of the doxygen documentation of your tool (see other tools for an example).
 				<LI> Add it to the TOPP docu page (in @a %doc/doxygen/public/TOPP.doxygen)
-				<LI> Add the executable to the ignore list of the directory (@a svn @a propedit @a svn:ignore @a source/APPLICATION/TOPP/)
-        <LI> Add the name to <TT>source/APPLICATIONS/TOPP/executables.cmake</TT>
-        <LI> Write a TOPP test (add it to /source/TEST/TOPP/CMakeLists.txt)<BR>
+        <LI> Add the name to <TT>src/topp/executables.cmake</TT>
+        <LI> Write a TOPP test (add it to src/tests/topp/CMakeLists.txt)<BR>
         		 Warning: handle any kind of input files to your TOPP tool via command line flags and use the ${DATA_DIR_TOPP} prefix. You can use ini-files
         		 to specify output-files, but not input-files. Doing otherwise will break out-of-source builds.<BR>
-             Hint: add "-test" to the call of your TOPP tool and also create the expected output that you put in source/TEST/TOPP with that flag active.
+             Hint: add "-test" to the call of your TOPP tool and also create the expected output that you put in src/test/topp with that flag active.
              The flag ensures that UniqueId's, dates etc are equal no matter where and when the tool is run.
 			</OL>
 
 			<LI><B>What do I have to do to add a new UTILS tool?</B>
 			<OL>
-				<LI> Add your tool to getUtilList() in <TT>source/APPLICATIONS/ToolHandler.C</TT>
-						 @n This creates a doxygen page with the @em --help output of the tool (using TOPPDocumenter). 
+				<LI> Add your tool to getUtilList() in <TT>src/openms/source/APPLICATIONS/ToolHandler.cpp</TT>
+						 @n This creates a doxygen page with the @em --help output of the tool (using TOPPDocumenter).
 						 @n This page must be included at the end of the doxygen documentation of your tool (see other tools for an example).
 				<LI> Add it to the UTILS docu page (in @a %doc/doxygen/public/UTILS.doxygen)
-				<LI> Add the executable to the ignore list of the directory (@a svn @a propedit @a svn:ignore @a source/APPLICATION/UTILS/)
-        <LI> Add the name to <TT>source/APPLICATIONS/UTILS/executables.cmake</TT>
-        <LI> Write a test (this is optional for UTILS). See TOPP tools above and add the test to the bottom of /source/TEST/TOPP/CMakeLists.txt.
+        <LI> Add the name to <TT>src/utils/executables.cmake</TT>
+        <LI> Write a test (this is optional for UTILS). See TOPP tools above and add the test to the bottom of src/tests/topp/CMakeLists.txt.
 			</OL>
 
 		</UL>

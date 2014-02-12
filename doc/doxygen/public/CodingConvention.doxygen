@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2012.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer:  $
 // $Authors: Marc Sturm $
@@ -47,7 +47,7 @@ perfectly ok not to use tabs at all.  In emacs, you can replace all tabs with
 the right number of spaces by typing the following keys: <TT>C-x h</TT> (to
 mark the whole buffer), then <TT>M-x untabify RET</TT>.
 
-All lines in ASCII files (.C, .h, .cmake, ...) should have
+All lines in ASCII files (.cpp, .h, .cmake, ...) should have
 the svn property @em svn:eol-style set to @em native, allowing native line endings on each platform.
 This is desirable as Visual Studio for example will always insert CRLF even if the file is LF only, leading
 to a mixed line ending style for this file. Native eol style avoids this problem.
@@ -89,7 +89,7 @@ problems: (a) always use braces around a block (b) write everything in a single
 line. We recommend method (a).
 However, this is mainly a question of personal style, so no explicit checking
 is performed to enforce this rule. However, if there is an else following the
-if statement the braces are mandatory! One exception is several if/else 
+if statement the braces are mandatory! One exception is several if/else
 statements can be written as
 
 @code
@@ -142,7 +142,7 @@ namespace OpenMS
 
 #endif // OPENMS_KERNEL_DPEAK_H
 @endcode
-<H2 style="margin-top:20px; border-top:1px solid grey;">Sample .C file</H2>
+<H2 style="margin-top:20px; border-top:1px solid grey;">Sample .cpp file</H2>
 
 @code
 // -*- mode: C++; tab-width: 2; -*-
@@ -162,12 +162,12 @@ namespace OpenMS
    ... the actual code goes here ...
 } // namespace OpenMS
 @endcode
-Every <TT>.h</TT> file must be accompanied by a <TT>.C</TT> file, even if is
+Every <TT>.h</TT> file must be accompanied by a <TT>.cpp</TT> file, even if is
 just a ``dummy''.  This way a global <TT>make</TT> will
 stumble across errors.
 <BR>
-For template classes default instances with common template arguments should be put into 
-the <tt>.C</tt> file. The varaible names of these instances start with <tt>default_</tt>. 
+For template classes default instances with common template arguments should be put into
+the <tt>.cpp</tt> file. The varaible names of these instances start with <tt>default_</tt>.
 Here an example for the <tt>DPeak</tt> class:
 @code
 #include <OpenMS/KERNEL/DPeak.h>
@@ -179,12 +179,12 @@ namespace OpenMS
 }
 @endcode
 The compiler does instantiate the template and detects errors at compile time that
-way. Doing this saves your time! Otherwise the error is detected much later, when 
+way. Doing this saves your time! Otherwise the error is detected much later, when
 the test is compiles.
 
 <H2 style="margin-top:20px; border-top:1px solid grey;">A note on templates: when (and why) should I write an _impl.h file?</H2>
 
- Simply speaking, _impl.h files are for templates what .C files are for
+ Simply speaking, _impl.h files are for templates what .cpp files are for
  ordinary classes.  Remember that the definition of a class or function
  template has to be known at its point of instantiation.  Therefore the
  implementation of a template is normally contained in the .h file.  (No problem
@@ -200,7 +200,7 @@ the test is compiles.
  if the peculiar member functions have to be instantiated.  Otherwise the .h
  file should be sufficient.  No .h file should include an _impl.h file.
 
- 
+
  <H1 style="margin-top:40px; border-top:4px solid grey; text-align:left;">Class requirements</H1>
 
 Each %OpenMS class should provide the following interface:
@@ -209,7 +209,7 @@ Each %OpenMS class should provide the following interface:
 class OPENMS_DLLAPI Test
 {
   public:
-    
+
     // default constructor
     Test();
 
@@ -264,12 +264,12 @@ There are some other namespaces e.g. for constants and exceptions.
 Importing a whole namespace in a header files is forbidden. E.g.:
 @code using namespace std; //< Don't do this at home! @endcode
 This could lead to name clashes when %OpenMS is used together with other libraries.
-In source files (.C) it is however allowed.
+In source files (.cpp) it is however allowed.
 
 <H2 style="margin-top:20px; border-top:1px solid grey;">Accessors to members</H2>
 
 Accessors to protected or private members of a class are implemented as a pair
-of get-method and set-method. This is necessary as accessors that return mutable references to a member 
+of get-method and set-method. This is necessary as accessors that return mutable references to a member
 cannot be wrapped with Python!
 
 @code
@@ -281,19 +281,19 @@ class Test
     {
       return member_;
     }
-    
+
 		// always implement a set-method
     void setMember(UInt name)
     {
       name_ = member_;
     }
-    
+
   protected:
     UInt member_;
 };
 @endcode
 
-For members that are too large to be read with the get-method, modified and written back with the set-method, 
+For members that are too large to be read with the get-method, modified and written back with the set-method,
 an additional non-const get-method can be implemented!
 <p>
 For primitive types a non-const get-method is strictly forbidden!
@@ -307,12 +307,12 @@ class Test
     {
       return member_;
     }
-    
+
     void setMember(const vector<String>& name)
     {
       name_ = member_;
     }
-		
+
 		// if absolutely necessary implement a mutable get-method
     vector<String>& getMember()
     {
@@ -326,9 +326,9 @@ class Test
 
 <H2 style="margin-top:20px; border-top:1px solid grey;">Use of the STL</H2>
 
-Many %OpenMS classes base on STL classes. 
+Many %OpenMS classes base on STL classes.
 However, only the C++ Standard Library part of the STL must be used.
-This means that SGI extensions like <tt>hash_set</tt>, <tt>hash_multiset</tt>, <tt>hash_map</tt> 
+This means that SGI extensions like <tt>hash_set</tt>, <tt>hash_multiset</tt>, <tt>hash_map</tt>
 and <tt>hash_multimap</tt> are not allowed!
 
 <H1 style="margin-top:40px; border-top:4px solid grey; text-align:left;">Exception handling</H1>
@@ -415,7 +415,7 @@ this list whenever you stumble upon them!)
 
 Header files and source files should be named as the classes they
 contain.
-Source files end in ".C", while header files end in ".h". File names should be
+Source files end in ".cpp", while header files end in ".h". File names should be
 capitalized exactly as the class they contain (see below). Each header/source
 file should contain one class only, although exceptions are possible for
 light-weight classes.
@@ -611,10 +611,10 @@ This can be used to categorize classes, files or namespaces, and document those 
 You can also use groups as members of other groups, thus building a hierarchy of groups.
 Using the ingroup command a comment block of a class, file or namespace will be added to the group or groups.
 
-The groups (or modules as doxygen calls them) definded by the ingroup command should contain only the classes 
+The groups (or modules as doxygen calls them) definded by the ingroup command should contain only the classes
 of special interest to the %OpenMS user. Helper classes and such must be omitted.
 
-Documentation which does not belong to a specific .C or .h file can be written into a
+Documentation which does not belong to a specific .cpp or .h file can be written into a
 separate Doxygen file (with the ending .doxygen). This file will also be parsed by Doxygen.
 
 Open tasks are noted in the documentation of a header or a group using the todo command.
@@ -622,13 +622,13 @@ The ToDo list is then shown in the doxygen menu under 'Related pages'. Each ToDo
 followed by a name in parentheses to indicated who is going to handle it.
 
 These commands should be used as well:
- - @b \@todo Necessary todo for the the next release. Should be done as soon as possible. 
+ - @b \@todo Necessary todo for the the next release. Should be done as soon as possible.
  			@n Please add the name of the responsible person in parentheses!
  - @b \@improvement Possible improvement, but not really necessary.
  			@n Please add the name of the responsible person in parentheses!
  - @b \@deprecated Deprecated class, that must be removed in the next release.
  - @b \@experimental Experimental class, that will perhaps not make it to the library.
- - @b \@bug Decrription of a bug in the class/method. 
+ - @b \@bug Decrription of a bug in the class/method.
  			@n Please add the name of the finder in parentheses!
 
 Doxygen is not hard to learn, have a look at the manual :-)
@@ -636,7 +636,7 @@ Doxygen is not hard to learn, have a look at the manual :-)
 
 <H2 style="margin-top:20px; border-top:1px solid grey;">Commenting code</H2>
 
-The code for each .C file has to be commented. Each piece of code in %OpenMS
+The code for each .cpp file has to be commented. Each piece of code in %OpenMS
 has to contain at least 5% of comments. The use of @verbatim// Comment text@endverbatim instead of
 C style comments @verbatim /* Comment text */ @endverbatim is recommended to avoid problems arising from
 nested comments. Comments should be written in plain english and describe the functionality of the next few lines.
@@ -653,7 +653,7 @@ versions of the source files. For easier identification of the responsible perso
 each %OpenMS file contains the <TT>$Maintainer:$</TT> string in the
 preamble.
 
-Examples of <TT>.h</TT> and <TT>.C</TT> files have been given above.  In
+Examples of <TT>.h</TT> and <TT>.cpp</TT> files have been given above.  In
 non-C++ files (Makefiles, (La)TeX-Files, etc.) the C++ comments are replaced
 by the respective comment characters (e.g. ``#'' for Makefiles, ``%'' for
 (La)TeX).  TeX will switch to math mode after a <TT>$</TT>, but you can work
@@ -670,7 +670,7 @@ if you want to use it in texts; the one here expands to
 
 Each %OpenMS class has to provide a test program. This test program has to check
 each method of the class. The test programs reside in the directory
-<TT>source/TEST</TT> are usually named <TT>&lt;classname&gt;_test.C</TT>. The test program has to be coded using the class test
+<TT>source/TEST</TT> are usually named <TT>&lt;classname&gt;_test.cpp</TT>. The test program has to be coded using the class test
 macros as described in the %OpenMS online reference. Special care should be taken
 to cover all special cases (e.g. what happens, if a method is called with
 empty strings, negative values, zero, null pointers etc.).
@@ -720,7 +720,7 @@ You might want to create temporary files during the tests. The following macro
 puts a temporary filename into the string argument. The file is automatically deleted
 after the test.
 
-All temporary files are validated using the XML schema,if the type of file 
+All temporary files are validated using the XML schema,if the type of file
 can be determined by FileHandler. Therefor for each file written in a test
 NEW_TMP_FILE should be called. Otherwise only the last writen file is checked.
 
@@ -783,7 +783,7 @@ For more details and verbosity options, see the built-in help message and the so
 
 <H3>File name conventions for TOPP tests</H3>
 
-Each test relies on a number of files.  These file should be named 
+Each test relies on a number of files.  These file should be named
 <code>source/TEST/TOPP/&lt;toolname&gt;_&lt;nummer&gt;_&lt;name&gt;.&lt;extension&gt;</code>, where
 
 <UL>

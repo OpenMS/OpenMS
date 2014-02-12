@@ -113,7 +113,7 @@ $GLOBALS["all_tests"] = array(
   "guards"               => "check if header guards present and correct",
   "maintainers"          => "check if maintainers are consistent in header, source and test file",
   "missing_tests"        => "check for missing tests",
-  "old_files"            => "check for unneeded .C files",
+  "old_files"            => "check for unneeded .cpp files",
   "brief"                => "check for doxygen tag @brief",
   "doxygen_errors"       => "check for errors in dogygen-error.log",
   "check_test"           => "check the class test for completeness",
@@ -320,7 +320,7 @@ if (in_array("test_output", $tests) || in_array("topp_output", $tests))
       }
     }
   }
-  
+
   if (!$abort)
   {
     $current_test_name = "";
@@ -379,8 +379,21 @@ if ($abort)
 
 ########################### MAINTAINERS ################################
 $files = array();
-exec("cd $src_path && find include/OpenMS -name \"*.h\" ! -name \"ui_*.h\" ! -name \"nnls.h\"", $files);
-exec("cd $src_path && find source -name \"*.C\" ! -regex \".*/EXAMPLES/.*\" ! -regex \".*/tools/.*\" ! -name \"*_moc.C\" ! -name \"moc_*.C\" ! -name \"*Template.C\"", $files);
+
+$includePaths = array("src/openms/include/OpenMS",
+                      "src/openms_gui/include/OpenMS",
+                      "src/openswathalgo/include/OpenMS",
+                      "src/tests/class_tests/include/OpenMS");
+
+$sourcePaths = array("src/openms/source",
+                     "src/openms_gui/source",
+                     "src/openswathalgo/source",
+                     "src/tests/class_tests/source",
+                     "src/topp",
+                     "src/utils");
+
+exec("cd $src_path && find ".implode(" ", $includePaths)." -name \"*.h\" ! -name \"ui_*.h\" ! -name \"nnls.h\"", $files);
+exec("cd $src_path && find ".implode(" ", $sourcePaths)." -name \"*.cpp\" ! -regex \".*/EXAMPLES/.*\" ! -regex \".*/tools/.*\" ! -name \"*_moc.cpp\" ! -name \"moc_*.cpp\" ! -name \"*Template.cpp\"", $files);
 
 //look up Maintainer in first 40 lines of files
 $GLOBALS["maintainer_info"]  = array();
@@ -422,7 +435,7 @@ foreach ($files as $f)
     else
     {
       $GLOBALS["file_maintainers"][$f] = implode(", ", $maintainers);
-      
+
       #count files per maintainer
       foreach ($maintainers as $m)
       {
@@ -460,7 +473,7 @@ if ($user == "all")
 
 ########################### auxilary files #############################
 $called_tests = array();
-$makefile = file("$src_path/source/TEST/executables.cmake");
+$makefile = file("$src_path/src/tests/class_tests/executables.cmake");
 foreach ($makefile as $line)
 {
   $line = trim($line);
@@ -470,11 +483,11 @@ foreach ($makefile as $line)
     if (strpos($line, "APPEND") !== FALSE)
     {
       $line = substr($line, strrpos($line, ' ')+1,-1);
-      $called_tests[] = "source/TEST/".$line.".C";
+      $called_tests[] = "src/tests/class_tests/source/".$line.".cpp";
     }
     else
     {
-      $called_tests[] = "source/TEST/".strtr($line, array("_1" => "", "_2" => "")).".C";
+      $called_tests[] = "src/tests/class_tests/source/".strtr($line, array("_1" => "", "_2" => "")).".cpp";
     }
   }
 }
@@ -513,17 +526,17 @@ foreach ($files_todo as $f)
   {
     print "File name: '$f'\n";
   }
-  
+
   //file name (without path)
   $basename = basename($f);
   //class name (for source and header files)
   $classname = substr($basename, 0,-2);
   //test name (for source and header files)
-  $testname = "source/TEST/".$classname."_test.C";
-  
+  $testname = "src/tests/class_tests/source/".$classname."_test.cpp";
+
   // file content
   $file = file($src_path."/".$f);
-  
+
   ######################### load class info ################################
   $dont_load = array(
     "IsotopeCluster.h",
@@ -549,10 +562,9 @@ foreach ($files_todo as $f)
     "IsotopeWaveletConstants.h",
     "IsotopeWaveletCudaKernel.h",
     "IsotopeWaveletParallelFor.h",
-    "openms_svn_revision.h",
     "openms_package_version.h",
   );
-  
+
   if (!endsWith($f, "_impl.h") && endsWith($f, ".h") && !in_array($basename, $dont_load))
   {
     $class_info = getClassInfo($bin_path, $f, $debug);
@@ -561,19 +573,19 @@ foreach ($files_todo as $f)
   {
     unset($class_info);
   }
-  
+
   ########################### guards ######################################
   if (in_array("guards", $tests))
   {
     $dont_report = array(
       "TypeNameIdStringMiscellanyDefs.h",
     );
-    
+
     if (endsWith($f, ".h"))
     {
       $message = "";
       $result = true;
-      
+
       for ($i = 0;$i < count($file);$i++)
       {
         $line = trim($file[$i]);
@@ -594,7 +606,7 @@ foreach ($files_todo as $f)
             break;
           }
         }
-        
+
         $class = trim(substr($f, strrpos($f, "/")+1));
         if ($i == count($file)-1 AND !in_array($class, $dont_report))
         {
@@ -603,12 +615,12 @@ foreach ($files_todo as $f)
           realOutput($message, $user, $f);
         }
       }
-      
+
       #report test result to ctest
       reportTestResult($message, $user, "guards", $f, $result);
     }
   }
-  
+
   ########################### maintainers #####################################
   if (in_array("maintainers", $tests))
   {
@@ -630,9 +642,9 @@ foreach ($files_todo as $f)
           reportTestResult("", $user, "maintainers_test", $f, true);
         }
       }
-      
+
       # maintainer of source file
-      $source_name = "source/".substr($f, 15,-2).".C";
+      $source_name = "source/".substr($f, 15,-2).".cpp";
       if (in_array($source_name, $files))
       {
         if ($file_maintainers[$source_name] != $file_maintainers[$f])
@@ -680,7 +692,7 @@ foreach ($files_todo as $f)
       }
     }
   }
-  
+
 
   ########################### missing tests  #####################################
   if (in_array("missing_tests", $tests))
@@ -711,7 +723,6 @@ foreach ($files_todo as $f)
       "IsotopeWaveletCudaKernel.h",
       "IsotopeWaveletConstants.h",
       "IsotopeWaveletParallelFor.h",
-      "include/OpenMS/openms_svn_revision.h",
       "include/OpenMS/openms_package_version.h",
       "include/OpenMS/SIMULATION/SimTypes.h",
       "include/OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h",
@@ -719,7 +730,7 @@ foreach ($files_todo as $f)
       "include/OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMS.h",
       "include/OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMSCached.h",
     );
-    
+
     if (endsWith($f, ".h") && !endsWith($f, "_impl.h"))
     {
       $ignore = false;
@@ -730,13 +741,13 @@ foreach ($files_todo as $f)
           $ignore = true;
         }
       }
-      
+
       // Exclude all OpenSwathAlgo from the tests since they are not properly recognized
       if (preg_match("/OPENSWATHALGO/i", $f))
       {
         $ignore = true;
       }
-      
+
       if (!$ignore)
       {
         # check if test exists
@@ -745,10 +756,10 @@ foreach ($files_todo as $f)
           realOutput("Missing test for '$f'", $user, $f);
           reportTestResult("Missing test for '$f'", $user, "missing_tests", $f, false);
         }
-        elseif (!in_array($testname, $called_tests)) 
-          # check if test was executed
-          {
-            realOutput("Test not in executables.cmake for '$f'", $user, $f);
+        elseif (!in_array($testname, $called_tests))
+        # check if test was executed
+        {
+          realOutput("Test not in executables.cmake for '$f'", $user, $f);
           reportTestResult("Test not in executables.cmake for '$f'", $user, "missing_tests", $f, false);
         }
         else
@@ -758,49 +769,67 @@ foreach ($files_todo as $f)
       }
     }
   }
-  
+
   ########################### guards ######################################
   if (in_array("old_files", $tests))
   {
     $ignore = array(
-      "SampleTreatment_test.C",
-      "Exception_Base_test.C",
-      "NumericDiff.C",
-      "ExampleLibraryFile.C",
-      "TestExternalCode.C",
+      "SampleTreatment_test.cpp",
+      "Exception_Base_test.cpp",
+      "NumericDiff.cpp",
+      "ExampleLibraryFile.cpp",
+      "TestExternalCode.cpp",
     );
-    
-    if (!in_array($basename, $ignore) && !beginsWith($f, "source/APPLICATIONS/TOPP/") && !beginsWith($f, "source/APPLICATIONS/UTILS/") && !beginsWith($f, "source/VISUAL/APPLICATIONS/GUITOOLS/"))
+
+    if (!in_array($basename, $ignore) && !beginsWith($f, "src/topp/") && !beginsWith($f, "src/utils/") && !beginsWith($f, "src/openms_gui/source/VISUAL/APPLICATIONS/GUITOOLS/"))
     {
       $message = "";
       $result = true;
-      if (endsWith($f, "_test.C"))
+      if (endsWith($f, "_test.cpp"))
       {
         $hits = array();
         foreach ($file as $line)
         {
-          if (isIncludeLine($line, $include) && strpos($line, substr($basename, 0,-7)) !== FALSE)
+          if (isIncludeLine($line, $include) && strpos($line, substr("/".$basename.".h", 0,-7)) !== FALSE)
           {
-            $hits[] = "include/".$include;
+            # check all potential include locations
+            $incl_path = substr($include, 7);
+            foreach ($includePaths as $incl)
+            {
+              array_push($hits, $incl."/".$incl_path);
+            }
           }
         }
-        if (count($hits) == 1)
+        if (count($hits) > 1)
         {
-          //print "$f -> $hits[0]\n";
-          if (!file_exists($src_path."/".$hits[0]))
+          $file_exists = false;
+          foreach($hits as $h)
+          {
+            if(endsWith($f, "String_test.cpp"))
+            {
+              echo "String_test -> ".$src_path."/".$h."\n";
+            }
+            $file_exists |= file_exists($src_path."/".$h);
+          }
+
+          if (!$file_exists)
           {
             $message = "Outdated test file '$f'";
             $result = false;
             realOutput($message, $user, $f);
           }
+
         }
       }
       //source file -> look for header
-      elseif (endsWith($f, ".C"))
+      elseif (endsWith($f, ".cpp"))
       {
-        if (!file_exists($src_path."/include/OpenMS/".substr($f, 7,-2).".h"))
+        # $h_file = substr($f, 7,-2).".h";
+        $h_file = $src_path."/".str_replace("source", "include/OpenMS", $f);
+        $h_file = preg_replace("/cpp$/", "h", $h_file);
+        if (!file_exists($h_file))
         {
-          $message = "Outdated source file '$f' (no header)";
+          $message = "Outdated source file '$f' (no header -> $h_file)";
           $result = false;
           realOutput($message, $user, $f);
         }
@@ -808,7 +837,7 @@ foreach ($files_todo as $f)
       reportTestResult($message, $user, "old_files", $f, $result);
     }
   }
-  
+
   ########################### @brief  #####################################
   if (in_array("brief", $tests))
   {
@@ -855,7 +884,7 @@ foreach ($files_todo as $f)
       }
     }
   }
-  
+
   ########################### doxygen errors  ####################################
   if (in_array("doxygen_errors", $tests))
   {
@@ -865,7 +894,7 @@ foreach ($files_todo as $f)
       print "  See 'OpenMS/doc/doxygen/doxygen-error.log'\n";
     }
   }
-  
+
   ########################### test errors  #####################################
   if (isset($class_info) && in_array("check_test", $tests))
   {
@@ -875,10 +904,10 @@ foreach ($files_todo as $f)
       $tmp        = parseTestFile("$src_path/$testname");
       $todo_tests = $tmp["todo"];
       $tests2     = $tmp["tests"];
-      
+
       #compare declarations and tests
       $out = compareDeclarationsAndTests($class_info["test-name"], $tests2);
-      
+
       # remove methods that can be tested although they are not defined
       $new_unknown = array();
       foreach ($out["unknown"] as $m)
@@ -890,7 +919,7 @@ foreach ($files_todo as $f)
         }
       }
       $out["unknown"] = $new_unknown;
-      
+
       #output
       if (count($out["missing"]) != 0 || count($out["unknown"]) != 0 || count($out["double"]) != 0 || count($todo_tests) != 0)
       {
@@ -939,14 +968,14 @@ foreach ($files_todo as $f)
         }
         reportTestResult($message, $user, "check_test", $f, false);
       }
-      else 
+      else
         # Test is OK
         {
           reportTestResult("", $user, "check_test", $f, true);
       }
     }
   }
-  
+
   ############################## coding ##########################################
   if (isset($class_info) && in_array("coding", $tests))
   {
@@ -969,12 +998,12 @@ foreach ($files_todo as $f)
       $tmp == $class_info["classname"] || $tmp == '~'.$class_info["classname"] || //constructor or destructor
       $tmp == "operator=" || //assignment
       $tmp == "startElement" || $tmp == "endElement" || $tmp == "characters" || //Xerces data handler
-      $tmp == "warning" || $tmp == "error" || $tmp == "fatalError" || $tmp == "resetErrors") 
+      $tmp == "warning" || $tmp == "error" || $tmp == "fatalError" || $tmp == "resetErrors")
         //Xerces error handler
         {
           continue;
       }
-      
+
       if (!endswith($tmp, '_'))
       {
         $out[] = "  - invalid non-public method name '$tmp'\n";
@@ -1002,14 +1031,14 @@ foreach ($files_todo as $f)
       reportTestResult("", $user, "coding", $f, true);
     }
   }
-  
+
   ########################### warnings test  #####################################
   if (in_array("test_output", $tests))
   {
     if (endsWith($f, ".h") && in_array($testname, $files))
     {
       $errors = array();
-      if (isset($test_log[$classname."_test"])) 
+      if (isset($test_log[$classname."_test"]))
         $errors = array_unique($test_log[$classname."_test"]);
       if (count($errors) != 0)
       {
@@ -1028,7 +1057,7 @@ foreach ($files_todo as $f)
       }
     }
   }
-  
+
   ######################### quote212'Id' keyword in tests  ###############################
   if (in_array("svn_keywords", $tests))
   {
@@ -1037,7 +1066,7 @@ foreach ($files_todo as $f)
       if (in_array($testname, $files))
       {
         $out = array();
-        
+
         exec("svn proplist -v $src_path/$testname", $out);
         $kw = false;
         $kw_id = false;
@@ -1052,7 +1081,7 @@ foreach ($files_todo as $f)
             $kw_id = true;
           }
         }
-        
+
         /* Deactivated since it crashed on the test machine in tuebingen
          *  - check used SVN version
          *  - check output of --xml
@@ -1102,21 +1131,21 @@ foreach ($files_todo as $f)
       }
     }
   }
-  
+
   ########################### DefaultParamHandler  #################################
   if (in_array("defaults", $tests))
   {
     // don't report e.g. abstract base classes
     $dont_report = array(
-      "include/OpenMS/VISUAL/SpectrumCanvas.h",
-      "include/OpenMS/APPLICATIONS/TOPPViewBase.h",
-      "include/OpenMS/APPLICATIONS/TOPPASBase.h",
-      "include/OpenMS/ANALYSIS/DENOVO/CompNovoIdentificationBase.h",
-      "include/OpenMS/ANALYSIS/DENOVO/CompNovoIonScoringBase.h",
-      "include/OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseModel.h",
-      "include/OpenMS/TRANSFORMATIONS/FEATUREFINDER/LevMarqFitter1D.h",
+      "src/openms/include/OpenMS/VISUAL/SpectrumCanvas.h",
+      "src/openms/include/OpenMS/APPLICATIONS/TOPPViewBase.h",
+      "src/openms/include/OpenMS/APPLICATIONS/TOPPASBase.h",
+      "src/openms/include/OpenMS/ANALYSIS/DENOVO/CompNovoIdentificationBase.h",
+      "src/openms/include/OpenMS/ANALYSIS/DENOVO/CompNovoIonScoringBase.h",
+      "src/openms/include/OpenMS/TRANSFORMATIONS/FEATUREFINDER/BaseModel.h",
+      "src/openms/include/OpenMS/TRANSFORMATIONS/FEATUREFINDER/LevMarqFitter1D.h",
     );
-    
+
     $ignore = false;
     foreach ($dont_report as $i)
     {
@@ -1125,7 +1154,7 @@ foreach ($files_todo as $f)
         $ignore = true;
       }
     }
-    
+
     if (endsWith($f, ".h") && !endsWith($f, "_impl.h") && !$ignore)
     {
       //check if defaults are set in .h file
@@ -1136,10 +1165,10 @@ foreach ($files_todo as $f)
       {
         $is_dph = true;
       }
-      //check if defaults are set in .C file
+      //check if defaults are set in .cpp file
       else
       {
-        $c_file = "$src_path/source/".substr($f, 15,-2).".C";
+        $c_file = "$src_path/source/".substr($f, 15,-2).".cpp";
         if (file_exists($c_file))
         {
           exec("grep -l defaults_.setValue $c_file", $output);
@@ -1177,7 +1206,7 @@ foreach ($files_todo as $f)
       array_push($LICENSE, rtrim($line));
     }
     $LICENSE_LEN = count($LICENSE);
-    
+
     $isEqual       = True;
     $offendingLine = "";
     $message       = "";
@@ -1187,7 +1216,7 @@ foreach ($files_todo as $f)
       "\n",
       "\r",
     );
-    
+
     # every file should contain at least as much lines as the LICENSE header
     if (count($file) >= $LICENSE_LEN)
     {
@@ -1214,7 +1243,7 @@ foreach ($files_todo as $f)
 		{
 			$message .= "\nOffending line: \n".$offendingLine;
 		}
-    
+
     # report result
     if (!$isEqual)
     {
@@ -1253,10 +1282,10 @@ if (in_array("topp_output", $tests))
     {
       $name      = substr($name, 5);
       $name      = substr($name, 0, strpos($name, '_'));
-      $topp_file = "source/APPLICATIONS/TOPP/".$name.".C";
+      $topp_file = "src/topp/".$name.".cpp";
       if (in_array($topp_file, $files_todo))
       {
-        if (!isset($file_warnings[$topp_file])) 
+        if (!isset($file_warnings[$topp_file]))
           $file_warnings[$topp_file] = array();
         $file_warnings[$topp_file] = array_merge($file_warnings[$topp_file], $warnings);
       }
@@ -1289,7 +1318,7 @@ if ($ctestReporting)
   # we assume that ctest was already executed so we can use the original file as
   # template
   print "Report on ".count($GLOBALS["TestList"])." tests.";
-  
+
   # load template head
   $template = file($ctestReportingPath."/Test.xml");
   $newTestFile = array();
@@ -1301,10 +1330,10 @@ if ($ctestReporting)
       break;
     }
   }
-  
+
   array_push($newTestFile, "<StartDateTime>".date("M j G:i:s T")."</StartDateTime>\n");
   array_push($newTestFile, "<StartTestTime>".time()."</StartTestTime>\n");
-  
+
   # define all executed tests
   array_push($newTestFile, "<TestList>\n");
   foreach ($GLOBALS["TestList"] as $test => $testdata)
@@ -1312,7 +1341,7 @@ if ($ctestReporting)
     array_push($newTestFile, "    <Test>".$test."</Test>\n");
   }
   array_push($newTestFile, "</TestList>\n");
-  
+
   # and now the actual results
   foreach ($GLOBALS["TestList"] as $test => $testdata)
   {
@@ -1322,7 +1351,7 @@ if ($ctestReporting)
     $GLOBALS["TestList"][$reportAs]["user"]    = $user;
     */
     $testName = $testdata["user"]."-".$test;
-    
+
     array_push($newTestFile, "    <Test Status=\"".($testdata["result"]?"passed":"failed")."\">\n");
     # failed, passed
     array_push($newTestFile, "      <Name>".$testName."</Name>\n");
@@ -1343,16 +1372,16 @@ if ($ctestReporting)
     array_push($newTestFile, "      </Results>\n");
     array_push($newTestFile, "    </Test>\n");
   }
-  
+
   array_push($newTestFile, "<EndDateTime>".date("M j G:i:s T")."</EndDateTime>\n");
   array_push($newTestFile, "<EndTestTime>".time()."</EndTestTime>\n");
   array_push($newTestFile, "<ElapsedMinutes></ElapsedMinutes>\n");
   array_push($newTestFile, "</Testing>\n");
   array_push($newTestFile, "</Site>\n");
-  
+
   rename($ctestReportingPath."/Test.xml", $ctestReportingPath."/RegularTest.xml");
   file_put_contents($ctestReportingPath."/Test.xml", $newTestFile);
-  
+
   /*
   <?xml version="1.0" encoding="UTF-8"?>
   <Site BuildName="Darwin-clang++"
@@ -1402,7 +1431,7 @@ if ($ctestReporting)
   	<EndDateTime>Oct 22 18:43 CEST</EndDateTime>
   	<EndTestTime>1350924239</EndTestTime>
   <ElapsedMinutes>7.2</ElapsedMinutes></Testing>
-</Site>      
+</Site>
   */
 }
 

@@ -123,7 +123,7 @@ def create_sources(openms_path, path, clazz, maintainer)
 	template = ERB.new(getTemplate("source"))
 
 	doc = template.result(binding)
-	source_file = "#{openms_path}/source/#{path}/#{clazz}.C"
+	source_file = "#{openms_path}/source/#{path}/#{clazz}.cpp"
 	File.open(source_file, 'w') {|f| f.write(doc) }
 end
 
@@ -156,7 +156,7 @@ def register(openms_path, path, clazz)
 	source_cmake = "#{openms_path}/source/#{path}/sources.cmake"
 
 	register_file(include_cmake, "#{clazz}.h")
-	register_file(source_cmake, "#{clazz}.C")
+	register_file(source_cmake, "#{clazz}.cpp")
 end
 
 ##### INSTANTIATE CMD PARSER
