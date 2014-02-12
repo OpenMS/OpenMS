@@ -72,11 +72,11 @@ namespace OpenMS
       /// Name of the file
       String filename_;
       /// Binary offsets to all spectra
-      std::vector< std::pair<std::string, long> > spectra_offsets_;
+      std::vector< std::pair<std::string, std::streampos> > spectra_offsets_;
       /// Binary offsets to all chromatograms
-      std::vector< std::pair<std::string, long> > chromatograms_offsets_;
+      std::vector< std::pair<std::string, std::streampos> > chromatograms_offsets_;
       /// offset to the <indexList> element
-      long index_offset_;
+      std::streampos index_offset_;
       /// Whether spectra are written before chromatograms in this file
       bool spectra_before_chroms_;
       /// The current filestream (opened by openFile)

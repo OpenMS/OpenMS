@@ -121,8 +121,8 @@ namespace OpenMS
         "id needs to be smaller than the number of spectra, was " + String(id) 
         + " maximal allowed is " + String(getNrSpectra()) ));
 
-    long startidx = -1;
-    long endidx = -1;
+    std::streampos startidx = -1;
+    std::streampos endidx = -1;
 
     if (spectrumToGet == int(getNrSpectra() - 1))
     {
@@ -144,8 +144,8 @@ namespace OpenMS
       endidx = spectra_offsets_[spectrumToGet + 1].second;
     }
 
-    int readl = endidx - startidx;
-    char* buffer = new char[readl + 1];
+    std::streampos readl = endidx - startidx;
+    char* buffer = new char[readl + std::streampos(1)];
     filestream_.seekg(startidx, filestream_.beg);
     filestream_.read(buffer, readl);
     buffer[readl] = '\0';
@@ -172,14 +172,18 @@ namespace OpenMS
     int chromToGet = id;
 
     if (!parsing_success_)
-      throw "Parsing was unsuccessful, cannot read file";
+      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
+          "Parsing was unsuccessful, cannot read file", "");
     if (chromToGet < 0)
-      throw "id needs to be positive";
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
+          String( "id needs to be positive, was " + String(id) ));
     if (chromToGet >= (int)getNrChromatograms())
-      throw "id needs to be smaller than total number of spectra ";
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, String( 
+        "id needs to be smaller than the number of spectra, was " + String(id) 
+        + " maximal allowed is " + String(getNrSpectra()) ));
 
-    long startidx = -1;
-    long endidx = -1;
+    std::streampos startidx = -1;
+    std::streampos endidx = -1;
 
     if (chromToGet == int(getNrChromatograms() - 1))
     {
@@ -201,8 +205,8 @@ namespace OpenMS
       endidx = chromatograms_offsets_[chromToGet + 1].second;
     }
 
-    int readl = endidx - startidx;
-    char* buffer = new char[readl + 1];
+    std::streampos readl = endidx - startidx;
+    char* buffer = new char[readl + std::streampos(1)];
     filestream_.seekg(startidx, filestream_.beg);
     filestream_.read(buffer, readl);
     buffer[readl] = '\0';

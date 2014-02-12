@@ -47,7 +47,7 @@
 
 namespace OpenMS
 {
-  int IndexedMzMLDecoder::parseOffsets(String filename, int indexoffset, OffsetVector& spectra_offsets, OffsetVector& chromatograms_offsets)
+  int IndexedMzMLDecoder::parseOffsets(String filename, std::streampos indexoffset, OffsetVector& spectra_offsets, OffsetVector& chromatograms_offsets)
   {
     //-------------------------------------------------------------
     // Open file, jump to end and read last indexoffset bytes into buffer.
@@ -55,7 +55,7 @@ namespace OpenMS
     std::ifstream f(filename.c_str());
     // get length of file:
     f.seekg(0, f.end);
-    int length = f.tellg();
+    std::streampos length = f.tellg();
 
     if (indexoffset < 0 || indexoffset > length)
     {
@@ -69,8 +69,8 @@ namespace OpenMS
     //-------------------------------------------------------------
     // read data as a block:
     // allocate memory:
-    int readl = length - indexoffset;
-    char* buffer = new char[readl + 1];
+    std::streampos readl = length - indexoffset;
+    char* buffer = new char[ readl + std::streampos(1)];
     f.seekg(-readl, f.end);
     f.read(buffer, readl);
     buffer[readl] = '\0';
@@ -87,10 +87,10 @@ namespace OpenMS
     return res;
   }
 
-  int IndexedMzMLDecoder::findIndexListOffset(String filename, int buffersize)
+  std::streampos IndexedMzMLDecoder::findIndexListOffset(String filename, int buffersize)
   {
     // return value
-    int indexoffset = -1;
+    std::streampos indexoffset = -1;
 
     //-------------------------------------------------------------
     // Open file, jump to end and read last n bytes into buffer.
@@ -188,7 +188,7 @@ namespace OpenMS
       if (currentNode->getNodeType() && // true is not NULL
           currentNode->getNodeType() == xercesc::DOMNode::ELEMENT_NODE) // is element
       {
-        std::vector<std::pair<std::string, long> > result;
+        std::vector<std::pair<std::string, std::streampos> > result;
         xercesc::DOMNodeList* offset_elems = currentNode->getChildNodes();
         for (XMLSize_t k = 0; k < offset_elems->getLength(); ++k)
         {
