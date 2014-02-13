@@ -926,8 +926,13 @@ namespace OpenMS
     //check for InstrumentSettings
     visualize_(meta.getInstrumentSettings(), item);
 
+    std::vector<DataProcessing> tmp;
+    for (Size i = 0; i < meta.getDataProcessing().size(); i++)
+    {
+      tmp.push_back(*meta.getDataProcessing()[i].get());
+    }
     //check for DataProcessing
-    visualizeAll_(meta.getDataProcessing(), item);
+    visualizeAll_(tmp, item);
 
     //check for Precursors
     for (Size i = 0; i < meta.getPrecursors().size(); ++i)
