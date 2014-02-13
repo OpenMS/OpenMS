@@ -44,10 +44,11 @@
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/uniform_int.hpp>
 #include <boost/random/variate_generator.hpp>
+#include <boost/unordered_map.hpp>
 
-#include <map>
 #include <string>
 #include <vector>
+#include <map>
 #include <utility> // for pair
 
 // #define DEBUG_MRMDECOY
@@ -125,8 +126,8 @@ public:
     typedef std::vector<OpenMS::TargetedExperiment::Peptide> PeptideVectorType;
     typedef std::vector<OpenMS::ReactionMonitoringTransition> TransitionVectorType;
 
-    typedef std::map<String, std::map<String, double> > IonSeries;
-    typedef std::map<String, IonSeries> IonSeriesMapType;
+    typedef boost::unordered_map<String, boost::unordered_map<String, double> > IonSeries;
+    typedef boost::unordered_map<String, IonSeries> IonSeriesMapType;
 
     typedef std::map<String, std::vector<const ReactionMonitoringTransition*> > PeptideTransitionMapType;
 
@@ -134,13 +135,13 @@ public:
       @brief Selects a decoy ion from a set of ions.
     */
     std::pair<String, DoubleReal> getDecoyIon(String ionid,
-                                              std::map<String, std::map<String, DoubleReal> >& decoy_ionseries);
+                                              boost::unordered_map<String, boost::unordered_map<String, DoubleReal> >& decoy_ionseries);
 
     /**
       @brief Selects a target ion from a set of ions.
     */
     std::pair<String, double> getTargetIon(double ProductMZ, double mz_threshold,
-                                           std::map<String, std::map<String, double> > target_ionseries,
+                                           boost::unordered_map<String, boost::unordered_map<String, double> > target_ionseries,
                                            bool enable_losses, bool enable_isotopes);
     /**
       @brief Generate all ion series for an input AASequence
@@ -157,7 +158,7 @@ public:
       FEATURE (george): a more generic mechanism to specify which series and losses should be
       generated. possible integration with TheoreticalSpectrumGenerator?
     */
-    std::map<String, std::map<String, double> > getIonSeries(
+    boost::unordered_map<String, boost::unordered_map<String, double> > getIonSeries(
       AASequence sequence, int precursor_charge, int max_isotopes = 2);
 
     /**

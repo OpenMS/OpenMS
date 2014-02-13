@@ -43,7 +43,7 @@
 
 namespace OpenMS
 {
-  std::pair<String, DoubleReal> MRMDecoy::getDecoyIon(String ionid, std::map<String, std::map<String, DoubleReal> >& decoy_ionseries)
+  std::pair<String, DoubleReal> MRMDecoy::getDecoyIon(String ionid, boost::unordered_map<String, boost::unordered_map<String, DoubleReal> >& decoy_ionseries)
   {
     using namespace boost::assign;
     // Select SpectraST Style
@@ -56,7 +56,7 @@ namespace OpenMS
     ion = make_pair(unannotated, -1);
     for (std::vector<String>::iterator iontype = SpectraST_order.begin(); iontype != SpectraST_order.end(); ++iontype)
     {
-      for (std::map<String, DoubleReal>::iterator ordinal = decoy_ionseries[*iontype].begin(); ordinal != decoy_ionseries[*iontype].end(); ++ordinal)
+      for (boost::unordered_map<String, DoubleReal>::iterator ordinal = decoy_ionseries[*iontype].begin(); ordinal != decoy_ionseries[*iontype].end(); ++ordinal)
       {
         if (ordinal->first == ionid)
         {
@@ -67,7 +67,7 @@ namespace OpenMS
     return ion;
   }
 
-  std::pair<String, double> MRMDecoy::getTargetIon(double ProductMZ, double mz_threshold, std::map<String, std::map<String, double> > target_ionseries, bool enable_losses, bool enable_isotopes)
+  std::pair<String, double> MRMDecoy::getTargetIon(double ProductMZ, double mz_threshold, boost::unordered_map<String, boost::unordered_map<String, double> > target_ionseries, bool enable_losses, bool enable_isotopes)
   {
     // make sure to only use annotated transitions and to use the theoretical MZ
     using namespace boost::assign;
@@ -92,7 +92,7 @@ namespace OpenMS
     double closest_delta = std::numeric_limits<double>::max();
     for (std::vector<String>::iterator iontype = SpectraST_order.begin(); iontype != SpectraST_order.end(); ++iontype)
     {
-      for (std::map<String, double>::iterator ordinal = target_ionseries[*iontype].begin(); ordinal != target_ionseries[*iontype].end(); ++ordinal)
+      for (boost::unordered_map<String, double>::iterator ordinal = target_ionseries[*iontype].begin(); ordinal != target_ionseries[*iontype].end(); ++ordinal)
       {
         if (std::fabs(ordinal->second - ProductMZ) <= mz_threshold && std::fabs(ordinal->second - ProductMZ) <= closest_delta)
         {
@@ -105,10 +105,10 @@ namespace OpenMS
     return ion;
   }
 
-  std::map<String, std::map<String, double> > MRMDecoy::getIonSeries(AASequence sequence, int precursor_charge, int max_isotope)
+  boost::unordered_map<String, boost::unordered_map<String, double> > MRMDecoy::getIonSeries(AASequence sequence, int precursor_charge, int max_isotope)
   {
-    std::map<String, std::map<String, double> > ionseries;
-    std::map<String, double> bionseries, bionseries_isotopes, bionseries_loss,
+    boost::unordered_map<String, boost::unordered_map<String, double> > ionseries;
+    boost::unordered_map<String, double> bionseries, bionseries_isotopes, bionseries_loss,
                              bionseries_isotopes_loss, yionseries, yionseries_isotopes,
                              yionseries_loss, yionseries_isotopes_loss, aionseries,
                              aionseries_isotopes;
@@ -137,7 +137,7 @@ namespace OpenMS
     ionseries["b"] = bionseries;
     ionseries["b_isotopes"] = bionseries_isotopes;
 
-    for (std::map<String, double>::iterator bit = bionseries.begin(); bit != bionseries.end(); ++bit)
+    for (boost::unordered_map<String, double>::iterator bit = bionseries.begin(); bit != bionseries.end(); ++bit)
     {
       bionseries_loss[bit->first + "-17"] = bit->second - 17;
       bionseries_loss[bit->first + "-18"] = bit->second - 18;
@@ -151,7 +151,7 @@ namespace OpenMS
       bionseries_loss[bit->first + "-98"] = bit->second - 98;
     }
     ionseries["b_loss"] = bionseries_loss;
-    for (std::map<String, double>::iterator bit = bionseries_isotopes.begin(); bit != bionseries_isotopes.end(); ++bit)
+    for (boost::unordered_map<String, double>::iterator bit = bionseries_isotopes.begin(); bit != bionseries_isotopes.end(); ++bit)
     {
       bionseries_isotopes_loss[bit->first + "-17"] = bit->second - 17;
       bionseries_isotopes_loss[bit->first + "-18"] = bit->second - 18;
@@ -189,7 +189,7 @@ namespace OpenMS
     ionseries["y"] = yionseries;
     ionseries["y_isotopes"] = yionseries_isotopes;
 
-    for (std::map<String, double>::iterator yit = yionseries.begin(); yit != yionseries.end(); ++yit)
+    for (boost::unordered_map<String, double>::iterator yit = yionseries.begin(); yit != yionseries.end(); ++yit)
     {
       yionseries_loss[yit->first + "-17"] = yit->second - 17;
       yionseries_loss[yit->first + "-18"] = yit->second - 18;
@@ -203,7 +203,7 @@ namespace OpenMS
       yionseries_loss[yit->first + "-98"] = yit->second - 98;
     }
     ionseries["y_loss"] = yionseries_loss;
-    for (std::map<String, double>::iterator yit = yionseries_isotopes.begin(); yit != yionseries_isotopes.end(); ++yit)
+    for (boost::unordered_map<String, double>::iterator yit = yionseries_isotopes.begin(); yit != yionseries_isotopes.end(); ++yit)
     {
       yionseries_isotopes_loss[yit->first + "-17"] = yit->second - 17;
       yionseries_isotopes_loss[yit->first + "-18"] = yit->second - 18;
