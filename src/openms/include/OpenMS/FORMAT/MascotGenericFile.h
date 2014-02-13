@@ -103,7 +103,7 @@ public:
       is.seekg(0, std::ios::beg);
 
       UInt spectrum_number(0);
-      Size line_number(0);  // carry line number for error messages within getNextSpectrum()
+      Size line_number(0); // carry line number for error messages within getNextSpectrum()
 
       typename MapType::SpectrumType spectrum;
       spectrum.setMSLevel(2);
@@ -172,9 +172,9 @@ protected:
 
             if (line.empty()) continue;
 
-            if (isdigit(line[0]))
-            { // actual data .. this comes first, since its the most common case
-              vector<String> split;
+            if (isdigit(line[0])) // actual data .. this comes first, since its the most common case
+            {
+              std::vector<String> split;
               do
               {
                 if (line.empty())
@@ -186,7 +186,7 @@ protected:
                 line.split(' ', split);
                 if (split.size() >= 2)
                 {
-                  p.setPosition(split[0].toDouble()); 
+                  p.setPosition(split[0].toDouble());
                   p.setIntensity(split[1].toDouble());
                   spectrum.push_back(p);
                 }
@@ -206,11 +206,11 @@ protected:
                 throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Reached end of file. Found \"BEGIN IONS\" but not the corresponding \"END IONS\"!", "");
               }
             }
-            else if (line.hasPrefix("PEPMASS"))
-            { // parse precursor position
+            else if (line.hasPrefix("PEPMASS")) // parse precursor position
+            {
               String tmp = line.substr(8);
               tmp.substitute('\t', ' ');
-              vector<String> split;
+              std::vector<String> split;
               tmp.split(' ', split);
               if (split.size() == 1)
               {
@@ -244,7 +244,7 @@ protected:
               {
                 try
                 {
-                  vector<String> split;
+                  std::vector<String> split;
                   line.split(',', split);
                   if (!split.empty())
                   {
@@ -252,7 +252,7 @@ protected:
                     {
                       if (split[i].hasSubstring("min"))
                       {
-                        vector<String> split2;
+                        std::vector<String> split2;
                         split[i].trim().split(' ', split2);
                         if (!split2.empty())
                         {
@@ -265,7 +265,7 @@ protected:
                 catch (Exception::BaseException& /*e*/)
                 {
                   // just do nothing and write the whole title to spec
-                  vector<String> split;
+                  std::vector<String> split;
                   line.split('=', split);
                   if (split.size() >= 2)
                   {
@@ -275,7 +275,7 @@ protected:
               }
               else // just write the title as metainfo to the spectrum
               {
-                vector<String> split;
+                std::vector<String> split;
                 line.split('=', split);
                 if (split.size() == 2)
                 {
@@ -289,7 +289,8 @@ protected:
       }
 
       return false; // found end of file
-    };
+    }
+
   };
 
 } // namespace OpenMS
