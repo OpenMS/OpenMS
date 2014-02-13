@@ -183,7 +183,13 @@ namespace OpenMS
     {
       visible_area_ = new_area;
       updateScrollbars_();
+      std::cout << "visible area: " << visible_area_;
       emit visibleAreaChanged(new_area);
+      std::cout << "return\n";
+    }
+    else
+    {
+        std::cout << "visible area == new area!\n";
     }
 
     if (repaint)
