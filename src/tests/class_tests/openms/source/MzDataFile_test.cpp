@@ -357,13 +357,13 @@ TEST_EQUAL(e.getContacts()[1].getContactInfo(), "www.jane.doe");
 for (Size i = 0; i < e.size(); ++i)
 {
   TEST_EQUAL(e[i].getDataProcessing().size(), 1)
-  TEST_EQUAL(e[i].getDataProcessing()[0].getMetaValue("URL"), "www.open-ms.de")
-  TEST_EQUAL(e[i].getDataProcessing()[0].getMetaValue("comment"), "ProcessingComment")
-  TEST_EQUAL(e[i].getDataProcessing()[0].getCompletionTime().get(), "2001-02-03 04:05:06");
+  TEST_EQUAL(e[i].getDataProcessing()[0]->getMetaValue("URL"), "www.open-ms.de")
+  TEST_EQUAL(e[i].getDataProcessing()[0]->getMetaValue("comment"), "ProcessingComment")
+  TEST_EQUAL(e[i].getDataProcessing()[0]->getCompletionTime().get(), "2001-02-03 04:05:06");
 
-  TEST_EQUAL(e[i].getDataProcessing()[0].getSoftware().getName(), "MS-X");
-  TEST_EQUAL(e[i].getDataProcessing()[0].getSoftware().getVersion(), "1.0");
-  TEST_EQUAL(e[i].getDataProcessing()[0].getSoftware().getMetaValue("comment"), "SoftwareComment")
+  TEST_EQUAL(e[i].getDataProcessing()[0]->getSoftware().getName(), "MS-X");
+  TEST_EQUAL(e[i].getDataProcessing()[0]->getSoftware().getVersion(), "1.0");
+  TEST_EQUAL(e[i].getDataProcessing()[0]->getSoftware().getMetaValue("comment"), "SoftwareComment")
 }
 //---------------------------------------------------------------------------
 // instrument
@@ -651,9 +651,9 @@ NEW_TMP_FILE(tmp_filename);
 f.store(tmp_filename, e1);
 f.load(tmp_filename, e2);
 TEST_EQUAL(e2.getIdentifier(), "lsid");
-e2[0].getDataProcessing()[0].getSoftware().setMetaValue("comment", String("SoftwareComment"));
-e2[1].getDataProcessing()[0].getSoftware().setMetaValue("comment", String("SoftwareComment"));
-e2[2].getDataProcessing()[0].getSoftware().setMetaValue("comment", String("SoftwareComment"));
+e2[0].getDataProcessing()[0]->getSoftware().setMetaValue("comment", String("SoftwareComment"));
+e2[1].getDataProcessing()[0]->getSoftware().setMetaValue("comment", String("SoftwareComment"));
+e2[2].getDataProcessing()[0]->getSoftware().setMetaValue("comment", String("SoftwareComment"));
 TEST_EQUAL(e1 == e2, true);
 END_SECTION
 

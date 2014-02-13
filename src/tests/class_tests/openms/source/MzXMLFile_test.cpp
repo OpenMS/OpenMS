@@ -161,24 +161,24 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 	{
 		TEST_EQUAL(e[i].getDataProcessing().size(),2)
 
-		TEST_EQUAL(e[i].getDataProcessing()[0].getSoftware().getName(), "MS-X");
-		TEST_EQUAL(e[i].getDataProcessing()[0].getSoftware().getVersion(), "1.0");
-		TEST_STRING_EQUAL(e[i].getDataProcessing()[0].getMetaValue("#type").toString(), "conversion");
-		TEST_STRING_EQUAL(e[i].getDataProcessing()[0].getMetaValue("processing 1").toString(), "done 1");
-		TEST_STRING_EQUAL(e[i].getDataProcessing()[0].getMetaValue("processing 2").toString(), "done 2");
-		TEST_EQUAL(e[i].getDataProcessing()[0].getCompletionTime().get(), "2001-02-03 04:05:06");
-		TEST_EQUAL(e[i].getDataProcessing()[0].getProcessingActions().size(),0)
+		TEST_EQUAL(e[i].getDataProcessing()[0]->getSoftware().getName(), "MS-X");
+		TEST_EQUAL(e[i].getDataProcessing()[0]->getSoftware().getVersion(), "1.0");
+		TEST_STRING_EQUAL(e[i].getDataProcessing()[0]->getMetaValue("#type").toString(), "conversion");
+		TEST_STRING_EQUAL(e[i].getDataProcessing()[0]->getMetaValue("processing 1").toString(), "done 1");
+		TEST_STRING_EQUAL(e[i].getDataProcessing()[0]->getMetaValue("processing 2").toString(), "done 2");
+		TEST_EQUAL(e[i].getDataProcessing()[0]->getCompletionTime().get(), "2001-02-03 04:05:06");
+		TEST_EQUAL(e[i].getDataProcessing()[0]->getProcessingActions().size(),0)
 
-		TEST_EQUAL(e[i].getDataProcessing()[1].getSoftware().getName(), "MS-Y");
-		TEST_EQUAL(e[i].getDataProcessing()[1].getSoftware().getVersion(), "1.1");
-		TEST_STRING_EQUAL(e[i].getDataProcessing()[1].getMetaValue("#type").toString(), "processing");
-		TEST_REAL_SIMILAR((DoubleReal)(e[i].getDataProcessing()[1].getMetaValue("#intensity_cutoff")), 3.4);
-		TEST_STRING_EQUAL(e[i].getDataProcessing()[1].getMetaValue("processing 3").toString(), "done 3");
-		TEST_EQUAL(e[i].getDataProcessing()[1].getCompletionTime().get(), "0000-00-00 00:00:00");
-		TEST_EQUAL(e[i].getDataProcessing()[1].getProcessingActions().size(),3)
-		TEST_EQUAL(e[i].getDataProcessing()[1].getProcessingActions().count(DataProcessing::DEISOTOPING),1)
-		TEST_EQUAL(e[i].getDataProcessing()[1].getProcessingActions().count(DataProcessing::CHARGE_DECONVOLUTION),1)
-		TEST_EQUAL(e[i].getDataProcessing()[1].getProcessingActions().count(DataProcessing::PEAK_PICKING),1)
+		TEST_EQUAL(e[i].getDataProcessing()[1]->getSoftware().getName(), "MS-Y");
+		TEST_EQUAL(e[i].getDataProcessing()[1]->getSoftware().getVersion(), "1.1");
+		TEST_STRING_EQUAL(e[i].getDataProcessing()[1]->getMetaValue("#type").toString(), "processing");
+		TEST_REAL_SIMILAR((DoubleReal)(e[i].getDataProcessing()[1]->getMetaValue("#intensity_cutoff")), 3.4);
+		TEST_STRING_EQUAL(e[i].getDataProcessing()[1]->getMetaValue("processing 3").toString(), "done 3");
+		TEST_EQUAL(e[i].getDataProcessing()[1]->getCompletionTime().get(), "0000-00-00 00:00:00");
+		TEST_EQUAL(e[i].getDataProcessing()[1]->getProcessingActions().size(),3)
+		TEST_EQUAL(e[i].getDataProcessing()[1]->getProcessingActions().count(DataProcessing::DEISOTOPING),1)
+		TEST_EQUAL(e[i].getDataProcessing()[1]->getProcessingActions().count(DataProcessing::CHARGE_DECONVOLUTION),1)
+		TEST_EQUAL(e[i].getDataProcessing()[1]->getProcessingActions().count(DataProcessing::PEAK_PICKING),1)
 	}
 	
 	//---------------------------------------------------------------------------

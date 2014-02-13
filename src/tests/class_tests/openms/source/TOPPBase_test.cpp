@@ -679,11 +679,11 @@ START_SECTION(([EXTRA] data processing methods))
 	for (Size i=0; i<exp.size(); ++i)
 	{
 		TEST_EQUAL(exp[i].getDataProcessing().size(),1)
-		TEST_EQUAL(exp[i].getDataProcessing()[0].getSoftware().getName(),"TOPPBaseTest")
-		TEST_NOT_EQUAL(exp[i].getDataProcessing()[0].getSoftware().getVersion(),"1.1")
-		TEST_EQUAL(exp[i].getDataProcessing()[0].getCompletionTime().isValid(),true)
-		TEST_EQUAL(exp[i].getDataProcessing()[0].getProcessingActions().size(),1)
-		TEST_EQUAL(*(exp[i].getDataProcessing()[0].getProcessingActions().begin()),DataProcessing::ALIGNMENT)
+		TEST_EQUAL(exp[i].getDataProcessing()[0]->getSoftware().getName(),"TOPPBaseTest")
+		TEST_NOT_EQUAL(exp[i].getDataProcessing()[0]->getSoftware().getVersion(),"1.1")
+		TEST_EQUAL(exp[i].getDataProcessing()[0]->getCompletionTime().isValid(),true)
+		TEST_EQUAL(exp[i].getDataProcessing()[0]->getProcessingActions().size(),1)
+		TEST_EQUAL(*(exp[i].getDataProcessing()[0]->getProcessingActions().begin()),DataProcessing::ALIGNMENT)
 	}
 END_SECTION
 
