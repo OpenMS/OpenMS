@@ -207,7 +207,7 @@ START_SECTION(([EXTRA] load broken file))
   // Contains an value (2^63-1) in the indexListOffset field that should not
   // trigger an exception - however parsing will fail since the file is
   // actually shorter.
-  if (sizeof(std::streampos)*8 > 32 )
+  if (sizeof(std::streamsize)*8 > 32 )
   {
     IndexedMzMLFile file(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_3_broken.mzML"));
     TEST_EQUAL(file.getParsingSuccess(), false)
