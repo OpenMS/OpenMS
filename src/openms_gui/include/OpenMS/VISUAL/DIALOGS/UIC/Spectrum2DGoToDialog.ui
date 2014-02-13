@@ -247,6 +247,16 @@
        </property>
       </widget>
      </item>
+     <item row="5" column="0">
+      <widget class="QCheckBox" name="clip_checkbox">
+       <property name="text">
+        <string>clip to min/max</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
     </layout>
    </item>
   </layout>

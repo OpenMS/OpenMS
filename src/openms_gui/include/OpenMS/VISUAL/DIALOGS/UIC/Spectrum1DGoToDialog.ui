@@ -7,11 +7,11 @@
     <x>0</x>
     <y>0</y>
     <width>256</width>
-    <height>190</height>
+    <height>218</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Select data range</string>
+   <string>go to</string>
   </property>
   <layout class="QGridLayout">
    <item row="0" column="0">
@@ -74,20 +74,7 @@
      </item>
     </layout>
    </item>
-   <item row="1" column="0">
-    <spacer>
-     <property name="orientation">
-      <enum>Qt::Vertical</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>166</width>
-       <height>16</height>
-      </size>
-     </property>
-    </spacer>
-   </item>
-   <item row="2" column="0">
+   <item row="3" column="0">
     <layout class="QHBoxLayout">
      <item>
       <spacer>
@@ -117,6 +104,29 @@
       </widget>
      </item>
     </layout>
+   </item>
+   <item row="2" column="0">
+    <spacer>
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>166</width>
+       <height>16</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item row="1" column="0">
+    <widget class="QCheckBox" name="clip_checkbox">
+     <property name="text">
+      <string>clip to min/max</string>
+     </property>
+     <property name="checked">
+      <bool>true</bool>
+     </property>
+    </widget>
    </item>
   </layout>
  </widget>

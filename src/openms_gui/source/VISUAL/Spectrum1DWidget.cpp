@@ -43,6 +43,7 @@
 #include <QtGui/QPaintEvent>
 #include <QtSvg/QtSvg>
 #include <QtSvg/QSvgGenerator>
+#include <Qt>
 
 using namespace std;
 
@@ -238,7 +239,8 @@ namespace OpenMS
     {
       goto_dialog.fixRange();
       SpectrumCanvas::AreaType area (goto_dialog.getMin(), 0, goto_dialog.getMax(), 0);
-      correctAreaToObeyMinMaxRanges_(area);
+      if(goto_dialog.clip_checkbox->checkState() == Qt::Checked)
+        correctAreaToObeyMinMaxRanges_(area);
       canvas()->setVisibleArea(area);
     }
   }
