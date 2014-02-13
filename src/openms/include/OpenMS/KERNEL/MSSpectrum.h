@@ -188,7 +188,7 @@ public:
       //name_ can differ => it is not checked
       return std::operator==(*this, rhs) &&
              RangeManager<1>::operator==(rhs) &&
-             SpectrumSettings::operator==(rhs)  &&
+             SpectrumSettings::operator==(rhs) &&
              retention_time_ == rhs.retention_time_ &&
              ms_level_ == rhs.ms_level_ &&
              float_data_arrays_ == rhs.float_data_arrays_ &&

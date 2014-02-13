@@ -34,6 +34,7 @@
 
 #include <OpenMS/METADATA/ChromatogramSettings.h>
 
+#include <boost/iterator/indirect_iterator.hpp> // for equality
 
 using namespace std;
 
@@ -106,7 +107,12 @@ namespace OpenMS
            source_file_ == rhs.source_file_ &&
            precursor_ == rhs.precursor_ &&
            product_ == rhs.product_ &&
-           data_processing_ == rhs.data_processing_ &&
+           // We are not interested whether the pointers are equal but whether
+           // the contents are equal
+           ( data_processing_.size() == rhs.data_processing_.size() &&
+           std::equal( boost::make_indirect_iterator(data_processing_.begin()),
+                       boost::make_indirect_iterator(data_processing_.end()),
+                       boost::make_indirect_iterator(rhs.data_processing_.begin()) ) ) &&
            type_ == rhs.type_;
   }
 

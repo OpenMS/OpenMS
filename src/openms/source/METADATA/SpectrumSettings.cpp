@@ -34,6 +34,7 @@
 
 #include <OpenMS/METADATA/SpectrumSettings.h>
 
+#include <boost/iterator/indirect_iterator.hpp> // for equality
 
 using namespace std;
 
@@ -108,7 +109,13 @@ namespace OpenMS
            precursors_ == rhs.precursors_ &&
            products_ == rhs.products_ &&
            identification_ == rhs.identification_ &&
-           data_processing_ == rhs.data_processing_;
+           // We are not interested whether the pointers are equal but whether
+           // the contents are equal
+           // -- note this segfaults is somebody foolishly calls resize on the array ...
+           ( data_processing_.size() == rhs.data_processing_.size() &&
+           std::equal( boost::make_indirect_iterator(data_processing_.begin()),
+                       boost::make_indirect_iterator(data_processing_.end()),
+                       boost::make_indirect_iterator(rhs.data_processing_.begin()) ) );
   }
 
   bool SpectrumSettings::operator!=(const SpectrumSettings & rhs) const
