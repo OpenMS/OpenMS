@@ -97,6 +97,11 @@ public:
       exp.reset();
 
       std::ifstream is(filename.c_str());
+      // get size of file
+      is.seekg(0, std::ios::end );
+      startProgress(0, is.tellg(), "loading MGF");
+      is.seekg(0, std::ios::beg);
+
       bool has_next(true);
       UInt spectrum_number(0);
 #ifdef _OPENMP
@@ -117,19 +122,20 @@ public:
         // It is essential that each thread has its own continue variable which
         // indicates whether the current thread should finish its task even if
         // the end is reached and other threads already abort the loop.
-        bool threadContinue = true;
+        bool thread_continue = true;
         while (has_next)
         {
 #ifdef _OPENMP
-#pragma omp critical
+#pragma omp critical (OMS_MGF_LOAD_READSPEC)
 #endif
           {
             has_next = getNextSpectrum_(is, spec, charge, pre_mz, pre_int, rt, title, line_number);
-            threadContinue = has_next;
+            setProgress(is.tellg());
+            thread_continue = has_next;
             ++spectrum_number;
             thread_spectrum_number = spectrum_number;
           }
-          if (threadContinue)
+          if (thread_continue)
           {
             spectrum.resize(spec.size());
 
@@ -157,9 +163,10 @@ public:
 
             spectrum.setNativeID(String("index=") + (thread_spectrum_number));
 #ifdef _OPENMP
-#pragma omp critical
+#pragma omp critical (OMS_MGF_LOAD_ADDSPEC)
 #endif
-            {
+            { // calling resize() here and inserting at correct position (and avoid sort() below)
+              // did result in worse performance, so just append and sort later
               exp.addSpectrum(spectrum);
             }
           }
@@ -169,6 +176,7 @@ public:
       // order might be random, depending on which thread finished conversion first
       exp.sortSpectra(true);
 
+      endProgress();
     }
 
     /**
