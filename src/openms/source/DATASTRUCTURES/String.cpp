@@ -38,6 +38,7 @@
 
 #include <QtCore/QString>
 
+#include <boost/spirit/include/qi.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string/trim.hpp>
 
@@ -727,12 +728,13 @@ namespace OpenMS
 
   DoubleReal String::toDouble() const
   {
-    DoubleReal ret = 0.0;
-    try
-    {
-      ret = boost::lexical_cast<DoubleReal>(boost::trim_copy(*this));
-    }
-    catch (boost::bad_lexical_cast&)
+    namespace qi = boost::spirit::qi;
+    namespace ascii = boost::spirit::ascii;
+
+    DoubleReal ret;
+
+    if (!qi::phrase_parse(this->begin(), this->end(),
+        qi::double_, ascii::space, ret))
     {
       throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Could not convert string '") + *this + "' to a double value");
     }
