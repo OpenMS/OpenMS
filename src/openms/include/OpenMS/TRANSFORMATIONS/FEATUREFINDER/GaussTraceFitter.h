@@ -153,8 +153,8 @@ public:
 
     DoubleReal getArea()
     {
-      // area under the curve, 2.5 is approx. sqrt(2 * pi):
-      return 2.5 * height_ * sigma_;
+      // area under the curve, 2.5... is approx. sqrt(2 * pi):
+      return 2.506628 * height_ * sigma_;
     }
 
     String getGnuplotFormula(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType>& trace, const char function_name, const DoubleReal baseline, const DoubleReal rt_shift)

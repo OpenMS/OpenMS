@@ -403,8 +403,8 @@ END_SECTION
 
 START_SECTION((virtual DoubleReal getArea()))
 {
-  // is 2.5 * height_ * sigma_;
-  TEST_REAL_SIMILAR(gaussian_trace_fitter.getArea(), 2.5 * expected_sigma * expected_H)
+  // is 2.5... * height_ * sigma_;
+  TEST_REAL_SIMILAR(gaussian_trace_fitter.getArea(), 2.506628 * expected_sigma * expected_H)
 }
 END_SECTION
 
