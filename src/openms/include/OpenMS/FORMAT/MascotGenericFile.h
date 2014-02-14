@@ -115,6 +115,7 @@ public:
         ++spectrum_number;
       } // next spectrum
 
+
       endProgress();
     }
 

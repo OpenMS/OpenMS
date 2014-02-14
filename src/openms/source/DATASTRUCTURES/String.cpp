@@ -732,9 +732,9 @@ namespace OpenMS
     namespace ascii = boost::spirit::ascii;
 
     DoubleReal ret;
-
-    if (!qi::phrase_parse(this->begin(), this->end(),
-        qi::double_, ascii::space, ret))
+    // boost::spirit::qi was found to be vastly superior to boost::lexical_cast or stringstream extraction (especially for VisualStudio), 
+    // so don't change this unless you have benchmarks for all platforms!
+    if (!qi::phrase_parse(this->begin(), this->end(), qi::double_, ascii::space, ret))
     {
       throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Could not convert string '") + *this + "' to a double value");
     }
