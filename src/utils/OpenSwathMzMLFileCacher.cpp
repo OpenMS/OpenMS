@@ -121,23 +121,7 @@ class TOPPOpenSwathMzMLFileCacher
 
       f.load(in,exp);
       cacher.writeMemdump(exp, out_cached);
-
-      DataProcessing dp;
-      std::set<DataProcessing::ProcessingAction> actions;
-      actions.insert(DataProcessing::FORMAT_CONVERSION);
-      dp.setProcessingActions(actions);
-      dp.setMetaValue("cached_data", "true");
-      for (Size i=0; i<exp.size(); ++i)
-      {
-        exp[i].getDataProcessing().push_back(dp);
-      }
-      std::vector<MSChromatogram<ChromatogramPeak> > chromatograms = exp.getChromatograms();
-      for (Size i=0; i<chromatograms.size(); ++i)
-      {
-        chromatograms[i].getDataProcessing().push_back(dp);
-      }
-      exp.setChromatograms(chromatograms);
-      cacher.writeMetadata(exp, out_meta);
+      cacher.writeMetadata(exp, out_meta, true);
     }
     else
     {
@@ -159,23 +143,21 @@ class TOPPOpenSwathMzMLFileCacher
       {
         for (Size j = 0; j < meta_exp[i].getDataProcessing().size(); j++)
         {
-          DataProcessing& dp = meta_exp[i].getDataProcessing()[j];
-          if (dp.metaValueExists("cached_data"))
+          if (meta_exp[i].getDataProcessing()[j]->metaValueExists("cached_data"))
           {
-            dp.removeMetaValue("cached_data");
+            meta_exp[i].getDataProcessing()[j]->removeMetaValue("cached_data");
           }
         }
       }
 
       std::vector<MSChromatogram<ChromatogramPeak> > chromatograms = meta_exp.getChromatograms();
-      for (Size i=0; i<chromatograms.size(); ++i)
+      for (Size i=0; i < meta_exp.getNrChromatograms(); ++i)
       {
-        for (Size j = 0; j < chromatograms[i].getDataProcessing().size(); j++)
+        for (Size j = 0; j < meta_exp.getChromatogram(i).getDataProcessing().size(); j++)
         {
-          DataProcessing& dp = chromatograms[i].getDataProcessing()[j];
-          if (dp.metaValueExists("cached_data"))
+          if (meta_exp.getChromatogram(i).getDataProcessing()[j]->metaValueExists("cached_data"))
           {
-            dp.removeMetaValue("cached_data");
+            meta_exp.getChromatogram(i).getDataProcessing()[j]->removeMetaValue("cached_data");
           }
         }
       }
