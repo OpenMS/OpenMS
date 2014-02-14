@@ -407,15 +407,10 @@ namespace OpenMS
       if (goto_dialog.showRange())
       {
         goto_dialog.fixRange();
-        std::cout << "dialog: min mz: " << goto_dialog.getMinMZ() << "max mz: " << goto_dialog.getMaxMZ()
-            << "min rt: " << goto_dialog.getMinRT() << "max rt: " << goto_dialog.getMaxRT() << std::endl;
         SpectrumCanvas::AreaType area (goto_dialog.getMinMZ(), goto_dialog.getMinRT(), goto_dialog.getMaxMZ(), goto_dialog.getMaxRT());
-        std::cout << "area: " << area;
         if(goto_dialog.clip_checkbox->checkState() == Qt::Checked)
           correctAreaToObeyMinMaxRanges_(area);
-        std::cout << "corrected area: " << area;
         canvas()->setVisibleArea(area);
-        std::cout << "return got to\n";
       }
       else
       {
