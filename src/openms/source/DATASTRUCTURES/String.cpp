@@ -39,8 +39,6 @@
 #include <QtCore/QString>
 
 #include <boost/spirit/include/qi.hpp>
-#include <boost/lexical_cast.hpp>
-#include <boost/algorithm/string/trim.hpp>
 
 #include <string>
 #include <cmath>
@@ -705,21 +703,32 @@ namespace OpenMS
 
   Int String::toInt() const
   {
-    std::stringstream ss(c_str());
-    Int ret = 0;
-    if (!(ss >> ret))
+    namespace qi = boost::spirit::qi;
+    namespace ascii = boost::spirit::ascii;
+
+    Int ret;
+
+    // boost::spirit::qi was found to be vastly superior to boost::lexical_cast or stringstream extraction (especially for VisualStudio),
+    // so don't change this unless you have benchmarks for all platforms!
+    if (!qi::phrase_parse(this->begin(), this->end(),
+        qi::int_, ascii::space, ret))
+    {
       throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Could not convert string '") + *this + "' to an integer value");
+    }
     return ret;
   }
 
   Real String::toFloat() const
   {
-    Real ret = 0.0;
-    try
-    {
-      ret = boost::lexical_cast<Real>(boost::trim_copy(*this));
-    }
-    catch (boost::bad_lexical_cast&)
+    namespace qi = boost::spirit::qi;
+    namespace ascii = boost::spirit::ascii;
+
+    Real ret;
+
+    // boost::spirit::qi was found to be vastly superior to boost::lexical_cast or stringstream extraction (especially for VisualStudio),
+    // so don't change this unless you have benchmarks for all platforms!
+    if (!qi::phrase_parse(this->begin(), this->end(),
+        qi::float_, ascii::space, ret))
     {
       throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Could not convert string '") + *this + "' to a float value");
     }
@@ -732,7 +741,7 @@ namespace OpenMS
     namespace ascii = boost::spirit::ascii;
 
     DoubleReal ret;
-    // boost::spirit::qi was found to be vastly superior to boost::lexical_cast or stringstream extraction (especially for VisualStudio), 
+    // boost::spirit::qi was found to be vastly superior to boost::lexical_cast or stringstream extraction (especially for VisualStudio),
     // so don't change this unless you have benchmarks for all platforms!
     if (!qi::phrase_parse(this->begin(), this->end(), qi::double_, ascii::space, ret))
     {
