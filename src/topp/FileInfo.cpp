@@ -550,7 +550,7 @@ protected:
       {
         for (Size i = 0; i < exp[0].getDataProcessing().size(); ++i)
         {
-          if (exp[0].getDataProcessing()[i].getProcessingActions().count(DataProcessing::PEAK_PICKING) == 1)
+          if (exp[0].getDataProcessing()[i]->getProcessingActions().count(DataProcessing::PEAK_PICKING) == 1)
           {
             meta_type = SpectrumSettings::PEAKS;
           }
@@ -986,7 +986,10 @@ protected:
         if (!exp.empty())
         {
           os << "Note: The data is taken from the first spectrum!" << "\n" << "\n";
-          dp = exp[0].getDataProcessing();
+          for (Size i = 0; i < exp[0].getDataProcessing().size(); i++)
+          {
+            dp.push_back( *exp[0].getDataProcessing()[i].get() );
+          }
         }
       }
 
