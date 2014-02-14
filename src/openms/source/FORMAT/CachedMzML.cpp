@@ -211,11 +211,11 @@ namespace OpenMS
     if (addCacheMetaValue)
     {
       // set dataprocessing on each spectrum/chromatogram
-      DataProcessing dp;
+      boost::shared_ptr< DataProcessing > dp = boost::shared_ptr< DataProcessing >(new DataProcessing);
       std::set<DataProcessing::ProcessingAction> actions;
       actions.insert(DataProcessing::FORMAT_CONVERSION);
-      dp.setProcessingActions(actions);
-      dp.setMetaValue("cached_data", "true");
+      dp->setProcessingActions(actions);
+      dp->setMetaValue("cached_data", "true");
       for (Size i=0; i<exp.size(); ++i)
       {
         exp[i].getDataProcessing().push_back(dp);

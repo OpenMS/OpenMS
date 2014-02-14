@@ -57,6 +57,7 @@
 #include <OpenMS/SYSTEM/File.h>
 
 #include <sstream>
+#include <boost/shared_ptr.hpp>
 #include <iostream>
 
 #include <QRegExp>
@@ -228,7 +229,7 @@ protected:
 
       void writeSpectrum_(std::ostream& os, const SpectrumType& spec, Size s, 
               Internal::MzMLValidator& validator, bool renew_native_ids, 
-              std::vector<std::vector<DataProcessing> > & dps);
+              std::vector<std::vector< boost::shared_ptr<DataProcessing> > > & dps);
 
       void writeChromatogram_(std::ostream& os, const ChromatogramType& chromatogram, Size c, Internal::MzMLValidator& validator);
 
@@ -353,7 +354,7 @@ protected:
         os << "\t\t\t\t\t</binaryDataArray>\n";
       }
 
-      void writeHeader_(std::ostream& os, const MapType& exp, std::vector<std::vector<DataProcessing> > & dps, Internal::MzMLValidator& validator);
+      void writeHeader_(std::ostream& os, const MapType& exp, std::vector<std::vector< boost::shared_ptr<DataProcessing> > > & dps, Internal::MzMLValidator& validator);
 
       /// map pointer for reading
       MapType* exp_;
@@ -388,7 +389,7 @@ protected:
       /// The data processing list: id => Instrument
       Map<String, Instrument> instruments_;
       /// The data processing list: id => Instrument
-      Map<String, std::vector<DataProcessing> > processing_;
+      Map<String, std::vector< boost::shared_ptr<DataProcessing> > > processing_;
       /// id of the default data processing (used when no processing is defined)
       String default_processing_;
       //@}
@@ -448,7 +449,7 @@ protected:
       void writeSourceFile_(std::ostream& os, const String& id, const SourceFile& software, Internal::MzMLValidator& validator);
 
       /// Helper method that writes a data processing list
-      void writeDataProcessing_(std::ostream& os, const String& id, const std::vector<DataProcessing>& dps, Internal::MzMLValidator& validator);
+      void writeDataProcessing_(std::ostream& os, const String& id, const std::vector< boost::shared_ptr<DataProcessing> >& dps, Internal::MzMLValidator& validator);
 
       /// Helper method that write precursor information from spectra and chromatograms
       void writePrecursor_(std::ostream& os, const Precursor& precursor, Internal::MzMLValidator& validator);
@@ -641,7 +642,13 @@ protected:
         String data_processing_ref;
         if (optionalAttributeAsString_(data_processing_ref, attributes, s_data_processing_ref))
         {
-          data_.back().meta.setDataProcessing(processing_[data_processing_ref]);
+          // TODO also switch to shared ptr to hold DataProcessing ...
+          std::vector<DataProcessing> tmp;
+          for (Size i = 0; i < processing_[data_processing_ref].size(); i++)
+          {
+            tmp.push_back( *processing_[data_processing_ref][i].get() );
+          }
+          data_.back().meta.setDataProcessing(tmp);
         }
       }
       else if (tag == "cvParam")
@@ -795,12 +802,12 @@ protected:
       }
       else if (tag == "processingMethod")
       {
-        DataProcessing dp;
+        boost::shared_ptr<DataProcessing> dp(new DataProcessing);
         // See ticket 452: Do NOT remove  this try/catch block until foreign
         // software (e.g. ProteoWizard msconvert.exe) produces valid mzML.
         try
         {
-          dp.setSoftware(software_[attributeAsString_(attributes, s_software_ref)]);
+          dp->setSoftware(software_[attributeAsString_(attributes, s_software_ref)]);
         }
         catch (Exception::ParseError& /*e*/)
         {
@@ -2878,93 +2885,93 @@ protected:
         //data processing parameter
         if (accession == "MS:1000629") //low intensity threshold (ion count)
         {
-          processing_[current_id_].back().setMetaValue("low_intensity_threshold", termValue);
+          processing_[current_id_].back()->setMetaValue("low_intensity_threshold", termValue);
         }
         else if (accession == "MS:1000631") //high intensity threshold (ion count)
         {
-          processing_[current_id_].back().setMetaValue("high_intensity_threshold", termValue);
+          processing_[current_id_].back()->setMetaValue("high_intensity_threshold", termValue);
         }
         else if (accession == "MS:1000787") //inclusive low intensity threshold
         {
-          processing_[current_id_].back().setMetaValue("inclusive_low_intensity_threshold", termValue);
+          processing_[current_id_].back()->setMetaValue("inclusive_low_intensity_threshold", termValue);
         }
         else if (accession == "MS:1000788") //inclusive high intensity threshold
         {
-          processing_[current_id_].back().setMetaValue("inclusive_high_intensity_threshold", termValue);
+          processing_[current_id_].back()->setMetaValue("inclusive_high_intensity_threshold", termValue);
         }
         else if (accession == "MS:1000747") //completion time
         {
-          processing_[current_id_].back().setCompletionTime(asDateTime_(value));
+          processing_[current_id_].back()->setCompletionTime(asDateTime_(value));
         }
         //file format conversion
         else if (accession == "MS:1000530") //file format conversion
         {
-          processing_[current_id_].back().getProcessingActions().insert(DataProcessing::FORMAT_CONVERSION);
+          processing_[current_id_].back()->getProcessingActions().insert(DataProcessing::FORMAT_CONVERSION);
         }
         else if (accession == "MS:1000544") //Conversion to mzML
         {
-          processing_[current_id_].back().getProcessingActions().insert(DataProcessing::CONVERSION_MZML);
+          processing_[current_id_].back()->getProcessingActions().insert(DataProcessing::CONVERSION_MZML);
         }
         else if (accession == "MS:1000545") //Conversion to mzXML
         {
-          processing_[current_id_].back().getProcessingActions().insert(DataProcessing::CONVERSION_MZXML);
+          processing_[current_id_].back()->getProcessingActions().insert(DataProcessing::CONVERSION_MZXML);
         }
         else if (accession == "MS:1000546") //Conversion to mzData
         {
-          processing_[current_id_].back().getProcessingActions().insert(DataProcessing::CONVERSION_MZDATA);
+          processing_[current_id_].back()->getProcessingActions().insert(DataProcessing::CONVERSION_MZDATA);
         }
         else if (accession == "MS:1000741") //Conversion to DTA
         {
-          processing_[current_id_].back().getProcessingActions().insert(DataProcessing::CONVERSION_DTA);
+          processing_[current_id_].back()->getProcessingActions().insert(DataProcessing::CONVERSION_DTA);
         }
         //data processing action
         else if (accession == "MS:1000543") //data processing action
         {
-          processing_[current_id_].back().getProcessingActions().insert(DataProcessing::DATA_PROCESSING);
+          processing_[current_id_].back()->getProcessingActions().insert(DataProcessing::DATA_PROCESSING);
         }
         else if (accession == "MS:1000033") //deisotoping
         {
-          processing_[current_id_].back().getProcessingActions().insert(DataProcessing::DEISOTOPING);
+          processing_[current_id_].back()->getProcessingActions().insert(DataProcessing::DEISOTOPING);
         }
         else if (accession == "MS:1000034") //charge deconvolution
         {
-          processing_[current_id_].back().getProcessingActions().insert(DataProcessing::CHARGE_DECONVOLUTION);
+          processing_[current_id_].back()->getProcessingActions().insert(DataProcessing::CHARGE_DECONVOLUTION);
         }
         else if (accession == "MS:1000035" || cv_.isChildOf(accession, "MS:1000035")) //peak picking (or child terms, we make no difference)
         {
-          processing_[current_id_].back().getProcessingActions().insert(DataProcessing::PEAK_PICKING);
+          processing_[current_id_].back()->getProcessingActions().insert(DataProcessing::PEAK_PICKING);
         }
         else if (accession == "MS:1000592" || cv_.isChildOf(accession, "MS:1000592")) //smoothing (or child terms, we make no difference)
         {
-          processing_[current_id_].back().getProcessingActions().insert(DataProcessing::SMOOTHING);
+          processing_[current_id_].back()->getProcessingActions().insert(DataProcessing::SMOOTHING);
         }
         else if (accession == "MS:1000778" || cv_.isChildOf(accession, "MS:1000778")) //charge state calculation (or child terms, we make no difference)
         {
-          processing_[current_id_].back().getProcessingActions().insert(DataProcessing::CHARGE_CALCULATION);
+          processing_[current_id_].back()->getProcessingActions().insert(DataProcessing::CHARGE_CALCULATION);
         }
         else if (accession == "MS:1000780" || cv_.isChildOf(accession, "MS:1000780")) //precursor recalculation (or child terms, we make no difference)
         {
-          processing_[current_id_].back().getProcessingActions().insert(DataProcessing::PRECURSOR_RECALCULATION);
+          processing_[current_id_].back()->getProcessingActions().insert(DataProcessing::PRECURSOR_RECALCULATION);
         }
         else if (accession == "MS:1000593") //baseline reduction
         {
-          processing_[current_id_].back().getProcessingActions().insert(DataProcessing::BASELINE_REDUCTION);
+          processing_[current_id_].back()->getProcessingActions().insert(DataProcessing::BASELINE_REDUCTION);
         }
         else if (accession == "MS:1000745") //retention time alignment
         {
-          processing_[current_id_].back().getProcessingActions().insert(DataProcessing::ALIGNMENT);
+          processing_[current_id_].back()->getProcessingActions().insert(DataProcessing::ALIGNMENT);
         }
         else if (accession == "MS:1001484") //intensity normalization
         {
-          processing_[current_id_].back().getProcessingActions().insert(DataProcessing::NORMALIZATION);
+          processing_[current_id_].back()->getProcessingActions().insert(DataProcessing::NORMALIZATION);
         }
         else if (accession == "MS:1001485") //m/z calibration
         {
-          processing_[current_id_].back().getProcessingActions().insert(DataProcessing::CALIBRATION);
+          processing_[current_id_].back()->getProcessingActions().insert(DataProcessing::CALIBRATION);
         }
         else if (accession == "MS:1001486" || cv_.isChildOf(accession, "MS:1001486")) //data filtering (or child terms, we make no difference)
         {
-          processing_[current_id_].back().getProcessingActions().insert(DataProcessing::FILTERING);
+          processing_[current_id_].back()->getProcessingActions().insert(DataProcessing::FILTERING);
         }
         else
           warning(LOAD, String("Unhandled cvParam '") + accession + "' in tag '" + parent_tag + "'.");
@@ -3198,7 +3205,7 @@ protected:
       }
       else if (parent_tag == "processingMethod")
       {
-        processing_[current_id_].back().setMetaValue(name, data_value);
+        processing_[current_id_].back()->setMetaValue(name, data_value);
       }
       else if (parent_tag == "fileContent")
       {
@@ -3402,7 +3409,7 @@ protected:
     }
 
     template <typename MapType>
-    void MzMLHandler<MapType>::writeDataProcessing_(std::ostream& os, const String& id, const std::vector<DataProcessing>& dps, Internal::MzMLValidator& validator)
+    void MzMLHandler<MapType>::writeDataProcessing_(std::ostream& os, const String& id, const std::vector< boost::shared_ptr<DataProcessing> >& dps, Internal::MzMLValidator& validator)
     {
       os << "\t\t<dataProcessing id=\"" << id << "\">\n";
 
@@ -3420,88 +3427,88 @@ protected:
       {
         //data processing action
         os << "\t\t\t<processingMethod order=\"0\" softwareRef=\"so_" << id << "_pm_" << i << "\">\n";
-        if (dps[i].getProcessingActions().count(DataProcessing::DATA_PROCESSING) == 1)
+        if (dps[i]->getProcessingActions().count(DataProcessing::DATA_PROCESSING) == 1)
         {
           os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000543\" name=\"data processing action\" />\n";
           written = true;
         }
-        if (dps[i].getProcessingActions().count(DataProcessing::CHARGE_DECONVOLUTION) == 1)
+        if (dps[i]->getProcessingActions().count(DataProcessing::CHARGE_DECONVOLUTION) == 1)
         {
           os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000034\" name=\"charge deconvolution\" />\n";
           written = true;
         }
-        if (dps[i].getProcessingActions().count(DataProcessing::DEISOTOPING) == 1)
+        if (dps[i]->getProcessingActions().count(DataProcessing::DEISOTOPING) == 1)
         {
           os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000033\" name=\"deisotoping\" />\n";
           written = true;
         }
-        if (dps[i].getProcessingActions().count(DataProcessing::SMOOTHING) == 1)
+        if (dps[i]->getProcessingActions().count(DataProcessing::SMOOTHING) == 1)
         {
           os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000592\" name=\"smoothing\" />\n";
           written = true;
         }
-        if (dps[i].getProcessingActions().count(DataProcessing::CHARGE_CALCULATION) == 1)
+        if (dps[i]->getProcessingActions().count(DataProcessing::CHARGE_CALCULATION) == 1)
         {
           os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000778\" name=\"charge state calculation\" />\n";
           written = true;
         }
-        if (dps[i].getProcessingActions().count(DataProcessing::PRECURSOR_RECALCULATION) == 1)
+        if (dps[i]->getProcessingActions().count(DataProcessing::PRECURSOR_RECALCULATION) == 1)
         {
           os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000780\" name=\"precursor recalculation\" />\n";
           written = true;
         }
-        if (dps[i].getProcessingActions().count(DataProcessing::BASELINE_REDUCTION) == 1)
+        if (dps[i]->getProcessingActions().count(DataProcessing::BASELINE_REDUCTION) == 1)
         {
           os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000593\" name=\"baseline reduction\" />\n";
           written = true;
         }
-        if (dps[i].getProcessingActions().count(DataProcessing::PEAK_PICKING) == 1)
+        if (dps[i]->getProcessingActions().count(DataProcessing::PEAK_PICKING) == 1)
         {
           os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000035\" name=\"peak picking\" />\n";
           written = true;
         }
-        if (dps[i].getProcessingActions().count(DataProcessing::ALIGNMENT) == 1)
+        if (dps[i]->getProcessingActions().count(DataProcessing::ALIGNMENT) == 1)
         {
           os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000745\" name=\"retention time alignment\" />\n";
           written = true;
         }
-        if (dps[i].getProcessingActions().count(DataProcessing::CALIBRATION) == 1)
+        if (dps[i]->getProcessingActions().count(DataProcessing::CALIBRATION) == 1)
         {
           os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1001485\" name=\"m/z calibration\" />\n";
           written = true;
         }
-        if (dps[i].getProcessingActions().count(DataProcessing::NORMALIZATION) == 1)
+        if (dps[i]->getProcessingActions().count(DataProcessing::NORMALIZATION) == 1)
         {
           os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1001484\" name=\"intensity normalization\" />\n";
           written = true;
         }
-        if (dps[i].getProcessingActions().count(DataProcessing::FILTERING) == 1)
+        if (dps[i]->getProcessingActions().count(DataProcessing::FILTERING) == 1)
         {
           os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1001486\" name=\"data filtering\" />\n";
           written = true;
         }
         //file format conversion
-        if (dps[i].getProcessingActions().count(DataProcessing::FORMAT_CONVERSION) == 1)
+        if (dps[i]->getProcessingActions().count(DataProcessing::FORMAT_CONVERSION) == 1)
         {
           os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000530\" name=\"file format conversion\" />\n";
           written = true;
         }
-        if (dps[i].getProcessingActions().count(DataProcessing::CONVERSION_MZDATA) == 1)
+        if (dps[i]->getProcessingActions().count(DataProcessing::CONVERSION_MZDATA) == 1)
         {
           os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000546\" name=\"Conversion to mzData\" />\n";
           written = true;
         }
-        if (dps[i].getProcessingActions().count(DataProcessing::CONVERSION_MZML) == 1)
+        if (dps[i]->getProcessingActions().count(DataProcessing::CONVERSION_MZML) == 1)
         {
           os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000544\" name=\"Conversion to mzML\" />\n";
           written = true;
         }
-        if (dps[i].getProcessingActions().count(DataProcessing::CONVERSION_MZXML) == 1)
+        if (dps[i]->getProcessingActions().count(DataProcessing::CONVERSION_MZXML) == 1)
         {
           os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000545\" name=\"Conversion to mzXML\" />\n";
           written = true;
         }
-        if (dps[i].getProcessingActions().count(DataProcessing::CONVERSION_DTA) == 1)
+        if (dps[i]->getProcessingActions().count(DataProcessing::CONVERSION_DTA) == 1)
         {
           os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000741\" name=\"Conversion to dta\" />\n";
           written = true;
@@ -3512,12 +3519,12 @@ protected:
         }
 
         //data processing attribute
-        if (dps[i].getCompletionTime().isValid())
+        if (dps[i]->getCompletionTime().isValid())
         {
-          os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000747\" name=\"completion time\" value=\"" << dps[i].getCompletionTime().toString("yyyy-MM-dd+hh:mm").toStdString() << "\" />\n";
+          os << "\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000747\" name=\"completion time\" value=\"" << dps[i]->getCompletionTime().toString("yyyy-MM-dd+hh:mm").toStdString() << "\" />\n";
         }
 
-        writeUserParam_(os, dps[i], 4, "/mzML/dataProcessingList/dataProcessing/processingMethod/cvParam/@accession", validator);
+        writeUserParam_(os, *(dps[i].get()), 4, "/mzML/dataProcessingList/dataProcessing/processingMethod/cvParam/@accession", validator);
         os << "\t\t\t</processingMethod>\n";
       }
 
@@ -3646,7 +3653,7 @@ protected:
       int progress = 0;
       Internal::MzMLValidator validator(mapping_, cv_);
 
-      std::vector<std::vector<DataProcessing> > dps;
+      std::vector<std::vector< boost::shared_ptr<DataProcessing> > > dps;
       //--------------------------------------------------------------------------------------------
       //header
       //--------------------------------------------------------------------------------------------
@@ -3714,7 +3721,7 @@ protected:
 
     template <typename MapType>
     void MzMLHandler<MapType>::writeHeader_(std::ostream& os, const MapType& exp, 
-            std::vector<std::vector<DataProcessing> > & dps, Internal::MzMLValidator& validator)
+      std::vector<std::vector< boost::shared_ptr<DataProcessing> > > & dps, Internal::MzMLValidator& validator)
     {
       os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n";
 
@@ -3961,7 +3968,7 @@ protected:
       {
         for (Size s2 = 0; s2 != dps[s1].size(); ++s2)
         {
-          writeSoftware_(os, String("so_dp_sp_") + s1 + "_pm_" + s2, dps[s1][s2].getSoftware(), validator);
+          writeSoftware_(os, String("so_dp_sp_") + s1 + "_pm_" + s2, dps[s1][s2]->getSoftware(), validator);
         }
       }
 
@@ -4567,7 +4574,7 @@ protected:
       //default (first spectrum data or fictional data)
       if (exp.empty())
       {
-        std::vector<DataProcessing> dummy;
+        std::vector< boost::shared_ptr<DataProcessing> > dummy;
         writeDataProcessing_(os, "dp_sp_0", dummy, validator);
       }
 
@@ -4581,7 +4588,14 @@ protected:
       {
         for (Size m = 0; m < exp[s].getFloatDataArrays().size(); ++m)
         {
-          writeDataProcessing_(os, String("dp_sp_") + s + "_bi_" + m, exp[s].getFloatDataArrays()[m].getDataProcessing(), validator);
+          // TODO switch to shared ptr here
+          std::vector< boost::shared_ptr< DataProcessing> > tmp;
+          const std::vector< DataProcessing> tmp_ = exp[s].getFloatDataArrays()[m].getDataProcessing();
+          for (Size i = 0; i < tmp_.size(); i++)
+          {
+            tmp.push_back( boost::shared_ptr<DataProcessing> (new DataProcessing(tmp_[i] ) ) );
+          }
+          writeDataProcessing_(os, String("dp_sp_") + s + "_bi_" + m, tmp, validator);
         }
       }
 
@@ -4618,7 +4632,7 @@ protected:
     void MzMLHandler<MapType>::writeSpectrum_(std::ostream& os,
             const SpectrumType& spec, Size s, 
             Internal::MzMLValidator& validator, bool renew_native_ids, 
-            std::vector<std::vector<DataProcessing> > & dps)
+            std::vector<std::vector< boost::shared_ptr<DataProcessing> > > & dps)
     {
         //native id
         String native_id = spec.getNativeID();

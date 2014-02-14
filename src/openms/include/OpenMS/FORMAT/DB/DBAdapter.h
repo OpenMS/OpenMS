@@ -1016,15 +1016,16 @@ private:
       //----------------------------------------------------------------------------------------
       //-------------------------------------store DATAPROCESSING ----------------------------------
       //----------------------------------------------------------------------------------------
-      const std::vector<DataProcessing> & processings = exp_it->getDataProcessing();
+      const std::vector<boost::shared_ptr<DataProcessing> > processings = exp_it->getDataProcessing();
 
       deleteMetaInfo_("META_DataProcessing", "fid_Spectrum=" + String(exp_it->getPersistenceId()));
       query.str("");
       query << "DELETE FROM META_DataProcessing WHERE fid_Spectrum='" << exp_it->getPersistenceId() << "'";
       result = db_con_.executeQuery(query.str());
 
-      for (std::vector<DataProcessing>::const_iterator processings_it = processings.begin(); processings_it != processings.end(); processings_it++)
+      for (std::vector< boost::shared_ptr<DataProcessing> >::const_iterator ptr_it = processings.begin(); ptr_it != processings.end(); ptr_it++)
       {
+        boost::shared_ptr<DataProcessing> processings_it = *ptr_it;
         query.str("");
         query << "INSERT INTO META_DataProcessing SET ";
         query << "fid_Spectrum='" << exp_it->getPersistenceId() << "'";
@@ -1557,27 +1558,27 @@ private:
 
     while (result.next())
     {
-      DataProcessing processings;
+        boost::shared_ptr<DataProcessing> processings;
 
       try
       {
         DateTime d;
         d.set(result.value(0).toDateTime().toString(Qt::ISODate));
-        processings.setCompletionTime(d);
+        processings->setCompletionTime(d);
       }
       catch (Exception::ParseError &)
       {
         //no nothing, the date is simply unset
       }
 
-      loadMetaInfo_(result.value(1).toInt(), processings);
+      loadMetaInfo_(result.value(1).toInt(), *processings.get());
 
       query.str("");
       query << "SELECT ProcessingActionType-1 FROM META_ProcessingActions WHERE fid_DataProcessing='" << result.value(2).toInt() << "'";
       sub_result = db_con_.executeQuery(query.str());
       while (sub_result.next())
       {
-        processings.getProcessingActions().insert((DataProcessing::ProcessingAction)sub_result.value(0).toInt());
+        processings->getProcessingActions().insert((DataProcessing::ProcessingAction)sub_result.value(0).toInt());
       }
 
       query.str("");
@@ -1590,7 +1591,7 @@ private:
         sw.setVersion(sub_result.value(1).toString());
         loadMetaInfo_(sub_result.value(2).toInt(), sw);
 
-        processings.setSoftware(sw);
+        processings->setSoftware(sw);
       }
 
       spec.getDataProcessing().push_back(processings);

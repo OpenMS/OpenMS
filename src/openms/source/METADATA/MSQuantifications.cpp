@@ -196,7 +196,12 @@ namespace OpenMS
       assays_.push_back(a);
     }
 
-    data_processings_ = exp[0].getDataProcessing();             //TODO check if empty, overwrite MSExperiments inherited front method to work. [0] operator is ugly!
+    //TODO check if empty, overwrite MSExperiments inherited front method to work. [0] operator is ugly!
+    data_processings_.clear();
+    for (Size i = 0; i < exp[0].getDataProcessing().size(); i++)
+    {
+      data_processings_.push_back( *exp[0].getDataProcessing()[i].get() );
+    }
   }
   
   void MSQuantifications::registerExperiment(ExperimentalSettings & es, std::vector<DataProcessing>& dps,  std::vector<std::vector<std::pair<String, DoubleReal> > > label)

@@ -270,7 +270,7 @@ namespace OpenMS
       */
       virtual void addDataProcessing(DataProcessing d)
       {
-        additional_dataprocessing_ = d;
+        additional_dataprocessing_ = boost::shared_ptr<DataProcessing>( new DataProcessing(d) );
         add_dataprocessing_ = true;
       }
 
@@ -358,9 +358,9 @@ namespace OpenMS
       /// Experimental settings to use for the whole file
       ExperimentalSettings settings_;
       /// Vector of data processing objects -> will be filled by writeHeader_
-      std::vector<std::vector<DataProcessing> > dps_;
+      std::vector<std::vector< boost::shared_ptr<DataProcessing> > > dps_;
       /// The dataprocessing to be added to each spectrum/chromatogram
-      DataProcessing additional_dataprocessing_;
+      boost::shared_ptr< DataProcessing > additional_dataprocessing_;
     };
 
     /**

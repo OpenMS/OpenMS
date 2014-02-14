@@ -834,14 +834,15 @@ protected:
     template <typename PeakType, typename CT>
     void addDataProcessing_(MSExperiment<PeakType, CT>& map, const DataProcessing& dp) const
     {
+      boost::shared_ptr< DataProcessing > dp_(new DataProcessing(dp));
       for (Size i = 0; i < map.size(); ++i)
       {
-        map[i].getDataProcessing().push_back(dp);
+        map[i].getDataProcessing().push_back(dp_);
       }
       std::vector<MSChromatogram<CT> > chromatograms = map.getChromatograms();
       for (Size i = 0; i < chromatograms.size(); ++i)
       {
-        chromatograms[i].getDataProcessing().push_back(dp);
+        chromatograms[i].getDataProcessing().push_back(dp_);
       }
       map.setChromatograms(chromatograms);
     }

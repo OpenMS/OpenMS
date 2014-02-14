@@ -284,9 +284,8 @@ public:
 
         for (Size i = 0; i < settings.getDataProcessing().size(); ++i)
         {
-          DataProcessing dp = settings.getDataProcessing()[i];
-          dp.setMetaValue("performed_on_spectra", "true");
-          chrom.getDataProcessing().push_back(dp);
+          settings.getDataProcessing()[i]->setMetaValue("performed_on_spectra", "true");
+          chrom.getDataProcessing().push_back(settings.getDataProcessing()[i]);
         }
         output_chromatograms.push_back(chrom);
       }
@@ -490,9 +489,8 @@ private:
 
         for (Size i = 0; i < settings.getDataProcessing().size(); ++i)
         {
-          DataProcessing dp = settings.getDataProcessing()[i];
-          dp.setMetaValue("performed_on_spectra", "true");
-          chrom.getDataProcessing().push_back(dp);
+          settings.getDataProcessing()[i]->setMetaValue("performed_on_spectra", "true");
+          chrom.getDataProcessing().push_back(settings.getDataProcessing()[i]);
         }
 
         // Set the id of the chromatogram, using the id of the transition (this gives directly the mapping of the two)
