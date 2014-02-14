@@ -217,21 +217,6 @@ namespace OpenMS
     native_id_ = native_id;
   }
 
-  const vector<DataProcessing> & ChromatogramSettings::getDataProcessing() const
-  {
-    return data_processing_;
-  }
-
-  vector<DataProcessing> & ChromatogramSettings::getDataProcessing()
-  {
-    return data_processing_;
-  }
-
-  void ChromatogramSettings::setDataProcessing(const vector<DataProcessing> & processing_method)
-  {
-    data_processing_ = processing_method;
-  }
-
   ChromatogramSettings::ChromatogramType ChromatogramSettings::getChromatogramType() const
   {
     return type_;
@@ -240,6 +225,21 @@ namespace OpenMS
   void ChromatogramSettings::setChromatogramType(ChromatogramType type)
   {
     type_ = type;
+  }
+
+  void ChromatogramSettings::setDataProcessing(const std::vector< boost::shared_ptr<DataProcessing> > & data_processing)
+  {
+    data_processing_ = data_processing;
+  }
+
+  std::vector< boost::shared_ptr<DataProcessing> > & ChromatogramSettings::getDataProcessing()
+  {
+    return data_processing_;
+  }
+
+  const std::vector< boost::shared_ptr<DataProcessing> > & ChromatogramSettings::getDataProcessing() const
+  {
+    return data_processing_;
   }
 
 }
