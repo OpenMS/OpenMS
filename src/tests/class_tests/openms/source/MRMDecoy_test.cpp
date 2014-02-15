@@ -82,8 +82,8 @@ START_SECTION((std::pair<String, DoubleReal> getDecoyIon(String ionid, std::map<
 	int precursor_charge = 2;
 
 	MRMDecoy::IonSeries reference_ionseries = gen.getIonSeries(aas, precursor_charge);
-	std::pair<String, double> targetion = gen.getTargetIon(ProductMZ,mz_threshold, reference_ionseries);
-	std::pair<String, double> decoyion = gen.getDecoyIon("b7/2+", reference_ionseries);
+  std::pair<String, double> targetion = gen.getTargetIon(ProductMZ,mz_threshold, reference_ionseries, 1, 1);
+  std::pair<String, double> decoyion = gen.getDecoyIon("b7/2+", reference_ionseries);
 	std::pair<String, double> decoyion_missing = gen.getDecoyIon("b17/2+", reference_ionseries);
 
 	TEST_EQUAL(targetion.first,"b7/2+")
@@ -317,8 +317,7 @@ START_SECTION((void generateDecoys(OpenMS::TargetedExperiment& exp,
   decoys.restrictTransitions(targeted_exp, min_transitions, max_transitions);
   TEST_EQUAL(targeted_exp.getPeptides().size(), 13)
   TEST_EQUAL(targeted_exp.getTransitions().size(), 33)
-  decoys.generateDecoys(targeted_exp, targeted_decoy, method, decoy_tag, identity_threshold, max_attempts, mz_threshold, theoretical, mz_shift, exclude_similar, similarity_threshold, remove_CNterminal_mods, 0.1);
-  traml.store(test, targeted_decoy);
+  decoys.generateDecoys(targeted_exp, targeted_decoy, method, decoy_tag, identity_threshold, max_attempts, mz_threshold, theoretical, mz_shift, exclude_similar, similarity_threshold, remove_CNterminal_mods, 0.1, 1, 1);  traml.store(test, targeted_decoy);
   
   TEST_FILE_EQUAL(test.c_str(), OPENMS_GET_TEST_DATA_PATH(out))
 }
@@ -328,6 +327,45 @@ START_SECTION(void restrictTransitions(OpenMS::TargetedExperiment &exp, int min_
 {
   // see above
   NOT_TESTABLE
+}
+END_SECTION
+
+START_SECTION((extra))
+{    
+  MRMDecoy gen;
+
+  AASequence target_sequence = AASequence("ADSTGTLVITDPTR(UniMod:267)");
+  AASequence decoy_sequence = AASequence("ALDSTTGVDTTPIR(UniMod:267)");
+  MRMDecoy::IonSeries target_ionseries = gen.getIonSeries(target_sequence, 2);
+  MRMDecoy::IonSeries decoy_ionseries = gen.getIonSeries(decoy_sequence, 2);
+
+  {
+    double target_mz = 924.539;
+    double mz_threshold = 0.1;
+
+    std::pair<String, double> targetion = gen.getTargetIon(target_mz, mz_threshold, target_ionseries, 1, 1);
+    std::pair<String, double> decoyion = gen.getDecoyIon(targetion.first, decoy_ionseries);
+
+    TEST_EQUAL(targetion.first,"y8/1+")
+    TEST_REAL_SIMILAR(targetion.second, 924.539)
+
+    TEST_EQUAL(decoyion.first,"y8/1+")
+    TEST_REAL_SIMILAR(decoyion.second, 868.47682)
+  }
+
+  {
+    double target_mz = 1082.608;
+    double mz_threshold = 0.8;
+
+    std::pair<String, double> targetion = gen.getTargetIon(target_mz, mz_threshold, target_ionseries, 1, 1);
+    std::pair<String, double> decoyion = gen.getDecoyIon(targetion.first, decoy_ionseries);
+
+    TEST_EQUAL(targetion.first,"y10/1+")
+    TEST_REAL_SIMILAR(targetion.second, 1082.60856)
+
+    TEST_EQUAL(decoyion.first,"y10/1+")
+    TEST_REAL_SIMILAR(decoyion.second, 1070.57217)
+  }
 }
 END_SECTION
 /////////////////////////////////////////////////////////////
