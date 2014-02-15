@@ -36,7 +36,7 @@
 # This cmake file handles finding external libs for OpenMS
 
 set(CONTRIB_CUSTOM_DIR CACHE DOC "DEPRECATED: Please use CMAKE_FIND_ROOT_PATH instead! User defined location of contrib dir. If left empty we assume the contrib to be in OpenMS/contrib!")
-set(CONTRIB_DIR ${PROJECT_SOURCE_DIR}/contrib/ CACHE INTERNAL "Final contrib path after looking at CMAKE_FIND_ROOT_PATH. Defaults to OpenMS/contrib")
+set(CONTRIB_DIR ${OPENMS_HOST_DIRECTORY}/contrib/ CACHE INTERNAL "Final contrib path after looking at CMAKE_FIND_ROOT_PATH. Defaults to OpenMS/contrib")
 
 if("${CMAKE_FIND_ROOT_PATH}" STREQUAL "")
 	if(NOT "${CONTRIB_CUSTOM_DIR}" STREQUAL "")

@@ -184,6 +184,11 @@ if (MSVC)
 	SET(CMAKE_DEBUG_POSTFIX d)
 endif()
 
+########################################################
+###    external libs (contrib or system)						 ###
+########################################################
+include(${OPENMS_HOST_DIRECTORY}/cmake/OpenMSBuildSystem_externalLibs.cmake)
+
 #------------------------------------------------------------------------------
 # The actual openms code
 #------------------------------------------------------------------------------
