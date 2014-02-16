@@ -179,6 +179,22 @@ public:
     /// Get numpress configuration options for intensity dimension
     void setNumpressConfigurationIntensity(MSNumpressCoder::NumpressConfig config);
 
+    /**
+        @name Data pool size options
+
+        Some file readers and writers can process the data in parallel by
+        reading in parts of the file and keeping it in memory and then process
+        this partial data in parallel. This parameter specifies how many
+        data points (spectra/chromatograms) should be read before parallel
+        processing is initiated.
+    */
+    //@{
+    /// Get maximal size of the data pool
+    Size getMaxDataPoolSize() const;
+    /// Set maximal size of the data pool
+    void getMaxDataPoolSize(Size size);
+    //@}
+
 private:
     bool metadata_only_;
     bool write_supplemental_data_;
@@ -198,6 +214,7 @@ private:
     bool write_index_;
     MSNumpressCoder::NumpressConfig np_config_mz_;
     MSNumpressCoder::NumpressConfig np_config_int_;
+    Size maximal_data_pool_size_;
   };
 
 } // namespace OpenMS

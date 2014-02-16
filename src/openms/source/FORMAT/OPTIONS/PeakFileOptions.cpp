@@ -58,7 +58,8 @@ namespace OpenMS
     fill_data_(true),
     write_index_(false), 
     np_config_mz_(),
-    np_config_int_()
+    np_config_int_(),
+    maximal_data_pool_size_(100)
   {
   }
 
@@ -80,7 +81,8 @@ namespace OpenMS
     fill_data_(options.fill_data_),
     write_index_(options.write_index_),
     np_config_mz_(options.np_config_mz_),
-    np_config_int_(options.np_config_int_)
+    np_config_int_(options.np_config_int_),
+    maximal_data_pool_size_(options.maximal_data_pool_size_)
   {
   }
 
@@ -278,6 +280,16 @@ namespace OpenMS
   void PeakFileOptions::setNumpressConfigurationIntensity(MSNumpressCoder::NumpressConfig config)
   {
     np_config_int_ = config;
+  }
+
+  Size PeakFileOptions::getMaxDataPoolSize() const
+  {
+    return maximal_data_pool_size_;
+  }
+
+  void PeakFileOptions::getMaxDataPoolSize(Size size)
+  {
+    maximal_data_pool_size_ = size;
   }
 
 } // namespace OpenMS
