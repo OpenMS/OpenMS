@@ -192,7 +192,7 @@ public:
     /// Get maximal size of the data pool
     Size getMaxDataPoolSize() const;
     /// Set maximal size of the data pool
-    void getMaxDataPoolSize(Size size);
+    void setMaxDataPoolSize(Size size);
     //@}
 
 private:

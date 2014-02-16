@@ -287,7 +287,7 @@ namespace OpenMS
     return maximal_data_pool_size_;
   }
 
-  void PeakFileOptions::getMaxDataPoolSize(Size size)
+  void PeakFileOptions::setMaxDataPoolSize(Size size)
   {
     maximal_data_pool_size_ = size;
   }
