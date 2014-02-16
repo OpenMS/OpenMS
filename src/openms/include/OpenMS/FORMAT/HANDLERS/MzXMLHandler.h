@@ -50,6 +50,7 @@ namespace OpenMS
 
   namespace Internal
   {
+
     /**
       @brief XML handlers for MzXMLFile
 
@@ -69,8 +70,7 @@ public:
         exp_(&exp),
         cexp_(0),
         decoder_(),
-        peak_count_(0),
-        char_rest_(),
+        nesting_level_(0),
         skip_spectrum_(false),
         spec_write_counter_(1),
         logger_(logger)
@@ -84,8 +84,7 @@ public:
         exp_(0),
         cexp_(&exp),
         decoder_(),
-        peak_count_(0),
-        char_rest_(),
+        nesting_level_(0),
         skip_spectrum_(false),
         spec_write_counter_(1),
         logger_(logger)
@@ -96,9 +95,46 @@ public:
       /// Destructor
       virtual ~MzXMLHandler()
       {
+        populateSpectraWithData();
       }
 
       //@}
+
+      void populateSpectraWithData()
+      {
+
+        // Whether spectrum should be populated with data
+        if (options_.getFillData())
+        {
+          size_t errCount = 0;
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
+          for (Size i = 0; i < spectrum_data_.size(); i++)
+          {
+            // parallel exception catching and re-throwing business
+            try 
+            {
+              populateSpectraWithData_(spectrum_data_[i]);
+            }
+            catch (...)
+            {++errCount;}
+          }
+          if (errCount != 0)
+          {
+            throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, file_, "Error during parsing of binary data.");
+          }
+        }
+
+        // Append all spectra
+        for (Size i = 0; i < spectrum_data_.size(); i++)
+        {
+          exp_->addSpectrum(spectrum_data_[i].spectrum);
+        }
+
+        // Delete batch
+        spectrum_data_.clear();
+      }
 
       // Docu in base class
       virtual void endElement(const XMLCh* const uri, const XMLCh* const local_name, const XMLCh* const qname);
@@ -176,11 +212,21 @@ protected:
       /**@name temporary data structures to hold parsed data */
       //@{
       Base64 decoder_;
-      UInt peak_count_;
-      String precision_;
-      String compressionType_;
-      String char_rest_;
+      Int nesting_level_;
       //@}
+
+      struct SpectrumData 
+      {
+        UInt peak_count_;
+        String precision_;
+        String compressionType_;
+        String char_rest_;
+        SpectrumType spectrum;
+        bool skip_data;
+      };
+
+      /// Vector of spectrum data stored for later parallel processing
+      std::vector< SpectrumData > spectrum_data_;
 
       /// Flag that indicates whether this spectrum should be skipped (due to options)
       bool skip_spectrum_;
@@ -208,6 +254,77 @@ protected:
 
       /// data processing auxiliary variable
       std::vector<DataProcessing> data_processing_;
+
+    //void populateSpectraWithData_(std::vector< SpectrumData >& spectrum_data_)
+    void populateSpectraWithData_(SpectrumData & spectrum_data)
+    {
+      typedef typename SpectrumType::PeakType PeakType;
+      Base64 decoder_;
+
+      //std::cout << "reading scan" << "\n";
+      if (spectrum_data.char_rest_ == "") // no peaks
+      {
+        return;
+      }
+
+      //remove whitespaces from binary data
+      //this should not be necessary, but linebreaks inside the base64 data are unfortunately no exception
+      spectrum_data.char_rest_.removeWhitespaces();
+
+      if (spectrum_data.precision_ == "64")
+      {
+        std::vector<DoubleReal> data;
+        if (spectrum_data.compressionType_ == "zlib")
+        {
+          decoder_.decode(spectrum_data.char_rest_, Base64::BYTEORDER_BIGENDIAN, data, true);
+        }
+        else
+        {
+          decoder_.decode(spectrum_data.char_rest_, Base64::BYTEORDER_BIGENDIAN, data);
+        }
+        spectrum_data.char_rest_ = "";
+        PeakType peak;
+        //push_back the peaks into the container
+        for (Size n = 0; n < (2 * spectrum_data.peak_count_); n += 2)
+        {
+          // check if peak in in the specified m/z  and intensity range
+          if ((!options_.hasMZRange() || options_.getMZRange().encloses(DPosition<1>(data[n])))
+             && (!options_.hasIntensityRange() || options_.getIntensityRange().encloses(DPosition<1>(data[n + 1]))))
+          {
+            peak.setMZ(data[n]);
+            peak.setIntensity(data[n + 1]);
+            spectrum_data.spectrum.push_back(peak);
+          }
+        }
+      }
+      else //precision 32
+      {
+        std::vector<Real> data;
+        if (spectrum_data.compressionType_ == "zlib")
+        {
+          decoder_.decode(spectrum_data.char_rest_, Base64::BYTEORDER_BIGENDIAN, data, true);
+        }
+        else
+        {
+          decoder_.decode(spectrum_data.char_rest_, Base64::BYTEORDER_BIGENDIAN, data);
+        }
+        spectrum_data.char_rest_ = "";
+        PeakType peak;
+        //push_back the peaks into the container
+        for (Size n = 0; n < (2 * spectrum_data.peak_count_); n += 2)
+        {
+          if ((!options_.hasMZRange() || options_.getMZRange().encloses(DPosition<1>(data[n])))
+             && (!options_.hasIntensityRange() || options_.getIntensityRange().encloses(DPosition<1>(data[n + 1]))))
+          {
+            peak.setMZ(data[n]);
+            peak.setIntensity(data[n + 1]);
+            spectrum_data.spectrum.push_back(peak);
+          }
+        }
+      }
+    }
+
+
 
 private:
       /// Not implemented
@@ -365,8 +482,12 @@ private:
     const XMLCh * MzXMLHandler<MapType>::s_chargedeconvoluted_ = 0;
 
     template <typename MapType>
-    void MzXMLHandler<MapType>::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
+    void MzXMLHandler<MapType>::startElement(const XMLCh* const /*uri*/, 
+            const XMLCh* const /*local_name*/, const XMLCh* const qname,
+            const xercesc::Attributes& attributes)
     {
+      OPENMS_PRECONDITION(nesting_level_ >= 0, "Nesting level needs to be zero or more")
+
       static bool init_static_members(false);
       if (!init_static_members)
       {
@@ -423,11 +544,11 @@ private:
       else if (tag == "peaks")
       {
         //precision
-        precision_ = "32";
-        optionalAttributeAsString_(precision_, attributes, s_precision_);
-        if (precision_ != "32" && precision_ != "64")
+        spectrum_data_.back().precision_ = "32";
+        optionalAttributeAsString_(spectrum_data_.back().precision_, attributes, s_precision_);
+        if (spectrum_data_.back().precision_ != "32" && spectrum_data_.back().precision_ != "64")
         {
-          error(LOAD, String("Invalid precision '") + precision_ + "' in element 'peaks'");
+          error(LOAD, String("Invalid precision '") + spectrum_data_.back().precision_ + "' in element 'peaks'");
         }
         //byte order
         String byte_order = "network";
@@ -444,21 +565,21 @@ private:
           error(LOAD, String("Invalid or missing pair order '") + pair_order + "' in element 'peaks'. Must be 'm/z-int'!");
         }
         //compressionType
-        compressionType_ = "none";
-        optionalAttributeAsString_(compressionType_, attributes, s_compressionType_);
-        if (compressionType_ != "none" && compressionType_ != "zlib")
+        spectrum_data_.back().compressionType_ = "none";
+        optionalAttributeAsString_(spectrum_data_.back().compressionType_, attributes, s_compressionType_);
+        if (spectrum_data_.back().compressionType_ != "none" && spectrum_data_.back().compressionType_ != "zlib")
         {
-          error(LOAD, String("Invalid compression type ") +  compressionType_ + "in elements 'peaks'. Must be 'none' or 'zlib'! ");
+          error(LOAD, String("Invalid compression type ") +  spectrum_data_.back().compressionType_ + "in elements 'peaks'. Must be 'none' or 'zlib'! ");
         }
       }
       else if (tag == "precursorMz")
       {
         //add new precursor
-        exp_->getSpectra().back().getPrecursors().push_back(Precursor());
+        spectrum_data_.back().spectrum.getPrecursors().push_back(Precursor());
         //intensity
         try
         {
-          exp_->getSpectra().back().getPrecursors().back().setIntensity(attributeAsDouble_(attributes, s_precursorintensity_));
+          spectrum_data_.back().spectrum.getPrecursors().back().setIntensity(attributeAsDouble_(attributes, s_precursorintensity_));
         }
         catch (Exception::ParseError& /*e*/)
         {
@@ -468,18 +589,19 @@ private:
         Int charge = 0;
         if (optionalAttributeAsInt_(charge, attributes, s_precursorcharge_))
         {
-          exp_->getSpectra().back().getPrecursors().back().setCharge(charge);
+          spectrum_data_.back().spectrum.getPrecursors().back().setCharge(charge);
         }
         //window bounds (here only the width is stored in both fields - this is corrected when we parse the m/z position)
         DoubleReal window = 0.0;
         if (optionalAttributeAsDouble_(window, attributes, s_windowwideness_))
         {
-          exp_->getSpectra().back().getPrecursors().back().setIsolationWindowLowerOffset(window);
+          spectrum_data_.back().spectrum.getPrecursors().back().setIsolationWindowLowerOffset(window);
         }
       }
       else if (tag == "scan")
       {
         skip_spectrum_ = false;
+        nesting_level_++;
 
         if (options_.getMetadataOnly())
           throw EndParsingSoftly(__FILE__, __LINE__, __PRETTY_FUNCTION__);
@@ -530,15 +652,17 @@ private:
           return;
         }
 
-        //Add a new spectrum and set MS level and RT
-        exp_->resize(exp_->size() + 1);
-        exp_->getSpectra().back().setMSLevel(ms_level);
-        exp_->getSpectra().back().setRT(retention_time);
-        exp_->getSpectra().back().setNativeID(String("scan=") + attributeAsString_(attributes, s_num_));
+        // Add a new spectrum, initialize and set MS level and RT
+        spectrum_data_.resize(spectrum_data_.size() + 1); // TODO !! 
+        spectrum_data_.back().peak_count_ = 0; 
+
+        spectrum_data_.back().spectrum.setMSLevel(ms_level);
+        spectrum_data_.back().spectrum.setRT(retention_time);
+        spectrum_data_.back().spectrum.setNativeID(String("scan=") + attributeAsString_(attributes, s_num_));
         //peak count == twice the scan size
-        peak_count_ = attributeAsInt_(attributes, s_peakscount_);
-        exp_->getSpectra().back().reserve(peak_count_ / 2 + 1);
-        exp_->getSpectra().back().setDataProcessing(data_processing_);
+        spectrum_data_.back().peak_count_ = attributeAsInt_(attributes, s_peakscount_);
+        spectrum_data_.back().spectrum.reserve(spectrum_data_.back().peak_count_ / 2 + 1);
+        spectrum_data_.back().spectrum.setDataProcessing(data_processing_);
 
         //centroided, chargeDeconvoluted, deisotoped, collisionEnergy are ignored
 
@@ -548,12 +672,12 @@ private:
         optionalAttributeAsDouble_(window.end, attributes, s_endmz_);
         if (window.begin != 0.0 || window.end != 0.0)
         {
-          exp_->getSpectra().back().getInstrumentSettings().getScanWindows().push_back(window);
+          spectrum_data_.back().spectrum.getInstrumentSettings().getScanWindows().push_back(window);
         }
 
         String polarity = "any";
         optionalAttributeAsString_(polarity, attributes, s_polarity_);
-        exp_->getSpectra().back().getInstrumentSettings().setPolarity((IonSource::Polarity) cvStringToEnum_(0, polarity, "polarity"));
+        spectrum_data_.back().spectrum.getInstrumentSettings().setPolarity((IonSource::Polarity) cvStringToEnum_(0, polarity, "polarity"));
 
         String type = "";
         optionalAttributeAsString_(type, attributes, s_scantype_);
@@ -563,53 +687,53 @@ private:
         }
         else if (type == "zoom")
         {
-          exp_->getSpectra().back().getInstrumentSettings().setZoomScan(true);
-          exp_->getSpectra().back().getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
+          spectrum_data_.back().spectrum.getInstrumentSettings().setZoomScan(true);
+          spectrum_data_.back().spectrum.getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
         }
         else if (type == "Full")
         {
           if (ms_level > 1)
-            exp_->getSpectra().back().getInstrumentSettings().setScanMode(InstrumentSettings::MSNSPECTRUM);
+            spectrum_data_.back().spectrum.getInstrumentSettings().setScanMode(InstrumentSettings::MSNSPECTRUM);
           else
-            exp_->getSpectra().back().getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
+            spectrum_data_.back().spectrum.getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
         }
         else if (type == "SIM")
         {
-          exp_->getSpectra().back().getInstrumentSettings().setScanMode(InstrumentSettings::SIM);
+          spectrum_data_.back().spectrum.getInstrumentSettings().setScanMode(InstrumentSettings::SIM);
         }
         else if (type == "SRM" || type == "MRM")
         {
-          exp_->getSpectra().back().getInstrumentSettings().setScanMode(InstrumentSettings::SRM);
+          spectrum_data_.back().spectrum.getInstrumentSettings().setScanMode(InstrumentSettings::SRM);
         }
         else if (type == "CRM")
         {
-          exp_->getSpectra().back().getInstrumentSettings().setScanMode(InstrumentSettings::CRM);
+          spectrum_data_.back().spectrum.getInstrumentSettings().setScanMode(InstrumentSettings::CRM);
         }
         else if (type == "Q1")
         {
-          exp_->getSpectra().back().getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
+          spectrum_data_.back().spectrum.getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
         }
         else if (type == "Q3")
         {
-          exp_->getSpectra().back().getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
+          spectrum_data_.back().spectrum.getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
         }
         else if (type == "EMS") //Non-standard type: Enhanced MS (ABI - Sashimi converter)
         {
-          exp_->getSpectra().back().getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
+          spectrum_data_.back().spectrum.getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
         }
         else if (type == "EPI") //Non-standard type: Enhanced Product Ion (ABI - Sashimi converter)
         {
-          exp_->getSpectra().back().getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
-          exp_->getSpectra().back().setMSLevel(2);
+          spectrum_data_.back().spectrum.getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
+          spectrum_data_.back().spectrum.setMSLevel(2);
         }
         else if (type == "ER") // Non-standard type: Enhanced Resolution (ABI - Sashimi converter)
         {
-          exp_->getSpectra().back().getInstrumentSettings().setZoomScan(true);
-          exp_->getSpectra().back().getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
+          spectrum_data_.back().spectrum.getInstrumentSettings().setZoomScan(true);
+          spectrum_data_.back().spectrum.getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
         }
         else
         {
-          exp_->getSpectra().back().getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
+          spectrum_data_.back().spectrum.getInstrumentSettings().setScanMode(InstrumentSettings::MASSSPECTRUM);
           warning(LOAD, String("Unknown scan mode '") + type + "'. Assuming full scan");
         }
 
@@ -713,7 +837,7 @@ private:
         }
         else if (parent_tag == "scan")
         {
-          exp_->getSpectra().back().setMetaValue(name, value);
+          spectrum_data_.back().spectrum.setMetaValue(name, value);
         }
         else
         {
@@ -739,93 +863,35 @@ private:
     template <typename MapType>
     void MzXMLHandler<MapType>::endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname)
     {
+      OPENMS_PRECONDITION(nesting_level_ >= 0, "Nesting level needs to be zero or more")
+
       //std::cout << " -- End -- " << sm_.convert(qname) << " -- " << "\n";
 
       static const XMLCh* s_mzxml = xercesc::XMLString::transcode("mzXML");
       static const XMLCh* s_peaks = xercesc::XMLString::transcode("peaks");
+      static const XMLCh* s_scan = xercesc::XMLString::transcode("scan");
 
       open_tags_.pop_back();
 
-      //abort if this scan should be skipped
-      if (skip_spectrum_)
-        return;
-
       if (equal_(qname, s_mzxml))
       {
+        // End of mzXML
         logger_.endProgress();
       }
-      else if (equal_(qname, s_peaks) && options_.getFillData())
+      else if (equal_(qname, s_scan))
       {
-        //std::cout << "reading scan" << "\n";
-        if (char_rest_ == "") // no peaks
-        {
-          return;
-        }
+        // End of scan: go up one nesting level
+        // Check whether to populate spectra when on highest nesting level
+        nesting_level_--;
+        OPENMS_PRECONDITION(nesting_level_ >= 0, "Nesting level needs to be zero or more")
 
-        //remove whitespaces from binary data
-        //this should not be necessary, but linebreaks inside the base64 data are unfortunately no exception
-        char_rest_.removeWhitespaces();
-
-        if (precision_ == "64")
+        if (nesting_level_ == 0 && spectrum_data_.size() >= options_.getMaxDataPoolSize())
         {
-          std::vector<DoubleReal> data;
-          if (compressionType_ == "zlib")
-          {
-            decoder_.decode(char_rest_, Base64::BYTEORDER_BIGENDIAN, data, true);
-          }
-          else
-          {
-            decoder_.decode(char_rest_, Base64::BYTEORDER_BIGENDIAN, data);
-          }
-          char_rest_ = "";
-          PeakType peak;
-          //push_back the peaks into the container
-          for (Size n = 0; n < (2 * peak_count_); n += 2)
-          {
-            // check if peak in in the specified m/z  and intensity range
-            if ((!options_.hasMZRange() || options_.getMZRange().encloses(DPosition<1>(data[n])))
-               && (!options_.hasIntensityRange() || options_.getIntensityRange().encloses(DPosition<1>(data[n + 1]))))
-            {
-              peak.setMZ(data[n]);
-              peak.setIntensity(data[n + 1]);
-              exp_->getSpectra().back().push_back(peak);
-            }
-          }
-        }
-        else //precision 32
-        {
-          std::vector<Real> data;
-          if (compressionType_ == "zlib")
-          {
-            decoder_.decode(char_rest_, Base64::BYTEORDER_BIGENDIAN, data, true);
-          }
-          else
-          {
-            decoder_.decode(char_rest_, Base64::BYTEORDER_BIGENDIAN, data);
-          }
-          char_rest_ = "";
-          PeakType peak;
-          //push_back the peaks into the container
-          for (Size n = 0; n < (2 * peak_count_); n += 2)
-          {
-            if ((!options_.hasMZRange() || options_.getMZRange().encloses(DPosition<1>(data[n])))
-               && (!options_.hasIntensityRange() || options_.getIntensityRange().encloses(DPosition<1>(data[n + 1]))))
-            {
-              peak.setMZ(data[n]);
-              peak.setIntensity(data[n + 1]);
-              exp_->getSpectra().back().push_back(peak);
-            }
-          }
+          populateSpectraWithData();
         }
       }
       //std::cout << " -- End -- " << "\n";
       sm_.clear();
-
-      if (equal_(qname, s_peaks) )
-      {
-        // Ensure that the characters are cleared
-        char_rest_.clear();
-      }
     }
 
     template <typename MapType>
@@ -841,7 +907,7 @@ private:
         if (options_.getFillData()) 
         {
           // Since we convert a Base64 string here, it can only contain plain ASCII
-          sm_.appendASCII(chars, length, char_rest_);
+          sm_.appendASCII(chars, length, spectrum_data_.back().char_rest_);
         }
       }
       else if (open_tags_.back() == "offset" || open_tags_.back() == "indexOffset" || open_tags_.back() == "sha1")
@@ -853,13 +919,13 @@ private:
         char* transcoded_chars = sm_.convert(chars);
         DoubleReal mz_pos = asDouble_(transcoded_chars);
         //precursor m/z
-        exp_->getSpectra().back().getPrecursors().back().setMZ(mz_pos);
+        spectrum_data_.back().spectrum.getPrecursors().back().setMZ(mz_pos);
         //update window bounds - center them around the m/z pos
-        DoubleReal window_width = exp_->getSpectra().back().getPrecursors().back().getIsolationWindowLowerOffset();
+        DoubleReal window_width = spectrum_data_.back().spectrum.getPrecursors().back().getIsolationWindowLowerOffset();
         if (window_width != 0.0)
         {
-          exp_->getSpectra().back().getPrecursors().back().setIsolationWindowLowerOffset(0.5 * window_width);
-          exp_->getSpectra().back().getPrecursors().back().setIsolationWindowUpperOffset(0.5 * window_width);
+          spectrum_data_.back().spectrum.getPrecursors().back().setIsolationWindowLowerOffset(0.5 * window_width);
+          spectrum_data_.back().spectrum.getPrecursors().back().setIsolationWindowUpperOffset(0.5 * window_width);
         }
       }
       else if (open_tags_.back() == "comment")
@@ -878,7 +944,7 @@ private:
         }
         else if (parent_tag == "scan")
         {
-          exp_->getSpectra().back().setComment(transcoded_chars);
+          spectrum_data_.back().spectrum.setComment(transcoded_chars);
         }
         else if (String(transcoded_chars).trim() != "")
         {
