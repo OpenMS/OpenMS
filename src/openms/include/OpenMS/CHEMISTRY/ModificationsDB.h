@@ -36,6 +36,7 @@
 #define OPENMS_CHEMISTRY_MODIFICATIONSDB_H
 
 #include <OpenMS/DATASTRUCTURES/Map.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 
 #include <set>

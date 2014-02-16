@@ -40,6 +40,7 @@
 
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <iostream>
 
 using namespace OpenMS;
