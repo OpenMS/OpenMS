@@ -303,6 +303,67 @@ namespace OpenMS
     }
   }
 
+  const ResidueModification * ModificationsDB::getBestModificationsByMonoMass(const String & residue, DoubleReal mass, DoubleReal max_error)
+  {
+    DoubleReal min_error = max_error;
+    const ResidueModification * res = NULL;
+    const Residue* residue_ = ResidueDB::getInstance()->getResidue(residue);
+    for (vector<ResidueModification *>::const_iterator it = mods_.begin(); it != mods_.end(); ++it)
+    {
+      // using less instead of less-or-equal will pick the first matching
+      // modification of equally heavy modifications (in our case this is the
+      // first UniMod entry)
+      if (fabs((*it)->getMonoMass() - mass) < min_error )
+      {
+        String origin = (*it)->getOrigin();
+        if (ResidueDB::getInstance()->getResidue(origin) == residue_)
+        {
+          min_error = fabs((*it)->getMonoMass() - mass);
+          res = *it;
+        }
+      }
+
+      // Since not all modifications have a monoisotopic mass stored (they may
+      // map to multiple residues), we calculate a monoisotopic mass from the
+      // delta mass.
+      // First the internal (inside an AA chain) weight of the residue.
+      double internal_weight = residue_->getMonoWeight() - residue_->getInternalToFullMonoWeight(); 
+      if ( fabs((*it)->getDiffMonoMass() + internal_weight - mass) < min_error)
+      {
+        String origin = (*it)->getOrigin();
+        if (ResidueDB::getInstance()->getResidue(origin) == residue_)
+        {
+          min_error = fabs((*it)->getDiffMonoMass() + internal_weight - mass);
+          res = *it;
+        }
+      }
+    }
+    return res;
+  }
+
+  const ResidueModification * ModificationsDB::getBestModificationsByDiffMonoMass(const String & residue, DoubleReal mass, DoubleReal max_error)
+  {
+    DoubleReal min_error = max_error;
+    const ResidueModification * res = NULL;
+    const Residue* residue_ = ResidueDB::getInstance()->getResidue(residue);
+    for (vector<ResidueModification *>::const_iterator it = mods_.begin(); it != mods_.end(); ++it)
+    {
+      // using less instead of less-or-equal will pick the first matching
+      // modification of equally heavy modifications (in our case this is the
+      // first UniMod entry)
+      if (fabs((*it)->getDiffMonoMass() - mass) < min_error)
+      {
+        String origin = (*it)->getOrigin();
+        if (ResidueDB::getInstance()->getResidue(origin) == residue_)
+        {
+          min_error = fabs((*it)->getDiffMonoMass() - mass);
+          res = *it;
+        }
+      }
+    }
+    return res;
+  }
+
   void ModificationsDB::readFromUnimodXMLFile(const String & filename)
   {
     vector<ResidueModification *> new_mods;
