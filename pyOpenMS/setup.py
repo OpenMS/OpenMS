@@ -8,19 +8,19 @@ import sys
 iswin = sys.platform == "win32"
 
 # import config
-from env import *
+from env import  (OPEN_MS_SRC, OPEN_MS_BUILD_DIR, OPEN_MS_CONTRIB_BUILD_DIRS, QT_HEADERS_DIR,
+                  QT_LIBRARY_DIR, QT_QTCORE_INCLUDE_DIR, MSVCR90DLL, MSVCP90DLL,
+                  OPEN_MS_BUILD_TYPE, OPEN_MS_VERSION, LIBRARIES_EXTEND, LIBRARY_DIRS_EXTEND,
+                  OPEN_MS_LIB, OPEN_SWATH_ALGO_LIB)
+
 IS_DEBUG = OPEN_MS_BUILD_TYPE.upper() == "DEBUG"
 
 if iswin and IS_DEBUG:
     raise Exception("building pyopenms on windows in debug mode not tested yet.")
 
 # use autowrap to generate Cython and .cpp file for wrapping OpenMS:
-import autowrap.Main
-import glob
 import cPickle
-import os.path
 import os
-import shutil
 
 j = os.path.join
 
@@ -30,9 +30,15 @@ autowrap_include_dirs = cPickle.load(open(persisted_data_path, "rb"))
 from setuptools import setup, Extension
 import time
 
-from pyopenms.version import version
-
 # create version information
+ctime = os.stat("pyopenms").st_mtime
+ts = time.gmtime(ctime)
+timestamp = "%02d-%02d-%4d" % (ts.tm_mday, ts.tm_mon, ts.tm_year)
+
+version = OPEN_MS_VERSION
+here = os.path.dirname(os.path.abspath(__file__))
+print >> open(j(here, "pyopenms", "version.py"), "w"), "version=%r\n" % version
+print >> open(j(here, "pyopenms", "qt_version_info.py"), "w"), "info=%r\n" % QT_QMAKE_VERSION_INFO
 
 # parse config
 
@@ -151,7 +157,7 @@ setup(
     packages=["pyopenms"],
     ext_package="pyopenms",
 
-    version=version,
+    version=version + "-" + timestamp,
 
     maintainer="Uwe Schmitt",
     maintainer_email="uschmitt@mineway.de",
