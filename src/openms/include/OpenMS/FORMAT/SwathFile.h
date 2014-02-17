@@ -85,9 +85,7 @@ public:
         // Populate meta-data
         if (i == 0)
         {
-          boost::shared_ptr<MSExperiment<Peak1D> > experiment_metadata(new MSExperiment<Peak1D>);
-          populateMetaData_(file_list[i], experiment_metadata);
-          exp_meta = experiment_metadata;
+          exp_meta = populateMetaData_(file_list[i]);
         }
 
         if (readoptions == "normal")
@@ -158,8 +156,7 @@ public:
       OpenSwath::SwathMap swath_map;
 
       startProgress(0, 1, "Loading metadata file " + file);
-      boost::shared_ptr<MSExperiment<Peak1D> > experiment_metadata(new MSExperiment<Peak1D>);
-      populateMetaData_(file, experiment_metadata);
+      boost::shared_ptr<MSExperiment<Peak1D> > experiment_metadata = populateMetaData_(file);
       exp_meta = experiment_metadata;
       endProgress();
 
@@ -290,12 +287,14 @@ protected:
     }
 
     /// Only read the meta data from a file and use it to populate exp_meta
-    void populateMetaData_(String file, boost::shared_ptr< MSExperiment<Peak1D> >& experiment_metadata)
+    boost::shared_ptr< MSExperiment<Peak1D> > populateMetaData_(String file)
     {
+      boost::shared_ptr<MSExperiment<Peak1D> > experiment_metadata(new MSExperiment<Peak1D>);
       MzMLFile f;
       f.getOptions().setAlwaysAppendData(true);
       f.getOptions().setFillData(false);
       f.load(file, *experiment_metadata);
+      return experiment_metadata;
     }
 
     /// Counts the number of scans in a full Swath file (e.g. concatenated non-split file)
