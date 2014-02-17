@@ -113,14 +113,17 @@ public:
           for (Size i = 0; i < spectrum_data_.size(); i++)
           {
             // parallel exception catching and re-throwing business
-            try 
+            if (!errCount) // no need to parse further if already an error was encountered
             {
-              populateSpectraWithData_(spectrum_data_[i]);
-            }
-            catch (...)
-            {
-              #pragma omp critical(HandleException)
-              ++errCount;
+              try 
+              {
+                populateSpectraWithData_(spectrum_data_[i]);
+              }
+              catch (...)
+              {
+                #pragma omp critical(HandleException)
+                ++errCount;
+              }
             }
           }
           if (errCount != 0)
