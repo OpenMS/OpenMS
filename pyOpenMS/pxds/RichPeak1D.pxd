@@ -3,7 +3,7 @@ from Types cimport *
 from Peak1D cimport *
 from MetaInfoInterface cimport *
 
-cdef extern from "<OpenMS/KERNEL/Peak1D.h>" namespace "OpenMS":
+cdef extern from "<OpenMS/KERNEL/RichPeak1D.h>" namespace "OpenMS":
 
     cdef cppclass RichPeak1D(Peak1D, MetaInfoInterface):
         # wrap-inherits:
