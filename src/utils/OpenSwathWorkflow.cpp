@@ -1137,7 +1137,7 @@ protected:
     const Param& feature_finder_param, const OpenSwathWorkflow::ChromExtractParams& cp_irt)
   {
     TransformationDescription trafo_rtnorm;
-    if (trafo_in.size() > 0)
+    if (!trafo_in.empty())
     {
       // get read RT normalization file
       TransformationXMLFile trafoxml;
@@ -1147,7 +1147,7 @@ protected:
       String model_type = "linear";
       trafo_rtnorm.fitModel(model_type, model_params);
     }
-    else
+    else if (!irt_tr_file.empty())
     {
       OpenSwathWorkflow wf;
       wf.setLogType(log_type_);
@@ -1196,8 +1196,8 @@ protected:
     String tmp = getStringOption_("tempDirectory");
 
     if (trafo_in.empty() && irt_tr_file.empty())
-          throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-              "Either rt_norm or tr_irt needs to be set");
+          std::cout << "Since neither rt_norm nor tr_irt is set, OpenSWATH will " <<
+            "not use RT-transformation (rather a null transformation will be applied)" << std::endl;
     if ((out.empty() && out_tsv.empty()) || (!out.empty() && !out_tsv.empty()) )
           throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
               "Either out_features or out_tsv needs to be set (but not both)");
