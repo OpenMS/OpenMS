@@ -412,8 +412,12 @@ protected:
     /// returns the Id of the C-term modification; an empty string is returned if none was set
     const String & getCTerminalModification() const;
 
+    /// this is hardly an accessor  ...
+
     /// sets the string of the sequence; returns true if the conversion to real AASequence was successful, false otherwise
     bool setStringSequence(const String & sequence);
+
+    // TODO ambiguous function overloading here! -> better to use template?
 
     /// returns a pointer to the residue, which is at position index
     const Residue & getResidue(SignedSize index) const;
@@ -430,6 +434,8 @@ protected:
     /// returns the mono isotopic weight of the peptide
     DoubleReal getMonoWeight(Residue::ResidueType type = Residue::Full, Int charge = 0) const;
 
+    // TODO ambiguous function overloading here!  -> better to use template?
+
     /// returns a pointer to the residue at given position
     const Residue & operator[](SignedSize index) const;
 
@@ -438,6 +444,11 @@ protected:
 
     /// adds the residues of the peptide
     AASequence operator+(const AASequence & peptide) const;
+
+    // TODO explicit is better than implicit: 
+    // I would prefer AASequence("A") + AASequence("B) to AASequence("A") + "B"
+    // since the latter does something implicitely that I might be fully // aware of!
+    // -> I would remove the String and const char parts here!
 
     /// adds the residues of the peptide, which is given as a string
     AASequence operator+(const String & peptide) const;
@@ -475,7 +486,8 @@ protected:
     /// counts the number of occurrences of residue given by a string
     Size getNumberOf(const String & residue) const;
 
-    /// compute frequency table of amino acids
+    // TODO should this be part of an AASequence object ??
+    /// compute frequency table of amino acids 
     void getAAFrequencies(Map<String, Size> & frequency_table) const;
 
     //@}
@@ -491,11 +503,22 @@ protected:
     */
     bool isValid() const;
 
+    // TODO this is redundant with getNumberOf ...!
     /// returns true if the peptide contains the given residue
     bool has(const Residue & residue) const;
 
+    // TODO this is redundant with getNumberOf ...!
     /// returns true if the peptide contains the given residue
     bool has(const String & name) const;
+
+    // TODO most of the string methods below are implemented as 
+    //  AASequence(input) tmp;
+    //  callRealMethod(tmp);
+    //  -> again this hides the creation of an AASequence object and it would be better to have the user do this explicetely... 
+
+    // TODO hasSubsequence is _never_ used in OpenMS except in the tests
+    // TODO hasPrefix is _never_ used in OpenMS except in the tests
+    // TODO hasSuffix is _never_ used in OpenMS except in the tests
 
     /// returns true if the peptide contains the given peptide
     /// @note c-term and n-term mods are ignored
@@ -535,6 +558,11 @@ protected:
 
     /// equality operator
     bool operator==(const AASequence & rhs) const;
+
+    // TODO explicit is better than implicit: 
+    // I would prefer AASequence("A") + AASequence("B) to AASequence("A") + "B"
+    // since the latter does something implicitely that I might be fully // aware of!
+    // -> I would remove the String and const char parts here!
 
     /// equality operator given the peptide as a string
     bool operator==(const String & rhs) const;
