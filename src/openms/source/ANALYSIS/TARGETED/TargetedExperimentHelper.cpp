@@ -85,26 +85,23 @@ namespace OpenMS
         }
 
         // Step 2: If the above step fails, try to find the correct
-        // modification some other way, i.e. by using the mass difference
+        // modification by using the mass difference
         if (nr_modifications_added == 0)
         {
-          std::vector<String> mods;
-          mod_db->getModificationsByDiffMonoMass(mods, peptide.sequence[it->location], it->mono_mass_delta, 0.0);
-          for (std::vector<String>::iterator mo = mods.begin(); mo != mods.end(); ++mo)
+          const ResidueModification * mod = mod_db->getBestModificationsByDiffMonoMass(
+                 peptide.sequence[it->location], it->mono_mass_delta, 1.0); 
+          if (mod != NULL)
           {
-            nr_modifications_added++;
-            setModification(it->location, boost::numeric_cast<int>(peptide.sequence.size()), *mo, aas);
+            setModification(it->location, boost::numeric_cast<int>(peptide.sequence.size()), mod->getId(), aas);
           }
-        }
-
-        // In theory, each modification in the TraML should map to one modification added to the AASequence
-        if (nr_modifications_added > 1)
-        {
-          std::cout << "Warning: More than one modification was found for peptide " << peptide.sequence << " at position " << it->location << std::endl;
-        }
-        else if (nr_modifications_added == 0)
-        {
-          std::cout << "Warning: Could not determine modification with delta mass " <<  it->mono_mass_delta << " for peptide " << peptide.sequence << " at position " << it->location << std::endl;
+          else
+          {
+            // could not find any modification ... 
+            std::cerr << "Warning: Could not determine modification with delta mass " << 
+              it->mono_mass_delta << " for peptide " << peptide.sequence << 
+              " at position " << it->location << std::endl;
+            std::cerr << "Skipping this modifcation" << std::endl;
+          }
         }
       }
       return aas;
