@@ -118,7 +118,10 @@ public:
               populateSpectraWithData_(spectrum_data_[i]);
             }
             catch (...)
-            {++errCount;}
+            {
+              #pragma omp critical(HandleException)
+              ++errCount;
+            }
           }
           if (errCount != 0)
           {

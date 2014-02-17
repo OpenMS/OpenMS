@@ -337,7 +337,10 @@ protected:
                       spectrum_data_[i].spectrum);
             }
             catch (...)
-            {++errCount;}
+            {
+              #pragma omp critical(HandleException)
+              ++errCount;
+            }
           }
           if (errCount != 0)
           {
@@ -546,6 +549,7 @@ protected:
         }
 
         //add the peaks and the meta data to the container (if they pass the restrictions)
+        PeakType tmp;
         spectrum.reserve(default_arr_length);
         for (Size n = 0; n < default_arr_length; n++)
         {
@@ -555,7 +559,6 @@ protected:
              && (!peak_file_options.hasIntensityRange() || peak_file_options.getIntensityRange().encloses(DPosition<1>(intensity))))
           {
             //add peak
-            PeakType tmp;
             tmp.setIntensity(intensity);
             tmp.setMZ(mz);
             spectrum.push_back(tmp);
@@ -705,6 +708,7 @@ protected:
 
         //add the peaks and the meta data to the container (if they pass the restrictions)
         inp_chromatogram.reserve(default_arr_length);
+        ChromatogramPeakType tmp;
         for (Size n = 0; n < default_arr_length; n++)
         {
           DoubleReal rt = rt_precision_64 ? input_data[rt_index].floats_64[n] : input_data[rt_index].floats_32[n];
@@ -713,7 +717,6 @@ protected:
              && (!peak_file_options.hasIntensityRange() || peak_file_options.getIntensityRange().encloses(DPosition<1>(intensity))))
           {
             //add peak
-            ChromatogramPeakType tmp;
             tmp.setIntensity(intensity);
             tmp.setRT(rt);
             inp_chromatogram.push_back(tmp);
