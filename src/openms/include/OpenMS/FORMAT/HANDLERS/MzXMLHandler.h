@@ -159,8 +159,6 @@ protected:
       /// Spectrum type
       typedef MSSpectrum<PeakType> SpectrumType;
 
-      typedef typename SpectrumType::Iterator  PeakIterator;
-
       /// map pointer for reading
       MapType* exp_;
       /// map pointer for writing
@@ -887,7 +885,6 @@ private:
       //std::cout << " -- End -- " << sm_.convert(qname) << " -- " << "\n";
 
       static const XMLCh* s_mzxml = xercesc::XMLString::transcode("mzXML");
-      static const XMLCh* s_peaks = xercesc::XMLString::transcode("peaks");
       static const XMLCh* s_scan = xercesc::XMLString::transcode("scan");
 
       open_tags_.pop_back();
