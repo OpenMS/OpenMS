@@ -73,6 +73,8 @@ namespace OpenMS
       {
         // Close file stream: close() _should_ call flush() but it might not in
         // all cases. To be sure call flush() first.
+        ofs_.write((char*)&spectra_written_, sizeof(spectra_written_));
+        ofs_.write((char*)&chromatograms_written_, sizeof(chromatograms_written_));
         ofs_.flush();
         ofs_.close();
       }
@@ -117,8 +119,6 @@ namespace OpenMS
 
         int file_identifier = CACHED_MZML_FILE_IDENTIFIER;
         ofs_.write((char*)&file_identifier, sizeof(file_identifier));
-        ofs_.write((char*)&spectra_expected_, sizeof(spectra_expected_));
-        ofs_.write((char*)&chromatograms_expexted_, sizeof(chromatograms_expexted_));
       }
 
       void setExperimentalSettings(const ExperimentalSettings& /* exp */) {;}
