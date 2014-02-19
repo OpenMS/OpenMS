@@ -8,15 +8,16 @@ env:
   global:
    #  The next declration is the encrypted COVERITY_SCAN_TOKEN, created via the "travis encrypt" command using the project repo's public key
    - secure: "DeviAeg5yxTvyqURdtPLyPRsX0kDtroqjIP7WKmc3090P55yQRs9adOYNr4grRPWrLbbT9v5l6fTL8+yLFWT04L1fu9UR5WehNLho+/GAEx1TCnX47DXjbyrj7HzM1KDE4cCB1EQyBUqTzTwGBlA+h3ZVL1AH4DfxGM4N4s4v/Y="
-   addons:
-     coverity_scan:
-       project:
-         name: "OpenMS/OpenMS"
-         description: "The OpenMS project"
-         notification_email: sachsenberg@gmail.com
-         build_command_prepend: "./tools/lnx-cibuild.before.sh"
-         build_command: "./tools/lnx-cibuild.sh"
-         branch_pattern: coverity_scan
+
+addons:
+  coverity_scan:
+    project:
+      name: "OpenMS/OpenMS"
+      description: "The OpenMS project"
+    notification_email: sachsenberg@gmail.com
+    build_command_prepend: "./tools/lnx-cibuild.before.sh"
+    build_command: "./tools/lnx-cibuild.sh"
+    branch_pattern: coverity_scan
 
 before_script:
   ./tools/lnx-cibuild.before.sh
