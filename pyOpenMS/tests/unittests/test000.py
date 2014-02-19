@@ -3902,3 +3902,7 @@ def testOptimizePeakDeconvolution():
 
 
 
+def test_streampos():
+    p = pyopenms.streampos()
+    assert isinstance(long(p), long)
+
