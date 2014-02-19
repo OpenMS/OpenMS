@@ -185,6 +185,16 @@ if (MSVC)
 endif()
 
 #------------------------------------------------------------------------------
+# Initialize package building environment
+set(VALID_PACKAGE_TYPES "none" # the classical build type make/make install
+                        "rpm"  # rpm package
+                        "deb"  # deb package
+                        "dmg") # a drag&drop dmg package for macosx
+
+set(PACKAGE_TYPE "none" CACHE STRING "Package type (internal): ${VALID_PACKAGE_TYPES}")
+is_valid_package(${PACKAGE_TYPE})
+
+#------------------------------------------------------------------------------
 # The actual openms code
 #------------------------------------------------------------------------------
 add_subdirectory(src)

@@ -103,20 +103,6 @@ include(${OPENMS_HOST_DIRECTORY}/cmake/OpenMSBuildSystem_testConfig.cmake)
 ###    BUILD the lib                                 ###
 ########################################################
 
-#package type
-set(VALID_PACKAGE_TYPES "none" "rpm" "deb" "dmg")
-set(PACKAGE_TYPE "none" CACHE STRING "Package type (internal): ${VALID_PACKAGE_TYPES}")
-# check build type
-list(FIND VALID_PACKAGE_TYPES ${PACKAGE_TYPE} list_pos)
-if( ${list_pos} EQUAL -1 )
-	message(STATUS "The PACKAGE_TYPE ${PACKAGE_TYPE} is invalid")
-	message(STATUS "Valid PACKAGE_TYPEs are:")
-	foreach( BT ${VALID_PACKAGE_TYPES} )
-		message(STATUS " * ${BT}")
-	endforeach()
-	message(FATAL_ERROR "Aborting ...")
-endif()
-
 #------------------------------------------------------------------------------
 # big include file for headers and cpp files, that fills the OpenMS_sources variable
 include (${PROJECT_SOURCE_DIR}/includes.cmake)
