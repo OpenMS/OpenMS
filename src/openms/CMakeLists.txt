@@ -91,7 +91,7 @@ message(STATUS "Info: CF_OPENMS_DOC_PATH: ${CF_OPENMS_DOC_PATH}")
 set(CMAKE_INSTALL_PREFIX "" CACHE INTERNAL "This must be equal to INSTALL_PREFIX!" FORCE)
 set(INSTALL_PREFIX "." CACHE PATH "Installation prefix for OpenMS and TOPP")
 
-include(${OPENMS_HOST_DIRECTORY}/cmake/OpenMSBuildSystem_configh.cmake)
+include(${PROJECT_SOURCE_DIR}/configh.cmake)
 
 ## add configured files (used in 'cmake/includes.cmake')
 set (OPENMS_CONFIGURED_FILES ${SVN_REVISION_FILE} ${CONFIGURED_CONFIG_H} ${CONFIGURED_OPENMS_PACKAGE_VERSION_H})
