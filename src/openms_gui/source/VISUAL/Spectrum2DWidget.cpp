@@ -378,8 +378,8 @@ namespace OpenMS
     projection_vert_->canvas()->setDrawMode(mode);
     projection_vert_->canvas()->setIntensityMode(intensity);
     grid_->setRowStretch(0, 2);
-    projection_vert_->show();
     projection_box_->show();
+    projection_vert_->show();
   }
 
   const Spectrum1DWidget * Spectrum2DWidget::getHorizontalProjection() const
@@ -398,6 +398,7 @@ namespace OpenMS
     //set range
     const DRange<2> & area = canvas()->getVisibleArea();
     goto_dialog.setRange(area.minY(), area.maxY(), area.minX(), area.maxX());
+    goto_dialog.setMinMaxOfRange(canvas()->getDataRange().minY(), canvas()->getDataRange().maxY(), canvas()->getDataRange().minX(), canvas()->getDataRange().maxX());
     // feature numbers only for consensus&feature maps
     goto_dialog.enableFeatureNumber(canvas()->getCurrentLayer().type == LayerData::DT_FEATURE || canvas()->getCurrentLayer().type == LayerData::DT_CONSENSUS);
     //execute
@@ -406,7 +407,10 @@ namespace OpenMS
       if (goto_dialog.showRange())
       {
         goto_dialog.fixRange();
-        canvas()->setVisibleArea(SpectrumCanvas::AreaType(goto_dialog.getMinMZ(), goto_dialog.getMinRT(), goto_dialog.getMaxMZ(), goto_dialog.getMaxRT()));
+        SpectrumCanvas::AreaType area (goto_dialog.getMinMZ(), goto_dialog.getMinRT(), goto_dialog.getMaxMZ(), goto_dialog.getMaxRT());
+        if(goto_dialog.clip_checkbox->checkState() == Qt::Checked)
+          correctAreaToObeyMinMaxRanges_(area);
+        canvas()->setVisibleArea(area);
       }
       else
       {
