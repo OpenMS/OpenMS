@@ -96,7 +96,7 @@ namespace OpenMS
       if (ft_name != ft_content)
       {
         error_message_ += String("\nProbable cause: The file suffix (") + FileTypes::typeToName(ft_name)
-                          + ") does not match the file content (" + FileTypes::typeToName(ft_content) + ")."
+                          + ") does not match the file content (" + FileTypes::typeToName(ft_content) + "). "
                           + "Rename the file to fix this.";
       }
 
