@@ -47,13 +47,10 @@ set(CTEST_CMAKE_GENERATOR "Unix Makefiles")
 # travis-ci handles this for us
 ctest_start     (Continuous)
 ctest_configure (BUILD "${CTEST_BINARY_DIRECTORY}" RETURN_VALUE _configure_ret)
-# we only build when we do non-style testing
-if("$ENV{ENABLE_STYLE_TESTING}" STREQUAL "Off")
-	ctest_build     (BUILD "${CTEST_BINARY_DIRECTORY}" NUMBER_ERRORS _build_errors)
-else()
-	set(_build_errors 0)
+ctest_build     (BUILD "${CTEST_BINARY_DIRECTORY}" NUMBER_ERRORS _build_errors)
+if(NOT $ENV{COVERITY_SCAN_BRANCH} EQUAL 1)
+  ctest_test      (BUILD "${CTEST_BINARY_DIRECTORY}" PARALLEL_LEVEL 3)
 endif()
-ctest_test      (BUILD "${CTEST_BINARY_DIRECTORY}" PARALLEL_LEVEL 3)
 ctest_submit()
 
 # indicate errors

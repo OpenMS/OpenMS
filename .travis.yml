@@ -4,19 +4,22 @@ compiler:
   - clang
 cache: apt
 before_script:
-   ./tools/lnx-cibuild.before.sh
+  ./tools/lnx-cibuild.before.sh
 script:
   ./tools/lnx-cibuild.sh
+
+# following lins configure coverity static code analysis for the coverity_scan branch 
 env:
-  - ENABLE_STYLE_TESTING=On ENABLE_UNITYBUILD=Off WITH_GUI=On
-#- ENABLE_STYLE_TESTING=Off ENABLE_UNITYBUILD=On WITH_GUI=On
-  - ENABLE_STYLE_TESTING=Off ENABLE_UNITYBUILD=Off WITH_GUI=On
-  - ENABLE_STYLE_TESTING=Off ENABLE_UNITYBUILD=Off WITH_GUI=Off
-matrix:
-  exclude:
-    - env: ENABLE_STYLE_TESTING=On ENABLE_UNITYBUILD=Off WITH_GUI=On
-      compiler: clang
-#    - env: ENABLE_STYLE_TESTING=Off ENABLE_UNITYBUILD=On WITH_GUI=On
-#      compiler: gcc
-    - env: ENABLE_STYLE_TESTING=Off ENABLE_UNITYBUILD=Off WITH_GUI=Off
-      compiler: gcc
+  global:
+   #  The next declration is the encrypted COVERITY_SCAN_TOKEN, created via the "travis encrypt" command using the project repo's public key
+   - secure: "DeviAeg5yxTvyqURdtPLyPRsX0kDtroqjIP7WKmc3090P55yQRs9adOYNr4grRPWrLbbT9v5l6fTL8+yLFWT04L1fu9UR5WehNLho+/GAEx1TCnX47DXjbyrj7HzM1KDE4cCB1EQyBUqTzTwGBlA+h3ZVL1AH4DfxGM4N4s4v/Y="
+   
+   addons:
+     coverity_scan:
+       project:
+         name: "OpenMS/OpenMS"
+         description: "The OpenMS project"
+         notification_email: sachsenberg@gmail.com
+         build_command_prepend: ./tools/lnx-cibuild.before.sh
+         build_command: ./tools/lnx-cibuild.sh
+         branch_pattern: coverity_scan
