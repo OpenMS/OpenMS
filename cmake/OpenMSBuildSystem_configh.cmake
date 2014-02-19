@@ -1,3 +1,36 @@
+# --------------------------------------------------------------------------
+#                   OpenMS -- Open-Source Mass Spectrometry
+# --------------------------------------------------------------------------
+# Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
+# ETH Zurich, and Freie Universitaet Berlin 2002-2012.
+#
+# This software is released under a three-clause BSD license:
+#  * Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+#  * Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in the
+#    documentation and/or other materials provided with the distribution.
+#  * Neither the name of any author or any participating institution
+#    may be used to endorse or promote products derived from this software
+#    without specific prior written permission.
+# For a full list of authors, refer to the file AUTHORS.
+# --------------------------------------------------------------------------
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+# INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+# EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+# OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+# WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+# OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+# ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+# --------------------------------------------------------------------------
+# $Maintainer: Stephan Aiche, Chris Bielow $
+# $Authors: Chris Bielow, Stephan Aiche $
+# --------------------------------------------------------------------------
 
 ## define some directories
 if ("${INSTALL_PREFIX}" STREQUAL ".")
@@ -100,8 +133,9 @@ else()
 	endif()
 endif()
 
-## system headers:
-include(CheckIncludeFileCXX) ## Check if the include file exists.
+#------------------------------------------------------------------------------
+## Check if various system heards exist
+include(CheckIncludeFileCXX)
 
 CHECK_INCLUDE_FILE_CXX("unistd.h" OPENMS_HAS_UNISTD_H)
 CHECK_INCLUDE_FILE_CXX("process.h" OPENMS_HAS_PROCESS_H)
@@ -112,9 +146,10 @@ CHECK_INCLUDE_FILE_CXX("sys/times.h" OPENMS_HAS_SYS_TIMES_H)
 CHECK_INCLUDE_FILE_CXX("sys/time.h"  OPENMS_HAS_SYS_TIME_H)
 CHECK_INCLUDE_FILE_CXX("stdint.h"  OPENMS_HAS_STDINT_H)
 
-### check for libc++ bug 
+#------------------------------------------------------------------------------
+# check for libc++ bug
 try_run(_stream_bug_run_result_var _stream_bug_compile_var
-        ${CMAKE_BINARY_DIR} 
+        ${CMAKE_BINARY_DIR}
         ${OPENMS_HOST_DIRECTORY}/cmake/modules/check_string_stream_bug.cxx)
 
 # set stream variable
@@ -122,18 +157,30 @@ if(NOT _stream_bug_run_result_var)
   set(OPENMS_HAS_STREAM_EXTRACTION_BUG "1")
 endif()
 
+#------------------------------------------------------------------------------
+# check if certain c++ functions exist
 include(CheckFunctionExists)
 ## in MinGW we have the signal.h header, but no kill() as in Linux, so we need to check for the kill() function
 CHECK_FUNCTION_EXISTS("kill" OPENMS_HAS_KILL)
 CHECK_FUNCTION_EXISTS("sysconf" OPENMS_HAS_SYSCONF)
 
-## user flag with default "QMYSQL" (put in config.h)
+#------------------------------------------------------------------------------
+# user flag with default "QMYSQL" (put in config.h)
 set(CF_QT_DB_PLUGIN "QMYSQL" CACHE STRING "User switch to change the Qt database plugin.")
 
-## replace any variables in config.h.in with current values
+#------------------------------------------------------------------------------
+# Create the config.h
+# replace any variables in config.h.in with current values
 set (CONFIGURED_CONFIG_H ${PROJECT_BINARY_DIR}/include/OpenMS/config.h)
 configure_file(${PROJECT_SOURCE_DIR}/include/OpenMS/config.h.in ${CONFIGURED_CONFIG_H})
 
-## replace any variables in openms_package_version.h.in with current values
+#------------------------------------------------------------------------------
+# Create openms_package_version.h
+# replace any variables in openms_package_version.h.in with current values
 set (CONFIGURED_OPENMS_PACKAGE_VERSION_H ${PROJECT_BINARY_DIR}/include/OpenMS/openms_package_version.h)
 configure_file(${PROJECT_SOURCE_DIR}/include/OpenMS/openms_package_version.h.in ${CONFIGURED_OPENMS_PACKAGE_VERSION_H})
+
+#------------------------------------------------------------------------------
+# create paths header
+set(CONFIGURED_OPENMS_DATA_PATH_H ${PROJECT_BINARY_DIR}/include/OpenMS/openms_data_path.h)
+configure_file(${PROJECT_SOURCE_DIR}/include/OpenMS/openms_data_path.h.in ${CONFIGURED_OPENMS_DATA_PATH_H})

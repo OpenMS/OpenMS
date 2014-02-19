@@ -36,6 +36,7 @@
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/openms_data_path.h>
 
 #include <QSysInfo>
 #include <QDir>
