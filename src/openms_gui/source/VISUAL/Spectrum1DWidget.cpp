@@ -43,7 +43,6 @@
 #include <QtGui/QPaintEvent>
 #include <QtSvg/QtSvg>
 #include <QtSvg/QSvgGenerator>
-#include <Qt>
 
 using namespace std;
 
