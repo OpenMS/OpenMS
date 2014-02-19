@@ -54,12 +54,6 @@ if (WITH_CRAWDAD)
   include_directories(${CRAWDAD_INCLUDE_DIRS})
 endif()
 
-########################################################
-###    external libs (contrib or system)						 ###
-########################################################
-
-include(${OPENMS_HOST_DIRECTORY}/cmake/OpenMSBuildSystem_externalLibs.cmake)
-
 # TODO: XERCESC and  CONTRIB are included only with the others
 # Expose OpenMS's public includes (including transitive dependencies)
 set(OPENMS_INCLUDE_DIRECTORIES ${PROJECT_SOURCE_DIR}/include
