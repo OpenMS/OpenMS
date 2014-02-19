@@ -3875,6 +3875,7 @@ def testAttachment():
 
     assert inst.tableRows[1][0] == "otherTest"
 
+@report
 def testOptimizePeakDeconvolution():
     """
     @tests:
@@ -3900,6 +3901,13 @@ def testOptimizePeakDeconvolution():
     assert inst.penalties is not None
     assert inst.charge is not None
 
+
+@report
+def testIndexedMzMLDecoder():
+    decoder = pyopenms.IndexedMzMLDecoder()
+    pos = decoder.findIndexListOffset("abcde", 100)
+    assert isinstance(pos, pyopenms.streampos)
+    assert long(pos) == -1   # not found
 
 
 def test_streampos():
