@@ -257,7 +257,7 @@ if ("${PACKAGE_TYPE}" STREQUAL "none")
       export(TARGETS OpenMS FILE ${CF_LibOpenMSExport})
     endif(NOT DISABLE_OPENSWATH)
 	else()
-		include(cmake/OpenMSBuildSystem_install.cmake)
+		# include(cmake/OpenMSBuildSystem_install.cmake)
 	endif()
 
 else()

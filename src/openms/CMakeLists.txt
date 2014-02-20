@@ -87,10 +87,6 @@ message(STATUS "Info: CF_OPENMS_DOC_PATH: ${CF_OPENMS_DOC_PATH}")
 ###    configure config.h														 ###
 ########################################################
 
-## this need to be set before config.h is configured!
-set(CMAKE_INSTALL_PREFIX "" CACHE INTERNAL "This must be equal to INSTALL_PREFIX!" FORCE)
-set(INSTALL_PREFIX "." CACHE PATH "Installation prefix for OpenMS and TOPP")
-
 include(${PROJECT_SOURCE_DIR}/configh.cmake)
 
 ## add configured files (used in 'cmake/includes.cmake')

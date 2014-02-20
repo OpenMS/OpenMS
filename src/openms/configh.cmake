@@ -32,17 +32,12 @@
 # $Authors: Chris Bielow, Stephan Aiche $
 # --------------------------------------------------------------------------
 
-## define some directories
-if ("${INSTALL_PREFIX}" STREQUAL ".")
-	set(CF_OPENMS_DATA_PATH ${OPENMS_HOST_DIRECTORY}/share/OpenMS CACHE INTERNAL "Path to the shared documents of OpenMS.")
-	set(CF_OPENMS_DOC_PATH ${OPENMS_HOST_DIRECTORY}/doc CACHE INTERNAL "Path to the documentation of OpenMS.")
-	set(CMAKE_INSTALL_PREFIX ${OPENMS_HOST_DIRECTORY})
-else()
-	set(CF_OPENMS_DATA_PATH ${INSTALL_PREFIX}/share/OpenMS CACHE INTERNAL "Path to the shared documents of OpenMS.")
-	set(CF_OPENMS_DOC_PATH ${INSTALL_PREFIX}/doc CACHE INTERNAL "Path to the documentation of OpenMS.")
-	set(CMAKE_INSTALL_PREFIX ${INSTALL_PREFIX})
-endif()
-
+## define some source directories
+set(CF_OPENMS_DATA_PATH ${OPENMS_HOST_DIRECTORY}/share/OpenMS CACHE INTERNAL "Path to the shared documents of OpenMS.")
+set(CF_OPENMS_DOC_PATH ${OPENMS_HOST_DIRECTORY}/doc CACHE INTERNAL "Path to the documentation of OpenMS.")
+## and the corresponding ones when installed
+set(CF_OPENMS_INSTALL_DATA_PATH ${CMAKE_INSTALL_PREFIX}/share/OpenMS CACHE INTERNAL "Path to the installed shared documents of OpenMS.")
+set(CF_OPENMS_INSTALL_DOC_PATH ${OPENMS_HOST_DIRECTORY}/doc/OpenMS/ CACHE INTERNAL "Path to the installed documentation of OpenMS." )
 
 ## check for Microsoft Visual Studio compiler
 if (MSVC)

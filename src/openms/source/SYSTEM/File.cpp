@@ -294,6 +294,7 @@ namespace OpenMS
     search_dirs.push_back(String(OPENMS_SOURCE_PATH) + "/../../doc/");
     search_dirs.push_back(getOpenMSDataPath() + "/../../doc/");
     search_dirs.push_back(OPENMS_DOC_PATH);
+    search_dirs.push_back(OPENMS_INSTALL_DOC_PATH);
 
     // needed for OpenMS Mac OS X packages where documentation is stored in <package-root>/Documentation
 #if defined(__APPLE__)
@@ -339,6 +340,13 @@ namespace OpenMS
     if (!path_checked)
     {
       path = OPENMS_DATA_PATH;
+      path_checked = isOpenMSDataPath_(path);
+    }
+
+    // probe the install path
+    if (!path_checked)
+    {
+      path = OPENMS_INSTALL_DATA_PATH;
       path_checked = isOpenMSDataPath_(path);
     }
 

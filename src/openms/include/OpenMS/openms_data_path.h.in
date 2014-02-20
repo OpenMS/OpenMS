@@ -59,4 +59,10 @@
 // The directory where the OpenMS sources are located
 #define OPENMS_BINARY_PATH "@PROJECT_BINARY_DIR@"
 
+// The directory containing the installed shared documents of OpenMS
+#define OPENMS_INSTALL_DATA_PATH "@CF_OPENMS_INSTALL_DATA_PATH@"
+
+// The directory containing the installed documentation of OpenMS
+#define OPENMS_INSTALL_DOC_PATH "@CF_OPENMS_INSTALL_DOC_PATH@"
+
 #endif // #ifndef OPENMS_DATA_PATH_H
