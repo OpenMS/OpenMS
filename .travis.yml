@@ -5,7 +5,7 @@ compiler:
 env:
   global:
   # encrypted Coverity-Scan token - do not change
-  - secure: g1qzXbCEYGrsihGmIfYM8w4dB+Zg2+9ouaUBJ6gFKWpJPVbwSXsp0IL2C5GsLGvW5QDqvK0tNUTwPs5jbki9xcQzWXtNKUUziWvX42Oz+2FbJledhJ+4KN0z7/5c+hmw8EsJ8sZX7ce9QQuD3jSJMQ7wIHKnEGOvjm14QKKY3L0=
+  - secure: "O66/sTXcYBQQhdqgVj6ZMjssf8Hwd/36gYzrytmAdTUJ+A3MlP70XsZ+n47gGb+Am8Co676z1pj7QIFImU2ea23ZnzlQF92OpYIlWnq+heRPBtrk8wUQ052d6HX7Ik+/a1/OQGxsS4631igyw7zh5H++XAZMWfdO3vQq53dhwS0="
   - PROJECT_NAME=OpenMS/OpenMS
 addons:
   coverity_scan:
@@ -21,4 +21,4 @@ script: ./tools/lnx-cibuild.sh
 matrix:
   exclude:
     - compiler: clang
-      addons: coverity_scan
+      branch_pattern: coverity_scan
