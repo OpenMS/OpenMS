@@ -159,7 +159,8 @@ if (DOXYGEN_FOUND)
 
   #------------------------------------------------------------------------------
   # doc target
-  add_custom_target(doc
+  #  -> included in ALL to ensure that it is ready when we want to install
+  add_custom_target(doc ALL
                     COMMAND ${CMAKE_COMMAND} -E echo ""
                     COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
                     COMMAND ${CMAKE_COMMAND} -E echo "Creating html documentation"
@@ -256,8 +257,13 @@ if (DOXYGEN_FOUND)
     message(STATUS "DOT not found. Disabling target 'doc_dot'!")
   endif()
 
+  #------------------------------------------------------------------------------
+  # Install documentation
+  install_directory(${PROJECT_BINARY_DIR}/html share/doc/OpenMS doc)
+  install_file(${PROJECT_BINARY_DIR}/index.html share/doc/OpenMS doc)
 else()
   message(STATUS "Doxygen not found. Disabling all documentation targets!")
+  message(STATUS "Note that no documentation will be installed alongside OpenMS.")
 endif()
 
 #------------------------------------------------------------------------------
@@ -274,7 +280,7 @@ if (DOXYGEN_FOUND AND LATEX_COMPILER AND DVIPS_CONVERTER)
 
   if (DOXYGEN_VERSION STRGREATER DOXYGEN_START_BUGGY AND DOXYGEN_VERSION STRLESS DOXYGEN_END_BUGGY )
     message(ERROR "Warning, DoxygenBug ( 1.6.? < vers. installed < 1.7.3 ) disguises generated tex inputfiles and files will not be recognized")
-  endif ()
+  endif()
 
   #------------------------------------------------------------------------------
   # doc_tutorials target

@@ -76,6 +76,9 @@ include_directories(${OPENMS_GUI_INCLUDE_DIRECTORIES})
 # OpenMS_GUI lib
 add_library(OpenMS_GUI ${OpenMSVisual_sources})
 
+# we also want to install OpenMS_GUI
+install_library(OpenMS_GUI)
+
 #------------------------------------------------------------------------------
 # copy dll to test/doc bin folder on MSVC systems
 copy_dll_to_extern_bin(OpenMS_GUI)
@@ -158,6 +161,9 @@ foreach(i ${GUI_executables})
 	if (OPENMP_FOUND AND NOT MSVC)
 		set_target_properties(${i} PROPERTIES LINK_FLAGS ${OpenMP_CXX_FLAGS})
 	endif()
+
+  # we also want to install each GUI tool
+  install_tool(${i})
 endforeach(i)
 add_custom_target(GUI)
 add_dependencies(GUI ${GUI_executables})

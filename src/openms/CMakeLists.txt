@@ -112,6 +112,18 @@ else()
 endif()
 
 #------------------------------------------------------------------------------
+# Installation
+
+# we also want to install OpenMS
+install_library(OpenMS)
+
+# since the share basically belongs to OpenMS core we control its installation
+# here
+# Note: that slash(/) is important here, otherwise the whole directory
+#       (not its content) will be copied!
+install_directory(${OPENMS_HOST_DIRECTORY}/share/ share share)
+
+#------------------------------------------------------------------------------
 # copy dll to test/doc bin folder on MSVC systems
 copy_dll_to_extern_bin(OpenMS)
 

@@ -68,8 +68,11 @@ configure_file(${PROJECT_SOURCE_DIR}/include/OpenMS/ANALYSIS/OPENSWATH/OPENSWATH
 include(source/ANALYSIS/OPENSWATH/OPENSWATHALGO/OpenSwathAlgoFiles.cmake)
 
 #------------------------------------------------------------------------------
-# The OpenSWATHAlgo library
+# The OpenSwathAlgo library
 add_library(OpenSwathAlgo ${OpenSwathAlgoFiles})
+
+# we also want to install OpenSwathAlgo
+install_library(OpenSwathAlgo)
 
 #------------------------------------------------------------------------------
 # copy dll to test/doc bin folder on MSVC systems

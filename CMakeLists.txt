@@ -157,6 +157,8 @@ set(BUILD_SHARED_LIBS true)
 #------------------------------------------------------------------------------
 # include some OpenMS specific macros
 include (${PROJECT_SOURCE_DIR}/cmake/OpenMSBuildSystem_macros.cmake)
+# .. and some to ease the installation proces
+include (${PROJECT_SOURCE_DIR}/cmake/install_macros.cmake)
 
 #------------------------------------------------------------------------------
 # Directories
