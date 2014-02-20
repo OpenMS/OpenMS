@@ -16,7 +16,7 @@ addons:
       description: "The OpenMS project"
     notification_email: sachsenberg@gmail.com
     build_command_prepend: "./tools/lnx-cibuild.before.sh"
-    build_command: "./tools/lnx-cibuild.sh"
+    build_command: lnx-cibuild_coverity.cmake
     branch_pattern: coverity_scan
 
 before_script:
