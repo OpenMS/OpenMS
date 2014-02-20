@@ -4,14 +4,18 @@
 cd ..
 git clone https://github.com/OpenMS/contrib.git
 cd contrib
+mkdir _build
+cd _build
+
 # store contrib dir for later usage
 export CONTRIB_DIR=`pwd`
+echo "CONTRIB_DIR: ${CONTRIB_DIR}"
 
 # build seqan from contrib
-cmake . -DBUILD_TYPE=SEQAN
+cmake .. -DBUILD_TYPE=SEQAN
 # we build the gsl as the one installed with this ubuntu version
 # conflicts with OpenMS
-cmake . -DBUILD_TYPE=GSL -DNUMBER_OF_JOBS=4
+cmake .. -DBUILD_TYPE=GSL -DNUMBER_OF_JOBS=4
 
 # add alternative repo for newer boost version
 sudo add-apt-repository --yes ppa:boost-latest/ppa

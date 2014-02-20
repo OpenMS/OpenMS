@@ -13,12 +13,12 @@ addons:
       name: OpenMS/OpenMS
       description: The OpenMS project
     notification_email: sachsenberg@gmail.com
-    build_command_prepend: ./tools/lnx-cibuild.before.sh
-    build_command: ./tools/lnx-cibuild.sh
+    build_command_prepend: ./tools/lnx-cibuild_coverity.configure.sh
+    build_command: cmake --build _coverity_build
     branch_pattern: coverity_scan
 before_script: ./tools/lnx-cibuild.before.sh
 script: ./tools/lnx-cibuild.sh
-matrix:
-  exclude:
-    - compiler: clang
-      branch_pattern: coverity_scan
+# we need some more infos if something fails
+after_failure:
+  - env | sort
+  - cat _build/CMakeCache.txt
