@@ -1,6 +1,6 @@
 # define build name&co for easier identification on cdassh
-set(CTEST_BUILD_NAME "$ENV{BUILD_NAME}")
 
+set(CTEST_BUILD_NAME "travis-ci-$ENV{TRAVIS_REPO_SLUG}-$ENV{TRAVIS_BRANCH}-$ENV{BUILD_NAME}-$ENV{CXX}")
 set(CTEST_SITE "travis-ci-build-server")
 set(CTEST_SOURCE_DIRECTORY "$ENV{SOURCE_DIRECTORY}")
 set(CTEST_BINARY_DIRECTORY "${CTEST_SOURCE_DIRECTORY}/_build")
@@ -9,7 +9,7 @@ message(STATUS "CTEST_SOURCE_DIRECTORY: ${CTEST_SOURCE_DIRECTORY}")
 message(STATUS "CTEST_BINARY_DIRECTORY: ${CTEST_BINARY_DIRECTORY}")
 
 set(INITIAL_CACHE
-"CMAKE_PREFIX_PATH=$ENV{SOURCE_DIRECTORY}/contrib\;/usr
+"CMAKE_FIND_ROOT_PATH=$ENV{CONTRIB_DIR}\;/usr
 BOOST_USE_STATIC=Off
 CMAKE_BUILD_TYPE=Release
 ENABLE_TUTORIALS=Off
@@ -48,10 +48,11 @@ set(CTEST_CMAKE_GENERATOR "Unix Makefiles")
 ctest_start     (Continuous)
 ctest_configure (BUILD "${CTEST_BINARY_DIRECTORY}" RETURN_VALUE _configure_ret)
 ctest_build     (BUILD "${CTEST_BINARY_DIRECTORY}" NUMBER_ERRORS _build_errors)
+# we only want to test/submit if we do not run a coverity scan
 if(NOT $ENV{COVERITY_SCAN_BRANCH} EQUAL 1)
   ctest_test      (BUILD "${CTEST_BINARY_DIRECTORY}" PARALLEL_LEVEL 3)
+  ctest_submit()
 endif()
-ctest_submit()
 
 # indicate errors
 if(${_build_errors} GREATER 0 OR NOT ${_configure_ret} EQUAL 0)

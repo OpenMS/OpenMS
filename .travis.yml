@@ -1,25 +1,18 @@
 language: cpp
 compiler:
-  - gcc
-  - clang
-
-# following lins configure coverity static code analysis for the coverity_scan branch 
+- gcc
+- clang
 env:
   global:
-   #  The next declration is the encrypted COVERITY_SCAN_TOKEN, created via the "travis encrypt" command using the project repo's public key
-   - secure: "bWJedr1KAbqIYak/ecixNv5SwQFeUHHeFX/MbFsZ26cOYdFC+Nyb2iKJAu6DLvnTyAAo4jJOndd+Js4aQaSCuQv9twKiIaqzjz6CoFrPyJqS0ReFUZgA5eC058TW5PQdJcvxzgOyzeTot1xXGuvxlQw2jlE9MqJtahZdI3juN84="
-
+  - secure: g1qzXbCEYGrsihGmIfYM8w4dB+Zg2+9ouaUBJ6gFKWpJPVbwSXsp0IL2C5GsLGvW5QDqvK0tNUTwPs5jbki9xcQzWXtNKUUziWvX42Oz+2FbJledhJ+4KN0z7/5c+hmw8EsJ8sZX7ce9QQuD3jSJMQ7wIHKnEGOvjm14QKKY3L0=
 addons:
   coverity_scan:
     project:
-      name: "OpenMS/OpenMS"
-      description: "The OpenMS project"
+      name: OpenMS/OpenMS
+      description: The OpenMS project
     notification_email: sachsenberg@gmail.com
-    build_command_prepend: "./tools/lnx-cibuild.before.sh"
-    build_command: lnx-cibuild_coverity.cmake
+    build_command_prepend: ./tools/lnx-cibuild.before.sh
+    build_command: ./tools/lnx-cibuild.sh
     branch_pattern: coverity_scan
-
-before_script:
-  ./tools/lnx-cibuild.before.sh
-script:
-  ./tools/lnx-cibuild.sh
+before_script: ./tools/lnx-cibuild.before.sh
+script: ./tools/lnx-cibuild.sh
