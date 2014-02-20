@@ -1,15 +1,10 @@
 #!/bin/bash
 
 # fetch contrib and build seqan+gsl
-cd ..
 git clone https://github.com/OpenMS/contrib.git
 cd contrib
 mkdir _build
 cd _build
-
-# store contrib dir for later usage
-export CONTRIB_DIR=`pwd`
-echo "CONTRIB_DIR: ${CONTRIB_DIR}"
 
 # build seqan from contrib
 cmake .. -DBUILD_TYPE=SEQAN

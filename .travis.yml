@@ -20,5 +20,4 @@ before_script: ./tools/lnx-cibuild.before.sh
 script: ./tools/lnx-cibuild.sh
 # we need some more infos if something fails
 after_failure:
-  - env | sort
   - cat _build/CMakeCache.txt

@@ -11,14 +11,13 @@ function cdashify()
 export SOURCE_DIRECTORY=`pwd`
 mkdir _build
 
-# assemble a proper build name
-_build_name="travis-ci-"$(cdashify ${TRAVIS_REPO_SLUG})"-"$(cdashify ${TRAVIS_BRANCH})
-
-# extend with specific information
-if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then
-  _build_name=${_build_name}"-"$(cdashify ${TRAVIS_PULL_REQUEST})
-elif [ "${TRAVIS_COMMIT_RANGE}" != "" ]; then
-  _build_name=${_build_name}"-"$(cdashify ${TRAVIS_COMMIT_RANGE})
+# define the build name
+if [ "$COVERITY_SCAN_BRANCH" == "1" ]; then
+  exit 0
+elif [ "$TRAVIS_PULL_REQUEST" != "false" ]; then
+  export BUILD_NAME=$TRAVIS_PULL_REQUEST
+elif [[ -n "$TRAVIS_COMMIT_RANGE" ]]; then
+  export BUILD_NAME=$TRAVIS_COMMIT_RANGE
 else
   _build_name=${_build_name}"-"$(cdashify ${TRAVIS_COMMIT})
 fi
