@@ -14,7 +14,7 @@ addons:
       description: The OpenMS project
     notification_email: sachsenberg@gmail.com
     build_command_prepend: ./tools/lnx-cibuild_coverity.configure.sh
-	# we want only the libs and tools for coverity
+    # we want only the libs and tools for coverity
     build_command: make GUI TOPP UTILS -j6 -C _coverity_build 
     branch_pattern: coverity_scan
 before_script: ./tools/lnx-cibuild.before.sh
