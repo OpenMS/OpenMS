@@ -16,12 +16,9 @@ CMAKE_BUILD_TYPE=Release"
 # create cache
 file(WRITE "${CTEST_BINARY_DIRECTORY}/CMakeCache.txt" ${INITIAL_CACHE})
 
-# since we have no X on the travis-ci machines we ignore all GUI tests
+# ignore failing GzipIfstream_test which seems to be related to the used
+# zlib version
 set(CTEST_CUSTOM_TESTS_IGNORE
-  TOPPView_test
-  UTILSWRITEINI_IDEvaluator
-  UTILSWRITEINI_IDEvaluator_SectionName
-  UTILSWRITECTD_IDEvaluator
 	GzipIfstream_test
 )
 
