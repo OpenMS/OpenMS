@@ -18,3 +18,7 @@ addons:
     branch_pattern: coverity_scan
 before_script: ./tools/lnx-cibuild.before.sh
 script: ./tools/lnx-cibuild.sh
+matrix:
+  exclude:
+    - compiler: clang
+      addons: coverity_scan
