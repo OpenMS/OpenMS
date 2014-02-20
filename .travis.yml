@@ -6,6 +6,7 @@ env:
   global:
   # encrypted Coverity-Scan token - do not change
   - secure: g1qzXbCEYGrsihGmIfYM8w4dB+Zg2+9ouaUBJ6gFKWpJPVbwSXsp0IL2C5GsLGvW5QDqvK0tNUTwPs5jbki9xcQzWXtNKUUziWvX42Oz+2FbJledhJ+4KN0z7/5c+hmw8EsJ8sZX7ce9QQuD3jSJMQ7wIHKnEGOvjm14QKKY3L0=
+  - PROJECT_NAME=OpenMS/OpenMS
 addons:
   coverity_scan:
     project:
