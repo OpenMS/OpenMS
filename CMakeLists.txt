@@ -185,9 +185,9 @@ if (MSVC)
 endif()
 
 ########################################################
-###    external libs (contrib or system)						 ###
+### setup path for external libs (contrib or system) ###
 ########################################################
-include(${OPENMS_HOST_DIRECTORY}/cmake/OpenMSBuildSystem_externalLibs.cmake)
+include(${OPENMS_HOST_DIRECTORY}/cmake/OpenMSBuildSystem_setup_lib_find_paths.cmake)
 
 #------------------------------------------------------------------------------
 # The actual openms code
