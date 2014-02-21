@@ -36,34 +36,21 @@ set(CPACK_GENERATOR "DragNDrop")
 
 ## drag'n'drop installaltion configuration
 ## Note: We have certain dependencies between the individual components!!!
-##       To ensure that the components are executed in the correct order 
-##       we use the fact that cmake executes them in alphabetical order 
-##        1. A-Z 
+##       To ensure that the components are executed in the correct order
+##       we use the fact that cmake executes them in alphabetical order
+##        1. A-Z
 ##        2. a-z
 ##       So before adding an additional target make sure that you do not
 ##       intefer with other namings/components.
+##
+## Note: That the mac app bundles (TOPPView) take care of them selfes
+##       when installed as dmg
 
 ## Fix OpenMS dependencies for all executables
 ########################################################### Fix Dependencies
 install(CODE "execute_process(COMMAND ${PROJECT_SOURCE_DIR}/cmake/MacOSX/fix_dependencies.rb -b ${PROJECT_BINARY_DIR}/bin/ -l ${PROJECT_BINARY_DIR}/lib/ -v)"
   COMPONENT Fixing-dependencies
 )
-
-# Install the apps
-########################################################### TOPPAS, TOPPView, INIFileEditor
-set(APP_BUNDLES "TOPPAS" "TOPPView" "INIFileEditor")
-
-foreach(APP_BUNDLE IN LISTS APP_BUNDLES)
-  install(CODE "
-  	set(BU_CHMOD_BUNDLE_ITEMS On)
-  	include(BundleUtilities)
-  	fixup_bundle(${PROJECT_BINARY_DIR}/${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${APP_BUNDLE}.app \"\" \"\")"
-  	COMPONENT AApplications)
-
-  install(TARGETS ${APP_BUNDLE} BUNDLE
-  				DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/
-  				COMPONENT Applications)
-endforeach()
 
 ########################################################### Libraries
 # Libraries hack, avoid cmake interferring with our own lib fixes
@@ -100,11 +87,10 @@ install(DIRECTORY share/
 )
 
 ########################################################### Documentation Preparation
-install(CODE "execute_process(COMMAND \"${CMAKE_COMMAND}\" --build \"${PROJECT_BINARY_DIR}\" --target doc)"
-        COMPONENT AAA-Documentation-Preparation)
+# we build the doc target in ALL but not the tutorials
 install(CODE "execute_process(COMMAND \"${CMAKE_COMMAND}\" --build \"${PROJECT_BINARY_DIR}\" --target doc_tutorials)"
         COMPONENT AAA-Documentation-Preparation)
-        
+
 ########################################################### Documentation
 install(FILES       ${PROJECT_BINARY_DIR}/doc/index.html
         DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/Documentation/

@@ -82,6 +82,9 @@ set(OPENMS_PACKAGE_VERSION_MAJOR "1")
 set(OPENMS_PACKAGE_VERSION_MINOR "12")
 set(OPENMS_PACKAGE_VERSION_PATCH "0")
 
+# add some informations used when building packages
+include(cmake/package_definitions.cmake)
+
 #------------------------------------------------------------------------------
 # Unsupported systems
 #------------------------------------------------------------------------------
@@ -293,36 +296,20 @@ if ("${PACKAGE_TYPE}" STREQUAL "none")
 	endif()
 
 else()
-######################################################
-####          install/copy (cpack mainly)         ####
-######################################################
-	## general definitions
-	set(CPACK_PACKAGE_NAME "OpenMS")
-	set(CPACK_PACKAGE_VENDOR "OpenMS.de")
-	set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "OpenMS - A framework for mass spectrometry")
-	set(CPACK_PACKAGE_VERSION "${OPENMS_PACKAGE_VERSION_MAJOR}.${OPENMS_PACKAGE_VERSION_MINOR}.${OPENMS_PACKAGE_VERSION_PATCH}")
-	set(CPACK_PACKAGE_VERSION_MAJOR "${OPENMS_PACKAGE_VERSION_MAJOR}")
-	set(CPACK_PACKAGE_VERSION_MINOR "${OPENMS_PACKAGE_VERSION_MINOR}")
-	set(CPACK_PACKAGE_VERSION_PATCH "${OPENMS_PACKAGE_VERSION_PATCH}")
-	set(CPACK_PACKAGE_INSTALL_DIRECTORY "OpenMS-${CPACK_PACKAGE_VERSION}")
-	set(CPACK_PACKAGE_DESCRIPTION_FILE ${PROJECT_SOURCE_DIR}/cmake/OpenMSPackageDescriptionFile.cmake)
-	set(CPACK_RESOURCE_FILE_LICENSE ${PROJECT_SOURCE_DIR}/License.txt)
-	set(CPACK_RESOURCE_FILE_WELCOME ${PROJECT_SOURCE_DIR}/cmake/OpenMSPackageResourceWelcomeFile.txt)
-	set(CPACK_RESOURCE_FILE_README ${PROJECT_SOURCE_DIR}/cmake/OpenMSPackageResourceReadme.txt)
-
 	# install routines for MacOSX
 	if("${PACKAGE_TYPE}" STREQUAL "dmg")
 		include(cmake/package_dragndrop_dmg.cmake)
 	endif()
 
+  # .. rpms
 	if("${PACKAGE_TYPE}" STREQUAL "rpm")
 		include(cmake/package_rpm.cmake)
 	endif()
 
+  # .. deps
 	if("${PACKAGE_TYPE}" STREQUAL "deb")
 		include(cmake/package_deb.cmake)
 	endif()
-
 endif()
 
 #------------------------------------------------------------------------------

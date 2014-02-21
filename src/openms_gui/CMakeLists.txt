@@ -47,8 +47,8 @@ include(${QT_USE_FILE})
 
 # --------------------------------------------------------------------------
 # include custom macros for openms_gui lib
-#include(qt_wrap_ui.cmake)
 include(qt_wrap_ui.cmake)
+include(add_mac_bundle.cmake)
 
 #------------------------------------------------------------------------------
 # we need to handle boost > 1.52 when moc-ing so we explicitely find boost here
@@ -122,32 +122,7 @@ foreach(i ${GUI_executables})
 		Message(STATUS "Setting resource file ${resource_file} for ${i}")
 		add_executable(${i} ${GUI_DIR}/${i}.cpp ${resource_file})
 	elseif(APPLE AND EXISTS ${resource_dir})
-		# the icon file
-		set(ICON_FILE_PATH "${PROJECT_SOURCE_DIR}/source/VISUAL/APPLICATIONS/GUITOOLS/${i}-resources/${i}.icns")
-    set(INFO_PLIST_TEMPLATE "${PROJECT_SOURCE_DIR}/source/VISUAL/APPLICATIONS/GUITOOLS/${i}-resources/${i}.plist.in")
-		get_filename_component(ICON_FILE_NAME "${ICON_FILE_PATH}" NAME)
-
-		# we also need the icns in the app
-		add_executable(
-			${i}
-			MACOSX_BUNDLE
-			${GUI_DIR}/${i}.cpp
-			${ICON_FILE_PATH})
-
-		set_target_properties(${i} PROPERTIES
-      # we want our own info.plist template
-      MACOSX_BUNDLE_INFO_PLIST "${INFO_PLIST_TEMPLATE}"
-			MACOSX_BUNDLE_INFO_STRING "${PROJECT_NAME} Version ${CF_OPENMS_PACKAGE_VERSION}, Copyright 2013 The OpenMS Team."
-			MACOSX_BUNDLE_ICON_FILE ${ICON_FILE_NAME}
-			MACOSX_BUNDLE_GUI_IDENTIFIER "de.openms.${i}"
-			MACOSX_BUNDLE_LONG_VERSION_STRING "${PROJECT_NAME} Version ${CF_OPENMS_PACKAGE_VERSION}"
-			MACOSX_BUNDLE_BUNDLE_NAME ${i}
-			MACOSX_BUNDLE_SHORT_VERSION_STRING ${CF_OPENMS_PACKAGE_VERSION}
-			MACOSX_BUNDLE_BUNDLE_VERSION ${CF_OPENMS_PACKAGE_VERSION}
-			MACOSX_BUNDLE_COPYRIGHT "Copyright 2013, The OpenMS Team. All Rights Reserved."
-		)
-
-		set_source_files_properties(${ICON_FILE_PATH} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+		add_mac_app_bundle(${i})
 	else()
     if(APPLE)
       message(STATUS "No icon file (${i}.icns) found in ${resource_dir}. Will not build ${i} as app bundle.")
