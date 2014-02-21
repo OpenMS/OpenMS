@@ -78,6 +78,8 @@ namespace Interfaces
 
         The spectrum will be consumed by the implementation and possibly modified.
 
+        @note The implementation might not allow to consume spectra and chromatograms in any order
+
         @param s The spectrum to be consumed
       */
       virtual void consumeSpectrum(SpectrumType & s) = 0;
@@ -87,14 +89,16 @@ namespace Interfaces
 
         The chromatogram will be consumed by the implementation and possibly modified.
 
-        @param s The spectrum to be chromatogram
+        @note The implementation might not allow to consume spectra and chromatograms in any order
+
+        @param s The chromatogram to be consumed
       */
       virtual void consumeChromatogram(ChromatogramType &) = 0;
 
       /**
         @brief Set expected size of spectra and chromatograms to be consumed.
 
-        Some implementations might care about the the number of spectra and
+        Some implementations might care about the number of spectra and
         chromatograms to be consumed and need to be informed about this
         (usually before consuming starts).
 
