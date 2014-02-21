@@ -122,7 +122,7 @@ install_headers("${OpenMS_sources_h};${OpenMS_configured_headers}" OpenMS)
 # here
 # Note: that slash(/) is important here, otherwise the whole directory
 #       (not its content) will be copied!
-install_directory(${OPENMS_HOST_DIRECTORY}/share/ share share)
+install_directory(${OPENMS_HOST_DIRECTORY}/share/OpenMS/ ${INSTALL_SHARE_DIR} share)
 
 #------------------------------------------------------------------------------
 # copy dll to test/doc bin folder on MSVC systems

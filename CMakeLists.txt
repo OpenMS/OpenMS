@@ -164,15 +164,45 @@ include (${PROJECT_SOURCE_DIR}/cmake/install_macros.cmake)
 # Directories
 #------------------------------------------------------------------------------
 
+#------------------------------------------------------------------------------
+# Host directory for referencing from subprojects
 set(OPENMS_HOST_DIRECTORY "${PROJECT_SOURCE_DIR}")
 set(OPENMS_HOST_BINARY_DIRECTORY "${PROJECT_BINARY_DIR}")
 
+#------------------------------------------------------------------------------
 # Output directory
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${OPENMS_HOST_BINARY_DIRECTORY}/lib")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${OPENMS_HOST_BINARY_DIRECTORY}/bin")
 set(OPENMS_BINARY_DIR "${OPENMS_HOST_BINARY_DIRECTORY}/bin")
 set(OPENMS_WIN32_DLL_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 
+#------------------------------------------------------------------------------
+# define installation subdirectories to allow for custom installations
+# note that all those directories are below CMAKE_INSTALL_PREFIX
+set(INSTALL_BIN_DIR bin CACHE PATH "Installation directory for executables")
+set(INSTALL_INCLUDE_DIR include CACHE PATH "Installation directory for header files")
+set(INSTALL_DOC_DIR share/doc CACHE PATH "Installation directory for documentation")
+set(INSTALL_SHARE_DIR share/OpenMS CACHE PATH "Installation directory for shared data")
+
+if(WIN32)
+  set(DEF_INSTALL_CMAKE_DIR CMake)
+  set(DEF_INSTALL_LIB_DIR bin)
+else()
+  set(DEF_INSTALL_CMAKE_DIR lib/CMake/FooBar)
+  set(DEF_INSTALL_LIB_DIR lib)
+endif()
+set(INSTALL_CMAKE_DIR ${DEF_INSTALL_CMAKE_DIR} CACHE PATH "Installation directory for CMake files")
+set(INSTALL_LIB_DIR ${DEF_INSTALL_LIB_DIR} CACHE PATH "Installation directory for libraries")
+
+# Make relative paths absolute (needed later on)
+foreach(p LIB BIN INCLUDE CMAKE DOC SHARE)
+  set(var INSTALL_${p}_DIR)
+  if(NOT IS_ABSOLUTE "${${var}}")
+    set(${var} "${CMAKE_INSTALL_PREFIX}/${${var}}")
+  endif()
+endforeach()
+
+#------------------------------------------------------------------------------
 # (create an empty list if CMAKE_MODULE_PATH does not exist)
 if(NOT CMAKE_MODULE_PATH)
   set(CMAKE_MODULE_PATH)

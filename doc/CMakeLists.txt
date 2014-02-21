@@ -259,8 +259,8 @@ if (DOXYGEN_FOUND)
 
   #------------------------------------------------------------------------------
   # Install documentation
-  install_directory(${PROJECT_BINARY_DIR}/html share/doc/OpenMS doc)
-  install_file(${PROJECT_BINARY_DIR}/index.html share/doc/OpenMS doc)
+  install_directory(${PROJECT_BINARY_DIR}/html ${INSTALL_DOC_DIR} doc)
+  install_file(${PROJECT_BINARY_DIR}/index.html ${INSTALL_DOC_DIR} doc)
 else()
   message(STATUS "Doxygen not found. Disabling all documentation targets!")
   message(STATUS "Note that no documentation will be installed alongside OpenMS.")
