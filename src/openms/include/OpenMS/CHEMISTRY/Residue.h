@@ -40,7 +40,7 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
-#include <iostream>
+#include <iosfwd>
 #include <set>
 #include <vector>
 

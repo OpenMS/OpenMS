@@ -45,7 +45,6 @@
 
 #include <algorithm>
 #include <limits>
-#include <iostream>
 
 namespace OpenMS
 {
@@ -157,7 +156,7 @@ public:
 
       // some statistics output
       LOG_INFO << "Unassigned peptides: " << ids.size() - matches << "\n"
-               << "Peptides assigned to a precursor: " << matches << std::endl;
+               << "Peptides assigned to a precursor: " << matches << "\n";
 
     }
 
@@ -197,7 +196,7 @@ public:
           {
             use_centroid_rt = true;
             use_centroid_mz = true;
-            LOG_WARN << "IDMapper warning: at least one feature has no convex hull - using centroid coordinates for matching" << std::endl;
+            LOG_WARN << "IDMapper warning: at least one feature has no convex hull - using centroid coordinates for matching\n";
             break;
           }
         }
@@ -268,7 +267,7 @@ public:
       }
       else
       {
-        LOG_WARN << "IDMapper received an empty FeatureMap! All peptides are mapped as 'unassigned'!" << std::endl;
+        LOG_WARN << "IDMapper received an empty FeatureMap! All peptides are mapped as 'unassigned'!\n";
       }
 
       // for statistics:
@@ -372,7 +371,7 @@ public:
                << "Peptides assigned to exactly one feature: " << matches_single << "\n"
                << "Peptides assigned to multiple features: " << matches_multi << "\n"
                << map.getAnnotationStatistics()
-               << std::endl;
+               << "\n";
 
     }
 

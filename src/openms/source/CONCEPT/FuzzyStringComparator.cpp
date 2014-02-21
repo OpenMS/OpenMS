@@ -36,6 +36,11 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <QDir>
 #include <sstream>
+#include <cstdlib> // for strtod()
+#include <cctype> // for isspace()
+#include <limits> // for NaN
+#include <fstream>
+#include <iostream>
 
 namespace OpenMS
 {

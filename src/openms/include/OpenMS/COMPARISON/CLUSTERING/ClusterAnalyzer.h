@@ -36,24 +36,18 @@
 #define OPENMS_COMPARISON_CLUSTERING_CLUSTERANALYZER_H
 
 #include <OpenMS/DATASTRUCTURES/DistanceMatrix.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/BinaryTreeNode.h>
 
 #include <vector>
-#include <set>
-#include <list>
-#include <iostream>
-#include <fstream>
-#include <cfloat>
 
 namespace OpenMS
 {
   class String;
 
   /**
-      @brief Bundles analyzing tools for a clustering (given as sequence of BinaryTreeNode's)
+    @brief Bundles analyzing tools for a clustering (given as sequence of BinaryTreeNode's)
 
-      @ingroup SpectraClustering
+    @ingroup SpectraClustering
   */
   class OPENMS_DLLAPI ClusterAnalyzer
   {

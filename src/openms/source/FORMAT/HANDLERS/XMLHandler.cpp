@@ -138,6 +138,10 @@ namespace OpenMS
     {
     }
 
+    void XMLHandler::writeTo(std::ostream & /*os*/)
+    {
+    }
+
     String XMLHandler::errorString()
     {
       return error_message_;
@@ -260,7 +264,7 @@ namespace OpenMS
       // significant byte).
       size_t curr_size = result.size();
       result.resize(curr_size + length);
-      for (size_t i = 0; i < length; i++) 
+      for (size_t i = 0; i < length; i++)
       {
         result[curr_size + i] = (char)chars[i];
       }

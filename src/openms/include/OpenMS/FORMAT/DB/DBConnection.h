@@ -46,7 +46,7 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/Types.h>
 
-#include <iostream>
+#include <iosfwd>
 
 namespace OpenMS
 {

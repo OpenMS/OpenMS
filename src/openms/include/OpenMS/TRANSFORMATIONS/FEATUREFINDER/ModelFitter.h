@@ -49,8 +49,11 @@
 
 #include <boost/math/special_functions/fpclassify.hpp>
 
+#ifdef DEBUG_FEATUREFINDER
 #include <iostream>
 #include <fstream>
+#endif
+
 #include <numeric>
 #include <cmath>
 #include <vector>

@@ -54,9 +54,7 @@
 #include <OpenMS/APPLICATIONS/ParameterInformation.h>
 #include <OpenMS/APPLICATIONS/ToolHandler.h>
 
-#include <iostream>
 #include <fstream>
-#include <limits>
 
 class QStringList;
 

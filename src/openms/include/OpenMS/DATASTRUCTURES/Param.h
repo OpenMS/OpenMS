@@ -44,7 +44,7 @@
 #include <OpenMS/DATASTRUCTURES/Map.h>
 
 #include <set>
-#include <iostream>
+#include <iosfwd>
 
 namespace OpenMS
 {
