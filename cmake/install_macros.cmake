@@ -44,7 +44,9 @@ else()	## Linux & MacOS
 endif()
 
 #------------------------------------------------------------------------------
-# Installs the library lib_target_name
+# Installs the library lib_target_name and all its headers set via
+# set_target_properties(lib_target_name PROPERTIES PUBLIC_HEADER ${headers})
+#
 # @param lib_target_name The target name of the library that should be installed
 macro(install_library lib_target_name)
   if ("${PACKAGE_TYPE}" STREQUAL "none")
@@ -54,6 +56,32 @@ macro(install_library lib_target_name)
     	RUNTIME DESTINATION ${OPENMS_LIB_INSTALL_PATH}
       COMPONENT library)
   endif()
+endmacro()
+
+#------------------------------------------------------------------------------
+# Installs the given headers.
+#
+# @param header_list List of headers to install
+macro(install_headers header_list component)
+  foreach(_header ${header_list})
+    set(_relative_header_path)
+
+    get_filename_component(_target_path ${_header} PATH)
+    if ("${_target_path}" MATCHES "^${PROJECT_BINARY_DIR}.*")
+      # is generated bin header
+      string(REPLACE "${PROJECT_BINARY_DIR}/include/OpenMS" "" _relative_header_path "${_target_path}")
+    else()
+      # is source header -> strip include/OpenMS
+      string(REPLACE "include/OpenMS" "" _relative_header_path "${_target_path}")
+    endif()
+
+    # install the header
+    install(FILES ${_header}
+            # note the missing slash, we need this for file directly located in
+            # include/OpenMS (e.g., config.h)
+            DESTINATION include/OpenMS${_relative_header_path}
+            COMPONENT ${component}_headers)
+  endforeach()
 endmacro()
 
 #------------------------------------------------------------------------------

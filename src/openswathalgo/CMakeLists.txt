@@ -73,6 +73,7 @@ add_library(OpenSwathAlgo ${OpenSwathAlgoFiles})
 
 # we also want to install OpenSwathAlgo
 install_library(OpenSwathAlgo)
+install_headers("${OpenSwathAlgoHeaders};${CONFIGURED_OPENSWATHALGOCONFIG_H}" OpenSwathAlgo)
 
 #------------------------------------------------------------------------------
 # copy dll to test/doc bin folder on MSVC systems

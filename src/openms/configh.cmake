@@ -179,3 +179,7 @@ configure_file(${PROJECT_SOURCE_DIR}/include/OpenMS/openms_package_version.h.in 
 # create paths header
 set(CONFIGURED_OPENMS_DATA_PATH_H ${PROJECT_BINARY_DIR}/include/OpenMS/openms_data_path.h)
 configure_file(${PROJECT_SOURCE_DIR}/include/OpenMS/openms_data_path.h.in ${CONFIGURED_OPENMS_DATA_PATH_H})
+
+#------------------------------------------------------------------------------
+# export a list of all configured heders
+set(OpenMS_configured_headers "${CONFIGURED_CONFIG_H};${CONFIGURED_OPENMS_PACKAGE_VERSION_H};${CONFIGURED_OPENMS_DATA_PATH_H}")

@@ -116,6 +116,7 @@ endif()
 
 # we also want to install OpenMS
 install_library(OpenMS)
+install_headers("${OpenMS_sources_h};${OpenMS_configured_headers}" OpenMS)
 
 # since the share basically belongs to OpenMS core we control its installation
 # here

@@ -78,6 +78,7 @@ add_library(OpenMS_GUI ${OpenMSVisual_sources})
 
 # we also want to install OpenMS_GUI
 install_library(OpenMS_GUI)
+install_headers(${OpenMSVisual_sources_h} OpenMS_GUI)
 
 #------------------------------------------------------------------------------
 # copy dll to test/doc bin folder on MSVC systems
