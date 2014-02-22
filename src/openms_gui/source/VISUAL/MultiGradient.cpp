@@ -35,6 +35,7 @@
 // OpenMS includes
 #include <OpenMS/VISUAL/MultiGradient.h>
 #include <cstdlib>
+#include <limits>
 
 using namespace std;
 

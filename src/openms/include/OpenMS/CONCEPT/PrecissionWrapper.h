@@ -40,6 +40,7 @@
 
 #include <iostream>
 #include <iomanip>
+#include <limits>
 
 namespace OpenMS
 {
