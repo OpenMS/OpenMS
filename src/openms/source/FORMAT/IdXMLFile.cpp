@@ -35,6 +35,8 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
+
 #include <iostream>
 #include <fstream>
 #include <limits>

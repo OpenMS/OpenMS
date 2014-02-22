@@ -39,6 +39,7 @@
 #include <numeric> // for "accumulate"
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/TraceFitter.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 namespace OpenMS
 {

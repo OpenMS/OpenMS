@@ -1130,6 +1130,11 @@ namespace OpenMS
     }
     return this->end();
   }
+  
+  void Param::update(const Param& old_version, const bool add_unknown)
+  {
+    update(old_version, add_unknown, LOG_WARN);
+  }
 
   void Param::update(const Param& old_version, const bool add_unknown, Logger::LogStream& stream)
   {

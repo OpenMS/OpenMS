@@ -39,6 +39,8 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+
 #include <vector>
 #include <algorithm>
 #include <fstream>

@@ -34,6 +34,7 @@
 
 #include <OpenMS/DATASTRUCTURES/ToolDescription.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 using namespace std;
 
@@ -42,6 +43,25 @@ namespace OpenMS
 
   namespace Internal
   {
+
+    FileMapping & FileMapping::operator=(const FileMapping & rhs)
+    {
+      if (this == &rhs) return *this;
+
+      location = rhs.location;
+      target = rhs.target;
+      return *this;
+    }
+
+    MappingParam & MappingParam::operator=(const MappingParam & rhs)
+    {
+      if (this == &rhs) return *this;
+
+      mapping = rhs.mapping;
+      pre_moves = rhs.pre_moves;
+      post_moves = rhs.post_moves;
+      return *this;
+    }
 
     // default C'Tor
     ToolDescriptionInternal::ToolDescriptionInternal() :
