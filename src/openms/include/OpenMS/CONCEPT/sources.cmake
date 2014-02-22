@@ -3,6 +3,7 @@ set(directory include/OpenMS/CONCEPT)
 
 ### list all header files of the directory here
 set(sources_list_h
+BinaryComposeFunctionAdapter.h
 ClassTest.h
 Constants.h
 Exception.h
@@ -10,19 +11,20 @@ Factory.h
 FactoryBase.h
 FuzzyStringComparator.h
 GlobalExceptionHandler.h
-LogStream.h
 LogConfigHandler.h
+LogStream.h
 Macros.h
+PrecissionWrapper.h
 ProgressLogger.h
 SingletonRegistry.h
 StreamHandler.h
 Types.h
-UniqueIdGenerator.h
-UniqueIdInterface.h
-UniqueIdIndexer.h
-VersionInfo.h
-BinaryComposeFunctionAdapter.h
+TypeAsString.h
 UnaryComposeFunctionAdapter.h
+UniqueIdGenerator.h
+UniqueIdIndexer.h
+UniqueIdInterface.h
+VersionInfo.h
 )
 
 ### add path to the filenames

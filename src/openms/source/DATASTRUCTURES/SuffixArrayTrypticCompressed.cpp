@@ -38,6 +38,7 @@
 #include <cmath>
 #include <cstring>
 #include <algorithm>
+#include <iostream>
 
 #include <OpenMS/CHEMISTRY/ModifierRep.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
@@ -50,11 +51,11 @@ using namespace std;
 namespace OpenMS
 {
 
-/**
-@brief comperator for two substings represented as pair of ints
+  /**
+    @brief comperator for two substings represented as pair of ints
 
-holds a reference of the string and compairs two substrings. It will be used for sorting the indices.
-*/
+    holds a reference of the string and compairs two substrings. It will be used for sorting the indices.
+  */
   struct SubstringLess :
     public binary_function<pair<SignedSize, SignedSize>, pair<SignedSize, SignedSize>, bool>
   {

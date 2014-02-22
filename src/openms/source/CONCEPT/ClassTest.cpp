@@ -166,7 +166,7 @@ namespace OpenMS
             break;
 
             case FileTypes::MZDATA:
-              if (!MzDataFile().isValid(file_names[i]))
+              if (!MzDataFile().isValid(file_names[i], std::cerr))
               {
                 std::cout << " - Error: Invalid mzData file '" << file_names[i] << "'" << std::endl;
                 passed_single = false;
@@ -174,7 +174,7 @@ namespace OpenMS
               break;
 
             case FileTypes::MZXML:
-              if (!MzXMLFile().isValid(file_names[i]))
+              if (!MzXMLFile().isValid(file_names[i], std::cerr))
               {
                 std::cout << " - Error: Invalid mzXML file '" << file_names[i] << "'" << std::endl;
                 passed_single = false;
@@ -182,7 +182,7 @@ namespace OpenMS
               break;
 
             case FileTypes::FEATUREXML:
-              if (!FeatureXMLFile().isValid(file_names[i]))
+              if (!FeatureXMLFile().isValid(file_names[i], std::cerr))
               {
                 std::cout << " - Error: Invalid featureXML file '" << file_names[i] << "'" << std::endl;
                 passed_single = false;
@@ -190,7 +190,7 @@ namespace OpenMS
               break;
 
             case FileTypes::IDXML:
-              if (!IdXMLFile().isValid(file_names[i]))
+              if (!IdXMLFile().isValid(file_names[i], std::cerr))
               {
                 std::cout << " - Error: Invalid idXML file '" << file_names[i] << "'" << std::endl;
                 passed_single = false;
@@ -198,7 +198,7 @@ namespace OpenMS
               break;
 
             case FileTypes::CONSENSUSXML:
-              if (!ConsensusXMLFile().isValid(file_names[i]))
+              if (!ConsensusXMLFile().isValid(file_names[i], std::cerr))
               {
                 std::cout << " - Error: Invalid consensusXML file '" << file_names[i] << "'" << std::endl;
                 passed_single = false;
@@ -206,7 +206,7 @@ namespace OpenMS
               break;
 
             case FileTypes::INI:
-              if (!ParamXMLFile().isValid(file_names[i]))
+              if (!ParamXMLFile().isValid(file_names[i], std::cerr))
               {
                 std::cout << " - Error: Invalid Param file '" << file_names[i] << "'" << std::endl;
                 passed_single = false;
@@ -214,7 +214,7 @@ namespace OpenMS
               break;
 
             case FileTypes::TRANSFORMATIONXML:
-              if (!TransformationXMLFile().isValid(file_names[i]))
+              if (!TransformationXMLFile().isValid(file_names[i], std::cerr))
               {
 
                 passed_single = false;

@@ -28,17 +28,12 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Oliver Kohlbacher $
-// $Authors: Oliver Kohlbacher $
+// $Maintainer: Stephan Aiche $
+// $Authors: Marc Sturm, Clemens Groepl $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/CONCEPT/Types.h>
-#include <clocale>
+#include <OpenMS/CONCEPT/TypeAsString.h>
 
 namespace OpenMS
 {
-  namespace Internal
-  {
-    const char * OpenMS_locale = setlocale(LC_ALL, "C");
-  }
 }
