@@ -39,6 +39,7 @@
 
 #include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 
 ///////////////////////////
 
