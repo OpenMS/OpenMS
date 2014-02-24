@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/DATASTRUCTURES/Param.h>
+#include <OpenMS/DATASTRUCTURES/Map.h>
 
 #include <iostream>
 #include <fstream>
@@ -1033,7 +1034,7 @@ namespace OpenMS
     root_ = ParamNode("ROOT", "");
   }
 
-  void Param::checkDefaults(const String& name, const Param& defaults, const String& prefix, std::ostream& os) const
+  void Param::checkDefaults(const String& name, const Param& defaults, const String& prefix) const
   {
     //Extract right parameters
     String prefix2 = prefix;
@@ -1049,10 +1050,10 @@ namespace OpenMS
       //unknown parameter
       if (!defaults.exists(it.getName()))
       {
-        os << "Warning: " << name << " received the unknown parameter '" << it.getName() << "'";
+        LOG_WARN << "Warning: " << name << " received the unknown parameter '" << it.getName() << "'";
         if (!prefix2.empty())
-          os << " in '" << prefix2 << "'";
-        os << "!" << endl;
+          LOG_WARN << " in '" << prefix2 << "'";
+        LOG_WARN << "!" << endl;
       }
 
       //different types
@@ -1130,7 +1131,7 @@ namespace OpenMS
     }
     return this->end();
   }
-  
+
   void Param::update(const Param& old_version, const bool add_unknown)
   {
     update(old_version, add_unknown, LOG_WARN);

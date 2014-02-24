@@ -39,6 +39,8 @@
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 
+#include <map>
+
 namespace OpenMS
 {
 

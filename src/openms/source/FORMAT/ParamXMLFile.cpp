@@ -37,6 +37,7 @@
 #include <OpenMS/FORMAT/HANDLERS/ParamXMLHandler.h>
 
 #include <fstream>
+#include <iostream>
 #include <set>
 
 using namespace OpenMS::Internal;

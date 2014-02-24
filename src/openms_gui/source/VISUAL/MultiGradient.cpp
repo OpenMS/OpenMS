@@ -36,6 +36,7 @@
 #include <OpenMS/VISUAL/MultiGradient.h>
 #include <cstdlib>
 #include <limits>
+#include <sstream>
 
 using namespace std;
 

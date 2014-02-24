@@ -35,18 +35,19 @@
 #ifndef OPENMS_DATASTRUCTURES_PARAM_H
 #define OPENMS_DATASTRUCTURES_PARAM_H
 
-// #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/DATASTRUCTURES/Map.h>
 
 #include <set>
 #include <iosfwd>
 
 namespace OpenMS
 {
+
+  template <class Key, class T>
+  class Map;
+
   namespace Logger
   {
     class LogStream;
@@ -490,11 +491,12 @@ protected:
       @param name The name that is used in error messages.
       @param defaults The default values.
       @param prefix The prefix where to check for the defaults.
-      @param os The output stream for the warnings.
+     
+      Warnings etc. will be send to LOG_WARN.
 
       @exception Exception::InvalidParameter is thrown if errors occur during the check
     */
-    void checkDefaults(const String& name, const Param& defaults, const String& prefix = "", std::ostream& os = std::cout) const;
+    void checkDefaults(const String& name, const Param& defaults, const String& prefix = "") const;
     //@}
 
     ///@name Restriction handling

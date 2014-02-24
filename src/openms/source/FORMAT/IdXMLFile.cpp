@@ -36,6 +36,7 @@
 #include <OpenMS/SYSTEM/File.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/CONCEPT/PrecissionWrapper.h>
 
 #include <iostream>
 #include <fstream>

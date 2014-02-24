@@ -38,6 +38,7 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <ostream>
+#include <iomanip>
 
 // This header collects io relevant parts of ListUtils. Separating the from the
 // rest avoids inclusion of ostream headers in a lot of classes.

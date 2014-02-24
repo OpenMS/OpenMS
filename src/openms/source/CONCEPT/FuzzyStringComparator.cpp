@@ -41,6 +41,7 @@
 #include <limits> // for NaN
 #include <fstream>
 #include <iostream>
+#include <iomanip>
 
 namespace OpenMS
 {

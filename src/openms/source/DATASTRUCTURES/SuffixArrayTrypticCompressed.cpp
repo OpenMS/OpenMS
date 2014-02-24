@@ -39,6 +39,7 @@
 #include <cstring>
 #include <algorithm>
 #include <iostream>
+#include <sstream>
 
 #include <OpenMS/CHEMISTRY/ModifierRep.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
