@@ -155,17 +155,13 @@ public:
 
     DoubleReal getValue(DoubleReal rt) const
     {
-      double t_diff, t_diff2, denominator = 0.0;
+      // equation 12 from Lan & Jorgenson paper:
       double fegh = 0.0;
-
-      t_diff = rt - apex_rt_;
-      t_diff2 = t_diff * t_diff; // -> (t - t_R)^2
-
-      denominator = 2 * sigma_ * sigma_ + tau_ * t_diff; // -> 2\sigma_{g}^{2} + \tau \left(t - t_R\right)
-
+      double t_diff = rt - apex_rt_;
+      double denominator = 2 * sigma_ * sigma_ + tau_ * t_diff;
       if (denominator > 0.0)
       {
-        fegh = height_ * exp(-t_diff2 / denominator);
+        fegh = height_ * exp(-t_diff * t_diff / denominator);
       }
 
       return fegh;
