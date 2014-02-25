@@ -751,7 +751,7 @@ namespace OpenMS
         }
         else
         {
-          fatalError(LOAD, String("Invalid protein reference '") + pos->first + "'");
+          fatalError(LOAD, String("Invalid protein reference '") + *acc_it + "'");
         }
       }
       String value = String(groups[g].probability) + "," + accessions;
