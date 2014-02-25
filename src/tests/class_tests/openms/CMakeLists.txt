@@ -55,10 +55,11 @@ include(executables.cmake)
 
 #------------------------------------------------------------------------------
 # Include directories for tests
-set(OPENMS_CLASS_TESTS_INCLUDE_DIRECTORIES "${PROJECT_BINARY_DIR}/include/")
+set(OPENMS_CLASS_TESTS_INTERNAL_INCLUDE_DIRECTORIES "${PROJECT_BINARY_DIR}/include/")
 # add OpenMS directories
-set(OPENMS_CLASS_TESTS_INCLUDE_DIRECTORIES "${OPENMS_CLASS_TESTS_INCLUDE_DIRECTORIES};${OPENMS_INCLUDE_DIRECTORIES};${Boost_INCLUDE_DIRS}")
-include_directories(${OPENMS_CLASS_TESTS_INCLUDE_DIRECTORIES})
+set(OPENMS_CLASS_TESTS_EXTERNAL_INCLUDE_DIRECTORIES "${OpenMS_INCLUDE_DIRECTORIES};${Boost_INCLUDE_DIRS}")
+include_directories(${OPENMS_CLASS_TESTS_INTERNAL_INCLUDE_DIRECTORIES})
+include_directories(SYSTEM ${OPENMS_CLASS_TESTS_EXTERNAL_INCLUDE_DIRECTORIES})
 
 #------------------------------------------------------------------------------
 # disable optimization for tests for gcc like compilers

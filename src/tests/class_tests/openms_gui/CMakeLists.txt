@@ -47,7 +47,7 @@ set(GUI_executables_list
 #------------------------------------------------------------------------------
 # required to build GUI tests (e.g., TOPPView_test)
 add_definitions(-DQT_GUI_LIB)
-include_directories(${OPENMS_GUI_INCLUDE_DIRECTORIES})
+include_directories(SYSTEM ${OpenMS_GUI_INCLUDE_DIRECTORIES})
 # add include to find moced files
 include_directories(${PROJECT_BINARY_DIR})
 
