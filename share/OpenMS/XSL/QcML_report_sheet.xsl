@@ -1,3 +1,8 @@
+<?xml-stylesheet type="text/xml" href="#stylesheet"?>
+<!DOCTYPE catelog [
+  <!ATTLIST xsl:stylesheet
+  id  ID  #REQUIRED>
+  ]>
 <xsl:stylesheet id="stylesheet" version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:ns="http://www.prime-xs.eu/ms/qcml" xmlns="">
 
 	<xsl:template match="/">

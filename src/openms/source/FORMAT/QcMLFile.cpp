@@ -34,6 +34,7 @@
 
 #include <OpenMS/FORMAT/QcMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 #include <fstream>
 #include <iostream>
@@ -294,7 +295,7 @@ namespace OpenMS
   }
 
   QcMLFile::QcMLFile() :
-    XMLHandler("", "0.7"), XMLFile("/SCHEMAS/qcml.xsd", "0.7"), ProgressLogger() //TODO correct version
+    XMLHandler("", "0.7"), XMLFile("/SCHEMAS/qcml.xsd", "0.7"), ProgressLogger() //TODO keep version uptodate
   {
   }
 
@@ -1043,6 +1044,7 @@ namespace OpenMS
     //~ progress_ = 0;
     //~ setProgress(++progress_);
 
+    //~ file should either contain the complete stylesheet injection (including the stylesheet file preamble, the DOCTYPE definition and the stylesheet itself) or be empty
     String xslt = "";
     try
     {
@@ -1052,7 +1054,7 @@ namespace OpenMS
     }
     catch (Exception::FileNotFound &)
     {
-      
+      warning(STORE, String("No qcml stylesheet found, result will not be viewable in a browser!"));
     }
     
     
