@@ -172,10 +172,10 @@ public:
       // equation 21 from Lan & Jorgenson paper:
       DoubleReal abs_tau = fabs(tau_);
       DoubleReal phi = atan(abs_tau / sigma_);
-      DoubleReal epsilon = EPSILON_COEFS[0];
+      DoubleReal epsilon = EPSILON_COEFS_[0];
       DoubleReal phi_pow = phi;
       for (Size i = 1; i < 7; ++i) {
-        epsilon += phi_pow * EPSILON_COEFS[i];
+        epsilon += phi_pow * EPSILON_COEFS_[i];
         phi_pow *= phi;
       }
       // 0.62... is approx. sqrt(pi / 8):
@@ -213,7 +213,7 @@ protected:
     DoubleReal region_rt_span_;
 
     /// Coefficients to calculate the proportionality factor for the peak area
-    static const DoubleReal EPSILON_COEFS[];
+    static const DoubleReal EPSILON_COEFS_[];
 
     static const Size NUM_PARAMS_ = 4;
 
@@ -474,7 +474,7 @@ protected:
 
   // from table 1 in the Lan & Jorgenson paper:
   template <class PeakType>
-  const DoubleReal EGHTraceFitter<PeakType>::EPSILON_COEFS[] = 
+  const DoubleReal EGHTraceFitter<PeakType>::EPSILON_COEFS_[] = 
   {4.0, -6.293724, 9.232834, -11.342910, 9.123978, -4.173753, 0.827797};
 
 } // namespace OpenMS
