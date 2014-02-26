@@ -1016,16 +1016,16 @@ private:
       //----------------------------------------------------------------------------------------
       //-------------------------------------store DATAPROCESSING ----------------------------------
       //----------------------------------------------------------------------------------------
-      const std::vector<boost::shared_ptr<DataProcessing> > processings = exp_it->getDataProcessing();
+      const std::vector<DataProcessingPtr > processings = exp_it->getDataProcessing();
 
       deleteMetaInfo_("META_DataProcessing", "fid_Spectrum=" + String(exp_it->getPersistenceId()));
       query.str("");
       query << "DELETE FROM META_DataProcessing WHERE fid_Spectrum='" << exp_it->getPersistenceId() << "'";
       result = db_con_.executeQuery(query.str());
 
-      for (std::vector< boost::shared_ptr<DataProcessing> >::const_iterator ptr_it = processings.begin(); ptr_it != processings.end(); ptr_it++)
+      for (std::vector< DataProcessingPtr >::const_iterator ptr_it = processings.begin(); ptr_it != processings.end(); ptr_it++)
       {
-        boost::shared_ptr<DataProcessing> processings_it = *ptr_it;
+        DataProcessingPtr processings_it = *ptr_it;
         query.str("");
         query << "INSERT INTO META_DataProcessing SET ";
         query << "fid_Spectrum='" << exp_it->getPersistenceId() << "'";
@@ -1558,7 +1558,7 @@ private:
 
     while (result.next())
     {
-        boost::shared_ptr<DataProcessing> processings;
+        DataProcessingPtr processings;
 
       try
       {

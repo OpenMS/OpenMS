@@ -490,7 +490,7 @@ protected:
       }
       else if (tag == "software")
       {
-        data_processing_ = boost::shared_ptr<DataProcessing>(new DataProcessing);
+        data_processing_ = DataProcessingPtr(new DataProcessing);
         if (attributes.getIndex(sm_.convert("completionTime")) != -1)
         {
           data_processing_->setCompletionTime(asDateTime_(sm_.convert(attributes.getValue(sm_.convert("completionTime")))));

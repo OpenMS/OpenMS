@@ -272,17 +272,17 @@ namespace OpenMS
     native_id_ = native_id;
   }
 
-  void SpectrumSettings::setDataProcessing(const std::vector< boost::shared_ptr<DataProcessing> > & data_processing)
+  void SpectrumSettings::setDataProcessing(const std::vector< DataProcessingPtr > & data_processing)
   {
     data_processing_ = data_processing;
   }
 
-  std::vector< boost::shared_ptr<DataProcessing> > & SpectrumSettings::getDataProcessing()
+  std::vector< DataProcessingPtr > & SpectrumSettings::getDataProcessing()
   {
     return data_processing_;
   }
 
-  const std::vector< boost::shared_ptr<DataProcessing> > & SpectrumSettings::getDataProcessing() const
+  const std::vector< DataProcessingPtr > & SpectrumSettings::getDataProcessing() const
   {
     return data_processing_;
   }

@@ -938,7 +938,7 @@ protected:
       std::set<DataProcessing::ProcessingAction> actions;
       actions.insert(action);
 
-      boost::shared_ptr<DataProcessing> p = boost::shared_ptr<DataProcessing>(new DataProcessing);
+      DataProcessingPtr p = boost::shared_ptr<DataProcessing>(new DataProcessing);
       //actions
       p->setProcessingActions(actions);
       //software

@@ -40,6 +40,7 @@
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 
 #include <set>
+#include <boost/shared_ptr.hpp>
 
 namespace OpenMS
 {
@@ -122,6 +123,9 @@ protected:
     std::set<ProcessingAction> processing_actions_;
     DateTime completion_time_;
   };
+
+  typedef boost::shared_ptr<DataProcessing> DataProcessingPtr;
+
 } // namespace OpenMS
 
 #endif // OPENMS_METADATA_DATAPROCESSING_H

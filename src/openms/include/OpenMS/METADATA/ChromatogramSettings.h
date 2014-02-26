@@ -45,7 +45,6 @@
 
 #include <map>
 #include <vector>
-#include <boost/shared_ptr.hpp>
 
 namespace OpenMS
 {
@@ -150,13 +149,13 @@ public:
     void setChromatogramType(ChromatogramType type);
 
     /// sets the description of the applied processing
-    void setDataProcessing(const std::vector< boost::shared_ptr<DataProcessing> > & data_processing);
+    void setDataProcessing(const std::vector< DataProcessingPtr > & data_processing);
 
     /// returns a mutable reference to the description of the applied processing
-    std::vector< boost::shared_ptr<DataProcessing> > & getDataProcessing();
+    std::vector< DataProcessingPtr > & getDataProcessing();
 
     /// returns a const reference to the description of the applied processing
-    const std::vector< boost::shared_ptr<DataProcessing> > & getDataProcessing() const;
+    const std::vector< DataProcessingPtr > & getDataProcessing() const;
 
 protected:
 
@@ -167,7 +166,7 @@ protected:
     AcquisitionInfo acquisition_info_;
     Precursor precursor_;
     Product product_;
-    std::vector< boost::shared_ptr<DataProcessing> > data_processing_;
+    std::vector< DataProcessingPtr > data_processing_;
     ChromatogramType type_;
   };
 

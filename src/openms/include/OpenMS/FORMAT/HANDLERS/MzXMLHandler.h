@@ -665,7 +665,7 @@ private:
       }
       else if (tag == "dataProcessing")
       {
-        data_processing_.push_back( boost::shared_ptr<DataProcessing>(new DataProcessing));
+        data_processing_.push_back( DataProcessingPtr(new DataProcessing));
 
         String boolean = "";
         optionalAttributeAsString_(boolean, attributes, s_deisotoped_);

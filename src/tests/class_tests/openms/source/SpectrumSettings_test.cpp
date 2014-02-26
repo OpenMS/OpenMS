@@ -78,7 +78,7 @@ END_SECTION
 
 START_SECTION((void setDataProcessing(const std::vector< DataProcessing > &data_processing)))
   SpectrumSettings tmp;
-  std::vector<boost::shared_ptr<DataProcessing> > dummy;
+  std::vector<DataProcessingPtr > dummy;
   dummy.resize(1);
   tmp.setDataProcessing(dummy);
   TEST_EQUAL(tmp.getDataProcessing().size(),1);
@@ -338,7 +338,7 @@ START_SECTION((bool operator== (const SpectrumSettings& rhs) const))
 	TEST_EQUAL(edit==empty, false);
 
 	edit = empty;
-    boost::shared_ptr<DataProcessing> dp = boost::shared_ptr<DataProcessing>(new DataProcessing); 
+    DataProcessingPtr dp = boost::shared_ptr<DataProcessing>(new DataProcessing); 
 	edit.getDataProcessing().push_back(dp);
 	TEST_EQUAL(edit==empty, false);
 
@@ -389,7 +389,7 @@ START_SECTION((bool operator!= (const SpectrumSettings& rhs) const))
 	TEST_EQUAL(edit!=empty, true);
 
 	edit = empty;
-    boost::shared_ptr<DataProcessing> dp = boost::shared_ptr<DataProcessing>(new DataProcessing); 
+    DataProcessingPtr dp = boost::shared_ptr<DataProcessing>(new DataProcessing); 
 	edit.getDataProcessing().push_back(dp);
 	TEST_EQUAL(edit!=empty, true);
 
@@ -445,13 +445,13 @@ START_SECTION((void unify(const SpectrumSettings &rhs)))
   appended.getPeptideIdentifications().push_back(appended_ident);
 
   // DataProcessings
-  boost::shared_ptr<DataProcessing> org_processing = boost::shared_ptr<DataProcessing>(new DataProcessing);
+  DataProcessingPtr org_processing = boost::shared_ptr<DataProcessing>(new DataProcessing);
   Software org_software;
   org_software.setName("org_software");
   org_processing->setSoftware(org_software);
   org.getDataProcessing().push_back(org_processing);
 
-  boost::shared_ptr<DataProcessing> appended_processing = boost::shared_ptr<DataProcessing>(new DataProcessing);
+  DataProcessingPtr appended_processing = boost::shared_ptr<DataProcessing>(new DataProcessing);
   Software appended_software;
   appended_software.setName("appended_software");
   appended_processing->setSoftware(appended_software);

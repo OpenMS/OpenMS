@@ -233,17 +233,17 @@ namespace OpenMS
     type_ = type;
   }
 
-  void ChromatogramSettings::setDataProcessing(const std::vector< boost::shared_ptr<DataProcessing> > & data_processing)
+  void ChromatogramSettings::setDataProcessing(const std::vector< DataProcessingPtr > & data_processing)
   {
     data_processing_ = data_processing;
   }
 
-  std::vector< boost::shared_ptr<DataProcessing> > & ChromatogramSettings::getDataProcessing()
+  std::vector< DataProcessingPtr > & ChromatogramSettings::getDataProcessing()
   {
     return data_processing_;
   }
 
-  const std::vector< boost::shared_ptr<DataProcessing> > & ChromatogramSettings::getDataProcessing() const
+  const std::vector< DataProcessingPtr > & ChromatogramSettings::getDataProcessing() const
   {
     return data_processing_;
   }

@@ -401,7 +401,7 @@ END_SECTION
 START_SECTION((std::vector<DataProcessing>& getDataProcessing()))
 {
   ChromatogramSettings tmp;
-  boost::shared_ptr<DataProcessing> dp = boost::shared_ptr<DataProcessing>(new DataProcessing); 
+  DataProcessingPtr dp = boost::shared_ptr<DataProcessing>(new DataProcessing); 
   tmp.getDataProcessing().push_back(dp);
   TEST_EQUAL(tmp.getDataProcessing().size(),1);
 }
@@ -410,7 +410,7 @@ END_SECTION
 START_SECTION((void setDataProcessing(const std::vector< DataProcessing > &data_processing)))
 {
   ChromatogramSettings tmp;
-  std::vector<boost::shared_ptr<DataProcessing> > dummy;
+  std::vector<DataProcessingPtr > dummy;
   dummy.resize(1);
   tmp.setDataProcessing(dummy);
   TEST_EQUAL(tmp.getDataProcessing().size(),1);
