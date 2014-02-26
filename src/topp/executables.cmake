@@ -25,6 +25,7 @@ FeatureFinderRaw
 FeatureLinkerLabeled
 FeatureLinkerUnlabeled
 FeatureLinkerUnlabeledQT
+FeatureSetFinder
 FileConverter
 FileFilter
 FileInfo
