@@ -186,9 +186,12 @@ endif()
 # clean python build directory from former cmake run (if exists)
 # this can contain older versions of openms shared lib and might confuse
 # the linker when working on pyopenms
-IF(EXISTS ${CMAKE_BINARY_DIR}/pyOpenMS/build)
-    FILE(REMOVE_RECURSE ${CMAKE_BINARY_DIR}/pyOpenMS/build)
-endif()
+
+FILE(REMOVE_RECURSE "${CMAKE_BINARY_DIR}/pyOpenMS/build")
+FILE(REMOVE_RECURSE "${CMAKE_BINARY_DIR}/pyOpenMS/dist")
+FILE(REMOVE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/OpenMSd.dll")
+FILE(REMOVE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/OpenMS.dll")
+FILE(REMOVE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/libOpenMS.so")
 
 #------------------------------------------------------------------------------
 # copy files
