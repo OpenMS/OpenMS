@@ -531,7 +531,7 @@ namespace OpenMS
         if (!base_name.empty())
         {
           wrong_experiment_ = !base_name.hasSuffix(exp_name_);
-          seen_experiment_ = !wrong_experiment_;
+          seen_experiment_ = seen_experiment_ || !wrong_experiment_;
           checked_base_name_ = true;
         }
         else // really shouldn't happen, but does for Mascot export to pepXML
