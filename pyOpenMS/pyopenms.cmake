@@ -183,6 +183,14 @@ if(NUMPY_MISSING OR CYTHON_MISSING OR NOT AUTOWRAP_VERSION_OK OR NOSE_MISSING)
 endif()
 
 #------------------------------------------------------------------------------
+# clean python build directory from former cmake run (if exists)
+# this can contain older versions of openms shared lib and might confuse
+# the linker when working on pyopenms
+IF(EXISTS ${CMAKE_BINARY_DIR}/pyOpenMS/build)
+    FILE(REMOVE_RECURSE ${CMAKE_BINARY_DIR}/pyOpenMS/build)
+endif()
+
+#------------------------------------------------------------------------------
 # copy files
 FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS)
 FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/tests/unittests)
