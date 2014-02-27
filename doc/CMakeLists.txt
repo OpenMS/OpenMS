@@ -159,8 +159,7 @@ if (DOXYGEN_FOUND)
 
   #------------------------------------------------------------------------------
   # doc target
-  #  -> included in ALL to ensure that it is ready when we want to install
-  add_custom_target(doc ALL
+  add_custom_target(doc
                     COMMAND ${CMAKE_COMMAND} -E echo ""
                     COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
                     COMMAND ${CMAKE_COMMAND} -E echo "Creating html documentation"
@@ -259,6 +258,16 @@ if (DOXYGEN_FOUND)
 
   #------------------------------------------------------------------------------
   # Install documentation
+  # Since we cannot include doc into the all target we have to make sure that
+  # the documentation s
+  install_code(
+  "if(NOT EXISTS ${PROJECT_BINARY_DIR}/index.html)
+     message(STATUS \"Can't find documentation in ${PROJECT_BINARY_DIR}\")
+     message(STATUS \"Please create the documentation before you run the install target!\")
+     message(STATUS \"Either using the doc target or, if this fails (e.g., due to a\")
+     message(STATUS \"missing X server) the doc_minimal target.\")
+     message(FATAL_ERROR \"Aborting installation!\")
+   endif()" doc)
   install_directory(${PROJECT_BINARY_DIR}/html ${INSTALL_DOC_DIR} doc)
   install_file(${PROJECT_BINARY_DIR}/index.html ${INSTALL_DOC_DIR} doc)
 else()
@@ -272,6 +281,7 @@ endif()
 if (DOXYGEN_FOUND AND LATEX_COMPILER AND DVIPS_CONVERTER)
   set(DOC_TUTORIALS_ACTIVE TRUE)
 
+  # check doxygen for bug with generated latex files
   set(DOXYGEN_START_BUGGY "1.6.3")
   set(DOXYGEN_END_BUGGY "1.7.2")
   exec_program(${DOXYGEN_EXECUTABLE}
@@ -318,6 +328,19 @@ if (DOXYGEN_FOUND AND LATEX_COMPILER AND DVIPS_CONVERTER)
                     COMMAND ${CMAKE_COMMAND} -E echo ""
                     COMMENT "Build the OpenMS/TOPP pdf tutorial"
                     VERBATIM)
+
+  #------------------------------------------------------------------------------
+  # Install tutorials
+  # install also the tutorial pdfs (if possible)
+  install_code(
+    "if(NOT EXISTS ${PROJECT_BINARY_DIR}/TOPP_tutorial.pdf AND NOT EXISTS ${PROJECT_BINARY_DIR}/OpenMS_tutorial.pdf)
+       message(STATUS \"Can't find tutorial pdfs in ${PROJECT_BINARY_DIR}\")
+       message(STATUS \"Please create the tutorials before you run the install target\")
+       message(STATUS \"by executing the doc_tutorials target.\")
+       message(FATAL_ERROR \"Aborting installation!\")
+    endif()" doc)
+  install_file(${PROJECT_BINARY_DIR}/TOPP_tutorial.pdf ${INSTALL_DOC_DIR} doc)
+  install_file(${PROJECT_BINARY_DIR}/OpenMS_tutorial.pdf ${INSTALL_DOC_DIR} doc)
 else()
   set(DOC_TUTORIALS_ACTIVE FALSE)
   message(STATUS "Doxygen or Latex missing. Disabling 'doc_tutorials' target!")

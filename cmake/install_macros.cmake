@@ -113,3 +113,14 @@ macro(install_file file destination component)
       COMPONENT ${component})
   endif()
 endmacro()
+
+#------------------------------------------------------------------------------
+# Execute the given code while executing the install target
+# @param code_snippet The code to execute
+# @param component The component to which the code will be associated
+macro(install_code code_snippet component)
+  if ("${PACKAGE_TYPE}" STREQUAL "none")
+    install(CODE ${code_snippet}
+            COMPONENT ${component})
+  endif()
+endmacro()
