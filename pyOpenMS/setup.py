@@ -24,6 +24,13 @@ import os
 
 j = os.path.join
 
+src_pyopenms = j(OPEN_MS_SRC, "pyOpenMS")
+extra_includes = glob.glob(src_pyopenms + "/extra_includes/*.h*")
+
+for include in extra_includes:
+    shutil.copy(include, "extra_includes/")
+
+
 persisted_data_path = "include_dir.bin"
 autowrap_include_dirs = cPickle.load(open(persisted_data_path, "rb"))
 
@@ -83,6 +90,7 @@ library_dirs = [OPEN_MS_BUILD_DIR,
 import numpy
 
 include_dirs = [
+    "extra_includes",
     QT_HEADERS_DIR,
     QT_QTCORE_INCLUDE_DIR,
     j(OPEN_MS_CONTRIB_BUILD_DIR, "include"),
