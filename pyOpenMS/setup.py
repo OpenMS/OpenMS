@@ -28,6 +28,11 @@ src_pyopenms = j(OPEN_MS_SRC, "pyOpenMS")
 pxd_files = glob.glob(src_pyopenms + "/pxds/*.pxd")
 addons = glob.glob(src_pyopenms + "/addons/*.pyx")
 converters = [j(src_pyopenms, "converters")]
+extra_includes = glob.glob(src_pyopenms + "/extra_includes/*.h*")
+
+for include in extra_includes:
+    shutil.copy(include, "extra_includes/")
+
 
 # Check the mtime for each file and compare with the pyx file
 # Resolve symlinks to make os.path.getmtime work correctly
@@ -197,6 +202,7 @@ library_dirs = [OPEN_MS_BUILD_DIR,
 import numpy
 
 include_dirs = [
+    "extra_includes",
     QT_HEADERS_DIR,
     QT_QTCORE_INCLUDE_DIR,
     j(OPEN_MS_CONTRIB_BUILD_DIR, "include"),
