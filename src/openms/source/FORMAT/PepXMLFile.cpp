@@ -626,6 +626,7 @@ namespace OpenMS
       current_peptide_ = PeptideIdentification();
       current_peptide_.setMetaValue("RT", rt_);
       current_peptide_.setMetaValue("MZ", mz_);
+      current_peptide_.setMetaValue("summary_base_name", summary_base_name_);
       search_id_ = 1; // references "search_summary"
       optionalAttributeAsUInt_(search_id_, attributes, "search_id");
       current_peptide_.setIdentifier(current_proteins_[search_id_ - 1]->getIdentifier());
@@ -868,11 +869,10 @@ namespace OpenMS
     }
     else if (element == "search_summary") // parent: "msms_run_summary"
     { // creates a new ProteinIdentification (usually)
+      summary_base_name_ = attributeAsString_(attributes, "base_name");
       if (!checked_base_name_) // work-around for files exported by Mascot
       {
-        String base_name = "";
-        optionalAttributeAsString_(base_name, attributes, "base_name");
-        if (base_name.hasSuffix(exp_name_))
+        if (summary_base_name_.hasSuffix(exp_name_))
         {
           seen_experiment_ = true;
         }
