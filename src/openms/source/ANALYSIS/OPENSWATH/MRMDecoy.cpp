@@ -303,7 +303,8 @@ namespace OpenMS
     boost::uniform_int<> uni_dist;
     boost::variate_generator<boost::mt19937&, boost::uniform_int<> > pseudoRNG(generator, uni_dist);
 
-    std::vector<std::pair<std::string::size_type, std::string> > idx = MRMDecoy::find_all_tryptic(peptide.sequence);
+    typedef std::vector<std::pair<std::string::size_type, std::string> > IndexType; 
+    IndexType idx = MRMDecoy::find_all_tryptic(peptide.sequence);
     std::string aa[] =
     {
       "A", "N", "D", "C", "E", "Q", "G", "H", "I", "L", "M", "F", "S", "T", "W",
@@ -312,9 +313,10 @@ namespace OpenMS
     int aa_size = 17;
 
     int attempts = 0;
-    while (MRMDecoy::AASequenceIdentity(peptide.sequence, shuffled.sequence) > identity_threshold && attempts < max_attempts)
+    // loop: copy the original peptide, attempt to shuffle it and check whether difference is large enough
+    while (MRMDecoy::AASequenceIdentity(peptide.sequence, shuffled.sequence) > identity_threshold && 
+        attempts < max_attempts)
     {
-      // copy the original peptide, shuffle again
       shuffled = peptide;
       std::vector<Size> peptide_index;
       for (Size i = 0; i < peptide.sequence.size(); i++)
@@ -322,8 +324,9 @@ namespace OpenMS
         peptide_index.push_back(i);
       }
 
-      // we erease the indices where K/P/R are (from the back / in reverse order to not delete indices we access later)
-      for (std::vector<std::pair<std::string::size_type, std::string> >::reverse_iterator it = idx.rbegin(); it != idx.rend(); ++it)
+      // we erase the indices where K/P/R are (from the back / in reverse order
+      // to not delete indices we access later)
+      for (IndexType::reverse_iterator it = idx.rbegin(); it != idx.rend(); ++it)
       {
         peptide_index.erase(peptide_index.begin() + it->first);
       }
@@ -332,12 +335,14 @@ namespace OpenMS
       std::random_shuffle(peptide_index.begin(), peptide_index.end(), pseudoRNG);
 
       // re-insert the missing K/P/R at the appropriate places
-      for (std::vector<std::pair<std::string::size_type, std::string> >::iterator it = idx.begin(); it != idx.end(); ++it)
+      for (IndexType::iterator it = idx.begin(); it != idx.end(); ++it)
       {
         peptide_index.insert(peptide_index.begin() + it->first, it->first);
       }
 
-      // use the shuffled index to first get the new peptide sequence and then to place the mods
+      // use the shuffled index to create the get the new peptide sequence and
+      // then to place the modifications at their appropriate places (at the
+      // same, shuffled AA where they were before).
       for (Size i = 0; i < peptide_index.size(); i++)
       {
         shuffled.sequence[i] = peptide.sequence[peptide_index[i]];
@@ -346,7 +351,7 @@ namespace OpenMS
       {
         for (Size k = 0; k < peptide_index.size(); k++)
         {
-          // C and N terminal mods are implicitely not shuffled because they live at positions -1 and sequence.size()
+          // C and N terminal mods are implicitly not shuffled because they live at positions -1 and sequence.size()
           if (boost::numeric_cast<int>(peptide_index[k]) == shuffled.mods[j].location)
           {
             shuffled.mods[j].location = boost::numeric_cast<int>(k);
@@ -358,7 +363,7 @@ namespace OpenMS
 #ifdef DEBUG_MRMDECOY
       for (Size j = 0; j < shuffled.mods.size(); j++)
       {
-        std::cout << " position after shuffling " << shuffled.mods[j].location << " mass diff " << shuffled.mods[j].mono_mass_delta << std::endl;
+        std::cout << " position after shuffling " << shuffled.mods[j].location << " mass difference " << shuffled.mods[j].mono_mass_delta << std::endl;
       }
 #endif
 
@@ -367,7 +372,7 @@ namespace OpenMS
       // If our attempts have failed so far, we will append two random AA to
       // the sequence and see whether we can achieve sufficient shuffling with
       // these additional AA added to the sequence.
-      if (attempts%10 == 9)
+      if (attempts % 10 == 9)
       {
         int pos = (pseudoRNG() % aa_size);
         peptide.sequence.append(aa[pos]);
