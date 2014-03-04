@@ -4,9 +4,9 @@ from libcpp.string cimport string as libcpp_string
 cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>" namespace "OpenSwath":
 
     cdef cppclass LightTransition:
-        LightTransition()
-        LightTransition(LightTransition)
-        int getProductChargeState()
+        LightTransition() nogil except +
+        LightTransition(LightTransition) nogil except +
+        int getProductChargeState() nogil except +
         int charge
         libcpp_string transition_name
         libcpp_string peptide_ref
@@ -14,22 +14,22 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/Transition
         double product_mz
         double precursor_mz
 
-        libcpp_string getNativeID()
-        libcpp_string getPeptideRef()
-        double getLibraryIntensity()
-        void setLibraryIntensity(double l)
-        double getProductMZ()
-        double getPrecursorMZ()
+        libcpp_string getNativeID() nogil except +
+        libcpp_string getPeptideRef() nogil except +
+        double getLibraryIntensity() nogil except +
+        void setLibraryIntensity(double l) nogil except +
+        double getProductMZ() nogil except +
+        double getPrecursorMZ() nogil except +
 
     cdef cppclass LightModification:
-        LightModification()
-        LightModification(LightModification)
+        LightModification() nogil except +
+        LightModification(LightModification) nogil except +
         int location
         libcpp_string unimod_id
 
     cdef cppclass LightPeptide:
-        LightPeptide()
-        LightPeptide(LightPeptide)
+        LightPeptide() nogil except +
+        LightPeptide(LightPeptide) nogil except +
         double rt
         int charge
         libcpp_string sequence
@@ -37,24 +37,24 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/Transition
         libcpp_string id
         libcpp_vector[LightModification] modifications
 
-        int getChargeState()
+        int getChargeState() nogil except +
 
     cdef cppclass LightProtein:
-        LightProtein()
-        LightProtein(LightProtein)
+        LightProtein() nogil except +
+        LightProtein(LightProtein) nogil except +
         libcpp_string id
         libcpp_string sequence
 
     cdef cppclass LightTargetedExperiment:
 
-        LightTargetedExperiment()
-        LightTargetedExperiment(LightTargetedExperiment &)
+        LightTargetedExperiment() nogil except +
+        LightTargetedExperiment(LightTargetedExperiment &) nogil except +
 
         libcpp_vector[LightTransition] transitions
         libcpp_vector[LightPeptide] peptides
         libcpp_vector[LightProtein] proteins
-        libcpp_vector[LightTransition] getTransitions() 
+        libcpp_vector[LightTransition] getTransitions()  nogil except +
 
-        libcpp_vector[ LightPeptide ]  getPeptides()
-        libcpp_vector[ LightProtein ]  getProteins()
+        libcpp_vector[ LightPeptide ]  getPeptides() nogil except +
+        libcpp_vector[ LightProtein ]  getProteins() nogil except +
 
