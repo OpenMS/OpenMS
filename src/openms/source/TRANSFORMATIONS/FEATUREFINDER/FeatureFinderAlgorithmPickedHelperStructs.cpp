@@ -39,7 +39,24 @@ namespace OpenMS
 {
   FeatureFinderAlgorithmPickedHelperStructs::MassTrace<Peak1D> default_masstrace;
   FeatureFinderAlgorithmPickedHelperStructs::MassTraces<Peak1D> default_masstraces;
-  FeatureFinderAlgorithmPickedHelperStructs::IsotopePattern default_isotopepattern(3);
-  FeatureFinderAlgorithmPickedHelperStructs::TheoreticalIsotopePattern default_theoreticalisotopepattern;
-  FeatureFinderAlgorithmPickedHelperStructs::Seed default_seed;
+
+  FeatureFinderAlgorithmPickedHelperStructs::IsotopePattern::IsotopePattern(Size size) :
+    peak(size, -1),
+    spectrum(size),
+    intensity(size),
+    mz_score(size),
+    theoretical_mz(size)
+  {
+  }
+
+  Size FeatureFinderAlgorithmPickedHelperStructs::TheoreticalIsotopePattern::size() const
+  {
+    return intensity.size();
+  }
+
+  bool FeatureFinderAlgorithmPickedHelperStructs::Seed::operator<(const Seed& rhs) const
+  {
+    return intensity < rhs.intensity;
+  }
+
 }

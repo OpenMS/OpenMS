@@ -249,14 +249,8 @@ protected:
 
       // aggregate data; some peaks (where intensity is zero) can be missing!
       // mapping: RT -> total intensity over all mass traces
-      std::map<DoubleReal, DoubleReal> total_intensities;
-      for (typename FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType>::iterator t_it = traces.begin(); t_it != traces.end(); ++t_it)
-      {
-        for (typename std::vector<std::pair<DoubleReal, const PeakType*> >::iterator p_it = t_it->peaks.begin(); p_it != t_it->peaks.end(); ++p_it)
-        {
-          total_intensities[p_it->first] += p_it->second->getIntensity();
-        }
-      }
+      std::list<std::pair<DoubleReal, DoubleReal> > total_intensities;
+      traces.computeIntensityProfile(total_intensities);
 
       const Size N = total_intensities.size();
       const Size LEN = 2; // window size: 2 * LEN + 1
@@ -264,7 +258,7 @@ protected:
       std::vector<DoubleReal> totals(N + 2 * LEN); // pad with zeros at ends
       Int index = LEN;
       // LOG_DEBUG << "Summed intensities:\n";
-      for (std::map<DoubleReal, DoubleReal>::iterator it =
+      for (std::list<std::pair<DoubleReal, DoubleReal> >::iterator it =
              total_intensities.begin(); it != total_intensities.end(); ++it)
       {
         totals[index++] = it->second;
@@ -298,7 +292,7 @@ protected:
       LOG_DEBUG << "Maximum at index " << max_index << std::endl;
       height_ = smoothed[max_index] - traces.baseline;
       LOG_DEBUG << "height: " << height_ << std::endl;
-      std::map<DoubleReal, DoubleReal>::iterator it = total_intensities.begin();
+      std::list<std::pair<DoubleReal, DoubleReal> >::iterator it = total_intensities.begin();
       std::advance(it, max_index);
       x0_ = it->first;
       LOG_DEBUG << "x0: " << x0_ << std::endl;
