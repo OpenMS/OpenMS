@@ -1519,6 +1519,10 @@ protected:
         software_.clear();
         instruments_.clear();
         processing_.clear();
+
+        // Flush the remaining data 
+        populateSpectraWithData();
+        populateChromatogramsWithData();
       }
 
       sm_.clear();

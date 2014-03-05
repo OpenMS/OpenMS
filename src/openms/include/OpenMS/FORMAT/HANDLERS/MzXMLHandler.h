@@ -881,6 +881,10 @@ private:
 
       if (equal_(qname, s_mzxml))
       {
+        // Flush the remaining data 
+        populateSpectraWithData();
+        populateChromatogramsWithData();
+
         // End of mzXML
         logger_.endProgress();
       }
