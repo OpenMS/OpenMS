@@ -114,6 +114,8 @@ using namespace std;
     If the input dataset contains many spectra (>30k), then a 32bit version of OMSSA will likely crash due to memory allocation issues.
     To prevent this, the adapter will automatically split the data into chunks of appropriate size (10k spectra by default) and call OMSSA for each chunk.
     Running time is about the same (slightly faster even) for 10k chunks, but deteriorates slightly (15%) if chunk size is too small (1k spectra).
+    The disadvantage of chunking is that no protein hits (nor their scores) will be stored in the output, since peptide evidence is split between chunks.
+    If you want to disable chunking at the risk of provoking a memory allocation error in OMSSA, set it to -1.
     
     This wrapper has been tested successfully with OMSSA, version 2.x.
 
@@ -372,7 +374,7 @@ protected:
     //-fomx <Double> read in search result in .omx format (xml).
     //Iterative searching is the ability to re-search search results in hopes of increasing the number of spectra identified. To accomplish this, an iterative search may change search parameters, such as using a no-enzyme search, or restrict the sequence search library to sequences already hit.
 
-    registerIntOption_("chunk_size", "<Integer>", 10000, "Number of spectra to submit in one chunk to OMSSA. Chunks with more than 30k spectra will likely cause memory allocation issues with 32bit OMSSA versions.", false, true);
+    registerIntOption_("chunk_size", "<Integer>", 10000, "Number of spectra to submit in one chunk to OMSSA. Chunks with more than 30k spectra will likely cause memory allocation issues with 32bit OMSSA versions. To disable chunking, set it to '0'.", false, true);
   }
 
   ExitCodes main_(int, const char **)
@@ -753,16 +755,31 @@ protected:
       
       int chunk(0);
       int chunk_size(getIntOption_("chunk_size"));
+      if (chunk_size <= 0)
+      {
+        writeLog_("Chunk size is <=0; disabling chunking of input!");
+        chunk_size = map.getSpectra().size();
+      }
+
       for (Size i=0; i<map.size(); i+=chunk_size)
       {
         PeakMap map_chunk;
-        // copy a chunk
-        map_chunk.getSpectra().insert(map_chunk.getSpectra().begin(), map.getSpectra().begin()+i, map.getSpectra().begin()+std::min(map.size(), i+chunk_size));
+        PeakMap* chunk_ptr = &map_chunk; // points to the current chunk data
+        // prepare a chunk
+        if (map.size() <= chunk_size)
+        { // we have only one chunk; avoid duplicating the whole data (could be a lot)
+          // we do not use swap() since someone might want to access 'map' later and would find it empty
+          chunk_ptr = &map;
+        }
+        else
+        {
+          map_chunk.getSpectra().insert(map_chunk.getSpectra().begin(), map.getSpectra().begin()+i, map.getSpectra().begin()+std::min(map.size(), i+chunk_size));
+        }
         MascotGenericFile omssa_infile;
         String filename_chunk = unique_input_name + String(chunk) + ".mgf";
         file_spectra_chunks_in.push_back(filename_chunk);
         writeDebug_("Storing input file: " + filename_chunk, 5);
-        omssa_infile.store(filename_chunk, map_chunk);
+        omssa_infile.store(filename_chunk, *chunk_ptr);
         file_spectra_chunks_out.push_back(unique_output_name + String(chunk) + ".xml");
         ++chunk;
       }
