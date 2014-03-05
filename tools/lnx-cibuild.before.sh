@@ -31,8 +31,12 @@ sudo add-apt-repository --yes ppa:boost-latest/ppa
 sudo apt-get update
 
 # install required packages
-sudo apt-get install -qq  boost1.54\
-                          libxerces-c3.1\
+sudo apt-get install -qq  libboost-date-time1.54-dev \
+                          libboost-iostreams1.54-dev \
+                          libboost-regex1.54-dev \
+                          libboost-math1.54-dev \
+                          libboost-random1.54-dev \
+                          libxerces-c3.1 \
                           libxerces-c-dev \
                           libicu-dev \
                           qt4-dev-tools \
