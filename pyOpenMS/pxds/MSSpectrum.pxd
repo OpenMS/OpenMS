@@ -5,15 +5,17 @@ from MetaInfoInterface cimport *
 from Peak1D cimport *
 from RichPeak1D cimport *
 from String cimport *
+from RangeManager cimport *
 
 # this class has addons, see the ./addons folder
 
 cdef extern from "<OpenMS/KERNEL/MSSpectrum.h>" namespace "OpenMS":
 
-    cdef cppclass MSSpectrum[PeakT](SpectrumSettings, MetaInfoInterface):
+    cdef cppclass MSSpectrum[PeakT](SpectrumSettings, MetaInfoInterface, RangeManager1):
         # wrap-inherits:
         #  SpectrumSettings
         #  MetaInfoInterface
+        #  RangeManager1
 
         # wrap-instances:
         #   MSSpectrum := MSSpectrum[Peak1D]
@@ -50,18 +52,11 @@ cdef extern from "<OpenMS/KERNEL/MSSpectrum.h>" namespace "OpenMS":
         bool operator==(MSSpectrum[PeakT]) nogil except +
         bool operator!=(MSSpectrum[PeakT]) nogil except +
 
-        # FloatDataArrays  getFloatDataArrays()
-        # FloatDataArrays  getFloatDataArrays()
-        # StringDataArrays  getStringDataArrays()
-        # StringDataArrays  getStringDataArrays()
-        # IntegerDataArrays  getIntegerDataArrays()
-        # IntegerDataArrays  getIntegerDataArrays()
+        void sortByIntensity(bool reverse) nogil except +
+        void sortByPosition() nogil except +
 
-        void sortByIntensity(bool reverse)
-        void sortByPosition()
-
-        void getKeys(libcpp_vector[String] & keys)
-        void getKeys(libcpp_vector[unsigned int] & keys)
+        void getKeys(libcpp_vector[String] & keys) nogil except +
+        void getKeys(libcpp_vector[unsigned int] & keys) nogil except +
         DataValue getMetaValue(unsigned int) nogil except +
         DataValue getMetaValue(String) nogil except +
         void setMetaValue(unsigned int, DataValue) nogil except +
