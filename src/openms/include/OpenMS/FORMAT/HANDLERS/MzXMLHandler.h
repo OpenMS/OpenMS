@@ -883,7 +883,6 @@ private:
       {
         // Flush the remaining data 
         populateSpectraWithData();
-        populateChromatogramsWithData();
 
         // End of mzXML
         logger_.endProgress();
