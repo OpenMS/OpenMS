@@ -17,7 +17,7 @@ function build_contrib {
 
 # fetch contrib and build seqan
 git clone git://github.com/OpenMS/contrib/
-cd contrib
+pushd contrib
 
 # we build seqan as the versions shipped in Ubuntu are not recent enough
 build_contrib SEQAN
@@ -25,6 +25,9 @@ build_contrib SEQAN
 # we build the gsl as the one installed with this ubuntu version
 # conflicts with OpenMS
 build_contrib GSL
+
+# leave contrib
+popd
 
 # add alternative repo for newer boost version
 sudo add-apt-repository --yes ppa:boost-latest/ppa
