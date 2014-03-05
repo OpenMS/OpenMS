@@ -111,11 +111,12 @@ using namespace std;
     The options that specify the protease specificity (@em e) are directly taken from OMSSA. A complete list of available
     proteases can be found by executing @em omssacl @em -el.
 
+    Pre-build versions of OMSSA are 32bit for Windows and 64bit for Linux & MacOSX.
     If the input dataset contains many spectra (>30k), then a 32bit version of OMSSA will likely crash due to memory allocation issues.
     To prevent this, the adapter will automatically split the data into chunks of appropriate size (10k spectra by default) and call OMSSA for each chunk.
     Running time is about the same (slightly faster even) for 10k chunks, but deteriorates slightly (15%) if chunk size is too small (1k spectra).
     The disadvantage of chunking is that no protein hits (nor their scores) will be stored in the output, since peptide evidence is split between chunks.
-    If you want to disable chunking at the risk of provoking a memory allocation error in OMSSA, set it to -1.
+    If you want to disable chunking at the risk of provoking a memory allocation error in OMSSA, set chunk size to '0'.
     
     This wrapper has been tested successfully with OMSSA, version 2.x.
 
@@ -374,13 +375,13 @@ protected:
     //-fomx <Double> read in search result in .omx format (xml).
     //Iterative searching is the ability to re-search search results in hopes of increasing the number of spectra identified. To accomplish this, an iterative search may change search parameters, such as using a no-enzyme search, or restrict the sequence search library to sequences already hit.
 
-    registerIntOption_("chunk_size", "<Integer>", 10000, "Number of spectra to submit in one chunk to OMSSA. Chunks with more than 30k spectra will likely cause memory allocation issues with 32bit OMSSA versions. To disable chunking, set it to '0'.", false, true);
+    registerIntOption_("chunk_size", "<Integer>", 0, "Number of spectra to submit in one chunk to OMSSA. Chunks with more than 30k spectra will likely cause memory allocation issues with 32bit OMSSA versions (which is usually the case on Windows). To disable chunking (i.e. submit all spectra in one big chunk), set it to '0'.", false, true);
   }
 
   ExitCodes main_(int, const char **)
   {
     StringList parameters;
-    // path to the log file
+    // path to the log filea
     String logfile(getStringOption_("log"));
     String omssa_executable(getStringOption_("omssa_executable"));
     String unique_name = QDir::toNativeSeparators(String(File::getTempDirectory() + "/" + File::getUniqueName()).toQString());   // body for the tmp files
@@ -757,8 +758,8 @@ protected:
       int chunk_size(getIntOption_("chunk_size"));
       if (chunk_size <= 0)
       {
-        writeLog_("Chunk size is <=0; disabling chunking of input!");
-        chunk_size = map.getSpectra().size();
+        writeLog_("Chunk size is <=0; disabling chunking of input! If OMSSA crashes due to memory allocation errors, try setting 'chunk_size' to a value below 30000 (e.g., 10000 is usually ok).");
+        chunk_size = (int)map.getSpectra().size();
       }
 
       for (Size i=0; i<map.size(); i+=chunk_size)
@@ -832,7 +833,7 @@ protected:
       if (status != 0)
       {
         writeLog_("Error: OMSSA problem! See above for OMSSA error. If this does not help, increase 'debug' level and run again.");
-        writeLog_("Note: This message can also be triggered if you run out of space in your tmp directory or (32bit OMSSA only) OMSSA ran out of RAM because 'chunk_size' was too large (>30k). Look above!");
+        writeLog_("Note: This message can also be triggered if you run out of space in your tmp directory or (32bit OMSSA only) OMSSA ran out of RAM because chunking was not used (that's the default) or 'chunk_size' was too large (>30k). Look above!");
         if (getIntOption_("debug") < 2)
         {
           QFile(file_spectra_chunks_in[i].toQString()).remove();
