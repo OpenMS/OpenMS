@@ -181,13 +181,7 @@ public:
       }
 
       /// Destructor
-      virtual ~MzMLHandler()
-      {
-        // Flush the remaining data 
-        populateSpectraWithData();
-        populateChromatogramsWithData();
-      }
-
+      virtual ~MzMLHandler() {}
       //@}
 
       /**@name XML Handling functions and output writing */

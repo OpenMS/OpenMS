@@ -93,11 +93,7 @@ public:
       }
 
       /// Destructor
-      virtual ~MzXMLHandler()
-      {
-        populateSpectraWithData();
-      }
-
+      virtual ~MzXMLHandler() {}
       //@}
 
       void populateSpectraWithData()
