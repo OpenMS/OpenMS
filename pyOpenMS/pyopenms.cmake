@@ -183,6 +183,17 @@ if(NUMPY_MISSING OR CYTHON_MISSING OR NOT AUTOWRAP_VERSION_OK OR NOSE_MISSING)
 endif()
 
 #------------------------------------------------------------------------------
+# clean python build directory from former cmake run (if exists)
+# this can contain older versions of openms shared lib and might confuse
+# the linker when working on pyopenms
+
+FILE(REMOVE_RECURSE "${CMAKE_BINARY_DIR}/pyOpenMS/build")
+FILE(REMOVE_RECURSE "${CMAKE_BINARY_DIR}/pyOpenMS/dist")
+FILE(REMOVE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/OpenMSd.dll")
+FILE(REMOVE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/OpenMS.dll")
+FILE(REMOVE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/libOpenMS.so")
+
+#------------------------------------------------------------------------------
 # copy files
 FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS)
 FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/tests/unittests)
@@ -217,6 +228,7 @@ FILE(COPY ${OPENMS_HOST_DIRECTORY}/pyOpenMS/License.txt DESTINATION ${CMAKE_BINA
 FILE(COPY ${OPENMS_HOST_DIRECTORY}/pyOpenMS/MANIFEST.in DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/)
 FILE(COPY ${OPENMS_HOST_DIRECTORY}/pyOpenMS/README.rst DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/)
 FILE(COPY ${OPENMS_HOST_DIRECTORY}/pyOpenMS/setup.py DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS)
+FILE(COPY ${OPENMS_HOST_DIRECTORY}/pyOpenMS/create_cpp_extension.py DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS)
 FILE(COPY ${OPENMS_HOST_DIRECTORY}/pyOpenMS/distribute_setup.py DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS)
 FILE(COPY ${OPENMS_HOST_DIRECTORY}/pyOpenMS/version.py DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS)
 FILE(COPY ${OPENMS_HOST_DIRECTORY}/pyOpenMS/version.py DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms)
@@ -280,6 +292,7 @@ FILE(APPEND ${ENVPATH} QT_QTCORE_INCLUDE_DIR="${QT_QTCORE_INCLUDE_DIR}" "\n")
 FILE(APPEND ${ENVPATH} MSVCR90DLL="${MSVCR90DLL}" "\n")
 FILE(APPEND ${ENVPATH} MSVCP90DLL="${MSVCP90DLL}" "\n")
 FILE(APPEND ${ENVPATH} OPEN_MS_BUILD_TYPE="${CMAKE_BUILD_TYPE}" "\n")
+FILE(APPEND ${ENVPATH} OPEN_MS_VERSION="${CF_OPENMS_PACKAGE_VERSION}" "\n")
 if(WIN32)
     if(CMAKE_BUILD_TYPE STREQUAL "Debug")
         FILE(APPEND ${ENVPATH} OPEN_MS_LIB="${OpenMS_BINARY_DIR}/bin/Debug/OpenMSd.dll" "\n")
@@ -288,34 +301,29 @@ if(WIN32)
         FILE(APPEND ${ENVPATH} OPEN_MS_LIB="${OpenMS_BINARY_DIR}/bin/Release/OpenMS.dll" "\n")
         FILE(APPEND ${ENVPATH} OPEN_SWATH_ALGO_LIB="${OpenMS_BINARY_DIR}/bin/Release/OpenSwathAlgo.dll" "\n")
     endif()
+else()
+    FILE(APPEND ${ENVPATH} OPEN_MS_LIB="" "\n")
+    FILE(APPEND ${ENVPATH} OPEN_SWATH_ALGO_LIB="" "\n")
+
 endif()
 
 #------------------------------------------------------------------------------
 # create targets in makefile
-add_custom_target(Name ALL
-  COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext --inplace
-  DEPENDS OpenMS
-  WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS)
+
+add_custom_target(pyopenms_create_cpp
+	COMMAND ${PYTHON_EXECUTABLE} create_cpp_extension.py
+	DEPENDS OpenMS
+	WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
 
 add_custom_target(pyopenms
-	COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext --inplace
-	WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
-add_dependencies(pyopenms OpenMS)
-
-add_custom_target(pyopenms_bdist_egg
+	COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext
 	COMMAND ${PYTHON_EXECUTABLE} setup.py bdist_egg
+	COMMAND ${PYTHON_EXECUTABLE} setup.py bdist --format=zip
+	COMMAND ${PYTHON_EXECUTABLE} setup.py build_ext --inplace
+	DEPENDS pyopenms_create_cpp
 	WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
-add_dependencies(pyopenms_bdist_egg OpenMS)
 
-add_custom_target(pyopenms_bdist
-	COMMAND ${PYTHON_EXECUTABLE} setup.py bdist  --format=zip
-	WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
-add_dependencies(pyopenms_bdist OpenMS)
-
-add_custom_target(pyopenms_rpm
-	COMMAND ${PYTHON_EXECUTABLE} setup.py bdist_rpm
-	WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
-add_dependencies(pyopenms_rpm OpenMS)
+add_dependencies(pyopenms OpenMS)
 
 ###########################################################################
 #####                      Testing pyOpenMS                           #####
