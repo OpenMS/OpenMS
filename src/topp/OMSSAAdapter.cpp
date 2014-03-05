@@ -381,7 +381,7 @@ protected:
   ExitCodes main_(int, const char **)
   {
     StringList parameters;
-    // path to the log filea
+    // path to the log file
     String logfile(getStringOption_("log"));
     String omssa_executable(getStringOption_("omssa_executable"));
     String unique_name = QDir::toNativeSeparators(String(File::getTempDirectory() + "/" + File::getUniqueName()).toQString());   // body for the tmp files
