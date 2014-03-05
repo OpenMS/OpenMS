@@ -41,6 +41,9 @@ sudo apt-get install -qq  boost1.54\
                           libqt4-gui \
                           libsvm-dev \
                           libsvm3 \
-                          glpk \
-                          doxygen \
-													graphviz
+                          glpk
+
+# install doxygen but not latex (saves some time)
+sudo apt-get install -qq \
+                     --no-install-recommends doxygen \
+                     graphviz
