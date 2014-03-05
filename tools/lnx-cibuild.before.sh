@@ -41,9 +41,13 @@ sudo apt-get install -qq  boost1.54\
                           libqt4-gui \
                           libsvm-dev \
                           libsvm3 \
-                          glpk
+                          glpk \
+                          subversion                             
 
 # install doxygen but not latex (saves some time)
 sudo apt-get install -qq \
                      --no-install-recommends doxygen \
                      graphviz
+
+# get the search engine executables 
+svn checkout http://svn.code.sf.net/p/open-ms/code/THIRDPARTY/SEARCHENGINES/Linux/64bit/ _searchengines
