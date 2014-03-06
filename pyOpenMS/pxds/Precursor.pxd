@@ -29,7 +29,7 @@ cdef extern from "<OpenMS/METADATA/Precursor.h>" namespace "OpenMS":
         void replaceCVTerms(Map[String, libcpp_vector[CVTerm] ] cv_term_map
                             ) nogil except +
 
-        Map[String, libcpp_vector[CVTerm] ] getCVTerms()
+        Map[String, libcpp_vector[CVTerm] ] getCVTerms() nogil except +
         void addCVTerm(CVTerm & term)                   nogil except +
 
         bool hasCVTerm(String accession)  nogil except +
@@ -41,8 +41,8 @@ cdef extern from "<OpenMS/METADATA/Precursor.h>" namespace "OpenMS":
         # e.g. getKeys and getMetaValue).
         # Instead we declare the derived methods manually:
 
-        void getKeys(libcpp_vector[String] & keys)
-        void getKeys(libcpp_vector[unsigned int] & keys)
+        void getKeys(libcpp_vector[String] & keys) nogil except +
+        void getKeys(libcpp_vector[unsigned int] & keys) nogil except +
         DataValue getMetaValue(unsigned int) nogil except +
         DataValue getMetaValue(String) nogil except +
         void setMetaValue(unsigned int, DataValue) nogil except +

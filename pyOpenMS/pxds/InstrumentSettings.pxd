@@ -14,12 +14,12 @@ cdef extern from "<OpenMS/METADATA/InstrumentSettings.h>" namespace "OpenMS":
         Polarity getPolarity()     nogil except +
         void setPolarity(Polarity)  nogil except +
 
-        ScanMode getScanMode()
-        void setScanMode(ScanMode scan_mode)
-        bool getZoomScan()
-        void setZoomScan(bool zoom_scan)
-        libcpp_vector[ ScanWindow ]  getScanWindows()
-        void setScanWindows(libcpp_vector[ ScanWindow ] scan_windows)
+        ScanMode getScanMode() nogil except +
+        void setScanMode(ScanMode scan_mode) nogil except +
+        bool getZoomScan() nogil except +
+        void setZoomScan(bool zoom_scan) nogil except +
+        libcpp_vector[ ScanWindow ]  getScanWindows() nogil except +
+        void setScanWindows(libcpp_vector[ ScanWindow ] scan_windows) nogil except +
 
         # declare again: cython complains for overloaded methods in base
         # classes

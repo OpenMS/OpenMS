@@ -15,8 +15,8 @@ cdef extern from "<OpenMS/KERNEL/RichPeak2D.h>" namespace "OpenMS":
 
         RichPeak2D() nogil except +
 
-        bool operator==(RichPeak2D)
-        bool operator!=(RichPeak2D)
+        bool operator==(RichPeak2D) nogil except +
+        bool operator!=(RichPeak2D) nogil except +
 
         # declare again: cython complains for overloaded methods in base
         # classes

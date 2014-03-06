@@ -20,6 +20,13 @@
         return [self[k] for k in self.keys()]
 
     def update(self, *a):
+        """
+        use cases:
+
+           p.update(dict d)
+           p.update(Param p)
+           p.update(Param p, int flag)
+        """
 
         cdef Param p
         cdef int flag
@@ -37,6 +44,10 @@
         else:
             raise Exception("can not handle parameters of type %s" % (map(type, a)))
 
+    def get(self, str key, default=None):
+        if self.exists(key):
+            return self.getValue(key)
+        return default
 
     def __getitem__(self, str key):
         return self.getValue(key)
