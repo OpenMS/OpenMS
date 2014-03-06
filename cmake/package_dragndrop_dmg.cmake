@@ -113,21 +113,27 @@ install(DIRECTORY ${PROJECT_BINARY_DIR}/doc/html
         PATTERN ".svn" EXCLUDE
 )
 
-install(FILES 		  ${PROJECT_BINARY_DIR}/doc/OpenMS_tutorial.pdf
-        DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/Documentation/
-        COMPONENT doc
-        PERMISSIONS OWNER_WRITE OWNER_READ
-                    GROUP_READ
-                    WORLD_READ
-)
+#------------------------------------------------------------------------------
+# install tutorials only if requested, note that we assume here that pdflatex
+# etc. is available
+# TODO: improve checks
+if (ENABLE_TUTORIALS)
+  install(FILES 		  ${PROJECT_BINARY_DIR}/doc/OpenMS_tutorial.pdf
+          DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/Documentation/
+          COMPONENT doc
+          PERMISSIONS OWNER_WRITE OWNER_READ
+                      GROUP_READ
+                      WORLD_READ
+  )
 
-install(FILES 		${PROJECT_BINARY_DIR}/doc/TOPP_tutorial.pdf
-        DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/Documentation/
-        COMPONENT doc
-        PERMISSIONS OWNER_WRITE OWNER_READ
-                    GROUP_READ
-                    WORLD_READ
-)
+  install(FILES 		${PROJECT_BINARY_DIR}/doc/TOPP_tutorial.pdf
+          DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/Documentation/
+          COMPONENT doc
+          PERMISSIONS OWNER_WRITE OWNER_READ
+                      GROUP_READ
+                      WORLD_READ
+  )
+endif ()
 
 ########################################################### SEARCHENGINES
 if(EXISTS ${SEARCH_ENGINES_DIRECTORY})

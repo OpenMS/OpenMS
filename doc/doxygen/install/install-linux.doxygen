@@ -257,6 +257,18 @@
       same for the C++ compiler.</td>
     </tr>
     <tr>
+      <td valign="top">\c HAS_XSERVER</td>
+      <td>Defines if a running X Server is available when building OpenMS.
+      As building parts of the documentation and running certain tests requires
+      a running X Server, this flag can be used to disable those parts of the
+      documentation and the tests that need an X Server. (Default: On)</td>
+    </tr>
+    <tr>
+      <td valign="top">\c ENABLE_TUTORIALS</td>
+      <td>Defines if a OpenMS should build and install the pdf tutorials.
+      (Default: On)</td>
+    </tr>
+    <tr>
       <td valign="top">\c SEARCH_ENGINES_DIRECTORY (optional)</td>
       <td>The location where the ID search engines (X!Tandem, OMMSA, MyriMatch)
       are located. This directory should have the same structure as the example
