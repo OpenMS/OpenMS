@@ -106,6 +106,7 @@ endforeach(i)
 #------------------------------------------------------------------------------
 # UTILS
 set(UTILS_executables_INI ${UTILS_TOOLS})
+list(REMOVE_ITEM UTILS_executables_INI OpenMSInfo)
 
 if(NOT HAS_XSERVER) # remove IDEvaluator if we don't have a running Xserver
   list(REMOVE_ITEM UTILS_executables_INI IDEvaluator)
@@ -113,10 +114,8 @@ endif()
 
 foreach (i ${UTILS_executables_INI})
   add_test("UTILSWRITEINI_${i}" "${TOPP_BIN_PATH}/${i}" -write_ini "${i}.ini.tmp")
-	if (NOT(${i} STREQUAL "OpenMSInfo"))  ## OpenMSInfo is not derived from TOPPBase and cannot produce an INI file (even though you can pass -write_ini with no effect)
-		add_test("UTILSWRITEINI_${i}_SectionName" ${CMAKE_COMMAND} -DNAME=${i} -DFILE=${i}.ini.tmp -P "${DATA_DIR_TOPP}/check_ini.cmake")
-		set_tests_properties("UTILSWRITEINI_${i}_SectionName" PROPERTIES DEPENDS "UTILSWRITEINI_${i}")
-	endif()
+	add_test("UTILSWRITEINI_${i}_SectionName" ${CMAKE_COMMAND} -DNAME=${i} -DFILE=${i}.ini.tmp -P "${DATA_DIR_TOPP}/check_ini.cmake")
+	set_tests_properties("UTILSWRITEINI_${i}_SectionName" PROPERTIES DEPENDS "UTILSWRITEINI_${i}")
 endforeach(i)
 
 #------------------------------------------------------------------------------
@@ -127,6 +126,9 @@ endforeach(i)
 # UTILS
 set(UTILS_executables_CTD ${UTILS_TOOLS})
 list(REMOVE_ITEM UTILS_executables_CTD OpenMSInfo)
+if(NOT HAS_XSERVER) # remove IDEvaluator if we don't have a running Xserver
+	list(REMOVE_ITEM UTILS_executables_CTD IDEvaluator)
+endif()
 foreach (i ${UTILS_executables_CTD})
   add_test("UTILSWRITECTD_${i}" "${TOPP_BIN_PATH}/${i}" -write_ctd)
 endforeach()
