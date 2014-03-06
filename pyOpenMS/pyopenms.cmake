@@ -360,6 +360,7 @@ testSpecialCases.py
 test_SpectraFilter.py
 test_SpectrumAccessOpenMS.py
 test_TraML.py
+test_MzMlConsumer.py
 )
 
 # Please add your test here when you decide to write a new testfile in the tests/unittests folder
