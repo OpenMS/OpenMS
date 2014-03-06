@@ -78,6 +78,11 @@ using namespace OpenMS;
 namespace OpenMS
 {
 
+  static bool SortSwathMapByLower(const OpenSwath::SwathMap left, const OpenSwath::SwathMap right)
+  {
+    return left.lower < right.lower;
+  }
+
   /**
    * @brief Class to write out an OpenSwath TSV output (mProphet input)
    *
@@ -833,10 +838,14 @@ namespace OpenMS
      *
      */
     static void annotateSwathMapsFromFile(const String filename,
-      std::vector< OpenSwath::SwathMap >& swath_maps)
+      std::vector< OpenSwath::SwathMap >& swath_maps, bool doSort)
     {
       std::vector<double> swath_prec_lower_, swath_prec_upper_;
       readSwathWindows(filename, swath_prec_lower_, swath_prec_upper_);
+
+      // Sort the windows by the start of the lower window 
+      if (doSort) 
+        {std::sort(swath_maps.begin(), swath_maps.end(), SortSwathMapByLower);}
 
       Size i = 0, j = 0;
       for (; i < swath_maps.size(); i++)
@@ -997,6 +1006,7 @@ protected:
     setValidFormats_("rt_norm", ListUtils::create<String>("trafoXML"));
 
     registerStringOption_("swath_windows_file", "<file>", "", "Optional, tab separated file containing the SWATH windows: lower_offset upper_offset \\newline 400 425 \\newline ... Note that the first line is a header and will be skipped.", false, true);
+    registerFlag_("sort_swath_maps", "Sort of input SWATH files when matching to SWATH windows from swath_windows_file", true);
 
     // one of the following two needs to be set
     registerOutputFile_("out_features", "<file>", "", "output file", false);
@@ -1171,6 +1181,7 @@ protected:
     bool ppm = getFlag_("ppm");
     bool split_file = getFlag_("split_file_input");
     bool use_emg_score = getFlag_("use_elution_model_score");
+    bool sort_swath_maps = getFlag_("sort_swath_maps");
     DoubleReal min_upper_edge_dist = getDoubleOption_("min_upper_edge_dist");
     DoubleReal mz_extraction_window = getDoubleOption_("mz_extraction_window");
     DoubleReal rt_extraction_window = getDoubleOption_("rt_extraction_window");
@@ -1216,7 +1227,7 @@ protected:
 
     // Allow the user to specify the SWATH windows
     if (!swath_windows_file.empty())
-      SwathWindowLoader::annotateSwathMapsFromFile(swath_windows_file, swath_maps);
+      SwathWindowLoader::annotateSwathMapsFromFile(swath_windows_file, swath_maps, sort_swath_maps);
 
     for (Size i = 0; i < swath_maps.size(); i++)
       LOG_DEBUG << "Found swath map " << i << " with lower " << swath_maps[i].lower << " and upper " << swath_maps[i].upper << std::endl;

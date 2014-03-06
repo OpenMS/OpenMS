@@ -46,8 +46,6 @@
 
 namespace OpenMS
 {
-  // forward declarations
-  class ResidueModification;
 
   /**
       @ingroup Chemistry

@@ -19,33 +19,33 @@ cdef extern from "<OpenMS/DATASTRUCTURES/DPosition.h>" namespace "OpenMS":
         DPosition1()  nogil except +
         DPosition1(DPosition1)  nogil except +
 
-        DoubleReal & operator[](Size index)
-        bool operator==(DPosition1)
-        bool operator!=(DPosition1)
+        DoubleReal & operator[](Size index) nogil except +
+        bool operator==(DPosition1) nogil except +
+        bool operator!=(DPosition1) nogil except +
 
-        bool operator<(DPosition1)
-        bool operator<=(DPosition1)
+        bool operator<(DPosition1) nogil except +
+        bool operator<=(DPosition1) nogil except +
 
-        bool operator>(DPosition1)
-        bool operator>=(DPosition1)
+        bool operator>(DPosition1) nogil except +
+        bool operator>=(DPosition1) nogil except +
 
-        void clear()
-        Size size()
+        void clear() nogil except +
+        Size size() nogil except +
 
     cdef cppclass DPosition2 "OpenMS::DPosition<2>":
         # wrap-ignore
         DPosition2()  nogil except +
         DPosition2(DPosition2)  nogil except +
 
-        DoubleReal & operator[](Size index)
-        bool operator==(DPosition2)
-        bool operator!=(DPosition2)
+        DoubleReal & operator[](Size index) nogil except +
+        bool operator==(DPosition2) nogil except +
+        bool operator!=(DPosition2) nogil except +
 
-        bool operator<(DPosition2)
-        bool operator<=(DPosition2)
+        bool operator<(DPosition2) nogil except +
+        bool operator<=(DPosition2) nogil except +
 
-        bool operator>(DPosition2)
-        bool operator>=(DPosition2)
+        bool operator>(DPosition2) nogil except +
+        bool operator>=(DPosition2) nogil except +
 
-        void clear()
-        Size size()
+        void clear() nogil except +
+        Size size() nogil except +

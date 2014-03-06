@@ -76,7 +76,14 @@ public:
 #endif
       for (SignedSize i = 0; i < boost::numeric_cast<SignedSize>(file_list.size()); ++i)
       {
-        std::cout << "Loading file " << i << " with name " << file_list[i] << " using readoptions " << readoptions << std::endl;
+
+#ifdef _OPENMP
+#pragma omp critical (load)
+#endif
+        {
+          std::cout << "Loading file " << i << " with name " << file_list[i] << " using readoptions " << readoptions << std::endl;
+        }
+
         String tmp_fname = "openswath_tmpfile_" + String(i) + ".mzML";
 
         boost::shared_ptr<MSExperiment<Peak1D> > exp(new MSExperiment<Peak1D>);

@@ -104,6 +104,18 @@ namespace OpenMS
     emit aboutToBeDestroyed(window_id_);
   }
 
+  void SpectrumWidget::correctAreaToObeyMinMaxRanges_(SpectrumCanvas::AreaType& area)
+  {
+    if(area.maxX() > canvas()->getDataRange().maxX())
+      area.setMaxX(canvas()->getDataRange().maxX());
+    if(area.minX() < canvas()->getDataRange().minX())
+      area.setMinX(canvas()->getDataRange().minX());
+    if(area.maxY() > canvas()->getDataRange().maxY())
+      area.setMaxY(canvas()->getDataRange().maxY());
+    if(area.minY() < canvas()->getDataRange().minY())
+      area.setMinY(canvas()->getDataRange().minY());
+  }
+
   Int SpectrumWidget::getActionMode() const
   {
     return canvas_->getActionMode();
@@ -244,17 +256,19 @@ namespace OpenMS
 
   void SpectrumWidget::updateHScrollbar(float min, float disp_min, float disp_max, float max)
   {
-    if (min == disp_min && max == disp_max)
+    if ((disp_min == min && disp_max == max) || (disp_min < min &&  disp_max > max))
     {
       x_scrollbar_->hide();
     }
     else
     {
       //block signals as this causes repainting due to rounding (QScrollBar works with int ...)
+      int local_min = std::min(min, disp_min);
+      int local_max = std::max(max, disp_max);
       x_scrollbar_->blockSignals(true);
       x_scrollbar_->show();
-      x_scrollbar_->setMinimum(static_cast<int>(min));
-      x_scrollbar_->setMaximum(static_cast<int>(max - disp_max + disp_min));
+      x_scrollbar_->setMinimum(static_cast<int>(local_min));
+      x_scrollbar_->setMaximum(static_cast<int>(std::ceil(local_max - disp_max + disp_min)));
       x_scrollbar_->setValue(static_cast<int>(disp_min));
       x_scrollbar_->setPageStep(static_cast<int>(disp_max - disp_min));
       x_scrollbar_->blockSignals(false);
@@ -263,17 +277,19 @@ namespace OpenMS
 
   void SpectrumWidget::updateVScrollbar(float min, float disp_min, float disp_max, float max)
   {
-    if (min == disp_min && max == disp_max)
+    if ((disp_min == min && disp_max == max) || (disp_min < min &&  disp_max > max))
     {
       y_scrollbar_->hide();
     }
     else
     {
       //block signals as this causes repainting due to rounding (QScrollBar works with int ...)
+      int local_min = std::min(min, disp_min);
+      int local_max = std::max(max, disp_max);
       y_scrollbar_->blockSignals(true);
       y_scrollbar_->show();
-      y_scrollbar_->setMinimum(static_cast<int>(min));
-      y_scrollbar_->setMaximum(static_cast<int>(max - disp_max + disp_min));
+      y_scrollbar_->setMinimum(static_cast<int>(local_min));
+      y_scrollbar_->setMaximum(static_cast<int>(std::ceil(local_max - disp_max + disp_min)));
       y_scrollbar_->setValue(static_cast<int>(disp_min));
       y_scrollbar_->setPageStep(static_cast<int>(disp_max - disp_min));
       y_scrollbar_->blockSignals(false);

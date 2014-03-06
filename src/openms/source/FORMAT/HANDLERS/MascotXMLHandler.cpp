@@ -155,11 +155,6 @@ namespace OpenMS
       if (tag_ == "NumQueries")
       {
         id_data_.resize(character_buffer_.trim().toInt());
-        for (vector<PeptideIdentification>::iterator it = id_data_.begin();
-             it != id_data_.end(); ++it)
-        {
-          it->setIdentifier(identifier_);
-        }
       }
 
       else if (tag_ == "prot_score")
@@ -630,6 +625,7 @@ namespace OpenMS
         }
         if (!already_stored)
         {
+          id_data_[peptide_identification_index_].setIdentifier(identifier_);
           id_data_[peptide_identification_index_].setScoreType("Mascot");
           actual_peptide_hit_.addProteinAccession(actual_protein_hit_.getAccession());
           id_data_[peptide_identification_index_].insertHit(actual_peptide_hit_);

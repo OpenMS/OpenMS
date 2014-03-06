@@ -231,6 +231,22 @@ START_SECTION((const vector<Int>& getMSLevels() const))
 	TEST_EQUAL(tmp.getMSLevels()==vector<Int>(),true);
 END_SECTION
 
+START_SECTION(Size getMaxDataPoolSize() const)
+{
+	PeakFileOptions tmp;
+	TEST_EQUAL(tmp.getMaxDataPoolSize()!=0,true);
+}
+END_SECTION
+
+START_SECTION(void setMaxDataPoolSize(Size size))
+{
+	PeakFileOptions tmp;
+	tmp.setMaxDataPoolSize(250);
+	TEST_EQUAL(tmp.getMaxDataPoolSize()==250,true);
+}
+END_SECTION
+
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

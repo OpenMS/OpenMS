@@ -15,19 +15,19 @@ cdef extern from "<OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>" namespace "Op
         # The StringLists should contain UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'
         ModificationDefinitionsSet(StringList fixed_modifications, StringList variable_modifications) nogil except +
 
-        void setMaxModifications(Size max_mod)
-        Size getMaxModifications()
-        Size getNumberOfModifications()
-        Size getNumberOfFixedModifications()
-        Size getNumberOfVariableModifications()
-        void addModification(ModificationDefinition &mod_def)
-        void setModifications(libcpp_set[ ModificationDefinition ] &mod_defs)
-        void setModifications(String &fixed_modifications, String &variable_modifications)
-        void setModifications(StringList &fixed_modifications, StringList &variable_modifications)
-        libcpp_set[ ModificationDefinition ] getModifications()
-        libcpp_set[ ModificationDefinition ]  getFixedModifications()
-        libcpp_set[ ModificationDefinition ]  getVariableModifications()
-        libcpp_set[ String ] getModificationNames()
-        libcpp_set[ String ] getFixedModificationNames()
-        libcpp_set[ String ] getVariableModificationNames()
-        bool isCompatible(AASequence &peptide)
+        void setMaxModifications(Size max_mod) nogil except +
+        Size getMaxModifications() nogil except +
+        Size getNumberOfModifications() nogil except +
+        Size getNumberOfFixedModifications() nogil except +
+        Size getNumberOfVariableModifications() nogil except +
+        void addModification(ModificationDefinition &mod_def) nogil except +
+        void setModifications(libcpp_set[ ModificationDefinition ] &mod_defs) nogil except +
+        void setModifications(String &fixed_modifications, String &variable_modifications) nogil except +
+        void setModifications(StringList &fixed_modifications, StringList &variable_modifications) nogil except +
+        libcpp_set[ ModificationDefinition ] getModifications() nogil except +
+        libcpp_set[ ModificationDefinition ]  getFixedModifications() nogil except +
+        libcpp_set[ ModificationDefinition ]  getVariableModifications() nogil except +
+        libcpp_set[ String ] getModificationNames() nogil except +
+        libcpp_set[ String ] getFixedModificationNames() nogil except +
+        libcpp_set[ String ] getVariableModificationNames() nogil except +
+        bool isCompatible(AASequence &peptide) nogil except +

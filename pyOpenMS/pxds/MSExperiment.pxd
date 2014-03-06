@@ -8,14 +8,16 @@ from ChromatogramPeak cimport *
 from MetaInfoInterface cimport *
 from ExperimentalSettings cimport *
 from DateTime cimport *
+from RangeManager cimport *
 
 # this class has addons, see the ./addons folder
 
 cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
 
-    cdef cppclass MSExperiment[PeakT, ChromoPeakT](ExperimentalSettings):
+    cdef cppclass MSExperiment[PeakT, ChromoPeakT](ExperimentalSettings, RangeManager2):
         # wrap-inherits:
         #   ExperimentalSettings
+        #   RangeManager2
         #
         # wrap-instances:
         #   MSExperiment := MSExperiment[Peak1D, ChromatogramPeak]
@@ -37,7 +39,7 @@ cdef extern from "<OpenMS/KERNEL/MSExperiment.h>" namespace "OpenMS":
         MSChromatogram[ ChromoPeakT ]  getChromatogram(Size id_) nogil except +
 
         MSChromatogram[ChromoPeakT] getTIC() nogil except +
-        void clear(bool clear_meta_data)
+        void clear(bool clear_meta_data) nogil except +
 
         void   updateRanges() nogil except +
         void   updateRanges(int msLevel) nogil except +

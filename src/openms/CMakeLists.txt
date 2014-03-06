@@ -58,7 +58,7 @@ endif()
 ###    external libs (contrib or system)						 ###
 ########################################################
 
-include(${OPENMS_HOST_DIRECTORY}/cmake/OpenMSBuildSystem_externalLibs.cmake)
+include(${PROJECT_SOURCE_DIR}/cmake_findExternalLibs.cmake)
 
 # TODO: XERCESC and  CONTRIB are included only with the others
 # Expose OpenMS's public includes (including transitive dependencies)

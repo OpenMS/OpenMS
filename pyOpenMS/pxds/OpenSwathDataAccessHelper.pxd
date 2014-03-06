@@ -26,7 +26,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>" nam
         void convertToOpenMSChromatogram(MSChromatogram[ChromatogramPeak] & chromatogram, shared_ptr[OSChromatogram] cptr) nogil except +
 
         # convert from the OpenMS Targeted experiment to the light Targeted Experiment
-        void convertTargetedExp(TargetedExperiment & transition_exp_, LightTargetedExperiment & transition_exp)
+        void convertTargetedExp(TargetedExperiment & transition_exp_, LightTargetedExperiment & transition_exp) nogil except +
 
         # convert from the LightPeptide to an OpenMS AASequence (with correct modifications)
         void convertPeptideToAASequence(LightPeptide & peptide, AASequence & aa_sequence) nogil except +

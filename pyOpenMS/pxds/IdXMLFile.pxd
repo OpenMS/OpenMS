@@ -12,14 +12,14 @@ cdef extern from "<OpenMS/FORMAT/IdXMLFile.h>" namespace "OpenMS":
         void load(String filename,
                   libcpp_vector[ProteinIdentification] & protein_ids,
                   libcpp_vector[PeptideIdentification] & peptide_ids,
-                  )
+                  ) nogil except +
 
         void store(String filename,
                   libcpp_vector[ProteinIdentification] & protein_ids,
                   libcpp_vector[PeptideIdentification] & peptide_ids,
-                  String document_id)
+                  String document_id) nogil except +
 
         void store(String filename,
                   libcpp_vector[ProteinIdentification] & protein_ids,
                   libcpp_vector[PeptideIdentification] & peptide_ids,
-                  )
+                  ) nogil except +

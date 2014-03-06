@@ -38,11 +38,10 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
-#include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/DATASTRUCTURES/ConvexHull2D.h>
 
 #include <vector>
+#include <list>
 
 namespace OpenMS
 {
@@ -69,10 +68,7 @@ namespace OpenMS
       Real intensity;
 
       /// Comparison operator
-      bool operator<(const Seed & rhs) const
-      {
-        return intensity < rhs.intensity;
-      }
+      bool operator<(const Seed& rhs) const;
 
     };
 
@@ -83,7 +79,7 @@ namespace OpenMS
     struct MassTrace
     {
       ///Maximum peak pointer
-      const PeakType * max_peak;
+      const PeakType* max_peak;
       ///RT of maximum peak
       DoubleReal max_rt;
 
@@ -91,7 +87,7 @@ namespace OpenMS
       DoubleReal theoretical_int;
 
       ///Contained peaks (pair of RT and pointer to peak)
-      std::vector<std::pair<DoubleReal, const PeakType *> > peaks;
+      std::vector<std::pair<DoubleReal, const PeakType*> > peaks;
 
       ///determines the convex hull of the trace
       ConvexHull2D getConvexhull() const
@@ -265,6 +261,67 @@ namespace OpenMS
         return std::make_pair(min, max);
       }
 
+      /**
+        @brief Computes a flat representation of MassTraces, i.e., a single
+               intensity value for each point in RT. The flattened representation
+               is comparable to the TIC of the MassTraces.
+
+        @param intensity_profile An empty std::list of pair<DoubleReal, DoubleReal> that will be filled.
+                The first element of the pair holds the RT value, the second value the sum of intensities
+                of all peaks in the different mass traces with this specifc RT.
+      */
+      void computeIntensityProfile(std::list<std::pair<DoubleReal, DoubleReal> >& intensity_profile) const
+      {
+        // typedefs for better readability
+        typedef typename MassTraces<PeakType>::const_iterator TTraceIterator;
+        typedef std::list<std::pair<DoubleReal, DoubleReal> >::iterator TProfileIterator;
+        typedef typename std::vector<std::pair<DoubleReal, const PeakType*> > TMassTracePeakList;
+        typedef typename TMassTracePeakList::const_iterator TTracePeakIterator;
+
+        TTraceIterator trace_it = this->begin();
+        // we add the first trace without check, as the profile is currently empty
+        for (TTracePeakIterator trace_peak_it = trace_it->peaks.begin(); trace_peak_it != trace_it->peaks.end(); ++trace_peak_it)
+        {
+          intensity_profile.push_back(std::make_pair(trace_peak_it->first, trace_peak_it->second->getIntensity()));
+        }
+        ++trace_it;
+
+        // accumulate intensities over all the remaining mass traces
+        for (; trace_it != this->end(); ++trace_it)
+        {
+          TProfileIterator profile_it = intensity_profile.begin();
+          TTracePeakIterator trace_peak_it = trace_it->peaks.begin();
+
+          while (trace_peak_it != trace_it->peaks.end())
+          {
+            // append .. if profile has already ended
+            if (profile_it == intensity_profile.end())
+            {
+              intensity_profile.push_back(std::make_pair(trace_peak_it->first, trace_peak_it->second->getIntensity()));
+              ++trace_peak_it;
+            }
+            // prepend
+            else if (profile_it->first > trace_peak_it->first)
+            {
+              intensity_profile.insert(profile_it, std::make_pair(trace_peak_it->first, trace_peak_it->second->getIntensity()));
+              ++trace_peak_it;
+            }
+            // proceed
+            else if (profile_it->first < trace_peak_it->first)
+            {
+              ++profile_it;
+            }
+            // merge
+            else if (profile_it->first == trace_peak_it->first)
+            {
+              profile_it->second += trace_peak_it->second->getIntensity();
+              ++trace_peak_it;
+              ++profile_it;
+            }
+          }
+        }
+      }
+
       /// Maximum intensity trace
       Size max_trace;
       /// Estimated baseline in the region of the feature (used for the fit)
@@ -287,10 +344,7 @@ namespace OpenMS
       ///The number of isotopes trimmed on the left side. This is needed to reconstruct the monoisotopic peak.
       Size trimmed_left;
       /// Returns the size
-      Size size() const
-      {
-        return intensity.size();
-      }
+      Size size() const;
 
     };
 
@@ -313,14 +367,7 @@ namespace OpenMS
       TheoreticalIsotopePattern theoretical_pattern;
 
       /// Constructor that resizes the internal vectors
-      explicit IsotopePattern(Size size) :
-        peak(size, -1),
-        spectrum(size),
-        intensity(size),
-        mz_score(size),
-        theoretical_mz(size)
-      {
-      }
+      explicit IsotopePattern(Size size);
 
     };
 

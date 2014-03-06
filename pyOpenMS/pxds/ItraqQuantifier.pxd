@@ -27,7 +27,7 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ItraqQuantifier.h>" namespace "O
 
         void run(ConsensusMap & map_in, ConsensusMap & map_out) nogil except +
 
-        ItraqQuantifierStats getStats()
+        ItraqQuantifierStats getStats() nogil except +
 
 
 cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ItraqQuantifier.h>" namespace "OpenMS::ItraqQuantifier":

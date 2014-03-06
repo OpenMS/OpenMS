@@ -36,6 +36,7 @@
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_GAUSSTRACEFITTER_H
 
 #include <sstream>
+#include <numeric> // for "accumulate"
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/TraceFitter.h>
 
@@ -124,7 +125,7 @@ public:
 
     DoubleReal getFWHM() const
     {
-      return 2.0 * sigma_;
+      return 2.35482 * sigma_; // 2 * sqrt(2 * log(2)) * sigma
     }
 
     /**
@@ -145,15 +146,15 @@ public:
       return (rt_bounds.second - rt_bounds.first) < (min_rt_span * 5.0 * sigma_);
     }
 
-    DoubleReal computeTheoretical(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType>& trace, Size k)
+    DoubleReal getValue(DoubleReal rt) const
     {
-      return trace.theoretical_int *  height_ * exp(-0.5 * pow(trace.peaks[k].first - x0_, 2) / pow(sigma_, 2));
+      return height_ * exp(-0.5 * pow(rt - x0_, 2) / pow(sigma_, 2));
     }
 
     DoubleReal getArea()
     {
-      // area under the curve, 2.5 is approx. sqrt(2 * pi):
-      return 2.5 * height_ * sigma_;
+      // area under the curve, 2.5... is approx. sqrt(2 * pi):
+      return 2.506628 * height_ * sigma_;
     }
 
     String getGnuplotFormula(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType>& trace, const char function_name, const DoubleReal baseline, const DoubleReal rt_shift)
@@ -243,19 +244,85 @@ protected:
 
     void setInitialParameters_(FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType>& traces)
     {
-      LOG_DEBUG << "GaussTraceFitter->setInitialParameters(..)" << std::endl;
-      LOG_DEBUG << "Traces length: " << traces.size() << std::endl;
-      LOG_DEBUG << "Max trace: " << traces.max_trace << std::endl;
+      LOG_DEBUG << "GaussTraceFitter->setInitialParameters(...)" << std::endl;
+      LOG_DEBUG << "Number of traces: " << traces.size() << std::endl;
 
-      // initial values for externals
-      height_ = traces[traces.max_trace].max_peak->getIntensity() - traces.baseline;
+      // aggregate data; some peaks (where intensity is zero) can be missing!
+      // mapping: RT -> total intensity over all mass traces
+      std::list<std::pair<DoubleReal, DoubleReal> > total_intensities;
+      traces.computeIntensityProfile(total_intensities);
+
+      const Size N = total_intensities.size();
+      const Size LEN = 2; // window size: 2 * LEN + 1
+
+      std::vector<DoubleReal> totals(N + 2 * LEN); // pad with zeros at ends
+      Int index = LEN;
+      // LOG_DEBUG << "Summed intensities:\n";
+      for (std::list<std::pair<DoubleReal, DoubleReal> >::iterator it =
+             total_intensities.begin(); it != total_intensities.end(); ++it)
+      {
+        totals[index++] = it->second;
+        // LOG_DEBUG << it->second << std::endl;
+      }
+
+      std::vector<DoubleReal> smoothed(N);
+      Size max_index = 0; // index of max. smoothed intensity
+      if (N <= LEN + 1) // not enough distinct x values for smoothing
+      {
+        // throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-MovingAverage", "Too few time points for smoothing with window size " + String(2 * LEN + 1));
+        for (Size i = 0; i < N; ++i)
+        {
+          smoothed[i] = totals[i + LEN];
+          if (smoothed[i] > smoothed[max_index]) max_index = i;
+        }
+      }
+      else // compute moving average for smoothing
+      {       
+        // LOG_DEBUG << "Smoothed intensities:\n";
+        DoubleReal sum = std::accumulate(&totals[LEN], &totals[2 * LEN], 0.0);
+        for (Size i = 0; i < N; ++i)
+        {
+          sum += totals[i + 2 * LEN];
+          smoothed[i] = sum / (2 * LEN + 1);
+          sum -= totals[i];
+          if (smoothed[i] > smoothed[max_index]) max_index = i;
+          // LOG_DEBUG << smoothed[i] << std::endl;
+        }
+      }
+      LOG_DEBUG << "Maximum at index " << max_index << std::endl;
+      height_ = smoothed[max_index] - traces.baseline;
       LOG_DEBUG << "height: " << height_ << std::endl;
-      x0_ = traces[traces.max_trace].max_rt;
+      std::list<std::pair<DoubleReal, DoubleReal> >::iterator it = total_intensities.begin();
+      std::advance(it, max_index);
+      x0_ = it->first;
       LOG_DEBUG << "x0: " << x0_ << std::endl;
-      region_rt_span_ = traces[traces.max_trace].peaks.back().first - traces[traces.max_trace].peaks[0].first;
-      LOG_DEBUG << "region_rt_span_: " << region_rt_span_ << std::endl;
-      sigma_ = region_rt_span_ / 20.0;
-      LOG_DEBUG << "sigma_: " << sigma_ << std::endl;
+      region_rt_span_ = (total_intensities.rbegin()->first - 
+                         total_intensities.begin()->first);
+      LOG_DEBUG << "region_rt_span: " << region_rt_span_ << std::endl;
+      
+      // find RT values where intensity is at half-maximum:
+      index = max_index;
+      while ((index > 0) && (smoothed[index] > height_ * 0.5)) --index;
+      DoubleReal left_height = smoothed[index];
+      it = total_intensities.begin();
+      std::advance(it, index);
+      DoubleReal left_rt = it->first;
+      LOG_DEBUG << "Left half-maximum at index " << index << ", RT " << left_rt
+                << std::endl;
+      index = max_index;
+      while ((index < Int(N - 1)) && (smoothed[index] > height_ * 0.5)) ++index;
+      DoubleReal right_height = smoothed[index];
+      it = total_intensities.end();
+      std::advance(it, index - Int(N));
+      DoubleReal right_rt = it->first;
+      LOG_DEBUG << "Right half-maximum at index " << index << ", RT "
+                << right_rt << std::endl;
+      
+      DoubleReal delta_x = right_rt - left_rt;
+      DoubleReal alpha = (left_height + right_height) * 0.5 / height_; // ~0.5
+      if (alpha >= 1) sigma_ = 1.0; // degenerate case, all values are the same
+      else sigma_ = delta_x * 0.5 / sqrt(-2.0 * log(alpha));
+      LOG_DEBUG << "sigma: " << sigma_ << std::endl;
     }
 
     virtual void updateMembers_()
@@ -265,11 +332,11 @@ protected:
 
     void printState_(SignedSize iter, gsl_multifit_fdfsolver* s)
     {
-      LOG_DEBUG << "iter " << iter << ": " <<
-      "height: " << gsl_vector_get(s->x, 0) << " " <<
-      "x0: " << gsl_vector_get(s->x, 1) << " " <<
-      "sigma: " << std::fabs(gsl_vector_get(s->x, 2)) << " " <<
-      "|f(x)| = " << gsl_blas_dnrm2(s->f) << std::endl;
+      LOG_DEBUG << "iter: " << iter << " " 
+                << "height: " << gsl_vector_get(s->x, 0) << " "
+                << "x0: " << gsl_vector_get(s->x, 1) << " "
+                << "sigma: " << std::fabs(gsl_vector_get(s->x, 2)) << " "
+                << "|f(x)| = " << gsl_blas_dnrm2(s->f) << std::endl;
     }
 
   };

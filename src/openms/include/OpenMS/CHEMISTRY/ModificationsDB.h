@@ -36,6 +36,7 @@
 #define OPENMS_CHEMISTRY_MODIFICATIONSDB_H
 
 #include <OpenMS/DATASTRUCTURES/Map.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 
 #include <set>
@@ -119,8 +120,50 @@ public:
     /// query the modifications DB to get the modifications with mass, without any specific origin
     void getModificationsByDiffMonoMass(std::vector<String> & mods, DoubleReal mass, DoubleReal error = 0.0);
 
-    /// query the modifications DB to get modifications with the given mass at the given residue
+    /// query the modifications DB to get modifications with the given delta mass at the given residue
     void getModificationsByDiffMonoMass(std::vector<String> & mods, const String & residue, DoubleReal mass, DoubleReal error = 0.0);
+
+    /** @brief returns the best matching modification for the given mass and residue
+
+        Query the modifications DB to get the best matching modification with
+        the given mass at the given residue (NULL pointer means no result,
+        maybe the maximal error tolerance needs to be increased). Possible
+        input for CAM modification would be a mass of 160 and a residue of
+        "C".
+
+        @note If there are multiple possible matches with equal masses, it
+        will choose the _first_ match which defaults to the first matching
+        UniMod entry.
+
+        @param residue The residue at which the modifications occurs
+        @param mass The monoisotopic mass of the residue including the mass of the modification
+        @param max_error The maximal mass error in the modification search
+
+        @return A pointer to the best matching modification (or NULL if none was found)
+
+    */
+    const ResidueModification * getBestModificationsByMonoMass(const String & residue, DoubleReal mass, DoubleReal max_error = 0.0);
+
+    /** @brief returns the best matching modification for the given delta mass and residue
+
+        Query the modifications DB to get the best matching modification with
+        the given delta mass at the given residue (NULL pointer means no result,
+        maybe the maximal error tolerance needs to be increased). Possible
+        input for CAM modification would be a delta mass of 57 and a residue
+        of "C".
+
+        @note If there are multiple possible matches with equal masses, it
+        will choose the _first_ match which defaults to the first matching
+        UniMod entry.
+
+        @param residue The residue at which the modifications occurs
+        @param mass The monoisotopic mass of the residue including the mass of the modification
+        @param max_error The maximal mass error in the modification search
+
+        @return A pointer to the best matching modification (or NULL if none was found)
+
+    */
+    const ResidueModification * getBestModificationsByDiffMonoMass(const String & residue, DoubleReal mass, DoubleReal max_error = 0.0);
 
     /// adds modifications from a given file in OBO format
     void readFromOBOFile(const String & filename);
