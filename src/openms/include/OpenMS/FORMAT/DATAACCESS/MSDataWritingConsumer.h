@@ -358,9 +358,9 @@ namespace OpenMS
       /// Experimental settings to use for the whole file
       ExperimentalSettings settings_;
       /// Vector of data processing objects -> will be filled by writeHeader_
-      std::vector<std::vector< DataProcessingPtr > > dps_;
+      std::vector<std::vector< ConstDataProcessingPtr > > dps_;
       /// The dataprocessing to be added to each spectrum/chromatogram
-      boost::shared_ptr< DataProcessing > additional_dataprocessing_;
+      DataProcessingPtr additional_dataprocessing_;
     };
 
     /**

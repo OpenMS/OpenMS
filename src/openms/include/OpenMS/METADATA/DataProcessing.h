@@ -125,6 +125,7 @@ protected:
   };
 
   typedef boost::shared_ptr<DataProcessing> DataProcessingPtr;
+  typedef boost::shared_ptr<const DataProcessing> ConstDataProcessingPtr;
 
 } // namespace OpenMS
 

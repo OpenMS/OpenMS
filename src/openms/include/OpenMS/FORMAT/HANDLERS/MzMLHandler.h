@@ -229,7 +229,7 @@ protected:
 
       void writeSpectrum_(std::ostream& os, const SpectrumType& spec, Size s, 
               Internal::MzMLValidator& validator, bool renew_native_ids, 
-              std::vector<std::vector< DataProcessingPtr > > & dps);
+              std::vector<std::vector< ConstDataProcessingPtr > > & dps);
 
       void writeChromatogram_(std::ostream& os, const ChromatogramType& chromatogram, Size c, Internal::MzMLValidator& validator);
 
@@ -354,7 +354,7 @@ protected:
         os << "\t\t\t\t\t</binaryDataArray>\n";
       }
 
-      void writeHeader_(std::ostream& os, const MapType& exp, std::vector<std::vector< DataProcessingPtr > > & dps, Internal::MzMLValidator& validator);
+      void writeHeader_(std::ostream& os, const MapType& exp, std::vector<std::vector< ConstDataProcessingPtr > > & dps, Internal::MzMLValidator& validator);
 
       /// map pointer for reading
       MapType* exp_;
@@ -449,7 +449,7 @@ protected:
       void writeSourceFile_(std::ostream& os, const String& id, const SourceFile& software, Internal::MzMLValidator& validator);
 
       /// Helper method that writes a data processing list
-      void writeDataProcessing_(std::ostream& os, const String& id, const std::vector< DataProcessingPtr >& dps, Internal::MzMLValidator& validator);
+      void writeDataProcessing_(std::ostream& os, const String& id, const std::vector< ConstDataProcessingPtr >& dps, Internal::MzMLValidator& validator);
 
       /// Helper method that write precursor information from spectra and chromatograms
       void writePrecursor_(std::ostream& os, const Precursor& precursor, Internal::MzMLValidator& validator);
@@ -3409,7 +3409,7 @@ protected:
     }
 
     template <typename MapType>
-    void MzMLHandler<MapType>::writeDataProcessing_(std::ostream& os, const String& id, const std::vector< DataProcessingPtr >& dps, Internal::MzMLValidator& validator)
+    void MzMLHandler<MapType>::writeDataProcessing_(std::ostream& os, const String& id, const std::vector< ConstDataProcessingPtr >& dps, Internal::MzMLValidator& validator)
     {
       os << "\t\t<dataProcessing id=\"" << id << "\">\n";
 
@@ -3653,7 +3653,7 @@ protected:
       int progress = 0;
       Internal::MzMLValidator validator(mapping_, cv_);
 
-      std::vector<std::vector< DataProcessingPtr > > dps;
+      std::vector<std::vector< ConstDataProcessingPtr > > dps;
       //--------------------------------------------------------------------------------------------
       //header
       //--------------------------------------------------------------------------------------------
@@ -3721,7 +3721,7 @@ protected:
 
     template <typename MapType>
     void MzMLHandler<MapType>::writeHeader_(std::ostream& os, const MapType& exp, 
-      std::vector<std::vector< DataProcessingPtr > > & dps, Internal::MzMLValidator& validator)
+      std::vector<std::vector< ConstDataProcessingPtr > > & dps, Internal::MzMLValidator& validator)
     {
       os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n";
 
@@ -4574,7 +4574,7 @@ protected:
       //default (first spectrum data or fictional data)
       if (exp.empty())
       {
-        std::vector< DataProcessingPtr > dummy;
+        std::vector< ConstDataProcessingPtr > dummy;
         writeDataProcessing_(os, "dp_sp_0", dummy, validator);
       }
 
@@ -4589,11 +4589,11 @@ protected:
         for (Size m = 0; m < exp[s].getFloatDataArrays().size(); ++m)
         {
           // TODO switch to shared ptr here
-          std::vector< boost::shared_ptr< DataProcessing> > tmp;
+          std::vector< ConstDataProcessingPtr > tmp;
           const std::vector< DataProcessing> tmp_ = exp[s].getFloatDataArrays()[m].getDataProcessing();
           for (Size i = 0; i < tmp_.size(); i++)
           {
-            tmp.push_back( DataProcessingPtr (new DataProcessing(tmp_[i] ) ) );
+            tmp.push_back( ConstDataProcessingPtr (new DataProcessing(tmp_[i] ) ) );
           }
           writeDataProcessing_(os, String("dp_sp_") + s + "_bi_" + m, tmp, validator);
         }
@@ -4632,7 +4632,7 @@ protected:
     void MzMLHandler<MapType>::writeSpectrum_(std::ostream& os,
             const SpectrumType& spec, Size s, 
             Internal::MzMLValidator& validator, bool renew_native_ids, 
-            std::vector<std::vector< DataProcessingPtr > > & dps)
+            std::vector<std::vector< ConstDataProcessingPtr > > & dps)
     {
         //native id
         String native_id = spec.getNativeID();

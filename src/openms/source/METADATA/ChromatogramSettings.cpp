@@ -34,6 +34,7 @@
 
 #include <OpenMS/METADATA/ChromatogramSettings.h>
 
+#include <OpenMS/CONCEPT/Helpers.h>
 #include <boost/iterator/indirect_iterator.hpp> // for equality
 
 using namespace std;
@@ -243,9 +244,9 @@ namespace OpenMS
     return data_processing_;
   }
 
-  const std::vector< DataProcessingPtr > & ChromatogramSettings::getDataProcessing() const
+  const std::vector< boost::shared_ptr<const DataProcessing > > ChromatogramSettings::getDataProcessing() const 
   {
-    return data_processing_;
+    return OpenMS::Helpers::constifyPointerVector(data_processing_);
   }
 
 }
