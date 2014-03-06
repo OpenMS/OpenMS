@@ -22,4 +22,4 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>" namesp
                  FeatureMap[Feature] & seeds
                  ) nogil except +
 
-        Param getParameters(String algorithm_name)
+        Param getParameters(String algorithm_name) nogil except +

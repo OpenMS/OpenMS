@@ -207,6 +207,8 @@ protected:
     virtual Math::Histogram<> createMetaDistribution_(const String & name) const = 0;
     /// recalculates the Axis ticks
     virtual void recalculateAxes_() = 0;
+    /// correct given area X/Y-values if the values under-/overflow the min-/max values of the data
+    void correctAreaToObeyMinMaxRanges_(SpectrumCanvas::AreaType& area);
 
     ///@name reimplemented Qt events
     //@{

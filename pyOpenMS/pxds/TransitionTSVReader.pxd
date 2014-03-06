@@ -14,9 +14,9 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/TransitionTSVReader.h>" namespace "
         TransitionTSVReader()                       nogil except +
         TransitionTSVReader(TransitionTSVReader)    nogil except + # wrap-ignore
 
-        void convertTargetedExperimentToTSV(char * filename, TargetedExperiment& targeted_exp)
+        void convertTargetedExperimentToTSV(char * filename, TargetedExperiment& targeted_exp) nogil except +
     
-        void convertTSVToTargetedExperiment(char * filename, TargetedExperiment& targeted_exp)
+        void convertTSVToTargetedExperiment(char * filename, TargetedExperiment& targeted_exp) nogil except +
     
-        void validateTargetedExperiment(TargetedExperiment targeted_exp)
+        void validateTargetedExperiment(TargetedExperiment targeted_exp) nogil except +
 

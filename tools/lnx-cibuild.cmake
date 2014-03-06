@@ -1,5 +1,5 @@
 # define build name&co for easier identification on cdassh
-set(CTEST_BUILD_NAME "travis-ci-$ENV{TRAVIS_BRANCH}-$ENV{BUILD_NAME}-$ENV{CXX}")
+set(CTEST_BUILD_NAME "travis-ci-$ENV{TRAVIS_REPO_SLUG}-$ENV{TRAVIS_BRANCH}-$ENV{BUILD_NAME}-$ENV{CXX}")
 set(CTEST_SITE "travis-ci-build-server")
 set(CTEST_SOURCE_DIRECTORY "$ENV{SOURCE_DIRECTORY}")
 set(CTEST_BINARY_DIRECTORY "${CTEST_SOURCE_DIRECTORY}/_build")
@@ -21,6 +21,7 @@ set(CTEST_CUSTOM_TESTS_IGNORE
   TOPPView_test
   UTILSWRITEINI_IDEvaluator
   UTILSWRITEINI_IDEvaluator_SectionName
+  UTILSWRITECTD_IDEvaluator
 	GzipIfstream_test
 )
 

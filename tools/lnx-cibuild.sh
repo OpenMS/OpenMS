@@ -13,6 +13,11 @@ else
   export BUILD_NAME=$TRAVIS_COMMIT
 fi
 
+# add search engines to PATH
+export PATH=${SOURCE_DIRECTORY}/_searchengines/MyriMatch:$PATH
+export PATH=${SOURCE_DIRECTORY}/_searchengines/OMSSA:$PATH
+export PATH=${SOURCE_DIRECTORY}/_searchengines/XTandem:$PATH
+
 ctest -V -S tools/lnx-cibuild.cmake
 
 # we indicate build failures if ctest experienced any errors
@@ -30,4 +35,3 @@ fi
 
 # it seems like everything worked
 exit 0
-

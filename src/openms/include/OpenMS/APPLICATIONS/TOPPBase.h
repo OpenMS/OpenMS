@@ -839,12 +839,10 @@ protected:
       {
         map[i].getDataProcessing().push_back(dp_);
       }
-      std::vector<MSChromatogram<CT> > chromatograms = map.getChromatograms();
-      for (Size i = 0; i < chromatograms.size(); ++i)
+      for (Size i = 0; i < map.getNrChromatograms(); ++i)
       {
-        chromatograms[i].getDataProcessing().push_back(dp_);
+        map.getChromatogram(i).getDataProcessing().push_back(dp_);
       }
-      map.setChromatograms(chromatograms);
     }
 
     ///Returns the data processing information

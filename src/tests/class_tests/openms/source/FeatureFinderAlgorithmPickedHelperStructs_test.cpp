@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2013.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Stephan Aiche $
 // $Authors: Stephan Aiche$
@@ -254,6 +254,102 @@ START_SECTION(([FeatureFinderAlgorithmPickedHelperStructs::MassTraces] std::pair
   std::pair<DoubleReal, DoubleReal> bounds = mt.getRTBounds();
   TEST_EQUAL(bounds.first, 677.1)
   TEST_EQUAL(bounds.second, 679.8)
+}
+END_SECTION
+
+// add some border cases to the traces that should be checked in computeIntensityProfile()
+
+// add a leading peak to the second trace
+Peak1D p2_0;
+p2_0.setIntensity(0.286529652f);
+p2_0.setMZ(1001);
+mt[1].peaks.insert(mt[1].peaks.begin(), std::make_pair(676.8, &p2_0));
+
+// .. add a peak after a gap
+Peak1D p2_7;
+p2_7.setIntensity(0.72952935f);
+p2_7.setMZ(1001);
+mt[1].peaks.push_back(std::make_pair(679.2, &p2_7));
+
+// .. and a trailing peak
+Peak1D p2_8;
+p2_8.setIntensity(0.672624672f);
+p2_8.setMZ(1001);
+mt[1].peaks.push_back(std::make_pair(680.1, &p2_8));
+
+START_SECTION(([FeatureFinderAlgorithmPickedHelperStructs::MassTraces] void computeIntensityProfile(std::list< std::pair<DoubleReal, DoubleReal> > intensity_profile) const))
+{
+  std::list< std::pair<DoubleReal, DoubleReal> > intensity_profile;
+  mt.computeIntensityProfile(intensity_profile);
+
+  TEST_EQUAL(intensity_profile.size(), 12)
+  ABORT_IF(intensity_profile.size() != 12)
+
+  std::list< std::pair<DoubleReal, DoubleReal> >::iterator profile = intensity_profile.begin();
+
+  // the leading peak
+  // 676.8 -> 0.286529652f
+  TEST_REAL_SIMILAR(profile->first, 676.8)
+  TEST_REAL_SIMILAR(profile->second, 0.286529652f)
+  ++profile;
+
+  // 677.1 -> 1.08268226589f
+  TEST_REAL_SIMILAR(profile->first, 677.1)
+  TEST_REAL_SIMILAR(profile->second, 1.08268226589f)
+  ++profile;
+
+  // 677.4 -> 1.58318959267f
+  TEST_REAL_SIMILAR(profile->first, 677.4)
+  TEST_REAL_SIMILAR(profile->second, 1.58318959267f)
+  ++profile;
+
+  // 677.7 -> 2.22429840363f
+  TEST_REAL_SIMILAR(profile->first, 677.7)
+  TEST_REAL_SIMILAR(profile->second, 2.22429840363f)
+  ++profile;
+
+  // 678.0 -> 3.00248879081f + 0.750622197703f
+  TEST_REAL_SIMILAR(profile->first, 678.0)
+  TEST_REAL_SIMILAR(profile->second, (3.00248879081f + 0.750622197703f))
+  ++profile;
+
+  // 678.3 -> 3.89401804768f + 0.97350451192f
+  TEST_REAL_SIMILAR(profile->first, 678.3)
+  TEST_REAL_SIMILAR(profile->second, (3.89401804768f + 0.97350451192f))
+  ++profile;
+
+  // 678.6 -> 4.8522452777f + 1.21306131943f
+  TEST_REAL_SIMILAR(profile->first, 678.6)
+  TEST_REAL_SIMILAR(profile->second, (4.8522452777f + 1.21306131943f))
+  ++profile;
+
+  // 678.9 -> 5.80919229659f
+  TEST_REAL_SIMILAR(profile->first, 678.9)
+  TEST_REAL_SIMILAR(profile->second, 5.80919229659f)
+  ++profile;
+
+  // 679.2 -> 6.68216169129f + 0.72952935f
+  TEST_REAL_SIMILAR(profile->first, 679.2)
+  TEST_REAL_SIMILAR(profile->second, (6.68216169129f + 0.72952935f))
+  ++profile;
+
+  // 679.5 -> 7.38493077109f
+  TEST_REAL_SIMILAR(profile->first, 679.5)
+  TEST_REAL_SIMILAR(profile->second, 7.38493077109f)
+  ++profile;
+
+  // 679.8 -> 7.84158938645f
+  TEST_REAL_SIMILAR(profile->first, 679.8)
+  TEST_REAL_SIMILAR(profile->second, 7.84158938645f)
+  ++profile;
+
+  // 680.1 -> 0.672624672f
+  TEST_REAL_SIMILAR(profile->first, 680.1)
+  TEST_REAL_SIMILAR(profile->second, 0.672624672f)
+  ++profile;
+
+  TEST_EQUAL(profile == intensity_profile.end(), true)
+
 }
 END_SECTION
 

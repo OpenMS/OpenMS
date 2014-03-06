@@ -80,7 +80,7 @@ namespace OpenMS
       if ( fabs( boost::lexical_cast< long double >(s) - res) > 0.1)
       {
         std::cerr << "Your system may not support addressing a file of this size,"
-          << " only addresses that fit into a " << sizeof(std::streampos)*8 << 
+          << " only addresses that fit into a " << sizeof(std::streamsize)*8 << 
           " bit integer are supported on your system." << std::endl;
         throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__,
             String("Could not convert string '") + s + "' to an integer on your system.");

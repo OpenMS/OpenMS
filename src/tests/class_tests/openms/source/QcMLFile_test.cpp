@@ -1,4 +1,4 @@
-// --------------------------------------------------------------------------
+ // --------------------------------------------------------------------------
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
@@ -312,13 +312,25 @@ END_SECTION
 
 START_SECTION(([QcMLFile::QualityParameter] bool operator<(const QualityParameter &rhs) const ))
 {
-	NOT_TESTABLE
+	QcMLFile::QualityParameter qp1;
+  qp1.name = "somename"; ///< Name
+  
+  QcMLFile::QualityParameter qp2;
+  qp2.name = "tomename"; ///< Name
+
+  TEST_EQUAL(qp1<qp2, true)
 }
 END_SECTION
 
 START_SECTION(([QcMLFile::QualityParameter] bool operator>(const QualityParameter &rhs) const ))
 {
-	NOT_TESTABLE
+	QcMLFile::QualityParameter qp1;
+  qp1.name = "somename"; ///< Name
+  
+  QcMLFile::QualityParameter qp2;
+  qp2.name = "romename"; ///< Name
+
+  TEST_EQUAL(qp1>qp2, true)
 }
 END_SECTION
 

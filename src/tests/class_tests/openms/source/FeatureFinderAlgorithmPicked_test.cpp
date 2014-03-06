@@ -106,27 +106,27 @@ START_SECTION((virtual void run()))
 	ffpp.setData(input, output, ff);
 	ffpp.run();
 	
-	TEST_EQUAL(output.size(),8);
+	TEST_EQUAL(output.size(), 8);
 	
 	TOLERANCE_ABSOLUTE(0.001);
-	TEST_REAL_SIMILAR(output[0].getOverallQuality(),0.8819);
-	TEST_REAL_SIMILAR(output[1].getOverallQuality(),0.8673);
-	TEST_REAL_SIMILAR(output[2].getOverallQuality(),0.9079);
-	TEST_REAL_SIMILAR(output[3].getOverallQuality(),0.9271);
-	TEST_REAL_SIMILAR(output[4].getOverallQuality(),0.9401);
-	TEST_REAL_SIMILAR(output[5].getOverallQuality(),0.9094);
-	TEST_REAL_SIMILAR(output[6].getOverallQuality(),0.9403);
-	TEST_REAL_SIMILAR(output[7].getOverallQuality(),0.9243);
+	TEST_REAL_SIMILAR(output[0].getOverallQuality(), 0.8819);
+	TEST_REAL_SIMILAR(output[1].getOverallQuality(), 0.8673);
+	TEST_REAL_SIMILAR(output[2].getOverallQuality(), 0.9079);
+	TEST_REAL_SIMILAR(output[3].getOverallQuality(), 0.9271);
+	TEST_REAL_SIMILAR(output[4].getOverallQuality(), 0.9401);
+	TEST_REAL_SIMILAR(output[5].getOverallQuality(), 0.9094);
+	TEST_REAL_SIMILAR(output[6].getOverallQuality(), 0.9403);
+	TEST_REAL_SIMILAR(output[7].getOverallQuality(), 0.9243);
 	
 	TOLERANCE_ABSOLUTE(20.0);
-	TEST_REAL_SIMILAR(output[0].getIntensity(),51260.0);
-	TEST_REAL_SIMILAR(output[1].getIntensity(),44667.3);
-	TEST_REAL_SIMILAR(output[2].getIntensity(),34613.3);
-	TEST_REAL_SIMILAR(output[3].getIntensity(),19428.9);
-	TEST_REAL_SIMILAR(output[4].getIntensity(),12513.9);
-	TEST_REAL_SIMILAR(output[5].getIntensity(),8512.71);
-	TEST_REAL_SIMILAR(output[6].getIntensity(),7295.3);
-	TEST_REAL_SIMILAR(output[7].getIntensity(),5024.74);
+	TEST_REAL_SIMILAR(output[0].getIntensity(), 51393.3);
+	TEST_REAL_SIMILAR(output[1].getIntensity(), 44786.0);
+	TEST_REAL_SIMILAR(output[2].getIntensity(), 34704.7);
+	TEST_REAL_SIMILAR(output[3].getIntensity(), 19479.9);
+	TEST_REAL_SIMILAR(output[4].getIntensity(), 12565.2);
+	TEST_REAL_SIMILAR(output[5].getIntensity(), 8535.44);
+	TEST_REAL_SIMILAR(output[6].getIntensity(), 7315.13);
+	TEST_REAL_SIMILAR(output[7].getIntensity(), 5041.12);
 	
 END_SECTION
 

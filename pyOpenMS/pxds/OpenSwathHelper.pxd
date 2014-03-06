@@ -15,7 +15,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>" namespace "Open
                                 TargetedExperiment & targeted_exp,
                                 TargetedExperiment & transition_exp_used,
                                 double min_upper_edge_dist
-                                )
+                                ) nogil except +
 
 
 

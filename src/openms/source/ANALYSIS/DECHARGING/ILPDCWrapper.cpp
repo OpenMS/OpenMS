@@ -206,9 +206,9 @@ namespace OpenMS
     // split problem into slices and have each one solved by the ILPS
     DoubleReal score = 0;
 // OMP currently causes spurious segfaults in Release mode; OMP fix applied, however: disable if problem persists
-#ifdef _OPENMP
-#pragma omp parallel for schedule(dynamic, 1), reduction(+: score)
-#endif
+//#ifdef _OPENMP
+//#pragma omp parallel for schedule(dynamic, 1), reduction(+: score)
+//#endif
     for (SignedSize i = 0; i < (SignedSize)bins.size(); ++i)
     {
       score = computeSlice_(fm, pairs, bins[i].first, bins[i].second, verbose_level);

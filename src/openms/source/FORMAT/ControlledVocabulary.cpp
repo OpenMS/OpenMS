@@ -400,21 +400,21 @@ namespace OpenMS
     for (Map<String, CVTerm>::iterator it = terms_.begin(); it != terms_.end(); ++it)
     {
       //cerr << it->first << "\n";
-      for (set<String>::const_iterator pit = terms_[it->first].parents.begin(); pit != terms_[it->first].parents.end(); ++pit)
+      for (set<String>::const_iterator pit = it->second.parents.begin(); pit != it->second.parents.end(); ++pit)
       {
         //cerr << "Parent: " << *pit << "\n";
         terms_[*pit].children.insert(it->first);
       }
 
-      Map<String, String>::iterator mit = namesToIds_.find(terms_[it->first].name);
+      Map<String, String>::iterator mit = namesToIds_.find(it->second.name);
       if (mit == namesToIds_.end())
       {
-        namesToIds_.insert(pair<String, String>(terms_[it->first].name, it->first));
+        namesToIds_.insert(pair<String, String>(it->second.name, it->first));
       }
       else
       {
         //~ TODO that case would be bad do something
-        String s = terms_[it->first].name + terms_[it->first].description;
+        String s = it->second.name + it->second.description;
         namesToIds_.insert(pair<String, String>(s, it->first));
       }
     }
