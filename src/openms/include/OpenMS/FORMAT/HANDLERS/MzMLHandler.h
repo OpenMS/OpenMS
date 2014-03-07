@@ -321,7 +321,7 @@ protected:
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-          for (Size i = 0; i < spectrum_data_.size(); i++)
+          for (SignedSize i = 0; i < (SignedSize)spectrum_data_.size(); i++)
           {
             // parallel exception catching and re-throwing business
             if (!errCount) // no need to parse further if already an error was encountered
@@ -381,7 +381,7 @@ protected:
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-          for (Size i = 0; i < chromatogram_data_.size(); i++)
+          for (SignedSize i = 0; i < (SignedSize)chromatogram_data_.size(); i++)
           {
             // parallel exception catching and re-throwing business
             try 
