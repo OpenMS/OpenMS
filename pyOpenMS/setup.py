@@ -21,6 +21,8 @@ if iswin and IS_DEBUG:
 # use autowrap to generate Cython and .cpp file for wrapping OpenMS:
 import cPickle
 import os
+import glob
+import shutil
 
 j = os.path.join
 
@@ -42,10 +44,7 @@ ctime = os.stat("pyopenms").st_mtime
 ts = time.gmtime(ctime)
 timestamp = "%02d-%02d-%4d" % (ts.tm_mday, ts.tm_mon, ts.tm_year)
 
-version = OPEN_MS_VERSION
-here = os.path.dirname(os.path.abspath(__file__))
-print >> open(j(here, "pyopenms", "version.py"), "w"), "version=%r\n" % version
-print >> open(j(here, "pyopenms", "qt_version_info.py"), "w"), "info=%r\n" % QT_QMAKE_VERSION_INFO
+from version import version
 
 # parse config
 
