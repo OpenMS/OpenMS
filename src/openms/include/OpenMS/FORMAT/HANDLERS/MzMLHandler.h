@@ -872,6 +872,13 @@ protected:
       /// id of the default data processing (used when no processing is defined)
       String default_processing_;
 
+      /**
+          @brief Data necessary to generate a single spectrum 
+
+          Small struct holds all data necessary to populate a spectrum at a
+          later timepoint (since reading of the base64 data and generation of
+          spectra can be done at distinct timepoints).
+      */
       struct SpectrumData 
       {
         std::vector<BinaryData> data;
@@ -883,6 +890,13 @@ protected:
       /// Vector of spectrum data stored for later parallel processing
       std::vector< SpectrumData > spectrum_data_;
 
+      /**
+          @brief Data necessary to generate a single chromatogram 
+
+          Small struct holds all data necessary to populate a chromatogram at a
+          later timepoint (since reading of the base64 data and generation of
+          chromatogram can be done at distinct timepoints).
+      */
       struct ChromatogramData
       {
         std::vector<BinaryData> data;
