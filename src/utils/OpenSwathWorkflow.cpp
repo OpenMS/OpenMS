@@ -80,7 +80,7 @@ namespace OpenMS
 
   static bool SortSwathMapByLower(const OpenSwath::SwathMap left, const OpenSwath::SwathMap right)
   {
-    return left.lower < right.lower;
+    return left.upper < right.upper;
   }
 
   /**
