@@ -30,6 +30,12 @@ pxd_files = glob.glob(src_pyopenms + "/pxds/*.pxd")
 addons = glob.glob(src_pyopenms + "/addons/*.pyx")
 converters = [j(src_pyopenms, "converters")]
 
+src_pyopenms = j(OPEN_MS_SRC, "pyOpenMS")
+extra_includes = glob.glob(src_pyopenms + "/extra_includes/*.h*")
+
+for include in extra_includes:
+    shutil.copy(include, "extra_includes/")
+
 
 persisted_data_path = "include_dir.bin"
 

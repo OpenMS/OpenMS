@@ -50,7 +50,6 @@ for OPEN_MS_CONTRIB_BUILD_DIR in OPEN_MS_CONTRIB_BUILD_DIRS.split(";"):
         break
 
 
-
 # Package data expected to be installed. On Linux the debian package
 # contains share/ data and must be installed to get access to the OpenMS shared
 # library.
@@ -83,6 +82,7 @@ library_dirs = [OPEN_MS_BUILD_DIR,
 import numpy
 
 include_dirs = [
+    "extra_includes",
     QT_HEADERS_DIR,
     QT_QTCORE_INCLUDE_DIR,
     j(OPEN_MS_CONTRIB_BUILD_DIR, "include"),
