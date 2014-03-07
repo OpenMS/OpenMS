@@ -124,8 +124,6 @@ if (DOXYGEN_FOUND)
   configure_file(${PROJECT_SOURCE_DIR}/doxygen/Doxyfile_dot.in ${PROJECT_BINARY_DIR}/doxygen/Doxyfile_dot)
   configure_file(${PROJECT_SOURCE_DIR}/doxygen/Doxyfile_noclass.in ${PROJECT_BINARY_DIR}/doxygen/Doxyfile_noclass)
   configure_file(${PROJECT_SOURCE_DIR}/doxygen/Doxyfile_xml.in ${PROJECT_BINARY_DIR}/doxygen/Doxyfile_xml)
-  configure_file(${PROJECT_SOURCE_DIR}/OpenMS_tutorial/Doxyfile.in ${PROJECT_BINARY_DIR}/OpenMS_tutorial/Doxyfile)
-  configure_file(${PROJECT_SOURCE_DIR}/TOPP_tutorial/Doxyfile.in ${PROJECT_BINARY_DIR}/TOPP_tutorial/Doxyfile)
 
   #------------------------------------------------------------------------------
   # create refman files for PDF tutorials
@@ -248,6 +246,11 @@ if (DOXYGEN_FOUND)
                     COMMAND ${CMAKE_COMMAND} -E echo ""
                     COMMENT "Build the doxygen documentation"
                     VERBATIM)
+  #------------------------------------------------------------------------------
+  # add virtual dependency of doc_minimal on TOPP & UTILS
+  # this is not necessary but defers the generation of doc_minimal to a later
+  # stage to avoid confusion if doc_minimal is build first
+  add_dependencies(doc_minimal TOPP UTILS)
 
   if (DOXYGEN_DOT_FOUND OR DOXYGEN_DOT_EXECUTABLE)
     #------------------------------------------------------------------------------
@@ -289,6 +292,10 @@ if (DOXYGEN_FOUND AND LATEX_COMPILER AND DVIPS_CONVERTER)
 
   if (ENABLE_TUTORIALS)
     set(DOC_TUTORIALS_ACTIVE TRUE)
+
+    # configure doxyfiles for tutorials
+    configure_file(${PROJECT_SOURCE_DIR}/OpenMS_tutorial/Doxyfile.in ${PROJECT_BINARY_DIR}/OpenMS_tutorial/Doxyfile)
+    configure_file(${PROJECT_SOURCE_DIR}/TOPP_tutorial/Doxyfile.in ${PROJECT_BINARY_DIR}/TOPP_tutorial/Doxyfile)
 
     # check doxygen for bug with generated latex files
     set(DOXYGEN_START_BUGGY "1.6.3")
@@ -337,6 +344,12 @@ if (DOXYGEN_FOUND AND LATEX_COMPILER AND DVIPS_CONVERTER)
                       COMMAND ${CMAKE_COMMAND} -E echo ""
                       COMMENT "Build the OpenMS/TOPP pdf tutorial"
                       VERBATIM)
+
+    #------------------------------------------------------------------------------
+    # add virtual dependency of tutorials on TOPP & UTILS
+    # this is not necessary but defers the generation of the tutorials to a later
+    # stage to avoid confusion if tutorials are build first
+    add_dependencies(doc_tutorials TOPP UTILS)
 
     #------------------------------------------------------------------------------
     # install also the tutorial pdfs
