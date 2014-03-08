@@ -21,8 +21,17 @@ if iswin and IS_DEBUG:
 # use autowrap to generate Cython and .cpp file for wrapping OpenMS:
 import cPickle
 import os
+import glob
+import shutil
 
 j = os.path.join
+
+src_pyopenms = j(OPEN_MS_SRC, "pyOpenMS")
+extra_includes = glob.glob(src_pyopenms + "/extra_includes/*.h*")
+
+for include in extra_includes:
+    shutil.copy(include, "extra_includes/")
+
 
 persisted_data_path = "include_dir.bin"
 autowrap_include_dirs = cPickle.load(open(persisted_data_path, "rb"))
@@ -35,10 +44,7 @@ ctime = os.stat("pyopenms").st_mtime
 ts = time.gmtime(ctime)
 timestamp = "%02d-%02d-%4d" % (ts.tm_mday, ts.tm_mon, ts.tm_year)
 
-version = OPEN_MS_VERSION
-here = os.path.dirname(os.path.abspath(__file__))
-print >> open(j(here, "pyopenms", "version.py"), "w"), "version=%r\n" % version
-print >> open(j(here, "pyopenms", "qt_version_info.py"), "w"), "info=%r\n" % QT_QMAKE_VERSION_INFO
+from version import version
 
 # parse config
 
@@ -83,6 +89,7 @@ library_dirs = [OPEN_MS_BUILD_DIR,
 import numpy
 
 include_dirs = [
+    "extra_includes",
     QT_HEADERS_DIR,
     QT_QTCORE_INCLUDE_DIR,
     j(OPEN_MS_CONTRIB_BUILD_DIR, "include"),

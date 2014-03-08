@@ -41,6 +41,7 @@
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/INTERFACES/IMSDataConsumer.h>
 
 #include <stack>
 
@@ -73,6 +74,8 @@ public:
         nesting_level_(0),
         skip_spectrum_(false),
         spec_write_counter_(1),
+        consumer_(NULL),
+        scan_count_(0),
         logger_(logger)
       {
         init_();
@@ -87,6 +90,8 @@ public:
         nesting_level_(0),
         skip_spectrum_(false),
         spec_write_counter_(1),
+        consumer_(NULL),
+        scan_count_(0),
         logger_(logger)
       {
         init_();
@@ -112,6 +117,18 @@ public:
       void setOptions(const PeakFileOptions& options)
       {
         options_ = options;
+      }
+
+      ///Gets the scan count
+      UInt getScanCount()
+      {
+        return scan_count_;
+      }
+
+      /// Set the IMSDataConsumer consumer which will consume the read data
+      void setMSDataConsumer(Interfaces::IMSDataConsumer<MapType> * consumer)
+      {
+        consumer_ = consumer;
       }
 
 private:
@@ -198,6 +215,12 @@ protected:
 
       /// spectrum counter (spectra without peaks are not written)
       UInt spec_write_counter_;
+
+      /// Consumer class to work on spectra
+      Interfaces::IMSDataConsumer<MapType>* consumer_;
+
+      /// Consumer class to work on spectra
+      UInt scan_count_;
 
       /// Progress logging class
       const ProgressLogger& logger_;
@@ -511,8 +534,6 @@ private:
         initStaticMembers_();
       }
 
-      static UInt scan_count = 0;
-
       String tag = sm_.convert(qname);
       open_tags_.push_back(tag);
       //std::cout << " -- Start -- "<< tag << " -- " << "\n";
@@ -527,7 +548,7 @@ private:
         optionalAttributeAsInt_(count, attributes, s_count_);
         exp_->reserve(count);
         logger_.startProgress(0, count, "loading mzXML file");
-        scan_count = 0;
+        scan_count_ = 0;
         data_processing_.clear();
         //start and end time are xs:duration. This makes no sense => ignore them
       }
@@ -658,14 +679,15 @@ private:
           }
         }
 
-        logger_.setProgress(scan_count);
+        logger_.setProgress(scan_count_);
 
         if ((options_.hasRTRange() && !options_.getRTRange().encloses(DPosition<1>(retention_time)))
-           || (options_.hasMSLevels() && !options_.containsMSLevel(ms_level)))
+           || (options_.hasMSLevels() && !options_.containsMSLevel(ms_level))
+           || options_.getSizeOnly())
         {
           // skip this tag
           skip_spectrum_ = true;
-          ++scan_count;
+          ++scan_count_;
           return;
         }
 
@@ -754,7 +776,7 @@ private:
           warning(LOAD, String("Unknown scan mode '") + type + "'. Assuming full scan");
         }
 
-        ++scan_count;
+        ++scan_count_;
       }
       else if (tag == "operator")
       {
