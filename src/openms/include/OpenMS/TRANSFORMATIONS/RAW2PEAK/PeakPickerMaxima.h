@@ -188,11 +188,7 @@ public:
             continue;
           }
 
-          std::map<double, double> peak_raw_data;
-
-          peak_raw_data[central_peak_mz] = central_peak_int;
-          peak_raw_data[left_neighbor_mz] = left_neighbor_int;
-          peak_raw_data[right_neighbor_mz] = right_neighbor_int;
+          double boundary_mz, boundary_int;
 
           // peak core found, now extend it
           // to the left
@@ -201,9 +197,11 @@ public:
           Size missing_left(0);
           Size missing_right(0);
 
+          boundary_mz = left_neighbor_mz;
+          boundary_int = left_neighbor_int;
           while ((i - k + 1) > 0
                 && (missing_left < 2)
-                && int_array[i - k] <= peak_raw_data.begin()->second)
+                && int_array[i - k] <= boundary_int)
           {
 
             double act_snt_lk = 0.0;
@@ -212,13 +210,15 @@ public:
               act_snt_lk = int_array[i-k] / noise_estimator.get_noise_value(mz_array[i-k]);
             }
 
-            if (act_snt_lk >= signal_to_noise_ && std::fabs(mz_array[i - k] - peak_raw_data.begin()->first) < spacing_difference_ * min_spacing)
+            if (act_snt_lk >= signal_to_noise_ && std::fabs(mz_array[i - k] - boundary_mz) < spacing_difference_ * min_spacing)
             {
-              peak_raw_data[mz_array[i - k]] = int_array[i - k];
+              boundary_mz = mz_array[i - k];
+              boundary_int = int_array[i - k];
             }
             else
             {
-              peak_raw_data[mz_array[i - k]] = int_array[i - k];
+              boundary_mz = mz_array[i - k];
+              boundary_int = int_array[i - k];
               ++missing_left;
             }
             ++k;
@@ -227,23 +227,27 @@ public:
 
           // to the right
           k = 2;
+          boundary_mz = right_neighbor_mz;
+          boundary_int = right_neighbor_int;
           while ((i + k) < mz_array.size()
                 && (missing_right < 2)
-                && int_array[i + k] <= peak_raw_data.rbegin()->second)
+                && int_array[i + k] <= boundary_int)
           {
             double act_snt_rk = 0.0;
             if (signal_to_noise_ > 0.0)
             {
-              act_snt_rk = int_array[i+k] / ne.get_noise_value(mz_array[i+k]);
+              act_snt_rk = int_array[i+k] / noise_estimator.get_noise_value(mz_array[i+k]);
             }
 
-            if (act_snt_rk >= signal_to_noise_ && std::fabs(mz_array[i + k] - peak_raw_data.rbegin()->first) < spacing_difference_ * min_spacing)
+            if (act_snt_rk >= signal_to_noise_ && std::fabs(mz_array[i + k] - boundary_mz) < spacing_difference_ * min_spacing)
             {
-              peak_raw_data[mz_array[i + k]] = int_array[i + k];
+              boundary_mz = mz_array[i + k];
+              boundary_int = int_array[i + k];
             }
             else
             {
-              peak_raw_data[mz_array[i + k]] = int_array[i + k];
+              boundary_mz = mz_array[i + k];
+              boundary_int = int_array[i + k];
               ++missing_right;
             }
             ++k;
