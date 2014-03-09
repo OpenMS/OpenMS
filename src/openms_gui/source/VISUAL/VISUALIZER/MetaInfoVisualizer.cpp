@@ -140,7 +140,7 @@ namespace OpenMS
     }
 
     //Remove QButton
-    std::vector<std::pair<UInt, QAbstractButton *> >::iterator iter3 = metabuttons_.begin();;
+    std::vector<std::pair<UInt, QAbstractButton *> >::iterator iter3 = metabuttons_.begin();
     while (iter3 != metabuttons_.end())
     {
       if ((*iter3).first == id)
