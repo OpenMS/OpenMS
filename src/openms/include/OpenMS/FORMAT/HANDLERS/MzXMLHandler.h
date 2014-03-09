@@ -359,7 +359,18 @@ protected:
         // Append all spectra
         for (Size i = 0; i < spectrum_data_.size(); i++)
         {
-          exp_->addSpectrum(spectrum_data_[i].spectrum);
+          if (consumer_ != NULL)
+          {
+            consumer_->consumeSpectrum(spectrum_data_[i].spectrum);
+            if (options_.getAlwaysAppendData())
+            {
+              exp_->addSpectrum(spectrum_data_[i].spectrum);
+            }
+          }
+          else
+          {
+            exp_->addSpectrum(spectrum_data_[i].spectrum);
+          }
         }
 
         // Delete batch
