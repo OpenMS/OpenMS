@@ -64,27 +64,15 @@ namespace OpenMS
     {
     case (Residue::AIon): return "AIon";
 
-      break;
-
     case (Residue::BIon): return "BIon";
-
-      break;
 
     case (Residue::CIon): return "CIon";
 
-      break;
-
     case (Residue::XIon): return "XIon";
-
-      break;
 
     case (Residue::YIon): return "YIon";
 
-      break;
-
     case (Residue::ZIon): return "ZIon";
-
-      break;
 
     default: return "undefined ion type";
     }
@@ -96,11 +84,11 @@ namespace OpenMS
 
     if (aa_to_index_.empty())
     {
-      ResidueDB * res_db;
+      ResidueDB* res_db;
       res_db = ResidueDB::getInstance();
-      std::set<const Residue *> all_aa = res_db->getResidues("Natural20");
+      std::set<const Residue*> all_aa = res_db->getResidues("Natural20");
       std::set<String> residues;
-      std::set<const Residue *>::const_iterator aa_it;
+      std::set<const Residue*>::const_iterator aa_it;
       for (aa_it = all_aa.begin(); aa_it != all_aa.end(); ++aa_it)
       {
         residues.insert((*aa_it)->getOneLetterCode());
@@ -241,14 +229,14 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  SvmTheoreticalSpectrumGenerator::SvmTheoreticalSpectrumGenerator(const SvmTheoreticalSpectrumGenerator & rhs) :
+  SvmTheoreticalSpectrumGenerator::SvmTheoreticalSpectrumGenerator(const SvmTheoreticalSpectrumGenerator& rhs) :
     DefaultParamHandler(rhs),
     mp_(rhs.mp_)
   {
     updateMembers_();
   }
 
-  SvmTheoreticalSpectrumGenerator & SvmTheoreticalSpectrumGenerator::operator=(const SvmTheoreticalSpectrumGenerator & rhs)
+  SvmTheoreticalSpectrumGenerator& SvmTheoreticalSpectrumGenerator::operator=(const SvmTheoreticalSpectrumGenerator& rhs)
   {
     if (this != &rhs)
     {
@@ -263,7 +251,7 @@ namespace OpenMS
   {
   }
 
-  Size SvmTheoreticalSpectrumGenerator::generateDescriptorSet_(AASequence peptide, Size position, IonType type, Size /* precursor_charge */, DescriptorSet & desc_set)
+  Size SvmTheoreticalSpectrumGenerator::generateDescriptorSet_(AASequence peptide, Size position, IonType type, Size /* precursor_charge */, DescriptorSet& desc_set)
   {
 
     std::vector<svm_node> descriptors_tmp;
@@ -710,7 +698,7 @@ namespace OpenMS
     //map the secondary types to their corresponding primary types
     for (Size i = 0; i < sec_ion_types.size(); ++i)
     {
-      const IonType & tmp = sec_ion_types[i];
+      const IonType& tmp = sec_ion_types[i];
       if (tmp.residue == Residue::BIon || tmp.residue == Residue::AIon || tmp.residue == Residue::CIon)
       {
         mp_.secondary_types[IonType(Residue::BIon)].push_back(tmp);
@@ -722,7 +710,7 @@ namespace OpenMS
     }
   }
 
-  void SvmTheoreticalSpectrumGenerator::simulate(RichPeakSpectrum & spectrum, const AASequence & peptide, const gsl_rng * rng, Size precursor_charge)
+  void SvmTheoreticalSpectrumGenerator::simulate(RichPeakSpectrum& spectrum, const AASequence& peptide, const gsl_rng* rng, Size precursor_charge)
   {
     RichPeak1D p_;
     // just in case someone wants the ion names;
@@ -748,7 +736,7 @@ namespace OpenMS
     std::vector<std::set<String> > possible_c_term_losses(peptide.size());
 
     UInt ion_nr = 0;
-    gsl_ran_discrete_t * gsl_gen = 0;
+    gsl_ran_discrete_t* gsl_gen = 0;
 
 
     for (Size i = 1; i < peptide.size(); ++i)
@@ -835,7 +823,7 @@ namespace OpenMS
         if (simulation_type == 0)
         {
           std::vector<DoubleReal> tmp_out;
-          std::vector<svm_node *> tmp_in(1, &descriptor.descriptors[0]);
+          std::vector<svm_node*> tmp_in(1, &descriptor.descriptors[0]);
 
           mp_.class_models[type_nr].get()->predict(tmp_in, tmp_out);
           predicted_class[i] = tmp_out[0];
@@ -844,7 +832,7 @@ namespace OpenMS
         if (simulation_type == 1)
         {
           std::vector<DoubleReal> tmp_out;
-          std::vector<svm_node *> tmp_in(1, &descriptor.descriptors[0]);
+          std::vector<svm_node*> tmp_in(1, &descriptor.descriptors[0]);
 
           mp_.reg_models[type_nr].get()->predict(tmp_in, tmp_out);
           predicted_intensity[i] = std::min(std::max(0., tmp_out[0]), 1.0);
@@ -917,7 +905,7 @@ namespace OpenMS
           {
             //sample intensities for secondary types
             Size region = std::min(mp_.number_regions - 1, (Size)floor(mp_.number_regions * prefix.getMonoWeight(Residue::Internal) / peptide.getMonoWeight()));
-            DoubleReal * condit_probs = &(mp_.conditional_prob[std::make_pair(*it, region)][bin][0]);
+            DoubleReal* condit_probs = &(mp_.conditional_prob[std::make_pair(*it, region)][bin][0]);
             gsl_gen = gsl_ran_discrete_preproc(mp_.number_intensity_levels, condit_probs);
             Size binned_int = gsl_ran_discrete(rng, gsl_gen);
             gsl_ran_discrete_free(gsl_gen);
@@ -988,7 +976,7 @@ namespace OpenMS
     spectrum.sortByPosition();
   }
 
-  void SvmTheoreticalSpectrumGenerator::scaleDescriptorSet_(DescriptorSet & desc, double lower, double upper)
+  void SvmTheoreticalSpectrumGenerator::scaleDescriptorSet_(DescriptorSet& desc, double lower, double upper)
   {
     std::vector<svm_node> tmp_desc;
     std::vector<svm_node>::iterator it;
