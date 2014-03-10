@@ -356,6 +356,7 @@ protected:
       if (split_charge)
       {
         // only adapt plot output if plot is requested (this badly violates the output rules and needs to change!)
+        // one way to fix this: plot charges into a single file (no renaming of output file needed) - but this requires major code restructuring
         if (!out_plot.empty()) fit_algorithm.setValue("out_plot", out_plot + "_charge_" + String(charge));
         PEP_model.setParameters(fit_algorithm);
       }
