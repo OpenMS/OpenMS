@@ -292,7 +292,7 @@ protected:
     }
   };
 
-  
+
 
   ///< Determine score maxima from rate to score distribution using derivatives from akima spline interpolation
   vector<RateScorePair> getHighPoints(DoubleReal threshold, MapRateToScoreType& rate2score, Size NBREAK = 10)
