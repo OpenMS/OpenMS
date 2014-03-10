@@ -128,12 +128,12 @@ namespace OpenMS
         QDir dir(param_.getValue("out_plot").toString().toQString());
         if (!dir.cdUp())
         {
-          LOG_ERROR << "Could not navigate to output directory for plots from '" << dir.dirName() << "'." << std::endl;
+          LOG_ERROR << "Could not navigate to output directory for plots from '" << String(dir.dirName()) << "'." << std::endl;
           return false;
         }
         if (!dir.exists() && !dir.mkpath("."))
         {
-          LOG_ERROR << "Could not create output directory for plots '" << dir.dirName() << "'." << std::endl;
+          LOG_ERROR << "Could not create output directory for plots '" << String(dir.dirName()) << "'." << std::endl;
           return false;
         }
         // 
