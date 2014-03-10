@@ -100,7 +100,9 @@ elseif ("${CMAKE_C_COMPILER_ID}" MATCHES "Clang")
                   -Wno-global-constructors
                   -Wno-exit-time-destructors
                   -Wno-weak-vtables
-                  -Wfloat-equal)
+                  -Wfloat-equal
+                  -Wno-documentation-unknown-command
+                  -Wno-documentation)
 else()
 	set(CMAKE_COMPILER_IS_INTELCXX true CACHE INTERNAL "Is Intel C++ compiler (icpc)")
 endif()
