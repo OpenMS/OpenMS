@@ -43,6 +43,7 @@
 #include <QDir>
 
 #include <fstream>
+#include <iostream>
 
 #include <boost/algorithm/string.hpp>
 
@@ -278,7 +279,7 @@ int main(int argc, char ** argv)
     cerr << "Please specify the path where the TOPP/UTIL binaries are located." << endl;
     return EXIT_FAILURE;
   }
-  
+
   String binary_directory = String(argv[1]).ensureLastChar('/');
 
   if(!File::exists(binary_directory))
@@ -286,7 +287,7 @@ int main(int argc, char ** argv)
     cerr << "The given binary directory does not exist. Aborting." << endl;
     return EXIT_FAILURE;
   }
-  
+
   //TOPP tools
   ToolListType topp_tools = ToolHandler::getTOPPToolList(true);   // include GenericWrapper (can be called with --help without error, even though it has a type)
   topp_tools["TOPPView"] = Internal::ToolDescription();   // these two need to be excluded from writing an INI file later!
