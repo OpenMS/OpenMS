@@ -270,7 +270,6 @@ MassTraceDetection_test
   SignalToNoiseEstimatorMeanIterative_test
   SignalToNoiseEstimatorMedian_test
   SignalToNoiseEstimatorMedianRapid_test
-  SignalToNoiseEstimatorMedianComparison_test
   SignalToNoiseEstimator_test
   SqrtMower_test
   TICFilter_test
