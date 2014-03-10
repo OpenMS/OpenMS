@@ -173,7 +173,7 @@ class SimpleSearchEngine
       return has_invalid_length;
     }
 
-    // spectrum must not contain 0 intensity peaks and must be sorted by mz
+    // spectrum must not contain 0 intensity peaks and must be sorted by m/z
     template <typename SpectrumType>
     void deisotopeMSSpectrum(SpectrumType& in, Int min_charge, Int max_charge, DoubleReal fragment_tolerance, bool fragment_unit_ppm, bool keep_only_deisotoped = false, Size min_isopeaks = 2, Size max_isopeaks = 10)
     {
