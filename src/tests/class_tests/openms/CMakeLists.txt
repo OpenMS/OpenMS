@@ -151,6 +151,12 @@ foreach(_class_test ${TEST_executables})
 endforeach(_class_test)
 
 #------------------------------------------------------------------------------
+# some tests need special treatment
+
+# StopWatch_test needs to be run alone to avoid timing errors
+set_tests_properties(StopWatch_test PROPERTIES RUN_SERIAL 1)
+
+#------------------------------------------------------------------------------
 # 2 - add link dependency
 foreach(t ${Boost_dependent_tests})
 	target_link_libraries(${t} ${Boost_LIBRARIES})
