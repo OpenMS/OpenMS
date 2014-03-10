@@ -43,6 +43,7 @@
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_SUPERHIRN_SUPERHIRNUTIL_H
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <cmath>
 
 namespace OpenMS
 {

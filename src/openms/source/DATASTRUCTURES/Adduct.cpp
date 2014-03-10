@@ -34,7 +34,7 @@
 
 #include <OpenMS/DATASTRUCTURES/Adduct.h>
 
-using namespace std;
+#include <iostream>
 
 namespace OpenMS
 {

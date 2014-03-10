@@ -46,6 +46,112 @@ using namespace std;
 
 namespace OpenMS
 {
+  PILISCrossValidation::Peptide::Peptide() :
+    charge(0)
+  {
+  }
+
+  PILISCrossValidation::Peptide::Peptide(const Peptide & rhs) :
+    sequence(rhs.sequence),
+    charge(rhs.charge),
+    spec(rhs.spec),
+    hits(rhs.hits)
+  {
+  }
+
+  PILISCrossValidation::Peptide::~Peptide()
+  {
+  }
+
+  PILISCrossValidation::Peptide & PILISCrossValidation::Peptide::operator=(const PILISCrossValidation::Peptide & rhs)
+  {
+    if (&rhs != this)
+    {
+      sequence = rhs.sequence;
+      charge = rhs.charge;
+      spec = rhs.spec;
+      hits = rhs.hits;
+    }
+    return *this;
+  }
+
+  bool PILISCrossValidation::Peptide::operator<(const PILISCrossValidation::Peptide & peptide) const
+  {
+    if (sequence < peptide.sequence)
+    {
+      return true;
+    }
+    else
+    {
+      if (sequence == peptide.sequence)
+      {
+        return charge < peptide.charge;
+      }
+    }
+    return false;
+  }
+
+  PILISCrossValidation::Option::Option() :
+    type(INT),
+    int_min(0),
+    int_max(0),
+    int_stepsize(0),
+    dbl_min(0),
+    dbl_max(0),
+    dbl_stepsize(0)
+  {
+  }
+
+  PILISCrossValidation::Option::Option(const PILISCrossValidation::Option & rhs) :
+    type(rhs.type),
+    int_min(rhs.int_min),
+    int_max(rhs.int_max),
+    int_stepsize(rhs.int_stepsize),
+    dbl_min(rhs.dbl_min),
+    dbl_max(rhs.dbl_max),
+    dbl_stepsize(rhs.dbl_stepsize)
+  {
+  }
+
+  PILISCrossValidation::Option::Option(Type t, DoubleReal min, DoubleReal max, DoubleReal stepsize)
+  {
+    type = t;
+    if (type == INT)
+    {
+      int_min = (Int)min;
+      int_max = (Int)max;
+      int_stepsize = (Int)stepsize;
+    }
+    else
+    {
+      if (type == DOUBLE)
+      {
+        dbl_min = min;
+        dbl_max = max;
+        dbl_stepsize = stepsize;
+      }
+      else
+      {
+        std::cerr << "Type: " << t << " is not known!" << std::endl;
+      }
+    }
+  }
+
+  PILISCrossValidation::Option & PILISCrossValidation::Option::operator=(const PILISCrossValidation::Option & rhs)
+  {
+    if (&rhs != this)
+    {
+      type = rhs.type;
+      int_min = rhs.int_min;
+      int_max = rhs.int_max;
+      int_stepsize = rhs.int_stepsize;
+      dbl_min = rhs.dbl_min;
+      dbl_max = rhs.dbl_max;
+      dbl_stepsize = rhs.dbl_stepsize;
+    }
+    return *this;
+  }
+
   PILISCrossValidation::PILISCrossValidation() :
     DefaultParamHandler("PILISCrossValidation")
   {

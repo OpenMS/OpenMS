@@ -39,7 +39,12 @@
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 
+#include <OpenMS/CONCEPT/PrecissionWrapper.h>
+
 #include <algorithm>
+
+#include <iostream>
+#include <sstream>
 
 using namespace std;
 

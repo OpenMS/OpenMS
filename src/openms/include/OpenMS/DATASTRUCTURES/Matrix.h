@@ -40,6 +40,7 @@
 #include <cmath> // pow()
 #include <iomanip>
 #include <vector>
+#include <iostream>
 
 #include <gsl/gsl_matrix.h>
 #include <gsl/gsl_vector.h>

@@ -34,6 +34,8 @@
 
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/MassDecomposition.h>
 
+#include <iostream>
+
 using namespace std;
 
 namespace OpenMS

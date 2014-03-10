@@ -38,7 +38,6 @@
 #include <OpenMS/KERNEL/Peak1D.h>
 
 #include <vector>
-#include <iostream>
 
 namespace OpenMS
 {

@@ -43,6 +43,8 @@
 
 #include <OpenMS/KERNEL/MSExperiment.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
+
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/FORMAT/HANDLERS/MzMLHandlerHelper.h>
 #include <OpenMS/FORMAT/VALIDATORS/MzMLValidator.h>

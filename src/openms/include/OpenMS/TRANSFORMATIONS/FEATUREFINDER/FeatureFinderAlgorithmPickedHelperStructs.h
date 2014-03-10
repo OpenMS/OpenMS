@@ -42,6 +42,7 @@
 
 #include <vector>
 #include <list>
+#include <cmath>
 
 namespace OpenMS
 {

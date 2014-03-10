@@ -42,7 +42,6 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
-#include <iostream>
 #include <vector>
 #include <map>
 #include <gsl/gsl_multifit.h>

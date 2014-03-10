@@ -39,6 +39,8 @@
 #include <OpenMS/VISUAL/TOPPASScene.h>
 #include <QSvgRenderer>
 
+#include <iostream>
+
 namespace OpenMS
 {
   TOPPASMergerVertex::TOPPASMergerVertex() :

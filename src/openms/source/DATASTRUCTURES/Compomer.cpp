@@ -37,6 +37,7 @@
 
 #include <cmath>
 #include <algorithm>    // std::min
+#include <iostream>
 
 using namespace std;
 

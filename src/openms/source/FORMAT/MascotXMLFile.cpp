@@ -34,7 +34,7 @@
 
 #include <OpenMS/FORMAT/MascotXMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
-
+#include <OpenMS/CONCEPT/LogStream.h>
 
 using namespace xercesc;
 using namespace std;

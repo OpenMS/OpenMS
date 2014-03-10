@@ -43,15 +43,19 @@
  *
  */
 
+#include <cmath>
+#include <iostream>
+#include <iomanip>
+
 #include <list>
 #include <map>
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/SuperHirnParameters.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/CentroidPeak.h>
-
-#include <iomanip>
-
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/IsotopicDist.h>
+
+using std::list;
+using std::vector;
 
 namespace OpenMS
 {

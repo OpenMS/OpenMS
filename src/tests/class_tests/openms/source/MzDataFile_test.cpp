@@ -825,13 +825,13 @@ MSExperiment<> e;
 //test if empty file is valid
 NEW_TMP_FILE(tmp_filename);
 f.store(tmp_filename, e);
-TEST_EQUAL(f.isValid(tmp_filename), true);
+TEST_EQUAL(f.isValid(tmp_filename, std::cerr), true);
 
 //test if filled file is valid
 NEW_TMP_FILE(tmp_filename);
 f.load(OPENMS_GET_TEST_DATA_PATH("MzDataFile_1.mzData"), e);
 f.store(tmp_filename, e);
-TEST_EQUAL(f.isValid(tmp_filename), true);
+TEST_EQUAL(f.isValid(tmp_filename, std::cerr), true);
 END_SECTION
 
 START_SECTION(bool isSemanticallyValid(const String& filename, StringList& errors, StringList& warnings))

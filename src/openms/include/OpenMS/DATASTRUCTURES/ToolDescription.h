@@ -38,11 +38,8 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
-#include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/CONCEPT/LogStream.h>
 
-
+#include <map>
 
 namespace OpenMS
 {
@@ -59,15 +56,7 @@ namespace OpenMS
       String target;   // TOPP parameter that determines the desired name
       // thus: move location -> target
 
-      FileMapping & operator=(const FileMapping & rhs)
-      {
-        if (this == &rhs) return *this;
-
-        location = rhs.location;
-        target = rhs.target;
-        return *this;
-      }
-
+      FileMapping & operator=(const FileMapping & rhs);
     };
 
     /**
@@ -80,15 +69,7 @@ namespace OpenMS
       std::vector<FileMapping> pre_moves;
       std::vector<FileMapping> post_moves;
 
-      MappingParam & operator=(const MappingParam & rhs)
-      {
-        if (this == &rhs) return *this;
-
-        mapping = rhs.mapping;
-        pre_moves = rhs.pre_moves;
-        post_moves = rhs.post_moves;
-        return *this;
-      }
+      MappingParam & operator=(const MappingParam & rhs);
 
     };
 

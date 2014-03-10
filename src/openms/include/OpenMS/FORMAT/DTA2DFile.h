@@ -38,28 +38,28 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/CONCEPT/PrecissionWrapper.h>
 
 #include <fstream>
 #include <iostream>
 
 namespace OpenMS
 {
-  class String;
   /**
-            @brief DTA2D File adapter.
+    @brief DTA2D File adapter.
 
-            File adapter for files with three tab/space-separated columns.
+    File adapter for files with three tab/space-separated columns.
 
-            The default format is: retention time (seconds) , m/z , intensity.
+    The default format is: retention time (seconds) , m/z , intensity.
 
-            If the first line starts with '#', a different order is defined by the
-            the order of the keywords 'MIN' (retention time in minutes) or 'SEC' (retention time in seconds), 'MZ', and 'INT'.
+    If the first line starts with '#', a different order is defined by the
+    the order of the keywords 'MIN' (retention time in minutes) or 'SEC' (retention time in seconds), 'MZ', and 'INT'.
 
-            Example: '\#MZ MIN INT'
+    Example: '\#MZ MIN INT'
 
-            The peaks of one retention time have to be in subsequent lines.
+    The peaks of one retention time have to be in subsequent lines.
 
-            @ingroup FileIO
+    @ingroup FileIO
   */
   class OPENMS_DLLAPI DTA2DFile :
     public ProgressLogger
@@ -78,21 +78,22 @@ public:
     //@}
 
     /// Mutable access to the options for loading/storing
-    PeakFileOptions & getOptions();
+    PeakFileOptions& getOptions();
 
     /// Non-mutable access to the options for loading/storing
-    const PeakFileOptions & getOptions() const;
+    const PeakFileOptions& getOptions() const;
 
     /**
-         @brief Loads a map from a DTA2D file.
+      @brief Loads a map from a DTA2D file.
 
-         @p map has to be a MSExperiment or have the same interface.
+      @param filename The file from which the map should be loaded.
+      @param map has to be a MSExperiment or have the same interface.
 
-        @exception Exception::FileNotFound is thrown if the file could not be opened
-        @exception Exception::ParseError is thrown if an error occurs during parsing
+      @exception Exception::FileNotFound is thrown if the file could not be opened
+      @exception Exception::ParseError is thrown if an error occurs during parsing
     */
     template <typename MapType>
-    void load(const String & filename, MapType & map)
+    void load(const String& filename, MapType& map)
     {
       startProgress(0, 0, "loading DTA2D file");
 
@@ -112,7 +113,7 @@ public:
       // temporary variables to store the data in
       std::vector<String> strings(3);
       typename MapType::SpectrumType spec;
-      spec.setRT(-1.0);       //to make sure the first RT is different from the the initialized value
+      spec.setRT(-1.0); //to make sure the first RT is different from the the initialized value
       typename MapType::SpectrumType::PeakType p;
       DoubleReal rt(0.0);
       char delimiter;
@@ -211,7 +212,7 @@ public:
           rt = (strings[rt_dim].toDouble()) * (time_in_minutes ? 60.0 : 1.0);
         }
         // conversion to double or something else could have gone wrong
-        catch (Exception::BaseException & /*e*/)
+        catch (Exception::BaseException& /*e*/)
         {
           throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, std::string("Bad data line (" + String(line_number) + "): \"") + line + "\"", filename);
         }
@@ -221,7 +222,7 @@ public:
         {
           if (spec.size() != 0
              &&
-              (!options_.hasRTRange() || options_.getRTRange().encloses(DPosition<1>(spec.getRT()))))                // RT restriction fulfilled
+              (!options_.hasRTRange() || options_.getRTRange().encloses(DPosition<1>(spec.getRT())))) // RT restriction fulfilled
           {
             map.addSpectrum(spec);
           }
@@ -247,7 +248,7 @@ public:
       if (
         spec.size() != 0
          &&
-        (!options_.hasRTRange() || options_.getRTRange().encloses(DPosition<1>(spec.getRT())))             // RT restriction fulfilled
+        (!options_.hasRTRange() || options_.getRTRange().encloses(DPosition<1>(spec.getRT()))) // RT restriction fulfilled
         )
       {
         map.addSpectrum(spec);
@@ -258,14 +259,15 @@ public:
     }
 
     /**
- @brief Stores a map in a DTA2D file.
+      @brief Stores a map in a DTA2D file.
 
- @p map has to be a MSExperiment or have the same interface.
+      @param filename The name of the file where the map should be stored.
+      @param map has to be a MSExperiment or have the same interface.
 
- @exception Exception::UnableToCreateFile is thrown if the file could not be created
- */
+      @exception Exception::UnableToCreateFile is thrown if the file could not be created
+    */
     template <typename MapType>
-    void store(const String & filename, const MapType & map) const
+    void store(const String& filename, const MapType& map) const
     {
       startProgress(0, map.size(), "storing DTA2D file");
 
@@ -296,14 +298,15 @@ public:
     }
 
     /**
- @brief Stores the TIC of a map in a DTA2D file.
+      @brief Stores the TIC of a map in a DTA2D file.
 
- @p map has to be a MSExperiment or have the same interface.
+      @param filename The name of the file where the map should be stored.
+      @param map has to be a MSExperiment or have the same interface.
 
- @exception Exception::UnableToCreateFile is thrown if the file could not be created
- */
+      @exception Exception::UnableToCreateFile is thrown if the file could not be created
+    */
     template <typename MapType>
-    void storeTIC(const String & filename, const MapType & map) const
+    void storeTIC(const String& filename, const MapType& map) const
     {
       startProgress(0, map.size(), "storing DTA2D file");
 

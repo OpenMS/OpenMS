@@ -37,7 +37,9 @@
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/ModificationDefinition.h>
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
+
 #include <set>
+#include <iostream>
 
 using namespace std;
 

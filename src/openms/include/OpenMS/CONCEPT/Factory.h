@@ -41,7 +41,6 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <map>
-#include <iostream>
 #include <typeinfo>
 
 namespace OpenMS

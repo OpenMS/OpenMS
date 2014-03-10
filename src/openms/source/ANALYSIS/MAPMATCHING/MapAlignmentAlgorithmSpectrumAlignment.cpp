@@ -36,6 +36,8 @@
 
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
+#include <fstream>
+
 namespace OpenMS
 {
 

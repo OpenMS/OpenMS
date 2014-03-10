@@ -45,6 +45,8 @@
 
 #include <OpenMS/SYSTEM/File.h>
 
+#include <iostream>
+
 using namespace std;
 
 namespace OpenMS

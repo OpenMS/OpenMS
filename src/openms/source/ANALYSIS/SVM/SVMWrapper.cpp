@@ -54,6 +54,97 @@ using namespace std;
 namespace OpenMS
 {
 
+  SVMData::SVMData() :
+    sequences(std::vector<std::vector<std::pair<Int, DoubleReal> > >()),
+    labels(std::vector<DoubleReal>())
+  {
+  }
+
+  SVMData::SVMData(std::vector<std::vector<std::pair<Int, DoubleReal> > > & seqs, std::vector<DoubleReal> & lbls) :
+    sequences(seqs),
+    labels(lbls)
+  {
+  }
+
+  bool SVMData::operator==(const SVMData & rhs) const
+  {
+    return sequences == rhs.sequences
+           && labels == rhs.labels;
+  }
+
+  bool SVMData::store(const String & filename) const
+  {
+    std::ofstream output_file(filename.c_str());
+
+    // checking if file is writable
+    if (!File::writable(filename) || sequences.size() != labels.size())
+    {
+      return false;
+    }
+
+    // writing feature vectors
+    for (Size i = 0; i < sequences.size(); i++)
+    {
+      output_file << labels[i] << " ";
+      for (Size j = 0; j < sequences[i].size(); ++j)
+      {
+        output_file << sequences[i][j].second << ":" << sequences[i][j].first << " ";
+      }
+      output_file << std::endl;
+    }
+    output_file.flush();
+    output_file.close();
+    std::cout.flush();
+    return true;
+  }
+
+  bool SVMData::load(const String & filename)
+  {
+    Size counter = 0;
+    std::vector<String> parts;
+    std::vector<String> temp_parts;
+
+    if (!File::exists(filename))
+    {
+      return false;
+    }
+    if (!File::readable(filename))
+    {
+      return false;
+    }
+    if (File::empty(filename))
+    {
+      return false;
+    }
+
+    TextFile text_file(filename.c_str(), true);
+    TextFile::iterator it;
+
+    it = text_file.begin();
+
+    sequences.resize(text_file.size(), std::vector<std::pair<Int, DoubleReal> >());
+    labels.resize(text_file.size(), 0.);
+    while (counter < text_file.size() && it != text_file.end())
+    {
+      it->split(' ', parts);
+      labels[counter] = parts[0].trim().toFloat();
+      sequences[counter].resize(parts.size(), std::pair<Int, DoubleReal>());
+      for (Size j = 1; j < parts.size(); ++j)
+      {
+        parts[j].split(':', temp_parts);
+        if (temp_parts.size() < 2)
+        {
+          return false;
+        }
+        sequences[counter][j - 1].second = temp_parts[0].trim().toFloat();
+        sequences[counter][j - 1].first = temp_parts[1].trim().toInt();
+      }
+      ++counter;
+      ++it;
+    }
+    return true;
+  }
+
   SVMWrapper::SVMWrapper() :
     ProgressLogger(),
     param_(NULL),

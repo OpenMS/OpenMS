@@ -36,9 +36,6 @@
 #define OPENMS_FORMAT_DB_PERSISTENTOBJECT_H
 
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/CONCEPT/Exception.h>
-
-#include <iostream>
 
 namespace OpenMS
 {
@@ -60,7 +57,7 @@ public:
     virtual ~PersistentObject();
 
     /// Assignment operator
-    PersistentObject & operator=(const PersistentObject & rhs);
+    PersistentObject & operator=(const PersistentObject& rhs);
 
     /**
       @brief Returns the persistence id
@@ -76,7 +73,7 @@ public:
       <BR>
       Do not set the persistence id unless you know what you are doing!
     */
-    void setPersistenceId(const UID & persistence_id);
+    void setPersistenceId(const UID& persistence_id);
 
     /**
       @brief Clears the persistence id
@@ -94,8 +91,6 @@ protected:
 
     /**
       @brief Clears the persistence id of all sub-objects.
-
-
     */
     virtual void clearChildIds_() = 0;
   };
