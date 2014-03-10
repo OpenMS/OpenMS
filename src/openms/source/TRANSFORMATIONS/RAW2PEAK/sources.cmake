@@ -10,6 +10,7 @@ OptimizePick.cpp
 PeakPickerCWT.cpp
 PeakPickerHiRes.cpp
 PeakPickerIterative.cpp
+PeakPickerMaxima.cpp
 PeakPickerSH.cpp
 PeakShape.cpp
 TwoDOptimization.cpp
