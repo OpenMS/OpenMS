@@ -380,6 +380,8 @@ class SimpleSearchEngine
 
     ExitCodes main_(int, const char**)
     {
+      ProgressLogger progresslogger;
+      progresslogger.setLogType(log_type_);
       String in_mzml = getStringOption_("in");
       String in_db = getStringOption_("database");
       String out_idxml = getStringOption_("out");
@@ -493,8 +495,10 @@ class SimpleSearchEngine
       Size max_variable_mods_per_peptide = getIntOption_("peptide_max_var_mods");
 
       boost::unordered_set<Size> cached_peptides;
+      progresslogger.startProgress(0, (Size)(fasta_db.end() - fasta_db.begin()), "scoring peptides...");
       for (vector<FASTAFile::FASTAEntry>::const_iterator fasta_it = fasta_db.begin(); fasta_it != fasta_db.end(); ++fasta_it)
       {
+        progresslogger.setProgress((Size)(fasta_it - fasta_db.begin()));  
         vector<AASequence> current_digest;
         digestor.digest(AASequence::fromUnmodifiedString(fasta_it->sequence), current_digest);
         // c++ STL pattern for deleting entries from vector based on predicate evaluation
@@ -575,6 +579,8 @@ class SimpleSearchEngine
           }
         }
       }
+
+      progresslogger.endProgress();  
 
       // make peptide hits unique as we did not check if a sequence+mods has been searched before (Note: duplicates only exist if no ranks have been assigned)
       for (vector< vector<PeptideHit> >::iterator pit = peptide_hits.begin(); pit != peptide_hits.end(); ++pit)
