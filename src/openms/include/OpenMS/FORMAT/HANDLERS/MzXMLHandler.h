@@ -250,7 +250,7 @@ protected:
           this function will be executed in parallel.
 
       */
-      void populateSpectraWithData_(SpectrumData & spectrum_data)
+      void doPopulateSpectraWithData_(SpectrumData & spectrum_data)
       {
         typedef typename SpectrumType::PeakType PeakType;
         Base64 decoder_;
@@ -324,7 +324,7 @@ protected:
           Will populate all spectra on the current work stack with data (using
           multiple threads if available) and append them to the result. 
       */
-      void populateSpectraWithData()
+      void populateSpectraWithData_()
       {
 
         // Whether spectrum should be populated with data
@@ -341,7 +341,7 @@ protected:
             {
               try 
               {
-                populateSpectraWithData_(spectrum_data_[i]);
+                doPopulateSpectraWithData_(spectrum_data_[i]);
               }
               catch (...)
               {
@@ -925,7 +925,7 @@ private:
       if (equal_(qname, s_mzxml))
       {
         // Flush the remaining data 
-        populateSpectraWithData();
+        populateSpectraWithData_();
 
         // End of mzXML
         logger_.endProgress();
@@ -939,7 +939,7 @@ private:
 
         if (nesting_level_ == 0 && spectrum_data_.size() >= options_.getMaxDataPoolSize())
         {
-          populateSpectraWithData();
+          populateSpectraWithData_();
         }
       }
       //std::cout << " -- End -- " << "\n";
