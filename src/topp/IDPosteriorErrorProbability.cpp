@@ -341,6 +341,8 @@ protected:
       writeLog_("No data collected. Check whether search engine is supported.");
       if (!ignore_bad_data) return INPUT_FILE_EMPTY;
     }
+
+    String out_plot  = fit_algorithm.getValue("out_plot").toString().trim();
     for (map<String, vector<vector<double> > >::iterator it = all_scores.begin(); it != all_scores.end(); ++it)
     {
       vector<String> engine_info;
@@ -353,8 +355,8 @@ protected:
       }
       if (split_charge)
       {
-        String out_plot  = fit_algorithm.getValue("out_plot");
-        fit_algorithm.setValue("out_plot", out_plot + "_charge_" + String(charge));
+        // only adapt plot output if plot is requested (this badly violates the output rules and needs to change!)
+        if (!out_plot.empty()) fit_algorithm.setValue("out_plot", out_plot + "_charge_" + String(charge));
         PEP_model.setParameters(fit_algorithm);
       }
 
@@ -365,7 +367,7 @@ protected:
       if (return_value)
       {
         // plot target_decoy
-        if (top_hits_only && target_decoy_available && it->second[0].size() > 0)
+        if (!out_plot.empty() && top_hits_only && target_decoy_available && it->second[0].size() > 0)
         {
           PEP_model.plotTargetDecoyEstimation(it->second[1], it->second[2]); //target, decoy
         }
