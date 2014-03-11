@@ -51,14 +51,15 @@ endmacro()
 if (HAS_XSERVER)
   set(_DOC_ALL "ALL")
   set(_DOC_MINIMAL_ALL "")
+  set(_DOC_MINIMAL_EXTRA_MESSAGE )
+else ()
+  set(_DOC_ALL "")
+  set(_DOC_MINIMAL_ALL "ALL")
   set(_DOC_MINIMAL_EXTRA_MESSAGE
       COMMAND ${CMAKE_COMMAND} -E echo "We build only a minimal doc since OpenMS was configured without HAS_XSERVER=Off."
       COMMAND ${CMAKE_COMMAND} -E echo "If you want the full doc, either execute cmake --build . --target doc manually"
       COMMAND ${CMAKE_COMMAND} -E echo "or rerun cmake with -DHAS_XSERVER=On."
   )
-else ()
-  set(_DOC_ALL "")
-  set(_DOC_MINIMAL_ALL "ALL")
 endif ()
 
 #------------------------------------------------------------------------------

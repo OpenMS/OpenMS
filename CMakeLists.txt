@@ -281,6 +281,8 @@ if ("${PACKAGE_TYPE}" STREQUAL "none")
 		@ONLY
 	)
 
+  #------------------------------------------------------------------------------
+  # REMOVE with the fix of #676
 	## Create OpenMSLibraryExport.cmake:
 	## Note: export_build_settings and
 	##       export_library_dependencies are deprecated and should not be used
@@ -301,7 +303,7 @@ if ("${PACKAGE_TYPE}" STREQUAL "none")
 	else()
 		# include(cmake/OpenMSBuildSystem_install.cmake)
 	endif()
-
+  #------------------------------------------------------------------------------
 else()
 	# install routines for MacOSX
 	if("${PACKAGE_TYPE}" STREQUAL "dmg")
