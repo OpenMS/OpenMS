@@ -50,15 +50,15 @@ namespace OpenMS
 
 
     /**
-        @brief Implements a mixture model of the inverse gumbel and the gauss distribution or a gaussian mixture.
+      @brief Implements a mixture model of the inverse gumbel and the gauss distribution or a gaussian mixture.
 
-        This class fits either a Gumbel distribution and a Gauss distribution to a set of data points or two Gaussian distributions using the EM algorithm.
-        One can output the fit as a gnuplot formula using getGumbelGnuplotFormula() and getGaussGnuplotFormula() after fitting.
-        @note All parameters are stored in GaussFitResult. In the case of the gumbel distribution x0 and sigma represent the local parameter alpha and the scale parameter beta, respectively.
+      This class fits either a Gumbel distribution and a Gauss distribution to a set of data points or two Gaussian distributions using the EM algorithm.
+      One can output the fit as a gnuplot formula using getGumbelGnuplotFormula() and getGaussGnuplotFormula() after fitting.
+      @note All parameters are stored in GaussFitResult. In the case of the Gumbel distribution x0 and sigma represent the local parameter alpha and the scale parameter beta, respectively.
 
-  @htmlinclude OpenMS_Math::PosteriorErrorProbabilityModel.parameters
+      @htmlinclude OpenMS_Math::PosteriorErrorProbabilityModel.parameters
 
-        @ingroup Math
+      @ingroup Math
     */
     class OPENMS_DLLAPI PosteriorErrorProbabilityModel :
       public DefaultParamHandler
@@ -144,7 +144,7 @@ public:
       DoubleReal computeProbability(DoubleReal score);
 
       ///initializes the plots
-      TextFile * InitPlots(std::vector<double> & x_scores);
+      TextFile initPlots(std::vector<double> & x_scores);
 
       /// returns the gnuplot formula of the fitted gumbel distribution. Only x0 and sigma are used as local parameter alpha and scale parameter beta, respectively.
       const String getGumbelGnuplotFormula(const GaussFitter::GaussFitResult & params) const;
@@ -163,6 +163,9 @@ public:
       {
         return smallest_score_;
       }
+
+      /// try to invoke 'gnuplot' on the file to create PDF automatically
+      void tryGnuplot(const String& gp_file);
 
 private:
       /// assignment operator (not implemented)
@@ -183,9 +186,9 @@ private:
       DoubleReal smallest_score_;
       ///points to getGauss
       DoubleReal (PosteriorErrorProbabilityModel::* calc_incorrect_)(DoubleReal x, const GaussFitter::GaussFitResult & params);
-      ///points either to getGumbel or getGauss depending on whether on uses the gumbel or th gaussian distribution for incorrectly assigned sequences.
+      ///points either to getGumbel or getGauss depending on whether one uses the gumbel or the gaussian distribution for incorrectly assigned sequences.
       DoubleReal (PosteriorErrorProbabilityModel::* calc_correct_)(DoubleReal x, const GaussFitter::GaussFitResult & params);
-      ///points either to getGumbelGnuplotFormula or getGaussGnuplotFormula depending on whether on uses the gumbel or th gaussian distribution for incorrectly assigned sequences.
+      ///points either to getGumbelGnuplotFormula or getGaussGnuplotFormula depending on whether one uses the gumbel or the gaussian distribution for incorrectly assigned sequences.
       const String (PosteriorErrorProbabilityModel::* getNegativeGnuplotFormula_)(const GaussFitter::GaussFitResult & params) const;
       ///points to getGumbelGnuplotFormula
       const String (PosteriorErrorProbabilityModel::* getPositiveGnuplotFormula_)(const GaussFitter::GaussFitResult & params) const;
