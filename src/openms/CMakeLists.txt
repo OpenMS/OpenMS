@@ -60,24 +60,31 @@ endif()
 
 include(${PROJECT_SOURCE_DIR}/cmake_findExternalLibs.cmake)
 
+# dependency headers
 # TODO: XERCESC and  CONTRIB are included only with the others
+set(OpenMS_EXTERNAL_INCLUDE_DIRECTORIES ${QT_INCLUDES}
+                                        ${GSL_INCLUDE_DIRS}
+                                        ${Boost_INCLUDE_DIRS}
+                                        ${SEQAN_INCLUDE_DIRS}
+                                        ${LIBSVM_INCLUDE_DIRS}
+                                        ${GLPK_INCLUDE_DIRS}
+                                        ${ZLIB_INCLUDE_DIRS}
+                                        ${BZIP2_INCLUDE_DIR}
+                                        ${OpenSwathAlgo_INCLUDE_DIRECTORIES}
+                                        ${CONTRIB_INCLUDE_DIR})
+
+# internal headers
+set(OpenMS_INTERNAL_INCLUDE_DIRECTORIES ${PROJECT_SOURCE_DIR}/include
+                                        ${PROJECT_BINARY_DIR}/include)
+
 # Expose OpenMS's public includes (including transitive dependencies)
-set(OPENMS_INCLUDE_DIRECTORIES ${PROJECT_SOURCE_DIR}/include
-                               ${PROJECT_BINARY_DIR}/include
-                               ${QT_INCLUDES}
-                               ${GSL_INCLUDE_DIRS}
-                               ${Boost_INCLUDE_DIRS}
-                               ${SEQAN_INCLUDE_DIRS}
-                               ${LIBSVM_INCLUDE_DIRS}
-                               ${GLPK_INCLUDE_DIRS}
-                               ${ZLIB_INCLUDE_DIRS}
-                               ${BZIP2_INCLUDE_DIR}
-                               ${OPENSWATHALGO_INCLUDE_DIRECTORIES}
-                               ${CONTRIB_INCLUDE_DIR}
-    CACHE INTERNAL "OpenMS include directories" FORCE)
+set(OpenMS_INCLUDE_DIRECTORIES ${OpenMS_INTERNAL_INCLUDE_DIRECTORIES}
+                               ${OpenMS_EXTERNAL_INCLUDE_DIRECTORIES}
+                               CACHE INTERNAL "OpenMS include directories" FORCE)
 
 # add OpenMS include directories
-include_directories(${OPENMS_INCLUDE_DIRECTORIES})
+include_directories(${OpenMS_INTERNAL_INCLUDE_DIRECTORIES})
+include_directories(SYSTEM ${OpenMS_EXTERNAL_INCLUDE_DIRECTORIES})
 
 # At this point make a summary of where data and doc will be located:
 message(STATUS "Info: CF_OPENMS_DATA_PATH: ${CF_OPENMS_DATA_PATH}")

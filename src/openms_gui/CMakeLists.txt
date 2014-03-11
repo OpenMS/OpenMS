@@ -64,13 +64,18 @@ include (${PROJECT_SOURCE_DIR}/includes.cmake)
 
 # --------------------------------------------------------------------------
 # Expose OpenMSGUI's public includes (including transitive dependencies)
-set(OPENMS_GUI_INCLUDE_DIRECTORIES ${PROJECT_SOURCE_DIR}/include
-                                   ${PROJECT_BINARY_DIR}/include
-                                   ${OPENMS_INCLUDE_DIRECTORIES}
+set(OpenMS_GUI_INTERNAL_INCLUDE_DIRECTORIES ${PROJECT_SOURCE_DIR}/include
+                                            ${PROJECT_BINARY_DIR}/include)
+
+set(OpenMS_GUI_EXTERNAL_INCLUDE_DIRECTORIES ${OpenMS_INCLUDE_DIRECTORIES})
+
+set(OpenMS_GUI_INCLUDE_DIRECTORIES ${OpenMS_GUI_INTERNAL_INCLUDE_DIRECTORIES}
+                                   ${OpenMS_GUI_EXTERNAL_INCLUDE_DIRECTORIES}
     CACHE INTERNAL "OpenMS_GUI include directories" FORCE)
 
 # add OpenMS include directories
-include_directories(${OPENMS_GUI_INCLUDE_DIRECTORIES})
+include_directories(${OpenMS_GUI_INTERNAL_INCLUDE_DIRECTORIES})
+include_directories(SYSTEM ${OpenMS_GUI_EXTERNAL_INCLUDE_DIRECTORIES})
 
 # --------------------------------------------------------------------------
 # OpenMS_GUI lib

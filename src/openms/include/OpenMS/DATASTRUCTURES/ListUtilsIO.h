@@ -56,7 +56,7 @@ namespace OpenMS
   {
     // handle precision settings
     const std::streamsize prec_save = os.precision();
-    os << std::setprecision(writtenDigits(T()));
+    os.precision(writtenDigits(T()));
 
     os << "[";
 

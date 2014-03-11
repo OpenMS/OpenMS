@@ -47,14 +47,21 @@ endif()
 #------------------------------------------------------------------------------
 # Export OpenSWATHAlgo include directories
 #------------------------------------------------------------------------------
-set(OPENSWATHALGO_INCLUDE_DIRECTORIES ${PROJECT_SOURCE_DIR}/include
-                                      ${PROJECT_BINARY_DIR}/include
-                                      ${Boost_INCLUDE_DIRS}
+
+set(OpenSwathAlgo_EXTERNAL_INCLUDE_DIRECTORIES ${Boost_INCLUDE_DIRS})
+
+set(OpenSwathAlgo_INTERNAL_INCLUDE_DIRECTORIES ${PROJECT_SOURCE_DIR}/include
+                                               ${PROJECT_BINARY_DIR}/include)
+
+
+set(OpenSwathAlgo_INCLUDE_DIRECTORIES ${OpenSwathAlgo_INTERNAL_INCLUDE_DIRECTORIES}
+                                      ${OpenSwathAlgo_EXTERNAL_INCLUDE_DIRECTORIES}
     CACHE INTERNAL "OpenSWATHAlgo include directories" FORCE)
 
 #------------------------------------------------------------------------------
 # Include directories
-include_directories(${OPENSWATHALGO_INCLUDE_DIRECTORIES})
+include_directories(${OpenSwathAlgo_INTERNAL_INCLUDE_DIRECTORIES})
+include_directories(SYSTEM ${OpenSwathAlgo_EXTERNAL_INCLUDE_DIRECTORIES})
 
 #------------------------------------------------------------------------------
 # Configure OpenSwathAlgoConfig.h.in file for dll_export macros etc.
