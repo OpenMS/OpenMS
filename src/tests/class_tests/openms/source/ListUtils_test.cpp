@@ -201,15 +201,4 @@ START_SECTION((template < typename T > static String concatenate(const std::vect
 }
 END_SECTION
 
-START_SECTION(([EXTRA] template<typename StringType> StringList& operator<<(StringList& sl, const StringType& string)))
-  StringList list;
-  list << "a" << "b" << "c" << "a";
-  TEST_EQUAL(list.size(),4)
-  ABORT_IF(list.size() != 4)
-  TEST_STRING_EQUAL(list[0],"a")
-  TEST_STRING_EQUAL(list[1],"b")
-  TEST_STRING_EQUAL(list[2],"c")
-  TEST_STRING_EQUAL(list[3],"a")
-END_SECTION
-
 END_TEST

@@ -40,6 +40,7 @@
 ///////////////////////////
 
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 
 using namespace OpenMS;
 using namespace std;

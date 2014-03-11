@@ -39,7 +39,6 @@
 #include <OpenMS/CONCEPT/Exception.h>
 
 #include <map>
-#include <iostream>
 
 namespace OpenMS
 {

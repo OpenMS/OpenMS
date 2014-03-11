@@ -201,6 +201,7 @@ FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/tests/memoryleaktests)
 FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/tests/integration_tests)
 FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms)
 FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/pyTOPP)
+FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/extra_includes)
 
 FILE(GLOB _python_files "${OPENMS_HOST_DIRECTORY}/pyOpenMS/pyopenms/*.py")
 FILE(COPY ${_python_files} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms)
@@ -359,6 +360,8 @@ testSpecialCases.py
 test_SpectraFilter.py
 test_SpectrumAccessOpenMS.py
 test_TraML.py
+test_MzMlConsumer.py
+test_MzXMlConsumer.py
 )
 
 # Please add your test here when you decide to write a new testfile in the tests/unittests folder

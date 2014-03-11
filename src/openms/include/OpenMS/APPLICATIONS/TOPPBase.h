@@ -37,7 +37,6 @@
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/GlobalExceptionHandler.h>
-#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 
@@ -54,9 +53,7 @@
 #include <OpenMS/APPLICATIONS/ParameterInformation.h>
 #include <OpenMS/APPLICATIONS/ToolHandler.h>
 
-#include <iostream>
 #include <fstream>
-#include <limits>
 
 class QStringList;
 

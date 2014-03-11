@@ -46,7 +46,7 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/Types.h>
 
-#include <iostream>
+#include <iosfwd>
 
 namespace OpenMS
 {
@@ -71,7 +71,7 @@ public:
       public Exception::BaseException
     {
 public:
-      InvalidQuery(const char * file, Int line, const char * function, const String & sql_query, const String & sql_error);
+      InvalidQuery(const char* file, Int line, const char* function, const String& sql_query, const String& sql_error);
       ~InvalidQuery() throw();
     };
 
@@ -86,7 +86,7 @@ public:
       public Exception::BaseException
     {
 public:
-      NotConnected(const char * file, Int line, const char * function);
+      NotConnected(const char* file, Int line, const char* function);
       ~NotConnected() throw();
     };
 
@@ -111,7 +111,7 @@ public:
 
       @exception InvalidQuery is thrown if the database connection could not be opened
     */
-    void connect(const String & db, const String & user, const String & password, const String & host = "localhost", UInt port = 3306, const String & QTDBDriver = DB_PLUGIN, const String & connection_name = "OpenMS_default_connection");
+    void connect(const String& db, const String& user, const String& password, const String& host = "localhost", UInt port = 3306, const String& QTDBDriver = DB_PLUGIN, const String& connection_name = "OpenMS_default_connection");
 
     /// returns if a connection is established.
     bool isConnected() const;
@@ -135,7 +135,7 @@ public:
               @exception NotConnected if there is no database connection
 
     */
-    QSqlQuery executeQuery(const String & query, bool first = false);
+    QSqlQuery executeQuery(const String& query, bool first = false);
 
     /**
         @brief Returns a single field of a table as an integer
@@ -150,7 +150,7 @@ public:
         @exception NotConnected if there is no database connection
         @exception Exception::ConversionError is thrown if the value could not be converted to the requested type
     */
-    Int getIntValue(const String & table, const String & column, const String & id);
+    Int getIntValue(const String& table, const String& column, const String& id);
 
     /**
         @brief Returns a single field of a table as a double
@@ -166,7 +166,7 @@ public:
         @exception Exception::ConversionError is thrown if the value could not be converted to the requested type
 
     */
-    double getDoubleValue(const String & table, const String & column, const String & id);
+    double getDoubleValue(const String& table, const String& column, const String& id);
 
     /**
         @brief Returns a single field of a table as string
@@ -181,7 +181,7 @@ public:
         @exception NotConnected if there is no database connection
         @exception Exception::ConversionError is thrown if the value could not be converted to the requested type
     */
-    String getStringValue(const String & table, const String & column, const String & id);
+    String getStringValue(const String& table, const String& column, const String& id);
 
     /**
         @brief Looks up the ID for a specific entry in an table
@@ -195,7 +195,7 @@ public:
         @exception InvalidQuery is thrown if an invalid SQL query was given
         @exception NotConnected if there is no database connection
     */
-    UInt getId(const String & table, const String & column, const String & value);
+    UInt getId(const String& table, const String& column, const String& value);
 
     /// Returns the last auto_increment ID of the SQL database
     UInt getAutoId();
@@ -214,7 +214,7 @@ public:
         @param line_begin The string at the beginning of each line
         @param line_end The string at the end of each line
     */
-    void render(QSqlQuery & result, std::ostream & out = std::cout, const String & separator = " | ", const String & line_begin = "", const String & line_end = "\n");
+    void render(QSqlQuery& result, std::ostream& out, const String& separator = " | ", const String& line_begin = "", const String& line_end = "\n");
 
 
     /**
@@ -228,7 +228,7 @@ public:
         @exception NotConnected if there is no database connection
     */
     template <class StringListType>
-    void executeQueries(const StringListType & queries);
+    void executeQueries(const StringListType& queries);
 
 private:
 
@@ -250,7 +250,7 @@ private:
   //---------------------------------------------------------------
 
   template <class StringListType>
-  void DBConnection::executeQueries(const StringListType & queries)
+  void DBConnection::executeQueries(const StringListType& queries)
   {
     String line;
     for (typename StringListType::const_iterator it = queries.begin(); it != queries.end(); ++it)

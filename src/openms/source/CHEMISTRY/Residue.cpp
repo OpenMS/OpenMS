@@ -37,6 +37,7 @@
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <cstdlib>
+#include <iostream>
 
 using namespace std;
 

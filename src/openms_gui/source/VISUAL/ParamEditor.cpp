@@ -35,6 +35,7 @@
 #include <OpenMS/VISUAL/ParamEditor.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 #include <OpenMS/VISUAL/ListEditor.h>
 #include <OpenMS/SYSTEM/File.h>
 

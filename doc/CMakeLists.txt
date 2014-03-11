@@ -71,8 +71,8 @@ set(OPENMS_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "doxygen/parameters")
 
 # add OpenMS includes
-include_directories(${OPENMS_INCLUDE_DIRECTORIES})
-include_directories(${OPENMS_GUI_INCLUDE_DIRECTORIES})
+include_directories(SYSTEM ${OpenMS_INCLUDE_DIRECTORIES})
+include_directories(SYSTEM ${OpenMS_GUI_INCLUDE_DIRECTORIES})
 add_definitions(/DBOOST_ALL_NO_LIB)
 
 # build doc executables

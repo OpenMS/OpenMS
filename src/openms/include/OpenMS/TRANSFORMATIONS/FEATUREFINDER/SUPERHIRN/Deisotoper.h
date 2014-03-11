@@ -49,7 +49,7 @@
 #include <OpenMS/CONCEPT/Types.h>
 
 #include <list>
-#include <iostream>
+#include <iosfwd>
 
 namespace OpenMS
 {

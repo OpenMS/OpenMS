@@ -42,7 +42,7 @@
 #include <OpenMS/CHEMISTRY/Residue.h>
 
 #include <vector>
-#include <iostream>
+#include <iosfwd>
 
 namespace OpenMS
 {

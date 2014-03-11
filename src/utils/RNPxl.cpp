@@ -37,6 +37,7 @@
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
@@ -323,7 +324,7 @@ protected:
     DoubleReal small_peptide_mass_filter_threshold = getDoubleOption_("peptide_mass_threshold");
 
     DoubleReal precursor_variant_mz_threshold = getDoubleOption_("precursor_variant_mz_threshold");
-    
+
     const String in_fasta_file(getStringOption_("in_fasta"));
 
     RNPxlModificationMassesResult mm = RNPxlModificationsGenerator::initModificationMassesRNA(target_nucleotides, mappings, restrictions, modifications, sequence_restriction, cysteine_adduct, max_length);
@@ -514,7 +515,7 @@ protected:
         {
           args << "-debug" << String(getIntOption_("debug")).toQString();
         }
-        
+
         QProcess* p = new QProcess();
         p->setProcessChannelMode(QProcess::MergedChannels);
         p->start("OMSSAAdapter", args);

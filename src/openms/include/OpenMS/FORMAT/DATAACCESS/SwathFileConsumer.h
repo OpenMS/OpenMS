@@ -177,7 +177,7 @@ public:
     /// Consume a chromatogram -> should not happen when dealing with SWATH maps
     void consumeChromatogram(MapType::ChromatogramType&)
     {
-      std::cerr << "Read spectrum while reading SWATH files, did not expect that!" << std::endl;
+      std::cerr << "Read chromatogram while reading SWATH files, did not expect that!" << std::endl;
     }
 
     /// Consume a spectrum which may belong either to an MS1 scan or one of n

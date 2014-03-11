@@ -7,16 +7,18 @@ ClassTest.cpp
 Constants.cpp
 Exception.cpp
 FuzzyStringComparator.cpp
-LogStream.cpp
-LogConfigHandler.cpp
 GlobalExceptionHandler.cpp
+LogConfigHandler.cpp
+LogStream.cpp
+PrecissionWrapper.cpp
 ProgressLogger.cpp
 SingletonRegistry.cpp
 StreamHandler.cpp
+TypeAsString.cpp
 Types.cpp
 UniqueIdGenerator.cpp
-UniqueIdInterface.cpp
 UniqueIdIndexer.cpp
+UniqueIdInterface.cpp
 VersionInfo.cpp
 )
 

@@ -36,8 +36,7 @@
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
 
 #include <iostream>
-
-using namespace std;
+#include <cmath>
 
 namespace OpenMS
 {
@@ -85,7 +84,7 @@ namespace OpenMS
     {
       if (score_clas_pairs_.empty())
       {
-        cerr << "ROCCurve::AUC() : unsuitable dataset (no positives or no negatives)\n";
+        std::cerr << "ROCCurve::AUC() : unsuitable dataset (no positives or no negatives)\n";
         return 0.5;
       }
 
@@ -95,7 +94,7 @@ namespace OpenMS
       UInt truePos = 0;
       UInt falsePos = 0;
       std::vector<DPosition<2> > polygon;
-      for (list<pair<double, bool> >::const_iterator cit = score_clas_pairs_.begin(); cit != score_clas_pairs_.end(); ++cit)
+      for (std::list<std::pair<double, bool> >::const_iterator cit = score_clas_pairs_.begin(); cit != score_clas_pairs_.end(); ++cit)
       {
         if (fabs(cit->first - prevsim) > 1e-8)
         {
@@ -125,11 +124,11 @@ namespace OpenMS
     std::vector<std::pair<double, double> > ROCCurve::curve(UInt resolution)
     {
       score_clas_pairs_.sort(simsortdec());
-      vector<pair<double, double> > result;
+      std::vector<std::pair<double, double> > result;
       UInt position = 0;
       UInt truePos = 0;
       UInt falsePos = 0;
-      for (list<pair<double, bool> >::const_iterator cit = score_clas_pairs_.begin(); cit != score_clas_pairs_.end(); ++cit)
+      for (std::list<std::pair<double, bool> >::const_iterator cit = score_clas_pairs_.begin(); cit != score_clas_pairs_.end(); ++cit)
       {
         if (cit->second)
         {
@@ -141,7 +140,7 @@ namespace OpenMS
         }
         if (((double)++position / score_clas_pairs_.size()) * resolution > result.size())
         {
-          result.push_back(make_pair((double)falsePos / neg_, (double)truePos / pos_));
+          result.push_back(std::make_pair((double)falsePos / neg_, (double)truePos / pos_));
         }
       }
       return result;
@@ -155,7 +154,7 @@ namespace OpenMS
     {
       score_clas_pairs_.sort(simsortdec());
       UInt truePos = 0;
-      for (list<pair<double, bool> >::const_iterator cit = score_clas_pairs_.begin(); cit != score_clas_pairs_.end(); ++cit)
+      for (std::list<std::pair<double, bool> >::const_iterator cit = score_clas_pairs_.begin(); cit != score_clas_pairs_.end(); ++cit)
       {
         if (cit->second)
         {
@@ -176,7 +175,7 @@ namespace OpenMS
     {
       score_clas_pairs_.sort(simsortdec());
       UInt trueNeg = 0;
-      for (list<pair<double, bool> >::const_iterator cit = score_clas_pairs_.begin(); cit != score_clas_pairs_.end(); ++cit)
+      for (std::list<std::pair<double, bool> >::const_iterator cit = score_clas_pairs_.begin(); cit != score_clas_pairs_.end(); ++cit)
       {
         if (cit->second)
         {

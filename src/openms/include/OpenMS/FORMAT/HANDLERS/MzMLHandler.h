@@ -43,6 +43,8 @@
 
 #include <OpenMS/KERNEL/MSExperiment.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
+
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/FORMAT/HANDLERS/MzMLHandlerHelper.h>
 #include <OpenMS/FORMAT/VALIDATORS/MzMLValidator.h>
@@ -321,7 +323,7 @@ protected:
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-          for (Size i = 0; i < spectrum_data_.size(); i++)
+          for (SignedSize i = 0; i < (SignedSize)spectrum_data_.size(); i++)
           {
             // parallel exception catching and re-throwing business
             if (!errCount) // no need to parse further if already an error was encountered
@@ -381,7 +383,7 @@ protected:
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-          for (Size i = 0; i < chromatogram_data_.size(); i++)
+          for (SignedSize i = 0; i < (SignedSize)chromatogram_data_.size(); i++)
           {
             // parallel exception catching and re-throwing business
             try 
@@ -872,6 +874,13 @@ protected:
       /// id of the default data processing (used when no processing is defined)
       String default_processing_;
 
+      /**
+          @brief Data necessary to generate a single spectrum 
+
+          Small struct holds all data necessary to populate a spectrum at a
+          later timepoint (since reading of the base64 data and generation of
+          spectra can be done at distinct timepoints).
+      */
       struct SpectrumData 
       {
         std::vector<BinaryData> data;
@@ -883,6 +892,13 @@ protected:
       /// Vector of spectrum data stored for later parallel processing
       std::vector< SpectrumData > spectrum_data_;
 
+      /**
+          @brief Data necessary to generate a single chromatogram 
+
+          Small struct holds all data necessary to populate a chromatogram at a
+          later timepoint (since reading of the base64 data and generation of
+          chromatogram can be done at distinct timepoints).
+      */
       struct ChromatogramData
       {
         std::vector<BinaryData> data;

@@ -35,8 +35,6 @@
 #ifndef OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_DATAACCESS_DATAFRAMEWRITER_H
 #define OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_DATAACCESS_DATAFRAMEWRITER_H
 
-#include <iostream>
-#include <iomanip>
 #include <fstream>
 #include <string>
 #include <vector>

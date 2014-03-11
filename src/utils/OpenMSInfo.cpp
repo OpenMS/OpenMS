@@ -41,6 +41,8 @@
 #include <QSysInfo>
 #include <QDir>
 
+#include <iostream>
+
 using namespace OpenMS;
 using namespace std;
 

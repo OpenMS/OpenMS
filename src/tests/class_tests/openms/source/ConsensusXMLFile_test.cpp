@@ -220,8 +220,8 @@ END_SECTION
 
 START_SECTION([EXTRA](bool isValid(const String &filename)))
 ConsensusXMLFile f;
-TEST_EQUAL(f.isValid(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_1.consensusXML")), true);
-TEST_EQUAL(f.isValid(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_2_options.consensusXML")), true);
+TEST_EQUAL(f.isValid(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_1.consensusXML"), std::cerr), true);
+TEST_EQUAL(f.isValid(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_2_options.consensusXML"), std::cerr), true);
 
 //test if written empty file
 // - this is invalid, so it is not tested :)
@@ -232,7 +232,7 @@ String tmp_filename;
 NEW_TMP_FILE(tmp_filename);
 f.load(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_1.consensusXML"), m);
 f.store(tmp_filename, m);
-TEST_EQUAL(f.isValid(tmp_filename), true);
+TEST_EQUAL(f.isValid(tmp_filename, std::cerr), true);
 END_SECTION
 
 /////////////////////////////////////////////////////////////

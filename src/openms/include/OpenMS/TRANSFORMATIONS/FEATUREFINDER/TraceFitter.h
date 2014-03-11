@@ -35,8 +35,6 @@
 #ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_TRACEFITTER_H
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_TRACEFITTER_H
 
-#include <OpenMS/CONCEPT/LogStream.h>
-
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
@@ -152,7 +150,7 @@ public:
       double rt = trace.peaks[k].first;
 
       return trace.theoretical_int * getValue(rt);
-    };
+    }
 
     /**
      * Checks if the fitted model fills out at least 'min_rt_span' of the RT span
