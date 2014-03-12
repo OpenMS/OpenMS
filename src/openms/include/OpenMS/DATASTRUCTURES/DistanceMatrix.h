@@ -37,7 +37,7 @@
 
 #include <OpenMS/CONCEPT/Macros.h>
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/CONCEPT/PrecissionWrapper.h>
+#include <OpenMS/CONCEPT/PrecisionWrapper.h>
 
 #include <cmath>
 #include <algorithm>

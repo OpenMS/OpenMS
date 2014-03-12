@@ -38,7 +38,7 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
-#include <OpenMS/CONCEPT/PrecissionWrapper.h>
+#include <OpenMS/CONCEPT/PrecisionWrapper.h>
 
 #include <fstream>
 #include <iostream>

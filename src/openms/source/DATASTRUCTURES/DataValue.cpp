@@ -40,7 +40,7 @@
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/CONCEPT/PrecissionWrapper.h>
+#include <OpenMS/CONCEPT/PrecisionWrapper.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
 #include <QtCore/QString>

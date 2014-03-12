@@ -35,7 +35,7 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/CONCEPT/PrecissionWrapper.h>
+#include <OpenMS/CONCEPT/PrecisionWrapper.h>
 
 using namespace OpenMS;
 

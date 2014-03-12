@@ -36,7 +36,7 @@
 #include <OpenMS/SYSTEM/File.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/CONCEPT/PrecissionWrapper.h>
+#include <OpenMS/CONCEPT/PrecisionWrapper.h>
 
 #include <iostream>
 #include <fstream>
@@ -647,7 +647,7 @@ namespace OpenMS
       String name = attributeAsString_(attributes, "name");
       String type = attributeAsString_(attributes, "type");
       String value = attributeAsString_(attributes, "value");
-      
+
       if (type == "string")
       {
         last_meta_->setMetaValue(name, value);

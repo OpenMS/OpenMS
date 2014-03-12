@@ -10,7 +10,7 @@ FuzzyStringComparator.cpp
 GlobalExceptionHandler.cpp
 LogConfigHandler.cpp
 LogStream.cpp
-PrecissionWrapper.cpp
+PrecisionWrapper.cpp
 ProgressLogger.cpp
 SingletonRegistry.cpp
 StreamHandler.cpp

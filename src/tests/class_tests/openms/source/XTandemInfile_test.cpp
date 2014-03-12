@@ -37,7 +37,7 @@
 
 ///////////////////////////
 
-#include <OpenMS/CONCEPT/PrecissionWrapper.h>
+#include <OpenMS/CONCEPT/PrecisionWrapper.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FORMAT/XTandemInfile.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>

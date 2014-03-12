@@ -44,8 +44,9 @@
 namespace OpenMS
 {
 
-  // Note: I once tried to move PrecisionWrapper to namespace Internal, but oops! operator <<  won't be found (through ADL?) anymore.
-  /// Wrapper class to implement output with appropriate precision.  See precisionWrapper().
+  /**
+    @brief Wrapper class to implement output with appropriate precision.  See precisionWrapper().
+  */
   template <typename FloatingPointType>
   struct PrecisionWrapper
   {
