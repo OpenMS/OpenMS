@@ -181,6 +181,971 @@ struct SIPGroupsReport
   map<Size, SIPGroupReport> map_id_to_protein_group;  // All proteins associated with a group  
 };
 
+///< comparator for vectors of SIPPeptides based on their size. Used to sort by group size.
+struct SizeLess
+	: public std::binary_function <vector<SIPPeptide>, vector<SIPPeptide>, bool>
+{
+	inline bool operator () (const vector<SIPPeptide>& a, const vector<SIPPeptide>& b) const
+	{
+		return (a.size() < b.size());
+	}
+};
+
+struct SequenceLess
+	: public std::binary_function <pair<SIPPeptide, Size>, pair<SIPPeptide, Size>, bool>
+{
+	inline bool operator () (const pair<SIPPeptide, Size>& a, const pair<SIPPeptide, Size>& b) const
+	{
+    return (a.first.sequence.toString() < b.first.sequence.toString());
+	}
+};
+
+struct RIALess
+  : public std::binary_function <SIPIncorporation, SIPIncorporation, bool>
+{
+  inline bool operator () (const SIPIncorporation& a, const SIPIncorporation& b) const
+  {
+    return (a.rate < b.rate);
+  }
+};
+
+class MetaProSIPReporting
+{
+  public: 
+    static void plotHeatMap(const String& output_dir, const String& tmp_path, const String& file_suffix, const String& file_extension, const vector<vector<DoubleReal> >& binned_ria, vector<String> class_labels, Size debug_level = 0)
+  { 
+    String filename = String("heatmap") + file_suffix + "." + file_extension;
+    String script_filename = String("heatmap") + file_suffix + String(".R");
+    
+    TextFile current_script;
+    StringList ria_list, col_labels;
+
+    for (Size i = 0; i != binned_ria[0].size(); ++i)
+    {
+      col_labels << String(i*(100 / binned_ria[0].size())) + "%-" + String((i+1)*(100 / binned_ria[0].size())) + "%";
+    }
+
+    for (vector<vector<DoubleReal> >::const_iterator pit = binned_ria.begin(); pit != binned_ria.end(); ++pit)
+    {
+      for (vector<DoubleReal>::const_iterator rit = pit->begin(); rit != pit->end(); ++rit)
+      {
+        ria_list << String(*rit);
+      }
+    }
+
+    // row labels
+    StringList row_labels;
+    if (!class_labels.empty())
+    {
+      for (Size i = 0; i != class_labels.size(); ++i)
+      {
+        row_labels << class_labels[i];
+      }      
+    }
+
+    // plot heatmap
+    current_script.push_back("library(gplots)");
+    String ria_list_string;
+    ria_list_string.concatenate(ria_list.begin(), ria_list.end(), ",");
+    current_script.push_back("mdat <- matrix(c(" + ria_list_string + "), ncol=" + String(binned_ria[0].size()) + ", byrow=TRUE)");
+
+    if (file_extension == "png")
+    {
+      current_script.push_back("png('" + tmp_path + "/" + filename + "', width=1000, height=" + String(10*binned_ria.size()) + ")");
+    } else if (file_extension == "svg")
+    {
+      current_script.push_back("svg('" + tmp_path + "/" + filename + "', width=8, height=4.5)");
+    } else if (file_extension == "pdf")
+    {
+      current_script.push_back("pdf('" + tmp_path + "/" + filename + "', width=8, height=4.5)");
+    }
+
+    String labRowString; 
+    if (row_labels.empty())
+    {
+      labRowString = "FALSE";
+    } else
+    {
+      String row_labels_string;
+      row_labels_string.concatenate(row_labels.begin(), row_labels.end(), "\",\"");
+      labRowString = String("c(\"") + row_labels_string + "\")";
+    }
+
+    String col_labels_string;
+    col_labels_string.concatenate(col_labels.begin(), col_labels.end(), "\",\"");
+
+    current_script.push_back("heatmap.2(mdat, dendrogram=\"none\", col=colorRampPalette(c(\"black\",\"red\")), Rowv=FALSE, Colv=FALSE, key=FALSE, labRow=" + labRowString + ",labCol=c(\"" + col_labels_string + "\"),trace=\"none\", density.info=\"none\")");
+
+    current_script.push_back("tmp<-dev.off()");
+    current_script.store(tmp_path + "/" + script_filename);
+    QStringList qparam;
+    qparam << "--vanilla" << "--quiet" << "--slave" << "--file=" + QString(tmp_path.toQString() + "\\" + script_filename.toQString());
+    Int status = QProcess::execute("R", qparam);
+
+    // cleanup
+    if (status != 0)
+    {
+      std::cerr << "Error: Process returned with non 0 status." << std::endl;
+    } else
+    {
+      QFile(QString(tmp_path.toQString() + "\\" + filename.toQString())).copy(output_dir.toQString() + "/heatmap" + file_suffix.toQString() + "." + file_extension.toQString());
+      if (debug_level < 1)
+      {          
+        QFile(QString(tmp_path.toQString() + "\\" + script_filename.toQString())).remove();
+        QFile(QString(tmp_path.toQString() + "\\" + filename.toQString())).remove();
+      }
+    }
+  }
+
+    static void plotFilteredSpectra(const String& output_dir, const String& tmp_path, const String& file_suffix, const String& file_extension, const vector<SIPPeptide>& sip_peptides, Size debug_level = 0)
+  {   
+    String filename = String("spectrum_plot") + file_suffix + "." + file_extension;
+    String script_filename = String("spectrum_plot") + file_suffix + String(".R");
+
+    for (Size i = 0; i != sip_peptides.size(); ++i)
+    {     
+      TextFile current_script;
+      StringList mz_list;
+      StringList intensity_list;
+
+      for (Size j = 0; j != sip_peptides[i].accumulated.size(); ++j)
+      {
+        const Peak1D& peak = sip_peptides[i].accumulated[j];               
+        mz_list << String(peak.getMZ());
+        intensity_list << String(peak.getIntensity());
+      }
+      
+      String mz_list_string;
+      mz_list_string.concatenate(mz_list.begin(), mz_list.end(), ",");
+
+      String intensity_list_string;
+      intensity_list_string.concatenate(intensity_list.begin(), intensity_list.end(), ",");
+
+      current_script.push_back("mz<-c(" + mz_list_string + ")");
+      current_script.push_back("int<-c(" + intensity_list_string + ")");
+      current_script.push_back("x0=mz; x1=mz; y0=rep(0, length(x0)); y1=int");
+
+      if (file_extension == "png")
+      {
+        current_script.push_back("png('" + tmp_path + "/" + filename + "')");
+      } else  if (file_extension == "svg")
+      {
+        current_script.push_back("svg('" + tmp_path + "/" + filename + "', width=8, height=4.5)");
+      } else if (file_extension == "pdf")
+      {
+        current_script.push_back("pdf('" + tmp_path + "/" + filename + "', width=8, height=4.5)");
+      }
+
+      current_script.push_back("plot.new()");
+      current_script.push_back("plot.window(xlim=c(min(mz),max(mz)), ylim=c(0,max(int)))");
+      current_script.push_back("axis(1); axis(2)");
+      current_script.push_back("title(xlab=\"m/z\")");
+      current_script.push_back("title(ylab=\"intensity\")");
+      current_script.push_back("box()");
+      current_script.push_back("segments(x0,y0,x1,y1)");
+      current_script.push_back("tmp<-dev.off()");
+      current_script.store(tmp_path + "/" + script_filename);
+      QStringList qparam;
+      qparam << "--vanilla" << "--quiet" << "--slave" << "--file=" + QString(tmp_path.toQString() + "\\" + script_filename.toQString());
+      Int status = QProcess::execute("R", qparam);
+      if (status != 0)
+      {
+        std::cerr << "Error: Process returned with non 0 status." << std::endl;
+      } else
+      {
+        QFile(QString(tmp_path.toQString() + "\\" + filename.toQString())).copy(output_dir.toQString() + "/spectrum" + file_suffix.toQString() + "_rt_" + String(sip_peptides[i].feature_rt).toQString() + "." + file_extension.toQString());
+        if (debug_level < 1)
+        {          
+          QFile(QString(tmp_path.toQString() + "\\" + script_filename.toQString())).remove();
+          QFile(QString(tmp_path.toQString() + "\\" + filename.toQString())).remove();
+        }
+      }
+    }
+  }
+
+    static void plotMergedSpectra(const String& output_dir, const String& tmp_path, const String& file_suffix, const String& file_extension, const vector<SIPPeptide>& sip_peptides, Size debug_level = 0)
+  { 
+    String filename = String("merged_spectra") + file_suffix + "." + file_extension;
+    String script_filename = String("merged_spectra") + file_suffix + String(".R");
+
+    for (Size i = 0; i != sip_peptides.size(); ++i)
+    {     
+      TextFile current_script;
+      StringList mz_list;
+      StringList intensity_list;
+
+      for (Size j = 0; j != sip_peptides[i].merged.size(); ++j)
+      {
+        const Peak1D& peak = sip_peptides[i].merged[j];               
+        mz_list << String(peak.getMZ());
+        intensity_list << String(peak.getIntensity());
+      }
+
+      String mz_list_string;
+      mz_list_string.concatenate(mz_list.begin(), mz_list.end(), ",");
+
+      String intensity_list_string;
+      intensity_list_string.concatenate(intensity_list.begin(), intensity_list.end(), ",");
+
+      current_script.push_back("mz<-c(" + mz_list_string + ")");
+      current_script.push_back("int<-c(" + intensity_list_string + ")");
+      current_script.push_back("x0=mz; x1=mz; y0=rep(0, length(x0)); y1=int");
+
+      if (file_extension == "png")
+      {
+        current_script.push_back("png('" + tmp_path + "/" + filename + "')");
+      } else if (file_extension == "svg")
+      {
+        current_script.push_back("svg('" + tmp_path + "/" + filename + "', width=8, height=4.5)");
+      } else if (file_extension == "pdf")
+      {
+        current_script.push_back("pdf('" + tmp_path + "/" + filename + "', width=8, height=4.5)");
+      }
+
+      current_script.push_back("plot.new()");
+      current_script.push_back("plot.window(xlim=c(min(mz),max(mz)), ylim=c(0,max(int)))");
+      current_script.push_back("axis(1); axis(2)");
+      current_script.push_back("title(xlab=\"m/z\")");
+      current_script.push_back("title(ylab=\"intensity\")");
+      current_script.push_back("box()");
+      current_script.push_back("segments(x0,y0,x1,y1)");
+      current_script.push_back("tmp<-dev.off()");
+      current_script.store(tmp_path + "/" + script_filename);
+      QStringList qparam;
+      qparam << "--vanilla" << "--quiet" << "--slave" << "--file=" + QString(tmp_path.toQString() + "\\" + script_filename.toQString());
+      Int status = QProcess::execute("R", qparam);
+      if (status != 0)
+      {
+        std::cerr << "Error: Process returned with non 0 status." << std::endl;
+      } else
+      {
+        QFile(QString(tmp_path.toQString() + "\\" + filename.toQString())).copy(output_dir.toQString() + "/merged_spectra" + file_suffix.toQString() + "_rt_" + String(sip_peptides[i].feature_rt).toQString() + "." + file_extension.toQString());
+        if (debug_level < 1)
+        {          
+          QFile(QString(tmp_path.toQString() + "\\" + script_filename.toQString())).remove();
+          QFile(QString(tmp_path.toQString() + "\\" + filename.toQString())).remove();
+        }
+      }
+    }
+  }
+
+    static void writeHTML(const String& qc_output_directory, const String& file_suffix, const String& file_extension, String cluster_type, const vector<SIPPeptide>& sip_peptides)
+   {
+     TextFile current_script;
+
+     // html header
+     current_script.push_back("<!DOCTYPE html>\n<html>\n<body>\n");
+
+     // peptide heat map plot
+     current_script.push_back(String("<h1>") + "peptide heat map</h1>");
+     String peptide_heatmap_plot_filename = String("heatmap_peptide") + file_suffix + String(".") + file_extension;
+     current_script.push_back("<p> <img src=\"" + peptide_heatmap_plot_filename + "\" alt=\"graphic\"></p>");
+
+     // cluster plot
+     if (cluster_type == "profile")
+     {
+       String cluster_plot_filename = String("cluster_plot") + file_suffix + String(".") + file_extension;
+       current_script.push_back("<p> <img src=\"" + cluster_plot_filename + "\" alt=\"graphic\"></p>");
+     }
+
+     for (Size i = 0; i != sip_peptides.size(); ++i)
+     {
+       // heading
+       current_script.push_back(String("<h1>") + "RT: " + String(sip_peptides[i].feature_rt) + "</h1>");
+
+       current_script.push_back("<table border=\"1\">");
+       // sequence table row
+       current_script.push_back("<tr>");
+       current_script.push_back("<td>sequence</td>");
+       current_script.push_back(String("<td>") + sip_peptides[i].sequence.toString() + "</td>");
+       current_script.push_back("</tr>");
+
+       current_script.push_back("<tr>");
+       current_script.push_back("<td>rt (min.)</td>");
+       current_script.push_back(String("<td>" + String::number(sip_peptides[i].feature_rt / 60.0, 2) + "</td>"));
+       current_script.push_back("</tr>");
+
+       current_script.push_back("<tr>");
+       current_script.push_back("<td>rt (sec.)</td>");
+       current_script.push_back(String("<td>" + String::number(sip_peptides[i].feature_rt, 2) + "</td>"));
+       current_script.push_back("</tr>");
+
+       current_script.push_back("<tr>");
+       current_script.push_back("<td>mz</td>");
+       current_script.push_back(String("<td>" + String::number(sip_peptides[i].feature_mz, 4) + "</td>"));
+       current_script.push_back("</tr>");
+
+       current_script.push_back("<tr>");
+       current_script.push_back("<td>theo. mz</td>");
+       current_script.push_back(String("<td>" + String::number(sip_peptides[i].mz_theo, 4) + "</td>"));
+       current_script.push_back("</tr>");
+
+       current_script.push_back("<tr>");
+       current_script.push_back("<td>charge</td>");
+       current_script.push_back(String("<td>" + String(sip_peptides[i].charge) + "</td>"));
+       current_script.push_back("</tr>");
+
+       if (!sip_peptides[i].accessions.empty())
+       {
+         current_script.push_back(String("<tr>"));
+         current_script.push_back("<td>accessions</td>");
+         current_script.push_back(String("<td>" + sip_peptides[i].accessions[0] + "</td>"));
+         current_script.push_back(String("</tr>"));
+
+         current_script.push_back(String("<tr>"));
+         current_script.push_back("<td>unique</td>");
+         current_script.push_back(String("<td>" + String(sip_peptides[i].unique) + "</td>"));
+         current_script.push_back(String("</tr>"));
+       }
+
+       current_script.push_back(String("<tr>"));
+       current_script.push_back("<td>search score</td>");
+       current_script.push_back(String("<td>") + String(sip_peptides[i].score) + "</td>");
+       current_script.push_back("</tr>");
+
+       current_script.push_back("<tr>");
+       current_script.push_back("<td>global labeling ratio</td>");
+       current_script.push_back(String("<td>") + String::number(sip_peptides[i].global_LR, 2) + "</td>");
+       current_script.push_back("</tr>");
+
+       current_script.push_back("<tr>");
+       current_script.push_back("<td>R squared</td>");
+       current_script.push_back(String("<td>") + String::number(sip_peptides[i].RR, 2) + "</td>");
+       current_script.push_back("</tr>");
+
+       current_script.push_back("</table>");
+      
+       // table header of incorporations
+       current_script.push_back("<p>");
+       current_script.push_back("<table border=\"1\">");
+       current_script.push_back("<tr>");
+       for (Size k = 0; k != sip_peptides[i].incorporations.size(); ++k)
+       {
+         current_script.push_back(String("<td>RIA") + String(k + 1) + "</td>");
+         current_script.push_back(String("<td>CORR.") + String(k + 1) + "</td>");
+         current_script.push_back(String("<td>INT") + String(k + 1) + "</td>");       
+       }
+       current_script.push_back("</tr>");
+
+       // table of incorporations
+       current_script.push_back("<tr>");
+       for (Size k = 0; k != sip_peptides[i].incorporations.size(); ++k)
+       {
+         SIPIncorporation p = sip_peptides[i].incorporations[k];
+         current_script.push_back(String("<td>") + String::number(p.rate, 2) + "</td>");
+         current_script.push_back(String("<td>") + String::number(p.correlation, 2) + "</td>");
+         current_script.push_back(String("<td>") + String::number(p.abundance, 0) + "</td>");  
+       }
+       current_script.push_back("</tr>");
+
+       current_script.push_back("</table>");
+
+       // spectrum plot
+       String spectrum_filename = String("spectrum") + file_suffix + "_rt_" + String(sip_peptides[i].feature_rt) + "." + file_extension;
+       current_script.push_back("<p> <img src=\"" + spectrum_filename + "\" alt=\"graphic\"></p>");
+
+       // score plot
+       String score_filename = String("scores") + file_suffix + "_rt_" + String(sip_peptides[i].feature_rt) + "." + file_extension;
+       current_script.push_back("<p> <img src=\"" + score_filename + "\" alt=\"graphic\"></p>");
+     }
+     current_script.push_back("\n</body>\n</html>");
+     current_script.store(qc_output_directory.toQString() + "/index" + file_suffix.toQString() + ".html");
+   }
+
+    static void plotScoresAndWeights(const String& output_dir, const String& tmp_path, const String& file_suffix, const String& file_extension, const vector<SIPPeptide>& sip_peptides, DoubleReal score_plot_yaxis_min, Size debug_level = 0)
+  {
+    String score_filename = String("score_plot") + file_suffix + file_extension;
+    String script_filename = String("score_plot") + file_suffix + String(".R");
+
+    for (Size i = 0; i != sip_peptides.size(); ++i)
+    {     
+      TextFile current_script;
+      StringList rate_dec_list;
+      StringList rate_corr_list;
+      StringList weights_list;
+      StringList corr_list;
+
+      MapRateToScoreType decomposition_map; // all rate to decomposition scores for the peptide
+      MapRateToScoreType correlation_map; // all rate to correlation scores for the peptide
+
+      for (MapRateToScoreType::const_iterator mit = sip_peptides[i].decomposition_map.begin(); mit != sip_peptides[i].decomposition_map.end(); ++mit)
+      {
+        rate_dec_list << String(mit->first);
+        weights_list << String(mit->second);
+      }
+
+      for (MapRateToScoreType::const_iterator mit = sip_peptides[i].correlation_map.begin(); mit != sip_peptides[i].correlation_map.end(); ++mit)
+      {
+        rate_corr_list << String(mit->first);
+        corr_list << String(mit->second);
+      }
+
+      String rate_dec_list_string;
+      rate_dec_list_string.concatenate(rate_dec_list.begin(), rate_dec_list.end(), ",");
+
+      String weights_list_string;
+      weights_list_string.concatenate(weights_list.begin(), weights_list.end(), ",");
+
+      String rate_corr_list_string;
+      rate_corr_list_string.concatenate(rate_corr_list.begin(), rate_corr_list.end(), ",");
+
+      String corr_list_string;
+      corr_list_string.concatenate(corr_list.begin(), corr_list.end(), ",");
+
+      current_script.push_back("rate_dec<-c(" + rate_dec_list_string + ")");
+      current_script.push_back("dec<-c(" + weights_list_string + ")");
+      current_script.push_back("if (max(dec)!=0) {dec<-dec/max(dec)}");
+      current_script.push_back("rate_corr<-c(" + rate_corr_list_string + ")");
+      current_script.push_back("corr<-c(" + corr_list_string + ")");
+
+      if (score_plot_yaxis_min >= 0)
+      {
+        current_script.push_back("corr[corr<0]=0"); // truncate at 0 for better drawing
+      }
+
+      current_script.push_back("x0=rate_dec; x1=rate_dec; y0=rep(0, length(x0)); y1=dec");  // create R segments for decomposition score (vertical bars)
+      if (file_extension == "png")
+      {
+        current_script.push_back("png('" + tmp_path + "/" + score_filename + "')");
+      } else if (file_extension == "svg")
+      {
+        current_script.push_back("svg('" + tmp_path + "/" + score_filename + "', width=8, height=4.5)");
+      } else if (file_extension == "pdf")
+      {
+        current_script.push_back("pdf('" + tmp_path + "/" + score_filename + "', width=8, height=4.5)");
+      }
+      current_script.push_back("plot.new()");
+      current_script.push_back("plot.window(xlim=c(0,100), ylim=c(" + String(score_plot_yaxis_min) + ",1))");
+      current_script.push_back("axis(1); axis(2)");
+      current_script.push_back("title(xlab=\"RIA\")");
+      current_script.push_back("title(ylab=\"normalized weight / corr.\")");
+      current_script.push_back("box()");
+      current_script.push_back("segments(x0,y0,x1,y1, col='red')");
+      current_script.push_back("lines(x=rate_corr, y=corr, col='blue')");
+      current_script.push_back("legend('bottomright', horiz=FALSE, xpd=TRUE, col=c('red', 'blue'), lwd=2, c('weights', 'correlation'))");
+      current_script.push_back("tmp<-dev.off()");
+      current_script.store(tmp_path + "/" + script_filename);
+      QStringList qparam;
+      qparam << "--vanilla" << "--quiet" << "--slave" << "--file=" + QString(tmp_path.toQString() + "\\" + script_filename.toQString());
+      Int status = QProcess::execute("R", qparam);
+      if (status != 0)
+      {
+        std::cerr << "Error: Process returned with non 0 status." << std::endl;
+      } else
+      {
+        QFile(QString(tmp_path.toQString() + "\\" + score_filename.toQString())).copy(output_dir.toQString() + "/scores" + file_suffix.toQString() + "_rt_" + String(sip_peptides[i].feature_rt).toQString() + "." + file_extension.toQString());
+        if (debug_level < 1)
+        {          
+          QFile(QString(tmp_path.toQString() + "\\" + script_filename.toQString())).remove();
+          QFile(QString(tmp_path.toQString() + "\\" + score_filename.toQString())).remove();
+        }
+      }
+    }
+  }
+
+    static void plotCorrelationData(String tmp_path, String data_filename, Size bins, String file_suffix, const String& file_extension, String qc_output_directory, Int debug_level)
+  {
+    String script_filename = String("cluster_data") + file_suffix + String(".R");
+    String plot_filename = String("cluster_plot") + file_suffix + String(".") + file_extension;
+
+    // add scripts
+    TextFile current_script;
+
+    current_script.push_back("d=read.table('" + tmp_path + "/" + data_filename + "', sep='\\t')");
+    current_script.push_back("m=as.matrix(d[,-(1:2)])");
+    current_script.push_back("m[m<0.0]=0");
+    current_script.push_back("m=t(m)");
+    current_script.push_back("clusters=rep(1,nrow(t(m)))");
+
+    if (file_extension == "png")
+    {
+      current_script.push_back("png('" + tmp_path + "/" + plot_filename + "', width=1280, height=720)");
+    } else if (file_extension == "svg")
+    {
+      current_script.push_back("svg('" + tmp_path + "/" + plot_filename + "', width=16, height=9)");
+    } else if (file_extension == "pdf")
+    {
+      current_script.push_back("pdf('" + tmp_path + "/" + plot_filename + "', width=16, height=9)");
+    }
+
+    current_script.push_back("colors<-adjustcolor(clusters, alpha=0.3)");
+    current_script.push_back("matplot(x=seq(0,99.9,"+ String(100.0/bins)+ "), y=m, type='l', col=colors, ylim=c(0,1), lty=1, ylab='Correlation', xlab='RIA (%)')");
+    current_script.push_back("tmp<-dev.off()");
+    current_script.push_back("r=cbind(clusters, d[,1])");
+    current_script.push_back("r=r[!is.na(r[,1]),]");
+
+    current_script.store(tmp_path + "/" + script_filename);
+
+    QStringList qparam;
+    qparam << "--vanilla" << "--quiet" << "--slave" << "--file=" + QString(tmp_path.toQString() + "\\" + script_filename.toQString());
+    Int status = QProcess::execute("R", qparam);
+    if (status != 0)
+    {
+      std::cerr << "Error: Process returned with non 0 status." << std::endl;
+    } else
+    {        
+      QFile(QString(tmp_path.toQString() + "\\" + plot_filename.toQString())).copy(qc_output_directory.toQString() + "/cluster_plot" + file_suffix.toQString() + String(".").toQString() + file_extension.toQString());
+      if (debug_level < 1)
+      {          
+        QFile(QString(tmp_path.toQString() + "\\" + data_filename.toQString())).remove();
+        QFile(QString(tmp_path.toQString() + "\\" + script_filename.toQString())).remove();
+        QFile(QString(tmp_path.toQString() + "\\" + plot_filename.toQString())).remove();
+      }
+    }
+  }
+
+    static void createQualityReport(String tmp_path, String qc_output_directory, String file_suffix, const String& file_extension, vector<SIPPeptide> sip_peptides, bool plot_merged, const vector< vector<SIPPeptide> >& sip_peptide_cluster, Size n_heatmap_bins, DoubleReal score_plot_y_axis_min, String cluster_type)
+  {
+    // heat map based on peptide RIAs
+    cout << "Plotting peptide heat map" << endl;    
+    vector< vector<DoubleReal> > binned_peptide_ria;
+    vector<String> class_labels;
+    createBinnedPeptideRIAData_(n_heatmap_bins, sip_peptide_cluster, binned_peptide_ria, class_labels);
+
+    plotHeatMap(qc_output_directory, tmp_path, "_peptide" + file_suffix, file_extension, binned_peptide_ria, class_labels);
+
+    cout << "Plotting filtered spectra for quality report" << endl;
+    plotFilteredSpectra(qc_output_directory, tmp_path, file_suffix, file_extension, sip_peptides);
+    if (plot_merged)
+    {
+      cout << "Plotting merged spectra for quality report" << endl;
+      plotMergedSpectra(qc_output_directory, tmp_path, file_suffix, file_extension, sip_peptides);
+    }
+
+    cout << "Plotting correlation score and weight distribution" << endl;
+    plotScoresAndWeights(qc_output_directory, tmp_path, file_suffix, file_extension, sip_peptides, score_plot_y_axis_min);
+
+    if (file_extension != "pdf")  // html doesn't support pdf as image
+    {
+      writeHTML(qc_output_directory, file_suffix, file_extension, cluster_type, sip_peptides);
+    }
+  }
+
+    static void createCSVReport(vector<vector<SIPPeptide> >& sippeptide_cluster, SVOutStream& out_stream, map<String, String> &proteinid_to_description, ofstream &out_csv_stream)
+  {
+    // sort clusters by non increasing size
+    sort(sippeptide_cluster.rbegin(), sippeptide_cluster.rend(), SizeLess());
+
+    for(Size i = 0; i != sippeptide_cluster.size(); ++i)
+    {
+      const vector<SIPPeptide>& current_cluster = sippeptide_cluster[i];
+
+      // Group
+      map<String, vector<SIPPeptide> > all_peptides;  // map sequence to SIPPeptide  
+      map<String, vector<SIPPeptide> > ambigous_peptides;  // map sequence to SIPPeptide
+      map<String, map<String, vector<SIPPeptide> > > unambigous_proteins;  // map Accession to unmodified String to SIPPeptides
+
+      for (Size k = 0; k != current_cluster.size(); ++k)
+      {
+        const SIPPeptide& current_SIPpeptide = current_cluster[k];
+        String seq = current_SIPpeptide.sequence.toUnmodifiedString();
+        if (current_SIPpeptide.unique)
+        {            
+          unambigous_proteins[current_SIPpeptide.accessions[0]][seq].push_back(current_SIPpeptide);
+        } else
+        {
+          ambigous_peptides[current_SIPpeptide.sequence.toUnmodifiedString()].push_back(current_SIPpeptide);
+        }
+        all_peptides[seq].push_back(current_SIPpeptide);
+      }
+
+      Size n_all_peptides = all_peptides.size();  // # of different (on sequence level) unique and non-unique peptides 
+      Size n_ambigous_peptides = ambigous_peptides.size();
+      Size n_unambigous_proteins = unambigous_proteins.size();
+
+      // determine median global LR of whole group
+      vector<DoubleReal> group_global_LRs;
+      vector<DoubleReal> group_number_RIAs;
+      for (map<String, vector<SIPPeptide> >::const_iterator all_it = all_peptides.begin(); all_it != all_peptides.end(); ++all_it)
+      {
+        for (vector<SIPPeptide>::const_iterator v_it = all_it->second.begin(); v_it != all_it->second.end(); ++v_it)
+        {
+          group_global_LRs.push_back(v_it->global_LR);
+          group_number_RIAs.push_back(v_it->incorporations.size());
+        }
+      }
+      DoubleReal group_global_LR = Math::median(group_global_LRs.begin(), group_global_LRs.end(), false);        
+
+      Size group_number_RIA = (Size) (Math::median(group_number_RIAs.begin(), group_number_RIAs.end(), false) + 0.5); // median number of RIAs
+      // Group header
+      // Distinct peptides := different (on sequence level) unique and non-unique peptides 
+      out_stream << String("Group ") + String(i+1) << "# Distinct Peptides" << "# Unambigous Proteins" << "Median Global LR";
+      for (Size i = 0; i != group_number_RIA; ++i)
+      {
+        out_stream << "median RIA " + String(i + 1);
+      }
+      out_stream << endl;
+
+      out_stream << "" << n_all_peptides << n_unambigous_proteins << group_global_LR;
+
+      // collect 1th, 2nd, ... RIA of the group based on the peptide RIAs
+      vector< vector<DoubleReal> > group_RIAs(group_number_RIA, vector<DoubleReal>());
+      vector< DoubleReal > group_RIA_medians(group_number_RIA, 0);
+
+      for (map<String, vector<SIPPeptide> >::const_iterator all_it = all_peptides.begin(); all_it != all_peptides.end(); ++all_it)
+      {
+        for (vector<SIPPeptide>::const_iterator v_it = all_it->second.begin(); v_it != all_it->second.end(); ++v_it)
+        {
+          for (Size i = 0; i != group_number_RIA; ++i)
+          {
+            if (i == v_it->incorporations.size())
+            {
+              break;
+            }                  
+            group_RIAs[i].push_back(v_it->incorporations[i].rate);
+          }
+        }
+      }  
+
+      for (Size i = 0; i != group_number_RIA; ++i)
+      {
+        group_RIA_medians[i] = Math::median(group_RIAs[i].begin(), group_RIAs[i].end(), false);
+      }
+
+      for (Size i = 0; i != group_number_RIA; ++i)
+      {
+        out_stream << String(group_RIA_medians[i]);
+      }
+      out_stream << endl;
+
+      // unambiguous protein level
+      for (map<String, map<String, vector<SIPPeptide> > >::const_iterator prot_it = unambigous_proteins.begin(); prot_it != unambigous_proteins.end(); ++prot_it)
+      {
+        // determine median global LR of protein
+        vector<DoubleReal> protein_global_LRs;
+        vector<DoubleReal> protein_number_RIAs;
+        for (map<String, vector<SIPPeptide> >::const_iterator pept_it = prot_it->second.begin(); pept_it != prot_it->second.end(); ++pept_it)
+        {
+          for (vector<SIPPeptide>::const_iterator v_it = pept_it->second.begin(); v_it != pept_it->second.end(); ++v_it)
+          {
+            protein_global_LRs.push_back(v_it->global_LR);
+            protein_number_RIAs.push_back(v_it->incorporations.size());
+          }
+        }          
+        DoubleReal protein_global_LR = Math::median(protein_global_LRs.begin(), protein_global_LRs.end(), false);
+        Size protein_number_RIA = (Size) (Math::median(protein_number_RIAs.begin(), protein_number_RIAs.end(), false) + 0.5); // median number of RIAs
+
+        out_stream << "" << "Protein Accession" << "Description" << "# Unique Peptides" << "Median Global LR";
+        for (Size i = 0; i != protein_number_RIA; ++i)
+        {
+          out_stream << "median RIA " + String(i + 1);
+        }
+        out_stream << endl;
+
+        String protein_accession = prot_it->first;
+        String protein_description = "none";
+        if (proteinid_to_description.find(protein_accession.trim().toUpper()) != proteinid_to_description.end())
+        {
+          protein_description = proteinid_to_description.at(protein_accession.trim().toUpper());
+        }
+
+        out_stream << "" << protein_accession << protein_description <<  prot_it->second.size() << protein_global_LR;
+
+        vector< vector<DoubleReal> > protein_RIAs(protein_number_RIA, vector<DoubleReal>());
+        vector< DoubleReal > protein_RIA_medians(protein_number_RIA, 0);
+
+        // ratio to natural decomposition
+        vector< vector<DoubleReal> > protein_ratio(protein_number_RIA, vector<DoubleReal>());
+        vector< DoubleReal > protein_ratio_medians(protein_number_RIA, 0); 
+
+        // collect 1th, 2nd, ... RIA of the protein based on the peptide RIAs
+        for (map<String, vector<SIPPeptide> >::const_iterator pept_it = prot_it->second.begin(); pept_it != prot_it->second.end(); ++pept_it)
+        {
+          for (vector<SIPPeptide>::const_iterator v_it = pept_it->second.begin(); v_it != pept_it->second.end(); ++v_it)
+          {
+            for (Size i = 0; i != protein_number_RIA; ++i)
+            {
+              if (i == v_it->incorporations.size())
+              {
+                break;
+              }                  
+              protein_RIAs[i].push_back(v_it->incorporations[i].rate);
+              protein_ratio[i].push_back(v_it->incorporations[i].abundance);
+            }
+          }
+        }  
+
+        for (Size i = 0; i != protein_number_RIA; ++i)
+        {
+          protein_RIA_medians[i] = Math::median(protein_RIAs[i].begin(), protein_RIAs[i].end(), false);
+          protein_ratio_medians[i] = Math::median(protein_ratio[i].begin(), protein_ratio[i].end(), false);
+        }
+
+        for (Size i = 0; i != protein_number_RIA; ++i)
+        {
+          out_stream << String(protein_RIA_medians[i]);
+        }
+
+        out_stream << endl;
+
+        // print header of unique peptides
+        out_stream << "" << "" << "Peptide Sequence" << "RT" << "Exp. m/z" << "Theo. m/z" << "Charge" << "Score" << "TIC fraction" << "#non-natural weights" << "";
+        Size max_incorporations = 0;
+        for (map<String, vector<SIPPeptide> >::const_iterator pept_it = prot_it->second.begin(); pept_it != prot_it->second.end(); ++pept_it)
+        {     
+          for (vector<SIPPeptide>::const_iterator v_it = pept_it->second.begin(); v_it != pept_it->second.end(); ++v_it)
+          {
+            max_incorporations = std::max(v_it->incorporations.size(), max_incorporations);
+          }
+        }
+
+        for (Size i = 0; i != max_incorporations; ++i)
+        {
+          out_stream << "RIA " + String(i + 1) << "INT " + String(i + 1) << "Cor. " + String(i + 1);
+        }
+        out_stream << "Peak intensities" << "Global LR" << endl;
+
+        // print data of unique peptides
+        for (map<String, vector<SIPPeptide> >::const_iterator pept_it = prot_it->second.begin(); pept_it != prot_it->second.end(); ++pept_it)
+        {
+          for (vector<SIPPeptide>::const_iterator v_it = pept_it->second.begin(); v_it != pept_it->second.end(); ++v_it)
+          {
+            out_stream << "" << "" << v_it->sequence.toString() << String::number(v_it->feature_rt / 60.0, 2)  << String::number(v_it->feature_mz, 4) << v_it->mz_theo << v_it->charge << v_it->score << v_it->explained_TIC_fraction << v_it->non_zero_decomposition_coefficients << "";
+            for (vector<SIPIncorporation>::const_iterator incorps = v_it->incorporations.begin(); incorps != v_it->incorporations.end(); ++incorps)
+            {
+              out_stream << String::number(incorps->rate,1) << String::number(incorps->abundance, 0) << String::number(incorps->correlation, 2);
+            }
+
+            // blank entries for nicer formatting
+            for (Int q = 0; q < max_incorporations - v_it->incorporations.size(); ++q)
+            {
+              out_stream << "" << "" << "";
+            }
+
+            // output peak intensities
+            String peak_intensities;
+            for (PeakSpectrum::const_iterator p = v_it->accumulated.begin(); p != v_it->accumulated.end(); ++p)
+            {
+              peak_intensities += String::number(p->getIntensity(),0) + " ";
+            }
+            out_stream << peak_intensities;
+            out_stream << v_it->global_LR;
+
+            out_stream << endl; 
+          }
+        }
+      }
+
+      // print header of non-unique peptides below the protein section
+      Size max_incorporations = 0;
+      for (map<String, vector<SIPPeptide> >::const_iterator pept_it = ambigous_peptides.begin(); pept_it != ambigous_peptides.end(); ++pept_it)
+      {     
+        for (vector<SIPPeptide>::const_iterator v_it = pept_it->second.begin(); v_it != pept_it->second.end(); ++v_it)
+        {
+          max_incorporations = std::max(v_it->incorporations.size(), max_incorporations);
+        }
+      }
+
+      out_stream << "Non-Unique Peptides" << "Accessions" << "Peptide Sequence" << "Descriptions" << "Score" << "RT" << "Exp. m/z" << "Theo. m/z" << "Charge" << "#non-natural weights" << "";
+
+      for (Size i = 0; i != max_incorporations; ++i)
+      {
+        out_stream << "RIA " + String(i + 1) << "INT " + String(i + 1) << "Cor. " + String(i + 1);
+      }
+      out_stream << "Peak intensities" << "Global LR" << endl;
+
+      // print data of non-unique peptides below the protein section
+      for (map<String, vector<SIPPeptide> >::const_iterator pept_it = ambigous_peptides.begin(); pept_it != ambigous_peptides.end(); ++pept_it)
+      {     
+        // build up the protein accession string for non-unique peptides. Only the first 3 accessions are added.
+        for (vector<SIPPeptide>::const_iterator v_it = pept_it->second.begin(); v_it != pept_it->second.end(); ++v_it)
+        {
+          String accessions_string;
+          String description_string = "none";
+
+          for (Size ac = 0; ac != v_it->accessions.size(); ++ac)
+          {
+            if (ac >= 3) // only print at most 3 accessions as these can be quite numorous
+            {
+              accessions_string += "...";
+              break;
+            }
+            String protein_accession = v_it->accessions[ac];
+            accessions_string += protein_accession;
+
+            if (proteinid_to_description.find(protein_accession.trim().toUpper()) != proteinid_to_description.end())
+            {
+              if (description_string == "none")
+              {
+                description_string = "";
+              }
+              description_string += proteinid_to_description.at(protein_accession.trim().toUpper());
+            }
+
+            if (ac < v_it->accessions.size() - 1) 
+            {
+              accessions_string += ", ";
+              if (description_string != "none")
+              {
+                description_string += ", ";
+              }
+            }
+          }
+
+          out_stream << "" << accessions_string << v_it->sequence.toString() << description_string << v_it->score << String::number(v_it->feature_rt / 60.0, 2) << String::number(v_it->feature_mz, 4) << v_it->mz_theo << v_it->charge << v_it->non_zero_decomposition_coefficients << "";
+
+          // output variable sized RIA part
+          for (vector<SIPIncorporation>::const_iterator incorps = v_it->incorporations.begin(); incorps != v_it->incorporations.end(); ++incorps)
+          {
+            out_stream << String::number(incorps->rate,1) << String::number(incorps->abundance, 0) << String::number(incorps->correlation, 2);
+          }
+
+          // blank entries for nicer formatting
+          for (Int q = 0; q < max_incorporations - v_it->incorporations.size(); ++q)
+          {
+            out_stream << "" << "" << "";
+          }
+
+          // output peak intensities
+          String peak_intensities;
+          for (PeakSpectrum::const_iterator p = v_it->accumulated.begin(); p != v_it->accumulated.end(); ++p)
+          {
+            peak_intensities += String::number(p->getIntensity(),0) + " ";
+          }
+          out_stream << peak_intensities;
+          out_stream << v_it->global_LR;
+          out_stream << endl; 
+        }
+      }      
+    }
+    out_csv_stream.close();
+  }
+
+    static void createPeptideCentricCSVReport(const String in_mzML, const String& file_extension, vector<vector<SIPPeptide> >& sippeptide_cluster, SVOutStream& out_stream, map<String, String> &proteinid_to_description, ofstream &out_csv_stream, String qc_output_directory="", String file_suffix="" )
+  {
+    // sort clusters by non increasing size
+    sort(sippeptide_cluster.rbegin(), sippeptide_cluster.rend(), SizeLess());
+
+    // store SIP peptide with cluster index for peptide centric view on data
+    vector<pair<SIPPeptide, Size> > peptide_to_cluster_index;
+    for(Size i = 0; i != sippeptide_cluster.size(); ++i)
+    {
+      const vector<SIPPeptide>& current_cluster = sippeptide_cluster[i];
+      for (Size k = 0; k != current_cluster.size(); ++k)
+      {
+        peptide_to_cluster_index.push_back(make_pair(current_cluster[k], i));
+      }
+    }
+
+    // sort by sequence
+    sort(peptide_to_cluster_index.begin(), peptide_to_cluster_index.end(), SequenceLess());
+
+    out_stream << "Peptide Sequence" << "Quality Report Spectrum" << "Quality report scores" << "Sample Name" << "Protein Accessions" << "Description" << "Unique" "#Ambiguity members" 
+      << "Score" << "RT" << "Exp. m/z" << "Theo. m/z" << "Charge" << "TIC fraction" << "#non-natural weights" << "Peak intensities" << "Group" << "Global Peptide LR";
+
+    for (Size i = 1; i <= 10; ++i)
+    {
+      out_stream << "RIA " + String(i) <<  "LR of RIA " + String(i) <<  "INT " + String(i)  <<  "Cor. " + String(i);
+    }
+    out_stream << std::endl;
+
+    for(Size i = 0; i != peptide_to_cluster_index.size(); ++i)
+    {
+      const SIPPeptide& current_SIPpeptide = peptide_to_cluster_index[i].first;
+      const Size& current_cluster_index = peptide_to_cluster_index[i].second;
+
+      // output peptide sequence
+      out_stream << current_SIPpeptide.sequence.toString();
+
+      // output quality report links if available
+      if (qc_output_directory.empty() && file_suffix.empty())
+      {
+        out_stream << "" << "";
+      } else
+      {
+        String qr_spectrum_filename = String("file://") + qc_output_directory + String("spectrum") + file_suffix + "_rt_" + String(current_SIPpeptide.feature_rt) + "." + file_extension;
+        String qr_scores_filename = String("file://") + qc_output_directory + String("scores")  + file_suffix + "_rt_" + String(current_SIPpeptide.feature_rt) + "." + file_extension;
+        out_stream << qr_spectrum_filename << qr_scores_filename << in_mzML;
+      }
+
+      // output protein accessions and descriptions
+      String accession_string;
+      String protein_descriptions = "none";
+      for (Size j = 0; j != current_SIPpeptide.accessions.size(); ++j)
+      {
+        String current_accession = current_SIPpeptide.accessions[j];
+        current_accession.trim().toUpper();
+        accession_string += current_accession;
+
+        if (proteinid_to_description.find(current_accession) != proteinid_to_description.end())
+        {
+          if (protein_descriptions == "none")
+          {
+            protein_descriptions = proteinid_to_description.at(current_accession);
+          } else
+          {
+            protein_descriptions += proteinid_to_description.at(current_accession);
+          }
+        }
+
+        // add "," between accessions
+        if (j != current_SIPpeptide.accessions.size()-1)
+        {
+          accession_string += ",";
+          protein_descriptions += ",";
+        }
+      }      
+     
+      out_stream << accession_string << protein_descriptions << current_SIPpeptide.unique << current_SIPpeptide.accessions.size() << current_SIPpeptide.score << String::number(current_SIPpeptide.feature_rt / 60.0, 2)
+        << String::number(current_SIPpeptide.feature_mz, 4) << String::number(current_SIPpeptide.mz_theo, 4) << current_SIPpeptide.charge << current_SIPpeptide.explained_TIC_fraction << current_SIPpeptide.non_zero_decomposition_coefficients;
+
+      // output peak intensities
+      String peak_intensities;
+      for (PeakSpectrum::const_iterator p = current_SIPpeptide.accumulated.begin(); p != current_SIPpeptide.accumulated.end(); ++p)
+      {
+        peak_intensities += String::number(p->getIntensity(), 0) + " ";
+      }
+      out_stream << peak_intensities;
+      
+      out_stream << current_cluster_index << current_SIPpeptide.global_LR;
+
+      for (Size j = 0; j != current_SIPpeptide.incorporations.size(); ++j)
+      {
+        const DoubleReal ria = current_SIPpeptide.incorporations[j].rate;
+        const DoubleReal abundance = current_SIPpeptide.incorporations[j].abundance;
+        const DoubleReal corr = current_SIPpeptide.incorporations[j].correlation;
+        
+        DoubleReal LR_of_RIA = 0;
+        if (ria < 1.5) // first RIA hast natural abundance
+        {
+          LR_of_RIA = abundance / current_SIPpeptide.incorporations[0].abundance;
+        }
+        out_stream << String::number(ria, 1) << String::number(LR_of_RIA, 1) << String::number(abundance, 1) << String::number(corr, 1);
+      }      
+      out_stream << endl; 
+    }
+
+    out_stream << endl; 
+    out_csv_stream.close();
+  }
+
+  protected:
+    static void createBinnedPeptideRIAData_(const Size n_heatmap_bins, const vector<vector<SIPPeptide>>& sip_clusters, vector< vector<DoubleReal> >& binned_peptide_ria, vector<String>& cluster_labels)
+  {
+    cluster_labels.clear();
+    binned_peptide_ria.clear();
+
+    for (vector<vector<SIPPeptide>>::const_iterator cit = sip_clusters.begin(); cit != sip_clusters.end(); ++cit)
+    {
+      const vector<SIPPeptide>& sip_peptides = *cit;
+      for (vector<SIPPeptide>::const_iterator pit = sip_peptides.begin(); pit != sip_peptides.end(); ++pit)
+      {
+        vector<DoubleReal> binned(n_heatmap_bins, 0.0); 
+        for (vector<SIPIncorporation>::const_iterator iit = pit->incorporations.begin(); iit != pit->incorporations.end(); ++iit)
+        {
+          Int bin = iit->rate / 100.0 * n_heatmap_bins;
+          bin = bin > binned.size() - 1 ? binned.size() - 1 : bin;
+          bin = bin < 0 ? 0 : bin;
+          binned[bin] = log(1.0 + iit->abundance);
+        }
+        binned_peptide_ria.push_back(binned);
+        cluster_labels.push_back((String)(cit - sip_clusters.begin()));
+      }
+    }
+  }
+
+};
+
 class TOPPMetaProSIP : public TOPPBase
 {
 public:
@@ -192,9 +1157,7 @@ public:
 
 protected:
   const Size ADDITIONAL_ISOTOPES; // extend isotopic patterns to collect other element higher isotopes at 100% incorporation
-  String tmp_path_;
-  String cluster_type_;
-  String qc_output_directory_;
+ 
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in_mzML","<file>","","Centroided MS1 data");
@@ -208,9 +1171,6 @@ protected:
 
     registerOutputFile_("out_peptide_centric_csv","<file>","","Column separated file with peptide centric result.");
     setValidFormats_("out_peptide_centric_csv", ListUtils::create<String>("csv"));
-
-    registerOutputFile_("out_protein_centric_csv","<file>","","Column separated file with protein centric result.");
-    setValidFormats_("out_protein_centric_csv", ListUtils::create<String>("csv"));
 
     registerInputFile_("in_featureXML","<file>","","Feature data annotated with identifications (IDMapper)");
     setValidFormats_("in_featureXML", ListUtils::create<String>("featureXML"));
@@ -264,36 +1224,6 @@ protected:
     registerDoubleOption_("lowRIA_correlation_threshold", "<tol>", -1, "Correlation threshold for reporting low RIA patterns. Disable and take correlation_threshold value for negative values.", false, true);
   }
   
-  ///< comparator for vectors of SIPPeptides based on their size. Used to sort by group size.
-	struct SizeLess
-		: public std::binary_function <vector<SIPPeptide>, vector<SIPPeptide>, bool>
-	{
-		inline bool operator () (const vector<SIPPeptide>& a, const vector<SIPPeptide>& b) const
-		{
-			return (a.size() < b.size());
-		}
-	};
-
-	struct SequenceLess
-		: public std::binary_function <pair<SIPPeptide, Size>, pair<SIPPeptide, Size>, bool>
-	{
-		inline bool operator () (const pair<SIPPeptide, Size>& a, const pair<SIPPeptide, Size>& b) const
-		{
-      return (a.first.sequence.toString() < b.first.sequence.toString());
-		}
-	};
-
-  struct RIALess
-    : public std::binary_function <SIPIncorporation, SIPIncorporation, bool>
-  {
-    inline bool operator () (const SIPIncorporation& a, const SIPIncorporation& b) const
-    {
-      return (a.rate < b.rate);
-    }
-  };
-
-
-
   ///< Determine score maxima from rate to score distribution using derivatives from akima spline interpolation
   vector<RateScorePair> getHighPoints(DoubleReal threshold, MapRateToScoreType& rate2score, Size NBREAK = 10)
   {
@@ -1321,445 +2251,6 @@ protected:
     return sum_incorporated / sum;
   }
 
-  void plotHeatMap_(const String& output_dir, const String& tmp_path, const String& file_suffix, const vector<vector<DoubleReal> >& binned_ria, vector<String> class_labels, Size debug_level = 0)
-  { 
-    String plot_extension = getStringOption_("plot_extension");  
-    String filename = String("heatmap") + file_suffix + "." + plot_extension;
-    String script_filename = String("heatmap") + file_suffix + String(".R");
-    
-    TextFile current_script;
-    StringList ria_list, col_labels;
-
-    for (Size i = 0; i != binned_ria[0].size(); ++i)
-    {
-      col_labels << String(i*(100 / binned_ria[0].size())) + "%-" + String((i+1)*(100 / binned_ria[0].size())) + "%";
-    }
-
-    for (vector<vector<DoubleReal> >::const_iterator pit = binned_ria.begin(); pit != binned_ria.end(); ++pit)
-    {
-      for (vector<DoubleReal>::const_iterator rit = pit->begin(); rit != pit->end(); ++rit)
-      {
-        ria_list << String(*rit);
-      }
-    }
-
-    // row labels
-    StringList row_labels;
-    if (!class_labels.empty())
-    {
-      for (Size i = 0; i != class_labels.size(); ++i)
-      {
-        row_labels << class_labels[i];
-      }      
-    }
-
-    // plot heatmap
-    current_script.push_back("library(gplots)");
-    String ria_list_string;
-    ria_list_string.concatenate(ria_list.begin(), ria_list.end(), ",");
-    current_script.push_back("mdat <- matrix(c(" + ria_list_string + "), ncol=" + String(binned_ria[0].size()) + ", byrow=TRUE)");
-
-    if (plot_extension == "png")
-    {
-      current_script.push_back("png('" + tmp_path + "/" + filename + "', width=1000, height=" + String(10*binned_ria.size()) + ")");
-    } else if (plot_extension == "svg")
-    {
-      current_script.push_back("svg('" + tmp_path + "/" + filename + "', width=8, height=4.5)");
-    } else if (plot_extension == "pdf")
-    {
-      current_script.push_back("pdf('" + tmp_path + "/" + filename + "', width=8, height=4.5)");
-    }
-
-    String labRowString; 
-    if (row_labels.empty())
-    {
-      labRowString = "FALSE";
-    } else
-    {
-      String row_labels_string;
-      row_labels_string.concatenate(row_labels.begin(), row_labels.end(), "\",\"");
-      labRowString = String("c(\"") + row_labels_string + "\")";
-    }
-
-    String col_labels_string;
-    col_labels_string.concatenate(col_labels.begin(), col_labels.end(), "\",\"");
-
-    current_script.push_back("heatmap.2(mdat, dendrogram=\"none\", col=colorRampPalette(c(\"black\",\"red\")), Rowv=FALSE, Colv=FALSE, key=FALSE, labRow=" + labRowString + ",labCol=c(\"" + col_labels_string + "\"),trace=\"none\", density.info=\"none\")");
-
-    current_script.push_back("tmp<-dev.off()");
-    current_script.store(tmp_path + "/" + script_filename);
-    QStringList qparam;
-    qparam << "--vanilla" << "--quiet" << "--slave" << "--file=" + QString(tmp_path.toQString() + "\\" + script_filename.toQString());
-    Int status = QProcess::execute("R", qparam);
-
-    // cleanup
-    if (status != 0)
-    {
-      std::cerr << "Error: Process returned with non 0 status." << std::endl;
-    } else
-    {
-      QFile(QString(tmp_path.toQString() + "\\" + filename.toQString())).copy(output_dir.toQString() + "/heatmap" + file_suffix.toQString() + "." + plot_extension.toQString());
-      if (debug_level < 1)
-      {          
-        QFile(QString(tmp_path.toQString() + "\\" + script_filename.toQString())).remove();
-        QFile(QString(tmp_path.toQString() + "\\" + filename.toQString())).remove();
-      }
-    }
-  }
-
-  void plotFilteredSpectra_(const String& output_dir, const String& tmp_path, const String& file_suffix, const vector<SIPPeptide>& sip_peptides, Size debug_level = 0)
-  { 
-    String plot_extension = getStringOption_("plot_extension");
-   
-    String filename = String("spectrum_plot") + file_suffix + "." + plot_extension;
-    String script_filename = String("spectrum_plot") + file_suffix + String(".R");
-
-    for (Size i = 0; i != sip_peptides.size(); ++i)
-    {     
-      TextFile current_script;
-      StringList mz_list;
-      StringList intensity_list;
-
-      for (Size j = 0; j != sip_peptides[i].accumulated.size(); ++j)
-      {
-        const Peak1D& peak = sip_peptides[i].accumulated[j];               
-        mz_list << String(peak.getMZ());
-        intensity_list << String(peak.getIntensity());
-      }
-      
-      String mz_list_string;
-      mz_list_string.concatenate(mz_list.begin(), mz_list.end(), ",");
-
-      String intensity_list_string;
-      intensity_list_string.concatenate(intensity_list.begin(), intensity_list.end(), ",");
-
-      current_script.push_back("mz<-c(" + mz_list_string + ")");
-      current_script.push_back("int<-c(" + intensity_list_string + ")");
-      current_script.push_back("x0=mz; x1=mz; y0=rep(0, length(x0)); y1=int");
-
-      if (plot_extension == "png")
-      {
-        current_script.push_back("png('" + tmp_path + "/" + filename + "')");
-      } else  if (plot_extension == "svg")
-      {
-        current_script.push_back("svg('" + tmp_path + "/" + filename + "', width=8, height=4.5)");
-      } else if (plot_extension == "pdf")
-      {
-        current_script.push_back("pdf('" + tmp_path + "/" + filename + "', width=8, height=4.5)");
-      }
-
-      current_script.push_back("plot.new()");
-      current_script.push_back("plot.window(xlim=c(min(mz),max(mz)), ylim=c(0,max(int)))");
-      current_script.push_back("axis(1); axis(2)");
-      current_script.push_back("title(xlab=\"m/z\")");
-      current_script.push_back("title(ylab=\"intensity\")");
-      current_script.push_back("box()");
-      current_script.push_back("segments(x0,y0,x1,y1)");
-      current_script.push_back("tmp<-dev.off()");
-      current_script.store(tmp_path + "/" + script_filename);
-      QStringList qparam;
-      qparam << "--vanilla" << "--quiet" << "--slave" << "--file=" + QString(tmp_path.toQString() + "\\" + script_filename.toQString());
-      Int status = QProcess::execute("R", qparam);
-      if (status != 0)
-      {
-        std::cerr << "Error: Process returned with non 0 status." << std::endl;
-      } else
-      {
-        QFile(QString(tmp_path.toQString() + "\\" + filename.toQString())).copy(output_dir.toQString() + "/spectrum" + file_suffix.toQString() + "_rt_" + String(sip_peptides[i].feature_rt).toQString() + "." + plot_extension.toQString());
-        if (debug_level < 1)
-        {          
-          QFile(QString(tmp_path.toQString() + "\\" + script_filename.toQString())).remove();
-          QFile(QString(tmp_path.toQString() + "\\" + filename.toQString())).remove();
-        }
-      }
-    }
-  }
-
-  void plotMergedSpectra_(const String& output_dir, const String& tmp_path, const String& file_suffix, const vector<SIPPeptide>& sip_peptides, Size debug_level = 0)
-  { 
-    String plot_extension = getStringOption_("plot_extension");
-
-    String filename = String("merged_spectra") + file_suffix + "." + plot_extension;
-    String script_filename = String("merged_spectra") + file_suffix + String(".R");
-
-    for (Size i = 0; i != sip_peptides.size(); ++i)
-    {     
-      TextFile current_script;
-      StringList mz_list;
-      StringList intensity_list;
-
-      for (Size j = 0; j != sip_peptides[i].merged.size(); ++j)
-      {
-        const Peak1D& peak = sip_peptides[i].merged[j];               
-        mz_list << String(peak.getMZ());
-        intensity_list << String(peak.getIntensity());
-      }
-
-      String mz_list_string;
-      mz_list_string.concatenate(mz_list.begin(), mz_list.end(), ",");
-
-      String intensity_list_string;
-      intensity_list_string.concatenate(intensity_list.begin(), intensity_list.end(), ",");
-
-      current_script.push_back("mz<-c(" + mz_list_string + ")");
-      current_script.push_back("int<-c(" + intensity_list_string + ")");
-      current_script.push_back("x0=mz; x1=mz; y0=rep(0, length(x0)); y1=int");
-
-      if (plot_extension == "png")
-      {
-        current_script.push_back("png('" + tmp_path + "/" + filename + "')");
-      } else if (plot_extension == "svg")
-      {
-        current_script.push_back("svg('" + tmp_path + "/" + filename + "', width=8, height=4.5)");
-      } else if (plot_extension == "pdf")
-      {
-        current_script.push_back("pdf('" + tmp_path + "/" + filename + "', width=8, height=4.5)");
-      }
-
-      current_script.push_back("plot.new()");
-      current_script.push_back("plot.window(xlim=c(min(mz),max(mz)), ylim=c(0,max(int)))");
-      current_script.push_back("axis(1); axis(2)");
-      current_script.push_back("title(xlab=\"m/z\")");
-      current_script.push_back("title(ylab=\"intensity\")");
-      current_script.push_back("box()");
-      current_script.push_back("segments(x0,y0,x1,y1)");
-      current_script.push_back("tmp<-dev.off()");
-      current_script.store(tmp_path + "/" + script_filename);
-      QStringList qparam;
-      qparam << "--vanilla" << "--quiet" << "--slave" << "--file=" + QString(tmp_path.toQString() + "\\" + script_filename.toQString());
-      Int status = QProcess::execute("R", qparam);
-      if (status != 0)
-      {
-        std::cerr << "Error: Process returned with non 0 status." << std::endl;
-      } else
-      {
-        QFile(QString(tmp_path.toQString() + "\\" + filename.toQString())).copy(output_dir.toQString() + "/merged_spectra" + file_suffix.toQString() + "_rt_" + String(sip_peptides[i].feature_rt).toQString() + "." + plot_extension.toQString());
-        if (debug_level < 1)
-        {          
-          QFile(QString(tmp_path.toQString() + "\\" + script_filename.toQString())).remove();
-          QFile(QString(tmp_path.toQString() + "\\" + filename.toQString())).remove();
-        }
-      }
-    }
-  }
-
-   void writeHTML_(const String& qc_output_directory, const String& file_suffix, const vector<SIPPeptide>& sip_peptides)
-   {
-     TextFile current_script;
-
-     // html header
-     current_script.push_back("<!DOCTYPE html>\n<html>\n<body>\n");
-
-     // peptide heat map plot
-     current_script.push_back(String("<h1>") + "peptide heat map</h1>");
-     String peptide_heatmap_plot_filename = String("heatmap_peptide") + file_suffix + String(".") + getStringOption_("plot_extension");
-     current_script.push_back("<p> <img src=\"" + peptide_heatmap_plot_filename + "\" alt=\"graphic\"></p>");
-
-     // cluster plot
-     if (cluster_type_ == "profile")
-     {
-       String cluster_plot_filename = String("cluster_plot") + file_suffix + String(".") + getStringOption_("plot_extension");
-       current_script.push_back("<p> <img src=\"" + cluster_plot_filename + "\" alt=\"graphic\"></p>");
-     }
-
-     for (Size i = 0; i != sip_peptides.size(); ++i)
-     {
-       // heading
-       current_script.push_back(String("<h1>") + "RT: " + String(sip_peptides[i].feature_rt) + "</h1>");
-
-       current_script.push_back("<table border=\"1\">");
-       // sequence table row
-       current_script.push_back("<tr>");
-       current_script.push_back("<td>sequence</td>");
-       current_script.push_back(String("<td>") + sip_peptides[i].sequence.toString() + "</td>");
-       current_script.push_back("</tr>");
-
-       current_script.push_back("<tr>");
-       current_script.push_back("<td>rt (min.)</td>");
-       current_script.push_back(String("<td>" + String::number(sip_peptides[i].feature_rt / 60.0, 2) + "</td>"));
-       current_script.push_back("</tr>");
-
-       current_script.push_back("<tr>");
-       current_script.push_back("<td>rt (sec.)</td>");
-       current_script.push_back(String("<td>" + String::number(sip_peptides[i].feature_rt, 2) + "</td>"));
-       current_script.push_back("</tr>");
-
-       current_script.push_back("<tr>");
-       current_script.push_back("<td>mz</td>");
-       current_script.push_back(String("<td>" + String::number(sip_peptides[i].feature_mz, 4) + "</td>"));
-       current_script.push_back("</tr>");
-
-       current_script.push_back("<tr>");
-       current_script.push_back("<td>theo. mz</td>");
-       current_script.push_back(String("<td>" + String::number(sip_peptides[i].mz_theo, 4) + "</td>"));
-       current_script.push_back("</tr>");
-
-       current_script.push_back("<tr>");
-       current_script.push_back("<td>charge</td>");
-       current_script.push_back(String("<td>" + String(sip_peptides[i].charge) + "</td>"));
-       current_script.push_back("</tr>");
-
-       if (!sip_peptides[i].accessions.empty())
-       {
-         current_script.push_back(String("<tr>"));
-         current_script.push_back("<td>accessions</td>");
-         current_script.push_back(String("<td>" + sip_peptides[i].accessions[0] + "</td>"));
-         current_script.push_back(String("</tr>"));
-
-         current_script.push_back(String("<tr>"));
-         current_script.push_back("<td>unique</td>");
-         current_script.push_back(String("<td>" + String(sip_peptides[i].unique) + "</td>"));
-         current_script.push_back(String("</tr>"));
-       }
-
-       current_script.push_back(String("<tr>"));
-       current_script.push_back("<td>search score</td>");
-       current_script.push_back(String("<td>") + String(sip_peptides[i].score) + "</td>");
-       current_script.push_back("</tr>");
-
-       current_script.push_back("<tr>");
-       current_script.push_back("<td>global labeling ratio</td>");
-       current_script.push_back(String("<td>") + String::number(sip_peptides[i].global_LR, 2) + "</td>");
-       current_script.push_back("</tr>");
-
-       current_script.push_back("<tr>");
-       current_script.push_back("<td>R squared</td>");
-       current_script.push_back(String("<td>") + String::number(sip_peptides[i].RR, 2) + "</td>");
-       current_script.push_back("</tr>");
-
-       current_script.push_back("</table>");
-      
-       // table header of incorporations
-       current_script.push_back("<p>");
-       current_script.push_back("<table border=\"1\">");
-       current_script.push_back("<tr>");
-       for (Size k = 0; k != sip_peptides[i].incorporations.size(); ++k)
-       {
-         current_script.push_back(String("<td>RIA") + String(k + 1) + "</td>");
-         current_script.push_back(String("<td>CORR.") + String(k + 1) + "</td>");
-         current_script.push_back(String("<td>INT") + String(k + 1) + "</td>");       
-       }
-       current_script.push_back("</tr>");
-
-       // table of incorporations
-       current_script.push_back("<tr>");
-       for (Size k = 0; k != sip_peptides[i].incorporations.size(); ++k)
-       {
-         SIPIncorporation p = sip_peptides[i].incorporations[k];
-         current_script.push_back(String("<td>") + String::number(p.rate, 2) + "</td>");
-         current_script.push_back(String("<td>") + String::number(p.correlation, 2) + "</td>");
-         current_script.push_back(String("<td>") + String::number(p.abundance, 0) + "</td>");  
-       }
-       current_script.push_back("</tr>");
-
-       current_script.push_back("</table>");
-
-       // spectrum plot
-       String spectrum_filename = String("spectrum") + file_suffix + "_rt_" + String(sip_peptides[i].feature_rt) + "." + getStringOption_("plot_extension");
-       current_script.push_back("<p> <img src=\"" + spectrum_filename + "\" alt=\"graphic\"></p>");
-
-       // score plot
-       String score_filename = String("scores") + file_suffix + "_rt_" + String(sip_peptides[i].feature_rt) + "." + getStringOption_("plot_extension");
-       current_script.push_back("<p> <img src=\"" + score_filename + "\" alt=\"graphic\"></p>");
-     }
-     current_script.push_back("\n</body>\n</html>");
-     current_script.store(qc_output_directory.toQString() + "/index" + file_suffix.toQString() + ".html");
-   }
-
-  void plotScoresAndWeights_(const String& output_dir, const String& tmp_path, const String& file_suffix, const vector<SIPPeptide>& sip_peptides, Size debug_level = 0)
-  {
-    String plot_extension = getStringOption_("plot_extension");
-
-    String score_filename = String("score_plot") + file_suffix + plot_extension;
-    String script_filename = String("score_plot") + file_suffix + String(".R");
-
-    DoubleReal score_plot_yaxis_min = getDoubleOption_("score_plot_yaxis_min");
-
-    for (Size i = 0; i != sip_peptides.size(); ++i)
-    {     
-      TextFile current_script;
-      StringList rate_dec_list;
-      StringList rate_corr_list;
-      StringList weights_list;
-      StringList corr_list;
-
-      MapRateToScoreType decomposition_map; // all rate to decomposition scores for the peptide
-      MapRateToScoreType correlation_map; // all rate to correlation scores for the peptide
-
-      for (MapRateToScoreType::const_iterator mit = sip_peptides[i].decomposition_map.begin(); mit != sip_peptides[i].decomposition_map.end(); ++mit)
-      {
-        rate_dec_list << String(mit->first);
-        weights_list << String(mit->second);
-      }
-
-      for (MapRateToScoreType::const_iterator mit = sip_peptides[i].correlation_map.begin(); mit != sip_peptides[i].correlation_map.end(); ++mit)
-      {
-        rate_corr_list << String(mit->first);
-        corr_list << String(mit->second);
-      }
-
-      String rate_dec_list_string;
-      rate_dec_list_string.concatenate(rate_dec_list.begin(), rate_dec_list.end(), ",");
-
-      String weights_list_string;
-      weights_list_string.concatenate(weights_list.begin(), weights_list.end(), ",");
-
-      String rate_corr_list_string;
-      rate_corr_list_string.concatenate(rate_corr_list.begin(), rate_corr_list.end(), ",");
-
-      String corr_list_string;
-      corr_list_string.concatenate(corr_list.begin(), corr_list.end(), ",");
-
-      current_script.push_back("rate_dec<-c(" + rate_dec_list_string + ")");
-      current_script.push_back("dec<-c(" + weights_list_string + ")");
-      current_script.push_back("if (max(dec)!=0) {dec<-dec/max(dec)}");
-      current_script.push_back("rate_corr<-c(" + rate_corr_list_string + ")");
-      current_script.push_back("corr<-c(" + corr_list_string + ")");
-
-      if (score_plot_yaxis_min >= 0)
-      {
-        current_script.push_back("corr[corr<0]=0"); // truncate at 0 for better drawing
-      }
-
-      current_script.push_back("x0=rate_dec; x1=rate_dec; y0=rep(0, length(x0)); y1=dec");  // create R segments for decomposition score (vertical bars)
-      if (plot_extension == "png")
-      {
-        current_script.push_back("png('" + tmp_path + "/" + score_filename + "')");
-      } else if (plot_extension == "svg")
-      {
-        current_script.push_back("svg('" + tmp_path + "/" + score_filename + "', width=8, height=4.5)");
-      } else if (plot_extension == "pdf")
-      {
-        current_script.push_back("pdf('" + tmp_path + "/" + score_filename + "', width=8, height=4.5)");
-      }
-      current_script.push_back("plot.new()");
-      current_script.push_back("plot.window(xlim=c(0,100), ylim=c(" + String(score_plot_yaxis_min) + ",1))");
-      current_script.push_back("axis(1); axis(2)");
-      current_script.push_back("title(xlab=\"RIA\")");
-      current_script.push_back("title(ylab=\"normalized weight / corr.\")");
-      current_script.push_back("box()");
-      current_script.push_back("segments(x0,y0,x1,y1, col='red')");
-      current_script.push_back("lines(x=rate_corr, y=corr, col='blue')");
-      current_script.push_back("legend('bottomright', horiz=FALSE, xpd=TRUE, col=c('red', 'blue'), lwd=2, c('weights', 'correlation'))");
-      current_script.push_back("tmp<-dev.off()");
-      current_script.store(tmp_path + "/" + script_filename);
-      QStringList qparam;
-      qparam << "--vanilla" << "--quiet" << "--slave" << "--file=" + QString(tmp_path.toQString() + "\\" + script_filename.toQString());
-      Int status = QProcess::execute("R", qparam);
-      if (status != 0)
-      {
-        std::cerr << "Error: Process returned with non 0 status." << std::endl;
-      } else
-      {
-        QFile(QString(tmp_path.toQString() + "\\" + score_filename.toQString())).copy(output_dir.toQString() + "/scores" + file_suffix.toQString() + "_rt_" + String(sip_peptides[i].feature_rt).toQString() + "." + plot_extension.toQString());
-        if (debug_level < 1)
-        {          
-          QFile(QString(tmp_path.toQString() + "\\" + script_filename.toQString())).remove();
-          QFile(QString(tmp_path.toQString() + "\\" + score_filename.toQString())).remove();
-        }
-      }
-    }
-  }
 
   /*
   void emdClusterData_(String tmp_path, String data_filename, String file_suffix, String qc_output_directory, Int debug_level)
@@ -1850,7 +2341,6 @@ protected:
     }
   }
 
-
   void plotAndClusterCorrelationData_(String tmp_path, String data_filename, Size bins, String file_suffix, String qc_output_directory, Int debug_level)
   {
     String script_filename = String("cluster_data") + file_suffix + String(".R");
@@ -1919,79 +2409,31 @@ protected:
     }
   }
 
-  void plotCorrelationData_(String tmp_path, String data_filename, Size bins, String file_suffix, String qc_output_directory, Int debug_level)
-  {
-    String script_filename = String("cluster_data") + file_suffix + String(".R");
-    String plot_filename = String("cluster_plot") + file_suffix + String(".") + getStringOption_("plot_extension");
-
-    // add scripts
-    TextFile current_script;
-
-    current_script.push_back("d=read.table('" + tmp_path + "/" + data_filename + "', sep='\\t')");
-    current_script.push_back("m=as.matrix(d[,-(1:2)])");
-    current_script.push_back("m[m<0.0]=0");
-    current_script.push_back("m=t(m)");
-    current_script.push_back("clusters=rep(1,nrow(t(m)))");
-
-    if (getStringOption_("plot_extension") == "png")
-    {
-      current_script.push_back("png('" + tmp_path + "/" + plot_filename + "', width=1280, height=720)");
-    } else if (getStringOption_("plot_extension") == "svg")
-    {
-      current_script.push_back("svg('" + tmp_path + "/" + plot_filename + "', width=16, height=9)");
-    } else if (getStringOption_("plot_extension") == "pdf")
-    {
-      current_script.push_back("pdf('" + tmp_path + "/" + plot_filename + "', width=16, height=9)");
-    }
-
-    current_script.push_back("colors<-adjustcolor(clusters, alpha=0.3)");
-    current_script.push_back("matplot(x=seq(0,99.9,"+ String(100.0/bins)+ "), y=m, type='l', col=colors, ylim=c(0,1), lty=1, ylab='Correlation', xlab='RIA (%)')");
-    current_script.push_back("tmp<-dev.off()");
-    current_script.push_back("r=cbind(clusters, d[,1])");
-    current_script.push_back("r=r[!is.na(r[,1]),]");
-
-    current_script.store(tmp_path + "/" + script_filename);
-
-    QStringList qparam;
-    qparam << "--vanilla" << "--quiet" << "--slave" << "--file=" + QString(tmp_path.toQString() + "\\" + script_filename.toQString());
-    Int status = QProcess::execute("R", qparam);
-    if (status != 0)
-    {
-      std::cerr << "Error: Process returned with non 0 status." << std::endl;
-    } else
-    {        
-      QFile(QString(tmp_path.toQString() + "\\" + plot_filename.toQString())).copy(qc_output_directory.toQString() + "/cluster_plot" + file_suffix.toQString() + String(".").toQString() + getStringOption_("plot_extension").toQString());
-      if (debug_level < 1)
-      {          
-        QFile(QString(tmp_path.toQString() + "\\" + data_filename.toQString())).remove();
-        QFile(QString(tmp_path.toQString() + "\\" + script_filename.toQString())).remove();
-        QFile(QString(tmp_path.toQString() + "\\" + plot_filename.toQString())).remove();
-      }
-    }
-  }
-
   ExitCodes main_(int, const char**)
   {
-    String plot_extension_ = getStringOption_("plot_extension");  
+    String file_extension_ = getStringOption_("plot_extension");  
     Int debug_level = getIntOption_("debug");
     String in_mzml = getStringOption_("in_mzML");
     String in_features = getStringOption_("in_featureXML");
     DoubleReal mz_tolerance_ppm_ = getDoubleOption_("mz_tolerance_ppm");
     DoubleReal weight_merge_window_ = getDoubleOption_("weight_merge_window");
     DoubleReal intensity_threshold_ = getDoubleOption_("intensity_threshold");
-    qc_output_directory_ = getStringOption_("qc_output_directory");
-    cluster_type_ = getStringOption_("cluster_type");
+    String qc_output_directory = getStringOption_("qc_output_directory");
+    String cluster_type = getStringOption_("cluster_type");
+    Size n_heatmap_bins = getIntOption_("n_heatmap_bins");
+    DoubleReal score_plot_y_axis_min = getDoubleOption_("score_plot_y_axis_min");
 
     // trying to create qc_output_directory if not present
-    QDir qc_dir(qc_output_directory_.toQString());
+    QDir qc_dir(qc_output_directory.toQString());
     if (!qc_dir.exists()) 
     {
-      qc_dir.mkpath(qc_output_directory_.toQString());
+      qc_dir.mkpath(qc_output_directory.toQString());
     }
 
     String out_csv = getStringOption_("out_csv");
     bool use_N15 = getFlag_("use_15N");
     bool cluster_flag = getFlag_("cluster");
+    bool plot_merged = getFlag_("plot_merged");
     String debug_patterns_name = getStringOption_("debug_patterns_name");
 
     ofstream out_csv_stream(out_csv.c_str());
@@ -2001,11 +2443,9 @@ protected:
 
     DoubleReal min_correlation_distance_to_averagine = getDoubleOption_("min_correlation_distance_to_averagine");
     
-    tmp_path_ = File::getTempDirectory();
-    tmp_path_.substitute('\\', '/');
+    String tmp_path = File::getTempDirectory();
+    tmp_path.substitute('\\', '/');
     
-
-
     // read descriptions from FASTA and create map for fast annotation
     cout << "loading sequences..." << endl;
     String in_fasta = getStringOption_("in_fasta");
@@ -2083,7 +2523,6 @@ protected:
         tmp_pepid.insertHit(hits[0]);        
       }
       tmp_pepid.assignRanks();
-
      
       SIPPeptide sip_peptide;
 
@@ -2285,22 +2724,22 @@ protected:
     vector<vector<SIPPeptide> > sippeptide_clusters;  // vector of cluster
     if (cluster_flag)  // data has been clustered so read back the result from R
     {
-      if (cluster_type_ == "emd")
+      if (cluster_type == "emd")
       {
         cout << "Writing emd data..." << endl;
         String emd_data_filename = String("emd_data_filename") + file_suffix + String(".dat");
-        createEMDDataFile_(tmp_path_, emd_data_filename, file_suffix, sip_peptides, bins);
+        createEMDDataFile_(tmp_path, emd_data_filename, file_suffix, sip_peptides, bins);
 
         cout << "Cluster data..." << endl;
-        emdClusterData_(tmp_path_, emd_data_filename, file_suffix, qc_output_directory_, debug_level);
-      } else if (cluster_type_ == "profile")
+        emdClusterData_(tmp_path, emd_data_filename, file_suffix, qc_output_directory, debug_level);
+      } else if (cluster_type == "profile")
       {
         cout << "Writing correlation data..." << endl;
         String correlation_data_filename = String("cluster_data") + file_suffix + String(".dat");
-        createCorrelationDataFile_(correlation_data_filename, sip_peptides, bins);
+        createCorrelationDataFile_(tmp_path, correlation_data_filename, sip_peptides, bins);
 
         cout << "Cluster data..." << endl;
-        plotAndClusterCorrelationData_(tmp_path_, correlation_data_filename, bins, file_suffix, qc_output_directory_, debug_level);
+        plotAndClusterCorrelationData_(tmp_path, correlation_data_filename, bins, file_suffix, qc_output_directory, debug_level);
       }
 
       String result_filename = String("cluster_result") + file_suffix + String(".dat");
@@ -2308,7 +2747,7 @@ protected:
       cout << "Reading cluster results..." << endl;
 
       // read R output 
-      TextFile csv_file(tmp_path_ + "/" + result_filename);
+      TextFile csv_file(tmp_path + "/" + result_filename);
       for (Size i = 0; i != csv_file.size(); ++i)
       {
         std::vector<String> fields;
@@ -2325,7 +2764,7 @@ protected:
       // remove cluster results file
       if (debug_level < 1)
       {
-        QFile(QString(tmp_path_.toQString() + "/" + result_filename.toQString())).remove();
+        QFile(QString(tmp_path.toQString() + "/" + result_filename.toQString())).remove();
       }
 
       // drop R internal cluster number and copy to simpler structure
@@ -2340,7 +2779,7 @@ protected:
       sippeptide_clusters.push_back(sip_peptides);
     }
 
-    createCSVReport_(sippeptide_clusters, out_stream, proteinid_to_description, out_csv_stream);
+    MetaProSIPReporting::createCSVReport(sippeptide_clusters, out_stream, proteinid_to_description, out_csv_stream);
 
     // plot debug spectra 
     if (!debug_patterns_name.empty())
@@ -2350,17 +2789,17 @@ protected:
     }
 
     // quality report
-    if (!qc_output_directory_.empty())
+    if (!qc_output_directory.empty())
     {
-      createQualityReport_(qc_output_directory_, file_suffix, sip_peptides, sippeptide_clusters);
+      MetaProSIPReporting::createQualityReport(tmp_path, qc_output_directory, file_suffix, file_extension_, sip_peptides, plot_merged, sippeptide_clusters, n_heatmap_bins, score_plot_y_axis_min, cluster_type);
     }
-
+   
     return EXECUTION_OK;
   }
 
-  void createCorrelationDataFile_(String correlation_data_filename, vector<SIPPeptide> &sip_peptides, unsigned int bins )
+  void createCorrelationDataFile_(String tmp_path, String correlation_data_filename, vector<SIPPeptide> &sip_peptides, unsigned int bins )
   {    
-    ofstream correlation_out_stream(String(tmp_path_ + "/" + correlation_data_filename).c_str());
+    ofstream correlation_out_stream(String(tmp_path + "/" + correlation_data_filename).c_str());
     SVOutStream correlation_out(correlation_out_stream);
 
     for (Size i = 0; i != sip_peptides.size(); ++i)
@@ -2479,404 +2918,6 @@ protected:
     }
   }
   */
-  void createCSVReport_( vector<vector<SIPPeptide> >& sippeptide_cluster, SVOutStream& out_stream, map<String, String> &proteinid_to_description, ofstream &out_csv_stream)
-  {
-    // sort clusters by non increasing size
-    sort(sippeptide_cluster.rbegin(), sippeptide_cluster.rend(), SizeLess());
-
-    for(Size i = 0; i != sippeptide_cluster.size(); ++i)
-    {
-      const vector<SIPPeptide>& current_cluster = sippeptide_cluster[i];
-
-      // Group
-      map<String, vector<SIPPeptide> > all_peptides;  // map sequence to SIPPeptide  
-      map<String, vector<SIPPeptide> > ambigous_peptides;  // map sequence to SIPPeptide
-      map<String, map<String, vector<SIPPeptide> > > unambigous_proteins;  // map Accession to unmodified String to SIPPeptides
-
-      for (Size k = 0; k != current_cluster.size(); ++k)
-      {
-        const SIPPeptide& current_SIPpeptide = current_cluster[k];
-        String seq = current_SIPpeptide.sequence.toUnmodifiedString();
-        if (current_SIPpeptide.unique)
-        {            
-          unambigous_proteins[current_SIPpeptide.accessions[0]][seq].push_back(current_SIPpeptide);
-        } else
-        {
-          ambigous_peptides[current_SIPpeptide.sequence.toUnmodifiedString()].push_back(current_SIPpeptide);
-        }
-        all_peptides[seq].push_back(current_SIPpeptide);
-      }
-
-      Size n_all_peptides = all_peptides.size();  // # of different (on sequence level) unique and non-unique peptides 
-      Size n_ambigous_peptides = ambigous_peptides.size();
-      Size n_unambigous_proteins = unambigous_proteins.size();
-
-      // determine median global LR of whole group
-      vector<DoubleReal> group_global_LRs;
-      vector<DoubleReal> group_number_RIAs;
-      for (map<String, vector<SIPPeptide> >::const_iterator all_it = all_peptides.begin(); all_it != all_peptides.end(); ++all_it)
-      {
-        for (vector<SIPPeptide>::const_iterator v_it = all_it->second.begin(); v_it != all_it->second.end(); ++v_it)
-        {
-          group_global_LRs.push_back(v_it->global_LR);
-          group_number_RIAs.push_back(v_it->incorporations.size());
-        }
-      }
-      DoubleReal group_global_LR = Math::median(group_global_LRs.begin(), group_global_LRs.end(), false);        
-
-      Size group_number_RIA = (Size) (Math::median(group_number_RIAs.begin(), group_number_RIAs.end(), false) + 0.5); // median number of RIAs
-      // Group header
-      // Distinct peptides := different (on sequence level) unique and non-unique peptides 
-      out_stream << String("Group ") + String(i+1) << "# Distinct Peptides" << "# Unambigous Proteins" << "Median Global LR";
-      for (Size i = 0; i != group_number_RIA; ++i)
-      {
-        out_stream << "median RIA " + String(i + 1);
-      }
-      out_stream << endl;
-
-      out_stream << "" << n_all_peptides << n_unambigous_proteins << group_global_LR;
-
-      // collect 1th, 2nd, ... RIA of the group based on the peptide RIAs
-      vector< vector<DoubleReal> > group_RIAs(group_number_RIA, vector<DoubleReal>());
-      vector< DoubleReal > group_RIA_medians(group_number_RIA, 0);
-
-      for (map<String, vector<SIPPeptide> >::const_iterator all_it = all_peptides.begin(); all_it != all_peptides.end(); ++all_it)
-      {
-        for (vector<SIPPeptide>::const_iterator v_it = all_it->second.begin(); v_it != all_it->second.end(); ++v_it)
-        {
-          for (Size i = 0; i != group_number_RIA; ++i)
-          {
-            if (i == v_it->incorporations.size())
-            {
-              break;
-            }                  
-            group_RIAs[i].push_back(v_it->incorporations[i].rate);
-          }
-        }
-      }  
-
-      for (Size i = 0; i != group_number_RIA; ++i)
-      {
-        group_RIA_medians[i] = Math::median(group_RIAs[i].begin(), group_RIAs[i].end(), false);
-      }
-
-      for (Size i = 0; i != group_number_RIA; ++i)
-      {
-        out_stream << String(group_RIA_medians[i]);
-      }
-      out_stream << endl;
-
-      // unambiguous protein level
-      for (map<String, map<String, vector<SIPPeptide> > >::const_iterator prot_it = unambigous_proteins.begin(); prot_it != unambigous_proteins.end(); ++prot_it)
-      {
-        // determine median global LR of protein
-        vector<DoubleReal> protein_global_LRs;
-        vector<DoubleReal> protein_number_RIAs;
-        for (map<String, vector<SIPPeptide> >::const_iterator pept_it = prot_it->second.begin(); pept_it != prot_it->second.end(); ++pept_it)
-        {
-          for (vector<SIPPeptide>::const_iterator v_it = pept_it->second.begin(); v_it != pept_it->second.end(); ++v_it)
-          {
-            protein_global_LRs.push_back(v_it->global_LR);
-            protein_number_RIAs.push_back(v_it->incorporations.size());
-          }
-        }          
-        DoubleReal protein_global_LR = Math::median(protein_global_LRs.begin(), protein_global_LRs.end(), false);
-        Size protein_number_RIA = (Size) (Math::median(protein_number_RIAs.begin(), protein_number_RIAs.end(), false) + 0.5); // median number of RIAs
-
-        out_stream << "" << "Protein Accession" << "Description" << "# Unique Peptides" << "Median Global LR";
-        for (Size i = 0; i != protein_number_RIA; ++i)
-        {
-          out_stream << "median RIA " + String(i + 1);
-        }
-        out_stream << endl;
-
-        String protein_accession = prot_it->first;
-        String protein_description = "none";
-        if (proteinid_to_description.find(protein_accession.trim().toUpper()) != proteinid_to_description.end())
-        {
-          protein_description = proteinid_to_description.at(protein_accession.trim().toUpper());
-        }
-
-        out_stream << "" << protein_accession << protein_description <<  prot_it->second.size() << protein_global_LR;
-
-        vector< vector<DoubleReal> > protein_RIAs(protein_number_RIA, vector<DoubleReal>());
-        vector< DoubleReal > protein_RIA_medians(protein_number_RIA, 0);
-
-        // ratio to natural decomposition
-        vector< vector<DoubleReal> > protein_ratio(protein_number_RIA, vector<DoubleReal>());
-        vector< DoubleReal > protein_ratio_medians(protein_number_RIA, 0); 
-
-        // collect 1th, 2nd, ... RIA of the protein based on the peptide RIAs
-        for (map<String, vector<SIPPeptide> >::const_iterator pept_it = prot_it->second.begin(); pept_it != prot_it->second.end(); ++pept_it)
-        {
-          for (vector<SIPPeptide>::const_iterator v_it = pept_it->second.begin(); v_it != pept_it->second.end(); ++v_it)
-          {
-            for (Size i = 0; i != protein_number_RIA; ++i)
-            {
-              if (i == v_it->incorporations.size())
-              {
-                break;
-              }                  
-              protein_RIAs[i].push_back(v_it->incorporations[i].rate);
-              protein_ratio[i].push_back(v_it->incorporations[i].abundance);
-            }
-          }
-        }  
-
-        for (Size i = 0; i != protein_number_RIA; ++i)
-        {
-          protein_RIA_medians[i] = Math::median(protein_RIAs[i].begin(), protein_RIAs[i].end(), false);
-          protein_ratio_medians[i] = Math::median(protein_ratio[i].begin(), protein_ratio[i].end(), false);
-        }
-
-        for (Size i = 0; i != protein_number_RIA; ++i)
-        {
-          out_stream << String(protein_RIA_medians[i]);
-        }
-
-        out_stream << endl;
-
-        // print header of unique peptides
-        out_stream << "" << "" << "Peptide Sequence" << "RT" << "Exp. m/z" << "Theo. m/z" << "Charge" << "Score" << "TIC fraction" << "#non-natural weights" << "";
-        Size max_incorporations = 0;
-        for (map<String, vector<SIPPeptide> >::const_iterator pept_it = prot_it->second.begin(); pept_it != prot_it->second.end(); ++pept_it)
-        {     
-          for (vector<SIPPeptide>::const_iterator v_it = pept_it->second.begin(); v_it != pept_it->second.end(); ++v_it)
-          {
-            max_incorporations = std::max(v_it->incorporations.size(), max_incorporations);
-          }
-        }
-
-        for (Size i = 0; i != max_incorporations; ++i)
-        {
-          out_stream << "RIA " + String(i + 1) << "INT " + String(i + 1) << "Cor. " + String(i + 1);
-        }
-        out_stream << "Peak intensities" << "Global LR" << endl;
-
-        // print data of unique peptides
-        for (map<String, vector<SIPPeptide> >::const_iterator pept_it = prot_it->second.begin(); pept_it != prot_it->second.end(); ++pept_it)
-        {
-          for (vector<SIPPeptide>::const_iterator v_it = pept_it->second.begin(); v_it != pept_it->second.end(); ++v_it)
-          {
-            out_stream << "" << "" << v_it->sequence.toString() << String::number(v_it->feature_rt / 60.0, 2)  << String::number(v_it->feature_mz, 4) << v_it->mz_theo << v_it->charge << v_it->score << v_it->explained_TIC_fraction << v_it->non_zero_decomposition_coefficients << "";
-            for (vector<SIPIncorporation>::const_iterator incorps = v_it->incorporations.begin(); incorps != v_it->incorporations.end(); ++incorps)
-            {
-              out_stream << String::number(incorps->rate,1) << String::number(incorps->abundance, 0) << String::number(incorps->correlation, 2);
-            }
-
-            // blank entries for nicer formatting
-            for (Int q = 0; q < max_incorporations - v_it->incorporations.size(); ++q)
-            {
-              out_stream << "" << "" << "";
-            }
-
-            // output peak intensities
-            String peak_intensities;
-            for (PeakSpectrum::const_iterator p = v_it->accumulated.begin(); p != v_it->accumulated.end(); ++p)
-            {
-              peak_intensities += String::number(p->getIntensity(),0) + " ";
-            }
-            out_stream << peak_intensities;
-            out_stream << v_it->global_LR;
-
-            out_stream << endl; 
-          }
-        }
-      }
-
-      // print header of non-unique peptides below the protein section
-      Size max_incorporations = 0;
-      for (map<String, vector<SIPPeptide> >::const_iterator pept_it = ambigous_peptides.begin(); pept_it != ambigous_peptides.end(); ++pept_it)
-      {     
-        for (vector<SIPPeptide>::const_iterator v_it = pept_it->second.begin(); v_it != pept_it->second.end(); ++v_it)
-        {
-          max_incorporations = std::max(v_it->incorporations.size(), max_incorporations);
-        }
-      }
-
-      out_stream << "Non-Unique Peptides" << "Accessions" << "Peptide Sequence" << "Descriptions" << "Score" << "RT" << "Exp. m/z" << "Theo. m/z" << "Charge" << "#non-natural weights" << "";
-
-      for (Size i = 0; i != max_incorporations; ++i)
-      {
-        out_stream << "RIA " + String(i + 1) << "INT " + String(i + 1) << "Cor. " + String(i + 1);
-      }
-      out_stream << "Peak intensities" << "Global LR" << endl;
-
-      // print data of non-unique peptides below the protein section
-      for (map<String, vector<SIPPeptide> >::const_iterator pept_it = ambigous_peptides.begin(); pept_it != ambigous_peptides.end(); ++pept_it)
-      {     
-        // build up the protein accession string for non-unique peptides. Only the first 3 accessions are added.
-        for (vector<SIPPeptide>::const_iterator v_it = pept_it->second.begin(); v_it != pept_it->second.end(); ++v_it)
-        {
-          String accessions_string;
-          String description_string = "none";
-
-          for (Size ac = 0; ac != v_it->accessions.size(); ++ac)
-          {
-            if (ac >= 3) // only print at most 3 accessions as these can be quite numorous
-            {
-              accessions_string += "...";
-              break;
-            }
-            String protein_accession = v_it->accessions[ac];
-            accessions_string += protein_accession;
-
-            if (proteinid_to_description.find(protein_accession.trim().toUpper()) != proteinid_to_description.end())
-            {
-              if (description_string == "none")
-              {
-                description_string = "";
-              }
-              description_string += proteinid_to_description.at(protein_accession.trim().toUpper());
-            }
-
-            if (ac < v_it->accessions.size() - 1) 
-            {
-              accessions_string += ", ";
-              if (description_string != "none")
-              {
-                description_string += ", ";
-              }
-            }
-          }
-
-          out_stream << "" << accessions_string << v_it->sequence.toString() << description_string << v_it->score << String::number(v_it->feature_rt / 60.0, 2) << String::number(v_it->feature_mz, 4) << v_it->mz_theo << v_it->charge << v_it->non_zero_decomposition_coefficients << "";
-
-          // output variable sized RIA part
-          for (vector<SIPIncorporation>::const_iterator incorps = v_it->incorporations.begin(); incorps != v_it->incorporations.end(); ++incorps)
-          {
-            out_stream << String::number(incorps->rate,1) << String::number(incorps->abundance, 0) << String::number(incorps->correlation, 2);
-          }
-
-          // blank entries for nicer formatting
-          for (Int q = 0; q < max_incorporations - v_it->incorporations.size(); ++q)
-          {
-            out_stream << "" << "" << "";
-          }
-
-          // output peak intensities
-          String peak_intensities;
-          for (PeakSpectrum::const_iterator p = v_it->accumulated.begin(); p != v_it->accumulated.end(); ++p)
-          {
-            peak_intensities += String::number(p->getIntensity(),0) + " ";
-          }
-          out_stream << peak_intensities;
-          out_stream << v_it->global_LR;
-          out_stream << endl; 
-        }
-      }      
-    }
-    out_csv_stream.close();
-  }
-
-  void createPeptideCentricCSVReport_( vector<vector<SIPPeptide> >& sippeptide_cluster, SVOutStream& out_stream, map<String, String> &proteinid_to_description, ofstream &out_csv_stream, String qc_output_directory="", String file_suffix="" )
-  {
-    // sort clusters by non increasing size
-    sort(sippeptide_cluster.rbegin(), sippeptide_cluster.rend(), SizeLess());
-
-    // store SIP peptide with cluster index for peptide centric view on data
-    vector<pair<SIPPeptide, Size> > peptide_to_cluster_index;
-    for(Size i = 0; i != sippeptide_cluster.size(); ++i)
-    {
-      const vector<SIPPeptide>& current_cluster = sippeptide_cluster[i];
-      for (Size k = 0; k != current_cluster.size(); ++k)
-      {
-        peptide_to_cluster_index.push_back(make_pair(current_cluster[k], i));
-      }
-    }
-
-    // sort by sequence
-    sort(peptide_to_cluster_index.begin(), peptide_to_cluster_index.end(), SequenceLess());
-
-    out_stream << "Peptide Sequence" << "Quality Report Spectrum" << "Quality report scores" << "Sample Name" << "Protein Accessions" << "Description" << "Unique" "#Ambiguity members" 
-      << "Score" << "RT" << "Exp. m/z" << "Theo. m/z" << "Charge" << "TIC fraction" << "#non-natural weights" << "Peak intensities" << "Group" << "Global Peptide LR";
-
-    for (Size i = 1; i <= 10; ++i)
-    {
-      out_stream << "RIA " + String(i) <<  "LR of RIA " + String(i) <<  "INT " + String(i)  <<  "Cor. " + String(i);
-    }
-    out_stream << std::endl;
-
-    for(Size i = 0; i != peptide_to_cluster_index.size(); ++i)
-    {
-      const SIPPeptide& current_SIPpeptide = peptide_to_cluster_index[i].first;
-      const Size& current_cluster_index = peptide_to_cluster_index[i].second;
-
-      // output peptide sequence
-      out_stream << current_SIPpeptide.sequence.toString();
-
-      // output quality report links if available
-      if (qc_output_directory_.empty() && file_suffix.empty())
-      {
-        out_stream << "" << "";
-      } else
-      {
-        String plot_extension = getStringOption_("plot_extension");
-        String qr_spectrum_filename = String("file://") + qc_output_directory + String("spectrum") + file_suffix + "_rt_" + String(current_SIPpeptide.feature_rt) + "." + plot_extension;
-        String qr_scores_filename = String("file://") + qc_output_directory + String("scores")  + file_suffix + "_rt_" + String(current_SIPpeptide.feature_rt) + "." + plot_extension;
-        out_stream << qr_spectrum_filename << qr_scores_filename << getStringOption_("in_mzML");
-      }
-
-      // output protein accessions and descriptions
-      String accession_string;
-      String protein_descriptions = "none";
-      for (Size j = 0; j != current_SIPpeptide.accessions.size(); ++j)
-      {
-        String current_accession = current_SIPpeptide.accessions[j];
-        current_accession.trim().toUpper();
-        accession_string += current_accession;
-
-        if (proteinid_to_description.find(current_accession) != proteinid_to_description.end())
-        {
-          if (protein_descriptions == "none")
-          {
-            protein_descriptions = proteinid_to_description.at(current_accession);
-          } else
-          {
-            protein_descriptions += proteinid_to_description.at(current_accession);
-          }
-        }
-
-        // add "," between accessions
-        if (j != current_SIPpeptide.accessions.size()-1)
-        {
-          accession_string += ",";
-          protein_descriptions += ",";
-        }
-      }      
-     
-      out_stream << accession_string << protein_descriptions << current_SIPpeptide.unique << current_SIPpeptide.accessions.size() << current_SIPpeptide.score << String::number(current_SIPpeptide.feature_rt / 60.0, 2)
-        << String::number(current_SIPpeptide.feature_mz, 4) << String::number(current_SIPpeptide.mz_theo, 4) << current_SIPpeptide.charge << current_SIPpeptide.explained_TIC_fraction << current_SIPpeptide.non_zero_decomposition_coefficients;
-
-      // output peak intensities
-      String peak_intensities;
-      for (PeakSpectrum::const_iterator p = current_SIPpeptide.accumulated.begin(); p != current_SIPpeptide.accumulated.end(); ++p)
-      {
-        peak_intensities += String::number(p->getIntensity(), 0) + " ";
-      }
-      out_stream << peak_intensities;
-      
-      out_stream << current_cluster_index << current_SIPpeptide.global_LR;
-
-      for (Size j = 0; j != current_SIPpeptide.incorporations.size(); ++j)
-      {
-        const DoubleReal ria = current_SIPpeptide.incorporations[j].rate;
-        const DoubleReal abundance = current_SIPpeptide.incorporations[j].abundance;
-        const DoubleReal corr = current_SIPpeptide.incorporations[j].correlation;
-        
-        DoubleReal LR_of_RIA = 0;
-        if (ria < 1.5) // first RIA hast natural abundance
-        {
-          LR_of_RIA = abundance / current_SIPpeptide.incorporations[0].abundance;
-        }
-        out_stream << String::number(ria, 1) << String::number(LR_of_RIA, 1) << String::number(abundance, 1) << String::number(corr, 1);
-      }      
-      out_stream << endl; 
-    }
-
-    out_stream << endl; 
-    out_csv_stream.close();
-  }
 
   /*
   void createProteinCentricCSVReport_( vector<vector<SIPPeptide> >& sippeptide_cluster, SVOutStream& out_stream, map<String, String> &proteinid_to_description, ofstream &out_csv_stream, String qc_output_directory="", String file_suffix="" )
@@ -2886,57 +2927,6 @@ protected:
     out_csv_stream.close();
   }
   */
-  void createQualityReport_( String qc_output_directory, String file_suffix, vector<SIPPeptide> sip_peptides, const vector< vector<SIPPeptide> >& sip_peptide_cluster)
-  {
-    // heat map based on peptide RIAs
-    cout << "Plotting peptide heat map" << endl;    
-    vector< vector<DoubleReal> > binned_peptide_ria;
-    vector<String> class_labels;
-    createBinnedPeptideRIAData_(sip_peptide_cluster, binned_peptide_ria, class_labels);
-
-    plotHeatMap_(qc_output_directory, tmp_path_, "_peptide" + file_suffix, binned_peptide_ria, class_labels);
-
-    cout << "Plotting filtered spectra for quality report" << endl;
-    plotFilteredSpectra_(qc_output_directory, tmp_path_, file_suffix, sip_peptides);
-    if (getFlag_("plot_merged"))
-    {
-      cout << "Plotting merged spectra for quality report" << endl;
-      plotMergedSpectra_(qc_output_directory, tmp_path_, file_suffix, sip_peptides);
-    }
-
-    cout << "Plotting correlation score and weight distribution" << endl;
-    plotScoresAndWeights_(qc_output_directory, tmp_path_, file_suffix, sip_peptides);
-
-    String plot_extension = getStringOption_("plot_extension");
-    if (plot_extension != "pdf")  // html doesn't support pdf as image
-    {
-      writeHTML_(qc_output_directory, file_suffix, sip_peptides);
-    }
-  }
-
-  void createBinnedPeptideRIAData_(const vector<vector<SIPPeptide>>& sip_clusters, vector< vector<DoubleReal> >& binned_peptide_ria, vector<String>& cluster_labels)
-  {
-    cluster_labels.clear();
-    binned_peptide_ria.clear();
-    const Size n_heatmap_bins = (Size)getIntOption_("heatmap_bins");
-    for (vector<vector<SIPPeptide>>::const_iterator cit = sip_clusters.begin(); cit != sip_clusters.end(); ++cit)
-    {
-      const vector<SIPPeptide>& sip_peptides = *cit;
-      for (vector<SIPPeptide>::const_iterator pit = sip_peptides.begin(); pit != sip_peptides.end(); ++pit)
-      {
-        vector<DoubleReal> binned(n_heatmap_bins, 0.0); 
-        for (vector<SIPIncorporation>::const_iterator iit = pit->incorporations.begin(); iit != pit->incorporations.end(); ++iit)
-        {
-          Int bin = iit->rate / 100.0 * n_heatmap_bins;
-          bin = bin > binned.size() - 1 ? binned.size() - 1 : bin;
-          bin = bin < 0 ? 0 : bin;
-          binned[bin] = log(1.0 + iit->abundance);
-        }
-        binned_peptide_ria.push_back(binned);
-        cluster_labels.push_back((String)(cit - sip_clusters.begin()));
-      }
-    }
-  }
 
   void addDebugSpectra(MSExperiment<Peak1D>& debug_exp, const SIPPeptide& sip_peptide)
   {
