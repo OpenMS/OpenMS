@@ -94,11 +94,7 @@ message(STATUS "Info: CF_OPENMS_DOC_PATH: ${CF_OPENMS_DOC_PATH}")
 ###    configure config.h														 ###
 ########################################################
 
-## this need to be set before config.h is configured!
-set(CMAKE_INSTALL_PREFIX "" CACHE INTERNAL "This must be equal to INSTALL_PREFIX!" FORCE)
-set(INSTALL_PREFIX "." CACHE PATH "Installation prefix for OpenMS and TOPP")
-
-include(${OPENMS_HOST_DIRECTORY}/cmake/OpenMSBuildSystem_configh.cmake)
+include(${PROJECT_SOURCE_DIR}/configh.cmake)
 
 ## add configured files (used in 'cmake/includes.cmake')
 set (OPENMS_CONFIGURED_FILES ${SVN_REVISION_FILE} ${CONFIGURED_CONFIG_H} ${CONFIGURED_OPENMS_PACKAGE_VERSION_H})
@@ -109,20 +105,6 @@ include(${OPENMS_HOST_DIRECTORY}/cmake/OpenMSBuildSystem_testConfig.cmake)
 ########################################################
 ###    BUILD the lib                                 ###
 ########################################################
-
-#package type
-set(VALID_PACKAGE_TYPES "none" "rpm" "deb" "dmg")
-set(PACKAGE_TYPE "none" CACHE STRING "Package type (internal): ${VALID_PACKAGE_TYPES}")
-# check build type
-list(FIND VALID_PACKAGE_TYPES ${PACKAGE_TYPE} list_pos)
-if( ${list_pos} EQUAL -1 )
-	message(STATUS "The PACKAGE_TYPE ${PACKAGE_TYPE} is invalid")
-	message(STATUS "Valid PACKAGE_TYPEs are:")
-	foreach( BT ${VALID_PACKAGE_TYPES} )
-		message(STATUS " * ${BT}")
-	endforeach()
-	message(FATAL_ERROR "Aborting ...")
-endif()
 
 #------------------------------------------------------------------------------
 # big include file for headers and cpp files, that fills the OpenMS_sources variable
@@ -135,6 +117,19 @@ if (FOUND_CUDART AND MT_ENABLE_CUDA) # we need both conditions due to possible p
 else()
 	add_library(OpenMS ${OpenMS_sources})
 endif()
+
+#------------------------------------------------------------------------------
+# Installation
+
+# we also want to install OpenMS
+install_library(OpenMS)
+install_headers("${OpenMS_sources_h};${OpenMS_configured_headers}" OpenMS)
+
+# since the share basically belongs to OpenMS core we control its installation
+# here
+# Note: that slash(/) is important here, otherwise the whole directory
+#       (not its content) will be copied!
+install_directory(${OPENMS_HOST_DIRECTORY}/share/OpenMS/ ${INSTALL_SHARE_DIR} share)
 
 #------------------------------------------------------------------------------
 # copy dll to test/doc bin folder on MSVC systems

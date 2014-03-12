@@ -28,41 +28,55 @@
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 # --------------------------------------------------------------------------
-# $Maintainer: Stephan Aiche, Chris Bielow $
-# $Authors: Andreas Bertsch, Chris Bielow, Stephan Aiche $
+# $Maintainer: Stephan Aiche $
+# $Authors: Stephan Aiche $
 # --------------------------------------------------------------------------
 
-project("OpenMS_TOPP")
-cmake_minimum_required(VERSION 2.8.3 FATAL_ERROR)
+# custom code to add a mac bundle application
 
 # --------------------------------------------------------------------------
-# OpenMS' TOPP tools
+# adds a bundle with the given name
+# @param _name Name of the bundle to add
+# Note that this macro will also take care of installing the bundle in the
+# case that a dmg package should be build
+macro(add_mac_app_bundle _name)
+	# the icon file
+	set(ICON_FILE_PATH "${PROJECT_SOURCE_DIR}/source/VISUAL/APPLICATIONS/GUITOOLS/${_name}-resources/${_name}.icns")
+  set(INFO_PLIST_TEMPLATE "${PROJECT_SOURCE_DIR}/source/VISUAL/APPLICATIONS/GUITOOLS/${_name}-resources/${_name}.plist.in")
+	get_filename_component(ICON_FILE_NAME "${ICON_FILE_PATH}" NAME)
 
-# add OpenMS includes
-include_directories(SYSTEM ${OpenMS_INCLUDE_DIRECTORIES})
-add_definitions(/DBOOST_ALL_NO_LIB)
+	# we also need the icns in the app
+	add_executable(
+		${_name}
+		MACOSX_BUNDLE
+		${GUI_DIR}/${_name}.cpp
+		${ICON_FILE_PATH})
 
-include(executables.cmake)
-foreach(i ${TOPP_executables})
-	add_executable(${i} ${i}.cpp)
-	target_link_libraries(${i} ${OPENMS_LIBRARIES})
-  # we also want to install each topp tool
-  install_tool(${i})
-	if (OPENMP_FOUND AND NOT MSVC)
-		set_target_properties(${i} PROPERTIES LINK_FLAGS ${OpenMP_CXX_FLAGS})
-	endif()
-endforeach(i)
+	set_target_properties(${_name} PROPERTIES
+    # we want our own info.plist template
+    MACOSX_BUNDLE_INFO_PLIST "${INFO_PLIST_TEMPLATE}"
+		MACOSX_BUNDLE_INFO_STRING "${PROJECT_NAME} Version ${CF_OPENMS_PACKAGE_VERSION}, Copyright 2013 The OpenMS Team."
+		MACOSX_BUNDLE_ICON_FILE ${ICON_FILE_NAME}
+		MACOSX_BUNDLE_GUI_IDENTIFIER "de.openms.${_name}"
+		MACOSX_BUNDLE_LONG_VERSION_STRING "${PROJECT_NAME} Version ${CF_OPENMS_PACKAGE_VERSION}"
+		MACOSX_BUNDLE_BUNDLE_NAME ${_name}
+		MACOSX_BUNDLE_SHORT_VERSION_STRING ${CF_OPENMS_PACKAGE_VERSION}
+		MACOSX_BUNDLE_BUNDLE_VERSION ${CF_OPENMS_PACKAGE_VERSION}
+		MACOSX_BUNDLE_COPYRIGHT "Copyright 2014, The OpenMS Team. All Rights Reserved."
+	)
 
-# collection target
-add_custom_target(TOPP)
-add_dependencies(TOPP ${TOPP_executables})
+	set_source_files_properties(${ICON_FILE_PATH} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
 
-## some regular TOPP tools need the GUI lib
-include_directories(SYSTEM ${OpenMS_GUI_INCLUDE_DIRECTORIES})
-foreach(i ${TOPP_executables_with_GUIlib})
-	target_link_libraries(${i} ${OPENMS_GUI_LIBRARIES})
-endforeach(i)
+	if("${PACKAGE_TYPE}" STREQUAL "dmg")
+    install(CODE "
+      set(BU_CHMOD_BUNDLE_ITEMS On)
+      include(BundleUtilities)
+      fixup_bundle(${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_name}.app \"\" \"\")"
+      COMPONENT AApplications)
 
-## export the list of TOPP tools into CACHE
-set(TOPP_TOOLS ${TOPP_executables}
-    CACHE INTERNAL "OpenMS' TOPP tools" FORCE)
+    install(TARGETS ${_name} BUNDLE
+      DESTINATION OpenMS-${CPACK_PACKAGE_VERSION}/
+      COMPONENT Applications)
+
+  endif("${PACKAGE_TYPE}" STREQUAL "dmg")
+endmacro()

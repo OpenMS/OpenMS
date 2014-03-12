@@ -46,6 +46,8 @@ set(UTILS_executables)
 include(executables.cmake)
 foreach(i ${UTILS_executables})
 	add_executable(${i} ${i}.cpp)
+  # we also want to install each util
+  install_tool(${i})
 	target_link_libraries(${i} ${OPENMS_LIBRARIES})
 endforeach(i)
 

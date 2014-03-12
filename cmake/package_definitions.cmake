@@ -28,41 +28,23 @@
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 # --------------------------------------------------------------------------
-# $Maintainer: Stephan Aiche, Chris Bielow $
-# $Authors: Andreas Bertsch, Chris Bielow, Stephan Aiche $
+# $Maintainer: Stephan Aiche $
+# $Authors: Stephan Aiche $
 # --------------------------------------------------------------------------
 
-project("OpenMS_TOPP")
-cmake_minimum_required(VERSION 2.8.3 FATAL_ERROR)
 
 # --------------------------------------------------------------------------
-# OpenMS' TOPP tools
+# general definitions used for building OpenMS packages
 
-# add OpenMS includes
-include_directories(SYSTEM ${OpenMS_INCLUDE_DIRECTORIES})
-add_definitions(/DBOOST_ALL_NO_LIB)
-
-include(executables.cmake)
-foreach(i ${TOPP_executables})
-	add_executable(${i} ${i}.cpp)
-	target_link_libraries(${i} ${OPENMS_LIBRARIES})
-  # we also want to install each topp tool
-  install_tool(${i})
-	if (OPENMP_FOUND AND NOT MSVC)
-		set_target_properties(${i} PROPERTIES LINK_FLAGS ${OpenMP_CXX_FLAGS})
-	endif()
-endforeach(i)
-
-# collection target
-add_custom_target(TOPP)
-add_dependencies(TOPP ${TOPP_executables})
-
-## some regular TOPP tools need the GUI lib
-include_directories(SYSTEM ${OpenMS_GUI_INCLUDE_DIRECTORIES})
-foreach(i ${TOPP_executables_with_GUIlib})
-	target_link_libraries(${i} ${OPENMS_GUI_LIBRARIES})
-endforeach(i)
-
-## export the list of TOPP tools into CACHE
-set(TOPP_TOOLS ${TOPP_executables}
-    CACHE INTERNAL "OpenMS' TOPP tools" FORCE)
+set(CPACK_PACKAGE_NAME "OpenMS")
+set(CPACK_PACKAGE_VENDOR "OpenMS.de")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "OpenMS - A framework for mass spectrometry")
+set(CPACK_PACKAGE_VERSION "${OPENMS_PACKAGE_VERSION_MAJOR}.${OPENMS_PACKAGE_VERSION_MINOR}.${OPENMS_PACKAGE_VERSION_PATCH}")
+set(CPACK_PACKAGE_VERSION_MAJOR "${OPENMS_PACKAGE_VERSION_MAJOR}")
+set(CPACK_PACKAGE_VERSION_MINOR "${OPENMS_PACKAGE_VERSION_MINOR}")
+set(CPACK_PACKAGE_VERSION_PATCH "${OPENMS_PACKAGE_VERSION_PATCH}")
+set(CPACK_PACKAGE_INSTALL_DIRECTORY "OpenMS-${CPACK_PACKAGE_VERSION}")
+set(CPACK_PACKAGE_DESCRIPTION_FILE ${PROJECT_SOURCE_DIR}/cmake/OpenMSPackageDescriptionFile.cmake)
+set(CPACK_RESOURCE_FILE_LICENSE ${PROJECT_SOURCE_DIR}/License.txt)
+set(CPACK_RESOURCE_FILE_WELCOME ${PROJECT_SOURCE_DIR}/cmake/OpenMSPackageResourceWelcomeFile.txt)
+set(CPACK_RESOURCE_FILE_README ${PROJECT_SOURCE_DIR}/cmake/OpenMSPackageResourceReadme.txt)
