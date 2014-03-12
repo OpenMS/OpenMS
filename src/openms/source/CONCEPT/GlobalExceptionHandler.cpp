@@ -34,7 +34,7 @@
 
 #include <OpenMS/CONCEPT/GlobalExceptionHandler.h>
 #include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/CONCEPT/PrecissionWrapper.h>
+#include <OpenMS/CONCEPT/PrecisionWrapper.h>
 
 #include <cstdlib>  // for getenv in terminate()
 //#include <sys/types.h>

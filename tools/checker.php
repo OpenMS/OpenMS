@@ -561,7 +561,7 @@ foreach ($files_todo as $f)
     "GlobalExceptionHandler.h",
     "Types.h",
     "TypeAsName.h",
-    "PrecissionWrapper.h",
+    "PrecisionWrapper.h",
     "Macros.h",
     "Benchmark.h",
     "Constants.h",

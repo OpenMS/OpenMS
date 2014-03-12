@@ -39,7 +39,7 @@
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 
-#include <OpenMS/CONCEPT/PrecissionWrapper.h>
+#include <OpenMS/CONCEPT/PrecisionWrapper.h>
 
 #include <algorithm>
 
@@ -957,7 +957,7 @@ namespace OpenMS
         }
       }
 
-      // Retrieve the underlying residue 
+      // Retrieve the underlying residue
       const Residue * res_ptr = getResidueDB_()->getResidue(name);
       if (res_ptr == 0)
       {
@@ -990,7 +990,7 @@ namespace OpenMS
           }
         }
       }
-      else if (!tag.empty()) 
+      else if (!tag.empty())
       {
         if (tag.hasPrefix("+") || tag.hasPrefix("-"))
         {
@@ -1029,7 +1029,7 @@ namespace OpenMS
                 name << "[" << tag <<  "]) will probably not produce a correct mass." << std::endl;
             }
 
-            std::cout <<  "Warning: unknown modification " << tag << " on residue " 
+            std::cout <<  "Warning: unknown modification " << tag << " on residue "
               << name << ": will add to the database." << std::endl;
             Residue res(tag, String(""), String(""), EmpiricalFormula(""));
             res.setMonoWeight(delta_mass + res_ptr->getMonoWeight());
@@ -1056,7 +1056,7 @@ namespace OpenMS
           {
             // we have an integer, look for the first match (usually this is what is intended)
             std::vector< String > mods;
-            double res_deltamass = mass - (res_ptr->getMonoWeight() - res_ptr->getInternalToFullMonoWeight()); 
+            double res_deltamass = mass - (res_ptr->getMonoWeight() - res_ptr->getInternalToFullMonoWeight());
             ModificationsDB::getInstance()->getModificationsByDiffMonoMass(mods, res_ptr->getOneLetterCode(), res_deltamass, 0.5);
             if (!mods.empty())
             {
@@ -1068,7 +1068,7 @@ namespace OpenMS
           if (result == NULL || res_ptr->getMonoWeight() <= 0.0)
           {
             // using an amino acid with zero weight should lead to an accurate mass representation of the AA (and not try to guess something)... !
-            std::cout <<  "Warning: unknown modification " << tag << " on residue " 
+            std::cout <<  "Warning: unknown modification " << tag << " on residue "
               << name << ": will add to the database." << std::endl;
             Residue res(tag, String(""), String(""), EmpiricalFormula(""));
             res.setMonoWeight(mass);

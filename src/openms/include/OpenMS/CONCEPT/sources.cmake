@@ -14,7 +14,7 @@ GlobalExceptionHandler.h
 LogConfigHandler.h
 LogStream.h
 Macros.h
-PrecissionWrapper.h
+PrecisionWrapper.h
 ProgressLogger.h
 SingletonRegistry.h
 StreamHandler.h
