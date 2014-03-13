@@ -63,7 +63,7 @@ public:
     /** @brief this struct represents a peptide spectrum pair
 
     */
-    struct Peptide
+    struct OPENMS_DLLAPI Peptide
     {
       Peptide();
 
@@ -86,7 +86,7 @@ public:
     /** @brief This struct represents a cross validation option
 
     */
-    struct Option
+    struct OPENMS_DLLAPI Option
     {
       /// Type of the parameters
       enum Type
