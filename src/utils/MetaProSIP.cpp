@@ -1146,6 +1146,184 @@ class MetaProSIPReporting
 
 };
 
+class MetaProSIPDecomposition
+{
+  public:
+    ///> Perform the decomposition
+    static Int calculateDecompositionWeightsIsotopicPatterns(const String& seq, const vector<DoubleReal>& isotopic_intensities, const IsotopePatterns& patterns, MapRateToScoreType& map_rate_to_decomposition_weight, bool use_N15, SIPPeptide& sip_peptide)
+  {
+    Size n_bins = use_N15 ? AASequence(seq).getFormula().getNumberOf("Nitrogen") : AASequence(seq).getFormula().getNumberOf("Carbon");
+    Matrix<DoubleReal> beta(n_bins, 1);
+    Matrix<DoubleReal> intensity_vector(isotopic_intensities.size(), 1);
+
+    for (Size p = 0; p != isotopic_intensities.size(); ++p)
+    {
+      intensity_vector(p, 0) =  isotopic_intensities[p];
+    }
+
+    Matrix<DoubleReal> basis_matrix(isotopic_intensities.size(), n_bins);
+
+    for (Size row = 0; row != isotopic_intensities.size(); ++row)
+    {
+      for (Size col = 0; col != n_bins; ++col)
+      {
+        const vector<DoubleReal>& pattern = patterns[col].second;
+        if (row <= n_bins)
+        {
+          basis_matrix(row, col) = pattern[row];
+        } else
+        {
+          basis_matrix(row, col) = 0;
+        }
+      }
+    }
+
+    Int result = NonNegativeLeastSquaresSolver::solve(basis_matrix, intensity_vector, beta);
+
+    for (Size p = 0; p != n_bins; ++p)
+    {
+      map_rate_to_decomposition_weight[(DoubleReal) p/n_bins * 100.0] = beta(p, 0);
+    }
+
+    // calculate R squared
+    DoubleReal S_tot = 0;
+    DoubleReal mean = accumulate(isotopic_intensities.begin(), isotopic_intensities.end(), 0) / isotopic_intensities.size();
+    for (Size row = 0; row != isotopic_intensities.size(); ++row)
+    {
+      S_tot += pow(isotopic_intensities[row] - mean, 2);
+    }
+
+    DoubleReal S_err = 0;
+    DoubleReal predicted_sum = 0;
+    PeakSpectrum reconstructed;
+    PeakSpectrum alphas;
+    for (Size row = 0; row != isotopic_intensities.size(); ++row)
+    {
+      DoubleReal predicted = 0;
+      for (Size col = 0; col != n_bins; ++col)
+      {
+        predicted += basis_matrix(row, col) * beta(col, 0);
+      }    
+      predicted_sum += predicted;
+      Peak1D peak;
+      peak.setIntensity(predicted);
+      peak.setMZ(sip_peptide.mz_theo + sip_peptide.mass_diff / sip_peptide.charge * row);
+      reconstructed.push_back(peak);
+      S_err += pow(isotopic_intensities[row] - predicted, 2);
+    }
+
+    for (Size row = 0; row != 5; ++row)
+    {
+      DoubleReal predicted = 0;
+      for (Size col = 0; col != 3; ++col)
+      {
+        predicted += basis_matrix(row, col) * beta(col, 0);
+      }
+      sip_peptide.reconstruction_monoistopic.push_back(predicted); 
+    }
+
+    sip_peptide.RR = 1.0 - (S_err / S_tot);
+    sip_peptide.reconstruction = reconstructed;
+
+    /*
+    cout << "RR: " << seq << " " << 1.0 - (S_err / S_tot) << " " << S_err << " " << S_tot << endl;
+    cout << "absolute TIC error: " << fabs(1.0 - predicted_sum / accumulate(isotopic_intensities.begin(), isotopic_intensities.end(), 0)) << endl;
+    */
+    return result;
+  }
+
+    // Template calculations for base matrix
+
+    ///> Given a peptide sequence calculate the theoretical isotopic patterns given all incorporations rate (13C Version)
+    ///> extend isotopic patterns by additional_isotopes to collect other element higher isotopes at 100% incorporation
+    static IsotopePatterns calculateIsotopePatternsFor13CRange(const AASequence& peptide, Size additional_isotopes = 5)
+  {
+    IsotopePatterns ret;
+
+    const Element * e1 = ElementDB::getInstance()->getElement("Carbon");
+    Element * e2 = const_cast<Element *>(e1);
+
+
+    EmpiricalFormula e = peptide.getFormula();
+    UInt MAXISOTOPES = (UInt)e.getNumberOf("Carbon");
+
+    // calculate isotope distribution for a given peptide and varying incoperation rates
+    // modification of isotope distribution in static ElementDB
+    for (DoubleReal abundance = 0.0; abundance < 100.0 - 1e-8; abundance += 100.0 / (DoubleReal)MAXISOTOPES)
+    {
+      DoubleReal a = abundance / 100.0;
+      IsotopeDistribution isotopes;
+      std::vector<std::pair<Size, double> > container;
+      container.push_back(make_pair(12, 1.0 - a));
+      container.push_back(make_pair(13, a));
+      isotopes.set(container);
+      e2->setIsotopeDistribution(isotopes);
+      IsotopeDistribution dist = peptide.getFormula(Residue::Full, 0).getIsotopeDistribution(MAXISOTOPES + additional_isotopes);
+      container = dist.getContainer();
+      vector<DoubleReal> intensities;
+      for (Size i = 0; i != container.size(); ++i)
+      {
+        intensities.push_back(container[i].second);
+      }
+      ret.push_back(make_pair(abundance, intensities));
+    }
+
+    // reset to natural occurance
+    IsotopeDistribution isotopes;
+    std::vector<std::pair<Size, double> > container;
+    container.push_back(make_pair(12, 0.9893));
+    container.push_back(make_pair(13, 0.0107));
+    isotopes.set(container);
+    e2->setIsotopeDistribution(isotopes);
+    return ret;
+  }
+
+    ///> Given a peptide sequence calculate the theoretical isotopic patterns given all incorporations rate (15C Version)
+    ///> extend isotopic patterns by additional_isotopes to collect other element higher isotopes at 100% incorporation
+    static IsotopePatterns calculateIsotopePatternsFor15NRange(const AASequence& peptide, Size additional_isotopes = 5)
+  {
+    IsotopePatterns ret;
+
+    const Element * e1 = ElementDB::getInstance()->getElement("Nitrogen");
+    Element * e2 = const_cast<Element *>(e1);
+    
+ //   const Element * carbon = ElementDB::getInstance()->getElement("Carbon");
+
+    EmpiricalFormula e = peptide.getFormula();
+    UInt MAXISOTOPES = (UInt) e.getNumberOf("Nitrogen");
+
+    // calculate isotope distribution for a given peptide and varying incoperation rates
+    // modification of isotope distribution in static ElementDB
+    for (DoubleReal abundance = 0; abundance < 100.0 - 1e-8; abundance += 100.0 / (DoubleReal) MAXISOTOPES)
+    {
+      DoubleReal a = abundance / 100.0;
+      IsotopeDistribution isotopes;
+      std::vector<std::pair<Size, double> > container;
+      container.push_back(make_pair(14, 1.0 - a));
+      container.push_back(make_pair(15, a));
+      isotopes.set(container);
+      e2->setIsotopeDistribution(isotopes);
+      IsotopeDistribution dist = peptide.getFormula(Residue::Full, 0).getIsotopeDistribution(MAXISOTOPES + additional_isotopes);
+      container = dist.getContainer();
+      vector<DoubleReal> intensities;
+      for (Size i = 0; i != container.size(); ++i)
+      {
+        intensities.push_back(container[i].second);
+      }
+      ret.push_back(make_pair(abundance, intensities));
+    }
+
+    // reset to natural occurance
+    IsotopeDistribution isotopes;
+    std::vector<std::pair<Size, double> > container;
+    container.push_back(make_pair(14, 0.99632));
+    container.push_back(make_pair(15, 0.368));
+    isotopes.set(container);
+    e2->setIsotopeDistribution(isotopes);
+    return ret;
+  }
+};
+
 class TOPPMetaProSIP : public TOPPBase
 {
 public:
@@ -1155,9 +1333,8 @@ public:
   {
   }			
 
-protected:
-  const Size ADDITIONAL_ISOTOPES; // extend isotopic patterns to collect other element higher isotopes at 100% incorporation
- 
+protected: 
+  Size ADDITIONAL_ISOTOPES;
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in_mzML","<file>","","Centroided MS1 data");
@@ -1516,176 +1693,6 @@ protected:
     }
   }
  
-  Int calculateDecompositionWeightsIsotopicPatterns(const String& seq, const vector<DoubleReal>& isotopic_intensities, const IsotopePatterns& patterns, MapRateToScoreType& map_rate_to_decomposition_weight, bool use_N15, SIPPeptide& sip_peptide)
-  {
-    Size n_bins = use_N15 ? AASequence(seq).getFormula().getNumberOf("Nitrogen") : AASequence(seq).getFormula().getNumberOf("Carbon");
-    Matrix<DoubleReal> beta(n_bins, 1);
-    Matrix<DoubleReal> intensity_vector(isotopic_intensities.size(), 1);
-
-    for (Size p = 0; p != isotopic_intensities.size(); ++p)
-    {
-      intensity_vector(p, 0) =  isotopic_intensities[p];
-    }
-
-    Matrix<DoubleReal> basis_matrix(isotopic_intensities.size(), n_bins);
-
-    for (Size row = 0; row != isotopic_intensities.size(); ++row)
-    {
-      for (Size col = 0; col != n_bins; ++col)
-      {
-        const vector<DoubleReal>& pattern = patterns[col].second;
-        if (row <= n_bins)
-        {
-          basis_matrix(row, col) = pattern[row];
-        } else
-        {
-          basis_matrix(row, col) = 0;
-        }
-      }
-    }
-
-    Int result = NonNegativeLeastSquaresSolver::solve(basis_matrix, intensity_vector, beta);
-
-    for (Size p = 0; p != n_bins; ++p)
-    {
-      map_rate_to_decomposition_weight[(DoubleReal) p/n_bins * 100.0] = beta(p, 0);
-    }
-
-    // calculate R squared
-    DoubleReal S_tot = 0;
-    DoubleReal mean = accumulate(isotopic_intensities.begin(), isotopic_intensities.end(), 0) / isotopic_intensities.size();
-    for (Size row = 0; row != isotopic_intensities.size(); ++row)
-    {
-      S_tot += pow(isotopic_intensities[row] - mean, 2);
-    }
-
-    DoubleReal S_err = 0;
-    DoubleReal predicted_sum = 0;
-    PeakSpectrum reconstructed;
-    PeakSpectrum alphas;
-    for (Size row = 0; row != isotopic_intensities.size(); ++row)
-    {
-      DoubleReal predicted = 0;
-      for (Size col = 0; col != n_bins; ++col)
-      {
-        predicted += basis_matrix(row, col) * beta(col, 0);
-      }    
-      predicted_sum += predicted;
-      Peak1D peak;
-      peak.setIntensity(predicted);
-      peak.setMZ(sip_peptide.mz_theo + sip_peptide.mass_diff / sip_peptide.charge * row);
-      reconstructed.push_back(peak);
-      S_err += pow(isotopic_intensities[row] - predicted, 2);
-    }
-
-    for (Size row = 0; row != 5; ++row)
-    {
-      DoubleReal predicted = 0;
-      for (Size col = 0; col != 3; ++col)
-      {
-        predicted += basis_matrix(row, col) * beta(col, 0);
-      }
-      sip_peptide.reconstruction_monoistopic.push_back(predicted); 
-    }
-
-    sip_peptide.RR = 1.0 - (S_err / S_tot);
-    sip_peptide.reconstruction = reconstructed;
-
-    /*
-    cout << "RR: " << seq << " " << 1.0 - (S_err / S_tot) << " " << S_err << " " << S_tot << endl;
-    cout << "absolute TIC error: " << fabs(1.0 - predicted_sum / accumulate(isotopic_intensities.begin(), isotopic_intensities.end(), 0)) << endl;
-    */
-    return result;
-  }
-
-
-  ///> Given a peptide sequence calculate the theoretical isotopic patterns given all incorporations rate (13C Version)
-  IsotopePatterns calculateIsotopePatternsFor13CRange(const AASequence& peptide)
-  {
-    IsotopePatterns ret;
-
-    const Element * e1 = ElementDB::getInstance()->getElement("Carbon");
-    Element * e2 = const_cast<Element *>(e1);
-
-
-    EmpiricalFormula e = peptide.getFormula();
-    UInt MAXISOTOPES = (UInt)e.getNumberOf("Carbon");
-
-    // calculate isotope distribution for a given peptide and varying incoperation rates
-    // modification of isotope distribution in static ElementDB
-    for (DoubleReal abundance = 0.0; abundance < 100.0 - 1e-8; abundance += 100.0 / (DoubleReal)MAXISOTOPES)
-    {
-      DoubleReal a = abundance / 100.0;
-      IsotopeDistribution isotopes;
-      std::vector<std::pair<Size, double> > container;
-      container.push_back(make_pair(12, 1.0 - a));
-      container.push_back(make_pair(13, a));
-      isotopes.set(container);
-      e2->setIsotopeDistribution(isotopes);
-      IsotopeDistribution dist = peptide.getFormula(Residue::Full, 0).getIsotopeDistribution(MAXISOTOPES + ADDITIONAL_ISOTOPES);
-      container = dist.getContainer();
-      vector<DoubleReal> intensities;
-      for (Size i = 0; i != container.size(); ++i)
-      {
-        intensities.push_back(container[i].second);
-      }
-      ret.push_back(make_pair(abundance, intensities));
-    }
-
-
-    // reset to natural occurance
-    IsotopeDistribution isotopes;
-    std::vector<std::pair<Size, double> > container;
-    container.push_back(make_pair(12, 0.9893));
-    container.push_back(make_pair(13, 0.0107));
-    isotopes.set(container);
-    e2->setIsotopeDistribution(isotopes);
-    return ret;
-  }
-
-  ///> Given a peptide sequence calculate the theoretical isotopic patterns given all incorporations rate (15C Version)
-  IsotopePatterns calculateIsotopePatternsFor15NRange(const AASequence& peptide)
-  {
-    IsotopePatterns ret;
-
-    const Element * e1 = ElementDB::getInstance()->getElement("Nitrogen");
-    Element * e2 = const_cast<Element *>(e1);
-    
- //   const Element * carbon = ElementDB::getInstance()->getElement("Carbon");
-
-    EmpiricalFormula e = peptide.getFormula();
-    UInt MAXISOTOPES = (UInt) e.getNumberOf("Nitrogen");
-
-    // calculate isotope distribution for a given peptide and varying incoperation rates
-    // modification of isotope distribution in static ElementDB
-    for (DoubleReal abundance = 0; abundance < 100.0 - 1e-8; abundance += 100.0 / (DoubleReal) MAXISOTOPES)
-    {
-      DoubleReal a = abundance / 100.0;
-      IsotopeDistribution isotopes;
-      std::vector<std::pair<Size, double> > container;
-      container.push_back(make_pair(14, 1.0 - a));
-      container.push_back(make_pair(15, a));
-      isotopes.set(container);
-      e2->setIsotopeDistribution(isotopes);
-      IsotopeDistribution dist = peptide.getFormula(Residue::Full, 0).getIsotopeDistribution(MAXISOTOPES + ADDITIONAL_ISOTOPES);
-      container = dist.getContainer();
-      vector<DoubleReal> intensities;
-      for (Size i = 0; i != container.size(); ++i)
-      {
-        intensities.push_back(container[i].second);
-      }
-      ret.push_back(make_pair(abundance, intensities));
-    }
-
-    // reset to natural occurance
-    IsotopeDistribution isotopes;
-    std::vector<std::pair<Size, double> > container;
-    container.push_back(make_pair(14, 0.99632));
-    container.push_back(make_pair(15, 0.368));
-    isotopes.set(container);
-    e2->setIsotopeDistribution(isotopes);
-    return ret;
-  }
 
   PeakSpectrum extractPeakSpectrum(Size element_count, DoubleReal mass_diff, DoubleReal rt, DoubleReal feature_hit_theoretical_mz, Int feature_hit_charge, const MSExperiment<>& peak_map)
   {
@@ -2604,10 +2611,10 @@ protected:
 
       if (!use_N15)
       {
-        patterns = calculateIsotopePatternsFor13CRange(AASequence(feature_hit_seq));
+        patterns = MetaProSIPDecomposition::calculateIsotopePatternsFor13CRange(AASequence(feature_hit_seq));
       } else
       {
-        patterns = calculateIsotopePatternsFor15NRange(AASequence(feature_hit_seq));
+        patterns = MetaProSIPDecomposition::calculateIsotopePatternsFor15NRange(AASequence(feature_hit_seq));
       }
 
       // store theoretical patterns for visualization
@@ -2622,7 +2629,7 @@ protected:
 
       // calculate decomposition into isotopic patterns
       MapRateToScoreType map_rate_to_decomposition_weight;
-      Int result = calculateDecompositionWeightsIsotopicPatterns(feature_hit_seq, isotopic_intensities, patterns, map_rate_to_decomposition_weight, use_N15, sip_peptide);
+      Int result = MetaProSIPDecomposition::calculateDecompositionWeightsIsotopicPatterns(feature_hit_seq, isotopic_intensities, patterns, map_rate_to_decomposition_weight, use_N15, sip_peptide);
       
       // set first intensity to zero and remove first 2 possible RIAs (0% and e.g. 1.07% for carbon)
       MapRateToScoreType tmp_map_rate_to_correlation_score;
