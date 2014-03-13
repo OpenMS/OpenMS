@@ -117,6 +117,8 @@ struct SIPPeptide
   
   DoubleReal feature_mz; ///< mz of feature apex [s]
 
+  //Size feature_scan_number; ///< scan number
+
   Int charge; ///< charge of the peptide feature
 
   DoubleReal mass_diff;  // 13C or 15N mass difference
@@ -429,7 +431,7 @@ class MetaProSIPReporting
     }
   }
 
-    static void writeHTML(const String& qc_output_directory, const String& file_suffix, const String& file_extension, String cluster_type, const vector<SIPPeptide>& sip_peptides)
+    static void writeHTML(const String& qc_output_directory, const String& file_suffix, const String& file_extension, String cluster_type, bool report_natural_peptides, const vector<SIPPeptide>& sip_peptides)
    {
      TextFile current_script;
 
@@ -450,6 +452,12 @@ class MetaProSIPReporting
 
      for (Size i = 0; i != sip_peptides.size(); ++i)
      {
+       // omit reporting of purely natural peptides
+       if (!report_natural_peptides && sip_peptides[i].incorporations.size() == 1 && sip_peptides[i].incorporations[0].rate < 5.0)
+       {
+         continue;
+       }
+
        // heading
        current_script.push_back(String("<h1>") + "RT: " + String(sip_peptides[i].feature_rt) + "</h1>");
 
@@ -694,7 +702,7 @@ class MetaProSIPReporting
     }
   }
 
-    static void createQualityReport(String tmp_path, String qc_output_directory, String file_suffix, const String& file_extension, vector<SIPPeptide> sip_peptides, bool plot_merged, const vector< vector<SIPPeptide> >& sip_peptide_cluster, Size n_heatmap_bins, DoubleReal score_plot_y_axis_min, String cluster_type)
+    static void createQualityReport(String tmp_path, String qc_output_directory, String file_suffix, const String& file_extension, vector<SIPPeptide> sip_peptides, bool plot_merged, const vector< vector<SIPPeptide> >& sip_peptide_cluster, Size n_heatmap_bins, DoubleReal score_plot_y_axis_min, bool report_natural_peptides, String cluster_type)
   {
     // heat map based on peptide RIAs
     cout << "Plotting peptide heat map" << endl;    
@@ -717,7 +725,7 @@ class MetaProSIPReporting
 
     if (file_extension != "pdf")  // html doesn't support pdf as image
     {
-      writeHTML(qc_output_directory, file_suffix, file_extension, cluster_type, sip_peptides);
+      writeHTML(qc_output_directory, file_suffix, file_extension, cluster_type, report_natural_peptides, sip_peptides);
     }
   }
 
@@ -1384,6 +1392,8 @@ protected:
     registerFlag_("use_15N", "Use 15N instead of 13C", false);
     
     registerFlag_("plot_merged", "Plot merged spectra", false);
+
+    registerFlag_("report_natural_peptides", "Whether purely natural peptides are reported in the quality report.", false);
     
     registerFlag_("filter_monoisotopic", "Try to filter out mono-isotopic patterns to improve detection of low RIA patterns", false);
     
@@ -2258,7 +2268,6 @@ protected:
     return sum_incorporated / sum;
   }
 
-
   /*
   void emdClusterData_(String tmp_path, String data_filename, String file_suffix, String qc_output_directory, Int debug_level)
   {
@@ -2441,6 +2450,7 @@ protected:
     bool use_N15 = getFlag_("use_15N");
     bool cluster_flag = getFlag_("cluster");
     bool plot_merged = getFlag_("plot_merged");
+    bool report_natural_peptides = getFlag_("report_natural_peptides");
     String debug_patterns_name = getStringOption_("debug_patterns_name");
 
     ofstream out_csv_stream(out_csv.c_str());
@@ -2798,7 +2808,7 @@ protected:
     // quality report
     if (!qc_output_directory.empty())
     {
-      MetaProSIPReporting::createQualityReport(tmp_path, qc_output_directory, file_suffix, file_extension_, sip_peptides, plot_merged, sippeptide_clusters, n_heatmap_bins, score_plot_y_axis_min, cluster_type);
+      MetaProSIPReporting::createQualityReport(tmp_path, qc_output_directory, file_suffix, file_extension_, sip_peptides, plot_merged, sippeptide_clusters, n_heatmap_bins, score_plot_y_axis_min, report_natural_peptides, cluster_type);
     }
    
     return EXECUTION_OK;
