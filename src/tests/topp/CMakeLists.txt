@@ -307,7 +307,9 @@ add_test("TOPP_FileConverter_13" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA
 add_test("TOPP_FileConverter_13_out1" ${DIFF} -in1 FileConverter_13.tmp -in2 ${DATA_DIR_TOPP}/FileConverter_13_output.featureXML )
 set_tests_properties("TOPP_FileConverter_13_out1" PROPERTIES DEPENDS "TOPP_FileConverter_13")
 # featureXML to consensusXML
-add_test("TOPP_FileConverter_14" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileConverter_9_output.featureXML -no_progress -out FileConverter_14.tmp -out_type consensusXML)
+add_test("TOPP_FileConverter_14" ${TOPP_BIN_PATH}/FileConverter -test -in
+${DATA_DIR_TOPP}/FileConverter_9_output.featureXML -UID_postprocessing
+reassign -no_progress -out FileConverter_14.tmp -out_type consensusXML)
 add_test("TOPP_FileConverter_14_out1" ${DIFF} -in1 FileConverter_14.tmp -in2 ${DATA_DIR_TOPP}/FileConverter_14_output.consensusXML )
 set_tests_properties("TOPP_FileConverter_14_out1" PROPERTIES DEPENDS "TOPP_FileConverter_14")
 # EDTA to consensusXML
