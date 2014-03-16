@@ -180,6 +180,11 @@ function(openms_add_library)
   install_headers("${openms_add_library_HEADER_FILES};${_CONFIG_H}" ${openms_add_library_TARGET_NAME})
 
   #------------------------------------------------------------------------------
+  # register for export
+  message(STATUS " .. Export ${openms_add_library_TARGET_NAME} for external use")
+  openms_register_export_target(${openms_add_library_TARGET_NAME})
+
+  #------------------------------------------------------------------------------
   # copy dll to test/doc bin folder on MSVC systems
   copy_dll_to_extern_bin(${openms_add_library_TARGET_NAME})
 endfunction()

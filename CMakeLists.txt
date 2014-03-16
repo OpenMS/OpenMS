@@ -142,7 +142,12 @@ endif()
 set(BUILD_SHARED_LIBS true)
 
 #------------------------------------------------------------------------------
-# CMake Utilities
+# Host directory for referencing from subprojects
+set(OPENMS_HOST_DIRECTORY "${PROJECT_SOURCE_DIR}")
+set(OPENMS_HOST_BINARY_DIRECTORY "${PROJECT_BINARY_DIR}")
+
+#------------------------------------------------------------------------------
+# CMake Utitlities
 #------------------------------------------------------------------------------
 # include some OpenMS specific macros
 include (${PROJECT_SOURCE_DIR}/cmake/OpenMSBuildSystem_macros.cmake)
@@ -152,18 +157,11 @@ include (${PROJECT_SOURCE_DIR}/cmake/install_macros.cmake)
 include (${PROJECT_SOURCE_DIR}/cmake/doc_macros.cmake)
 # .. and some to ease the installation proces
 include (${PROJECT_SOURCE_DIR}/cmake/add_library_macros.cmake)
+# .. and some to ease the export process
+include (${PROJECT_SOURCE_DIR}/cmake/export_macros.cmake)
 
 #------------------------------------------------------------------------------
-# Directories
-#------------------------------------------------------------------------------
-
-#------------------------------------------------------------------------------
-# Host directory for referencing from subprojects
-set(OPENMS_HOST_DIRECTORY "${PROJECT_SOURCE_DIR}")
-set(OPENMS_HOST_BINARY_DIRECTORY "${PROJECT_BINARY_DIR}")
-
-#------------------------------------------------------------------------------
-# Output directory
+# Output directories
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${OPENMS_HOST_BINARY_DIRECTORY}/lib")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${OPENMS_HOST_BINARY_DIRECTORY}/bin")
 set(OPENMS_BINARY_DIR "${OPENMS_HOST_BINARY_DIRECTORY}/bin")
@@ -245,6 +243,12 @@ if (ENABLE_PREPARE_KNIME_PACKAGE)
 	include(${OPENMS_HOST_DIRECTORY}/cmake/OpenMSBuildSystem_ctdSupport.cmake)
 endif()
 
+#------------------------------------------------------------------------------
+# GKN Package building
+#------------------------------------------------------------------------------
+# Handle export of targets
+openms_export_targes()
+
 ######################################################
 #### build settings and configs for external code ####
 ######################################################
@@ -257,40 +261,6 @@ if ("${PACKAGE_TYPE}" STREQUAL "none")
 	endforeach(i)
 	## for add_definition commands (currently empty, but who knows...)
 	set(CF_OPENMS_ADD_DEFINITIONS)
-	## the filename for library settings (this file will be included in OpenMSConfig.cmake)
-	set(CF_LibOpenMSExport ${PROJECT_BINARY_DIR}/cmake/OpenMSLibraryExport.cmake)
-
-	## create code that allows to call find_package()
-	## (must come after the above code that sets the variables!)
-	get_directory_property(OPENMS_INCLUDE_DIRS  INCLUDE_DIRECTORIES)
-	configure_file(
-		"${OPENMS_HOST_DIRECTORY}/cmake/OpenMSConfig.cmake.in"
-		"${PROJECT_BINARY_DIR}/cmake/OpenMSConfig.cmake"
-		@ONLY
-	)
-
-  #------------------------------------------------------------------------------
-  # REMOVE with the fix of #676
-	## Create OpenMSLibraryExport.cmake:
-	## Note: export_build_settings and
-	##       export_library_dependencies are deprecated and should not be used
-	if ("${INSTALL_PREFIX}" STREQUAL ".")
-		set(CVERSION "${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}.${CMAKE_PATCH_VERSION}")
-		if (CVERSION VERSION_LESS "2.8.0")
-			message(STATUS "Info: Cannot register OpenMS with CMake! For external code, set the path to OpenMS during find_package() manually.")
-		else()
-			## register OpenMS with CMake so that it can be found easily
-			export(PACKAGE OpenMS)
-		endif()
-		## export our lib
-    if(NOT DISABLE_OPENSWATH)
-      export(TARGETS OpenMS OpenSwathAlgo FILE ${CF_LibOpenMSExport})
-    else()
-      export(TARGETS OpenMS FILE ${CF_LibOpenMSExport})
-    endif(NOT DISABLE_OPENSWATH)
-	else()
-		# include(cmake/OpenMSBuildSystem_install.cmake)
-	endif()
   #------------------------------------------------------------------------------
 else()
 	# install routines for MacOSX
