@@ -43,6 +43,8 @@
 #include <QtCore/QVariant>
 #include <QtSql/QSqlRecord>
 
+#include <iostream>
+
 using namespace std;
 
 namespace OpenMS

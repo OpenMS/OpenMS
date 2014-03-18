@@ -35,8 +35,10 @@
 #include <OpenMS/FORMAT/HANDLERS/IndexedMzMLDecoder.h>
 
 #include <boost/regex.hpp>
+#include <boost/lexical_cast.hpp>
 #include <fstream>
 #include <string>
+#include <iostream>
 
 #include <xercesc/framework/MemBufInputSource.hpp>
 #include <xercesc/parsers/XercesDOMParser.hpp>
@@ -47,7 +49,49 @@
 
 namespace OpenMS
 {
-  int IndexedMzMLDecoder::parseOffsets(String filename, int indexoffset, OffsetVector& spectra_offsets, OffsetVector& chromatograms_offsets)
+
+  namespace StringUtils
+  {
+    std::streampos stringToStreampos(std::string s)
+    {
+      // Try to cast the string to a type that can hold the integer value
+      // stored in the std::streampos type (which can vary from 32 to 128 bits
+      // depending on the system).
+      //
+      // long long has a minimal size of 64 bits and can address a range up to
+      // 16 Exbibit (or 2 Exbibyte), we can hopefully expect our files to be
+      // smaller than an Exabyte and should be safe.
+      std::streampos res;
+      try
+      {
+
+        res = boost::lexical_cast< unsigned long long >(s);
+        // TESTING CAST: res = (int) res; // use this only when emulating 32 bit systems
+
+      }
+      catch (boost::bad_lexical_cast&)
+      {
+        std::cerr << "Trying to convert corrupted / unreadable value to std::streampos : " << s << std::endl;
+        std::cerr << "This can also happen if the value exceeds 63 bits, please check your input." << std::endl;
+        throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+            String("Could not convert string '") + s + "' to a 64 bit integer.");
+      }
+
+      // Check if the value can fit into std::streampos
+      if ( fabs( boost::lexical_cast< long double >(s) - res) > 0.1)
+      {
+        std::cerr << "Your system may not support addressing a file of this size,"
+          << " only addresses that fit into a " << sizeof(std::streamsize)*8 <<
+          " bit integer are supported on your system." << std::endl;
+        throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+            String("Could not convert string '") + s + "' to an integer on your system.");
+      }
+
+      return res;
+    }
+  }
+
+  int IndexedMzMLDecoder::parseOffsets(String filename, std::streampos indexoffset, OffsetVector& spectra_offsets, OffsetVector& chromatograms_offsets)
   {
     //-------------------------------------------------------------
     // Open file, jump to end and read last indexoffset bytes into buffer.
@@ -55,11 +99,11 @@ namespace OpenMS
     std::ifstream f(filename.c_str());
     // get length of file:
     f.seekg(0, f.end);
-    int length = f.tellg();
+    std::streampos length = f.tellg();
 
     if (indexoffset < 0 || indexoffset > length)
     {
-      std::cerr << "IndexedMzMLDecoder::parseOffsets Error: Offset was " << 
+      std::cerr << "IndexedMzMLDecoder::parseOffsets Error: Offset was " <<
         indexoffset << " (not between 0 and " << length << ")." << std::endl;
       return -1;
     }
@@ -69,8 +113,8 @@ namespace OpenMS
     //-------------------------------------------------------------
     // read data as a block:
     // allocate memory:
-    int readl = length - indexoffset;
-    char* buffer = new char[readl + 1];
+    std::streampos readl = length - indexoffset;
+    char* buffer = new char[ readl + std::streampos(1)];
     f.seekg(-readl, f.end);
     f.read(buffer, readl);
     buffer[readl] = '\0';
@@ -87,10 +131,10 @@ namespace OpenMS
     return res;
   }
 
-  int IndexedMzMLDecoder::findIndexListOffset(String filename, int buffersize)
+  std::streampos IndexedMzMLDecoder::findIndexListOffset(String filename, int buffersize)
   {
     // return value
-    int indexoffset = -1;
+    std::streampos indexoffset = -1;
 
     //-------------------------------------------------------------
     // Open file, jump to end and read last n bytes into buffer.
@@ -123,12 +167,22 @@ namespace OpenMS
     String thismatch(matches[1].first, matches[1].second);
     if (thismatch.size() > 0)
     {
-      // TODO catch if it throws
-      indexoffset = thismatch.toInt();
+      try
+      {
+        indexoffset = OpenMS::StringUtils::stringToStreampos(thismatch);
+      }
+      catch (Exception::ConversionError& e)
+      {
+        std::cerr << "Corrupted / unreadable value in <indexListOffset> : " << thismatch << std::endl;
+        // free resources and re-throw
+        delete[] buffer;
+        f.close();
+        throw e;
+      }
     }
     else
     {
-      std::cerr << "IndexedMzMLDecoder::findIndexListOffset Error: Could not find element indexListOffset in the last " << 
+      std::cerr << "IndexedMzMLDecoder::findIndexListOffset Error: Could not find element indexListOffset in the last " <<
         buffersize << " bytes. Maybe this is not a indexedmzML." << std::endl;
       std::cerr << buffer << std::endl;
     }
@@ -179,6 +233,9 @@ namespace OpenMS
     }
     xercesc::DOMNode* indexListNode = li->item(0);
 
+    XMLCh* idref_tag = xercesc::XMLString::transcode("idRef");
+    XMLCh* name_tag = xercesc::XMLString::transcode("name");
+
     // Iterate through indexList elements
     xercesc::DOMNodeList* index_elems = indexListNode->getChildNodes();
     const  XMLSize_t nodeCount_ = index_elems->getLength();
@@ -188,7 +245,7 @@ namespace OpenMS
       if (currentNode->getNodeType() && // true is not NULL
           currentNode->getNodeType() == xercesc::DOMNode::ELEMENT_NODE) // is element
       {
-        std::vector<std::pair<std::string, long> > result;
+        std::vector<std::pair<std::string, std::streampos> > result;
         xercesc::DOMNodeList* offset_elems = currentNode->getChildNodes();
         for (XMLSize_t k = 0; k < offset_elems->getLength(); ++k)
         {
@@ -197,15 +254,24 @@ namespace OpenMS
               currentONode->getNodeType() == xercesc::DOMNode::ELEMENT_NODE) // is element
           {
             xercesc::DOMElement* currentElement = dynamic_cast<xercesc::DOMElement*>(currentONode);
-            std::string name = xercesc::XMLString::transcode(currentElement->getAttribute(xercesc::XMLString::transcode("idRef")));
-            long thisOffset = String(xercesc::XMLString::transcode(currentONode->getTextContent())).toInt();
-            result.push_back(std::make_pair(name, thisOffset));
+
+            char* name = xercesc::XMLString::transcode(currentElement->getAttribute(idref_tag));
+            char* offset = xercesc::XMLString::transcode(currentONode->getTextContent());
+
+            std::streampos thisOffset = OpenMS::StringUtils::stringToStreampos( String(offset) );
+            result.push_back(std::make_pair(std::string(name), thisOffset));
+
+            xercesc::XMLString::release(&name);
+            xercesc::XMLString::release(&offset);
           }
         }
 
         // should be either spectrum or chromatogram ...
         xercesc::DOMElement* currentElement = dynamic_cast<xercesc::DOMElement*>(currentNode);
-        std::string name = xercesc::XMLString::transcode(currentElement->getAttribute(xercesc::XMLString::transcode("name")));
+        char* tmp_name = xercesc::XMLString::transcode(currentElement->getAttribute(name_tag));
+        std::string name(tmp_name);
+        xercesc::XMLString::release(&tmp_name);
+
         if (name == "spectrum")
         {
           spectra_offsets = result;
@@ -216,13 +282,18 @@ namespace OpenMS
         }
         else
         {
-          std::cerr << "IndexedMzMLDecoder::domParseIndexedEnd Error: expected only " << 
+          std::cerr << "IndexedMzMLDecoder::domParseIndexedEnd Error: expected only " <<
             "'spectrum' or 'chromatogram' below indexList but found instead '" << name << "'." << std::endl;
+          xercesc::XMLString::release(&idref_tag);
+          xercesc::XMLString::release(&name_tag);
           delete parser;
           return -1;
         }
       }
     }
+    xercesc::XMLString::release(&idref_tag);
+    xercesc::XMLString::release(&name_tag);
+
 
     delete parser;
     return 0;

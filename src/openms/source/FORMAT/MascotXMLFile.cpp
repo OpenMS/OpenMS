@@ -34,7 +34,7 @@
 
 #include <OpenMS/FORMAT/MascotXMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
-
+#include <OpenMS/CONCEPT/LogStream.h>
 
 using namespace xercesc;
 using namespace std;
@@ -79,6 +79,7 @@ namespace OpenMS
     // the identifications without any real peptide hit are removed
     vector<PeptideIdentification> filtered_hits;
     filtered_hits.reserve(id_data.size());
+    Size missing_sequence = 0; // counter
 
     for (vector<PeptideIdentification>::iterator id_it = id_data.begin();
          id_it != id_data.end(); ++id_it)
@@ -89,11 +90,11 @@ namespace OpenMS
       {
         filtered_hits.push_back(*id_it);
       }
+      else if (!id_it->empty()) ++missing_sequence;
     }
-    Size diff = id_data.size() - filtered_hits.size();
-    if (diff) 
+    if (missing_sequence) 
     {
-      LOG_WARN << "Warning: Removed " << diff 
+      LOG_WARN << "Warning: Removed " << missing_sequence 
                << " peptide identifications without sequence." << endl;
     }
     id_data.swap(filtered_hits);

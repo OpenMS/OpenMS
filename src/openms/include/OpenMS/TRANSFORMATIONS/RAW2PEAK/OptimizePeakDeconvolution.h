@@ -41,11 +41,6 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
 //#define DEBUG_DECONV
-#include <iostream>
-#ifdef DEBUG_DECONV
-#include <iostream>
-#include <fstream>
-#endif
 #include <vector>
 
 namespace OpenMS

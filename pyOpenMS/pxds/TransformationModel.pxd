@@ -11,7 +11,7 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>" namespace
 
         TransformationModel()  nogil except +
         TransformationModel(TransformationModel, Param) nogil except + # wrap-ignore
-        Param getParameters()
+        Param getParameters() nogil except +
 
     cdef cppclass TransformationModelLinear(TransformationModel):
         # wrap-inherits:

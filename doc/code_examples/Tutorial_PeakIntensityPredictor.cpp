@@ -34,6 +34,8 @@
 
 #include <OpenMS/ANALYSIS/PIP/PeakIntensityPredictor.h>
 
+#include <iostream>
+
 using namespace OpenMS;
 using namespace std;
 

@@ -44,7 +44,6 @@
 #include "Wm5LinearSystem.h"
 
 #include <cmath>
-#include <iostream>
 #include <vector>
 
 using std::pow;
@@ -54,20 +53,20 @@ namespace OpenMS
   namespace Math
   {
     /**
-            @brief This class offers functions to perform least-squares fits to a straight line model, \f$ Y(c,x) = c_0 + c_1 x \f$.
+      @brief This class offers functions to perform least-squares fits to a straight line model, \f$ Y(c,x) = c_0 + c_1 x \f$.
 
-            Next to the intercept with the y-axis and the slope of the fitted line, this class computes the:
-            - squared pearson coefficient
-            - value of the t-distribution
-            - standard deviation of the residuals
-            - standard error of the slope
-            - intercept with the x-axis (useful for additive series experiments)
-            - lower border of confidence interval
-            - higher border of confidence interval
-            - chi squared value
-            - x mean
+      Next to the intercept with the y-axis and the slope of the fitted line, this class computes the:
+        - squared pearson coefficient
+        - value of the t-distribution
+        - standard deviation of the residuals
+        - standard error of the slope
+        - intercept with the x-axis (useful for additive series experiments)
+        - lower border of confidence interval
+        - higher border of confidence interval
+        - chi squared value
+        - x mean
 
-            @ingroup Math
+      @ingroup Math
     */
     class OPENMS_DLLAPI LinearRegression
     {

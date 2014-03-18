@@ -33,7 +33,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
-#include <ctime>
 #include <limits>
 #include <iostream>
 
@@ -44,21 +43,18 @@ namespace OpenMS
   boost::mt19937_64* UniqueIdGenerator::rng_ = NULL;
   boost::uniform_int<UInt64>* UniqueIdGenerator::dist_ = NULL;
 
-  UInt64
-  UniqueIdGenerator::getUniqueId()
+  UInt64 UniqueIdGenerator::getUniqueId()
   {
     UniqueIdGenerator& instance = getInstance_();
     return (*instance.dist_)(*instance.rng_);
   }
 
-  UInt64
-  UniqueIdGenerator::getSeed()
+  UInt64 UniqueIdGenerator::getSeed()
   {
     return getInstance_().seed_;
   }
 
-  void
-  UniqueIdGenerator::setSeed(UInt64 seed)
+  void UniqueIdGenerator::setSeed(UInt64 seed)
   {
     UniqueIdGenerator& instance = getInstance_();
     instance.seed_ = seed;
@@ -71,8 +67,7 @@ namespace OpenMS
 
   }
 
-  UniqueIdGenerator &
-  UniqueIdGenerator::getInstance_()
+  UniqueIdGenerator & UniqueIdGenerator::getInstance_()
   {
     if (!instance_)
     {
@@ -82,8 +77,7 @@ namespace OpenMS
     return *instance_;
   }
 
-  void
-  UniqueIdGenerator::init_()
+  void UniqueIdGenerator::init_()
   {
     seed_ = std::time(0);
     rng_ = new boost::mt19937_64 (seed_);

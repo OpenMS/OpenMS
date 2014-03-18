@@ -33,47 +33,10 @@
 # --------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
-# This cmake file handles finding external libs for OpenMS
-
-set(CONTRIB_CUSTOM_DIR CACHE DOC "DEPRECATED: Please use CMAKE_FIND_ROOT_PATH instead! User defined location of contrib dir. If left empty we assume the contrib to be in OpenMS/contrib!")
-set(CONTRIB_DIR ${PROJECT_SOURCE_DIR}/contrib/ CACHE INTERNAL "Final contrib path after looking at CMAKE_FIND_ROOT_PATH. Defaults to OpenMS/contrib")
-
-if("${CMAKE_FIND_ROOT_PATH}" STREQUAL "")
-	if(NOT "${CONTRIB_CUSTOM_DIR}" STREQUAL "")
-		message("Please do no longer use -DCONTRIB_CUSTOM_DIR. This option is deprecated. Please use -DCMAKE_FIND_ROOT_PATH instead.")
-		list(INSERT CONTRIB_DIR 0 ${CONTRIB_CUSTOM_DIR})
-  else()
-		# Append a few unusual default search directories for convenience
-		# if no FIND ROOT PATH was specified.
-		list(APPEND CONTRIB_DIR /opt/local /usr/local)
-	endif()
-endif()
-
+# This cmake file handles finding external libs for OpenMS (note that the paths
+# for these libraries need to be defined on top-level, see the top-level file
+# cmake/OpenMSBuildSystem_externalLibs.cmake)
 #------------------------------------------------------------------------------
-# Append all contrib dirs to the (potentially empty) FIND_ROOT_PATH.
-# This will be the final search order used by regular CMAKE modules (by default)
-# and by the OpenMS macros (via CONTRIB_DIR).
-list(APPEND CMAKE_FIND_ROOT_PATH "${CONTRIB_DIR}")
-set(TMP "")
-foreach(CUSTOM_PATH ${CMAKE_FIND_ROOT_PATH})
-  get_filename_component(ABS_PATH ${CUSTOM_PATH} ABSOLUTE)
-	list(APPEND TMP ${ABS_PATH})
-endforeach()
-set(CMAKE_FIND_ROOT_PATH "${TMP}")
-set(CONTRIB_DIR "${CMAKE_FIND_ROOT_PATH}")
-
-message(STATUS "CMake find root path: ${CMAKE_FIND_ROOT_PATH}")
-
-set(CONTRIB_INCLUDE_DIR "" CACHE INTERNAL "contrib include dir")
-set(CONTRIB_LIB_DIR "" CACHE INTERNAL "contrib lib dir")
-foreach(CONTRIB_PATH ${CONTRIB_DIR})
-  list(APPEND CONTRIB_INCLUDE_DIR "${CONTRIB_PATH}/include/")
-  list(APPEND CONTRIB_LIB_DIR "${CONTRIB_PATH}/lib/")
-endforeach()
-message(STATUS "Contrib search directories:  ${CONTRIB_DIR}")
-message(STATUS "Contrib library directories: ${CONTRIB_LIB_DIR}")
-message(STATUS "Contrib include directories: ${CONTRIB_INCLUDE_DIR}")
-
 
 #------------------------------------------------------------------------------
 # set which library extensions are preferred (we prefer shared libraries)

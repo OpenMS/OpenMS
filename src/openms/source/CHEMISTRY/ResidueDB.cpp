@@ -45,6 +45,8 @@
 
 #include <OpenMS/SYSTEM/File.h>
 
+#include <iostream>
+
 using namespace std;
 
 namespace OpenMS
@@ -418,7 +420,7 @@ namespace OpenMS
       }
       if ((*it)->getShortName() != "")
       {
-        residue_names_[(*it)->getOneLetterCode()] = *it;
+        residue_names_[(*it)->getShortName()] = *it;
       }
       set<String>::iterator sit;
       set<String> syn = (*it)->getSynonyms();

@@ -40,6 +40,7 @@
 ///////////////////////////
 #include <OpenMS/CONCEPT/FuzzyStringComparator.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 
 using namespace OpenMS;
 using namespace std;

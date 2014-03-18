@@ -37,6 +37,7 @@ set(datastructures_executables_list
   GridFeature_test
   HashGrid_test
   ListUtils_test
+  ListUtilsIO_test
   LPWrapper_test
   Map_test
   MassExplainer_test
@@ -148,6 +149,7 @@ set(format_executables_list
   FileTypes_test
   GzipIfstream_test
   GzipInputStream_test
+  IBSpectraFile_test
   IdXMLFile_test
   IndexedMzMLFile_test
   IndexedMzMLFileLoader_test
@@ -551,6 +553,7 @@ if(NOT DISABLE_OPENSWATH)
     MRMFeatureFinderScoring_test
     SpectrumHelpers_test
     StatsHelpers_test
+    CachedMzML_test
   )
 endif(NOT DISABLE_OPENSWATH)
 

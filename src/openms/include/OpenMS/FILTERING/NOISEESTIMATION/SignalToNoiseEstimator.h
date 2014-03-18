@@ -40,7 +40,6 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
-#include <iostream>
 #include <vector>
 #include <cmath>
 #include <map>

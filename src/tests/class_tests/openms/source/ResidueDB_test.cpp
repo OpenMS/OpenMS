@@ -118,8 +118,10 @@ END_SECTION
 START_SECTION(void addResidue(const Residue &residue))
 	TEST_EQUAL(ptr->hasResidue("UGU"), false)
 	TEST_EQUAL(ptr->hasResidue("$"), false)
+	TEST_EQUAL(ptr->hasResidue("$hortName"), false)
+	TEST_EQUAL(ptr->hasResidue("MyLittleUGUResidue"), false)
 	Residue res;
-	res.setShortName("$");
+	res.setShortName("$hortName");
 	res.setOneLetterCode("$");
 	res.setThreeLetterCode("UGU");
 	res.setName("MyLittleUGUResidue");
@@ -127,6 +129,8 @@ START_SECTION(void addResidue(const Residue &residue))
 	ptr->addResidue(res);
 	TEST_EQUAL(ptr->hasResidue("UGU"), true)
 	TEST_EQUAL(ptr->hasResidue("$"), true)
+	TEST_EQUAL(ptr->hasResidue("$hortName"), true)
+	TEST_EQUAL(ptr->hasResidue("MyLittleUGUResidue"), true)
 END_SECTION
 
 START_SECTION(ResidueIterator beginResidue())

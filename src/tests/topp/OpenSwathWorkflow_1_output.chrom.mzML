@@ -12,6 +12,11 @@
 		<fileContent>
 			<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
 		</fileContent>
+		<contact>
+			<cvParam cvRef="MS" accession="MS:1000586" name="contact name" value="Drek'Thar, " />
+			<cvParam cvRef="MS" accession="MS:1000590" name="contact organization" value="da" />
+			<userParam name="name" type="xsd:string" value="contact2"/>
+		</contact>
 	</fileDescription>
 	<sampleList count="1">
 		<sample id="sa_0" name="">
@@ -21,8 +26,8 @@
 		</sample>
 	</sampleList>
 	<softwareList count="3">
-		<software id="so_in_0" version="" >
-			<cvParam cvRef="MS" accession="MS:1000799" name="custom unreleased software tool" value="" />
+		<software id="so_in_0" version="3.3.1 sp1" >
+			<cvParam cvRef="MS" accession="MS:1000533" name="Bioworks" />
 		</software>
 		<software id="so_default" version="" >
 			<cvParam cvRef="MS" accession="MS:1000799" name="custom unreleased software tool" value="" />
@@ -33,7 +38,53 @@
 	</softwareList>
 	<instrumentConfigurationList count="1">
 		<instrumentConfiguration id="ic_0">
-			<cvParam cvRef="MS" accession="MS:1000031" name="instrument model" />
+			<cvParam cvRef="MS" accession="MS:1000554" name="LCQ Deca" />
+			<cvParam cvRef="MS" accession="MS:1000032" name="customization" value="Umbau" />
+			<cvParam cvRef="MS" accession="MS:1000221" name="magnetic deflection" />
+			<cvParam cvRef="MS" accession="MS:1000529" name="instrument serial number" value="23433"/>
+			<userParam name="name" type="xsd:string" value="instrumentConfiguration"/>
+			<componentList count="6">
+				<source order="101">
+					<cvParam cvRef="MS" accession="MS:1000056" name="direct inlet" />
+					<cvParam cvRef="MS" accession="MS:1000073" name="electrospray ionization" />
+					<userParam name="name" type="xsd:string" value="source1"/>
+				</source>
+				<source order="102">
+					<cvParam cvRef="MS" accession="MS:1000056" name="direct inlet" />
+					<cvParam cvRef="MS" accession="MS:1000074" name="fast atom bombardment ionization" />
+					<userParam name="name" type="xsd:string" value="source2"/>
+				</source>
+				<analyzer order="201">
+					<cvParam cvRef="MS" accession="MS:1000014" name="accuracy" value="10.5" unitAccession="UO:0000169" unitName="parts per million" unitCvRef="UO" />
+					<cvParam cvRef="MS" accession="MS:1000022" name="TOF Total Path Length" value="11.1" unitAccession="UO:0000008" unitName="meter" unitCvRef="UO" />
+					<cvParam cvRef="MS" accession="MS:1000024" name="final MS exponent" value="0" />
+					<cvParam cvRef="MS" accession="MS:1000025" name="magnetic field strength" value="14.56" unitAccession="UO:0000228" unitName="tesla" unitCvRef="UO" />
+					<cvParam cvRef="MS" accession="MS:1000082" name="quadrupole ion trap" />
+					<userParam name="name" type="xsd:string" value="analyzer1"/>
+				</analyzer>
+				<analyzer order="202">
+					<cvParam cvRef="MS" accession="MS:1000014" name="accuracy" value="0" unitAccession="UO:0000169" unitName="parts per million" unitCvRef="UO" />
+					<cvParam cvRef="MS" accession="MS:1000022" name="TOF Total Path Length" value="0" unitAccession="UO:0000008" unitName="meter" unitCvRef="UO" />
+					<cvParam cvRef="MS" accession="MS:1000024" name="final MS exponent" value="0" />
+					<cvParam cvRef="MS" accession="MS:1000025" name="magnetic field strength" value="1414.14" unitAccession="UO:0000228" unitName="tesla" unitCvRef="UO" />
+					<cvParam cvRef="MS" accession="MS:1000291" name="linear ion trap" />
+					<userParam name="name" type="xsd:string" value="analyzer2"/>
+				</analyzer>
+				<detector order="301">
+					<cvParam cvRef="MS" accession="MS:1000028" name="detector resolution" value="5.1" />
+					<cvParam cvRef="MS" accession="MS:1000029" name="sampling frequency" value="1.1" unitAccession="UO:0000106" unitName="hertz" unitCvRef="UO" />
+					<cvParam cvRef="MS" accession="MS:1000119" name="time-digital converter" />
+					<cvParam cvRef="MS" accession="MS:1000253" name="electron multiplier" />
+					<userParam name="name" type="xsd:string" value="detector1"/>
+				</detector>
+				<detector order="302">
+					<cvParam cvRef="MS" accession="MS:1000028" name="detector resolution" value="6.1" />
+					<cvParam cvRef="MS" accession="MS:1000029" name="sampling frequency" value="1.1" unitAccession="UO:0000106" unitName="hertz" unitCvRef="UO" />
+					<cvParam cvRef="MS" accession="MS:1000119" name="time-digital converter" />
+					<cvParam cvRef="MS" accession="MS:1000253" name="electron multiplier" />
+					<userParam name="name" type="xsd:string" value="detector2"/>
+				</detector>
+			</componentList>
 			<softwareRef ref="so_in_0" />
 		</instrumentConfiguration>
 	</instrumentConfigurationList>
@@ -563,20 +614,20 @@
 </mzML>
 <indexList count="1">
 	<index name="chromatogram">
-		<offset idRef="1">3602</offset>
-		<offset idRef="2">6706</offset>
-		<offset idRef="3">9810</offset>
-		<offset idRef="4">12914</offset>
-		<offset idRef="5">16018</offset>
-		<offset idRef="6">19122</offset>
-		<offset idRef="7">22226</offset>
-		<offset idRef="8">25330</offset>
-		<offset idRef="9">28434</offset>
-		<offset idRef="10">31538</offset>
-		<offset idRef="11">34643</offset>
-		<offset idRef="12">37749</offset>
+		<offset idRef="1">7204</offset>
+		<offset idRef="2">10308</offset>
+		<offset idRef="3">13412</offset>
+		<offset idRef="4">16516</offset>
+		<offset idRef="5">19620</offset>
+		<offset idRef="6">22724</offset>
+		<offset idRef="7">25828</offset>
+		<offset idRef="8">28932</offset>
+		<offset idRef="9">32036</offset>
+		<offset idRef="10">35140</offset>
+		<offset idRef="11">38245</offset>
+		<offset idRef="12">41351</offset>
 	</index>
 </indexList>
-<indexListOffset>40886</indexListOffset>
+<indexListOffset>44488</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

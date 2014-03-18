@@ -308,7 +308,6 @@ protected:
     typename MSExperiment<OutputPeakType>::Iterator ms_exp_it_end = ms_exp.end();
     if (ms_exp.empty())
     {
-      std::cout << "empty experiment" << std::endl;
       return;
     }
     // stores the monoisotopic peaks of isotopic clusters

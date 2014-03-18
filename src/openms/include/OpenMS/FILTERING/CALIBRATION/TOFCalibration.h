@@ -44,7 +44,6 @@
 
 #include <OpenMS/MATH/MISC/Spline2d.h>
 
-#include <iostream>
 #include <vector>
 #include <map>
 

@@ -49,6 +49,7 @@
 #include <OpenMS/CONCEPT/Types.h>
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/CentroidPeak.h>
+#include <list>
 
 namespace OpenMS
 {

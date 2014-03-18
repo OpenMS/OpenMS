@@ -96,7 +96,7 @@ namespace OpenMS
       if (ft_name != ft_content)
       {
         error_message_ += String("\nProbable cause: The file suffix (") + FileTypes::typeToName(ft_name)
-                          + ") does not match the file content (" + FileTypes::typeToName(ft_content) + ")."
+                          + ") does not match the file content (" + FileTypes::typeToName(ft_content) + "). "
                           + "Rename the file to fix this.";
       }
 
@@ -135,6 +135,10 @@ namespace OpenMS
     }
 
     void XMLHandler::endElement(const XMLCh * const /*uri*/, const XMLCh * const /*localname*/, const XMLCh * const /*qname*/)
+    {
+    }
+
+    void XMLHandler::writeTo(std::ostream & /*os*/)
     {
     }
 
@@ -260,7 +264,7 @@ namespace OpenMS
       // significant byte).
       size_t curr_size = result.size();
       result.resize(curr_size + length);
-      for (size_t i = 0; i < length; i++) 
+      for (size_t i = 0; i < length; i++)
       {
         result[curr_size + i] = (char)chars[i];
       }

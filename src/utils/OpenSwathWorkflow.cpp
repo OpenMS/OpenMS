@@ -49,7 +49,7 @@
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVReader.h>
-#include <OpenMS/ANALYSIS/OPENSWATH/CachedmzML.h>
+#include <OpenMS/FORMAT/CachedMzML.h>
 #ifdef OPENMS_FORMAT_SWATHFILE_MZXMLSUPPORT
 #include "MSDataReader.h"
 #endif
@@ -77,6 +77,11 @@ using namespace OpenMS;
 // The workflow class and the TSV writer
 namespace OpenMS
 {
+
+  static bool SortSwathMapByLower(const OpenSwath::SwathMap left, const OpenSwath::SwathMap right)
+  {
+    return left.upper < right.upper;
+  }
 
   /**
    * @brief Class to write out an OpenSwath TSV output (mProphet input)
@@ -807,6 +812,14 @@ namespace OpenMS
   /**
    * @brief Class to read a file describing the Swath Windows
    *
+   * The file must of be tab delimited and of the following format:
+   *    window_lower window_upper
+   *    400 425
+   *    425 450
+   *    ...
+   *
+   * Note that the first line is a header and will be skipped.
+   *
    */
   class SwathWindowLoader
   {
@@ -825,18 +838,40 @@ namespace OpenMS
      *
      */
     static void annotateSwathMapsFromFile(const String filename,
-      std::vector< OpenSwath::SwathMap >& swath_maps)
+      std::vector< OpenSwath::SwathMap >& swath_maps, bool doSort)
     {
       std::vector<double> swath_prec_lower_, swath_prec_upper_;
       readSwathWindows(filename, swath_prec_lower_, swath_prec_upper_);
-      assert(swath_prec_lower_.size() == swath_maps.size());
-      for (Size i = 0; i < swath_maps.size(); i++)
+
+      // Sort the windows by the start of the lower window 
+      if (doSort) 
+        {std::sort(swath_maps.begin(), swath_maps.end(), SortSwathMapByLower);}
+
+      Size i = 0, j = 0;
+      for (; i < swath_maps.size(); i++)
       {
-        swath_maps[i].lower = swath_prec_lower_[i];
-        swath_maps[i].upper = swath_prec_upper_[i];
+        if (swath_maps[i].ms1)
+        {
+          // skip to next map (only increase i)
+          continue;
+        }
+        std::cout << "Re-annotate from file: SWATH " << 
+          swath_maps[i].lower << " / " << swath_maps[i].upper << " is annotated with " << 
+          swath_prec_lower_[j] << " / " << swath_prec_upper_[j] << std::endl;
+
+        swath_maps[i].lower = swath_prec_lower_[j];
+        swath_maps[i].upper = swath_prec_upper_[j];
+        j++;
+      }
+
+      if (j != swath_prec_upper_.size() )
+      {
+        std::cerr << "The number of SWATH maps read from the raw data (" << 
+          j << ") and from the annotation file (" << swath_prec_upper_.size() << ") do not match." << std::endl;
+        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
+            "The number of SWATH maps read from the raw data and from the annotation file do not match.");
       }
     }
-
 
     /**
      * @brief Reading a tab delimited file specifying the SWATH windows
@@ -971,6 +1006,7 @@ protected:
     setValidFormats_("rt_norm", ListUtils::create<String>("trafoXML"));
 
     registerStringOption_("swath_windows_file", "<file>", "", "Optional, tab separated file containing the SWATH windows: lower_offset upper_offset \\newline 400 425 \\newline ... Note that the first line is a header and will be skipped.", false, true);
+    registerFlag_("sort_swath_maps", "Sort of input SWATH files when matching to SWATH windows from swath_windows_file", true);
 
     // one of the following two needs to be set
     registerOutputFile_("out_features", "<file>", "", "output file", false);
@@ -1037,8 +1073,7 @@ protected:
       feature_finder_param.setValue("TransitionGroupPicker:recalculate_peaks_max_z", 0.75);
       feature_finder_param.setValue("TransitionGroupPicker:PeakPickerMRM:method", "corrected");
       feature_finder_param.setValue("TransitionGroupPicker:PeakPickerMRM:signal_to_noise", 0.1);
-      feature_finder_param.setValue("TransitionGroupPicker:PeakPickerMRM:gauss_width", 30);
-      feature_finder_param.remove("TransitionGroupPicker:PeakPickerMRM:gauss_width");
+      feature_finder_param.setValue("TransitionGroupPicker:PeakPickerMRM:gauss_width", 30.0);
       feature_finder_param.remove("TransitionGroupPicker:PeakPickerMRM:sn_win_len");
       feature_finder_param.remove("TransitionGroupPicker:PeakPickerMRM:sn_bin_count");
 
@@ -1145,6 +1180,7 @@ protected:
     bool ppm = getFlag_("ppm");
     bool split_file = getFlag_("split_file_input");
     bool use_emg_score = getFlag_("use_elution_model_score");
+    bool sort_swath_maps = getFlag_("sort_swath_maps");
     DoubleReal min_upper_edge_dist = getDoubleOption_("min_upper_edge_dist");
     DoubleReal mz_extraction_window = getDoubleOption_("mz_extraction_window");
     DoubleReal rt_extraction_window = getDoubleOption_("rt_extraction_window");
@@ -1190,10 +1226,10 @@ protected:
 
     // Allow the user to specify the SWATH windows
     if (!swath_windows_file.empty())
-      SwathWindowLoader::annotateSwathMapsFromFile(swath_windows_file, swath_maps);
+      SwathWindowLoader::annotateSwathMapsFromFile(swath_windows_file, swath_maps, sort_swath_maps);
 
     for (Size i = 0; i < swath_maps.size(); i++)
-        LOG_DEBUG << "Found swath map " << i << " with lower " << swath_maps[i].lower << " and upper " << swath_maps[i].upper << std::endl;
+      LOG_DEBUG << "Found swath map " << i << " with lower " << swath_maps[i].lower << " and upper " << swath_maps[i].upper << std::endl;
 
     ///////////////////////////////////
     // Get the transformation information (using iRT peptides)

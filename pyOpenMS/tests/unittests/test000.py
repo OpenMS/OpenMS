@@ -128,7 +128,62 @@ def _testProgressLogger(ff):
     ff.setProgress(3)
     ff.endProgress()
 
+@report
+def testSpectrumAlignment():
+    """
+    @tests:
+        SpectrumAlignment.__init__
+        SpectrumAlignment.getSpectrumAlignment
+    """
+    # test existence of some methods
+    pyopenms.SpectrumAlignment
+    pyopenms.SpectrumAlignment.__init__
+    pyopenms.SpectrumAlignment.getDefaults
+    pyopenms.SpectrumAlignment.getParameters
+    pyopenms.SpectrumAlignment.setParameters
 
+    spec = pyopenms.MSSpectrum()
+    p = pyopenms.Peak1D()
+    p.setMZ(1000.0)
+    p.setIntensity(200.0)
+    spec.push_back(p)
+    p.setMZ(2000.0)
+    p.setIntensity(200.0)
+    spec.push_back(p)
+
+    rich_spec = pyopenms.RichMSSpectrum()
+    p = pyopenms.RichPeak1D()
+    p.setMZ(1000.001)
+    p.setIntensity(200.0)
+    rich_spec.push_back(p)
+    p.setMZ(2000.001)
+    p.setIntensity(200.0)
+    rich_spec.push_back(p)
+    p.setMZ(3000.001)
+    p.setIntensity(200.0)
+    rich_spec.push_back(p)
+
+    aligner = pyopenms.SpectrumAlignment()
+    result = []
+
+    aligner.getSpectrumAlignment(result, spec, spec)
+    assert result == [ (0,0), (1,1) ], result
+    aligner.getSpectrumAlignment(result, rich_spec, spec)
+    assert result == [ (0,0), (1,1) ], result
+    aligner.getSpectrumAlignment(result, spec, rich_spec)
+    assert result == [ (0,0), (1,1) ], result
+    aligner.getSpectrumAlignment(result, rich_spec, rich_spec)
+    assert result == [ (0,0), (1,1), (2,2) ], result
+
+    aligner = pyopenms.SpectrumAlignmentScore()
+    assert isinstance(aligner(spec), float)
+    assert isinstance(aligner(rich_spec), float)
+
+    assert isinstance(aligner(spec, rich_spec), float)
+    assert isinstance(aligner(rich_spec, spec), float)
+
+    assert isinstance(aligner(spec, spec), float)
+    assert isinstance(aligner(rich_spec, rich_spec), float)
 
 
 @report
@@ -204,6 +259,24 @@ def testResidue():
      Residue.__init__
     """
     ins = pyopenms.Residue()
+
+    pyopenms.Residue.ResidueType.Full
+    pyopenms.Residue.ResidueType.Internal
+    pyopenms.Residue.ResidueType.NTerminal
+    pyopenms.Residue.ResidueType.CTerminal
+    pyopenms.Residue.ResidueType.AIon
+    pyopenms.Residue.ResidueType.BIon
+    pyopenms.Residue.ResidueType.CIonMinusOne
+    pyopenms.Residue.ResidueType.CIon
+    pyopenms.Residue.ResidueType.CIonPlusOne
+    pyopenms.Residue.ResidueType.CIonPlusTwo
+    pyopenms.Residue.ResidueType.XIon
+    pyopenms.Residue.ResidueType.YIon
+    pyopenms.Residue.ResidueType.ZIonMinusOne
+    pyopenms.Residue.ResidueType.ZIon
+    pyopenms.Residue.ResidueType.ZIonPlusOne
+    pyopenms.Residue.ResidueType.ZIonPlusTwo
+    pyopenms.Residue.ResidueType.SizeOfResidueType
 
 @report
 def testIsotopeDistribution():
@@ -625,6 +698,13 @@ def testConsensusMap():
     m.sortByRT()
     m.sortBySize()
     m.updateRanges()
+
+    assert isinstance(m.getMin()[0], float)
+    assert isinstance(m.getMin()[0], float)
+    assert isinstance(m.getMax()[1], float)
+    assert isinstance(m.getMax()[1], float)
+    assert isinstance(m.getMinInt(), float)
+    assert isinstance(m.getMaxInt(), float)
 
     m.getIdentifier()
     m.getLoadedFileType()
@@ -1055,6 +1135,7 @@ def _testParam(p):
      Param.clearTags
      Param.copy
      Param.exists
+     Param.get
      Param.getDescription
      Param.getEntry
      Param.getSectionDescription
@@ -1120,6 +1201,12 @@ def _testParam(p):
         p.setSectionDescription(f, k)
         assert p.getSectionDescription(f) == k
 
+        assert p.get(k) is not None
+
+    assert sorted(p.items()) == sorted((k, p[k]) for k in p.keys())
+    assert sorted(p.values()) == sorted(p[k] for k in p.keys())
+
+
     assert not p.exists("asdflkj01231321321v")
     p.addTag(k, "a")
     p.addTags(k, ["b", "c"])
@@ -1156,6 +1243,9 @@ def _testParam(p):
         assert getattr(e1, f) is not None
 
     assert e1 == e1
+
+    assert p1.get("abcde", 7) == 7
+
 
 
 
@@ -1834,6 +1924,13 @@ def testFeatureMap():
     assert fm.size() == 0
 
     fm2.updateRanges()
+
+    assert isinstance(fm2.getMin()[0], float)
+    assert isinstance(fm2.getMin()[1], float)
+    assert isinstance(fm2.getMax()[0], float)
+    assert isinstance(fm2.getMax()[1], float)
+    assert isinstance(fm2.getMinInt(), float)
+    assert isinstance(fm2.getMaxInt(), float)
 
     assert fm2.getProteinIdentifications() == []
     fm2.setProteinIdentifications([])
@@ -2529,6 +2626,13 @@ def testMSExperiment():
     assert isinstance(mse.getMaxMZ(), float)
     assert isinstance(mse.getMinMZ(), float)
     assert isinstance(mse.getLoadedFilePath(), str)
+    assert isinstance(mse.getMinInt(), float)
+    assert isinstance(mse.getMaxInt(), float)
+
+    assert isinstance(mse.getMin()[0], float)
+    assert isinstance(mse.getMin()[1], float)
+    assert isinstance(mse.getMax()[0], float)
+    assert isinstance(mse.getMax()[1], float)
     mse.setLoadedFilePath("")
     assert mse.size() == 0
 
@@ -2670,6 +2774,11 @@ def testMSSpectrum():
 
     spec.updateRanges()
     assert isinstance(spec.findNearest(0.0), int)
+
+    assert isinstance(spec.getMin()[0], float)
+    assert isinstance(spec.getMax()[0], float)
+    assert isinstance(spec.getMinInt(), float)
+    assert isinstance(spec.getMaxInt(), float)
 
     assert spec == spec
     assert not spec != spec

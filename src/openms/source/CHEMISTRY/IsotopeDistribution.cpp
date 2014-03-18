@@ -36,6 +36,7 @@
 #include <iostream>
 #include <cstdlib>
 #include <algorithm>
+#include <limits>
 
 #include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
 #include <OpenMS/CHEMISTRY/ElementDB.h>

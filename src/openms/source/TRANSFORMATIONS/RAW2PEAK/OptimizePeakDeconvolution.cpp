@@ -44,6 +44,11 @@
 #include <limits>
 
 
+#ifdef DEBUG_DECONV
+#include <iostream>
+#include <fstream>
+#endif
+
 namespace OpenMS
 {
 

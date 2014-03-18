@@ -39,6 +39,7 @@
 #include <numeric>
 #include <cstdlib>
 #include <boost/math/distributions.hpp>
+#include <iostream>
 
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>

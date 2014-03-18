@@ -111,7 +111,7 @@ START_SECTION((void store(const String& filename, const Param& param) const))
 	TEST_EQUAL(p3.getSectionDescription("test2:a"),"adesc")
 	TEST_EQUAL(p3.hasTag("test2:b:b1","advanced"),true)
 	TEST_EQUAL(p3.hasTag("test2:a:a1","advanced"),false)
-	TEST_EQUAL(ParamXMLFile().isValid(filename),true)
+	TEST_EQUAL(ParamXMLFile().isValid(filename, std::cerr),true)
 
 	//advanced
 	NEW_TMP_FILE(filename);
@@ -120,7 +120,7 @@ START_SECTION((void store(const String& filename, const Param& param) const))
 	p7.setValue("false",5,"");
 
 	paramFile.store(filename,p7);
-	TEST_EQUAL(ParamXMLFile().isValid(filename),true)
+	TEST_EQUAL(ParamXMLFile().isValid(filename, std::cerr),true)
 	Param p8;
 	paramFile.load(filename,p8);
 
@@ -184,7 +184,7 @@ START_SECTION((void store(const String& filename, const Param& param) const))
 
 
 	paramFile.store(filename,p5);
-	TEST_EQUAL(paramFile.isValid(filename),true)
+	TEST_EQUAL(paramFile.isValid(filename, std::cerr),true)
 	Param p6;
 	paramFile.load(filename,p6);
 
@@ -240,7 +240,7 @@ START_SECTION((void store(const String& filename, const Param& param) const))
 	NEW_TMP_FILE(filename);
 	Param p4;
 	paramFile.store(filename,p4);
-	TEST_EQUAL(paramFile.isValid(filename),true)
+	TEST_EQUAL(paramFile.isValid(filename, std::cerr),true)
 END_SECTION
 
 START_SECTION((void writeXMLToStream(std::ostream *os_ptr, const Param &param) const ))

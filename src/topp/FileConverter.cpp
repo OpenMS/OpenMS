@@ -39,6 +39,7 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
+#include <OpenMS/FORMAT/IBSpectraFile.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
@@ -71,20 +72,20 @@ using namespace std;
   </table>
   </CENTER>
 
-  The main use of this tool is to convert data from external sources to the formats used by OpenMS/TOPP. 
-  Maybe most importantly, data from MS experiments in a number of different formats can be converted to mzML, 
-  the canonical file format used by OpenMS/TOPP for experimental data. (mzML is the PSI approved format and 
+  The main use of this tool is to convert data from external sources to the formats used by OpenMS/TOPP.
+  Maybe most importantly, data from MS experiments in a number of different formats can be converted to mzML,
+  the canonical file format used by OpenMS/TOPP for experimental data. (mzML is the PSI approved format and
   supports traceability of analysis steps.)
 
   Many different format conversions are supported, and some may be more useful than others. Depending on the
-  file formats involved, information can be lost during conversion, e.g. when converting	featureXML to mzData. 
+  file formats involved, information can be lost during conversion, e.g. when converting	featureXML to mzData.
   In such cases a warning is shown.
 
-  The input and output file types are determined from	the file extensions or from the first few lines of the 
+  The input and output file types are determined from	the file extensions or from the first few lines of the
   files. If file type determination is not possible, the input or output file type has to be given explicitly.
 
   Conversion with the same output as input format is supported. In some cases, this can be helpful to remove
-  errors from files, to update file formats to new versions, or to check whether information is lost upon 
+  errors from files, to update file formats to new versions, or to check whether information is lost upon
   reading or writing.
 
   Some information about the supported input types:
@@ -128,16 +129,20 @@ protected:
 
   void registerOptionsAndFlags_()
   {
-    registerInputFile_("in", "<file>", "", "input file ");
-    registerStringOption_("in_type", "<type>", "", "input file type -- default: determined from file extension or content\n", false);
+    registerInputFile_("in", "<file>", "", "Input file to convert.");
+    registerStringOption_("in_type", "<type>", "", "Input file type -- default: determined from file extension or content\n", false);
     String formats("mzData,mzXML,mzML,dta,dta2d,mgf,featureXML,consensusXML,ms2,fid,tsv,peplist,kroenik,edta");
     setValidFormats_("in", ListUtils::create<String>(formats));
     setValidStrings_("in_type", ListUtils::create<String>(formats));
+    
+    registerStringOption_("UID_postprocessing", "<method>", "ensure", "unique id post-processing for output data.\n none keeps current ids even if invalid.\n ensure keeps current ids but reassigns invalid ones.\n reassign assigns new unique ids.", false);
+    String method("none,ensure,reassign");
+    setValidStrings_("UID_postprocessing", ListUtils::create<String>(method));
 
-    formats = "mzData,mzXML,mzML,dta2d,mgf,featureXML,consensusXML,edta";
-    registerOutputFile_("out", "<file>", "", "output file ");
+    formats = "mzData,mzXML,mzML,dta2d,mgf,featureXML,consensusXML,edta,csv";
+    registerOutputFile_("out", "<file>", "", "Output file");
     setValidFormats_("out", ListUtils::create<String>(formats));
-    registerStringOption_("out_type", "<type>", "", "output file type -- default: determined from file extension or content\n", false);
+    registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content\nNote: that not all conversion paths work or make sense.", false);
     setValidStrings_("out_type", ListUtils::create<String>(formats));
     registerFlag_("TIC_DTA2D", "Export the TIC instead of the entire experiment in mzML/mzData/mzXML -> DTA2D conversions.", true);
   }
@@ -187,6 +192,7 @@ protected:
 
     writeDebug_(String("Output file type: ") + FileTypes::typeToName(out_type), 1);
 
+    String uid_postprocessing = getStringOption_("UID_postprocessing");
     //-------------------------------------------------------------
     // reading input
     //-------------------------------------------------------------
@@ -317,7 +323,13 @@ protected:
       if ((in_type == FileTypes::FEATUREXML) || (in_type == FileTypes::TSV) ||
           (in_type == FileTypes::PEPLIST) || (in_type == FileTypes::KROENIK))
       {
-        fm.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+        if (uid_postprocessing == "ensure")
+        {
+          fm.applyMemberFunction(&UniqueIdInterface::ensureUniqueId);
+        } else if (uid_postprocessing == "reassign")
+        {
+          fm.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+        }
       }
       else if (in_type == FileTypes::CONSENSUSXML || in_type == FileTypes::EDTA)
       {
@@ -363,7 +375,13 @@ protected:
       if ((in_type == FileTypes::FEATUREXML) || (in_type == FileTypes::TSV) ||
           (in_type == FileTypes::PEPLIST) || (in_type == FileTypes::KROENIK))
       {
-        fm.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+        if (uid_postprocessing == "ensure")
+        {
+          fm.applyMemberFunction(&UniqueIdInterface::ensureUniqueId);
+        } else if (uid_postprocessing == "reassign")
+        {
+          fm.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+        }
         ConsensusMap::convert(0, fm, cm);
       }
       // nothing to do for consensus input
@@ -388,6 +406,23 @@ protected:
       }
       if (fm.size() > 0) EDTAFile().store(out, fm);
       else if (cm.size() > 0) EDTAFile().store(out, cm);
+    }
+    else if (out_type == FileTypes::CSV)
+    {
+      // as ibspectra is currently the only csv/text based format we assume
+      // that out_type == FileTypes::CSV means ibspectra, if more formats
+      // are added we need a more intelligent strategy to decide which
+      // conversion is requested
+
+      // IBSpectra selected as output type
+      if (in_type != FileTypes::CONSENSUSXML)
+      {
+        LOG_ERROR << "Incompatible input data: FileConverter can only convert consensusXML files to ibspectra format.";
+        return INCOMPATIBLE_INPUT_DATA;
+      }
+
+      IBSpectraFile ibfile;
+      ibfile.store(out, cm);
     }
     else
     {

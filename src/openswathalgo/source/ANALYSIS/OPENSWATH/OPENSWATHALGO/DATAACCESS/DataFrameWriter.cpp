@@ -34,6 +34,9 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/DataFrameWriter.h>
 
+#include <iostream>
+#include <iomanip>
+
 namespace OpenSwath
 {
 

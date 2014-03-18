@@ -1405,35 +1405,44 @@ START_SECTION((void setMaxFloat(const String &key, DoubleReal max)))
   TEST_EXCEPTION(Exception::ElementNotFound, d.setMaxFloat("dummy",4.5))
 END_SECTION
 
+// warnings for unknown parameters
+// keep outside the scope of a single test to avoid destruction, leaving
+// Log_warn in an undefined state
+ostringstream os;
+// checkDefaults sends its warnings to LOG_WARN so we register our own
+// listener here to check the output
+Log_warn.remove(cout);
+Log_warn.insert(os);
 
-START_SECTION((void checkDefaults(const String &name, const Param &defaults, const String& prefix="", std::ostream &os=std::cout) const))
-	//warnings for unknown parameters
-	ostringstream os;
+START_SECTION((void checkDefaults(const String &name, const Param &defaults, const String& prefix="") const))
 	Param p,d;
 	p.setValue("string",String("bla"),"string");
 	p.setValue("int",5,"int");
 	p.setValue("double",47.11,"double");
 
-	p.checkDefaults("Test",d,"",os);
-	TEST_EQUAL(os.str()=="",false);
+	p.checkDefaults("Test",d,"");
+	TEST_EQUAL(os.str()=="",false)
 
 	d.setValue("int",5,"int");
 	d.setValue("double",47.11,"double");
 	os.str("");
-	p.checkDefaults("Test",d,"",os);
-	TEST_EQUAL(os.str()=="",false);
+  os.clear();
+	p.checkDefaults("Test",d,"");
+	TEST_EQUAL(os.str()=="",false)
 
 	p.clear();
 	p.setValue("pref:string",String("bla"),"pref:string");
 	p.setValue("pref:int",5,"pref:int");
 	p.setValue("pref:double",47.11,"pref:double");
 	os.str("");
-	p.checkDefaults("Test",d,"pref",os);
-	TEST_EQUAL(os.str()=="",false);
+  os.clear();
+	p.checkDefaults("Test",d,"pref");
+	TEST_EQUAL(os.str()=="",false)
 
 	os.str("");
-	p.checkDefaults("Test",d,"pref:",os);
-	TEST_EQUAL(os.str()=="",false);
+  os.clear();
+	p.checkDefaults("Test2",d,"pref:");
+	TEST_EQUAL(os.str()=="",false)
 
 	//check string restrictions
 	vector<String> s_rest;
@@ -1444,53 +1453,53 @@ START_SECTION((void checkDefaults(const String &name, const Param &defaults, con
 	d.setValidStrings("stringv", s_rest);
 	p.clear();
 	p.setValue("stringv","a");
-	p.checkDefaults("Param_test",d,"",os);
+	p.checkDefaults("Param_test",d,"");
 	p.setValue("stringv","d");
-	TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,"",os))
+	TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,""))
 
 	//check int restrictions
 	d.setValue("intv",4,"desc");
 	d.setMinInt("intv",-4);
 	p.clear();
 	p.setValue("intv",-4);
-	p.checkDefaults("Param_test",d,"",os);
+	p.checkDefaults("Param_test",d,"");
 	p.setValue("intv",700);
-	p.checkDefaults("Param_test",d,"",os);
+	p.checkDefaults("Param_test",d,"");
 	p.setValue("intv",-5);
-	TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,"",os));
+	TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,""))
 
 	d.setValue("intv2",4,"desc");
 	d.setMaxInt("intv2",4);
 	p.clear();
 	p.setValue("intv2",4);
-	p.checkDefaults("Param_test",d,"",os);
+	p.checkDefaults("Param_test",d,"");
 	p.setValue("intv2",-700);
-	p.checkDefaults("Param_test",d,"",os);
+	p.checkDefaults("Param_test",d,"");
 	p.setValue("intv2",5);
-	TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,"",os));
+	TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,""))
 
 	//check double restrictions
 	d.setValue("doublev",4.0,"desc");
 	d.setMinFloat("doublev",-4.0);
 	p.clear();
 	p.setValue("doublev",-4.0);
-	p.checkDefaults("Param_test",d,"",os);
+	p.checkDefaults("Param_test",d,"");
 	p.setValue("doublev",0.0);
-	p.checkDefaults("Param_test",d,"",os);
+	p.checkDefaults("Param_test",d,"");
 	p.setValue("doublev",7.0);
-	p.checkDefaults("Param_test",d,"",os);
+	p.checkDefaults("Param_test",d,"");
 	p.setValue("doublev",-4.1);
-	TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,"",os));
+	TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,""))
 
 	d.setValue("doublev2",4.0,"desc");
 	d.setMaxFloat("doublev2",4.0);
 	p.clear();
 	p.setValue("doublev2",4.0);
-	p.checkDefaults("Param_test",d,"",os);
+	p.checkDefaults("Param_test",d,"");
 	p.setValue("doublev2",-700.0);
-	p.checkDefaults("Param_test",d,"",os);
+	p.checkDefaults("Param_test",d,"");
 	p.setValue("doublev2",4.1);
-	TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,"",os));
+	TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,""))
 
 	//check list restrictions
 	vector<String> s_rest1;
@@ -1501,24 +1510,30 @@ START_SECTION((void checkDefaults(const String &name, const Param &defaults, con
 	d.setValidStrings("stringlist", s_rest);
 	p.clear();
 	p.setValue("stringlist",ListUtils::create<String>("a,c"));
-	p.checkDefaults("Param_test",d,"",os);
+	p.checkDefaults("Param_test",d,"");
 	p.setValue("stringlist",ListUtils::create<String>("aa,dd,cc"));
-	TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,"",os))
+	TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,""))
 
 
 	//wrong type
 	p.clear();
 	p.setValue("doublev",4);
-	TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,"",os));
+	TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,""))
 	p.clear();
 	p.setValue("intv","bla");
-	TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,"",os));
+	TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,""))
 	p.clear();
 	p.setValue("stringv",4.5);
-	TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,"",os));
+	TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,""))
 END_SECTION
 
-START_SECTION((void update(const Param& old_version, const bool add_unknown = false, Logger::LogStream& stream = LOG_WARN)))
+START_SECTION((void update(const Param& old_version, const bool add_unknown = false)))
+{
+  NOT_TESTABLE // see full implementation below
+}
+END_SECTION
+
+START_SECTION((void update(const Param& old_version, const bool add_unknown, Logger::LogStream& stream)))
 	Param common;
 	common.setValue("float",1.0f,"float");
 	common.setValue("float2",2.0f,"float2");

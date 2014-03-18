@@ -46,7 +46,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 include(${CMAKE_CURRENT_LIST_DIR}/executables.cmake)
 
 # add OpenMS includes
-include_directories(${OPENMS_INCLUDE_DIRECTORIES})
+include_directories(SYSTEM ${OpenMS_INCLUDE_DIRECTORIES})
 
 # add the targets
 foreach(i ${EXAMPLES_executables})
@@ -61,7 +61,7 @@ foreach(i ${EXAMPLES_executables})
 endforeach(i)
 
 # add OpenMS GUI includes
-include_directories(${OPENMS_GUI_INCLUDE_DIRECTORIES})
+include_directories(SYSTEM ${OpenMS_GUI_INCLUDE_DIRECTORIES})
 
 # add the GUI tutorials -- no tests
 foreach(i ${GUI_EXAMPLES_executables})

@@ -94,7 +94,7 @@ public:
     }
 
     /// Destructor
-    ~UniqueIdInterface()
+    virtual ~UniqueIdInterface()
     {
     }
 

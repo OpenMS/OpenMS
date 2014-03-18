@@ -36,38 +36,40 @@
 #define OPENMS_CONCEPT_UNIQUEIDGENERATOR_H
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/DATASTRUCTURES/Param.h>
+
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/variate_generator.hpp>
 #include <boost/random/uniform_int.hpp>
 
+
 namespace OpenMS
 {
 
-/**
- @brief  A generator for unique ids.
+  class DateTime;
 
- The unique ids are 64-bit random unsigned random integers.
- The class is implemented as a singleton.
- The random generator is implemented using boost::random.
+  /**
+    @brief  A generator for unique ids.
 
- @ingroup Concept
- */
+    The unique ids are 64-bit random unsigned random integers.
+    The class is implemented as a singleton.
+    The random generator is implemented using boost::random.
+
+    @ingroup Concept
+  */
   class OPENMS_DLLAPI UniqueIdGenerator
   {
 
 public:
 
     /// Returns a new unique id
-    static UInt64
-    getUniqueId();
+    static UInt64 getUniqueId();
 
     /// Initializes random generator using the given value.
-    static void
-    setSeed(UInt64 seed);
+    static void setSeed(const UInt64);
 
     /// Get the seed
-    static UInt64
-    getSeed();
+    static UInt64 getSeed();
 
 protected:
     UniqueIdGenerator();

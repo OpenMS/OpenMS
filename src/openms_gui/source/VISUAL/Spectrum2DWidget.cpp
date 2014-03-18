@@ -67,19 +67,18 @@ namespace OpenMS
     grid_->setColumnStretch(2, 3);
     grid_->setRowStretch(1, 3);
 
-    SpectrumCanvas::ExperimentType* dummy = new SpectrumCanvas::ExperimentType();
+    SpectrumCanvas::ExperimentSharedPtrType shr_ptr = SpectrumCanvas::ExperimentSharedPtrType(new SpectrumCanvas::ExperimentType());
     MSSpectrum<> dummy_spec;
     dummy_spec.push_back(Peak1D());
-    dummy->addSpectrum(dummy_spec);
-    SpectrumCanvas::ExperimentSharedPtrType* shr_ptr = new SpectrumCanvas::ExperimentSharedPtrType(dummy);
+    shr_ptr->addSpectrum(dummy_spec);
 
     projection_vert_ = new  Spectrum1DWidget(Param(), this);
     projection_vert_->hide();
-    projection_vert_->canvas()->addLayer(*shr_ptr);
+    projection_vert_->canvas()->addLayer(shr_ptr);
     grid_->addWidget(projection_vert_, 1, 3, 2, 1);
 
     projection_horz_ = new Spectrum1DWidget(Param(), this);
-    projection_horz_->canvas()->addLayer(*shr_ptr);
+    projection_horz_->canvas()->addLayer(shr_ptr);
     projection_horz_->hide();
     grid_->addWidget(projection_horz_, 0, 1, 1, 2);
 
@@ -378,8 +377,8 @@ namespace OpenMS
     projection_vert_->canvas()->setDrawMode(mode);
     projection_vert_->canvas()->setIntensityMode(intensity);
     grid_->setRowStretch(0, 2);
-    projection_vert_->show();
     projection_box_->show();
+    projection_vert_->show();
   }
 
   const Spectrum1DWidget * Spectrum2DWidget::getHorizontalProjection() const
@@ -398,6 +397,7 @@ namespace OpenMS
     //set range
     const DRange<2> & area = canvas()->getVisibleArea();
     goto_dialog.setRange(area.minY(), area.maxY(), area.minX(), area.maxX());
+    goto_dialog.setMinMaxOfRange(canvas()->getDataRange().minY(), canvas()->getDataRange().maxY(), canvas()->getDataRange().minX(), canvas()->getDataRange().maxX());
     // feature numbers only for consensus&feature maps
     goto_dialog.enableFeatureNumber(canvas()->getCurrentLayer().type == LayerData::DT_FEATURE || canvas()->getCurrentLayer().type == LayerData::DT_CONSENSUS);
     //execute
@@ -406,7 +406,10 @@ namespace OpenMS
       if (goto_dialog.showRange())
       {
         goto_dialog.fixRange();
-        canvas()->setVisibleArea(SpectrumCanvas::AreaType(goto_dialog.getMinMZ(), goto_dialog.getMinRT(), goto_dialog.getMaxMZ(), goto_dialog.getMaxRT()));
+        SpectrumCanvas::AreaType area (goto_dialog.getMinMZ(), goto_dialog.getMinRT(), goto_dialog.getMaxMZ(), goto_dialog.getMaxRT());
+        if(goto_dialog.clip_checkbox->checkState() == Qt::Checked)
+          correctAreaToObeyMinMaxRanges_(area);
+        canvas()->setVisibleArea(area);
       }
       else
       {

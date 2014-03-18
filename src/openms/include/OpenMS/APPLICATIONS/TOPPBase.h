@@ -37,7 +37,6 @@
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/GlobalExceptionHandler.h>
-#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 
@@ -54,9 +53,7 @@
 #include <OpenMS/APPLICATIONS/ParameterInformation.h>
 #include <OpenMS/APPLICATIONS/ToolHandler.h>
 
-#include <iostream>
 #include <fstream>
-#include <limits>
 
 class QStringList;
 
@@ -838,12 +835,10 @@ protected:
       {
         map[i].getDataProcessing().push_back(dp);
       }
-      std::vector<MSChromatogram<CT> > chromatograms = map.getChromatograms();
-      for (Size i = 0; i < chromatograms.size(); ++i)
+      for (Size i = 0; i < map.getNrChromatograms(); ++i)
       {
-        chromatograms[i].getDataProcessing().push_back(dp);
+        map.getChromatogram(i).getDataProcessing().push_back(dp);
       }
-      map.setChromatograms(chromatograms);
     }
 
     ///Returns the data processing information

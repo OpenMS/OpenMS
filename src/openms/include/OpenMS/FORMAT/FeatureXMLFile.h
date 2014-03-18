@@ -41,7 +41,7 @@
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
-#include <iostream>
+#include <iosfwd>
 
 namespace OpenMS
 {

@@ -35,6 +35,8 @@
 
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 
+#include <iostream>
+
 using namespace std;
 
 namespace OpenMS

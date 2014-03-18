@@ -37,7 +37,6 @@
 
 #include <vector>
 #include <algorithm>
-#include <ostream>
 #include <iterator>
 
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -81,7 +80,7 @@ namespace OpenMS
   {
 private:
     /**
-      @brief Predicate that to check double equality with a given tolerance.
+      @brief Predicate to check double equality with a given tolerance.
     */
     struct DoubleTolerancePredicate_
     {
@@ -192,41 +191,6 @@ public:
 
   };
 
-  /**
-    @brief Output stream operator for std::vectors.
-
-    @param os The target stream.
-    @param v The vector to write to stream.
-  */
-  template <typename T>
-  inline std::ostream& operator<<(std::ostream& os, const std::vector<T>& v)
-  {
-    // handle precision settings
-    const std::streamsize prec_save = os.precision();
-    os << std::setprecision(writtenDigits(T()));
-
-    os << "[";
-
-    if (!v.empty())
-    {
-      std::copy(v.begin(), v.end() - 1, std::ostream_iterator<T>(os, ", "));
-      os << v.back();
-    }
-
-    os << "]";
-    // set precision settings back to original values
-    os << std::setprecision(prec_save);
-    return os;
-  }
-
-  /// Operator for appending entries with less code
-  template <typename TString>
-  inline std::vector<String>& operator<<(std::vector<String>& sl, const TString& string)
-  {
-    sl.push_back(string);
-    return sl;
-  }
-
   template <typename T>
   inline std::vector<T> ListUtils::create(const std::vector<String>& s)
   {
@@ -243,7 +207,7 @@ public:
         throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Could not convert string '") + *it + "'");
       }
     }
-    
+
     return c;
   }
 

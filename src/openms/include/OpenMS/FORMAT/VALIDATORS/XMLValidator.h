@@ -39,14 +39,16 @@
 
 #include <xercesc/sax/ErrorHandler.hpp>
 
+#include <iostream>
+
 namespace OpenMS
 {
   /**
-      @brief Validator for XML files.
+    @brief Validator for XML files.
 
-      Validates an XML file against a given schema.
+    Validates an XML file against a given schema.
 
-  @ingroup FileIO
+    @ingroup FileIO
   */
   class OPENMS_DLLAPI XMLValidator :
     private xercesc::ErrorHandler
@@ -58,12 +60,16 @@ public:
     /**
       @brief Returns if an XML file is valid for given a schema file
 
-        Error messages are printed to the error stream, unless redirected with the attribute @p os .
+      Error messages are printed to the error stream, unless redirected with the attribute @p os .
+
+      @param filename The file to validated.
+      @param schema The filename of the schema that should be used for validation.
+      @param os The stream where error messages should be send to.
 
       @exception Exception::FileNotFound is thrown if the file cannot be found
       @exception Exception::ParseError is thrown if the parser could not be initialized
     */
-    bool isValid(const String & filename, const String & schema, std::ostream & os = std::cerr);
+    bool isValid(const String& filename, const String& schema, std::ostream& os = std::cerr);
 
 protected:
     /// Flag if the validated file is valid
@@ -71,13 +77,13 @@ protected:
     /// File name of validated file (for error messages)
     String filename_;
     //output stream reference (for error messages)
-    std::ostream * os_;
+    std::ostream* os_;
 
     /// @name Implementation of Xerces ErrorHandler methods
     //@{
-    virtual void warning(const xercesc::SAXParseException & exception);
-    virtual void error(const xercesc::SAXParseException & exception);
-    virtual void fatalError(const xercesc::SAXParseException & exception);
+    virtual void warning(const xercesc::SAXParseException& exception);
+    virtual void error(const xercesc::SAXParseException& exception);
+    virtual void fatalError(const xercesc::SAXParseException& exception);
     virtual void resetErrors();
     //@}
   };

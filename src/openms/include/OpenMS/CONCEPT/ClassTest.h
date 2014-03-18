@@ -42,6 +42,7 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
+#include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <vector>

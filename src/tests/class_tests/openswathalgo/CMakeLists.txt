@@ -37,7 +37,7 @@ project("OpenMS_class_tests_openswathalgo")
 
 # --------------------------------------------------------------------------
 # add include directories
-include_directories(${OPENMS_INCLUDE_DIRECTORIES})
+include_directories(SYSTEM ${OpenMS_INCLUDE_DIRECTORIES})
 
 # --------------------------------------------------------------------------
 # list of available tests

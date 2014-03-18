@@ -52,13 +52,13 @@ namespace Interfaces
       interface may be used when data is generated sequentially (e.g. by
       reading from disc) and needs to be processed as fast as possible without
       ever holding the full set of data in memory.
-      
+
       The consumer expects to be informed about the number of spectra and
       chromatograms to consume and potentially about the ExperimentalSettings
       @a before_consuming any spectra. This can be critical for consumers who
       write data to disk. Depending on the implementation, an exception may
       occur if the ExperimentalSettings and the size of the experiment are not
-      set before consuming any spectra. 
+      set before consuming any spectra.
 
       @note The member functions setExpectedSize and setExperimentalSettings
       are expected to be called before consuming starts.
@@ -71,7 +71,7 @@ namespace Interfaces
       typedef typename MapType::SpectrumType SpectrumType;
       typedef typename MapType::ChromatogramType ChromatogramType;
 
-      virtual ~IMSDataConsumer() {};
+      virtual ~IMSDataConsumer() {}
 
       /**
         @brief Consume a spectrum
@@ -96,8 +96,8 @@ namespace Interfaces
 
         Some implementations might care about the the number of spectra and
         chromatograms to be consumed and need to be informed about this
-        (usually before consuming starts). 
-        
+        (usually before consuming starts).
+
         @note Calling this method is optional but good practice.
 
         @param expectedSpectra Number of spectra expected

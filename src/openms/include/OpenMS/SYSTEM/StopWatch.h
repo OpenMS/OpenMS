@@ -48,8 +48,6 @@
 #include <ctime>
 #endif
 
-#include <iostream>
-
 namespace OpenMS
 {
   /**

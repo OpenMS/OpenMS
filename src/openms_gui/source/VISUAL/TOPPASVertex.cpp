@@ -38,6 +38,8 @@
 
 #include <OpenMS/CONCEPT/Exception.h>
 
+#include <iostream>
+
 namespace OpenMS
 {
 #ifdef TOPPAS_DEBUG
@@ -487,7 +489,7 @@ namespace OpenMS
   void TOPPASVertex::setRecycling(const bool is_enabled)
   {
     if (allow_output_recycling_ == is_enabled) return; // nothing changed
-    
+
     invertRecylingMode();
   }
 

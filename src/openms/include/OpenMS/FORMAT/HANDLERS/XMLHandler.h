@@ -35,7 +35,7 @@
 #ifndef OPENMS_FORMAT_HANDLERS_XMLHANDLER_H
 #define OPENMS_FORMAT_HANDLERS_XMLHANDLER_H
 
-#include <iostream>
+#include <iosfwd>
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Macros.h>
@@ -154,9 +154,7 @@ public:
       virtual void endElement(const XMLCh * const uri, const XMLCh * const localname, const XMLCh * const qname);
 
       /// Writes the contents to a stream.
-      virtual void writeTo(std::ostream & /*os*/)
-      {
-      }
+      virtual void writeTo(std::ostream & /*os*/);
 
       /// Returns the last error description
       String errorString();

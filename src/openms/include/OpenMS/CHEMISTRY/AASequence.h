@@ -40,14 +40,17 @@
 #include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
-#include <OpenMS/CHEMISTRY/ResidueModification.h>
 
 #include <vector>
-#include <iostream>
+#include <iosfwd>
 
 namespace OpenMS
 {
+
+  //forward declarations
   class ResidueDB;
+  class ResidueModification;
+
   /**
       @brief Representation of a peptide/protein sequence
 
@@ -63,17 +66,22 @@ namespace OpenMS
       AASequence seq("DFPIANGER") is sufficient to create a instance of AASequence with DFPIANGER as peptide.
 
       Modifications are specified using a unique string identifier present in the ModificationsDB in brackets
-      after the modified amino acid. For example AASequence seq("DFPIAM(Oxidation)GER") creates an instance
-      of the peptide DFPIAMGER with an oxidized methionine. N-terminal modifications are specified by writing
-      the modification as prefix to the sequence. C-terminal modifications are specified by writing the
-      modification as suffix. C-terminal modifications are distinguished from modifications of the last amino
+      after the modified amino acid or by providing the mass of the residue in square brackets. For example 
+      AASequence("DFPIAM(Oxidation)GER") creates an instance of the peptide DFPIAMGER with an oxidized methionine 
+      (AASequence("DFPIAM[+16]GER") and AASequence("DFPIAM[147]GER") are equivalent). N-terminal modifications 
+      are specified by writing the modification as prefix to the sequence. C-terminal modifications are specified by 
+      writing the modification as suffix. C-terminal modifications are distinguished from modifications of the last amino
       acid by considering the specificity of the modification as stored in ModificationsDB.
 
-      Arbitrary/unknown AA's (usually due to an unknown modification) can be specified using tags: '[weight]'.
-      This indicates a new AA with the specified weight, e.g. R[148.5]T. Note that this tag does not alter the AA's to the left or right.
-      It represents an AA on its own.
+      Note there is a subtle difference between AASequence("DFPIAM[+16]GER") and AASequence("DFPIAM[+15.9949]GER") - while 
+      the former will try to find the _first_ modification matching to a mass difference of 16 +/- 0.5, the latter will 
+      try to find the closest matching modification to the exact mass. This usually gives the intended results.
+
+      Arbitrary/unknown AA's (usually due to an unknown modification) can be specified using tags preceded by X: 'X[weight]'.
+      This indicates a new AA ("X") with the specified weight, e.g. RX[148.5]T. Note that this tag does not alter the 
+      AA's to the left (R) or right (T).  Rather, X represents an AA on its own.
       Be careful when converting AASequence to an EmpiricalFormula using .getFormula(), as tags will not be considered
-      in this case. However, they have an influence on .getMonoWeight() and .getAverageWeight()!
+      in this case (there exists no formula for them). However, they have an influence on .getMonoWeight() and .getAverageWeight()!
 
       If a string cannot be converted into a valid instance of AASequence, the valid flag is false. The flag
       can be read using the isValid() predicate. However, instances of AASequence which are not valid report

@@ -45,7 +45,6 @@
 
 #include <algorithm>
 #include <limits>
-#include <iostream>
 
 namespace OpenMS
 {

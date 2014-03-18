@@ -20,7 +20,7 @@ cdef extern from "<OpenMS/ANALYSIS/PIP/LocalLinearMap.h>" namespace "OpenMS":
 cdef extern from "<OpenMS/ANALYSIS/PIP/LocalLinearMap.h>" namespace "OpenMS::LocalLinearMap":
     
     cdef cppclass LLMParam "OpenMS::LocalLinearMap::LLMParam":
-        LLMParam()
+        LLMParam() nogil except +
         LLMParam(LLMParam) nogil except + #wrap-ignore
         UInt xdim
         UInt ydim

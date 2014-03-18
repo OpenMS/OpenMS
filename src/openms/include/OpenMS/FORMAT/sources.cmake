@@ -25,6 +25,7 @@ set(sources_list_h
 Base64.h
 Bzip2Ifstream.h
 Bzip2InputStream.h
+CachedMzML.h
 CompressedInputSource.h
 CVMappingFile.h
 ConsensusXMLFile.h
@@ -40,6 +41,7 @@ FeatureXMLFile.h
 FileHandler.h
 GzipIfstream.h
 GzipInputStream.h
+IBSpectraFile.h
 IdXMLFile.h
 IndexedMzMLFile.h
 IndexedMzMLFileLoader.h

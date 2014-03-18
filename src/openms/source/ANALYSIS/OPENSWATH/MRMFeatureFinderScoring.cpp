@@ -263,6 +263,7 @@ namespace OpenMS
       {
         LOG_ERROR << "Error: Transition group " << transition_group.getTransitionGroupID() 
           << " has only one chromatogram." << std::endl;
+        delete imrmfeature; // free resources before continuing
         continue;
       }
 

@@ -97,68 +97,26 @@ public:
       exp.reset();
 
       std::ifstream is(filename.c_str());
-      bool has_next(true);
+      // get size of file
+      is.seekg(0, std::ios::end);
+      startProgress(0, is.tellg(), "loading MGF");
+      is.seekg(0, std::ios::beg);
+
       UInt spectrum_number(0);
-#ifdef _OPENMP
-#pragma omp parallel
-#endif
+      Size line_number(0); // carry line number for error messages within getNextSpectrum()
+
+      typename MapType::SpectrumType spectrum;
+      spectrum.setMSLevel(2);
+      spectrum.getPrecursors().resize(1);
+      while (getNextSpectrum_(is, spectrum, line_number, spectrum_number))
       {
-        std::vector<std::pair<String, String> > spec;
-        UInt charge(0);
-        double pre_mz(0), pre_int(0), rt(-1);
-        String title;
-        Size line_number(0);
+        exp.addSpectrum(spectrum);
+        setProgress(is.tellg());
+        ++spectrum_number;
+      } // next spectrum
 
-        typename MapType::SpectrumType spectrum;
-        spectrum.setMSLevel(2);
-        spectrum.getPrecursors().resize(1);
-        typename MapType::PeakType p;
-        UInt thread_spectrum_number(-1);
-        while (has_next)
-        {
-#ifdef _OPENMP
-#pragma omp critical
-#endif
-          {
-            has_next = getNextSpectrum_(is, spec, charge, pre_mz, pre_int, rt, title, line_number);
-            ++spectrum_number;
-            thread_spectrum_number = spectrum_number;
-          }
-          if (!has_next) break;
-          spectrum.resize(spec.size());
 
-          for (Size i = 0; i < spec.size(); ++i)
-          {
-            p.setPosition(spec[i].first.toDouble()); // toDouble() is expensive (nothing can be done about this - boost::lexical_cast does not help), that's why we do it in threads
-            p.setIntensity(spec[i].second.toDouble());
-            spectrum[i] = p;
-          }
-          spectrum.getPrecursors()[0].setMZ(pre_mz);
-          spectrum.getPrecursors()[0].setIntensity(pre_int);
-          spectrum.getPrecursors()[0].setCharge(charge);
-          spectrum.setRT(rt);
-          if (title != "")
-          {
-            spectrum.setMetaValue("TITLE", title);
-          }
-          else
-          {
-            spectrum.removeMetaValue("TITLE");
-          }
-
-          spectrum.setNativeID(String("index=") + (thread_spectrum_number));
-#ifdef _OPENMP
-#pragma omp critical
-#endif
-          {
-            exp.addSpectrum(spectrum);
-          }
-        } // next spectrum
-      } // OMP parallel
-
-      // order might be random, depending on which thread finished conversion first
-      exp.sortSpectra(true);
-
+      endProgress();
     }
 
     /**
@@ -184,8 +142,156 @@ protected:
     /// writes the MSExperiment
     void writeMSExperiment_(std::ostream& os, const String& filename, const PeakMap& experiment);
 
-    /// reads a spectrum block, the section between 'BEGIN IONS' and 'END IONS' of a mgf file
-    bool getNextSpectrum_(std::istream& is, std::vector<std::pair<String, String> >& spectrum, UInt& charge, double& precursor_mz, double& precursor_int, double& rt, String& title, Size& line_number);
+    /// reads a spectrum block, the section between 'BEGIN IONS' and 'END IONS' of a MGF file
+    template <typename SpectrumType>
+    bool getNextSpectrum_(std::ifstream& is, SpectrumType& spectrum, Size& line_number, const Size& spectrum_number)
+    {
+      spectrum.resize(0);
+
+      spectrum.setNativeID(String("index=") + (spectrum_number));
+      if (spectrum.metaValueExists("TITLE"))
+      {
+        spectrum.removeMetaValue("TITLE");
+      }
+      typename SpectrumType::PeakType p;
+
+      String line;
+      // seek to next peak list block
+      while (getline(is, line, '\n'))
+      {
+        ++line_number;
+
+        line.trim(); // remove whitespaces, line-endings etc
+
+        // found peak list block?
+        if (line == "BEGIN IONS")
+        {
+          while (getline(is, line, '\n'))
+          {
+            ++line_number;
+            line.trim(); // remove whitespaces, line-endings etc
+
+            if (line.empty()) continue;
+
+            if (isdigit(line[0])) // actual data .. this comes first, since its the most common case
+            {
+              std::vector<String> split;
+              do
+              {
+                if (line.empty())
+                {
+                  continue;
+                }
+
+                //line.substitute('\t', ' ');
+                line.split(' ', split);
+                if (split.size() >= 2)
+                {
+                  p.setPosition(split[0].toDouble());
+                  p.setIntensity(split[1].toDouble());
+                  spectrum.push_back(p);
+                }
+                else
+                {
+                  throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "the line (" + line + ") should contain m/z and intensity value separated by whitespace!", "");
+                }
+              }
+              while (getline(is, line, '\n') && ++line_number && line.trim() != "END IONS"); // line.trim() is important here!
+
+              if (line == "END IONS")
+              {
+                return true; // found end of spectrum
+              }
+              else
+              {
+                throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Reached end of file. Found \"BEGIN IONS\" but not the corresponding \"END IONS\"!", "");
+              }
+            }
+            else if (line.hasPrefix("PEPMASS")) // parse precursor position
+            {
+              String tmp = line.substr(8);
+              tmp.substitute('\t', ' ');
+              std::vector<String> split;
+              tmp.split(' ', split);
+              if (split.size() == 1)
+              {
+                spectrum.getPrecursors()[0].setMZ(split[0].trim().toDouble());
+              }
+              else if (split.size() == 2)
+              {
+                spectrum.getPrecursors()[0].setMZ(split[0].trim().toDouble());
+                spectrum.getPrecursors()[0].setIntensity(split[1].trim().toDouble());
+              }
+              else
+              {
+                throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Cannot parse PEPMASS: '" + line + "' in line " + String(line_number) + " (expected 1 or 2 entries, but " + String(split.size()) + " were present!", "");
+              }
+            }
+            else if (line.hasPrefix("CHARGE"))
+            {
+              String tmp = line.substr(7);
+              tmp.remove('+');
+              spectrum.getPrecursors()[0].setCharge(tmp.toInt());
+            }
+            else if (line.hasPrefix("RTINSECONDS"))
+            {
+              String tmp = line.substr(12);
+              spectrum.setRT(tmp.toDouble());
+            }
+            else if (line.hasPrefix("TITLE"))
+            {
+              // test if we have a line like "TITLE= Cmpd 1, +MSn(595.3), 10.9 min"
+              if (line.hasSubstring("min"))
+              {
+                try
+                {
+                  std::vector<String> split;
+                  line.split(',', split);
+                  if (!split.empty())
+                  {
+                    for (Size i = 0; i != split.size(); ++i)
+                    {
+                      if (split[i].hasSubstring("min"))
+                      {
+                        std::vector<String> split2;
+                        split[i].trim().split(' ', split2);
+                        if (!split2.empty())
+                        {
+                          spectrum.setRT(split2[0].trim().toDouble() * 60.0);
+                        }
+                      }
+                    }
+                  }
+                }
+                catch (Exception::BaseException& /*e*/)
+                {
+                  // just do nothing and write the whole title to spec
+                  std::vector<String> split;
+                  line.split('=', split);
+                  if (split.size() >= 2)
+                  {
+                    if (split[1] != "") spectrum.setMetaValue("TITLE", split[1]);
+                  }
+                }
+              }
+              else // just write the title as metainfo to the spectrum
+              {
+                std::vector<String> split;
+                line.split('=', split);
+                if (split.size() == 2)
+                {
+                  if (split[1] != "") spectrum.setMetaValue("TITLE", split[1]);
+                }
+                // TODO concatenate the other parts if the title contains additional '=' chars
+              }
+            }
+          }
+        }
+      }
+
+      return false; // found end of file
+    }
+
   };
 
 } // namespace OpenMS

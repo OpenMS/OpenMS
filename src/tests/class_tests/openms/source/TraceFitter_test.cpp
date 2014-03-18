@@ -81,7 +81,7 @@ public:
         throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
     }
 
-    DoubleReal computeTheoretical(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType>&, Size)
+    DoubleReal getValue(DoubleReal rt) const
     {
         throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
     }
@@ -101,7 +101,7 @@ public:
         throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
     }
 
-    String getGnuplotFormula(FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType> const &, const char, const DoubleReal, const DoubleReal)
+    String getGnuplotFormula(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType>&, const char, const DoubleReal, const DoubleReal)
     {
         throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
     }
@@ -133,14 +133,14 @@ START_SECTION(~TraceFitter())
 }
 END_SECTION
 
-START_SECTION((TraceFitter(const TraceFitter &source)))
+START_SECTION((TraceFitter(const TraceFitter& source)))
 {
   NOT_TESTABLE
   // has no public members to check if copy has same proberties
 }
 END_SECTION
 
-START_SECTION((virtual TraceFitter& operator=(const TraceFitter &source)))
+START_SECTION((virtual TraceFitter& operator=(const TraceFitter& source)))
 {
   NOT_TESTABLE
   // has no public members to check if copy has same proberties
@@ -148,7 +148,7 @@ START_SECTION((virtual TraceFitter& operator=(const TraceFitter &source)))
 END_SECTION
 
 DerivedTraceFitter<Peak1D> trace_fitter;
-START_SECTION((virtual void fit(FeatureFinderAlgorithmPickedHelperStructs::MassTraces< PeakType > &traces)=0))
+START_SECTION((virtual void fit(FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType>& traces)=0))
 {
   FeatureFinderAlgorithmPickedHelperStructs::MassTraces<Peak1D> m;
   TEST_EXCEPTION(Exception::NotImplemented, trace_fitter.fit(m))
@@ -179,15 +179,22 @@ START_SECTION((virtual DoubleReal getCenter() const ))
 }
 END_SECTION
 
-START_SECTION((virtual DoubleReal computeTheoretical(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace< PeakType > &trace, Size k)=0))
+START_SECTION((virtual DoubleReal getValue(DoubleReal rt) const ))
 {
-  FeatureFinderAlgorithmPickedHelperStructs::MassTrace<Peak1D> mt;
-  Size i = 0;
-  TEST_EXCEPTION(Exception::NotImplemented, trace_fitter.computeTheoretical(mt,i))
+  TEST_EXCEPTION(Exception::NotImplemented, trace_fitter.getValue(0.0))
 }
 END_SECTION
 
-START_SECTION((virtual bool checkMinimalRTSpan(const std::pair< DoubleReal, DoubleReal > &rt_bounds, const DoubleReal min_rt_span)=0))
+START_SECTION((DoubleReal computeTheoretical(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType>& trace, Size k)))
+{
+  FeatureFinderAlgorithmPickedHelperStructs::MassTrace<Peak1D> mt;
+  Peak1D p;
+  mt.peaks.push_back(make_pair(1.0, &p));
+  TEST_EXCEPTION(Exception::NotImplemented, trace_fitter.computeTheoretical(mt, 0))
+}
+END_SECTION
+
+START_SECTION((virtual bool checkMinimalRTSpan(const std::pair<DoubleReal, DoubleReal>& rt_bounds, const DoubleReal min_rt_span)=0))
 {
   std::pair<DoubleReal, DoubleReal> p;
   DoubleReal x = 0.0;
@@ -208,7 +215,7 @@ START_SECTION((virtual DoubleReal getArea()))
 }
 END_SECTION
 
-START_SECTION((virtual String getGnuplotFormula(FeatureFinderAlgorithmPickedHelperStructs::MassTrace< PeakType > const &trace, const char function_name, const DoubleReal baseline, const DoubleReal rt_shift)=0))
+START_SECTION((virtual String getGnuplotFormula(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType>& trace, const char function_name, const DoubleReal baseline, const DoubleReal rt_shift)=0))
 {
   FeatureFinderAlgorithmPickedHelperStructs::MassTrace<Peak1D> mt;
   DoubleReal shift = 0.0;

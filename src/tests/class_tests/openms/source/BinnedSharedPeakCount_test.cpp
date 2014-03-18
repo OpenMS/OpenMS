@@ -93,6 +93,15 @@ START_SECTION((double operator()(const BinnedSpectrum &spec1, const BinnedSpectr
 
   double score = (*ptr)(bs1, bs2);
   TEST_REAL_SIMILAR(score,0.997118)
+
+  // Test empty spectra - they should return zero
+  BinnedSpectrum empty = bs1;
+  empty.clear(true);
+  score = (*ptr)(empty, bs2);
+  TEST_REAL_SIMILAR(score, 0.0)
+
+  score = (*ptr)(bs1, empty);
+  TEST_REAL_SIMILAR(score, 0.0)
 }
 END_SECTION
 
