@@ -159,6 +159,12 @@ protected:
     }
     else if (engine == "MASCOT")
     {
+      // bug #740: unable to fit data with score 0. Set score to NaN and ignore the score
+      if (hit.getScore() == 0) 
+      {
+	return numeric_limits<double>::quiet_NaN();
+      }
+      // end bug #740
       if (hit.metaValueExists("EValue"))
       {
         return (-1) * log10(max((DoubleReal)hit.getMetaValue("EValue"), smallest_e_value_));
@@ -274,18 +280,27 @@ protected:
                 {
                   if (!hits.empty() && (!split_charge || hits[0].getCharge() == *charge))
                   {
-                    scores.push_back(get_score_(*engine, hits[0]));
-                    if (target_decoy_available)
-                    {
-                      if (hits[0].getScore() < fdr_for_targets_smaller)
-                      {
-                        target.push_back(get_score_(*engine, hits[0]));
-                      }
-                      else
-                      {
-                        decoy.push_back(get_score_(*engine, hits[0]));
-                      }
-                    }
+		    DoubleReal score = get_score_(*engine, hits[0]);
+		    if (score != score) // NaN check, #740: ignore scores with 0 values, otherwise you will get the error: unable to fit data
+		    {
+		      score = 1;
+		    }
+                    else 
+		    {
+		      scores.push_back(score);
+
+		      if (target_decoy_available)
+		      {
+			if (hits[0].getScore() < fdr_for_targets_smaller)
+			{
+			  target.push_back(score);
+			}
+			else
+			{
+			  decoy.push_back(score);
+			}
+		      }
+		    }
                   }
                 }
                 else
@@ -294,7 +309,15 @@ protected:
                   {
                     if (!split_charge || hit->getCharge() == *charge)
                     {
-                      scores.push_back(get_score_(*engine, *hit));
+		      DoubleReal score = get_score_(*engine, *hit);
+		      if (score != score) // NaN check, #740: ignore scores with 0 values, otherwise you will get the error: unable to fit data
+		      {
+			score = 1;
+		      }
+		      else
+		      {
+			scores.push_back(score);
+		      }
                     }
                   }
                 }
@@ -334,6 +357,7 @@ protected:
       writeLog_("No data collected. Check whether search engine is supported.");
       if (!ignore_bad_data) return INPUT_FILE_EMPTY;
     }
+
     for (map<String, vector<vector<double> > >::iterator it = all_scores.begin(); it != all_scores.end(); ++it)
     {
       vector<String> engine_info;
@@ -352,6 +376,7 @@ protected:
       }
 
       const bool return_value = PEP_model.fit(it->second[0]);
+
       if (!return_value) writeLog_("unable to fit data. Algorithm did not run through for the following search engine: " + engine);
       if (!return_value && !ignore_bad_data) return UNEXPECTED_RESULT;
 
@@ -365,7 +390,7 @@ protected:
 
         bool unable_to_fit_data = true;
         bool data_might_not_be_well_fit = true;
-        for (vector<ProteinIdentification>::iterator prot_iter = protein_ids.begin(); prot_iter < protein_ids.end(); ++prot_iter)
+	for (vector<ProteinIdentification>::iterator prot_iter = protein_ids.begin(); prot_iter < protein_ids.end(); ++prot_iter)
         {
           String searchengine_toUpper =  prot_iter->getSearchEngine();
           searchengine_toUpper.toUpper();
@@ -384,9 +409,18 @@ protected:
                   {
                     DoubleReal score;
                     hit->setMetaValue(score_type, hit->getScore());
-                    score = PEP_model.computeProbability(get_score_(engine, *hit));
-                    if (score > 0 && score < 1) unable_to_fit_data = false;  //only if all it->second[0] are 0 or 1 unable_to_fit_data stays true
-                    if (score > 0.2 && score < 0.8) data_might_not_be_well_fit = false;  //same as above
+
+		    score = get_score_(engine, *hit);
+		    if (score != score) // NaN check, #740: ignore scores with 0 values, otherwise you will get the error: unable to fit data
+		    {
+		      score = 1;
+		    }
+		    else 
+		    { 
+		      score = PEP_model.computeProbability(score);
+		      if (score > 0 && score < 1) unable_to_fit_data = false;  //only if all it->second[0] are 0 or 1 unable_to_fit_data stays true
+		      if (score > 0.2 && score < 0.8) data_might_not_be_well_fit = false;  //same as above
+		    }
                     hit->setScore(score);
                     if (prob_correct)
                     {
