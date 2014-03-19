@@ -107,7 +107,6 @@ namespace OpenMS
   void ProteinResolver::resolveID(vector<PeptideIdentification> & peptide_identifications)
   {
     vector<ProteinEntry> * protein_nodes = new vector<ProteinEntry>;
-    protein_nodes->resize(protein_data_.size());
     vector<PeptideEntry> * peptide_nodes = new vector<PeptideEntry>;
     vector<ISDGroup> * isd_groups = new vector<ISDGroup>;
     vector<MSDGroup> * msd_groups = new vector<MSDGroup>;
@@ -116,7 +115,7 @@ namespace OpenMS
 
     // building ISD Groups
     buildingISDGroups_(*protein_nodes, *peptide_nodes, *isd_groups);
-    std::cerr << "ISD groups done! size: " << isd_groups->size() << std::endl;
+    LOG_INFO << "ISD groups done! size: " << isd_groups->size() << std::endl;
 
     // Including all MSMS derived peptides into the graph
     Size found_peptides;
