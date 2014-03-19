@@ -81,7 +81,7 @@ public:
     struct MSDGroup;
     struct ResolverResult;
 
-    //represents a protein from fasta file
+    /// represents a protein from FASTA file
     struct ProteinEntry
     {
       std::list<PeptideEntry *> peptides;
@@ -98,7 +98,7 @@ public:
       Size number_of_experimental_peptides;
     };
 
-    //represents a peptide. First in silico. If experimental is set to true it is MS/MS derived.
+    /// represents a peptide. First in silico. If experimental is set to true it is MS/MS derived.
     struct PeptideEntry
     {
       std::list<ProteinEntry *> proteins;
@@ -114,7 +114,7 @@ public:
       String origin;
     };
 
-    //representation of an msd group. Contains peptides, proteins and a pointer to its ISD group
+    /// representation of an msd group. Contains peptides, proteins and a pointer to its ISD group
     struct MSDGroup
     {
       std::list<ProteinEntry *> proteins;
@@ -224,7 +224,6 @@ public:
     /**
       @brief brief
 
-
       @param msd_groups
       @param peptide_nodes
     */
@@ -236,7 +235,7 @@ public:
 
     const  std::vector<ResolverResult> & getResults();
 
-    //overloaded functions -- return a const reference to a PeptideIdentification object or a peptideHit either from a consensusMap or a vector<PeptideIdentification>
+    /// overloaded functions -- return a const reference to a PeptideIdentification object or a peptideHit either from a consensusMap or a vector<PeptideIdentification>
     static const PeptideIdentification & getPeptideIdentification(const ConsensusMap & consensus, const PeptideEntry * peptide);
     static const PeptideHit & getPeptideHit(const ConsensusMap & consensus, const PeptideEntry * peptide);
     static const PeptideIdentification & getPeptideIdentification(const std::vector<PeptideIdentification> & peptide_nodes, const PeptideEntry * peptide);
@@ -249,28 +248,26 @@ private:
 
     void computeIntensityOfMSD_(std::vector<MSDGroup> & msd_groups);
 
-    //traverse protein and peptide nodes. Once for building ISD groups and once for building MSD groups
-    void traversProtein_(ProteinEntry * prot_node, ISDGroup & group);
+    /// traverse protein and peptide nodes for building MSD groups
     void traversProtein_(ProteinEntry * prot_node, MSDGroup & group);
-    void traversPeptide_(PeptideEntry * pep_node, ISDGroup & group);
     void traversPeptide_(PeptideEntry * pep_node, MSDGroup & group);
-    //searches given sequence in all  nodes and returns its index or nodes.size() if not found.
+    /// searches given sequence in all nodes and returns its index or nodes.size() if not found.
     Size findPeptideEntry_(String seq, std::vector<PeptideEntry> & nodes);
-    //helper function for findPeptideEntry.
+    /// helper function for findPeptideEntry.
     Size binarySearchNodes_(String & seq, std::vector<PeptideEntry> & nodes, Size start, Size end);
-    //includes all MS/MS derived peptides into the graph --idXML
+    /// includes all MS/MS derived peptides into the graph --idXML
     Size includeMSMSPeptides_(std::vector<PeptideIdentification> & peptide_identifications, std::vector<PeptideEntry> & peptide_nodes);
-    //TODO include run information for each peptide
-    //includes all MS/MS derived peptides into the graph --consensusXML
+    /// TODO include run information for each peptide
+    /// includes all MS/MS derived peptides into the graph --consensusXML
     Size includeMSMSPeptides_(ConsensusMap & consensus, std::vector<PeptideEntry> & peptide_nodes);
-    //Proteins and Peptides get reindexed, based on whether they belong to msd groups or not. Indexes of Proteins which are in an ISD group but in none of the MSD groups will not be used anymore.
+    /// Proteins and Peptides get reindexed, based on whether they belong to msd groups or not. Indexes of Proteins which are in an ISD group but in none of the MSD groups will not be used anymore.
     void reindexingNodes_(std::vector<MSDGroup> & msd_groups, std::vector<Size> & reindexed_proteins, std::vector<Size> & reindexed_peptides);
-    //marks Proteins which have a unique peptide as primary. Uses reindexed vector, thus reindexingNodes has to be called before.
+    /// marks Proteins which have a unique peptide as primary. Uses reindexed vector, thus reindexingNodes has to be called before.
     void primaryProteins_(std::vector<PeptideEntry> & peptide_nodes, std::vector<Size> & reindexed_peptides);
     void buildingMSDGroups_(std::vector<MSDGroup> & msd_groups, std::vector<ISDGroup> & isd_groups);
     void buildingISDGroups_(std::vector<ProteinEntry> & protein_nodes, std::vector<PeptideEntry> & peptide_nodes,
                             std::vector<ISDGroup> & isd_groups);
-    //not tested
+    // disabled/buggy
     //ProteinResolver::indistinguishableProteins(vector<MSDGroup>& msd_groups);
 
   }; // class
