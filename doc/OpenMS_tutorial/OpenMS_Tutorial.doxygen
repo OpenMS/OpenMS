@@ -76,7 +76,7 @@
 	@section general_search Class search engine
 
 	You can search for Classes in the %OpenMS documentation using the class search engine
-	that can be found at http://open-ms.sourceforge.net/documentation.php .
+	that can be found at http://www.openms.de/documentation.php .
 
 	The search engine can e.g. be used to
 	- find all classes matching a keyword.
