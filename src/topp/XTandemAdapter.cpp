@@ -244,8 +244,8 @@ protected:
       it->setNativeID(++native_id);
     }
 
-    // We store the file in mzData file format, because mgf file somehow produce in most
-    // of the cases ids with charge 2+. We do not use the input file of this TOPP-tools
+    // We store the file in mzData file format, because MGF files somehow produce in most
+    // of the cases IDs with charge 2+. We do not use the input file directly
     // because XTandem sometimes stumbles over misleading substrings in the filename,
     // e.g. mzXML ...
     MzDataFile mzdata_outfile;
@@ -352,7 +352,7 @@ protected:
     for (vector<PeptideIdentification>::iterator it = peptide_ids.begin(); it != peptide_ids.end(); ++it)
     {
       UInt id = (Int)it->getMetaValue("spectrum_id");
-      id -= 1; // native IDs were written 1-based
+      --id; // native IDs were written 1-based
       if (id < exp.size())
       {
         it->setMetaValue("RT", exp[id].getRT());
@@ -403,6 +403,10 @@ protected:
     {
       LOG_WARN << "Keeping the temporary files at '" << temp_directory << "'. Set debug level to <2 to remove them." << std::endl;
     }
+
+    // some stats
+    LOG_INFO << "Statistics:\n"
+             << "  identified MS2 spectra: " << peptide_ids.size() << " / " << exp.size() << " = " << int(peptide_ids.size() * 100.0 / exp.size() ) << "% (with e-value < " << String(getDoubleOption_("he")) << ")" << std::endl;
 
     return EXECUTION_OK;
   }

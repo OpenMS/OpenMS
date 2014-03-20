@@ -169,16 +169,16 @@ namespace OpenMS
     UInt rank = 1;
     sort();
     vector<PeptideHit>::iterator lit = hits_.begin();
-    Real tmpscore = lit->getScore();
+    Real last_score = lit->getScore();
     while (lit != hits_.end())
     {
-      lit->setRank(rank);
-      ++lit;
-      if (lit != hits_.end() && lit->getScore() != tmpscore)
+      if (lit->getScore() != last_score)
       {
         ++rank;
-        tmpscore = lit->getScore();
+        last_score = lit->getScore();
       }
+      lit->setRank(rank);
+      ++lit;
     }
   }
 
