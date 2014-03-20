@@ -7,7 +7,7 @@ class TestSpectrumAccessOpenMS(unittest.TestCase):
 
     def setUp(self):
         dirname = os.path.dirname(os.path.abspath(__file__))
-        self.filename = os.path.join(dirname, "test2.mzML")
+        self.filename = os.path.join(dirname, "test2.mzML").encode()
 
     def test_readfile_content(self):
         exp = pyopenms.MSExperiment()

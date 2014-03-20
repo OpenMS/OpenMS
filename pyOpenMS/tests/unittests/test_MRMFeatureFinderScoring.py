@@ -13,8 +13,8 @@ class TestMRMFeatureFinderScoring(unittest.TestCase):
         self.dirname = os.path.dirname(os.path.abspath(__file__))
         self.testdirname = os.path.join(env.OPEN_MS_SRC, "src/tests/topp")
         # set up files
-        self.chromatograms = os.path.join(self.testdirname, "OpenSwathAnalyzer_1_input_chrom.mzML")
-        self.tramlfile = os.path.join(self.testdirname, "OpenSwathAnalyzer_1_input.TraML")
+        self.chromatograms = os.path.join(self.testdirname, "OpenSwathAnalyzer_1_input_chrom.mzML").encode()
+        self.tramlfile = os.path.join(self.testdirname, "OpenSwathAnalyzer_1_input.TraML").encode()
 
     def test_run_mrmfeaturefinder(self):
 
@@ -37,14 +37,11 @@ class TestMRMFeatureFinderScoring(unittest.TestCase):
         featurefinder = pyopenms.MRMFeatureFinderScoring()
         featurefinder.pickExperiment(chromatograms, output, targeted, trafo, empty_swath)
 
-        # featurexml = pyopenms.FeatureXMLFile()
-        # featurexml.store("/tmp/testfeature.featureXML", output)
-
         self.assertAlmostEqual(output.size(), 3)
         self.assertAlmostEqual(output[0].getRT(), 3119.092041015, eps)
         self.assertAlmostEqual(output[0].getIntensity(), 3574.232421875, eps)
-        self.assertAlmostEqual(output[0].getMetaValue("var_xcorr_shape_weighted"), 0.997577965259552, eps)
-        self.assertAlmostEqual(output[0].getMetaValue("sn_ratio"), 86.00413513183594, eps)
+        self.assertAlmostEqual(output[0].getMetaValue(b"var_xcorr_shape_weighted"), 0.997577965259552, eps)
+        self.assertAlmostEqual(output[0].getMetaValue(b"sn_ratio"), 86.00413513183594, eps)
 
 if __name__ == '__main__':
     unittest.main()
