@@ -252,7 +252,7 @@
       <td valign="top">\c CMAKE_C_COMPILER</td>
       <td>Defines the C compiler to use. This should match the C++ compiler.
       Mixing compilers (e.g., <i>clang++</i> for C++ and <i>gcc</i> for C) can
-      lead to undefined behavior as some internal settings (e.g., %OpenMP
+      lead to undefined behaviour as some internal settings (e.g., %OpenMP
       support) are determined using the C compiler and are assumed to be the
       same for the C++ compiler.</td>
     </tr>
@@ -272,7 +272,7 @@
       <td valign="top">\c SEARCH_ENGINES_DIRECTORY (optional)</td>
       <td>The location where the ID search engines (X!Tandem, OMMSA, MyriMatch)
       are located. This directory should have the same structure as the example
-      in the %OpenMS git repository:
+      in the search engine repository at
       https://open-ms.svn.sourceforge.net/svnroot/open-ms/THIRDPARTY/SEARCHENGINES/.
 
       This directory is needed to build the installer for %OpenMS.</td>
