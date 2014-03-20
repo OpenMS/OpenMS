@@ -59,7 +59,7 @@
 		- @b idXML The %OpenMS format for protein and peptide identification.
 
 		Documented schemas of the %OpenMS formats can be found at
-		<tt>http://open-ms.sourceforge.net/schemas/</tt> .
+		<tt>http://www.openms.de/schemas/</tt> .
 
 		@em idXML files and @em consensusXML files created by %OpenMS can be visualized in a web browser directly.
 		XSLT stylesheets are used to transform the XML to HTML code. The stylesheets are contained

@@ -8,7 +8,7 @@
   This document addresses %OpenMS users and explains the
   installation procedure for building %OpenMS from its sources. If you only want to use the %OpenMS Proteomics Pipeline (TOPP), you are strongly
     encouraged to <b>download the windows binary installer</b>
-    (see <a href="http://www.OpenMS.de/download.php" target="_blank">here</a>),
+    (see <a href="http://www.OpenMS.de/download/" target="_blank">here</a>),
     instead of building %OpenMS from sources.
   For more information read the install instructions for the TOPP binaries.
 
@@ -39,15 +39,8 @@
         <br><b>Not supported are MinGW (g++ based compiler) and VS2003 (and earlier). Do not use a MinGW-enabled shell since CMake will get confused!</b> Other compilers which are close to the VS toolchain might work, but are not tested.
     <LI>Have CMake 2.8.3 or greater installed (see http://www.cmake.org)<br>
              [VS2012 requires CMake 2.8.10 or later, VS2013 needs CMake 2.8.11.2]
-    <LI>If you work with the SVN version of %OpenMS (instead of the Release package), we recommend downloading
-        the svn binaries (which contain svnversion.exe).
-        Subversion is developed as a project of the Apache Software Foundation (see http://subversion.apache.org/).
-        There are multiple binary distributions out there. Pick the one you like.
-        The TortoiseSVN installer per se only supports the (very useful) explorer shell extensions, but also allows you to install the command line binaries if
-        requested during installation.
-        Installing svnversion.exe allows to include the current svn repository revision into the TOPP binaries' help message, which can ease debugging.
-        Svnversion.exe is searched in "c:/program files/subversion/bin" and "c:/programme/subversion/bin". Make sure it is in either of these locations or add
-        the installation directory to your PATH.
+    <LI>If you work with the GIT version of %OpenMS (instead of the Release package), we recommend downloading
+        the git pre-compiled binaries. There are multiple binary distributions out there. Pick the one you like.
     <LI>To build the contrib-package you will need <tt>7-Zip</tt> (see http://www.7-zip.org/)
     <br>7z.exe is searched in "C:/Program Files/7-Zip/" and "C:/Programme/7-Zip/". Make sure it is in either of these locations or add
         the installation directory to your PATH.
@@ -115,8 +108,8 @@
 
   The contrib package is contained in the %OpenMS release package.
 
-  If you are using the developer version of %OpenMS, you must check out the contrib from Sourceforge SVN repository
-  <pre>&gt; svn co https://open-ms.svn.sourceforge.net/svnroot/open-ms/contrib</pre>
+  If you are using the developer version of %OpenMS, you must check out the contrib from GitHub repository
+  <pre>&gt; git clone https://github.com/OpenMS/contrib</pre>
   to obtain the latest developer version (potentially unstable).
 
   @b Installation:
@@ -144,8 +137,8 @@ cmake -G "<generator>" "<path_to_contrib>"
     Type <tt>$ cmake</tt> to see a list of available generators.<br>
     Example:
 @code
-cd c:\svn\contrib_win64_build
-cmake -G "Visual Studio 9 2008 Win64" "c:\svn\contrib"
+cd c:\dev\contrib_win64_build
+cmake -G "Visual Studio 9 2008 Win64" "c:\dev\contrib"
 @endcode
 
       <LI>Add the &lt;path_to_contrib_build&gt;/lib directory to your PATH Environment Variable (this is so Windows can find the DLL's when running our executables).
@@ -199,8 +192,8 @@ cmake -G "Visual Studio 9 2008 Win64" "c:\svn\contrib"
     <br>
     Assuming you have successfully installed the dependent libraries, you need to
     get the %OpenMS source code. The latest stable version of %OpenMS
-    can be found in the <a href="http://www.OpenMS.de/download.php" target="_blank">download</a> page.
-    For further (e.g. latest developer version from SVN) info see the <a href="http://open-ms.sourceforge.net/download.php" target="_blank">download instructions</a>.
+    can be found in the <a href="http://www.OpenMS.de/download/" target="_blank">download</a> page.
+    For further (e.g. latest developer version from GitHub) info see the <a href="http://www.openms.de/download/" target="_blank">download instructions</a>.
     <br>
     <br>
     After you got the source code open a VisualStudio Command line (see Start-Menu).
@@ -218,8 +211,8 @@ cmake -D CMAKE_FIND_ROOT_PATH="<path_to_contrib_build>" -G "<generator>" "<path_
         If you use a Visual Studio Generator, it should be identical to the one used for building the contrib.
         Example:
 @code
-cd c:\svn\OpenMS_Win64
-cmake -D CMAKE_FIND_ROOT_PATH="C:\svn\contrib_win64_build" -G "Visual Studio 9 2008 Win64" "../OpenMS"
+cd c:\dev\OpenMS_Win64
+cmake -D CMAKE_FIND_ROOT_PATH="C:\dev\contrib_win64_build" -G "Visual Studio 9 2008 Win64" ..\OpenMS
 @endcode
 
     </OL>

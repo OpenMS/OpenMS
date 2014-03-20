@@ -49,7 +49,7 @@
 					<LI> Try and build %OpenMS according to the installation instructions.
 					<Li> Read the %OpenMS Coding Convention.
 					<LI> Read the %OpenMS Tutorial.
-					<LI> Create a SourceForge account and send your account name to your supervisor.<BR>
+					<LI> Create a GitHub (code) and SourceForge (mailing lists, homepage) account and send your account name to your supervisor.<BR>
 					     He then adds you to the %OpenMS developers team.
 					<LI> Register to the open-ms-general and open-ms-developers mailing list.<BR>
 					     (You can see the developers list only if you are logged in to Sourceforge and
@@ -58,9 +58,9 @@
 
 			<LI><B>Is there a central URL for %OpenMS developers?</B><BR>
 				<BR>
-				@n https://sourceforge.net/apps/trac/open-ms/
+				@n https://github.com/OpenMS/OpenMS
 				<BR>
-				In the TRAC has a Wiki with important links, the svn timeline and more.
+				There is a Wiki with important links, the timeline and more.
 
 			<LI><B>How do I update the website?</B><BR>
 
@@ -90,8 +90,8 @@
 			<LI><b>Can the START_SECTION-macro not handle template methods that have two or more arguments?</b><BR>
 				Put round brackets around the method declaration. Then it should work.
 
-			<LI><b>Are there binary installers created from the SVN HEAD?</b><BR>
-			Currently binary installers from the HEAD are available only for Windows:
+			<LI><b>Are there binary installers created from the development version?</b><BR>
+			Currently binary installers from the development ("HEAD") are available only for Windows:
 			@n http://ftp.mi.fu-berlin.de/bielow/OpenMS/
 
 		</UL>
@@ -122,7 +122,7 @@
 					libraries on your system already there is no need to change CMAKE_FIND_ROOT_PATH.
 					If you need the contrib, you will need to set this variable. On Windows, you always need the contrib, as there are no system developer packages.
         To pass this variable to CMake use the -D switch
-        e.g. <code>cmake -D CMAKE_FIND_ROOT_PATH:PATH="D:\\svn\\contrib"</code>
+        e.g. <code>cmake -D CMAKE_FIND_ROOT_PATH:PATH="D:\dev\contrib"</code>
         Everything else can be edited using ccmake afterwards. The following options are of interest:
           - CMAKE_BUILD_TYPE
           - CMAKE_FIND_ROOT_PATH
@@ -172,12 +172,7 @@
         <OL>
           <LI>Create the new class (header in include/ and C file in source/) of the respective library (e.g., src/openms if it should go to %OpenMS)
           <LI>Add both to the respective sources.cmake file in the same directory.
-          <LI>Add them to svn version control and set the svn:eol-style property to native<BR>
-              e.g.
-@code
-svn propset svn:eol-style native MyClass.h
-svn propset svn:eol-style native MyClass.cpp
-@endcode
+          <LI>Add them to version control
         </OL>
 
 	    <LI><b>How do I add a new directory <TT>MYDIR</TT> to the build system?</b><BR>
@@ -371,102 +366,7 @@ svn propset svn:eol-style native MyClass.cpp
 
     </UL>
 
-	<H2 style="border-top:2px solid grey;">SVN</H2>
-		<UL>
-
-	    <LI><b>The $id$ string in my test is not expanded to the SVN id. Why?</b><BR>
-	      In Subversion you have to set the keyword expansion explicitly:
-	      <BR><TT>svn propset svn:keywords Id &lt;file&gt;</TT>
-
-	    <LI><b>How do I undo a commit?</b><BR>
-	    	Suppose you want to undo the revision 25 in the head branch. Go to your working copy of the head branch and merge in
-	    	the reversed changes of revision 25:
-	    	<BR><TT>svn merge -r  25:24 https://open-ms.svn.sourceforge.net/svnroot/open-ms/OpenMS/ .</TT>
-	    	<BR><TT>svn commit -m "Removed revision 25"</TT>
-
-
-	    <LI><b>How do I create a branch?</b><BR>
-	      <TT>svn copy https://open-ms.svn.sourceforge.net/svnroot/open-ms/OpenMS https://open-ms.svn.sourceforge.net/svnroot/open-ms/branches/[name]/</TT>
-
-			<LI><b>How does merging branches work?</b><BR>
-				To merge changes from the <tt>source</tt> branch into the <tt>target</tt> branch, do the following:<BR>
-			  <OL>
-			  	<LI> Check out the <tt>target</tt> branch.
-			  	<LI> Merge the desired revisions into the branch:<br>
-							 <TT>svn merge -r [from]:[to] https://open-ms.svn.sourceforge.net/svnroot/open-ms/[source]</tt>
-					<LI> Resolve conflicts and make sure all tests run
-					<LI> Commit the changes
-				</OL>
-
-				<b>Example 1: From HEAD to release branch</b><br>
-			  Suppose you want to merge the changes you made in revision 2325 of the
-			  HEAD (/OpenMS) into the current revision of the release branch for target branch
-			  (see http://open-ms.svn.sourceforge.net/viewvc/open-ms for the actual names of branches).
-			  <OL>
-			  	<LI> Check out the release branch:<BR>
-			  			 <TT>svn co https://open-ms.svn.sourceforge.net/svnroot/open-ms/branches/[target]/</TT>
-			  	<LI> Merge the changes into the the branch (where the <TT>rv</TT> in <TT>(rv-1):rv</TT> corresponds to your svn-revision number you just committed)<BR>
-			  			 <TT>svn merge -r 2324:2325 https://open-ms.svn.sourceforge.net/svnroot/open-ms/OpenMS/</TT>
-			  	<LI> Resolve conflicts and run tests
-			  	<LI> Commit
-			  </OL>
-
-	 			<b>Example 2: Merge branch into HEAD</b><BR>
-	 			Suppose you want to merge the changes you made to a branch into the HEAD.
-	 			The current revision is 25 and you added the branch in revision 10.
-	 			<OL>
-					<LI>Go to the HEAD and update it:<BR>
-						<TT>cd OpenMS/</TT> (HEAD)<br>
-						<TT>svn update</TT><br>
-					<LI>Merge the changes in the branch into the HEAD:
-	      		<TT>svn merge -r 10:25 https://open-ms.svn.sourceforge.net/svnroot/open-ms/branches/[source]/</TT>
-	      	<LI> Resolve conflicts and run tests
-	      	<LI> Commit
-				</OL>
-
-				<LI><b>How do I speed up the SVN Repo and/or upgrade to a new SVN version on the server?</b><BR>
-
-				This should only be done if you are sure what you are doing! You might destroy the whole %OpenMS SVN!!!
-				Make a backup before (preferably not on SF servers, e.g. by using
-
-				$ rsync -av open-ms.svn.sourceforge.net::svn/open-ms/* .
-
-				Now here's how you do the upgrade
-
-				@code
-				## login to SF
-				ssh -t <yourusername>,open-ms@shell.sf.net create
-
-				adminrepo --checkout svn
-
-				svnadmin dump /svnroot/open-ms > oms_dump.txt
-				## make a backup
-				cp /svnroot/open-ms oms_backup
-				## reload repo (instead of using svnadmin upgrade, which might not be optimal for performance)
-				rm -rf /svnroot/open-ms/*
-				svnadmin create /svnroot/open-ms
-				svnadmin load /svnroot/open-ms < oms_dump.txt
-
-				## increase speed (can be done regularly, without dump/load block above)
-				svnadmin pack /svnroot/open-ms
-
-				## check integrity
-				svnadmin verify /svnroot/open-ms
-				## get latest revision number
-				svnlook youngest /svnroot/open-ms
-				## check some revisions
-				svnlook info -r <XXX> /svnroot/open-ms
-				# e.g.
-				# svnlook info -r 100 /svnroot/open-ms
-				# svnlook info -r 8635 /svnroot/open-ms
-
-				adminrepo --save svn
-				@endcode
-
-		</UL>
-
-
-
+	
 	<H2 style="border-top:2px solid grey;">Doxygen documentation</H2>
 		<UL>
 
@@ -526,7 +426,7 @@ svn propset svn:eol-style native MyClass.cpp
 					<LI> Fix the bug and add a test for it in the HEAD
 					<LI> Commit bugfix and test as a single commit and add the bug number to the comment.<BR>E.g.: "[FIX] Fixed bug #123"
 					<LI> Close the bug in the tracker and add the the revision of the fix to the comment.<BR>E.g.: "Fixed in revision [3005]"
-					<LI> Merge the revision into the current release branch (see SVN section above)
+					<LI> Merge the revision into the current release branch
 				</UL>
 
 		</UL>
@@ -605,7 +505,6 @@ svn propset svn:eol-style native MyClass.cpp
 						</OL>
 					<LI> Copy the HTML documentation and PDF tutorials of the release to your own FTP server (e.g., @n http://ftp.mi.fu-berlin.de/OpenMS/doc-1.9-official).
 					<LI> Update the redirection rule on the website for @a http://www.openms.de/current_doxygen to point to the current documentation
-					<LI> Check the function of the public search engine at @a http://www-bs2.informatik.uni-tuebingen.de/services/OpenMS-release/search.php
 					<LI> Update the website (news, changelog, XML schema files, links for docu and download)
 					<LI> Send a mail notification to the announcements mailing list and the general mailing list
 				</UL>
@@ -627,11 +526,11 @@ svn propset svn:eol-style native MyClass.cpp
 								<LI> <TT>CMakeLists.txt</TT> of %OpenMS (three OPENMS_PACKAGE_VERSION_* variables, and the contrib version check)
 								<LI> <TT>src/tests/class_tests/openms/source/VersionInfo_test.cpp</TT>
 								<LI> TOPPView and TOPPAS splash screen <TT>src/openms_gui/source/VISUAL/ICONS/</TT>.@n
-									 The GIMP/PhotoShop files can be found in the @em images SVN module.
+									 The GIMP/PhotoShop files can be found in the @em images directory of the repository.
 							</OL>
 						<LI> Run cmake
 						<LI> Make sure that the tutorial examples in <TT>doc/code_examples/</TT> can be compiled and executed (target 'Tutorials_build' and 'Tutorials_exec')
-						<LI> Commit the changes to the SVN repository
+						<LI> Commit the changes to the repository
 						<LI> Build the documentation that is needed for the release
 							<OL>
 								<LI> Check out a fresh working copy of %OpenMS
@@ -646,7 +545,7 @@ svn propset svn:eol-style native MyClass.cpp
 
 				<LI><B>How is the Windows binary release package created?</B>
 					<OL>
-						<LI> Check out the Windows installer scripts from <TT>https://open-ms.svn.sourceforge.net/svnroot/open-ms/win_installer</TT>
+						<LI> Check out the Windows installer scripts from <TT>https://github.com/OpenMS/windows-installer</TT>
 						<LI> see <TT>win_installer/README</TT> for further instructions
 					</OL>
 

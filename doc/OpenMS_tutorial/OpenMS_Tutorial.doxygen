@@ -55,15 +55,15 @@
 
 @page tutorial_general General information
 
-	This tutorial gives an introduction to the %OpenMS core datastructures and algorithms.
+	This tutorial gives an introduction to the %OpenMS core data structures and algorithms.
 	It is intended to allow for a quick start in writing your own applications based on
 	the %OpenMS framework.
 
 	The structure of this tutorial is similar to the modules of the class documentation.
-	First, the basic concepts and datastructures of %OpenMS are explained. The next chapter is
-	about the kernel datastructures. These datastructures represent the actual mass spectrometric
+	First, the basic concepts and data structures of %OpenMS are explained. The next chapter is
+	about the kernel data structures. These data structures represent the actual mass spectrometric
 	data: raw data, peaks, spectra and maps. In the following chapters, the more sophisticated
-	datastructures and algorithms, e.g. those used for peak picking, feature finding and identification
+	data structures and algorithms, e.g. those used for peak picking, feature finding and identification
 	are presented.
 
 	All the example programs used in this tutorial, can be found in @a doc/code_examples/.
@@ -76,7 +76,7 @@
 	@section general_search Class search engine
 
 	You can search for Classes in the %OpenMS documentation using the class search engine
-	that can be found at http://open-ms.sourceforge.net/documentation.php .
+	that can be found at http://www.openms.de/documentation/ .
 
 	The search engine can e.g. be used to
 	- find all classes matching a keyword.
@@ -217,7 +217,7 @@ file formats, data reduction functionality and all other analysis algorithms.
   segmentation fault. With gcc this mechanism allows developers to trace the source of an exception
   with a debugger more effectively. To use this feature, set the environment variable
   @a OPENMS_DUMP_CORE. For Visual Studio you should set a breakpoint in GlobalExceptionHandler::newHandler()
-  in Exception.cpp, otherwise you might loose the stacktrace to pinpoint the inital exception.
+  in Exception.cpp, otherwise you might loose the stacktrace to pinpoint the initial exception.
 
 @section concept_macros Condition macros
 
@@ -243,10 +243,10 @@ file formats, data reduction functionality and all other analysis algorithms.
 
 /**
 
-@page tutorial_datastructures Auxiliary datastructures
+@page tutorial_datastructures Auxiliary data structures
 
-  This section contains a short introduction to three datastructures you will
-  definitely need when programming with %OpenMS. The datastructures module of the
+  This section contains a short introduction to three data structures you will
+  definitely need when programming with %OpenMS. The data structures module of the
   class documentation contains many more classes, which are not mentioned here in
   detail. The classes described in this section can be found in the @a DATASTRUCTURES folder.
 
@@ -289,13 +289,13 @@ file formats, data reduction functionality and all other analysis algorithms.
 
 @section datastructures_drange D-dimensional ranges
 
-  Another important datastructure we need to look at in detail is @a DRange.
+  Another important data structure we need to look at in detail is @a DRange.
   It defines a d-dimensional, half-open interval through its two @a DPosition members.
   These members are accessed by the @a minPosition() and @a maxPosition() methods and can be
   set by the @a setMin() and @a setMax() methods.
 
   DRange maintains the invariant that @a minPosition() is geometrically less or equal to @a maxPosition(),
-  i.e. @f$ minPosition()[x] \le maxPosition()[x]@f$ for each dimension @a x. The following example (Tutorial_DRange.cpp) demonstrates this behavior.
+  i.e. @f$ minPosition()[x] \le maxPosition()[x]@f$ for each dimension @a x. The following example (Tutorial_DRange.cpp) demonstrates this behaviour.
 
   This time, we skip everything before the main method. In the main method, we
   create a range and assign values to @a min and @a max. Note that the minimum
@@ -341,7 +341,7 @@ file formats, data reduction functionality and all other analysis algorithms.
 
 @page tutorial_kernel The kernel classes
 
- The %OpenMS kernel contains the datastructures that store the actual MS data, i.e.
+ The %OpenMS kernel contains the data structures that store the actual MS data, i.e.
  raw data points, peaks, features, spectra, maps.
  The classes described in this section can be found in the @a KERNEL folder.
 
@@ -422,21 +422,21 @@ file formats, data reduction functionality and all other analysis algorithms.
   instances. Just as @a MSSpectrum it is a template class with the peak type as template parameter.
 
   In contrast to raw data and peak maps, feature maps are no collection of one-dimensional spectra, but an array
-  of two-dimensional @a Feature instances. The main datastructure for feature maps is called @a FeatureMap.
+  of two-dimensional @a Feature instances. The main data structure for feature maps is called @a FeatureMap.
 
   Although @a MSExperiment and @a FeatureMap differ in the data they store, they also have things in common.
   Both store meta data that is valid for the whole map, i.e. sample description and instrument description.
   This data is stored in the common base class @a ExperimentalSettings.
 
   @par MSExperiment
-  The following figure shows the big picture of the kernel datastructures. @a MSExperiment is
+  The following figure shows the big picture of the kernel data structures. @a MSExperiment is
   derived from @a ExperimentalSettings (meta data of the experiment) and from @a vector<MSSpectrum>.
   The one-dimensional spectrum @a MSSpectrum is derived from SpectrumSettings (meta data of a spectrum. @n
   Since MSSpectrum can store different peak types derived from @a Peak1D, all the data containers
   are template classes that take the peak type as template argument.
 
-  @image html Kernel.png "Overview of the main kernel datastructures"
-  @image latex Kernel.png "Overview of the main kernel datastructures" width=12cm
+  @image html Kernel.png "Overview of the main kernel data structures"
+  @image latex Kernel.png "Overview of the main kernel data structures" width=12cm
 
   @par Typedefs
   For convenience, the following map types are defined in @a OpenMS/KERNEL/StandardTypes.h.
@@ -507,7 +507,7 @@ file formats, data reduction functionality and all other analysis algorithms.
 
   The meta informations about an HPLC-MS experiment are stored in @a ExperimentalSettings and
   @a SpectrumSettings. All information that is not covered by these classes can be stored
-  in the type-name-value datastructure @a MetaInfo. All classes described in this section
+  in the type-name-value data structure @a MetaInfo. All classes described in this section
   can be found in the @a METADATA folder.
 
 @section metadata_metainfo MetaInfo
@@ -518,7 +518,7 @@ file formats, data reduction functionality and all other analysis algorithms.
 
   @a MetaInfo is used to easily store information of any type, that does not fit into the other
   classes. It implements type-name-value triplets.
-  The main datastructure is an associative container that stores
+  The main data structure is an associative container that stores
   @a DataValue instances as values associated to string keys.
   Internally, the string keys are converted to integer keys for
   performance reasons i.e. a @a map<UInt,DataValue> is used.
@@ -772,7 +772,7 @@ extracts mass spectrometric peaks it is applicable to LC-MS as well as MALDI raw
 
 The following example (Tutorial_PeakPickerCWT.cpp) shows how to open a raw map, initialize a
  PeakPickerCWT object, set the most important parameters (the scale of the wavelet,
- a peak's minimal height and fwhm), and start the peak picking process.
+ a peak's minimal height and FWHM), and start the peak picking process.
 
 @dontinclude Tutorial_PeakPickerCWT.cpp
   @skip main
@@ -781,13 +781,13 @@ The following example (Tutorial_PeakPickerCWT.cpp) shows how to open a raw map, 
 The output of the program is:
  @code
 		Scale of the wavelet: 0.2
-		Minimal fwhm of a mass spectrometric peak: 0.1
+		Minimal FWHM of a mass spectrometric peak: 0.1
 		Minimal intensity of a mass spectrometric peak 500
 
 		Number of picked peaks 14
 @endcode
 
-@note A rough standard value for the peak's scale is the average fwhm of a mass spectrometric peak.
+@note A rough standard value for the peak's scale is the average FWHM of a mass spectrometric peak.
 
 
 
@@ -860,7 +860,7 @@ We offer two smoothing filters to reduce noise in LC-MS measurements.
 
 @subsection filtering_smoothing_gaussian Gaussian filter
 
-The class @a GaussFilter is a gaussian filter. The wider the kernel width, the smoother the signal (the more detail
+The class @a GaussFilter is a Gaussian filter. The wider the kernel width, the smoother the signal (the more detail
 information gets lost).
 
 We show in the following example (Tutorial_GaussFilter.cpp) how to smooth a raw data map.
@@ -871,7 +871,7 @@ The gaussian kernel width is set to 1 m/z.
   @until end of main
 
 
-@note Use a gaussian filter kernel which has approximately the same width as your mass peaks.
+@note Use a Gaussian filter kernel which has approximately the same width as your mass peaks.
 
 @subsection filtering_smoothing_sgolay Savitzky Golay filter
 
@@ -1125,7 +1125,7 @@ two labels and another for label-free quantitation.
 	So we add two map descriptions with the same file name to the output and set the labels accordingly:
 		@until "heavy"
 
-	Then, we instanciate the algorithm and group the features:
+	Then, we instantiate the algorithm and group the features:
 		@until algorithm.group
 
 	Finally, we store the grouped features in a consensusXML file. In order to write a valid file, we need to set the input file names and sizes.
@@ -1191,7 +1191,7 @@ shows how to build a rudimentary clustering pipeline.
 All types of data can be clustered, as long as a SimilarityComparator for the type is provided.
 This Comparator has to produce a similarity measurement with the @a ()-operator in the
 range of @a [0,1] for each two elements of this type, so it can be transformed to a
-distance. Some SimilarityComparators are already implemented, e.g. the baseclass for the
+distance. Some SimilarityComparators are already implemented, e.g. the base class for the
 PeakSpectrum-type SimilarityComparator is OpenMS::PeakSpectrumCompareFunctor.
 
 	@dontinclude Tutorial_Clustering.cpp
@@ -1227,7 +1227,7 @@ If known, at what threshold (see @a OpenMS::ClusterHierarchical::cluster) a reas
 the setting of the right threshold can potentially speed up the clustering process. After exceeding the threshold,
 the resulting tree (std::vector of OpenMS::BinaryTreeNode) is filled with dummy nodes. The tree represents the hierarchy of
 clusters by storing the stepwise merging process. It can eventually be transformed to a tree-representation in Newick-format
-and/or be analyzed with other methods the OpenMS::ClusterAnalyzer class provides.
+and/or be analysed with other methods the OpenMS::ClusterAnalyzer class provides.
 
   @skip ClusterAnalyzer
   @until return
@@ -1264,7 +1264,7 @@ corresponding distance matrix).
 
 	@section PIP_background Background
 
-		The sensitivity of a mass spectrometer depends on the analyzed peptides, among other factors.
+		The sensitivity of a mass spectrometer depends on the analysed peptides, among other factors.
 		This peptide-specific sensitivity causes peak heights of peptides with the same abundance to be
 		generally different. PIP incorporates a model that maps peptide sequences to peptide-specific
 		sensitivities.
@@ -1354,7 +1354,7 @@ Most of the algorithms in %OpenMS share the following base classes:
 - @a DefaultParamHandler is used to make the handling of parameters (and their defaults) easy. @n
   In most cases, you will not even need accessors for single parameters.
 
-The interfaces of an algorithm depend on the datastructures it works on.
+The interfaces of an algorithm depend on the data structures it works on.
 For an algorithm that works on peak data, a non-template class should be used that provides template methods operating
 on @a MSExperiment or @a MSSpectrum, no matter which peak type is used.
 See @a PeakPickerCWT for an example.
