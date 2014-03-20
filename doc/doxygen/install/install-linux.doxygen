@@ -10,7 +10,7 @@
 
   @section checkout_and_build Checkout OpenMS
 
-  You can find the links to the release and development (svn) versions on the
+  You can find the links to the release and development versions on the
   <a href="http://www.openms.de/downloads/">Downloads</a> page of the
   %OpenMS project.
 
@@ -122,7 +122,7 @@
   \endcode
 
   To avoid problems while building the libraries contained in the contrib
-  package, the path to your contrib-buikd directory should not have any spaces
+  package, the path to your contrib-build directory should not have any spaces
   in it.
 
   @section install_linux_openms Configuring and building OpenMS/TOPP

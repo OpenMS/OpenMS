@@ -8,7 +8,7 @@
   This document addresses %OpenMS users and explains the
   installation procedure for building %OpenMS from its sources. If you only want to use the %OpenMS Proteomics Pipeline (TOPP), you are strongly
     encouraged to <b>download the windows binary installer</b>
-    (see <a href="http://www.OpenMS.de/download.php" target="_blank">here</a>),
+    (see <a href="http://www.OpenMS.de/download/" target="_blank">here</a>),
     instead of building %OpenMS from sources.
   For more information read the install instructions for the TOPP binaries.
 
@@ -192,8 +192,8 @@ cmake -G "Visual Studio 9 2008 Win64" "c:\dev\contrib"
     <br>
     Assuming you have successfully installed the dependent libraries, you need to
     get the %OpenMS source code. The latest stable version of %OpenMS
-    can be found in the <a href="http://www.OpenMS.de/download.php" target="_blank">download</a> page.
-    For further (e.g. latest developer version from GitHub) info see the <a href="http://www.openms.de/download.php" target="_blank">download instructions</a>.
+    can be found in the <a href="http://www.OpenMS.de/download/" target="_blank">download</a> page.
+    For further (e.g. latest developer version from GitHub) info see the <a href="http://www.openms.de/download/" target="_blank">download instructions</a>.
     <br>
     <br>
     After you got the source code open a VisualStudio Command line (see Start-Menu).
@@ -212,7 +212,7 @@ cmake -D CMAKE_FIND_ROOT_PATH="<path_to_contrib_build>" -G "<generator>" "<path_
         Example:
 @code
 cd c:\dev\OpenMS_Win64
-cmake -D CMAKE_FIND_ROOT_PATH="C:\dev\contrib_win64_build" -G "Visual Studio 9 2008 Win64" "../OpenMS"
+cmake -D CMAKE_FIND_ROOT_PATH="C:\dev\contrib_win64_build" -G "Visual Studio 9 2008 Win64" ..\OpenMS
 @endcode
 
     </OL>

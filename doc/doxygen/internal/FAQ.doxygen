@@ -90,8 +90,8 @@
 			<LI><b>Can the START_SECTION-macro not handle template methods that have two or more arguments?</b><BR>
 				Put round brackets around the method declaration. Then it should work.
 
-			<LI><b>Are there binary installers created from the SVN HEAD?</b><BR>
-			Currently binary installers from the HEAD are available only for Windows:
+			<LI><b>Are there binary installers created from the development version?</b><BR>
+			Currently binary installers from the development ("HEAD") are available only for Windows:
 			@n http://ftp.mi.fu-berlin.de/bielow/OpenMS/
 
 		</UL>
@@ -122,7 +122,7 @@
 					libraries on your system already there is no need to change CMAKE_FIND_ROOT_PATH.
 					If you need the contrib, you will need to set this variable. On Windows, you always need the contrib, as there are no system developer packages.
         To pass this variable to CMake use the -D switch
-        e.g. <code>cmake -D CMAKE_FIND_ROOT_PATH:PATH="D:\\svn\\contrib"</code>
+        e.g. <code>cmake -D CMAKE_FIND_ROOT_PATH:PATH="D:\dev\contrib"</code>
         Everything else can be edited using ccmake afterwards. The following options are of interest:
           - CMAKE_BUILD_TYPE
           - CMAKE_FIND_ROOT_PATH
@@ -172,12 +172,7 @@
         <OL>
           <LI>Create the new class (header in include/ and C file in source/) of the respective library (e.g., src/openms if it should go to %OpenMS)
           <LI>Add both to the respective sources.cmake file in the same directory.
-          <LI>Add them to svn version control and set the svn:eol-style property to native<BR>
-              e.g.
-@code
-svn propset svn:eol-style native MyClass.h
-svn propset svn:eol-style native MyClass.cpp
-@endcode
+          <LI>Add them to version control
         </OL>
 
 	    <LI><b>How do I add a new directory <TT>MYDIR</TT> to the build system?</b><BR>
@@ -431,7 +426,7 @@ svn propset svn:eol-style native MyClass.cpp
 					<LI> Fix the bug and add a test for it in the HEAD
 					<LI> Commit bugfix and test as a single commit and add the bug number to the comment.<BR>E.g.: "[FIX] Fixed bug #123"
 					<LI> Close the bug in the tracker and add the the revision of the fix to the comment.<BR>E.g.: "Fixed in revision [3005]"
-					<LI> Merge the revision into the current release branch (see SVN section above)
+					<LI> Merge the revision into the current release branch
 				</UL>
 
 		</UL>
@@ -510,7 +505,6 @@ svn propset svn:eol-style native MyClass.cpp
 						</OL>
 					<LI> Copy the HTML documentation and PDF tutorials of the release to your own FTP server (e.g., @n http://ftp.mi.fu-berlin.de/OpenMS/doc-1.9-official).
 					<LI> Update the redirection rule on the website for @a http://www.openms.de/current_doxygen to point to the current documentation
-					<LI> Check the function of the public search engine at @a http://www-bs2.informatik.uni-tuebingen.de/services/OpenMS-release/search.php
 					<LI> Update the website (news, changelog, XML schema files, links for docu and download)
 					<LI> Send a mail notification to the announcements mailing list and the general mailing list
 				</UL>
@@ -532,11 +526,11 @@ svn propset svn:eol-style native MyClass.cpp
 								<LI> <TT>CMakeLists.txt</TT> of %OpenMS (three OPENMS_PACKAGE_VERSION_* variables, and the contrib version check)
 								<LI> <TT>src/tests/class_tests/openms/source/VersionInfo_test.cpp</TT>
 								<LI> TOPPView and TOPPAS splash screen <TT>src/openms_gui/source/VISUAL/ICONS/</TT>.@n
-									 The GIMP/PhotoShop files can be found in the @em images SVN module.
+									 The GIMP/PhotoShop files can be found in the @em images directory of the repository.
 							</OL>
 						<LI> Run cmake
 						<LI> Make sure that the tutorial examples in <TT>doc/code_examples/</TT> can be compiled and executed (target 'Tutorials_build' and 'Tutorials_exec')
-						<LI> Commit the changes to the SVN repository
+						<LI> Commit the changes to the repository
 						<LI> Build the documentation that is needed for the release
 							<OL>
 								<LI> Check out a fresh working copy of %OpenMS
