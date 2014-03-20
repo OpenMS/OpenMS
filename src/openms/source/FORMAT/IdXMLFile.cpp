@@ -293,6 +293,11 @@ namespace OpenMS
         {
           os << "RT=\"" << dv << "\" ";
         }
+        dv = peptide_ids[l].getMetaValue("summary_base_name");
+        if (dv != DataValue::EMPTY)
+        {
+          os << "summary_base_name=\"" << dv << "\" ";
+        }
         //spectrum_reference
         dv = peptide_ids[l].getMetaValue("spectrum_reference");
         if (dv != DataValue::EMPTY)
@@ -338,6 +343,7 @@ namespace OpenMS
         MetaInfoInterface tmp = peptide_ids[l];
         tmp.removeMetaValue("RT");
         tmp.removeMetaValue("MZ");
+        tmp.removeMetaValue("summary_base_name");
         tmp.removeMetaValue("spectrum_reference");
         writeUserParam_("UserParam", os, tmp, 3);
         os << "\t\t</PeptideIdentification>\n";

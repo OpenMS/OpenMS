@@ -36,17 +36,17 @@
 			<ProteinHit id="PH_12" accession="tr|B1X9Q2|B1X9Q2_ECODH" score="0" sequence="" >
 			</ProteinHit>
 		</ProteinIdentification>
-		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0" MZ="484.3053890319" RT="673.3959" >
+		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0" MZ="484.3053890319" RT="673.3959" summary_base_name="../cgi/master_results.pl?file=../data/20130606/F025589.dat" >
 			<PeptideHit score="0.0095" sequence="IHSEILKK" charge="2" aa_before="R" aa_after="T" protein_refs="PH_0" >
 			</PeptideHit>
 			<PeptideHit score="0.89" sequence="VPIGVANVAK" charge="2" aa_before="K" aa_after="K" protein_refs="PH_1 PH_2 PH_3" >
 			</PeptideHit>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0" MZ="403.5548690319" RT="679.5588" >
+		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0" MZ="403.5548690319" RT="679.5588" summary_base_name="../cgi/master_results.pl?file=../data/20130606/F025589.dat" >
 			<PeptideHit score="0.0069" sequence="SATPAQAQAVHK" charge="3" aa_before="K" aa_after="F" protein_refs="PH_4 PH_5 PH_6" >
 			</PeptideHit>
 		</PeptideIdentification>
-		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0" MZ="516.2676990319" RT="687.7146" >
+		<PeptideIdentification score_type="expect" higher_score_better="false" significance_threshold="0" MZ="516.2676990319" RT="687.7146" summary_base_name="../cgi/master_results.pl?file=../data/20130606/F025589.dat" >
 			<PeptideHit score="0.013" sequence="AVQAVVHHNETADR" charge="3" aa_before="K" aa_after="A" protein_refs="PH_7 PH_8 PH_9" >
 			</PeptideHit>
 			<PeptideHit score="1.4" sequence="GKGVVTISVAEC(Carbamidomethyl)GNR" charge="3" aa_before="K" aa_after="V" protein_refs="PH_10 PH_11 PH_12" >

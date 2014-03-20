@@ -231,6 +231,9 @@ private:
     /// RT and m/z of current PeptideIdentification
     DoubleReal rt_, mz_;
 
+    /// basename of search summary, links to underlying peakmap
+    String summary_base_name_;
+
     /// Precursor ion charge
     Int charge_;
 
