@@ -1,4 +1,5 @@
 # input-encoding: latin-1
+from __future__ import print_function
 
 # windows ?
 import sys
@@ -17,7 +18,7 @@ if iswin and IS_DEBUG:
 # use autowrap to generate Cython and .cpp file for wrapping OpenMS:
 import autowrap.Main
 import glob
-import cPickle
+import pickle
 import os.path
 import os
 import shutil
@@ -56,7 +57,7 @@ for d in decls:
     for to_string in to_strings:
         if len(to_string.arguments) == 0:
             d.methods.setdefault("__str__", []).append(to_string)
-            print "ADDED __str__ method to", d.name
+            print("ADDED __str__ method to", d.name)
             break
 
 autowrap_include_dirs = autowrap.Main.create_wrapper_code(decls, instance_map, addons,
@@ -64,7 +65,7 @@ autowrap_include_dirs = autowrap.Main.create_wrapper_code(decls, instance_map, a
                                                           extra_cimports,
                                                           None)
 
-cPickle.dump(autowrap_include_dirs, open(persisted_data_path, "wb"))
+pickle.dump(autowrap_include_dirs, open(persisted_data_path, "wb"))
 
 import re
 f = open("pyopenms/pyopenms.cpp")
@@ -79,13 +80,13 @@ f.close()
 shutil.copy("pyopenms/pyopenms_out.cpp", "pyopenms/pyopenms.cpp")
 os.remove("pyopenms/pyopenms_out.cpp")
 
-print "created pyopenms.cpp"
+print("created pyopenms.cpp")
 
 # create version information
 version = OPEN_MS_VERSION
 
-print >> open("pyopenms/version.py", "w"), "version=%r\n" % version
-print >> open("pyopenms/qt_version_info.py", "w"), "info=%r\n" % QT_QMAKE_VERSION_INFO
+print("version=%r\n" % version, file=open("pyopenms/version.py", "w"))
+print("info=%r\n" % QT_QMAKE_VERSION_INFO, file=open("pyopenms/qt_version_info.py", "w"))
 
 # parse config
 
@@ -149,10 +150,11 @@ elif sys.platform == "darwin":
     shutil.copy(j(OPEN_MS_BUILD_DIR, "lib", "libOpenSwathAlgo.dylib"), "pyopenms")
 
 else:
-    print
-    print "platform ", sys.platform, "not supported yet"
-    print
+    print("\n")
+    print("platform ", sys.platform, "not supported yet")
+    print("\n")
     exit()
 
-print "copied files needed for distribution to pyopenms/"
-print
+print("copied files needed for distribution to pyopenms/")
+print("\n")
+
