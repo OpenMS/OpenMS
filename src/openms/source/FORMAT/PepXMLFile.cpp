@@ -88,7 +88,7 @@ namespace OpenMS
       search_engine_name = protein_ids.begin()->getSearchEngine();
     }
 
-    f.precision(writtenDigits<DoubleReal>());
+    f.precision(writtenDigits<DoubleReal>(0.0));
 
     f << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << "\n";
     f << "<msms_pipeline_analysis date=\"2007-12-05T17:49:46\" xmlns=\"http://regis-web.systemsbiology.net/pepXML\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://regis-web.systemsbiology.net/pepXML http://www.matrixscience.com/xmlns/schema/pepXML_v18/pepXML_v18.xsd\" summary_xml=\".xml\">" << "\n";

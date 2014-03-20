@@ -1065,7 +1065,7 @@ namespace OpenMS
       throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
     }
  
-    os.precision(writtenDigits<DoubleReal>());
+    os.precision(writtenDigits<DoubleReal>(0.0));
 
     //~ setProgress(++progress_);
     //header & xslt
