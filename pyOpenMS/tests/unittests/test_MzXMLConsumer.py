@@ -1,7 +1,7 @@
 import pyopenms
 import os.path
 
-from collections import Counter
+from collections_ import Counter
 
 
 def test0():
@@ -32,7 +32,7 @@ def test0():
     consumer = Consumer()
     fh.transform(path, consumer)
     cc = Counter(consumer.speclevels)
-    assert set(cc.keys()) == {1, 2}
+    assert set(cc.keys()) == set([1, 2])
     assert cc[1] == 2
     assert cc[2] == 3
     assert abs(min(consumer.rts) - 4200.76) < 0.01
