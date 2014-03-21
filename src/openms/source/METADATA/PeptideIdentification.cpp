@@ -48,7 +48,8 @@ namespace OpenMS
     hits_(),
     significance_threshold_(0.0),
     score_type_(),
-    higher_score_better_(true)
+    higher_score_better_(true),
+    base_name_()
   {
   }
 
@@ -58,7 +59,8 @@ namespace OpenMS
     hits_(rhs.hits_),
     significance_threshold_(rhs.significance_threshold_),
     score_type_(rhs.score_type_),
-    higher_score_better_(rhs.higher_score_better_)
+    higher_score_better_(rhs.higher_score_better_),
+    base_name_(rhs.base_name_)
   {
   }
 
@@ -79,6 +81,7 @@ namespace OpenMS
     significance_threshold_ = rhs.significance_threshold_;
     score_type_ = rhs.score_type_;
     higher_score_better_ = rhs.higher_score_better_;
+    base_name_ = rhs.base_name_;
 
     return *this;
   }
@@ -91,7 +94,8 @@ namespace OpenMS
            && hits_ == rhs.getHits()
            && significance_threshold_ == rhs.getSignificanceThreshold()
            && score_type_ == rhs.score_type_
-           && higher_score_better_ == rhs.higher_score_better_;
+           && higher_score_better_ == rhs.higher_score_better_
+           && base_name_ == rhs.base_name_;
   }
 
   // Inequality operator
@@ -159,6 +163,17 @@ namespace OpenMS
   {
     id_ = id;
   }
+
+  const String & PeptideIdentification::getBaseName() const
+  {
+    return base_name_;
+  }
+
+  void PeptideIdentification::setBaseName(const String & base_name)
+  {
+    base_name_ = base_name;
+  }
+
 
   void PeptideIdentification::assignRanks()
   {
