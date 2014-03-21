@@ -12,6 +12,8 @@ SILACFilter.h
 SILACFiltering.h
 SILACPattern.h
 SILACPoint.h
+SplinePackage.h
+SplineSpectrum.h
 )
 
 ### add path to the filenames

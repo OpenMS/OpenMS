@@ -50,6 +50,9 @@
 #include <OpenMS/FORMAT/MzQuantMLFile.h>
 #include <OpenMS/METADATA/MSQuantifications.h>
 
+#include <OpenMS/FILTERING/DATAREDUCTION/SplinePackage.h>
+#include <OpenMS/FILTERING/DATAREDUCTION/SplineSpectrum.h>
+#include <OpenMS/FILTERING/DATAREDUCTION/SILACPoint.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/SILACAnalyzer.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/SILACFilter.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/SILACFiltering.h>
@@ -463,8 +466,7 @@ public:
       allow_missing_peaks,
       // labels
       label_identifiers);
-
-
+ 
     //--------------------------------------------------
     // loading input from .mzML
     //--------------------------------------------------
@@ -512,6 +514,54 @@ public:
     }
     MSQuantifications::QUANT_TYPES quant_type = MSQuantifications::MS1LABEL;
     msq.setAnalysisSummaryQuantType(quant_type);    //add analysis_summary_
+
+
+
+
+
+	// ---------------------------
+	// testing new data structures
+	// ---------------------------
+	std::cout << "\n\n";
+	std::cout << "*** start tests ***\n";
+	// iterate over all spectra of the experiment (RT)
+	Int spectrumID = 0;
+ 	std::vector<double> mzMS1_;
+	std::vector<double> intensityMS1_;
+   for (MSExperiment<Peak1D>::Iterator it = exp.begin(); it != exp.end(); ++it)
+    {
+		++spectrumID;
+		DoubleReal rt = it->getRT();
+		if (spectrumID == 200) {
+			std::cout << "    spectrum ID = " << spectrumID << "   RT = " << rt << "\n";
+			// iterate over data points in spectrum (mz)
+			for (MSSpectrum<Peak1D>::Iterator it2 = it->begin(); it2 != it->end(); ++it2)
+			{
+				DoubleReal mzSpec = it2->getMZ();
+				DoubleReal intensitySpec = it2->getIntensity();
+				mzMS1_.push_back(mzSpec);
+				intensityMS1_.push_back(intensitySpec);
+				//std::cout << "        m/z = " << mzSpec << "   intensity = " << intensitySpec << "\n";
+			}
+		}
+	}
+	// test SplineSpectrum
+	SplineSpectrum * spectrum = new SplineSpectrum(mzMS1_,intensityMS1_);
+	// test SplinePackage
+	std::vector<double> mz_;
+	std::vector<double> intensity_;
+	for (Int i=7; i<207; ++i)
+	{
+		mz_.push_back(i*1.0);
+		intensity_.push_back(i*i*1.0);
+	}
+	SplinePackage * package = new SplinePackage(mz_, intensity_);
+ 	std::cout << "***   end tests ***\n";
+ 	std::cout << "\n\n";
+
+
+
+
 
     //--------------------------------------------------
     // estimate peak width

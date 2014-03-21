@@ -11,6 +11,8 @@ MassTraceDetection.cpp
 SILACFilter.cpp
 SILACFiltering.cpp
 SILACAnalyzer.cpp
+SplinePackage.cpp
+SplineSpectrum.cpp
 )
 
 ### add path to the filenames
