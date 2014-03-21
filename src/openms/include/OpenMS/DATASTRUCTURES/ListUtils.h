@@ -38,6 +38,7 @@
 #include <vector>
 #include <algorithm>
 #include <iterator>
+#include <cmath>
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/Exception.h>
