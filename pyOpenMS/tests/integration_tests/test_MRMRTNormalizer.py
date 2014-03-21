@@ -9,17 +9,17 @@ eps = 2
 def simple_find_best_feature(output, pairs, targeted):
     f_map = defaultdict(list)
     for f in output:
-        key = f.getMetaValue("PeptideRef")
+        key = f.getMetaValue("PeptideRef".encode())
         f_map[key].append(f)
 
-    get_score = lambda f: f.getMetaValue("main_var_xx_lda_prelim_score")
+    get_score = lambda f: f.getMetaValue("main_var_xx_lda_prelim_score".encode())
     for fl in f_map.values():
         scores = [(get_score(fi), fi)  for fi in fl]
         best_score, best_feature = max(scores)
         __, feature = scores[-1]
 
         pep = targeted.getPeptideByRef(
-                            feature.getMetaValue("PeptideRef")
+                            feature.getMetaValue("PeptideRef".encode())
                             )
         pairs.append([best_feature.getRT(), pep.getRetentionTime()])
 
@@ -30,8 +30,8 @@ class TestMRMRTNormalizer(unittest.TestCase):
     def setUp(self):
         self.testdirname = os.path.join(env.OPEN_MS_SRC, "src/tests/topp")
         # set up files
-        self.chromatograms = os.path.join(self.testdirname, "OpenSwathRTNormalizer_1_input.mzML")
-        self.tramlfile = os.path.join(self.testdirname, "OpenSwathRTNormalizer_1_input.TraML")
+        self.chromatograms = os.path.join(self.testdirname, "OpenSwathRTNormalizer_1_input.mzML").encode()
+        self.tramlfile = os.path.join(self.testdirname, "OpenSwathRTNormalizer_1_input.TraML").encode()
 
     def test_run_mrmrtnormalizer(self):
 
@@ -54,7 +54,7 @@ class TestMRMRTNormalizer(unittest.TestCase):
         featurefinder = pyopenms.MRMFeatureFinderScoring()
         # set the correct rt use values
         scoring_params = pyopenms.MRMFeatureFinderScoring().getDefaults();
-        scoring_params.setValue("Scores:use_rt_score", 'false', '')
+        scoring_params.setValue("Scores:use_rt_score".encode(), 'false'.encode(), ''.encode())
         featurefinder.setParameters(scoring_params);
         featurefinder.pickExperiment(chromatograms, output, targeted, trafo, empty_swath)
 
