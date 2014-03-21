@@ -1,13 +1,12 @@
 import pyopenms
 import os.path
 
-from collections_ import Counter
-
+from .collections_ import Counter
 
 def test0():
     fh = pyopenms.MzXMLFile()
     here = os.path.dirname(os.path.abspath(__file__))
-    path = os.path.join(here, "test2.mzXML")
+    path = os.path.join(here, "test2.mzXML").encode()
 
     class Consumer(object):
 
