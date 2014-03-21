@@ -4020,6 +4020,6 @@ def testIndexedMzMLDecoder():
 
 
 def test_streampos():
-    p = pyopenms.streampos()
-    assert isinstance(int(p), int)
+    p = long(pyopenms.streampos())
+    assert isinstance(p, long), "got %r" % p
 
