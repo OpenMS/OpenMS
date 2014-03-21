@@ -256,12 +256,12 @@ protected:
     infile.setOutputFilename(tandem_output_filename);
 
     ofstream tax_out(tandem_taxonomy_filename.c_str());
-    tax_out << "<?xml version=\"1.0\"?>" << endl;
-    tax_out << "\t<bioml label=\"x! taxon-to-file matching list\">" << endl;
-    tax_out << "\t\t<taxon label=\"OpenMS_dummy_taxonomy\">" << endl;
-    tax_out << "\t\t\t<file format=\"peptide\" URL=\"" << db_name << "\" />" << endl;
-    tax_out << "\t</taxon>" << endl;
-    tax_out << "</bioml>" << endl;
+    tax_out << "<?xml version=\"1.0\"?>" << "\n";
+    tax_out << "\t<bioml label=\"x! taxon-to-file matching list\">" << "\n";
+    tax_out << "\t\t<taxon label=\"OpenMS_dummy_taxonomy\">" << "\n";
+    tax_out << "\t\t\t<file format=\"peptide\" URL=\"" << db_name << "\" />" << "\n";
+    tax_out << "\t</taxon>" << "\n";
+    tax_out << "</bioml>" << "\n";
     tax_out.close();
 
     infile.setTaxonomyFilename(tandem_taxonomy_filename);
@@ -363,7 +363,7 @@ protected:
       }
       else
       {
-        cerr << "XTandemAdapter: Error: id '" << id << "' not found in peak map!" << endl;
+        LOG_ERROR << "XTandemAdapter: Error: id '" << id << "' not found in peak map!" << endl;
       }
     }
 
@@ -406,7 +406,7 @@ protected:
 
     // some stats
     LOG_INFO << "Statistics:\n"
-             << "  identified MS2 spectra: " << peptide_ids.size() << " / " << exp.size() << " = " << int(peptide_ids.size() * 100.0 / exp.size() ) << "% (with e-value < " << String(getDoubleOption_("he")) << ")" << std::endl;
+             << "  identified MS2 spectra: " << peptide_ids.size() << " / " << exp.size() << " = " << int(peptide_ids.size() * 100.0 / exp.size() ) << "% (with e-value < " << String(getDoubleOption_("max_valid_expect")) << ")" << std::endl;
 
     return EXECUTION_OK;
   }
