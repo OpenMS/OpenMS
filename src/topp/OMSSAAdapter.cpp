@@ -745,15 +745,15 @@ protected:
 
     // names of temporary files for data chunks
     StringList file_spectra_chunks_in, file_spectra_chunks_out;
-
-    { // local scope to free memory after conversion to MFG format is done
+    Size ms2_spec_count(0);
+    { // local scope to free memory after conversion to MGF format is done
       FileHandler fh;
       FileTypes::Type in_type = fh.getType(inputfile_name);
       PeakMap map;
       fh.getOptions().addMSLevel(2);
       fh.loadExperiment(inputfile_name, map, in_type, log_type_);
-
-      writeDebug_("Read " + String(map.size()) + " spectra from file", 5);
+      ms2_spec_count = map.size();
+      writeDebug_("Read " + String(ms2_spec_count) + " spectra from file", 5);
 
       int chunk(0);
       int chunk_size(getIntOption_("chunk_size"));
@@ -857,7 +857,8 @@ protected:
       vector<PeptideIdentification> peptide_ids_chunk;
       OMSSAXMLFile omssa_out_file;
       omssa_out_file.setModificationDefinitionsSet(mod_set);
-      omssa_out_file.load(file_spectra_chunks_out[i], protein_identification_chunk, peptide_ids_chunk);
+      // do not load empty hits for efficiency and correct stats report (below)
+      omssa_out_file.load(file_spectra_chunks_out[i], protein_identification_chunk, peptide_ids_chunk, true, false);
 
       // OMSSA does not write fixed modifications so we need to add them to the sequences
       writeDebug_("Assigning modifications to peptides", 1);
@@ -987,6 +988,11 @@ protected:
     vector<ProteinIdentification> protein_identifications;
     protein_identifications.push_back(protein_identification);
     IdXMLFile().store(outputfile_name, protein_identifications, peptide_ids);
+
+    // some stats
+    LOG_INFO << "Statistics:\n"
+             << "  identified MS2 spectra: " << peptide_ids.size() << " / " << ms2_spec_count << " = " << int(peptide_ids.size() * 100.0 / ms2_spec_count) << "% (with e-value < " << String(getDoubleOption_("he")) << ")" << std::endl;
+
 
     return EXECUTION_OK;
   }
