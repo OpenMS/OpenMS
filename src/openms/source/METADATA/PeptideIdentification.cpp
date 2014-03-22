@@ -215,7 +215,8 @@ namespace OpenMS
            && hits_.empty()
            && significance_threshold_ == 0.0
            && score_type_ == ""
-           && higher_score_better_ == true;
+           && higher_score_better_ == true
+           && base_name_ == "";
   }
 
   void PeptideIdentification::getReferencingHits(const String & protein_accession, std::vector<PeptideHit> & peptide_hits) const
