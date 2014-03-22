@@ -120,10 +120,9 @@ elif sys.platform == "darwin":
     # we need to manually link to the Qt Frameworks
     extra_link_args = ["-Wl,-s",
                        "-F" + QT_LIBRARY_DIR,
-                       "-framework Carbon",
                        "-framework AGL",
-                       "-framework OpenGL",
-                       "-framework QtOpenGL",
+                       "-framework CoreFoundation",
+                       "-framework CoreServices",
                        "-framework QtSvg",
                        "-framework QtWebKit",
                        "-framework QtXmlPatterns",

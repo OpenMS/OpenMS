@@ -95,20 +95,7 @@ if (MINGW OR MSYS)
 endif()
 
 #------------------------------------------------------------------------------
-# MacOS X related library extensions
-#------------------------------------------------------------------------------
-if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-	# due to some awkward updates of cmake in the 2.8.x series we need to add the
-  # following
-  find_library(CARBON NAMES Carbon)
-  find_package(OpenGL)
-  set(APPLE_EXTRA_LIBS ${CARBON} ${OPENGL_LIBRARY})
-else()
-  set(APPLE_EXTRA_LIBS "")
-endif()
-
-#------------------------------------------------------------------------------
-# All the multi threading stuff (OpenMP, CUDA, TBB)
+# All the multithreading stuff (OpenMP, CUDA, TBB)
 #------------------------------------------------------------------------------
 include(cmake/multithreading.cmake)
 

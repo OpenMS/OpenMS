@@ -78,3 +78,6 @@ message(STATUS "Contrib library directories: ${CONTRIB_LIB_DIR}")
 message(STATUS "Contrib include directories: ${CONTRIB_INCLUDE_DIR}")
 message(STATUS "===========================================================================")
 
+#------------------------------------------------------------------------------
+# Ensure Qt includes it's libs as SYSTEM
+set(QT_INCLUDE_DIRS_NO_SYSTEM Off)
