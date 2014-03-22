@@ -113,8 +113,10 @@ private:
     else
     {
       const std::streamsize prec_save = os.precision();
-      return os << std::setprecision(writtenDigits(FloatingPointType()))
-             << rhs.ref_ << std::setprecision(prec_save);
+      os.precision(writtenDigits(FloatingPointType()));
+      os << rhs.ref_;
+      os.precision(prec_save);
+      return os;
     }
   }
 } // namespace OpenMS

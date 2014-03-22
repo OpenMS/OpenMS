@@ -63,9 +63,9 @@ namespace OpenMS
     {}
 
     /// Constructor that sets the peak and spectrum index (for peak maps)
-    inline PeakIndex(Size spectrum, Size lpeak) :
+    inline PeakIndex(Size lspectrum, Size lpeak) :
       peak(lpeak),
-      spectrum(spectrum)
+      spectrum(lspectrum)
     {}
 
     /// returns if the current peak ref is valid

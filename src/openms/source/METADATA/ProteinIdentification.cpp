@@ -49,6 +49,51 @@ namespace OpenMS
   const std::string ProteinIdentification::NamesOfPeakMassType[] = {"Monoisotopic", "Average"};
   const std::string ProteinIdentification::NamesOfDigestionEnzyme[] = {"Trypsin", "Pepsin A", "Protease K", "Chymotrypsin", "No enzyme", "Unknown"};
 
+  ProteinIdentification::ProteinGroup::ProteinGroup() :
+    probability(0.0), accessions()
+  {}
+
+  bool ProteinIdentification::ProteinGroup::operator==(const ProteinGroup rhs) const
+  {
+    return probability == rhs.probability &&
+           accessions == rhs.accessions;
+  }
+
+  ProteinIdentification::SearchParameters::SearchParameters() :
+    db(),
+    db_version(),
+    taxonomy(),
+    charges(),
+    mass_type(MONOISOTOPIC),
+    fixed_modifications(),
+    variable_modifications(),
+    enzyme(UNKNOWN_ENZYME),
+    missed_cleavages(0),
+    peak_mass_tolerance(0.0),
+    precursor_tolerance(0.0)
+  {
+  }
+
+  bool ProteinIdentification::SearchParameters::operator==(const SearchParameters & rhs) const
+  {
+    return db == rhs.db &&
+           db_version == rhs.db_version &&
+           taxonomy == rhs.taxonomy &&
+           charges == rhs.charges &&
+           mass_type == rhs.mass_type &&
+           fixed_modifications == rhs.fixed_modifications &&
+           variable_modifications == rhs.variable_modifications &&
+           enzyme == rhs.enzyme &&
+           missed_cleavages == rhs.missed_cleavages &&
+           peak_mass_tolerance == rhs.peak_mass_tolerance &&
+           precursor_tolerance == rhs.precursor_tolerance;
+  }
+
+  bool ProteinIdentification::SearchParameters::operator!=(const SearchParameters & rhs) const
+  {
+    return !(*this == rhs);
+  }
+
   ProteinIdentification::ProteinIdentification() :
     MetaInfoInterface(),
     id_(),
