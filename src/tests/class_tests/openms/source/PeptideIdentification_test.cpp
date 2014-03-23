@@ -232,10 +232,10 @@ START_SECTION((bool empty() const))
 	hits.setSignificanceThreshold(0);
 	TEST_EQUAL(hits.empty(), true)
 
-    hits.setBaseName("basename");
+	hits.setBaseName("basename");
 	TEST_EQUAL(hits.empty(), false)
 
-    hits.setBaseName("");
+	hits.setBaseName("");
 	TEST_EQUAL(hits.empty(), true)
 
 	hits.insertHit(peptide_hit);
