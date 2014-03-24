@@ -57,14 +57,14 @@ namespace OpenMS
     {}
 
     /// Constructor that sets the peak index (for feature maps)
-    explicit inline PeakIndex(Size peak) :
-      peak(peak),
+    explicit inline PeakIndex(Size lpeak) :
+      peak(lpeak),
       spectrum((std::numeric_limits<Size>::max)())
     {}
 
     /// Constructor that sets the peak and spectrum index (for peak maps)
-    inline PeakIndex(Size spectrum, Size peak) :
-      peak(peak),
+    inline PeakIndex(Size spectrum, Size lpeak) :
+      peak(lpeak),
       spectrum(spectrum)
     {}
 
