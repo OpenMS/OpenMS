@@ -40,6 +40,7 @@
 
 #include <iosfwd>
 #include <functional>
+#include <cmath>
 
 namespace OpenMS
 {
@@ -162,7 +163,7 @@ public:
     /// Equality operator
     inline bool operator==(const Peak1D & rhs) const
     {
-      return intensity_ == rhs.intensity_ && position_ == rhs.position_;
+        return ( std::abs(double(intensity_ - rhs.intensity_)) <= std::numeric_limits<double>::epsilon() ) && (position_ == rhs.position_);
     }
 
     /// Equality operator
