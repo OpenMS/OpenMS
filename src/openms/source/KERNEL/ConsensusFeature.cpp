@@ -189,7 +189,7 @@ namespace OpenMS
     // compute the average position and intensity
     setRT(rt / size());
     setMZ(mz / size());
-    setIntensity(intensity / size());
+    setIntensity(ConsensusFeature::IntensityType(intensity / size()));
     setCharge(charge_most_frequent);
     return;
   }
@@ -231,7 +231,7 @@ namespace OpenMS
     // compute the position and intensity
     setRT(rt / size());
     setMZ(mz);
-    setIntensity(intensity / size());
+      setIntensity(ConsensusFeature::IntensityType(intensity / size()));
     setCharge(charge_most_frequent);
     return;
   }
