@@ -284,7 +284,7 @@ namespace OpenMS
     // compute the average position and intensity
     setRT(rt);
     setMZ(m);
-    setIntensity(intensity);
+    setIntensity(ConsensusFeature::IntensityType(intensity));
     setCharge(0);
     return;
   }

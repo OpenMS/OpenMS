@@ -163,23 +163,23 @@ namespace OpenMS
                                     rhs.protein_identifications_.end());
 
     // ensure non-redundant modification parameter
-    for (std::vector<ProteinIdentification>::iterator it = protein_identifications_.begin();
-         it != protein_identifications_.end();
-         ++it)
+    for (std::vector<ProteinIdentification>::iterator lit = protein_identifications_.begin();
+         lit != protein_identifications_.end();
+         ++lit)
     {
-      std::vector<String>::iterator it2;
+      std::vector<String>::iterator lit2;
 
       // remove redundant variable modifications
-      std::vector<String> & varMod = const_cast<std::vector<String> &>(it->getSearchParameters().variable_modifications);
+      std::vector<String> & varMod = const_cast<std::vector<String> &>(lit->getSearchParameters().variable_modifications);
       sort(varMod.begin(), varMod.end());
-      it2 = unique(varMod.begin(), varMod.end());
-      varMod.resize(it2 - varMod.begin());
+      lit2 = unique(varMod.begin(), varMod.end());
+      varMod.resize(lit2 - varMod.begin());
 
       // remove redundant fixed modifications
-      std::vector<String> & fixMod = const_cast<std::vector<String> &>(it->getSearchParameters().fixed_modifications);
+      std::vector<String> & fixMod = const_cast<std::vector<String> &>(lit->getSearchParameters().fixed_modifications);
       sort(fixMod.begin(), fixMod.end());
-      it2 = unique(fixMod.begin(), fixMod.end());
-      fixMod.resize(it2 - fixMod.begin());
+      lit2 = unique(fixMod.begin(), fixMod.end());
+      fixMod.resize(lit2 - fixMod.begin());
     }
 
     // append unassignedPeptideIdentifiactions
