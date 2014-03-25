@@ -253,7 +253,6 @@ namespace OpenMS
       }
     }
     throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Requested toolname '" + toolname + " does not exist!", toolname);
-    return StringList();
   }
 
   std::vector<Internal::ToolDescription> ToolHandler::getInternalTools_()

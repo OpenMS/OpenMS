@@ -40,6 +40,7 @@
 
 #include <ostream>
 #include <functional>
+#include <cmath>
 
 namespace OpenMS
 {
@@ -177,7 +178,7 @@ public:
     /// Equality operator
     inline bool operator==(const ChromatogramPeak & rhs) const
     {
-      return intensity_ == rhs.intensity_ && position_ == rhs.position_;
+        return (std::abs(ChromatogramPeak::IntensityType(intensity_ - rhs.intensity_)) <= std::numeric_limits<ChromatogramPeak::IntensityType>::epsilon()) && position_ == rhs.position_;
     }
 
     /// Equality operator

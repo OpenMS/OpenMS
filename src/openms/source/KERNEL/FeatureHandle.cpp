@@ -42,14 +42,14 @@ namespace OpenMS
     UniqueIdInterface(),
     map_index_(0),
     charge_(0),
-    width_(0)
+    width_(0.0)
   {}
 
   FeatureHandle::FeatureHandle(UInt64 map_index, const Peak2D & point, UInt64 element_index) :
     Peak2D(point),
     map_index_(map_index),
     charge_(0),
-    width_(0)
+    width_(0.0)
   {
     setUniqueId(element_index);
   }
@@ -120,7 +120,7 @@ namespace OpenMS
            && (UniqueIdInterface::operator==(i))
            && (map_index_ == i.map_index_)
            && (charge_ == i.charge_)
-           && (width_ == i.width_);
+           && ( std::abs(width_ - i.width_) <= std::numeric_limits<float>::epsilon() );
   }
 
   bool FeatureHandle::operator!=(const FeatureHandle & i) const

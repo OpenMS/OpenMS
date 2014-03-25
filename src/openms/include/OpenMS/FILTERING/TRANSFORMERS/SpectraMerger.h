@@ -246,7 +246,7 @@ public:
       for (Size ii = 0; ii < tree.size(); ++ii)
       {
         if (tree[ii].distance >= 1) tree[ii].distance = -1.0;       // manually set to disconnect, as SingleLinkage does not support it
-          if ( !  (std::abs(tree[ii].distance) <= -1.0+std::numeric_limits<DoubleReal>::epsilon()) ) ++node_count;
+          if ( !  (std::abs(tree[ii].distance+1.0) <= std::numeric_limits<DoubleReal>::epsilon()) ) ++node_count;
       }
       ca.cut(data_size - node_count, tree, clusters);
 

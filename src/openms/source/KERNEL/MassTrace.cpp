@@ -509,7 +509,7 @@ namespace OpenMS
 
     if ((temp_mz_size % 2) == 0)
     {
-      centroid_rt_ = (temp_rt[std::floor(temp_mz_size / 2.0) - 1] +  temp_rt[std::floor(temp_mz_size / 2.0)]) / 2;
+      centroid_rt_ = (temp_rt[int(std::floor(temp_mz_size / 2.0)) - 1] +  temp_rt[std::floor(temp_mz_size / 2.0)]) / 2;
     }
     else
     {

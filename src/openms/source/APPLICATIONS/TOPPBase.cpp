@@ -601,12 +601,12 @@ namespace OpenMS
       if (!subsection.empty() && current_TOPP_subsection != subsection)
       {
         current_TOPP_subsection = subsection;
-        map<String, String>::const_iterator it = subsections_TOPP_.find(current_TOPP_subsection);
-        if (it == subsections_TOPP_.end())
+        map<String, String>::const_iterator lit = subsections_TOPP_.find(current_TOPP_subsection);
+        if (lit == subsections_TOPP_.end())
           throw ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, "'" + current_TOPP_subsection + "' (TOPP subsection not registered)");
         cerr << "\n"; // print newline for new subsection
 
-        String subsection_description = it->second;
+        String subsection_description = lit->second;
         if (subsection_description.length() == 0)
           subsection_description = current_TOPP_subsection;
 
@@ -646,10 +646,10 @@ namespace OpenMS
       case ParameterInformation::INTLIST:
       case ParameterInformation::DOUBLELIST:
       {
-        String tmp = it->default_value.toString().substitute(", ", " ");
-        if (tmp != "" && tmp != "[]")
+        String ltmp = it->default_value.toString().substitute(", ", " ");
+        if (ltmp != "" && ltmp != "[]")
         {
-          addons.push_back(String("default: '") + tmp + "'");
+          addons.push_back(String("default: '") + ltmp + "'");
         }
       }
       break;
@@ -703,7 +703,7 @@ namespace OpenMS
         {
           addons.push_back(String("min: '") + it->min_float + "'");
         }
-        if (it->max_float != std::numeric_limits<DoubleReal>::max())
+        if (  ! (std::abs(it->max_float - std::numeric_limits<DoubleReal>::max()) <= std::numeric_limits<DoubleReal>::epsilon()) )
         {
           addons.push_back(String("max: '") + it->max_float + "'");
         }
@@ -1946,7 +1946,7 @@ namespace OpenMS
   {
     throw NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
 
-    return Param();
+   // return Param();
   }
 
   Param TOPPBase::getDefaultParameters_() const
