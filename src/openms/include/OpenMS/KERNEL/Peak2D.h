@@ -40,7 +40,6 @@
 
 #include <iosfwd>
 #include <functional>
-#include <cmath>
 
 namespace OpenMS
 {
@@ -228,7 +227,7 @@ public:
     /// Equality operator
     bool operator==(const Peak2D & rhs) const
     {
-        return (std::abs(Peak2D::IntensityType(intensity_ - rhs.intensity_)) <=  std::numeric_limits<Peak2D::IntensityType>::epsilon()) && (position_ == rhs.position_);
+      return intensity_ == rhs.intensity_ && position_ == rhs.position_;
     }
 
     /// Equality operator
