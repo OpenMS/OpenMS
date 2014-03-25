@@ -67,7 +67,7 @@ END_SECTION
 START_SECTION((GumbelDistributionFitResult fit(std::vector<DPosition<2> >& points)))
 {
 
-		DPosition<2> pos;
+	DPosition<2> pos;
   vector<DPosition<2> > points;
 
 	pos.setX(-2.7); pos.setY(0.017); points.push_back(pos);
@@ -146,16 +146,6 @@ START_SECTION((void setInitialParameters(const GumbelDistributionFitResult& resu
   f1.setInitialParameters(result);
 	
 	NOT_TESTABLE //implicitly tested in fit method
-}
-END_SECTION
-
-START_SECTION((const String& getGnuplotFormula() const ))
-{
-  String formula = ptr->getGnuplotFormula();
-	// f(x)=(1/1) * exp(-(x - 1)/1) * exp(-1 * exp(-(x-1)/1))
-	TEST_EQUAL(formula.hasSubstring("f(x)="), true)
-	TEST_EQUAL(formula.hasSubstring(") * exp(-exp(("), true)
-	TEST_EQUAL(formula.hasSubstring(" - x)/"), true)
 }
 END_SECTION
 

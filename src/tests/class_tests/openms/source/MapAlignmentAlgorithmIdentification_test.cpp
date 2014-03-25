@@ -82,14 +82,6 @@ START_SECTION((virtual void alignPeptideIdentifications(std::vector<std::vector<
 	vector<ProteinIdentification> proteins;
 	IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MapAlignmentAlgorithmIdentification_test_1.idXML"),	proteins, peptides[0]);
  	IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("MapAlignmentAlgorithmIdentification_test_2.idXML"),	proteins, peptides[1]);
-// 	cout << "Input:\n";
-// 	for (Size i = 0; i < peptides[0].size(); ++i)
-// 	{
-// 		cout << left << setw(20)
-// 				 << peptides[0][i].getHits()[0].getSequence().toString() + ":"
-// 				 << peptides[0][i].getMetaValue("RT") << "\t"
-// 				 << peptides[1][i].getMetaValue("RT") << endl;
-// 	}
 	vector<TransformationDescription> transforms(2);
 	MapAlignmentAlgorithm* aligner = Factory<MapAlignmentAlgorithm>::create(
 		"identification");
@@ -100,17 +92,8 @@ START_SECTION((virtual void alignPeptideIdentifications(std::vector<std::vector<
 	aligner->setLogType(ProgressLogger::CMD);
 	aligner->alignPeptideIdentifications(peptides, transforms);
 	params.clear();
-	params.setValue("num_breakpoints", 10);
-	aligner->fitModel("b_spline", params, transforms);
+	aligner->fitModel("interpolated", params, transforms);
   MapAlignmentTransformer::transformPeptideIdentifications(peptides, transforms);
-// 	cout << "Output (transformed):\n";
-// 	for (Size i = 0; i < peptides[0].size(); ++i)
-// 	{
-// 		cout << left << setw(20)
-// 				 << peptides[0][i].getHits()[0].getSequence().toString() + ":"
-// 				 << peptides[0][i].getMetaValue("RT") << "\t"
-// 				 << peptides[1][i].getMetaValue("RT") << endl;
-// 	}
 	for (Size i = 0; i < peptides[0].size(); ++i)
 	{
 		TEST_REAL_SIMILAR(peptides[0][i].getMetaValue("RT"),

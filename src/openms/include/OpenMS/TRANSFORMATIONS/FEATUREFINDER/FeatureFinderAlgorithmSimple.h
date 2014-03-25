@@ -51,8 +51,7 @@ namespace OpenMS
   SimpleSeeder, SimpleExtender, ModelFitter (using EmgModel (exponentially
   modified gaussian with parameter optimization [Levenberg-Marquardt
   algorithm]) in RT dimension and IsotopeModel (charge does not equal zero)
-  or LmaGaussModel (parameter optimization using Levenberg-Marquardt
-  algorithm) in dimension of mz).
+  in dimension of mz).
 
   @htmlinclude OpenMS_FeatureFinderAlgorithmSimple.parameters
 

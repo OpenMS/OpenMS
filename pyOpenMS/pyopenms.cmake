@@ -367,7 +367,6 @@ test_MzXMLConsumer.py
 # Please add your test here when you decide to write a new testfile in the tests/unittests folder
 set(pyopenms_integrationtest_testfiles
 test_MRMRTNormalizer.py
-test_SILACAnalyzer.py
 )
 
 # Loop through all the test files

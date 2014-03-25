@@ -22,9 +22,13 @@ pushd contrib
 # we build seqan as the versions shipped in Ubuntu are not recent enough
 build_contrib SEQAN
 
-# we build the gsl as the one installed with this ubuntu version
-# conflicts with OpenMS
-build_contrib GSL
+# we build WildMagic
+build_contrib WILDMAGIC
+
+# we build Eigen as the versions shipped in Ubuntu are not recent enough
+build_contrib EIGEN
+
+
 
 # leave contrib
 popd

@@ -40,7 +40,7 @@
   patch, autoconf > 2.60, automake > 1.9, libtool (libtoolize/glibtoolize).
 
   For the complete feature set to be enabled, %OpenMS needs recent versions of
-  Boost (1.46 or higher works), GSL (1.13 or higher works),
+  Boost (1.46 or higher works), Eigen3, WildMagic5
   libSVM (2.91 or higher and 3.x for x <= 14 works), SeqAn (1.4.0 or higher needed),
   glpk (4.45 or higher works), zlib, libbz2, and Xerces-C (3.1.1 or higher works).
 
@@ -70,7 +70,7 @@
     <td><pre>
     sudo apt-get install cmake g++ autoconf qt4-dev-tools patch libtool make
     sudo apt-get install libboost-regex-dev libboost-iostreams-dev libboost-date-time-dev libboost-math-dev \
-      libsvm-dev libglpk-dev libzip-dev zlib1g-dev libxerces-c-dev libgsl0-dev
+      libsvm-dev libglpk-dev libzip-dev zlib1g-dev libxerces-c-dev 
     </pre></td>
 
   </tr>

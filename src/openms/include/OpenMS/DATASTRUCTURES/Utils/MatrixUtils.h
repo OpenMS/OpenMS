@@ -28,78 +28,64 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
-// $Authors: $
+// $Maintainer: Christian Ehrlich $
+// $Authors: Christian Ehrlich $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_LMAGAUSSMODEL_H
-#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_LMAGAUSSMODEL_H
+#ifndef MATRIXUTILS_H_
+#define MATRIXUTILS_H_
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/InterpolationModel.h>
-#include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
+#include <OpenMS/DATASTRUCTURES/Matrix.h>
 
+#include <Eigen/Core>
+
+#include <boost/shared_ptr.hpp>
 
 namespace OpenMS
 {
+  /** Matrix utility functions.
+   *
+   */
 
-  /**
-      @brief Normal distribution model for elution profiles.
+  typedef boost::shared_ptr< const Eigen::MatrixXd > EigenMatrixXdPtr;
+  typedef boost::shared_ptr< Eigen::MatrixXd > MutableEigenMatrixXdPtr;
 
-      To be used in combination with the Levenberg-Marquardt algorithm fitting algorithm.
-
-      @htmlinclude OpenMS_LmaGaussModel.parameters
-  */
-  class OPENMS_DLLAPI LmaGaussModel :
-    public InterpolationModel
+  static EigenMatrixXdPtr
+  convertOpenMSMatrix2EigenMatrixXd( const Matrix<double>& m )
   {
-
-public:
-    typedef InterpolationModel::CoordinateType CoordinateType;
-    typedef Math::BasicStatistics<CoordinateType> BasicStatistics;
-
-    /// Default constructor
-    LmaGaussModel();
-
-    /// copy constructor
-    LmaGaussModel(const LmaGaussModel & source);
-
-    /// destructor
-    virtual ~LmaGaussModel();
-
-    /// assignment operator
-    virtual LmaGaussModel & operator=(const LmaGaussModel & source);
-
-    /// create new EmgModel object (needed by Factory)
-    static BaseModel<1> * create()
+    MutableEigenMatrixXdPtr em ( new Eigen::MatrixXd(m.rows(), m.cols()) );
+    for (unsigned i=0; i<m.rows(); ++i)
     {
-      return new LmaGaussModel();
+      for (unsigned j=0; j<m.cols(); ++j)
+      {
+        (*em)(i,j) = m(i,j);
+      }
     }
+    return em;
+  }
 
-    /// name of the model (needed by Factory)
-    static const String getProductName()
+  static bool
+  matrixIsIdentityMatrix(const Matrix<double>& channel_frequency)
+  {
+    bool is_identity = true;
+
+    for (Matrix<double>::SizeType i = 0; i < channel_frequency.rows(); ++i)
     {
-      return "LmaGaussModel";
+      for (Matrix<double>::SizeType j = 0; j < channel_frequency.rows(); ++j)
+      {
+        // check if the entries are those of a identity matrix;
+        // i==j -> m(i,j) == 1.0 && i!=j -> m(i,j) == 0.0
+        if ((i == j && channel_frequency(i, j) != 1.0) || channel_frequency(i, j) != 0.0)
+        {
+          is_identity = false;
+          break;
+        }
+      }
+      // leave outer loop if we have reached the abortion cirteria
+      if (!is_identity) break;
     }
+    return is_identity;
+  }
+}//namespace
 
-    /// set offset without being computing all over and without any discrepancy
-    void setOffset(CoordinateType offset);
-
-    /// set sample/supporting points of interpolation
-    void setSamples();
-
-    /// get the center of the Gaussian model i.e. the position of the maximum
-    CoordinateType getCenter() const;
-
-protected:
-    CoordinateType  min_;
-    CoordinateType  max_;
-    BasicStatistics statistics_;
-    CoordinateType scale_factor_;
-    CoordinateType standard_deviation_;
-    CoordinateType expected_value_;
-
-    void updateMembers_();
-  };
-}
-
-#endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_LMAGAUSSMODEL_H
+#endif /* MATRIXUTILS_H_ */

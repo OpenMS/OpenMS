@@ -393,7 +393,7 @@ namespace OpenMS
 
       // Also integrate the intensities
       integrated_intensities_[i] = 0;
-      for (Size k = current_left_idx; k <= current_right_idx; k++)
+      for (int k = current_left_idx; k <= current_right_idx; k++)
       {
         integrated_intensities_[i] += chromatogram[k].getIntensity();
       }

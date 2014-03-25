@@ -39,11 +39,15 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+
+#include<QDir>
+
+#include <boost/math/special_functions/fpclassify.hpp>
 
 #include <algorithm>
-#include <gsl/gsl_statistics.h>
-#include <boost/math/special_functions/fpclassify.hpp>
-#include <QDir>
+
+
 
 using namespace std;
 
@@ -52,7 +56,10 @@ namespace OpenMS
   namespace Math
   {
     PosteriorErrorProbabilityModel::PosteriorErrorProbabilityModel() :
-      DefaultParamHandler("PosteriorErrorProbabilityModel"), negative_prior_(0.5), max_incorrectly_(0), max_correctly_(0), smallest_score_(0)
+      DefaultParamHandler("PosteriorErrorProbabilityModel"),
+      incorrectly_assigned_fit_param_(GaussFitter::GaussFitResult(-1,-1,-1)),
+      correctly_assigned_fit_param_(GaussFitter::GaussFitResult(-1,-1,-1)),
+      negative_prior_(0.5), max_incorrectly_(0), max_correctly_(0), smallest_score_(0)
     {
       defaults_.setValue("out_plot", "", "If given, the some output files will be saved in the following manner: <out_plot>_scores.txt for the scores and <out_plot> which contains the fitted values for each step of the EM-algorithm, e.g., out_plot = /usr/home/OMSSA123 leads to /usr/home/OMSSA123_scores.txt, /usr/home/OMSSA123 will be written. If no directory is specified, e.g. instead of '/usr/home/OMSSA123' just OMSSA123, the files will be written into the working directory.", ListUtils::create<String>("advanced,output file"));
       defaults_.setValue("number_of_bins", 100, "Number of bins used for visualization. Only needed if each iteration step of the EM-Algorithm will be visualized", ListUtils::create<String>("advanced"));
@@ -91,8 +98,8 @@ namespace OpenMS
       negative_prior_ = 0.7;
       if (param_.getValue("incorrectly_assigned") == "Gumbel")
       {
-        incorrectly_assigned_fit_param_.x0 = gsl_stats_mean(&x_scores[0], 1, ceil(0.5 * x_scores.size())) + x_scores[0];
-        incorrectly_assigned_fit_param_.sigma = gsl_stats_sd(&x_scores[0], 1, x_scores.size() - 1);        //pow(gsl_stats_sd_with_fixed_mean(&probabilities[x_score_start], 1, probabilities.size() - x_score_start, gauss_fit_param_.x0),2);
+        incorrectly_assigned_fit_param_.x0 = Math::mean(x_scores.begin(), x_scores.begin() + ceil(0.5 * x_scores.size())) + x_scores[0];
+        incorrectly_assigned_fit_param_.sigma = Math::sd(x_scores.begin(), x_scores.end(), incorrectly_assigned_fit_param_.x0 );
         incorrectly_assigned_fit_param_.A = 1   / sqrt(2 * Constants::PI * pow(incorrectly_assigned_fit_param_.sigma, 2));
         //TODO: compute directly with gauss. Workaround:
         calc_incorrect_ = &PosteriorErrorProbabilityModel::getGauss;
@@ -100,8 +107,8 @@ namespace OpenMS
       }
       else
       {
-        incorrectly_assigned_fit_param_.x0 = gsl_stats_mean(&x_scores[0], 1, ceil(0.5 * x_scores.size())) + x_scores[0];
-        incorrectly_assigned_fit_param_.sigma = gsl_stats_sd(&x_scores[0], 1, x_scores.size() - 1);        //pow(gsl_stats_sd_with_fixed_mean(&probabilities[x_score_start], 1, probabilities.size() - x_score_start, gauss_fit_param_.x0),2);
+        incorrectly_assigned_fit_param_.x0 = Math::mean(x_scores.begin(), x_scores.begin() + ceil(0.5 * x_scores.size())) + x_scores[0];
+        incorrectly_assigned_fit_param_.sigma = Math::sd(x_scores.begin(), x_scores.end(), incorrectly_assigned_fit_param_.x0);
         incorrectly_assigned_fit_param_.A = 1   / sqrt(2 * Constants::PI * pow(incorrectly_assigned_fit_param_.sigma, 2));
         calc_incorrect_ = &PosteriorErrorProbabilityModel::getGauss;
         getNegativeGnuplotFormula_ = &PosteriorErrorProbabilityModel::getGaussGnuplotFormula;
@@ -109,7 +116,7 @@ namespace OpenMS
       getPositiveGnuplotFormula_ = &PosteriorErrorProbabilityModel::getGaussGnuplotFormula;
       calc_correct_ = &PosteriorErrorProbabilityModel::getGauss;
       Size x_score_start = std::min(x_scores.size() - 1, (Size) ceil(x_scores.size() * 0.7));   // if only one score is present, ceil(...) will yield 1, which is an invalid index
-      correctly_assigned_fit_param_.x0 = gsl_stats_mean(&x_scores[x_score_start], 1, x_scores.size() - x_score_start) + x_scores[x_score_start];      //(gauss_scores.begin()->getX() + (gauss_scores.end()-1)->getX())/2;
+      correctly_assigned_fit_param_.x0 = Math::mean(x_scores.begin() + x_score_start, x_scores.end()) + x_scores[x_score_start];      //(gauss_scores.begin()->getX() + (gauss_scores.end()-1)->getX())/2;
       correctly_assigned_fit_param_.sigma = incorrectly_assigned_fit_param_.sigma;
       correctly_assigned_fit_param_.A = 1.0   / sqrt(2 * Constants::PI * pow(correctly_assigned_fit_param_.sigma, 2));
 

@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <TrafoXML version="1.0" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/TrafoXML_1_0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <Transformation name="interpolated">
-    <Param type="string" name="interpolation_type" value="linear"/>
-    <Pairs count="3">
+  <Transformation name="linear">
+    <Pairs count="2">
       <Pair from="0.0" to="0.0"/>
       <Pair from="200.0" to="1.0"/>
     </Pairs>

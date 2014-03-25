@@ -52,9 +52,9 @@ START_TEST(RTSimulation, "$Id$")
 const unsigned long rnd_gen_seed = 1;
 RTSimulation* ptr = 0;
 RTSimulation* nullPointer = 0;
-SimRandomNumberGenerator empty_rnd_gen;
+MutableSimRandomNumberGeneratorPtr empty_rnd_gen (new SimRandomNumberGenerator);
 
-START_SECTION((RTSimulation(const SimRandomNumberGenerator& random_generator)))
+START_SECTION((RTSimulation(const MutableSimRandomNumberGeneratorPtr random_generator)))
 {
   ptr = new RTSimulation(empty_rnd_gen);
 	TEST_NOT_EQUAL(ptr, nullPointer)
@@ -106,12 +106,9 @@ START_SECTION(([EXTRA] Prediction Test - HPLC with relative RTs))
 {
   // init rng
   // init rng
-  SimRandomNumberGenerator rnd_gen;
-
-  rnd_gen.biological_rng = gsl_rng_alloc (gsl_rng_taus);
-  gsl_rng_set(rnd_gen.biological_rng, rnd_gen_seed);
-  rnd_gen.technical_rng = gsl_rng_alloc (gsl_rng_taus);
-  gsl_rng_set(rnd_gen.technical_rng, rnd_gen_seed);
+  MutableSimRandomNumberGeneratorPtr rnd_gen (new SimRandomNumberGenerator);
+  rnd_gen->setBiologicalRngSeed(rnd_gen_seed);
+  rnd_gen->setTechnicalRngSeed(rnd_gen_seed);
 
   // rt svm
   RTSimulation svm_rt_sim(rnd_gen);
@@ -162,12 +159,9 @@ END_SECTION
 START_SECTION((void createExperiment(MSSimExperiment & experiment)))
 {
   // init rng
-  SimRandomNumberGenerator rnd_gen;
-
-  rnd_gen.biological_rng = gsl_rng_alloc (gsl_rng_taus);
-  gsl_rng_set(rnd_gen.biological_rng, rnd_gen_seed);
-  rnd_gen.technical_rng = gsl_rng_alloc (gsl_rng_taus);
-  gsl_rng_set(rnd_gen.technical_rng, rnd_gen_seed);
+  MutableSimRandomNumberGeneratorPtr rnd_gen (new SimRandomNumberGenerator);
+  rnd_gen->setBiologicalRngSeed(rnd_gen_seed);
+  rnd_gen->setTechnicalRngSeed(rnd_gen_seed);
 
   // rt svm
   RTSimulation svm_rt_sim(rnd_gen);
@@ -220,12 +214,9 @@ END_SECTION
 START_SECTION(([EXTRA] Prediction Test - No RT column))
 {
   // init rng
-  SimRandomNumberGenerator rnd_gen;
-
-  rnd_gen.biological_rng = gsl_rng_alloc (gsl_rng_taus);
-  gsl_rng_set(rnd_gen.biological_rng, rnd_gen_seed);
-  rnd_gen.technical_rng = gsl_rng_alloc (gsl_rng_taus);
-  gsl_rng_set(rnd_gen.technical_rng, rnd_gen_seed);
+  MutableSimRandomNumberGeneratorPtr rnd_gen (new SimRandomNumberGenerator);
+  rnd_gen->setBiologicalRngSeed(rnd_gen_seed);
+  rnd_gen->setTechnicalRngSeed(rnd_gen_seed);
 
   // no rt scan
   RTSimulation no_rt_sim(rnd_gen);
@@ -261,12 +252,9 @@ END_SECTION
 START_SECTION(([EXTRA] Prediction Test - HPLC with absolute RTs))
 {
   // init rng
-  SimRandomNumberGenerator rnd_gen;
-
-  rnd_gen.biological_rng = gsl_rng_alloc (gsl_rng_taus);
-  gsl_rng_set(rnd_gen.biological_rng, rnd_gen_seed);
-  rnd_gen.technical_rng = gsl_rng_alloc (gsl_rng_taus);
-  gsl_rng_set(rnd_gen.technical_rng, rnd_gen_seed);
+  MutableSimRandomNumberGeneratorPtr rnd_gen (new SimRandomNumberGenerator);
+  rnd_gen->setBiologicalRngSeed(rnd_gen_seed);
+  rnd_gen->setTechnicalRngSeed(rnd_gen_seed);
 
   // absolute rt values
   // rt svm

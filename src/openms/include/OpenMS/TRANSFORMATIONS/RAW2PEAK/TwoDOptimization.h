@@ -56,26 +56,28 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/IsotopeCluster.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
+
+#include <Eigen/Core>
+#include <unsupported/Eigen/NonLinearOptimization>
 
 #ifndef OPENMS_SYSTEM_STOPWATCH_H
 #endif
 
 #include <boost/math/special_functions/acosh.hpp>
-#include <gsl/gsl_vector.h>
-#include <gsl/gsl_multifit_nlin.h>
-#include <gsl/gsl_blas.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePick.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakShape.h>
 
 namespace OpenMS
 {
+
   /**
     @brief This class provides the two-dimensional optimization of the picked peak parameters.
 
     Given the picked peaks, this class optimizes the peak parameters of each isotope pattern using
     a non-linear optimization. The peaks of adjacent scans are adjusted to achieve that a peak occurring in
     several scans has always the same m/z position. For the optimization the Levenberg-Marquardt algorithm
-    provided from the GSL is used. The optimized parameters are the m/z values,
+    provided from the Eigen is used. The optimized parameters are the m/z values,
     the left and right width, which shall be equal for a peak in all scans,
     and the peaks' heights.
 
@@ -117,24 +119,6 @@ public:
     {
       max_peak_distance_ = max_peak_distance;
       param_.setValue("2d:max_peak_distance", max_peak_distance);
-    }
-
-    ///Non-mutable access to the maximal absolute error
-    inline DoubleReal getMaxAbsError() const {return eps_abs_; }
-    ///Mutable access to the  maximal absolute error
-    inline void setMaxAbsError(DoubleReal eps_abs)
-    {
-      eps_abs_ = eps_abs;
-      param_.setValue("delta_abs_error", eps_abs);
-    }
-
-    ///Non-mutable access to the maximal relative error
-    inline DoubleReal getMaxRelError() const {return eps_rel_; }
-    ///Mutable access to the maximal relative error
-    inline void setMaxRelError(DoubleReal eps_rel)
-    {
-      eps_rel_ = eps_rel;
-      param_.setValue("delta_rel_error", eps_rel);
     }
 
     ///Non-mutable access to the maximal number of iterations
@@ -195,6 +179,25 @@ protected:
       std::vector<DoubleReal> signal;
     };
 
+    class OPENMS_DLLAPI TwoDOptFunctor
+    {
+    public:
+      int inputs() const { return m_inputs; }
+      int values() const { return m_values; }
+
+      TwoDOptFunctor(unsigned dimensions, unsigned num_data_points, const TwoDOptimization::Data* data)
+      : m_inputs(dimensions), m_values(num_data_points), m_data(data) {}
+
+      int operator()(const Eigen::VectorXd &x, Eigen::VectorXd &fvec);
+      // compute Jacobian matrix for the different parameters
+      int df(const Eigen::VectorXd &x, Eigen::MatrixXd &J);
+
+    private:
+      const int m_inputs, m_values;
+      const TwoDOptimization::Data* m_data;
+    };
+
+
     /// stores the retention time of each isotopic cluster
     std::multimap<DoubleReal, IsotopeCluster> iso_map_;
 
@@ -212,12 +215,6 @@ protected:
     std::map<Int, std::vector<PeakIndex> > matching_peaks_;
 
 
-    /// Convergence Parameter: Maximal absolute error
-    DoubleReal eps_abs_;
-
-    /// Convergence Parameter: Maximal relative error
-    DoubleReal eps_rel_;
-
     /// Convergence Parameter: Maximal number of iterations
     UInt max_iteration_;
 
@@ -227,18 +224,6 @@ protected:
 
     /// Penalty factors for some parameters in the optimization
     OptimizationFunctions::PenaltyFactorsIntensity penalties_;
-
-
-    /**
-   @name Functions provided to the gsl Levenberg-Marquardt
-    */
-    //@{
-    /// Function computing estimated signal and its deviation to the experimental signal*/
-    static Int residual2D_(const gsl_vector* x, void* params, gsl_vector* f);
-    /// Function computing the Jacobian */
-    static Int jacobian2D_(const gsl_vector* x, void* params, gsl_matrix* J);
-    /// Function that calls residual2D and jacobian2D*/
-    static Int evaluate2D_(const gsl_vector* x, void* params, gsl_vector* f, gsl_matrix* J);
 
 
     /**
@@ -579,6 +564,8 @@ protected:
     //#undef DEBUG_2D
   }
 
+
+
   template <typename InputSpectrumIterator, typename OutputPeakType>
   void TwoDOptimization::optimizeRegions_(InputSpectrumIterator& first,
                                           InputSpectrumIterator& last,
@@ -608,33 +595,33 @@ protected:
       // determine the matching peaks
       matching_peaks_.clear();
       findMatchingPeaks_(it, ms_exp);
-      TwoDOptimization::Data d;
-      d.penalties = penalties_;
-      d.matching_peaks = matching_peaks_;
+      TwoDOptimization::Data twoD_data;
+      twoD_data.penalties = penalties_;
+      twoD_data.matching_peaks = matching_peaks_;
       // and the endpoints of each isotope pattern in the cluster
-      getRegionEndpoints_(ms_exp, first, last, counter, 400, d);
+      getRegionEndpoints_(ms_exp, first, last, counter, 400, twoD_data);
 
       // peaks have to be stored globally
-      d.iso_map_iter = it;
+      twoD_data.iso_map_iter = it;
 
-      d.picked_peaks = ms_exp;
-      d.raw_data_first =  first;
+      twoD_data.picked_peaks = ms_exp;
+      twoD_data.raw_data_first =  first;
 
       Size nr_diff_peaks = matching_peaks_.size();
-      d.total_nr_peaks = it->second.peaks.size();
+      twoD_data.total_nr_peaks = it->second.peaks.size();
 
-      Size nr_parameters = nr_diff_peaks * 3 + d.total_nr_peaks;
+      Size nr_parameters = nr_diff_peaks * 3 + twoD_data.total_nr_peaks;
 
-      gsl_vector* start_value = gsl_vector_alloc(nr_parameters);
-      gsl_vector_set_zero(start_value);
+      // initialize and set parameters for optimization
+      Eigen::VectorXd x_init (nr_parameters);
+      x_init.setZero();
 
-      // initialize parameters for optimization
-      std::map<Int, std::vector<PeakIndex> >::iterator m_peaks_it = d.matching_peaks.begin();
+      std::map<Int, std::vector<PeakIndex> >::iterator m_peaks_it = twoD_data.matching_peaks.begin();
       DoubleReal av_mz = 0, av_lw = 0, av_rw = 0, avr_height = 0, height;
       Int peak_counter = 0;
       Int diff_peak_counter = 0;
       // go through the matching peaks
-      for (; m_peaks_it != d.matching_peaks.end(); ++m_peaks_it)
+      for (; m_peaks_it != twoD_data.matching_peaks.end(); ++m_peaks_it)
       {
         av_mz = 0, av_lw = 0, av_rw = 0, avr_height = 0;
         std::vector<PeakIndex>::iterator iter_iter = (m_peaks_it)->second.begin();
@@ -645,12 +632,12 @@ protected:
           av_mz += (iter_iter)->getPeak(ms_exp).getMZ() * height;
           av_lw += ms_exp[(iter_iter)->spectrum].getFloatDataArrays()[3][(iter_iter)->peak] * height; //left width
           av_rw +=    ms_exp[(iter_iter)->spectrum].getFloatDataArrays()[4][(iter_iter)->peak] * height; //right width
-          gsl_vector_set(start_value, peak_counter, height);
+          x_init(peak_counter) = height;
           ++peak_counter;
         }
-        gsl_vector_set(start_value, d.total_nr_peaks + 3 * diff_peak_counter, av_mz / avr_height);
-        gsl_vector_set(start_value, d.total_nr_peaks + 3 * diff_peak_counter + 1, av_lw / avr_height);
-        gsl_vector_set(start_value, d.total_nr_peaks + 3 * diff_peak_counter + 2, av_rw / avr_height);
+        x_init(twoD_data.total_nr_peaks + 3 * diff_peak_counter) = av_mz / avr_height;
+        x_init(twoD_data.total_nr_peaks + 3 * diff_peak_counter + 1) = av_lw / avr_height;
+        x_init(twoD_data.total_nr_peaks + 3 * diff_peak_counter + 2) = av_rw / avr_height;
         ++diff_peak_counter;
       }
 
@@ -658,91 +645,40 @@ protected:
       std::cout << "----------------------------\n\nstart_value: " << std::endl;
       for (Size k = 0; k < start_value->size; ++k)
       {
-        std::cout << gsl_vector_get(start_value, k) << std::endl;
+          std::cout << x_init(k) << std::endl;
       }
 #endif
       Int num_positions = 0;
-      for (Size i = 0; i < d.signal2D.size(); i += 2)
+      for (Size i = 0; i < twoD_data.signal2D.size(); i += 2)
       {
-        num_positions += (d.signal2D[i + 1].second - d.signal2D[i].second + 1);
+        num_positions += (twoD_data.signal2D[i + 1].second - twoD_data.signal2D[i].second + 1);
 #ifdef DEBUG_2D
-        std::cout << d.signal2D[i + 1].second << " - " << d.signal2D[i].second << " +1 " << std::endl;
+        std::cout << twoD_data.signal2D[i + 1].second << " - " << twoD_data.signal2D[i].second << " +1 " << std::endl;
 #endif
 
       }
 #ifdef DEBUG_2D
       std::cout << "num_positions : " << num_positions << std::endl;
 #endif
-      // The gsl algorithms require us to provide function pointers for the evaluation of
-      // the target function.
-      gsl_multifit_function_fdf fit_function;
-      fit_function.f   = (Int (*)(const gsl_vector* x, void* params, gsl_vector* f)) & OpenMS::TwoDOptimization::residual2D_;
-      fit_function.df  = (Int (*)(const gsl_vector* x, void* params, gsl_matrix* J)) & OpenMS::TwoDOptimization::jacobian2D_;
-      fit_function.fdf = (Int (*)(const gsl_vector* x, void* params, gsl_vector* f, gsl_matrix* J)) & OpenMS::TwoDOptimization::evaluate2D_;
-      // gsl crashes when n is smaller than p!
-      fit_function.n   = std::max(num_positions + 1, (Int)(nr_parameters));
-      fit_function.p   = nr_parameters;
-      fit_function.params = &d;
-#ifdef DEBUG_2D
-      std::cout << "fit_function.n " << fit_function.n
-                << "\tfit_function.p " << fit_function.p << std::endl;
-#endif
-      const gsl_multifit_fdfsolver_type* type = gsl_multifit_fdfsolver_lmsder;
+      
+      TwoDOptFunctor functor (nr_parameters, std::max(num_positions + 1, (Int)(nr_parameters)), &twoD_data);
+      Eigen::LevenbergMarquardt<TwoDOptFunctor> lmSolver (functor);
+      Eigen::LevenbergMarquardtSpace::Status status = lmSolver.minimize(x_init);
 
-      gsl_multifit_fdfsolver* fit = gsl_multifit_fdfsolver_alloc(type,
-                                                                 std::max(num_positions + 1, (Int)(nr_parameters)),
-                                                                 nr_parameters);
-
-      gsl_multifit_fdfsolver_set(fit, &fit_function, start_value);
-
-
-
-      // initial norm
-#ifdef DEBUG_2D
-      std::cout << "Before optimization: ||f|| = " << gsl_blas_dnrm2(fit->f) << std::endl;
-#endif
-      // Iteration
-      UInt iteration = 0;
-      Int status;
-
-      do
+      //the states are poorly documented. after checking the source, we believe that
+      //all states except NotStarted, Running and ImproperInputParameters are good
+      //termination states.
+      if (status <= Eigen::LevenbergMarquardtSpace::ImproperInputParameters)
       {
-        iteration++;
-        status = gsl_multifit_fdfsolver_iterate(fit);
-#ifdef DEBUG_2D
-        std::cout << "Iteration " << iteration << "; Status " << gsl_strerror(status) << "; " << std::endl;
-        std::cout << "||f|| = " << gsl_blas_dnrm2(fit->f) << std::endl;
-        std::cout << "Number of parms: " << nr_parameters << std::endl;
-        std::cout << "Delta: " << gsl_blas_dnrm2(fit->dx) << std::endl;
-#endif
-
-        status = gsl_multifit_test_delta(fit->dx, fit->x, eps_abs_, eps_rel_);
-        if (status != GSL_CONTINUE)
-          break;
-
+          throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-TwoDOptimization:", "Could not fit the data: Error " + String(status));
       }
-      while (status == GSL_CONTINUE && iteration < max_iteration_);
 
-#ifdef DEBUG_2D
-      std::cout << "Finished! No. of iterations" << iteration << std::endl;
-      std::cout << "Delta: " << gsl_blas_dnrm2(fit->dx) << std::endl;
-      DoubleReal chi = gsl_blas_dnrm2(fit->f);
-      std::cout << "After optimization: || f || = " << gsl_blas_dnrm2(fit->f) << std::endl;
-      std::cout << "chisq/dof = " << pow(chi, 2.0) / (num_positions - nr_parameters);
-
-
-      std::cout << "----------------------------------------------\n\nnachher" << std::endl;
-      for (Size k = 0; k < fit->x->size; ++k)
-      {
-        std::cout << gsl_vector_get(fit->x, k) << std::endl;
-      }
-#endif
       Int peak_idx = 0;
       std::map<Int, std::vector<PeakIndex> >::iterator itv
-        = d.matching_peaks.begin();
-      for (; itv != d.matching_peaks.end(); ++itv)
+        = twoD_data.matching_peaks.begin();
+      for (; itv != twoD_data.matching_peaks.end(); ++itv)
       {
-        Int i = distance(d.matching_peaks.begin(), itv);
+        Int i = distance(twoD_data.matching_peaks.begin(), itv);
         for (Size j = 0; j < itv->second.size(); ++j)
         {
 
@@ -752,13 +688,14 @@ protected:
                     << "\nrw: " << itv->second[j].getSpectrum(ms_exp).getFloatDataArrays()[4][itv->second[j].peak] << "\n";
 
 #endif
-          DoubleReal mz = gsl_vector_get(fit->x, d.total_nr_peaks + 3 * i);
+          DoubleReal mz = x_init(twoD_data.total_nr_peaks + 3 * i);
           ms_exp[itv->second[j].spectrum][itv->second[j].peak].setMZ(mz);
-          DoubleReal height = (gsl_vector_get(fit->x, peak_idx));
+          DoubleReal height = x_init(peak_idx);
           ms_exp[itv->second[j].spectrum].getFloatDataArrays()[1][itv->second[j].peak] = height;
-          DoubleReal left_width = gsl_vector_get(fit->x, d.total_nr_peaks + 3 * i + 1);
+          DoubleReal left_width = x_init(twoD_data.total_nr_peaks + 3 * i + 1);
           ms_exp[itv->second[j].spectrum].getFloatDataArrays()[3][itv->second[j].peak] = left_width;
-          DoubleReal right_width = gsl_vector_get(fit->x, d.total_nr_peaks + 3 * i + 2);
+          DoubleReal right_width = x_init(twoD_data.total_nr_peaks + 3 * i + 2);
+
           ms_exp[itv->second[j].spectrum].getFloatDataArrays()[4][itv->second[j].peak] = right_width;
           // calculate area
           if ((PeakShape::Type)(Int)ms_exp[itv->second[j].spectrum].getFloatDataArrays()[5][itv->second[j].peak] == PeakShape::LORENTZ_PEAK)
@@ -783,11 +720,6 @@ protected:
           std::cout << "pos: " << itv->second[j].getPeak(ms_exp).getMZ() << "\nint: " << itv->second[j].getSpectrum(ms_exp).getFloatDataArrays()[1][itv->second[j].peak] //itv->second[j].getPeak(ms_exp).getIntensity()
                     << "\nlw: " << itv->second[j].getSpectrum(ms_exp).getFloatDataArrays()[3][itv->second[j].peak]
                     << "\nrw: " << itv->second[j].getSpectrum(ms_exp).getFloatDataArrays()[4][itv->second[j].peak] << "\n";
-
-//                              std::cout << "pos: "<<itv->second[j]->getMZ()<<"\nint: "<<itv->second[j]->getIntensity()
-//                                                  <<"\nlw: "<<itv->second[j]->getLeftWidthParameter()
-//                                                  <<"\nrw: "<<itv->second[j]->getRightWidthParameter() << "\n";
-
 #endif
 
           ++peak_idx;
@@ -796,8 +728,6 @@ protected:
         }
       }
 
-      gsl_multifit_fdfsolver_free(fit);
-      gsl_vector_free(start_value);
       ++counter;
     } // end for
     //#undef DEBUG_2D
@@ -854,20 +784,6 @@ protected:
       max_iteration = 15;
     else
       max_iteration = (UInt)dv;
-
-    DoubleReal eps_abs;
-    dv = param_.getValue("delta_abs_error");
-    if (dv.isEmpty() || dv.toString() == "")
-      eps_abs = 1e-04f;
-    else
-      eps_abs = (DoubleReal)dv;
-
-    DoubleReal eps_rel;
-    dv = param_.getValue("delta_rel_error");
-    if (dv.isEmpty() || dv.toString() == "")
-      eps_rel = 1e-04f;
-    else
-      eps_rel = (DoubleReal)dv;
 
     std::vector<PeakShape> peak_shapes;
 
@@ -953,7 +869,7 @@ protected:
                   << (d.raw_data_first + d.signal2D[2 * i].first)->getRT()
                   << "\n";
 #endif
-        OptimizePick opt(penalties, max_iteration, eps_abs, eps_rel);
+        OptimizePick opt(penalties, max_iteration);
 #ifdef DEBUG_2D
         std::cout << "vorher\n";
 

@@ -63,8 +63,7 @@ namespace OpenMS
     data_ = rhs.data_;
     model_type_ = "none";
     model_ = 0;     // initialize this before the "delete" call in "fitModel"!
-    Param params;
-    rhs.getModelParameters(params);
+    Param params = rhs.getModelParameters();
     fitModel(rhs.model_type_, params);
   }
 
@@ -76,8 +75,7 @@ namespace OpenMS
 
     data_ = rhs.data_;
     model_type_ = "none";
-    Param params;
-    rhs.getModelParameters(params);
+    Param params = rhs.getModelParameters();
     fitModel(rhs.model_type_, params);
 
     return *this;
@@ -108,10 +106,6 @@ namespace OpenMS
     else if (model_type == "interpolated")
     {
       model_ = new TransformationModelInterpolated(data_, params);
-    }
-    else if (model_type == "b_spline")
-    {
-      model_ = new TransformationModelBSpline(data_, params);
     }
     else
     {
@@ -150,9 +144,9 @@ namespace OpenMS
     return data_;
   }
 
-  void TransformationDescription::getModelParameters(Param & params) const
+  const Param& TransformationDescription::getModelParameters() const
   {
-    model_->getParameters(params);
+    return model_->getParameters();
   }
 
   void TransformationDescription::invert()
@@ -171,8 +165,7 @@ namespace OpenMS
     }
     else
     {
-      Param params;
-      getModelParameters(params);
+      Param params = getModelParameters();
       fitModel(model_type_, params);
     }
   }

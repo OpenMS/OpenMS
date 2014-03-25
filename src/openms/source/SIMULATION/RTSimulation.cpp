@@ -44,6 +44,10 @@
 #include <vector>
 #include <iostream>
 
+#include <boost/random/normal_distribution.hpp>
+#include <boost/random/cauchy_distribution.hpp>
+#include <boost/random/uniform_real.hpp>
+
 using std::vector;
 using std::cout;
 using std::endl;
@@ -52,9 +56,15 @@ using std::endl;
 namespace OpenMS
 {
 
+  RTSimulation::RTSimulation() :
+    DefaultParamHandler("RTSimulation"), rnd_gen_(new SimRandomNumberGenerator())
+  {
+    setDefaultParams_();
+    updateMembers_();
+  }
 
-  RTSimulation::RTSimulation(const SimRandomNumberGenerator& random_generator) :
-    DefaultParamHandler("RTSimulation"), rnd_gen_(&random_generator)
+  RTSimulation::RTSimulation(MutableSimRandomNumberGeneratorPtr random_generator) :
+    DefaultParamHandler("RTSimulation"), rnd_gen_(random_generator)
   {
     setDefaultParams_();
     updateMembers_();
@@ -249,7 +259,8 @@ namespace OpenMS
         predicted_retention_times[i] = features[i].getMetaValue("rt");
       }
       // add variation
-      SimCoordinateType rt_error = gsl_ran_gaussian(rnd_gen_->technical_rng, rt_ft_stddev) + rt_offset;
+      boost::normal_distribution<SimCoordinateType> ndist (rt_offset,rt_ft_stddev);
+      SimCoordinateType rt_error = ndist(rnd_gen_->getTechnicalRng());
       predicted_retention_times[i] = predicted_retention_times[i] * rt_scale + rt_error;
       //overwrite RT [no randomization] (if given by user)
       if (features[i].metaValueExists("RT"))
@@ -273,16 +284,27 @@ namespace OpenMS
       features[i].setRT(predicted_retention_times[i]);
 
       // determine shape parameters for EGH
-      DoubleReal variance = egh_variance_location_ + (egh_variance_scale_ == 0 ? 0 : gsl_ran_cauchy(rnd_gen_->technical_rng, egh_variance_scale_));
-      DoubleReal tau = egh_tau_location_ + (egh_tau_scale_ == 0 ? 0 : gsl_ran_cauchy(rnd_gen_->technical_rng, egh_tau_scale_));
+      DoubleReal variance = egh_variance_location_;
+      if(egh_variance_scale_ != 0)
+      {
+        boost::cauchy_distribution<DoubleReal> cdist (0,egh_variance_scale_);
+        variance += cdist( rnd_gen_->getTechnicalRng() );
+      }
+      DoubleReal tau = egh_tau_location_;
+      if(egh_tau_scale_ != 0)
+      {
+        boost::cauchy_distribution<DoubleReal> cdist (0,egh_tau_scale_);
+        tau += cdist( rnd_gen_->getTechnicalRng() );
+      }
 
       // resample variance if it is below 0
       // try this only 10 times to avoid endless loop in case of
       // a bad parameter combination
       Size retry_variance_sampling = 0;
+      boost::cauchy_distribution<DoubleReal> cdistVar (0.0, egh_variance_scale_);
       while ((variance <= 0 || (fabs(variance - egh_variance_location_) > 10 * egh_variance_scale_)) && retry_variance_sampling < 9)
       {
-        variance = egh_variance_location_ + gsl_ran_cauchy(rnd_gen_->technical_rng, egh_variance_scale_);
+        variance = egh_variance_location_ + cdistVar(rnd_gen_->getTechnicalRng());
         ++retry_variance_sampling;
       }
 
@@ -296,9 +318,10 @@ namespace OpenMS
       // try this only 10 times to avoid endless loop in case of
       // a bad parameter combination
       Size retry_tau_sampling = 0;
+      boost::cauchy_distribution<DoubleReal> cdistTau (0.0, egh_tau_scale_);
       while (fabs(tau - egh_tau_location_) > 10 * egh_tau_scale_  && retry_tau_sampling < 9)
       {
-        tau = egh_tau_location_ + gsl_ran_cauchy(rnd_gen_->technical_rng, egh_tau_scale_);
+        tau = egh_tau_location_ + cdistTau(rnd_gen_->getTechnicalRng());
         ++retry_tau_sampling;
       }
 
@@ -561,11 +584,12 @@ namespace OpenMS
   void RTSimulation::predictContaminantsRT(FeatureMapSim& contaminants)
   {
     // iterate of feature map
+    boost::uniform_real<SimCoordinateType> udist (0,total_gradient_time_);
     for (Size i = 0; i < contaminants.size(); ++i)
     {
 
       // assign random retention time
-      SimCoordinateType retention_time = gsl_ran_flat(rnd_gen_->technical_rng, 0, total_gradient_time_);
+      SimCoordinateType retention_time = udist(rnd_gen_->getTechnicalRng());
       contaminants[i].setRT(retention_time);
     }
   }
@@ -640,6 +664,7 @@ namespace OpenMS
     {
       // initialize the previous value on position 0
       previous = (DoubleReal) experiment[0].getMetaValue("distortion");
+      boost::uniform_real<DoubleReal> udist (1.0 - std::pow(fi + 1.0, 2) * 0.01, 1.0 + std::pow(fi + 1.0, 2) * 0.01);// distortion gets worse round by round
 #ifdef MSSIM_DEBUG_MOV_AVG_FILTER
       LOG_WARN << "d <- c(" << previous << ", ";
       vector<DoubleReal> tmp;
@@ -650,7 +675,7 @@ namespace OpenMS
         next = (DoubleReal) experiment[scan + 1].getMetaValue("distortion");
 
         DoubleReal smoothed = (previous + current + next) / 3.0;
-        smoothed *= gsl_ran_flat(rnd_gen_->technical_rng, 1.0 - std::pow(fi + 1.0, 2) * 0.01, 1.0 + std::pow(fi + 1.0, 2) * 0.01); // distortion gets worse round by round
+        smoothed *= udist(rnd_gen_->getTechnicalRng());
         previous = current;
 
 #ifdef MSSIM_DEBUG_MOV_AVG_FILTER

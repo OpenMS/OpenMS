@@ -40,7 +40,7 @@
 namespace OpenMS
 {
   /**
-    @brief Exponentially modified gaussian distribution fitter (1-dim.) using Levenberg-Marquardt algorithm (GSL implementation) for parameter optimization.
+    @brief Exponentially modified gaussian distribution fitter (1-dim.) using Levenberg-Marquardt algorithm (Eigen implementation) for parameter optimization.
 
     @htmlinclude OpenMS_EmgFitter1D.parameters
   */
@@ -77,7 +77,6 @@ public:
     QualityType fit1d(const RawDataArrayType & range, InterpolationModel * & model);
 
 protected:
-
     /// Helper struct (contains the size of an area and a raw data container)
     struct Data
     {
@@ -88,22 +87,22 @@ protected:
       RawDataArrayType set;
     };
 
+    class EgmFitterFunctor : public LevMarqFitter1D::GenericFunctor
+    {
+      public:
+        EgmFitterFunctor(int dimensions, const EmgFitter1D::Data * data)
+      : LevMarqFitter1D::GenericFunctor(dimensions, data->n), m_data(data) {}
+
+      int operator()(const Eigen::VectorXd &x, Eigen::VectorXd &fvec);
+      // compute Jacobian matrix for the different parameters
+      int df(const Eigen::VectorXd &x, Eigen::MatrixXd &J);
+
+      protected:
+        const EmgFitter1D::Data * m_data;
+    };
+
     /// Compute start parameter
     virtual void setInitialParameters_(const RawDataArrayType & set);
-
-    /// Evaluation of the target function for nonlinear optimization
-    static Int residual_(const gsl_vector * x, void * params, gsl_vector * f);
-
-    /// Compute the Jacobian matrix, where each row of the matrix corresponds to a point in the data
-    static Int jacobian_(const gsl_vector * x, void * params, gsl_matrix * J);
-
-    /// Driver function for the evaluation of function and jacobian
-    static Int evaluate_(const gsl_vector * x, void * params, gsl_vector * f, gsl_matrix * J);
-
-    /** Display the intermediate state of the solution. The solver state contains
-        the vector s->x which is the current position, and the vector s->f with
-        corresponding function values */
-    void printState_(Int iter, gsl_multifit_fdfsolver * s);
 
     /// Parameter of emg - peak height
     CoordinateType height_;

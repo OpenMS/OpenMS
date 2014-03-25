@@ -56,21 +56,20 @@ for OPEN_MS_CONTRIB_BUILD_DIR in OPEN_MS_CONTRIB_BUILD_DIRS.split(";"):
         break
 
 
-
 # Package data expected to be installed. On Linux the debian package
 # contains share/ data and must be installed to get access to the OpenMS shared
 # library.
 #
 if iswin:
     if OPEN_MS_BUILD_TYPE.upper() == "DEBUG":
-        libraries = ["OpenMSd", "OpenSwathAlgod", "xerces-c_3D", "QtCored4", "gsl_d", "cblas_d"]
+        libraries = ["OpenMSd", "OpenSwathAlgod", "xerces-c_3D", "QtCored4", "cblas_d"]
     else:
-        libraries = ["OpenMS", "OpenSwathAlgo", "xerces-c_3", "QtCore4", "gsl", "cblas"]
+        libraries = ["OpenMS", "OpenSwathAlgo", "xerces-c_3", "QtCore4", "cblas"]
 
 elif sys.platform == "linux2":
-    libraries = ["OpenMS", "OpenSwathAlgo", "xerces-c", "QtCore", "gsl", "gslcblas"]
+    libraries = ["OpenMS", "OpenSwathAlgo", "xerces-c", "QtCore"]
 elif sys.platform == "darwin":
-    libraries = ["OpenMS", "OpenSwathAlgo", "xerces-c", "gsl", "gslcblas"]
+    libraries = ["OpenMS", "OpenSwathAlgo", "xerces-c"]
 else:
     print
     print "platform ", sys.platform, "not supported yet"
@@ -96,6 +95,8 @@ include_dirs = [
     j(OPEN_MS_CONTRIB_BUILD_DIR, "include", "libsvm"),
     # j(OPEN_MS_CONTRIB_BUILD_DIR, "src", "boost_1_52_0")
     j(OPEN_MS_CONTRIB_BUILD_DIR, "include", "boost"),
+    j(OPEN_MS_CONTRIB_BUILD_DIR, "include", "WildMagic"),
+    j(OPEN_MS_CONTRIB_BUILD_DIR, "include", "eigen3"),
     j(OPEN_MS_BUILD_DIR, "src/openswathalgo/include"),
     j(OPEN_MS_BUILD_DIR, "src/openms/include"),
     j(OPEN_MS_BUILD_DIR, "src/openms_gui/include"),

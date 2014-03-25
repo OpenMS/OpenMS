@@ -41,6 +41,8 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 
+#include <QString>
+
 #include <sstream>
 
 // we ignore the -Wunused-value warning here, since we do not want the compiler

@@ -77,7 +77,7 @@ namespace OpenMS
            << "BaselineFilter" << "PeakPickerHiRes"
            << "PeakPickerWavelet" << "Resampler"
            << "MapNormalizer" << "InternalCalibration"
-           << "TOFCalibration" << "FeatureFinderRaw"
+           << "TOFCalibration" 
            << "FeatureFinderCentroided" << "FeatureFinderIsotopeWavelet"
            << "MassTraceExtractor" << "FeatureFinderMetabo"
            << "FeatureFinderMRM" << "SILACAnalyzer"

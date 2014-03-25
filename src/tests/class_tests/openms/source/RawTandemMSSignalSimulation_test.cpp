@@ -52,9 +52,10 @@ START_TEST(RawTandemMSSignalSimulation, "$Id$")
 
 RawTandemMSSignalSimulation* ptr = 0;
 RawTandemMSSignalSimulation* null_ptr = 0;
-SimRandomNumberGenerator rng;
+MutableSimRandomNumberGeneratorPtr rng (new SimRandomNumberGenerator);
+rng->initialize(false, false);
 
-START_SECTION((RawTandemMSSignalSimulation(const SimRandomNumberGenerator &rng)))
+START_SECTION((RawTandemMSSignalSimulation(SimRandomNumberGeneratorPtr rng)))
 {
 	ptr = new RawTandemMSSignalSimulation(rng);
 	TEST_NOT_EQUAL(ptr, null_ptr)
@@ -89,8 +90,7 @@ END_SECTION
 
 START_SECTION((void generateRawTandemSignals(const FeatureMapSim &, MSSimExperiment &, MSSimExperiment &)))
 {
-    rng.biological_rng = gsl_rng_alloc(gsl_rng_mt19937);
-    gsl_rng_set(rng.biological_rng, 0);
+    rng->initialize(false, false);
 
     //Load featureXML and MSExperiment from MSSimulator run without MS2 simulation
     String feature_filename, exp_no_ms2_file, exp_with_ms2_file;
@@ -117,6 +117,7 @@ START_SECTION((void generateRawTandemSignals(const FeatureMapSim &, MSSimExperim
     levels.push_back(1);
     exp_no_ms2.getSpectra().erase(remove_if(exp_no_ms2.begin(), exp_no_ms2.end(), InMSLevelRange<MSSimExperiment::SpectrumType>(levels)), exp_no_ms2.end());
     exp_with_ms2.getSpectra().erase(remove_if(exp_with_ms2.begin(), exp_with_ms2.end(), InMSLevelRange<MSSimExperiment::SpectrumType>(levels)), exp_with_ms2.end());
+//    MzMLFile().store(OPENMS_GET_TEST_DATA_PATH("RawTandemMSSignalSimulation_with_ms2.mzML"), exp_no_ms2);
 
     TEST_EQUAL(exp_with_ms2.size(), exp_no_ms2.size());
     TEST_EQUAL(exp_with_ms2[0].size(), exp_no_ms2[0].size());

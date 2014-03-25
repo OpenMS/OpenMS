@@ -77,7 +77,9 @@ namespace OpenMS
     area(rhs.area),
     r_value(rhs.r_value),
     signal_to_noise(rhs.signal_to_noise),
-    type(rhs.type)
+    type(rhs.type),
+    left_iterator_set_(rhs.left_iterator_set_),
+    right_iterator_set_(rhs.right_iterator_set_)
   {
     if (rhs.iteratorsSet())
     {

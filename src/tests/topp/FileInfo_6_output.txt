@@ -51,9 +51,9 @@ Intensities:
   num. of values: 9
   mean:           7317.89
   minimum:        1639
-  lower quartile: 2297
+  lower quartile: 2137.5
   median:         7224
-  upper quartile: 8841
+  upper quartile: 11965.5
   maximum:        18025
   variance:       3.54513e+07
 
@@ -61,9 +61,9 @@ Meta data: SignalToNoise
   num. of values: 9
   mean:           17.203
   minimum:        3.70073
-  lower quartile: 5.18645
+  lower quartile: 4.99408
   median:         17.5367
-  upper quartile: 21.462
+  upper quartile: 27.767
   maximum:        43.7567
   variance:       200.564
 
@@ -71,9 +71,9 @@ Meta data: area
   num. of values: 9
   mean:           3120.06
   minimum:        491.427
-  lower quartile: 894.825
+  lower quartile: 847.479
   median:         2795.12
-  upper quartile: 3475.5
+  upper quartile: 4965.73
   maximum:        9114.07
   variance:       8.55939e+06
 
@@ -81,9 +81,9 @@ Meta data: fwhm
   num. of values: 9
   mean:           0.378863
   minimum:        0.298877
-  lower quartile: 0.35631
+  lower quartile: 0.346497
   median:         0.380894
-  upper quartile: 0.407996
+  upper quartile: 0.411783
   maximum:        0.453745
   variance:       0.00206432
 
@@ -91,9 +91,9 @@ Meta data: leftWidth
   num. of values: 9
   mean:           6.06377
   minimum:        4.83359
-  lower quartile: 5.60383
+  lower quartile: 5.35363
   median:         6.29216
-  upper quartile: 6.41592
+  upper quartile: 6.47256
   maximum:        7.66609
   variance:       0.720992
 
@@ -111,9 +111,9 @@ Meta data: rValue
   num. of values: 9
   mean:           0.986764
   minimum:        0.957956
-  lower quartile: 0.978881
+  lower quartile: 0.974586
   median:         0.997023
-  upper quartile: 0.997198
+  upper quartile: 0.997284
   maximum:        0.998106
   variance:       0.000215842
 
@@ -121,9 +121,9 @@ Meta data: rightWidth
   num. of values: 9
   mean:           3.97387
   minimum:        2.80987
-  lower quartile: 3.62904
+  lower quartile: 3.62417
   median:         3.652
-  upper quartile: 3.90588
+  upper quartile: 4.18036
   maximum:        6.22453
   variance:       0.891829
 

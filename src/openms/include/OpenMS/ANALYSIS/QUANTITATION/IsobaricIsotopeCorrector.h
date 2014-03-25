@@ -39,6 +39,9 @@
 
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantifierStatistics.h>
+#include <OpenMS/DATASTRUCTURES/Matrix.h>
+
+#include <Eigen/Core>
 
 namespace OpenMS
 {
@@ -49,88 +52,51 @@ namespace OpenMS
   {
 public:
     /**
-      @brief Constructor given an IsobaricQuantitationMethod (e.g., iTRAQ 4 plex).
-
-      @param quant_method The quantification method used for the data set to analyze.
-     */
-    explicit IsobaricIsotopeCorrector(const IsobaricQuantitationMethod* const quant_method);
-
-    /// Copy c'tor
-    IsobaricIsotopeCorrector(const IsobaricIsotopeCorrector& other);
-
-    /// Assignment operator
-    IsobaricIsotopeCorrector& operator=(const IsobaricIsotopeCorrector& rhs);
-
-    virtual ~IsobaricIsotopeCorrector();
-
-    /**
      @brief Apply isotope correction to the given input map and store the corrected values in the output map.
 
      @param consensus_map_in The map containing the values that should be corrected.
      @param consensus_map_out The map where the corrected values should be stored.
+     @param IsobaricQuantitationMethod (e.g., iTRAQ 4 plex)
 
      @throws Exception::FailedAPICall If the least-squares fit fails.
      @throws Exception::InvalidParameter If the given correction matrix is invalid.
      */
-    IsobaricQuantifierStatistics correctIsotopicImpurities(const ConsensusMap& consensus_map_in, ConsensusMap& consensus_map_out);
+    static IsobaricQuantifierStatistics
+    correctIsotopicImpurities(const ConsensusMap& consensus_map_in,
+        ConsensusMap& consensus_map_out,
+        const IsobaricQuantitationMethod* quant_method);
 
 private:
-    /// The quantification method used for the dataset to be analyzed.
-    const IsobaricQuantitationMethod* quant_method_;
-
-    /// @brief GSL objects used for the isotope correction.
-    /// @{
-    gsl_matrix* gsl_m_;
-    gsl_permutation* gsl_p_;
-    gsl_vector* gsl_b_;
-    gsl_vector* gsl_x_;
-
-    /// Indicates whether memory was allocated for the gsl vector/matrix pointers.
-    bool gsl_allocated_;
-
-    /// Free all memory allocated by GSL objects.
-    void freeGSLMemory_();
-    /// @}
-
     /**
-     @brief Checks if the given matrix is an identity matrix.
-
-     @param channel_frequency The matrix to check.
-     @return True if the given matrix is an identity matrix, false otherwise.
+     @brief Fills the input vector for the Eigen/NNLS step given the ConsensusFeature.
      */
-    bool isIdentityMatrix_(const Matrix<double>& channel_frequency) const;
-
-    /**
-     @brief Checks if the gsl matrix is invertible (see IsobaricIsotopeCorrector::gsl_m_).
-
-     @return True if the matrix is invertible, false otherwise.
-     */
-    bool isInvertible_() const;
-
-    /**
-     @brief Fills the input vector for the gsl/NNLS step given the ConsensusFeature.
-     */
-    void fillInputVector_(gsl_vector* gsl_b, Matrix<double>& m_b, const ConsensusFeature& cf, const ConsensusMap& cm) const;
-
-    /**
-     @brief Solves the
-     */
-    void solveGSL_(const gsl_matrix* gsl_m, const gsl_permutation* gsl_p, const gsl_vector* gsl_b, gsl_vector* gsl_x) const;
+    static void
+    fillInputVector_(Eigen::VectorXd& b, Matrix<double>& m_b,
+        const ConsensusFeature& cf, const ConsensusMap& cm);
 
     /**
      @brief
      */
-    void solveNNLS_(const Matrix<double>& correction_matrix, const Matrix<double>& m_b, Matrix<double>& m_x) const;
+    static void
+    solveNNLS_(const Matrix<double>& correction_matrix,
+        const Matrix<double>& m_b, Matrix<double>& m_x);
 
     /**
      @brief
      */
-    void computeStats_(const Matrix<double>& m_x, gsl_vector* gsl_x, const ConsensusFeature::IntensityType cf_intensity, IsobaricQuantifierStatistics& stats);
+    static void
+    computeStats_(const Matrix<double>& m_x, const Eigen::MatrixXd& x,
+        const ConsensusFeature::IntensityType cf_intensity,
+        const IsobaricQuantitationMethod* quant_method,
+        IsobaricQuantifierStatistics& stats);
 
     /**
      @brief
      */
-    ConsensusFeature::IntensityType updateOutpuMap_(const ConsensusMap& consensus_map_in, ConsensusMap& consensus_map_out, ConsensusMap::size_type current_cf, const Matrix<double>& m_x) const;
+    static ConsensusFeature::IntensityType
+    updateOutpuMap_(const ConsensusMap& consensus_map_in,
+        ConsensusMap& consensus_map_out, ConsensusMap::size_type current_cf,
+        const Matrix<double>& m_x);
   };
 } // namespace
 
