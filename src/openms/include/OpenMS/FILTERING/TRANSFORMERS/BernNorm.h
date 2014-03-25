@@ -131,7 +131,7 @@ public:
         }
         else
         {
-          it->setIntensity(newint);
+            it->setIntensity(Peak1D::IntensityType(newint));
           ++it;
         }
       }

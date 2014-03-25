@@ -201,7 +201,7 @@ public:
     {
       // the buffer is static only to avoid reallocation
       static std::vector<typename InputIterator::value_type> buffer;
-      const UInt size = input_end - input_begin;
+      const UInt size = UInt(input_end - input_begin);
 
       //determine the struct size in data points if not already set
       if (struct_size_in_datapoints_ == 0)
@@ -357,7 +357,7 @@ protected:
     void applyErosion_(Int struc_size, InputIterator input, InputIterator input_end, OutputIterator output)
     {
       typedef typename InputIterator::value_type ValueType;
-      const Int size = input_end - input;
+      const Int size = Int(input_end - input);
       const Int struc_size_half = struc_size / 2;           // yes, integer division
 
       static std::vector<ValueType> buffer;
@@ -457,7 +457,7 @@ protected:
     void applyDilation_(Int struc_size, InputIterator input, InputIterator input_end, OutputIterator output)
     {
       typedef typename InputIterator::value_type ValueType;
-      const Int size = input_end - input;
+      const Int size = Int(input_end - input);
       const Int struc_size_half = struc_size / 2;           // yes, integer division
 
       static std::vector<ValueType> buffer;
@@ -554,7 +554,7 @@ protected:
     void applyErosionSimple_(Int struc_size, InputIterator input_begin, InputIterator input_end, OutputIterator output_begin)
     {
       typedef typename InputIterator::value_type ValueType;
-      const int size = input_end - input_begin;
+      const Int size = Int(input_end - input_begin);
       const Int struc_size_half = struc_size / 2;           // yes integer division
       for (Int index = 0; index < size; ++index)
       {
@@ -572,7 +572,7 @@ protected:
     void applyDilationSimple_(Int struc_size, InputIterator input_begin, InputIterator input_end, OutputIterator output_begin)
     {
       typedef typename InputIterator::value_type ValueType;
-      const int size = input_end - input_begin;
+      const Int size = Int(input_end - input_begin);
       const Int struc_size_half = struc_size / 2;           // yes integer division
       for (Int index = 0; index < size; ++index)
       {

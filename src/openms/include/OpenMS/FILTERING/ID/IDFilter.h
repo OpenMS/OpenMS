@@ -81,7 +81,7 @@ public:
       DoubleReal best_score = (is_higher_score_better ? -1 : 1) * std::numeric_limits<DoubleReal>::max(); // worst score we can think of
 
       Size best_i_index(0), best_h_index(0);
-      Size max_h(-1);
+        Size max_h(std::numeric_limits<Size>::max());
       // determine best scoring hit
       for (Size i = 0; i != identifications.size(); ++i)
       {
@@ -102,7 +102,7 @@ public:
         }
       }
 
-      if (max_h == -1) return false;// all hits were empty 
+      if (max_h == std::numeric_limits<Size>::max() ) return false;// all hits were empty
 
       best_hit = identifications[best_i_index].getHits()[best_h_index];
       return true;
