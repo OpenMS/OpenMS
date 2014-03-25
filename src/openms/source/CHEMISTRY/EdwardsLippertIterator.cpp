@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CHEMISTRY/EdwardsLippertIterator.h>
+#include <OpenMS/DATASTRUCTURES/SuffixArraySeqan.h>
 #include <OpenMS/CONCEPT/Factory.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/Residue.h>

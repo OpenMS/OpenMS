@@ -38,6 +38,7 @@
 #define OPENMS_DATASTRUCTURES_SUFFIXARRAYSEQAN_H
 
 #include <vector>
+#include <functional>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/SuffixArray.h>
 #include <OpenMS/DATASTRUCTURES/SeqanIncludeWrapper.h>
@@ -51,7 +52,7 @@ namespace OpenMS
   @brief comparator for two doubles with a tolerance value
   */
   struct FloatsWithTolLess :
-    public binary_function<DoubleReal, DoubleReal, bool>
+	public std::binary_function<DoubleReal, DoubleReal, bool>
   {
     /**
     @brief constructor
@@ -85,7 +86,7 @@ protected:
   @todo Think about that this does and if it is really necessary (why DoubleReal, DoubleReal????) (Andreas, Clemens)
   */
   struct IntsInRangeLess :
-    public binary_function<DoubleReal, DoubleReal, bool>
+	  public std::binary_function<DoubleReal, DoubleReal, bool>
   {
     /**
     @brief constructor

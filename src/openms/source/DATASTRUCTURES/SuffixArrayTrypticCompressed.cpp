@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/DATASTRUCTURES/SuffixArrayTrypticCompressed.h>
+#include <OpenMS/DATASTRUCTURES/SuffixArraySeqan.h>
 #include <stack>
 #include <fstream>
 #include <cmath>
