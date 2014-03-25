@@ -34,12 +34,12 @@
 
 
 #include <OpenMS/DATASTRUCTURES/SuffixArraySeqan.h>
-#include <stack>
-#include <fstream>
 #include <cmath>
-#include <typeinfo>
 #include <ctime>
 #include <cstdio>
+#include <fstream>
+#include <stack>
+#include <typeinfo>
 
 #include <OpenMS/CHEMISTRY/ModifierRep.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
