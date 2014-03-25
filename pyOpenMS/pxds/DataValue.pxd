@@ -8,7 +8,7 @@ from DoubleList cimport *
 cdef extern from "<OpenMS/DATASTRUCTURES/DataValue.h>" namespace "OpenMS":
 
     cdef cppclass DataValue:
-         DataValue()
+         DataValue() nogil except +
          DataValue(DataValue) nogil except + # wrap-ignore
          DataValue(char *) nogil except +
          DataValue(int)    nogil except +
@@ -29,11 +29,11 @@ cdef extern from "<OpenMS/DATASTRUCTURES/DataValue.h>" namespace "OpenMS":
          int isEmpty() nogil except +
 
          # QString toQString()
-         String toString()
-         bool toBool()
-         bool hasUnit()
-         String  getUnit()
-         void setUnit(String & unit)
+         String toString() nogil except +
+         bool toBool() nogil except +
+         bool hasUnit() nogil except +
+         String  getUnit() nogil except +
+         void setUnit(String & unit) nogil except +
 
 cdef extern from "<OpenMS/DATASTRUCTURES/DataValue.h>" namespace "OpenMS::DataValue":
 

@@ -39,6 +39,7 @@
 #include <OpenMS/VISUAL/TOPPASScene.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 #include <QtCore/QFileInfo>
 #include <QtCore/QDir>

@@ -35,6 +35,9 @@
 #include <OpenMS/FORMAT/MzTab.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/FORMAT/TextFile.h>
+
+#include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
+
 #include <fstream>
 
 using namespace OpenMS;

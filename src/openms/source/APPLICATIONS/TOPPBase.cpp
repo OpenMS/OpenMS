@@ -38,6 +38,7 @@
 
 #include <OpenMS/DATASTRUCTURES/Date.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
+#include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 
 #include <OpenMS/KERNEL/ConsensusMap.h>
 

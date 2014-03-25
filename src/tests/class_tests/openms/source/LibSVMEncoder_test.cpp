@@ -184,8 +184,7 @@ START_SECTION((svm_node* encodeLibSVMVector( const std::vector< std::pair<Int, D
 	TEST_REAL_SIMILAR(nodes[3].value, 0.4)
 	TEST_EQUAL(nodes[4].index, -1)
 	
-	delete nodes;
-	
+	delete[] nodes;
 END_SECTION
 
 START_SECTION((svm_problem* encodeLibSVMProblem(const std::vector< svm_node * > &vectors, std::vector< DoubleReal > &labels)))

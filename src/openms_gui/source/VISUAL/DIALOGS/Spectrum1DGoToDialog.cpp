@@ -58,6 +58,12 @@ namespace OpenMS
     max_->setText(QString::number(max));
   }
 
+  void Spectrum1DGoToDialog::setMinMaxOfRange(Real min, Real max)
+  {
+    min_const_->setText(QString("min: ") + QString::number(min));
+    max_const_->setText(QString("max: ") + QString::number(max));
+  }
+
   void Spectrum1DGoToDialog::fixRange()
   {
     // load from GUI

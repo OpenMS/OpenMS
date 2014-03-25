@@ -73,6 +73,8 @@ option(MT_ENABLE_CUDA "Enable experimental CUDA support" OFF)
 option(MT_ENABLE_TBB "Enable Intel TBB support" OFF)
 option(MT_ENABLE_OPENMP "Enable OpenMP support" ON)
 option(BOOST_USE_STATIC "Use Boost static libraries." ON)
+option(HAS_XSERVER "Indicates if an XServer is available. If set to Off it will disable certain tests and the doc target." ON)
+option(ENABLE_TUTORIALS "Indicates wether tutorials should be build. Note that this also depends on the availability of (pdf)latex." ON)
 
 #------------------------------------------------------------------------------
 # OpenMS Version Information
@@ -81,6 +83,9 @@ option(BOOST_USE_STATIC "Use Boost static libraries." ON)
 set(OPENMS_PACKAGE_VERSION_MAJOR "1")
 set(OPENMS_PACKAGE_VERSION_MINOR "12")
 set(OPENMS_PACKAGE_VERSION_PATCH "0")
+
+# add some informations used when building packages
+include(cmake/package_definitions.cmake)
 
 #------------------------------------------------------------------------------
 # Unsupported systems
@@ -157,20 +162,52 @@ set(BUILD_SHARED_LIBS true)
 #------------------------------------------------------------------------------
 # include some OpenMS specific macros
 include (${PROJECT_SOURCE_DIR}/cmake/OpenMSBuildSystem_macros.cmake)
+# .. and some to ease the installation proces
+include (${PROJECT_SOURCE_DIR}/cmake/install_macros.cmake)
 
 #------------------------------------------------------------------------------
 # Directories
 #------------------------------------------------------------------------------
 
+#------------------------------------------------------------------------------
+# Host directory for referencing from subprojects
 set(OPENMS_HOST_DIRECTORY "${PROJECT_SOURCE_DIR}")
 set(OPENMS_HOST_BINARY_DIRECTORY "${PROJECT_BINARY_DIR}")
 
+#------------------------------------------------------------------------------
 # Output directory
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${OPENMS_HOST_BINARY_DIRECTORY}/lib")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${OPENMS_HOST_BINARY_DIRECTORY}/bin")
 set(OPENMS_BINARY_DIR "${OPENMS_HOST_BINARY_DIRECTORY}/bin")
 set(OPENMS_WIN32_DLL_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 
+#------------------------------------------------------------------------------
+# define installation subdirectories to allow for custom installations
+# note that all those directories are below CMAKE_INSTALL_PREFIX
+set(INSTALL_BIN_DIR bin CACHE PATH "Installation directory for executables")
+set(INSTALL_INCLUDE_DIR include CACHE PATH "Installation directory for header files")
+set(INSTALL_DOC_DIR share/doc CACHE PATH "Installation directory for documentation")
+set(INSTALL_SHARE_DIR share/OpenMS CACHE PATH "Installation directory for shared data")
+
+if(WIN32)
+  set(DEF_INSTALL_CMAKE_DIR CMake)
+  set(DEF_INSTALL_LIB_DIR bin)
+else()
+  set(DEF_INSTALL_CMAKE_DIR lib/CMake/FooBar)
+  set(DEF_INSTALL_LIB_DIR lib)
+endif()
+set(INSTALL_CMAKE_DIR ${DEF_INSTALL_CMAKE_DIR} CACHE PATH "Installation directory for CMake files")
+set(INSTALL_LIB_DIR ${DEF_INSTALL_LIB_DIR} CACHE PATH "Installation directory for libraries")
+
+# Make relative paths absolute (needed later on)
+foreach(p LIB BIN INCLUDE CMAKE DOC SHARE)
+  set(var INSTALL_${p}_DIR)
+  if(NOT IS_ABSOLUTE "${${var}}")
+    set(${var} "${CMAKE_INSTALL_PREFIX}/${${var}}")
+  endif()
+endforeach()
+
+#------------------------------------------------------------------------------
 # (create an empty list if CMAKE_MODULE_PATH does not exist)
 if(NOT CMAKE_MODULE_PATH)
   set(CMAKE_MODULE_PATH)
@@ -183,6 +220,21 @@ if (MSVC)
 	## use OpenMSd.dll in debug mode
 	SET(CMAKE_DEBUG_POSTFIX d)
 endif()
+
+########################################################
+### setup path for external libs (contrib or system) ###
+########################################################
+include(${OPENMS_HOST_DIRECTORY}/cmake/OpenMSBuildSystem_setup_lib_find_paths.cmake)
+
+#------------------------------------------------------------------------------
+# Initialize package building environment
+set(VALID_PACKAGE_TYPES "none" # the classical build type make/make install
+                        "rpm"  # rpm package
+                        "deb"  # deb package
+                        "dmg") # a drag&drop dmg package for macosx
+
+set(PACKAGE_TYPE "none" CACHE STRING "Package type (internal): ${VALID_PACKAGE_TYPES}")
+is_valid_package(${PACKAGE_TYPE})
 
 #------------------------------------------------------------------------------
 # The actual OpenMS code (headers and cpp's)
@@ -229,6 +281,8 @@ if ("${PACKAGE_TYPE}" STREQUAL "none")
 		@ONLY
 	)
 
+  #------------------------------------------------------------------------------
+  # REMOVE with the fix of #676
 	## Create OpenMSLibraryExport.cmake:
 	## Note: export_build_settings and
 	##       export_library_dependencies are deprecated and should not be used
@@ -247,40 +301,24 @@ if ("${PACKAGE_TYPE}" STREQUAL "none")
       export(TARGETS OpenMS FILE ${CF_LibOpenMSExport})
     endif(NOT DISABLE_OPENSWATH)
 	else()
-		include(cmake/OpenMSBuildSystem_install.cmake)
+		# include(cmake/OpenMSBuildSystem_install.cmake)
 	endif()
-
+  #------------------------------------------------------------------------------
 else()
-######################################################
-####          install/copy (cpack mainly)         ####
-######################################################
-	## general definitions
-	set(CPACK_PACKAGE_NAME "OpenMS")
-	set(CPACK_PACKAGE_VENDOR "OpenMS.de")
-	set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "OpenMS - A framework for mass spectrometry")
-	set(CPACK_PACKAGE_VERSION "${OPENMS_PACKAGE_VERSION_MAJOR}.${OPENMS_PACKAGE_VERSION_MINOR}.${OPENMS_PACKAGE_VERSION_PATCH}")
-	set(CPACK_PACKAGE_VERSION_MAJOR "${OPENMS_PACKAGE_VERSION_MAJOR}")
-	set(CPACK_PACKAGE_VERSION_MINOR "${OPENMS_PACKAGE_VERSION_MINOR}")
-	set(CPACK_PACKAGE_VERSION_PATCH "${OPENMS_PACKAGE_VERSION_PATCH}")
-	set(CPACK_PACKAGE_INSTALL_DIRECTORY "OpenMS-${CPACK_PACKAGE_VERSION}")
-	set(CPACK_PACKAGE_DESCRIPTION_FILE ${PROJECT_SOURCE_DIR}/cmake/OpenMSPackageDescriptionFile.cmake)
-	set(CPACK_RESOURCE_FILE_LICENSE ${PROJECT_SOURCE_DIR}/License.txt)
-	set(CPACK_RESOURCE_FILE_WELCOME ${PROJECT_SOURCE_DIR}/cmake/OpenMSPackageResourceWelcomeFile.txt)
-	set(CPACK_RESOURCE_FILE_README ${PROJECT_SOURCE_DIR}/cmake/OpenMSPackageResourceReadme.txt)
-
 	# install routines for MacOSX
 	if("${PACKAGE_TYPE}" STREQUAL "dmg")
 		include(cmake/package_dragndrop_dmg.cmake)
 	endif()
 
+  # .. rpms
 	if("${PACKAGE_TYPE}" STREQUAL "rpm")
 		include(cmake/package_rpm.cmake)
 	endif()
 
+  # .. deps
 	if("${PACKAGE_TYPE}" STREQUAL "deb")
 		include(cmake/package_deb.cmake)
 	endif()
-
 endif()
 
 #------------------------------------------------------------------------------

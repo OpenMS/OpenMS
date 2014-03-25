@@ -1,0 +1,479 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<mzXML xmlns="http://sashimi.sourceforge.net/schema_revision/mzXML_2.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://sashimi.sourceforge.net/schema_revision/mzXML_2.1 http://sashimi.sourceforge.net/schema_revision/mzXML_2.1/mzXML_idx_2.1.xsd">
+	<msRun scanCount="114">
+		<parentFile fileName="OpenSwathWorkflow_1_input.mzML" fileType="processedData" fileSha1="504b60e4ac2fa719aad050acced670bd73978ade"/>
+		<msInstrument>
+			<msManufacturer category="msManufacturer" value=""/>
+			<msModel category="msModel" value=""/>
+			<msIonisation category="msIonisation" value="ESI"/>
+			<msMassAnalyzer category="msMassAnalyzer" value=""/>
+			<msDetector category="msDetector" value="EMT"/>
+			<software type="acquisition" name="Bioworks" version="3.3.1 sp1"/>
+			<msResolution category="msResolution" value=""/>
+			<operator first="" last="Drek'Thar"/>
+			<nameValue name="name" value="instrumentConfiguration"/>
+			<nameValue name="instrument serial number" value="23433"/>
+		</msInstrument>
+		<dataProcessing deisotoped="1" chargeDeconvoluted="1" centroided="0">
+			<software type="processing" name="Xcalibur" version="2.0.5" completionTime="2001-02-03T04:05:00"/>
+			<processingOperation name="low_intensity_threshold" value="5.9"/>
+			<processingOperation name="high_intensity_threshold" value="10.9"/>
+			<processingOperation name="p1" value="value1"/>
+		</dataProcessing>
+		<dataProcessing deisotoped="0" chargeDeconvoluted="0" centroided="0">
+			<software type="processing" name="ProteoWizard" version="1.0" completionTime="2001-02-03T04:10:00"/>
+			<processingOperation name="p2" value="value2"/>
+		</dataProcessing>
+		<dataProcessing deisotoped="0" chargeDeconvoluted="0" centroided="0">
+			<software type="processing" name="FileConverter" version="1.12.0" completionTime="2014-02-18T23:13:56"/>
+			<processingOperation name="parameter: in" value="/scratch/hroest/openms/OpenMS_git/src/tests/topp/OpenSwathWorkflow_1_input.mzML"/>
+			<processingOperation name="parameter: in_type" value=""/>
+			<processingOperation name="parameter: out" value="/scratch/hroest/openms/OpenMS_git/src/tests/topp/OpenSwathWorkflow_1_input.mzXML"/>
+			<processingOperation name="parameter: out_type" value=""/>
+			<processingOperation name="parameter: TIC_DTA2D" value="false"/>
+			<processingOperation name="parameter: log" value=""/>
+			<processingOperation name="parameter: debug" value="0"/>
+			<processingOperation name="parameter: threads" value="1"/>
+			<processingOperation name="parameter: no_progress" value="false"/>
+			<processingOperation name="parameter: test" value="false"/>
+		</dataProcessing>
+		<scan num="1" msLevel="1" peaksCount="2" polarity="any" scanType="Full" retentionTime="PT10S">
+			<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/oBSEK+cBtD/wZmQr5wGw==</peaks>
+			<scan num="2" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT11S">
+				<precursorMz precursorIntensity="0" windowWideness="25">412.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/oBSELkhodD+hMzQmSGh0P6IABCGFmv</peaks>
+			</scan>
+			<scan num="3" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT12S">
+				<precursorMz precursorIntensity="0" windowWideness="25">437.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/qBSEJ8aFRD+pMzQfxoVEP6oABBqEWN</peaks>
+			</scan>
+			<scan num="4" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT13S">
+				<precursorMz precursorIntensity="0" windowWideness="25">462.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/sBSEIC8oJD+xMzQYLygkP7IABBLpiu</peaks>
+			</scan>
+			<scan num="5" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT14S">
+				<precursorMz precursorIntensity="0" windowWideness="25">487.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/uBSEF/RkRD+5MzQP9GREP7oABAqi7Y</peaks>
+			</scan>
+			<scan num="6" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT15S">
+				<precursorMz precursorIntensity="0" windowWideness="25">512.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/wBSEDpvxBD/BMzQGm/EEP8IABAG9S1</peaks>
+			</scan>
+		</scan>
+		<scan num="7" msLevel="1" peaksCount="2" polarity="any" scanType="Full" retentionTime="PT20S">
+			<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/oBSEMh+RBD/wZmQyH5EA==</peaks>
+			<scan num="8" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT21S">
+				<precursorMz precursorIntensity="0" windowWideness="25">412.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/oBSENCXhND+hMzQsJeE0P6IABCgZQN</peaks>
+			</scan>
+			<scan num="9" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT22S">
+				<precursorMz precursorIntensity="0" windowWideness="25">437.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/qBSELkhodD+pMzQmSGh0P6oABCGFmv</peaks>
+			</scan>
+			<scan num="10" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT23S">
+				<precursorMz precursorIntensity="0" windowWideness="25">462.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/sBSEJ8aFRD+xMzQfxoVEP7IABBqEWN</peaks>
+			</scan>
+			<scan num="11" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT24S">
+				<precursorMz precursorIntensity="0" windowWideness="25">487.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/uBSEIC8oJD+5MzQYLygkP7oABBLpiu</peaks>
+			</scan>
+			<scan num="12" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT25S">
+				<precursorMz precursorIntensity="0" windowWideness="25">512.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/wBSEF/RkRD/BMzQP9GREP8IABAqi7Y</peaks>
+			</scan>
+		</scan>
+		<scan num="13" msLevel="1" peaksCount="2" polarity="any" scanType="Full" retentionTime="PT30S">
+			<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/oBSEOBan5D/wZmQ4Fqfg==</peaks>
+			<scan num="14" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT31S">
+				<precursorMz precursorIntensity="0" windowWideness="25">412.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/oBSEObTJdD+hMzQxtMl0P6IABCzxDJ</peaks>
+			</scan>
+			<scan num="15" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT32S">
+				<precursorMz precursorIntensity="0" windowWideness="25">437.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/qBSENCXhND+pMzQsJeE0P6oABCgZQN</peaks>
+			</scan>
+			<scan num="16" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT33S">
+				<precursorMz precursorIntensity="0" windowWideness="25">462.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/sBSELkhodD+xMzQmSGh0P7IABCGFmv</peaks>
+			</scan>
+			<scan num="17" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT34S">
+				<precursorMz precursorIntensity="0" windowWideness="25">487.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/uBSEJ8aFRD+5MzQfxoVEP7oABBqEWN</peaks>
+			</scan>
+			<scan num="18" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT35S">
+				<precursorMz precursorIntensity="0" windowWideness="25">512.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/wBSEIC8oJD/BMzQYLygkP8IABBLpiu</peaks>
+			</scan>
+		</scan>
+		<scan num="19" msLevel="1" peaksCount="2" polarity="any" scanType="Full" retentionTime="PT40S">
+			<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/oBSEPCRsJD/wZmQ8JGwg==</peaks>
+			<scan num="20" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT41S">
+				<precursorMz precursorIntensity="0" windowWideness="25">412.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/oBSEPpIbVD+hMzQ2khtUP6IABDG2vO</peaks>
+			</scan>
+			<scan num="21" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT42S">
+				<precursorMz precursorIntensity="0" windowWideness="25">437.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/qBSEObTJdD+pMzQxtMl0P6oABCzxDJ</peaks>
+			</scan>
+			<scan num="22" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT43S">
+				<precursorMz precursorIntensity="0" windowWideness="25">462.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/sBSENCXhND+xMzQsJeE0P7IABCgZQN</peaks>
+			</scan>
+			<scan num="23" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT44S">
+				<precursorMz precursorIntensity="0" windowWideness="25">487.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/uBSELkhodD+5MzQmSGh0P7oABCGFmv</peaks>
+			</scan>
+			<scan num="24" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT45S">
+				<precursorMz precursorIntensity="0" windowWideness="25">512.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/wBSEJ8aFRD/BMzQfxoVEP8IABBqEWN</peaks>
+			</scan>
+		</scan>
+		<scan num="25" msLevel="1" peaksCount="2" polarity="any" scanType="Full" retentionTime="PT50S">
+			<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/oBSEQI/KBD/wZmRAj8oA==</peaks>
+			<scan num="26" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT51S">
+				<precursorMz precursorIntensity="0" windowWideness="25">412.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/oBSEQkYllD+hMzQ6RiWUP6IABDWy3N</peaks>
+			</scan>
+			<scan num="27" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT52S">
+				<precursorMz precursorIntensity="0" windowWideness="25">437.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/qBSEPpIbVD+pMzQ2khtUP6oABDG2vO</peaks>
+			</scan>
+			<scan num="28" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT53S">
+				<precursorMz precursorIntensity="0" windowWideness="25">462.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/sBSEObTJdD+xMzQxtMl0P7IABCzxDJ</peaks>
+			</scan>
+			<scan num="29" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT54S">
+				<precursorMz precursorIntensity="0" windowWideness="25">487.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/uBSENCXhND+5MzQsJeE0P7oABCgZQN</peaks>
+			</scan>
+			<scan num="30" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT55S">
+				<precursorMz precursorIntensity="0" windowWideness="25">512.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/wBSELkhodD/BMzQmSGh0P8IABCGFmv</peaks>
+			</scan>
+		</scan>
+		<scan num="31" msLevel="1" peaksCount="2" polarity="any" scanType="Full" retentionTime="PT60S">
+			<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/oBSEQ1emFD/wZmRDV6YQ==</peaks>
+			<scan num="32" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT61S">
+				<precursorMz precursorIntensity="0" windowWideness="25">412.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/oBSERZxg5D+hMzQ9nGDkP6IABDkS60</peaks>
+			</scan>
+			<scan num="33" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT62S">
+				<precursorMz precursorIntensity="0" windowWideness="25">437.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/qBSEQkYllD+pMzQ6RiWUP6oABDWy3N</peaks>
+			</scan>
+			<scan num="34" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT63S">
+				<precursorMz precursorIntensity="0" windowWideness="25">462.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/sBSEPpIbVD+xMzQ2khtUP7IABDG2vO</peaks>
+			</scan>
+			<scan num="35" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT64S">
+				<precursorMz precursorIntensity="0" windowWideness="25">487.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/uBSEObTJdD+5MzQxtMl0P7oABCzxDJ</peaks>
+			</scan>
+			<scan num="36" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT65S">
+				<precursorMz precursorIntensity="0" windowWideness="25">512.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/wBSENCXhND/BMzQsJeE0P8IABCgZQN</peaks>
+			</scan>
+		</scan>
+		<scan num="37" msLevel="1" peaksCount="2" polarity="any" scanType="Full" retentionTime="PT70S">
+			<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/oBSERh2mND/wZmRGHaYw==</peaks>
+			<scan num="38" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT71S">
+				<precursorMz precursorIntensity="0" windowWideness="25">412.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/oBSESHgwhD+hMzRAeDCEP6IABDtK62</peaks>
+			</scan>
+			<scan num="39" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT72S">
+				<precursorMz precursorIntensity="0" windowWideness="25">437.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/qBSERZxg5D+pMzQ9nGDkP6oABDkS60</peaks>
+			</scan>
+			<scan num="40" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT73S">
+				<precursorMz precursorIntensity="0" windowWideness="25">462.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/sBSEQkYllD+xMzQ6RiWUP7IABDWy3N</peaks>
+			</scan>
+			<scan num="41" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT74S">
+				<precursorMz precursorIntensity="0" windowWideness="25">487.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/uBSEPpIbVD+5MzQ2khtUP7oABDG2vO</peaks>
+			</scan>
+			<scan num="42" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT75S">
+				<precursorMz precursorIntensity="0" windowWideness="25">512.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/wBSEObTJdD/BMzQxtMl0P8IABCzxDJ</peaks>
+			</scan>
+		</scan>
+		<scan num="43" msLevel="1" peaksCount="2" polarity="any" scanType="Full" retentionTime="PT80S">
+			<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/oBSESEBkVD/wZmRIQGRQ==</peaks>
+			<scan num="44" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT81S">
+				<precursorMz precursorIntensity="0" windowWideness="25">412.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/oBSESebe1D+hMzRB5t7UP6IABD0z08</peaks>
+			</scan>
+			<scan num="45" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT82S">
+				<precursorMz precursorIntensity="0" windowWideness="25">437.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/qBSESHgwhD+pMzRAeDCEP6oABDtK62</peaks>
+			</scan>
+			<scan num="46" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT83S">
+				<precursorMz precursorIntensity="0" windowWideness="25">462.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/sBSERZxg5D+xMzQ9nGDkP7IABDkS60</peaks>
+			</scan>
+			<scan num="47" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT84S">
+				<precursorMz precursorIntensity="0" windowWideness="25">487.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/uBSEQkYllD+5MzQ6RiWUP7oABDWy3N</peaks>
+			</scan>
+			<scan num="48" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT85S">
+				<precursorMz precursorIntensity="0" windowWideness="25">512.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/wBSEPpIbVD/BMzQ2khtUP8IABDG2vO</peaks>
+			</scan>
+		</scan>
+		<scan num="49" msLevel="1" peaksCount="2" polarity="any" scanType="Full" retentionTime="PT90S">
+			<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/oBSESRACRD/wZmRJEAJA==</peaks>
+			<scan num="50" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT91S">
+				<precursorMz precursorIntensity="0" windowWideness="25">412.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/oBSESuACtD+hMzRC4AK0P6IABD6AA5</peaks>
+			</scan>
+			<scan num="51" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT92S">
+				<precursorMz precursorIntensity="0" windowWideness="25">437.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/qBSESebe1D+pMzRB5t7UP6oABD0z08</peaks>
+			</scan>
+			<scan num="52" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT93S">
+				<precursorMz precursorIntensity="0" windowWideness="25">462.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/sBSESHgwhD+xMzRAeDCEP7IABDtK62</peaks>
+			</scan>
+			<scan num="53" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT94S">
+				<precursorMz precursorIntensity="0" windowWideness="25">487.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/uBSERZxg5D+5MzQ9nGDkP7oABDkS60</peaks>
+			</scan>
+			<scan num="54" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT95S">
+				<precursorMz precursorIntensity="0" windowWideness="25">512.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/wBSEQkYllD/BMzQ6RiWUP8IABDWy3N</peaks>
+			</scan>
+		</scan>
+		<scan num="55" msLevel="1" peaksCount="2" polarity="any" scanType="Full" retentionTime="PT100S">
+			<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/oBSESVmnVD/wZmRJWadQ==</peaks>
+			<scan num="56" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT101S">
+				<precursorMz precursorIntensity="0" windowWideness="25">412.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/oBSESzhidD+hMzRDOGJ0P6IABD712J</peaks>
+			</scan>
+			<scan num="57" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT102S">
+				<precursorMz precursorIntensity="0" windowWideness="25">437.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/qBSESuACtD+pMzRC4AK0P6oABD6AA5</peaks>
+			</scan>
+			<scan num="58" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT103S">
+				<precursorMz precursorIntensity="0" windowWideness="25">462.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/sBSESebe1D+xMzRB5t7UP7IABD0z08</peaks>
+			</scan>
+			<scan num="59" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT104S">
+				<precursorMz precursorIntensity="0" windowWideness="25">487.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/uBSESHgwhD+5MzRAeDCEP7oABDtK62</peaks>
+			</scan>
+			<scan num="60" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT105S">
+				<precursorMz precursorIntensity="0" windowWideness="25">512.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/wBSERZxg5D/BMzQ9nGDkP8IABDkS60</peaks>
+			</scan>
+		</scan>
+		<scan num="61" msLevel="1" peaksCount="2" polarity="any" scanType="Full" retentionTime="PT110S">
+			<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/oBSESRACRD/wZmRJEAJA==</peaks>
+			<scan num="62" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT111S">
+				<precursorMz precursorIntensity="0" windowWideness="25">412.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/oBSESuACtD+hMzRC4AK0P6IABD6AA5</peaks>
+			</scan>
+			<scan num="63" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT112S">
+				<precursorMz precursorIntensity="0" windowWideness="25">437.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/qBSESzhidD+pMzRDOGJ0P6oABD712J</peaks>
+			</scan>
+			<scan num="64" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT113S">
+				<precursorMz precursorIntensity="0" windowWideness="25">462.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/sBSESuACtD+xMzRC4AK0P7IABD6AA5</peaks>
+			</scan>
+			<scan num="65" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT114S">
+				<precursorMz precursorIntensity="0" windowWideness="25">487.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/uBSESebe1D+5MzRB5t7UP7oABD0z08</peaks>
+			</scan>
+			<scan num="66" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT115S">
+				<precursorMz precursorIntensity="0" windowWideness="25">512.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/wBSESHgwhD/BMzRAeDCEP8IABDtK62</peaks>
+			</scan>
+		</scan>
+		<scan num="67" msLevel="1" peaksCount="2" polarity="any" scanType="Full" retentionTime="PT120S">
+			<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/oBSESEBkVD/wZmRIQGRQ==</peaks>
+			<scan num="68" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT121S">
+				<precursorMz precursorIntensity="0" windowWideness="25">412.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/oBSESebe1D+hMzRB5t7UP6IABD0z08</peaks>
+			</scan>
+			<scan num="69" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT122S">
+				<precursorMz precursorIntensity="0" windowWideness="25">437.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/qBSESuACtD+pMzRC4AK0P6oABD6AA5</peaks>
+			</scan>
+			<scan num="70" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT123S">
+				<precursorMz precursorIntensity="0" windowWideness="25">462.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/sBSESzhidD+xMzRDOGJ0P7IABD712J</peaks>
+			</scan>
+			<scan num="71" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT124S">
+				<precursorMz precursorIntensity="0" windowWideness="25">487.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/uBSESuACtD+5MzRC4AK0P7oABD6AA5</peaks>
+			</scan>
+			<scan num="72" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT125S">
+				<precursorMz precursorIntensity="0" windowWideness="25">512.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/wBSESebe1D/BMzRB5t7UP8IABD0z08</peaks>
+			</scan>
+		</scan>
+		<scan num="73" msLevel="1" peaksCount="2" polarity="any" scanType="Full" retentionTime="PT130S">
+			<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/oBSERh2mND/wZmRGHaYw==</peaks>
+			<scan num="74" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT131S">
+				<precursorMz precursorIntensity="0" windowWideness="25">412.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/oBSESHgwhD+hMzRAeDCEP6IABDtK62</peaks>
+			</scan>
+			<scan num="75" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT132S">
+				<precursorMz precursorIntensity="0" windowWideness="25">437.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/qBSESebe1D+pMzRB5t7UP6oABD0z08</peaks>
+			</scan>
+			<scan num="76" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT133S">
+				<precursorMz precursorIntensity="0" windowWideness="25">462.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/sBSESuACtD+xMzRC4AK0P7IABD6AA5</peaks>
+			</scan>
+			<scan num="77" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT134S">
+				<precursorMz precursorIntensity="0" windowWideness="25">487.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/uBSESzhidD+5MzRDOGJ0P7oABD712J</peaks>
+			</scan>
+			<scan num="78" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT135S">
+				<precursorMz precursorIntensity="0" windowWideness="25">512.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/wBSESuACtD/BMzRC4AK0P8IABD6AA5</peaks>
+			</scan>
+		</scan>
+		<scan num="79" msLevel="1" peaksCount="2" polarity="any" scanType="Full" retentionTime="PT140S">
+			<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/oBSEQ1emFD/wZmRDV6YQ==</peaks>
+			<scan num="80" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT141S">
+				<precursorMz precursorIntensity="0" windowWideness="25">412.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/oBSERZxg5D+hMzQ9nGDkP6IABDkS60</peaks>
+			</scan>
+			<scan num="81" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT142S">
+				<precursorMz precursorIntensity="0" windowWideness="25">437.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/qBSESHgwhD+pMzRAeDCEP6oABDtK62</peaks>
+			</scan>
+			<scan num="82" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT143S">
+				<precursorMz precursorIntensity="0" windowWideness="25">462.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/sBSESebe1D+xMzRB5t7UP7IABD0z08</peaks>
+			</scan>
+			<scan num="83" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT144S">
+				<precursorMz precursorIntensity="0" windowWideness="25">487.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/uBSESuACtD+5MzRC4AK0P7oABD6AA5</peaks>
+			</scan>
+			<scan num="84" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT145S">
+				<precursorMz precursorIntensity="0" windowWideness="25">512.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/wBSESzhidD/BMzRDOGJ0P8IABD712J</peaks>
+			</scan>
+		</scan>
+		<scan num="85" msLevel="1" peaksCount="2" polarity="any" scanType="Full" retentionTime="PT150S">
+			<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/oBSEQI/KBD/wZmRAj8oA==</peaks>
+			<scan num="86" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT151S">
+				<precursorMz precursorIntensity="0" windowWideness="25">412.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/oBSEQkYllD+hMzQ6RiWUP6IABDWy3N</peaks>
+			</scan>
+			<scan num="87" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT152S">
+				<precursorMz precursorIntensity="0" windowWideness="25">437.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/qBSERZxg5D+pMzQ9nGDkP6oABDkS60</peaks>
+			</scan>
+			<scan num="88" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT153S">
+				<precursorMz precursorIntensity="0" windowWideness="25">462.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/sBSESHgwhD+xMzRAeDCEP7IABDtK62</peaks>
+			</scan>
+			<scan num="89" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT154S">
+				<precursorMz precursorIntensity="0" windowWideness="25">487.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/uBSESebe1D+5MzRB5t7UP7oABD0z08</peaks>
+			</scan>
+			<scan num="90" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT155S">
+				<precursorMz precursorIntensity="0" windowWideness="25">512.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/wBSESuACtD/BMzRC4AK0P8IABD6AA5</peaks>
+			</scan>
+		</scan>
+		<scan num="91" msLevel="1" peaksCount="2" polarity="any" scanType="Full" retentionTime="PT160S">
+			<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/oBSEPCRsJD/wZmQ8JGwg==</peaks>
+			<scan num="92" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT161S">
+				<precursorMz precursorIntensity="0" windowWideness="25">412.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/oBSEPpIbVD+hMzQ2khtUP6IABDG2vO</peaks>
+			</scan>
+			<scan num="93" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT162S">
+				<precursorMz precursorIntensity="0" windowWideness="25">437.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/qBSEQkYllD+pMzQ6RiWUP6oABDWy3N</peaks>
+			</scan>
+			<scan num="94" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT163S">
+				<precursorMz precursorIntensity="0" windowWideness="25">462.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/sBSERZxg5D+xMzQ9nGDkP7IABDkS60</peaks>
+			</scan>
+			<scan num="95" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT164S">
+				<precursorMz precursorIntensity="0" windowWideness="25">487.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/uBSESHgwhD+5MzRAeDCEP7oABDtK62</peaks>
+			</scan>
+			<scan num="96" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT165S">
+				<precursorMz precursorIntensity="0" windowWideness="25">512.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/wBSESebe1D/BMzRB5t7UP8IABD0z08</peaks>
+			</scan>
+		</scan>
+		<scan num="97" msLevel="1" peaksCount="2" polarity="any" scanType="Full" retentionTime="PT170S">
+			<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/oBSEOBan5D/wZmQ4Fqfg==</peaks>
+			<scan num="98" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT171S">
+				<precursorMz precursorIntensity="0" windowWideness="25">412.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/oBSEObTJdD+hMzQxtMl0P6IABCzxDJ</peaks>
+			</scan>
+			<scan num="99" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT172S">
+				<precursorMz precursorIntensity="0" windowWideness="25">437.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/qBSEPpIbVD+pMzQ2khtUP6oABDG2vO</peaks>
+			</scan>
+			<scan num="100" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT173S">
+				<precursorMz precursorIntensity="0" windowWideness="25">462.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/sBSEQkYllD+xMzQ6RiWUP7IABDWy3N</peaks>
+			</scan>
+			<scan num="101" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT174S">
+				<precursorMz precursorIntensity="0" windowWideness="25">487.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/uBSERZxg5D+5MzQ9nGDkP7oABDkS60</peaks>
+			</scan>
+			<scan num="102" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT175S">
+				<precursorMz precursorIntensity="0" windowWideness="25">512.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/wBSESHgwhD/BMzRAeDCEP8IABDtK62</peaks>
+			</scan>
+		</scan>
+		<scan num="103" msLevel="1" peaksCount="2" polarity="any" scanType="Full" retentionTime="PT180S">
+			<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/oBSEMh+RBD/wZmQyH5EA==</peaks>
+			<scan num="104" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT181S">
+				<precursorMz precursorIntensity="0" windowWideness="25">412.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/oBSENCXhND+hMzQsJeE0P6IABCgZQN</peaks>
+			</scan>
+			<scan num="105" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT182S">
+				<precursorMz precursorIntensity="0" windowWideness="25">437.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/qBSEObTJdD+pMzQxtMl0P6oABCzxDJ</peaks>
+			</scan>
+			<scan num="106" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT183S">
+				<precursorMz precursorIntensity="0" windowWideness="25">462.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/sBSEPpIbVD+xMzQ2khtUP7IABDG2vO</peaks>
+			</scan>
+			<scan num="107" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT184S">
+				<precursorMz precursorIntensity="0" windowWideness="25">487.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/uBSEQkYllD+5MzQ6RiWUP7oABDWy3N</peaks>
+			</scan>
+			<scan num="108" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT185S">
+				<precursorMz precursorIntensity="0" windowWideness="25">512.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/wBSERZxg5D/BMzQ9nGDkP8IABDkS60</peaks>
+			</scan>
+		</scan>
+		<scan num="109" msLevel="1" peaksCount="2" polarity="any" scanType="Full" retentionTime="PT190S">
+			<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/oBSEK+cBtD/wZmQr5wGw==</peaks>
+			<scan num="110" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT191S">
+				<precursorMz precursorIntensity="0" windowWideness="25">412.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/oBSELkhodD+hMzQmSGh0P6IABCGFmv</peaks>
+			</scan>
+			<scan num="111" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT192S">
+				<precursorMz precursorIntensity="0" windowWideness="25">437.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/qBSENCXhND+pMzQsJeE0P6oABCgZQN</peaks>
+			</scan>
+			<scan num="112" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT193S">
+				<precursorMz precursorIntensity="0" windowWideness="25">462.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/sBSEObTJdD+xMzQxtMl0P7IABCzxDJ</peaks>
+			</scan>
+			<scan num="113" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT194S">
+				<precursorMz precursorIntensity="0" windowWideness="25">487.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/uBSEPpIbVD+5MzQ2khtUP7oABDG2vO</peaks>
+			</scan>
+			<scan num="114" msLevel="2" peaksCount="3" polarity="any" scanType="Full" retentionTime="PT195S">
+				<precursorMz precursorIntensity="0" windowWideness="25">512.5</precursorMz>
+				<peaks precision="32" byteOrder="network" pairOrder="m/z-int">Q/wBSEQkYllD/BMzQ6RiWUP8IABDWy3N</peaks>
+			</scan>
+		</scan>
+	</msRun>
+	<indexOffset>0</indexOffset>
+</mzXML>

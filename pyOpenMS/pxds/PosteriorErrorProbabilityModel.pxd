@@ -50,19 +50,19 @@ cdef extern from "<OpenMS/MATH/STATISTICS/PosteriorErrorProbabilityModel.h>" nam
         DoubleReal sum_neg_sigma(libcpp_vector[double] & x_scores, libcpp_vector[double] & incorrect_density, libcpp_vector[double] & correct_density, DoubleReal positive_mean) nogil except +
 
         #returns estimated parameters for correctly assigned sequences. Fit should be used before.
-        GaussFitResult getCorrectlyAssignedFitResult()
+        GaussFitResult getCorrectlyAssignedFitResult() nogil except +
 
         #returns estimated parameters for correctly assigned sequences. Fit should be used before.
-        GaussFitResult getIncorrectlyAssignedFitResult()
+        GaussFitResult getIncorrectlyAssignedFitResult() nogil except +
 
         #returns the estimated negative prior probability.
-        DoubleReal getNegativePrior()
+        DoubleReal getNegativePrior() nogil except +
 
         #computes the gaussian density at position x with parameters params.
-        DoubleReal getGauss(DoubleReal x, GaussFitResult & params)
+        DoubleReal getGauss(DoubleReal x, GaussFitResult & params) nogil except +
 
         #computes the gumbel density at position x with parameters params.
-        DoubleReal getGumbel(DoubleReal x, GaussFitResult & params)
+        DoubleReal getGumbel(DoubleReal x, GaussFitResult & params) nogil except +
 
         #   Returns the computed posterior error probability for a given score.
         #   @note: fit has to be used before using this function. Otherwise this function will compute nonsense.
@@ -85,5 +85,5 @@ cdef extern from "<OpenMS/MATH/STATISTICS/PosteriorErrorProbabilityModel.h>" nam
         void plotTargetDecoyEstimation(libcpp_vector[double] & target, libcpp_vector[double] & decoy) nogil except +
 
         # returns the smallest score used in the last fit
-        DoubleReal getSmallestScore()
+        DoubleReal getSmallestScore() nogil except +
 

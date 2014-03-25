@@ -59,7 +59,7 @@ cmake -G "<generator>" .
 	If you do NOT use the installer, you can copy all required files manually, plus a few extra steps - see below.
 	What needs to be done is a little platform dependent, thus very cumbersome to explain. You should
 	look at the cmake installer scripts, to see whats required (for Mac and Linux see @em %OpenMS/cmake/package*.cmake, for
-	Windows see @em https://open-ms.svn.sourceforge.net/svnroot/open-ms/win_installer/OpenMS_installer.nsi ).
+	Windows see @em https://github.com/OpenMS/windows-installer/OpenMS_installer.nsi ).
 	<br>
 	In short:
 	<ul>

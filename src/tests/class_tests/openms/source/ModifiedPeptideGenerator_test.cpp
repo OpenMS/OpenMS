@@ -36,6 +36,7 @@
 #include <OpenMS/test_config.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 
 ///////////////////////////
 #include <OpenMS/ANALYSIS/RNPXL/ModifiedPeptideGenerator.h>

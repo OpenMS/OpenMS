@@ -4,13 +4,15 @@ from ChromatogramSettings cimport *
 from MetaInfoInterface cimport *
 from ChromatogramPeak cimport *
 from String cimport *
+from RangeManager cimport *
 
 cdef extern from "<OpenMS/KERNEL/MSChromatogram.h>" namespace "OpenMS":
 
-    cdef cppclass MSChromatogram[ChromatogramPeakT] (ChromatogramSettings, MetaInfoInterface):
+    cdef cppclass MSChromatogram[ChromatogramPeakT] (ChromatogramSettings, MetaInfoInterface, RangeManager1):
         # wrap-inherits:
         #  ChromatogramSettings
         #  MetaInfoInterface
+        #  RangeManager1
 
         # wrap-instances:
         #   MSChromatogram := MSChromatogram[ChromatogramPeak]
@@ -32,8 +34,8 @@ cdef extern from "<OpenMS/KERNEL/MSChromatogram.h>" namespace "OpenMS":
 
         bool isSorted() nogil except +
 
-        void sortByIntensity(bool reverse)
-        void sortByPosition()
+        void sortByIntensity(bool reverse) nogil except +
+        void sortByPosition() nogil except +
 
         int findNearest(double) nogil except+
 
@@ -41,8 +43,8 @@ cdef extern from "<OpenMS/KERNEL/MSChromatogram.h>" namespace "OpenMS":
         libcpp_vector[ChromatogramPeakT].iterator begin() nogil except +  # wrap-iter-begin:__iter__(ChromatogramPeakT)
         libcpp_vector[ChromatogramPeakT].iterator end()   nogil except +  # wrap-iter-end:__iter__(ChromatogramPeakT)
 
-        void getKeys(libcpp_vector[String] & keys)
-        void getKeys(libcpp_vector[unsigned int] & keys)
+        void getKeys(libcpp_vector[String] & keys) nogil except +
+        void getKeys(libcpp_vector[unsigned int] & keys) nogil except +
         DataValue getMetaValue(unsigned int) nogil except +
         DataValue getMetaValue(String) nogil except +
         void setMetaValue(unsigned int, DataValue) nogil except +

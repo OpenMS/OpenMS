@@ -47,14 +47,21 @@ endif()
 #------------------------------------------------------------------------------
 # Export OpenSWATHAlgo include directories
 #------------------------------------------------------------------------------
-set(OPENSWATHALGO_INCLUDE_DIRECTORIES ${PROJECT_SOURCE_DIR}/include
-                                      ${PROJECT_BINARY_DIR}/include
-                                      ${Boost_INCLUDE_DIRS}
+
+set(OpenSwathAlgo_EXTERNAL_INCLUDE_DIRECTORIES ${Boost_INCLUDE_DIRS})
+
+set(OpenSwathAlgo_INTERNAL_INCLUDE_DIRECTORIES ${PROJECT_SOURCE_DIR}/include
+                                               ${PROJECT_BINARY_DIR}/include)
+
+
+set(OpenSwathAlgo_INCLUDE_DIRECTORIES ${OpenSwathAlgo_INTERNAL_INCLUDE_DIRECTORIES}
+                                      ${OpenSwathAlgo_EXTERNAL_INCLUDE_DIRECTORIES}
     CACHE INTERNAL "OpenSWATHAlgo include directories" FORCE)
 
 #------------------------------------------------------------------------------
 # Include directories
-include_directories(${OPENSWATHALGO_INCLUDE_DIRECTORIES})
+include_directories(${OpenSwathAlgo_INTERNAL_INCLUDE_DIRECTORIES})
+include_directories(SYSTEM ${OpenSwathAlgo_EXTERNAL_INCLUDE_DIRECTORIES})
 
 #------------------------------------------------------------------------------
 # Configure OpenSwathAlgoConfig.h.in file for dll_export macros etc.
@@ -68,8 +75,12 @@ configure_file(${PROJECT_SOURCE_DIR}/include/OpenMS/ANALYSIS/OPENSWATH/OPENSWATH
 include(source/ANALYSIS/OPENSWATH/OPENSWATHALGO/OpenSwathAlgoFiles.cmake)
 
 #------------------------------------------------------------------------------
-# The OpenSWATHAlgo library
+# The OpenSwathAlgo library
 add_library(OpenSwathAlgo ${OpenSwathAlgoFiles})
+
+# we also want to install OpenSwathAlgo
+install_library(OpenSwathAlgo)
+install_headers("${OpenSwathAlgoHeaders};${CONFIGURED_OPENSWATHALGOCONFIG_H}" OpenSwathAlgo)
 
 #------------------------------------------------------------------------------
 # copy dll to test/doc bin folder on MSVC systems

@@ -77,8 +77,8 @@ cdef extern from "<OpenMS/KERNEL/ConsensusFeature.h>" namespace "OpenMS::Consens
     # slim struct to feed the need for systematically storing of ratios ( @see MSQuantifications ).
     cdef cppclass Ratio:
 
-      Ratio()
-      Ratio(Ratio rhs)
+      Ratio() nogil except +
+      Ratio(Ratio rhs) nogil except +
 
       DoubleReal ratio_value_
       String denominator_ref_

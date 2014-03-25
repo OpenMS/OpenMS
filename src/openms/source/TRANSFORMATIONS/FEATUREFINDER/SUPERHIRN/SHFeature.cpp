@@ -45,6 +45,7 @@
 #include <iostream>
 #include <map>
 #include <stdio.h>
+#include <cmath>
 
 //#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/MSPeak.h>
 //#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/CentroidPeak.h>

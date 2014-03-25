@@ -35,7 +35,7 @@
 #ifndef OPENMS_CHEMISTRY_EMPIRICALFORMULA_H
 #define OPENMS_CHEMISTRY_EMPIRICALFORMULA_H
 
-#include <iostream>
+#include <iosfwd>
 #include <vector>
 
 #include <OpenMS/DATASTRUCTURES/String.h>

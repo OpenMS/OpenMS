@@ -9,9 +9,7 @@ class TestOpenSwathDataStructures(unittest.TestCase):
         pass
 
     def test_spectrum(self):
-        exp = pyopenms.MSExperiment()
-        spectrum = pyopenms.SpectrumAccessOpenMS(exp)
-        spectrum = pyopenms.Spectrum()
+        spectrum = pyopenms.Interfaces.Spectrum()
         mz_exp = [1,2,3]
         int_exp = [4,5,6]
 

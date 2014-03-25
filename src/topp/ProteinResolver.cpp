@@ -46,10 +46,10 @@
 
 #include <QDir>
 
-using std::list;
-using std::vector;
-using std::ofstream;
 using std::endl;
+using std::list;
+using std::ofstream;
+using std::vector;
 
 using namespace OpenMS;
 
@@ -77,7 +77,7 @@ using namespace OpenMS;
   </table>
 </CENTER>
 
-  @experimental This tool has not been tested thoroughly and might behave not as expected!
+  @experimental This tool has not been tested thoroughly and might NOT behave as expected!
 
   This tool is an imlementation of
   <p>

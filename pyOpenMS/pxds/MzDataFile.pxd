@@ -21,5 +21,5 @@ cdef extern from "<OpenMS/FORMAT/MzDataFile.h>" namespace "OpenMS":
         PeakFileOptions getOptions() nogil except +
         void setOptions(PeakFileOptions) nogil except +
 
-        bool isSemanticallyValid(String & filename, StringList & errors, StringList & warnings)
+        bool isSemanticallyValid(String & filename, StringList & errors, StringList & warnings) nogil except +
 

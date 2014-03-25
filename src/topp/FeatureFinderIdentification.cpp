@@ -132,7 +132,7 @@ protected:
                      ListUtils::create<String>("score,intensity,median,all,adapt"));
     registerDoubleOption_("rt_window", "<value>", 180, "RT window size (in sec.) for chromatogram extraction.", false);
     setMinFloat_("rt_window", 0);
-    registerDoubleOption_("mz_window", "<value>", 10, "m/z window size for chromatogram extraction (unit: ppm if 1 or greater, else Th or Da)", false);
+    registerDoubleOption_("mz_window", "<value>", 10, "m/z window size for chromatogram extraction (unit: ppm if 1 or greater, else Da/Th)", false);
     setMinFloat_("mz_window", 0);
     registerDoubleOption_("isotope_pmin", "<value>", 0.01, "Minimum probability for an isotope to be included in the assay for a peptide.", false);
     setMinFloat_("isotope_pmin", 0);
@@ -143,6 +143,14 @@ protected:
     // advanced parameters:
     registerFlag_("unweighted_fit", "Suppress weighting of mass traces according to theoretical intensities when fitting elution models", true);
     registerFlag_("no_imputation", "If fitting the elution model fails for a feature, set its intensity to zero instead of imputing a value from the OpenSWATH intensity", true);
+    registerTOPPSubsection_("model_check", "Parameters for checking the validity of elution models and rejecting them if necessary");
+    registerDoubleOption_("model_check:boundaries", "<value>", 0.5, "Time points corresponding to this fraction of the elution model height have to be within the data region used for model fitting", false, true);
+    setMinFloat_("model_check:boundaries", 0.0);
+    setMaxFloat_("model_check:boundaries", 1.0);
+    registerDoubleOption_("model_check:width", "<value>", 10.0, "Upper limit for acceptable widths of elution models (Gaussian or EGH), expressed in terms of modified (median-based) z-scores; '0' to disable", false, true);
+    setMinFloat_("model_check:width", 0.0);
+    registerDoubleOption_("model_check:asymmetry", "<value>", 10.0, "Upper limit for acceptable asymmetry of elution models (EGH only), expressed in terms of modified (median-based) z-scores; '0' to disable", false, true);
+    setMinFloat_("model_check:asymmetry", 0.0);
 
     // addEmptyLine_();
     // registerSubsection_("algorithm", "Algorithm parameters section");
@@ -365,14 +373,17 @@ protected:
   }
 
 
-  void fitElutionModels_(FeatureMap<>& features, bool asymmetric=true,
-                         bool weighted=true, bool impute=true)
+  void fitElutionModels_(FeatureMap<>& features, bool asymmetric=true)
   {
     // assumptions:
     // - all features have subordinates (for the mass traces/transitions)
     // - all subordinates have one convex hull
     // - all convex hulls in one feature contain the same number (> 0) of points
     // - the y coordinates of the hull points store the intensities
+
+    bool weighted = !getFlag_("unweighted_fit");
+    bool impute = !getFlag_("no_imputation");
+    DoubleReal check_boundaries = getDoubleOption_("model_check:boundaries");
 
     // prepare look-up of transitions by native ID:
     map<String, vector<ReactionMonitoringTransition>::const_iterator> trans_ids;
@@ -396,15 +407,30 @@ protected:
       fitter->setParameters(params);
     }
 
-    // save data to impute approximate results for failed model fits:
-    TransformationModel::DataPoints quant_values;
-    vector<FeatureMap<>::Iterator> failed_models;
-    Size model_successes = 0, model_failures = 0;
+    // store model parameters to find outliers later:
+    DoubleReal width_limit = getDoubleOption_("model_check:width");
+    DoubleReal asym_limit = (asymmetric ? 
+                             getDoubleOption_("model_check:asymmetry") : 0.0);
+    // store values redundantly - once aligned with the features in the map,
+    // once only for successful models:
+    vector<DoubleReal> widths_all, widths_good, asym_all, asym_good;
+    if (width_limit > 0)
+    {
+      widths_all.resize(features.size(),
+                        numeric_limits<DoubleReal>::quiet_NaN());
+      widths_good.reserve(features.size());
+    }
+    if (asym_limit > 0)
+    {
+      asym_all.resize(features.size(), numeric_limits<DoubleReal>::quiet_NaN());
+      asym_good.reserve(features.size());
+    }
 
     // collect peaks that constitute mass traces:
     LOG_DEBUG << "Fitting elution models to features:" << endl;
+    Size index = 0;
     for (FeatureMap<>::Iterator feat_it = features.begin();
-         feat_it != features.end(); ++feat_it)
+         feat_it != features.end(); ++feat_it, ++index)
     {
       LOG_DEBUG << String(feat_it->getMetaValue("PeptideRef")) << endl;
       vector<Peak1D> peaks;
@@ -459,6 +485,7 @@ protected:
       traces.baseline = 0.0;
 
       // fit the model:
+      bool fit_success = true;
       try
       {
         fitter->fit(traces);
@@ -468,11 +495,12 @@ protected:
         LOG_ERROR << "Error fitting model to feature '" 
                   << feat_it->getUniqueId() << "': " << except.getName()
                   << " - " << except.getMessage() << endl;
+        fit_success = false;
       }
 
       // record model parameters:
-      DoubleReal center = fitter->getCenter();
-      feat_it->setMetaValue("model_height", fitter->getHeight());
+      DoubleReal center = fitter->getCenter(), height = fitter->getHeight();
+      feat_it->setMetaValue("model_height", height);
       feat_it->setMetaValue("model_FWHM", fitter->getFWHM());
       feat_it->setMetaValue("model_center", center);
       feat_it->setMetaValue("model_lower", fitter->getLowerRTBound());
@@ -491,33 +519,187 @@ protected:
         feat_it->setMetaValue("model_Gauss_sigma", gauss->getSigma());
       }
 
-      // @TODO: more checking of model validity
-      bool center_in_bounds = 
-        (center >= DoubleReal(feat_it->getMetaValue("leftWidth"))) && 
-        (center <= DoubleReal(feat_it->getMetaValue("rightWidth")));
-      DoubleReal area = fitter->getArea();
-      if ((area != area) || // test for NaN
-          (area <= 0.0) || !center_in_bounds)
+      // goodness of fit:
+      DoubleReal mre = -1.0; // mean relative error
+      if (fit_success)
       {
-        if (impute) failed_models.push_back(feat_it);
-        else feat_it->setIntensity(0.0);
-        feat_it->setMetaValue("model_success", "false");
-        model_failures++;
+        mre = 0.0;
+        DoubleReal total_weights = 0.0;
+        DoubleReal rt_start = max(fitter->getLowerRTBound(), 
+                                  traces[0].peaks[0].first);
+        DoubleReal rt_end = min(fitter->getUpperRTBound(), 
+                                traces[0].peaks.rbegin()->first);
+
+        for (FeatureFinderAlgorithmPickedHelperStructs::MassTraces<Peak1D>::
+               iterator tr_it = traces.begin(); tr_it != traces.end(); ++tr_it)
+        {
+          for (vector<pair<DoubleReal, const Peak1D*> >::iterator p_it = 
+                 tr_it->peaks.begin(); p_it != tr_it->peaks.end(); ++p_it)
+          {
+            DoubleReal rt = p_it->first;
+            if ((rt >= rt_start) && (rt <= rt_end))
+            {
+              DoubleReal model_value = fitter->getValue(rt);
+              DoubleReal diff = fabs(model_value * tr_it->theoretical_int -
+                                     p_it->second->getIntensity());
+              mre += diff / model_value;
+              total_weights += tr_it->theoretical_int;
+            }
+          }
+        }
+        mre /= total_weights;
+      }
+      feat_it->setMetaValue("model_error", mre);
+
+      // check model validity:
+      DoubleReal region_start = DoubleReal(feat_it->getMetaValue("leftWidth"));
+      DoubleReal region_end = DoubleReal(feat_it->getMetaValue("rightWidth"));
+      DoubleReal area = fitter->getArea();
+      feat_it->setMetaValue("model_area", area);
+      if ((area != area) || (area <= 0.0)) // x != x: test for NaN
+      {
+        feat_it->setMetaValue("model_status", "1 (invalid area)");
+      }
+      else if ((center <= region_start) || (center >= region_end))
+      {
+        feat_it->setMetaValue("model_status", "2 (center out of bounds)");
+      }
+      else if (fitter->getValue(region_start) > check_boundaries * height)
+      {
+        feat_it->setMetaValue("model_status", "3 (left side out of bounds)");
+      }
+      else if (fitter->getValue(region_end) > check_boundaries * height)
+      {
+        feat_it->setMetaValue("model_status", "4 (right side out of bounds)");
       }
       else
       {
-        if (impute)
-        { // apply log-transform to weight down high outliers:
-          quant_values.push_back(make_pair(log(feat_it->getIntensity()),
-                                           log(area)));
+        feat_it->setMetaValue("model_status", "0 (valid)");
+        // store model parameters to find outliers later:
+        if (asymmetric)
+        {
+          DoubleReal sigma = feat_it->getMetaValue("model_EGH_sigma");
+          DoubleReal abs_tau = fabs(DoubleReal(feat_it->
+                                               getMetaValue("model_EGH_tau")));
+          if (width_limit > 0)
+          {
+            // see implementation of "EGHTraceFitter::getArea":
+            DoubleReal width = sigma * 0.6266571 + abs_tau;
+            widths_all[index] = width;
+            widths_good.push_back(width);
+          }
+          if (asym_limit > 0)
+          {
+            DoubleReal asymmetry = abs_tau / sigma;
+            asym_all[index] = asymmetry;
+            asym_good.push_back(asymmetry);
+          }
         }
-        feat_it->setIntensity(area);
-        feat_it->setMetaValue("model_success", "true");
-        model_successes++;
+        else if (width_limit > 0)
+        {
+          DoubleReal width = feat_it->getMetaValue("model_Gauss_sigma");
+          widths_all[index] = width;
+          widths_good.push_back(width);
+        }
       }
     }
     delete fitter;
 
+    // find outliers in model parameters:
+    if (width_limit > 0)
+    {
+      DoubleReal median_width = Math::median(widths_good.begin(),
+                                             widths_good.end());
+      vector<DoubleReal> abs_diffs(widths_good.size());
+      for (Size i = 0; i < widths_good.size(); ++i)
+      {
+        abs_diffs[i] = fabs(widths_good[i] - median_width);
+      }
+      // median absolute deviation (constant factor to approximate std. dev.):
+      DoubleReal mad_width = 1.4826 * Math::median(abs_diffs.begin(),
+                                                   abs_diffs.end());
+
+      for (Size i = 0; i < features.size(); ++i)
+      {
+        DoubleReal width = widths_all[i];
+        if (width != width) continue; // NaN (failed model)
+        DoubleReal z_width = (width - median_width) / mad_width; // mod. z-score
+        if (z_width > width_limit)
+        {
+          features[i].setMetaValue("model_status", "5 (width too large)");
+          if (asym_limit > 0) // skip asymmetry check below
+          {
+            asym_all[i] = numeric_limits<DoubleReal>::quiet_NaN();
+          }
+        }
+        else if (z_width < -width_limit)
+        {
+          features[i].setMetaValue("model_status", "6 (width too small)");
+          if (asym_limit > 0) // skip asymmetry check below
+          {
+            asym_all[i] = numeric_limits<DoubleReal>::quiet_NaN();
+          }
+        }
+      }
+    }
+    if (asym_limit > 0)
+    {
+      DoubleReal median_asym = Math::median(asym_good.begin(), asym_good.end());
+      vector<DoubleReal> abs_diffs(asym_good.size());
+      for (Size i = 0; i < asym_good.size(); ++i)
+      {
+        abs_diffs[i] = fabs(asym_good[i] - median_asym);
+      }
+      // median absolute deviation (constant factor to approximate std. dev.):
+      DoubleReal mad_asym = 1.4826 * Math::median(abs_diffs.begin(),
+                                                  abs_diffs.end());
+
+      for (Size i = 0; i < features.size(); ++i)
+      {
+        DoubleReal asym = asym_all[i];
+        if (asym != asym) continue; // NaN (failed model)
+        DoubleReal z_asym = (asym - median_asym) / mad_asym; // mod. z-score
+        if (z_asym > asym_limit)
+        {
+          features[i].setMetaValue("model_status", "7 (asymmetry too high)");
+        }
+        else if (z_asym < -asym_limit) // probably shouldn't happen in practice
+        {
+          features[i].setMetaValue("model_status", "8 (asymmetry too low)");
+        }
+      }
+    }
+
+    // impute approximate results for failed model fits:
+    TransformationModel::DataPoints quant_values;
+    vector<FeatureMap<>::Iterator> failed_models;
+    Size model_successes = 0, model_failures = 0;
+
+    for (FeatureMap<>::Iterator feat_it = features.begin();
+         feat_it != features.end(); ++feat_it, ++index)
+    {
+      feat_it->setMetaValue("raw_intensity", feat_it->getIntensity());
+      if (String(feat_it->getMetaValue("model_status"))[0] != '0')
+      {
+        if (impute) failed_models.push_back(feat_it);
+        else feat_it->setIntensity(0.0);
+        model_failures++;
+      }
+      else
+      {
+        DoubleReal area = feat_it->getMetaValue("model_area");
+        if (impute)
+        { // apply log-transform to weight down high outliers:
+          DoubleReal raw_intensity = feat_it->getIntensity();
+          LOG_DEBUG << "Successful model: x = " << raw_intensity << ", y = " 
+                    << area << "; log(x) = " << log(raw_intensity) 
+                    << ", log(y) = " << log(area) << endl;
+          quant_values.push_back(make_pair(log(raw_intensity), log(area)));
+        }
+        feat_it->setIntensity(area);
+        model_successes++;
+      }
+    }
     LOG_INFO << "Model fitting: " << model_successes << " successes, " 
              << model_failures << " failures" << endl;
 
@@ -556,8 +738,6 @@ protected:
     bool mz_window_ppm = mz_window >= 1;
     DoubleReal isotope_pmin = getDoubleOption_("isotope_pmin");
     String elution_model = getStringOption_("elution_model");
-    bool weighted_fit = !getFlag_("unweighted_fit");
-    bool impute = !getFlag_("no_imputation");
 
     //-------------------------------------------------------------
     // load input
@@ -735,9 +915,13 @@ protected:
     FeatureMap<> features;
     MRMFeatureFinderScoring mrm_finder;
     Param params = mrm_finder.getParameters();
-    params.setValue("stop_report_after_feature", 1);
+    params.setValue("stop_report_after_feature", -1); // 1);
     if (elution_model != "none") params.setValue("write_convex_hull", "true");
-    params.setValue("TransitionGroupPicker:PeakPickerMRM:use_gauss", "false");
+    params.setValue("TransitionGroupPicker:min_peak_width", 5.0);
+    params.setValue("TransitionGroupPicker:recalculate_peaks", "true");
+    params.setValue("TransitionGroupPicker:compute_peak_quality", "true");
+    // params.setValue("TransitionGroupPicker:PeakPickerMRM:use_gauss", "false");
+    params.setValue("TransitionGroupPicker:PeakPickerMRM:gauss_width", 20.0);
     params.setValue("TransitionGroupPicker:PeakPickerMRM:peak_width", -1.0);
     params.setValue("TransitionGroupPicker:PeakPickerMRM:method", "corrected");
     mrm_finder.setParameters(params);
@@ -748,8 +932,7 @@ protected:
     // @TODO add method for resolving overlaps if "reference_rt" is "all"
     if (elution_model != "none")
     {
-      fitElutionModels_(features, elution_model == "asymmetric", weighted_fit,
-                        impute);
+      fitElutionModels_(features, elution_model == "asymmetric");
     }
 
     //-------------------------------------------------------------

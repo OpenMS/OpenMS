@@ -37,13 +37,9 @@
 
 #include <OpenMS/config.h>
 
-#include <limits>
-#include <cstddef> // for size_t
 #include <ctime>
-#include <cmath>
-#include <string>
-#include <iostream>
-#include <iomanip>
+#include <cstddef> // for size_t & ptrdiff_t
+#include <limits>
 
 // If possible use the ISO C99-compliant header stdint.h
 // to define the portable integer types.
@@ -169,6 +165,8 @@ namespace OpenMS
     ASCII__SEMICOLON        = ';'
   };
 
+  //@}
+
   /**
     @name Numbers of digits used for writing floating point numbers (a.k.a. precision).
 
@@ -187,28 +185,28 @@ namespace OpenMS
     so rounding will remove the remaining difference.
 
     Example:
-  @code
-#define NUMBER 12345.67890123456789012345678901
-std::cout << NUMBER << '\n'; // default precision, writes: 12345.7
+    @code
+    #define NUMBER 12345.67890123456789012345678901
+    std::cout << NUMBER << '\n'; // default precision, writes: 12345.7
 
-DoubleReal d = NUMBER;
-std::cout.precision(writtenDigits<DoubleReal>()); // explicit template instantiation
-std::cout << writtenDigits<DoubleReal>() << ": " << d << '\n'; // writes: 15: 12345.6789012346
+    DoubleReal d = NUMBER;
+    std::cout.precision(writtenDigits<DoubleReal>()); // explicit template instantiation
+    std::cout << writtenDigits<DoubleReal>() << ": " << d << '\n'; // writes: 15: 12345.6789012346
 
-Real r = NUMBER;
-std::cout.precision(writtenDigits(r)); // type deduced from argument
-std::cout << writtenDigits(r) << ": " << r << '\n'; // writes: 6: 12345.7
+    Real r = NUMBER;
+    std::cout.precision(writtenDigits(r)); // type deduced from argument
+    std::cout << writtenDigits(r) << ": " << r << '\n'; // writes: 6: 12345.7
 
-long double l = NUMBER;
-std::cout.precision(writtenDigits(1L)); // argument is not used, but L suffix indicates a long double
-std::cout << writtenDigits(1L) << ": " << l << '\n'; // writes: 18: 12345.6789012345671
+    long double l = NUMBER;
+    std::cout.precision(writtenDigits(1L)); // argument is not used, but L suffix indicates a long double
+    std::cout << writtenDigits(1L) << ": " << l << '\n'; // writes: 18: 12345.6789012345671
 
-DoubleReal x = 88.99;
-std::cout.precision(15);
-std::cout << "15: " << x << '\n'; // writes: 15: 88.99
-std::cout.precision(16);
-std::cout << "16: " << x << '\n'; // writes: 16: 88.98999999999999
-  @endcode
+    DoubleReal x = 88.99;
+    std::cout.precision(15);
+    std::cout << "15: " << x << '\n'; // writes: 15: 88.99
+    std::cout.precision(16);
+    std::cout << "16: " << x << '\n'; // writes: 16: 88.98999999999999
+    @endcode
   */
   //@{
 
@@ -219,46 +217,46 @@ std::cout << "16: " << x << '\n'; // writes: 16: 88.98999999999999
     double.
   */
   template <typename FloatingPointType>
-  inline Int writtenDigits(const FloatingPointType & /* unused */ = FloatingPointType());
+  inline Int writtenDigits(const FloatingPointType& /* unused */ = FloatingPointType());
 
   /// Number of digits commonly used for writing a @c float (a.k.a. precision).
   template <>
-  inline Int writtenDigits<float>(const float &)
+  inline Int writtenDigits<float>(const float&)
   {
     return std::numeric_limits<float>::digits10;
   }
 
   /// Number of digits commonly used for writing a @c double (a.k.a. precision).
   template <>
-  inline Int writtenDigits<double>(const double &)
+  inline Int writtenDigits<double>(const double&)
   {
     return std::numeric_limits<double>::digits10;
   }
 
   /// We do not want to bother people who unintentionally provide an int argument to this.
   template <>
-  inline Int writtenDigits<int>(const int &)
+  inline Int writtenDigits<int>(const int&)
   {
     return std::numeric_limits<int>::digits10;
   }
 
   /// We do not want to bother people who unintentionally provide an unsigned int argument to this.
   template <>
-  inline Int writtenDigits<unsigned int>(const unsigned int &)
+  inline Int writtenDigits<unsigned int>(const unsigned int&)
   {
     return std::numeric_limits<unsigned int>::digits10;
   }
 
   /// We do not want to bother people who unintentionally provide a long int argument to this.
   template <>
-  inline Int writtenDigits<long int>(const long int &)
+  inline Int writtenDigits<long int>(const long int&)
   {
     return std::numeric_limits<int>::digits10;
   }
 
   /// We do not want to bother people who unintentionally provide an unsigned long int argument to this.
   template <>
-  inline Int writtenDigits<unsigned long int>(const unsigned long int &)
+  inline Int writtenDigits<unsigned long int>(const unsigned long int&)
   {
     return std::numeric_limits<unsigned int>::digits10;
   }
@@ -266,7 +264,7 @@ std::cout << "16: " << x << '\n'; // writes: 16: 88.98999999999999
   class DataValue;
   /// DataValue will be printed like double.
   template <>
-  inline Int writtenDigits<DataValue>(const DataValue &)
+  inline Int writtenDigits<DataValue>(const DataValue&)
   {
     return std::numeric_limits<double>::digits10;
   }
@@ -289,7 +287,7 @@ std::cout << "16: " << x << '\n'; // writes: 16: 88.98999999999999
     http://msdn.microsoft.com/ + search: "long double".
   */
   template <>
-  inline Int writtenDigits<long double>(const long double &)
+  inline Int writtenDigits<long double>(const long double&)
   {
 #ifndef OPENMS_WINDOWSPLATFORM
     return std::numeric_limits<long double>::digits10;
@@ -301,154 +299,13 @@ std::cout << "16: " << x << '\n'; // writes: 16: 88.98999999999999
   }
 
   /**
-    @brief The general template definition will return the default precision of
-           6 according to 27.4.4.1 basic_iosconstructors (C++ Standard).
-  */
+   @brief The general template definition will return the default precision of
+   6 according to 27.4.4.1 basic_iosconstructors (C++ Standard).
+   */
   template <typename FloatingPointType>
-  inline Int writtenDigits(const FloatingPointType & /* unused */)
+  inline Int writtenDigits(const FloatingPointType& /* unused */)
   {
     return 6;
-  }
-
-  // Note: I once tried to move PrecisionWrapper to namespace Internal, but oops! operator <<  won't be found (through ADL?) anymore.
-  /// Wrapper class to implement output with appropriate precision.  See precisionWrapper().
-  template <typename FloatingPointType>
-  struct PrecisionWrapper
-  {
-    /// Constructor.  Note: Normally you will prefer to use the "make"-function precisionWrapper(), which see.
-    explicit PrecisionWrapper(const FloatingPointType rhs) :
-      ref_(rhs) {}
-    PrecisionWrapper(const PrecisionWrapper & rhs) :
-      ref_(rhs.ref_) {}
-    FloatingPointType const ref_;
-private:
-    PrecisionWrapper();     // intentionally not implemented
-  };
-
-  /**
-    @brief Wrapper function that sets the appropriate precision for output
-    temporarily.  The original precision is restored afterwards so that no side
-    effects remain.  This is a "make"-function that deduces the typename
-    FloatingPointType from its argument and returns a
-    PrecisionWrapper<FloatingPointType>.
-
-    Example:
-    @code
-    std::cout
-    << 0.1234567890123456789f << ' ' << 0.1234567890123456789 << ' ' << 0.1234567890123456789l << '\n'
-    << precisionWrapper(0.1234567890123456789f) << '\n' // float
-    << 0.1234567890123456789f << ' ' << 0.1234567890123456789 << ' ' << 0.1234567890123456789l << '\n'
-    << precisionWrapper(0.1234567890123456789) << '\n' // double
-    << 0.1234567890123456789f << ' ' << 0.1234567890123456789 << ' ' << 0.1234567890123456789l << '\n'
-    << precisionWrapper(0.1234567890123456789l) << '\n' // long double
-    << 0.1234567890123456789f << ' ' << 0.1234567890123456789 << ' ' << 0.1234567890123456789l << '\n';
-    @endcode
-    Result:
-    @code
-    0.123457 0.123457 0.123457
-    0.123457
-    0.123457 0.123457 0.123457
-    0.123456789012346
-    0.123457 0.123457 0.123457
-    0.123456789012345679
-    0.123457 0.123457 0.123457
-    @endcode
-
-    Note: Unfortunately we cannot return a const& - this will change when rvalue
-    references become part of the new C++ standard.  In the meantime, we need a
-    copy constructor for PrecisionWrapper.
-  */
-  template <typename FloatingPointType>
-  inline const PrecisionWrapper<FloatingPointType> precisionWrapper(const FloatingPointType rhs)
-  {
-    return PrecisionWrapper<FloatingPointType>(rhs);
-  }
-
-  /// Output operator for a PrecisionWrapper.  Specializations are defined for float, double, long double.
-  template <typename FloatingPointType>
-  inline std::ostream & operator<<(std::ostream & os, const PrecisionWrapper<FloatingPointType> & rhs)
-  {
-    // Same test as used by isnan(), spelled out here to avoid issues during overload resolution.
-    if (rhs.ref_ != rhs.ref_)
-    {
-      // That's what Linux GCC uses, and gnuplot understands.
-      // Windows would print stuff like 1.#QNAN which makes testing hard.
-      return os << "nan";
-    }
-    else
-    {
-      const std::streamsize prec_save = os.precision();
-      return os << std::setprecision(writtenDigits(FloatingPointType()))
-             << rhs.ref_ << std::setprecision(prec_save);
-    }
-  }
-
-  //@}
-
-  /**
-    @brief Returns the @c Type as as std::string.
-
-    Have you ever spent a long time trying to find out what a @c typedef
-    actually "points" to?  Then this can help.
-
-    typeAsString is implemented as a function template.  There are two ways to us this:
-    @code
-      SomeType instance;
-      string what_type_1 = typeAsString(instance);
-      string what_type_2 = typeAsString< SomeType >();
-    @endcode
-
-    The %typeAsString< SomeType >() version seems to go a bit deeper.
-    Sometimes the results
-    depend on how the %typeAsString() is instantiated in the first place.
-    The argument given to the function is never used, it only serves to infer the type.
-    You can even supply function pointers, etc.
-
-    Example (Tutorial_typeAsString.cpp):
-    @dontinclude Tutorial_typeAsString.cpp
-    @until end of Tutorial_typeAsString.cpp
-    On a 64 bit platform running GCC 4.3.1, this produced the following output:
-    @code
-    int
-    unsigned int
-    double
-    float
-
-    int
-    long unsigned int
-
-    OpenMS::Peak1D
-    OpenMS::Peak1D
-    OpenMS::DPosition<1u>
-    double
-    float
-
-    double ()(int, int*)
-    WOW<const char* const*** const&, 5>
-    Oink<double, 55, 666u, WOW>
-    float ()(float&)
-    double (WOW<char, 8>::*)(const double&)
-    @endcode
-  */
-  template <typename Type>
-  std::string typeAsString(const Type & /* unused */ = Type())
-  {
-#ifndef OPENMS_COMPILER_GXX
-    return "[ Sorry, OpenMS::typeAsString() relies upon GNU extension __PRETTY_FUNCTION__ ]";
-
-#else
-    std::string pretty(__PRETTY_FUNCTION__);
-    static char const context_left[] = "with Type =";
-    static char const context_right[] = "]";
-    size_t left = pretty.find(context_left);
-    left += sizeof(context_left);
-    size_t right = pretty.rfind(context_right);
-    if (right <= left)
-      return pretty;                      // oops!
-
-    return pretty.substr(left, right - left);
-
-#endif
   }
 
   namespace Internal
@@ -459,7 +316,7 @@ private:
       locale settings (this overwrites the
       locale setting of the environment!)
     */
-    extern OPENMS_DLLAPI const char * OpenMS_locale;
+    extern OPENMS_DLLAPI const char* OpenMS_locale;
   }
 
 } // namespace OpenMS

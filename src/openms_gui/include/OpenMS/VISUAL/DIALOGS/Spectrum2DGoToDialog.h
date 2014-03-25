@@ -71,6 +71,8 @@ public:
     //@{
     ///Sets the data range to display initially
     void setRange(Real min_rt, Real max_rt, Real min_mz, Real max_mz);
+    ///Sets the data range of the complete experiment for better navigation with the dialog
+    void setMinMaxOfRange(Real min_rt, Real max_rt, Real min_mz, Real max_mz);
     ///Returns the lower RT bound
     Real getMinRT() const;
     ///Returns the upper RT bound

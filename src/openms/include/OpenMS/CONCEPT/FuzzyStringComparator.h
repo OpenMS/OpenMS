@@ -39,12 +39,7 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 
-#include <cstdlib> // for strtod()
-#include <fstream>
-#include <iostream>
-#include <cctype> // for isspace()
-#include <limits> // for NaN
-#include <sstream>
+#include <iosfwd>
 #include <map>
 
 #ifdef OPENMS_HAS_STREAM_EXTRACTION_BUG

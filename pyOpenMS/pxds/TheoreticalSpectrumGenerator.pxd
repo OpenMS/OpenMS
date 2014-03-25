@@ -8,7 +8,10 @@ from RichPeak1D cimport *
 
 cdef extern from "<OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>" namespace "OpenMS":
     
-    cdef cppclass TheoreticalSpectrumGenerator "OpenMS::TheoreticalSpectrumGenerator":
+    cdef cppclass TheoreticalSpectrumGenerator(DefaultParamHandler):
+        # wrap-inherits:
+        #    DefaultParamHandler
+
         TheoreticalSpectrumGenerator() nogil except +
         TheoreticalSpectrumGenerator(TheoreticalSpectrumGenerator) nogil except +
         void getSpectrum(MSSpectrum[RichPeak1D] &spec, AASequence &peptide, Int charge) nogil except +

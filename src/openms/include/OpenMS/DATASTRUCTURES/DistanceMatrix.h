@@ -37,6 +37,7 @@
 
 #include <OpenMS/CONCEPT/Macros.h>
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/PrecisionWrapper.h>
 
 #include <cmath>
 #include <algorithm>
@@ -47,11 +48,20 @@ namespace OpenMS
 {
 
   /**
-      @brief A two-dimensional distance matrix, similar to OpenMS::Matrix
+    @brief A two-dimensional distance matrix, similar to OpenMS::Matrix
 
-      Similar to OpenMS::Matrix, but contains only elements above the main diagonal, hence translating access with operator(,) for elements of above the main diagonal to corresponding elements below the main diagonal and returning 0 for requested elements in the main diagonal, since self-distance is assumed to be 0. Keeps track of the minimal element in the Matrix with OpenMS::DistanceMatrix::min_element_ if only for setting a value OpenMS::DistanceMatrix::setValue is used. Other OpenMS::DistanceMatrix altering methods may require a manual update by call of OpenMS::DistanceMatrix::updateMinElement, see the respective methods documentation.
+    Similar to OpenMS::Matrix, but contains only elements above the main
+    diagonal, hence translating access with operator(,) for elements of above
+    the main diagonal to corresponding elements below the main diagonal and
+    returning 0 for requested elements in the main diagonal, since
+    self-distance is assumed to be 0. Keeps track of the minimal element in the
+    Matrix with OpenMS::DistanceMatrix::min_element_ if only for setting a
+    value OpenMS::DistanceMatrix::setValue is used. Other
+    OpenMS::DistanceMatrix altering methods may require a manual update by call
+    of OpenMS::DistanceMatrix::updateMinElement, see the respective methods
+    documentation.
 
-      @ingroup Datastructures
+    @ingroup Datastructures
   */
   template <typename Value>
   class DistanceMatrix
@@ -77,11 +87,12 @@ public:
     {
     }
 
-    /** @brief detailed constructor
+    /**
+      @brief detailed constructor
 
-        @param dimensionsize the number of rows (and therewith cols)
-        @param value DistanceMatrix will be filled with this element (main diagonal will still "hold" only zeros)
-        @throw Exception::OutOfMemory if requested dimensionsize is to big to fit into memory
+      @param dimensionsize the number of rows (and therewith cols)
+      @param value DistanceMatrix will be filled with this element (main diagonal will still "hold" only zeros)
+      @throw Exception::OutOfMemory if requested dimensionsize is to big to fit into memory
     */
     DistanceMatrix(SizeType dimensionsize, Value value = Value()) :
       matrix_(new ValueType *[dimensionsize]), init_size_(dimensionsize), dimensionsize_(dimensionsize), min_element_(0, 0)
@@ -118,10 +129,11 @@ public:
       }
     }
 
-    /** @brief copy constructor
+    /**
+      @brief copy constructor
 
-        @param source  this DistanceMatrix will be copied
-        @throw Exception::OutOfMemory if requested dimensionsize is to big to fit into memory
+      @param source  this DistanceMatrix will be copied
+      @throw Exception::OutOfMemory if requested dimensionsize is to big to fit into memory
     */
     DistanceMatrix(const DistanceMatrix & source) :
       matrix_(new ValueType *[source.dimensionsize_]),
@@ -168,31 +180,34 @@ public:
       delete[] matrix_;
     }
 
-    /** @brief gets a value at a given position (read only):
+    /**
+      @brief gets a value at a given position (read only):
 
-        @param i the i-th row
-        @param j the j-th col
+      @param i the i-th row
+      @param j the j-th col
     */
     const ValueType operator()(SizeType i, SizeType j) const
     {
       return getValue(i, j);
     }
 
-    /** @brief gets a value at a given position (read only):
+    /**
+      @brief gets a value at a given position (read only):
 
-        @param i the i-th row
-        @param j the j-th col
+      @param i the i-th row
+      @param j the j-th col
     */
     ValueType operator()(SizeType i, SizeType j)
     {
       return getValue(i, j);
     }
 
-    /** @brief gets a value at a given position:
+    /**
+      @brief gets a value at a given position:
 
-        @param i the i-th row
-        @param j the j-th col
-        @throw Exception::OutOfRange if given coordinates are out of range
+      @param i the i-th row
+      @param j the j-th col
+      @throw Exception::OutOfRange if given coordinates are out of range
     */
     const ValueType getValue(SizeType i, SizeType j) const
     {
@@ -212,11 +227,12 @@ public:
       return (const ValueType)(matrix_[i][j]);
     }
 
-    /** @brief gets a value at a given position:
+    /**
+      @brief gets a value at a given position:
 
-        @param i the i-th row
-        @param j the j-th col
-        @throw Exception::OutOfRange if given coordinates are out of range
+      @param i the i-th row
+      @param j the j-th col
+      @throw Exception::OutOfRange if given coordinates are out of range
     */
     ValueType getValue(SizeType i, SizeType j)
     {
@@ -236,12 +252,13 @@ public:
       return matrix_[i][j];
     }
 
-    /** @brief sets a value at a given position:
+    /**
+      @brief sets a value at a given position:
 
-        @param i the i-th row
-        @param j the j-th col
-        @param value the set-value
-        @throw Exception::OutOfRange if given coordinates are out of range
+      @param i the i-th row
+      @param j the j-th col
+      @param value the set-value
+      @throw Exception::OutOfRange if given coordinates are out of range
     */
     void setValue(SizeType i, SizeType j, ValueType value)
     {
@@ -279,14 +296,15 @@ public:
       }
     }
 
-    /** @brief sets a value at a given position:
+    /**
+      @brief sets a value at a given position:
 
-        @param i the i-th row
-        @param j the j-th col
-        @param value the set-value
-        @throw Exception::OutOfRange if given coordinates are out of range
+      @param i the i-th row
+      @param j the j-th col
+      @param value the set-value
+      @throw Exception::OutOfRange if given coordinates are out of range
 
-        possible invalidation of min_element_ - make sure to update before further usage of matrix
+      possible invalidation of min_element_ - make sure to update before further usage of matrix
     */
     void setValueQuick(SizeType i, SizeType j, ValueType value)
     {
@@ -319,13 +337,14 @@ public:
       init_size_ = 0;
     }
 
-    /** @brief resizing the container
+    /**
+      @brief resizing the container
 
-        @param dimensionsize the desired number of rows (and therewith cols)
-        @param value which the matrix will be filled with
-        @throw Exception::OutOfMemory thrown if size of DistanceMatrix requested does not fit into memory
+      @param dimensionsize the desired number of rows (and therewith cols)
+      @param value which the matrix will be filled with
+      @throw Exception::OutOfMemory thrown if size of DistanceMatrix requested does not fit into memory
 
-        invalidates all content
+      invalidates all content
     */
     void resize(SizeType dimensionsize, Value value = Value())
     {
@@ -367,12 +386,13 @@ public:
       }
     }
 
-    /** @brief reduces DistanceMatrix by one dimension. first the jth row, then jth column
+    /**
+      @brief reduces DistanceMatrix by one dimension. first the jth row, then jth column
 
-        @param j the jth row (and therewith also jth col) to be removed
-        @throw Exception::OutOfRange if @p j is grater than the greatest row number
+      @param j the jth row (and therewith also jth col) to be removed
+      @throw Exception::OutOfRange if @p j is grater than the greatest row number
 
-        May invalidates min_element_, make sure to update min_element_ if necessary before used
+      May invalidates min_element_, make sure to update min_element_ if necessary before used
     */
     void reduce(SizeType j)
     {
@@ -400,9 +420,10 @@ public:
       return dimensionsize_;
     }
 
-    /** @brief keep track of the actual minimum element after altering the matrix
+    /**
+      @brief keep track of the actual minimum element after altering the matrix
 
-        @throw Exception::OutOfRange thrown if there is no element to access
+      @throw Exception::OutOfRange thrown if there is no element to access
     */
     void updateMinElement()
     {
@@ -426,9 +447,10 @@ public:
       }
     }
 
-    /**@brief Equality comparator.
+    /**
+      @brief Equality comparator.
 
-        @throw Exception::Precondition thrown if given DistanceMatrix is not compatible in size
+      @throw Exception::Precondition thrown if given DistanceMatrix is not compatible in size
     */
     bool operator==(DistanceMatrix<ValueType> const & rhs) const
     {
@@ -446,9 +468,10 @@ public:
       return true;
     }
 
-    /** @brief Indexpair of minimal element
+    /**
+      @brief Indexpair of minimal element
 
-        @throw Exception::OutOfRange thrown if there is no element to access
+      @throw Exception::OutOfRange thrown if there is no element to access
     */
     std::pair<SizeType, SizeType> getMinElementCoordinates() const
     {
@@ -483,9 +506,10 @@ private:
 
   };   // class DistanceMatrix
 
-  /**@brief Print the contents to a stream.
+  /**
+    @brief Print the contents to a stream.
 
-      @relatesalso DistanceMatrix
+    @relatesalso DistanceMatrix
   */
   template <typename Value>
   std::ostream & operator<<(std::ostream & os, const DistanceMatrix<Value> & matrix)

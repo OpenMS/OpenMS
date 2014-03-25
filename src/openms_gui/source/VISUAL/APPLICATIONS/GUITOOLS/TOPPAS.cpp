@@ -65,6 +65,7 @@
 
 //OpenMS
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/SYSTEM/StopWatch.h>
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPASBase.h>
 #include <OpenMS/VISUAL/APPLICATIONS/MISC/QApplicationTOPP.h>
@@ -129,7 +130,7 @@ int main(int argc, const char** argv)
     print_usage();
     return 0;
   }
-  
+
   // '-debug' given
   if (param.exists("debug"))
   {

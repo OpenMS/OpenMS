@@ -37,6 +37,7 @@
 #include <OpenMS/FORMAT/HANDLERS/ParamXMLHandler.h>
 
 #include <fstream>
+#include <iostream>
 #include <set>
 
 using namespace OpenMS::Internal;
@@ -82,7 +83,7 @@ namespace OpenMS
 
     ostream& os = *os_ptr;
 
-    os.precision(writtenDigits<DoubleReal>());
+    os.precision(writtenDigits<DoubleReal>(0.0));
 
     os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n";
     os << "<PARAMETERS version=\"" << getVersion() << "\" xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/Param_1_6_2.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";

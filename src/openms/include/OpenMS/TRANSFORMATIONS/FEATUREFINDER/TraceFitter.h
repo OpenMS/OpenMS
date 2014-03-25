@@ -35,8 +35,6 @@
 #ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_TRACEFITTER_H
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_TRACEFITTER_H
 
-#include <OpenMS/CONCEPT/LogStream.h>
-
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
@@ -137,12 +135,22 @@ public:
     virtual DoubleReal getFWHM() const = 0;
 
     /**
-     * Returns the theoretical value of the fitted model at position k in the passed Mass Trace
+     * Evaluate the fitted model at a time point
+     */
+    virtual DoubleReal getValue(DoubleReal rt) const = 0;
+
+    /**
+     * Returns the theoretical value of the fitted model at position k in the passed mass trace
      *
      * @param trace the mass trace for which the value should be computed
      * @param k  use the position of the k-th peak to compute the value
      */
-    virtual DoubleReal computeTheoretical(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType>& trace, Size k) = 0;
+    DoubleReal computeTheoretical(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType>& trace, Size k)
+    {
+      double rt = trace.peaks[k].first;
+
+      return trace.theoretical_int * getValue(rt);
+    }
 
     /**
      * Checks if the fitted model fills out at least 'min_rt_span' of the RT span
@@ -167,7 +175,7 @@ public:
     /**
      * Returns a textual representation of the fitted model function, that can be plotted using Gnuplot
      *
-     * @param trace The MassTrace that should be plotted
+     * @param trace The mass trace that should be plotted
      * @param function_name The name of the function (e.g. f(x) -> function_name = f)
      * @param baseline The intensity of the baseline
      * @param rt_shift A shift value, that allows to plot all RT profiles side by side, even if they would overlap in reality.

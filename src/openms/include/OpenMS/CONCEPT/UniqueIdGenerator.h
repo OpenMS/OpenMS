@@ -36,43 +36,39 @@
 #define OPENMS_CONCEPT_UNIQUEIDGENERATOR_H
 
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
-
-#include <iostream>
 
 namespace OpenMS
 {
 
-/**
- @brief  A generator for unique ids.
+  class DateTime;
 
- The unique ids are 64-bit random unsigned random integers.
- The class is implemented as a singleton.
- The random generator is initialized upon startup using the current system time and date.
- Collisions are not excluded by design, but extremely unlikely.
- (To estimate the probability of collisions,
- note that \f$ 10^9*60*60*24*365*100 / 2^{64} \doteq 0.17 \f$,
- so it is unlikely you will see one in your lifetime.)
+  /**
+    @brief  A generator for unique ids.
 
- @ingroup Concept
- */
+    The unique ids are 64-bit random unsigned random integers.
+    The class is implemented as a singleton.
+    The random generator is initialized upon startup using the current system time and date.
+    Collisions are not excluded by design, but extremely unlikely.
+    (To estimate the probability of collisions,
+    note that \f$ 10^9*60*60*24*365*100 / 2^{64} \doteq 0.17 \f$,
+    so it is unlikely you will see one in your lifetime.)
+
+    @ingroup Concept
+  */
   class OPENMS_DLLAPI UniqueIdGenerator
   {
 
 public:
 
     /// Returns a new unique id
-    static UInt64
-    getUniqueId();
+    static UInt64 getUniqueId();
 
     /// Initializes random generator using the given DateTime instead of DateTime::now().  This is intended for debugging and testing.
-    static void
-    setSeed(const DateTime &);
+    static void setSeed(const DateTime&);
 
     /// Returns a summary of internal status
-    static Param const &
-    getInfo();
+    static Param const & getInfo();
 
 private:
 
@@ -80,11 +76,9 @@ private:
 
     ~UniqueIdGenerator();
 
-    static UniqueIdGenerator &
-    getInstance_();
+    static UniqueIdGenerator & getInstance_();
 
-    void
-    init_(const DateTime & date_time);
+    void init_(const DateTime & date_time);
 
     Param info_;
 

@@ -190,11 +190,14 @@ namespace OpenMS
     Spectrum2DGoToDialog goto_dialog(this);
     const DRange<3> & area = canvas()->getDataRange();
     goto_dialog.setRange(area.minY(), area.maxY(), area.minX(), area.maxX());
+    goto_dialog.setMinMaxOfRange(canvas()->getDataRange().minY(), canvas()->getDataRange().maxY(), canvas()->getDataRange().minX(), canvas()->getDataRange().maxX());
     goto_dialog.enableFeatureNumber(false);
     if (goto_dialog.exec())
     {
       goto_dialog.fixRange(); // in case user did something invalid
-      canvas()->setVisibleArea(SpectrumCanvas::AreaType(goto_dialog.getMinMZ(), goto_dialog.getMinRT(), goto_dialog.getMaxMZ(), goto_dialog.getMaxRT()));
+      SpectrumCanvas::AreaType area (goto_dialog.getMinMZ(), goto_dialog.getMinRT(), goto_dialog.getMaxMZ(), goto_dialog.getMaxRT());
+      correctAreaToObeyMinMaxRanges_(area);
+      canvas()->setVisibleArea(area);
     }
   }
 

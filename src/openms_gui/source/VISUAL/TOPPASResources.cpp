@@ -36,6 +36,8 @@
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 
+#include <iostream>
+
 namespace OpenMS
 {
   TOPPASResources::TOPPASResources() :

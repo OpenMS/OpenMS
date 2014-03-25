@@ -26,31 +26,34 @@ cdef extern from "<OpenMS/METADATA/PeptideIdentification.h>" namespace "OpenMS":
         # setting of the peptide significance threshold value
         void setSignificanceThreshold(DoubleReal value) nogil except +
 
-        String     getScoreType()
-        void       setScoreType(String)
-        bool       isHigherScoreBetter()
-        void       setHigherScoreBetter(bool)
-        String     getIdentifier()
-        void       setIdentifier(String)
+        String     getScoreType() nogil except +
+        void       setScoreType(String) nogil except +
+        bool       isHigherScoreBetter() nogil except +
+        void       setHigherScoreBetter(bool) nogil except +
+        String     getIdentifier() nogil except +
+        void       setIdentifier(String) nogil except +
 
-        void       assignRanks()
-        void       sort()
-        bool       empty()
+        String     getBaseName() nogil except +
+        void       setBaseName(String) nogil except +
 
-        void       getReferencingHits(String, libcpp_vector[PeptideHit] &)
-        void       getReferencingHits(libcpp_vector[String], libcpp_vector[PeptideHit] &)
-        void       getReferencingHits(libcpp_vector[ProteinHit], libcpp_vector[PeptideHit] &)
+        void       assignRanks() nogil except +
+        void       sort() nogil except +
+        bool       empty() nogil except +
 
-        void       getNonReferencingHits(String, libcpp_vector[PeptideHit] &)
-        void       getNonReferencingHits(libcpp_vector[String], libcpp_vector[PeptideHit] &)
-        void       getNonReferencingHits(libcpp_vector[ProteinHit], libcpp_vector[PeptideHit] &)
+        void       getReferencingHits(String, libcpp_vector[PeptideHit] &) nogil except +
+        void       getReferencingHits(libcpp_vector[String], libcpp_vector[PeptideHit] &) nogil except +
+        void       getReferencingHits(libcpp_vector[ProteinHit], libcpp_vector[PeptideHit] &) nogil except +
+
+        void       getNonReferencingHits(String, libcpp_vector[PeptideHit] &) nogil except +
+        void       getNonReferencingHits(libcpp_vector[String], libcpp_vector[PeptideHit] &) nogil except +
+        void       getNonReferencingHits(libcpp_vector[ProteinHit], libcpp_vector[PeptideHit] &) nogil except +
 
 
         # cython has a problem with inheritance of overloaded methods,
         # so we do not declare them here, but separately in each derived
         # class which we want to be wrapped:
-        void getKeys(libcpp_vector[String] & keys)
-        void getKeys(libcpp_vector[unsigned int] & keys)
+        void getKeys(libcpp_vector[String] & keys) nogil except +
+        void getKeys(libcpp_vector[unsigned int] & keys) nogil except +
         DataValue getMetaValue(unsigned int) nogil except +
         DataValue getMetaValue(String) nogil except +
         void setMetaValue(unsigned int, DataValue) nogil except +

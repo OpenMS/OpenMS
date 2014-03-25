@@ -7,7 +7,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMSCach
 
   # TODO missing functions
   cdef cppclass SpectrumAccessOpenMSCached:
-        SpectrumAccessOpenMSCached(String filename)
+        SpectrumAccessOpenMSCached(String filename) nogil except +
 
         shared_ptr[OSSpectrum] getSpectrumById(int id) nogil except + # wrap-ignore
         libcpp_vector[size_t] getSpectraByRT(double RT, double deltaRT) nogil except +

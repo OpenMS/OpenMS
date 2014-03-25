@@ -34,8 +34,12 @@
 //
 
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterAnalyzer.h>
-#include <map>
 
+#include <OpenMS/DATASTRUCTURES/String.h>
+
+#include <map>
+#include <set>
+#include <list>
 
 //using namespace std;
 
