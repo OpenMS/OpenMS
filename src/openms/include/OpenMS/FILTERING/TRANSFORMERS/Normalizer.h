@@ -94,7 +94,7 @@ public:
         }
         for (Iterator it = spectrum.begin(); it != spectrum.end(); ++it)
         {
-          it->setIntensity(it->getIntensity() / max);
+            it->setIntensity(Peak1D::IntensityType(it->getIntensity() / max));
         }
       }
       // normalizes the peak intensities to the TIC
@@ -108,7 +108,7 @@ public:
 
         for (Iterator it = spectrum.begin(); it != spectrum.end(); ++it)
         {
-          it->setIntensity(it->getIntensity() / sum);
+           it->setIntensity(Peak1D::IntensityType(it->getIntensity() / sum));
         }
       }
       // method unknown

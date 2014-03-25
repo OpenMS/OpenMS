@@ -186,7 +186,7 @@ public:
 
       DoubleReal last_window_size = peaks_in_window.back().getMZ() - window_start;
       DoubleReal last_window_size_fraction = last_window_size / windowsize_;
-      Size last_window_peakcount = last_window_size_fraction * peakcount_;
+      Size last_window_peakcount = Size(last_window_size_fraction * peakcount_);
 
       if (last_window_peakcount)    // handle single peak in last window (will produce no proper fraction)
       {
