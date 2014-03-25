@@ -208,9 +208,9 @@ public:
       return SCAN;
     }
 
-    void set_retention_time(double IN)
+    void set_retention_time(double in)
     {
-      TR = IN;
+      TR = in;
     }
 
     double get_retention_time()

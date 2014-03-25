@@ -186,15 +186,15 @@ public:
     {   return feature_list.end(); }
 
     // add a new feature to the list:
-    void add_feature(SHFeature * IN)
+    void add_feature(SHFeature * in)
     {
 
-      if (IN->get_feature_ID() == -1)
+      if (in->get_feature_ID() == -1)
       {
-        IN->set_feature_ID((int) feature_list.size());
+        in->set_feature_ID((int) feature_list.size());
       }
-      feature_list.push_back(*IN);
-      IN = NULL;
+      feature_list.push_back(*in);
+      in = NULL;
     }
 
     // remove a feature from the LC/MS run by ID:
@@ -211,8 +211,8 @@ public:
     }
 
     // remove a feature by iterator and return the iterator to the next element
-    std::vector<SHFeature>::iterator remove_feature_from_list(std::vector<SHFeature>::iterator IN)
-    {   return feature_list.erase(IN); }
+    std::vector<SHFeature>::iterator remove_feature_from_list(std::vector<SHFeature>::iterator in)
+    {   return feature_list.erase(in); }
 
     // get number of feature added:
     unsigned int get_nb_features()
@@ -220,14 +220,14 @@ public:
 
     std::string get_spec_name()
     {   return spec_name; }
-    void set_spec_name(std::string IN)
-    {   spec_name = IN; }
+    void set_spec_name(std::string in)
+    {   spec_name = in; }
 
     // set / get spectrum id:
     int get_spectrum_ID()
     {   return spectrum_id; }
-    void set_spectrum_ID(int IN)
-    {   spectrum_id = IN; }
+    void set_spectrum_ID(int in)
+    {   spectrum_id = in; }
 
     // set the id of all features
     void setFeatureLCMSID();
@@ -267,10 +267,10 @@ public:
     bool find_LC_MS_by_ID(int);
 
     // add the raw spectrum map:
-    void add_raw_spec_name_map(std::map<int, std::string> IN)
+    void add_raw_spec_name_map(std::map<int, std::string> in)
     {
-      std::map<int, std::string>::iterator p = IN.begin();
-      while (p != IN.end())
+      std::map<int, std::string>::iterator p = in.begin();
+      while (p != in.end())
       {
         int ID = (*p).first;
         std::map<int, std::string>::iterator F = raw_spec_names.find(ID);
@@ -324,8 +324,8 @@ public:
     void get_alignment_error(double, double *, double *);
 
     // access MASTER run ID:
-    void set_MASTER_ID(int IN)
-    {   MASTER_ID = IN; }
+    void set_MASTER_ID(int in)
+    {   MASTER_ID = in; }
     int get_MASTER_ID()
     {   return MASTER_ID; }
   };

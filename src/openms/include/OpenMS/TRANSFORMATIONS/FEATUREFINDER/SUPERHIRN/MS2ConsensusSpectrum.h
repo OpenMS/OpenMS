@@ -173,7 +173,7 @@ public:
 
 
     // set / get  the charge state of the precursor MZ:
-    void setPrecursorChrg(int IN){ z = IN; }
+    void setPrecursorChrg(int in){ z = in; }
     int getPrecursorChrg(){ return z; }
     // apex scan:
     int getApexScan(){return apexScan; }

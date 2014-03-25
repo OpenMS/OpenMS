@@ -581,7 +581,7 @@ size_t decodePic(
 		const size_t dataSize,
 		double *result
 ) {
-	size_t i, ri;
+	size_t ri;
 	int count;
 	//double d;
 	size_t di;

@@ -241,18 +241,18 @@ public:
     //SIGNAL_iterator get_raw_signal_list_end(){return raw_intens_signals.end();};
 
     // update the retention time by the current tmp_scan_apex:
-    void set_apex_retention_time(double IN)
+    void set_apex_retention_time(double in)
     {
-      fRT = IN;
+      fRT = in;
     }
 
     // to update the list of score and charge state:
-    void update_CHRGMAP(MSPeak * IN)
+    void update_CHRGMAP(MSPeak * in)
     {
-      std::multimap<int, int>::iterator T = CHRG_MAP.find(IN->get_charge_state());
+      std::multimap<int, int>::iterator T = CHRG_MAP.find(in->get_charge_state());
       if (T == CHRG_MAP.end())
       {
-        CHRG_MAP.insert(std::make_pair(IN->get_charge_state(), 1));
+        CHRG_MAP.insert(std::make_pair(in->get_charge_state(), 1));
       }
       else
       {
@@ -284,9 +284,9 @@ public:
 
     //////////////////
     // get an intensity of a ms_peak
-    float get_intensity(int IN)
+    float get_intensity(int in)
     {
-      return (*(intens_signals.find(IN))).second.get_intensity();
+      return (*(intens_signals.find(in))).second.get_intensity();
     }
 
     // get the original M/Z of a ms_peak
@@ -311,9 +311,9 @@ public:
       return fScanNumberEnd;
     }
 
-    void set_start_retention_time(double IN)
+    void set_start_retention_time(double in)
     {
-      fStartTR = IN;
+      fStartTR = in;
     }
 
     double get_start_retention_time()
@@ -321,9 +321,9 @@ public:
       return fStartTR;
     }
 
-    void set_end_retention_time(double IN)
+    void set_end_retention_time(double in)
     {
-      fEndTR = IN;
+      fEndTR = in;
     }
 
     double get_end_retention_time()

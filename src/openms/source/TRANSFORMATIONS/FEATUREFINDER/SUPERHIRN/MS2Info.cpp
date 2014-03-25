@@ -345,20 +345,20 @@ namespace OpenMS
 
 //////////////////////////////////////////////////
 // compute the precursor
-  void MS2Info::set_MONO_MZ(double IN)
+  void MS2Info::set_MONO_MZ(double in)
   {
-    MONO_MZ = IN;
-    NEUTRAL_MR = IN;
+    MONO_MZ = in;
+    NEUTRAL_MR = in;
     NEUTRAL_MR *= double(CHRG);
     NEUTRAL_MR -= double(CHRG) * _MONO_H;
   }
 
 //////////////////////////////////////////////////
 // compute the precursor
-  void MS2Info::set_NEUTRAL_MR(double IN)
+  void MS2Info::set_NEUTRAL_MR(double in)
   {
-    NEUTRAL_MR = IN;
-    MONO_MZ = IN;
+    NEUTRAL_MR = in;
+    MONO_MZ = in;
     MONO_MZ += double(CHRG) * _MONO_H;
     MONO_MZ /= double(CHRG);
   }
@@ -418,10 +418,10 @@ namespace OpenMS
 
 //////////////////////////////////////////////////
 // check if AC is in here:
-  bool MS2Info::find_AC(string IN)
+  bool MS2Info::find_AC(string in)
   {
 
-    vector<string>::iterator F = find(AC.begin(), AC.end(), IN);
+    vector<string>::iterator F = find(AC.begin(), AC.end(), in);
     if (AC.end() == F)
     {
       return false;
@@ -450,22 +450,22 @@ namespace OpenMS
 
 ///////////////////////////////////////////////////
 // add an AC to the ms2 scan:
-  void MS2Info::set_AC(string IN)
+  void MS2Info::set_AC(string in)
   {
 
-    vector<string>::iterator F = find(AC.begin(), AC.end(), IN);
+    vector<string>::iterator F = find(AC.begin(), AC.end(), in);
     if (F == AC.end())
     {
-      AC.push_back(IN);
+      AC.push_back(in);
     }
   }
 
 ///////////////////////////////////////////////////
 // check if this AC or not:
-  bool MS2Info::compare_AC(string IN)
+  bool MS2Info::compare_AC(string in)
   {
 
-    vector<string>::iterator F = find(AC.begin(), AC.end(), IN);
+    vector<string>::iterator F = find(AC.begin(), AC.end(), in);
     if (F != AC.end())
     {
       return true;
@@ -478,13 +478,13 @@ namespace OpenMS
 
 ///////////////////////////////////////////////////
 // search a pattern in the  AC list:
-  bool MS2Info::search_AC_pattern(string IN)
+  bool MS2Info::search_AC_pattern(string in)
   {
 
     vector<string>::iterator F = AC.begin();
     while (F != AC.end())
     {
-      if ((*F).find(IN) != string::npos)
+      if ((*F).find(in) != string::npos)
       {
         return true;
       }

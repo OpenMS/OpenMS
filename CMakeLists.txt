@@ -103,7 +103,7 @@ else()
 endif()
 
 #------------------------------------------------------------------------------
-# All the multithreading stuff (OpenMP, CUDA, TBB)
+# All the multi threading stuff (OpenMP, CUDA, TBB)
 #------------------------------------------------------------------------------
 include(cmake/multithreading.cmake)
 
@@ -153,7 +153,7 @@ endif()
 set(BUILD_SHARED_LIBS true)
 
 #------------------------------------------------------------------------------
-# CMake Utitlities
+# CMake Utilities
 #------------------------------------------------------------------------------
 # include some OpenMS specific macros
 include (${PROJECT_SOURCE_DIR}/cmake/OpenMSBuildSystem_macros.cmake)
@@ -185,7 +185,7 @@ if (MSVC)
 endif()
 
 #------------------------------------------------------------------------------
-# The actual openms code
+# The actual OpenMS code (headers and cpp's)
 #------------------------------------------------------------------------------
 add_subdirectory(src)
 
