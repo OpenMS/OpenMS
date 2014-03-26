@@ -49,6 +49,7 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
+#include <OpenMS/SYSTEM/SysInfo.h>
 
 #include <QtCore/QString>
 
@@ -471,6 +472,9 @@ protected:
       os_tsv << "database" << "\t" << id_data.proteins.at(0).getSearchParameters().db << "\n"
              << "database version" << "\t" << id_data.proteins.at(0).getSearchParameters().db_version << "\n"
              << "taxonomy" << "\t" << id_data.proteins.at(0).getSearchParameters().taxonomy << "\n";
+
+	  size_t mem_usage;
+	  SysInfo::
 
       // calculations
       for (Size i = 0; i < id_data.peptides.size(); ++i)
