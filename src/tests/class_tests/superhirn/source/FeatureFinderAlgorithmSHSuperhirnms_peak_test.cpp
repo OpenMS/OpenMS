@@ -33,18 +33,18 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
-#include <OpenMS/test_config.h>
+#include "test_config.h"
 
 ///////////////////////////
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/CentroidPeak.h>
+//#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/BackgroundIntensityBin.h>
+//#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/BackgroundControl.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/MSPeak.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/BackgroundIntensityBin.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/Deisotoper.h>
 
 ///////////////////////////
 
-START_TEST(Deisotoper, "$Id$")
+START_TEST(MSPeak, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -52,26 +52,40 @@ START_TEST(Deisotoper, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-Deisotoper* ptr = 0;
-Deisotoper* nullPtr = 0;
+MSPeak* ptr = 0;
+MSPeak* nullPtr = 0;
 
-START_SECTION((Deisotoper()))
-	ptr = new Deisotoper();
+START_SECTION((MSPeak()))
+	ptr = new MSPeak();
 	TEST_NOT_EQUAL(ptr,nullPtr)
 END_SECTION
 
-START_SECTION((~Deisotoper()))
+START_SECTION((~MSPeak()))
 	delete ptr;
 END_SECTION
 
-ptr = new Deisotoper();
+ptr = new MSPeak();
 
-START_SECTION((std::ostream & operator<<(std::ostream &, Deisotoper &)))
-  Deisotoper d;
-  std::cout << d << std::endl;
+START_SECTION((MSPeak(const MSPeak & tmp)))
+  MSPeak p = MSPeak();
+  MSPeak other = MSPeak(p);
 END_SECTION
 
-  
+START_SECTION((MSPeak(const MSPeak * tmp)))
+  MSPeak p = MSPeak();
+  MSPeak other = MSPeak(&p);
+END_SECTION
+
+START_SECTION(operator=(const MSPeak & tmp))
+  MSPeak p = MSPeak();
+  MSPeak other = p;
+END_SECTION
+
+START_SECTION(show_info())
+  MSPeak p = MSPeak();
+  p.show_info();
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 

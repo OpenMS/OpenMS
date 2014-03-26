@@ -33,18 +33,25 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
-#include <OpenMS/test_config.h>
+#include "test_config.h"
 
 ///////////////////////////
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/CentroidPeak.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/MSPeak.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/LCElutionPeak.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/LCMSCData.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/RawData.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/BackgroundIntensityBin.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/BackgroundControl.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/CentroidData.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/SuperHirnParameters.h>
+
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/ProcessData.h>
 
 ///////////////////////////
 
-START_TEST(BackgroundControl, "$Id$")
+START_TEST(ProcessData, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -52,19 +59,32 @@ START_TEST(BackgroundControl, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-BackgroundControl* ptr = 0;
-BackgroundControl* nullPtr = 0;
+ProcessData* ptr = 0;
+ProcessData* nullPtr = 0;
 
-START_SECTION((BackgroundControl()))
-	ptr = new BackgroundControl();
+START_SECTION((ProcessData()))
+	ptr = new ProcessData();
 	TEST_NOT_EQUAL(ptr,nullPtr)
 END_SECTION
 
-START_SECTION((~BackgroundControl()))
+START_SECTION((~ProcessData()))
 	delete ptr;
 END_SECTION
 
-ptr = new BackgroundControl();
+ptr = new ProcessData();
+
+START_SECTION((ProcessData::get_MZ(double IN_mz)))
+  ProcessData d;
+  ProcessData::main_iterator it = d.get_MZ(500.25);
+  // TEST_EQUAL(it, d.get_MZ_LIST_end()) // doesnt work directly
+  if( it == d.get_MZ_LIST_end()) { TEST_EQUAL(true, true) }
+  else {TEST_EQUAL(true, false)}
+END_SECTION
+
+START_SECTION((int getNbMSTraces()))
+  ProcessData d;
+  TEST_EQUAL(d.getNbMSTraces(), 0)
+END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

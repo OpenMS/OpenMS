@@ -33,18 +33,17 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
-#include <OpenMS/test_config.h>
+#include "test_config.h"
 
 ///////////////////////////
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/CentroidPeak.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/MSPeak.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/MS2Fragment.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/MS2ConsensusSpectrum.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/RawData.h>
 
 ///////////////////////////
 
-START_TEST(MS2ConsensusSpectrum, "$Id$")
+START_TEST(RawData, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -52,43 +51,19 @@ START_TEST(MS2ConsensusSpectrum, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-MS2ConsensusSpectrum* ptr = 0;
-MS2ConsensusSpectrum* nullPtr = 0;
+RawData* ptr = 0;
+RawData* nullPtr = 0;
 
-START_SECTION((MS2ConsensusSpectrum()))
-	ptr = new MS2ConsensusSpectrum();
+START_SECTION((RawData()))
+	ptr = new RawData();
 	TEST_NOT_EQUAL(ptr,nullPtr)
 END_SECTION
 
-START_SECTION((~MS2ConsensusSpectrum()))
+START_SECTION((~RawData()))
 	delete ptr;
 END_SECTION
 
-ptr = new MS2ConsensusSpectrum();
-
-START_SECTION( MS2ConsensusSpectrum(double iPrecursorMZ, double iTR, int iChrg, int iApexScan) )
-  MS2ConsensusSpectrum constr_test = MS2ConsensusSpectrum(400.25, 1800, 2, 5);
-END_SECTION
-
-START_SECTION( double getPrecursorMZ())
-  MS2ConsensusSpectrum constr_test = MS2ConsensusSpectrum(400.25, 1800, 2, 5);
-  TEST_REAL_SIMILAR(constr_test.getPrecursorMZ(), 400.25)
-END_SECTION
-
-START_SECTION( double getTR())
-  MS2ConsensusSpectrum constr_test = MS2ConsensusSpectrum(400.25, 1800, 2, 5);
-  TEST_REAL_SIMILAR(constr_test.getTR(), 1800.0)
-END_SECTION
-
-START_SECTION( double getStartTR())
-  MS2ConsensusSpectrum constr_test = MS2ConsensusSpectrum(400.25, 1800, 2, 5);
-  TEST_REAL_SIMILAR(constr_test.getStartTR(), 1800.0)
-END_SECTION
-
-START_SECTION( double getEndTR())
-  MS2ConsensusSpectrum constr_test = MS2ConsensusSpectrum(400.25, 1800, 2, 5);
-  TEST_REAL_SIMILAR(constr_test.getEndTR(), 1800.0)
-END_SECTION
+ptr = new RawData();
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

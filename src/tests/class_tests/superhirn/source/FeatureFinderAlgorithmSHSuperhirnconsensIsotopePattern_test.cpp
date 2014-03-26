@@ -33,17 +33,17 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
-#include <OpenMS/test_config.h>
+#include "test_config.h"
 
 ///////////////////////////
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/CentroidPeak.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/RawData.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/CentroidData.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/MSPeak.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/ConsensusIsotopePattern.h>
 
 ///////////////////////////
 
-START_TEST(CentroidData, "$Id$")
+START_TEST(ConsensusIsotopePattern, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -51,49 +51,41 @@ START_TEST(CentroidData, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-CentroidData* ptr = 0;
-CentroidData* nullPtr = 0;
+ConsensusIsotopePattern* ptr = 0;
+ConsensusIsotopePattern* nullPtr = 0;
 
-vector<double>* centroidMasses = new vector<double>(); // Centroided masses
-vector<double>* centroidIntens = new vector<double>(); // Centroided intensities
-boost::shared_ptr<RawData> raw(new RawData(*centroidMasses, *centroidIntens));
-
-
-START_SECTION((CentroidData()))
-	ptr = new CentroidData(1, raw, true);
+START_SECTION((ConsensusIsotopePattern()))
+	ptr = new ConsensusIsotopePattern();
 	TEST_NOT_EQUAL(ptr,nullPtr)
 END_SECTION
 
-START_SECTION((~CentroidData()))
+START_SECTION((~ConsensusIsotopePattern()))
 	delete ptr;
 END_SECTION
 
-ptr = new CentroidData(1, raw, true);
+ptr = new ConsensusIsotopePattern();
 
-
-START_SECTION((setAndGet()))
-ptr = new CentroidData(1, raw, true);
-
-centroidMasses->push_back(1.0);
-centroidIntens->push_back(2.0);
-
-ptr->set(*centroidMasses, *centroidIntens);
-
-list<CentroidPeak>* centroidPeaks = new list<CentroidPeak>();
-ptr->get(*centroidPeaks);
-TEST_EQUAL(centroidPeaks->size(), 1);
+START_SECTION((ConsensusIsotopePattern::operator=(const ConsensusIsotopePattern & tmp)))
+	ConsensusIsotopePattern i;
+	ConsensusIsotopePattern other = i;
 END_SECTION
 
 START_SECTION(TODO)
-
-// CentroidPeak
-// 			void show_info();
-// 			void subtractIntensity(double);
-
-// DeconvPeak
-// std::vector<CentroidPeak> getIsotopicPeaks();
+// 			// constructs the consensus pattern:
+// 			void constructConsusPattern();
+// 			// order an isotope trace in the correct cluster:
+// 			void addIsotopeTrace(double, double);
+// 			// condenses the pattern, make average peaks from the traces:
+// 			void condensIsotopePattern(std::pair<std::vector<double>, std::vector<double> >*);
+// 
+// 			///////////////////////////////
+// 			// start here all the get / set
+// 			// function to access the
+// 			// variables of the class
+// 
+// 			std::map<double, double>::iterator getConsensIsotopeIteratorStart();
+// 			std::map<double, double>::iterator getConsensIsotopeIteratorEnd();
 END_SECTION
-
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 

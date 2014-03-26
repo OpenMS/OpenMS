@@ -33,7 +33,39 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
-#include <OpenMS/test_config.h>
+#include "test_config.h"
 
 ///////////////////////////
 
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/CentroidPeak.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/MSPeak.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/MS2Feature.h>
+
+///////////////////////////
+
+START_TEST(MS2Feature, "$Id$")
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+
+using namespace OpenMS;
+using namespace std;
+
+MS2Feature* ptr = 0;
+MS2Feature* nullPtr = 0;
+
+START_SECTION((MS2Feature()))
+	ptr = new MS2Feature();
+	TEST_NOT_EQUAL(ptr,nullPtr)
+END_SECTION
+
+START_SECTION((~MS2Feature()))
+	delete ptr;
+END_SECTION
+
+ptr = new MS2Feature();
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+
+END_TEST

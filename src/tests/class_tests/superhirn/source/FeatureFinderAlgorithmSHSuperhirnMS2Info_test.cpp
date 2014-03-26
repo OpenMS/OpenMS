@@ -33,17 +33,17 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
-#include <OpenMS/test_config.h>
+#include "test_config.h"
 
 ///////////////////////////
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/CentroidPeak.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/MSPeak.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/ConsensusIsotopePattern.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/MS2Info.h>
 
 ///////////////////////////
 
-START_TEST(ConsensusIsotopePattern, "$Id$")
+START_TEST(MS2Info, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -51,41 +51,52 @@ START_TEST(ConsensusIsotopePattern, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-ConsensusIsotopePattern* ptr = 0;
-ConsensusIsotopePattern* nullPtr = 0;
+MS2Info* ptr = 0;
+MS2Info* nullPtr = 0;
 
-START_SECTION((ConsensusIsotopePattern()))
-	ptr = new ConsensusIsotopePattern();
+START_SECTION((MS2Info()))
+	ptr = new MS2Info();
 	TEST_NOT_EQUAL(ptr,nullPtr)
 END_SECTION
 
-START_SECTION((~ConsensusIsotopePattern()))
+START_SECTION((~MS2Info()))
 	delete ptr;
 END_SECTION
 
-ptr = new ConsensusIsotopePattern();
 
-START_SECTION((ConsensusIsotopePattern::operator=(const ConsensusIsotopePattern & tmp)))
-	ConsensusIsotopePattern i;
-	ConsensusIsotopePattern other = i;
+ptr = new MS2Info();
+
+START_SECTION( bool check_MODIFICATION() )
+  MS2Info ms2info = MS2Info();
+  TEST_EQUAL(ms2info.check_MODIFICATION(), false);
 END_SECTION
 
-START_SECTION(TODO)
-// 			// constructs the consensus pattern:
-// 			void constructConsusPattern();
-// 			// order an isotope trace in the correct cluster:
-// 			void addIsotopeTrace(double, double);
-// 			// condenses the pattern, make average peaks from the traces:
-// 			void condensIsotopePattern(std::pair<std::vector<double>, std::vector<double> >*);
-// 
-// 			///////////////////////////////
-// 			// start here all the get / set
-// 			// function to access the
-// 			// variables of the class
-// 
-// 			std::map<double, double>::iterator getConsensIsotopeIteratorStart();
-// 			std::map<double, double>::iterator getConsensIsotopeIteratorEnd();
+START_SECTION( MS2Info(string IN_AC, string IN_SQ, float IN_PEP) )
+  MS2Info ms2info = MS2Info("test1", "test2", 0.95);
 END_SECTION
+
+START_SECTION(MS2Info(string IN_AC, string IN_SQ, int IN_CHRG, float IN_PEP))
+  MS2Info ms2info = MS2Info("test1", "test2", 2, 0.95);
+END_SECTION
+
+START_SECTION(MS2Info(string IN_AC, string IN_SQ, float IN_PEP, int IN_CHRG, int IN_SCAN))
+  MS2Info ms2info = MS2Info("test1", "test2", 0.95, 2, 500);
+END_SECTION
+
+START_SECTION(MS2Info(int IN_ID))
+  MS2Info ms2info = MS2Info(42);
+END_SECTION
+
+START_SECTION(MS2Info(const MS2Info & tmp))
+  MS2Info ms2info = MS2Info("test1", "test2", 0.95, 2, 500);
+  MS2Info other = MS2Info(ms2info);
+END_SECTION
+
+START_SECTION(MS2Info::operator=(const MS2Info & tmp))
+  MS2Info ms2info = MS2Info("test1", "test2", 0.95, 2, 500);
+  MS2Info other = ms2info;
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 

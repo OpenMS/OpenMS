@@ -33,17 +33,18 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
-#include <OpenMS/test_config.h>
+#include "test_config.h"
 
 ///////////////////////////
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/CentroidPeak.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/MSPeak.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/MS2Fragment.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/MS2ConsensusSpectrum.h>
 
 ///////////////////////////
 
-START_TEST(MS2Fragment, "$Id$")
+START_TEST(MS2ConsensusSpectrum, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -51,62 +52,44 @@ START_TEST(MS2Fragment, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-MS2Fragment* ptr = 0;
-MS2Fragment* nullPtr = 0;
+MS2ConsensusSpectrum* ptr = 0;
+MS2ConsensusSpectrum* nullPtr = 0;
 
-START_SECTION((MS2Fragment()))
-  ptr = new MS2Fragment();
-  TEST_NOT_EQUAL(ptr,nullPtr)
+START_SECTION((MS2ConsensusSpectrum()))
+	ptr = new MS2ConsensusSpectrum();
+	TEST_NOT_EQUAL(ptr,nullPtr)
 END_SECTION
 
-START_SECTION((~MS2Fragment()))
-  delete ptr;
+START_SECTION((~MS2ConsensusSpectrum()))
+	delete ptr;
 END_SECTION
 
-ptr = new MS2Fragment();
+ptr = new MS2ConsensusSpectrum();
 
-START_SECTION(MS2Fragment(double iPrecursorMZ, int iPrecursorCHRG, double iTR, int iScan, int iZ, double iFragmentMZ, double iIntensityArea,
-                int iScanStart, int iScanEnd, double iTrStart, double iTrEnd))
-  MS2Fragment ms2fragment = MS2Fragment(400.25, 2, 1800, 500, 1, 500.25, 1000, 
-                                        499, 501, 1750, 1850);
+START_SECTION( MS2ConsensusSpectrum(double iPrecursorMZ, double iTR, int iChrg, int iApexScan) )
+  MS2ConsensusSpectrum constr_test = MS2ConsensusSpectrum(400.25, 1800, 2, 5);
 END_SECTION
 
-START_SECTION(MS2Fragment(double iPrecursorMZ, int iPrecursorCHRG, double iTR, int iScan, int iZ, double iFragmentMZ, double iIntensityArea))
-  MS2Fragment ms2fragment = MS2Fragment(400.25, 2, 1800, 500, 1, 500.25, 1000);
+START_SECTION( double getPrecursorMZ())
+  MS2ConsensusSpectrum constr_test = MS2ConsensusSpectrum(400.25, 1800, 2, 5);
+  TEST_REAL_SIMILAR(constr_test.getPrecursorMZ(), 400.25)
 END_SECTION
 
-START_SECTION(MS2Fragment(const MS2Fragment & tmp))
-  MS2Fragment ms2fragment = MS2Fragment(400.25, 2, 1800, 500, 1, 500.25, 1000);
-  MS2Fragment other = MS2Fragment(ms2fragment);
+START_SECTION( double getTR())
+  MS2ConsensusSpectrum constr_test = MS2ConsensusSpectrum(400.25, 1800, 2, 5);
+  TEST_REAL_SIMILAR(constr_test.getTR(), 1800.0)
 END_SECTION
 
-START_SECTION(MS2Fragment(MS2Fragment::operator=(const MS2Fragment & tmp)))
-  MS2Fragment ms2fragment = MS2Fragment(400.25, 2, 1800, 500, 1, 500.25, 1000);
-  MS2Fragment other = ms2fragment;
+START_SECTION( double getStartTR())
+  MS2ConsensusSpectrum constr_test = MS2ConsensusSpectrum(400.25, 1800, 2, 5);
+  TEST_REAL_SIMILAR(constr_test.getStartTR(), 1800.0)
 END_SECTION
 
-START_SECTION(void MS2Fragment::show_info())
-  MS2Fragment ms2fragment = MS2Fragment(400.25, 2, 1800, 500, 1, 500.25, 1000);
-  ms2fragment.show_info();
+START_SECTION( double getEndTR())
+  MS2ConsensusSpectrum constr_test = MS2ConsensusSpectrum(400.25, 1800, 2, 5);
+  TEST_REAL_SIMILAR(constr_test.getEndTR(), 1800.0)
 END_SECTION
 
-START_SECTION(( void setPrecursorMZ(double iMZ)))
-  MS2Fragment ms2fragment = MS2Fragment();
-  ms2fragment.setPrecursorMZ(500.0);
-  TEST_REAL_SIMILAR(ms2fragment.getPrecursorMZ(), 500.0);
-END_SECTION
-
-START_SECTION((double getFragmentPeakArea()))
-  MS2Fragment ms2fragment = MS2Fragment();
-  ms2fragment.setFragmentPeakArea(500.0);
-  TEST_REAL_SIMILAR(ms2fragment.getFragmentPeakArea(), 500.0);
-END_SECTION
-
-START_SECTION((double getFragmentMz()))
-  MS2Fragment ms2fragment = MS2Fragment();
-  ms2fragment.setFragmentMz(500.0);
-  TEST_REAL_SIMILAR(ms2fragment.getFragmentMz(), 500.0);
-END_SECTION
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 

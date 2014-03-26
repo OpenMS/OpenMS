@@ -33,17 +33,18 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
-#include <OpenMS/test_config.h>
+#include "test_config.h"
 
 ///////////////////////////
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/CentroidPeak.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/MSPeak.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/FeatureLCProfile.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/BackgroundIntensityBin.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/BackgroundControl.h>
 
 ///////////////////////////
 
-START_TEST(FeatureLCProfile, "$Id$")
+START_TEST(BackgroundControl, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -51,37 +52,19 @@ START_TEST(FeatureLCProfile, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-FeatureLCProfile* ptr = 0;
-FeatureLCProfile* nullPtr = 0;
+BackgroundControl* ptr = 0;
+BackgroundControl* nullPtr = 0;
 
-START_SECTION((FeatureLCProfile()))
-	ptr = new FeatureLCProfile();
+START_SECTION((BackgroundControl()))
+	ptr = new BackgroundControl();
 	TEST_NOT_EQUAL(ptr,nullPtr)
 END_SECTION
 
-START_SECTION((~FeatureLCProfile()))
+START_SECTION((~BackgroundControl()))
 	delete ptr;
 END_SECTION
 
-ptr = new FeatureLCProfile();
-
-START_SECTION((FeatureLCProfile(double, double, int, double)))
-  FeatureLCProfile p = FeatureLCProfile(400.25, 1800, 2, 1000);
-END_SECTION
-
-START_SECTION((FeatureLCProfile(double, double, double, int, int, double)))
-  FeatureLCProfile p = FeatureLCProfile(400.25, 1800, 1000.0, 500, 2, 1000);
-END_SECTION
-
-START_SECTION((FeatureLCProfile(const FeatureLCProfile & tmp)))
-  FeatureLCProfile p = FeatureLCProfile(400.25, 1800, 1000.0, 500, 2, 1000);
-  FeatureLCProfile other = FeatureLCProfile(p);
-END_SECTION
-
-START_SECTION((FeatureLCProfile::operator=(const FeatureLCProfile & tmp)))
-  FeatureLCProfile p = FeatureLCProfile(400.25, 1800, 1000.0, 500, 2, 1000);
-  FeatureLCProfile other = p;
-END_SECTION
+ptr = new BackgroundControl();
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

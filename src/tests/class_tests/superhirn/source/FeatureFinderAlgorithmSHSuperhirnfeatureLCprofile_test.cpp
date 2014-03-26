@@ -33,25 +33,17 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
-#include <OpenMS/test_config.h>
+#include "test_config.h"
 
 ///////////////////////////
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/CentroidPeak.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/MSPeak.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/LCElutionPeak.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/LCMSCData.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/RawData.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/BackgroundIntensityBin.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/BackgroundControl.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/CentroidData.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/SuperHirnParameters.h>
-
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/ProcessData.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/FeatureLCProfile.h>
 
 ///////////////////////////
 
-START_TEST(ProcessData, "$Id$")
+START_TEST(FeatureLCProfile, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -59,31 +51,36 @@ START_TEST(ProcessData, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-ProcessData* ptr = 0;
-ProcessData* nullPtr = 0;
+FeatureLCProfile* ptr = 0;
+FeatureLCProfile* nullPtr = 0;
 
-START_SECTION((ProcessData()))
-	ptr = new ProcessData();
+START_SECTION((FeatureLCProfile()))
+	ptr = new FeatureLCProfile();
 	TEST_NOT_EQUAL(ptr,nullPtr)
 END_SECTION
 
-START_SECTION((~ProcessData()))
+START_SECTION((~FeatureLCProfile()))
 	delete ptr;
 END_SECTION
 
-ptr = new ProcessData();
+ptr = new FeatureLCProfile();
 
-START_SECTION((ProcessData::get_MZ(double IN_mz)))
-  ProcessData d;
-  ProcessData::main_iterator it = d.get_MZ(500.25);
-  // TEST_EQUAL(it, d.get_MZ_LIST_end()) // doesnt work directly
-  if( it == d.get_MZ_LIST_end()) { TEST_EQUAL(true, true) }
-  else {TEST_EQUAL(true, false)}
+START_SECTION((FeatureLCProfile(double, double, int, double)))
+  FeatureLCProfile p = FeatureLCProfile(400.25, 1800, 2, 1000);
 END_SECTION
 
-START_SECTION((int getNbMSTraces()))
-  ProcessData d;
-  TEST_EQUAL(d.getNbMSTraces(), 0)
+START_SECTION((FeatureLCProfile(double, double, double, int, int, double)))
+  FeatureLCProfile p = FeatureLCProfile(400.25, 1800, 1000.0, 500, 2, 1000);
+END_SECTION
+
+START_SECTION((FeatureLCProfile(const FeatureLCProfile & tmp)))
+  FeatureLCProfile p = FeatureLCProfile(400.25, 1800, 1000.0, 500, 2, 1000);
+  FeatureLCProfile other = FeatureLCProfile(p);
+END_SECTION
+
+START_SECTION((FeatureLCProfile::operator=(const FeatureLCProfile & tmp)))
+  FeatureLCProfile p = FeatureLCProfile(400.25, 1800, 1000.0, 500, 2, 1000);
+  FeatureLCProfile other = p;
 END_SECTION
 
 /////////////////////////////////////////////////////////////
