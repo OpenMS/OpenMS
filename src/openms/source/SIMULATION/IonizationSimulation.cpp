@@ -293,7 +293,7 @@ public:
 
       this->startProgress(0, features.size(), "Ionization");
       Size progress(0);
-
+	
       // iterate over all features
 #pragma omp parallel for reduction(+: uncharged_feature_count, undetected_features_count)
       for (SignedSize index = 0; index < (SignedSize)features.size(); ++index)
@@ -432,12 +432,12 @@ public:
              it_s != charge_states_sorted.rend();
              ++it_s)
         {
-          Int charge = it_s->second.getNetCharge();
-          if (allowed_entities_of_charge[charge] > 0)
+          Int lcharge = it_s->second.getNetCharge();
+          if (allowed_entities_of_charge[lcharge] > 0)
           {
             Feature charged_feature(features[index]);
 
-            setFeatureProperties_(charged_feature, it_s->second.getMass(), it_s->second.getAdductsAsString(1), charge, it_s->first, index);
+            setFeatureProperties_(charged_feature, it_s->second.getMass(), it_s->second.getAdductsAsString(1), lcharge, it_s->first, index);
 
             // remember the original feature as parent feature (needed for labeling consensus)
             charged_feature.setMetaValue("parent_feature", String(features[index].getUniqueId()));
@@ -456,7 +456,7 @@ public:
             cf.insert(0, charged_feature);
 
             // decrease # of allowed compomers of current compomer's charge
-            --allowed_entities_of_charge[charge];
+            --allowed_entities_of_charge[lcharge];
           }
         }
 
