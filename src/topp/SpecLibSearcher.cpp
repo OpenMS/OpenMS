@@ -441,8 +441,8 @@ protected:
             }
             pid.setHits(final_hits);
             pid.sort();
-            pid.setMetaValue("MZ", query[j].getPrecursors()[0].getMZ());
-            pid.setMetaValue("RT", query_MZ);
+			pid.setMZ(query[j].getPrecursors()[0].getMZ());
+			pid.setRT(query_MZ);
           }
         }
         if (top_hits != -1 && (UInt)top_hits < pid.getHits().size())

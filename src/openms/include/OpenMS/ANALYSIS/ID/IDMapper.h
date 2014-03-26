@@ -121,7 +121,7 @@ public:
       std::multimap<double, Size> identifications_precursors;
       for (Size i = 0; i < ids.size(); i++)
       {
-        identifications_precursors.insert(std::make_pair(ids[i].getMetaValue("RT"), i));
+        identifications_precursors.insert(std::make_pair(ids[i].getRT(), i));
       }
 
       // calculate the actual mapping
@@ -138,7 +138,7 @@ public:
             // testing whether the m/z fits
             if (!map[experiment_iterator->second].getPrecursors().empty() || mapMS1)
             {
-              if (mapMS1 || (fabs((double)(ids[identifications_iterator->second].getMetaValue("MZ")) - map[experiment_iterator->second].getPrecursors()[0].getMZ()) < mz_tolerance_))
+              if (mapMS1 || (fabs((double)(ids[identifications_iterator->second].getMZ()) - map[experiment_iterator->second].getPrecursors()[0].getMZ()) < mz_tolerance_))
               {
                 if (!(ids[identifications_iterator->second].empty()))
                 {

@@ -878,13 +878,13 @@ namespace OpenMS
     {
       if (!pep_begin->getHits().empty())
       {
-        if (!pep_begin->metaValueExists("RT") ||
-            !pep_begin->metaValueExists("MZ"))
+        if (!pep_begin->hasRT() ||
+            !pep_begin->hasMZ())
         {
           // TODO: show error message here
           continue;
         }
-        double rt = (double) pep_begin->getMetaValue("RT");
+        double rt = pep_begin->getRT();
         if (rt < visible_area_.minPosition()[1] || rt > visible_area_.maxPosition()[1])
           continue;
         double mz = getIdentificationMZ_(layer_index, *pep_begin);

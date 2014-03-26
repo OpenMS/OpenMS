@@ -84,7 +84,7 @@ namespace OpenMS
         charge = 1;
       }
 
-      double exp_mz = (double)identification.getMetaValue("MZ");
+	  double exp_mz = identification.getMZ();
       double theo_mz =  (it->getSequence().getMonoWeight() + (double)charge * Constants::PROTON_MASS_U) / (double)charge;
       double error(exp_mz - theo_mz);
 
@@ -577,5 +577,33 @@ namespace OpenMS
     return (value >= low) && (value <= high);
   }
 
+  void IDFilter::filterIdentificationsByRT(const std::vector<PeptideIdentification>& identifications, DoubleReal min_rt, DoubleReal max_rt, std::vector<PeptideIdentification>& filtered_identifications)
+  {
+	  filtered_identifications.clear();
+
+	  for (Size i = 0; i < identifications.size(); ++i)
+	  {
+		  if (identifications[i].getRT() >= min_rt && identifications[i].getRT() <= max_rt)
+		  {
+			  filtered_identifications.push_back(identifications[i]);
+		  }
+	  }
+  }
+
+
+
+  
+  void IDFilter::filterIdentificationsByMZ(const std::vector<PeptideIdentification>& identifications, DoubleReal min_mz, DoubleReal max_mz, std::vector<PeptideIdentification>& filtered_identifications)
+  {
+	  filtered_identifications.clear();
+
+	  for (Size i = 0; i < identifications.size(); ++i)
+	  {
+		  if (identifications[i].getMZ() >= min_mz && identifications[i].getMZ() <= max_mz)
+		  {
+			  filtered_identifications.push_back(identifications[i]);
+		  }
+	  }
+  }
 
 } // namespace OpenMS

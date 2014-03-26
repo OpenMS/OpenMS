@@ -275,16 +275,12 @@ namespace OpenMS
   void MapAlignmentTransformer::transformSinglePeptideIdentification(vector<PeptideIdentification> & pepids,
                                                                      const TransformationDescription & trafo)
   {
-    const UInt meta_index_RT = MetaInfo::registry().getIndex("RT");
     for (UInt pepid_index = 0; pepid_index < pepids.size(); ++pepid_index)
     {
       PeptideIdentification & pepid = pepids[pepid_index];
-      DataValue dv = pepid.getMetaValue(meta_index_RT);
-      if (dv != DataValue::EMPTY)
+      if (pepid.hasRT())
       {
-        double rt(dv);
-        rt = trafo.apply(rt);
-        pepid.setMetaValue(meta_index_RT, rt);
+		pepid.setRT(trafo.apply(pepid.getRT()));
       }
     }
 

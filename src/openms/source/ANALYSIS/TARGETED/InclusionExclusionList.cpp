@@ -283,11 +283,11 @@ namespace OpenMS
       {
         throw Exception::InvalidSize(__FILE__, __LINE__, __PRETTY_FUNCTION__, pep_id_iter->getHits().size());
       }
-      if (!pep_id_iter->metaValueExists("RT"))
+	  if (!pep_id_iter->hasRT())
       {
         throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Peptide identification contains no RT information.");
       }
-      double rt = pep_id_iter->getMetaValue("RT");
+	  double rt = pep_id_iter->getRT();
 
       double rt_start = std::max(0.0, relative_rt ? (rt - rt * rel_rt_window_size) : rt - abs_rt_window_size);
       double rt_stop =                relative_rt ? (rt + rt * rel_rt_window_size) : rt + abs_rt_window_size;

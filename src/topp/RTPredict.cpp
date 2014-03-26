@@ -512,9 +512,9 @@ protected:
             else
             {
               temp_point.first = 0;
-              if (identifications[i].metaValueExists("RT"))
+              if (identifications[i].hasRT())
               {
-                temp_point.first = identifications[i].getMetaValue("RT");
+                temp_point.first = identifications[i].getRT();
               }
             }
             if (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
@@ -533,9 +533,9 @@ protected:
             }
             else
             {
-              if (identifications[i].metaValueExists("RT"))
+              if (identifications[i].hasRT())
               {
-                performance_retention_times.push_back(identifications[i].getMetaValue("RT"));
+                performance_retention_times.push_back(identifications[i].getRT());
               }
               else
               {
@@ -556,8 +556,8 @@ protected:
             double mz =  identifications[i].getHits().front().getSequence().getMonoWeight(Residue::Full, charge) / double(charge);
             double rt =  identifications[i].getHits().front().getMetaValue("predicted_RT");
 
-            identifications[i].setMetaValue("RT", rt);
-            identifications[i].setMetaValue("MZ", mz);
+            identifications[i].setRT(rt);
+			identifications[i].setMZ(mz);
           }
 
           identifications[i].setHits(temp_peptide_hits);
@@ -604,15 +604,9 @@ protected:
             }
           }
 
-          if (identifications[i].metaValueExists("MZ"))
-          {
-            temp_identification.setMetaValue("MZ", identifications[i].getMetaValue("MZ"));
-          }
-          if (identifications[i].metaValueExists("RT"))
-          {
-            temp_identification.setMetaValue("RT", identifications[i].getMetaValue("RT"));
-          }
-
+          temp_identification.setMZ(identifications[i].getMZ());
+          temp_identification.setRT(identifications[i].getRT());
+         
           temp_identification = identifications[i];
           temp_identification.setHits(hits_positive);
           identifications_positive.push_back(temp_identification);
