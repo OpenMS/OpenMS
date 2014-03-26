@@ -108,6 +108,7 @@ set(kernel_executables_list
   ComparatorUtils_test
   ConsensusFeature_test
   ConsensusMap_test
+  ConversionHelper_test
   ConstRefVector_test
   DPeak_test
   DRichPeak_test

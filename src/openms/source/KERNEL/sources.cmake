@@ -7,6 +7,7 @@ AreaIterator.cpp
 BaseFeature.cpp
 ConsensusFeature.cpp
 ConsensusMap.cpp
+ConversionHelper.cpp
 DPeak.cpp
 DRichPeak.cpp
 Feature.cpp

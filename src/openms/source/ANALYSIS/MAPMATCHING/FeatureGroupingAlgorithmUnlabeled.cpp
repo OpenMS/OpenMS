@@ -35,6 +35,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmUnlabeled.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/StablePairFinder.h>
 
+#include <OpenMS/KERNEL/ConversionHelper.h>
 
 namespace OpenMS
 {
@@ -76,7 +77,7 @@ namespace OpenMS
     std::vector<ConsensusMap> input(2);
 
     // build a consensus map of the elements of the reference map (contains only singleton consensus elements)
-    ConsensusMap::convert(reference_map_index, maps[reference_map_index],
+    MapConversion::convert(reference_map_index, maps[reference_map_index],
                           input[0]);
 
     // loop over all other maps, extend the groups
@@ -87,7 +88,7 @@ namespace OpenMS
     {
       if (i != reference_map_index)
       {
-        ConsensusMap::convert(i, maps[i], input[1]);
+        MapConversion::convert(i, maps[i], input[1]);
         // compute the consensus of the reference map and map i
         ConsensusMap result;
         pair_finder.run(input, result);
@@ -138,7 +139,7 @@ namespace OpenMS
 
     // Convert the input map to a consensus map (using the given map_id) and
     // replace the second element in the pairfinder_input_ vector.
-    ConsensusMap::convert(map_id, feature_map, pairfinder_input_[1]);
+    MapConversion::convert(map_id, feature_map, pairfinder_input_[1]);
 
     // compute the consensus of the reference map and map map_id
     ConsensusMap result;
