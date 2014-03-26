@@ -46,7 +46,6 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/DB/DBConnection.h>
 #include <OpenMS/FORMAT/TextFile.h>
-#include <OpenMS/FORMAT/DB/DBAdapter.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
@@ -200,14 +199,12 @@ namespace OpenMS
     QMenu* file = new QMenu("&File", this);
     menuBar()->addMenu(file);
     file->addAction("&Open file", this, SLOT(openFileDialog()), Qt::CTRL + Qt::Key_O);
-    file->addAction("Open from &database", this, SLOT(openDatabaseDialog()), Qt::CTRL + Qt::Key_D);
     file->addAction("Open &example file", this, SLOT(openExampleDialog()));
     file->addAction("&Close", this, SLOT(closeFile()), Qt::CTRL + Qt::Key_W);
     file->addSeparator();
 
     //Meta data
     file->addAction("&Show meta data (file)", this, SLOT(metadataFileDialog()));
-    file->addAction("&Show meta data (database)", this, SLOT(metadataDatabaseDialog()));
     file->addSeparator();
 
     //Recent files
@@ -676,62 +673,6 @@ namespace OpenMS
     }
   }
 
-
-  void TOPPViewBase::addDataDB(UInt db_id, bool show_options, String caption, UInt window_id)
-  {
-    //set wait cursor
-    setCursor(Qt::WaitCursor);
-
-    //Open DB connection
-    DBConnection con;
-    connectToDB_(con);
-    if (!con.isConnected())
-    {
-      setCursor(Qt::ArrowCursor);
-      return;
-    }
-
-    //load the data
-    DBAdapter db(con);
-
-    // create managed pointer to experiment data
-    ExperimentType* exp = new ExperimentType();
-    ExperimentSharedPtrType exp_sptr(exp);
-
-    FeatureMapType* dummy_map = new FeatureMapType();
-    FeatureMapSharedPtrType dummy_map_sptr(dummy_map);
-
-    ConsensusMapType* dummy_map2 = new ConsensusMapType();
-    ConsensusMapSharedPtrType dummy_map2_sptr(dummy_map2);
-
-    vector<PeptideIdentification> dummy_peptides;
-    try
-    {
-      db.loadExperiment(db_id, *exp);
-    }
-    catch (Exception::BaseException& e)
-    {
-      QMessageBox::critical(this, "Error", (String("Error while reading data: ") + e.what()).c_str());
-      setCursor(Qt::ArrowCursor);
-      return;
-    }
-    exp_sptr->sortSpectra(true);
-    exp_sptr->updateRanges(1);
-
-    //determine if the data is 1D or 2D
-    QSqlQuery result = con.executeQuery(String("SELECT count(id) from DATA_Spectrum where fid_MSExperiment='") + db_id + "' and MSLevel='1'");
-    LayerData::DataType data_type = ((result.value(0).toInt() > 1) ?
-                                     LayerData::DT_PEAK :
-                                     LayerData::DT_CHROMATOGRAM);
-
-    //add data
-    if (caption == "")
-      caption = String("DB entry ") + db_id;
-    addData(dummy_map_sptr, dummy_map2_sptr, dummy_peptides, exp_sptr, data_type, false, show_options, true, "", caption, window_id);
-
-    //Reset cursor
-    setCursor(Qt::ArrowCursor);
-  }
 
   // static
   bool TOPPViewBase::containsMS1Scans(const ExperimentType& exp)
@@ -2861,25 +2802,6 @@ namespace OpenMS
     }
   }
 
-  void TOPPViewBase::openDatabaseDialog()
-  {
-    DBConnection db;
-    connectToDB_(db);
-    if (db.isConnected())
-    {
-      vector<UInt> result;
-      DBOpenDialog db_dialog(db, result, this);
-      if (db_dialog.exec())
-      {
-        db.disconnect();
-        for (vector<UInt>::iterator it = result.begin(); it != result.end(); ++it)
-        {
-          addDataDB(*it, true);
-        }
-      }
-    }
-  }
-
   void TOPPViewBase::rerunTOPPTool()
   {
     //warn if hidden layer => wrong layer selected...
@@ -3860,38 +3782,6 @@ namespace OpenMS
       MetaDataBrowser dlg(false, this);
       dlg.add(exp);
       dlg.exec();
-    }
-  }
-
-  void TOPPViewBase::metadataDatabaseDialog()
-  {
-    DBConnection con;
-    connectToDB_(con);
-    if (con.isConnected())
-    {
-      vector<UInt> ids;
-      DBOpenDialog db_dialog(con, ids, ws_);
-      if (db_dialog.exec())
-      {
-        DBAdapter db(con);
-        db.getOptions().setMetadataOnly(true);
-        for (vector<UInt>::iterator it = ids.begin(); it != ids.end(); ++it)
-        {
-          ExperimentType exp;
-          try
-          {
-            db.loadExperiment(*it, exp);
-          }
-          catch (Exception::BaseException& e)
-          {
-            QMessageBox::critical(this, "Error", (String("Error while reading data: ") + e.what()).c_str());
-            return;
-          }
-          MetaDataBrowser dlg(false, this);
-          dlg.add(exp);
-          dlg.exec();
-        }
-      }
     }
   }
 

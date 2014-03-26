@@ -235,8 +235,6 @@ public slots:
     /// shows the file dialog for opening example files
     void openExampleDialog();
     /// shows the DB dialog for opening files
-    void openDatabaseDialog();
-    /// shows the goto dialog
     void showGoToDialog();
     /// shows the preferences dialog
     void preferencesDialog();
@@ -317,8 +315,6 @@ public slots:
     /// Shows current layer preferences
     void showPreferences();
     /// dialog for inspecting database meta data
-    void metadataDatabaseDialog();
-    /// dialog for inspecting file meta data
     void metadataFileDialog();
 
     /** @name Toolbar slots

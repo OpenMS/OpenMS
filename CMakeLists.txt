@@ -65,7 +65,6 @@ include(Dart)
 # CMAKE_FIND_ROOT_PATH
 # CMAKE_BUILD_TYPE
 # STL_DEBUG
-# DB_TEST
 # QT_DB_PLUGIN
 # MT_CUDA_BUILD_TYPE
 #------------------------------------------------------------------------------

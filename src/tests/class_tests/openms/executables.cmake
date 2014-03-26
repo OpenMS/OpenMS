@@ -210,11 +210,6 @@ set(format_executables_list
   MSDataTransformingConsumer_test
 )
 
-if (DB_TEST)
-  list(APPEND format_executables_list DBConnection_test)
-  list(APPEND format_executables_list DBAdapter_test)
-endif()
-
 set(math_executables_list
   AsymmetricStatistics_test
   AveragePosition_test
