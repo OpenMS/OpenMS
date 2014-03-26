@@ -263,8 +263,8 @@ namespace OpenMS
     else
     {
       //block signals as this causes repainting due to rounding (QScrollBar works with int ...)
-      int local_min = std::min(min, disp_min);
-      int local_max = std::max(max, disp_max);
+      int local_min = min(min, disp_min);
+      int local_max = max(max, disp_max);
       x_scrollbar_->blockSignals(true);
       x_scrollbar_->show();
       x_scrollbar_->setMinimum(static_cast<int>(local_min));
@@ -284,8 +284,8 @@ namespace OpenMS
     else
     {
       //block signals as this causes repainting due to rounding (QScrollBar works with int ...)
-      int local_min = std::min(min, disp_min);
-      int local_max = std::max(max, disp_max);
+      int local_min = min(min, disp_min);
+      int local_max = max(max, disp_max);
       y_scrollbar_->blockSignals(true);
       y_scrollbar_->show();
       y_scrollbar_->setMinimum(static_cast<int>(local_min));

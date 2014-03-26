@@ -372,7 +372,7 @@ namespace OpenMS
       return QPointF();
     }
     QPointF nearest = list.first();
-    qreal min_distance = std::numeric_limits<double>::max();
+    qreal min_distance = (numeric_limits<double>::max)();
 
     for (QList<QPointF>::const_iterator it = list.begin(); it != list.end(); ++it)
     {

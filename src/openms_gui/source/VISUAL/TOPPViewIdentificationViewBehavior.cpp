@@ -217,7 +217,7 @@ namespace OpenMS
         SpectrumType::const_iterator vbegin = spectrum.MZBegin(isolation_window_lower_mz);
         SpectrumType::const_iterator vend = spectrum.MZEnd(isolation_window_upper_mz);
 
-        DoubleReal max_intensity = numeric_limits<DoubleReal>::min();
+        DoubleReal max_intensity = (numeric_limits<DoubleReal>::min)();
         for (; vbegin != vend; ++vbegin)
         {
           if (vbegin->getIntensity() > max_intensity)
@@ -310,7 +310,7 @@ namespace OpenMS
 
       try
       {
-        Int max_charge = std::max(1, ph.getCharge()); // at least generate charge 1 if no charge (0) is annotated
+        Int max_charge = max(1, ph.getCharge()); // at least generate charge 1 if no charge (0) is annotated
 
         // generate mass ladder for each charge state
         for (Int charge = 1; charge <= max_charge; ++charge)

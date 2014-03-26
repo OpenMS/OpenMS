@@ -111,8 +111,10 @@ include(${OPENMS_HOST_DIRECTORY}/cmake/OpenMSBuildSystem_testConfig.cmake)
 include (${PROJECT_SOURCE_DIR}/includes.cmake)
 
 if (ENABLE_UNITYBUILD)
-	MESSAGE(STATUS "Enabling Unity Build for OpenMS lib ...")
+	MESSAGE(STATUS "Unity Build for OpenMS lib: Enabled")
 	convert_to_unity_build(OpenMS_UnityBuild OpenMS_sources)
+else()
+	MESSAGE(STATUS "Unity Build for OpenMS lib: Disabled")
 endif()
 
 ## add library target
