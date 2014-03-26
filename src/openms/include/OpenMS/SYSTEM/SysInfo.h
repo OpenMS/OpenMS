@@ -36,6 +36,7 @@
 #define OPENMS_SYSTEM_SYSINFO_H
 
 #include <OpenMS/config.h>
+#include <OpenMS/CONCEPT/Types.h>
 
 namespace OpenMS
 {

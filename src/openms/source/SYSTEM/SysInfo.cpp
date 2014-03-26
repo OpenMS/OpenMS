@@ -42,6 +42,8 @@
 #include <mach/mach.h>
 #else
 #include <cstdlib>
+#include <cstdio>
+#include <cstring>
 #endif
 
 
