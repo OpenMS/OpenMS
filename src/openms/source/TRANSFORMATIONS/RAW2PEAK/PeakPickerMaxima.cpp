@@ -35,9 +35,7 @@
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerMaxima.h>
 
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedianRapid.h>
-
-#include <gsl/gsl_spline.h>
-#include <gsl/gsl_interp.h>
+#include <OpenMS/MATH/MISC/Spline2d.h>
 
 #include <cmath>
 #include <limits>
@@ -67,6 +65,12 @@ namespace OpenMS
       double central_peak_mz = mz_array[i], central_peak_int = int_array[i];
       double left_neighbor_mz = mz_array[i - 1], left_neighbor_int = int_array[i - 1];
       double right_neighbor_mz = mz_array[i + 1], right_neighbor_int = int_array[i + 1];
+
+      //do not interpolate when the left or right support is a zero-data-point
+      if(std::fabs(left_neighbor_int) < std::numeric_limits<double>::epsilon() )
+        continue;
+      if(std::fabs(right_neighbor_int) < std::numeric_limits<double>::epsilon() )
+        continue;
 
       // MZ spacing sanity checks
       double left_to_central = std::fabs(central_peak_mz - left_neighbor_mz);
@@ -133,7 +137,9 @@ namespace OpenMS
 
         boundary_mz = left_neighbor_mz;
         boundary_int = left_neighbor_int;
-        while ((i - k + 1) > 0
+
+        while ( k <= i // prevent underflow
+              && (i - k + 1) > 0
               && (missing_left < 2)
               && int_array[i - k] <= boundary_int)
         {
@@ -230,18 +236,16 @@ namespace OpenMS
         raw_mz_values.insert(raw_mz_values.begin(), mz_array.begin() + candidate.left_boundary, mz_array.begin() + candidate.right_boundary + 1);
         raw_int_values.insert(raw_int_values.begin(), int_array.begin() + candidate.left_boundary, int_array.begin() + candidate.right_boundary + 1);
 
-        const size_t num_raw_points = raw_mz_values.size();
+        // skip if the minimal number of 3 points for fitting is not reached
+        if(raw_mz_values.size() < 4)
+          continue;
 
-        // setup gsl splines
-        gsl_interp_accel * spline_acc = gsl_interp_accel_alloc();
-        gsl_interp_accel * first_deriv_acc = gsl_interp_accel_alloc();
-        gsl_spline * peak_spline = gsl_spline_alloc(gsl_interp_cspline, num_raw_points);
-        gsl_spline_init(peak_spline, &(*raw_mz_values.begin()), &(*raw_int_values.begin()), num_raw_points);
-
+        Spline2d<double> peak_spline (3, raw_mz_values, raw_int_values);
 
         // calculate maximum by evaluating the spline's 1st derivative
         // (bisection method)
-        double max_peak_mz = central_peak_mz, max_peak_int = central_peak_int;
+        double max_peak_mz = central_peak_mz;
+        double max_peak_int = central_peak_int;
         double threshold = 0.000001;
         double lefthand = left_neighbor_mz;
         double righthand = right_neighbor_mz;
@@ -254,7 +258,7 @@ namespace OpenMS
         {
           double mid = (lefthand + righthand) / 2;
 
-          double midpoint_deriv_val = gsl_spline_eval_deriv(peak_spline, mid, first_deriv_acc);
+          double midpoint_deriv_val = peak_spline.derivatives(mid, 1);
 
           // if deriv nearly zero then maximum already found
           if (!(std::fabs(midpoint_deriv_val) > eps))
@@ -272,28 +276,16 @@ namespace OpenMS
           {
             lefthand = mid;
           }
-
-          // TODO: #ifdef DEBUG_ ...
-          // PeakType peak;
-          // peak.setMZ(mid);
-          // peak.setIntensity(gsl_spline_eval(peak_spline, mid, spline_acc));
-          // output.push_back(peak);
-
         }
         while (std::fabs(lefthand - righthand) > threshold);
 
         // sanity check?
         max_peak_mz = (lefthand + righthand) / 2;
-        max_peak_int = gsl_spline_eval(peak_spline, max_peak_mz, spline_acc);
+        max_peak_int = peak_spline.eval( max_peak_mz );
 
         // save picked pick into output spectrum
         pc[j].mz_max = max_peak_mz;
         pc[j].int_max = max_peak_int;
-
-        // free allocated gsl memory
-        gsl_spline_free(peak_spline);
-        gsl_interp_accel_free(spline_acc);
-        gsl_interp_accel_free(first_deriv_acc);
     }
   }
 
