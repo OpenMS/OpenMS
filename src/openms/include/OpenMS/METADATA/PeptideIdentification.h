@@ -61,7 +61,7 @@ namespace OpenMS
         @ingroup Metadata
   */
   class OPENMS_DLLAPI PeptideIdentification 
-	  //: public MetaInfoInterface
+	  : public MetaInfoInterface
   {
 public:
 
