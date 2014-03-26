@@ -37,6 +37,8 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithm.h>
 
+#include <OpenMS/KERNEL/ConversionHelper.h>
+
 namespace OpenMS
 {
   /**
@@ -77,7 +79,7 @@ public:
     template <typename MapType>
     void setReference(int map_id, const MapType & map)
     {
-      ConsensusMap::convert(map_id, map, pairfinder_input_[0]);
+      MapConversion::convert(map_id, map, pairfinder_input_[0]);
     }
 
     /**

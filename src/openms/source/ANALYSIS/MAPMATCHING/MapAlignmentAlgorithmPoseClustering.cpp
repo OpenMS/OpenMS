@@ -77,7 +77,7 @@ namespace OpenMS
   void MapAlignmentAlgorithmPoseClustering::align(const FeatureMap<> & map, TransformationDescription & trafo)
   {
     ConsensusMap map_scene;
-    ConsensusMap::convert(1, map, map_scene, max_num_peaks_considered_);
+    MapConversion::convert(1, map, map_scene, max_num_peaks_considered_);
     align(map_scene, trafo);
   }
 
@@ -85,7 +85,7 @@ namespace OpenMS
   {
     ConsensusMap map_scene;
     MSExperiment<> map2(map);
-    ConsensusMap::convert(1, map2, map_scene, max_num_peaks_considered_); // copy MSExperiment here, since it is sorted internally by intensity
+    MapConversion::convert(1, map2, map_scene, max_num_peaks_considered_); // copy MSExperiment here, since it is sorted internally by intensity
     align(map_scene, trafo);
   }
 

@@ -37,12 +37,12 @@
 
 ///////////////////////////
 #include <OpenMS/ANALYSIS/MAPMATCHING/LabeledPairFinder.h>
+///////////////////////////
+
+#include <OpenMS/KERNEL/ConversionHelper.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
-
-
-///////////////////////////
 
 using namespace OpenMS;
 using namespace std;
@@ -146,7 +146,7 @@ START_SECTION((virtual void run(const std::vector<ConsensusMap>& input_maps, Con
 	ConsensusMap output;
 	TEST_EXCEPTION(Exception::IllegalArgument,pm.run(vector<ConsensusMap>(),output));
 	vector<ConsensusMap> input(1);
-	ConsensusMap::convert(5,features,input[0]);
+	MapConversion::convert(5,features,input[0]);
 	output.getFileDescriptions()[5].label = "light";
 	output.getFileDescriptions()[5].filename = "filename";
 	output.getFileDescriptions()[8] = output.getFileDescriptions()[5];
@@ -176,7 +176,7 @@ START_SECTION((virtual void run(const std::vector<ConsensusMap>& input_maps, Con
 
 	ConsensusMap output2;
 	vector<ConsensusMap> input2(1);
-	ConsensusMap::convert(5,features2,input2[0]);
+	MapConversion::convert(5,features2,input2[0]);
 	output2.getFileDescriptions()[5].label = "light";
 	output2.getFileDescriptions()[5].filename = "filename";
 	output2.getFileDescriptions()[8] = output.getFileDescriptions()[5];

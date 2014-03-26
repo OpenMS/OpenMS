@@ -34,6 +34,8 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmIdentification.h>
 
+#include <OpenMS/KERNEL/ConversionHelper.h>
+
 namespace OpenMS
 {
 
@@ -591,7 +593,7 @@ namespace OpenMS
 
     /* Now build a consensus map and store this in consensusXML format. nö, 2. wird im hauptprogramm gemacht.*/
     ConsensusMap consensus_map_0;
-    ConsensusMap::convert(0, feature_maps[0], consensus_map_0);
+    MapConversion::convert(0, feature_maps[0], consensus_map_0);
 
     for (std::vector<std::vector<PepHit> >::iterator iterout = pep_hits_max.begin(); iterout != pep_hits_max.end(); ++iterout)
     {

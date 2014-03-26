@@ -42,6 +42,7 @@
 #include <OpenMS/FORMAT/IBSpectraFile.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/KERNEL/ConversionHelper.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -333,7 +334,7 @@ protected:
       }
       else if (in_type == FileTypes::CONSENSUSXML || in_type == FileTypes::EDTA)
       {
-        ConsensusMap::convert(cm, true, fm);
+        MapConversion::convert(cm, true, fm);
       }
       else // not loaded as feature map or consensus map
       {
@@ -382,7 +383,7 @@ protected:
         {
           fm.applyMemberFunction(&UniqueIdInterface::setUniqueId);
         }
-        ConsensusMap::convert(0, fm, cm);
+        MapConversion::convert(0, fm, cm);
       }
       // nothing to do for consensus input
       else if (in_type == FileTypes::CONSENSUSXML || in_type == FileTypes::EDTA)
@@ -390,7 +391,7 @@ protected:
       }
       else // experimental data
       {
-        ConsensusMap::convert(0, exp, cm, exp.size());
+        MapConversion::convert(0, exp, cm, exp.size());
       }
 
       addDataProcessing_(cm, getProcessingInfo_(DataProcessing::
