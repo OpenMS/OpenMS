@@ -312,7 +312,7 @@ add_test("TOPP_FileConverter_14_out1" ${DIFF} -whitelist "id=" "href=" -in1 File
 set_tests_properties("TOPP_FileConverter_14_out1" PROPERTIES DEPENDS "TOPP_FileConverter_14")
 # EDTA to consensusXML
 add_test("TOPP_FileConverter_15" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileConverter_10_input.edta -no_progress -out FileConverter_15.tmp -out_type consensusXML)
-add_test("TOPP_FileConverter_15_out1" ${DIFF} -whitelist "id=" "href="-in1 FileConverter_15.tmp -in2 ${DATA_DIR_TOPP}/FileConverter_15_output.consensusXML )
+add_test("TOPP_FileConverter_15_out1" ${DIFF} -whitelist "id=" "href=" -in1 FileConverter_15.tmp -in2 ${DATA_DIR_TOPP}/FileConverter_15_output.consensusXML )
 set_tests_properties("TOPP_FileConverter_15_out1" PROPERTIES DEPENDS "TOPP_FileConverter_15")
 # consensus EDTA to consensusXML
 add_test("TOPP_FileConverter_16" ${TOPP_BIN_PATH}/FileConverter -test -in ${DATA_DIR_TOPP}/FileConverter_16_input.edta -no_progress -out FileConverter_16.tmp -out_type consensusXML)
@@ -735,7 +735,7 @@ if(NOT DISABLE_OPENSWATH)
   #------------------------------------------------------------------------------
   # MRM / SWATH tests (from OpenSWATH)
   add_test("TOPP_OpenSwathDecoyGenerator_test_1" ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -in ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_input.TraML -out OpenSwathDecoyGenerator.TraML.tmp -method pseudo-reverse -test)
-  add_test("TOPP_OpenSwathDecoyGenerator_test_1_out1" ${DIFF} -whitelist "id="-in1 OpenSwathDecoyGenerator.TraML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_output.TraML)
+  add_test("TOPP_OpenSwathDecoyGenerator_test_1_out1" ${DIFF} -whitelist "id=" -in1 OpenSwathDecoyGenerator.TraML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_output.TraML)
   set_tests_properties("TOPP_OpenSwathDecoyGenerator_test_1_out1" PROPERTIES DEPENDS "TOPP_OpenSwathDecoyGenerator_test_1")
   add_test("TOPP_OpenSwathDecoyGenerator_test_2" ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -in ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_input_2.TraML -out OpenSwathDecoyGenerator_2.TraML.tmp -append -method pseudo-reverse -test -theoretical)
   add_test("TOPP_OpenSwathDecoyGenerator_test_2_out1" ${DIFF} -in1 OpenSwathDecoyGenerator_2.TraML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathDecoyGenerator_output_2.TraML)

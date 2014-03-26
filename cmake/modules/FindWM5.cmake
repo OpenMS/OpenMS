@@ -45,7 +45,6 @@ set(_ALL_WM5_LIBS_FOUND TRUE)
 # find all components
 foreach(_lib ${WM5_LIBS})
 	string(TOUPPER WM5_${_lib} _WM5LIB)
-  message(STATUS "Searching for lib: ${_lib}")
 
   find_library(${_WM5LIB}_LIBRARY_RELEASE
     ${_lib}
@@ -122,7 +121,6 @@ if(MSVC)
 	endif()
 else()
 	get_filename_component(wm5core_lib_ext "${WM5_WM5CORE_LIBRARY}" EXT)
-	message(STATUS "wm5core_lib_ext: ${wm5core_lib_ext}")
 	if("${wm5core_lib_ext}" STREQUAL "${CMAKE_STATIC_LIBRARY_SUFFIX}")
 		set(WM5_IS_STATIC TRUE)
 	endif()

@@ -74,7 +74,7 @@ endif()
 
 #------------------------------------------------------------------------------
 # SEQAN
-FIND_PACKAGE(SEQAN 1.4.0)
+find_package(SEQAN 1.4.0)
 if(SEQAN_FOUND)
   message(STATUS "Found SEQAN version ${SEQAN_VERSION_MAJOR}.${SEQAN_VERSION_MINOR}.${SEQAN_VERSION_PATCH}" )
 else()
@@ -145,7 +145,7 @@ endif()
 
 #------------------------------------------------------------------------------
 # Find eigen3
-FIND_PACKAGE(Eigen3 REQUIRED)
+find_package(Eigen3 3.1.0 REQUIRED)
 if (EIGEN3_FOUND)
   message(STATUS "Found eigen3 version ${EIGEN3_VERSION}")
 else()
@@ -154,7 +154,7 @@ endif()
 
 #------------------------------------------------------------------------------
 # Find geometric tools - wildmagick 5
-SET(WM5_FIND_REQUIRED_COMPONENTS WM5_WM5CORE WM5_WM5MATHEMATICS )
+set(WM5_FIND_REQUIRED_COMPONENTS WM5_WM5CORE WM5_WM5MATHEMATICS )
 find_package(WM5 REQUIRED)
 if (WM5_FOUND)
   add_definitions(${WM5_DEFINITIONS})
