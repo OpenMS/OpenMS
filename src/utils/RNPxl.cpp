@@ -607,8 +607,8 @@ protected:
         for (vector<PeptideHit>::const_iterator hit = pit->getHits().begin(); hit != pit->getHits().end(); ++hit)
         {
           pep_hits.push_back(*hit);
-          pep_hits.back().setMetaValue("RT", pit->getMetaValue("RT"));
-          pep_hits.back().setMetaValue("MZ", pit->getMetaValue("MZ"));
+          pep_hits.back().setRT(pit->getRT());
+          pep_hits.back().setMZ(pit->getMZ());
         }
       }
 
@@ -680,7 +680,7 @@ protected:
         row.RNA_weight = rna_weight;
         row.xl_weight = pep_weight + rna_weight;
 
-        whole_experiment_filtered_peptide_ids.back().setMetaValue("MZ", DataValue(exp_mz));
+        whole_experiment_filtered_peptide_ids.back().setMZ(exp_mz);
         whole_experiment_filtered_peptide_ids.back().setMetaValue("cross link id", DataValue(xlink_idx));
         whole_experiment_filtered_peptide_ids.back().setMetaValue("RNA", DataValue(xlink_name));
         whole_experiment_filtered_peptide_ids.back().setMetaValue("peptide mass", DataValue(pep_weight));
@@ -733,10 +733,10 @@ protected:
       for (vector<PeptideHit>::const_iterator hit = whole_experiment_filtered_peptide_ids[k].getHits().begin(); hit != whole_experiment_filtered_peptide_ids[k].getHits().end(); ++hit)
       {
         PeptideIdentification np;
-        DoubleReal rt = (DoubleReal)whole_experiment_filtered_peptide_ids[k].getMetaValue("RT");
+        DoubleReal rt = (DoubleReal)whole_experiment_filtered_peptide_ids[k].getRT();
         DoubleReal orig_rt = rt / (DoubleReal)RT_FACTOR;
-        np.setMetaValue("RT", orig_rt);
-        np.setMetaValue("MZ", (DoubleReal)whole_experiment_filtered_peptide_ids[k].getMetaValue("MZ"));
+        np.setRT(orig_rt);
+        np.setMZ(whole_experiment_filtered_peptide_ids[k].getMZ());
 
         vector<PeptideHit> phs;
         PeptideHit ph = *hit;
