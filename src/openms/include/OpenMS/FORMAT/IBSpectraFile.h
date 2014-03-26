@@ -93,15 +93,15 @@ private:
     /**
       @brief Constructs the matching file header for the given quantitation method.
       @param quantMethod The used quantitation method.
-      @return The header of the ibspectra file for the given quantiation method.
+      @return The header of the IBSpectra file for the given quantitation method.
     */
     StringList constructHeader_(const IsobaricQuantitationMethod& quantMethod);
     
     /**
-      @brief Generates the modif string for the given AASequence.
+      @brief Generates the modification string for the given AASequence.
      
-      @param seqeunce The sequence for which the modif string should be generated.
-      @return The modif string for the given seequence.
+      @param sequence The sequence for which the modification string should be generated.
+      @return The modification string for the given sequence.
     */
     String getModifString_(const AASequence& sequence);
   };
