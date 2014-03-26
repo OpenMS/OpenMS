@@ -34,11 +34,56 @@
 
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricChannelExtractor.h>
 
-#include <OpenMS/KERNEL/RangeUtils.h>
 #include <cmath>
+#include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/METADATA/Precursor.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantitationMethod.h>
 
 namespace OpenMS
 {
+
+  typedef std::iterator_traits< std::vector<double>::const_iterator >::difference_type DiffType;
+
+  Size findNearest(const std::vector<double>& tmp, double mz)
+  {
+    // no peak => no search
+    if (tmp.empty()) throw Exception::Precondition(__FILE__, __LINE__, __PRETTY_FUNCTION__, "There must be at least one peak to determine the nearest peak!");
+
+    // search for position for inserting
+    std::vector<double>::const_iterator it = std::lower_bound(tmp.begin(), tmp.end(), mz);
+    // border cases
+    if (it == tmp.begin()) return 0;
+
+    if (it == tmp.end()) return tmp.size() - 1;
+
+    // the peak before or the current peak are closest
+    std::vector<double>::const_iterator it2 = it;
+    --it2;
+    if (std::fabs(*it - mz) < std::fabs(*it2 - mz))
+    {
+      return Size(it - tmp.begin());
+    }
+    else
+    {
+      return Size(it2 - tmp.begin());
+    }
+  }
+
+  bool hasActivationMethod(OpenMS::OMSInterfaces::SpectrumPtr s, std::string method)
+  {
+    for (std::vector<OpenMS::OMSInterfaces::Precursor>::const_iterator it = s->getPrecursors().begin(); it != s->getPrecursors().end(); ++it)
+    {
+      for (std::set<std::string>::const_iterator it_a = it->activation_methods.begin(); it_a != it->activation_methods.end(); ++it_a)
+      {
+        if (method == *it_a)
+        {
+          // found matching activation method
+          return true;
+        }
+      }
+    }
+    return false;
+  }
 
   IsobaricChannelExtractor::IsobaricChannelExtractor(const IsobaricQuantitationMethod* const quant_method) :
     DefaultParamHandler("IsobaricChannelExtractor"),
@@ -136,9 +181,9 @@ namespace OpenMS
     max_precursor_isotope_deviation_ = getParameters().getValue("precursor_isotope_deviation");
   }
 
-  bool IsobaricChannelExtractor::isValidPrecursor_(const Precursor& precursor) const
+  bool IsobaricChannelExtractor::isValidPrecursor_(const OpenMS::OMSInterfaces::Precursor& precursor) const
   {
-    return (precursor.getIntensity() == 0.0 && keep_unannotated_precursor_) || !(precursor.getIntensity() < min_precursor_intensity_);
+    return (precursor.intensity == 0.0 && keep_unannotated_precursor_) || !(precursor.intensity < min_precursor_intensity_);
   }
 
   bool IsobaricChannelExtractor::hasLowIntensityReporter_(const ConsensusFeature& cf) const
@@ -156,11 +201,11 @@ namespace OpenMS
     return false;
   }
 
-  DoubleReal IsobaricChannelExtractor::sumPotentialIsotopePeaks_(const MSExperiment<Peak1D>::ConstIterator& precursor,
-                                                                 const Peak1D::CoordinateType& lower_mz_bound,
-                                                                 const Peak1D::CoordinateType& upper_mz_bound,
-                                                                 Peak1D::CoordinateType theoretical_mz,
-                                                                 const Peak1D::CoordinateType isotope_offset) const
+  DoubleReal IsobaricChannelExtractor::sumPotentialIsotopePeaks_(const OpenMS::OMSInterfaces::SpectrumPtr precursor,
+                                                                 const double lower_mz_bound,
+                                                                 const double upper_mz_bound,
+                                                                 double theoretical_mz,
+                                                                 const double isotope_offset) const
   {
     DoubleReal intensity_contribution = 0.0;
 
@@ -170,12 +215,12 @@ namespace OpenMS
     // check if we are still in the isolation window
     while (theoretical_mz > lower_mz_bound && theoretical_mz < upper_mz_bound)
     {
-      Size potential_peak = precursor->findNearest(theoretical_mz);
+      Size potential_peak = findNearest(precursor->getPos(), theoretical_mz);
 
       // is isotopic ?
-      if (fabs(theoretical_mz - (*precursor)[potential_peak].getMZ()) < max_precursor_isotope_deviation_)
+      if (fabs(theoretical_mz - precursor->getPos()[potential_peak]) < max_precursor_isotope_deviation_)
       {
-        intensity_contribution += (*precursor)[potential_peak].getIntensity();
+        intensity_contribution += precursor->getIntensity()[potential_peak];
       }
       else
       {
@@ -190,48 +235,52 @@ namespace OpenMS
     return intensity_contribution;
   }
 
-  DoubleReal IsobaricChannelExtractor::computePrecursorPurity_(const MSExperiment<Peak1D>::ConstIterator& ms2_spec, const MSExperiment<Peak1D>::ConstIterator& precursor) const
+
+  DoubleReal IsobaricChannelExtractor::computePrecursorPurity_(const OpenMS::OMSInterfaces::SpectrumPtr ms2_spec, const OpenMS::OMSInterfaces::SpectrumPtr precursor) const
   {
     // we cannot analyze precursors without a charge
-    if (ms2_spec->getPrecursors()[0].getCharge() == 0)
+    if (ms2_spec->getPrecursors()[0].charge == 0)
       return 1.0;
 
     // compute boundaries
-    const MSExperiment<>::SpectrumType::ConstIterator isolation_lower_mz = precursor->MZBegin(ms2_spec->getPrecursors()[0].getMZ() - ms2_spec->getPrecursors()[0].getIsolationWindowLowerOffset());
-    const MSExperiment<>::SpectrumType::ConstIterator isolation_upper_mz = precursor->MZEnd(ms2_spec->getPrecursors()[0].getMZ() + ms2_spec->getPrecursors()[0].getIsolationWindowUpperOffset());
-    
-    Peak1D::IntensityType total_intensity = 0;
+    std::vector<double>::const_iterator isolation_lower_mz_ = std::lower_bound(precursor->getPos().begin(), precursor->getPos().end(), 
+      ms2_spec->getPrecursors()[0].mz - ms2_spec->getPrecursors()[0].lower_offset);
+    std::vector<double>::const_iterator isolation_upper_mz_ = std::upper_bound(precursor->getPos().begin(), precursor->getPos().end(), 
+      ms2_spec->getPrecursors()[0].mz + ms2_spec->getPrecursors()[0].lower_offset);
+    std::vector<double>::const_iterator int_it_ = precursor->getIntensity().begin();
+    DiffType iterator_pos = std::distance((std::vector<double>::const_iterator)precursor->getPos().begin(), isolation_lower_mz_);
+    std::advance(int_it_, iterator_pos);
 
     // get total intensity
-    for (MSExperiment<>::SpectrumType::ConstIterator isolation_it = isolation_lower_mz;
-         isolation_it != isolation_upper_mz;
-         ++isolation_it)
+    double total_intensity = 0;
+
+    for (std::vector<double>::const_iterator mz_it_ = isolation_lower_mz_; mz_it_ != isolation_upper_mz_; ++mz_it_, ++int_it_)
     {
-      total_intensity += isolation_it->getIntensity();
+      total_intensity += *int_it_;
     }
 
     // now get the intensity of the precursor .. we assume everything in the distance of 1/c to belong to the precursor
     // for c == charge of precursor
     
     // precursor mz
-    Size precursor_peak_idx = precursor->findNearest(ms2_spec->getPrecursors()[0].getMZ());
-    Peak1D precursor_peak = (*precursor)[precursor_peak_idx];
-    Peak1D::IntensityType precursor_intensity = precursor_peak.getIntensity();
+    Size precursor_peak_idx = findNearest(precursor->getPos(), ms2_spec->getPrecursors()[0].mz);
+    double precursor_intensity = precursor->getIntensity()[precursor_peak_idx];
 
     // compute the
-    double charge_dist = Constants::NEUTRON_MASS_U / (double) ms2_spec->getPrecursors()[0].getCharge();
+    double charge_dist = Constants::NEUTRON_MASS_U / (double) ms2_spec->getPrecursors()[0].charge;
 
+    // TODO : not tested in class test! 0-> int always stays equal !
     // search left of precursor for isotopic peaks
-    precursor_intensity += sumPotentialIsotopePeaks_(precursor, isolation_lower_mz->getMZ(), isolation_upper_mz->getMZ(), precursor_peak.getMZ(), -1 * charge_dist);
+    precursor_intensity += sumPotentialIsotopePeaks_(precursor, *isolation_lower_mz_, *isolation_upper_mz_, precursor->getPos()[precursor_peak_idx], -1 * charge_dist);
     // search right of precursor for isotopic peaks
-    precursor_intensity += sumPotentialIsotopePeaks_(precursor, isolation_lower_mz->getMZ(), isolation_upper_mz->getMZ(), precursor_peak.getMZ(), charge_dist);
+    precursor_intensity += sumPotentialIsotopePeaks_(precursor, *isolation_lower_mz_, *isolation_upper_mz_, precursor->getPos()[precursor_peak_idx], charge_dist);
 
     return precursor_intensity / total_intensity;
   }
 
-  void IsobaricChannelExtractor::extractChannels(const MSExperiment<Peak1D>& ms_exp_data, ConsensusMap& consensus_map)
+  void IsobaricChannelExtractor::extractChannels(const OMSInterfaces::MSRunIF& ms_data, ConsensusMap& consensus_map)
   {
-    if (ms_exp_data.empty())
+    if (ms_data.getSpectraNr() == 0)
     {
       LOG_WARN << "The given file does not contain any conventional peak data, but might"
                   " contain chromatograms. This tool currently cannot handle them, sorry.\n";
@@ -244,26 +293,27 @@ namespace OpenMS
 
     // create predicate for spectrum checking
     LOG_INFO << "Selecting scans with activation mode: " << (selected_activation_ == "" ? "any" : selected_activation_) << "\n";
-    HasActivationMethod<MSExperiment<Peak1D>::SpectrumType> activation_predicate(ListUtils::create<String>(selected_activation_));
 
     // now we have picked data
     // --> assign peaks to channels
     UInt64 element_index(0);
 
     // remember the current precusor spectrum
-    MSExperiment<Peak1D>::ConstIterator prec_spec = ms_exp_data.end();
+    int prec_spec = -1;
 
-    for (MSExperiment<Peak1D>::ConstIterator it = ms_exp_data.begin(); it != ms_exp_data.end(); ++it)
+    for (Size i = 0; i < ms_data.getSpectraNr(); i++)
     {
+      const OpenMS::OMSInterfaces::SpectrumPtr it = ms_data.get_Spectrum(i);
+
       // remember the last MS1 spectra as we assume it to be the precursor spectrum
-      if (it->getMSLevel() ==  1)
+      if (ms_data.get_Spectrum(i)->getMSLevel() ==  1)
       {
         // remember potential precursor and continue
-        prec_spec = it;
+        prec_spec = i;
         continue;
       }
 
-      if (selected_activation_ == "" || activation_predicate(*it))
+      if (selected_activation_ == "" || hasActivationMethod(it, selected_activation_))
       {
         // check if precursor is available
         if (it->getPrecursors().empty())
@@ -280,9 +330,9 @@ namespace OpenMS
 
         // check precursor purity if we have a valid precursor ..
         DoubleReal precursor_purity = -1.0;
-        if (prec_spec != ms_exp_data.end())
+        if (prec_spec != -1)
         {
-          precursor_purity = computePrecursorPurity_(it, prec_spec);
+          precursor_purity = computePrecursorPurity_(it, ms_data.get_Spectrum(prec_spec));
           // check if purity is high enough
           if (precursor_purity < min_precursor_purity_)
           {
@@ -299,7 +349,7 @@ namespace OpenMS
         ConsensusFeature cf;
         cf.setUniqueId();
         cf.setRT(it->getRT());
-        cf.setMZ(it->getPrecursors()[0].getMZ());
+        cf.setMZ(it->getPrecursors()[0].mz);
 
         Peak2D channel_value;
         channel_value.setRT(it->getRT());
@@ -315,15 +365,17 @@ namespace OpenMS
           // reset intensity
           channel_value.setIntensity(0);
 
-          // as every evaluation requires time, we cache the MZEnd iterator
-          const MSExperiment<Peak1D>::SpectrumType::ConstIterator mz_end = it->MZEnd(cl_it->center + reporter_mass_shift_);
+          // compute the iterators
+          std::vector<double>::const_iterator mz_end_ = std::upper_bound(it->getPos().begin(), it->getPos().end(), cl_it->center + reporter_mass_shift_);
+          std::vector<double>::const_iterator mz_it = std::lower_bound(it->getPos().begin(), it->getPos().end(), cl_it->center - reporter_mass_shift_);
+          std::vector<double>::const_iterator int_it = it->getIntensity().begin();
+          DiffType iterator_pos = std::distance((std::vector<double>::const_iterator)it->getPos().begin(), mz_it);
+          std::advance(int_it, iterator_pos);
 
           // add up all signals
-          for (MSExperiment<Peak1D>::SpectrumType::ConstIterator mz_it = it->MZBegin(cl_it->center - reporter_mass_shift_);
-               mz_it != mz_end;
-               ++mz_it)
+          for (; mz_it != mz_end_; ++mz_it, ++int_it)
           {
-            channel_value.setIntensity(channel_value.getIntensity() + mz_it->getIntensity());
+            channel_value.setIntensity(channel_value.getIntensity() + *int_it);
           }
 
           // discard contribution of this channel as it is below the required intensity threshold
@@ -357,8 +409,8 @@ namespace OpenMS
         // embed the id of the scan from which the quantitative information was extracted
         cf.setMetaValue("scan_id", it->getNativeID());
         // .. as well as additional meta information
-        cf.setMetaValue("precursor_intensity", it->getPrecursors()[0].getIntensity());
-        cf.setMetaValue("precursor_charge", it->getPrecursors()[0].getCharge());
+        cf.setMetaValue("precursor_intensity", it->getPrecursors()[0].intensity);
+        cf.setMetaValue("precursor_charge", it->getPrecursors()[0].charge);
         
         cf.setIntensity(overall_intensity);
         consensus_map.push_back(cf);

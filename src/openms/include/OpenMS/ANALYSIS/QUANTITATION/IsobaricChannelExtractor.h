@@ -35,15 +35,18 @@
 #ifndef OPENMS_ANALYSIS_QUANTITATION_ISOBARICCHANNELEXTRACTOR_H
 #define OPENMS_ANALYSIS_QUANTITATION_ISOBARICCHANNELEXTRACTOR_H
 
-#include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantitationMethod.h>
-
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
-#include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/INTERFACES/ISpectrumAccess.h>
 
 namespace OpenMS
 {
+
+  // Forward declarations
+  class IsobaricQuantitationMethod;
+  class ConsensusMap;
+  class ConsensusFeature;
+
   /**
     @brief Extracts individual channels from MS/MS spectra for isobaric labeling experiments.
 
@@ -72,7 +75,7 @@ public:
       @param ms_exp_data Raw data to search for isobaric quantitation channels.
       @param consensus_map Output map containing the identified channels and the corresponding intensities.
     */
-    void extractChannels(const MSExperiment<Peak1D>& ms_exp_data, ConsensusMap& consensus_map);
+    void extractChannels(const OMSInterfaces::MSRunIF& ms_data, ConsensusMap& consensus_map);
 
 private:
     /// The used quantitation method (itraq4plex, tmt6plex,..).
@@ -82,16 +85,16 @@ private:
     String selected_activation_;
 
     /// Allowed deviation between the expected and observed reporter ion m/z.
-    Peak2D::CoordinateType reporter_mass_shift_;
+    double reporter_mass_shift_;
 
     /// Minimum intensity of the precursor to be considered for quantitation.
-    Peak2D::IntensityType min_precursor_intensity_;
+    double min_precursor_intensity_;
 
     /// Flag if precursor with missing intensity value or missing precursor spectrum should be included or not.
     bool keep_unannotated_precursor_;
 
     /// Minimum reporter ion intensity to be considered for quantitation.
-    Peak2D::IntensityType min_reporter_intensity_;
+    double min_reporter_intensity_;
 
     /// Flag if complete quantification should be discarded if a single reporter ion has an intensity below the threshold given in IsobaricChannelExtractor::min_reporter_intensity_ .
     bool remove_low_intensity_quantifications_;
@@ -111,7 +114,7 @@ private:
       @param precursor The precursor to test.
       @return $true$ if the precursor can be used for extraction, $false$ otherwise.
     */
-    bool isValidPrecursor_(const Precursor& precursor) const;
+    bool isValidPrecursor_(const OpenMS::OMSInterfaces::Precursor& precursor) const;
 
     /**
       @brief Checks whether the given ConsensusFeature contains a channel that is below the given intensity threshold.
@@ -128,7 +131,7 @@ private:
       @param precursor Iterator pointing to the precursor spectrum of ms2_spec.
       @return Fraction of the total intensity in the isolation window of the precursor spectrum that was assigned to the precursor.
     */
-    DoubleReal computePrecursorPurity_(const MSExperiment<>::ConstIterator& ms2_spec, const MSExperiment<>::ConstIterator& precursor) const;
+    DoubleReal computePrecursorPurity_(const OpenMS::OMSInterfaces::SpectrumPtr ms2_spec, const OpenMS::OMSInterfaces::SpectrumPtr precursor) const;
 
     /**
       @brief Computes the sum of all isotopic peak intensities in the window defined by (lower|upper)_mz_bound beginning from theoretical_isotope_mz.
@@ -139,7 +142,11 @@ private:
       @param theoretical_mz The start position for the search. Note that the intensity at this position will not included in the sum.
       @param isotope_offset The offset with which the isolation window should be searched (i.e., +/- NEUTRON_MASS/precursor_charge, +/- determines if it scans from left or right from the theoretical_isotope_mz).
     */
-    DoubleReal sumPotentialIsotopePeaks_(const MSExperiment<Peak1D>::ConstIterator& precursor, const Peak1D::CoordinateType& lower_mz_bound, const Peak1D::CoordinateType& upper_mz_bound, Peak1D::CoordinateType theoretical_mz, const Peak1D::CoordinateType isotope_offset) const;
+    DoubleReal sumPotentialIsotopePeaks_(const OpenMS::OMSInterfaces::SpectrumPtr precursor,
+                                          const double lower_mz_bound,
+                                          const double upper_mz_bound,
+                                          double theoretical_mz,
+                                          const double isotope_offset) const;
 
 protected:
     /// implemented for DefaultParamHandler
