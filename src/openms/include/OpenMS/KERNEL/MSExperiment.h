@@ -806,8 +806,18 @@ public:
       return chromatograms_[id];
     }
 
+    const MSChromatogram<ChromatogramPeakType> & getChromatogram(Size id) const
+    {
+      return chromatograms_[id];
+    }
+
     /// returns a single spectrum 
     MSSpectrum<PeakT> & getSpectrum(Size id) 
+    {
+      return spectra_[id];
+    }
+
+    const MSSpectrum<PeakT> & getSpectrum(Size id) const
     {
       return spectra_[id];
     }
