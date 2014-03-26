@@ -37,7 +37,7 @@ project("OpenMS_class_tests_superhirn")
 
 #------------------------------------------------------------------------------
 # Configure test file to get the TEST_DATA_PATH into the tests
-set(CF_OPENMS_TEST_DATA_PATH "${PROJECT_SOURCE_DIR}/data/" CACHE INTERNAL "Path to the test data")
+set(CF_SUPERHIRN_TEST_DATA_PATH "${PROJECT_SOURCE_DIR}/data/")
 set (CONFIGURED_TEST_CONFIG_H "${PROJECT_BINARY_DIR}/test_config.h")
 configure_file(${PROJECT_SOURCE_DIR}/test_config.h.in ${CONFIGURED_TEST_CONFIG_H})
 

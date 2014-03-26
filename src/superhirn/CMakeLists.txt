@@ -91,3 +91,7 @@ target_link_libraries(SuperHirn OpenMS)
 # --------------------------------------------------------------------------
 # link libraries for GUI Tools
 set(SuperHirn_LIBRARIES SuperHirn OpenMS CACHE INTERNAL "SuperHirn libraries" FORCE)
+
+#------------------------------------------------------------------------------
+# register relevant paths for the doxygen doc generation
+openms_doc_path("${PROJECT_SOURCE_DIR}/include")

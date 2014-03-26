@@ -67,3 +67,5 @@ target_link_libraries(FeatureFinderSuperHirn SuperHirn)
 ## export the list of UTILS tools into CACHE
 set(UTILS_TOOLS ${UTILS_executables}
     CACHE INTERNAL "OpenMS' UTILS tools" FORCE)
+
+openms_doc_path("${PROJECT_SOURCE_DIR}")
