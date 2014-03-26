@@ -338,9 +338,9 @@ namespace OpenMS
          hit_it != pid.getHits().end(); ++hit_it)
     {
       if (!what.empty()) out << what;
-      if (pid.metaValueExists("RT")) out << (DoubleReal) pid.getMetaValue("RT");
+      if (pid.hasRT()) out << (DoubleReal) pid.getRT();
       else out << "-1";
-      if (pid.metaValueExists("MZ")) out << (DoubleReal) pid.getMetaValue("MZ");
+      if (pid.hasMZ()) out << (DoubleReal) pid.getMZ();
       else out << "-1";
       out << *hit_it << pid.getScoreType() << pid.getIdentifier();
       String accessions;

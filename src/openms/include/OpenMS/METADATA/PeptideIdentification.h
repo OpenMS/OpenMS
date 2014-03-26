@@ -54,14 +54,14 @@ namespace OpenMS
       the unique <i>identifier</i> that links the two.
 
       When loading PeptideHit instances from a File, the retention time and mass-to-charge ratio
-      of the precursor spectrum is stored in the MetaInfoInterface using the names 'MZ' and 'RT'.
+      of the precursor spectrum can be accessed using getRT() and getMZ().
       This information can be used to map the peptide hits to an MSExperiment, a FeatureMap
       or a ConsensusMap using the IDMapper class.
 
         @ingroup Metadata
   */
-  class OPENMS_DLLAPI PeptideIdentification :
-    public MetaInfoInterface
+  class OPENMS_DLLAPI PeptideIdentification 
+	  : public MetaInfoInterface
   {
 public:
 
@@ -84,13 +84,27 @@ public:
     bool operator!=(const PeptideIdentification & rhs) const;
     //@}
 
-    /// returns the peptide hits as const
-    const std::vector<PeptideHit>& getHits() const;
-    /// returns the peptide hits
-    std::vector<PeptideHit>& getHits();
-    /// Appends a peptide hit
-    void insertHit(const PeptideHit & hit);
-    /// Sets the peptide hits
+	/// returns the RT of the MS2 spectrum
+	DoubleReal getRT() const;
+	/// sets the RT of the MS2 spectrum
+	void setRT(DoubleReal rt);
+	/// shortcut for isnan(getRT())
+	bool hasRT() const;
+
+	/// returns the MZ of the MS2 spectrum
+	DoubleReal getMZ() const;
+	/// sets the MZ of the MS2 spectrum
+	void setMZ(DoubleReal mz);
+	/// shortcut for isnan(getRT())
+	bool hasMZ() const;
+
+	/// returns the peptide hits as const
+	const std::vector<PeptideHit>& getHits() const;
+	/// returns the peptide hits
+	std::vector<PeptideHit>& getHits();
+	/// Appends a peptide hit
+	void insertHit(const PeptideHit & hit);
+	/// Sets the peptide hits
     void setHits(const std::vector<PeptideHit> & hits);
 
     /// returns the peptide significance threshold value
@@ -99,7 +113,7 @@ public:
     void setSignificanceThreshold(DoubleReal value);
 
     /// returns the peptide score type
-    String getScoreType() const;
+    const String& getScoreType() const;
     /// sets the peptide score type
     void setScoreType(const String & type);
 
@@ -163,6 +177,8 @@ protected:
     String score_type_;                                      ///< The score type (Mascot, Sequest, e-value, p-value)
     bool higher_score_better_;                       ///< The score orientation
     String base_name_;
+	DoubleReal mz_;
+	DoubleReal rt_;
   };
 
 } //namespace OpenMS

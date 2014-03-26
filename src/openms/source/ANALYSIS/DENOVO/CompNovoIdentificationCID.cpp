@@ -94,8 +94,8 @@ namespace OpenMS
       PeptideIdentification id;
       // TODO check if both CID and ETD is present;
       PeakSpectrum CID_spec(*it);
-      id.setMetaValue("RT", it->getRT());
-      id.setMetaValue("MZ", it->getPrecursors().begin()->getMZ());
+      id.setRT(it->getRT());
+      id.setMZ(it->getPrecursors().begin()->getMZ());
 
       subspec_to_sequences_.clear();
       permute_cache_.clear();

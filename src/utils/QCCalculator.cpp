@@ -664,8 +664,8 @@ protected:
         if (it->getHits().size() > 0)
         {
           std::vector<String> row;
-          row.push_back(it->getMetaValue("RT"));
-          row.push_back(it->getMetaValue("MZ"));
+          row.push_back(it->getRT());
+          row.push_back(it->getMZ());
           PeptideHit tmp = it->getHits().front(); //TODO depends on score & sort
           vector<UInt> pep_mods;
           for (UInt w = 0; w < var_mods.size(); ++w)
@@ -694,7 +694,7 @@ protected:
           row.push_back(tmp.getSequence().toString().removeWhitespaces());
           row.push_back(tmp.getCharge());
           row.push_back(String((tmp.getSequence().getMonoWeight() + tmp.getCharge() * Constants::PROTON_MASS_U) / tmp.getCharge()));
-          DoubleReal dppm = /* std::abs */ (getMassDifference(((tmp.getSequence().getMonoWeight() + tmp.getCharge() * Constants::PROTON_MASS_U) / tmp.getCharge()), double(it->getMetaValue("MZ")), true));
+          DoubleReal dppm = /* std::abs */ (getMassDifference(((tmp.getSequence().getMonoWeight() + tmp.getCharge() * Constants::PROTON_MASS_U) / tmp.getCharge()), it->getMZ(), true));
           row.push_back(String(dppm));
           deltas.push_back(dppm);
           for (UInt w = 0; w < var_mods.size(); ++w)

@@ -134,13 +134,13 @@ START_SECTION((void load(const std::string &result_filename, std::vector< Peptid
 
     TEST_EQUAL(peptide_identifications[0].getHits().size(), 5)
     TEST_REAL_SIMILAR(peptide_identifications[0].getSignificanceThreshold(), -2.0)
-    TEST_REAL_SIMILAR(peptide_identifications[0].getMetaValue("MZ"), 747.761901855469)
-    TEST_REAL_SIMILAR(peptide_identifications[0].getMetaValue("RT"), 1510.5732421875)
+    TEST_REAL_SIMILAR(peptide_identifications[0].getMZ(), 747.761901855469)
+    TEST_REAL_SIMILAR(peptide_identifications[0].getRT(), 1510.5732421875)
 
     TEST_EQUAL(peptide_identifications[1].getHits().size(), 14)
     TEST_REAL_SIMILAR(peptide_identifications[1].getSignificanceThreshold(), -2.0)
-    TEST_REAL_SIMILAR(peptide_identifications[1].getMetaValue("MZ"), 549.856262207031)
-    TEST_REAL_SIMILAR(peptide_identifications[1].getMetaValue("RT"), 1530.11535644531)
+    TEST_REAL_SIMILAR(peptide_identifications[1].getMZ(), 549.856262207031)
+    TEST_REAL_SIMILAR(peptide_identifications[1].getRT(), 1530.11535644531)
 
     TEST_EQUAL(peptide_identifications[2].getHits().size(), 20)
     TEST_EQUAL(peptide_identifications[3].getHits().size(), 20)

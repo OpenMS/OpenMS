@@ -518,8 +518,8 @@ namespace OpenMS
 
       for (vector<pair<Size, Size> >::const_iterator pi_scan_i = fs_i->second.begin(); pi_scan_i != fs_i->second.end(); ++pi_scan_i)
       {
-        ids[pi_scan_i->first].setMetaValue("MZ", experiment[pi_scan_i->second - 1].getPrecursors()[0].getMZ());
-        ids[pi_scan_i->first].setMetaValue("RT", experiment[pi_scan_i->second - 1].getRT());
+        ids[pi_scan_i->first].setMZ(experiment[pi_scan_i->second - 1].getPrecursors()[0].getMZ());
+        ids[pi_scan_i->first].setRT(experiment[pi_scan_i->second - 1].getRT());
       }
     }
   }

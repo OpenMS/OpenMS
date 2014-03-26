@@ -280,24 +280,24 @@ protected:
         Int charge = ref_ids[p_id].getHits()[p_h].getCharge();
         DoubleReal theo_mass = ref_ids[p_id].getHits()[p_h].getSequence().getMonoWeight(Residue::Full, charge) / (DoubleReal)charge;
         // first find corresponding ms1-spectrum
-        typename MSExperiment<InputPeakType>::ConstIterator rt_iter = exp.RTBegin(ref_ids[p_id].getMetaValue("RT"));
+        typename MSExperiment<InputPeakType>::ConstIterator rt_iter = exp.RTBegin(ref_ids[p_id].getRT());
         while (rt_iter != exp.begin() && rt_iter->getMSLevel() != 1)
         {
           --rt_iter;
         }
         // now find closest peak
-        typename MSSpectrum<InputPeakType>::ConstIterator mz_iter = rt_iter->MZBegin(ref_ids[p_id].getMetaValue("MZ"));
+        typename MSSpectrum<InputPeakType>::ConstIterator mz_iter = rt_iter->MZBegin(ref_ids[p_id].getMZ());
         //std::cout << mz_iter->getMZ() <<" "<<(DoubleReal)ref_ids[p_id].getMetaValue("MZ")<<"\t";
-        DoubleReal dist = (DoubleReal)ref_ids[p_id].getMetaValue("MZ") - mz_iter->getMZ();
+        DoubleReal dist = (DoubleReal)ref_ids[p_id].getMZ() - mz_iter->getMZ();
         //std::cout << dist << "\t";
         if ((mz_iter + 1) != rt_iter->end()
-           && fabs((mz_iter + 1)->getMZ() - (DoubleReal)ref_ids[p_id].getMetaValue("MZ")) < fabs(dist)
+           && fabs((mz_iter + 1)->getMZ() - (DoubleReal)ref_ids[p_id].getMZ()) < fabs(dist)
            && mz_iter != rt_iter->begin()
-           && fabs((mz_iter - 1)->getMZ() - (DoubleReal)ref_ids[p_id].getMetaValue("MZ")) < fabs((mz_iter + 1)->getMZ() - (DoubleReal)ref_ids[p_id].getMetaValue("MZ")))                 // if mz_iter +1 has smaller dist than mz_iter and mz_iter-1
+           && fabs((mz_iter - 1)->getMZ() - (DoubleReal)ref_ids[p_id].getMZ()) < fabs((mz_iter + 1)->getMZ() - (DoubleReal)ref_ids[p_id].getMZ()))  // if mz_iter +1 has smaller dist than mz_iter and mz_iter-1
         {
           if ((use_ppm &&
-               fabs((mz_iter + 1)->getMZ() - (DoubleReal)ref_ids[p_id].getMetaValue("MZ")) / (DoubleReal)ref_ids[p_id].getMetaValue("MZ") * 1e06 < mz_tolerance) ||
-              (!use_ppm && fabs((mz_iter + 1)->getMZ() - (DoubleReal)ref_ids[p_id].getMetaValue("MZ")) < mz_tolerance))
+               fabs((mz_iter + 1)->getMZ() - (DoubleReal)ref_ids[p_id].getMZ()) / (DoubleReal)ref_ids[p_id].getMZ() * 1e06 < mz_tolerance) ||
+              (!use_ppm && fabs((mz_iter + 1)->getMZ() - (DoubleReal)ref_ids[p_id].getMZ()) < mz_tolerance))
           {
             //std::cout <<(mz_iter +1)->getMZ() - (DoubleReal)ref_ids[p_id].getMetaValue("MZ")<<"\t";
             observed_masses.push_back((mz_iter + 1)->getMZ());
@@ -307,11 +307,11 @@ protected:
           }
         }
         else if (mz_iter != rt_iter->begin()
-                && fabs((mz_iter - 1)->getMZ() - (DoubleReal)ref_ids[p_id].getMetaValue("MZ")) < fabs(dist))                        // if mz_iter-1 has smaller dist than mz_iter
+                && fabs((mz_iter - 1)->getMZ() - (DoubleReal)ref_ids[p_id].getMZ()) < fabs(dist))                        // if mz_iter-1 has smaller dist than mz_iter
         {
           if ((use_ppm &&
-               fabs((mz_iter - 1)->getMZ() - (DoubleReal)ref_ids[p_id].getMetaValue("MZ")) / (DoubleReal)ref_ids[p_id].getMetaValue("MZ") * 1e06 < mz_tolerance) ||
-              (!use_ppm && fabs((mz_iter - 1)->getMZ() - (DoubleReal)ref_ids[p_id].getMetaValue("MZ")) < mz_tolerance))
+               fabs((mz_iter - 1)->getMZ() - (DoubleReal)ref_ids[p_id].getMZ()) / (DoubleReal)ref_ids[p_id].getMZ() * 1e06 < mz_tolerance) ||
+              (!use_ppm && fabs((mz_iter - 1)->getMZ() - (DoubleReal)ref_ids[p_id].getMZ()) < mz_tolerance))
           {
             //std::cout <<(mz_iter -1)->getMZ() - (DoubleReal)ref_ids[p_id].getMetaValue("MZ")<<"\t";
             observed_masses.push_back((mz_iter - 1)->getMZ());
@@ -323,8 +323,8 @@ protected:
         else
         {
           if ((use_ppm &&
-               fabs((mz_iter)->getMZ() - (DoubleReal)ref_ids[p_id].getMetaValue("MZ")) / (DoubleReal)ref_ids[p_id].getMetaValue("MZ") * 1e06 < mz_tolerance) ||
-              (!use_ppm && fabs((mz_iter)->getMZ() - (DoubleReal)ref_ids[p_id].getMetaValue("MZ")) < mz_tolerance))
+               fabs((mz_iter)->getMZ() - (DoubleReal)ref_ids[p_id].getMZ()) / (DoubleReal)ref_ids[p_id].getMZ() * 1e06 < mz_tolerance) ||
+              (!use_ppm && fabs((mz_iter)->getMZ() - (DoubleReal)ref_ids[p_id].getMZ()) < mz_tolerance))
           {
 
             observed_masses.push_back(mz_iter->getMZ());

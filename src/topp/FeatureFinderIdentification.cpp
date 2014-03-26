@@ -212,7 +212,7 @@ protected:
     DoubleList rts;
     if (charge_data.second.size() == 1) // only one peptide ID
     {
-      rts.push_back(charge_data.second[0]->getMetaValue("RT"));
+      rts.push_back(charge_data.second[0]->getRT());
     }
     else if (reference_rt_ == "score")
     {
@@ -229,7 +229,7 @@ protected:
             (!higher_better && (hit.getScore() < best_score)))
         {
           best_score = hit.getScore();
-          rts[0] = (*pi_it)->getMetaValue("RT");
+          rts[0] = (*pi_it)->getRT();
         }
       }
     }
@@ -242,8 +242,8 @@ protected:
            ++pi_it)
       {
         // find precursor:
-        DoubleReal ms2_rt = (*pi_it)->getMetaValue("RT");
-        DoubleReal prec_mz = (*pi_it)->getMetaValue("MZ");
+        DoubleReal ms2_rt = (*pi_it)->getRT();
+        DoubleReal prec_mz = (*pi_it)->getMZ();
         // construct objects for use in "lower_bound" (custom comparison
         // functions involving different types don't work in older version of
         // MS Visual Studio):
@@ -290,7 +290,7 @@ protected:
              charge_data.second.begin(); pi_it != charge_data.second.end();
            ++pi_it)
       {
-        rts.push_back((*pi_it)->getMetaValue("RT"));
+        rts.push_back((*pi_it)->getRT());
       }
       if (reference_rt_ != "all")
       {

@@ -103,8 +103,8 @@ namespace OpenMS
         cerr << "CompNovoIdentification: Spectrum id=\"" << it->getNativeID() << "\" at RT=" << cid_rt << " does not have valid precursor information." << endl;
         continue;
       }
-      id.setMetaValue("RT", cid_rt);
-      id.setMetaValue("MZ", cid_mz);
+      id.setRT(cid_rt);
+      id.setMZ(cid_mz);
 
       DoubleReal etd_rt(0);
       DoubleReal etd_mz(0);

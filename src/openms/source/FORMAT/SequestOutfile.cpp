@@ -192,7 +192,7 @@ namespace OpenMS
     }
 
     PeptideIdentification peptide_identification;
-    peptide_identification.setMetaValue("MZ", precursor_mz_value);
+    peptide_identification.setMZ(precursor_mz_value);
     peptide_identification.setIdentifier(identifier);
     peptide_identification.setSignificanceThreshold(p_value_threshold);
 

@@ -1215,7 +1215,7 @@ namespace OpenMS
         for (vector<PeptideIdentification>::const_iterator it =
                peptides.begin(); it != peptides.end(); ++it)
         {
-          if (!it->getHits().empty() && it->metaValueExists("RT"))
+          if (!it->getHits().empty() && it->hasRT())
           {
             peptides_with_rt.push_back(*it);
           }

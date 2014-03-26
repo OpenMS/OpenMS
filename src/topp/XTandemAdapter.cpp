@@ -355,10 +355,10 @@ protected:
       --id; // native IDs were written 1-based
       if (id < exp.size())
       {
-        it->setMetaValue("RT", exp[id].getRT());
-        DoubleReal pre_mz = 0.0;
+        it->setRT(exp[id].getRT());
+        DoubleReal pre_mz(0.0);
         if (!exp[id].getPrecursors().empty()) pre_mz = exp[id].getPrecursors()[0].getMZ();
-        it->setMetaValue("MZ", pre_mz);
+        it->setMZ(pre_mz);
         it->removeMetaValue("spectrum_id");
       }
       else
