@@ -253,7 +253,7 @@ protected:
                 writeLog_(String("Error: Cannot read scan number as integer. '") + e.what());
               }
               //double real_mz = ( peptide_ids_seq[j].getMZ() - hydrogen_mass )/ (double)peptide_ids_seq[j].getHits()[0].getCharge(); // ???? semantics of mz
-              const double real_mz = peptide_ids_seq[j].getMZ() / (double) peptide_ids_seq[j].getHits()[0].getCharge();
+              const DoubleReal real_mz = peptide_ids_seq[j].getMZ() / (double) peptide_ids_seq[j].getHits()[0].getCharge();
               peptide_ids_seq[j].setMZ(real_mz);
             }
 

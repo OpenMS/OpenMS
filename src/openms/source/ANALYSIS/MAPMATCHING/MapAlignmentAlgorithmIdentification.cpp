@@ -310,7 +310,7 @@ namespace OpenMS
           {
             any_good_hit = true;
             double current_distance =
-              abs(double(pep_it->getRT()) - feat_it->getRT());
+              abs(pep_it->getRT() - feat_it->getRT());
             if (current_distance < rt_distance)
             {
               sequence = pep_it->getHits()[0].getSequence().toString();

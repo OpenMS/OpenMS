@@ -194,7 +194,7 @@ namespace OpenMS
                   id_data_[peptide_identification_index_].setRT(rt_mapping_[scan_no]);
                 }
               }
-              if (match["MZ"].matched &&
+              if (match["MZ"].matched && 
                   !id_data_[peptide_identification_index_].hasMZ())
               {
                 double mz = String(match["MZ"].str()).toDouble();

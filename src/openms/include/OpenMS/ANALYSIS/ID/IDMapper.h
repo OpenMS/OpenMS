@@ -138,7 +138,7 @@ public:
             // testing whether the m/z fits
             if (!map[experiment_iterator->second].getPrecursors().empty() || mapMS1)
             {
-              if (mapMS1 || (fabs((double)(ids[identifications_iterator->second].getMZ()) - map[experiment_iterator->second].getPrecursors()[0].getMZ()) < mz_tolerance_))
+              if (mapMS1 || (fabs(ids[identifications_iterator->second].getMZ() - map[experiment_iterator->second].getPrecursors()[0].getMZ()) < mz_tolerance_))
               {
                 if (!(ids[identifications_iterator->second].empty()))
                 {

@@ -285,11 +285,11 @@ protected:
         }
         // now find closest peak
         typename MSSpectrum<InputPeakType>::ConstIterator mz_iter = rt_iter->MZBegin(ref_ids[p_id].getMZ());
-        //std::cout << mz_iter->getMZ() <<" "<<(double)ref_ids[p_id].getMetaValue("MZ")<<"\t";
+        //std::cout << mz_iter->getMZ() <<" "<<(double)ref_ids[p_id].getMZ()<<"\t";
         double dist = ref_ids[p_id].getMZ() - mz_iter->getMZ();
         //std::cout << dist << "\t";
         if ((mz_iter + 1) != rt_iter->end()
-           && fabs((mz_iter + 1)->getMZ() - (double)ref_ids[p_id].getMZ()) < fabs(dist)
+           && fabs((mz_iter + 1)->getMZ() - ref_ids[p_id].getMZ() < fabs(dist)
            && mz_iter != rt_iter->begin()
            && fabs((mz_iter - 1)->getMZ() - ref_ids[p_id].getMZ()) < fabs((mz_iter + 1)->getMZ() - ref_ids[p_id].getMZ()))  // if mz_iter +1 has smaller dist than mz_iter and mz_iter-1
         {
@@ -308,7 +308,7 @@ protected:
                 && fabs((mz_iter - 1)->getMZ() - ref_ids[p_id].getMZ()) < fabs(dist))                        // if mz_iter-1 has smaller dist than mz_iter
         {
           if ((use_ppm &&
-               fabs((mz_iter - 1)->getMZ() - ref_ids[p_id].getMZ()) / ref_ids[p_id].getMZ() * 1e06 < mz_tolerance) ||
+               fabs((mz_iter - 1)->getMZ() - ref_ids[p_id].getMZ()) / (DoubleReal)ref_ids[p_id].getMZ() * 1e06 < mz_tolerance) ||
               (!use_ppm && fabs((mz_iter - 1)->getMZ() - ref_ids[p_id].getMZ()) < mz_tolerance))
           {
             //std::cout <<(mz_iter -1)->getMZ() - ref_ids[p_id].getMZ()<<"\t";
