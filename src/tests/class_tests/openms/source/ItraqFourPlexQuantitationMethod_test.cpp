@@ -39,6 +39,8 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqFourPlexQuantitationMethod.h>
 ///////////////////////////
 
+#include <OpenMS/DATASTRUCTURES/Matrix.h>
+
 using namespace OpenMS;
 using namespace std;
 

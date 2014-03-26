@@ -43,6 +43,8 @@
 
 #include <Eigen/Core>
 
+#include <OpenMS/DATASTRUCTURES/Matrix.h>
+
 namespace OpenMS
 {
   /**
