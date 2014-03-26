@@ -25,6 +25,7 @@ set(sources_list_h
 File.h
 FileWatcher.h
 StopWatch.h
+SysInfo.h
 )
 
 ### add path to the filenames

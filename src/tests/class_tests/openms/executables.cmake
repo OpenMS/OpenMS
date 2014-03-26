@@ -98,6 +98,7 @@ set(system_executables_list
   File_test
   FileWatcher_test
   StopWatch_test
+  SysInfo_test
 )
 
 set(kernel_executables_list
