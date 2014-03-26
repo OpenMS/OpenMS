@@ -34,6 +34,9 @@
 
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/CONCEPT/Exception.h>
+
+#include <boost/math/special_functions/fpclassify.hpp>
+
 #include <sstream>
 #include <algorithm>
 
@@ -45,6 +48,8 @@ namespace OpenMS
   PeptideIdentification::PeptideIdentification() :
     MetaInfoInterface(),
     id_(),
+	rt_(std::numeric_limits<DoubleReal>::quiet_NaN()),
+	mz_(std::numeric_limits<DoubleReal>::quiet_NaN()),
     hits_(),
     significance_threshold_(0.0),
     score_type_(),
@@ -56,7 +61,9 @@ namespace OpenMS
   PeptideIdentification::PeptideIdentification(const PeptideIdentification & rhs) :
     MetaInfoInterface(rhs),
     id_(rhs.id_),
-    hits_(rhs.hits_),
+	rt_(rhs.rt_),
+	mz_(rhs.mz_),
+	hits_(rhs.hits_),
     significance_threshold_(rhs.significance_threshold_),
     score_type_(rhs.score_type_),
     higher_score_better_(rhs.higher_score_better_),
@@ -107,6 +114,34 @@ namespace OpenMS
   const std::vector<PeptideHit> & PeptideIdentification::getHits() const
   {
     return hits_;
+  }
+
+  DoubleReal PeptideIdentification::getRT() const
+  {
+	  return rt_;
+  }
+  void PeptideIdentification::setRT(DoubleReal rt)
+  {
+	  rt_ = rt;
+  }
+
+  bool PeptideIdentification::hasRT() const
+  {
+	  return boost::math::isnan(rt_);
+  }
+
+  DoubleReal PeptideIdentification::getMZ() const
+  {
+	  return mz_;
+  }
+  void PeptideIdentification::setMZ(DoubleReal mz)
+  {
+	  mz_ = mz;
+  }
+
+  bool PeptideIdentification::hasMZ() const
+  {
+	  return boost::math::isnan(mz_);
   }
 
   std::vector<PeptideHit> & PeptideIdentification::getHits()

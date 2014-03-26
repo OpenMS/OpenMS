@@ -79,9 +79,9 @@ namespace OpenMS
       }
       else
       {
-        mz = pep_it->getMetaValue("MZ");
+        mz = pep_it->getMZ();
       }
-      DPosition<2> point(pep_it->getMetaValue("RT"), mz);
+      DPosition<2> point(pep_it->getRT(), mz);
       seeds.push_back(point);
     }
   }

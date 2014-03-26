@@ -282,19 +282,17 @@ namespace OpenMS
         }
         os << "significance_threshold=\"" << peptide_ids[l].getSignificanceThreshold() << "\" ";
         //mz
-        DataValue dv = peptide_ids[l].getMetaValue("MZ");
-        if (dv != DataValue::EMPTY)
-        {
-          os << "MZ=\"" << dv << "\" ";
-        }
-        //rt
-        dv = peptide_ids[l].getMetaValue("RT");
-        if (dv != DataValue::EMPTY)
-        {
-          os << "RT=\"" << dv << "\" ";
-        }
-        //spectrum_reference
-        dv = peptide_ids[l].getMetaValue("spectrum_reference");
+        if (peptide_ids[l].hasMZ())
+		{
+			os << "MZ=\"" << peptide_ids[l].getMZ() << "\" ";
+		}
+		// rt
+		if (peptide_ids[l].hasRT())
+		{
+			os << "RT=\"" << peptide_ids[l].getRT() << "\" ";
+		}
+		//spectrum_reference
+		DataValue dv = peptide_ids[l].getMetaValue("spectrum_reference");
         if (dv != DataValue::EMPTY)
         {
           os << "spectrum_reference=\"" << writeXMLEscape(dv.toString()) << "\" ";
@@ -334,10 +332,8 @@ namespace OpenMS
           os << "\t\t\t</PeptideHit>\n";
         }
 
-        //do not write "RT", "MZ" and "spectrum_reference" as they are written as attributes already
-        MetaInfoInterface tmp = peptide_ids[l];
-        tmp.removeMetaValue("RT");
-        tmp.removeMetaValue("MZ");
+		//do not write "spectrum_reference" since it is written as attribute already
+		MetaInfoInterface tmp = peptide_ids[l];
         tmp.removeMetaValue("spectrum_reference");
         writeUserParam_("UserParam", os, tmp, 3);
         os << "\t\t</PeptideIdentification>\n";
@@ -568,14 +564,14 @@ namespace OpenMS
       optionalAttributeAsDouble_(tmp2, attributes, "MZ");
       if (tmp2 != -numeric_limits<DoubleReal>::max())
       {
-        pep_id_.setMetaValue("MZ", tmp2);
+        pep_id_.setMZ(tmp2);
       }
       //RT
       tmp2 = -numeric_limits<DoubleReal>::max();
       optionalAttributeAsDouble_(tmp2, attributes, "RT");
       if (tmp2 != -numeric_limits<DoubleReal>::max())
       {
-        pep_id_.setMetaValue("RT", tmp2);
+        pep_id_.setRT(tmp2);
       }
       Int tmp3 = -numeric_limits<Int>::max();
       optionalAttributeAsInt_(tmp3, attributes, "spectrum_reference");

@@ -371,9 +371,9 @@ protected:
           //charge
           out << ph.getCharge();
           //RT
-          out << String(pi.getMetaValue("RT"));
+          out << String(pi.getRT());
           //MZ
-          out << String(pi.getMetaValue("MZ"));
+          out << String(pi.getMZ());
           out << endl;
         }
         else
@@ -392,9 +392,9 @@ protected:
           //charge
           out << ph.getCharge();
           //RT
-          out << String(pi.getMetaValue("RT"));
+          out << String(pi.getRT());
           //MZ
-          out << String(pi.getMetaValue("MZ"));
+          out << String(pi.getMZ());
           out << endl;
         }
       }

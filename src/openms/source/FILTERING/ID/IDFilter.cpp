@@ -84,7 +84,7 @@ namespace OpenMS
         charge = 1;
       }
 
-      DoubleReal exp_mz = (DoubleReal)identification.getMetaValue("MZ");
+	  DoubleReal exp_mz = (DoubleReal)identification.getMZ();
       DoubleReal theo_mz =  (it->getSequence().getMonoWeight() + (DoubleReal)charge * Constants::PROTON_MASS_U) / (DoubleReal)charge;
       DoubleReal error(exp_mz - theo_mz);
 

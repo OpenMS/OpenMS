@@ -160,9 +160,7 @@ protected:
               found = without_phospho_str.find("(Phospho)");
             }
             AASequence without_phospho(without_phospho_str);
-            DoubleReal prec = hits->getMetaValue("MZ");
-            DoubleReal prec_mz = prec * scored_hit.getCharge();
-            prec_mz -= scored_hit.getCharge();
+			DoubleReal prec_mz = hits->getMZ() * scored_hit.getCharge() - scored_hit.getCharge();
             DoubleReal mono_weight = without_phospho.getMonoWeight();
             DoubleReal ha = prec_mz - mono_weight;
             DoubleReal nps = ha / 79.966331; // 79.966331 = mass of HPO3

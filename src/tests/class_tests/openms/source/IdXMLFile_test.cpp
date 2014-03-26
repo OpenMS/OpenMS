@@ -71,7 +71,7 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
 	std::vector<ProteinIdentification> protein_ids;
 	std::vector<PeptideIdentification> peptide_ids;
 	String document_id;
-	IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IdXMLFile_whole.idXML"), protein_ids, peptide_ids,document_id);
+	IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IdXMLFile_whole.idXML"), protein_ids, peptide_ids, document_id);
 
 	TEST_STRING_EQUAL(document_id,"LSID1234")
 	TEST_EQUAL(protein_ids.size(),2)
@@ -123,8 +123,8 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
 	TEST_EQUAL(peptide_ids[0].getScoreType(),"MOWSE")
 	TEST_EQUAL(peptide_ids[0].isHigherScoreBetter(),false)
 	TEST_EQUAL(peptide_ids[0].getIdentifier(),"Mascot_2006-01-12T12:13:14")
-	TEST_REAL_SIMILAR((DoubleReal)(peptide_ids[0].getMetaValue("MZ")),675.9)
-	TEST_REAL_SIMILAR((DoubleReal)(peptide_ids[0].getMetaValue("RT")),1234.5)
+	TEST_REAL_SIMILAR(peptide_ids[0].getMZ(),675.9)
+	TEST_REAL_SIMILAR(peptide_ids[0].getRT(),1234.5)
 	TEST_EQUAL((UInt)(peptide_ids[0].getMetaValue("spectrum_reference")),17)
 	TEST_EQUAL((String)(peptide_ids[0].getMetaValue("name")),"PeptideIdentification")
 	TEST_EQUAL(peptide_ids[0].getHits().size(),2)
@@ -151,6 +151,8 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
 	TEST_EQUAL(peptide_ids[1].isHigherScoreBetter(),true)
 	TEST_EQUAL(peptide_ids[1].getIdentifier(),"Mascot_2006-01-12T12:13:14")
 	TEST_EQUAL(peptide_ids[1].getHits().size(),2)
+	TEST_EQUAL(peptide_ids[1].hasRT(), false)
+	TEST_EQUAL(peptide_ids[1].hasMZ(), false)
 	//peptide hit 1
 	TEST_REAL_SIMILAR(peptide_ids[1].getHits()[0].getScore(),44.4)
 	TEST_EQUAL(peptide_ids[1].getHits()[0].getSequence(),"PEP3")
@@ -198,6 +200,8 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
 	TEST_EQUAL(peptide_ids[2].isHigherScoreBetter(),true)
 	TEST_EQUAL(peptide_ids[2].getIdentifier(),"Mascot_2007-01-12T12:13:14")
 	TEST_EQUAL(peptide_ids[2].getHits().size(),1)
+	TEST_EQUAL(peptide_ids[2].hasRT(), false)
+	TEST_EQUAL(peptide_ids[2].hasMZ(), false)
 	//peptide hit 1
 	TEST_REAL_SIMILAR(peptide_ids[2].getHits()[0].getScore(),1.4)
 	TEST_EQUAL(peptide_ids[2].getHits()[0].getSequence(),"PEP5")

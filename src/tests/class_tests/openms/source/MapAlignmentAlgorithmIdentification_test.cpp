@@ -113,8 +113,7 @@ START_SECTION((virtual void alignPeptideIdentifications(std::vector<std::vector<
 // 	}
 	for (Size i = 0; i < peptides[0].size(); ++i)
 	{
-		TEST_REAL_SIMILAR(peptides[0][i].getMetaValue("RT"),
-											peptides[1][i].getMetaValue("RT"));
+		TEST_REAL_SIMILAR(peptides[0][i].getRT(), peptides[1][i].getRT());
 	}
 }
 END_SECTION

@@ -157,6 +157,34 @@ START_SECTION((bool operator != (const PeptideIdentification& rhs) const))
 END_SECTION
 
 
+START_SECTION((DoubleReal getRT() const))
+	PeptideIdentification pi;
+	TEST_EQUAL(pi.hasRT(), false);
+	pi.setRT(1024.0);
+	TEST_EQUAL(pi.getRT(), 1024.0);
+END_SECTION
+
+START_SECTION(void setRT(DoubleReal mz))
+	NOT_TESTABLE // tested above
+END_SECTION
+
+START_SECTION(bool hasRT())
+	NOT_TESTABLE // tested above
+END_SECTION
+
+START_SECTION((DoubleReal getMZ() const))
+	PeptideIdentification pi;
+	TEST_EQUAL(pi.hasMZ(), false);
+	pi.setMZ(1024.0);
+	TEST_EQUAL(pi.getMZ(), 1024.0);
+END_SECTION
+
+
+START_SECTION(bool hasMZ())
+  NOT_TESTABLE // tested above
+END_SECTION
+
+
 START_SECTION((DoubleReal getSignificanceThreshold() const))
 	PeptideIdentification hits;
 	hits.setSignificanceThreshold(peptide_significance_threshold);

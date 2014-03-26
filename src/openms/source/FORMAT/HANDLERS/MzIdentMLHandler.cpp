@@ -647,8 +647,8 @@ namespace OpenMS
           }
 
           String cmz(jt->getSequence().getMonoWeight(res_type_, jt->getCharge()));       //calculatedMassToCharge
-          String emz(String(it->getMetaValue("MZ")));       //precursor MassToCharge
-          String ert(String(it->getMetaValue("RT")));       //precursor MassToCharge
+          String emz(it->getMZ());
+          String ert(it->getRT()); 
           String r(jt->getRank());      //rank
           String sc(jt->getScore());       //score TODO what if there is no score?
           String st(it->getScoreType());       //scoretype

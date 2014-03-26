@@ -509,8 +509,8 @@ protected:
 
       if (!filtered_identification.getHits().empty())
       {
-        filtered_identification.setMetaValue("RT", identifications[i].getMetaValue("RT"));
-        filtered_identification.setMetaValue("MZ", identifications[i].getMetaValue("MZ"));
+        filtered_identification.setRT(identifications[i].getRT());
+        filtered_identification.setMZ(identifications[i].getMZ());
         filtered_peptide_identifications.push_back(filtered_identification);
       }
 
