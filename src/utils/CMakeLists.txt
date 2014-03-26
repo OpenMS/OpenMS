@@ -62,6 +62,7 @@ foreach(i ${UTILS_executables_with_GUIlib})
 endforeach(i)
 
 # FFSuperHirn requires linking against SuperHirn
+include_directories(SYSTEM ${SuperHirn_INCLUDE_DIRECTORIES})
 target_link_libraries(FeatureFinderSuperHirn SuperHirn)
 
 ## export the list of UTILS tools into CACHE
