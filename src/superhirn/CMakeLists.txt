@@ -69,7 +69,7 @@ add_library(SuperHirn ${SuperHirn_sources})
 
 # --------------------------------------------------------------------------
 # autogenerate config.h
-set(SuperHirn_CONFIG_H "${PROJECT_BINARY_DIR}/include/OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/SuperHirnConfig.h")
+set(SuperHirn_CONFIG_H "include/OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/SuperHirnConfig.h")
 
 include(GenerateExportHeader)
 generate_export_header(SuperHirn
