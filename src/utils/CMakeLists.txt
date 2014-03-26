@@ -61,6 +61,9 @@ foreach(i ${UTILS_executables_with_GUIlib})
 	target_link_libraries(${i} ${OPENMS_GUI_LIBRARIES})
 endforeach(i)
 
+# FFSuperHirn requires linking against SuperHirn
+target_link_libraries(FeatureFinderSuperHirn SuperHirn)
+
 ## export the list of UTILS tools into CACHE
 set(UTILS_TOOLS ${UTILS_executables}
     CACHE INTERNAL "OpenMS' UTILS tools" FORCE)
