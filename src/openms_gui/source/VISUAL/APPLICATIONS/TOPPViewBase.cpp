@@ -44,7 +44,6 @@
 #include <OpenMS/FILTERING/BASELINE/MorphologicalFilter.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FORMAT/DB/DBConnection.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
@@ -58,7 +57,6 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
 #include <OpenMS/VISUAL/DIALOGS/DataFilterDialog.h>
 #include <OpenMS/VISUAL/DIALOGS/TOPPViewOpenDialog.h>
-#include <OpenMS/VISUAL/DIALOGS/DBOpenDialog.h>
 #include <OpenMS/VISUAL/DIALOGS/TheoreticalSpectrumGenerationDialog.h>
 #include <OpenMS/VISUAL/DIALOGS/ToolsDialog.h>
 #include <OpenMS/VISUAL/DIALOGS/TOPPViewPrefDialog.h>
@@ -2773,34 +2771,6 @@ namespace OpenMS
     }
   }
 
-  void TOPPViewBase::connectToDB_(DBConnection& db)
-  {
-    //get the password if unset
-    if (!param_.exists("DBPassword"))
-    {
-      stringstream ss;
-      ss << "Enter password for user '" << (String)param_.getValue("preferences:db:login") << "' at '" << (String)param_.getValue("preferences:db:host") << ":" << (String)param_.getValue("preferences:db:port") << "' : ";
-      bool ok;
-      QString text = QInputDialog::getText(this, "TOPPView database password", ss.str().c_str(), QLineEdit::Password, QString::null, &ok);
-      if (ok)
-      {
-        param_.setValue("DBPassword", text);
-      }
-    }
-
-    if (param_.exists("DBPassword"))
-    {
-      try
-      {
-        db.connect((String)param_.getValue("preferences:db:name"), (String)param_.getValue("preferences:db:login"), (String)param_.getValue("DBPassword"), (String)param_.getValue("preferences:db:host"), (UInt)param_.getValue("preferences:db:port"));
-      }
-      catch (DBConnection::InvalidQuery& er)
-      {
-        param_.remove("DBPassword");
-        showLogMessage_(LS_ERROR, "Unable to log in to the database server", String("Check the login data in the preferences!\nDatabase error message: ") + er.what());
-      }
-    }
-  }
 
   void TOPPViewBase::rerunTOPPTool()
   {
