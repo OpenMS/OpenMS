@@ -162,12 +162,12 @@ protected:
 
     for (Size i = 0; i < identifications.size(); ++i)
     {
-      if (identifications[i].metaValueExists("RT"))
+      if (identifications[i].hasRT())
       {
-        DoubleReal temp_rt = identifications[i].getMetaValue("RT");
+        DoubleReal temp_rt = identifications[i].getRT();
         temp_rt = (temp_rt - rt_calibrant_1_input) / (rt_calibrant_2_input - rt_calibrant_1_input)
                   * (rt_calibrant_2_reference - rt_calibrant_1_reference) + rt_calibrant_1_reference;
-        identifications[i].setMetaValue("RT", temp_rt);
+        identifications[i].setRT(temp_rt);
       }
     }
 

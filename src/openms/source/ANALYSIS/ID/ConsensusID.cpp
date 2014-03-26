@@ -740,13 +740,13 @@ namespace OpenMS
     DoubleReal rt_delta = 0.01;
     for (vector<PeptideIdentification>::const_iterator it1 = ids.begin(); it1 != ids.end(); ++it1)
     {
-      DoubleReal rt1(it1->getMetaValue("RT"));
-      DoubleReal mz1(it1->getMetaValue("MZ"));
+      DoubleReal rt1(it1->getRT());
+      DoubleReal mz1(it1->getMZ());
       PeptideIdentification new_ids;
       for (vector<PeptideIdentification>::const_iterator it2 = it1 + 1; it2 != ids.end(); ++it2)
       {
-        DoubleReal rt2(it2->getMetaValue("RT"));
-        DoubleReal mz2(it2->getMetaValue("MZ"));
+		DoubleReal rt2(it2->getRT());
+		DoubleReal mz2(it2->getMZ());
         if (fabs(rt1 - rt2) < rt_delta && fabs(mz1 - mz2) < mz_delta)
         {
           if (new_ids.empty())

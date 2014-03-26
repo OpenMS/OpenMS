@@ -164,7 +164,7 @@ namespace OpenMS
 
       else if (tag_ == "pep_exp_mz")
       {
-        id_data_[peptide_identification_index_].setMetaValue("MZ", character_buffer_.trim().toDouble());
+        id_data_[peptide_identification_index_].setMZ(character_buffer_.trim().toDouble());
       }
 
       else if (tag_ == "pep_scan_title")
@@ -184,23 +184,21 @@ namespace OpenMS
               if (match["RT"].matched)
               {
                 DoubleReal rt = String(match["RT"].str()).toDouble();
-                id_data_[peptide_identification_index_].setMetaValue("RT", rt);
+                id_data_[peptide_identification_index_].setRT(rt);
               }
               else if (match["SCAN"].matched)
               {
                 Size scan_no = String(match["SCAN"].str()).toInt();
                 if (scan_no && rt_mapping_.has(scan_no))
                 {
-                  id_data_[peptide_identification_index_].setMetaValue(
-                    "RT", rt_mapping_[scan_no]);
+                  id_data_[peptide_identification_index_].setRT(rt_mapping_[scan_no]);
                 }
               }
               if (match["MZ"].matched && 
-                  !id_data_[peptide_identification_index_].metaValueExists(
-                    "MZ"))
+                  !id_data_[peptide_identification_index_].hasMZ())
               {
                 DoubleReal mz = String(match["MZ"].str()).toDouble();
-                id_data_[peptide_identification_index_].setMetaValue("MZ", mz);
+                id_data_[peptide_identification_index_].setMZ(mz);
               }
               break;
             }
@@ -214,7 +212,7 @@ namespace OpenMS
           error(LOAD, msg);
         }
         // did it work?
-        if (!id_data_[peptide_identification_index_].metaValueExists("RT"))
+        if (!id_data_[peptide_identification_index_].getRT())
         {
           if (!no_rt_error_) // report the error only the first time
           {
@@ -459,19 +457,19 @@ namespace OpenMS
           }
           id_data_[actual_query_ - 1].setHits(temp_peptide_hits);
         }
-        if (!id_data_[actual_query_ - 1].metaValueExists("RT"))
+        if (!id_data_[actual_query_ - 1].hasRT())
         {
           title.split('_', parts);
           if (parts.size() == 2)
           {
-            id_data_[actual_query_ - 1].setMetaValue("RT", parts[1].toDouble());
+            id_data_[actual_query_ - 1].setRT(parts[1].toDouble());
           }
         }
       }
 
       else if (tag_ == "RTINSECONDS")
       {
-        id_data_[actual_query_ - 1].setMetaValue("RT", character_buffer_.trim().toDouble());
+        id_data_[actual_query_ - 1].setRT(character_buffer_.trim().toDouble());
       }
 
       else if (tag_ == "MascotVer")

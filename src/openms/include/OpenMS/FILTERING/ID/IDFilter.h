@@ -311,7 +311,15 @@ public:
     /// filter identifications by deviation to the theoretical mass
     void filterIdentificationsByMzError(const PeptideIdentification& identification, DoubleReal mass_error, bool unit_ppm, PeptideIdentification& filtered_identification);
 
-    /**
+	/// only peptides that are in a certain precursor RT range will be kept
+	/// Peptides with no RT value will be removed in any case
+	void filterIdentificationsByRT(const std::vector<PeptideIdentification>& identifications, DoubleReal min_rt, DoubleReal max_rt, std::vector<PeptideIdentification>& filtered_identifications);
+
+	/// only peptides that are in a certain precursor MZ range will be kept
+	/// Peptides with no MZ value will be removed in any case
+	void filterIdentificationsByMZ(const std::vector<PeptideIdentification>& identifications, DoubleReal min_mz, DoubleReal max_mz, std::vector<PeptideIdentification>& filtered_identifications);
+
+	/**
           @brief Filters the peptide hits according to their predicted rt p-values
 
           Filters the peptide hits of this ProteinIdentification by the

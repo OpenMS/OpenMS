@@ -241,8 +241,8 @@ protected:
             {
               try
               {
-                scan_number = in_file_vec.at(2).toInt();
-                peptide_ids_seq[j].setMetaValue("RT", num_and_rt[scan_number]);
+                scan_number = in_file_vec[2].toInt();
+                peptide_ids_seq[j].setRT(num_and_rt[scan_number]);
               }
               catch (Exception::ConversionError & e)
               {
@@ -253,11 +253,11 @@ protected:
                 writeLog_(String("Error: Cannot read scan number as integer. '") + e.what());
               }
               //DoubleReal real_mz = ( (DoubleReal)peptide_ids_seq[j].getMetaValue("MZ") - hydrogen_mass )/ (DoubleReal)peptide_ids_seq[j].getHits()[0].getCharge(); // ???? semantics of mz
-              const DoubleReal real_mz = (DoubleReal) peptide_ids_seq[j].getMetaValue("MZ") / (DoubleReal) peptide_ids_seq[j].getHits()[0].getCharge();
-              peptide_ids_seq[j].setMetaValue("MZ", real_mz);
+              const DoubleReal real_mz = (DoubleReal) peptide_ids_seq[j].getMZ() / (DoubleReal) peptide_ids_seq[j].getHits()[0].getCharge();
+              peptide_ids_seq[j].setMZ(real_mz);
             }
 
-            writeDebug_(String("scan: ") + String(scan_number) + String("  RT: ") + String(peptide_ids_seq[j].getMetaValue("RT")) + "  MZ: " + String(peptide_ids_seq[j].getMetaValue("MZ")) + "  Ident: " + peptide_ids_seq[j].getIdentifier(), 4);
+            writeDebug_(String("scan: ") + String(scan_number) + String("  RT: ") + String(peptide_ids_seq[j].getRT()) + "  MZ: " + String(peptide_ids_seq[j].getMZ()) + "  Ident: " + peptide_ids_seq[j].getIdentifier(), 4);
 
             peptide_identifications.push_back(peptide_ids_seq[j]);
           }

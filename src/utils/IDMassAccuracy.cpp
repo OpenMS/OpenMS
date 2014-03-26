@@ -233,7 +233,7 @@ protected:
               {
                 charge = 1;
               }
-              md.exp_mz = (DoubleReal)it->getMetaValue("MZ");
+              md.exp_mz = it->getMZ();
               md.theo_mz = (hit.getSequence().getMonoWeight() + (DoubleReal)charge * Constants::PROTON_MASS_U) / (DoubleReal)charge;
               md.charge = charge;
               precursor_diffs.push_back(md);
