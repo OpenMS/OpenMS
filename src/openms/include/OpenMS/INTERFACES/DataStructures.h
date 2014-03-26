@@ -37,12 +37,85 @@
 
 #include <string>
 #include <vector>
+#include <set>
 #include <boost/shared_ptr.hpp>
 
 #include <OpenMS/config.h>
 
 namespace OpenMS
 {
+
+namespace OMSInterfaces {
+
+  struct Precursor
+  {
+    double mz;
+    double intensity;
+    double lower_offset;
+    double upper_offset;
+    int charge;
+    std::set<std::string> activation_methods;
+
+    double getMZ() {return mz;}
+  };
+
+  struct RawDataArray
+  {
+private:
+    /// list of binary data arrays.
+    std::vector<double> pos_;
+    std::vector<double> int_;
+
+public:
+    const std::vector<double>& getPos() const
+    {
+      return pos_;
+    }
+
+    void setPos(std::vector<double> pos)
+    {
+      pos_ = pos;
+    }
+
+    const std::vector<double>& getIntensity() const
+    {
+      return int_;
+    }
+
+    void setIntensity(std::vector<double> intensity)
+    {
+      int_ = intensity;
+    }
+  };
+
+  struct Spectrum :
+    public RawDataArray
+  {
+private:
+    int ms_level_;
+    int scan_id_;
+    std::string native_id_;
+    double rt_;
+    std::vector< Precursor > precursors_;
+
+public:
+    Spectrum() {}
+    int getMSLevel() const {return ms_level_;}
+    void setMSLevel(int level) {ms_level_ = level;}
+    int getScanId() const {return scan_id_;}
+    void setScanId(int id) {scan_id_ = id;}
+    double getRT() const {return rt_;}
+    void setRT(double rt) {rt_ = rt;}
+    const std::string& getNativeID() const {return native_id_;}
+    void setNativeID(const std::string native_id) {native_id_ = native_id;}
+    const std::vector<Precursor>& getPrecursors() const {return precursors_;}
+    void setPrecursors(std::vector<Precursor> precursors) {precursors_ = precursors;}
+  };
+
+  OPENMS_DLLAPI typedef boost::shared_ptr<Spectrum> SpectrumPtr;
+}
+
+
 namespace Interfaces
 {
 

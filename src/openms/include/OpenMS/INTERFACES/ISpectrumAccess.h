@@ -43,6 +43,20 @@
 
 namespace OpenMS
 {
+
+namespace OMSInterfaces {
+  class OPENMS_DLLAPI MSRunIF
+  {
+public:
+    virtual ~MSRunIF() {}
+    /// Return a pointer to a spectrum at the given id
+    virtual const SpectrumPtr get_Spectrum(int id) const = 0;
+    /// Returns the number of spectra available
+    virtual size_t getSpectraNr() const = 0;
+  };
+}
+
+
 namespace Interfaces
 {
 
@@ -129,6 +143,7 @@ public:
   OPENMS_DLLAPI typedef boost::shared_ptr<IChromatogramsWriter> ChromatogramsWriterPtr;
 
 } //end namespace Interfaces
+
 } //end namespace OpenMS
 
 #endif
