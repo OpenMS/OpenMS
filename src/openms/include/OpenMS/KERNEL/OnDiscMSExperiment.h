@@ -64,7 +64,8 @@ namespace OpenMS
 
   */
   template <typename PeakT = Peak1D, typename ChromatogramPeakT = ChromatogramPeak>
-  class OnDiscMSExperiment
+  class OnDiscMSExperiment :
+    OMSInterfaces::MSRunIF
   {
 public:
 
@@ -239,6 +240,49 @@ public:
       return indexed_mzml_file_.getChromatogramById(id);
     }
 
+
+    // ---------------------------------------------------------------------- 
+    // MSRunIF Implementation
+    // ---------------------------------------------------------------------- 
+    const OpenMS::OMSInterfaces::SpectrumPtr get_Spectrum(int id) const 
+    {
+      OpenMS::Interfaces::SpectrumPtr s = indexed_mzml_file_.getSpectrumById(id);
+      OpenMS::OMSInterfaces::SpectrumPtr sptr;
+      sptr->setPos( s->getMZArray()->data );
+      sptr->setIntensity( s->getIntensityArray()->data );
+      sptr->setRT(meta_ms_experiment_->operator[](id).getRT());
+      sptr->setMSLevel(meta_ms_experiment_->operator[](id).getMSLevel());
+      sptr->setNativeID(meta_ms_experiment_->operator[](id).getNativeID());
+      sptr->setScanId(id);
+
+      std::vector<OpenMS::OMSInterfaces::Precursor> precursors;
+      const std::vector<Precursor> & precs = meta_ms_experiment_->operator[](id).getPrecursors();
+      for (Size i = 0; i < precs.size(); i++)
+      {
+        OpenMS::OMSInterfaces::Precursor p;
+        p.mz = precs[i].getMZ();
+        p.lower_offset = precs[i].getIsolationWindowLowerOffset();
+        p.upper_offset = precs[i].getIsolationWindowUpperOffset();
+        p.charge = precs[i].getCharge();
+        p.intensity = precs[i].getIntensity();
+        for (std::set<Precursor::ActivationMethod>::iterator it = precs[i].getActivationMethods().begin(); it != precs[i].getActivationMethods().end(); it++)
+        {
+          std::string method = Precursor::NamesOfActivationMethod[*it];
+          p.activation_methods.insert(method);
+        }
+        precursors.push_back(p);
+      }
+      sptr->setPrecursors(precursors);
+
+      return sptr;
+    }
+
+    /// Returns the number of spectra available
+    size_t getSpectraNr() const 
+    {
+      return indexed_mzml_file_.getNrSpectra();
+    }
+
 private:
     /// Private Assignment operator -> we cannot copy file streams in IndexedMzMLFile
     OnDiscMSExperiment & operator=(const OnDiscMSExperiment & source) {;}
@@ -248,7 +292,7 @@ protected:
     /// The filename of the underlying data file
     String filename_;
     /// The index of the underlying data file
-    IndexedMzMLFile indexed_mzml_file_;
+    mutable IndexedMzMLFile indexed_mzml_file_;
     /// The meta-data 
     boost::shared_ptr< MSExperiment<> > meta_ms_experiment_;
   };

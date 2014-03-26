@@ -42,6 +42,7 @@
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/METADATA/ExperimentalSettings.h>
+#include <OpenMS/INTERFACES/ISpectrumAccess.h>
 
 #include <vector>
 #include <algorithm>
@@ -66,6 +67,7 @@ namespace OpenMS
   */
   template <typename PeakT = Peak1D, typename ChromatogramPeakT = ChromatogramPeak>
   class MSExperiment :
+    public OMSInterfaces::MSRunIF,
     public RangeManager<2>,
     public ExperimentalSettings,
     public PersistentObject
@@ -834,6 +836,54 @@ public:
       return chromatograms_.size();
     }
     //@}
+
+    // ---------------------------------------------------------------------- 
+    // MSRunIF Implementation
+    // ---------------------------------------------------------------------- 
+    const OpenMS::OMSInterfaces::SpectrumPtr get_Spectrum(int id) const 
+    {
+      std::vector<double> mz, intensity;
+      for (Size i = 0; i < getSpectrum(id).size(); i++)
+      {
+        mz.push_back(getSpectrum(id)[i].getMZ());
+        intensity.push_back(getSpectrum(id)[i].getIntensity());
+      }
+
+      OpenMS::OMSInterfaces::SpectrumPtr sptr(new OpenMS::OMSInterfaces::Spectrum);
+      sptr->setPos(mz);
+      sptr->setIntensity(intensity);
+      sptr->setRT(getSpectrum(id).getRT());
+      sptr->setMSLevel(getSpectrum(id).getMSLevel());
+      sptr->setScanId(id);
+      sptr->setNativeID(getSpectrum(id).getNativeID());
+
+      std::vector<OpenMS::OMSInterfaces::Precursor> precursors;
+      const std::vector<Precursor> & precs = getSpectrum(id).getPrecursors();
+      for (Size i = 0; i < precs.size(); i++)
+      {
+        OpenMS::OMSInterfaces::Precursor p;
+        p.mz = precs[i].getMZ();
+        p.lower_offset = precs[i].getIsolationWindowLowerOffset();
+        p.upper_offset = precs[i].getIsolationWindowUpperOffset();
+        p.charge = precs[i].getCharge();
+        p.intensity = precs[i].getIntensity();
+        for (std::set<Precursor::ActivationMethod>::iterator it = precs[i].getActivationMethods().begin(); it != precs[i].getActivationMethods().end(); it++)
+        {
+          std::string method = Precursor::NamesOfActivationMethod[*it];
+          p.activation_methods.insert(method);
+        }
+        precursors.push_back(p);
+      }
+      sptr->setPrecursors(precursors);
+
+      return sptr;
+    }
+
+    /// Returns the number of spectra available
+    size_t getSpectraNr() const 
+    {
+      return spectra_.size();
+    }
 
     /// returns the total ion chromatogram (TIC)
     const MSChromatogram<ChromatogramPeakType> getTIC() const
