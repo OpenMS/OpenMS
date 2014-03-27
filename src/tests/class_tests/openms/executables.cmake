@@ -186,7 +186,6 @@ set(format_executables_list
   PepNovoOutfile_test
   PepXMLFileMascot_test
   PepXMLFile_test
-  PersistentObject_test
   ProtXMLFile_test
   SVOutStream_test
   SemanticValidator_test
