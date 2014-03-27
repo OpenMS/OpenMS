@@ -355,7 +355,7 @@ protected:
       --id; // native IDs were written 1-based
       if (id < exp.size())
       {
-        it->getRT(exp[id].getRT());
+        it->setRT(exp[id].getRT());
         DoubleReal pre_mz = 0.0;
         if (!exp[id].getPrecursors().empty()) pre_mz = exp[id].getPrecursors()[0].getMZ();
         it->setMZ(pre_mz);

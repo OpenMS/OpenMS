@@ -255,11 +255,11 @@ namespace OpenMS
     {
 	  if (!ids[i].hasRT())
       {
-        throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "IDMapper: meta data value 'RT' missing for peptide identification!");
+        throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "IDMapper: 'RT' information missing for peptide identification!");
       }
 	  if (!ids[i].hasMZ())
       {
-        throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "IDMapper: meta data value 'MZ' missing for peptide identification!");
+        throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "IDMapper: 'MZ' information missing for peptide identification!");
       }
     }
   }

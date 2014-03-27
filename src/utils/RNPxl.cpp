@@ -62,8 +62,6 @@ using namespace OpenMS;
 #define RT_FACTOR_PRECISION 1000
 #define RT_MODULO_FACTOR 10000 // last 4 digits is the index
 
-#define SEP '\t'
-
 struct RNPxlReportRow
 {
   bool no_id;
@@ -607,8 +605,8 @@ protected:
         for (vector<PeptideHit>::const_iterator hit = pit->getHits().begin(); hit != pit->getHits().end(); ++hit)
         {
           pep_hits.push_back(*hit);
-          pep_hits.back().setRT(pit->getRT());
-          pep_hits.back().setMZ(pit->getMZ());
+          pep_hits.back().setMetaValue("RT", pit->getRT());
+          pep_hits.back().setMetaValue("MZ", pit->getMZ());
         }
       }
 
@@ -772,7 +770,7 @@ protected:
     p = new QProcess();
     p->setProcessChannelMode(QProcess::MergedChannels);
     p->start("PeptideIndexer", args);
-    p->waitForFinished(999999999);
+    p->waitForFinished(-1);
     QString peptide_indexer_stdout = QString(p->readAllStandardOutput());
     if (getIntOption_("debug") > 0)
     {
