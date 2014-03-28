@@ -40,7 +40,10 @@
 
 #include <fstream>
 
-#include <seqan/seq_io.h>
+#include <seqan/basic.h>
+#include <seqan/stream.h>
+#include <seqan/seq_io/guess_stream_format.h>
+#include <seqan/seq_io/read_fasta_fastq.h>
 #include <seqan/sequence.h>
 
 using namespace std;

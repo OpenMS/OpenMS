@@ -215,8 +215,8 @@ namespace OpenMS
                               ? (PointType::CoordinateType)x / width()
                               : (PointType::CoordinateType)(height() - y) / height());
       new_area.max_[dim] = new_area.min_[dim] + zoom_factor * (visible_area_.max_[dim] - visible_area_.min_[dim]);
-      new_area.min_[dim] = std::max(new_area.min_[dim], overall_data_range_.min_[dim]);
-      new_area.max_[dim] = std::min(new_area.max_[dim], overall_data_range_.max_[dim]);
+      new_area.min_[dim] = max(new_area.min_[dim], overall_data_range_.min_[dim]);
+      new_area.max_[dim] = min(new_area.max_[dim], overall_data_range_.max_[dim]);
     }
     if (new_area != visible_area_)
     {
@@ -547,7 +547,7 @@ namespace OpenMS
       }
     }
     //Add 1% margin to RT in order to display all the data
-    DoubleReal margin = 0.01 * std::max(1.0, m_max[rt_dim] - m_min[rt_dim]);
+    DoubleReal margin = 0.01 * max(1.0, m_max[rt_dim] - m_min[rt_dim]);
     m_min[rt_dim] -= margin;
     m_max[rt_dim] += margin;
 
@@ -981,7 +981,7 @@ namespace OpenMS
     int width = 4;
     for (int i = 0; i < text.size(); ++i)
     {
-      width = std::max(width, 4 + metrics.width(text[i]));
+      width = max(width, 4 + metrics.width(text[i]));
     }
 
     //draw backgrond for text

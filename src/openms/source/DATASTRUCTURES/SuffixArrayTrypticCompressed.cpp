@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/DATASTRUCTURES/SuffixArrayTrypticCompressed.h>
+#include <OpenMS/DATASTRUCTURES/SuffixArraySeqan.h>
 #include <stack>
 #include <fstream>
 #include <cmath>
@@ -85,40 +86,6 @@ namespace OpenMS
 
 protected:
     String const& str_; ///< string
-  };
-
-/**
-@brief comparator for two doubles with a tolerance value
-*/
-  struct FloatsWithTolLess :
-    public binary_function<DoubleReal, DoubleReal, bool>
-  {
-    /**
-    @brief constructor
-    @param t const reference to the tolerance
-    */
-    explicit FloatsWithTolLess(const DoubleReal& t) :
-      tol_(t) {}
-    /**
-    @brief copy constructor
-    */
-    FloatsWithTolLess(const FloatsWithTolLess& rhs) :
-      tol_(rhs.tol_) {}
-
-    /**
-    @brief implementation of the '<' operator for two doubles with the tolerance value
-    @param f1 first DoubleReal
-    @param f2 second DoubleReal
-    @return true if first DoubleReal '<' second DoubleReal-tolerance
-    */
-    bool operator()(DoubleReal f1, DoubleReal f2) const
-    {
-      return f1 < (f2 - tol_);
-      //return (fabs(f1 - f2) < tol_);
-    }
-
-protected:
-    DoubleReal const& tol_; ///< tolerance value
   };
 
 

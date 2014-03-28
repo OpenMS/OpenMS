@@ -162,7 +162,7 @@ public:
 
     int get_scan_number();
 
-    void set_retention_time(double IN);
+    void set_retention_time(double in);
 
     double get_retention_time();
 

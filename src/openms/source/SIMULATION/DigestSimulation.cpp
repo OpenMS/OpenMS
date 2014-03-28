@@ -219,9 +219,9 @@ namespace OpenMS
           f.setIntensity(0.0);
 
           // copy all non-intensity meta values
-          StringList keys;
-          protein_hit->getKeys(keys);
-          for (StringList::iterator key = keys.begin(); key != keys.end(); ++key)
+          StringList lkeys;
+          protein_hit->getKeys(lkeys);
+          for (StringList::iterator key = lkeys.begin(); key != lkeys.end(); ++key)
           {
             if (!key->hasPrefix("intensity"))
             {

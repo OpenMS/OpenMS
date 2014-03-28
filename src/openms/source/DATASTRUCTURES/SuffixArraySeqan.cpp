@@ -34,93 +34,24 @@
 
 
 #include <OpenMS/DATASTRUCTURES/SuffixArraySeqan.h>
-#include <stack>
-#include <fstream>
 #include <cmath>
-#include <typeinfo>
 #include <ctime>
 #include <cstdio>
+#include <fstream>
+#include <stack>
+#include <typeinfo>
 
 #include <OpenMS/CHEMISTRY/ModifierRep.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
-using namespace seqan;
+//using namespace seqan; // do not use since seqan defines a class set, which makes std::set ambiguous
 using namespace std;
 
 
 namespace OpenMS
 {
-  /**
-  @brief comperator for two doubles with a tolerance value
-  */
-  struct FloatsWithTolLess :
-    public binary_function<DoubleReal, DoubleReal, bool>
-  {
-    /**
-    @brief constructor
-    @param t const reference to the tolerance
-    */
-    explicit FloatsWithTolLess(const DoubleReal & t) :
-      tol_(t) {}
-    /**
-    @brief copy constructor
-    */
-    FloatsWithTolLess(const FloatsWithTolLess & rhs) :
-      tol_(rhs.tol_) {}
-
-    /**
-    @brief implementation of the '<' operator for two doubles with the tolerance value
-    @param f1 first DoubleReal
-    @param f2 second DoubleReal
-    @return true if first DoubleReal '<' second DoubleReal-tolerance
-    */
-    bool operator()(DoubleReal f1, DoubleReal f2) const
-    {
-      return f1 < (f2 - tol_);
-    }
-
-protected:
-    DoubleReal const & tol_;     ///< tolerance value
-  };
-
-  /**
-  @brief comperator for two doubles with a tolerance value
-  @todo Think about that this does and if it is really necessary (why DoubleReal, DoubleReal????) (Andreas, Clemens)
-  */
-  struct IntsInRangeLess :
-    public binary_function<DoubleReal, DoubleReal, bool>
-  {
-    /**
-    @brief constructor
-    @param t const reference to the tolerance
-    */
-    IntsInRangeLess(const int & s, const int & e) :
-      start_(s), end_(e) {}
-    /**
-    @brief copy constructor
-    */
-    IntsInRangeLess(const IntsInRangeLess & source) :
-      start_(source.start_), end_(source.end_) {}
-
-    /**
-    @brief implementation of the '<' operator for two doubles with the tolerance value
-    @param f1 first DoubleReal
-    @param f2 second DoubleReal
-    @return true if first DoubleReal '<' second DoubleReal-tolerance
-    */
-    bool operator()(int f1, int f2) const
-    {
-      //cout<<"f1:"<<f1<<" f2:"<<f2<<" start:"<<start_<< " end:" << end_<<endl;
-      return (f2 == end_) ? f1 <= f2 - start_ : f1 < f2;
-    }
-
-protected:
-    int const & start_;     ///< start index
-    int const & end_;     ///< end index
-  };
-
 
   // constructor
   SuffixArraySeqan::SuffixArraySeqan(const String & st, const String & sa_file_name, const WeightWrapper::WEIGHTMODE weight_mode) :
@@ -220,15 +151,15 @@ protected:
       throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, (file_name + ".txt"));
     }
 
-    if (!indexSupplied(index_, EsaSA()) ||
-        !indexSupplied(index_, EsaLcp()) ||
-        !indexSupplied(index_, EsaChildtab()))
+    if (!seqan::indexSupplied(index_, seqan::EsaSA()) ||
+        !seqan::indexSupplied(index_, seqan::EsaLcp()) ||
+        !seqan::indexSupplied(index_, seqan::EsaChildtab()))
     {
       //cout<<"creating index " << endl;
 
-      indexRequire(index_, EsaSA());
-      indexRequire(index_, EsaLcp());
-      indexRequire(index_, EsaChildtab());
+      seqan::indexRequire(index_, seqan::EsaSA());
+      seqan::indexRequire(index_, seqan::EsaLcp());
+      seqan::indexRequire(index_, seqan::EsaChildtab());
       seqan::save(index_, file_name.c_str());
     }
 
@@ -285,21 +216,21 @@ protected:
   {
 
     if (end - start <= 1)
-      return (spec.at(start) < m - tol_) ? end : start;
+      return (spec[start] < m - tol_) ? end : start;
 
     SignedSize middle = ((end - start) / 2) + start;
 
-    if (spec.at(middle) < m - tol_)
+    if (spec[middle] < m - tol_)
     {
       return findFirst_(spec, m, middle, end);
     }
-    if (spec.at(middle) > m + tol_)
+    if (spec[middle] > m + tol_)
     {
       return findFirst_(spec, m, start, middle);
     }
-    while (middle >= 0 && spec.at(middle) >= m - tol_)
+    while (middle >= 0 && spec[middle] >= m - tol_)
     {
-      middle--;
+      --middle;
     }
     return middle + 1;
   }
@@ -376,7 +307,7 @@ protected:
     {
       SignedSize start_index_in_text = getOccurrence(*it_);
       char start_char = s_[start_index_in_text];
-      char next_char = ((Size)start_index_in_text == length(s_) - 1) ? 'R' : s_[start_index_in_text + 1];
+      char next_char = ((Size)start_index_in_text == seqan::length(s_) - 1) ? 'R' : s_[start_index_in_text + 1];
 
       map<DoubleReal, SignedSize> modification_map(history.top());
 

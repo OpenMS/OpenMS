@@ -235,9 +235,9 @@ namespace OpenMS
 
 //////////////////////////////////////////////////////////////////
 // remove a feature from the LC/MS run:
-  void LCMS::remove_feature(SHFeature * IN)
+  void LCMS::remove_feature(SHFeature * in)
   {
-    vector<SHFeature>::iterator P = find(feature_list.begin(), feature_list.end(), IN);
+    vector<SHFeature>::iterator P = find(feature_list.begin(), feature_list.end(), in);
     if (P != feature_list.end())
     {
       P->show_info();
@@ -247,9 +247,9 @@ namespace OpenMS
 
 //////////////////////////////////////////////////////////////////
 // remove a feature from the LC/MS run by ID:
-  void LCMS::remove_feature_by_ID(SHFeature * IN)
+  void LCMS::remove_feature_by_ID(SHFeature * in)
   {
-    remove_feature_by_ID(IN->get_feature_ID());
+    remove_feature_by_ID(in->get_feature_ID());
   }
 
 //////////////////////////////////////////////////////////////////
@@ -272,16 +272,16 @@ namespace OpenMS
 
 ///////////////////////////////////////////////////////////
 // get alignment error at specific TR:
-  void LCMS::get_alignment_error(double IN, double * UP, double * DOWN)
+  void LCMS::get_alignment_error(double in, double * UP, double * DOWN)
   {
 
     if (!ALIGNMENT_ERROR.empty())
     {
 
-      map<double, pair<double, double> >::iterator P = ALIGNMENT_ERROR.lower_bound(IN);
+      map<double, pair<double, double> >::iterator P = ALIGNMENT_ERROR.lower_bound(in);
 
       // exact match:
-      if ((*P).first == IN)
+      if ((*P).first == in)
       {
         *UP = (*P).second.first;
         *DOWN = (*P).second.second;
@@ -313,8 +313,8 @@ namespace OpenMS
         double down_E_d = (*P).second.second;
         double TR_d = (*P).first;
 
-        double w_u = (IN - TR_d) / (TR_u - TR_d);
-        double w_d = (TR_u - IN) / (TR_u - TR_d);
+        double w_u = (in - TR_d) / (TR_u - TR_d);
+        double w_d = (TR_u - in) / (TR_u - TR_d);
 
         *UP = w_u * up_E_u + w_d * up_E_d;
         *DOWN = w_u * down_E_u + w_d * down_E_d;
@@ -341,10 +341,10 @@ namespace OpenMS
 
 ///////////////////////////////////////////////////////////////
 // compare the LC/MS runs names
-  bool LCMS::check_LCMS_name(string IN)
+  bool LCMS::check_LCMS_name(string in)
   {
 
-    if (spec_name.find(IN) != string::npos)
+    if (spec_name.find(in) != string::npos)
     {
       return true;
     }
@@ -352,7 +352,7 @@ namespace OpenMS
     map<int, string>::iterator F = raw_spec_names.begin();
     while (F != raw_spec_names.end())
     {
-      if ((*F).second.find(IN) != string::npos)
+      if ((*F).second.find(in) != string::npos)
       {
         return true;
       }

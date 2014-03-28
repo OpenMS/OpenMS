@@ -147,7 +147,7 @@ public:
 
     // sets modification SQ:
     void set_FULL_SQ();
-    void set_SQ(std::string IN);
+    void set_SQ(std::string in);
 
     // show info:
     void show_info();
@@ -188,7 +188,7 @@ public:
     void set_AC(std::string);
     float get_PEP_PROB();
 
-    void set_PEP_PROB(float IN);
+    void set_PEP_PROB(float in);
 
     double get_MONO_MZ();
 
@@ -200,43 +200,42 @@ public:
 
     int get_CHRG();
 
-    void set_CHRG(int IN);
+    void set_CHRG(int in);
 
     int get_SCAN();
 
     int get_SCAN_START();
 
-    void set_SCAN_START(int IN);
+    void set_SCAN_START(int in);
 
     int get_SCAN_END();
 
-    void set_SCAN_END(int IN);
+    void set_SCAN_END(int in);
 
     int get_ID();
 
     double get_DELTA_CN();
 
-    void set_DELTA_CN(double IN);
+    void set_DELTA_CN(double in);
 
     double get_XCORR();
 
-    void set_XCORR(double IN);
+    void set_XCORR(double in);
 
-    void set_MS2_TYPE_TAG(std::string IN);
+    void set_MS2_TYPE_TAG(std::string in);
 
     std::string get_MS2_TYPE_TAG();
 
     // access the retention parameter:
     double getRetentionTime();
 
-    void setRetentionTime(double IN);
+    void setRetentionTime(double in);
 
     double get_MONO_AA_MASS(int);
 
     std::string get_PREV_AA();
 
-    void set_PREV_AA(std::string IN);
-
+    void set_PREV_AA(std::string in);
   };
 
 } // ns

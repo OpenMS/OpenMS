@@ -176,7 +176,7 @@ public:
 
 
     // set / get  the charge state of the precursor MZ:
-    void setPrecursorChrg(int IN);
+    void setPrecursorChrg(int in);
     int getPrecursorChrg();
     // apex scan:
     int getApexScan();
@@ -191,7 +191,6 @@ public:
     std::multimap<double, MS2Fragment>::iterator getMS2FragmentPeakStart();
     std::multimap<double, MS2Fragment>::iterator getMS2FragmentPeakEnd();
     std::multimap<double, MS2Fragment> * getMS2FragmentMap();
-
 
   };
 

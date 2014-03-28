@@ -181,26 +181,26 @@ namespace OpenMS
 
 ///////////////////////////////////////////////////////////////////////////////
 // erase element in MZ list:
-  void ProcessData::erase_MZ_LIST_element(ProcessData::main_iterator IN)
+  void ProcessData::erase_MZ_LIST_element(ProcessData::main_iterator in)
   {
-    if (IN == pMZ_LIST.end())
+    if (in == pMZ_LIST.end())
     {
       printf("\nERROR: could not erase end iterator, ProcessData::erase_MZ_LIST_element()!!!!\n");
     }
-    pMZ_LIST.erase(IN);
+    pMZ_LIST.erase(in);
   }
 
 ///////////////////////////////////////////////////////////////////////////////
 // find element numbers:
-  map<double, int>::iterator ProcessData::get_nb_MZ_cluster_elements(double IN)
+  map<double, int>::iterator ProcessData::get_nb_MZ_cluster_elements(double in)
   {
 
-    // map<double, int>::iterator OUT = MZ_CLUSTER.lower_bound(IN);
-    // IN = simple_math::ROUND_NUMBER(IN,3);
-    map<double, int>::iterator OUT = MZ_CLUSTER.find(IN);
-    if (IN == (*OUT).first)
+    // map<double, int>::iterator out = MZ_CLUSTER.lower_bound(in);
+    // in = simple_math::ROUND_NUMBER(in,3);
+    map<double, int>::iterator out = MZ_CLUSTER.find(in);
+    if (in == (*out).first)
     {
-      return OUT;
+      return out;
     }
 
     printf("\nERROR: no match in MZ_CLUSTER found, ProcessData::get_nb_MZ_cluster_elements(double)!!!!\n");
@@ -210,11 +210,11 @@ namespace OpenMS
 
 ///////////////////////////////////////////////////////////////////////////////
 // get the  full summed up intensity
-  double ProcessData::getPeakIntensitySum(double IN)
+  double ProcessData::getPeakIntensitySum(double in)
   {
 
     double out = 0;
-    main_iterator F = pMZ_LIST.find(IN);
+    main_iterator F = pMZ_LIST.find(in);
     if (F != pMZ_LIST.end())
     {
 
@@ -239,32 +239,32 @@ namespace OpenMS
 
 ///////////////////////////////////////////////////////////////////////////////
 // erase an element:
-  void ProcessData::erase_MZ_cluster_element(map<double, int>::iterator IN)
+  void ProcessData::erase_MZ_cluster_element(map<double, int>::iterator in)
   {
-    if (IN == MZ_CLUSTER.end())
+    if (in == MZ_CLUSTER.end())
     {
       printf("\nERROR: could not erase end iterator, ProcessData::erase_MZ_cluster_element()!!!!\n");
     }
-    MZ_CLUSTER.erase(IN);
+    MZ_CLUSTER.erase(in);
   }
 
 ///////////////////////////////////////////////////////////////////////////////
 // erase an element:
-  void ProcessData::insert_MZ_cluster_element(double IN, int NB)
+  void ProcessData::insert_MZ_cluster_element(double in, int NB)
   {
-    // IN = simple_math::ROUND_NUMBER(IN,3);
-    MZ_CLUSTER.insert(make_pair(IN, NB));
+    // in = simple_math::ROUND_NUMBER(in,3);
+    MZ_CLUSTER.insert(make_pair(in, NB));
   }
 
 ///////////////////////////////////////////////////////////////////////////////
 // find a retention time by the scan number:
-  double ProcessData::find_retention_time(double IN)
+  double ProcessData::find_retention_time(double in)
   {
 
     if (SuperHirnParameters::instance()->getScanTRIndex()->size() > 0)
     {
 
-      int SCAN = int(ceil(IN));
+      int SCAN = int(ceil(in));
       map<int, float>::iterator P = SuperHirnParameters::instance()->getScanTRIndex()->lower_bound(SCAN);
 
       if (P == SuperHirnParameters::instance()->getScanTRIndex()->end())
@@ -273,7 +273,7 @@ namespace OpenMS
         return (*P).second;
       }
 
-      if ((*P).first == IN)
+      if ((*P).first == in)
       {
         return (*P).second;
       }
@@ -287,8 +287,8 @@ namespace OpenMS
           --P;
           double TR_down = (*P).second;
           double SCAN_down = double((*P).first);
-          double w_up = (SCAN_up - SCAN_down) / (SCAN_up - IN);
-          double w_down = (SCAN_up - SCAN_down) / (IN - SCAN_down);
+          double w_up = (SCAN_up - SCAN_down) / (SCAN_up - in);
+          double w_down = (SCAN_up - SCAN_down) / (in - SCAN_down);
           return (w_up * TR_up + w_down * TR_down) / (w_up + w_down);
         }
         else

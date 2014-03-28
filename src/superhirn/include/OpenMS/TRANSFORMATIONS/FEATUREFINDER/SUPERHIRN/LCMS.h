@@ -175,7 +175,7 @@ public:
     std::vector<SHFeature>::iterator get_feature_list_end();
 
     // add a new feature to the list:
-    void add_feature(SHFeature * IN);
+    void add_feature(SHFeature * in);
 
     // remove a feature from the LC/MS run by ID:
     void remove_feature_by_ID(SHFeature *);
@@ -185,17 +185,17 @@ public:
     void remove_feature(int i);
 
     // remove a feature by iterator and return the iterator to the next element
-    std::vector<SHFeature>::iterator remove_feature_from_list(std::vector<SHFeature>::iterator IN);
+    std::vector<SHFeature>::iterator remove_feature_from_list(std::vector<SHFeature>::iterator in);
 
     // get number of feature added:
     unsigned int get_nb_features();
 
     std::string get_spec_name();
-    void set_spec_name(std::string IN);
+    void set_spec_name(std::string in);
 
     // set / get spectrum id:
     int get_spectrum_ID();
-    void set_spectrum_ID(int IN);
+    void set_spectrum_ID(int in);
 
     // set the id of all features
     void setFeatureLCMSID();
@@ -221,7 +221,7 @@ public:
     bool find_LC_MS_by_ID(int);
 
     // add the raw spectrum map:
-    void add_raw_spec_name_map(std::map<int, std::string> IN);
+    void add_raw_spec_name_map(std::map<int, std::string> in);
 
     // counts the number of ms features, which contain MS2 info:
     int get_nb_identified_features();
@@ -238,7 +238,7 @@ public:
     void get_alignment_error(double, double *, double *);
 
     // access MASTER run ID:
-    void set_MASTER_ID(int IN);
+    void set_MASTER_ID(int in);
     int get_MASTER_ID();
   };
 

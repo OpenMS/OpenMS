@@ -163,40 +163,40 @@ namespace OpenMS
   }
 
 // copied from simple_math
-  pair<double, double> simple_math_AVERAGE_and_STDEV(vector<double> * IN)
+  pair<double, double> simple_math_AVERAGE_and_STDEV(vector<double> * in)
   {
 
     double AVERAGE = 0;
     double STDEV = 0;
 
-    if (IN->empty())
+    if (in->empty())
     {
       return make_pair(AVERAGE, STDEV);
     }
 
-    if (IN->size() > 1)
+    if (in->size() > 1)
     {
-      vector<double>::iterator START = IN->begin();
-      while (START != IN->end())
+      vector<double>::iterator START = in->begin();
+      while (START != in->end())
       {
         AVERAGE += (*START);
         START++;
       }
-      AVERAGE /= double(IN->size());
+      AVERAGE /= double(in->size());
 
-      START = IN->begin();
-      while (START != IN->end())
+      START = in->begin();
+      while (START != in->end())
       {
         STDEV += ((AVERAGE - (*START)) * (AVERAGE - (*START)));
         START++;
       }
-      STDEV /= double(IN->size());
+      STDEV /= double(in->size());
       STDEV = sqrt(STDEV);
       return make_pair(AVERAGE, STDEV);
     }
     else
     {
-      return make_pair((*IN->begin()), 0.0);
+      return make_pair((*in->begin()), 0.0);
     }
   }
 

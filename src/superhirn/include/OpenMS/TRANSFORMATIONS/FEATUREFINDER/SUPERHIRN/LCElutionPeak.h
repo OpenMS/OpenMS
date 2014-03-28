@@ -207,10 +207,10 @@ public:
     //SIGNAL_iterator get_raw_signal_list_end(){return raw_intens_signals.end();};
 
     // update the retention time by the current tmp_scan_apex:
-    void set_apex_retention_time(double IN);
+    void set_apex_retention_time(double in);
 
     // to update the list of score and charge state:
-    void update_CHRGMAP(MSPeak * IN);
+    void update_CHRGMAP(MSPeak * in);
 
     ///////////////////
     // get scan apex:
@@ -224,7 +224,7 @@ public:
 
     //////////////////
     // get an intensity of a ms_peak
-    float get_intensity(int IN);
+    float get_intensity(int in);
 
     // get the original M/Z of a ms_peak
     double get_MZ(int);
@@ -239,11 +239,11 @@ public:
 
     int get_end_scan();
 
-    void set_start_retention_time(double IN);
+    void set_start_retention_time(double in);
 
     double get_start_retention_time();
 
-    void set_end_retention_time(double IN);
+    void set_end_retention_time(double in);
 
     double get_end_retention_time();
 

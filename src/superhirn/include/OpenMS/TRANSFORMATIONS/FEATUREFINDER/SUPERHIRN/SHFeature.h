@@ -215,16 +215,16 @@ public:
     double get_MZ();
     void set_MZ(double in);
     double get_MZ_START();
-    void set_MZ_START(double IN);
+    void set_MZ_START(double in);
     double get_MZ_END();
-    void set_MZ_END(double IN);
+    void set_MZ_END(double in);
 
     double get_THEO_MZ();
     double get_THEO_MZ(double T);
     std::string get_AC();
     std::string get_AC(double T);
-    bool check_AC(std::string IN);
-    bool check_AC(std::string IN, double T);
+    bool check_AC(std::string in);
+    bool check_AC(std::string in, double T);
     std::string get_SQ();
     std::string get_SQ(double T);
     std::string get_TOTAL_SQ();
@@ -242,14 +242,14 @@ public:
     std::map<double, std::vector<MS2Info> >::iterator get_MS2_SCAN_LIST_END();
 
     int get_scan_number();
-    void set_scan_number(int IN);
+    void set_scan_number(int in);
     int get_scan_start();
-    void set_scan_start(int IN);
+    void set_scan_start(int in);
     int get_scan_end();
-    void set_scan_end(int IN);
+    void set_scan_end(int in);
     int get_charge_state();
-    void set_charge_state(int IN);
-    void set_peak_area(float IN);
+    void set_charge_state(int in);
+    void set_peak_area(float in);
     double get_peak_area();
     // get peak area at a certain LC/MS:
     double get_peak_area(int);
@@ -258,35 +258,35 @@ public:
     void normalize_peak_area_by_factor(double factor);
 
     double get_alignment_error_up();
-    void set_alignment_error_up(double IN);
+    void set_alignment_error_up(double in);
     double get_alignment_error_down();
-    void set_alignment_error_down(double IN);
+    void set_alignment_error_down(double in);
 
-    void set_SCORE_HOLDER(double IN);
+    void set_SCORE_HOLDER(double in);
     double get_SCORE_HOLDER();
 
     double get_retention_time();
-    void set_retention_time(double IN);
+    void set_retention_time(double in);
     double get_retention_time_START();
-    void set_retention_time_START(double IN);
+    void set_retention_time_START(double in);
     double get_retention_time_END();
-    void set_retention_time_END(double IN);
+    void set_retention_time_END(double in);
 
     // original mz and Tr coordinates
     double get_raw_retention_time_apex();
-    void set_raw_retention_time_apex(double IN);
+    void set_raw_retention_time_apex(double in);
     double get_raw_MZ();
-    void set_raw_MZ(double IN);
+    void set_raw_MZ(double in);
 
     // feature ID:
-    void set_feature_ID(int IN);
+    void set_feature_ID(int in);
     int get_feature_ID();
 
-    void set_spectrum_ID(int IN);
+    void set_spectrum_ID(int in);
 
     int get_spectrum_ID();
 
-    void set_MASTER_ID(int IN);
+    void set_MASTER_ID(int in);
     int get_MASTER_ID();
 
     // check how many matches
@@ -301,7 +301,7 @@ public:
 
     // feature PI:
     double get_FEATURE_PI();
-    void set_FEATURE_PI(double IN);
+    void set_FEATURE_PI(double in);
 
     // check charge states, in cases where a feature was
     // created based on a MS2 trace, charge state is unknown ( = -1 )
@@ -310,7 +310,7 @@ public:
     void deriveChargeStates(SHFeature *);
 
     // LC elution profile
-    void setLCelutionProfile(FeatureLCProfile * IN);
+    void setLCelutionProfile(FeatureLCProfile * in);
     FeatureLCProfile * getLCelutionProfile();
 
     //////////////////////////////////////////////
@@ -321,7 +321,7 @@ public:
     /////////////////////////////////////////////
     // status if feature has been matched:
     bool get_feature_match_status();
-    void set_feature_match_status(bool IN);
+    void set_feature_match_status(bool in);
 
     ///////////////////////////////////////////
     // access the MS2 feature
