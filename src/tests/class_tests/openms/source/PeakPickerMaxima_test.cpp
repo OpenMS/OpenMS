@@ -40,6 +40,8 @@
 ///////////////////////////
 
 #include <OpenMS/FORMAT/MzMLFile.h>
+#include <cmath>
+#define PI 3.141592653589793
 
 using namespace OpenMS;
 using namespace std;
@@ -58,6 +60,20 @@ std::vector<PeakPickerMaxima::PeakCandidate> ppmax_pick(MSSpectrum<>& spec, Peak
   return pc;
 }
 
+double getGauss(double mu, double sigma, double x)
+{
+  return (1.0/(sigma*sqrt(2*PI)) * exp( -(x-mu)*(x-mu)/(2.0*sigma*sigma)));
+}
+
+void generateTestData(std::vector<double>& x, std::vector<double>& y, double deltax, double int_multiplicator)
+{
+  for (Size i = 0; i < 20; i++)
+  {
+    x.push_back(i + deltax);
+    y.push_back( getGauss(10,5,i)*int_multiplicator );
+  }
+}
+
 START_TEST(PeakPickerMaxima, "$Id$")
 
 /////////////////////////////////////////////////////////////
@@ -74,6 +90,232 @@ START_SECTION((virtual ~PeakPickerMaxima()))
   delete ptr;
 END_SECTION
 
+
+  /*
+   * Python code:
+   *
+
+import math, numpy
+def gauss(mu, sigma, x):
+  return (1.0/(sigma*math.sqrt(2*numpy.pi)) * math.exp( -(x- mu)**2.0/(2.0*sigma*sigma)))
+
+y = [ gauss(10.0,5.0,i) for i in range(20) ]
+x = [ i for i in range(20) ]
+xx = [x[2*i+1] for i in range(10)]
+yy = [y[2*i+1] for i in range(10)]
+xrand = [xit + 0.5*(random.random()-0.5) for xit in x]
+yrand = [yit + max(y)*0.25*(random.random()-0.5) for yit in y]
+
+
+  max(y)
+  0.07978845608028655
+
+  y[9]
+  0.07820853879509118
+  */
+
+static const double arr1[] = {
+  -0.04732030993393693,
+  0.8914924331847927,
+  2.242251028116535,
+  2.8489997501981357,
+  4.1663063904956,
+  4.770450183181009,
+  5.8026362378461815,
+  7.067111623628946,
+  7.968908908421478,
+  8.959060860876802,
+  10.005216076641757,
+  11.196610814166815,
+  12.116982813029852,
+  12.977162356375791,
+  14.100893620425213,
+  15.222529820550236,
+  15.890138455823378,
+  16.771297077874447,
+  18.074575078568163,
+  19.093826607410218 
+};
+std::vector<double> xrand (arr1, arr1 + sizeof(arr1) / sizeof(arr1[0]) );
+static const double arr2[] = {
+  0.007050921402452849,
+  0.006089927970860897,
+  0.016432781047452296,
+  0.0351300895434513,
+  0.03593042409081977,
+  0.0415877855954923,
+  0.054303625272399056,
+  0.061883694314788226,
+  0.07837041224348473,
+  0.07652346739035985,
+  0.07886053568902987,
+  0.07959292444993592,
+  0.0708551147646475,
+  0.05812243127463338,
+  0.06262580825607922,
+  0.046054457061387874,
+  0.046166241756351346,
+  0.023122371466895074,
+  0.03182678605750754,
+  0.009819277289325083
+
+};
+std::vector<double> yrand (arr2, arr2 + sizeof(arr2) / sizeof(arr2[0]) );
+
+START_SECTION([EXTRA](pick single peak))
+{
+  PeakPickerMaxima pp_max(0.0);
+  std::vector<double> mz_array, int_array;
+  generateTestData(mz_array, int_array, 0, 1.0);
+
+  // Test Gaussian function
+  {
+  std::vector<PeakPickerMaxima::PeakCandidate> pc;
+  pp_max.pick(mz_array, int_array, pc);
+
+  TEST_EQUAL(pc.size(), 1)
+  TEST_EQUAL(pc[0].pos, 10)
+  TEST_REAL_SIMILAR(pc[0].int_max, 0.07978845608028655)
+  TEST_REAL_SIMILAR(pc[0].mz_max, 10)
+
+  }
+
+  // Re-sample at every second point
+  {
+    std::vector<double> mz_array_mut, int_array_mut;
+    for (Size i = 0; i < 10; i++)
+    {
+      mz_array_mut.push_back( mz_array[2*i+1]);
+      int_array_mut.push_back( int_array[2*i+1]);
+    }
+
+    std::vector<PeakPickerMaxima::PeakCandidate> pc;
+    int_array_mut[4] += 0.0001; // needs a small delta to be backwards compatible
+    pp_max.pick(mz_array_mut, int_array_mut, pc);
+
+    TEST_EQUAL(pc.size(), 1)
+    TEST_EQUAL(pc[0].pos, 4)
+    TOLERANCE_RELATIVE(1.005);
+    TEST_REAL_SIMILAR(pc[0].int_max, 0.07978845608028655)
+    TEST_REAL_SIMILAR(pc[0].mz_max, 10)
+  }
+
+  // Re-sample at every second point
+  // Introduce a small m/z error
+  {
+    std::vector<PeakPickerMaxima::PeakCandidate> pc;
+    pp_max.pick(xrand, int_array, pc);
+
+    TEST_EQUAL(pc.size(), 1)
+    TEST_EQUAL(pc[0].pos, 10)
+    TOLERANCE_RELATIVE(1.005);
+    TEST_REAL_SIMILAR(pc[0].int_max, 0.07978845608028655)
+    TOLERANCE_RELATIVE(1.02);
+    TEST_REAL_SIMILAR(pc[0].mz_max, 10)
+  }
+
+  // Re-sample at every second point
+  // Introduce a small int error
+  {
+    std::vector<PeakPickerMaxima::PeakCandidate> pc;
+    pp_max.pick(mz_array, yrand, pc);
+
+    TEST_EQUAL(pc.size(), 2)
+
+    TEST_EQUAL(pc[0].pos, 8)
+    TOLERANCE_RELATIVE(1.05);
+    TEST_REAL_SIMILAR(pc[0].int_max, 0.07837041224348473) // yrand[8]
+    TEST_EQUAL(fabs(pc[0].mz_max - 8) < 1, true)
+
+    TEST_EQUAL(pc[1].pos, 11)
+    TOLERANCE_RELATIVE(1.05);
+    TEST_REAL_SIMILAR(pc[1].int_max, 0.07886053568902987) // yrand[10]
+    TEST_EQUAL(fabs(pc[1].mz_max - 10) < 1, true)
+  }
+
+  TOLERANCE_RELATIVE(1.00001);
+}
+END_SECTION
+
+START_SECTION([EXTRA](pick multiple peaks))
+{
+  PeakPickerMaxima pp_max(0.0);
+  std::vector<double> mz_array, int_array;
+  generateTestData(mz_array, int_array, 0, 1.0);
+  for (Size i = 20; i < 25; i++)
+  {
+    mz_array.push_back(i);
+    int_array.push_back( 0.020);
+  }
+  generateTestData(mz_array, int_array, 25, 1.0);
+  for (Size i = 45; i < 50; i++)
+  {
+    mz_array.push_back(i);
+    int_array.push_back( 0.020);
+  }
+
+  // Test multiple Gaussian function
+  {
+    std::vector<PeakPickerMaxima::PeakCandidate> pc;
+    pp_max.pick(mz_array, int_array, pc);
+
+    TEST_EQUAL(pc.size(), 2)
+    TEST_EQUAL(pc[0].pos, 10)
+    TEST_REAL_SIMILAR(pc[0].int_max, 0.07978845608028655)
+    TEST_REAL_SIMILAR(pc[0].mz_max, 10)
+    TEST_EQUAL(pc[0].left_boundary, 0)
+    TEST_EQUAL(pc[0].right_boundary, 19)
+
+    TEST_EQUAL(pc[1].pos, 35)
+    TEST_REAL_SIMILAR(pc[1].int_max, 0.07978845608028655)
+    TEST_REAL_SIMILAR(pc[1].mz_max, 35)
+    TEST_EQUAL(pc[1].left_boundary, 25)
+    TEST_EQUAL(pc[1].right_boundary, 44)
+  }
+}
+END_SECTION
+
+START_SECTION([EXTRA](pick multiple peaks SN))
+{
+  // Since S/N always returns a value > 1, we have to multiply our intensities
+  // by a factor of 100.
+  PeakPickerMaxima pp_max(1.0);
+  std::vector<double> mz_array, int_array;
+  generateTestData(mz_array, int_array, 0, 100.0);
+  for (Size i = 20; i < 25; i++)
+  {
+    mz_array.push_back(i);
+    int_array.push_back( 0.015*100);
+  }
+  generateTestData(mz_array, int_array, 25, 100.0);
+  for (Size i = 45; i < 50; i++)
+  {
+    mz_array.push_back(i);
+    int_array.push_back( 0.015*100);
+  }
+
+  // Test multiple Gaussian function with Signal to Noise
+  {
+    std::vector<PeakPickerMaxima::PeakCandidate> pc;
+    pp_max.pick(mz_array, int_array, pc);
+
+    TEST_EQUAL(pc.size(), 2)
+    TEST_EQUAL(pc[0].pos, 10)
+    TEST_REAL_SIMILAR(pc[0].int_max, 0.07978845608028655*100)
+    TEST_REAL_SIMILAR(pc[0].mz_max, 10)
+    TEST_EQUAL(pc[0].left_boundary, 2)
+    TEST_EQUAL(pc[0].right_boundary, 18)
+
+    TEST_EQUAL(pc[1].pos, 35)
+    TEST_REAL_SIMILAR(pc[1].int_max, 0.07978845608028655*100)
+    TEST_REAL_SIMILAR(pc[1].mz_max, 35)
+    TEST_EQUAL(pc[1].left_boundary, 27)
+    TEST_EQUAL(pc[1].right_boundary, 43)
+  }
+}
+END_SECTION
+
+TOLERANCE_RELATIVE(1.00001);
 MSExperiment<Peak1D> input, output;
 
 /////////////////////////

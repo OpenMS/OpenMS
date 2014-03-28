@@ -145,7 +145,6 @@ namespace OpenMS
               && (missing_left < 2)
               && int_array[i - k] <= boundary_int)
         {
-
           double act_snt_lk = 0.0;
           if (signal_to_noise_ > 0.0)
           {
