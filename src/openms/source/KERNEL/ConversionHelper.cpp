@@ -36,5 +36,45 @@
 
 namespace OpenMS
 {
+  namespace MapConversion
+  {
+    void convert(UInt64 const input_map_index,
+                 MSExperiment<> & input_map,
+                 ConsensusMap & output_map,
+                 Size n)
+    {
+      output_map.clear(true);
+
+      // see @todo above
+      output_map.setUniqueId();
+
+      input_map.updateRanges(1);
+      if (n > input_map.getSize())
+      {
+        n = input_map.getSize();
+      }
+      output_map.reserve(n);
+      std::vector<Peak2D> tmp;
+      tmp.reserve(input_map.getSize());
+
+      // TODO Avoid tripling the memory consumption by this call
+      input_map.get2DData(tmp);
+
+      std::partial_sort(tmp.begin(),
+                        tmp.begin() + n,
+                        tmp.end(),
+                        reverseComparator(Peak2D::IntensityLess()));
+
+      for (Size element_index = 0; element_index < n; ++element_index)
+      {
+        output_map.push_back(ConsensusFeature(input_map_index,
+                                              tmp[element_index],
+                                              element_index));
+      }
+
+      output_map.getFileDescriptions()[input_map_index].size = n;
+      output_map.updateRanges();
+    }
+  } // namespace MapConversion
 } // namespace OpenMS
 
