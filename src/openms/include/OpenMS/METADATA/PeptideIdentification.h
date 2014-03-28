@@ -163,6 +163,13 @@ public:
     void getNonReferencingHits(const std::vector<ProteinHit> & protein_hits, std::vector<PeptideHit> & peptide_hits) const;
     //@}
 
+	/// remove the two helper functions below a some point, when we are sure that we did not miss or merge in deprecated code!
+	/// re-implemented from MetaValueInfterface as a precaution against deprecated usage of "RT" and "MZ" values
+	const DataValue & getMetaValue(const String &name) const;
+	/// re-implemented from MetaValueInfterface as a precaution against deprecated usage of "RT" and "MZ" values
+	void setMetaValue(const String &name, const DataValue &value);
+
+
 protected:
     String id_;                                                          ///< Identifier by which ProteinIdentification and PeptideIdentification are matched
     std::vector<PeptideHit> hits_;               ///< A list containing the peptide hits

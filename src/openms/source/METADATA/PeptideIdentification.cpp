@@ -37,8 +37,10 @@
 
 #include <boost/math/special_functions/fpclassify.hpp>
 
-#include <sstream>
+
 #include <algorithm>
+#include <sstream>
+#include <iostream>
 
 using namespace std;
 
@@ -338,5 +340,27 @@ namespace OpenMS
     }
     getNonReferencingHits(accessions, peptide_hits);
   }
+
+  /// re-implemented from MetaValueInfterface as a precaution against deprecated usage of "RT" and "MZ" values
+  const DataValue & PeptideIdentification::getMetaValue(const String &name) const
+  {
+	  if (name == "RT" || name == "MZ")
+	  { // this line should never the triggered. Set a breakpoint, find out who called getMetaValue() and replace with PeptideIdentification.getRT()/.getMZ() !!!!
+		  std::cerr << "\n\nUnsupported use of MetavalueInferface for 'RT' detected in " << __FILE__ << ":" << __LINE__ << ". Please notify the developers, so they can remove outdated code!\n\n";
+		  exit(1);
+	  }
+	  return MetaInfoInterface::getMetaValue(name);
+  }
+  /// re-implemented from MetaValueInfterface as a precaution against deprecated usage of "RT" and "MZ" values
+  void PeptideIdentification::setMetaValue(const String &name, const DataValue &value)
+  {
+	  if (name == "RT" || name == "MZ")
+	  { // this line should never the triggered. Set a breakpoint, find out who called getMetaValue() and replace with PeptideIdentification.getRT()/.getMZ() !!!!
+		  std::cerr << "\n\nUnsupported use of MetavalueInferface for 'RT' detected in " << __FILE__ << ":" << __LINE__ << ". Please notify the developers, so they can remove outdated code!\n\n";
+		  exit(1);
+	  }
+	  MetaInfoInterface::setMetaValue(name, value);
+  }
+
 
 } // namespace OpenMS
