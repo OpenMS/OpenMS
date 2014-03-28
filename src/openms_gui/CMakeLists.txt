@@ -77,16 +77,9 @@ set(OpenMS_GUI_INCLUDE_DIRECTORIES ${OpenMS_GUI_INTERNAL_INCLUDE_DIRECTORIES}
 include_directories(${OpenMS_GUI_INTERNAL_INCLUDE_DIRECTORIES})
 include_directories(SYSTEM ${OpenMS_GUI_EXTERNAL_INCLUDE_DIRECTORIES})
 
-if (ENABLE_UNITYBUILD)
-	MESSAGE(STATUS "Unity Build for OpenMS-GUI lib: Enabled")
-	convert_to_unity_build(OpenMSVisual_UnityBuild OpenMSVisual_sources)
-else()
-	MESSAGE(STATUS "Unity Build for OpenMS-GUI lib: Disabled")
-endif()
-
 # --------------------------------------------------------------------------
 # OpenMS_GUI lib
-add_library(OpenMS_GUI ${OpenMSVisual_sources})
+oms_add_library(OpenMS_GUI OpenMSVisual_sources)
 
 # we also want to install OpenMS_GUI
 install_library(OpenMS_GUI)

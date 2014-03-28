@@ -110,19 +110,12 @@ include(${OPENMS_HOST_DIRECTORY}/cmake/OpenMSBuildSystem_testConfig.cmake)
 # big include file for headers and cpp files, that fills the OpenMS_sources variable
 include (${PROJECT_SOURCE_DIR}/includes.cmake)
 
-if (ENABLE_UNITYBUILD)
-	MESSAGE(STATUS "Unity Build for OpenMS lib: Enabled")
-	convert_to_unity_build(OpenMS_UnityBuild OpenMS_sources)
-else()
-	MESSAGE(STATUS "Unity Build for OpenMS lib: Disabled")
-endif()
-
 ## add library target
 ## warning: set BUILD_SHARED_LIBS to decide if library is shared or static (see above)! We need the BUILD_SHARED_LIBS flag to set declspec flags for MSVC!
 if (FOUND_CUDART AND MT_ENABLE_CUDA) # we need both conditions due to possible present cached entries
 	CUDA_ADD_LIBRARY(OpenMS ${OpenMS_sources} ${Cuda_sources})
 else()
-	add_library(OpenMS ${OpenMS_sources})
+	oms_add_library(OpenMS OpenMS_sources)
 endif()
 
 #------------------------------------------------------------------------------
