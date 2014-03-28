@@ -42,8 +42,10 @@
 namespace OpenMS
 {
 
-  namespace MapConversion
+  class OPENMS_DLLAPI MapConversion
   {
+public:
+
     /**
       @brief Similar to @p convert for FeatureMaps.
 
@@ -57,10 +59,10 @@ namespace OpenMS
       @param output_map The resulting ConsensusMap.
       @param n The maximum number of elements to be copied.
     */
-    void OPENMS_DLLAPI convert(UInt64 const input_map_index,
-                               MSExperiment<> & input_map,
-                               ConsensusMap & output_map,
-                               Size n = -1);
+    static void convert(UInt64 const input_map_index,
+                                      MSExperiment<> & input_map,
+                                      ConsensusMap & output_map,
+                                      Size n = -1);
 
     /**
       @brief Convert a ConsensusMap to a FeatureMap (of any feature type).
@@ -118,10 +120,10 @@ namespace OpenMS
       @param n The maximum number of elements to be copied.
     */
     template <typename FeatureT>
-    void convert(UInt64 const input_map_index,
-                 FeatureMap<FeatureT> const & input_map,
-                 ConsensusMap & output_map,
-                 Size n = -1)
+    static void convert(UInt64 const input_map_index,
+                        FeatureMap<FeatureT> const & input_map,
+                        ConsensusMap & output_map,
+                        Size n = -1)
     {
       if (n > input_map.size())
       {
@@ -143,7 +145,8 @@ namespace OpenMS
       output_map.setUnassignedPeptideIdentifications(input_map.getUnassignedPeptideIdentifications());
       output_map.updateRanges();
     }
-  } // namespace MapConversion
+
+  };
 } // namespace OpenMS
 
 #endif // OPENMS_KERNEL_CONSENSUSMAP_H

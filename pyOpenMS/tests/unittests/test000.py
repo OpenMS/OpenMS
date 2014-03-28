@@ -4004,3 +4004,38 @@ def test_streampos():
     p = pyopenms.streampos()
     assert isinstance(int(p), int)
 
+def test_MapConversion():
+
+    feature = pyopenms.Feature()
+    feature.setRT(99)
+
+    cmap = pyopenms.ConsensusMap()
+    fmap = pyopenms.FeatureMap()
+    fmap.push_back(feature)
+    pyopenms.MapConversion().convert(0, fmap, cmap, 1)
+
+    assert(cmap.size() == 1)
+    assert(cmap[0].getRT() == 99.0)
+
+    fmap = pyopenms.FeatureMap()
+    pyopenms.MapConversion().convert(cmap, True, fmap)
+
+    assert(fmap.size() == 1)
+    assert(fmap[0].getRT() == 99.0)
+
+    exp = pyopenms.MSExperiment()
+    sp = pyopenms.MSSpectrum()
+    peak = pyopenms.Peak1D()
+    peak.setIntensity(10)
+    peak.setMZ(20)
+    sp.push_back(peak)
+    exp.addSpectrum(sp)
+    exp.addSpectrum(sp)
+
+    cmap = pyopenms.ConsensusMap()
+    pyopenms.MapConversion().convert(0, exp, cmap, 2)
+
+    assert(cmap.size() == 2)
+    assert(cmap[0].getIntensity() == 10.0)
+    assert(cmap[0].getMZ() == 20.0)
+

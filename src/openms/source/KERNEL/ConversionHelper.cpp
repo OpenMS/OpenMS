@@ -36,9 +36,7 @@
 
 namespace OpenMS
 {
-  namespace MapConversion
-  {
-    void convert(UInt64 const input_map_index,
+    void MapConversion::convert(UInt64 const input_map_index,
                  MSExperiment<> & input_map,
                  ConsensusMap & output_map,
                  Size n)
@@ -75,6 +73,5 @@ namespace OpenMS
       output_map.getFileDescriptions()[input_map_index].size = n;
       output_map.updateRanges();
     }
-  } // namespace MapConversion
 } // namespace OpenMS
 
