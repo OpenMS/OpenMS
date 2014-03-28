@@ -127,7 +127,7 @@ namespace OpenMS
 
   bool PeptideIdentification::hasRT() const
   {
-	  return boost::math::isnan(rt_);
+	  return !boost::math::isnan(rt_);
   }
 
   DoubleReal PeptideIdentification::getMZ() const
@@ -141,7 +141,7 @@ namespace OpenMS
 
   bool PeptideIdentification::hasMZ() const
   {
-	  return boost::math::isnan(mz_);
+	  return !boost::math::isnan(mz_);
   }
 
   std::vector<PeptideHit> & PeptideIdentification::getHits()
