@@ -86,6 +86,8 @@ namespace OpenMS
 
     MetaInfoInterface::operator=(rhs);
     id_ = rhs.id_;
+	rt_ = rhs.rt_;
+	mz_ = rhs.mz_;
     hits_ = rhs.hits_;
     significance_threshold_ = rhs.significance_threshold_;
     score_type_ = rhs.score_type_;
@@ -100,6 +102,8 @@ namespace OpenMS
   {
     return MetaInfoInterface::operator==(rhs)
            && id_ == rhs.id_
+		   && (rt_ == rhs.rt_ || (!this->hasRT() && !rhs.hasRT())) // might be NaN, so comparing == will always be false
+		   && (mz_ == rhs.mz_ || (!this->hasMZ() && !rhs.hasMZ())) // might be NaN, so comparing == will always be false
            && hits_ == rhs.getHits()
            && significance_threshold_ == rhs.getSignificanceThreshold()
            && score_type_ == rhs.score_type_
@@ -111,11 +115,6 @@ namespace OpenMS
   bool PeptideIdentification::operator!=(const PeptideIdentification & rhs) const
   {
     return !(*this == rhs);
-  }
-
-  const std::vector<PeptideHit> & PeptideIdentification::getHits() const
-  {
-    return hits_;
   }
 
   DoubleReal PeptideIdentification::getRT() const
@@ -146,6 +145,11 @@ namespace OpenMS
 	  return !boost::math::isnan(mz_);
   }
 
+  const std::vector<PeptideHit> & PeptideIdentification::getHits() const
+  {
+	  return hits_;
+  }
+  
   std::vector<PeptideHit> & PeptideIdentification::getHits()
   {
     return hits_;
@@ -171,7 +175,7 @@ namespace OpenMS
     significance_threshold_ = value;
   }
 
-  String PeptideIdentification::getScoreType() const
+  const String& PeptideIdentification::getScoreType() const
   {
     return score_type_;
   }
@@ -346,7 +350,7 @@ namespace OpenMS
   {
 	  if (name == "RT" || name == "MZ")
 	  { // this line should never the triggered. Set a breakpoint, find out who called getMetaValue() and replace with PeptideIdentification.getRT()/.getMZ() !!!!
-		  std::cerr << "\n\nUnsupported use of MetavalueInferface for 'RT' detected in " << __FILE__ << ":" << __LINE__ << ". Please notify the developers, so they can remove outdated code!\n\n";
+		  std::cerr << "\n\nUnsupported use of MetavalueInferface for 'RT' or 'MZ' detected in " << __FILE__ << ":" << __LINE__ << ". Please notify the developers, so they can remove outdated code!\n\n";
 		  exit(1);
 	  }
 	  return MetaInfoInterface::getMetaValue(name);
@@ -356,7 +360,7 @@ namespace OpenMS
   {
 	  if (name == "RT" || name == "MZ")
 	  { // this line should never the triggered. Set a breakpoint, find out who called getMetaValue() and replace with PeptideIdentification.getRT()/.getMZ() !!!!
-		  std::cerr << "\n\nUnsupported use of MetavalueInferface for 'RT' detected in " << __FILE__ << ":" << __LINE__ << ". Please notify the developers, so they can remove outdated code!\n\n";
+		  std::cerr << "\n\nUnsupported use of MetavalueInferface for 'RT' or 'MZ' detected in " << __FILE__ << ":" << __LINE__ << ". Please notify the developers, so they can remove outdated code!\n\n";
 		  exit(1);
 	  }
 	  MetaInfoInterface::setMetaValue(name, value);

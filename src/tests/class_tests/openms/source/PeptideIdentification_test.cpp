@@ -217,20 +217,20 @@ START_SECTION((void setSignificanceThreshold(DoubleReal value)))
 	TEST_EQUAL(hits.getSignificanceThreshold(), peptide_significance_threshold)
 END_SECTION
 
-START_SECTION((String getScoreType() const))
+START_SECTION((String& getScoreType() const))
 	PeptideIdentification hits;
-	TEST_EQUAL(hits.getScoreType(),"")
+	TEST_EQUAL(hits.getScoreType(), "")
 END_SECTION
 
 START_SECTION((void setScoreType(const String& type)))
 	PeptideIdentification hits;
 	hits.setScoreType("bla");
-	TEST_EQUAL(hits.getScoreType(),"bla")
+	TEST_EQUAL(hits.getScoreType(), "bla")
 END_SECTION
 
 START_SECTION((bool isHigherScoreBetter() const))
 	PeptideIdentification hits;
-	TEST_EQUAL(hits.isHigherScoreBetter(),true)
+	TEST_EQUAL(hits.isHigherScoreBetter(), true)
 END_SECTION
 
 START_SECTION((void setHigherScoreBetter(bool value)))

@@ -113,7 +113,7 @@ public:
     void setSignificanceThreshold(DoubleReal value);
 
     /// returns the peptide score type
-    String getScoreType() const;
+    const String& getScoreType() const;
     /// sets the peptide score type
     void setScoreType(const String & type);
 
