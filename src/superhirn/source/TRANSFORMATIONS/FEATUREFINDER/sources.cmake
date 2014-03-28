@@ -14,7 +14,8 @@ foreach(i ${sources_list})
 endforeach(i)
 
 ### pass source file list to the upper instance
-set(SuperHirn_sources ${SuperHirn_sources} ${sources})
+set(SuperHirn_sources ${SuperHirn_sources} ${sources} CACHE INTERNAL "This variable should hold all SuperHirn sources at the end of the config step" )
 
 ### source group definition
 source_group("Source Files\\TRANSFORMATIONS\\FEATUREFINDER" FILES ${sources})
+  

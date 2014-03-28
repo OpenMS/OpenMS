@@ -127,123 +127,54 @@ public:
     // function to access the
     // variables of the class
 
-    std::vector<CentroidPeak> & get_isotopic_peaks()
-    {
-      return ISOPEAKS;
-    }
+    std::vector<CentroidPeak> & get_isotopic_peaks();
 
-    std::vector<CentroidPeak>::iterator get_isotopic_peaks_start()
-    {
-      return ISOPEAKS.begin();
-    }
+    std::vector<CentroidPeak>::iterator get_isotopic_peaks_start();
 
-    std::vector<CentroidPeak>::iterator get_isotopic_peaks_end()
-    {
-      return ISOPEAKS.end();
-    }
+    std::vector<CentroidPeak>::iterator get_isotopic_peaks_end();
 
-    void setExtraPeakInfo(std::string in)
-    {
-      extraMSPeakInfo = in;
-    }
+    void setExtraPeakInfo(std::string in);
 
-    std::string getExtraPeakInfo()
-    {
-      return extraMSPeakInfo;
-    }
+    std::string getExtraPeakInfo();
 
     // precursor mass of the MS2 scan:
-    void setPrecursorMZ(double in)
-    {
-      precursorMZ = in;
-    }
+    void setPrecursorMZ(double in);
 
-    double getPrecursorMZ()
-    {
-      return precursorMZ;
-    }
+    double getPrecursorMZ();
 
     // precursor mass charge state:
-    void setPrecursorCHRG(int in)
-    {
-      CHRG = in;
-    }
+    void setPrecursorCHRG(int in);
 
-    int getPrecursorCHRG()
-    {
-      return CHRG;
-    }
+    int getPrecursorCHRG();
 
     // check if this peak has been determined as precursor:
-    bool getPrecursorActivation()
-    {
-      return precursorMass;
-    }
+    bool getPrecursorActivation();
 
-    int get_Chrg()
-    {
-      return CHRG;
-    }
+    int get_Chrg();
 
-    void set_Chrg(int z)
-    {
-      CHRG = z;
-    }
+    void set_Chrg(int z);
 
-    int get_Scan()
-    {
-      return SCAN;
-    }
+    int get_Scan();
 
-    float get_intensity()
-    {
-      return INTENSITY;
-    }
+    float get_intensity();
 
-    double get_MZ()
-    {
-      return MZ;
-    }
+    double get_MZ();
 
-    int get_scan_number()
-    {
-      return SCAN;
-    }
+    int get_scan_number();
 
-    void set_retention_time(double IN)
-    {
-      TR = IN;
-    }
+    void set_retention_time(double IN);
 
-    double get_retention_time()
-    {
-      return TR;
-    }
+    double get_retention_time();
 
-    unsigned int get_charge_state()
-    {
-      return CHRG;
-    }
+    unsigned int get_charge_state();
 
-    unsigned int get_nr_isotopes()
-    {
-      return NRISOTOPES;
-    }
+    unsigned int get_nr_isotopes();
 
-    float get_score()
-    {
-      return SCORE;
-    }
+    float get_score();
 
-    double getSignalToNoise()
-    {
-      return SignalToNoise;
-    }
+    double getSignalToNoise();
 
-    void setSignalToNoise(double in)
-    {
-      SignalToNoise = in;
-    }
+    void setSignalToNoise(double in);
 
   };
 

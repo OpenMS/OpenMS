@@ -55,7 +55,7 @@ namespace OpenMS
 
 // this structure stores the monoisotopic
 // signals of LC elution peak:
-  struct MS1Signal
+  struct SUPERHIRN_DLL_EXPORT MS1Signal
   {
     double mass;
     double TR;
@@ -124,12 +124,11 @@ public:
     void addOutsideMS1elutionSignal(double, double, int, int, double);
     void addMS1elutionSignal(MS1Signal * in);
 
-    std::map<int, MS1Signal> * getLCelutionSignalMap(){ return &LCelutionSignals; }
-    std::map<int, MS1Signal>::iterator getLCelutionSignalsStart(){ return LCelutionSignals.begin(); }
-    std::map<int, MS1Signal>::reverse_iterator getLastLCelutionSignal(){ return LCelutionSignals.rbegin(); }
-    std::map<int, MS1Signal>::iterator getLCelutionSignalsEnd(){ return LCelutionSignals.end(); }
-    int getNbLCelutionSignals(){ return (int) LCelutionSignals.size(); }
-
+    std::map<int, MS1Signal> * getLCelutionSignalMap();
+    std::map<int, MS1Signal>::iterator getLCelutionSignalsStart();
+    std::map<int, MS1Signal>::reverse_iterator getLastLCelutionSignal();
+    std::map<int, MS1Signal>::iterator getLCelutionSignalsEnd();
+    int getNbLCelutionSignals();
 
   };
 

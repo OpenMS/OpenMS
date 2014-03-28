@@ -52,18 +52,18 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/SuperHirnConfig.h>
 
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/LCElutionPeak.h>
+
 namespace OpenMS
 {
-
-  typedef std::map<int, LCElutionPeak> elution_peak_list;
-  typedef std::map<int, LCElutionPeak>::iterator elution_peak_list_ITERATOR;
-  typedef std::map<double, elution_peak_list> MZ_LIST;
-  typedef MZ_LIST::iterator MZ_LIST_ITERATOR;
-
 
   class SUPERHIRN_DLL_EXPORT LCMSCData
   {
 public:
+    typedef std::map<int, LCElutionPeak> elution_peak_list;
+    typedef std::map<int, LCElutionPeak>::iterator elution_peak_list_ITERATOR;
+    typedef std::map<double, elution_peak_list> MZ_LIST;
+    typedef MZ_LIST::iterator MZ_LIST_ITERATOR;
 
     LCMSCData();
     LCMSCData(const LCMSCData &);
@@ -80,8 +80,8 @@ public:
     // variables of the class
 
     // start / end of the mz list:
-    MZ_LIST_ITERATOR get_DATA_start(){return DATA.begin(); }
-    MZ_LIST_ITERATOR get_DATA_end(){return DATA.end(); }
+    MZ_LIST_ITERATOR get_DATA_start();
+    MZ_LIST_ITERATOR get_DATA_end();
 
     // find data of a specific m/z:
     MZ_LIST_ITERATOR get_MZ_by_iterator(double);

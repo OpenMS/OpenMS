@@ -52,8 +52,13 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/SuperHirnConfig.h>
 
+#include <vector>
+#include <map>
+
 namespace OpenMS
 {
+  class LCMS;
+  class SHFeature;
 
   class SUPERHIRN_DLL_EXPORT MS1FeatureMerger
   {
@@ -119,20 +124,8 @@ public:
     struct OPERATOR_FEATURE_TR
     {
       // provide the compare function for sort:
-      bool operator()(const SHFeature A, const SHFeature B) const
-      {
-        // check if they have same mass
-        return A.TR < B.TR;
-      }
-
+      bool operator()(const SHFeature A, const SHFeature B) const;
     };
-
-
-    ///////////////////////////////
-    // start here all the get / set
-    // function to access the
-    // variables of the class
-
   };
 
 } // ns

@@ -186,6 +186,22 @@ namespace OpenMS
     }
   }
 
+  
+  void CentroidData::setWidth(int pWidth)
+  {
+    fWindowWidth = pWidth;
+  }
+
+  int CentroidData::getWidth()
+  {
+    return fWindowWidth;
+  }
+
+  double CentroidData::getNoise()
+  {
+    return fNoise;
+  }
+
 // Removes and deletes all CentroidePeak objects with a intensity below fNoise
 // setNoise has to be called first
   void CentroidData::removeNoise()

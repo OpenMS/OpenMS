@@ -16,4 +16,4 @@ endforeach(i)
 ### source group definition
 source_group("Header Files\\OpenMS\\TRANSFORMATIONS\\FEATUREFINDER" FILES ${sources_h})
 
-set(SuperHirn_sources_h ${SuperHirn_sources_h} ${sources_h})
+set(SuperHirn_sources_h ${SuperHirn_sources_h} ${sources_h} CACHE INTERNAL "This variable should hold all SuperHirn headers at the end of the config step")

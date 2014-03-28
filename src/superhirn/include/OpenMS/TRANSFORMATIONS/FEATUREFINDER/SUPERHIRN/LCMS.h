@@ -46,6 +46,7 @@
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_SUPERHIRN_LCMS_H
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/SuperHirnConfig.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/SHFeature.h>
 
 #include <string>
 #include <vector>
@@ -153,15 +154,7 @@ public:
     };
 
     // tag the feature with the spectrum id:
-    void tag_peaks_with_spectrum_ID()
-    {
-      std::vector<SHFeature>::iterator p = feature_list.begin();
-      while (p != feature_list.end())
-      {
-        (*p).set_spectrum_ID(get_spectrum_ID());
-        p++;
-      }
-    }
+    void tag_peaks_with_spectrum_ID();
 
     // count the number of common peaks of a given number of LC-MS:
     int get_nb_common_peaks(int);
@@ -172,64 +165,37 @@ public:
     // variables of the class
 
     // get the whole feature list:
-    void clear_feature_list()
-    {   return feature_list.clear(); }
-    std::vector<SHFeature> get_feature_list()
-    {   return feature_list; }
-    std::vector<SHFeature> * get_feature_list_reference()
-    {   return &feature_list; }
-    bool check_feature_list_empty()
-    {   return feature_list.empty(); }
+    void clear_feature_list();
+    std::vector<SHFeature> get_feature_list();
+    std::vector<SHFeature> * get_feature_list_reference();
+    bool check_feature_list_empty();
 
     // access end /start of list:
-    std::vector<SHFeature>::iterator get_feature_list_begin()
-    {   return feature_list.begin(); }
-    std::vector<SHFeature>::iterator get_feature_list_end()
-    {   return feature_list.end(); }
+    std::vector<SHFeature>::iterator get_feature_list_begin();
+    std::vector<SHFeature>::iterator get_feature_list_end();
 
     // add a new feature to the list:
-    void add_feature(SHFeature * IN)
-    {
-
-      if (IN->get_feature_ID() == -1)
-      {
-        IN->set_feature_ID((int) feature_list.size());
-      }
-      feature_list.push_back(*IN);
-      IN = NULL;
-    }
+    void add_feature(SHFeature * IN);
 
     // remove a feature from the LC/MS run by ID:
     void remove_feature_by_ID(SHFeature *);
     void remove_feature_by_ID(int);
     // remove a feature from the LC/MS run:
     void remove_feature(SHFeature *);
-    void remove_feature(int i)
-    {
-      if (i < int(feature_list.size()))
-      {
-        feature_list.erase(feature_list.begin() + i);
-      }
-    }
+    void remove_feature(int i);
 
     // remove a feature by iterator and return the iterator to the next element
-    std::vector<SHFeature>::iterator remove_feature_from_list(std::vector<SHFeature>::iterator IN)
-    {   return feature_list.erase(IN); }
+    std::vector<SHFeature>::iterator remove_feature_from_list(std::vector<SHFeature>::iterator IN);
 
     // get number of feature added:
-    unsigned int get_nb_features()
-    {   return (unsigned int) feature_list.size(); }
+    unsigned int get_nb_features();
 
-    std::string get_spec_name()
-    {   return spec_name; }
-    void set_spec_name(std::string IN)
-    {   spec_name = IN; }
+    std::string get_spec_name();
+    void set_spec_name(std::string IN);
 
     // set / get spectrum id:
-    int get_spectrum_ID()
-    {   return spectrum_id; }
-    void set_spectrum_ID(int IN)
-    {   spectrum_id = IN; }
+    int get_spectrum_ID();
+    void set_spectrum_ID(int IN);
 
     // set the id of all features
     void setFeatureLCMSID();
@@ -238,29 +204,15 @@ public:
     SHFeature * find_feature_by_ID(int);
 
     // access the raw data names:
-    void remove_raw_spec_name(int ID)
-    {   raw_spec_names.erase(ID); }
-    void add_raw_spec_name(int ID, std::string name)
-    {   raw_spec_names.insert(make_pair(ID, name)); }
-    bool check_raw_spec_name_empty()
-    {   return raw_spec_names.empty(); }
-    std::map<int, std::string>::iterator get_raw_spec_name_start()
-    {   return raw_spec_names.begin(); }
-    std::map<int, std::string>::iterator get_raw_spec_name_end()
-    {   return raw_spec_names.end(); }
-    std::map<int, std::string> get_raw_spec_name_map()
-    {   return raw_spec_names; }
-    int get_nb_raw_specs()
-    {   return (int) raw_spec_names.size(); }
-    std::string get_raw_spec_name(int ID)
-    {
-      std::map<int, std::string>::iterator p = raw_spec_names.find(ID);
-      if (p == raw_spec_names.end())
-      {
-        return "";
-      }
-      return (*p).second;
-    }
+    void remove_raw_spec_name(int ID);
+    void add_raw_spec_name(int ID, std::string name);
+    bool check_raw_spec_name_empty();
+    std::map<int, std::string>::iterator get_raw_spec_name_start();
+    std::map<int, std::string>::iterator get_raw_spec_name_end();
+    std::map<int, std::string> get_raw_spec_name_map();
+    int get_nb_raw_specs();
+
+    std::string get_raw_spec_name(int ID);
 
     // compare the LC/MS runs names
     bool check_LCMS_name(std::string);
@@ -269,67 +221,25 @@ public:
     bool find_LC_MS_by_ID(int);
 
     // add the raw spectrum map:
-    void add_raw_spec_name_map(std::map<int, std::string> IN)
-    {
-      std::map<int, std::string>::iterator p = IN.begin();
-      while (p != IN.end())
-      {
-        int ID = (*p).first;
-        std::map<int, std::string>::iterator F = raw_spec_names.find(ID);
-        if (F != raw_spec_names.end())
-        {
-          ID += (int) raw_spec_names.size();
-        }
-        raw_spec_names.insert(make_pair(ID, (*p).second));
-        p++;
-      }
-    }
+    void add_raw_spec_name_map(std::map<int, std::string> IN);
 
     // counts the number of ms features, which contain MS2 info:
-    int get_nb_identified_features()
-    {
-      int count = 0;
-      std::vector<SHFeature>::iterator P = get_feature_list_begin();
-      while (P != get_feature_list_end())
-      {
-        if ((*P).get_MS2_info())
-          count++;
-        P++;
-      }
-      return count;
-    }
+    int get_nb_identified_features();
 
     // counts the number of ms features, which contain MS2 info (no thresholding)
-    int get_nb_identified_features(double PepProb_T)
-    {
-      int count = 0;
-      std::vector<SHFeature>::iterator P = get_feature_list_begin();
-      while (P != get_feature_list_end())
-      {
-        if ((*P).get_MS2_info(PepProb_T))
-          count++;
-        P++;
-      }
-      return count;
-    }
+    int get_nb_identified_features(double PepProb_T);
 
     //////////////////////////////////
     // access the alignment error:
     // save an error:
-    void add_alignment_error(double TR, double ERROR_UP, double ERROR_DOWN)
-    {
-      std::pair<double, double> tmp(ERROR_UP, ERROR_DOWN);
-      ALIGNMENT_ERROR.insert(std::pair<double, std::pair<double, double> >(TR, tmp));
-    }
+    void add_alignment_error(double TR, double ERROR_UP, double ERROR_DOWN);
 
     // get alignment error at specific TR:
     void get_alignment_error(double, double *, double *);
 
     // access MASTER run ID:
-    void set_MASTER_ID(int IN)
-    {   MASTER_ID = IN; }
-    int get_MASTER_ID()
-    {   return MASTER_ID; }
+    void set_MASTER_ID(int IN);
+    int get_MASTER_ID();
   };
 
 }

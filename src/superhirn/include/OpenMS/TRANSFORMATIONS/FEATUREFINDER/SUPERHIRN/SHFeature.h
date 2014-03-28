@@ -46,6 +46,13 @@
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_SUPERHIRN_SHFEATURE_H
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/SuperHirnConfig.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/MS2Info.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/FeatureLCProfile.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/MS2Feature.h>
+
+#include <map>
+#include <vector>
+#include <string>
 
 namespace OpenMS
 {
@@ -158,51 +165,30 @@ public:
     bool get_MS2_info();
     bool get_MS2_info(double);
 
-    bool check_MS2_empty()
-    {
-      return MS2_SCANS.empty();
-    }
+    bool check_MS2_empty();
 
-    void removeAllMS2Information()
-    {
-      return MS2_SCANS.clear();
-    }
+    void removeAllMS2Information();
 
-    int get_MS2_SCANS_SIZE()
-    {
-      return (int) MS2_SCANS.size();
-    }
+    int get_MS2_SCANS_SIZE();
 
-    std::map<double, std::vector<MS2Info> > * get_MS2_SCAN_MAP()
-    {
-      return &MS2_SCANS;
-    }
+    std::map<double, std::vector<MS2Info> > * get_MS2_SCAN_MAP();
 
-    std::map<double, std::vector<MS2Info> >::iterator get_MS2_SCANS_START()
-    {   return MS2_SCANS.begin(); }
-    std::map<double, std::vector<MS2Info> >::iterator get_MS2_SCANS_END()
-    {   return MS2_SCANS.end(); }
+    std::map<double, std::vector<MS2Info> >::iterator get_MS2_SCANS_START();
+    std::map<double, std::vector<MS2Info> >::iterator get_MS2_SCANS_END();
     // get the best ms2 scan == closest to the apex:
     MS2Info * get_best_MS2_SCAN();
     MS2Info * get_best_MS2_SCAN(double);
 
-    void setFeatureExtraInformation(std::string in)
-    {   featureExtraInformation = in; }
-    std::string getFeatureExtraInformation()
-    {   return featureExtraInformation; }
+    void setFeatureExtraInformation(std::string in);
+    std::string getFeatureExtraInformation();
 
     // functions to set/access matched features:
     void add_matched_feature(SHFeature *);
-    std::map<int, SHFeature> * get_match_list_REFERENCE()
-    {   return &matched_feature_list; }
-    std::map<int, SHFeature> get_match_list()
-    {   return matched_feature_list; }
-    std::map<int, SHFeature>::iterator get_match_list_start()
-    {   return matched_feature_list.begin(); }
-    std::map<int, SHFeature>::iterator get_match_list_end()
-    {   return matched_feature_list.end(); }
-    std::map<int, SHFeature>::iterator find_match_by_id(int ID)
-    {   return matched_feature_list.find(ID); }
+    std::map<int, SHFeature> * get_match_list_REFERENCE();
+    std::map<int, SHFeature> get_match_list();
+    std::map<int, SHFeature>::iterator get_match_list_start();
+    std::map<int, SHFeature>::iterator get_match_list_end();
+    std::map<int, SHFeature>::iterator find_match_by_id(int ID);
 
     // get feature at a certain LC-MS by LC_MS id
     SHFeature * get_feature(int);
@@ -210,16 +196,13 @@ public:
     // get the total peak are over all matched features:
     double get_MATCHED_peak_area();
     bool check_match_by_id(int);
-    void erase_match_list()
-    {   matched_feature_list.clear(); }
+    void erase_match_list();
     // get the profile over all matched features:
     std::map<int, double> get_feature_profile();
 
     // return number of times this feature has been seen = nb_replicates in list plus 1!
-    int get_replicate_match_nb()
-    {   return (int) (matched_feature_list.size() + 1); }
-    int get_matching_nb()
-    {   return get_replicate_match_nb(); }
+    int get_replicate_match_nb();
+    int get_matching_nb();
     // return the sum of all intensities over replicates:
     double get_replicate_intensity_sum();
 
@@ -229,169 +212,96 @@ public:
     // variables of the class
 
     // access the parent mass of feature, calculated from the SQ
-    double get_MZ()
-    {   return MONO_MZ; }
-    void set_MZ(double in)
-    {   MONO_MZ = in; }
-    double get_MZ_START()
-    {   return MONO_MZ_START; }
-    void set_MZ_START(double IN)
-    {   MONO_MZ_START = IN; }
-    double get_MZ_END()
-    {   return MONO_MZ_END; }
-    void set_MZ_END(double IN)
-    {   MONO_MZ_END = IN; }
+    double get_MZ();
+    void set_MZ(double in);
+    double get_MZ_START();
+    void set_MZ_START(double IN);
+    double get_MZ_END();
+    void set_MZ_END(double IN);
 
-    double get_THEO_MZ()
-    {   return get_best_MS2_SCAN()->get_MONO_MZ(); }
-    double get_THEO_MZ(double T)
-    {   return get_best_MS2_SCAN(T)->get_MONO_MZ(); }
-    std::string get_AC()
-    {   return get_best_MS2_SCAN()->get_AC(); }
-    std::string get_AC(double T)
-    {   return get_best_MS2_SCAN(T)->get_AC(); }
-    bool check_AC(std::string IN)
-    {   return get_best_MS2_SCAN()->compare_AC(IN); }
-    bool check_AC(std::string IN, double T)
-    {   return get_best_MS2_SCAN(T)->compare_AC(IN); }
-    std::string get_SQ()
-    {   return get_best_MS2_SCAN()->get_SQ(); }
-    std::string get_SQ(double T)
-    {   return get_best_MS2_SCAN(T)->get_SQ(); }
-    std::string get_TOTAL_SQ()
-    {   return get_best_MS2_SCAN()->get_TOTAL_SQ(); }
-    std::string get_TOTAL_SQ(double T)
-    {   return get_best_MS2_SCAN(T)->get_TOTAL_SQ(); }
-    std::string get_MOD_SQ()
-    {   return get_best_MS2_SCAN()->get_MOD_SQ(); }
-    std::string get_MOD_SQ(double T)
-    {   return get_best_MS2_SCAN(T)->get_MOD_SQ(); }
-    double get_pep_prob()
-    {   return get_best_MS2_SCAN()->get_PEP_PROB(); }
-    double get_pep_prob(double T)
-    {   return get_best_MS2_SCAN(T)->get_PEP_PROB(); }
-    std::string get_MS2_TYPE_TAG()
-    {   return get_best_MS2_SCAN()->get_MS2_TYPE_TAG(); }
-    std::string get_MS2_TYPE_TAG(double T)
-    {   return get_best_MS2_SCAN(T)->get_MS2_TYPE_TAG(); }
-    int get_MS2_scan()
-    {   return get_best_MS2_SCAN()->get_SCAN_START(); }
-    int get_MS2_scan(double T)
-    {   return get_best_MS2_SCAN(T)->get_SCAN_START(); }
-    std::map<double, std::vector<MS2Info> > * get_MS2_SCAN_LIST()
-    {   return &(MS2_SCANS); }
-    std::map<double, std::vector<MS2Info> >::iterator get_MS2_SCAN_LIST_START()
-    {   return MS2_SCANS.begin(); }
-    std::map<double, std::vector<MS2Info> >::iterator get_MS2_SCAN_LIST_END()
-    {   return MS2_SCANS.end(); }
+    double get_THEO_MZ();
+    double get_THEO_MZ(double T);
+    std::string get_AC();
+    std::string get_AC(double T);
+    bool check_AC(std::string IN);
+    bool check_AC(std::string IN, double T);
+    std::string get_SQ();
+    std::string get_SQ(double T);
+    std::string get_TOTAL_SQ();
+    std::string get_TOTAL_SQ(double T);
+    std::string get_MOD_SQ();
+    std::string get_MOD_SQ(double T);
+    double get_pep_prob();
+    double get_pep_prob(double T);
+    std::string get_MS2_TYPE_TAG();
+    std::string get_MS2_TYPE_TAG(double T);
+    int get_MS2_scan();
+    int get_MS2_scan(double T);
+    std::map<double, std::vector<MS2Info> > * get_MS2_SCAN_LIST();
+    std::map<double, std::vector<MS2Info> >::iterator get_MS2_SCAN_LIST_START();
+    std::map<double, std::vector<MS2Info> >::iterator get_MS2_SCAN_LIST_END();
 
-    int get_scan_number()
-    {   return scan_apex; }
-    void set_scan_number(int IN)
-    {   scan_apex = IN; }
-    int get_scan_start()
-    {   return scan_start; }
-    void set_scan_start(int IN)
-    {   scan_start = IN; }
-    int get_scan_end()
-    {   return scan_end; }
-    void set_scan_end(int IN)
-    {   scan_end = IN; }
-    int get_charge_state()
-    {   return charge_state; }
-    void set_charge_state(int IN)
-    {   charge_state = IN; }
-    void set_peak_area(float IN)
-    {   total_peak_area = IN; }
-    double get_peak_area()
-    {   return total_peak_area; }
+    int get_scan_number();
+    void set_scan_number(int IN);
+    int get_scan_start();
+    void set_scan_start(int IN);
+    int get_scan_end();
+    void set_scan_end(int IN);
+    int get_charge_state();
+    void set_charge_state(int IN);
+    void set_peak_area(float IN);
+    double get_peak_area();
     // get peak area at a certain LC/MS:
     double get_peak_area(int);
-    double get_apex_peak_intensity()
-    {   return apex_peak_intensity; }
-    void set_apex_peak_intensity(double in)
-    {   apex_peak_intensity = in; }
-    void normalize_peak_area_by_factor(double factor)
-    {   total_peak_area *= factor; }
+    double get_apex_peak_intensity();
+    void set_apex_peak_intensity(double in);
+    void normalize_peak_area_by_factor(double factor);
 
-    double get_alignment_error_up()
-    {   return alignment_error_up; }
-    void set_alignment_error_up(double IN)
-    {   alignment_error_up = IN; }
-    double get_alignment_error_down()
-    {   return alignment_error_down; }
-    void set_alignment_error_down(double IN)
-    {   alignment_error_down = IN; }
+    double get_alignment_error_up();
+    void set_alignment_error_up(double IN);
+    double get_alignment_error_down();
+    void set_alignment_error_down(double IN);
 
-    void set_SCORE_HOLDER(double IN)
-    {   SCORE_HOLDER = IN; }
-    double get_SCORE_HOLDER()
-    {   return SCORE_HOLDER; }
+    void set_SCORE_HOLDER(double IN);
+    double get_SCORE_HOLDER();
 
-    double get_retention_time()
-    {   return TR; }
-    void set_retention_time(double IN)
-    {   TR = IN; }
-    double get_retention_time_START()
-    {   return TR_START; }
-    void set_retention_time_START(double IN)
-    {   TR_START = IN; }
-    double get_retention_time_END()
-    {   return TR_END; }
-    void set_retention_time_END(double IN)
-    {   TR_END = IN; }
+    double get_retention_time();
+    void set_retention_time(double IN);
+    double get_retention_time_START();
+    void set_retention_time_START(double IN);
+    double get_retention_time_END();
+    void set_retention_time_END(double IN);
 
     // original mz and Tr coordinates
-    double get_raw_retention_time_apex()
-    {   return TR_APEX; }
-    void set_raw_retention_time_apex(double IN)
-    {   TR_APEX = IN; }
-    double get_raw_MZ()
-    {   return MONO_MZ_ORIGINAL; }
-    void set_raw_MZ(double IN)
-    {   MONO_MZ_ORIGINAL = IN; }
+    double get_raw_retention_time_apex();
+    void set_raw_retention_time_apex(double IN);
+    double get_raw_MZ();
+    void set_raw_MZ(double IN);
 
     // feature ID:
-    void set_feature_ID(int IN)
-    {   feature_ID = IN; }
-    int get_feature_ID()
-    {   return feature_ID; }
+    void set_feature_ID(int IN);
+    int get_feature_ID();
 
-    void set_spectrum_ID(int IN)
-    {
-      spectrum_ID = IN;
-      /*
-       if( MS2TraceFeature != NULL){
-       MS2TraceFeature.set
-       }
-       */
-    }
+    void set_spectrum_ID(int IN);
 
-    int get_spectrum_ID()
-    {   return spectrum_ID; }
+    int get_spectrum_ID();
 
-    void set_MASTER_ID(int IN)
-    {   MASTER_ID = IN; }
-    int get_MASTER_ID()
-    {   return MASTER_ID; }
+    void set_MASTER_ID(int IN);
+    int get_MASTER_ID();
 
     // check how many matches
     int get_nb_common_match();
 
     // get/set the peak score
-    double get_peak_score()
-    {   return PEAK_SCORE; }
-    void set_peak_score(double in)
-    {   PEAK_SCORE = in; }
+    double get_peak_score();
+    void set_peak_score(double in);
 
     // get the molecular mass of the corresponding peptide!
     double get_Molecular_Mass();
 
     // feature PI:
-    double get_FEATURE_PI()
-    {   return PI; }
-    void set_FEATURE_PI(double IN)
-    {   PI = IN; }
+    double get_FEATURE_PI();
+    void set_FEATURE_PI(double IN);
 
     // check charge states, in cases where a feature was
     // created based on a MS2 trace, charge state is unknown ( = -1 )
@@ -400,10 +310,8 @@ public:
     void deriveChargeStates(SHFeature *);
 
     // LC elution profile
-    void setLCelutionProfile(FeatureLCProfile * IN)
-    {   LCprofile = IN; }
-    FeatureLCProfile * getLCelutionProfile()
-    {   return LCprofile; }
+    void setLCelutionProfile(FeatureLCProfile * IN);
+    FeatureLCProfile * getLCelutionProfile();
 
     //////////////////////////////////////////////
     // parameters computed over matched features:
@@ -412,35 +320,25 @@ public:
 
     /////////////////////////////////////////////
     // status if feature has been matched:
-    bool get_feature_match_status()
-    {   return feature_match_status; }
-    void set_feature_match_status(bool IN)
-    {   feature_match_status = IN; }
+    bool get_feature_match_status();
+    void set_feature_match_status(bool IN);
 
     ///////////////////////////////////////////
     // access the MS2 feature
-    void addMS2Feature(MS2Feature * in)
-    {   MS2TraceFeature = new MS2Feature(in); }
-    void removeMS2Feature()
-    {   delete MS2TraceFeature; MS2TraceFeature = NULL; }
-    MS2Feature * getMS2Feature()
-    {   return MS2TraceFeature; }
+    void addMS2Feature(MS2Feature * in);
+    void removeMS2Feature();
+    MS2Feature * getMS2Feature();
 
-    double getSignalToNoise()
-    {   return SignalToNoise; }
-    void setSignalToNoise(double in)
-    {   SignalToNoise = in; }
+    double getSignalToNoise();
+    void setSignalToNoise(double in);
 
-    double getBackgroundNoiseLevel()
-    {   return BackgroundNoise; }
-    void setBackgroundNoiseLevel(double in)
-    {   BackgroundNoise = in; }
+    double getBackgroundNoiseLevel();
+    void setBackgroundNoiseLevel(double in);
 
     //////////////////////////////////////////////
     // get static members:
     //static double get_MZ_TOL(){return MZ_TOL;};
-    static double get_MONO_H()
-    {   return _MONO_H; }
+    static double get_MONO_H();
 
     // compare to masses at the PPM value and decided
     // if they fall into the m/z tolerance window

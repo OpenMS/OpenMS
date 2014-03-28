@@ -101,7 +101,7 @@ public:
 
 
     // class constructor
-    MS2Fragment() {}
+    MS2Fragment();
     // class copy constructor
     MS2Fragment(const MS2Fragment &);
     // class copy constructor
@@ -132,32 +132,31 @@ public:
 
 
     // get the averaged precursor mass:
-    double getPrecursorMZ(){ return precursorMZ; }
-    void setPrecursorMZ(double iMZ){ precursorMZ = iMZ; }
+    double getPrecursorMZ();
+    void setPrecursorMZ(double iMZ);
     // get the averaged precursor charge:
-    int getPrecursorCHRG(){ return precursorCHRG; }
+    int getPrecursorCHRG();
     // retention time:
-    double getTR(){return TR; }
+    double getTR();
     // start TR:
-    double getStartTR(){return trStart; }
+    double getStartTR();
     // end TR:
-    double getEndTR(){return trEnd; }
+    double getEndTR();
     // get the Fragment MZ:
-    double getFragmentMz(){return fragmentMZ; }
-    void setFragmentMz(double iMz){fragmentMZ = iMz; }
+    double getFragmentMz();
+    void setFragmentMz(double iMz);
     // get the charge state:
-    int getCHRG(){return z; }
+    int getCHRG();
     // get the apex scan:
-    int getApexScan(){return scan; }
+    int getApexScan();
     // get the apex scan:
-    int getStartScan(){return scanStart; }
+    int getStartScan();
     // get the apex scan:
-    int getEndScan(){return scanEnd; }
+    int getEndScan();
 
     // get the integrated peak area:
-    double getFragmentPeakArea(){return intensityArea; }
-    void setFragmentPeakArea(double iIntens){intensityArea = iIntens; }
-
+    double getFragmentPeakArea();
+    void setFragmentPeakArea(double iIntens);
 
   };
 

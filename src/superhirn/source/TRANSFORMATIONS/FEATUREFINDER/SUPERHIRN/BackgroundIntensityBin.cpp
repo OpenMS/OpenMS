@@ -253,4 +253,10 @@ namespace OpenMS
     intensityMap_.clear();
   }
 
+  std::vector<double> * BackgroundIntensityBin::getIntensityMap()
+  {   return &intensityMap_; }
+  std::map<double, double> * BackgroundIntensityBin::getIntensityHist()
+  {   return &intensityHist_; }
+  double BackgroundIntensityBin::getMean()
+  {   return mean_; }
 }

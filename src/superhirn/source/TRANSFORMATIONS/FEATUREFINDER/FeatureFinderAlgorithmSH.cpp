@@ -37,9 +37,6 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithm.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmSH.h>
 
-#include <vector>
-#include <map>
-
 namespace OpenMS
 {
   FeatureFinderAlgorithmSH<Peak1D, Feature> default_featurefinderalgorithmsh;

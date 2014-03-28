@@ -105,8 +105,8 @@ public:
     // function to access the
     // variables of the class
 
-    void setID(int in){ID = in; }
-    int getID(){return ID; }
+    inline void setID(int in){ID = in; }
+    inline int getID(){return ID; }
 
 
   };

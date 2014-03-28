@@ -42,6 +42,8 @@
 //  December 2010
 //
 
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/FTPeakDetectController.h>
+
 #include <string>
 #include <vector>
 #include <map>
@@ -65,8 +67,6 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/SHFeature.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/LCMS.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/MS1FeatureMerger.h>
-
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/FTPeakDetectController.h>
 
 namespace OpenMS
 {

@@ -68,7 +68,7 @@ public:
     Deisotoper(CentroidData&);
     virtual ~Deisotoper();
 
-    std::list<DeconvPeak>& getDeconvPeaks() {return fDeconvPeaks; }
+    inline std::list<DeconvPeak>& getDeconvPeaks() {return fDeconvPeaks; }
 
     void go(CentroidData&);
     void cleanDeconvPeaks();

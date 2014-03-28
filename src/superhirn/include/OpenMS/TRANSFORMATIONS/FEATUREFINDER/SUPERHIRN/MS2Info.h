@@ -131,46 +131,23 @@ public:
 
     // add modification
     void add_modification(int, double);
-    std::map<int, double>::iterator get_Modification_list_start()
-    {
-      return MOD_LIST.begin();
-    }
+    std::map<int, double>::iterator get_Modification_list_start();
 
-    std::map<int, double>::iterator get_Modification_list_end()
-    {
-      return MOD_LIST.end();
-    }
+    std::map<int, double>::iterator get_Modification_list_end();
 
-    std::map<int, double>::iterator find_Modification(int pos)
-    {
-      return MOD_LIST.find(pos);
-    }
+    std::map<int, double>::iterator find_Modification(int pos);
 
-    std::map<int, double> * get_Modification_list()
-    {
-      return &(MOD_LIST);
-    }
+    std::map<int, double> * get_Modification_list();
 
-    bool check_MODIFICATION()
-    {
-      return !MOD_LIST.empty();
-    }
+    bool check_MODIFICATION();
 
     // calculates the theoretical mass from a sequence:
     void set_THEO_MASS_from_SQ();
-    double get_THEO_MZ()
-    {
-      return THEO_MZ;
-    }
+    double get_THEO_MZ();
 
     // sets modification SQ:
     void set_FULL_SQ();
-    void set_SQ(std::string IN)
-    {
-      SQ = IN;
-      set_THEO_MASS_from_SQ();
-      set_FULL_SQ();
-    }
+    void set_SQ(std::string IN);
 
     // show info:
     void show_info();
@@ -193,171 +170,72 @@ public:
     // start here all the get / set
     // function to access the
     // variables of the class
-    std::string get_SQ()
-    {
-      return SQ;
-    }
+    std::string get_SQ();
 
-    std::string get_MOD_SQ()
-    {
-      return FULL_SQ;
-    }
+    std::string get_MOD_SQ();
 
-    std::string get_TOTAL_SQ()
-    {
-      return get_PREV_AA() + "." + get_MOD_SQ();
-    }
+    std::string get_TOTAL_SQ();
 
-    std::string get_AC()
-    {
-      return *(AC.begin());
-    }
+    std::string get_AC();
 
-    std::vector<std::string> get_ALL_AC()
-    {
-      return AC;
-    }
+    std::vector<std::string> get_ALL_AC();
 
-    std::vector<std::string>::iterator get_ALL_AC_START()
-    {
-      return AC.begin();
-    }
+    std::vector<std::string>::iterator get_ALL_AC_START();
 
-    std::vector<std::string>::iterator get_ALL_AC_END()
-    {
-      return AC.end();
-    }
+    std::vector<std::string>::iterator get_ALL_AC_END();
 
     bool find_AC(std::string);
     void set_AC(std::string);
-    float get_PEP_PROB()
-    {
-      return PEP_PROB;
-    }
+    float get_PEP_PROB();
 
-    void set_PEP_PROB(float IN)
-    {
-      PEP_PROB = IN;
-    }
+    void set_PEP_PROB(float IN);
 
-    double get_MONO_MZ()
-    {
-      return MONO_MZ;
-    }
+    double get_MONO_MZ();
 
     void set_MONO_MZ(double);
 
-    double get_NEUTRAL_MR()
-    {
-      return NEUTRAL_MR;
-    }
+    double get_NEUTRAL_MR();
 
     void set_NEUTRAL_MR(double);
 
-    int get_CHRG()
-    {
-      return CHRG;
-    }
+    int get_CHRG();
 
-    void set_CHRG(int IN)
-    {
-      CHRG = IN;
-    }
+    void set_CHRG(int IN);
 
-    int get_SCAN()
-    {
-      return SCAN_START;
-    }
+    int get_SCAN();
 
-    int get_SCAN_START()
-    {
-      return SCAN_START;
-    }
+    int get_SCAN_START();
 
-    void set_SCAN_START(int IN)
-    {
-      SCAN_START = IN;
-    }
+    void set_SCAN_START(int IN);
 
-    int get_SCAN_END()
-    {
-      return SCAN_END;
-    }
+    int get_SCAN_END();
 
-    void set_SCAN_END(int IN)
-    {
-      SCAN_END = IN;
-    }
+    void set_SCAN_END(int IN);
 
-    int get_ID()
-    {
-      return ID;
-    }
+    int get_ID();
 
-    double get_DELTA_CN()
-    {
-      return DELTA_CN;
-    }
+    double get_DELTA_CN();
 
-    void set_DELTA_CN(double IN)
-    {
-      DELTA_CN = IN;
-    }
+    void set_DELTA_CN(double IN);
 
-    double get_XCORR()
-    {
-      return XCORR;
-    }
+    double get_XCORR();
 
-    void set_XCORR(double IN)
-    {
-      XCORR = IN;
-    }
+    void set_XCORR(double IN);
 
-    void set_MS2_TYPE_TAG(std::string IN)
-    {
-      MS2_TYPE_TAG = IN;
-    }
+    void set_MS2_TYPE_TAG(std::string IN);
 
-    std::string get_MS2_TYPE_TAG()
-    {
-      return MS2_TYPE_TAG;
-    }
-
-/*
-        std::string get_ORIGINAL_INTERACT_FILE()
-        {
-            return ORIGINAL_INTERACT_FILE;
-        }
-
-        void set_ORIGINAL_INTERACT_FILE(std::string IN)
-        {
-            ORIGINAL_INTERACT_FILE = IN;
-        }
-*/
+    std::string get_MS2_TYPE_TAG();
 
     // access the retention parameter:
-    double getRetentionTime()
-    {
-      return TR;
-    }
+    double getRetentionTime();
 
-    void setRetentionTime(double IN)
-    {
-      TR = IN;
-    }
+    void setRetentionTime(double IN);
 
     double get_MONO_AA_MASS(int);
 
-    std::string get_PREV_AA()
-    {
-      return PREV_AA;
-    }
+    std::string get_PREV_AA();
 
-    void set_PREV_AA(std::string IN)
-    {
-      PREV_AA = IN;
-    }
+    void set_PREV_AA(std::string IN);
 
   };
 

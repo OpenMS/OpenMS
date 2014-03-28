@@ -44,6 +44,7 @@
 //
 
 //  PEAK DETECTION OF FOURIER TRANSFORME MS INSTRUMENT DATA
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/LCElutionPeak.h>
 
 #include <math.h>
 #include <stdio.h>
@@ -54,8 +55,6 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/MSPeak.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/CentroidPeak.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/SuperHirnParameters.h>
-
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/LCElutionPeak.h>
 
 namespace OpenMS
 {
@@ -561,5 +560,162 @@ namespace OpenMS
     createConsensIsotopPattern();
 
   }
+  
+  SIGNAL_iterator LCElutionPeak::get_signal_list_start()
+  {
+    return intens_signals.begin();
+  }
 
+  SIGNAL_iterator LCElutionPeak::get_signal_list_end()
+  {
+    return intens_signals.end();
+  }
+
+  void LCElutionPeak::setElutionPeakExtraInfo(std::string in)
+  {
+    elutionPeakExtraInfo = in;
+  }
+
+  std::string LCElutionPeak::getElutionPeakExtraInfo()
+  {
+    return elutionPeakExtraInfo;
+  }
+
+  void LCElutionPeak::analyzeLCElutionPeak()
+  {
+
+    if (get_nb_ms_peaks() > 1)
+    {
+
+      CHRG_MAP.clear();
+
+      // determine the intensity background baseline based on S/N
+      // value:
+      setSNIntensityThreshold();
+
+      // Compute a variety of parameters for the LC elution peak
+      computeLCElutionPeakParameters();
+
+      // define parameters such as chrg, score
+      compute_CHRG();
+
+      // create the consensus pattern:
+      createConsensIsotopPattern();
+    }
+    else
+    {
+      defineLCElutionPeakParametersFromMSPeak();
+    }
+  }
+
+  void LCElutionPeak::set_apex_retention_time(double IN)
+  {
+    fRT = IN;
+  }
+
+  // to update the list of score and charge state:
+  void LCElutionPeak::update_CHRGMAP(MSPeak * IN)
+  {
+    std::multimap<int, int>::iterator T = CHRG_MAP.find(IN->get_charge_state());
+    if (T == CHRG_MAP.end())
+    {
+      CHRG_MAP.insert(std::make_pair(IN->get_charge_state(), 1));
+    }
+    else
+    {
+      (*T).second++;
+    }
+  }
+
+  ///////////////////
+  // get scan apex:
+  int LCElutionPeak::get_scan_apex()
+  {
+    return fScanNumberApex;
+  }
+
+  double LCElutionPeak::get_apex_intensity()
+  {
+    return fapex_intensity;
+  }
+
+  double LCElutionPeak::get_apex_retention_time()
+  {
+    return fRT;
+  }
+
+  double LCElutionPeak::get_apex_MZ()
+  {
+    return get_MZ(get_scan_apex());
+  }
+
+  //////////////////
+  // get an intensity of a ms_peak
+  float LCElutionPeak::get_intensity(int IN)
+  {
+    return (*(intens_signals.find(IN))).second.get_intensity();
+  }
+
+  double LCElutionPeak::get_total_peak_area()
+  {
+    return fpeak_area;
+  }
+
+  ////////////////
+  // get start / end scan:
+  int LCElutionPeak::get_start_scan()
+  {
+    return fScanNumberStart;
+  }
+
+  int LCElutionPeak::get_end_scan()
+  {
+    return fScanNumberEnd;
+  }
+
+  void LCElutionPeak::set_start_retention_time(double IN)
+  {
+    fStartTR = IN;
+  }
+
+  double LCElutionPeak::get_start_retention_time()
+  {
+    return fStartTR;
+  }
+
+  void LCElutionPeak::set_end_retention_time(double IN)
+  {
+    fEndTR = IN;
+  }
+
+  double LCElutionPeak::get_end_retention_time()
+  {
+    return fEndTR;
+  }
+
+  ////////////////
+  // get number of peaks in the elution profile:
+  int LCElutionPeak::get_nb_ms_peaks()
+  {
+    return (int) intens_signals.size();
+  }
+
+  //////////////
+  // access the charge state of the LC elution peak:
+  int LCElutionPeak::get_charge_state()
+  {
+    return fCharge;
+  }
+
+  ////////////
+  // get signal to noise ratio:
+  double LCElutionPeak::getSignalToNoise()
+  {
+    return fSignalToNoise;
+  }
+
+  double LCElutionPeak::getSignalToNoiseBackground()
+  {
+    return fSNIntensityThreshold;
+  }
 }

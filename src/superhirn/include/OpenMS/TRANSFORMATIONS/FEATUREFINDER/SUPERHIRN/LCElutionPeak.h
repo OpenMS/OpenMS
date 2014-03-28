@@ -55,6 +55,7 @@
 #include <vector>
 #include <map>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/ConsensusIsotopePattern.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/MSPeak.h>
 
 namespace OpenMS
 {
@@ -132,32 +133,7 @@ public:
 
     //////////////////////////////////////////////////////
     // Analyze the LC elution peak
-    void analyzeLCElutionPeak()
-    {
-
-      if (get_nb_ms_peaks() > 1)
-      {
-
-        CHRG_MAP.clear();
-
-        // determine the intensity background baseline based on S/N
-        // value:
-        setSNIntensityThreshold();
-
-        // Compute a variety of parameters for the LC elution peak
-        computeLCElutionPeakParameters();
-
-        // define parameters such as chrg, score
-        compute_CHRG();
-
-        // create the consensus pattern:
-        createConsensIsotopPattern();
-      }
-      else
-      {
-        defineLCElutionPeakParametersFromMSPeak();
-      }
-    }
+    void analyzeLCElutionPeak();
 
     //////////////////////////////////////////////////////
     // determine the intensity background baseline based on S/N
@@ -210,15 +186,9 @@ public:
     // print the consensus isotope pattern:
     //void printConsensIsotopPattern();
 
-    void setElutionPeakExtraInfo(std::string in)
-    {
-      elutionPeakExtraInfo = in;
-    }
+    void setElutionPeakExtraInfo(std::string in);
 
-    std::string getElutionPeakExtraInfo()
-    {
-      return elutionPeakExtraInfo;
-    }
+    std::string getElutionPeakExtraInfo();
 
     ///////////////////////////////
     // start here all the get / set
@@ -227,15 +197,9 @@ public:
 
     ////////////////////////////
     // access signal_intens map:
-    SIGNAL_iterator get_signal_list_start()
-    {
-      return intens_signals.begin();
-    }
+    SIGNAL_iterator get_signal_list_start();
 
-    SIGNAL_iterator get_signal_list_end()
-    {
-      return intens_signals.end();
-    }
+    SIGNAL_iterator get_signal_list_end();
 
     ////////////////////////////
     // access the raw signal intens map:
@@ -243,121 +207,59 @@ public:
     //SIGNAL_iterator get_raw_signal_list_end(){return raw_intens_signals.end();};
 
     // update the retention time by the current tmp_scan_apex:
-    void set_apex_retention_time(double IN)
-    {
-      fRT = IN;
-    }
+    void set_apex_retention_time(double IN);
 
     // to update the list of score and charge state:
-    void update_CHRGMAP(MSPeak * IN)
-    {
-      std::multimap<int, int>::iterator T = CHRG_MAP.find(IN->get_charge_state());
-      if (T == CHRG_MAP.end())
-      {
-        CHRG_MAP.insert(std::make_pair(IN->get_charge_state(), 1));
-      }
-      else
-      {
-        (*T).second++;
-      }
-    }
+    void update_CHRGMAP(MSPeak * IN);
 
     ///////////////////
     // get scan apex:
-    int get_scan_apex()
-    {
-      return fScanNumberApex;
-    }
+    int get_scan_apex();
 
-    double get_apex_intensity()
-    {
-      return fapex_intensity;
-    }
+    double get_apex_intensity();
 
-    double get_apex_retention_time()
-    {
-      return fRT;
-    }
+    double get_apex_retention_time();
 
-    double get_apex_MZ()
-    {
-      return get_MZ(get_scan_apex());
-    }
+    double get_apex_MZ();
 
     //////////////////
     // get an intensity of a ms_peak
-    float get_intensity(int IN)
-    {
-      return (*(intens_signals.find(IN))).second.get_intensity();
-    }
+    float get_intensity(int IN);
 
     // get the original M/Z of a ms_peak
     double get_MZ(int);
 
     /////////////////
     // get the total peak area:
-    double get_total_peak_area()
-    {
-      return fpeak_area;
-    }
+    double get_total_peak_area();
 
     ////////////////
     // get start / end scan:
-    int get_start_scan()
-    {
-      return fScanNumberStart;
-    }
+    int get_start_scan();
 
-    int get_end_scan()
-    {
-      return fScanNumberEnd;
-    }
+    int get_end_scan();
 
-    void set_start_retention_time(double IN)
-    {
-      fStartTR = IN;
-    }
+    void set_start_retention_time(double IN);
 
-    double get_start_retention_time()
-    {
-      return fStartTR;
-    }
+    double get_start_retention_time();
 
-    void set_end_retention_time(double IN)
-    {
-      fEndTR = IN;
-    }
+    void set_end_retention_time(double IN);
 
-    double get_end_retention_time()
-    {
-      return fEndTR;
-    }
+    double get_end_retention_time();
 
     ////////////////
     // get number of peaks in the elution profile:
-    int get_nb_ms_peaks()
-    {
-      return (int) intens_signals.size();
-    }
+    int get_nb_ms_peaks();
 
     //////////////
     // access the charge state of the LC elution peak:
-    int get_charge_state()
-    {
-      return fCharge;
-    }
+    int get_charge_state();
 
     ////////////
     // get signal to noise ratio:
-    double getSignalToNoise()
-    {
-      return fSignalToNoise;
-    }
+    double getSignalToNoise();
 
-    double getSignalToNoiseBackground()
-    {
-      return fSNIntensityThreshold;
-    }
+    double getSignalToNoiseBackground();
 
   };
 

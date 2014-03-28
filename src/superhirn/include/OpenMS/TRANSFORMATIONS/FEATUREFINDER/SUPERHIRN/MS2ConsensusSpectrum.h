@@ -54,6 +54,7 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/SuperHirnConfig.h>
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/MS2Fragment.h>
 
 #include <string>
 #include <map>
@@ -164,32 +165,32 @@ public:
     // variables of the class
 
     // precursor mass:
-    double getPrecursorMZ(){return precursorMZ; }
+    double getPrecursorMZ();
 
     // TR:
-    double getTR(){return TR; }
+    double getTR();
     // start TR
-    double getStartTR(){return startTR; }
+    double getStartTR();
     // end TR
-    double getEndTR(){return endTR; }
+    double getEndTR();
 
 
     // set / get  the charge state of the precursor MZ:
-    void setPrecursorChrg(int IN){ z = IN; }
-    int getPrecursorChrg(){ return z; }
+    void setPrecursorChrg(int IN);
+    int getPrecursorChrg();
     // apex scan:
-    int getApexScan(){return apexScan; }
+    int getApexScan();
     // start scan
-    int getStartScan(){return startScan; }
+    int getStartScan();
     // end scan
-    int getEndScan(){return endScan; }
+    int getEndScan();
     // get the number of consensus fragments:
-    int getNbMS2Fragments(){return (int) MS2FragmentPeaks.size(); }
+    int getNbMS2Fragments();
 
     // get the MS2 fragments list iterator:
-    std::multimap<double, MS2Fragment>::iterator getMS2FragmentPeakStart(){return MS2FragmentPeaks.begin(); }
-    std::multimap<double, MS2Fragment>::iterator getMS2FragmentPeakEnd(){return MS2FragmentPeaks.end(); }
-    std::multimap<double, MS2Fragment> * getMS2FragmentMap(){return &MS2FragmentPeaks; }
+    std::multimap<double, MS2Fragment>::iterator getMS2FragmentPeakStart();
+    std::multimap<double, MS2Fragment>::iterator getMS2FragmentPeakEnd();
+    std::multimap<double, MS2Fragment> * getMS2FragmentMap();
 
 
   };

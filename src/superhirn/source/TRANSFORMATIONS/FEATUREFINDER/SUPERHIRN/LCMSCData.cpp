@@ -46,12 +46,16 @@
 //  Group of Prof. Ruedi Aebersold, IMSB, ETH Hoenggerberg, Zurich
 //
 //
+
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/LCMSCData.h>
+
 #include <map>
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/MSPeak.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/SuperHirnParameters.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/LCElutionPeak.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/LCMSCData.h>
+
+using namespace std;
 
 namespace OpenMS
 {
@@ -62,7 +66,8 @@ namespace OpenMS
 // Constructor & destructor
 ///////////////////////////////////////////////////////////////////////////////
 
-  using namespace std;
+  LCMSCData::MZ_LIST_ITERATOR LCMSCData::get_DATA_start(){ return DATA.begin(); }
+  LCMSCData::MZ_LIST_ITERATOR LCMSCData::get_DATA_end(){ return DATA.end(); }
 
   LCMSCData::LCMSCData()
   {
@@ -102,11 +107,9 @@ namespace OpenMS
 
 ///////////////////////////////////////////////////////////////////////////////
 // find data of a specific m/z:
-  MZ_LIST_ITERATOR LCMSCData::get_MZ_by_iterator(double MZ)
+  LCMSCData::MZ_LIST_ITERATOR LCMSCData::get_MZ_by_iterator(double MZ)
   {
-
     MZ_LIST_ITERATOR P = DATA.find(MZ);
-
     return P;
   }
 
@@ -114,12 +117,11 @@ namespace OpenMS
 // add data into the structure:
   void LCMSCData::add_LC_elution_peak(double MZ, LCElutionPeak * IN)
   {
-
     // get the scan apex:
     int APEX = IN->get_scan_apex();
 
     // check if this mass is already stored:
-    MZ_LIST_ITERATOR P = get_MZ_by_iterator(MZ);
+    LCMSCData::MZ_LIST_ITERATOR P = get_MZ_by_iterator(MZ);
 
     if (P == get_DATA_end())
     {
@@ -154,7 +156,7 @@ namespace OpenMS
     vector<LCElutionPeak> OUT;
 
     // go through the structure and find all m/z at this scan:
-    MZ_LIST_ITERATOR P = get_DATA_start();
+    LCMSCData::MZ_LIST_ITERATOR P = get_DATA_start();
 
     while (P != get_DATA_end())
     {

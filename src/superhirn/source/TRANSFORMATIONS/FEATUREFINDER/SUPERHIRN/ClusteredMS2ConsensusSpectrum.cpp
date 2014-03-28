@@ -54,10 +54,10 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/ClusteredMS2ConsensusSpectrum.h>
 
+using namespace std;
+
 namespace OpenMS
 {
-
-  using namespace std;
 
 ////////////////////////////////////////////////
 // constructor for the object ClusteredMS2ConsensusSpectrum:
@@ -172,6 +172,21 @@ namespace OpenMS
     // average m/z:
     target->setPrecursorMZ((target->getPrecursorMZ() + toMerge->getPrecursorMZ()) / 2.0);
 
+  }
+
+  int ClusteredMS2ConsensusSpectrum::getNumberOfSpectraScan()
+  {
+   return (int) MS2Scans.size();
+  }
+
+  std::vector<int>::iterator ClusteredMS2ConsensusSpectrum::getSpectraScanNumberStart()
+  {
+   return MS2Scans.begin();
+  }
+
+  std::vector<int>::iterator ClusteredMS2ConsensusSpectrum::getSpectraScanNumberEnd()
+  {
+    return MS2Scans.end();
   }
 
 }

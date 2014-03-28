@@ -52,6 +52,7 @@
 #define OPENMS_TRANSFORMATIONS_FEATUREFINDER_SUPERHIRN_PROCESSDATA_H
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/SuperHirnConfig.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/BackgroundControl.h>
 
 #include <map>
 #include <vector>
@@ -61,6 +62,8 @@
 namespace OpenMS
 {
 
+  class CentroidData;
+  class LCMSCData;
 
   class SUPERHIRN_DLL_EXPORT ProcessData
   {
@@ -105,8 +108,6 @@ protected:
     ///////////////////////////////////////////////
     // data processing classes:
     BackgroundControl * backgroundController;
-
-
 
 public:
 
@@ -233,12 +234,9 @@ public:
     main_iterator get_MZ_LIST_start();
     // erase element in MZ list:
     void erase_MZ_LIST_element(main_iterator);
-    int getNbMSTraces(){ return (int) pMZ_LIST.size(); }
+    int getNbMSTraces();
 
-
-    double getMinimalIntensityLevel(){return SuperHirnParameters::instance()->getIntensityThreshold(); }
-
-
+    double getMinimalIntensityLevel();
 
     // access the MZ_CLUSTER:
     // find element numbers:
@@ -252,15 +250,15 @@ public:
     // void add_scan_TR_index(std::map<int, float> IN){scan_TR_index = IN;};
 
     // get the processed data:
-    LCMSCData * getProcessedData(){return data_; }
+    LCMSCData * getProcessedData();
 
     // increase the LC_elution_profile counter:
-    void increase_LC_elution_peak_counter(){LC_elution_peak_counter++; }
-    unsigned int get_LC_elution_peak_counter(){return LC_elution_peak_counter; }
+    void increase_LC_elution_peak_counter();
+    unsigned int get_LC_elution_peak_counter();
 
     // get the maximal scan distance between two same monoisotopic masses
-    int getMaxScanDistance(){ return max_inter_scan_distance; }
-    void setMaxScanDistance(int in){ max_inter_scan_distance = in; }
+    int getMaxScanDistance();
+    void setMaxScanDistance(int in);
 
 
     // build up an index scan vs retention time:

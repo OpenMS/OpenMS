@@ -35,6 +35,15 @@
 project("SuperHirn")
 cmake_minimum_required(VERSION 2.8.3 FATAL_ERROR)
 
+#------------------------------------------------------------------------------
+# Find Boost lib for shared pointers
+#------------------------------------------------------------------------------
+find_boost()
+
+if(NOT Boost_FOUND)
+  message(FATAL_ERROR "Boost was not found!")
+endif()
+
 # --------------------------------------------------------------------------
 # the collection of files for SuperHirn
 set(SuperHirn_sources   CACHE INTERNAL "This variable should hold all SuperHirn sources at the end of the config step" )
@@ -42,17 +51,18 @@ set(SuperHirn_sources_h CACHE INTERNAL "This variable should hold all SuperHirn 
 
 # --------------------------------------------------------------------------
 # include the file collections
-include(include/OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/sources.cmake)
-include(include/OpenMS/TRANSFORMATIONS/FEATUREFINDER/sources.cmake)
 include(source/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/sources.cmake)
 include(source/TRANSFORMATIONS/FEATUREFINDER/sources.cmake)
+include(include/OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/sources.cmake)
+include(include/OpenMS/TRANSFORMATIONS/FEATUREFINDER/sources.cmake)
 
 # --------------------------------------------------------------------------
-# Expose OpenMSGUI's public includes (including transitive dependencies)
+# expose SuperHirn public includes (including transitive dependencies)
 set(SuperHirn_INTERNAL_INCLUDE_DIRECTORIES ${PROJECT_SOURCE_DIR}/include
                                            ${PROJECT_BINARY_DIR}/include)
 
-set(SuperHirn_EXTERNAL_INCLUDE_DIRECTORIES ${OpenMS_INCLUDE_DIRECTORIES})
+set(SuperHirn_EXTERNAL_INCLUDE_DIRECTORIES ${Boost_INCLUDE_DIRS}
+                                           ${OpenMS_INCLUDE_DIRECTORIES})
 
 set(SuperHirn_INCLUDE_DIRECTORIES ${SuperHirn_INTERNAL_INCLUDE_DIRECTORIES}
                                   ${SuperHirn_EXTERNAL_INCLUDE_DIRECTORIES}
@@ -76,7 +86,10 @@ generate_export_header(SuperHirn
                       EXPORT_MACRO_NAME SUPERHIRN_DLL_EXPORT
                       EXPORT_FILE_NAME ${SuperHirn_CONFIG_H})
 
-# we also want to install OpenSwathAlgo
+source_group("Header Files\\OpenMS\\" FILES ${SuperHirn_CONFIG_H})
+set(SuperHirn_sources_h ${SuperHirn_sources_h} ${SuperHirn_CONFIG_H} CACHE INTERNAL "This variable should hold all SuperHirn headers at the end of the config step")
+
+# we also want to install SuperHirn
 install_library(SuperHirn)
 install_headers("${SuperHirn_sources_h};${SuperHirn_CONFIG_H}" SuperHirn)
 
@@ -89,7 +102,7 @@ copy_dll_to_extern_bin(SuperHirn)
 target_link_libraries(SuperHirn OpenMS)
 
 # --------------------------------------------------------------------------
-# link libraries for GUI Tools
+# link libraries for SuperHirn tools
 set(SuperHirn_LIBRARIES SuperHirn OpenMS CACHE INTERNAL "SuperHirn libraries" FORCE)
 
 #------------------------------------------------------------------------------

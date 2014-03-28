@@ -86,21 +86,12 @@ public:
     void set(boost::shared_ptr<RawData>);
     void set(std::vector<double> &, std::vector<double> &);
 
-    void setWidth(int pWidth)
-    {
-      fWindowWidth = pWidth;
-    }
+    void setWidth(int pWidth);
 
-    int getWidth()
-    {
-      return fWindowWidth;
-    }
+    int getWidth();
 
     void setNoise(double);
-    double getNoise()
-    {
-      return fNoise;
-    }
+    double getNoise();
 
     void removeNoise();
 

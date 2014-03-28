@@ -46,15 +46,15 @@
 //  Group of Prof. Ruedi Aebersold, IMSB, ETH Hoenggerberg, Zurich
 //
 
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/MSPeak.h>
+
 #include <string>
 #include <vector>
 #include <map>
 #include <iostream>
-#include <stdio.h>
+#include <cstdio>
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/CentroidPeak.h>
-
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/MSPeak.h>
 
 namespace OpenMS
 {
@@ -317,5 +317,124 @@ namespace OpenMS
     childScan = in;
 
   }
+
+  std::vector<CentroidPeak> & MSPeak::get_isotopic_peaks()
+  {
+    return ISOPEAKS;
+  }
+
+  std::vector<CentroidPeak>::iterator MSPeak::get_isotopic_peaks_start()
+  {
+    return ISOPEAKS.begin();
+  }
+
+  std::vector<CentroidPeak>::iterator MSPeak::get_isotopic_peaks_end()
+  {
+    return ISOPEAKS.end();
+  }
+
+  void MSPeak::setExtraPeakInfo(std::string in)
+  {
+    extraMSPeakInfo = in;
+  }
+
+  std::string MSPeak::getExtraPeakInfo()
+  {
+    return extraMSPeakInfo;
+  }
+
+  // precursor mass of the MS2 scan:
+  void MSPeak::setPrecursorMZ(double in)
+  {
+    precursorMZ = in;
+  }
+
+  double MSPeak::getPrecursorMZ()
+  {
+    return precursorMZ;
+  }
+
+  // precursor mass charge state:
+  void MSPeak::setPrecursorCHRG(int in)
+  {
+    CHRG = in;
+  }
+
+  int MSPeak::getPrecursorCHRG()
+  {
+    return CHRG;
+  }
+
+  // check if this peak has been determined as precursor:
+  bool MSPeak::getPrecursorActivation()
+  {
+    return precursorMass;
+  }
+
+  int MSPeak::get_Chrg()
+  {
+    return CHRG;
+  }
+
+  void MSPeak::set_Chrg(int z)
+  {
+    CHRG = z;
+  }
+
+  int MSPeak::get_Scan()
+  {
+    return SCAN;
+  }
+
+  float MSPeak::get_intensity()
+  {
+    return INTENSITY;
+  }
+
+  double MSPeak::get_MZ()
+  {
+    return MZ;
+  }
+
+  int MSPeak::get_scan_number()
+  {
+    return SCAN;
+  }
+
+  void MSPeak::set_retention_time(double IN)
+  {
+    TR = IN;
+  }
+
+  double MSPeak::get_retention_time()
+  {
+    return TR;
+  }
+
+  unsigned int MSPeak::get_charge_state()
+  {
+    return CHRG;
+  }
+
+  unsigned int MSPeak::get_nr_isotopes()
+  {
+    return NRISOTOPES;
+  }
+
+  float MSPeak::get_score()
+  {
+    return SCORE;
+  }
+
+  double MSPeak::getSignalToNoise()
+  {
+    return SignalToNoise;
+  }
+
+  void MSPeak::setSignalToNoise(double in)
+  {
+    SignalToNoise = in;
+  }
+
 
 }

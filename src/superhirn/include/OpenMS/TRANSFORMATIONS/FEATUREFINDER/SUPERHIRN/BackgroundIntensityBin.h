@@ -52,8 +52,13 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/SuperHirnConfig.h>
 
+#include <vector>
+#include <map>
+
 namespace OpenMS
 {
+
+  class MSPeak;
 
   class SUPERHIRN_DLL_EXPORT BackgroundIntensityBin
   {
@@ -107,12 +112,9 @@ public:
      */
     void processIntensities();
 
-    std::vector<double> * getIntensityMap()
-    {   return &intensityMap_; }
-    std::map<double, double> * getIntensityHist()
-    {   return &intensityHist_; }
-    double getMean()
-    {   return mean_; }
+    std::vector<double> * getIntensityMap();
+    std::map<double, double> * getIntensityHist();
+    double getMean();
   };
 
 } // ns

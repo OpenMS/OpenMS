@@ -131,20 +131,11 @@ public:
     // function to access the
     // variables of the class
 
-    int getNumberOfSpectraScan()
-    {
-      return (int) MS2Scans.size();
-    }
+    int getNumberOfSpectraScan();
 
-    std::vector<int>::iterator getSpectraScanNumberStart()
-    {
-      return MS2Scans.begin();
-    }
+    std::vector<int>::iterator getSpectraScanNumberStart();
 
-    std::vector<int>::iterator getSpectraScanNumberEnd()
-    {
-      return MS2Scans.end();
-    }
+    std::vector<int>::iterator getSpectraScanNumberEnd();
 
   };
 

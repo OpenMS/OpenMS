@@ -42,15 +42,15 @@
 //  December 2010
 //
 
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/MS2Info.h>
+
 #include <string>
 #include <map>
 #include <list>
 #include <vector>
 #include <algorithm>
 #include <string.h>
-#include <stdio.h>
-
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/MS2Info.h>
+#include <cstdio>
 
 namespace OpenMS
 {
@@ -515,6 +515,189 @@ namespace OpenMS
       status++;
     }
     return status;
+  }
+
+
+  std::map<int, double>::iterator MS2Info::get_Modification_list_start()
+  {
+    return MOD_LIST.begin();
+  }
+
+  std::map<int, double>::iterator MS2Info::get_Modification_list_end()
+  {
+    return MOD_LIST.end();
+  }
+
+  std::map<int, double>::iterator MS2Info::find_Modification(int pos)
+  {
+    return MOD_LIST.find(pos);
+  }
+
+  std::map<int, double> * MS2Info::get_Modification_list()
+  {
+    return &(MOD_LIST);
+  }
+
+  bool MS2Info::check_MODIFICATION()
+  {
+    return !MOD_LIST.empty();
+  }
+
+  double MS2Info::get_THEO_MZ()
+  {
+    return THEO_MZ;
+  }
+
+  void MS2Info::set_SQ(std::string IN)
+  {
+    SQ = IN;
+    set_THEO_MASS_from_SQ();
+    set_FULL_SQ();
+  }
+
+  std::string MS2Info::get_SQ()
+  {
+    return SQ;
+  }
+
+  std::string MS2Info::get_MOD_SQ()
+  {
+    return FULL_SQ;
+  }
+
+  std::string MS2Info::get_TOTAL_SQ()
+  {
+    return get_PREV_AA() + "." + get_MOD_SQ();
+  }
+
+  std::string MS2Info::get_AC()
+  {
+    return *(AC.begin());
+  }
+
+  std::vector<std::string> MS2Info::get_ALL_AC()
+  {
+    return AC;
+  }
+
+  std::vector<std::string>::iterator MS2Info::get_ALL_AC_START()
+  {
+    return AC.begin();
+  }
+
+  std::vector<std::string>::iterator MS2Info::get_ALL_AC_END()
+  {
+    return AC.end();
+  }
+
+  float MS2Info::get_PEP_PROB()
+  {
+    return PEP_PROB;
+  }
+
+  void MS2Info::set_PEP_PROB(float IN)
+  {
+    PEP_PROB = IN;
+  }
+
+  double MS2Info::get_MONO_MZ()
+  {
+    return MONO_MZ;
+  }
+
+  double MS2Info::get_NEUTRAL_MR()
+  {
+    return NEUTRAL_MR;
+  }
+
+  int MS2Info::get_CHRG()
+  {
+    return CHRG;
+  }
+
+  void MS2Info::set_CHRG(int IN)
+  {
+    CHRG = IN;
+  }
+
+  int MS2Info::get_SCAN()
+  {
+    return SCAN_START;
+  }
+
+  int MS2Info::get_SCAN_START()
+  {
+    return SCAN_START;
+  }
+
+  void MS2Info::set_SCAN_START(int IN)
+  {
+    SCAN_START = IN;
+  }
+
+  int MS2Info::get_SCAN_END()
+  {
+    return SCAN_END;
+  }
+
+  void MS2Info::set_SCAN_END(int IN)
+  {
+    SCAN_END = IN;
+  }
+
+  int MS2Info::get_ID()
+  {
+    return ID;
+  }
+
+  double MS2Info::get_DELTA_CN()
+  {
+    return DELTA_CN;
+  }
+
+  void MS2Info::set_DELTA_CN(double IN)
+  {
+    DELTA_CN = IN;
+  }
+
+  double MS2Info::get_XCORR()
+  {
+    return XCORR;
+  }
+
+  void MS2Info::set_XCORR(double IN)
+  {
+    XCORR = IN;
+  }
+
+  void MS2Info::set_MS2_TYPE_TAG(std::string IN)
+  {
+    MS2_TYPE_TAG = IN;
+  }
+
+  std::string MS2Info::get_MS2_TYPE_TAG()
+  {
+    return MS2_TYPE_TAG;
+  }
+
+  double MS2Info::getRetentionTime()
+  {
+    return TR;
+  }
+
+  void MS2Info::setRetentionTime(double IN)
+  {
+    TR = IN;
+  }
+
+  std::string MS2Info::get_PREV_AA()
+  {
+    return PREV_AA;
+  }
+
+  void MS2Info::set_PREV_AA(std::string IN)
+  {
+    PREV_AA = IN;
   }
 
 }

@@ -42,6 +42,8 @@
 //  December 2010
 //
 
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/MS1FeatureMerger.h>
+
 #include <map>
 #include <vector>
 #include <string>
@@ -56,7 +58,6 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/FeatureLCProfile.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/SHFeature.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/LCMS.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/MS1FeatureMerger.h>
 
 namespace OpenMS
 {
@@ -540,6 +541,12 @@ namespace OpenMS
       }
     }
     return AREA;
+  }
+
+  bool MS1FeatureMerger::OPERATOR_FEATURE_TR::operator()(const SHFeature A, const SHFeature B) const
+  {
+    // check if they have same mass
+    return A.TR < B.TR;
   }
 
 }

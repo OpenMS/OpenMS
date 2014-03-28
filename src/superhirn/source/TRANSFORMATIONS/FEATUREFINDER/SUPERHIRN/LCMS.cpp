@@ -42,6 +42,8 @@
 //  December 2010
 //
 
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/LCMS.h>
+
 #include <string>
 #include <vector>
 #include <map>
@@ -53,8 +55,6 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/MS2Feature.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/FeatureLCProfile.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/SHFeature.h>
-
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/LCMS.h>
 
 namespace OpenMS
 {
@@ -374,5 +374,155 @@ namespace OpenMS
       ++p;
     }
   }
+
+  void LCMS::tag_peaks_with_spectrum_ID()
+  {
+    std::vector<SHFeature>::iterator p = feature_list.begin();
+    while (p != feature_list.end())
+    {
+      (*p).set_spectrum_ID(get_spectrum_ID());
+      p++;
+    }
+  }
+
+  // get the whole feature list:
+  void LCMS::clear_feature_list()
+  {   return feature_list.clear(); }
+  std::vector<SHFeature> LCMS::get_feature_list()
+  {   return feature_list; }
+  std::vector<SHFeature> * LCMS::get_feature_list_reference()
+  {   return &feature_list; }
+  bool LCMS::check_feature_list_empty()
+  {   return feature_list.empty(); }
+
+  // access end /start of list:
+  std::vector<SHFeature>::iterator LCMS::get_feature_list_begin()
+  {   return feature_list.begin(); }
+  std::vector<SHFeature>::iterator LCMS::get_feature_list_end()
+  {   return feature_list.end(); }
+
+  // add a new feature to the list:
+  void LCMS::add_feature(SHFeature * IN)
+  {
+
+    if (IN->get_feature_ID() == -1)
+    {
+      IN->set_feature_ID((int) feature_list.size());
+    }
+    feature_list.push_back(*IN);
+    IN = NULL;
+  }
+
+  void LCMS::remove_feature(int i)
+  {
+    if (i < int(feature_list.size()))
+    {
+      feature_list.erase(feature_list.begin() + i);
+    }
+  }
+
+  // remove a feature by iterator and return the iterator to the next element
+  std::vector<SHFeature>::iterator LCMS::remove_feature_from_list(std::vector<SHFeature>::iterator IN)
+  {   return feature_list.erase(IN); }
+
+  // get number of feature added:
+  unsigned int LCMS::get_nb_features()
+  {   return (unsigned int) feature_list.size(); }
+
+  std::string LCMS::get_spec_name()
+  {   return spec_name; }
+  void LCMS::set_spec_name(std::string IN)
+  {   spec_name = IN; }
+
+  // set / get spectrum id:
+  int LCMS::get_spectrum_ID()
+  {   return spectrum_id; }
+  void LCMS::set_spectrum_ID(int IN)
+  {   spectrum_id = IN; }
+
+  // access the raw data names:
+  void LCMS::remove_raw_spec_name(int ID)
+  {   raw_spec_names.erase(ID); }
+  void LCMS::add_raw_spec_name(int ID, std::string name)
+  {   raw_spec_names.insert(make_pair(ID, name)); }
+  bool LCMS::check_raw_spec_name_empty()
+  {   return raw_spec_names.empty(); }
+  std::map<int, std::string>::iterator LCMS::get_raw_spec_name_start()
+  {   return raw_spec_names.begin(); }
+  std::map<int, std::string>::iterator LCMS::get_raw_spec_name_end()
+  {   return raw_spec_names.end(); }
+  std::map<int, std::string> LCMS::get_raw_spec_name_map()
+  {   return raw_spec_names; }
+  int LCMS::get_nb_raw_specs()
+  {   return (int) raw_spec_names.size(); }
+  std::string LCMS::get_raw_spec_name(int ID)
+  {
+    std::map<int, std::string>::iterator p = raw_spec_names.find(ID);
+    if (p == raw_spec_names.end())
+    {
+      return "";
+    }
+    return (*p).second;
+  }
+
+  // add the raw spectrum map:
+  void LCMS::add_raw_spec_name_map(std::map<int, std::string> IN)
+  {
+    std::map<int, std::string>::iterator p = IN.begin();
+    while (p != IN.end())
+    {
+      int ID = (*p).first;
+      std::map<int, std::string>::iterator F = raw_spec_names.find(ID);
+      if (F != raw_spec_names.end())
+      {
+        ID += (int) raw_spec_names.size();
+      }
+      raw_spec_names.insert(make_pair(ID, (*p).second));
+      p++;
+    }
+  }
+
+  // counts the number of ms features, which contain MS2 info:
+  int LCMS::get_nb_identified_features()
+  {
+    int count = 0;
+    std::vector<SHFeature>::iterator P = get_feature_list_begin();
+    while (P != get_feature_list_end())
+    {
+      if ((*P).get_MS2_info())
+        count++;
+      P++;
+    }
+    return count;
+  }
+
+  // counts the number of ms features, which contain MS2 info (no thresholding)
+  int LCMS::get_nb_identified_features(double PepProb_T)
+  {
+    int count = 0;
+    std::vector<SHFeature>::iterator P = get_feature_list_begin();
+    while (P != get_feature_list_end())
+    {
+      if ((*P).get_MS2_info(PepProb_T))
+        count++;
+      P++;
+    }
+    return count;
+  }
+
+  //////////////////////////////////
+  // access the alignment error:
+  // save an error:
+  void LCMS::add_alignment_error(double TR, double ERROR_UP, double ERROR_DOWN)
+  {
+    std::pair<double, double> tmp(ERROR_UP, ERROR_DOWN);
+    ALIGNMENT_ERROR.insert(std::pair<double, std::pair<double, double> >(TR, tmp));
+  }
+
+  // access MASTER run ID:
+  void LCMS::set_MASTER_ID(int IN)
+  {   MASTER_ID = IN; }
+  int LCMS::get_MASTER_ID()
+  {   return MASTER_ID; }
 
 }

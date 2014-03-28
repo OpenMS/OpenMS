@@ -47,6 +47,8 @@
 //
 //
 
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/MS2ConsensusSpectrum.h>
+
 #include <map>
 #include <vector>
 #include <string>
@@ -55,12 +57,11 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/SuperHirnUtil.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/MS2Fragment.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/MS2ConsensusSpectrum.h>
+
+using namespace std;
 
 namespace OpenMS
 {
-
-  using namespace std;
 
 // mass to charge tolerance for MS2 trace level:
   double MS2ConsensusSpectrum::MS2_MZ_TOLERANCE;
@@ -438,4 +439,32 @@ namespace OpenMS
     return corMS2 / corSpec;
   }
 
+
+  // precursor mass:
+  double MS2ConsensusSpectrum::getPrecursorMZ(){return precursorMZ; }
+
+  // TR:
+  double MS2ConsensusSpectrum::getTR(){return TR; }
+  // start TR
+  double MS2ConsensusSpectrum::getStartTR(){return startTR; }
+  // end TR
+  double MS2ConsensusSpectrum::getEndTR(){return endTR; }
+
+
+  // set / get  the charge state of the precursor MZ:
+  void MS2ConsensusSpectrum::setPrecursorChrg(int IN){ z = IN; }
+  int MS2ConsensusSpectrum::getPrecursorChrg(){ return z; }
+  // apex scan:
+  int MS2ConsensusSpectrum::getApexScan(){return apexScan; }
+  // start scan
+  int MS2ConsensusSpectrum::getStartScan(){return startScan; }
+  // end scan
+  int MS2ConsensusSpectrum::getEndScan(){return endScan; }
+  // get the number of consensus fragments:
+  int MS2ConsensusSpectrum::getNbMS2Fragments(){return (int) MS2FragmentPeaks.size(); }
+
+  // get the MS2 fragments list iterator:
+  std::multimap<double, MS2Fragment>::iterator MS2ConsensusSpectrum::getMS2FragmentPeakStart(){return MS2FragmentPeaks.begin(); }
+  std::multimap<double, MS2Fragment>::iterator MS2ConsensusSpectrum::getMS2FragmentPeakEnd(){return MS2FragmentPeaks.end(); }
+  std::multimap<double, MS2Fragment> * MS2ConsensusSpectrum::getMS2FragmentMap(){return &MS2FragmentPeaks; }
 }
