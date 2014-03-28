@@ -38,10 +38,13 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/SuperHirnConfig.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/RawData.h>
 
+#include <OpenMS/KERNEL/Feature.h>
+#include <OpenMS/DATASTRUCTURES/Param.h>
+
 #include <vector>
 #include <map>
 
-#include "boost/shared_ptr.hpp"
+#include <boost/shared_ptr.hpp>
 
 namespace OpenMS
 {
@@ -50,24 +53,19 @@ namespace OpenMS
 
       @ingroup FeatureFinder
   */
-  typedef std::pair<double, boost::shared_ptr<RawData> > MyMap;
-  typedef std::vector<MyMap> Vec;
-
   class SUPERHIRN_DLL_EXPORT FeatureFinderAlgorithmSHCtrl
   {
-
 public:
+    typedef std::pair<double, boost::shared_ptr<RawData> > MyMap;
+    typedef std::vector<MyMap> Vec;
+
 
     FeatureFinderAlgorithmSHCtrl() {}
 
     std::vector<Feature> extractPeaks(Vec datavec);
 
     void initParams(Param param);
-
-protected:
-
   };
-
 }
 
 #endif

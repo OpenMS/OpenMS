@@ -38,7 +38,7 @@ namespace OpenMS
 {
   namespace MapConversion
   {
-    OPENMS_DLLAPI void convert(UInt64 const input_map_index,
+    void convert(UInt64 const input_map_index,
                  MSExperiment<> & input_map,
                  ConsensusMap & output_map,
                  Size n)

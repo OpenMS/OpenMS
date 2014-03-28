@@ -36,6 +36,8 @@
 #include <vector>
 #include <map>
 
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmSHCtrl.h>
+
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/SuperHirnParameters.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/MS2Feature.h>
@@ -54,8 +56,6 @@
 
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/KERNEL/Feature.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmSHCtrl.h>
-
 
 namespace OpenMS
 {

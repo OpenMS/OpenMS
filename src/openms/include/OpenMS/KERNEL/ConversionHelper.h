@@ -57,10 +57,10 @@ namespace OpenMS
       @param output_map The resulting ConsensusMap.
       @param n The maximum number of elements to be copied.
     */
-    extern void OPENMS_DLLAPI convert(UInt64 const input_map_index,
-                                      MSExperiment<> & input_map,
-                                      ConsensusMap & output_map,
-                                      Size n = -1);
+    void OPENMS_DLLAPI convert(UInt64 const input_map_index,
+                               MSExperiment<> & input_map,
+                               ConsensusMap & output_map,
+                               Size n = -1);
 
     /**
       @brief Convert a ConsensusMap to a FeatureMap (of any feature type).

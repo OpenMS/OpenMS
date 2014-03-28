@@ -234,8 +234,8 @@ public:
 
       map_ = *(FeatureFinderAlgorithm<PeakType, FeatureType>::map_);
 
-      MyMap dummyMap;
-      Vec datavec;
+      FeatureFinderAlgorithmSHCtrl::MyMap dummyMap;
+      FeatureFinderAlgorithmSHCtrl::Vec datavec;
       datavec.resize(map_.size());
       unsigned int scanId = 0;
 
@@ -279,7 +279,7 @@ public:
         //RawData* data = new RawData(vmzvals, vintvals);
         boost::shared_ptr<RawData> data_ptr(new RawData(vmzvals, vintvals));
 
-        MyMap map_ptr(rt / 60, data_ptr);
+        FeatureFinderAlgorithmSHCtrl::MyMap map_ptr(rt / 60, data_ptr);
 //        m[rt/60.0] = data;
         unsigned int scanIndex = scanId - 1;
         datavec[scanIndex] = map_ptr;
