@@ -596,12 +596,6 @@ namespace OpenMS
     defaults_.setValidStrings("preferences:on_file_change", ListUtils::create<String>("none,ask,update automatically"));
     defaults_.setValue("preferences:topp_cleanup", "true", "If the temporary files for calling of TOPP tools should be removed after the call.");
     defaults_.setValidStrings("preferences:topp_cleanup", ListUtils::create<String>("true,false"));
-    //db
-    defaults_.setValue("preferences:db:host", "localhost", "Database server host name.");
-    defaults_.setValue("preferences:db:login", "NoName", "Database login.");
-    defaults_.setValue("preferences:db:name", "OpenMS", "Database name.");
-    defaults_.setValue("preferences:db:port", 3306, "Database server port.");
-    defaults_.setSectionDescription("preferences:db", "Database settings.");
     // 1d view
     Spectrum1DCanvas* def1 = new Spectrum1DCanvas(Param(), 0);
     defaults_.insert("preferences:1d:", def1->getDefaults());
@@ -777,12 +771,6 @@ namespace OpenMS
     QComboBox* map_cutoff = dlg.findChild<QComboBox*>("map_cutoff");
     QComboBox* on_file_change = dlg.findChild<QComboBox*>("on_file_change");
 
-    // db tab
-    QLineEdit* db_host = dlg.findChild<QLineEdit*>("db_host");
-    QSpinBox* db_port = dlg.findChild<QSpinBox*>("db_port");
-    QLineEdit* db_name = dlg.findChild<QLineEdit*>("db_name");
-    QLineEdit* db_login = dlg.findChild<QLineEdit*>("db_login");
-
     // 1D view tab
     ColorSelector* color_1D = dlg.findChild<ColorSelector*>("color_1D");
     ColorSelector* selected_1D = dlg.findChild<ColorSelector*>("selected_1D");
@@ -841,12 +829,6 @@ namespace OpenMS
     map_default->setCurrentIndex(map_default->findText(param_.getValue("preferences:default_map_view").toQString()));
     map_cutoff->setCurrentIndex(map_cutoff->findText(param_.getValue("preferences:intensity_cutoff").toQString()));
     on_file_change->setCurrentIndex(on_file_change->findText(param_.getValue("preferences:on_file_change").toQString()));
-
-    // db
-    db_host->setText(param_.getValue("preferences:db:host").toQString());
-    db_port->setValue((Int)param_.getValue("preferences:db:port"));
-    db_name->setText(param_.getValue("preferences:db:name").toQString());
-    db_login->setText(param_.getValue("preferences:db:login").toQString());
 
     // 1D view
     color_1D->setColor(QColor(param_.getValue("preferences:1d:peak_color").toQString()));
@@ -993,12 +975,6 @@ namespace OpenMS
       param_.setValue("preferences:default_map_view", map_default->currentText());
       param_.setValue("preferences:intensity_cutoff", map_cutoff->currentText());
       param_.setValue("preferences:on_file_change", on_file_change->currentText());
-
-      param_.setValue("preferences:db:host", db_host->text());
-      param_.setValue("preferences:db:port", db_port->value());
-      param_.setValue("preferences:db:name", db_name->text());
-      param_.setValue("preferences:db:login", db_login->text());
-      param_.remove("DBPassword");
 
       param_.setValue("preferences:1d:peak_color", color_1D->getColor().name());
       param_.setValue("preferences:1d:highlighted_peak_color", selected_1D->getColor().name());
