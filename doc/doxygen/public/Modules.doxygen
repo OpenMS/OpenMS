@@ -120,16 +120,6 @@
 	@ingroup Format
 */
 
-/**
-	@defgroup DatabaseIO Database IO
-
-	@brief Database IO classes.
-
-	This module contains all classes that are involved in database IO.
-	
-	@ingroup Format
-*/
-
 // ----------------------------- Metadata -------------------------------
 
 /**

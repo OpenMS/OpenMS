@@ -232,10 +232,6 @@
 				All source files added to an IDE are associated with their targets. You can find the
 				source files for each test within its own subproject.<BR>
 				The same is true for the TOPP and UTILS classes.
-			<LI><b>[Visual Studio] I'm getting the error "Error C2471: cannot update program database".</b><br>
-				This is a bug in Visual Studio and there is a bugfix:
-				<a href="http://code.msdn.microsoft.com/KB946040" target="_blank">http://code.msdn.microsoft.com/KB946040</a><br>
-				Only apply it if you encounter the error. The bugfix might have unwanted side effects!
 			<LI><b>[Eclipse CDT] The indexer gets stuck at some file which \#includes seqan</b><br>
 				It seems that SeqAn code is just too confusing for older eclipse C++ indexers.
 				You should upgrade to eclipse galileo (CDT 6.0.x).
