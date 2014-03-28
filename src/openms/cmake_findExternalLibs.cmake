@@ -59,16 +59,6 @@ endif()
 OPENMS_CHECKLIB(CONTRIB_XERCESC "xerces-c_3;xerces-c_static_3;libxerces-c;xerces-c" "xerces-c_3D;xerces-c_static_3D;libxerces-c;xerces-c" "xerces_c")
 
 #------------------------------------------------------------------------------
-# GSL and GSL-CBLAS
-find_package(GSL)
-if (GSL_FOUND)
-	include_directories(${GSL_INCLUDE_DIRS})
-  message(STATUS "Found GSL version " ${GSL_VERSION_STRING})
-else()
-  message(FATAL_ERROR "GSL not found!")
-endif()
-
-#------------------------------------------------------------------------------
 # BOOST
 find_boost(iostreams date_time math_c99 regex)
 
@@ -84,7 +74,7 @@ endif()
 
 #------------------------------------------------------------------------------
 # SEQAN
-FIND_PACKAGE(SEQAN 1.4.0)
+find_package(SEQAN 1.4.0)
 if(SEQAN_FOUND)
   message(STATUS "Found SEQAN version ${SEQAN_VERSION_MAJOR}.${SEQAN_VERSION_MINOR}.${SEQAN_VERSION_PATCH}" )
 else()
@@ -151,6 +141,26 @@ if (BZIP2_FOUND)
   message(STATUS "Found bzip2 version ${BZIP2_VERSION_STRING}")
 else()
   message(FATAL_ERROR "bzip2 not found!")
+endif()
+
+#------------------------------------------------------------------------------
+# Find eigen3
+find_package(Eigen3 3.1.0 REQUIRED)
+if (EIGEN3_FOUND)
+  message(STATUS "Found eigen3 version ${EIGEN3_VERSION}")
+else()
+  message(FATAL_ERROR "eigen3 not found!")
+endif()
+
+#------------------------------------------------------------------------------
+# Find geometric tools - wildmagick 5
+set(WM5_FIND_REQUIRED_COMPONENTS WM5_WM5CORE WM5_WM5MATHEMATICS )
+find_package(WM5 REQUIRED)
+if (WM5_FOUND)
+  add_definitions(${WM5_DEFINITIONS})
+  message(STATUS "Found WM5")
+else()
+  message(FATAL_ERROR "WM5 not found!")
 endif()
 
 #------------------------------------------------------------------------------

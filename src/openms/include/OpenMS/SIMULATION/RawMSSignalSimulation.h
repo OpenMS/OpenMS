@@ -67,8 +67,11 @@ public:
     /** @name Constructors and Destructors
       */
     //@{
+    /// Default constructor
+    RawMSSignalSimulation();
+
     /// Constructor taking a random generator
-    explicit RawMSSignalSimulation(const SimRandomNumberGenerator & rng);
+    explicit RawMSSignalSimulation(MutableSimRandomNumberGeneratorPtr rng);
 
     /// Copy constructor
     RawMSSignalSimulation(const RawMSSignalSimulation & source);
@@ -92,10 +95,6 @@ protected:
     enum IONIZATIONMETHOD {IM_ESI = 0, IM_MALDI = 1, IM_ALL = 2};
     enum PROFILESHAPE {RT_RECTANGULAR, RT_GAUSSIAN};
     enum RESOLUTIONMODEL {RES_CONSTANT, RES_LINEAR, RES_SQRT};
-
-
-    /// Default constructor
-    RawMSSignalSimulation();
 
     /// Synchronize members with param class
     void updateMembers_();
@@ -238,7 +237,7 @@ protected:
     std::vector<SimCoordinateType> grid_;
 
     /// Random number generator
-    SimRandomNumberGenerator const * rnd_gen_;
+    MutableSimRandomNumberGeneratorPtr rnd_gen_;
 
     struct ContaminantInfo
     {

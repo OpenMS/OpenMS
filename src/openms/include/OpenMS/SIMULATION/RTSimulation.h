@@ -56,13 +56,17 @@ namespace OpenMS
     public DefaultParamHandler
   {
 
+
 public:
     /** @name Constructors and Destructors
       */
     //@{
 
+    /// Default constructor
+    RTSimulation();
+
     /// Constructor taking a random generator
-    explicit RTSimulation(const SimRandomNumberGenerator & random_generator);
+    explicit RTSimulation(MutableSimRandomNumberGeneratorPtr random_generator);
 
     /// Copy constructor
     RTSimulation(const RTSimulation & source);
@@ -100,9 +104,6 @@ public:
     void createExperiment(MSSimExperiment & experiment);
 
 private:
-    /// Default constructor
-    RTSimulation();
-
     /// Set default parameters
     void setDefaultParams_();
 
@@ -156,7 +157,7 @@ private:
 
 protected:
     /// Random number generator
-    SimRandomNumberGenerator const * rnd_gen_;
+    MutableSimRandomNumberGeneratorPtr rnd_gen_;
 
     /// Synchronize members with param class
     void updateMembers_();

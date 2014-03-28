@@ -90,8 +90,7 @@ namespace OpenMS
        << "\">\n";
 
     // write parameters
-    Param params;
-    transformation.getModelParameters(params);
+    Param params = transformation.getModelParameters();
     for (Param::ParamIterator it = params.begin(); it != params.end(); ++it)
     {
       if (it->value.valueType() != DataValue::EMPTY_VALUE)

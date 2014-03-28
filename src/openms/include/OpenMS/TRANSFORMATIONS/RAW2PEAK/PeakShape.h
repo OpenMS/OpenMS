@@ -84,7 +84,9 @@ namespace OpenMS
       area(0),
       r_value(0),
       signal_to_noise(0.),
-      type(UNDEFINED)
+      type(UNDEFINED),
+      left_iterator_set_(false),
+      right_iterator_set_(false)
     {
       left_endpoint_ = exp_.end();
       right_endpoint_ = exp_.end();
@@ -154,7 +156,6 @@ namespace OpenMS
     class OPENMS_DLLAPI PositionLess
     {
 public:
-
       inline bool operator()(const PeakShape & a, const PeakShape & b)
       {
         return a.mz_position < b.mz_position;

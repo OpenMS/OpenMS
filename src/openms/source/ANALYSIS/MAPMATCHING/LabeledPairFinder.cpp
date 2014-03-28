@@ -151,7 +151,7 @@ namespace OpenMS
           cout << "Warning: Found only " << dists.size() << " pairs. The estimated shift and std deviation are probably not reliable!" << endl;
         }
         //--------------------------- estimate initial parameters of fit ---------------------------
-        GaussFitter::GaussFitResult result;
+        GaussFitter::GaussFitResult result (-1,-1,-1);
         //first estimate of the optimal shift: median of the distances
         sort(dists.begin(), dists.end());
         Size median_index = dists.size() / 2;

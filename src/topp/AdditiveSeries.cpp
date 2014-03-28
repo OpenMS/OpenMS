@@ -43,7 +43,6 @@
 #include <map>
 #include <vector>
 #include <algorithm>
-#include <gsl/gsl_math.h>
 
 using namespace OpenMS;
 using namespace Math;

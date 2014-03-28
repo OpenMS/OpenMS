@@ -175,11 +175,6 @@ protected:
     }
     setValidStrings_("model:type", model_types);
     registerFlag_("model:symmetric_regression", "Only for 'linear' model: Perform linear regression on 'y - x' vs. 'y + x', instead of on 'y' vs. 'x'.");
-    registerIntOption_("model:num_breakpoints", "<number>", 5,
-        "Only for 'b_spline' model: Number of breakpoints of the cubic spline in the smoothing step. The breakpoints are spaced uniformly on the retention time interval. More breakpoints mean less smoothing. Reduce this number if the transformation has an unexpected shape.",
-        false);
-    setMinInt_("model:num_breakpoints", 2);
-    registerStringOption_("model:interpolation_type", "<name>", "cspline", "Only for 'interpolated' model: Type of interpolation to apply.", false);
   }
 
   ExitCodes main_(int, const char **)

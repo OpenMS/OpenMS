@@ -78,6 +78,7 @@ START_SECTION((template < typename Iterator > void computeRegression(double conf
   lin_reg.computeRegression(0.95,x_axis.begin(),x_axis.end(),y_axis.begin());
   TEST_REAL_SIMILAR(lin_reg.getSlope(),2.0)
   TEST_REAL_SIMILAR(lin_reg.getIntercept(),4.0)
+  TEST_REAL_SIMILAR(lin_reg.getChiSquared(),0.0)
 END_SECTION
 
 START_SECTION((template < typename Iterator > void computeRegressionWeighted(double confidence_interval_P, Iterator x_begin, Iterator x_end, Iterator y_begin, Iterator w_begin)))
@@ -140,13 +141,6 @@ for (int i=0; i < 10; ++i)
   y_axis[i]=2*i;
 }
 
-START_SECTION((template < typename Iterator > void computeRegressionNoIntercept(double confidence_interval_P, Iterator x_begin, Iterator x_end, Iterator y_begin)))
-
-  lin_reg.computeRegressionNoIntercept(0.95,x_axis.begin(),x_axis.end(),y_axis.begin());
-
-  TEST_REAL_SIMILAR(lin_reg.getSlope(),2.0)
-  TEST_REAL_SIMILAR(lin_reg.getIntercept(),0.0)
-END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

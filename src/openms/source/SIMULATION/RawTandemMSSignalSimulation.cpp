@@ -42,10 +42,44 @@
 
 namespace OpenMS
 {
-
-  RawTandemMSSignalSimulation::RawTandemMSSignalSimulation(const SimRandomNumberGenerator & rng) :
+  RawTandemMSSignalSimulation::RawTandemMSSignalSimulation() :
     DefaultParamHandler("RawTandemMSSignalSimulation"),
-    rnd_gen_(&rng)
+    rnd_gen_(new SimRandomNumberGenerator())
+  {
+    // Tandem MS params
+    defaults_.setValue("status", "disabled", "Create Tandem-MS scans?");
+    defaults_.setValidStrings("status", ListUtils::create<String>("disabled,precursor,MS^E"));
+
+    subsections_.push_back("Precursor:");
+    defaults_.insert("Precursor:", OfflinePrecursorIonSelection().getDefaults());
+    defaults_.remove("Precursor:peptides_per_protein");
+    defaults_.setValue("Precursor:charge_filter", ListUtils::create<int>(ListUtils::create<String>("2,3")), "Charges considered for MS2 fragmentation.");
+    defaults_.setMinInt("Precursor:charge_filter", 1);
+    defaults_.setMaxInt("Precursor:charge_filter", 5);
+
+    defaults_.setValue("MS_E:add_single_spectra", "false", "If true, the MS2 spectra for each peptide signal are included in the output (might be a lot). They will have a meta value 'MSE_DebugSpectrum' attached, so they can be filtered out. Native MS_E spectra will have 'MSE_Spectrum' instead.");
+    defaults_.setValidStrings("MS_E:add_single_spectra", ListUtils::create<String>("true,false"));
+    defaults_.setValue("tandem_mode", 0, "Algorithm to generate the tandem-MS spectra. 0 - fixed intensities, 1 - SVC prediction (abundant/missing), 2 - SVR prediction of peak intensity \n");
+    defaults_.setMinInt("tandem_mode", 0);
+    defaults_.setMaxInt("tandem_mode", 2);
+    defaults_.setValue("svm_model_set_file", "examples/simulation/SvmModelSet.model", "File containing the filenames of SVM Models for different charge variants");
+
+    subsections_.push_back("TandemSim:");
+    defaults_.insert("TandemSim:Simple:", TheoreticalSpectrumGenerator().getDefaults());
+    Param svm_par = SvmTheoreticalSpectrumGenerator().getDefaults();
+    svm_par.remove("svm_mode");
+    svm_par.remove("model_file_name");
+    defaults_.insert("TandemSim:SVM:", svm_par);
+
+    // sync'ed Param (also appears in IonizationSimulation)
+    defaults_.setValue("ionization_type", "ESI", "Type of Ionization (MALDI or ESI)");
+    defaults_.setValidStrings("ionization_type", ListUtils::create<String>("MALDI,ESI"));
+
+    defaultsToParam_();
+  }
+  RawTandemMSSignalSimulation::RawTandemMSSignalSimulation(MutableSimRandomNumberGeneratorPtr rng) :
+    DefaultParamHandler("RawTandemMSSignalSimulation"),
+    rnd_gen_(rng)
   {
     // Tandem MS params
     defaults_.setValue("status", "disabled", "Create Tandem-MS scans?");
@@ -159,7 +193,7 @@ namespace OpenMS
 
       if (tandem_mode && svm_model_charges.count(prec_charge))
       {
-        svm_spec_gen_set.simulate(tmp_spec, seq, rnd_gen_->biological_rng, prec_charge);
+        svm_spec_gen_set.simulate(tmp_spec, seq, rnd_gen_->getBiologicalRng(), prec_charge);
       }
       else
       {
@@ -338,7 +372,7 @@ namespace OpenMS
 
         if (tandem_mode && svm_model_charges.count(prec_charge))
         {
-          svm_spec_gen_set.simulate(tmp_spec, seq, rnd_gen_->biological_rng, prec_charge);
+          svm_spec_gen_set.simulate(tmp_spec, seq, rnd_gen_->getBiologicalRng(), prec_charge);
         }
         else
         {

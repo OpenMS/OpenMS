@@ -33,26 +33,32 @@
 // --------------------------------------------------------------------------
 
 
-#include <boost/math/distributions/exponential.hpp>
 #include <OpenMS/SIMULATION/RawMSSignalSimulation.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussModel.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/CONCEPT/Constants.h>
-
-#include <fstream>
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/SVOutStream.h>
 
-
+#include <fstream>
 #include <vector>
-using std::vector;
+#include <cmath>
+
+#include <boost/random/uniform_real.hpp>
+#include <boost/random/poisson_distribution.hpp>
+#include <boost/random/exponential_distribution.hpp>
+#include <boost/random/normal_distribution.hpp>
+#include <boost/math/distributions.hpp>
 
 #ifdef _OPENMP
 #include <omp.h>
+#include <math.h>
 #endif
 
-#include <OpenMS/FORMAT/MzMLFile.h>
+
+
 
 namespace OpenMS
 {
@@ -60,7 +66,7 @@ namespace OpenMS
   /**
    * TODO: review baseline and noise code
    */
-  RawMSSignalSimulation::RawMSSignalSimulation(const SimRandomNumberGenerator& rng) :
+  RawMSSignalSimulation::RawMSSignalSimulation(MutableSimRandomNumberGeneratorPtr rng) :
     DefaultParamHandler("RawSignalSimulation"),
     ProgressLogger(),
     mz_error_mean_(),
@@ -69,7 +75,7 @@ namespace OpenMS
     intensity_scale_stddev_(),
     res_model_(RES_CONSTANT),
     res_base_(0),
-    rnd_gen_(&rng),
+    rnd_gen_(rng),
     contaminants_(),
     contaminants_loaded_(false)
   {
@@ -85,6 +91,7 @@ namespace OpenMS
     intensity_scale_stddev_(),
     res_model_(RES_CONSTANT),
     res_base_(0),
+    rnd_gen_(),
     contaminants_(),
     contaminants_loaded_(false)
   {
@@ -648,6 +655,7 @@ namespace OpenMS
     }
 
     std::vector<SimCoordinateType>::const_iterator it_grid = lower_bound(grid_.begin(), grid_.end(), mz_start);
+    boost::uniform_real<double> udist (mz_error_mean_, mz_error_stddev_);
     for (; it_grid != grid_.end() && (*it_grid) < mz_end; ++it_grid)
     {
       point.setMZ(*it_grid);
@@ -657,7 +665,7 @@ namespace OpenMS
         continue;
 
       // add Gaussian distributed m/z error
-      double mz_err = gsl_ran_gaussian(rnd_gen_->technical_rng, mz_error_stddev_) + mz_error_mean_;
+      double mz_err = udist(rnd_gen_->getTechnicalRng());
       point.setMZ(fabs(point.getMZ() + mz_err));
 
       intensity_sum += point.getIntensity();
@@ -744,9 +752,10 @@ namespace OpenMS
           {
 #pragma omp critical(generate_random_number_for_thread)
             {
+              boost::uniform_real<double> udist (mz_error_mean_, mz_error_stddev_);
               for (Size i = 0; i < THREADED_RANDOM_NUMBER_POOL_SIZE_; ++i)
               {
-                threaded_random_numbers_[CURRENT_THREAD][i] = gsl_ran_gaussian(rnd_gen_->technical_rng, mz_error_stddev_) + mz_error_mean_;
+                threaded_random_numbers_[CURRENT_THREAD][i] = udist(rnd_gen_->getTechnicalRng());
               }
             }
           }
@@ -762,9 +771,10 @@ namespace OpenMS
         const double mz_err = threaded_random_numbers_[CURRENT_THREAD][threaded_random_numbers_index_[CURRENT_THREAD]++];
 #else
         // we can use the normal Gaussian ran-gen if we do not use OPENMP
-        const double mz_err = gsl_ran_gaussian(rnd_gen_->technical_rng, mz_error_stddev_) + mz_error_mean_;
+        boost::uniform_real<double> udist (mz_error_mean_, mz_error_stddev_);
+        const double mz_err = udist(rnd_gen_->getTechnicalRng());
 #endif
-        point.setMZ(fabs(point.getMZ() + mz_err));
+        point.setMZ(std::fabs(point.getMZ() + mz_err));
         exp_iter->push_back(point);
 
         intensity_sum += point.getIntensity();
@@ -817,7 +827,7 @@ namespace OpenMS
 
       // add four edge points of mass trace
       ConvexHull2D hull;
-      vector<DPosition<2> > points;
+      std::vector<DPosition<2> > points;
       points.push_back(DPosition<2>(rt_min, mz - 0.001));
       points.push_back(DPosition<2>(rt_min, mz + 0.001));
       points.push_back(DPosition<2>(rt_max, mz - 0.001));
@@ -963,6 +973,8 @@ namespace OpenMS
   void RawMSSignalSimulation::addShotNoise_(MSSimExperiment& experiment, SimCoordinateType minimal_mz_measurement_limit, SimCoordinateType maximal_mz_measurement_limit)
   {
     const SimCoordinateType window_size = 100.0;
+    SimCoordinateType mz_lw = minimal_mz_measurement_limit;
+    SimCoordinateType mz_up = window_size + minimal_mz_measurement_limit;
 
     // we model the amount of (background) noise as Poisson process
     // i.e. the number of noise data points per unit m/z interval follows a Poisson
@@ -974,25 +986,27 @@ namespace OpenMS
     if (rate == 0.0 || intensity_mean == 0.0)
       return;
 
-    // we distribute the rate in 100 Th windows
+        // we distribute the rate in 100 Th windows
     DoubleReal scaled_rate = rate * window_size;
     SimPointType shot_noise_peak;
+
+    //distributions to sample from
+    boost::random::poisson_distribution<UInt,DoubleReal> pdist (scaled_rate);
+    boost::uniform_real<SimCoordinateType> udist (mz_lw, mz_up);
+    boost::random::exponential_distribution<SimCoordinateType> edist (intensity_mean);
 
     LOG_INFO << "Adding shot noise to spectra ..." << std::endl;
     Size num_intervals = std::ceil((maximal_mz_measurement_limit - minimal_mz_measurement_limit) / window_size);
 
     for (MSSimExperiment::Iterator spectrum_it = experiment.begin(); spectrum_it != experiment.end(); ++spectrum_it)
     {
-      SimCoordinateType mz_lw = minimal_mz_measurement_limit;
-      SimCoordinateType mz_up = window_size + minimal_mz_measurement_limit;
-
       for (Size j = 0; j < num_intervals; ++j)
       {
-        UInt counts = gsl_ran_poisson(rnd_gen_->technical_rng, scaled_rate);
+        UInt counts = pdist(rnd_gen_->getTechnicalRng());
         for (UInt c = 0; c < counts; ++c)
         {
-          SimCoordinateType mz        = gsl_ran_flat(rnd_gen_->technical_rng, mz_lw, mz_up);
-          SimCoordinateType intensity = gsl_ran_exponential(rnd_gen_->technical_rng, intensity_mean);
+          SimCoordinateType mz = udist(rnd_gen_->getTechnicalRng());
+          SimCoordinateType intensity = edist(rnd_gen_->getTechnicalRng());
 
           // we only add points if they have an intensity>0 and are inside of the measurement range
           if (mz < maximal_mz_measurement_limit)
@@ -1003,7 +1017,6 @@ namespace OpenMS
           }
         }
 
-        mz_lw += window_size;
         mz_up += window_size;
       }
     } // end of each scan
@@ -1028,9 +1041,8 @@ namespace OpenMS
         SimCoordinateType x = (experiment[i][j].getMZ() - minimal_mz_measurement_limit);
         //if (x >= 1000.0) continue; // speed-up TODO: revise this ..
 
-        boost::math::exponential_distribution<double> ed(shape);
+        boost::math::exponential_distribution<double> ed (shape);
         double bx = boost::math::pdf(ed, x);
-        //DoubleReal b = gsl_ran_exponential_pdf(x, shape);
         bx *= scale;
         experiment[i][j].setIntensity(experiment[i][j].getIntensity() + bx);
       }
@@ -1050,6 +1062,8 @@ namespace OpenMS
       return;
     }
 
+    boost::normal_distribution<SimIntensityType> ndist (white_noise_mean, white_noise_stddev);
+
     for (MSSimExperiment::iterator spectrum_it = experiment.begin(); spectrum_it != experiment.end(); ++spectrum_it)
     {
       MSSimExperiment::SpectrumType new_spec = (*spectrum_it);
@@ -1057,7 +1071,7 @@ namespace OpenMS
 
       for (MSSimExperiment::SpectrumType::iterator peak_it = (*spectrum_it).begin(); peak_it != (*spectrum_it).end(); ++peak_it)
       {
-        SimIntensityType intensity = peak_it->getIntensity() + white_noise_mean + gsl_ran_gaussian(rnd_gen_->technical_rng, white_noise_stddev);
+        SimIntensityType intensity = peak_it->getIntensity() + ndist(rnd_gen_->getTechnicalRng());
         if (intensity > 0.0)
         {
           peak_it->setIntensity(intensity);
@@ -1083,6 +1097,7 @@ namespace OpenMS
       return;
     }
 
+    boost::normal_distribution<SimIntensityType> ndist (detector_noise_mean, detector_noise_stddev);
     for (MSSimExperiment::iterator spectrum_it = experiment.begin(); spectrum_it != experiment.end(); ++spectrum_it)
     {
       MSSimExperiment::SpectrumType new_spec = (*spectrum_it);
@@ -1095,7 +1110,7 @@ namespace OpenMS
         // if peak is in grid
         if (peak_it != spectrum_it->end() && *grid_it == peak_it->getMZ())
         {
-          SimIntensityType intensity = peak_it->getIntensity() + detector_noise_mean + gsl_ran_gaussian(rnd_gen_->technical_rng, detector_noise_stddev);
+          SimIntensityType intensity = peak_it->getIntensity() + ndist(rnd_gen_->getTechnicalRng());
           if (intensity > 0.0)
           {
             peak_it->setIntensity(intensity);
@@ -1105,7 +1120,7 @@ namespace OpenMS
         }
         else // we have no point here, generate one if noise is above 0
         {
-          SimIntensityType intensity = detector_noise_mean + gsl_ran_gaussian(rnd_gen_->technical_rng, detector_noise_stddev);
+          SimIntensityType intensity = ndist(rnd_gen_->getTechnicalRng());
           if (intensity > 0.0)
           {
             MSSimExperiment::SpectrumType::PeakType noise_peak;
@@ -1263,7 +1278,8 @@ namespace OpenMS
     // add some noise
     // TODO: variables model f??r den intensit??ts-einfluss
     // e.g. sqrt(intensity) || ln(intensity)
-    intensity += gsl_ran_gaussian(rnd_gen_->technical_rng, intensity_scale_stddev_ * intensity);
+    boost::normal_distribution<SimIntensityType> ndist (0, intensity_scale_stddev_ * intensity);
+    intensity += ndist(rnd_gen_->getTechnicalRng());
 
     return intensity;
   }

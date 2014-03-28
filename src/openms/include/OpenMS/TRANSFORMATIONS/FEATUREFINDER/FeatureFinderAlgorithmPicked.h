@@ -163,10 +163,6 @@ public:
       defaults_.setMaxFloat("seed:min_score", 1.0);
       defaults_.setSectionDescription("seed", "Settings that determine which peaks are considered a seed");
       //Fitting settings
-      defaults_.setValue("fit:epsilon_abs", 0.0001, "Absolute epsilon used for convergence of the fit.", ListUtils::create<String>("advanced"));
-      defaults_.setMinFloat("fit:epsilon_abs", 0.0);
-      defaults_.setValue("fit:epsilon_rel", 0.0001, "Relative epsilon used for convergence of the fit.", ListUtils::create<String>("advanced"));
-      defaults_.setMinFloat("fit:epsilon_rel", 0.0);
       defaults_.setValue("fit:max_iterations", 500, "Maximum number of iterations of the fit.", ListUtils::create<String>("advanced"));
       defaults_.setMinInt("fit:max_iterations", 1);
       defaults_.setSectionDescription("fit", "Settings for the model fitting");
@@ -228,8 +224,6 @@ public:
       SignedSize charge_high = (Int)param_.getValue("isotopic_pattern:charge_high");
       //fitting settings
       UInt max_iterations = param_.getValue("fit:max_iterations");
-      DoubleReal epsilon_abs = param_.getValue("fit:epsilon_abs");
-      DoubleReal epsilon_rel = param_.getValue("fit:epsilon_rel");
 
       Size max_isotopes = 20;
 
@@ -269,8 +263,6 @@ public:
       // bug https://sourceforge.net/apps/trac/open-ms/ticket/147
       Param trace_fitter_params;
       trace_fitter_params.setValue("max_iteration", max_iterations);
-      trace_fitter_params.setValue("epsilon_abs", epsilon_abs);
-      trace_fitter_params.setValue("epsilon_rel", epsilon_rel);
 
       //copy the input map
       map_ = *(FeatureFinderAlgorithm<PeakType, FeatureType>::map_);
@@ -770,8 +762,6 @@ public:
               TraceFitter<PeakType>* alt_fitter = new GaussTraceFitter<PeakType>();
               Param alt_p;
               alt_p.setValue("max_iteration", max_iterations);
-              alt_p.setValue("epsilon_abs", epsilon_abs);
-              alt_p.setValue("epsilon_rel", epsilon_rel);
 
               alt_fitter->setParameters(alt_p);
               alt_fitter->fit(traces);

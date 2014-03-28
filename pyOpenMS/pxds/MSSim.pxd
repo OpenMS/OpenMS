@@ -1,5 +1,6 @@
 from libcpp.map cimport map as libcpp_map
 from libcpp cimport bool
+from smart_ptr cimport shared_ptr
 from Types cimport *
 from ProgressLogger cimport *
 from DefaultParamHandler cimport *
@@ -20,9 +21,9 @@ cdef extern from "<OpenMS/SIMULATION/MSSim.h>" namespace "OpenMS":
 
         # General purpose function to simulate a mass spectrometry run
         #
-        #@param rnd_gen GSL random number generator which will be passed to the different classes
+        #@param rnd_gen random number generator which will be passed to the different classes
         #@param peptides List of peptides and abundances that will be simulated
-        void simulate(SimRandomNumberGenerator rnd_gen, SampleChannels peptides) nogil except +
+        void simulate(shared_ptr[SimRandomNumberGenerator] rnd_gen, SampleChannels peptides) nogil except +
 
         # Access the simulated experiment
         MSExperiment[Peak1D, ChromatogramPeak] getExperiment() nogil except +

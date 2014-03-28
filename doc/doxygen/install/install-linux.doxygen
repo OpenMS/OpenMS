@@ -40,7 +40,7 @@
   patch, autoconf > 2.60, automake > 1.9, libtool (libtoolize/glibtoolize).
 
   For the complete feature set to be enabled, %OpenMS needs recent versions of
-  Boost (1.46 or higher works), GSL (1.13 or higher works),
+  Boost (1.46 or higher works), Eigen3, WildMagic5
   libSVM (2.91 or higher and 3.x for x <= 14 works), SeqAn (1.4.0 or higher needed),
   glpk (4.45 or higher works), zlib, libbz2, and Xerces-C (3.1.1 or higher works).
 
@@ -70,7 +70,7 @@
     <td><pre>
     sudo apt-get install cmake g++ autoconf qt4-dev-tools patch libtool make
     sudo apt-get install libboost-regex-dev libboost-iostreams-dev libboost-date-time-dev libboost-math-dev \
-      libsvm-dev libglpk-dev libzip-dev zlib1g-dev libxerces-c-dev libgsl0-dev
+      libsvm-dev libglpk-dev libzip-dev zlib1g-dev libxerces-c-dev
     </pre></td>
 
   </tr>
@@ -79,11 +79,12 @@
 
   @section build_linux_contrib Building remaining dependencies
 
-  @note In most cases, the only dependency left unresolved (e.g. not easily
-  available through your distribution) at this point is SeqAn. You can check
-  which dependencies you still need by attempting to configure %OpenMS (see the
-  next section), it will complain about anything unusual. Contact us if you
-  still have trouble with the dependencies after these instructions.
+  @note In most cases, the only dependencies left unresolved (e.g. not easily
+  available through your distribution) at this point are SeqAn and WildMagic.
+  You can check which dependencies you still need by attempting to configure
+  %OpenMS (see the next section), it will complain about anything unusual.
+  Contact us if you still have trouble with the dependencies after these
+  instructions.
 
   OpenMS conveniently provides its dependencies for download.  The %OpenMS
   Release package (https://sourceforge.net/projects/open-ms/files/OpenMS/)
@@ -119,6 +120,7 @@
   \code
   cmake -DBUILD_TYPE=LIST ../contrib
   cmake -DBUILD_TYPE=SEQAN ../contrib
+  cmake -DBUILD_TYPE=WILDMAGIC ../contrib
   \endcode
 
   To avoid problems while building the libraries contained in the contrib

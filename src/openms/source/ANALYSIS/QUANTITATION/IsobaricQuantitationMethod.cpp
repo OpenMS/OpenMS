@@ -34,6 +34,8 @@
 
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantitationMethod.h>
 
+#include <OpenMS/DATASTRUCTURES/Matrix.h>
+
 namespace OpenMS
 {
   IsobaricQuantitationMethod::~IsobaricQuantitationMethod()

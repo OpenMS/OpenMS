@@ -37,6 +37,7 @@
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CONCEPT/Macros.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
 #include <iostream>
 #include <fstream>
@@ -55,10 +56,6 @@
 
 #define EVALUATE_DEBUG
 #undef EVALUATE_DEBUG
-
-#ifdef EVALUATE_DEBUG
-#include <gsl/gsl_statistics.h>
-#endif
 
 using namespace std;
 
@@ -678,8 +675,8 @@ namespace OpenMS
           }
           vector<DoubleReal> data = train_count_trans_all_[it1->first][it2->first];
           std::sort(data.begin(), data.end());
-          DoubleReal mean = gsl_stats_mean(&data.front(), 1, data.size());
-          DoubleReal variance = gsl_stats_variance_m(&data.front(), 1, data.size(), mean);
+          DoubleReal mean = Math::mean(data.begin(), data.end());
+          DoubleReal variance = Math::variance(data.begin(), data.end(), mean);
           cerr << "mean=" << mean << ", variance=" << variance << endl;
 #endif
         }

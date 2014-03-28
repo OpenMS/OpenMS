@@ -144,7 +144,7 @@ public:
 
     ///////////////////////////////////////////////////////////////////////////////
     // inputs raw /centroided  data into the object:
-    void add_scan_raw_data(int, float, CentroidData *);
+    void add_scan_raw_data(int, double, CentroidData *);
     // inputs raw data into the object:
     void add_scan_raw_data(std::vector<MSPeak>);
 

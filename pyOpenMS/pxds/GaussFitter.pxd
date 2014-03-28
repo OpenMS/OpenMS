@@ -18,14 +18,12 @@ cdef extern from "<OpenMS/MATH/STATISTICS/GaussFitter.h>" namespace "OpenMS::Mat
         #   @exception Exception::UnableToFit is thrown if fitting cannot be performed
         GaussFitResult fit(libcpp_vector[DPosition2] points) nogil except +
 
-        # return the gnuplot formula of the gaussian
-        String getGnuplotFormula() nogil except +
-
 cdef extern from "<OpenMS/MATH/STATISTICS/GaussFitter.h>" namespace "OpenMS::Math::GaussFitter":
 
     cdef cppclass GaussFitResult:
 
         GaussFitResult() nogil except +
+        GaussFitResult(double, double, double) nogil except +
         GaussFitResult(GaussFitResult) nogil except +   # wrap-ignore
 
         # parameter A of gaussian distribution (amplitude)

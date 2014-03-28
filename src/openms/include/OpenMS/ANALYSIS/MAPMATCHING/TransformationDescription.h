@@ -49,8 +49,7 @@ namespace OpenMS
   - @p none (TransformationModel): \f$ f(x) = x \f$ (identity)
   - @p identity: Same as @p none, but intended for reference files (used to indicate that no other model should be fit, because the identity is already optimal).
   - @p linear (TransformationModelLinear): \f$ f(x) = slope * x + intercept \f$
-  - @p interpolated (TransformationModelInterpolated): Interpolation between pairs, extrapolation using first and last pair. Supports different interpolation types.
-  - @p b_spline (TransformationModelBSpline): Smoothing cubic B-spline.
+  - @p interpolated (TransformationModelInterpolated): Smoothing cubic B-spline.
 
   @remark TransformationDescription stores data points, TransformationModel stores parameters. That way, data can be modeled using different models/parameters, and models can still keep a representation of the data in the format they need (if at all).
 
@@ -107,7 +106,7 @@ public:
     const DataPoints & getDataPoints() const;
 
     /// Non-mutable access to the model parameters
-    void getModelParameters(Param & params) const;
+    const Param& getModelParameters() const;
 
     /// Computes an (approximate) inverse of the transformation
     void invert();

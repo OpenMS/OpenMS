@@ -167,11 +167,11 @@ protected:
       //~ min,q1,q2,q3,max
       nums["QC:0000043"] = String(ms2nums.front());
       nams["QC:0000043"] = "min ms2 number";
-      nums["QC:0000044"] = String(OpenMS::Math::quantile(ms2nums.begin(), ms2nums.end(),25));
+      nums["QC:0000044"] = String(OpenMS::Math::quantile1st(ms2nums.begin(), ms2nums.end(),true));
       nams["QC:0000044"] = "Q1 ms2 number";
-      nums["QC:0000045"] = String(OpenMS::Math::quantile(ms2nums.begin(), ms2nums.end(),50));
+      nums["QC:0000045"] = String(OpenMS::Math::median(ms2nums.begin(), ms2nums.end(), true));
       nams["QC:0000045"] = "Q2 ms2 number";
-      nums["QC:0000046"] = String(OpenMS::Math::quantile(ms2nums.begin(), ms2nums.end(),75));
+      nums["QC:0000046"] = String(OpenMS::Math::quantile3rd(ms2nums.begin(), ms2nums.end(),true));
       nams["QC:0000046"] = "Q3 ms2 number";
       nums["QC:0000047"] = String(ms2nums.back());
       nams["QC:0000047"] = "max ms2 number";
@@ -198,11 +198,11 @@ protected:
 
       nums["QC:0000053"] = String(idnums.front());
       nams["QC:0000053"] = "min id numbers";
-      nums["QC:0000054"] = String(OpenMS::Math::quantile(idnums.begin(), idnums.end(),25));
+      nums["QC:0000054"] = String(OpenMS::Math::quantile1st(idnums.begin(), idnums.end()));
       nams["QC:0000054"] = "Q1 id numbers";
-      nums["QC:0000055"] = String(OpenMS::Math::quantile(idnums.begin(), idnums.end(),50));
+      nums["QC:0000055"] = String(OpenMS::Math::median(idnums.begin(), idnums.end()));
       nams["QC:0000055"] = "Q2 id numbers";
-      nums["QC:0000056"] = String(OpenMS::Math::quantile(idnums.begin(), idnums.end(),75));
+      nums["QC:0000056"] = String(OpenMS::Math::quantile3rd(idnums.begin(), idnums.end()));
       nams["QC:0000056"] = "Q3 id numbers";
       nums["QC:0000057"] = String(idnums.back());
       nams["QC:0000057"] = "max id number";

@@ -33,10 +33,6 @@ IsotopeModel.cpp
 IsotopeWavelet.cpp
 IsotopeWaveletTransform.cpp
 LevMarqFitter1D.cpp
-LmaGaussFitter1D.cpp
-LmaGaussModel.cpp
-LmaIsotopeFitter1D.cpp
-LmaIsotopeModel.cpp
 MaxLikeliFitter1D.cpp
 ModelDescription.cpp
 ModelFitter.cpp

@@ -33,7 +33,13 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/MATH/STATISTICS/LinearRegression.h>
-#include <iostream>
+#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+
+#include <boost/math/distributions/normal.hpp>
+#include <boost/math/special_functions/binomial.hpp>
+#include <boost/math/distributions.hpp>
+
+using boost::math::detail::inverse_students_t;
 
 namespace OpenMS
 {
@@ -99,20 +105,28 @@ namespace OpenMS
       return rsd_;
     }
 
-    void LinearRegression::computeGoodness_(double * X, double * Y, int N, double confidence_interval_P)
+    void LinearRegression::computeGoodness_(const std::vector<Wm5::Vector2d>& points, double confidence_interval_P)
     {
+      unsigned N = points.size();
+      std::vector<double> X; X.reserve(N);
+      std::vector<double> Y; Y.reserve(N);
+      for(unsigned i=0; i<N; ++i)
+      {
+        X.push_back(points.at(i).X());
+        Y.push_back(points.at(i).Y());
+      }
       // Variance and Covariances
-      double var_X = gsl_stats_variance(X, 1, N);
-      double var_Y = gsl_stats_variance(Y, 1, N);
-      double cov_XY = gsl_stats_covariance(X, 1, Y, 1, N);
+      double var_X = Math::variance(X.begin(), X.end());
+      double var_Y = Math::variance(Y.begin(),Y.end());
+      double cov_XY = Math::covariance(X.begin(), X.end(), Y.begin(), Y.end());
 
       // Mean of abscissa and ordinate values
-      double x_mean = gsl_stats_mean(X, 1, N);
-      double y_mean = gsl_stats_mean(Y, 1, N);
+      double x_mean = Math::mean(X.begin(), X.end());
+      double y_mean = Math::mean(Y.begin(), Y.end());
 
       // S_xx
       double s_XX = 0;
-      for (int i = 0; i < N; ++i)
+      for (unsigned i = 0; i < N; ++i)
       {
         double d = (X[i] - x_mean);
         s_XX += d * d;
@@ -123,7 +137,7 @@ namespace OpenMS
 
       // The standard deviation of the residuals
       double sum = 0;
-      for (Int i = 0; i < N; ++i)
+      for (unsigned i = 0; i < N; ++i)
       {
         double x_i = fabs(Y[i] - (intercept_ + slope_ * X[i]));
         sum += x_i;
@@ -138,7 +152,8 @@ namespace OpenMS
       x_intercept_ = -(intercept_ / slope_);
 
       double P = 1 - (1 - confidence_interval_P) / 2;
-      t_star_ = gsl_cdf_tdist_Pinv(P, N - 2);
+      boost::math::students_t tdist (N - 2);
+      t_star_ = boost::math::quantile(tdist, P);
 
       //Compute the asymmetric 95% confidence intervall of around the X-intercept
       double g = (t_star_ / (slope_ / stand_error_slope_));
@@ -158,7 +173,7 @@ namespace OpenMS
       }
 
       double tmp = 0;
-      for (Int i = 0; i < N; ++i)
+      for (unsigned i = 0; i < N; ++i)
       {
         tmp += (X[i] - x_mean) * (X[i] - x_mean);
       }

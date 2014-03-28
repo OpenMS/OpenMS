@@ -40,11 +40,6 @@
 
 #include <vector>
 
-// gsl includes
-#include <gsl/gsl_rng.h>
-#include <gsl/gsl_vector.h>
-#include <gsl/gsl_multifit_nlin.h>
-
 
 namespace OpenMS
 {
@@ -60,8 +55,6 @@ namespace OpenMS
       The formula with the fitted parameters can be transformed into a
       gnuplot formula using getGnuplotFormula() after fitting.
 
-          The implementation is done using GSL fitting algorithms.
-
           @ingroup Math
       */
     class OPENMS_DLLAPI GumbelDistributionFitter
@@ -71,33 +64,14 @@ public:
       /// struct to represent the parameters of a gumbel distribution
       struct GumbelDistributionFitResult
       {
-public:
-
-        GumbelDistributionFitResult() :
-          a(1.0),
-          b(2.0)
+        GumbelDistributionFitResult(double a = 1.0, double b=2.0) :
+          a(a),
+          b(b)
         {
-        }
-
-        GumbelDistributionFitResult(const GumbelDistributionFitResult & rhs) :
-          a(rhs.a),
-          b(rhs.b)
-        {
-        }
-
-        GumbelDistributionFitResult & operator=(const GumbelDistributionFitResult & rhs)
-        {
-          if (this != &rhs)
-          {
-            a = rhs.a;
-            b = rhs.b;
-          }
-          return *this;
         }
 
         /// location parameter a
         double a;
-
         /// scale parameter b
         double b;
       };
@@ -119,22 +93,9 @@ public:
       */
       GumbelDistributionFitResult fit(std::vector<DPosition<2> > & points);
 
-      /// returns the gnuplot formula of the fitted gumbel distribution
-      const String & getGnuplotFormula() const;
-
 protected:
 
-      static int gumbelDistributionFitterf_(const gsl_vector * x, void * params, gsl_vector * f);
-
-      static int gumbelDistributionFitterdf_(const gsl_vector * x, void * params, gsl_matrix * J);
-
-      static int gumbelDistributionFitterfdf_(const gsl_vector * x, void * params, gsl_vector * f, gsl_matrix * J);
-
-      void printState_(size_t iter, gsl_multifit_fdfsolver * s);
-
       GumbelDistributionFitResult init_param_;
-
-      String gnuplot_formula_;
 
 private:
       /// Copy constructor (not implemented)

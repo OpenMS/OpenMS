@@ -38,9 +38,6 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithm.h>
 #include <OpenMS/COMPARISON/SPECTRA/PeakSpectrumCompareFunctor.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <gsl/gsl_errno.h>
-#include <gsl/gsl_spline.h>
-#include <gsl/gsl_fft_real.h>
 
 namespace OpenMS
 {
@@ -163,22 +160,6 @@ public:
     void msFilter_(MSExperiment<> & peakmap, std::vector<MSSpectrum<> *> & spectrum_pointer_container);
 
     /**
-        @brief does the transformation if the Discrete Cosines Fourier Transformation is selected.
-
-        Call internally the function transform, only if the comparison score function Fourier is selected.
-        @param spectrum_pointer_container is the sequence which has to be transform
-    */
-    void fourierActivation_(std::vector<MSSpectrum<> *> & spectrum_pointer_container);
-
-    /**
-    @brief calculate the Discrete Cosines Fourier Transformation.
-
-        This Function transforms a given MSSpectrum to a Discrete Cosines Fourier Transformation. It stores only the part of the cosines of the FFT in
-        the FloatDataArray which is a container from the MSSpectrum. Only call this function, if you are sure there is no other                 transformation done earlier over the same MSSpectrum, because it isn't checked if there already exists a transformation.
-  */
-    void transform_(MSSpectrum<> & spec);
-
-    /**
         @brief function for the test if cell i,j of the grid is inside the band
 
         The function returns true if the cell underlie these conditions:
@@ -280,13 +261,6 @@ public:
         @param aligned map to be aligned.
     */
     void debugFileCreator_(const std::vector<MSSpectrum<> *> & pattern, std::vector<MSSpectrum<> *> & aligned);
-
-    /**
-        @brief Delete entries of the FloatDataArray which was made from CompareFouriertransform
-
-        This function erase the entries with was done by the CompareFouriertransform function.
-    */
-    void eraseFloatDataArrayEntry_(std::vector<MSSpectrum<> *> & spectrum_pointer_container);
 
     /**
         @brief Rounding the score of two spectra, only necessary for debugging

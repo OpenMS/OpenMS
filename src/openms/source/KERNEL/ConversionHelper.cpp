@@ -28,78 +28,13 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Clemens Groepl $
+// $Maintainer: Erhan Kenar $
 // $Authors: $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_LMAGAUSSMODEL_H
-#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_LMAGAUSSMODEL_H
-
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/InterpolationModel.h>
-#include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
-
+#include <OpenMS/KERNEL/ConversionHelper.h>
 
 namespace OpenMS
 {
+} // namespace OpenMS
 
-  /**
-      @brief Normal distribution model for elution profiles.
-
-      To be used in combination with the Levenberg-Marquardt algorithm fitting algorithm.
-
-      @htmlinclude OpenMS_LmaGaussModel.parameters
-  */
-  class OPENMS_DLLAPI LmaGaussModel :
-    public InterpolationModel
-  {
-
-public:
-    typedef InterpolationModel::CoordinateType CoordinateType;
-    typedef Math::BasicStatistics<CoordinateType> BasicStatistics;
-
-    /// Default constructor
-    LmaGaussModel();
-
-    /// copy constructor
-    LmaGaussModel(const LmaGaussModel & source);
-
-    /// destructor
-    virtual ~LmaGaussModel();
-
-    /// assignment operator
-    virtual LmaGaussModel & operator=(const LmaGaussModel & source);
-
-    /// create new EmgModel object (needed by Factory)
-    static BaseModel<1> * create()
-    {
-      return new LmaGaussModel();
-    }
-
-    /// name of the model (needed by Factory)
-    static const String getProductName()
-    {
-      return "LmaGaussModel";
-    }
-
-    /// set offset without being computing all over and without any discrepancy
-    void setOffset(CoordinateType offset);
-
-    /// set sample/supporting points of interpolation
-    void setSamples();
-
-    /// get the center of the Gaussian model i.e. the position of the maximum
-    CoordinateType getCenter() const;
-
-protected:
-    CoordinateType  min_;
-    CoordinateType  max_;
-    BasicStatistics statistics_;
-    CoordinateType scale_factor_;
-    CoordinateType standard_deviation_;
-    CoordinateType expected_value_;
-
-    void updateMembers_();
-  };
-}
-
-#endif // OPENMS_TRANSFORMATIONS_FEATUREFINDER_LMAGAUSSMODEL_H

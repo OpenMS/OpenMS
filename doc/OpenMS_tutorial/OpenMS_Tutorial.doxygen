@@ -100,8 +100,7 @@ libraries: <i>Qt</i> provides visualization, database support and a
 platform abstraction layer. <i>Xerces</i> allows XML file parsing.
 <i>libSVM</i> is used for machine learning tasks. The <i>Computational
 Geometry Algorithms Library</i> (CGAL) provides data structures and
-algorithms for geometric computation. The <i>GNU Scientific Library</i>(GSL)
-is used for different mathematical and statistical tasks.
+algorithms for geometric computation. 
 
 %OpenMS can itself be subdivided into several layers. At the very
 bottom are the foundation classes which implement low-level concepts and

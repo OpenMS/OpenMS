@@ -39,7 +39,9 @@
 
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
-#include <gsl/gsl_blas.h>
+#include <Eigen/Dense>
+
+#include <boost/random/uniform_real.hpp>
 
 using std::vector;
 using std::pair;
@@ -228,14 +230,16 @@ namespace OpenMS
 
     DoubleReal rep_shift = param_.getValue("reporter_mass_shift");
 
+
     OPENMS_PRECONDITION(fm.size() == 1, "More than one feature map given in ITRAQLabeler::postRawTandemMSHook()!")
-    gsl_matrix * channel_frequency = ItraqConstants::translateIsotopeMatrix(itraq_type_, isotope_corrections_).toGslMatrix();
-    gsl_matrix * itraq_intensity_observed = Matrix<SimIntensityType>(ItraqConstants::CHANNEL_COUNT[itraq_type_], 1).toGslMatrix();
-    gsl_matrix * itraq_intensity_sum = Matrix<SimIntensityType>(ItraqConstants::CHANNEL_COUNT[itraq_type_], 1).toGslMatrix();
+    EigenMatrixXdPtr channel_frequency = convertOpenMSMatrix2EigenMatrixXd( ItraqConstants::translateIsotopeMatrix(itraq_type_, isotope_corrections_) );
+    Eigen::MatrixXd itraq_intensity_sum (ItraqConstants::CHANNEL_COUNT[itraq_type_], 1);
 
     std::vector<Matrix<Int> > channel_names(2);
     channel_names[0].setMatrix<4, 1>(ItraqConstants::CHANNELS_FOURPLEX);
     channel_names[1].setMatrix<8, 1>(ItraqConstants::CHANNELS_EIGHTPLEX);
+
+    boost::uniform_real<DoubleReal> udist (0.0,1.0);
 
     // add signal...
     for (MSSimExperiment::iterator it = exp.begin(); it != exp.end(); ++it)
@@ -244,7 +248,7 @@ namespace OpenMS
         continue;
 
       // reset sum matrix to 0
-      gsl_matrix_scale(itraq_intensity_sum, 0);
+      itraq_intensity_sum.setZero();
 
       // add up signal of all features
       OPENMS_PRECONDITION(it->metaValueExists("parent_feature_ids"), "Meta value 'parent_feature_ids' missing in ITRAQLabeler::postRawTandemMSHook()!")
@@ -252,15 +256,13 @@ namespace OpenMS
       for (Size i_f = 0; i_f < parent_fs.size(); ++i_f)
       {
         // get RT scaled iTRAQ intensities
-        gsl_matrix * row = getItraqIntensity_(fm[0][parent_fs[i_f]], it->getRT()).toGslMatrix();
+          EigenMatrixXdPtr row = getItraqIntensity_(fm[0][parent_fs[i_f]], it->getRT());
+
         // apply isotope matrix to active channels
-        // row * channel_frequency = observed iTRAQ intensities
-        gsl_blas_dgemm(CblasNoTrans, CblasNoTrans,
-                       1.0, channel_frequency, row,
-                       0.0, itraq_intensity_observed);
+        // row * channel_frequencyOld = observed iTRAQ intensities
+        Eigen::MatrixXd itraq_intensity_observed = (*channel_frequency) * (*row);
         // add result to sum
-        gsl_matrix_add(itraq_intensity_sum, itraq_intensity_observed);
-        gsl_matrix_free(row);
+        itraq_intensity_sum += itraq_intensity_observed;
       }
 
       // add signal to MS2 spectrum
@@ -268,17 +270,13 @@ namespace OpenMS
       {
         MSSimExperiment::SpectrumType::PeakType p;
         // random shift of +-rep_shift around exact position
-        DoubleReal rnd_shift = gsl_rng_uniform(rng_->technical_rng) * 2 * rep_shift - rep_shift;
+        DoubleReal rnd_shift = udist(rng_->getTechnicalRng()) * 2 * rep_shift - rep_shift;
         p.setMZ(channel_names[itraq_type_].getValue(i_channel, 0) + 0.1 + rnd_shift);
-        p.setIntensity(gsl_matrix_get(itraq_intensity_sum, i_channel, 0));
-        //std::cout << "inserted iTRAQ peak: " << p << "\n";
+        p.setIntensity(itraq_intensity_sum(i_channel, 0));
         it->push_back(p);
       }
     }
 
-    gsl_matrix_free(channel_frequency);
-    gsl_matrix_free(itraq_intensity_observed);
-    gsl_matrix_free(itraq_intensity_sum);
   }
 
   // CUSTOM FUNCTIONS for iTRAQ:: //
@@ -371,14 +369,15 @@ namespace OpenMS
     return elution_ints[index];
   }
 
-  Matrix<SimIntensityType> ITRAQLabeler::getItraqIntensity_(const Feature & f, const DoubleReal MS2_RT_time) const
+  EigenMatrixXdPtr ITRAQLabeler::getItraqIntensity_(const Feature & f, const DoubleReal MS2_RT_time) const
   {
 
     DoubleReal factor = getRTProfileIntensity_(f, MS2_RT_time);
 
     //std::cerr << "\n\nfactor is: " << factor << "\n";
     // fill map with values present (all missing ones remain 0)
-    Matrix<SimIntensityType> m(ItraqConstants::CHANNEL_COUNT[itraq_type_], 1, 0);
+    MutableEigenMatrixXdPtr m (new Eigen::MatrixXd(ItraqConstants::CHANNEL_COUNT[itraq_type_], 1));
+    m->setZero();
     Size ch(0);
     Size ch_internal(0);
     for (ChannelMapType::ConstIterator it = channel_map_.begin(); it != channel_map_.end(); ++it)
@@ -389,7 +388,7 @@ namespace OpenMS
         intensity = (DoubleReal) f.getMetaValue(getChannelIntensityName(ch_internal));
         ++ch_internal;
       }
-      m.setValue(ch, 0, intensity * factor);
+      (*m)(ch, 0) = intensity * factor;
       ++ch;
     }
 

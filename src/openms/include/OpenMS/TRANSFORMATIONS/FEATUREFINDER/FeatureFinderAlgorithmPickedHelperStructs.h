@@ -269,7 +269,7 @@ namespace OpenMS
 
         @param intensity_profile An empty std::list of pair<DoubleReal, DoubleReal> that will be filled.
                 The first element of the pair holds the RT value, the second value the sum of intensities
-                of all peaks in the different mass traces with this specifc RT.
+                of all peaks in the different mass traces with this specific RT.
       */
       void computeIntensityProfile(std::list<std::pair<DoubleReal, DoubleReal> >& intensity_profile) const
       {
