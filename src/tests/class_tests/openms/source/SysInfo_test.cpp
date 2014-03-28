@@ -53,7 +53,7 @@ START_SECTION(static bool getProcessMemoryConsumption(size_t& mem_virtual))
 	std::cout << "Memory consumed initally: " << first << " KB" << std::endl;
 
 	char* some_mem = new char[alloc_size];
-
+        std::cerr << some_mem[alloc_size-19] << std::endl;
 	TEST_EQUAL(SysInfo::getProcessMemoryConsumption(after), true);
 	std::cout << "Memory consumed after 10 MB alloc : " << after << " KB" << std::endl;
 
