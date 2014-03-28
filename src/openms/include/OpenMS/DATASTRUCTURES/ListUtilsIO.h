@@ -68,7 +68,7 @@ namespace OpenMS
 
     os << "]";
     // set precision settings back to original values
-    os << std::setprecision(prec_save);
+    os.precision(prec_save);
     return os;
   }
 

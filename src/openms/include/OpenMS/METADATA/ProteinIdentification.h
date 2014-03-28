@@ -68,23 +68,16 @@ public:
     /**
         @brief Bundles multiple (e.g. indistinguishable) proteins in a group
     */
-    struct ProteinGroup
+    struct OPENMS_DLLAPI ProteinGroup
     {
       /// Probability of this group
       DoubleReal probability;
       /// Accessions of (indistinguishable) proteins that belong to the same group
       StringList accessions;
 
-      ProteinGroup() :
-        probability(0.0), accessions()
-      {}
+      ProteinGroup();
 
-      bool operator==(const ProteinGroup rhs) const
-      {
-        return probability == rhs.probability &&
-               accessions == rhs.accessions;
-      }
-
+      bool operator==(const ProteinGroup rhs) const;
     };
 
     /// Peak mass type
@@ -112,7 +105,7 @@ public:
     static const std::string NamesOfDigestionEnzyme[SIZE_OF_DIGESTIONENZYME];
 
     /// Search parameters of the DB search
-    struct SearchParameters :
+    struct OPENMS_DLLAPI SearchParameters :
       public MetaInfoInterface
     {
       String db;           ///< The used database
@@ -127,40 +120,11 @@ public:
       DoubleReal peak_mass_tolerance;           ///< Mass tolerance of fragment ions (Dalton)
       DoubleReal precursor_tolerance;           ///< Mass tolerance of precursor ions (Dalton)
 
-      SearchParameters() :
-        db(),
-        db_version(),
-        taxonomy(),
-        charges(),
-        mass_type(MONOISOTOPIC),
-        fixed_modifications(),
-        variable_modifications(),
-        enzyme(UNKNOWN_ENZYME),
-        missed_cleavages(0),
-        peak_mass_tolerance(0.0),
-        precursor_tolerance(0.0)
-      {
-      }
+      SearchParameters();
 
-      bool operator==(const SearchParameters & rhs) const
-      {
-        return db == rhs.db &&
-               db_version == rhs.db_version &&
-               taxonomy == rhs.taxonomy &&
-               charges == rhs.charges &&
-               mass_type == rhs.mass_type &&
-               fixed_modifications == rhs.fixed_modifications &&
-               variable_modifications == rhs.variable_modifications &&
-               enzyme == rhs.enzyme &&
-               missed_cleavages == rhs.missed_cleavages &&
-               peak_mass_tolerance == rhs.peak_mass_tolerance &&
-               precursor_tolerance == rhs.precursor_tolerance;
-      }
+      bool operator==(const SearchParameters & rhs) const;
 
-      bool operator!=(const SearchParameters & rhs) const
-      {
-        return !(*this == rhs);
-      }
+      bool operator!=(const SearchParameters & rhs) const;
 
     };
 
