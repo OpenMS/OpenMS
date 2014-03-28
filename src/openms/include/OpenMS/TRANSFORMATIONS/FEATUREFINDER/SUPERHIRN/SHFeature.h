@@ -233,12 +233,12 @@ public:
     {   MONO_MZ = in; }
     double get_MZ_START()
     {   return MONO_MZ_START; }
-    void set_MZ_START(double IN)
-    {   MONO_MZ_START = IN; }
+    void set_MZ_START(double in)
+    {   MONO_MZ_START = in; }
     double get_MZ_END()
     {   return MONO_MZ_END; }
-    void set_MZ_END(double IN)
-    {   MONO_MZ_END = IN; }
+    void set_MZ_END(double in)
+    {   MONO_MZ_END = in; }
 
     double get_THEO_MZ()
     {   return get_best_MS2_SCAN()->get_MONO_MZ(); }
@@ -248,10 +248,10 @@ public:
     {   return get_best_MS2_SCAN()->get_AC(); }
     std::string get_AC(double T)
     {   return get_best_MS2_SCAN(T)->get_AC(); }
-    bool check_AC(std::string IN)
-    {   return get_best_MS2_SCAN()->compare_AC(IN); }
-    bool check_AC(std::string IN, double T)
-    {   return get_best_MS2_SCAN(T)->compare_AC(IN); }
+    bool check_AC(std::string in)
+    {   return get_best_MS2_SCAN()->compare_AC(in); }
+    bool check_AC(std::string in, double T)
+    {   return get_best_MS2_SCAN(T)->compare_AC(in); }
     std::string get_SQ()
     {   return get_best_MS2_SCAN()->get_SQ(); }
     std::string get_SQ(double T)
@@ -285,22 +285,22 @@ public:
 
     int get_scan_number()
     {   return scan_apex; }
-    void set_scan_number(int IN)
-    {   scan_apex = IN; }
+    void set_scan_number(int in)
+    {   scan_apex = in; }
     int get_scan_start()
     {   return scan_start; }
-    void set_scan_start(int IN)
-    {   scan_start = IN; }
+    void set_scan_start(int in)
+    {   scan_start = in; }
     int get_scan_end()
     {   return scan_end; }
-    void set_scan_end(int IN)
-    {   scan_end = IN; }
+    void set_scan_end(int in)
+    {   scan_end = in; }
     int get_charge_state()
     {   return charge_state; }
-    void set_charge_state(int IN)
-    {   charge_state = IN; }
-    void set_peak_area(float IN)
-    {   total_peak_area = IN; }
+    void set_charge_state(int in)
+    {   charge_state = in; }
+    void set_peak_area(float in)
+    {   total_peak_area = in; }
     double get_peak_area()
     {   return total_peak_area; }
     // get peak area at a certain LC/MS:
@@ -314,50 +314,50 @@ public:
 
     double get_alignment_error_up()
     {   return alignment_error_up; }
-    void set_alignment_error_up(double IN)
-    {   alignment_error_up = IN; }
+    void set_alignment_error_up(double in)
+    {   alignment_error_up = in; }
     double get_alignment_error_down()
     {   return alignment_error_down; }
-    void set_alignment_error_down(double IN)
-    {   alignment_error_down = IN; }
+    void set_alignment_error_down(double in)
+    {   alignment_error_down = in; }
 
-    void set_SCORE_HOLDER(double IN)
-    {   SCORE_HOLDER = IN; }
+    void set_SCORE_HOLDER(double in)
+    {   SCORE_HOLDER = in; }
     double get_SCORE_HOLDER()
     {   return SCORE_HOLDER; }
 
     double get_retention_time()
     {   return TR; }
-    void set_retention_time(double IN)
-    {   TR = IN; }
+    void set_retention_time(double in)
+    {   TR = in; }
     double get_retention_time_START()
     {   return TR_START; }
-    void set_retention_time_START(double IN)
-    {   TR_START = IN; }
+    void set_retention_time_START(double in)
+    {   TR_START = in; }
     double get_retention_time_END()
     {   return TR_END; }
-    void set_retention_time_END(double IN)
-    {   TR_END = IN; }
+    void set_retention_time_END(double in)
+    {   TR_END = in; }
 
     // original mz and Tr coordinates
     double get_raw_retention_time_apex()
     {   return TR_APEX; }
-    void set_raw_retention_time_apex(double IN)
-    {   TR_APEX = IN; }
+    void set_raw_retention_time_apex(double in)
+    {   TR_APEX = in; }
     double get_raw_MZ()
     {   return MONO_MZ_ORIGINAL; }
-    void set_raw_MZ(double IN)
-    {   MONO_MZ_ORIGINAL = IN; }
+    void set_raw_MZ(double in)
+    {   MONO_MZ_ORIGINAL = in; }
 
     // feature ID:
-    void set_feature_ID(int IN)
-    {   feature_ID = IN; }
+    void set_feature_ID(int in)
+    {   feature_ID = in; }
     int get_feature_ID()
     {   return feature_ID; }
 
-    void set_spectrum_ID(int IN)
+    void set_spectrum_ID(int in)
     {
-      spectrum_ID = IN;
+      spectrum_ID = in;
       /*
        if( MS2TraceFeature != NULL){
        MS2TraceFeature.set
@@ -368,8 +368,8 @@ public:
     int get_spectrum_ID()
     {   return spectrum_ID; }
 
-    void set_MASTER_ID(int IN)
-    {   MASTER_ID = IN; }
+    void set_MASTER_ID(int in)
+    {   MASTER_ID = in; }
     int get_MASTER_ID()
     {   return MASTER_ID; }
 
@@ -388,8 +388,8 @@ public:
     // feature PI:
     double get_FEATURE_PI()
     {   return PI; }
-    void set_FEATURE_PI(double IN)
-    {   PI = IN; }
+    void set_FEATURE_PI(double in)
+    {   PI = in; }
 
     // check charge states, in cases where a feature was
     // created based on a MS2 trace, charge state is unknown ( = -1 )
@@ -398,8 +398,8 @@ public:
     void deriveChargeStates(SHFeature *);
 
     // LC elution profile
-    void setLCelutionProfile(FeatureLCProfile * IN)
-    {   LCprofile = IN; }
+    void setLCelutionProfile(FeatureLCProfile * in)
+    {   LCprofile = in; }
     FeatureLCProfile * getLCelutionProfile()
     {   return LCprofile; }
 
@@ -412,8 +412,8 @@ public:
     // status if feature has been matched:
     bool get_feature_match_status()
     {   return feature_match_status; }
-    void set_feature_match_status(bool IN)
-    {   feature_match_status = IN; }
+    void set_feature_match_status(bool in)
+    {   feature_match_status = in; }
 
     ///////////////////////////////////////////
     // access the MS2 feature

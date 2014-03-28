@@ -108,7 +108,7 @@ else()
 endif()
 
 #------------------------------------------------------------------------------
-# All the multithreading stuff (OpenMP, CUDA, TBB)
+# All the multi threading stuff (OpenMP, CUDA, TBB)
 #------------------------------------------------------------------------------
 include(cmake/multithreading.cmake)
 
@@ -158,7 +158,7 @@ endif()
 set(BUILD_SHARED_LIBS true)
 
 #------------------------------------------------------------------------------
-# CMake Utitlities
+# CMake Utilities
 #------------------------------------------------------------------------------
 # include some OpenMS specific macros
 include (${PROJECT_SOURCE_DIR}/cmake/OpenMSBuildSystem_macros.cmake)
@@ -237,7 +237,7 @@ set(PACKAGE_TYPE "none" CACHE STRING "Package type (internal): ${VALID_PACKAGE_T
 is_valid_package(${PACKAGE_TYPE})
 
 #------------------------------------------------------------------------------
-# The actual openms code
+# The actual OpenMS code (headers and cpp's)
 #------------------------------------------------------------------------------
 add_subdirectory(src)
 

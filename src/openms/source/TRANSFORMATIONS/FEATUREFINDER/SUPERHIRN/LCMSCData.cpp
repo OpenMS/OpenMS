@@ -112,11 +112,11 @@ namespace OpenMS
 
 ///////////////////////////////////////////////////////////////////////////////
 // add data into the structure:
-  void LCMSCData::add_LC_elution_peak(double MZ, LCElutionPeak * IN)
+  void LCMSCData::add_LC_elution_peak(double MZ, LCElutionPeak * in)
   {
 
     // get the scan apex:
-    int APEX = IN->get_scan_apex();
+    int APEX = in->get_scan_apex();
 
     // check if this mass is already stored:
     MZ_LIST_ITERATOR P = get_MZ_by_iterator(MZ);
@@ -126,8 +126,8 @@ namespace OpenMS
 
       // ok, not yet inserted this mass:
       elution_peak_list tmp;
-      tmp.insert(pair<int, LCElutionPeak>(APEX, *IN));
-      IN = NULL;
+      tmp.insert(pair<int, LCElutionPeak>(APEX, *in));
+      in = NULL;
 
       // insert into m/z list:
       DATA.insert(pair<double, elution_peak_list>(MZ, tmp));
@@ -137,8 +137,8 @@ namespace OpenMS
     {
 
       // ok, already existing:
-      (*P).second.insert(pair<int, LCElutionPeak>(APEX, *IN));
-      IN = NULL;
+      (*P).second.insert(pair<int, LCElutionPeak>(APEX, *in));
+      in = NULL;
     }
   }
 
@@ -151,7 +151,7 @@ namespace OpenMS
     int start_scan = SCAN;
     int end_scan = SCAN;
 
-    vector<LCElutionPeak> OUT;
+    vector<LCElutionPeak> out;
 
     // go through the structure and find all m/z at this scan:
     MZ_LIST_ITERATOR P = get_DATA_start();
@@ -182,14 +182,14 @@ namespace OpenMS
 
       if ((this_INT > 0) && (this_INT >= SuperHirnParameters::instance()->getIntensityThreshold()) && (TMP != NULL))
       {
-        OUT.push_back(*TMP);
+        out.push_back(*TMP);
       }
 
       // next m/z:
       P++;
     }
 
-    return OUT;
+    return out;
   }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -202,7 +202,7 @@ namespace OpenMS
     int end_scan = SCAN + TOL;
 
     LCElutionPeak * TMP = NULL;
-    vector<LCElutionPeak> OUT;
+    vector<LCElutionPeak> out;
 
     // go through the structure and find all m/z at this scan:
     MZ_LIST_ITERATOR P = get_DATA_start();
@@ -232,14 +232,14 @@ namespace OpenMS
 
       if ((this_INT > 0) && (this_INT >= SuperHirnParameters::instance()->getIntensityThreshold()) && (TMP != NULL))
       {
-        OUT.push_back(*TMP);
+        out.push_back(*TMP);
       }
 
       // next m/z:
       P++;
     }
 
-    return OUT;
+    return out;
   }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -248,7 +248,7 @@ namespace OpenMS
   {
 
     LCElutionPeak * TMP = NULL;
-    vector<LCElutionPeak *> OUT;
+    vector<LCElutionPeak *> out;
 
     // go through the structure and find all m/z at this scan:
     MZ_LIST_ITERATOR P = get_DATA_start();
@@ -263,7 +263,7 @@ namespace OpenMS
       {
         TMP = &((*Q).second);
         // cout<<TMP->get_apex_MZ()<<endl;
-        OUT.push_back(TMP);
+        out.push_back(TMP);
         Q++;
       }
 
@@ -271,7 +271,7 @@ namespace OpenMS
       P++;
     }
 
-    return OUT;
+    return out;
   }
 
 /////////////////////////////////////////////////////////////////////////////

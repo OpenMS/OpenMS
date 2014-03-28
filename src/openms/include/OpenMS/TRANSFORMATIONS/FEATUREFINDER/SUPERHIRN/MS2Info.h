@@ -163,9 +163,9 @@ public:
 
     // sets modification SQ:
     void set_FULL_SQ();
-    void set_SQ(std::string IN)
+    void set_SQ(std::string in)
     {
-      SQ = IN;
+      SQ = in;
       set_THEO_MASS_from_SQ();
       set_FULL_SQ();
     }
@@ -233,9 +233,9 @@ public:
       return PEP_PROB;
     }
 
-    void set_PEP_PROB(float IN)
+    void set_PEP_PROB(float in)
     {
-      PEP_PROB = IN;
+      PEP_PROB = in;
     }
 
     double get_MONO_MZ()
@@ -257,9 +257,9 @@ public:
       return CHRG;
     }
 
-    void set_CHRG(int IN)
+    void set_CHRG(int in)
     {
-      CHRG = IN;
+      CHRG = in;
     }
 
     int get_SCAN()
@@ -272,9 +272,9 @@ public:
       return SCAN_START;
     }
 
-    void set_SCAN_START(int IN)
+    void set_SCAN_START(int in)
     {
-      SCAN_START = IN;
+      SCAN_START = in;
     }
 
     int get_SCAN_END()
@@ -282,9 +282,9 @@ public:
       return SCAN_END;
     }
 
-    void set_SCAN_END(int IN)
+    void set_SCAN_END(int in)
     {
-      SCAN_END = IN;
+      SCAN_END = in;
     }
 
     int get_ID()
@@ -297,9 +297,9 @@ public:
       return DELTA_CN;
     }
 
-    void set_DELTA_CN(double IN)
+    void set_DELTA_CN(double in)
     {
-      DELTA_CN = IN;
+      DELTA_CN = in;
     }
 
     double get_XCORR()
@@ -307,14 +307,14 @@ public:
       return XCORR;
     }
 
-    void set_XCORR(double IN)
+    void set_XCORR(double in)
     {
-      XCORR = IN;
+      XCORR = in;
     }
 
-    void set_MS2_TYPE_TAG(std::string IN)
+    void set_MS2_TYPE_TAG(std::string in)
     {
-      MS2_TYPE_TAG = IN;
+      MS2_TYPE_TAG = in;
     }
 
     std::string get_MS2_TYPE_TAG()
@@ -328,9 +328,9 @@ public:
             return ORIGINAL_INTERACT_FILE;
         }
 
-        void set_ORIGINAL_INTERACT_FILE(std::string IN)
+        void set_ORIGINAL_INTERACT_FILE(std::string in)
         {
-            ORIGINAL_INTERACT_FILE = IN;
+            ORIGINAL_INTERACT_FILE = in;
         }
 */
 
@@ -340,9 +340,9 @@ public:
       return TR;
     }
 
-    void setRetentionTime(double IN)
+    void setRetentionTime(double in)
     {
-      TR = IN;
+      TR = in;
     }
 
     double get_MONO_AA_MASS(int);
@@ -352,9 +352,9 @@ public:
       return PREV_AA;
     }
 
-    void set_PREV_AA(std::string IN)
+    void set_PREV_AA(std::string in)
     {
-      PREV_AA = IN;
+      PREV_AA = in;
     }
 
   };

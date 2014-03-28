@@ -492,10 +492,10 @@ namespace OpenMS
 
 //////////////////////////////////////////////////
 // add MS/MS info to the feature:
-  void SHFeature::add_MS2_info(MS2Info * IN)
+  void SHFeature::add_MS2_info(MS2Info * in)
   {
 
-    if (IN != NULL)
+    if (in != NULL)
     {
 
       //////////////////////////////////////
@@ -520,48 +520,48 @@ namespace OpenMS
 
         // only save the new scan if its of better quality:
         // if so, clear all previous ids to save space:
-        if (thisMS2->get_PEP_PROB() < IN->get_PEP_PROB())
+        if (thisMS2->get_PEP_PROB() < in->get_PEP_PROB())
         {
           MS2_SCANS.clear();
         }
         else
         {
           // is of lower quality, so through it away:
-          IN = NULL;
+          in = NULL;
         }
       }
 
       /////////////////////////////////////////
       // insert the MS2 scan if its not null:
-      if (IN != NULL)
+      if (in != NULL)
       {
 
-        map<double, vector<MS2Info> >::iterator F = MS2_SCANS.find(IN->get_PEP_PROB());
+        map<double, vector<MS2Info> >::iterator F = MS2_SCANS.find(in->get_PEP_PROB());
         if (F == MS2_SCANS.end())
         {
           vector<MS2Info> TMP;
-          TMP.push_back(*IN);
-          MS2_SCANS.insert(make_pair(IN->get_PEP_PROB(), TMP));
+          TMP.push_back(*in);
+          MS2_SCANS.insert(make_pair(in->get_PEP_PROB(), TMP));
         }
         else
         {
-          (*F).second.push_back(*IN);
+          (*F).second.push_back(*in);
         }
 
       }
 
-      IN = NULL;
+      in = NULL;
     }
   }
 
 //////////////////////////////////////////////////
 // add MS/MS info to the feature:
-  void SHFeature::add_MS2_info(map<double, vector<MS2Info> > * IN)
+  void SHFeature::add_MS2_info(map<double, vector<MS2Info> > * in)
   {
 
     MS2_SCANS.clear();
-    map<double, vector<MS2Info> >::iterator P = IN->begin();
-    while (P != IN->end())
+    map<double, vector<MS2Info> >::iterator P = in->begin();
+    while (P != in->end())
     {
       vector<MS2Info>::iterator M = (*P).second.begin();
       while (M != (*P).second.end())
@@ -571,7 +571,7 @@ namespace OpenMS
       }
       ++P;
     }
-    IN = NULL;
+    in = NULL;
   }
 
 //////////////////////////////////////////////////
@@ -583,7 +583,7 @@ namespace OpenMS
 
 //////////////////////////////////////////////////
 // functions to set/access machted features:
-  void SHFeature::add_matched_feature(SHFeature * IN)
+  void SHFeature::add_matched_feature(SHFeature * in)
   {
 
     //////////////////////////////////////////////////////
@@ -591,20 +591,20 @@ namespace OpenMS
     // created based on a MS2 trace, charge state is unknown ( = -1 )
     // -> derivce the charge state from the matched feature (if this is
     // also not -1
-    deriveChargeStates(IN);
+    deriveChargeStates(in);
 
     // store the matches of this input features in
     // the new feature:
-    map<int, SHFeature>::iterator P = IN->get_match_list_start();
-    while (P != IN->get_match_list_end())
+    map<int, SHFeature>::iterator P = in->get_match_list_start();
+    while (P != in->get_match_list_end())
     {
       add_matched_feature(&((*P).second));
       ++P;
     }
 
     // add ms2 information:
-    map<double, vector<MS2Info> >::iterator MS2 = IN->get_MS2_SCANS_START();
-    while (MS2 != IN->get_MS2_SCANS_END())
+    map<double, vector<MS2Info> >::iterator MS2 = in->get_MS2_SCANS_START();
+    while (MS2 != in->get_MS2_SCANS_END())
     {
       vector<MS2Info>::iterator M = (*MS2).second.begin();
       while (M != (*MS2).second.end())
@@ -618,23 +618,23 @@ namespace OpenMS
     // ok, now make a new feature and
     // remove its aligned features, since the are now
     // stored in this new feature:
-    // feature* TMP = new feature( IN );
-    IN->erase_match_list();
+    // feature* TMP = new feature( in );
+    in->erase_match_list();
     // remove also the MS2 information:
-    IN->removeAllMS2Information();
+    in->removeAllMS2Information();
 
     // check now if this insert ID already exists
     // for example in meta alignments!!!
     // in this case add it to the size of the map
     // new ID = map_size + old_ID:
-    int insert_ID = IN->get_spectrum_ID();
+    int insert_ID = in->get_spectrum_ID();
     map<int, SHFeature>::iterator F = matched_feature_list.find(insert_ID);
     if (F != matched_feature_list.end())
     {
       insert_ID += (int) matched_feature_list.size();
     }
-    matched_feature_list.insert(pair<int, SHFeature>(insert_ID, *IN));
-    IN = NULL;
+    matched_feature_list.insert(pair<int, SHFeature>(insert_ID, *in));
+    in = NULL;
 
   }
 
@@ -670,12 +670,12 @@ namespace OpenMS
   MS2Info * SHFeature::get_best_MS2_SCAN()
   {
 
-    MS2Info * OUT = NULL;
+    MS2Info * out = NULL;
     if (get_MS2_info())
     {
 
       map<double, vector<MS2Info> >::reverse_iterator R = MS2_SCANS.rbegin();
-      OUT = &(*((*R).second.begin()));
+      out = &(*((*R).second.begin()));
 
       map<int, SHFeature>::iterator P = matched_feature_list.begin();
       while (P != matched_feature_list.end())
@@ -683,15 +683,15 @@ namespace OpenMS
         MS2Info * TMP = (*P).second.get_best_MS2_SCAN();
         if (TMP != NULL)
         {
-          if (TMP->get_PEP_PROB() > OUT->get_PEP_PROB())
+          if (TMP->get_PEP_PROB() > out->get_PEP_PROB())
           {
-            OUT = TMP;
+            out = TMP;
           }
         }
         ++P;
       }
     }
-    return OUT;
+    return out;
   }
 
 //////////////////////////////////////////////////
@@ -699,12 +699,12 @@ namespace OpenMS
   MS2Info * SHFeature::get_best_MS2_SCAN(double PP_T)
   {
 
-    MS2Info * OUT = NULL;
+    MS2Info * out = NULL;
     if (get_MS2_info(PP_T))
     {
 
       map<double, vector<MS2Info> >::reverse_iterator R = MS2_SCANS.rbegin();
-      OUT = &(*((*R).second.begin()));
+      out = &(*((*R).second.begin()));
 
       map<int, SHFeature>::iterator P = matched_feature_list.begin();
       while (P != matched_feature_list.end())
@@ -713,15 +713,15 @@ namespace OpenMS
         MS2Info * TMP = (*P).second.get_best_MS2_SCAN();
         if (TMP != NULL)
         {
-          if (TMP->get_PEP_PROB() > OUT->get_PEP_PROB())
+          if (TMP->get_PEP_PROB() > out->get_PEP_PROB())
           {
-            OUT = TMP;
+            out = TMP;
           }
         }
         ++P;
       }
     }
-    return OUT;
+    return out;
   }
 
 //////////////////////////////////////////////////
@@ -917,16 +917,16 @@ namespace OpenMS
 // created based on a MS2 trace, charge state is unknown ( = -1 )
 // -> derivce the charge state from the matched feature (if this is
 // also not -1
-  void SHFeature::deriveChargeStates(SHFeature * IN)
+  void SHFeature::deriveChargeStates(SHFeature * in)
   {
 
     SHFeature * deriveFeature = NULL;
     SHFeature * adjustFeature = NULL;
 
     // find the feature to derive:
-    if (IN->get_charge_state() == -1)
+    if (in->get_charge_state() == -1)
     {
-      adjustFeature = IN;
+      adjustFeature = in;
     }
     else if (this->get_charge_state() == -1)
     {
@@ -934,9 +934,9 @@ namespace OpenMS
     }
 
     // find the feature to derive:
-    if (IN->get_charge_state() > 0)
+    if (in->get_charge_state() > 0)
     {
-      deriveFeature = IN;
+      deriveFeature = in;
     }
     else if (this->get_charge_state() > 0)
     {

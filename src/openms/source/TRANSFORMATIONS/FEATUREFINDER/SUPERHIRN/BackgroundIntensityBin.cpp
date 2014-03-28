@@ -141,28 +141,28 @@ namespace OpenMS
   }
 
 // copied from simple_math
-  double simple_math_WEIGHTED_AVERAGE(map<double, double> * IN)
+  double simple_math_WEIGHTED_AVERAGE(map<double, double> * in)
   {
 
 
-    if (IN->size() > 1)
+    if (in->size() > 1)
     {
       double AVERAGE = 0;
       double TOT_WEIGHT = 0;
 
-      map<double, double>::iterator START = IN->begin();
-      while (START != IN->end())
+      map<double, double>::iterator start = in->begin();
+      while (start != in->end())
       {
-        TOT_WEIGHT += (*START).second;
-        AVERAGE += ((*START).first * (*START).second);
-        ++START;
+        TOT_WEIGHT += start->second;
+        AVERAGE += (start->first * start->second);
+        ++start;
       }
 
       return AVERAGE / TOT_WEIGHT;
     }
     else
     {
-      return (*IN->begin()).first;
+      return (*in->begin()).first;
     }
   }
 

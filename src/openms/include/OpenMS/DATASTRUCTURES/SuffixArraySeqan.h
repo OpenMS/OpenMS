@@ -38,6 +38,7 @@
 #define OPENMS_DATASTRUCTURES_SUFFIXARRAYSEQAN_H
 
 #include <vector>
+#include <functional>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/SuffixArray.h>
 #include <OpenMS/DATASTRUCTURES/SeqanIncludeWrapper.h>
@@ -47,6 +48,75 @@
 
 namespace OpenMS
 {
+    /**
+  @brief comparator for two doubles with a tolerance value
+  */
+  struct FloatsWithTolLess :
+	public std::binary_function<DoubleReal, DoubleReal, bool>
+  {
+    /**
+    @brief constructor
+    @param t const reference to the tolerance
+    */
+    explicit FloatsWithTolLess(const DoubleReal & t) :
+      tol_(t) {}
+    /**
+    @brief copy constructor
+    */
+    FloatsWithTolLess(const FloatsWithTolLess & rhs) :
+      tol_(rhs.tol_) {}
+
+    /**
+    @brief implementation of the '<' operator for two doubles with the tolerance value
+    @param f1 first DoubleReal
+    @param f2 second DoubleReal
+    @return true if first DoubleReal '<' second DoubleReal-tolerance
+    */
+    bool operator()(DoubleReal f1, DoubleReal f2) const
+    {
+      return f1 < (f2 - tol_);
+    }
+
+protected:
+    DoubleReal const & tol_;     ///< tolerance value
+  };
+
+  /**
+  @brief comparator for two doubles with a tolerance value
+  @todo Think about that this does and if it is really necessary (why DoubleReal, DoubleReal????) (Andreas, Clemens)
+  */
+  struct IntsInRangeLess :
+	  public std::binary_function<DoubleReal, DoubleReal, bool>
+  {
+    /**
+    @brief constructor
+    @param t const reference to the tolerance
+    */
+    IntsInRangeLess(const int & s, const int & e) :
+      start_(s), end_(e) {}
+    /**
+    @brief copy constructor
+    */
+    IntsInRangeLess(const IntsInRangeLess & source) :
+      start_(source.start_), end_(source.end_) {}
+
+    /**
+    @brief implementation of the '<' operator for two doubles with the tolerance value
+    @param f1 first DoubleReal
+    @param f2 second DoubleReal
+    @return true if first DoubleReal '<' second DoubleReal-tolerance
+    */
+    bool operator()(int f1, int f2) const
+    {
+      //cout<<"f1:"<<f1<<" f2:"<<f2<<" start:"<<start_<< " end:" << end_<<endl;
+      return (f2 == end_) ? f1 <= f2 - start_ : f1 < f2;
+    }
+
+protected:
+    int const & start_;     ///< start index
+    int const & end_;     ///< end index
+  };
+
 
   /**
   @brief Class that uses SEQAN library for a suffix array. It can be used to find peptide Candidates for a MS spectrum

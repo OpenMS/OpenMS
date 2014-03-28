@@ -156,7 +156,7 @@ public:
     // variables of the class
 
     // target file:
-    void set_target_file(std::string IN);
+    void set_target_file(std::string in);
     std::string get_target_file();
 
 // get the vector of LC/MS runs:
@@ -167,9 +167,9 @@ public:
     LCMS * getLCMS();
   };
 
-  inline void FTPeakDetectController::set_target_file(std::string IN)
+  inline void FTPeakDetectController::set_target_file(std::string in)
   {
-    targetMzXML = IN;
+    targetMzXML = in;
   }
 
   inline std::string FTPeakDetectController::get_target_file()

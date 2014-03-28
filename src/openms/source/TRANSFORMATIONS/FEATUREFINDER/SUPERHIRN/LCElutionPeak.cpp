@@ -218,11 +218,11 @@ namespace OpenMS
 
 //////////////////////////////////////////////////////////////////
 // get the original M/Z of a ms_peak
-  double LCElutionPeak::get_MZ(int IN)
+  double LCElutionPeak::get_MZ(int in)
   {
 
-    SIGNAL_iterator P = intens_signals.lower_bound(IN);
-    if ((*P).first == IN)
+    SIGNAL_iterator P = intens_signals.lower_bound(in);
+    if ((*P).first == in)
     {
       return (*P).second.get_MZ();
     }
@@ -242,7 +242,7 @@ namespace OpenMS
     P--;
     double SCAN_DOWN = (*P).first;
 
-    if ((SCAN_UP - IN) <= (IN - SCAN_DOWN))
+    if ((SCAN_UP - in) <= (in - SCAN_DOWN))
       P++;
 
     return (*P).second.get_MZ();
