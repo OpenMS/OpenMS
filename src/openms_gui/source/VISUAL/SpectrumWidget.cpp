@@ -254,17 +254,17 @@ namespace OpenMS
     x_axis_->hide();
   }
 
-  void SpectrumWidget::updateHScrollbar(float min, float disp_min, float disp_max, float max)
+  void SpectrumWidget::updateHScrollbar(float f_min, float disp_min, float disp_max, float f_max)
   {
-    if ((disp_min == min && disp_max == max) || (disp_min < min &&  disp_max > max))
+	if ((disp_min == f_min && disp_max == f_max) || (disp_min < f_min &&  disp_max > f_max))
     {
       x_scrollbar_->hide();
     }
     else
     {
       //block signals as this causes repainting due to rounding (QScrollBar works with int ...)
-      int local_min = min(min, disp_min);
-      int local_max = max(max, disp_max);
+	  int local_min = min(f_min, disp_min);
+	  int local_max = max(f_max, disp_max);
       x_scrollbar_->blockSignals(true);
       x_scrollbar_->show();
       x_scrollbar_->setMinimum(static_cast<int>(local_min));
@@ -275,17 +275,17 @@ namespace OpenMS
     }
   }
 
-  void SpectrumWidget::updateVScrollbar(float min, float disp_min, float disp_max, float max)
+  void SpectrumWidget::updateVScrollbar(float f_min, float disp_min, float disp_max, float f_max)
   {
-    if ((disp_min == min && disp_max == max) || (disp_min < min &&  disp_max > max))
+	if ((disp_min == f_min && disp_max == f_max) || (disp_min < f_min &&  disp_max > f_max))
     {
       y_scrollbar_->hide();
     }
     else
     {
       //block signals as this causes repainting due to rounding (QScrollBar works with int ...)
-      int local_min = min(min, disp_min);
-      int local_max = max(max, disp_max);
+	  int local_min = min(f_min, disp_min);
+	  int local_max = max(f_max, disp_max);
       y_scrollbar_->blockSignals(true);
       y_scrollbar_->show();
       y_scrollbar_->setMinimum(static_cast<int>(local_min));
