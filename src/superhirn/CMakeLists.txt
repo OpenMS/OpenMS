@@ -69,7 +69,7 @@ set(SuperHirn_INCLUDE_DIRECTORIES ${SuperHirn_INTERNAL_INCLUDE_DIRECTORIES}
     CACHE INTERNAL "SuperHirn include directories" FORCE)
 
 # --------------------------------------------------------------------------
-# add OpenMS include directories
+# add SuperHirn include directories
 include_directories(${SuperHirn_INTERNAL_INCLUDE_DIRECTORIES})
 include_directories(SYSTEM ${SuperHirn_EXTERNAL_INCLUDE_DIRECTORIES})
 
