@@ -83,8 +83,8 @@ START_SECTION(void load(const String &filename, std::vector<ProteinIdentificatio
 	// check that only m/z and RT differ between "load" methods:
 	for (Size i = 0; i < peptides.size(); ++i)
 	{
-		peptides[i].clearMetaInfo();
-		peptides2[i].clearMetaInfo();
+		peptides[i].setRT(peptides2[i].getRT());
+		peptides[i].setMZ(peptides2[i].getMZ());
 	}
 	TEST_EQUAL(peptides == peptides2, true);
 	TEST_EQUAL(proteins == proteins2, true);
