@@ -34,7 +34,7 @@
 
 
 #include <OpenMS/FILTERING/CALIBRATION/TOFCalibration.h>
-#include "OpenMS/MATH/STATISTICS/QuadraticRegression.h"
+#include <OpenMS/MATH/STATISTICS/QuadraticRegression.h>
 
 namespace OpenMS
 {

@@ -32,8 +32,8 @@
 // $Authors: Christian Ehrlich $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_MATH_STATISTICS_LINEARREGRESSION_H
-#define OPENMS_MATH_STATISTICS_LINEARREGRESSION_H
+#ifndef OPENMS_MATH_STATISTICS_QUADRATICREGRESSION_H
+#define OPENMS_MATH_STATISTICS_QUADRATICREGRESSION_H
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Exception.h>
@@ -52,7 +52,7 @@ namespace OpenMS
     class OPENMS_DLLAPI QuadraticRegression
     {
     public:
-      QuadraticRegression() :a_(0), b_(0), c_(0), chi_squared_(0) {}
+      QuadraticRegression();
 
       /** compute the quadratic regression over 2D points */
       template <typename Iterator>
@@ -65,12 +65,12 @@ namespace OpenMS
           Iterator x_begin, Iterator x_end, Iterator y_begin, Iterator w_begin);
 
       /** evaluate the quadratic function */
-      double eval(double x) const {return a_ + b_*x + c_*x*x;};
+      double eval(double x) const;
 
-      double getA() const {return a_;}
-      double getB() const {return b_;}
-      double getC() const {return c_;}
-      double getChiSquared() const {return chi_squared_;}
+      double getA() const;
+      double getB() const;
+      double getC() const;
+      double getChiSquared() const;
 
     protected:
       double a_;
@@ -176,4 +176,4 @@ namespace OpenMS
   }//namespace
 }//namespace
 
-#endif
+#endif // OPENMS_MATH_STATISTICS_QUADRATICREGRESSION_H
