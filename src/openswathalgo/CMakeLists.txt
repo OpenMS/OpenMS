@@ -64,13 +64,6 @@ include_directories(${OpenSwathAlgo_INTERNAL_INCLUDE_DIRECTORIES})
 include_directories(SYSTEM ${OpenSwathAlgo_EXTERNAL_INCLUDE_DIRECTORIES})
 
 #------------------------------------------------------------------------------
-# Configure OpenSwathAlgoConfig.h.in file for dll_export macros etc.
-# replace any variables in config.h.in with current values
-#------------------------------------------------------------------------------
-set (CONFIGURED_OPENSWATHALGOCONFIG_H ${PROJECT_BINARY_DIR}/include/OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/OpenSwathAlgoConfig.h)
-configure_file(${PROJECT_SOURCE_DIR}/include/OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/OpenSwathAlgoConfig.h.in ${CONFIGURED_OPENSWATHALGOCONFIG_H})
-
-#------------------------------------------------------------------------------
 # get information regarding the openswath files
 include(source/ANALYSIS/OPENSWATH/OPENSWATHALGO/OpenSwathAlgoFiles.cmake)
 
@@ -78,9 +71,20 @@ include(source/ANALYSIS/OPENSWATH/OPENSWATHALGO/OpenSwathAlgoFiles.cmake)
 # The OpenSwathAlgo library
 add_library(OpenSwathAlgo ${OpenSwathAlgoFiles})
 
+#------------------------------------------------------------------------------
+# create dll export macros for OpenSwathAlgo
+set(OpenSwathAlgo_CONFIG_H "include/OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/OpenSwathAlgoConfig.h")
+include(GenerateExportHeader)
+generate_export_header(OpenSwathAlgo
+                      EXPORT_MACRO_NAME OPENSWATHALGO_DLLAPI
+                      EXPORT_FILE_NAME ${OpenSwathAlgo_CONFIG_H})
+
+source_group("Header Files\\OpenMS\\ANALYSIS\\OPENSWATHALGO\\" FILES ${OpenSwathAlgo_CONFIG_H})
+set(OpenSwathAlgoHeaders ${OpenSwathAlgoHeaders} ${OpenSwathAlgo_CONFIG_H} CACHE INTERNAL "This variable should hold all SuperHirn headers at the end of the config step")
+
 # we also want to install OpenSwathAlgo
 install_library(OpenSwathAlgo)
-install_headers("${OpenSwathAlgoHeaders};${CONFIGURED_OPENSWATHALGOCONFIG_H}" OpenSwathAlgo)
+install_headers("${OpenSwathAlgoHeaders};${OpenSwathAlgo_CONFIG_H}" OpenSwathAlgo)
 
 #------------------------------------------------------------------------------
 # copy dll to test/doc bin folder on MSVC systems
