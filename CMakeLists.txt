@@ -153,6 +153,8 @@ include (${PROJECT_SOURCE_DIR}/cmake/OpenMSBuildSystem_macros.cmake)
 include (${PROJECT_SOURCE_DIR}/cmake/install_macros.cmake)
 # .. and some to ease preparing the documentation builds
 include (${PROJECT_SOURCE_DIR}/cmake/doc_macros.cmake)
+# .. and some to ease the installation proces
+include (${PROJECT_SOURCE_DIR}/cmake/add_library_macros.cmake)
 
 #------------------------------------------------------------------------------
 # Directories

@@ -45,51 +45,16 @@ if(NOT Boost_FOUND)
 endif()
 
 #------------------------------------------------------------------------------
-# Export OpenSWATHAlgo include directories
-#------------------------------------------------------------------------------
-
-set(OpenSwathAlgo_EXTERNAL_INCLUDE_DIRECTORIES ${Boost_INCLUDE_DIRS})
-
-set(OpenSwathAlgo_INTERNAL_INCLUDE_DIRECTORIES ${PROJECT_SOURCE_DIR}/include
-                                               ${PROJECT_BINARY_DIR}/include)
-
-
-set(OpenSwathAlgo_INCLUDE_DIRECTORIES ${OpenSwathAlgo_INTERNAL_INCLUDE_DIRECTORIES}
-                                      ${OpenSwathAlgo_EXTERNAL_INCLUDE_DIRECTORIES}
-    CACHE INTERNAL "OpenSWATHAlgo include directories" FORCE)
-
-#------------------------------------------------------------------------------
-# Include directories
-include_directories(${OpenSwathAlgo_INTERNAL_INCLUDE_DIRECTORIES})
-include_directories(SYSTEM ${OpenSwathAlgo_EXTERNAL_INCLUDE_DIRECTORIES})
-
-#------------------------------------------------------------------------------
 # get information regarding the openswath files
 include(source/ANALYSIS/OPENSWATH/OPENSWATHALGO/OpenSwathAlgoFiles.cmake)
 
 #------------------------------------------------------------------------------
-# The OpenSwathAlgo library
-add_library(OpenSwathAlgo ${OpenSwathAlgoFiles})
+# add the library
+openms_add_library(TARGET_NAME OpenSwathAlgo
+                   SOURCE_FILES ${OpenSwathAlgoFiles}
+                   HEADER_FILES ${OpenSwathAlgoHeaders}
+                   INTERNAL_INCLUDES ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include
+                   EXTERNAL_INCLUDES ${Boost_INCLUDE_DIRS}
+                   DLL_EXPORT_PATH "include/OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/")
 
-#------------------------------------------------------------------------------
-# create dll export macros for OpenSwathAlgo
-set(OpenSwathAlgo_CONFIG_H "include/OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/OpenSwathAlgoConfig.h")
-include(GenerateExportHeader)
-generate_export_header(OpenSwathAlgo
-                      EXPORT_MACRO_NAME OPENSWATHALGO_DLLAPI
-                      EXPORT_FILE_NAME ${OpenSwathAlgo_CONFIG_H})
-
-source_group("Header Files\\OpenMS\\ANALYSIS\\OPENSWATHALGO\\" FILES ${OpenSwathAlgo_CONFIG_H})
-set(OpenSwathAlgoHeaders ${OpenSwathAlgoHeaders} ${OpenSwathAlgo_CONFIG_H} CACHE INTERNAL "This variable should hold all SuperHirn headers at the end of the config step")
-
-# we also want to install OpenSwathAlgo
-install_library(OpenSwathAlgo)
-install_headers("${OpenSwathAlgoHeaders};${OpenSwathAlgo_CONFIG_H}" OpenSwathAlgo)
-
-#------------------------------------------------------------------------------
-# copy dll to test/doc bin folder on MSVC systems
-copy_dll_to_extern_bin(OpenSwathAlgo)
-
-#------------------------------------------------------------------------------
-# register relevant paths for the doxygen doc generation
 openms_doc_path("${PROJECT_SOURCE_DIR}/include")
