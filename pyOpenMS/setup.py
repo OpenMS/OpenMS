@@ -62,14 +62,14 @@ for OPEN_MS_CONTRIB_BUILD_DIR in OPEN_MS_CONTRIB_BUILD_DIRS.split(";"):
 #
 if iswin:
     if OPEN_MS_BUILD_TYPE.upper() == "DEBUG":
-        libraries = ["OpenMSd", "OpenSwathAlgod", "xerces-c_3D", "QtCored4", "cblas_d"]
+        libraries = ["OpenMSd", "OpenSwathAlgod", "SuperHirnd", "xerces-c_3D", "QtCored4", "cblas_d"]
     else:
-        libraries = ["OpenMS", "OpenSwathAlgo", "xerces-c_3", "QtCore4", "cblas"]
+        libraries = ["OpenMS", "OpenSwathAlgo", "SuperHirn", "xerces-c_3", "QtCore4", "cblas"]
 
 elif sys.platform == "linux2":
-    libraries = ["OpenMS", "OpenSwathAlgo", "xerces-c", "QtCore"]
+    libraries = ["OpenMS", "OpenSwathAlgo", "SuperHirn", "xerces-c", "QtCore"]
 elif sys.platform == "darwin":
-    libraries = ["OpenMS", "OpenSwathAlgo", "xerces-c"]
+    libraries = ["OpenMS", "OpenSwathAlgo", "SuperHirn", "xerces-c"]
 else:
     print
     print "platform ", sys.platform, "not supported yet"
@@ -100,9 +100,11 @@ include_dirs = [
     j(OPEN_MS_BUILD_DIR, "src/openswathalgo/include"),
     j(OPEN_MS_BUILD_DIR, "src/openms/include"),
     j(OPEN_MS_BUILD_DIR, "src/openms_gui/include"),
+    j(OPEN_MS_BUILD_DIR, "src/superhirn/include"),
     j(OPEN_MS_SRC, "src/openswathalgo/include"),
     j(OPEN_MS_SRC, "src/openms/include"),
     j(OPEN_MS_SRC, "src/openms_gui/include"),
+    j(OPEN_MS_SRC, "src/superhirn/include"),
     j(numpy.core.__path__[0], "include"),
 ]
 
