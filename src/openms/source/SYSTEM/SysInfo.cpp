@@ -33,7 +33,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/SYSTEM/SysInfo.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
 
 #ifdef OPENMS_WINDOWSPLATFORM
 #include "windows.h"
@@ -41,21 +40,19 @@
 #elif _APPLE__
 #include <mach/mach.h>
 #else
-#include <cstdlib>
 #include <cstdio>
-#include <cstring>
+#include <unistd.h>
 #endif
-
 
 namespace OpenMS
 {
 	bool SysInfo::getProcessMemoryConsumption(size_t& mem_virtual) 
 	{
+		mem_virtual = 0;
 #ifdef OPENMS_WINDOWSPLATFORM
 		PROCESS_MEMORY_COUNTERS_EX pmc;
 		if (!GetProcessMemoryInfo(GetCurrentProcess(), (PROCESS_MEMORY_COUNTERS*)&pmc, sizeof(pmc)))
 		{
-			mem_virtual = 0;
 			return false;
 		}
 		mem_virtual = pmc.PrivateUsage / 1024;  // byte to KB
@@ -67,24 +64,31 @@ namespace OpenMS
 			TASK_BASIC_INFO, (task_info_t)&t_info,
 			&t_info_count))
 		{
-			mem_virtual = 0;
 			return false;
 		}
 		mem_virtual = t_info.resident_size / 1024;  // byte to KB
 		//mem_resident = t_info.virtual_size / 1024;  // byte to KB
 #else // Linux
-		FILE* file = fopen("/proc/self/status", "r");
-		char line[1024];
-		while (fgets(line, 1024, file) != NULL)
-		{
-			if (strncmp(line, "VmRSS:", 6) == 0)
-			{
-				mem_virtual = (size_t) String(line).substr(6).toInt();  // in KB
-				break;
-			}
-		}
-		fclose(file);
 		
+        long rss = 0L;
+	FILE* fp = NULL;
+	if ( (fp = fopen( "/proc/self/statm", "r" )) == NULL )
+	{
+		return false;
+	}
+	char buf[1024];
+	fread(buf, 1, 1024, fp);
+	//printf("%s", buf);
+        // get 'data size (heap + stack)'  (residence size (vmRSS) is usually too small and not changing, total memory (vmSize) is changing but usually too large)
+	if ( sscanf( buf, "%*s%*s%*s%*s%*s%ld", &rss ) != 1 )
+	{
+		fclose( fp );
+                return false;
+
+	}
+	fclose( fp );
+	mem_virtual = (size_t)rss * (size_t)sysconf( _SC_PAGESIZE) / 1024;
+
 #endif
 		return true;
 	}
