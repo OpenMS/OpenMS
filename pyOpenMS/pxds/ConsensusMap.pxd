@@ -97,24 +97,4 @@ cdef extern from "<OpenMS/KERNEL/ConsensusMap.h>" namespace "OpenMS":
         # wrapped in ../addons/ConsensusMap.pyx:
         void setFileDescriptions(FileDescriptions &)   #wrap-ignore
         FileDescriptions & getFileDescriptions()       #wrap-ignore
-
-
-        void convert(UInt64 input_map_index,
-                     FeatureMap[Feature] input_map,
-                     ConsensusMap & output_map,
-                     Size n) nogil except +
-  
-        void convert(UInt64 input_map_index,
-                     MSExperiment[Peak1D, ChromatogramPeak] & input_map,
-                     ConsensusMap & output_map,
-                     Size n) nogil except +
-  
-        void convert(UInt64 input_map_index,
-                     libcpp_vector[Peak2D] & input_map,
-                     ConsensusMap & output_map,
-                     Size n) nogil except +
-  
-        void convert(ConsensusMap input_map,
-                     bool keep_uids,
-                     FeatureMap[Feature] & output_map) nogil except +
   

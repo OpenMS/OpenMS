@@ -9,6 +9,7 @@ ChromatogramPeak.h
 ChromatogramTools.h
 ComparatorUtils.h
 ConsensusFeature.h
+ConversionHelper.h
 ConsensusMap.h
 ConversionHelper.h
 DPeak.h
