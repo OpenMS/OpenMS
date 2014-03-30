@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2013.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Stephan Aiche$
 // $Authors: Marc Sturm $
@@ -300,7 +300,7 @@ START_SECTION((String substr(size_t pos=0, size_t n=npos) const))
 	TEST_EQUAL(s.substr(5,1),"f")
 	TEST_EQUAL(s.substr(6,1),"")
 	TEST_EQUAL(s.substr(0,7),"abcdef")
-	
+
 	TEST_EQUAL(s.substr(0,String::npos), "abcdef")
 
 	// check with defaults
@@ -442,8 +442,14 @@ START_SECTION((Int toInt() const))
 	TEST_EQUAL(s.toInt(),73629);
 	s = "73629.99";
 	TEST_EQUAL(s.toInt(),73629);
+  s = "524 starts with an int";
+  TEST_EQUAL(s.toInt(), 524)
   s = "not an int";
-  TEST_EXCEPTION_WITH_MESSAGE(Exception::ConversionError, s.toInt(), String("Could not convert string '") + s + "' to an integer value")    
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::ConversionError, s.toInt(), String("Could not convert string '") + s + "' to an integer value")
+  s = "contains an 13135 int";
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::ConversionError, s.toInt(), String("Could not convert string '") + s + "' to an integer value")
+  s = "ends with an int 525";
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::ConversionError, s.toInt(), String("Could not convert string '") + s + "' to an integer value")
 END_SECTION
 
 START_SECTION((Real toFloat() const))
@@ -459,11 +465,11 @@ START_SECTION((Real toFloat() const))
 	s = "47218.8";
 	TEST_EQUAL(String(s.toFloat()),"47218.8");
   s = "nan";
-  TEST_EQUAL(boost::math::isnan(s.toFloat()),true);  
+  TEST_EQUAL(boost::math::isnan(s.toFloat()),true);
   s = "NaN";
   TEST_EQUAL(boost::math::isnan(s.toFloat()),true);
   s = "not a number";
-  TEST_EXCEPTION_WITH_MESSAGE(Exception::ConversionError, s.toFloat(), String("Could not convert string '") + s + "' to a float value")  
+  TEST_EXCEPTION_WITH_MESSAGE(Exception::ConversionError, s.toFloat(), String("Could not convert string '") + s + "' to a float value")
 END_SECTION
 
 START_SECTION((DoubleReal toDouble() const))
@@ -479,9 +485,9 @@ START_SECTION((DoubleReal toDouble() const))
 	s = "47218.890000001";
 	TEST_EQUAL(String(s.toDouble()),"47218.890000001");
   s = "nan";
-  TEST_EQUAL(boost::math::isnan(s.toDouble()),true);  
+  TEST_EQUAL(boost::math::isnan(s.toDouble()),true);
   s = "NaN";
-  TEST_EQUAL(boost::math::isnan(s.toDouble()),true);    
+  TEST_EQUAL(boost::math::isnan(s.toDouble()),true);
   s = "not a number";
   TEST_EXCEPTION_WITH_MESSAGE(Exception::ConversionError, s.toDouble(), String("Could not convert string '") + s + "' to a double value")
 END_SECTION
@@ -798,7 +804,7 @@ START_SECTION((String& removeWhitespaces()))
 
 	s.removeWhitespaces();
 	TEST_EQUAL(s,"");
-	
+
 	s = "test";
 	s.removeWhitespaces();
 	TEST_EQUAL(s,"test");

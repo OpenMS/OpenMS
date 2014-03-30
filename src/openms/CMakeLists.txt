@@ -178,6 +178,10 @@ if (MSVC) # Windows
 	list(APPEND OPENMS_LIBRARIES OpenSwathAlgo)
 endif()
 
+#------------------------------------------------------------------------------
+# register relevant paths for the doxygen doc generation
+openms_doc_path("${PROJECT_SOURCE_DIR}/include")
+
 ########################################################
 ###              setup python wrapper                ###
 ########################################################

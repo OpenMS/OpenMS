@@ -85,3 +85,7 @@ install_headers("${OpenSwathAlgoHeaders};${CONFIGURED_OPENSWATHALGOCONFIG_H}" Op
 #------------------------------------------------------------------------------
 # copy dll to test/doc bin folder on MSVC systems
 copy_dll_to_extern_bin(OpenSwathAlgo)
+
+#------------------------------------------------------------------------------
+# register relevant paths for the doxygen doc generation
+openms_doc_path("${PROJECT_SOURCE_DIR}/include")

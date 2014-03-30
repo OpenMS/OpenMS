@@ -138,11 +138,13 @@ if iswin:
 elif sys.platform == "linux2":
 
     shutil.copy(j(OPEN_MS_BUILD_DIR, "lib", "libOpenMS.so"), "pyopenms")
+    shutil.copy(j(OPEN_MS_BUILD_DIR, "lib", "libSuperHirn.so"), "pyopenms")
     shutil.copy(j(OPEN_MS_BUILD_DIR, "lib", "libOpenSwathAlgo.so"), "pyopenms")
 
 elif sys.platform == "darwin":
 
     shutil.copy(j(OPEN_MS_BUILD_DIR, "lib", "libOpenMS.dylib"), "pyopenms")
+    shutil.copy(j(OPEN_MS_BUILD_DIR, "lib", "libSuperHirn.dylib"), "pyopenms")
     shutil.copy(j(OPEN_MS_BUILD_DIR, "lib", "libOpenSwathAlgo.dylib"), "pyopenms")
 
 else:

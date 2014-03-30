@@ -122,6 +122,11 @@ target_link_libraries(OpenMS_GUI OpenMS ${QT_LIBRARIES})
 # link libraries for GUI Tools
 set(OPENMS_GUI_LIBRARIES OpenMS_GUI OpenMS ${QT_LIBRARIES} CACHE INTERNAL "OpenMS GUI libraries" FORCE)
 
+#------------------------------------------------------------------------------
+# register relevant paths for the doxygen doc generation
+openms_doc_path("${PROJECT_SOURCE_DIR}/include")
+openms_doc_path("${PROJECT_SOURCE_DIR}/source/VISUAL/APPLICATIONS")
+
 # --------------------------------------------------------------------------
 # GUI tools
 set(GUI_DIR source/VISUAL/APPLICATIONS/GUITOOLS)

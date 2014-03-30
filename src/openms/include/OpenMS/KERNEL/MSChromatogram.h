@@ -60,19 +60,19 @@ namespace OpenMS
 public:
 
     /// Float data array class
-    class OPENMS_DLLAPI FloatDataArray :
+    class FloatDataArray :
       public MetaInfoDescription,
       public std::vector<Real>
     {};
 
     /// String data array class
-    class OPENMS_DLLAPI StringDataArray :
+    class StringDataArray :
       public MetaInfoDescription,
       public std::vector<String>
     {};
 
     /// Float data array class
-    class OPENMS_DLLAPI IntegerDataArray :
+    class IntegerDataArray :
       public MetaInfoDescription,
       public std::vector<Int>
     {};
