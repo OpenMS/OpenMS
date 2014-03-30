@@ -35,10 +35,12 @@
 #ifndef OPENMS_VISUAL_COLORSELECTOR_H
 #define OPENMS_VISUAL_COLORSELECTOR_H
 
-#include <OpenMS/config.h>
+// OpenMS_GUI config
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 //QT
 #include <QtGui/QWidget>
+
 class QPaintEvent;
 class QMouseEvent;
 

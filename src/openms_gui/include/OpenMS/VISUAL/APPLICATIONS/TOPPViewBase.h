@@ -35,6 +35,9 @@
 #ifndef OPENMS_VISUAL_APPLICATIONS_TOPPVIEWBASE_H
 #define OPENMS_VISUAL_APPLICATIONS_TOPPVIEWBASE_H
 
+// OpenMS_GUI config
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
+
 //OpenMS
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>

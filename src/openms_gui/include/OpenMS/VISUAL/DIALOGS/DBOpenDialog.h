@@ -36,6 +36,9 @@
 #ifndef OPENMS_VISUAL_DIALOGS_DBOPENDIALOG_H
 #define OPENMS_VISUAL_DIALOGS_DBOPENDIALOG_H
 
+// OpenMS_GUI config
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
+
 #include <vector>
 #include <QtGui/QDialog>
 #include <OpenMS/CONCEPT/Types.h>

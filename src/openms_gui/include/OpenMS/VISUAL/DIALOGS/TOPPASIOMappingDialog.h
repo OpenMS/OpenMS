@@ -32,15 +32,16 @@
 // $Authors: Johannes Junker $
 // --------------------------------------------------------------------------
 
-
 #ifndef OPENMS_VISUAL_DIALOGS_TOPPASIOMAPPINGDIALOG_H
 #define OPENMS_VISUAL_DIALOGS_TOPPASIOMAPPINGDIALOG_H
+
+// OpenMS_GUI config
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 #include <OpenMS/VISUAL/DIALOGS/UIC/ui_TOPPASIOMappingDialog.h>
 #include <OpenMS/VISUAL/TOPPASToolVertex.h>
 
 #include <QtCore/QVector>
-
 
 namespace OpenMS
 {

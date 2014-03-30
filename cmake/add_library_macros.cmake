@@ -153,9 +153,17 @@ function(openms_add_library)
 
   #------------------------------------------------------------------------------
   # Link library against other libraries
-  if(NOT ${openms_add_library_LINK_LIBRARIES} STREQUAL "")
+  if(openms_add_library_LINK_LIBRARIES)
     target_link_libraries(${openms_add_library_TARGET_NAME} ${openms_add_library_LINK_LIBRARIES})
   endif()
+
+  #------------------------------------------------------------------------------
+  # Export libraries (self + dependencies)
+  set(${openms_add_library_TARGET_NAME}_LIBRARIES
+        ${openms_add_library_TARGET_NAME}
+        ${openms_add_library_LINK_LIBRARIES}
+        CACHE
+        INTERNAL "${openms_add_library_TARGET_NAME} libraries" FORCE)
 
   #------------------------------------------------------------------------------
   # we also want to install the library

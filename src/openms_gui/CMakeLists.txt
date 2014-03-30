@@ -36,11 +36,21 @@ project("OpenMS_GUI")
 cmake_minimum_required(VERSION 2.8.3 FATAL_ERROR)
 
 # --------------------------------------------------------------------------
-# before we do anything we try to find Qt since we rely heavily on its
-# availability
+# Find Qt
+#------------------------------------------------------------------------------
+# QtPhonon hack
+# obsolete when CMake MinRequiredVersion becomes >= 2.8.5
+if ("${CMAKE_VERSION}" VERSION_LESS "2.8.5" AND NOT(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")) ##
+	set(phonon_extra QtPhonon)
+	message(STATUS "Trying to find Phonon explicitly... If you run into trouble with Qt Phonon, try to disable it in build system")
+else()
+	set(phonon_extra)
+	message(STATUS "Not trying to find Phonon explicitly... If you run into trouble with Qt Phonon, try to enable it in build system")
+endif()
+
 find_package(Qt4 REQUIRED QtGui QtOpenGL QtSVG QtWebKit QtNetwork ${phonon_extra})
 if (NOT QT4_FOUND)
-  message(STATUS "Qt4 modules not found!")
+  message(STATUS "Qt4 not found!")
 	message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -D QT_QMAKE_EXECUTABLE='<path_to_qmake(.exe)' <src-dir>")
 endif()
 # required to indicate we use qtopengl
@@ -53,9 +63,8 @@ include(qt_wrap_ui.cmake)
 include(add_mac_bundle.cmake)
 
 #------------------------------------------------------------------------------
-# we need to handle boost > 1.52 when moc-ing so we explicitely find boost here
+# Find boost
 find_boost()
-
 if(NOT Boost_FOUND)
   message(FATAL_ERROR "Boost was not found!")
 endif()
@@ -65,64 +74,34 @@ endif()
 include (${PROJECT_SOURCE_DIR}/includes.cmake)
 
 # --------------------------------------------------------------------------
-# Expose OpenMSGUI's public includes (including transitive dependencies)
-set(OpenMS_GUI_INTERNAL_INCLUDE_DIRECTORIES ${PROJECT_SOURCE_DIR}/include
-                                            ${PROJECT_BINARY_DIR}/include)
-
-set(OpenMS_GUI_EXTERNAL_INCLUDE_DIRECTORIES ${OpenMS_INCLUDE_DIRECTORIES})
-
-set(OpenMS_GUI_INCLUDE_DIRECTORIES ${OpenMS_GUI_INTERNAL_INCLUDE_DIRECTORIES}
-                                   ${OpenMS_GUI_EXTERNAL_INCLUDE_DIRECTORIES}
-    CACHE INTERNAL "OpenMS_GUI include directories" FORCE)
-
-# add OpenMS include directories
-include_directories(${OpenMS_GUI_INTERNAL_INCLUDE_DIRECTORIES})
-include_directories(SYSTEM ${OpenMS_GUI_EXTERNAL_INCLUDE_DIRECTORIES})
-
-if (ENABLE_UNITYBUILD)
-	MESSAGE(STATUS "Unity Build for OpenMS-GUI lib: Enabled")
-	convert_to_unity_build(OpenMSVisual_UnityBuild OpenMSVisual_sources)
-else()
-	MESSAGE(STATUS "Unity Build for OpenMS-GUI lib: Disabled")
-endif()
+# collect link dependencies
+set(OpenMS_GUI_LIBRARIES OpenMS
+                         ${QT_LIBRARIES})
 
 # --------------------------------------------------------------------------
-# OpenMS_GUI lib
-add_library(OpenMS_GUI ${OpenMSVisual_sources})
-
-# we also want to install OpenMS_GUI
-install_library(OpenMS_GUI)
-install_headers(${OpenMSVisual_sources_h} OpenMS_GUI)
+# handle OpenGL on macosx systems
+if(APPLE)
+  find_package(OpenGL REQUIRED)
+  set(OpenMS_GUI_LIBRARIES ${OpenMS_GUI_LIBRARIES}
+                           ${OPENGL_gl_LIBRARY}
+                           ${OPENGL_glu_LIBRARY})
+endif()
 
 #------------------------------------------------------------------------------
-# copy dll to test/doc bin folder on MSVC systems
-copy_dll_to_extern_bin(OpenMS_GUI)
-
-# --------------------------------------------------------------------------
-# OpenMS_GUI's additional dependencies
-# --------------------------------------------------------------------------
-
-# obsolete when CMake MinRequiredVersion becomes >= 2.8.5
-if ("${CMAKE_VERSION}" VERSION_LESS "2.8.5" AND NOT(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")) ##
-	set(phonon_extra QtPhonon)
-	message(STATUS "Trying to find Phonon explicitly... If you run into trouble with Qt Phonon, try to disable it in build system")
-else()
-	set(phonon_extra)
-	message(STATUS "Not trying to find Phonon explicitly... If you run into trouble with Qt Phonon, try to enable it in build system")
-endif()
+# add the library
+openms_add_library(TARGET_NAME OpenMS_GUI
+                   SOURCE_FILES ${OpenMSVisual_sources}
+                   HEADER_FILES ${OpenMSVisual_sources_h}
+                   INTERNAL_INCLUDES ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include
+                   EXTERNAL_INCLUDES ${OpenMS_INCLUDE_DIRECTORIES}
+                   LINK_LIBRARIES ${OpenMS_GUI_LIBRARIES}
+                   DLL_EXPORT_PATH "OpenMS/VISUAL/")
 
 # --------------------------------------------------------------------------
 # additional linker flags required by openms_gui
 if (MSVC)
 	set (GUI_lnk_flags "/FORCE:MULTIPLE /INCREMENTAL:NO /ignore:4006 /ignore:4088")
 	set_target_properties(OpenMS_GUI PROPERTIES LINK_FLAGS ${GUI_lnk_flags}) ## allow multiple definitions of symbols (e.g. from template instanciations or STL-derived classes)
-endif()
-
-target_link_libraries(OpenMS_GUI OpenMS ${QT_LIBRARIES})
-# handle OpenGL on macosx systems
-if(APPLE)
-  find_package(OpenGL REQUIRED)
-  target_link_libraries(OpenMS_GUI ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY})
 endif()
 
 # --------------------------------------------------------------------------
@@ -143,7 +122,7 @@ foreach(i ${GUI_executables})
 	set(resource_dir ${PROJECT_SOURCE_DIR}/${GUI_DIR}/${i}-resources/)
 	## add icons to TOPPView and INIFileEditor
 	if (MSVC AND EXISTS ${resource_file})
-		Message(STATUS "Setting resource file ${resource_file} for ${i}")
+		message(STATUS "Setting resource file ${resource_file} for ${i}")
 		add_executable(${i} ${GUI_DIR}/${i}.cpp ${resource_file})
 	elseif(APPLE AND EXISTS ${resource_dir})
 		add_mac_app_bundle(${i})

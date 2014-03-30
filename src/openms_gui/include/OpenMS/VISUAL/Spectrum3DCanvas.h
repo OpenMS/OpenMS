@@ -35,6 +35,9 @@
 #ifndef OPENMS_VISUAL_SPECTRUM3DCANVAS_H
 #define OPENMS_VISUAL_SPECTRUM3DCANVAS_H
 
+// OpenMS_GUI config
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
+
 // OpenMS
 #include <OpenMS/VISUAL/SpectrumCanvas.h>
 

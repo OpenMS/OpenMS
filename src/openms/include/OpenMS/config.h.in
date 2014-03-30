@@ -96,20 +96,11 @@
 #  else
 #    define OPENMS_DLLAPI  __declspec( dllimport )
 #  endif
-#  if defined OpenMS_GUI_EXPORTS  //automatically defined by CMake when building OpenMS-GUI dll
-#    define OPENMS_GUI_DLLAPI  __declspec( dllexport )
-#  else
-#    define OPENMS_GUI_DLLAPI  __declspec( dllimport )
-#  endif
 # endif
 #endif
 #ifndef OPENMS_DLLAPI //leave empty when not building DLL
 # define OPENMS_DLLAPI
 #endif
-#ifndef OPENMS_GUI_DLLAPI //leave empty when not building DLL
-# define OPENMS_GUI_DLLAPI
-#endif
-
 
 #cmakedefine OPENMS_BIG_ENDIAN
 
@@ -121,7 +112,6 @@
 #define OPENMS_BYTE_TYPE @CF_OPENMS_BYTE_TYPE@
 #define OPENMS_UINT64_TYPE @CF_OPENMS_UINT64_TYPE@
 //#define OPENMS_SIZE_T_SIGNED @CF_OPENMS_SIZE_T_SIGNED@
-
 
 // if you ever want to do abs() or floor() on this type in VC then use _abs64() and include <stdlib.h> (no kidding!)
 #define PointerSizeInt @CF_OPENMS_INT64_TYPE@
