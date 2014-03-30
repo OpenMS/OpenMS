@@ -67,10 +67,7 @@ include(Dart)
 # STL_DEBUG
 # DB_TEST
 # QT_DB_PLUGIN
-# MT_CUDA_BUILD_TYPE
 #------------------------------------------------------------------------------
-option(MT_ENABLE_CUDA "Enable experimental CUDA support" OFF)
-option(MT_ENABLE_TBB "Enable Intel TBB support" OFF)
 option(MT_ENABLE_OPENMP "Enable OpenMP support" ON)
 option(BOOST_USE_STATIC "Use Boost static libraries." ON)
 option(HAS_XSERVER "Indicates if an X server is available. If set to Off it will disable certain tests and the doc target." ON)

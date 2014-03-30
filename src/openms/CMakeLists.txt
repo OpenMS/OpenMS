@@ -120,12 +120,7 @@ else()
 endif()
 
 ## add library target
-## warning: set BUILD_SHARED_LIBS to decide if library is shared or static (see above)! We need the BUILD_SHARED_LIBS flag to set declspec flags for MSVC!
-if (FOUND_CUDART AND MT_ENABLE_CUDA) # we need both conditions due to possible present cached entries
-	CUDA_ADD_LIBRARY(OpenMS ${OpenMS_sources} ${Cuda_sources})
-else()
-	add_library(OpenMS ${OpenMS_sources})
-endif()
+add_library(OpenMS ${OpenMS_sources})
 
 #------------------------------------------------------------------------------
 # Installation
@@ -165,9 +160,6 @@ if(APPLE)
                            ${CoreServices_LIBRARY})
 endif()
 
-if (TBB_FOUND)
-	list(APPEND OPENMS_DEP_LIBRARIES ${TBB_LIBRARIES})
-endif()
 if (MSVC)
 	list(APPEND OPENMS_DEP_LIBRARIES opengl32.lib)
 endif()
