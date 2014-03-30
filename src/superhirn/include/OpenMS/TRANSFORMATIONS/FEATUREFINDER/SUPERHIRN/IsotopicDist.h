@@ -56,7 +56,7 @@
 namespace OpenMS
 {
 
-  class SUPERHIRN_DLL_EXPORT IsotopicDist
+  class SUPERHIRN_DLLAPI IsotopicDist
   {
 public:
 

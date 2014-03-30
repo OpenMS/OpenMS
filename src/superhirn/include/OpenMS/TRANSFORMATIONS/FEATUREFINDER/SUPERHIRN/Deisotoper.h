@@ -58,7 +58,7 @@ namespace OpenMS
   class CentroidData;
   class DeconvPeak;
 
-  class SUPERHIRN_DLL_EXPORT Deisotoper
+  class SUPERHIRN_DLLAPI Deisotoper
   {
 public:
 //  static int sfMinCharge;
@@ -93,7 +93,7 @@ protected:
     bool    fShortReportFlag;
   };
 
-   SUPERHIRN_DLL_EXPORT std::ostream& operator<<(std::ostream&, Deisotoper&);
+   SUPERHIRN_DLLAPI std::ostream& operator<<(std::ostream&, Deisotoper&);
 
 } // ns
 

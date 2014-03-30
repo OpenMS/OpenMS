@@ -55,6 +55,6 @@ openms_add_library(TARGET_NAME OpenSwathAlgo
                    HEADER_FILES ${OpenSwathAlgoHeaders}
                    INTERNAL_INCLUDES ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include
                    EXTERNAL_INCLUDES ${Boost_INCLUDE_DIRS}
-                   DLL_EXPORT_PATH "include/OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/")
+                   DLL_EXPORT_PATH "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/")
 
 openms_doc_path("${PROJECT_SOURCE_DIR}/include")

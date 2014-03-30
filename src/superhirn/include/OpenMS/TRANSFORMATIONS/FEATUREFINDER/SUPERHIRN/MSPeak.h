@@ -63,7 +63,7 @@ namespace OpenMS
 
 //class CentroidPeak; // changed to include
 
-  class SUPERHIRN_DLL_EXPORT MSPeak
+  class SUPERHIRN_DLLAPI MSPeak
   {
 
     ////////////////////////////////////////////////

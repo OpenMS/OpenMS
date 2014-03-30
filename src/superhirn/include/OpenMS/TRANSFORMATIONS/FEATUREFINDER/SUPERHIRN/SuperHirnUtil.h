@@ -50,7 +50,7 @@
 namespace OpenMS
 {
 
-  class SUPERHIRN_DLL_EXPORT SuperHirnUtil
+  class SUPERHIRN_DLLAPI SuperHirnUtil
   {
 public:
 

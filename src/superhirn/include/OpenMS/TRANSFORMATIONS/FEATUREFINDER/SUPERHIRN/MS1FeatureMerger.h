@@ -60,7 +60,7 @@ namespace OpenMS
   class LCMS;
   class SHFeature;
 
-  class SUPERHIRN_DLL_EXPORT MS1FeatureMerger
+  class SUPERHIRN_DLLAPI MS1FeatureMerger
   {
 
 

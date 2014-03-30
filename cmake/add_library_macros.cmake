@@ -108,7 +108,7 @@ endmacro()
 function(openms_add_library)
   set(options GENERATE_EXPORT )
   set(oneValueArgs TARGET_NAME DLL_EXPORT_PATH)
-  set(multiValueArgs INTERNAL_INCLUDES EXTERNAL_INCLUDES SOURCE_FILES HEADER_FILES)
+  set(multiValueArgs INTERNAL_INCLUDES EXTERNAL_INCLUDES SOURCE_FILES HEADER_FILES LINK_LIBRARIES)
   cmake_parse_arguments(openms_add_library "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN} )
 
   #------------------------------------------------------------------------------
@@ -149,6 +149,12 @@ function(openms_add_library)
 
     # add generated header to visual studio
     source_group("Header Files\\${_fixed_path}" FILES ${_CONFIG_H})
+  endif()
+
+  #------------------------------------------------------------------------------
+  # Link library against other libraries
+  if(NOT ${openms_add_library_LINK_LIBRARIES} STREQUAL "")
+    target_link_libraries(${openms_add_library_TARGET_NAME} ${openms_add_library_LINK_LIBRARIES})
   endif()
 
   #------------------------------------------------------------------------------
