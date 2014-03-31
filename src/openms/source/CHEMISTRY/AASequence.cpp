@@ -351,6 +351,16 @@ namespace OpenMS
     return *peptide_[index];
   }
 
+  // TODO: check why sequence string not updated???
+  AASequence & AASequence::operator+=(const AASequence & sequence)
+  {
+    for (Size i = 0; i != sequence.peptide_.size(); ++i)
+    {
+      peptide_.push_back(sequence.peptide_[i]);
+    }
+    return *this;
+  }
+
   AASequence AASequence::operator+(const AASequence & sequence) const
   {
     AASequence seq;
@@ -362,17 +372,7 @@ namespace OpenMS
     return seq;
   }
 
-  AASequence AASequence::operator+(const String & peptide) const
-  {
-    AASequence seq(peptide);
-    return *this + seq;
-  }
-
-  AASequence AASequence::operator+(const char * peptide) const
-  {
-    return *this + String(peptide);
-  }
-
+  // TODO: check why sequence string not updated???
   AASequence AASequence::operator+(const Residue * residue) const
   {
     if (!ResidueDB::getInstance()->hasResidue(residue))
@@ -384,15 +384,18 @@ namespace OpenMS
     return seq;
   }
 
-  AASequence & AASequence::operator+=(const AASequence & sequence)
+  // TODO: check why sequence string not updated???
+  AASequence & AASequence::operator+=(const Residue * residue)
   {
-    for (Size i = 0; i != sequence.peptide_.size(); ++i)
+    if (!ResidueDB::getInstance()->hasResidue(residue))
     {
-      peptide_.push_back(sequence.peptide_[i]);
+      throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, "given residue");
     }
+    peptide_.push_back(residue);
     return *this;
   }
 
+/*
   AASequence & AASequence::operator+=(const String & peptide)
   {
     vector<const Residue *> vec;
@@ -404,22 +407,8 @@ namespace OpenMS
     return *this;
   }
 
-  AASequence & AASequence::operator+=(const char * peptide)
-  {
-    *this += String(peptide);
-    return *this;
-  }
 
-  AASequence & AASequence::operator+=(const Residue * residue)
-  {
-    if (!ResidueDB::getInstance()->hasResidue(residue))
-    {
-      throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, "given residue");
-    }
-    peptide_.push_back(residue);
-    return *this;
-  }
-
+*/
   Size AASequence::size() const
   {
     return peptide_.size();

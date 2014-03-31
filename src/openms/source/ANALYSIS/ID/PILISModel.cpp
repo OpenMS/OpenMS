@@ -1069,8 +1069,7 @@ namespace OpenMS
     for (Size i = 0; i != prefixes.size(); ++i)
     {
       String aa;
-      AASequence aa_seq;
-      aa_seq += peptide[i].getOneLetterCode();
+      AASequence aa_seq(peptide[i].getOneLetterCode());
       aa = aa_seq.toString();
 
       vector<DoubleReal> pre_path_intensities, suf_path_intensities;

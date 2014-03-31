@@ -320,12 +320,6 @@ START_SECTION(AASequence operator + (const AASequence& peptide) const)
 	TEST_EQUAL(seq1, seq2 + seq3);
 END_SECTION
 
-START_SECTION(AASequence operator + (const String& peptide) const)
-  AASequence seq1("DFPIANGER"), seq2("DFP"); 
-	String seq3("IANGER"), seq4("BLUBB");
-	TEST_EQUAL(seq1, seq2 + seq3)
-END_SECTION
-
 START_SECTION(AASequence operator + (const Residue* residue) const)
   AASequence seq1("DFPIANGER");
 	AASequence seq2("DFPIANGE");
@@ -334,13 +328,6 @@ END_SECTION
 
 START_SECTION(AASequence& operator += (const AASequence&))
   AASequence seq1("DFPIANGER"), seq2("DFP"), seq3("IANGER");
-	seq2 += seq3;
-	TEST_EQUAL(seq1, seq2)
-END_SECTION
-
-START_SECTION(AASequence& operator += (const String&))
-  AASequence seq1("DFPIANGER"), seq2("DFP");
-	String seq3("IANGER"), seq4("BLUBB");
 	seq2 += seq3;
 	TEST_EQUAL(seq1, seq2)
 END_SECTION
@@ -609,17 +596,6 @@ START_SECTION(bool setStringSequence(const String &sequence))
 
 	seq3.setStringSequence("DFPIANGER");
 	TEST_EQUAL(seq1 == seq3, true)	
-END_SECTION
-
-START_SECTION(AASequence operator + (const char *rhs) const)
-  AASequence seq1("DFPIANGER"), seq2("DFP");
-	TEST_EQUAL(seq1, seq2 + "IANGER");
-END_SECTION
-
-START_SECTION(AASequence& operator += (const char *rhs))
-	AASequence seq1("DFPIANGER"), seq2("DFP");
-	seq2 += "IANGER";
-	TEST_EQUAL(seq1, seq2)
 END_SECTION
 
 
