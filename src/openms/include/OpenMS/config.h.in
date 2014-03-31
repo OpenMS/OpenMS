@@ -48,6 +48,9 @@
 #ifndef OPENMS_CONFIG_H
 #define OPENMS_CONFIG_H
 
+// include OPENMS_DLLAPI macros
+#include <OpenMS/OpenMSConfig.h>
+
 // Here are some global configuration flags for OpenMS
 
 // Define compiler specifics (used in VERY few places only)
@@ -88,19 +91,6 @@
 
 // are we building a shared lib?
 #cmakedefine BUILD_SHARED_LIBS
-
-#ifdef OPENMS_WINDOWSPLATFORM
-# ifdef BUILD_SHARED_LIBS
-#  if defined OpenMS_EXPORTS  //automatically defined by CMake when building OpenMS dll
-#    define OPENMS_DLLAPI  __declspec( dllexport )
-#  else
-#    define OPENMS_DLLAPI  __declspec( dllimport )
-#  endif
-# endif
-#endif
-#ifndef OPENMS_DLLAPI //leave empty when not building DLL
-# define OPENMS_DLLAPI
-#endif
 
 #cmakedefine OPENMS_BIG_ENDIAN
 

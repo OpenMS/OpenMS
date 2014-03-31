@@ -35,12 +35,15 @@
 project("OpenMS")
 cmake_minimum_required(VERSION 2.8.3 FATAL_ERROR)
 
-## naming conventions:
-##
-## prefix a variable with 'CF_' if it is used to configure a file!
-## e.g., CF_LibOpenMSExport
+#------------------------------------------------------------------------------
+# naming conventions:
+#
+# prefix a variable with 'CF_' if it is used to configure a file!
+# e.g., CF_LibOpenMSExport
 set(CF_OPENMS_PACKAGE_VERSION "${OPENMS_PACKAGE_VERSION_MAJOR}.${OPENMS_PACKAGE_VERSION_MINOR}.${OPENMS_PACKAGE_VERSION_PATCH}" CACHE INTERNAL "OpenMS VERSION" FORCE)
 
+#------------------------------------------------------------------------------
+# En/disable assertions
 if ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
 	set(CF_OPENMS_ASSERTIONS 1)
 else()
@@ -48,98 +51,31 @@ else()
 endif()
 set(CF_OPENMS_ASSERTIONS ${CF_OPENMS_ASSERTIONS} CACHE INTERNAL "Enables debug messages (precondition and postconditions are enabled, a bit slower) - this is NOT changing any compiler flags!" FORCE)
 
-# cmake args: -DCrawdad_DIR=/path/to/Crawdad/ -DWITH_CRAWDAD=TRUE
-if (WITH_CRAWDAD)
-  find_package(Crawdad)
-  include_directories(${CRAWDAD_INCLUDE_DIRS})
-endif()
-
-########################################################
-###    external libs (contrib or system)             ###
-########################################################
-
+#------------------------------------------------------------------------------
+# external libs (contrib or system)
+#------------------------------------------------------------------------------
 include(${PROJECT_SOURCE_DIR}/cmake_findExternalLibs.cmake)
 
-# dependency headers
-# TODO: XERCESC and  CONTRIB are included only with the others
-set(OpenMS_EXTERNAL_INCLUDE_DIRECTORIES ${QT_INCLUDES}
-                                        ${GSL_INCLUDE_DIRS}
-                                        ${Boost_INCLUDE_DIRS}
-                                        ${SEQAN_INCLUDE_DIRS}
-                                        ${LIBSVM_INCLUDE_DIRS}
-                                        ${GLPK_INCLUDE_DIRS}
-                                        ${ZLIB_INCLUDE_DIRS}
-                                        ${BZIP2_INCLUDE_DIR}
-                                        ${EIGEN3_INCLUDE_DIR}
-                                        ${_WM5_INCLUDE_DIR}
-                                        ${OpenSwathAlgo_INCLUDE_DIRECTORIES}
-                                        ${CONTRIB_INCLUDE_DIR})
-
-# internal headers
-set(OpenMS_INTERNAL_INCLUDE_DIRECTORIES ${PROJECT_SOURCE_DIR}/include
-                                        ${PROJECT_BINARY_DIR}/include)
-
-# Expose OpenMS's public includes (including transitive dependencies)
-set(OpenMS_INCLUDE_DIRECTORIES ${OpenMS_INTERNAL_INCLUDE_DIRECTORIES}
-                               ${OpenMS_EXTERNAL_INCLUDE_DIRECTORIES}
-                               CACHE INTERNAL "OpenMS include directories" FORCE)
-
-# add OpenMS include directories
-include_directories(${OpenMS_INTERNAL_INCLUDE_DIRECTORIES})
-include_directories(SYSTEM ${OpenMS_EXTERNAL_INCLUDE_DIRECTORIES})
-
+#------------------------------------------------------------------------------
 # At this point make a summary of where data and doc will be located:
 message(STATUS "Info: CF_OPENMS_DATA_PATH: ${CF_OPENMS_DATA_PATH}")
 message(STATUS "Info: CF_OPENMS_DOC_PATH: ${CF_OPENMS_DOC_PATH}")
 
-########################################################
-###    configure config.h														 ###
-########################################################
-
+#------------------------------------------------------------------------------
+# configure config.h
+#------------------------------------------------------------------------------
 include(${PROJECT_SOURCE_DIR}/configh.cmake)
 
-## add configured files (used in 'cmake/includes.cmake')
-set (OPENMS_CONFIGURED_FILES ${SVN_REVISION_FILE} ${CONFIGURED_CONFIG_H} ${CONFIGURED_OPENMS_PACKAGE_VERSION_H})
-
-## Configures what is tested (DB-test, MS2-search engines)
+#------------------------------------------------------------------------------
+# Configures what is tested (DB-test, MS2-search engines)
 include(${OPENMS_HOST_DIRECTORY}/cmake/OpenMSBuildSystem_testConfig.cmake)
-
-########################################################
-###    BUILD the lib                                 ###
-########################################################
 
 #------------------------------------------------------------------------------
 # big include file for headers and cpp files, that fills the OpenMS_sources variable
 include (${PROJECT_SOURCE_DIR}/includes.cmake)
 
-if (ENABLE_UNITYBUILD)
-	MESSAGE(STATUS "Unity Build for OpenMS lib: Enabled")
-	convert_to_unity_build(OpenMS_UnityBuild OpenMS_sources)
-else()
-	MESSAGE(STATUS "Unity Build for OpenMS lib: Disabled")
-endif()
-
-## add library target
-add_library(OpenMS ${OpenMS_sources})
-
 #------------------------------------------------------------------------------
-# Installation
-
-# we also want to install OpenMS
-install_library(OpenMS)
-install_headers("${OpenMS_sources_h};${OpenMS_configured_headers}" OpenMS)
-
-# since the share basically belongs to OpenMS core we control its installation
-# here
-# Note: that slash(/) is important here, otherwise the whole directory
-#       (not its content) will be copied!
-install_directory(${OPENMS_HOST_DIRECTORY}/share/OpenMS/ ${INSTALL_SHARE_DIR} share)
-
-#------------------------------------------------------------------------------
-# copy dll to test/doc bin folder on MSVC systems
-copy_dll_to_extern_bin(OpenMS)
-
-## all the dependency libraries are linked into libOpenMS.so, except Qt and CUDA which are still dynamic
+# all the dependency libraries are linked into libOpenMS.so, except Qt
 set(OPENMS_DEP_LIBRARIES  ${CONTRIB_CBC}
                           ${GSL_LIBRARIES}
                           ${GSL_CBLAS_LIBRARIES}
@@ -167,32 +103,52 @@ if (WITH_CRAWDAD)
   list(APPEND OPENMS_DEP_LIBRARIES Crawdad)
 endif()
 
-target_link_libraries(OpenMS OpenSwathAlgo ${QT_LIBRARIES} ${OPENMS_DEP_LIBRARIES})
+openms_add_library(TARGET_NAME  OpenMS
+                   SOURCE_FILES  ${OpenMS_sources}
+                   HEADER_FILES  ${OpenMS_sources_h}
+                                 ${OpenMS_configured_headers}
+                   INTERNAL_INCLUDES ${PROJECT_SOURCE_DIR}/include
+                                     ${PROJECT_BINARY_DIR}/include
+                   EXTERNAL_INCLUDES ${QT_INCLUDES}
+                                     ${GSL_INCLUDE_DIRS}
+                                     ${Boost_INCLUDE_DIRS}
+                                     ${SEQAN_INCLUDE_DIRS}
+                                     ${LIBSVM_INCLUDE_DIRS}
+                                     ${GLPK_INCLUDE_DIRS}
+                                     ${ZLIB_INCLUDE_DIRS}
+                                     ${BZIP2_INCLUDE_DIR}
+                                     ${EIGEN3_INCLUDE_DIR}
+                                     ${WM5_INCLUDE_DIRS}
+                                     ${OpenSwathAlgo_INCLUDE_DIRECTORIES}
+                                     ${CRAWDAD_INCLUDE_DIRS}
+                                     ${CONTRIB_INCLUDE_DIR}
+                   LINK_LIBRARIES OpenSwathAlgo
+                                  ${APPLE_EXTRA_LIBS}
+                                  ${QT_LIBRARIES}
+                                  ${OPENMS_DEP_LIBRARIES}
+                   DLL_EXPORT_PATH "OpenMS/")
 
-## OPENMS_LIBRARIES defines the libraries used by OpenMS; this should be used to link against executables
-## somehow the link dependencies of cmake are broken such that when using POSTFIX names for libs the dependencies are not forwarded...
-## we fix this by adding the dependencies of OpenMS directly to the executables as well.
-set(OPENMS_LIBRARIES OpenMS ${QT_LIBRARIES} CACHE INTERNAL "OpenMS libraries" FORCE)
-
-if (MSVC) # Windows
-	list(APPEND OPENMS_LIBRARIES ${OPENMS_DEP_LIBRARIES})
-	list(APPEND OPENMS_LIBRARIES OpenSwathAlgo)
-endif()
+#------------------------------------------------------------------------------
+# since the share basically belongs to OpenMS core we control its installation
+# here
+# Note: that slash(/) is important here, otherwise the whole directory
+#       (not its content) will be copied!
+install_directory(${OPENMS_HOST_DIRECTORY}/share/OpenMS/ ${INSTALL_SHARE_DIR} share)
 
 #------------------------------------------------------------------------------
 # register relevant paths for the doxygen doc generation
 openms_doc_path("${PROJECT_SOURCE_DIR}/include")
 
-########################################################
-###              setup python wrapper                ###
-########################################################
+#------------------------------------------------------------------------------
+# setup python wrapper
+#------------------------------------------------------------------------------
 option(PYOPENMS "setup build system for pyOpenMS" OFF)
-IF (PYOPENMS)
+if (PYOPENMS)
   message(STATUS "run cmake files for pyopenms")
 	include(${OPENMS_HOST_DIRECTORY}/pyOpenMS/pyopenms.cmake)
-ENDIF()
+endif()
 
-########################################################
-###    verbose Post-build messages and help targets  ###
-########################################################
+#------------------------------------------------------------------------------
+# verbose Post-build messages and help targets
+#------------------------------------------------------------------------------
 include(${OPENMS_HOST_DIRECTORY}/cmake/OpenMSBuildSystem_messages.cmake)

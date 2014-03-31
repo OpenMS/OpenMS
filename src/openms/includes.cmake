@@ -101,9 +101,9 @@ endif(NOT DISABLE_OPENSWATH)
 include(include/OpenMS/APPLICATIONS/sources.cmake)
 
 ## add configured config.h&Co to source group
-source_group("Header Files\\OpenMS" FILES ${OPENMS_CONFIGURED_FILES})
+source_group("Header Files\\OpenMS" FILES ${OpenMS_configured_headers})
 ## merge all headers to sources (for source group view in VS)
-list(APPEND OpenMS_sources ${OpenMS_sources_h} ${OPENMS_CONFIGURED_FILES})
+list(APPEND OpenMS_sources ${OpenMS_sources_h} ${OpenMS_configured_headers})
 
 # TODO track why the duplicate warnings are thrown for all (!) MOC sources
 # Macro problem?
