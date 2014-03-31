@@ -21,8 +21,17 @@ if iswin and IS_DEBUG:
 # use autowrap to generate Cython and .cpp file for wrapping OpenMS:
 import cPickle
 import os
+import glob
+import shutil
 
 j = os.path.join
+
+src_pyopenms = j(OPEN_MS_SRC, "pyOpenMS")
+extra_includes = glob.glob(src_pyopenms + "/extra_includes/*.h*")
+
+for include in extra_includes:
+    shutil.copy(include, "extra_includes/")
+
 
 persisted_data_path = "include_dir.bin"
 autowrap_include_dirs = cPickle.load(open(persisted_data_path, "rb"))
@@ -35,10 +44,7 @@ ctime = os.stat("pyopenms").st_mtime
 ts = time.gmtime(ctime)
 timestamp = "%02d-%02d-%4d" % (ts.tm_mday, ts.tm_mon, ts.tm_year)
 
-version = OPEN_MS_VERSION
-here = os.path.dirname(os.path.abspath(__file__))
-print >> open(j(here, "pyopenms", "version.py"), "w"), "version=%r\n" % version
-print >> open(j(here, "pyopenms", "qt_version_info.py"), "w"), "info=%r\n" % QT_QMAKE_VERSION_INFO
+from version import version
 
 # parse config
 
@@ -50,21 +56,20 @@ for OPEN_MS_CONTRIB_BUILD_DIR in OPEN_MS_CONTRIB_BUILD_DIRS.split(";"):
         break
 
 
-
 # Package data expected to be installed. On Linux the debian package
 # contains share/ data and must be installed to get access to the OpenMS shared
 # library.
 #
 if iswin:
     if OPEN_MS_BUILD_TYPE.upper() == "DEBUG":
-        libraries = ["OpenMSd", "OpenSwathAlgod", "xerces-c_3D", "QtCored4", "gsl_d", "cblas_d"]
+        libraries = ["OpenMSd", "OpenSwathAlgod", "SuperHirnd", "xerces-c_3D", "QtCored4", "cblas_d"]
     else:
-        libraries = ["OpenMS", "OpenSwathAlgo", "xerces-c_3", "QtCore4", "gsl", "cblas"]
+        libraries = ["OpenMS", "OpenSwathAlgo", "SuperHirn", "xerces-c_3", "QtCore4", "cblas"]
 
 elif sys.platform == "linux2":
-    libraries = ["OpenMS", "OpenSwathAlgo", "xerces-c", "QtCore", "gsl", "gslcblas"]
+    libraries = ["OpenMS", "OpenSwathAlgo", "SuperHirn", "xerces-c", "QtCore"]
 elif sys.platform == "darwin":
-    libraries = ["OpenMS", "OpenSwathAlgo", "xerces-c", "gsl", "gslcblas"]
+    libraries = ["OpenMS", "OpenSwathAlgo", "SuperHirn", "xerces-c"]
 else:
     print
     print "platform ", sys.platform, "not supported yet"
@@ -83,18 +88,23 @@ library_dirs = [OPEN_MS_BUILD_DIR,
 import numpy
 
 include_dirs = [
+    "extra_includes",
     QT_HEADERS_DIR,
     QT_QTCORE_INCLUDE_DIR,
     j(OPEN_MS_CONTRIB_BUILD_DIR, "include"),
     j(OPEN_MS_CONTRIB_BUILD_DIR, "include", "libsvm"),
     # j(OPEN_MS_CONTRIB_BUILD_DIR, "src", "boost_1_52_0")
     j(OPEN_MS_CONTRIB_BUILD_DIR, "include", "boost"),
+    j(OPEN_MS_CONTRIB_BUILD_DIR, "include", "WildMagic"),
+    j(OPEN_MS_CONTRIB_BUILD_DIR, "include", "eigen3"),
     j(OPEN_MS_BUILD_DIR, "src/openswathalgo/include"),
     j(OPEN_MS_BUILD_DIR, "src/openms/include"),
     j(OPEN_MS_BUILD_DIR, "src/openms_gui/include"),
+    j(OPEN_MS_BUILD_DIR, "src/superhirn/include"),
     j(OPEN_MS_SRC, "src/openswathalgo/include"),
     j(OPEN_MS_SRC, "src/openms/include"),
     j(OPEN_MS_SRC, "src/openms_gui/include"),
+    j(OPEN_MS_SRC, "src/superhirn/include"),
     j(numpy.core.__path__[0], "include"),
 ]
 

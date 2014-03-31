@@ -164,8 +164,7 @@ namespace OpenMS
 
     digest.setMissedCleavages(param_.getValue("missed_cleavages"));
 
-    SimRandomNumberGenerator rnd_gen;
-    RTSimulation rt_sim(rnd_gen);
+    RTSimulation rt_sim;
     Param rt_param;
     rt_param.setValue("HPLC:model_file", rt_model_path);
     rt_sim.setParameters(rt_param);

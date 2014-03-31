@@ -1820,7 +1820,7 @@ namespace OpenMS
     DoubleReal mz = 0.0;
     DoubleReal rt = 0.0;
     Real it = 0.0;
-    Real ppm;
+    Real ppm = 0.0;
 
     if (getCurrentLayer().type == LayerData::DT_FEATURE)
     {

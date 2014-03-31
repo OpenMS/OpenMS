@@ -67,19 +67,18 @@ namespace OpenMS
     grid_->setColumnStretch(2, 3);
     grid_->setRowStretch(1, 3);
 
-    SpectrumCanvas::ExperimentType* dummy = new SpectrumCanvas::ExperimentType();
+    SpectrumCanvas::ExperimentSharedPtrType shr_ptr = SpectrumCanvas::ExperimentSharedPtrType(new SpectrumCanvas::ExperimentType());
     MSSpectrum<> dummy_spec;
     dummy_spec.push_back(Peak1D());
-    dummy->addSpectrum(dummy_spec);
-    SpectrumCanvas::ExperimentSharedPtrType* shr_ptr = new SpectrumCanvas::ExperimentSharedPtrType(dummy);
+    shr_ptr->addSpectrum(dummy_spec);
 
     projection_vert_ = new  Spectrum1DWidget(Param(), this);
     projection_vert_->hide();
-    projection_vert_->canvas()->addLayer(*shr_ptr);
+    projection_vert_->canvas()->addLayer(shr_ptr);
     grid_->addWidget(projection_vert_, 1, 3, 2, 1);
 
     projection_horz_ = new Spectrum1DWidget(Param(), this);
-    projection_horz_->canvas()->addLayer(*shr_ptr);
+    projection_horz_->canvas()->addLayer(shr_ptr);
     projection_horz_->hide();
     grid_->addWidget(projection_horz_, 0, 1, 1, 2);
 

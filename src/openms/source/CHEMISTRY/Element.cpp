@@ -35,6 +35,8 @@
 
 #include <OpenMS/CHEMISTRY/Element.h>
 
+#include <ostream>
+
 using namespace std;
 
 namespace OpenMS

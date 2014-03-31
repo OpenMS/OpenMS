@@ -38,6 +38,8 @@
 #include <QtCore/QRegExp>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
+
 using namespace std;
 
 namespace OpenMS

@@ -38,10 +38,14 @@
 ///////////////////////////
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EGHTraceFitter.h>
 #include <OpenMS/KERNEL/Peak1D.h>
+
+#include <cmath>
 ///////////////////////////
 
 using namespace OpenMS;
 using namespace std;
+
+#define PI 3.14159265358979323846
 
 // TODO: include a more asymmetric trace in the test
 
@@ -245,8 +249,6 @@ mts.max_trace = 0;
 
 Param p;
 p.setValue("max_iteration", 500);
-p.setValue("epsilon_abs", 0.000001);
-p.setValue("epsilon_rel", 0.000001);
 
 EGHTraceFitter<Peak1D> egh_trace_fitter;
 egh_trace_fitter.setParameters(p);
@@ -407,7 +409,7 @@ END_SECTION
 
 START_SECTION((virtual DoubleReal getArea()))
 {
-  TEST_REAL_SIMILAR(egh_trace_fitter.getArea(), sqrt(2 * M_PI) * expected_sigma * expected_H)
+  TEST_REAL_SIMILAR(egh_trace_fitter.getArea(), sqrt(2 * PI) * expected_sigma * expected_H)
 }
 END_SECTION
 

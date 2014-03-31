@@ -38,6 +38,7 @@
 
 #include <OpenMS/DATASTRUCTURES/Date.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
+#include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 
 #include <OpenMS/KERNEL/ConsensusMap.h>
 
@@ -381,9 +382,7 @@ namespace OpenMS
       test_mode_ = true;
 
       // initialize the random generator as early as possible!
-      DateTime date_time;
-      date_time.set("1999-12-31 23:59:59");
-      UniqueIdGenerator::setSeed(date_time);
+      UniqueIdGenerator::setSeed(19991231235959);
     }
 
     //-------------------------------------------------------------

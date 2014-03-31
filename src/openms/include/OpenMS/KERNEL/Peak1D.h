@@ -38,7 +38,7 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
 
-#include <ostream>
+#include <iosfwd>
 #include <functional>
 
 namespace OpenMS
@@ -74,6 +74,12 @@ public:
     inline Peak1D() :
       position_(),
       intensity_(0)
+    {}
+
+    /// construct with position and intensity
+    inline Peak1D(PositionType a, IntensityType b) :
+      position_(a),
+      intensity_(b)
     {}
 
     /// Copy constructor

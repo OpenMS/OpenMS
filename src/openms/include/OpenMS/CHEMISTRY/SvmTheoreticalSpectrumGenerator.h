@@ -40,9 +40,8 @@
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/SIMULATION/SimTypes.h>
 #include <OpenMS/ANALYSIS/SVM/SVMWrapper.h>
-#include <boost/smart_ptr.hpp>
 
-
+#include <boost/random/mersenne_twister.hpp>
 
 
 
@@ -209,7 +208,7 @@ public:
 
 
     /// Generate the MS/MS according to the given probabilistic model
-    void simulate(RichPeakSpectrum & spectrum, const AASequence & peptide, const gsl_rng * rng, Size precursor_charge);
+    void simulate(RichPeakSpectrum & spectrum, const AASequence & peptide, boost::random::mt19937_64& rng, Size precursor_charge);
 
     ///Load a trained Svm and Prob. models
     void load();

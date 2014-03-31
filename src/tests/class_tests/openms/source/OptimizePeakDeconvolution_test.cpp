@@ -120,10 +120,12 @@ START_SECTION((bool optimize(std::vector<PeakShape>& peaks,Data& data)))
   OptimizePeakDeconvolution::Data data;
 	data.positions.resize(20);
   data.signal.resize(20);
+  int scale = 1;
   for (Size i = 0; i < 20 ;++i)
   {
   	data.positions[i] = origin +i*spacing;
-    data.signal[i] = peak_shape(origin +i*spacing);
+    data.signal[i] = peak_shape(origin +i*spacing) + scale * 0.1;
+    scale *= -1;
    }
   String file = OPENMS_GET_TEST_DATA_PATH("OptimizePeakDeconvolution.ini");
   Param param;
@@ -133,7 +135,7 @@ START_SECTION((bool optimize(std::vector<PeakShape>& peaks,Data& data)))
 
  	OptimizePeakDeconvolution opt_deconv;
   opt_deconv.setParameters(param.copy("deconvolution:fitting:",true));
-opt_deconv.optimize(peak_shapes,data);
+  opt_deconv.optimize(peak_shapes,data);
  	TEST_REAL_SIMILAR(peak_shape.mz_position,500)
  	TEST_REAL_SIMILAR(peak_shape.left_width,2.5)
  	TEST_REAL_SIMILAR(peak_shape.right_width,2.5)

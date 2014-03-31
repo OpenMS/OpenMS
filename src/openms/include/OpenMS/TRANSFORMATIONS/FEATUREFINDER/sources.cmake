@@ -18,8 +18,6 @@ FeatureFinderAlgorithm.h
 FeatureFinderAlgorithmIsotopeWavelet.h
 FeatureFinderAlgorithmPicked.h
 FeatureFinderAlgorithmPickedHelperStructs.h
-FeatureFinderAlgorithmSH.h
-FeatureFinderAlgorithmSHCtrl.h
 FeatureFinderAlgorithmSimple.h
 FeatureFinderAlgorithmSimplest.h
 FeatureFinderAlgorithmMRM.h
@@ -39,10 +37,6 @@ IsotopeWaveletCudaKernel.h
 IsotopeWaveletParallelFor.h
 IsotopeWaveletTransform.h
 LevMarqFitter1D.h
-LmaGaussFitter1D.h
-LmaGaussModel.h
-LmaIsotopeFitter1D.h
-LmaIsotopeModel.h
 MaxLikeliFitter1D.h
 ModelDescription.h
 ModelFitter.h

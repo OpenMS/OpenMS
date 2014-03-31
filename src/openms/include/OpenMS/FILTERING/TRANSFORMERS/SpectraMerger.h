@@ -429,7 +429,7 @@ protected:
       exp.clear(false);
       exp.getSpectra().insert(exp.end(), exp_tmp.begin(), exp_tmp.end());
 
-      // exp.erase(remove_if(exp.begin(), exp.end(), InMSLevelRange<typename MapType::SpectrumType>(IntList::create(String(ms_level)), false)), exp.end());
+      // exp.erase(remove_if(exp.begin(), exp.end(), InMSLevelRange<typename MapType::SpectrumType>(ListUtils::create<int>(String(ms_level)), false)), exp.end());
 
       // ... and add consensus spectra
       exp.getSpectra().insert(exp.end(), merged_spectra.begin(), merged_spectra.end());

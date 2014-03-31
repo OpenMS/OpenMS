@@ -922,7 +922,7 @@ def testGaussFitResult():
     @tests:
      GaussFitResult.__init__
     """
-    ins = pyopenms.GaussFitResult()
+    ins = pyopenms.GaussFitResult(0.0, 0.0, 0.0)
     ins.A = 5.0
     ins.x0 = 5.0
     ins.sigma = 5.0
@@ -1719,21 +1719,6 @@ def testFASTAEntry():
      FASTAEntry.__init__
     """
     ff = pyopenms.FASTAEntry()
-
-@report
-def testSILACAnalyzer():
-    """
-    @tests:
-     SILACAnalyzer.__init__
-     SILACAnalyzer.initialize
-     SILACAnalyzer.run_all
-     SILACAnalyzer.writeConsensus
-    """
-    ff = pyopenms.SILACAnalyzer()
-
-    assert pyopenms.SILACAnalyzer().initialize is not None
-    assert pyopenms.SILACAnalyzer().run_all is not None
-    assert pyopenms.SILACAnalyzer().writeConsensus is not None
 
 @report
 def testInternalCalibration():
@@ -3725,8 +3710,7 @@ def testTransformationDescription():
     assert isinstance(td.apply(0.0), float)
 
     td.fitModel
-    p = pyopenms.Param()
-    td.getModelParameters(p)
+    p = td.getModelParameters()
     td.getModelType()
     td.invert
 
@@ -3734,15 +3718,12 @@ def testTransformationDescription():
 def testTransformationModels():
     """
     @tests:
-     TransformationModelBSpline.getDefaultParameters
-     TransformationModelBSpline.getParameters
      TransformationModelInterpolated.getDefaultParameters
      TransformationModelInterpolated.getParameters
      TransformationModelLinear.getDefaultParameters
      TransformationModelLinear.getParameters
     """
-    for clz in [pyopenms.TransformationModelBSpline,
-                pyopenms.TransformationModelLinear,
+    for clz in [pyopenms.TransformationModelLinear,
                 pyopenms.TransformationModelInterpolated]:
         mod = clz()
         p = pyopenms.Param()
@@ -3984,6 +3965,7 @@ def testAttachment():
 
     assert inst.tableRows[1][0] == "otherTest"
 
+@report
 def testOptimizePeakDeconvolution():
     """
     @tests:
@@ -4010,4 +3992,50 @@ def testOptimizePeakDeconvolution():
     assert inst.charge is not None
 
 
+@report
+def testIndexedMzMLDecoder():
+    decoder = pyopenms.IndexedMzMLDecoder()
+    pos = decoder.findIndexListOffset("abcde", 100)
+    assert isinstance(pos, pyopenms.streampos)
+    assert long(pos) == -1   # not found
+
+
+def test_streampos():
+    p = long(pyopenms.streampos())
+    assert isinstance(p, long), "got %r" % p
+
+def test_MapConversion():
+
+    feature = pyopenms.Feature()
+    feature.setRT(99)
+
+    cmap = pyopenms.ConsensusMap()
+    fmap = pyopenms.FeatureMap()
+    fmap.push_back(feature)
+    pyopenms.MapConversion().convert(0, fmap, cmap, 1)
+
+    assert(cmap.size() == 1)
+    assert(cmap[0].getRT() == 99.0)
+
+    fmap = pyopenms.FeatureMap()
+    pyopenms.MapConversion().convert(cmap, True, fmap)
+
+    assert(fmap.size() == 1)
+    assert(fmap[0].getRT() == 99.0)
+
+    exp = pyopenms.MSExperiment()
+    sp = pyopenms.MSSpectrum()
+    peak = pyopenms.Peak1D()
+    peak.setIntensity(10)
+    peak.setMZ(20)
+    sp.push_back(peak)
+    exp.addSpectrum(sp)
+    exp.addSpectrum(sp)
+
+    cmap = pyopenms.ConsensusMap()
+    pyopenms.MapConversion().convert(0, exp, cmap, 2)
+
+    assert(cmap.size() == 2)
+    assert(cmap[0].getIntensity() == 10.0)
+    assert(cmap[0].getMZ() == 20.0)
 

@@ -42,6 +42,8 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmSpectrumAlignment.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
 
+#include <OpenMS/KERNEL/ConversionHelper.h>
+
 using namespace std;
 
 namespace OpenMS
@@ -87,7 +89,7 @@ namespace OpenMS
     for (Size i = 0; i < cms.size(); ++i)
     {
       FeatureMap<> fm;
-      ConsensusMap::convert(cms[i], true, fm);
+      MapConversion::convert(cms[i], true, fm);
       maps_f.push_back(fm);
     }
     // call FeatureMap version of group()

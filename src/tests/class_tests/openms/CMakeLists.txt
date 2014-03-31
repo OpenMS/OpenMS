@@ -37,7 +37,7 @@ project("OpenMS_class_tests_openms")
 
 #------------------------------------------------------------------------------
 # Configure test file to get the TEST_DATA_PATH into the tests
-set(CF_OPENMS_TEST_DATA_PATH "${PROJECT_SOURCE_DIR}/data/" CACHE INTERNAL "Path to the test data")
+set(CF_OPENMS_TEST_DATA_PATH "${PROJECT_SOURCE_DIR}/data/")
 set (CONFIGURED_TEST_CONFIG_H "${PROJECT_BINARY_DIR}/include/OpenMS/test_config.h")
 configure_file(${PROJECT_SOURCE_DIR}/include/OpenMS/test_config.h.in ${CONFIGURED_TEST_CONFIG_H})
 
@@ -55,10 +55,11 @@ include(executables.cmake)
 
 #------------------------------------------------------------------------------
 # Include directories for tests
-set(OPENMS_CLASS_TESTS_INCLUDE_DIRECTORIES "${PROJECT_BINARY_DIR}/include/")
+set(OPENMS_CLASS_TESTS_INTERNAL_INCLUDE_DIRECTORIES "${PROJECT_BINARY_DIR}/include/")
 # add OpenMS directories
-set(OPENMS_CLASS_TESTS_INCLUDE_DIRECTORIES "${OPENMS_CLASS_TESTS_INCLUDE_DIRECTORIES};${OPENMS_INCLUDE_DIRECTORIES};${Boost_INCLUDE_DIRS}")
-include_directories(${OPENMS_CLASS_TESTS_INCLUDE_DIRECTORIES})
+set(OPENMS_CLASS_TESTS_EXTERNAL_INCLUDE_DIRECTORIES "${OpenMS_INCLUDE_DIRECTORIES};${Boost_INCLUDE_DIRS}")
+include_directories(${OPENMS_CLASS_TESTS_INTERNAL_INCLUDE_DIRECTORIES})
+include_directories(SYSTEM ${OPENMS_CLASS_TESTS_EXTERNAL_INCLUDE_DIRECTORIES})
 
 #------------------------------------------------------------------------------
 # disable optimization for tests for gcc like compilers
@@ -149,6 +150,12 @@ foreach(_class_test ${TEST_executables})
 		set_target_properties(${_class_test} PROPERTIES LINK_FLAGS ${OpenMP_CXX_FLAGS})
 	endif()
 endforeach(_class_test)
+
+#------------------------------------------------------------------------------
+# some tests need special treatment
+
+# StopWatch_test needs to be run alone to avoid timing errors
+set_tests_properties(StopWatch_test PROPERTIES RUN_SERIAL 1)
 
 #------------------------------------------------------------------------------
 # 2 - add link dependency

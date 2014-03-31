@@ -35,6 +35,9 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/CONCEPT/PrecisionWrapper.h>
+
 #include <iostream>
 #include <fstream>
 #include <limits>
@@ -96,7 +99,7 @@ namespace OpenMS
     {
       throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
     }
-    os.precision(writtenDigits<DoubleReal>());
+    os.precision(writtenDigits<DoubleReal>(0.0));
 
     //write header
     os << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
@@ -644,7 +647,7 @@ namespace OpenMS
       String name = attributeAsString_(attributes, "name");
       String type = attributeAsString_(attributes, "type");
       String value = attributeAsString_(attributes, "value");
-      
+
       if (type == "string")
       {
         last_meta_->setMetaValue(name, value);
@@ -751,7 +754,7 @@ namespace OpenMS
         }
         else
         {
-          fatalError(LOAD, String("Invalid protein reference '") + pos->first + "'");
+          fatalError(LOAD, String("Invalid protein reference '") + *acc_it + "'");
         }
       }
       String value = String(groups[g].probability) + "," + accessions;

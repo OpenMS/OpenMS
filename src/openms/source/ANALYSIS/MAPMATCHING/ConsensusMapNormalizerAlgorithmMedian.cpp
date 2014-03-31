@@ -33,10 +33,9 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithmMedian.h>
-#include <gsl/gsl_statistics.h>
-#include <gsl/gsl_sort_double.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <algorithm>
 
 using namespace std;
 
@@ -80,8 +79,7 @@ namespace OpenMS
     for (UInt j = 0; j < number_of_maps; j++)
     {
       vector<double> & ints_j = feature_int[j];
-      gsl_sort(&ints_j.front(), 1, ints_j.size());
-      medians[j] = gsl_stats_median_from_sorted_data(&ints_j.front(), 1, ints_j.size());
+      medians[j] = Math::median(ints_j.begin(), ints_j.end());
     }
     //compute normalization factors
     vector<double> normalization_factors(number_of_maps);

@@ -35,6 +35,7 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
+#include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 #include <OpenMS/FORMAT/EDTAFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -80,7 +81,7 @@ using namespace std;
 
 Example (replace space separator with &lt;TAB&gt;):<br>
 @code
-RT m/z int	
+RT m/z int
 19.2 431.85 0
 21.1 678.77 0
 25.7 660.76 0
@@ -182,7 +183,7 @@ public:
     registerDoubleOption_("rt_tol", "", 3, "RT tolerance in [s] for finding max peak (whole RT range around RT middle)", false, false);
     registerDoubleOption_("mz_tol", "", 10, "m/z tolerance in [ppm] for finding a peak", false, false);
     registerIntOption_("rt_collect", "", 1, "# of scans up & down in RT from highest point for ppm estimation in result", false, false);
-    
+
     registerTOPPSubsection_("auto_rt", "Parameters for automatic detection of injection RT peaks (no need to specify them in 'pos' input file)");
     registerFlag_("auto_rt:enabled", "Automatically detect injection peaks from TIC and quantify all m/z x RT combinations.");
     registerDoubleOption_("auto_rt:FHWM", "<FWHM [s]>", 5, "Expected full width at half-maximum of each raw RT peak in [s]. Gaussian smoothing filter with this width is applied to TIC.", false, true);
@@ -223,9 +224,9 @@ public:
     String out = getStringOption_("out");
     String out_sep = getStringOption_("out_separator");
     String out_TIC_debug = getStringOption_("auto_rt:out_debug_TIC");
-    
+
     StringList in_header = getStringList_("in_header");
-    
+
 
     // number of out_debug_TIC files and input files must be identical
     /*if (out_TIC_debug.size() > 0 && in.size() != out_TIC_debug.size())
@@ -312,11 +313,11 @@ public:
         pp.setParameters(p);
         pp.pick(tic_gf, tics_pp);
 
-        if (tics_pp.size()) 
+        if (tics_pp.size())
         {
           LOG_INFO << "Found " << tics_pp.size() << " auto-rt peaks at: ";
           for (Size ipp=0;ipp!=tics_pp.size();++ipp) LOG_INFO << " " << tics_pp[ipp].getMZ();
-        } 
+        }
         else
         {
           LOG_INFO << "Found no auto-rt peaks. Change threshold parameters!";
@@ -328,10 +329,10 @@ public:
           MSExperiment<> out_debug;
           out_debug.addChromatogram(toChromatogram(tics));
           out_debug.addChromatogram(toChromatogram(tic_gf));
-  
+
           SignalToNoiseEstimatorMedian<MSSpectrum<> > snt;
           snt.init(tics);
-          for (Size is=0; is<tics.size(); ++is) 
+          for (Size is=0; is<tics.size(); ++is)
           {
             Peak1D peak;
             peak.setMZ(tic[is].getMZ());
@@ -393,7 +394,7 @@ public:
       Map<Size, DoubleReal> quant;
 
       String description;
-      if (fi < in_header.size()) 
+      if (fi < in_header.size())
       {
         HeaderInfo info(in_header[fi]);
         description = info.header_description;
@@ -410,7 +411,7 @@ public:
       tf_single_header0 << File::basename(in[fi]) << "" << "" << "" << "";
       tf_single_header1 << description << "" << "" << "" << "";
       tf_single_header2 << "RTobs" << "dRT" << "mzobs" << "dppm" << "intensity";
- 
+
       for (Size i = 0; i < cm.size(); ++i)
       {
         //std::cerr << "Rt" << cm[i].getRT() << "  mz: " << cm[i].getMZ() << " R " <<  cm[i].getMetaValue("rank") << "\n";
@@ -466,7 +467,7 @@ public:
 
         // appending the second column set requires separator
         String append_sep = (fi==0 ? "" : out_sep);
-        
+
         tf_single[i] += append_sep; // new line
         if (fi == 0)
         {

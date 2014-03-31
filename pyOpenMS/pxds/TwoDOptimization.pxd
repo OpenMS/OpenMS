@@ -20,10 +20,6 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/TwoDOptimization.h>" namespac
         void setMZTolerance(DoubleReal tolerance_mz) nogil except +
         DoubleReal getMaxPeakDistance() nogil except +
         void setMaxPeakDistance(DoubleReal max_peak_distance) nogil except +
-        DoubleReal getMaxAbsError() nogil except +
-        void setMaxAbsError(DoubleReal eps_abs) nogil except +
-        DoubleReal getMaxRelError() nogil except +
-        void setMaxRelError(DoubleReal eps_rel) nogil except +
         UInt getMaxIterations() nogil except +
         void setMaxIterations(UInt max_iteration) nogil except +
         # NAMESPACE # OptimizationFunctions::PenaltyFactorsIntensity  getPenalties() nogil except +

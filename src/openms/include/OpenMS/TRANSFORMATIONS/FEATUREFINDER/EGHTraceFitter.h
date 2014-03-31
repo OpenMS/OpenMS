@@ -40,6 +40,8 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/TraceFitter.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
+
 namespace OpenMS
 {
 
@@ -60,6 +62,121 @@ namespace OpenMS
     public TraceFitter<PeakType>
   {
 public:
+    /** Functor for LM Optimization */
+    class EGHTraceFunctor : public TraceFitter<PeakType>::GenericFunctor
+    {
+    public:
+      EGHTraceFunctor(int dimensions,
+          const typename TraceFitter<PeakType>::ModelData* data)
+      : TraceFitter<PeakType>::GenericFunctor(dimensions, data->traces_ptr->getPeakCount()), m_data(data) {}
+
+      int operator()(const Eigen::VectorXd &x, Eigen::VectorXd &fvec)
+      {
+        double H  = x(0);
+        double tR = x(1);
+        double sigma = x(2);
+        double tau = x(3);
+
+        double t_diff, t_diff2, denominator = 0.0;
+
+        double fegh = 0.0;
+
+        UInt count = 0;
+        for (Size t = 0; t < m_data->traces_ptr->size(); ++t)
+        {
+          const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType> & trace = m_data->traces_ptr->at(t);
+          DoubleReal weight = m_data->weighted ? trace.theoretical_int : 1.0;
+          for (Size i = 0; i < trace.peaks.size(); ++i)
+          {
+            DoubleReal rt = trace.peaks[i].first;
+
+            t_diff = rt - tR;
+            t_diff2 = t_diff * t_diff; // -> (t - t_R)^2
+
+            denominator = 2 * sigma * sigma + tau * t_diff; // -> 2\sigma_{g}^{2} + \tau \left(t - t_R\right)
+
+            if (denominator > 0.0)
+            {
+              fegh =  m_data->traces_ptr->baseline + trace.theoretical_int * H * exp(-t_diff2 / denominator);
+            }
+            else
+            {
+              fegh = 0.0;
+            }
+
+            fvec(count) = (fegh - trace.peaks[i].second->getIntensity()) * weight;
+            ++count;
+          }
+        }
+        return 0;
+      }
+      // compute Jacobian matrix for the different parameters
+      int df(const Eigen::VectorXd &x, Eigen::MatrixXd &J)
+      {
+        double H  = x(0);
+        double tR = x(1);
+        double sigma = fabs(x(2));// must be non-negative!
+        double tau = x(3);
+
+        double derivative_H, derivative_tR, derivative_sigma, derivative_tau = 0.0;
+        double t_diff, t_diff2, exp1, denominator = 0.0;
+
+        UInt count = 0;
+        for (Size t = 0; t < m_data->traces_ptr->size(); ++t)
+        {
+          const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType> & trace = m_data->traces_ptr->at(t);
+          DoubleReal weight = m_data->weighted ? trace.theoretical_int : 1.0;
+          for (Size i = 0; i < trace.peaks.size(); ++i)
+          {
+            DoubleReal rt = trace.peaks[i].first;
+
+            t_diff = rt - tR;
+            t_diff2 = t_diff * t_diff; // -> (t - t_R)^2
+
+            denominator = 2 * sigma * sigma + tau * t_diff; // -> 2\sigma_{g}^{2} + \tau \left(t - t_R\right)
+
+            if (denominator > 0)
+            {
+              exp1 = exp(-t_diff2 / denominator);
+
+              // \partial H f_{egh}(t) = \exp\left( \frac{-\left(t-t_R \right)}{2\sigma_{g}^{2} + \tau \left(t - t_R\right)} \right)
+              derivative_H = trace.theoretical_int * exp1;
+
+              // \partial t_R f_{egh}(t) &=& H \exp \left( \frac{-\left(t-t_R \right)}{2\sigma_{g}^{2} + \tau \left(t - t_R\right)} \right) \left( \frac{\left( 4 \sigma_{g}^{2} + \tau \left(t-t_R \right) \right) \left(t-t_R \right)}{\left( 2\sigma_{g}^{2} + \tau \left(t - t_R\right) \right)^2} \right)
+              derivative_tR = trace.theoretical_int * H * exp1 * ((4 * sigma * sigma + tau * t_diff) * t_diff) / (denominator * denominator);
+
+              // \partial \sigma_{g}^{2} f_{egh}(t) &=& H \exp \left( \frac{-\left(t-t_R \right)^2}{2\sigma_{g}^{2} + \tau \left(t - t_R\right)} \right) \left( \frac{ 2 \left(t - t_R\right)^2}{\left( 2\sigma_{g}^{2} + \tau \left(t - t_R\right) \right)^2} \right)
+              // // \partial \sigma_{g}^{2} f_{egh}(t) &=& H \exp \left( \frac{-\left(t-t_R \right)^2}{2\sigma_{g}^{2} + \tau \left(t - t_R\right)} \right) \left( \frac{ 2 \left(t - t_R\right)^2}{\left( 2\sigma_{g}^{2} + \tau \left(t - t_R\right) \right)^2} \right)
+              // derivative_sigma_square = trace.theoretical_int * H * exp1 * 2 * t_diff2 / (denominator * denominator));
+
+              // \partial \sigma_{g} f_{egh}(t) &=& H \exp \left( \frac{-\left(t-t_R \right)^2}{2\sigma_{g}^{2} + \tau \left(t - t_R\right)} \right) \left( \frac{ 4 \sigma_{g} \left(t - t_R\right)^2}{\left( 2\sigma_{g}^{2} + \tau \left(t - t_R\right) \right)^2} \right)
+              derivative_sigma = trace.theoretical_int * H * exp1 * 4 * sigma * t_diff2 / (denominator * denominator);
+
+              // \partial \tau f_{egh}(t) &=& H \exp \left( \frac{-\left(t-t_R \right)^2}{2\sigma_{g}^{2} + \tau \left(t - t_R\right)} \right) \left( \frac{ \left(t - t_R\right)^3}{\left( 2\sigma_{g}^{2} + \tau \left(t - t_R\right) \right)^2} \right)
+              derivative_tau = trace.theoretical_int * H * exp1 * t_diff * t_diff2 / (denominator * denominator);
+            }
+            else
+            {
+              derivative_H = 0.0;
+              derivative_tR = 0.0;
+              derivative_sigma = 0.0;
+              derivative_tau = 0.0;
+            }
+
+            // set the jacobian matrix
+            J(count, 0) = derivative_H * weight;
+            J(count, 1) = derivative_tR * weight;
+            J(count, 2) = derivative_sigma * weight;
+            J(count, 3) = derivative_tau * weight;
+            ++count;
+          }
+        }
+        return 0;
+      }
+    protected:
+      const typename TraceFitter<PeakType>::ModelData* m_data;
+    };
+
     EGHTraceFitter()
     {
       //setName("EGHTraceFitter");
@@ -70,7 +187,7 @@ public:
     {
       this->height_ = other.height_;
       this->apex_rt_ = other.apex_rt_;
-      this->sigma_ = other.sigma_;
+      this->sigma_= other.sigma_;
       this->tau_ = other.tau_;
 
       this->sigma_5_bound_ = other.sigma_5_bound_;
@@ -84,7 +201,7 @@ public:
 
       this->height_ = source.height_;
       this->apex_rt_ = source.apex_rt_;
-      this->sigma_ = source.sigma_;
+      this->sigma_= source.sigma_;
       this->tau_ = source.tau_;
 
       this->sigma_5_bound_ = source.sigma_5_bound_;
@@ -103,14 +220,18 @@ public:
     {
       setInitialParameters_(traces);
 
-      double x_init[NUM_PARAMS_] = {height_, apex_rt_, sigma_, tau_};
+      Eigen::VectorXd x_init(NUM_PARAMS_);
+      x_init(0) = height_;
+      x_init(1) = apex_rt_;
+      x_init(2) = sigma_;
+      x_init(3) = tau_;
 
-      Size num_params = NUM_PARAMS_;
+      typename TraceFitter<PeakType>::ModelData data;
+      data.traces_ptr = &traces;
+      data.weighted = this->weighted_;
+      EGHTraceFunctor functor (NUM_PARAMS_, &data);
 
-      TraceFitter<PeakType>::optimize_(traces, num_params, x_init,
-                                       &(EGHTraceFitter<PeakType>::residual_),
-                                       &(EGHTraceFitter<PeakType>::jacobian_),
-                                       &(EGHTraceFitter<PeakType>::evaluate_));
+      TraceFitter<PeakType>::optimize_(x_init, functor);
     }
 
     DoubleReal getLowerRTBound() const
@@ -242,133 +363,16 @@ protected:
       return bounds;
     }
 
-    void getOptimizedParameters_(gsl_multifit_fdfsolver* fdfsolver)
+    void getOptimizedParameters_(const Eigen::VectorXd& x_init)
     {
-      height_ = gsl_vector_get(fdfsolver->x, 0);
-      apex_rt_ = gsl_vector_get(fdfsolver->x, 1);
-      sigma_ = fabs(gsl_vector_get(fdfsolver->x, 2)); // must be non-negative!
-      tau_ = gsl_vector_get(fdfsolver->x, 3);
+      height_ =  x_init(0);
+      apex_rt_ =  x_init(1);
+      sigma_ =  x_init(2);
+      tau_ =  x_init(3);
 
       // we set alpha to 0.04 which is conceptually equal to
       // 2.5 sigma for lower and upper bound
       sigma_5_bound_ = getAlphaBoundaries_(0.043937);
-    }
-
-    static Int residual_(const gsl_vector* param, void* data, gsl_vector* f)
-    {
-      typename TraceFitter<PeakType>::ModelData* model_data = static_cast<typename TraceFitter<PeakType>::ModelData*>(data);
-      FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType>* traces = model_data->traces_ptr;
-
-      double H  = gsl_vector_get(param, 0);
-      double tR = gsl_vector_get(param, 1);
-      double sigma = gsl_vector_get(param, 2);
-      double tau = gsl_vector_get(param, 3);
-
-      double t_diff, t_diff2, denominator = 0.0;
-
-      double fegh = 0.0;
-
-      UInt count = 0;
-      for (Size t = 0; t < traces->size(); ++t)
-      {
-        FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType>& trace = traces->at(t);
-        DoubleReal weight = model_data->weighted ? trace.theoretical_int : 1.0;
-        for (Size i = 0; i < trace.peaks.size(); ++i)
-        {
-          DoubleReal rt = trace.peaks[i].first;
-
-          t_diff = rt - tR;
-          t_diff2 = t_diff * t_diff; // -> (t - t_R)^2
-
-          denominator = 2 * sigma * sigma + tau * t_diff; // -> 2\sigma_{g}^{2} + \tau \left(t - t_R\right)
-
-          if (denominator > 0.0)
-          {
-            fegh = traces->baseline + trace.theoretical_int * H * exp(-t_diff2 / denominator);
-          }
-          else
-          {
-            fegh = 0.0;
-          }
-
-          gsl_vector_set(f, count, (fegh - trace.peaks[i].second->getIntensity()) * weight);
-          ++count;
-        }
-      }
-      return GSL_SUCCESS;
-    }
-
-    static Int jacobian_(const gsl_vector* param, void* data, gsl_matrix* J)
-    {
-      typename TraceFitter<PeakType>::ModelData* model_data = static_cast<typename TraceFitter<PeakType>::ModelData*>(data);
-      FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType>* traces = model_data->traces_ptr;
-
-      double H  = gsl_vector_get(param, 0);
-      double tR = gsl_vector_get(param, 1);
-      double sigma = fabs(gsl_vector_get(param, 2)); // must be non-negative!
-      double tau = gsl_vector_get(param, 3);
-
-      double derivative_H, derivative_tR, derivative_sigma, derivative_tau = 0.0;
-      double t_diff, t_diff2, exp1, denominator = 0.0;
-
-      UInt count = 0;
-      for (Size t = 0; t < traces->size(); ++t)
-      {
-        FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType>& trace = traces->at(t);
-        DoubleReal weight = model_data->weighted ? trace.theoretical_int : 1.0;
-        for (Size i = 0; i < trace.peaks.size(); ++i)
-        {
-          DoubleReal rt = trace.peaks[i].first;
-
-          t_diff = rt - tR;
-          t_diff2 = t_diff * t_diff; // -> (t - t_R)^2
-
-          denominator = 2 * sigma * sigma + tau * t_diff; // -> 2\sigma_{g}^{2} + \tau \left(t - t_R\right)
-
-          if (denominator > 0)
-          {
-            exp1 = exp(-t_diff2 / denominator);
-
-            // \partial H f_{egh}(t) = \exp\left( \frac{-\left(t-t_R \right)}{2\sigma_{g}^{2} + \tau \left(t - t_R\right)} \right)
-            derivative_H = trace.theoretical_int * exp1;
-
-            // \partial t_R f_{egh}(t) &=& H \exp \left( \frac{-\left(t-t_R \right)}{2\sigma_{g}^{2} + \tau \left(t - t_R\right)} \right) \left( \frac{\left( 4 \sigma_{g}^{2} + \tau \left(t-t_R \right) \right) \left(t-t_R \right)}{\left( 2\sigma_{g}^{2} + \tau \left(t - t_R\right) \right)^2} \right)
-            derivative_tR = trace.theoretical_int * H * exp1 * ((4 * sigma * sigma + tau * t_diff) * t_diff) / (denominator * denominator);
-
-            // // \partial \sigma_{g}^{2} f_{egh}(t) &=& H \exp \left( \frac{-\left(t-t_R \right)^2}{2\sigma_{g}^{2} + \tau \left(t - t_R\right)} \right) \left( \frac{ 2 \left(t - t_R\right)^2}{\left( 2\sigma_{g}^{2} + \tau \left(t - t_R\right) \right)^2} \right)
-            // derivative_sigma_square = trace.theoretical_int * H * exp1 * 2 * t_diff2 / (denominator * denominator));
-
-            // \partial \sigma_{g} f_{egh}(t) &=& H \exp \left( \frac{-\left(t-t_R \right)^2}{2\sigma_{g}^{2} + \tau \left(t - t_R\right)} \right) \left( \frac{ 4 \sigma_{g} \left(t - t_R\right)^2}{\left( 2\sigma_{g}^{2} + \tau \left(t - t_R\right) \right)^2} \right)
-            derivative_sigma = trace.theoretical_int * H * exp1 * 4 * sigma * t_diff2 / (denominator * denominator);
-
-            // \partial \tau f_{egh}(t) &=& H \exp \left( \frac{-\left(t-t_R \right)^2}{2\sigma_{g}^{2} + \tau \left(t - t_R\right)} \right) \left( \frac{ \left(t - t_R\right)^3}{\left( 2\sigma_{g}^{2} + \tau \left(t - t_R\right) \right)^2} \right)
-            derivative_tau = trace.theoretical_int * H * exp1 * t_diff * t_diff2 / (denominator * denominator);
-          }
-          else
-          {
-            derivative_H = 0.0;
-            derivative_tR = 0.0;
-            derivative_sigma = 0.0;
-            derivative_tau = 0.0;
-          }
-
-          // set the jacobian matrix
-          gsl_matrix_set(J, count, 0, derivative_H * weight);
-          gsl_matrix_set(J, count, 1, derivative_tR * weight);
-          gsl_matrix_set(J, count, 2, derivative_sigma * weight);
-          gsl_matrix_set(J, count, 3, derivative_tau * weight);
-
-          ++count;
-        }
-      }
-      return GSL_SUCCESS;
-    }
-
-    static Int evaluate_(const gsl_vector* param, void* data, gsl_vector* f, gsl_matrix* J)
-    {
-      residual_(param, data, f);
-      jacobian_(param, data, J);
-      return GSL_SUCCESS;
     }
 
     void setInitialParameters_(FeatureFinderAlgorithmPickedHelperStructs::MassTraces<PeakType>& traces)
@@ -445,24 +449,17 @@ protected:
       DoubleReal log_alpha = log(alpha);
 
       tau_ = -1 / log_alpha * (B - A);
+      //EGH function fails when tau==0
+      if(tau_ == 0)
+        tau_ = std::numeric_limits<double>::epsilon();
       LOG_DEBUG << "tau: " << tau_ << std::endl;
-      sigma_ = sqrt(-0.5 / log_alpha * B * A);
-      LOG_DEBUG << "sigma: " << sigma_ << std::endl;
+      sigma_= sqrt(-0.5 / log_alpha * B * A);
+      LOG_DEBUG << "sigma: " << sigma_<< std::endl;
     }
 
     virtual void updateMembers_()
     {
       TraceFitter<PeakType>::updateMembers_();
-    }
-
-    void printState_(SignedSize iter, gsl_multifit_fdfsolver * s)
-    {
-      LOG_DEBUG << "iter: " << iter << " "
-                << "height: " << gsl_vector_get(s->x, 0) << " "
-                << "apex_rt: " << gsl_vector_get(s->x, 1) << " "
-                << "sigma: " << gsl_vector_get(s->x, 2) << " "
-                << "tau: " << gsl_vector_get(s->x, 3) << " "
-                << "|f(x)| = " << gsl_blas_dnrm2(s->f) << std::endl;
     }
 
   };

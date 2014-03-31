@@ -7,7 +7,7 @@ iswin = sys.platform == "win32"
 # import config
 from env import (QT_QMAKE_VERSION_INFO, QT_LIBRARY_DIR, OPEN_MS_BUILD_TYPE, OPEN_MS_SRC,
                  OPEN_MS_CONTRIB_BUILD_DIRS, OPEN_MS_LIB, OPEN_SWATH_ALGO_LIB, OPEN_MS_BUILD_DIR,
-                 MSVCR90DLL, MSVCP90DLL)
+                 MSVCR90DLL, MSVCP90DLL, OPEN_MS_VERSION)
 
 IS_DEBUG = OPEN_MS_BUILD_TYPE.upper() == "DEBUG"
 
@@ -82,12 +82,7 @@ os.remove("pyopenms/pyopenms_out.cpp")
 print "created pyopenms.cpp"
 
 # create version information
-
-ctime = os.stat("pyopenms").st_mtime
-ts = time.gmtime(ctime)
-timestamp = "%02d-%02d-%4d" % (ts.tm_mday, ts.tm_mon, ts.tm_year)
-
-from version import version
+version = OPEN_MS_VERSION
 
 print >> open("pyopenms/version.py", "w"), "version=%r\n" % version
 print >> open("pyopenms/qt_version_info.py", "w"), "info=%r\n" % QT_QMAKE_VERSION_INFO
@@ -143,11 +138,13 @@ if iswin:
 elif sys.platform == "linux2":
 
     shutil.copy(j(OPEN_MS_BUILD_DIR, "lib", "libOpenMS.so"), "pyopenms")
+    shutil.copy(j(OPEN_MS_BUILD_DIR, "lib", "libSuperHirn.so"), "pyopenms")
     shutil.copy(j(OPEN_MS_BUILD_DIR, "lib", "libOpenSwathAlgo.so"), "pyopenms")
 
 elif sys.platform == "darwin":
 
     shutil.copy(j(OPEN_MS_BUILD_DIR, "lib", "libOpenMS.dylib"), "pyopenms")
+    shutil.copy(j(OPEN_MS_BUILD_DIR, "lib", "libSuperHirn.dylib"), "pyopenms")
     shutil.copy(j(OPEN_MS_BUILD_DIR, "lib", "libOpenSwathAlgo.dylib"), "pyopenms")
 
 else:

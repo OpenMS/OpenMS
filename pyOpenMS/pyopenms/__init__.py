@@ -14,6 +14,7 @@ if sys.platform == "linux2":
     import ctypes
     ctypes.cdll.LoadLibrary(os.path.join(here, "libOpenSwathAlgo.so"))
     ctypes.cdll.LoadLibrary(os.path.join(here, "libOpenMS.so"))
+    ctypes.cdll.LoadLibrary(os.path.join(here, "libSuperHirn.so"))
 
 try:
     from pyopenms import *

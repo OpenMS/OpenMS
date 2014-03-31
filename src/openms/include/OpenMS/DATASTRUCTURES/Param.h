@@ -35,19 +35,24 @@
 #ifndef OPENMS_DATASTRUCTURES_PARAM_H
 #define OPENMS_DATASTRUCTURES_PARAM_H
 
-// #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/DATASTRUCTURES/Map.h>
 
 #include <set>
-#include <iostream>
+#include <iosfwd>
 
 namespace OpenMS
 {
+
+  template <class Key, class T>
+  class Map;
+
+  namespace Logger
+  {
+    class LogStream;
+  }
+
   /**
     @brief Management and storage of parameters / INI files.
 
@@ -77,7 +82,7 @@ public:
       /// Constructor with name, description, value and advanced flag
       ParamEntry(const String& n, const DataValue& v, const String& d, const StringList& t = StringList());
       /// Copy constructor
-      ParamEntry(const ParamEntry &other);
+      ParamEntry(const ParamEntry& other);
       /// Destructor
       ~ParamEntry();
 
@@ -428,6 +433,13 @@ protected:
     /**
       @brief Rescue parameter <b>values</b> from @p old_version to current param
 
+      See ::update() for details. LOG_WARN is used as stream here.
+    */
+    void update(const Param& old_version, const bool add_unknown = false);
+
+    /**
+      @brief Rescue parameter <b>values</b> from @p old_version to current param
+
       All parameters present in both param objects will be transferred into this object, given that:
       <ul>
         <li>the name is equal</li>
@@ -440,7 +452,7 @@ protected:
       @param add_unknown Add unknown parameters to the param object. Default is false.
       @param stream The stream where all the output is send to.
     */
-    void update(const Param& old_version, const bool add_unknown = false, Logger::LogStream& stream = LOG_WARN);
+    void update(const Param& old_version, const bool add_unknown, Logger::LogStream& stream);
 
     /**
       @brief Adds missing parameters from the given Param to the param object. Existing parameters will not be modified.
@@ -479,11 +491,12 @@ protected:
       @param name The name that is used in error messages.
       @param defaults The default values.
       @param prefix The prefix where to check for the defaults.
-      @param os The output stream for the warnings.
+     
+      Warnings etc. will be send to LOG_WARN.
 
       @exception Exception::InvalidParameter is thrown if errors occur during the check
     */
-    void checkDefaults(const String& name, const Param& defaults, const String& prefix = "", std::ostream& os = std::cout) const;
+    void checkDefaults(const String& name, const Param& defaults, const String& prefix = "") const;
     //@}
 
     ///@name Restriction handling

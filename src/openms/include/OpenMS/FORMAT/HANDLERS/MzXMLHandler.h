@@ -41,6 +41,7 @@
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/INTERFACES/IMSDataConsumer.h>
 
 #include <stack>
 
@@ -73,6 +74,8 @@ public:
         nesting_level_(0),
         skip_spectrum_(false),
         spec_write_counter_(1),
+        consumer_(NULL),
+        scan_count_(0),
         logger_(logger)
       {
         init_();
@@ -87,6 +90,8 @@ public:
         nesting_level_(0),
         skip_spectrum_(false),
         spec_write_counter_(1),
+        consumer_(NULL),
+        scan_count_(0),
         logger_(logger)
       {
         init_();
@@ -95,48 +100,6 @@ public:
       /// Destructor
       virtual ~MzXMLHandler() {}
       //@}
-
-      void populateSpectraWithData()
-      {
-
-        // Whether spectrum should be populated with data
-        if (options_.getFillData())
-        {
-          size_t errCount = 0;
-#ifdef _OPENMP
-#pragma omp parallel for
-#endif
-          for (Size i = 0; i < spectrum_data_.size(); i++)
-          {
-            // parallel exception catching and re-throwing business
-            if (!errCount) // no need to parse further if already an error was encountered
-            {
-              try 
-              {
-                populateSpectraWithData_(spectrum_data_[i]);
-              }
-              catch (...)
-              {
-                #pragma omp critical(HandleException)
-                ++errCount;
-              }
-            }
-          }
-          if (errCount != 0)
-          {
-            throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, file_, "Error during parsing of binary data.");
-          }
-        }
-
-        // Append all spectra
-        for (Size i = 0; i < spectrum_data_.size(); i++)
-        {
-          exp_->addSpectrum(spectrum_data_[i].spectrum);
-        }
-
-        // Delete batch
-        spectrum_data_.clear();
-      }
 
       // Docu in base class
       virtual void endElement(const XMLCh* const uri, const XMLCh* const local_name, const XMLCh* const qname);
@@ -147,17 +110,29 @@ public:
       // Docu in base class
       virtual void characters(const XMLCh* const chars, const XMLSize_t length);
 
-      ///Write the contents to a stream
+      /// Write the contents to a stream
       void writeTo(std::ostream& os);
 
-      ///Sets the options
+      /// Sets the options
       void setOptions(const PeakFileOptions& options)
       {
         options_ = options;
       }
 
+      ///Gets the scan count
+      UInt getScanCount()
+      {
+        return scan_count_;
+      }
+
+      /// Set the IMSDataConsumer consumer which will consume the read data
+      void setMSDataConsumer(Interfaces::IMSDataConsumer<MapType> * consumer)
+      {
+        consumer_ = consumer;
+      }
+
 private:
-      // initialize members (call from C'tor)
+      /// initialize members (call from C'tor)
       void init_()
       {
         cv_terms_.resize(6);
@@ -201,8 +176,6 @@ protected:
       /// Spectrum type
       typedef MSSpectrum<PeakType> SpectrumType;
 
-      typedef typename SpectrumType::Iterator  PeakIterator;
-
       /// map pointer for reading
       MapType* exp_;
       /// map pointer for writing
@@ -215,8 +188,14 @@ protected:
       //@{
       Base64 decoder_;
       Int nesting_level_;
-      //@}
 
+      /**
+          @brief Data necessary to generate a single spectrum 
+
+          Small struct holds all data necessary to populate a spectrum at a
+          later timepoint (since reading of the base64 data and generation of
+          spectra can be done at distinct timepoints).
+      */
       struct SpectrumData 
       {
         UInt peak_count_;
@@ -229,12 +208,19 @@ protected:
 
       /// Vector of spectrum data stored for later parallel processing
       std::vector< SpectrumData > spectrum_data_;
+      //@}
 
       /// Flag that indicates whether this spectrum should be skipped (due to options)
       bool skip_spectrum_;
 
       /// spectrum counter (spectra without peaks are not written)
       UInt spec_write_counter_;
+
+      /// Consumer class to work on spectra
+      Interfaces::IMSDataConsumer<MapType>* consumer_;
+
+      /// Consumer class to work on spectra
+      UInt scan_count_;
 
       /// Progress logging class
       const ProgressLogger& logger_;
@@ -257,76 +243,139 @@ protected:
       /// data processing auxiliary variable
       std::vector<DataProcessing> data_processing_;
 
-    //void populateSpectraWithData_(std::vector< SpectrumData >& spectrum_data_)
-    void populateSpectraWithData_(SpectrumData & spectrum_data)
-    {
-      typedef typename SpectrumType::PeakType PeakType;
-      Base64 decoder_;
+      /**
+          @brief Fill a single spectrum with data from input 
 
-      //std::cout << "reading scan" << "\n";
-      if (spectrum_data.char_rest_ == "") // no peaks
+          @note Do not modify any internal state variables of the class since
+          this function will be executed in parallel.
+
+      */
+      void doPopulateSpectraWithData_(SpectrumData & spectrum_data)
       {
-        return;
-      }
+        typedef typename SpectrumType::PeakType PeakType;
+        Base64 decoder_;
 
-      //remove whitespaces from binary data
-      //this should not be necessary, but linebreaks inside the base64 data are unfortunately no exception
-      spectrum_data.char_rest_.removeWhitespaces();
+        //std::cout << "reading scan" << "\n";
+        if (spectrum_data.char_rest_ == "") // no peaks
+        {
+          return;
+        }
 
-      if (spectrum_data.precision_ == "64")
-      {
-        std::vector<DoubleReal> data;
-        if (spectrum_data.compressionType_ == "zlib")
+        //remove whitespaces from binary data
+        //this should not be necessary, but linebreaks inside the base64 data are unfortunately no exception
+        spectrum_data.char_rest_.removeWhitespaces();
+
+        if (spectrum_data.precision_ == "64")
         {
-          decoder_.decode(spectrum_data.char_rest_, Base64::BYTEORDER_BIGENDIAN, data, true);
-        }
-        else
-        {
-          decoder_.decode(spectrum_data.char_rest_, Base64::BYTEORDER_BIGENDIAN, data);
-        }
-        spectrum_data.char_rest_ = "";
-        PeakType peak;
-        //push_back the peaks into the container
-        for (Size n = 0; n < (2 * spectrum_data.peak_count_); n += 2)
-        {
-          // check if peak in in the specified m/z  and intensity range
-          if ((!options_.hasMZRange() || options_.getMZRange().encloses(DPosition<1>(data[n])))
-             && (!options_.hasIntensityRange() || options_.getIntensityRange().encloses(DPosition<1>(data[n + 1]))))
+          std::vector<DoubleReal> data;
+          if (spectrum_data.compressionType_ == "zlib")
           {
-            peak.setMZ(data[n]);
-            peak.setIntensity(data[n + 1]);
-            spectrum_data.spectrum.push_back(peak);
+            decoder_.decode(spectrum_data.char_rest_, Base64::BYTEORDER_BIGENDIAN, data, true);
+          }
+          else
+          {
+            decoder_.decode(spectrum_data.char_rest_, Base64::BYTEORDER_BIGENDIAN, data);
+          }
+          spectrum_data.char_rest_ = "";
+          PeakType peak;
+          //push_back the peaks into the container
+          for (Size n = 0; n < (2 * spectrum_data.peak_count_); n += 2)
+          {
+            // check if peak in in the specified m/z  and intensity range
+            if ((!options_.hasMZRange() || options_.getMZRange().encloses(DPosition<1>(data[n])))
+               && (!options_.hasIntensityRange() || options_.getIntensityRange().encloses(DPosition<1>(data[n + 1]))))
+            {
+              peak.setMZ(data[n]);
+              peak.setIntensity(data[n + 1]);
+              spectrum_data.spectrum.push_back(peak);
+            }
+          }
+        }
+        else //precision 32
+        {
+          std::vector<Real> data;
+          if (spectrum_data.compressionType_ == "zlib")
+          {
+            decoder_.decode(spectrum_data.char_rest_, Base64::BYTEORDER_BIGENDIAN, data, true);
+          }
+          else
+          {
+            decoder_.decode(spectrum_data.char_rest_, Base64::BYTEORDER_BIGENDIAN, data);
+          }
+          spectrum_data.char_rest_ = "";
+          PeakType peak;
+          //push_back the peaks into the container
+          for (Size n = 0; n < (2 * spectrum_data.peak_count_); n += 2)
+          {
+            if ((!options_.hasMZRange() || options_.getMZRange().encloses(DPosition<1>(data[n])))
+               && (!options_.hasIntensityRange() || options_.getIntensityRange().encloses(DPosition<1>(data[n + 1]))))
+            {
+              peak.setMZ(data[n]);
+              peak.setIntensity(data[n + 1]);
+              spectrum_data.spectrum.push_back(peak);
+            }
           }
         }
       }
-      else //precision 32
+
+      /**
+          @brief Populate all spectra on the stack with data from input 
+
+          Will populate all spectra on the current work stack with data (using
+          multiple threads if available) and append them to the result. 
+      */
+      void populateSpectraWithData_()
       {
-        std::vector<Real> data;
-        if (spectrum_data.compressionType_ == "zlib")
+
+        // Whether spectrum should be populated with data
+        if (options_.getFillData())
         {
-          decoder_.decode(spectrum_data.char_rest_, Base64::BYTEORDER_BIGENDIAN, data, true);
-        }
-        else
-        {
-          decoder_.decode(spectrum_data.char_rest_, Base64::BYTEORDER_BIGENDIAN, data);
-        }
-        spectrum_data.char_rest_ = "";
-        PeakType peak;
-        //push_back the peaks into the container
-        for (Size n = 0; n < (2 * spectrum_data.peak_count_); n += 2)
-        {
-          if ((!options_.hasMZRange() || options_.getMZRange().encloses(DPosition<1>(data[n])))
-             && (!options_.hasIntensityRange() || options_.getIntensityRange().encloses(DPosition<1>(data[n + 1]))))
+          size_t errCount = 0;
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
+          for (SignedSize i = 0; i < (SignedSize)spectrum_data_.size(); i++)
           {
-            peak.setMZ(data[n]);
-            peak.setIntensity(data[n + 1]);
-            spectrum_data.spectrum.push_back(peak);
+            // parallel exception catching and re-throwing business
+            if (!errCount) // no need to parse further if already an error was encountered
+            {
+              try 
+              {
+                doPopulateSpectraWithData_(spectrum_data_[i]);
+              }
+              catch (...)
+              {
+                #pragma omp critical(HandleException)
+                ++errCount;
+              }
+            }
+          }
+          if (errCount != 0)
+          {
+            throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, file_, "Error during parsing of binary data.");
           }
         }
+
+        // Append all spectra
+        for (Size i = 0; i < spectrum_data_.size(); i++)
+        {
+          if (consumer_ != NULL)
+          {
+            consumer_->consumeSpectrum(spectrum_data_[i].spectrum);
+            if (options_.getAlwaysAppendData())
+            {
+              exp_->addSpectrum(spectrum_data_[i].spectrum);
+            }
+          }
+          else
+          {
+            exp_->addSpectrum(spectrum_data_[i].spectrum);
+          }
+        }
+
+        // Delete batch
+        spectrum_data_.clear();
       }
-    }
-
-
 
 private:
       /// Not implemented
@@ -496,8 +545,6 @@ private:
         initStaticMembers_();
       }
 
-      static UInt scan_count = 0;
-
       String tag = sm_.convert(qname);
       open_tags_.push_back(tag);
       //std::cout << " -- Start -- "<< tag << " -- " << "\n";
@@ -512,7 +559,7 @@ private:
         optionalAttributeAsInt_(count, attributes, s_count_);
         exp_->reserve(count);
         logger_.startProgress(0, count, "loading mzXML file");
-        scan_count = 0;
+        scan_count_ = 0;
         data_processing_.clear();
         //start and end time are xs:duration. This makes no sense => ignore them
       }
@@ -643,14 +690,15 @@ private:
           }
         }
 
-        logger_.setProgress(scan_count);
+        logger_.setProgress(scan_count_);
 
         if ((options_.hasRTRange() && !options_.getRTRange().encloses(DPosition<1>(retention_time)))
-           || (options_.hasMSLevels() && !options_.containsMSLevel(ms_level)))
+           || (options_.hasMSLevels() && !options_.containsMSLevel(ms_level))
+           || options_.getSizeOnly())
         {
           // skip this tag
           skip_spectrum_ = true;
-          ++scan_count;
+          ++scan_count_;
           return;
         }
 
@@ -739,7 +787,7 @@ private:
           warning(LOAD, String("Unknown scan mode '") + type + "'. Assuming full scan");
         }
 
-        ++scan_count;
+        ++scan_count_;
       }
       else if (tag == "operator")
       {
@@ -870,7 +918,6 @@ private:
       //std::cout << " -- End -- " << sm_.convert(qname) << " -- " << "\n";
 
       static const XMLCh* s_mzxml = xercesc::XMLString::transcode("mzXML");
-      static const XMLCh* s_peaks = xercesc::XMLString::transcode("peaks");
       static const XMLCh* s_scan = xercesc::XMLString::transcode("scan");
 
       open_tags_.pop_back();
@@ -878,7 +925,7 @@ private:
       if (equal_(qname, s_mzxml))
       {
         // Flush the remaining data 
-        populateSpectraWithData();
+        populateSpectraWithData_();
 
         // End of mzXML
         logger_.endProgress();
@@ -892,7 +939,7 @@ private:
 
         if (nesting_level_ == 0 && spectrum_data_.size() >= options_.getMaxDataPoolSize())
         {
-          populateSpectraWithData();
+          populateSpectraWithData_();
         }
       }
       //std::cout << " -- End -- " << "\n";

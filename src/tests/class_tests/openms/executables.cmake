@@ -37,6 +37,7 @@ set(datastructures_executables_list
   GridFeature_test
   HashGrid_test
   ListUtils_test
+  ListUtilsIO_test
   LPWrapper_test
   Map_test
   MassExplainer_test
@@ -107,6 +108,7 @@ set(kernel_executables_list
   ComparatorUtils_test
   ConsensusFeature_test
   ConsensusMap_test
+  ConversionHelper_test
   ConstRefVector_test
   DPeak_test
   DRichPeak_test
@@ -261,8 +263,6 @@ MassTraceDetection_test
   Normalizer_test
   ParentPeakMower_test
   PeakMarker_test
-  SILACFilter_test
-  SILACFiltering_test
   SILACPattern_test
   SILACPoint_test
   SavitzkyGolayFilter_test
@@ -288,7 +288,6 @@ set(comparison_executables_list
   ClusterAnalyzer_test
   ClusterFunctor_test
   ClusterHierarchical_test
-  CompareFouriertransform_test
   CompleteLinkage_test
   EuclideanSimilarity_test
   HierarchicalClustering_test
@@ -454,29 +453,6 @@ set(transformations_executables_list
   FeatureFinderAlgorithmMRM_test
   FeatureFinderAlgorithmPickedHelperStructs_test
   FeatureFinderAlgorithmPicked_test
-  FeatureFinderAlgorithmSH_test
-  FeatureFinderAlgorithmSHSuperhirnBackgroundControl_test
-  FeatureFinderAlgorithmSHSuperhirnBackgroundIntensityBin_test
-  FeatureFinderAlgorithmSHSuperhirnCentroidData_test
-  FeatureFinderAlgorithmSHSuperhirnCentroidPeak_test
-  FeatureFinderAlgorithmSHSuperhirnClusteredMS2ConsensusSpectrum_test
-  FeatureFinderAlgorithmSHSuperhirnDeisotoper_test
-  FeatureFinderAlgorithmSHSuperhirnFT_PeakDetectController_test
-  FeatureFinderAlgorithmSHSuperhirnIsotopicDist_test
-  FeatureFinderAlgorithmSHSuperhirnLCMSCData_test
-  FeatureFinderAlgorithmSHSuperhirnLC_MS_test
-  FeatureFinderAlgorithmSHSuperhirnLC_elution_peak_test
-  FeatureFinderAlgorithmSHSuperhirnMS1_feature_merger_test
-  FeatureFinderAlgorithmSHSuperhirnMS2ConsensusSpectrum_test
-  FeatureFinderAlgorithmSHSuperhirnMS2Fragment_test
-  FeatureFinderAlgorithmSHSuperhirnMS2_feature_test
-  FeatureFinderAlgorithmSHSuperhirnMS2Info_test
-  FeatureFinderAlgorithmSHSuperhirnProcess_Data_test
-  FeatureFinderAlgorithmSHSuperhirnRawData_test
-  FeatureFinderAlgorithmSHSuperhirnconsensIsotopePattern_test
-  FeatureFinderAlgorithmSHSuperhirnfeatureLCprofile_test
-  FeatureFinderAlgorithmSHSuperhirnfeature_test
-  FeatureFinderAlgorithmSHSuperhirnms_peak_test
   # deprecated: FeatureFinderAlgorithmSimple_test
   # deprecated: FeatureFinderAlgorithmSimplest_test
   FeatureFinderAlgorithm_test
@@ -491,10 +467,6 @@ set(transformations_executables_list
   IsotopeWaveletTransform_test
   IsotopeWavelet_test
   LevMarqFitter1D_test
-  LmaGaussFitter1D_test
-  LmaGaussModel_test
-  LmaIsotopeFitter1D_test
-  LmaIsotopeModel_test
   MaxLikeliFitter1D_test
   ModelDescription_test
   ModelFitter_test

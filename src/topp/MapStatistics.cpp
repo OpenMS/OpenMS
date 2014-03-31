@@ -44,7 +44,7 @@
 
 #include <QtCore/QString>
 
-#include <gsl/gsl_statistics.h>
+#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -89,12 +89,10 @@ using namespace std;
 
 namespace OpenMS
 {
-  /// A little helper class to gather (and dump) some statistics from a vector<double>.  Uses statistical functions implemented in GSL.
+  /// A little helper class to gather (and dump) some statistics from a vector<double>.
   struct SomeStatistics
   {
     /**@brief Initialize SomeStatistics from data.
-
-    @note: GSL statistics uses double and so we write double not DoubleReal here and where we use this.
     */
     SomeStatistics& operator()(vector<double>& data)
     {
@@ -102,12 +100,12 @@ namespace OpenMS
       if (!data.empty())
       {
         sort(data.begin(), data.end());
-        mean = gsl_stats_mean(&data.front(), 1, data.size());
-        variance = gsl_stats_variance_m(&data.front(), 1, data.size(), mean);
+        mean = Math::mean(data.begin(), data.end());
+        variance = Math::variance(data.begin(), data.end(), mean);
         min = data.front();
-        lowerq = gsl_stats_quantile_from_sorted_data(&data.front(), 1, data.size(), 0.25);
-        median = gsl_stats_median_from_sorted_data(&data.front(), 1, data.size());
-        upperq = gsl_stats_quantile_from_sorted_data(&data.front(), 1, data.size(), 0.75);
+        lowerq = Math::quantile1st(data.begin(), data.end(), true);
+        median = Math::median(data.begin(), data.end(), true);
+        upperq = Math::quantile3rd(data.begin(), data.end(), true);
         max = data.back();
       }
       else

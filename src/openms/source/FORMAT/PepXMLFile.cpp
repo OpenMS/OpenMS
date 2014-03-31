@@ -88,7 +88,7 @@ namespace OpenMS
       search_engine_name = protein_ids.begin()->getSearchEngine();
     }
 
-    f.precision(writtenDigits<DoubleReal>());
+    f.precision(writtenDigits<DoubleReal>(0.0));
 
     f << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << "\n";
     f << "<msms_pipeline_analysis date=\"2007-12-05T17:49:46\" xmlns=\"http://regis-web.systemsbiology.net/pepXML\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://regis-web.systemsbiology.net/pepXML http://www.matrixscience.com/xmlns/schema/pepXML_v18/pepXML_v18.xsd\" summary_xml=\".xml\">" << "\n";
@@ -626,6 +626,8 @@ namespace OpenMS
       current_peptide_ = PeptideIdentification();
       current_peptide_.setMetaValue("RT", rt_);
       current_peptide_.setMetaValue("MZ", mz_);
+      current_peptide_.setBaseName(current_base_name_);
+
       search_id_ = 1; // references "search_summary"
       optionalAttributeAsUInt_(search_id_, attributes, "search_id");
       current_peptide_.setIdentifier(current_proteins_[search_id_ - 1]->getIdentifier());
@@ -868,11 +870,11 @@ namespace OpenMS
     }
     else if (element == "search_summary") // parent: "msms_run_summary"
     { // creates a new ProteinIdentification (usually)
+      current_base_name_ = "";
+      optionalAttributeAsString_(current_base_name_, attributes, "base_name");
       if (!checked_base_name_) // work-around for files exported by Mascot
       {
-        String base_name = "";
-        optionalAttributeAsString_(base_name, attributes, "base_name");
-        if (base_name.hasSuffix(exp_name_))
+        if (current_base_name_.hasSuffix(exp_name_))
         {
           seen_experiment_ = true;
         }

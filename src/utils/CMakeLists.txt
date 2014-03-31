@@ -39,13 +39,15 @@ cmake_minimum_required(VERSION 2.8.3 FATAL_ERROR)
 # OpenMS' UTILS tools
 
 # add OpenMS includes
-include_directories(${OPENMS_INCLUDE_DIRECTORIES})
+include_directories(SYSTEM ${OpenMS_INCLUDE_DIRECTORIES})
 
 # add all the tools
 set(UTILS_executables)
 include(executables.cmake)
 foreach(i ${UTILS_executables})
 	add_executable(${i} ${i}.cpp)
+  # we also want to install each util
+  install_tool(${i})
 	target_link_libraries(${i} ${OPENMS_LIBRARIES})
 endforeach(i)
 
@@ -54,11 +56,17 @@ add_custom_target(UTILS)
 add_dependencies(UTILS ${UTILS_executables})
 
 ## some regular UTILS need the GUI lib
-include_directories(${OPENMS_GUI_INCLUDE_DIRECTORIES})
+include_directories(SYSTEM ${OpenMS_GUI_INCLUDE_DIRECTORIES})
 foreach(i ${UTILS_executables_with_GUIlib})
 	target_link_libraries(${i} ${OPENMS_GUI_LIBRARIES})
 endforeach(i)
 
+# FFSuperHirn requires linking against SuperHirn
+include_directories(SYSTEM ${SuperHirn_INCLUDE_DIRECTORIES})
+target_link_libraries(FeatureFinderSuperHirn SuperHirn)
+
 ## export the list of UTILS tools into CACHE
 set(UTILS_TOOLS ${UTILS_executables}
     CACHE INTERNAL "OpenMS' UTILS tools" FORCE)
+
+openms_doc_path("${PROJECT_SOURCE_DIR}")

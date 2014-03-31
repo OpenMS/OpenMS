@@ -266,8 +266,8 @@ END_SECTION
 START_SECTION([EXTRA] static bool isValid(const String& filename))
 {
   FeatureXMLFile f;
-  TEST_EQUAL(f.isValid(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_1.featureXML")), true);
-  TEST_EQUAL(f.isValid(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_2_options.featureXML")), true);
+  TEST_EQUAL(f.isValid(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_1.featureXML"), std::cerr), true);
+  TEST_EQUAL(f.isValid(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_2_options.featureXML"), std::cerr), true);
 
   FeatureMap<> e;
   String filename;
@@ -275,13 +275,13 @@ START_SECTION([EXTRA] static bool isValid(const String& filename))
   //test if empty file is valid
   NEW_TMP_FILE(filename)
   f.store(filename, e);
-  TEST_EQUAL(f.isValid(filename), true);
+  TEST_EQUAL(f.isValid(filename, std::cerr), true);
 
   //test if full file is valid
   NEW_TMP_FILE(filename);
   f.load(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_1.featureXML"), e);
   f.store(filename, e);
-  TEST_EQUAL(f.isValid(filename), true);
+  TEST_EQUAL(f.isValid(filename, std::cerr), true);
 }
 END_SECTION
 

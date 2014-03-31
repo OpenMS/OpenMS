@@ -1,7 +1,7 @@
 
 -- General information --
 
-File name: /home/hendrik/Software/OpenMS/source/TEST/TOPP/FileInfo_9_input.mzML
+File name: /home/ehrlich/workspace/openms/OpenMS/source/TEST/TOPP/FileInfo_9_input.mzML
 File type: mzML
 
 Peak type (metadata): Unknown
@@ -67,9 +67,9 @@ Intensities:
   num. of values: 30
   mean:           8
   minimum:        1
-  lower quartile: 4.25
+  lower quartile: 4
   median:         8
-  upper quartile: 11.75
+  upper quartile: 12
   maximum:        15
   variance:       19.3103
 
@@ -77,9 +77,9 @@ Meta data: charge array
   num. of values: 10
   mean:           11
   minimum:        2
-  lower quartile: 6.5
+  lower quartile: 5
   median:         11
-  upper quartile: 15.5
+  upper quartile: 17
   maximum:        20
   variance:       36.6667
 
@@ -87,9 +87,9 @@ Meta data: signal to noise array
   num. of values: 10
   mean:           11
   minimum:        2
-  lower quartile: 6.5
+  lower quartile: 5
   median:         11
-  upper quartile: 15.5
+  upper quartile: 17
   maximum:        20
   variance:       36.6667
 

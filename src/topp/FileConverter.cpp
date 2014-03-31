@@ -42,6 +42,7 @@
 #include <OpenMS/FORMAT/IBSpectraFile.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/KERNEL/ConversionHelper.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -134,6 +135,10 @@ protected:
     String formats("mzData,mzXML,mzML,dta,dta2d,mgf,featureXML,consensusXML,ms2,fid,tsv,peplist,kroenik,edta");
     setValidFormats_("in", ListUtils::create<String>(formats));
     setValidStrings_("in_type", ListUtils::create<String>(formats));
+    
+    registerStringOption_("UID_postprocessing", "<method>", "ensure", "unique id post-processing for output data.\n none keeps current ids even if invalid.\n ensure keeps current ids but reassigns invalid ones.\n reassign assigns new unique ids.", false);
+    String method("none,ensure,reassign");
+    setValidStrings_("UID_postprocessing", ListUtils::create<String>(method));
 
     formats = "mzData,mzXML,mzML,dta2d,mgf,featureXML,consensusXML,edta,csv";
     registerOutputFile_("out", "<file>", "", "Output file");
@@ -188,6 +193,7 @@ protected:
 
     writeDebug_(String("Output file type: ") + FileTypes::typeToName(out_type), 1);
 
+    String uid_postprocessing = getStringOption_("UID_postprocessing");
     //-------------------------------------------------------------
     // reading input
     //-------------------------------------------------------------
@@ -318,11 +324,17 @@ protected:
       if ((in_type == FileTypes::FEATUREXML) || (in_type == FileTypes::TSV) ||
           (in_type == FileTypes::PEPLIST) || (in_type == FileTypes::KROENIK))
       {
-        fm.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+        if (uid_postprocessing == "ensure")
+        {
+          fm.applyMemberFunction(&UniqueIdInterface::ensureUniqueId);
+        } else if (uid_postprocessing == "reassign")
+        {
+          fm.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+        }
       }
       else if (in_type == FileTypes::CONSENSUSXML || in_type == FileTypes::EDTA)
       {
-        ConsensusMap::convert(cm, true, fm);
+        MapConversion::convert(cm, true, fm);
       }
       else // not loaded as feature map or consensus map
       {
@@ -364,8 +376,14 @@ protected:
       if ((in_type == FileTypes::FEATUREXML) || (in_type == FileTypes::TSV) ||
           (in_type == FileTypes::PEPLIST) || (in_type == FileTypes::KROENIK))
       {
-        fm.applyMemberFunction(&UniqueIdInterface::setUniqueId);
-        ConsensusMap::convert(0, fm, cm);
+        if (uid_postprocessing == "ensure")
+        {
+          fm.applyMemberFunction(&UniqueIdInterface::ensureUniqueId);
+        } else if (uid_postprocessing == "reassign")
+        {
+          fm.applyMemberFunction(&UniqueIdInterface::setUniqueId);
+        }
+        MapConversion::convert(0, fm, cm);
       }
       // nothing to do for consensus input
       else if (in_type == FileTypes::CONSENSUSXML || in_type == FileTypes::EDTA)
@@ -373,7 +391,7 @@ protected:
       }
       else // experimental data
       {
-        ConsensusMap::convert(0, exp, cm, exp.size());
+        MapConversion::convert(0, exp, cm, exp.size());
       }
 
       addDataProcessing_(cm, getProcessingInfo_(DataProcessing::

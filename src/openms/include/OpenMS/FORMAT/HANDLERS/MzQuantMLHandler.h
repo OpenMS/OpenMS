@@ -37,7 +37,6 @@
 
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
-#include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/METADATA/MSQuantifications.h>
 
 namespace OpenMS

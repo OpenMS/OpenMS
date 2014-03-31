@@ -37,6 +37,7 @@
 
 #include <OpenMS/SIMULATION/LABELING/BaseLabeler.h>
 #include <OpenMS/SIMULATION/SimTypes.h>
+#include <OpenMS/DATASTRUCTURES/Utils/MatrixUtils.h>
 
 namespace OpenMS
 {
@@ -119,7 +120,7 @@ protected:
     DoubleReal getRTProfileIntensity_(const Feature & f, const DoubleReal MS2_RT_time) const;
 
     /// convert meta information from feature into intensity values for iTRAQ
-    Matrix<SimIntensityType> getItraqIntensity_(const Feature & f, const DoubleReal MS2_RT_time) const;
+    EigenMatrixXdPtr getItraqIntensity_(const Feature & f, const DoubleReal MS2_RT_time) const;
 
 
     // Members:

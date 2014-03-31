@@ -189,9 +189,21 @@ endif()
 
 FILE(REMOVE_RECURSE "${CMAKE_BINARY_DIR}/pyOpenMS/build")
 FILE(REMOVE_RECURSE "${CMAKE_BINARY_DIR}/pyOpenMS/dist")
+# OpenMS
 FILE(REMOVE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/OpenMSd.dll")
 FILE(REMOVE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/OpenMS.dll")
 FILE(REMOVE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/libOpenMS.so")
+FILE(REMOVE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/libOpenMS.dylib")
+# OpenSwathAlgo
+FILE(REMOVE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/OpenSwathAlgod.dll")
+FILE(REMOVE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/OpenSwathAlgo.dll")
+FILE(REMOVE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/libOpenSwathAlgo.so")
+FILE(REMOVE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/libOpenSwathAlgo.dylib")
+# SuperHirn
+FILE(REMOVE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/SuperHirnd.dll")
+FILE(REMOVE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/SuperHirn.dll")
+FILE(REMOVE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/libSuperHirn.so")
+FILE(REMOVE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/libSuperHirn.dylib")
 
 #------------------------------------------------------------------------------
 # copy files
@@ -201,6 +213,7 @@ FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/tests/memoryleaktests)
 FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/tests/integration_tests)
 FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms)
 FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/pyTOPP)
+FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/extra_includes)
 
 FILE(GLOB _python_files "${OPENMS_HOST_DIRECTORY}/pyOpenMS/pyopenms/*.py")
 FILE(COPY ${_python_files} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms)
@@ -303,7 +316,6 @@ if(WIN32)
 else()
     FILE(APPEND ${ENVPATH} OPEN_MS_LIB="" "\n")
     FILE(APPEND ${ENVPATH} OPEN_SWATH_ALGO_LIB="" "\n")
-
 endif()
 
 #------------------------------------------------------------------------------
@@ -311,7 +323,7 @@ endif()
 
 add_custom_target(pyopenms_create_cpp
 	COMMAND ${PYTHON_EXECUTABLE} create_cpp_extension.py
-	DEPENDS OpenMS
+	DEPENDS OpenMS SuperHirn
 	WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
 
 add_custom_target(pyopenms
@@ -359,12 +371,13 @@ testSpecialCases.py
 test_SpectraFilter.py
 test_SpectrumAccessOpenMS.py
 test_TraML.py
+test_MzMLConsumer.py
+test_MzXMLConsumer.py
 )
 
 # Please add your test here when you decide to write a new testfile in the tests/unittests folder
 set(pyopenms_integrationtest_testfiles
 test_MRMRTNormalizer.py
-test_SILACAnalyzer.py
 )
 
 # Loop through all the test files

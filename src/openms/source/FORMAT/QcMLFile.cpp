@@ -42,6 +42,7 @@
 #include <boost/range/adaptor/map.hpp>
 #include <boost/range/algorithm/copy.hpp>
 
+
 using namespace std;
 
 namespace OpenMS
@@ -1065,7 +1066,7 @@ namespace OpenMS
       throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
     }
  
-    os.precision(writtenDigits<DoubleReal>());
+    os.precision(writtenDigits<DoubleReal>(0.0));
 
     //~ setProgress(++progress_);
     //header & xslt

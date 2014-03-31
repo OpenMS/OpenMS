@@ -49,7 +49,7 @@ namespace OpenMS
 
     Mass traces may consist of several consecutively (partly overlapping) eluting peaks, e.g., stemming
     from isomeric compounds with exactly the same mass but different retentional behaviour. This method
-    first applies LOWESS smoothing on the mass trace's intensities, then detects local minima/maxima in
+    first applies smoothing on the mass trace's intensities, then detects local minima/maxima in
     order to separate the chromatographic peaks from each other. This results in a vector that gathers
     the splitted mass traces (see @ref ElutionPeakDetection parameters).
 
@@ -82,6 +82,7 @@ public:
     DoubleReal computeMassTraceSNR(const MassTrace&);
     DoubleReal computeApexSNR(const MassTrace&);
     void findLocalExtrema(const MassTrace&, const Size&, std::vector<Size>&, std::vector<Size>&);
+    void smoothData(MassTrace & mt, int win_size);
 
 protected:
     virtual void updateMembers_();

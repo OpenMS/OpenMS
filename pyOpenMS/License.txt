@@ -40,9 +40,6 @@ pyOpenMS depends on the following third party libraries which are included:
     Open-MS
         - URL: http://www.open-ms.de
 
-    GSL
-        - URL: http://www.gnu.org/software/gsl/
-
     Qt 4
         - URL: http://trolltech.com/downloads/opensource
 

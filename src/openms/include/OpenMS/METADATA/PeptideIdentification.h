@@ -113,6 +113,11 @@ public:
     /// sets the identifier
     void setIdentifier(const String & id);
 
+    /// returns the base name which links to underlying peak map
+    const String & getBaseName() const;
+    /// sets the base name which links to underlying peak map
+    void setBaseName(const String & base_name);
+
     /// Sorts the hits by score and assigns ranks according to the scores
     void assignRanks();
 
@@ -150,6 +155,7 @@ protected:
     DoubleReal significance_threshold_;              ///< the peptide significance threshold
     String score_type_;                                      ///< The score type (Mascot, Sequest, e-value, p-value)
     bool higher_score_better_;                       ///< The score orientation
+    String base_name_;
   };
 
 } //namespace OpenMS

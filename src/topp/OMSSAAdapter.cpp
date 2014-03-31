@@ -37,6 +37,7 @@
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MascotGenericFile.h>
@@ -83,7 +84,7 @@ using namespace std;
     for further information on how to download and install @em OMSSA on your system. You might find that the latest OMSSA version
     does not run on your system (to test this, run @em omssacl in your OMMSA/bin/ directory and see if it crashes). If you encounter
     an error message, try another OMSSA version.
-    
+
     @note OMMSA seems to be discontinued by NCBI due to financial restrictions. The above homepage might not work. Try ftp://ftp.ncbi.nih.gov/pub/lewisg/omssa/
     as an alternative for downloading the binaries.
 
@@ -117,7 +118,7 @@ using namespace std;
     Running time is about the same (slightly faster even) for 10k chunks, but deteriorates slightly (15%) if chunk size is too small (1k spectra).
     The disadvantage of chunking is that no protein hits (nor their scores) will be stored in the output, since peptide evidence is split between chunks.
     If you want to disable chunking at the risk of provoking a memory allocation error in OMSSA, set chunk size to '0'.
-    
+
     This wrapper has been tested successfully with OMSSA, version 2.x.
 
   @note OMSSA search is much faster when the database (.psq files etc.) is accessed locally, rather than over a network share (we measured 10x speed increase in some cases).
@@ -737,23 +738,23 @@ protected:
     // executable is stored in OpenMS_bin/share/OpenMS/3rdParty/OMSSA/omssacl(.exe)
     // or PATH
 
-    
+
     //-------------------------------------------------------------
     // reading input
     //-------------------------------------------------------------
 
     // names of temporary files for data chunks
     StringList file_spectra_chunks_in, file_spectra_chunks_out;
-
-    { // local scope to free memory after conversion to MFG format is done
+    Size ms2_spec_count(0);
+    { // local scope to free memory after conversion to MGF format is done
       FileHandler fh;
       FileTypes::Type in_type = fh.getType(inputfile_name);
       PeakMap map;
       fh.getOptions().addMSLevel(2);
       fh.loadExperiment(inputfile_name, map, in_type, log_type_);
+      ms2_spec_count = map.size();
+      writeDebug_("Read " + String(ms2_spec_count) + " spectra from file", 5);
 
-      writeDebug_("Read " + String(map.size()) + " spectra from file", 5);
-      
       int chunk(0);
       int chunk_size(getIntOption_("chunk_size"));
       if (chunk_size <= 0)
@@ -818,18 +819,18 @@ protected:
         // for some reason QProcess doesn't handle escaped " in arguments properly so we use a system call
         // see http://www.ncbi.nlm.nih.gov/books/NBK1763/ for the format the NCBI library is expecting internally if spaces are in file/path names
         String call_string = omssa_executable + " " + ListUtils::concatenate(parameters_chunk, " ");
-        writeDebug_(call_string, 5);   
+        writeDebug_(call_string, 5);
         status = system(call_string.c_str());
       } else
       {
         writeDebug_(omssa_executable + " " + ListUtils::concatenate(parameters_chunk, " "), 5);
-        status = QProcess::execute(omssa_executable.toQString(), qparam);      
+        status = QProcess::execute(omssa_executable.toQString(), qparam);
       }
 #else
       writeDebug_(omssa_executable + " " + ListUtils::concatenate(parameters_chunk, " "), 5);
       status = QProcess::execute(omssa_executable.toQString(), qparam);
 #endif
-    
+
       if (status != 0)
       {
         writeLog_("Error: OMSSA problem! See above for OMSSA error. If this does not help, increase 'debug' level and run again.");
@@ -841,7 +842,7 @@ protected:
         }
         else
         {
-          writeDebug_(String("Not removing intermediate files, but leaving them for inspection at ") + file_spectra_chunks_in[i] + " (OMSSA input) and " + file_spectra_chunks_out[i] + " (OMSSA output).\n", 2); 
+          writeDebug_(String("Not removing intermediate files, but leaving them for inspection at ") + file_spectra_chunks_in[i] + " (OMSSA input) and " + file_spectra_chunks_out[i] + " (OMSSA output).\n", 2);
         }
         if (!user_mods.empty())
         {
@@ -855,8 +856,9 @@ protected:
       ProteinIdentification protein_identification_chunk;
       vector<PeptideIdentification> peptide_ids_chunk;
       OMSSAXMLFile omssa_out_file;
-      omssa_out_file.setModificationDefinitionsSet(mod_set);          
-      omssa_out_file.load(file_spectra_chunks_out[i], protein_identification_chunk, peptide_ids_chunk);
+      omssa_out_file.setModificationDefinitionsSet(mod_set);
+      // do not load empty hits for efficiency and correct stats report (below)
+      omssa_out_file.load(file_spectra_chunks_out[i], protein_identification_chunk, peptide_ids_chunk, true, false);
 
       // OMSSA does not write fixed modifications so we need to add them to the sequences
       writeDebug_("Assigning modifications to peptides", 1);
@@ -926,7 +928,7 @@ protected:
       }
       else
       {
-        writeDebug_(String("Not removing intermediate files, but leaving them for inspection at ") + file_spectra_chunks_in[i] + " (OMSSA input) and " + file_spectra_chunks_out[i] + " (OMSSA output).\n", 2); 
+        writeDebug_(String("Not removing intermediate files, but leaving them for inspection at ") + file_spectra_chunks_in[i] + " (OMSSA input) and " + file_spectra_chunks_out[i] + " (OMSSA output).\n", 2);
       }
     } // chunks loop
 
@@ -975,7 +977,7 @@ protected:
     search_parameters.missed_cleavages = getIntOption_("v");
     search_parameters.peak_mass_tolerance = getDoubleOption_("fragment_mass_tolerance");
     search_parameters.precursor_tolerance = getDoubleOption_("precursor_mass_tolerance");
-    
+
     protein_identification.setSearchParameters(search_parameters);
     protein_identification.setSearchEngineVersion(omssa_version);
     protein_identification.setSearchEngine("OMSSA");
@@ -986,6 +988,11 @@ protected:
     vector<ProteinIdentification> protein_identifications;
     protein_identifications.push_back(protein_identification);
     IdXMLFile().store(outputfile_name, protein_identifications, peptide_ids);
+
+    // some stats
+    LOG_INFO << "Statistics:\n"
+             << "  identified MS2 spectra: " << peptide_ids.size() << " / " << ms2_spec_count << " = " << int(peptide_ids.size() * 100.0 / ms2_spec_count) << "% (with e-value < " << String(getDoubleOption_("he")) << ")" << std::endl;
+
 
     return EXECUTION_OK;
   }

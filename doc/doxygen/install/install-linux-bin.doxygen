@@ -1,11 +1,11 @@
 /**
-  
   @page install_linux_bin Installation on GNU/Linux
-  
-	Currently there are no binary packages for GNU/Linux distributions.
-	
-	You have to build %OpenMS from source with the Release package (or Development (svn) version) provided on http://open-ms.sourceforge.net/downloads/. 
 
-	For instructions see @subpage install_linux .
+  Currently only Debian provides a packaged version of %OpenMS. For other
+  non-debian based GNU/Linux distributions you need to build your own version
+  of %OpenMS.
+
+  Please check http://www.openms.de/downloads/ for details on how to
+  obtain the source code @subpage install_linux on how to build %OpenMS.
 
 */

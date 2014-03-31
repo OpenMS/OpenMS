@@ -39,6 +39,9 @@
 
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
+
+#include <QString>
 
 #include <sstream>
 

@@ -33,11 +33,14 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/DATASTRUCTURES/SuffixArrayTrypticCompressed.h>
+#include <OpenMS/DATASTRUCTURES/SuffixArraySeqan.h>
 #include <stack>
 #include <fstream>
 #include <cmath>
 #include <cstring>
 #include <algorithm>
+#include <iostream>
+#include <sstream>
 
 #include <OpenMS/CHEMISTRY/ModifierRep.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
@@ -50,11 +53,11 @@ using namespace std;
 namespace OpenMS
 {
 
-/**
-@brief comperator for two substings represented as pair of ints
+  /**
+    @brief comperator for two substings represented as pair of ints
 
-holds a reference of the string and compairs two substrings. It will be used for sorting the indices.
-*/
+    holds a reference of the string and compairs two substrings. It will be used for sorting the indices.
+  */
   struct SubstringLess :
     public binary_function<pair<SignedSize, SignedSize>, pair<SignedSize, SignedSize>, bool>
   {
@@ -83,40 +86,6 @@ holds a reference of the string and compairs two substrings. It will be used for
 
 protected:
     String const& str_; ///< string
-  };
-
-/**
-@brief comparator for two doubles with a tolerance value
-*/
-  struct FloatsWithTolLess :
-    public binary_function<DoubleReal, DoubleReal, bool>
-  {
-    /**
-    @brief constructor
-    @param t const reference to the tolerance
-    */
-    explicit FloatsWithTolLess(const DoubleReal& t) :
-      tol_(t) {}
-    /**
-    @brief copy constructor
-    */
-    FloatsWithTolLess(const FloatsWithTolLess& rhs) :
-      tol_(rhs.tol_) {}
-
-    /**
-    @brief implementation of the '<' operator for two doubles with the tolerance value
-    @param f1 first DoubleReal
-    @param f2 second DoubleReal
-    @return true if first DoubleReal '<' second DoubleReal-tolerance
-    */
-    bool operator()(DoubleReal f1, DoubleReal f2) const
-    {
-      return f1 < (f2 - tol_);
-      //return (fabs(f1 - f2) < tol_);
-    }
-
-protected:
-    DoubleReal const& tol_; ///< tolerance value
   };
 
 

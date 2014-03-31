@@ -67,6 +67,20 @@ namespace OpenMS
     bool use_nr_peaks_score_;
     bool use_sn_score_;
     bool use_dia_scores_;
+    
+    OpenSwath_Scores_Usage() :
+      use_coelution_score_(true),
+      use_shape_score_(true),
+      use_rt_score_(true),
+      use_library_score_(true),
+      use_elution_model_score_(true),
+      use_intensity_score_(true),
+      use_total_xic_score_(true),
+      use_nr_peaks_score_(true),
+      use_sn_score_(true),
+      use_dia_scores_(true)
+    {}
+
   };
 
   /** @brief A structure to hold the different scores computed by OpenSWATH

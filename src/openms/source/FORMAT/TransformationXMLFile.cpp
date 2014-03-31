@@ -78,7 +78,7 @@ namespace OpenMS
     {
       throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
     }
-    os.precision(writtenDigits<DoubleReal>());
+    os.precision(writtenDigits<DoubleReal>(0.0));
 
     //write header
     os << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << "\n";
@@ -90,8 +90,7 @@ namespace OpenMS
        << "\">\n";
 
     // write parameters
-    Param params;
-    transformation.getModelParameters(params);
+    Param params = transformation.getModelParameters();
     for (Param::ParamIterator it = params.begin(); it != params.end(); ++it)
     {
       if (it->value.valueType() != DataValue::EMPTY_VALUE)

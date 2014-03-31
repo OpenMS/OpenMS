@@ -43,6 +43,40 @@ using namespace std;
 namespace OpenMS
 {
 
+  DataFilters::DataFilters() :
+    filters_(),
+    meta_indices_(),
+    is_active_(false)
+  {
+  }
+
+  DataFilters::DataFilter::DataFilter() :
+    field(DataFilters::INTENSITY),
+    op(DataFilters::GREATER_EQUAL),
+    value(0.0),
+    value_string(),
+    meta_name(),
+    value_is_numerical(false)
+  {
+  }
+
+  bool DataFilters::DataFilter::operator==(const DataFilter & rhs) const
+  {
+    return field == rhs.field
+           && op == rhs.op
+           && value == rhs.value
+           && value_string == rhs.value_string
+           && meta_name == rhs.meta_name
+           && value_is_numerical == rhs.value_is_numerical;
+  }
+
+  ///Inequality operator
+  bool DataFilters::DataFilter::operator!=(const DataFilter & rhs) const
+  {
+    return !operator==(rhs);
+  }
+
+
   String DataFilters::DataFilter::toString() const
   {
     String out;

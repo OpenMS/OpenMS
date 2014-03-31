@@ -91,8 +91,6 @@
 				<userParam name="parameter: algorithm:thresholds:search_radius" type="xsd:integer" value="3"/>
 				<userParam name="parameter: algorithm:wavelet_transform:spacing" type="xsd:double" value="0.001"/>
 				<userParam name="parameter: algorithm:optimization:iterations" type="xsd:integer" value="15"/>
-				<userParam name="parameter: algorithm:optimization:delta_abs_error" type="xsd:double" value="9.99999974737875e-05"/>
-				<userParam name="parameter: algorithm:optimization:delta_rel_error" type="xsd:double" value="9.99999974737875e-05"/>
 				<userParam name="parameter: algorithm:optimization:penalties:position" type="xsd:double" value="0"/>
 				<userParam name="parameter: algorithm:optimization:penalties:left_width" type="xsd:double" value="1"/>
 				<userParam name="parameter: algorithm:optimization:penalties:right_width" type="xsd:double" value="1"/>

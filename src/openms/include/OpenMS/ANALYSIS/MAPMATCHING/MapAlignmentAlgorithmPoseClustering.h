@@ -41,6 +41,8 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/PoseClusteringAffineSuperimposer.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 
+#include <OpenMS/KERNEL/ConversionHelper.h>
+
 namespace OpenMS
 {
   /**
@@ -80,7 +82,7 @@ public:
     void setReference(const MapType & map)
     {
       MapType map2 = map; // todo: avoid copy (MSExperiment version of convert() demands non-const version)
-      ConsensusMap::convert(0, map2, reference_, max_num_peaks_considered_);
+      MapConversion::convert(0, map2, reference_, max_num_peaks_considered_);
     }
 
     /// Creates a new instance of this class (for Factory)

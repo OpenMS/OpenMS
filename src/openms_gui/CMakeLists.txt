@@ -47,8 +47,8 @@ include(${QT_USE_FILE})
 
 # --------------------------------------------------------------------------
 # include custom macros for openms_gui lib
-#include(qt_wrap_ui.cmake)
 include(qt_wrap_ui.cmake)
+include(add_mac_bundle.cmake)
 
 #------------------------------------------------------------------------------
 # we need to handle boost > 1.52 when moc-ing so we explicitely find boost here
@@ -64,17 +64,33 @@ include (${PROJECT_SOURCE_DIR}/includes.cmake)
 
 # --------------------------------------------------------------------------
 # Expose OpenMSGUI's public includes (including transitive dependencies)
-set(OPENMS_GUI_INCLUDE_DIRECTORIES ${PROJECT_SOURCE_DIR}/include
-                                   ${PROJECT_BINARY_DIR}/include
-                                   ${OPENMS_INCLUDE_DIRECTORIES}
+set(OpenMS_GUI_INTERNAL_INCLUDE_DIRECTORIES ${PROJECT_SOURCE_DIR}/include
+                                            ${PROJECT_BINARY_DIR}/include)
+
+set(OpenMS_GUI_EXTERNAL_INCLUDE_DIRECTORIES ${OpenMS_INCLUDE_DIRECTORIES})
+
+set(OpenMS_GUI_INCLUDE_DIRECTORIES ${OpenMS_GUI_INTERNAL_INCLUDE_DIRECTORIES}
+                                   ${OpenMS_GUI_EXTERNAL_INCLUDE_DIRECTORIES}
     CACHE INTERNAL "OpenMS_GUI include directories" FORCE)
 
 # add OpenMS include directories
-include_directories(${OPENMS_GUI_INCLUDE_DIRECTORIES})
+include_directories(${OpenMS_GUI_INTERNAL_INCLUDE_DIRECTORIES})
+include_directories(SYSTEM ${OpenMS_GUI_EXTERNAL_INCLUDE_DIRECTORIES})
+
+if (ENABLE_UNITYBUILD)
+	MESSAGE(STATUS "Unity Build for OpenMS-GUI lib: Enabled")
+	convert_to_unity_build(OpenMSVisual_UnityBuild OpenMSVisual_sources)
+else()
+	MESSAGE(STATUS "Unity Build for OpenMS-GUI lib: Disabled")
+endif()
 
 # --------------------------------------------------------------------------
 # OpenMS_GUI lib
 add_library(OpenMS_GUI ${OpenMSVisual_sources})
+
+# we also want to install OpenMS_GUI
+install_library(OpenMS_GUI)
+install_headers(${OpenMSVisual_sources_h} OpenMS_GUI)
 
 #------------------------------------------------------------------------------
 # copy dll to test/doc bin folder on MSVC systems
@@ -106,6 +122,11 @@ target_link_libraries(OpenMS_GUI OpenMS ${QT_LIBRARIES})
 # link libraries for GUI Tools
 set(OPENMS_GUI_LIBRARIES OpenMS_GUI OpenMS ${QT_LIBRARIES} CACHE INTERNAL "OpenMS GUI libraries" FORCE)
 
+#------------------------------------------------------------------------------
+# register relevant paths for the doxygen doc generation
+openms_doc_path("${PROJECT_SOURCE_DIR}/include")
+openms_doc_path("${PROJECT_SOURCE_DIR}/source/VISUAL/APPLICATIONS")
+
 # --------------------------------------------------------------------------
 # GUI tools
 set(GUI_DIR source/VISUAL/APPLICATIONS/GUITOOLS)
@@ -118,32 +139,7 @@ foreach(i ${GUI_executables})
 		Message(STATUS "Setting resource file ${resource_file} for ${i}")
 		add_executable(${i} ${GUI_DIR}/${i}.cpp ${resource_file})
 	elseif(APPLE AND EXISTS ${resource_dir})
-		# the icon file
-		set(ICON_FILE_PATH "${PROJECT_SOURCE_DIR}/source/VISUAL/APPLICATIONS/GUITOOLS/${i}-resources/${i}.icns")
-    set(INFO_PLIST_TEMPLATE "${PROJECT_SOURCE_DIR}/source/VISUAL/APPLICATIONS/GUITOOLS/${i}-resources/${i}.plist.in")
-		get_filename_component(ICON_FILE_NAME "${ICON_FILE_PATH}" NAME)
-
-		# we also need the icns in the app
-		add_executable(
-			${i}
-			MACOSX_BUNDLE
-			${GUI_DIR}/${i}.cpp
-			${ICON_FILE_PATH})
-
-		set_target_properties(${i} PROPERTIES
-      # we want our own info.plist template
-      MACOSX_BUNDLE_INFO_PLIST "${INFO_PLIST_TEMPLATE}"
-			MACOSX_BUNDLE_INFO_STRING "${PROJECT_NAME} Version ${CF_OPENMS_PACKAGE_VERSION}, Copyright 2013 The OpenMS Team."
-			MACOSX_BUNDLE_ICON_FILE ${ICON_FILE_NAME}
-			MACOSX_BUNDLE_GUI_IDENTIFIER "de.openms.${i}"
-			MACOSX_BUNDLE_LONG_VERSION_STRING "${PROJECT_NAME} Version ${CF_OPENMS_PACKAGE_VERSION}"
-			MACOSX_BUNDLE_BUNDLE_NAME ${i}
-			MACOSX_BUNDLE_SHORT_VERSION_STRING ${CF_OPENMS_PACKAGE_VERSION}
-			MACOSX_BUNDLE_BUNDLE_VERSION ${CF_OPENMS_PACKAGE_VERSION}
-			MACOSX_BUNDLE_COPYRIGHT "Copyright 2013, The OpenMS Team. All Rights Reserved."
-		)
-
-		set_source_files_properties(${ICON_FILE_PATH} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+		add_mac_app_bundle(${i})
 	else()
     if(APPLE)
       message(STATUS "No icon file (${i}.icns) found in ${resource_dir}. Will not build ${i} as app bundle.")
@@ -158,6 +154,9 @@ foreach(i ${GUI_executables})
 	if (OPENMP_FOUND AND NOT MSVC)
 		set_target_properties(${i} PROPERTIES LINK_FLAGS ${OpenMP_CXX_FLAGS})
 	endif()
+
+  # we also want to install each GUI tool
+  install_tool(${i})
 endforeach(i)
 add_custom_target(GUI)
 add_dependencies(GUI ${GUI_executables})

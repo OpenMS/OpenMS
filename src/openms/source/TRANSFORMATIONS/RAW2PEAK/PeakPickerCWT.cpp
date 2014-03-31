@@ -123,12 +123,8 @@ namespace OpenMS
     defaults_.setValue("optimization:penalties:height", 1.0, "penalty term for the fitting of the intensity (only used in 2D Optimization):" \
                                                              "If it gets negative during the fitting it can be penalized.", ListUtils::create<String>("advanced"));
     defaults_.setMinFloat("optimization:penalties:height", 0.0);
-    defaults_.setValue("optimization:iterations", 15, "maximal number of iterations for the fitting step", ListUtils::create<String>("advanced"));
+    defaults_.setValue("optimization:iterations", 400, "maximal number of iterations for the fitting step", ListUtils::create<String>("advanced"));
     defaults_.setMinInt("optimization:iterations", 1);
-    defaults_.setValue("optimization:delta_abs_error", 1e-04f, "if the absolute error gets smaller than this value the fitting is stopped.", ListUtils::create<String>("advanced"));
-    defaults_.setMinFloat("optimization:delta_abs_error", 0.0);
-    defaults_.setValue("optimization:delta_rel_error", 1e-04f, "if the relative error gets smaller than this value the fitting is stopped", ListUtils::create<String>("advanced"));
-    defaults_.setMinFloat("optimization:delta_rel_error", 0.0);
     // additional 2d optimization parameters
     defaults_.setValue("optimization:2d:tolerance_mz", 2.2, "mz tolerance for cluster construction", ListUtils::create<String>("advanced"));
     defaults_.setMinFloat("optimization:2d:tolerance_mz", 0.0);
@@ -976,7 +972,8 @@ namespace OpenMS
                 << "peaks\n";
 #endif
 
-
+      std::vector<PeakShape> peaks_DC2 = peaks_DC;
+      OptimizePeakDeconvolution::Data data2 = data;
       opt.optimize(peaks_DC, data);
       for (Int i = 0; i < peaks; ++i)
       {
@@ -1000,7 +997,7 @@ namespace OpenMS
 
       std::cout << " \nLM results:\n";
 
-      //print gsl results:
+      //print results:
       for (Int i = 0; i < (Int)peaks_DC.size(); ++i)
       {
         std::cout << "\nposLM(" << i + 1 << ")=" << peaks_DC[i].mz_position;
