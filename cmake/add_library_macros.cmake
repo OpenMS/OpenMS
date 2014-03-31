@@ -106,10 +106,16 @@ endmacro()
 # openms_add_library()
 # Create an OpenMS like library
 function(openms_add_library)
-  set(options GENERATE_EXPORT )
+  #------------------------------------------------------------------------------
+  # parse arguments to function
+  set(options )
   set(oneValueArgs TARGET_NAME DLL_EXPORT_PATH)
   set(multiValueArgs INTERNAL_INCLUDES EXTERNAL_INCLUDES SOURCE_FILES HEADER_FILES LINK_LIBRARIES)
   cmake_parse_arguments(openms_add_library "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN} )
+
+  #------------------------------------------------------------------------------
+  # Status message for configure output
+  message(STATUS "Adding library ${openms_add_library_TARGET_NAME}")
 
   #------------------------------------------------------------------------------
   # merge into global exported includes
@@ -125,10 +131,10 @@ function(openms_add_library)
   #------------------------------------------------------------------------------
   # Check if we want a unity build
   if (ENABLE_UNITYBUILD)
-  	message(STATUS "Unity Build for ${openms_add_library_TARGET_NAME}: Enabled")
+  	message(STATUS " .. Unity Build for ${openms_add_library_TARGET_NAME}: Enabled")
   	convert_to_unity_build(${openms_add_library_TARGET_NAME}_UnityBuild openms_add_library_SOURCE_FILES)
   else()
-  	message(STATUS "Unity Build for ${openms_add_library_TARGET_NAME}: Disabled")
+  	message(STATUS " .. Unity Build for ${openms_add_library_TARGET_NAME}: Disabled")
   endif()
 
   #------------------------------------------------------------------------------
@@ -138,7 +144,7 @@ function(openms_add_library)
   #------------------------------------------------------------------------------
   # Generate export header if requested
   if(NOT ${openms_add_library_DLL_EXPORT_PATH} STREQUAL "")
-    set(_CONFIG_H "include/${openms_add_library_DLL_EXPORT_PATH}/${openms_add_library_TARGET_NAME}Config.h")
+    set(_CONFIG_H "include/${openms_add_library_DLL_EXPORT_PATH}${openms_add_library_TARGET_NAME}Config.h")
     string(TOUPPER ${openms_add_library_TARGET_NAME} _TARGET_UPPER_CASE)
     include(GenerateExportHeader)
     generate_export_header(${openms_add_library_TARGET_NAME}
@@ -149,12 +155,15 @@ function(openms_add_library)
 
     # add generated header to visual studio
     source_group("Header Files\\${_fixed_path}" FILES ${_CONFIG_H})
+    message(STATUS " .. Generated export header ${_CONFIG_H}")
   endif()
 
   #------------------------------------------------------------------------------
   # Link library against other libraries
   if(openms_add_library_LINK_LIBRARIES)
     target_link_libraries(${openms_add_library_TARGET_NAME} ${openms_add_library_LINK_LIBRARIES})
+    list(LENGTH openms_add_library_LINK_LIBRARIES _library_count)
+    message(STATUS " .. Linking ${openms_add_library_TARGET_NAME} against ${_library_count} libraries")
   endif()
 
   #------------------------------------------------------------------------------
