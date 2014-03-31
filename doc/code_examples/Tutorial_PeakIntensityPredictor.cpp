@@ -43,15 +43,15 @@ Int main()
 {
   //Create a vector for the predicted values that is large enough to hold them all
   vector<AASequence> peptides;
-  peptides.push_back(AASequence("IVGLMPHPEHAVEK"));
-  peptides.push_back(AASequence("LADNISNAMQGISEATEPR"));
-  peptides.push_back(AASequence("ELDHSDTIEVIVNPEDIDYDAASEQAR"));
-  peptides.push_back(AASequence("AVDTVR"));
-  peptides.push_back(AASequence("AAWQVK"));
-  peptides.push_back(AASequence("FLGTQGR"));
-  peptides.push_back(AASequence("NYPSDWSDVDTK"));
-  peptides.push_back(AASequence("GSPSFGPESISTETWSAEPYGR"));
-  peptides.push_back(AASequence("TELGFDPEAHFAIDDEVIAHTR"));
+  peptides.push_back(AASequence::fromString("IVGLMPHPEHAVEK"));
+  peptides.push_back(AASequence::fromString("LADNISNAMQGISEATEPR"));
+  peptides.push_back(AASequence::fromString("ELDHSDTIEVIVNPEDIDYDAASEQAR"));
+  peptides.push_back(AASequence::fromString("AVDTVR"));
+  peptides.push_back(AASequence::fromString("AAWQVK"));
+  peptides.push_back(AASequence::fromString("FLGTQGR"));
+  peptides.push_back(AASequence::fromString("NYPSDWSDVDTK"));
+  peptides.push_back(AASequence::fromString("GSPSFGPESISTETWSAEPYGR"));
+  peptides.push_back(AASequence::fromString("TELGFDPEAHFAIDDEVIAHTR"));
 
   //Create new predictor model with vector of AASequences
   PeakIntensityPredictor model;

@@ -430,8 +430,8 @@ START_SECTION((void encodeProblemWithOligoBorderVectors(const std::vector< AASeq
 	vector< pair<Int, DoubleReal> > encoded_sequence;
   vector< vector< pair<Int, DoubleReal> > > encoded_sequences;
   
-  sequences.push_back(AASequence("ACNNGTATCA"));
-  sequences.push_back(AASequence("AACNNGTACCA"));
+  sequences.push_back(AASequence::fromString("ACNNGTATCA"));
+  sequences.push_back(AASequence::fromString("AACNNGTACCA"));
 	encoder.encodeProblemWithOligoBorderVectors(sequences, 1, allowed_characters, border_length, encoded_sequences);
   TEST_EQUAL(encoded_sequences[0].size(), 6)
   TEST_EQUAL(encoded_sequences[0][0].first, 1)
@@ -463,7 +463,7 @@ START_SECTION((void encodeProblemWithOligoBorderVectors(const std::vector< AASeq
 END_SECTION
 
 START_SECTION((void encodeOligo(const AASequence &sequence, UInt k_mer_length, const String &allowed_characters, std::vector< std::pair< Int, DoubleReal > > &values, bool is_right_border=false)))
-	AASequence sequence = AASequence("ACNNGTATCA");
+	AASequence sequence = AASequence::fromString("ACNNGTATCA");
 	String allowed_characters = "ACNGT";
 	String output;
 	vector< pair<Int, DoubleReal> > encoded_sequence;
@@ -514,7 +514,7 @@ START_SECTION((void encodeOligo(const AASequence &sequence, UInt k_mer_length, c
   TEST_EQUAL(encoded_sequence[9].first, 5)
   TEST_REAL_SIMILAR(encoded_sequence[9].second, 4.)
   
-  sequence = AASequence("ACNN");       
+  sequence = AASequence::fromString("ACNN");       
 	encoder.encodeOligo(sequence, 2, allowed_characters, encoded_sequence);
   TEST_EQUAL(encoded_sequence[0].first, 1)
   TEST_REAL_SIMILAR(encoded_sequence[0].second, 1.)
@@ -523,7 +523,7 @@ START_SECTION((void encodeOligo(const AASequence &sequence, UInt k_mer_length, c
   TEST_EQUAL(encoded_sequence[2].first, 3)
   TEST_REAL_SIMILAR(encoded_sequence[2].second, 2 * allowed_characters.size() * (modifications->getNumberOfModifications() + 1) + 2.)
 
-  sequence = AASequence("ACNN");       
+  sequence = AASequence::fromString("ACNN");       
 	encoder.encodeOligo(sequence, 2, allowed_characters, encoded_sequence, right_border);
   TEST_EQUAL(encoded_sequence[0].first, 3)
   TEST_REAL_SIMILAR(encoded_sequence[0].second, allowed_characters.size() * (modifications->getNumberOfModifications() + 1.))

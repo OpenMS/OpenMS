@@ -434,7 +434,7 @@ namespace OpenMS
   }
 
 
-  void PepXMLFile::load(const String& filename, vector<ProteinIdentification>& 
+  void PepXMLFile::load(const String& filename, vector<ProteinIdentification>&
                         proteins, vector<PeptideIdentification>& peptides,
                         const String& experiment_name, const MSExperiment<>&
                         experiment, bool use_precursor_data)
@@ -475,7 +475,7 @@ namespace OpenMS
     // without experiment name, don't care about these two:
     seen_experiment_ = exp_name_.empty();
     checked_base_name_ = exp_name_.empty();
-   
+
     parse_(filename, this);
 
     if (!seen_experiment_)
@@ -998,7 +998,7 @@ namespace OpenMS
     }
     else if (element == "search_hit")
     {
-      AASequence temp_aa_sequence = AASequence(current_sequence_);
+      AASequence temp_aa_sequence = AASequence::fromString(current_sequence_);
 
       // modification position is 1-based
       for (vector<pair<String, Size> >::const_iterator it = current_modifications_.begin(); it != current_modifications_.end(); ++it)

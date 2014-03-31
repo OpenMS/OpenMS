@@ -66,7 +66,7 @@ END_SECTION
 START_SECTION((void getDecompositions(std::vector<MassDecomposition>& decomps, DoubleReal weight)))
 {
   vector<MassDecomposition> decomps;
-	DoubleReal mass = AASequence("DFPIANGER").getMonoWeight(Residue::Internal);
+	DoubleReal mass = AASequence::fromString("DFPIANGER").getMonoWeight(Residue::Internal);
 	cerr << mass << endl;
 
 	MassDecompositionAlgorithm mda;

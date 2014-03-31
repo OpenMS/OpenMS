@@ -654,7 +654,7 @@ namespace OpenMS
     // TODO: at this point we could check whether the modification is actually valid
     // aas.setModification(it->location, "UniMod:" + mo->getAccession().substr(7));
     std::vector<TargetedExperiment::Peptide::Modification> mods;
-    AASequence aa_sequence = AASequence(tr_it->FullPeptideName);
+    AASequence aa_sequence = AASequence::fromString(tr_it->FullPeptideName);
     ModificationsDB* mod_db = ModificationsDB::getInstance();
 
     // in TraML, the modification the AA starts with residue 1 but the

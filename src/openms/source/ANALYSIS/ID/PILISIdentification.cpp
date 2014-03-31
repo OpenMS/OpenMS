@@ -272,7 +272,7 @@ delete sequence_db_;
       //cerr << it1->first << " " << it1->second << endl;
       try
       {
-        AASequence seq(it1->first);
+        AASequence seq = AASequence::fromString(it1->first);
         getSpectrum_(sim_spec, it1->first, it1->second);
       }
       catch (Exception::ParseError & /*e*/)
@@ -295,7 +295,7 @@ delete sequence_db_;
       }
       double score = (*scorer_)(s1, s2);
       //cerr << "Pre: " << it1->first << " " << it1->second << " " << score << endl;
-      PeptideHit peptide_hit(score, 0, it1->second, AASequence(it1->first));
+      PeptideHit peptide_hit(score, 0, it1->second, AASequence::fromString(it1->first));
       id.insertHit(peptide_hit);
     }
 

@@ -84,11 +84,11 @@ protected:
   {
     registerInputFile_("info", "<file>", "", "Holds id, peptide, retention time etc.");
     setValidFormats_("info", ListUtils::create<String>("csv"));
-    
+
     registerStringOption_("itemseperator", "<char>", ",", " Seperator between items. e.g. ,", false);
     registerStringOption_("itemenclosed", "<bool>", "false", "'true' or 'false' if true every item is enclosed e.g. '$peptide$,$run$...", false);
     setValidStrings_("itemenclosed", ListUtils::create<String>("true,false"));
-    
+
     registerInputFile_("spec", "<file>", "", "spectra");
     setValidFormats_("spec", ListUtils::create<String>("mzData,mzXML"));
 
@@ -257,7 +257,7 @@ protected:
             speci.push_back(richy);
           }
           PeptideHit hit;                  // = *it->getPeptideIdentifications().begin()->getHits().begin();
-          AASequence aa(list[i][peptide]);
+          AASequence aa = AASequence::fromString(list[i][peptide]);
           hit.setSequence(aa);
           hit.setCharge(list[i][charge_state].toInt());
           vector<PeptideHit> hits;

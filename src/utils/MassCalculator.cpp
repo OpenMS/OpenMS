@@ -200,7 +200,7 @@ protected:
       {
         item.unquote();
       }
-      AASequence seq(item);
+      AASequence seq = AASequence::fromString(item);
       if (!seq.isValid())
       {
         LOG_WARN << "Warning: '" << item
@@ -285,7 +285,7 @@ protected:
       }
       for (StringList::iterator it = in_seq.begin(); it != in_seq.end(); ++it)
       {
-        AASequence seq(*it);
+        AASequence seq = AASequence::fromString(*it);
         if (!seq.isValid())
         {
           LOG_WARN << "Warning: '" << *it

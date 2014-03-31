@@ -66,6 +66,7 @@ namespace OpenMS
   {
   }
 
+  /*
   AASequence::AASequence(const String & peptide) :
     valid_(true),
     n_term_mod_(0),
@@ -73,7 +74,9 @@ namespace OpenMS
   {
     parseString_(peptide_, peptide);
   }
+  */
 
+  /*
   AASequence::AASequence(const char * peptide) :
     valid_(true),
     n_term_mod_(0),
@@ -81,7 +84,7 @@ namespace OpenMS
   {
     parseString_(peptide_, String(peptide));
   }
-
+*/
   AASequence::~AASequence()
   {
   }
@@ -488,11 +491,11 @@ namespace OpenMS
 
   bool AASequence::has(const String & residue) const
   {
-    if (!getResidueDB_()->hasResidue(residue))
+    if (!ResidueDB::getInstance()->hasResidue(residue))
     {
       return false;
     }
-    return has(*getResidueDB_()->getResidue(residue));
+    return has(*ResidueDB::getInstance()->getResidue(residue));
   }
 
   bool AASequence::hasSubsequence(const AASequence & sequence) const
@@ -533,7 +536,7 @@ namespace OpenMS
 
   bool AASequence::hasSubsequence(const String & sequence) const
   {
-    AASequence aa_seq(sequence);
+    AASequence aa_seq = AASequence::fromString(sequence);
     return hasSubsequence(aa_seq);
   }
 
@@ -565,8 +568,8 @@ namespace OpenMS
 
   bool AASequence::hasPrefix(const String & sequence) const
   {
-    AASequence seq(sequence);
-    return hasPrefix(seq);
+    AASequence aa_seq = AASequence::fromString(sequence);
+    return hasPrefix(aa_seq);
   }
 
   bool AASequence::hasSuffix(const AASequence & sequence) const
@@ -597,8 +600,8 @@ namespace OpenMS
 
   bool AASequence::hasSuffix(const String & sequence) const
   {
-    AASequence seq(sequence);
-    return hasSuffix(seq);
+    AASequence aa_seq = AASequence::fromString(sequence);
+    return hasSuffix(aa_seq);
   }
 
   bool AASequence::operator==(const AASequence & peptide) const
@@ -640,31 +643,31 @@ namespace OpenMS
     return true;
   }
 
+  /*
   bool AASequence::operator==(const String & peptide) const
   {
     AASequence sequence(peptide);
     return *this == sequence;
   }
 
+
   bool AASequence::operator==(const char * peptide) const
   {
     return *this == String(peptide);
   }
-
+*/
   bool AASequence::operator!=(const AASequence & peptide) const
   {
     return !(*this == peptide);
   }
 
+  /*
   bool AASequence::operator!=(const String & sequence) const
   {
     return !(*this == sequence);
   }
+  */
 
-  bool AASequence::operator!=(const char * sequence) const
-  {
-    return *this != String(sequence);
-  }
 
   bool AASequence::empty() const
   {
@@ -758,9 +761,9 @@ namespace OpenMS
     return os;
   }
 
-  void AASequence::parseString_(vector<const Residue *> & sequence, const String & pep)
+  void AASequence::parseString_(AASequence& aas, const String & pep)
   {
-    sequence.clear();
+    aas.peptide_.clear();
     String peptide(pep);
     peptide.trim();
 
@@ -835,7 +838,7 @@ namespace OpenMS
       mod.trim();
       mod.erase(mod.begin());
       mod.erase(mod.end() - 1);
-      n_term_mod_ = &ModificationsDB::getInstance()->getTerminalModification(mod, ResidueModification::N_TERM);
+      aas.n_term_mod_ = &ModificationsDB::getInstance()->getTerminalModification(mod, ResidueModification::N_TERM);
 
       split.erase(split.begin());
     }
@@ -878,7 +881,7 @@ namespace OpenMS
       try
       {
         const ResidueModification * potential_mod = &ModificationsDB::getInstance()->getTerminalModification(mod, ResidueModification::C_TERM);
-        c_term_mod_ = potential_mod;
+        aas.c_term_mod_ = potential_mod;
         split[split.size() - 1] = c_term.substr(0, c_term.size() - mod.size() - 2);
       }
       catch (Exception::ElementNotFound & /* e */)
@@ -904,9 +907,9 @@ namespace OpenMS
           {
             if (res[res.size() - 1] != ')')
             {
-              valid_ = false;
-              sequence_string_.concatenate(split.begin(), split.end());
-              sequence.clear();
+              aas.valid_ = false;
+              aas.sequence_string_.concatenate(split.begin(), split.end());
+              aas.peptide_.clear();
               cerr << "AASequence: cannot convert string '" << peptide << "' into meaningful amino acid sequence, missing ')'!" << endl;
               return;
             }
@@ -925,9 +928,9 @@ namespace OpenMS
               {
                 if (k == res.size())
                 {
-                  valid_ = false;
-                  sequence_string_.concatenate(split.begin(), split.end());
-                  sequence.clear();
+                  aas.valid_ = false;
+                  aas.sequence_string_.concatenate(split.begin(), split.end());
+                  aas.peptide_.clear();
                   cerr << "AASequence: cannot convert string '" << peptide << "' into meaningful amino acid sequence, missing ']'!" << endl;
                   return;
                 }
@@ -937,9 +940,9 @@ namespace OpenMS
             }
             else
             {
-              valid_ = false;
-              sequence_string_.concatenate(split.begin(), split.end());
-              sequence.clear();
+              aas.valid_ = false;
+              aas.sequence_string_.concatenate(split.begin(), split.end());
+              aas.peptide_.clear();
               cerr << "AASequence: cannot convert string '" << peptide << "' into meaningful amino acid sequence, residue '" << res << "' unknown at position " << j << ", residue #" << i << "!" << endl;
             }
           }
@@ -947,19 +950,19 @@ namespace OpenMS
       }
 
       // Retrieve the underlying residue
-      const Residue * res_ptr = getResidueDB_()->getResidue(name);
+      const Residue * res_ptr = ResidueDB::getInstance()->getResidue(name);
       if (res_ptr == 0)
       {
-        valid_ = false;
-        sequence_string_.concatenate(split.begin(), split.end());
-        sequence.clear();
+        aas.valid_ = false;
+        aas.sequence_string_.concatenate(split.begin(), split.end());
+        aas.peptide_.clear();
         cerr << "AASequence: cannot parse residue with name: '" << name << "' from sequence '" << peptide << "'" << endl;
         return;
       }
 
       if (!mod.empty() && i > 0)
       {
-        sequence.push_back(ResidueDB::getInstance()->getModifiedResidue(res_ptr, mod));
+        aas.peptide_.push_back(ResidueDB::getInstance()->getModifiedResidue(res_ptr, mod));
       }
       else if (!mod.empty() && i == 0)
       {
@@ -967,15 +970,15 @@ namespace OpenMS
         ModificationsDB::getInstance()->searchModifications(mod_candidates, res_ptr->getOneLetterCode(), mod, ResidueModification::ANYWHERE);
         if (!mod_candidates.empty())
         {
-          sequence.push_back(ResidueDB::getInstance()->getModifiedResidue(res_ptr, mod));
+          aas.peptide_.push_back(ResidueDB::getInstance()->getModifiedResidue(res_ptr, mod));
         }
         else
         {
           ModificationsDB::getInstance()->searchTerminalModifications(mod_candidates, mod, ResidueModification::N_TERM);
           if (!mod_candidates.empty())
           {
-            n_term_mod_ = &ModificationsDB::getInstance()->getTerminalModification(mod, ResidueModification::N_TERM);
-            sequence.push_back(res_ptr);
+            aas.n_term_mod_ = &ModificationsDB::getInstance()->getTerminalModification(mod, ResidueModification::N_TERM);
+            aas.peptide_.push_back(res_ptr);
           }
         }
       }
@@ -1013,7 +1016,7 @@ namespace OpenMS
             // using an amino acid with zero weight and a differential modification on that cannot lead to a valid result!
             if (res_ptr->getMonoWeight() <= 0.0)
             {
-              valid_ = false;
+              aas.valid_ = false;
               std::cerr << "Warning: Having a difference modification on an unspecified residue (" <<
                 name << "[" << tag <<  "]) will probably not produce a correct mass." << std::endl;
             }
@@ -1023,10 +1026,10 @@ namespace OpenMS
             Residue res(tag, String(""), String(""), EmpiricalFormula(""));
             res.setMonoWeight(delta_mass + res_ptr->getMonoWeight());
             res.setAverageWeight(delta_mass + res_ptr->getAverageWeight());
-            getResidueDB_()->addResidue(res);
-            result = getResidueDB_()->getResidue(tag);
+            ResidueDB::getInstance()->addResidue(res);
+            result = ResidueDB::getInstance()->getResidue(tag);
           }
-          sequence.push_back(result);
+          aas.peptide_.push_back(result);
         }
         else
         {
@@ -1062,36 +1065,31 @@ namespace OpenMS
             Residue res(tag, String(""), String(""), EmpiricalFormula(""));
             res.setMonoWeight(mass);
             res.setAverageWeight(mass);
-            getResidueDB_()->addResidue(res);
-            result = getResidueDB_()->getResidue(tag);
+            ResidueDB::getInstance()->addResidue(res);
+            result = ResidueDB::getInstance()->getResidue(tag);
           }
-          sequence.push_back(result);
+          aas.peptide_.push_back(result);
         }
       }
       else
       {
         // mod and tag are both empty
-        sequence.push_back(res_ptr);
-        if (sequence.size() < i)
+        aas.peptide_.push_back(res_ptr);
+        if (aas.peptide_.size() < i)
         {
-          valid_ = false;
-          sequence_string_.concatenate(split.begin(), split.end());
-          sequence.clear();
+          aas.valid_ = false;
+          aas.sequence_string_.concatenate(split.begin(), split.end());
+          aas.peptide_.clear();
           return;
         }
       }
     }
   }
 
-  ResidueDB * AASequence::getResidueDB_() const
-  {
-    return ResidueDB::getInstance();
-  }
-
   Size AASequence::getNumberOf(const String & residue) const
   {
     Size count(0);
-    const Residue * res = getResidueDB_()->getResidue(residue);
+    const Residue * res = ResidueDB::getInstance()->getResidue(residue);
     if (valid_)
     {
       for (vector<const Residue *>::const_iterator it = peptide_.begin(); it != peptide_.end(); ++it)
@@ -1152,7 +1150,7 @@ namespace OpenMS
         return;
       }
     }
-    peptide_[index] = getResidueDB_()->getModifiedResidue(peptide_[index], modification);
+    peptide_[index] = ResidueDB::getInstance()->getModifiedResidue(peptide_[index], modification);
   }
 
   void AASequence::setNTerminalModification(const String & modification)
@@ -1209,7 +1207,7 @@ namespace OpenMS
   {
     c_term_mod_ = 0;
     n_term_mod_ = 0;
-    parseString_(peptide_, sequence);
+    parseString_(*this, sequence);
     return valid_;
   }
 

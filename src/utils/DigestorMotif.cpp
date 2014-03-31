@@ -124,7 +124,7 @@ protected:
     mass_acc = getIntOption_("mass_accuracy");
     out_opt = getIntOption_("out_option");
     missed_cleavages = getIntOption_("missed_cleavages");
-    AASequence M = AASequence(getStringOption_("motif"));
+    AASequence M = AASequence::fromString(getStringOption_("motif"));
 
     //-------------------------------------------------------------
     // reading input
@@ -148,7 +148,7 @@ protected:
       temp_protein_hit.setSequence(protein_data[i].sequence);
       temp_protein_hit.setAccession(protein_accessions[0]);
 
-      digestor.digest(AASequence(protein_data[i].sequence), temp_peptides);
+      digestor.digest(AASequence::fromString(protein_data[i].sequence), temp_peptides);
       temp_peptide_hit.setProteinAccessions(protein_accessions);
       for (UInt j = 0; j < temp_peptides.size(); ++j)
       {
@@ -201,7 +201,7 @@ protected:
       {
         protein_accessions[0] = protein_data[i].identifier;
         temp_protein_hit.setAccession(protein_accessions[0]);
-        digestor.digest(AASequence(protein_data[i].sequence), temp_peptides);
+        digestor.digest(AASequence::fromString(protein_data[i].sequence), temp_peptides);
         temp_peptide_hit.setProteinAccessions(protein_accessions);
         for (UInt j = 0; j < temp_peptides.size(); ++j)
         {

@@ -159,7 +159,7 @@ protected:
               without_phospho_str.erase(found, String("(Phospho)").size());
               found = without_phospho_str.find("(Phospho)");
             }
-            AASequence without_phospho(without_phospho_str);
+            AASequence without_phospho = AASequence::fromString(without_phospho_str);
             DoubleReal prec = hits->getMetaValue("MZ");
             DoubleReal prec_mz = prec * scored_hit.getCharge();
             prec_mz -= scored_hit.getCharge();

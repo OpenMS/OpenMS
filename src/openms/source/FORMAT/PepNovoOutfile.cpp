@@ -155,8 +155,8 @@ namespace OpenMS
         }
       }
     }
-    
-    
+
+
     Size index;
     while (getline(result_file, line))
     {
@@ -177,7 +177,7 @@ namespace OpenMS
         {
           throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Not enough columns (spectrum Id) in file in line " + String(line_number) + String(" (should be 2 or more)!"), result_filename);
         }
-        
+
         try
         {
           index = substrings[2].trim().toInt();
@@ -186,7 +186,7 @@ namespace OpenMS
         {
           throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Expected an index number in line " + String(line_number) + String(" at position 2 (line was: '" + line + "')!"), result_filename);
         }
-        
+
         //cout<<"INDEX: "<<index<<endl;
         peptide_identification = PeptideIdentification();
         bool success = false;
@@ -200,7 +200,7 @@ namespace OpenMS
           }
           else throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Index '" + String(index) + String("' in line '" + line + "' not found in index table (line was: '" + line + "')!"), result_filename);
         }
-        
+
         if (!success)
         { // try to reconstruct from title entry (usually sensible when MGF is supplied to PepNovo)
           try
@@ -218,7 +218,7 @@ namespace OpenMS
           }
           catch (...)
           {
-            
+
           }
           if (!success) throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Precursor could not be reconstructed from title '" + substrings[3] + String("' in line '" + line + "' (line was: '" + line + "')!"), result_filename);
         }
@@ -300,7 +300,7 @@ namespace OpenMS
                 //cout<<mask_it->first<<" "<<mask_it->second<<endl;
                 sequence.substitute(mask_it->first, mask_it->second);
               }
-              peptide_hit.setSequence(AASequence(sequence));
+              peptide_hit.setSequence(AASequence::fromString(sequence));
               peptide_identification.insertHit(peptide_hit);
             }
           }

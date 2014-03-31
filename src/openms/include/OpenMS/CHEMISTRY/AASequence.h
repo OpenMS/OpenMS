@@ -67,13 +67,13 @@ namespace OpenMS
 
       Modifications are specified using a unique string identifier present in the ModificationsDB in brackets
       after the modified amino acid or by providing the mass of the residue in square brackets. For example
-      AASequence("DFPIAM(Oxidation)GER") creates an instance of the peptide DFPIAMGER with an oxidized methionine
-      (AASequence("DFPIAM[+16]GER") and AASequence("DFPIAM[147]GER") are equivalent). N-terminal modifications
+      AASequence::fromString("DFPIAM(Oxidation)GER") creates an instance of the peptide DFPIAMGER with an oxidized methionine
+      (AASequence::fromString("DFPIAM[+16]GER") and AASequence::fromString("DFPIAM[147]GER") are equivalent). N-terminal modifications
       are specified by writing the modification as prefix to the sequence. C-terminal modifications are specified by
       writing the modification as suffix. C-terminal modifications are distinguished from modifications of the last amino
       acid by considering the specificity of the modification as stored in ModificationsDB.
 
-      Note there is a subtle difference between AASequence("DFPIAM[+16]GER") and AASequence("DFPIAM[+15.9949]GER") - while
+      Note there is a subtle difference between AASequence::fromString("DFPIAM[+16]GER") and AASequence::fromString("DFPIAM[+15.9949]GER") - while
       the former will try to find the _first_ modification matching to a mass difference of 16 +/- 0.5, the latter will
       try to find the closest matching modification to the exact mass. This usually gives the intended results.
 
@@ -372,11 +372,11 @@ protected:
     /// copy constructor
     AASequence(const AASequence & rhs);
 
-    /// copy constructor from a String
-    explicit AASequence(const String & rhs);
+    // copy constructor from a String
+ //  explicit AASequence(const String & rhs);
 
-    /// copy constructor from char* string
-    explicit AASequence(const char * rhs);
+   // /// copy constructor from char* string
+  //  explicit AASequence(const char * rhs);
 
     /// destructor
     virtual ~AASequence();
@@ -515,7 +515,7 @@ protected:
     /// predicate which is true if the peptide is C-term modified
     bool hasCTerminalModification() const;
 
-    // returns true if any of the residues is modified
+    /// returns true if any of the residues is modified
     bool isModified() const;
 
     /// returns true if the residue at the position is modified
@@ -524,23 +524,19 @@ protected:
     /// equality operator
     bool operator==(const AASequence & rhs) const;
 
-    /// equality operator given the peptide as a string
-    bool operator==(const String & rhs) const;
-
-    /// equality operator given the peptide as string literal
-    bool operator==(const char * rhs) const;
-
     /// lesser than operator which compares the C-term mods, sequence and N-term mods; can be used for maps
     bool operator<(const AASequence & rhs) const;
 
     /// inequality operator
     bool operator!=(const AASequence & rhs) const;
 
+    /*
     /// inequality operator given the peptide as a string
     bool operator!=(const String & rhs) const;
 
     /// inequality operator given the peptide as string literal
     bool operator!=(const char * rhs) const;
+*/
     //@}
 
     /** @name Iterators
@@ -565,15 +561,27 @@ protected:
     friend OPENMS_DLLAPI std::istream & operator>>(std::istream & is, const AASequence & peptide);
     //@}
 
+    static AASequence fromString(const String & s)
+    {
+      AASequence aas;
+      parseString_(aas, s);
+      return aas;
+    }
+
+    static AASequence fromString(const char * s)
+    {
+      AASequence aas;
+      parseString_(aas, String(s));
+      return aas;
+    }
+
 protected:
 
     std::vector<const Residue *> peptide_;
 
     String sequence_string_;
 
-    void parseString_(std::vector<const Residue *> & sequence, const String & peptide);
-
-    ResidueDB * getResidueDB_() const;
+    static void parseString_(AASequence & aas, const String & peptide);
 
     bool valid_;
 
@@ -587,5 +595,6 @@ protected:
   OPENMS_DLLAPI std::istream & operator>>(std::istream & os, const AASequence & peptide);
 
 } // namespace OpenMS
+
 
 #endif

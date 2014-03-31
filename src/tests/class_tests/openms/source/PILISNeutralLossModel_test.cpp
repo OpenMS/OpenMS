@@ -58,9 +58,9 @@ Param tsg_param(tsg.getParameters());
 tsg_param.setValue("add_metainfo", "true");
 tsg_param.setValue("add_losses", "true");
 tsg.setParameters(tsg_param);
-tsg.getSpectrum(spec1, AASequence("DFPIANGER"), 1);
-tsg.getSpectrum(spec2, AASequence("DFPIANGEK"), 1);
-tsg.getSpectrum(spec3, AASequence("DFPIANGEREK"), 1);
+tsg.getSpectrum(spec1, AASequence::fromString("DFPIANGER"), 1);
+tsg.getSpectrum(spec2, AASequence::fromString("DFPIANGEK"), 1);
+tsg.getSpectrum(spec3, AASequence::fromString("DFPIANGEREK"), 1);
 
 PILISNeutralLossModel* ptr = 0;
 PILISNeutralLossModel* nullPointer = 0;
@@ -116,8 +116,8 @@ START_SECTION((DoubleReal train(const RichPeakSpectrum & spec, const AASequence 
 		{
 			ion_name.remove('+');
 			ion_name.remove('y');
-			AASequence suffix = AASequence("DFPIANGER").getSuffix(ion_name.toInt());
-      model.train(spec1, suffix, suffix.getMonoWeight(Residue::YIon), charge, AASequence("DFPIANGER").getMonoWeight());
+			AASequence suffix = AASequence::fromString("DFPIANGER").getSuffix(ion_name.toInt());
+      model.train(spec1, suffix, suffix.getMonoWeight(Residue::YIon), charge, AASequence::fromString("DFPIANGER").getMonoWeight());
 		}
 	}
 
@@ -129,8 +129,8 @@ START_SECTION((DoubleReal train(const RichPeakSpectrum & spec, const AASequence 
     {
 			ion_name.remove('+');
 			ion_name.remove('y');
-			AASequence suffix = AASequence("DFPIANGEK").getSuffix(ion_name.toInt());
-      model.train(spec1, suffix, suffix.getMonoWeight(Residue::YIon), charge, AASequence("DFPIANGEK").getMonoWeight());
+			AASequence suffix = AASequence::fromString("DFPIANGEK").getSuffix(ion_name.toInt());
+      model.train(spec1, suffix, suffix.getMonoWeight(Residue::YIon), charge, AASequence::fromString("DFPIANGEK").getMonoWeight());
     }
   }
 
@@ -142,13 +142,13 @@ START_SECTION((DoubleReal train(const RichPeakSpectrum & spec, const AASequence 
     {
 			ion_name.remove('+');
 			ion_name.remove('y');
-			AASequence suffix = AASequence("DFPIANGEREK").getSuffix(ion_name.toInt());
-      model.train(spec1, suffix, suffix.getMonoWeight(Residue::YIon), charge, AASequence("DFPIANGEREK").getMonoWeight());
+			AASequence suffix = AASequence::fromString("DFPIANGEREK").getSuffix(ion_name.toInt());
+      model.train(spec1, suffix, suffix.getMonoWeight(Residue::YIon), charge, AASequence::fromString("DFPIANGEREK").getMonoWeight());
     }
   }
 
 	vector<RichPeak1D> peaks1;
-	model.getIons(peaks1, AASequence("ANGER"), 1.0);
+	model.getIons(peaks1, AASequence::fromString("ANGER"), 1.0);
 	TEST_EQUAL(peaks1.size(), 9)
 
 /*
@@ -161,7 +161,7 @@ START_SECTION((DoubleReal train(const RichPeakSpectrum & spec, const AASequence 
 	model.evaluate();
 
 	vector<RichPeak1D> peaks2;
-	model.getIons(peaks2, AASequence("ANGER"), 1.0);
+	model.getIons(peaks2, AASequence::fromString("ANGER"), 1.0);
 	TEST_EQUAL(peaks2.size(), 9)
 
 /*

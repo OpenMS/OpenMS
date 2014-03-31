@@ -138,7 +138,7 @@ namespace OpenMS
     // end of peptide id
     else if (tag_ == "MSHitSet")
     {
-      if (actual_peptide_id_.getHits().size() > 0  || load_empty_hits_) 
+      if (actual_peptide_id_.getHits().size() > 0  || load_empty_hits_)
       {
         peptide_identifications_->push_back(actual_peptide_id_);
       }
@@ -263,7 +263,7 @@ namespace OpenMS
     }
     else if (tag_ == "MSHits_pepstring")
     {
-      AASequence seq = AASequence(value.trim());
+      AASequence seq = AASequence::fromString(value.trim());
       if (mod_def_set_.getNumberOfFixedModifications() != 0 && seq.isValid())
       {
         set<String> fixed_mod_names = mod_def_set_.getFixedModificationNames();

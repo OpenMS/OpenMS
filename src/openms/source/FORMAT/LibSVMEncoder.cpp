@@ -235,7 +235,7 @@ namespace OpenMS
 
       encodeCompositionVector(sequences[i], encoded_vector, allowed_characters);
       encoded_vector.push_back(make_pair(Int(allowed_characters.size() + 1), (DoubleReal) sequences[i].length()));
-      encoded_vector.push_back(make_pair(Int(allowed_characters.size() + 2), AASequence(sequences[i]).getAverageWeight()));
+      encoded_vector.push_back(make_pair(Int(allowed_characters.size() + 2), AASequence::fromString(sequences[i]).getAverageWeight()));
       libsvm_vector = encodeLibSVMVector(encoded_vector);
       vectors.push_back(libsvm_vector);
     }

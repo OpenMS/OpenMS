@@ -111,7 +111,7 @@ namespace OpenMS
   {
   }
 
-  void MRMFeatureFinderScoring::pickExperiment(MSExperiment<Peak1D> & chromatograms, 
+  void MRMFeatureFinderScoring::pickExperiment(MSExperiment<Peak1D> & chromatograms,
         FeatureMap<Feature>& output, TargetedExperiment& transition_exp_,
         TransformationDescription trafo, MSExperiment<Peak1D>& swath_map)
   {
@@ -130,7 +130,7 @@ namespace OpenMS
 
   void MRMFeatureFinderScoring::pickExperiment(OpenSwath::SpectrumAccessPtr input,
         FeatureMap<Feature>& output, OpenSwath::LightTargetedExperiment& transition_exp,
-        TransformationDescription trafo, OpenSwath::SpectrumAccessPtr swath_map, 
+        TransformationDescription trafo, OpenSwath::SpectrumAccessPtr swath_map,
         TransitionGroupMapType& transition_group_map)
   {
     updateMembers_();
@@ -211,7 +211,7 @@ namespace OpenMS
   }
 
   void MRMFeatureFinderScoring::scorePeakgroups(MRMTransitionGroupType& transition_group,
-        TransformationDescription & trafo, OpenSwath::SpectrumAccessPtr swath_map, 
+        TransformationDescription & trafo, OpenSwath::SpectrumAccessPtr swath_map,
         FeatureMap<Feature>& output)
   {
     typedef MRMTransitionGroupType::PeakType PeakT;
@@ -261,7 +261,7 @@ namespace OpenMS
       }
       if (group_size < 2)
       {
-        LOG_ERROR << "Error: Transition group " << transition_group.getTransitionGroupID() 
+        LOG_ERROR << "Error: Transition group " << transition_group.getTransitionGroupID()
           << " has only one chromatogram." << std::endl;
         delete imrmfeature; // free resources before continuing
         continue;
@@ -275,7 +275,7 @@ namespace OpenMS
       transition_group.getLibraryIntensity(normalized_library_intensity);
       OpenSwath::Scoring::normalize_sum(&normalized_library_intensity[0], boost::numeric_cast<int>(normalized_library_intensity.size()));
       std::vector<std::string> native_ids;
-      for (Size i = 0; i < transition_group.size(); i++) 
+      for (Size i = 0; i < transition_group.size(); i++)
       {
         native_ids.push_back(transition_group.getTransitions()[i].getNativeID());
       }
@@ -292,21 +292,21 @@ namespace OpenMS
             swath_map, diascoring_, *pep, scores);
       }
 
-      if (su_.use_coelution_score_) { 
+      if (su_.use_coelution_score_) {
         mrmfeature->addScore("var_xcorr_coelution", scores.xcorr_coelution_score);
         mrmfeature->addScore("var_xcorr_coelution_weighted", scores.weighted_coelution_score); }
-      if (su_.use_shape_score_) { 
+      if (su_.use_shape_score_) {
         mrmfeature->addScore("var_xcorr_shape", scores.xcorr_shape_score);
         mrmfeature->addScore("var_xcorr_shape_weighted", scores.weighted_xcorr_shape); }
-      if (su_.use_library_score_) { 
+      if (su_.use_library_score_) {
         mrmfeature->addScore("var_library_corr", scores.library_corr);
         mrmfeature->addScore("var_library_rmsd", scores.library_norm_manhattan);
         mrmfeature->addScore("var_library_sangle", scores.library_sangle);
-        mrmfeature->addScore("var_library_rootmeansquare", scores.library_rootmeansquare); 
+        mrmfeature->addScore("var_library_rootmeansquare", scores.library_rootmeansquare);
         mrmfeature->addScore("var_library_manhattan", scores.library_manhattan);
-        mrmfeature->addScore("var_library_dotprod", scores.library_dotprod); 
+        mrmfeature->addScore("var_library_dotprod", scores.library_dotprod);
       }
-      if (su_.use_rt_score_) { 
+      if (su_.use_rt_score_) {
         mrmfeature->addScore("delta_rt", mrmfeature->getRT() - expected_rt);
         mrmfeature->addScore("assay_rt", expected_rt);
         mrmfeature->addScore("norm_RT", scores.normalized_experimental_rt);
@@ -318,7 +318,7 @@ namespace OpenMS
       if (su_.use_nr_peaks_score_) { mrmfeature->addScore("nr_peaks", scores.nr_peaks); }
       if (su_.use_sn_score_) { mrmfeature->addScore("sn_ratio", scores.sn_ratio); mrmfeature->addScore("var_log_sn_score", scores.log_sn_score); }
       // TODO get it working with imrmfeature
-      if (su_.use_elution_model_score_) { 
+      if (su_.use_elution_model_score_) {
         scores.elution_model_fit_score = emgscoring_.calcElutionFitScore((*mrmfeature), transition_group);
         mrmfeature->addScore("var_elution_model_fit_score", scores.elution_model_fit_score); }
 
@@ -366,7 +366,7 @@ namespace OpenMS
       {
         pep_hit_.setScore(mrmfeature->getScore("xx_swath_prelim_score"));
       }
-      pep_hit_.setSequence(AASequence(pep->sequence));
+      pep_hit_.setSequence(AASequence::fromString(pep->sequence));
       pep_hit_.addProteinAccession(protein_id);
       pep_id_.insertHit(pep_hit_);
       pep_id_.setIdentifier(run_identifier);

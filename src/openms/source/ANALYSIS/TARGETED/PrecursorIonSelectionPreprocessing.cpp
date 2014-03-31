@@ -327,7 +327,7 @@ namespace OpenMS
         }
         std::vector<DoubleReal> prot_masses;
         // digest sequence
-        AASequence aa_seq(seq);
+        AASequence aa_seq = AASequence::fromString(seq);
         std::vector<AASequence> vec;
         digest.digest(aa_seq, vec);
 
@@ -650,7 +650,7 @@ namespace OpenMS
         }
         std::vector<DoubleReal> prot_masses;
         // digest sequence
-        AASequence aa_seq(seq);
+        AASequence aa_seq = AASequence::fromString(seq);
         std::vector<AASequence> vec;
         digest.digest(aa_seq, vec);
 
@@ -949,7 +949,7 @@ namespace OpenMS
         }
 
         // digest sequence
-        AASequence aa_seq(seq);
+        AASequence aa_seq = AASequence::fromString(seq);
         std::vector<AASequence> vec;
         digest.digest(aa_seq, vec);
         out << vec.size() << "\t" << entries[e].identifier;

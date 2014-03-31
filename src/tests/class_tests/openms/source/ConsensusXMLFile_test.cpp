@@ -129,20 +129,20 @@ TEST_EQUAL(map.getProteinIdentifications()[1].getHits()[0].getSequence(), "OPQRE
 //peptide identifications
 TEST_EQUAL(map[0].getPeptideIdentifications().size(), 2)
 TEST_EQUAL(map[0].getPeptideIdentifications()[0].getHits().size(), 1)
-TEST_EQUAL(map[0].getPeptideIdentifications()[0].getHits()[0].getSequence(), "A")
+TEST_EQUAL(map[0].getPeptideIdentifications()[0].getHits()[0].getSequence(), AASequence::fromString("A"))
 TEST_EQUAL(map[0].getPeptideIdentifications()[1].getHits().size(), 2)
-TEST_EQUAL(map[0].getPeptideIdentifications()[1].getHits()[0].getSequence(), "C")
-TEST_EQUAL(map[0].getPeptideIdentifications()[1].getHits()[1].getSequence(), "D")
+TEST_EQUAL(map[0].getPeptideIdentifications()[1].getHits()[0].getSequence(), AASequence::fromString("C"))
+TEST_EQUAL(map[0].getPeptideIdentifications()[1].getHits()[1].getSequence(), AASequence::fromString("D"))
 TEST_EQUAL(map[1].getPeptideIdentifications().size(), 1)
 TEST_EQUAL(map[1].getPeptideIdentifications()[0].getHits().size(), 1)
-TEST_EQUAL(map[1].getPeptideIdentifications()[0].getHits()[0].getSequence(), "E")
+TEST_EQUAL(map[1].getPeptideIdentifications()[0].getHits()[0].getSequence(),AASequence::fromString( "E"))
 //unassigned peptide identifications
 TEST_EQUAL(map.getUnassignedPeptideIdentifications().size(), 2)
 TEST_EQUAL(map.getUnassignedPeptideIdentifications()[0].getHits().size(), 1)
-TEST_EQUAL(map.getUnassignedPeptideIdentifications()[0].getHits()[0].getSequence(), "F")
+TEST_EQUAL(map.getUnassignedPeptideIdentifications()[0].getHits()[0].getSequence(), AASequence::fromString("F"))
 TEST_EQUAL(map.getUnassignedPeptideIdentifications()[1].getHits().size(), 2)
-TEST_EQUAL(map.getUnassignedPeptideIdentifications()[1].getHits()[0].getSequence(), "G")
-TEST_EQUAL(map.getUnassignedPeptideIdentifications()[1].getHits()[1].getSequence(), "H")
+TEST_EQUAL(map.getUnassignedPeptideIdentifications()[1].getHits()[0].getSequence(), AASequence::fromString("G"))
+TEST_EQUAL(map.getUnassignedPeptideIdentifications()[1].getHits()[1].getSequence(), AASequence::fromString("H"))
 
 //features
 TEST_EQUAL(map.size(), 6)

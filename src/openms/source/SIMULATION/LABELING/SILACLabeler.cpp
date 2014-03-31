@@ -114,7 +114,7 @@ namespace OpenMS
          protein_hit != channel.getProteinIdentifications()[0].getHits().end();
          ++protein_hit)
     {
-      AASequence aa(protein_hit->getSequence());
+      AASequence aa = AASequence::fromString(protein_hit->getSequence());
 
       for (AASequence::Iterator residue = aa.begin(); residue != aa.end(); ++residue)
       {

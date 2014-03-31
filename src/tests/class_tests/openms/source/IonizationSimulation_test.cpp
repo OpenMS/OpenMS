@@ -69,13 +69,13 @@ END_SECTION
 START_SECTION((IonizationSimulation(const SimRandomNumberGenerator& )))
 {
   ptr = new IonizationSimulation(rnd_gen);
-	TEST_NOT_EQUAL(ptr, nullPointer)
+  TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 
 START_SECTION(~IonizationSimulation())
 {
-	delete ptr;
+  delete ptr;
 }
 END_SECTION
 
@@ -97,12 +97,12 @@ START_SECTION((IonizationSimulation& operator=(const IonizationSimulation &sourc
   IonizationSimulation ion_sim1(rnd_gen);
   IonizationSimulation ion_sim2(ion_sim1);
 
-	Param p = ion_sim1.getParameters();
-	p.setValue("ionization_type", "MALDI");
-	ion_sim1.setParameters(p);
-	TEST_NOT_EQUAL(ion_sim1.getParameters(),ion_sim2.getParameters());
-	ion_sim2 = ion_sim1;
-	TEST_EQUAL(ion_sim2.getParameters(),ion_sim2.getParameters());
+  Param p = ion_sim1.getParameters();
+  p.setValue("ionization_type", "MALDI");
+  ion_sim1.setParameters(p);
+  TEST_NOT_EQUAL(ion_sim1.getParameters(),ion_sim2.getParameters());
+  ion_sim2 = ion_sim1;
+  TEST_EQUAL(ion_sim2.getParameters(),ion_sim2.getParameters());
 }
 END_SECTION
 
@@ -131,7 +131,7 @@ START_SECTION((void ionize(FeatureMapSim &features, ConsensusMap &charge_consens
   {
     Feature f;
     PeptideIdentification pep_id;
-    pep_id.insertHit(PeptideHit(1.0, 1, 1, AASequence(*it)));
+    pep_id.insertHit(PeptideHit(1.0, 1, 1, AASequence::fromString(*it)));
     f.getPeptideIdentifications().push_back(pep_id);
     f.setIntensity(10);
     esi_features.push_back(f);
@@ -197,18 +197,18 @@ START_SECTION((void ionize(FeatureMapSim &features, ConsensusMap &charge_consens
   TEST_EQUAL(esi_features[16].getCharge(), 3)
   TEST_EQUAL(esi_features[16].getIntensity(), 1)
 
-	TEST_EQUAL(esi_features[17].getCharge(), 2)
+  TEST_EQUAL(esi_features[17].getCharge(), 2)
   TEST_EQUAL(esi_features[17].getIntensity(), 1)
 
   for(FeatureMapSim::const_iterator fmIt = esi_features.begin(); fmIt != esi_features.end();
       ++fmIt)
   {
     std::cout << (*fmIt).getCharge() << " "
-							<< (*fmIt).getIntensity() << " "
-							<< (*fmIt).getPeptideIdentifications()[0].getHits()[0].getSequence().toString()
-							<< " Adducts: " << (*fmIt).getMetaValue("charge_adducts")
-							<< " Parent: " << (*fmIt).getMetaValue("parent_feature_number")
-							<< std::endl;
+              << (*fmIt).getIntensity() << " "
+              << (*fmIt).getPeptideIdentifications()[0].getHits()[0].getSequence().toString()
+              << " Adducts: " << (*fmIt).getMetaValue("charge_adducts")
+              << " Parent: " << (*fmIt).getMetaValue("parent_feature_number")
+              << std::endl;
   }
 
 
@@ -225,20 +225,20 @@ START_SECTION((void ionize(FeatureMapSim &features, ConsensusMap &charge_consens
   maldi_sim.setParameters(maldi_param);
 
   FeatureMapSim maldi_features;
-	for (StringList::const_iterator it=peps.begin(); it!=peps.end(); ++it)
-	{
-		Feature f;
-		PeptideIdentification pep_id;
-		pep_id.insertHit(PeptideHit(1.0, 1, 1, AASequence(*it)));
-		f.getPeptideIdentifications().push_back(pep_id);
-		f.setIntensity(10);
+  for (StringList::const_iterator it=peps.begin(); it!=peps.end(); ++it)
+  {
+    Feature f;
+    PeptideIdentification pep_id;
+    pep_id.insertHit(PeptideHit(1.0, 1, 1, AASequence::fromString(*it)));
+    f.getPeptideIdentifications().push_back(pep_id);
+    f.setIntensity(10);
     maldi_features.push_back(f);
-	}
+  }
 
-	MSSimExperiment expt;
-	MSSimExperiment::SpectrumType spect;
-	expt.addSpectrum(spect);
-	maldi_sim.ionize(maldi_features, cm, expt);
+  MSSimExperiment expt;
+  MSSimExperiment::SpectrumType spect;
+  expt.addSpectrum(spect);
+  maldi_sim.ionize(maldi_features, cm, expt);
 
   TEST_EQUAL(maldi_features.size(), 6)
 

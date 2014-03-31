@@ -67,7 +67,7 @@ namespace OpenMS
       without_phospho_str.erase(found, String("(Phospho)").size());
       found = without_phospho_str.find("(Phospho)");
     }
-    AASequence without_phospho(without_phospho_str);
+    AASequence without_phospho = AASequence::fromString(without_phospho_str);
     Int number_of_STY = Int(without_phospho.getNumberOf("S") + without_phospho.getNumberOf("T") + without_phospho.getNumberOf("Y"));
     if (real_spectrum.empty() || number_of_phospho_sites < 1 || number_of_STY == 0)
     {
@@ -179,7 +179,7 @@ namespace OpenMS
         ranking.insert(pair<DoubleReal, Size>(current_score, it));
       }
       phospho.setScore(ranking.rbegin()->first);
-      phospho.setSequence(AASequence(th_spectra[ranking.rbegin()->second].getName()));
+      phospho.setSequence(AASequence::fromString(th_spectra[ranking.rbegin()->second].getName()));
     }
     phospho.setCharge(hit.getCharge());
     phospho.setMetaValue("Search_engine_sequence", hit.getSequence().toString());
@@ -339,8 +339,8 @@ namespace OpenMS
     TheoreticalSpectrumGenerator spectrum_generator;
     AASequence pref, suf, pref_with_phospho_first, pref_with_phospho_second, suf_with_phospho_first, suf_with_phospho_second;
     RichPeakSpectrum prefix, suffix, prefix_with_phospho_first, prefix_with_phospho_second, suffix_with_phospho_second, suffix_with_phospho_first;
-    AASequence first(th_spectra[candidates.seq_1].getName());
-    AASequence second(th_spectra[candidates.seq_2].getName());
+    AASequence first(AASequence::fromString(th_spectra[candidates.seq_1].getName()));
+    AASequence second(AASequence::fromString(th_spectra[candidates.seq_2].getName()));
     if (candidates.first < candidates.second)
     {
       pref.setStringSequence(first.getPrefix(candidates.first + 1).toString());

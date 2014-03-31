@@ -559,8 +559,8 @@ START_SECTION((svm_problem* computeKernelMatrix(const SVMData &problem1, const S
 	svm.setParameter(SVMWrapper::KERNEL_TYPE, SVMWrapper::OLIGO);
   labels.push_back(1);
   labels.push_back(2);
-  sequences.push_back(AASequence("ACNNGTATCA"));
-  sequences.push_back(AASequence("AACNNGTACCA"));
+  sequences.push_back(AASequence::fromString("ACNNGTATCA"));
+  sequences.push_back(AASequence::fromString("AACNNGTACCA"));
 	encoder.encodeProblemWithOligoBorderVectors(sequences, 1, allowed_characters, border_length, data);
 	svm_data.sequences = data;
 	svm_data.labels = labels;
@@ -632,8 +632,8 @@ START_SECTION((static DoubleReal kernelOligo(const std::vector< std::pair< int, 
 
   labels.push_back(1);
   labels.push_back(2);
-  sequences.push_back(AASequence("ACNNGTATCA"));
-  sequences.push_back(AASequence("AACNNGTACCA"));
+  sequences.push_back(AASequence::fromString("ACNNGTATCA"));
+  sequences.push_back(AASequence::fromString("AACNNGTACCA"));
 	encoder.encodeProblemWithOligoBorderVectors(sequences, 1, allowed_characters, border_length, data);
 	result = SVMWrapper::kernelOligo(data[0], data[1], gauss_table);
 	TOLERANCE_ABSOLUTE(0.0001)
