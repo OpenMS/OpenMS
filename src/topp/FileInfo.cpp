@@ -92,7 +92,7 @@ using namespace std;
   <B>INI file documentation of this tool:</B>
   @htmlinclude TOPP_FileInfo.html
 
-  In order to enrich the resulting data of your anaysis pipeline or to quickly compare different outcomes of your pipeline you can invoke the aforementioned information of your input data and (intermediary) results.
+  In order to enrich the resulting data of your analysis pipeline or to quickly compare different outcomes of your pipeline you can invoke the aforementioned information of your input data and (intermediary) results.
 */
 
 // We do not want this class to show up in the docu:
