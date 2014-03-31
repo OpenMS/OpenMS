@@ -151,7 +151,7 @@ public:
       Int rt_block_size(param_.getValue("block_method:rt_block_size"));
       DoubleReal rt_max_length = (param_.getValue("block_method:rt_max_length"));
 
-      if (rt_max_length == 0)  // no rt restriction set?
+      if ( std::abs(rt_max_length) <= std::numeric_limits<DoubleReal>::epsilon())  // no rt restriction set?
       {
         rt_max_length = (std::numeric_limits<DoubleReal>::max)(); // set max rt span to very large value
       }
@@ -245,8 +245,8 @@ public:
       Size node_count = 0;
       for (Size ii = 0; ii < tree.size(); ++ii)
       {
-        if (tree[ii].distance >= 1) tree[ii].distance = -1;       // manually set to disconnect, as SingleLinkage does not support it
-        if (tree[ii].distance != -1) ++node_count;
+        if (tree[ii].distance >= 1) tree[ii].distance = -1.0;       // manually set to disconnect, as SingleLinkage does not support it
+          if ( !  (std::abs(tree[ii].distance) <= -1.0+std::numeric_limits<DoubleReal>::epsilon()) ) ++node_count;
       }
       ca.cut(data_size - node_count, tree, clusters);
 
