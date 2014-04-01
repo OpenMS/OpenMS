@@ -12,7 +12,7 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/ContinuousWaveletTransform.h>
         libcpp_vector[ double ]  getWavelet() nogil except +
         void setWavelet(libcpp_vector[ double ] & wavelet) nogil except +
         double  getScale() nogil except +
-        void setScale(DoubleReal scale) nogil except +
+        void setScale(double scale) nogil except +
         double  getSpacing() nogil except +
         void setSpacing(double spacing) nogil except +
         SignedSize getLeftPaddingIndex() nogil except +

@@ -10,8 +10,8 @@ cdef extern from "<OpenMS/KERNEL/RangeManager.h>" namespace "OpenMS":
         RangeManager1(RangeManager1) nogil except +
         DPosition1 getMin() nogil except +
         DPosition1 getMax() nogil except +
-        DoubleReal getMinInt() nogil except +
-        DoubleReal getMaxInt() nogil except +
+        double getMinInt() nogil except +
+        double getMaxInt() nogil except +
         void clearRanges() nogil except +
 
     cdef cppclass RangeManager2 "OpenMS::RangeManager<2>":
@@ -20,6 +20,6 @@ cdef extern from "<OpenMS/KERNEL/RangeManager.h>" namespace "OpenMS":
         RangeManager2(RangeManager2) nogil except +
         DPosition2 getMin() nogil except +
         DPosition2 getMax() nogil except +
-        DoubleReal getMinInt() nogil except +
-        DoubleReal getMaxInt() nogil except +
+        double getMinInt() nogil except +
+        double getMaxInt() nogil except +
         void clearRanges() nogil except +

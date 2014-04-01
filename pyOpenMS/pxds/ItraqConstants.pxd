@@ -39,6 +39,6 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ItraqConstants.h>" namespace "Op
         # String description
         Int name
         Int id
-        DoubleReal center
+        double center
         bool active
 

@@ -12,11 +12,11 @@ cdef extern from "<OpenMS/METADATA/Product.h>" namespace "OpenMS":
         bool operator==(Product) nogil except +
         bool operator!=(Product) nogil except +
 
-        DoubleReal getMZ() nogil except +
-        void setMZ(DoubleReal) nogil except +
+        double getMZ() nogil except +
+        void setMZ(double) nogil except +
 
-        DoubleReal getIsolationWindowLowerOffset() nogil except +
-        void  setIsolationWindowLowerOffset(DoubleReal bound) nogil except +
+        double getIsolationWindowLowerOffset() nogil except +
+        void  setIsolationWindowLowerOffset(double bound) nogil except +
 
-        DoubleReal getIsolationWindowUpperOffset() nogil except +
-        void  setIsolationWindowUpperOffset(DoubleReal bound) nogil except +
+        double getIsolationWindowUpperOffset() nogil except +
+        void  setIsolationWindowUpperOffset(double bound) nogil except +

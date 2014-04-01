@@ -54,9 +54,9 @@ cdef extern from "<OpenMS/METADATA/ProteinIdentification.h>" namespace "OpenMS":
         void insertIndistinguishableProteins(ProteinGroup group) nogil except +
 
         # Returns the protein significance threshold value
-        DoubleReal getSignificanceThreshold() nogil except +
+        double getSignificanceThreshold() nogil except +
         # Sets the protein significance threshold value
-        void setSignificanceThreshold(DoubleReal value) nogil except +
+        void setSignificanceThreshold(double value) nogil except +
         # Returns the protein score type
         String getScoreType() nogil except +
         # Sets the protein score type
@@ -113,7 +113,7 @@ cdef extern from "<OpenMS/METADATA/ProteinIdentification.h>" namespace "OpenMS::
       ProteinGroup(ProteinGroup)  nogil except +
 
       # Probability of this group
-      DoubleReal probability
+      double probability
       # Accessions of (indistinguishable) proteins that belong to the same group
       StringList accessions
 
@@ -135,6 +135,6 @@ cdef extern from "<OpenMS/METADATA/ProteinIdentification.h>" namespace "OpenMS::
       libcpp_vector[String] variable_modifications            #< Allowed variable modifications
       DigestionEnzyme enzyme            #< The enzyme used for cleavage
       UInt missed_cleavages            #< The number of allowed missed cleavages
-      DoubleReal peak_mass_tolerance            #< Mass tolerance of fragment ions (Dalton)
-      DoubleReal precursor_tolerance            #< Mass tolerance of precursor ions (Dalton)
+      double peak_mass_tolerance            #< Mass tolerance of fragment ions (Dalton)
+      double precursor_tolerance            #< Mass tolerance of precursor ions (Dalton)
 

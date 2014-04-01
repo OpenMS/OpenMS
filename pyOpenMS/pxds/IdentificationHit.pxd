@@ -26,16 +26,16 @@ cdef extern from "<OpenMS/METADATA/IdentificationHit.h>" namespace "OpenMS":
         Int getCharge() nogil except +
 
         # /// sets the calculated mass to charge ratio
-        void setCalculatedMassToCharge(DoubleReal mz) nogil except +
+        void setCalculatedMassToCharge(double mz) nogil except +
 
         # /// returns the calculated mass to charge ratio
-        DoubleReal getCalculatedMassToCharge() nogil except +
+        double getCalculatedMassToCharge() nogil except +
 
         # /// sets the experimental mass to charge ratio
-        void setExperimentalMassToCharge(DoubleReal mz) nogil except +
+        void setExperimentalMassToCharge(double mz) nogil except +
 
         # /// returns the experimental mass to charge
-        DoubleReal getExperimentalMassToCharge() nogil except +
+        double getExperimentalMassToCharge() nogil except +
 
         # /// sets the name
         void setName(String name) nogil except +

@@ -21,107 +21,107 @@ cdef extern from "<OpenMS/CHEMISTRY/Residue.h>" namespace "OpenMS":
         # Internal
         EmpiricalFormula getInternalToFull() nogil except +
 
-        DoubleReal getInternalToFullAverageWeight() nogil except +
+        double getInternalToFullAverageWeight() nogil except +
 
-        DoubleReal getInternalToFullMonoWeight() nogil except +
+        double getInternalToFullMonoWeight() nogil except +
 
         # N-terminal
         EmpiricalFormula getNTerminalToFull() nogil except +
 
-        DoubleReal getNTerminalToFullAverageWeight() nogil except +
+        double getNTerminalToFullAverageWeight() nogil except +
 
-        DoubleReal getNTerminalToFullMonoWeight() nogil except +
+        double getNTerminalToFullMonoWeight() nogil except +
 
         # C-terminal
         EmpiricalFormula getCTerminalToFull() nogil except +
 
-        DoubleReal getCTerminalToFullAverageWeight() nogil except +
+        double getCTerminalToFullAverageWeight() nogil except +
 
-        DoubleReal getCTerminalToFullMonoWeight() nogil except +
+        double getCTerminalToFullMonoWeight() nogil except +
 
         # b ion
         EmpiricalFormula getBIonToFull() nogil except +
 
-        DoubleReal getBIonToFullAverageWeight() nogil except +
+        double getBIonToFullAverageWeight() nogil except +
 
-        DoubleReal getBIonToFullMonoWeight() nogil except +
+        double getBIonToFullMonoWeight() nogil except +
 
         # a ion
         EmpiricalFormula getAIonToFull() nogil except +
 
-        DoubleReal getAIonToFullAverageWeight() nogil except +
+        double getAIonToFullAverageWeight() nogil except +
 
-        DoubleReal getAIonToFullMonoWeight() nogil except +
+        double getAIonToFullMonoWeight() nogil except +
 
         # y ion
         EmpiricalFormula getYIonToFull() nogil except +
 
-        DoubleReal getYIonToFullAverageWeight() nogil except +
+        double getYIonToFullAverageWeight() nogil except +
 
-        DoubleReal getYIonToFullMonoWeight() nogil except +
+        double getYIonToFullMonoWeight() nogil except +
 
         # c ion
         EmpiricalFormula getCIonToFull() nogil except +
 
-        DoubleReal getCIonToFullAverageWeight() nogil except +
+        double getCIonToFullAverageWeight() nogil except +
 
-        DoubleReal getCIonToFullMonoWeight() nogil except +
+        double getCIonToFullMonoWeight() nogil except +
 
         # c-1 ion
         EmpiricalFormula getCIonMinusOneToFull() nogil except +
 
-        DoubleReal getCIonMinusOneToFullAverageWeight() nogil except +
+        double getCIonMinusOneToFullAverageWeight() nogil except +
 
-        DoubleReal getCIonMinusOneToFullMonoWeight() nogil except +
+        double getCIonMinusOneToFullMonoWeight() nogil except +
 
         # c+1 ion
         EmpiricalFormula getCIonPlusOneToFull() nogil except +
 
-        DoubleReal getCIonPlusOneToFullAverageWeight() nogil except +
+        double getCIonPlusOneToFullAverageWeight() nogil except +
 
-        DoubleReal getCIonPlusOneToFullMonoWeight() nogil except +
+        double getCIonPlusOneToFullMonoWeight() nogil except +
 
         # c+2 ion
         EmpiricalFormula getCIonPlusTwoToFull() nogil except +
 
-        DoubleReal getCIonPlusTwoToFullAverageWeight() nogil except +
+        double getCIonPlusTwoToFullAverageWeight() nogil except +
 
-        DoubleReal getCIonPlusTwoToFullMonoWeight() nogil except +
+        double getCIonPlusTwoToFullMonoWeight() nogil except +
 
         # x ion
         EmpiricalFormula getXIonToFull() nogil except +
 
-        DoubleReal getXIonToFullAverageWeight() nogil except +
+        double getXIonToFullAverageWeight() nogil except +
 
-        DoubleReal getXIonToFullMonoWeight() nogil except +
+        double getXIonToFullMonoWeight() nogil except +
 
         # z ion
         EmpiricalFormula getZIonToFull() nogil except +
 
-        DoubleReal getZIonToFullAverageWeight() nogil except +
+        double getZIonToFullAverageWeight() nogil except +
 
-        DoubleReal getZIonToFullMonoWeight() nogil except +
+        double getZIonToFullMonoWeight() nogil except +
 
         # z-1 ion
         EmpiricalFormula getZIonMinusOneToFull() nogil except +
 
-        DoubleReal getZIonMinusOneToFullAverageWeight() nogil except +
+        double getZIonMinusOneToFullAverageWeight() nogil except +
 
-        DoubleReal getZIonMinusOneToFullMonoWeight() nogil except +
+        double getZIonMinusOneToFullMonoWeight() nogil except +
 
         # z+1 ion
         EmpiricalFormula getZIonPlusOneToFull() nogil except +
 
-        DoubleReal getZIonPlusOneToFullAverageWeight() nogil except +
+        double getZIonPlusOneToFullAverageWeight() nogil except +
 
-        DoubleReal getZIonPlusOneToFullMonoWeight() nogil except +
+        double getZIonPlusOneToFullMonoWeight() nogil except +
 
         # z+2 ion
         EmpiricalFormula getZIonPlusTwoToFull() nogil except +
 
-        DoubleReal getZIonPlusTwoToFullAverageWeight() nogil except +
+        double getZIonPlusTwoToFullAverageWeight() nogil except +
 
-        DoubleReal getZIonPlusTwoToFullMonoWeight() nogil except +
+        double getZIonPlusTwoToFullMonoWeight() nogil except +
 
         # returns the ion name given as a residue type
         String getResidueTypeName(ResidueType res_type) nogil except +
@@ -202,16 +202,16 @@ cdef extern from "<OpenMS/CHEMISTRY/Residue.h>" namespace "OpenMS":
         EmpiricalFormula getFormula(ResidueType res_type) nogil except +
 
         # sets average weight of the residue (must be full, with N and C-terminus)
-        void setAverageWeight(DoubleReal weight) nogil except +
+        void setAverageWeight(double weight) nogil except +
 
         # returns average weight of the residue
-        DoubleReal getAverageWeight(ResidueType res_type) nogil except +
+        double getAverageWeight(ResidueType res_type) nogil except +
 
         # sets mono weight of the residue (must be full, with N and C-terminus)
-        void setMonoWeight(DoubleReal weight) nogil except +
+        void setMonoWeight(double weight) nogil except +
 
         # returns mono weight of the residue
-        DoubleReal getMonoWeight(ResidueType res_type) nogil except +
+        double getMonoWeight(ResidueType res_type) nogil except +
 
         # sets by the name, this mod should be present in ModificationsDB
         void setModification(String name) nogil except +
@@ -253,43 +253,43 @@ cdef extern from "<OpenMS/CHEMISTRY/Residue.h>" namespace "OpenMS":
         bool operator!=(char one_letter_code) nogil except +
 
         # returns the pka of the residue
-        DoubleReal getPka() nogil except +
+        double getPka() nogil except +
 
         # returns the pkb of the residue
-        DoubleReal getPkb() nogil except +
+        double getPkb() nogil except +
 
         # returns the pkc of the residue if it exists otherwise -1
-        DoubleReal getPkc() nogil except +
+        double getPkc() nogil except +
 
         # calculates the isoelectric point using the pk* values
-        DoubleReal getPiValue() nogil except +
+        double getPiValue() nogil except +
 
         # sets the pka of the residue
-        void setPka(DoubleReal value) nogil except +
+        void setPka(double value) nogil except +
 
         # sets the pkb of the residue
-        void setPkb(DoubleReal value) nogil except +
+        void setPkb(double value) nogil except +
 
         # sets the pkc of the residue
-        void setPkc(DoubleReal value) nogil except +
+        void setPkc(double value) nogil except +
 
         # returns the side chain basicity
-        DoubleReal getSideChainBasicity() nogil except +
+        double getSideChainBasicity() nogil except +
 
         # sets the side chain basicity
-        void setSideChainBasicity(DoubleReal gb_sc) nogil except +
+        void setSideChainBasicity(double gb_sc) nogil except +
 
         # returns the backbone basicitiy if located in N-terminal direction
-        DoubleReal getBackboneBasicityLeft() nogil except +
+        double getBackboneBasicityLeft() nogil except +
 
         # sets the N-terminal direction backbone basicitiy
-        void setBackboneBasicityLeft(DoubleReal gb_bb_l) nogil except +
+        void setBackboneBasicityLeft(double gb_bb_l) nogil except +
 
         # returns the C-terminal direction backbone basicitiy
-        DoubleReal getBackboneBasicityRight() nogil except +
+        double getBackboneBasicityRight() nogil except +
 
         # sets the C-terminal direction backbone basicity
-        void setBackboneBasicityRight(DoubleReal gb_bb_r) nogil except +
+        void setBackboneBasicityRight(double gb_bb_r) nogil except +
 
         # true if the residue is a modified one
         bool isModified() nogil except +

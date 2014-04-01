@@ -19,7 +19,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/DPosition.h>" namespace "OpenMS":
         DPosition1()  nogil except +
         DPosition1(DPosition1)  nogil except +
 
-        DoubleReal & operator[](Size index) nogil except +
+        double & operator[](Size index) nogil except +
         bool operator==(DPosition1) nogil except +
         bool operator!=(DPosition1) nogil except +
 
@@ -37,7 +37,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/DPosition.h>" namespace "OpenMS":
         DPosition2()  nogil except +
         DPosition2(DPosition2)  nogil except +
 
-        DoubleReal & operator[](Size index) nogil except +
+        double & operator[](Size index) nogil except +
         bool operator==(DPosition2) nogil except +
         bool operator!=(DPosition2) nogil except +
 
