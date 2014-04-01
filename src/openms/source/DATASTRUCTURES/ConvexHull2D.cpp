@@ -123,7 +123,7 @@ namespace OpenMS
         if ( it == map_points_.rbegin() && ( fabs(it->second.width()) <= std::numeric_limits<double>::epsilon()) )
           continue;
         // do not list first scan again if it's only a single point
-        else if (it == --map_points_.rend() && (it->second.width() == 0))
+        else if (it == --map_points_.rend() && (fabs(it->second.width()) <= std::numeric_limits<double>::epsilon()) )
           continue;
         outer_points_.push_back(p);
       }
