@@ -34,8 +34,11 @@
 
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/CONCEPT/Exception.h>
+
+#include <boost/math/special_functions/fpclassify.hpp>
+
 #include <sstream>
-#include <algorithm>
+#include <iostream>
 
 using namespace std;
 
@@ -45,6 +48,8 @@ namespace OpenMS
   PeptideIdentification::PeptideIdentification() :
     MetaInfoInterface(),
     id_(),
+	rt_(std::numeric_limits<DoubleReal>::quiet_NaN()),
+	mz_(std::numeric_limits<DoubleReal>::quiet_NaN()),
     hits_(),
     significance_threshold_(0.0),
     score_type_(),
@@ -56,7 +61,9 @@ namespace OpenMS
   PeptideIdentification::PeptideIdentification(const PeptideIdentification & rhs) :
     MetaInfoInterface(rhs),
     id_(rhs.id_),
-    hits_(rhs.hits_),
+	rt_(rhs.rt_),
+	mz_(rhs.mz_),
+	hits_(rhs.hits_),
     significance_threshold_(rhs.significance_threshold_),
     score_type_(rhs.score_type_),
     higher_score_better_(rhs.higher_score_better_),
@@ -77,6 +84,8 @@ namespace OpenMS
 
     MetaInfoInterface::operator=(rhs);
     id_ = rhs.id_;
+	rt_ = rhs.rt_;
+	mz_ = rhs.mz_;
     hits_ = rhs.hits_;
     significance_threshold_ = rhs.significance_threshold_;
     score_type_ = rhs.score_type_;
@@ -91,6 +100,8 @@ namespace OpenMS
   {
     return MetaInfoInterface::operator==(rhs)
            && id_ == rhs.id_
+		   && (rt_ == rhs.rt_ || (!this->hasRT() && !rhs.hasRT())) // might be NaN, so comparing == will always be false
+		   && (mz_ == rhs.mz_ || (!this->hasMZ() && !rhs.hasMZ())) // might be NaN, so comparing == will always be false
            && hits_ == rhs.getHits()
            && significance_threshold_ == rhs.getSignificanceThreshold()
            && score_type_ == rhs.score_type_
@@ -104,11 +115,39 @@ namespace OpenMS
     return !(*this == rhs);
   }
 
-  const std::vector<PeptideHit> & PeptideIdentification::getHits() const
+  DoubleReal PeptideIdentification::getRT() const
   {
-    return hits_;
+	  return rt_;
+  }
+  void PeptideIdentification::setRT(DoubleReal rt)
+  {
+	  rt_ = rt;
   }
 
+  bool PeptideIdentification::hasRT() const
+  {
+	  return !boost::math::isnan(rt_);
+  }
+
+  DoubleReal PeptideIdentification::getMZ() const
+  {
+	  return mz_;
+  }
+  void PeptideIdentification::setMZ(DoubleReal mz)
+  {
+	  mz_ = mz;
+  }
+
+  bool PeptideIdentification::hasMZ() const
+  {
+	  return !boost::math::isnan(mz_);
+  }
+
+  const std::vector<PeptideHit> & PeptideIdentification::getHits() const
+  {
+	  return hits_;
+  }
+  
   std::vector<PeptideHit> & PeptideIdentification::getHits()
   {
     return hits_;
@@ -134,7 +173,7 @@ namespace OpenMS
     significance_threshold_ = value;
   }
 
-  String PeptideIdentification::getScoreType() const
+  const String& PeptideIdentification::getScoreType() const
   {
     return score_type_;
   }
@@ -303,5 +342,27 @@ namespace OpenMS
     }
     getNonReferencingHits(accessions, peptide_hits);
   }
+
+  /// re-implemented from MetaValueInfterface as a precaution against deprecated usage of "RT" and "MZ" values
+  const DataValue & PeptideIdentification::getMetaValue(const String &name) const
+  {
+	  if (name == "RT" || name == "MZ")
+	  { // this line should never the triggered. Set a breakpoint, find out who called getMetaValue() and replace with PeptideIdentification.getRT()/.getMZ() !!!!
+		  std::cerr << "\n\nUnsupported use of MetavalueInferface for 'RT' detected in " << __FILE__ << ":" << __LINE__ << ". Please notify the developers, so they can remove outdated code!\n\n";
+		  exit(1);
+	  }
+	  return MetaInfoInterface::getMetaValue(name);
+  }
+  /// re-implemented from MetaValueInfterface as a precaution against deprecated usage of "RT" and "MZ" values
+  void PeptideIdentification::setMetaValue(const String &name, const DataValue &value)
+  {
+	  if (name == "RT" || name == "MZ")
+	  { // this line should never the triggered. Set a breakpoint, find out who called getMetaValue() and replace with PeptideIdentification.getRT()/.getMZ() !!!!
+		  std::cerr << "\n\nUnsupported use of MetavalueInferface for 'RT' detected in " << __FILE__ << ":" << __LINE__ << ". Please notify the developers, so they can remove outdated code!\n\n";
+		  exit(1);
+	  }
+	  MetaInfoInterface::setMetaValue(name, value);
+  }
+
 
 } // namespace OpenMS

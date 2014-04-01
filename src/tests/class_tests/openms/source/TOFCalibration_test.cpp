@@ -116,7 +116,7 @@ END_SECTION
 
 
 START_SECTION((template<typename PeakType> void pickAndCalibrate(MSExperiment< Peak1D > &calib_spectra, MSExperiment< PeakType > &exp, std::vector< double > &exp_masses)))
-  std::cout.precision(writtenDigits<DoubleReal>());
+  std::cout.precision(writtenDigits<DoubleReal>(0.0));
   MSExperiment<Peak1D> calib_exp;
   MSExperiment<Peak1D> exp,res_exp;
   MzDataFile file;

@@ -1064,14 +1064,14 @@ protected:
     IdType ids; // use Peak2D since it has sorting operators already
     for (Size i = 0; i < peptide_ids.size(); ++i)
     {
-      if (!peptide_ids[i].metaValueExists("RT") && !peptide_ids[i].metaValueExists("MZ"))
+      if (!(peptide_ids[i].hasRT() && peptide_ids[i].hasMZ()))
       {
         LOG_ERROR << "Identifications given in 'id:blacklist' are missing RT and/or MZ coordinates. Cannot do blacklisting without. Quitting." << std::endl;
         return INCOMPATIBLE_INPUT_DATA;
       }
       Peak2D p;
-      p.setRT(peptide_ids[i].getMetaValue("RT"));
-      p.setMZ(peptide_ids[i].getMetaValue("MZ"));
+      p.setRT(peptide_ids[i].getRT());
+      p.setMZ(peptide_ids[i].getMZ());
       ids.push_back(p);
     }
 
