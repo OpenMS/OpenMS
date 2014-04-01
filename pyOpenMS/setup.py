@@ -118,20 +118,7 @@ if sys.platform == "linux2":
     extra_link_args = ["-Wl,-s"]
 elif sys.platform == "darwin":
     # we need to manually link to the Qt Frameworks
-    extra_link_args = ["-Wl,-s",
-                       "-F" + QT_LIBRARY_DIR,
-                       "-framework AGL",
-                       "-framework CoreFoundation",
-                       "-framework CoreServices",
-                       "-framework QtSvg",
-                       "-framework QtWebKit",
-                       "-framework QtXmlPatterns",
-                       "-framework QtGui",
-                       "-framework QtTest",
-                       "-framework QtXml",
-                       "-framework QtSql",
-                       "-framework QtNetwork",
-                       "-framework QtCore"]
+    extra_link_args = []
 
 ext = Extension(
     "pyopenms",
