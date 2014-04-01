@@ -75,7 +75,7 @@ namespace OpenMS
   DataValue::DataValue(long double p) :
     value_type_(DOUBLE_VALUE), unit_("")
   {
-    data_.dou_ = p;
+    data_.dou_ = (double)(p);
   }
 
   DataValue::DataValue(double p) :
@@ -341,7 +341,7 @@ namespace OpenMS
   DataValue& DataValue::operator=(const long double arg)
   {
     clear_();
-    data_.dou_ = arg;
+    data_.dou_ = (double)(arg);
     value_type_ = DOUBLE_VALUE;
     return *this;
   }
@@ -465,7 +465,7 @@ namespace OpenMS
     {
       return float(data_.ssize_);
     }
-    return data_.dou_;
+    return (float)(data_.dou_);
   }
 
   DataValue::operator short int() const
@@ -474,7 +474,7 @@ namespace OpenMS
     {
       throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert non-integer DataValue to short int");
     }
-    return data_.ssize_;
+    return (short int)(data_.ssize_);
   }
 
   DataValue::operator unsigned short int() const
@@ -487,7 +487,7 @@ namespace OpenMS
     {
       throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert negative integer DataValue to unsigned short int");
     }
-    return data_.ssize_;
+    (unsigned short int)(data_.ssize_);
   }
 
   DataValue::operator int() const
@@ -496,7 +496,7 @@ namespace OpenMS
     {
       throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert non-integer DataValue to int");
     }
-    return data_.ssize_;
+    return (int)(data_.ssize_);//return data_.ssize_;
   }
 
   DataValue::operator unsigned int() const
@@ -509,7 +509,7 @@ namespace OpenMS
     {
       throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert negative integer DataValue to unsigned int");
     }
-    return data_.ssize_;
+    return (unsigned int)(data_.ssize_); 
   }
 
   DataValue::operator long int() const
