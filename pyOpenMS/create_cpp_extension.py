@@ -6,8 +6,8 @@ iswin = sys.platform == "win32"
 
 # import config
 from env import (QT_QMAKE_VERSION_INFO, QT_LIBRARY_DIR, OPEN_MS_BUILD_TYPE, OPEN_MS_SRC,
-                 OPEN_MS_CONTRIB_BUILD_DIRS, OPEN_MS_LIB, OPEN_SWATH_ALGO_LIB, OPEN_MS_BUILD_DIR,
-                 MSVCR90DLL, MSVCP90DLL, OPEN_MS_VERSION)
+                 OPEN_MS_CONTRIB_BUILD_DIRS, OPEN_MS_LIB, OPEN_SWATH_ALGO_LIB, SUPERHIRN_LIB,
+                 OPEN_MS_BUILD_DIR, MSVCR90DLL, MSVCP90DLL, OPEN_MS_VERSION)
 
 IS_DEBUG = OPEN_MS_BUILD_TYPE.upper() == "DEBUG"
 
@@ -116,6 +116,7 @@ if iswin:
 if iswin:
     shutil.copy(OPEN_MS_LIB, "pyopenms")
     shutil.copy(OPEN_SWATH_ALGO_LIB, "pyopenms")
+    shutil.copy(SUPERHIRN_LIB, "pyopenms")
 
     shutil.copy(MSVCR90DLL, "pyopenms")
     shutil.copy(MSVCP90DLL, "pyopenms")
@@ -155,4 +156,3 @@ else:
 
 print "copied files needed for distribution to pyopenms/"
 print
-
