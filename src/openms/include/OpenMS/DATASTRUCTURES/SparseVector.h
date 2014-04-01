@@ -121,7 +121,7 @@ public:
     SparseVector(size_type size, Value value, Value se = 0) :
       values_(), size_(size), sparse_element_(se)
     {
-      if (value != sparse_element_)          //change, if sparse element is another
+      if ( !(fabs(value - sparse_element_) <= std::numeric_limits<Value>::epsilon()) )          //change, if sparse element is another
       {
         map_iterator i = values_.begin();
         for (size_type s = 0; s < size; ++s)
@@ -556,7 +556,7 @@ public:
       /// assignment operator, ditches the sparse elements
       ValueProxy & operator=(Value val)
       {
-        if (val != vec_.sparse_element_)             //if (fabs(val) > 1e-8)
+        if ( ! (fabs(val - vec_.sparse_element_) <= std::numeric_limits<Value>::epsilon()) )             //if (fabs(val) > 1e-8)
         {
           vec_.values_[index_] = val;
         }

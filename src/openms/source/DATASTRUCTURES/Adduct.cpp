@@ -199,8 +199,8 @@ namespace OpenMS
   {
     return a.charge_ == b.charge_
            && a.amount_ == b.amount_
-           && a.singleMass_ == b.singleMass_
-           && a.log_prob_ == b.log_prob_
+           && fabs(a.singleMass_ - b.singleMass_ ) <= std::numeric_limits<double>::epsilon()
+           && fabs(a.log_prob_ - b.log_prob_ ) <= std::numeric_limits<double>::epsilon()
            && a.formula_ == b.formula_;
 
   }

@@ -361,10 +361,10 @@ namespace OpenMS
   {
     return a.cmp_ == b.cmp_
            && a.net_charge_ == b.net_charge_
-           && a.mass_ == b.mass_
+           && std::abs(a.mass_ - b.mass_ ) <= std::numeric_limits<double>::epsilon()
            && a.pos_charges_ == b.pos_charges_
            && a.neg_charges_ == b.neg_charges_
-           && a.log_p_ == b.log_p_
+           && std::abs(a.log_p_ - b.log_p_) <= std::numeric_limits<double>::epsilon()
            && a.id_ == b.id_;
 
   }
