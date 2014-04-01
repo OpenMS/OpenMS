@@ -52,7 +52,7 @@ namespace OpenMS
   }
 
   // values constructor
-  PeptideHit::PeptideHit(DoubleReal score, UInt rank, Int charge, const AASequence & sequence) :
+  PeptideHit::PeptideHit(double score, UInt rank, Int charge, const AASequence & sequence) :
     MetaInfoInterface(),
     score_(score),
     rank_(rank),
@@ -126,7 +126,7 @@ namespace OpenMS
   }
 
   // returns the score of the peptide hit
-  DoubleReal PeptideHit::getScore() const
+  double PeptideHit::getScore() const
   {
     return score_;
   }
@@ -170,7 +170,7 @@ namespace OpenMS
   }
 
   // sets the score of the peptide hit
-  void PeptideHit::setScore(DoubleReal score)
+  void PeptideHit::setScore(double score)
   {
     score_ = score;
   }

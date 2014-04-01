@@ -1181,16 +1181,16 @@ protected:
     bool split_file = getFlag_("split_file_input");
     bool use_emg_score = getFlag_("use_elution_model_score");
     bool sort_swath_maps = getFlag_("sort_swath_maps");
-    DoubleReal min_upper_edge_dist = getDoubleOption_("min_upper_edge_dist");
-    DoubleReal mz_extraction_window = getDoubleOption_("mz_extraction_window");
-    DoubleReal rt_extraction_window = getDoubleOption_("rt_extraction_window");
-    DoubleReal extra_rt_extract = getDoubleOption_("extra_rt_extraction_window");
+    double min_upper_edge_dist = getDoubleOption_("min_upper_edge_dist");
+    double mz_extraction_window = getDoubleOption_("mz_extraction_window");
+    double rt_extraction_window = getDoubleOption_("rt_extraction_window");
+    double extra_rt_extract = getDoubleOption_("extra_rt_extraction_window");
     String extraction_function = getStringOption_("extraction_function");
     String swath_windows_file = getStringOption_("swath_windows_file");
     int batchSize = (int)getIntOption_("batchSize");
 
-    DoubleReal min_rsq = getDoubleOption_("min_rsq");
-    DoubleReal min_coverage = getDoubleOption_("min_coverage");
+    double min_rsq = getDoubleOption_("min_rsq");
+    double min_coverage = getDoubleOption_("min_coverage");
 
     String readoptions = getStringOption_("readOptions");
     String tmp = getStringOption_("tempDirectory");

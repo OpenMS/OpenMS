@@ -104,18 +104,18 @@ public:
 
 
     ///Non-mutable access to the matching epsilon
-    inline DoubleReal getMZTolerance() const {return tolerance_mz_; }
+    inline double getMZTolerance() const {return tolerance_mz_; }
     ///Mutable access to the matching epsilon
-    inline void setMZTolerance(DoubleReal tolerance_mz)
+    inline void setMZTolerance(double tolerance_mz)
     {
       tolerance_mz_ = tolerance_mz;
       param_.setValue("2d:tolerance_mz", tolerance_mz);
     }
 
     ///Non-mutable access to the maximal peak distance in a cluster
-    inline DoubleReal getMaxPeakDistance() const {return max_peak_distance_; }
+    inline double getMaxPeakDistance() const {return max_peak_distance_; }
     ///Mutable access to the maximal peak distance in a cluster
-    inline void setMaxPeakDistance(DoubleReal max_peak_distance)
+    inline void setMaxPeakDistance(double max_peak_distance)
     {
       max_peak_distance_ = max_peak_distance;
       param_.setValue("2d:max_peak_distance", max_peak_distance);
@@ -169,14 +169,14 @@ protected:
     struct Data
     {
       std::vector<std::pair<SignedSize, SignedSize> > signal2D;
-      std::multimap<DoubleReal, IsotopeCluster>::iterator iso_map_iter;
+      std::multimap<double, IsotopeCluster>::iterator iso_map_iter;
       Size total_nr_peaks;
       std::map<Int, std::vector<PeakIndex> > matching_peaks;
       MSExperiment<> picked_peaks;
       MSExperiment<Peak1D>::ConstIterator raw_data_first;
       OptimizationFunctions::PenaltyFactorsIntensity penalties;
-      std::vector<DoubleReal> positions;
-      std::vector<DoubleReal> signal;
+      std::vector<double> positions;
+      std::vector<double> signal;
     };
 
     class OPENMS_DLLAPI TwoDOptFunctor
@@ -199,16 +199,16 @@ protected:
 
 
     /// stores the retention time of each isotopic cluster
-    std::multimap<DoubleReal, IsotopeCluster> iso_map_;
+    std::multimap<double, IsotopeCluster> iso_map_;
 
     /// Pointer to the current region
-    std::multimap<DoubleReal, IsotopeCluster>::const_iterator curr_region_;
+    std::multimap<double, IsotopeCluster>::const_iterator curr_region_;
 
     /// upper bound for distance between two peaks belonging to the same region
-    DoubleReal max_peak_distance_;
+    double max_peak_distance_;
 
     /// threshold for the difference in the peak position of two matching peaks
-    DoubleReal tolerance_mz_;
+    double tolerance_mz_;
 
     /// Indices of peaks in the adjacent scans matching peaks in the scan with no. ref_scan
     //  std::map<Int, std::vector<MSExperiment<>::SpectrumType::Iterator > > matching_peaks_;
@@ -230,9 +230,9 @@ protected:
          @name Auxiliary Functions for the search of matching regions
     */
     //@{
-    std::vector<DoubleReal>::iterator searchInScan_(std::vector<DoubleReal>::iterator scan_begin,
-                                                    std::vector<DoubleReal>::iterator scan_end,
-                                                    DoubleReal current_mz);
+    std::vector<double>::iterator searchInScan_(std::vector<double>::iterator scan_begin,
+                                                    std::vector<double>::iterator scan_end,
+                                                    double current_mz);
 
     /** Performs 2D optimization of all regions */
     template <typename InputSpectrumIterator, typename OutputPeakType>
@@ -253,11 +253,11 @@ protected:
                              InputSpectrumIterator& first,
                              InputSpectrumIterator& last,
                              Size iso_map_idx,
-                             DoubleReal noise_level,
+                             double noise_level,
                              TwoDOptimization::Data& d);
 
     /// Identify matching peak in a peak cluster
-    void findMatchingPeaks_(std::multimap<DoubleReal, IsotopeCluster>::iterator& it,
+    void findMatchingPeaks_(std::multimap<double, IsotopeCluster>::iterator& it,
                             MSExperiment<>& ms_exp);
 
     //@}
@@ -311,19 +311,19 @@ protected:
       return;
     }
     // stores the monoisotopic peaks of isotopic clusters
-    std::vector<DoubleReal> iso_last_scan;
-    std::vector<DoubleReal> iso_curr_scan;
-    std::vector<std::multimap<DoubleReal, IsotopeCluster>::iterator> clusters_last_scan;
-    std::vector<std::multimap<DoubleReal, IsotopeCluster>::iterator> clusters_curr_scan;
-    std::multimap<DoubleReal, IsotopeCluster>::iterator cluster_iter;
-    DoubleReal current_rt = ms_exp_it->getRT(), last_rt  = 0;
+    std::vector<double> iso_last_scan;
+    std::vector<double> iso_curr_scan;
+    std::vector<std::multimap<double, IsotopeCluster>::iterator> clusters_last_scan;
+    std::vector<std::multimap<double, IsotopeCluster>::iterator> clusters_curr_scan;
+    std::multimap<double, IsotopeCluster>::iterator cluster_iter;
+    double current_rt = ms_exp_it->getRT(), last_rt  = 0;
 
     // retrieve values for accepted peaks distances
     max_peak_distance_ = param_.getValue("2d:max_peak_distance");
-    DoubleReal tolerance_mz = param_.getValue("2d:tolerance_mz");
+    double tolerance_mz = param_.getValue("2d:tolerance_mz");
 
     UInt current_charge     = 0; // charge state of the current isotopic cluster
-    DoubleReal mz_in_hash   = 0; // used as reference to the current isotopic peak
+    double mz_in_hash   = 0; // used as reference to the current isotopic peak
 
     // sweep through scans
     for (UInt curr_scan = 0; ms_exp_it + curr_scan != ms_exp_it_end; ++curr_scan)
@@ -359,8 +359,8 @@ protected:
         {
 
           // store the m/z of the current peak
-          DoubleReal curr_mz         = (peak_it + curr_peak)->getMZ();
-          DoubleReal dist2nextpeak = (peak_it + curr_peak + 1)->getMZ() - curr_mz;
+          double curr_mz         = (peak_it + curr_peak)->getMZ();
+          double dist2nextpeak = (peak_it + curr_peak + 1)->getMZ() - curr_mz;
 
           if (dist2nextpeak <= max_peak_distance_) // one single peak without neighbors isn't optimized
           {
@@ -372,10 +372,10 @@ protected:
             {
               std::sort(iso_last_scan.begin(), iso_last_scan.end());
               // there were some isotopic clusters in the last scan...
-              std::vector<DoubleReal>::iterator it =
+              std::vector<double>::iterator it =
                 searchInScan_(iso_last_scan.begin(), iso_last_scan.end(), curr_mz);
 
-              DoubleReal delta_mz = fabs(*it - curr_mz);
+              double delta_mz = fabs(*it - curr_mz);
               //std::cout << delta_mz << " "<< tolerance_mz << std::endl;
               if (delta_mz > tolerance_mz) // check if first peak of last cluster is close enough
               {
@@ -388,7 +388,7 @@ protected:
                 IsotopeCluster new_cluster;
                 new_cluster.peaks.charge  = current_charge;
                 new_cluster.scans.push_back(curr_scan);
-                cluster_iter = iso_map_.insert(std::pair<DoubleReal, IsotopeCluster>(mz_in_hash, new_cluster));
+                cluster_iter = iso_map_.insert(std::pair<double, IsotopeCluster>(mz_in_hash, new_cluster));
 
               }
               else
@@ -425,7 +425,7 @@ protected:
               IsotopeCluster new_cluster;
               new_cluster.peaks.charge  = current_charge;
               new_cluster.scans.push_back(curr_scan);
-              cluster_iter = iso_map_.insert(std::pair<DoubleReal, IsotopeCluster>(mz_in_hash, new_cluster));
+              cluster_iter = iso_map_.insert(std::pair<double, IsotopeCluster>(mz_in_hash, new_cluster));
 
             }
 
@@ -476,10 +476,10 @@ protected:
             {
               std::sort(iso_last_scan.begin(), iso_last_scan.end());
               // there were some isotopic clusters in the last scan...
-              std::vector<DoubleReal>::iterator it =
+              std::vector<double>::iterator it =
                 searchInScan_(iso_last_scan.begin(), iso_last_scan.end(), curr_mz);
 
-              DoubleReal delta_mz = fabs(*it - curr_mz);
+              double delta_mz = fabs(*it - curr_mz);
               // std::cout << delta_mz << " "<< tolerance_mz << std::endl;
               if (delta_mz > tolerance_mz) // check if first peak of last cluster is close enough
               {
@@ -492,7 +492,7 @@ protected:
                 IsotopeCluster new_cluster;
                 new_cluster.peaks.charge  = current_charge;
                 new_cluster.scans.push_back(curr_scan);
-                cluster_iter = iso_map_.insert(std::pair<DoubleReal, IsotopeCluster>(mz_in_hash, new_cluster));
+                cluster_iter = iso_map_.insert(std::pair<double, IsotopeCluster>(mz_in_hash, new_cluster));
 
               }
               else
@@ -529,7 +529,7 @@ protected:
               IsotopeCluster new_cluster;
               new_cluster.peaks.charge  = current_charge;
               new_cluster.scans.push_back(curr_scan);
-              cluster_iter = iso_map_.insert(std::pair<DoubleReal, IsotopeCluster>(mz_in_hash, new_cluster));
+              cluster_iter = iso_map_.insert(std::pair<double, IsotopeCluster>(mz_in_hash, new_cluster));
 
             }
 
@@ -573,7 +573,7 @@ protected:
   {
     Int counter = 0;
     // go through the clusters
-    for (std::multimap<DoubleReal, IsotopeCluster>::iterator it = iso_map_.begin();
+    for (std::multimap<double, IsotopeCluster>::iterator it = iso_map_.begin();
          it != iso_map_.end();
          ++it)
     {
@@ -617,7 +617,7 @@ protected:
       x_init.setZero();
 
       std::map<Int, std::vector<PeakIndex> >::iterator m_peaks_it = twoD_data.matching_peaks.begin();
-      DoubleReal av_mz = 0, av_lw = 0, av_rw = 0, avr_height = 0, height;
+      double av_mz = 0, av_lw = 0, av_rw = 0, avr_height = 0, height;
       Int peak_counter = 0;
       Int diff_peak_counter = 0;
       // go through the matching peaks
@@ -688,30 +688,30 @@ protected:
                     << "\nrw: " << itv->second[j].getSpectrum(ms_exp).getFloatDataArrays()[4][itv->second[j].peak] << "\n";
 
 #endif
-          DoubleReal mz = x_init(twoD_data.total_nr_peaks + 3 * i);
+          double mz = x_init(twoD_data.total_nr_peaks + 3 * i);
           ms_exp[itv->second[j].spectrum][itv->second[j].peak].setMZ(mz);
-          DoubleReal height = x_init(peak_idx);
+          double height = x_init(peak_idx);
           ms_exp[itv->second[j].spectrum].getFloatDataArrays()[1][itv->second[j].peak] = height;
-          DoubleReal left_width = x_init(twoD_data.total_nr_peaks + 3 * i + 1);
+          double left_width = x_init(twoD_data.total_nr_peaks + 3 * i + 1);
           ms_exp[itv->second[j].spectrum].getFloatDataArrays()[3][itv->second[j].peak] = left_width;
-          DoubleReal right_width = x_init(twoD_data.total_nr_peaks + 3 * i + 2);
+          double right_width = x_init(twoD_data.total_nr_peaks + 3 * i + 2);
 
           ms_exp[itv->second[j].spectrum].getFloatDataArrays()[4][itv->second[j].peak] = right_width;
           // calculate area
           if ((PeakShape::Type)(Int)ms_exp[itv->second[j].spectrum].getFloatDataArrays()[5][itv->second[j].peak] == PeakShape::LORENTZ_PEAK)
           {
-            DoubleReal x_left_endpoint = mz - 1 / left_width* sqrt(height / 1 - 1);
-            DoubleReal x_rigth_endpoint = mz + 1 / right_width* sqrt(height / 1 - 1);
-            DoubleReal area_left = -height / left_width* atan(left_width * (x_left_endpoint - mz));
-            DoubleReal area_right = -height / right_width* atan(right_width * (mz - x_rigth_endpoint));
+            double x_left_endpoint = mz - 1 / left_width* sqrt(height / 1 - 1);
+            double x_rigth_endpoint = mz + 1 / right_width* sqrt(height / 1 - 1);
+            double area_left = -height / left_width* atan(left_width * (x_left_endpoint - mz));
+            double area_right = -height / right_width* atan(right_width * (mz - x_rigth_endpoint));
             ms_exp[itv->second[j].spectrum][itv->second[j].peak].setIntensity(area_left + area_right);
           }
           else         // it's a sech peak
           {
-            DoubleReal x_left_endpoint = mz - 1 / left_width* boost::math::acosh(sqrt(height / 0.001));
-            DoubleReal x_rigth_endpoint = mz + 1 / right_width* boost::math::acosh(sqrt(height / 0.001));
-            DoubleReal area_left = -height / left_width * (sinh(left_width * (mz - x_left_endpoint)) / cosh(left_width * (mz - x_left_endpoint)));
-            DoubleReal area_right = -height / right_width * (sinh(right_width * (mz - x_rigth_endpoint)) / cosh(right_width * (mz - x_rigth_endpoint)));
+            double x_left_endpoint = mz - 1 / left_width* boost::math::acosh(sqrt(height / 0.001));
+            double x_rigth_endpoint = mz + 1 / right_width* boost::math::acosh(sqrt(height / 0.001));
+            double area_left = -height / left_width * (sinh(left_width * (mz - x_left_endpoint)) / cosh(left_width * (mz - x_left_endpoint)));
+            double area_right = -height / right_width * (sinh(right_width * (mz - x_rigth_endpoint)) / cosh(right_width * (mz - x_rigth_endpoint)));
             ms_exp[itv->second[j].spectrum][itv->second[j].peak].setIntensity(area_left + area_right);
           }
 
@@ -789,7 +789,7 @@ protected:
 
 
     // go through the clusters
-    for (std::multimap<DoubleReal, IsotopeCluster>::iterator it = iso_map_.begin();
+    for (std::multimap<double, IsotopeCluster>::iterator it = iso_map_.begin();
          it != iso_map_.end();
          ++it)
     {
@@ -937,15 +937,15 @@ protected:
                                              InputSpectrumIterator& first,
                                              InputSpectrumIterator& last,
                                              Size iso_map_idx,
-                                             DoubleReal noise_level,
+                                             double noise_level,
                                              TwoDOptimization::Data& d)
   {
     d.signal2D.clear();
     typedef typename InputSpectrumIterator::value_type InputExperimentType;
     typedef typename InputExperimentType::value_type InputPeakType;
-    typedef std::multimap<DoubleReal, IsotopeCluster> MapType;
+    typedef std::multimap<double, IsotopeCluster> MapType;
 
-    DoubleReal rt, first_peak_mz, last_peak_mz;
+    double rt, first_peak_mz, last_peak_mz;
 
     //MSSpectrum<InputPeakType> spec;
     typename MSExperiment<InputPeakType>::SpectrumType spec;
@@ -1011,7 +1011,7 @@ protected:
       {
         --raw_data_iter;
       }
-      DoubleReal intensity = raw_data_iter->getIntensity();
+      double intensity = raw_data_iter->getIntensity();
       // while the intensity is falling go to the left
       while (raw_data_iter != iter->begin() && (raw_data_iter - 1)->getIntensity() < intensity &&
              (raw_data_iter - 1)->getIntensity() > noise_level)

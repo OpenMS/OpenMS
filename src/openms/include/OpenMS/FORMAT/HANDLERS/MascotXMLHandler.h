@@ -56,7 +56,7 @@ namespace OpenMS
     {
 public:
 
-      typedef Map<Size, Real> RTMapping;
+      typedef Map<Size, float> RTMapping;
 
       /// Constructor
       MascotXMLHandler(ProteinIdentification& protein_identification,

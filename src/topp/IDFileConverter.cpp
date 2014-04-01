@@ -180,8 +180,8 @@ protected:
       FileHandler fh;
       FileTypes::Type type;
       MSExperiment<Peak1D> msexperiment;
-      // Note: we had issues with leading zeroes, so let us represent scan numbers as Int (next line used to be map<String, Real> num_and_rt;)  However, now String::toInt() might throw.
-      map<Int, Real> num_and_rt;
+      // Note: we had issues with leading zeroes, so let us represent scan numbers as Int (next line used to be map<String, float> num_and_rt;)  However, now String::toInt() might throw.
+      map<Int, float> num_and_rt;
       vector<String> NativeID;
 
       // The mz-File (if given)
@@ -217,7 +217,7 @@ protected:
       {
         vector<PeptideIdentification> peptide_ids_seq;
         ProteinIdentification protein_id_seq;
-        vector<DoubleReal> pvalues_seq;
+        vector<double> pvalues_seq;
         vector<String> in_file_vec;
 
         SequestOutfile sequest_outfile;
@@ -252,8 +252,8 @@ protected:
               {
                 writeLog_(String("Error: Cannot read scan number as integer. '") + e.what());
               }
-              //DoubleReal real_mz = ( (DoubleReal)peptide_ids_seq[j].getMetaValue("MZ") - hydrogen_mass )/ (DoubleReal)peptide_ids_seq[j].getHits()[0].getCharge(); // ???? semantics of mz
-              const DoubleReal real_mz = (DoubleReal) peptide_ids_seq[j].getMetaValue("MZ") / (DoubleReal) peptide_ids_seq[j].getHits()[0].getCharge();
+              //double real_mz = ( (double)peptide_ids_seq[j].getMetaValue("MZ") - hydrogen_mass )/ (double)peptide_ids_seq[j].getHits()[0].getCharge(); // ???? semantics of mz
+              const double real_mz = (double) peptide_ids_seq[j].getMetaValue("MZ") / (double) peptide_ids_seq[j].getHits()[0].getCharge();
               peptide_ids_seq[j].setMetaValue("MZ", real_mz);
             }
 

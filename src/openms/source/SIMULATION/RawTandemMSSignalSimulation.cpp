@@ -173,7 +173,7 @@ namespace OpenMS
     SpectraMerger sm;
     sm.setParameters(p);
 
-    DoubleReal sampling_rate = 1;
+    double sampling_rate = 1;
     //guess sampling rate from two adjacent full scans:
     if (experiment.size() >= 2)
       sampling_rate = experiment[1].getRT() - experiment[0].getRT();
@@ -266,7 +266,7 @@ namespace OpenMS
         // adjust intensity of single MS2 spectra by feature intensity
         const DoubleList & elution_bounds = features[i_f].getMetaValue("elution_profile_bounds");
         const DoubleList & elution_ints   = features[i_f].getMetaValue("elution_profile_intensities");
-        DoubleReal factor = elution_ints[i - elution_bounds[0]] * features[i_f].getIntensity();
+        double factor = elution_ints[i - elution_bounds[0]] * features[i_f].getIntensity();
         for (MSSimExperiment::SpectrumType::iterator it = MS2_spectra[index].begin(); it != MS2_spectra[index].end(); ++it)
         {
           it->setIntensity(it->getIntensity() * factor);
@@ -364,7 +364,7 @@ namespace OpenMS
 
       for (Size id = 0; id < ids.size(); ++id)
       {
-        DoubleReal prec_intens = ms2[i].getPrecursors()[id].getIntensity();
+        double prec_intens = ms2[i].getPrecursors()[id].getIntensity();
         AASequence seq = features[ids[id]].getPeptideIdentifications()[0].getHits()[0].getSequence();
         RichPeakSpectrum tmp_spec;
 

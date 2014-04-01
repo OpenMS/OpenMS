@@ -83,15 +83,15 @@ public:
     /**
         @brief: calculates the dot product of the two spectra
     */
-    DoubleReal operator()(const PeakSpectrum & spec1, const PeakSpectrum & spec2) const;
+    double operator()(const PeakSpectrum & spec1, const PeakSpectrum & spec2) const;
     /**
         @brief: calculates the dot product of the two spectra
     */
-    DoubleReal operator()(const BinnedSpectrum & bin1, const BinnedSpectrum & bin2)   const;
+    double operator()(const BinnedSpectrum & bin1, const BinnedSpectrum & bin2)   const;
     /**
         @brief: calculates the dot product of itself
     */
-    DoubleReal operator()(const PeakSpectrum & spec) const;
+    double operator()(const PeakSpectrum & spec) const;
 
     /**
         @brief Preprocesses the spectrum
@@ -101,7 +101,7 @@ public:
 
         @return true if spectrum passes filtering
     */
-    bool preprocess(PeakSpectrum & spec, Real remove_peak_intensity_threshold = 2.01, UInt cut_peaks_below = 1000, Size min_peak_number = 5, Size max_peak_number = 150);
+    bool preprocess(PeakSpectrum & spec, float remove_peak_intensity_threshold = 2.01, UInt cut_peaks_below = 1000, Size min_peak_number = 5, Size max_peak_number = 150);
 
 
     ///spectrum is transformed into a binned spectrum with bin size 1 and spread 1 and the intensities are normalized.
@@ -114,7 +114,7 @@ public:
         @param bin1 first spectrum in binned representation
         @param bin2 second spectrum in binned representation
     */
-    DoubleReal dot_bias(const BinnedSpectrum & bin1, const BinnedSpectrum & bin2, DoubleReal dot_product = -1) const;
+    double dot_bias(const BinnedSpectrum & bin1, const BinnedSpectrum & bin2, double dot_product = -1) const;
 
     /**
         @brief calculates the normalized distance between top_hit and runner_up.
@@ -126,7 +126,7 @@ public:
 
         @note Range of the dot products is between 0 and 1.
     */
-    DoubleReal delta_D(DoubleReal top_hit, DoubleReal runner_up);
+    double delta_D(double top_hit, double runner_up);
 
     /**
         @brief: computes the overall all score
@@ -136,7 +136,7 @@ public:
 
         @return the SpectraST similarity score
     */
-    DoubleReal compute_F(DoubleReal dot_product, DoubleReal delta_D, DoubleReal dot_bias);
+    double compute_F(double dot_product, double delta_D, double dot_bias);
 
 
 

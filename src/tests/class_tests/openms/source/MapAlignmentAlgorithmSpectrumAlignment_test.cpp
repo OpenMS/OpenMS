@@ -83,7 +83,7 @@ START_SECTION((virtual void alignPeakMaps(std::vector< MSExperiment<> > &, std::
 			spectrum.setRT(i);
 			spectrum.setMSLevel(j);
 		
-			for (Real mz=500.0; mz<=900; mz+=100.0)
+			for (float mz=500.0; mz<=900; mz+=100.0)
 		    { 
 				Peak1D peak;
 				peak.setMZ(mz+i);
@@ -101,7 +101,7 @@ START_SECTION((virtual void alignPeakMaps(std::vector< MSExperiment<> > &, std::
 				spectrum.setRT(i*1.2+200);
 				spectrum.setMSLevel(j);
 			
-				for (Real mz=500.0; mz<=900; mz+=100.0)
+				for (float mz=500.0; mz<=900; mz+=100.0)
 			    { 
 					Peak1D peak;
 					peak.setMZ(mz+i);

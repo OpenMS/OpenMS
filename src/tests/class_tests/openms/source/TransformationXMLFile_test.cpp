@@ -117,8 +117,8 @@ START_SECTION(void store(String filename, const TransformationDescription& trans
 	params = trafo2.getModelParameters();
 	TEST_EQUAL(params.empty(), true);
 	{
-	  DoubleReal pre_image = 234255132.43212;
-	  DoubleReal image = trafo.apply(pre_image);
+	  double pre_image = 234255132.43212;
+	  double image = trafo.apply(pre_image);
     STATUS("Here is an invocation of trafo.apply():   pre_image: " << pre_image << "  image: " << image);
 	}
 	String tmp_file_linear;

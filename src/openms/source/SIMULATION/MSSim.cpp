@@ -425,7 +425,7 @@ namespace OpenMS
       if (ms_it->getMSLevel() != 2) continue;
       // "the" precursor is the one with highest intensity:
       Size index = 0;
-      DoubleReal intensity = ms_it->getPrecursors()[0].getIntensity();
+      double intensity = ms_it->getPrecursors()[0].getIntensity();
       for (Size i = 1; i < ms_it->getPrecursors().size(); ++i)
       {
         if (ms_it->getPrecursors()[i].getIntensity() > intensity)

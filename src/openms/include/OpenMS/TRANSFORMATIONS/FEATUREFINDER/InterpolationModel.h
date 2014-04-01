@@ -57,10 +57,10 @@ namespace OpenMS
   {
 
 public:
-    typedef DoubleReal IntensityType;
+    typedef double IntensityType;
     typedef DPosition<1> PositionType;
-    typedef DoubleReal CoordinateType;
-    typedef Math::LinearInterpolation<DoubleReal> LinearInterpolation;
+    typedef double CoordinateType;
+    typedef Math::LinearInterpolation<double> LinearInterpolation;
 
     /// Default constructor
     InterpolationModel() :

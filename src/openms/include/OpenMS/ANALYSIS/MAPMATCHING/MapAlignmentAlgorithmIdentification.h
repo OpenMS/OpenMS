@@ -153,7 +153,7 @@ protected:
     typedef std::map<String, DoubleList> SeqToList;
 
     /// Type to store one representative retention time per peptide sequence
-    typedef std::map<String, DoubleReal> SeqToValue;
+    typedef std::map<String, double> SeqToValue;
 
     /// Index of input file to use as reference (1-based!)
     Size reference_index_;
@@ -162,7 +162,7 @@ protected:
     SeqToValue reference_;
 
     /// Score threshold for peptide hits
-    DoubleReal score_threshold_;
+    double score_threshold_;
 
     /// Minimum number of runs a peptide must occur in
     Size min_run_occur_;

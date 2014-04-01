@@ -52,7 +52,7 @@ namespace OpenMS
   {
 public:
     /// Coordinate pair
-    typedef std::pair<DoubleReal, DoubleReal> DataPoint;
+    typedef std::pair<double, double> DataPoint;
     /// Vector of coordinate pairs
     typedef std::vector<DataPoint> DataPoints;
 
@@ -68,7 +68,7 @@ public:
     virtual ~TransformationModel() {}
 
     /// Evaluates the model at the given value
-    virtual DoubleReal evaluate(const DoubleReal value) const
+    virtual double evaluate(const double value) const
     {
       return value;
     }
@@ -115,12 +115,12 @@ public:
     ~TransformationModelLinear();
 
     /// Evaluates the model at the given value
-    virtual DoubleReal evaluate(const DoubleReal value) const;
+    virtual double evaluate(const double value) const;
 
     using TransformationModel::getParameters;
 
     /// Gets the "real" parameters
-    void getParameters(DoubleReal & slope, DoubleReal & intercept) const;
+    void getParameters(double & slope, double & intercept) const;
 
     /// Gets the default parameters
     static void getDefaultParameters(Param & params);
@@ -134,7 +134,7 @@ public:
 
 protected:
     /// Parameters of the linear model
-    DoubleReal slope_, intercept_;
+    double slope_, intercept_;
     /// Was the model estimated from data?
     bool data_given_;
     /// Use symmetric regression?
@@ -167,7 +167,7 @@ public:
     ~TransformationModelInterpolated();
 
     /// Evaluates the model at the given value
-    DoubleReal evaluate(const DoubleReal value) const;
+    double evaluate(const double value) const;
 
     /// Gets the default parameters
     static void getDefaultParameters(Param & params);

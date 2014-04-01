@@ -158,10 +158,10 @@ protected:
     }
   }
 
-  void writeStringLabelLines_(String filename, map<String, DoubleReal> predicted_data)
+  void writeStringLabelLines_(String filename, map<String, double> predicted_data)
   {
     ofstream os;
-    map<String, DoubleReal>::iterator it;
+    map<String, double>::iterator it;
 
     os.open(filename.c_str(), ofstream::out);
 
@@ -184,24 +184,24 @@ protected:
     SVMWrapper svm;
     LibSVMEncoder encoder;
     String allowed_amino_acid_characters = "ACDEFGHIKLMNPQRSTVWY";
-    vector<DoubleReal> predicted_retention_times;
-    vector<DoubleReal> all_predicted_retention_times;
-    map<String, DoubleReal> predicted_data;
-    map<AASequence, DoubleReal> predicted_modified_data;
+    vector<double> predicted_retention_times;
+    vector<double> all_predicted_retention_times;
+    map<String, double> predicted_data;
+    map<AASequence, double> predicted_modified_data;
     svm_problem* prediction_data = NULL;
     SVMData training_samples;
     SVMData prediction_samples;
     UInt border_length = 0;
     UInt k_mer_length = 0;
-    DoubleReal sigma = 0;
-    DoubleReal sigma_0 = 0;
-    DoubleReal sigma_max = 0;
+    double sigma = 0;
+    double sigma_0 = 0;
+    double sigma_max = 0;
     String temp_string = "";
     UInt maximum_length = 50;
-    pair<DoubleReal, DoubleReal> temp_point;
-    vector<Real> performance_retention_times;
+    pair<double, double> temp_point;
+    vector<float> performance_retention_times;
     String svmfile_name = "";
-    Real total_gradient_time = 1.f;
+    float total_gradient_time = 1.f;
     bool separation_prediction = false;
     vector<PeptideIdentification> identifications_positive;
     vector<PeptideIdentification> identifications_negative;
@@ -389,7 +389,7 @@ protected:
       number_of_peptides = peptides.size();
     }
 
-    vector<DoubleReal> rts;
+    vector<double> rts;
     rts.resize(number_of_peptides, 0);
 
     vector<String>::iterator it_from = peptides.begin();
@@ -401,7 +401,7 @@ protected:
     {
       vector<String> temp_peptides;
       vector<AASequence> temp_modified_peptides;
-      vector<DoubleReal> temp_rts;
+      vector<double> temp_rts;
 
       Size temp_counter = 0;
       if (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) != SVMWrapper::OLIGO)
@@ -493,8 +493,8 @@ protected:
 
           for (Size j = 0; j < temp_peptide_hits.size(); j++)
           {
-            DoubleReal temp_rt = 0.;
-            DoubleReal temp_p_value = 0.;
+            double temp_rt = 0.;
+            double temp_p_value = 0.;
 
             if (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
             {
@@ -553,8 +553,8 @@ protected:
           {
             identifications[i].sort();
             Int charge = identifications[i].getHits().front().getCharge();
-            DoubleReal mz =  identifications[i].getHits().front().getSequence().getMonoWeight(Residue::Full, charge) / DoubleReal(charge);
-            DoubleReal rt =  identifications[i].getHits().front().getMetaValue("predicted_RT");
+            double mz =  identifications[i].getHits().front().getSequence().getMonoWeight(Residue::Full, charge) / double(charge);
+            double rt =  identifications[i].getHits().front().getMetaValue("predicted_RT");
 
             identifications[i].setMetaValue("RT", rt);
             identifications[i].setMetaValue("MZ", mz);

@@ -62,8 +62,8 @@ namespace OpenMS
         Size size;
         bool compression; // zlib compression
         enum {DT_NONE, DT_FLOAT, DT_INT, DT_STRING} data_type;
-        std::vector<Real> floats_32;
-        std::vector<DoubleReal> floats_64;
+        std::vector<float> floats_32;
+        std::vector<double> floats_64;
         std::vector<Int32> ints_32;
         std::vector<Int64> ints_64;
         std::vector<String> decoded_char;

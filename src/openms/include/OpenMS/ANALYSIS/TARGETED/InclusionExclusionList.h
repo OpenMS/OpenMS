@@ -53,16 +53,16 @@ namespace OpenMS
 protected:
     struct IEWindow
     {
-      IEWindow(const DoubleReal RTmin, const DoubleReal RTmax, const DoubleReal MZ) :
+      IEWindow(const double RTmin, const double RTmax, const double MZ) :
         RTmin_(RTmin),
         RTmax_(RTmax),
         MZ_(MZ)
       {
       }
 
-      DoubleReal RTmin_;
-      DoubleReal RTmax_;
-      DoubleReal MZ_;
+      double RTmin_;
+      double RTmax_;
+      double MZ_;
     };
 
     /**
@@ -75,7 +75,7 @@ protected:
     class WindowDistance_
     {
 public:
-      WindowDistance_(const DoubleReal rt_bridge, const DoubleReal mz_max, const bool mz_as_ppm) :
+      WindowDistance_(const double rt_bridge, const double mz_max, const bool mz_as_ppm) :
         rt_bridge_(rt_bridge),
         mz_max_(mz_max),
         mz_as_ppm_(mz_as_ppm)
@@ -86,7 +86,7 @@ public:
       double operator()(const IEWindow & first, const IEWindow & second) const
       {
         // get MZ distance:
-        DoubleReal d_mz = fabs(first.MZ_ - second.MZ_);
+        double d_mz = fabs(first.MZ_ - second.MZ_);
         if (mz_as_ppm_)
         {
           d_mz = d_mz / first.MZ_ * 1e6;
@@ -115,8 +115,8 @@ public:
 
 protected:
 
-      DoubleReal rt_bridge_; ///< max rt distance between two windows in order to be considered overlapping
-      DoubleReal mz_max_;    ///< max m/z distance between two ...
+      double rt_bridge_; ///< max rt distance between two windows in order to be considered overlapping
+      double mz_max_;    ///< max m/z distance between two ...
       bool mz_as_ppm_;       ///< m/z distance unit
 
     }; // end of WindowDistance_

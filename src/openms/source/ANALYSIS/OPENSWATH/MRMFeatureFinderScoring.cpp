@@ -111,7 +111,7 @@ namespace OpenMS
   {
   }
 
-  void MRMFeatureFinderScoring::pickExperiment(MSExperiment<Peak1D> & chromatograms, 
+  void MRMFeatureFinderScoring::pickExperiment(MSExperiment<Peak1D> & chromatograms,
         FeatureMap<Feature>& output, TargetedExperiment& transition_exp_,
         TransformationDescription trafo, MSExperiment<Peak1D>& swath_map)
   {
@@ -130,7 +130,7 @@ namespace OpenMS
 
   void MRMFeatureFinderScoring::pickExperiment(OpenSwath::SpectrumAccessPtr input,
         FeatureMap<Feature>& output, OpenSwath::LightTargetedExperiment& transition_exp,
-        TransformationDescription trafo, OpenSwath::SpectrumAccessPtr swath_map, 
+        TransformationDescription trafo, OpenSwath::SpectrumAccessPtr swath_map,
         TransitionGroupMapType& transition_group_map)
   {
     updateMembers_();
@@ -211,14 +211,14 @@ namespace OpenMS
   }
 
   void MRMFeatureFinderScoring::scorePeakgroups(MRMTransitionGroupType& transition_group,
-        TransformationDescription & trafo, OpenSwath::SpectrumAccessPtr swath_map, 
+        TransformationDescription & trafo, OpenSwath::SpectrumAccessPtr swath_map,
         FeatureMap<Feature>& output)
   {
     typedef MRMTransitionGroupType::PeakType PeakT;
     std::vector<OpenSwath::ISignalToNoisePtr> signal_noise_estimators;
     std::vector<MRMFeature> feature_list;
 
-    DoubleReal sn_win_len_ = (DoubleReal)param_.getValue("TransitionGroupPicker:PeakPickerMRM:sn_win_len");
+    double sn_win_len_ = (double)param_.getValue("TransitionGroupPicker:PeakPickerMRM:sn_win_len");
     unsigned int sn_bin_count_ = (unsigned int)param_.getValue("TransitionGroupPicker:PeakPickerMRM:sn_bin_count");
     for (Size k = 0; k < transition_group.getChromatograms().size(); k++)
     {
@@ -261,7 +261,7 @@ namespace OpenMS
       }
       if (group_size < 2)
       {
-        LOG_ERROR << "Error: Transition group " << transition_group.getTransitionGroupID() 
+        LOG_ERROR << "Error: Transition group " << transition_group.getTransitionGroupID()
           << " has only one chromatogram." << std::endl;
         delete imrmfeature; // free resources before continuing
         continue;
@@ -275,7 +275,7 @@ namespace OpenMS
       transition_group.getLibraryIntensity(normalized_library_intensity);
       OpenSwath::Scoring::normalize_sum(&normalized_library_intensity[0], boost::numeric_cast<int>(normalized_library_intensity.size()));
       std::vector<std::string> native_ids;
-      for (Size i = 0; i < transition_group.size(); i++) 
+      for (Size i = 0; i < transition_group.size(); i++)
       {
         native_ids.push_back(transition_group.getTransitions()[i].getNativeID());
       }
@@ -292,21 +292,21 @@ namespace OpenMS
             swath_map, diascoring_, *pep, scores);
       }
 
-      if (su_.use_coelution_score_) { 
+      if (su_.use_coelution_score_) {
         mrmfeature->addScore("var_xcorr_coelution", scores.xcorr_coelution_score);
         mrmfeature->addScore("var_xcorr_coelution_weighted", scores.weighted_coelution_score); }
-      if (su_.use_shape_score_) { 
+      if (su_.use_shape_score_) {
         mrmfeature->addScore("var_xcorr_shape", scores.xcorr_shape_score);
         mrmfeature->addScore("var_xcorr_shape_weighted", scores.weighted_xcorr_shape); }
-      if (su_.use_library_score_) { 
+      if (su_.use_library_score_) {
         mrmfeature->addScore("var_library_corr", scores.library_corr);
         mrmfeature->addScore("var_library_rmsd", scores.library_norm_manhattan);
         mrmfeature->addScore("var_library_sangle", scores.library_sangle);
-        mrmfeature->addScore("var_library_rootmeansquare", scores.library_rootmeansquare); 
+        mrmfeature->addScore("var_library_rootmeansquare", scores.library_rootmeansquare);
         mrmfeature->addScore("var_library_manhattan", scores.library_manhattan);
-        mrmfeature->addScore("var_library_dotprod", scores.library_dotprod); 
+        mrmfeature->addScore("var_library_dotprod", scores.library_dotprod);
       }
-      if (su_.use_rt_score_) { 
+      if (su_.use_rt_score_) {
         mrmfeature->addScore("delta_rt", mrmfeature->getRT() - expected_rt);
         mrmfeature->addScore("assay_rt", expected_rt);
         mrmfeature->addScore("norm_RT", scores.normalized_experimental_rt);
@@ -318,7 +318,7 @@ namespace OpenMS
       if (su_.use_nr_peaks_score_) { mrmfeature->addScore("nr_peaks", scores.nr_peaks); }
       if (su_.use_sn_score_) { mrmfeature->addScore("sn_ratio", scores.sn_ratio); mrmfeature->addScore("var_log_sn_score", scores.log_sn_score); }
       // TODO get it working with imrmfeature
-      if (su_.use_elution_model_score_) { 
+      if (su_.use_elution_model_score_) {
         scores.elution_model_fit_score = emgscoring_.calcElutionFitScore((*mrmfeature), transition_group);
         mrmfeature->addScore("var_elution_model_fit_score", scores.elution_model_fit_score); }
 
@@ -383,7 +383,7 @@ namespace OpenMS
         if (sub_it->getMZ() > quantification_cutoff_)
         {
           total_intensity += sub_it->getIntensity();
-          total_peak_apices += (DoubleReal)sub_it->getMetaValue("peak_apex_int");
+          total_peak_apices += (double)sub_it->getMetaValue("peak_apex_int");
         }
       }
       // overwrite the reported intensities with those above the m/z cutoff
@@ -408,9 +408,9 @@ namespace OpenMS
   void MRMFeatureFinderScoring::updateMembers_()
   {
     stop_report_after_feature_ = (int)param_.getValue("stop_report_after_feature");
-    rt_extraction_window_ = (DoubleReal)param_.getValue("rt_extraction_window");
-    rt_normalization_factor_ = (DoubleReal)param_.getValue("rt_normalization_factor");
-    quantification_cutoff_ = (DoubleReal)param_.getValue("quantification_cutoff");
+    rt_extraction_window_ = (double)param_.getValue("rt_extraction_window");
+    rt_normalization_factor_ = (double)param_.getValue("rt_normalization_factor");
+    quantification_cutoff_ = (double)param_.getValue("quantification_cutoff");
     write_convex_hull_ = param_.getValue("write_convex_hull").toBool();
     add_up_spectra_ = param_.getValue("add_up_spectra");
     spacing_for_spectra_resampling_ = param_.getValue("spacing_for_spectra_resampling");

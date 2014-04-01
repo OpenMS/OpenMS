@@ -182,7 +182,7 @@ namespace OpenMS
 
   void DiaPrescore::updateMembers_()
   {
-    dia_extract_window_ = (DoubleReal) param_.getValue(
+    dia_extract_window_ = (double) param_.getValue(
       "dia_extraction_window");
     nr_isotopes_ = (int) param_.getValue("nr_isotopes");
     nr_charges_ = (int) param_.getValue("nr_charges");

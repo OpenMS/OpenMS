@@ -118,13 +118,13 @@ public:
     }
 
     /// Returns the minimum intensity
-    DoubleReal getMinInt() const
+    double getMinInt() const
     {
       return int_range_.minPosition()[0];
     }
 
     /// Returns the maximum intensity
-    DoubleReal getMaxInt() const
+    double getMaxInt() const
     {
       return int_range_.maxPosition()[0];
     }
@@ -163,15 +163,15 @@ protected:
       PositionType min = pos_range_.minPosition();
       PositionType max = pos_range_.maxPosition();
 
-      DoubleReal it_min = int_range_.minPosition()[0];
-      DoubleReal it_max = int_range_.maxPosition()[0];
+      double it_min = int_range_.minPosition()[0];
+      double it_max = int_range_.maxPosition()[0];
 
       for (PeakIteratorType it = begin; it != end; ++it)
       {
         //update position
         for (UInt i = 0; i < D; ++i)
         {
-          DoubleReal tmp = it->getPosition()[i];
+          double tmp = it->getPosition()[i];
           if (tmp < min[i])
           {
             min[i] = tmp;
@@ -183,7 +183,7 @@ protected:
         }
 
         //update intensity
-        DoubleReal tmp = it->getIntensity();
+        double tmp = it->getIntensity();
         if (tmp < it_min)
         {
           it_min = tmp;

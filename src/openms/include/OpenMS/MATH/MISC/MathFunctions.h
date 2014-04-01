@@ -151,7 +151,7 @@ namespace OpenMS
 
         @ingroup MathFunctionsMisc
     */
-    inline static bool approximatelyEqual(DoubleReal a, DoubleReal b, DoubleReal tol)
+    inline static bool approximatelyEqual(double a, double b, double tol)
     {
       return std::fabs(a - b) <= tol;
     }

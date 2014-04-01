@@ -161,8 +161,8 @@ namespace OpenMS
     picked_chrom.getFloatDataArrays()[2].setName("rightWidth");
     for (Size i = 0; i < picked_chrom.size(); i++)
     {
-      Real leftborder = chromatogram[left_width_[i]].getMZ();
-      Real rightborder = chromatogram[right_width_[i]].getMZ();
+      float leftborder = chromatogram[left_width_[i]].getMZ();
+      float rightborder = chromatogram[right_width_[i]].getMZ();
       picked_chrom.getFloatDataArrays()[0].push_back(integrated_intensities_[i]);
       picked_chrom.getFloatDataArrays()[1].push_back(leftborder);
       picked_chrom.getFloatDataArrays()[2].push_back(rightborder);
@@ -404,10 +404,10 @@ namespace OpenMS
   {
     sgolay_frame_length_ = (UInt)param_.getValue("sgolay_frame_length");
     sgolay_polynomial_order_ = (UInt)param_.getValue("sgolay_polynomial_order");
-    gauss_width_ = (DoubleReal)param_.getValue("gauss_width");
-    peak_width_ = (DoubleReal)param_.getValue("peak_width");
-    signal_to_noise_ = (DoubleReal)param_.getValue("signal_to_noise");
-    sn_win_len_ = (DoubleReal)param_.getValue("sn_win_len");
+    gauss_width_ = (double)param_.getValue("gauss_width");
+    peak_width_ = (double)param_.getValue("peak_width");
+    signal_to_noise_ = (double)param_.getValue("signal_to_noise");
+    sn_win_len_ = (double)param_.getValue("sn_win_len");
     sn_bin_count_ = (UInt)param_.getValue("sn_bin_count");
     // TODO make list, not boolean
     use_gauss_ = (bool)param_.getValue("use_gauss").toBool();

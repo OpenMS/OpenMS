@@ -57,9 +57,9 @@ namespace OpenMS
 {
 
   std::map<String, Size> SvmTheoreticalSpectrumGenerator::aa_to_index_;
-  std::map<String, DoubleReal> SvmTheoreticalSpectrumGenerator::hydrophobicity_;
-  std::map<String, DoubleReal> SvmTheoreticalSpectrumGenerator::helicity_;
-  std::map<String, DoubleReal> SvmTheoreticalSpectrumGenerator::basicity_;
+  std::map<String, double> SvmTheoreticalSpectrumGenerator::hydrophobicity_;
+  std::map<String, double> SvmTheoreticalSpectrumGenerator::helicity_;
+  std::map<String, double> SvmTheoreticalSpectrumGenerator::basicity_;
 
   // do not remove, see ticket #352 for more details
   SvmTheoreticalSpectrumGenerator init;
@@ -280,7 +280,7 @@ namespace OpenMS
       fragment = peptide.getSuffix(peptide.size() - (position + 1));
     }
 
-    DoubleReal fragment_mass = (fragment.getMonoWeight(res_type, charge) - loss.getMonoWeight());
+    double fragment_mass = (fragment.getMonoWeight(res_type, charge) - loss.getMonoWeight());
 
     Residue res_n = peptide.getResidue(position);
     Residue res_c = peptide.getResidue(position + 1);
@@ -344,7 +344,7 @@ namespace OpenMS
     node.value = basicity_[res_n_string] - basicity_[res_c_string];
     descriptors_tmp.push_back(node);
 
-    DoubleReal ba_p = 0, hy_p = 0, ba_yi = 0, hy_yi = 0, ba_bi = 0, hy_bi = 0;
+    double ba_p = 0, hy_p = 0, ba_yi = 0, hy_yi = 0, ba_bi = 0, hy_bi = 0;
     for (Size i = 0; i < peptide.size(); ++i)
     {
       ba_p += basicity_[peptide.getResidue(i).getOneLetterCode()];
@@ -463,7 +463,7 @@ namespace OpenMS
 
     //RLIP (works for B also)
     node.index = index++;
-    node.value = (DoubleReal)fragment.size() / peptide.size();
+    node.value = (double)fragment.size() / peptide.size();
     descriptors_tmp.push_back(node);
 
     //NBaR_P
@@ -685,7 +685,7 @@ namespace OpenMS
       right_marker = StringListUtils::searchPrefix(left_marker, info_file.end(), "</IonType>");
       while (left_marker < right_marker)
       {
-        mp_.conditional_prob[std::make_pair(actual_type, region)].assign(mp_.number_intensity_levels, std::vector<DoubleReal>(mp_.number_intensity_levels));
+        mp_.conditional_prob[std::make_pair(actual_type, region)].assign(mp_.number_intensity_levels, std::vector<double>(mp_.number_intensity_levels));
         for (Size prim = 0; prim < mp_.number_intensity_levels; ++prim)
         {
           for (Size sec = 0; sec < mp_.number_intensity_levels; ++sec)
@@ -734,7 +734,7 @@ namespace OpenMS
     bool add_isotopes = param_.getValue("add_isotopes").toBool();
     Size max_isotope = (Size)param_.getValue("max_isotope");
     bool add_losses = !(param_.getValue("hide_losses").toBool());
-    DoubleReal relative_loss_intens = param_.getValue("relative_loss_intensity");
+    double relative_loss_intens = param_.getValue("relative_loss_intensity");
     bool add_first_nterminals = param_.getValue("add_first_prefix_ion").toBool();
     bool add_metainfo = param_.getValue("add_metainfo").toBool();
 
@@ -774,7 +774,7 @@ namespace OpenMS
     }
 
 
-    std::vector<std::pair<std::pair<IonType, DoubleReal>, Size> > peaks_to_generate;
+    std::vector<std::pair<std::pair<IonType, double>, Size> > peaks_to_generate;
 
     for (Size type_nr = 0; type_nr < mp_.ion_types.size(); ++type_nr)
     {
@@ -786,7 +786,7 @@ namespace OpenMS
       Residue::ResidueType residue = mp_.ion_types[type_nr].residue;
       EmpiricalFormula loss_formula = mp_.ion_types[type_nr].loss;
 
-      std::vector<DoubleReal> predicted_intensity(peptide.size(), 0.);
+      std::vector<double> predicted_intensity(peptide.size(), 0.);
       std::vector<bool> predicted_class(peptide.size(), false);
 
 #pragma omp parallel for
@@ -828,7 +828,7 @@ namespace OpenMS
 
         if (simulation_type == 0)
         {
-          std::vector<DoubleReal> tmp_out;
+          std::vector<double> tmp_out;
           std::vector<svm_node*> tmp_in(1, &descriptor.descriptors[0]);
 
           mp_.class_models[type_nr].get()->predict(tmp_in, tmp_out);
@@ -837,7 +837,7 @@ namespace OpenMS
 
         if (simulation_type == 1)
         {
-          std::vector<DoubleReal> tmp_out;
+          std::vector<double> tmp_out;
           std::vector<svm_node*> tmp_in(1, &descriptor.descriptors[0]);
 
           mp_.reg_models[type_nr].get()->predict(tmp_in, tmp_out);
@@ -858,7 +858,7 @@ namespace OpenMS
         {
           if (predicted_class[i] == 1 && mp_.static_intensities[residue] != 0)
           {
-            DoubleReal intens = mp_.static_intensities[residue];
+            double intens = mp_.static_intensities[residue];
             if (!loss_formula.isEmpty())
             {
               intens = intens * relative_loss_intens;
@@ -896,7 +896,7 @@ namespace OpenMS
           {
             if (predicted_class[i] != 0 && mp_.static_intensities[it->residue] != 0  && hide_type_[*it] == false) //no secondary ion if primary is classified as missing
             {
-              DoubleReal intens = mp_.static_intensities[it->residue];
+              double intens = mp_.static_intensities[it->residue];
               if (!it->loss.isEmpty())
               {
                 intens = intens * relative_loss_intens;
@@ -930,7 +930,7 @@ namespace OpenMS
     for (Size i = 0; i < peaks_to_generate.size(); ++i)
     {
       IonType type = peaks_to_generate[i].first.first;
-      DoubleReal intensity = peaks_to_generate[i].first.second;
+      double intensity = peaks_to_generate[i].first.second;
       Residue::ResidueType residue = type.residue;
       EmpiricalFormula loss_formula = type.loss;
       Int charge = type.charge;
@@ -948,7 +948,7 @@ namespace OpenMS
       }
 
       EmpiricalFormula ion_formula = ion.getFormula(residue, charge) - loss_formula;
-      DoubleReal mz_pos = ion_formula.getMonoWeight() / charge;
+      double mz_pos = ion_formula.getMonoWeight() / charge;
 
       String ion_name = ResidueTypeToString_(residue) + " " + loss_formula.toString() + " " + String(ion_nr) + String(charge, '+');
 
@@ -958,7 +958,7 @@ namespace OpenMS
         Size j = 0;
         for (IsotopeDistribution::ConstIterator it = dist.begin(); it != dist.end(); ++it, ++j)
         {
-          p_.setMZ(mz_pos + (DoubleReal)j * Constants::NEUTRON_MASS_U / charge);
+          p_.setMZ(mz_pos + (double)j * Constants::NEUTRON_MASS_U / charge);
           p_.setIntensity(intensity * it->second);
           if (add_metainfo && j == 0)
           {
@@ -1041,12 +1041,12 @@ namespace OpenMS
     hide_type_[IonType(Residue::XIon, EmpiricalFormula(""), 1)] = param_.getValue("hide_x_ions").toBool();
     hide_type_[IonType(Residue::ZIon, EmpiricalFormula(""), 1)] = param_.getValue("hide_z_ions").toBool();
 
-    mp_.static_intensities[Residue::BIon] = !hide_type_[IonType(Residue::BIon)] ? (DoubleReal)param_.getValue("b_intensity") : 0;
-    mp_.static_intensities[Residue::YIon] = !hide_type_[IonType(Residue::YIon)] ? (DoubleReal)param_.getValue("y_intensity") : 0;
-    mp_.static_intensities[Residue::AIon] = !hide_type_[IonType(Residue::AIon)] ? (DoubleReal)param_.getValue("a_intensity") : 0;
-    mp_.static_intensities[Residue::CIon] = !hide_type_[IonType(Residue::CIon)] ? (DoubleReal)param_.getValue("c_intensity") : 0;
-    mp_.static_intensities[Residue::XIon] = !hide_type_[IonType(Residue::XIon)] ? (DoubleReal)param_.getValue("x_intensity") : 0;
-    mp_.static_intensities[Residue::ZIon] = !hide_type_[IonType(Residue::ZIon)] ? (DoubleReal)param_.getValue("z_intensity") : 0;
+    mp_.static_intensities[Residue::BIon] = !hide_type_[IonType(Residue::BIon)] ? (double)param_.getValue("b_intensity") : 0;
+    mp_.static_intensities[Residue::YIon] = !hide_type_[IonType(Residue::YIon)] ? (double)param_.getValue("y_intensity") : 0;
+    mp_.static_intensities[Residue::AIon] = !hide_type_[IonType(Residue::AIon)] ? (double)param_.getValue("a_intensity") : 0;
+    mp_.static_intensities[Residue::CIon] = !hide_type_[IonType(Residue::CIon)] ? (double)param_.getValue("c_intensity") : 0;
+    mp_.static_intensities[Residue::XIon] = !hide_type_[IonType(Residue::XIon)] ? (double)param_.getValue("x_intensity") : 0;
+    mp_.static_intensities[Residue::ZIon] = !hide_type_[IonType(Residue::ZIon)] ? (double)param_.getValue("z_intensity") : 0;
   }
 
 } //namespace

@@ -80,15 +80,15 @@ protected:
     registerDoubleOption_("mz_tol", "<tol>", 0.25, "Maximum allowed m/z deviation (divided by charge)", false);
   }
 
-  String fiveNumbers(vector<DoubleReal> a, UInt decimal_places)
+  String fiveNumbers(vector<double> a, UInt decimal_places)
   {
     sort(a.begin(), a.end());
     return String::number(a[0], decimal_places) + " " + String::number(a[a.size() / 4], decimal_places) + " " + String::number(a[a.size() / 2], decimal_places) + " " + String::number(a[(3 * a.size()) / 4], decimal_places) + " " + String::number(a.back(), decimal_places);
   }
 
-  String fiveNumberQuotients(vector<DoubleReal> a, vector<DoubleReal> b, UInt decimal_places)
+  String fiveNumberQuotients(vector<double> a, vector<double> b, UInt decimal_places)
   {
-    vector<DoubleReal> errors;
+    vector<double> errors;
     for (Size i = 0; i < a.size(); ++i) errors.push_back(a[i] / b[i]);
     return fiveNumbers(errors, decimal_places);
   }
@@ -104,13 +104,13 @@ protected:
     ConsensusXMLFile().load(getStringOption_("truth"), truth);
 
     //parameters
-    DoubleReal mz_tol = getDoubleOption_("mz_tol");
-    DoubleReal rt_tol = getDoubleOption_("rt_tol");
+    double mz_tol = getDoubleOption_("mz_tol");
+    double rt_tol = getDoubleOption_("rt_tol");
 
     //seek manual feature in automatic feature map
     UInt matched_pairs = 0;
     UInt half_matched_pairs = 0;
-    vector<DoubleReal> t_ratio, i_ratio, rt_diffs, mz_diffs;
+    vector<double> t_ratio, i_ratio, rt_diffs, mz_diffs;
     for (Size t = 0; t < truth.size(); ++t)
     {
       if (truth[t].size() != 2)
@@ -123,10 +123,10 @@ protected:
       vector<Peak2D> elements(2);
       elements[0] = *(truth[t].getFeatures().begin());
       elements[1] = *(++(truth[t].getFeatures().begin()));
-      DoubleReal mz_tol_charged = mz_tol / truth[t].getCharge();
+      double mz_tol_charged = mz_tol / truth[t].getCharge();
       for (Size e = 0; e < 2; ++e)
       {
-        DoubleReal best_score = 0.0;
+        double best_score = 0.0;
         for (Size i = 0; i < input.size(); ++i)
         {
           const Feature & f_i = input[i];
@@ -134,7 +134,7 @@ protected:
              && fabs(f_i.getMZ() - elements[e].getMZ()) < mz_tol_charged)
           {
             ++match_counts[e];
-            DoubleReal score = (1.0 - fabs(f_i.getMZ() - elements[e].getMZ()) / mz_tol_charged) * (1.0 - fabs(f_i.getRT() - elements[e].getRT()) / rt_tol);
+            double score = (1.0 - fabs(f_i.getMZ() - elements[e].getMZ()) / mz_tol_charged) * (1.0 - fabs(f_i.getRT() - elements[e].getRT()) / rt_tol);
             if (score > best_score)
             {
               best_score = score;
@@ -157,9 +157,9 @@ protected:
       else
       {
         ++matched_pairs;
-        DoubleReal a_r = best_matches[0].getIntensity() / best_matches[1].getIntensity();
+        double a_r = best_matches[0].getIntensity() / best_matches[1].getIntensity();
         t_ratio.push_back(a_r);
-        DoubleReal m_r = elements[0].getIntensity() / elements[1].getIntensity();
+        double m_r = elements[0].getIntensity() / elements[1].getIntensity();
         i_ratio.push_back(m_r);
         rt_diffs.push_back(best_matches[1].getRT() - best_matches[0].getRT());
         mz_diffs.push_back((best_matches[1].getMZ() - best_matches[0].getMZ()) * truth[t].getCharge());

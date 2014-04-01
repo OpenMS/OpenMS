@@ -161,17 +161,17 @@ protected:
     }
     else if (engine.compare("XTandem") == 0)
     {
-      return (-1) * log10(max((DoubleReal)hit.getMetaValue("E-Value"), smallest_e_value_));
+      return (-1) * log10(max((double)hit.getMetaValue("E-Value"), smallest_e_value_));
     }
     else if (engine == "MASCOT")
     {
       if (hit.metaValueExists("EValue"))
       {
-        return (-1) * log10(max((DoubleReal)hit.getMetaValue("EValue"), smallest_e_value_));
+        return (-1) * log10(max((double)hit.getMetaValue("EValue"), smallest_e_value_));
       }
       if (hit.metaValueExists("expect"))
       {
-        return (-1) * log10(max((DoubleReal)hit.getMetaValue("expect"), smallest_e_value_));
+        return (-1) * log10(max((double)hit.getMetaValue("expect"), smallest_e_value_));
       }
     }
     else if (engine == "SpectraST")
@@ -182,7 +182,7 @@ protected:
     {
       if (hit.metaValueExists("E-Value"))
       {
-        return (-1) * log10(max((DoubleReal)hit.getMetaValue("E-Value"), smallest_e_value_));
+        return (-1) * log10(max((double)hit.getMetaValue("E-Value"), smallest_e_value_));
       }
     }
     else
@@ -207,7 +207,7 @@ protected:
     fit_algorithm.setValue("out_plot", getStringOption_("out_plot")); // re-assemble full param (was moved to top-level)
     bool split_charge = getFlag_("split_charge");
     bool top_hits_only = getFlag_("top_hits_only");
-    DoubleReal fdr_for_targets_smaller = getDoubleOption_("fdr_for_targets_smaller");
+    double fdr_for_targets_smaller = getDoubleOption_("fdr_for_targets_smaller");
     bool target_decoy_available = false;
     bool ignore_bad_data = getFlag_("ignore_bad_data");
     bool prob_correct = getFlag_("prob_correct");
@@ -392,7 +392,7 @@ protected:
                 {
                   if (!split_charge || hit->getCharge() == charge)
                   {
-                    DoubleReal score;
+                    double score;
                     hit->setMetaValue(score_type, hit->getScore());
                     score = PEP_model.computeProbability(getScore_(engine, *hit));
                     if (score > 0 && score < 1) unable_to_fit_data = false;  //only if all it->second[0] are 0 or 1 unable_to_fit_data stays true
@@ -429,7 +429,7 @@ protected:
   }
 
   //Used in several functions
-  DoubleReal smallest_e_value_;
+  double smallest_e_value_;
 };
 
 

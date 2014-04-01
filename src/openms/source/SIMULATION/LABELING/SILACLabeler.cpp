@@ -491,7 +491,7 @@ namespace OpenMS
 // TODO: rewrite
   void SILACLabeler::postRTHook(FeatureMapSimVector& features_to_simulate)
   {
-    DoubleReal rt_shift = param_.getValue("fixed_rtshift");
+    double rt_shift = param_.getValue("fixed_rtshift");
 
     // only adjust rt if we have a fixed shift
     if (rt_shift != 0.0)
@@ -524,10 +524,10 @@ namespace OpenMS
           std::sort(original_features.begin(), original_features.end(), weight_compare_less);
 
           // we use the shape parameters from the lightest fragment for all channels
-          DoubleReal variance = original_features[0]->getMetaValue("RT_egh_variance");
-          DoubleReal tau = original_features[0]->getMetaValue("RT_egh_tau");
+          double variance = original_features[0]->getMetaValue("RT_egh_variance");
+          double tau = original_features[0]->getMetaValue("RT_egh_tau");
 
-          DoubleReal startRT = original_features[0]->getRT();
+          double startRT = original_features[0]->getRT();
 
           for (Size i = 0; i < original_features.size(); ++i)
           {

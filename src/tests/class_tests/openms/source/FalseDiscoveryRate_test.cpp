@@ -78,8 +78,8 @@ START_SECTION((void apply(std::vector< PeptideIdentification > &fwd_ids, std::ve
 		if (it->getHits().size() > 0)
 		{
 			PeptideHit hit(*it->getHits().begin());
-			DoubleReal fdr(hit.getScore());
-			DoubleReal orig_score((DoubleReal)hit.getMetaValue("XTandem_score"));
+			double fdr(hit.getScore());
+			double orig_score((double)hit.getMetaValue("XTandem_score"));
 
 			if (orig_score >= 39.4)
 			{
@@ -111,8 +111,8 @@ START_SECTION((void apply(std::vector< ProteinIdentification > &fwd_ids, std::ve
 			for (vector<ProteinHit>::const_iterator it = prot_it->getHits().begin(); it != prot_it->getHits().end(); ++it)
 			{
 				ProteinHit hit(*it);
-				DoubleReal fdr(hit.getScore());
-				DoubleReal orig_score((DoubleReal)hit.getMetaValue("XTandem_score"));
+				double fdr(hit.getScore());
+				double orig_score((double)hit.getMetaValue("XTandem_score"));
         
         // it gets here, but neither of the conditions below are ever satisfied
 				if (orig_score < -1.8)
@@ -143,8 +143,8 @@ START_SECTION((void apply(std::vector< PeptideIdentification > &id)))
   	{
 			for (vector<PeptideHit>::const_iterator pit = it->getHits().begin(); pit != it->getHits().end(); ++pit)
 			{
-      	DoubleReal fdr(pit->getScore());
-      	DoubleReal orig_score((DoubleReal)pit->getMetaValue("OMSSA_score"));
+      	double fdr(pit->getScore());
+      	double orig_score((double)pit->getMetaValue("OMSSA_score"));
 
       	if (orig_score <= 10e-4)
       	{
@@ -189,8 +189,8 @@ START_SECTION((void apply(std::vector<ProteinIdentification>& ids)))
       for (vector<ProteinHit>::const_iterator it = prot_it->getHits().begin(); it != prot_it->getHits().end(); ++it)
       {
         ProteinHit hit(*it);
-        DoubleReal fdr(hit.getScore());
-        DoubleReal orig_score((DoubleReal)hit.getMetaValue("XTandem_score"));
+        double fdr(hit.getScore());
+        double orig_score((double)hit.getMetaValue("XTandem_score"));
 
         if (orig_score < -1.8)
         {

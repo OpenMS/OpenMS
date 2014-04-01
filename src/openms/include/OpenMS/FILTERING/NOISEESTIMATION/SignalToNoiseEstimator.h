@@ -192,7 +192,7 @@ protected:
       run = scan_first_;
       while (run != scan_last_)
       {
-        DoubleReal tmp(m - (*run).getIntensity());
+        double tmp(m - (*run).getIntensity());
         v += tmp * tmp;
         ++run;
       }

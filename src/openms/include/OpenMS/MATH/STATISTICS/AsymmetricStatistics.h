@@ -55,12 +55,12 @@ namespace OpenMS
 
     */
 
-    template <typename Real = DoubleReal>
+    template <typename RealT = double>
     class AsymmetricStatistics :
-      public BasicStatistics<Real>
+      public BasicStatistics<RealT>
     {
       /// The real type and basic statistics specified as template argument.
-      typedef BasicStatistics<Real> Base;
+      typedef BasicStatistics<RealT> Base;
       typedef typename Base::RealType RealType;
 
       using Base::clear;

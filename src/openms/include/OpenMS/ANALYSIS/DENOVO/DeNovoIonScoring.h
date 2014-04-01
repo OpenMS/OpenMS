@@ -61,10 +61,10 @@ public:
     {
 public:
       /// score
-      DoubleReal score;
+      double score;
 
       /// position of the ion
-      DoubleReal position;
+      double position;
 
       /// index of peak in the spectrum, -1 if not in spectrum
       SignedSize index;

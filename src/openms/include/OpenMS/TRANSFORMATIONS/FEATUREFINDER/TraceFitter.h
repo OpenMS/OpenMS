@@ -121,32 +121,32 @@ public:
     /**
      * Returns the lower bound of the fitted RT model
      */
-    virtual DoubleReal getLowerRTBound() const = 0;
+    virtual double getLowerRTBound() const = 0;
 
     /**
      * Returns the upper bound of the fitted RT model
      */
-    virtual DoubleReal getUpperRTBound() const = 0;
+    virtual double getUpperRTBound() const = 0;
 
     /**
      * Returns the height of the fitted model
      */
-    virtual DoubleReal getHeight() const = 0;
+    virtual double getHeight() const = 0;
 
     /**
      * Returns the center position of the fitted model
      */
-    virtual DoubleReal getCenter() const = 0;
+    virtual double getCenter() const = 0;
 
     /**
      * Returns the mass trace width at half max (FWHM)
      */
-    virtual DoubleReal getFWHM() const = 0;
+    virtual double getFWHM() const = 0;
 
     /**
      * Evaluate the fitted model at a time point
      */
-    virtual DoubleReal getValue(DoubleReal rt) const = 0;
+    virtual double getValue(double rt) const = 0;
 
     /**
      * Returns the theoretical value of the fitted model at position k in the passed mass trace
@@ -154,7 +154,7 @@ public:
      * @param trace the mass trace for which the value should be computed
      * @param k  use the position of the k-th peak to compute the value
      */
-    DoubleReal computeTheoretical(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType>& trace, Size k)
+    double computeTheoretical(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType>& trace, Size k)
     {
       double rt = trace.peaks[k].first;
 
@@ -167,19 +167,19 @@ public:
      * @param rt_bounds RT boundaries of the fitted model
      * @param min_rt_span Minimum RT span in relation to extended area that has to remain after model fitting
      */
-    virtual bool checkMinimalRTSpan(const std::pair<DoubleReal, DoubleReal>& rt_bounds, const DoubleReal min_rt_span) = 0;
+    virtual bool checkMinimalRTSpan(const std::pair<double, double>& rt_bounds, const double min_rt_span) = 0;
 
     /**
      * Checks if the fitted model is not to big
      *
      * @param max_rt_span Maximum RT span in relation to extended area that the model is allowed to have
      */
-    virtual bool checkMaximalRTSpan(const DoubleReal max_rt_span) = 0;
+    virtual bool checkMaximalRTSpan(const double max_rt_span) = 0;
 
     /**
      * Returns the peak area of the fitted model
      */
-    virtual DoubleReal getArea() = 0;
+    virtual double getArea() = 0;
 
     /**
      * Returns a textual representation of the fitted model function, that can be plotted using Gnuplot
@@ -190,7 +190,7 @@ public:
      * @param rt_shift A shift value, that allows to plot all RT profiles side by side, even if they would overlap in reality.
      *                 This should be 0 for the first mass trace and increase by a fixed value for each mass trace.
      */
-    virtual String getGnuplotFormula(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType>& trace, const char function_name, const DoubleReal baseline, const DoubleReal rt_shift) = 0;
+    virtual String getGnuplotFormula(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType>& trace, const char function_name, const double baseline, const double rt_shift) = 0;
 
 protected:
     struct ModelData

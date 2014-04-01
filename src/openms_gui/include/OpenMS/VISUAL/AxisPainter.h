@@ -65,7 +65,7 @@ public:
     };
 
     /// Draws an axis
-    static void paint(QPainter * painter, QPaintEvent * e, const DoubleReal & min, const DoubleReal & max, const GridVector & grid,
+    static void paint(QPainter * painter, QPaintEvent * e, const double & min, const double & max, const GridVector & grid,
                       const Int width, const Int height, const Alignment alignment, const UInt margin,
                       const bool show_legend, const String legend, const bool shorten_number,
                       const bool is_log, const bool is_inverse_orientation);
@@ -74,10 +74,10 @@ private:
     AxisPainter();
 
     /// sets @p short_num to a shortened string representation ("123.4 k/M/G") of @p number
-    static void getShortenedNumber_(QString & short_num, DoubleReal number);
+    static void getShortenedNumber_(QString & short_num, double number);
 
     /// Scale axis values to correct value (i.e. reverse log, unit conversion)
-    static DoubleReal scale_(DoubleReal x, bool is_log);
+    static double scale_(double x, bool is_log);
   };
 }
 #endif

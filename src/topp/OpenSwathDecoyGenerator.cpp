@@ -133,17 +133,17 @@ protected:
     String method = getStringOption_("method");
     String decoy_tag = getStringOption_("decoy_tag");
     bool theoretical = getFlag_("theoretical");
-    DoubleReal mz_threshold = getDoubleOption_("mz_threshold");
+    double mz_threshold = getDoubleOption_("mz_threshold");
     bool exclude_similar = getFlag_("exclude_similar");
-    DoubleReal similarity_threshold = getDoubleOption_("similarity_threshold");
+    double similarity_threshold = getDoubleOption_("similarity_threshold");
     bool append = getFlag_("append");
     bool remove_CNterm_mods = getFlag_("remove_CNterm_mods");
     bool enable_losses = getFlag_("enable_losses");
     bool enable_isotopes = getFlag_("enable_isotopes");
-    DoubleReal identity_threshold = getDoubleOption_("identity_threshold");
+    double identity_threshold = getDoubleOption_("identity_threshold");
     Int max_attempts = getIntOption_("max_attempts");
-    DoubleReal mz_shift = getDoubleOption_("mz_shift");
-    DoubleReal precursor_mass_shift = getDoubleOption_("precursor_mass_shift");
+    double mz_shift = getDoubleOption_("mz_shift");
+    double precursor_mass_shift = getDoubleOption_("precursor_mass_shift");
 
     if (method != "shuffle" && method != "pseudo-reverse" && method != "reverse" && method != "shift")
     {

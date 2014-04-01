@@ -94,7 +94,7 @@ public slots:
     /// Slot for behavior deactivation
     virtual void deactivateBehavior();
 
-    void setVisibleArea1D(DoubleReal l, DoubleReal h);
+    void setVisibleArea1D(double l, double h);
 
 private:
     /// Adds labels for the provided precursors to the 1D spectrum

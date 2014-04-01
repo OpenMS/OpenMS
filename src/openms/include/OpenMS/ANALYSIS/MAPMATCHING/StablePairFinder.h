@@ -167,7 +167,7 @@ protected:
                         const ConsensusFeature& feat2) const;
 
     /// The distance to the second nearest neighbors must be by this factor larger than the distance to the matched element itself.
-    DoubleReal second_nearest_gap_;
+    double second_nearest_gap_;
 
     /// Only match if peptide IDs are compatible?
     bool use_IDs_;

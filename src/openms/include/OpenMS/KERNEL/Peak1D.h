@@ -61,11 +61,11 @@ public:
     /// Dimension
     enum {DIMENSION = 1};
     /// Intensity type
-    typedef Real IntensityType;
+    typedef float IntensityType;
     /// Position type
     typedef DPosition<1> PositionType;
     /// Coordinate type
-    typedef DoubleReal CoordinateType;
+    typedef double CoordinateType;
     ///@}
 
     ///@name Constructors and Destructor

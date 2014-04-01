@@ -491,10 +491,10 @@ public:
         {
           if (!it->getPrecursors().empty())
           {
-            DoubleReal pc_rt = it->getRT();
+            double pc_rt = it->getRT();
             if (pc_rt < RangeManagerType::pos_range_.minX()) RangeManagerType::pos_range_.setMinX(pc_rt);
             if (pc_rt > RangeManagerType::pos_range_.maxX()) RangeManagerType::pos_range_.setMaxX(pc_rt);
-            DoubleReal pc_mz = it->getPrecursors()[0].getMZ();
+            double pc_mz = it->getPrecursors()[0].getMZ();
             if (pc_mz < RangeManagerType::pos_range_.minY()) RangeManagerType::pos_range_.setMinY(pc_mz);
             if (pc_mz > RangeManagerType::pos_range_.maxY()) RangeManagerType::pos_range_.setMaxY(pc_mz);
           }
@@ -834,7 +834,7 @@ public:
       {
         if (spec_it->getMSLevel() == 1)
         {
-          DoubleReal totalIntensity = 0;
+          double totalIntensity = 0;
           // sum intensities of a spectrum
           for (typename SpectrumType::const_iterator peak_it = spec_it->begin(); peak_it != spec_it->end(); ++peak_it)
           {

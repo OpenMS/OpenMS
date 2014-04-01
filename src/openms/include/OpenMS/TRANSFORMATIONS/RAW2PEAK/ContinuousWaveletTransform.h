@@ -101,7 +101,7 @@ public:
     }
 
     // Non-mutable access to the scale of the wavelet
-    inline DoubleReal getScale() const
+    inline double getScale() const
     {
       return scale_;
     }
@@ -113,13 +113,13 @@ public:
     }
 
     /// Mutable access to the spacing of raw data
-    inline void setScale(DoubleReal scale)
+    inline void setScale(double scale)
     {
       scale_ = scale;
     }
 
     // Non-mutable access to the spacing of raw data
-    inline DoubleReal getSpacing() const
+    inline double getSpacing() const
     {
       return spacing_;
     }

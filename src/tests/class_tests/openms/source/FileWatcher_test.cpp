@@ -57,7 +57,7 @@ START_SECTION(~FileWatcher())
 	delete ptr;
 END_SECTION
 
-START_SECTION(void setDelayInSeconds(DoubleReal delay))
+START_SECTION(void setDelayInSeconds(double delay))
 	NOT_TESTABLE
 END_SECTION
 

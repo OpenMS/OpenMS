@@ -65,7 +65,7 @@ START_SECTION((virtual ~CompNovoIonScoringBase()))
 }
 END_SECTION
 
-START_SECTION((DoubleReal scoreIsotopes(const PeakSpectrum &CID_spec, PeakSpectrum::ConstIterator it, Size charge)))
+START_SECTION((double scoreIsotopes(const PeakSpectrum &CID_spec, PeakSpectrum::ConstIterator it, Size charge)))
 {
 	NOT_TESTABLE
 }

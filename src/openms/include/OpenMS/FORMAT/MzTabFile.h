@@ -120,7 +120,7 @@ protected:
     /// Map search engine identifier to CV, param etc.
     static String mapSearchEngineToCvParam_(const String & openms_search_engine_name);
 
-    static String mapSearchEngineScoreToCvParam_(const String & openms_search_engine_name, DoubleReal score, String score_type);
+    static String mapSearchEngineScoreToCvParam_(const String & openms_search_engine_name, double score, String score_type);
 
     static String extractNumPeptides_(const String & common_identifier, const String & protein_accession,
                                      const MapAccPepType & map_run_accesion_to_peptides);

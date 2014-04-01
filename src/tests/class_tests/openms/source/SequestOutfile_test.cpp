@@ -82,10 +82,10 @@ END_SECTION
 
 SequestOutfile file;
 
-START_SECTION(void load(const String& result_filename, std::vector< PeptideIdentification >& peptide_identifications, ProteinIdentification& protein_identification, const DoubleReal p_value_threshold, std::vector< DoubleReal >& pvalues, const String& database="", const bool ignore_proteins_per_peptide=false))
+START_SECTION(void load(const String& result_filename, std::vector< PeptideIdentification >& peptide_identifications, ProteinIdentification& protein_identification, const double p_value_threshold, std::vector< double >& pvalues, const String& database="", const bool ignore_proteins_per_peptide=false))
 	vector< PeptideIdentification > peptide_identifications;
 	ProteinIdentification protein_identification;
-	vector< DoubleReal > pvalues;
+	vector< double > pvalues;
 	
 	// test exceptions
 	TEST_EXCEPTION_WITH_MESSAGE(Exception::FileNotFound, file.load("a", peptide_identifications, protein_identification, 0.01, pvalues), "the file 'a' could not be found")
@@ -121,11 +121,11 @@ START_SECTION(void load(const String& result_filename, std::vector< PeptideIdent
 			TEST_EQUAL(peptide_identifications[0].getHits()[0].getCharge(), 3)
 			TEST_STRING_EQUAL(static_cast<String>(peptide_identifications[0].getHits()[0].getMetaValue("RankSp")), "1/80")
 			TEST_EQUAL(static_cast<Int>(peptide_identifications[0].getHits()[0].getMetaValue("SequestId")), 0)
-			TEST_REAL_SIMILAR(static_cast<DoubleReal>(peptide_identifications[0].getHits()[0].getMetaValue("MH")), 1967.0013)
-			TEST_REAL_SIMILAR(static_cast<DoubleReal>(peptide_identifications[0].getHits()[0].getMetaValue("DeltCn")), 0.0000)
-			TEST_REAL_SIMILAR(static_cast<DoubleReal>(peptide_identifications[0].getHits()[0].getMetaValue("XCorr")), 1.5789)
-			TEST_REAL_SIMILAR(static_cast<DoubleReal>(peptide_identifications[0].getHits()[0].getMetaValue("Sp")), 310.3)
-			TEST_REAL_SIMILAR(static_cast<DoubleReal>(peptide_identifications[0].getHits()[0].getMetaValue("Sf")), 0.05)
+			TEST_REAL_SIMILAR(static_cast<double>(peptide_identifications[0].getHits()[0].getMetaValue("MH")), 1967.0013)
+			TEST_REAL_SIMILAR(static_cast<double>(peptide_identifications[0].getHits()[0].getMetaValue("DeltCn")), 0.0000)
+			TEST_REAL_SIMILAR(static_cast<double>(peptide_identifications[0].getHits()[0].getMetaValue("XCorr")), 1.5789)
+			TEST_REAL_SIMILAR(static_cast<double>(peptide_identifications[0].getHits()[0].getMetaValue("Sp")), 310.3)
+			TEST_REAL_SIMILAR(static_cast<double>(peptide_identifications[0].getHits()[0].getMetaValue("Sf")), 0.05)
 			TEST_STRING_EQUAL(static_cast<String>(peptide_identifications[0].getHits()[0].getMetaValue("Ions")), "18/64")
 			TEST_EQUAL(peptide_identifications[0].getHits()[0].getProteinAccessions().size(), 3)
 			if ( peptide_identifications[0].getHits()[0].getProteinAccessions().size() == 3 )
@@ -142,11 +142,11 @@ START_SECTION(void load(const String& result_filename, std::vector< PeptideIdent
 			TEST_EQUAL(peptide_identifications[0].getHits()[1].getCharge(), 3)
 			TEST_STRING_EQUAL(static_cast<String>(peptide_identifications[0].getHits()[1].getMetaValue("RankSp")), "2/85")
 			TEST_EQUAL(static_cast<Int>(peptide_identifications[0].getHits()[1].getMetaValue("SequestId")), 0)
-			TEST_REAL_SIMILAR(static_cast<DoubleReal>(peptide_identifications[0].getHits()[1].getMetaValue("MH")), 1967.1985)
-			TEST_REAL_SIMILAR(static_cast<DoubleReal>(peptide_identifications[0].getHits()[1].getMetaValue("DeltCn")), 0.0390)
-			TEST_REAL_SIMILAR(static_cast<DoubleReal>(peptide_identifications[0].getHits()[1].getMetaValue("XCorr")), 1.5173)
-			TEST_REAL_SIMILAR(static_cast<DoubleReal>(peptide_identifications[0].getHits()[1].getMetaValue("Sp")), 308.3)
-			TEST_REAL_SIMILAR(static_cast<DoubleReal>(peptide_identifications[0].getHits()[1].getMetaValue("Sf")), 0.04)
+			TEST_REAL_SIMILAR(static_cast<double>(peptide_identifications[0].getHits()[1].getMetaValue("MH")), 1967.1985)
+			TEST_REAL_SIMILAR(static_cast<double>(peptide_identifications[0].getHits()[1].getMetaValue("DeltCn")), 0.0390)
+			TEST_REAL_SIMILAR(static_cast<double>(peptide_identifications[0].getHits()[1].getMetaValue("XCorr")), 1.5173)
+			TEST_REAL_SIMILAR(static_cast<double>(peptide_identifications[0].getHits()[1].getMetaValue("Sp")), 308.3)
+			TEST_REAL_SIMILAR(static_cast<double>(peptide_identifications[0].getHits()[1].getMetaValue("Sf")), 0.04)
 			TEST_STRING_EQUAL(static_cast<String>(peptide_identifications[0].getHits()[1].getMetaValue("Ions")), "19/64")
 			TEST_EQUAL(peptide_identifications[0].getHits()[1].getProteinAccessions().size(), 2)
 			if ( peptide_identifications[0].getHits()[1].getProteinAccessions().size() == 2 )
@@ -162,11 +162,11 @@ START_SECTION(void load(const String& result_filename, std::vector< PeptideIdent
 			TEST_EQUAL(peptide_identifications[0].getHits()[2].getCharge(), 3)
 			TEST_STRING_EQUAL(static_cast<String>(peptide_identifications[0].getHits()[2].getMetaValue("RankSp")), "3/117")
 			TEST_EQUAL(static_cast<Int>(peptide_identifications[0].getHits()[2].getMetaValue("SequestId")), 0)
-			TEST_REAL_SIMILAR(static_cast<DoubleReal>(peptide_identifications[0].getHits()[2].getMetaValue("MH")), 1968.1244)
-			TEST_REAL_SIMILAR(static_cast<DoubleReal>(peptide_identifications[0].getHits()[2].getMetaValue("DeltCn")), 0.0501)
-			TEST_REAL_SIMILAR(static_cast<DoubleReal>(peptide_identifications[0].getHits()[2].getMetaValue("XCorr")), 1.4998)
-			TEST_REAL_SIMILAR(static_cast<DoubleReal>(peptide_identifications[0].getHits()[2].getMetaValue("Sp")), 292.4)
-			TEST_REAL_SIMILAR(static_cast<DoubleReal>(peptide_identifications[0].getHits()[2].getMetaValue("Sf")), 0.02)
+			TEST_REAL_SIMILAR(static_cast<double>(peptide_identifications[0].getHits()[2].getMetaValue("MH")), 1968.1244)
+			TEST_REAL_SIMILAR(static_cast<double>(peptide_identifications[0].getHits()[2].getMetaValue("DeltCn")), 0.0501)
+			TEST_REAL_SIMILAR(static_cast<double>(peptide_identifications[0].getHits()[2].getMetaValue("XCorr")), 1.4998)
+			TEST_REAL_SIMILAR(static_cast<double>(peptide_identifications[0].getHits()[2].getMetaValue("Sp")), 292.4)
+			TEST_REAL_SIMILAR(static_cast<double>(peptide_identifications[0].getHits()[2].getMetaValue("Sf")), 0.02)
 			TEST_STRING_EQUAL(static_cast<String>(peptide_identifications[0].getHits()[2].getMetaValue("Ions")), "17/72")
 			TEST_EQUAL(peptide_identifications[0].getHits()[2].getProteinAccessions().size(), 1)
 			if ( peptide_identifications[0].getHits()[2].getProteinAccessions().size() == 1 )
@@ -181,11 +181,11 @@ START_SECTION(void load(const String& result_filename, std::vector< PeptideIdent
 			TEST_EQUAL(peptide_identifications[0].getHits()[3].getCharge(), 3)
 			TEST_STRING_EQUAL(static_cast<String>(peptide_identifications[0].getHits()[3].getMetaValue("RankSp")), "4/1")
 			TEST_EQUAL(static_cast<Int>(peptide_identifications[0].getHits()[3].getMetaValue("SequestId")), 0)
-			TEST_REAL_SIMILAR(static_cast<DoubleReal>(peptide_identifications[0].getHits()[3].getMetaValue("MH")), 1964.9275)
-			TEST_REAL_SIMILAR(static_cast<DoubleReal>(peptide_identifications[0].getHits()[3].getMetaValue("DeltCn")), 0.0627)
-			TEST_REAL_SIMILAR(static_cast<DoubleReal>(peptide_identifications[0].getHits()[3].getMetaValue("XCorr")), 1.4799)
-			TEST_REAL_SIMILAR(static_cast<DoubleReal>(peptide_identifications[0].getHits()[3].getMetaValue("Sp")), 530.9)
-			TEST_REAL_SIMILAR(static_cast<DoubleReal>(peptide_identifications[0].getHits()[3].getMetaValue("Sf")), 0.14)
+			TEST_REAL_SIMILAR(static_cast<double>(peptide_identifications[0].getHits()[3].getMetaValue("MH")), 1964.9275)
+			TEST_REAL_SIMILAR(static_cast<double>(peptide_identifications[0].getHits()[3].getMetaValue("DeltCn")), 0.0627)
+			TEST_REAL_SIMILAR(static_cast<double>(peptide_identifications[0].getHits()[3].getMetaValue("XCorr")), 1.4799)
+			TEST_REAL_SIMILAR(static_cast<double>(peptide_identifications[0].getHits()[3].getMetaValue("Sp")), 530.9)
+			TEST_REAL_SIMILAR(static_cast<double>(peptide_identifications[0].getHits()[3].getMetaValue("Sf")), 0.14)
 			TEST_STRING_EQUAL(static_cast<String>(peptide_identifications[0].getHits()[3].getMetaValue("Ions")), "24/72")
 			TEST_EQUAL(peptide_identifications[0].getHits()[3].getProteinAccessions().size(), 8)
 			if ( peptide_identifications[0].getHits()[3].getProteinAccessions().size() == 8 )
@@ -226,11 +226,11 @@ START_SECTION(void load(const String& result_filename, std::vector< PeptideIdent
 			TEST_EQUAL(peptide_identifications[0].getHits()[0].getCharge(), 3)
 			TEST_STRING_EQUAL(static_cast<String>(peptide_identifications[0].getHits()[0].getMetaValue("RankSp")), "1/80")
 			TEST_EQUAL(static_cast<Int>(peptide_identifications[0].getHits()[0].getMetaValue("SequestId")), 0)
-			TEST_REAL_SIMILAR(static_cast<DoubleReal>(peptide_identifications[0].getHits()[0].getMetaValue("MH")), 1967.0013)
-			TEST_REAL_SIMILAR(static_cast<DoubleReal>(peptide_identifications[0].getHits()[0].getMetaValue("DeltCn")), 0.0000)
-			TEST_REAL_SIMILAR(static_cast<DoubleReal>(peptide_identifications[0].getHits()[0].getMetaValue("XCorr")), 1.5789)
-			TEST_REAL_SIMILAR(static_cast<DoubleReal>(peptide_identifications[0].getHits()[0].getMetaValue("Sp")), 310.3)
-			TEST_REAL_SIMILAR(static_cast<DoubleReal>(peptide_identifications[0].getHits()[0].getMetaValue("Sf")), 0.05)
+			TEST_REAL_SIMILAR(static_cast<double>(peptide_identifications[0].getHits()[0].getMetaValue("MH")), 1967.0013)
+			TEST_REAL_SIMILAR(static_cast<double>(peptide_identifications[0].getHits()[0].getMetaValue("DeltCn")), 0.0000)
+			TEST_REAL_SIMILAR(static_cast<double>(peptide_identifications[0].getHits()[0].getMetaValue("XCorr")), 1.5789)
+			TEST_REAL_SIMILAR(static_cast<double>(peptide_identifications[0].getHits()[0].getMetaValue("Sp")), 310.3)
+			TEST_REAL_SIMILAR(static_cast<double>(peptide_identifications[0].getHits()[0].getMetaValue("Sf")), 0.05)
 			TEST_STRING_EQUAL(static_cast<String>(peptide_identifications[0].getHits()[0].getMetaValue("Ions")), "18/64")
 			TEST_EQUAL(peptide_identifications[0].getHits()[0].getProteinAccessions().size(), 3)
 			if ( peptide_identifications[0].getHits()[0].getProteinAccessions().size() == 3 )
@@ -247,11 +247,11 @@ START_SECTION(void load(const String& result_filename, std::vector< PeptideIdent
 			TEST_EQUAL(peptide_identifications[0].getHits()[1].getCharge(), 3)
 			TEST_STRING_EQUAL(static_cast<String>(peptide_identifications[0].getHits()[1].getMetaValue("RankSp")), "2/85")
 			TEST_EQUAL(static_cast<Int>(peptide_identifications[0].getHits()[1].getMetaValue("SequestId")), 0)
-			TEST_REAL_SIMILAR(static_cast<DoubleReal>(peptide_identifications[0].getHits()[1].getMetaValue("MH")), 1967.1985)
-			TEST_REAL_SIMILAR(static_cast<DoubleReal>(peptide_identifications[0].getHits()[1].getMetaValue("DeltCn")), 0.0390)
-			TEST_REAL_SIMILAR(static_cast<DoubleReal>(peptide_identifications[0].getHits()[1].getMetaValue("XCorr")), 1.5173)
-			TEST_REAL_SIMILAR(static_cast<DoubleReal>(peptide_identifications[0].getHits()[1].getMetaValue("Sp")), 308.3)
-			TEST_REAL_SIMILAR(static_cast<DoubleReal>(peptide_identifications[0].getHits()[1].getMetaValue("Sf")), 0.04)
+			TEST_REAL_SIMILAR(static_cast<double>(peptide_identifications[0].getHits()[1].getMetaValue("MH")), 1967.1985)
+			TEST_REAL_SIMILAR(static_cast<double>(peptide_identifications[0].getHits()[1].getMetaValue("DeltCn")), 0.0390)
+			TEST_REAL_SIMILAR(static_cast<double>(peptide_identifications[0].getHits()[1].getMetaValue("XCorr")), 1.5173)
+			TEST_REAL_SIMILAR(static_cast<double>(peptide_identifications[0].getHits()[1].getMetaValue("Sp")), 308.3)
+			TEST_REAL_SIMILAR(static_cast<double>(peptide_identifications[0].getHits()[1].getMetaValue("Sf")), 0.04)
 			TEST_STRING_EQUAL(static_cast<String>(peptide_identifications[0].getHits()[1].getMetaValue("Ions")), "19/64")
 			TEST_EQUAL(peptide_identifications[0].getHits()[1].getProteinAccessions().size(), 2)
 			if ( peptide_identifications[0].getHits()[1].getProteinAccessions().size() == 2 )
@@ -406,12 +406,12 @@ START_SECTION(void getACAndACType(String line, String& accession, String& access
 	TEST_STRING_EQUAL(accession_type, "SwissProt")
 END_SECTION
 
-START_SECTION(void readOutHeader(const String& result_filename, DateTime& datetime, DoubleReal& precursor_mz_value, Int& charge, Size& precursor_mass_type, Size& ion_mass_type, Size& displayed_peptides, String& sequest, String& sequest_version, String& database_type, Int& number_column, Int& rank_sp_column, Int& id_column, Int& mh_column, Int& delta_cn_column, Int& xcorr_column, Int& sp_column, Int& sf_column, Int& ions_column, Int& reference_column, Int& peptide_column, Int& score_column, Size& number_of_columns))
+START_SECTION(void readOutHeader(const String& result_filename, DateTime& datetime, double& precursor_mz_value, Int& charge, Size& precursor_mass_type, Size& ion_mass_type, Size& displayed_peptides, String& sequest, String& sequest_version, String& database_type, Int& number_column, Int& rank_sp_column, Int& id_column, Int& mh_column, Int& delta_cn_column, Int& xcorr_column, Int& sp_column, Int& sf_column, Int& ions_column, Int& reference_column, Int& peptide_column, Int& score_column, Size& number_of_columns))
 	
 	String result_filename = OPENMS_GET_TEST_DATA_PATH("Sequest.mzXML.13.1.d.out");
 	DateTime datetime;
 	
-	DoubleReal precursor_mz_value(0.0);
+	double precursor_mz_value(0.0);
 	Int
 	 charge(-1),
 	 number_column(-1),

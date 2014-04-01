@@ -133,7 +133,7 @@ namespace OpenMS
     dataToWidget(peak.getMZ(), peak.getIntensity(), point, flipped, percentage);
   }
 
-  void Spectrum1DCanvas::dataToWidget(DoubleReal x, DoubleReal y, QPoint & point, bool flipped, bool percentage)
+  void Spectrum1DCanvas::dataToWidget(double x, double y, QPoint & point, bool flipped, bool percentage)
   {
     QPoint tmp;
     if (percentage)
@@ -142,10 +142,10 @@ namespace OpenMS
     }
     SpectrumCanvas::dataToWidget_(x, y, tmp);
     point.setX(tmp.x());
-    DoubleReal alignment_shrink_factor = 1.0;
+    double alignment_shrink_factor = 1.0;
     if (height() > 10)
     {
-      alignment_shrink_factor = (DoubleReal)(height() - 10) / (DoubleReal)height();
+      alignment_shrink_factor = (double)(height() - 10) / (double)height();
     }
     if (mirror_mode_)
     {
@@ -183,13 +183,13 @@ namespace OpenMS
     return widgetToData(pos.x(), pos.y(), percentage);
   }
 
-  SpectrumCanvas::PointType Spectrum1DCanvas::widgetToData(DoubleReal x, DoubleReal y, bool percentage)
+  SpectrumCanvas::PointType Spectrum1DCanvas::widgetToData(double x, double y, bool percentage)
   {
-    DoubleReal actual_y;
-    DoubleReal alignment_shrink_factor = 1.0;
+    double actual_y;
+    double alignment_shrink_factor = 1.0;
     if (height() > 10)
     {
-      alignment_shrink_factor = (DoubleReal)(height() - 10) / (DoubleReal)height();
+      alignment_shrink_factor = (double)(height() - 10) / (double)height();
     }
 
     if (mirror_mode_)
@@ -269,8 +269,8 @@ namespace OpenMS
         Annotation1DDistanceItem * distance_item = dynamic_cast<Annotation1DDistanceItem *>(item);
         if (distance_item)
         {
-          const DoubleReal start_p = distance_item->getStartPoint().getX();
-          const DoubleReal end_p = distance_item->getEndPoint().getX();
+          const double start_p = distance_item->getStartPoint().getX();
+          const double end_p = distance_item->getEndPoint().getX();
           emit sendStatusMessage(QString("Measured: dMZ = %1").arg(end_p - start_p).toStdString(), 0);
         }
       }
@@ -481,9 +481,9 @@ namespace OpenMS
           updatePercentageFactor_(current_layer_);
           PointType p = widgetToData(measurement_start_point_, true);
           bool peak_1_less = peak_1.getMZ() < peak_2.getMZ();
-          DoubleReal start_mz = peak_1_less ? peak_1.getMZ() : peak_2.getMZ();
-          DoubleReal end_mz = peak_1_less ? peak_2.getMZ() : peak_1.getMZ();
-          DoubleReal distance = end_mz - start_mz;
+          double start_mz = peak_1_less ? peak_1.getMZ() : peak_2.getMZ();
+          double end_mz = peak_1_less ? peak_2.getMZ() : peak_1.getMZ();
+          double distance = end_mz - start_mz;
           PointType start_p(start_mz, p.getY());
           PointType end_p(end_mz, p.getY());
 
@@ -622,7 +622,7 @@ namespace OpenMS
     //update range area
     recalculateRanges_(0, 2, 1);
     overall_data_range_.setMinY(0.0);      // minimal intensity always 0.0
-    DoubleReal width = overall_data_range_.width();
+    double width = overall_data_range_.width();
     overall_data_range_.setMinX(overall_data_range_.minX() - 0.002 * width);
     overall_data_range_.setMaxX(overall_data_range_.maxX() + 0.002 * width);
     overall_data_range_.setMaxY(overall_data_range_.maxY() + 0.002 * overall_data_range_.height());
@@ -1071,7 +1071,7 @@ namespace OpenMS
     //update ranges
     recalculateRanges_(0, 2, 1);
     overall_data_range_.setMinY(0.0);      // minimal intensity always 0.0
-    DoubleReal width = overall_data_range_.width();
+    double width = overall_data_range_.width();
     overall_data_range_.setMinX(overall_data_range_.minX() - 0.002 * width);
     overall_data_range_.setMaxX(overall_data_range_.maxX() + 0.002 * width);
     overall_data_range_.setMaxY(overall_data_range_.maxY() + 0.002 * overall_data_range_.height());
@@ -1100,8 +1100,8 @@ namespace OpenMS
       return;
 
     //determine coordinates;
-    DoubleReal mz = 0.0;
-    Real it = 0.0;
+    double mz = 0.0;
+    float it = 0.0;
     // only peak data is supported here
     if (getCurrentLayer().type != LayerData::DT_PEAK)
     {
@@ -1137,9 +1137,9 @@ namespace OpenMS
       return;
 
     //determine coordinates;
-    DoubleReal mz;
-    Real it;
-    Real ppm;
+    double mz;
+    float it;
+    float ppm;
 
     if (getCurrentLayer().type != LayerData::DT_PEAK)
     {
@@ -1158,7 +1158,7 @@ namespace OpenMS
       PointType point = widgetToData_(last_mouse_pos_);
       mz = point[0] - start.getPeak(*getCurrentLayer().getPeakData()).getMZ();
       //rt = point[1] - start.getSpectrum(*getCurrentLayer().getPeakData()).getRT();
-      it = std::numeric_limits<DoubleReal>::quiet_NaN();
+      it = std::numeric_limits<double>::quiet_NaN();
     }
     ppm = (mz / start.getPeak(*getCurrentLayer().getPeakData()).getMZ()) * 1e6;
 
@@ -1193,7 +1193,7 @@ namespace OpenMS
   {
     if (intensity_mode_ == IM_SNAP)
     {
-      DoubleReal local_max  = -numeric_limits<double>::max();
+      double local_max  = -numeric_limits<double>::max();
       for (Size i = 0; i < getLayerCount(); ++i)
       {
         SpectrumType & spectrum = getLayer_(i).getCurrentSpectrum();
@@ -1562,7 +1562,7 @@ namespace OpenMS
     //update ranges
     recalculateRanges_(0, 2, 1);
     overall_data_range_.setMinY(0.0);      // minimal intensity always 0.0
-    DoubleReal width = overall_data_range_.width();
+    double width = overall_data_range_.width();
     overall_data_range_.setMinX(overall_data_range_.minX() - 0.002 * width);
     overall_data_range_.setMaxX(overall_data_range_.maxX() + 0.002 * width);
     overall_data_range_.setMaxY(overall_data_range_.maxY() + 0.002 * overall_data_range_.height());
@@ -1632,9 +1632,9 @@ namespace OpenMS
 
   void Spectrum1DCanvas::translateLeft_()
   {
-    DoubleReal shift = 0.05 * visible_area_.width();
-    DoubleReal newLo = visible_area_.minX() - shift;
-    DoubleReal newHi = visible_area_.maxX() - shift;
+    double shift = 0.05 * visible_area_.width();
+    double newLo = visible_area_.minX() - shift;
+    double newHi = visible_area_.maxX() - shift;
     // check if we are falling out of bounds
     if (newLo < overall_data_range_.minX())
     {
@@ -1648,9 +1648,9 @@ namespace OpenMS
 
   void Spectrum1DCanvas::translateRight_()
   {
-    DoubleReal shift = 0.05 * visible_area_.width();
-    DoubleReal newLo = visible_area_.minX() + shift;
-    DoubleReal newHi = visible_area_.maxX() + shift;
+    double shift = 0.05 * visible_area_.width();
+    double newLo = visible_area_.minX() + shift;
+    double newHi = visible_area_.maxX() + shift;
     // check if we are falling out of bounds
     if (newHi > overall_data_range_.maxX())
     {
@@ -1759,13 +1759,13 @@ namespace OpenMS
           }
           else
           {
-            DoubleReal alignment_shrink_factor = 1.0;
+            double alignment_shrink_factor = 1.0;
             if (height() > 10)
             {
-              alignment_shrink_factor = (DoubleReal)(height() - 10) / (DoubleReal)height();
+              alignment_shrink_factor = (double)(height() - 10) / (double)height();
             }
-            painter.drawLine(xl, (int)((DoubleReal)(y) * alignment_shrink_factor / 2.0), xh, (int)((DoubleReal)(y) * alignment_shrink_factor / 2.0));
-            painter.drawLine(xl, yl - (int)((DoubleReal)(y) * alignment_shrink_factor / 2.0), xh, yl - (int)((DoubleReal)(y) * alignment_shrink_factor / 2.0));
+            painter.drawLine(xl, (int)((double)(y) * alignment_shrink_factor / 2.0), xh, (int)((double)(y) * alignment_shrink_factor / 2.0));
+            painter.drawLine(xl, yl - (int)((double)(y) * alignment_shrink_factor / 2.0), xh, yl - (int)((double)(y) * alignment_shrink_factor / 2.0));
           }
         }
       }
@@ -1796,8 +1796,8 @@ namespace OpenMS
 
     for (Size i = 0; i < aligned_peaks_indices_.size(); ++i)
     {
-      DoubleReal line_begin_mz = spectrum_1[aligned_peaks_indices_[i].first].getMZ();
-      DoubleReal line_end_mz = spectrum_2[aligned_peaks_indices_[i].second].getMZ();
+      double line_begin_mz = spectrum_1[aligned_peaks_indices_[i].first].getMZ();
+      double line_end_mz = spectrum_2[aligned_peaks_indices_[i].second].getMZ();
       aligned_peaks_mz_delta_.push_back(std::make_pair(line_begin_mz, line_end_mz));
     }
 
@@ -1858,7 +1858,7 @@ namespace OpenMS
     return aligned_peaks_mz_delta_.size();
   }
 
-  DoubleReal Spectrum1DCanvas::getAlignmentScore()
+  double Spectrum1DCanvas::getAlignmentScore()
   {
     return alignment_score_;
   }

@@ -59,11 +59,11 @@ public:
     ///@name Type definitions
     //@{
     /// Type of quality values
-    typedef Real QualityType;
+    typedef float QualityType;
     /// Type of charge values
     typedef Int ChargeType;
     /// Type of feature width/FWHM (RT)
-    typedef Real WidthType;
+    typedef float WidthType;
 
     /// state of identification, use getIDState() to query it
     enum AnnotationState

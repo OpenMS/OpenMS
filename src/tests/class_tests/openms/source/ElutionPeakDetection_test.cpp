@@ -153,7 +153,7 @@ START_SECTION((void findLocalExtrema(const MassTrace &, const Size &, std::vecto
     {
         MassTrace mt(output_mt[0]);
 
-        std::vector<DoubleReal> rts, ints;
+        std::vector<double> rts, ints;
 
         for (MassTrace::const_iterator c_it = mt.begin(); c_it != mt.end(); ++c_it)
         {
@@ -161,7 +161,7 @@ START_SECTION((void findLocalExtrema(const MassTrace &, const Size &, std::vecto
             ints.push_back(c_it->getIntensity());
         }
 
-        std::vector<DoubleReal> smoothed_data;
+        std::vector<double> smoothed_data;
 
         double win_size = 20;
         test_epd.smoothData(mt, win_size);
@@ -184,13 +184,13 @@ END_SECTION
 splitted_mt.clear();
 test_epd.detectPeaks(output_mt, splitted_mt);
 
-START_SECTION((DoubleReal computeMassTraceNoise(const MassTrace &)))
+START_SECTION((double computeMassTraceNoise(const MassTrace &)))
 {
     TEST_EQUAL(output_mt.size(), 1);
 
     if (output_mt.size() > 0)
     {
-        DoubleReal est_noise(test_epd.computeMassTraceNoise(output_mt[0]));
+        double est_noise(test_epd.computeMassTraceNoise(output_mt[0]));
 
 //        TEST_REAL_SIMILAR(est_noise, 515.297);//using lowess and GSL
         TEST_REAL_SIMILAR(est_noise, 573.8585);//using SavitzkyGolay
@@ -199,12 +199,12 @@ START_SECTION((DoubleReal computeMassTraceNoise(const MassTrace &)))
 }
 END_SECTION
 
-START_SECTION((DoubleReal computeMassTraceSNR(const MassTrace &)))
+START_SECTION((double computeMassTraceSNR(const MassTrace &)))
 {
     ABORT_IF(splitted_mt.size() != 6);
 
-    DoubleReal snr1(test_epd.computeMassTraceSNR(splitted_mt[0]));
-    DoubleReal snr2(test_epd.computeMassTraceSNR(splitted_mt[1]));
+    double snr1(test_epd.computeMassTraceSNR(splitted_mt[0]));
+    double snr2(test_epd.computeMassTraceSNR(splitted_mt[1]));
     //using lowess and GSL
 //        TEST_REAL_SIMILAR(snr1, 8.6058);
 //        TEST_REAL_SIMILAR(snr2, 8.946);
@@ -217,12 +217,12 @@ START_SECTION((DoubleReal computeMassTraceSNR(const MassTrace &)))
 }
 END_SECTION
 
-START_SECTION((DoubleReal computeApexSNR(const MassTrace &)))
+START_SECTION((double computeApexSNR(const MassTrace &)))
 {
     ABORT_IF(splitted_mt.size() != 6);
 
-    DoubleReal snr1(test_epd.computeApexSNR(splitted_mt[0]));
-    DoubleReal snr2(test_epd.computeApexSNR(splitted_mt[1]));
+    double snr1(test_epd.computeApexSNR(splitted_mt[0]));
+    double snr2(test_epd.computeApexSNR(splitted_mt[1]));
 
     std::cout << "snr: " << snr1 << " " << snr2 << std::endl;
 

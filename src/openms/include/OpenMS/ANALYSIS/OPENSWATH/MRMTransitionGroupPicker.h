@@ -248,7 +248,7 @@ public:
         f.setOverallQuality(quality);
 
         ConvexHull2D::PointArrayType hull_points;
-        DoubleReal intensity_sum(0.0), rt_sum(0.0);
+        double intensity_sum(0.0), rt_sum(0.0);
         double peak_apex_int = -1;
         double peak_apex_dist = std::fabs(used_chromatogram.begin()->getMZ() - peak_apex);
         // FEATURE : use RTBegin / MZBegin -> for this we need to know whether the template param is a real chromatogram or a spectrum!
@@ -739,12 +739,12 @@ protected:
     String background_subtraction_;
     bool recalculate_peaks_;
     bool compute_peak_quality_;
-    DoubleReal min_qual_;
+    double min_qual_;
 
     int stop_after_feature_;
-    DoubleReal stop_after_intensity_ratio_;
-    DoubleReal min_peak_width_;
-    DoubleReal recalculate_peaks_max_z_;
+    double stop_after_intensity_ratio_;
+    double min_peak_width_;
+    double recalculate_peaks_max_z_;
   };
 }
 

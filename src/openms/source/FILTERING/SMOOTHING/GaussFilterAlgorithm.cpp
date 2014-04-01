@@ -51,7 +51,7 @@ namespace OpenMS
   {
   }
 
-  void GaussFilterAlgorithm::initialize(DoubleReal gaussian_width, DoubleReal spacing, DoubleReal ppm_tolerance, bool use_ppm_tolerance)
+  void GaussFilterAlgorithm::initialize(double gaussian_width, double spacing, double ppm_tolerance, bool use_ppm_tolerance)
   {
     spacing_ = spacing;
     use_ppm_tolerance_ = use_ppm_tolerance;

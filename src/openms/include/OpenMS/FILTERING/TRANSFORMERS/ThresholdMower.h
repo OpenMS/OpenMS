@@ -78,7 +78,7 @@ public:
 
       // find right position to erase
       typename SpectrumType::PeakType p;
-      threshold_ = ((DoubleReal)param_.getValue("threshold"));
+      threshold_ = ((double)param_.getValue("threshold"));
       p.setIntensity(threshold_);
       spectrum.erase(
         spectrum.begin(),
@@ -93,7 +93,7 @@ public:
     //TODO reimplement DefaultParamHandler::updateMembers_()
 
 private:
-    DoubleReal threshold_;
+    double threshold_;
 
     // @}
   };

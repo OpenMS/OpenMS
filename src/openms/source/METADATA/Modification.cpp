@@ -109,12 +109,12 @@ namespace OpenMS
     reagent_name_ = reagent_name;
   }
 
-  DoubleReal Modification::getMass() const
+  double Modification::getMass() const
   {
     return mass_;
   }
 
-  void Modification::setMass(DoubleReal mass)
+  void Modification::setMass(double mass)
   {
     mass_ = mass;
   }

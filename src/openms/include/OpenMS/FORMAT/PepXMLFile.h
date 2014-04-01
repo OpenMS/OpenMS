@@ -127,13 +127,13 @@ private:
         @param origin AA one letter code
         @param modification_description [out] Name of the modification, e.g. 'Carboxymethyl (C)'
     */
-    void matchModification_(const DoubleReal mass, const String& origin, String& modification_description);
+    void matchModification_(const double mass, const String& origin, String& modification_description);
 
     struct AminoAcidModification
     {
       String aminoacid;
       String massdiff;
-      DoubleReal mass;
+      double mass;
       bool variable;
       String description;
       String terminus;
@@ -196,7 +196,7 @@ private:
     std::map<Size, Size> scan_map_;
 
     /// Retention time and mass-to-charge tolerance
-    DoubleReal rt_tol_, mz_tol_;
+    double rt_tol_, mz_tol_;
 
     /// Hydrogen data (for mass types)
     Element hydrogen_;
@@ -232,7 +232,7 @@ private:
     String current_sequence_;
 
     /// RT and m/z of current PeptideIdentification
-    DoubleReal rt_, mz_;
+    double rt_, mz_;
 
     /// Precursor ion charge
     Int charge_;
@@ -247,7 +247,7 @@ private:
     DateTime date_;
 
     /// Mass of a hydrogen atom (monoisotopic/average depending on case)
-    DoubleReal hydrogen_mass_;
+    double hydrogen_mass_;
 
     /// The modifications of the current peptide hit (position is 1-based)
     std::vector<std::pair<String, Size> > current_modifications_;

@@ -87,7 +87,7 @@ public:
          Returns the result of evaluating the fitted model at @p value.
          Returns @p value unchanged if no model was fitted.
     */
-    DoubleReal apply(DoubleReal value) const;
+    double apply(double value) const;
 
     /// Gets the type of the fitted model
     const String & getModelType() const;

@@ -219,12 +219,12 @@ void writeParameters(const String & class_name, const Param & param, bool table_
 
       //restrictions
       bool first = true;
-      if (it->min_float != -(numeric_limits<DoubleReal>::max)())
+      if (it->min_float != -(numeric_limits<double>::max)())
       {
         restrictions += String("min: ") + it->min_float;
         first = false;
       }
-      if (it->max_float != (numeric_limits<DoubleReal>::max)())
+      if (it->max_float != (numeric_limits<double>::max)())
       {
         if (!first)
           restrictions += ' ';
