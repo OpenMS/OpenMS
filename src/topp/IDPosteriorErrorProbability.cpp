@@ -37,6 +37,7 @@
 #include <OpenMS/MATH/STATISTICS/PosteriorErrorProbabilityModel.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <boost/math/special_functions/fpclassify.hpp> // for "isnan"
 #include <vector>
 
 using namespace OpenMS;
@@ -165,12 +166,12 @@ protected:
     }
     else if (engine == "MASCOT")
     {
-      // bug #740: unable to fit data with score 0
+      // issue #740: unable to fit data with score 0
       if (hit.getScore() == 0) 
       {
         return numeric_limits<double>::quiet_NaN();
       }
-      // end bug #740
+      // end issue #740
       if (hit.metaValueExists("EValue"))
       {
         return (-1) * log10(max((DoubleReal)hit.getMetaValue("EValue"), smallest_e_value_));
@@ -288,7 +289,7 @@ protected:
                   if (!hits.empty() && (!split_charge || hits[0].getCharge() == *charge))
                   {
                     DoubleReal score = getScore_(*engine, hits[0]);
-                    if (score == score) // NaN check, #740: ignore scores with 0 values, otherwise you will get the error: unable to fit data
+                    if (!boost::math::isnan(score)) // issue #740: ignore scores with 0 values, otherwise you will get the error "unable to fit data"
                     {
                       scores.push_back(score);
 
@@ -313,7 +314,7 @@ protected:
                     if (!split_charge || hit->getCharge() == *charge)
                     {
                       DoubleReal score = getScore_(*engine, *hit);
-                      if (score == score) // NaN check, #740: ignore scores with 0 values, otherwise you will get the error: unable to fit data
+                      if (!boost::math::isnan(score)) // issue #740: ignore scores with 0 values, otherwise you will get the error "unable to fit data"
                       {
                         scores.push_back(score);
                       }
@@ -411,7 +412,7 @@ protected:
                     hit->setMetaValue(score_type, hit->getScore());
 
                     score = getScore_(engine, *hit);
-                    if (score != score) // NaN check, #740: ignore scores with 0 values, otherwise you will get the error: unable to fit data
+                    if (boost::math::isnan(score)) // issue #740: ignore scores with 0 values, otherwise you will get the error "unable to fit data"
                     {
                       score = 1;
                     }
