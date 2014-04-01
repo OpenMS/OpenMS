@@ -464,9 +464,6 @@ protected:
       Size modified_peptide_count(0);
       Map<String, int> mod_counts;
       
-	  size_t mem1, mem2;
-	  SysInfo::getProcessMemoryConsumption(mem1);
-
 	  // reading input
       IdXMLFile().load(in, id_data.proteins, id_data.peptides, id_data.identifier);
 
@@ -474,9 +471,6 @@ protected:
       os_tsv << "database" << "\t" << id_data.proteins.at(0).getSearchParameters().db << "\n"
              << "database version" << "\t" << id_data.proteins.at(0).getSearchParameters().db_version << "\n"
              << "taxonomy" << "\t" << id_data.proteins.at(0).getSearchParameters().taxonomy << "\n";
-
-	  SysInfo::getProcessMemoryConsumption(mem2);
-	  std::cout << "\n\nMem Usage: " << (mem2-mem1)/1024 << "MB" << std::endl;
 
       // calculations
       for (Size i = 0; i < id_data.peptides.size(); ++i)
