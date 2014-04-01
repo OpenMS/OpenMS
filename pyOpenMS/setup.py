@@ -113,12 +113,18 @@ libraries.extend(LIBRARIES_EXTEND)
 library_dirs.extend(LIBRARY_DIRS_EXTEND)
 
 extra_link_args = []
+extra_compile_args = []
 
-if sys.platform == "linux2":
+if iswin:
+    extra_compile_args = ["/EHs", "/bigobj"]
+elif sys.platform == "linux2":
     extra_link_args = ["-Wl,-s"]
 elif sys.platform == "darwin":
     # we need to manually link to the Qt Frameworks
-    extra_link_args = []
+    extra_compile_args = [-Qunused-arguments]
+
+if IS_DEBUG:
+    extra_compile_args.append("-g2")
 
 ext = Extension(
     "pyopenms",
@@ -132,7 +138,7 @@ ext = Extension(
     # set BOOST_NO_EXCEPTION in <boost/config/compiler/visualc.hpp>
     # such that  boost::throw_excption() is declared but not implemented.
     # The linker does not like that very much ...
-    extra_compile_args=iswin and ["/EHs", "/bigobj"] or (IS_DEBUG and ["-g2"] or []),
+    extra_compile_args=extra_compile_args,
     extra_link_args=extra_link_args
 )
 
