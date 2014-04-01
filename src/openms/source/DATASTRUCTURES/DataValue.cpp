@@ -487,7 +487,7 @@ namespace OpenMS
     {
       throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert negative integer DataValue to unsigned short int");
     }
-    (unsigned short int)(data_.ssize_);
+    return (unsigned short int)(data_.ssize_);
   }
 
   DataValue::operator int() const
