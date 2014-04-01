@@ -274,9 +274,9 @@ namespace OpenMS
         seqan::String<char> s(tags_.at(i).c_str());
         goDown(*it_, s);
         seqan::String<Size> occs = getOccurrences(*it_);
-        for (Size i = 0; i < length(occs); ++i)
+        for (Size j = 0; j < length(occs); ++j)
         {
-          tag_indices.push_back(occs[i]);
+          tag_indices.push_back(occs[j]);
         }
       }
       sort(tag_indices.begin(), tag_indices.end());
@@ -414,7 +414,7 @@ namespace OpenMS
           // the case that i==(edge_length-1) means we are at a node. if we are at a node we cannot just look at one following caracter but instead we must look an the next of every outgoing edge and deciding whether this is a digenting site
           if (i == (edge_length - 1) || isDigestingEnd(cc, ccn))
           {
-            DoubleReal newm = (mm - masse_[(int)start_char]);
+            newm = (mm - masse_[(int)start_char]);
             // if the mass is in the spectrum
             if (!use_tags_ ||
                 binary_search(tag_indices.begin(), tag_indices.end(), Size(length_till_node + i + start_index_in_text - 2) /*,

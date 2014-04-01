@@ -33,7 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/DATASTRUCTURES/Adduct.h>
-
+#include <cmath>
 #include <iostream>
 
 namespace OpenMS

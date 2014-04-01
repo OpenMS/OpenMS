@@ -467,7 +467,7 @@ namespace OpenMS
 
   String String::random(UInt length)
   {
-    srand(time(0));
+    srand( (UInt)(time(0)) );
     String tmp(length, '.');
     SizeType random;
     for (Size i = 0; i < length; ++i)
@@ -760,7 +760,7 @@ namespace OpenMS
   {
     if (size() != 0)
     {
-      (*this)[0] = toupper((*this)[0]);
+      (*this)[0] = (char)(toupper((*this)[0]));
     }
     return *this;
   }

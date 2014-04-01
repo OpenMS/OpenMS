@@ -188,8 +188,9 @@ namespace OpenMS
     else if (value.valueType() == DataValue::DOUBLE_VALUE)
     {
       DoubleReal tmp = value;
-      if ((min_float != -std::numeric_limits<DoubleReal>::max() && tmp < min_float) || (max_float != std::numeric_limits<DoubleReal>::max() && tmp > max_float))
-      {
+      if ( ( (fabs( min_float + std::numeric_limits<double>::max() )> std::numeric_limits<double>::epsilon()  ) && tmp < min_float )
+        || ( (fabs( max_float - std::numeric_limits<double>::max() ) > std::numeric_limits<double>::epsilon()  ) && tmp > max_float ) )
+	{
         message = String("Invalid double parameter value '") + tmp + "' for parameter '" + name + "' given! The valid range is: [" + min_float + ":" + max_float + "].";
         return false;
       }
@@ -201,7 +202,8 @@ namespace OpenMS
       for (Size i = 0; i < ls_value.size(); ++i)
       {
         dou_value = ls_value[i];
-        if ((min_float != -std::numeric_limits<DoubleReal>::max() && dou_value < min_float) || (max_float != std::numeric_limits<DoubleReal>::max() && dou_value > max_float))
+	    if ( ( (fabs( min_float + std::numeric_limits<double>::max() )> 0  ) && dou_value < min_float )
+        	|| ( (fabs( max_float - std::numeric_limits<double>::max()) > 0 ) && dou_value > max_float ) )
         {
           message = String("Invalid double parameter value '") + dou_value + "' for parameter '" + name + "' given! The valid range is: [" + min_float + ":" + max_float + "].";
           return false;
@@ -265,11 +267,11 @@ namespace OpenMS
     return true;
   }
 
-  Param::ParamNode::EntryIterator Param::ParamNode::findEntry(const String& name)
+  Param::ParamNode::EntryIterator Param::ParamNode::findEntry(const String& lname)
   {
     for (EntryIterator it = entries.begin(); it != entries.end(); ++it)
     {
-      if (it->name == name)
+      if (it->name == lname)
       {
         return it;
       }
@@ -277,11 +279,11 @@ namespace OpenMS
     return entries.end();
   }
 
-  Param::ParamNode::NodeIterator Param::ParamNode::findNode(const String& name)
+  Param::ParamNode::NodeIterator Param::ParamNode::findNode(const String& lname)
   {
     for (NodeIterator it = nodes.begin(); it != nodes.end(); ++it)
     {
-      if (it->name == name)
+      if (it->name == lname)
       {
         return it;
       }
@@ -289,27 +291,27 @@ namespace OpenMS
     return nodes.end();
   }
 
-  Param::ParamNode* Param::ParamNode::findParentOf(const String& name)
+  Param::ParamNode* Param::ParamNode::findParentOf(const String& lname)
   {
     //cout << "findParentOf nodename: " << this->name << " - nodes: " << this->nodes.size() << " - find: "<< name << endl;
-    if (!name.has(':')) // we are in the right child
+    if (!lname.has(':')) // we are in the right child
     {
       //check if a node or entry prefix match
       for (Size i = 0; i < nodes.size(); ++i)
       {
-        if (nodes[i].name.hasPrefix(name))
+        if (nodes[i].name.hasPrefix(lname))
           return this;
       }
       for (Size i = 0; i < entries.size(); ++i)
       {
-        if (entries[i].name.hasPrefix(name))
+        if (entries[i].name.hasPrefix(lname))
           return this;
       }
       return 0;
     }
     else //several subnodes to browse through
     {
-      String prefix = name.prefix(':');
+      String prefix = lname.prefix(':');
       //cout << " - Prefix: '" << prefix << "'" << endl;
       NodeIterator it = findNode(prefix);
       if (it == nodes.end()) //subnode not found
@@ -317,19 +319,19 @@ namespace OpenMS
         return 0;
       }
       //recursively call findNode for the rest of the path
-      String new_name = name.substr(it->name.size() + 1);
+      String new_name = lname.substr(it->name.size() + 1);
       //cout << " - Next name: '" << new_name << "'" << endl;
       return it->findParentOf(new_name);
     }
   }
 
-  Param::ParamEntry* Param::ParamNode::findEntryRecursive(const String& name)
+  Param::ParamEntry* Param::ParamNode::findEntryRecursive(const String& lname)
   {
-    ParamNode* parent = findParentOf(name);
+    ParamNode* parent = findParentOf(lname);
     if (parent == 0)
       return 0;
 
-    EntryIterator it = parent->findEntry(suffix(name));
+    EntryIterator it = parent->findEntry(suffix(lname));
     if (it == parent->entries.end())
       return 0;
 
@@ -344,21 +346,21 @@ namespace OpenMS
     ParamNode* insert_node = this;
     while (prefix2.has(':'))
     {
-      String name = prefix2.prefix(':');
+      String lname = prefix2.prefix(':');
       //check if the node already exists
-      NodeIterator it = insert_node->findNode(name);
+      NodeIterator it = insert_node->findNode(lname);
       if (it != insert_node->nodes.end()) //exists
       {
         insert_node = &(*it);
       }
       else //create it
       {
-        insert_node->nodes.push_back(ParamNode(name, ""));
+        insert_node->nodes.push_back(ParamNode(lname, ""));
         insert_node = &(insert_node->nodes.back());
         //cerr << " - Created new node: " << insert_node->name << endl;
       }
       //remove prefix
-      prefix2 = prefix2.substr(name.size() + 1);
+      prefix2 = prefix2.substr(lname.size() + 1);
     }
 
     //check if the node already exists
@@ -395,22 +397,22 @@ namespace OpenMS
     ParamNode* insert_node = this;
     while (prefix2.has(':'))
     {
-      String name = prefix2.prefix(':');
+      String lname = prefix2.prefix(':');
       //cerr << " - looking for node: " << name << endl;
       //look up if the node already exists
-      NodeIterator it = insert_node->findNode(name);
+      NodeIterator it = insert_node->findNode(lname);
       if (it != insert_node->nodes.end()) //exists
       {
         insert_node = &(*it);
       }
       else //create it
       {
-        insert_node->nodes.push_back(ParamNode(name, ""));
+        insert_node->nodes.push_back(ParamNode(lname, ""));
         insert_node = &(insert_node->nodes.back());
         //cerr << " - Created new node: " << insert_node->name << endl;
       }
       //remove prefix
-      prefix2 = prefix2.substr(name.size() + 1);
+      prefix2 = prefix2.substr(lname.size() + 1);
       //cerr << " - new prefix: " << prefix2 << endl;
     }
 
@@ -1196,13 +1198,13 @@ namespace OpenMS
           if (add_unknown)
           {
             stream << "Unknown (or deprecated) Parameter '" << it.getName() << "' given in old parameter file! Adding to current set ..." << std::endl;
-            Param::ParamEntry entry = old_version.getEntry(it.getName());
+            Param::ParamEntry lentry = old_version.getEntry(it.getName());
             String prefix = "";
             if (it.getName().has(':'))
             {
               prefix = it.getName().substr(0, 1 + it.getName().find_last_of(':'));
             }
-            this->root_.insert(entry, prefix); //->setValue(it.getName(), entry.value, entry.description, entry.tags);
+            this->root_.insert(lentry, prefix); //->setValue(it.getName(), entry.value, entry.description, entry.tags);
           }
           else
           {
@@ -1425,7 +1427,7 @@ namespace OpenMS
           trace_.push_back(TraceInfo(last->name, last->description, false));
 
           //check of new subtree is accessable
-          UInt next_index = (last - &(node->nodes[0])) + 1;
+          Size next_index = (last - &(node->nodes[0])) + 1;
           if (next_index < node->nodes.size())
           {
             current_ = -1;
@@ -1439,7 +1441,7 @@ namespace OpenMS
       }
     }
 
-    return *this;
+   // return *this;
   }
 
   bool Param::ParamIterator::operator==(const ParamIterator& rhs) const
