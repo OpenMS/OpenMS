@@ -156,6 +156,15 @@ set(OPENMS_DEP_LIBRARIES  ${CONTRIB_CBC}
                           ${ZLIB_LIBRARIES}
                           ${GLPK_LIBRARIES})
 
+# xerces requires linking against CoreFoundation&CoreServices
+if(APPLE)
+  find_library(CoreFoundation_LIBRARY CoreFoundation )
+  find_library(CoreServices_LIBRARY CoreServices )
+  set(OPENMS_DEP_LIBRARIES ${OPENMS_DEP_LIBRARIES}
+                           ${CoreFoundation_LIBRARY}
+                           ${CoreServices_LIBRARY})
+endif()
+
 if (TBB_FOUND)
 	list(APPEND OPENMS_DEP_LIBRARIES ${TBB_LIBRARIES})
 endif()
@@ -166,7 +175,7 @@ if (WITH_CRAWDAD)
   list(APPEND OPENMS_DEP_LIBRARIES Crawdad)
 endif()
 
-target_link_libraries(OpenMS OpenSwathAlgo ${APPLE_EXTRA_LIBS} ${QT_LIBRARIES} ${OPENMS_DEP_LIBRARIES})
+target_link_libraries(OpenMS OpenSwathAlgo ${QT_LIBRARIES} ${OPENMS_DEP_LIBRARIES})
 
 ## OPENMS_LIBRARIES defines the libraries used by OpenMS; this should be used to link against executables
 ## somehow the link dependencies of cmake are broken such that when using POSTFIX names for libs the dependencies are not forwarded...

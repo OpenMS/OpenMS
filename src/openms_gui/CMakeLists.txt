@@ -43,6 +43,8 @@ if (NOT QT4_FOUND)
   message(STATUS "Qt4 modules not found!")
 	message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -D QT_QMAKE_EXECUTABLE='<path_to_qmake(.exe)' <src-dir>")
 endif()
+# required to indicate we use qtopengl
+set(QT_USE_QTOPENGL TRUE)
 include(${QT_USE_FILE})
 
 # --------------------------------------------------------------------------
@@ -117,6 +119,11 @@ if (MSVC)
 endif()
 
 target_link_libraries(OpenMS_GUI OpenMS ${QT_LIBRARIES})
+# handle OpenGL on macosx systems
+if(APPLE)
+  find_package(OpenGL REQUIRED)
+  target_link_libraries(OpenMS_GUI ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY})
+endif()
 
 # --------------------------------------------------------------------------
 # link libraries for GUI Tools
