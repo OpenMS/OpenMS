@@ -435,8 +435,16 @@ protected:
                 }
                 it->setHits(hits);
               }
-              it->setScoreType("Posterior Error Probability");
-              it->setHigherScoreBetter(false);
+              if (prob_correct)
+              {
+                it->setScoreType("Posterior Probability");
+                it->setHigherScoreBetter(true);
+              }
+              else
+              {
+                it->setScoreType("Posterior Error Probability");
+                it->setHigherScoreBetter(false);
+              }
             }
           }
         }
