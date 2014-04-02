@@ -78,9 +78,9 @@ public:
     void detectPeaks(std::vector<MassTrace> &, std::vector<MassTrace> &);
 
     void filterByPeakWidth(std::vector<MassTrace> &, std::vector<MassTrace> &);
-    DoubleReal computeMassTraceNoise(const MassTrace&);
-    DoubleReal computeMassTraceSNR(const MassTrace&);
-    DoubleReal computeApexSNR(const MassTrace&);
+    double computeMassTraceNoise(const MassTrace&);
+    double computeMassTraceSNR(const MassTrace&);
+    double computeApexSNR(const MassTrace&);
     void findLocalExtrema(const MassTrace&, const Size&, std::vector<Size>&, std::vector<Size>&);
     void smoothData(MassTrace & mt, int win_size);
 
@@ -88,16 +88,16 @@ protected:
     virtual void updateMembers_();
 
 private:
-    DoubleReal chrom_fwhm_;
-    // DoubleReal scan_time_;
-    DoubleReal chrom_peak_snr_;
-    DoubleReal noise_threshold_int_;
-    DoubleReal sample_rate_;
+    double chrom_fwhm_;
+    // double scan_time_;
+    double chrom_peak_snr_;
+    double noise_threshold_int_;
+    double sample_rate_;
 
-    DoubleReal min_fwhm_;
-    DoubleReal max_fwhm_;
-    // DoubleReal min_trace_length_;
-    // DoubleReal max_trace_length_;
+    double min_fwhm_;
+    double max_fwhm_;
+    // double min_trace_length_;
+    // double max_trace_length_;
 
     String pw_filtering_;
     bool mt_snr_filtering_;

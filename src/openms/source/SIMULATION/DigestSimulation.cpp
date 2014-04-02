@@ -142,7 +142,7 @@ namespace OpenMS
     UInt min_peptide_length     = param_.getValue("min_peptide_length");
     bool use_log_model          = param_.getValue("model") == "trained" ? true : false;
     UInt missed_cleavages       = param_.getValue("model_naive:missed_cleavages");
-    DoubleReal cleave_threshold = param_.getValue("model_trained:threshold");
+    double cleave_threshold = param_.getValue("model_trained:threshold");
 
     EnzymaticDigestion digestion;
     digestion.setEnzyme(digestion.getEnzymeByName((String)param_.getValue("enzyme")));

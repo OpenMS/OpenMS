@@ -58,8 +58,8 @@ namespace OpenMS
   {
   }
 
-  void OpenSwathScoring::initialize(DoubleReal rt_normalization_factor_,
-    int add_up_spectra_, DoubleReal spacing_for_spectra_resampling_,
+  void OpenSwathScoring::initialize(double rt_normalization_factor_,
+    int add_up_spectra_, double spacing_for_spectra_resampling_,
     OpenSwath_Scores_Usage & su_)
   {
     this->rt_normalization_factor_ = rt_normalization_factor_;

@@ -253,13 +253,13 @@ START_SECTION(bool isCharged() const)
 	TEST_EQUAL(e_ptr->isCharged(), false)
 END_SECTION
 
-START_SECTION(DoubleReal getAverageWeight() const)
+START_SECTION(double getAverageWeight() const)
 	EmpiricalFormula ef("C2");
 	const Element* e = e_ptr->getElement("C");
 	TEST_REAL_SIMILAR(ef.getAverageWeight(), e->getAverageWeight() * 2)
 END_SECTION
 
-START_SECTION(DoubleReal getMonoWeight() const)
+START_SECTION(double getMonoWeight() const)
 	EmpiricalFormula ef("C2");
 	const Element* e = e_ptr->getElement("C");
 	TEST_REAL_SIMILAR(ef.getMonoWeight(), e->getMonoWeight() * 2)

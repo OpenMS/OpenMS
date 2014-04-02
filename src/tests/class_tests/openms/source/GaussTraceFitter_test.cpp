@@ -251,9 +251,9 @@ GTF gaussian_trace_fitter;
 gaussian_trace_fitter.setParameters(p);
 gaussian_trace_fitter.fit(mts);
 
-DoubleReal expected_sigma = 1.5;
-DoubleReal expected_H = 10.0;
-DoubleReal expected_x0 = 680.1;
+double expected_sigma = 1.5;
+double expected_H = 10.0;
+double expected_x0 = 680.1;
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
@@ -317,7 +317,7 @@ START_SECTION((void fit(FeatureFinderAlgorithmPickedHelperStructs::MassTraces<Pe
 }
 END_SECTION
 
-START_SECTION((DoubleReal getLowerRTBound() const))
+START_SECTION((double getLowerRTBound() const))
 {
   // given sigma this should be
   // x0_ - 2.5 * sigma_;
@@ -325,7 +325,7 @@ START_SECTION((DoubleReal getLowerRTBound() const))
 }
 END_SECTION
 
-START_SECTION((DoubleReal getUpperRTBound() const))
+START_SECTION((double getUpperRTBound() const))
 {
   // given sigma this should be
   // x0_ + 2.5 * sigma_;
@@ -333,31 +333,31 @@ START_SECTION((DoubleReal getUpperRTBound() const))
 }
 END_SECTION
 
-START_SECTION((DoubleReal getHeight() const))
+START_SECTION((double getHeight() const))
 {
   TEST_REAL_SIMILAR(gaussian_trace_fitter.getHeight(), 10.0)
 }
 END_SECTION
 
-START_SECTION((DoubleReal getCenter() const))
+START_SECTION((double getCenter() const))
 {
   TEST_REAL_SIMILAR(gaussian_trace_fitter.getCenter(), 680.1)
 }
 END_SECTION
 
-START_SECTION((DoubleReal getSigma() const))
+START_SECTION((double getSigma() const))
 {
   TEST_REAL_SIMILAR(gaussian_trace_fitter.getSigma(), 1.5)
 }
 END_SECTION
 
-START_SECTION((bool checkMaximalRTSpan(const DoubleReal max_rt_span)))
+START_SECTION((bool checkMaximalRTSpan(const double max_rt_span)))
 {
   // Maximum RT span in relation to extended area that the model is allowed to have
   // 5.0 * sigma_ > max_rt_span * region_rt_span_
 
-  DoubleReal region_rt_span = mt1.peaks[mt1.peaks.size() - 1].first - mt1.peaks[0].first;
-  DoubleReal max_rt_span = 5.0 * gaussian_trace_fitter.getSigma() / region_rt_span + 0.00000000000001; // we add some small number to overcome precision problems on 32-bit machines
+  double region_rt_span = mt1.peaks[mt1.peaks.size() - 1].first - mt1.peaks[0].first;
+  double max_rt_span = 5.0 * gaussian_trace_fitter.getSigma() / region_rt_span + 0.00000000000001; // we add some small number to overcome precision problems on 32-bit machines
 
   TEST_EQUAL(gaussian_trace_fitter.checkMaximalRTSpan(max_rt_span), false);
   max_rt_span -= 0.1; // accept only smaller regions
@@ -365,14 +365,14 @@ START_SECTION((bool checkMaximalRTSpan(const DoubleReal max_rt_span)))
 }
 END_SECTION
 
-START_SECTION((bool checkMinimalRTSpan(const std::pair<DoubleReal, DoubleReal> &rt_bounds, const DoubleReal min_rt_span)))
+START_SECTION((bool checkMinimalRTSpan(const std::pair<double, double> &rt_bounds, const double min_rt_span)))
 {
   // is
   // (rt_bounds.second-rt_bounds.first) < min_rt_span * 5.0 * sigma_;
   // Minimum RT span in relation to extended area that has to remain after model fitting.
 
-  pair<DoubleReal, DoubleReal> rt_bounds = make_pair(0.0,4.0);
-  DoubleReal min_rt_span = 0.5;
+  pair<double, double> rt_bounds = make_pair(0.0,4.0);
+  double min_rt_span = 0.5;
 
   TEST_EQUAL(gaussian_trace_fitter.checkMinimalRTSpan(rt_bounds, min_rt_span), false)
   min_rt_span += 0.5;
@@ -380,13 +380,13 @@ START_SECTION((bool checkMinimalRTSpan(const std::pair<DoubleReal, DoubleReal> &
 }
 END_SECTION
 
-START_SECTION((DoubleReal getValue(DoubleReal rt) const))
+START_SECTION((double getValue(double rt) const))
 {
   TEST_REAL_SIMILAR(gaussian_trace_fitter.getValue(expected_x0), expected_H)
 }
 END_SECTION
 
-START_SECTION((DoubleReal computeTheoretical(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType>& trace, Size k)))
+START_SECTION((double computeTheoretical(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType>& trace, Size k)))
 {
   FeatureFinderAlgorithmPickedHelperStructs::MassTrace<Peak1D> mt;
   mt.theoretical_int = 0.8;
@@ -401,14 +401,14 @@ START_SECTION((DoubleReal computeTheoretical(const FeatureFinderAlgorithmPickedH
 }
 END_SECTION
 
-START_SECTION((virtual DoubleReal getArea()))
+START_SECTION((virtual double getArea()))
 {
   // is 2.5... * height_ * sigma_;
   TEST_REAL_SIMILAR(gaussian_trace_fitter.getArea(), 2.506628 * expected_sigma * expected_H)
 }
 END_SECTION
 
-START_SECTION((virtual String getGnuplotFormula(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType>& trace, const char function_name, const DoubleReal baseline, const DoubleReal rt_shift)))
+START_SECTION((virtual String getGnuplotFormula(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType>& trace, const char function_name, const double baseline, const double rt_shift)))
 {
   String formula = gaussian_trace_fitter.getGnuplotFormula(mts[0], 'f', 0.0, 0.0);
   // should look like -- f(x)= 0 + 7.99996 * exp(-0.5*(x-680.1)**2/(1.50001)**2) --
@@ -419,7 +419,7 @@ START_SECTION((virtual String getGnuplotFormula(const FeatureFinderAlgorithmPick
 }
 END_SECTION
 
-START_SECTION((DoubleReal getFWHM() const))
+START_SECTION((double getFWHM() const))
 {
   TEST_REAL_SIMILAR(gaussian_trace_fitter.getFWHM(), 2.35482 * expected_sigma)
 }

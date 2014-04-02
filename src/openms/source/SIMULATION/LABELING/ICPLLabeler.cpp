@@ -42,7 +42,7 @@ using std::vector;
 
 namespace OpenMS
 {
-  
+
   const int ICPLLabeler::LIGHT_FEATURE_MAPID_ = 0;
   const int ICPLLabeler::MEDIUM_FEATURE_MAPID_ = 1;
   const int ICPLLabeler::HEAVY_FEATURE_MAPID_ = 2;
@@ -444,7 +444,7 @@ namespace OpenMS
 
   void ICPLLabeler::postRTHook(FeatureMapSimVector & features_to_simulate)
   {
-    DoubleReal rt_shift = param_.getValue("ICPL_fixed_rtshift");
+    double rt_shift = param_.getValue("ICPL_fixed_rtshift");
 
     if (rt_shift != 0.0)
     {

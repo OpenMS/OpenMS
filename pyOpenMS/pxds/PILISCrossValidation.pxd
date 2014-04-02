@@ -19,7 +19,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/PILISCrossValidation.h>" namespace "OpenMS
         # void setOptions(Map[ String, PILIS_Option ] & rhs) nogil except +
         void setOption(String & name, PILIS_Option & option) nogil except +
         void apply(Param & PILIS_param, PILISModel & base_model, libcpp_vector[ PILIS_Peptide ] & peptides) nogil except +
-        # NESTED STL # DoubleReal scoreHits(libcpp_vector[ libcpp_vector[ libcpp_vector[ MSSpectrum[RichPeak1D] ] ] ] & sim_spectra, libcpp_vector[ libcpp_vector[ MSSpectrum[RichPeak1D] ] ] & exp_spectra) nogil except +
+        # NESTED STL # double scoreHits(libcpp_vector[ libcpp_vector[ libcpp_vector[ MSSpectrum[RichPeak1D] ] ] ] & sim_spectra, libcpp_vector[ libcpp_vector[ MSSpectrum[RichPeak1D] ] ] & exp_spectra) nogil except +
 
 
 cdef extern from "<OpenMS/ANALYSIS/ID/PILISCrossValidation.h>" namespace "OpenMS":
@@ -42,10 +42,10 @@ cdef extern from "<OpenMS/ANALYSIS/ID/PILISCrossValidation.h>" namespace "OpenMS
         Int int_min
         Int int_max
         Int int_stepsize
-        DoubleReal dbl_min
-        DoubleReal dbl_max
-        DoubleReal dbl_stepsize
-        PILIS_Option(PILIS_Option_Type t, DoubleReal min_, DoubleReal max_, DoubleReal stepsize) nogil except +
+        double dbl_min
+        double dbl_max
+        double dbl_stepsize
+        PILIS_Option(PILIS_Option_Type t, double min_, double max_, double stepsize) nogil except +
 
 cdef extern from "<OpenMS/ANALYSIS/ID/PILISCrossValidation.h>" namespace "OpenMS::PILISCrossValidation::Option":
     cdef enum PILIS_Option_Type "OpenMS::PILISCrossValidation::Option::Type":

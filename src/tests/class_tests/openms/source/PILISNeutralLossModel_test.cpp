@@ -99,7 +99,7 @@ START_SECTION((PILISNeutralLossModel(const PILISNeutralLossModel &model)))
 }
 END_SECTION
 
-START_SECTION((DoubleReal train(const RichPeakSpectrum & spec, const AASequence &peptide, DoubleReal ion_weight, UInt charge, DoubleReal peptide_weight)))
+START_SECTION((double train(const RichPeakSpectrum & spec, const AASequence &peptide, double ion_weight, UInt charge, double peptide_weight)))
 {
   PILISNeutralLossModel model;
 	Param p(model.getParameters());
@@ -176,7 +176,7 @@ START_SECTION((DoubleReal train(const RichPeakSpectrum & spec, const AASequence 
 }
 END_SECTION
 
-START_SECTION((void getIons(std::vector< RichPeak1D > &peaks, const AASequence &peptide, DoubleReal initial_prob)))
+START_SECTION((void getIons(std::vector< RichPeak1D > &peaks, const AASequence &peptide, double initial_prob)))
 {
   NOT_TESTABLE // implicitely tested above
 }

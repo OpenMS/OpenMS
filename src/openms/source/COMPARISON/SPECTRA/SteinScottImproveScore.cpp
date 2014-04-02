@@ -141,7 +141,7 @@ namespace OpenMS
     //std::cout<< sum << " Sum " << z << " z " << std::endl;
     score = (sum - z) / (std::sqrt((sum1 * sum2)));
     // std::cout<<score<< " score" << std::endl;
-    if (score < (Real)param_.getValue("threshold"))
+    if (score < (float)param_.getValue("threshold"))
       score = 0;
     return score;
   }

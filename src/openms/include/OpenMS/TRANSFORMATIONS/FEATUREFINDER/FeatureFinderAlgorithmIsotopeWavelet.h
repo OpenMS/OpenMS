@@ -178,7 +178,7 @@ public:
           exit(-1);
         }
       }
-      DoubleReal bound = -1 * c_sorted_spec[pos].getMZ();
+      double bound = -1 * c_sorted_spec[pos].getMZ();
 
       if (bound > (1. / max_charge_) / 2.)
       {
@@ -222,8 +222,8 @@ public:
     /** @brief The working horse of this class. */
     void run()
     {
-      DoubleReal max_mz = this->map_->getMax()[1];
-      DoubleReal min_mz = this->map_->getMin()[1];
+      double max_mz = this->map_->getMax()[1];
+      double min_mz = this->map_->getMin()[1];
 
       Size max_size = 0;
 #ifdef OPENMS_HAS_CUDA
@@ -532,17 +532,17 @@ protected:
     /** @brief Internally used data structure for the sweep line algorithm. */
     struct BoxElement
     {
-      DoubleReal mz;
+      double mz;
       UInt c;       ///<Note, this is not the charge (it is charge-1!!!)
-      DoubleReal score;
-      DoubleReal intens;
-      DoubleReal RT;       ///<The elution time (not the scan index)
+      double score;
+      double intens;
+      double RT;       ///<The elution time (not the scan index)
     };
 
     typedef std::map<UInt, BoxElement> Box;     ///<Key: RT (index), value: BoxElement
 
     UInt max_charge_;     ///<The maximal charge state we will consider
-    DoubleReal intensity_threshold_;     ///<The only parameter of the isotope wavelet
+    double intensity_threshold_;     ///<The only parameter of the isotope wavelet
     UInt RT_votes_cutoff_, real_RT_votes_cutoff_, RT_interleave_;     ///<The number of subsequent scans a pattern must cover in order to be considered as signal
     String use_gpus_, intensity_type_;
     bool use_tbb_, use_cuda_, check_PPMs_, hr_data_;

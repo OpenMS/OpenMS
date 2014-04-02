@@ -71,7 +71,7 @@ namespace OpenMS
 
     @ingroup Math
     */
-    template <typename Key = DoubleReal, typename Value = Key>
+    template <typename Key = double, typename Value = Key>
     class LinearInterpolation
     {
 

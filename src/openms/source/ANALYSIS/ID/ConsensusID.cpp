@@ -204,7 +204,7 @@ namespace OpenMS
 
   void ConsensusID::ranked_(vector<PeptideIdentification> & ids)
   {
-    map<AASequence, DoubleReal> scores;
+    map<AASequence, double> scores;
     UInt considered_hits = (UInt)(param_.getValue("considered_hits"));
     UInt number_of_runs = (UInt)(param_.getValue("number_of_runs"));
 
@@ -225,7 +225,7 @@ namespace OpenMS
 #ifdef DEBUG_ID_CONSENSUS
           cout << " - New hit: " << hit->getSequence() << " " << hit->getRank() << endl;
 #endif
-          scores.insert(make_pair(hit->getSequence(), DoubleReal(considered_hits + 1 - hit->getRank())));
+          scores.insert(make_pair(hit->getSequence(), double(considered_hits + 1 - hit->getRank())));
         }
         else
         {
@@ -247,7 +247,7 @@ namespace OpenMS
     {
       max_score = number_of_runs * considered_hits;
     }
-    for (map<AASequence, DoubleReal>::iterator it = scores.begin(); it != scores.end(); ++it)
+    for (map<AASequence, double>::iterator it = scores.begin(); it != scores.end(); ++it)
     {
       it->second = (it->second * 100.0f / max_score);
     }
@@ -257,7 +257,7 @@ namespace OpenMS
     ids.resize(1);
     ids[0].setScoreType("Consensus_averaged");
 
-    for (map<AASequence, DoubleReal>::const_iterator it = scores.begin(); it != scores.end(); ++it)
+    for (map<AASequence, double>::const_iterator it = scores.begin(); it != scores.end(); ++it)
     {
       PeptideHit hit;
       hit.setSequence(it->first);
@@ -270,7 +270,7 @@ namespace OpenMS
 
   void ConsensusID::average_(vector<PeptideIdentification> & ids)
   {
-    map<AASequence, DoubleReal> scores;
+    map<AASequence, double> scores;
     UInt considered_hits = (UInt)(param_.getValue("considered_hits"));
     UInt number_of_runs = (UInt)(param_.getValue("number_of_runs"));
 
@@ -317,7 +317,7 @@ namespace OpenMS
       }
     }
     //normalize score by number of id runs
-    for (map<AASequence, DoubleReal>::iterator it = scores.begin(); it != scores.end(); ++it)
+    for (map<AASequence, double>::iterator it = scores.begin(); it != scores.end(); ++it)
     {
       if (number_of_runs == 0)
       {
@@ -334,7 +334,7 @@ namespace OpenMS
     ids.resize(1);
     ids[0].setScoreType(String("Consensus_averaged (") + score_type + ")");
     ids[0].setHigherScoreBetter(higher_better);
-    for (map<AASequence, DoubleReal>::const_iterator it = scores.begin(); it != scores.end(); ++it)
+    for (map<AASequence, double>::const_iterator it = scores.begin(); it != scores.end(); ++it)
     {
       PeptideHit hit;
       hit.setSequence(it->first);
@@ -351,11 +351,11 @@ namespace OpenMS
 
   void ConsensusID::PEPMatrix_(vector<PeptideIdentification> & ids)
   {
-    Map<AASequence, vector<DoubleReal> > scores;
+    Map<AASequence, vector<double> > scores;
 
     UInt considered_hits = (UInt)(param_.getValue("considered_hits"));
     int penalty = (UInt)param_.getValue("PEPMatrix:penalty");
-    DoubleReal common = (double)param_.getValue("PEPMatrix:common");
+    double common = (double)param_.getValue("PEPMatrix:common");
 
 
     String score_type = ids[0].getScoreType();
@@ -388,9 +388,9 @@ namespace OpenMS
         {
           cerr << "You need to calculate posterior error probabilities as input scores!" << endl;
         }
-        DoubleReal a_score = (double)hit->getScore();
-        DoubleReal a_sim = 1;
-        DoubleReal NumberAnnots = 1;
+        double a_score = (double)hit->getScore();
+        double a_sim = 1;
+        double NumberAnnots = 1;
 
 
         set<String> myset;
@@ -398,9 +398,9 @@ namespace OpenMS
         {
           if (myset.find(t->getMetaValue("scoring")) == myset.end() && hit->getMetaValue("scoring") != t->getMetaValue("scoring"))
           {
-            DoubleReal a = 0;
-            DoubleReal zz = 0;
-            vector<DoubleReal> z;
+            double a = 0;
+            double zz = 0;
+            vector<double> z;
             z.push_back((double)hit->getScore());
             // find the same or most similar peptide sequence in lists from other search engines
             for (vector<PeptideHit>::const_iterator tt = id->getHits().begin(); tt != id->getHits().end(); ++tt)
@@ -434,12 +434,12 @@ namespace OpenMS
                 ::seqan::assignSource(row(self2, 0), seq2);
                 ::seqan::assignSource(row(self2, 1), seq2);
 
-                vector<DoubleReal> temp;
+                vector<double> temp;
                 temp.push_back(globalAlignment(self1, pam30msScoring, ::seqan::NeedlemanWunsch()));
                 temp.push_back(globalAlignment(self2, pam30msScoring, ::seqan::NeedlemanWunsch()));
                 
-                DoubleReal c = (DoubleReal)globalAlignment(align, pam30msScoring, ::seqan::NeedlemanWunsch());
-                DoubleReal b = *(min_element(temp.begin(), temp.end()));
+                double c = (double)globalAlignment(align, pam30msScoring, ::seqan::NeedlemanWunsch());
+                double b = *(min_element(temp.begin(), temp.end()));
                 c /= b;
                 if (c < 0)
                 {
@@ -476,7 +476,7 @@ namespace OpenMS
         // the meta value similarity corresponds to the sum of the similarities.
         // Note: if similarity equals the number of search engines, the same peptide has been assigned by all engines
         //::std::cout <<hit->getSequence()<<" a_score="<<a_score<<" a_sim="<< a_sim <<::std::endl;
-        vector<DoubleReal> ScoreSim;
+        vector<double> ScoreSim;
         //test
         ScoreSim.push_back(a_score / (a_sim * a_sim));
         ScoreSim.push_back(a_sim);
@@ -492,7 +492,7 @@ namespace OpenMS
     ids.resize(1);
     ids[0].setScoreType(String("Consensus_PEPMatrix (") + score_type + ")");
     ids[0].setHigherScoreBetter(false);
-    for (Map<AASequence, vector<DoubleReal> >::const_iterator it = scores.begin(); it != scores.end(); ++it)
+    for (Map<AASequence, vector<double> >::const_iterator it = scores.begin(); it != scores.end(); ++it)
     {
       PeptideHit hit;
       hit.setSequence(it->first);
@@ -512,14 +512,14 @@ namespace OpenMS
 
   void ConsensusID::PEPIons_(vector<PeptideIdentification> & ids)
   {
-    Map<AASequence, vector<DoubleReal> > scores;
+    Map<AASequence, vector<double> > scores;
 
     UInt considered_hits = (UInt)(param_.getValue("considered_hits"));
     UInt MinNumberOfFragments = (UInt)(param_.getValue("PEPIons:MinNumberOfFragments"));
 
     String score_type = ids[0].getScoreType();
     bool higher_better = ids[0].isHigherScoreBetter();
-    DoubleReal common = (double)param_.getValue("PEPIons:common");
+    double common = (double)param_.getValue("PEPIons:common");
 
     for (vector<PeptideIdentification>::iterator id = ids.begin(); id != ids.end(); ++id)
     {
@@ -548,20 +548,20 @@ namespace OpenMS
         {
           cerr << "You need to calculate posterior error probabilities as input scores!" << endl;
         }
-        //DoubleReal a_score=(double)hit->getMetaValue("PEP");
-        DoubleReal a_score = (double)hit->getScore();
-        DoubleReal a_sim = 1;
-        DoubleReal NumberAnnots = 1;
+        //double a_score=(double)hit->getMetaValue("PEP");
+        double a_score = (double)hit->getScore();
+        double a_sim = 1;
+        double NumberAnnots = 1;
 
         set<String> myset;
         for (vector<PeptideHit>::const_iterator t = id->getHits().begin(); t != id->getHits().end(); ++t)
         {
           if (myset.find(t->getMetaValue("scoring")) == myset.end() && hit->getMetaValue("scoring") != t->getMetaValue("scoring"))
           {
-            DoubleReal a = 0;
+            double a = 0;
             UInt SumIonSeries = 2;
-            DoubleReal zz = 0;
-            vector<DoubleReal> z;
+            double zz = 0;
+            vector<double> z;
             z.push_back((double)hit->getScore());
             //find the same or most similar peptide sequence in lists from other search engines
             for (vector<PeptideHit>::const_iterator tt = id->getHits().begin(); tt != id->getHits().end(); ++tt)
@@ -574,7 +574,7 @@ namespace OpenMS
                 S1 = tt->getSequence();
                 S2 = hit->getSequence();
                 //compare b and y ion series of S1 and S2
-                vector<DoubleReal> Yions_S1, Yions_S2, Bions_S1, Bions_S2;
+                vector<double> Yions_S1, Yions_S2, Bions_S1, Bions_S2;
                 for (UInt r = 1; r <= S1.size(); ++r)
                 {
                   Yions_S1.push_back(S1.getPrefix(r).getMonoWeight());
@@ -613,7 +613,7 @@ namespace OpenMS
                 UInt sum_tmp;
                 sum_tmp = Bs + Ys;
                 //# matching ions/number of AASeqences(S1)
-                DoubleReal c, b;
+                double c, b;
                 b = *(min_element(tmp.begin(), tmp.end()));
                 c = b / S1.size();
                 if (sum_tmp > SumIonSeries && sum_tmp > MinNumberOfFragments)
@@ -641,7 +641,7 @@ namespace OpenMS
         }
         //the meta value similarity corresponds to the sum of the similarities. Note that if similarity equals the number of search engines, the
         //same peptide has been assigned by all engines
-        vector<DoubleReal> ScoreSim;
+        vector<double> ScoreSim;
         ScoreSim.push_back(a_score / (a_sim * a_sim));
         ScoreSim.push_back(a_sim);
         ScoreSim.push_back(NumberAnnots);
@@ -656,7 +656,7 @@ namespace OpenMS
     ids.resize(1);
     ids[0].setScoreType(String("Consensus_PEPIons (") + score_type + ")");
     ids[0].setHigherScoreBetter(false);
-    for (Map<AASequence, vector<DoubleReal> >::const_iterator it = scores.begin(); it != scores.end(); ++it)
+    for (Map<AASequence, vector<double> >::const_iterator it = scores.begin(); it != scores.end(); ++it)
     {
       PeptideHit hit;
       hit.setSequence(it->first);
@@ -675,7 +675,7 @@ namespace OpenMS
 //////////////////////////////////////////////////////////////////////////////////Minimum
   void ConsensusID::Minimum_(vector<PeptideIdentification> & ids)
   {
-    Map<AASequence, DoubleReal> scores;
+    Map<AASequence, double> scores;
 
     UInt considered_hits = (UInt)(param_.getValue("considered_hits"));
 
@@ -698,7 +698,7 @@ namespace OpenMS
       //iterate over the hits
       UInt hit_count = 1;
 
-      DoubleReal a_score = 1;
+      double a_score = 1;
       AASequence a_pep;
       for (vector<PeptideHit>::const_iterator hit = id->getHits().begin(); hit != id->getHits().end() && hit_count <= considered_hits; ++hit)
       {
@@ -720,7 +720,7 @@ namespace OpenMS
     ids[0].setScoreType(String("Consensus_Minimum(") + score_type + ")");
     ids[0].setHigherScoreBetter(false);
 
-    for (Map<AASequence, DoubleReal>::const_iterator it = scores.begin(); it != scores.end(); ++it)
+    for (Map<AASequence, double>::const_iterator it = scores.begin(); it != scores.end(); ++it)
     {
       PeptideHit hit;
       hit.setSequence(it->first);
@@ -736,17 +736,17 @@ namespace OpenMS
   /* this is not used by anyone ... delete?? */
   void ConsensusID::mapIdentifications_(vector<PeptideIdentification> & sorted_ids, const vector<PeptideIdentification> & ids)
   {
-    DoubleReal mz_delta = 0.01;
-    DoubleReal rt_delta = 0.01;
+    double mz_delta = 0.01;
+    double rt_delta = 0.01;
     for (vector<PeptideIdentification>::const_iterator it1 = ids.begin(); it1 != ids.end(); ++it1)
     {
-      DoubleReal rt1(it1->getMetaValue("RT"));
-      DoubleReal mz1(it1->getMetaValue("MZ"));
+      double rt1(it1->getMetaValue("RT"));
+      double mz1(it1->getMetaValue("MZ"));
       PeptideIdentification new_ids;
       for (vector<PeptideIdentification>::const_iterator it2 = it1 + 1; it2 != ids.end(); ++it2)
       {
-        DoubleReal rt2(it2->getMetaValue("RT"));
-        DoubleReal mz2(it2->getMetaValue("MZ"));
+        double rt2(it2->getMetaValue("RT"));
+        double mz2(it2->getMetaValue("MZ"));
         if (fabs(rt1 - rt2) < rt_delta && fabs(mz1 - mz2) < mz_delta)
         {
           if (new_ids.empty())

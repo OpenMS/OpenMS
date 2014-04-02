@@ -355,7 +355,7 @@ protected:
             hist_stdev = 0;
             for (int bin = 0; bin < hist_rightmost_bin; ++bin)
             {
-              DoubleReal tmp(bin_value[bin] - hist_mean);
+              double tmp(bin_value[bin] - hist_mean);
               hist_stdev += histogram[bin] / (double) elements_in_window * tmp * tmp;
             }
             hist_stdev = std::sqrt(hist_stdev);

@@ -8,8 +8,8 @@ cdef extern from "<OpenMS/COMPARISON/CLUSTERING/SILACClustering.h>" namespace "O
         # inherits:
         #  HierarchicalClustering< SILACPattern * >
         SILACClustering(SILACClustering) nogil except + #wrap-ignore
-        DoubleReal rt_min # wrap-ignore
-        DoubleReal rt_max_spacing # wrap-ignore
-        # SILACClustering(PointCoordinate & cluster_dimension, DoubleReal rt_min, DoubleReal rt_max_spacing) nogil except +
+        double rt_min # wrap-ignore
+        double rt_max_spacing # wrap-ignore
+        # SILACClustering(PointCoordinate & cluster_dimension, double rt_min, double rt_max_spacing) nogil except +
         void cluster() nogil except +
 

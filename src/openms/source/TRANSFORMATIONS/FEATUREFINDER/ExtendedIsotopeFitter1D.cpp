@@ -130,9 +130,9 @@ namespace OpenMS
 
 
     // calculate pearson correlation
-    std::vector<Real> real_data;
+    std::vector<float> real_data;
     real_data.reserve(set.size());
-    std::vector<Real> model_data;
+    std::vector<float> model_data;
     model_data.reserve(set.size());
 
     for (Size i = 0; i < set.size(); ++i)

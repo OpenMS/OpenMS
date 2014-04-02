@@ -106,8 +106,8 @@ using namespace std;
 //Helper class
 struct IDData
 {
-  DoubleReal mz;
-  DoubleReal rt;
+  double mz;
+  double rt;
   String sourcefile;
   vector<PeptideIdentification> ids;
 };
@@ -154,8 +154,8 @@ protected:
     String out = getStringOption_("out");
     bool use_all_hits(getFlag_("use_all_hits"));
 
-    DoubleReal rt_delta = getDoubleOption_("rt_delta");
-    DoubleReal mz_delta = getDoubleOption_("mz_delta");
+    double rt_delta = getDoubleOption_("rt_delta");
+    double mz_delta = getDoubleOption_("mz_delta");
     UInt min_length = getIntOption_("min_length");
 
     //----------------------------------------------------------------
@@ -197,8 +197,8 @@ protected:
           return INCOMPATIBLE_INPUT_DATA;
         }
 
-        DoubleReal rt = (DoubleReal)(pep_id_it->getMetaValue("RT"));
-        DoubleReal mz = (DoubleReal)(pep_id_it->getMetaValue("MZ"));
+        double rt = (double)(pep_id_it->getMetaValue("RT"));
+        double mz = (double)(pep_id_it->getMetaValue("MZ"));
         writeDebug_(String("  ID: ") + rt + " / " + mz, 4);
         vector<IDData>::iterator pos = prec_data.begin();
         while (pos != prec_data.end())

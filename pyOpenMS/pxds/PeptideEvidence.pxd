@@ -14,7 +14,7 @@ cdef extern from "<OpenMS/METADATA/PeptideEvidence.h>" namespace "OpenMS":
         PeptideEvidence() nogil except +
         PeptideEvidence(PeptideEvidence) nogil except +
         # TODO this constructor does not exist, remove it from OpenMS
-        # PeptideEvidence(DoubleReal score, UInt rank, Int charge, AASequence & sequence) nogil except +
+        # PeptideEvidence(double score, UInt rank, Int charge, AASequence & sequence) nogil except +
         String  getDBSequenceRef() nogil except +
         void setDBSequenceRef(String & rhs) nogil except +
         String  getTranslationTableRef() nogil except +

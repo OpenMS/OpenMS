@@ -61,7 +61,7 @@ namespace OpenMS
     defaults_.setValue("rt_dev_high", 15.0, "maximum allowed deviation above optimal retention time distance");
     defaults_.setMinFloat("rt_dev_high", 0.0);
 
-    defaults_.setValue("mz_pair_dists", ListUtils::create<DoubleReal>("4.0"), "optimal pair distances in m/z [Th] for features with charge +1 (adapted to +2, +3, .. by division through charge)");
+    defaults_.setValue("mz_pair_dists", ListUtils::create<double>("4.0"), "optimal pair distances in m/z [Th] for features with charge +1 (adapted to +2, +3, .. by division through charge)");
     defaults_.setValue("mz_dev", 0.05, "maximum allowed deviation from optimal m/z distance\n");
     defaults_.setMinFloat("mz_dev", 0.0);
     defaults_.setValue("mrm", "false", "this option should be used if the features correspond mrm chromatograms (additionally the precursor is taken into account)", ListUtils::create<String>("advanced"));
@@ -111,10 +111,10 @@ namespace OpenMS
     //calculate matches
     ConsensusMap matches;
     //settings
-    DoubleReal rt_pair_dist = param_.getValue("rt_pair_dist");
-    DoubleReal rt_dev_low = param_.getValue("rt_dev_low");
-    DoubleReal rt_dev_high = param_.getValue("rt_dev_high");
-    DoubleReal mz_dev = param_.getValue("mz_dev");
+    double rt_pair_dist = param_.getValue("rt_pair_dist");
+    double rt_dev_low = param_.getValue("rt_dev_low");
+    double rt_dev_high = param_.getValue("rt_dev_high");
+    double mz_dev = param_.getValue("mz_dev");
     DoubleList mz_pair_dists = param_.getValue("mz_pair_dists");
     bool mrm = param_.getValue("mrm").toBool();
 
@@ -122,7 +122,7 @@ namespace OpenMS
     if (param_.getValue("rt_estimate") == "true")
     {
       //find all possible RT distances of features with the same charge and a good m/z distance
-      vector<DoubleReal> dists;
+      vector<double> dists;
       dists.reserve(model_ref.size());
       for (RefMap::const_iterator it = model_ref.begin(); it != model_ref.end(); ++it)
       {
@@ -130,7 +130,7 @@ namespace OpenMS
         {
           for (DoubleList::const_iterator dist_it = mz_pair_dists.begin(); dist_it != mz_pair_dists.end(); ++dist_it)
           {
-            DoubleReal mz_pair_dist = *dist_it;
+            double mz_pair_dist = *dist_it;
             if (it2->getCharge() == it->getCharge()
                && it2->getMZ() >= it->getMZ() + mz_pair_dist / it->getCharge() - mz_dev
                && it2->getMZ() <= it->getMZ() + mz_pair_dist / it->getCharge() + mz_dev)
@@ -161,9 +161,9 @@ namespace OpenMS
         Size max_pairs = model_ref.size() / 2;
         Size start_index = (Size) max((SignedSize)0, (SignedSize)(median_index - max_pairs / 2));
         Size end_index = (Size) min((SignedSize)(dists.size() - 1), (SignedSize)(median_index + max_pairs / 2));
-        DoubleReal start_value = dists[start_index];
-        DoubleReal end_value = dists[end_index];
-        DoubleReal bin_step = fabs(end_value - start_value) / 99.999;     //ensure that we have 100 bins
+        double start_value = dists[start_index];
+        double end_value = dists[end_index];
+        double bin_step = fabs(end_value - start_value) / 99.999;     //ensure that we have 100 bins
         Math::Histogram<> hist(start_value, end_value, bin_step);
         //std::cout << "HIST from " << start_value << " to " << end_value << " (bin size " << bin_step << ")" << endl;
         for (Size i = start_index; i <= end_index; ++i)
@@ -190,18 +190,18 @@ namespace OpenMS
           }
         }
         //estimate sigma: first time the count is less or equal the median count in the histogram
-        DoubleReal pos = result.x0;
+        double pos = result.x0;
         while (pos > start_value && hist.binValue(pos) > bin_median)
         {
           pos -= bin_step;
         }
-        DoubleReal sigma_low =  result.x0 - pos;
+        double sigma_low =  result.x0 - pos;
         pos = result.x0;
         while (pos<end_value && hist.binValue(pos)> bin_median)
         {
           pos += bin_step;
         }
-        DoubleReal sigma_high = pos - result.x0;
+        double sigma_high = pos - result.x0;
         result.sigma = (sigma_high + sigma_low) / 6.0;
         //cout << "estimated optimal RT distance (before fit): " << result.x0 << endl;
         //cout << "estimated allowed deviation (before fit): " << result.sigma*3.0 << endl;
@@ -229,13 +229,13 @@ namespace OpenMS
     {
       for (DoubleList::const_iterator dist_it = mz_pair_dists.begin(); dist_it != mz_pair_dists.end(); ++dist_it)
       {
-        DoubleReal mz_pair_dist = *dist_it;
+        double mz_pair_dist = *dist_it;
         RefMap::const_iterator it2 = lower_bound(model_ref.begin(), model_ref.end(), it->getRT() + rt_pair_dist - rt_dev_low, ConsensusFeature::RTLess());
         while (it2 != model_ref.end() && it2->getRT() <= it->getRT() + rt_pair_dist + rt_dev_high)
         {
           // if in mrm mode, we need to compare precursor mass difference and fragment mass difference, charge remains the same
 
-          DoubleReal prec_mz_diff(0);
+          double prec_mz_diff(0);
           if (mrm)
           {
             prec_mz_diff = fabs((double)it2->getMetaValue("MZ") - (double)it->getMetaValue("MZ"));
@@ -250,7 +250,7 @@ namespace OpenMS
           }
 
           bool mrm_correct_dist(false);
-          DoubleReal frag_mz_diff = fabs(it->getMZ() - it2->getMZ());
+          double frag_mz_diff = fabs(it->getMZ() - it2->getMZ());
 
           //cerr << it->getRT() << " charge1=" << it->getCharge() << ", charge2=" << it2->getCharge() << ", prec_diff=" << prec_mz_diff << ", frag_diff=" << frag_mz_diff << endl;
 
@@ -270,7 +270,7 @@ namespace OpenMS
                                             ))
           {
             //cerr << "dist correct" << endl;
-            DoubleReal score = sqrt(
+            double score = sqrt(
               PValue_(it2->getMZ() - it->getMZ(), mz_pair_dist / it->getCharge(), mz_dev, mz_dev) *
               PValue_(it2->getRT() - it->getRT(), rt_pair_dist, rt_dev_low, rt_dev_high)
               );

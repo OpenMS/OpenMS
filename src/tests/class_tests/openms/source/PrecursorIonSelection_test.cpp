@@ -70,11 +70,11 @@ START_SECTION(PrecursorIonSelection(const PrecursorIonSelection& source))
   TEST_REAL_SIMILAR(copy.getMaxScore(), ptr->getMaxScore())
 END_SECTION
 
-START_SECTION(const DoubleReal& getMaxScore() const)
+START_SECTION(const double& getMaxScore() const)
  TEST_REAL_SIMILAR(ptr->getMaxScore(),23.5)
 END_SECTION  
 
-START_SECTION(void setMaxScore(const DoubleReal& max_score))
+START_SECTION(void setMaxScore(const double& max_score))
   ptr->setMaxScore(24.5);
   TEST_REAL_SIMILAR(ptr->getMaxScore(),24.5)
 END_SECTION
@@ -90,14 +90,14 @@ FeatureXMLFile f_file;
 f_file.load(OPENMS_GET_TEST_DATA_PATH("PrecursorIonSelection_features.featureXML"),features);
 START_SECTION(void sortByTotalScore(FeatureMap<>& features))
   ptr->sortByTotalScore(features);
-  TEST_REAL_SIMILAR((DoubleReal)features[0].getMetaValue("msms_score"),49485.75)
+  TEST_REAL_SIMILAR((double)features[0].getMetaValue("msms_score"),49485.75)
 END_SECTION
 
 START_SECTION(void getNextPrecursors(FeatureMap<>& features,FeatureMap<>& next_features,UInt number))
   ptr->getNextPrecursors(features,next_features,2);
   TEST_EQUAL(next_features.size(),2)
-  TEST_REAL_SIMILAR((DoubleReal)next_features[0].getMetaValue("msms_score"),49485.75)
-  TEST_REAL_SIMILAR((DoubleReal)next_features[1].getMetaValue("msms_score"),47365)
+  TEST_REAL_SIMILAR((double)next_features[0].getMetaValue("msms_score"),49485.75)
+  TEST_REAL_SIMILAR((double)next_features[1].getMetaValue("msms_score"),47365)
 END_SECTION
 
 PrecursorIonSelectionPreprocessing preprocessing;
@@ -178,7 +178,7 @@ START_SECTION((LPWrapper::SOLVER getLPSolver()))
 }
 END_SECTION
 
-START_SECTION((void getNextPrecursorsSeq(FeatureMap<> &features, FeatureMap<> &next_features, UInt number, DoubleReal &rt)))
+START_SECTION((void getNextPrecursorsSeq(FeatureMap<> &features, FeatureMap<> &next_features, UInt number, double &rt)))
 {
   NOT_TESTABLE
 }

@@ -24,13 +24,13 @@ cdef extern from "<OpenMS/KERNEL/Feature.h>" namespace "OpenMS":
         double getRT() nogil except +
         double getIntensity() nogil except +
 
-        Real getQuality(Size index)  nogil except +
-        void setQuality(Size index, Real q) nogil except +
-        Real getOverallQuality()  nogil except +
-        void setOverallQuality(Real q) nogil except +
+        float getQuality(Size index)  nogil except +
+        void setQuality(Size index, float q) nogil except +
+        float getOverallQuality()  nogil except +
+        void setOverallQuality(float q) nogil except +
 
-        Real getWidth() nogil except +
-        void setWidth(Real q) nogil except +
+        float getWidth() nogil except +
+        void setWidth(float q) nogil except +
 
         Int getCharge() nogil except +
         void setCharge(Int q) nogil except +

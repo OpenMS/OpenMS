@@ -103,8 +103,8 @@ public:
       {
       }
 
-      ///overloaded operator() for comparing maps of maps std::pair<std::pair<Int,Real>,Real>. If flag is false the second argument of the outer map is selected. The output is an ascending order. If the order flag is true, the first argument of the inner class is selected to get a descending order.
-      inline bool operator()(const std::pair<std::pair<Int, Real>, Real> & c1, const std::pair<std::pair<Int, Real>, Real> & c2)
+      ///overloaded operator() for comparing maps of maps std::pair<std::pair<Int,float>,float>. If flag is false the second argument of the outer map is selected. The output is an ascending order. If the order flag is true, the first argument of the inner class is selected to get a descending order.
+      inline bool operator()(const std::pair<std::pair<Int, float>, float> & c1, const std::pair<std::pair<Int, float>, float> & c2)
       {
         if (!flag)
         {
@@ -116,8 +116,8 @@ public:
         }
       }
 
-      ///overloaded operator() for comparing pairs of Real, Real std::pair<Real,Real>. If the order flag is false, an ascending order are returned else a descending. The comparison is done by the first argument of the map.
-      inline bool operator()(const std::pair<Real, Real> & c1, const std::pair<Real, Real> & c2)
+      ///overloaded operator() for comparing pairs of float, float std::pair<float,float>. If the order flag is false, an ascending order are returned else a descending. The comparison is done by the first argument of the map.
+      inline bool operator()(const std::pair<float, float> & c1, const std::pair<float, float> & c2)
       {
         if (!flag)
         {
@@ -188,7 +188,7 @@ public:
       @param ybegin indicate the beginning of the aligned sequence
       @param yend indicate the end of the aligned sequence
   */
-    Int bestk_(const std::vector<MSSpectrum<> *> & pattern, std::vector<MSSpectrum<> *> & aligned, std::map<Size, std::map<Size, Real> > & buffer, bool column_row_orientation, Size xbegin, Size xend, Size ybegin, Size yend);
+    Int bestk_(const std::vector<MSSpectrum<> *> & pattern, std::vector<MSSpectrum<> *> & aligned, std::map<Size, std::map<Size, float> > & buffer, bool column_row_orientation, Size xbegin, Size xend, Size ybegin, Size yend);
 
     /**
         @brief calculate the score of two given MSSpectra calls intern scoring_
@@ -206,12 +206,12 @@ public:
         @param buffer  holds the calculated score of index i,j.
         @param column_row_orientation indicate the order of the matrix
     */
-    Real scoreCalculation_(Size i, Size j, Size patternbegin, Size alignbegin, const std::vector<MSSpectrum<> *> & pattern, std::vector<MSSpectrum<> *> & aligned, std::map<Size, std::map<Size, Real> > & buffer, bool column_row_orientation);
+    float scoreCalculation_(Size i, Size j, Size patternbegin, Size alignbegin, const std::vector<MSSpectrum<> *> & pattern, std::vector<MSSpectrum<> *> & aligned, std::map<Size, std::map<Size, float> > & buffer, bool column_row_orientation);
 
     /**
         @brief return the score of two given MSSpectra by calling the scorefunction
     */
-    Real scoring_(const MSSpectrum<> & a, MSSpectrum<> & b);
+    float scoring_(const MSSpectrum<> & a, MSSpectrum<> & b);
 
     /**
         @brief affine gap cost Alignment
@@ -235,7 +235,7 @@ public:
 
         @exception Exception::OutOfRange if a out of bound appear @p pattern or @p aligned
     */
-    void affineGapalign_(Size xbegin, Size ybegin, Size xend, Size yend, const std::vector<MSSpectrum<> *> & pattern, std::vector<MSSpectrum<> *> & aligned, std::vector<int> & xcoordinate, std::vector<Real> & ycoordinate, std::vector<int> & xcoordinatepattern);
+    void affineGapalign_(Size xbegin, Size ybegin, Size xend, Size yend, const std::vector<MSSpectrum<> *> & pattern, std::vector<MSSpectrum<> *> & aligned, std::vector<int> & xcoordinate, std::vector<float> & ycoordinate, std::vector<int> & xcoordinatepattern);
 
     /**
         @brief  preparation function of data points to construct later the  spline function.
@@ -250,7 +250,7 @@ public:
         @param ycoordinate  save the retention times of an anchor points
         @param xcoordinatepattern save the reference position of the anchor points from the pattern
     */
-    void bucketFilter_(const std::vector<MSSpectrum<> *> & pattern, std::vector<MSSpectrum<> *> & aligned, std::vector<Int> & xcoordinate, std::vector<Real> & ycoordinate, std::vector<Int> & xcoordinatepattern);
+    void bucketFilter_(const std::vector<MSSpectrum<> *> & pattern, std::vector<MSSpectrum<> *> & aligned, std::vector<Int> & xcoordinate, std::vector<float> & ycoordinate, std::vector<Int> & xcoordinatepattern);
 
     /**
         @brief Creates files for the debugging
@@ -267,15 +267,15 @@ public:
 
         This function rounded the score of two spectra. This is necessary for some function in the Debug-Mode
     */
-    void debugscoreDistributionCalculation_(Real score);
+    void debugscoreDistributionCalculation_(float score);
     ///Represent the gap cost for opening or closing a gap in the alignment
-    Real gap_;
+    float gap_;
     ///Extension cost after a gap is open
-    Real e_;
+    float e_;
     ///Pointer holds the scoring function, which can be selected
     PeakSpectrumCompareFunctor * c1_;
     ///This is the minimal score to be count as a mismatch(range 0.0 - 1.0)
-    Real cutoffScore_;
+    float cutoffScore_;
     ///Defines the size of one bucket
     Size bucketsize_;
     ///Defines the amount of anchor points which are selected within one bucket.
@@ -283,17 +283,17 @@ public:
     ///Debug mode flag default: False
     bool debug_;
     ///Represent the cost of a mismatch in the alignment
-    Real mismatchscore_;
+    float mismatchscore_;
     ///This is the minimum score for counting as a match(1-cutoffScore_)
-    Real threshold_;
+    float threshold_;
     ///Container holding the score of the matchmatrix and also the insertmatrix
-    std::vector<std::vector<Real> > debugmatrix_;
+    std::vector<std::vector<float> > debugmatrix_;
     ///Container holding the only the score of Spectra
-    std::vector<std::vector<Real> > debugscorematrix_;
+    std::vector<std::vector<float> > debugscorematrix_;
     ///Container holding the path of the traceback
-    std::vector<std::pair<Real, Real> > debugtraceback_;
+    std::vector<std::pair<float, float> > debugtraceback_;
     ///Container holding the score of each cell(matchmatrix,insertmatrix, traceback)
-    std::vector<Real> scoredistribution_;        //save the cell i, j , matchscore, insertscore, traceback
+    std::vector<float> scoredistribution_;        //save the cell i, j , matchscore, insertscore, traceback
     //docu in base class
     void updateMembers_();
   };

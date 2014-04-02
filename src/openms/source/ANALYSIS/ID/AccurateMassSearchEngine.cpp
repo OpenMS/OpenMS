@@ -121,32 +121,32 @@ namespace OpenMS
     return *this;
   }
 
-  DoubleReal AccurateMassSearchResult::getAdductMass() const
+  double AccurateMassSearchResult::getAdductMass() const
   {
     return adduct_mass_;
   }
 
-  void AccurateMassSearchResult::setAdductMass(const DoubleReal& m)
+  void AccurateMassSearchResult::setAdductMass(const double& m)
   {
     adduct_mass_ = m;
   }
 
-  DoubleReal AccurateMassSearchResult::getQueryMass() const
+  double AccurateMassSearchResult::getQueryMass() const
   {
     return query_mass_;
   }
 
-  void AccurateMassSearchResult::setQueryMass(const DoubleReal& m)
+  void AccurateMassSearchResult::setQueryMass(const double& m)
   {
     query_mass_ = m;
   }
 
-  DoubleReal AccurateMassSearchResult::getFoundMass() const
+  double AccurateMassSearchResult::getFoundMass() const
   {
     return found_mass_;
   }
 
-  void AccurateMassSearchResult::setFoundMass(const DoubleReal& m)
+  void AccurateMassSearchResult::setFoundMass(const double& m)
   {
     found_mass_ = m;
   }
@@ -161,42 +161,42 @@ namespace OpenMS
     charge_ = ch;
   }
 
-  DoubleReal AccurateMassSearchResult::getErrorPPM() const
+  double AccurateMassSearchResult::getErrorPPM() const
   {
     return error_ppm_;
   }
 
-  void AccurateMassSearchResult::setErrorPPM(const DoubleReal& ppm)
+  void AccurateMassSearchResult::setErrorPPM(const double& ppm)
   {
     error_ppm_ = ppm;
   }
 
-  DoubleReal AccurateMassSearchResult::getObservedRT() const
+  double AccurateMassSearchResult::getObservedRT() const
   {
     return observed_rt_;
   }
 
-  void AccurateMassSearchResult::setObservedRT(const DoubleReal& rt)
+  void AccurateMassSearchResult::setObservedRT(const double& rt)
   {
     observed_rt_ = rt;
   }
 
-  DoubleReal AccurateMassSearchResult::getObservedIntensity() const
+  double AccurateMassSearchResult::getObservedIntensity() const
   {
     return observed_intensity_;
   }
 
-  void AccurateMassSearchResult::setObservedIntensity(const DoubleReal& intensity)
+  void AccurateMassSearchResult::setObservedIntensity(const double& intensity)
   {
     observed_intensity_ = intensity;
   }
 
-  std::vector<DoubleReal> AccurateMassSearchResult::getIndividualIntensities() const
+  std::vector<double> AccurateMassSearchResult::getIndividualIntensities() const
   {
     return individual_intensities_;
   }
 
-  void AccurateMassSearchResult::setIndividualIntensities(const std::vector<DoubleReal>& indiv_ints)
+  void AccurateMassSearchResult::setIndividualIntensities(const std::vector<double>& indiv_ints)
   {
     individual_intensities_ = indiv_ints;
   }
@@ -251,12 +251,12 @@ namespace OpenMS
     matching_hmdb_ids_ = match_ids;
   }
 
-  DoubleReal AccurateMassSearchResult::getIsotopesSimScore() const
+  double AccurateMassSearchResult::getIsotopesSimScore() const
   {
     return isotopes_sim_score_;
   }
 
-  void AccurateMassSearchResult::setIsotopesSimScore(const DoubleReal& sim_score)
+  void AccurateMassSearchResult::setIsotopesSimScore(const double& sim_score)
   {
     isotopes_sim_score_ = sim_score;
   }
@@ -331,7 +331,7 @@ namespace OpenMS
 
 /// public methods
 
-  void AccurateMassSearchEngine::queryByMass(const DoubleReal& adduct_mass, const Int& adduct_charge, std::vector<AccurateMassSearchResult>& results)
+  void AccurateMassSearchEngine::queryByMass(const double& adduct_mass, const Int& adduct_charge, std::vector<AccurateMassSearchResult>& results)
   {
     if (!is_initialized_) init_(); // parse DB
 
@@ -355,7 +355,7 @@ namespace OpenMS
 
     for (StringListUtils::ConstIterator it = it_s; it != it_e; ++it)
     {
-      DoubleReal query_mass;
+      double query_mass;
       Int charge;
       String adduct_name(*it);
 
@@ -378,8 +378,8 @@ namespace OpenMS
       // store information from query hits in AccurateMassSearchResult objects
       for (Size i = 0; i < hit_idx.size(); ++i)
       {
-        DoubleReal found_mass(mass_mappings_[hit_idx[i]].mass);
-        DoubleReal found_error_ppm(((query_mass - found_mass) / query_mass) * 1e6);
+        double found_mass(mass_mappings_[hit_idx[i]].mass);
+        double found_error_ppm(((query_mass - found_mass) / query_mass) * 1e6);
         String found_formula(mass_mappings_[hit_idx[i]].formula);
 
         AccurateMassSearchResult ams_result;
@@ -439,7 +439,7 @@ namespace OpenMS
     //    }
 
     ConsensusFeature::const_iterator f_it = ind_feats.begin();
-    std::vector<DoubleReal> tmp_f_ints;
+    std::vector<double> tmp_f_ints;
     for (Size map_idx = 0; map_idx < number_of_maps; ++map_idx)
     {
       // std::cout << "map idx: " << f_it->getMapIndex() << std::endl;
@@ -513,13 +513,13 @@ namespace OpenMS
       if (iso_similarity_ && (Size)fmap[i].getMetaValue("num_of_masstraces") > 1)
       {
         // compute isotope pattern similarities and determine best matching one
-        DoubleReal best_iso_sim(std::numeric_limits<DoubleReal>::max());
+        double best_iso_sim(std::numeric_limits<double>::max());
         Size best_iso_idx(0);
 
         for (Size hit_idx = 0; hit_idx < query_results.size(); ++hit_idx)
         {
           String emp_formula(query_results[hit_idx].getFormulaString());
-          DoubleReal iso_sim(computeIsotopePatternSimilarity_(fmap[i], EmpiricalFormula(emp_formula)));
+          double iso_sim(computeIsotopePatternSimilarity_(fmap[i], EmpiricalFormula(emp_formula)));
           query_results[hit_idx].setIsotopesSimScore(iso_sim);
 
           if (iso_sim > best_iso_sim)
@@ -653,7 +653,7 @@ namespace OpenMS
 
 
           // set mass_to_charge field
-          DoubleReal mz_temp = tab_it->at(hit_idx).getAdductMass();
+          double mz_temp = tab_it->at(hit_idx).getAdductMass();
           MzTabDouble mass_to_charge;
           mass_to_charge.set(mz_temp);
 
@@ -669,7 +669,7 @@ namespace OpenMS
 
 
           // set RT field
-          DoubleReal rt_temp(tab_it->at(hit_idx).getObservedRT());
+          double rt_temp(tab_it->at(hit_idx).getObservedRT());
           MzTabDouble rt_temp2;
           rt_temp2.set(rt_temp);
           std::vector<MzTabDouble> rt_temp3;
@@ -699,12 +699,12 @@ namespace OpenMS
           // set smallmolecule_abundance_sub
           // check if we deal with a feature or consensus feature
 
-          std::vector<DoubleReal> indiv_ints(tab_it->at(hit_idx).getIndividualIntensities());
+          std::vector<double> indiv_ints(tab_it->at(hit_idx).getIndividualIntensities());
           std::vector<MzTabDouble> int_temp3;
 
           if (indiv_ints.size() == 0)
           {
-            DoubleReal int_temp(tab_it->at(hit_idx).getObservedIntensity());
+            double int_temp(tab_it->at(hit_idx).getObservedIntensity());
             MzTabDouble int_temp2;
             int_temp2.set(int_temp);
             int_temp3.push_back(int_temp2);
@@ -713,7 +713,7 @@ namespace OpenMS
           {
             for (Size ii = 0; ii < indiv_ints.size(); ++ii)
             {
-              DoubleReal int_temp(indiv_ints[ii]);
+              double int_temp(indiv_ints[ii]);
               MzTabDouble int_temp2;
               int_temp2.set(int_temp);
               int_temp3.push_back(int_temp2);
@@ -724,7 +724,7 @@ namespace OpenMS
 
 
           // set smallmolecule_abundance_stdev_sub; not applicable for a single feature intensity, however must be filled. Otherwise, the mzTab export fails.
-          DoubleReal stdev_temp(0.0);
+          double stdev_temp(0.0);
           MzTabDouble stdev_temp2;
           stdev_temp2.set(stdev_temp);
           std::vector<MzTabDouble> stdev_temp3;
@@ -745,7 +745,7 @@ namespace OpenMS
 
 
           // set smallmolecule_abundance_std_error_sub; not applicable for a single feature intensity, however must be filled. Otherwise, the mzTab export fails.
-          DoubleReal stderr_temp(0.0);
+          double stderr_temp(0.0);
           MzTabDouble stderr_temp2;
           stderr_temp2.set(stderr_temp);
           std::vector<MzTabDouble> stderr_temp3;
@@ -789,7 +789,7 @@ namespace OpenMS
 
 
           // set isotope similarity score
-          DoubleReal sim_score_temp(tab_it->at(hit_idx).getIsotopesSimScore());
+          double sim_score_temp(tab_it->at(hit_idx).getIsotopesSimScore());
           std::stringstream read_in;
           read_in << sim_score_temp;
           String sim_score_temp2(read_in.str());
@@ -835,7 +835,7 @@ namespace OpenMS
 
   void AccurateMassSearchEngine::updateMembers_()
   {
-    mass_error_value_ = (DoubleReal)param_.getValue("mass_error_value");
+    mass_error_value_ = (double)param_.getValue("mass_error_value");
     mass_error_unit_ = (String)param_.getValue("mass_error_unit");
     ion_mode_ = (String)param_.getValue("ionization_mode");
     ion_mode_internal_ = ion_mode_; // just copy, since we have not seen any data yet
@@ -1010,9 +1010,9 @@ namespace OpenMS
     return;
   }
 
-  void AccurateMassSearchEngine::searchMass_(const DoubleReal& neutral_query_mass, std::vector<Size>& hit_indices)
+  void AccurateMassSearchEngine::searchMass_(const double& neutral_query_mass, std::vector<Size>& hit_indices)
   {
-    DoubleReal diff_mz(0.0);
+    double diff_mz(0.0);
     // check if mass error window is given in ppm or Da
     if (mass_error_unit_ == "ppm")
     {
@@ -1044,8 +1044,8 @@ namespace OpenMS
     for (Size hit_idx = start_idx; hit_idx < end_idx; ++hit_idx)
     {
       hit_indices.push_back(hit_idx);
-      //DoubleReal found_mass(mass_mappings_[hit_idx].mass);
-      //DoubleReal found_error_ppm(((neutral_query_mass - found_mass)/neutral_query_mass)*1e6);
+      //double found_mass(mass_mappings_[hit_idx].mass);
+      //double found_error_ppm(((neutral_query_mass - found_mass)/neutral_query_mass)*1e6);
       // debug output
       //std::cout << std::setprecision(10) << "found mass: " << found_mass  << " with error: " << found_error_ppm << std::endl;
     }
@@ -1058,7 +1058,7 @@ namespace OpenMS
 
   }
 
-  void AccurateMassSearchEngine::computeNeutralMassFromAdduct_(const DoubleReal& adduct_mass, const String& adduct_string, DoubleReal& neutral_mass, Int& charge_value)
+  void AccurateMassSearchEngine::computeNeutralMassFromAdduct_(const double& adduct_mass, const String& adduct_string, double& neutral_mass, Int& charge_value)
   {
     // retrieve adduct and charge
     std::vector<String> tmpvec, tmpvec1, tmpvec2;
@@ -1201,7 +1201,7 @@ namespace OpenMS
 
     String mult_str(m_part.substr(0, m_part.size() - 1));
 
-    DoubleReal mol_multiplier(1.0);
+    double mol_multiplier(1.0);
 
     if (mult_str != "")
     {
@@ -1236,7 +1236,7 @@ namespace OpenMS
       String formula_str(tmpvec2[part_idx]);
       const char first_char = formula_str[0];
 
-      DoubleReal stoichio_factor(1.0);
+      double stoichio_factor(1.0);
 
       if (isdigit(first_char))
       {
@@ -1263,7 +1263,7 @@ namespace OpenMS
 
 
     // correct for electron masses
-    DoubleReal electrons_mass_diff(charge_value * Constants::ELECTRON_MASS_U);
+    double electrons_mass_diff(charge_value * Constants::ELECTRON_MASS_U);
 
     // std::cout << "electron mass: " << Constants::ELECTRON_MASS_U << " " << Constants::ELECTRON_MASS << " " << electrons_mass_diff << std::endl;
     if (!is_intrinsic)
@@ -1278,16 +1278,16 @@ namespace OpenMS
     return;
   }
 
-  DoubleReal AccurateMassSearchEngine::computeCosineSim_(const std::vector<DoubleReal>& x, const std::vector<DoubleReal>& y)
+  double AccurateMassSearchEngine::computeCosineSim_(const std::vector<double>& x, const std::vector<double>& y)
   {
     if (x.size() != y.size())
     {
       return 0.0;
     }
 
-    DoubleReal mixed_sum(0.0);
-    DoubleReal x_squared_sum(0.0);
-    DoubleReal y_squared_sum(0.0);
+    double mixed_sum(0.0);
+    double x_squared_sum(0.0);
+    double y_squared_sum(0.0);
 
 
     for (Size i = 0; i < x.size(); ++i)
@@ -1297,19 +1297,19 @@ namespace OpenMS
       y_squared_sum += y[i] * y[i];
     }
 
-    DoubleReal denom(std::sqrt(x_squared_sum) * std::sqrt(y_squared_sum));
+    double denom(std::sqrt(x_squared_sum) * std::sqrt(y_squared_sum));
 
     return (denom > 0.0) ? mixed_sum / denom : 0.0;
   }
 
-  DoubleReal AccurateMassSearchEngine::computeEuclideanDist_(const std::vector<DoubleReal>& x, const std::vector<DoubleReal>& y)
+  double AccurateMassSearchEngine::computeEuclideanDist_(const std::vector<double>& x, const std::vector<double>& y)
   {
     if (x.size() != y.size())
     {
       return -100.0;
     }
 
-    DoubleReal sum_of_squares(0.0);
+    double sum_of_squares(0.0);
 
     for (Size i = 0; i < x.size(); ++i)
     {
@@ -1319,7 +1319,7 @@ namespace OpenMS
     return std::sqrt(sum_of_squares);
   }
 
-  DoubleReal AccurateMassSearchEngine::computeIsotopePatternSimilarity_(const Feature& feat, const EmpiricalFormula& form)
+  double AccurateMassSearchEngine::computeIsotopePatternSimilarity_(const Feature& feat, const EmpiricalFormula& form)
   {
     Size num_traces = (Size)feat.getMetaValue("num_of_masstraces");
     Size MAX_THEORET_ISOS(5);
@@ -1328,7 +1328,7 @@ namespace OpenMS
 
     IsotopeDistribution iso_dist(form.getIsotopeDistribution(MAX_THEORET_ISOS));
 
-    DoubleReal max_iso_prob(iso_dist.begin()->second);
+    double max_iso_prob(iso_dist.begin()->second);
 
     for (IsotopeDistribution::ConstIterator iso_it = iso_dist.begin(); iso_it != (iso_dist.begin() + common_size); ++iso_it)
     {
@@ -1339,12 +1339,12 @@ namespace OpenMS
       }
     }
 
-    std::vector<DoubleReal> normed_iso_ratios;
+    std::vector<double> normed_iso_ratios;
 
     // std::cout << "theoret. iso: ";
     for (IsotopeDistribution::ConstIterator iso_it = iso_dist.begin(); iso_it != (iso_dist.begin() + common_size); ++iso_it)
     {
-      DoubleReal temp_ratio((iso_it->second) / max_iso_prob);
+      double temp_ratio((iso_it->second) / max_iso_prob);
       normed_iso_ratios.push_back(temp_ratio);
 
       // std::cout << temp_ratio << " ";
@@ -1352,16 +1352,16 @@ namespace OpenMS
 
     // std::cout << "\nact. iso: ";
 
-    DoubleReal max_feat_int((DoubleReal)feat.getMetaValue("masstrace_intensity_0"));
+    double max_feat_int((double)feat.getMetaValue("masstrace_intensity_0"));
 
-    std::vector<DoubleReal> normed_feat_ratios;
+    std::vector<double> normed_feat_ratios;
 
     for (Size int_idx = 0; int_idx < common_size; ++int_idx)
     {
       std::stringstream read_in;
       read_in << int_idx;
       String identifier(read_in.str());
-      DoubleReal mt_int = (DoubleReal)feat.getMetaValue("masstrace_intensity_" + identifier);
+      double mt_int = (double)feat.getMetaValue("masstrace_intensity_" + identifier);
 
       normed_feat_ratios.push_back(mt_int);
 

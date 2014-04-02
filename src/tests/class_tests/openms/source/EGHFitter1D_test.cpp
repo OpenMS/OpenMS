@@ -139,7 +139,7 @@ START_SECTION((QualityType fit1d(const RawDataArrayType &range, InterpolationMod
 
   RawDataArrayType data_to_fit;
 
-  for (DoubleReal x = 800.0; x < 1200.0; x += 0.1)
+  for (double x = 800.0; x < 1200.0; x += 0.1)
   {
     PeakType p;
     p.setPos(x);
@@ -149,15 +149,15 @@ START_SECTION((QualityType fit1d(const RawDataArrayType &range, InterpolationMod
 
   // make some noise
   boost::random::mt19937 rnd_gen_ (0.0);
-  boost::uniform_real<Real> udist (-0.1, 0.1);
+  boost::uniform_real<float> udist (-0.1, 0.1);
   for (Size i = 0; i < data_to_fit.size(); ++i)
   {
-    Real distort = std::exp(udist(rnd_gen_));
+    float distort = std::exp(udist(rnd_gen_));
     data_to_fit[i].setIntensity(data_to_fit[i].getIntensity()
         * distort);
   }
 
-  DoubleReal egh_quality;
+  double egh_quality;
   Param egh_param;
   EGHFitter1D egh_fitter;
 

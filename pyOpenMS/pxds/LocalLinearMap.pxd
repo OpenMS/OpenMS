@@ -14,7 +14,7 @@ cdef extern from "<OpenMS/ANALYSIS/PIP/LocalLinearMap.h>" namespace "OpenMS":
         # TODO STL attributes unsigned int 
         # Matrix[ UInt ]  getCord() nogil except +
         void normalizeVector(libcpp_vector[ double ] & aaIndexVariables) nogil except +
-        # libcpp_vector[ double ] neigh(Matrix[ unsigned int ] & cord, Size win, DoubleReal radius) nogil except +
+        # libcpp_vector[ double ] neigh(Matrix[ unsigned int ] & cord, Size win, double radius) nogil except +
 
 
 cdef extern from "<OpenMS/ANALYSIS/PIP/LocalLinearMap.h>" namespace "OpenMS::LocalLinearMap":
@@ -24,5 +24,5 @@ cdef extern from "<OpenMS/ANALYSIS/PIP/LocalLinearMap.h>" namespace "OpenMS::Loc
         LLMParam(LLMParam) nogil except + #wrap-ignore
         UInt xdim
         UInt ydim
-        DoubleReal radius
+        double radius
 

@@ -117,10 +117,10 @@ protected:
     void updateMembers_();
 
     // get the closest RT profile factor of a feature for a given RT
-    DoubleReal getRTProfileIntensity_(const Feature & f, const DoubleReal MS2_RT_time) const;
+    double getRTProfileIntensity_(const Feature & f, const double MS2_RT_time) const;
 
     /// convert meta information from feature into intensity values for iTRAQ
-    EigenMatrixXdPtr getItraqIntensity_(const Feature & f, const DoubleReal MS2_RT_time) const;
+    EigenMatrixXdPtr getItraqIntensity_(const Feature & f, const double MS2_RT_time) const;
 
 
     // Members:
@@ -136,7 +136,7 @@ protected:
     IsotopeMatrices isotope_corrections_;
 
     /// efficiency of "Y" labeling
-    DoubleReal y_labeling_efficiency_;
+    double y_labeling_efficiency_;
 
   };
 } // namespace OpenMS

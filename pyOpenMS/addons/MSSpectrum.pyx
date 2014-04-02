@@ -7,21 +7,29 @@ import numpy as np
         cdef _MSSpectrum[_Peak1D] * spec_ = self.inst.get()
 
         cdef unsigned int n = spec_.size()
-        cdef np.ndarray[np.float32_t, ndim=2] peaks
-        peaks = np.zeros( [n,2], dtype=np.float32)
+        cdef np.ndarray[np.float64_t, ndim=1] mzs
+        mzs = np.zeros( (n,), dtype=np.float64)
+        cdef np.ndarray[np.float32_t, ndim=1] intensities
+        intensities = np.zeros( (n,), dtype=np.float32)
         cdef _Peak1D p
 
         cdef libcpp_vector[_Peak1D].iterator it = spec_.begin()
         cdef int i = 0
         while it != spec_.end():
-            peaks[i,0] = deref(it).getMZ()
-            peaks[i,1] = deref(it).getIntensity()
+            mzs[i] = deref(it).getMZ()
+            intensities[i] = deref(it).getIntensity()
             inc(it)
             i += 1
 
-        return peaks
+        return mzs, intensities
 
-    def set_peaks(self, np.ndarray[np.float32_t, ndim=2] peaks):
+    def set_peaks(self, peaks):
+
+        assert isinstance(peaks, (tuple, list))
+        assert len(peaks) == 2
+
+        mzs, intensities = peaks
+        assert len(mzs) == len(intensities)
 
         cdef _MSSpectrum[_Peak1D] * spec_ = self.inst.get()
 
@@ -30,14 +38,13 @@ import numpy as np
         cdef double mz
         cdef float I
         cdef int N
-        N = peaks.shape[0]
-
+        N = len(mzs)
 
         for i in range(N):
-            mz = peaks[i,0]
-            I  = peaks[i,1]
-            p.setMZ(mz)
-            p.setIntensity(<float>I)
+            mz = mzs[i]
+            intensity  = intensities[i]
+            p.setMZ(<double>mz)
+            p.setIntensity(<float>intensity)
             spec_.push_back(p)
 
         spec_.updateRanges()

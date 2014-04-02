@@ -267,7 +267,7 @@ protected:
 
         if (spectrum_data.precision_ == "64")
         {
-          std::vector<DoubleReal> data;
+          std::vector<double> data;
           if (spectrum_data.compressionType_ == "zlib")
           {
             decoder_.decode(spectrum_data.char_rest_, Base64::BYTEORDER_BIGENDIAN, data, true);
@@ -293,7 +293,7 @@ protected:
         }
         else //precision 32
         {
-          std::vector<Real> data;
+          std::vector<float> data;
           if (spectrum_data.compressionType_ == "zlib")
           {
             decoder_.decode(spectrum_data.char_rest_, Base64::BYTEORDER_BIGENDIAN, data, true);
@@ -641,7 +641,7 @@ private:
           spectrum_data_.back().spectrum.getPrecursors().back().setCharge(charge);
         }
         //window bounds (here only the width is stored in both fields - this is corrected when we parse the m/z position)
-        DoubleReal window = 0.0;
+        double window = 0.0;
         if (optionalAttributeAsDouble_(window, attributes, s_windowwideness_))
         {
           spectrum_data_.back().spectrum.getPrecursors().back().setIsolationWindowLowerOffset(window);
@@ -664,7 +664,7 @@ private:
         }
 
         //parse retention time and convert it from xs:duration to seconds
-        DoubleReal retention_time = 0.0;
+        double retention_time = 0.0;
         String time_string = "";
         if (optionalAttributeAsString_(time_string, attributes, s_retentiontime_))
         {
@@ -855,7 +855,7 @@ private:
           data_processing_.back().getProcessingActions().insert(DataProcessing::CHARGE_DECONVOLUTION);
         }
 
-        DoubleReal cutoff = 0.0;
+        double cutoff = 0.0;
         optionalAttributeAsDouble_(cutoff, attributes, s_intensitycutoff_);
         if (cutoff != 0.0)
         {
@@ -969,11 +969,11 @@ private:
       else if (open_tags_.back() == "precursorMz")
       {
         char* transcoded_chars = sm_.convert(chars);
-        DoubleReal mz_pos = asDouble_(transcoded_chars);
+        double mz_pos = asDouble_(transcoded_chars);
         //precursor m/z
         spectrum_data_.back().spectrum.getPrecursors().back().setMZ(mz_pos);
         //update window bounds - center them around the m/z pos
-        DoubleReal window_width = spectrum_data_.back().spectrum.getPrecursors().back().getIsolationWindowLowerOffset();
+        double window_width = spectrum_data_.back().spectrum.getPrecursors().back().getIsolationWindowLowerOffset();
         if (window_width != 0.0)
         {
           spectrum_data_.back().spectrum.getPrecursors().back().setIsolationWindowLowerOffset(0.5 * window_width);
@@ -1343,7 +1343,7 @@ private:
           os << String(ms_level + 2, '\t') << "<peaks precision=\"32\"" << " byteOrder=\"network\" pairOrder=\"m/z-int\">";
 
           //std::cout << "Writing scan " << s << "\n";
-          std::vector<Real> tmp;
+          std::vector<float> tmp;
           for (Size i = 0; i < spec.size(); i++)
           {
             tmp.push_back(spec[i].getMZ());

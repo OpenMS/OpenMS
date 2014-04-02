@@ -112,7 +112,7 @@ namespace OpenMS
       polygon.push_back(DPosition<2>(1, 1));
       std::sort(polygon.begin(), polygon.end());
       DPosition<2> last(0, 0);
-      DoubleReal area(0);
+      double area(0);
       for (std::vector<DPosition<2> >::const_iterator it = polygon.begin(); it != polygon.end(); ++it)
       {
         area += (it->getX() - last.getX()) * (it->getY());

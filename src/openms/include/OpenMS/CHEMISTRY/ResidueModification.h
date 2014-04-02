@@ -200,28 +200,28 @@ public:
     String getSourceClassificationName(Source_Classification classification = NUMBER_OF_SOURCE_CLASSIFICATIONS) const;
 
     /// sets the average mass
-    void setAverageMass(DoubleReal mass);
+    void setAverageMass(double mass);
 
     /// returns the average mass if set
-    DoubleReal getAverageMass() const;
+    double getAverageMass() const;
 
     /// sets the monoisotopic mass
-    void setMonoMass(DoubleReal mass);
+    void setMonoMass(double mass);
 
     /// return the monoisotopic mass, if set
-    DoubleReal getMonoMass() const;
+    double getMonoMass() const;
 
     /// set the difference average mass
-    void setDiffAverageMass(DoubleReal mass);
+    void setDiffAverageMass(double mass);
 
     /// returns the difference average mass if set
-    DoubleReal getDiffAverageMass() const;
+    double getDiffAverageMass() const;
 
     /// sets the difference monoisotopic mass
-    void setDiffMonoMass(DoubleReal mass);
+    void setDiffMonoMass(double mass);
 
     /// returns the diff monoisotopic mass if set
-    DoubleReal getDiffMonoMass() const;
+    double getDiffMonoMass() const;
 
     /// set the formula
     void setFormula(const String & composition);
@@ -251,16 +251,16 @@ public:
     const EmpiricalFormula & getNeutralLossDiffFormula() const;
 
     /// set the neutral loss mono weight
-    void setNeutralLossMonoMass(DoubleReal mono_mass);
+    void setNeutralLossMonoMass(double mono_mass);
 
     /// returns the neutral loss mono weight
-    DoubleReal getNeutralLossMonoMass() const;
+    double getNeutralLossMonoMass() const;
 
     /// set the neutral loss average weight
-    void setNeutralLossAverageMass(DoubleReal average_mass);
+    void setNeutralLossAverageMass(double average_mass);
 
     /// returns the neutral loss average weight
-    DoubleReal getNeutralLossAverageMass() const;
+    double getNeutralLossAverageMass() const;
     //@}
 
     /** @name Predicates
@@ -296,13 +296,13 @@ protected:
 
     Source_Classification classification_;
 
-    DoubleReal average_mass_;
+    double average_mass_;
 
-    DoubleReal mono_mass_;
+    double mono_mass_;
 
-    DoubleReal diff_average_mass_;
+    double diff_average_mass_;
 
-    DoubleReal diff_mono_mass_;
+    double diff_mono_mass_;
 
     String formula_;
 
@@ -312,9 +312,9 @@ protected:
 
     EmpiricalFormula neutral_loss_diff_formula_;
 
-    DoubleReal neutral_loss_mono_mass_;
+    double neutral_loss_mono_mass_;
 
-    DoubleReal neutral_loss_average_mass_;
+    double neutral_loss_average_mass_;
   };
 }
 

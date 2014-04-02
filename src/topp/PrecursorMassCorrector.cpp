@@ -126,7 +126,7 @@ protected:
     String in(getStringOption_("in"));
     String feature_in(getStringOption_("feature_in"));
     String out(getStringOption_("out"));
-    DoubleReal precursor_mass_tolerance(getDoubleOption_("precursor_mass_tolerance"));
+    double precursor_mass_tolerance(getDoubleOption_("precursor_mass_tolerance"));
 
     // reading input
     FileHandler fh;
@@ -211,7 +211,7 @@ protected:
         }
 
         Precursor prec = *ms2_it->getPrecursors().begin();
-        DoubleReal prec_pos = prec.getMZ();
+        double prec_pos = prec.getMZ();
 
         PeakMap new_exp;
         // now excise small region from the MS1 spec for the feature finder (isotope pattern must be covered...)
@@ -234,8 +234,8 @@ protected:
           continue;
         }
 
-        DoubleReal max_int(numeric_limits<DoubleReal>::min());
-        DoubleReal min_dist(numeric_limits<DoubleReal>::max());
+        double max_int(numeric_limits<double>::min());
+        double min_dist(numeric_limits<double>::max());
         Size max_int_feat_idx(0);
 
         for (Size i = 0; i != features.size(); ++i)

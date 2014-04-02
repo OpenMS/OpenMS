@@ -402,7 +402,7 @@ protected:
 
       // Charge distribution and TIC
       Map<UInt, UInt> charges;
-      DoubleReal tic = 0.0;
+      double tic = 0.0;
       for (Size i = 0; i < feat.size(); ++i)
       {
         charges[feat[i].getCharge()]++;
@@ -570,7 +570,7 @@ protected:
       //if raw data, determine the spacing
       if (type == SpectrumSettings::RAWDATA)
       {
-        vector<Real> spacing;
+        vector<float> spacing;
         for (Size j = 1; j < exp[i].size(); ++j)
         {
           spacing.push_back(exp[i][j].getMZ() - exp[i][j - 1].getMZ());
@@ -761,7 +761,7 @@ protected:
         {
           os << "Error: Spectrum retention times are not sorted in ascending order" << "\n";
         }
-        vector<DoubleReal> ms1_rts;
+        vector<double> ms1_rts;
         ms1_rts.reserve(exp.size());
         for (Size s = 0; s < exp.size(); ++s)
         {
@@ -833,7 +833,7 @@ protected:
           {
             os << "Error: Peak m/z positions are not sorted in ascending order in spectrum (RT: " << exp[s].getRT() << ")" << "\n";
           }
-          vector<DoubleReal> mzs;
+          vector<double> mzs;
           mzs.reserve(exp[s].size());
           for (Size p = 0; p < exp[s].size(); ++p)
           {

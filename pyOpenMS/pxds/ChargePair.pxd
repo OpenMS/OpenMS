@@ -15,7 +15,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/ChargePair.h>" namespace "OpenMS":
                Int charge0,
                Int charge1,
                Compomer compomer,
-               DoubleReal mass_diff,
+               double mass_diff,
                    bool active) nogil except +
 
         Int getCharge(UInt pairID) nogil except +
@@ -30,13 +30,13 @@ cdef extern from "<OpenMS/DATASTRUCTURES/ChargePair.h>" namespace "OpenMS":
     
         void setCompomer( Compomer & compomer) nogil except +
     
-        DoubleReal getMassDiff() nogil except +
+        double getMassDiff() nogil except +
     
-        void setMassDiff(DoubleReal mass_diff) nogil except +
+        void setMassDiff(double mass_diff) nogil except +
     
-        DoubleReal getEdgeScore() nogil except +
+        double getEdgeScore() nogil except +
     
-        void setEdgeScore(DoubleReal score) nogil except +
+        void setEdgeScore(double score) nogil except +
     
         bool isActive() nogil except +
     

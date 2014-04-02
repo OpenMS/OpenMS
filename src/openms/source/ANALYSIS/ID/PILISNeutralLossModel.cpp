@@ -116,16 +116,16 @@ namespace OpenMS
     return hmm_precursor_;
   }
 
-  DoubleReal PILISNeutralLossModel::train(const RichPeakSpectrum& spec, const AASequence& peptide, DoubleReal ion_weight, UInt charge, DoubleReal peptide_weight)
+  double PILISNeutralLossModel::train(const RichPeakSpectrum& spec, const AASequence& peptide, double ion_weight, UInt charge, double peptide_weight)
   {
 #ifdef NEUTRAL_LOSS_MODEL_DEBUG
     cerr << "PILISNeutralLossModel::train(#spec.size()=" << spec.size() << ", peptide=" << peptide << ", ion_weight=" << ion_weight << ", charge=" << charge << ", peptide_weight=" << peptide_weight << ")" << endl;
 #endif
-    Map<String, DoubleReal> peak_ints;
-    DoubleReal intensity_sum = getIntensitiesFromSpectrum_(spec, peak_ints, ion_weight, peptide, charge);
+    Map<String, double> peak_ints;
+    double intensity_sum = getIntensitiesFromSpectrum_(spec, peak_ints, ion_weight, peptide, charge);
 
     String ion_name((String)param_.getValue("ion_name"));
-    DoubleReal min_int_to_train((DoubleReal)param_.getValue("min_int_to_train"));
+    double min_int_to_train((double)param_.getValue("min_int_to_train"));
 #ifdef NEUTRAL_LOSS_MODEL_DEBUG
     cerr << ion_name << " intensity_sum=" << intensity_sum << ", min_int_to_train=" << min_int_to_train << endl;
 #endif
@@ -134,8 +134,8 @@ namespace OpenMS
       return intensity_sum;
     }
 
-    DoubleReal max_int(0);
-    for (Map<String, DoubleReal>::ConstIterator it = peak_ints.begin(); it != peak_ints.end(); ++it)
+    double max_int(0);
+    for (Map<String, double>::ConstIterator it = peak_ints.begin(); it != peak_ints.end(); ++it)
     {
       //it->second /= intensity_sum;
       if (it->second > max_int)
@@ -147,7 +147,7 @@ namespace OpenMS
 #endif
     }
 
-    for (Map<String, DoubleReal>::Iterator it = peak_ints.begin(); it != peak_ints.end(); ++it)
+    for (Map<String, double>::Iterator it = peak_ints.begin(); it != peak_ints.end(); ++it)
     {
       it->second /= max_int;
     }
@@ -157,11 +157,11 @@ namespace OpenMS
     return intensity_sum;
   }
 
-  void PILISNeutralLossModel::getIons(vector<RichPeak1D>& peaks, const AASequence& peptide, DoubleReal initial_prob)
+  void PILISNeutralLossModel::getIons(vector<RichPeak1D>& peaks, const AASequence& peptide, double initial_prob)
   {
-    Map<String, DoubleReal> pre_ints;
+    Map<String, double> pre_ints;
     getIons_(pre_ints, initial_prob, peptide);
-    for (Map<String, DoubleReal>::ConstIterator it = pre_ints.begin(); it != pre_ints.end(); ++it)
+    for (Map<String, double>::ConstIterator it = pre_ints.begin(); it != pre_ints.end(); ++it)
     {
       RichPeak1D p;
       p.setIntensity(it->second);
@@ -191,7 +191,7 @@ namespace OpenMS
     }
   }
 
-  DoubleReal PILISNeutralLossModel::getIntensitiesFromSpectrum_(const RichPeakSpectrum& train_spec, Map<String, DoubleReal>& peak_ints, DoubleReal ion_weight, const AASequence& peptide, UInt charge)
+  double PILISNeutralLossModel::getIntensitiesFromSpectrum_(const RichPeakSpectrum& train_spec, Map<String, double>& peak_ints, double ion_weight, const AASequence& peptide, UInt charge)
   {
 #ifdef NEUTRAL_LOSS_MODEL_DEBUG
     cerr << "PILISNeutralLossModel::getIntensitiesFromSpectrum_(#peaks=" << train_spec.size() << ", weight=" << ion_weight << ", peptide=" << peptide  <<  ", charge=" << charge << ")" << endl;
@@ -216,7 +216,7 @@ namespace OpenMS
     }
 
     //vector<EmpiricalFormula> pre_losses;
-    vector<DoubleReal> pre_loss_weights;
+    vector<double> pre_loss_weights;
     vector<String> pre_loss_names;
 
     for (set<String>::const_iterator it = precursor_losses.begin(); it != precursor_losses.end(); ++it)
@@ -228,7 +228,7 @@ namespace OpenMS
 
     // init all possible losses with zero intensity
     String ion_name = param_.getValue("ion_name");
-    Map<String, DoubleReal> loss_weights;
+    Map<String, double> loss_weights;
     for (UInt i = 0; i != pre_loss_names.size(); ++i)
     {
       String name1(pre_loss_names[i]);
@@ -260,16 +260,16 @@ namespace OpenMS
 
 
     // now match peaks to the different losses and combinations
-    DoubleReal pre_error = (DoubleReal)param_.getValue("fragment_mass_tolerance");
-    DoubleReal intensity_sum(0);
+    double pre_error = (double)param_.getValue("fragment_mass_tolerance");
+    double intensity_sum(0);
     for (RichPeakSpectrum::ConstIterator it = train_spec.begin(); it != train_spec.end(); ++it)
     {
-      for (Map<String, DoubleReal>::ConstIterator loss_it = loss_weights.begin(); loss_it != loss_weights.end(); ++loss_it)
+      for (Map<String, double>::ConstIterator loss_it = loss_weights.begin(); loss_it != loss_weights.end(); ++loss_it)
       {
-        DoubleReal diff = fabs(it->getMZ() - (ion_weight - loss_it->second + (DoubleReal)charge) / (DoubleReal)charge);
+        double diff = fabs(it->getMZ() - (ion_weight - loss_it->second + (double)charge) / (double)charge);
         if (diff < pre_error)
         {
-          DoubleReal factor = (pre_error - diff) / pre_error;
+          double factor = (pre_error - diff) / pre_error;
 #ifdef NEUTRAL_LOSS_MODEL_DEBUG
           cerr << "Found: ";
           cerr << "factor=" << factor
@@ -277,7 +277,7 @@ namespace OpenMS
                << " @m/z=" << it->getMZ()
                << " ion_weight=" << ion_weight
                << " loss_weight=" << loss_it->second
-               << " theo_ion_pos=" <<  (ion_weight - loss_it->second + (DoubleReal)charge) / (DoubleReal)charge
+               << " theo_ion_pos=" <<  (ion_weight - loss_it->second + (double)charge) / (double)charge
                << " diff=" << diff << endl;
 #endif
           peak_ints[loss_it->first] += it->getIntensity() * factor;
@@ -288,7 +288,7 @@ namespace OpenMS
     return intensity_sum;
   }
 
-  void PILISNeutralLossModel::trainIons_(DoubleReal initial_probability, const Map<String, DoubleReal>& ints, const AASequence& peptide)
+  void PILISNeutralLossModel::trainIons_(double initial_probability, const Map<String, double>& ints, const AASequence& peptide)
   {
 #ifdef NEUTRAL_LOSS_MODEL_DEBUG
     cerr << "PILISNeutralLossModel::trainIons_(" << initial_probability << ", " << ints.size() << ", " << peptide << ")" << endl;
@@ -301,7 +301,7 @@ namespace OpenMS
     hmm_precursor_.setInitialTransitionProbability("start", initial_probability);
 
     // set emission probabilities from the precursor ions present in the spectrum
-    for (Map<String, DoubleReal>::ConstIterator it = ints.begin(); it != ints.end(); ++it)
+    for (Map<String, double>::ConstIterator it = ints.begin(); it != ints.end(); ++it)
     {
       hmm_precursor_.setTrainingEmissionProbability(it->first, it->second);
     }
@@ -628,18 +628,18 @@ namespace OpenMS
     hmm_precursor_.evaluate();
   }
 
-  void PILISNeutralLossModel::getIons_(Map<String, DoubleReal>& intensities, DoubleReal initial_probability, const AASequence& precursor)
+  void PILISNeutralLossModel::getIons_(Map<String, double>& intensities, double initial_probability, const AASequence& precursor)
   {
     //cerr << "getIons_: " << initial_probability << " " << precursor << endl;
     hmm_precursor_.setInitialTransitionProbability("start", 1.0);
 
     enableIonStates_(precursor);
 
-    Map<HMMState*, DoubleReal> tmp;
+    Map<HMMState*, double> tmp;
     hmm_precursor_.calculateEmissionProbabilities(tmp);
 
-    DoubleReal max_prob(0);
-    for (Map<HMMState*, DoubleReal>::ConstIterator it = tmp.begin(); it != tmp.end(); ++it)
+    double max_prob(0);
+    for (Map<HMMState*, double>::ConstIterator it = tmp.begin(); it != tmp.end(); ++it)
     {
       intensities[it->first->getName()] = it->second;
       if (it->second > max_prob)
@@ -648,13 +648,13 @@ namespace OpenMS
       }
     }
 
-    for (Map<String, DoubleReal>::Iterator it = intensities.begin(); it != intensities.end(); ++it)
+    for (Map<String, double>::Iterator it = intensities.begin(); it != intensities.end(); ++it)
     {
       it->second = it->second / max_prob * initial_probability;
     }
 
 #ifdef NEUTRAL_LOSS_MODEL_DEBUG
-    for (Map<HMMState*, DoubleReal>::ConstIterator it = tmp.begin(); it != tmp.end(); ++it)
+    for (Map<HMMState*, double>::ConstIterator it = tmp.begin(); it != tmp.end(); ++it)
     {
       cerr << it->first->getName() << " -> " << it->second << endl;
     }
@@ -719,7 +719,7 @@ namespace OpenMS
       hmm_precursor_.addNewState(new HMMState(ion_name + "-" + *it, false));
     }
 
-    // emitting nodes for DoubleReal losses
+    // emitting nodes for double losses
     bool enable_double_losses(param_.getValue("enable_double_losses").toBool());
     set<String> double_losses;
     if (enable_double_losses)
@@ -753,10 +753,10 @@ namespace OpenMS
     }
     hmm_precursor_.addNewState(new HMMState("start", true));
 
-    // add DoubleReal loss states
-    // add edges from DoubleReal loss states to single loss states and emitting states
+    // add double loss states
+    // add edges from double loss states to single loss states and emitting states
 #ifdef NEUTRAL_LOSS_MODEL_DEBUG
-    cerr << "Adding DoubleReal loss states" << endl;
+    cerr << "Adding double loss states" << endl;
 #endif
 
     if (enable_COOH)
@@ -1008,7 +1008,7 @@ namespace OpenMS
 
   void PILISNeutralLossModel::updateMembers_()
   {
-    DoubleReal pseudo_counts = (DoubleReal)param_.getValue("pseudo_counts");
+    double pseudo_counts = (double)param_.getValue("pseudo_counts");
     hmm_precursor_.setPseudoCounts(pseudo_counts);
     num_explicit_ = (UInt)param_.getValue("num_explicit");
   }

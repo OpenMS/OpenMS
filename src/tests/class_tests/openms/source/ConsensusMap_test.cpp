@@ -55,8 +55,8 @@ START_SECTION((ConsensusMap()))
 	ptr = new ConsensusMap();
 	TEST_NOT_EQUAL(ptr, nullPointer)
 	TEST_EQUAL(ptr->isMetaEmpty(),true)
-	TEST_REAL_SIMILAR(ptr->getMinInt(), numeric_limits<DoubleReal>::max())
-	TEST_REAL_SIMILAR(ptr->getMaxInt(), -numeric_limits<DoubleReal>::max())
+	TEST_REAL_SIMILAR(ptr->getMinInt(), numeric_limits<double>::max())
+	TEST_REAL_SIMILAR(ptr->getMaxInt(), -numeric_limits<double>::max())
 END_SECTION
 
 START_SECTION((~ConsensusMap()))

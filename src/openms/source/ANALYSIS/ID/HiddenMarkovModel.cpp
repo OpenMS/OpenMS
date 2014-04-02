@@ -277,9 +277,9 @@ namespace OpenMS
     }
 
     // write transitions
-    for (Map<HMMState *, Map<HMMState *, DoubleReal> >::const_iterator it1 = trans_.begin(); it1 != trans_.end(); ++it1)
+    for (Map<HMMState *, Map<HMMState *, double> >::const_iterator it1 = trans_.begin(); it1 != trans_.end(); ++it1)
     {
-      for (Map<HMMState *, DoubleReal>::const_iterator it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
+      for (Map<HMMState *, double>::const_iterator it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
       {
         out << "Transition " << it1->first->getName() << " " << it2->first->getName() << " " << it2->second << endl;
       }
@@ -399,7 +399,7 @@ namespace OpenMS
     */
   }
 
-  void HiddenMarkovModel::setTransitionProbability_(HMMState * s1, HMMState * s2, DoubleReal trans_prob)
+  void HiddenMarkovModel::setTransitionProbability_(HMMState * s1, HMMState * s2, double trans_prob)
   {
     trans_[s1][s2] = trans_prob;
     s1->addSuccessorState(s2);
@@ -408,7 +408,7 @@ namespace OpenMS
     training_steps_count_[s1][s2] = 0;
   }
 
-  void HiddenMarkovModel::setTransitionProbability(const String & s1, const String & s2, DoubleReal trans_prob)
+  void HiddenMarkovModel::setTransitionProbability(const String & s1, const String & s2, double trans_prob)
   {
     OPENMS_PRECONDITION(
       name_to_state_.find(s1) != name_to_state_.end() && name_to_state_.find(s2) != name_to_state_.end(),
@@ -424,7 +424,7 @@ namespace OpenMS
     training_steps_count_[name_to_state_[s1]][name_to_state_[s2]] = 0;
   }
 
-  DoubleReal HiddenMarkovModel::getTransitionProbability(const String & s1, const String & s2) const
+  double HiddenMarkovModel::getTransitionProbability(const String & s1, const String & s2) const
   {
     if (name_to_state_.find(s1) == name_to_state_.end())
     {
@@ -439,7 +439,7 @@ namespace OpenMS
     return getTransitionProbability_(state1, state2);
   }
 
-  DoubleReal HiddenMarkovModel::getTransitionProbability_(HMMState * s1, HMMState * s2) const
+  double HiddenMarkovModel::getTransitionProbability_(HMMState * s1, HMMState * s2) const
   {
     HMMState * state1 = s1;
     HMMState * state2 = s2;
@@ -508,9 +508,9 @@ namespace OpenMS
 #endif
 
     // calc p_x from forward part
-    DoubleReal px(0);
+    double px(0);
 
-    for (Map<HMMState *, DoubleReal>::const_iterator it1 = train_emission_prob_.begin(); it1 != train_emission_prob_.end(); ++it1)
+    for (Map<HMMState *, double>::const_iterator it1 = train_emission_prob_.begin(); it1 != train_emission_prob_.end(); ++it1)
     {
       for (set<HMMState *>::const_iterator it2 = it1->first->getPredecessorStates().begin(); it2 != it1->first->getPredecessorStates().end(); ++it2)
       {
@@ -518,7 +518,7 @@ namespace OpenMS
       }
     }
 
-    DoubleReal num_px(0);
+    double num_px(0);
     if (px != 0)
     {
       num_px = 1.0 / px;
@@ -532,7 +532,7 @@ namespace OpenMS
     // add contributions to count_trans_
     for (set<pair<HMMState *, HMMState *> >::const_iterator it = trained_trans_.begin(); it != trained_trans_.end(); ++it)
     {
-      DoubleReal tmp(0);
+      double tmp(0);
       tmp = num_px * getForwardVariable_(it->first) * getBackwardVariable_(it->second) * getTransitionProbability_(it->first, it->second);
       tmp += pseudo_counts_;
       HMMState * s1 = it->first;
@@ -562,14 +562,14 @@ namespace OpenMS
   {
     forward_.clear();
     set<HMMState *> succ;
-    for (Map<HMMState *, DoubleReal>::iterator it = init_prob_.begin(); it != init_prob_.end(); ++it)
+    for (Map<HMMState *, double>::iterator it = init_prob_.begin(); it != init_prob_.end(); ++it)
     {
       //cerr << it->first << " " << it->second << endl;
       //cerr << it->first->getName() << endl;
       forward_[it->first] = it->second;
     }
 
-    for (Map<HMMState *, DoubleReal>::iterator it = init_prob_.begin(); it != init_prob_.end(); ++it)
+    for (Map<HMMState *, double>::iterator it = init_prob_.begin(); it != init_prob_.end(); ++it)
     {
       succ.insert(it->first->getSuccessorStates().begin(), it->first->getSuccessorStates().end());
 
@@ -579,7 +579,7 @@ namespace OpenMS
         for (set<HMMState *>::const_iterator it = succ.begin(); it != succ.end(); ++it)
         {
           set<HMMState *> pre = (*it)->getPredecessorStates();
-          DoubleReal sum(0);
+          double sum(0);
           for (set<HMMState *>::const_iterator it2 = pre.begin(); it2 != pre.end(); ++it2)
           {
 #ifdef HIDDEN_MARKOV_MODEL_DEBUG
@@ -603,12 +603,12 @@ namespace OpenMS
   {
     backward_.clear();
     set<HMMState *> pre;
-    for (Map<HMMState *, DoubleReal>::iterator it = train_emission_prob_.begin(); it != train_emission_prob_.end(); ++it)
+    for (Map<HMMState *, double>::iterator it = train_emission_prob_.begin(); it != train_emission_prob_.end(); ++it)
     {
       backward_[it->first] = it->second;
     }
 
-    for (Map<HMMState *, DoubleReal>::iterator it = train_emission_prob_.begin(); it != train_emission_prob_.end(); ++it)
+    for (Map<HMMState *, double>::iterator it = train_emission_prob_.begin(); it != train_emission_prob_.end(); ++it)
     {
 #ifdef HIDDEN_MARKOV_MODEL_DEBUG
       cerr << "b:" << it->first << " " <<  it->first->getName() << " " << it->second << endl;
@@ -621,7 +621,7 @@ namespace OpenMS
         for (set<HMMState *>::const_iterator it = pre.begin(); it != pre.end(); ++it)
         {
           set<HMMState *> succ = (*it)->getSuccessorStates();
-          DoubleReal sum(0);
+          double sum(0);
           for (set<HMMState *>::const_iterator it2 = succ.begin(); it2 != succ.end(); ++it2)
           {
 #ifdef HIDDEN_MARKOV_MODEL_DEBUG
@@ -641,25 +641,25 @@ namespace OpenMS
     }
   }
 
-  DoubleReal HiddenMarkovModel::getForwardVariable_(HMMState * state)
+  double HiddenMarkovModel::getForwardVariable_(HMMState * state)
   {
     return forward_.find(state) != forward_.end() ? forward_[state] : 0;
   }
 
-  DoubleReal HiddenMarkovModel::getBackwardVariable_(HMMState * state)
+  double HiddenMarkovModel::getBackwardVariable_(HMMState * state)
   {
     return backward_.find(state) != backward_.end() ? backward_[state] : 0;
   }
 
   void HiddenMarkovModel::evaluate()
   {
-    for (Map<HMMState *, Map<HMMState *, DoubleReal> >::const_iterator it1 = count_trans_.begin(); it1 != count_trans_.end(); ++it1)
+    for (Map<HMMState *, Map<HMMState *, double> >::const_iterator it1 = count_trans_.begin(); it1 != count_trans_.end(); ++it1)
     {
 #ifdef EVALUATE_DEBUG
       cerr <<  it1->first->getName() << endl;
 #endif
-      DoubleReal sum(0);
-      for (Map<HMMState *, DoubleReal>::const_iterator it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
+      double sum(0);
+      for (Map<HMMState *, double>::const_iterator it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
       {
         if (count_trans_.find(it1->first) != count_trans_.end() &&
             count_trans_[it1->first].find(it2->first) != count_trans_[it1->first].end())
@@ -669,14 +669,14 @@ namespace OpenMS
           cerr << it1->first->getName() << " " << it2->first->getName() << " ";
 
           //<< count_trans_[it1->first][it2->first] << endl;
-          for (vector<DoubleReal>::const_iterator it = train_count_trans_all_[it1->first][it2->first].begin(); it != train_count_trans_all_[it1->first][it2->first].end(); ++it)
+          for (vector<double>::const_iterator it = train_count_trans_all_[it1->first][it2->first].begin(); it != train_count_trans_all_[it1->first][it2->first].end(); ++it)
           {
             cerr << *it << " ";
           }
-          vector<DoubleReal> data = train_count_trans_all_[it1->first][it2->first];
+          vector<double> data = train_count_trans_all_[it1->first][it2->first];
           std::sort(data.begin(), data.end());
-          DoubleReal mean = Math::mean(data.begin(), data.end());
-          DoubleReal variance = Math::variance(data.begin(), data.end(), mean);
+          double mean = Math::mean(data.begin(), data.end());
+          double variance = Math::variance(data.begin(), data.end(), mean);
           cerr << "mean=" << mean << ", variance=" << variance << endl;
 #endif
         }
@@ -684,7 +684,7 @@ namespace OpenMS
 
       if (sum != 0)
       {
-        for (Map<HMMState *, DoubleReal>::const_iterator it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
+        for (Map<HMMState *, double>::const_iterator it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
         {
           if (count_trans_.find(it1->first) != count_trans_.end() &&
               count_trans_[it1->first].find(it2->first) != count_trans_[it1->first].end())
@@ -696,7 +696,7 @@ namespace OpenMS
     }
   }
 
-  void HiddenMarkovModel::setInitialTransitionProbability(const String & state, DoubleReal prob)
+  void HiddenMarkovModel::setInitialTransitionProbability(const String & state, double prob)
   {
     OPENMS_PRECONDITION(name_to_state_.find(state) != name_to_state_.end(), String("HiddenMarkovModel::setInitialTransitionProbability(" + state + ", " + String(prob) + "), no suchstate!").c_str());
     //cerr << state << " " << prob << endl;
@@ -708,7 +708,7 @@ namespace OpenMS
     init_prob_.clear();
   }
 
-  void HiddenMarkovModel::setTrainingEmissionProbability(const String & state, DoubleReal prob)
+  void HiddenMarkovModel::setTrainingEmissionProbability(const String & state, double prob)
   {
 #ifdef SIMPLE_DEBUG2
     cerr << "setTrainingEmissionProbability(" << state << "(" << name_to_state_[state] << "), " << prob << ")" << endl;
@@ -763,14 +763,14 @@ namespace OpenMS
     enabled_trans_.clear();
   }
 
-  void HiddenMarkovModel::calculateEmissionProbabilities(Map<HMMState *, DoubleReal> & emission_probs)
+  void HiddenMarkovModel::calculateEmissionProbabilities(Map<HMMState *, double> & emission_probs)
   {
-    Map<HMMState *, DoubleReal> states = init_prob_;
+    Map<HMMState *, double> states = init_prob_;
 
     while (!states.empty())
     {
-      Map<HMMState *, DoubleReal> tmp = states;
-      for (Map<HMMState *, DoubleReal>::const_iterator it = tmp.begin(); it != tmp.end(); ++it)
+      Map<HMMState *, double> tmp = states;
+      for (Map<HMMState *, double>::const_iterator it = tmp.begin(); it != tmp.end(); ++it)
       {
         for (set<HMMState *>::const_iterator it2 = it->first->getSuccessorStates().begin(); it2 != it->first->getSuccessorStates().end(); ++it2)
         {
@@ -810,24 +810,24 @@ namespace OpenMS
   void HiddenMarkovModel::dump()
   {
     cerr << "dump of transitions: " << endl;
-    for (Map<HMMState *, Map<HMMState *, DoubleReal> >::const_iterator it = trans_.begin(); it != trans_.end(); ++it)
+    for (Map<HMMState *, Map<HMMState *, double> >::const_iterator it = trans_.begin(); it != trans_.end(); ++it)
     {
-      for (Map<HMMState *, DoubleReal>::const_iterator it1 = it->second.begin(); it1 != it->second.end(); ++it1)
+      for (Map<HMMState *, double>::const_iterator it1 = it->second.begin(); it1 != it->second.end(); ++it1)
       {
         cout << it->first->getName() << " -> " << it1->first->getName() << " " << it1->second << " " << training_steps_count_[it->first][it1->first] << ": ";
-        vector<DoubleReal> all_trans = train_count_trans_all_[it->first][it1->first];
+        vector<double> all_trans = train_count_trans_all_[it->first][it1->first];
 
         if (!all_trans.empty())
         {
-          DoubleReal sum = accumulate(all_trans.begin(), all_trans.end(), 0.0);
-          DoubleReal avg(sum / DoubleReal(all_trans.size()));
-          DoubleReal rsd(0);
+          double sum = accumulate(all_trans.begin(), all_trans.end(), 0.0);
+          double avg(sum / double(all_trans.size()));
+          double rsd(0);
           for (Size i = 0; i != all_trans.size(); ++i)
           {
             cout << all_trans[i] << " ";
             rsd += abs(all_trans[i] - avg);
           }
-          cout << "rsd=" << rsd / DoubleReal(all_trans.size()) / avg;
+          cout << "rsd=" << rsd / double(all_trans.size()) / avg;
           cout << ", avg=" << avg;
         }
 
@@ -841,7 +841,7 @@ namespace OpenMS
   void HiddenMarkovModel::forwardDump()
   {
     set<HMMState *> succ;
-    for (Map<HMMState *, DoubleReal>::iterator it = init_prob_.begin(); it != init_prob_.end(); ++it)
+    for (Map<HMMState *, double>::iterator it = init_prob_.begin(); it != init_prob_.end(); ++it)
     {
       succ.insert(it->first->getSuccessorStates().begin(), it->first->getSuccessorStates().end());
 
@@ -903,7 +903,7 @@ namespace OpenMS
           if (training_steps_count_[name_to_state_[aa1 + aa2 + "_" + pathway]][s2] == 0)
           {
             Size count(0);
-            DoubleReal sum(0);
+            double sum(0);
             // "rows" of the amino acid matrix
             for (set<const Residue *>::const_iterator kt = residues.begin(); kt != residues.end(); ++kt)
             {
@@ -936,13 +936,13 @@ namespace OpenMS
             if (count != 0)
             {
 #ifdef HIDDEN_MARKOV_MODEL_DEBUG
-              cerr << "setting transitions of " << aa1 << aa2 << "_" << pathway << " -> " << pathway << " to " << sum / DoubleReal(count) << endl;
+              cerr << "setting transitions of " << aa1 << aa2 << "_" << pathway << " -> " << pathway << " to " << sum / double(count) << endl;
 #endif
-              trans_[name_to_state_[aa1 + aa2 + "_" + pathway]][s2] = sum / DoubleReal(count);
-              trans_[name_to_state_[aa1 + aa2 + "_" + pathway]][end_state] = 1 - sum / DoubleReal(count);
+              trans_[name_to_state_[aa1 + aa2 + "_" + pathway]][s2] = sum / double(count);
+              trans_[name_to_state_[aa1 + aa2 + "_" + pathway]][end_state] = 1 - sum / double(count);
             }
 #ifdef HIDDEN_MARKOV_MODEL_DEBUG
-            cerr << sum / DoubleReal(count) << endl;
+            cerr << sum / double(count) << endl;
           }
           else
           {
@@ -969,7 +969,7 @@ namespace OpenMS
         if (training_steps_count_[name_to_state_[aa2 + "_" + sc_res]][s2] == 0)
         {
           Size count(0);
-          DoubleReal sum(0);
+          double sum(0);
           for (set<const Residue *>::const_iterator kt = residues.begin(); kt != residues.end(); ++kt)
           {
             AASequence third_aa;
@@ -986,8 +986,8 @@ namespace OpenMS
 
           if (count != 0)
           {
-            trans_[name_to_state_[aa2 + "_" + sc_res]][s2] = sum / DoubleReal(count);
-            trans_[name_to_state_[aa2 + "_" + sc_res]][end_state] = 1 - sum / DoubleReal(count);
+            trans_[name_to_state_[aa2 + "_" + sc_res]][s2] = sum / double(count);
+            trans_[name_to_state_[aa2 + "_" + sc_res]][end_state] = 1 - sum / double(count);
           }
         }
       }
@@ -1007,7 +1007,7 @@ namespace OpenMS
         if (training_steps_count_[name_to_state_[aa1 + "_" + pathway]][s2] == 0)
         {
           Size count(0);
-          DoubleReal sum(0);
+          double sum(0);
           for (set<const Residue *>::const_iterator jt = residues.begin(); jt != residues.end(); ++jt)
           {
             AASequence second_aa;
@@ -1019,11 +1019,11 @@ namespace OpenMS
               sum += trans_[s1][s2];
               count++;
             }
-            //cerr << "Estimating transition of '" << aa1 << pathway << "' -> '" << pathway << "' to " << sum/(DoubleReal)count << endl;
+            //cerr << "Estimating transition of '" << aa1 << pathway << "' -> '" << pathway << "' to " << sum/(double)count << endl;
             if (count != 0)
             {
-              trans_[name_to_state_[aa1 + "_" + pathway]][s2] = sum / (DoubleReal)count;
-              trans_[name_to_state_[aa1 + "_" + pathway]][end_state] = 1 - sum / (DoubleReal)count;
+              trans_[name_to_state_[aa1 + "_" + pathway]][s2] = sum / (double)count;
+              trans_[name_to_state_[aa1 + "_" + pathway]][end_state] = 1 - sum / (double)count;
             }
           }
         }
@@ -1032,13 +1032,13 @@ namespace OpenMS
 
   }
 
-  void HiddenMarkovModel::setPseudoCounts(DoubleReal pseudo_counts)
+  void HiddenMarkovModel::setPseudoCounts(double pseudo_counts)
   {
     pseudo_counts_ = pseudo_counts;
     return;
   }
 
-  DoubleReal HiddenMarkovModel::getPseudoCounts() const
+  double HiddenMarkovModel::getPseudoCounts() const
   {
     return pseudo_counts_;
   }
@@ -1060,26 +1060,26 @@ namespace OpenMS
     }
 
     // trans_
-    for (Map<HMMState *, Map<HMMState *, DoubleReal> >::const_iterator it1 = source.trans_.begin(); it1 != source.trans_.end(); ++it1)
+    for (Map<HMMState *, Map<HMMState *, double> >::const_iterator it1 = source.trans_.begin(); it1 != source.trans_.end(); ++it1)
     {
-      for (Map<HMMState *, DoubleReal>::const_iterator it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
+      for (Map<HMMState *, double>::const_iterator it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
       {
         trans_[old_to_new[it1->first]][old_to_new[it2->first]] = it2->second;
       }
     }
 
     // count_trans_
-    for (Map<HMMState *, Map<HMMState *, DoubleReal> >::const_iterator it1 = source.count_trans_.begin(); it1 != source.count_trans_.end(); ++it1)
+    for (Map<HMMState *, Map<HMMState *, double> >::const_iterator it1 = source.count_trans_.begin(); it1 != source.count_trans_.end(); ++it1)
     {
-      for (Map<HMMState *, DoubleReal>::const_iterator it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
+      for (Map<HMMState *, double>::const_iterator it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
       {
         count_trans_[old_to_new[it1->first]][old_to_new[it2->first]] = it2->second;
       }
     }
 
-    for (Map<HMMState *, Map<HMMState *, std::vector<DoubleReal> > >::const_iterator it1 = source.train_count_trans_all_.begin(); it1 != source.train_count_trans_all_.end(); ++it1)
+    for (Map<HMMState *, Map<HMMState *, std::vector<double> > >::const_iterator it1 = source.train_count_trans_all_.begin(); it1 != source.train_count_trans_all_.end(); ++it1)
     {
-      for (Map<HMMState *, vector<DoubleReal> >::const_iterator it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
+      for (Map<HMMState *, vector<double> >::const_iterator it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
       {
         train_count_trans_all_[old_to_new[it1->first]][old_to_new[it2->first]] = it2->second;
       }
@@ -1097,12 +1097,12 @@ namespace OpenMS
 
     // forward and backward are just temporary objects
 
-    for (Map<HMMState *, DoubleReal>::const_iterator it = source.train_emission_prob_.begin(); it != source.train_emission_prob_.end(); ++it)
+    for (Map<HMMState *, double>::const_iterator it = source.train_emission_prob_.begin(); it != source.train_emission_prob_.end(); ++it)
     {
       train_emission_prob_[old_to_new[it->first]] = it->second;
     }
 
-    for (Map<HMMState *, DoubleReal>::const_iterator it = source.init_prob_.begin(); it != source.init_prob_.end(); ++it)
+    for (Map<HMMState *, double>::const_iterator it = source.init_prob_.begin(); it != source.init_prob_.end(); ++it)
     {
       init_prob_[old_to_new[it->first]] = it->second;
     }

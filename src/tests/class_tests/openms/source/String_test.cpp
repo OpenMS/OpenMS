@@ -175,7 +175,7 @@ START_SECTION((String(long long signed int i)))
 END_SECTION
 
 
-START_SECTION((static String numberLength(DoubleReal d, UInt n)))
+START_SECTION((static String numberLength(double d, UInt n)))
 	TEST_EQUAL(String::numberLength(12345678.9123,11),"12345678.91")
 	TEST_EQUAL(String::numberLength(-12345678.9123,11),"-12345678.9")
 	TEST_EQUAL(String::numberLength(12345678.9123,10),"12345678.9")
@@ -185,7 +185,7 @@ START_SECTION((static String numberLength(DoubleReal d, UInt n)))
 END_SECTION
 
 
-START_SECTION((static String number(DoubleReal d, UInt n)))
+START_SECTION((static String number(double d, UInt n)))
 	TEST_EQUAL(String::number(123.1234,0),"123")
 	TEST_EQUAL(String::number(123.1234,1),"123.1")
 	TEST_EQUAL(String::number(123.1234,2),"123.12")
@@ -452,7 +452,7 @@ START_SECTION((Int toInt() const))
   TEST_EXCEPTION_WITH_MESSAGE(Exception::ConversionError, s.toInt(), String("Could not convert string '") + s + "' to an integer value")
 END_SECTION
 
-START_SECTION((Real toFloat() const))
+START_SECTION((float toFloat() const))
 	String s;
 	s = "123.456";
 	TEST_REAL_SIMILAR(s.toFloat(),123.456);
@@ -472,7 +472,7 @@ START_SECTION((Real toFloat() const))
   TEST_EXCEPTION_WITH_MESSAGE(Exception::ConversionError, s.toFloat(), String("Could not convert string '") + s + "' to a float value")
 END_SECTION
 
-START_SECTION((DoubleReal toDouble() const))
+START_SECTION((double toDouble() const))
 	String s;
 	s = "123.456";
 	TEST_REAL_SIMILAR(s.toDouble(),123.456);

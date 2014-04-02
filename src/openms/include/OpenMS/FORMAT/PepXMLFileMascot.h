@@ -77,7 +77,7 @@ protected:
     // Docu in base class
     virtual void startElement(const XMLCh * const /*uri*/, const XMLCh * const /*local_name*/, const XMLCh * const qname, const xercesc::Attributes & attributes);
 
-    void matchModification_(DoubleReal mass, String & modification_description);
+    void matchModification_(double mass, String & modification_description);
 
     /// @name members for loading data
     //@{
@@ -102,7 +102,7 @@ protected:
     std::vector<String> fixed_modifications_;
 
     /// stores the variable residue modifications
-    std::vector<std::pair<String, DoubleReal> > variable_modifications_;
+    std::vector<std::pair<String, double> > variable_modifications_;
     //@}
   };
 

@@ -56,52 +56,52 @@ public:
         throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
     }
 
-    DoubleReal getLowerRTBound() const
+    double getLowerRTBound() const
     {
         throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
     }
 
-    DoubleReal getUpperRTBound() const
+    double getUpperRTBound() const
     {
         throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
     }
 
-    DoubleReal getHeight() const
+    double getHeight() const
     {
         throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
     }
 
-    DoubleReal getCenter() const
+    double getCenter() const
     {
         throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
     }
 
-    DoubleReal getFWHM() const
+    double getFWHM() const
     {
         throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
     }
 
-    DoubleReal getValue(DoubleReal rt) const
+    double getValue(double rt) const
     {
         throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
     }
 
-    bool checkMinimalRTSpan(const std::pair<double, double>&, const DoubleReal)
+    bool checkMinimalRTSpan(const std::pair<double, double>&, const double)
     {
         throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
     }
 
-    bool checkMaximalRTSpan(const DoubleReal)
+    bool checkMaximalRTSpan(const double)
     {
         throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
     }
 
-    DoubleReal getArea()
+    double getArea()
     {
         throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
     }
 
-    String getGnuplotFormula(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType>&, const char, const DoubleReal, const DoubleReal)
+    String getGnuplotFormula(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType>&, const char, const double, const double)
     {
         throw Exception::NotImplemented(__FILE__,__LINE__,__PRETTY_FUNCTION__);
     }
@@ -155,37 +155,37 @@ START_SECTION((virtual void fit(FeatureFinderAlgorithmPickedHelperStructs::MassT
 }
 END_SECTION
 
-START_SECTION((virtual DoubleReal getLowerRTBound() const ))
+START_SECTION((virtual double getLowerRTBound() const ))
 {
   TEST_EXCEPTION(Exception::NotImplemented, trace_fitter.getLowerRTBound())
 }
 END_SECTION
 
-START_SECTION((virtual DoubleReal getUpperRTBound() const ))
+START_SECTION((virtual double getUpperRTBound() const ))
 {
   TEST_EXCEPTION(Exception::NotImplemented, trace_fitter.getUpperRTBound())
 }
 END_SECTION
 
-START_SECTION((virtual DoubleReal getHeight() const ))
+START_SECTION((virtual double getHeight() const ))
 {
   TEST_EXCEPTION(Exception::NotImplemented, trace_fitter.getHeight())
 }
 END_SECTION
 
-START_SECTION((virtual DoubleReal getCenter() const ))
+START_SECTION((virtual double getCenter() const ))
 {
   TEST_EXCEPTION(Exception::NotImplemented, trace_fitter.getCenter())
 }
 END_SECTION
 
-START_SECTION((virtual DoubleReal getValue(DoubleReal rt) const ))
+START_SECTION((virtual double getValue(double rt) const ))
 {
   TEST_EXCEPTION(Exception::NotImplemented, trace_fitter.getValue(0.0))
 }
 END_SECTION
 
-START_SECTION((DoubleReal computeTheoretical(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType>& trace, Size k)))
+START_SECTION((double computeTheoretical(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType>& trace, Size k)))
 {
   FeatureFinderAlgorithmPickedHelperStructs::MassTrace<Peak1D> mt;
   Peak1D p;
@@ -194,38 +194,38 @@ START_SECTION((DoubleReal computeTheoretical(const FeatureFinderAlgorithmPickedH
 }
 END_SECTION
 
-START_SECTION((virtual bool checkMinimalRTSpan(const std::pair<DoubleReal, DoubleReal>& rt_bounds, const DoubleReal min_rt_span)=0))
+START_SECTION((virtual bool checkMinimalRTSpan(const std::pair<double, double>& rt_bounds, const double min_rt_span)=0))
 {
-  std::pair<DoubleReal, DoubleReal> p;
-  DoubleReal x = 0.0;
+  std::pair<double, double> p;
+  double x = 0.0;
   TEST_EXCEPTION(Exception::NotImplemented, trace_fitter.checkMinimalRTSpan(p,x))
 }
 END_SECTION
 
-START_SECTION((virtual bool checkMaximalRTSpan(const DoubleReal max_rt_span)=0))
+START_SECTION((virtual bool checkMaximalRTSpan(const double max_rt_span)=0))
 {
-  DoubleReal x = 0.0;
+  double x = 0.0;
   TEST_EXCEPTION(Exception::NotImplemented, trace_fitter.checkMaximalRTSpan(x))
 }
 END_SECTION
 
-START_SECTION((virtual DoubleReal getArea()))
+START_SECTION((virtual double getArea()))
 {
   TEST_EXCEPTION(Exception::NotImplemented, trace_fitter.getArea())
 }
 END_SECTION
 
-START_SECTION((virtual String getGnuplotFormula(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType>& trace, const char function_name, const DoubleReal baseline, const DoubleReal rt_shift)=0))
+START_SECTION((virtual String getGnuplotFormula(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType>& trace, const char function_name, const double baseline, const double rt_shift)=0))
 {
   FeatureFinderAlgorithmPickedHelperStructs::MassTrace<Peak1D> mt;
-  DoubleReal shift = 0.0;
-  DoubleReal baseline = 0.0;
+  double shift = 0.0;
+  double baseline = 0.0;
   char f = 'f';
   TEST_EXCEPTION(Exception::NotImplemented, trace_fitter.getGnuplotFormula(mt, f, baseline, shift))
 }
 END_SECTION
 
-START_SECTION((virtual DoubleReal getFWHM() const))
+START_SECTION((virtual double getFWHM() const))
 {
   TEST_EXCEPTION(Exception::NotImplemented, trace_fitter.getFWHM())
 }

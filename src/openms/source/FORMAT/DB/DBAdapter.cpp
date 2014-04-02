@@ -251,7 +251,7 @@ namespace OpenMS
           break;
 
         case DataValue::DOUBLE_VALUE:
-          query << "','double','" << DoubleReal(*val);
+          query << "','double','" << double(*val);
           break;
 
         default:

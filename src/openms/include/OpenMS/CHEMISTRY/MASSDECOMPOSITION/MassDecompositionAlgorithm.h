@@ -87,7 +87,7 @@ public:
     */
     //@{
     /// returns the possible decompositions given the weight
-    void getDecompositions(std::vector<MassDecomposition> & decomps, DoubleReal weight);
+    void getDecompositions(std::vector<MassDecomposition> & decomps, double weight);
     //@}
 
 protected:

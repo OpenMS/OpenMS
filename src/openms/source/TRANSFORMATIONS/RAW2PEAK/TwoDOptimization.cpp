@@ -82,13 +82,13 @@ namespace OpenMS
     return *this;
   }
 
-  void TwoDOptimization::findMatchingPeaks_(std::multimap<DoubleReal, IsotopeCluster>::iterator & it, MSExperiment<> & ms_exp)
+  void TwoDOptimization::findMatchingPeaks_(std::multimap<double, IsotopeCluster>::iterator & it, MSExperiment<> & ms_exp)
   {
     IsotopeCluster::ChargedIndexSet::const_iterator iter = it->second.peaks.begin();
     for (; iter != it->second.peaks.end(); ++iter)
     {
 
-      DoubleReal mz = (ms_exp[iter->first][iter->second]).getMZ();
+      double mz = (ms_exp[iter->first][iter->second]).getMZ();
       mz *= 10;
       matching_peaks_[(Int)(mz + 0.5)].push_back(PeakIndex(iter->first, iter->second));
     }
@@ -108,14 +108,14 @@ namespace OpenMS
   }
 
   // Finds the neighbour of the peak denoted by @p current_mz in the previous scan
-  std::vector<DoubleReal>::iterator TwoDOptimization::searchInScan_(std::vector<DoubleReal>::iterator scan_begin,
-                                                                    std::vector<DoubleReal>::iterator scan_end,
-                                                                    DoubleReal current_mz)
+  std::vector<double>::iterator TwoDOptimization::searchInScan_(std::vector<double>::iterator scan_begin,
+                                                                    std::vector<double>::iterator scan_end,
+                                                                    double current_mz)
   {
 
     // perform binary search to find the neighbour in rt dimension
     //  lower_bound finds the peak with m/z current_mz or the next larger peak if this peak does not exist.
-    std::vector<DoubleReal>::iterator insert_iter = lower_bound(scan_begin, scan_end, current_mz);
+    std::vector<double>::iterator insert_iter = lower_bound(scan_begin, scan_end, current_mz);
 
     // the peak found by lower_bound does not have to be the closest one, therefore we have
     // to check both neighbours
@@ -133,7 +133,7 @@ namespace OpenMS
       }
       else           // see if the next smaller one fits better
       {
-        DoubleReal delta_mz = fabs(*insert_iter - current_mz);
+        double delta_mz = fabs(*insert_iter - current_mz);
         --insert_iter;
 
         if (fabs(*insert_iter - current_mz) < delta_mz)
@@ -151,12 +151,12 @@ namespace OpenMS
 
   void TwoDOptimization::updateMembers_()
   {
-    penalties_.height = (DoubleReal)param_.getValue("penalties:height");
-    penalties_.pos = (DoubleReal)param_.getValue("penalties:position");
-    penalties_.lWidth = (DoubleReal)param_.getValue("penalties:left_width");
-    penalties_.rWidth = (DoubleReal)param_.getValue("penalties:right_width");
-    max_peak_distance_ = (DoubleReal)param_.getValue("2d:max_peak_distance");
-    tolerance_mz_ = (DoubleReal)param_.getValue("2d:tolerance_mz");
+    penalties_.height = (double)param_.getValue("penalties:height");
+    penalties_.pos = (double)param_.getValue("penalties:position");
+    penalties_.lWidth = (double)param_.getValue("penalties:left_width");
+    penalties_.rWidth = (double)param_.getValue("penalties:right_width");
+    max_peak_distance_ = (double)param_.getValue("2d:max_peak_distance");
+    tolerance_mz_ = (double)param_.getValue("2d:tolerance_mz");
     max_iteration_ = (UInt)param_.getValue("iterations");
 
   }
@@ -171,12 +171,12 @@ namespace OpenMS
     // Params might contain any additional parameters. We handle these using class members
     // instead.
     // The vector f is supposed to contain the result when we return from this function.
-    DoubleReal computed_signal, current_position, experimental_signal, step, last_position;
-    DoubleReal p_height, p_position, p_width;
+    double computed_signal, current_position, experimental_signal, step, last_position;
+    double p_height, p_position, p_width;
     Int count = 0;
     Int counter_posf = 0;
     const std::vector<std::pair<SignedSize, SignedSize> > & signal2D = m_data->signal2D;
-    std::multimap<DoubleReal, IsotopeCluster>::iterator iso_map_iter = m_data->iso_map_iter;
+    std::multimap<double, IsotopeCluster>::iterator iso_map_iter = m_data->iso_map_iter;
     Size total_nr_peaks = m_data->total_nr_peaks;
     const std::map<Int, std::vector<PeakIndex> > & matching_peaks = m_data->matching_peaks;
     const MSExperiment<> & picked_peaks = m_data->picked_peaks;
@@ -229,7 +229,7 @@ namespace OpenMS
         while (peak_iter != iso_map_iter->second.peaks.end() && peak_iter->first == curr_scan_idx)
         {
           Int peak_idx = distance(iso_map_iter->second.peaks.begin(), peak_iter);
-          DoubleReal mz_in_hash = ((picked_peaks[peak_iter->first]).begin() + peak_iter->second)->getMZ() * 10;
+          double mz_in_hash = ((picked_peaks[peak_iter->first]).begin() + peak_iter->second)->getMZ() * 10;
           std::map<Int, std::vector<PeakIndex> >::const_iterator  m_spec_iter = matching_peaks.begin();
           Int map_idx = 0;
           while (m_spec_iter->first != (Int)(mz_in_hash + 0.5))
@@ -280,7 +280,7 @@ namespace OpenMS
     }
 
     // penalties : especially negative heights have to be penalised
-    DoubleReal penalty = 0.;
+    double penalty = 0.;
 
 
     //iterate over all peaks again to compute the penalties
@@ -290,9 +290,9 @@ namespace OpenMS
     for (; map_iter != matching_peaks.end(); ++map_iter)
     {
       std::vector<PeakIndex>::const_iterator vec_iter = map_iter->second.begin();
-      DoubleReal old_position = 0, old_width_l = 0, old_width_r = 0;
-      DoubleReal weight = 0;
-      DoubleReal old_height, p_height;
+      double old_position = 0, old_width_l = 0, old_width_r = 0;
+      double weight = 0;
+      double old_height, p_height;
       for (; vec_iter != map_iter->second.end(); ++vec_iter)
       {
 
@@ -316,9 +316,9 @@ namespace OpenMS
       old_width_l /= weight;
       old_width_r /= weight;
 
-      DoubleReal p_position   = x(total_nr_peaks + 3 * current_peak);
-      DoubleReal p_width_l    = x(total_nr_peaks + 3 * current_peak + 1);
-      DoubleReal p_width_r    = x(total_nr_peaks + 3 * current_peak + 2);
+      double p_position   = x(total_nr_peaks + 3 * current_peak);
+      double p_width_l    = x(total_nr_peaks + 3 * current_peak + 1);
+      double p_width_r    = x(total_nr_peaks + 3 * current_peak + 2);
       if (p_width_l < 0)
       {
         penalty += 1e7 * penalties.lWidth * pow(fabs(p_width_l - old_width_l), 2);
@@ -365,22 +365,22 @@ namespace OpenMS
     //          - each row corresponds to one data point
     //          - each column corresponds to one parameter
 
-    DoubleReal current_position, last_position, step;
-    DoubleReal p_height, p_position, p_width;
-    DoubleReal diff, denom_inv, ddl_left, ddl_right, ddx0, sinh_term;
+    double current_position, last_position, step;
+    double p_height, p_position, p_width;
+    double diff, denom_inv, ddl_left, ddl_right, ddx0, sinh_term;
     Int count = 0;
     Int counter_posf = 0;
 
     const std::vector<std::pair<SignedSize, SignedSize> > & signal2D = m_data->signal2D;
-    std::multimap<DoubleReal, IsotopeCluster>::iterator iso_map_iter = m_data->iso_map_iter;
+    std::multimap<double, IsotopeCluster>::iterator iso_map_iter = m_data->iso_map_iter;
     Size total_nr_peaks = m_data->total_nr_peaks;
     const std::map<Int, std::vector<PeakIndex> > & matching_peaks = m_data->matching_peaks;
-    std::vector<DoubleReal> ov_weight(matching_peaks.size(), 0);
+    std::vector<double> ov_weight(matching_peaks.size(), 0);
     const MSExperiment<> & picked_peaks = m_data->picked_peaks;
     MSExperiment<Peak1D>::ConstIterator raw_data_first = m_data->raw_data_first;
     const OptimizationFunctions::PenaltyFactorsIntensity & penalties = m_data->penalties;
-//          std::vector<DoubleReal> &positions=static_cast<TwoDOptimization::Data*> (params) ->positions;
-//          std::vector<DoubleReal> &signal=static_cast<TwoDOptimization::Data*> (params) ->signal;
+//          std::vector<double> &positions=static_cast<TwoDOptimization::Data*> (params) ->positions;
+//          std::vector<double> &signal=static_cast<TwoDOptimization::Data*> (params) ->signal;
     IsotopeCluster::ChargedIndexSet::iterator peak_iter = iso_map_iter->second.peaks.begin();
     Size num_scans = signal2D.size() / 2;
     //iterate over all scans
@@ -400,7 +400,7 @@ namespace OpenMS
         current_position  = ((raw_data_first
                               + signal2D[2 * current_scan].first)->begin()
                              + signal2D[2 * current_scan].second + current_point)->getMZ();
-//       DoubleReal experimental_signal = ((raw_data_first + signal2D[2 * current_scan].first)->begin()
+//       double experimental_signal = ((raw_data_first + signal2D[2 * current_scan].first)->begin()
 //                               + signal2D[2 * current_scan].second + current_point)->getIntensity();
 
         step = current_position - last_position;
@@ -425,7 +425,7 @@ namespace OpenMS
         while (peak_iter != iso_map_iter->second.peaks.end() && peak_iter->first == curr_scan_idx)
         {
           Int peak_idx = distance(iso_map_iter->second.peaks.begin(), peak_iter);
-          DoubleReal mz_in_hash = ((picked_peaks[peak_iter->first]).begin() + peak_iter->second)->getMZ() * 10;
+          double mz_in_hash = ((picked_peaks[peak_iter->first]).begin() + peak_iter->second)->getMZ() * 10;
           std::map<Int, std::vector<PeakIndex> >::const_iterator  m_spec_iter =  matching_peaks.begin();
           Int map_idx = 0;
           while (m_spec_iter->first != (Int)(mz_in_hash + 0.5))
@@ -446,11 +446,11 @@ namespace OpenMS
                           x(total_nr_peaks + 3 * map_idx + 1) :
                           x(total_nr_peaks + 3 * map_idx + 2);
           ++count;
-          DoubleReal weight = step * picked_peaks[peak_iter->first].getFloatDataArrays()[1][peak_iter->second];
+          double weight = step * picked_peaks[peak_iter->first].getFloatDataArrays()[1][peak_iter->second];
           ov_weight[map_idx] += weight;
-          DoubleReal ddx0_old = J(counter_posf, total_nr_peaks + 3 * map_idx);
-          DoubleReal ddl_left_old = J(counter_posf, total_nr_peaks + 3 * map_idx + 1);
-          DoubleReal ddl_right_old = J(counter_posf, total_nr_peaks + 3 * map_idx + 2);
+          double ddx0_old = J(counter_posf, total_nr_peaks + 3 * map_idx);
+          double ddl_left_old = J(counter_posf, total_nr_peaks + 3 * map_idx + 1);
+          double ddl_right_old = J(counter_posf, total_nr_peaks + 3 * map_idx + 2);
           //is it a Lorentz or a Sech - Peak?
 
           if ((PeakShape::Type)(Int) Math::round((picked_peaks[peak_iter->first]).getFloatDataArrays()[5][peak_iter->second]) == PeakShape::LORENTZ_PEAK)
@@ -531,10 +531,10 @@ namespace OpenMS
     for (; map_iter != matching_peaks.end(); ++map_iter)
     {
       std::vector<PeakIndex>::const_iterator vec_iter   = map_iter->second.begin();
-      DoubleReal old_position = 0, old_width_l = 0, old_width_r = 0;
-      DoubleReal weight = 0;
-      DoubleReal old_height, p_height;
-      DoubleReal penalty_h = 0, penalty_l = 0, penalty_r = 0, penalty_p = 0;
+      double old_position = 0, old_width_l = 0, old_width_r = 0;
+      double weight = 0;
+      double old_height, p_height;
+      double penalty_h = 0, penalty_l = 0, penalty_r = 0, penalty_p = 0;
       for (; vec_iter != map_iter->second.end(); ++vec_iter)
       {
         old_height = picked_peaks[vec_iter->spectrum].getFloatDataArrays()[1][vec_iter->peak];
@@ -546,7 +546,7 @@ namespace OpenMS
         p_height     = x(peak);
 
 
-        DoubleReal penalty_height = 2. * penalties.height * fabs(p_height - old_height);
+        double penalty_height = 2. * penalties.height * fabs(p_height - old_height);
         if (p_height < 1)
         {
           penalty_h += 1000000 * penalty_height;
@@ -559,12 +559,12 @@ namespace OpenMS
       old_width_r /= weight;
 
       // std::cout << old_position << "vs. ";
-      DoubleReal p_position   = x(total_nr_peaks + 3 * current_peak);
-      DoubleReal p_width_l    = x(total_nr_peaks + 3 * current_peak + 1);
-      DoubleReal p_width_r    = x(total_nr_peaks + 3 * current_peak + 2);
-      DoubleReal penalty_lwidth = 2. * penalties.lWidth * fabs(p_width_l - old_width_l);
-      DoubleReal penalty_rwidth = 2. * penalties.rWidth * fabs(p_width_r - old_width_r);
-      DoubleReal penalty_pos    = 2. * penalties.pos * fabs(p_position - old_position);
+      double p_position   = x(total_nr_peaks + 3 * current_peak);
+      double p_width_l    = x(total_nr_peaks + 3 * current_peak + 1);
+      double p_width_r    = x(total_nr_peaks + 3 * current_peak + 2);
+      double penalty_lwidth = 2. * penalties.lWidth * fabs(p_width_l - old_width_l);
+      double penalty_rwidth = 2. * penalties.rWidth * fabs(p_width_r - old_width_r);
+      double penalty_pos    = 2. * penalties.pos * fabs(p_position - old_position);
       //std::cout << p_position<<std::endl;
 #ifdef DEBUG_2D
       std::cout << "penalty_lwidth " << penalty_lwidth << "penalty_rwidth " << penalty_rwidth

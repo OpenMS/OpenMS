@@ -64,7 +64,7 @@ public:
     /// Charge type
     typedef Int ChargeType;
     /// Feature width type
-    typedef Real WidthType;
+    typedef float WidthType;
     //@}
 
     ///@name Constructors and destructor
@@ -147,7 +147,7 @@ protected:
     /// Charge of the feature
     Int charge_;
     /// Width of the feature (FWHM)
-    Real width_;
+    float width_;
   };
 
   /**

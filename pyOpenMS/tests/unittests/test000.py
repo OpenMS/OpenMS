@@ -2783,7 +2783,14 @@ def testMSSpectrum():
     assert spec == spec
     assert not spec != spec
 
-    assert spec.get_peaks().shape == (1,2), spec.get_peaks().shape
+    mz, ii = spec.get_peaks()
+    assert len(mz) == len(ii)
+    assert len(mz) == 1
+
+    spec.set_peaks((mz, ii))
+    mz0, ii0 = spec.get_peaks()
+    assert mz0 == mz
+    assert ii0 == ii
 
     assert int(spec.isSorted()) in  (0,1)
 

@@ -72,7 +72,7 @@ namespace OpenMS
 public:
 
     /// Returns if the residue is aliphatic (1.0 or 0.0)
-    static DoubleReal aliphatic(char aa)
+    static double aliphatic(char aa)
     {
       if (aa == 'A' || aa == 'G' || aa == 'F' || aa == 'I' || aa == 'M' || aa == 'L' || aa == 'P' || aa == 'V')
       {
@@ -85,7 +85,7 @@ public:
     }
 
     /// Returns if the residue is acidic (1.0 or 0.0)
-    static DoubleReal acidic(char aa)
+    static double acidic(char aa)
     {
       if (aa == 'D' || aa == 'E')
       {
@@ -98,7 +98,7 @@ public:
     }
 
     /// Returns if the residue is basic (1.0 or 0.0)
-    static DoubleReal basic(char aa)
+    static double basic(char aa)
     {
       if (aa == 'K' || aa == 'R' || aa == 'H' || aa == 'W')
       {
@@ -111,7 +111,7 @@ public:
     }
 
     /// Returns if the residue is polar (1.0 or 0.0)
-    static DoubleReal polar(char aa)
+    static double polar(char aa)
     {
       if (aa == 'S' || aa == 'T' || aa == 'Y' || aa == 'H' || aa == 'C' || aa == 'N' || aa == 'Q' || aa == 'W')
       {
@@ -136,7 +136,7 @@ public:
 
       @exception InvalidValue is thrown if an undefined one-letter-code is used
     */
-    static DoubleReal getKHAG800101(char aa)
+    static double getKHAG800101(char aa)
     {
       switch (aa)
       {
@@ -220,7 +220,7 @@ public:
 
       @exception InvalidValue is thrown if an undefined one-letter-code is used
     */
-    static DoubleReal getVASM830103(char aa)
+    static double getVASM830103(char aa)
     {
       switch (aa)
       {
@@ -307,7 +307,7 @@ public:
 
       @exception InvalidValue is thrown if an undefined one-letter-code is used
     */
-    static DoubleReal getNADH010106(char aa)
+    static double getNADH010106(char aa)
     {
       switch (aa)
       {
@@ -391,7 +391,7 @@ public:
 
       @exception InvalidValue is thrown if an undefined one-letter-code is used
     */
-    static DoubleReal getNADH010107(char aa)
+    static double getNADH010107(char aa)
     {
       switch (aa)
       {
@@ -476,7 +476,7 @@ public:
 
       @exception InvalidValue is thrown if an undefined one-letter-code is used
     */
-    static DoubleReal getWILM950102(char aa)
+    static double getWILM950102(char aa)
     {
       switch (aa)
       {
@@ -559,7 +559,7 @@ public:
 
       @exception InvalidValue is thrown if an undefined one-letter-code is used
     */
-    static DoubleReal getROBB760107(char aa)
+    static double getROBB760107(char aa)
     {
       switch (aa)
       {
@@ -643,7 +643,7 @@ public:
 
       @exception InvalidValue is thrown if an undefined one-letter-code is used
     */
-    static DoubleReal getOOBM850104(char aa)
+    static double getOOBM850104(char aa)
     {
       switch (aa)
       {
@@ -728,7 +728,7 @@ public:
 
       @exception InvalidValue is thrown if an undefined one-letter-code is used
     */
-    static DoubleReal getFAUJ880111(char aa)
+    static double getFAUJ880111(char aa)
     {
       switch (aa)
       {
@@ -815,7 +815,7 @@ public:
 
       @exception InvalidValue is thrown if an undefined one-letter-code is used
     */
-    static DoubleReal getFINA770101(char aa)
+    static double getFINA770101(char aa)
     {
       switch (aa)
       {
@@ -899,7 +899,7 @@ public:
 
       @exception InvalidValue is thrown if an undefined one-letter-code is used
     */
-    static DoubleReal getARGP820102(char aa)
+    static double getARGP820102(char aa)
     {
       switch (aa)
       {
@@ -978,15 +978,15 @@ public:
 
       @exception InvalidValue is thrown if an undefined one-letter-code is used
     */
-    static DoubleReal calculateGB(const AASequence& seq, DoubleReal T = 500.0)
+    static double calculateGB(const AASequence& seq, double T = 500.0)
     {
 
-      DoubleReal R = Constants::GAS_CONSTANT / 1000.0; // ideal gas constant in kj/(K*mol)
+      double R = Constants::GAS_CONSTANT / 1000.0; // ideal gas constant in kj/(K*mol)
 
       char left = '>';
       char right;
 
-      DoubleReal k_app = 0.0; // apparent proton association constant
+      double k_app = 0.0; // apparent proton association constant
 
       // energy level E at each protonation site i is -GB(i)
       // fractional proton population of a microstate k is
@@ -1013,7 +1013,7 @@ public:
           Residue rightchar = seq[i];
           right = rightchar.getOneLetterCode()[0];
         }
-        DoubleReal contrib = exp((GBleft_(left) + GBdeltaright_(right)) / (R * T));
+        double contrib = exp((GBleft_(left) + GBdeltaright_(right)) / (R * T));
         if (i > 0 && i < seq.size())
         {
           contrib += exp(GBsidechain_(right) / (R * T));
@@ -1029,11 +1029,11 @@ protected:
     /**
       @brief Calculates part of the gas-phase basicity
 
-      For a detailed description see @ref calculateGB(const AASequence&, DoubleReal) .
+      For a detailed description see @ref calculateGB(const AASequence&, double) .
 
       @exception InvalidValue is thrown if an undefined one-letter-code is used
     */
-    static DoubleReal GBsidechain_(char aa)
+    static double GBsidechain_(char aa)
     {
       switch (aa)
       {
@@ -1107,11 +1107,11 @@ protected:
     /**
       @brief Calculates part of the gas-phase basicity
 
-      For a detailed description see @ref calculateGB(const AASequence&, DoubleReal) .
+      For a detailed description see @ref calculateGB(const AASequence&, double) .
 
       @exception InvalidValue is thrown if an undefined one-letter-code is used
     */
-    static DoubleReal GBleft_(char aa)
+    static double GBleft_(char aa)
     {
       switch (aa)
       {
@@ -1189,11 +1189,11 @@ protected:
     /**
       @brief Calculates part of the gas-phase basicity
 
-      For a detailed description see @ref calculateGB(const AASequence&, DoubleReal) .
+      For a detailed description see @ref calculateGB(const AASequence&, double) .
 
       @exception InvalidValue is thrown if an undefined one-letter-code is used
     */
-    static DoubleReal GBdeltaright_(char aa)
+    static double GBdeltaright_(char aa)
     {
       switch (aa)
       {

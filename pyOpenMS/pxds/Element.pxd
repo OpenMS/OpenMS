@@ -14,8 +14,8 @@ cdef extern from "<OpenMS/CHEMISTRY/Element.h>" namespace "OpenMS":
         Element(String name,
                 String symbol,
                 UInt atomic_number,
-                DoubleReal average_weight,
-                DoubleReal mono_weight,
+                double average_weight,
+                double mono_weight,
                 IsotopeDistribution isotopes) nogil except +
 
         # sets unique atomic number
@@ -25,16 +25,16 @@ cdef extern from "<OpenMS/CHEMISTRY/Element.h>" namespace "OpenMS":
         UInt getAtomicNumber() nogil except +
 
         # sets the average weight of the element
-        void setAverageWeight(DoubleReal weight) nogil except +
+        void setAverageWeight(double weight) nogil except +
 
         # returns the average weight of the element
-        DoubleReal getAverageWeight() nogil except +
+        double getAverageWeight() nogil except +
 
         # sets the mono isotopic weight of the element
-        void setMonoWeight(DoubleReal weight) nogil except +
+        void setMonoWeight(double weight) nogil except +
 
         # returns the mono isotopic weight of the element
-        DoubleReal getMonoWeight() nogil except +
+        double getMonoWeight() nogil except +
 
         # sets the isotope distribution of the element
         void setIsotopeDistribution(IsotopeDistribution isotopes) nogil except +

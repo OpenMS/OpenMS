@@ -112,7 +112,7 @@ protected:
     }
   }
 
-  void writeHist(String out_csv, const vector<DoubleReal> & deltaMZs, const vector<DoubleReal> & mzs, const vector<DoubleReal> & rts)
+  void writeHist(String out_csv, const vector<double> & deltaMZs, const vector<double> & mzs, const vector<double> & rts)
   {
     //cout << "writting data" << endl;
     ofstream csv_file(out_csv.c_str());
@@ -122,7 +122,7 @@ protected:
     csv_file << "RT\tuncorrectedMZ\tcorrectedMZ\tdeltaMZ" << endl;
 
     // entries
-    for (vector<DoubleReal>::const_iterator it = deltaMZs.begin(); it != deltaMZs.end(); ++it)
+    for (vector<double>::const_iterator it = deltaMZs.begin(); it != deltaMZs.end(); ++it)
     {
       UInt index = it - deltaMZs.begin();
       csv_file << rts[index] << "\t" << mzs[index] << "\t" << mzs[index] + *it  << "\t" << *it << endl;
@@ -131,7 +131,7 @@ protected:
   }
 
 protected:
-  void correct(PeakMap & exp, vector<DoubleReal> & deltaMZs, vector<DoubleReal> & mzs, vector<DoubleReal> & rts)
+  void correct(PeakMap & exp, vector<double> & deltaMZs, vector<double> & mzs, vector<double> & rts)
   {
     // load experiment and extract precursors
     vector<Precursor> precursors;  // precursor
@@ -141,10 +141,10 @@ protected:
     for (Size i = 0; i != precursors_rt.size(); ++i)
     {
       // get precursor rt
-      DoubleReal rt = precursors_rt[i];
+      double rt = precursors_rt[i];
 
       // get precursor MZ
-      DoubleReal mz = precursors[i].getMZ();
+      double mz = precursors[i].getMZ();
 
       //cout << rt << " " << mz << endl;
 
@@ -168,10 +168,10 @@ protected:
       Size nearest_peak_idx = rt_it->findNearest(mz);
 
       // get actual position of closest peak
-      DoubleReal nearest_peak_mz = (*rt_it)[nearest_peak_idx].getMZ();
+      double nearest_peak_mz = (*rt_it)[nearest_peak_idx].getMZ();
 
       // calculate error between expected and actual position
-      DoubleReal nearestPeakError = abs(nearest_peak_mz - mz);
+      double nearestPeakError = abs(nearest_peak_mz - mz);
 
       // check if error is small enough
       if (nearestPeakError < 0.1)
@@ -183,7 +183,7 @@ protected:
         }
 
         // cout << mz << " -> " << nearest_peak_mz << endl;
-        DoubleReal deltaMZ = nearest_peak_mz - mz;
+        double deltaMZ = nearest_peak_mz - mz;
         deltaMZs.push_back(deltaMZ);
         mzs.push_back(mz);
         rts.push_back(rt);
@@ -207,9 +207,9 @@ protected:
     cout << setprecision(12);
 
     // determine accuracy
-    vector<DoubleReal> deltaMZs;
-    vector<DoubleReal> mzs;
-    vector<DoubleReal> rts;
+    vector<double> deltaMZs;
+    vector<double> mzs;
+    vector<double> rts;
 
     correct(exp, deltaMZs, mzs, rts);
 

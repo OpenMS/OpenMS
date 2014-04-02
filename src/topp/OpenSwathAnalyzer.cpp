@@ -174,7 +174,7 @@ protected:
     String in = getStringOption_("in");
     String tr_file = getStringOption_("tr");
     String out = getStringOption_("out");
-    DoubleReal min_upper_edge_dist = getDoubleOption_("min_upper_edge_dist");
+    double min_upper_edge_dist = getDoubleOption_("min_upper_edge_dist");
     bool nostrict = getFlag_("no-strict");
 
     // If we have a transformation file, trafo will transform the RT in the

@@ -236,17 +236,32 @@ FILE(COPY ${_python_files} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/tests/memory
 FILE(GLOB _python_files "${OPENMS_HOST_DIRECTORY}/pyOpenMS/tests/integration_tests/*")
 FILE(COPY ${_python_files} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/tests/integration_tests)
 
-FILE(COPY ${OPENMS_HOST_DIRECTORY}/pyOpenMS/License.txt DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms)
-FILE(COPY ${OPENMS_HOST_DIRECTORY}/pyOpenMS/MANIFEST.in DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/)
-FILE(COPY ${OPENMS_HOST_DIRECTORY}/pyOpenMS/README.rst DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/)
-FILE(COPY ${OPENMS_HOST_DIRECTORY}/pyOpenMS/setup.py DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS)
-FILE(COPY ${OPENMS_HOST_DIRECTORY}/pyOpenMS/create_cpp_extension.py DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS)
-FILE(COPY ${OPENMS_HOST_DIRECTORY}/pyOpenMS/distribute_setup.py DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS)
-FILE(COPY ${OPENMS_HOST_DIRECTORY}/pyOpenMS/version.py DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS)
-FILE(COPY ${OPENMS_HOST_DIRECTORY}/pyOpenMS/version.py DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms)
-FILE(COPY ${OPENMS_HOST_DIRECTORY}/pyOpenMS/run_nose.py DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS)
-FILE(COPY ${OPENMS_HOST_DIRECTORY}/pyOpenMS/run_memleaks.py DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS)
-FILE(COPY ${OPENMS_HOST_DIRECTORY}/pyOpenMS/doCythonCompileOnly.py DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS)
+# list of files required for the pyOpenMS build system
+set(_pyopenms_files
+  MANIFEST.in
+  README.rst
+  setup.py
+  create_cpp_extension.py
+  distribute_setup.py
+  version.py
+  run_nose.py
+  run_memleaks.py
+  doCythonCompileOnly.py
+)
+
+foreach(pyfile ${_pyopenms_files})
+  configure_file(${OPENMS_HOST_DIRECTORY}/pyOpenMS/${pyfile} ${CMAKE_BINARY_DIR}/pyOpenMS/${pyfile} COPYONLY)
+endforeach()
+
+set(_sub_pyopenms_files
+  License.txt
+  version.py
+)
+
+# list of files located in pyOpenMS/pyopenms
+foreach(pyfile ${_sub_pyopenms_files})
+  configure_file(${OPENMS_HOST_DIRECTORY}/pyOpenMS/${pyfile} ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/${pyfile} COPYONLY)
+endforeach()
 
 if(WIN32)
     FILE(COPY ${MSVCR90DLL} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms)
@@ -267,56 +282,49 @@ endif()
 #------------------------------------------------------------------------------
 # write variables for setup.py as Python script into pyOpenMS/env.py
 
-set(ENVPATH ${CMAKE_BINARY_DIR}/pyOpenMS/env.py)
+set(_env_py_in ${OPENMS_HOST_DIRECTORY}/pyOpenMS/env.py.in)
+set(_env_py ${CMAKE_BINARY_DIR}/pyOpenMS/env.py)
 
-FILE(WRITE ${ENVPATH} OPEN_MS_SRC="${CMAKE_SOURCE_DIR}" "\n" )
-FILE(APPEND ${ENVPATH} OPEN_MS_BUILD_DIR="${CMAKE_BINARY_DIR}" "\n")
-FILE(APPEND ${ENVPATH} QT_QMAKE_VERSION_INFO="""${QT_QMAKE_VERSION_INFO}""" "\n")
-
-FILE(APPEND ${ENVPATH} OPEN_MS_CONTRIB_BUILD_DIRS=\")
-foreach(CONTRIB_PATH ${CONTRIB_DIR})
-	FILE(APPEND ${ENVPATH} ${CONTRIB_PATH} ";")
-endforeach()
-FILE(APPEND ${ENVPATH} "\"\n")
-
+#------------------------------------------------------------------------------
 # If there are other, external libraries that we would like to link, we can
 # specify them here:
-FILE(APPEND ${ENVPATH} INCLUDE_DIRS_EXTEND=[)
-if (WITH_CRAWDAD)
-  FILE(APPEND ${ENVPATH} \"${CRAWDAD_INCLUDE_DIRS}\",)
-  FILE(APPEND ${ENVPATH} \"${CRAWDAD_INCLUDE_DIRS}/msmat\",)
-endif()
-FILE(APPEND ${ENVPATH} ]\n)
-FILE(APPEND ${ENVPATH} LIBRARIES_EXTEND=[)
-if (WITH_CRAWDAD)
-  FILE(APPEND ${ENVPATH} \"Crawdad\",)
-endif()
-FILE(APPEND ${ENVPATH} ]\n)
-FILE(APPEND ${ENVPATH} LIBRARY_DIRS_EXTEND=[)
-if (WITH_CRAWDAD)
-  FILE(APPEND ${ENVPATH} \"${CRAWDAD_INCLUDE_DIRS}\",)
-endif()
-FILE(APPEND ${ENVPATH} ]\n)
+set(INCLUDE_DIRS_EXTEND "")
+set(LIBRARIES_EXTEND "")
+set(LIBRARY_DIRS_EXTEND "")
 
-FILE(APPEND ${ENVPATH} QT_HEADERS_DIR="${QT_HEADERS_DIR}" "\n")
-FILE(APPEND ${ENVPATH} QT_LIBRARY_DIR="${QT_LIBRARY_DIR}" "\n")
-FILE(APPEND ${ENVPATH} QT_QTCORE_INCLUDE_DIR="${QT_QTCORE_INCLUDE_DIR}" "\n")
-FILE(APPEND ${ENVPATH} MSVCR90DLL="${MSVCR90DLL}" "\n")
-FILE(APPEND ${ENVPATH} MSVCP90DLL="${MSVCP90DLL}" "\n")
-FILE(APPEND ${ENVPATH} OPEN_MS_BUILD_TYPE="${CMAKE_BUILD_TYPE}" "\n")
-FILE(APPEND ${ENVPATH} OPEN_MS_VERSION="${CF_OPENMS_PACKAGE_VERSION}" "\n")
+if (WITH_CRAWDAD)
+  set(INCLUDE_DIRS_EXTEND "\"${CRAWDAD_INCLUDE_DIRS}\", \"${CRAWDAD_INCLUDE_DIRS}/msmat\", ${INCLUDE_DIRS_EXTEND}")
+  set(LIBRARIES_EXTEND "\"Crawdad\", ${LIBRARIES_EXTEND} ${LIBRARIES_EXTEND}")
+  set(LIBRARY_DIRS_EXTEND "\"${CRAWDAD_INCLUDE_DIRS}\", ${LIBRARY_DIRS_EXTEND}")
+endif()
+#------------------------------------------------------------------------------
+
+#------------------------------------------------------------------------------
+# collection of include dirs that is necessary to compile pyOpenMS
+set(PYOPENMS_INCLUDE_DIRS
+  ${OpenSwathAlgo_INCLUDE_DIRECTORIES}
+  ${OpenMS_INCLUDE_DIRECTORIES}
+  ${SuperHirn_INCLUDE_DIRECTORIES}
+)
+
+set(OPEN_MS_BUILD_TYPE ${CMAKE_BUILD_TYPE})
+set(OPEN_MS_LIB "")
+set(OPEN_SWATH_ALGO_LIB "")
+set(SUPERHIRN_LIB "")
+
 if(WIN32)
     if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-        FILE(APPEND ${ENVPATH} OPEN_MS_LIB="${OpenMS_BINARY_DIR}/bin/Debug/OpenMSd.dll" "\n")
-        FILE(APPEND ${ENVPATH} OPEN_SWATH_ALGO_LIB="${OpenMS_BINARY_DIR}/bin/Debug/OpenSwathAlgod.dll" "\n")
+      set(OPEN_MS_LIB "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Debug/OpenMSd.dll")
+      set(OPEN_SWATH_ALGO_LIB "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Debug/OpenSwathAlgod.dll")
+      set(SUPERHIRN_LIB "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Debug/SuperHirnd.dll")
     else()
-        FILE(APPEND ${ENVPATH} OPEN_MS_LIB="${OpenMS_BINARY_DIR}/bin/Release/OpenMS.dll" "\n")
-        FILE(APPEND ${ENVPATH} OPEN_SWATH_ALGO_LIB="${OpenMS_BINARY_DIR}/bin/Release/OpenSwathAlgo.dll" "\n")
+      set(OPEN_MS_LIB "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Release/OpenMS.dll")
+      set(OPEN_SWATH_ALGO_LIB "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Release/OpenSwathAlgo.dll")
+      set(SUPERHIRN_LIB "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Release/SuperHirn.dll")
     endif()
-else()
-    FILE(APPEND ${ENVPATH} OPEN_MS_LIB="" "\n")
-    FILE(APPEND ${ENVPATH} OPEN_SWATH_ALGO_LIB="" "\n")
 endif()
+
+configure_file(${_env_py_in} ${_env_py} @ONLY)
 
 #------------------------------------------------------------------------------
 # create targets in makefile
@@ -406,4 +414,3 @@ add_test(NAME pyopenms_test_memoryleaktests
 if(NOT WIN32)
     set_tests_properties(pyopenms_test_memoryleaktests PROPERTIES ENVIRONMENT "LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/lib")
 endif()
-

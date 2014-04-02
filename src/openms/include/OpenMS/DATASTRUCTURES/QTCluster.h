@@ -82,7 +82,7 @@ private:
      * @brief Mapping: input map -> distance to center (ordered!) -> neighboring point
      * @note There should never be an empty sub-map! (When a sub-map becomes empty, it should be removed from the overall map.)
      */
-    typedef OpenMSBoost::unordered_map<Size, std::multimap<DoubleReal, GridFeature *> > NeighborMap;
+    typedef OpenMSBoost::unordered_map<Size, std::multimap<double, GridFeature *> > NeighborMap;
 
     /// Pointer to the cluster center
     GridFeature * center_point_;
@@ -95,13 +95,13 @@ private:
     NeighborMap neighbors_;
 
     /// Maximum distance of a point that can still belong to the cluster
-    DoubleReal max_distance_;
+    double max_distance_;
 
     /// Number of input maps
     Size num_maps_;
 
     /// Quality of the cluster
-    DoubleReal quality_;
+    double quality_;
 
     /// Has the cluster changed (if yes, quality needs to be recomputed)?
     bool changed_;
@@ -129,7 +129,7 @@ private:
      *
      * @returns The total distance between cluster elements and the center.
      */
-    DoubleReal optimizeAnnotations_();
+    double optimizeAnnotations_();
 
     bool valid_;
 public:
@@ -141,16 +141,16 @@ public:
      * @param use_IDs Use peptide annotations?
      */
     QTCluster(GridFeature * center_point, Size num_maps,
-              DoubleReal max_distance, bool use_IDs);
+              double max_distance, bool use_IDs);
 
     /// Destructor
     virtual ~QTCluster();
 
     /// Returns the RT value of the cluster
-    DoubleReal getCenterRT() const;
+    double getCenterRT() const;
 
     /// Returns the m/z value of the cluster center
-    DoubleReal getCenterMZ() const;
+    double getCenterMZ() const;
 
     /// Returns the size of the cluster (number of elements, incl. center)
     Size size() const;
@@ -164,7 +164,7 @@ public:
      * @param element The element to be added
      * @param distance Distance of the element to the center point
      */
-    void add(GridFeature * element, DoubleReal distance);
+    void add(GridFeature * element, double distance);
 
     /// Gets the clustered elements
     void getElements(OpenMSBoost::unordered_map<Size, GridFeature *> & elements);
@@ -176,7 +176,7 @@ public:
     bool update(const OpenMSBoost::unordered_map<Size, GridFeature *> & removed);
 
     /// Returns the cluster quality
-    DoubleReal getQuality();
+    double getQuality();
 
     /// Return the set of peptide sequences annotated to the cluster center
     const std::set<AASequence> & getAnnotations();

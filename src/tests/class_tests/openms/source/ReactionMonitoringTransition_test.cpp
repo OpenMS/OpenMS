@@ -104,13 +104,13 @@ START_SECTION((const String& getCompoundRef() const ))
 }
 END_SECTION
 
-START_SECTION((void setPrecursorMZ(DoubleReal mz)))
+START_SECTION((void setPrecursorMZ(double mz)))
 {
   // TODO
 }
 END_SECTION
 
-START_SECTION((DoubleReal getPrecursorMZ() const ))
+START_SECTION((double getPrecursorMZ() const ))
 {
   // TODO
 }
@@ -134,13 +134,13 @@ START_SECTION((const CVTermList& getPrecursorCVTermList() const ))
 }
 END_SECTION
 
-START_SECTION((void setProductMZ(DoubleReal mz)))
+START_SECTION((void setProductMZ(double mz)))
 {
   // TODO
 }
 END_SECTION
 
-START_SECTION((DoubleReal getProductMZ() const ))
+START_SECTION((double getProductMZ() const ))
 {
   // TODO
 }

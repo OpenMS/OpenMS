@@ -173,7 +173,7 @@ private:
       std::ofstream os(filename.c_str(), std::ios::out | std::ios::binary);
 
       //set high precision for writing of floating point numbers
-      os.precision(writtenDigits(DoubleReal()));
+      os.precision(writtenDigits(double()));
 
       if (!os)
       {

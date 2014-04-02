@@ -95,7 +95,7 @@ namespace OpenMS
   {
   }
 
-  DoubleReal TransformationModelLinear::evaluate(const DoubleReal value) const
+  double TransformationModelLinear::evaluate(const double value) const
   {
     return slope_ * value + intercept_;
   }
@@ -116,8 +116,8 @@ namespace OpenMS
     }
   }
 
-  void TransformationModelLinear::getParameters(DoubleReal & slope,
-                                                DoubleReal & intercept) const
+  void TransformationModelLinear::getParameters(double & slope,
+                                                double & intercept) const
   {
     slope = slope_;
     intercept = intercept_;
@@ -141,7 +141,7 @@ namespace OpenMS
     params_.setDefaults(defaults);
 
     // need monotonically increasing x values (can't have the same value twice):
-    map<DoubleReal, vector<DoubleReal> > mapping;
+    map<double, vector<double> > mapping;
     for (TransformationModel::DataPoints::const_iterator it = data.begin();
          it != data.end(); ++it)
     {
@@ -150,7 +150,7 @@ namespace OpenMS
     x_.resize(mapping.size());
     y_.resize(mapping.size());
     size_t i = 0;
-    for (map<DoubleReal, vector<DoubleReal> >::const_iterator it =
+    for (map<double, vector<double> >::const_iterator it =
            mapping.begin(); it != mapping.end(); ++it, ++i)
     {
       x_[i] = it->first;
@@ -177,7 +177,7 @@ namespace OpenMS
     delete lm_;
   }
 
-  DoubleReal TransformationModelInterpolated::evaluate(const DoubleReal value)
+  double TransformationModelInterpolated::evaluate(const double value)
   const
   {
     if ((value < x_.front()) || (value > x_.back()))     // extrapolate

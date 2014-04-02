@@ -86,7 +86,7 @@ START_SECTION((void calculateProteinProbabilities(const std::vector< PeptideIden
 }
 END_SECTION
 
-START_SECTION((DoubleReal getProteinProbability(const String &acc)))
+START_SECTION((double getProteinProbability(const String &acc)))
 {
   TEST_REAL_SIMILAR(ptr->getProteinProbability("A2RUR9"),1.)
 }
@@ -101,7 +101,7 @@ START_SECTION((bool isProteinInMinimalList(const String &acc)))
 }
 END_SECTION
 
-START_SECTION((Int getNumberOfProtIds(DoubleReal protein_id_threshold)))
+START_SECTION((Int getNumberOfProtIds(double protein_id_threshold)))
 {
   TEST_EQUAL(ptr->getNumberOfProtIds(.95),2)
 }

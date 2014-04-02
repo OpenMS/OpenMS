@@ -295,7 +295,7 @@ public:
             IntensityType model_int = model2D_.getIntensity(DPosition<2>(this->getPeakRt(*it), this->getPeakMz(*it)));
             if (model_int > model_max) model_max = model_int;
           }
-          model2D_.setCutOff(model_max * Real(this->param_.getValue("intensity_cutoff_factor")));
+          model2D_.setCutOff(model_max * float(this->param_.getValue("intensity_cutoff_factor")));
 
           // Cutoff low intensities wrt to model maximum -> cutoff independent of scaling
           IndexSet model_set;
@@ -473,7 +473,7 @@ public:
       // not enough peaks left for feature
 
       // fit has too low quality or fit was not possible i.e. because of zero stdev
-      if (best_feature.getOverallQuality() < (Real) (this->param_.getValue("quality:minimum")))
+      if (best_feature.getOverallQuality() < (float) (this->param_.getValue("quality:minimum")))
       {
         String mess = String("Skipping feature, correlation too small: ") + best_feature.getOverallQuality();
         throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-Correlation", mess.c_str());
@@ -543,7 +543,7 @@ protected:
       QualityType max_quality_mz = -std::numeric_limits<QualityType>::max();
 
       InterpolationModel * best_model_mz = 0;
-      for (Real stdev = iso_stdev_first_; stdev <= iso_stdev_last_; stdev += iso_stdev_stepsize_)
+      for (float stdev = iso_stdev_first_; stdev <= iso_stdev_last_; stdev += iso_stdev_stepsize_)
       {
         isotope_stdev_ = stdev;
 
@@ -579,9 +579,9 @@ protected:
       // Calculate the pearson correlation coefficient for the values in [begin_a, end_a) and [begin_b, end_b)
       if (algorithm_ != "")
       {
-        std::vector<Real> real_data;
+        std::vector<float> real_data;
         real_data.reserve(set.size());
-        std::vector<Real> model_data;
+        std::vector<float> model_data;
         model_data.reserve(set.size());
 
         for (IndexSet::const_iterator it = set.begin(); it != set.end(); ++it)

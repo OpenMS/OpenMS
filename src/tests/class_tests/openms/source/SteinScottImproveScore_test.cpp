@@ -87,7 +87,7 @@ START_SECTION(double operator () (const PeakSpectrum& spec) const)
 	
 		spectrum.setMSLevel(1);
 		
-		for (Real mz=500.0; mz<=900; mz+=100.0)
+		for (float mz=500.0; mz<=900; mz+=100.0)
 		    { 
 		      Peak1D peak;
 		      peak.setMZ(mz);
@@ -107,7 +107,7 @@ START_SECTION(double operator () (const PeakSpectrum& spec1, const PeakSpectrum&
 	spectrum1.setMSLevel(1);
 	spectrum2.setMSLevel(1);
 		
-	for (Real mz=500.0; mz<=900; mz+=100.0)
+	for (float mz=500.0; mz<=900; mz+=100.0)
 	    { 
 	      Peak1D peak;
 	      peak.setMZ(mz);

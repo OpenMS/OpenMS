@@ -54,8 +54,8 @@ namespace OpenMS
 
 public:
 
-    typedef DoubleReal IntensityType;
-    typedef DoubleReal CoordinateType;
+    typedef double IntensityType;
+    typedef double CoordinateType;
     typedef DPosition<D> PositionType;
     typedef typename DPeak<D>::Type PeakType;
     typedef std::vector<PeakType> SamplesType;

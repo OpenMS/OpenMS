@@ -49,8 +49,8 @@ START_TEST(DPosition<D>, "$Id$")
 
 /////////////////////////////////////////////////////////////
 
-std::cout.precision(writtenDigits<>(DoubleReal()));
-std::cerr.precision(writtenDigits<>(DoubleReal()));
+std::cout.precision(writtenDigits<>(double()));
+std::cerr.precision(writtenDigits<>(double()));
 
 DPosition<10>* d10_ptr = 0;
 DPosition<10>* d10_nullPointer = 0;

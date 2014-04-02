@@ -123,30 +123,30 @@ protected:
         return *this;
       }
 
-      DoubleReal max_intensity;
-      DoubleReal diff_score;
-      DoubleReal min_score;
-      DoubleReal max_score;
+      double max_intensity;
+      double diff_score;
+      double min_score;
+      double max_score;
       Size max_intensity_bin;
     };
 
     // normalizes histograms
-    void normalizeBins_(const std::vector<DoubleReal> & scores, std::vector<DoubleReal> & binned, Transformation_ & trafo);
+    void normalizeBins_(const std::vector<double> & scores, std::vector<double> & binned, Transformation_ & trafo);
 
     // returns the probability of given score with the transformations of reverse and forward searches and the results of the fits
-    DoubleReal getProbability_(const Math::GammaDistributionFitter::GammaDistributionFitResult & result_gamma,
+    double getProbability_(const Math::GammaDistributionFitter::GammaDistributionFitResult & result_gamma,
                                const Transformation_ & gamma_trafo,
                                const Math::GaussFitter::GaussFitResult & result_gauss,
                                const Transformation_ & gauss_trafo,
-                               DoubleReal score);
+                               double score);
 
 
-    void generateDistributionImage_(const std::vector<DoubleReal> & ids, const String & formula, const String & filename);
+    void generateDistributionImage_(const std::vector<double> & ids, const String & formula, const String & filename);
 
-    void generateDistributionImage_(const std::vector<DoubleReal> & all_ids, const Transformation_ & all_trans, const String & fwd_formula, const String & rev_formula, const String & filename);
+    void generateDistributionImage_(const std::vector<double> & all_ids, const Transformation_ & all_trans, const String & fwd_formula, const String & rev_formula, const String & filename);
 
 
-    void apply_(std::vector<PeptideIdentification> & ids, const std::vector<DoubleReal> & rev_scores, const std::vector<DoubleReal> & fwd_scores, const std::vector<DoubleReal> & all_scores);
+    void apply_(std::vector<PeptideIdentification> & ids, const std::vector<double> & rev_scores, const std::vector<double> & fwd_scores, const std::vector<double> & all_scores);
 
   };
 

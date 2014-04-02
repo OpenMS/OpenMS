@@ -98,7 +98,7 @@ namespace OpenMS
     {
       model_ = new TransformationModelLinear(data_, params);
       // // debug output:
-      // DoubleReal slope, intercept;
+      // double slope, intercept;
       // TransformationModelLinear* lm = dynamic_cast<TransformationModelLinear*>(model_);
       // lm->getParameters(slope, intercept);
       // cout << "slope: " << slope << ", intercept: " << intercept << endl;
@@ -114,7 +114,7 @@ namespace OpenMS
     model_type_ = model_type;
   }
 
-  DoubleReal TransformationDescription::apply(DoubleReal value) const
+  double TransformationDescription::apply(double value) const
   {
     return model_->evaluate(value);
   }

@@ -203,7 +203,7 @@ END_SECTION
 hulls[0].addPoint(DPosition<2>(3.0,2.0));
 hulls[1].addPoint(DPosition<2>(2.0,1.0));
 
-START_SECTION((bool encloses(DoubleReal rt, DoubleReal mz) const))
+START_SECTION((bool encloses(double rt, double mz) const))
 	Feature tmp;
 	TEST_EQUAL(tmp.getConvexHull().getBoundingBox().isEmpty(), true)
 	tmp.setConvexHulls(hulls);

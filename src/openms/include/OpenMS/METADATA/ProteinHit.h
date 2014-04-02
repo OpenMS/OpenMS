@@ -98,7 +98,7 @@ public:
     ProteinHit();
 
     /// values constructor
-    ProteinHit(DoubleReal score, UInt rank, String accession, String sequence);
+    ProteinHit(double score, UInt rank, String accession, String sequence);
 
     /// copy constructor
     ProteinHit(const ProteinHit & source);
@@ -124,7 +124,7 @@ public:
     //@{
 
     /// returns the score of the protein hit
-    Real getScore() const;
+    float getScore() const;
 
     /// returns the rank of the protein hit
     UInt getRank() const;
@@ -136,10 +136,10 @@ public:
     const String & getAccession() const;
 
     /// returns the coverage (in percent) of the protein hit based upon matched peptides
-    DoubleReal getCoverage() const;
+    double getCoverage() const;
 
     /// sets the score of the protein hit
-    void setScore(const DoubleReal score);
+    void setScore(const double score);
 
     /// sets the rank
     void setRank(UInt newrank);
@@ -151,16 +151,16 @@ public:
     void setAccession(const String & accession);
 
     /// sets the coverage (in percent) of the protein hit based upon matched peptides
-    void setCoverage(const DoubleReal coverage);
+    void setCoverage(const double coverage);
 
     //@}
 
 protected:
-    Real score_;                        ///< the score of the protein hit
+    float score_;                        ///< the score of the protein hit
     UInt rank_;                         ///< the position(rank) where the hit appeared in the hit list
     String accession_;          ///< the protein identifier
     String sequence_;               ///< the amino acid sequence of the protein hit
-    DoubleReal coverage_;         ///< coverage of the protein based upon the matched peptide sequences
+    double coverage_;         ///< coverage of the protein based upon the matched peptide sequences
 
   };
 

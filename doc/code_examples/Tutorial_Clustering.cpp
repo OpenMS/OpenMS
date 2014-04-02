@@ -71,7 +71,7 @@ Int main()
   LowLevelComparator llc;
   CompleteLinkage sl;
   vector<BinaryTreeNode> tree;
-  DistanceMatrix<Real> dist; // will be filled
+  DistanceMatrix<float> dist; // will be filled
   ClusterHierarchical ch;
   ch.setThreshold(0.15);
 
