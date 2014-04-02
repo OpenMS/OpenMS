@@ -95,37 +95,25 @@ START_SECTION([EXTRA](pick))
   std::vector<PeakPickerMaxima::PeakCandidate> pc = ppmax_pick(input[0], pp_max);
 
   // Check first scan
-  TEST_EQUAL(pc.size(), 682)
+  TEST_EQUAL(pc.size(), 679)
   TEST_EQUAL(pc.size(), output[0].size())
-  int unequal_tests = 0;
   for (Size peak_idx = 0; peak_idx < output[0].size(); ++peak_idx)
   {
     TEST_REAL_SIMILAR(pc[peak_idx].mz_max, output[0][peak_idx].getMZ())
-    if (fabs(pc[peak_idx].int_max - output[0][peak_idx].getIntensity())/output[0][peak_idx].getIntensity() > 0.01)
-    {
-      unequal_tests++;
-      // std::cout << pc[peak_idx].int_max << " != " <<  output[0][peak_idx].getIntensity() << std::endl;
-    }
+    TEST_REAL_SIMILAR(pc[peak_idx].int_max, output[0][peak_idx].getIntensity())
   }
-  TEST_EQUAL(unequal_tests, 26)
 
-  TOLERANCE_RELATIVE(1.05);
   // Check all scans
   for (Size scan_idx = 0; scan_idx < output.size(); ++scan_idx)
   {
     pc = ppmax_pick(input[scan_idx], pp_max);
-    TEST_EQUAL(output[scan_idx].size(), pc.size())
-    for (Size peak_idx = 0; peak_idx < output[scan_idx].size(); ++peak_idx)
+    TEST_EQUAL(output[scan_idx].size(), pc.size());
+    for (Size peak_idx = 0; peak_idx < pc.size(); ++peak_idx)
     {
       TEST_REAL_SIMILAR(pc[peak_idx].mz_max, output[scan_idx][peak_idx].getMZ())
-
-      if (fabs(pc[peak_idx].int_max - output[scan_idx][peak_idx].getIntensity())/output[scan_idx][peak_idx].getIntensity() > 0.01)
-      {
-        unequal_tests++;
-      }
+      TEST_REAL_SIMILAR(pc[peak_idx].int_max, output[scan_idx][peak_idx].getIntensity())
     }
   }
-  TEST_EQUAL(unequal_tests, 97)
 }
 END_SECTION
 
@@ -193,7 +181,7 @@ START_SECTION([EXTRA](pick))
       unequal_tests++;
     }
   }
-  TEST_EQUAL(unequal_tests, 54)
+  TEST_EQUAL(unequal_tests, 8)
 
   // Check all scans
   for (Size scan_idx = 0; scan_idx < output.size(); ++scan_idx)
@@ -209,7 +197,7 @@ START_SECTION([EXTRA](pick))
       }
     }
   }
-  TEST_EQUAL(unequal_tests, 148)
+  TEST_EQUAL(unequal_tests, 18)
 }
 END_SECTION
 
@@ -241,12 +229,12 @@ START_SECTION([EXTRA](template <typename PeakType> void pick(const MSSpectrum<Pe
     for (Size i = 0; i < pc.size(); i++)
     {
       TEST_REAL_SIMILAR(pc[i].mz_max,  output[0][i].getMZ())
-      if (fabs(pc[i].int_max - output[0][i].getIntensity())/output[0][i].getIntensity() > 0.01)
+      if (fabs(pc[i].int_max - output[0][i].getIntensity())/output[0][i].getIntensity() > 0.05)
       {
         unequal_tests++;
       }
     }
-    TEST_EQUAL(unequal_tests, 13);
+    TEST_EQUAL(unequal_tests, 0);
   }
 
   {
@@ -258,12 +246,12 @@ START_SECTION([EXTRA](template <typename PeakType> void pick(const MSSpectrum<Pe
     for (Size i = 0; i < pc.size(); i++)
     {
       TEST_REAL_SIMILAR(pc[i].mz_max,  output[1][i].getMZ())
-      if (fabs(pc[i].int_max - output[1][i].getIntensity())/output[1][i].getIntensity() > 0.01)
+      if (fabs(pc[i].int_max - output[1][i].getIntensity())/output[1][i].getIntensity() > 0.05)
       {
         unequal_tests++;
       }
     }
-    TEST_EQUAL(unequal_tests, 7);
+    TEST_EQUAL(unequal_tests, 0);
   }
 }
 END_SECTION
