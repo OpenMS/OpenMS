@@ -52,13 +52,13 @@ namespace OpenMS
   @brief comparator for two doubles with a tolerance value
   */
   struct FloatsWithTolLess :
-	public std::binary_function<DoubleReal, DoubleReal, bool>
+	public std::binary_function<double, double, bool>
   {
     /**
     @brief constructor
     @param t const reference to the tolerance
     */
-    explicit FloatsWithTolLess(const DoubleReal & t) :
+    explicit FloatsWithTolLess(const double & t) :
       tol_(t) {}
     /**
     @brief copy constructor
@@ -68,25 +68,25 @@ namespace OpenMS
 
     /**
     @brief implementation of the '<' operator for two doubles with the tolerance value
-    @param f1 first DoubleReal
-    @param f2 second DoubleReal
-    @return true if first DoubleReal '<' second DoubleReal-tolerance
+    @param f1 first double
+    @param f2 second double
+    @return true if first double '<' second double-tolerance
     */
-    bool operator()(DoubleReal f1, DoubleReal f2) const
+    bool operator()(double f1, double f2) const
     {
       return f1 < (f2 - tol_);
     }
 
 protected:
-    DoubleReal const & tol_;     ///< tolerance value
+    double const & tol_;     ///< tolerance value
   };
 
   /**
   @brief comparator for two doubles with a tolerance value
-  @todo Think about that this does and if it is really necessary (why DoubleReal, DoubleReal????) (Andreas, Clemens)
+  @todo Think about that this does and if it is really necessary (why double, double????) (Andreas, Clemens)
   */
   struct IntsInRangeLess :
-	  public std::binary_function<DoubleReal, DoubleReal, bool>
+	  public std::binary_function<double, double, bool>
   {
     /**
     @brief constructor
@@ -102,9 +102,9 @@ protected:
 
     /**
     @brief implementation of the '<' operator for two doubles with the tolerance value
-    @param f1 first DoubleReal
-    @param f2 second DoubleReal
-    @return true if first DoubleReal '<' second DoubleReal-tolerance
+    @param f1 first double
+    @param f2 second double
+    @return true if first double '<' second double-tolerance
     */
     bool operator()(int f1, int f2) const
     {
@@ -165,7 +165,7 @@ public:
 
     /**
     @brief the function that will find all peptide candidates for a given spectrum
-    @param spec const reference of DoubleReal vector describing the spectrum
+    @param spec const reference of double vector describing the spectrum
     @param candidates output parameters which holds the candidates of the masses given in spec after call
     @return a vector of SignedSize pairs.
 
@@ -175,7 +175,7 @@ public:
     lcp table are used. The mass wont be calculated for each entry but it will
     be updated during traversal using a stack data structure
     */
-    void findSpec(std::vector<std::vector<std::pair<std::pair<SignedSize, SignedSize>, DoubleReal> > > & candidates, const std::vector<DoubleReal> & spec);
+    void findSpec(std::vector<std::vector<std::pair<std::pair<SignedSize, SignedSize>, double> > > & candidates, const std::vector<double> & spec);
 
     /**
     @brief saves the suffix array to disc
@@ -196,16 +196,16 @@ public:
 
     /**
     @brief setter for tolerance
-    @param t DoubleReal with tolerance, only 0 or greater is allowed
+    @param t double with tolerance, only 0 or greater is allowed
     @throw InvalidValue is thrown if given tolerance is negative
     */
-    void setTolerance(DoubleReal t);
+    void setTolerance(double t);
 
     /**
     @brief getter for tolerance
-    @return DoubleReal with tolerance
+    @return double with tolerance
     */
-    DoubleReal getTolerance() const;
+    double getTolerance() const;
 
     /**
     @brief returns if an enzyme will cut after first character
@@ -268,7 +268,7 @@ protected:
 
     @see goNext
     */
-    inline void goNextSubTree_(TIter & it, DoubleReal & m, std::stack<DoubleReal> & allm, std::stack<std::map<DoubleReal, SignedSize> > & mod_map)
+    inline void goNextSubTree_(TIter & it, double & m, std::stack<double> & allm, std::stack<std::map<double, SignedSize> > & mod_map)
     {
       // preorder dfs
       if (!goRight(it))
@@ -347,7 +347,7 @@ protected:
 
     @see goNextSubTree_
     */
-    inline void goNext_(TIter & it, DoubleReal & m, std::stack<DoubleReal> & allm, std::stack<std::map<DoubleReal, SignedSize> > & mod_map)
+    inline void goNext_(TIter & it, double & m, std::stack<double> & allm, std::stack<std::map<double, SignedSize> > & mod_map)
     {
       // preorder dfs
       if (!goDown(it))
@@ -418,7 +418,7 @@ protected:
     @return SignedSize with the index of the first occurrence
     @note requires that there is at least one occurrence
     */
-    SignedSize findFirst_(const std::vector<DoubleReal> & spec, DoubleReal & m);
+    SignedSize findFirst_(const std::vector<double> & spec, double & m);
 
     /**
     @brief binary search for finding the index of the first element of the
@@ -431,11 +431,11 @@ protected:
     @return SignedSize with the index of the first occurrence
     @note requires that there is at least one occurrence
     */
-    SignedSize findFirst_(const std::vector<DoubleReal> & spec, DoubleReal & m, SignedSize start, SignedSize  end);
+    SignedSize findFirst_(const std::vector<double> & spec, double & m, SignedSize start, SignedSize  end);
 
     const String & s_;    ///< reference to strings for which the suffix array is build
 
-    DoubleReal masse_[255];     ///< amino acid masses
+    double masse_[255];     ///< amino acid masses
 
     SignedSize number_of_modifications_;     ///< number of allowed modifications
 
@@ -443,7 +443,7 @@ protected:
 
     bool use_tags_;     ///< if tags are used
 
-    DoubleReal tol_;     ///< tolerance
+    double tol_;     ///< tolerance
   };
 }
 

@@ -299,7 +299,7 @@ protected:
     String trained_model_file(getStringOption_("trained_model_file"));
     String model_file(getStringOption_("model_file"));
     bool score_filtering(getFlag_("score_filtering"));
-    DoubleReal score_threshold(getDoubleOption_("score_threshold"));
+    double score_threshold(getDoubleOption_("score_threshold"));
     Int min_charge(getIntOption_("min_charge"));
     Int max_charge(getIntOption_("max_charge"));
 
@@ -481,9 +481,9 @@ protected:
 
         model.setParameters(optimal_param);
         cv.setOptions(Map<String, PILISCrossValidation::Option>());
-        DoubleReal min_value = (DoubleReal)grid_param.getValue(*it + "_min");
-        DoubleReal max_value = (DoubleReal)grid_param.getValue(*it + "_max");
-        DoubleReal step_size_value = (DoubleReal)grid_param.getValue(*it + "_step_size");
+        double min_value = (double)grid_param.getValue(*it + "_min");
+        double max_value = (double)grid_param.getValue(*it + "_max");
+        double step_size_value = (double)grid_param.getValue(*it + "_step_size");
         cv.setOption(*it, PILISCrossValidation::Option(PILISCrossValidation::Option::DOUBLE, min_value, max_value, step_size_value));
         cv.apply(optimal_param, model, peptides);
       }

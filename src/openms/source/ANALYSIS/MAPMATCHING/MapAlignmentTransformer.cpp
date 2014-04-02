@@ -82,12 +82,12 @@ namespace OpenMS
     // Transform spectra
     for (MSExperiment<>::iterator mse_iter = msexp.begin(); mse_iter != msexp.end(); ++mse_iter)
     {
-      DoubleReal rt = mse_iter->getRT();
+      double rt = mse_iter->getRT();
       mse_iter->setRT(trafo.apply(rt));
     }
 
     // Also transform chromatograms
-    DoubleReal rt;
+    double rt;
     std::vector<MSChromatogram<ChromatogramPeak> > chromatograms;
     for (Size i = 0; i < msexp.getChromatograms().size(); i++)
     {
@@ -153,7 +153,7 @@ namespace OpenMS
                                                     const TransformationDescription & trafo)
   {
     // transform feature position:
-    DoubleReal rt = feature.getRT();
+    double rt = feature.getRT();
     feature.setRT(trafo.apply(rt));
 
     // adapt RT values of annotated peptides:
@@ -182,7 +182,7 @@ namespace OpenMS
            ++points_iter
            )
       {
-        DoubleReal rt = (*points_iter)[Feature::RT];
+        double rt = (*points_iter)[Feature::RT];
         (*points_iter)[Feature::RT] = trafo.apply(rt);
       }
       chiter->setHullPoints(points);
@@ -282,7 +282,7 @@ namespace OpenMS
       DataValue dv = pepid.getMetaValue(meta_index_RT);
       if (dv != DataValue::EMPTY)
       {
-        DoubleReal rt(dv);
+        double rt(dv);
         rt = trafo.apply(rt);
         pepid.setMetaValue(meta_index_RT, rt);
       }
@@ -302,7 +302,7 @@ namespace OpenMS
          it != feature.getFeatures().end();
          ++it)
     {
-      DoubleReal rt = it->getRT();
+      double rt = it->getRT();
       it->asMutable().setRT(trafo.apply(rt));
     }
   }

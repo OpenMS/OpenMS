@@ -38,7 +38,7 @@
 namespace OpenMS
 {
 
-  BinaryTreeNode::BinaryTreeNode(const Size i, const Size j, const Real x) :
+  BinaryTreeNode::BinaryTreeNode(const Size i, const Size j, const float x) :
     left_child(i), right_child(j), distance(x)
   {
   }

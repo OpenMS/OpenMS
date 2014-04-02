@@ -69,7 +69,7 @@ END_SECTION
   PeakSpectrum s1;
   DTAFile().load(OPENMS_GET_TEST_DATA_PATH("PILISSequenceDB_DFPIANGER_1.dta"), s1);
 
-START_SECTION((BinnedSpectrum(Real size, UInt spread, PeakSpectrum ps)))
+START_SECTION((BinnedSpectrum(float size, UInt spread, PeakSpectrum ps)))
 {
   bs1 = new BinnedSpectrum(1.5,2,s1);
   TEST_NOT_EQUAL(bs1,nullPointer)
@@ -156,13 +156,13 @@ START_SECTION((UInt getFilledBinNumber() const ))
 }
 END_SECTION
 
-START_SECTION((const SparseVector<Real>& getBins() const))
+START_SECTION((const SparseVector<float>& getBins() const))
 {
 	TEST_EQUAL(bs1->getBins().at(658),501645)
 }
 END_SECTION
 
-START_SECTION((SparseVector<Real>& getBins()))
+START_SECTION((SparseVector<float>& getBins()))
 {
 	TEST_EQUAL(bs1->getBins().at(658),501645)
 }

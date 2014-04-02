@@ -33,14 +33,13 @@
 using OpenMS::Int;
 using OpenMS::UInt;
 using OpenMS::Size;
-using OpenMS::Real;
 using OpenMS::String;
 
 // Simple class with three data members
 class IntRealString
 {
 public:
-  IntRealString(Int i, Real r, String s) :
+  IntRealString(Int i, float r, String s) :
     i_(i), r_(r), s_(s) {}
   IntRealString(const IntRealString & rhs) :
     i_(rhs.i_), r_(rhs.r_), s_(rhs.s_) {}
@@ -51,7 +50,7 @@ public:
   }
 
   Int i_;
-  Real r_;
+  float r_;
   String s_;
 };
 

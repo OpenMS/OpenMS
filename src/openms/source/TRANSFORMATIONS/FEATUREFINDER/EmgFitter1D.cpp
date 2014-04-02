@@ -55,7 +55,7 @@ namespace OpenMS
     // iterate over all points of the signal
     for (Size i = 0; i < n; i++)
     {
-      DoubleReal t = set[i].getPos();
+      double t = set[i].getPos();
 
       // Simplified EMG
       Yi = (h * w / s) * sqrt(2.0 * Constants::PI) * exp((pow(w, 2) / (2 * pow(s, 2))) - ((t - z) / s)) / (1 + exp((-2.4055 / sqrt(2.0)) * (((t - z) / w) - w / s)));
@@ -214,9 +214,9 @@ namespace OpenMS
 
 
     // calculate pearson correlation
-    std::vector<Real> real_data;
+    std::vector<float> real_data;
     real_data.reserve(set.size());
-    std::vector<Real> model_data;
+    std::vector<float> model_data;
     model_data.reserve(set.size());
 
     for (Size i = 0; i < set.size(); ++i)
@@ -241,7 +241,7 @@ namespace OpenMS
 
     // calculate the median
     Size median = 0;
-    Real count = 0.0;
+    float count = 0.0;
     for (Size i = 0; i < set.size(); ++i)
     {
       count += set[i].getIntensity();

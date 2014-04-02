@@ -97,10 +97,10 @@ private:
     bool remove_low_intensity_quantifications_;
 
     /// Minimum precursor purity to accept the spectrum for quantitation.
-    DoubleReal min_precursor_purity_;
+    double min_precursor_purity_;
 
     /// Max. allowed deviation between theoretical and observed isotopic peaks of the precursor peak in the isolation window to be counted as part of the precursor.
-    DoubleReal max_precursor_isotope_deviation_;
+    double max_precursor_isotope_deviation_;
 
     /// add channel information to the map after it has been filled
     void registerChannelsInOutputMap_(ConsensusMap& consensus_map);
@@ -128,7 +128,7 @@ private:
       @param precursor Iterator pointing to the precursor spectrum of ms2_spec.
       @return Fraction of the total intensity in the isolation window of the precursor spectrum that was assigned to the precursor.
     */
-    DoubleReal computePrecursorPurity_(const MSExperiment<>::ConstIterator& ms2_spec, const MSExperiment<>::ConstIterator& precursor) const;
+    double computePrecursorPurity_(const MSExperiment<>::ConstIterator& ms2_spec, const MSExperiment<>::ConstIterator& precursor) const;
 
     /**
       @brief Computes the sum of all isotopic peak intensities in the window defined by (lower|upper)_mz_bound beginning from theoretical_isotope_mz.
@@ -139,7 +139,7 @@ private:
       @param theoretical_mz The start position for the search. Note that the intensity at this position will not included in the sum.
       @param isotope_offset The offset with which the isolation window should be searched (i.e., +/- NEUTRON_MASS/precursor_charge, +/- determines if it scans from left or right from the theoretical_isotope_mz).
     */
-    DoubleReal sumPotentialIsotopePeaks_(const MSExperiment<Peak1D>::ConstIterator& precursor, const Peak1D::CoordinateType& lower_mz_bound, const Peak1D::CoordinateType& upper_mz_bound, Peak1D::CoordinateType theoretical_mz, const Peak1D::CoordinateType isotope_offset) const;
+    double sumPotentialIsotopePeaks_(const MSExperiment<Peak1D>::ConstIterator& precursor, const Peak1D::CoordinateType& lower_mz_bound, const Peak1D::CoordinateType& upper_mz_bound, Peak1D::CoordinateType theoretical_mz, const Peak1D::CoordinateType isotope_offset) const;
 
 protected:
     /// implemented for DefaultParamHandler

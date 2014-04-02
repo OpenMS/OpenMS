@@ -142,7 +142,7 @@ START_SECTION((void sortByIntensity(bool reverse=false)))
   MSChromatogram<>::FloatDataArray float_array;
   MSChromatogram<>::StringDataArray string_array;
   MSChromatogram<>::IntegerDataArray int_array;
-  std::vector<DoubleReal> rts, intensities;
+  std::vector<double> rts, intensities;
   MSChromatogram<>::IntegerDataArray in_array;
   intensities.push_back(201); rts.push_back(420.130); float_array.push_back(420.130f); string_array.push_back("420.13"); int_array.push_back(420);
   intensities.push_back(60);  rts.push_back(412.824); float_array.push_back(412.824f); string_array.push_back("412.82"); int_array.push_back(412);
@@ -162,10 +162,10 @@ START_SECTION((void sortByIntensity(bool reverse=false)))
     ds.push_back(p);
   }
   ds.sortByIntensity();
-  std::vector<DoubleReal> intensities_copy(intensities);
+  std::vector<double> intensities_copy(intensities);
   std::sort(intensities_copy.begin(),intensities_copy.end());
   MSChromatogram<>::iterator it_ds = ds.begin();
-  for(std::vector<DoubleReal>::iterator it = intensities_copy.begin(); it != intensities_copy.end(); ++it)
+  for(std::vector<double>::iterator it = intensities_copy.begin(); it != intensities_copy.end(); ++it)
   {
     if(it_ds == ds.end())
     {
@@ -213,7 +213,7 @@ START_SECTION((void sortByIntensity(bool reverse=false)))
   MSChromatogram<>::StringDataArray::iterator it3 = ds.getStringDataArrays()[0].begin();
   MSChromatogram<>::IntegerDataArray::iterator it4 = ds.getIntegerDataArrays()[0].begin();
   TOLERANCE_ABSOLUTE(0.0001)
-  for(std::vector<DoubleReal>::iterator it = intensities_copy.begin(); it != intensities_copy.end(); ++it)
+  for(std::vector<double>::iterator it = intensities_copy.begin(); it != intensities_copy.end(); ++it)
   {
     if(it1 != ds.end() && it2 != ds.getFloatDataArrays()[1].end() && it3 != ds.getStringDataArrays()[0].end() && it4 != ds.getIntegerDataArrays()[0].end())
     {
@@ -242,7 +242,7 @@ START_SECTION((void sortByPosition()))
   MSChromatogram<>::FloatDataArray float_array;
   MSChromatogram<>::StringDataArray string_array;
   MSChromatogram<>::IntegerDataArray int_array;
-  std::vector<DoubleReal> rts, intensities;
+  std::vector<double> rts, intensities;
   intensities.push_back(56);  rts.push_back(423.269); float_array.push_back(56);  string_array.push_back("56");  int_array.push_back(56);
   intensities.push_back(201); rts.push_back(420.130); float_array.push_back(201); string_array.push_back("201"); int_array.push_back(201);
   intensities.push_back(31);  rts.push_back(419.113); float_array.push_back(31);  string_array.push_back("31");  int_array.push_back(31);
@@ -261,7 +261,7 @@ START_SECTION((void sortByPosition()))
   }
   ds.sortByPosition();
   MSChromatogram<>::iterator it = ds.begin();
-  for(std::vector<DoubleReal>::reverse_iterator rit = intensities.rbegin(); rit != intensities.rend(); ++rit)
+  for(std::vector<double>::reverse_iterator rit = intensities.rbegin(); rit != intensities.rend(); ++rit)
   {
     if(it == ds.end())
     {
@@ -303,7 +303,7 @@ START_SECTION((void sortByPosition()))
   MSChromatogram<>::FloatDataArray::iterator it2 = ds.getFloatDataArrays()[1].begin();
   MSChromatogram<>::StringDataArray::iterator it3 = ds.getStringDataArrays()[0].begin();
   MSChromatogram<>::IntegerDataArray::iterator it4 = ds.getIntegerDataArrays()[0].begin();
-  for(std::vector<DoubleReal>::reverse_iterator rit = intensities.rbegin(); rit != intensities.rend(); ++rit)
+  for(std::vector<double>::reverse_iterator rit = intensities.rbegin(); rit != intensities.rend(); ++rit)
   {
     if(it1 != ds.end() && it2 != ds.getFloatDataArrays()[1].end() && it3 != ds.getStringDataArrays()[0].end())
     {
@@ -838,7 +838,7 @@ START_SECTION(void clear(bool clear_meta_data))
   TEST_EQUAL(edit==MSChromatogram<>(),true)
 END_SECTION
 
-START_SECTION((DoubleReal getMZ() const))
+START_SECTION((double getMZ() const))
 	MSChromatogram<> tmp;
 	Product prod;
 	prod.setMZ(0.1);

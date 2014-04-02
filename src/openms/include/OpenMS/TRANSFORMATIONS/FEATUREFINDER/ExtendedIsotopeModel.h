@@ -111,10 +111,10 @@ protected:
     CoordinateType isotope_stdev_;
     UInt charge_;
     CoordinateType monoisotopic_mz_;
-    DoubleReal averagine_[AVERAGINE_NUM];
+    double averagine_[AVERAGINE_NUM];
     Int max_isotope_;
-    DoubleReal trim_right_cutoff_;
-    DoubleReal isotope_distance_;
+    double trim_right_cutoff_;
+    double isotope_distance_;
 
     void updateMembers_();
   };

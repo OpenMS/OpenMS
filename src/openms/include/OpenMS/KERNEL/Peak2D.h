@@ -60,9 +60,9 @@ public:
     ///@{
 
     /// Intensity type
-    typedef Real IntensityType;
+    typedef float IntensityType;
     /// Coordinate type (of the position)
-    typedef DoubleReal CoordinateType;
+    typedef double CoordinateType;
     /// Position type
     typedef DPosition<2> PositionType;
     ///@}

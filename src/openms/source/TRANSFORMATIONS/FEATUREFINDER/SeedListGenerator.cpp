@@ -68,14 +68,14 @@ namespace OpenMS
     for (vector<PeptideIdentification>::iterator pep_it = peptides.begin();
          pep_it != peptides.end(); ++pep_it)
     {
-      DoubleReal mz;
+      double mz;
       if (!pep_it->getHits().empty() && use_peptide_mass)
       {
         pep_it->sort();
         const PeptideHit & hit = pep_it->getHits().front();
         Int charge = hit.getCharge();
         mz = hit.getSequence().getMonoWeight(Residue::Full, charge) /
-             DoubleReal(charge);
+             double(charge);
       }
       else
       {

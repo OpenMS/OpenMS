@@ -7,6 +7,6 @@ cdef extern from "<OpenMS/METADATA/ScanWindow.h>" namespace "OpenMS":
     cdef cppclass ScanWindow "OpenMS::ScanWindow":
         ScanWindow() nogil except +
         ScanWindow(ScanWindow) nogil except +
-        DoubleReal begin
-        DoubleReal end
+        double begin
+        double end
 

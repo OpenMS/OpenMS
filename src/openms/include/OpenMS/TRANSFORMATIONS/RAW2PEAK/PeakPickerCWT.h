@@ -116,7 +116,7 @@ public:
          This estimate is averaged over several spectra.
 
     */
-    DoubleReal estimatePeakWidth(const MSExperiment<> & input);
+    double estimatePeakWidth(const MSExperiment<> & input);
 protected:
 
     /// Threshold for the peak height in the MS 1 level
@@ -210,7 +210,7 @@ protected:
                 are relevant. If no peak is detected the method return false.
                 For direction=1, the method runs from first to last given direction=-1 it runs the other way around.
     */
-    bool getMaxPosition_(PeakIterator first, PeakIterator last, const ContinuousWaveletTransform & wt, PeakArea_ & area, Int distance_from_scan_border, Int ms_level, DoubleReal peak_bound_cwt, DoubleReal peak_bound_ms2_level_cwt, Int direction = 1);
+    bool getMaxPosition_(PeakIterator first, PeakIterator last, const ContinuousWaveletTransform & wt, PeakArea_ & area, Int distance_from_scan_border, Int ms_level, double peak_bound_cwt, double peak_bound_ms2_level_cwt, Int direction = 1);
 
 
     /**
@@ -255,7 +255,7 @@ protected:
                 is similar to the width of the wavelet. Taking the maximum in the wavelet transform of the
                 lorentzian peak we have a peak bound in the wavelet transform.
     */
-    void initializeWT_(ContinuousWaveletTransformNumIntegration & wt, DoubleReal & peak_bound_cwt, DoubleReal & peak_bound_ms2_level_cwt);
+    void initializeWT_(ContinuousWaveletTransformNumIntegration & wt, double & peak_bound_cwt, double & peak_bound_ms2_level_cwt);
 
     /** @name Methods needed for separation of overlapping peaks
      */
@@ -267,11 +267,11 @@ protected:
             It determines the number of peaks lying underneath the initial peak using the cwt with different scales.
             Then a nonlinear optimization procedure is applied to optimize the peak parameters.
     */
-    bool deconvolutePeak_(PeakShape & shape, std::vector<PeakShape> & peak_shapes, DoubleReal peak_bound_cwt);
+    bool deconvolutePeak_(PeakShape & shape, std::vector<PeakShape> & peak_shapes, double peak_bound_cwt);
 
     /// Determines the number of peaks in the given mass range using the cwt
     Int getNumberOfPeaks_(ConstPeakIterator first, ConstPeakIterator last, std::vector<double> & peak_values,
-                          Int direction, DoubleReal resolution, ContinuousWaveletTransformNumIntegration & wt, DoubleReal peak_bound_cwt);
+                          Int direction, double resolution, ContinuousWaveletTransformNumIntegration & wt, double peak_bound_cwt);
 
     /// Estimate the charge state of the peaks
     Int determineChargeState_(std::vector<double> & peak_values);

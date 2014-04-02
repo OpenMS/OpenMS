@@ -238,7 +238,7 @@ public:
 
 protected:
     /// Coefficients
-    std::vector<DoubleReal> coeffs_;
+    std::vector<double> coeffs_;
     /// UInt of the filter kernel (number of pre-tabulated coefficients)
     UInt frame_size_;
     /// The order of the smoothing polynomial.

@@ -228,7 +228,7 @@ namespace OpenMS
   {
     //std::cout << "Matrix used: \n" << ItraqConstants::translateIsotopeMatrix(itraq_type_, isotope_corrections_) << "\n\n";
 
-    DoubleReal rep_shift = param_.getValue("reporter_mass_shift");
+    double rep_shift = param_.getValue("reporter_mass_shift");
 
 
     OPENMS_PRECONDITION(fm.size() == 1, "More than one feature map given in ITRAQLabeler::postRawTandemMSHook()!")
@@ -239,7 +239,7 @@ namespace OpenMS
     channel_names[0].setMatrix<4, 1>(ItraqConstants::CHANNELS_FOURPLEX);
     channel_names[1].setMatrix<8, 1>(ItraqConstants::CHANNELS_EIGHTPLEX);
 
-    boost::uniform_real<DoubleReal> udist (0.0,1.0);
+    boost::uniform_real<double> udist (0.0,1.0);
 
     // add signal...
     for (MSSimExperiment::iterator it = exp.begin(); it != exp.end(); ++it)
@@ -270,7 +270,7 @@ namespace OpenMS
       {
         MSSimExperiment::SpectrumType::PeakType p;
         // random shift of +-rep_shift around exact position
-        DoubleReal rnd_shift = udist(rng_->getTechnicalRng()) * 2 * rep_shift - rep_shift;
+        double rnd_shift = udist(rng_->getTechnicalRng()) * 2 * rep_shift - rep_shift;
         p.setMZ(channel_names[itraq_type_].getValue(i_channel, 0) + 0.1 + rnd_shift);
         p.setIntensity(itraq_intensity_sum(i_channel, 0));
         it->push_back(p);
@@ -344,7 +344,7 @@ namespace OpenMS
 
   }
 
-  DoubleReal ITRAQLabeler::getRTProfileIntensity_(const Feature & f, const DoubleReal MS2_RT_time) const
+  double ITRAQLabeler::getRTProfileIntensity_(const Feature & f, const double MS2_RT_time) const
   {
     // compute intensity correction factor for feature from RT profile
     const DoubleList & elution_bounds = f.getMetaValue("elution_profile_bounds");
@@ -360,8 +360,8 @@ namespace OpenMS
     }
 
     // do linear interpolation
-    DoubleReal width = elution_bounds[3] - elution_bounds[1];
-    DoubleReal offset = MS2_RT_time - elution_bounds[1];
+    double width = elution_bounds[3] - elution_bounds[1];
+    double offset = MS2_RT_time - elution_bounds[1];
     Int index = floor(offset / (width / (elution_ints.size() - 1)) + 0.5);
 
     OPENMS_POSTCONDITION(index < (Int)elution_ints.size(), "Wrong index computation! (Too large)")
@@ -369,10 +369,10 @@ namespace OpenMS
     return elution_ints[index];
   }
 
-  EigenMatrixXdPtr ITRAQLabeler::getItraqIntensity_(const Feature & f, const DoubleReal MS2_RT_time) const
+  EigenMatrixXdPtr ITRAQLabeler::getItraqIntensity_(const Feature & f, const double MS2_RT_time) const
   {
 
-    DoubleReal factor = getRTProfileIntensity_(f, MS2_RT_time);
+    double factor = getRTProfileIntensity_(f, MS2_RT_time);
 
     //std::cerr << "\n\nfactor is: " << factor << "\n";
     // fill map with values present (all missing ones remain 0)
@@ -385,7 +385,7 @@ namespace OpenMS
       SimIntensityType intensity(0);
       if (it->second.active && f.metaValueExists(getChannelIntensityName(ch_internal))) // peptide is present in this channel
       {
-        intensity = (DoubleReal) f.getMetaValue(getChannelIntensityName(ch_internal));
+        intensity = (double) f.getMetaValue(getChannelIntensityName(ch_internal));
         ++ch_internal;
       }
       (*m)(ch, 0) = intensity * factor;

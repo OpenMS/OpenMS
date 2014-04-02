@@ -116,7 +116,7 @@ namespace OpenMS
 
         // open file in binary mode to avoid any line ending conversions
         ofs_.open(filename.c_str(), std::ios::out | std::ios::binary);
-        ofs_.precision(writtenDigits(DoubleReal()));
+        ofs_.precision(writtenDigits(double()));
       }
 
       /// Destructor

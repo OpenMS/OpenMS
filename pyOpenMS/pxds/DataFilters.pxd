@@ -29,7 +29,7 @@ cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/DataFilters.h>" namespace "Ope
         DataFilter(DataFilter) nogil except + #wrap-ignore
         FilterType field
         FilterOperation op
-        DoubleReal value
+        double value
         String value_string
         String meta_name
         bool value_is_numerical

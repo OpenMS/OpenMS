@@ -58,7 +58,7 @@ namespace OpenMS
   {
   }
 
-  PeptideHit AScore::compute(PeptideHit & hit, RichPeakSpectrum & real_spectrum, DoubleReal fmt, Int number_of_phospho_sites)
+  PeptideHit AScore::compute(PeptideHit & hit, RichPeakSpectrum & real_spectrum, double fmt, Int number_of_phospho_sites)
   {
     String without_phospho_str(hit.getSequence().toString());
     size_t found = without_phospho_str.find("(Phospho)");
@@ -80,7 +80,7 @@ namespace OpenMS
     {
       number_of_phospho_sites = number_of_STY;
     }
-    //Int number_of_permutations = (Int)boost::math::binomial_coefficient<DoubleReal>((DoubleReal)number_of_STY, number_of_phospho_sites);
+    //Int number_of_permutations = (Int)boost::math::binomial_coefficient<double>((double)number_of_STY, number_of_phospho_sites);
     vector<Size> tupel(computeTupel_(without_phospho));
     vector<vector<Size> > permutations(computePermutations_(tupel, number_of_phospho_sites));
     //cout<<"number of permutations "<<permutations.size();//<< " - " << number_of_permutations;
@@ -109,11 +109,11 @@ namespace OpenMS
     {
       real_spectrum.sortByPosition();
     }
-    vector<vector<DoubleReal> > peptide_site_scores(th_spectra.size());
+    vector<vector<double> > peptide_site_scores(th_spectra.size());
     vector<RichPeakSpectrum> windows_with_all_peak_depths;
     ///prepare peak depth for all windows in the actual spectrum
     {
-      DoubleReal biggest_window = real_spectrum[real_spectrum.size() - 1].getMZ();
+      double biggest_window = real_spectrum[real_spectrum.size() - 1].getMZ();
       Size number_of_windows = 1;
       if (biggest_window > 100)
         number_of_windows = ceil(biggest_window / 100);
@@ -142,7 +142,7 @@ namespace OpenMS
     }
     ///prepare peak depth for all windows in the actual spectrum - END
     UInt N;
-    vector<vector<DoubleReal> >::iterator side_scores = peptide_site_scores.begin();
+    vector<vector<double> >::iterator side_scores = peptide_site_scores.begin();
     for (vector<RichPeakSpectrum>::iterator it = th_spectra.begin(); it < th_spectra.end(); ++it, ++side_scores)    //each theoretical spectrum
     {
       N = UInt(it->size());       //real or theo!!
@@ -157,8 +157,8 @@ namespace OpenMS
           n += numberOfMatchedIons_(*it, windows_with_all_peak_depths[depth], i, fmt);
         }
         //auslagern_end
-        DoubleReal p = (DoubleReal)i / 100;
-        DoubleReal cum_socre = computeCumulativeScore(N, n, p);
+        double p = (double)i / 100;
+        double cum_socre = computeCumulativeScore(N, n, p);
         (*side_scores)[i - 1] = (-10 * log10(cum_socre));    //computeCumulativeScore(N,n,p);
         ++i;
       }
@@ -172,11 +172,11 @@ namespace OpenMS
       //phospho.setSequence(AASequence(th_spectra[highest_peptides[0].seq_1].getName()));
     }
     {
-      multimap<DoubleReal, Size> ranking;
+      multimap<double, Size> ranking;
       for (Size it = 0; it < peptide_site_scores.size(); ++it)
       {
-        DoubleReal current_score = peptideScore_(peptide_site_scores[it]);
-        ranking.insert(pair<DoubleReal, Size>(current_score, it));
+        double current_score = peptideScore_(peptide_site_scores[it]);
+        ranking.insert(pair<double, Size>(current_score, it));
       }
       phospho.setScore(ranking.rbegin()->first);
       phospho.setSequence(AASequence(th_spectra[ranking.rbegin()->second].getName()));
@@ -188,15 +188,15 @@ namespace OpenMS
     //Int count_ascores = 0;
     //vector<ProbablePhosphoSites>::iterator winner = highest_peptides.begin();
     //vector<ProbablePhosphoSites>::iterator actual = winner;
-    //DoubleReal ascore_addition = 0.0;
-    //DoubleReal highest_addition = 0.0;
+    //double ascore_addition = 0.0;
+    //double highest_addition = 0.0;
     Int rank = 1;
     for (vector<ProbablePhosphoSites>::iterator hp = highest_peptides.begin(); hp < highest_peptides.end(); ++hp)
     {
       vector<RichPeakSpectrum> site_determining_ions;
       compute_site_determining_ions(th_spectra, *hp, hit.getCharge(), site_determining_ions);
       N = UInt(site_determining_ions[0].size());       // all possiblities have the same number
-      DoubleReal p = (DoubleReal)hp->peak_depth / 100;
+      double p = (double)hp->peak_depth / 100;
       Int n = 0;
       //Auslagern
       for (Size depth = 0; depth <  windows_with_all_peak_depths.size(); ++depth)       //each 100 m/z window
@@ -204,7 +204,7 @@ namespace OpenMS
         n += numberOfMatchedIons_(site_determining_ions[0], windows_with_all_peak_depths[depth], (Size)p, fmt);
       }
       //auslagern_end
-      DoubleReal P_first = computeCumulativeScore(N, n, p);
+      double P_first = computeCumulativeScore(N, n, p);
       Int n2 = 0;
       //Auslagern
       for (Size depth = 0; depth <  windows_with_all_peak_depths.size(); ++depth)       //each 100 m/z window
@@ -212,10 +212,10 @@ namespace OpenMS
         n2 += numberOfMatchedIons_(site_determining_ions[1], windows_with_all_peak_depths[depth], (Size)p, fmt);
       }
       //auslagern_end
-      DoubleReal P_second = computeCumulativeScore(N, n2, p);
-      DoubleReal score_first = -10 * log10(P_first);
-      DoubleReal score_second = -10 * log10(P_second);
-      DoubleReal AScore_first = score_first - score_second;
+      double P_second = computeCumulativeScore(N, n2, p);
+      double score_first = -10 * log10(P_first);
+      double score_second = -10 * log10(P_second);
+      double AScore_first = score_first - score_second;
       phospho.setMetaValue("AScore_" + String(rank), AScore_first);
       ++rank;
       /*    hp->AScore = AScore_first;
@@ -237,18 +237,18 @@ namespace OpenMS
     return phospho;
   }
 
-  DoubleReal AScore::computeCumulativeScore(UInt N, UInt n, DoubleReal p)
+  double AScore::computeCumulativeScore(UInt N, UInt n, double p)
   {
     if (n > N)
     {
       return -1.0;
     }
-    DoubleReal score = 0.0;
+    double score = 0.0;
     for (UInt k = n; k <= N; ++k)
     {
-      DoubleReal coeff = boost::math::binomial_coefficient<DoubleReal>((DoubleReal)N, k);
-      DoubleReal pow1 = pow((double)p, (int)k);
-      DoubleReal pow2 = pow(double(1 - p), double(N - k));
+      double coeff = boost::math::binomial_coefficient<double>((double)N, k);
+      double pow1 = pow((double)p, (int)k);
+      double pow2 = pow(double(1 - p), double(N - k));
       score += coeff * pow1 * pow2;
     }
     if (score == 0.0)
@@ -258,20 +258,20 @@ namespace OpenMS
     return score;
   }
 
-  void AScore::computeHighestPeptides(std::vector<std::vector<DoubleReal> > & peptide_site_scores, std::vector<ProbablePhosphoSites> & sites, vector<vector<Size> > & permutations)
+  void AScore::computeHighestPeptides(std::vector<std::vector<double> > & peptide_site_scores, std::vector<ProbablePhosphoSites> & sites, vector<vector<Size> > & permutations)
   {
     sites.clear();
     sites.resize(permutations[0].size());
-    multimap<DoubleReal, Size> ranking;
+    multimap<double, Size> ranking;
     for (Size it = 0; it < peptide_site_scores.size(); ++it)
     {
-      DoubleReal current_score = peptideScore_(peptide_site_scores[it]);
-      ranking.insert(pair<DoubleReal, Size>(current_score, it));
+      double current_score = peptideScore_(peptide_site_scores[it]);
+      ranking.insert(pair<double, Size>(current_score, it));
     }
     vector<Size> & hps = permutations[ranking.rbegin()->second /*it->second*/];       //highest peptide score
     for (Size i = 0; i < hps.size(); ++i)
     {
-      multimap<DoubleReal, Size>::reverse_iterator rev = ranking.rbegin();
+      multimap<double, Size>::reverse_iterator rev = ranking.rbegin();
       sites[i].first = hps[i];
       sites[i].seq_1 = rev->second;          //it->second;
       bool peptide_not_found = true;
@@ -316,11 +316,11 @@ namespace OpenMS
     }
     for (Size i = 0; i < sites.size(); ++i)
     {
-      DoubleReal current_peak_depth = 0.0;
+      double current_peak_depth = 0.0;
       sites[i].peak_depth = 1;
-      vector<DoubleReal>::iterator first_it = peptide_site_scores[sites[i].seq_1].begin();
+      vector<double>::iterator first_it = peptide_site_scores[sites[i].seq_1].begin();
       Size depth = 1;
-      for (vector<DoubleReal>::iterator second_it = peptide_site_scores[sites[i].seq_2].begin(); second_it < peptide_site_scores[sites[i].seq_2].end(); ++second_it, ++first_it)
+      for (vector<double>::iterator second_it = peptide_site_scores[sites[i].seq_2].begin(); second_it < peptide_site_scores[sites[i].seq_2].end(); ++second_it, ++first_it)
       {
         if ((*first_it - *second_it) > current_peak_depth)
         {
@@ -424,7 +424,7 @@ namespace OpenMS
     site_determining_ions[1].sortByPosition();
   }
 
-  Int AScore::numberOfMatchedIons_(const RichPeakSpectrum & th, const RichPeakSpectrum & windows, Size depth, DoubleReal fmt)
+  Int AScore::numberOfMatchedIons_(const RichPeakSpectrum & th, const RichPeakSpectrum & windows, Size depth, double fmt)
   {
     Int n = 0;
     for (Size i = 0; i < windows.size() && i <= depth; ++i)
@@ -436,7 +436,7 @@ namespace OpenMS
     return n;
   }
 
-  DoubleReal AScore::peptideScore_(std::vector<DoubleReal> & scores)
+  double AScore::peptideScore_(std::vector<double> & scores)
   {
     return (scores[0] * 0.5
             + scores[1] * 0.75

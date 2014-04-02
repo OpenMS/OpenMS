@@ -11,7 +11,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Adduct.h>" namespace "OpenMS":
         Adduct(Adduct) nogil except + 
   
         Adduct(Int charge) nogil except +
-        Adduct(Int charge, Int amount, DoubleReal singleMass, String formula, DoubleReal log_prob, DoubleReal rt_shift, String label) nogil except +
+        Adduct(Int charge, Int amount, double singleMass, String formula, double log_prob, double rt_shift, String label) nogil except +
   
         Int getCharge() nogil except +
   
@@ -20,14 +20,14 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Adduct.h>" namespace "OpenMS":
         Int getAmount() nogil except +
         void setAmount(Int amount) nogil except +
   
-        DoubleReal getSingleMass() nogil except +
-        void setSingleMass(DoubleReal singleMass) nogil except +
+        double getSingleMass() nogil except +
+        void setSingleMass(double singleMass) nogil except +
   
-        DoubleReal getLogProb() nogil except +
-        void setLogProb(DoubleReal log_prob) nogil except +
+        double getLogProb() nogil except +
+        void setLogProb(double log_prob) nogil except +
   
         String getFormula() nogil except +
         void setFormula(String formula) nogil except +
   
-        DoubleReal getRTShift() nogil except +
+        double getRTShift() nogil except +
         String getLabel() nogil except +

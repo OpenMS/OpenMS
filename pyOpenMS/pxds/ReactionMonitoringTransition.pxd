@@ -16,11 +16,11 @@ cdef extern from "<OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>" namespac
         void setNativeID(String name)              nogil except +
         void setPeptideRef(String peptide_ref)     nogil except +
 
-        DoubleReal getProductMZ()         nogil except +
-        void setProductMZ(DoubleReal)     nogil except +
+        double getProductMZ()         nogil except +
+        void setProductMZ(double)     nogil except +
 
-        DoubleReal getPrecursorMZ()       nogil except +
-        void setPrecursorMZ(DoubleReal)   nogil except +
+        double getPrecursorMZ()       nogil except +
+        void setPrecursorMZ(double)   nogil except +
       
         DecoyTransitionType getDecoyTransitionType() nogil except +
 
@@ -41,8 +41,8 @@ cdef extern from "<OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>" namespac
         void addPredictionTerm(CVTerm & prediction)nogil except +
         Prediction  getPrediction()nogil except +
         void setDecoyTransitionType(DecoyTransitionType & d)nogil except +
-        DoubleReal getLibraryIntensity()nogil except +
-        void setLibraryIntensity(DoubleReal intensity)nogil except +
+        double getLibraryIntensity()nogil except +
+        void setLibraryIntensity(double intensity)nogil except +
 
 cdef extern from "<OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>" namespace "OpenMS::ReactionMonitoringTransition":
 

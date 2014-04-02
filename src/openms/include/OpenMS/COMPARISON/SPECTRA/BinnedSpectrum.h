@@ -69,8 +69,8 @@ namespace OpenMS
 private:
 
     UInt bin_spread_;
-    Real bin_size_;
-    SparseVector<Real> bins_;
+    float bin_size_;
+    SparseVector<float> bins_;
 
 public:
 
@@ -87,14 +87,14 @@ public:
       virtual ~NoSpectrumIntegrated() throw();
     };
 
-    typedef SparseVector<Real>::const_iterator const_bin_iterator;
-    typedef SparseVector<Real>::iterator bin_iterator;
+    typedef SparseVector<float>::const_iterator const_bin_iterator;
+    typedef SparseVector<float>::iterator bin_iterator;
 
     /// default constructor
     BinnedSpectrum();
 
     /// detailed constructor
-    BinnedSpectrum(Real size, UInt spread, PeakSpectrum ps);
+    BinnedSpectrum(float size, UInt spread, PeakSpectrum ps);
 
     /// copy constructor
     BinnedSpectrum(const BinnedSpectrum & source);
@@ -180,7 +180,7 @@ public:
 
             @throw NoSpectrumIntegrated is thrown if no spectrum was integrated
     */
-    inline const SparseVector<Real> & getBins() const
+    inline const SparseVector<float> & getBins() const
     {
       if (bins_.empty())
       {
@@ -193,7 +193,7 @@ public:
 
             @throw NoSpectrumIntegrated is thrown if no spectrum was integrated
     */
-    inline SparseVector<Real> & getBins()
+    inline SparseVector<float> & getBins()
     {
       if (bins_.empty())
       {

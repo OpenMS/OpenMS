@@ -22,12 +22,12 @@ cdef extern from "<OpenMS/FORMAT/InspectInfile.h>" namespace "OpenMS":
         void setModificationsPerPeptide(Int modifications_per_peptide) nogil except +
         UInt getBlind() nogil except +
         void setBlind(UInt blind) nogil except +
-        Real getMaxPTMsize() nogil except +
-        void setMaxPTMsize(Real maxptmsize) nogil except +
-        Real getPrecursorMassTolerance() nogil except +
-        void setPrecursorMassTolerance(Real precursor_mass_tolerance) nogil except +
-        Real getPeakMassTolerance() nogil except +
-        void setPeakMassTolerance(Real peak_mass_tolerance) nogil except +
+        float getMaxPTMsize() nogil except +
+        void setMaxPTMsize(float maxptmsize) nogil except +
+        float getPrecursorMassTolerance() nogil except +
+        void setPrecursorMassTolerance(float precursor_mass_tolerance) nogil except +
+        float getPeakMassTolerance() nogil except +
+        void setPeakMassTolerance(float peak_mass_tolerance) nogil except +
         UInt getMulticharge() nogil except +
         void setMulticharge(UInt multicharge) nogil except +
         String  getInstrument() nogil except +

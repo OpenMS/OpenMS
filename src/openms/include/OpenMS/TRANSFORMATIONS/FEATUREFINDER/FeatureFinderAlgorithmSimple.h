@@ -142,7 +142,7 @@ public:
               const Feature & f = this->features_->back();
 
               // quality, correlation
-              DoubleReal corr = f.getOverallQuality();
+              double corr = f.getOverallQuality();
               summary.corr_mean += corr;
               if (corr < summary.corr_min) summary.corr_min = corr;
               if (corr > summary.corr_max) summary.corr_max = corr;

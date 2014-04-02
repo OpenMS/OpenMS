@@ -50,7 +50,7 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ProteinResolver.h>" namespace "O
         Size number_of_decoy
         Size number_of_target
         Size number_of_target_plus_decoy
-        Real intensity
+        float intensity
 
 cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ProteinResolver.h>" namespace "OpenMS::ProteinResolver":
 
@@ -83,7 +83,7 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ProteinResolver.h>" namespace "O
         Size msd_group
         Size isd_group
         bool experimental
-        Real intensity
+        float intensity
         String origin
 
 cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ProteinResolver.h>" namespace "OpenMS::ProteinResolver::ResolverResult":
@@ -101,8 +101,8 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ProteinResolver.h>" namespace "O
         bool traversed
         # NAMESPACE # # POINTER # FASTAFile::FASTAEntry * fasta_entry
         ProteinEntry_type protein_type
-        DoubleReal weight
-        Real coverage
+        double weight
+        float coverage
         # NAMESPACE # # POINTER # std::list[ ProteinEntry * ] indis
         Size index
         Size msd_group

@@ -49,7 +49,7 @@ namespace OpenMS
   }  
   
   /// Detailed Constructor
-  MSQuantifications::MSQuantifications(FeatureMap<> fm, ExperimentalSettings& es, std::vector<DataProcessing>& dps, std::vector<std::vector<std::pair<String, DoubleReal> > > label) :
+  MSQuantifications::MSQuantifications(FeatureMap<> fm, ExperimentalSettings& es, std::vector<DataProcessing>& dps, std::vector<std::vector<std::pair<String, double> > > label) :
     ExperimentalSettings()
   {
     MSQuantifications::QUANT_TYPES quant_type = MSQuantifications::LABELFREE;
@@ -185,9 +185,9 @@ namespace OpenMS
     }
   }
 
-  void MSQuantifications::registerExperiment(MSExperiment<Peak1D> & exp, std::vector<std::vector<std::pair<String, DoubleReal> > > label)
+  void MSQuantifications::registerExperiment(MSExperiment<Peak1D> & exp, std::vector<std::vector<std::pair<String, double> > > label)
   {
-    for (std::vector<std::vector<std::pair<String, DoubleReal> > >::const_iterator lit = label.begin(); lit != label.end(); ++lit)
+    for (std::vector<std::vector<std::pair<String, double> > >::const_iterator lit = label.begin(); lit != label.end(); ++lit)
     {
       //TODO look for existing labels
       Assay a;
@@ -199,9 +199,9 @@ namespace OpenMS
     data_processings_ = exp[0].getDataProcessing();             //TODO check if empty, overwrite MSExperiments inherited front method to work. [0] operator is ugly!
   }
   
-  void MSQuantifications::registerExperiment(ExperimentalSettings & es, std::vector<DataProcessing>& dps,  std::vector<std::vector<std::pair<String, DoubleReal> > > label)
+  void MSQuantifications::registerExperiment(ExperimentalSettings & es, std::vector<DataProcessing>& dps,  std::vector<std::vector<std::pair<String, double> > > label)
   {
-    for (std::vector<std::vector<std::pair<String, DoubleReal> > >::const_iterator lit = label.begin(); lit != label.end(); ++lit)
+    for (std::vector<std::vector<std::pair<String, double> > >::const_iterator lit = label.begin(); lit != label.end(); ++lit)
     {
       //TODO look for existing labels
       Assay a;

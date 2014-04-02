@@ -52,7 +52,7 @@ START_TEST(PeptideHit, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-DoubleReal score = 4.4;
+double score = 4.4;
 uint rank = 3;
 AASequence sequence = AASequence("ARRAY");
 std::string sequence2 = "  ARRAY  ";
@@ -69,7 +69,7 @@ START_SECTION((virtual ~PeptideHit()))
 	delete ptr;
 END_SECTION
 
-START_SECTION((PeptideHit(DoubleReal score, UInt rank, Int charge, const AASequence &sequence)))
+START_SECTION((PeptideHit(double score, UInt rank, Int charge, const AASequence &sequence)))
 	PeptideHit hit(score, rank, charge, sequence);
 	TEST_EQUAL(hit.getScore(), score)
 	TEST_EQUAL(hit.getRank(), rank)
@@ -148,7 +148,7 @@ START_SECTION((bool operator != (const PeptideHit& rhs) const))
 	hit=hit2;
 END_SECTION
 
-START_SECTION((DoubleReal getScore() const ))
+START_SECTION((double getScore() const ))
 	PeptideHit hit(score, rank, charge, sequence);
 	TEST_EQUAL(hit.getScore(), score)
 END_SECTION
@@ -169,7 +169,7 @@ START_SECTION((void setRank(UInt newrank)))
 	TEST_EQUAL(hit.getRank(), rank)
 END_SECTION
 
-START_SECTION((void setScore(DoubleReal score)))
+START_SECTION((void setScore(double score)))
 	PeptideHit hit;
 	hit.setScore(score);
 	TEST_EQUAL(hit.getScore(), score)

@@ -65,8 +65,8 @@ namespace OpenMS
 
   void MascotInfile::store(const String & filename,
                            const PeakSpectrum & spec,
-                           DoubleReal mz,
-                           DoubleReal retention_time,
+                           double mz,
+                           double retention_time,
                            String search_title)
   {
     FILE * fp = fopen(filename.c_str(), "wt");
@@ -481,22 +481,22 @@ namespace OpenMS
     missed_cleavages_ = missed_cleavages;
   }
 
-  Real MascotInfile::getPrecursorMassTolerance()
+  float MascotInfile::getPrecursorMassTolerance()
   {
     return precursor_mass_tolerance_;
   }
 
-  void MascotInfile::setPrecursorMassTolerance(Real precursor_mass_tolerance)
+  void MascotInfile::setPrecursorMassTolerance(float precursor_mass_tolerance)
   {
     precursor_mass_tolerance_ = precursor_mass_tolerance;
   }
 
-  Real MascotInfile::getPeakMassTolerance()
+  float MascotInfile::getPeakMassTolerance()
   {
     return ion_mass_tolerance_;
   }
 
-  void MascotInfile::setPeakMassTolerance(Real ion_mass_tolerance)
+  void MascotInfile::setPeakMassTolerance(float ion_mass_tolerance)
   {
     ion_mass_tolerance_ = ion_mass_tolerance;
   }

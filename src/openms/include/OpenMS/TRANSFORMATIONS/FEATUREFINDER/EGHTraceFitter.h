@@ -85,10 +85,10 @@ public:
         for (Size t = 0; t < m_data->traces_ptr->size(); ++t)
         {
           const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType> & trace = m_data->traces_ptr->at(t);
-          DoubleReal weight = m_data->weighted ? trace.theoretical_int : 1.0;
+          double weight = m_data->weighted ? trace.theoretical_int : 1.0;
           for (Size i = 0; i < trace.peaks.size(); ++i)
           {
-            DoubleReal rt = trace.peaks[i].first;
+            double rt = trace.peaks[i].first;
 
             t_diff = rt - tR;
             t_diff2 = t_diff * t_diff; // -> (t - t_R)^2
@@ -125,10 +125,10 @@ public:
         for (Size t = 0; t < m_data->traces_ptr->size(); ++t)
         {
           const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType> & trace = m_data->traces_ptr->at(t);
-          DoubleReal weight = m_data->weighted ? trace.theoretical_int : 1.0;
+          double weight = m_data->weighted ? trace.theoretical_int : 1.0;
           for (Size i = 0; i < trace.peaks.size(); ++i)
           {
-            DoubleReal rt = trace.peaks[i].first;
+            double rt = trace.peaks[i].first;
 
             t_diff = rt - tR;
             t_diff2 = t_diff * t_diff; // -> (t - t_R)^2
@@ -234,47 +234,47 @@ public:
       TraceFitter<PeakType>::optimize_(x_init, functor);
     }
 
-    DoubleReal getLowerRTBound() const
+    double getLowerRTBound() const
     {
       return sigma_5_bound_.first;
     }
 
-    DoubleReal getTau() const
+    double getTau() const
     {
       return tau_;
     }
 
-    DoubleReal getUpperRTBound() const
+    double getUpperRTBound() const
     {
       return sigma_5_bound_.second;
     }
 
-    DoubleReal getHeight() const
+    double getHeight() const
     {
       return height_;
     }
 
-    DoubleReal getSigma() const
+    double getSigma() const
     {
       return sigma_;
     }
 
-    DoubleReal getCenter() const
+    double getCenter() const
     {
       return apex_rt_;
     }
 
-    bool checkMaximalRTSpan(const DoubleReal max_rt_span)
+    bool checkMaximalRTSpan(const double max_rt_span)
     {
       return (sigma_5_bound_.second - sigma_5_bound_.first) > max_rt_span * region_rt_span_;
     }
 
-    bool checkMinimalRTSpan(const std::pair<DoubleReal, DoubleReal>& rt_bounds, const DoubleReal min_rt_span)
+    bool checkMinimalRTSpan(const std::pair<double, double>& rt_bounds, const double min_rt_span)
     {
       return (rt_bounds.second - rt_bounds.first) < min_rt_span * (sigma_5_bound_.second - sigma_5_bound_.first);
     }
 
-    DoubleReal getValue(DoubleReal rt) const
+    double getValue(double rt) const
     {
       // equation 12 from Lan & Jorgenson paper:
       double fegh = 0.0;
@@ -288,13 +288,13 @@ public:
       return fegh;
     }
 
-    DoubleReal getArea()
+    double getArea()
     {
       // equation 21 from Lan & Jorgenson paper:
-      DoubleReal abs_tau = fabs(tau_);
-      DoubleReal phi = atan(abs_tau / sigma_);
-      DoubleReal epsilon = EPSILON_COEFS_[0];
-      DoubleReal phi_pow = phi;
+      double abs_tau = fabs(tau_);
+      double phi = atan(abs_tau / sigma_);
+      double epsilon = EPSILON_COEFS_[0];
+      double phi_pow = phi;
       for (Size i = 1; i < 7; ++i) {
         epsilon += phi_pow * EPSILON_COEFS_[i];
         phi_pow *= phi;
@@ -303,13 +303,13 @@ public:
       return height_ * (sigma_ * 0.6266571 + abs_tau) * epsilon;
     }
 
-    DoubleReal getFWHM() const
+    double getFWHM() const
     {
-      std::pair<DoubleReal, DoubleReal> bounds = getAlphaBoundaries_(0.5);
+      std::pair<double, double> bounds = getAlphaBoundaries_(0.5);
       return bounds.second - bounds.first;
     }
 
-    String getGnuplotFormula(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType>& trace, const char function_name, const DoubleReal baseline, const DoubleReal rt_shift)
+    String getGnuplotFormula(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType>& trace, const char function_name, const double baseline, const double rt_shift)
     {
       std::stringstream s;
       s << String(function_name)  << "(x)= " << baseline << " + ";
@@ -323,18 +323,18 @@ public:
     }
 
 protected:
-    DoubleReal apex_rt_;
-    DoubleReal height_;
+    double apex_rt_;
+    double height_;
 
-    DoubleReal sigma_;
-    DoubleReal tau_;
+    double sigma_;
+    double tau_;
 
-    std::pair<DoubleReal, DoubleReal> sigma_5_bound_;
+    std::pair<double, double> sigma_5_bound_;
 
-    DoubleReal region_rt_span_;
+    double region_rt_span_;
 
     /// Coefficients to calculate the proportionality factor for the peak area
-    static const DoubleReal EPSILON_COEFS_[];
+    static const double EPSILON_COEFS_[];
 
     static const Size NUM_PARAMS_ = 4;
 
@@ -343,15 +343,15 @@ protected:
      *
      * @param alpha The alpha at which the boundaries should be computed
      */
-    std::pair<DoubleReal, DoubleReal> getAlphaBoundaries_(const DoubleReal alpha) const
+    std::pair<double, double> getAlphaBoundaries_(const double alpha) const
     {
-      std::pair<DoubleReal, DoubleReal> bounds;
+      std::pair<double, double> bounds;
       // solved equations A.2 and A.3 from the Lan & Jorgenson paper (Appendix
       // A) for the boundaries A_alpha and B_alpha:
-      DoubleReal L = log(alpha);
-      DoubleReal s = sqrt(((L * tau_) * (L * tau_) / 4) - 2 * L * sigma_ * sigma_);
+      double L = log(alpha);
+      double s = sqrt(((L * tau_) * (L * tau_) / 4) - 2 * L * sigma_ * sigma_);
 
-      DoubleReal s1, s2;
+      double s1, s2;
       s1 = (-1 * (L * tau_) / 2) + s;
       s2 = (-1 * (L * tau_) / 2) - s;
 
@@ -382,26 +382,26 @@ protected:
 
       // aggregate data; some peaks (where intensity is zero) can be missing!
       // mapping: RT -> total intensity over all mass traces
-      std::list<std::pair<DoubleReal, DoubleReal> > total_intensities;
+      std::list<std::pair<double, double> > total_intensities;
       traces.computeIntensityProfile(total_intensities);
 
       // compute moving average for smoothing:
       const Size N = total_intensities.size();
       const Size LEN = 2; // window size: 2 * LEN + 1
-      std::vector<DoubleReal> totals(N + 2 * LEN); // pad with zeros at ends
+      std::vector<double> totals(N + 2 * LEN); // pad with zeros at ends
       Int index = LEN;
       // LOG_DEBUG << "Summed intensities:\n";
-      for (std::list<std::pair<DoubleReal, DoubleReal> >::iterator it =
+      for (std::list<std::pair<double, double> >::iterator it =
              total_intensities.begin(); it != total_intensities.end(); ++it)
       {
         totals[index++] = it->second;
         // LOG_DEBUG << it->second << std::endl;
       }
       
-      std::vector<DoubleReal> smoothed(N);
+      std::vector<double> smoothed(N);
       Size max_index = 0; // index of max. smoothed intensity
       // LOG_DEBUG << "Smoothed intensities:\n";
-      DoubleReal sum = std::accumulate(&totals[LEN], &totals[2 * LEN], 0.0);
+      double sum = std::accumulate(&totals[LEN], &totals[2 * LEN], 0.0);
       for (Size i = 0; i < N; ++i)
       {
         sum += totals[i + 2 * LEN];
@@ -413,7 +413,7 @@ protected:
       LOG_DEBUG << "Maximum at index " << max_index << std::endl;
       height_ = smoothed[max_index] - traces.baseline;
       LOG_DEBUG << "height: " << height_ << std::endl;
-      std::list<std::pair<DoubleReal, DoubleReal> >::iterator it = total_intensities.begin();
+      std::list<std::pair<double, double> >::iterator it = total_intensities.begin();
       std::advance(it, max_index);
       apex_rt_ = it->first;
       LOG_DEBUG << "apex_rt: " << apex_rt_ << std::endl;
@@ -424,29 +424,29 @@ protected:
       // find RT values where intensity is at half-maximum:
       index = max_index;
       while ((index > 0) && (smoothed[index] > height_ * 0.5)) --index;
-      DoubleReal left_height = smoothed[index];
+      double left_height = smoothed[index];
       it = total_intensities.begin();
       std::advance(it, index);
-      DoubleReal left_rt = it->first;
+      double left_rt = it->first;
       LOG_DEBUG << "Left half-maximum at index " << index << ", RT " << left_rt
                 << std::endl;
       index = max_index;
       while ((index < Int(N - 1)) && (smoothed[index] > height_ * 0.5)) ++index;
-      DoubleReal right_height = smoothed[index];
+      double right_height = smoothed[index];
       it = total_intensities.end();
       std::advance(it, index - Int(N));
-      DoubleReal right_rt = it->first;
+      double right_rt = it->first;
       LOG_DEBUG << "Right half-maximum at index " << index << ", RT "
                 << right_rt << std::endl;
 
-      DoubleReal A = apex_rt_ - left_rt;
-      DoubleReal B = right_rt - apex_rt_;
+      double A = apex_rt_ - left_rt;
+      double B = right_rt - apex_rt_;
       //LOG_DEBUG << "A: " << A << std::endl;
       //LOG_DEBUG << "B: " << B << std::endl;
 
       // compute estimates for tau / sigma based on A and B:
-      DoubleReal alpha = (left_height + right_height) * 0.5 / height_; // ~0.5
-      DoubleReal log_alpha = log(alpha);
+      double alpha = (left_height + right_height) * 0.5 / height_; // ~0.5
+      double log_alpha = log(alpha);
 
       tau_ = -1 / log_alpha * (B - A);
       //EGH function fails when tau==0
@@ -466,7 +466,7 @@ protected:
 
   // from table 1 in the Lan & Jorgenson paper:
   template <class PeakType>
-  const DoubleReal EGHTraceFitter<PeakType>::EPSILON_COEFS_[] = 
+  const double EGHTraceFitter<PeakType>::EPSILON_COEFS_[] = 
   {4.0, -6.293724, 9.232834, -11.342910, 9.123978, -4.173753, 0.827797};
 
 } // namespace OpenMS

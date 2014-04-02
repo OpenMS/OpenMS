@@ -418,32 +418,32 @@ namespace OpenMS
     blind_ = blind;
   }
 
-  Real InspectInfile::getMaxPTMsize() const
+  float InspectInfile::getMaxPTMsize() const
   {
     return maxptmsize_;
   }
 
-  void InspectInfile::setMaxPTMsize(Real maxptmsize)
+  void InspectInfile::setMaxPTMsize(float maxptmsize)
   {
     maxptmsize_ = maxptmsize;
   }
 
-  Real InspectInfile::getPrecursorMassTolerance() const
+  float InspectInfile::getPrecursorMassTolerance() const
   {
     return precursor_mass_tolerance_;
   }
 
-  void InspectInfile::setPrecursorMassTolerance(Real precursor_mass_tolerance)
+  void InspectInfile::setPrecursorMassTolerance(float precursor_mass_tolerance)
   {
     precursor_mass_tolerance_ = precursor_mass_tolerance;
   }
 
-  Real InspectInfile::getPeakMassTolerance() const
+  float InspectInfile::getPeakMassTolerance() const
   {
     return peak_mass_tolerance_;
   }
 
-  void InspectInfile::setPeakMassTolerance(Real ion_tolerance)
+  void InspectInfile::setPeakMassTolerance(float ion_tolerance)
   {
     peak_mass_tolerance_ = ion_tolerance;
   }

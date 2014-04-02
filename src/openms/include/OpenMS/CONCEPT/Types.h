@@ -96,24 +96,6 @@ namespace OpenMS
   typedef int Int;
 
   /**
-    @brief Real type
-
-    Use this type to represent standard floating point numbers.
-
-    @ingroup Concept
-  */
-  typedef float Real;
-
-  /**
-    @brief Double-precision real type
-
-    Use this type to represent double precision floating point numbers.
-
-    @ingroup Concept
-  */
-  typedef double DoubleReal;
-
-  /**
     @brief Byte type
 
     Use this type to represent byte data (8 bit length). A Byte is always unsigned.
@@ -189,11 +171,11 @@ namespace OpenMS
     #define NUMBER 12345.67890123456789012345678901
     std::cout << NUMBER << '\n'; // default precision, writes: 12345.7
 
-    DoubleReal d = NUMBER;
-    std::cout.precision(writtenDigits<DoubleReal>()); // explicit template instantiation
-    std::cout << writtenDigits<DoubleReal>() << ": " << d << '\n'; // writes: 15: 12345.6789012346
+    double d = NUMBER;
+    std::cout.precision(writtenDigits<double>()); // explicit template instantiation
+    std::cout << writtenDigits<double>() << ": " << d << '\n'; // writes: 15: 12345.6789012346
 
-    Real r = NUMBER;
+    float r = NUMBER;
     std::cout.precision(writtenDigits(r)); // type deduced from argument
     std::cout << writtenDigits(r) << ": " << r << '\n'; // writes: 6: 12345.7
 
@@ -201,7 +183,7 @@ namespace OpenMS
     std::cout.precision(writtenDigits(1L)); // argument is not used, but L suffix indicates a long double
     std::cout << writtenDigits(1L) << ": " << l << '\n'; // writes: 18: 12345.6789012345671
 
-    DoubleReal x = 88.99;
+    double x = 88.99;
     std::cout.precision(15);
     std::cout << "15: " << x << '\n'; // writes: 15: 88.99
     std::cout.precision(16);

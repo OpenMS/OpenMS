@@ -149,8 +149,8 @@ namespace OpenMS
   Histogram<> Spectrum1DWidget::createIntensityDistribution_() const
   {
     //initialize histogram
-    DoubleReal min = canvas_->getCurrentMinIntensity();
-    DoubleReal max = canvas_->getCurrentMaxIntensity();
+    double min = canvas_->getCurrentMinIntensity();
+    double max = canvas_->getCurrentMaxIntensity();
     if (min == max)
     {
       min -= 0.01;
@@ -175,7 +175,7 @@ namespace OpenMS
       if (it->getName() == name)
       {
         //determine min and max of the data
-        Real min = numeric_limits<Real>::max(), max = -numeric_limits<Real>::max();
+        float min = numeric_limits<float>::max(), max = -numeric_limits<float>::max();
         for (Size i = 0; i < it->size(); ++i)
         {
           if ((*it)[i] < min)
@@ -201,7 +201,7 @@ namespace OpenMS
       if (it->getName() == name)
       {
         //determine min and max of the data
-        Real min = numeric_limits<Real>::max(), max = -numeric_limits<Real>::max();
+        float min = numeric_limits<float>::max(), max = -numeric_limits<float>::max();
         for (Size i = 0; i < it->size(); ++i)
         {
           if ((*it)[i] < min)

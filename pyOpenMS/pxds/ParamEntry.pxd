@@ -16,8 +16,8 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Param.h>" namespace "OpenMS::Param":
         DataValue value
         libcpp_set[String] tags
         libcpp_vector[String] valid_strings
-        DoubleReal  max_float
-        DoubleReal  min_float
+        double  max_float
+        double  min_float
         Int  max_int
         Int  min_int
 

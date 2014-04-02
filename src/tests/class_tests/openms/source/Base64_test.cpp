@@ -71,8 +71,8 @@ START_SECTION((template < typename FromType > void encode(std::vector< FromType 
   TOLERANCE_ABSOLUTE(0.001)
 
 	Base64 b64;
-  std::vector<Real> data;
-  std::vector<Real> res;
+  std::vector<float> data;
+  std::vector<float> res;
   String dest;
 
 	b64.encode(data, Base64::BYTEORDER_LITTLEENDIAN, dest);
@@ -87,14 +87,14 @@ START_SECTION((template < typename FromType > void encode(std::vector< FromType 
 	// decode to the "same" floating point number (considering such a low
 	// precision like 0.001).
 	
-  data = std::vector<Real>();
+  data = std::vector<float>();
   data.push_back(4711.08f);
   b64.encode(data, Base64::BYTEORDER_LITTLEENDIAN, dest);
 	TEST_EQUAL(dest, "pDiTRQ==")
 
 	// testing the encoding of double vectors
-  std::vector<DoubleReal> data_double;
-  std::vector<DoubleReal> res_double;
+  std::vector<double> data_double;
+  std::vector<double> res_double;
   data_double.push_back(300.15);
   data_double.push_back(303.998);
   data_double.push_back(304.6);
@@ -109,8 +109,8 @@ START_SECTION((template < typename ToType > void decode(const String &in, ByteOr
 
 	Base64 b64;
 	String src;
-	std::vector<Real> res;
-	std::vector<DoubleReal> res_double;
+	std::vector<float> res;
+	std::vector<double> res_double;
 
   b64.decode(src, Base64::BYTEORDER_BIGENDIAN, res);
 	TEST_EQUAL(res.size(), 0)
@@ -152,8 +152,8 @@ START_SECTION([EXTRA] zlib functionality)
 	TOLERANCE_ABSOLUTE(0.001)
 	Base64 b64;
 	String str,src;
-	std::vector<Real> data,res;
-	std::vector<DoubleReal> data_double,res_double;
+	std::vector<float> data,res;
+	std::vector<double> data_double,res_double;
 	
 	//double_real .- big endian
 	data_double.push_back(300.15);

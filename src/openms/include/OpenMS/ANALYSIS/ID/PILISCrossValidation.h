@@ -104,7 +104,7 @@ public:
       Option(const Option & rhs);
 
       /// detailed constructors
-      Option(Type t, DoubleReal min, DoubleReal max, DoubleReal stepsize);
+      Option(Type t, double min, double max, double stepsize);
 
       /// assignment operator
       Option & operator=(const Option & rhs);
@@ -113,9 +113,9 @@ public:
       Int int_min;
       Int int_max;
       Int int_stepsize;
-      DoubleReal dbl_min;
-      DoubleReal dbl_max;
-      DoubleReal dbl_stepsize;
+      double dbl_min;
+      double dbl_max;
+      double dbl_stepsize;
     };
 
 
@@ -154,12 +154,12 @@ public:
     void apply(Param & PILIS_param, const PILISModel & base_model, const std::vector<Peptide> & peptides);
 
     /// compares experimental and simulated spectra and returns a score
-    DoubleReal scoreHits(const std::vector<std::vector<std::vector<RichPeakSpectrum> > > & sim_spectra, const std::vector<std::vector<RichPeakSpectrum> > & exp_spectra);
+    double scoreHits(const std::vector<std::vector<std::vector<RichPeakSpectrum> > > & sim_spectra, const std::vector<std::vector<RichPeakSpectrum> > & exp_spectra);
     //@}
 
 protected:
 
-    DoubleReal scoreSpectra_(const RichPeakSpectrum & spec1, const RichPeakSpectrum & spec2);
+    double scoreSpectra_(const RichPeakSpectrum & spec1, const RichPeakSpectrum & spec2);
 
     void partition_(std::vector<std::vector<Peptide> > & parts, const std::vector<Peptide> & source);
 

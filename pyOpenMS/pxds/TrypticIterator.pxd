@@ -17,8 +17,8 @@ cdef extern from "<OpenMS/CHEMISTRY/TrypticIterator.h>" namespace "OpenMS":
         # in base classs
         # void setFastaFile(String & f) nogil except +
         # String getFastaFile() nogil except +
-        # void setTolerance(DoubleReal ) nogil except +
-        # DoubleReal getTolerance() nogil except +
+        # void setTolerance(double ) nogil except +
+        # double getTolerance() nogil except +
         # void setSpectrum(libcpp_vector[ double ] & ) nogil except +
         # libcpp_vector[ double ]  getSpectrum() nogil except +
         # bool begin() nogil except +

@@ -75,10 +75,10 @@ namespace OpenMS
   {
     double window = (double)param_.getValue("window");
 
-    DoubleReal mz1 = 0.0;
+    double mz1 = 0.0;
     if (!x.getPrecursors().empty())
       mz1 = x.getPrecursors()[0].getMZ();
-    DoubleReal mz2 = 0.0;
+    double mz2 = 0.0;
     if (!y.getPrecursors().empty())
       mz2 = y.getPrecursors()[0].getMZ();
 

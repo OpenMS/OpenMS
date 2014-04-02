@@ -75,7 +75,7 @@ START_SECTION((EuclideanSimilarity& operator=(const EuclideanSimilarity &source)
 }
 END_SECTION
 
-START_SECTION((Real operator()(const std::pair< Real, Real > &a, const std::pair< Real, Real > &b) const ))
+START_SECTION((float operator()(const std::pair< float, float > &a, const std::pair< float, float > &b) const ))
 {
 			EuclideanSimilarity es;
 			TOLERANCE_ABSOLUTE(0.0001);
@@ -86,7 +86,7 @@ START_SECTION((Real operator()(const std::pair< Real, Real > &a, const std::pair
 }
 END_SECTION
 
-START_SECTION((Real operator()(const std::pair< Real, Real > &c) const ))
+START_SECTION((float operator()(const std::pair< float, float > &c) const ))
 {
 			EuclideanSimilarity es;
 			TOLERANCE_ABSOLUTE(0.0001);
@@ -95,7 +95,7 @@ START_SECTION((Real operator()(const std::pair< Real, Real > &c) const ))
 }
 END_SECTION
 
-START_SECTION((void setScale(Real x)))
+START_SECTION((void setScale(float x)))
 {
 			EuclideanSimilarity es;
 			es.setScale(10);

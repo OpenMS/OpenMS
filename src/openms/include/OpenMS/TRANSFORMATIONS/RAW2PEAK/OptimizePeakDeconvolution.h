@@ -74,7 +74,7 @@ namespace OpenMS
 
       ~PenaltyFactorsIntensity(){}
 
-      DoubleReal height;
+      double height;
 
 
     };
@@ -111,8 +111,8 @@ public:
     struct Data
     {
       std::vector<PeakShape> peaks;
-      std::vector<DoubleReal> positions;
-      std::vector<DoubleReal> signal;
+      std::vector<double> positions;
+      std::vector<double> signal;
       OptimizationFunctions::PenaltyFactorsIntensity penalties;
       Int charge;
     };
@@ -184,7 +184,7 @@ protected:
     Int charge_;
 
     /// distance between two isotopic peaks
-    static const DoubleReal dist_;
+    static const double dist_;
 
     /// A function to determine the number of peaks that lie in the current m/z interval given the distance between the peaks by the current charge state.
     void setNumberOfPeaks_(Data & data, const std::vector<PeakShape> & temp_shapes, Int charge);

@@ -101,8 +101,8 @@ namespace OpenMS
     //std::cout << "posW: " << position_widget.x() << "," << position_widget.y() << "\n";
     //std::cout <<"init BB topleft: " << bounding_box_.topLeft().x()  << "," << bounding_box_.topLeft().y() <<"\n";
 
-    DoubleReal vertical_shift = 0;
-    DoubleReal horizontal_shift = 0;
+    double vertical_shift = 0;
+    double horizontal_shift = 0;
 
     if (canvas->isMzToXAxis())
     {

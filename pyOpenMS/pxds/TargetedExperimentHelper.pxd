@@ -301,7 +301,7 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperimentHelper.h>" namespa
         Modification(Modification) nogil except +
 
         # members
-        DoubleReal avg_mass_delta
+        double avg_mass_delta
         int location
-        DoubleReal mono_mass_delta
+        double mono_mass_delta
 

@@ -187,7 +187,7 @@ protected:
     String trained_model_file(getStringOption_("trained_model_file"));
     String model_file(getStringOption_("model_file"));
     bool score_filtering(getFlag_("score_filtering"));
-    DoubleReal score_threshold(getDoubleOption_("score_threshold"));
+    double score_threshold(getDoubleOption_("score_threshold"));
     Int min_charge(getIntOption_("min_charge"));
     Int max_charge(getIntOption_("max_charge"));
 

@@ -15,12 +15,12 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/PrecursorIonSelection.h>" namespace 
         #  DefaultParamHandler
         PrecursorIonSelection() nogil except +
         PrecursorIonSelection(PrecursorIonSelection) nogil except +
-        DoubleReal  getMaxScore() nogil except +
-        void setMaxScore(DoubleReal & max_score) nogil except +
+        double  getMaxScore() nogil except +
+        void setMaxScore(double & max_score) nogil except +
         void sortByTotalScore(FeatureMap[Feature] & features) nogil except +
         void getNextPrecursors(FeatureMap[Feature] & features, FeatureMap[Feature] & next_features, UInt number) nogil except +
         # TODO immutable types by reference
-        # void getNextPrecursorsSeq(FeatureMap[Feature] & features, FeatureMap[Feature] & next_features, UInt number, DoubleReal & rt) nogil except +
+        # void getNextPrecursorsSeq(FeatureMap[Feature] & features, FeatureMap[Feature] & next_features, UInt number, double & rt) nogil except +
         void getNextPrecursors(libcpp_vector[ int ] & solution_indices,
                                libcpp_vector[ IndexTriple ] & variable_indices,
                                libcpp_set[ int ] & measured_variables,

@@ -101,8 +101,8 @@ public:
       std::set<String> tags;
       ///@name Restrictions to accepted values (used in checkDefaults)
       //@{
-      DoubleReal min_float; ///< Default: - std::numeric_limits<DoubleReal>::max()
-      DoubleReal max_float; ///< Default: std::numeric_limits<DoubleReal>::max()
+      double min_float; ///< Default: - std::numeric_limits<double>::max()
+      double max_float; ///< Default: std::numeric_limits<double>::max()
       Int min_int; ///< Default: - std::numeric_limits<Int>::max()
       Int max_int; ///< Default: std::numeric_limits<Int>::max()
       std::vector<String> valid_strings; ///< Default: empty
@@ -536,7 +536,7 @@ protected:
 
       @exception Exception::ElementNotFound is thrown if @p key is not found or if the parameter type is wrong
     */
-    void setMinFloat(const String& key, DoubleReal min);
+    void setMinFloat(const String& key, double min);
 
     /**
       @brief Sets the maximum value for the floating point or floating point list parameter @p key.
@@ -545,7 +545,7 @@ protected:
 
       @exception Exception::ElementNotFound is thrown if @p key is not found or if the parameter type is wrong
     */
-    void setMaxFloat(const String& key, DoubleReal max);
+    void setMaxFloat(const String& key, double max);
     //@}
 
     ///@name Command line parsing

@@ -67,7 +67,7 @@ public:
     ///Type definitions
     //@{
     ///Vector of vector of doubles that defines the grid
-    typedef std::vector<std::vector<DoubleReal> > GridVector;
+    typedef std::vector<std::vector<double> > GridVector;
 
     /// constructor
     AxisWidget(AxisPainter::Alignment alignment, const char * legend = "", QWidget * parent = 0);
@@ -112,10 +112,10 @@ public:
     void setAllowShortNumbers(bool short_nums);
 
     /// returns the minimum value displayed on the axis
-    DoubleReal getAxisMinimum() const;
+    double getAxisMinimum() const;
 
     /// returns the maximum value displayed on the axis
-    DoubleReal getAxisMaximum() const;
+    double getAxisMaximum() const;
 
     /// Actual painting takes place here
     void paint(QPainter * painter, QPaintEvent * e);
@@ -123,7 +123,7 @@ public:
 public slots:
 
     ///sets min/max of the axis
-    void setAxisBounds(DoubleReal min, DoubleReal max);
+    void setAxisBounds(double min, double max);
 
     /// set maximum number of tick levels ('1' or '2', default: '2')
     void setTickLevel(UInt level);
@@ -148,10 +148,10 @@ protected:
     UInt margin_;
 
     /// minimum value on the axis
-    DoubleReal min_;
+    double min_;
 
     /// maximum value on the axis
-    DoubleReal max_;
+    double max_;
 
     /// text/unit on axis
     String legend_;

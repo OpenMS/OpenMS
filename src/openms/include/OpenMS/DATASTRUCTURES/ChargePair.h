@@ -69,7 +69,7 @@ public:
                const Int & charge0,
                const Int & charge1,
                const Compomer & compomer,
-               const DoubleReal & mass_diff,
+               const double & mass_diff,
                const bool active);
 
     /// Copy constructor
@@ -104,16 +104,16 @@ public:
     void setCompomer(const Compomer & compomer);
 
     /// Returns the mass difference
-    DoubleReal getMassDiff() const;
+    double getMassDiff() const;
 
     /// Sets the mass difference
-    void setMassDiff(DoubleReal mass_diff);
+    void setMassDiff(double mass_diff);
 
     /// Returns the ILP edge score
-    DoubleReal getEdgeScore() const;
+    double getEdgeScore() const;
 
     /// Sets the ILP edge score
-    void setEdgeScore(DoubleReal score);
+    void setEdgeScore(double score);
 
     /// is this pair realized?
     bool isActive() const;
@@ -141,9 +141,9 @@ protected:
     /// Compomer that explains the mass difference
     Compomer compomer_;
     /// mass difference (after explanation by compomer)
-    DoubleReal mass_diff_;
+    double mass_diff_;
     /// Score of this edge used in ILP
-    DoubleReal score_;
+    double score_;
     /// was this pair realized by ILP?
     bool is_active_;
   };

@@ -9,7 +9,7 @@ from DefaultParamHandler cimport *
 from ProgressLogger cimport *
 from ProteinIdentification cimport *
 
-# ctypedef libcpp_map<UInt64, DoubleReal> SampleAbundances;
+# ctypedef libcpp_map<UInt64, double> SampleAbundances;
 
 cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>" namespace "OpenMS":
 

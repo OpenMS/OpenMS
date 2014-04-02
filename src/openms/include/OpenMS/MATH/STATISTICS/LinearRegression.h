@@ -133,29 +133,29 @@ public:
       void computeRegressionWeighted(double confidence_interval_P, Iterator x_begin, Iterator x_end, Iterator y_begin, Iterator w_begin);
 
       /// Non-mutable access to the y-intercept of the straight line
-      DoubleReal getIntercept() const;
+      double getIntercept() const;
       /// Non-mutable access to the slope of the straight line
-      DoubleReal getSlope() const;
+      double getSlope() const;
       /// Non-mutable access to the x-intercept of the straight line
-      DoubleReal getXIntercept() const;
+      double getXIntercept() const;
       /// Non-mutable access to the lower border of confidence interval
-      DoubleReal getLower() const;
+      double getLower() const;
       /// Non-mutable access to the upper border of confidence interval
-      DoubleReal getUpper() const;
+      double getUpper() const;
       /// Non-mutable access to the value of the t-distribution
-      DoubleReal getTValue() const;
+      double getTValue() const;
       /// Non-mutable access to the squared pearson coefficient
-      DoubleReal getRSquared() const;
+      double getRSquared() const;
       /// Non-mutable access to the standard deviation of the residuals
-      DoubleReal getStandDevRes() const;
+      double getStandDevRes() const;
       /// Non-mutable access to the residual mean
-      DoubleReal getMeanRes() const;
+      double getMeanRes() const;
       /// Non-mutable access to the standard error of the slope
-      DoubleReal getStandErrSlope() const;
+      double getStandErrSlope() const;
       /// Non-mutable access to the chi squared value
-      DoubleReal getChiSquared() const;
+      double getChiSquared() const;
       /// Non-mutable access to relative standard deviation
-      DoubleReal getRSD() const;
+      double getRSD() const;
 
 protected:
 

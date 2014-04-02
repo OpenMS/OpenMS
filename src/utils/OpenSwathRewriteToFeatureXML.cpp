@@ -85,7 +85,7 @@ class TOPPOpenSwathRewriteToFeatureXML
     out_feature_map.clear(false);
     for (Size i = 0; i < feature_map.size(); i++)
     {
-      if ((DoubleReal)feature_map[i].getMetaValue(fdr_name) < cutoff)
+      if ((double)feature_map[i].getMetaValue(fdr_name) < cutoff)
       {
         out_feature_map.push_back(feature_map[i]);
       }
@@ -136,7 +136,7 @@ class TOPPOpenSwathRewriteToFeatureXML
     std::vector<std::string> current_row;
     std::string                cell;
     int line_nr = 0;
-    DoubleReal m_score, d_score;
+    double m_score, d_score;
     while (std::getline(data, line))
     {
       line_nr++;
@@ -188,7 +188,7 @@ class TOPPOpenSwathRewriteToFeatureXML
   String feature_file = getStringOption_("featureXML");
   String csv = getStringOption_("csv");
   String out = getStringOption_("out");
-  DoubleReal fdr_cutoff = getDoubleOption_("FDR_cutoff");
+  double fdr_cutoff = getDoubleOption_("FDR_cutoff");
 
   FeatureMap<Feature> feature_map;
   FeatureXMLFile().load(feature_file, feature_map);

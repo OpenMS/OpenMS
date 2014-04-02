@@ -115,7 +115,7 @@ namespace OpenMS
     @ingroup MathFunctionsStatistics
   */
   template <typename IteratorType>
-  static DoubleReal sum(IteratorType begin, IteratorType end)
+  static double sum(IteratorType begin, IteratorType end)
   {
     return std::accumulate(begin, end, 0.0);
   }
@@ -128,7 +128,7 @@ namespace OpenMS
     @ingroup MathFunctionsStatistics
   */
   template <typename IteratorType>
-  static DoubleReal mean(IteratorType begin, IteratorType end)
+  static double mean(IteratorType begin, IteratorType end)
   {
   checkIteratorsNotNULL(begin, end);
     return sum(begin, end) / std::distance(begin, end);
@@ -146,7 +146,7 @@ namespace OpenMS
     @ingroup MathFunctionsStatistics
   */
   template <typename IteratorType>
-  static DoubleReal median(IteratorType begin, IteratorType end, bool sorted = false)
+  static double median(IteratorType begin, IteratorType end, bool sorted = false)
   {
     checkIteratorsNotNULL(begin, end);
     if (!sorted)
@@ -184,7 +184,7 @@ namespace OpenMS
     @ingroup MathFunctionsStatistics
   */
   template <typename IteratorType>
-  static DoubleReal quantile1st(
+  static double quantile1st(
       IteratorType begin, IteratorType end, bool sorted = false)
   {
     checkIteratorsNotNULL(begin, end);
@@ -209,7 +209,7 @@ namespace OpenMS
   */
 
   template <typename IteratorType>
-  static DoubleReal quantile3rd(
+  static double quantile3rd(
       IteratorType begin, IteratorType end, bool sorted = false)
   {
     checkIteratorsNotNULL(begin, end);
@@ -226,17 +226,17 @@ namespace OpenMS
   @ingroup MathFunctionsStatistics
   */
   template <typename IteratorType>
-  static DoubleReal variance(
+  static double variance(
       IteratorType begin, IteratorType end,
-      DoubleReal mean = std::numeric_limits<double>::max())
+      double mean = std::numeric_limits<double>::max())
   {
     checkIteratorsNotNULL(begin, end);
-    DoubleReal sum = 0.0;
+    double sum = 0.0;
     if(mean == std::numeric_limits<double>::max())
       mean = Math::mean(begin, end);
     for(IteratorType iter=begin; iter!=end; ++iter)
     {
-      DoubleReal diff = *iter - mean;
+      double diff = *iter - mean;
       sum += diff * diff;
     }
     return sum / (std::distance(begin, end)-1);
@@ -249,9 +249,9 @@ namespace OpenMS
   @ingroup MathFunctionsStatistics
   */
   template <typename IteratorType>
-  static DoubleReal sd(
+  static double sd(
       IteratorType begin, IteratorType end,
-      DoubleReal mean = std::numeric_limits<double>::max())
+      double mean = std::numeric_limits<double>::max())
   {
     checkIteratorsNotNULL(begin, end);
     return std::sqrt( variance(begin, end, mean) );
@@ -264,12 +264,12 @@ namespace OpenMS
   @ingroup MathFunctionsStatistics
   */
   template <typename IteratorType>
-  static DoubleReal absdev(
+  static double absdev(
       IteratorType begin, IteratorType end,
-      DoubleReal mean = std::numeric_limits<double>::max())
+      double mean = std::numeric_limits<double>::max())
   {
     checkIteratorsNotNULL(begin, end);
-    DoubleReal sum = 0.0;
+    double sum = 0.0;
     if(mean == std::numeric_limits<double>::max())
       mean = Math::mean(begin, end);
     for(IteratorType iter=begin; iter!=end; ++iter)
@@ -289,16 +289,16 @@ namespace OpenMS
   @ingroup MathFunctionsStatistics
   */
   template <typename IteratorType1, typename IteratorType2>
-  static DoubleReal covariance(
+  static double covariance(
       IteratorType1 begin_a, IteratorType1 end_a,
       IteratorType2 begin_b, IteratorType2 end_b)
   {
     //no data or different lengths
     checkIteratorsNotNULL(begin_a, end_a);
 
-    DoubleReal sum = 0.0;
-    DoubleReal mean_a = Math::mean(begin_a, end_a);
-    DoubleReal mean_b = Math::mean(begin_b, end_b);
+    double sum = 0.0;
+    double mean_a = Math::mean(begin_a, end_a);
+    double mean_b = Math::mean(begin_b, end_b);
     IteratorType1 iter_a = begin_a;
     IteratorType2 iter_b = begin_b;
     for (; iter_a != end_a; ++iter_a, ++iter_b)
@@ -326,7 +326,7 @@ namespace OpenMS
       @ingroup MathFunctionsStatistics
     */
     template <typename IteratorType1, typename IteratorType2>
-    static DoubleReal meanSquareError(
+    static double meanSquareError(
         IteratorType1 begin_a, IteratorType1 end_a,
         IteratorType2 begin_b, IteratorType2 end_b)
     {
@@ -334,7 +334,7 @@ namespace OpenMS
       checkIteratorsNotNULL(begin_a, end_a);
 
       SignedSize dist = std::distance(begin_a, end_a);
-      DoubleReal error = 0;
+      double error = 0;
       IteratorType1 iter_a = begin_a;
       IteratorType2 iter_b = begin_b;
       for (; iter_a != end_a; ++iter_a, ++iter_b)
@@ -342,7 +342,7 @@ namespace OpenMS
         /* assure both ranges have the same number of elements */
         checkIteratorsAreValid(iter_b, end_b, iter_a, end_a);
 
-        DoubleReal tmp(*iter_a - *iter_b);
+        double tmp(*iter_a - *iter_b);
         error += tmp * tmp;
       }
       /* assure both ranges have the same number of elements */
@@ -361,7 +361,7 @@ namespace OpenMS
     @ingroup MathFunctionsStatistics
     */
     template <typename IteratorType1, typename IteratorType2>
-    static DoubleReal classificationRate(
+    static double classificationRate(
         IteratorType1 begin_a, IteratorType1 end_a,
         IteratorType2 begin_b, IteratorType2 end_b)
     {
@@ -385,7 +385,7 @@ namespace OpenMS
       /* assure both ranges have the same number of elements */
       checkIteratorsEqual(iter_b, end_b);
 
-      return DoubleReal(correct) / dist;
+      return double(correct) / dist;
     }
 
     /**
@@ -398,17 +398,17 @@ namespace OpenMS
       @ingroup MathFunctionsStatistics
     */
     template <typename IteratorType1, typename IteratorType2>
-    static DoubleReal matthewsCorrelationCoefficient(
+    static double matthewsCorrelationCoefficient(
         IteratorType1 begin_a, IteratorType1 end_a,
         IteratorType2 begin_b, IteratorType2 end_b)
     {
       //no data or different lengths
       checkIteratorsNotNULL(begin_a, end_b);
 
-      DoubleReal tp = 0;
-      DoubleReal fp = 0;
-      DoubleReal tn = 0;
-      DoubleReal fn = 0;
+      double tp = 0;
+      double fp = 0;
+      double tn = 0;
+      double fn = 0;
       IteratorType1 iter_a = begin_a;
       IteratorType2 iter_b = begin_b;
       for (; iter_a != end_a; ++iter_a, ++iter_b)
@@ -451,7 +451,7 @@ namespace OpenMS
       @ingroup MathFunctionsStatistics
     */
     template <typename IteratorType1, typename IteratorType2>
-    static DoubleReal pearsonCorrelationCoefficient(
+    static double pearsonCorrelationCoefficient(
         IteratorType1 begin_a, IteratorType1 end_a,
         IteratorType2 begin_b, IteratorType2 end_b)
     {
@@ -460,20 +460,20 @@ namespace OpenMS
 
       //calculate average
       SignedSize dist = std::distance(begin_a, end_a);
-      DoubleReal avg_a = std::accumulate(begin_a, end_a, 0.0) / dist;
-      DoubleReal avg_b = std::accumulate(begin_b, end_b, 0.0) / dist;
+      double avg_a = std::accumulate(begin_a, end_a, 0.0) / dist;
+      double avg_b = std::accumulate(begin_b, end_b, 0.0) / dist;
 
-      DoubleReal numerator = 0;
-      DoubleReal denominator_a = 0;
-      DoubleReal denominator_b = 0;
+      double numerator = 0;
+      double denominator_a = 0;
+      double denominator_b = 0;
       IteratorType1 iter_a = begin_a;
     IteratorType2 iter_b = begin_b;
     for (; iter_a != end_a; ++iter_a, ++iter_b)
     {
         /* assure both ranges have the same number of elements */
         checkIteratorsAreValid(iter_b, end_b, iter_a, end_a);
-        DoubleReal temp_a = *iter_a - avg_a;
-        DoubleReal temp_b = *iter_b - avg_b;
+        double temp_a = *iter_a - avg_a;
+        double temp_b = *iter_b - avg_b;
         numerator += (temp_a * temp_b);
         denominator_a += (temp_a * temp_a);
         denominator_b += (temp_b * temp_b);
@@ -547,7 +547,7 @@ namespace OpenMS
       @ingroup MathFunctionsStatistics
     */
     template <typename IteratorType1, typename IteratorType2>
-    static DoubleReal rankCorrelationCoefficient(
+    static double rankCorrelationCoefficient(
         IteratorType1 begin_a, IteratorType1 end_a,
         IteratorType2 begin_b, IteratorType2 end_b)
     {
@@ -556,9 +556,9 @@ namespace OpenMS
 
       // store and sort intensities of model and data
       SignedSize dist = std::distance(begin_a, end_a);
-      std::vector<DoubleReal> ranks_data;
+      std::vector<double> ranks_data;
       ranks_data.reserve(dist);
-      std::vector<DoubleReal> ranks_model;
+      std::vector<double> ranks_model;
       ranks_model.reserve(dist);
       IteratorType1 iter_a = begin_a;
       IteratorType2 iter_b = begin_b;
@@ -577,13 +577,13 @@ namespace OpenMS
       computeRank(ranks_data);
       computeRank(ranks_model);
 
-      DoubleReal mu = DoubleReal(ranks_data.size() + 1) / 2.; // mean of ranks
+      double mu = double(ranks_data.size() + 1) / 2.; // mean of ranks
       // Was the following, but I think the above is more correct ... (Clemens)
-      // DoubleReal mu = (ranks_data.size() + 1) / 2;
+      // double mu = (ranks_data.size() + 1) / 2;
 
-      DoubleReal sum_model_data = 0;
-      DoubleReal sqsum_data = 0;
-      DoubleReal sqsum_model = 0;
+      double sum_model_data = 0;
+      double sqsum_data = 0;
+      double sqsum_model = 0;
 
       for (Int i = 0; i < dist; ++i)
       {

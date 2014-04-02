@@ -59,9 +59,9 @@ namespace OpenMS
     ScanWindow & operator=(const ScanWindow & source);
 
     ///Begin of the window
-    DoubleReal begin;
+    double begin;
     ///End of the window
-    DoubleReal end;
+    double end;
   };
 
 } // namespace OpenMS

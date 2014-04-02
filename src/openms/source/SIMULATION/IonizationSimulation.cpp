@@ -168,7 +168,7 @@ namespace OpenMS
 
     // ionization probabilities
     defaults_.setValue("esi:ionization_probability", 0.8, "Probability for the binomial distribution of the ESI charge states");
-    defaults_.setValue("maldi:ionization_probabilities", ListUtils::create<DoubleReal>("0.9,0.1"), "List of probabilities for the different charge states during MALDI ionization (the list must sum up to 1.0)");
+    defaults_.setValue("maldi:ionization_probabilities", ListUtils::create<double>("0.9,0.1"), "List of probabilities for the different charge states during MALDI ionization (the list must sum up to 1.0)");
 
     // maximal size of map in mz dimension
     defaults_.setValue("mz:lower_measurement_limit", 200.0, "Lower m/z detector limit.");
@@ -214,7 +214,7 @@ namespace OpenMS
     esi_impurity_probabilities_.clear();
     esi_adducts_.clear();
     // cumulate probabilities in list
-    DoubleReal summed_probability(0);
+    double summed_probability(0);
     for (Size i = 0; i < esi_charge_impurity.size(); ++i)
     {
       esi_charge_impurity[i].split(':', components);
@@ -336,7 +336,7 @@ public:
         // precompute random numbers:
         std::vector<UInt> prec_rndbin(abundance);
         {
-          boost::random::binomial_distribution<Int, DoubleReal> bdist (basic_residues_c, esi_probability_);
+          boost::random::binomial_distribution<Int, double> bdist (basic_residues_c, esi_probability_);
           for (Int j = 0; j < abundance; ++j)
           {
             Int rnd_no = bdist(rnd_gen_->getTechnicalRng());
@@ -524,7 +524,7 @@ public:
 
       FeatureMapSim copy_map(features);
       copy_map.clear(false);
-      DoubleReal h_mono_weight = Constants::PROTON_MASS_U;
+      double h_mono_weight = Constants::PROTON_MASS_U;
 
       this->startProgress(0, features.size(), "Ionization");
       Size progress = 0;
@@ -598,7 +598,7 @@ public:
   }
 
   void IonizationSimulation::setFeatureProperties_(Feature & f,
-                                                   const DoubleReal & adduct_mass,
+                                                   const double & adduct_mass,
                                                    const String & adduct_formula,
                                                    const SimChargeType charge,
                                                    const SimIntensityType new_intensity,
@@ -614,7 +614,7 @@ public:
     // set "main" intensity
     SimIntensityType old_intensity = f.getIntensity();
     f.setIntensity(new_intensity);
-    DoubleReal factor = new_intensity / old_intensity;
+    double factor = new_intensity / old_intensity;
 
 #pragma omp critical (OPENMS_setfeatureprop)
     {

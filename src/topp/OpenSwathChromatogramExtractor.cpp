@@ -185,9 +185,9 @@ protected:
     bool is_swath = getFlag_("is_swath");
     bool ppm = getFlag_("ppm");
     bool extract_MS1 = getFlag_("extract_MS1");
-    DoubleReal min_upper_edge_dist = getDoubleOption_("min_upper_edge_dist");
-    DoubleReal mz_extraction_window = getDoubleOption_("mz_window");
-    DoubleReal rt_extraction_window = getDoubleOption_("rt_window");
+    double min_upper_edge_dist = getDoubleOption_("min_upper_edge_dist");
+    double mz_extraction_window = getDoubleOption_("mz_window");
+    double rt_extraction_window = getDoubleOption_("rt_window");
 
     String extraction_function = getStringOption_("extraction_function");
 

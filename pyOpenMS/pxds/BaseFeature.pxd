@@ -15,11 +15,11 @@ cdef extern from "<OpenMS/KERNEL/BaseFeature.h>" namespace "OpenMS":
         BaseFeature()  nogil except +
         BaseFeature(BaseFeature &) # wrap-ignore
 
-        Real getQuality()  nogil except +
-        void setQuality(Real q) nogil except +
+        float getQuality()  nogil except +
+        void setQuality(float q) nogil except +
 
-        Real getWidth() nogil except +
-        void setWidth(Real q) nogil except +
+        float getWidth() nogil except +
+        void setWidth(float q) nogil except +
 
         Int getCharge() nogil except +
         void setCharge(Int q) nogil except +

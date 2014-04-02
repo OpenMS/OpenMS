@@ -11,30 +11,30 @@ cdef extern from "<OpenMS/ANALYSIS/ID/HiddenMarkovModel.h>" namespace "OpenMS":
         HiddenMarkovModel(HiddenMarkovModel) nogil except +
         void writeGraphMLFile(String & filename) nogil except +
         # NAMESPACE # void write(std::ostream & out) nogil except +
-        DoubleReal getTransitionProbability(String & s1, String & s2) nogil except +
-        void setTransitionProbability(String & s1, String & s2, DoubleReal prob) nogil except +
+        double getTransitionProbability(String & s1, String & s2) nogil except +
+        void setTransitionProbability(String & s1, String & s2, double prob) nogil except +
         Size getNumberOfStates() nogil except +
         # POINTER # void addNewState(HMMState * state) nogil except +
         void addNewState(String & name) nogil except +
         void addSynonymTransition(String & name1, String & name2, String & synonym1, String & synonym2) nogil except +
         void evaluate() nogil except +
         void train() nogil except +
-        void setInitialTransitionProbability(String & state, DoubleReal prob) nogil except +
+        void setInitialTransitionProbability(String & state, double prob) nogil except +
         void clearInitialTransitionProbabilities() nogil except +
-        void setTrainingEmissionProbability(String & state, DoubleReal prob) nogil except +
+        void setTrainingEmissionProbability(String & state, double prob) nogil except +
         void clearTrainingEmissionProbabilities() nogil except +
         void enableTransition(String & s1, String & s2) nogil except +
         void disableTransition(String & s1, String & s2) nogil except +
         void disableTransitions() nogil except +
-        # POINTER # void calculateEmissionProbabilities(Map[ HMMState *, DoubleReal ] & emission_probs) nogil except +
+        # POINTER # void calculateEmissionProbabilities(Map[ HMMState *, double ] & emission_probs) nogil except +
         void dump() nogil except +
         void forwardDump() nogil except +
         void estimateUntrainedTransitions() nogil except +
         # POINTER # HMMState * getState(String & name) nogil except +
         # POINTER # HMMState * getState(String & name) nogil except +
         void clear() nogil except +
-        void setPseudoCounts(DoubleReal pseudo_counts) nogil except +
-        DoubleReal getPseudoCounts() nogil except +
+        void setPseudoCounts(double pseudo_counts) nogil except +
+        double getPseudoCounts() nogil except +
         void setVariableModifications(StringList & modifications) nogil except +
 
 cdef extern from "<OpenMS/ANALYSIS/ID/HiddenMarkovModel.h>" namespace "OpenMS":
