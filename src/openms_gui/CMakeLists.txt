@@ -75,16 +75,16 @@ include (${PROJECT_SOURCE_DIR}/includes.cmake)
 
 # --------------------------------------------------------------------------
 # collect link dependencies
-set(OpenMS_GUI_LIBRARIES OpenMS
-                         ${QT_LIBRARIES})
+set(OpenMS_GUI_DEP_LIBRARIES OpenMS
+                             ${QT_LIBRARIES})
 
 # --------------------------------------------------------------------------
 # handle OpenGL on macosx systems
 if(APPLE)
   find_package(OpenGL REQUIRED)
-  set(OpenMS_GUI_LIBRARIES ${OpenMS_GUI_LIBRARIES}
-                           ${OPENGL_gl_LIBRARY}
-                           ${OPENGL_glu_LIBRARY})
+  set(OpenMS_GUI_DEP_LIBRARIES ${OpenMS_GUI_DEP_LIBRARIES}
+                               ${OPENGL_gl_LIBRARY}
+                               ${OPENGL_glu_LIBRARY})
 endif()
 
 #------------------------------------------------------------------------------
@@ -94,7 +94,7 @@ openms_add_library(TARGET_NAME OpenMS_GUI
                    HEADER_FILES ${OpenMSVisual_sources_h}
                    INTERNAL_INCLUDES ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include
                    EXTERNAL_INCLUDES ${OpenMS_INCLUDE_DIRECTORIES}
-                   LINK_LIBRARIES ${OpenMS_GUI_LIBRARIES}
+                   LINK_LIBRARIES ${OpenMS_GUI_DEP_LIBRARIES}
                    DLL_EXPORT_PATH "OpenMS/VISUAL/")
 
 # --------------------------------------------------------------------------
