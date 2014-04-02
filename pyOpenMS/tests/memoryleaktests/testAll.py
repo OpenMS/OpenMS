@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import sys
 import unittest
 import os
@@ -13,19 +15,19 @@ def show_mem(label):
 
     p = free_mem()
     p /= 1024.0 * 1024
-    print (label+" ").ljust(50, "."), ": %8.2f MB" % p
+    print((label+" ").ljust(50, "."), ": %8.2f MB" % p)
     sys.stdout.flush()
 
 
 @contextlib.contextmanager
 def MemTester(name):
         mem_at_start = free_mem()
-        print
+        print("\n")
         show_mem("start test '%s' with" % name)
         yield
         missing = mem_at_start - free_mem()
         show_mem("end with")
-        print
+        print("\n")
         assert missing <= 0.1* mem_at_start, "possible mem leak: %s at start, missing %s" % (mem_at_start, missing)
 
 
@@ -37,19 +39,19 @@ if True or int(os.environ.get("WITH_MEMLEAK_TESTS", 0)):
         def setUp(self):
             self.mem_at_start = free_mem()
 
-            print
+            print("\n")
             show_mem("AT THE BEGINNING ")
-            print
+            print("\n")
 
             dirname = os.path.dirname(os.path.abspath(__file__))
-            self.testfile = os.path.join(dirname, "../test.mzXML")
+            self.testfile = os.path.join(dirname, "../test.mzXML").encode()
 
         def tearDown(self):
 
             time.sleep(3)
-            print
+            print("\n")
             show_mem("AT THE END ")
-            print
+            print("\n")
             missing = self.mem_at_start - free_mem()
             assert missing <= 0.1* self.mem_at_start, "possible mem leak: %s at start, missing %s" % (self.mem_at_start, missing)
 
@@ -86,7 +88,7 @@ if True or int(os.environ.get("WITH_MEMLEAK_TESTS", 0)):
 
         def run_string_conversions1(self):
 
-            basestr = 200000*" "
+            basestr = 200000*b" "
             li = []
             for i in range(1000):
                 if (i+1)%100 == 0:
@@ -98,7 +100,7 @@ if True or int(os.environ.get("WITH_MEMLEAK_TESTS", 0)):
 
         def run_string_conversions2(self):
 
-            basestr = 200000*" "
+            basestr = 200000*b" "
             li = []
             for i in range(1000):
                 if (i+1)%100 == 0:
@@ -111,7 +113,7 @@ if True or int(os.environ.get("WITH_MEMLEAK_TESTS", 0)):
 
         def run_string_lists(self):
 
-            basestr = 10000*" "
+            basestr = 10000*b" "
             li = []
             for i in range(100):
                 if (i+1)%100 == 0:
@@ -179,14 +181,14 @@ if True or int(os.environ.get("WITH_MEMLEAK_TESTS", 0)):
             show_mem("data loaded")
 
             li = []
-            print "please be patient :",
+            print("please be patient :")
             for k in range(5):
                 sys.stdout.flush()
                 li.append([ e[i] for i in range(e.size()) ])
                 li.append([ e[i] for i in range(e.size()) ])
-                print (20*k+20), "%",
+                print((20*k+20), "%")
 
-            print
+            print("\n")
             show_mem("spectra list generated")
             del li
             show_mem("spectra list deleted")
@@ -205,7 +207,7 @@ if True or int(os.environ.get("WITH_MEMLEAK_TESTS", 0)):
                     e1.addSpectrum(s)
 
             li = []
-            print "please be patient :",
+            print("please be patient :")
             N = 5
             for k in range(N):
                 sys.stdout.flush()
@@ -214,9 +216,9 @@ if True or int(os.environ.get("WITH_MEMLEAK_TESTS", 0)):
                     li.append(e2)
                     e1 = copy.copy(e2)
                     li.append(e1)
-                print int(100.0*(k+1)/N), "%",
+                print(int(100.0*(k+1)/N), "%")
 
-            print
+            print("\n")
             show_mem("experiment list generated")
             del li
             del e1
@@ -241,16 +243,16 @@ if True or int(os.environ.get("WITH_MEMLEAK_TESTS", 0)):
 
             p = pyopenms.FileHandler()
             ct.convertSpectraToChromatograms(e, True)
-            p.storeExperiment("../test.mzML", e)
+            p.storeExperiment("../test.mzML".encode(), e)
             show_mem("after store mzML")
-            p.loadExperiment("../test.mzML", e)
+            p.loadExperiment("../test.mzML".encode(), e)
             show_mem("after load mzML")
 
             p = pyopenms.FileHandler()
             ct.convertChromatogramsToSpectra(e)
-            p.storeExperiment("../test.mzData", e)
+            p.storeExperiment("../test.mzData".encode(), e)
             show_mem("after store mzData")
-            p.loadExperiment("../test.mzData", e)
+            p.loadExperiment("../test.mzData".encode(), e)
             show_mem("after load mzData")
 
             del e

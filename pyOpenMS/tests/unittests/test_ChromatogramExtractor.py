@@ -7,8 +7,8 @@ class TestChromatogramExtractor(unittest.TestCase):
 
     def setUp(self):
         dirname = os.path.dirname(os.path.abspath(__file__))
-        self.filename = os.path.join(dirname, "test.TraML")
-        self.filename_mzml = os.path.join(dirname, "test2.mzML")
+        self.filename = os.path.join(dirname, "test.TraML").encode()
+        self.filename_mzml = os.path.join(dirname, "test2.mzML").encode()
 
     def test_extractor(self):
         targeted = pyopenms.TargetedExperiment();
@@ -22,7 +22,7 @@ class TestChromatogramExtractor(unittest.TestCase):
 
         tmp_out = pyopenms.MSExperiment();
         extractor = pyopenms.ChromatogramExtractor()
-        extractor.extractChromatograms(exp, tmp_out, targeted, 10, False, trafo, -1, "tophat")
+        extractor.extractChromatograms(exp, tmp_out, targeted, 10, False, trafo, -1, b"tophat")
 
         # Basically test that the output is non-zero (e.g. the data is
         # correctly relayed to python)

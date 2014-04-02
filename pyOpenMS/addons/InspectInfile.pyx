@@ -7,7 +7,7 @@
         cdef Map[_String, libcpp_vector[_String]].iterator outer_it = _r.begin()
         cdef libcpp_vector[_String].iterator inner_it
         cdef String item_0
-        cdef str inner_key
+        cdef bytes inner_key
         cdef list inner_values
         while outer_it != _r.end():
            inner_key = deref(outer_it).first.c_str()
