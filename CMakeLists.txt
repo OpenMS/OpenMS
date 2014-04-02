@@ -248,35 +248,24 @@ endif()
 #------------------------------------------------------------------------------
 # Handle export of targets
 openms_export_targes()
+finalize_install()
 
 ######################################################
 #### build settings and configs for external code ####
 ######################################################
-if ("${PACKAGE_TYPE}" STREQUAL "none")
-	## grep definitions (-D<XXX>) that were set using 'add_definitions()'
-	get_property(OPENMS_CMP_DEFS DIRECTORY . PROPERTY COMPILE_DEFINITIONS)
-	## convert to CXX flags
-	foreach(i ${OPENMS_CMP_DEFS})
-		set(CF_OPENMS_ADDCXX_FLAGS "${CF_OPENMS_ADDCXX_FLAGS} -D${i}")
-	endforeach(i)
-	## for add_definition commands (currently empty, but who knows...)
-	set(CF_OPENMS_ADD_DEFINITIONS)
-  #------------------------------------------------------------------------------
-else()
-	# install routines for MacOSX
-	if("${PACKAGE_TYPE}" STREQUAL "dmg")
-		include(cmake/package_dragndrop_dmg.cmake)
-	endif()
+# install routines for MacOSX
+if("${PACKAGE_TYPE}" STREQUAL "dmg")
+  include(cmake/package_dragndrop_dmg.cmake)
+endif()
 
-  # .. rpms
-	if("${PACKAGE_TYPE}" STREQUAL "rpm")
-		include(cmake/package_rpm.cmake)
-	endif()
+# .. rpms
+if("${PACKAGE_TYPE}" STREQUAL "rpm")
+  include(cmake/package_rpm.cmake)
+endif()
 
-  # .. deps
-	if("${PACKAGE_TYPE}" STREQUAL "deb")
-		include(cmake/package_deb.cmake)
-	endif()
+# .. deps
+if("${PACKAGE_TYPE}" STREQUAL "deb")
+  include(cmake/package_deb.cmake)
 endif()
 
 #------------------------------------------------------------------------------

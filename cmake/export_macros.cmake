@@ -34,7 +34,7 @@
 
 # a collection of wrapper for export functions that allows easier usage
 # througout the OpenMS build system
-set(_OPENMS_EXPORT_FILE "${OPENMS_HOST_BINARY_DIRECTORY}/OpenMSTargets.cmake")
+set(_OPENMS_EXPORT_FILE "OpenMSTargets.cmake")
 
 # clear list before we refill it
 set(_OPENMS_EXPORT_TARGETS "" CACHE INTERNAL "List of targets that will be exported.")
@@ -54,19 +54,68 @@ macro(openms_export_targes )
     endif()
 
     # extend include block
-    set(_EXPORT_INCLUDE_BLOCK "set(${_target}_INCLUDE_DIRECTORIES ${${_target}_INCLUDE_DIRECTORIES})\n${_EXPORT_INCLUDE_BLOCK}")
+    set(_EXPORT_INCLUDE_BLOCK "set(${_target}_INCLUDE_DIRECTORIES \"${${_target}_INCLUDE_DIRECTORIES}\")\n\n${_EXPORT_INCLUDE_BLOCK}")
   endforeach()
 
   # configure OpenMSConfig.cmake
-	configure_file(
-		"${OPENMS_HOST_DIRECTORY}/cmake/OpenMSConfig.cmake.in"
-		"${PROJECT_BINARY_DIR}/OpenMSConfig.cmake"
-		@ONLY
-	)
+  configure_file(
+    "${OPENMS_HOST_DIRECTORY}/cmake/OpenMSConfig.cmake.in"
+    "${PROJECT_BINARY_DIR}/OpenMSConfig.cmake"
+    @ONLY
+  )
+
+  # configure OpenMSConfig.cmake
+  configure_file(
+    "${OPENMS_HOST_DIRECTORY}/cmake/OpenMSConfigVersion.cmake.in"
+    "${PROJECT_BINARY_DIR}/OpenMSConfigVersion.cmake"
+    @ONLY
+  )
 
   # create corresponding target file
-  export(TARGETS ${_OPENMS_EXPORT_TARGETS} FILE ${_OPENMS_EXPORT_FILE})
+  export(TARGETS ${_OPENMS_EXPORT_TARGETS}
+         FILE ${OPENMS_HOST_BINARY_DIRECTORY}/${_OPENMS_EXPORT_FILE})
+
+  # --------------------------------------------------------------------------
+  # export for install; clear variable before refilling
+  set(_EXPORT_INCLUDE_BLOCK "")
+  foreach(_target ${_OPENMS_EXPORT_TARGETS})
+    # check if we have a corresponding include_dir variable
+    if(NOT DEFINED ${_target}_INCLUDE_DIRECTORIES)
+      message(FATAL_ERROR "Please provide the matching include directory variable ${_target}_INCLUDE_DIRECTORIES for export target ${_target}")
+    endif()
+
+    # find all includes that will not be installed with OpenMS
+    set(_NON_INSTALLABLE_INCLUDES "")
+    foreach(_incl_path ${${_target}_INCLUDE_DIRECTORIES})
+      if (NOT "${_incl_path}" MATCHES "^${OPENMS_HOST_DIRECTORY}.*" AND NOT "${_incl_path}" MATCHES "^${OPENMS_HOST_BINARY_DIRECTORY}.*")
+        set(_NON_INSTALLABLE_INCLUDES ${_NON_INSTALLABLE_INCLUDES}
+                                      ${_incl_path})
+      endif()
+    endforeach()
+
+    # append install include dir
+    set(_NON_INSTALLABLE_INCLUDES ${_NON_INSTALLABLE_INCLUDES}
+                                  ${INSTALL_INCLUDE_DIR})
+    set(_EXPORT_INCLUDE_BLOCK "set(${_target}_INCLUDE_DIRECTORIES \"${_NON_INSTALLABLE_INCLUDES}\")\n\n${_EXPORT_INCLUDE_BLOCK}")
+  endforeach()
+
+  # configure OpenMSConfig.cmake
+  configure_file(
+    "${OPENMS_HOST_DIRECTORY}/cmake/OpenMSConfig.cmake.in"
+    "${PROJECT_BINARY_DIR}/install/OpenMSConfig.cmake"
+    @ONLY
+  )
+
+  # install the generated config file
+  install_file(${PROJECT_BINARY_DIR}/install/OpenMSConfig.cmake
+               ${INSTALL_SHARE_DIR}/cmake
+               share)
+
+  # .. and ConfigVersion.cmake
+  install_file(${PROJECT_BINARY_DIR}/OpenMSConfigVersion.cmake
+               ${INSTALL_SHARE_DIR}/cmake
+               share)
 
   # register the package
-	export(PACKAGE OpenMS)
+  export(PACKAGE OpenMS)
 endmacro()
