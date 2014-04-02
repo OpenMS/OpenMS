@@ -1147,13 +1147,4 @@ namespace OpenMS
   {
     return c_term_mod_ != 0;
   }
-
-  bool AASequence::setStringSequence(const String & sequence)
-  {
-    c_term_mod_ = 0;
-    n_term_mod_ = 0;
-    parseString_(*this, sequence);
-    return valid_;
-  }
-
 }

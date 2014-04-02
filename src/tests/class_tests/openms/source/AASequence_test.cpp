@@ -530,22 +530,6 @@ START_SECTION(const String& getCTerminalModification() const)
   TEST_EQUAL(seq2.getCTerminalModification(), "")
 END_SECTION
 
-START_SECTION(bool setStringSequence(const String &sequence))
-  AASequence seq1 = AASequence::fromString("DFPIANGER");
-  AASequence seq2 = AASequence::fromString("(MOD:00051)DFPIAK");
-
-  AASequence seq3 = seq1;
-
-  TEST_EQUAL(seq1 == seq3, true)
-
-  seq3.setStringSequence("(MOD:00051)DFPIAK");
-  TEST_EQUAL(seq2 == seq3, true)
-
-  seq3.setStringSequence("DFPIANGER");
-  TEST_EQUAL(seq1 == seq3, true)
-END_SECTION
-
-
 START_SECTION(bool isValid() const)
   AASequence seq1 = AASequence::fromString("(MOD:00051)DABCDEF");
   AASequence seq2 = AASequence::fromString("DABCDEF");

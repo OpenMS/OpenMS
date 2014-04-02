@@ -642,11 +642,11 @@ namespace OpenMS
   {
     // NOTE: This code identical to TOPPASBase::showURL(), if you change anything here
     //       you probably need to change it also there.
-    
+
     QAction* action = qobject_cast<QAction*>(sender());
     QString target = action->data().toString();
     QUrl url_target;
-    
+
     // add protocol handler if none is given
     if (!(target.startsWith("http://") || target.startsWith("https://")))
     {
@@ -666,7 +666,7 @@ namespace OpenMS
     {
       url_target = QUrl(target, QUrl::TolerantMode);
     }
-    
+
     if (!QDesktopServices::openUrl(url_target))
     {
       QMessageBox::warning(this, tr("Error"),
@@ -3231,7 +3231,7 @@ namespace OpenMS
       AASequence aa_sequence;
       try
       {
-        aa_sequence.setStringSequence(seq_string);
+        aa_sequence = AASequence::fromString(seq_string);
       }
       catch (Exception::BaseException& e)
       {

@@ -361,8 +361,6 @@ protected:
       difference_type position_;
     };
 
-
-
     /** @name Constructors and Destructors
     */
     //@{
@@ -405,9 +403,6 @@ protected:
 
     /// returns the Id of the C-term modification; an empty string is returned if none was set
     const String & getCTerminalModification() const;
-
-    /// sets the string of the sequence; returns true if the conversion to real AASequence was successful, false otherwise
-    bool setStringSequence(const String & sequence);
 
     /// returns a pointer to the residue, which is at position index
     const Residue & getResidue(SignedSize index) const;
