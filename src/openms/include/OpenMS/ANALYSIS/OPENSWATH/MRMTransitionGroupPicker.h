@@ -194,10 +194,6 @@ public:
         picked_chroms[chr_idx][peak_idx] << " with borders " << best_left << " " <<
         best_right << " (" << best_right - best_left << ")" << std::endl;
 
-      // Remove other, overlapping, picked peaks (in this and other
-      // chromatograms) and then ensure that at least one peak is set to zero
-      // (the currently best peak).
-      remove_overlapping_features(picked_chroms, best_left, best_right);
       if (recalculate_peaks_)
       {
         // This may change best_left / best_right
@@ -209,6 +205,11 @@ public:
         }
       }
       picked_chroms[chr_idx][peak_idx].setIntensity(0.0);
+
+      // Remove other, overlapping, picked peaks (in this and other
+      // chromatograms) and then ensure that at least one peak is set to zero
+      // (the currently best peak).
+      remove_overlapping_features(picked_chroms, best_left, best_right);
 
       // Check for minimal peak width -> return empty feature (Intensity zero)
       if (min_peak_width_ > 0.0 && std::fabs(best_right - best_left) < min_peak_width_) {return mrmFeature; }
@@ -583,7 +584,8 @@ protected:
       coel_score = (coel_score - 1.0) / 2.0;
 
       double score = shape_score - coel_score - 1.0 * missing_peaks / picked_chroms.size();
-      LOG_DEBUG << " computed score  " << score << std::endl;
+      LOG_DEBUG << " computed score  " << score << " (from " <<  shape_score << 
+        " - " << coel_score << " - " << 1.0 * missing_peaks / picked_chroms.size() << ")" << std::endl;
       return score;
     }
 
