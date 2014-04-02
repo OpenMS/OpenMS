@@ -42,18 +42,11 @@ set(_OPENMS_EXPORT_TARGETS "" CACHE INTERNAL "List of targets that will be expor
 macro(openms_register_export_target target_name)
   set(_OPENMS_EXPORT_TARGETS ${_OPENMS_EXPORT_TARGETS} ${target_name}
     CACHE INTERNAL "List of targets that will be exported.")
-
-	get_target_property(_TARGET_COMPILE_DEFINITIONS
-                ${target_name}
-                COMPILE_DEFINITIONS)
-
-  message(STATUS "${target_name} cmp_defs: ${_TARGET_COMPILE_DEFINITIONS}")
 endmacro()
 
 macro(openms_export_targes )
   set(_EXPORT_INCLUDE_BLOCK "")
 
-  # we also need to export the corresponding include directories
   foreach(_target ${_OPENMS_EXPORT_TARGETS})
     # check if we have a corresponding include_dir variable
     if(NOT DEFINED ${_target}_INCLUDE_DIRECTORIES)
