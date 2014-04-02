@@ -91,16 +91,16 @@ namespace OpenMS
     data.reserve(UInt((max_ - min_) / interpolation_step_ + 1));
     CoordinateType pos = min_;
 
-    DoubleReal sqrt_2pi = sqrt(2 * Constants::PI);
-    DoubleReal term_sq2 = (-2.4055 / sqrt(2.0));
-    DoubleReal part1    = (height_ * width_ / symmetry_);
-    DoubleReal part2    = pow(width_, 2) / (2 * pow(symmetry_, 2));
-    DoubleReal part3    = width_ / symmetry_;
+    double sqrt_2pi = sqrt(2 * Constants::PI);
+    double term_sq2 = (-2.4055 / sqrt(2.0));
+    double part1    = (height_ * width_ / symmetry_);
+    double part2    = pow(width_, 2) / (2 * pow(symmetry_, 2));
+    double part3    = width_ / symmetry_;
 
     for (UInt i = 0; pos < max_; ++i)
     {
       pos = min_ + i * interpolation_step_;
-      DoubleReal tmp = pos - retention_;
+      double tmp = pos - retention_;
 
       // data.push_back (Simplified EMG)
       data.push_back((part1 * sqrt_2pi * exp(part2 - (tmp / symmetry_)) / (1 + exp(term_sq2 * ((tmp / width_) - part3)))));
@@ -112,7 +112,7 @@ namespace OpenMS
 
   void EmgModel::setOffset(CoordinateType offset)
   {
-    DoubleReal diff = offset - getInterpolation().getOffset();
+    double diff = offset - getInterpolation().getOffset();
     min_ += diff;
     max_ += diff;
     statistics_.setMean(statistics_.mean() + diff);

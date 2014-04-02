@@ -21,13 +21,13 @@ cdef extern from "<OpenMS/FILTERING/ID/IDFilter.h>" namespace "OpenMS":
         IDFilter()           nogil except +
         IDFilter(IDFilter)   nogil except + # wrap-ignore
 
-        void filterIdentificationsByThreshold(PeptideIdentification& identification, DoubleReal threshold_fraction, PeptideIdentification& filtered_identification) nogil except +
-        void filterIdentificationsByScore(PeptideIdentification& identification, DoubleReal threshold_score, PeptideIdentification& filtered_identification) nogil except +
+        void filterIdentificationsByThreshold(PeptideIdentification& identification, double threshold_fraction, PeptideIdentification& filtered_identification) nogil except +
+        void filterIdentificationsByScore(PeptideIdentification& identification, double threshold_score, PeptideIdentification& filtered_identification) nogil except +
         void filterIdentificationsByBestNHits(PeptideIdentification& identification, Size n, PeptideIdentification& filtered_identification) nogil except +
         void filterIdentificationsByBestNToMHits(PeptideIdentification& identification, Size n, Size m, PeptideIdentification& filtered_identification) nogil except +
 
-        void filterIdentificationsByThreshold(ProteinIdentification& identification, DoubleReal threshold_fraction, ProteinIdentification& filtered_identification) nogil except +
-        void filterIdentificationsByScore(ProteinIdentification& identification, DoubleReal threshold_score, ProteinIdentification& filtered_identification) nogil except +
+        void filterIdentificationsByThreshold(ProteinIdentification& identification, double threshold_fraction, ProteinIdentification& filtered_identification) nogil except +
+        void filterIdentificationsByScore(ProteinIdentification& identification, double threshold_score, ProteinIdentification& filtered_identification) nogil except +
         void filterIdentificationsByBestNHits(ProteinIdentification& identification, Size n, ProteinIdentification& filtered_identification) nogil except +
         void filterIdentificationsByBestNToMHits(ProteinIdentification& identification, Size n, Size m, ProteinIdentification& filtered_identification) nogil except +
 
@@ -42,11 +42,11 @@ cdef extern from "<OpenMS/FILTERING/ID/IDFilter.h>" namespace "OpenMS":
         void filterIdentificationsByVariableModifications(PeptideIdentification& identification, libcpp_vector[String]& fixed_modifications, PeptideIdentification& filtered_identification) nogil except +
         void removeUnreferencedProteinHits(ProteinIdentification& identification, libcpp_vector[PeptideIdentification] peptide_identifications, ProteinIdentification& filtered_identification) nogil except +
         void filterIdentificationsUnique(PeptideIdentification& identification, PeptideIdentification& filtered_identification) nogil except +
-        void filterIdentificationsByMzError(PeptideIdentification& identification, DoubleReal mass_error, bool unit_ppm, PeptideIdentification& filtered_identification) nogil except +
-        void filterIdentificationsByRTPValues(PeptideIdentification& identification, PeptideIdentification& filtered_identification, DoubleReal p_value) nogil except +
-        void filterIdentificationsByRTFirstDimPValues(PeptideIdentification& identification, PeptideIdentification& filtered_identification, DoubleReal p_value)  nogil except +
-        void filterIdentificationsByThresholds(MSExperiment[Peak1D,ChromatogramPeak]& experiment, DoubleReal peptide_threshold_fraction, DoubleReal protein_threshold_fraction) nogil except +
-        void filterIdentificationsByScores(MSExperiment[Peak1D,ChromatogramPeak]& experiment, DoubleReal peptide_threshold_score, DoubleReal protein_threshold_score) nogil except +
+        void filterIdentificationsByMzError(PeptideIdentification& identification, double mass_error, bool unit_ppm, PeptideIdentification& filtered_identification) nogil except +
+        void filterIdentificationsByRTPValues(PeptideIdentification& identification, PeptideIdentification& filtered_identification, double p_value) nogil except +
+        void filterIdentificationsByRTFirstDimPValues(PeptideIdentification& identification, PeptideIdentification& filtered_identification, double p_value)  nogil except +
+        void filterIdentificationsByThresholds(MSExperiment[Peak1D,ChromatogramPeak]& experiment, double peptide_threshold_fraction, double protein_threshold_fraction) nogil except +
+        void filterIdentificationsByScores(MSExperiment[Peak1D,ChromatogramPeak]& experiment, double peptide_threshold_score, double protein_threshold_score) nogil except +
         void filterIdentificationsByBestNHits(MSExperiment[Peak1D,ChromatogramPeak]& experiment, Size n) nogil except +
         void filterIdentificationsByProteins(MSExperiment[Peak1D,ChromatogramPeak]& experiment, libcpp_vector[FASTAEntry]& proteins) nogil except +
 

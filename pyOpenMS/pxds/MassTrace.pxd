@@ -15,29 +15,29 @@ cdef extern from "<OpenMS/KERNEL/MassTrace.h>" namespace "OpenMS":
         String getLabel() nogil except +
         void setLabel(String label) nogil except +
 
-        DoubleReal getCentroidMZ() nogil except +
-        DoubleReal getCentroidRT() nogil except +
-        DoubleReal getCentroidSD() nogil except +
-        DoubleReal getFWHM() nogil except +
-        DoubleReal getTraceLength() nogil except +
+        double getCentroidMZ() nogil except +
+        double getCentroidRT() nogil except +
+        double getCentroidSD() nogil except +
+        double getFWHM() nogil except +
+        double getTraceLength() nogil except +
         libcpp_pair[Size,Size] getFWHMborders() nogil except +
-        libcpp_vector[DoubleReal] getSmoothedIntensities() nogil except +
-        DoubleReal getScanTime() nogil except +
+        libcpp_vector[double] getSmoothedIntensities() nogil except +
+        double getScanTime() nogil except +
 
-        DoubleReal computeSmoothedPeakArea() nogil except +
-        DoubleReal computePeakArea() nogil except +
+        double computeSmoothedPeakArea() nogil except +
+        double computePeakArea() nogil except +
         Size       findMaxByIntPeak(bool) nogil except +
         Size       estimateFWHM(bool) nogil except +
-        DoubleReal computeFwhmArea() nogil except +
-        DoubleReal computeFwhmAreaSmooth() nogil except +
-        DoubleReal computeFwhmAreaRobust() nogil except +
-        DoubleReal computeFwhmAreaSmoothRobust() nogil except +
-        DoubleReal getIntensity(bool) nogil except +
-        DoubleReal getMaxIntensity(bool) nogil except +
+        double computeFwhmArea() nogil except +
+        double computeFwhmAreaSmooth() nogil except +
+        double computeFwhmAreaRobust() nogil except +
+        double computeFwhmAreaSmoothRobust() nogil except +
+        double getIntensity(bool) nogil except +
+        double getMaxIntensity(bool) nogil except +
 
         ConvexHull2D getConvexhull() nogil except +
 
-        void setCentroidSD(DoubleReal &tmp_sd) nogil except +
+        void setCentroidSD(double &tmp_sd) nogil except +
         void setSmoothedIntensities(libcpp_vector[ double ] &db_vec) nogil except +
         void updateSmoothedMaxRT() nogil except +
         void updateWeightedMeanRT() nogil except +

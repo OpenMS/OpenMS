@@ -6,6 +6,7 @@
 # files need to be made (not recommended!).
 # 
 # == taken from autowrap/Main.py run(), lower part
+from __future__ import print_function
 
 infile  = "pyopenms/pyopenms.pyx"
 
@@ -26,9 +27,9 @@ options = dict(include_path=autowrap_include_dirs,
                #gdb_debug=True,
                cplus=True)
 
-print "Compiling with Cython the file", infile
-print "Using include_path", autowrap_include_dirs
+print("Compiling with Cython the file", infile)
+print("Using include_path", autowrap_include_dirs)
 options = CompilationOptions(**options)
 compile(infile, options=options)
-print "Success!"
+print("Success!")
 

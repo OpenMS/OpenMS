@@ -60,24 +60,24 @@ public:
     class Result
     {
 public:
-      DoubleReal c0, c1;
+      double c0, c1;
 
       Result() :
         c0(0), c1(0)
       {}
 
-      Result(const DoubleReal c0, const DoubleReal c1) :
+      Result(const double c0, const double c1) :
         c0(c0), c1(c1)
       {}
 
-      DoubleReal operator()(const DoubleReal mz) const
+      double operator()(const double mz) const
       {
         return std::exp(c0 + c1 * std::log(mz));
       }
 
     };
 
-    static void estimateSpectrumFWHM(const MSSpectrum<Peak1D> & input, std::set<boost::tuple<DoubleReal, DoubleReal, DoubleReal> > & fwhms);
+    static void estimateSpectrumFWHM(const MSSpectrum<Peak1D> & input, std::set<boost::tuple<double, double, double> > & fwhms);
     static Result estimateFWHM(const MSExperiment<Peak1D> & input);
   };
 }

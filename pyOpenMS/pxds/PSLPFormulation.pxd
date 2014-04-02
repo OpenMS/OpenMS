@@ -62,7 +62,7 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/PSLPFormulation.h>" namespace "OpenM
         Size feature
         Int scan
         Size variable
-        DoubleReal rt_probability
-        DoubleReal signal_weight
+        double rt_probability
+        double signal_weight
         String prot_acc
 

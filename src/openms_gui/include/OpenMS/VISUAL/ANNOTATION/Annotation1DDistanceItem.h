@@ -69,14 +69,14 @@ public:
     /// Returns the end point as (MZ,intensity)
     const PointType & getEndPoint() const;
     /// Set tick lines for the distance item
-    void setTicks(const std::vector<DoubleReal> & ticks);
+    void setTicks(const std::vector<double> & ticks);
 protected:
     /// The start point of the measured distance line
     PointType start_point_;
     /// The end point of the measured distance line
     PointType end_point_;
     /// Additional tick lines for the distance item
-    std::vector<DoubleReal> ticks_;
+    std::vector<double> ticks_;
 
   };
 } // namespace OpenMS

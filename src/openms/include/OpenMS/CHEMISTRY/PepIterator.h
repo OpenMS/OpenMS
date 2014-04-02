@@ -107,26 +107,26 @@ public:
     @param s ms spectrum given as vector of DoubleReals
     @throw Exception::InvalidValue if spectrum is not sorted ascendingly
     */
-    virtual void setSpectrum(const std::vector<DoubleReal> & s) = 0;
+    virtual void setSpectrum(const std::vector<double> & s) = 0;
 
     /**
     @brief getter for spectrum
     @return the used spectrum
     */
-    virtual const std::vector<DoubleReal> & getSpectrum() = 0;
+    virtual const std::vector<double> & getSpectrum() = 0;
 
     /**
     @brief setter for tolerance
     @param t tolerance value
     @throw Exception::InvalidValue if tolerance is negative
     */
-    virtual void setTolerance(DoubleReal t) = 0;
+    virtual void setTolerance(double t) = 0;
 
     /**
     @brief getter for tolerance
     @return tolerance
     */
-    virtual DoubleReal getTolerance() = 0;
+    virtual double getTolerance() = 0;
 
     /**
     @brief initializing iterator

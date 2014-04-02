@@ -13,7 +13,7 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPi
         libcpp_vector[ double ] intensity
         Size optional_begin
         Size optional_end
-        DoubleReal max
+        double max
         Size trimmed_left
 
         Size size() nogil except +
@@ -27,12 +27,12 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPi
         #   MassTrace := MassTrace[Peak1D]
         MassTrace(MassTrace) nogil except + #wrap-ignore
         # POINTER # PeakType * max_peak
-        DoubleReal max_rt
-        DoubleReal theoretical_int
-        # POINTER # libcpp_vector[ libcpp_pair[ DoubleReal, PeakType * ] ] peaks
+        double max_rt
+        double theoretical_int
+        # POINTER # libcpp_vector[ libcpp_pair[ double, PeakType * ] ] peaks
         ConvexHull2D getConvexhull() nogil except +
         void updateMaximum() nogil except +
-        DoubleReal getAvgMZ() nogil except +
+        double getAvgMZ() nogil except +
         bool isValid() nogil except +
 
     # Since this is a templated class, we cannot tell Cython what the C++
@@ -43,12 +43,12 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPi
         MassTraces() nogil except +
         MassTraces(MassTraces) nogil except + #wrap-ignore
         Size max_trace
-        DoubleReal baseline
+        double baseline
         Size getPeakCount() nogil except +
-        bool isValid(DoubleReal seed_mz, DoubleReal trace_tolerance) nogil except +
+        bool isValid(double seed_mz, double trace_tolerance) nogil except +
         Size getTheoreticalmaxPosition() nogil except +
         void updateBaseline() nogil except +
-        libcpp_pair[ DoubleReal, DoubleReal ] getRTBounds() nogil except +
+        libcpp_pair[ double, double ] getRTBounds() nogil except +
 
 cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>" namespace "OpenMS::FeatureFinderAlgorithmPickedHelperStructs":
     
@@ -56,7 +56,7 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPi
         Seed(Seed) nogil except + #wrap-ignore
         Size spectrum
         Size peak
-        Real intensity
+        float intensity
         bool operator<(Seed & rhs) nogil except +
 
 cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>" namespace "OpenMS::FeatureFinderAlgorithmPickedHelperStructs":

@@ -24,14 +24,14 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/PrecursorIonSelectionPreprocessing.h
         void dbPreprocessing(String db_path, bool save) nogil except +
         void dbPreprocessing(String db_path, String rt_model_path, String dt_model_path, bool save) nogil except +
         void loadPreprocessing() nogil except +
-        DoubleReal getWeight(DoubleReal mass) nogil except +
-        DoubleReal getRT(String prot_id, Size peptide_index) nogil except +
-        DoubleReal getPT(String prot_id, Size peptide_index) nogil except +
+        double getWeight(double mass) nogil except +
+        double getRT(String prot_id, Size peptide_index) nogil except +
+        double getPT(String prot_id, Size peptide_index) nogil except +
         void setFixedModifications(StringList & modifications) nogil except +
         # libcpp_map[ char, libcpp_vector[ String ] ]  getFixedModifications() nogil except +
-        void setGaussianParameters(DoubleReal mu, DoubleReal sigma) nogil except +
-        DoubleReal getGaussMu() nogil except +
-        DoubleReal getGaussSigma() nogil except +
-        DoubleReal getRTProbability(String prot_id, Size peptide_index, Feature & feature) nogil except +
-        DoubleReal getRTProbability(DoubleReal pred_rt, Feature & feature) nogil except +
+        void setGaussianParameters(double mu, double sigma) nogil except +
+        double getGaussMu() nogil except +
+        double getGaussSigma() nogil except +
+        double getRTProbability(String prot_id, Size peptide_index, Feature & feature) nogil except +
+        double getRTProbability(double pred_rt, Feature & feature) nogil except +
 

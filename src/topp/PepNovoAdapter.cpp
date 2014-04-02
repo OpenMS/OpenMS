@@ -178,7 +178,7 @@ class TOPPPepNovoAdapter :
       String model_name = getStringOption_("model");
       writeDebug_(String("model directory: ") + model_name, 1);
 
-      DoubleReal fragment_tolerance = getDoubleOption_("fragment_tolerance");
+      double fragment_tolerance = getDoubleOption_("fragment_tolerance");
       if (fragment_tolerance!=-1.0 && (fragment_tolerance<0 || fragment_tolerance>0.75))
       {
         writeLog_("Invalid fragment tolerance");
@@ -186,7 +186,7 @@ class TOPPPepNovoAdapter :
         return ILLEGAL_PARAMETERS;
       }
 
-      DoubleReal pm_tolerance = getDoubleOption_("pm_tolerance");
+      double pm_tolerance = getDoubleOption_("pm_tolerance");
       if (pm_tolerance!=-1.0 && (pm_tolerance<0.0 || pm_tolerance>5.0))
       {
         writeLog_("Invalid fragment tolerance");

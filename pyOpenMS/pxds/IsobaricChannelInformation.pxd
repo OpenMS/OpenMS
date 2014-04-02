@@ -11,6 +11,6 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantitationMethod.h>" n
         Int name
         Int id
         String description
-        DoubleReal center
-        IsobaricChannelInformation(Int name, Int id_, String description, DoubleReal center) nogil except +
+        double center
+        IsobaricChannelInformation(Int name, Int id_, String description, double center) nogil except +
 

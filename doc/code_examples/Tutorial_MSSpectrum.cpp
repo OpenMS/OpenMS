@@ -39,7 +39,7 @@ Int main()
   MSSpectrum<> spectrum;
   Peak1D peak;
 
-  for (Real mz = 1500.0; mz >= 500; mz -= 100.0)
+  for (float mz = 1500.0; mz >= 500; mz -= 100.0)
   {
     peak.setMZ(mz);
     spectrum.push_back(peak);

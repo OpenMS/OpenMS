@@ -65,10 +65,10 @@ public:
     MassExplainer(AdductsType adduct_base);
 
     /// Constructor
-    MassExplainer(Int q_min, Int q_max, Int max_span, DoubleReal thresh_logp);
+    MassExplainer(Int q_min, Int q_max, Int max_span, double thresh_logp);
 
     /// Constructor
-    MassExplainer(AdductsType adduct_base, Int q_min, Int q_max, Int max_span, DoubleReal thresh_logp, Size max_neutrals);
+    MassExplainer(AdductsType adduct_base, Int q_min, Int q_max, Int max_span, double thresh_logp, Size max_neutrals);
 
 
 private:
@@ -120,7 +120,7 @@ protected:
     bool compomerValid_(const Compomer & cmp);
 
     /// create a proper adduct from formula and charge and probability
-    Adduct createAdduct_(const String & formula, const Int charge, const DoubleReal p) const;
+    Adduct createAdduct_(const String & formula, const Int charge, const double p) const;
 
     /// store possible explanations (as formula) for a certain ChargeDifference and MassDifference
     std::vector<Compomer> explanations_;
@@ -133,7 +133,7 @@ protected:
     /// maximal span (in terms of charge) for co-features, e.g. a cluster with q={3,6} has span=4
     Int max_span_;
     /// minimum required probability of a compound (all other compounds are discarded)
-    DoubleReal thresh_p_;
+    double thresh_p_;
     /// Maximum number of neutral(q=0) adducts
     Size max_neutrals_;
 

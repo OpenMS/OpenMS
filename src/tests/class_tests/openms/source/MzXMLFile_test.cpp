@@ -45,7 +45,7 @@
 using namespace OpenMS;
 using namespace std;
 
-DRange<1> makeRange(DoubleReal a, DoubleReal b)
+DRange<1> makeRange(double a, double b)
 {
 	DPosition<1> pa(a), pb(b);
 	return DRange<1>(pa, pb);
@@ -172,7 +172,7 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 		TEST_EQUAL(e[i].getDataProcessing()[1].getSoftware().getName(), "MS-Y");
 		TEST_EQUAL(e[i].getDataProcessing()[1].getSoftware().getVersion(), "1.1");
 		TEST_STRING_EQUAL(e[i].getDataProcessing()[1].getMetaValue("#type").toString(), "processing");
-		TEST_REAL_SIMILAR((DoubleReal)(e[i].getDataProcessing()[1].getMetaValue("#intensity_cutoff")), 3.4);
+		TEST_REAL_SIMILAR((double)(e[i].getDataProcessing()[1].getMetaValue("#intensity_cutoff")), 3.4);
 		TEST_STRING_EQUAL(e[i].getDataProcessing()[1].getMetaValue("processing 3").toString(), "done 3");
 		TEST_EQUAL(e[i].getDataProcessing()[1].getCompletionTime().get(), "0000-00-00 00:00:00");
 		TEST_EQUAL(e[i].getDataProcessing()[1].getProcessingActions().size(),3)

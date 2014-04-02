@@ -5,7 +5,6 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/METADATA/ExperimentalSettings.h>
 
-
 class PythonMSDataConsumer: virtual public OpenMS::Interfaces::IMSDataConsumer<>  {
 
     typedef OpenMS::MSExperiment<>::SpectrumType SpectrumType;
@@ -44,7 +43,7 @@ class PythonMSDataConsumer: virtual public OpenMS::Interfaces::IMSDataConsumer<>
         virtual void consumeSpectrum(SpectrumType & spec)
         {
             PyObject * py_spec = wrap_spectrum_(spec);
-            PyObject * method_name = PyString_FromString("consumeSpectrum");
+            PyObject * method_name = PyUnicode_FromString("consumeSpectrum");
             PyObject * r = PyObject_CallMethodObjArgs(py_consumer_, method_name, py_spec, NULL);
             Py_DECREF(py_spec);
             Py_DECREF(method_name);
@@ -57,7 +56,7 @@ class PythonMSDataConsumer: virtual public OpenMS::Interfaces::IMSDataConsumer<>
         virtual void consumeChromatogram(ChromatogramType & chrom)
         {
             PyObject * py_chrom = wrap_chromatogram_(chrom);
-            PyObject * method_name = PyString_FromString("consumeChromatogram");
+            PyObject * method_name = PyUnicode_FromString("consumeChromatogram");
             PyObject * r = PyObject_CallMethodObjArgs(py_consumer_, method_name, py_chrom, NULL);
             Py_DECREF(py_chrom);
             Py_DECREF(method_name);
@@ -72,7 +71,7 @@ class PythonMSDataConsumer: virtual public OpenMS::Interfaces::IMSDataConsumer<>
         {
             PyObject * expected_spectra = PyInt_FromSize_t(expectedSpectra);
             PyObject * expected_chromatograms = PyInt_FromSize_t(expectedChromatograms);
-            PyObject * method_name = PyString_FromString("setExpectedSize");
+            PyObject * method_name = PyUnicode_FromString("setExpectedSize");
             PyObject * r = PyObject_CallMethodObjArgs(py_consumer_, method_name, expected_spectra,
                                                       expected_chromatograms, NULL);
             Py_DECREF(expected_spectra);
@@ -87,7 +86,7 @@ class PythonMSDataConsumer: virtual public OpenMS::Interfaces::IMSDataConsumer<>
         virtual void setExperimentalSettings(const OpenMS::ExperimentalSettings & exp_settings)
         {
             PyObject * py_exp_settings = wrap_experimental_settings_(exp_settings);
-            PyObject * method_name = PyString_FromString("setExperimentalSettings");
+            PyObject * method_name = PyUnicode_FromString("setExperimentalSettings");
             PyObject * r = PyObject_CallMethodObjArgs(py_consumer_,
                                                       method_name, py_exp_settings, NULL);
 

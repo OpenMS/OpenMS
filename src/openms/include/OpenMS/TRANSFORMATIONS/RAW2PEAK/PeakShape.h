@@ -93,10 +93,10 @@ namespace OpenMS
     }
 
     /// Constructor that sets most of the members
-    PeakShape(DoubleReal height_, DoubleReal mz_position_, DoubleReal left_width_, DoubleReal right_width_, DoubleReal area_, PeakIterator left_, PeakIterator right_, Type type_);
+    PeakShape(double height_, double mz_position_, double left_width_, double right_width_, double area_, PeakIterator left_, PeakIterator right_, Type type_);
 
     /// Constructor that sets most of the members
-    PeakShape(DoubleReal height_, DoubleReal mz_position_, DoubleReal left_width_, DoubleReal right_width_, DoubleReal area_, Type type_);
+    PeakShape(double height_, double mz_position_, double left_width_, double right_width_, double area_, Type type_);
 
 
     /// Copy constructor
@@ -116,11 +116,11 @@ namespace OpenMS
     bool operator!=(const PeakShape & rhs) const;
 
     /// Compute the intensity of the peaks shape at position x
-    DoubleReal operator()(DoubleReal x) const;
+    double operator()(double x) const;
     /// Computes symmetry measure of the peak shape, which is corresponds to th ratio of the left and right width parameters.
-    DoubleReal getSymmetricMeasure() const;
+    double getSymmetricMeasure() const;
     /// Estimates the full width at half maximum.
-    DoubleReal getFWHM() const;
+    double getFWHM() const;
     /// Check if endpoint iterators
     bool iteratorsSet() const;
 
@@ -130,22 +130,22 @@ namespace OpenMS
     PeakIterator getRightEndpoint() const;
     void setRightEndpoint(PeakIterator right_endpoint);
     /// Maximum intensity of the peak shape
-    DoubleReal height;
+    double height;
     /// Centroid position
-    DoubleReal mz_position;
+    double mz_position;
     /// Left width parameter
-    DoubleReal left_width;
+    double left_width;
     /// Right width parameter
-    DoubleReal right_width;
+    double right_width;
     /// Area of the peak shape
-    DoubleReal area;
+    double area;
     /** @brief Correlation coefficient.
 
       It represents the squared pearson correlation coefficient with the original data (0 <= r_value <= 1).
     */
-    DoubleReal r_value;
+    double r_value;
     /// The signal to noise ratio at the mz_position
-    DoubleReal signal_to_noise;
+    double signal_to_noise;
 
     ///peak shape type
     Type type;

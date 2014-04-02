@@ -83,7 +83,7 @@ namespace OpenMS
 
     ostream& os = *os_ptr;
 
-    os.precision(writtenDigits<DoubleReal>(0.0));
+    os.precision(writtenDigits<double>(0.0));
 
     os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n";
     os << "<PARAMETERS version=\"" << getVersion() << "\" xsi:noNamespaceSchemaLocation=\"http://open-ms.sourceforge.net/schemas/Param_1_6_2.xsd\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n";
@@ -247,8 +247,8 @@ namespace OpenMS
         case DataValue::DOUBLE_VALUE:
         case DataValue::DOUBLE_LIST:
         {
-          bool min_set = (it->min_float != -numeric_limits<DoubleReal>::max());
-          bool max_set = (it->max_float != numeric_limits<DoubleReal>::max());
+          bool min_set = (it->min_float != -numeric_limits<double>::max());
+          bool max_set = (it->max_float != numeric_limits<double>::max());
           if (max_set || min_set)
           {
             if (min_set)

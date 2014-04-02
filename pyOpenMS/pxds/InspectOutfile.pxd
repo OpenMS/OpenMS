@@ -15,8 +15,8 @@ cdef extern from "<OpenMS/FORMAT/InspectOutfile.h>" namespace "OpenMS":
         InspectOutfile() nogil except +
         InspectOutfile(InspectOutfile) nogil except +
         bool operator==(InspectOutfile & inspect_outfile) nogil except +
-        libcpp_vector[ size_t ] load(String & result_filename, libcpp_vector[ PeptideIdentification ] & peptide_identifications, ProteinIdentification & protein_identification, DoubleReal p_value_threshold, String & database_filename) nogil except +
-        libcpp_vector[ size_t ] getWantedRecords(String & result_filename, DoubleReal p_value_threshold) nogil except +
+        libcpp_vector[ size_t ] load(String & result_filename, libcpp_vector[ PeptideIdentification ] & peptide_identifications, ProteinIdentification & protein_identification, double p_value_threshold, String & database_filename) nogil except +
+        libcpp_vector[ size_t ] getWantedRecords(String & result_filename, double p_value_threshold) nogil except +
         void compressTrieDB(String & database_filename, String & index_filename, libcpp_vector[ size_t ] & wanted_records, String & snd_database_filename, String & snd_index_filename, bool append) nogil except +
         void generateTrieDB(String & source_database_filename, String & database_filename, String & index_filename, bool append, String species) nogil except +
         void getACAndACType(String line, String & accession, String & accession_type) nogil except +

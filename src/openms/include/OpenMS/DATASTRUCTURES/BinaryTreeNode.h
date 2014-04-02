@@ -51,7 +51,7 @@ namespace OpenMS
   {
 public:
     /// constructor
-    BinaryTreeNode(const Size i, const Size j, const Real x);
+    BinaryTreeNode(const Size i, const Size j, const float x);
 
     /// destructor
     ~BinaryTreeNode();
@@ -64,7 +64,7 @@ public:
 
     Size left_child;
     Size right_child;
-    Real distance;
+    float distance;
 
 private:
     BinaryTreeNode();

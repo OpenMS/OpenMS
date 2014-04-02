@@ -101,7 +101,7 @@ public:
 
     /**
     @brief the function that will find all peptide candidates for a given spectrum
-    @param spec const reference of DoubleReal vector describing the spectrum
+    @param spec const reference of double vector describing the spectrum
     @param candidates output parameter which contains the candidates of the masses given in spec
     @return a vector of SignedSize pairs.
     @throw InvalidValue if the spectrum is not sorted ascendingly
@@ -112,7 +112,7 @@ public:
     lcp table are used. The mass wont be calculated for each entry but it will
     be updated during traversal using a stack data structure
     */
-    void findSpec(std::vector<std::vector<std::pair<std::pair<SignedSize, SignedSize>, DoubleReal> > > & candidates, const std::vector<DoubleReal> & spec);
+    void findSpec(std::vector<std::vector<std::pair<std::pair<SignedSize, SignedSize>, double> > > & candidates, const std::vector<double> & spec);
 
     /**
     @brief saves the suffix array to disc
@@ -131,16 +131,16 @@ public:
 
     /**
     @brief setter for tolerance
-    @param t DoubleReal with tolerance
+    @param t double with tolerance
     @throw Exception::InvalidValue if tolerance is negative
     */
-    void setTolerance(DoubleReal t);
+    void setTolerance(double t);
 
     /**
     @brief getter for tolerance
-    @return DoubleReal with tolerance
+    @return double with tolerance
     */
-    DoubleReal getTolerance() const;
+    double getTolerance() const;
 
     /**
     @brief returns if an enzyme will cut after first character
@@ -221,7 +221,7 @@ protected:
     @return SignedSize with the index of the first occurrence
     @note requires that there is at least one occurrence
     */
-    SignedSize findFirst_(const std::vector<DoubleReal> & spec, DoubleReal & m);
+    SignedSize findFirst_(const std::vector<double> & spec, double & m);
 
     /**
     @brief binary search for finding the index of the first element of the
@@ -234,7 +234,7 @@ protected:
     @return SignedSize with the index of the first occurrence
     @note requires that there is at least one occurrence
     */
-    SignedSize findFirst_(const std::vector<DoubleReal> & spec, DoubleReal & m, SignedSize start, SignedSize end);
+    SignedSize findFirst_(const std::vector<double> & spec, double & m, SignedSize start, SignedSize end);
 
     /**
     @brief treats the suffix array as a tree and parses the tree using postorder traversal. This is realised by a recursive algorithm.
@@ -260,7 +260,7 @@ protected:
 
     const String & s_; ///< the string with which the suffix array is build
 
-    DoubleReal tol_; ///< mass tolerance for finding candidates
+    double tol_; ///< mass tolerance for finding candidates
 
     std::vector<std::pair<SignedSize, SignedSize> > indices_; ///< vector of pairs of ints describing all relevant suffixes
 
@@ -270,7 +270,7 @@ protected:
 
     //const SignedSize getIndex_ (const String & s);
 
-    DoubleReal masse_[256]; ///< mass table
+    double masse_[256]; ///< mass table
 
     Size number_of_modifications_; ///< number of allowed modifications
 

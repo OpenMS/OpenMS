@@ -143,7 +143,7 @@ public:
 
             Do consider normalising the distribution afterwards.
     */
-    void trimRight(DoubleReal cutoff);
+    void trimRight(double cutoff);
 
     /** @brief Trims the left side of the isotope distribution to isotopes with a significant contribution.
 
@@ -153,7 +153,7 @@ public:
 
             Do consider normalising the distribution afterwards.
     */
-    void trimLeft(DoubleReal cutoff);
+    void trimLeft(double cutoff);
     //@}
 
     /// @name Operators

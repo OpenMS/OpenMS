@@ -109,7 +109,7 @@ namespace OpenMS
         return true;
       }
 
-      /// This overload returns true; @c DataValue will be converted to DoubleReal by #TEST_REAL_SIMILAR.
+      /// This overload returns true; @c DataValue will be converted to double by #TEST_REAL_SIMILAR.
       inline bool OPENMS_DLLAPI
       isRealType(const DataValue&)
       {

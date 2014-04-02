@@ -62,11 +62,11 @@ public:
     /// Dimension
     enum {DIMENSION = 1};
     /// Intensity type
-    typedef DoubleReal IntensityType;
+    typedef double IntensityType;
     /// Position type
     typedef DPosition<1> PositionType;
     /// Coordinate type
-    typedef DoubleReal CoordinateType;
+    typedef double CoordinateType;
     //@}
 
     /**

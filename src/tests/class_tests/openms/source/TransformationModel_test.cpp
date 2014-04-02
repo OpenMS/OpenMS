@@ -76,7 +76,7 @@ data.push_back(make_pair(0.0, 1.0));
 data.push_back(make_pair(1.0, 2.0));
 data.push_back(make_pair(1.0, 4.0));
 
-START_SECTION((virtual DoubleReal evaluate(const DoubleReal value) const))
+START_SECTION((virtual double evaluate(const double value) const))
 {
 	// null model (identity):
 	TransformationModel tm;
@@ -117,13 +117,13 @@ START_SECTION((void getParameters(Param& params) const))
 }
 END_SECTION
 
-START_SECTION(([EXTRA] void getParameters(DoubleReal&, DoubleReal&)))
+START_SECTION(([EXTRA] void getParameters(double&, double&)))
 {
 	Param param;
 	param.setValue("slope", 12.3);
 	param.setValue("intercept", -45.6);
 	TransformationModelLinear lm(empty, param);
-	DoubleReal slope, intercept;
+	double slope, intercept;
 	lm.getParameters(slope, intercept);
 	TEST_REAL_SIMILAR(param.getValue("slope"), slope);
 	TEST_REAL_SIMILAR(param.getValue("intercept"), intercept);

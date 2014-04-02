@@ -564,7 +564,7 @@ START_SECTION(([EXTRA]void ExtendedModelFitter::optimize()))
 	std::vector<Peak2D> peak_array2;
 
 	// noise value		
-	Real noise = 10;
+	float noise = 10;
 
 	//String fname2 = "samples2.dta2d";
 	//ofstream file2(fname2.c_str()); 	

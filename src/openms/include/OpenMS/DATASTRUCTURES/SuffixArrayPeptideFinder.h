@@ -87,7 +87,7 @@ public:
                  The String contains the modification (if any) in the format specified by getModificationOutputMethod()
     @see sufArray.h
     */
-    void getCandidates(std::vector<std::vector<std::pair<FASTAEntry, String> > > & candidates, const std::vector<DoubleReal> & spec);
+    void getCandidates(std::vector<std::vector<std::pair<FASTAEntry, String> > > & candidates, const std::vector<double> & spec);
 
     /**
     @brief finds all candidate for given DTA file
@@ -105,13 +105,13 @@ public:
     @brief allowed tolerance for mass match
     @param t Tolerance in u
     */
-    void setTolerance(const DoubleReal t);
+    void setTolerance(const double t);
 
     /**
     @brief allowed tolerance for mass match
     @return Tolerance in u
     */
-    DoubleReal getTolerance() const;
+    double getTolerance() const;
 
     /**
     @brief setter for number of modifications

@@ -519,7 +519,7 @@ private:
     std::ios_base::fmtflags flag_backup = os.setf(std::ios::scientific);
     std::streamsize precision_backup = os.precision();
     //~ os.precision(15);
-    os.precision(writtenDigits<DoubleReal>());     // #include <OpenMS/CONCEPT/Types.h>
+    os.precision(writtenDigits<double>(0.0));     // #include <OpenMS/CONCEPT/Types.h>
 
     //evtl. color lower triangular matrix o.s.l.t.
     for (SizeType i = 0; i < matrix.dimensionsize(); ++i)

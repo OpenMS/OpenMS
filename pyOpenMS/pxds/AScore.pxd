@@ -23,10 +23,10 @@ cdef extern from "<OpenMS/ANALYSIS/ID/AScore.h>" namespace "OpenMS":
         AScore(AScore) nogil except + # wrap-ignore
 
         PeptideHit compute(PeptideHit & hit, MSSpectrum[RichPeak1D] & real_spectrum,
-                     DoubleReal fmt, int n_sites) nogil except +
+                     double fmt, int n_sites) nogil except +
 
         # Computes the cumulative binomial probabilities.
-        DoubleReal computeCumulativeScore(UInt N, UInt n, DoubleReal p) nogil except +
+        double computeCumulativeScore(UInt N, UInt n, double p) nogil except +
 
         # Finds the peptides with the highest PeptideScores and outputs all informations for computing the AScore
         # This function assumes that there are more permutations than the assumed number of phosphorylations!

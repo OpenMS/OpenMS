@@ -47,7 +47,7 @@ namespace OpenMS
   }
 
   QTCluster::QTCluster(GridFeature * center_point, Size num_maps,
-                       DoubleReal max_distance, bool use_IDs) :
+                       double max_distance, bool use_IDs) :
     center_point_(center_point), neighbors_(), max_distance_(max_distance),
     num_maps_(num_maps), quality_(0.0), changed_(false), use_IDs_(use_IDs),
     annotations_(),
@@ -61,12 +61,12 @@ namespace OpenMS
   {
   }
 
-  DoubleReal QTCluster::getCenterRT() const
+  double QTCluster::getCenterRT() const
   {
     return center_point_->getRT();
   }
 
-  DoubleReal QTCluster::getCenterMZ() const
+  double QTCluster::getCenterMZ() const
   {
     return center_point_->getMZ();
   }
@@ -81,7 +81,7 @@ namespace OpenMS
     return this->getQuality() < cluster.getQuality();
   }
 
-  void QTCluster::add(GridFeature * element, DoubleReal distance)
+  void QTCluster::add(GridFeature * element, double distance)
   {
     // maybe TODO: check here if distance is smaller than max. distance?
     // maybe TODO: check here if peptide annotations are compatible?
@@ -124,7 +124,7 @@ namespace OpenMS
       for (NeighborMap::const_iterator n_it = neighbors_.begin();
            n_it != neighbors_.end(); ++n_it)
       {
-        for (std::multimap<DoubleReal, GridFeature *>::const_iterator df_it =
+        for (std::multimap<double, GridFeature *>::const_iterator df_it =
                n_it->second.begin(); df_it != n_it->second.end(); ++df_it)
         {
           const set<AASequence> & current = df_it->second->getAnnotations();
@@ -154,7 +154,7 @@ namespace OpenMS
       NeighborMap::iterator pos = neighbors_.find(rm_it->first);
       if (pos == neighbors_.end())
         continue;                                  // no points from this map
-      for (std::multimap<DoubleReal, GridFeature *>::iterator feat_it =
+      for (std::multimap<double, GridFeature *>::iterator feat_it =
              pos->second.begin(); feat_it != pos->second.end(); ++feat_it)
       {
         if (feat_it->second == rm_it->second)         // remove this neighbor
@@ -177,7 +177,7 @@ namespace OpenMS
     return true;
   }
 
-  DoubleReal QTCluster::getQuality()
+  double QTCluster::getQuality()
   {
     if (changed_)
     {
@@ -190,7 +190,7 @@ namespace OpenMS
   void QTCluster::computeQuality_()
   {
     Size num_other = num_maps_ - 1;
-    DoubleReal internal_distance = 0.0;
+    double internal_distance = 0.0;
     if (!use_IDs_ || !center_point_->getAnnotations().empty() ||
         neighbors_.empty())
     {
@@ -225,21 +225,21 @@ namespace OpenMS
     return annotations_;
   }
 
-  DoubleReal QTCluster::optimizeAnnotations_()
+  double QTCluster::optimizeAnnotations_()
   {
     // mapping: peptides -> best distance per input map
-    map<set<AASequence>, vector<DoubleReal> > seq_table;
+    map<set<AASequence>, vector<double> > seq_table;
 
     for (NeighborMap::iterator n_it = neighbors_.begin();
          n_it != neighbors_.end(); ++n_it)
     {
       Size map_index = n_it->first;
-      for (std::multimap<DoubleReal, GridFeature *>::iterator df_it =
+      for (std::multimap<double, GridFeature *>::iterator df_it =
              n_it->second.begin(); df_it != n_it->second.end(); ++df_it)
       {
-        DoubleReal dist = df_it->first;
+        double dist = df_it->first;
         const set<AASequence> & current = df_it->second->getAnnotations();
-        map<set<AASequence>, vector<DoubleReal> >::iterator pos =
+        map<set<AASequence>, vector<double> >::iterator pos =
           seq_table.find(current);
         if (pos == seq_table.end())         // new set of annotations
         {
@@ -260,11 +260,11 @@ namespace OpenMS
     }
 
     // combine annotation-specific and unspecific distances:
-    map<set<AASequence>, vector<DoubleReal> >::iterator unspecific =
+    map<set<AASequence>, vector<double> >::iterator unspecific =
       seq_table.find(set<AASequence>());
     if (unspecific != seq_table.end())
     {
-      for (map<set<AASequence>, vector<DoubleReal> >::iterator it =
+      for (map<set<AASequence>, vector<double> >::iterator it =
              seq_table.begin(); it != seq_table.end(); ++it)
       {
         if (it == unspecific)
@@ -277,13 +277,13 @@ namespace OpenMS
     }
 
     // compute distance totals -> best annotation set has smallest value:
-    map<set<AASequence>, vector<DoubleReal> >::iterator best_pos =
+    map<set<AASequence>, vector<double> >::iterator best_pos =
       seq_table.begin();
-    DoubleReal best_total = num_maps_ * max_distance_;
-    for (map<set<AASequence>, vector<DoubleReal> >::iterator it =
+    double best_total = num_maps_ * max_distance_;
+    for (map<set<AASequence>, vector<double> >::iterator it =
            seq_table.begin(); it != seq_table.end(); ++it)
     {
-      DoubleReal total = accumulate(it->second.begin(), it->second.end(), 0.0);
+      double total = accumulate(it->second.begin(), it->second.end(), 0.0);
       if (total < best_total)
       {
         best_pos = it;

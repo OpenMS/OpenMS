@@ -133,12 +133,12 @@ namespace OpenMS
     delete sa_; // TODO assignment, copy ctor
   }
 
-  void SuffixArrayPeptideFinder::setTolerance(const DoubleReal t)
+  void SuffixArrayPeptideFinder::setTolerance(const double t)
   {
     sa_->setTolerance(t);
   }
 
-  DoubleReal SuffixArrayPeptideFinder::getTolerance() const
+  double SuffixArrayPeptideFinder::getTolerance() const
   {
     return sa_->getTolerance();
   }
@@ -205,9 +205,9 @@ namespace OpenMS
     return res;
   }
 
-  void SuffixArrayPeptideFinder::getCandidates(vector<vector<pair<FASTAEntry, String> > > & candidates, const vector<DoubleReal> & spec)
+  void SuffixArrayPeptideFinder::getCandidates(vector<vector<pair<FASTAEntry, String> > > & candidates, const vector<double> & spec)
   {
-    vector<vector<pair<pair<SignedSize, SignedSize>, DoubleReal> > > ca;
+    vector<vector<pair<pair<SignedSize, SignedSize>, double> > > ca;
     sa_->findSpec(ca, spec);
 
     ModifierRep mod;
@@ -240,7 +240,7 @@ namespace OpenMS
           }
           else
           {
-            DoubleReal ma = (DoubleReal)ca[i][j].second;
+            double ma = (double)ca[i][j].second;
             if (modification_output_method_ == "stringUnchecked")
             {
               mod_str = vToString_(mod.getModificationsForMass(ma));
@@ -273,12 +273,12 @@ namespace OpenMS
     dta_file.load(DTA_file, s);
     s.sortByPosition();
     PeakSpectrum::ConstIterator it(s.begin());
-    vector<DoubleReal> spec;
+    vector<double> spec;
     for (; it != s.end(); ++it)
     {
       spec.push_back(it->getPosition()[0]);
     }
-    const vector<DoubleReal> specc(spec);
+    const vector<double> specc(spec);
     getCandidates(candidates, specc);
     return;
   }

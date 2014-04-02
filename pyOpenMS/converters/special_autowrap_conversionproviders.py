@@ -1,3 +1,4 @@
+from __future__ import print_function
 from autowrap.Code import Code
 from autowrap.ConversionProvider import (TypeConverterBase,
                                          mangle,
@@ -126,7 +127,7 @@ class OpenMSDataValue(TypeConverterBase):
         return ""
 
     def type_check_expression(self, cpp_type, argument_var):
-        return "isinstance(%s, (int, long, float, list, str))" % argument_var
+        return "isinstance(%s, (int, long, float, list, bytes))" % argument_var
 
     def input_conversion(self, cpp_type, argument_var, arg_num):
         call_as = "deref(DataValue(%s).inst.get())" % argument_var
@@ -558,7 +559,7 @@ class CVTermMapConverter(TypeConverterBase):
         return "Map",
 
     def matches(self, cpp_type):
-        print str(cpp_type), "Map[String,libcpp_vector[CVTerm]]"
+        print(str(cpp_type), "Map[String,libcpp_vector[CVTerm]]")
         return str(cpp_type) == "Map[String,libcpp_vector[CVTerm]]" \
            or  str(cpp_type) == "Map[String,libcpp_vector[CVTerm]] &"
 
@@ -568,7 +569,7 @@ class CVTermMapConverter(TypeConverterBase):
     def type_check_expression(self, cpp_type, arg_var):
         return Code().add("""
           |isinstance($arg_var, dict)
-          + and all(isinstance(k, str) for k in $arg_var.keys())
+          + and all(isinstance(k, bytes) for k in $arg_var.keys())
           + and all(isinstance(v, list) for v in $arg_var.values())
           + and all(isinstance(vi, CVTerm) for v in $arg_var.values() for vi in
           v)
@@ -608,7 +609,7 @@ class CVTermMapConverter(TypeConverterBase):
 
                 |cdef libcpp_vector[_CVTerm].iterator $inner_it
                 |cdef CVTerm $item
-                |cdef str $inner_key
+                |cdef bytes $inner_key
                 |cdef list $inner_values
 
                 |while $outer_it != $map_name.end():
@@ -649,7 +650,7 @@ class CVTermMapConverter(TypeConverterBase):
             + = $input_cpp_var.begin()
             |cdef libcpp_vector[_CVTerm].iterator $inner_it
             |cdef CVTerm $item
-            |cdef str $inner_key
+            |cdef bytes $inner_key
             |cdef list $inner_values
             |while $outer_it != $input_cpp_var.end():
             |   $inner_key = deref($outer_it).first.c_str()

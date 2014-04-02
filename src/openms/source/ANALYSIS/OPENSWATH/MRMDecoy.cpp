@@ -43,7 +43,7 @@
 
 namespace OpenMS
 {
-  std::pair<String, DoubleReal> MRMDecoy::getDecoyIon(String ionid, boost::unordered_map<String, boost::unordered_map<String, DoubleReal> >& decoy_ionseries)
+  std::pair<String, double> MRMDecoy::getDecoyIon(String ionid, boost::unordered_map<String, boost::unordered_map<String, double> >& decoy_ionseries)
   {
     using namespace boost::assign;
     // Select SpectraST Style
@@ -51,12 +51,12 @@ namespace OpenMS
     SpectraST_order += "b", "b_loss", "y", "y_loss", "a", "b_isotopes", "b_isotopes_loss", "y_isotopes", "y_isotopes_loss", "a_isotopes";
 
     // Iterate over ion type and then ordinal
-    std::pair<String, DoubleReal> ion;
+    std::pair<String, double> ion;
     String unannotated = "unannotated";
     ion = make_pair(unannotated, -1);
     for (std::vector<String>::iterator iontype = SpectraST_order.begin(); iontype != SpectraST_order.end(); ++iontype)
     {
-      for (boost::unordered_map<String, DoubleReal>::iterator ordinal = decoy_ionseries[*iontype].begin(); ordinal != decoy_ionseries[*iontype].end(); ++ordinal)
+      for (boost::unordered_map<String, double>::iterator ordinal = decoy_ionseries[*iontype].begin(); ordinal != decoy_ionseries[*iontype].end(); ++ordinal)
       {
         if (ordinal->first == ionid)
         {

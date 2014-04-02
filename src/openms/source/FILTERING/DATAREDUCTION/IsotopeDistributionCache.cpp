@@ -36,7 +36,7 @@
 
 using namespace OpenMS;
 
-IsotopeDistributionCache::IsotopeDistributionCache(DoubleReal max_mass, DoubleReal mass_window_width, DoubleReal intensity_percentage, DoubleReal intensity_percentage_optional) :
+IsotopeDistributionCache::IsotopeDistributionCache(double max_mass, double mass_window_width, double intensity_percentage, double intensity_percentage_optional) :
   mass_window_width_(mass_window_width)
 {
   Size num_isotopes = std::ceil(max_mass / mass_window_width) + 1;
@@ -89,7 +89,7 @@ IsotopeDistributionCache::IsotopeDistributionCache(DoubleReal max_mass, DoubleRe
     isotope_distributions_[index].optional_end = end;
 
     //scale the distibution to a maximum of 1
-    DoubleReal max = 0.0;
+    double max = 0.0;
     for (Size i = 0; i < isotope_distributions_[index].intensity.size(); ++i)
     {
       if (isotope_distributions_[index].intensity[i] > max)
@@ -108,7 +108,7 @@ IsotopeDistributionCache::IsotopeDistributionCache(DoubleReal max_mass, DoubleRe
 }
 
 /// Returns the isotope distribution for a certain mass window
-const IsotopeDistributionCache::TheoreticalIsotopePattern & IsotopeDistributionCache::getIsotopeDistribution(DoubleReal mass) const
+const IsotopeDistributionCache::TheoreticalIsotopePattern & IsotopeDistributionCache::getIsotopeDistribution(double mass) const
 {
   //calculate index in the vector
   Size index = (Size) std::floor(mass / mass_window_width_);

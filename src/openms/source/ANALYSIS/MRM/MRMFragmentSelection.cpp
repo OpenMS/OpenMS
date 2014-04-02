@@ -82,15 +82,15 @@ namespace OpenMS
   {
     Size num_top_peaks = param_.getValue("num_top_peaks");
     bool consider_names(param_.getValue("consider_names").toBool());
-    DoubleReal min_pos_precursor_percentage = (DoubleReal)param_.getValue("min_pos_precursor_percentage") / 100.0;
-    DoubleReal min_mz = (DoubleReal)param_.getValue("min_mz");
-    DoubleReal max_mz = (DoubleReal)param_.getValue("max_mz");
+    double min_pos_precursor_percentage = (double)param_.getValue("min_pos_precursor_percentage") / 100.0;
+    double min_mz = (double)param_.getValue("min_mz");
+    double max_mz = (double)param_.getValue("max_mz");
     if (spec.getPrecursors().empty())
     {
       cerr << "MRMFragmentSelection: No Precursor peaks defined! Bailing out..." << endl;
       return;
     }
-    DoubleReal precursor_pos =  spec.getPrecursors().begin()->getMZ();
+    double precursor_pos =  spec.getPrecursors().begin()->getMZ();
     RichPeakSpectrum spec_copy = spec;
     spec_copy.sortByIntensity(true);
 

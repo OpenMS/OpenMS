@@ -37,7 +37,7 @@
 
 namespace OpenMS
 {
-  PeakShape::PeakShape(DoubleReal height, DoubleReal mz_position, DoubleReal left_width, DoubleReal right_width, DoubleReal area, PeakIterator left, PeakIterator right, Type type) :
+  PeakShape::PeakShape(double height, double mz_position, double left_width, double right_width, double area, PeakIterator left, PeakIterator right, Type type) :
     height(height),
     mz_position(mz_position),
     left_width(left_width),
@@ -53,7 +53,7 @@ namespace OpenMS
   {
   }
 
-  PeakShape::PeakShape(DoubleReal height, DoubleReal mz_position, DoubleReal left_width, DoubleReal right_width, DoubleReal area, Type type) :
+  PeakShape::PeakShape(double height, double mz_position, double left_width, double right_width, double area, Type type) :
     height(height),
     mz_position(mz_position),
     left_width(left_width),
@@ -150,9 +150,9 @@ namespace OpenMS
            r_value != rhs.r_value;
   }
 
-  DoubleReal PeakShape::operator()(DoubleReal x) const
+  double PeakShape::operator()(double x) const
   {
-    DoubleReal value;
+    double value;
 
     switch (type)
     {
@@ -178,9 +178,9 @@ namespace OpenMS
     return value;
   }
 
-  DoubleReal PeakShape::getFWHM() const
+  double PeakShape::getFWHM() const
   {
-    DoubleReal fwhm = 0;
+    double fwhm = 0;
     if (right_width == 0. || left_width == 0.)
     {
       return -1.;
@@ -197,7 +197,7 @@ namespace OpenMS
 
     case SECH_PEAK:
     {
-      DoubleReal m = log(sqrt(2.0) + 1);
+      double m = log(sqrt(2.0) + 1);
       fwhm = m / left_width;
       fwhm += m / right_width;
     }
@@ -212,9 +212,9 @@ namespace OpenMS
     return fwhm;
   }
 
-  DoubleReal PeakShape::getSymmetricMeasure() const
+  double PeakShape::getSymmetricMeasure() const
   {
-    DoubleReal value;
+    double value;
 
     if (left_width < right_width)
       value = left_width / right_width;

@@ -81,8 +81,8 @@ ams_neg.setParameters(ams_param);
 
 
 
-DoubleReal query_mass_pos(308.09);
-DoubleReal query_mass_neg(306.08);
+double query_mass_pos(308.09);
+double query_mass_neg(306.08);
 // Param ams_param;
 // ams_param.setValue("");
 
@@ -90,7 +90,7 @@ String id_list_pos[] = {"C10H17N3O6S", "C15H16O7", "C14H14N2OS2", "C16H15NO4", "
 String id_list_neg[] = {/*"C32H28O11",*/ "C17H17Cl2N", "C10H13N5O5", "C6H14O6S2"};
                         // 588.16316173 this cannot be since its +2, but we restrict to +1 (or -1)
                         //                   305.073804963  283.091668551   246.02317956
-START_SECTION((void queryByMass(const DoubleReal& observed_mass, const Int& observed_charge, std::vector<AccurateMassSearchResult>& results)))
+START_SECTION((void queryByMass(const double& observed_mass, const Int& observed_charge, std::vector<AccurateMassSearchResult>& results)))
 {
     std::vector<AccurateMassSearchResult> hmdb_results_pos, hmdb_results_neg;
     ams_pos.queryByMass(query_mass_pos, 1.0, hmdb_results_pos);
@@ -217,7 +217,7 @@ START_SECTION((void queryByConsensusFeature(const ConsensusFeature& cfeat, const
 
     for (Size i = 0; i < results.size(); ++i)
     {
-        std::vector<DoubleReal> indiv_ints = results[i].getIndividualIntensities();
+        std::vector<double> indiv_ints = results[i].getIndividualIntensities();
         TEST_EQUAL(indiv_ints.size(), 3)
 
         if (indiv_ints.size() == 3)

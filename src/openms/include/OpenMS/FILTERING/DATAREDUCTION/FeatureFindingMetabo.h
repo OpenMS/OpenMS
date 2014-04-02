@@ -126,12 +126,12 @@ public:
         return tmp_labels;
     }
 
-    DoubleReal getScore()
+    double getScore()
     {
         return feat_score_;
     }
 
-    void setScore(const DoubleReal & score)
+    void setScore(const double & score)
     {
         feat_score_ = score;
     }
@@ -146,9 +146,9 @@ public:
         charge_ = ch;
     }
 
-    std::vector<DoubleReal> getAllIntensities(bool smoothed = false)
+    std::vector<double> getAllIntensities(bool smoothed = false)
     {
-        std::vector<DoubleReal> tmp;
+        std::vector<double> tmp;
 
         for (Size i = 0; i < iso_pattern_.size(); ++i)
         {
@@ -158,7 +158,7 @@ public:
         return tmp;
     }
 
-    DoubleReal getCentroidMZ()
+    double getCentroidMZ()
     {
         if (iso_pattern_.empty())
         {
@@ -168,7 +168,7 @@ public:
         return iso_pattern_[0]->getCentroidMZ();
     }
 
-    DoubleReal getCentroidRT()
+    double getCentroidRT()
     {
         if (iso_pattern_.empty())
         {
@@ -180,7 +180,7 @@ public:
         return iso_pattern_[0]->getCentroidRT();
     }
 
-    DoubleReal getFWHM(bool use_smoothed_ints = false)
+    double getFWHM(bool use_smoothed_ints = false)
     {
         if (iso_pattern_.empty())
         {
@@ -192,8 +192,8 @@ public:
 
     /// addMassTrace
     void addMassTrace(MassTrace &);
-    DoubleReal getMonoisotopicFeatureIntensity(bool);
-    DoubleReal getSummedFeatureIntensity(bool);
+    double getMonoisotopicFeatureIntensity(bool);
+    double getSummedFeatureIntensity(bool);
 
 
     Size getNumFeatPoints() const;
@@ -202,7 +202,7 @@ public:
 private:
     // pointers of MassTraces contained in isotopic pattern
     std::vector<MassTrace *> iso_pattern_;
-    DoubleReal feat_score_;
+    double feat_score_;
 
     SignedSize charge_;
 
@@ -244,38 +244,38 @@ protected:
 
 private:
     /// private member functions
-    DoubleReal computeOLSCoeff_(const std::vector<DoubleReal> &, const std::vector<DoubleReal> &);
-    DoubleReal computeCosineSim_(const std::vector<DoubleReal> &, const std::vector<DoubleReal> &);
+    double computeOLSCoeff_(const std::vector<double> &, const std::vector<double> &);
+    double computeCosineSim_(const std::vector<double> &, const std::vector<double> &);
 
     svm_model * isotope_filt_svm_;
-    std::vector<DoubleReal> svm_feat_centers_;
-    std::vector<DoubleReal> svm_feat_scales_;
+    std::vector<double> svm_feat_centers_;
+    std::vector<double> svm_feat_scales_;
     bool isLegalIsotopePattern_(FeatureHypothesis &);
     bool isLegalIsotopePattern2_(FeatureHypothesis &);
 
     //bool isLegalAveraginePattern(FeatureHypothesis&);
     void loadIsotopeModel_(const String&);
 
-    DoubleReal total_intensity_;
+    double total_intensity_;
 
-    DoubleReal scoreMZ_(const MassTrace &, const MassTrace &, Size, Size);
-    DoubleReal scoreMZ2_(const MassTrace &, const MassTrace &, Size, Size);
-    DoubleReal scoreRT_(const MassTrace &, const MassTrace &);
+    double scoreMZ_(const MassTrace &, const MassTrace &, Size, Size);
+    double scoreMZ2_(const MassTrace &, const MassTrace &, Size, Size);
+    double scoreRT_(const MassTrace &, const MassTrace &);
 
-    DoubleReal computeAveragineSimScore_(const std::vector<DoubleReal> &, const DoubleReal &);
+    double computeAveragineSimScore_(const std::vector<double> &, const double &);
 
-    // DoubleReal scoreTraceSim_(MassTrace, MassTrace);
-    // DoubleReal scoreIntRatio_(DoubleReal, DoubleReal, Size);
+    // double scoreTraceSim_(MassTrace, MassTrace);
+    // double scoreIntRatio_(double, double, Size);
     void findLocalFeatures_(std::vector<MassTrace *> &, std::vector<FeatureHypothesis> &);
 
 
     /// parameter stuff
-    DoubleReal local_rt_range_;
-    DoubleReal local_mz_range_;
+    double local_rt_range_;
+    double local_mz_range_;
     Size charge_lower_bound_;
     Size charge_upper_bound_;
-    //DoubleReal mass_error_ppm_;
-    DoubleReal chrom_fwhm_;
+    //double mass_error_ppm_;
+    double chrom_fwhm_;
 
     bool report_summed_ints_;
     bool disable_isotope_filtering_;

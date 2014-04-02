@@ -64,7 +64,7 @@ namespace OpenMS
     return *this;
   }
 
-  std::vector<Real> ClusterAnalyzer::averageSilhouetteWidth(const std::vector<BinaryTreeNode> & tree, const DistanceMatrix<Real> & original)
+  std::vector<float> ClusterAnalyzer::averageSilhouetteWidth(const std::vector<BinaryTreeNode> & tree, const DistanceMatrix<float> & original)
   {
     //throw exception if cannot be legal clustering
     if (tree.size() < 1)
@@ -72,10 +72,10 @@ namespace OpenMS
       throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "tree is empty but minimal clustering hirachy has at least one level");
     }
 
-    std::vector<Real> average_silhouette_widths;       //for each step from the average silhouette widths of the clusters
-    std::map<Size, Real> interdist_i;      //for each element i holds the min. average intercluster distance in cluster containing i
+    std::vector<float> average_silhouette_widths;       //for each step from the average silhouette widths of the clusters
+    std::map<Size, float> interdist_i;      //for each element i holds the min. average intercluster distance in cluster containing i
     std::map<Size, Size> cluster_with_interdist;      //for each element i holds which cluster originated the min. intercluster distance
-    std::map<Size, Real> intradist_i;      //for each element i holds the average intracluster distance in [i]
+    std::map<Size, float> intradist_i;      //for each element i holds the average intracluster distance in [i]
 
     //initial leafs
     std::set<Size> leafs;
@@ -83,12 +83,12 @@ namespace OpenMS
     {
       leafs.insert(tree[i].left_child);
       leafs.insert(tree[i].right_child);
-      interdist_i.insert(std::make_pair(tree[i].left_child, std::numeric_limits<Real>::max()));
-      interdist_i.insert(std::make_pair(tree[i].right_child, std::numeric_limits<Real>::max()));
+      interdist_i.insert(std::make_pair(tree[i].left_child, std::numeric_limits<float>::max()));
+      interdist_i.insert(std::make_pair(tree[i].right_child, std::numeric_limits<float>::max()));
       cluster_with_interdist.insert(std::make_pair(tree[i].left_child, 0));
       cluster_with_interdist.insert(std::make_pair(tree[i].right_child, 0));
-      intradist_i.insert(std::make_pair(tree[i].left_child, (Real)0.));
-      intradist_i.insert(std::make_pair(tree[i].right_child, (Real)0.));
+      intradist_i.insert(std::make_pair(tree[i].left_child, (float)0.));
+      intradist_i.insert(std::make_pair(tree[i].right_child, (float)0.));
       if (tree[i].distance == -1)
       {
         break;
@@ -147,7 +147,7 @@ namespace OpenMS
           //handle interdist:
           if (tree[t].left_child != cluster_with_interdist[*it] && tree[t].right_child != cluster_with_interdist[*it])          //s(i)_nr (!element_of) left or right
           {
-            Real interdist_merged(0);
+            float interdist_merged(0);
             for (Size j = 0; j < clusters[tree[t].left_child].size(); ++j)
             {
               interdist_merged += original.getValue(*it, clusters[tree[t].left_child][j]);
@@ -156,7 +156,7 @@ namespace OpenMS
             {
               interdist_merged += original.getValue(*it, clusters[tree[t].right_child][j]);
             }
-            interdist_merged /= (Real)(clusters[tree[t].left_child].size() + clusters[tree[t].right_child].size());
+            interdist_merged /= (float)(clusters[tree[t].left_child].size() + clusters[tree[t].right_child].size());
             if (interdist_merged < interdist_i[*it])
             {
               interdist_i[*it] = interdist_merged;
@@ -175,13 +175,13 @@ namespace OpenMS
             {
               k = tree[t].left_child;
             }
-            Real interdist_merged(0);
+            float interdist_merged(0);
             for (Size j = 0; j < clusters[k].size(); ++j)
             {
               interdist_merged += original.getValue(*it, clusters[k][j]);
             }
             interdist_merged += (clusters[cluster_with_interdist[*it]].size() * interdist_i[*it]);
-            interdist_merged /= (Real)(clusters[k].size() + clusters[cluster_with_interdist[*it]].size());
+            interdist_merged /= (float)(clusters[k].size() + clusters[cluster_with_interdist[*it]].size());
             //if new inderdist is smaller that old min. nothing else has to be done
             if (interdist_merged <= interdist_i[*it])
             {
@@ -198,12 +198,12 @@ namespace OpenMS
               {
                 if (u != tree[t].left_child && u != tree[t].right_child && !clusters[u].empty() && clusters[u].end() == std::find(clusters[u].begin(), clusters[u].end(), *it))
                 {
-                  Real min_interdist_i(0);
+                  float min_interdist_i(0);
                   for (Size v = 0; v < clusters[u].size(); ++v)
                   {
                     min_interdist_i += original.getValue(clusters[u][v], *it);
                   }
-                  min_interdist_i /= (Real)clusters[u].size();
+                  min_interdist_i /= (float)clusters[u].size();
                   if (min_interdist_i < interdist_i[*it])
                   {
                     interdist_i[*it] = min_interdist_i;
@@ -238,26 +238,26 @@ namespace OpenMS
             {
               intradist_i[*it] += original.getValue(*it, clusters[k][j]);
             }
-            intradist_i[*it] /= (Real)(clusters[k].size() + (clusters[l].size() - 1));
+            intradist_i[*it] /= (float)(clusters[k].size() + (clusters[l].size() - 1));
           }
           else           //s(i)_nr (element_of) left or right
           {
             //intradist_i has to be updated
             intradist_i[*it] *= clusters[l].size() - 1;
             intradist_i[*it] += (clusters[k].size() * interdist_i[*it]);
-            intradist_i[*it] /= (Real)(clusters[k].size() + (clusters[l].size() - 1));
+            intradist_i[*it] /= (float)(clusters[k].size() + (clusters[l].size() - 1));
             //find new min av. interdist_i
-            interdist_i[*it] = std::numeric_limits<Real>::max();
+            interdist_i[*it] = std::numeric_limits<float>::max();
             for (Size u = 0; u < clusters.size(); ++u)
             {
               if (u != l && u != k && !clusters[u].empty())
               {
-                Real av_interdist_i(0);
+                float av_interdist_i(0);
                 for (Size v = 0; v < clusters[u].size(); ++v)
                 {
                   av_interdist_i += original.getValue(clusters[u][v], *it);
                 }
-                av_interdist_i /= (Real)clusters[u].size();
+                av_interdist_i /= (float)clusters[u].size();
                 if (av_interdist_i < interdist_i[*it])
                 {
                   interdist_i[*it] = av_interdist_i;
@@ -305,9 +305,9 @@ namespace OpenMS
       */
 
       //calculate average silhouette width for clusters and then overall average silhouette width for cluster step
-      Real average_overall_silhouette(0);       // from cluster step
+      float average_overall_silhouette(0);       // from cluster step
       /* to manually retrace
-      std::vector<Real> silhouettes(original.dimensionsize(),0.0);
+      std::vector<float> silhouettes(original.dimensionsize(),0.0);
       */
       for (Size g = 0; g < clusters.size(); ++g)
       {
@@ -333,13 +333,13 @@ namespace OpenMS
           }
           std::cout << "---------" << std::endl;
       */
-      average_silhouette_widths.push_back(average_overall_silhouette / (Real)(tree.size() + 1));
+      average_silhouette_widths.push_back(average_overall_silhouette / (float)(tree.size() + 1));
     }
     average_silhouette_widths.push_back(0.0);
     return average_silhouette_widths;
   }
 
-  std::vector<Real> ClusterAnalyzer::dunnIndices(const std::vector<BinaryTreeNode> & tree, const DistanceMatrix<Real> & original, const bool tree_from_singlelinkage)
+  std::vector<float> ClusterAnalyzer::dunnIndices(const std::vector<BinaryTreeNode> & tree, const DistanceMatrix<float> & original, const bool tree_from_singlelinkage)
   {
     //throw exception if cannot be legal clustering
     if (tree.size() < 1)
@@ -347,7 +347,7 @@ namespace OpenMS
       throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "tree is empty but minimal clustering hirachy has at least one level");
     }
 
-    std::vector<Real> all_dunn_indices;
+    std::vector<float> all_dunn_indices;
     all_dunn_indices.reserve(tree.size() + 1);
 
     std::set<Size> leafs;
@@ -360,14 +360,14 @@ namespace OpenMS
     //initial cluster state
     //~ Size sz = *(leafs.rbegin())+1;
     std::vector<std::vector<Size> > clusters(original.dimensionsize());
-    std::vector<std::pair<Real, Size> > min_intercluster_distances(original.dimensionsize(), std::make_pair<Real, Size>(-1, 0));
+    std::vector<std::pair<float, Size> > min_intercluster_distances(original.dimensionsize(), std::make_pair<float, Size>(-1, 0));
     for (std::set<Size>::iterator it = leafs.begin(); it != leafs.end(); ++it)
     {
       clusters[*it].push_back(*it);
       std::set<Size>::iterator it_2 = leafs.begin();
       for (; it_2 != it; ++it_2)
       {
-        Real d = original.getValue(*it, *it_2);
+        float d = original.getValue(*it, *it_2);
         if (d < min_intercluster_distances[*it].first || min_intercluster_distances[*it].first == -1)
         {
           min_intercluster_distances[*it].first = d;
@@ -378,7 +378,7 @@ namespace OpenMS
       ++it_2;
       for (; it_2 != leafs.end(); ++it_2)
       {
-        Real d = original.getValue(*it, *it_2);
+        float d = original.getValue(*it, *it_2);
         if (d < min_intercluster_distances[*it].first || min_intercluster_distances[*it].first == -1)
         {
           min_intercluster_distances[*it].first = d;
@@ -400,7 +400,7 @@ namespace OpenMS
     }
 
     //initial state for min inter and max intra distances
-    Real max_intracluster_distance(0);
+    float max_intracluster_distance(0);
     for (Size cluster_step = 0; cluster_step < tree.size() - 1; ++cluster_step)
     {
 
@@ -434,7 +434,7 @@ namespace OpenMS
             (min_intercluster_distance_index == tree[cluster_step].left_child  && min_intercluster_distances[min_intercluster_distance_index].second == tree[cluster_step].right_child))
         {
           //find new min intercluster distance
-          min_intercluster_distances[tree[cluster_step].left_child].first = std::numeric_limits<Real>::max();
+          min_intercluster_distances[tree[cluster_step].left_child].first = std::numeric_limits<float>::max();
 
           for (Size j = 0; j < clusters[tree[cluster_step].left_child].size(); ++j)
           {
@@ -499,7 +499,7 @@ namespace OpenMS
       //shortcut for single linkage generated hirachy as merging criterion is min intercluster distance
       if (tree_from_singlelinkage)
       {
-        Real dunn_index(0);
+        float dunn_index(0);
         if (max_intracluster_distance > 0)
         {
           dunn_index = tree[cluster_step + 1].distance / max_intracluster_distance;
@@ -509,7 +509,7 @@ namespace OpenMS
       else
       {
         //find max dunn index and deduct the corresponding cluster step
-        Real dunn_index(0);
+        float dunn_index(0);
         if (max_intracluster_distance > 0)
         {
           dunn_index = min_intercluster_distances[min_intercluster_distance_index].first / max_intracluster_distance;
@@ -626,7 +626,7 @@ namespace OpenMS
     }
   }
 
-  Real ClusterAnalyzer::averagePopulationAberration(Size cluster_quantity, std::vector<BinaryTreeNode> & tree)
+  float ClusterAnalyzer::averagePopulationAberration(Size cluster_quantity, std::vector<BinaryTreeNode> & tree)
   {
     if (cluster_quantity == 0)
     {
@@ -636,7 +636,7 @@ namespace OpenMS
     {
       throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "maximal partition contains singleton clusters, further separation is not possible");
     }
-    std::vector<Real> average_sizes;
+    std::vector<float> average_sizes;
     average_sizes.reserve(tree.size() + 1);
     std::vector<std::vector<Size> > clusters;
     clusters.reserve(tree.size() + 1);
@@ -657,14 +657,14 @@ namespace OpenMS
       clusters[tree[cluster_step].right_child].clear();
     }
 
-    Real average = (Real)(tree.size() + 1) / (Real)cluster_quantity;
-    Real aberration(0);
-    Real cluster_number(0);
+    float average = (float)(tree.size() + 1) / (float)cluster_quantity;
+    float aberration(0);
+    float cluster_number(0);
     for (Size i = 0; i < clusters.size(); ++i)
     {
       if (!clusters[i].empty())
       {
-        aberration += std::fabs((Real)clusters[i].size() - average);
+        aberration += std::fabs((float)clusters[i].size() - average);
         ++cluster_number;
       }
     }
@@ -673,14 +673,14 @@ namespace OpenMS
     return aberration;
   }
 
-  std::vector<Real> ClusterAnalyzer::cohesion(const std::vector<std::vector<Size> > & clusters, const DistanceMatrix<Real> & original)
+  std::vector<float> ClusterAnalyzer::cohesion(const std::vector<std::vector<Size> > & clusters, const DistanceMatrix<float> & original)
   {
     if (clusters.empty() || clusters.size() > original.dimensionsize())
     {
       throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "invalid clustering");
     }
 
-    Real av_dist(0);     // average of all pairwise distances
+    float av_dist(0);     // average of all pairwise distances
     for (Size i = 0; i < original.dimensionsize(); ++i)
     {
       for (Size j = i + 1; j < original.dimensionsize(); ++j)
@@ -688,13 +688,13 @@ namespace OpenMS
         av_dist += original.getValue(i, j);
       }
     }
-    av_dist /= (((Real)original.dimensionsize() * (Real)(original.dimensionsize() - 1.0)) / 2.0f);
+    av_dist /= (((float)original.dimensionsize() * (float)(original.dimensionsize() - 1.0)) / 2.0f);
 
-    std::vector<Real> cohesions;
+    std::vector<float> cohesions;
     cohesions.reserve(clusters.size());
     for (Size i = 0; i < clusters.size(); ++i)
     {
-      Real av_c_dist(0);       // all pairwise distances in cluster i
+      float av_c_dist(0);       // all pairwise distances in cluster i
       for (Size j = 0; j < clusters[i].size(); ++j)
       {
         for (Size k = 0; k < j; ++k)
@@ -703,7 +703,7 @@ namespace OpenMS
         }
       }
 
-      av_c_dist /= (((Real)clusters[i].size() * (Real)(clusters[i].size() - 1.0)) / 2.0f); //now av. intra cluster distance
+      av_c_dist /= (((float)clusters[i].size() * (float)(clusters[i].size() - 1.0)) / 2.0f); //now av. intra cluster distance
       if (clusters[i].size() == 1)
       {
         av_c_dist = av_dist;

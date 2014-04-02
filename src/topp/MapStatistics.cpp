@@ -168,7 +168,7 @@ public:
     vector<double> overall_qualities(size);
     vector<double> mz_qualities(size);
     vector<double> rt_qualities(size);
-    DoubleReal tic = 0.0;
+    double tic = 0.0;
 
     for (Size i = begin; i < end; ++i)
     {
@@ -415,7 +415,7 @@ protected:
       for (Size slice = 0; slice < n; ++slice)
       {
         // Determine slice boundaries.
-        DoubleReal rt_end = feat.back().getRT() / (double)n * (slice + 1);
+        double rt_end = feat.back().getRT() / (double)n * (slice + 1);
         for (end = begin; end < feat.size() && feat[end].getRT() < rt_end; ++end) {}
 
         // Compute statistics on all features in this slice.

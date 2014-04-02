@@ -82,7 +82,7 @@ public:
      @param ref_masses the reference m/z values
     */
     template <typename InputPeakType>
-    void calibrateMapSpectrumwise(const MSExperiment<InputPeakType> & exp, MSExperiment<InputPeakType> & calibrated_exp, std::vector<DoubleReal> & ref_masses);
+    void calibrateMapSpectrumwise(const MSExperiment<InputPeakType> & exp, MSExperiment<InputPeakType> & calibrated_exp, std::vector<double> & ref_masses);
 
     /**
      @brief Calibrate a peak map using given reference masses with one calibration function for the whole map.
@@ -97,7 +97,7 @@ public:
      @param trafo_file_name file where the transformation function of the calibration is stored
     */
     template <typename InputPeakType>
-    void calibrateMapGlobally(const MSExperiment<InputPeakType> & exp, MSExperiment<InputPeakType> & calibrated_exp, std::vector<DoubleReal> & ref_masses, String trafo_file_name = "");
+    void calibrateMapGlobally(const MSExperiment<InputPeakType> & exp, MSExperiment<InputPeakType> & calibrated_exp, std::vector<double> & ref_masses, String trafo_file_name = "");
 
     /**
      @brief Calibrate a peak map using given reference ids with one calibration function for the whole map.
@@ -139,13 +139,13 @@ public:
 
 
     template <typename InputPeakType>
-    void calibrateMapList(std::vector<MSExperiment<InputPeakType> > & exp_list, std::vector<MSExperiment<InputPeakType> > & calibrated_exp_list, std::vector<DoubleReal> & ref_masses, std::vector<DoubleReal> & detected_background_masses);
+    void calibrateMapList(std::vector<MSExperiment<InputPeakType> > & exp_list, std::vector<MSExperiment<InputPeakType> > & calibrated_exp_list, std::vector<double> & ref_masses, std::vector<double> & detected_background_masses);
 
 
 protected:
 
     /// the actual calibration function
-    void makeLinearRegression_(std::vector<DoubleReal> & observed_masses, std::vector<DoubleReal> & theoretical_masses);
+    void makeLinearRegression_(std::vector<double> & observed_masses, std::vector<double> & theoretical_masses);
 
     /// check if reference ids contain RT and MZ information as meta values
     void checkReferenceIds_(std::vector<PeptideIdentification> & pep_ids);
@@ -162,10 +162,10 @@ protected:
 
 
   template <typename InputPeakType>
-  void InternalCalibration::calibrateMapSpectrumwise(const MSExperiment<InputPeakType> & exp, MSExperiment<InputPeakType> & calibrated_exp, std::vector<DoubleReal> & ref_masses)
+  void InternalCalibration::calibrateMapSpectrumwise(const MSExperiment<InputPeakType> & exp, MSExperiment<InputPeakType> & calibrated_exp, std::vector<double> & ref_masses)
   {
 #ifdef DEBUG_CALIBRATION
-    std::cout.precision(writtenDigits<DoubleReal>());
+    std::cout.precision(writtenDigits<double>(0.0));
 #endif
     if (exp.empty())
     {
@@ -181,7 +181,7 @@ protected:
 
     Size num_ref_peaks = ref_masses.size();
     bool use_ppm = (param_.getValue("mz_tolerance_unit") == "ppm") ? true : false;
-    DoubleReal mz_tol = param_.getValue("mz_tolerance");
+    double mz_tol = param_.getValue("mz_tolerance");
     startProgress(0, exp.size(), "calibrate spectra");
     // for each spectrum
     for (Size spec = 0; spec <  exp.size(); ++spec)
@@ -193,7 +193,7 @@ protected:
       }
 
 
-      std::vector<DoubleReal> corr_masses, rel_errors, found_ref_masses;
+      std::vector<double> corr_masses, rel_errors, found_ref_masses;
       UInt corr_peaks = 0;
       for (Size peak = 0; peak <  exp[spec].size(); ++peak)
       {
@@ -237,7 +237,7 @@ protected:
 #ifdef DEBUG_CALIBRATION
         std::cout << calibrated_exp[spec][peak].getMZ() << "\t";
 #endif
-        DoubleReal mz = calibrated_exp[spec][peak].getMZ();
+        double mz = calibrated_exp[spec][peak].getMZ();
         mz = trafo_.apply(mz);
         calibrated_exp[spec][peak].setMZ(mz);
 #ifdef DEBUG_CALIBRATION
@@ -256,7 +256,7 @@ protected:
                                                  std::vector<PeptideIdentification> & ref_ids, String trafo_file_name)
   {
     bool use_ppm = param_.getValue("mz_tolerance_unit") == "ppm" ? true : false;
-    DoubleReal mz_tolerance = param_.getValue("mz_tolerance");
+    double mz_tolerance = param_.getValue("mz_tolerance");
     if (exp.empty())
     {
       std::cout << "Input is empty." << std::endl;
@@ -270,13 +270,13 @@ protected:
     // check if the ids contain meta information about the peak positions
     checkReferenceIds_(ref_ids);
 
-    std::vector<DoubleReal> theoretical_masses, observed_masses;
+    std::vector<double> theoretical_masses, observed_masses;
     for (Size p_id = 0; p_id < ref_ids.size(); ++p_id)
     {
       for (Size p_h = 0; p_h < ref_ids[p_id].getHits().size(); ++p_h)
       {
         Int charge = ref_ids[p_id].getHits()[p_h].getCharge();
-        DoubleReal theo_mass = ref_ids[p_id].getHits()[p_h].getSequence().getMonoWeight(Residue::Full, charge) / (DoubleReal)charge;
+        double theo_mass = ref_ids[p_id].getHits()[p_h].getSequence().getMonoWeight(Residue::Full, charge) / (double)charge;
         // first find corresponding ms1-spectrum
         typename MSExperiment<InputPeakType>::ConstIterator rt_iter = exp.RTBegin(ref_ids[p_id].getMetaValue("RT"));
         while (rt_iter != exp.begin() && rt_iter->getMSLevel() != 1)
@@ -285,19 +285,19 @@ protected:
         }
         // now find closest peak
         typename MSSpectrum<InputPeakType>::ConstIterator mz_iter = rt_iter->MZBegin(ref_ids[p_id].getMetaValue("MZ"));
-        //std::cout << mz_iter->getMZ() <<" "<<(DoubleReal)ref_ids[p_id].getMetaValue("MZ")<<"\t";
-        DoubleReal dist = (DoubleReal)ref_ids[p_id].getMetaValue("MZ") - mz_iter->getMZ();
+        //std::cout << mz_iter->getMZ() <<" "<<(double)ref_ids[p_id].getMetaValue("MZ")<<"\t";
+        double dist = (double)ref_ids[p_id].getMetaValue("MZ") - mz_iter->getMZ();
         //std::cout << dist << "\t";
         if ((mz_iter + 1) != rt_iter->end()
-           && fabs((mz_iter + 1)->getMZ() - (DoubleReal)ref_ids[p_id].getMetaValue("MZ")) < fabs(dist)
+           && fabs((mz_iter + 1)->getMZ() - (double)ref_ids[p_id].getMetaValue("MZ")) < fabs(dist)
            && mz_iter != rt_iter->begin()
-           && fabs((mz_iter - 1)->getMZ() - (DoubleReal)ref_ids[p_id].getMetaValue("MZ")) < fabs((mz_iter + 1)->getMZ() - (DoubleReal)ref_ids[p_id].getMetaValue("MZ")))                 // if mz_iter +1 has smaller dist than mz_iter and mz_iter-1
+           && fabs((mz_iter - 1)->getMZ() - (double)ref_ids[p_id].getMetaValue("MZ")) < fabs((mz_iter + 1)->getMZ() - (double)ref_ids[p_id].getMetaValue("MZ")))                 // if mz_iter +1 has smaller dist than mz_iter and mz_iter-1
         {
           if ((use_ppm &&
-               fabs((mz_iter + 1)->getMZ() - (DoubleReal)ref_ids[p_id].getMetaValue("MZ")) / (DoubleReal)ref_ids[p_id].getMetaValue("MZ") * 1e06 < mz_tolerance) ||
-              (!use_ppm && fabs((mz_iter + 1)->getMZ() - (DoubleReal)ref_ids[p_id].getMetaValue("MZ")) < mz_tolerance))
+               fabs((mz_iter + 1)->getMZ() - (double)ref_ids[p_id].getMetaValue("MZ")) / (double)ref_ids[p_id].getMetaValue("MZ") * 1e06 < mz_tolerance) ||
+              (!use_ppm && fabs((mz_iter + 1)->getMZ() - (double)ref_ids[p_id].getMetaValue("MZ")) < mz_tolerance))
           {
-            //std::cout <<(mz_iter +1)->getMZ() - (DoubleReal)ref_ids[p_id].getMetaValue("MZ")<<"\t";
+            //std::cout <<(mz_iter +1)->getMZ() - (double)ref_ids[p_id].getMetaValue("MZ")<<"\t";
             observed_masses.push_back((mz_iter + 1)->getMZ());
             theoretical_masses.push_back(theo_mass);
             //std::cout << (mz_iter +1)->getMZ() << " ~ "<<theo_mass << " charge: "<<ref_ids[p_id].getHits()[p_h].getCharge()
@@ -305,13 +305,13 @@ protected:
           }
         }
         else if (mz_iter != rt_iter->begin()
-                && fabs((mz_iter - 1)->getMZ() - (DoubleReal)ref_ids[p_id].getMetaValue("MZ")) < fabs(dist))                        // if mz_iter-1 has smaller dist than mz_iter
+                && fabs((mz_iter - 1)->getMZ() - (double)ref_ids[p_id].getMetaValue("MZ")) < fabs(dist))                        // if mz_iter-1 has smaller dist than mz_iter
         {
           if ((use_ppm &&
-               fabs((mz_iter - 1)->getMZ() - (DoubleReal)ref_ids[p_id].getMetaValue("MZ")) / (DoubleReal)ref_ids[p_id].getMetaValue("MZ") * 1e06 < mz_tolerance) ||
-              (!use_ppm && fabs((mz_iter - 1)->getMZ() - (DoubleReal)ref_ids[p_id].getMetaValue("MZ")) < mz_tolerance))
+               fabs((mz_iter - 1)->getMZ() - (double)ref_ids[p_id].getMetaValue("MZ")) / (double)ref_ids[p_id].getMetaValue("MZ") * 1e06 < mz_tolerance) ||
+              (!use_ppm && fabs((mz_iter - 1)->getMZ() - (double)ref_ids[p_id].getMetaValue("MZ")) < mz_tolerance))
           {
-            //std::cout <<(mz_iter -1)->getMZ() - (DoubleReal)ref_ids[p_id].getMetaValue("MZ")<<"\t";
+            //std::cout <<(mz_iter -1)->getMZ() - (double)ref_ids[p_id].getMetaValue("MZ")<<"\t";
             observed_masses.push_back((mz_iter - 1)->getMZ());
             theoretical_masses.push_back(theo_mass);
             //std::cout << (mz_iter -1)->getMZ() << " ~ "<<theo_mass << " charge: "<<ref_ids[p_id].getHits()[p_h].getCharge()
@@ -321,8 +321,8 @@ protected:
         else
         {
           if ((use_ppm &&
-               fabs((mz_iter)->getMZ() - (DoubleReal)ref_ids[p_id].getMetaValue("MZ")) / (DoubleReal)ref_ids[p_id].getMetaValue("MZ") * 1e06 < mz_tolerance) ||
-              (!use_ppm && fabs((mz_iter)->getMZ() - (DoubleReal)ref_ids[p_id].getMetaValue("MZ")) < mz_tolerance))
+               fabs((mz_iter)->getMZ() - (double)ref_ids[p_id].getMetaValue("MZ")) / (double)ref_ids[p_id].getMetaValue("MZ") * 1e06 < mz_tolerance) ||
+              (!use_ppm && fabs((mz_iter)->getMZ() - (double)ref_ids[p_id].getMetaValue("MZ")) < mz_tolerance))
           {
 
             observed_masses.push_back(mz_iter->getMZ());
@@ -355,7 +355,7 @@ protected:
 #ifdef DEBUG_CALIBRATION
         std::cout << exp[spec][peak].getMZ() << "\t";
 #endif
-        DoubleReal mz = exp[spec][peak].getMZ();
+        double mz = exp[spec][peak].getMZ();
         mz = trafo_.apply(mz);
         calibrated_exp[spec][peak].setMZ(mz);
 #ifdef DEBUG_CALIBRATION
@@ -371,7 +371,7 @@ protected:
   }
 
   template <typename InputPeakType>
-  void InternalCalibration::calibrateMapGlobally(const MSExperiment<InputPeakType> & exp, MSExperiment<InputPeakType> & calibrated_exp, std::vector<DoubleReal> & ref_masses, String trafo_file_name)
+  void InternalCalibration::calibrateMapGlobally(const MSExperiment<InputPeakType> & exp, MSExperiment<InputPeakType> & calibrated_exp, std::vector<double> & ref_masses, String trafo_file_name)
   {
     if (exp.empty())
     {
@@ -387,9 +387,9 @@ protected:
 
     Size num_ref_peaks = ref_masses.size();
     bool use_ppm = (param_.getValue("mz_tolerance_unit") == "ppm") ? true : false;
-    DoubleReal mz_tol = param_.getValue("mz_tolerance");
+    double mz_tol = param_.getValue("mz_tolerance");
     startProgress(0, exp.size(), "calibrate spectra");
-    std::vector<DoubleReal> corr_masses, rel_errors, found_ref_masses;
+    std::vector<double> corr_masses, rel_errors, found_ref_masses;
     UInt corr_peaks = 0;
     // for each spectrum
     for (Size spec = 0; spec <  exp.size(); ++spec)
@@ -448,7 +448,7 @@ protected:
 #ifdef DEBUG_CALIBRATION
         std::cout << exp[spec][peak].getMZ() << "\t";
 #endif
-        DoubleReal mz = exp[spec][peak].getMZ();
+        double mz = exp[spec][peak].getMZ();
         mz = trafo_.apply(mz);
         calibrated_exp[spec][peak].setMZ(mz);
 

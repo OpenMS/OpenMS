@@ -248,8 +248,8 @@ public:
       return ILLEGAL_PARAMETERS;
     }
 
-    DoubleReal rttol = getDoubleOption_("rt_tol");
-    DoubleReal mztol = getDoubleOption_("mz_tol");
+    double rttol = getDoubleOption_("rt_tol");
+    double mztol = getDoubleOption_("mz_tol");
     Size rt_collect = getIntOption_("rt_collect");
 
     //-------------------------------------------------------------
@@ -298,7 +298,7 @@ public:
           tics.push_back(peak);
         }
         // smooth (no PP_CWT here due to efficiency reasons -- large FWHM take longer!)
-        DoubleReal fwhm = getDoubleOption_("auto_rt:FHWM");
+        double fwhm = getDoubleOption_("auto_rt:FHWM");
         GaussFilter gf;
         Param p = gf.getParameters();
         p.setValue("gaussian_width", fwhm*2); // wider than FWHM, just to be sure we have a fully smoothed peak. Merging two peaks is unlikely
@@ -353,7 +353,7 @@ public:
         // duplicate m/z entries will be ignored!
         // all other lines with positive RT values are copied unaffected
         //do not allow doubles
-        std::set <DoubleReal> mz_doubles;
+        std::set <double> mz_doubles;
         for (ConsensusMap::Iterator cit = cm_local.begin(); cit != cm_local.end(); ++cit)
         {
           if (cit->getRT() < 0)
@@ -391,7 +391,7 @@ public:
 
       // search for each EIC and add up
       Int not_found(0);
-      Map<Size, DoubleReal> quant;
+      Map<Size, double> quant;
 
       String description;
       if (fi < in_header.size())
@@ -416,7 +416,7 @@ public:
       {
         //std::cerr << "Rt" << cm[i].getRT() << "  mz: " << cm[i].getMZ() << " R " <<  cm[i].getMetaValue("rank") << "\n";
 
-        DoubleReal mz_da = mztol * cm[i].getMZ() / 1e6; // mz tolerance in Dalton
+        double mz_da = mztol * cm[i].getMZ() / 1e6; // mz tolerance in Dalton
         MSExperiment<>::ConstAreaIterator it = exp.areaBeginConst(cm[i].getRT() - rttol / 2,
                                                                   cm[i].getRT() + rttol / 2,
                                                                   cm[i].getMZ() - mz_da,
@@ -434,7 +434,7 @@ public:
             max_peak.setMZ(it->getMZ());
           }
         }
-        DoubleReal ppm = 0;   // observed m/z offset
+        double ppm = 0;   // observed m/z offset
 
         if (max_peak.getIntensity() == 0)
         {
@@ -443,7 +443,7 @@ public:
         else
         {
           // take median for m/z found
-          std::vector<DoubleReal> mz;
+          std::vector<double> mz;
           MSExperiment<>::Iterator itm = exp.RTBegin(max_peak.getRT());
           SignedSize low = std::min<SignedSize>(std::distance(exp.begin(), itm), rt_collect);
           SignedSize high = std::min<SignedSize>(std::distance(itm, exp.end()) - 1, rt_collect);
@@ -458,7 +458,7 @@ public:
 
           if (!mz.empty())
           {
-            DoubleReal avg_mz = std::accumulate(mz.begin(), mz.end(), 0.0) / DoubleReal(mz.size());
+            double avg_mz = std::accumulate(mz.begin(), mz.end(), 0.0) / double(mz.size());
             //std::cerr << "avg: " << avg_mz << "\n";
             ppm = (avg_mz - cm[i].getMZ()) / cm[i].getMZ() * 1e6;
           }

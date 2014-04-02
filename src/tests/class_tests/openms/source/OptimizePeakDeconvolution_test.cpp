@@ -72,7 +72,7 @@ START_SECTION((OptimizePeakDeconvolution& operator=(const OptimizePeakDeconvolut
   opt_deconv_copy = opt_deconv;
 struct OptimizationFunctions::PenaltyFactorsIntensity penalties_copy = opt_deconv_copy.getPenalties();
  
-  DoubleReal charge = opt_deconv_copy.getCharge();
+  double charge = opt_deconv_copy.getCharge();
   TEST_REAL_SIMILAR(penalties.pos,penalties_copy.pos)
   TEST_REAL_SIMILAR(penalties.lWidth,penalties_copy.lWidth)
   TEST_REAL_SIMILAR(penalties.rWidth,penalties_copy.rWidth)
@@ -93,7 +93,7 @@ START_SECTION((OptimizePeakDeconvolution(const OptimizePeakDeconvolution& opt)))
   
   OptimizePeakDeconvolution opt_deconv_copy(opt_deconv);
   struct OptimizationFunctions::PenaltyFactorsIntensity penalties_copy = opt_deconv_copy.getPenalties();
-  DoubleReal charge = opt_deconv_copy.getCharge();
+  double charge = opt_deconv_copy.getCharge();
   TEST_REAL_SIMILAR(penalties.pos,penalties_copy.pos)
   TEST_REAL_SIMILAR(penalties.lWidth,penalties_copy.lWidth)
   TEST_REAL_SIMILAR(penalties.rWidth,penalties_copy.rWidth)

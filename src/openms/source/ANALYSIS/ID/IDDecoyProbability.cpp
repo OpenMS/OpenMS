@@ -73,9 +73,9 @@ namespace OpenMS
 
   void IDDecoyProbability::apply(vector<PeptideIdentification> & ids)
   {
-    DoubleReal lower_score_better_default_value_if_zero((DoubleReal)param_.getValue("lower_score_better_default_value_if_zero"));
-    DoubleReal lower_score_better_default_value_if_zero_exp = pow((DoubleReal)10.0, -lower_score_better_default_value_if_zero);
-    vector<DoubleReal> rev_scores, fwd_scores, all_scores;
+    double lower_score_better_default_value_if_zero((double)param_.getValue("lower_score_better_default_value_if_zero"));
+    double lower_score_better_default_value_if_zero_exp = pow((double)10.0, -lower_score_better_default_value_if_zero);
+    vector<double> rev_scores, fwd_scores, all_scores;
 
     // get the forward scores
     for (vector<PeptideIdentification>::iterator it = ids.begin(); it != ids.end(); ++it)
@@ -86,7 +86,7 @@ namespace OpenMS
         vector<PeptideHit> hits = it->getHits();
         for (vector<PeptideHit>::iterator pit = hits.begin(); pit != hits.end(); ++pit)
         {
-          DoubleReal score = pit->getScore();
+          double score = pit->getScore();
 
           pit->setMetaValue(score_type + "_Score", score);
 
@@ -125,10 +125,10 @@ namespace OpenMS
 
   void IDDecoyProbability::apply(vector<PeptideIdentification> & prob_ids, const vector<PeptideIdentification> & orig_fwd_ids, const vector<PeptideIdentification> & rev_ids)
   {
-    DoubleReal lower_score_better_default_value_if_zero((DoubleReal)param_.getValue("lower_score_better_default_value_if_zero"));
-    DoubleReal lower_score_better_default_value_if_zero_exp = pow((DoubleReal)10.0, -lower_score_better_default_value_if_zero);
+    double lower_score_better_default_value_if_zero((double)param_.getValue("lower_score_better_default_value_if_zero"));
+    double lower_score_better_default_value_if_zero_exp = pow((double)10.0, -lower_score_better_default_value_if_zero);
     vector<PeptideIdentification> fwd_ids = orig_fwd_ids;
-    vector<DoubleReal> rev_scores, fwd_scores, all_scores;
+    vector<double> rev_scores, fwd_scores, all_scores;
 
     // get the forward scores
     for (vector<PeptideIdentification>::iterator it = fwd_ids.begin(); it != fwd_ids.end(); ++it)
@@ -139,7 +139,7 @@ namespace OpenMS
         vector<PeptideHit> hits = it->getHits();
         for (vector<PeptideHit>::iterator pit = hits.begin(); pit != hits.end(); ++pit)
         {
-          DoubleReal score = pit->getScore();
+          double score = pit->getScore();
 
           pit->setMetaValue(score_type + "_Score", score);
 
@@ -168,7 +168,7 @@ namespace OpenMS
       {
         for (vector<PeptideHit>::const_iterator pit = it->getHits().begin(); pit != it->getHits().end(); ++pit)
         {
-          DoubleReal score = pit->getScore();
+          double score = pit->getScore();
           if (!it->isHigherScoreBetter())
           {
             if (score < lower_score_better_default_value_if_zero_exp)
@@ -192,14 +192,14 @@ namespace OpenMS
     return;
   }
 
-  void IDDecoyProbability::apply_(vector<PeptideIdentification> & ids, const vector<DoubleReal> & rev_scores, const vector<DoubleReal> & fwd_scores, const vector<DoubleReal> & all_scores)
+  void IDDecoyProbability::apply_(vector<PeptideIdentification> & ids, const vector<double> & rev_scores, const vector<double> & fwd_scores, const vector<double> & all_scores)
   {
     Size number_of_bins(param_.getValue("number_of_bins"));
 
 
 
     // normalize distribution to [0, 1]
-    vector<DoubleReal> fwd_scores_normalized(number_of_bins, 0.0), rev_scores_normalized(number_of_bins, 0.0), diff_scores(number_of_bins, 0.0), all_scores_normalized(number_of_bins, 0.0);
+    vector<double> fwd_scores_normalized(number_of_bins, 0.0), rev_scores_normalized(number_of_bins, 0.0), diff_scores(number_of_bins, 0.0), all_scores_normalized(number_of_bins, 0.0);
     Transformation_ rev_trafo, fwd_trafo, all_trafo;
     normalizeBins_(rev_scores, rev_scores_normalized, rev_trafo);
     normalizeBins_(fwd_scores, fwd_scores_normalized, fwd_trafo);
@@ -211,7 +211,7 @@ namespace OpenMS
     for (Size i = 0; i < number_of_bins; ++i)
     {
       DPosition<2> pos;
-      pos.setX(((DoubleReal)i) / (DoubleReal)number_of_bins + 0.0001);    // necessary????
+      pos.setX(((double)i) / (double)number_of_bins + 0.0001);    // necessary????
       pos.setY(rev_scores_normalized[i]);
       rev_data.push_back(pos);
 #ifdef IDDECOYPROBABILITY_DEBUG
@@ -234,11 +234,11 @@ namespace OpenMS
     // generate diffs of distributions
     // get the fwd and rev distribution, apply all_trafo and calculate the diff
     vector<Size> fwd_bins(number_of_bins, 0), rev_bins(number_of_bins, 0);
-    DoubleReal min(all_trafo.min_score), diff(all_trafo.diff_score);
+    double min(all_trafo.min_score), diff(all_trafo.diff_score);
     Size max_bin(0);
-    for (vector<DoubleReal>::const_iterator it = fwd_scores.begin(); it != fwd_scores.end(); ++it)
+    for (vector<double>::const_iterator it = fwd_scores.begin(); it != fwd_scores.end(); ++it)
     {
-      Size bin = (Size)((*it - min) / diff * (DoubleReal)(number_of_bins - 1));
+      Size bin = (Size)((*it - min) / diff * (double)(number_of_bins - 1));
       ++fwd_bins[bin];
       if (fwd_bins[bin] > max_bin)
       {
@@ -249,9 +249,9 @@ namespace OpenMS
     Size max_reverse_bin(0), max_reverse_bin_value(0);
     //min = rev_trafo.min_score;
     //diff = rev_trafo.diff_score;
-    for (vector<DoubleReal>::const_iterator it = rev_scores.begin(); it != rev_scores.end(); ++it)
+    for (vector<double>::const_iterator it = rev_scores.begin(); it != rev_scores.end(); ++it)
     {
-      Size bin = (Size)((*it - min) / diff * (DoubleReal)number_of_bins);
+      Size bin = (Size)((*it - min) / diff * (double)number_of_bins);
       ++rev_bins[bin];
       if (rev_bins[bin] > max_bin)
       {
@@ -274,9 +274,9 @@ namespace OpenMS
       Size fwd(0), rev(0);
       fwd = fwd_bins[i];
       rev = rev_bins[i];
-      if ((DoubleReal)fwd > (DoubleReal)(1.3 * rev) && max_reverse_bin < i)
+      if ((double)fwd > (double)(1.3 * rev) && max_reverse_bin < i)
       {
-        diff_scores[i] = (DoubleReal)(fwd - rev) / (DoubleReal)max_bin;
+        diff_scores[i] = (double)(fwd - rev) / (double)max_bin;
       }
       else
       {
@@ -288,11 +288,11 @@ namespace OpenMS
 #endif
     // diff scores fitting
     vector<DPosition<2> > diff_data;
-    DoubleReal gauss_A(0), gauss_x0(0), norm_factor(0);
+    double gauss_A(0), gauss_x0(0), norm_factor(0);
     for (Size i = 0; i < number_of_bins; ++i)
     {
       DPosition<2> pos;
-      pos.setX((DoubleReal)i / (DoubleReal)number_of_bins);
+      pos.setX((double)i / (double)number_of_bins);
       pos.setY(diff_scores[i]);
 
       if (pos.getY() > gauss_A)
@@ -306,16 +306,16 @@ namespace OpenMS
       diff_data.push_back(pos);
     }
 
-    DoubleReal gauss_sigma(0);
-    gauss_x0 /= (DoubleReal)diff_data.size();
+    double gauss_sigma(0);
+    gauss_x0 /= (double)diff_data.size();
     gauss_x0 /= norm_factor;
 
     for (Size i = 0; i <= number_of_bins; ++i)
     {
-      gauss_sigma += fabs(gauss_x0 - (DoubleReal)i / (DoubleReal)number_of_bins);
+      gauss_sigma += fabs(gauss_x0 - (double)i / (double)number_of_bins);
     }
 
-    gauss_sigma /= (DoubleReal)diff_data.size();
+    gauss_sigma /= (double)diff_data.size();
 
 
 
@@ -386,7 +386,7 @@ namespace OpenMS
         for (vector<PeptideHit>::const_iterator pit = it->getHits().begin(); pit != it->getHits().end(); ++pit)
         {
           PeptideHit hit = *pit;
-          DoubleReal score = hit.getScore();
+          double score = hit.getScore();
           if (!it->isHigherScoreBetter())
           {
             score = -log10(score);
@@ -407,12 +407,12 @@ namespace OpenMS
   }
 
   // normalize the bins to [0, 1]
-  void IDDecoyProbability::normalizeBins_(const vector<DoubleReal> & scores, vector<DoubleReal> & binned, Transformation_ & trafo)
+  void IDDecoyProbability::normalizeBins_(const vector<double> & scores, vector<double> & binned, Transformation_ & trafo)
   {
     Size number_of_bins(param_.getValue("number_of_bins"));
     // get the range of the scores
-    DoubleReal max(numeric_limits<DoubleReal>::min()), min(numeric_limits<DoubleReal>::max());
-    for (vector<DoubleReal>::const_iterator it = scores.begin(); it != scores.end(); ++it)
+    double max(numeric_limits<double>::min()), min(numeric_limits<double>::max());
+    for (vector<double>::const_iterator it = scores.begin(); it != scores.end(); ++it)
     {
       if (*it > max)
       {
@@ -429,12 +429,12 @@ namespace OpenMS
 #endif
 
     // perform the binning
-    DoubleReal diff = max - min;
+    double diff = max - min;
     Size max_bin_number(0);
-    DoubleReal max_bin(0);
-    for (vector<DoubleReal>::const_iterator it = scores.begin(); it != scores.end(); ++it)
+    double max_bin(0);
+    for (vector<double>::const_iterator it = scores.begin(); it != scores.end(); ++it)
     {
-      Size bin = (Size)((*it - min) / diff * (DoubleReal)(number_of_bins - 1));
+      Size bin = (Size)((*it - min) / diff * (double)(number_of_bins - 1));
       binned[bin] += 1;
 
       if (binned[bin] > max_bin)
@@ -446,14 +446,14 @@ namespace OpenMS
 
 
     // normalize to \sum = 1
-    for (vector<DoubleReal>::iterator it = binned.begin(); it != binned.end(); ++it)
+    for (vector<double>::iterator it = binned.begin(); it != binned.end(); ++it)
     {
-      *it /= (DoubleReal)max_bin / 4.0;   // 4 is best value for the gamma distribution
+      *it /= (double)max_bin / 4.0;   // 4 is best value for the gamma distribution
     }
 
 
     // store the transformation
-    trafo.max_intensity = 4.0 / (DoubleReal)max_bin;
+    trafo.max_intensity = 4.0 / (double)max_bin;
     trafo.diff_score = diff;
     trafo.min_score = min;
     trafo.max_intensity_bin = max_bin_number;
@@ -464,18 +464,18 @@ namespace OpenMS
 #endif
   }
 
-  DoubleReal IDDecoyProbability::getProbability_(const Math::GammaDistributionFitter::GammaDistributionFitResult & result_gamma,
+  double IDDecoyProbability::getProbability_(const Math::GammaDistributionFitter::GammaDistributionFitResult & result_gamma,
                                                  const Transformation_ & gamma_trafo,
                                                  const Math::GaussFitter::GaussFitResult & result_gauss,
                                                  const Transformation_ & gauss_trafo,
-                                                 DoubleReal score)
+                                                 double score)
   {
-    DoubleReal rho_rev(0), rho_fwd(0);
+    double rho_rev(0), rho_fwd(0);
     Size number_of_bins(param_.getValue("number_of_bins"));
 
     // first transform the score into a background distribution density value
-    DoubleReal score_rev_trans = (score - gamma_trafo.min_score) / gamma_trafo.diff_score;
-    if (score_rev_trans < gamma_trafo.max_intensity_bin / (DoubleReal)number_of_bins)
+    double score_rev_trans = (score - gamma_trafo.min_score) / gamma_trafo.diff_score;
+    if (score_rev_trans < gamma_trafo.max_intensity_bin / (double)number_of_bins)
     {
       rho_rev = 1.0 / gamma_trafo.max_intensity;
     }
@@ -485,7 +485,7 @@ namespace OpenMS
     }
 
     // second transform the score into a 'correct' distribution density value
-    DoubleReal score_fwd_trans = (score - gauss_trafo.min_score) / gauss_trafo.diff_score;
+    double score_fwd_trans = (score - gauss_trafo.min_score) / gauss_trafo.diff_score;
 
 #ifdef IDDECOYPROBABILITY_DEBUG
     cerr << "score=" << score << ", score_rev_trans=" << score_rev_trans << ", score_fwd_trans=" << score_fwd_trans << ", rho_rev=" << rho_rev << ", gauss_trafor.max_score=" << gauss_trafo.max_score;
@@ -512,7 +512,7 @@ namespace OpenMS
     return rho_fwd / (rho_fwd + rho_rev);
   }
 
-  void IDDecoyProbability::generateDistributionImage_(const vector<DoubleReal> & ids, const String & formula, const String & filename)
+  void IDDecoyProbability::generateDistributionImage_(const vector<double> & ids, const String & formula, const String & filename)
   {
     Size number_of_bins(param_.getValue("number_of_bins"));
 
@@ -520,7 +520,7 @@ namespace OpenMS
     ofstream o((filename + "_dist_tmp.dat").c_str());
     for (Size i = 0; i < number_of_bins; ++i)
     {
-      o << (DoubleReal)i / (DoubleReal)number_of_bins << " " << ids[i] << endl;
+      o << (double)i / (double)number_of_bins << " " << ids[i] << endl;
     }
     o.close();
 
@@ -543,14 +543,14 @@ namespace OpenMS
     return;
   }
 
-  void IDDecoyProbability::generateDistributionImage_(const vector<DoubleReal> & all_ids, const Transformation_ & all_trans, const String & fwd_formula, const String & rev_formula, const String & filename)
+  void IDDecoyProbability::generateDistributionImage_(const vector<double> & all_ids, const Transformation_ & all_trans, const String & fwd_formula, const String & rev_formula, const String & filename)
   {
     Size number_of_bins(param_.getValue("number_of_bins"));
 
     ofstream all_output((filename + "_all_tmp.dat").c_str());
     for (Size i = 0; i < number_of_bins; ++i)
     {
-      all_output << (DoubleReal)i / (DoubleReal)number_of_bins * all_trans.diff_score + all_trans.min_score << " " << all_ids[i] / all_trans.max_intensity << endl;
+      all_output << (double)i / (double)number_of_bins * all_trans.diff_score + all_trans.min_score << " " << all_ids[i] / all_trans.max_intensity << endl;
     }
     all_output.close();
 

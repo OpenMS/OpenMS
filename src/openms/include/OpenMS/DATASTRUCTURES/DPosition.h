@@ -49,7 +49,7 @@ namespace OpenMS
 
     @ingroup Datastructures
   */
-  template <UInt D, typename TCoordinateType = DoubleReal>
+  template <UInt D, typename TCoordinateType = double>
   class DPosition
   {
 public:

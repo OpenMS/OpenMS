@@ -12,7 +12,7 @@ cdef extern from "<OpenMS/METADATA/PeptideHit.h>" namespace "OpenMS":
 
         PeptideHit() nogil except +
 
-        PeptideHit(DoubleReal score,
+        PeptideHit(double score,
                    UInt       rank,
                    Int        charge,
                    AASequence sequence
@@ -20,7 +20,7 @@ cdef extern from "<OpenMS/METADATA/PeptideHit.h>" namespace "OpenMS":
 
         PeptideHit(PeptideHit) nogil except + # wrap-ignore
 
-        Real getScore() nogil except +
+        float getScore() nogil except +
         UInt getRank() nogil except +
         AASequence getSequence() nogil except +
         Int getCharge() nogil except +
@@ -28,7 +28,7 @@ cdef extern from "<OpenMS/METADATA/PeptideHit.h>" namespace "OpenMS":
         void setProteinAccessions(libcpp_vector[String]) nogil except +
 
 
-        void setScore(Real ) nogil except +
+        void setScore(float ) nogil except +
         void setRank(UInt) nogil except +
         void setSequence(AASequence) nogil except +
         void setCharge(Int) nogil except +

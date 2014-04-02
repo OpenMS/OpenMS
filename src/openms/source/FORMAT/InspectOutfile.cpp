@@ -76,7 +76,7 @@ namespace OpenMS
   }
 
   vector<Size> InspectOutfile::load(const String & result_filename, vector<PeptideIdentification> & peptide_identifications,
-                                    ProteinIdentification & protein_identification, const DoubleReal p_value_threshold, const String & database_filename)
+                                    ProteinIdentification & protein_identification, const double p_value_threshold, const String & database_filename)
   {
     // check whether the p_value is correct
     if ((p_value_threshold < 0) || (p_value_threshold > 1))
@@ -961,7 +961,7 @@ namespace OpenMS
     }
   }
 
-  vector<Size> InspectOutfile::getWantedRecords(const String & result_filename, DoubleReal p_value_threshold)
+  vector<Size> InspectOutfile::getWantedRecords(const String & result_filename, double p_value_threshold)
   {
     // check whether the p_value is correct
     if ((p_value_threshold < 0) || (p_value_threshold > 1))

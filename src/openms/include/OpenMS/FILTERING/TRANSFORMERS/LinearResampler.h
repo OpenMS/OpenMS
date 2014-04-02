@@ -130,7 +130,7 @@ public:
 
 
         // add the distance_right*h to the left resampled peak and distance_left*h to the right resampled peak
-        DoubleReal intensity = (it + left_index)->getIntensity();
+        double intensity = (it + left_index)->getIntensity();
         intensity += (first + i)->getIntensity() * distance_right / spacing_;
         (it + left_index)->setIntensity(intensity);
         intensity = (it + right_index)->getIntensity();

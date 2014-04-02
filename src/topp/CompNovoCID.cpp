@@ -189,8 +189,8 @@ protected:
     search_parameters.variable_modifications = algorithm_param.getValue("variable_modifications");
 
     search_parameters.missed_cleavages = (UInt)algorithm_param.getValue("missed_cleavages");
-    search_parameters.peak_mass_tolerance = (DoubleReal)algorithm_param.getValue("fragment_mass_tolerance");
-    search_parameters.precursor_tolerance = (DoubleReal)algorithm_param.getValue("precursor_mass_tolerance");
+    search_parameters.peak_mass_tolerance = (double)algorithm_param.getValue("fragment_mass_tolerance");
+    search_parameters.precursor_tolerance = (double)algorithm_param.getValue("precursor_mass_tolerance");
     prot_id.setSearchParameters(search_parameters);
     prot_id.setSearchEngineVersion("0.9beta");
     prot_id.setSearchEngine("CompNovo");

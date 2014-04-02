@@ -58,7 +58,7 @@ namespace OpenMS
   }
 
   /// Constructor with net-charge and mass
-  Compomer::Compomer(Int net_charge, DoubleReal mass, DoubleReal log_p) :
+  Compomer::Compomer(Int net_charge, double mass, double log_p) :
     cmp_(2),
     net_charge_(net_charge),
     mass_(mass),
@@ -129,7 +129,7 @@ namespace OpenMS
     mass_ += a.getAmount() * a.getSingleMass() * mult[side];
     pos_charges_ +=  std::max(a.getAmount() * a.getCharge() * mult[side], 0);
     neg_charges_ -=  std::min(a.getAmount() * a.getCharge() * mult[side], 0);
-    log_p_ += std::fabs((Real)a.getAmount()) * a.getLogProb();
+    log_p_ += std::fabs((float)a.getAmount()) * a.getLogProb();
     rt_shift_ += a.getAmount() * a.getRTShift() * mult[side];
   }
 
@@ -193,7 +193,7 @@ namespace OpenMS
   }
 
   /// mass of all contained adducts
-  const DoubleReal & Compomer::getMass() const
+  const double & Compomer::getMass() const
   {
     return mass_;
   }
@@ -211,13 +211,13 @@ namespace OpenMS
   }
 
   /// return log probability
-  const DoubleReal & Compomer::getLogP() const
+  const double & Compomer::getLogP() const
   {
     return log_p_;
   }
 
   /// return RT shift induced by this compomer
-  const DoubleReal & Compomer::getRTShift() const
+  const double & Compomer::getRTShift() const
   {
     return rt_shift_;
   }
@@ -286,7 +286,7 @@ namespace OpenMS
         tmp.mass_ -= amount * a.getSingleMass() * mult[side];
         tmp.pos_charges_ -=  std::max(amount * a.getCharge() * mult[side], 0);
         tmp.neg_charges_ -= -std::min(amount * a.getCharge() * mult[side], 0);
-        tmp.log_p_ -= std::fabs((Real)amount) * a.getLogProb();
+        tmp.log_p_ -= std::fabs((float)amount) * a.getLogProb();
         tmp.rt_shift_ -= amount * a.getRTShift() * mult[side];
       }
       // remove entry from map

@@ -513,7 +513,7 @@ namespace OpenMS
     connect(spectra_identification_view_widget_, SIGNAL(spectrumSelected(int)), this, SLOT(activate1DSpectrum(int)));
     //connect(spectra_identification_view_widget_, SIGNAL(spectrumSelected(std::vector<int, std::allocator<int> >)), this, SLOT(activate1DSpectrum(std::vector<int, std::allocator<int> >)));
     identificationview_behavior_ = new TOPPViewIdentificationViewBehavior(this);
-    connect(spectra_identification_view_widget_, SIGNAL(requestVisibleArea1D(DoubleReal, DoubleReal)), identificationview_behavior_, SLOT(setVisibleArea1D(DoubleReal, DoubleReal)));
+    connect(spectra_identification_view_widget_, SIGNAL(requestVisibleArea1D(double, double)), identificationview_behavior_, SLOT(setVisibleArea1D(double, double)));
 
     views_tabwidget_->addTab(spectra_view_widget_, "Scan view");
     views_tabwidget_->addTab(spectra_identification_view_widget_, "Identification view");
@@ -779,7 +779,7 @@ namespace OpenMS
         ++count;
       }
     }
-    return noise / (DoubleReal)n_scans;
+    return noise / (double)n_scans;
   }
 
   // static
@@ -799,7 +799,7 @@ namespace OpenMS
       }
       for (Size j = 0; j != exp[i].size(); ++j)
       {
-        DoubleReal intensity = exp[i][j].getIntensity();
+        double intensity = exp[i][j].getIntensity();
         if (intensity == 0.0)
         {
           zeros++;
@@ -926,15 +926,15 @@ namespace OpenMS
     line_width_3D->setValue((Int)param_.getValue("preferences:3d:dot:line_width"));
 
     // id view
-    a_intensity->setValue((DoubleReal)param_.getValue("preferences:idview:a_intensity"));
-    b_intensity->setValue((DoubleReal)param_.getValue("preferences:idview:b_intensity"));
-    c_intensity->setValue((DoubleReal)param_.getValue("preferences:idview:c_intensity"));
-    x_intensity->setValue((DoubleReal)param_.getValue("preferences:idview:x_intensity"));
-    y_intensity->setValue((DoubleReal)param_.getValue("preferences:idview:y_intensity"));
-    z_intensity->setValue((DoubleReal)param_.getValue("preferences:idview:z_intensity"));
-    tolerance->setValue((DoubleReal)param_.getValue("preferences:idview:tolerance"));
+    a_intensity->setValue((double)param_.getValue("preferences:idview:a_intensity"));
+    b_intensity->setValue((double)param_.getValue("preferences:idview:b_intensity"));
+    c_intensity->setValue((double)param_.getValue("preferences:idview:c_intensity"));
+    x_intensity->setValue((double)param_.getValue("preferences:idview:x_intensity"));
+    y_intensity->setValue((double)param_.getValue("preferences:idview:y_intensity"));
+    z_intensity->setValue((double)param_.getValue("preferences:idview:z_intensity"));
+    tolerance->setValue((double)param_.getValue("preferences:idview:tolerance"));
 
-    relative_loss_intensity->setValue((DoubleReal)param_.getValue("preferences:idview:relative_loss_intensity"));
+    relative_loss_intensity->setValue((double)param_.getValue("preferences:idview:relative_loss_intensity"));
 
     if (a_ions.empty())
     {
@@ -1414,7 +1414,7 @@ namespace OpenMS
         //calculate noise
         if (use_intensity_cutoff)
         {
-          DoubleReal cutoff = estimateNoiseFromRandomMS1Scans(*(target_window->canvas()->getCurrentLayer().getPeakData()));
+          double cutoff = estimateNoiseFromRandomMS1Scans(*(target_window->canvas()->getCurrentLayer().getPeakData()));
           //create filter
           DataFilters::DataFilter filter;
           filter.field = DataFilters::INTENSITY;
@@ -3268,7 +3268,7 @@ namespace OpenMS
         p.setValue("x_intensity", spec_gen_dialog.x_intensity->value(), "Intensity of the x-ions");
         p.setValue("y_intensity", spec_gen_dialog.y_intensity->value(), "Intensity of the y-ions");
         p.setValue("z_intensity", spec_gen_dialog.z_intensity->value(), "Intensity of the z-ions");
-        DoubleReal rel_loss_int = (DoubleReal)(spec_gen_dialog.rel_loss_intensity->value()) / 100.0;
+        double rel_loss_int = (double)(spec_gen_dialog.rel_loss_intensity->value()) / 100.0;
         p.setValue("relative_loss_intensity", rel_loss_int, "Intensity of loss ions, in relation to the intact ion intensity");
         generator.setParameters(p);
 
@@ -3370,14 +3370,14 @@ namespace OpenMS
       }
 
       Param param;
-      DoubleReal tolerance = spec_align_dialog.tolerance_spinbox->value();
+      double tolerance = spec_align_dialog.tolerance_spinbox->value();
       param.setValue("tolerance", tolerance, "Defines the absolute (in Da) or relative (in ppm) mass tolerance");
       String unit_is_ppm = spec_align_dialog.ppm->isChecked() ? "true" : "false";
       param.setValue("is_relative_tolerance", unit_is_ppm, "If true, the mass tolerance is interpreted as ppm value otherwise in Dalton");
 
       active_1d_window->performAlignment((UInt)layer_index_1, (UInt)layer_index_2, param);
 
-      DoubleReal al_score = cc->getAlignmentScore();
+      double al_score = cc->getAlignmentScore();
       Size al_size = cc->getAlignmentSize();
 
       QMessageBox::information(this, "Alignment performed", QString("Aligned %1 pairs of peaks (Score: %2).").arg(al_size).arg(al_score));

@@ -45,7 +45,7 @@
 
 namespace OpenMS
 {
-  void PeakWidthEstimator::estimateSpectrumFWHM(const MSSpectrum<Peak1D> & input, std::set<boost::tuple<DoubleReal, DoubleReal, DoubleReal> > & fwhms)
+  void PeakWidthEstimator::estimateSpectrumFWHM(const MSSpectrum<Peak1D> & input, std::set<boost::tuple<double, double, double> > & fwhms)
   {
     PeakPickerHiRes picker;
 
@@ -59,13 +59,13 @@ namespace OpenMS
 
     for (Size i = 1; i < picked.size() - 1; ++i)
     {
-      DoubleReal mz = picked[i].getMZ();
-      DoubleReal intensity = picked[i].getIntensity();
+      double mz = picked[i].getMZ();
+      double intensity = picked[i].getIntensity();
 
-      DoubleReal half_window_size = 0.25;
+      double half_window_size = 0.25;
 
-      DoubleReal half_dist_left_neighbor = (mz - picked[i - 1].getMZ()) / 2.0;
-      DoubleReal half_dist_right_neighbor = (picked[i + 1].getMZ() - mz) / 2.0;
+      double half_dist_left_neighbor = (mz - picked[i - 1].getMZ()) / 2.0;
+      double half_dist_right_neighbor = (picked[i + 1].getMZ() - mz) / 2.0;
 
       if (half_dist_right_neighbor < half_window_size)
       {
@@ -129,20 +129,20 @@ namespace OpenMS
       Wm5::IntpAkimaNonuniform1<double> peak_spline (values.size(), &X.front(), &Y.front());
 
       // search for half intensity to the left
-      DoubleReal MZ_THRESHOLD = 0.00000001;
-      DoubleReal INTENSITY_THRESHOLD = 0.0001;
+      double MZ_THRESHOLD = 0.00000001;
+      double INTENSITY_THRESHOLD = 0.0001;
 
-      DoubleReal half_maximum = intensity / 2.0;
-      DoubleReal mid;
+      double half_maximum = intensity / 2.0;
+      double mid;
 
       // left bisection
-      DoubleReal left = mz - 0.25;
-      DoubleReal right = mz;
+      double left = mz - 0.25;
+      double right = mz;
 
       do
       {
         mid = (left + right) / 2.0;
-        DoubleReal mid_int = peak_spline( mid );
+        double mid_int = peak_spline( mid );
 
         // found half maximum
         if (std::fabs(mid_int - half_maximum) < INTENSITY_THRESHOLD)
@@ -163,7 +163,7 @@ namespace OpenMS
       }
       while (std::fabs(left - right) > MZ_THRESHOLD);
 
-      DoubleReal left_fwhm_mz = mid;
+      double left_fwhm_mz = mid;
 
       // right bisection
       left = mz;
@@ -171,7 +171,7 @@ namespace OpenMS
       do
       {
         mid = (left + right) / 2.0;
-        DoubleReal mid_int = peak_spline( mid );
+        double mid_int = peak_spline( mid );
 
         // found half maximum
         if (std::fabs(mid_int - half_maximum) < INTENSITY_THRESHOLD)
@@ -192,10 +192,10 @@ namespace OpenMS
       }
       while (std::fabs(left - right) > MZ_THRESHOLD);
 
-      DoubleReal right_fwhm_mz = mid;
+      double right_fwhm_mz = mid;
 
       // sanity check (left distance and right distance should be more or less equal)
-      DoubleReal ratio = std::fabs(left_fwhm_mz - mz) / std::fabs(right_fwhm_mz - mz);
+      double ratio = std::fabs(left_fwhm_mz - mz) / std::fabs(right_fwhm_mz - mz);
 
       if (ratio < 0.9 || ratio > 1.1)
       {
@@ -204,7 +204,7 @@ namespace OpenMS
 
       //std::cout << std::fabs(left_fwhm_mz - mz) << " " << std::fabs(right_fwhm_mz - mz) << std::endl;
 
-      DoubleReal fwhm = std::fabs(left_fwhm_mz - mz) + std::fabs(right_fwhm_mz - mz);
+      double fwhm = std::fabs(left_fwhm_mz - mz) + std::fabs(right_fwhm_mz - mz);
 
       fwhms.insert(boost::make_tuple(intensity, mz, fwhm));
     }
@@ -255,7 +255,7 @@ namespace OpenMS
     }
 
     // set of (intensity, mz, peak-width)
-    std::set<boost::tuple<DoubleReal, DoubleReal, DoubleReal> > fwhms;
+    std::set<boost::tuple<double, double, double> > fwhms;
 
     // estimate FWHM on every spectrum
     for (Size scan_idx = 0; scan_idx != exp.size(); ++scan_idx)
@@ -272,7 +272,7 @@ namespace OpenMS
     std::vector<double> mzsVec, fwhmsVec, intensitiesVec;
     {
       Size count = fwhms.size() / 2;
-      std::set<boost::tuple<DoubleReal, DoubleReal, DoubleReal> >::reverse_iterator it = fwhms.rbegin();
+      std::set<boost::tuple<double, double, double> >::reverse_iterator it = fwhms.rbegin();
       for (; count && it != fwhms.rend(); --count, ++it)
       {
 //        std::cout << it->get<1>() << ',' << it->get<2>() << ',' << it->get<0>() << std::endl;  // generates nice plots

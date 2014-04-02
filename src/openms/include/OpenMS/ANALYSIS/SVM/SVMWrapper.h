@@ -54,12 +54,12 @@ namespace OpenMS
   /// Data structure used in SVMWrapper
   struct OPENMS_DLLAPI SVMData
   {
-    std::vector<std::vector<std::pair<Int, DoubleReal> > > sequences;
-    std::vector<DoubleReal> labels;
+    std::vector<std::vector<std::pair<Int, double> > > sequences;
+    std::vector<double> labels;
 
     SVMData();
 
-    SVMData(std::vector<std::vector<std::pair<Int, DoubleReal> > >& seqs, std::vector<DoubleReal>& lbls);
+    SVMData(std::vector<std::vector<std::pair<Int, double> > >& seqs, std::vector<double>& lbls);
 
     bool operator==(const SVMData& rhs) const;
 
@@ -164,7 +164,7 @@ public:
       @param type The type of parameter to set.
       @param value The new value for parameter \c type.
     */
-    void setParameter(SVM_parameter_type type, DoubleReal value);
+    void setParameter(SVM_parameter_type type, double value);
 
     /**
       @brief	trains the svm
@@ -207,14 +207,14 @@ public:
 
       The prediction process is started and the results are stored in 'predicted_labels'.
     */
-    void predict(struct svm_problem* problem, std::vector<DoubleReal>& predicted_labels);
+    void predict(struct svm_problem* problem, std::vector<double>& predicted_labels);
 
     /**
       @brief predicts the labels using the trained model
 
       The prediction process is started and the results are stored in 'predicted_labels'.
     */
-    void predict(const SVMData& problem, std::vector<DoubleReal>& results);
+    void predict(const SVMData& problem, std::vector<double>& results);
 
     /**
       @brief You can get the actual int- parameters of the svm
@@ -284,7 +284,7 @@ public:
 
       @param type The parameter that should be returned.
     */
-    DoubleReal getDoubleParameter(SVM_parameter_type type);
+    double getDoubleParameter(SVM_parameter_type type);
 
     /**
       @brief You can create 'number' equally sized random partitions
@@ -319,27 +319,27 @@ public:
        The prediction process is started and the results are stored in 'predicted_rts'.
 
     */
-    void predict(const std::vector<svm_node*>& vectors, std::vector<DoubleReal>& predicted_rts);
+    void predict(const std::vector<svm_node*>& vectors, std::vector<double>& predicted_rts);
 
     /**
       @brief Stores the stored labels of the encoded SVM data at 'labels'
 
     */
-    static void getLabels(svm_problem* problem, std::vector<DoubleReal>& labels);
+    static void getLabels(svm_problem* problem, std::vector<double>& labels);
 
     /**
       @brief Performs a CV for the data given by 'problem'
 
     */
-    DoubleReal performCrossValidation(svm_problem* problem_ul,
+    double performCrossValidation(svm_problem* problem_ul,
                                       const SVMData& problem_l,
                                       const bool                                        is_labeled,
-                                      const   std::map<SVM_parameter_type, DoubleReal>& start_values_map,
-                                      const   std::map<SVM_parameter_type, DoubleReal>& step_sizes_map,
-                                      const   std::map<SVM_parameter_type, DoubleReal>& end_values_map,
+                                      const   std::map<SVM_parameter_type, double>& start_values_map,
+                                      const   std::map<SVM_parameter_type, double>& step_sizes_map,
+                                      const   std::map<SVM_parameter_type, double>& end_values_map,
                                       Size                                                                                number_of_partitions,
                                       Size                                                                                  number_of_runs,
-                                      std::map<SVM_parameter_type, DoubleReal>& best_parameters,
+                                      std::map<SVM_parameter_type, double>& best_parameters,
                                       bool                                                                                            additive_step_sizes = true,
                                       bool                                                                                        output = false,
                                       String                                                                                      performances_file_name = "performances.txt",
@@ -355,7 +355,7 @@ public:
       The model parameter sigma is returned by this method.	If no model was fitted during
       training zero is returned.
     */
-    DoubleReal getSVRProbability();
+    double getSVRProbability();
 
     /**
       @brief returns the value of the oligo kernel for sequences 'x' and 'y'
@@ -372,7 +372,7 @@ public:
       added to the kernel value. This approximation is switched
       off by default (max_distance < 0).
     */
-    static DoubleReal kernelOligo(const std::vector<std::pair<int, double> >& x,
+    static double kernelOligo(const std::vector<std::pair<int, double> >& x,
                                   const std::vector<std::pair<int, double> >& y,
                                   const std::vector<double>& gauss_table,
                                   int                                                                     max_distance = -1);
@@ -384,22 +384,22 @@ public:
       the sequences 'x' and 'y' that had been encoded by the encodeOligoBorder... function
       of the LibSVMEncoder class.
     */
-    static DoubleReal kernelOligo(const svm_node* x, const svm_node* y, const std::vector<DoubleReal>& gauss_table, DoubleReal sigma_square = 0, Size    max_distance = 50);
+    static double kernelOligo(const svm_node* x, const svm_node* y, const std::vector<double>& gauss_table, double sigma_square = 0, Size    max_distance = 50);
 
     /**
       @brief calculates the significance borders of the error model and stores them in 'sigmas'
     */
-    void getSignificanceBorders(svm_problem* data, std::pair<DoubleReal, DoubleReal>& borders, DoubleReal confidence = 0.95, Size number_of_runs = 5, Size number_of_partitions = 5, DoubleReal step_size = 0.01, Size max_iterations = 1000000);
+    void getSignificanceBorders(svm_problem* data, std::pair<double, double>& borders, double confidence = 0.95, Size number_of_runs = 5, Size number_of_partitions = 5, double step_size = 0.01, Size max_iterations = 1000000);
 
     /**
       @brief calculates the significance borders of the error model and stores them in 'sigmas'
     */
     void getSignificanceBorders(const SVMData& data,
-                                std::pair<DoubleReal, DoubleReal>& sigmas,
-                                DoubleReal confidence = 0.95,
+                                std::pair<double, double>& sigmas,
+                                double confidence = 0.95,
                                 Size number_of_runs = 5,
                                 Size number_of_partitions = 5,
-                                DoubleReal step_size = 0.01,
+                                double step_size = 0.01,
                                 Size max_iterations = 1000000);
 
     /**
@@ -408,7 +408,7 @@ public:
       Uses the model parameters to calculate the p-value for 'point' which has the data
       entries: measured, predicted retention time.
     */
-    DoubleReal getPValue(DoubleReal sigma1, DoubleReal sigma2, std::pair<DoubleReal, DoubleReal> point);
+    double getPValue(double sigma1, double sigma2, std::pair<double, double> point);
 
     /**
       @brief stores the prediction values for the encoded data in 'decision_values'
@@ -419,7 +419,7 @@ public:
       the separating hyperplane. For multiclass classification the decision_values vector
       will be empty.
     */
-    void getDecisionValues(svm_problem* data, std::vector<DoubleReal>& decision_values);
+    void getDecisionValues(svm_problem* data, std::vector<double>& decision_values);
 
     /**
       @brief Scales the data such that every column is scaled to [-1, 1].
@@ -429,7 +429,7 @@ public:
     */
     void scaleData(svm_problem* data, Int max_scale_value = -1);
 
-    static void calculateGaussTable(Size border_length, DoubleReal sigma, std::vector<DoubleReal>& gauss_table);
+    static void calculateGaussTable(Size border_length, double sigma, std::vector<double>& gauss_table);
 
     /**
       @brief computes the kernel matrix using the actual svm parameters	and the given data
@@ -469,12 +469,12 @@ public:
       class. Probability estimates have to be turned on during training (svm.setParameter(PROBABILITY, 1)),
       otherwise this method will fill the 'probabilities' vector with -1s.
     */
-    void getSVCProbabilities(struct svm_problem* problem, std::vector<DoubleReal>& probabilities, std::vector<DoubleReal>& prediction_labels);
+    void getSVCProbabilities(struct svm_problem* problem, std::vector<double>& probabilities, std::vector<double>& prediction_labels);
 
     /**
       @brief Sets weights for the classes in C_SVC (see libsvm documentation for further details)
     */
-    void setWeights(const std::vector<Int>& weight_labels, const std::vector<DoubleReal>& weights);
+    void setWeights(const std::vector<Int>& weight_labels, const std::vector<double>& weights);
 
 private:
     /**
@@ -483,13 +483,13 @@ private:
        The current grid cell is given in @p actual_values.
        The result is returned in @p actual_values.
     */
-    bool nextGrid_(const std::vector<DoubleReal>& start_values,
-                   const std::vector<DoubleReal>& step_sizes,
-                   const std::vector<DoubleReal>& end_values,
+    bool nextGrid_(const std::vector<double>& start_values,
+                   const std::vector<double>& step_sizes,
+                   const std::vector<double>& end_values,
                    const bool additive_step_sizes,
-                   std::vector<DoubleReal>& actual_values);
+                   std::vector<double>& actual_values);
 
-    Size getNumberOfEnclosedPoints_(DoubleReal m1, DoubleReal m2, const std::vector<std::pair<DoubleReal, DoubleReal> >& points);
+    Size getNumberOfEnclosedPoints_(double m1, double m2, const std::vector<std::pair<double, double> >& points);
 
     /**
       @brief Initializes the svm with standard parameters
@@ -505,10 +505,10 @@ private:
 
     svm_parameter* param_; // the parameters for the svm
     svm_model* model_; // the learnt svm discriminant
-    DoubleReal sigma_; // for the oligo kernel (amount of positional smearing)
-    std::vector<DoubleReal> sigmas_; // for the combined oligo kernel (amount of positional smearing)
-    std::vector<DoubleReal> gauss_table_; // lookup table for fast computation of the oligo kernel
-    std::vector<std::vector<DoubleReal> > gauss_tables_; // lookup table for fast computation of the combined oligo kernel
+    double sigma_; // for the oligo kernel (amount of positional smearing)
+    std::vector<double> sigmas_; // for the combined oligo kernel (amount of positional smearing)
+    std::vector<double> gauss_table_; // lookup table for fast computation of the oligo kernel
+    std::vector<std::vector<double> > gauss_tables_; // lookup table for fast computation of the combined oligo kernel
     Size kernel_type_; // the actual kernel type
     Size  border_length_; // the actual kernel type
     svm_problem* training_set_; // the training set

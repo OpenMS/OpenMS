@@ -53,7 +53,7 @@ namespace OpenMS
 {
 
 
-  const DoubleReal OptimizePeakDeconvolution::dist_ = 1.003;
+  const double OptimizePeakDeconvolution::dist_ = 1.003;
 
   //TODO: the operator() and the df function need heavy refactoring!!!
   struct OPDFunctor
@@ -76,29 +76,29 @@ namespace OpenMS
       // m_data might contain any additional parameters. We handle these using class members
       // instead.
       // The vector f is supposed to contain the result when we return from this function.
-      const std::vector<DoubleReal>& signal = m_data->signal;
-      const std::vector<DoubleReal>& positions = m_data->positions;
+      const std::vector<double>& signal = m_data->signal;
+      const std::vector<double>& positions = m_data->positions;
       const std::vector<PeakShape>& peaks = m_data->peaks;
       const OptimizationFunctions::PenaltyFactorsIntensity& penalties = m_data->penalties;
       Int charge = m_data->charge;
-      DoubleReal leftwidth = x(0);
-      DoubleReal rightwidth = x(1);
-      //DoubleReal posP1 = x(2);
+      double leftwidth = x(0);
+      double rightwidth = x(1);
+      //double posP1 = x(2);
 
       // iterate over all points of the signal
       for (Size current_point = 0; current_point < positions.size(); current_point++)
       {
-        DoubleReal computed_signal = 0.;
-        DoubleReal current_position = positions[current_point];
-        DoubleReal experimental_signal = signal[current_point];
+        double computed_signal = 0.;
+        double current_position = positions[current_point];
+        double experimental_signal = signal[current_point];
 
         //iterate over all peaks
         for (Size current_peak = 0; current_peak < peaks.size(); current_peak++)
         {
           //Store the current parameters for this peak
-          DoubleReal p_height = x(2 + 2 * current_peak);
-          DoubleReal p_position = x(2 + 2 * current_peak + 1);
-          DoubleReal p_width = (current_position <= p_position) ? leftwidth : rightwidth;
+          double p_height = x(2 + 2 * current_peak);
+          double p_position = x(2 + 2 * current_peak + 1);
+          double p_width = (current_position <= p_position) ? leftwidth : rightwidth;
 
           //is it a Lorentz or a Sech - Peak?
           if (peaks[current_peak].type == PeakShape::LORENTZ_PEAK)
@@ -114,22 +114,22 @@ namespace OpenMS
       }
 
       // penalties : especially negative heights have to be penalised
-      DoubleReal penalty = 0.;
+      double penalty = 0.;
 
-      DoubleReal penalty_pos = penalties.pos;
-      DoubleReal penalty_lwidth = penalties.lWidth;
-      DoubleReal penalty_rwidth = penalties.rWidth;
-      DoubleReal penalty_intensity = penalties.height;
+      double penalty_pos = penalties.pos;
+      double penalty_lwidth = penalties.lWidth;
+      double penalty_rwidth = penalties.rWidth;
+      double penalty_intensity = penalties.height;
 
 
       //iterate over all peaks again to compute the penalties
       for (Size current_peak = 0; current_peak < peaks.size(); current_peak++)
       {
-        DoubleReal p_position = x(2 + 2 * current_peak + 1);
+        double p_position = x(2 + 2 * current_peak + 1);
         if (current_peak < peaks.size() - 1)
         {
 
-          DoubleReal next_p_position  = x(2 + 2 * current_peak + 3);
+          double next_p_position  = x(2 + 2 * current_peak + 3);
           // if distance between peaks does not match the peptide mass rule
           if (fabs(fabs(p_position - next_p_position) - 1.003 / charge) > 0.05)
           {
@@ -138,14 +138,14 @@ namespace OpenMS
                        * pow(fabs(fabs(p_position - next_p_position) - 1.003 / charge), 2);
           }
         }
-        DoubleReal old_position = peaks[current_peak].mz_position;
-        DoubleReal old_width_l  = peaks[current_peak].left_width;
-        DoubleReal old_width_r = peaks[current_peak].right_width;
-        DoubleReal old_height = peaks[current_peak].height;
+        double old_position = peaks[current_peak].mz_position;
+        double old_width_l  = peaks[current_peak].left_width;
+        double old_width_r = peaks[current_peak].right_width;
+        double old_height = peaks[current_peak].height;
 
-        DoubleReal p_width_l = x(0);
-        DoubleReal p_width_r = x(1);
-        DoubleReal p_height = x(2 + 2 * current_peak);
+        double p_width_l = x(0);
+        double p_width_r = x(1);
+        double p_height = x(2 + 2 * current_peak);
 
         if (p_height <  1)
         {
@@ -182,13 +182,13 @@ namespace OpenMS
       // Note: Jacobian is expected as follows:
       //                    - each row corresponds to one data point
       //                    - each column corresponds to one parameter
-      const std::vector<DoubleReal> & positions = m_data->positions;
+      const std::vector<double> & positions = m_data->positions;
       const std::vector<PeakShape> & peaks = m_data->peaks;
       const OptimizationFunctions::PenaltyFactorsIntensity & penalties = m_data->penalties;
       Int charge = m_data->charge;
 
-      DoubleReal leftwidth = x(0);
-      DoubleReal rightwidth = x(1);
+      double leftwidth = x(0);
+      double rightwidth = x(1);
 
       //TODO: is the reset needed?
       J.setZero();
@@ -196,26 +196,26 @@ namespace OpenMS
       // iterate over all points of the signal
       for (Size current_point = 0; current_point < positions.size(); current_point++)
       {
-        DoubleReal current_position = positions[current_point];
+        double current_position = positions[current_point];
 
         // iterate over all peaks
         for (Size current_peak = 0; current_peak < peaks.size(); current_peak++)
         {
           //Store the current parameters for this peak
-          DoubleReal p_height = x(2 + 2 * current_peak);
-          DoubleReal p_position = x(2 + 2 * current_peak + 1);
-          DoubleReal p_width = (current_position <= p_position) ? leftwidth : rightwidth;
+          double p_height = x(2 + 2 * current_peak);
+          double p_position = x(2 + 2 * current_peak + 1);
+          double p_width = (current_position <= p_position) ? leftwidth : rightwidth;
 
           //is it a Lorentz or a Sech - Peak?
           if (peaks[current_peak].type == PeakShape::LORENTZ_PEAK)
           {
-            DoubleReal diff = current_position - p_position;
-            DoubleReal denom_inv = 1. / (1. + pow(p_width * diff, 2));
+            double diff = current_position - p_position;
+            double denom_inv = 1. / (1. + pow(p_width * diff, 2));
 
-            DoubleReal ddl_left
+            double ddl_left
                 = (current_position <= p_position) ? -2 * p_height * pow(diff, 2) * p_width * pow(denom_inv, 2) : 0;
 
-            DoubleReal ddl_right
+            double ddl_right
                 = (current_position  > p_position) ? -2 * p_height * pow(diff, 2) * p_width * pow(denom_inv, 2) : 0;
 
             // left and right width are the same for all peaks,
@@ -223,7 +223,7 @@ namespace OpenMS
             J(current_point, 0) = J(current_point, 0) + ddl_left;
             J(current_point, 1) = J(current_point, 1) + ddl_right;
 
-            DoubleReal ddx0    = 2 * p_height * pow(p_width, 2) * diff * pow(denom_inv, 2);
+            double ddx0    = 2 * p_height * pow(p_width, 2) * diff * pow(denom_inv, 2);
 
             // partial derivation with respect to intensity
             J(current_point, 2 + 2 * current_peak) = denom_inv;
@@ -233,25 +233,25 @@ namespace OpenMS
           }
           else// It's a Sech - Peak
           {
-            DoubleReal diff      = current_position - p_position;
-            DoubleReal denom_inv = 1. / cosh(p_width * diff);
+            double diff      = current_position - p_position;
+            double denom_inv = 1. / cosh(p_width * diff);
 
             // The remaining computations are not stable if denom_inv == 0. In that case, we are far away from the peak
             // and can assume that all derivatives vanish
-            DoubleReal sinh_term = (fabs(denom_inv) < 1e-6) ? 0.0 : sinh(p_width * diff);
+            double sinh_term = (fabs(denom_inv) < 1e-6) ? 0.0 : sinh(p_width * diff);
 
 
-            DoubleReal ddl_left  = (current_position <= p_position)
+            double ddl_left  = (current_position <= p_position)
                                    ? -2 * p_height * sinh_term * diff * pow(denom_inv, 3) :
                                      0;
-            DoubleReal ddl_right = (current_position  > p_position)
+            double ddl_right = (current_position  > p_position)
                                    ? -2 * p_height * sinh_term * diff * pow(denom_inv, 3) :
                                      0;
 
             J(current_point, 0) = J(current_point, 0) + ddl_left;
             J(current_point, 1) = J(current_point, 1) + ddl_right;
 
-            DoubleReal ddx0      = 2 * p_height * p_width * sinh_term * pow(denom_inv, 3);
+            double ddx0      = 2 * p_height * p_width * sinh_term * pow(denom_inv, 3);
 
             J(current_point, 2 + 2 * current_peak) = pow(denom_inv, 2);
             J(current_point, 2 + 2 * current_peak + 1) = ddx0;
@@ -266,12 +266,12 @@ namespace OpenMS
       {
 
 
-        DoubleReal penalty_p = 0;
-        DoubleReal p_position = x(2 + 2 * current_peak + 1);
+        double penalty_p = 0;
+        double p_position = x(2 + 2 * current_peak + 1);
         if (current_peak < peaks.size() - 1)
         {
 
-          DoubleReal next_p_position  = x(2 + 2 * current_peak + 3);
+          double next_p_position  = x(2 + 2 * current_peak + 3);
           // if distance between peaks does not match the peptide mass rule
           if (fabs(fabs(p_position - next_p_position) - 1.003 / charge) > 0.05)
           {
@@ -282,16 +282,16 @@ namespace OpenMS
           }
         }
         std::cout << "Eigen penalty_p "<<penalty_p<<std::endl;
-        DoubleReal p_width_left = x(0);
-        DoubleReal p_width_right = x(1);
-        DoubleReal p_height = x(2 + 2 * current_peak);
+        double p_width_left = x(0);
+        double p_width_right = x(1);
+        double p_height = x(2 + 2 * current_peak);
 
-        DoubleReal old_position = peaks[current_peak].mz_position;
-        DoubleReal old_width_left  = peaks[current_peak].left_width;
-        DoubleReal old_width_right = peaks[current_peak].right_width;
-        DoubleReal old_height = peaks[current_peak].height;
+        double old_position = peaks[current_peak].mz_position;
+        double old_width_left  = peaks[current_peak].left_width;
+        double old_width_right = peaks[current_peak].right_width;
+        double old_height = peaks[current_peak].height;
 
-        DoubleReal penalty_h = 0., penalty_l = 0., penalty_r = 0.;
+        double penalty_h = 0., penalty_l = 0., penalty_r = 0.;
         if (p_height < 1)
         {
           penalty_h += 100000 * 2 * penalties.height * (fabs(p_height) - fabs(old_height));
@@ -398,7 +398,7 @@ namespace OpenMS
 
     Size global_peak_number = 0;
 
-    DoubleReal min(std::numeric_limits<double>::max());
+    double min(std::numeric_limits<double>::max());
     Int bestCharge = 0;
     Size bestNumPeaks = 0;
     Eigen::VectorXd bestResult (2 + 2 * data.peaks.size());
@@ -426,8 +426,8 @@ namespace OpenMS
       }
       // Initialize the parameters for the optimization
       // all peaks shall have the same width
-      DoubleReal wl = data.peaks[0].left_width;
-      DoubleReal wr = data.peaks[0].right_width;
+      double wl = data.peaks[0].left_width;
+      double wr = data.peaks[0].right_width;
       if (boost::math::isnan(wl))
       {
         for (Size i = 0; i < data.peaks.size(); ++i)
@@ -463,7 +463,7 @@ namespace OpenMS
       {
           throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-OptimizePeakDeconvolution", "Could not fit the curve to the data: Error " + String(status));
       }
-      DoubleReal chi = lmSolver.fnorm;
+      double chi = lmSolver.fnorm;
       if ((chargeState == firstChargeState) || (chi < min))
       {
 
@@ -496,29 +496,29 @@ namespace OpenMS
          if (peaks[current_peak].type == PeakShape::LORENTZ_PEAK)
          {
            PeakShape p = peaks[current_peak];
-           DoubleReal x_left_endpoint = p.mz_position + 1 / p.left_width * sqrt(p.height / 1 - 1);
-           DoubleReal x_right_endpoint = p.mz_position + 1 / p.right_width * sqrt(p.height / 1 - 1);
+           double x_left_endpoint = p.mz_position + 1 / p.left_width * sqrt(p.height / 1 - 1);
+           double x_right_endpoint = p.mz_position + 1 / p.right_width * sqrt(p.height / 1 - 1);
  #ifdef DEBUG_DECONV
            std::cout << "x_left_endpoint " << x_left_endpoint << " x_right_endpoint " << x_right_endpoint << std::endl;
            std::cout << "p.height" << p.height << std::endl;
  #endif
-           DoubleReal area_left = -p.height / p.left_width * atan(p.left_width * (x_left_endpoint - p.mz_position));
-           DoubleReal area_right = -p.height / p.right_width * atan(p.right_width * (p.mz_position - x_right_endpoint));
+           double area_left = -p.height / p.left_width * atan(p.left_width * (x_left_endpoint - p.mz_position));
+           double area_right = -p.height / p.right_width * atan(p.right_width * (p.mz_position - x_right_endpoint));
            peaks[current_peak].area = area_left + area_right;
 
          }
          else                  //It's a Sech - Peak
          {
            PeakShape p = peaks[current_peak];
-           DoubleReal x_left_endpoint = p.mz_position + 1 / p.left_width * boost::math::acosh(sqrt(p.height / 0.001));
-           DoubleReal x_right_endpoint = p.mz_position + 1 / p.right_width * boost::math::acosh(sqrt(p.height / 0.001));
+           double x_left_endpoint = p.mz_position + 1 / p.left_width * boost::math::acosh(sqrt(p.height / 0.001));
+           double x_right_endpoint = p.mz_position + 1 / p.right_width * boost::math::acosh(sqrt(p.height / 0.001));
  #ifdef DEBUG_DECONV
            std::cout << "x_left_endpoint " << x_left_endpoint << " x_right_endpoint " << x_right_endpoint << std::endl;
            std::cout << "p.height" << p.height << std::endl;
  #endif
-           DoubleReal area_left = -p.height / p.left_width * (sinh(p.left_width * (p.mz_position - x_left_endpoint))
+           double area_left = -p.height / p.left_width * (sinh(p.left_width * (p.mz_position - x_left_endpoint))
                                                               / cosh(p.left_width * (p.mz_position - x_left_endpoint)));
-           DoubleReal area_right = -p.height / p.right_width * (sinh(p.right_width * (p.mz_position - x_right_endpoint))
+           double area_right = -p.height / p.right_width * (sinh(p.right_width * (p.mz_position - x_right_endpoint))
                                                                 / cosh(p.right_width * (p.mz_position - x_right_endpoint)));
            peaks[current_peak].area = area_left + area_right;
 
@@ -533,7 +533,7 @@ namespace OpenMS
 
   Size OptimizePeakDeconvolution::getNumberOfPeaks_(Int charge, std::vector<PeakShape> & temp_shapes, Data & data)
   {
-    DoubleReal dist = dist_ / charge;
+    double dist = dist_ / charge;
 
     data.peaks.clear();
 
@@ -561,7 +561,7 @@ namespace OpenMS
 
   void OptimizePeakDeconvolution::setNumberOfPeaks_(Data & data, const std::vector<PeakShape> & temp_shapes, Int charge)
   {
-    DoubleReal dist = dist_ / charge;
+    double dist = dist_ / charge;
 
     data.peaks.clear();
 #ifdef DEBUG_DECONV

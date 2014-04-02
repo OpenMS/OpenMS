@@ -120,7 +120,7 @@ END_SECTION
 
 InspectOutfile file;
 
-START_SECTION(std::vector< Size > load(const String& result_filename, std::vector< PeptideIdentification >& peptide_identifications, ProteinIdentification& protein_identification, const DoubleReal p_value_threshold, const String& database_filename = ""))
+START_SECTION(std::vector< Size > load(const String& result_filename, std::vector< PeptideIdentification >& peptide_identifications, ProteinIdentification& protein_identification, const double p_value_threshold, const String& database_filename = ""))
 	vector< PeptideIdentification > peptide_identifications;
 	ProteinIdentification protein_identification;
 	
@@ -411,7 +411,7 @@ START_SECTION(void getLabels(const String& source_database_filename, String& ac_
 	TEST_STRING_EQUAL(species_label, ">")
 END_SECTION
 
-START_SECTION(vector< Size > getWantedRecords(const String& result_filename, DoubleReal p_value_threshold))
+START_SECTION(vector< Size > getWantedRecords(const String& result_filename, double p_value_threshold))
 
 	// test exceptions
 	TEST_EXCEPTION(Exception::IllegalArgument, file.getWantedRecords("", 2.0))

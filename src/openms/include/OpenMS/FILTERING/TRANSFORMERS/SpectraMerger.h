@@ -85,13 +85,13 @@ public:
 
       void updateMembers_()
       {
-        rt_max_ = (DoubleReal) param_.getValue("rt_tolerance");
-        mz_max_ = (DoubleReal) param_.getValue("mz_tolerance");
+        rt_max_ = (double) param_.getValue("rt_tolerance");
+        mz_max_ = (double) param_.getValue("mz_tolerance");
 
         return;
       }
 
-      double getSimilarity(const DoubleReal d_rt, const DoubleReal d_mz) const
+      double getSimilarity(const double d_rt, const double d_mz) const
       {
         //     1 - distance
         return 1 - ((d_rt / rt_max_ + d_mz / mz_max_) / 2);
@@ -101,20 +101,20 @@ public:
       double operator()(const BaseFeature & first, const BaseFeature & second) const
       {
         // get RT distance:
-        DoubleReal d_rt = fabs(first.getRT() - second.getRT());
-        DoubleReal d_mz = fabs(first.getMZ() - second.getMZ());
+        double d_rt = fabs(first.getRT() - second.getRT());
+        double d_mz = fabs(first.getMZ() - second.getMZ());
 
         if (d_rt > rt_max_ || d_mz > mz_max_) {return 0; }
 
         // calculate similarity (0-1):
-        DoubleReal sim = getSimilarity(d_rt, d_mz);
+        double sim = getSimilarity(d_rt, d_mz);
 
         return sim;
       }
 
 protected:
-      DoubleReal rt_max_;
-      DoubleReal mz_max_;
+      double rt_max_;
+      double mz_max_;
 
     }; // end of SpectraDistance
 
@@ -149,11 +149,11 @@ public:
     {
       IntList ms_levels = param_.getValue("block_method:ms_levels");
       Int rt_block_size(param_.getValue("block_method:rt_block_size"));
-      DoubleReal rt_max_length = (param_.getValue("block_method:rt_max_length"));
+      double rt_max_length = (param_.getValue("block_method:rt_max_length"));
 
       if (rt_max_length == 0)  // no rt restriction set?
       {
-        rt_max_length = (std::numeric_limits<DoubleReal>::max)(); // set max rt span to very large value
+        rt_max_length = (std::numeric_limits<double>::max)(); // set max rt span to very large value
       }
 
       for (IntList::iterator it_mslevel = ms_levels.begin(); it_mslevel < ms_levels.end(); ++it_mslevel)
@@ -230,7 +230,7 @@ public:
         SpectraDistance_ llc;
         llc.setParameters(param_.copy("precursor_method:", true));
         SingleLinkage sl;
-        DistanceMatrix<Real> dist;         // will be filled
+        DistanceMatrix<float> dist;         // will be filled
         ClusterHierarchical ch;
 
         //ch.setThreshold(0.99);
@@ -295,7 +295,7 @@ protected:
     template <typename MapType>
     void mergeSpectra_(MapType & exp, const MergeBlocks & spectra_to_merge, const UInt ms_level)
     {
-      DoubleReal mz_binning_width(param_.getValue("mz_binning_width"));
+      double mz_binning_width(param_.getValue("mz_binning_width"));
       String mz_binning_unit(param_.getValue("mz_binning_width_unit"));
 
       // merge spectra
@@ -330,8 +330,8 @@ protected:
         merged_indices.insert(it->first);
 
         //typename MapType::SpectrumType all_peaks = exp[it->first];
-        DoubleReal rt_average = consensus_spec.getRT();
-        DoubleReal precursor_mz_average = 0.0;
+        double rt_average = consensus_spec.getRT();
+        double precursor_mz_average = 0.0;
         Size precursor_count(0);
         if (!consensus_spec.getPrecursors().empty())
         {

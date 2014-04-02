@@ -108,7 +108,7 @@ protected:
     String outputfile_name;
     UInt min_size, counter = 0;
     UInt missed_cleavages;
-    DoubleReal accurate_mass, min_mass, max_mass;
+    double accurate_mass, min_mass, max_mass;
     UInt mass_acc, out_opt;
     EmpiricalFormula EF;
     UInt zero_count = 0;
@@ -187,9 +187,9 @@ protected:
     UInt mass_iter = mass_acc;
     while (mass_iter > 0)
     {
-      vector<DoubleReal> MIN, MAX;
+      vector<double> MIN, MAX;
       vector<String> protein_names, PROTEINS;
-      vector<vector<DoubleReal> > Y;
+      vector<vector<double> > Y;
       vector<UInt> OVER;
       UInt total = 0;
       if (out_opt == 1 || out_opt == 3)
@@ -205,8 +205,8 @@ protected:
         temp_peptide_hit.setProteinAccessions(protein_accessions);
         for (UInt j = 0; j < temp_peptides.size(); ++j)
         {
-          //vector<DoubleReal> B_peptide, Y_peptide;
-          vector<DoubleReal> peptide_ions;
+          //vector<double> B_peptide, Y_peptide;
+          vector<double> peptide_ions;
           accurate_mass = temp_peptides[j].getMonoWeight();
           min_mass = accurate_mass - mass_iter * accurate_mass / 1000000000;
           max_mass = accurate_mass + mass_iter * accurate_mass / 1000000000;
@@ -267,7 +267,7 @@ protected:
           {
             OVER[x] = OVER[x] + 1;
             //find overlapping tandem ions
-            vector<DoubleReal> X_temp, Y_temp;
+            vector<double> X_temp, Y_temp;
             X_temp = Y[x];
             Y_temp = Y[y];
             UInt ions = 0;

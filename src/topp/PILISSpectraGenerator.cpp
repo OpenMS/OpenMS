@@ -187,7 +187,7 @@ protected:
     String model_file(getStringOption_("model_file"));
     String spectra_library_file(getStringOption_("spectra_library_file"));
     bool score_filtering(getFlag_("score_filtering"));
-    DoubleReal score_threshold(getDoubleOption_("score_threshold"));
+    double score_threshold(getDoubleOption_("score_threshold"));
     Int min_charge(getIntOption_("min_charge"));
     Int max_charge(getIntOption_("max_charge"));
 

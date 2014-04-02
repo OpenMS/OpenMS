@@ -66,40 +66,40 @@ START_SECTION((static void setMaxCharge(const UInt max_charge)))
 	TEST_EQUAL(IsotopeWavelet::getMaxCharge(), 3)
 END_SECTION
 
-START_SECTION((static DoubleReal getTableSteps()))
+START_SECTION((static double getTableSteps()))
 	TEST_NOT_EQUAL(IsotopeWavelet::getTableSteps(), 0)
 END_SECTION
 
-START_SECTION((static void setTableSteps(const DoubleReal table_steps))) 
+START_SECTION((static void setTableSteps(const double table_steps))) 
 	IsotopeWavelet::setTableSteps(0.0001);
 	TEST_EQUAL(IsotopeWavelet::getTableSteps(), 0.0001)
 END_SECTION
 
-START_SECTION((static DoubleReal getInvTableSteps())) 
+START_SECTION((static double getInvTableSteps())) 
 	IsotopeWavelet::getInvTableSteps();
 	TEST_EQUAL(IsotopeWavelet::getInvTableSteps(), 10000)
 END_SECTION
 
-START_SECTION((static DoubleReal getLambdaL(const DoubleReal m)))
+START_SECTION((static double getLambdaL(const double m)))
 	TEST_REAL_SIMILAR(IsotopeWavelet::getLambdaL(1000), 0.75632)
 END_SECTION
 
 
-START_SECTION((static UInt getMzPeakCutOffAtMonoPos(const DoubleReal mass, const UInt z)))
+START_SECTION((static UInt getMzPeakCutOffAtMonoPos(const double mass, const UInt z)))
 	TEST_EQUAL(IsotopeWavelet::getMzPeakCutOffAtMonoPos(1000, 1), 5)
 END_SECTION
 
-START_SECTION((static UInt getNumPeakCutOff(const DoubleReal mass, const UInt z)))
+START_SECTION((static UInt getNumPeakCutOff(const double mass, const UInt z)))
 	TEST_EQUAL(IsotopeWavelet::getNumPeakCutOff(1000, 1), 4)
 END_SECTION
 
-START_SECTION((static UInt getNumPeakCutOff(const DoubleReal mz)))
+START_SECTION((static UInt getNumPeakCutOff(const double mz)))
 	TEST_EQUAL(IsotopeWavelet::getNumPeakCutOff(1000), 4)
 END_SECTION
 
 
 IsotopeWavelet* iw = 0;
-START_SECTION((static IsotopeWavelet* init(const DoubleReal max_m, const UInt max_charge)))
+START_SECTION((static IsotopeWavelet* init(const double max_m, const UInt max_charge)))
 	iw = IsotopeWavelet::init (4000, 4);
   TEST_NOT_EQUAL(iw, nullPointer)
 	TEST_EQUAL (IsotopeWavelet::getMaxCharge(), 4)
@@ -107,14 +107,14 @@ END_SECTION
 
 
 UInt size=0;
-START_SECTION((static const IsotopeDistribution::ContainerType& getAveragine (const DoubleReal m, UInt* size=NULL)))
+START_SECTION((static const IsotopeDistribution::ContainerType& getAveragine (const double m, UInt* size=NULL)))
 	IsotopeWavelet::getAveragine (1000, &size);
 	TEST_EQUAL (size, 4)	 
 END_SECTION
 
 
-DoubleReal v=-1;
-START_SECTION((static DoubleReal getValueByMass (const DoubleReal t, const DoubleReal m, const UInt z, const Int mode=+1))) 
+double v=-1;
+START_SECTION((static double getValueByMass (const double t, const double m, const UInt z, const Int mode=+1))) 
 	TOLERANCE_ABSOLUTE (1e-4)
 	for (UInt c=0; c<iw->getMaxCharge(); ++c)
 	{
@@ -123,7 +123,7 @@ START_SECTION((static DoubleReal getValueByMass (const DoubleReal t, const Doubl
 	};
 END_SECTION
 
-START_SECTION((static DoubleReal getValueByLambda (const DoubleReal lambda, const DoubleReal tz1))) 
+START_SECTION((static double getValueByLambda (const double lambda, const double tz1))) 
 	for (Size c=0; c<iw->getMaxCharge(); ++c)
 	{
 		v=iw->getValueByLambda (iw->getLambdaL(1000*(c+1)-(c+1)*Constants::IW_PROTON_MASS), Constants::IW_HALF_NEUTRON_MASS*(c+1)+1);
@@ -132,7 +132,7 @@ START_SECTION((static DoubleReal getValueByLambda (const DoubleReal lambda, cons
 	};
 END_SECTION
 
-START_SECTION((static DoubleReal getValueByLambdaExtrapol (const DoubleReal lambda, const DoubleReal tz1))) 
+START_SECTION((static double getValueByLambdaExtrapol (const double lambda, const double tz1))) 
 	for (Size c=0; c<iw->getMaxCharge(); ++c)
 	{
 		v=iw->getValueByLambdaExtrapol (iw->getLambdaL(1000*(c+1)-(c+1)*Constants::IW_PROTON_MASS), Constants::IW_HALF_NEUTRON_MASS*(c+1)+1);
@@ -141,7 +141,7 @@ START_SECTION((static DoubleReal getValueByLambdaExtrapol (const DoubleReal lamb
 	};
 END_SECTION
 
-START_SECTION((static DoubleReal getValueByLambdaExact (const DoubleReal lambda, const DoubleReal tz1))) 
+START_SECTION((static double getValueByLambdaExact (const double lambda, const double tz1))) 
 	for (Size c=0; c<iw->getMaxCharge(); ++c)
 	{
 		v=iw->getValueByLambdaExact (iw->getLambdaL(1000*(c+1)-(c+1)*Constants::IW_PROTON_MASS), Constants::IW_HALF_NEUTRON_MASS*(c+1)+1);

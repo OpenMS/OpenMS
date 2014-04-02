@@ -118,11 +118,11 @@ public:
         hull.addPoint(point);
 
         point.setX(parts[9].toDouble());
-        point.setY(f.getMZ() + 3.0 / (DoubleReal)f.getCharge());
+        point.setY(f.getMZ() + 3.0 / (double)f.getCharge());
         hull.addPoint(point);
 
         point.setX(parts[10].toDouble());
-        point.setY(f.getMZ() + 3.0 / (DoubleReal)f.getCharge());
+        point.setY(f.getMZ() + 3.0 / (double)f.getCharge());
         hull.addPoint(point);
 
         point.setX(parts[10].toDouble());
