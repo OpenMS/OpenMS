@@ -35,7 +35,9 @@
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerMaxima.h>
 
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedianRapid.h>
-#include <OpenMS/MATH/MISC/Spline2d.h>
+//#include <OpenMS/MATH/MISC/Spline2d.h>
+#include <Wm5IntpAkimaNonuniform1.h>
+
 
 #include <cmath>
 #include <limits>
@@ -240,7 +242,8 @@ namespace OpenMS
         if(raw_mz_values.size() < 4)
           continue;
 
-        Spline2d<double> peak_spline (3, raw_mz_values, raw_int_values);
+        //Spline2d<double> peak_spline (3, raw_mz_values, raw_int_values);
+        Wm5::IntpAkimaNonuniform1<double> interpolator (raw_mz_values.size(), &raw_mz_values[0], &raw_int_values[0]);
 
         // calculate maximum by evaluating the spline's 1st derivative
         // (bisection method)
@@ -258,7 +261,8 @@ namespace OpenMS
         {
           double mid = (lefthand + righthand) / 2;
 
-          double midpoint_deriv_val = peak_spline.derivatives(mid, 1);
+          //double midpoint_deriv_val = peak_spline.derivatives(mid, 1);
+          double midpoint_deriv_val = interpolator(1,mid);
 
           // if deriv nearly zero then maximum already found
           if (!(std::fabs(midpoint_deriv_val) > eps))
@@ -281,7 +285,8 @@ namespace OpenMS
 
         // sanity check?
         max_peak_mz = (lefthand + righthand) / 2;
-        max_peak_int = peak_spline.eval( max_peak_mz );
+        //max_peak_int = peak_spline.eval( max_peak_mz );
+        max_peak_int = interpolator(0, max_peak_mz );
 
         // save picked pick into output spectrum
         pc[j].mz_max = max_peak_mz;
