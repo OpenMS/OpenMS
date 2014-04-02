@@ -104,7 +104,19 @@ endmacro()
 
 #------------------------------------------------------------------------------
 # openms_add_library()
-# Create an OpenMS like library
+# Create an OpenMS library, install it, register for export of targets, and
+# export all required variables for later usage in the build system.
+#
+# Signature:
+# openms_add_library(TARGET_NAME  OpenMS
+#                    SOURCE_FILES  <source files to build the library>
+#                    HEADER_FILES  <header files associated to the library>
+#                                  (will be installed with the library)
+#                    INTERNAL_INCLUDES <list of internal include directories for the library>
+#                    EXTERNAL_INCLUDES <list of external include directories for the library>
+#                                      (will be added with -isystem if available)
+#                    LINK_LIBRARIES <list of libraries used when linking the library>
+#                    DLL_EXPORT_PATH <path to the dll export header>)
 function(openms_add_library)
   #------------------------------------------------------------------------------
   # parse arguments to function
@@ -131,10 +143,8 @@ function(openms_add_library)
   #------------------------------------------------------------------------------
   # Check if we want a unity build
   if (ENABLE_UNITYBUILD)
-  	message(STATUS " .. Unity Build for ${openms_add_library_TARGET_NAME}: Enabled")
+  	message(STATUS "Enabled Unity Build for ${openms_add_library_TARGET_NAME}")
   	convert_to_unity_build(${openms_add_library_TARGET_NAME}_UnityBuild openms_add_library_SOURCE_FILES)
-  else()
-  	message(STATUS " .. Unity Build for ${openms_add_library_TARGET_NAME}: Disabled")
   endif()
 
   #------------------------------------------------------------------------------
@@ -155,7 +165,6 @@ function(openms_add_library)
 
     # add generated header to visual studio
     source_group("Header Files\\${_fixed_path}" FILES ${_CONFIG_H})
-    message(STATUS " .. Generated export header ${_CONFIG_H}")
   endif()
 
   #------------------------------------------------------------------------------
@@ -163,7 +172,6 @@ function(openms_add_library)
   if(openms_add_library_LINK_LIBRARIES)
     target_link_libraries(${openms_add_library_TARGET_NAME} ${openms_add_library_LINK_LIBRARIES})
     list(LENGTH openms_add_library_LINK_LIBRARIES _library_count)
-    message(STATUS " .. Linking ${openms_add_library_TARGET_NAME} against ${_library_count} libraries")
   endif()
 
   #------------------------------------------------------------------------------
@@ -181,10 +189,13 @@ function(openms_add_library)
 
   #------------------------------------------------------------------------------
   # register for export
-  message(STATUS " .. Export ${openms_add_library_TARGET_NAME} for external use")
   openms_register_export_target(${openms_add_library_TARGET_NAME})
 
   #------------------------------------------------------------------------------
   # copy dll to test/doc bin folder on MSVC systems
   copy_dll_to_extern_bin(${openms_add_library_TARGET_NAME})
+
+  #------------------------------------------------------------------------------
+  # Status message for configure output
+  message(STATUS "Adding library ${openms_add_library_TARGET_NAME} - SUCCESS")
 endfunction()
