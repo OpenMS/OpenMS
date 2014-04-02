@@ -51,6 +51,30 @@ DRange<1> makeRange(double a, double b)
 	return DRange<1>(pa, pb);
 }
 
+class OPENMS_DLLAPI CountingMSDataConsumer :
+  public Interfaces::IMSDataConsumer< MSExperiment<> >
+{
+public:
+  size_t spec_counter;
+  size_t chrom_counter;
+  double spec_tic;
+  double chrom_tic;
+
+  CountingMSDataConsumer() : spec_counter(0), chrom_counter(0), spec_tic(0), chrom_tic(0) {}
+  void setExperimentalSettings(const ExperimentalSettings &) {}
+  void setExpectedSize(Size, Size) {}
+  void consumeSpectrum(SpectrumType & s) 
+  {
+    spec_counter++; 
+    for (Size i = 0; i < s.size(); i++) {spec_tic += s[i].getIntensity();} 
+  }
+  void consumeChromatogram(ChromatogramType & c)
+  {
+    chrom_counter++; 
+    for (Size i = 0; i < c.size(); i++) {chrom_tic += c[i].getIntensity();} 
+  }
+};
+
 ///////////////////////////
 
 START_TEST(MzXMLFile, "$Id$")
@@ -569,6 +593,34 @@ START_SECTION([EXTRA] static bool isValid(const String& filename))
 	f.load(OPENMS_GET_TEST_DATA_PATH("MzXMLFile_1.mzXML"),e);
   f.store(tmp_filename,e);
   TEST_EQUAL(f.isValid(tmp_filename, std::cerr),true);
+END_SECTION
+
+START_SECTION((template <typename MapType> void transform(const String& filename_in, Interfaces::IMSDataConsumer<MapType> * consumer)))
+{
+  CountingMSDataConsumer c;
+  MzXMLFile file;
+
+  file.transform(OPENMS_GET_TEST_DATA_PATH("MzXMLFile_1.mzXML"), &c);
+
+  TEST_EQUAL(c.spec_counter, 4);
+  TEST_EQUAL(c.chrom_counter, 2);
+}
+END_SECTION
+
+START_SECTION((template <typename MapType> void transform(const String& filename_in, Interfaces::IMSDataConsumer<MapType> * consumer, MapType& map)))
+{
+  CountingMSDataConsumer c;
+  MzMLFile file;
+  MSExperiment<> e;
+
+  file.transform(OPENMS_GET_TEST_DATA_PATH("MzXMLFile_1.mzXML"), &c);
+
+  TEST_EQUAL(c.spec_counter, 4);
+  TEST_EQUAL(c.chrom_counter, 2);
+  TEST_EQUAL(e.getNrSpectra(), 4);
+  TEST_EQUAL(e.getNrChromatograms(), 2);
+
+}
 END_SECTION
 
 /////////////////////////////////////////////////////////////
