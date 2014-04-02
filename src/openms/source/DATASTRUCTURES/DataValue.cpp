@@ -624,13 +624,8 @@ namespace OpenMS
   String DataValue::toString() const
   {
     stringstream ss;
-    if (value_type_ != EMPTY_VALUE && value_type_ != STRING_VALUE && value_type_ != STRING_LIST && value_type_ != INT_LIST && value_type_ != DOUBLE_LIST && value_type_ != INT_VALUE && value_type_ != DOUBLE_VALUE)
-    { 
-		throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert DataValue to String");
-	}
-    else{
-		switch (value_type_)
-		{
+	switch (value_type_)
+	{
 		case DataValue::EMPTY_VALUE: break;
 
 		case DataValue::STRING_VALUE: return *(data_.str_); //break;
@@ -644,7 +639,6 @@ namespace OpenMS
 		case DataValue::INT_VALUE: ss << data_.ssize_; break;
 
 		case DataValue::DOUBLE_VALUE: ss << precisionWrapper(data_.dou_); break;
-		}
 	}
     return ss.str();
   }
@@ -652,13 +646,8 @@ namespace OpenMS
   QString DataValue::toQString() const
   {
     QString result;
-    if (value_type_ != EMPTY_VALUE && value_type_ != STRING_VALUE && value_type_ != STRING_LIST && value_type_ != INT_LIST && value_type_ != DOUBLE_LIST && value_type_ != INT_VALUE && value_type_ != DOUBLE_VALUE)
-    {
-		throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert DataValue to QString");
-	}
-	else{
-		switch (value_type_)
-		{
+	switch (value_type_)
+	{
 		case DataValue::EMPTY_VALUE: break;
 
 		case DataValue::STRING_VALUE: result = QString::fromStdString(*(data_.str_)); break;
@@ -672,7 +661,6 @@ namespace OpenMS
 		case DataValue::INT_VALUE: result.setNum(data_.ssize_); break;
 
 		case DataValue::DOUBLE_VALUE: result.setNum(data_.dou_, 'f'); break;
-		}
 	}
     return result;
   }

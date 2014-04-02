@@ -188,8 +188,7 @@ namespace OpenMS
     else if (value.valueType() == DataValue::DOUBLE_VALUE)
     {
       DoubleReal tmp = value;
-      if ( ( (fabs( min_float + std::numeric_limits<double>::max() )> std::numeric_limits<double>::epsilon()  ) && tmp < min_float )
-        || ( (fabs( max_float - std::numeric_limits<double>::max() ) > std::numeric_limits<double>::epsilon()  ) && tmp > max_float ) )
+      if (tmp < min_float  || tmp > max_float ) // if ((min_float != -std::numeric_limits<DoubleReal>::max() && tmp < min_float) || (max_float != std::numeric_limits<DoubleReal>::max() && tmp > max_float))
 	{
         message = String("Invalid double parameter value '") + tmp + "' for parameter '" + name + "' given! The valid range is: [" + min_float + ":" + max_float + "].";
         return false;
@@ -202,8 +201,7 @@ namespace OpenMS
       for (Size i = 0; i < ls_value.size(); ++i)
       {
         dou_value = ls_value[i];
-	    if ( ( (fabs( min_float + std::numeric_limits<double>::max() )> 0  ) && dou_value < min_float )
-        	|| ( (fabs( max_float - std::numeric_limits<double>::max()) > 0 ) && dou_value > max_float ) )
+	    if (dou_value < min_float  || dou_value > max_float )// if ((min_float != -std::numeric_limits<DoubleReal>::max() && dou_value < min_float) || (max_float != std::numeric_limits<DoubleReal>::max() && dou_value > max_float))
         {
           message = String("Invalid double parameter value '") + dou_value + "' for parameter '" + name + "' given! The valid range is: [" + min_float + ":" + max_float + "].";
           return false;
