@@ -68,7 +68,8 @@ namespace OpenMS
       found = without_phospho_str.find("(Phospho)");
     }
     AASequence without_phospho = AASequence::fromString(without_phospho_str);
-    Int number_of_STY = Int(without_phospho.getNumberOf("S") + without_phospho.getNumberOf("T") + without_phospho.getNumberOf("Y"));
+    String umps = without_phospho.toUnmodifiedString(); // unmodified phosphostring
+    Int number_of_STY = Int(std::count(umps.begin(), umps.end(), 'S') + std::count(umps.begin(), umps.end(), 'T') + std::count(umps.begin(), umps.end(), 'Y'));
     if (real_spectrum.empty() || number_of_phospho_sites < 1 || number_of_STY == 0)
     {
       return PeptideHit(-1, 0, hit.getCharge(), without_phospho);

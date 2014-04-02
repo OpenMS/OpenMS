@@ -467,13 +467,15 @@ namespace OpenMS
     descriptors_tmp.push_back(node);
 
     //NBaR_P
+    String umps = peptide.toUnmodifiedString(); // unmodified peptide string
     node.index = index++;
-    node.value = peptide.getNumberOf("H") + peptide.getNumberOf("K") + peptide.getNumberOf("R");
+    node.value = std::count(umps.begin(), umps.end(), 'H') + std::count(umps.begin(), umps.end(), 'K') + std::count(umps.begin(), umps.end(), 'R');
     descriptors_tmp.push_back(node);
 
     //NBaR_YI (works for B also)
     node.index = index++;
-    node.value = fragment.getNumberOf("H") + fragment.getNumberOf("K") + fragment.getNumberOf("R");
+    String umfs = fragment.toUnmodifiedString(); // unmodified fragment string
+    node.value = std::count(umfs.begin(), umfs.end(), 'H') + std::count(umfs.begin(), umfs.end(), 'K') + std::count(umfs.begin(), umfs.end(), 'R');
     descriptors_tmp.push_back(node);
 
     //MP

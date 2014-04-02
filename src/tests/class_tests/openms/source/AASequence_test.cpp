@@ -356,24 +356,10 @@ START_SECTION(bool has(const Residue& residue) const)
   TEST_NOT_EQUAL(seq.has(res), true)
 END_SECTION
 
-START_SECTION(bool has(const String& name) const)
-  AASequence seq = AASequence::fromString("DFPIANGER");
-  TEST_EQUAL(seq.has("D"), true)
-  TEST_EQUAL(seq.has("N"), true)
-  TEST_NOT_EQUAL(seq.has("Q"), true)
-END_SECTION
-
 START_SECTION(bool hasSubsequence(const AASequence& peptide) const)
   AASequence seq1 = AASequence::fromString("DFPIANGER");
   AASequence seq2 = AASequence::fromString("IANG");
   AASequence seq3 = AASequence::fromString("AIN");
-  TEST_EQUAL(seq1.hasSubsequence(seq2), true)
-  TEST_EQUAL(seq1.hasSubsequence(seq3), false)
-END_SECTION
-
-START_SECTION(bool hasSubsequence(const String& peptide) const)
-  AASequence seq1 = AASequence::fromString("DFPIANGER");
-  String seq2("IANG"), seq3("AIN");
   TEST_EQUAL(seq1.hasSubsequence(seq2), true)
   TEST_EQUAL(seq1.hasSubsequence(seq3), false)
 END_SECTION
@@ -392,16 +378,6 @@ START_SECTION(bool hasPrefix(const AASequence& peptide) const)
   TEST_EQUAL(seq1.hasPrefix(seq6), true)
 END_SECTION
 
-START_SECTION(bool hasPrefix(const String& peptide) const)
-  AASequence seq1 = AASequence::fromString("DFPIANGER");
-  String seq2("DFP"), seq3("AIN"), seq4("(TMT6plex)DFP"), seq5("DFPIANGER(Label:18O(2))"), seq6("DFP(Label:18O(2))");;
-  TEST_EQUAL(seq1.hasPrefix(seq2), true)
-  TEST_EQUAL(seq1.hasPrefix(seq3), false)
-  TEST_EQUAL(seq1.hasPrefix(seq4), false)
-  TEST_EQUAL(seq1.hasPrefix(seq5), false)
-  TEST_EQUAL(seq1.hasPrefix(seq6), true)
-END_SECTION
-
 START_SECTION(bool hasSuffix(const AASequence& peptide) const)
   AASequence seq1 = AASequence::fromString("DFPIANGER");
   AASequence seq2 = AASequence::fromString("GER");
@@ -409,16 +385,6 @@ START_SECTION(bool hasSuffix(const AASequence& peptide) const)
   AASequence seq4 = AASequence::fromString("GER(Label:18O(2))");
   AASequence seq5 = AASequence::fromString("(TMT6plex)DFPIANGER");
   AASequence seq6 = AASequence::fromString("(TMT6plex)GER");
-  TEST_EQUAL(seq1.hasSuffix(seq2), true)
-  TEST_EQUAL(seq1.hasSuffix(seq3), false)
-  TEST_EQUAL(seq1.hasSuffix(seq4), false)
-  TEST_EQUAL(seq1.hasSuffix(seq5), false)
-  TEST_EQUAL(seq1.hasSuffix(seq6), true)
-END_SECTION
-
-START_SECTION(bool hasSuffix(const String& peptide) const)
-  AASequence seq1 = AASequence::fromString("DFPIANGER");
-  String seq2("GER"), seq3("AIN"), seq4("GER(Label:18O(2))"), seq5("(TMT6plex)DFPIANGER"), seq6("(TMT6plex)GER");
   TEST_EQUAL(seq1.hasSuffix(seq2), true)
   TEST_EQUAL(seq1.hasSuffix(seq3), false)
   TEST_EQUAL(seq1.hasSuffix(seq4), false)
@@ -666,12 +632,6 @@ START_SECTION(bool operator!=(const AASequence& rhs) const)
   AASequence seq5 = AASequence::fromString("DFBIANGER");
   TEST_EQUAL(seq5 != AASequence::fromString("DFPIANGER"), true)
   TEST_EQUAL(seq5 != AASequence::fromString("DFBIANGER"), false)
-END_SECTION
-
-START_SECTION(Size getNumberOf(const String &residue) const)
-  AASequence seq = AASequence::fromString("DFPIANGERDFPIANGER");
-  TEST_EQUAL(seq.getNumberOf("Ala"), 2)
-  TEST_EQUAL(seq.getNumberOf("D"), 2)
 END_SECTION
 
 START_SECTION(void getAAFrequencies(Map<String, Size>& frequency_table) const)

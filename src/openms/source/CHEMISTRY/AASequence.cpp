@@ -489,15 +489,6 @@ namespace OpenMS
     return false;
   }
 
-  bool AASequence::has(const String & residue) const
-  {
-    if (!ResidueDB::getInstance()->hasResidue(residue))
-    {
-      return false;
-    }
-    return has(*ResidueDB::getInstance()->getResidue(residue));
-  }
-
   bool AASequence::hasSubsequence(const AASequence & sequence) const
   {
     if (sequence.empty())
@@ -534,12 +525,6 @@ namespace OpenMS
     return false;
   }
 
-  bool AASequence::hasSubsequence(const String & sequence) const
-  {
-    AASequence aa_seq = AASequence::fromString(sequence);
-    return hasSubsequence(aa_seq);
-  }
-
   bool AASequence::hasPrefix(const AASequence & sequence) const
   {
     if (sequence.empty())
@@ -566,12 +551,6 @@ namespace OpenMS
     return true;
   }
 
-  bool AASequence::hasPrefix(const String & sequence) const
-  {
-    AASequence aa_seq = AASequence::fromString(sequence);
-    return hasPrefix(aa_seq);
-  }
-
   bool AASequence::hasSuffix(const AASequence & sequence) const
   {
     if (sequence.empty())
@@ -596,12 +575,6 @@ namespace OpenMS
       }
     }
     return true;
-  }
-
-  bool AASequence::hasSuffix(const String & sequence) const
-  {
-    AASequence aa_seq = AASequence::fromString(sequence);
-    return hasSuffix(aa_seq);
   }
 
   bool AASequence::operator==(const AASequence & peptide) const
@@ -1084,34 +1057,6 @@ namespace OpenMS
         }
       }
     }
-  }
-
-  Size AASequence::getNumberOf(const String & residue) const
-  {
-    Size count(0);
-    const Residue * res = ResidueDB::getInstance()->getResidue(residue);
-    if (valid_)
-    {
-      for (vector<const Residue *>::const_iterator it = peptide_.begin(); it != peptide_.end(); ++it)
-      {
-        if (*it == res)
-        {
-          ++count;
-        }
-      }
-    }
-    else
-    {
-      for (String::ConstIterator it = sequence_string_.begin(); it != sequence_string_.end(); ++it)
-      {
-        if (String(*it) == res->getOneLetterCode())
-        {
-          ++count;
-        }
-      }
-    }
-
-    return count;
   }
 
   void AASequence::getAAFrequencies(Map<String, Size> & frequency_table) const
