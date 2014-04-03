@@ -7,7 +7,7 @@ class TestPepXML(unittest.TestCase):
 
     def setUp(self):
         dirname = os.path.dirname(os.path.abspath(__file__))
-        self.filename = os.path.join(dirname, "test.pep.xml")
+        self.filename = os.path.join(dirname, "test.pep.xml").encode()
 
     def test_readfile(self):
 
@@ -26,13 +26,13 @@ class TestPepXML(unittest.TestCase):
         self.assertEqual( len(prots),  1)
         self.assertEqual( len(peps),  3)
 
-        self.assertEqual( peps[0].getHits()[0].getSequence().toString(), "LAPSAAEDGAFR")
+        self.assertEqual( peps[0].getHits()[0].getSequence().toString(), b"LAPSAAEDGAFR")
 
 class TestIdXML(unittest.TestCase):
 
     def setUp(self):
         dirname = os.path.dirname(os.path.abspath(__file__))
-        self.filename = os.path.join(dirname, "test.idXML")
+        self.filename = os.path.join(dirname, "test.idXML").encode()
 
     def test_readfile(self):
         idxml_file = pyopenms.IdXMLFile()
@@ -53,7 +53,7 @@ class TestIndexedMzMLFileLoader(unittest.TestCase):
 
     def setUp(self):
         dirname = os.path.dirname(os.path.abspath(__file__))
-        self.filename = os.path.join(dirname, "test.indexed.mzML")
+        self.filename = os.path.join(dirname, "test.indexed.mzML").encode()
 
     def test_readfile(self):
         e = pyopenms.OnDiscMSExperiment();
@@ -78,7 +78,7 @@ class TestIndexedMzMLFileLoader(unittest.TestCase):
         raised = False
         try:
             e.getChromatogram(2).get_peaks()
-        except Exception, e:
+        except Exception as e:
             raised = True
 
         self.assertTrue(raised)
@@ -87,7 +87,7 @@ class TestIndexedMzMLFile(unittest.TestCase):
 
     def setUp(self):
         dirname = os.path.dirname(os.path.abspath(__file__))
-        self.filename = os.path.join(dirname, "test.indexed.mzML")
+        self.filename = os.path.join(dirname, "test.indexed.mzML").encode()
 
     def test_readfile(self):
         f = pyopenms.IndexedMzMLFile()

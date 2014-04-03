@@ -39,7 +39,8 @@ find_package(PythonInterp REQUIRED)
 # find out python version info
 execute_process(
      COMMAND
-     ${PYTHON_EXECUTABLE} -c "import sys; print '%s.%s' % sys.version_info[:2]"
+     #${PYTHON_EXECUTABLE} -c "import sys; print('%s'% sys.version[:2])"
+     ${PYTHON_EXECUTABLE} -c "from __future__ import print_function; import sys; print('%s.%s' % sys.version_info[:2])"
      OUTPUT_VARIABLE PY_VERSION
      OUTPUT_STRIP_TRAILING_WHITESPACE
 )
@@ -83,7 +84,7 @@ else()
   # find out cython version info
   execute_process(
        COMMAND
-       ${PYTHON_EXECUTABLE} -c "import Cython; print Cython.__version__"
+       ${PYTHON_EXECUTABLE} -c "from __future__ import print_function; import Cython; print (Cython.__version__)"
        OUTPUT_VARIABLE CYTHON_VERSION
        OUTPUT_STRIP_TRAILING_WHITESPACE
   )
@@ -114,7 +115,7 @@ else()
     )
     execute_process(
         COMMAND
-        ${PYTHON_EXECUTABLE} -c "import autowrap; print '%d.%d.%d' % (autowrap.version)"
+        ${PYTHON_EXECUTABLE} -c "from __future__ import print_function;import autowrap; print ('%d.%d.%d' % (autowrap.version))"
         OUTPUT_VARIABLE AUTOWRAP_VERSION
         OUTPUT_STRIP_TRAILING_WHITESPACE
     )
@@ -372,6 +373,7 @@ test_FileIO.py
 test_Isobaric_Quantitation.py
 testLightTargetedExperiment.py
 test_MRMFeatureFinderScoring.py
+test_MSNumpressCoder.py
 test_MSSpectrumAndRichSpectrum.py
 test_OpenSwathDataStructures.py
 test_Smoothing.py
@@ -383,7 +385,7 @@ test_MzMLConsumer.py
 test_MzXMLConsumer.py
 )
 
-# Please add your test here when you decide to write a new testfile in the tests/unittests folder
+# Please add your test here when you decide to write a new testfile in the tests/integration_tests folder
 set(pyopenms_integrationtest_testfiles
 test_MRMRTNormalizer.py
 )

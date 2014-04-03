@@ -190,7 +190,7 @@ public:
       {
         throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
       }
-      os.precision(writtenDigits<double>());
+      os.precision(writtenDigits<double>(0.0));
 
       //write precursor information
       Precursor precursor;

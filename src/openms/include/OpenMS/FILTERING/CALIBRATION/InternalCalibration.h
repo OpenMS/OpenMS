@@ -165,7 +165,7 @@ protected:
   void InternalCalibration::calibrateMapSpectrumwise(const MSExperiment<InputPeakType> & exp, MSExperiment<InputPeakType> & calibrated_exp, std::vector<double> & ref_masses)
   {
 #ifdef DEBUG_CALIBRATION
-    std::cout.precision(writtenDigits<double>());
+    std::cout.precision(writtenDigits<double>(0.0));
 #endif
     if (exp.empty())
     {

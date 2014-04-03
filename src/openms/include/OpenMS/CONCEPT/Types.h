@@ -172,8 +172,8 @@ namespace OpenMS
     std::cout << NUMBER << '\n'; // default precision, writes: 12345.7
 
     double d = NUMBER;
-    std::cout.precision(writtenDigits<double>()); // explicit template instantiation
-    std::cout << writtenDigits<double>() << ": " << d << '\n'; // writes: 15: 12345.6789012346
+    std::cout.precision(writtenDigits<double>(0.0)); // explicit template instantiation
+    std::cout << writtenDigits<double>(0.0) << ": " << d << '\n'; // writes: 15: 12345.6789012346
 
     float r = NUMBER;
     std::cout.precision(writtenDigits(r)); // type deduced from argument

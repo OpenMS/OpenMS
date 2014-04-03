@@ -1,4 +1,4 @@
-from special_autowrap_conversionproviders import *
+from .special_autowrap_conversionproviders import *
 from autowrap.ConversionProvider import special_converters
 
 def register_converters():
