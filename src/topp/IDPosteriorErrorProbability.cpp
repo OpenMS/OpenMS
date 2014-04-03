@@ -288,7 +288,7 @@ protected:
                 {
                   if (!hits.empty() && (!split_charge || hits[0].getCharge() == *charge))
                   {
-                    DoubleReal score = getScore_(*engine, hits[0]);
+                    double score = getScore_(*engine, hits[0]);
                     if (!boost::math::isnan(score)) // issue #740: ignore scores with 0 values, otherwise you will get the error "unable to fit data"
                     {
                       scores.push_back(score);
@@ -313,7 +313,7 @@ protected:
                   {
                     if (!split_charge || hit->getCharge() == *charge)
                     {
-                      DoubleReal score = getScore_(*engine, *hit);
+                      double score = getScore_(*engine, *hit);
                       if (!boost::math::isnan(score)) // issue #740: ignore scores with 0 values, otherwise you will get the error "unable to fit data"
                       {
                         scores.push_back(score);
