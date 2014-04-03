@@ -593,7 +593,7 @@ file formats, data reduction functionality and all other analysis algorithms.
 
 /**
 
-@page tutorial_format File and DB access
+@page tutorial_format File access
 
   All classes for file IO can be found in the @a FORMAT folder.
   For most file formats, you can use the generic interfaces described in the
