@@ -239,7 +239,7 @@ namespace OpenMS
         if(raw_mz_values.size() < 4)
           continue;
 
-        CubicSpline2d<double> peak_spline (raw_mz_values, raw_int_values);
+        CubicSpline2d peak_spline (raw_mz_values, raw_int_values);
 
         // calculate maximum by evaluating the spline's 1st derivative
         // (bisection method)

@@ -336,6 +336,7 @@ START_SECTION([EXTRA](pick))
   PeakPickerMaxima pp_max(0.0);
   std::vector<PeakPickerMaxima::PeakCandidate> pc = ppmax_pick(input[0], pp_max);
 
+  TOLERANCE_RELATIVE(1.1);
   // Check first scan
   TEST_EQUAL(pc.size(), 679)
   TEST_EQUAL(pc.size(), output[0].size())
@@ -423,7 +424,7 @@ START_SECTION([EXTRA](pick))
       unequal_tests++;
     }
   }
-  TEST_EQUAL(unequal_tests, 8)
+  TEST_EQUAL(unequal_tests, 0)
 
   // Check all scans
   for (Size scan_idx = 0; scan_idx < output.size(); ++scan_idx)
@@ -439,7 +440,7 @@ START_SECTION([EXTRA](pick))
       }
     }
   }
-  TEST_EQUAL(unequal_tests, 18)
+  TEST_EQUAL(unequal_tests, 0)
 }
 END_SECTION
 
