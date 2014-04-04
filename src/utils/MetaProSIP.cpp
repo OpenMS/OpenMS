@@ -276,10 +276,18 @@ class MetaProSIPReporting
     current_script.push_back("heatmap.2(mdat, dendrogram=\"none\", col=colorRampPalette(c(\"black\",\"red\")), Rowv=FALSE, Colv=FALSE, key=FALSE, labRow=" + labRowString + ",labCol=c(\"" + col_labels_string + "\"),trace=\"none\", density.info=\"none\")");
 
     current_script.push_back("tmp<-dev.off()");
-    current_script.store(tmp_path + "/" + script_filename);
-    QStringList qparam;
-    qparam << "--vanilla" << "--quiet" << "--slave" << "--file=" + QString(tmp_path.toQString() + "\\" + script_filename.toQString());
-    Int status = QProcess::execute("R", qparam);
+    current_script.store(tmp_path + "/" + script_filename);	
+
+	QProcess p;
+	QStringList env = QProcess::systemEnvironment();
+	env << QString("R_LIBS=") + tmp_path.toQString();
+	p.setEnvironment(env);
+
+	QStringList qparam;
+	qparam << "--vanilla" << "--quiet" << "--slave" << "--file=" + QString(tmp_path.toQString() + "\\" + script_filename.toQString());
+	p.start("R", qparam);
+	p.waitForFinished(-1);
+	int status = p.exitCode();
 
     // cleanup
     if (status != 0)
@@ -344,9 +352,18 @@ class MetaProSIPReporting
       current_script.push_back("segments(x0,y0,x1,y1)");
       current_script.push_back("tmp<-dev.off()");
       current_script.store(tmp_path + "/" + script_filename);
-      QStringList qparam;
-      qparam << "--vanilla" << "--quiet" << "--slave" << "--file=" + QString(tmp_path.toQString() + "\\" + script_filename.toQString());
-      Int status = QProcess::execute("R", qparam);
+
+	  QProcess p;
+	  QStringList env = QProcess::systemEnvironment();
+	  env << QString("R_LIBS=") + tmp_path.toQString();
+	  p.setEnvironment(env);
+
+	  QStringList qparam;
+	  qparam << "--vanilla" << "--quiet" << "--slave" << "--file=" + QString(tmp_path.toQString() + "\\" + script_filename.toQString());
+	  p.start("R", qparam);
+	  p.waitForFinished(-1);
+	  int status = p.exitCode();
+
       if (status != 0)
       {
         std::cerr << "Error: Process returned with non 0 status." << std::endl;
@@ -410,9 +427,18 @@ class MetaProSIPReporting
       current_script.push_back("segments(x0,y0,x1,y1)");
       current_script.push_back("tmp<-dev.off()");
       current_script.store(tmp_path + "/" + script_filename);
-      QStringList qparam;
-      qparam << "--vanilla" << "--quiet" << "--slave" << "--file=" + QString(tmp_path.toQString() + "\\" + script_filename.toQString());
-      Int status = QProcess::execute("R", qparam);
+
+	  QProcess p;
+	  QStringList env = QProcess::systemEnvironment();
+	  env << QString("R_LIBS=") + tmp_path.toQString();
+	  p.setEnvironment(env);
+
+	  QStringList qparam;
+	  qparam << "--vanilla" << "--quiet" << "--slave" << "--file=" + QString(tmp_path.toQString() + "\\" + script_filename.toQString());
+	  p.start("R", qparam);
+	  p.waitForFinished(-1);
+	  int status = p.exitCode();
+
       if (status != 0)
       {
         std::cerr << "Error: Process returned with non 0 status." << std::endl;
@@ -630,9 +656,18 @@ class MetaProSIPReporting
       current_script.push_back("legend('bottomright', horiz=FALSE, xpd=TRUE, col=c('red', 'blue'), lwd=2, c('weights', 'correlation'))");
       current_script.push_back("tmp<-dev.off()");
       current_script.store(tmp_path + "/" + script_filename);
-      QStringList qparam;
-      qparam << "--vanilla" << "--quiet" << "--slave" << "--file=" + QString(tmp_path.toQString() + "\\" + script_filename.toQString());
-      Int status = QProcess::execute("R", qparam);
+
+	  QProcess p;
+	  QStringList env = QProcess::systemEnvironment();
+	  env << QString("R_LIBS=") + tmp_path.toQString();
+	  p.setEnvironment(env);
+
+	  QStringList qparam;
+	  qparam << "--vanilla" << "--quiet" << "--slave" << "--file=" + QString(tmp_path.toQString() + "\\" + script_filename.toQString());
+	  p.start("R", qparam);
+	  p.waitForFinished(-1);
+	  int status = p.exitCode();
+
       if (status != 0)
       {
         std::cerr << "Error: Process returned with non 0 status." << std::endl;
@@ -681,9 +716,17 @@ class MetaProSIPReporting
 
     current_script.store(tmp_path + "/" + script_filename);
 
-    QStringList qparam;
-    qparam << "--vanilla" << "--quiet" << "--slave" << "--file=" + QString(tmp_path.toQString() + "\\" + script_filename.toQString());
-    Int status = QProcess::execute("R", qparam);
+	QProcess p;
+	QStringList env = QProcess::systemEnvironment();
+	env << QString("R_LIBS=") + tmp_path.toQString();
+	p.setEnvironment(env);
+
+	QStringList qparam;
+	qparam << "--vanilla" << "--quiet" << "--slave" << "--file=" + QString(tmp_path.toQString() + "\\" + script_filename.toQString());
+	p.start("R", qparam);
+	p.waitForFinished(-1);
+	int status = p.exitCode();
+
     if (status != 0)
     {
       std::cerr << "Error: Process returned with non 0 status." << std::endl;
@@ -1020,6 +1063,7 @@ class MetaProSIPReporting
     static void createPeptideCentricCSVReport(const String in_mzML, const String& file_extension, vector<vector<SIPPeptide> >& sippeptide_cluster, ofstream& os, map<String, String> &proteinid_to_description, String qc_output_directory="", String file_suffix="" )
   {
 	SVOutStream out_csv_stream(os, "\t", "_", String::NONE);
+
     // sort clusters by non increasing size
     sort(sippeptide_cluster.rbegin(), sippeptide_cluster.rend(), SizeLess());
 
@@ -1425,25 +1469,40 @@ protected:
 	checkRInPath.push_back("q()");
 	checkRInPath.store(script_filename);
 
-    QStringList checkRinPathQParam;
-	checkRinPathQParam << "--vanilla" << "--quiet" << "--slave" << "--file=" + script_filename.toQString();
-	Int status = QProcess::execute("R", checkRinPathQParam);
-	if (status != 0)
+	LOG_INFO << "Checking R...";
 	{
-		LOG_ERROR << "Can't execute R. Do you have R installed? Check if the path to R is in your system path variable." << std::endl;
-		return false;
-	}
+	  QProcess p;
+	  QStringList env = QProcess::systemEnvironment();
+	  env << QString("R_LIBS=") + tmp_path.toQString();
+	  p.setEnvironment(env);
 
+	  QStringList checkRinPathQParam;
+	  checkRinPathQParam << "--vanilla" << "--quiet" << "--slave" << "--file=" + script_filename.toQString();
+	  p.start("R", checkRinPathQParam);
+	  p.waitForFinished(-1);
+	  int status = p.exitCode();
+
+	  if (status != 0)
+	  {
+	 	LOG_INFO << " failed" << std::endl;
+ 		LOG_ERROR << "Can't execute R. Do you have R installed? Check if the path to R is in your system path variable." << std::endl;
+	    return false;
+	  }
+	  LOG_INFO << " success" << std::endl;
+	}
 	// check dependencies
+	LOG_INFO << "Checking R dependencies. If package is not found we will try to install it in your temp directory...";
 	TextFile current_script;
 	current_script.push_back("LoadOrInstallPackage <-function(x)");
 	current_script.push_back("{");
-	current_script.push_back("  x < -as.character(substitute(x)) if (isTRUE(x %in%.packages(all.available = TRUE)))");
+	current_script.push_back("  x <-as.character(substitute(x))");
+	current_script.push_back("  if (isTRUE(x %in%.packages(all.available = TRUE)))");
 	current_script.push_back("  {");
 	current_script.push_back("    eval(parse(text = paste(\"library(\", x, \")\", sep = \"\")))");
 	current_script.push_back("  }");
 	current_script.push_back("  else");
 	current_script.push_back("  {");
+	current_script.push_back("    options(repos = structure(c(CRAN = \"http://cran.rstudio.com/\")))");
 	current_script.push_back("    update.packages()");
     current_script.push_back("    eval(parse(text = paste(\"install.packages('\", x, \"')\", sep = \"\")))");
 	current_script.push_back("    eval(parse(text = paste(\"library(\", x, \")\", sep = \"\")))");
@@ -1454,9 +1513,17 @@ protected:
 	current_script.push_back("LoadOrInstallPackage(clValid)");
     current_script.store(script_filename);
 
+	QProcess p;
+	QStringList env = QProcess::systemEnvironment();
+	env << QString("R_LIBS=") + tmp_path.toQString();
+	p.setEnvironment(env);
+
 	QStringList qparam;
 	qparam << "--vanilla" << "--quiet" << "--slave" << "--file=" + script_filename.toQString();
-	status = QProcess::execute("R", qparam);
+	p.start("R", qparam);
+	p.waitForFinished(-1);
+	int status = p.exitCode();
+
 	if (status != 0)
 	{
 	  LOG_ERROR << "Problem finding all R dependencies. Check if R and following libraries are installed:" << std::endl;
@@ -1466,7 +1533,7 @@ protected:
 		return false;
 	  }
 	}
-	LOG_INFO << "R and dependencies available." << std::endl;
+	LOG_INFO << " success" << std::endl;	
 	return true;
   }
 
@@ -2403,9 +2470,17 @@ protected:
 
     current_script.store(tmp_path + "/" + script_filename);
 
-    QStringList qparam;
-    qparam << "--vanilla" << "--quiet" << "--slave" << "--file=" + QString(tmp_path.toQString() + "\\" + script_filename.toQString());
-    Int status = QProcess::execute("R", qparam);
+	QProcess p;
+	QStringList env = QProcess::systemEnvironment();
+	env << QString("R_LIBS=") + tmp_path.toQString();
+	p.setEnvironment(env);
+
+	QStringList qparam;
+	qparam << "--vanilla" << "--quiet" << "--slave" << "--file=" + QString(tmp_path.toQString() + "\\" + script_filename.toQString());
+	p.start("R", qparam);
+	p.waitForFinished(-1);
+	Int status = p.exitCode();
+
     if (status != 0)
     {
       std::cerr << "Error: Process returned with non 0 status." << std::endl;
@@ -2469,9 +2544,16 @@ protected:
 
     current_script.store(tmp_path + "/" + script_filename);
 
-    QStringList qparam;
-    qparam << "--vanilla" << "--quiet" << "--slave" << "--file=" + QString(tmp_path.toQString() + "\\" + script_filename.toQString());
-    Int status = QProcess::execute("R", qparam);
+	QProcess p;
+	QStringList env = QProcess::systemEnvironment();
+	env << QString("R_LIBS=") + tmp_path.toQString();
+	p.setEnvironment(env);
+	QStringList qparam;
+	qparam << "--vanilla" << "--quiet" << "--slave" << "--file=" + QString(tmp_path.toQString() + "\\" + script_filename.toQString());
+	p.start("R", qparam);
+	p.waitForFinished(-1);
+	int status = p.exitCode();
+
     if (status != 0)
     {
       std::cerr << "Error: Process returned with non 0 status." << std::endl;
@@ -2874,6 +2956,7 @@ protected:
 	// create peptide centric report
 	if (!out_peptide_centric_csv.empty())
 	{
+	  LOG_INFO << "Creating peptide centric report: " << out_peptide_centric_csv << std::endl;
       MetaProSIPReporting::createPeptideCentricCSVReport(in_mzml, file_extension_, sippeptide_clusters, out_peptide_csv_stream, proteinid_to_description);
 	}
 	
