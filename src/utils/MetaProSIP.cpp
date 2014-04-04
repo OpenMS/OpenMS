@@ -1101,7 +1101,7 @@ class MetaProSIPReporting
 	  out_csv_stream << current_SIPpeptide.sequence.toString();
 
       // output quality report links if available
-      if (qc_output_directory.empty() && file_suffix.empty())
+      if (qc_output_directory.empty() || file_suffix.empty())  // if no qc plots have been generated or no unique file_suffix has been provided we can't generate links to spectra and scores
       {
 		out_csv_stream << "" << "" << in_mzML;
       } else
@@ -2959,7 +2959,7 @@ protected:
 	if (!out_peptide_centric_csv.empty())
 	{
 	  LOG_INFO << "Creating peptide centric report: " << out_peptide_centric_csv << std::endl;
-      MetaProSIPReporting::createPeptideCentricCSVReport(in_mzml, file_extension_, sippeptide_clusters, out_peptide_csv_stream, proteinid_to_description);
+	  MetaProSIPReporting::createPeptideCentricCSVReport(in_mzml, file_extension_, sippeptide_clusters, out_peptide_csv_stream, proteinid_to_description, qc_output_directory, file_suffix);
 	}
 	
     // plot debug spectra 
