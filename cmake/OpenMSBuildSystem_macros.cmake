@@ -85,6 +85,7 @@ macro(find_boost)
   endif()
 endmacro(find_boost)
 
+#------------------------------------------------------------------------------
 ## Unity Build of a set of cpp files
 ## i.e., make one large compilation unit which usually compiles a lot faster
 ##
@@ -129,4 +130,16 @@ macro(is_valid_package package_type)
   	endforeach()
   	message(FATAL_ERROR "Aborting ...")
   endif()
+endmacro()
+
+#------------------------------------------------------------------------------
+## Wrap add_library() and also deal with unity build at the same time
+macro(oms_add_library libname sources_variable_name)
+	if (ENABLE_UNITYBUILD)
+		MESSAGE(STATUS "Unity Build for ${libname} lib: Enabled (ENABLE_UNITYBUILD=ON)")
+		convert_to_unity_build(${libname} ${sources_variable_name})
+	else()
+		MESSAGE(STATUS "Unity Build for ${libname} lib: Disabled (ENABLE_UNITYBUILD=OFF)")
+	endif()
+	add_library(${libname} ${${sources_variable_name}})
 endmacro()
