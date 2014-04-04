@@ -53,6 +53,7 @@
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
+#include <OpenMS/MATH/MISC/Spline2d.h>
 
 //#include "FastEMD/FastEMDWrapper.h"
 
@@ -69,33 +70,28 @@
 #include <map>
 
 #include <math.h>
-#include <gsl/gsl_bspline.h>
-#include <gsl/gsl_multifit.h>
-#include <gsl/gsl_rng.h>
-#include <gsl/gsl_randist.h>
-#include <gsl/gsl_statistics.h>
 
 using namespace OpenMS;
 using namespace std;
 
-typedef map< DoubleReal, DoubleReal> MapRateToScoreType;
-typedef pair<DoubleReal, vector<DoubleReal> > IsotopePattern;
+typedef map< double, double> MapRateToScoreType;
+typedef pair<double, vector<double> > IsotopePattern;
 typedef vector<IsotopePattern> IsotopePatterns;
 
 struct RateScorePair
 {
-  DoubleReal rate;
-  DoubleReal score;
+  double rate;
+  double score;
 };
 
 /// datastructure for reporting an incorporation event
 struct SIPIncorporation
 {
-  DoubleReal rate; ///< rate
+  double rate; ///< rate
   
-  DoubleReal correlation; ///< correlation coefficient
+  double correlation; ///< correlation coefficient
   
-  DoubleReal abundance; ///< abundance of isotopologue
+  double abundance; ///< abundance of isotopologue
   
   PeakSpectrum theoretical; ///< peak spectrum as generated from the theoretical isotopic distribution
 };
@@ -109,21 +105,21 @@ struct SIPPeptide
 
   bool unique; ///< if the peptide is unique and therefor identifies the protein umambigously 
 
-  DoubleReal mz_theo; ///< theoretical mz
+  double mz_theo; ///< theoretical mz
 
-  DoubleReal score; ///< search engine score or q-value if fdr filtering is applied
+  double score; ///< search engine score or q-value if fdr filtering is applied
   
-  DoubleReal feature_rt; ///< measurement time of feature apex [s]
+  double feature_rt; ///< measurement time of feature apex [s]
   
-  DoubleReal feature_mz; ///< mz of feature apex [s]
+  double feature_mz; ///< mz of feature apex [s]
 
   //Size feature_scan_number; ///< scan number
 
   Int charge; ///< charge of the peptide feature
 
-  DoubleReal mass_diff;  // 13C or 15N mass difference
+  double mass_diff;  // 13C or 15N mass difference
 
-  DoubleReal global_LR; ///< labeling ratio for the whole spectrum used to detect global drifts. 13C/(12C+13C) intensities. (15N analogous)
+  double global_LR; ///< labeling ratio for the whole spectrum used to detect global drifts. 13C/(12C+13C) intensities. (15N analogous)
 
   vector<RateScorePair> correlation_maxima;
   
@@ -131,15 +127,15 @@ struct SIPPeptide
   
   MapRateToScoreType correlation_map; // all rate to correlation scores for the peptide
 
-  DoubleReal RR; ///< R squared of NNLS fit
+  double RR; ///< R squared of NNLS fit
   
-  DoubleReal explained_TIC_fraction; ///< fraction of the MS2 TIC that is explained by the maximum correlating decomposition weights
+  double explained_TIC_fraction; ///< fraction of the MS2 TIC that is explained by the maximum correlating decomposition weights
 
   Size non_zero_decomposition_coefficients; ///< decomposition coefficients significantly larger than 0
 
   PeakSpectrum reconstruction; ///< signal reconstruction (debugging)
   
-  vector<DoubleReal> reconstruction_monoistopic; ///< signal reconstruction of natural peptide (at mono-isotopic peak)
+  vector<double> reconstruction_monoistopic; ///< signal reconstruction of natural peptide (at mono-isotopic peak)
 
   PeakSpectrum merged;
 
@@ -156,10 +152,10 @@ struct SIPPeptide
 
 struct SIPSummaryStatistic
 {
-  DoubleReal median_LR;
-  DoubleReal median_RIA;
-  DoubleReal stdev_LR;
-  DoubleReal stdev_RIA;
+  double median_LR;
+  double median_RIA;
+  double stdev_LR;
+  double stdev_RIA;
 };
 
 /// datastructure for reporting a protein group with one or more SIP peptides
@@ -214,7 +210,7 @@ struct RIALess
 class MetaProSIPReporting
 {
   public: 
-    static void plotHeatMap(const String& output_dir, const String& tmp_path, const String& file_suffix, const String& file_extension, const vector<vector<DoubleReal> >& binned_ria, vector<String> class_labels, Size debug_level = 0)
+    static void plotHeatMap(const String& output_dir, const String& tmp_path, const String& file_suffix, const String& file_extension, const vector<vector<double> >& binned_ria, vector<String> class_labels, Size debug_level = 0)
   { 
     String filename = String("heatmap") + file_suffix + "." + file_extension;
     String script_filename = String("heatmap") + file_suffix + String(".R");
@@ -224,14 +220,15 @@ class MetaProSIPReporting
 
     for (Size i = 0; i != binned_ria[0].size(); ++i)
     {
-      col_labels << String(i*(100 / binned_ria[0].size())) + "%-" + String((i+1)*(100 / binned_ria[0].size())) + "%";
+      String label = String(i*(100 / binned_ria[0].size())) + "%-" + String((i + 1)*(100 / binned_ria[0].size())) + "%";
+      col_labels.push_back(label);
     }
 
-    for (vector<vector<DoubleReal> >::const_iterator pit = binned_ria.begin(); pit != binned_ria.end(); ++pit)
+    for (vector<vector<double> >::const_iterator pit = binned_ria.begin(); pit != binned_ria.end(); ++pit)
     {
-      for (vector<DoubleReal>::const_iterator rit = pit->begin(); rit != pit->end(); ++rit)
+      for (vector<double>::const_iterator rit = pit->begin(); rit != pit->end(); ++rit)
       {
-        ria_list << String(*rit);
+        ria_list.push_back(String(*rit));
       }
     }
 
@@ -241,7 +238,7 @@ class MetaProSIPReporting
     {
       for (Size i = 0; i != class_labels.size(); ++i)
       {
-        row_labels << class_labels[i];
+        row_labels.push_back(class_labels[i]);
       }      
     }
 
@@ -313,8 +310,8 @@ class MetaProSIPReporting
       for (Size j = 0; j != sip_peptides[i].accumulated.size(); ++j)
       {
         const Peak1D& peak = sip_peptides[i].accumulated[j];               
-        mz_list << String(peak.getMZ());
-        intensity_list << String(peak.getIntensity());
+        mz_list.push_back(String(peak.getMZ()));
+        intensity_list.push_back(String(peak.getIntensity()));
       }
       
       String mz_list_string;
@@ -379,8 +376,8 @@ class MetaProSIPReporting
       for (Size j = 0; j != sip_peptides[i].merged.size(); ++j)
       {
         const Peak1D& peak = sip_peptides[i].merged[j];               
-        mz_list << String(peak.getMZ());
-        intensity_list << String(peak.getIntensity());
+        mz_list.push_back(String(peak.getMZ()));
+        intensity_list.push_back(String(peak.getIntensity()));
       }
 
       String mz_list_string;
@@ -560,7 +557,7 @@ class MetaProSIPReporting
      current_script.store(qc_output_directory.toQString() + "/index" + file_suffix.toQString() + ".html");
    }
 
-    static void plotScoresAndWeights(const String& output_dir, const String& tmp_path, const String& file_suffix, const String& file_extension, const vector<SIPPeptide>& sip_peptides, DoubleReal score_plot_yaxis_min, Size debug_level = 0)
+    static void plotScoresAndWeights(const String& output_dir, const String& tmp_path, const String& file_suffix, const String& file_extension, const vector<SIPPeptide>& sip_peptides, double score_plot_yaxis_min, Size debug_level = 0)
   {
     String score_filename = String("score_plot") + file_suffix + file_extension;
     String script_filename = String("score_plot") + file_suffix + String(".R");
@@ -578,14 +575,14 @@ class MetaProSIPReporting
 
       for (MapRateToScoreType::const_iterator mit = sip_peptides[i].decomposition_map.begin(); mit != sip_peptides[i].decomposition_map.end(); ++mit)
       {
-        rate_dec_list << String(mit->first);
-        weights_list << String(mit->second);
+        rate_dec_list.push_back(String(mit->first));
+        weights_list.push_back(String(mit->second));
       }
 
       for (MapRateToScoreType::const_iterator mit = sip_peptides[i].correlation_map.begin(); mit != sip_peptides[i].correlation_map.end(); ++mit)
       {
-        rate_corr_list << String(mit->first);
-        corr_list << String(mit->second);
+        rate_corr_list.push_back(String(mit->first));
+        corr_list.push_back(String(mit->second));
       }
 
       String rate_dec_list_string;
@@ -702,25 +699,25 @@ class MetaProSIPReporting
     }
   }
 
-    static void createQualityReport(String tmp_path, String qc_output_directory, String file_suffix, const String& file_extension, vector<SIPPeptide> sip_peptides, bool plot_merged, const vector< vector<SIPPeptide> >& sip_peptide_cluster, Size n_heatmap_bins, DoubleReal score_plot_y_axis_min, bool report_natural_peptides, String cluster_type)
+    static void createQualityReport(String tmp_path, String qc_output_directory, String file_suffix, const String& file_extension, vector<SIPPeptide> sip_peptides, bool plot_merged, const vector< vector<SIPPeptide> >& sip_peptide_cluster, Size n_heatmap_bins, double score_plot_y_axis_min, bool report_natural_peptides, String cluster_type)
   {
     // heat map based on peptide RIAs
-    cout << "Plotting peptide heat map" << endl;    
-    vector< vector<DoubleReal> > binned_peptide_ria;
+	LOG_INFO << "Plotting peptide heat map" << endl;
+    vector< vector<double> > binned_peptide_ria;
     vector<String> class_labels;
     createBinnedPeptideRIAData_(n_heatmap_bins, sip_peptide_cluster, binned_peptide_ria, class_labels);
 
     plotHeatMap(qc_output_directory, tmp_path, "_peptide" + file_suffix, file_extension, binned_peptide_ria, class_labels);
 
-    cout << "Plotting filtered spectra for quality report" << endl;
+	LOG_INFO << "Plotting filtered spectra for quality report" << endl;
     plotFilteredSpectra(qc_output_directory, tmp_path, file_suffix, file_extension, sip_peptides);
     if (plot_merged)
     {
-      cout << "Plotting merged spectra for quality report" << endl;
+	  LOG_INFO << "Plotting merged spectra for quality report" << endl;
       plotMergedSpectra(qc_output_directory, tmp_path, file_suffix, file_extension, sip_peptides);
     }
 
-    cout << "Plotting correlation score and weight distribution" << endl;
+	LOG_INFO << "Plotting correlation score and weight distribution" << endl;
     plotScoresAndWeights(qc_output_directory, tmp_path, file_suffix, file_extension, sip_peptides, score_plot_y_axis_min);
 
     if (file_extension != "pdf")  // html doesn't support pdf as image
@@ -729,8 +726,9 @@ class MetaProSIPReporting
     }
   }
 
-    static void createCSVReport(vector<vector<SIPPeptide> >& sippeptide_cluster, SVOutStream& out_stream, map<String, String> &proteinid_to_description, ofstream &out_csv_stream)
+	static void createCSVReport(vector<vector<SIPPeptide> >& sippeptide_cluster, ofstream& os, map<String, String> &proteinid_to_description)
   {
+    SVOutStream out_csv_stream(os, "\t", "_", String::NONE);
     // sort clusters by non increasing size
     sort(sippeptide_cluster.rbegin(), sippeptide_cluster.rend(), SizeLess());
 
@@ -762,8 +760,8 @@ class MetaProSIPReporting
       Size n_unambigous_proteins = unambigous_proteins.size();
 
       // determine median global LR of whole group
-      vector<DoubleReal> group_global_LRs;
-      vector<DoubleReal> group_number_RIAs;
+      vector<double> group_global_LRs;
+      vector<double> group_number_RIAs;
       for (map<String, vector<SIPPeptide> >::const_iterator all_it = all_peptides.begin(); all_it != all_peptides.end(); ++all_it)
       {
         for (vector<SIPPeptide>::const_iterator v_it = all_it->second.begin(); v_it != all_it->second.end(); ++v_it)
@@ -772,23 +770,23 @@ class MetaProSIPReporting
           group_number_RIAs.push_back(v_it->incorporations.size());
         }
       }
-      DoubleReal group_global_LR = Math::median(group_global_LRs.begin(), group_global_LRs.end(), false);        
+      double group_global_LR = Math::median(group_global_LRs.begin(), group_global_LRs.end(), false);        
 
       Size group_number_RIA = (Size) (Math::median(group_number_RIAs.begin(), group_number_RIAs.end(), false) + 0.5); // median number of RIAs
       // Group header
       // Distinct peptides := different (on sequence level) unique and non-unique peptides 
-      out_stream << String("Group ") + String(i+1) << "# Distinct Peptides" << "# Unambigous Proteins" << "Median Global LR";
+      out_csv_stream << String("Group ") + String(i+1) << "# Distinct Peptides" << "# Unambigous Proteins" << "Median Global LR";
       for (Size i = 0; i != group_number_RIA; ++i)
       {
-        out_stream << "median RIA " + String(i + 1);
+        out_csv_stream << "median RIA " + String(i + 1);
       }
-      out_stream << endl;
+      out_csv_stream << endl;
 
-      out_stream << "" << n_all_peptides << n_unambigous_proteins << group_global_LR;
+      out_csv_stream << "" << n_all_peptides << n_unambigous_proteins << group_global_LR;
 
       // collect 1th, 2nd, ... RIA of the group based on the peptide RIAs
-      vector< vector<DoubleReal> > group_RIAs(group_number_RIA, vector<DoubleReal>());
-      vector< DoubleReal > group_RIA_medians(group_number_RIA, 0);
+      vector< vector<double> > group_RIAs(group_number_RIA, vector<double>());
+      vector< double > group_RIA_medians(group_number_RIA, 0);
 
       for (map<String, vector<SIPPeptide> >::const_iterator all_it = all_peptides.begin(); all_it != all_peptides.end(); ++all_it)
       {
@@ -812,16 +810,16 @@ class MetaProSIPReporting
 
       for (Size i = 0; i != group_number_RIA; ++i)
       {
-        out_stream << String(group_RIA_medians[i]);
+        out_csv_stream << String(group_RIA_medians[i]);
       }
-      out_stream << endl;
+      out_csv_stream << endl;
 
       // unambiguous protein level
       for (map<String, map<String, vector<SIPPeptide> > >::const_iterator prot_it = unambigous_proteins.begin(); prot_it != unambigous_proteins.end(); ++prot_it)
       {
         // determine median global LR of protein
-        vector<DoubleReal> protein_global_LRs;
-        vector<DoubleReal> protein_number_RIAs;
+        vector<double> protein_global_LRs;
+        vector<double> protein_number_RIAs;
         for (map<String, vector<SIPPeptide> >::const_iterator pept_it = prot_it->second.begin(); pept_it != prot_it->second.end(); ++pept_it)
         {
           for (vector<SIPPeptide>::const_iterator v_it = pept_it->second.begin(); v_it != pept_it->second.end(); ++v_it)
@@ -830,15 +828,15 @@ class MetaProSIPReporting
             protein_number_RIAs.push_back(v_it->incorporations.size());
           }
         }          
-        DoubleReal protein_global_LR = Math::median(protein_global_LRs.begin(), protein_global_LRs.end(), false);
+        double protein_global_LR = Math::median(protein_global_LRs.begin(), protein_global_LRs.end(), false);
         Size protein_number_RIA = (Size) (Math::median(protein_number_RIAs.begin(), protein_number_RIAs.end(), false) + 0.5); // median number of RIAs
 
-        out_stream << "" << "Protein Accession" << "Description" << "# Unique Peptides" << "Median Global LR";
+        out_csv_stream << "" << "Protein Accession" << "Description" << "# Unique Peptides" << "Median Global LR";
         for (Size i = 0; i != protein_number_RIA; ++i)
         {
-          out_stream << "median RIA " + String(i + 1);
+          out_csv_stream << "median RIA " + String(i + 1);
         }
-        out_stream << endl;
+        out_csv_stream << endl;
 
         String protein_accession = prot_it->first;
         String protein_description = "none";
@@ -847,14 +845,14 @@ class MetaProSIPReporting
           protein_description = proteinid_to_description.at(protein_accession.trim().toUpper());
         }
 
-        out_stream << "" << protein_accession << protein_description <<  prot_it->second.size() << protein_global_LR;
+        out_csv_stream << "" << protein_accession << protein_description <<  prot_it->second.size() << protein_global_LR;
 
-        vector< vector<DoubleReal> > protein_RIAs(protein_number_RIA, vector<DoubleReal>());
-        vector< DoubleReal > protein_RIA_medians(protein_number_RIA, 0);
+        vector< vector<double> > protein_RIAs(protein_number_RIA, vector<double>());
+        vector< double > protein_RIA_medians(protein_number_RIA, 0);
 
         // ratio to natural decomposition
-        vector< vector<DoubleReal> > protein_ratio(protein_number_RIA, vector<DoubleReal>());
-        vector< DoubleReal > protein_ratio_medians(protein_number_RIA, 0); 
+        vector< vector<double> > protein_ratio(protein_number_RIA, vector<double>());
+        vector< double > protein_ratio_medians(protein_number_RIA, 0); 
 
         // collect 1th, 2nd, ... RIA of the protein based on the peptide RIAs
         for (map<String, vector<SIPPeptide> >::const_iterator pept_it = prot_it->second.begin(); pept_it != prot_it->second.end(); ++pept_it)
@@ -881,13 +879,13 @@ class MetaProSIPReporting
 
         for (Size i = 0; i != protein_number_RIA; ++i)
         {
-          out_stream << String(protein_RIA_medians[i]);
+          out_csv_stream << String(protein_RIA_medians[i]);
         }
 
-        out_stream << endl;
+        out_csv_stream << endl;
 
         // print header of unique peptides
-        out_stream << "" << "" << "Peptide Sequence" << "RT" << "Exp. m/z" << "Theo. m/z" << "Charge" << "Score" << "TIC fraction" << "#non-natural weights" << "";
+        out_csv_stream << "" << "" << "Peptide Sequence" << "RT" << "Exp. m/z" << "Theo. m/z" << "Charge" << "Score" << "TIC fraction" << "#non-natural weights" << "";
         Size max_incorporations = 0;
         for (map<String, vector<SIPPeptide> >::const_iterator pept_it = prot_it->second.begin(); pept_it != prot_it->second.end(); ++pept_it)
         {     
@@ -899,25 +897,25 @@ class MetaProSIPReporting
 
         for (Size i = 0; i != max_incorporations; ++i)
         {
-          out_stream << "RIA " + String(i + 1) << "INT " + String(i + 1) << "Cor. " + String(i + 1);
+          out_csv_stream << "RIA " + String(i + 1) << "INT " + String(i + 1) << "Cor. " + String(i + 1);
         }
-        out_stream << "Peak intensities" << "Global LR" << endl;
+        out_csv_stream << "Peak intensities" << "Global LR" << endl;
 
         // print data of unique peptides
         for (map<String, vector<SIPPeptide> >::const_iterator pept_it = prot_it->second.begin(); pept_it != prot_it->second.end(); ++pept_it)
         {
           for (vector<SIPPeptide>::const_iterator v_it = pept_it->second.begin(); v_it != pept_it->second.end(); ++v_it)
           {
-            out_stream << "" << "" << v_it->sequence.toString() << String::number(v_it->feature_rt / 60.0, 2)  << String::number(v_it->feature_mz, 4) << v_it->mz_theo << v_it->charge << v_it->score << v_it->explained_TIC_fraction << v_it->non_zero_decomposition_coefficients << "";
+            out_csv_stream << "" << "" << v_it->sequence.toString() << String::number(v_it->feature_rt / 60.0, 2)  << String::number(v_it->feature_mz, 4) << v_it->mz_theo << v_it->charge << v_it->score << v_it->explained_TIC_fraction << v_it->non_zero_decomposition_coefficients << "";
             for (vector<SIPIncorporation>::const_iterator incorps = v_it->incorporations.begin(); incorps != v_it->incorporations.end(); ++incorps)
             {
-              out_stream << String::number(incorps->rate,1) << String::number(incorps->abundance, 0) << String::number(incorps->correlation, 2);
+              out_csv_stream << String::number(incorps->rate,1) << String::number(incorps->abundance, 0) << String::number(incorps->correlation, 2);
             }
 
             // blank entries for nicer formatting
             for (Int q = 0; q < max_incorporations - v_it->incorporations.size(); ++q)
             {
-              out_stream << "" << "" << "";
+              out_csv_stream << "" << "" << "";
             }
 
             // output peak intensities
@@ -926,10 +924,10 @@ class MetaProSIPReporting
             {
               peak_intensities += String::number(p->getIntensity(),0) + " ";
             }
-            out_stream << peak_intensities;
-            out_stream << v_it->global_LR;
+            out_csv_stream << peak_intensities;
+            out_csv_stream << v_it->global_LR;
 
-            out_stream << endl; 
+            out_csv_stream << endl; 
           }
         }
       }
@@ -944,13 +942,13 @@ class MetaProSIPReporting
         }
       }
 
-      out_stream << "Non-Unique Peptides" << "Accessions" << "Peptide Sequence" << "Descriptions" << "Score" << "RT" << "Exp. m/z" << "Theo. m/z" << "Charge" << "#non-natural weights" << "";
+      out_csv_stream << "Non-Unique Peptides" << "Accessions" << "Peptide Sequence" << "Descriptions" << "Score" << "RT" << "Exp. m/z" << "Theo. m/z" << "Charge" << "#non-natural weights" << "";
 
       for (Size i = 0; i != max_incorporations; ++i)
       {
-        out_stream << "RIA " + String(i + 1) << "INT " + String(i + 1) << "Cor. " + String(i + 1);
+        out_csv_stream << "RIA " + String(i + 1) << "INT " + String(i + 1) << "Cor. " + String(i + 1);
       }
-      out_stream << "Peak intensities" << "Global LR" << endl;
+      out_csv_stream << "Peak intensities" << "Global LR" << endl;
 
       // print data of non-unique peptides below the protein section
       for (map<String, vector<SIPPeptide> >::const_iterator pept_it = ambigous_peptides.begin(); pept_it != ambigous_peptides.end(); ++pept_it)
@@ -990,18 +988,18 @@ class MetaProSIPReporting
             }
           }
 
-          out_stream << "" << accessions_string << v_it->sequence.toString() << description_string << v_it->score << String::number(v_it->feature_rt / 60.0, 2) << String::number(v_it->feature_mz, 4) << v_it->mz_theo << v_it->charge << v_it->non_zero_decomposition_coefficients << "";
+          out_csv_stream << "" << accessions_string << v_it->sequence.toString() << description_string << v_it->score << String::number(v_it->feature_rt / 60.0, 2) << String::number(v_it->feature_mz, 4) << v_it->mz_theo << v_it->charge << v_it->non_zero_decomposition_coefficients << "";
 
           // output variable sized RIA part
           for (vector<SIPIncorporation>::const_iterator incorps = v_it->incorporations.begin(); incorps != v_it->incorporations.end(); ++incorps)
           {
-            out_stream << String::number(incorps->rate,1) << String::number(incorps->abundance, 0) << String::number(incorps->correlation, 2);
+            out_csv_stream << String::number(incorps->rate,1) << String::number(incorps->abundance, 0) << String::number(incorps->correlation, 2);
           }
 
           // blank entries for nicer formatting
           for (Int q = 0; q < max_incorporations - v_it->incorporations.size(); ++q)
           {
-            out_stream << "" << "" << "";
+            out_csv_stream << "" << "" << "";
           }
 
           // output peak intensities
@@ -1010,17 +1008,18 @@ class MetaProSIPReporting
           {
             peak_intensities += String::number(p->getIntensity(),0) + " ";
           }
-          out_stream << peak_intensities;
-          out_stream << v_it->global_LR;
-          out_stream << endl; 
+          out_csv_stream << peak_intensities;
+          out_csv_stream << v_it->global_LR;
+          out_csv_stream << endl; 
         }
       }      
     }
-    out_csv_stream.close();
+	os.close();
   }
 
-    static void createPeptideCentricCSVReport(const String in_mzML, const String& file_extension, vector<vector<SIPPeptide> >& sippeptide_cluster, SVOutStream& out_stream, map<String, String> &proteinid_to_description, ofstream &out_csv_stream, String qc_output_directory="", String file_suffix="" )
+    static void createPeptideCentricCSVReport(const String in_mzML, const String& file_extension, vector<vector<SIPPeptide> >& sippeptide_cluster, ofstream& os, map<String, String> &proteinid_to_description, String qc_output_directory="", String file_suffix="" )
   {
+	SVOutStream out_csv_stream(os, "\t", "_", String::NONE);
     // sort clusters by non increasing size
     sort(sippeptide_cluster.rbegin(), sippeptide_cluster.rend(), SizeLess());
 
@@ -1038,14 +1037,14 @@ class MetaProSIPReporting
     // sort by sequence
     sort(peptide_to_cluster_index.begin(), peptide_to_cluster_index.end(), SequenceLess());
 
-    out_stream << "Peptide Sequence" << "Quality Report Spectrum" << "Quality report scores" << "Sample Name" << "Protein Accessions" << "Description" << "Unique" "#Ambiguity members" 
+	out_csv_stream << "Peptide Sequence" << "Quality Report Spectrum" << "Quality report scores" << "Sample Name" << "Protein Accessions" << "Description" << "Unique" << "#Ambiguity members"
       << "Score" << "RT" << "Exp. m/z" << "Theo. m/z" << "Charge" << "TIC fraction" << "#non-natural weights" << "Peak intensities" << "Group" << "Global Peptide LR";
 
     for (Size i = 1; i <= 10; ++i)
     {
-      out_stream << "RIA " + String(i) <<  "LR of RIA " + String(i) <<  "INT " + String(i)  <<  "Cor. " + String(i);
+	  out_csv_stream << "RIA " + String(i) << "LR of RIA " + String(i) << "INT " + String(i) << "Cor. " + String(i);
     }
-    out_stream << std::endl;
+	out_csv_stream << std::endl;
 
     for(Size i = 0; i != peptide_to_cluster_index.size(); ++i)
     {
@@ -1053,17 +1052,17 @@ class MetaProSIPReporting
       const Size& current_cluster_index = peptide_to_cluster_index[i].second;
 
       // output peptide sequence
-      out_stream << current_SIPpeptide.sequence.toString();
+	  out_csv_stream << current_SIPpeptide.sequence.toString();
 
       // output quality report links if available
       if (qc_output_directory.empty() && file_suffix.empty())
       {
-        out_stream << "" << "";
+		out_csv_stream << "" << "" << in_mzML;
       } else
       {
         String qr_spectrum_filename = String("file://") + qc_output_directory + String("spectrum") + file_suffix + "_rt_" + String(current_SIPpeptide.feature_rt) + "." + file_extension;
         String qr_scores_filename = String("file://") + qc_output_directory + String("scores")  + file_suffix + "_rt_" + String(current_SIPpeptide.feature_rt) + "." + file_extension;
-        out_stream << qr_spectrum_filename << qr_scores_filename << in_mzML;
+		out_csv_stream << qr_spectrum_filename << qr_scores_filename << in_mzML;
       }
 
       // output protein accessions and descriptions
@@ -1094,7 +1093,7 @@ class MetaProSIPReporting
         }
       }      
      
-      out_stream << accession_string << protein_descriptions << current_SIPpeptide.unique << current_SIPpeptide.accessions.size() << current_SIPpeptide.score << String::number(current_SIPpeptide.feature_rt / 60.0, 2)
+	  out_csv_stream << accession_string << protein_descriptions << current_SIPpeptide.unique << current_SIPpeptide.accessions.size() << current_SIPpeptide.score << String::number(current_SIPpeptide.feature_rt / 60.0, 2)
         << String::number(current_SIPpeptide.feature_mz, 4) << String::number(current_SIPpeptide.mz_theo, 4) << current_SIPpeptide.charge << current_SIPpeptide.explained_TIC_fraction << current_SIPpeptide.non_zero_decomposition_coefficients;
 
       // output peak intensities
@@ -1103,32 +1102,32 @@ class MetaProSIPReporting
       {
         peak_intensities += String::number(p->getIntensity(), 0) + " ";
       }
-      out_stream << peak_intensities;
+	  out_csv_stream << peak_intensities;
       
-      out_stream << current_cluster_index << current_SIPpeptide.global_LR;
+	  out_csv_stream << current_cluster_index << current_SIPpeptide.global_LR;
 
       for (Size j = 0; j != current_SIPpeptide.incorporations.size(); ++j)
       {
-        const DoubleReal ria = current_SIPpeptide.incorporations[j].rate;
-        const DoubleReal abundance = current_SIPpeptide.incorporations[j].abundance;
-        const DoubleReal corr = current_SIPpeptide.incorporations[j].correlation;
+        const double ria = current_SIPpeptide.incorporations[j].rate;
+        const double abundance = current_SIPpeptide.incorporations[j].abundance;
+        const double corr = current_SIPpeptide.incorporations[j].correlation;
         
-        DoubleReal LR_of_RIA = 0;
+        double LR_of_RIA = 0;
         if (ria < 1.5) // first RIA hast natural abundance
         {
           LR_of_RIA = abundance / current_SIPpeptide.incorporations[0].abundance;
         }
-        out_stream << String::number(ria, 1) << String::number(LR_of_RIA, 1) << String::number(abundance, 1) << String::number(corr, 1);
+		out_csv_stream << String::number(ria, 1) << String::number(LR_of_RIA, 1) << String::number(abundance, 1) << String::number(corr, 1);
       }      
-      out_stream << endl; 
+	  out_csv_stream << endl;
     }
 
-    out_stream << endl; 
-    out_csv_stream.close();
+	out_csv_stream << endl;
+    os.close();
   }
 
   protected:
-    static void createBinnedPeptideRIAData_(const Size n_heatmap_bins, const vector<vector<SIPPeptide>>& sip_clusters, vector< vector<DoubleReal> >& binned_peptide_ria, vector<String>& cluster_labels)
+    static void createBinnedPeptideRIAData_(const Size n_heatmap_bins, const vector<vector<SIPPeptide>>& sip_clusters, vector< vector<double> >& binned_peptide_ria, vector<String>& cluster_labels)
   {
     cluster_labels.clear();
     binned_peptide_ria.clear();
@@ -1138,11 +1137,11 @@ class MetaProSIPReporting
       const vector<SIPPeptide>& sip_peptides = *cit;
       for (vector<SIPPeptide>::const_iterator pit = sip_peptides.begin(); pit != sip_peptides.end(); ++pit)
       {
-        vector<DoubleReal> binned(n_heatmap_bins, 0.0); 
+        vector<double> binned(n_heatmap_bins, 0.0); 
         for (vector<SIPIncorporation>::const_iterator iit = pit->incorporations.begin(); iit != pit->incorporations.end(); ++iit)
         {
           Int bin = iit->rate / 100.0 * n_heatmap_bins;
-          bin = bin > binned.size() - 1 ? binned.size() - 1 : bin;
+          bin = bin > (Int)binned.size() - 1 ? (Int)binned.size() - 1 : bin;
           bin = bin < 0 ? 0 : bin;
           binned[bin] = log(1.0 + iit->abundance);
         }
@@ -1158,24 +1157,24 @@ class MetaProSIPDecomposition
 {
   public:
     ///> Perform the decomposition
-    static Int calculateDecompositionWeightsIsotopicPatterns(const String& seq, const vector<DoubleReal>& isotopic_intensities, const IsotopePatterns& patterns, MapRateToScoreType& map_rate_to_decomposition_weight, bool use_N15, SIPPeptide& sip_peptide)
+    static Int calculateDecompositionWeightsIsotopicPatterns(const String& seq, const vector<double>& isotopic_intensities, const IsotopePatterns& patterns, MapRateToScoreType& map_rate_to_decomposition_weight, bool use_N15, SIPPeptide& sip_peptide)
   {
     Size n_bins = use_N15 ? AASequence(seq).getFormula().getNumberOf("Nitrogen") : AASequence(seq).getFormula().getNumberOf("Carbon");
-    Matrix<DoubleReal> beta(n_bins, 1);
-    Matrix<DoubleReal> intensity_vector(isotopic_intensities.size(), 1);
+    Matrix<double> beta(n_bins, 1);
+    Matrix<double> intensity_vector(isotopic_intensities.size(), 1);
 
     for (Size p = 0; p != isotopic_intensities.size(); ++p)
     {
       intensity_vector(p, 0) =  isotopic_intensities[p];
     }
 
-    Matrix<DoubleReal> basis_matrix(isotopic_intensities.size(), n_bins);
+    Matrix<double> basis_matrix(isotopic_intensities.size(), n_bins);
 
     for (Size row = 0; row != isotopic_intensities.size(); ++row)
     {
       for (Size col = 0; col != n_bins; ++col)
       {
-        const vector<DoubleReal>& pattern = patterns[col].second;
+        const vector<double>& pattern = patterns[col].second;
         if (row <= n_bins)
         {
           basis_matrix(row, col) = pattern[row];
@@ -1190,24 +1189,24 @@ class MetaProSIPDecomposition
 
     for (Size p = 0; p != n_bins; ++p)
     {
-      map_rate_to_decomposition_weight[(DoubleReal) p/n_bins * 100.0] = beta(p, 0);
+      map_rate_to_decomposition_weight[(double) p/n_bins * 100.0] = beta(p, 0);
     }
 
     // calculate R squared
-    DoubleReal S_tot = 0;
-    DoubleReal mean = accumulate(isotopic_intensities.begin(), isotopic_intensities.end(), 0) / isotopic_intensities.size();
+    double S_tot = 0;
+    double mean = accumulate(isotopic_intensities.begin(), isotopic_intensities.end(), 0) / isotopic_intensities.size();
     for (Size row = 0; row != isotopic_intensities.size(); ++row)
     {
       S_tot += pow(isotopic_intensities[row] - mean, 2);
     }
 
-    DoubleReal S_err = 0;
-    DoubleReal predicted_sum = 0;
+    double S_err = 0;
+    double predicted_sum = 0;
     PeakSpectrum reconstructed;
     PeakSpectrum alphas;
     for (Size row = 0; row != isotopic_intensities.size(); ++row)
     {
-      DoubleReal predicted = 0;
+      double predicted = 0;
       for (Size col = 0; col != n_bins; ++col)
       {
         predicted += basis_matrix(row, col) * beta(col, 0);
@@ -1222,7 +1221,7 @@ class MetaProSIPDecomposition
 
     for (Size row = 0; row != 5; ++row)
     {
-      DoubleReal predicted = 0;
+      double predicted = 0;
       for (Size col = 0; col != 3; ++col)
       {
         predicted += basis_matrix(row, col) * beta(col, 0);
@@ -1257,9 +1256,9 @@ class MetaProSIPDecomposition
 
     // calculate isotope distribution for a given peptide and varying incoperation rates
     // modification of isotope distribution in static ElementDB
-    for (DoubleReal abundance = 0.0; abundance < 100.0 - 1e-8; abundance += 100.0 / (DoubleReal)MAXISOTOPES)
+    for (double abundance = 0.0; abundance < 100.0 - 1e-8; abundance += 100.0 / (double)MAXISOTOPES)
     {
-      DoubleReal a = abundance / 100.0;
+      double a = abundance / 100.0;
       IsotopeDistribution isotopes;
       std::vector<std::pair<Size, double> > container;
       container.push_back(make_pair(12, 1.0 - a));
@@ -1268,7 +1267,7 @@ class MetaProSIPDecomposition
       e2->setIsotopeDistribution(isotopes);
       IsotopeDistribution dist = peptide.getFormula(Residue::Full, 0).getIsotopeDistribution(MAXISOTOPES + additional_isotopes);
       container = dist.getContainer();
-      vector<DoubleReal> intensities;
+      vector<double> intensities;
       for (Size i = 0; i != container.size(); ++i)
       {
         intensities.push_back(container[i].second);
@@ -1302,9 +1301,9 @@ class MetaProSIPDecomposition
 
     // calculate isotope distribution for a given peptide and varying incoperation rates
     // modification of isotope distribution in static ElementDB
-    for (DoubleReal abundance = 0; abundance < 100.0 - 1e-8; abundance += 100.0 / (DoubleReal) MAXISOTOPES)
+    for (double abundance = 0; abundance < 100.0 - 1e-8; abundance += 100.0 / (double) MAXISOTOPES)
     {
-      DoubleReal a = abundance / 100.0;
+      double a = abundance / 100.0;
       IsotopeDistribution isotopes;
       std::vector<std::pair<Size, double> > container;
       container.push_back(make_pair(14, 1.0 - a));
@@ -1313,7 +1312,7 @@ class MetaProSIPDecomposition
       e2->setIsotopeDistribution(isotopes);
       IsotopeDistribution dist = peptide.getFormula(Residue::Full, 0).getIsotopeDistribution(MAXISOTOPES + additional_isotopes);
       container = dist.getContainer();
-      vector<DoubleReal> intensities;
+      vector<double> intensities;
       for (Size i = 0; i != container.size(); ++i)
       {
         intensities.push_back(container[i].second);
@@ -1379,12 +1378,15 @@ protected:
     
     registerStringOption_("plot_extension", "<extension>", "png", "Extension used for plots (png|svg|pdf).", false);
     StringList valid_extensions;
-    valid_extensions << "png" << "svg" << "pdf";
+	valid_extensions.push_back("png");
+	valid_extensions.push_back("svg");
+	valid_extensions.push_back("pdf");
     setValidStrings_("plot_extension", valid_extensions);
 
     registerStringOption_("cluster_type", "<algorithm>", "emd", "Clustering algorithm used.", false);
     StringList valid_cluster_type;
-    valid_cluster_type << "emd" << "profile";
+	valid_cluster_type.push_back("emd");
+	valid_cluster_type.push_back("profile");
     setValidStrings_("cluster_type", valid_cluster_type);
 
     registerStringOption_("qc_output_directory", "<directory>", "", "Output directory for the quality report", false);
@@ -1405,14 +1407,71 @@ protected:
 
     registerStringOption_("collect_method", "<method>", "correlation_maximum", "How RIAs are collected.", false, true);
     StringList valid_collect_method;
-    valid_collect_method << "correlation_maximum" << "decomposition_maximum";
+	valid_collect_method.push_back("correlation_maximum");
+    valid_collect_method.push_back("decomposition_maximum");
     setValidStrings_("collect_method", valid_collect_method);
 
     registerDoubleOption_("lowRIA_correlation_threshold", "<tol>", -1, "Correlation threshold for reporting low RIA patterns. Disable and take correlation_threshold value for negative values.", false, true);
   }
   
-  ///< Determine score maxima from rate to score distribution using derivatives from akima spline interpolation
-  vector<RateScorePair> getHighPoints(DoubleReal threshold, MapRateToScoreType& rate2score, Size NBREAK = 10)
+  // Perform a simple check if R and all R dependencies are there
+  bool checkRDependencies(String tmp_path)
+  {
+	String random_name = String::random(8);
+	String script_filename = tmp_path + String("/") + random_name + String(".R");
+
+	// check if R in path and can be executed
+	TextFile checkRInPath;
+	checkRInPath.push_back("q()");
+	checkRInPath.store(script_filename);
+
+    QStringList checkRinPathQParam;
+	checkRinPathQParam << "--vanilla" << "--quiet" << "--slave" << "--file=" + QString(tmp_path.toQString() + "\\" + script_filename.toQString());
+	Int status = QProcess::execute("R", checkRinPathQParam);
+	if (status != 0)
+	{
+		LOG_ERROR << "Can't execute R. Check if path to R is in your system path variable." << std::endl;
+		return false;
+	}
+
+	// check dependencies
+	TextFile current_script;
+	current_script.push_back("LoadOrInstallPackage <-function(x)");
+	current_script.push_back("{");
+	current_script.push_back("  x < -as.character(substitute(x)) if (isTRUE(x %in%.packages(all.available = TRUE)))");
+	current_script.push_back("  {");
+	current_script.push_back("    eval(parse(text = paste(\"library(\", x, \")\", sep = \"\")))");
+	current_script.push_back("  }");
+	current_script.push_back("  else");
+	current_script.push_back("  {");
+	current_script.push_back("    update.packages()");
+    current_script.push_back("    eval(parse(text = paste(\"install.packages('\", x, \"')\", sep = \"\")))");
+	current_script.push_back("    eval(parse(text = paste(\"library(\", x, \")\", sep = \"\")))");
+    current_script.push_back("  }");
+	current_script.push_back("}");
+	current_script.push_back("LoadOrInstallPackage(fpc)");
+    current_script.push_back("LoadOrInstallPackage(gplots)");
+	current_script.push_back("LoadOrInstallPackage(clValid)");
+    current_script.store(script_filename);
+
+	QStringList qparam;
+	qparam << "--vanilla" << "--quiet" << "--slave" << "--file=" + QString(tmp_path.toQString() + "\\" + script_filename.toQString());
+	status = QProcess::execute("R", qparam);
+	if (status != 0)
+	{
+	  LOG_ERROR << "Problem finding all R dependencies. Check if R and following libraries are installed:" << std::endl;
+	  for (Size i = 0; i != current_script.size(); ++i)
+	  {
+		LOG_ERROR << current_script[i] << std::endl;
+		return false;
+	  }
+	}
+	LOG_INFO << "R and dependencies available." << std::endl;
+	return true;
+  }
+
+  ///< Determine score maxima from rate to score distribution using derivatives from spline interpolation
+  vector<RateScorePair> getHighPoints(double threshold, MapRateToScoreType& rate2score, Size NBREAK = 10)
   {
     vector<RateScorePair> high_points;
     const size_t n = rate2score.size() + 2;
@@ -1432,17 +1491,13 @@ protected:
     x.push_back(100.0);
     y.push_back(0);
 
-    gsl_interp_accel *acc = gsl_interp_accel_alloc();
-    gsl_interp_accel *acc_deriv = gsl_interp_accel_alloc();
-    gsl_spline *spline = gsl_spline_alloc(gsl_interp_akima, n);     
+	Spline2d<double> spline(3, x, y);
 
-    gsl_spline_init(spline, &(*x.begin()), &(*y.begin()), n);
-    
     double last_dxdy = 0;
     for (double xi = x[0]; xi < x[n-1]; xi += 0.1)
     {    
-      double dxdy = gsl_spline_eval_deriv(spline, xi, acc_deriv);
-      double y = gsl_spline_eval(spline, xi, acc);
+      double dxdy = spline.derivatives(xi, 1);
+      double y = spline.eval(xi);
       
       if (last_dxdy > 0.0 && dxdy <= 0 && y > threshold)
       {
@@ -1454,37 +1509,34 @@ protected:
       last_dxdy = dxdy;
     }
 
-    gsl_spline_free (spline);
-    gsl_interp_accel_free (acc);
-    gsl_interp_accel_free (acc_deriv);
     return high_points;
   }
 
   /// Extracts isotopic intensities from seeds_rt.size() spectra in the given peak map.
   /// To reduce noise the mean intensity at each isotopic position is returned.
-  vector<DoubleReal> extractIsotopicIntensitiesConsensus(Size element_count, DoubleReal mass_diff,
-                                                         DoubleReal mz_tolerance_ppm,
-                                                         const vector<DoubleReal>& seeds_rt,
-                                                         DoubleReal seed_mz,
-                                                         DoubleReal seed_charge,
+  vector<double> extractIsotopicIntensitiesConsensus(Size element_count, double mass_diff,
+                                                         double mz_tolerance_ppm,
+                                                         const vector<double>& seeds_rt,
+                                                         double seed_mz,
+                                                         double seed_charge,
                                                          const MSExperiment<Peak1D>& peak_map)
   {
-    vector<vector<DoubleReal> > all_intensities;
+    vector<vector<double> > all_intensities;
     // extract intensities auf central spectrum (at time seeds_rt[0])
-    vector<DoubleReal> isotopic_intensities = extractIsotopicIntensities(element_count, mass_diff, mz_tolerance_ppm, seeds_rt[0], seed_mz, seed_charge, peak_map);
+    vector<double> isotopic_intensities = extractIsotopicIntensities(element_count, mass_diff, mz_tolerance_ppm, seeds_rt[0], seed_mz, seed_charge, peak_map);
     all_intensities.push_back(isotopic_intensities);
 
     // extract intensities auf neighbouring spectra
     for (Size i = 1; i < seeds_rt.size(); ++i)
     {
-      vector<DoubleReal> tmp = extractIsotopicIntensities(element_count, mass_diff, mz_tolerance_ppm, seeds_rt[i], seed_mz, seed_charge, peak_map);
+      vector<double> tmp = extractIsotopicIntensities(element_count, mass_diff, mz_tolerance_ppm, seeds_rt[i], seed_mz, seed_charge, peak_map);
       all_intensities.push_back(tmp);
     }
 
     // calculate mean for each bucket
     for (Size p = 0; p != isotopic_intensities.size(); ++p)
     {
-      DoubleReal sum = 0;
+      double sum = 0;
       for (Size i = 0; i != all_intensities.size(); ++i)
       {
         sum += all_intensities[i][p];     
@@ -1498,10 +1550,10 @@ protected:
   }
 
   ///> Extracts peaks at the theoretical position of the isotopic intensities from seeds_rt.size() spectra in the given peak map.
-  PeakSpectrum extractPeakSpectrumConsensus(Size element_count, DoubleReal mass_diff,
-                                            const vector<DoubleReal>& seeds_rt,
-                                            DoubleReal seed_mz,
-                                            DoubleReal seed_charge,
+  PeakSpectrum extractPeakSpectrumConsensus(Size element_count, double mass_diff,
+                                            const vector<double>& seeds_rt,
+                                            double seed_mz,
+                                            double seed_charge,
                                             const MSExperiment<Peak1D>& peak_map)
   {
     MSExperiment<> to_merge;
@@ -1513,24 +1565,24 @@ protected:
   }
 
   ///> 
-  PeakSpectrum filterPeakSpectrumForIsotopicPeaks(Size element_count, DoubleReal mass_diff, DoubleReal seed_mz,
-                                                  DoubleReal seed_charge, const PeakSpectrum& spectrum, DoubleReal ppm = 10.0)
+  PeakSpectrum filterPeakSpectrumForIsotopicPeaks(Size element_count, double mass_diff, double seed_mz,
+                                                  double seed_charge, const PeakSpectrum& spectrum, double ppm = 10.0)
   {
     PeakSpectrum ret;
-    DoubleReal iso_dist = mass_diff / seed_charge;
+    double iso_dist = mass_diff / seed_charge;
 
     for (PeakSpectrum::ConstIterator it = spectrum.begin(); it != spectrum.end(); ++it)
     {
-      DoubleReal mz_dist = it->getMZ() - seed_mz;
+      double mz_dist = it->getMZ() - seed_mz;
       if (mz_dist < -seed_mz * ppm * 1e-6)
       {
         continue;
       }
       Size k = (Size)(mz_dist / iso_dist + 0.5);  // determine which k-th isotopic peak we probably are dealing with
       // determine ppm window the peak must lie in
-      DoubleReal mz = seed_mz + k * mass_diff / seed_charge;
-      DoubleReal min_mz = mz - mz * ppm * 1e-6;
-      DoubleReal max_mz = mz + mz * ppm * 1e-6;
+      double mz = seed_mz + k * mass_diff / seed_charge;
+      double min_mz = mz - mz * ppm * 1e-6;
+      double max_mz = mz + mz * ppm * 1e-6;
       if (it->getMZ() > min_mz && it->getMZ() < max_mz)
       {
         ret.push_back(*it);
@@ -1540,12 +1592,12 @@ protected:
   }
 
   ///> filter intensity to remove noise or additional incorporation peaks that otherwise might interfere with correlation calculation
-  void filterIsotopicIntensities(vector<DoubleReal>::const_iterator& pattern_begin, vector<DoubleReal>::const_iterator& pattern_end,
-                                 vector<DoubleReal>::const_iterator& intensities_begin, vector<DoubleReal>::const_iterator& intensities_end, DoubleReal TIC_threshold = 0.99)
+  void filterIsotopicIntensities(vector<double>::const_iterator& pattern_begin, vector<double>::const_iterator& pattern_end,
+                                 vector<double>::const_iterator& intensities_begin, vector<double>::const_iterator& intensities_end, double TIC_threshold = 0.99)
   {
     if (std::distance(pattern_begin, pattern_end) != std::distance(intensities_begin, intensities_end))
     {
-      cout << "Error: size of pattern and collected intensities don't match!" << endl;
+	  LOG_ERROR << "Error: size of pattern and collected intensities don't match!" << endl;
     }
 
     if (pattern_begin == pattern_end)
@@ -1554,24 +1606,24 @@ protected:
     }
 
     // determine order of peaks based on intensities
-    vector<DoubleReal>::const_iterator b_it = pattern_begin;
-    vector<DoubleReal>::const_iterator e_it = pattern_end;
+    vector<double>::const_iterator b_it = pattern_begin;
+    vector<double>::const_iterator e_it = pattern_end;
     // create intensity to offset map for sorting
-    vector<std::pair<DoubleReal, Int> > intensity_to_offset;
+    vector<std::pair<double, Int> > intensity_to_offset;
     for (; b_it != e_it; ++b_it)
     {
-      std::pair<DoubleReal, Int> intensity_offset_pair = make_pair(*b_it, std::distance(pattern_begin, b_it));
+      std::pair<double, Int> intensity_offset_pair = make_pair(*b_it, std::distance(pattern_begin, b_it));
       intensity_to_offset.push_back(intensity_offset_pair);  // pair: intensity, offset to pattern_begin iterator
     }
     // sort by intensity (highest first)
-    std::sort(intensity_to_offset.begin(), intensity_to_offset.end(), std::greater<pair<DoubleReal, Int> >());
+    std::sort(intensity_to_offset.begin(), intensity_to_offset.end(), std::greater<pair<double, Int> >());
 
     // determine sequence of (neighbouring) peaks needed to achieve threshold * 100 % TIC in the patterns
-    DoubleReal TIC = 0.0;
+    double TIC = 0.0;
     Int min_offset = std::distance(pattern_begin, pattern_end);
     Int max_offset = 0;
 
-    for (vector<std::pair<DoubleReal, Int> >::const_iterator it = intensity_to_offset.begin(); it != intensity_to_offset.end(); ++it)
+    for (vector<std::pair<double, Int> >::const_iterator it = intensity_to_offset.begin(); it != intensity_to_offset.end(); ++it)
     {
       TIC += it->first;
       if (it->second < min_offset)
@@ -1592,8 +1644,8 @@ protected:
 
     //cout << "before: " << std::distance(pattern_begin, pattern_end) << endl;
 
-    vector<DoubleReal>::const_iterator tmp_pattern_it(pattern_begin);
-    vector<DoubleReal>::const_iterator tmp_intensity_it(intensities_begin);
+    vector<double>::const_iterator tmp_pattern_it(pattern_begin);
+    vector<double>::const_iterator tmp_intensity_it(intensities_begin);
     
     std::advance(pattern_begin, min_offset);
     std::advance(intensities_begin, min_offset);
@@ -1607,56 +1659,66 @@ protected:
   }
 
   ///< Calculates the correlation between measured isotopic_intensities and the theoretical isotopic patterns for all incorporation rates
-  void calculateCorrelation(String seq, const vector<DoubleReal>& isotopic_intensities, IsotopePatterns patterns,
-                            MapRateToScoreType& map_rate_to_correlation_score, bool use_N15, DoubleReal min_correlation_distance_to_averagine = 0.0)
+  void calculateCorrelation(String seq, const vector<double>& isotopic_intensities, IsotopePatterns patterns,
+                            MapRateToScoreType& map_rate_to_correlation_score, bool use_N15, double min_correlation_distance_to_averagine = 0.0)
   {
-    DoubleReal observed_peak_fraction = getDoubleOption_("observed_peak_fraction");
+    double observed_peak_fraction = getDoubleOption_("observed_peak_fraction");
  	
-    cout << "Calculating " << patterns.size() << " isotope patterns with " << ADDITIONAL_ISOTOPES << " additional isotopes." << endl;
+	LOG_INFO << "Calculating " << patterns.size() << " isotope patterns with " << ADDITIONAL_ISOTOPES << " additional isotopes." << endl;
     Size n_element = use_N15 ? AASequence(seq).getFormula().getNumberOf("Nitrogen") : AASequence(seq).getFormula().getNumberOf("Carbon");
-    DoubleReal TIC_threshold = use_N15 ? getDoubleOption_("pattern_15N_TIC_threshold") : getDoubleOption_("pattern_13C_TIC_threshold"); // N15 has smaller RIA resolution and multiple RIA peaks tend to overlap more in correlation. This reduces the width of the pattern leading to better distinction
+    double TIC_threshold = use_N15 ? getDoubleOption_("pattern_15N_TIC_threshold") : getDoubleOption_("pattern_13C_TIC_threshold"); // N15 has smaller RIA resolution and multiple RIA peaks tend to overlap more in correlation. This reduces the width of the pattern leading to better distinction
 
-    DoubleReal max_incorporation_rate = 100.0;
-    DoubleReal incorporation_step = max_incorporation_rate / (DoubleReal)n_element;
+    double max_incorporation_rate = 100.0;
+    double incorporation_step = max_incorporation_rate / (double)n_element;
 
     // calculate correlation with a natural averagine peptide (used to filter out coeluting peptides)
-    DoubleReal peptide_weight = AASequence(seq).getMonoWeight(Residue::Full, 0);
+    double peptide_weight = AASequence(seq).getMonoWeight(Residue::Full, 0);
 
     const Size AVERAGINE_CORR_OFFSET = 3;
-    std::vector<DoubleReal> averagine_correlation(0.0, AVERAGINE_CORR_OFFSET); // doesn't make sense to correlate the unlabeled peptide with known sequence to the averagine peptide so skip the first 3 peaks
-    for (Size ii = AVERAGINE_CORR_OFFSET; ii < isotopic_intensities.size() - ADDITIONAL_ISOTOPES; ++ii)
+    std::vector<double> averagine_correlation(AVERAGINE_CORR_OFFSET, 0.0); // doesn't make sense to correlate the unlabeled peptide with known sequence to the averagine peptide so skip the first 3 peaks
+	//std::cout << "isotopic_intensities.size() " << isotopic_intensities.size() << std::endl;
+
+	for (Size ii = AVERAGINE_CORR_OFFSET; ii < isotopic_intensities.size() - ADDITIONAL_ISOTOPES; ++ii)
     {
       // calculate isotope distribution of averagine peptide as this will be used to detect spurious correlations with coeluting peptides
       // Note: actually it would be more accurate to use 15N-14N or 13C-12C distances. This doesn't affect averagine distribution much so this approximation is sufficient. (see TODO)
-      DoubleReal current_weight = peptide_weight + ii * 1.0;  // TODO: use 13C-12C or 15N-14N instead of 1.0 as mass distance to be super accurate
+      double current_weight = peptide_weight + ii * 1.0;  // TODO: use 13C-12C or 15N-14N instead of 1.0 as mass distance to be super accurate
       IsotopeDistribution averagine = IsotopeDistribution(20);
       averagine.estimateFromPeptideWeight(current_weight);
-      std::vector<std::pair<Size, double> > averagine_intensities_pairs = averagine.getContainer();
+
+	  //std::cout << "current_weight " << current_weight << std::endl;
+
+	  std::vector<std::pair<Size, double> > averagine_intensities_pairs = averagine.getContainer();
       // add zero intensites to the left of distribution as we are doing a sliding correlation and explicitly want to correlate the region before the actual averagine peptide
       // as this often discriminates between the gaussian shape of a peptide with incorporation and a natural peptide
-      std::vector<DoubleReal> averagine_intensities(0.0, AVERAGINE_CORR_OFFSET); // add 0 intensity bins
+      std::vector<double> averagine_intensities(AVERAGINE_CORR_OFFSET, 0.0); // add 0 intensity bins
+	  //std::cout << "averagine_intensities.size() " << averagine_intensities.size() << std::endl;
       for (Size i = 0; i != 5; ++i)
       {
         averagine_intensities.push_back(averagine_intensities_pairs[i].second);  // add intensities of actual theoretical isotope pattern
       }
-
-      DoubleReal corr_with_averagine = Math::pearsonCorrelationCoefficient(averagine_intensities.begin(), averagine_intensities.end(), isotopic_intensities.begin() + ii - AVERAGINE_CORR_OFFSET, isotopic_intensities.begin() + ii + ADDITIONAL_ISOTOPES); 
+	  /*
+	  std::cout << "ii - AVERAGINE_CORR_OFFSET " << ii - AVERAGINE_CORR_OFFSET << std::endl;
+	  std::cout << "ii + ADDITIONAL_ISOTOPES " << ii + ADDITIONAL_ISOTOPES << std::endl;
+	  std::cout << "averagine_intensities.size() " << averagine_intensities.size() << std::endl;
+	  */
+      double corr_with_averagine = Math::pearsonCorrelationCoefficient(averagine_intensities.begin(), averagine_intensities.end(), isotopic_intensities.begin() + ii - AVERAGINE_CORR_OFFSET, isotopic_intensities.begin() + ii + ADDITIONAL_ISOTOPES); 
       averagine_correlation.push_back(corr_with_averagine);
     }
 
     // calculate correlation of RIA peptide with measured data
     for (Size ii = 0; ii != patterns.size(); ++ii)
     {
-      DoubleReal rate = (DoubleReal) ii * incorporation_step;
+      double rate = (double) ii * incorporation_step;
 
-      vector<DoubleReal>::const_iterator pattern_begin = patterns[ii].second.begin();
-      vector<DoubleReal>::const_iterator pattern_end = patterns[ii].second.end();
-      vector<DoubleReal>::const_iterator intensities_begin = isotopic_intensities.begin();
-      vector<DoubleReal>::const_iterator intensities_end = isotopic_intensities.end();
+      vector<double>::const_iterator pattern_begin = patterns[ii].second.begin();
+      vector<double>::const_iterator pattern_end = patterns[ii].second.end();
+      vector<double>::const_iterator intensities_begin = isotopic_intensities.begin();
+      vector<double>::const_iterator intensities_end = isotopic_intensities.end();
 
       filterIsotopicIntensities(pattern_begin, pattern_end, intensities_begin, intensities_end, TIC_threshold);
       Size zeros = 0;
-      for (vector<DoubleReal>::const_iterator it = intensities_begin; it != intensities_end; ++it)
+      for (vector<double>::const_iterator it = intensities_begin; it != intensities_end; ++it)
       {
         if (*it < 1e-8)
         {
@@ -1665,13 +1727,13 @@ protected:
       }
     
       // remove correlations with only very few peaks 
-      if ((DoubleReal)zeros / (DoubleReal)std::distance(intensities_begin, intensities_end) > observed_peak_fraction)
+      if ((double)zeros / (double)std::distance(intensities_begin, intensities_end) > observed_peak_fraction)
       {
         map_rate_to_correlation_score[rate] = 0;
         continue;
       }
      
-      DoubleReal correlation_score = Math::pearsonCorrelationCoefficient(pattern_begin, pattern_end, intensities_begin, intensities_end);
+      double correlation_score = Math::pearsonCorrelationCoefficient(pattern_begin, pattern_end, intensities_begin, intensities_end);
 
       // remove correlations that show higher similarity to an averagine peptide
       if (averagine_correlation[ii] > correlation_score - min_correlation_distance_to_averagine)
@@ -1690,7 +1752,7 @@ protected:
   }
 
   ///< Returns highest scoring rate and score pair in the map
-  void getBestRateScorePair(const MapRateToScoreType& map_rate_to_score, DoubleReal& best_rate, DoubleReal& best_score)
+  void getBestRateScorePair(const MapRateToScoreType& map_rate_to_score, double& best_rate, double& best_score)
   {
     best_score = -1;
     for (MapRateToScoreType::const_iterator mit = map_rate_to_score.begin(); mit != map_rate_to_score.end(); ++mit)
@@ -1704,7 +1766,7 @@ protected:
   }
  
 
-  PeakSpectrum extractPeakSpectrum(Size element_count, DoubleReal mass_diff, DoubleReal rt, DoubleReal feature_hit_theoretical_mz, Int feature_hit_charge, const MSExperiment<>& peak_map)
+  PeakSpectrum extractPeakSpectrum(Size element_count, double mass_diff, double rt, double feature_hit_theoretical_mz, Int feature_hit_charge, const MSExperiment<>& peak_map)
   {
     PeakSpectrum spec = *peak_map.RTBegin(rt - 1e-8);
     PeakSpectrum::ConstIterator begin_it = spec.MZBegin(feature_hit_theoretical_mz - 1e-8);
@@ -1730,23 +1792,23 @@ protected:
   }
 
   // collects intensities starting at seed_mz/_rt, if no peak is found at the expected position a 0 is added
-  vector<DoubleReal> extractIsotopicIntensities(Size element_count, DoubleReal mass_diff, DoubleReal mz_tolerance_ppm,
-                                                DoubleReal seed_rt, DoubleReal seed_mz, DoubleReal seed_charge,
+  vector<double> extractIsotopicIntensities(Size element_count, double mass_diff, double mz_tolerance_ppm,
+                                                double seed_rt, double seed_mz, double seed_charge,
                                                 const MSExperiment<Peak1D>& peak_map)
   {
-    vector<DoubleReal> isotopic_intensities;
+    vector<double> isotopic_intensities;
     for (Size k = 0; k != element_count; ++k)
     {
-      DoubleReal min_rt = seed_rt - 0.01; // feature rt
-      DoubleReal max_rt = seed_rt + 0.01;
-      DoubleReal mz = seed_mz + k * mass_diff / seed_charge;
+      double min_rt = seed_rt - 0.01; // feature rt
+      double max_rt = seed_rt + 0.01;
+      double mz = seed_mz + k * mass_diff / seed_charge;
 
-      DoubleReal min_mz;
-      DoubleReal max_mz;
+      double min_mz;
+      double max_mz;
 
       if (k <= 5)
       {
-        DoubleReal ppm = std::max(10.0, mz_tolerance_ppm);  // restrict ppm to 10 for low intensity peaks
+        double ppm = std::max(10.0, mz_tolerance_ppm);  // restrict ppm to 10 for low intensity peaks
         min_mz = mz - mz * ppm * 1e-6;
         max_mz = mz + mz * ppm * 1e-6;
       } else
@@ -1755,15 +1817,15 @@ protected:
         max_mz = mz + mz * mz_tolerance_ppm * 1e-6;
       }
 
-      DoubleReal found_peak_int = 0;
+      double found_peak_int = 0;
 
       MSExperiment<Peak1D>::ConstAreaIterator aait = peak_map.areaBeginConst(min_rt, max_rt, min_mz, max_mz);
 
       // find 13C/15N peak in window around theoretical predicted position
-      vector<DoubleReal> found_peaks;
+      vector<double> found_peaks;
       for (; aait != peak_map.areaEndConst(); ++aait)
       {
-        DoubleReal peak_int = aait->getIntensity();
+        double peak_int = aait->getIntensity();
         if (peak_int > 1) // we found a valid 13C/15N peak
         {
           found_peaks.push_back(peak_int);
@@ -1778,9 +1840,9 @@ protected:
     return isotopic_intensities;
   }
 
-  void writePeakIntensities_(SVOutStream& out_stream, vector<DoubleReal> isotopic_intensities, bool write_13Cpeaks)
+  void writePeakIntensities_(SVOutStream& out_stream, vector<double> isotopic_intensities, bool write_13Cpeaks)
   {    
-    DoubleReal intensities_sum_12C = 0.0;
+    double intensities_sum_12C = 0.0;
     // calculate 12C summed intensity
     for (Size k = 0; k != 5; ++k)
     {
@@ -1792,7 +1854,7 @@ protected:
     }
 
     // determine 13C peaks and summed intensity
-    DoubleReal intensities_sum_13C = 0;
+    double intensities_sum_13C = 0;
     for (Size u = 5; u < isotopic_intensities.size(); ++u)
     {
       intensities_sum_13C += isotopic_intensities[u];
@@ -1824,7 +1886,7 @@ protected:
       }
       out_stream << int_string;
 
-      DoubleReal ratio = 0.0;
+      double ratio = 0.0;
       if (intensities_sum_12C + intensities_sum_13C > 0.0000001)
       {
         ratio = intensities_sum_13C / (intensities_sum_12C + intensities_sum_13C);
@@ -1845,7 +1907,7 @@ protected:
   MapRateToScoreType normalizeToMax(const MapRateToScoreType& map_rate_to_decomposition_weight)
   {
     // extract heightest weight (best score) and rate
-    DoubleReal best_rate, best_score;
+    double best_rate, best_score;
     getBestRateScorePair(map_rate_to_decomposition_weight, best_rate, best_score);
 
     //  cout << "best rate+score: " << best_rate << " " << best_score << endl;
@@ -1870,9 +1932,9 @@ protected:
   // Used to compensate for slight RT shifts (e.g. important if features of a different map are used)
   // n_scans corresponds to the number of neighboring scan rts that should be extracted
   // n_scan = 2 -> vector size = 1 + 2 + 2
-  vector<DoubleReal> findApexRT(const FeatureMap<>::iterator feature_it, DoubleReal hit_rt, const MSExperiment<Peak1D>& peak_map, Size n_scans)
+  vector<double> findApexRT(const FeatureMap<>::iterator feature_it, double hit_rt, const MSExperiment<Peak1D>& peak_map, Size n_scans)
   {
-    vector<DoubleReal> seeds_rt;
+    vector<double> seeds_rt;
     // extract elution profile of 12C containing mass trace using a bounding box
     // first convex hull contains the monoisotopic 12C trace
     const DBoundingBox<2>& mono_bb = feature_it->getConvexHulls()[0].getBoundingBox();
@@ -1893,7 +1955,7 @@ protected:
     if (mono_trace.empty())
     {
       Peak2D p2d;
-      DoubleReal next_valid_scan_rt = peak_map.RTBegin(hit_rt - 0.001)->getRT();
+      double next_valid_scan_rt = peak_map.RTBegin(hit_rt - 0.001)->getRT();
       p2d.setRT(next_valid_scan_rt);
       p2d.setMZ(0);  // actually not needed
       p2d.setIntensity(0);
@@ -1901,8 +1963,8 @@ protected:
     }
 
     // determine trace peak with highest intensity
-    DoubleReal max_trace_int = -1;
-    DoubleReal max_trace_int_idx = 0;
+    double max_trace_int = -1;
+    double max_trace_int_idx = 0;
 
     for (Size j = 0; j != mono_trace.size(); ++j)
     {
@@ -1912,18 +1974,18 @@ protected:
         max_trace_int_idx = j;
       }
     }
-    DoubleReal max_trace_int_rt = mono_trace[max_trace_int_idx].getRT();
+    double max_trace_int_rt = mono_trace[max_trace_int_idx].getRT();
     seeds_rt.push_back(max_trace_int_rt);
 
     for (Size i = 1; i <= n_scans; ++i)
     {
-      DoubleReal rt_after = max_trace_int_rt;
+      double rt_after = max_trace_int_rt;
       if (max_trace_int_idx < mono_trace.size() - i)
       {
         rt_after = mono_trace[max_trace_int_idx + i].getRT();
       }
 
-      DoubleReal rt_before = max_trace_int_rt;
+      double rt_before = max_trace_int_rt;
       if (max_trace_int_idx >= i)
       {
         rt_before = mono_trace[max_trace_int_idx - i].getRT();
@@ -1956,13 +2018,13 @@ protected:
   }
 
   ///> converts a vector of isotopic intensities to a peak spectrum starting at mz=mz_start with mass_diff/charge step size
-  PeakSpectrum isotopicIntensitiesToSpectrum(DoubleReal mz_start, DoubleReal mass_diff, Int charge, vector<DoubleReal> isotopic_intensities)
+  PeakSpectrum isotopicIntensitiesToSpectrum(double mz_start, double mass_diff, Int charge, vector<double> isotopic_intensities)
   {
     PeakSpectrum ps;
     for (Size i = 0; i != isotopic_intensities.size(); ++i)
     {
       Peak1D peak;
-      peak.setMZ(mz_start + i * mass_diff / (DoubleReal)charge);
+      peak.setMZ(mz_start + i * mass_diff / (double)charge);
       peak.setIntensity(isotopic_intensities[i]);
       ps.push_back(peak);
     }
@@ -1973,25 +2035,25 @@ protected:
   ///> Final list of RIAs is constructed for the peptide.
   void extractIncorporationsAtCorrelationMaxima(SIPPeptide& sip_peptide,
                                                  const IsotopePatterns& patterns,
-                                                 DoubleReal weight_merge_window = 5.0,
-                                                 DoubleReal min_corr_threshold = 0.5, 
-                                                 DoubleReal min_decomposition_weight = 10.0)
+                                                 double weight_merge_window = 5.0,
+                                                 double min_corr_threshold = 0.5, 
+                                                 double min_decomposition_weight = 10.0)
 {
     const MapRateToScoreType& map_rate_to_decomposition_weight = sip_peptide.decomposition_map;
     const MapRateToScoreType& map_rate_to_correlation_score = sip_peptide.correlation_map;  
     vector<SIPIncorporation> sip_incorporations;
     const vector<RateScorePair>&  corr_maxima = sip_peptide.correlation_maxima;
    
-    DoubleReal explained_TIC_fraction = 0;
-    DoubleReal TIC = 0;
+    double explained_TIC_fraction = 0;
+    double TIC = 0;
     Size non_zero_decomposition_coefficients = 0;
        
-    DoubleReal max_corr_TIC = 0;
+    double max_corr_TIC = 0;
 
     for (Size k = 0; k < corr_maxima.size(); ++k)
     {
-      const DoubleReal rate = corr_maxima[k].rate;
-      const DoubleReal corr = corr_maxima[k].score;
+      const double rate = corr_maxima[k].rate;
+      const double corr = corr_maxima[k].score;
     
       if (corr > min_corr_threshold)
       {
@@ -1999,7 +2061,7 @@ protected:
           sip_incorporation.rate = rate;
 
           // sum up decomposition intensities for quantification in merge window
-          DoubleReal int_sum = 0;
+          double int_sum = 0;
           MapRateToScoreType::const_iterator low = map_rate_to_decomposition_weight.lower_bound(rate - weight_merge_window - 1e-4);
           MapRateToScoreType::const_iterator high = map_rate_to_decomposition_weight.lower_bound(rate + weight_merge_window + 1e-4);                    
           for (;low != high; ++low)
@@ -2035,8 +2097,8 @@ protected:
     }
 
     // find highest non-natural incorporation
-    DoubleReal highest_non_natural_abundance = 0;
-    DoubleReal highest_non_natural_rate = 0;
+    double highest_non_natural_abundance = 0;
+    double highest_non_natural_rate = 0;
     for (vector<SIPIncorporation>::const_iterator it = sip_incorporations.begin(); it != sip_incorporations.end(); ++it)
     {
       if (it->rate < 5.0) // skip natural
@@ -2061,8 +2123,8 @@ protected:
     // used for non-gaussian shape detection
     for (MapRateToScoreType::const_iterator mit = map_rate_to_decomposition_weight.begin(); mit != map_rate_to_decomposition_weight.end(); ++mit)
     {
-      DoubleReal decomposition_rate = mit->first;
-      DoubleReal decomposition_weight = mit->second;
+      double decomposition_rate = mit->first;
+      double decomposition_weight = mit->second;
       TIC += decomposition_weight;
 
       if (non_natural && decomposition_weight > 0.05 * highest_non_natural_abundance && decomposition_rate > 5.0)
@@ -2088,10 +2150,10 @@ protected:
   ///> Collect decomposition coefficients. Starting at the largest decomposition weights merge smaller weights in the merge window.
   void extractIncorporationsAtHeighestDecompositionWeights(SIPPeptide& sip_peptide,
                              const IsotopePatterns& patterns,
-                             DoubleReal weight_merge_window = 5.0,
-                             DoubleReal min_corr_threshold = 0.5,
-                             DoubleReal min_low_RIA_threshold = -1,
-                             DoubleReal min_decomposition_weight = 10.0)
+                             double weight_merge_window = 5.0,
+                             double min_corr_threshold = 0.5,
+                             double min_low_RIA_threshold = -1,
+                             double min_decomposition_weight = 10.0)
 {
   if (min_low_RIA_threshold < 0)
   {
@@ -2101,17 +2163,17 @@ protected:
   const MapRateToScoreType& map_rate_to_decomposition_weight = sip_peptide.decomposition_map;
   const MapRateToScoreType& map_rate_to_correlation_score = sip_peptide.correlation_map;  
 
-  DoubleReal explained_TIC_fraction = 0;
-  DoubleReal TIC = 0;
+  double explained_TIC_fraction = 0;
+  double TIC = 0;
   Size non_zero_decomposition_coefficients = 0;       
-  DoubleReal max_corr_TIC = 0;
+  double max_corr_TIC = 0;
   vector<SIPIncorporation> sip_incorporations;
 
   // find decomposition weights with correlation larger than threshold (seeds)
   MapRateToScoreType::const_iterator md_it = map_rate_to_decomposition_weight.begin();
   MapRateToScoreType::const_iterator mc_it = map_rate_to_correlation_score.begin();  
 
-  set< pair<DoubleReal, DoubleReal> > seeds_weight_rate_pair;
+  set< pair<double, double> > seeds_weight_rate_pair;
   for (; md_it != map_rate_to_decomposition_weight.end(); ++md_it, ++mc_it)
   {
     if (mc_it->first < 10.0) // lowRIA region
@@ -2136,14 +2198,14 @@ protected:
   while (!seeds_weight_rate_pair.empty())
   {
     // pop last element from set
-    set< pair<DoubleReal, DoubleReal> >::iterator last_element = --seeds_weight_rate_pair.end();
-    pair<DoubleReal, DoubleReal> current_seed = *last_element;
+    set< pair<double, double> >::iterator last_element = --seeds_weight_rate_pair.end();
+    pair<double, double> current_seed = *last_element;
     
     //cout << current_seed.first << " " << current_seed.second << endl;
 
     // find weights in window to merge, remove from seed map. maybe also remove from original map depending on whether we want to quantify the weight only 1 time
-    const DoubleReal weight = current_seed.first;
-    const DoubleReal rate = current_seed.second;
+    const double weight = current_seed.first;
+    const double rate = current_seed.second;
 
     SIPIncorporation sip_incorporation;
     sip_incorporation.rate = rate;
@@ -2165,7 +2227,7 @@ protected:
     }
 
     // Sum up decomposition intensities for quantification in merge window
-    DoubleReal int_sum = 0;
+    double int_sum = 0;
     for (;low != high; ++low)
     {
       int_sum += low->second;
@@ -2199,8 +2261,8 @@ protected:
   }
 
   // find highest non-natural incorporation
-  DoubleReal highest_non_natural_abundance = 0;
-  DoubleReal highest_non_natural_rate = 0;
+  double highest_non_natural_abundance = 0;
+  double highest_non_natural_rate = 0;
   for (vector<SIPIncorporation>::const_iterator it = sip_incorporations.begin(); it != sip_incorporations.end(); ++it)
   {
     if (it->rate < 5.0) // skip natural
@@ -2224,8 +2286,8 @@ protected:
   // used for non-gaussian shape detection
   for (MapRateToScoreType::const_iterator mit = map_rate_to_decomposition_weight.begin(); mit != map_rate_to_decomposition_weight.end(); ++mit)
   {
-    DoubleReal decomposition_rate = mit->first;
-    DoubleReal decomposition_weight = mit->second;
+    double decomposition_rate = mit->first;
+    double decomposition_weight = mit->second;
     TIC += decomposition_weight;
 
     if (non_natural && decomposition_weight > 0.05 * highest_non_natural_abundance && decomposition_rate > 5.0)
@@ -2250,15 +2312,15 @@ protected:
 }
 
   ///> calculate the global labeling ration based on all but the first 4 peaks
-  DoubleReal calculateGlobalLR(const vector<DoubleReal>& isotopic_intensities)
+  double calculateGlobalLR(const vector<double>& isotopic_intensities)
   {
     if (isotopic_intensities.size() < 5)
     {
       return 0.0;
     }
 
-    DoubleReal sum = accumulate(isotopic_intensities.begin(), isotopic_intensities.end(), 0);    
-    DoubleReal sum_incorporated = accumulate(isotopic_intensities.begin() + 4, isotopic_intensities.end(), 0);
+    double sum = accumulate(isotopic_intensities.begin(), isotopic_intensities.end(), 0);    
+    double sum_incorporated = accumulate(isotopic_intensities.begin() + 4, isotopic_intensities.end(), 0);
 
     if (sum < 1e-4)
     {
@@ -2373,7 +2435,7 @@ protected:
     current_script.push_back("m=t(m)");
     current_script.push_back("clusters=rep(1,nrow(t(m)))");
 
-    cout << "Cluster data..." << endl;
+	LOG_INFO << "Cluster data..." << endl;
     current_script.push_back("if (nrow(t(m))>=20)");
     current_script.push_back("{");
     current_script.push_back("max_clust<-max(3,nrow(t(m))%/%5)");  // on average there should be at least 5 spectra per group and we want to check at least 2 to 3 cluster
@@ -2431,13 +2493,13 @@ protected:
     Int debug_level = getIntOption_("debug");
     String in_mzml = getStringOption_("in_mzML");
     String in_features = getStringOption_("in_featureXML");
-    DoubleReal mz_tolerance_ppm_ = getDoubleOption_("mz_tolerance_ppm");
-    DoubleReal weight_merge_window_ = getDoubleOption_("weight_merge_window");
-    DoubleReal intensity_threshold_ = getDoubleOption_("intensity_threshold");
+    double mz_tolerance_ppm_ = getDoubleOption_("mz_tolerance_ppm");
+    double weight_merge_window_ = getDoubleOption_("weight_merge_window");
+    double intensity_threshold_ = getDoubleOption_("intensity_threshold");
     String qc_output_directory = getStringOption_("qc_output_directory");
     String cluster_type = getStringOption_("cluster_type");
-    Size n_heatmap_bins = getIntOption_("n_heatmap_bins");
-    DoubleReal score_plot_y_axis_min = getDoubleOption_("score_plot_y_axis_min");
+    Size n_heatmap_bins = getIntOption_("heatmap_bins");	
+    double score_plot_y_axis_min = getDoubleOption_("score_plot_yaxis_min");
 
     // trying to create qc_output_directory if not present
     QDir qc_dir(qc_output_directory.toQString());
@@ -2447,24 +2509,32 @@ protected:
     }
 
     String out_csv = getStringOption_("out_csv");
+	ofstream out_csv_stream(out_csv.c_str());
+	out_csv_stream << fixed << setprecision(4);
+
+	String out_peptide_centric_csv = getStringOption_("out_peptide_centric_csv");
+	ofstream out_peptide_csv_stream(out_peptide_centric_csv.c_str());
+	out_peptide_csv_stream << fixed << setprecision(4);
+
     bool use_N15 = getFlag_("use_15N");
-    bool cluster_flag = getFlag_("cluster");
     bool plot_merged = getFlag_("plot_merged");
     bool report_natural_peptides = getFlag_("report_natural_peptides");
     String debug_patterns_name = getStringOption_("debug_patterns_name");
 
-    ofstream out_csv_stream(out_csv.c_str());
-    out_csv_stream << fixed << setprecision(4);
-    SVOutStream out_stream(out_csv_stream, "\t", "_", String::NONE);
-    DoubleReal correlation_threshold = getDoubleOption_("correlation_threshold");
+    double correlation_threshold = getDoubleOption_("correlation_threshold");
 
-    DoubleReal min_correlation_distance_to_averagine = getDoubleOption_("min_correlation_distance_to_averagine");
+    double min_correlation_distance_to_averagine = getDoubleOption_("min_correlation_distance_to_averagine");
     
     String tmp_path = File::getTempDirectory();
     tmp_path.substitute('\\', '/');
-    
+   
+	// check if R and dependencies are installed
+	bool R_is_working = checkRDependencies(tmp_path);
+
+	bool cluster_flag = getFlag_("cluster") && R_is_working;
+
     // read descriptions from FASTA and create map for fast annotation
-    cout << "loading sequences..." << endl;
+    LOG_INFO << "loading sequences..." << endl;
     String in_fasta = getStringOption_("in_fasta");
     vector<FASTAFile::FASTAEntry> fasta_entries;
     FASTAFile().load(in_fasta, fasta_entries);
@@ -2478,12 +2548,12 @@ protected:
       }
     }
     
-    cout << "loading feature map..." << endl;
+	LOG_INFO << "loading feature map..." << endl;
     FeatureXMLFile fh;
     FeatureMap<> feature_map;
     fh.load(in_features, feature_map);
 
-    cout << "loading experiment..." << endl;
+	LOG_INFO << "loading experiment..." << endl;
     MSExperiment<Peak1D> peak_map;
     MzMLFile mh;
     std::vector<Int> ms_level(1, 1);
@@ -2511,7 +2581,7 @@ protected:
 
     for (FeatureMap<>::iterator feature_it = feature_map.begin(); feature_it != feature_map.end(); ++feature_it) // for each peptide feature
     {
-      const DoubleReal feature_hit_center_rt = feature_it->getRT();
+      const double feature_hit_center_rt = feature_it->getRT();
 
       // check if out of experiment bounds
       if (feature_hit_center_rt > peak_map.getMaxRT() || feature_hit_center_rt < peak_map.getMinRT())
@@ -2545,12 +2615,12 @@ protected:
 
       // retrieve identification information
       const PeptideHit& feature_hit = tmp_pepid.getHits()[0];
-      const DoubleReal feature_hit_score = feature_hit.getScore();
-      const DoubleReal feature_hit_center_mz = feature_it->getMZ();
-      const DoubleReal feature_hit_charge = feature_hit.getCharge();
+      const double feature_hit_score = feature_hit.getScore();
+      const double feature_hit_center_mz = feature_it->getMZ();
+      const double feature_hit_charge = feature_hit.getCharge();
       const AASequence feature_hit_aaseq = feature_hit.getSequence();
       const String feature_hit_seq = feature_hit.getSequence().toString();
-      const DoubleReal feature_hit_theoretical_mz = feature_hit.getSequence().getMonoWeight(Residue::Full, feature_hit.getCharge()) / feature_hit.getCharge();
+      const double feature_hit_theoretical_mz = feature_hit.getSequence().getMonoWeight(Residue::Full, feature_hit.getCharge()) / feature_hit.getCharge();
 
       sip_peptide.accessions = feature_hit.getProteinAccessions();
       sip_peptide.sequence = feature_hit_aaseq;
@@ -2562,14 +2632,14 @@ protected:
       sip_peptide.unique = sip_peptide.accessions.size() == 1 ? true : false;                   
 
       // determine retention time of scans next to the central scan
-      vector<DoubleReal> seeds_rt = findApexRT(feature_it, feature_hit_center_rt, peak_map, 2); // 1 scan at maximum, 2+2 above and below
-      DoubleReal max_trace_int_rt = seeds_rt[0];
+      vector<double> seeds_rt = findApexRT(feature_it, feature_hit_center_rt, peak_map, 2); // 1 scan at maximum, 2+2 above and below
+      double max_trace_int_rt = seeds_rt[0];
 
       // determine maximum number of peaks and mass difference
       EmpiricalFormula e = feature_hit_aaseq.getFormula();
       //cout << "Empirical formula: " << e.getString() << endl;
 
-      DoubleReal mass_diff;
+      double mass_diff;
       Size element_count;
       if (!use_N15)
       {
@@ -2585,15 +2655,15 @@ protected:
       sip_peptide.mass_diff = mass_diff;
 
       // collect 13C / 15N peaks
-      vector<DoubleReal> isotopic_intensities = extractIsotopicIntensitiesConsensus(element_count + ADDITIONAL_ISOTOPES, mass_diff, mz_tolerance_ppm_, seeds_rt, feature_hit_theoretical_mz, feature_hit_charge, peak_map);
-      DoubleReal TIC = accumulate(isotopic_intensities.begin(), isotopic_intensities.end(), 0.0);
+      vector<double> isotopic_intensities = extractIsotopicIntensitiesConsensus(element_count + ADDITIONAL_ISOTOPES, mass_diff, mz_tolerance_ppm_, seeds_rt, feature_hit_theoretical_mz, feature_hit_charge, peak_map);
+      double TIC = accumulate(isotopic_intensities.begin(), isotopic_intensities.end(), 0.0);
 
       // no Peaks collected
       if (TIC < 1e-4)
       {
         if (debug_level > 0)
         {
-          cout << "no isotopic peaks in spectrum" << endl;
+		  LOG_INFO << "no isotopic peaks in spectrum" << endl;
         }        
         continue;
       }
@@ -2607,9 +2677,9 @@ protected:
 
       sip_peptide.global_LR = calculateGlobalLR(isotopic_intensities);
 
-      cout << "isotopic intensities collected: " << isotopic_intensities.size() << endl;
+	  LOG_INFO << "isotopic intensities collected: " << isotopic_intensities.size() << endl;
 
-      cout << feature_hit.getSequence().toString() << "\trt: " << max_trace_int_rt << endl;
+	  LOG_INFO << feature_hit.getSequence().toString() << "\trt: " << max_trace_int_rt << endl;
 
       // correlation filtering
       MapRateToScoreType map_rate_to_correlation_score;
@@ -2632,7 +2702,7 @@ protected:
       for (IsotopePatterns::const_iterator pit = sip_peptide.patterns.begin(); pit != sip_peptide.patterns.end(); ++pit)
       {
         PeakSpectrum p = isotopicIntensitiesToSpectrum(feature_hit_theoretical_mz, mass_diff, feature_hit_charge, pit->second);
-        p.setMetaValue("rate", (DoubleReal)pit->first);
+        p.setMetaValue("rate", (double)pit->first);
         p.setMSLevel(2);
         sip_peptide.pattern_spectra.push_back(p);
       }
@@ -2649,7 +2719,6 @@ protected:
         calculateCorrelation(feature_hit_seq, isotopic_intensities, patterns, tmp_map_rate_to_correlation_score, use_N15);
         for (Size i = 0; i != sip_peptide.reconstruction_monoistopic.size(); ++i)
         {  
-
           if (i == 0)
           {
             isotopic_intensities[0] = 0;
@@ -2700,7 +2769,7 @@ protected:
       {
         if (debug_level > 0)
         {
-          cout << "SIP peptides: " << sip_peptide.incorporations.size() << endl;
+		  LOG_INFO << "SIP peptides: " << sip_peptide.incorporations.size() << endl;
         }        
         sip_peptides.push_back(sip_peptide);
       }
@@ -2716,13 +2785,13 @@ protected:
 
     if (nPSMs == 0)
     {
-      cerr << "No assigned identifications found in featureXML. Did you forget to run IDMapper?" << endl;
+      LOG_ERROR << "No assigned identifications found in featureXML. Did you forget to run IDMapper?" << endl;
       return INCOMPATIBLE_INPUT_DATA;
     }
       
     if (sip_peptides.size() == 0)
     {
-      cerr << "No peptides passing the incorporation threshold found." << endl;
+	  LOG_ERROR << "No peptides passing the incorporation threshold found." << endl;
       return INCOMPATIBLE_INPUT_DATA;
     }
 
@@ -2739,29 +2808,29 @@ protected:
     }  
     
     vector<vector<SIPPeptide> > sippeptide_clusters;  // vector of cluster
-    if (cluster_flag)  // data has been clustered so read back the result from R
+	if (cluster_flag)  // data has been clustered so read back the result from R
     {
       if (cluster_type == "emd")
       {
-        cout << "Writing emd data..." << endl;
+        LOG_INFO << "Writing emd data..." << endl;
         String emd_data_filename = String("emd_data_filename") + file_suffix + String(".dat");
         createEMDDataFile_(tmp_path, emd_data_filename, file_suffix, sip_peptides, bins);
 
-        cout << "Cluster data..." << endl;
+		LOG_INFO << "Cluster data..." << endl;
         emdClusterData_(tmp_path, emd_data_filename, file_suffix, qc_output_directory, debug_level);
       } else if (cluster_type == "profile")
       {
-        cout << "Writing correlation data..." << endl;
+		LOG_INFO << "Writing correlation data..." << endl;
         String correlation_data_filename = String("cluster_data") + file_suffix + String(".dat");
         createCorrelationDataFile_(tmp_path, correlation_data_filename, sip_peptides, bins);
 
-        cout << "Cluster data..." << endl;
+	    LOG_INFO << "Cluster data..." << endl;
         plotAndClusterCorrelationData_(tmp_path, correlation_data_filename, bins, file_suffix, qc_output_directory, debug_level);
       }
 
       String result_filename = String("cluster_result") + file_suffix + String(".dat");
       map<Size, vector<SIPPeptide> > map_cluster2sippeptide;
-      cout << "Reading cluster results..." << endl;
+	  LOG_INFO << "Reading cluster results..." << endl;
 
       // read R output 
       TextFile csv_file(tmp_path + "/" + result_filename);
@@ -2796,8 +2865,18 @@ protected:
       sippeptide_clusters.push_back(sip_peptides);
     }
 
-    MetaProSIPReporting::createCSVReport(sippeptide_clusters, out_stream, proteinid_to_description, out_csv_stream);
+	// create group/cluster centric report
+	if (!out_csv.empty())
+	{
+	  MetaProSIPReporting::createCSVReport(sippeptide_clusters, out_csv_stream, proteinid_to_description);
+	}
 
+	// create peptide centric report
+	if (!out_peptide_centric_csv.empty())
+	{
+      MetaProSIPReporting::createPeptideCentricCSVReport(in_mzml, file_extension_, sippeptide_clusters, out_peptide_csv_stream, proteinid_to_description);
+	}
+	
     // plot debug spectra 
     if (!debug_patterns_name.empty())
     {
@@ -2806,7 +2885,7 @@ protected:
     }
 
     // quality report
-    if (!qc_output_directory.empty())
+	if (!qc_output_directory.empty() && R_is_working)
     {
       MetaProSIPReporting::createQualityReport(tmp_path, qc_output_directory, file_suffix, file_extension_, sip_peptides, plot_merged, sippeptide_clusters, n_heatmap_bins, score_plot_y_axis_min, report_natural_peptides, cluster_type);
     }
@@ -2828,7 +2907,7 @@ protected:
 
       for (Size l = 0; l != bins; ++l)
       {  
-        MapRateToScoreType::const_iterator k = sip_peptide.correlation_map.lower_bound((DoubleReal)l / (bins/100.0) - 1e-4);
+        MapRateToScoreType::const_iterator k = sip_peptide.correlation_map.lower_bound((double)l / (bins/100.0) - 1e-4);
         if (k == sip_peptide.correlation_map.end())
         {
           correlation_out << 0.0;
@@ -2847,8 +2926,8 @@ protected:
               correlation_out << k->second;
             } else
             {
-              DoubleReal a = ((DoubleReal)l/(bins/100.0)- k->first) / (kk->first - k->first);
-              //cout << (DoubleReal)l/10.0 << "\t" << k->first << "\t" << kk->first << "\t" << a << endl;
+              double a = ((double)l/(bins/100.0)- k->first) / (kk->first - k->first);
+              //cout << (double)l/10.0 << "\t" << k->first << "\t" << kk->first << "\t" << a << endl;
               correlation_out << (1-a) * k->second + a * kk->second;
             }              
           } else
@@ -2900,8 +2979,8 @@ protected:
       
       // determine median and stdev of global LR of all peptides (unique and ambigous) for the whole group 
       {
-        vector<DoubleReal> group_global_LRs;
-        vector<DoubleReal> group_number_RIAs;
+        vector<double> group_global_LRs;
+        vector<double> group_number_RIAs;
         for (map<String, vector<SIPPeptide> >::const_iterator all_it = all_peptides.begin(); all_it != all_peptides.end(); ++all_it)
         {
           for (vector<SIPPeptide>::const_iterator v_it = all_it->second.begin(); v_it != all_it->second.end(); ++v_it)
@@ -2919,9 +2998,9 @@ protected:
         group_summary_statistic.median_LR = Math::median(group_global_LRs.begin(), group_global_LRs.end(), false);        
       
         // calculate std. deviation
-        DoubleReal sum = std::accumulate(group_global_LRs.begin(), group_global_LRs.end(), 0.0);
-        DoubleReal mean = sum / group_global_LRs.size();
-        DoubleReal sq_sum = std::inner_product(group_global_LRs.begin(), group_global_LRs.end(), group_global_LRs.begin(), 0.0);
+        double sum = std::accumulate(group_global_LRs.begin(), group_global_LRs.end(), 0.0);
+        double mean = sum / group_global_LRs.size();
+        double sq_sum = std::inner_product(group_global_LRs.begin(), group_global_LRs.end(), group_global_LRs.begin(), 0.0);
         group_summary_statistic.stdev_LR = std::sqrt(sq_sum / group_global_LRs.size() - mean * mean);
       }
 
@@ -2981,7 +3060,7 @@ protected:
       PeakSpectrum ps = sip_peptide.pattern_spectra[j];
       ps.setRT(sip_peptide.feature_rt + 5e-6 + (j+1) *  1e-6 );
       Precursor pc;                
-      DoubleReal rate = (DoubleReal)ps.getMetaValue("rate");
+      double rate = (double)ps.getMetaValue("rate");
       pc.setMZ(rate);
       vector<Precursor> pcs;
       pcs.push_back(pc);
@@ -3001,7 +3080,7 @@ protected:
 
     SVOutStream svout_stream(out_stream);
 
-     cout << "EMD: binning data" << endl;
+	LOG_INFO << "EMD: binning data" << endl;
     // generate binned, integral version of decomposition coefficients for fast EMD calculation
     vector<vector<int> > binned_decompositions;
     for(Size i = 0; i != n_peptides; ++i)
@@ -3011,7 +3090,7 @@ protected:
       std::vector<int> a(n_bins, 0);
 
       // determine max abundance of incorporations
-      DoubleReal max_abundance = 0;
+      double max_abundance = 0;
       for (vector<SIPIncorporation>::const_iterator it = incs.begin(); it != incs.end(); ++it)
       {
         if (it->abundance > max_abundance)
@@ -3022,7 +3101,7 @@ protected:
 
       for (vector<SIPIncorporation>::const_iterator it = incs.begin(); it != incs.end(); ++it)
       {       
-        DoubleReal rate = it->rate;
+        double rate = it->rate;
         Size bin_index = rate / 100.0 * n_bins;
         bin_index = bin_index > n_bins - 1 ? n_bins - 1 : bin_index;
         //a[bin_index] = it->abundance / max_abundance * 1000.0; // normalize peptide wise
@@ -3032,13 +3111,13 @@ protected:
       binned_decompositions.push_back(a);
     }
     
-    cout << "EMD: create ground distance matrix" << endl;
+	LOG_INFO << "EMD: create ground distance matrix" << endl;
 
     // generate ground distance cost matrix (distances between bins)
     std::vector<std::vector<int> > emd_cost_matrix;
     //FastEMDWrapper::generateCostMatrix(n_bins, 1000, emd_cost_matrix, 10); // adapt mass penalty if non-binary feature used
 
-    cout << "EMD: calculate emd distances" << endl;
+	LOG_INFO << "EMD: calculate emd distances" << endl;
     // calculate EMD distance matrix
     std::vector<std::vector<int> > distance_matrix;
     distance_matrix.swap(std::vector< std::vector<int> >(n_peptides, std::vector<int>(n_peptides, 0)));
@@ -3051,7 +3130,7 @@ protected:
       }
     }
 
-    cout << "EMD: write matrix to file" << endl;
+	LOG_INFO << "EMD: write matrix to file" << endl;
     // write matrix to file
     for (Size i = 0; i != n_peptides; ++i)
     {
