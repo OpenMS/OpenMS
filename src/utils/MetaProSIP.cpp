@@ -1426,11 +1426,11 @@ protected:
 	checkRInPath.store(script_filename);
 
     QStringList checkRinPathQParam;
-	checkRinPathQParam << "--vanilla" << "--quiet" << "--slave" << "--file=" + QString(tmp_path.toQString() + "\\" + script_filename.toQString());
+	checkRinPathQParam << "--vanilla" << "--quiet" << "--slave" << "--file=" + script_filename.toQString();
 	Int status = QProcess::execute("R", checkRinPathQParam);
 	if (status != 0)
 	{
-		LOG_ERROR << "Can't execute R. Check if path to R is in your system path variable." << std::endl;
+		LOG_ERROR << "Can't execute R. Do you have R installed? Check if the path to R is in your system path variable." << std::endl;
 		return false;
 	}
 
@@ -1455,7 +1455,7 @@ protected:
     current_script.store(script_filename);
 
 	QStringList qparam;
-	qparam << "--vanilla" << "--quiet" << "--slave" << "--file=" + QString(tmp_path.toQString() + "\\" + script_filename.toQString());
+	qparam << "--vanilla" << "--quiet" << "--slave" << "--file=" + script_filename.toQString();
 	status = QProcess::execute("R", qparam);
 	if (status != 0)
 	{
