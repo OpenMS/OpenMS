@@ -244,8 +244,8 @@ protected:
       it->setNativeID(++native_id);
     }
 
-    // We store the file in mzData file format, because mgf file somehow produce in most
-    // of the cases ids with charge 2+. We do not use the input file of this TOPP-tools
+    // We store the file in mzData file format, because MGF files somehow produce in most
+    // of the cases IDs with charge 2+. We do not use the input file directly
     // because XTandem sometimes stumbles over misleading substrings in the filename,
     // e.g. mzXML ...
     MzDataFile mzdata_outfile;
@@ -256,12 +256,12 @@ protected:
     infile.setOutputFilename(tandem_output_filename);
 
     ofstream tax_out(tandem_taxonomy_filename.c_str());
-    tax_out << "<?xml version=\"1.0\"?>" << endl;
-    tax_out << "\t<bioml label=\"x! taxon-to-file matching list\">" << endl;
-    tax_out << "\t\t<taxon label=\"OpenMS_dummy_taxonomy\">" << endl;
-    tax_out << "\t\t\t<file format=\"peptide\" URL=\"" << db_name << "\" />" << endl;
-    tax_out << "\t</taxon>" << endl;
-    tax_out << "</bioml>" << endl;
+    tax_out << "<?xml version=\"1.0\"?>" << "\n";
+    tax_out << "\t<bioml label=\"x! taxon-to-file matching list\">" << "\n";
+    tax_out << "\t\t<taxon label=\"OpenMS_dummy_taxonomy\">" << "\n";
+    tax_out << "\t\t\t<file format=\"peptide\" URL=\"" << db_name << "\" />" << "\n";
+    tax_out << "\t</taxon>" << "\n";
+    tax_out << "</bioml>" << "\n";
     tax_out.close();
 
     infile.setTaxonomyFilename(tandem_taxonomy_filename);
@@ -352,18 +352,18 @@ protected:
     for (vector<PeptideIdentification>::iterator it = peptide_ids.begin(); it != peptide_ids.end(); ++it)
     {
       UInt id = (Int)it->getMetaValue("spectrum_id");
-      id -= 1; // native IDs were written 1-based
+      --id; // native IDs were written 1-based
       if (id < exp.size())
       {
         it->setMetaValue("RT", exp[id].getRT());
-        DoubleReal pre_mz = 0.0;
+        double pre_mz = 0.0;
         if (!exp[id].getPrecursors().empty()) pre_mz = exp[id].getPrecursors()[0].getMZ();
         it->setMetaValue("MZ", pre_mz);
         it->removeMetaValue("spectrum_id");
       }
       else
       {
-        cerr << "XTandemAdapter: Error: id '" << id << "' not found in peak map!" << endl;
+        LOG_ERROR << "XTandemAdapter: Error: id '" << id << "' not found in peak map!" << endl;
       }
     }
 
@@ -403,6 +403,10 @@ protected:
     {
       LOG_WARN << "Keeping the temporary files at '" << temp_directory << "'. Set debug level to <2 to remove them." << std::endl;
     }
+
+    // some stats
+    LOG_INFO << "Statistics:\n"
+             << "  identified MS2 spectra: " << peptide_ids.size() << " / " << exp.size() << " = " << int(peptide_ids.size() * 100.0 / exp.size() ) << "% (with e-value < " << String(getDoubleOption_("max_valid_expect")) << ")" << std::endl;
 
     return EXECUTION_OK;
   }

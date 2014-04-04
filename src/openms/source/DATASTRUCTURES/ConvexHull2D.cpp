@@ -272,11 +272,11 @@ namespace OpenMS
       return false;
 
     // check if point is within bounds
-    DoubleReal mz_low = it_lower->second.minPosition()[0]      // m/z offset
+    double mz_low = it_lower->second.minPosition()[0]      // m/z offset
                         + ((point[0] - (it_lower->first)) / ((it_upper->first) - (it_lower->first)))  // factor (0-1)
                         * (it_upper->second.minPosition()[0] - it_lower->second.minPosition()[0]);                       // m/z range
 
-    DoubleReal mz_high = it_lower->second.maxPosition()[0]      // m/z offset
+    double mz_high = it_lower->second.maxPosition()[0]      // m/z offset
                          + ((point[0] - (it_lower->first)) / ((it_upper->first) - (it_lower->first))) // factor (0-1)
                          * (it_upper->second.maxPosition()[0] - it_lower->second.maxPosition()[0]);                      // m/z range
 

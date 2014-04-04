@@ -35,6 +35,8 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmLabeled.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/LabeledPairFinder.h>
 
+#include <OpenMS/KERNEL/ConversionHelper.h>
+
 namespace OpenMS
 {
 
@@ -66,7 +68,7 @@ namespace OpenMS
 
     //convert to consensus map
     std::vector<ConsensusMap> input(1);
-    ConsensusMap::convert(0, maps[0], input[0]);
+    MapConversion::convert(0, maps[0], input[0]);
 
     //run
     pm.run(input, out);

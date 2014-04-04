@@ -382,9 +382,7 @@ namespace OpenMS
       test_mode_ = true;
 
       // initialize the random generator as early as possible!
-      DateTime date_time;
-      date_time.set("1999-12-31 23:59:59");
-      UniqueIdGenerator::setSeed(date_time);
+      UniqueIdGenerator::setSeed(19991231235959);
     }
 
     //-------------------------------------------------------------
@@ -699,11 +697,11 @@ namespace OpenMS
 
       case ParameterInformation::DOUBLE:
       case ParameterInformation::DOUBLELIST:
-        if (it->min_float != -std::numeric_limits<DoubleReal>::max())
+        if (it->min_float != -std::numeric_limits<double>::max())
         {
           addons.push_back(String("min: '") + it->min_float + "'");
         }
-        if (it->max_float != std::numeric_limits<DoubleReal>::max())
+        if (it->max_float != std::numeric_limits<double>::max())
         {
           addons.push_back(String("max: '") + it->max_float + "'");
         }
@@ -1045,7 +1043,7 @@ namespace OpenMS
     p.max_int = max;
   }
 
-  void TOPPBase::setMinFloat_(const String& name, DoubleReal min)
+  void TOPPBase::setMinFloat_(const String& name, double min)
   {
     ParameterInformation& p = getParameterByName_(name);
 
@@ -1056,7 +1054,7 @@ namespace OpenMS
     }
     DoubleList defaults;
     if (p.type == ParameterInformation::DOUBLE)
-      defaults.push_back(DoubleReal(p.default_value));
+      defaults.push_back(double(p.default_value));
     else
       defaults = p.default_value;
     for (Size j = 0; j < defaults.size(); ++j)
@@ -1069,7 +1067,7 @@ namespace OpenMS
     p.min_float = min;
   }
 
-  void TOPPBase::setMaxFloat_(const String& name, DoubleReal max)
+  void TOPPBase::setMaxFloat_(const String& name, double max)
   {
     ParameterInformation& p = getParameterByName_(name);
 
@@ -1080,7 +1078,7 @@ namespace OpenMS
     }
     DoubleList defaults;
     if (p.type == ParameterInformation::DOUBLE)
-      defaults.push_back(DoubleReal(p.default_value));
+      defaults.push_back(double(p.default_value));
     else
       defaults = p.default_value;
     for (Size j = 0; j < defaults.size(); ++j)
@@ -1301,7 +1299,7 @@ namespace OpenMS
     return tmp;
   }
 
-  DoubleReal TOPPBase::getDoubleOption_(const String& name) const
+  double TOPPBase::getDoubleOption_(const String& name) const
   {
     const ParameterInformation& p = findEntry_(name);
     if (p.type != ParameterInformation::DOUBLE)
@@ -1312,7 +1310,7 @@ namespace OpenMS
     {
       throw RequiredParameterNotGiven(__FILE__, __LINE__, __PRETTY_FUNCTION__, name);
     }
-    double tmp = getParamAsDouble_(name, (DoubleReal)p.default_value);
+    double tmp = getParamAsDouble_(name, (double)p.default_value);
     if (p.required && boost::math::isnan(tmp))
     {
       throw RequiredParameterNotGiven(__FILE__, __LINE__, __PRETTY_FUNCTION__, name);
@@ -1320,7 +1318,7 @@ namespace OpenMS
     writeDebug_(String("Value of double option '") + name + "': " + String(tmp), 1);
 
     //check if in valid range
-    if (p.required || (!getParam_(name).isEmpty() && tmp != (DoubleReal)p.default_value))
+    if (p.required || (!getParam_(name).isEmpty() && tmp != (double)p.default_value))
     {
       if (tmp < p.min_float || tmp > p.max_float)
       {
@@ -1343,7 +1341,7 @@ namespace OpenMS
       throw RequiredParameterNotGiven(__FILE__, __LINE__, __PRETTY_FUNCTION__, name);
     }
     Int tmp = getParamAsInt_(name, (Int)p.default_value);
-    // not checking if NAN here (as done with DoubleReal, as NAN is not supported for Int)
+    // not checking if NAN here (as done with double, as NAN is not supported for Int)
     writeDebug_(String("Value of int option '") + name + "': " + String(tmp), 1);
 
     //check if in valid range
@@ -1484,7 +1482,7 @@ namespace OpenMS
     {
       throw RequiredParameterNotGiven(__FILE__, __LINE__, __PRETTY_FUNCTION__, name);
     }
-    DoubleReal tmp;
+    double tmp;
     for (DoubleList::iterator it = tmp_list.begin(); it < tmp_list.end(); ++it)
     {
       tmp = *it;
@@ -1610,14 +1608,14 @@ namespace OpenMS
     }
   }
 
-  DoubleReal TOPPBase::getParamAsDouble_(const String& key, DoubleReal default_value) const
+  double TOPPBase::getParamAsDouble_(const String& key, double default_value) const
   {
     const DataValue& tmp = getParam_(key);
     if (!tmp.isEmpty())
     {
       if (tmp.valueType() == DataValue::DOUBLE_VALUE)
       {
-        return (DoubleReal)tmp;
+        return (double)tmp;
       }
       throw WrongParameterType(__FILE__, __LINE__, __PRETTY_FUNCTION__, key);
     }
@@ -1997,11 +1995,11 @@ namespace OpenMS
 
       case ParameterInformation::DOUBLE:
         tmp.setValue(name, it->default_value, it->description, tags);
-        if (it->min_float != -std::numeric_limits<DoubleReal>::max())
+        if (it->min_float != -std::numeric_limits<double>::max())
         {
           tmp.setMinFloat(name, it->min_float);
         }
-        if (it->max_float != std::numeric_limits<DoubleReal>::max())
+        if (it->max_float != std::numeric_limits<double>::max())
         {
           tmp.setMaxFloat(name, it->max_float);
         }
@@ -2061,11 +2059,11 @@ namespace OpenMS
 
       case ParameterInformation::DOUBLELIST:
         tmp.setValue(name, it->default_value, it->description, tags);
-        if (it->min_float != -std::numeric_limits<DoubleReal>::max())
+        if (it->min_float != -std::numeric_limits<double>::max())
         {
           tmp.setMinFloat(name, it->min_float);
         }
-        if (it->max_float != std::numeric_limits<DoubleReal>::max())
+        if (it->max_float != std::numeric_limits<double>::max())
         {
           tmp.setMaxFloat(name, it->max_float);
         }
@@ -2325,7 +2323,7 @@ namespace OpenMS
       {
         restricted = true;
       }
-      else if (it->value.valueType() == DataValue::DOUBLE_VALUE && (it->min_float != -std::numeric_limits<DoubleReal>::max() || it->max_float != std::numeric_limits<DoubleReal>::max()))
+      else if (it->value.valueType() == DataValue::DOUBLE_VALUE && (it->min_float != -std::numeric_limits<double>::max() || it->max_float != std::numeric_limits<double>::max()))
       {
         restricted = true;
       }
@@ -2382,11 +2380,11 @@ namespace OpenMS
         else if (it->value.valueType() == DataValue::DOUBLE_VALUE)
         {
           os << "                <xs:restriction base=\"xs:double\">" << endl;
-          if (it->min_float != -std::numeric_limits<DoubleReal>::max())
+          if (it->min_float != -std::numeric_limits<double>::max())
           {
             os << "                  <xs:minInclusive value=\"" << it->min_float << "\"/>" << endl;
           }
-          if (it->max_float != std::numeric_limits<DoubleReal>::max())
+          if (it->max_float != std::numeric_limits<double>::max())
           {
             os << "                  <xs:maxInclusive value=\"" << it->max_float << "\"/>" << endl;
           }

@@ -39,6 +39,9 @@
 #include <utility>
 #include <map>
 #include <utility>
+#include <boost/shared_ptr.hpp>
+
+#include <boost/random/mersenne_twister.hpp>
 
 #include <OpenMS/KERNEL/Peak2D.h>
 #include <OpenMS/KERNEL/RichPeak1D.h>
@@ -49,12 +52,13 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqConstants.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 
-// GSL includes (random number generation)
-#include <gsl/gsl_rng.h>
-#include <gsl/gsl_randist.h>
+
 
 namespace OpenMS
 {
+  //forward declarations
+  class SimRandomNumberGenerator;
+
   /// Coordinate type in mz and rt dimension
   typedef Peak2D::CoordinateType SimCoordinateType;
 
@@ -82,6 +86,8 @@ namespace OpenMS
   /// Sim MSExperiment type
   typedef MSExperiment<SimPointType> MSSimExperiment;
 
+  //Sim Shared Pointer type
+  typedef boost::shared_ptr<SimRandomNumberGenerator> MutableSimRandomNumberGeneratorPtr;
   /**
     @brief Wrapper class for random number generators used by the simulation classes
 
@@ -96,78 +102,57 @@ namespace OpenMS
 
     @ingroup Simulation
   */
-  struct SimRandomNumberGenerator
+  class SimRandomNumberGenerator
   {
-    /// GSL random number generator for biological variability
-    gsl_rng * biological_rng;
-    /// GSL random number generator for technical variability
-    gsl_rng * technical_rng;
+  public:
 
-    /// Default constructor
-    SimRandomNumberGenerator() :
-      biological_rng(NULL),
-      technical_rng(NULL)
+    boost::random::mt19937_64& getBiologicalRng()
     {
+      return biological_rng_;
     }
 
-    /** @name Constructors and Destructors
-      */
-    //@{
-    /// Copy constructor
-    SimRandomNumberGenerator(const SimRandomNumberGenerator & other) :
-      biological_rng(other.biological_rng),
-      technical_rng(other.technical_rng)
+    boost::random::mt19937_64& getTechnicalRng()
     {
+      return technical_rng_;
     }
 
-    /// Destructor
-    ~SimRandomNumberGenerator()
+    void setBiologicalRngSeed( unsigned long int seed )
     {
-      if (biological_rng != 0)
-      {
-        gsl_rng_free(biological_rng);
-      }
-
-      if (technical_rng != 0)
-      {
-        gsl_rng_free(technical_rng);
-      }
+      biological_rng_.seed(seed);
     }
 
-    //@}
-
-    /// Assignment operator
-    SimRandomNumberGenerator & operator=(const SimRandomNumberGenerator & source)
+    void setTechnicalRngSeed( unsigned long int seed )
     {
-      this->biological_rng = source.biological_rng;
-      this->technical_rng = source.technical_rng;
-
-      return *this;
+      technical_rng_.seed(seed);
     }
 
     /// Initialize the RNGs
     void initialize(bool biological_random, bool technical_random)
     {
-      biological_rng = gsl_rng_alloc(gsl_rng_mt19937);
+      // use 0 as default seed to get reproducible experiments
       if (biological_random)
       {
-        gsl_rng_set(biological_rng, time(0));
+        biological_rng_ = boost::random::mt19937_64(std::time(0));
       }
-      else // use gsl default seed to get reproducible experiments
+      else
       {
-        gsl_rng_set(biological_rng, 0);
+        biological_rng_ = boost::random::mt19937_64(0);
       }
 
-      technical_rng = gsl_rng_alloc(gsl_rng_mt19937);
       if (technical_random)
       {
-        gsl_rng_set(technical_rng, time(0));
+        technical_rng_ = boost::random::mt19937_64(std::time(0));
       }
-      else // use gsl default seed to get reproducible experiments
+      else
       {
-        gsl_rng_set(technical_rng, 0);
+          technical_rng_ = boost::random::mt19937_64(0);
       }
     }
+  private:
+    /// random number generator for biological variability
+    boost::random::mt19937_64 biological_rng_;
+    /// random number generator for technical variability
+    boost::random::mt19937_64 technical_rng_;
 
   };
 

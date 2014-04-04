@@ -37,12 +37,13 @@
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
-
+#include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 
 #include <set>
 
 #include <boost/lexical_cast.hpp>
+
 
 using namespace std;
 
@@ -228,7 +229,7 @@ namespace OpenMS
         current_id_hit_.setRank(attributeAsInt_(attributes, "rank"));
 
         // optional attributes
-        DoubleReal double_value(0);
+        double double_value(0);
         if (optionalAttributeAsDouble_(double_value, attributes, "calculatedMassToCharge"))
         {
           current_id_hit_.setCalculatedMassToCharge(double_value);

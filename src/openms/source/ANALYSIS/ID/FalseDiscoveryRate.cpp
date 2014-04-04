@@ -136,7 +136,7 @@ namespace OpenMS
         cerr << "Id-run: " << *iit << endl;
 #endif
         // get the scores of all peptide hits
-        vector<DoubleReal> target_scores, decoy_scores;
+        vector<double> target_scores, decoy_scores;
         for (vector<PeptideIdentification>::iterator it = ids.begin(); it != ids.end(); ++it)
         {
           // if runs should be treated separately, the identifiers must be the same
@@ -274,7 +274,7 @@ namespace OpenMS
 
         // calculate fdr for the forward scores
         bool higher_score_better(ids.begin()->isHigherScoreBetter());
-        Map<DoubleReal, DoubleReal> score_to_fdr;
+        Map<double, double> score_to_fdr;
         calculateFDRs_(score_to_fdr, target_scores, decoy_scores, q_value, higher_score_better);
 
         // annotate fdr
@@ -348,7 +348,7 @@ namespace OpenMS
     {
       return;
     }
-    vector<DoubleReal> target_scores, decoy_scores;
+    vector<double> target_scores, decoy_scores;
     // get the scores of all peptide hits
     for (vector<PeptideIdentification>::const_iterator it = fwd_ids.begin(); it != fwd_ids.end(); ++it)
     {
@@ -370,7 +370,7 @@ namespace OpenMS
     bool higher_score_better(fwd_ids.begin()->isHigherScoreBetter());
     bool add_decoy_peptides = param_.getValue("add_decoy_peptides").toBool();
     // calculate fdr for the forward scores
-    Map<DoubleReal, DoubleReal> score_to_fdr;
+    Map<double, double> score_to_fdr;
     calculateFDRs_(score_to_fdr, target_scores, decoy_scores, q_value, higher_score_better);
 
     // annotate fdr
@@ -438,7 +438,7 @@ namespace OpenMS
       return;
     }
 
-    vector<DoubleReal> target_scores, decoy_scores;
+    vector<double> target_scores, decoy_scores;
     String decoy_string = (String)param_.getValue("decoy_string");
     for (vector<ProteinIdentification>::const_iterator it = ids.begin(); it != ids.end(); ++it)
     {
@@ -459,7 +459,7 @@ namespace OpenMS
     bool higher_score_better(ids.begin()->isHigherScoreBetter());
 
     // calculate fdr for the forward scores
-    Map<DoubleReal, DoubleReal> score_to_fdr;
+    Map<double, double> score_to_fdr;
     calculateFDRs_(score_to_fdr, target_scores, decoy_scores, q_value, higher_score_better);
 
     // annotate fdr
@@ -493,7 +493,7 @@ namespace OpenMS
     {
       return;
     }
-    vector<DoubleReal> target_scores, decoy_scores;
+    vector<double> target_scores, decoy_scores;
     // get the scores of all peptide hits
     for (vector<ProteinIdentification>::const_iterator it = fwd_ids.begin(); it != fwd_ids.end(); ++it)
     {
@@ -513,7 +513,7 @@ namespace OpenMS
     bool q_value(param_.getValue("q_value").toBool());
     bool higher_score_better(fwd_ids.begin()->isHigherScoreBetter());
     // calculate fdr for the forward scores
-    Map<DoubleReal, DoubleReal> score_to_fdr;
+    Map<double, double> score_to_fdr;
     calculateFDRs_(score_to_fdr, target_scores, decoy_scores, q_value, higher_score_better);
 
     // annotate fdr
@@ -541,7 +541,7 @@ namespace OpenMS
     return;
   }
 
-  void FalseDiscoveryRate::calculateFDRs_(Map<DoubleReal, DoubleReal> & score_to_fdr, vector<DoubleReal> & target_scores, vector<DoubleReal> & decoy_scores, bool q_value, bool higher_score_better)
+  void FalseDiscoveryRate::calculateFDRs_(Map<double, double> & score_to_fdr, vector<double> & target_scores, vector<double> & decoy_scores, bool q_value, bool higher_score_better)
   {
     Size number_of_target_scores = target_scores.size();
     // sort the scores
@@ -567,7 +567,7 @@ namespace OpenMS
     }
 
     Size j = 0;
-    DoubleReal minimal_fdr = 1.;
+    double minimal_fdr = 1.;
 
     if (q_value)
     {
@@ -610,11 +610,11 @@ namespace OpenMS
         cerr << target_scores[i] << " " << decoy_scores[j] << " " << i << " " << j << " ";
 #endif
 
-        DoubleReal fdr = 0.;
+        double fdr = 0.;
 
-        if (minimal_fdr >= (DoubleReal)j / (number_of_target_scores - i))
+        if (minimal_fdr >= (double)j / (number_of_target_scores - i))
         {
-          minimal_fdr = (DoubleReal)j / (number_of_target_scores - i);
+          minimal_fdr = (double)j / (number_of_target_scores - i);
         }
         fdr = minimal_fdr;
 
@@ -639,9 +639,9 @@ namespace OpenMS
 #ifdef FALSE_DISCOVERY_RATE_DEBUG
         cerr << target_scores[i] << " " << decoy_scores[j] << " " << i << " " << j << " ";
 #endif
-        DoubleReal fdr(0);
+        double fdr(0);
 
-        fdr = (DoubleReal)j / (DoubleReal)(i + 1);
+        fdr = (double)j / (double)(i + 1);
 
 #ifdef FALSE_DISCOVERY_RATE_DEBUG
         cerr << fdr << endl;

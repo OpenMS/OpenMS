@@ -42,8 +42,8 @@ cdef extern from "<OpenMS/CHEMISTRY/IsotopeDistribution.h>" namespace "OpenMS":
         void renormalize() nogil except +
 
         # Trims the right side of the isotope distribution to isotopes with a significant contribution.
-        void trimRight(DoubleReal cutoff) nogil except +
+        void trimRight(double cutoff) nogil except +
 
         # Trims the left side of the isotope distribution to isotopes with a significant contribution.
-        void trimLeft(DoubleReal cutoff) nogil except +
+        void trimLeft(double cutoff) nogil except +
 

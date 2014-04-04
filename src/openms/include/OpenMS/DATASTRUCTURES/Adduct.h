@@ -56,7 +56,7 @@ public:
     Adduct(Int charge);
 
     /// C'tor for all members
-    Adduct(Int charge, Int amount, DoubleReal singleMass, String formula, DoubleReal log_prob, DoubleReal rt_shift, const String label = "");
+    Adduct(Int charge, Int amount, double singleMass, String formula, double log_prob, double rt_shift, const String label = "");
 
     /// Increase amount of this adduct by factor @param m
     Adduct operator*(const Int m) const;
@@ -80,26 +80,26 @@ public:
     const Int & getAmount() const;
     void setAmount(const Int & amount);
 
-    const DoubleReal & getSingleMass() const;
-    void setSingleMass(const DoubleReal & singleMass);
+    const double & getSingleMass() const;
+    void setSingleMass(const double & singleMass);
 
-    const DoubleReal & getLogProb() const;
-    void setLogProb(const DoubleReal & log_prob);
+    const double & getLogProb() const;
+    void setLogProb(const double & log_prob);
 
     const String & getFormula() const;
     void setFormula(const String & formula);
 
-    const DoubleReal & getRTShift() const;
+    const double & getRTShift() const;
     const String & getLabel() const;
     //}
 
 private:
     Int charge_; //< usually +1
     Int amount_; //< number of entities
-    DoubleReal singleMass_; //< mass of a single entity
-    DoubleReal log_prob_;   //< log probability of observing a single entity of this adduct
+    double singleMass_; //< mass of a single entity
+    double log_prob_;   //< log probability of observing a single entity of this adduct
     String formula_;   //< chemical formula (parsable by EmpiricalFormula)
-    DoubleReal rt_shift_;     //< RT shift induced by a single entity of this adduct (this is for adducts attached prior to ESI, e.g. labeling)
+    double rt_shift_;     //< RT shift induced by a single entity of this adduct (this is for adducts attached prior to ESI, e.g. labeling)
     String label_;     //< Label for this adduct (can be used to indicate heavy labels)
 
     String checkFormula_(const String & formula);

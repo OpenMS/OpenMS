@@ -53,7 +53,7 @@ endif()
 
 #------------------------------------------------------------------------------
 # Include the standard Dart testing module
-# for Nighlty Build log
+# for Nightly Build log
 enable_testing()
 include(Dart)
 
@@ -73,8 +73,8 @@ option(MT_ENABLE_CUDA "Enable experimental CUDA support" OFF)
 option(MT_ENABLE_TBB "Enable Intel TBB support" OFF)
 option(MT_ENABLE_OPENMP "Enable OpenMP support" ON)
 option(BOOST_USE_STATIC "Use Boost static libraries." ON)
-option(HAS_XSERVER "Indicates if an XServer is available. If set to Off it will disable certain tests and the doc target." ON)
-option(ENABLE_TUTORIALS "Indicates wether tutorials should be build. Note that this also depends on the availability of (pdf)latex." ON)
+option(HAS_XSERVER "Indicates if an X server is available. If set to Off it will disable certain tests and the doc target." ON)
+option(ENABLE_TUTORIALS "Indicates whether tutorials should be build. Note that this also depends on the availability of (pdf)latex." ON)
 
 #------------------------------------------------------------------------------
 # OpenMS Version Information
@@ -92,19 +92,6 @@ include(cmake/package_definitions.cmake)
 #------------------------------------------------------------------------------
 if (MINGW OR MSYS)
   message(FATAL_ERROR "MSYS and/or MinGW are not supported! Please use a Visual Studio environment! See Windows build instructions for further information!")
-endif()
-
-#------------------------------------------------------------------------------
-# MacOS X related library extensions
-#------------------------------------------------------------------------------
-if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-	# due to some awkward updates of cmake in the 2.8.x series we need to add the
-  # following
-  find_library(CARBON NAMES Carbon)
-  find_package(OpenGL)
-  set(APPLE_EXTRA_LIBS ${CARBON} ${OPENGL_LIBRARY})
-else()
-  set(APPLE_EXTRA_LIBS "")
 endif()
 
 #------------------------------------------------------------------------------
@@ -158,12 +145,14 @@ endif()
 set(BUILD_SHARED_LIBS true)
 
 #------------------------------------------------------------------------------
-# CMake Utitlities
+# CMake Utilities
 #------------------------------------------------------------------------------
 # include some OpenMS specific macros
 include (${PROJECT_SOURCE_DIR}/cmake/OpenMSBuildSystem_macros.cmake)
-# .. and some to ease the installation proces
+# .. and some to ease the installation process
 include (${PROJECT_SOURCE_DIR}/cmake/install_macros.cmake)
+# .. and some to ease preparing the documentation builds
+include (${PROJECT_SOURCE_DIR}/cmake/doc_macros.cmake)
 
 #------------------------------------------------------------------------------
 # Directories
@@ -237,7 +226,7 @@ set(PACKAGE_TYPE "none" CACHE STRING "Package type (internal): ${VALID_PACKAGE_T
 is_valid_package(${PACKAGE_TYPE})
 
 #------------------------------------------------------------------------------
-# The actual openms code
+# The actual OpenMS code (headers and source files)
 #------------------------------------------------------------------------------
 add_subdirectory(src)
 
@@ -249,7 +238,7 @@ add_subdirectory(doc)
 #------------------------------------------------------------------------------
 # GKN Package building
 #------------------------------------------------------------------------------
-# We will use this path for the knime packages and the osx installer
+# We will use this path for the KNIME packages and the OS X installer
 set(SEARCH_ENGINES_DIRECTORY "" CACHE PATH "Directory containing the search engine executables that should be shipped with OpenMS. Note: We expect the layout from the SVN.")
 
 set(ENABLE_PREPARE_KNIME_PACKAGE OFF CACHE BOOL "If enabled, targets to prepare KNIME packages will be generated. Main target will be 'prepare_knime_package'.")

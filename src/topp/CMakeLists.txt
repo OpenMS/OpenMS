@@ -66,3 +66,5 @@ endforeach(i)
 ## export the list of TOPP tools into CACHE
 set(TOPP_TOOLS ${TOPP_executables}
     CACHE INTERNAL "OpenMS' TOPP tools" FORCE)
+
+openms_doc_path("${PROJECT_SOURCE_DIR}")

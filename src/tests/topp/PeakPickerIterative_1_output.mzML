@@ -5207,31 +5207,31 @@
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAAQD2Yh0A=</binary>
+						<binary>AAAAYGyah0A=</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="8">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>VJjIRA==</binary>
+						<binary>I+qWRA==</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="1" encodedLength="12" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="IntegratedIntensity" />
-						<binary>AAAAgAoTmUA=</binary>
+						<binary>AAAAYETdkkA=</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="1" encodedLength="12" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="leftWidth" />
-						<binary>AAAAYHSXh0A=</binary>
+						<binary>AAAAoIiZh0A=</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="1" encodedLength="12" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="rightWidth" />
-						<binary>AAAAoIiZh0A=</binary>
+						<binary>AAAAIOaah0A=</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -5583,19 +5583,19 @@
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAAYPVxh0AAAADgWXKHQAAAAEAuc4dAAAAAYA12h0A=</binary>
+						<binary>AAAAYPVxh0AAAAAAYHKHQAAAAEAuc4dAAAAAYA12h0A=</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="24">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>xAreRfpbZkSknMxERHy7RA==</binary>
+						<binary>xAreRbbSmkSknMxERHy7RA==</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="4" encodedLength="44" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="IntegratedIntensity" />
-						<binary>AAAAgFjBu0AAAABAf8uMQAAAAICUk5lAAAAAgIhvl0A=</binary>
+						<binary>AAAAgFjBu0AAAADAVlqTQAAAAICUk5lAAAAAgIhvl0A=</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="4" encodedLength="44" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
@@ -5607,7 +5607,7 @@
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="rightWidth" />
-						<binary>AAAAgCJyh0AAAADAYXKHQAAAAKCBdYdAAAAAIBh2h0A=</binary>
+						<binary>AAAAgCJyh0AAAACgcXKHQAAAAKCBdYdAAAAAIBh2h0A=</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -5755,7 +5755,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
-			<spectrum id="scan=18118" index="23" defaultArrayLength="3">
+			<spectrum id="scan=18118" index="23" defaultArrayLength="2">
 				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
 				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
@@ -5767,35 +5767,35 @@
 					</scan>
 				</scanList>
 				<binaryDataArrayList count="5">
-					<binaryDataArray encodedLength="32">
+					<binaryDataArray encodedLength="24">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAAYCpbh0AAAABgGmOHQAAAAEBBY4dA</binary>
+						<binary>AAAAYCpbh0AAAABAQWOHQA==</binary>
 					</binaryDataArray>
-					<binaryDataArray encodedLength="16">
+					<binaryDataArray encodedLength="12">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>O8OJRXaE40RY0zNF</binary>
+						<binary>O8OJRVjTM0U=</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="3" encodedLength="32" >
+					<binaryDataArray arrayLength="2" encodedLength="24" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="IntegratedIntensity" />
-						<binary>AAAAYGc4sUAAAADAjnCcQAAAAABreqZA</binary>
+						<binary>AAAAYGc4sUAAAAAAa3qmQA==</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="3" encodedLength="32" >
+					<binaryDataArray arrayLength="2" encodedLength="24" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="leftWidth" />
-						<binary>AAAAABtbh0AAAADAAmOHQAAAAIAaY4dA</binary>
+						<binary>AAAAABtbh0AAAACAGmOHQA==</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="3" encodedLength="32" >
+					<binaryDataArray arrayLength="2" encodedLength="24" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="rightWidth" />
-						<binary>AAAAoDpbh0AAAABAKmOHQAAAAIBpY4dA</binary>
+						<binary>AAAAoDpbh0AAAACAaWOHQA==</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -5975,7 +5975,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
-			<spectrum id="scan=18283" index="28" defaultArrayLength="7">
+			<spectrum id="scan=18283" index="28" defaultArrayLength="6">
 				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
 				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
@@ -5987,35 +5987,35 @@
 					</scan>
 				</scanList>
 				<binaryDataArrayList count="5">
-					<binaryDataArray encodedLength="76">
+					<binaryDataArray encodedLength="64">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAAoFJmh0AAAADgTmuHQAAAAOD6modAAAAAIEybh0AAAABATKOHQAAAAKBpq4dAAAAAoLmzh0A=</binary>
+						<binary>AAAAoFJmh0AAAADgTmuHQAAAACBMm4dAAAAAQEyjh0AAAACgaauHQAAAAKC5s4dA</binary>
 					</binaryDataArray>
-					<binaryDataArray encodedLength="40">
+					<binaryDataArray encodedLength="32">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>L8XcRGppuER2FANFKUNZRmWUlEXOpqtEtCmBRA==</binary>
+						<binary>L8XcRGppuEQpQ1lGZZSURc6mq0S0KYFE</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="7" encodedLength="76" >
+					<binaryDataArray arrayLength="6" encodedLength="64" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="IntegratedIntensity" />
-						<binary>AAAA4KWYm0AAAABALQ2XQAAAAMCOYqBAAAAAIGUoy0AAAACgjJKyQAAAAMDZdJVAAAAAgDYlkEA=</binary>
+						<binary>AAAA4KWYm0AAAABALQ2XQAAAACBlKMtAAAAAoIySskAAAADA2XSVQAAAAIA2JZBA</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="7" encodedLength="76" >
+					<binaryDataArray arrayLength="6" encodedLength="64" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="leftWidth" />
-						<binary>AAAAgEVmh0AAAABgN2uHQAAAAADqmodAAAAAoBmbh0AAAAAALKOHQAAAAKBPq4dAAAAAgIyzh0A=</binary>
+						<binary>AAAAgEVmh0AAAABgN2uHQAAAAKAZm4dAAAAAACyjh0AAAACgT6uHQAAAAICMs4dA</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="7" encodedLength="76" >
+					<binaryDataArray arrayLength="6" encodedLength="64" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="rightWidth" />
-						<binary>AAAAIGVmh0AAAADAbmuHQAAAAMAJm4dAAAAAAHGbh0AAAACga6OHQAAAAECPq4dAAAAAIOSzh0A=</binary>
+						<binary>AAAAIGVmh0AAAADAbmuHQAAAAABxm4dAAAAAoGujh0AAAABAj6uHQAAAACDks4dA</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -6431,19 +6431,19 @@
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAA4Pmmh0AAAACAKKeHQAAAAED1qodA</binary>
+						<binary>AAAAoBWnh0AAAACAKKeHQAAAAED1qodA</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="16">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>DrV1RXZIs0XeaM5F</binary>
+						<binary>fxEXRnZIs0XeaM5F</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="3" encodedLength="32" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="IntegratedIntensity" />
-						<binary>AAAAwKG2rkAAAADADmm2QAAAAMAbzblA</binary>
+						<binary>AAAA4C/iwkAAAADADmm2QAAAAMAbzblA</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="3" encodedLength="32" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
@@ -6455,7 +6455,7 @@
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="rightWidth" />
-						<binary>AAAAAAanh0AAAACgPaeHQAAAAOAXq4dA</binary>
+						<binary>AAAAoD2nh0AAAACgPaeHQAAAAOAXq4dA</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -6687,31 +6687,31 @@
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAAwC5eh0AAAABAQmeHQAAAAGDNeodA</binary>
+						<binary>AAAAwMJfh0AAAABAQmeHQAAAAKDDeodA</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="16">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>pC1kRIDnDESTVxpE</binary>
+						<binary>sOqXRIDnDERjRehD</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="3" encodedLength="32" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="IntegratedIntensity" />
-						<binary>AAAAgLSFjEAAAAAA8JyBQAAAAGDySoNA</binary>
+						<binary>AAAAAFb9kkAAAAAA8JyBQAAAAGCsCH1A</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="3" encodedLength="32" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="leftWidth" />
-						<binary>AAAAAORdh0AAAABAKGeHQAAAAMCzeodA</binary>
+						<binary>AAAAgAteh0AAAABAKGeHQAAAAMCzeodA</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="3" encodedLength="32" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="rightWidth" />
-						<binary>AAAAQHJeh0AAAACgV2eHQAAAAEDreodA</binary>
+						<binary>AAAAIG5ih0AAAACgV2eHQAAAAGDTeodA</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -6731,19 +6731,19 @@
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAAYN1Lh0AAAACgqEyHQAAAAIA1Z4dAAAAAgPx2h0AAAACg46qHQA==</binary>
+						<binary>AAAAYN1Lh0AAAACgqEyHQAAAAIA1Z4dAAAAA4Mt2h0AAAACg46qHQA==</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="28">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>yIK1Q0Wn8EPK5z1ExLD3QxnUpkM=</binary>
+						<binary>yIK1Q0Wn8EPK5z1Eltq6QxnUpkM=</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="5" encodedLength="56" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="IntegratedIntensity" />
-						<binary>AAAAAFmwdkAAAACg6BR+QAAAAED5vIdAAAAAgBj2fkAAAAAgg9p0QA==</binary>
+						<binary>AAAAAFmwdkAAAACg6BR+QAAAAED5vIdAAAAAwFJbd0AAAAAgg9p0QA==</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="5" encodedLength="56" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
@@ -6755,7 +6755,7 @@
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="rightWidth" />
-						<binary>AAAAYO1Lh0AAAABgp02HQAAAACBGZ4dAAAAA4JF3h0AAAACg86qHQA==</binary>
+						<binary>AAAAYO1Lh0AAAABgp02HQAAAACBGZ4dAAAAAwNt2h0AAAACg86qHQA==</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -6775,19 +6775,19 @@
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAAgCdkh0AAAAAAK2eHQAAAAMBcZ4dAAAAAACFrh0AAAAAAHW+HQAAAAGAZq4dA</binary>
+						<binary>AAAAgCdkh0AAAAAAK2eHQAAAAABSZ4dAAAAAACFrh0AAAAAAHW+HQAAAAGAZq4dA</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="32">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>42yLRB4+8kRbOt9EJY8/RdMhxET0MzNE</binary>
+						<binary>42yLRB4+8kSRcKNEJY8/RdMhxET0MzNE</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="6" encodedLength="64" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="IntegratedIntensity" />
-						<binary>AAAAYJxtkUAAAADAw0eeQAAAAGBL55tAAAAAoOTxp0AAAABgOoSYQAAAAIB+ZoZA</binary>
+						<binary>AAAAYJxtkUAAAADAw0eeQAAAACASbpRAAAAAoOTxp0AAAABgOoSYQAAAAIB+ZoZA</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="6" encodedLength="64" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
@@ -6799,7 +6799,7 @@
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="rightWidth" />
-						<binary>AAAA4KBmh0AAAAAgN2eHQAAAAEB+Z4dAAAAAoENrh0AAAADAKG+HQAAAACAkq4dA</binary>
+						<binary>AAAA4KBmh0AAAAAgN2eHQAAAAKBeZ4dAAAAAoENrh0AAAADAKG+HQAAAACAkq4dA</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -7039,31 +7039,31 @@
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAAgJpxh0A=</binary>
+						<binary>AAAAIAhyh0A=</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="8">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>DKzHRA==</binary>
+						<binary>mnnIRA==</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="1" encodedLength="12" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="IntegratedIntensity" />
-						<binary>AAAAgIH1mEA=</binary>
+						<binary>AAAAQDMPmUA=</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="1" encodedLength="12" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="leftWidth" />
-						<binary>AAAAAPxwh0A=</binary>
+						<binary>AAAAQKJxh0A=</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="1" encodedLength="12" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="rightWidth" />
-						<binary>AAAAwDByh0A=</binary>
+						<binary>AAAAgEhyh0A=</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -7199,7 +7199,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
-			<spectrum id="scan=19273" index="58" defaultArrayLength="6">
+			<spectrum id="scan=19273" index="58" defaultArrayLength="5">
 				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
 				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
@@ -7211,35 +7211,35 @@
 					</scan>
 				</scanList>
 				<binaryDataArrayList count="5">
-					<binaryDataArray encodedLength="64">
+					<binaryDataArray encodedLength="56">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAAAEhSh0AAAADABHOHQAAAAMD4godAAAAAADCbh0AAAADAS6uHQAAAACDys4dA</binary>
+						<binary>AAAAAEhSh0AAAADABHOHQAAAAMD4godAAAAAADCbh0AAAADAS6uHQA==</binary>
 					</binaryDataArray>
-					<binaryDataArray encodedLength="32">
+					<binaryDataArray encodedLength="28">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>lKIDRF8GRUQisHVElKIDRIwVZ0Sd+gNE</binary>
+						<binary>lKIDRF8GRUQisHVElKIDRIwVZ0Q=</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="6" encodedLength="64" >
+					<binaryDataArray arrayLength="5" encodedLength="56" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="IntegratedIntensity" />
-						<binary>AAAAgFJ0gEAAAADgy6CIQAAAAEAEto5AAAAAgFJ0gEAAAACAseKMQAAAAKBTf4BA</binary>
+						<binary>AAAAgFJ0gEAAAADgy6CIQAAAAEAEto5AAAAAgFJ0gEAAAACAseKMQA==</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="6" encodedLength="64" >
+					<binaryDataArray arrayLength="5" encodedLength="56" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="leftWidth" />
-						<binary>AAAAACtSh0AAAADg8HKHQAAAAMDBgodAAAAAIBibh0AAAABALquHQAAAAEBjs4dA</binary>
+						<binary>AAAAACtSh0AAAADg8HKHQAAAAMDBgodAAAAAIBibh0AAAABALquHQA==</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="6" encodedLength="64" >
+					<binaryDataArray arrayLength="5" encodedLength="56" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="rightWidth" />
-						<binary>AAAAQGJSh0AAAABgIHOHQAAAAAAZg4dAAAAA4Eebh0AAAAAAXquHQAAAAICxtIdA</binary>
+						<binary>AAAAQGJSh0AAAABgIHOHQAAAAAAZg4dAAAAA4Eebh0AAAAAAXquHQA==</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -7315,19 +7315,19 @@
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAAIMhSh0AAAADA+5qHQA==</binary>
+						<binary>AAAAIMhSh0AAAAAA9pqHQA==</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="12">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>8huBRAGLd0Q=</binary>
+						<binary>8huBRDQvO0Q=</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="2" encodedLength="24" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="IntegratedIntensity" />
-						<binary>AAAAQH4jkEAAAAAgYPGOQA==</binary>
+						<binary>AAAAQH4jkEAAAACA5mWHQA==</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="2" encodedLength="24" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
@@ -7339,11 +7339,11 @@
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="rightWidth" />
-						<binary>AAAAoFxTh0AAAADADZuHQA==</binary>
+						<binary>AAAAoFxTh0AAAADg/ZqHQA==</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
-			<spectrum id="scan=19405" index="62" defaultArrayLength="5">
+			<spectrum id="scan=19405" index="62" defaultArrayLength="4">
 				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
 				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
@@ -7355,35 +7355,35 @@
 					</scan>
 				</scanList>
 				<binaryDataArrayList count="5">
-					<binaryDataArray encodedLength="56">
+					<binaryDataArray encodedLength="44">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAAwCpih0AAAAAAm3aHQAAAAAAFeIdAAAAAQAB7h0AAAABg1qqHQA==</binary>
+						<binary>AAAAwCpih0AAAABgpnaHQAAAAAAFeIdAAAAAYNaqh0A=</binary>
 					</binaryDataArray>
-					<binaryDataArray encodedLength="28">
+					<binaryDataArray encodedLength="24">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>DG7QRLCbtUTIAndE0mW6RAxu0EQ=</binary>
+						<binary>DG7QRP3tDEXIAndEDG7QRA==</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="5" encodedLength="56" >
+					<binaryDataArray arrayLength="4" encodedLength="44" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="IntegratedIntensity" />
-						<binary>AAAAgMENmkAAAAAAdrOWQAAAAABZ4I5AAAAAQLpMl0AAAACAwQ2aQA==</binary>
+						<binary>AAAAgMENmkAAAACgv52hQAAAAABZ4I5AAAAAgMENmkA=</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="5" encodedLength="56" >
+					<binaryDataArray arrayLength="4" encodedLength="44" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="leftWidth" />
-						<binary>AAAAoOhhh0AAAAAAj3aHQAAAACBVd4dAAAAAAPR6h0AAAACgrqqHQA==</binary>
+						<binary>AAAAoOhhh0AAAAAAj3aHQAAAACBVd4dAAAAAoK6qh0A=</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="5" encodedLength="56" >
+					<binaryDataArray arrayLength="4" encodedLength="44" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="rightWidth" />
-						<binary>AAAAILZih0AAAADApnaHQAAAAKCxeIdAAAAAwAt7h0AAAAAg/qqHQA==</binary>
+						<binary>AAAAILZih0AAAACgvnaHQAAAAKCxeIdAAAAAIP6qh0A=</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -7447,19 +7447,19 @@
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAAABtzh0AAAAAghnaHQAAAAMDwdodAAAAAoMR6h0AAAACA8H6HQAAAAOCAu4dA</binary>
+						<binary>AAAAABtzh0AAAACglXaHQAAAAMDwdodAAAAAoMR6h0AAAACA8H6HQAAAAOCAu4dA</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="32">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>jEauRIcac0SBPNhFBtivRc+DJ0XuvyZF</binary>
+						<binary>jEauRJsz1kSBPNhFBtivRc+DJ0XuvyZF</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="6" encodedLength="64" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="IntegratedIntensity" />
-						<binary>AAAAgNHIlUAAAADgUGOOQAAAACCQB7tAAAAAwAD7tUAAAADgefCkQAAAAMD916RA</binary>
+						<binary>AAAAgNHIlUAAAABgc8aaQAAAACCQB7tAAAAAwAD7tUAAAADgefCkQAAAAMD916RA</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="6" encodedLength="64" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
@@ -7471,7 +7471,7 @@
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="rightWidth" />
-						<binary>AAAAACdzh0AAAABAjnaHQAAAAKAsd4dAAAAAQON6h0AAAAAgEX+HQAAAAECQu4dA</binary>
+						<binary>AAAAACdzh0AAAADgrXaHQAAAAKAsd4dAAAAAQON6h0AAAAAgEX+HQAAAAECQu4dA</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -7819,7 +7819,7 @@
 					</scan>
 				</scanList>
 			</spectrum>
-			<spectrum id="scan=19834" index="75" defaultArrayLength="4">
+			<spectrum id="scan=19834" index="75" defaultArrayLength="3">
 				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
 				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
@@ -7831,35 +7831,35 @@
 					</scan>
 				</scanList>
 				<binaryDataArrayList count="5">
-					<binaryDataArray encodedLength="44">
+					<binaryDataArray encodedLength="32">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAAAGRbh0AAAACgemOHQAAAAMCJZ4dAAAAAYNKvh0A=</binary>
+						<binary>AAAAAGRbh0AAAACgemOHQAAAAGDSr4dA</binary>
 					</binaryDataArray>
-					<binaryDataArray encodedLength="24">
+					<binaryDataArray encodedLength="16">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>2OgkRmw8/kWLSiNFXT0NRQ==</binary>
+						<binary>2OgkRmw8/kVdPQ1F</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="4" encodedLength="44" >
+					<binaryDataArray arrayLength="3" encodedLength="32" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="IntegratedIntensity" />
-						<binary>AAAAABudxEAAAACAjce/QAAAAGBRaaRAAAAAoKunoUA=</binary>
+						<binary>AAAAABudxEAAAACAjce/QAAAAKCrp6FA</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="4" encodedLength="44" >
+					<binaryDataArray arrayLength="3" encodedLength="32" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="leftWidth" />
-						<binary>AAAAYERbh0AAAABAJGOHQAAAAGDHZIdAAAAAgEevh0A=</binary>
+						<binary>AAAAYERbh0AAAABAJGOHQAAAAIBHr4dA</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="4" encodedLength="44" >
+					<binaryDataArray arrayLength="3" encodedLength="32" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="rightWidth" />
-						<binary>AAAAoINbh0AAAADg6WOHQAAAAMAvaodAAAAA4HWwh0A=</binary>
+						<binary>AAAAoINbh0AAAADg6WOHQAAAAOB1sIdA</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -8659,7 +8659,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
-			<spectrum id="scan=20560" index="97" defaultArrayLength="12">
+			<spectrum id="scan=20560" index="97" defaultArrayLength="11">
 				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
 				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
@@ -8671,35 +8671,35 @@
 					</scan>
 				</scanList>
 				<binaryDataArrayList count="5">
-					<binaryDataArray encodedLength="128">
+					<binaryDataArray encodedLength="120">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAAQANLh0AAAADAKkuHQAAAAEANU4dAAAAAILpeh0AAAACglWWHQAAAACBHaodAAAAA4EJuh0AAAADgmXaHQAAAAGBFo4dAAAAA4OCjh0AAAACA36uHQAAAAGDjs4dA</binary>
+						<binary>AAAAQANLh0AAAADAKkuHQAAAAEANU4dAAAAAILpeh0AAAACglWWHQAAAACBHaodAAAAA4EJuh0AAAADgmXaHQAAAAODgo4dAAAAAgN+rh0AAAABg47OHQA==</binary>
 					</binaryDataArray>
-					<binaryDataArray encodedLength="64">
+					<binaryDataArray encodedLength="60">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>M3NfRS2N/EST5WBF7i3/RH7+6ESojzJGoCYpRiuJI0Ww1/tErecFSUmjfUhFIT9H</binary>
+						<binary>M3NfRS2N/EST5WBF7i3/RH7+6ESojzJGoCYpRiuJI0Wt5wVJSaN9SEUhP0c=</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="12" encodedLength="128" >
+					<binaryDataArray arrayLength="11" encodedLength="120" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="IntegratedIntensity" />
-						<binary>AAAAYGbuq0AAAACgpZGfQAAAAGCyHKxAAAAAwL3ln0AAAADAzx+dQAAAAAD1UcZAAAAAANQkxUAAAABgJXGkQAAAAAD2ep9AAAAAoPW8IEEAAAAgabQPQQAAAKAo5OdA</binary>
+						<binary>AAAAYGbuq0AAAACgpZGfQAAAAGCyHKxAAAAAwL3ln0AAAADAzx+dQAAAAAD1UcZAAAAAANQkxUAAAABgJXGkQAAAAKD1vCBBAAAAIGm0D0EAAACgKOTnQA==</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="12" encodedLength="128" >
+					<binaryDataArray arrayLength="11" encodedLength="120" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="leftWidth" />
-						<binary>AAAAoPNKh0AAAADgIkuHQAAAAAC5UodAAAAAwEteh0AAAABgYWSHQAAAAMAoaodAAAAAwBVuh0AAAABgf3aHQAAAACA6o4dAAAAAwHmjh0AAAACgbauHQAAAAKCas4dA</binary>
+						<binary>AAAAoPNKh0AAAADgIkuHQAAAAAC5UodAAAAAwEteh0AAAABgYWSHQAAAAMAoaodAAAAAwBVuh0AAAABgf3aHQAAAAMB5o4dAAAAAoG2rh0AAAACgmrOHQA==</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="12" encodedLength="128" >
+					<binaryDataArray arrayLength="11" encodedLength="120" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="rightWidth" />
-						<binary>AAAAIBNLh0AAAADAMkuHQAAAAOBeU4dAAAAAYGhfh0AAAADAS2aHQAAAAOBvaodAAAAAwGxuh0AAAADgtnaHQAAAAABSo4dAAAAAIICkh0AAAABAZKyHQAAAAOAxtIdA</binary>
+						<binary>AAAAIBNLh0AAAADAMkuHQAAAAOBeU4dAAAAAYGhfh0AAAADAS2aHQAAAAOBvaodAAAAAwGxuh0AAAADgtnaHQAAAACCApIdAAAAAQGSsh0AAAADgMbSHQA==</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -8791,7 +8791,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
-			<spectrum id="scan=20659" index="100" defaultArrayLength="8">
+			<spectrum id="scan=20659" index="100" defaultArrayLength="7">
 				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
 				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
@@ -8803,35 +8803,35 @@
 					</scan>
 				</scanList>
 				<binaryDataArrayList count="5">
-					<binaryDataArray encodedLength="88">
+					<binaryDataArray encodedLength="76">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAAgChNh0AAAADAu1CHQAAAAOBcaodAAAAAgIh+h0AAAAAg4KOHQAAAAEDHqodAAAAAIOarh0AAAACA5bOHQA==</binary>
+						<binary>AAAAgChNh0AAAADAu1CHQAAAAOBcaodAAAAAIOCjh0AAAABAx6qHQAAAACDmq4dAAAAAgOWzh0A=</binary>
 					</binaryDataArray>
-					<binaryDataArray encodedLength="44">
+					<binaryDataArray encodedLength="40">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>agl2RV7NU0V4s4tFWHe2RN3ty0gNZw5F2VcgSPpDLkc=</binary>
+						<binary>agl2RV7NU0V4s4tF3e3LSA1nDkXZVyBI+kMuRw==</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="8" encodedLength="88" >
+					<binaryDataArray arrayLength="7" encodedLength="76" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="IntegratedIntensity" />
-						<binary>AAAAQC3BrkAAAADAq3mqQAAAAABvdrFAAAAAAOvOlkAAAACgu30ZQQAAAKDhzKFAAAAAIPsKBEEAAABAf8jlQA==</binary>
+						<binary>AAAAQC3BrkAAAADAq3mqQAAAAABvdrFAAAAAoLt9GUEAAACg4cyhQAAAACD7CgRBAAAAQH/I5UA=</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="8" encodedLength="88" >
+					<binaryDataArray arrayLength="7" encodedLength="76" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="leftWidth" />
-						<binary>AAAA4HpLh0AAAABAHk+HQAAAAIBJaodAAAAA4AV+h0AAAAAAc6OHQAAAAACgqodAAAAAoKarh0AAAADgo7OHQA==</binary>
+						<binary>AAAA4HpLh0AAAABAHk+HQAAAAIBJaodAAAAAAHOjh0AAAAAAoKqHQAAAAKCmq4dAAAAA4KOzh0A=</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="8" encodedLength="88" >
+					<binaryDataArray arrayLength="7" encodedLength="76" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="rightWidth" />
-						<binary>AAAAQB5Ph0AAAACgS1KHQAAAACBxaodAAAAAgAN/h0AAAACgSaSHQAAAAKDvqodAAAAAwD2sh0AAAABAK7SHQA==</binary>
+						<binary>AAAAQB5Ph0AAAACgS1KHQAAAACBxaodAAAAAoEmkh0AAAACg76qHQAAAAMA9rIdAAAAAQCu0h0A=</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -9335,31 +9335,31 @@
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAAgLVSh0AAAADA0KuHQAAAACCzs4dAAAAAAFu7h0A=</binary>
+						<binary>AAAAQCRTh0AAAADA0KuHQAAAACCzs4dAAAAAwIi7h0A=</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="24">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>S+szRXrx8Eaq4bNF3/7RRA==</binary>
+						<binary>csJXRXrx8Eaq4bNFtdTTRA==</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="4" encodedLength="44" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="IntegratedIntensity" />
-						<binary>AAAAYGl9pkAAAABALx7eQAAAAEA1fLZAAAAA4Ns/mkA=</binary>
+						<binary>AAAAQE74qkAAAABALx7eQAAAAEA1fLZAAAAAoJZ6mkA=</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="4" encodedLength="44" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="leftWidth" />
-						<binary>AAAAAIFSh0AAAADAnKuHQAAAAACas4dAAAAAADG7h0A=</binary>
+						<binary>AAAAAIFSh0AAAADAnKuHQAAAAACas4dAAAAA4Fi7h0A=</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="4" encodedLength="44" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="rightWidth" />
-						<binary>AAAAoOdSh0AAAAAgDKyHQAAAAMDJs4dAAAAAoIi7h0A=</binary>
+						<binary>AAAAwE9Vh0AAAAAgDKyHQAAAAMDJs4dAAAAAgLi7h0A=</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -9407,7 +9407,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
-			<spectrum id="scan=21121" index="114" defaultArrayLength="4">
+			<spectrum id="scan=21121" index="114" defaultArrayLength="3">
 				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
 				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
@@ -9419,35 +9419,35 @@
 					</scan>
 				</scanList>
 				<binaryDataArrayList count="5">
-					<binaryDataArray encodedLength="44">
+					<binaryDataArray encodedLength="32">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAAwNajh0AAAADAuauHQAAAAKBxs4dAAAAAQL2zh0A=</binary>
+						<binary>AAAAwNajh0AAAADAuauHQAAAAEC9s4dA</binary>
 					</binaryDataArray>
-					<binaryDataArray encodedLength="24">
+					<binaryDataArray encodedLength="16">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>tNT9RFyZt0YnxytFEn4FRg==</binary>
+						<binary>tNT9RFyZt0YSfgVG</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="4" encodedLength="44" >
+					<binaryDataArray arrayLength="3" encodedLength="32" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="IntegratedIntensity" />
-						<binary>AAAAgJa6n0AAAACAK/PWQAAAAODkeKVAAAAAQMKvwEA=</binary>
+						<binary>AAAAgJa6n0AAAACAK/PWQAAAAEDCr8BA</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="4" encodedLength="44" >
+					<binaryDataArray arrayLength="3" encodedLength="32" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="leftWidth" />
-						<binary>AAAAIMejh0AAAACAg6uHQAAAAOBgs4dAAAAAoJizh0A=</binary>
+						<binary>AAAAIMejh0AAAACAg6uHQAAAAKCYs4dA</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="4" encodedLength="44" >
+					<binaryDataArray arrayLength="3" encodedLength="32" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="rightWidth" />
-						<binary>AAAA4O6jh0AAAAAA46uHQAAAAKCIs4dAAAAAQOCzh0A=</binary>
+						<binary>AAAA4O6jh0AAAAAA46uHQAAAAEDgs4dA</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -9863,25 +9863,25 @@
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAAwP1ih0AAAABAT2qHQAAAAADFlodA</binary>
+						<binary>AAAAwP1ih0AAAADgeWmHQAAAAADFlodA</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="16">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>QL+iRE6drUTsE5hE</binary>
+						<binary>QL+iRAnY2UTsE5hE</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="3" encodedLength="32" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="IntegratedIntensity" />
-						<binary>AAAAAOhXlEAAAADAqbOVQAAAAIB9ApNA</binary>
+						<binary>AAAAAOhXlEAAAAAgATubQAAAAIB9ApNA</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="3" encodedLength="32" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="leftWidth" />
-						<binary>AAAAQMZih0AAAACAJmiHQAAAAAC4lodA</binary>
+						<binary>AAAAQMZih0AAAAAgNGaHQAAAAAC4lodA</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="3" encodedLength="32" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
@@ -10851,7 +10851,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
-			<spectrum id="scan=22276" index="149" defaultArrayLength="4">
+			<spectrum id="scan=22276" index="149" defaultArrayLength="3">
 				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
 				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
@@ -10863,39 +10863,39 @@
 					</scan>
 				</scanList>
 				<binaryDataArrayList count="5">
-					<binaryDataArray encodedLength="44">
+					<binaryDataArray encodedLength="32">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAAwDNrh0AAAACgfpqHQAAAAIC6q4dAAAAAoNe6h0A=</binary>
+						<binary>AAAAoH6ah0AAAACAuquHQAAAAKDXuodA</binary>
 					</binaryDataArray>
-					<binaryDataArray encodedLength="24">
+					<binaryDataArray encodedLength="16">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>Uq82RMBPckQyCdNFBvfSRA==</binary>
+						<binary>wE9yRDIJ00UG99JE</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="4" encodedLength="44" >
+					<binaryDataArray arrayLength="3" encodedLength="32" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="IntegratedIntensity" />
-						<binary>AAAAQOrVhkAAAAAA+EmOQAAAAEAmYbpAAAAAwOBemkA=</binary>
+						<binary>AAAAAPhJjkAAAABAJmG6QAAAAMDgXppA</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="4" encodedLength="44" >
+					<binaryDataArray arrayLength="3" encodedLength="32" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="leftWidth" />
-						<binary>AAAAgM9qh0AAAAAASpqHQAAAAACeq4dAAAAA4LK6h0A=</binary>
+						<binary>AAAAAEqah0AAAAAAnquHQAAAAOCyuodA</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="4" encodedLength="44" >
+					<binaryDataArray arrayLength="3" encodedLength="32" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="rightWidth" />
-						<binary>AAAAYI1rh0AAAABgoZqHQAAAAMDVq4dAAAAAoPq6h0A=</binary>
+						<binary>AAAAYKGah0AAAADA1auHQAAAAKD6uodA</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
-			<spectrum id="scan=22309" index="150" defaultArrayLength="3">
+			<spectrum id="scan=22309" index="150" defaultArrayLength="2">
 				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
 				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
@@ -10907,35 +10907,35 @@
 					</scan>
 				</scanList>
 				<binaryDataArrayList count="5">
-					<binaryDataArray encodedLength="32">
+					<binaryDataArray encodedLength="24">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAAoLqrh0AAAADgLKyHQAAAAKDcs4dA</binary>
+						<binary>AAAAoLqrh0AAAACg3LOHQA==</binary>
 					</binaryDataArray>
-					<binaryDataArray encodedLength="16">
+					<binaryDataArray encodedLength="12">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>3QcvRuIdeETzGF1F</binary>
+						<binary>3QcvRvMYXUU=</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="3" encodedLength="32" >
+					<binaryDataArray arrayLength="2" encodedLength="24" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="IntegratedIntensity" />
-						<binary>AAAAoPvgxUAAAABAvAOPQAAAAGAeo6tA</binary>
+						<binary>AAAAoPvgxUAAAABgHqOrQA==</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="3" encodedLength="32" >
+					<binaryDataArray arrayLength="2" encodedLength="24" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="leftWidth" />
-						<binary>AAAA4Iyrh0AAAAAgFKyHQAAAAMDJs4dA</binary>
+						<binary>AAAA4Iyrh0AAAADAybOHQA==</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="3" encodedLength="32" >
+					<binaryDataArray arrayLength="2" encodedLength="24" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="rightWidth" />
-						<binary>AAAAYOyrh0AAAADgQ6yHQAAAAKDxs4dA</binary>
+						<binary>AAAAYOyrh0AAAACg8bOHQA==</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -11263,35 +11263,35 @@
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAAYGdrh0AAAABAaXOHQAAAAKCrfodAAAAAIJSCh0AAAAAAv6uHQA==</binary>
+						<binary>AAAAYGdrh0AAAABgdnOHQAAAAKCrfodAAAAAIJSCh0AAAAAAv6uHQA==</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="28">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>7ARxRURoDEXpZEFGWKynReykBkU=</binary>
+						<binary>7ARxRa9utUXpZEFGWKynReykBkU=</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="5" encodedLength="56" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="IntegratedIntensity" />
-						<binary>AAAAgJ0grkAAAACACI2hQAAAACCdLMhAAAAAAIv1tEAAAACAndSgQA==</binary>
+						<binary>AAAAgJ0grkAAAADg1a22QAAAACCdLMhAAAAAAIv1tEAAAACAndSgQA==</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="5" encodedLength="56" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="leftWidth" />
-						<binary>AAAAQFdrh0AAAACAWXOHQAAAAIB1fodAAAAAAISCh0AAAAAgt6uHQA==</binary>
+						<binary>AAAAQFdrh0AAAADgMXOHQAAAAIB1fodAAAAAAISCh0AAAAAgt6uHQA==</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="5" encodedLength="56" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="rightWidth" />
-						<binary>AAAA4HZrh0AAAAAgeXOHQAAAAKDUfodAAAAAwKOCh0AAAAAAx6uHQA==</binary>
+						<binary>AAAA4HZrh0AAAACAuHOHQAAAAKDUfodAAAAAwKOCh0AAAAAAx6uHQA==</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
-			<spectrum id="scan=22606" index="159" defaultArrayLength="7">
+			<spectrum id="scan=22606" index="159" defaultArrayLength="6">
 				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
 				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
@@ -11303,35 +11303,35 @@
 					</scan>
 				</scanList>
 				<binaryDataArrayList count="5">
-					<binaryDataArray encodedLength="76">
+					<binaryDataArray encodedLength="64">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAAAJRrh0AAAADAenOHQAAAAECifodAAAAAoD6rh0AAAAAgu6uHQAAAAKDOs4dAAAAAwLK7h0A=</binary>
+						<binary>AAAAAJRrh0AAAABAon6HQAAAAKA+q4dAAAAAILurh0AAAACgzrOHQAAAAMCyu4dA</binary>
 					</binaryDataArray>
-					<binaryDataArray encodedLength="40">
+					<binaryDataArray encodedLength="32">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>gg2BRVq9IkUE72VFJzcWRUYKtUancjFGoKMaRg==</binary>
+						<binary>gg2BRQTvZUUnNxZFRgq1RqdyMUagoxpG</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="7" encodedLength="76" >
+					<binaryDataArray arrayLength="6" encodedLength="64" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="IntegratedIntensity" />
-						<binary>AAAAQLAhsEAAAABAq1ekQAAAAIDgvaxAAAAA4OTGokAAAADASKHWQAAAAOBULsZAAAAAAHRUw0A=</binary>
+						<binary>AAAAQLAhsEAAAACA4L2sQAAAAODkxqJAAAAAwEih1kAAAADgVC7GQAAAAAB0VMNA</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="7" encodedLength="76" >
+					<binaryDataArray arrayLength="6" encodedLength="64" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="leftWidth" />
-						<binary>AAAAwH9rh0AAAABAanOHQAAAAECWfodAAAAAIBmrh0AAAACAiKuHQAAAAICls4dAAAAAQJS7h0A=</binary>
+						<binary>AAAAwH9rh0AAAABAln6HQAAAACAZq4dAAAAAgIirh0AAAACApbOHQAAAAECUu4dA</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="7" encodedLength="76" >
+					<binaryDataArray arrayLength="6" encodedLength="64" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="rightWidth" />
-						<binary>AAAAILdrh0AAAADgkXOHQAAAAACufodAAAAAwFirh0AAAADg76uHQAAAACD1s4dAAAAAANS7h0A=</binary>
+						<binary>AAAAILdrh0AAAAAArn6HQAAAAMBYq4dAAAAA4O+rh0AAAAAg9bOHQAAAAADUu4dA</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -11555,7 +11555,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
-			<spectrum id="scan=22804" index="165" defaultArrayLength="3">
+			<spectrum id="scan=22804" index="165" defaultArrayLength="2">
 				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
 				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
@@ -11567,35 +11567,35 @@
 					</scan>
 				</scanList>
 				<binaryDataArrayList count="5">
-					<binaryDataArray encodedLength="32">
+					<binaryDataArray encodedLength="24">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAAoMBfh0AAAADAN2OHQAAAAMA2c4dA</binary>
+						<binary>AAAAwDdjh0AAAADANnOHQA==</binary>
 					</binaryDataArray>
-					<binaryDataArray encodedLength="16">
+					<binaryDataArray encodedLength="12">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>CdkVRVBnzUWIR0hF</binary>
+						<binary>UGfNRYhHSEU=</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="3" encodedLength="32" >
+					<binaryDataArray arrayLength="2" encodedLength="24" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="IntegratedIntensity" />
-						<binary>AAAAICG7okAAAAAA6qy5QAAAAADxCKlA</binary>
+						<binary>AAAAAOqsuUAAAAAA8QipQA==</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="3" encodedLength="32" >
+					<binaryDataArray arrayLength="2" encodedLength="24" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="leftWidth" />
-						<binary>AAAAwDJeh0AAAADAI2OHQAAAAMAmc4dA</binary>
+						<binary>AAAAwCNjh0AAAADAJnOHQA==</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="3" encodedLength="32" >
+					<binaryDataArray arrayLength="2" encodedLength="24" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="rightWidth" />
-						<binary>AAAAoH1ih0AAAABAS2OHQAAAAGBGc4dA</binary>
+						<binary>AAAAQEtjh0AAAABgRnOHQA==</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -11979,19 +11979,19 @@
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAAQANyh0AAAACAt6uHQAAAAAC8s4dA</binary>
+						<binary>AAAAQANyh0AAAACAt6uHQAAAAGCts4dA</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="16">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>aWkNReKn3kUHPJFF</binary>
+						<binary>aWkNReKn3kVq5hpF</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="3" encodedLength="32" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="IntegratedIntensity" />
-						<binary>AAAAIC2toUAAAABA/NS7QAAAAOCAJ7JA</binary>
+						<binary>AAAAIC2toUAAAABA/NS7QAAAAEDNXKNA</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="3" encodedLength="32" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
@@ -12003,7 +12003,7 @@
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="rightWidth" />
-						<binary>AAAAwHRyh0AAAAAAyKuHQAAAACDVs4dA</binary>
+						<binary>AAAAwHRyh0AAAAAAyKuHQAAAAEC1s4dA</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -12167,19 +12167,19 @@
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAAYAWDh0AAAACASruHQA==</binary>
+						<binary>AAAAgP+Ch0AAAACASruHQA==</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="12">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>rMsQRWgWAUc=</binary>
+						<binary>CenZRGgWAUc=</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="2" encodedLength="24" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="IntegratedIntensity" />
-						<binary>AAAAgHUZokAAAAAAzSLgQA==</binary>
+						<binary>AAAAICE9m0AAAAAAzSLgQA==</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="2" encodedLength="24" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
@@ -12191,7 +12191,7 @@
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="rightWidth" />
-						<binary>AAAAQBeDh0AAAADgd7uHQA==</binary>
+						<binary>AAAAYAeDh0AAAADgd7uHQA==</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -12283,7 +12283,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
-			<spectrum id="scan=23398" index="183" defaultArrayLength="7">
+			<spectrum id="scan=23398" index="183" defaultArrayLength="6">
 				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
 				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
@@ -12295,35 +12295,35 @@
 					</scan>
 				</scanList>
 				<binaryDataArrayList count="5">
-					<binaryDataArray encodedLength="76">
+					<binaryDataArray encodedLength="64">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAAwOyah0AAAABA2puHQAAAAMD0nodAAAAAQACjh0AAAABgT6aHQAAAAGDppodAAAAAYFS7h0A=</binary>
+						<binary>AAAAwOyah0AAAABA2puHQAAAAMD0nodAAAAAQACjh0AAAABg6aaHQAAAAGBUu4dA</binary>
 					</binaryDataArray>
-					<binaryDataArray encodedLength="40">
+					<binaryDataArray encodedLength="32">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>4uAVSL9pBEVbexNIPMiAR/LrCEW1dTFG/h6YRw==</binary>
+						<binary>4uAVSL9pBEVbexNIPMiAR7V1MUb+HphH</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="7" encodedLength="76" >
+					<binaryDataArray arrayLength="6" encodedLength="64" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="IntegratedIntensity" />
-						<binary>AAAAQBy8AkEAAADgN42gQAAAAGBrbwJBAAAAgAcZ8EAAAABAfh2hQAAAAKC2LsZAAAAAwN8D80A=</binary>
+						<binary>AAAAQBy8AkEAAADgN42gQAAAAGBrbwJBAAAAgAcZ8EAAAACgti7GQAAAAMDfA/NA</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="7" encodedLength="76" >
+					<binaryDataArray arrayLength="6" encodedLength="64" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="leftWidth" />
-						<binary>AAAAIHmah0AAAAAAt5uHQAAAAACanodAAAAAQKuih0AAAABAzqWHQAAAAMDEpodAAAAAIPq6h0A=</binary>
+						<binary>AAAAIHmah0AAAAAAt5uHQAAAAACanodAAAAAQKuih0AAAADAxKaHQAAAACD6uodA</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="7" encodedLength="76" >
+					<binaryDataArray arrayLength="6" encodedLength="64" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="rightWidth" />
-						<binary>AAAAwE+bh0AAAACA/puHQAAAAMBIn4dAAAAAAGKjh0AAAAAAnaaHQAAAAGAEp4dAAAAAYLG7h0A=</binary>
+						<binary>AAAAwE+bh0AAAACA/puHQAAAAMBIn4dAAAAAAGKjh0AAAABgBKeHQAAAAGCxu4dA</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -12371,7 +12371,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
-			<spectrum id="scan=23464" index="185" defaultArrayLength="7">
+			<spectrum id="scan=23464" index="185" defaultArrayLength="6">
 				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
 				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
@@ -12383,35 +12383,35 @@
 					</scan>
 				</scanList>
 				<binaryDataArrayList count="5">
-					<binaryDataArray encodedLength="76">
+					<binaryDataArray encodedLength="64">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAAAO6ah0AAAADg856HQAAAACD7oodAAAAAwOymh0AAAACAR6eHQAAAAAD3qodAAAAAoFe7h0A=</binary>
+						<binary>AAAAAO6ah0AAAADg856HQAAAACD7oodAAAAAwOymh0AAAAAA96qHQAAAAKBXu4dA</binary>
 					</binaryDataArray>
-					<binaryDataArray encodedLength="40">
+					<binaryDataArray encodedLength="32">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>WgghSAyV9EeHCD1HBHwqRla9UEV0PFVF/lT5Rw==</binary>
+						<binary>WgghSAyV9EeHCD1HBHwqRnQ8VUX+VPlH</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="7" encodedLength="76" >
+					<binaryDataArray arrayLength="6" encodedLength="64" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="IntegratedIntensity" />
-						<binary>AAAAQAshBEEAAACAoZL+QAAAAOAQoedAAAAAgIBPxUAAAADAqheqQAAAAICOp6pAAAAAwJ8q/0A=</binary>
+						<binary>AAAAQAshBEEAAACAoZL+QAAAAOAQoedAAAAAgIBPxUAAAACAjqeqQAAAAMCfKv9A</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="7" encodedLength="76" >
+					<binaryDataArray arrayLength="6" encodedLength="64" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="leftWidth" />
-						<binary>AAAAQImah0AAAABggp6HQAAAAEDLoodAAAAA4Mymh0AAAABANKeHQAAAAODmqodAAAAAQAq7h0A=</binary>
+						<binary>AAAAQImah0AAAABggp6HQAAAAEDLoodAAAAA4Mymh0AAAADg5qqHQAAAAEAKu4dA</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="7" encodedLength="76" >
+					<binaryDataArray arrayLength="6" encodedLength="64" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="rightWidth" />
-						<binary>AAAA4E+bh0AAAADgaJ+HQAAAAIBCo4dAAAAAgAynh0AAAAAgXKeHQAAAAKAGq4dAAAAAgMm7h0A=</binary>
+						<binary>AAAA4E+bh0AAAADgaJ+HQAAAAIBCo4dAAAAAgAynh0AAAACgBquHQAAAAIDJu4dA</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -12475,19 +12475,19 @@
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAAwKONh0AAAACA8pqHQAAAAGDwnodAAAAAAE6fh0AAAABg9KKHQAAAAIBUu4dA</binary>
+						<binary>AAAAwKONh0AAAACA8pqHQAAAAGDwnodAAAAAYEifh0AAAABg9KKHQAAAAIBUu4dA</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="32">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>FkrZRcw23UZvkp5GYf72REbbzEVFd/lH</binary>
+						<binary>FkrZRcw23UZvkp5GOpW7REbbzEVFd/lH</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="6" encodedLength="64" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="IntegratedIntensity" />
-						<binary>AAAAwEIpu0AAAACA2abbQAAAAOBN0tNAAAAAIMzfnkAAAADAaJu5QAAAAKDoLv9A</binary>
+						<binary>AAAAwEIpu0AAAACA2abbQAAAAOBN0tNAAAAAQKdyl0AAAADAaJu5QAAAAKDoLv9A</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="6" encodedLength="64" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
@@ -12499,7 +12499,7 @@
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="rightWidth" />
-						<binary>AAAAIMmNh0AAAABgN5uHQAAAAIAwn4dAAAAAIGCfh0AAAAAgCqOHQAAAAKDYu4dA</binary>
+						<binary>AAAAIMmNh0AAAABgN5uHQAAAAIAwn4dAAAAAQFCfh0AAAAAgCqOHQAAAAKDYu4dA</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -12739,31 +12739,31 @@
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAA4DR/h0AAAAAAxYKHQAAAAEDMiodAAAAAIBmLh0AAAADAEJuHQAAAAEDKoodAAAAAgN2uh0AAAAAAVruHQA==</binary>
+						<binary>AAAA4DR/h0AAAAAAxYKHQAAAAEDMiodAAAAAIBmLh0AAAADAEJuHQAAAAOC5oodAAAAAAAOvh0AAAAAAVruHQA==</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="44">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>zFDdRKyJaEXZiXVEiFaERGzwr0TZmKhEggxlRODqFkc=</binary>
+						<binary>zFDdRKyJaEXZiXVEiFaERGzwr0SP9qNEnzKYRODqFkc=</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="8" encodedLength="88" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="IntegratedIntensity" />
-						<binary>AAAAgBmqm0AAAACANRGtQAAAACA7sY5AAAAAANGKkEAAAACADf6VQAAAACAbE5VAAAAAQJChjEAAAAAAXN3iQA==</binary>
+						<binary>AAAAgBmqm0AAAACANRGtQAAAACA7sY5AAAAAANGKkEAAAACADf6VQAAAAODRfpRAAAAA4FMGk0AAAAAAXN3iQA==</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="8" encodedLength="88" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="leftWidth" />
-						<binary>AAAAoKl6h0AAAACApoKHQAAAAIDEiodAAAAAAAyLh0AAAADABJuHQAAAAKC3oodAAAAAoNWuh0AAAACADruHQA==</binary>
+						<binary>AAAAoKl6h0AAAACApoKHQAAAAIDEiodAAAAAAAyLh0AAAADABJuHQAAAAMCnoodAAAAAoNWuh0AAAACADruHQA==</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="8" encodedLength="88" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="rightWidth" />
-						<binary>AAAAgNCBh0AAAAAA3oKHQAAAAGDUiodAAAAAwCOLh0AAAACgHJuHQAAAAGDnoodAAAAAgOWuh0AAAADgrbuHQA==</binary>
+						<binary>AAAAgNCBh0AAAAAA3oKHQAAAAGDUiodAAAAAwCOLh0AAAACgHJuHQAAAAIDHoodAAAAAwHSvh0AAAADgrbuHQA==</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -12915,19 +12915,19 @@
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAAINtWh0AAAADgsl6HQAAAAGCblodAAAAAwK6ah0AAAADAmq6HQAAAAMCYr4dA</binary>
+						<binary>AAAAINtWh0AAAADgsl6HQAAAAGCblodAAAAAYKSah0AAAADglK6HQAAAAMCYr4dA</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="32">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>pg+RRuUyeUU/XU5GkByPRbikCUVYBsFE</binary>
+						<binary>pg+RRuUyeUU/XU5GXEUyRZAlz0RYBsFE</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="6" encodedLength="64" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="IntegratedIntensity" />
-						<binary>AAAAwPQh0kAAAACgXCavQAAAAOCny8lAAAAAAJLjsUAAAAAAlzShQAAAAADLIJhA</binary>
+						<binary>AAAAwPQh0kAAAACgXCavQAAAAOCny8lAAAAAgKtIpkAAAAAAsuSZQAAAAADLIJhA</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="6" encodedLength="64" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
@@ -12939,7 +12939,7 @@
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="rightWidth" />
-						<binary>AAAAYBZXh0AAAAAAxl6HQAAAAGDLlodAAAAAIMSah0AAAADArK6HQAAAAEC7r4dA</binary>
+						<binary>AAAAYBZXh0AAAAAAxl6HQAAAAGDLlodAAAAAQKyah0AAAADgnK6HQAAAAEC7r4dA</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -13047,19 +13047,19 @@
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAAwK9Wh0AAAACAsV6HQAAAAMCqlodAAAAAAHSbh0AAAABggp+HQAAAAEDLn4dAAAAAYJinh0AAAABguraHQAAAAMCmuodAAAAAgMO6h0A=</binary>
+						<binary>AAAAwK9Wh0AAAACAsV6HQAAAAMCqlodAAAAAAHSbh0AAAABggp+HQAAAAEDLn4dAAAAAYJinh0AAAABguraHQAAAAMCmuodAAAAAwLm6h0A=</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="56">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>i5l6RZuiuERdkSxFE2iERVwTO0XLo0lEGHaHRFVwG0V0yxFFYPPYRA==</binary>
+						<binary>i5l6RZuiuERdkSxFE2iERVwTO0XLo0lEGHaHRFVwG0V0yxFFuaKWRA==</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="10" encodedLength="108" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="IntegratedIntensity" />
-						<binary>AAAAYDFTr0AAAABgUxSXQAAAAKArkqVAAAAAYAKNsEAAAACAa2KnQAAAAGB5NIlAAAAAAMPukEAAAACgCm6jQAAAAIBuOaJAAAAAAGwem0A=</binary>
+						<binary>AAAAYDFTr0AAAABgUxSXQAAAAKArkqVAAAAAYAKNsEAAAACAa2KnQAAAAGB5NIlAAAAAAMPukEAAAACgCm6jQAAAAIBuOaJAAAAAIFfUkkA=</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="10" encodedLength="108" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
@@ -13071,7 +13071,7 @@
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="rightWidth" />
-						<binary>AAAAQM9Wh0AAAAAAzl6HQAAAAIDDlodAAAAAoKKbh0AAAACgo5+HQAAAAGDTn4dAAAAAoM6nh0AAAABA0raHQAAAAMDFuodAAAAAoN26h0A=</binary>
+						<binary>AAAAQM9Wh0AAAAAAzl6HQAAAAIDDlodAAAAAoKKbh0AAAACgo5+HQAAAAGDTn4dAAAAAoM6nh0AAAABA0raHQAAAAMDFuodAAAAAwMW6h0A=</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -13091,31 +13091,31 @@
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAAoLJWh0AAAADA0VqHQAAAAODsdodAAAAA4H+Wh0AAAAAgbJuHQAAAAKAPn4dAAAAAgGefh0AAAADgaKOHQAAAAKCktodAAAAAQAm3h0AAAACgb7qHQAAAAIBJu4dA</binary>
+						<binary>AAAAoLJWh0AAAADA0VqHQAAAAODsdodAAAAAwKuWh0AAAAAgbJuHQAAAAKAPn4dAAAAAgGefh0AAAADgaKOHQAAAAKCktodAAAAAQAm3h0AAAACgb7qHQAAAAIBJu4dA</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="64">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>DJ8URB1EPERFFDxEJf5NRCoa1EXYTfFD/QrxRXx5mkV9d9REUAaARODWGEQq2RpF</binary>
+						<binary>DJ8URB1EPERFFDxE9pwBRCoa1EXYTfFD/QrxRXx5mkV9d9REUAaARODWGEQq2RpF</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="12" encodedLength="128" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="IntegratedIntensity" />
-						<binary>AAAAgOGTgkAAAACgg4iHQAAAAKCIgodAAAAAoMS/iUAAAABARYO6QAAAAAC7KX5AAAAAoF8hvkAAAACAL0+zQAAAAKDvjppAAAAAAMoAkEAAAAAA3BqDQAAAAEAlW6NA</binary>
+						<binary>AAAAgOGTgkAAAACgg4iHQAAAAKCIgodAAAAAwJ4zgEAAAABARYO6QAAAAAC7KX5AAAAAoF8hvkAAAACAL0+zQAAAAKDvjppAAAAAAMoAkEAAAAAA3BqDQAAAAEAlW6NA</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="12" encodedLength="128" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="leftWidth" />
-						<binary>AAAA4KpWh0AAAACgxVqHQAAAAEDddodAAAAAQG+Wh0AAAACAPpuHQAAAAOAHn4dAAAAAoCefh0AAAAAAOaOHQAAAAOCNtodAAAAAYPW2h0AAAABgYbqHQAAAAIAou4dA</binary>
+						<binary>AAAA4KpWh0AAAACgxVqHQAAAAEDddodAAAAA4J6Wh0AAAACAPpuHQAAAAOAHn4dAAAAAoCefh0AAAAAAOaOHQAAAAOCNtodAAAAAYPW2h0AAAABgYbqHQAAAAIAou4dA</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="12" encodedLength="128" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="rightWidth" />
-						<binary>AAAAoLpWh0AAAABg3VqHQAAAAAD9dodAAAAAAI+Wh0AAAADApZuHQAAAAMAXn4dAAAAA4Kafh0AAAABAoKOHQAAAAKC9todAAAAAIB23h0AAAABAgbqHQAAAAEBou4dA</binary>
+						<binary>AAAAoLpWh0AAAABg3VqHQAAAAAD9dodAAAAAwLaWh0AAAADApZuHQAAAAMAXn4dAAAAA4Kafh0AAAABAoKOHQAAAAKC9todAAAAAIB23h0AAAABAgbqHQAAAAEBou4dA</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -13223,19 +13223,19 @@
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAAALhKh0AAAADAHGOHQAAAAGDfcodAAAAAQAF3h0AAAADgvn6HQAAAAMCviodAAAAAIOuKh0AAAADgxJKHQAAAAADkkodAAAAAgBebh0AAAADgXZuHQAAAAMBcn4dAAAAAQLyrh0AAAADAn7aHQAAAAKAet4dAAAAAoHe6h0AAAAAgJbuHQAAAAEA9v4dA</binary>
+						<binary>AAAAALhKh0AAAADAHGOHQAAAAGDfcodAAAAAQAF3h0AAAADgvn6HQAAAAIC3iodAAAAAIOuKh0AAAADgxJKHQAAAAADkkodAAAAAgBebh0AAAADgXZuHQAAAAMBcn4dAAAAAQLyrh0AAAADAn7aHQAAAAKAet4dAAAAAoHe6h0AAAAAgJbuHQAAAAEA9v4dA</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="96">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>OzH2Q4qdAETYCQ5E2IlHRBR7eUQ7sbFDAAD1Q55Yv0Mo9sBDO7EdRCf2rUTsxHxEFDsuRE9si0SiVM1Fil12RBRbuEU71RtF</binary>
+						<binary>OzH2Q4qdAETYCQ5E2IlHRBR7eUSxk+tDAAD1Q55Yv0Mo9sBDO7EdRCf2rUTsxHxEFDsuRE9si0SiVM1Fil12RBRbuEU71RtF</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="18" encodedLength="192" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="IntegratedIntensity" />
-						<binary>AAAAYCfGfkAAAABAsROAQAAAAAA7wYFAAAAAADvxiEAAAACAYi+PQAAAAGAnNnZAAAAAAACgfkAAAADAE+t3QAAAAADFHnhAAAAAYCe2g0AAAADgxL6VQAAAAICdmI9AAAAAgGLHhUAAAADgiW2RQAAAAECUqrlAAAAAQLHLjkAAAACAYgu3QAAAAGCneqNA</binary>
+						<binary>AAAAYCfGfkAAAABAsROAQAAAAAA7wYFAAAAAADvxiEAAAACAYi+PQAAAACB2cn1AAAAAAACgfkAAAADAE+t3QAAAAADFHnhAAAAAYCe2g0AAAADgxL6VQAAAAICdmI9AAAAAgGLHhUAAAADgiW2RQAAAAECUqrlAAAAAQLHLjkAAAACAYgu3QAAAAGCneqNA</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="18" encodedLength="192" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
@@ -13247,7 +13247,7 @@
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="rightWidth" />
-						<binary>AAAA4MNKh0AAAADAJGOHQAAAACAIc4dAAAAAoBV3h0AAAABg2n6HQAAAAKC3iodAAAAAIPeKh0AAAAAA15KHQAAAAODukodAAAAAgCebh0AAAAAAd5uHQAAAACBwn4dAAAAA4Myrh0AAAACgrraHQAAAAMBdt4dAAAAAAKK6h0AAAAAgebuHQAAAAABtv4dA</binary>
+						<binary>AAAA4MNKh0AAAADAJGOHQAAAACAIc4dAAAAAoBV3h0AAAABg2n6HQAAAAGDPiodAAAAAIPeKh0AAAAAA15KHQAAAAODukodAAAAAgCebh0AAAAAAd5uHQAAAACBwn4dAAAAA4Myrh0AAAACgrraHQAAAAMBdt4dAAAAAAKK6h0AAAAAgebuHQAAAAABtv4dA</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -13311,31 +13311,31 @@
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAAQP5Kh0AAAACA+VqHQAAAAMC+XodAAAAAwCRjh0AAAABAnYKHQAAAAMAYhYdAAAAAoAuTh0AAAACAEpuHQAAAAIA7n4dAAAAAIK2rh0AAAAAA56uHQAAAAADgrIdAAAAA4K+6h0A=</binary>
+						<binary>AAAAQP5Kh0AAAACA+VqHQAAAAMC+XodAAAAAwCRjh0AAAABAnYKHQAAAAMAYhYdAAAAAoAuTh0AAAACAEpuHQAAAAMDrnodAAAAAIK2rh0AAAAAA56uHQAAAAADgrIdAAAAA4K+6h0A=</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="72">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>dmJVRNmJ2EPFzq9DhvwyRNmJCESxk7FDU5gCRXgpbUTsk/xD5wmqRJcDRETaAaFDKPbaQw==</binary>
+						<binary>dmJVRNmJ2EPFzq9DhvwyRNmJCESxk7FDU5gCRXgpbUTtwF1E5wmqRJcDRETaAaFDKPbaQw==</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="13" encodedLength="140" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="IntegratedIntensity" />
-						<binary>AAAAwE6sikAAAAAgOxF7QAAAAKDY+XVAAAAAwJBfhkAAAAAgOxGBQAAAACB2MnZAAAAAYApToEAAAAAAL6WNQAAAAIB9kn9AAAAA4DxBlUAAAADgcoCIQAAAAEA7IHRAAAAAAMVee0A=</binary>
+						<binary>AAAAwE6sikAAAAAgOxF7QAAAAKDY+XVAAAAAwJBfhkAAAAAgOxGBQAAAACB2MnZAAAAAYApToEAAAAAAL6WNQAAAAKAduItAAAAA4DxBlUAAAADgcoCIQAAAAEA7IHRAAAAAAMVee0A=</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="13" encodedLength="140" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="leftWidth" />
-						<binary>AAAAAONKh0AAAACA7VqHQAAAAMCxXodAAAAAgBRjh0AAAABAkYKHQAAAAMDzhIdAAAAAYOaSh0AAAABA/5qHQAAAAGAAn4dAAAAAoJSrh0AAAABA1KuHQAAAAAC7rIdAAAAAoIm6h0A=</binary>
+						<binary>AAAAAONKh0AAAACA7VqHQAAAAMCxXodAAAAAgBRjh0AAAABAkYKHQAAAAMDzhIdAAAAAYOaSh0AAAABA/5qHQAAAACCJnodAAAAAoJSrh0AAAABA1KuHQAAAAAC7rIdAAAAAoIm6h0A=</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="13" encodedLength="140" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="rightWidth" />
-						<binary>AAAAQBpLh0AAAABABVuHQAAAAGDRXodAAAAAIDRjh0AAAAAAqYKHQAAAACA7hYdAAAAA4DWTh0AAAAAAJ5uHQAAAAKBnn4dAAAAAYMSrh0AAAAAg/KuHQAAAAKAKrYdAAAAAQNm6h0A=</binary>
+						<binary>AAAAQBpLh0AAAABABVuHQAAAAGDRXodAAAAAIDRjh0AAAAAAqYKHQAAAACA7hYdAAAAA4DWTh0AAAAAAJ5uHQAAAAMBXn4dAAAAAYMSrh0AAAAAg/KuHQAAAAKAKrYdAAAAAQNm6h0A=</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -13355,19 +13355,19 @@
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAAgJxah0AAAADgKluHQAAAAEAvY4dAAAAAIJN2h0AAAAAgOoiHQAAAACAFk4dAAAAAIB+bh0AAAAAgqaOHQAAAAKDAq4dAAAAAoMe6h0A=</binary>
+						<binary>AAAAgJxah0AAAADgKluHQAAAAEAvY4dAAAAAIJN2h0AAAAAgOoiHQAAAACAFk4dAAAAAIB+bh0AAAAAgqaOHQAAAAKDAq4dAAAAAIOK6h0A=</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="56">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>tt23Q8JL0kPej8xDfXO+QyWRRkRbB+pEn5AbRLVSq0MMrsBE5/q+Qw==</binary>
+						<binary>tt23Q8JL0kPej8xDfXO+QyWRRkRbB+pEn5AbRLVSq0MMrsBEsdMCRA==</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="10" encodedLength="108" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="IntegratedIntensity" />
-						<binary>AAAAwLb7dkAAAABAeEl6QAAAAMD7kXlAAAAAoG/Od0AAAACgJNKIQAAAAGDrQJ1AAAAA4BNyg0AAAACgVmp1QAAAAIDBFZhAAAAA4Fzfd0A=</binary>
+						<binary>AAAAwLb7dkAAAABAeEl6QAAAAMD7kXlAAAAAoG/Od0AAAACgJNKIQAAAAGDrQJ1AAAAA4BNyg0AAAACgVmp1QAAAAIDBFZhAAAAAIHZagEA=</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="10" encodedLength="108" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
@@ -13379,7 +13379,7 @@
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="rightWidth" />
-						<binary>AAAAAKdah0AAAAAgPVuHQAAAAKA8Y4dAAAAAgMZ2h0AAAADAZIiHQAAAAKAek4dAAAAAoC+bh0AAAAAgwaOHQAAAAODUq4dAAAAA4Om6h0A=</binary>
+						<binary>AAAAAKdah0AAAAAgPVuHQAAAAKA8Y4dAAAAAgMZ2h0AAAADAZIiHQAAAAKAek4dAAAAAoC+bh0AAAAAgwaOHQAAAAODUq4dAAAAAoCm7h0A=</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -13507,7 +13507,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
-			<spectrum id="scan=24388" index="213" defaultArrayLength="4">
+			<spectrum id="scan=24388" index="213" defaultArrayLength="3">
 				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
 				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
@@ -13519,35 +13519,35 @@
 					</scan>
 				</scanList>
 				<binaryDataArrayList count="5">
-					<binaryDataArray encodedLength="44">
+					<binaryDataArray encodedLength="32">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAA4M1ah0AAAABgJWOHQAAAAKCHZodAAAAAwBmrh0A=</binary>
+						<binary>AAAA4M1ah0AAAADAPWWHQAAAAMAZq4dA</binary>
 					</binaryDataArray>
-					<binaryDataArray encodedLength="24">
+					<binaryDataArray encodedLength="16">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>8pkyRHPQq0Qs8R9Ep3/BRA==</binary>
+						<binary>8pkyRM2bI0Snf8FE</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="4" encodedLength="44" >
+					<binaryDataArray arrayLength="3" encodedLength="32" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="IntegratedIntensity" />
-						<binary>AAAAQD5ThkAAAABgDnqVQAAAAIAl/oNAAAAA4PQvmEA=</binary>
+						<binary>AAAAQD5ThkAAAACgeXOEQAAAAOD0L5hA</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="4" encodedLength="44" >
+					<binaryDataArray arrayLength="3" encodedLength="32" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="leftWidth" />
-						<binary>AAAAAL1ah0AAAABAG2OHQAAAAKAFZYdAAAAAgOSqh0A=</binary>
+						<binary>AAAAAL1ah0AAAABgamOHQAAAAIDkqodA</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="4" encodedLength="44" >
+					<binaryDataArray arrayLength="3" encodedLength="32" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="rightWidth" />
-						<binary>AAAAgORah0AAAAAAM2OHQAAAAIB2Z4dAAAAA4FOrh0A=</binary>
+						<binary>AAAAgORah0AAAAAAR2eHQAAAAOBTq4dA</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -13611,31 +13611,31 @@
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAAgAJjh0AAAAAgAp2HQAAAAIAOq4dAAAAA4CGvh0AAAADgBbOHQA==</binary>
+						<binary>AAAAgAJjh0AAAAAgN56HQAAAAIAOq4dAAAAA4CGvh0AAAADgBbOHQA==</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="28">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>lUsGRfVvdEROPaVFDtISRcTEbUU=</binary>
+						<binary>lUsGRRh6c0ROPaVFDtISRcTEbUU=</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="5" encodedLength="56" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="IntegratedIntensity" />
-						<binary>AAAAoHLJoEAAAACg/o2OQAAAAMCpp7RAAAAAwEFaokAAAACAmLitQA==</binary>
+						<binary>AAAAoHLJoEAAAAAAQ2+OQAAAAMCpp7RAAAAAwEFaokAAAACAmLitQA==</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="5" encodedLength="56" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="leftWidth" />
-						<binary>AAAAQPNih0AAAABgHZuHQAAAAMD7qodAAAAAIBavh0AAAAAA6bKHQA==</binary>
+						<binary>AAAAQPNih0AAAACgOZ2HQAAAAMD7qodAAAAAIBavh0AAAAAA6bKHQA==</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="5" encodedLength="56" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="rightWidth" />
-						<binary>AAAA4BJjh0AAAAAgr56HQAAAAKAjq4dAAAAA4C2vh0AAAADAILOHQA==</binary>
+						<binary>AAAA4BJjh0AAAAAgv56HQAAAAKAjq4dAAAAA4C2vh0AAAADAILOHQA==</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -13903,7 +13903,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
-			<spectrum id="scan=24685" index="222" defaultArrayLength="14">
+			<spectrum id="scan=24685" index="222" defaultArrayLength="13">
 				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
 				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
@@ -13915,35 +13915,35 @@
 					</scan>
 				</scanList>
 				<binaryDataArrayList count="5">
-					<binaryDataArray encodedLength="152">
+					<binaryDataArray encodedLength="140">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAAQO9yh0AAAADADn+HQAAAAKALg4dAAAAAwAaHh0AAAADgDIuHQAAAAAAji4dAAAAAILCXh0AAAABAApiHQAAAAMDMm4dAAAAAwA6rh0AAAABAD6+HQAAAAAANs4dAAAAAYAq3h0AAAABAGbuHQA==</binary>
+						<binary>AAAAQO9yh0AAAADADn+HQAAAAKALg4dAAAAAwAaHh0AAAADgDIuHQAAAAAAji4dAAAAAILCXh0AAAADAzJuHQAAAAMAOq4dAAAAAQA+vh0AAAAAADbOHQAAAAGAKt4dAAAAAQBm7h0A=</binary>
 					</binaryDataArray>
-					<binaryDataArray encodedLength="76">
+					<binaryDataArray encodedLength="72">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>9we5RAqFDEdz7M5GyF5YRnBWnEU5TDVFE00kRaOBY0UXD6FE8cmqSEAykUgDChRI+lRCR5ZsVEY=</binary>
+						<binary>9we5RAqFDEdz7M5GyF5YRnBWnEU5TDVFE00kRRcPoUTxyapIQDKRSAMKFEj6VEJHlmxURg==</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="14" encodedLength="152" >
+					<binaryDataArray arrayLength="13" encodedLength="140" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="IntegratedIntensity" />
-						<binary>AAAA4P4gl0AAAABAoZDhQAAAAGCO3dlAAAAAANkLy0AAAAAAzoqzQAAAACCHqaZAAAAAYKKJpEAAAABgNHCsQAAAAODiIZRAAAAAID5ZFUEAAAAASCYSQQAAAGBAgQJBAAAAQJ9K6EAAAADAko3KQA==</binary>
+						<binary>AAAA4P4gl0AAAABAoZDhQAAAAGCO3dlAAAAAANkLy0AAAAAAzoqzQAAAACCHqaZAAAAAYKKJpEAAAADg4iGUQAAAACA+WRVBAAAAAEgmEkEAAABgQIECQQAAAECfSuhAAAAAwJKNykA=</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="14" encodedLength="152" >
+					<binaryDataArray arrayLength="13" encodedLength="140" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="leftWidth" />
-						<binary>AAAAIN9yh0AAAABAwX6HQAAAAOC/godAAAAAwMaGh0AAAADg3YqHQAAAAIANi4dAAAAAgJSXh0AAAABAvJeHQAAAAAC9m4dAAAAAQH2qh0AAAABgr66HQAAAAECKsodAAAAAAM22h0AAAABA6LqHQA==</binary>
+						<binary>AAAAIN9yh0AAAABAwX6HQAAAAOC/godAAAAAwMaGh0AAAADg3YqHQAAAAIANi4dAAAAAgJSXh0AAAAAAvZuHQAAAAEB9qodAAAAAYK+uh0AAAABAirKHQAAAAADNtodAAAAAQOi6h0A=</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="14" encodedLength="152" >
+					<binaryDataArray arrayLength="13" encodedLength="140" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="rightWidth" />
-						<binary>AAAAwP5yh0AAAACAf3+HQAAAAEB2g4dAAAAAoEWHh0AAAAAgPYuHQAAAACA9i4dAAAAAIMyXh0AAAAAAY5iHQAAAAMDcm4dAAAAAgLOrh0AAAAAArq+HQAAAAACRs4dAAAAAQGy3h0AAAADAT7uHQA==</binary>
+						<binary>AAAAwP5yh0AAAACAf3+HQAAAAEB2g4dAAAAAoEWHh0AAAAAgPYuHQAAAACA9i4dAAAAAIMyXh0AAAADA3JuHQAAAAICzq4dAAAAAAK6vh0AAAAAAkbOHQAAAAEBst4dAAAAAwE+7h0A=</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -13963,25 +13963,25 @@
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAAYL1eh0AAAADAhWKHQAAAAICreodAAAAAIAR/h0AAAADglIKHQAAAAAALg4dAAAAAgACHh0AAAADglpeHQAAAAAAnmIdAAAAAQIybh0AAAABgV56HQAAAACBho4dAAAAAgOyjh0AAAAAAEauHQAAAAACIrodAAAAA4A+vh0AAAADgWbKHQAAAAGANs4dAAAAAIAu3h0AAAADgDbuHQAAAAED4vodA</binary>
+						<binary>AAAAYL1eh0AAAADAhWKHQAAAAAB0eodAAAAAIAR/h0AAAADglIKHQAAAAAALg4dAAAAAgACHh0AAAADglpeHQAAAAAAnmIdAAAAAQIybh0AAAABgV56HQAAAAKB+o4dAAAAAgOyjh0AAAAAAEauHQAAAAACIrodAAAAA4A+vh0AAAADgWbKHQAAAAGANs4dAAAAAIAu3h0AAAADgDbuHQAAAAED4vodA</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="112">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>eKkzRNg+X0S+PTJE//jfRoQ1RUTPP8FGEsoeRqzIKEXI0RZEAELgRECsMURSIC1Ero7DRHkGZEhroklFRK9ISCdJGkQz2dJHYTczR/KNK0Y4KPVE</binary>
+						<binary>eKkzRNg+X0QD0rBE//jfRoQ1RUTPP8FGEsoeRqzIKEXI0RZEAELgRECsMUQ4UAREro7DRHkGZEhroklFRK9ISCdJGkQz2dJHYTczR/KNK0Y4KPVE</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="21" encodedLength="224" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="IntegratedIntensity" />
-						<binary>AAAAAC91hkAAAAAA2+eLQAAAAMC3R4ZAAAAA4B//20AAAACAsKaIQAAAAOD5J9hAAAAAQELZw0AAAACAFRmlQAAAAAA52oJAAAAAAEAInEAAAAAAiDWGQAAAAEAKpIVAAAAAwNVxmEAAAAAgz4AMQQAAAGBNNKlAAAAAgOgVCUEAAADgJEmDQAAAAGAmW/pAAAAAIOxm5kAAAABAvnHFQAAAAAAHpZ5A</binary>
+						<binary>AAAAAC91hkAAAAAA2+eLQAAAAGBAGpZAAAAA4B//20AAAACAsKaIQAAAAOD5J9hAAAAAQELZw0AAAACAFRmlQAAAAAA52oJAAAAAAEAInEAAAAAAiDWGQAAAAAAHioBAAAAAwNVxmEAAAAAgz4AMQQAAAGBNNKlAAAAAgOgVCUEAAADgJEmDQAAAAGAmW/pAAAAAIOxm5kAAAABAvnHFQAAAAAAHpZ5A</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="21" encodedLength="224" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="leftWidth" />
-						<binary>AAAAgLFeh0AAAAAAdmKHQAAAAECEeodAAAAA4MF+h0AAAAAAiYKHQAAAAKCwgodAAAAAgL+Gh0AAAACAdZeHQAAAAEAcmIdAAAAAIHabh0AAAABgQZ6HQAAAAGABo4dAAAAAIMijh0AAAADgjaqHQAAAAIBYrodAAAAAALCuh0AAAABgO7KHQAAAAOCasodAAAAAwLW2h0AAAAAgwbqHQAAAAMDkvodA</binary>
+						<binary>AAAAgLFeh0AAAAAAdmKHQAAAAEAdeodAAAAA4MF+h0AAAAAAiYKHQAAAAKCwgodAAAAAgL+Gh0AAAACAdZeHQAAAAEAcmIdAAAAAIHabh0AAAABgQZ6HQAAAAOBQo4dAAAAAIMijh0AAAADgjaqHQAAAAIBYrodAAAAAALCuh0AAAABgO7KHQAAAAOCasodAAAAAwLW2h0AAAAAgwbqHQAAAAMDkvodA</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="21" encodedLength="224" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
@@ -14079,7 +14079,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
-			<spectrum id="scan=24817" index="226" defaultArrayLength="13">
+			<spectrum id="scan=24817" index="226" defaultArrayLength="12">
 				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
 				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
@@ -14091,39 +14091,39 @@
 					</scan>
 				</scanList>
 				<binaryDataArrayList count="5">
-					<binaryDataArray encodedLength="140">
+					<binaryDataArray encodedLength="128">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAAoJhah0AAAAAAPluHQAAAAMCzXodAAAAAIIxqh0AAAAAgB3+HQAAAAID9godAAAAAYFyDh0AAAABAN4uHQAAAAOB9modAAAAA4LSeh0AAAAAgA6uHQAAAAKAMr4dAAAAAQP2yh0A=</binary>
+						<binary>AAAAoJhah0AAAAAAPluHQAAAAMCzXodAAAAAIAd/h0AAAACA/YKHQAAAAGBcg4dAAAAAQDeLh0AAAADgfZqHQAAAAOC0nodAAAAAIAOrh0AAAACgDK+HQAAAAED9sodA</binary>
 					</binaryDataArray>
-					<binaryDataArray encodedLength="72">
+					<binaryDataArray encodedLength="64">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>YQ3SRNlYbkSsa6NE5m8aRGf9fUYYO0RGSh5bRHh4S0TJrdBEn/MeRVnefEZet3dGRCMSRg==</binary>
+						<binary>YQ3SRNlYbkSsa6NEZ/19Rhg7REZKHltEeHhLRMmt0ESf8x5FWd58Rl63d0ZEIxJG</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="13" encodedLength="140" >
+					<binaryDataArray arrayLength="12" encodedLength="128" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="IntegratedIntensity" />
-						<binary>AAAAIKxBmkAAAAAgG8uNQAAAAIB1bZRAAAAAwPxNg0AAAADgrL/PQAAAAABjh8hAAAAAQMlji0AAAAAAD2+JQAAAACC5FZpAAAAA4HPeo0AAAAAgy5vPQAAAAMDr9s5AAAAAgGhEwkA=</binary>
+						<binary>AAAAIKxBmkAAAAAgG8uNQAAAAIB1bZRAAAAA4Ky/z0AAAAAAY4fIQAAAAEDJY4tAAAAAAA9viUAAAAAguRWaQAAAAOBz3qNAAAAAIMubz0AAAADA6/bOQAAAAIBoRMJA</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="13" encodedLength="140" >
+					<binaryDataArray arrayLength="12" encodedLength="128" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="leftWidth" />
-						<binary>AAAAQIRah0AAAAAAMluHQAAAAGCfXodAAAAAQIRqh0AAAACAv36HQAAAAECugodAAAAAwFSDh0AAAACAK4uHQAAAAKBtmodAAAAAYI6eh0AAAABAs6qHQAAAAKC1rodAAAAAYKiyh0A=</binary>
+						<binary>AAAAQIRah0AAAAAAMluHQAAAAGCfXodAAAAAgL9+h0AAAABAroKHQAAAAMBUg4dAAAAAgCuLh0AAAACgbZqHQAAAAGCOnodAAAAAQLOqh0AAAACgta6HQAAAAGCosodA</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="13" encodedLength="140" >
+					<binaryDataArray arrayLength="12" encodedLength="128" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="rightWidth" />
-						<binary>AAAAwKtah0AAAADASVuHQAAAAODGXodAAAAAIJRqh0AAAAAgTn+HQAAAAOBEg4dAAAAAoGSDh0AAAABAQ4uHQAAAAGCNmodAAAAA4N2eh0AAAABAYquHQAAAAKBsr4dAAAAAoDezh0A=</binary>
+						<binary>AAAAwKtah0AAAADASVuHQAAAAODGXodAAAAAIE5/h0AAAADgRIOHQAAAAKBkg4dAAAAAQEOLh0AAAABgjZqHQAAAAODdnodAAAAAQGKrh0AAAACgbK+HQAAAAKA3s4dA</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
-			<spectrum id="scan=24850" index="227" defaultArrayLength="9">
+			<spectrum id="scan=24850" index="227" defaultArrayLength="8">
 				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
 				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
@@ -14135,35 +14135,35 @@
 					</scan>
 				</scanList>
 				<binaryDataArrayList count="5">
-					<binaryDataArray encodedLength="96">
+					<binaryDataArray encodedLength="88">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAAgO1ih0AAAADgC3+HQAAAAKCCf4dAAAAAAAmAh0AAAADgDYOHQAAAAEAgh4dAAAAAIP+qh0AAAACABa+HQAAAAAAHs4dA</binary>
+						<binary>AAAAgO1ih0AAAADgC3+HQAAAAKCCf4dAAAAA4A2Dh0AAAABAIIeHQAAAACD/qodAAAAAgAWvh0AAAAAAB7OHQA==</binary>
 					</binaryDataArray>
-					<binaryDataArray encodedLength="48">
+					<binaryDataArray encodedLength="44">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>4OkVRTxMHUbMkLRESLmOREKRr0WhahBFn3FTRQYIj0WM5LBE</binary>
+						<binary>4OkVRTxMHUbMkLREQpGvRaFqEEWfcVNFBgiPRYzksEQ=</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="9" encodedLength="96" >
+					<binaryDataArray arrayLength="8" encodedLength="88" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="IntegratedIntensity" />
-						<binary>AAAAADy9okAAAACAh6nDQAAAAIAZkpZAAAAAACnXkUAAAABAKPK1QAAAACBUDaJAAAAA4DNuqkAAAADAAOGxQAAAAICRHJZA</binary>
+						<binary>AAAAADy9okAAAACAh6nDQAAAAIAZkpZAAAAAQCjytUAAAAAgVA2iQAAAAOAzbqpAAAAAwADhsUAAAACAkRyWQA==</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="9" encodedLength="96" >
+					<binaryDataArray arrayLength="8" encodedLength="88" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="leftWidth" />
-						<binary>AAAAgNRih0AAAAAg2X6HQAAAAOBnf4dAAAAAgPZ/h0AAAACA94KHQAAAAID+hodAAAAA4OSqh0AAAABA566HQAAAAOD5sodA</binary>
+						<binary>AAAAgNRih0AAAAAg2X6HQAAAAOBnf4dAAAAAgPeCh0AAAACA/oaHQAAAAODkqodAAAAAQOeuh0AAAADg+bKHQA==</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="9" encodedLength="96" >
+					<binaryDataArray arrayLength="8" encodedLength="88" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="rightWidth" />
-						<binary>AAAA4ANjh0AAAAAgSH+HQAAAAGCXf4dAAAAAQBaAh0AAAAAAL4OHQAAAAOBFh4dAAAAAoBSrh0AAAADgJq+HQAAAAMARs4dA</binary>
+						<binary>AAAA4ANjh0AAAAAgSH+HQAAAAGCXf4dAAAAAAC+Dh0AAAADgRYeHQAAAAKAUq4dAAAAA4Cavh0AAAADAEbOHQA==</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -14255,7 +14255,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
-			<spectrum id="scan=24949" index="230" defaultArrayLength="11">
+			<spectrum id="scan=24949" index="230" defaultArrayLength="9">
 				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
 				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
@@ -14267,39 +14267,39 @@
 					</scan>
 				</scanList>
 				<binaryDataArrayList count="5">
-					<binaryDataArray encodedLength="120">
+					<binaryDataArray encodedLength="96">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAAIBpSh0AAAABg1IqHQAAAAGA4n4dAAAAAoDejh0AAAABA4KOHQAAAAMCopIdAAAAAAAyrh0AAAABgoa6HQAAAAGAFr4dAAAAAQHevh0AAAAAAF7OHQA==</binary>
+						<binary>AAAAIBpSh0AAAABg1IqHQAAAAGA4n4dAAAAAoDejh0AAAAAADKuHQAAAAGChrodAAAAAYAWvh0AAAABAd6+HQAAAAAAXs4dA</binary>
 					</binaryDataArray>
-					<binaryDataArray encodedLength="60">
+					<binaryDataArray encodedLength="48">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>YqcARN7AHESW9nRFTvGTRTPkaURpaThEV3mzRexEFETLZVFF7EQUROEWGkU=</binary>
+						<binary>YqcARN7AHESW9nRFTvGTRVd5s0XsRBREy2VRRexEFEThFhpF</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="11" encodedLength="120" >
+					<binaryDataArray arrayLength="9" encodedLength="96" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="IntegratedIntensity" />
-						<binary>AAAAQOwUgEAAAADAG5iDQAAAAMDSnq5AAAAAwCl+skAAAABghjyNQAAAACAtDYdAAAAA4CpvtkAAAACAnYiCQAAAAGC5LKpAAAAAgJ2IgkAAAAAg3EKjQA==</binary>
+						<binary>AAAAQOwUgEAAAADAG5iDQAAAAMDSnq5AAAAAwCl+skAAAADgKm+2QAAAAICdiIJAAAAAYLksqkAAAACAnYiCQAAAACDcQqNA</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="11" encodedLength="120" >
+					<binaryDataArray arrayLength="9" encodedLength="96" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="leftWidth" />
-						<binary>AAAAAONRh0AAAAAAx4qHQAAAAEAQn4dAAAAAwAGjh0AAAACgsKOHQAAAAGDgo4dAAAAAoOWqh0AAAACgeK6HQAAAACDgrodAAAAAYG+vh0AAAADA8rKHQA==</binary>
+						<binary>AAAAAONRh0AAAAAAx4qHQAAAAEAQn4dAAAAAwAGjh0AAAACg5aqHQAAAAKB4rodAAAAAIOCuh0AAAABgb6+HQAAAAMDysodA</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="11" encodedLength="120" >
+					<binaryDataArray arrayLength="9" encodedLength="96" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="rightWidth" />
-						<binary>AAAA4DlSh0AAAADg3oqHQAAAAKBnn4dAAAAAIGmjh0AAAADAN6SHQAAAAAD9pYdAAAAAQDWrh0AAAABguK6HQAAAAMAnr4dAAAAAQH+vh0AAAABgOrOHQA==</binary>
+						<binary>AAAA4DlSh0AAAADg3oqHQAAAAKBnn4dAAAAAIGmjh0AAAABANauHQAAAAGC4rodAAAAAwCevh0AAAABAf6+HQAAAAGA6s4dA</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
-			<spectrum id="scan=24982" index="231" defaultArrayLength="5">
+			<spectrum id="scan=24982" index="231" defaultArrayLength="4">
 				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
 				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
@@ -14311,35 +14311,35 @@
 					</scan>
 				</scanList>
 				<binaryDataArrayList count="5">
-					<binaryDataArray encodedLength="56">
+					<binaryDataArray encodedLength="44">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAAoCBzh0AAAADgFZ+HQAAAACA4o4dAAAAAwCOrh0AAAADA4q6HQA==</binary>
+						<binary>AAAAoCBzh0AAAADgFZ+HQAAAACA4o4dAAAAAwCOrh0A=</binary>
 					</binaryDataArray>
-					<binaryDataArray encodedLength="28">
+					<binaryDataArray encodedLength="24">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>zQzZRGKDlEVPzAdFfKtFRabVC0U=</binary>
+						<binary>zQzZRGKDlEVPzAdFfKtFRQ==</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="5" encodedLength="56" >
+					<binaryDataArray arrayLength="4" encodedLength="44" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="IntegratedIntensity" />
-						<binary>AAAAoJkhm0AAAABAbJCyQAAAAOCJ+aBAAAAAgG+1qEAAAADAtHqhQA==</binary>
+						<binary>AAAAoJkhm0AAAABAbJCyQAAAAOCJ+aBAAAAAgG+1qEA=</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="5" encodedLength="56" >
+					<binaryDataArray arrayLength="4" encodedLength="44" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="leftWidth" />
-						<binary>AAAAIMdyh0AAAAAg/56HQAAAAEAwo4dAAAAAQBSrh0AAAAAA166HQA==</binary>
+						<binary>AAAAIMdyh0AAAAAg/56HQAAAAEAwo4dAAAAAQBSrh0A=</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="5" encodedLength="56" >
+					<binaryDataArray arrayLength="4" encodedLength="44" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="rightWidth" />
-						<binary>AAAAwFVzh0AAAADgJp+HQAAAACBAo4dAAAAAADSrh0AAAADg7q6HQA==</binary>
+						<binary>AAAAwFVzh0AAAADgJp+HQAAAACBAo4dAAAAAADSrh0A=</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -14535,19 +14535,19 @@
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAAQCerh0AAAADAkquHQAAAAID+rodAAAAA4AOzh0AAAAAgA7eHQAAAAAAGu4dA</binary>
+						<binary>AAAAQCerh0AAAADghauHQAAAAID+rodAAAAA4AOzh0AAAAAgA7eHQAAAAAAGu4dA</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="32">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>UaIRRVprFEWmmpxHsNhQR+kow0Z20xBG</binary>
+						<binary>UaIRRcb3vUSmmpxHsNhQR+kow0Z20xBG</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="6" encodedLength="64" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="IntegratedIntensity" />
-						<binary>AAAAIEo0okAAAABAa42iQAAAAMBUk/NAAAAAABYb6kAAAAAgHWXYQAAAAMBuGsJA</binary>
+						<binary>AAAAIEo0okAAAADA+L6XQAAAAMBUk/NAAAAAABYb6kAAAAAgHWXYQAAAAMBuGsJA</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="6" encodedLength="64" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
@@ -14559,7 +14559,7 @@
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="rightWidth" />
-						<binary>AAAAQDarh0AAAACgrauHQAAAAGB4r4dAAAAAYFOzh0AAAABgVreHQAAAAAA6u4dA</binary>
+						<binary>AAAAQDarh0AAAADAjauHQAAAAGB4r4dAAAAAYFOzh0AAAABgVreHQAAAAAA6u4dA</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -14695,7 +14695,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
-			<spectrum id="scan=25279" index="240" defaultArrayLength="8">
+			<spectrum id="scan=25279" index="240" defaultArrayLength="7">
 				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
 				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
@@ -14707,35 +14707,35 @@
 					</scan>
 				</scanList>
 				<binaryDataArrayList count="5">
-					<binaryDataArray encodedLength="88">
+					<binaryDataArray encodedLength="76">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAAQHRLh0AAAADAbVOHQAAAAEDGU4dAAAAAgA6nh0AAAAAAm66HQAAAAED/rodAAAAAwACzh0AAAADgCbeHQA==</binary>
+						<binary>AAAAQHRLh0AAAADAbVOHQAAAAEDGU4dAAAAAgA6nh0AAAABA/66HQAAAAMAAs4dAAAAA4Am3h0A=</binary>
 					</binaryDataArray>
-					<binaryDataArray encodedLength="44">
+					<binaryDataArray encodedLength="40">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>KtVhR81tOkZy5dpEqvUWRk8MFUXgMxVHMAQCRydUZ0Y=</binary>
+						<binary>KtVhR81tOkZy5dpEqvUWRuAzFUcwBAJHJ1RnRg==</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="8" encodedLength="88" >
+					<binaryDataArray arrayLength="7" encodedLength="76" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="IntegratedIntensity" />
-						<binary>AAAAQKU67EAAAACguU3HQAAAAECuXJtAAAAAQLXewkAAAADgiaGiQAAAAAB8puJAAAAAAIZA4EAAAADghOrMQA==</binary>
+						<binary>AAAAQKU67EAAAACguU3HQAAAAECuXJtAAAAAQLXewkAAAAAAfKbiQAAAAACGQOBAAAAA4ITqzEA=</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="8" encodedLength="88" >
+					<binaryDataArray arrayLength="7" encodedLength="76" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="leftWidth" />
-						<binary>AAAAwCNLh0AAAAAASFOHQAAAAGC+U4dAAAAAIPWmh0AAAAAgiq6HQAAAAOC5rodAAAAAoMSyh0AAAACA17aHQA==</binary>
+						<binary>AAAAwCNLh0AAAAAASFOHQAAAAGC+U4dAAAAAIPWmh0AAAADgua6HQAAAAKDEsodAAAAAgNe2h0A=</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="8" encodedLength="88" >
+					<binaryDataArray arrayLength="7" encodedLength="76" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="rightWidth" />
-						<binary>AAAAoMFLh0AAAAAAj1OHQAAAAEDOU4dAAAAA4Cynh0AAAAAAqq6HQAAAACBJr4dAAAAA4FOzh0AAAAAgP7eHQA==</binary>
+						<binary>AAAAoMFLh0AAAAAAj1OHQAAAAEDOU4dAAAAA4Cynh0AAAAAgSa+HQAAAAOBTs4dAAAAAID+3h0A=</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -14843,19 +14843,19 @@
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAAYA2nh0AAAACAMKuHQAAAAADqrodAAAAAwEKzh0A=</binary>
+						<binary>AAAAYA2nh0AAAACAMKuHQAAAACADr4dAAAAAwEKzh0A=</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="24">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>ph0ORp1iOka4t4lFXFNORQ==</binary>
+						<binary>ph0ORp1iOkYkjOZFXFNORQ==</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="4" encodedLength="44" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="IntegratedIntensity" />
-						<binary>AAAAwLTDwUAAAACgU0zHQAAAAAD3NrFAAAAAgGvKqUA=</binary>
+						<binary>AAAAwLTDwUAAAACgU0zHQAAAAICE0bxAAAAAgGvKqUA=</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="4" encodedLength="44" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
@@ -14867,7 +14867,7 @@
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="rightWidth" />
-						<binary>AAAAQDinh0AAAAAgWquHQAAAAAD9rodAAAAAYE+zh0A=</binary>
+						<binary>AAAAQDinh0AAAAAgWquHQAAAAMA0r4dAAAAAYE+zh0A=</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -15003,7 +15003,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
-			<spectrum id="scan=25510" index="247" defaultArrayLength="7">
+			<spectrum id="scan=25510" index="247" defaultArrayLength="6">
 				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
 				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
@@ -15015,35 +15015,35 @@
 					</scan>
 				</scanList>
 				<binaryDataArrayList count="5">
-					<binaryDataArray encodedLength="76">
+					<binaryDataArray encodedLength="64">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAAoA9Jh0AAAABgEEuHQAAAAOAnb4dAAAAA4NiNh0AAAAAA3I6HQAAAAOATq4dAAAAAIHish0A=</binary>
+						<binary>AAAAoA9Jh0AAAABgEEuHQAAAAOAnb4dAAAAA4NiNh0AAAADgE6uHQAAAACB4rIdA</binary>
 					</binaryDataArray>
-					<binaryDataArray encodedLength="40">
+					<binaryDataArray encodedLength="32">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>e66hRg1XiEWJASpFXbaiRShgKkVM6RhGRbU4RQ==</binary>
+						<binary>e66hRg1XiEWJASpFXbaiRUzpGEZFtThF</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="7" encodedLength="76" >
+					<binaryDataArray arrayLength="6" encodedLength="64" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="IntegratedIntensity" />
-						<binary>AAAAYM811EAAAACg4QqxQAAAACAxQKVAAAAAoMtWtEAAAAAABUylQAAAAIApHcNAAAAAoKgWp0A=</binary>
+						<binary>AAAAYM811EAAAACg4QqxQAAAACAxQKVAAAAAoMtWtEAAAACAKR3DQAAAAKCoFqdA</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="7" encodedLength="76" >
+					<binaryDataArray arrayLength="6" encodedLength="64" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="leftWidth" />
-						<binary>AAAAANxIh0AAAABgBEuHQAAAAAAcb4dAAAAAQPyMh0AAAACA0I6HQAAAAIDnqodAAAAAgJ6rh0A=</binary>
+						<binary>AAAAANxIh0AAAABgBEuHQAAAAAAcb4dAAAAAQPyMh0AAAACA56qHQAAAAICeq4dA</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="7" encodedLength="76" >
+					<binaryDataArray arrayLength="6" encodedLength="64" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="rightWidth" />
-						<binary>AAAAoEJJh0AAAAAgHEuHQAAAAMAzb4dAAAAAYNiOh0AAAABA6I6HQAAAAAA/q4dAAAAAwNysh0A=</binary>
+						<binary>AAAAoEJJh0AAAAAgHEuHQAAAAMAzb4dAAAAAYNiOh0AAAAAAP6uHQAAAAMDcrIdA</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -15195,31 +15195,31 @@
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAAINtOh0AAAACgTFKHQAAAAGDHVodAAAAAwG1Xh0AAAADggWuHQAAAACB+c4dAAAAAYAKHh0AAAABgA4uHQAAAAIC0u4dA</binary>
+						<binary>AAAAINtOh0AAAACgTFKHQAAAAGDHVodAAAAAYDtXh0AAAADggWuHQAAAACB+c4dAAAAAYAKHh0AAAABgA4uHQAAAAIC0u4dA</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="48">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>aN6oRG4lOEVovqlEijt+RNdDlEay/4tFUYoLRlsuFEbLsc5F</binary>
+						<binary>aN6oRG4lOEVovqlED36CRNdDlEay/4tFUYoLRlsuFEbLsc5F</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="9" encodedLength="96" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="IntegratedIntensity" />
-						<binary>AAAAAM0blUAAAADArQSnQAAAAADNN5VAAAAAQHHHj0AAAADgeojSQAAAAED2f7FAAAAAIEpxwUAAAABgy4XCQAAAAGA51rlA</binary>
+						<binary>AAAAAM0blUAAAADArQSnQAAAAADNN5VAAAAA4MFPkEAAAADgeojSQAAAAED2f7FAAAAAIEpxwUAAAABgy4XCQAAAAGA51rlA</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="9" encodedLength="96" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="leftWidth" />
-						<binary>AAAAIMtOh0AAAACgN1KHQAAAAOCoVodAAAAAgBdXh0AAAACgMmuHQAAAAGBkc4dAAAAAYM2Gh0AAAADgtIqHQAAAACCWu4dA</binary>
+						<binary>AAAAIMtOh0AAAACgN1KHQAAAAOCoVodAAAAAoA9Xh0AAAACgMmuHQAAAAGBkc4dAAAAAYM2Gh0AAAADgtIqHQAAAACCWu4dA</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="9" encodedLength="96" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="rightWidth" />
-						<binary>AAAAwOpOh0AAAAAAZ1KHQAAAAEDgVodAAAAA4ORXh0AAAADg0GuHQAAAAMCbc4dAAAAAYDyHh0AAAACgQ4uHQAAAAODdu4dA</binary>
+						<binary>AAAAwOpOh0AAAAAAZ1KHQAAAAEDgVodAAAAAQHZXh0AAAADg0GuHQAAAAMCbc4dAAAAAYDyHh0AAAACgQ4uHQAAAAODdu4dA</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -15239,19 +15239,19 @@
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAAINZih0AAAADAhWuHQAAAACCJc4dAAAAA4DSTh0AAAABAppqHQAAAAEDpnodAAAAA4I2jh0AAAACAqLuHQA==</binary>
+						<binary>AAAAINZih0AAAADAhWuHQAAAACCJc4dAAAAAAC+Th0AAAABAppqHQAAAAEDpnodAAAAA4I2jh0AAAACAqLuHQA==</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="44">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>oB+fRIPTT0Zj5qhF6FSRRMYokUQvpWxE6FSRRBov/kU=</binary>
+						<binary>oB+fRIPTT0Zj5qhFQbdaRMYokUQvpWxE6FSRRBov/kU=</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="8" encodedLength="88" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="IntegratedIntensity" />
-						<binary>AAAAAPTjk0AAAABgcPrJQAAAAGDMHLVAAAAAAJ0qkkAAAADAGCWSQAAAAOCllI1AAAAAAJ0qkkAAAABA48W/QA==</binary>
+						<binary>AAAAAPTjk0AAAABgcPrJQAAAAGDMHLVAAAAAIOhWi0AAAADAGCWSQAAAAOCllI1AAAAAAJ0qkkAAAABA48W/QA==</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="8" encodedLength="88" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
@@ -15263,11 +15263,11 @@
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="rightWidth" />
-						<binary>AAAAAO5ih0AAAACgtGuHQAAAAACvc4dAAAAAwEaTh0AAAADgsJqHQAAAAIDxnodAAAAA4Jmjh0AAAABgybuHQA==</binary>
+						<binary>AAAAAO5ih0AAAACgtGuHQAAAAACvc4dAAAAA4DaTh0AAAADgsJqHQAAAAIDxnodAAAAA4Jmjh0AAAABgybuHQA==</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
-			<spectrum id="scan=25708" index="253" defaultArrayLength="5">
+			<spectrum id="scan=25708" index="253" defaultArrayLength="4">
 				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
 				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
@@ -15279,35 +15279,35 @@
 					</scan>
 				</scanList>
 				<binaryDataArrayList count="5">
-					<binaryDataArray encodedLength="56">
+					<binaryDataArray encodedLength="44">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAA4DNWh0AAAADAEluHQAAAAAB7a4dAAAAAANl6h0AAAABAlbuHQA==</binary>
+						<binary>AAAA4DNWh0AAAAAAe2uHQAAAAADZeodAAAAAQJW7h0A=</binary>
 					</binaryDataArray>
-					<binaryDataArray encodedLength="28">
+					<binaryDataArray encodedLength="24">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>KU6oRL5qBEXqzdRFknuoRCFWS0Y=</binary>
+						<binary>KU6oROrN1EWSe6hEIVZLRg==</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="5" encodedLength="56" >
+					<binaryDataArray arrayLength="4" encodedLength="44" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="IntegratedIntensity" />
-						<binary>AAAAIMUJlUAAAADAV42gQAAAAEC9mbpAAAAAQHIPlUAAAAAgxGrJQA==</binary>
+						<binary>AAAAIMUJlUAAAABAvZm6QAAAAEByD5VAAAAAIMRqyUA=</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="5" encodedLength="56" >
+					<binaryDataArray arrayLength="4" encodedLength="44" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="leftWidth" />
-						<binary>AAAA4LNVh0AAAADg+lqHQAAAAABia4dAAAAAgLF6h0AAAAAgbruHQA==</binary>
+						<binary>AAAA4LNVh0AAAAAAYmuHQAAAAICxeodAAAAAIG67h0A=</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="5" encodedLength="56" >
+					<binaryDataArray arrayLength="4" encodedLength="44" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="rightWidth" />
-						<binary>AAAAIIlWh0AAAABgKluHQAAAAICRa4dAAAAA4PB6h0AAAADArbuHQA==</binary>
+						<binary>AAAAIIlWh0AAAACAkWuHQAAAAODweodAAAAAwK27h0A=</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -15355,7 +15355,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
-			<spectrum id="scan=25774" index="255" defaultArrayLength="7">
+			<spectrum id="scan=25774" index="255" defaultArrayLength="6">
 				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
 				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
@@ -15367,35 +15367,35 @@
 					</scan>
 				</scanList>
 				<binaryDataArrayList count="5">
-					<binaryDataArray encodedLength="76">
+					<binaryDataArray encodedLength="64">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAAoIRdh0AAAABANmCHQAAAAMDdYodAAAAAoMhqh0AAAADA8a6HQAAAACDosodAAAAA4Km7h0A=</binary>
+						<binary>AAAAoIRdh0AAAABANmCHQAAAAMDdYodAAAAAoMhqh0AAAADA8a6HQAAAAOCpu4dA</binary>
 					</binaryDataArray>
-					<binaryDataArray encodedLength="40">
+					<binaryDataArray encodedLength="32">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>+sQQRh/j4kUPD5ZF2gP2RPGw6US5E+9EwokoRw==</binary>
+						<binary>+sQQRh/j4kUPD5ZF2gP2RPGw6UTCiShH</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="7" encodedLength="76" >
+					<binaryDataArray arrayLength="6" encodedLength="64" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="IntegratedIntensity" />
-						<binary>AAAAQJ8YwkAAAADgY1y8QAAAAODhwbJAAAAAQHvAnkAAAAAgHjadQAAAACB34p1AAAAAQDgR5UA=</binary>
+						<binary>AAAAQJ8YwkAAAADgY1y8QAAAAODhwbJAAAAAQHvAnkAAAAAgHjadQAAAAEA4EeVA</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="7" encodedLength="76" >
+					<binaryDataArray arrayLength="6" encodedLength="64" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="leftWidth" />
-						<binary>AAAAoGVdh0AAAABAHWCHQAAAACDNYodAAAAAIFdqh0AAAADg366HQAAAAMDCsodAAAAAgFi7h0A=</binary>
+						<binary>AAAAoGVdh0AAAABAHWCHQAAAACDNYodAAAAAIFdqh0AAAADg366HQAAAAIBYu4dA</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="7" encodedLength="76" >
+					<binaryDataArray arrayLength="6" encodedLength="64" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="rightWidth" />
-						<binary>AAAA4KRdh0AAAACgTGCHQAAAAMDsYodAAAAA4Cxrh0AAAACg/66HQAAAAGACs4dAAAAA4Pe7h0A=</binary>
+						<binary>AAAA4KRdh0AAAACgTGCHQAAAAMDsYodAAAAA4Cxrh0AAAACg/66HQAAAAOD3u4dA</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -15443,7 +15443,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
-			<spectrum id="scan=25840" index="257" defaultArrayLength="10">
+			<spectrum id="scan=25840" index="257" defaultArrayLength="9">
 				<cvParam cvRef="MS" accession="MS:1000127" name="centroid spectrum" />
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
 				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
@@ -15455,35 +15455,35 @@
 					</scan>
 				</scanList>
 				<binaryDataArrayList count="5">
-					<binaryDataArray encodedLength="108">
+					<binaryDataArray encodedLength="96">
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAAA4NFah0AAAADAgF2HQAAAAAA2YIdAAAAAIGaGh0AAAAAguIaHQAAAAKB2iodAAAAAIHuOh0AAAABgybaHQAAAACCsu4dAAAAAgPy7h0A=</binary>
+						<binary>AAAA4NFah0AAAADAgF2HQAAAAAA2YIdAAAAAIGaGh0AAAACgdoqHQAAAACB7jodAAAAAYMm2h0AAAAAgrLuHQAAAAID8u4dA</binary>
 					</binaryDataArray>
-					<binaryDataArray encodedLength="56">
+					<binaryDataArray encodedLength="48">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>sZOFRTLSwkUs8JFF4rfiRjxN4kQbqs5GSPhxRdx7AEXqsM1GtGVqRQ==</binary>
+						<binary>sZOFRTLSwkUs8JFF4rfiRhuqzkZI+HFF3HsAReqwzUa0ZWpF</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="10" encodedLength="108" >
+					<binaryDataArray arrayLength="9" encodedLength="96" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="IntegratedIntensity" />
-						<binary>AAAAIHaysEAAAABARlq4QAAAAIAFPrJAAAAAQPxW3EAAAACAp0mcQAAAAGBD1dlAAAAAAAk/rkAAAACAew+gQAAAAEAdttlAAAAAgLZMrUA=</binary>
+						<binary>AAAAIHaysEAAAABARlq4QAAAAIAFPrJAAAAAQPxW3EAAAABgQ9XZQAAAAAAJP65AAAAAgHsPoEAAAABAHbbZQAAAAIC2TK1A</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="10" encodedLength="108" >
+					<binaryDataArray arrayLength="9" encodedLength="96" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="leftWidth" />
-						<binary>AAAAYL5ah0AAAAAgZl2HQAAAAKAlYIdAAAAAYCmGh0AAAABAsIaHQAAAAGBIiodAAAAAwGeOh0AAAABgrraHQAAAAOB4u4dAAAAAYPC7h0A=</binary>
+						<binary>AAAAYL5ah0AAAAAgZl2HQAAAAKAlYIdAAAAAYCmGh0AAAABgSIqHQAAAAMBnjodAAAAAYK62h0AAAADgeLuHQAAAAGDwu4dA</binary>
 					</binaryDataArray>
-					<binaryDataArray arrayLength="10" encodedLength="108" >
+					<binaryDataArray arrayLength="9" encodedLength="96" >
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="rightWidth" />
-						<binary>AAAA4OVah0AAAABgnV2HQAAAAEBFYIdAAAAAYKCGh0AAAAAgwIaHQAAAAKCniodAAAAAYI+Oh0AAAAAg3raHQAAAAIDgu4dAAAAAQAi8h0A=</binary>
+						<binary>AAAA4OVah0AAAABgnV2HQAAAAEBFYIdAAAAAYKCGh0AAAACgp4qHQAAAAGCPjodAAAAAIN62h0AAAACA4LuHQAAAAEAIvIdA</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>

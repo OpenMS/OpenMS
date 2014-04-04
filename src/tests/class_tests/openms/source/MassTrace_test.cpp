@@ -117,7 +117,7 @@ peak_lst.push_back(tmp_peak6);
 // detailed constructors test
 /////////////////////////////////////////////////////////////
 
-START_SECTION((MassTrace(const std::list< PeakType > &, const DoubleReal &scan_time=1.0)))
+START_SECTION((MassTrace(const std::list< PeakType > &, const double &scan_time=1.0)))
 {
     MassTrace tmp_mt(peak_lst);
 
@@ -140,7 +140,7 @@ END_SECTION
 
 /////
 
-START_SECTION((MassTrace(const std::vector< PeakType > &, const DoubleReal &scan_time=1.0)))
+START_SECTION((MassTrace(const std::vector< PeakType > &, const double &scan_time=1.0)))
 {
     MassTrace tmp_mt(peak_vec);
 
@@ -190,12 +190,12 @@ START_SECTION((const PeakType& operator[](const Size &mt_idx) const ))
 {
     const MassTrace test_mt_const(test_mt);
 
-    DoubleReal rt1 = test_mt_const[1].getRT();
-    DoubleReal mz1 = test_mt_const[1].getMZ();
-    DoubleReal int1 = test_mt_const[1].getIntensity();
-    DoubleReal rt2 = test_mt_const[4].getRT();
-    DoubleReal mz2 = test_mt_const[4].getMZ();
-    DoubleReal int2 = test_mt_const[4].getIntensity();
+    double rt1 = test_mt_const[1].getRT();
+    double mz1 = test_mt_const[1].getMZ();
+    double int1 = test_mt_const[1].getIntensity();
+    double rt2 = test_mt_const[4].getRT();
+    double mz2 = test_mt_const[4].getMZ();
+    double int2 = test_mt_const[4].getIntensity();
 
     TEST_REAL_SIMILAR(rt1, 153.23);
     TEST_REAL_SIMILAR(mz1, 230.10235);
@@ -355,22 +355,22 @@ END_SECTION
 /////
 
 
-START_SECTION((DoubleReal getCentroidMZ() const ))
+START_SECTION((double getCentroidMZ() const ))
 {
     MassTrace test_mt_const(test_mt);
 
-    DoubleReal test_mt_cent_mz = test_mt_const.getCentroidMZ();
+    double test_mt_cent_mz = test_mt_const.getCentroidMZ();
 
     TEST_REAL_SIMILAR(test_mt_cent_mz, 230.10188);
 }
 END_SECTION
 
 /////
-START_SECTION((DoubleReal getCentroidRT() const ))
+START_SECTION((double getCentroidRT() const ))
 {
     MassTrace test_mt_const(test_mt);
 
-    DoubleReal test_mt_cent_rt = test_mt_const.getCentroidRT();
+    double test_mt_cent_rt = test_mt_const.getCentroidRT();
 
     TEST_REAL_SIMILAR(test_mt_cent_rt, 155.210881553057);
 }
@@ -378,11 +378,11 @@ END_SECTION
 
 /////
 
-START_SECTION((DoubleReal getScanTime() const))
+START_SECTION((double getScanTime() const))
 {
     MassTrace tmp_mt(peak_lst, 0.25);
 
-    DoubleReal test_scantime = tmp_mt.getScanTime();
+    double test_scantime = tmp_mt.getScanTime();
 
     TEST_REAL_SIMILAR(test_scantime, 0.25);
 }
@@ -410,7 +410,7 @@ START_SECTION((void updateWeightedMZsd()))
     TEST_EXCEPTION(Exception::InvalidValue, empty_trace.updateWeightedMZsd());
 
     test_mt.updateWeightedMZsd();
-    DoubleReal test_mt_sd = test_mt.getCentroidSD();
+    double test_mt_sd = test_mt.getCentroidSD();
 
     TEST_REAL_SIMILAR(test_mt_sd, 0.0004594);
 
@@ -420,11 +420,11 @@ END_SECTION
 
 /////
                           
-START_SECTION((DoubleReal getCentroidSD() const ))
+START_SECTION((double getCentroidSD() const ))
 {
     MassTrace test_mt_const(test_mt);
 
-    DoubleReal test_mt_sd = test_mt_const.getCentroidSD();
+    double test_mt_sd = test_mt_const.getCentroidSD();
 
     TEST_REAL_SIMILAR(test_mt_sd, 0.0004594);
 }
@@ -433,11 +433,11 @@ END_SECTION
 
 /////
 
-START_SECTION((DoubleReal getTraceLength() const ))
+START_SECTION((double getTraceLength() const ))
 {
     const MassTrace test_mt_const(test_mt);
 
-    DoubleReal mt_length = test_mt_const.getTraceLength();
+    double mt_length = test_mt_const.getTraceLength();
 
     TEST_REAL_SIMILAR(mt_length, 6.018)
 }
@@ -445,7 +445,7 @@ END_SECTION
 
 /////
 
-std::vector<DoubleReal> smoothed_ints;
+std::vector<double> smoothed_ints;
 smoothed_ints.push_back(500.0);
 smoothed_ints.push_back(540000.0);
 smoothed_ints.push_back(18000000.0);
@@ -456,7 +456,7 @@ smoothed_ints.push_back(549223.0);
 smoothed_ints.push_back(300.0);
 
 
-START_SECTION((void setSmoothedIntensities(const std::vector<DoubleReal>& db_vec)))
+START_SECTION((void setSmoothedIntensities(const std::vector<double>& db_vec)))
 {
     TEST_EXCEPTION(Exception::InvalidValue, test_mt.setSmoothedIntensities(smoothed_ints));
     smoothed_ints.pop_back();
@@ -469,9 +469,9 @@ END_SECTION
 
 /////
 
-START_SECTION((std::vector<DoubleReal> getSmoothedIntensities()))
+START_SECTION((std::vector<double> getSmoothedIntensities()))
 {
-    std::vector<DoubleReal> smoothed_vec = test_mt.getSmoothedIntensities();
+    std::vector<double> smoothed_vec = test_mt.getSmoothedIntensities();
 
     TEST_EQUAL(smoothed_vec.empty(), false);
     TEST_EQUAL(smoothed_vec.size(), smoothed_ints.size());
@@ -482,50 +482,50 @@ END_SECTION
 
 test_mt.setSmoothedIntensities(smoothed_ints);
 
-START_SECTION((DoubleReal getIntensity(bool smoothed) const))
+START_SECTION((double getIntensity(bool smoothed) const))
 {
     TEST_EXCEPTION(Exception::InvalidValue, test_mt.getIntensity(true));
 
     test_mt.estimateFWHM(true);
 
-    DoubleReal smoothed_area = test_mt.getIntensity(true);
+    double smoothed_area = test_mt.getIntensity(true);
     TEST_REAL_SIMILAR(smoothed_area, 69460700);
 
-    DoubleReal raw_area = test_mt.getIntensity(false);
+    double raw_area = test_mt.getIntensity(false);
     TEST_REAL_SIMILAR(raw_area, 69922872.7);
 }
 END_SECTION
 
 /////
 
-START_SECTION((DoubleReal getMaxIntensity(bool smoothed) const))
+START_SECTION((double getMaxIntensity(bool smoothed) const))
 {
-    DoubleReal smoothed_maxint = test_mt.getMaxIntensity(true);
+    double smoothed_maxint = test_mt.getMaxIntensity(true);
     TEST_REAL_SIMILAR(smoothed_maxint, 33000000.0);
 
-    DoubleReal raw_maxint= test_mt.getMaxIntensity(false);
+    double raw_maxint= test_mt.getMaxIntensity(false);
     TEST_REAL_SIMILAR(raw_maxint, 33329536.0);
 }
 END_SECTION
 
 /////
 
-START_SECTION((DoubleReal getMaxIntensity(bool) const ))
+START_SECTION((double getMaxIntensity(bool) const ))
 {
     const MassTrace test_mt_const(test_mt);
-    DoubleReal smoothed_maxint = test_mt_const.getMaxIntensity(true);
+    double smoothed_maxint = test_mt_const.getMaxIntensity(true);
     TEST_REAL_SIMILAR(smoothed_maxint, 33000000.0);
 
-    DoubleReal raw_maxint= test_mt_const.getMaxIntensity(false);
+    double raw_maxint= test_mt_const.getMaxIntensity(false);
     TEST_REAL_SIMILAR(raw_maxint, 33329536.0);
 }
 END_SECTION
 
 /////
 
-START_SECTION((const std::vector<DoubleReal>& getSmoothedIntensities() const))
+START_SECTION((const std::vector<double>& getSmoothedIntensities() const))
 {
-    std::vector<DoubleReal> smoothed_vec = test_mt.getSmoothedIntensities();
+    std::vector<double> smoothed_vec = test_mt.getSmoothedIntensities();
 
     TEST_EQUAL(smoothed_vec.empty(), false);
     TEST_EQUAL(smoothed_vec.size(), smoothed_ints.size());
@@ -539,9 +539,9 @@ test_mt2.updateWeightedMeanRT();
 test_mt2.updateWeightedMeanMZ();
 
 
-START_SECTION((DoubleReal getFWHM() const))
+START_SECTION((double getFWHM() const))
 {
-    DoubleReal test_mt_fwhm = test_mt.getFWHM();
+    double test_mt_fwhm = test_mt.getFWHM();
 
     TEST_REAL_SIMILAR(test_mt_fwhm, 4.01);
 }
@@ -550,9 +550,9 @@ END_SECTION
 
 /////
 
-START_SECTION((DoubleReal computeSmoothedPeakArea() const))
+START_SECTION((double computeSmoothedPeakArea() const))
 {
-    DoubleReal peak_area = test_mt.computeSmoothedPeakArea();
+    double peak_area = test_mt.computeSmoothedPeakArea();
 
     TEST_REAL_SIMILAR(peak_area, 70129723.0)
 }
@@ -561,9 +561,9 @@ END_SECTION
 /////
 
 
-START_SECTION((DoubleReal computePeakArea() const))
+START_SECTION((double computePeakArea() const))
 {
-    DoubleReal peak_area = test_mt.computePeakArea();
+    double peak_area = test_mt.computePeakArea();
 
     TEST_REAL_SIMILAR(peak_area, 69831325.0)
 }
@@ -571,9 +571,9 @@ END_SECTION
 
 /////
 
-START_SECTION((DoubleReal computeFwhmAreaSmooth() const))
+START_SECTION((double computeFwhmAreaSmooth() const))
 {
-    DoubleReal peak_area = test_mt.computeFwhmAreaSmooth();
+    double peak_area = test_mt.computeFwhmAreaSmooth();
 
     TEST_REAL_SIMILAR(peak_area, 69040000.0)
 }
@@ -581,9 +581,9 @@ END_SECTION
 
 /////
 
-START_SECTION((DoubleReal computeFwhmArea() const))
+START_SECTION((double computeFwhmArea() const))
 {
-    DoubleReal peak_area = test_mt.computeFwhmArea();
+    double peak_area = test_mt.computeFwhmArea();
 
     TEST_REAL_SIMILAR(peak_area, 69497153.0)
 }
@@ -591,9 +591,9 @@ END_SECTION
 
 /////
 
-START_SECTION((DoubleReal computeFwhmAreaSmoothRobust() const))
+START_SECTION((double computeFwhmAreaSmoothRobust() const))
 {
-    DoubleReal peak_area = test_mt.computeFwhmAreaSmoothRobust();
+    double peak_area = test_mt.computeFwhmAreaSmoothRobust();
 
     TEST_REAL_SIMILAR(peak_area, 69460700.0)
 }
@@ -601,9 +601,9 @@ END_SECTION
 
 /////
 
-START_SECTION((DoubleReal computeFwhmAreaRobust() const))
+START_SECTION((double computeFwhmAreaRobust() const))
 {
-    DoubleReal peak_area = test_mt.computeFwhmAreaRobust();
+    double peak_area = test_mt.computeFwhmAreaRobust();
 
     TEST_REAL_SIMILAR(peak_area, 69922872.67)
 }
@@ -627,13 +627,13 @@ END_SECTION
 
 /////
 
-START_SECTION((DoubleReal estimateFWHM(bool use_smoothed_ints = false)))
+START_SECTION((double estimateFWHM(bool use_smoothed_ints = false)))
 {
     TEST_EXCEPTION(Exception::InvalidValue, test_mt2.estimateFWHM(true));
     TEST_EXCEPTION(Exception::InvalidValue, test_mt3.estimateFWHM(false));
 
-    DoubleReal test_fwhm1 = test_mt.estimateFWHM(false);
-    DoubleReal test_fwhm2 = test_mt.estimateFWHM(true);
+    double test_fwhm1 = test_mt.estimateFWHM(false);
+    double test_fwhm2 = test_mt.estimateFWHM(true);
 
     TEST_REAL_SIMILAR(test_fwhm1, 4.01);
     TEST_REAL_SIMILAR(test_fwhm2, 4.01);
@@ -680,7 +680,7 @@ END_SECTION
 std::vector<PeakType> double_peak(peak_vec);
 double_peak.insert(double_peak.end(), peak_vec.begin(), peak_vec.end());
 
-std::vector<DoubleReal> double_smooth_ints(smoothed_ints);
+std::vector<double> double_smooth_ints(smoothed_ints);
 double_smooth_ints.insert(double_smooth_ints.end(), smoothed_ints.begin(), smoothed_ints.end());
 
 MassTrace double_mt(double_peak);
@@ -704,11 +704,11 @@ START_SECTION((MassTrace(const MassTrace &)))
 
     TEST_EQUAL(copy_mt.getLabel(), test_mt.getLabel());
 
-    std::vector<DoubleReal> sm1(copy_mt.getSmoothedIntensities()), sm2(test_mt.getSmoothedIntensities());
+    std::vector<double> sm1(copy_mt.getSmoothedIntensities()), sm2(test_mt.getSmoothedIntensities());
 
-    std::vector<DoubleReal>::const_iterator sm1_it = sm1.begin();
+    std::vector<double>::const_iterator sm1_it = sm1.begin();
 
-    for (std::vector<DoubleReal>::const_iterator sm2_it = sm2.begin(); sm2_it != sm2.end(); ++sm2_it)
+    for (std::vector<double>::const_iterator sm2_it = sm2.begin(); sm2_it != sm2.end(); ++sm2_it)
     {
         TEST_EQUAL(*sm1_it, *sm2_it);
         ++sm1_it;
@@ -738,11 +738,11 @@ START_SECTION((MassTrace& operator=(const MassTrace &)))
 
     TEST_EQUAL(copy_mt.getLabel(), test_mt.getLabel());
 
-    std::vector<DoubleReal> sm1(copy_mt.getSmoothedIntensities()), sm2(test_mt.getSmoothedIntensities());
+    std::vector<double> sm1(copy_mt.getSmoothedIntensities()), sm2(test_mt.getSmoothedIntensities());
 
-    std::vector<DoubleReal>::const_iterator sm1_it = sm1.begin();
+    std::vector<double>::const_iterator sm1_it = sm1.begin();
 
-    for (std::vector<DoubleReal>::const_iterator sm2_it = sm2.begin(); sm2_it != sm2.end(); ++sm2_it)
+    for (std::vector<double>::const_iterator sm2_it = sm2.begin(); sm2_it != sm2.end(); ++sm2_it)
     {
         TEST_EQUAL(*sm1_it, *sm2_it);
         ++sm1_it;
@@ -841,7 +841,7 @@ START_SECTION((void updateSmoothedMaxRT()))
 
     test_mt.updateSmoothedMaxRT();
 
-    DoubleReal smooth_max_rt = test_mt.getCentroidRT();
+    double smooth_max_rt = test_mt.getCentroidRT();
 
     TEST_REAL_SIMILAR(smooth_max_rt, 155.24);
 }
@@ -857,7 +857,7 @@ START_SECTION((void updateSmoothedWeightedMeanRT()))
 
     test_mt.updateSmoothedWeightedMeanRT();
 
-    DoubleReal smooth_max_rt = test_mt.getCentroidRT();
+    double smooth_max_rt = test_mt.getCentroidRT();
 
     TEST_REAL_SIMILAR(smooth_max_rt, 155.2468039);
 }

@@ -2,10 +2,10 @@
 from LinearInterpolation cimport *
 from DPosition cimport *
 
-ctypedef DoubleReal IntensityType
+ctypedef double IntensityType
 ctypedef DPosition1 PositionType
-ctypedef DoubleReal CoordinateType
-# ctypedef Math::LinearInterpolation<DoubleReal> LinearInterpolation
+ctypedef double CoordinateType
+# ctypedef Math::LinearInterpolation<double> LinearInterpolation
 
 cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/InterpolationModel.h>" namespace "OpenMS":
     

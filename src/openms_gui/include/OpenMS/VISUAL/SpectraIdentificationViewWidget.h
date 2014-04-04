@@ -76,7 +76,7 @@ signals:
     void spectrumDoubleClicked(int);
     void showSpectrumAs1D(int);
     void showSpectrumMetaData(int);
-    void requestVisibleArea1D(DoubleReal, DoubleReal);
+    void requestVisibleArea1D(double, double);
 private:
     LayerData * layer_;
     QCheckBox * hide_no_identification_;

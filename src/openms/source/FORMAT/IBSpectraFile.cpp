@@ -60,10 +60,10 @@ namespace OpenMS
     String peptide; // Peptide sequence
     String modif; // Peptide modification string
     Int charge; // Charge state
-    DoubleReal theo_mass; // Theoretical peptide mass
-    DoubleReal exp_mass; // Experimentally observed mass
-    DoubleReal parent_intens; // Parent intensity
-    DoubleReal retention_time; // Retention time
+    double theo_mass; // Theoretical peptide mass
+    double exp_mass; // Experimentally observed mass
+    double parent_intens; // Parent intensity
+    double retention_time; // Retention time
     String spectrum; // Spectrum identifier
     String search_engine; // Protein search engine and score
 
@@ -202,7 +202,7 @@ namespace OpenMS
     /// Allow also non-unique peptides to be exported
     bool allow_non_unique = true;
     /// Intensities below this value will be set to 0.0 to avoid numerical problems when quantifying
-    DoubleReal intensity_threshold = 0.00001;
+    double intensity_threshold = 0.00001;
     // ----------------------------------------------------------------------
 
 
@@ -293,7 +293,7 @@ namespace OpenMS
         entry->toStringList(currentLine);
 
         // extract channel intensities and positions
-        std::map<Int, DoubleReal> intensityMap;
+        std::map<Int, double> intensityMap;
         ConsensusFeature::HandleSetType features = cFeature.getFeatures();
 
         for (ConsensusFeature::HandleSetType::const_iterator fIt = features.begin();

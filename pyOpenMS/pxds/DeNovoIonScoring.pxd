@@ -22,10 +22,10 @@ cdef extern from "<OpenMS/ANALYSIS/DENOVO/DeNovoIonScoring.h>" namespace "OpenMS
         IonScore_DeNovoIonScoring(IonScore_DeNovoIonScoring) nogil except +
 
         # score
-        DoubleReal score
+        double score
 
         # position of the ion
-        DoubleReal position
+        double position
 
         # index of peak in the spectrum, -1 if not in spectrum
         ptrdiff_t index

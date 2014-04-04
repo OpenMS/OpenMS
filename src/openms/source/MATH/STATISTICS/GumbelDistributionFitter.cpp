@@ -33,11 +33,12 @@
 // --------------------------------------------------------------------------
 //
 
-#include <sstream>
 
+#include <unsupported/Eigen/NonLinearOptimization>
+
+#include <sstream>
 #include <cmath>
 
-#include <gsl/gsl_sf_psi.h>
 #include <OpenMS/MATH/STATISTICS/GumbelDistributionFitter.h>
 
 using namespace std;
@@ -45,23 +46,13 @@ using namespace std;
 #define GUMBEL_DISTRIBUTION_FITTER_VERBOSE
 #undef  GUMBEL_DISTRIBUTION_FITTER_VERBOSE
 
-#ifdef GUMBEL_DISTRIBUTION_FITTER_VERBOSE
-#include <iostream>
-#include <gsl/gsl_rng.h>
-#include <gsl/gsl_randist.h>
-#include <gsl/gsl_vector.h>
-#include <gsl/gsl_blas.h>
-#include <gsl/gsl_multifit_nlin.h>
-#endif
-
 namespace OpenMS
 {
   namespace Math
   {
     GumbelDistributionFitter::GumbelDistributionFitter()
     {
-      init_param_.a = 0.25;
-      init_param_.b = 0.1;
+      init_param_ = GumbelDistributionFitResult(0.25, 0.1);
     }
 
     GumbelDistributionFitter::~GumbelDistributionFitter()
@@ -70,167 +61,82 @@ namespace OpenMS
 
     void GumbelDistributionFitter::setInitialParameters(const GumbelDistributionFitResult & param)
     {
-      init_param_.a = param.a;
-      init_param_.b = param.b;
+      init_param_ = param;
     }
 
-    const String & GumbelDistributionFitter::getGnuplotFormula() const
+    struct GumbelDistributionFunctor
     {
-      return gnuplot_formula_;
-    }
+      int inputs() const { return m_inputs; }
+      int values() const { return m_values; }
 
-    int GumbelDistributionFitter::gumbelDistributionFitterf_(const gsl_vector * x, void * params, gsl_vector * f)
-    {
-      vector<DPosition<2> > * data = static_cast<vector<DPosition<2> > *>(params);
+      GumbelDistributionFunctor(unsigned dimensions, const std::vector<DPosition<2> >* data)
+      : m_inputs(dimensions), m_values(data->size()), m_data(data) {}
 
-      double a = gsl_vector_get(x, 0);
-      double b = gsl_vector_get(x, 1);
-
-      UInt i = 0;
-      for (vector<DPosition<2> >::iterator it = data->begin(); it != data->end(); ++it)
+      int operator()(const Eigen::VectorXd &x, Eigen::VectorXd &fvec)
       {
-        double the_x = it->getX();
-        double z = exp((a - the_x) / b);
-        gsl_vector_set(f, i++, (z * exp(-1 * z)) / b - it->getY());
+        double a = x(0);
+        double b = x(1);
+
+        UInt i = 0;
+        for (vector<DPosition<2> >::const_iterator it = m_data->begin(); it != m_data->end(); ++it, ++i)
+        {
+          double the_x = it->getX();
+          double z = exp((a - the_x) / b);
+          fvec(i) = (z * exp(-1 * z)) / b - it->getY();
+        }
+        return 0;
+      }
+      // compute Jacobian matrix for the different parameters
+      int df(const Eigen::VectorXd &x, Eigen::MatrixXd &J)
+      {
+        double a = x(0);
+        double b = x(1);
+        UInt i = 0;
+        for (vector<DPosition<2> >::const_iterator it = m_data->begin(); it != m_data->end(); ++it, ++i)
+        {
+          double the_x = it->getX();
+          double z = exp((a - the_x) / b);
+          double f = z * exp(-1 * z);
+          double part_dev_a = (f - pow(z, 2) * exp(-1 * z)) / pow(b, 2);
+          J(i,0) = part_dev_a;
+          double dev_z =  ((the_x - a) / pow(b, 2));
+          double cum = f * dev_z;
+          double part_dev_b = ((cum - z * cum) * b - f) / pow(b, 2);
+          J(i,1) = part_dev_b;
+        }
+        return 0;
       }
 
-      return GSL_SUCCESS;
-    }
-
-    // compute Jacobian matrix for the different parameters
-    int GumbelDistributionFitter::gumbelDistributionFitterdf_(const gsl_vector * x, void * params, gsl_matrix * J)
-    {
-      vector<DPosition<2> > * data = static_cast<vector<DPosition<2> > *>(params);
-
-      double a = gsl_vector_get(x, 0);
-      double b = gsl_vector_get(x, 1);
-      UInt i(0);
-      for (vector<DPosition<2> >::iterator it = data->begin(); it != data->end(); ++it, ++i)
-      {
-        double the_x = it->getX();
-        double z = exp((a - the_x) / b);
-        double f = z * exp(-1 * z);
-        double part_dev_a = (f - pow(z, 2) * exp(-1 * z)) / pow(b, 2);
-        gsl_matrix_set(J, i, 0, part_dev_a);
-        double dev_z =  ((the_x - a) / pow(b, 2));
-        double cum = f * dev_z;
-        double part_dev_b = ((cum - z * cum) * b - f) / pow(b, 2);
-        gsl_matrix_set(J, i, 1, part_dev_b);
-
-
-
-
-      }
-      return GSL_SUCCESS;
-    }
-
-    int GumbelDistributionFitter::gumbelDistributionFitterfdf_(const gsl_vector * x, void * params, gsl_vector * f, gsl_matrix * J)
-    {
-      gumbelDistributionFitterf_(x, params, f);
-      gumbelDistributionFitterdf_(x, params, J);
-      return GSL_SUCCESS;
-    }
-
-#ifdef GUMBEL_DISTRIBUTION_FITTER_VERBOSE
-    void GumbelDistributionFitter::printState_(size_t iter, gsl_multifit_fdfsolver * s)
-    {
-      printf("iter: %3u x = % 15.8f % 15.8f "
-             "|f(x)| = %g\n",
-             (unsigned int)iter,
-             gsl_vector_get(s->x, 0),
-             gsl_vector_get(s->x, 1),
-             gsl_blas_dnrm2(s->f));
-    }
-
-#endif
+      const int m_inputs, m_values;
+      const std::vector<DPosition<2> >* m_data;
+    };
 
     GumbelDistributionFitter::GumbelDistributionFitResult GumbelDistributionFitter::fit(vector<DPosition<2> > & input)
     {
-      const gsl_multifit_fdfsolver_type * T = NULL;
-      gsl_multifit_fdfsolver * s = NULL;
 
-      int status = 0;
-      size_t iter = 0;
+      Eigen::VectorXd x_init (2);
+      x_init(0) = init_param_.a;
+      x_init(1) = init_param_.b;
+      GumbelDistributionFunctor functor (2, &input);
+      Eigen::LevenbergMarquardt<GumbelDistributionFunctor> lmSolver (functor);
+      Eigen::LevenbergMarquardtSpace::Status status = lmSolver.minimize(x_init);
 
-      const size_t p = 2;
-
-      gsl_multifit_function_fdf f;
-      double x_init[2] = { init_param_.a, init_param_.b };
-      gsl_vector_view x = gsl_vector_view_array(x_init, p);
-      const gsl_rng_type * type = NULL;
-      gsl_rng * r = NULL;
-
-      gsl_rng_env_setup();
-
-      type = gsl_rng_default;
-      r = gsl_rng_alloc(type);
-
-      f.f = &gumbelDistributionFitterf_;
-      f.df = &gumbelDistributionFitterdf_;
-      f.fdf = &gumbelDistributionFitterfdf_;
-      f.n = input.size();
-      f.p = p;
-      f.params = &input;
-
-      T = gsl_multifit_fdfsolver_lmsder;
-      s = gsl_multifit_fdfsolver_alloc(T, input.size(), p);
-      gsl_multifit_fdfsolver_set(s, &f, &x.vector);
-
-#ifdef GUMBEL_DISTRIBUTION_FITTER_VERBOSE
-      printState_(iter, s);
-#endif
-
-      do
+      //the states are poorly documented. after checking the source, we believe that
+      //all states except NotStarted, Running and ImproperInputParameters are good
+      //termination states.
+      if (status <= Eigen::LevenbergMarquardtSpace::ImproperInputParameters)
       {
-        ++iter;
-        status = gsl_multifit_fdfsolver_iterate(s);
-
-#ifdef GUMBEL_DISTRIBUTION_FITTER_VERBOSE
-        printf("status = %s\n", gsl_strerror(status));
-        printState_(iter, s);
-#endif
-        if (status)
-        {
-          break;
-        }
-
-        status = gsl_multifit_test_delta(s->dx, s->x, 1e-4, 1e-4);
-#ifdef GUMBEL_DISTRIBUTION_FITTER_VERBOSE
-        printf("Status = '%s'\n", gsl_strerror(status));
-#endif
-      }
-      while (status == GSL_CONTINUE && iter < 1000);
-
-#ifdef GUMBEL_DISTRIBUTION_FITTER_VERBOSE
-      printf("Final status = '%s'\n", gsl_strerror(status));
-#endif
-
-      if (status != GSL_SUCCESS)
-      {
-        gsl_rng_free(r);
-        gsl_multifit_fdfsolver_free(s);
-
         throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-GumbelDistributionFitter", "Could not fit the gumbel distribution to the data");
       }
 
-      // write the result in a GumbelDistributionFitResult struct
-      GumbelDistributionFitResult result;
-      result.a = gsl_vector_get(s->x, 0);
-      result.b = gsl_vector_get(s->x, 1);
-
+#ifdef GUMBEL_DISTRIBUTION_FITTER_VERBOSE
       // build a formula with the fitted parameters for gnuplot
       stringstream formula;
-      formula << "f(x)=" << "(1/" << result.b << ") * " << "exp(( " << result.a << "- x)/" << result.b << ") * exp(-exp((" << result.a << " - x)/" << result.b << "))";
-      gnuplot_formula_ = formula.str();
-
-#ifdef GUMBEL_DISTRIBUTION_FITTER_VERBOSE
-      cout << gnuplot_formula_ << endl;
+      formula << "f(x)=" << "(1/" << x_init(1) << ") * " << "exp(( " << x_init(0) << "- x)/" << x_init(1) << ") * exp(-exp((" << x_init(0) << " - x)/" << x_init(1) << "))";
+      cout << formula.str() << endl;
 #endif
 
-      gsl_rng_free(r);
-      gsl_multifit_fdfsolver_free(s);
-
-      return result;
+      return GumbelDistributionFitResult (x_init(0), x_init(1));
     }
 
   }   //namespace Math

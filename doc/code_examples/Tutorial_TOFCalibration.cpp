@@ -49,7 +49,7 @@ int main(int argc, const char** argv)
   mzml_file.load(tutorial_data_path + "/data/Tutorial_TOFCalibration_peak.mzML", calib_exp);
   mzml_file.load(tutorial_data_path + "/data/Tutorial_TOFCalibration_raw.mzML", exp_raw);
 
-  vector<DoubleReal> ref_masses;
+  vector<double> ref_masses;
   TextFile ref_file;
   ref_file.load(tutorial_data_path + "/data/Tutorial_TOFCalibration_masses.txt", true);
   for (TextFile::Iterator iter = ref_file.begin(); iter != ref_file.end(); ++iter)
@@ -57,13 +57,13 @@ int main(int argc, const char** argv)
     ref_masses.push_back(String(iter->c_str()).toDouble());
   }
 
-  std::vector<DoubleReal> ml1;
+  std::vector<double> ml1;
   ml1.push_back(418327.924993827);
 
-  std::vector<DoubleReal> ml2;
+  std::vector<double> ml2;
   ml2.push_back(253.645187196031);
 
-  std::vector<DoubleReal> ml3;
+  std::vector<double> ml3;
   ml3.push_back(-0.0414243465397252);
 
   ec.setML1s(ml1);

@@ -113,11 +113,11 @@ namespace OpenMS
   {
     // section params
     defaults_.insert("Digestion:", DigestSimulation().getDefaults());
-    defaults_.insert("RT:", RTSimulation(SimRandomNumberGenerator()).getDefaults());
+    defaults_.insert("RT:", RTSimulation().getDefaults());
     defaults_.insert("Detectability:", DetectabilitySimulation().getDefaults());
-    defaults_.insert("Ionization:", IonizationSimulation(SimRandomNumberGenerator()).getDefaults());
-    defaults_.insert("RawSignal:", RawMSSignalSimulation(SimRandomNumberGenerator()).getDefaults());
-    defaults_.insert("RawTandemSignal:", RawTandemMSSignalSimulation(SimRandomNumberGenerator()).getDefaults());
+    defaults_.insert("Ionization:", IonizationSimulation().getDefaults());
+    defaults_.insert("RawSignal:", RawMSSignalSimulation().getDefaults());
+    defaults_.insert("RawTandemSignal:", RawTandemMSSignalSimulation().getDefaults());
 
     subsections_.push_back("Labeling");
 
@@ -157,7 +157,7 @@ namespace OpenMS
     return tmp;
   }
 
-  void MSSim::simulate(const SimRandomNumberGenerator & rnd_gen, SampleChannels & channels)
+  void MSSim::simulate(MutableSimRandomNumberGeneratorPtr rnd_gen, SampleChannels & channels)
   {
     /*todo: move to a global config file or into INI file */
     Log_fatal.setPrefix("%S: ");
@@ -425,7 +425,7 @@ namespace OpenMS
       if (ms_it->getMSLevel() != 2) continue;
       // "the" precursor is the one with highest intensity:
       Size index = 0;
-      DoubleReal intensity = ms_it->getPrecursors()[0].getIntensity();
+      double intensity = ms_it->getPrecursors()[0].getIntensity();
       for (Size i = 1; i < ms_it->getPrecursors().size(); ++i)
       {
         if (ms_it->getPrecursors()[i].getIntensity() > intensity)

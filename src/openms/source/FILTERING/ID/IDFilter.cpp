@@ -69,7 +69,7 @@ namespace OpenMS
     filtered_identification.setHits(hits);
   }
 
-  void IDFilter::filterIdentificationsByMzError(const PeptideIdentification& identification, DoubleReal mass_error, bool unit_ppm, PeptideIdentification& filtered_identification)
+  void IDFilter::filterIdentificationsByMzError(const PeptideIdentification& identification, double mass_error, bool unit_ppm, PeptideIdentification& filtered_identification)
   {
     vector<PeptideHit> hits;
     filtered_identification = identification;
@@ -84,13 +84,13 @@ namespace OpenMS
         charge = 1;
       }
 
-      DoubleReal exp_mz = (DoubleReal)identification.getMetaValue("MZ");
-      DoubleReal theo_mz =  (it->getSequence().getMonoWeight() + (DoubleReal)charge * Constants::PROTON_MASS_U) / (DoubleReal)charge;
-      DoubleReal error(exp_mz - theo_mz);
+      double exp_mz = (double)identification.getMetaValue("MZ");
+      double theo_mz =  (it->getSequence().getMonoWeight() + (double)charge * Constants::PROTON_MASS_U) / (double)charge;
+      double error(exp_mz - theo_mz);
 
       if (unit_ppm)
       {
-        error = error / theo_mz * (DoubleReal)1e6;
+        error = error / theo_mz * (double)1e6;
       }
 
       if (fabs(error) <= mass_error)
@@ -114,13 +114,13 @@ namespace OpenMS
 
     if (!identification.getHits().empty())
     {
-      Real optimal_value = identification.getHits()[0].getScore();
+      float optimal_value = identification.getHits()[0].getScore();
       new_peptide_indices.push_back(0);
 
       // searching for peptide(s) with maximal score
       for (Size i = 1; i < identification.getHits().size(); i++)
       {
-        Real temp_score = identification.getHits()[i].getScore();
+        float temp_score = identification.getHits()[i].getScore();
         bool new_leader = false;
         if ((identification.isHigherScoreBetter() && (temp_score > optimal_value))
            || (!identification.isHigherScoreBetter() && (temp_score < optimal_value)))
@@ -402,9 +402,9 @@ namespace OpenMS
 
   void IDFilter::filterIdentificationsByRTFirstDimPValues(const PeptideIdentification& identification,
                                                           PeptideIdentification& filtered_identification,
-                                                          DoubleReal p_value)
+                                                          double p_value)
   {
-    DoubleReal border = 1 - p_value;
+    double border = 1 - p_value;
     vector<PeptideHit> filtered_peptide_hits;
     PeptideHit temp_peptide_hit;
 
@@ -417,7 +417,7 @@ namespace OpenMS
     {
       if (identification.getHits()[i].metaValueExists("predicted_RT_p_value_first_dim"))
       {
-        if ((DoubleReal)(identification.getHits()[i].getMetaValue("predicted_RT_p_value_first_dim")) <= border)
+        if ((double)(identification.getHits()[i].getMetaValue("predicted_RT_p_value_first_dim")) <= border)
         {
           filtered_peptide_hits.push_back(identification.getHits()[i]);
         }
@@ -437,9 +437,9 @@ namespace OpenMS
 
   void IDFilter::filterIdentificationsByRTPValues(const PeptideIdentification& identification,
                                                   PeptideIdentification& filtered_identification,
-                                                  DoubleReal p_value)
+                                                  double p_value)
   {
-    DoubleReal border = 1 - p_value;
+    double border = 1 - p_value;
     vector<PeptideHit> filtered_peptide_hits;
     PeptideHit temp_peptide_hit;
 
@@ -452,7 +452,7 @@ namespace OpenMS
     {
       if (identification.getHits()[i].metaValueExists("predicted_RT_p_value"))
       {
-        if ((DoubleReal)(identification.getHits()[i].getMetaValue("predicted_RT_p_value")) <= border)
+        if ((double)(identification.getHits()[i].getMetaValue("predicted_RT_p_value")) <= border)
         {
           filtered_peptide_hits.push_back(identification.getHits()[i]);
         }
@@ -569,11 +569,11 @@ namespace OpenMS
   }
 
 
-  bool IDFilter::filterIdentificationsByMetaValueRange(const PeptideIdentification& identification, const String& key, DoubleReal low, DoubleReal high, bool missing)
+  bool IDFilter::filterIdentificationsByMetaValueRange(const PeptideIdentification& identification, const String& key, double low, double high, bool missing)
   {
     if (!identification.metaValueExists(key)) return missing;
 
-    DoubleReal value = identification.getMetaValue(key);
+    double value = identification.getMetaValue(key);
     return (value >= low) && (value <= high);
   }
 

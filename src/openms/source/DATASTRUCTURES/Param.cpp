@@ -57,8 +57,8 @@ namespace OpenMS
     description(),
     value(),
     tags(),
-    min_float(-std::numeric_limits<DoubleReal>::max()),
-    max_float(std::numeric_limits<DoubleReal>::max()),
+    min_float(-std::numeric_limits<double>::max()),
+    max_float(std::numeric_limits<double>::max()),
     min_int(-std::numeric_limits<Int>::max()),
     max_int(std::numeric_limits<Int>::max()),
     valid_strings()
@@ -83,8 +83,8 @@ namespace OpenMS
     description(d),
     value(v),
     tags(),
-    min_float(-std::numeric_limits<DoubleReal>::max()),
-    max_float(std::numeric_limits<DoubleReal>::max()),
+    min_float(-std::numeric_limits<double>::max()),
+    max_float(std::numeric_limits<double>::max()),
     min_int(-std::numeric_limits<Int>::max()),
     max_int(std::numeric_limits<Int>::max()),
     valid_strings()
@@ -187,8 +187,8 @@ namespace OpenMS
     }
     else if (value.valueType() == DataValue::DOUBLE_VALUE)
     {
-      DoubleReal tmp = value;
-      if ((min_float != -std::numeric_limits<DoubleReal>::max() && tmp < min_float) || (max_float != std::numeric_limits<DoubleReal>::max() && tmp > max_float))
+      double tmp = value;
+      if ((min_float != -std::numeric_limits<double>::max() && tmp < min_float) || (max_float != std::numeric_limits<double>::max() && tmp > max_float))
       {
         message = String("Invalid double parameter value '") + tmp + "' for parameter '" + name + "' given! The valid range is: [" + min_float + ":" + max_float + "].";
         return false;
@@ -196,12 +196,12 @@ namespace OpenMS
     }
     else if (value.valueType() == DataValue::DOUBLE_LIST)
     {
-      DoubleReal dou_value;
+      double dou_value;
       DoubleList ls_value = value;
       for (Size i = 0; i < ls_value.size(); ++i)
       {
         dou_value = ls_value[i];
-        if ((min_float != -std::numeric_limits<DoubleReal>::max() && dou_value < min_float) || (max_float != std::numeric_limits<DoubleReal>::max() && dou_value > max_float))
+        if ((min_float != -std::numeric_limits<double>::max() && dou_value < min_float) || (max_float != std::numeric_limits<double>::max() && dou_value > max_float))
         {
           message = String("Invalid double parameter value '") + dou_value + "' for parameter '" + name + "' given! The valid range is: [" + min_float + ":" + max_float + "].";
           return false;
@@ -531,7 +531,7 @@ namespace OpenMS
     entry.max_int = max;
   }
 
-  void Param::setMinFloat(const String& key, DoubleReal min)
+  void Param::setMinFloat(const String& key, double min)
   {
     ParamEntry& entry = getEntry_(key);
     if (entry.value.valueType() != DataValue::DOUBLE_VALUE && entry.value.valueType() != DataValue::DOUBLE_LIST)
@@ -541,7 +541,7 @@ namespace OpenMS
     entry.min_float = min;
   }
 
-  void Param::setMaxFloat(const String& key, DoubleReal max)
+  void Param::setMaxFloat(const String& key, double max)
   {
     ParamEntry& entry = getEntry_(key);
     if (entry.value.valueType() != DataValue::DOUBLE_VALUE && entry.value.valueType() != DataValue::DOUBLE_LIST)

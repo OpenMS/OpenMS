@@ -86,8 +86,8 @@ public:
     PrecursorIonSelection(const PrecursorIonSelection & source);
     ~PrecursorIonSelection();
 
-    const DoubleReal & getMaxScore() const;
-    void setMaxScore(const DoubleReal & max_score);
+    const double & getMaxScore() const;
+    void setMaxScore(const double & max_score);
 
 
     /// Compare by score
@@ -96,7 +96,7 @@ public:
     {
       inline bool operator()(Feature const & left, Feature const & right) const
       {
-        return (DoubleReal)left.getMetaValue("msms_score") > (DoubleReal)right.getMetaValue("msms_score");
+        return (double)left.getMetaValue("msms_score") > (double)right.getMetaValue("msms_score");
       }
 
     };
@@ -109,7 +109,7 @@ public:
       {
         if (left.getRT() < right.getRT()) return true;
         else if (left.getRT() > right.getRT()) return false;
-        else return (DoubleReal)left.getMetaValue("msms_score") > (DoubleReal)right.getMetaValue("msms_score");
+        else return (double)left.getMetaValue("msms_score") > (double)right.getMetaValue("msms_score");
       }
 
     };
@@ -133,7 +133,7 @@ public:
       @param number Number of features to be reported
     */
     void getNextPrecursors(FeatureMap<> & features, FeatureMap<> & next_features, UInt number);
-    void getNextPrecursorsSeq(FeatureMap<> & features, FeatureMap<> & next_features, UInt number, DoubleReal & rt);
+    void getNextPrecursorsSeq(FeatureMap<> & features, FeatureMap<> & next_features, UInt number, double & rt);
     void getNextPrecursors(std::vector<Int> & solution_indices, std::vector<PSLPFormulation::IndexTriple> & variable_indices, std::set<Int> & measured_variables,
                            FeatureMap<> & features, FeatureMap<> & new_features, UInt step_size, PSLPFormulation & ilp);
 
@@ -240,7 +240,7 @@ private:
     /// minimal number of peptides identified for a protein to be declared identified
     UInt min_pep_ids_;
     /// maximal score in the FeatureMap
-    DoubleReal max_score_;
+    double max_score_;
     /// precursor ion selection strategy
     Type type_;
     /// stores the peptide sequences for all protein identifications
@@ -248,7 +248,7 @@ private:
     /// stores the number of selected precursors per fraction
     std::vector<Size> fraction_counter_;
     /// precursor ion error tolerance
-    DoubleReal mz_tolerance_;
+    double mz_tolerance_;
     /// precursor ion error tolerance unit (ppm or Da)
     String mz_tolerance_unit_;
     /// maximal number of iterations

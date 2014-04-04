@@ -133,13 +133,13 @@ protected:
     //~ registerFlag_("MS2", "This flag should be set, if you want to work with MS2 stats.");
   }
 
-  DoubleReal getMassDifference(DoubleReal theo_mz, DoubleReal exp_mz, bool use_ppm)
+  double getMassDifference(double theo_mz, double exp_mz, bool use_ppm)
   {
-    DoubleReal error(exp_mz - theo_mz);
+    double error(exp_mz - theo_mz);
     if (use_ppm)
     {
-      error = error / (theo_mz * (DoubleReal)1e-6);
-      //~ error = (1-exp_mz/theo_mz) * (DoubleReal)1e6;
+      error = error / (theo_mz * (double)1e-6);
+      //~ error = (1-exp_mz/theo_mz) * (double)1e6;
     }
     return error;
   }
@@ -657,7 +657,7 @@ protected:
         at.colTypes.push_back(String(var_mods[w]).substitute(' ', '_'));
       }
 
-      std::vector<DoubleReal> deltas;
+      std::vector<double> deltas;
       //~ prot_ids[0].getSearchParameters();
       for (vector<PeptideIdentification>::iterator it = pep_ids.begin(); it != pep_ids.end(); ++it)
       {
@@ -694,7 +694,7 @@ protected:
           row.push_back(tmp.getSequence().toString().removeWhitespaces());
           row.push_back(tmp.getCharge());
           row.push_back(String((tmp.getSequence().getMonoWeight() + tmp.getCharge() * Constants::PROTON_MASS_U) / tmp.getCharge()));
-          DoubleReal dppm = /* std::abs */ (getMassDifference(((tmp.getSequence().getMonoWeight() + tmp.getCharge() * Constants::PROTON_MASS_U) / tmp.getCharge()), double(it->getMetaValue("MZ")), true));
+          double dppm = /* std::abs */ (getMassDifference(((tmp.getSequence().getMonoWeight() + tmp.getCharge() * Constants::PROTON_MASS_U) / tmp.getCharge()), double(it->getMetaValue("MZ")), true));
           row.push_back(String(dppm));
           deltas.push_back(dppm);
           for (UInt w = 0; w < var_mods.size(); ++w)
@@ -745,7 +745,7 @@ protected:
       qp.cvRef = "QC"; ///< cv reference
       qp.cvAcc = "QC:0000035"; ///< cv accession
       qp.id = base_name + "_ratio_id"; ///< Identifier
-      qp.value = String(DoubleReal(pep_ids.size()) / DoubleReal(mslevelcounts[2]));
+      qp.value = String(double(pep_ids.size()) / double(mslevelcounts[2]));
       try
       {
         const ControlledVocabulary::CVTerm& term = cv.getTerm(qp.cvAcc);

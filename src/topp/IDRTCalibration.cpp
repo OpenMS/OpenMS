@@ -113,10 +113,10 @@ protected:
     String in_file = getStringOption_("in");
     String out_file = getStringOption_("out");
 
-    DoubleReal rt_calibrant_1_input = getDoubleOption_("calibrant_1_input");
-    DoubleReal rt_calibrant_2_input =  getDoubleOption_("calibrant_2_input");
-    DoubleReal rt_calibrant_1_reference =  getDoubleOption_("calibrant_1_reference");
-    DoubleReal rt_calibrant_2_reference =  getDoubleOption_("calibrant_2_reference");
+    double rt_calibrant_1_input = getDoubleOption_("calibrant_1_input");
+    double rt_calibrant_2_input =  getDoubleOption_("calibrant_2_input");
+    double rt_calibrant_1_reference =  getDoubleOption_("calibrant_1_reference");
+    double rt_calibrant_2_reference =  getDoubleOption_("calibrant_2_reference");
 
     if (rt_calibrant_1_input == rt_calibrant_2_input)
     {
@@ -140,13 +140,13 @@ protected:
 
     if (rt_calibrant_1_input > rt_calibrant_2_input)
     {
-      DoubleReal temp = rt_calibrant_1_input;
+      double temp = rt_calibrant_1_input;
       rt_calibrant_1_input = rt_calibrant_2_input;
       rt_calibrant_2_input = temp;
     }
     if (rt_calibrant_1_reference > rt_calibrant_2_reference)
     {
-      DoubleReal temp = rt_calibrant_1_reference;
+      double temp = rt_calibrant_1_reference;
       rt_calibrant_1_reference = rt_calibrant_2_reference;
       rt_calibrant_2_reference = temp;
     }
@@ -164,7 +164,7 @@ protected:
     {
       if (identifications[i].metaValueExists("RT"))
       {
-        DoubleReal temp_rt = identifications[i].getMetaValue("RT");
+        double temp_rt = identifications[i].getMetaValue("RT");
         temp_rt = (temp_rt - rt_calibrant_1_input) / (rt_calibrant_2_input - rt_calibrant_1_input)
                   * (rt_calibrant_2_reference - rt_calibrant_1_reference) + rt_calibrant_1_reference;
         identifications[i].setMetaValue("RT", temp_rt);

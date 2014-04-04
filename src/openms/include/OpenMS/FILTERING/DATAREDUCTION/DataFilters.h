@@ -82,7 +82,7 @@ public:
       ///Filter operation
       FilterOperation op;
       ///Value for comparison
-      DoubleReal value;
+      double value;
       ///String value for comparison (for meta data)
       String value_string;
       ///Name of the considered meta information

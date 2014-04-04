@@ -5,6 +5,6 @@ cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/IsotopeDistributionCache.h>" n
     
     cdef cppclass IsotopeDistributionCache "OpenMS::IsotopeDistributionCache":
         IsotopeDistributionCache(IsotopeDistributionCache) nogil except + #wrap-ignore
-        IsotopeDistributionCache(DoubleReal max_mass, DoubleReal mass_window_width, DoubleReal intensity_percentage, DoubleReal intensity_percentage_optional) nogil except +
-        TheoreticalIsotopePattern  getIsotopeDistribution(DoubleReal mass) nogil except +
+        IsotopeDistributionCache(double max_mass, double mass_window_width, double intensity_percentage, double intensity_percentage_optional) nogil except +
+        TheoreticalIsotopePattern  getIsotopeDistribution(double mass) nogil except +
 

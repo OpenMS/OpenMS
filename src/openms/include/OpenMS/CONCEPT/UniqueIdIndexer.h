@@ -37,6 +37,7 @@
 
 #include <OpenMS/CONCEPT/UniqueIdInterface.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/CONCEPT/Exception.h>
 
 #ifdef _MSC_VER // disable some BOOST warnings that distract from ours
 #   pragma warning( push ) // save warning state

@@ -43,6 +43,8 @@ if (NOT QT4_FOUND)
   message(STATUS "Qt4 modules not found!")
 	message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -D QT_QMAKE_EXECUTABLE='<path_to_qmake(.exe)' <src-dir>")
 endif()
+# required to indicate we use qtopengl
+set(QT_USE_QTOPENGL TRUE)
 include(${QT_USE_FILE})
 
 # --------------------------------------------------------------------------
@@ -77,6 +79,13 @@ set(OpenMS_GUI_INCLUDE_DIRECTORIES ${OpenMS_GUI_INTERNAL_INCLUDE_DIRECTORIES}
 include_directories(${OpenMS_GUI_INTERNAL_INCLUDE_DIRECTORIES})
 include_directories(SYSTEM ${OpenMS_GUI_EXTERNAL_INCLUDE_DIRECTORIES})
 
+if (ENABLE_UNITYBUILD)
+	MESSAGE(STATUS "Unity Build for OpenMS-GUI lib: Enabled")
+	convert_to_unity_build(OpenMSVisual_UnityBuild OpenMSVisual_sources)
+else()
+	MESSAGE(STATUS "Unity Build for OpenMS-GUI lib: Disabled")
+endif()
+
 # --------------------------------------------------------------------------
 # OpenMS_GUI lib
 add_library(OpenMS_GUI ${OpenMSVisual_sources})
@@ -110,10 +119,20 @@ if (MSVC)
 endif()
 
 target_link_libraries(OpenMS_GUI OpenMS ${QT_LIBRARIES})
+# handle OpenGL on macosx systems
+if(APPLE)
+  find_package(OpenGL REQUIRED)
+  target_link_libraries(OpenMS_GUI ${OPENGL_gl_LIBRARY} ${OPENGL_glu_LIBRARY})
+endif()
 
 # --------------------------------------------------------------------------
 # link libraries for GUI Tools
 set(OPENMS_GUI_LIBRARIES OpenMS_GUI OpenMS ${QT_LIBRARIES} CACHE INTERNAL "OpenMS GUI libraries" FORCE)
+
+#------------------------------------------------------------------------------
+# register relevant paths for the doxygen doc generation
+openms_doc_path("${PROJECT_SOURCE_DIR}/include")
+openms_doc_path("${PROJECT_SOURCE_DIR}/source/VISUAL/APPLICATIONS")
 
 # --------------------------------------------------------------------------
 # GUI tools

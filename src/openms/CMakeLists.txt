@@ -55,7 +55,7 @@ if (WITH_CRAWDAD)
 endif()
 
 ########################################################
-###    external libs (contrib or system)						 ###
+###    external libs (contrib or system)             ###
 ########################################################
 
 include(${PROJECT_SOURCE_DIR}/cmake_findExternalLibs.cmake)
@@ -70,6 +70,8 @@ set(OpenMS_EXTERNAL_INCLUDE_DIRECTORIES ${QT_INCLUDES}
                                         ${GLPK_INCLUDE_DIRS}
                                         ${ZLIB_INCLUDE_DIRS}
                                         ${BZIP2_INCLUDE_DIR}
+                                        ${EIGEN3_INCLUDE_DIR}
+                                        ${_WM5_INCLUDE_DIR}
                                         ${OpenSwathAlgo_INCLUDE_DIRECTORIES}
                                         ${CONTRIB_INCLUDE_DIR})
 
@@ -110,6 +112,13 @@ include(${OPENMS_HOST_DIRECTORY}/cmake/OpenMSBuildSystem_testConfig.cmake)
 # big include file for headers and cpp files, that fills the OpenMS_sources variable
 include (${PROJECT_SOURCE_DIR}/includes.cmake)
 
+if (ENABLE_UNITYBUILD)
+	MESSAGE(STATUS "Unity Build for OpenMS lib: Enabled")
+	convert_to_unity_build(OpenMS_UnityBuild OpenMS_sources)
+else()
+	MESSAGE(STATUS "Unity Build for OpenMS lib: Disabled")
+endif()
+
 ## add library target
 ## warning: set BUILD_SHARED_LIBS to decide if library is shared or static (see above)! We need the BUILD_SHARED_LIBS flag to set declspec flags for MSVC!
 if (FOUND_CUDART AND MT_ENABLE_CUDA) # we need both conditions due to possible present cached entries
@@ -142,9 +151,19 @@ set(OPENMS_DEP_LIBRARIES  ${CONTRIB_CBC}
                           ${DEP_LIBSVM_LIBRARY}
                           ${CONTRIB_XERCESC}
                           ${Boost_LIBRARIES}
+                          ${WM5_LIBRARIES}
                           ${BZIP2_LIBRARIES}
                           ${ZLIB_LIBRARIES}
                           ${GLPK_LIBRARIES})
+
+# xerces requires linking against CoreFoundation&CoreServices
+if(APPLE)
+  find_library(CoreFoundation_LIBRARY CoreFoundation )
+  find_library(CoreServices_LIBRARY CoreServices )
+  set(OPENMS_DEP_LIBRARIES ${OPENMS_DEP_LIBRARIES}
+                           ${CoreFoundation_LIBRARY}
+                           ${CoreServices_LIBRARY})
+endif()
 
 if (TBB_FOUND)
 	list(APPEND OPENMS_DEP_LIBRARIES ${TBB_LIBRARIES})
@@ -156,7 +175,7 @@ if (WITH_CRAWDAD)
   list(APPEND OPENMS_DEP_LIBRARIES Crawdad)
 endif()
 
-target_link_libraries(OpenMS OpenSwathAlgo ${APPLE_EXTRA_LIBS} ${QT_LIBRARIES} ${OPENMS_DEP_LIBRARIES})
+target_link_libraries(OpenMS OpenSwathAlgo ${QT_LIBRARIES} ${OPENMS_DEP_LIBRARIES})
 
 ## OPENMS_LIBRARIES defines the libraries used by OpenMS; this should be used to link against executables
 ## somehow the link dependencies of cmake are broken such that when using POSTFIX names for libs the dependencies are not forwarded...
@@ -167,6 +186,10 @@ if (MSVC) # Windows
 	list(APPEND OPENMS_LIBRARIES ${OPENMS_DEP_LIBRARIES})
 	list(APPEND OPENMS_LIBRARIES OpenSwathAlgo)
 endif()
+
+#------------------------------------------------------------------------------
+# register relevant paths for the doxygen doc generation
+openms_doc_path("${PROJECT_SOURCE_DIR}/include")
 
 ########################################################
 ###              setup python wrapper                ###

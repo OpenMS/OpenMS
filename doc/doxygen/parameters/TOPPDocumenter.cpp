@@ -145,8 +145,8 @@ void convertINI2HTML(const Param & p, ostream & os)
     case DataValue::DOUBLE_VALUE:
     case DataValue::DOUBLE_LIST:
     {
-      bool min_set = (it->min_float != -numeric_limits<DoubleReal>::max());
-      bool max_set = (it->max_float != numeric_limits<DoubleReal>::max());
+      bool min_set = (it->min_float != -numeric_limits<double>::max());
+      bool max_set = (it->max_float != numeric_limits<double>::max());
       if (max_set || min_set)
       {
         if (min_set)

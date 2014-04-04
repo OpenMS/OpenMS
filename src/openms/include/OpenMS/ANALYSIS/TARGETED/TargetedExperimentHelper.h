@@ -216,9 +216,9 @@ public:
       struct Modification :
         public CVTermList
       {
-        DoubleReal avg_mass_delta;
+        double avg_mass_delta;
         int location;
-        DoubleReal mono_mass_delta;
+        double mono_mass_delta;
       };
 
       Peptide() :

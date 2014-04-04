@@ -148,7 +148,7 @@ protected:
 
     // TODO: if this get rewritten at some point you can use 'registerInputFile_()' to have the user
     // specify the location of 'sequest.exe' (or similar). In this case also use "skipexists as a tag argument
-    // e.g.	registerInputFile_("xtandem_executable", "<file>", "", "X!Tandem executable of the installtation e.g. 'tandem.exe'", true, false, StringList::create("skipexists"));
+    // e.g.	registerInputFile_("xtandem_executable", "<file>", "", "X!Tandem executable of the installtation e.g. 'tandem.exe'", true, false, ListUtils::create<String>("skipexists"));
     // to avoid TOPPBase throwing an error when sequest.exe is not found in the current directory, but can be found in $PATH
 
     registerStringOption_("sequest_computer", "<name>", "", "the name of the computer in the network that hosts Sequest\n"

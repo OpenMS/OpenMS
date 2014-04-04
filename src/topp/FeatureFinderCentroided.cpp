@@ -89,7 +89,7 @@ using namespace std;
  How to find suitable parameters and details of the different algorithms implemented are described
  in the @ref TOPP_example_featuredetection "TOPP tutorial".
 
- Specialized tools are available for some experimental techniques: @ref TOPP_SILACAnalyzer, @ref TOPP_ITRAQAnalyzer.
+ Specialized tools are available for some experimental techniques: @ref TOPP_ITRAQAnalyzer.
 
  <B>The command line parameters of this tool are:</B>
  @verbinclude TOPP_FeatureFinderCentroided.cli

@@ -18,7 +18,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMDecoy.h>" namespace "OpenMS":
                             TargetedExperiment & dec, String method, String decoy_tag,
                             double identity_threshold, int max_attempts, double mz_threshold, 
                             bool theoretical, double mz_shift, bool exclude_similar, 
-                            double similarity_threshold, bool remove_CNterm_mods, 
+                            double similarity_threshold, bool remove_CNterm_mods,
                             double precursor_mass_shift, bool enable_losses, bool enable_isotopes) nogil except +
 
         void restrictTransitions(TargetedExperiment & exp, int min_transitions, int max_transitions) nogil except +

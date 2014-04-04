@@ -51,7 +51,7 @@ using namespace std;
 
 FeatureDistance* d_ptr = 0;
 FeatureDistance* d_nullPointer = 0;
-START_SECTION((FeatureDistance(DoubleReal max_intensity=1.0, bool force_constraints=false)))
+START_SECTION((FeatureDistance(double max_intensity=1.0, bool force_constraints=false)))
 {
 	d_ptr = new FeatureDistance();
   TEST_NOT_EQUAL(d_ptr, d_nullPointer);
@@ -64,7 +64,7 @@ START_SECTION((~FeatureDistance()))
 }
 END_SECTION
 
-START_SECTION((std::pair<bool, DoubleReal> operator()(const BaseFeature& left, const BaseFeature& right)))
+START_SECTION((std::pair<bool, double> operator()(const BaseFeature& left, const BaseFeature& right)))
 {
 	FeatureDistance dist(1000.0, false);
 	Param param = dist.getDefaults();
@@ -81,7 +81,7 @@ START_SECTION((std::pair<bool, DoubleReal> operator()(const BaseFeature& left, c
 	right.setRT(110.0);
 	right.setMZ(100.1);
 	right.setIntensity(200.0);
-	pair<bool, DoubleReal> result = dist(left, right);
+	pair<bool, double> result = dist(left, right);
 	TEST_EQUAL(result.first, true);
 	TEST_REAL_SIMILAR(result.second, 0.1);
 	// no differences:

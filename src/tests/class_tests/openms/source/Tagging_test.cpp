@@ -71,12 +71,12 @@ START_SECTION((const IsotopeVariant& getVariant() const))
 	TEST_EQUAL(s.getVariant(),Tagging::LIGHT)
 END_SECTION
 
-START_SECTION((DoubleReal getMassShift() const ))
+START_SECTION((double getMassShift() const ))
 	Tagging s;
 	TEST_REAL_SIMILAR(s.getMassShift(),0.0)
 END_SECTION
 
-START_SECTION((void setMassShift(DoubleReal mass_shift)))
+START_SECTION((void setMassShift(double mass_shift)))
 	Tagging s;
 	s.setMassShift(4711.2);
 	TEST_REAL_SIMILAR(s.getMassShift(),4711.2)

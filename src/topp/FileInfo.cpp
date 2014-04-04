@@ -52,8 +52,7 @@
 
 #include <QtCore/QString>
 
-#include <gsl/gsl_sort.h>
-#include <gsl/gsl_statistics.h>
+#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -108,12 +107,10 @@ namespace OpenMS
     vector<PeptideIdentification> peptides;
   };
 
-  /// A little helper class to gather (and dump) some statistics from a vector<double>. Uses statistical functions implemented in GSL.
+  /// A little helper class to gather (and dump) some statistics from a vector<double>.
   struct SomeStatistics
   {
     /**@brief Initialize SomeStatistics from data.
-
-    @note: GSL statistics uses double and so we write double not DoubleReal here and where we use this.
     */
     SomeStatistics & operator()(vector<double> & data)
     {
@@ -122,12 +119,12 @@ namespace OpenMS
       if (count > 0)
       {
         sort(data.begin(), data.end());
-        mean = gsl_stats_mean(&data.front(), 1, data.size());
-        variance = gsl_stats_variance_m(&data.front(), 1, data.size(), mean);
+        mean = Math::mean(data.begin(), data.end());
+        variance = Math::variance(data.begin(), data.end(), mean);
         min = data.front();
-        lowerq = gsl_stats_quantile_from_sorted_data(&data.front(), 1, data.size(), 0.25);
-        median = gsl_stats_median_from_sorted_data(&data.front(), 1, data.size());
-        upperq = gsl_stats_quantile_from_sorted_data(&data.front(), 1, data.size(), 0.75);
+        lowerq = Math::quantile1st(data.begin(), data.end(), true);
+        median = Math::median(data.begin(), data.end(), true);
+        upperq = Math::quantile3rd(data.begin(), data.end(), true);
         max = data.back();
       }
       return *this;
@@ -405,7 +402,7 @@ protected:
 
       // Charge distribution and TIC
       Map<UInt, UInt> charges;
-      DoubleReal tic = 0.0;
+      double tic = 0.0;
       for (Size i = 0; i < feat.size(); ++i)
       {
         charges[feat[i].getCharge()]++;
@@ -573,7 +570,7 @@ protected:
       //if raw data, determine the spacing
       if (type == SpectrumSettings::RAWDATA)
       {
-        vector<Real> spacing;
+        vector<float> spacing;
         for (Size j = 1; j < exp[i].size(); ++j)
         {
           spacing.push_back(exp[i][j].getMZ() - exp[i][j - 1].getMZ());
@@ -764,7 +761,7 @@ protected:
         {
           os << "Error: Spectrum retention times are not sorted in ascending order" << "\n";
         }
-        vector<DoubleReal> ms1_rts;
+        vector<double> ms1_rts;
         ms1_rts.reserve(exp.size());
         for (Size s = 0; s < exp.size(); ++s)
         {
@@ -836,7 +833,7 @@ protected:
           {
             os << "Error: Peak m/z positions are not sorted in ascending order in spectrum (RT: " << exp[s].getRT() << ")" << "\n";
           }
-          vector<DoubleReal> mzs;
+          vector<double> mzs;
           mzs.reserve(exp[s].size());
           for (Size p = 0; p < exp[s].size(); ++p)
           {

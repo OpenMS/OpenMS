@@ -12,10 +12,10 @@ cdef extern from "<OpenMS/METADATA/Digestion.h>" namespace "OpenMS":
         # SampleTreatment * clone() nogil except +
         String  getEnzyme() nogil except +
         void setEnzyme(String &enzyme) nogil except +
-        DoubleReal getDigestionTime() nogil except +
-        void setDigestionTime(DoubleReal digestion_time) nogil except +
-        DoubleReal getTemperature() nogil except +
-        void setTemperature(DoubleReal temperature) nogil except +
-        DoubleReal getPh() nogil except +
-        void setPh(DoubleReal ph) nogil except +
+        double getDigestionTime() nogil except +
+        void setDigestionTime(double digestion_time) nogil except +
+        double getTemperature() nogil except +
+        void setTemperature(double temperature) nogil except +
+        double getPh() nogil except +
+        void setPh(double ph) nogil except +
 

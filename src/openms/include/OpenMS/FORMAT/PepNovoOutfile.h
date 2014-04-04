@@ -58,7 +58,7 @@ namespace OpenMS
   {
 public:
     
-    typedef std::map<Size, std::pair<DoubleReal, DoubleReal> > IndexPosMappingType;
+    typedef std::map<Size, std::pair<double, double> > IndexPosMappingType;
     
     /// Constructor
     PepNovoOutfile();
@@ -89,7 +89,7 @@ public:
    */
     void load(const std::string & result_filename, std::vector<PeptideIdentification> & peptide_identifications,
               ProteinIdentification & protein_identification,
-              const DoubleReal & score_threshold,
+              const double & score_threshold,
               const IndexPosMappingType & id_rt_mz,
               const std::map<String, String> & mod_id_map);
 

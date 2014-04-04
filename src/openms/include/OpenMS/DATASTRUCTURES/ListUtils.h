@@ -38,6 +38,7 @@
 #include <vector>
 #include <algorithm>
 #include <iterator>
+#include <cmath>
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/Exception.h>
@@ -61,7 +62,7 @@ namespace OpenMS
 
    @ingroup Datastructures
    */
-  typedef std::vector<DoubleReal> DoubleList;
+  typedef std::vector<double> DoubleList;
 
 
   /**
@@ -84,7 +85,7 @@ private:
     */
     struct DoubleTolerancePredicate_
     {
-      DoubleTolerancePredicate_(const DoubleReal& target, const DoubleReal& tolerance) :
+      DoubleTolerancePredicate_(const double& target, const double& tolerance) :
         tolerance_(tolerance),
         target_(target)
       {}
@@ -95,16 +96,16 @@ private:
         @param value The value to test.
         @return true if \| @p value - @p target \| \< @p tolerance, false otherwise.
       */
-      inline bool operator()(const DoubleReal& value)
+      inline bool operator()(const double& value)
       {
         return std::fabs(value - target_) < tolerance_;
       }
 
 private:
       /// The allowed tolerance.
-      DoubleReal tolerance_;
+      double tolerance_;
       /// The target value that should be found.
-      DoubleReal target_;
+      double target_;
     };
 
 public:
@@ -159,7 +160,7 @@ public:
 
       @return True if @p elem is contained in @p container, false otherwise.
     */
-    static bool contains(const std::vector<DoubleReal>& container, const DoubleReal& elem, DoubleReal tolerance = 0.00001)
+    static bool contains(const std::vector<double>& container, const double& elem, double tolerance = 0.00001)
     {
       return find_if(container.begin(), container.end(), DoubleTolerancePredicate_(elem, tolerance)) != container.end();
     }

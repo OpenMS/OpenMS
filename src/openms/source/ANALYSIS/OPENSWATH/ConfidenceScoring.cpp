@@ -50,21 +50,21 @@ namespace OpenMS
       random_shuffle(decoy_index_.begin(), decoy_index_.end(), rand_gen_);
     }
 
-    // DoubleReal rmsd_(DoubleList x, DoubleList y)
+    // double rmsd_(DoubleList x, DoubleList y)
     // {
-    //   DoubleReal sum_of_squares = 0;
+    //   double sum_of_squares = 0;
     //   for (Size i = 0; i < x.size(); i++)
     //   {
-    //     DoubleReal diff = x[i] - y[i];
+    //     double diff = x[i] - y[i];
     //     sum_of_squares += diff * diff;
     //   }
     //   return sqrt(sum_of_squares / x.size());
     // }
 
     /// Manhattan distance
-    DoubleReal ConfidenceScoring::manhattanDist_(DoubleList x, DoubleList y)
+    double ConfidenceScoring::manhattanDist_(DoubleList x, DoubleList y)
     {
-      DoubleReal sum = 0;
+      double sum = 0;
       for (Size i = 0; i < x.size(); ++i)
       {
         sum += fabs(x[i] - y[i]);
@@ -73,7 +73,7 @@ namespace OpenMS
     }
 
     /// Get the retention time of an assay
-    DoubleReal ConfidenceScoring::getAssayRT_(const TargetedExperiment::Peptide& assay,
+    double ConfidenceScoring::getAssayRT_(const TargetedExperiment::Peptide& assay,
                            const String& cv_accession)
     {
       OPENMS_PRECONDITION(assay.rts.size() > 0, "More than zero RTs needed")
@@ -111,13 +111,13 @@ namespace OpenMS
     /// Score the assay @p assay against feature data (@p feature_rt,
     /// @p feature_intensities), optionally using only the specified transitions
     /// (@p transition_ids)
-    DoubleReal ConfidenceScoring::scoreAssay_(const TargetedExperiment::Peptide& assay, 
-                           DoubleReal feature_rt, DoubleList& feature_intensities,
+    double ConfidenceScoring::scoreAssay_(const TargetedExperiment::Peptide& assay, 
+                           double feature_rt, DoubleList& feature_intensities,
                            const std::set<String>& transition_ids)
     {
       // compute RT difference:
-      DoubleReal assay_rt = rt_norm_(getAssayRT_(assay));
-      DoubleReal diff_rt = assay_rt - feature_rt;
+      double assay_rt = rt_norm_(getAssayRT_(assay));
+      double diff_rt = assay_rt - feature_rt;
 
       // collect transition intensities:
       BimapType intensity_map;
@@ -155,10 +155,10 @@ namespace OpenMS
                                         boost::numeric_cast<int>(feature_intensities.size()));
       OpenSwath::Scoring::normalize_sum(&assay_intensities[0],
                                         boost::numeric_cast<int>(assay_intensities.size()));
-      DoubleReal dist_int = manhattanDist_(feature_intensities, 
+      double dist_int = manhattanDist_(feature_intensities, 
                                            assay_intensities);
 
-      DoubleReal score = glm_(diff_rt, dist_int);
+      double score = glm_(diff_rt, dist_int);
 
       LOG_DEBUG << "\ndelta_RT:  " << fabs(diff_rt)
                 << "\ndist_int:  " << dist_int
@@ -171,11 +171,11 @@ namespace OpenMS
     void ConfidenceScoring::scoreFeature_(Feature& feature)
     {
       // extract predictors from feature:
-      DoubleReal feature_rt = rt_norm_(rt_trafo_.apply(feature.getRT()));
+      double feature_rt = rt_norm_(rt_trafo_.apply(feature.getRT()));
       BimapType intensity_map;
       // for the "true" assay, we need to make sure we compare based on the same
       // transitions, so keep track of them:
-      Map<DoubleReal, String> trans_id_map; // Q3 m/z -> transition ID
+      Map<double, String> trans_id_map; // Q3 m/z -> transition ID
       for (vector<Feature>::iterator sub_it = feature.getSubordinates().begin();
            sub_it != feature.getSubordinates().end(); ++sub_it)
       {
@@ -263,7 +263,7 @@ namespace OpenMS
 
       // annotate feature:
       feature.setMetaValue("GLM_score", scores[0]);
-      DoubleReal local_fdr = counter / (n_scores - 1.0);
+      double local_fdr = counter / (n_scores - 1.0);
       feature.setMetaValue("local_FDR", local_fdr);
       feature.setOverallQuality(1.0 - local_fdr);
     }

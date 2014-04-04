@@ -73,9 +73,9 @@ namespace OpenMS
   {
   }
 
-  DoubleReal EmpiricalFormula::getMonoWeight() const
+  double EmpiricalFormula::getMonoWeight() const
   {
-    DoubleReal weight(0);
+    double weight(0);
     if (charge_ > 0)
     {
       weight += Constants::PROTON_MASS_U * charge_;
@@ -83,14 +83,14 @@ namespace OpenMS
     Map<const Element *, SignedSize>::ConstIterator it = formula_.begin();
     for (; it != formula_.end(); ++it)
     {
-      weight += it->first->getMonoWeight() * (DoubleReal)it->second;
+      weight += it->first->getMonoWeight() * (double)it->second;
     }
     return weight;
   }
 
-  DoubleReal EmpiricalFormula::getAverageWeight() const
+  double EmpiricalFormula::getAverageWeight() const
   {
-    DoubleReal weight(0);
+    double weight(0);
     if (charge_ > 0)
     {
       weight += Constants::PROTON_MASS_U * charge_;
@@ -98,7 +98,7 @@ namespace OpenMS
     Map<const Element *, SignedSize>::ConstIterator it = formula_.begin();
     for (; it != formula_.end(); ++it)
     {
-      weight += it->first->getAverageWeight() * (DoubleReal)it->second;
+      weight += it->first->getAverageWeight() * (double)it->second;
     }
     return weight;
   }

@@ -280,7 +280,7 @@ namespace OpenMS
     const LayerData & layer = getLayer(layer_index);
 
     //update factors (snap and percentage)
-    DoubleReal snap_factor = snap_factors_[layer_index];
+    double snap_factor = snap_factors_[layer_index];
     percentage_factor_ = 1.0;
     if (intensity_mode_ == IM_PERCENTAGE)
     {
@@ -310,10 +310,10 @@ namespace OpenMS
     {
       // renaming some values for readability
       const ExperimentType & peak_map = *layer.getPeakData();
-      const DoubleReal rt_min = visible_area_.minPosition()[1];
-      const DoubleReal rt_max = visible_area_.maxPosition()[1];
-      const DoubleReal mz_min = visible_area_.minPosition()[0];
-      const DoubleReal mz_max = visible_area_.maxPosition()[0];
+      const double rt_min = visible_area_.minPosition()[1];
+      const double rt_max = visible_area_.maxPosition()[1];
+      const double mz_min = visible_area_.minPosition()[0];
+      const double mz_max = visible_area_.maxPosition()[0];
 
       // skip empty peak maps
       if (peak_map.empty())
@@ -353,11 +353,11 @@ namespace OpenMS
       }
 
       // determine spacing for whole data
-      DoubleReal min_spacing_mz = 1.0;
-      DoubleReal average_spacing_rt = 1.0;
+      double min_spacing_mz = 1.0;
+      double average_spacing_rt = 1.0;
       Size n_scans = peak_map.size();
       {
-        vector<Real> mz_spacing;
+        vector<float> mz_spacing;
         for (Size i = 0; i != n_scans; ++i)
         {
           // skip non MS1 and empty spectra
@@ -367,7 +367,7 @@ namespace OpenMS
           {
             continue;
           }
-          DoubleReal current_mz_spacing =  (peak_map[i][n_peaks - 1].getMZ() - peak_map[i][0].getMZ()) / n_peaks;
+          double current_mz_spacing =  (peak_map[i][n_peaks - 1].getMZ() - peak_map[i][0].getMZ()) / n_peaks;
           mz_spacing.push_back(current_mz_spacing);
         }
         sort(mz_spacing.begin(), mz_spacing.end());
@@ -379,7 +379,7 @@ namespace OpenMS
 #endif
 
         {
-          vector<Real> rts;
+          vector<float> rts;
           for (Size i = 0; i != n_scans; ++i)
           {
             // skip non MS1 and empty spectra
@@ -394,7 +394,7 @@ namespace OpenMS
           sort(rts.begin(), rts.end());
           if (rts.size() > 2)
           {
-            average_spacing_rt = (rts[rts.size() - 1] - rts[0]) / (DoubleReal)rts.size();
+            average_spacing_rt = (rts[rts.size() - 1] - rts[0]) / (double)rts.size();
           }
         }
       }
@@ -411,11 +411,11 @@ namespace OpenMS
         QPoint p1, p2;
         dataToWidget_(1, 1, p1);
         dataToWidget_(0, 0, p2);
-        DoubleReal pixel_width = abs(p1.x() - p2.x());
-        DoubleReal pixel_height = abs(p1.y() - p2.y());
+        double pixel_width = abs(p1.x() - p2.x());
+        double pixel_height = abs(p1.y() - p2.y());
 
         // when data is zoomed in to single peaks these are visualized as circles
-        DoubleReal pen_width = qMax( 1.0, isMzToXAxis()
+        double pen_width = qMax( 1.0, isMzToXAxis()
             ? min(pixel_width * min_spacing_mz, pixel_height * average_spacing_rt)
             : min(pixel_width * average_spacing_rt, pixel_height * min_spacing_mz) );
 
@@ -554,7 +554,7 @@ namespace OpenMS
     }
   }
 
-  void Spectrum2DCanvas::paintAllIntensities_(Size layer_index, DoubleReal pen_width, QPainter & painter)
+  void Spectrum2DCanvas::paintAllIntensities_(Size layer_index, double pen_width, QPainter & painter)
   {
     const LayerData & layer = getLayer(layer_index);
     Int image_width = buffer_.width();
@@ -562,12 +562,12 @@ namespace OpenMS
     QVector<QPolygon> coloredPoints( layer.gradient.precalculatedSize() );
 
     const ExperimentType & map = *layer.getPeakData();
-    const DoubleReal rt_min = visible_area_.minPosition()[1];
-    const DoubleReal rt_max = visible_area_.maxPosition()[1];
-    const DoubleReal mz_min = visible_area_.minPosition()[0];
-    const DoubleReal mz_max = visible_area_.maxPosition()[0];
+    const double rt_min = visible_area_.minPosition()[1];
+    const double rt_max = visible_area_.maxPosition()[1];
+    const double mz_min = visible_area_.minPosition()[0];
+    const double mz_max = visible_area_.maxPosition()[0];
 
-    DoubleReal snap_factor = snap_factors_[layer_index];
+    double snap_factor = snap_factors_[layer_index];
 
     for (ExperimentType::ConstAreaIterator i = map.areaBeginConst(rt_min, rt_max, mz_min, mz_max);
          i != map.areaEndConst();
@@ -612,23 +612,23 @@ namespace OpenMS
 
     const LayerData & layer = getLayer(layer_index);
     const ExperimentType & map = *layer.getPeakData();
-    const DoubleReal rt_min = visible_area_.minPosition()[1];
-    const DoubleReal rt_max = visible_area_.maxPosition()[1];
-    const DoubleReal mz_min = visible_area_.minPosition()[0];
-    const DoubleReal mz_max = visible_area_.maxPosition()[0];
+    const double rt_min = visible_area_.minPosition()[1];
+    const double rt_max = visible_area_.maxPosition()[1];
+    const double mz_min = visible_area_.minPosition()[0];
+    const double mz_max = visible_area_.maxPosition()[0];
 
-    DoubleReal snap_factor = snap_factors_[layer_index];
+    double snap_factor = snap_factors_[layer_index];
 
     //calculate pixel size in data coordinates
-    DoubleReal rt_step_size = (rt_max - rt_min) / rt_pixel_count;
-    DoubleReal mz_step_size = (mz_max - mz_min) / mz_pixel_count;
+    double rt_step_size = (rt_max - rt_min) / rt_pixel_count;
+    double mz_step_size = (mz_max - mz_min) / mz_pixel_count;
 
     //iterate over all pixels (RT dimension)
     Size scan_index = 0;
     for (Size rt = 0; rt < rt_pixel_count; ++rt)
     {
-      DoubleReal rt_start = rt_min + rt_step_size * rt;
-      DoubleReal rt_end = rt_start + rt_step_size;
+      double rt_start = rt_min + rt_step_size * rt;
+      double rt_end = rt_start + rt_step_size;
       //cout << "rt: " << rt << " (" << rt_start << " - " << rt_end << ")" << endl;
 
       //determine the relevant spectra and reserve an array for the peak indices
@@ -657,11 +657,11 @@ namespace OpenMS
       //iterate over all pixels (m/z dimension)
       for (Size mz = 0; mz < mz_pixel_count; ++mz)
       {
-        DoubleReal mz_start = mz_min + mz_step_size * mz;
-        DoubleReal mz_end = mz_start + mz_step_size;
+        double mz_start = mz_min + mz_step_size * mz;
+        double mz_end = mz_start + mz_step_size;
 
         //iterate over all relevant peaks in all relevant scans
-        Real max = -1.0;
+        float max = -1.0;
         for (Size i = 0; i < scan_indices.size(); ++i)
         {
           Size s = scan_indices[i];
@@ -695,7 +695,7 @@ namespace OpenMS
   void Spectrum2DCanvas::paintFeatureData_(Size layer_index, QPainter& painter)
   {
     const LayerData& layer = getLayer(layer_index);
-    DoubleReal snap_factor = snap_factors_[layer_index];
+    double snap_factor = snap_factors_[layer_index];
     Int image_width = buffer_.width();
     Int image_height = buffer_.height();
 
@@ -884,10 +884,10 @@ namespace OpenMS
           // TODO: show error message here
           continue;
         }
-        DoubleReal rt = (DoubleReal) pep_begin->getMetaValue("RT");
+        double rt = (double) pep_begin->getMetaValue("RT");
         if (rt < visible_area_.minPosition()[1] || rt > visible_area_.maxPosition()[1])
           continue;
-        DoubleReal mz = getIdentificationMZ_(layer_index, *pep_begin);
+        double mz = getIdentificationMZ_(layer_index, *pep_begin);
         if (mz < visible_area_.minPosition()[0] || mz > visible_area_.maxPosition()[0])
           continue;
 
@@ -1029,7 +1029,7 @@ namespace OpenMS
     getLayer_(layer).gradient.fromString(getLayer_(layer).param.getValue("dot:gradient"));
     if (intensity_mode_ == IM_LOG)
     {
-      DoubleReal min_intensity = getMinIntensity(layer);
+      double min_intensity = getMinIntensity(layer);
       getLayer_(layer).gradient.activatePrecalculationMode(std::log(min_intensity + 1), std::log(overall_data_range_.maxPosition()[2]) + 1, param_.getValue("interpolation_steps"));
     }
     else
@@ -1100,8 +1100,8 @@ namespace OpenMS
     map<int, float> mzsum;
 
     UInt peak_count = 0;
-    DoubleReal intensity_max = 0.0;
-    DoubleReal intensity_sum = 0.0;
+    double intensity_max = 0.0;
+    double intensity_sum = 0.0;
 
     // divide visible range into 100 bins (much faster than using a constant, e.g. 0.05, leading to many peaks for large maps without more information)
     float range = visible_area_.maxPosition()[0] - visible_area_.minPosition()[0];
@@ -1123,7 +1123,7 @@ namespace OpenMS
 
         rt[i.getRT()] += i->getIntensity();
         //max
-        intensity_max = max(intensity_max, (DoubleReal)(i->getIntensity()));
+        intensity_max = max(intensity_max, (double)(i->getIntensity()));
       }
     }
 
@@ -1353,7 +1353,7 @@ namespace OpenMS
 
   void Spectrum2DCanvas::recalculateSnapFactor_()
   {
-    snap_factors_ = vector<DoubleReal>(getLayerCount(), 1.0);
+    snap_factors_ = vector<double>(getLayerCount(), 1.0);
 
     if (intensity_mode_ == IM_SNAP)
     {
@@ -1361,7 +1361,7 @@ namespace OpenMS
       {
         if (getLayer(i).visible)
         {
-          DoubleReal local_max  = -numeric_limits<DoubleReal>::max();
+          double local_max  = -numeric_limits<double>::max();
           if (getLayer(i).type == LayerData::DT_PEAK)
           {
             for (ExperimentType::ConstAreaIterator it = getLayer(i).getPeakData()->areaBeginConst(visible_area_.minPosition()[1], visible_area_.maxPosition()[1], visible_area_.minPosition()[0], visible_area_.maxPosition()[0]);
@@ -1698,11 +1698,11 @@ namespace OpenMS
       return;
 
     //determine coordinates;
-    DoubleReal mz = 0.0;
-    DoubleReal rt = 0.0;
-    Real it = 0.0;
+    double mz = 0.0;
+    double rt = 0.0;
+    float it = 0.0;
     Int charge = 0;
-    DoubleReal quality = 0.0;
+    double quality = 0.0;
     Size size = 0;
     const Feature* f = NULL;
     const ConsensusFeature* cf = NULL;
@@ -1817,10 +1817,10 @@ namespace OpenMS
       return;
 
     //determine coordinates;
-    DoubleReal mz = 0.0;
-    DoubleReal rt = 0.0;
-    Real it = 0.0;
-    Real ppm = 0.0;
+    double mz = 0.0;
+    double rt = 0.0;
+    float it = 0.0;
+    float ppm = 0.0;
 
     if (getCurrentLayer().type == LayerData::DT_FEATURE)
     {
@@ -1835,7 +1835,7 @@ namespace OpenMS
         PointType point = widgetToData_(last_mouse_pos_);
         mz = point[0] - start.getFeature(*getCurrentLayer().getFeatureMap()).getMZ();
         rt = point[1] - start.getFeature(*getCurrentLayer().getFeatureMap()).getRT();
-        it = std::numeric_limits<DoubleReal>::quiet_NaN();
+        it = std::numeric_limits<double>::quiet_NaN();
       }
       ppm = (mz / start.getFeature(*getCurrentLayer().getFeatureMap()).getMZ()) * 1e6;
     }
@@ -1852,7 +1852,7 @@ namespace OpenMS
         PointType point = widgetToData_(last_mouse_pos_);
         mz = point[0] - start.getPeak(*getCurrentLayer().getPeakData()).getMZ();
         rt = point[1] - start.getSpectrum(*getCurrentLayer().getPeakData()).getRT();
-        it = std::numeric_limits<DoubleReal>::quiet_NaN();
+        it = std::numeric_limits<double>::quiet_NaN();
       }
       ppm = (mz / start.getPeak(*getCurrentLayer().getPeakData()).getMZ()) * 1e6;
     }
@@ -1869,7 +1869,7 @@ namespace OpenMS
         PointType point = widgetToData_(last_mouse_pos_);
         mz = point[0] - start.getFeature(*getCurrentLayer().getConsensusMap()).getMZ();
         rt = point[1] - start.getFeature(*getCurrentLayer().getConsensusMap()).getRT();
-        it = std::numeric_limits<DoubleReal>::quiet_NaN();
+        it = std::numeric_limits<double>::quiet_NaN();
       }
       ppm = (mz / start.getFeature(*getCurrentLayer().getConsensusMap()).getMZ()) * 1e6;
     }
@@ -2031,8 +2031,8 @@ namespace OpenMS
         if (getCurrentLayer().modifiable && getCurrentLayer().type == LayerData::DT_FEATURE && selected_peak_.isValid())       //move feature
         {
           PointType new_data = widgetToData_(pos);
-          DoubleReal mz = new_data[0];
-          DoubleReal rt = new_data[1];
+          double mz = new_data[0];
+          double rt = new_data[1];
 
           //restrict the movement to the data range
           mz = max(mz, overall_data_range_.minPosition()[0]);
@@ -2053,9 +2053,9 @@ namespace OpenMS
           PointType old_data = widgetToData_(last_mouse_pos_);
           PointType new_data = widgetToData_(pos);
           //calculate x shift
-          DoubleReal shift = old_data.getX() - new_data.getX();
-          DoubleReal newLoX = visible_area_.minX() + shift;
-          DoubleReal newHiX = visible_area_.maxX() + shift;
+          double shift = old_data.getX() - new_data.getX();
+          double newLoX = visible_area_.minX() + shift;
+          double newHiX = visible_area_.maxX() + shift;
           // check if we are falling out of bounds
           if (newLoX < overall_data_range_.minX())
           {
@@ -2069,8 +2069,8 @@ namespace OpenMS
           }
           //calculate y shift
           shift = old_data.getY() - new_data.getY();
-          DoubleReal newLoY = visible_area_.minY() + shift;
-          DoubleReal newHiY = visible_area_.maxY() + shift;
+          double newLoY = visible_area_.minY() + shift;
+          double newHiY = visible_area_.maxY() + shift;
           // check if we are falling out of bounds
           if (newLoY < overall_data_range_.minY())
           {
@@ -2130,8 +2130,8 @@ namespace OpenMS
       return;
     }
 
-    DoubleReal mz = widgetToData_(e->pos())[0];
-    DoubleReal rt = widgetToData_(e->pos())[1];
+    double mz = widgetToData_(e->pos())[0];
+    double rt = widgetToData_(e->pos())[1];
 
     const LayerData & layer = getCurrentLayer();
 
@@ -2245,14 +2245,14 @@ namespace OpenMS
       QMenu * msn_meta = new QMenu("fragment scan meta data");
       DPosition<2> p1 = widgetToData_(e->pos() + QPoint(10, 10));
       DPosition<2> p2 = widgetToData_(e->pos() - QPoint(10, 10));
-      DoubleReal rt_min = min(p1[1], p2[1]);
-      DoubleReal rt_max = max(p1[1], p2[1]);
-      DoubleReal mz_min = min(p1[0], p2[0]);
-      DoubleReal mz_max = max(p1[0], p2[0]);
+      double rt_min = min(p1[1], p2[1]);
+      double rt_max = max(p1[1], p2[1]);
+      double mz_min = min(p1[0], p2[0]);
+      double mz_max = max(p1[0], p2[0]);
       bool item_added = false;
       for (ExperimentType::ConstIterator it = getCurrentLayer().getPeakData()->RTBegin(rt_min); it != getCurrentLayer().getPeakData()->RTEnd(rt_max); ++it)
       {
-        DoubleReal mz = 0.0;
+        double mz = 0.0;
         if (!it->getPrecursors().empty())
         {
           mz = it->getPrecursors()[0].getMZ();
@@ -2302,10 +2302,10 @@ namespace OpenMS
       //search for nearby features
       DPosition<2> p1 = widgetToData_(e->pos() + QPoint(10, 10));
       DPosition<2> p2 = widgetToData_(e->pos() - QPoint(10, 10));
-      DoubleReal rt_min = min(p1[1], p2[1]);
-      DoubleReal rt_max = max(p1[1], p2[1]);
-      DoubleReal mz_min = min(p1[0], p2[0]);
-      DoubleReal mz_max = max(p1[0], p2[0]);
+      double rt_min = min(p1[1], p2[1]);
+      double rt_max = max(p1[1], p2[1]);
+      double mz_min = min(p1[0], p2[0]);
+      double mz_max = max(p1[0], p2[0]);
 
       QMenu * meta = new QMenu("Feature meta data");
       bool present = false;
@@ -2351,10 +2351,10 @@ namespace OpenMS
       //search for nearby features
       DPosition<2> p1 = widgetToData_(e->pos() + QPoint(10, 10));
       DPosition<2> p2 = widgetToData_(e->pos() - QPoint(10, 10));
-      DoubleReal rt_min = min(p1[1], p2[1]);
-      DoubleReal rt_max = max(p1[1], p2[1]);
-      DoubleReal mz_min = min(p1[0], p2[0]);
-      DoubleReal mz_max = max(p1[0], p2[0]);
+      double rt_min = min(p1[1], p2[1]);
+      double rt_max = max(p1[1], p2[1]);
+      double mz_min = min(p1[0], p2[0]);
+      double mz_max = max(p1[0], p2[0]);
 
       QMenu * consens_meta = new QMenu("Consensus meta data");
       bool present = false;
@@ -2777,10 +2777,10 @@ namespace OpenMS
     modificationStatus_(i, false);
   }
 
-  void Spectrum2DCanvas::translateVisibleArea_( DoubleReal mzShiftRel, DoubleReal rtShiftRel )
+  void Spectrum2DCanvas::translateVisibleArea_( double mzShiftRel, double rtShiftRel )
   {
-    DoubleReal rtShift = rtShiftRel * visible_area_.height();
-    DoubleReal mzShift = mzShiftRel * visible_area_.width();
+    double rtShift = rtShiftRel * visible_area_.height();
+    double mzShift = mzShiftRel * visible_area_.width();
     AreaType newArea( visible_area_ );
     // shift the visible area avoiding moving out data range bounds
     if ( mzShift > 0 ) {
@@ -2964,8 +2964,8 @@ namespace OpenMS
     //update the layer and overall ranges (if necessary)
     RangeManager<2>::PositionType min_pos_old = layers_[i].getFeatureMap()->getMin();
     RangeManager<2>::PositionType max_pos_old = layers_[i].getFeatureMap()->getMax();
-    DoubleReal min_int_old = layers_[i].getFeatureMap()->getMinInt();
-    DoubleReal max_int_old = layers_[i].getFeatureMap()->getMaxInt();
+    double min_int_old = layers_[i].getFeatureMap()->getMinInt();
+    double max_int_old = layers_[i].getFeatureMap()->getMaxInt();
     layers_[i].getFeatureMap()->updateRanges();
     if (min_pos_old > layers_[i].getFeatureMap()->getMin() || max_pos_old < layers_[i].getFeatureMap()->getMax())
     {
@@ -2992,8 +2992,8 @@ namespace OpenMS
     //update the layer and overall ranges (if necessary)
     RangeManager<2>::PositionType min_pos_old = layers_[i].getConsensusMap()->getMin();
     RangeManager<2>::PositionType max_pos_old = layers_[i].getConsensusMap()->getMax();
-    DoubleReal min_int_old = layers_[i].getConsensusMap()->getMinInt();
-    DoubleReal max_int_old = layers_[i].getConsensusMap()->getMaxInt();
+    double min_int_old = layers_[i].getConsensusMap()->getMinInt();
+    double max_int_old = layers_[i].getConsensusMap()->getMaxInt();
     layers_[i].getConsensusMap()->updateRanges();
     if (min_pos_old > layers_[i].getConsensusMap()->getMin() || max_pos_old < layers_[i].getConsensusMap()->getMax())
     {

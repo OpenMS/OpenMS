@@ -40,7 +40,6 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/COMPARISON/SPECTRA/BinnedSpectrum.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectraSTSimilarityScore.h>
-#include <OpenMS/COMPARISON/SPECTRA/CompareFouriertransform.h>
 #include <OpenMS/COMPARISON/SPECTRA/ZhangSimilarityScore.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
@@ -149,10 +148,10 @@ protected:
     String in_lib = getStringOption_("lib");
     String compare_function = getStringOption_("compare_function");
     Int precursor_mass_multiplier = getIntOption_("round_precursor_to_integer");
-    Real precursor_mass_tolerance = getDoubleOption_("precursor_mass_tolerance");
+    float precursor_mass_tolerance = getDoubleOption_("precursor_mass_tolerance");
     //Int min_precursor_charge = getIntOption_("min_precursor_charge");
     //Int max_precursor_charge = getIntOption_("max_precursor_charge");
-    Real remove_peaks_below_threshold = getDoubleOption_("filter:remove_peaks_below_threshold");
+    float remove_peaks_below_threshold = getDoubleOption_("filter:remove_peaks_below_threshold");
     UInt min_peaks = getIntOption_("filter:min_peaks");
     UInt max_peaks = getIntOption_("filter:max_peaks");
     Int cut_peaks_below = getIntOption_("filter:cut_peaks_below");
@@ -196,7 +195,7 @@ protected:
       ModificationsDB * mdb = ModificationsDB::getInstance();
       for (s = library.begin(), i = ids.begin(); s < library.end(); ++s, ++i)
       {
-        DoubleReal precursor_MZ = (*s).getPrecursors()[0].getMZ();
+        double precursor_MZ = (*s).getPrecursors()[0].getMZ();
         Size MZ_multi = (Size)precursor_MZ * precursor_mass_multiplier;
         map<Size, vector<PeakSpectrum> >::iterator found;
         found = MSLibrary.find(MZ_multi);
@@ -286,7 +285,7 @@ protected:
     //-------------------------------------------------------------
     // calculations
     //-------------------------------------------------------------
-    DoubleReal score;
+    double score;
     StringList::iterator in, out_file;
     for (in  = in_spec.begin(), out_file  = out.begin(); in < in_spec.end(); ++in, ++out_file)
     {
@@ -319,7 +318,7 @@ protected:
         PeakSpectrum quer;
         bool peak_ok = true;
         query[j].sortByIntensity(true);
-        DoubleReal min_high_intensity = 0;
+        double min_high_intensity = 0;
 
         if (query[j].empty() || query[j].getMSLevel() != 2)
         {
@@ -353,7 +352,7 @@ protected:
         {
           peak_ok = false;
         }
-        DoubleReal query_MZ = query[j].getPrecursors()[0].getMZ();
+        double query_MZ = query[j].getPrecursors()[0].getMZ();
         if (peak_ok)
         {
           bool charge_one = false;
@@ -370,8 +369,8 @@ protected:
           {
             charge_one = true;
           }
-          Real min_MZ = (query_MZ - precursor_mass_tolerance) * precursor_mass_multiplier;
-          Real max_MZ = (query_MZ + precursor_mass_tolerance) * precursor_mass_multiplier;
+          float min_MZ = (query_MZ - precursor_mass_tolerance) * precursor_mass_multiplier;
+          float max_MZ = (query_MZ + precursor_mass_tolerance) * precursor_mass_multiplier;
           for (Size mz = (Size)min_MZ; mz <= ((Size)max_MZ) + 1; ++mz)
           {
             map<Size, vector<PeakSpectrum> >::iterator found;
@@ -381,7 +380,7 @@ protected:
               vector<PeakSpectrum> & library = found->second;
               for (Size i = 0; i < library.size(); ++i)
               {
-                Real this_MZ  = library[i].getPrecursors()[0].getMZ() * precursor_mass_multiplier;
+                float this_MZ  = library[i].getPrecursors()[0].getMZ() * precursor_mass_multiplier;
                 if (this_MZ >= min_MZ && max_MZ >= this_MZ && ((charge_one == true && library[i].getPeptideIdentifications()[0].getHits()[0].getCharge() == 1) || charge_one == false))
                 {
                   PeptideHit hit = library[i].getPeptideIdentifications()[0].getHits()[0];
@@ -398,12 +397,6 @@ protected:
                   }
                   else
                   {
-                    if (compare_function == "CompareFouriertransform")
-                    {
-                      CompareFouriertransform * ft = static_cast<CompareFouriertransform *>(comparor);
-                      ft->transform(quer);
-                      ft->transform(librar);
-                    }
                     score = (*comparor)(quer, librar);
                   }
 

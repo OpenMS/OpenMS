@@ -82,9 +82,9 @@ START_SECTION((AverageLinkage& operator=(const AverageLinkage &source)))
 }
 END_SECTION
 
-START_SECTION((void operator()(DistanceMatrix< Real > &original_distance, std::vector<BinaryTreeNode>& cluster_tree, const Real threshold=1) const))
+START_SECTION((void operator()(DistanceMatrix< float > &original_distance, std::vector<BinaryTreeNode>& cluster_tree, const float threshold=1) const))
 {
-	DistanceMatrix<Real> matrix(6,666);
+	DistanceMatrix<float> matrix(6,666);
 	matrix.setValue(1,0,0.5f);
 	matrix.setValue(2,0,0.8f);
 	matrix.setValue(2,1,0.3f);
@@ -100,7 +100,7 @@ START_SECTION((void operator()(DistanceMatrix< Real > &original_distance, std::v
 	matrix.setValue(5,2,0.8f);
 	matrix.setValue(5,3,0.8f);
 	matrix.setValue(5,4,0.8f);
-	DistanceMatrix<Real> matrix2(matrix);
+	DistanceMatrix<float> matrix2(matrix);
 
 	vector< BinaryTreeNode > result;
 	vector< BinaryTreeNode > tree;
@@ -126,7 +126,7 @@ START_SECTION((void operator()(DistanceMatrix< Real > &original_distance, std::v
 			TEST_REAL_SIMILAR(tree[i].distance, result[i].distance);
 	}
 
-	Real th(0.7f);
+	float th(0.7f);
 	tree.pop_back();
 	tree.pop_back();
 	tree.push_back(BinaryTreeNode(0,3,-1.0f));

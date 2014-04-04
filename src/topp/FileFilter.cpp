@@ -392,7 +392,7 @@ protected:
     else if (v_data.valueType() == DataValue::DOUBLE_VALUE) v_user = String(meta_info[2]).toDouble();
     else if (v_data.valueType() == DataValue::STRING_LIST) v_user = (StringList)ListUtils::create<String>(meta_info[2]);
     else if (v_data.valueType() == DataValue::INT_LIST) v_user = ListUtils::create<Int>(meta_info[2]);
-    else if (v_data.valueType() == DataValue::DOUBLE_LIST) v_user = ListUtils::create<DoubleReal>(meta_info[2]);
+    else if (v_data.valueType() == DataValue::DOUBLE_LIST) v_user = ListUtils::create<double>(meta_info[2]);
     else if (v_data.valueType() == DataValue::EMPTY_VALUE) v_user = DataValue::EMPTY;
     if (meta_info[1] == "lt")
     {
@@ -789,8 +789,8 @@ protected:
         LOG_INFO << "Filtering out MS2 spectra from raw file using consensus features ..." << std::endl;
         IntList il = getIntList_("consensus:blackorwhitelist:maps");
         set<UInt64> maps(il.begin(), il.end());
-        DoubleReal rt_tol = getDoubleOption_("consensus:blackorwhitelist:rt");
-        DoubleReal mz_tol = getDoubleOption_("consensus:blackorwhitelist:mz");
+        double rt_tol = getDoubleOption_("consensus:blackorwhitelist:rt");
+        double mz_tol = getDoubleOption_("consensus:blackorwhitelist:mz");
         bool is_ppm = getStringOption_("consensus:blackorwhitelist:use_ppm_tolerance") == "false" ? false : true;
         bool is_blacklist = getStringOption_("consensus:blackorwhitelist:blacklist") == "true" ? true : false;
         int ret = filterByBlackOrWhiteList(is_blacklist, exp, consensus_blackorwhitelist, rt_tol, mz_tol, is_ppm, maps);
@@ -1053,7 +1053,7 @@ protected:
     return EXECUTION_OK;
   }
 
-  ExitCodes filterByBlackList(MapType& exp, const String& id_blacklist, bool blacklist_imperfect, DoubleReal rt_tol, DoubleReal mz_tol)
+  ExitCodes filterByBlackList(MapType& exp, const String& id_blacklist, bool blacklist_imperfect, double rt_tol, double mz_tol)
   {
     vector<ProteinIdentification> protein_ids;
     vector<PeptideIdentification> peptide_ids;
@@ -1085,8 +1085,8 @@ protected:
       {
         if (!exp[i].getPrecursors().empty())
         {
-          DoubleReal pc_rt = exp[i].getRT();
-          DoubleReal pc_mz = exp[i].getPrecursors()[0].getMZ();
+          double pc_rt = exp[i].getRT();
+          double pc_mz = exp[i].getPrecursors()[0].getMZ();
 
           IdType::iterator p_low = std::lower_bound(ids.begin(), ids.end(), pc_rt - rt_tol, Peak2D::RTLess());
           IdType::iterator p_high = std::lower_bound(ids.begin(), ids.end(), pc_rt + rt_tol, Peak2D::RTLess());
@@ -1139,7 +1139,7 @@ protected:
     return EXECUTION_OK;
   }
 
-  ExitCodes filterByBlackOrWhiteList(bool is_blacklist, MapType& exp, const String& consensus_blacklist, DoubleReal rt_tol, DoubleReal mz_tol, bool unit_ppm, std::set<UInt64> map_ids)
+  ExitCodes filterByBlackOrWhiteList(bool is_blacklist, MapType& exp, const String& consensus_blacklist, double rt_tol, double mz_tol, bool unit_ppm, std::set<UInt64> map_ids)
   {
     ConsensusMap consensus_map;
     ConsensusXMLFile cxml_file;
@@ -1172,13 +1172,13 @@ protected:
       {
         if ( !exp[i].getPrecursors().empty() )
         {
-          DoubleReal pc_mz = exp[i].getPrecursors()[0].getMZ();
-          DoubleReal pc_rt = exp[i].getRT(); // use rt of MS2
+          double pc_mz = exp[i].getPrecursors()[0].getMZ();
+          double pc_rt = exp[i].getRT(); // use rt of MS2
 
           std::vector<Peak2D>::iterator p_low = std::lower_bound(feature_pos.begin(), feature_pos.end(), pc_rt - rt_tol, Peak2D::RTLess());
           std::vector<Peak2D>::iterator p_high = std::lower_bound(feature_pos.begin(), feature_pos.end(), pc_rt + rt_tol, Peak2D::RTLess());
 
-          DoubleReal mz_tol_da = unit_ppm ? pc_mz * 1e-6 * mz_tol : mz_tol;
+          double mz_tol_da = unit_ppm ? pc_mz * 1e-6 * mz_tol : mz_tol;
 
           // if precursor is out of the whole range, then p_low==p_high == (begin()||end())
           // , thus the following loop will not run

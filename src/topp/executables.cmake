@@ -21,7 +21,6 @@ FeatureFinderCentroided
 FeatureFinderIdentification
 FeatureFinderIsotopeWavelet
 FeatureFinderMetabo
-FeatureFinderRaw
 FeatureLinkerLabeled
 FeatureLinkerUnlabeled
 FeatureLinkerUnlabeledQT
@@ -84,7 +83,6 @@ ProteinResolver
 RTModel
 RTPredict
 Resampler
-SILACAnalyzer
 SeedListGenerator
 #SequestAdapter
 SpecLibSearcher

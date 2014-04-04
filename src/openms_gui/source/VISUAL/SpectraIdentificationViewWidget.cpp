@@ -192,10 +192,10 @@ namespace OpenMS
 
         if (ms1_spectrum_index != -1)
         {
-          DoubleReal precursor_mz = (*layer_->getPeakData())[ms2_spectrum_index].getPrecursors()[0].getMZ();
+          double precursor_mz = (*layer_->getPeakData())[ms2_spectrum_index].getPrecursors()[0].getMZ();
           // determine start and stop of isolation window
-          DoubleReal isolation_window_lower_mz = precursor_mz - (*layer_->getPeakData())[ms2_spectrum_index].getPrecursors()[0].getIsolationWindowLowerOffset();
-          DoubleReal isolation_window_upper_mz = precursor_mz + (*layer_->getPeakData())[ms2_spectrum_index].getPrecursors()[0].getIsolationWindowUpperOffset();
+          double isolation_window_lower_mz = precursor_mz - (*layer_->getPeakData())[ms2_spectrum_index].getPrecursors()[0].getIsolationWindowLowerOffset();
+          double isolation_window_upper_mz = precursor_mz + (*layer_->getPeakData())[ms2_spectrum_index].getPrecursors()[0].getIsolationWindowUpperOffset();
 
           if (!is_ms1_shown_)
           {
@@ -525,7 +525,7 @@ namespace OpenMS
               item->setTextAlignment(Qt::AlignLeft);
               if (dv.valueType() == DataValue::DOUBLE_VALUE)
               {
-                item->setData(Qt::DisplayRole, (DoubleReal)dv);
+                item->setData(Qt::DisplayRole, (double)dv);
               }
               else
               {

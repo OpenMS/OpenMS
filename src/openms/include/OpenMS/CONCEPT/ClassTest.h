@@ -109,7 +109,7 @@ namespace OpenMS
         return true;
       }
 
-      /// This overload returns true; @c DataValue will be converted to DoubleReal by #TEST_REAL_SIMILAR.
+      /// This overload returns true; @c DataValue will be converted to double by #TEST_REAL_SIMILAR.
       inline bool OPENMS_DLLAPI
       isRealType(const DataValue&)
       {
@@ -393,17 +393,11 @@ namespace TEST = OpenMS::Internal::ClassTest;
 
  @hideinitializer
  */
-#define START_TEST(class_name, version)                                                   \
-  int main(int argc, char** argv)                                                         \
+#define START_TEST(class_name, version)                                                  \
+  int main(int argc, char** argv)                                                        \
   {                                                                                       \
-                                                                                          \
-    {                                                                                     \
-      /* initialize the random generator as early as possible! */                         \
-      OpenMS::DateTime date_time;                                                         \
-      date_time.set("1999-12-31 23:59:59");                                               \
-      OpenMS::UniqueIdGenerator::setSeed(date_time);                                      \
-    }                                                                                     \
-                                                                                          \
+    OpenMS::UInt64 seed = 2453440375;                                                     \
+    OpenMS::UniqueIdGenerator::setSeed(seed);                                             \
     TEST::version_string = version;                                                       \
                                                                                           \
     if (argc > 1)                                                                         \

@@ -243,8 +243,8 @@ protected:
     no_tmp_dbs(false),
     monoisotopic(false);
 
-    DoubleReal p_value_threshold(1.0);
-    DoubleReal cutoff_p_value(1.0);
+    double p_value_threshold(1.0);
+    double cutoff_p_value(1.0);
 
     char separator = '/';
 

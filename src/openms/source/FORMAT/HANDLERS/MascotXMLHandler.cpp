@@ -43,14 +43,14 @@ namespace OpenMS
 {
   namespace Internal
   {
-    const String MascotXMLHandler::primary_scan_regex = 
+    const String MascotXMLHandler::primary_scan_regex =
       "scan( number)?s?[=:]? *(?<SCAN>\\d+)";
 
     MascotXMLHandler::MascotXMLHandler(ProteinIdentification& protein_identification,
                                        vector<PeptideIdentification>& id_data,
                                        const String& filename,
                                        map<String, vector<AASequence> >& modified_peptides,
-                                       const RTMapping& rt_mapping, 
+                                       const RTMapping& rt_mapping,
                                        const String& scan_regex) :
       XMLHandler(filename, ""),
       protein_identification_(protein_identification),
@@ -168,7 +168,7 @@ namespace OpenMS
       }
 
       else if (tag_ == "pep_scan_title")
-      { 
+      {
         // extract RT (and possibly m/z, if not already set) from title:
         String title = character_buffer_.trim();
 
@@ -183,7 +183,7 @@ namespace OpenMS
             {
               if (match["RT"].matched)
               {
-                DoubleReal rt = String(match["RT"].str()).toDouble();
+                double rt = String(match["RT"].str()).toDouble();
                 id_data_[peptide_identification_index_].setMetaValue("RT", rt);
               }
               else if (match["SCAN"].matched)
@@ -195,11 +195,11 @@ namespace OpenMS
                     "RT", rt_mapping_[scan_no]);
                 }
               }
-              if (match["MZ"].matched && 
+              if (match["MZ"].matched &&
                   !id_data_[peptide_identification_index_].metaValueExists(
                     "MZ"))
               {
-                DoubleReal mz = String(match["MZ"].str()).toDouble();
+                double mz = String(match["MZ"].str()).toDouble();
                 id_data_[peptide_identification_index_].setMetaValue("MZ", mz);
               }
               break;
@@ -220,7 +220,7 @@ namespace OpenMS
           {
             String msg = "Could not extract RT value ";
             if (!rt_mapping_.empty()) msg += "or a matching scan number ";
-            msg += "from <pep_scan_title> element with format '" + title + 
+            msg += "from <pep_scan_title> element with format '" + title +
               "'. Try adjusting the 'scan_regex' parameter.";
             error(LOAD, msg);
           }
@@ -251,8 +251,8 @@ namespace OpenMS
 
       else if (tag_ == "pep_ident")
       {
-        DoubleReal temp_homology = 0;
-        DoubleReal temp_identity = 0;
+        double temp_homology = 0;
+        double temp_identity = 0;
 
         // According to Matrix Science the homology threshold is only used if it
         // exists and is smaller than the identity threshold.
@@ -283,7 +283,7 @@ namespace OpenMS
             if (mod_split.size() >= 2)
             {
               // could be "(C-term)" or "(C-term X)" etc.
-              if (mod_split[1].hasPrefix("(C-term") || 
+              if (mod_split[1].hasPrefix("(C-term") ||
                   mod_split[1].hasPrefix("(Protein C-term"))
               {
                 temp_aa_sequence.setCTerminalModification(mod_split[0]);
@@ -291,7 +291,7 @@ namespace OpenMS
               else
               {
                 // could be "(N-term)" or "(N-term X)" etc.
-                if (mod_split[1].hasPrefix("(N-term") || 
+                if (mod_split[1].hasPrefix("(N-term") ||
                     mod_split[1].hasPrefix("(Protein N-term"))
                 {
                   temp_aa_sequence.setNTerminalModification(mod_split[0]);
@@ -581,13 +581,13 @@ namespace OpenMS
         // cerr << "name tag: " << character_buffer_.trim() << "\n";
         if ((major_version_ == "1")
             // new since Mascot XML version 2.1 (at least): <fixed_mods> also have a subtag called <name>, thus we need to ensure we are in <variable_mods>
-            || (tags_open_.size() >= 2 && 
+            || (tags_open_.size() >= 2 &&
                 tags_open_[tags_open_.size() - 2] == "variable_mods"))
         {
           search_parameters_.variable_modifications.push_back(character_buffer_.trim());
           // cerr << "var. mod. added: " << search_parameters_.variable_modifications.back() << "\n";
         }
-        else if (tags_open_.size() >= 2 && 
+        else if (tags_open_.size() >= 2 &&
                  tags_open_[tags_open_.size() - 2] == "fixed_mods")
         {
           search_parameters_.fixed_modifications.push_back(character_buffer_.trim());

@@ -162,7 +162,7 @@ namespace OpenMS
     return convex_hull_;
   }
 
-  bool Feature::encloses(DoubleReal rt, DoubleReal mz) const
+  bool Feature::encloses(double rt, double mz) const
   {
     ConvexHull2D::PointType tmp(rt, mz);
     for (vector<ConvexHull2D>::const_iterator   it = convex_hulls_.begin(); it != convex_hulls_.end(); ++it)

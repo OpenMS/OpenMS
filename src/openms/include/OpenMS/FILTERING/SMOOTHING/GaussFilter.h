@@ -187,7 +187,7 @@ protected:
     GaussFilterAlgorithm gauss_algo_;
 
     /// The spacing of the pre-tabulated kernel coefficients
-    DoubleReal spacing_;
+    double spacing_;
 
     // Docu in base class
     virtual void updateMembers_();

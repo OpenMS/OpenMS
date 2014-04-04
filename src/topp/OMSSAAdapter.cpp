@@ -249,11 +249,11 @@ protected:
     //-ni don't print informational messages
 
     //Mass type and tolerance
-    //-to <Real> product ion mass tolerance in Da
-    //-te <Real> precursor ion mass tolerance in Da
+    //-to <float> product ion mass tolerance in Da
+    //-te <float> precursor ion mass tolerance in Da
     //-tez <Integer> scaling of precursor mass tolerance with charge (0 = none, 1= linear)
-    //registerDoubleOption_("to", "<Real>", 0.8, "product ion mass tolerance in Da", false);
-    //registerDoubleOption_("te", "<Real>", 2.0, "precursor ion mass tolerance in Da", false);
+    //registerDoubleOption_("to", "<float>", 0.8, "product ion mass tolerance in Da", false);
+    //registerDoubleOption_("te", "<float>", 2.0, "precursor ion mass tolerance in Da", false);
     registerIntOption_("tez", "<Integer>", 1, "scaling of precursor mass tolerance with charge (0 = none, 1= linear)", false, true);
 
     //A precursor ion is the ion before fragmentation and the product ions are the ions generated after fragmentation. These values are specified in Daltons +/- the measured value, e.g. a value of 2.0 means +/- 2.0 Daltons of the measured value.
@@ -267,14 +267,14 @@ protected:
     //Monoisotopic searching searches spectral peaks that correspond to peptides consisting entirely of carbon-12. Average mass searching searches on the average natural isotopic mass of peptides. Exact mass searches on the most abundant isotopic peak for a given mass range.
 
     //-tex <Double> threshold in Da above which the mass of a neutron should be added in an exact mass search.
-    registerDoubleOption_("tex", "<Real>", 1446.94, "threshold in Da above which the mass of a neutron should be added in an exact mass search", false, true);
+    registerDoubleOption_("tex", "<float>", 1446.94, "threshold in Da above which the mass of a neutron should be added in an exact mass search", false, true);
 
     //Preprocessing
     //Preprocessing is the process of eliminating noise from a spectrum. Normally, you do not need to adjust these options as OMSSA automatically adjusts its preprocessing for best results.
 
-    //-cl <Real> low intensity cutoff as a fraction of max peak
-    //-ch <Real> high intensity cutoff as a fraction of max peak
-    //-ci <Real> intensity cutoff increment as a fraction of max peak
+    //-cl <float> low intensity cutoff as a fraction of max peak
+    //-ch <float> high intensity cutoff as a fraction of max peak
+    //-ci <float> intensity cutoff increment as a fraction of max peak
     //-w1 <Integer> single charge window in Da
     //-w2 <Integer> double charge window in Da
     //-h1 <Integer> number of peaks allowed in single charge window
@@ -294,7 +294,7 @@ protected:
     //registerIntOption_("zl", "<Integer>", 1, "minimum precursor charge to search when not 1+", false);
     //registerIntOption_("zh", "<Integer>", 3, "maximum precursor charge to search when not 1+", false);
     registerIntOption_("zt", "<Integer>", 3, "minimum precursor charge to start considering multiply charged products", false, true);
-    registerDoubleOption_("z1", "<Real>", 0.95, "the fraction of peaks below the precursor used to determine if the spectrum is charge +1", false, true);
+    registerDoubleOption_("z1", "<float>", 0.95, "the fraction of peaks below the precursor used to determine if the spectrum is charge +1", false, true);
     registerIntOption_("zc", "<Integer>", 1, "should charge +1 be determined algorithmically (1=yes)", false, true);
     registerIntOption_("zcc", "<Integer>", 2, "how should precursor charges be determined? (1=believe the input file,2=use the specified range)", false, true);
     registerIntOption_("zoh", "<Integer>", 2, "set the maximum product charge to search", false, true);
@@ -339,7 +339,7 @@ protected:
     //-hl <Integer> maximum number of hits retained for one spectrum
     //-he <Double> the maximum e-value allowed in the hit list
     registerIntOption_("hl", "<Integer>", 30, "maximum number of hits retained for one spectrum. Note: even when set to 1 OMSSA may report multiple hits with different charge states", false);
-    registerDoubleOption_("he", "<Real>", 1000, "the maximum e-value allowed in the hit list. If you set this parameter too small (e.g., he=1), this will effectively introduce FDR filtering."
+    registerDoubleOption_("he", "<float>", 1000, "the maximum e-value allowed in the hit list. If you set this parameter too small (e.g., he=1), this will effectively introduce FDR filtering."
                                                 " Thus, allowing a less stringent FDR during post-processing will nevertheless return the (better) FDR introduced here, since mediocre hits are not even reported.", false);
 
     //Post translational modifications
@@ -367,9 +367,9 @@ protected:
     //-is <Double> evalue threshold to include a sequence in the iterative search, 0 = all
     //-ir <Double> evalue threshold to replace a hit, 0 = only if better
     //-ii <Double> evalue threshold to iteratively search a spectrum again, 0 = always
-    registerDoubleOption_("is", "<Real>", 0.0, "evalue threshold to include a sequence in the iterative search, 0 = all", false, true);
-    registerDoubleOption_("ir", "<Real>", 0.0, "evalue threshold to replace a hit, 0 = only if better", false, true);
-    registerDoubleOption_("ii", "<Real>", 0.0, "evalue threshold to iteratively search a spectrum again, 0 = always", false, true);
+    registerDoubleOption_("is", "<float>", 0.0, "evalue threshold to include a sequence in the iterative search, 0 = all", false, true);
+    registerDoubleOption_("ir", "<float>", 0.0, "evalue threshold to replace a hit, 0 = only if better", false, true);
+    registerDoubleOption_("ii", "<float>", 0.0, "evalue threshold to iteratively search a spectrum again, 0 = always", false, true);
 
 
     //-foms <String> read in search result in .oms format (binary asn.1).
@@ -686,11 +686,11 @@ protected:
           out << "\t</MSModSpec_residues>" << "\n";
 
           /* TODO: Check why these are always 0
-          DoubleReal neutral_loss_mono = ModificationsDB::getInstance()->getModification(it->second).getNeutralLossMonoMass();
-          DoubleReal neutral_loss_avg = ModificationsDB::getInstance()->getModification(it->second).getNeutralLossAverageMass();
+          double neutral_loss_mono = ModificationsDB::getInstance()->getModification(it->second).getNeutralLossMonoMass();
+          double neutral_loss_avg = ModificationsDB::getInstance()->getModification(it->second).getNeutralLossAverageMass();
           */
-          DoubleReal neutral_loss_mono = ModificationsDB::getInstance()->getModification(it->second).getNeutralLossDiffFormula().getMonoWeight();
-          DoubleReal neutral_loss_avg = ModificationsDB::getInstance()->getModification(it->second).getNeutralLossDiffFormula().getAverageWeight();
+          double neutral_loss_mono = ModificationsDB::getInstance()->getModification(it->second).getNeutralLossDiffFormula().getMonoWeight();
+          double neutral_loss_avg = ModificationsDB::getInstance()->getModification(it->second).getNeutralLossDiffFormula().getAverageWeight();
 
           if (fabs(neutral_loss_mono) > 0.00001)
           {
@@ -745,15 +745,15 @@ protected:
 
     // names of temporary files for data chunks
     StringList file_spectra_chunks_in, file_spectra_chunks_out;
-
-    { // local scope to free memory after conversion to MFG format is done
+    Size ms2_spec_count(0);
+    { // local scope to free memory after conversion to MGF format is done
       FileHandler fh;
       FileTypes::Type in_type = fh.getType(inputfile_name);
       PeakMap map;
       fh.getOptions().addMSLevel(2);
       fh.loadExperiment(inputfile_name, map, in_type, log_type_);
-
-      writeDebug_("Read " + String(map.size()) + " spectra from file", 5);
+      ms2_spec_count = map.size();
+      writeDebug_("Read " + String(ms2_spec_count) + " spectra from file", 5);
 
       int chunk(0);
       int chunk_size(getIntOption_("chunk_size"));
@@ -857,7 +857,8 @@ protected:
       vector<PeptideIdentification> peptide_ids_chunk;
       OMSSAXMLFile omssa_out_file;
       omssa_out_file.setModificationDefinitionsSet(mod_set);
-      omssa_out_file.load(file_spectra_chunks_out[i], protein_identification_chunk, peptide_ids_chunk);
+      // do not load empty hits for efficiency and correct stats report (below)
+      omssa_out_file.load(file_spectra_chunks_out[i], protein_identification_chunk, peptide_ids_chunk, true, false);
 
       // OMSSA does not write fixed modifications so we need to add them to the sequences
       writeDebug_("Assigning modifications to peptides", 1);
@@ -987,6 +988,11 @@ protected:
     vector<ProteinIdentification> protein_identifications;
     protein_identifications.push_back(protein_identification);
     IdXMLFile().store(outputfile_name, protein_identifications, peptide_ids);
+
+    // some stats
+    LOG_INFO << "Statistics:\n"
+             << "  identified MS2 spectra: " << peptide_ids.size() << " / " << ms2_spec_count << " = " << int(peptide_ids.size() * 100.0 / ms2_spec_count) << "% (with e-value < " << String(getDoubleOption_("he")) << ")" << std::endl;
+
 
     return EXECUTION_OK;
   }

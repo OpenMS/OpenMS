@@ -98,18 +98,18 @@ public:
 
     Which weight is returned depends on the current weight-mode.
 
-    @return DoubleReal weight in u
+    @return double weight in u
     */
-    DoubleReal getWeight(const AASequence & aa) const;
+    double getWeight(const AASequence & aa) const;
 
     /**
     @brief returns the weight of either mono or average value
 
     Which weight is returned depends on the current weight-mode.
 
-    @return DoubleReal weight in u
+    @return double weight in u
     */
-    DoubleReal getWeight(const EmpiricalFormula & ef) const;
+    double getWeight(const EmpiricalFormula & ef) const;
 
 
     /**
@@ -117,9 +117,9 @@ public:
 
     Which weight is returned depends on the current weight-mode.
 
-    @return DoubleReal weight in u
+    @return double weight in u
     */
-    DoubleReal getWeight(const Residue & r, Residue::ResidueType res_type = Residue::Full) const;
+    double getWeight(const Residue & r, Residue::ResidueType res_type = Residue::Full) const;
 
 
 private:

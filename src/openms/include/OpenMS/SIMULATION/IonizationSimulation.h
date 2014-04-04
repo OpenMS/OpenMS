@@ -74,11 +74,14 @@ public:
       ESI
     } IonizationType;
 
+    /// Default constructor
+    IonizationSimulation();
+
     /** @name Constructors and Destructors
       */
     //@{
     ///
-    explicit IonizationSimulation(const SimRandomNumberGenerator &);
+    explicit IonizationSimulation(MutableSimRandomNumberGeneratorPtr);
 
     /// Copy constructor
     IonizationSimulation(const IonizationSimulation & source);
@@ -103,9 +106,6 @@ public:
     void ionize(FeatureMapSim & features, ConsensusMap & charge_consensus, MSSimExperiment & experiment);
 
 private:
-    /// Default constructor
-    IonizationSimulation();
-
     class CompareCmpByEF_;
 
     /// ionize using ESI
@@ -119,7 +119,7 @@ private:
 
     /// set meta values, mz etc after adducts are ready
     void setFeatureProperties_(Feature & f,
-                               const DoubleReal & adduct_mass,
+                               const double & adduct_mass,
                                const String & adduct_formula,
                                const SimChargeType charge,
                                const SimIntensityType new_intensity,
@@ -152,12 +152,11 @@ private:
     /**
      @brief Probability for the binomial distribution of ESI charge states
      */
-    DoubleReal esi_probability_;
+    double esi_probability_;
 
     /**
      @brief Discrete distribution of impure charge adducts like Na+, K+, Ca++ etc besides the usual H+
     */
-    // important: leave that as vector<double> because gsl expects 'double' and not 'DoubleReal' (which might be something different)
     std::vector<double> esi_impurity_probabilities_;
 
 
@@ -174,7 +173,6 @@ private:
     /**
      @brief Preprocessed table of discrete distribution (MALDI charges)
     */
-    // important: leave that as vector<double> because gsl expects 'double' and not 'DoubleReal' (which might be something different)
     std::vector<double> maldi_probabilities_;
 
     /// Maximum m/z detected by mass analyser
@@ -184,7 +182,7 @@ private:
 
 protected:
     /// Random number generator
-    SimRandomNumberGenerator const * rnd_gen_;
+    MutableSimRandomNumberGeneratorPtr rnd_gen_;
   };
 
 }

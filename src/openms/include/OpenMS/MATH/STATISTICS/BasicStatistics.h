@@ -64,7 +64,7 @@ namespace OpenMS
 
          @ingroup Math
     */
-    template <typename RealT = DoubleReal>
+    template <typename RealT = double>
     class
     BasicStatistics
     {

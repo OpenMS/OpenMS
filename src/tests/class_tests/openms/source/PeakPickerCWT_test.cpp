@@ -106,8 +106,8 @@ START_SECTION((void pickExperiment(const MSExperiment<> &input, MSExperiment<> &
   }
 END_SECTION
 
-START_SECTION(DoubleReal estimatePeakWidth(const MSExperiment<>& input))
-  DoubleReal peak_width = pp.estimatePeakWidth(input);
+START_SECTION(double estimatePeakWidth(const MSExperiment<>& input))
+  double peak_width = pp.estimatePeakWidth(input);
 TEST_REAL_SIMILAR(peak_width,0.15)
 END_SECTION
 

@@ -38,6 +38,11 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 
+#include <boost/random/mersenne_twister.hpp>
+#include <boost/random/variate_generator.hpp>
+#include <boost/random/uniform_int.hpp>
+
+
 namespace OpenMS
 {
 
@@ -48,11 +53,7 @@ namespace OpenMS
 
     The unique ids are 64-bit random unsigned random integers.
     The class is implemented as a singleton.
-    The random generator is initialized upon startup using the current system time and date.
-    Collisions are not excluded by design, but extremely unlikely.
-    (To estimate the probability of collisions,
-    note that \f$ 10^9*60*60*24*365*100 / 2^{64} \doteq 0.17 \f$,
-    so it is unlikely you will see one in your lifetime.)
+    The random generator is implemented using boost::random.
 
     @ingroup Concept
   */
@@ -64,24 +65,25 @@ public:
     /// Returns a new unique id
     static UInt64 getUniqueId();
 
-    /// Initializes random generator using the given DateTime instead of DateTime::now().  This is intended for debugging and testing.
-    static void setSeed(const DateTime&);
+    /// Initializes random generator using the given value.
+    static void setSeed(const UInt64);
 
-    /// Returns a summary of internal status
-    static Param const & getInfo();
+    /// Get the seed
+    static UInt64 getSeed();
 
-private:
-
+protected:
     UniqueIdGenerator();
-
     ~UniqueIdGenerator();
 
-    static UniqueIdGenerator & getInstance_();
+private:
+    static UInt64 seed_;
+    static UniqueIdGenerator* instance_;
+    static boost::mt19937_64* rng_;
+    static boost::uniform_int<UInt64>* dist_;
 
-    void init_(const DateTime & date_time);
-
-    Param info_;
-
+    static UniqueIdGenerator& getInstance_();
+    void init_();
+    UniqueIdGenerator(const UniqueIdGenerator& );//protect from c++ auto-generation
   };
 
 } // namespace OpenMS

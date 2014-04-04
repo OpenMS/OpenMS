@@ -198,16 +198,16 @@ private:
     void updateMembers_();
 
     // parameters
-    DoubleReal rt_extraction_window_;
-    DoubleReal quantification_cutoff_;
+    double rt_extraction_window_;
+    double quantification_cutoff_;
     int stop_report_after_feature_;
     bool write_convex_hull_;
     bool strict_;
 
     // scoring parameters
-    DoubleReal rt_normalization_factor_;
+    double rt_normalization_factor_;
     int add_up_spectra_;
-    DoubleReal spacing_for_spectra_resampling_;
+    double spacing_for_spectra_resampling_;
 
     // members
     std::map<OpenMS::String, const PeptideType*> PeptideRefMap_;

@@ -34,7 +34,6 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Matrix.h>" namespace "OpenMS":
         ## bool operator==(Matrix & rhs) nogil except +
         ## bool operator<(Matrix & rhs) nogil except +
         # TEMPLATE # void setMatrix(ValueType matrix) nogil except +
-        # POINTER # gsl_matrix * toGslMatrix() nogil except +
         # TEMPLATE # # NAMESPACE # std::ostream  operator<[(std::ostream & os, Matrix[ Value ] & matrix) nogil except +
         #   MatrixUnsignedInt := Matrix[unsigned int]
 

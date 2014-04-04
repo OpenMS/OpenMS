@@ -73,19 +73,19 @@ namespace OpenMS
 public:
 
     ///Float data array class
-    class OPENMS_DLLAPI FloatDataArray :
+    class FloatDataArray :
       public MetaInfoDescription,
-      public std::vector<Real>
+      public std::vector<float>
     {};
 
     ///Integer data array class
-    class OPENMS_DLLAPI IntegerDataArray :
+    class IntegerDataArray :
       public MetaInfoDescription,
       public std::vector<Int>
     {};
 
     ///String data array class
-    class OPENMS_DLLAPI StringDataArray :
+    class StringDataArray :
       public MetaInfoDescription,
       public std::vector<String>
     {};
@@ -212,13 +212,13 @@ public:
     ///@name Accessors for meta information
     ///@{
     /// Returns the absolute retention time (is seconds)
-    inline DoubleReal getRT() const
+    inline double getRT() const
     {
       return retention_time_;
     }
 
     /// Sets the absolute retention time (is seconds)
-    inline void setRT(DoubleReal rt)
+    inline void setRT(double rt)
     {
       retention_time_ = rt;
     }
@@ -353,7 +353,7 @@ public:
 
         for (Size i = 0; i < float_data_arrays_.size(); ++i)
         {
-          std::vector<Real> mda_tmp;
+          std::vector<float> mda_tmp;
           for (Size j = 0; j < float_data_arrays_[i].size(); ++j)
           {
             mda_tmp.push_back(*(float_data_arrays_[i].begin() + (sorted_indices[j].second)));
@@ -416,7 +416,7 @@ public:
 
         for (Size i = 0; i < float_data_arrays_.size(); ++i)
         {
-          std::vector<Real> mda_tmp;
+          std::vector<float> mda_tmp;
           mda_tmp.reserve(float_data_arrays_[i].size());
           for (Size j = 0; j < float_data_arrays_[i].size(); ++j)
           {
@@ -626,7 +626,7 @@ protected:
     {}
 
     /// Retention time
-    DoubleReal retention_time_;
+    double retention_time_;
 
     /// MS level
     UInt ms_level_;

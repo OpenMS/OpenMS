@@ -48,7 +48,7 @@ namespace OpenMS
   {
   }
 
-  DoubleReal EDTAFile::checkedToDouble_(const std::vector<String> & parts, Size index, DoubleReal def)
+  double EDTAFile::checkedToDouble_(const std::vector<String> & parts, Size index, double def)
   {
     if (index < parts.size() && parts[index] != "NA")
     {
@@ -104,9 +104,9 @@ namespace OpenMS
     input_type = TYPE_UNDEFINED;
     Size input_features = 1;
 
-    DoubleReal rt = 0.0;
-    DoubleReal mz = 0.0;
-    DoubleReal it = 0.0;
+    double rt = 0.0;
+    double mz = 0.0;
+    double it = 0.0;
     Int ch = 0;
 
     if (headers.size() <= 2)

@@ -46,8 +46,6 @@
 // - When using example code, put it in the OpenMS/doc/code_examples folder
 //   to make sure it can be compiled. The name of the file should be in the text
 //   to make the file easy to find for the user.
-//   Don't forget to add the built example application to the svn ignore list:
-//   'svn propedit svn:ignore source/doc/code_examples'
 // - When talking about OpenMS in general, prefix it with a '%'. Otherwise a
 //   link to the OpenMS namespace is generated automatically
 
@@ -80,7 +78,7 @@
 
 	<b>Calling TOPP tools from TOPPView</b>
 	
-		This part of the tutorial illustrates how to interactively analyze proteomics data using TOPP tools from within TOPPView.
+		This part of the tutorial illustrates how to interactively analyse proteomics data using TOPP tools from within TOPPView.
 		
 		- @subpage TOPPView_smoothing
 		- @subpage TOPPView_baseline_reduction

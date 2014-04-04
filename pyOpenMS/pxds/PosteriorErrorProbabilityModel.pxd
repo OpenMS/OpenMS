@@ -17,7 +17,7 @@ from PeptideIdentification cimport *
 from GaussFitter cimport *
 from TextFile cimport *
 
-# TODO vector[DoubleReal] doesnt get resolved 
+# TODO vector[double] doesnt get resolved 
 
 cdef extern from "<OpenMS/MATH/STATISTICS/PosteriorErrorProbabilityModel.h>" namespace "OpenMS::Math":
 
@@ -34,20 +34,20 @@ cdef extern from "<OpenMS/MATH/STATISTICS/PosteriorErrorProbabilityModel.h>" nam
         #Writes the distributions densities into the two vectors for a set of scores. Incorrect_densities represent the incorreclty assigned seqeuences.
         void fillDensities(libcpp_vector[double] & x_scores, libcpp_vector[double] & incorrect_density, libcpp_vector[double] & correct_density) nogil except +
         #computes the Maximum Likelihood with a log-likelihood funciotn.
-        DoubleReal computeMaxLikelihood(libcpp_vector[double] & incorrect_density, libcpp_vector[double] & correct_density) nogil except +
+        double computeMaxLikelihood(libcpp_vector[double] & incorrect_density, libcpp_vector[double] & correct_density) nogil except +
 
         #sums (1 - posterior porbabilities)
-        DoubleReal one_minus_sum_post(libcpp_vector[double] & incorrect_density, libcpp_vector[double] & correct_density) nogil except +
+        double one_minus_sum_post(libcpp_vector[double] & incorrect_density, libcpp_vector[double] & correct_density) nogil except +
         #sums  posterior porbabilities
-        DoubleReal sum_post(libcpp_vector[double] & incorrect_density, libcpp_vector[double] & correct_density) nogil except +
+        double sum_post(libcpp_vector[double] & incorrect_density, libcpp_vector[double] & correct_density) nogil except +
         #helper function for the EM algorithm (for fitting)
-        DoubleReal sum_pos_x0(libcpp_vector[double] & x_scores, libcpp_vector[double] & incorrect_density, libcpp_vector[double] & correct_density) nogil except +
+        double sum_pos_x0(libcpp_vector[double] & x_scores, libcpp_vector[double] & incorrect_density, libcpp_vector[double] & correct_density) nogil except +
         #helper function for the EM algorithm (for fitting)
-        DoubleReal sum_neg_x0(libcpp_vector[double] & x_scores, libcpp_vector[double] & incorrect_density, libcpp_vector[double] & correct_density) nogil except +
+        double sum_neg_x0(libcpp_vector[double] & x_scores, libcpp_vector[double] & incorrect_density, libcpp_vector[double] & correct_density) nogil except +
         #helper function for the EM algorithm (for fitting)
-        DoubleReal sum_pos_sigma(libcpp_vector[double] & x_scores, libcpp_vector[double] & incorrect_density, libcpp_vector[double] & correct_density, DoubleReal positive_mean) nogil except +
+        double sum_pos_sigma(libcpp_vector[double] & x_scores, libcpp_vector[double] & incorrect_density, libcpp_vector[double] & correct_density, double positive_mean) nogil except +
         #helper function for the EM algorithm (for fitting)
-        DoubleReal sum_neg_sigma(libcpp_vector[double] & x_scores, libcpp_vector[double] & incorrect_density, libcpp_vector[double] & correct_density, DoubleReal positive_mean) nogil except +
+        double sum_neg_sigma(libcpp_vector[double] & x_scores, libcpp_vector[double] & incorrect_density, libcpp_vector[double] & correct_density, double positive_mean) nogil except +
 
         #returns estimated parameters for correctly assigned sequences. Fit should be used before.
         GaussFitResult getCorrectlyAssignedFitResult() nogil except +
@@ -56,17 +56,17 @@ cdef extern from "<OpenMS/MATH/STATISTICS/PosteriorErrorProbabilityModel.h>" nam
         GaussFitResult getIncorrectlyAssignedFitResult() nogil except +
 
         #returns the estimated negative prior probability.
-        DoubleReal getNegativePrior() nogil except +
+        double getNegativePrior() nogil except +
 
         #computes the gaussian density at position x with parameters params.
-        DoubleReal getGauss(DoubleReal x, GaussFitResult & params) nogil except +
+        double getGauss(double x, GaussFitResult & params) nogil except +
 
         #computes the gumbel density at position x with parameters params.
-        DoubleReal getGumbel(DoubleReal x, GaussFitResult & params) nogil except +
+        double getGumbel(double x, GaussFitResult & params) nogil except +
 
         #   Returns the computed posterior error probability for a given score.
         #   @note: fit has to be used before using this function. Otherwise this function will compute nonsense.
-        DoubleReal computeProbability(DoubleReal score) nogil except +
+        double computeProbability(double score) nogil except +
 
         #initializes the plots
         # TODO raw ptr
@@ -85,5 +85,5 @@ cdef extern from "<OpenMS/MATH/STATISTICS/PosteriorErrorProbabilityModel.h>" nam
         void plotTargetDecoyEstimation(libcpp_vector[double] & target, libcpp_vector[double] & decoy) nogil except +
 
         # returns the smallest score used in the last fit
-        DoubleReal getSmallestScore() nogil except +
+        double getSmallestScore() nogil except +
 

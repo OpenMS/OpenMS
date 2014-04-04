@@ -37,7 +37,6 @@
 
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
-#include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/METADATA/MSQuantifications.h>
 
 namespace OpenMS
@@ -150,8 +149,8 @@ private:
       std::set<DataProcessing::ProcessingAction> current_pas_;
 
       std::vector<String> current_col_types_;
-      std::vector<DoubleReal> current_dm_values_;
-      std::vector<DoubleReal> current_row_;
+      std::vector<double> current_dm_values_;
+      std::vector<double> current_row_;
 
     };
   }   // namespace Internal

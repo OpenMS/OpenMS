@@ -156,9 +156,9 @@ namespace OpenMS
   void ConsensusFeature::computeConsensus()
   {
     // for computing average position and intensity
-    DoubleReal rt = 0.0;
-    DoubleReal mz = 0.0;
-    DoubleReal intensity = 0.0;
+    double rt = 0.0;
+    double mz = 0.0;
+    double intensity = 0.0;
 
     // The most frequent charge state wins.  Tie breaking prefers smaller charge.
     std::map<Int, UInt> charge_occ;
@@ -197,9 +197,9 @@ namespace OpenMS
   void ConsensusFeature::computeMonoisotopicConsensus()
   {
     // for computing average rt position, minimal m/z position and intensity
-    DoubleReal rt = 0.0;
-    DoubleReal mz = std::numeric_limits<DoubleReal>::max();
-    DoubleReal intensity = 0.0;
+    double rt = 0.0;
+    double mz = std::numeric_limits<double>::max();
+    double intensity = 0.0;
 
     // The most frequent charge state wins.  Tie breaking prefers smaller charge.
     std::map<Int, UInt> charge_occ;
@@ -239,11 +239,11 @@ namespace OpenMS
   void ConsensusFeature::computeDechargeConsensus(const FeatureMap<> & fm, bool intensity_weighted_averaging)
   {
     // for computing average position and intensity
-    DoubleReal rt = 0.0;
-    DoubleReal m = 0.0;
-    DoubleReal intensity = 0.0;
+    double rt = 0.0;
+    double m = 0.0;
+    double intensity = 0.0;
 
-    DoubleReal proton_mass = Constants::PROTON_MASS_U;
+    double proton_mass = Constants::PROTON_MASS_U;
 
     // intensity sum (for weighting)
     for (ConsensusFeature::HandleSetType::const_iterator it = handles_.begin(); it != handles_.end(); ++it)
@@ -254,7 +254,7 @@ namespace OpenMS
     // unweighted averaging by default
     // TODO: add outlier removal
     // TODO: split cluster for each channel (in FD.C)
-    DoubleReal weighting_factor = 1.0 / size();
+    double weighting_factor = 1.0 / size();
 
     // RT and Mass
     for (ConsensusFeature::HandleSetType::const_iterator it = handles_.begin(); it != handles_.end(); ++it)
@@ -262,13 +262,13 @@ namespace OpenMS
       Int q = it->getCharge();
       if (q == 0)
         LOG_WARN << "ConsensusFeature::computeDechargeConsensus() WARNING: Feature's charge is 0! This will lead to M=0!\n";
-      DoubleReal adduct_mass;
+      double adduct_mass;
       Size index = fm.uniqueIdToIndex(it->getUniqueId());
       if (index > fm.size())
         throw Exception::IndexOverflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, fm.size());
       if (fm[index].metaValueExists("dc_charge_adduct_mass"))
       {
-        adduct_mass = (DoubleReal) fm[index].getMetaValue("dc_charge_adduct_mass");
+        adduct_mass = (double) fm[index].getMetaValue("dc_charge_adduct_mass");
       }
       else
       {

@@ -15,13 +15,13 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/IncludeExcludeTarget.h>" namespace "
         String  getPeptideRef() nogil except +
         void setCompoundRef(String & compound_ref) nogil except +
         String  getCompoundRef() nogil except +
-        void setPrecursorMZ(DoubleReal mz) nogil except +
-        DoubleReal getPrecursorMZ() nogil except +
+        void setPrecursorMZ(double mz) nogil except +
+        double getPrecursorMZ() nogil except +
         void setPrecursorCVTermList(CVTermList & list_) nogil except +
         void addPrecursorCVTerm(CVTerm & cv_term) nogil except +
         CVTermList  getPrecursorCVTermList() nogil except +
-        void setProductMZ(DoubleReal mz) nogil except +
-        DoubleReal getProductMZ() nogil except +
+        void setProductMZ(double mz) nogil except +
+        double getProductMZ() nogil except +
         void setProductCVTermList(CVTermList & list_) nogil except +
         void addProductCVTerm(CVTerm & cv_term) nogil except +
         CVTermList  getProductCVTermList() nogil except +

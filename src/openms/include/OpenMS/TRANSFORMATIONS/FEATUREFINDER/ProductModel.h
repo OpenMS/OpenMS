@@ -70,7 +70,7 @@ public:
     /// Number of dimensions
     enum {D = 2};
 
-    typedef DoubleReal IntensityType;
+    typedef double IntensityType;
     typedef DPosition<D> PositionType;
     typedef BaseModel<D>::SamplesType SamplesType;
 

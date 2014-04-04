@@ -10,8 +10,8 @@
 
   @section checkout_and_build Checkout OpenMS
 
-  You can find the links to the release and development (svn) versions on the
-  <a href="http://open-ms.sourceforge.net/downloads/">Downloads</a> page of the
+  You can find the links to the release and development versions on the
+  <a href="http://www.openms.de/downloads/">Downloads</a> page of the
   %OpenMS project.
 
   From here on the instructions assume you have an extracted tar.gz of the
@@ -40,7 +40,7 @@
   patch, autoconf > 2.60, automake > 1.9, libtool (libtoolize/glibtoolize).
 
   For the complete feature set to be enabled, %OpenMS needs recent versions of
-  Boost (1.46 or higher works), GSL (1.13 or higher works),
+  Boost (1.46 or higher works), Eigen3, WildMagic5
   libSVM (2.91 or higher and 3.x for x <= 14 works), SeqAn (1.4.0 or higher needed),
   glpk (4.45 or higher works), zlib, libbz2, and Xerces-C (3.1.1 or higher works).
 
@@ -70,7 +70,7 @@
     <td><pre>
     sudo apt-get install cmake g++ autoconf qt4-dev-tools patch libtool make
     sudo apt-get install libboost-regex-dev libboost-iostreams-dev libboost-date-time-dev libboost-math-dev \
-      libsvm-dev libglpk-dev libzip-dev zlib1g-dev libxerces-c-dev libgsl0-dev
+      libsvm-dev libglpk-dev libzip-dev zlib1g-dev libxerces-c-dev
     </pre></td>
 
   </tr>
@@ -79,11 +79,12 @@
 
   @section build_linux_contrib Building remaining dependencies
 
-  @note In most cases, the only dependency left unresolved (e.g. not easily
-  available through your distribution) at this point is SeqAn. You can check
-  which dependencies you still need by attempting to configure %OpenMS (see the
-  next section), it will complain about anything unusual. Contact us if you
-  still have trouble with the dependencies after these instructions.
+  @note In most cases, the only dependencies left unresolved (e.g. not easily
+  available through your distribution) at this point are SeqAn and WildMagic.
+  You can check which dependencies you still need by attempting to configure
+  %OpenMS (see the next section), it will complain about anything unusual.
+  Contact us if you still have trouble with the dependencies after these
+  instructions.
 
   OpenMS conveniently provides its dependencies for download.  The %OpenMS
   Release package (https://sourceforge.net/projects/open-ms/files/OpenMS/)
@@ -119,10 +120,11 @@
   \code
   cmake -DBUILD_TYPE=LIST ../contrib
   cmake -DBUILD_TYPE=SEQAN ../contrib
+  cmake -DBUILD_TYPE=WILDMAGIC ../contrib
   \endcode
 
   To avoid problems while building the libraries contained in the contrib
-  package, the path to your contrib-buikd directory should not have any spaces
+  package, the path to your contrib-build directory should not have any spaces
   in it.
 
   @section install_linux_openms Configuring and building OpenMS/TOPP
@@ -252,7 +254,7 @@
       <td valign="top">\c CMAKE_C_COMPILER</td>
       <td>Defines the C compiler to use. This should match the C++ compiler.
       Mixing compilers (e.g., <i>clang++</i> for C++ and <i>gcc</i> for C) can
-      lead to undefined behavior as some internal settings (e.g., %OpenMP
+      lead to undefined behaviour as some internal settings (e.g., %OpenMP
       support) are determined using the C compiler and are assumed to be the
       same for the C++ compiler.</td>
     </tr>
@@ -272,7 +274,7 @@
       <td valign="top">\c SEARCH_ENGINES_DIRECTORY (optional)</td>
       <td>The location where the ID search engines (X!Tandem, OMMSA, MyriMatch)
       are located. This directory should have the same structure as the example
-      in the %OpenMS svn repository:
+      in the search engine repository at
       https://open-ms.svn.sourceforge.net/svnroot/open-ms/THIRDPARTY/SEARCHENGINES/.
 
       This directory is needed to build the installer for %OpenMS.</td>

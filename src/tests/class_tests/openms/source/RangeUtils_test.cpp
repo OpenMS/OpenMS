@@ -336,7 +336,7 @@ END_SECTION
 
 InPrecursorMZRange<MSSpectrum<> >* ptr50 = 0;
 InPrecursorMZRange<MSSpectrum<> >* nullPointer50 = 0;
-START_SECTION((InPrecursorMZRange(const DoubleReal& mz_left, const DoubleReal& mz_right, bool reverse = false)))
+START_SECTION((InPrecursorMZRange(const double& mz_left, const double& mz_right, bool reverse = false)))
 	ptr50 = new InPrecursorMZRange<MSSpectrum<> >(100.0, 200.0);
   TEST_NOT_EQUAL(ptr50, nullPointer50)
 END_SECTION

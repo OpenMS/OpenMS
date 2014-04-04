@@ -41,11 +41,6 @@
 
 #include <vector>
 
-// gsl includes
-#include <gsl/gsl_rng.h>
-#include <gsl/gsl_vector.h>
-#include <gsl/gsl_multifit_nlin.h>
-
 namespace OpenMS
 {
   namespace Math
@@ -59,8 +54,6 @@ namespace OpenMS
         The complete gaussian formula with the fitted parameters can be transformed into a
         gnuplot formula using getGnuplotFormula after fitting.
 
-        The fitting is implemented using GSL fitting algorithms.
-
         @ingroup Math
     */
     class OPENMS_DLLAPI GaussFitter
@@ -71,7 +64,10 @@ public:
       struct GaussFitResult
       {
 public:
-
+        GaussFitResult()
+        : A(-1.0), x0(-1.0), sigma(-1.0) {}
+        GaussFitResult(double a, double x, double s)
+        : A(a), x0(x), sigma(s) {}
         /// parameter A of gaussian distribution (amplitude)
         double A;
 
@@ -82,7 +78,7 @@ public:
         double sigma;
       };
 
-      /// Default constructor
+      /// Constructor
       GaussFitter();
 
       /// Destructor
@@ -100,22 +96,9 @@ public:
       */
       GaussFitResult fit(std::vector<DPosition<2> > & points);
 
-      /// return the gnuplot formula of the gaussian
-      const String & getGnuplotFormula() const;
-
 protected:
 
-      static int gaussFitterf_(const gsl_vector * x, void * params, gsl_vector * f);
-
-      static int gaussFitterdf_(const gsl_vector * x, void * params, gsl_matrix * J);
-
-      static int gaussFitterfdf_(const gsl_vector * x, void * params, gsl_vector * f, gsl_matrix * J);
-
-      void printState_(size_t iter, gsl_multifit_fdfsolver * s);
-
       GaussFitResult init_param_;
-
-      String gnuplot_formula_;
 
 private:
 

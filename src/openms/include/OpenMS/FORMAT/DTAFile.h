@@ -113,7 +113,7 @@ public:
         throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, std::string("Bad data line (" + String(line_number) + "): \"") + line + "\" (got  " + String(strings.size()) + ", expected 2 entries)", filename);
       }
       Precursor precursor;
-      DoubleReal mh_mass;
+      double mh_mass;
       Int charge;
       try
       {
@@ -190,7 +190,7 @@ public:
       {
         throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
       }
-      os.precision(writtenDigits<DoubleReal>());
+      os.precision(writtenDigits<double>(0.0));
 
       //write precursor information
       Precursor precursor;

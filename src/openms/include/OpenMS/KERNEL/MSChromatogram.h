@@ -60,19 +60,19 @@ namespace OpenMS
 public:
 
     /// Float data array class
-    class OPENMS_DLLAPI FloatDataArray :
+    class FloatDataArray :
       public MetaInfoDescription,
-      public std::vector<Real>
+      public std::vector<float>
     {};
 
     /// String data array class
-    class OPENMS_DLLAPI StringDataArray :
+    class StringDataArray :
       public MetaInfoDescription,
       public std::vector<String>
     {};
 
     /// Float data array class
-    class OPENMS_DLLAPI IntegerDataArray :
+    class IntegerDataArray :
       public MetaInfoDescription,
       public std::vector<Int>
     {};
@@ -205,7 +205,7 @@ public:
     ///@}
 
     /// returns the mz of the product entry, makes sense especially for MRM scans
-    inline DoubleReal getMZ() const
+    inline double getMZ() const
     {
       return getProduct().getMZ();
     }
@@ -310,7 +310,7 @@ public:
 
         for (Size i = 0; i < float_data_arrays_.size(); ++i)
         {
-          std::vector<Real> mda_tmp;
+          std::vector<float> mda_tmp;
           for (Size j = 0; j < float_data_arrays_[i].size(); ++j)
           {
             mda_tmp.push_back(*(float_data_arrays_[i].begin() + (sorted_indices[j].second)));
@@ -373,7 +373,7 @@ public:
 
         for (Size i = 0; i < float_data_arrays_.size(); ++i)
         {
-          std::vector<Real> mda_tmp;
+          std::vector<float> mda_tmp;
           for (Size j = 0; j < float_data_arrays_[i].size(); ++j)
           {
             mda_tmp.push_back(*(float_data_arrays_[i].begin() + (sorted_indices[j].second)));

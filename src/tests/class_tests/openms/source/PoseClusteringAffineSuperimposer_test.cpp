@@ -118,7 +118,7 @@ START_SECTION((virtual void run(const ConsensusMap& map_model, const ConsensusMa
   pcat.run(input[0], input[1], transformation);
 
   TEST_STRING_EQUAL(transformation.getModelType(), "linear")
-	transformation.getModelParameters(parameters);
+  parameters = transformation.getModelParameters();
 	TEST_EQUAL(parameters.size(), 2)    
   TEST_REAL_SIMILAR(parameters.getValue("slope"), 1.0)
   TEST_REAL_SIMILAR(parameters.getValue("intercept"), -0.4)

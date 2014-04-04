@@ -74,7 +74,7 @@ public:
     {
       typedef typename SpectrumType::ConstIterator ConstIterator;
 
-      windowsize_ = (DoubleReal)param_.getValue("windowsize");
+      windowsize_ = (double)param_.getValue("windowsize");
       peakcount_ = (UInt)param_.getValue("peakcount");
 
       //copy spectrum
@@ -137,7 +137,7 @@ public:
 
       spectrum.sortByPosition();
 
-      windowsize_ = (DoubleReal)param_.getValue("windowsize");
+      windowsize_ = (double)param_.getValue("windowsize");
       peakcount_ = (UInt)param_.getValue("peakcount");
 
       // copy meta data
@@ -145,7 +145,7 @@ public:
       out.clear(false);
 
       SpectrumType peaks_in_window;
-      DoubleReal window_start = spectrum[0].getMZ();
+      double window_start = spectrum[0].getMZ();
       for (Size i = 0; i != spectrum.size(); ++i)
       {
         if (spectrum[i].getMZ() - window_start < windowsize_)      // collect peaks in window
@@ -184,8 +184,8 @@ public:
       // Therefor the number of peaks copied from this window should be adapted accordingly.
       // Otherwise a lot of noise peaks are copied from each end of a spectrum.
 
-      DoubleReal last_window_size = peaks_in_window.back().getMZ() - window_start;
-      DoubleReal last_window_size_fraction = last_window_size / windowsize_;
+      double last_window_size = peaks_in_window.back().getMZ() - window_start;
+      double last_window_size_fraction = last_window_size / windowsize_;
       Size last_window_peakcount = last_window_size_fraction * peakcount_;
 
       if (last_window_peakcount)    // handle single peak in last window (will produce no proper fraction)
@@ -213,7 +213,7 @@ public:
     //TODO reimplement DefaultParamHandler::updateMembers_()
 
 private:
-    DoubleReal windowsize_;
+    double windowsize_;
     UInt peakcount_;
   };
 

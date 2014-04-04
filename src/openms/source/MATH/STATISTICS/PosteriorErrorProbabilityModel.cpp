@@ -39,11 +39,15 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+
+#include<QDir>
+
+#include <boost/math/special_functions/fpclassify.hpp>
 
 #include <algorithm>
-#include <gsl/gsl_statistics.h>
-#include <boost/math/special_functions/fpclassify.hpp>
-#include <QDir>
+
+
 
 using namespace std;
 
@@ -52,7 +56,10 @@ namespace OpenMS
   namespace Math
   {
     PosteriorErrorProbabilityModel::PosteriorErrorProbabilityModel() :
-      DefaultParamHandler("PosteriorErrorProbabilityModel"), negative_prior_(0.5), max_incorrectly_(0), max_correctly_(0), smallest_score_(0)
+      DefaultParamHandler("PosteriorErrorProbabilityModel"),
+      incorrectly_assigned_fit_param_(GaussFitter::GaussFitResult(-1,-1,-1)),
+      correctly_assigned_fit_param_(GaussFitter::GaussFitResult(-1,-1,-1)),
+      negative_prior_(0.5), max_incorrectly_(0), max_correctly_(0), smallest_score_(0)
     {
       defaults_.setValue("out_plot", "", "If given, the some output files will be saved in the following manner: <out_plot>_scores.txt for the scores and <out_plot> which contains the fitted values for each step of the EM-algorithm, e.g., out_plot = /usr/home/OMSSA123 leads to /usr/home/OMSSA123_scores.txt, /usr/home/OMSSA123 will be written. If no directory is specified, e.g. instead of '/usr/home/OMSSA123' just OMSSA123, the files will be written into the working directory.", ListUtils::create<String>("advanced,output file"));
       defaults_.setValue("number_of_bins", 100, "Number of bins used for visualization. Only needed if each iteration step of the EM-Algorithm will be visualized", ListUtils::create<String>("advanced"));
@@ -91,8 +98,8 @@ namespace OpenMS
       negative_prior_ = 0.7;
       if (param_.getValue("incorrectly_assigned") == "Gumbel")
       {
-        incorrectly_assigned_fit_param_.x0 = gsl_stats_mean(&x_scores[0], 1, ceil(0.5 * x_scores.size())) + x_scores[0];
-        incorrectly_assigned_fit_param_.sigma = gsl_stats_sd(&x_scores[0], 1, x_scores.size() - 1);        //pow(gsl_stats_sd_with_fixed_mean(&probabilities[x_score_start], 1, probabilities.size() - x_score_start, gauss_fit_param_.x0),2);
+        incorrectly_assigned_fit_param_.x0 = Math::mean(x_scores.begin(), x_scores.begin() + ceil(0.5 * x_scores.size())) + x_scores[0];
+        incorrectly_assigned_fit_param_.sigma = Math::sd(x_scores.begin(), x_scores.end(), incorrectly_assigned_fit_param_.x0 );
         incorrectly_assigned_fit_param_.A = 1   / sqrt(2 * Constants::PI * pow(incorrectly_assigned_fit_param_.sigma, 2));
         //TODO: compute directly with gauss. Workaround:
         calc_incorrect_ = &PosteriorErrorProbabilityModel::getGauss;
@@ -100,8 +107,8 @@ namespace OpenMS
       }
       else
       {
-        incorrectly_assigned_fit_param_.x0 = gsl_stats_mean(&x_scores[0], 1, ceil(0.5 * x_scores.size())) + x_scores[0];
-        incorrectly_assigned_fit_param_.sigma = gsl_stats_sd(&x_scores[0], 1, x_scores.size() - 1);        //pow(gsl_stats_sd_with_fixed_mean(&probabilities[x_score_start], 1, probabilities.size() - x_score_start, gauss_fit_param_.x0),2);
+        incorrectly_assigned_fit_param_.x0 = Math::mean(x_scores.begin(), x_scores.begin() + ceil(0.5 * x_scores.size())) + x_scores[0];
+        incorrectly_assigned_fit_param_.sigma = Math::sd(x_scores.begin(), x_scores.end(), incorrectly_assigned_fit_param_.x0);
         incorrectly_assigned_fit_param_.A = 1   / sqrt(2 * Constants::PI * pow(incorrectly_assigned_fit_param_.sigma, 2));
         calc_incorrect_ = &PosteriorErrorProbabilityModel::getGauss;
         getNegativeGnuplotFormula_ = &PosteriorErrorProbabilityModel::getGaussGnuplotFormula;
@@ -109,15 +116,15 @@ namespace OpenMS
       getPositiveGnuplotFormula_ = &PosteriorErrorProbabilityModel::getGaussGnuplotFormula;
       calc_correct_ = &PosteriorErrorProbabilityModel::getGauss;
       Size x_score_start = std::min(x_scores.size() - 1, (Size) ceil(x_scores.size() * 0.7));   // if only one score is present, ceil(...) will yield 1, which is an invalid index
-      correctly_assigned_fit_param_.x0 = gsl_stats_mean(&x_scores[x_score_start], 1, x_scores.size() - x_score_start) + x_scores[x_score_start];      //(gauss_scores.begin()->getX() + (gauss_scores.end()-1)->getX())/2;
+      correctly_assigned_fit_param_.x0 = Math::mean(x_scores.begin() + x_score_start, x_scores.end()) + x_scores[x_score_start];      //(gauss_scores.begin()->getX() + (gauss_scores.end()-1)->getX())/2;
       correctly_assigned_fit_param_.sigma = incorrectly_assigned_fit_param_.sigma;
       correctly_assigned_fit_param_.A = 1.0   / sqrt(2 * Constants::PI * pow(correctly_assigned_fit_param_.sigma, 2));
 
-      vector<DoubleReal> incorrect_density;
-      vector<DoubleReal> correct_density;
+      vector<double> incorrect_density;
+      vector<double> correct_density;
       fillDensities(x_scores, incorrect_density, correct_density);
 
-      DoubleReal maxlike = computeMaxLikelihood(incorrect_density, correct_density);
+      double maxlike = computeMaxLikelihood(incorrect_density, correct_density);
       //-------------------------------------------------------------
       // create files for output
       //-------------------------------------------------------------
@@ -147,19 +154,19 @@ namespace OpenMS
       do
       {
         //E-STEP
-        DoubleReal one_minus_sum_posterior = one_minus_sum_post(incorrect_density, correct_density);
-        DoubleReal sum_posterior = sum_post(incorrect_density, correct_density);
+        double one_minus_sum_posterior = one_minus_sum_post(incorrect_density, correct_density);
+        double sum_posterior = sum_post(incorrect_density, correct_density);
 
         //new mean
-        DoubleReal sum_positive_x0 = sum_pos_x0(x_scores, incorrect_density, correct_density);
-        DoubleReal sum_negative_x0 = sum_neg_x0(x_scores, incorrect_density, correct_density);
+        double sum_positive_x0 = sum_pos_x0(x_scores, incorrect_density, correct_density);
+        double sum_negative_x0 = sum_neg_x0(x_scores, incorrect_density, correct_density);
 
-        DoubleReal positive_mean = sum_positive_x0 / one_minus_sum_posterior;
-        DoubleReal negative_mean = sum_negative_x0 / sum_posterior;
+        double positive_mean = sum_positive_x0 / one_minus_sum_posterior;
+        double negative_mean = sum_negative_x0 / sum_posterior;
 
         //new standard deviation
-        DoubleReal sum_positive_sigma = sum_pos_sigma(x_scores, incorrect_density, correct_density, positive_mean);
-        DoubleReal sum_negative_sigma = sum_neg_sigma(x_scores, incorrect_density, correct_density, negative_mean);
+        double sum_positive_sigma = sum_pos_sigma(x_scores, incorrect_density, correct_density, positive_mean);
+        double sum_negative_sigma = sum_neg_sigma(x_scores, incorrect_density, correct_density, negative_mean);
 
         //update parameters
         correctly_assigned_fit_param_.x0 = positive_mean;
@@ -182,7 +189,7 @@ namespace OpenMS
         sum_posterior = sum_post(incorrect_density, correct_density);
         negative_prior_ = sum_posterior / x_scores.size();
 
-        DoubleReal new_maxlike(computeMaxLikelihood(incorrect_density, correct_density));
+        double new_maxlike(computeMaxLikelihood(incorrect_density, correct_density));
         if (boost::math::isnan(new_maxlike - maxlike))
         {
           return false;
@@ -247,15 +254,15 @@ namespace OpenMS
       return true;
     }
 
-    void PosteriorErrorProbabilityModel::fillDensities(vector<double> & x_scores, vector<DoubleReal> & incorrect_density, vector<DoubleReal> & correct_density)
+    void PosteriorErrorProbabilityModel::fillDensities(vector<double> & x_scores, vector<double> & incorrect_density, vector<double> & correct_density)
     {
       if (incorrect_density.size() != x_scores.size())
       {
         incorrect_density.resize(x_scores.size());
         correct_density.resize(x_scores.size());
       }
-      vector<DoubleReal>::iterator incorrect = incorrect_density.begin();
-      vector<DoubleReal>::iterator correct = correct_density.begin();
+      vector<double>::iterator incorrect = incorrect_density.begin();
+      vector<double>::iterator correct = correct_density.begin();
       for (vector<double>::iterator scores = x_scores.begin(); scores != x_scores.end(); ++scores, ++incorrect, ++correct)
       {
         *incorrect = ((this)->*(calc_incorrect_))(*scores, incorrectly_assigned_fit_param_);
@@ -263,92 +270,92 @@ namespace OpenMS
       }
     }
 
-    DoubleReal PosteriorErrorProbabilityModel::computeMaxLikelihood(vector<DoubleReal> & incorrect_density, vector<DoubleReal> & correct_density)
+    double PosteriorErrorProbabilityModel::computeMaxLikelihood(vector<double> & incorrect_density, vector<double> & correct_density)
     {
-      DoubleReal maxlike(0);
-      vector<DoubleReal>::iterator incorrect = incorrect_density.begin();
-      for (vector<DoubleReal>::iterator correct = correct_density.begin(); correct < correct_density.end(); ++correct, ++incorrect)
+      double maxlike(0);
+      vector<double>::iterator incorrect = incorrect_density.begin();
+      for (vector<double>::iterator correct = correct_density.begin(); correct < correct_density.end(); ++correct, ++incorrect)
       {
         maxlike += log10(negative_prior_ * (*incorrect) + (1 - negative_prior_) * (*correct));
       }
       return maxlike;
     }
 
-    DoubleReal PosteriorErrorProbabilityModel::one_minus_sum_post(vector<DoubleReal> & incorrect_density, vector<DoubleReal> & correct_density)
+    double PosteriorErrorProbabilityModel::one_minus_sum_post(vector<double> & incorrect_density, vector<double> & correct_density)
     {
-      DoubleReal one_min(0);
-      vector<DoubleReal>::iterator incorrect = incorrect_density.begin();
-      for (vector<DoubleReal>::iterator correct = correct_density.begin(); correct < correct_density.end(); ++correct, ++incorrect)
+      double one_min(0);
+      vector<double>::iterator incorrect = incorrect_density.begin();
+      for (vector<double>::iterator correct = correct_density.begin(); correct < correct_density.end(); ++correct, ++incorrect)
       {
         one_min +=  1  - ((negative_prior_ * (*incorrect)) / ((negative_prior_ * (*incorrect)) + (1 - negative_prior_) * (*correct)));
       }
       return one_min;
     }
 
-    DoubleReal PosteriorErrorProbabilityModel::sum_post(vector<DoubleReal> & incorrect_density, vector<DoubleReal> & correct_density)
+    double PosteriorErrorProbabilityModel::sum_post(vector<double> & incorrect_density, vector<double> & correct_density)
     {
-      DoubleReal post(0);
-      vector<DoubleReal>::iterator incorrect = incorrect_density.begin();
-      for (vector<DoubleReal>::iterator correct = correct_density.begin(); correct < correct_density.end(); ++correct, ++incorrect)
+      double post(0);
+      vector<double>::iterator incorrect = incorrect_density.begin();
+      for (vector<double>::iterator correct = correct_density.begin(); correct < correct_density.end(); ++correct, ++incorrect)
       {
         post += ((negative_prior_ * (*incorrect)) / ((negative_prior_ * (*incorrect)) + (1 - negative_prior_) * (*correct)));
       }
       return post;
     }
 
-    DoubleReal PosteriorErrorProbabilityModel::sum_pos_x0(vector<double> & x_scores, vector<DoubleReal> & incorrect_density, vector<DoubleReal> & correct_density)
+    double PosteriorErrorProbabilityModel::sum_pos_x0(vector<double> & x_scores, vector<double> & incorrect_density, vector<double> & correct_density)
     {
-      DoubleReal pos_x0(0);
+      double pos_x0(0);
       vector<double>::iterator the_x = x_scores.begin();
-      vector<DoubleReal>::iterator incorrect = incorrect_density.begin();
-      for (vector<DoubleReal>::iterator correct = correct_density.begin(); correct < correct_density.end(); ++correct, ++incorrect, ++the_x)
+      vector<double>::iterator incorrect = incorrect_density.begin();
+      for (vector<double>::iterator correct = correct_density.begin(); correct < correct_density.end(); ++correct, ++incorrect, ++the_x)
       {
         pos_x0 += ((1  - ((negative_prior_ * (*incorrect)) / ((negative_prior_ * (*incorrect)) + (1 - negative_prior_) * (*correct)))) * (*the_x));
       }
       return pos_x0;
     }
 
-    DoubleReal PosteriorErrorProbabilityModel::sum_neg_x0(vector<double> & x_scores, vector<DoubleReal> & incorrect_density, vector<DoubleReal> & correct_density)
+    double PosteriorErrorProbabilityModel::sum_neg_x0(vector<double> & x_scores, vector<double> & incorrect_density, vector<double> & correct_density)
     {
-      DoubleReal neg_x0(0);
+      double neg_x0(0);
       vector<double>::iterator the_x = x_scores.begin();
-      vector<DoubleReal>::iterator correct = correct_density.begin();
-      for (vector<DoubleReal>::iterator incorrect = incorrect_density.begin(); incorrect < incorrect_density.end(); ++correct, ++incorrect, ++the_x)
+      vector<double>::iterator correct = correct_density.begin();
+      for (vector<double>::iterator incorrect = incorrect_density.begin(); incorrect < incorrect_density.end(); ++correct, ++incorrect, ++the_x)
       {
         neg_x0 += ((((negative_prior_ * (*incorrect)) / ((negative_prior_ * (*incorrect)) + (1 - negative_prior_) * (*correct)))) * (*the_x));
       }
       return neg_x0;
     }
 
-    DoubleReal PosteriorErrorProbabilityModel::sum_pos_sigma(vector<double> & x_scores, vector<DoubleReal> & incorrect_density, vector<DoubleReal> & correct_density, DoubleReal positive_mean)
+    double PosteriorErrorProbabilityModel::sum_pos_sigma(vector<double> & x_scores, vector<double> & incorrect_density, vector<double> & correct_density, double positive_mean)
     {
-      DoubleReal pos_sigma(0);
+      double pos_sigma(0);
       vector<double>::iterator the_x = x_scores.begin();
-      vector<DoubleReal>::iterator incorrect = incorrect_density.begin();
-      for (vector<DoubleReal>::iterator correct = correct_density.begin(); correct < correct_density.end(); ++correct, ++incorrect, ++the_x)
+      vector<double>::iterator incorrect = incorrect_density.begin();
+      for (vector<double>::iterator correct = correct_density.begin(); correct < correct_density.end(); ++correct, ++incorrect, ++the_x)
       {
         pos_sigma += ((1  - ((negative_prior_ * (*incorrect)) / ((negative_prior_ * (*incorrect)) + (1 - negative_prior_) * (*correct)))) * pow((*the_x) - positive_mean, 2));
       }
       return pos_sigma;
     }
 
-    DoubleReal PosteriorErrorProbabilityModel::sum_neg_sigma(vector<double> & x_scores, vector<DoubleReal> & incorrect_density, vector<DoubleReal> & correct_density, DoubleReal positive_mean)
+    double PosteriorErrorProbabilityModel::sum_neg_sigma(vector<double> & x_scores, vector<double> & incorrect_density, vector<double> & correct_density, double positive_mean)
     {
-      DoubleReal neg_sigma(0);
+      double neg_sigma(0);
       vector<double>::iterator the_x = x_scores.begin();
-      vector<DoubleReal>::iterator incorrect = incorrect_density.begin();
-      for (vector<DoubleReal>::iterator correct = correct_density.begin(); correct < correct_density.end(); ++correct, ++incorrect, ++the_x)
+      vector<double>::iterator incorrect = incorrect_density.begin();
+      for (vector<double>::iterator correct = correct_density.begin(); correct < correct_density.end(); ++correct, ++incorrect, ++the_x)
       {
         neg_sigma += ((((negative_prior_ * (*incorrect)) / ((negative_prior_ * (*incorrect)) + (1 - negative_prior_) * (*correct)))) * pow((*the_x) - positive_mean, 2));
       }
       return neg_sigma;
     }
 
-    DoubleReal PosteriorErrorProbabilityModel::computeProbability(DoubleReal score)
+    double PosteriorErrorProbabilityModel::computeProbability(double score)
     {
       score = score + fabs(smallest_score_) + 0.001;
-      DoubleReal x_neg;
-      DoubleReal x_pos;
+      double x_neg;
+      double x_pos;
       // the score is smaller than the peak of incorrectly assigned sequences. To ensure that the probabilities wont rise again use the incorrectly assigned peak for computation
       if (score < incorrectly_assigned_fit_param_.x0)
       {

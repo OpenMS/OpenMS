@@ -163,10 +163,6 @@ public:
       defaults_.setMaxFloat("seed:min_score", 1.0);
       defaults_.setSectionDescription("seed", "Settings that determine which peaks are considered a seed");
       //Fitting settings
-      defaults_.setValue("fit:epsilon_abs", 0.0001, "Absolute epsilon used for convergence of the fit.", ListUtils::create<String>("advanced"));
-      defaults_.setMinFloat("fit:epsilon_abs", 0.0);
-      defaults_.setValue("fit:epsilon_rel", 0.0001, "Relative epsilon used for convergence of the fit.", ListUtils::create<String>("advanced"));
-      defaults_.setMinFloat("fit:epsilon_rel", 0.0);
       defaults_.setValue("fit:max_iterations", 500, "Maximum number of iterations of the fit.", ListUtils::create<String>("advanced"));
       defaults_.setMinInt("fit:max_iterations", 1);
       defaults_.setSectionDescription("fit", "Settings for the model fitting");
@@ -222,20 +218,18 @@ public:
       //---------------------------------------------------------------------------
 
       //quality estimation
-      DoubleReal min_feature_score = param_.getValue("feature:min_score");
+      double min_feature_score = param_.getValue("feature:min_score");
       //charges to look at
       SignedSize charge_low = (Int)param_.getValue("isotopic_pattern:charge_low");
       SignedSize charge_high = (Int)param_.getValue("isotopic_pattern:charge_high");
       //fitting settings
       UInt max_iterations = param_.getValue("fit:max_iterations");
-      DoubleReal epsilon_abs = param_.getValue("fit:epsilon_abs");
-      DoubleReal epsilon_rel = param_.getValue("fit:epsilon_rel");
 
       Size max_isotopes = 20;
 
       // check if non-natural isotopic abundances are set. If so modify
-      DoubleReal abundance_12C = param_.getValue("isotopic_pattern:abundance_12C");
-      DoubleReal abundance_14N = param_.getValue("isotopic_pattern:abundance_14N");
+      double abundance_12C = param_.getValue("isotopic_pattern:abundance_12C");
+      double abundance_14N = param_.getValue("isotopic_pattern:abundance_14N");
 
       const Element* carbon_const = ElementDB::getInstance()->getElement("Carbon");
       Element* carbon = const_cast<Element*>(carbon_const);
@@ -269,8 +263,6 @@ public:
       // bug https://sourceforge.net/apps/trac/open-ms/ticket/147
       Param trace_fitter_params;
       trace_fitter_params.setValue("max_iteration", max_iterations);
-      trace_fitter_params.setValue("epsilon_abs", epsilon_abs);
-      trace_fitter_params.setValue("epsilon_rel", epsilon_rel);
 
       //copy the input map
       map_ = *(FeatureFinderAlgorithm<PeakType, FeatureType>::map_);
@@ -281,9 +273,9 @@ public:
       {
         seeds_.sortByMZ();
       }
-      DoubleReal user_rt_tol = param_.getValue("user-seed:rt_tolerance");
-      DoubleReal user_mz_tol = param_.getValue("user-seed:mz_tolerance");
-      DoubleReal user_seed_score = param_.getValue("user-seed:min_score");
+      double user_rt_tol = param_.getValue("user-seed:rt_tolerance");
+      double user_mz_tol = param_.getValue("user-seed:mz_tolerance");
+      double user_seed_score = param_.getValue("user-seed:min_score");
 
       //reserve space for calculated scores
       UInt charge_count = charge_high - charge_low + 1;
@@ -333,22 +325,22 @@ public:
       //new scope to make local variables disappear
       {
         ff_->startProgress(0, intensity_bins_ * intensity_bins_, "Precalculating intensity scores");
-        DoubleReal rt_start = map_.getMinRT();
-        DoubleReal mz_start = map_.getMinMZ();
-        intensity_rt_step_ = (map_.getMaxRT() - rt_start) / (DoubleReal)intensity_bins_;
-        intensity_mz_step_ = (map_.getMaxMZ() - mz_start) / (DoubleReal)intensity_bins_;
+        double rt_start = map_.getMinRT();
+        double mz_start = map_.getMinMZ();
+        intensity_rt_step_ = (map_.getMaxRT() - rt_start) / (double)intensity_bins_;
+        intensity_mz_step_ = (map_.getMaxMZ() - mz_start) / (double)intensity_bins_;
         intensity_thresholds_.resize(intensity_bins_);
         for (Size rt = 0; rt < intensity_bins_; ++rt)
         {
           intensity_thresholds_[rt].resize(intensity_bins_);
-          DoubleReal min_rt = rt_start + rt * intensity_rt_step_;
-          DoubleReal max_rt = rt_start + (rt + 1) * intensity_rt_step_;
-          std::vector<DoubleReal> tmp;
+          double min_rt = rt_start + rt * intensity_rt_step_;
+          double max_rt = rt_start + (rt + 1) * intensity_rt_step_;
+          std::vector<double> tmp;
           for (Size mz = 0; mz < intensity_bins_; ++mz)
           {
             ff_->setProgress(rt * intensity_bins_ + mz);
-            DoubleReal min_mz = mz_start + mz * intensity_mz_step_;
-            DoubleReal max_mz = mz_start + (mz + 1) * intensity_mz_step_;
+            double min_mz = mz_start + mz * intensity_mz_step_;
+            double max_mz = mz_start + (mz + 1) * intensity_mz_step_;
             //std::cout << "rt range: " << min_rt << " - " << max_rt << std::endl;
             //std::cout << "mz range: " << min_mz << " - " << max_mz << std::endl;
             tmp.clear();
@@ -398,11 +390,11 @@ public:
           //iterate over all peaks of the scan
           for (Size p = 0; p < spectrum.size(); ++p)
           {
-            std::vector<DoubleReal> scores;
+            std::vector<double> scores;
             scores.reserve(2 * min_spectra_);
 
-            DoubleReal pos = spectrum[p].getMZ();
-            Real inte = spectrum[p].getIntensity();
+            double pos = spectrum[p].getMZ();
+            float inte = spectrum[p].getIntensity();
 
             //if(debug_) log_ << std::endl << "Peak: " << pos << std::endl;
             bool is_max_peak = true; //checking the maximum intensity peaks -> use them later as feature seeds.
@@ -411,7 +403,7 @@ public:
               try
               {
                 Size spec_index = map_[s + i].findNearest(pos);
-                DoubleReal position_score = positionScore_(pos, map_[s + i][spec_index].getMZ(), trace_tolerance_);
+                double position_score = positionScore_(pos, map_[s + i][spec_index].getMZ(), trace_tolerance_);
                 if (position_score > 0 && map_[s + i][spec_index].getIntensity() > inte) is_max_peak = false;
                 scores.push_back(position_score);
               }
@@ -425,7 +417,7 @@ public:
               try
               {
                 Size spec_index = map_[s - i].findNearest(pos);
-                DoubleReal position_score = positionScore_(pos, map_[s - i][spec_index].getMZ(), trace_tolerance_);
+                double position_score = positionScore_(pos, map_[s - i][spec_index].getMZ(), trace_tolerance_);
                 if (position_score > 0 && map_[s - i][spec_index].getIntensity() > inte) is_max_peak = false;
                 scores.push_back(position_score);
               }
@@ -435,7 +427,7 @@ public:
               }
             }
             //Calculate a consensus score out of the scores calculated before
-            DoubleReal trace_score = std::accumulate(scores.begin(), scores.end(), 0.0) / scores.size();
+            double trace_score = std::accumulate(scores.begin(), scores.end(), 0.0) / scores.size();
 
             //store final score for later use
             map_[s].getFloatDataArrays()[0][p] = trace_score;
@@ -451,7 +443,7 @@ public:
       //---------------------------------------------------------------------------
       //new scope to make local variables disappear
       {
-        DoubleReal max_mass = map_.getMaxMZ() * charge_high;
+        double max_mass = map_.getMaxMZ() * charge_high;
         Size num_isotopes = std::ceil(max_mass / mass_window_width_) + 1;
         ff_->startProgress(0, num_isotopes, "Precalculating isotope distributions");
 
@@ -499,7 +491,7 @@ public:
           isotope_distributions_[index].optional_begin = begin;
           isotope_distributions_[index].optional_end = end;
           //scale the distribution to a maximum of 1
-          DoubleReal max = 0.0;
+          double max = 0.0;
           for (Size i = 0; i < isotope_distributions_[index].intensity.size(); ++i)
           {
             if (isotope_distributions_[index].intensity[i] > max)
@@ -543,23 +535,23 @@ public:
           const SpectrumType& spectrum = map_[s];
           for (Size p = 0; p < spectrum.size(); ++p)
           {
-            DoubleReal mz = spectrum[p].getMZ();
+            double mz = spectrum[p].getMZ();
 
             //get isotope distribution for this mass
             const TheoreticalIsotopePattern& isotopes = getIsotopeDistribution_(mz * c);
             //determine highest peak in isotope distribution
             Size max_isotope = std::max_element(isotopes.intensity.begin(), isotopes.intensity.end()) - isotopes.intensity.begin();
             //Look up expected isotopic peaks (in the current spectrum or adjacent spectra)
-            Size peak_index = spectrum.findNearest(mz - ((DoubleReal)(isotopes.size() + 1) / c));
+            Size peak_index = spectrum.findNearest(mz - ((double)(isotopes.size() + 1) / c));
             IsotopePattern pattern(isotopes.size());
 
             for (Size i = 0; i < isotopes.size(); ++i)
             {
-              DoubleReal isotope_pos = mz + ((DoubleReal)i - max_isotope) / c;
+              double isotope_pos = mz + ((double)i - max_isotope) / c;
               findIsotope_(isotope_pos, s, pattern, i, peak_index);
             }
 
-            DoubleReal pattern_score = isotopeScore_(isotopes, pattern, true);
+            double pattern_score = isotopeScore_(isotopes, pattern, true);
 
             //update pattern scores of all contained peaks (if necessary)
             if (pattern_score > 0.0)
@@ -582,7 +574,7 @@ public:
         Size end_of_iteration = map_.size() - std::min((Size) min_spectra_, map_.size());
         ff_->startProgress(min_spectra_, end_of_iteration, String("Finding seeds for charge ") + String(c));
 
-        DoubleReal min_seed_score = param_.getValue("seed:min_score");
+        double min_seed_score = param_.getValue("seed:min_score");
         //do nothing for the first few and last few spectra as the scans required to search for traces are missing
         for (Size s = min_spectra_; s < end_of_iteration; ++s)
         {
@@ -592,7 +584,7 @@ public:
           for (Size p = 0; p < map_[s].size(); ++p)
           {
             FloatDataArrays& meta = map_[s].getFloatDataArrays();
-            DoubleReal overall_score = std::pow(meta[0][p] * meta[1][p] * meta[meta_index_isotope][p], 1.0f / 3.0f);
+            double overall_score = std::pow(meta[0][p] * meta[1][p] * meta[meta_index_isotope][p], 1.0f / 3.0f);
             meta[meta_index_overall][p] = overall_score;
 
             //add seed to vector if certain conditions are fulfilled
@@ -711,7 +703,7 @@ public:
           //----------------------------------------------------------------
           //Find best fitting isotope pattern for this charge (using averagine)
           IsotopePattern best_pattern(0);
-          DoubleReal isotope_fit_quality = findBestIsotopeFit_(seeds[i], c, best_pattern);
+          double isotope_fit_quality = findBestIsotopeFit_(seeds[i], c, best_pattern);
 
           if (isotope_fit_quality < min_isotope_fit_)
           {
@@ -727,7 +719,7 @@ public:
             extendMassTraces_(best_pattern, traces, meta_index_overall);
 
             //check if the traces are still valid
-            DoubleReal seed_mz = map_[seeds[i].spectrum][seeds[i].peak].getMZ();
+            double seed_mz = map_[seeds[i].spectrum][seeds[i].peak].getMZ();
 
             if (!traces.isValid(seed_mz, trace_tolerance_))
             {
@@ -770,8 +762,6 @@ public:
               TraceFitter<PeakType>* alt_fitter = new GaussTraceFitter<PeakType>();
               Param alt_p;
               alt_p.setValue("max_iteration", max_iterations);
-              alt_p.setValue("epsilon_abs", epsilon_abs);
-              alt_p.setValue("epsilon_rel", epsilon_rel);
 
               alt_fitter->setParameters(alt_p);
               alt_fitter->fit(traces);
@@ -800,9 +790,9 @@ public:
               //------------------------------------------------------------------
               String error_msg = "";
 
-              DoubleReal fit_score = 0.0;
-              DoubleReal correlation = 0.0;
-              DoubleReal final_score = 0.0;
+              double fit_score = 0.0;
+              double correlation = 0.0;
+              double final_score = 0.0;
 
               bool feature_ok = checkFeatureQuality_(fitter, new_traces, seed_mz, min_feature_score, error_msg, fit_score, correlation, final_score);
 #ifdef _OPENMP
@@ -857,8 +847,8 @@ public:
                 }
                 else if (reported_mz_ == "average")
                 {
-                  DoubleReal total_intensity = 0.0;
-                  DoubleReal average_mz = 0.0;
+                  double total_intensity = 0.0;
+                  double average_mz = 0.0;
                   for (Size t = 0; t < traces.size(); ++t)
                   {
                     for (Size p = 0; p < traces[t].peaks.size(); ++p)
@@ -872,7 +862,7 @@ public:
                 }
                 else if (reported_mz_ == "monoisotopic")
                 {
-                  DoubleReal mono_mz = traces[traces.getTheoreticalmaxPosition()].getAvgMZ();
+                  double mono_mz = traces[traces.getTheoreticalmaxPosition()].getAvgMZ();
                   mono_mz -= (Constants::PROTON_MASS_U / c) * (traces.getTheoreticalmaxPosition() + best_pattern.theoretical_pattern.trimmed_left);
                   f.setMZ(mono_mz);
                 }
@@ -903,8 +893,8 @@ public:
                 DBoundingBox<2> bb = f.getConvexHull().getBoundingBox();
                 for (Size j = i + 1; j < seeds.size(); ++j)
                 {
-                  DoubleReal rt = map_[seeds[j].spectrum].getRT();
-                  DoubleReal mz = map_[seeds[j].spectrum][seeds[j].peak].getMZ();
+                  double rt = map_[seeds[j].spectrum].getRT();
+                  double mz = map_[seeds[j].spectrum][seeds[j].peak].getMZ();
                   if (bb.encloses(rt, mz) && f.encloses(rt, mz))
                   {
 #ifdef _OPENMP
@@ -966,7 +956,7 @@ public:
       features_->sortByMZ();
       //precalculate BBs and maximum mz span
       std::vector<DBoundingBox<2> > bbs(features_->size());
-      DoubleReal max_mz_span = 0.0;
+      double max_mz_span = 0.0;
 
       for (Size i = 0; i < features_->size(); ++i)
       {
@@ -993,7 +983,7 @@ public:
           //do nothing if the overall convex hulls do not overlap
           if (!bbs[i].intersects(bbs[j])) continue;
           //act depending on the intersection
-          DoubleReal intersection = intersection_(f1, f2);
+          double intersection = intersection_(f1, f2);
 
           if (intersection >= max_feature_intersection_)
           {
@@ -1124,32 +1114,32 @@ protected:
 
     /// @name Members for parameters often needed in methods
     //@{
-    DoubleReal pattern_tolerance_; ///< Stores mass_trace:mz_tolerance
-    DoubleReal trace_tolerance_; ///< Stores isotopic_pattern:mz_tolerance
+    double pattern_tolerance_; ///< Stores mass_trace:mz_tolerance
+    double trace_tolerance_; ///< Stores isotopic_pattern:mz_tolerance
     UInt min_spectra_; ///< Number of spectra that have to show the same mass (for finding a mass trace)
     UInt max_missing_trace_peaks_; ///< Stores mass_trace:max_missing
-    DoubleReal slope_bound_; ///< Max slope of mass trace intensities
-    DoubleReal intensity_percentage_; ///< Isotope pattern intensity contribution of required peaks
-    DoubleReal intensity_percentage_optional_; ///< Isotope pattern intensity contribution of optional peaks
-    DoubleReal optional_fit_improvement_; ///< Minimal improvement for leaving out optional isotope
-    DoubleReal mass_window_width_; ///< Width of the isotope pattern mass bins
+    double slope_bound_; ///< Max slope of mass trace intensities
+    double intensity_percentage_; ///< Isotope pattern intensity contribution of required peaks
+    double intensity_percentage_optional_; ///< Isotope pattern intensity contribution of optional peaks
+    double optional_fit_improvement_; ///< Minimal improvement for leaving out optional isotope
+    double mass_window_width_; ///< Width of the isotope pattern mass bins
     UInt intensity_bins_; ///< Number of bins (in RT and MZ) for intensity significance estimation
-    DoubleReal min_isotope_fit_; ///< Minimum isotope pattern fit for a feature
-    DoubleReal min_trace_score_; ///< Minimum quality of a traces
-    DoubleReal min_rt_span_; ///< Minimum RT range that has to be left after the fit
-    DoubleReal max_rt_span_; ///< Maximum RT range the model is allowed to span
-    DoubleReal max_feature_intersection_; ///< Maximum allowed feature intersection (if larger, that one of the feature is removed)
+    double min_isotope_fit_; ///< Minimum isotope pattern fit for a feature
+    double min_trace_score_; ///< Minimum quality of a traces
+    double min_rt_span_; ///< Minimum RT range that has to be left after the fit
+    double max_rt_span_; ///< Maximum RT range the model is allowed to span
+    double max_feature_intersection_; ///< Maximum allowed feature intersection (if larger, that one of the feature is removed)
     String reported_mz_; ///< The mass type that is reported for features. 'maximum' returns the m/z value of the highest mass trace. 'average' returns the intensity-weighted average m/z value of all contained peaks. 'monoisotopic' returns the monoisotopic m/z value derived from the fitted isotope model.
     //@}
 
     /// @name Members for intensity significance estimation
     //@{
     /// RT bin width
-    DoubleReal intensity_rt_step_;
+    double intensity_rt_step_;
     /// m/z bin width
-    DoubleReal intensity_mz_step_;
+    double intensity_mz_step_;
     /// Precalculated intensity 20-quantiles (binned)
-    std::vector<std::vector<std::vector<DoubleReal> > > intensity_thresholds_;
+    std::vector<std::vector<std::vector<double> > > intensity_thresholds_;
     //@}
 
     ///Vector of precalculated isotope distributions for several mass windows
@@ -1160,12 +1150,12 @@ protected:
     {
       pattern_tolerance_ = param_.getValue("mass_trace:mz_tolerance");
       trace_tolerance_ = param_.getValue("isotopic_pattern:mz_tolerance");
-      min_spectra_ = (UInt) std::floor((DoubleReal)param_.getValue("mass_trace:min_spectra") * 0.5);
+      min_spectra_ = (UInt) std::floor((double)param_.getValue("mass_trace:min_spectra") * 0.5);
       max_missing_trace_peaks_ = param_.getValue("mass_trace:max_missing");
       slope_bound_ = param_.getValue("mass_trace:slope_bound");
-      intensity_percentage_ = (DoubleReal)param_.getValue("isotopic_pattern:intensity_percentage") / 100.0;
-      intensity_percentage_optional_ = (DoubleReal)param_.getValue("isotopic_pattern:intensity_percentage_optional") / 100.0;
-      optional_fit_improvement_ = (DoubleReal)param_.getValue("isotopic_pattern:optional_fit_improvement") / 100.0;
+      intensity_percentage_ = (double)param_.getValue("isotopic_pattern:intensity_percentage") / 100.0;
+      intensity_percentage_optional_ = (double)param_.getValue("isotopic_pattern:intensity_percentage_optional") / 100.0;
+      optional_fit_improvement_ = (double)param_.getValue("isotopic_pattern:optional_fit_improvement") / 100.0;
       mass_window_width_ = param_.getValue("isotopic_pattern:mass_window_width");
       intensity_bins_ =  param_.getValue("intensity:bins");
       min_isotope_fit_ = param_.getValue("feature:min_isotope_fit");
@@ -1188,10 +1178,10 @@ protected:
      * Calculates the intersection between features.
      * The value is normalized by the size of the smaller feature, so it ranges from 0 to 1.
      */
-    DoubleReal intersection_(const Feature& f1, const Feature& f2) const
+    double intersection_(const Feature& f1, const Feature& f2) const
     {
       //calculate the RT range sum of feature 1
-      DoubleReal s1 = 0.0;
+      double s1 = 0.0;
       const std::vector<ConvexHull2D>& hulls1 = f1.getConvexHulls();
       for (Size i = 0; i < hulls1.size(); ++i)
       {
@@ -1199,7 +1189,7 @@ protected:
       }
 
       //calculate the RT range sum of feature 2
-      DoubleReal s2 = 0.0;
+      double s2 = 0.0;
       const std::vector<ConvexHull2D>& hulls2 = f2.getConvexHulls();
       for (Size j = 0; j < hulls2.size(); ++j)
       {
@@ -1207,7 +1197,7 @@ protected:
       }
 
       //calculate overlap
-      DoubleReal overlap = 0.0;
+      double overlap = 0.0;
       for (Size i = 0; i < hulls1.size(); ++i)
       {
         DBoundingBox<2> bb1 = hulls1[i].getBoundingBox();
@@ -1244,7 +1234,7 @@ protected:
     }
 
     /// Returns the isotope distribution for a certain mass window
-    const TheoreticalIsotopePattern& getIsotopeDistribution_(DoubleReal mass) const
+    const TheoreticalIsotopePattern& getIsotopeDistribution_(double mass) const
     {
       //calculate index in the vector
       Size index = (Size) std::floor(mass / mass_window_width_);
@@ -1265,7 +1255,7 @@ protected:
       @param charge The charge of the pattern
       @param best_pattern Returns the indices of the isotopic peaks. If a isotopic peak is missing -1 is returned.
     */
-    DoubleReal findBestIsotopeFit_(const Seed& center, UInt charge, IsotopePattern& best_pattern) const
+    double findBestIsotopeFit_(const Seed& center, UInt charge, IsotopePattern& best_pattern) const
     {
       if (debug_) log_ << "Testing isotope patterns for charge " << charge << ": " << std::endl;
       const SpectrumType& spectrum = map_[center.spectrum];
@@ -1273,7 +1263,7 @@ protected:
       if (debug_) log_ << " - Seed: " << center.peak << " (mz:" << spectrum[center.peak].getMZ() << ")" << std::endl;
 
       //Find m/z boundaries of search space (linear search as this is local and we have the center already)
-      DoubleReal mass_window = (DoubleReal)(isotopes.size() + 1) / (DoubleReal)charge;
+      double mass_window = (double)(isotopes.size() + 1) / (double)charge;
       if (debug_) log_ << " - Mass window: " << mass_window << std::endl;
       Size end = center.peak;
       while (end < spectrum.size() &&
@@ -1295,7 +1285,7 @@ protected:
       if (debug_) log_ << " - End: " << end << " (mz:" << spectrum[end].getMZ() << ")" << std::endl;
 
       //fit isotope distribution to peaks
-      DoubleReal max_score = 0.0;
+      double max_score = 0.0;
       for (Size start = begin; start <= end; ++start)
       {
         //find isotope peaks for the current start peak
@@ -1304,7 +1294,7 @@ protected:
         if (debug_) log_ << " - Fitting at " << start << " (mz:" << spectrum[start].getMZ() << ")" << std::endl;
         for (Size iso = 0; iso < isotopes.size(); ++iso)
         {
-          DoubleReal pos = spectrum[start].getMZ() + iso / (DoubleReal)charge;
+          double pos = spectrum[start].getMZ() + iso / (double)charge;
           findIsotope_(pos, center.spectrum, pattern, iso, peak_index);
         }
 
@@ -1324,7 +1314,7 @@ protected:
           continue;
         }
 
-        DoubleReal score = isotopeScore_(isotopes, pattern, false);
+        double score = isotopeScore_(isotopes, pattern, false);
 
         //check if the seed is still contained, otherwise abort
         seed_contained = false;
@@ -1365,7 +1355,7 @@ protected:
     void extendMassTraces_(const IsotopePattern& pattern, MassTraces& traces, Size meta_index_overall) const
     {
       //find index of the trace with the maximum intensity
-      DoubleReal max_int =  0.0;
+      double max_int =  0.0;
       Size max_trace_index = 0;
       for (Size p = 0; p < pattern.peak.size(); ++p)
       {
@@ -1380,8 +1370,8 @@ protected:
       //extend the maximum intensity trace to determine the boundaries in RT dimension
       Size start_index = pattern.spectrum[max_trace_index];
       const PeakType* start_peak = &(map_[pattern.spectrum[max_trace_index]][pattern.peak[max_trace_index]]);
-      DoubleReal start_mz = start_peak->getMZ();
-      DoubleReal start_rt = map_[start_index].getRT();
+      double start_mz = start_peak->getMZ();
+      double start_rt = map_[start_index].getRT();
       if (debug_) log_ << " - Trace " << max_trace_index << " (maximum intensity)" << std::endl;
       if (debug_) log_ << "   - extending from: " << map_[start_index].getRT() << " / " << start_mz << " (int: " << start_peak->getIntensity() << ")" << std::endl;
       //initialize the trace and extend
@@ -1390,8 +1380,8 @@ protected:
       extendMassTrace_(max_trace, start_index, start_mz, false, meta_index_overall);
       extendMassTrace_(max_trace, start_index, start_mz, true, meta_index_overall);
 
-      DoubleReal rt_max = max_trace.peaks.back().first;
-      DoubleReal rt_min = max_trace.peaks.begin()->first;
+      double rt_max = max_trace.peaks.back().first;
+      double rt_min = max_trace.peaks.begin()->first;
       if (debug_) log_ << "   - rt bounds: " << rt_min << "-" << rt_max << std::endl;
       //Abort if too few peak were found
       if (!max_trace.isValid() || max_trace.peaks.size() < 2 * min_spectra_ - max_missing_trace_peaks_)
@@ -1429,8 +1419,8 @@ protected:
         //search for nearby maximum of the mass trace as the extension assumes that it starts at the maximum
         Size begin = std::max((Size)0, starting_peak.spectrum - min_spectra_);
         Size end = std::min(starting_peak.spectrum + min_spectra_, (Size)map_.size());
-        DoubleReal mz = map_[starting_peak.spectrum][starting_peak.peak].getMZ();
-        DoubleReal inte = map_[starting_peak.spectrum][starting_peak.peak].getIntensity();
+        double mz = map_[starting_peak.spectrum][starting_peak.peak].getMZ();
+        double inte = map_[starting_peak.spectrum][starting_peak.peak].getIntensity();
         for (Size spectrum_index = begin; spectrum_index < end; ++spectrum_index)
         {
           //find better seeds (no-empty scan/low mz diff/higher intensity)
@@ -1505,7 +1495,7 @@ protected:
       @note This method assumes that it extends from a local maximum.
       @note If @c min_rt or @c max_rt are set to 0.0 no boundary is assumed in the respective direction.
     */
-    void extendMassTrace_(MassTrace& trace, SignedSize spectrum_index, DoubleReal mz, bool increase_rt, Size meta_index_overall, DoubleReal min_rt = 0.0, DoubleReal max_rt = 0.0) const
+    void extendMassTrace_(MassTrace& trace, SignedSize spectrum_index, double mz, bool increase_rt, Size meta_index_overall, double min_rt = 0.0, double max_rt = 0.0) const
     {
       //Reverse peaks if we run the method for the second time (to keep them in chronological order)
       if (increase_rt)
@@ -1526,12 +1516,12 @@ protected:
       }
 
       //Relax slope threshold if there is a hard boundary for the extension
-      DoubleReal current_slope_bound = (1.0 + (DoubleReal)boundaries) * slope_bound_;
+      double current_slope_bound = (1.0 + (double)boundaries) * slope_bound_;
 
       Size delta_count = min_spectra_;
-      std::vector<DoubleReal> deltas(delta_count - 1, 0);
+      std::vector<double> deltas(delta_count - 1, 0);
 
-      DoubleReal last_observed_intensity = trace.peaks.back().second->getIntensity();
+      double last_observed_intensity = trace.peaks.back().second->getIntensity();
 
       UInt missing_peaks = 0;
       Size peaks_before_extension = trace.peaks.size();
@@ -1586,7 +1576,7 @@ protected:
           last_observed_intensity = map_[spectrum_index][peak_index].getIntensity();
 
           //Abort if the average delta is too big (as intensity increases then)
-          DoubleReal average_delta = std::accumulate(deltas.end() - delta_count, deltas.end(), 0.0) / (DoubleReal)delta_count;
+          double average_delta = std::accumulate(deltas.end() - delta_count, deltas.end(), 0.0) / (double)delta_count;
           if (average_delta > current_slope_bound)
           {
             abort_reason = String("Average delta above threshold: ") + average_delta + "/" + current_slope_bound;
@@ -1607,14 +1597,14 @@ protected:
 
     /// Returns the index of the peak nearest to m/z @p pos in spectrum @p spec (linear search starting from index @p start)
     template <typename SpectrumType>
-    Size nearest_(DoubleReal pos, const SpectrumType& spec, Size start) const
+    Size nearest_(double pos, const SpectrumType& spec, Size start) const
     {
       Size index = start;
-      DoubleReal distance = std::fabs(pos - spec[index].getMZ());
+      double distance = std::fabs(pos - spec[index].getMZ());
       ++index;
       while (index < spec.size())
       {
-        DoubleReal new_distance = std::fabs(pos - spec[index].getMZ());
+        double new_distance = std::fabs(pos - spec[index].getMZ());
         if (new_distance < distance)
         {
           distance = new_distance;
@@ -1637,18 +1627,18 @@ protected:
       @param pattern_index index of the isotope in the pattern
       @param peak_index starting index of the search (to avoid multiple binary searches)
     */
-    void findIsotope_(DoubleReal pos, Size spectrum_index, IsotopePattern& pattern, Size pattern_index, Size& peak_index) const
+    void findIsotope_(double pos, Size spectrum_index, IsotopePattern& pattern, Size pattern_index, Size& peak_index) const
     {
       if (debug_) log_ << "   - Isotope " << pattern_index << ": ";
 
-      DoubleReal intensity = 0.0;
-      DoubleReal pos_score = 0.0;
+      double intensity = 0.0;
+      double pos_score = 0.0;
       UInt matches = 0;
 
       //search in the center spectrum
       const SpectrumType& spectrum = map_[spectrum_index];
       peak_index = nearest_(pos, spectrum, peak_index);
-      DoubleReal mz_score = positionScore_(pos, spectrum[peak_index].getMZ(), pattern_tolerance_);
+      double mz_score = positionScore_(pos, spectrum[peak_index].getMZ(), pattern_tolerance_);
       pattern.theoretical_mz[pattern_index] = pos;
 
       if (mz_score != 0.0)
@@ -1666,7 +1656,7 @@ protected:
       {
         const SpectrumType& spectrum_before = map_[spectrum_index - 1];
         Size index_before = spectrum_before.findNearest(pos);
-        DoubleReal mz_score = positionScore_(pos, spectrum_before[index_before].getMZ(), pattern_tolerance_);
+        double mz_score = positionScore_(pos, spectrum_before[index_before].getMZ(), pattern_tolerance_);
         if (mz_score != 0.0)
         {
           if (debug_) log_ << String::number(spectrum_before[index_before].getIntensity(), 1) << "b ";
@@ -1686,7 +1676,7 @@ protected:
       {
         const SpectrumType& spectrum_after = map_[spectrum_index + 1];
         Size index_after = spectrum_after.findNearest(pos);
-        DoubleReal mz_score = positionScore_(pos, spectrum_after[index_after].getMZ(), pattern_tolerance_);
+        double mz_score = positionScore_(pos, spectrum_after[index_after].getMZ(), pattern_tolerance_);
         if (mz_score != 0.0)
         {
           if (debug_) log_ << String::number(spectrum_after[index_after].getIntensity(), 1) << "a ";
@@ -1718,9 +1708,9 @@ protected:
     }
 
     /// Calculates a score between 0 and 1 for the m/z deviation of two peaks.
-    DoubleReal positionScore_(DoubleReal pos1, DoubleReal pos2, DoubleReal allowed_deviation) const
+    double positionScore_(double pos1, double pos2, double allowed_deviation) const
     {
-      DoubleReal diff = fabs(pos1 - pos2);
+      double diff = fabs(pos1 - pos2);
       if (diff <= 0.5 * allowed_deviation)
       {
         return 0.1 * (0.5 * allowed_deviation - diff) / (0.5 * allowed_deviation) + 0.9;
@@ -1733,7 +1723,7 @@ protected:
     }
 
     /// Calculates a score between 0 and 1 for the correlation between theoretical and found isotope pattern
-    DoubleReal isotopeScore_(const TheoreticalIsotopePattern& isotopes, IsotopePattern& pattern, bool consider_mz_distances) const
+    double isotopeScore_(const TheoreticalIsotopePattern& isotopes, IsotopePattern& pattern, bool consider_mz_distances) const
     {
       if (debug_) log_ << "   - fitting " << pattern.intensity.size() << " peaks" << std::endl;
       //Abort if a core peak is missing
@@ -1748,7 +1738,7 @@ protected:
       //Find best isotope fit
       // - try to leave out optional isotope peaks to improve the fit
       // - do not allow gaps inside the pattern
-      DoubleReal best_int_score = 0.01; //Not 0 as this would result in problems when checking for the percental improvement
+      double best_int_score = 0.01; //Not 0 as this would result in problems when checking for the percental improvement
       Size best_begin = 0;
       for (Size i = isotopes.optional_begin; i > 0; --i)
       {
@@ -1777,7 +1767,7 @@ protected:
                                               e == best_end &&
                                               isotopes.size() - b - e > 1))
           {
-            DoubleReal int_score = Math::pearsonCorrelationCoefficient(isotopes.intensity.begin() + b, isotopes.intensity.end() - e, pattern.intensity.begin() + b, pattern.intensity.end() - e);
+            double int_score = Math::pearsonCorrelationCoefficient(isotopes.intensity.begin() + b, isotopes.intensity.end() - e, pattern.intensity.begin() + b, pattern.intensity.end() - e);
             if (boost::math::isnan(int_score)) int_score = 0.0;
             if (isotopes.size() - b - e == 2 && int_score > min_isotope_fit_) int_score = min_isotope_fit_; //special case for the first loop iteration (otherwise the score is 1)
             if (debug_) log_ << "   - fit (" << b << "/" << e << "): " << int_score;
@@ -1835,14 +1825,14 @@ protected:
       @param spectrum Index of the spectrum we are currently looking at
       @param peak Index of the peak that should be scored inside the spectrum @p spectrum
     */
-    DoubleReal intensityScore_(Size spectrum, Size peak) const
+    double intensityScore_(Size spectrum, Size peak) const
     {
       // calculate (half) bin numbers
-      DoubleReal intensity  = map_[spectrum][peak].getIntensity();
-      DoubleReal rt = map_[spectrum].getRT();
-      DoubleReal mz = map_[spectrum][peak].getMZ();
-      DoubleReal rt_min = map_.getMinRT();
-      DoubleReal mz_min = map_.getMinMZ();
+      double intensity  = map_[spectrum][peak].getIntensity();
+      double rt = map_[spectrum].getRT();
+      double mz = map_[spectrum][peak].getMZ();
+      double rt_min = map_.getMinRT();
+      double mz_min = map_.getMinMZ();
       UInt rt_bin = std::min(2 * intensity_bins_ - 1, (UInt) std::floor((rt - rt_min) / intensity_rt_step_ * 2.0));
       UInt mz_bin = std::min(2 * intensity_bins_ - 1, (UInt) std::floor((mz - mz_min) / intensity_mz_step_ * 2.0));
       // determine mz bins
@@ -1880,20 +1870,20 @@ protected:
         rh = rt_bin / 2;
       }
       // calculate distances to surrounding bin centers (normalized to [0,1])
-      DoubleReal drl = std::fabs(rt_min + (0.5 + rl) * intensity_rt_step_ - rt) / intensity_rt_step_;
-      DoubleReal drh = std::fabs(rt_min + (0.5 + rh) * intensity_rt_step_ - rt) / intensity_rt_step_;
-      DoubleReal dml = std::fabs(mz_min + (0.5 + ml) * intensity_mz_step_ - mz) / intensity_mz_step_;
-      DoubleReal dmh = std::fabs(mz_min + (0.5 + mh) * intensity_mz_step_ - mz) / intensity_mz_step_;
+      double drl = std::fabs(rt_min + (0.5 + rl) * intensity_rt_step_ - rt) / intensity_rt_step_;
+      double drh = std::fabs(rt_min + (0.5 + rh) * intensity_rt_step_ - rt) / intensity_rt_step_;
+      double dml = std::fabs(mz_min + (0.5 + ml) * intensity_mz_step_ - mz) / intensity_mz_step_;
+      double dmh = std::fabs(mz_min + (0.5 + mh) * intensity_mz_step_ - mz) / intensity_mz_step_;
       // Calculate weights for the intensity scores based on the distances to the
       // bin center(the nearer to better)
-      DoubleReal d1 = std::sqrt(std::pow(1.0 - drl, 2) + std::pow(1.0 - dml, 2));
-      DoubleReal d2 = std::sqrt(std::pow(1.0 - drh, 2) + std::pow(1.0 - dml, 2));
-      DoubleReal d3 = std::sqrt(std::pow(1.0 - drl, 2) + std::pow(1.0 - dmh, 2));
-      DoubleReal d4 = std::sqrt(std::pow(1.0 - drh, 2) + std::pow(1.0 - dmh, 2));
-      DoubleReal d_sum = d1 + d2 + d3 + d4;
+      double d1 = std::sqrt(std::pow(1.0 - drl, 2) + std::pow(1.0 - dml, 2));
+      double d2 = std::sqrt(std::pow(1.0 - drh, 2) + std::pow(1.0 - dml, 2));
+      double d3 = std::sqrt(std::pow(1.0 - drl, 2) + std::pow(1.0 - dmh, 2));
+      double d4 = std::sqrt(std::pow(1.0 - drh, 2) + std::pow(1.0 - dmh, 2));
+      double d_sum = d1 + d2 + d3 + d4;
       // Final score .. intensityScore in the surrounding bins, weighted by the distance of the
       // bin center to the peak
-      DoubleReal final = intensityScore_(rl, ml, intensity) * (d1 / d_sum)
+      double final = intensityScore_(rl, ml, intensity) * (d1 / d_sum)
                          + intensityScore_(rh, ml, intensity) * (d2 / d_sum)
                          + intensityScore_(rl, mh, intensity) * (d3 / d_sum)
                          + intensityScore_(rh, mh, intensity) * (d4 / d_sum);
@@ -1925,19 +1915,19 @@ protected:
       }
     }
 
-    DoubleReal intensityScore_(Size rt_bin, Size mz_bin, DoubleReal intensity) const
+    double intensityScore_(Size rt_bin, Size mz_bin, double intensity) const
     {
       // interpolate score value according to quantiles(20)
-      const std::vector<DoubleReal>& quantiles20 = intensity_thresholds_[rt_bin][mz_bin];
+      const std::vector<double>& quantiles20 = intensity_thresholds_[rt_bin][mz_bin];
       // get iterator pointing to quantile that is >= intensity
-      std::vector<DoubleReal>::const_iterator it = std::lower_bound(quantiles20.begin(), quantiles20.end(), intensity);
+      std::vector<double>::const_iterator it = std::lower_bound(quantiles20.begin(), quantiles20.end(), intensity);
       // bigger than the biggest value => return 1.0
       if (it == quantiles20.end())
       {
         return 1.0;
       }
       // interpolate inside the bin
-      DoubleReal bin_score = 0.0;
+      double bin_score = 0.0;
       if (it == quantiles20.begin())
       {
         bin_score = 0.05 * intensity / *it;
@@ -1948,7 +1938,7 @@ protected:
         bin_score = 0.05 * (intensity - *(it - 1)) / (*it - *(it - 1));
       }
 
-      DoubleReal final = bin_score +
+      double final = bin_score +
                          0.05 * ((it - quantiles20.begin()) - 1.0); // determine position of lower bound in the vector
 
       //fix numerical problems
@@ -1978,8 +1968,8 @@ protected:
                       const MassTraces& traces,
                       MassTraces& new_traces)
     {
-      DoubleReal low_bound = fitter->getLowerRTBound();
-      DoubleReal high_bound = fitter->getUpperRTBound();
+      double low_bound = fitter->getLowerRTBound();
+      double high_bound = fitter->getUpperRTBound();
 
       if (debug_) log_ << "    => RT bounds: " << low_bound << " - " << high_bound << std::endl;
       for (Size t = 0; t < traces.size(); ++t)
@@ -1989,8 +1979,8 @@ protected:
 
         MassTrace new_trace;
         //compute average relative deviation and correlation
-        DoubleReal deviation = 0.0;
-        std::vector<DoubleReal> v_theo, v_real;
+        double deviation = 0.0;
+        std::vector<double> v_theo, v_real;
         for (Size k = 0; k < trace.peaks.size(); ++k)
         {
           //consider peaks when inside RT bounds only
@@ -1998,17 +1988,17 @@ protected:
           {
             new_trace.peaks.push_back(trace.peaks[k]);
 
-            DoubleReal theo = traces.baseline + fitter->computeTheoretical(trace, k);
+            double theo = traces.baseline + fitter->computeTheoretical(trace, k);
 
             v_theo.push_back(theo);
-            DoubleReal real = trace.peaks[k].second->getIntensity();
+            double real = trace.peaks[k].second->getIntensity();
             v_real.push_back(real);
             deviation += std::fabs(real - theo) / theo;
           }
         }
-        DoubleReal fit_score = 0.0;
-        DoubleReal correlation = 0.0;
-        DoubleReal final_score = 0.0;
+        double fit_score = 0.0;
+        double correlation = 0.0;
+        double final_score = 0.0;
         if (!new_trace.peaks.empty())
         {
           fit_score = deviation / new_trace.peaks.size();
@@ -2077,8 +2067,8 @@ protected:
      */
     bool checkFeatureQuality_(TraceFitter<PeakType>* fitter,
                               MassTraces& feature_traces,
-                              const DoubleReal& seed_mz, const DoubleReal& min_feature_score,
-                              String& error_msg, DoubleReal& fit_score, DoubleReal& correlation, DoubleReal& final_score)
+                              const double& seed_mz, const double& min_feature_score,
+                              String& error_msg, double& fit_score, double& correlation, double& final_score)
     {
       bool feature_ok = true;
 
@@ -2103,7 +2093,7 @@ protected:
       //check if x0 is inside feature bounds
       if (feature_ok)
       {
-        std::pair<DoubleReal, DoubleReal> rt_bounds = feature_traces.getRTBounds();
+        std::pair<double, double> rt_bounds = feature_traces.getRTBounds();
         if (fitter->getCenter() < rt_bounds.first || fitter->getCenter() > rt_bounds.second)
         {
           feature_ok = false;
@@ -2114,7 +2104,7 @@ protected:
       //check if the remaining traces fill out at least 'min_rt_span' of the RT span
       if (feature_ok)
       {
-        std::pair<DoubleReal, DoubleReal> rt_bounds = feature_traces.getRTBounds();
+        std::pair<double, double> rt_bounds = feature_traces.getRTBounds();
         if (fitter->checkMinimalRTSpan(rt_bounds, min_rt_span_))
         {
           feature_ok = false;
@@ -2125,17 +2115,17 @@ protected:
       //check if feature quality is high enough (average relative deviation and correlation of the whole feature)
       if (feature_ok)
       {
-        std::vector<DoubleReal> v_theo, v_real;
-        DoubleReal deviation = 0.0;
+        std::vector<double> v_theo, v_real;
+        double deviation = 0.0;
         for (Size t = 0; t < feature_traces.size(); ++t)
         {
           MassTrace& trace = feature_traces[t];
           for (Size k = 0; k < trace.peaks.size(); ++k)
           {
-            // was DoubleReal theo = new_traces.baseline + trace.theoretical_int *  height * exp(-0.5 * pow(trace.peaks[k].first - x0, 2) / pow(sigma, 2) );
-            DoubleReal theo = feature_traces.baseline + fitter->computeTheoretical(trace, k);
+            // was double theo = new_traces.baseline + trace.theoretical_int *  height * exp(-0.5 * pow(trace.peaks[k].first - x0, 2) / pow(sigma, 2) );
+            double theo = feature_traces.baseline + fitter->computeTheoretical(trace, k);
             v_theo.push_back(theo);
-            DoubleReal real = trace.peaks[k].second->getIntensity();
+            double real = trace.peaks[k].second->getIntensity();
             v_real.push_back(real);
             deviation += std::fabs(real - theo) / theo;
           }
@@ -2179,11 +2169,11 @@ protected:
     void writeFeatureDebugInfo_(TraceFitter<PeakType>* fitter,
                                 const MassTraces& traces,
                                 const MassTraces& new_traces,
-                                bool feature_ok, const String error_msg, const DoubleReal final_score, const Int plot_nr, const PeakType& peak,
+                                bool feature_ok, const String error_msg, const double final_score, const Int plot_nr, const PeakType& peak,
                                 const String path  = "debug/features/")
     {
 
-      DoubleReal pseudo_rt_shift = param_.getValue("debug:pseudo_rt_shift");
+      double pseudo_rt_shift = param_.getValue("debug:pseudo_rt_shift");
       TextFile tf;
       //gnuplot script
       String script = String("plot \"") + path + plot_nr + ".dta\" title 'before fit (RT: " +  String::number(fitter->getCenter(), 2) + " m/z: " +  String::number(peak.getMZ(), 4) + ")' with points 1";

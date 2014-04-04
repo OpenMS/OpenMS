@@ -2,10 +2,10 @@
 
     def transform(self, bytes path, transformer):
         cdef _String path_string = _String(<char *>path)
-        assert hasattr(transformer, "consumeSpectrum")
-        assert hasattr(transformer, "consumeChromatogram")
-        assert hasattr(transformer, "setExpectedSize")
-        assert hasattr(transformer, "setExperimentalSettings")
+        assert hasattr(transformer, "consumeSpectrum"), "expected method consumeSpectrum"
+        assert hasattr(transformer, "consumeChromatogram"), "expected method consumeChromatogram"
+        assert hasattr(transformer, "setExpectedSize"), "expected method setExpectedSize"
+        assert hasattr(transformer, "setExperimentalSettings"), "expected method setExperimentalSettings"
         cdef _PythonMSDataConsumer * consumer
         consumer = new _PythonMSDataConsumer(transformer,
                                              _wrap_MSSpectrum,

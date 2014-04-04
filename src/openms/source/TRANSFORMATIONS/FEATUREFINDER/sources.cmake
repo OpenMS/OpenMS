@@ -18,8 +18,6 @@ FeatureFinderAlgorithm.cpp
 FeatureFinderAlgorithmIsotopeWavelet.cpp
 FeatureFinderAlgorithmPicked.cpp
 FeatureFinderAlgorithmPickedHelperStructs.cpp
-FeatureFinderAlgorithmSH.cpp
-FeatureFinderAlgorithmSHCtrl.cpp
 FeatureFinderAlgorithmSimple.cpp
 FeatureFinderAlgorithmSimplest.cpp
 FeatureFinderAlgorithmMRM.cpp
@@ -33,10 +31,6 @@ IsotopeModel.cpp
 IsotopeWavelet.cpp
 IsotopeWaveletTransform.cpp
 LevMarqFitter1D.cpp
-LmaGaussFitter1D.cpp
-LmaGaussModel.cpp
-LmaIsotopeFitter1D.cpp
-LmaIsotopeModel.cpp
 MaxLikeliFitter1D.cpp
 ModelDescription.cpp
 ModelFitter.cpp
@@ -68,5 +62,5 @@ foreach(i ${sources_list_cu})
         list(APPEND sources_cu ${directory}/${i})
 endforeach(i)
 
-### 
+###
 set(Cuda_sources ${Cuda_sources} ${sources_cu})

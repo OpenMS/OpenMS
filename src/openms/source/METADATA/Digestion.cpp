@@ -108,32 +108,32 @@ namespace OpenMS
     enzyme_ = enzyme;
   }
 
-  DoubleReal Digestion::getDigestionTime() const
+  double Digestion::getDigestionTime() const
   {
     return digestion_time_;
   }
 
-  void Digestion::setDigestionTime(DoubleReal digestion_time)
+  void Digestion::setDigestionTime(double digestion_time)
   {
     digestion_time_ = digestion_time;
   }
 
-  DoubleReal Digestion::getTemperature() const
+  double Digestion::getTemperature() const
   {
     return temperature_;
   }
 
-  void Digestion::setTemperature(DoubleReal temperature)
+  void Digestion::setTemperature(double temperature)
   {
     temperature_ = temperature;
   }
 
-  DoubleReal Digestion::getPh() const
+  double Digestion::getPh() const
   {
     return ph_;
   }
 
-  void Digestion::setPh(DoubleReal ph)
+  void Digestion::setPh(double ph)
   {
     ph_ = ph;
   }

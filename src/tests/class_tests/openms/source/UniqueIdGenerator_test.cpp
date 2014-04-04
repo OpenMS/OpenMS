@@ -37,6 +37,9 @@
 
 ///////////////////////////
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
+#include <ctime>
+#include <boost/accumulators/statistics/covariance.hpp>
+#include BOOST_TYPEOF_INCREMENT_REGISTRATION_GROUP()
 ///////////////////////////
 
 using namespace OpenMS;
@@ -44,6 +47,7 @@ using namespace std;
 
 START_TEST(UniqueIdGenerator, "$Id$")
 
+unsigned nofIdsToGenerate = 100000;
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
@@ -64,60 +68,81 @@ END_SECTION
 START_SECTION((static UInt64 getUniqueId()))
 {
   STATUS("OpenMS::UniqueIdGenerator::getUniqueId(): " << OpenMS::UniqueIdGenerator::getUniqueId());
-  // the actual values are unpredictable, but see setSeed() below
-  NOT_TESTABLE;
+  /* test for collisions, test will be different for every test execution */
+  OpenMS::UniqueIdGenerator::setSeed(std::time(0));
+  std::vector<OpenMS::UInt64> ids;
+  ids.reserve(nofIdsToGenerate);
+  for (unsigned i=0; i<nofIdsToGenerate; ++i)
+  {
+    ids.push_back(OpenMS::UniqueIdGenerator::getUniqueId());
+  }
+  std::sort(ids.begin(), ids.end());
+  BOOST_AUTO(iter, ids.begin()+1);
+  for(; iter!=ids.end(); ++iter)
+  {
+    if(*iter == *(iter-1))
+    {
+      TEST_NOT_EQUAL(*iter, *(iter-1));
+    }
+  }
+  TEST_NOT_EQUAL(*iter, *(iter-1));
 }
 END_SECTION
 
-START_SECTION((static void setSeed(const DateTime &)))
+START_SECTION((static void setSeed(UInt seed)))
 {
-  OpenMS::DateTime one_moment_in_time;
-  one_moment_in_time.set(5,4,6666,3,2,1);
+  UInt one_moment_in_time = 546666321;
+//  OpenMS::DateTime one_moment_in_time;
+//  one_moment_in_time.set(5,4,6666,3,2,1);
+//  OpenMS::UniqueIdGenerator::setSeed(one_moment_in_time);
+
+  /* check if the generator changed */
+  UInt64 large_int = 0;
+  std::vector<UInt64> unique_ids;
+  large_int = 4039984684862977299;
+  unique_ids.push_back(large_int);
+  large_int = 11561668883169444769;
+  unique_ids.push_back(large_int);
+  large_int = 8153960635892418594;
+  unique_ids.push_back(large_int);
+  large_int = 12940485248168291983;
+  unique_ids.push_back(large_int);
+  large_int = 11522917731873626020;
+  unique_ids.push_back(large_int);
+  large_int = 4387255872055054320;
+  unique_ids.push_back(large_int);
+
   OpenMS::UniqueIdGenerator::setSeed(one_moment_in_time);
-
-  // hoping that your compiler already supports the ull suffix for unsigned long long (aka Int64Type) integer literals
-  OpenMS::UInt64 unique_ids[] =
-                  {
-                    17506003619360897276ull,
-                    10043082726796495519ull,
-                    7830402478541866667ull,
-                    8002416538250417709ull,
-                    10620916023778653771ull
-                  };
-
-  const int num_num = sizeof(unique_ids)/sizeof(*unique_ids);
-
-  for ( int i = 0; i < num_num; ++i )
+  for (int i=0; i<unique_ids.size(); ++i)
   {
     OpenMS::UInt64 uid = OpenMS::UniqueIdGenerator::getUniqueId();
     TEST_EQUAL(uid,unique_ids[i]);
   }
-
+  /* check if the same sequence is generated form the same seed */
+  std::vector<OpenMS::UInt64> ids;
+  ids.reserve(nofIdsToGenerate);
   OpenMS::UniqueIdGenerator::setSeed(one_moment_in_time);
-
-  for ( int i = 0; i < num_num; ++i )
+  for (unsigned i=0; i<nofIdsToGenerate; ++i)
   {
-    OpenMS::UInt64 uid = OpenMS::UniqueIdGenerator::getUniqueId();
-    TEST_EQUAL(uid,unique_ids[i]);
+    ids.push_back(OpenMS::UniqueIdGenerator::getUniqueId());
+  }
+  std::vector<OpenMS::UInt64> ids2;
+  ids2.reserve(nofIdsToGenerate);
+  OpenMS::UniqueIdGenerator::setSeed(one_moment_in_time);
+  for (unsigned i=0; i<nofIdsToGenerate; ++i)
+  {
+    ids2.push_back(OpenMS::UniqueIdGenerator::getUniqueId());
   }
 
+  for ( unsigned i = 0; i < nofIdsToGenerate; ++i )
+  {
+    if(ids[i] != ids2[i])
+    {
+      TEST_EQUAL(ids[i],  ids2[i]);
+    }
+  }
 }
 END_SECTION
-
-START_SECTION((static Param const& getInfo()))
-{
-  STATUS(std::endl << OpenMS::UniqueIdGenerator::getInfo());
-  Param const & param(OpenMS::UniqueIdGenerator::getInfo());
-  TEST_STRING_EQUAL(param.getValue("generator_type"),"mt19937");
-  TEST_STRING_EQUAL(param.getValue("generator_min"),"0");
-  TEST_STRING_EQUAL(param.getValue("generator_max"),"4294967295");
-  TEST_STRING_EQUAL(param.getValue("initialization_date_time_as_string"),"6666-05-04 03:02:01");
-  TEST_STRING_EQUAL(param.getValue("initialization_date_time_as_longlong"),"66660504030201000");
-  TEST_STRING_EQUAL(param.getValue("actually_used_seed"),"262674376");
-  STATUS(OpenMS::UniqueIdGenerator::getInfo());
-}
-END_SECTION
-
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

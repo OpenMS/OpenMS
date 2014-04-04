@@ -224,14 +224,14 @@ START_SECTION(void estimateFromPeptideWeight(double average_weight))
 	TEST_REAL_SIMILAR(iso.begin()->second, 0.00291426)
 END_SECTION
 
-START_SECTION(void trimRight(DoubleReal cutoff))
+START_SECTION(void trimRight(double cutoff))
 	IsotopeDistribution iso(EmpiricalFormula("C160").getIsotopeDistribution(10));
 	TEST_NOT_EQUAL(iso.size(),3)
 	iso.trimRight(0.2);
 	TEST_EQUAL(iso.size(),3)
 END_SECTION
 
-START_SECTION(void trimLeft(DoubleReal cutoff))
+START_SECTION(void trimLeft(double cutoff))
 	IsotopeDistribution iso(EmpiricalFormula("C160").getIsotopeDistribution(10));
 	iso.trimRight(0.2);
 	iso.trimLeft(0.2);

@@ -358,8 +358,8 @@ protected:
         return xercesc::XMLString::parseInt(val);
       }
 
-      /// Converts an attribute to a DoubleReal
-      inline DoubleReal attributeAsDouble_(const xercesc::Attributes & a, const char * name) const
+      /// Converts an attribute to a double
+      inline double attributeAsDouble_(const xercesc::Attributes & a, const char * name) const
       {
         const XMLCh * val = a.getValue(sm_.convert(name));
         if (val == 0) fatalError(LOAD, String("Required attribute '") + name + "' not present!");
@@ -370,7 +370,7 @@ protected:
       inline DoubleList attributeAsDoubleList_(const xercesc::Attributes & a, const char * name) const
       {
         String tmp(expectList_(attributeAsString_(a, name)));
-        return ListUtils::create<DoubleReal>(tmp.substr(1, tmp.size() - 2));
+        return ListUtils::create<double>(tmp.substr(1, tmp.size() - 2));
       }
 
       /// Converts an attribute to an IntList
@@ -436,11 +436,11 @@ protected:
       }
 
       /**
-          @brief Assigns the attribute content to the DoubleReal @a value if the attribute is present
+          @brief Assigns the attribute content to the double @a value if the attribute is present
 
           @return if the attribute was present
       */
-      inline bool optionalAttributeAsDouble_(DoubleReal & value, const xercesc::Attributes & a, const char * name) const
+      inline bool optionalAttributeAsDouble_(double & value, const xercesc::Attributes & a, const char * name) const
       {
         const XMLCh * val = a.getValue(sm_.convert(name));
         if (val != 0)
@@ -515,8 +515,8 @@ protected:
         return xercesc::XMLString::parseInt(val);
       }
 
-      /// Converts an attribute to a DoubleReal
-      inline DoubleReal attributeAsDouble_(const xercesc::Attributes & a, const XMLCh * name) const
+      /// Converts an attribute to a double
+      inline double attributeAsDouble_(const xercesc::Attributes & a, const XMLCh * name) const
       {
         const XMLCh * val = a.getValue(name);
         if (val == 0) fatalError(LOAD, String("Required attribute '") + sm_.convert(name) + "' not present!");
@@ -527,7 +527,7 @@ protected:
       inline DoubleList attributeAsDoubleList_(const xercesc::Attributes & a, const XMLCh * name) const
       {
         String tmp(expectList_(attributeAsString_(a, name)));
-        return ListUtils::create<DoubleReal>(tmp.substr(1, tmp.size() - 2));
+        return ListUtils::create<double>(tmp.substr(1, tmp.size() - 2));
       }
 
       /// Converts an attribute to a IntList
@@ -584,8 +584,8 @@ protected:
         return false;
       }
 
-      /// Assigns the attribute content to the DoubleReal @a value if the attribute is present
-      inline bool optionalAttributeAsDouble_(DoubleReal & value, const xercesc::Attributes & a, const XMLCh * name) const
+      /// Assigns the attribute content to the double @a value if the attribute is present
+      inline bool optionalAttributeAsDouble_(double & value, const xercesc::Attributes & a, const XMLCh * name) const
       {
         const XMLCh * val = a.getValue(name);
         if (val != 0)

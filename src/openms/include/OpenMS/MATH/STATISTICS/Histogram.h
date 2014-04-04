@@ -60,7 +60,7 @@ namespace OpenMS
 
         @ingroup Math
     */
-    template <typename ValueType = UInt, typename BinSizeType = DoubleReal>
+    template <typename ValueType = UInt, typename BinSizeType = double>
     class Histogram
     {
 public:
