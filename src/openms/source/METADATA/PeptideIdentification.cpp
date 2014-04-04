@@ -48,8 +48,8 @@ namespace OpenMS
   PeptideIdentification::PeptideIdentification() :
     MetaInfoInterface(),
     id_(),
-	rt_(std::numeric_limits<DoubleReal>::quiet_NaN()),
-	mz_(std::numeric_limits<DoubleReal>::quiet_NaN()),
+    rt_(std::numeric_limits<double>::quiet_NaN()),
+    mz_(std::numeric_limits<double>::quiet_NaN()),
     hits_(),
     significance_threshold_(0.0),
     score_type_(),
@@ -115,11 +115,11 @@ namespace OpenMS
     return !(*this == rhs);
   }
 
-  DoubleReal PeptideIdentification::getRT() const
+  double PeptideIdentification::getRT() const
   {
 	  return rt_;
   }
-  void PeptideIdentification::setRT(DoubleReal rt)
+  void PeptideIdentification::setRT(double rt)
   {
 	  rt_ = rt;
   }
@@ -129,11 +129,11 @@ namespace OpenMS
 	  return !boost::math::isnan(rt_);
   }
 
-  DoubleReal PeptideIdentification::getMZ() const
+  double PeptideIdentification::getMZ() const
   {
 	  return mz_;
   }
-  void PeptideIdentification::setMZ(DoubleReal mz)
+  void PeptideIdentification::setMZ(double mz)
   {
 	  mz_ = mz;
   }

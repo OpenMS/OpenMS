@@ -577,7 +577,7 @@ namespace OpenMS
     return (value >= low) && (value <= high);
   }
 
-  void IDFilter::filterIdentificationsByRT(const std::vector<PeptideIdentification>& identifications, DoubleReal min_rt, DoubleReal max_rt, std::vector<PeptideIdentification>& filtered_identifications)
+  void IDFilter::filterIdentificationsByRT(const std::vector<PeptideIdentification>& identifications, double min_rt, double max_rt, std::vector<PeptideIdentification>& filtered_identifications)
   {
 	  filtered_identifications.clear();
 
@@ -593,7 +593,7 @@ namespace OpenMS
 
 
   
-  void IDFilter::filterIdentificationsByMZ(const std::vector<PeptideIdentification>& identifications, DoubleReal min_mz, DoubleReal max_mz, std::vector<PeptideIdentification>& filtered_identifications)
+  void IDFilter::filterIdentificationsByMZ(const std::vector<PeptideIdentification>& identifications, double min_mz, double max_mz, std::vector<PeptideIdentification>& filtered_identifications)
   {
 	  filtered_identifications.clear();
 

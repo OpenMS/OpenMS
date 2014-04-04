@@ -289,7 +289,7 @@ protected:
         double dist = ref_ids[p_id].getMZ() - mz_iter->getMZ();
         //std::cout << dist << "\t";
         if ((mz_iter + 1) != rt_iter->end()
-           && fabs((mz_iter + 1)->getMZ() - ref_ids[p_id].getMZ() < fabs(dist)
+           && fabs((mz_iter + 1)->getMZ() - ref_ids[p_id].getMZ()) < fabs(dist)
            && mz_iter != rt_iter->begin()
            && fabs((mz_iter - 1)->getMZ() - ref_ids[p_id].getMZ()) < fabs((mz_iter + 1)->getMZ() - ref_ids[p_id].getMZ()))  // if mz_iter +1 has smaller dist than mz_iter and mz_iter-1
         {

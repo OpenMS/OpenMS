@@ -85,16 +85,16 @@ public:
     //@}
 
 	/// returns the RT of the MS2 spectrum
-	DoubleReal getRT() const;
+  double getRT() const;
 	/// sets the RT of the MS2 spectrum
-	void setRT(DoubleReal rt);
+  void setRT(double rt);
 	/// shortcut for isnan(getRT())
 	bool hasRT() const;
 
 	/// returns the MZ of the MS2 spectrum
-	DoubleReal getMZ() const;
+  double getMZ() const;
 	/// sets the MZ of the MS2 spectrum
-	void setMZ(DoubleReal mz);
+  void setMZ(double mz);
 	/// shortcut for isnan(getRT())
 	bool hasMZ() const;
 
@@ -177,8 +177,8 @@ protected:
     String score_type_;                                      ///< The score type (Mascot, Sequest, e-value, p-value)
     bool higher_score_better_;                       ///< The score orientation
     String base_name_;
-	DoubleReal mz_;
-	DoubleReal rt_;
+  double mz_;
+  double rt_;
   };
 
 } //namespace OpenMS
