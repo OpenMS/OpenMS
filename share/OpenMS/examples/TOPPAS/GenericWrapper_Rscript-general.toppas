@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<PARAMETERS version="1.6.2" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/Param_1_6_2.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <NODE name="info" description="">
+    <ITEM name="version" value="1.12.0" type="string" description="" required="false" advanced="false" />
+    <ITEM name="num_vertices" value="4" type="int" description="" required="false" advanced="false" />
+    <ITEM name="num_edges" value="3" type="int" description="" required="false" advanced="false" />
+    <ITEM name="description" value="&lt;![CDATA[]]&gt;" type="string" description="" required="false" advanced="false" />
+  </NODE>
+  <NODE name="vertices" description="">
+    <NODE name="0" description="">
+      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
+      <ITEM name="toppas_type" value="input file list" type="string" description="" required="false" advanced="false" />
+      <ITEMLIST name="file_names" type="string" description="" required="false" advanced="false">
+        <LISTITEM value="../BSA/BSA1_OMSSA.idXML"/>
+      </ITEMLIST>
+      <ITEM name="x_pos" value="-60" type="double" description="" required="false" advanced="false" />
+      <ITEM name="y_pos" value="-60" type="double" description="" required="false" advanced="false" />
+    </NODE>
+    <NODE name="3" description="">
+      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
+      <ITEM name="toppas_type" value="output file list" type="string" description="" required="false" advanced="false" />
+      <ITEM name="x_pos" value="440" type="double" description="" required="false" advanced="false" />
+      <ITEM name="y_pos" value="-60" type="double" description="" required="false" advanced="false" />
+    </NODE>
+    <NODE name="2" description="">
+      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
+      <ITEM name="toppas_type" value="tool" type="string" description="" required="false" advanced="false" />
+      <ITEM name="tool_name" value="GenericWrapper" type="string" description="" required="false" advanced="false" />
+      <ITEM name="tool_type" value="Rscript_general" type="string" description="" required="false" advanced="false" />
+      <ITEM name="x_pos" value="200" type="double" description="" required="false" advanced="false" />
+      <ITEM name="y_pos" value="-60" type="double" description="" required="false" advanced="false" />
+      <NODE name="parameters" description="">
+        <ITEM name="type" value="Rscript_general" type="string" description="Which external tool configuration to load?! See &apos;C:/dev/oms/share/OpenMS/TOOLS/EXTERNAL&apos;." required="false" advanced="false" restrictions="hardklor,RAWFileConvert,QCMLExport,RAWDirConvert,Rscript_general,Rscript_qcfigures_acc,Rscript_qcfigures_idmap,Rscript_qcfigures_setid,Rscript_qcfigures_tic,TPP_RefreshParser,TPP_ProteinProphet" />
+        <ITEM name="log" value="" type="string" description="Name of log file (created only when specified)" required="false" advanced="true" />
+        <ITEM name="debug" value="0" type="int" description="Sets the debug level" required="false" advanced="true" />
+        <ITEM name="threads" value="1" type="int" description="Sets the number of threads allowed to be used by the TOPP tool" required="false" advanced="false" />
+        <ITEM name="no_progress" value="false" type="string" description="Disables progress logging to command line" required="false" advanced="true" restrictions="true,false" />
+        <ITEM name="test" value="false" type="string" description="Enables the test mode (needed for internal use only)" required="false" advanced="true" restrictions="true,false" />
+        <NODE name="ETool" description="tool specific parameters">
+          <ITEM name="file_script" value="" type="input-file" description="input R script; an example is provided in share/OpenMS/SCRIPTS/Rscript_generic_example.R" required="false" advanced="false" />
+          <ITEM name="in1" value="" type="input-file" description="Input file which your R script will receive via &apos;commandArgs(TRUE)&apos; (see R example file)" required="false" advanced="false" />
+          <ITEM name="in2" value="" type="input-file" description="Input file which your R script will receive via &apos;commandArgs(TRUE)&apos; (see R example file)" required="false" advanced="false" />
+          <ITEM name="in3" value="" type="input-file" description="Input file which your R script will receive via &apos;commandArgs(TRUE)&apos; (see R example file)" required="false" advanced="false" />
+          <ITEM name="in4" value="" type="input-file" description="Input file which your R script will receive via &apos;commandArgs(TRUE)&apos; (see R example file)" required="false" advanced="false" />
+          <ITEM name="out1" value="" type="output-file" description="Output file which your R script writes to" required="false" advanced="false" />
+          <ITEM name="out2" value="" type="output-file" description="Output file which your R script writes to" required="false" advanced="false" />
+        </NODE>
+      </NODE>
+    </NODE>
+    <NODE name="1" description="">
+      <ITEM name="recycle_output" value="false" type="string" description="" required="false" advanced="false" />
+      <ITEM name="toppas_type" value="input file list" type="string" description="" required="false" advanced="false" />
+      <ITEMLIST name="file_names" type="string" description="" required="false" advanced="false">
+        <LISTITEM value="../../SCRIPTS/Rscript_generic_example.R"/>
+      </ITEMLIST>
+      <ITEM name="x_pos" value="-60" type="double" description="" required="false" advanced="false" />
+      <ITEM name="y_pos" value="-260" type="double" description="" required="false" advanced="false" />
+    </NODE>
+  </NODE>
+  <NODE name="edges" description="">
+    <NODE name="0" description="">
+      <NODE name="source/target" description="">
+        <ITEM name="" value="0/2" type="string" description="" required="false" advanced="false" />
+      </NODE>
+      <NODE name="source_out_param" description="">
+        <ITEM name="" value="__no_name__" type="string" description="" required="false" advanced="false" />
+      </NODE>
+      <NODE name="target_in_param" description="">
+        <ITEM name="" value="ETool:in1" type="string" description="" required="false" advanced="false" />
+      </NODE>
+    </NODE>
+    <NODE name="1" description="">
+      <NODE name="source/target" description="">
+        <ITEM name="" value="2/3" type="string" description="" required="false" advanced="false" />
+      </NODE>
+      <NODE name="source_out_param" description="">
+        <ITEM name="" value="ETool:out1" type="string" description="" required="false" advanced="false" />
+      </NODE>
+      <NODE name="target_in_param" description="">
+        <ITEM name="" value="__no_name__" type="string" description="" required="false" advanced="false" />
+      </NODE>
+    </NODE>
+    <NODE name="2" description="">
+      <NODE name="source/target" description="">
+        <ITEM name="" value="1/2" type="string" description="" required="false" advanced="false" />
+      </NODE>
+      <NODE name="source_out_param" description="">
+        <ITEM name="" value="__no_name__" type="string" description="" required="false" advanced="false" />
+      </NODE>
+      <NODE name="target_in_param" description="">
+        <ITEM name="" value="ETool:file_script" type="string" description="" required="false" advanced="false" />
+      </NODE>
+    </NODE>
+  </NODE>
+</PARAMETERS>

@@ -1,0 +1,37 @@
+<ttd>
+	<tool status="external">
+		<category>does not really matter</category>
+		// multiple of these are allowed
+		<type>Rscript_general</type>
+		#name# -- for internal only
+		// multiple of these allowed (same # as 'types') - for external only
+		<external>
+				<text>
+					<onstartup>Calling Rscript with up to 4 input and 2 output files</onstartup>
+					<onfail>Something went wrong. Is the 'Rscript' executable in your PATH?</onfail>
+					<onfinish>Tool finished successfully.</onfinish>
+				</text>
+			<e_category>Postprocessing</e_category>
+			<cloptions>--vanilla %1 -in1 %2 -in2 %3 -in3 %4 -in4 %5 -out1 %6 -out2 %7</cloptions>
+			<path>Rscript</path>
+			<mappings>
+				<mapping id="1" cl="%%file_script" />
+				<mapping id="2" cl="%%in1" />
+				<mapping id="3" cl="%%in2" />
+				<mapping id="4" cl="%%in3" />
+				<mapping id="5" cl="%%in4" />
+				<mapping id="6" cl="%%out1" />
+				<mapping id="7" cl="%%out2" />
+			</mappings>
+			<ini_param>
+				<ITEM name="file_script" value="" type="string" description="input R script; an example is provided in share/OpenMS/SCRIPTS/Rscript_generic_example.R" tags="input file"/>
+				<ITEM name="in1" value="" type="string" description="Input file which your R script will receive via 'commandArgs(TRUE)' (see R example file)" tags="input file" />
+				<ITEM name="in2" value="" type="string" description="Input file which your R script will receive via 'commandArgs(TRUE)' (see R example file)" tags="input file" />
+				<ITEM name="in3" value="" type="string" description="Input file which your R script will receive via 'commandArgs(TRUE)' (see R example file)" tags="input file" />
+				<ITEM name="in4" value="" type="string" description="Input file which your R script will receive via 'commandArgs(TRUE)' (see R example file)" tags="input file" />
+				<ITEM name="out1" value="" type="string" description="Output file which your R script writes to" tags="output file" />
+				<ITEM name="out2" value="" type="string" description="Output file which your R script writes to" tags="output file" />
+			</ini_param>
+		</external>
+	</tool>
+</ttd>
