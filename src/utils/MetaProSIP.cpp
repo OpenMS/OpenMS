@@ -1078,6 +1078,8 @@ class MetaProSIPReporting
       }
     }
 
+	LOG_INFO << "Writing " << peptide_to_cluster_index.size() << " peptides to peptide centric csv." << endl;
+
     // sort by sequence
     sort(peptide_to_cluster_index.begin(), peptide_to_cluster_index.end(), SequenceLess());
 
