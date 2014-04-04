@@ -25,6 +25,7 @@ FeatureFinderRaw
 FeatureLinkerLabeled
 FeatureLinkerUnlabeled
 FeatureLinkerUnlabeledQT
+FidoAdapter
 FileConverter
 FileFilter
 FileInfo
