@@ -1105,9 +1105,9 @@ class MetaProSIPReporting
       {
 		out_csv_stream << "" << "" << in_mzML;
       } else
-      {
-        String qr_spectrum_filename = String("file://") + qc_output_directory + String("spectrum") + file_suffix + "_rt_" + String(current_SIPpeptide.feature_rt) + "." + file_extension;
-        String qr_scores_filename = String("file://") + qc_output_directory + String("scores")  + file_suffix + "_rt_" + String(current_SIPpeptide.feature_rt) + "." + file_extension;
+      {		
+        String qr_spectrum_filename = String("file://") + qc_output_directory + "/" + String("spectrum") + file_suffix + "_rt_" + String(current_SIPpeptide.feature_rt) + "." + file_extension;
+		String qr_scores_filename = String("file://") + qc_output_directory + "/" + String("scores") + file_suffix + "_rt_" + String(current_SIPpeptide.feature_rt) + "." + file_extension;
 		out_csv_stream << qr_spectrum_filename << qr_scores_filename << in_mzML;
       }
 
