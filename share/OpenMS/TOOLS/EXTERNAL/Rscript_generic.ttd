@@ -2,7 +2,7 @@
 	<tool status="external">
 		<category>does not really matter</category>
 		// multiple of these are allowed
-		<type>Rscript_general</type>
+		<type>Rscript_generic</type>
 		#name# -- for internal only
 		// multiple of these allowed (same # as 'types') - for external only
 		<external>
