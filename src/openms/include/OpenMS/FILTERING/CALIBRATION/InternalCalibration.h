@@ -308,7 +308,7 @@ protected:
                 && fabs((mz_iter - 1)->getMZ() - ref_ids[p_id].getMZ()) < fabs(dist))                        // if mz_iter-1 has smaller dist than mz_iter
         {
           if ((use_ppm &&
-               fabs((mz_iter - 1)->getMZ() - ref_ids[p_id].getMZ()) / (DoubleReal)ref_ids[p_id].getMZ() * 1e06 < mz_tolerance) ||
+               fabs((mz_iter - 1)->getMZ() - ref_ids[p_id].getMZ()) / ref_ids[p_id].getMZ() * 1e06 < mz_tolerance) ||
               (!use_ppm && fabs((mz_iter - 1)->getMZ() - ref_ids[p_id].getMZ()) < mz_tolerance))
           {
             //std::cout <<(mz_iter -1)->getMZ() - ref_ids[p_id].getMZ()<<"\t";
