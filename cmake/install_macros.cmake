@@ -129,8 +129,8 @@ macro(install_code code_snippet component)
 endmacro()
 
 #------------------------------------------------------------------------------
-# Performs final steps when installing OpenMS
-macro(finalize_install )
+# Installs the exported target information
+macro(install_export_targets )
   if ("${PACKAGE_TYPE}" STREQUAL "none")
     install(EXPORT ${OPENMS_EXPORT_SET}
             DESTINATION ${INSTALL_SHARE_DIR}/cmake

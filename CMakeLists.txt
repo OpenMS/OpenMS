@@ -242,27 +242,19 @@ if (ENABLE_PREPARE_KNIME_PACKAGE)
 endif()
 
 #------------------------------------------------------------------------------
-# GKN Package building
-#------------------------------------------------------------------------------
-# Handle export of targets
+# Handle export of targets and install them
 openms_export_targes()
-finalize_install()
+install_export_targets()
 
-######################################################
-#### build settings and configs for external code ####
-######################################################
-# install routines for MacOSX
-if("${PACKAGE_TYPE}" STREQUAL "dmg")
+#------------------------------------------------------------------------------
+# build settings and configs for external code
+#------------------------------------------------------------------------------
+# install routines for ..
+if("${PACKAGE_TYPE}" STREQUAL "dmg") # .. MacOSX
   include(cmake/package_dragndrop_dmg.cmake)
-endif()
-
-# .. rpms
-if("${PACKAGE_TYPE}" STREQUAL "rpm")
+elseif("${PACKAGE_TYPE}" STREQUAL "rpm") # .. rpms
   include(cmake/package_rpm.cmake)
-endif()
-
-# .. deps
-if("${PACKAGE_TYPE}" STREQUAL "deb")
+elseif("${PACKAGE_TYPE}" STREQUAL "deb") # .. deps
   include(cmake/package_deb.cmake)
 endif()
 
