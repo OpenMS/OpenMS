@@ -133,8 +133,8 @@ START_SECTION([EXTRA](void updateMembers_()))
   TEST_EQUAL(map_i["heavy"], 1);
   TEST_EQUAL(b_filter, false)
   Param p_internal = fdt.getParameters();
-  TEST_REAL_SIMILAR((DoubleReal) p_internal.getValue("retention_max_diff"), 1.0);
-  TEST_REAL_SIMILAR((DoubleReal) p_internal.getValue("retention_max_diff_local"), 1.0);
+  TEST_REAL_SIMILAR((double) p_internal.getValue("retention_max_diff"), 1.0);
+  TEST_REAL_SIMILAR((double) p_internal.getValue("retention_max_diff_local"), 1.0);
   }
 
   // second param set
@@ -174,8 +174,8 @@ START_SECTION([EXTRA](void updateMembers_()))
   TEST_EQUAL(map_i["mylabel"], 0);
   TEST_EQUAL(b_filter, true)
   Param p_internal = fdt.getParameters();
-  TEST_REAL_SIMILAR((DoubleReal) p_internal.getValue("retention_max_diff"), 2.0);
-  TEST_REAL_SIMILAR((DoubleReal) p_internal.getValue("retention_max_diff_local"), 2.0);
+  TEST_REAL_SIMILAR((double) p_internal.getValue("retention_max_diff"), 2.0);
+  TEST_REAL_SIMILAR((double) p_internal.getValue("retention_max_diff_local"), 2.0);
 
   }
 

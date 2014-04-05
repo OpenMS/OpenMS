@@ -183,7 +183,7 @@ namespace OpenMS
             {
               if (match["RT"].matched)
               {
-                DoubleReal rt = String(match["RT"].str()).toDouble();
+                double rt = String(match["RT"].str()).toDouble();
                 id_data_[peptide_identification_index_].setMetaValue("RT", rt);
               }
               else if (match["SCAN"].matched)
@@ -199,7 +199,7 @@ namespace OpenMS
                   !id_data_[peptide_identification_index_].metaValueExists(
                     "MZ"))
               {
-                DoubleReal mz = String(match["MZ"].str()).toDouble();
+                double mz = String(match["MZ"].str()).toDouble();
                 id_data_[peptide_identification_index_].setMetaValue("MZ", mz);
               }
               break;
@@ -251,8 +251,8 @@ namespace OpenMS
 
       else if (tag_ == "pep_ident")
       {
-        DoubleReal temp_homology = 0;
-        DoubleReal temp_identity = 0;
+        double temp_homology = 0;
+        double temp_identity = 0;
 
         // According to Matrix Science the homology threshold is only used if it
         // exists and is smaller than the identity threshold.

@@ -99,7 +99,7 @@ namespace OpenMS
     {
       throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
     }
-    os.precision(writtenDigits<DoubleReal>(0.0));
+    os.precision(writtenDigits<double>(0.0));
 
     //write header
     os << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
@@ -508,7 +508,7 @@ namespace OpenMS
       prot_id_.setScoreType(attributeAsString_(attributes, "score_type"));
 
       //optional significance threshold
-      DoubleReal tmp(0.0);
+      double tmp(0.0);
       optionalAttributeAsDouble_(tmp, attributes, "significance_threshold");
       if (tmp != 0.0)
       {
@@ -553,7 +553,7 @@ namespace OpenMS
       pep_id_.setScoreType(attributeAsString_(attributes, "score_type"));
 
       //optional significance threshold
-      DoubleReal tmp(0.0);
+      double tmp(0.0);
       optionalAttributeAsDouble_(tmp, attributes, "significance_threshold");
       if (tmp != 0.0)
       {
@@ -564,16 +564,16 @@ namespace OpenMS
       pep_id_.setHigherScoreBetter(asBool_(attributeAsString_(attributes, "higher_score_better")));
 
       //MZ
-      DoubleReal tmp2 = -numeric_limits<DoubleReal>::max();
+      double tmp2 = -numeric_limits<double>::max();
       optionalAttributeAsDouble_(tmp2, attributes, "MZ");
-      if (tmp2 != -numeric_limits<DoubleReal>::max())
+      if (tmp2 != -numeric_limits<double>::max())
       {
         pep_id_.setMetaValue("MZ", tmp2);
       }
       //RT
-      tmp2 = -numeric_limits<DoubleReal>::max();
+      tmp2 = -numeric_limits<double>::max();
       optionalAttributeAsDouble_(tmp2, attributes, "RT");
-      if (tmp2 != -numeric_limits<DoubleReal>::max())
+      if (tmp2 != -numeric_limits<double>::max())
       {
         pep_id_.setMetaValue("RT", tmp2);
       }

@@ -1,4 +1,5 @@
 # input-encoding: latin-1
+from __future__ import print_function
 
 import distribute_setup
 distribute_setup.use_setuptools()
@@ -8,10 +9,10 @@ import sys
 iswin = sys.platform == "win32"
 
 # import config
-from env import  (OPEN_MS_SRC, OPEN_MS_BUILD_DIR, OPEN_MS_CONTRIB_BUILD_DIRS, QT_HEADERS_DIR,
-                  QT_LIBRARY_DIR, QT_QTCORE_INCLUDE_DIR, MSVCR90DLL, MSVCP90DLL,
+from env import  (OPEN_MS_SRC, OPEN_MS_BUILD_DIR, OPEN_MS_CONTRIB_BUILD_DIRS,
+                  QT_LIBRARY_DIR, MSVCR90DLL, MSVCP90DLL,
                   QT_QMAKE_VERSION_INFO, OPEN_MS_BUILD_TYPE, OPEN_MS_VERSION, LIBRARIES_EXTEND,
-                  LIBRARY_DIRS_EXTEND, OPEN_MS_LIB, OPEN_SWATH_ALGO_LIB)
+                  LIBRARY_DIRS_EXTEND, OPEN_MS_LIB, OPEN_SWATH_ALGO_LIB, PYOPENMS_INCLUDE_DIRS)
 
 IS_DEBUG = OPEN_MS_BUILD_TYPE.upper() == "DEBUG"
 
@@ -19,7 +20,7 @@ if iswin and IS_DEBUG:
     raise Exception("building pyopenms on windows in debug mode not tested yet.")
 
 # use autowrap to generate Cython and .cpp file for wrapping OpenMS:
-import cPickle
+import pickle
 import os
 import glob
 import shutil
@@ -34,7 +35,7 @@ for include in extra_includes:
 
 
 persisted_data_path = "include_dir.bin"
-autowrap_include_dirs = cPickle.load(open(persisted_data_path, "rb"))
+autowrap_include_dirs = pickle.load(open(persisted_data_path, "rb"))
 
 from setuptools import setup, Extension
 import time
@@ -71,9 +72,9 @@ elif sys.platform == "linux2":
 elif sys.platform == "darwin":
     libraries = ["OpenMS", "OpenSwathAlgo", "SuperHirn", "xerces-c"]
 else:
-    print
-    print "platform ", sys.platform, "not supported yet"
-    print
+    print("\n")
+    print("platform ", sys.platform, "not supported yet")
+    print("\n")
     exit()
 
 library_dirs = [OPEN_MS_BUILD_DIR,
@@ -81,58 +82,40 @@ library_dirs = [OPEN_MS_BUILD_DIR,
                 j(OPEN_MS_BUILD_DIR, "bin"),
                 j(OPEN_MS_BUILD_DIR, "bin", "Release"),
                 j(OPEN_MS_BUILD_DIR, "Release"),
-                j(OPEN_MS_CONTRIB_BUILD_DIR, "lib"),
                 QT_LIBRARY_DIR,
                 ]
+
+# extend with contrib lib dirs
+for OPEN_MS_CONTRIB_BUILD_DIR in OPEN_MS_CONTRIB_BUILD_DIRS.split(";"):
+  library_dirs.append(j(OPEN_MS_CONTRIB_BUILD_DIR, "lib"))
 
 import numpy
 
 include_dirs = [
     "extra_includes",
-    QT_HEADERS_DIR,
-    QT_QTCORE_INCLUDE_DIR,
-    j(OPEN_MS_CONTRIB_BUILD_DIR, "include"),
-    j(OPEN_MS_CONTRIB_BUILD_DIR, "include", "libsvm"),
-    # j(OPEN_MS_CONTRIB_BUILD_DIR, "src", "boost_1_52_0")
-    j(OPEN_MS_CONTRIB_BUILD_DIR, "include", "boost"),
-    j(OPEN_MS_CONTRIB_BUILD_DIR, "include", "WildMagic"),
-    j(OPEN_MS_CONTRIB_BUILD_DIR, "include", "eigen3"),
-    j(OPEN_MS_BUILD_DIR, "src/openswathalgo/include"),
-    j(OPEN_MS_BUILD_DIR, "src/openms/include"),
-    j(OPEN_MS_BUILD_DIR, "src/openms_gui/include"),
-    j(OPEN_MS_BUILD_DIR, "src/superhirn/include"),
-    j(OPEN_MS_SRC, "src/openswathalgo/include"),
-    j(OPEN_MS_SRC, "src/openms/include"),
-    j(OPEN_MS_SRC, "src/openms_gui/include"),
-    j(OPEN_MS_SRC, "src/superhirn/include"),
     j(numpy.core.__path__[0], "include"),
 ]
+
+# append all include dirs exported by CMake
+include_dirs.extend(PYOPENMS_INCLUDE_DIRS.split(";"))
 
 include_dirs.extend(LIBRARIES_EXTEND)
 libraries.extend(LIBRARIES_EXTEND)
 library_dirs.extend(LIBRARY_DIRS_EXTEND)
 
 extra_link_args = []
+extra_compile_args = []
 
-if sys.platform == "linux2":
+if iswin:
+    extra_compile_args = ["/EHs", "/bigobj"]
+elif sys.platform == "linux2":
     extra_link_args = ["-Wl,-s"]
 elif sys.platform == "darwin":
     # we need to manually link to the Qt Frameworks
-    extra_link_args = ["-Wl,-s",
-                       "-F" + QT_LIBRARY_DIR,
-                       "-framework Carbon",
-                       "-framework AGL",
-                       "-framework OpenGL",
-                       "-framework QtOpenGL",
-                       "-framework QtSvg",
-                       "-framework QtWebKit",
-                       "-framework QtXmlPatterns",
-                       "-framework QtGui",
-                       "-framework QtTest",
-                       "-framework QtXml",
-                       "-framework QtSql",
-                       "-framework QtNetwork",
-                       "-framework QtCore"]
+    extra_compile_args = ["-Qunused-arguments"]
+
+if IS_DEBUG:
+    extra_compile_args.append("-g2")
 
 ext = Extension(
     "pyopenms",
@@ -146,7 +129,7 @@ ext = Extension(
     # set BOOST_NO_EXCEPTION in <boost/config/compiler/visualc.hpp>
     # such that  boost::throw_excption() is declared but not implemented.
     # The linker does not like that very much ...
-    extra_compile_args=iswin and ["/EHs", "/bigobj"] or (IS_DEBUG and ["-g2"] or []),
+    extra_compile_args=extra_compile_args,
     extra_link_args=extra_link_args
 )
 

@@ -156,13 +156,13 @@ namespace OpenMS
     return false;
   }
 
-  DoubleReal IsobaricChannelExtractor::sumPotentialIsotopePeaks_(const MSExperiment<Peak1D>::ConstIterator& precursor,
+  double IsobaricChannelExtractor::sumPotentialIsotopePeaks_(const MSExperiment<Peak1D>::ConstIterator& precursor,
                                                                  const Peak1D::CoordinateType& lower_mz_bound,
                                                                  const Peak1D::CoordinateType& upper_mz_bound,
                                                                  Peak1D::CoordinateType theoretical_mz,
                                                                  const Peak1D::CoordinateType isotope_offset) const
   {
-    DoubleReal intensity_contribution = 0.0;
+    double intensity_contribution = 0.0;
 
     // move theoretical_mz to first potential isotopic peak
     theoretical_mz += isotope_offset;
@@ -190,7 +190,7 @@ namespace OpenMS
     return intensity_contribution;
   }
 
-  DoubleReal IsobaricChannelExtractor::computePrecursorPurity_(const MSExperiment<Peak1D>::ConstIterator& ms2_spec, const MSExperiment<Peak1D>::ConstIterator& precursor) const
+  double IsobaricChannelExtractor::computePrecursorPurity_(const MSExperiment<Peak1D>::ConstIterator& ms2_spec, const MSExperiment<Peak1D>::ConstIterator& precursor) const
   {
     // we cannot analyze precursors without a charge
     if (ms2_spec->getPrecursors()[0].getCharge() == 0)
@@ -279,7 +279,7 @@ namespace OpenMS
         }
 
         // check precursor purity if we have a valid precursor ..
-        DoubleReal precursor_purity = -1.0;
+        double precursor_purity = -1.0;
         if (prec_spec != ms_exp_data.end())
         {
           precursor_purity = computePrecursorPurity_(it, prec_spec);

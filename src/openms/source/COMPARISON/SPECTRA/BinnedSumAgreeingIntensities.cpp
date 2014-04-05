@@ -80,10 +80,10 @@ namespace OpenMS
     }
 
     // shortcut similarity calculation by comparing PrecursorPeaks (PrecursorPeaks more than delta away from each other are supposed to be from another peptide)
-    DoubleReal pre_mz1 = 0.0;
+    double pre_mz1 = 0.0;
     if (!spec1.getPrecursors().empty())
       pre_mz1 = spec1.getPrecursors()[0].getMZ();
-    DoubleReal pre_mz2 = 0.0;
+    double pre_mz2 = 0.0;
     if (!spec2.getPrecursors().empty())
       pre_mz2 = spec2.getPrecursors()[0].getMZ();
     if (fabs(pre_mz1 - pre_mz2) > (double)param_.getValue("precursor_mass_tolerance"))

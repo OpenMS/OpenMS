@@ -108,15 +108,15 @@ namespace OpenMS
     alignpoint.push_back(0);
     alignpoint.push_back(0);
     //4 blocks : 0-0.25 ,0.25-50,0.50-0.75,1 The data points must have a high similarity score
-    for (Real i = 0.25; i <= 0.75; i += 0.25)
+    for (float i = 0.25; i <= 0.75; i += 0.25)
     {
       Size y = (Size)(tempalign.size() * i);
       Size x = 0;
-      Real maxi = -999.0;
+      float maxi = -999.0;
 
       for (Size k = 0; k < pattern.size(); ++k)
       {
-        Real s =    scoring_(*pattern[k], *(tempalign[y]));
+        float s =    scoring_(*pattern[k], *(tempalign[y]));
         if (s > maxi && s > cutoffScore_)
         {
           x = k;
@@ -133,7 +133,7 @@ namespace OpenMS
       Size yn = 0;
       for (Size k = 0; k < tempalign.size(); ++k)
       {
-        Real s =    scoring_(*pattern[xn], *(tempalign[k]));
+        float s =    scoring_(*pattern[xn], *(tempalign[k]));
         if (s > maxi && s > cutoffScore_)
         {
           yn = k;
@@ -155,7 +155,7 @@ namespace OpenMS
 
     std::vector<Int> xcoordinate;
     std::vector<Int> xcoordinatepattern;
-    std::vector<Real> ycoordinate;
+    std::vector<float> ycoordinate;
     debugmatrix_.clear();
 
     for (Size i = 0; i < alignpoint.size() - 2; i += 2)
@@ -187,17 +187,17 @@ namespace OpenMS
     TransformationDescription::DataPoints data;
     for (Size i = 0; i < xcoordinate.size(); ++i)
     {
-      DoubleReal rt = tempalign[xcoordinate[i]]->getRT();
+      double rt = tempalign[xcoordinate[i]]->getRT();
       data.push_back(std::make_pair(rt, ycoordinate[i]));
     }
     transformation.push_back(TransformationDescription(data));
   }
 
-  void MapAlignmentAlgorithmSpectrumAlignment::affineGapalign_(Size xbegin, Size ybegin, Size xend, Size yend, const std::vector<MSSpectrum<> *> & pattern, std::vector<MSSpectrum<> *> & aligned, std::vector<int> & xcoordinate, std::vector<Real> & ycoordinate, std::vector<int> & xcoordinatepattern)
+  void MapAlignmentAlgorithmSpectrumAlignment::affineGapalign_(Size xbegin, Size ybegin, Size xend, Size yend, const std::vector<MSSpectrum<> *> & pattern, std::vector<MSSpectrum<> *> & aligned, std::vector<int> & xcoordinate, std::vector<float> & ycoordinate, std::vector<int> & xcoordinatepattern)
   {
     //affine gap alignment needs two matrices
-    std::map<Size, std::map<Size, Real> > firstcolummatchmatrix;
-    std::map<Size, std::map<Size, Real> > secondcolummatchmatrix;
+    std::map<Size, std::map<Size, float> > firstcolummatchmatrix;
+    std::map<Size, std::map<Size, float> > secondcolummatchmatrix;
     Size n = std::max((xend - xbegin), (yend - ybegin)) + 1; //column
     Size m = std::min((xend - xbegin), (yend - ybegin)) + 1; //row
     // std::cout<< n << " n " << m << " m " <<  xbegin << " " <<xend<< " " << ybegin << " " << yend <<std::endl;
@@ -211,11 +211,11 @@ namespace OpenMS
       column_row_orientation = true;
     }
     //matrix for holding calculated sorces
-    std::map<Size, std::map<Size, Real> > buffermatrix;
+    std::map<Size, std::map<Size, float> > buffermatrix;
     std::map<Size, std::map<Size, Size> > traceback;
     //calculate the value of k
     Int k_ = bestk_(pattern, aligned, buffermatrix, column_row_orientation, xbegin, xend, ybegin, yend) + 2;
-    Real score_ = -99999999.0f;
+    float score_ = -99999999.0f;
     //flag if we have to calculate again the alignment in step k+1
     bool finish = false;
     while (!finish)
@@ -245,30 +245,30 @@ namespace OpenMS
             {
               try
               {
-                DoubleReal s = -999.0;
+                double s = -999.0;
                 s   =   scoreCalculation_(i, j, xbegin, ybegin, pattern, aligned, buffermatrix, column_row_orientation);
                 if (debug_)
                 {
-                  std::vector<Real> temp;
+                  std::vector<float> temp;
                   if (!column_row_orientation)
                   {
-                    temp.push_back((Real)i + xbegin - 1);
-                    temp.push_back((Real)j + ybegin - 1);
+                    temp.push_back((float)i + xbegin - 1);
+                    temp.push_back((float)j + ybegin - 1);
                     temp.push_back(s);
                     temp.push_back(0);
                     debugscorematrix_.push_back(temp);
                   }
                   else
                   {
-                    temp.push_back((Real)j + xbegin - 1);
-                    temp.push_back((Real)i + ybegin - 1);
+                    temp.push_back((float)j + xbegin - 1);
+                    temp.push_back((float)i + ybegin - 1);
                     temp.push_back(s);
                     temp.push_back(0);
                     debugscorematrix_.push_back(temp);
                   }
                 }
-                Real mv = -999.0;
-                Real mh = -999.0;
+                float mv = -999.0;
+                float mh = -999.0;
                 i = i - 1;
                 if (insideBand_(i, j, n, m, k_))
                 {
@@ -292,7 +292,7 @@ namespace OpenMS
                 }
                 //mv=matchmatrix[i][j-1]-gap_;
                 //mh=matchmatrix[i-1][j]-gap_;
-                Real md = firstcolummatchmatrix[i - 1][j - 1] + s;
+                float md = firstcolummatchmatrix[i - 1][j - 1] + s;
                 //std::cout << i << " " << j << " i j " << mv << " mv " << mh << " mh " << md << " md " << std::endl;
                 secondcolummatchmatrix[i][j] = std::max((float)md, std::max((float)(mv), (float)(mh)));
                 //std::cout << secondcolummatchmatrix[i][j] << " " << i << " "<< j << " i j zweiter colum" << std::endl;
@@ -348,7 +348,7 @@ namespace OpenMS
     bool endtraceback = false;
     int i = (int) n;
     int j = (int) m;
-    //Real maximum = -999.0;
+    //float maximum = -999.0;
     //container necessary for collecting the positions of both sequence to gain later the correct datapoints for the spline
     std::vector<int> xvar;
     std::vector<int> xxvar;
@@ -367,7 +367,7 @@ namespace OpenMS
           {
             if (debug_)
             {
-              debugtraceback_.push_back(std::make_pair(Real(i + xbegin - 1), Real(j + ybegin - 1)));
+              debugtraceback_.push_back(std::make_pair(float(i + xbegin - 1), float(j + ybegin - 1)));
             }
             xvar.push_back(j + (int)ybegin - 1);
             yvar.push_back((*pattern[i + xbegin - 1]).getRT());
@@ -377,7 +377,7 @@ namespace OpenMS
           {
             if (debug_)
             {
-              debugtraceback_.push_back(std::make_pair(Real(j + xbegin - 1), Real(i + ybegin - 1)));
+              debugtraceback_.push_back(std::make_pair(float(j + xbegin - 1), float(i + ybegin - 1)));
             }
             xvar.push_back(i + (int)ybegin - 1);
             yvar.push_back((*pattern[j + xbegin - 1]).getRT());
@@ -450,14 +450,14 @@ namespace OpenMS
     }
   }
 
-  inline Int  MapAlignmentAlgorithmSpectrumAlignment::bestk_(const std::vector<MSSpectrum<> *> & pattern, std::vector<MSSpectrum<> *> & aligned, std::map<Size, std::map<Size, Real> > & buffer, bool column_row_orientation, Size xbegin, Size xend, Size ybegin, Size yend)
+  inline Int  MapAlignmentAlgorithmSpectrumAlignment::bestk_(const std::vector<MSSpectrum<> *> & pattern, std::vector<MSSpectrum<> *> & aligned, std::map<Size, std::map<Size, float> > & buffer, bool column_row_orientation, Size xbegin, Size xend, Size ybegin, Size yend)
   {
     Int ktemp = 2;
-    for (Real i = 0.25; i <= 0.75; i += 0.25)
+    for (float i = 0.25; i <= 0.75; i += 0.25)
     {
       Size temp = (Size)((yend - ybegin) * i);
-      Real    maxi = -999.0;
-      Real    s = -999.0;
+      float    maxi = -999.0;
+      float    s = -999.0;
       for (Size k = 0; k <= (xend - xbegin); ++k)
       {
         Size x;
@@ -487,13 +487,13 @@ namespace OpenMS
     return ktemp;
   }
 
-  inline  Real MapAlignmentAlgorithmSpectrumAlignment::scoreCalculation_(Size i, Size j, Size patternbegin, Size alignbegin, const std::vector<MSSpectrum<> *> & pattern, std::vector<MSSpectrum<> *> & aligned, std::map<Size, std::map<Size, Real> > & buffer, bool column_row_orientation)
+  inline  float MapAlignmentAlgorithmSpectrumAlignment::scoreCalculation_(Size i, Size j, Size patternbegin, Size alignbegin, const std::vector<MSSpectrum<> *> & pattern, std::vector<MSSpectrum<> *> & aligned, std::map<Size, std::map<Size, float> > & buffer, bool column_row_orientation)
   {
     if (!column_row_orientation)
     {
       if (buffer[i][j] == 0)
       {
-        Real score = scoring_(*pattern[i + patternbegin - 1], *aligned[j + alignbegin - 1]);
+        float score = scoring_(*pattern[i + patternbegin - 1], *aligned[j + alignbegin - 1]);
         if (score > 1)
           score = 1;
         if (debug_)
@@ -512,7 +512,7 @@ namespace OpenMS
     {
       if (buffer[j][i] == 0)
       {
-        Real score = scoring_(*pattern[j + patternbegin - 1], *aligned[i + alignbegin - 1]);
+        float score = scoring_(*pattern[j + patternbegin - 1], *aligned[i + alignbegin - 1]);
         if (score > 1)
           score = 1;
         if (debug_)
@@ -529,14 +529,14 @@ namespace OpenMS
     }
   }
 
-  inline  Real MapAlignmentAlgorithmSpectrumAlignment::scoring_(const MSSpectrum<> & a, MSSpectrum<> & b)
+  inline  float MapAlignmentAlgorithmSpectrumAlignment::scoring_(const MSSpectrum<> & a, MSSpectrum<> & b)
   {
     return c1_->operator()(a, b);
   }
 
-  inline void MapAlignmentAlgorithmSpectrumAlignment::bucketFilter_(const std::vector<MSSpectrum<> *> & pattern, std::vector<MSSpectrum<> *> & aligned, std::vector<int> & xcoordinate, std::vector<Real> & ycoordinate, std::vector<int> & xcoordinatepattern)
+  inline void MapAlignmentAlgorithmSpectrumAlignment::bucketFilter_(const std::vector<MSSpectrum<> *> & pattern, std::vector<MSSpectrum<> *> & aligned, std::vector<int> & xcoordinate, std::vector<float> & ycoordinate, std::vector<int> & xcoordinatepattern)
   {
-    std::vector<std::pair<std::pair<Int, Real>, Real> > tempxy;
+    std::vector<std::pair<std::pair<Int, float>, float> > tempxy;
     Size size = 0;
     //std::cout <<bucketsize_  << " bucketsize " <<xcoordinate.size() << " xsize()" << std::endl;
     if (bucketsize_ >= xcoordinate.size())
@@ -552,11 +552,11 @@ namespace OpenMS
     //std::cout << size << " size "<< xcoordinate.size() << " xcoordinate.size() " << std::endl;
     for (Size i = 0; i < size; ++i)
     {
-      std::vector<std::pair<std::pair<Int, Real>, Real> > temp;
+      std::vector<std::pair<std::pair<Int, float>, float> > temp;
       for (Size j = 0; j < bucketsize_; ++j)
       {
         //std::cout<< j << " j " << std::endl;
-        Real score = scoring_(*pattern[xcoordinatepattern[(i * bucketsize_) + j]], *aligned[xcoordinate[(i * bucketsize_) + j]]);
+        float score = scoring_(*pattern[xcoordinatepattern[(i * bucketsize_) + j]], *aligned[xcoordinate[(i * bucketsize_) + j]]);
         //modification only view as a possible data point if the score is higher than 0
         if (score >= threshold_)
         {
@@ -571,7 +571,7 @@ namespace OpenMS
       */
       std::sort(temp.begin(), temp.end(), Compare(false));
       //Int anchor=(Int)(size*anchorPoints_/100);
-      Real anchor = (temp.size() * anchorPoints_ / 100);
+      float anchor = (temp.size() * anchorPoints_ / 100);
       if (anchor <= 0 && !temp.empty())
       {
         anchor = 1;
@@ -619,7 +619,7 @@ namespace OpenMS
   {
     //plotting scores of the alignment
     /*std::ofstream tempfile3;
-    Real maximimum=2.0;
+    float maximimum=2.0;
     tempfile3.open("debugscore.txt",std::ios::trunc);
     tempfile3 << "set xrange[0:"<< pattern.size()-1<<  "]" << "\n set yrange[0:"<< aligned.size()-1 << "]" << "\n set zrange[0:"
     << maximimum << "] \n set view 45,20,1.0,2.5 \n"<< "splot \'-\'" <<std::endl;
@@ -651,9 +651,9 @@ namespace OpenMS
     myfile << "e" << std::endl;
     myfile.close();
     //R heatplot score of both sequence
-    // std::map<Size, std::map<Size, Real> > debugbuffermatrix;
+    // std::map<Size, std::map<Size, float> > debugbuffermatrix;
 
-    Real scoremaximum = -2;
+    float scoremaximum = -2;
     //precalculation for the heatmap
     //getting the maximum score
     for (Size i = 0; i < debugscorematrix_.size(); ++i)
@@ -700,14 +700,14 @@ namespace OpenMS
     rscript << "#Name: ScoreHeatmapPlot \n #plot the score in a way of a heatmap \n #Input: Scorematrix \n #Output Heatmap \n ScoreHeatmapPlot<-function(matrix) { \n xcord<-as.vector(matrix[,1]); \n ycord<-as.vector(matrix[,2]); \n color<-rgb(as.vector(matrix[,4]),as.vector(matrix[,3]),0);\n  plot(xcord,ycord,col=color, main =\"Heatplot of scores included the traceback\" , xlab= \" Template-sequence \", ylab=\" Aligned-sequence \", type=\"p\" ,phc=22)\n } \n main<-function(filenamea) { \n a<-Loadfile(filenamea) \n X11() \n ScoreHeatmapPlot(a) \n  " << std::endl;
     rscript.close();
     /*
-    Real matchmaximum=-999.0;
-    Real insertmaximum=-999.0;
+    float matchmaximum=-999.0;
+    float insertmaximum=-999.0;
     for (Size i =0; i< debugmatrix_.size();++i)
     {
-        debugbuffermatrix[debugmatrix_[i][0]][debugmatrix_[i][1]]=(Real)debugmatrix_[i][2];
-        if(matchmaximum <debugmatrix_[i][2]) matchmaximum = (Real)debugmatrix_[i][2];
+        debugbuffermatrix[debugmatrix_[i][0]][debugmatrix_[i][1]]=(float)debugmatrix_[i][2];
+        if(matchmaximum <debugmatrix_[i][2]) matchmaximum = (float)debugmatrix_[i][2];
             //debuginsertmatrix[debugmatrix_[i][0]][debugmatrix_[i][1]]=debugmatrix_[i][3];
-        if(insertmaximum <debugmatrix_[i][3]) insertmaximum = (Real)debugmatrix_[i][3];
+        if(insertmaximum <debugmatrix_[i][3]) insertmaximum = (float)debugmatrix_[i][3];
             //debugtracebackmatrix[debugmatrix_[i][0]][debugmatrix_[i][1]]=debugmatrix_[i][4];
     }
 
@@ -761,7 +761,7 @@ namespace OpenMS
     }
     for (Size i =0; i< debugmatrix_.size();++i)
     {
-        Real score = 0;
+        float score = 0;
         if(debugmatrix_[i][4] == 0)
         {
         score = 5;
@@ -801,7 +801,7 @@ namespace OpenMS
     debugscorematrix_.clear();
   }
 
-  void MapAlignmentAlgorithmSpectrumAlignment::debugscoreDistributionCalculation_(Real score)
+  void MapAlignmentAlgorithmSpectrumAlignment::debugscoreDistributionCalculation_(float score)
   {
     Int index = (Int)(score + 0.5);
     scoredistribution_.push_back(index);
@@ -809,16 +809,16 @@ namespace OpenMS
 
   void MapAlignmentAlgorithmSpectrumAlignment::updateMembers_()
   {
-    gap_    = (Real)param_.getValue("gapcost");
-    e_      = (Real)param_.getValue("affinegapcost");
+    gap_    = (float)param_.getValue("gapcost");
+    e_      = (float)param_.getValue("affinegapcost");
     if (c1_ == NULL || c1_->getName() != (String)param_.getValue("scorefunction"))
     {
       c1_ = Factory<PeakSpectrumCompareFunctor>::create((String)param_.getValue("scorefunction"));
     }
 
-    cutoffScore_ = (Real)param_.getValue("cutoff_score");
+    cutoffScore_ = (float)param_.getValue("cutoff_score");
     bucketsize_ = (Int)param_.getValue("bucketsize");
-    mismatchscore_ = (Real)param_.getValue("mismatchscore");
+    mismatchscore_ = (float)param_.getValue("mismatchscore");
     anchorPoints_ = (Int)param_.getValue("anchorpoints");
     if (anchorPoints_ > 100)
       anchorPoints_ = 100;

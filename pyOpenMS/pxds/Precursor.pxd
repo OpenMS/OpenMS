@@ -81,7 +81,7 @@ cdef extern from "<OpenMS/METADATA/Precursor.h>" namespace "OpenMS":
         void setPossibleChargeStates(libcpp_vector[int] possible_charge_states) nogil except +
 
         # Returns the uncharged mass of the precursor, if charge is unknown, i.e. 0 best guess is its doubly charged
-        DoubleReal getUnchargedMass() nogil except +
+        double getUnchargedMass() nogil except +
 
         bool operator==(Precursor)  nogil except +
         bool operator!=(Precursor)  nogil except +

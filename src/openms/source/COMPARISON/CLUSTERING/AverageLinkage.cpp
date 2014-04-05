@@ -61,7 +61,7 @@ namespace OpenMS
     return *this;
   }
 
-  void AverageLinkage::operator()(DistanceMatrix<Real> & original_distance, std::vector<BinaryTreeNode> & cluster_tree, const Real threshold /*=1*/) const
+  void AverageLinkage::operator()(DistanceMatrix<float> & original_distance, std::vector<BinaryTreeNode> & cluster_tree, const float threshold /*=1*/) const
   {
     // input MUST have >= 2 elements!
     if (original_distance.dimensionsize() < 2)
@@ -99,8 +99,8 @@ namespace OpenMS
         //pick minimum-distance pair i,j and merge them
 
         //calculate parameter for lance-williams formula
-        Real alpha_i = (Real)(clusters[min.first].size() / (Real)(clusters[min.first].size() + clusters[min.second].size()));
-        Real alpha_j = (Real)(clusters[min.second].size() / (Real)(clusters[min.first].size() + clusters[min.second].size()));
+        float alpha_i = (float)(clusters[min.first].size() / (float)(clusters[min.first].size() + clusters[min.second].size()));
+        float alpha_j = (float)(clusters[min.second].size() / (float)(clusters[min.first].size() + clusters[min.second].size()));
         //~ std::cout << alpha_i << '\t' << alpha_j << std::endl;
 
         //pushback elements of second to first (and then erase second)
@@ -113,14 +113,14 @@ namespace OpenMS
         //lance-williams update for d((i,j),k): (m_i/m_i+m_j)* d(i,k) + (m_j/m_i+m_j)* d(j,k) ; m_x is the number of elements in cluster x
         for (Size k = 0; k < min.second; ++k)
         {
-          Real dik = original_distance.getValue(min.first, k);
-          Real djk = original_distance.getValue(min.second, k);
+          float dik = original_distance.getValue(min.first, k);
+          float djk = original_distance.getValue(min.second, k);
           original_distance.setValueQuick(min.second, k, (alpha_i * dik + alpha_j * djk));
         }
         for (Size k = min.second + 1; k < original_distance.dimensionsize(); ++k)
         {
-          Real dik = original_distance.getValue(min.first, k);
-          Real djk = original_distance.getValue(min.second, k);
+          float dik = original_distance.getValue(min.first, k);
+          float djk = original_distance.getValue(min.second, k);
           original_distance.setValueQuick(k, min.second, (alpha_i * dik + alpha_j * djk));
         }
 

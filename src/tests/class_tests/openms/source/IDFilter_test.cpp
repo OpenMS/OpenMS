@@ -105,7 +105,7 @@ START_SECTION((void filterIdentificationsByProteins(const PeptideIdentification 
   TEST_EQUAL(identification2.getHits()[1].getSequence(), AASequence::fromString("MRSLGYVAVISAVATDTDK"))
 END_SECTION
 
-START_SECTION((template <class IdentificationType> void filterIdentificationsByThreshold(const IdentificationType &identification, DoubleReal threshold_fraction, IdentificationType &filtered_identification)))
+START_SECTION((template <class IdentificationType> void filterIdentificationsByThreshold(const IdentificationType &identification, double threshold_fraction, IdentificationType &filtered_identification)))
   PeptideIdentification identification2;
   vector<PeptideHit> peptide_hits;
   vector<ProteinHit> protein_hits;
@@ -135,7 +135,7 @@ START_SECTION((template <class IdentificationType> void filterIdentificationsByT
   TEST_EQUAL(peptide_hits[4].getRank() , 4)
 END_SECTION
 
-START_SECTION((template <class IdentificationType> void filterIdentificationsByScore(const IdentificationType &identification, DoubleReal threshold_score, IdentificationType &filtered_identification)))
+START_SECTION((template <class IdentificationType> void filterIdentificationsByScore(const IdentificationType &identification, double threshold_score, IdentificationType &filtered_identification)))
   PeptideIdentification identification2;
   vector<PeptideHit> peptide_hits;
 
@@ -297,7 +297,7 @@ START_SECTION((void filterIdentificationsByBestHits(const PeptideIdentification&
           || (identification2.getHits()[0].getSequence()==AASequence::fromString("MSLLSNMISIVKVGYNAR") && identification2.getHits()[1].getSequence()==AASequence::fromString("FINFGVNVEVLSRFQTK")) , true)
 END_SECTION
 
-START_SECTION((template <class PeakT> void filterIdentificationsByThresholds(MSExperiment< PeakT > &experiment, DoubleReal peptide_threshold_fraction, DoubleReal protein_threshold_fraction)))
+START_SECTION((template <class PeakT> void filterIdentificationsByThresholds(MSExperiment< PeakT > &experiment, double peptide_threshold_fraction, double protein_threshold_fraction)))
 
 
   MSExperiment<> experiment;
@@ -339,7 +339,7 @@ START_SECTION((template <class PeakT> void filterIdentificationsByThresholds(MSE
   TEST_EQUAL(peptide_hits[4].getRank() , 4)
 END_SECTION
 
-START_SECTION((template <class PeakT> void filterIdentificationsByScores(MSExperiment< PeakT > &experiment, DoubleReal peptide_threshold_score, DoubleReal protein_threshold_score)))
+START_SECTION((template <class PeakT> void filterIdentificationsByScores(MSExperiment< PeakT > &experiment, double peptide_threshold_score, double protein_threshold_score)))
 
 
   MSExperiment<> experiment;
@@ -436,7 +436,7 @@ START_SECTION((template < class IdentificationType > void filterIdentificationsB
 
 END_SECTION
 
-START_SECTION((void filterIdentificationsByRTPValues(const PeptideIdentification &identification, PeptideIdentification &filtered_identification, DoubleReal p_value=0.05)))
+START_SECTION((void filterIdentificationsByRTPValues(const PeptideIdentification &identification, PeptideIdentification &filtered_identification, double p_value=0.05)))
   PeptideIdentification filtered_identification;
   String document_id;
   IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IDFilter_test2.idXML"), protein_identifications, identifications, document_id);
@@ -453,7 +453,7 @@ START_SECTION((void filterIdentificationsByRTPValues(const PeptideIdentification
   TEST_EQUAL(hits[3].getSequence(), AASequence::fromString("MSLLSNMISIVKVGYNAR"))
 END_SECTION
 
-START_SECTION((void filterIdentificationsByRTFirstDimPValues(const PeptideIdentification &identification, PeptideIdentification &filtered_identification, DoubleReal p_value=0.05)))
+START_SECTION((void filterIdentificationsByRTFirstDimPValues(const PeptideIdentification &identification, PeptideIdentification &filtered_identification, double p_value=0.05)))
   PeptideIdentification filtered_identification;
   String document_id;
   IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IDFilter_test3.idXML"), protein_identifications, identifications, document_id);
@@ -513,7 +513,7 @@ START_SECTION((void filterIdentificationsUnique(const PeptideIdentification &ide
   TEST_EQUAL(id2.getHits()[4].getCharge(), 5)
 END_SECTION
 
-START_SECTION((bool filterIdentificationsByMetaValueRange(const PeptideIdentification& identification, const String& key, DoubleReal low, DoubleReal high, bool missing=false)))
+START_SECTION((bool filterIdentificationsByMetaValueRange(const PeptideIdentification& identification, const String& key, double low, double high, bool missing=false)))
 {
   IDFilter id_filter;
   PeptideIdentification peptide;

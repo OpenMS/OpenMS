@@ -156,7 +156,7 @@ START_SECTION((void searchModifications(std::set< const ResidueModification * > 
 END_SECTION
 
 
-START_SECTION((void getTerminalModificationsByDiffMonoMass(std::vector< String > &mods, DoubleReal mass, DoubleReal error, ResidueModification::Term_Specificity term_spec)))
+START_SECTION((void getTerminalModificationsByDiffMonoMass(std::vector< String > &mods, double mass, double error, ResidueModification::Term_Specificity term_spec)))
 	vector<String> mods;
 	ptr->getTerminalModificationsByDiffMonoMass(mods, 42, 0.1, ResidueModification::N_TERM);
 	set<String> uniq_mods;
@@ -190,7 +190,7 @@ START_SECTION(Size findModificationIndex(const String &mod_name) const)
 	TEST_NOT_EQUAL(index, numeric_limits<Size>::max())
 END_SECTION
     
-START_SECTION(void getModificationsByDiffMonoMass(std::vector< String > &mods, DoubleReal mass, DoubleReal error=0.0))
+START_SECTION(void getModificationsByDiffMonoMass(std::vector< String > &mods, double mass, double error=0.0))
 	vector<String> mods;
 	ptr->getModificationsByDiffMonoMass(mods, 80.0, 0.1);
 	set<String> uniq_mods;
@@ -225,7 +225,7 @@ START_SECTION((const ResidueModification& getTerminalModification(const String &
 	TEST_EQUAL(ptr->getTerminalModification("Acetyl", ResidueModification::N_TERM).getFullId(), "Acetyl (N-term)")	
 END_SECTION
 
-START_SECTION((void getModificationsByDiffMonoMass(std::vector< String > &mods, const String &residue, DoubleReal mass, DoubleReal error=0.0)))
+START_SECTION((void getModificationsByDiffMonoMass(std::vector< String > &mods, const String &residue, double mass, double error=0.0)))
 	vector<String> mods;
 	ptr->getModificationsByDiffMonoMass(mods, "S", 80.0, 0.1);
 	TEST_EQUAL(find(mods.begin(), mods.end(), "Phospho (S)") != mods.end(), true)

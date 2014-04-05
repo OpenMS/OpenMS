@@ -45,62 +45,62 @@ namespace OpenMS
 {
   namespace Math
   {
-    DoubleReal LinearRegression::getIntercept() const
+    double LinearRegression::getIntercept() const
     {
       return intercept_;
     }
 
-    DoubleReal LinearRegression::getSlope() const
+    double LinearRegression::getSlope() const
     {
       return slope_;
     }
 
-    DoubleReal LinearRegression::getXIntercept() const
+    double LinearRegression::getXIntercept() const
     {
       return x_intercept_;
     }
 
-    DoubleReal LinearRegression::getLower() const
+    double LinearRegression::getLower() const
     {
       return lower_;
     }
 
-    DoubleReal LinearRegression::getUpper() const
+    double LinearRegression::getUpper() const
     {
       return upper_;
     }
 
-    DoubleReal LinearRegression::getTValue() const
+    double LinearRegression::getTValue() const
     {
       return t_star_;
     }
 
-    DoubleReal LinearRegression::getRSquared() const
+    double LinearRegression::getRSquared() const
     {
       return r_squared_;
     }
 
-    DoubleReal LinearRegression::getStandDevRes() const
+    double LinearRegression::getStandDevRes() const
     {
       return stand_dev_residuals_;
     }
 
-    DoubleReal LinearRegression::getMeanRes() const
+    double LinearRegression::getMeanRes() const
     {
       return mean_residuals_;
     }
 
-    DoubleReal LinearRegression::getStandErrSlope() const
+    double LinearRegression::getStandErrSlope() const
     {
       return stand_error_slope_;
     }
 
-    DoubleReal LinearRegression::getChiSquared() const
+    double LinearRegression::getChiSquared() const
     {
       return chi_squared_;
     }
 
-    DoubleReal LinearRegression::getRSD() const
+    double LinearRegression::getRSD() const
     {
       return rsd_;
     }

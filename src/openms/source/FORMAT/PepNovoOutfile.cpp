@@ -75,7 +75,7 @@ namespace OpenMS
     const string & result_filename,
     vector<PeptideIdentification> & peptide_identifications,
     ProteinIdentification & protein_identification,
-    const DoubleReal & score_threshold,
+    const double & score_threshold,
     const IndexPosMappingType & index_to_precursor,
     const map<String, String> & pnovo_modkey_to_mod_id
     )

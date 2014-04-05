@@ -256,10 +256,10 @@ namespace OpenMS
     return ef;
   }
 
-  DoubleReal AASequence::getAverageWeight(Residue::ResidueType type, Int charge) const
+  double AASequence::getAverageWeight(Residue::ResidueType type, Int charge) const
   {
     // check whether tags are present
-    DoubleReal tag_offset(0);
+    double tag_offset(0);
     for (ConstIterator it = this->begin(); it != this->end(); ++it)
     {
       if (it->getOneLetterCode() == "")
@@ -270,10 +270,10 @@ namespace OpenMS
     return tag_offset + getFormula(type, charge).getAverageWeight();
   }
 
-  DoubleReal AASequence::getMonoWeight(Residue::ResidueType type, Int charge) const
+  double AASequence::getMonoWeight(Residue::ResidueType type, Int charge) const
   {
     // check whether tags are present
-    DoubleReal tag_offset(0);
+    double tag_offset(0);
     for (ConstIterator it = this->begin(); it != this->end(); ++it)
     {
       if (it->getOneLetterCode() == "")

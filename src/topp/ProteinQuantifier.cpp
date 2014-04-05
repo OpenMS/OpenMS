@@ -531,8 +531,8 @@ protected:
       // if ratios-flag is set, print log2-ratios. ab1/ab0, ab2/ab0, ... , ab'n/ab0
       if (print_ratios)
       {
-        DoubleReal log2 = log(2.0);
-        DoubleReal ref_abundance = total_abundances[files_.begin()->first];
+        double log2 = log(2.0);
+        double ref_abundance = total_abundances[files_.begin()->first];
         for (ConsensusMap::FileDescriptions::iterator file_it = files_.begin();
              file_it != files_.end(); ++file_it)
         {
@@ -543,10 +543,10 @@ protected:
       if (print_SILACratios && files_.size() == 3)
       {
         ConsensusMap::FileDescriptions::iterator file_it = files_.begin();
-        DoubleReal light = total_abundances[file_it->first]; ++file_it;
-        DoubleReal middle = total_abundances[file_it->first]; ++file_it;
-        DoubleReal heavy = total_abundances[file_it->first];
-        DoubleReal log2 = log(2.0);
+        double light = total_abundances[file_it->first]; ++file_it;
+        double middle = total_abundances[file_it->first]; ++file_it;
+        double heavy = total_abundances[file_it->first];
+        double log2 = log(2.0);
 
         out << log(heavy / light) / log2
             << log(heavy / middle) / log2
@@ -658,7 +658,7 @@ protected:
         "mzTab:" + what + "_abundance_",
         "sub[" + String(counter) + "]"
       };
-      DoubleReal value = total_abundances[file_it->first];
+      double value = total_abundances[file_it->first];
       if (value > 0) hit.setMetaValue(field[0] + field[1], value);
       else hit.setMetaValue(field[0] + field[1], "--");  // missing value
       // TODO: compute std. deviations/std. errors (how?)

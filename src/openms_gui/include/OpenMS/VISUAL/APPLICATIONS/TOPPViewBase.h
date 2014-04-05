@@ -84,7 +84,6 @@ namespace OpenMS
   class Spectrum3DWidget;
   class ToolsDialog;
   class MultiGradientSelector;
-  class DBConnection;
   class FileWatcher;
 
   /**
@@ -148,17 +147,6 @@ public:
       @param spectrum_id determines the spectrum to show in 1D view.
     */
     void addDataFile(const String& filename, bool show_options, bool add_to_recent, String caption = "", UInt window_id = 0, Size spectrum_id = 0);
-    /**
-      @brief Opens and displays a data from a database
-
-      Loads the data and adds it to the application by calling addData_()
-
-      @param db_id The id in the database
-      @param show_options If the options dialog should be shown (otherwise the defaults are used)
-      @param caption Sets the layer name and window caption of the data. If unset the file name is used.
-      @param window_id in which window the file is opened if opened as a new layer (0 or default equals current window).
-    */
-    void addDataDB(UInt db_id, bool show_options, String caption = "", UInt window_id = 0);
 
     /**
       @brief Adds a peak or feature map to the viewer
@@ -235,8 +223,6 @@ public slots:
     /// shows the file dialog for opening example files
     void openExampleDialog();
     /// shows the DB dialog for opening files
-    void openDatabaseDialog();
-    /// shows the goto dialog
     void showGoToDialog();
     /// shows the preferences dialog
     void preferencesDialog();
@@ -317,8 +303,6 @@ public slots:
     /// Shows current layer preferences
     void showPreferences();
     /// dialog for inspecting database meta data
-    void metadataDatabaseDialog();
-    /// dialog for inspecting file meta data
     void metadataFileDialog();
 
     /** @name Toolbar slots
@@ -394,8 +378,6 @@ protected:
     /// unique list of files referenced by all layers
     std::set<String> getFilenamesOfOpenFiles_();
 
-    /// Tries to open a db connection (queries the user for the DB password)
-    void connectToDB_(DBConnection& db);
     /**
         @brief Shows a dialog where the user can select files
     */

@@ -116,7 +116,7 @@ protected:
     ConsensusMap * consensus_map_;
     ConsensusFeature act_cons_element_;
     DPosition<2> pos_;
-    DoubleReal it_;
+    double it_;
     //@}
 
     /// Pointer to last read object as a MetaInfoInterface, or null.

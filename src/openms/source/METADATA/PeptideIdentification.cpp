@@ -124,12 +124,12 @@ namespace OpenMS
     hits_ = hits;
   }
 
-  DoubleReal PeptideIdentification::getSignificanceThreshold() const
+  double PeptideIdentification::getSignificanceThreshold() const
   {
     return significance_threshold_;
   }
 
-  void PeptideIdentification::setSignificanceThreshold(DoubleReal value)
+  void PeptideIdentification::setSignificanceThreshold(double value)
   {
     significance_threshold_ = value;
   }
@@ -184,10 +184,10 @@ namespace OpenMS
     UInt rank = 1;
     sort();
     vector<PeptideHit>::iterator lit = hits_.begin();
-    DoubleReal last_score = lit->getScore();
+    double last_score = lit->getScore();
     while (lit != hits_.end())
     {
-      if ((DoubleReal)lit->getScore() != last_score)
+      if ((double)lit->getScore() != last_score)
       {
         ++rank;
         last_score = lit->getScore();

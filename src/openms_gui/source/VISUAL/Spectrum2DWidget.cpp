@@ -176,8 +176,8 @@ namespace OpenMS
   Histogram<> Spectrum2DWidget::createIntensityDistribution_() const
   {
     //initialize histogram
-    DoubleReal min = canvas_->getCurrentMinIntensity();
-    DoubleReal max = canvas_->getCurrentMaxIntensity();
+    double min = canvas_->getCurrentMinIntensity();
+    double max = canvas_->getCurrentMaxIntensity();
     if (min == max)
     {
       min -= 0.01;
@@ -224,7 +224,7 @@ namespace OpenMS
     if (canvas_->getCurrentLayer().type == LayerData::DT_PEAK)
     {
       //determine min and max of the data
-      Real min = numeric_limits<Real>::max(), max = -numeric_limits<Real>::max();
+      float min = numeric_limits<float>::max(), max = -numeric_limits<float>::max();
       for (ExperimentType::const_iterator s_it = canvas_->getCurrentLayer().getPeakData()->begin(); s_it != canvas_->getCurrentLayer().getPeakData()->end(); ++s_it)
       {
         if (s_it->getMSLevel() != 1)
@@ -298,12 +298,12 @@ namespace OpenMS
     else     //Features
     {
       //determine min and max
-      Real min = numeric_limits<Real>::max(), max = -numeric_limits<Real>::max();
+      float min = numeric_limits<float>::max(), max = -numeric_limits<float>::max();
       for (Spectrum2DCanvas::FeatureMapType::ConstIterator it = canvas_->getCurrentLayer().getFeatureMap()->begin(); it != canvas_->getCurrentLayer().getFeatureMap()->end(); ++it)
       {
         if (it->metaValueExists(name))
         {
-          Real value = it->getMetaValue(name);
+          float value = it->getMetaValue(name);
           if (value < min)
             min = value;
           if (value > max)
@@ -316,7 +316,7 @@ namespace OpenMS
       {
         if (it->metaValueExists(name))
         {
-          tmp.inc((Real)(it->getMetaValue(name)));
+          tmp.inc((float)(it->getMetaValue(name)));
         }
       }
 
@@ -447,16 +447,16 @@ namespace OpenMS
         {
           const FeatureMapType & map = *canvas()->getCurrentLayer().getFeatureMap();
           DBoundingBox<2> bb = map[feature_index].getConvexHull().getBoundingBox();
-          DoubleReal rt_margin = (bb.maxPosition()[0] - bb.minPosition()[0]) * 0.5;
-          DoubleReal mz_margin = (bb.maxPosition()[1] - bb.minPosition()[1]) * 2;
+          double rt_margin = (bb.maxPosition()[0] - bb.minPosition()[0]) * 0.5;
+          double mz_margin = (bb.maxPosition()[1] - bb.minPosition()[1]) * 2;
           SpectrumCanvas::AreaType narea(bb.minPosition()[1] - mz_margin, bb.minPosition()[0] - rt_margin, bb.maxPosition()[1] + mz_margin, bb.maxPosition()[0] + rt_margin);
           canvas()->setVisibleArea(narea);
         }
         else // Consensus Feature
         {
           const ConsensusFeature & cf = (*canvas()->getCurrentLayer().getConsensusMap())[feature_index];
-          DoubleReal rt_margin = 30;
-          DoubleReal mz_margin = 5;
+          double rt_margin = 30;
+          double mz_margin = 5;
           SpectrumCanvas::AreaType narea(cf.getMZ() - mz_margin, cf.getRT() - rt_margin, cf.getMZ() + mz_margin, cf.getRT() + rt_margin);
           canvas()->setVisibleArea(narea);
         }

@@ -280,7 +280,7 @@ void write_out_body_(std::ostream &os, Feature *feature_it, TargetedExperiment &
     for (std::vector<Feature>::iterator sub_it = feature_it->getSubordinates().begin(); sub_it != feature_it->getSubordinates().end(); ++sub_it)
     {
       String Peak_Apex = "NA";
-      os.precision(writtenDigits(DoubleReal()));
+      os.precision(writtenDigits(double()));
       sprintf(intensity_char, "%f", sub_it->getIntensity());
       sprintf(mz_char, "%f", sub_it->getMZ());
       os << line << meta_values << (String)intensity_char << "\t" << Peak_Apex << "\t" << (String)sub_it->getMetaValue("native_id") << "\t" << (String)mz_char << std::endl;
@@ -290,9 +290,9 @@ void write_out_body_(std::ostream &os, Feature *feature_it, TargetedExperiment &
 
 Feature *find_best_feature(const std::vector<Feature *> &features, String score_)
 {
-  DoubleReal best_score = -std::numeric_limits<DoubleReal>::max();
+  double best_score = -std::numeric_limits<double>::max();
   Feature *best_feature = NULL;
-  DoubleReal score;
+  double score;
 
   for (Size i = 0; i < features.size(); i++)
   {
@@ -416,7 +416,7 @@ protected:
 
     std::ofstream os(out.c_str());
     //set high precision for writing of floating point numbers
-    os.precision(writtenDigits(DoubleReal()));
+    os.precision(writtenDigits(double()));
 
     if (!os)
     {

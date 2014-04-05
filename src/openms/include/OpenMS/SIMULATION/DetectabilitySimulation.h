@@ -82,8 +82,8 @@ public:
     void filterDetectability(FeatureMapSim & features);
 
 
-    void predictDetectabilities(std::vector<String> & peptides_vector, std::vector<DoubleReal> & labels,
-                                std::vector<DoubleReal> & detectabilities);
+    void predictDetectabilities(std::vector<String> & peptides_vector, std::vector<double> & labels,
+                                std::vector<double> & detectabilities);
 private:
     /// Set default parameters
     void setDefaultParams_();
@@ -92,7 +92,7 @@ private:
     void updateMembers_();
 
     /// Minimum allowed detectability likelihood of a peptide
-    DoubleReal min_detect_;
+    double min_detect_;
 
     /// Name of the svm model file
     OpenMS::String dt_model_file_;

@@ -303,7 +303,7 @@ private:
 
       @note See getParam_(const String&) const for the order in which parameters are searched.
     */
-    DoubleReal getParamAsDouble_(const String& key, DoubleReal default_value = 0) const;
+    double getParamAsDouble_(const String& key, double default_value = 0) const;
 
     /**
       @brief Return the value of parameter @p key as a StringList or @p default_value if this value is not set
@@ -527,13 +527,13 @@ protected:
 
       @exception Exception::ElementNotFound is thrown if @p name is not found or if the parameter type is wrong
     */
-    void setMinFloat_(const String& name, DoubleReal min);
+    void setMinFloat_(const String& name, double min);
     /**
       @brief Sets the maximum value for the floating point parameter(can be a list of floating points,too) @p name.
 
       @exception Exception::ElementNotFound is thrown if @p name is not found or if the parameter type is wrong
     */
-    void setMaxFloat_(const String& name, DoubleReal max);
+    void setMaxFloat_(const String& name, double max);
 
     /**
       @brief Registers an integer option.
@@ -662,7 +662,7 @@ protected:
       @exception Exception::WrongParameterType is thrown if the parameter has the wrong type
       @exception Exception::InvalidParameter is thrown if the parameter restrictions are not met
     */
-    DoubleReal getDoubleOption_(const String& name) const;
+    double getDoubleOption_(const String& name) const;
 
     /**
       @brief Returns the value of a previously registered integer option

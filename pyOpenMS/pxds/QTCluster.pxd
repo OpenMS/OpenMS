@@ -9,14 +9,14 @@ cdef extern from "<OpenMS/DATASTRUCTURES/QTCluster.h>" namespace "OpenMS":
     
     cdef cppclass QTCluster "OpenMS::QTCluster":
         QTCluster(QTCluster) nogil except + #wrap-ignore
-        # POINTER #  QTCluster(GridFeature * center_point, Size num_maps, DoubleReal max_distance, bool use_IDs) nogil except +
-        DoubleReal getCenterRT() nogil except +
-        DoubleReal getCenterMZ() nogil except +
+        # POINTER #  QTCluster(GridFeature * center_point, Size num_maps, double max_distance, bool use_IDs) nogil except +
+        double getCenterRT() nogil except +
+        double getCenterMZ() nogil except +
         Size size() nogil except +
         bool operator<(QTCluster & cluster) nogil except +
-        # POINTER # void add(GridFeature * element, DoubleReal distance) nogil except +
+        # POINTER # void add(GridFeature * element, double distance) nogil except +
         # POINTER # void getElements(libcpp_map[ Size, GridFeature * ] & elements) nogil except +
         # POINTER # bool update(libcpp_map[ Size, GridFeature * ] & removed) nogil except +
-        DoubleReal getQuality() nogil except +
+        double getQuality() nogil except +
         libcpp_set[ AASequence ]  getAnnotations() nogil except +
 

@@ -56,7 +56,7 @@ int main(int argc, const char** argv)
   pp.pickExperiment(exp_raw, exp_picked);
   exp_picked.updateRanges();
 
-  cout << "\nMinimal fwhm of a mass spectrometric peak: " << (DoubleReal)param.getValue("peak_width")
+  cout << "\nMinimal fwhm of a mass spectrometric peak: " << (double)param.getValue("peak_width")
        << "\n\nNumber of picked peaks " << exp_picked.getSize() << std::endl;
 
   return 0;

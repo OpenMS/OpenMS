@@ -59,7 +59,7 @@ START_TEST(AASequenceIndeces, "$Id$")
 
 TOLERANCE_ABSOLUTE(0.01)
 
-START_SECTION(static DoubleReal calculateGB(const AASequence& seq, DoubleReal T=500.0) )
+START_SECTION(static double calculateGB(const AASequence& seq, double T=500.0) )
   TEST_REAL_SIMILAR(AAIndex::calculateGB(seq1), 1337.53)
   TEST_REAL_SIMILAR(AAIndex::calculateGB(seq2), 1442.70)
   TEST_REAL_SIMILAR(AAIndex::calculateGB(seq3), 1442.70)
@@ -69,31 +69,31 @@ START_SECTION(static DoubleReal calculateGB(const AASequence& seq, DoubleReal T=
   TEST_NOT_EQUAL(AAIndex::calculateGB(seq3,100.0), 1442.70)
 END_SECTION
 
-START_SECTION(static DoubleReal aliphatic(char aa))
+START_SECTION(static double aliphatic(char aa))
   TEST_REAL_SIMILAR(AAIndex::aliphatic('A'),1.0)
   TEST_REAL_SIMILAR(AAIndex::aliphatic('B'),0.0)
 END_SECTION
 
-START_SECTION(static DoubleReal acidic(char aa))
+START_SECTION(static double acidic(char aa))
   TEST_REAL_SIMILAR(AAIndex::acidic('D'),1.0)
   TEST_REAL_SIMILAR(AAIndex::acidic('A'),0.0)
 END_SECTION
 
-START_SECTION(static DoubleReal basic(char aa))
+START_SECTION(static double basic(char aa))
   TEST_REAL_SIMILAR(AAIndex::basic('K'),1.0)
   TEST_REAL_SIMILAR(AAIndex::basic('A'),0.0)
 END_SECTION
 
-START_SECTION(static DoubleReal polar(char aa))
+START_SECTION(static double polar(char aa))
   TEST_REAL_SIMILAR(AAIndex::polar('S'),1.0)
   TEST_REAL_SIMILAR(AAIndex::polar('A'),0.0)
 END_SECTION
 
-START_SECTION(static DoubleReal getKHAG800101(char aa))
+START_SECTION(static double getKHAG800101(char aa))
  TEST_REAL_SIMILAR(AAIndex::getKHAG800101('A'),49.1)
 END_SECTION
 
-START_SECTION(static DoubleReal getVASM830103(char aa))
+START_SECTION(static double getVASM830103(char aa))
 
   TEST_REAL_SIMILAR(AAIndex::getVASM830103('A'),0.159)
   TEST_REAL_SIMILAR(AAIndex::getVASM830103('R'),0.194)
@@ -118,7 +118,7 @@ START_SECTION(static DoubleReal getVASM830103(char aa))
 
 END_SECTION
 
-START_SECTION(static DoubleReal getNADH010106(char aa))
+START_SECTION(static double getNADH010106(char aa))
   TEST_REAL_SIMILAR(AAIndex::getNADH010106('A'),5.0)
   TEST_REAL_SIMILAR(AAIndex::getNADH010106('R'),-57.0)
   TEST_REAL_SIMILAR(AAIndex::getNADH010106('N'),-77.0)
@@ -141,7 +141,7 @@ START_SECTION(static DoubleReal getNADH010106(char aa))
   TEST_REAL_SIMILAR(AAIndex::getNADH010106('V'),117.0)
 END_SECTION
 
-START_SECTION(static DoubleReal getNADH010107(char aa))
+START_SECTION(static double getNADH010107(char aa))
   TEST_REAL_SIMILAR(AAIndex::getNADH010107('A'),-2.0)
   TEST_REAL_SIMILAR(AAIndex::getNADH010107('R'),-41.0)
   TEST_REAL_SIMILAR(AAIndex::getNADH010107('N'),-97.0)
@@ -164,7 +164,7 @@ START_SECTION(static DoubleReal getNADH010107(char aa))
   TEST_REAL_SIMILAR(AAIndex::getNADH010107('V'),114.0)
 END_SECTION
 
-START_SECTION(static DoubleReal getWILM950102(char aa))
+START_SECTION(static double getWILM950102(char aa))
   TEST_REAL_SIMILAR(AAIndex::getWILM950102('A'),2.62)
   TEST_REAL_SIMILAR(AAIndex::getWILM950102('R'),1.26)
   TEST_REAL_SIMILAR(AAIndex::getWILM950102('N'),-1.27)
@@ -187,7 +187,7 @@ START_SECTION(static DoubleReal getWILM950102(char aa))
   TEST_REAL_SIMILAR(AAIndex::getWILM950102('V'),2.30)
 END_SECTION
 
-START_SECTION(static DoubleReal getROBB760107(char aa))
+START_SECTION(static double getROBB760107(char aa))
   TEST_REAL_SIMILAR(AAIndex::getROBB760107('A'),0.0)
   TEST_REAL_SIMILAR(AAIndex::getROBB760107('R'),1.1)
   TEST_REAL_SIMILAR(AAIndex::getROBB760107('N'),-2.0)
@@ -210,7 +210,7 @@ START_SECTION(static DoubleReal getROBB760107(char aa))
   TEST_REAL_SIMILAR(AAIndex::getROBB760107('V'),2.7)
 END_SECTION
 
-START_SECTION(static DoubleReal getOOBM850104(char aa))
+START_SECTION(static double getOOBM850104(char aa))
   TEST_REAL_SIMILAR(AAIndex::getOOBM850104('A'),-2.49)
   TEST_REAL_SIMILAR(AAIndex::getOOBM850104('R'),2.55)
   TEST_REAL_SIMILAR(AAIndex::getOOBM850104('N'),2.27)
@@ -233,7 +233,7 @@ START_SECTION(static DoubleReal getOOBM850104(char aa))
   TEST_REAL_SIMILAR(AAIndex::getOOBM850104('V'),-3.97)
 END_SECTION
 
-START_SECTION(static DoubleReal getFAUJ880111(char aa))
+START_SECTION(static double getFAUJ880111(char aa))
   TEST_REAL_SIMILAR(AAIndex::getFAUJ880111('A'),0.)
   TEST_REAL_SIMILAR(AAIndex::getFAUJ880111('R'),1.)
   TEST_REAL_SIMILAR(AAIndex::getFAUJ880111('N'),0.)
@@ -256,7 +256,7 @@ START_SECTION(static DoubleReal getFAUJ880111(char aa))
   TEST_REAL_SIMILAR(AAIndex::getFAUJ880111('V'),0.)
 END_SECTION
 
-START_SECTION(static DoubleReal getFINA770101(char aa))
+START_SECTION(static double getFINA770101(char aa))
   TEST_REAL_SIMILAR(AAIndex::getFINA770101('A'),1.08)
   TEST_REAL_SIMILAR(AAIndex::getFINA770101('R'),1.05)
   TEST_REAL_SIMILAR(AAIndex::getFINA770101('N'),0.85)
@@ -279,7 +279,7 @@ START_SECTION(static DoubleReal getFINA770101(char aa))
   TEST_REAL_SIMILAR(AAIndex::getFINA770101('V'),0.95)
 END_SECTION
 
-START_SECTION(static DoubleReal getARGP820102(char aa))
+START_SECTION(static double getARGP820102(char aa))
   TEST_REAL_SIMILAR(AAIndex::getARGP820102('A'),1.18)
   TEST_REAL_SIMILAR(AAIndex::getARGP820102('R'),0.20)
   TEST_REAL_SIMILAR(AAIndex::getARGP820102('N'),0.23)

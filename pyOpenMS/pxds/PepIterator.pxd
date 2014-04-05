@@ -17,8 +17,8 @@ cdef extern from "<OpenMS/CHEMISTRY/PepIterator.h>" namespace "OpenMS":
         String getFastaFile() nogil except +
         void setSpectrum(libcpp_vector[ double ] & s) nogil except +
         libcpp_vector[ double ]  getSpectrum() nogil except +
-        void setTolerance(DoubleReal t) nogil except +
-        DoubleReal getTolerance() nogil except +
+        void setTolerance(double t) nogil except +
+        double getTolerance() nogil except +
         bool begin() nogil except +
         bool isAtEnd() nogil except +
         void registerChildren() nogil except +

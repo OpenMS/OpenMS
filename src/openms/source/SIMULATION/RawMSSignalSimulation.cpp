@@ -212,7 +212,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  DoubleReal RawMSSignalSimulation::getResolution_(const DoubleReal query_mz, const DoubleReal resolution, const RESOLUTIONMODEL model) const
+  double RawMSSignalSimulation::getResolution_(const double query_mz, const double resolution, const RESOLUTIONMODEL model) const
   {
     switch (model)
     {
@@ -435,7 +435,7 @@ namespace OpenMS
 #ifdef _OPENMP // update experiment index if necessary
         const int current_thread = omp_get_thread_num();
 #else
-        const int current_thread(0);  
+        const int current_thread(0);
 #endif
         add2DSignal_(features[f], *(experiments[current_thread]), *(experiments_ct[current_thread]));
 
@@ -506,11 +506,11 @@ namespace OpenMS
     addDetectorNoise_(experiment);
   }
 
-  OpenMS::DoubleReal RawMSSignalSimulation::getPeakWidth_(const DoubleReal mz, const bool is_gaussian) const
+  double RawMSSignalSimulation::getPeakWidth_(const double mz, const bool is_gaussian) const
   {
-    DoubleReal mz_local = std::max(mz, 400.0); // at least assume m/z=400, as otherwise FWHM might get redicously small
+    double mz_local = std::max(mz, 400.0); // at least assume m/z=400, as otherwise FWHM might get redicously small
     // convert from resolution @ current m/z --> FWHM
-    DoubleReal fwhm = mz_local / getResolution_(mz_local, res_base_, res_model_);
+    double fwhm = mz_local / getResolution_(mz_local, res_base_, res_model_);
     // Approximation for Gaussian-shaped signals,
     // i.e. sqrt(2*ln(2))*2 = 2.35482
     // , relating FWHM to Gaussian width
@@ -538,7 +538,7 @@ namespace OpenMS
     p1.setValue("isotope:mode:mode", param_.getValue("peak_shape"));
     p1.setValue("intensity_scaling", 0.001 * scale); // this removes the problem of to big isotope-model values
     p1.setValue("charge", q);
-    DoubleReal fwhm;
+    double fwhm;
     if (param_.getValue("peak_shape") == "Gaussian")
     {
       fwhm = getPeakWidth_(active_feature.getMZ(), true);
@@ -584,7 +584,7 @@ namespace OpenMS
     p1.setValue("isotope:mode:mode", param_.getValue("peak_shape"));
     p1.setValue("intensity_scaling", 0.001); // this removes the problem of to big isotope-model values
     p1.setValue("charge", q);
-    DoubleReal fwhm;
+    double fwhm;
     if (param_.getValue("peak_shape") == "Gaussian")
     {
       fwhm = getPeakWidth_(active_feature.getMZ(), true);
@@ -604,7 +604,7 @@ namespace OpenMS
     {
       throw Exception::InvalidSize(__FILE__, __LINE__, __PRETTY_FUNCTION__, experiment.size());
     }
-    DoubleReal rt_sampling_rate = experiment[1].getRT() - experiment[0].getRT();
+    double rt_sampling_rate = experiment[1].getRT() - experiment[0].getRT();
     EGHModel* elutionmodel = new EGHModel();
     chooseElutionProfile_(elutionmodel, active_feature, 1.0, rt_sampling_rate, experiment);
     ProductModel<2> pm;
@@ -712,8 +712,8 @@ namespace OpenMS
     for (; rt < rt_end && exp_iter != experiment.end(); ++exp_iter, ++exp_ct_iter)
     {
       rt = exp_iter->getRT();
-      DoubleReal distortion = DoubleReal(exp_iter->getMetaValue("distortion"));
-      DoubleReal rt_intensity = ((EGHModel*)pm.getModel(0))->getIntensity(rt);
+      double distortion = double(exp_iter->getMetaValue("distortion"));
+      double rt_intensity = ((EGHModel*)pm.getModel(0))->getIntensity(rt);
 
       // centroided GT
       Size iso_pos(0);
@@ -799,7 +799,7 @@ namespace OpenMS
     for (IsotopeDistribution::iterator iter = iso_dist.begin();
          iter != iso_dist.end(); ++iter)
     {
-      const SimCoordinateType mz = mz_mono + DoubleReal(iter->first - iso_dist.begin()->first) / q; // this is only an approximated trace' m/z position (as we do assume 1Da space between them)
+      const SimCoordinateType mz = mz_mono + double(iter->first - iso_dist.begin()->first) / q; // this is only an approximated trace' m/z position (as we do assume 1Da space between them)
 
       SimCoordinateType rt_min =  std::numeric_limits<SimCoordinateType>::max();
       SimCoordinateType rt_max = -std::numeric_limits<SimCoordinateType>::max();
@@ -810,7 +810,7 @@ namespace OpenMS
       for (exp_iter = exp_start; rt < rt_end && exp_iter != experiment.end(); ++exp_iter)
       {
         rt = exp_iter->getRT();
-        DoubleReal distortion = DoubleReal(exp_iter->getMetaValue("distortion"));
+        double distortion = double(exp_iter->getMetaValue("distortion"));
         ProductModel<2>::IntensityType intensity = pm.getIntensity(DPosition<2>(rt, mz)) * distortion;
         if (intensity <= 0.0)
           continue; // intensity cutoff (below that we don't want to see a signal)
@@ -842,7 +842,7 @@ namespace OpenMS
 
   }
 
-  void RawMSSignalSimulation::chooseElutionProfile_(EGHModel* const elutionmodel, Feature& feature, const double scale, const DoubleReal rt_sampling_rate, const MSSimExperiment& experiment)
+  void RawMSSignalSimulation::chooseElutionProfile_(EGHModel* const elutionmodel, Feature& feature, const double scale, const double rt_sampling_rate, const MSSimExperiment& experiment)
   {
     SimCoordinateType f_rt = feature.getRT();
 
@@ -865,13 +865,13 @@ namespace OpenMS
     else if (feature.metaValueExists("RT_egh_variance") && feature.metaValueExists("RT_egh_tau"))
     {
       // for CE we want wider profiles with higher MT
-      DoubleReal width_factor(1); // default for HPLC
+      double width_factor(1); // default for HPLC
       if (feature.metaValueExists("RT_CE_width_factor"))
         width_factor = feature.getMetaValue("RT_CE_width_factor");
 
       p.setValue("egh:guess_parameter", "false");
-      p.setValue("egh:tau", (DoubleReal) feature.getMetaValue("RT_egh_tau"));
-      p.setValue("egh:sigma_square", ((DoubleReal) feature.getMetaValue("RT_egh_variance")) * width_factor);
+      p.setValue("egh:tau", (double) feature.getMetaValue("RT_egh_tau"));
+      p.setValue("egh:sigma_square", ((double) feature.getMetaValue("RT_egh_variance")) * width_factor);
     }
     else
     {
@@ -899,7 +899,7 @@ namespace OpenMS
 
     for (; (exp_it != experiment.end()) && (exp_it->getRT() <= rt_em_end); ++exp_it) // .. and disturb values by (an already smoothed) distortion diced in RTSimulation
     {
-      DoubleReal intensity = (DoubleReal) exp_it->getMetaValue("distortion") * elutionmodel->getInterpolation().value(exp_it->getRT());
+      double intensity = (double) exp_it->getMetaValue("distortion") * elutionmodel->getInterpolation().value(exp_it->getRT());
       // store elution profile in feature MetaValue
       elution_intensities.push_back(intensity);
       elution_bounds[2] = std::distance(experiment.begin(), exp_it);
@@ -979,19 +979,19 @@ namespace OpenMS
     // we model the amount of (background) noise as Poisson process
     // i.e. the number of noise data points per unit m/z interval follows a Poisson
     // distribution. Noise intensity is assumed to be exponentially-distributed.
-    DoubleReal rate = param_.getValue("noise:shot:rate");
-    DoubleReal intensity_mean = param_.getValue("noise:shot:intensity-mean");
+    double rate = param_.getValue("noise:shot:rate");
+    double intensity_mean = param_.getValue("noise:shot:intensity-mean");
 
     // avoid sampling 0 values
     if (rate == 0.0 || intensity_mean == 0.0)
       return;
 
         // we distribute the rate in 100 Th windows
-    DoubleReal scaled_rate = rate * window_size;
+    double scaled_rate = rate * window_size;
     SimPointType shot_noise_peak;
 
     //distributions to sample from
-    boost::random::poisson_distribution<UInt,DoubleReal> pdist (scaled_rate);
+    boost::random::poisson_distribution<UInt,double> pdist (scaled_rate);
     boost::uniform_real<SimCoordinateType> udist (mz_lw, mz_up);
     boost::random::exponential_distribution<SimCoordinateType> edist (intensity_mean);
 
@@ -1027,8 +1027,8 @@ namespace OpenMS
 
   void RawMSSignalSimulation::addBaseLine_(MSSimExperiment& experiment, SimCoordinateType minimal_mz_measurement_limit)
   {
-    DoubleReal scale = param_.getValue("baseline:scaling");
-    DoubleReal shape = param_.getValue("baseline:shape");
+    double scale = param_.getValue("baseline:scaling");
+    double shape = param_.getValue("baseline:shape");
 
     if (scale == 0.0)
       return;
@@ -1054,8 +1054,8 @@ namespace OpenMS
     LOG_INFO << "Adding white noise to spectra ..." << std::endl;
 
     // get white noise parameters
-    DoubleReal white_noise_mean = param_.getValue("noise:white:mean");
-    DoubleReal white_noise_stddev = param_.getValue("noise:white:stddev");
+    double white_noise_mean = param_.getValue("noise:white:mean");
+    double white_noise_stddev = param_.getValue("noise:white:stddev");
 
     if (white_noise_mean == 0.0 && white_noise_stddev == 0.0)
     {
@@ -1088,8 +1088,8 @@ namespace OpenMS
     LOG_INFO << "Adding detector noise to spectra ..." << std::endl;
 
     // get white noise parameters
-    DoubleReal detector_noise_mean = param_.getValue("noise:detector:mean");
-    DoubleReal detector_noise_stddev = param_.getValue("noise:detector:stddev");
+    double detector_noise_mean = param_.getValue("noise:detector:mean");
+    double detector_noise_stddev = param_.getValue("noise:detector:stddev");
 
     if (detector_noise_mean == 0.0 && detector_noise_stddev == 0.0)
     {
@@ -1144,7 +1144,7 @@ namespace OpenMS
     }
     grid.clear();
     SimCoordinateType mz = mz_min;
-    DoubleReal sampling_rate(0);
+    double sampling_rate(0);
     while (mz <= mz_max)
     {
       SimCoordinateType fwhm = getPeakWidth_(mz, param_.getValue("peak_shape") == "Gaussian");
@@ -1204,7 +1204,7 @@ namespace OpenMS
       GridTypeIt grid_pos = grid.begin();
       GridTypeIt grid_pos_next(grid_pos + 1);
 
-      DoubleReal int_sum(0);
+      double int_sum(0);
       bool break_scan(false);
       // match points to closest grid point
       for (Size j = 0; j < experiment[i].size(); ++j)

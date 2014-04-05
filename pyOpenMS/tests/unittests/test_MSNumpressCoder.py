@@ -38,7 +38,7 @@ class TestMSNumpressCoder(unittest.TestCase):
         out = out_.c_str()
 
         self.assertEqual( len(out),  24)
-        self.assertEqual( out,  "QMVagAAAAAAZxX3ivPP8/w==")
+        self.assertEqual( out,  b"QMVagAAAAAAZxX3ivPP8/w==")
 
     def test_decodeNP_SLOF(self):
         coder = pyopenms.MSNumpressCoder()
@@ -46,7 +46,7 @@ class TestMSNumpressCoder(unittest.TestCase):
         config.np_compression = pyopenms.MSNumpressCoder.NumpressCompression.SLOF
         config.estimate_fixed_point = True
 
-        inData = "QMVagAAAAAAZxX3ivPP8/w=="
+        inData = b"QMVagAAAAAAZxX3ivPP8/w=="
         out = []
         coder.decodeNP(inData, out, False, config)
 
@@ -65,7 +65,7 @@ class TestMSNumpressCoder(unittest.TestCase):
         out = out_.c_str()
 
         self.assertEqual( len(out),  12)
-        self.assertEqual( out, "ZGaMXCFQkQ==")
+        self.assertEqual( out, b"ZGaMXCFQkQ==")
 
     def test_decodeNP_PIC(self):
         coder = pyopenms.MSNumpressCoder()
@@ -73,7 +73,7 @@ class TestMSNumpressCoder(unittest.TestCase):
         config.np_compression = pyopenms.MSNumpressCoder.NumpressCompression.PIC
         config.estimate_fixed_point = True
 
-        inData = "ZGaMXCFQkQ=="
+        inData = b"ZGaMXCFQkQ=="
         out = []
         coder.decodeNP(inData, out, False, config)
 
@@ -92,7 +92,7 @@ class TestMSNumpressCoder(unittest.TestCase):
         out = out_.c_str()
 
         self.assertEqual( len(out),  28)
-        self.assertEqual( out,  "QWR64UAAAADo//8/0P//f1kSgA==")
+        self.assertEqual( out,  b"QWR64UAAAADo//8/0P//f1kSgA==")
 
     def test_decodeNP_LINEAR(self):
         coder = pyopenms.MSNumpressCoder()
@@ -100,7 +100,7 @@ class TestMSNumpressCoder(unittest.TestCase):
         config.np_compression = pyopenms.MSNumpressCoder.NumpressCompression.LINEAR
         config.estimate_fixed_point = True
 
-        inData = "QWR64UAAAADo//8/0P//f1kSgA=="
+        inData = b"QWR64UAAAADo//8/0P//f1kSgA=="
         out = []
         coder.decodeNP(inData, out, False, config)
 

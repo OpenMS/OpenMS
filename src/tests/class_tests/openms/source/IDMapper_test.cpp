@@ -50,12 +50,12 @@ using namespace OpenMS;
 class IDMapper2 : public IDMapper
 {
   public:
-    DoubleReal getAbsoluteMZTolerance2_(const DoubleReal mz)
+    double getAbsoluteMZTolerance2_(const double mz)
     {
       return getAbsoluteMZTolerance_(mz);
     }
 
-    bool isMatch2_(const DoubleReal rt_distance, const DoubleReal mz_theoretical, const DoubleReal mz_observed)
+    bool isMatch2_(const double rt_distance, const double mz_theoretical, const double mz_observed)
     {
       return isMatch_(rt_distance, mz_theoretical, mz_observed);
     }
@@ -235,7 +235,7 @@ START_SECTION((template < typename FeatureType > void annotate(FeatureMap< Featu
   p.setValue("ignore_charge", "true");
   mapper.setParameters(p);
 
-mapper.annotate(fm2,identifications,protein_identifications, true, true);
+  mapper.annotate(fm2,identifications,protein_identifications, true, true);
 
   //test protein ids
   TEST_EQUAL(fm2.getProteinIdentifications().size(),1)
@@ -388,9 +388,9 @@ START_SECTION((void annotate(ConsensusMap& map, const std::vector<PeptideIdentif
 
     TEST_EQUAL(cm[0].getPeptideIdentifications().size(), 1);
     TEST_EQUAL(cm[0].getPeptideIdentifications()[0].getHits()[0].getSequence(),
-               AASequence::fromString("ACSF"));
+    AASequence::fromString("ACSF"));
     TEST_EQUAL(cm.getUnassignedPeptideIdentifications().size(),
-               peptide_ids.size() - 1);
+    peptide_ids.size() - 1);
 
     cm[0].getPeptideIdentifications().clear();
     cm.getUnassignedPeptideIdentifications().clear();
@@ -405,7 +405,7 @@ START_SECTION((void annotate(ConsensusMap& map, const std::vector<PeptideIdentif
 }
 END_SECTION
 
-START_SECTION([EXTRA] DoubleReal getAbsoluteMZTolerance_(const DoubleReal mz) const)
+START_SECTION([EXTRA] double getAbsoluteMZTolerance_(const double mz) const)
   IDMapper2 mapper;
   Param p = mapper.getParameters();
   p.setValue("mz_tolerance", 1.0);
@@ -419,7 +419,7 @@ START_SECTION([EXTRA] DoubleReal getAbsoluteMZTolerance_(const DoubleReal mz) co
   TEST_REAL_SIMILAR(mapper.getAbsoluteMZTolerance2_(1000), 3)
 END_SECTION
 
-START_SECTION([EXTRA] bool isMatch_(const DoubleReal rt_distance, const DoubleReal mz_theoretical, const DoubleReal mz_observed) const)
+START_SECTION([EXTRA] bool isMatch_(const double rt_distance, const double mz_theoretical, const double mz_observed) const)
   IDMapper2 mapper;
   TEST_EQUAL(mapper.isMatch2_(1, 1000, 1000.001), true)
   Param p = mapper.getParameters();

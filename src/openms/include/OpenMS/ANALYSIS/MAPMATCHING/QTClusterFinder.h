@@ -86,7 +86,7 @@ namespace OpenMS
 private:
 
     /// Distances between pairs of grid features
-    typedef OpenMSBoost::unordered_map<std::pair<GridFeature *, GridFeature *>, DoubleReal> PairDistances;
+    typedef OpenMSBoost::unordered_map<std::pair<GridFeature *, GridFeature *>, double> PairDistances;
 
     typedef HashGrid<GridFeature *> Grid;
 
@@ -97,10 +97,10 @@ private:
     bool use_IDs_;
 
     /// Maximum RT difference
-    DoubleReal max_diff_rt_;
+    double max_diff_rt_;
 
     /// Maximum m/z difference
-    DoubleReal max_diff_mz_;
+    double max_diff_mz_;
 
     /// Feature distance functor
     FeatureDistance feature_distance_;
@@ -117,7 +117,7 @@ private:
 
          The distance is looked up in the distance map and only computed (and stored) if it's not already available.
      */
-    DoubleReal getDistance_(GridFeature * left, GridFeature * right);
+    double getDistance_(GridFeature * left, GridFeature * right);
 
     /**
          @brief Checks whether the peptide IDs of a cluster and a neighboring feature are compatible.
@@ -127,7 +127,7 @@ private:
     bool compatibleIDs_(QTCluster & cluster, const GridFeature * neighbor);
 
     /// Sets algorithm parameters
-    void setParameters_(DoubleReal max_intensity, DoubleReal max_mz);
+    void setParameters_(double max_intensity, double max_mz);
 
     /// Generates a consensus feature from the best cluster and updates the clustering
     void makeConsensusFeature_(std::list<QTCluster> & clustering,

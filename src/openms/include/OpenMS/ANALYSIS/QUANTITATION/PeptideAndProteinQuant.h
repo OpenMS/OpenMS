@@ -56,7 +56,7 @@ namespace OpenMS
 public:
 
     /// Mapping: sample ID -> abundance
-    typedef std::map<UInt64, DoubleReal> SampleAbundances;
+    typedef std::map<UInt64, double> SampleAbundances;
 
     /// Quantitative and associated data for a peptide
     struct PeptideData
@@ -204,12 +204,12 @@ private:
     void orderBest_(const std::map<T, SampleAbundances> abundances,
                     std::vector<T> & result)
     {
-      typedef std::pair<Size, DoubleReal> PairType;
+      typedef std::pair<Size, double> PairType;
       std::multimap<PairType, T, std::greater<PairType> > order;
       for (typename std::map<T, SampleAbundances>::const_iterator ab_it =
              abundances.begin(); ab_it != abundances.end(); ++ab_it)
       {
-        DoubleReal total = 0.0;
+        double total = 0.0;
         for (SampleAbundances::const_iterator samp_it = ab_it->second.begin();
              samp_it != ab_it->second.end(); ++samp_it)
         {

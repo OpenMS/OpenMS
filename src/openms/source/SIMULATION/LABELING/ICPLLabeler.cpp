@@ -444,7 +444,7 @@ namespace OpenMS
 
   void ICPLLabeler::postRTHook(FeatureMapSimVector & features_to_simulate)
   {
-    DoubleReal rt_shift = param_.getValue("ICPL_fixed_rtshift");
+    double rt_shift = param_.getValue("ICPL_fixed_rtshift");
 
     if (rt_shift != 0.0)
     {

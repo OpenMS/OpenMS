@@ -70,17 +70,17 @@ public:
     ///@name Methods for ranges
     //@{
     ///Sets the data range to display initially
-    void setRange(Real min_rt, Real max_rt, Real min_mz, Real max_mz);
+    void setRange(float min_rt, float max_rt, float min_mz, float max_mz);
     ///Sets the data range of the complete experiment for better navigation with the dialog
-    void setMinMaxOfRange(Real min_rt, Real max_rt, Real min_mz, Real max_mz);
+    void setMinMaxOfRange(float min_rt, float max_rt, float min_mz, float max_mz);
     ///Returns the lower RT bound
-    Real getMinRT() const;
+    float getMinRT() const;
     ///Returns the upper RT bound
-    Real getMaxRT() const;
+    float getMaxRT() const;
     ///Returns the lower m/z bound
-    Real getMinMZ() const;
+    float getMinMZ() const;
     ///Returns the upper m/z bound
-    Real getMaxMZ() const;
+    float getMaxMZ() const;
     //@}
 
     ///@name Methods for feature numbers

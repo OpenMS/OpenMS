@@ -31,7 +31,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Compomer.h>" namespace "OpenMS":
         Int getNetCharge() nogil except +
 
         # /// mass of all contained adducts
-        DoubleReal getMass() nogil except +
+        double getMass() nogil except +
 
         # /// summed positive charges of contained adducts
         Int getPositiveCharges() nogil except +
@@ -40,10 +40,10 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Compomer.h>" namespace "OpenMS":
         Int getNegativeCharges() nogil except +
 
         # /// return log probability
-        DoubleReal getLogP() nogil except +
+        double getLogP() nogil except +
 
         # /// return log probability
-        DoubleReal getRTShift() nogil except +
+        double getRTShift() nogil except +
 
         # /// get adducts with their abundance as compact string for both sides
         String getAdductsAsString() nogil except +
@@ -97,7 +97,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Compomer.h>" namespace "OpenMS":
         Int getNetCharge() nogil except +
 
         # /// mass of all contained adducts
-        DoubleReal getMass() nogil except +
+        double getMass() nogil except +
 
         # /// summed positive charges of contained adducts
         Int getPositiveCharges() nogil except +
@@ -106,10 +106,10 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Compomer.h>" namespace "OpenMS":
         Int getNegativeCharges() nogil except +
 
         # /// return log probability
-        DoubleReal getLogP() nogil except +
+        double getLogP() nogil except +
 
         # /// return log probability
-        DoubleReal getRTShift() nogil except +
+        double getRTShift() nogil except +
 
         # /// get adducts with their abundance as compact string for both sides
         String getAdductsAsString() nogil except +

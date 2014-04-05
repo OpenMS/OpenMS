@@ -105,7 +105,7 @@ START_SECTION((void setDataPoints(const DataPoints& data)))
 }
 END_SECTION
 
-START_SECTION((DoubleReal apply(DoubleReal value) const))
+START_SECTION((double apply(double value) const))
 {
 	TransformationDescription td;
 	TEST_EQUAL(td.apply(-0.5), -0.5);

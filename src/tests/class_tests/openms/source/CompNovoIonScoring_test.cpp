@@ -74,7 +74,7 @@ START_SECTION((virtual ~CompNovoIonScoring()))
 }
 END_SECTION
 
-START_SECTION((void scoreSpectra(Map< DoubleReal, IonScore > &CID_ion_scores, PeakSpectrum &CID_spec, PeakSpectrum &ETD_spec, DoubleReal precursor_weight, Size charge)))
+START_SECTION((void scoreSpectra(Map< double, IonScore > &CID_ion_scores, PeakSpectrum &CID_spec, PeakSpectrum &ETD_spec, double precursor_weight, Size charge)))
 {
   TheoreticalSpectrumGenerator tsg;
   Param tsg_param(tsg.getParameters());
@@ -114,11 +114,11 @@ START_SECTION((void scoreSpectra(Map< DoubleReal, IonScore > &CID_ion_scores, Pe
   spec.setPrecursors(precs);
   spec_ETD.setPrecursors(precs);
 
-	Map<DoubleReal, CompNovoIonScoringBase::IonScore> ion_scores;
+	Map<double, CompNovoIonScoringBase::IonScore> ion_scores;
 	CompNovoIonScoring cnis;
   cnis.scoreSpectra(ion_scores, spec, spec_ETD, 1018.48, 1);
 
-  for (Map<DoubleReal, CompNovoIonScoringBase::IonScore>::ConstIterator it = ion_scores.begin(); it != ion_scores.end(); ++it)
+  for (Map<double, CompNovoIonScoringBase::IonScore>::ConstIterator it = ion_scores.begin(); it != ion_scores.end(); ++it)
   {
 /*
 y1 175.118952187571

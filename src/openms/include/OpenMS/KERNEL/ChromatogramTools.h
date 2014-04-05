@@ -138,7 +138,7 @@ public:
     void convertSpectraToChromatograms(ExperimentType & exp, bool remove_spectra = false)
     {
       typedef typename ExperimentType::SpectrumType SpectrumType;
-      Map<DoubleReal, Map<DoubleReal, std::vector<SpectrumType> > > chroms;
+      Map<double, Map<double, std::vector<SpectrumType> > > chroms;
       for (typename ExperimentType::ConstIterator it = exp.begin(); it != exp.end(); ++it)
       {
         // TODO other types
@@ -179,10 +179,10 @@ public:
         }
       }
 
-      typename Map<DoubleReal, Map<DoubleReal, std::vector<SpectrumType> > >::const_iterator it1 = chroms.begin();
+      typename Map<double, Map<double, std::vector<SpectrumType> > >::const_iterator it1 = chroms.begin();
       for (; it1 != chroms.end(); ++it1)
       {
-        typename Map<DoubleReal, std::vector<SpectrumType> >::const_iterator it2 = it1->second.begin();
+        typename Map<double, std::vector<SpectrumType> >::const_iterator it2 = it1->second.begin();
         for (; it2 != it1->second.end(); ++it2)
         {
           typename ExperimentType::ChromatogramType chrom;

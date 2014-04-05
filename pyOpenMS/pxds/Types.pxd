@@ -20,8 +20,6 @@ cdef extern from "<OpenMS/CONCEPT/Types.h>" namespace "OpenMS":
     ctypedef time_t   Time
     ctypedef unsigned int UInt
     ctypedef int      Int
-    ctypedef float    Real
-    ctypedef double   DoubleReal
     ctypedef unsigned long   UID "OPENMS_UINT64_TYPE"
     ctypedef size_t    Size
     ctypedef ptrdiff_t SignedSize

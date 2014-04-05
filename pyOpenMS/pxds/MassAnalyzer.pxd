@@ -43,34 +43,34 @@ cdef extern from "<OpenMS/METADATA/MassAnalyzer.h>" namespace "OpenMS":
 
         # @brief returns the resolution
         # The maximum m/z value at which two peaks can be resolved, according to one of the standard measures
-        DoubleReal getResolution() nogil except +
+        double getResolution() nogil except +
         # sets the resolution
-        void setResolution(DoubleReal resolution) nogil except +
+        void setResolution(double resolution) nogil except +
 
         # returns the mass accuracy i.e. how much the theoretical mass may differ from the measured mass (in ppm)
-        DoubleReal getAccuracy() nogil except +
+        double getAccuracy() nogil except +
         # sets the accuracy  i.e. how much the theoretical mass may differ from the measured mass  (in ppm)
-        void setAccuracy(DoubleReal accuracy) nogil except +
+        void setAccuracy(double accuracy) nogil except +
 
         # returns the scan rate (in s)
-        DoubleReal getScanRate() nogil except +
+        double getScanRate() nogil except +
         # sets the scan rate (in s)
-        void setScanRate(DoubleReal scan_rate) nogil except +
+        void setScanRate(double scan_rate) nogil except +
 
         # returns the scan time for a single scan (in s)
-        DoubleReal getScanTime() nogil except +
+        double getScanTime() nogil except +
         # sets the scan time for a single scan (in s)
-        void setScanTime(DoubleReal scan_time) nogil except +
+        void setScanTime(double scan_time) nogil except +
 
         # returns the path length for a TOF mass analyzer (in meter)
-        DoubleReal getTOFTotalPathLength() nogil except +
+        double getTOFTotalPathLength() nogil except +
         # sets the path length for a TOF mass analyzer (in meter)
-        void setTOFTotalPathLength(DoubleReal TOF_total_path_length) nogil except +
+        void setTOFTotalPathLength(double TOF_total_path_length) nogil except +
 
         # returns the isolation width i.e. in which m/z range the precursor ion is selected for MS to the n (in m/z)
-        DoubleReal getIsolationWidth() nogil except +
+        double getIsolationWidth() nogil except +
         # sets the isolation width i.e. in which m/z range the precursor ion is selected for MS to the n (in m/z)
-        void setIsolationWidth(DoubleReal isolation_width) nogil except +
+        void setIsolationWidth(double isolation_width) nogil except +
 
         # returns the final MS exponent
         Int getFinalMSExponent() nogil except +
@@ -78,9 +78,9 @@ cdef extern from "<OpenMS/METADATA/MassAnalyzer.h>" namespace "OpenMS":
         void setFinalMSExponent(Int final_MS_exponent) nogil except +
 
         # returns the strength of the magnetic field (in T)
-        DoubleReal getMagneticFieldStrength() nogil except +
+        double getMagneticFieldStrength() nogil except +
         # sets the strength of the magnetic field (in T)
-        void setMagneticFieldStrength(DoubleReal magnetic_field_strength) nogil except +
+        void setMagneticFieldStrength(double magnetic_field_strength) nogil except +
 
         #
         #   @brief returns the position of this part in the whole Instrument.

@@ -48,7 +48,7 @@ typedef std::map<Test::Grid::CellIndex, Test::Grid::CellContent> Cells;
 
 const Coordinate cluster_dimension(1, 1);
 
-Cells initClustering(DoubleReal rt_min, DoubleReal rt_max_spacing)
+Cells initClustering(double rt_min, double rt_max_spacing)
 {
   Test t(cluster_dimension, rt_min, rt_max_spacing);
 
@@ -78,7 +78,7 @@ Cells initClustering(DoubleReal rt_min, DoubleReal rt_max_spacing)
 
 START_TEST(SILACClustering, "$Id$")
 
-START_SECTION(SILACClustering(const PointCoordinate &cluster_dimension, DoubleReal rt_min, DoubleReal rt_max_spacing))
+START_SECTION(SILACClustering(const PointCoordinate &cluster_dimension, double rt_min, double rt_max_spacing))
   Test t(cluster_dimension, 1, 2);
   TEST_EQUAL(t.grid.cell_dimension, cluster_dimension);
   TEST_EQUAL(t.rt_min, 1);

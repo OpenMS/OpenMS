@@ -70,7 +70,7 @@ START_SECTION((virtual ~PeakIntensityPredictor()))
   delete ptr;
 END_SECTION
 
-START_SECTION(DoubleReal predict(const AASequence& sequence))
+START_SECTION(double predict(const AASequence& sequence))
   PeakIntensityPredictor pip;
   TEST_REAL_SIMILAR(pip.predict(seq1), -0.531675)
   TEST_REAL_SIMILAR(pip.predict(seq2), 0.0171194)
@@ -78,9 +78,9 @@ START_SECTION(DoubleReal predict(const AASequence& sequence))
 END_SECTION
 
 
-START_SECTION(DoubleReal predict(const AASequence& sequence, std::vector<DoubleReal>& add_info))
+START_SECTION(double predict(const AASequence& sequence, std::vector<double>& add_info))
   PeakIntensityPredictor pip;
-  std::vector<DoubleReal> add_info;
+  std::vector<double> add_info;
   pip.predict(seq1,add_info);
   TEST_EQUAL(add_info.size(),3)
   TEST_REAL_SIMILAR(add_info[0],0.0)
@@ -88,17 +88,17 @@ START_SECTION(DoubleReal predict(const AASequence& sequence, std::vector<DoubleR
   TEST_REAL_SIMILAR(add_info[2],2.04653)
 END_SECTION
 
-START_SECTION(std::vector<DoubleReal> predict(const std::vector<AASequence>& sequences))
+START_SECTION(std::vector<double> predict(const std::vector<AASequence>& sequences))
   PeakIntensityPredictor pip;
-  vector<DoubleReal> ref = pip.predict(vec);
+  vector<double> ref = pip.predict(vec);
   TEST_REAL_SIMILAR(ref[0], -0.531675)
   TEST_REAL_SIMILAR(ref[1], 0.0171194)
   TEST_REAL_SIMILAR(ref[2], -0.595362)
 END_SECTION
 
-START_SECTION(std::vector<DoubleReal> predict(const std::vector<AASequence>& sequences, std::vector<std::vector<DoubleReal> >& add_info))
+START_SECTION(std::vector<double> predict(const std::vector<AASequence>& sequences, std::vector<std::vector<double> >& add_info))
   PeakIntensityPredictor pip;
-  vector<vector<DoubleReal> > add_info;
+  vector<vector<double> > add_info;
   pip.predict(vec,add_info);
   TEST_EQUAL(add_info.size(),3)
   TEST_EQUAL(add_info[0].size(),3)

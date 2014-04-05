@@ -37,7 +37,6 @@
 
 #include <OpenMS/METADATA/SpectrumSettings.h>
 #include <OpenMS/METADATA/MetaInfoDescription.h>
-#include <OpenMS/FORMAT/DB/PersistentObject.h>
 #include <OpenMS/KERNEL/RangeManager.h>
 #include <OpenMS/KERNEL/ComparatorUtils.h>
 
@@ -67,15 +66,14 @@ namespace OpenMS
   class MSSpectrum :
     public std::vector<PeakT>,
     public RangeManager<1>,
-    public SpectrumSettings,
-    public PersistentObject
+    public SpectrumSettings
   {
 public:
 
     ///Float data array class
     class FloatDataArray :
       public MetaInfoDescription,
-      public std::vector<Real>
+      public std::vector<float>
     {};
 
     ///Integer data array class
@@ -135,7 +133,6 @@ public:
       ContainerType(),
       RangeManager<1>(),
       SpectrumSettings(),
-      PersistentObject(),
       retention_time_(-1),
       ms_level_(1),
       name_(),
@@ -149,7 +146,6 @@ public:
       ContainerType(source),
       RangeManager<1>(source),
       SpectrumSettings(source),
-      PersistentObject(source),
       retention_time_(source.retention_time_),
       ms_level_(source.ms_level_),
       name_(source.name_),
@@ -170,7 +166,6 @@ public:
       ContainerType::operator=(source);
       RangeManager<1>::operator=(source);
       SpectrumSettings::operator=(source);
-      PersistentObject::operator=(source);
 
       retention_time_ = source.retention_time_;
       ms_level_ = source.ms_level_;
@@ -212,13 +207,13 @@ public:
     ///@name Accessors for meta information
     ///@{
     /// Returns the absolute retention time (is seconds)
-    inline DoubleReal getRT() const
+    inline double getRT() const
     {
       return retention_time_;
     }
 
     /// Sets the absolute retention time (is seconds)
-    inline void setRT(DoubleReal rt)
+    inline void setRT(double rt)
     {
       retention_time_ = rt;
     }
@@ -353,7 +348,7 @@ public:
 
         for (Size i = 0; i < float_data_arrays_.size(); ++i)
         {
-          std::vector<Real> mda_tmp;
+          std::vector<float> mda_tmp;
           for (Size j = 0; j < float_data_arrays_[i].size(); ++j)
           {
             mda_tmp.push_back(*(float_data_arrays_[i].begin() + (sorted_indices[j].second)));
@@ -416,7 +411,7 @@ public:
 
         for (Size i = 0; i < float_data_arrays_.size(); ++i)
         {
-          std::vector<Real> mda_tmp;
+          std::vector<float> mda_tmp;
           mda_tmp.reserve(float_data_arrays_[i].size());
           for (Size j = 0; j < float_data_arrays_[i].size(); ++j)
           {
@@ -609,7 +604,6 @@ public:
       if (clear_meta_data)
       {
         clearRanges();
-        clearId();
         this->SpectrumSettings::operator=(SpectrumSettings()); // no "clear" method
         retention_time_ = -1.0;
         ms_level_ = 1;
@@ -621,12 +615,9 @@ public:
     }
 
 protected:
-    // Docu in base class
-    virtual void clearChildIds_()
-    {}
 
     /// Retention time
-    DoubleReal retention_time_;
+    double retention_time_;
 
     /// MS level
     UInt ms_level_;

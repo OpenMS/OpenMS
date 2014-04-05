@@ -18,10 +18,10 @@ cdef extern from "<OpenMS/CHEMISTRY/EmpiricalFormula.h>" namespace "OpenMS":
         ## EmpiricalFormula(SignedSize number, Element * element, SignedSize charge = 0) nogil except +
 
         # returns the mono isotopic weight of the formula (includes proton charges)
-        DoubleReal getMonoWeight() nogil except +
+        double getMonoWeight() nogil except +
 
         # returns the average weight of the formula (includes proton charges)
-        DoubleReal getAverageWeight() nogil except +
+        double getAverageWeight() nogil except +
 
         # @brief returns the isotope distribution of the formula
         #   *	The details of the calculation of the isotope distribution

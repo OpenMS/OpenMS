@@ -151,7 +151,7 @@ public:
       std::vector<boost::shared_ptr<SVMWrapper> > reg_models;
 
       //The intensity for each ion type for the SVC mode
-      std::map<Residue::ResidueType, DoubleReal> static_intensities;
+      std::map<Residue::ResidueType, double> static_intensities;
 
       //The selected primary IonTypes
       std::vector<IonType> ion_types;
@@ -166,10 +166,10 @@ public:
       Size number_regions;
 
       //upper limits (required for scaling)
-      std::vector<DoubleReal> feature_max;
+      std::vector<double> feature_max;
 
       //lower limits (required for scaling)
-      std::vector<DoubleReal> feature_min;
+      std::vector<double> feature_min;
 
       //lower bound for scaling
       double scaling_lower;
@@ -178,13 +178,13 @@ public:
       double scaling_upper;
 
       //border values for binning secondary types intensity
-      std::vector<DoubleReal> intensity_bin_boarders;
+      std::vector<double> intensity_bin_boarders;
 
       //intensity values for binned secondary types intensity
-      std::vector<DoubleReal> intensity_bin_values;
+      std::vector<double> intensity_bin_values;
 
       //conditional probabilities for secondary types
-      std::map<std::pair<IonType, Size>, std::vector<std::vector<DoubleReal> > > conditional_prob;
+      std::map<std::pair<IonType, Size>, std::vector<std::vector<double> > > conditional_prob;
     };
 
 
@@ -220,7 +220,7 @@ public:
     }
 
 protected:
-    typedef std::map<IonType, DoubleReal> IntensityMap;
+    typedef std::map<IonType, double> IntensityMap;
 
     /// charge of the precursors used for training
     Size precursor_charge_;
@@ -232,13 +232,13 @@ protected:
     static std::map<String, Size> aa_to_index_;
 
     /// hydrophobicity values for each AA
-    static std::map<String, DoubleReal> hydrophobicity_;
+    static std::map<String, double> hydrophobicity_;
 
     /// helicity values for each AA
-    static std::map<String, DoubleReal> helicity_;
+    static std::map<String, double> helicity_;
 
     /// basicity values for each AA
-    static std::map<String, DoubleReal> basicity_;
+    static std::map<String, double> basicity_;
 
     /// whether ion types are hidden or not
     std::map<IonType, bool> hide_type_;

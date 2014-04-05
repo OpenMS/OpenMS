@@ -16,15 +16,15 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussTraceFitter.h>" nam
         GaussTraceFitter() nogil except +
         GaussTraceFitter(GaussTraceFitter) nogil except +
         void fit(MassTraces[ PeakType ] & traces) nogil except +
-        DoubleReal getLowerRTBound() nogil except +
-        DoubleReal getUpperRTBound() nogil except +
-        DoubleReal getHeight() nogil except +
-        DoubleReal getCenter() nogil except +
-        DoubleReal getFWHM() nogil except +
-        DoubleReal getSigma() nogil except +
-        bool checkMaximalRTSpan(DoubleReal max_rt_span) nogil except +
-        bool checkMinimalRTSpan(libcpp_pair[ DoubleReal, DoubleReal ] & rt_bounds, DoubleReal min_rt_span) nogil except +
-        DoubleReal computeTheoretical(MassTrace[ Peak1D ] & trace, Size k) nogil except +
-        DoubleReal getArea() nogil except +
-        String getGnuplotFormula(MassTrace[ Peak1D ] & trace, char function_name, DoubleReal baseline, DoubleReal rt_shift) nogil except +
+        double getLowerRTBound() nogil except +
+        double getUpperRTBound() nogil except +
+        double getHeight() nogil except +
+        double getCenter() nogil except +
+        double getFWHM() nogil except +
+        double getSigma() nogil except +
+        bool checkMaximalRTSpan(double max_rt_span) nogil except +
+        bool checkMinimalRTSpan(libcpp_pair[ double, double ] & rt_bounds, double min_rt_span) nogil except +
+        double computeTheoretical(MassTrace[ Peak1D ] & trace, Size k) nogil except +
+        double getArea() nogil except +
+        String getGnuplotFormula(MassTrace[ Peak1D ] & trace, char function_name, double baseline, double rt_shift) nogil except +
 

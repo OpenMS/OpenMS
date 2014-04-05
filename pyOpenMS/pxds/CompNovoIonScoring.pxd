@@ -12,6 +12,6 @@ cdef extern from "<OpenMS/ANALYSIS/DENOVO/CompNovoIonScoring.h>" namespace "Open
         CompNovoIonScoring() nogil except +
         CompNovoIonScoring(CompNovoIonScoring) nogil except +
         # TODO OpenMS Map type
-        # void scoreSpectra(Map[ DoubleReal, IonScore ] &CID_ion_scores, MSSpectrum[Peak1D] & CID_spec, 
-        #   MSSpectrum[Peak1D] &ETD_spec, DoubleReal precursor_weight, Size charge) nogil except +
+        # void scoreSpectra(Map[ double, IonScore ] &CID_ion_scores, MSSpectrum[Peak1D] & CID_spec, 
+        #   MSSpectrum[Peak1D] &ETD_spec, double precursor_weight, Size charge) nogil except +
 

@@ -24,14 +24,14 @@ cdef extern from "<OpenMS/FORMAT/SequestInfile.h>" namespace "OpenMS":
         void setSequenceHeaderFilter(String &sequence_header_filter) nogil except +
         String  getProteinMassFilter() nogil except +
         void setProteinMassFilter(String &protein_mass_filter) nogil except +
-        Real getPeakMassTolerance() nogil except +
-        void setPeakMassTolerance(Real peak_mass_tolerance) nogil except +
-        Real getPrecursorMassTolerance() nogil except +
-        void setPrecursorMassTolerance(Real precursor_mass_tolerance) nogil except +
-        Real getMatchPeakTolerance() nogil except +
-        void setMatchPeakTolerance(Real match_peak_tolerance) nogil except +
-        Real getIonCutoffPercentage() nogil except +
-        void setIonCutoffPercentage(Real ion_cutoff_percentage) nogil except +
+        float getPeakMassTolerance() nogil except +
+        void setPeakMassTolerance(float peak_mass_tolerance) nogil except +
+        float getPrecursorMassTolerance() nogil except +
+        void setPrecursorMassTolerance(float precursor_mass_tolerance) nogil except +
+        float getMatchPeakTolerance() nogil except +
+        void setMatchPeakTolerance(float match_peak_tolerance) nogil except +
+        float getIonCutoffPercentage() nogil except +
+        void setIonCutoffPercentage(float ion_cutoff_percentage) nogil except +
         Size getPeptideMassUnit() nogil except +
         void setPeptideMassUnit(Size peptide_mass_unit) nogil except +
         Size getOutputLines() nogil except +

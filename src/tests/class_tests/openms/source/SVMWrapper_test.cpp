@@ -62,7 +62,7 @@ START_SECTION((SVMWrapper()))
 	TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
-START_SECTION((DoubleReal getDoubleParameter(SVM_parameter_type type)))
+START_SECTION((double getDoubleParameter(SVM_parameter_type type)))
 	svm.setParameter(SVMWrapper::C, 1.0043);
 	svm.setParameter(SVMWrapper::NU, 0.0523);
 	svm.setParameter(SVMWrapper::P, 1.2319);
@@ -72,13 +72,13 @@ START_SECTION((DoubleReal getDoubleParameter(SVM_parameter_type type)))
 	TEST_REAL_SIMILAR(svm.getDoubleParameter(SVMWrapper::P), 1.2319)
 END_SECTION
 
-START_SECTION((DoubleReal getSVRProbability()))
+START_SECTION((double getSVRProbability()))
 	LibSVMEncoder encoder;
-	vector< vector< pair<Int, DoubleReal> > > vectors;
-	vector< pair<Int, DoubleReal> > temp_vector;
+	vector< vector< pair<Int, double> > > vectors;
+	vector< pair<Int, double> > temp_vector;
 	vector<svm_node*> encoded_vectors;
 	Int count = 100;
-	vector<DoubleReal> labels;
+	vector<double> labels;
 	svm_problem* problem;
 
 	for (Int j = 0; j < count; j++)
@@ -86,14 +86,14 @@ START_SECTION((DoubleReal getSVRProbability()))
 		temp_vector.clear();
 		for (Int i = 0; i < 6; i++)
 		{
-			temp_vector.push_back(make_pair(i * 2, ((DoubleReal) i) * j * 0.3));
+			temp_vector.push_back(make_pair(i * 2, ((double) i) * j * 0.3));
 		}
 		vectors.push_back(temp_vector);
 	}
 	encoder.encodeLibSVMVectors(vectors, encoded_vectors);
 	for (Int i = 0; i < count; i++)
 	{
-		labels.push_back(((DoubleReal) i * 2) / 3 + 0.03);
+		labels.push_back(((double) i * 2) / 3 + 0.03);
 	}
 	problem = encoder.encodeLibSVMProblem(encoded_vectors, labels);
 	svm.setParameter(SVMWrapper::PROBABILITY, 1);
@@ -115,7 +115,7 @@ START_SECTION((Int train(struct svm_problem *problem)))
 	svm_problem* problem = new svm_problem();
 	UInt count = 4;
 	svm_node** nodes = new svm_node*[count];
-	DoubleReal* labels = new DoubleReal[count];
+	double* labels = new double[count];
 
 	for (Size i = 0; i < count; i++)
 	{
@@ -134,9 +134,9 @@ START_SECTION((Int train(SVMData &problem)))
 	SVMWrapper svm2;
 	SVMData problem;
 	UInt count = 4;
-	vector<DoubleReal> labels;
-	vector< vector<pair<Int, DoubleReal> > > sequences;
-	vector<pair<Int, DoubleReal> > sequence;
+	vector<double> labels;
+	vector< vector<pair<Int, double> > > sequences;
+	vector<pair<Int, double> > sequence;
 	
 	svm2.setParameter(SVMWrapper::KERNEL_TYPE, SVMWrapper::OLIGO);
 	svm2.setParameter(SVMWrapper::BORDER_LENGTH, 2);
@@ -160,13 +160,13 @@ START_SECTION((Int train(SVMData &problem)))
 	TEST_EQUAL(svm2.train(problem), 1)
 END_SECTION
 
-START_SECTION((static void getLabels(svm_problem *problem, std::vector< DoubleReal > &labels)))
+START_SECTION((static void getLabels(svm_problem *problem, std::vector< double > &labels)))
 	svm_problem* problem = new svm_problem();
 	UInt count = 4;
 	svm_node** nodes = new svm_node*[count];
-	DoubleReal* labels = new DoubleReal[count];
-	std::vector<DoubleReal> label_vector1;
-	std::vector<DoubleReal> label_vector2;
+	double* labels = new double[count];
+	std::vector<double> label_vector1;
+	std::vector<double> label_vector2;
 
 	for (Size i = 0; i < count; i++)
 	{
@@ -192,7 +192,7 @@ START_SECTION((static void createRandomPartitions(svm_problem *problem, Size num
 	 svm_problem* problem = new svm_problem();
 	UInt count = 4;
 	 svm_node** nodes = new svm_node*[count];
-	DoubleReal* labels = new DoubleReal[count];
+	double* labels = new double[count];
 	std::vector<svm_problem*> partitions;
 
 	for (Size i = 0; i < count; i++)
@@ -214,9 +214,9 @@ END_SECTION
 START_SECTION((static void createRandomPartitions(const SVMData &problem, Size number, std::vector< SVMData > &problems)))
 	SVMData problem;
 	UInt count = 4;
-	vector<DoubleReal> labels;
-	vector< vector<pair<Int, DoubleReal> > > sequences;
-	vector<pair<Int, DoubleReal> > sequence;
+	vector<double> labels;
+	vector< vector<pair<Int, double> > > sequences;
+	vector<pair<Int, double> > sequence;
 	std::vector< SVMData > partitions;
 	
 	for (Size i = 0; i < count; i++)
@@ -244,7 +244,7 @@ START_SECTION((static svm_problem* mergePartitions(const std::vector< svm_proble
 	 UInt count = 10;
 	 UInt number_of_partitions = 5;
 	 svm_node** nodes = new svm_node*[count];
-	 DoubleReal* labels = new DoubleReal[count];
+	 double* labels = new double[count];
 	 std::vector<svm_problem*> partitions;
 
 
@@ -252,10 +252,10 @@ START_SECTION((static svm_problem* mergePartitions(const std::vector< svm_proble
 	{
 		nodes[i] = new svm_node[count];
 		nodes[i][count - 1].index = -1;
-		labels[i] = ((DoubleReal) i * 2) / 3 + 0.03;
+		labels[i] = ((double) i * 2) / 3 + 0.03;
 		for (Size j = 0; j < count; j++)
 		{
-			nodes[i][j].value = ((DoubleReal) i * 2) / 3;
+			nodes[i][j].value = ((double) i * 2) / 3;
 		}
 	}
 	problem->x = nodes;
@@ -284,19 +284,19 @@ START_SECTION((static void mergePartitions(const std::vector< SVMData > &problem
 	SVMData problem2;
 	UInt count = 10;
 	UInt number_of_partitions = 5;
-	vector<DoubleReal> labels;
+	vector<double> labels;
 	SVMData merged_problem;
-	vector<pair<Int, DoubleReal> > temp_vector;
-	vector<vector<pair<Int, DoubleReal> > > vectors;
+	vector<pair<Int, double> > temp_vector;
+	vector<vector<pair<Int, double> > > vectors;
 	std::vector< SVMData > partitions;
 		
 	for (Int i = 0; (UInt) i < count; i++)
 	{
 		temp_vector.clear();
-		labels.push_back(((DoubleReal) i * 2) / 3 + 0.03);
+		labels.push_back(((double) i * 2) / 3 + 0.03);
 		for (Int j = 0; (UInt) j < count; j++)
 		{
-			temp_vector.push_back(make_pair(i * 2, ((DoubleReal) i) * j * 0.3));
+			temp_vector.push_back(make_pair(i * 2, ((double) i) * j * 0.3));
 		}
 		vectors.push_back(temp_vector);
 	}
@@ -320,11 +320,11 @@ START_SECTION((static void mergePartitions(const std::vector< SVMData > &problem
 	}
 END_SECTION
 
-START_SECTION((static void calculateGaussTable(Size border_length, DoubleReal sigma, std::vector< DoubleReal > &gauss_table)))
+START_SECTION((static void calculateGaussTable(Size border_length, double sigma, std::vector< double > &gauss_table)))
   UInt border_length = 5;
-  DoubleReal sigma = 2;
-  DoubleReal sigma_square = sigma * sigma;
-  vector<DoubleReal> gauss_table;
+  double sigma = 2;
+  double sigma_square = sigma * sigma;
+  vector<double> gauss_table;
   svm.calculateGaussTable(border_length, sigma, gauss_table);
 
   TEST_EQUAL(gauss_table.size(), 5)
@@ -335,35 +335,35 @@ START_SECTION((static void calculateGaussTable(Size border_length, DoubleReal si
   TEST_REAL_SIMILAR(gauss_table[4], exp((-1 / (4.0 * sigma_square)) * 16))
 END_SECTION
 
-START_SECTION((DoubleReal performCrossValidation(svm_problem *problem_ul, const SVMData &problem_l, const bool is_labeled, const std::map< SVM_parameter_type, DoubleReal > &start_values_map, const std::map< SVM_parameter_type, DoubleReal > &step_sizes_map, const std::map< SVM_parameter_type, DoubleReal > &end_values_map, Size number_of_partitions, Size number_of_runs, std::map< SVM_parameter_type, DoubleReal > &best_parameters, bool additive_step_sizes=true, bool output=false, String performances_file_name="performances.txt", bool mcc_as_performance_measure=false) ))
+START_SECTION((double performCrossValidation(svm_problem *problem_ul, const SVMData &problem_l, const bool is_labeled, const std::map< SVM_parameter_type, double > &start_values_map, const std::map< SVM_parameter_type, double > &step_sizes_map, const std::map< SVM_parameter_type, double > &end_values_map, Size number_of_partitions, Size number_of_runs, std::map< SVM_parameter_type, double > &best_parameters, bool additive_step_sizes=true, bool output=false, String performances_file_name="performances.txt", bool mcc_as_performance_measure=false) ))
  
 {
-  map<SVMWrapper::SVM_parameter_type, DoubleReal> start_values;
-	map<SVMWrapper::SVM_parameter_type, DoubleReal> step_sizes;
-	map<SVMWrapper::SVM_parameter_type, DoubleReal> end_values;
+  map<SVMWrapper::SVM_parameter_type, double> start_values;
+	map<SVMWrapper::SVM_parameter_type, double> step_sizes;
+	map<SVMWrapper::SVM_parameter_type, double> end_values;
 	LibSVMEncoder encoder;
-	vector< vector< pair<Int, DoubleReal> > > vectors;
-	vector< pair<Int, DoubleReal> > temp_vector;
+	vector< vector< pair<Int, double> > > vectors;
+	vector< pair<Int, double> > temp_vector;
 	vector<svm_node*> encoded_vectors;
 	UInt count = 8;
-	vector<DoubleReal> labels;
+	vector<double> labels;
 	svm_problem* problem;
-	map<SVMWrapper::SVM_parameter_type, DoubleReal> parameters;
-	DoubleReal cv_quality;
+	map<SVMWrapper::SVM_parameter_type, double> parameters;
+	double cv_quality;
 
 	for (UInt j = 0; j < count; j++)
 	{
 		temp_vector.clear();
 		for (UInt i = 0; i < 6; i++)
 		{
-			temp_vector.push_back(make_pair(i * 2, ((DoubleReal) i) * j * 0.3));
+			temp_vector.push_back(make_pair(i * 2, ((double) i) * j * 0.3));
 		}
 		vectors.push_back(temp_vector);
 	}
 	encoder.encodeLibSVMVectors(vectors, encoded_vectors);
 	for (Size i = 0; i < count; i++)
 	{
-		labels.push_back(((DoubleReal) i * 2) / 3 + 0.03);
+		labels.push_back(((double) i * 2) / 3 + 0.03);
 	}
 	problem = encoder.encodeLibSVMProblem(encoded_vectors, labels);
 
@@ -386,18 +386,18 @@ START_SECTION((DoubleReal performCrossValidation(svm_problem *problem_ul, const 
 }
   // CV, method 2
     
-  map<SVMWrapper::SVM_parameter_type, DoubleReal> start_values;
-	map<SVMWrapper::SVM_parameter_type, DoubleReal> step_sizes;
-	map<SVMWrapper::SVM_parameter_type, DoubleReal> end_values;
+  map<SVMWrapper::SVM_parameter_type, double> start_values;
+	map<SVMWrapper::SVM_parameter_type, double> step_sizes;
+	map<SVMWrapper::SVM_parameter_type, double> end_values;
 	LibSVMEncoder encoder;
 	UInt count = 8;
-	map<SVMWrapper::SVM_parameter_type, DoubleReal> parameters;
-	DoubleReal cv_quality;
+	map<SVMWrapper::SVM_parameter_type, double> parameters;
+	double cv_quality;
 	SVMWrapper svm2;
 	SVMData problem;
-	vector<DoubleReal> labels;
-	vector< vector<pair<Int, DoubleReal> > > sequences;
-	vector<pair<Int, DoubleReal> > sequence;
+	vector<double> labels;
+	vector< vector<pair<Int, double> > > sequences;
+	vector<pair<Int, double> > sequence;
 	
 	svm2.setParameter(SVMWrapper::KERNEL_TYPE, SVMWrapper::OLIGO);
 	svm2.setParameter(SVMWrapper::BORDER_LENGTH, 2);
@@ -437,14 +437,14 @@ START_SECTION((DoubleReal performCrossValidation(svm_problem *problem_ul, const 
   TEST_EQUAL(cv_quality != cv_quality, true)
 END_SECTION
 
-START_SECTION((void predict(struct svm_problem *problem, std::vector< DoubleReal > &predicted_labels)))
+START_SECTION((void predict(struct svm_problem *problem, std::vector< double > &predicted_labels)))
  	LibSVMEncoder encoder;
-	vector< vector< pair<Int, DoubleReal> > > vectors;
-	vector< pair<Int, DoubleReal> > temp_vector;
+	vector< vector< pair<Int, double> > > vectors;
+	vector< pair<Int, double> > temp_vector;
 	vector<svm_node*> encoded_vectors;
 	UInt count = 8;
-	vector<DoubleReal> labels;
-	vector<DoubleReal> predicted_labels;
+	vector<double> labels;
+	vector<double> predicted_labels;
 	svm_problem* problem;
 
 	for (UInt j = 0; j < count; j++)
@@ -452,14 +452,14 @@ START_SECTION((void predict(struct svm_problem *problem, std::vector< DoubleReal
 		temp_vector.clear();
 		for (UInt i = 0; i < 6; i++)
 		{
-			temp_vector.push_back(make_pair(i * 2, ((DoubleReal) i) * j * 0.3));
+			temp_vector.push_back(make_pair(i * 2, ((double) i) * j * 0.3));
 		}
 		vectors.push_back(temp_vector);
 	}
 	encoder.encodeLibSVMVectors(vectors, encoded_vectors);
 	for (Size i = 0; i < count; i++)
 	{
-		labels.push_back(((DoubleReal) i * 2) / 3 + 0.03);
+		labels.push_back(((double) i * 2) / 3 + 0.03);
 	}
 	problem = encoder.encodeLibSVMProblem(encoded_vectors, labels);
 	svm.train(problem);
@@ -467,14 +467,14 @@ START_SECTION((void predict(struct svm_problem *problem, std::vector< DoubleReal
 	TEST_NOT_EQUAL(predicted_labels.size(), 0)
 END_SECTION
 
-START_SECTION((void predict(const SVMData &problem, std::vector< DoubleReal > &results)))
+START_SECTION((void predict(const SVMData &problem, std::vector< double > &results)))
 	SVMWrapper svm2;
  	LibSVMEncoder encoder;
-	vector< vector< pair<Int, DoubleReal> > > sequences;
-	vector< pair<Int, DoubleReal> > sequence;
+	vector< vector< pair<Int, double> > > sequences;
+	vector< pair<Int, double> > sequence;
 	UInt count = 8;
-	vector<DoubleReal> labels;
-	vector<DoubleReal> predicted_labels;
+	vector<double> labels;
+	vector<double> predicted_labels;
 	SVMData problem;
 
 	svm2.setParameter(SVMWrapper::KERNEL_TYPE, SVMWrapper::OLIGO);
@@ -506,9 +506,9 @@ START_SECTION((svm_problem* computeKernelMatrix(svm_problem* problem1, svm_probl
 	String allowed_characters = "ACNGT";
 	String output;
 	Int border_length = 5;
-	DoubleReal sigma = 2;
-	vector< pair<Int, DoubleReal> > encoded_sequence;
-  vector<DoubleReal> labels;
+	double sigma = 2;
+	vector< pair<Int, double> > encoded_sequence;
+  vector<double> labels;
   struct svm_problem* data;
   struct svm_problem* kernel_matrix;
   LibSVMEncoder encoder;
@@ -547,11 +547,11 @@ START_SECTION((svm_problem* computeKernelMatrix(const SVMData &problem1, const S
 	String allowed_characters = "ACNGT";
 	String output;
 	Int border_length = 5;
-	DoubleReal sigma = 2;
-  vector<DoubleReal> labels;
+	double sigma = 2;
+  vector<double> labels;
   struct svm_problem* kernel_matrix;
   LibSVMEncoder encoder;
-	vector< vector< std::pair< Int, DoubleReal > > > data;
+	vector< vector< std::pair< Int, double > > > data;
 	SVMData svm_data;
 
 	svm.setParameter(SVMWrapper::BORDER_LENGTH, border_length);
@@ -585,16 +585,16 @@ START_SECTION((svm_problem* computeKernelMatrix(const SVMData &problem1, const S
 
 END_SECTION
 
-START_SECTION((static DoubleReal kernelOligo(const svm_node *x, const svm_node *y, const std::vector< DoubleReal > &gauss_table, DoubleReal sigma_square=0, Size max_distance=50)))
-  vector<DoubleReal> labels;
+START_SECTION((static double kernelOligo(const svm_node *x, const svm_node *y, const std::vector< double > &gauss_table, double sigma_square=0, Size max_distance=50)))
+  vector<double> labels;
 	String sequence = "ACNNGTATCA";
 	String allowed_characters = "ACNGT";
 	String output;
 	Int border_length = 5;
 	svm_problem* data;
-	DoubleReal result = 0;
-  DoubleReal sigma = 2;
-  vector<DoubleReal> gauss_table;
+	double result = 0;
+  double sigma = 2;
+  vector<double> gauss_table;
 	vector<String> sequences;
   svm.calculateGaussTable(border_length, sigma, gauss_table);
 	LibSVMEncoder encoder;
@@ -613,16 +613,16 @@ START_SECTION((static DoubleReal kernelOligo(const svm_node *x, const svm_node *
 	delete data;
 END_SECTION
 
-START_SECTION((static DoubleReal kernelOligo(const std::vector< std::pair< int, double > > &x, const std::vector< std::pair< int, double > > &y, const std::vector< double > &gauss_table, int max_distance=-1)))
-  vector<DoubleReal> labels;
+START_SECTION((static double kernelOligo(const std::vector< std::pair< int, double > > &x, const std::vector< std::pair< int, double > > &y, const std::vector< double > &gauss_table, int max_distance=-1)))
+  vector<double> labels;
 	String sequence = "ACNNGTATCA";
 	String allowed_characters = "ACNGT";
 	String output;
 	Int border_length = 5;
-	vector< vector< std::pair< Int, DoubleReal > > > data;
-	DoubleReal result = 0;
-  DoubleReal sigma = 2;
-  vector<DoubleReal> gauss_table;
+	vector< vector< std::pair< Int, double > > > data;
+	double result = 0;
+  double sigma = 2;
+  vector<double> gauss_table;
 	vector<AASequence> sequences;
   svm.calculateGaussTable(border_length, sigma, gauss_table);
 	LibSVMEncoder encoder;
@@ -640,16 +640,16 @@ START_SECTION((static DoubleReal kernelOligo(const std::vector< std::pair< int, 
 	TEST_REAL_SIMILAR(result, 21.1308)
 END_SECTION
 
-START_SECTION((void getDecisionValues(svm_problem* data, std::vector<DoubleReal>& decision_values)))
+START_SECTION((void getDecisionValues(svm_problem* data, std::vector<double>& decision_values)))
  	LibSVMEncoder encoder;
-	vector< vector< pair<Int, DoubleReal> > > vectors;
-	vector< pair<Int, DoubleReal> > temp_vector;
+	vector< vector< pair<Int, double> > > vectors;
+	vector< pair<Int, double> > temp_vector;
 	vector<svm_node*> encoded_vectors;
 	UInt count = 8;
-	vector<DoubleReal> labels;
-	vector<DoubleReal> predicted_labels;
+	vector<double> labels;
+	vector<double> predicted_labels;
 	svm_problem* problem;
-	vector<DoubleReal> decision_values;
+	vector<double> decision_values;
 
 	svm.setParameter(SVMWrapper::SVM_TYPE, NU_SVR);
 	svm.setParameter(SVMWrapper::KERNEL_TYPE, POLY);
@@ -659,14 +659,14 @@ START_SECTION((void getDecisionValues(svm_problem* data, std::vector<DoubleReal>
 		temp_vector.clear();
 		for (UInt i = 1; i < 6; i++)
 		{
-			temp_vector.push_back(make_pair(i * 2, ((DoubleReal) i) * j * 0.3));
+			temp_vector.push_back(make_pair(i * 2, ((double) i) * j * 0.3));
 		}
 		vectors.push_back(temp_vector);
 	}
 	encoder.encodeLibSVMVectors(vectors, encoded_vectors);
 	for (Size i = 0; i < count; i++)
 	{
-		labels.push_back(((DoubleReal) i * 2) / 3 + 0.03);
+		labels.push_back(((double) i * 2) / 3 + 0.03);
 	}
 	problem = encoder.encodeLibSVMProblem(encoded_vectors, labels);
 	svm.train(problem);
@@ -709,13 +709,13 @@ END_SECTION
 
 START_SECTION((void scaleData(svm_problem* data, Int max_scale_value = -1)))
  	LibSVMEncoder encoder;
-	vector< vector< pair<Int, DoubleReal> > > vectors;
-	vector< pair<Int, DoubleReal> > temp_vector;
+	vector< vector< pair<Int, double> > > vectors;
+	vector< pair<Int, double> > temp_vector;
 	vector<svm_node*> encoded_vectors;
 	UInt count = 8;
-	vector<DoubleReal> labels;
+	vector<double> labels;
 	svm_problem* problem;
-	vector<DoubleReal> decision_values;
+	vector<double> decision_values;
 
 	svm.setParameter(SVMWrapper::SVM_TYPE, NU_SVR);
 	svm.setParameter(SVMWrapper::KERNEL_TYPE, POLY);
@@ -725,14 +725,14 @@ START_SECTION((void scaleData(svm_problem* data, Int max_scale_value = -1)))
 		temp_vector.clear();
 		for (UInt i = 1; i < 6; i++)
 		{
-			temp_vector.push_back(make_pair(i, ((DoubleReal) i) * j * 0.3));
+			temp_vector.push_back(make_pair(i, ((double) i) * j * 0.3));
 		}
 		vectors.push_back(temp_vector);
 	}
 	encoder.encodeLibSVMVectors(vectors, encoded_vectors);
 	for (Size i = 0; i < count; i++)
 	{
-		labels.push_back(((DoubleReal) i * 2) / 3 + 0.03);
+		labels.push_back(((double) i * 2) / 3 + 0.03);
 	}
 	problem = encoder.encodeLibSVMProblem(encoded_vectors, labels);
 	svm.scaleData(problem, 2);
@@ -823,17 +823,17 @@ START_SECTION((void scaleData(svm_problem* data, Int max_scale_value = -1)))
 
 END_SECTION
 
-START_SECTION((void getSignificanceBorders(svm_problem *data, std::pair< DoubleReal, DoubleReal > &borders, DoubleReal confidence=0.95, Size number_of_runs=5, Size number_of_partitions=5, DoubleReal step_size=0.01, Size max_iterations=1000000)))
+START_SECTION((void getSignificanceBorders(svm_problem *data, std::pair< double, double > &borders, double confidence=0.95, Size number_of_runs=5, Size number_of_partitions=5, double step_size=0.01, Size max_iterations=1000000)))
 	NOT_TESTABLE
 END_SECTION
 
-START_SECTION((void getSignificanceBorders(const SVMData &data, std::pair< DoubleReal, DoubleReal > &sigmas, DoubleReal confidence=0.95, Size number_of_runs=5, Size number_of_partitions=5, DoubleReal step_size=0.01, Size max_iterations=1000000)))
+START_SECTION((void getSignificanceBorders(const SVMData &data, std::pair< double, double > &sigmas, double confidence=0.95, Size number_of_runs=5, Size number_of_partitions=5, double step_size=0.01, Size max_iterations=1000000)))
 	NOT_TESTABLE
 END_SECTION
 
-START_SECTION((DoubleReal getPValue(DoubleReal sigma1, DoubleReal sigma2, std::pair<DoubleReal, DoubleReal> point)))
+START_SECTION((double getPValue(double sigma1, double sigma2, std::pair<double, double> point)))
 
-	pair<DoubleReal, DoubleReal> point;
+	pair<double, double> point;
 
 	point.first = 0.447934;
 	point.second = 0.404208;
@@ -849,7 +849,7 @@ START_SECTION((void setTrainingSample(SVMData &training_sample)))
 	NOT_TESTABLE
 END_SECTION
 
-START_SECTION((void setParameter(SVM_parameter_type type, DoubleReal value)))
+START_SECTION((void setParameter(SVM_parameter_type type, double value)))
  	svm.setParameter(SVMWrapper::C, 1.0043);
 	svm.setParameter(SVMWrapper::NU, 0.0523);
 	svm.setParameter(SVMWrapper::P, 1.2319);
@@ -880,13 +880,13 @@ END_SECTION
 START_SECTION((void loadModel(std::string modelFilename)))
 	LibSVMEncoder encoder;
 	svm.setParameter(SVMWrapper::KERNEL_TYPE, POLY);
-	vector< vector< pair<Int, DoubleReal> > > vectors;
-	vector< pair<Int, DoubleReal> > temp_vector;
+	vector< vector< pair<Int, double> > > vectors;
+	vector< pair<Int, double> > temp_vector;
 	vector<svm_node*> encoded_vectors;
 	UInt count = 8;
-	vector<DoubleReal> labels;
-	vector<DoubleReal> predicted_labels1;
-	vector<DoubleReal> predicted_labels2;
+	vector<double> labels;
+	vector<double> predicted_labels1;
+	vector<double> predicted_labels2;
 	svm_problem* problem;
 	SVMWrapper svm2;
 
@@ -895,14 +895,14 @@ START_SECTION((void loadModel(std::string modelFilename)))
 		temp_vector.clear();
 		for (UInt i = 0; i < 6; i++)
 		{
-			temp_vector.push_back(make_pair(i * 2, ((DoubleReal) i) * j * 0.3));
+			temp_vector.push_back(make_pair(i * 2, ((double) i) * j * 0.3));
 		}
 		vectors.push_back(temp_vector);
 	}
 	encoder.encodeLibSVMVectors(vectors, encoded_vectors);
 	for (Size i = 0; i < count; i++)
 	{
-		labels.push_back(((DoubleReal) i * 2) / 3 + 0.03);
+		labels.push_back(((double) i * 2) / 3 + 0.03);
 	}
 	problem = encoder.encodeLibSVMProblem(encoded_vectors, labels);
 	svm.train(problem);
@@ -924,13 +924,13 @@ END_SECTION
 START_SECTION((void saveModel(std::string modelFilename) const))
 	LibSVMEncoder encoder;
 	svm.setParameter(SVMWrapper::KERNEL_TYPE, POLY);
-	vector< vector< pair<Int, DoubleReal> > > vectors;
-	vector< pair<Int, DoubleReal> > temp_vector;
+	vector< vector< pair<Int, double> > > vectors;
+	vector< pair<Int, double> > temp_vector;
 	vector<svm_node*> encoded_vectors;
 	UInt count = 8;
-	vector<DoubleReal> labels;
-	vector<DoubleReal> predicted_labels1;
-	vector<DoubleReal> predicted_labels2;
+	vector<double> labels;
+	vector<double> predicted_labels1;
+	vector<double> predicted_labels2;
 	svm_problem* problem;
 	SVMWrapper svm2;
 
@@ -939,14 +939,14 @@ START_SECTION((void saveModel(std::string modelFilename) const))
 		temp_vector.clear();
 		for (UInt i = 0; i < 6; i++)
 		{
-			temp_vector.push_back(make_pair(i * 2, ((DoubleReal) i) * j * 0.3));
+			temp_vector.push_back(make_pair(i * 2, ((double) i) * j * 0.3));
 		}
 		vectors.push_back(temp_vector);
 	}
 	encoder.encodeLibSVMVectors(vectors, encoded_vectors);
 	for (Size i = 0; i < count; i++)
 	{
-		labels.push_back(((DoubleReal) i * 2) / 3 + 0.03);
+		labels.push_back(((double) i * 2) / 3 + 0.03);
 	}
 	problem = encoder.encodeLibSVMProblem(encoded_vectors, labels);
 	svm.train(problem);
@@ -967,28 +967,28 @@ START_SECTION((void saveModel(std::string modelFilename) const))
 	}
 END_SECTION
 
-START_SECTION((void predict(const std::vector< svm_node * > &vectors, std::vector< DoubleReal > &predicted_rts)))
+START_SECTION((void predict(const std::vector< svm_node * > &vectors, std::vector< double > &predicted_rts)))
 	LibSVMEncoder encoder;
-	vector< vector< pair<Int, DoubleReal> > > vectors;
-	vector< pair<Int, DoubleReal> > temp_vector;
+	vector< vector< pair<Int, double> > > vectors;
+	vector< pair<Int, double> > temp_vector;
 	vector<svm_node*> encoded_vectors;
 	UInt count = 8;
-	vector<DoubleReal> labels;
-	vector<DoubleReal> predicted_labels;
+	vector<double> labels;
+	vector<double> predicted_labels;
 	svm_problem* problem;
 
 	for (UInt j = 0; j < count; j++)
 	{
 		for (UInt i = 0; i < 6; i++)
 		{
-			temp_vector.push_back(make_pair(i * 2, ((DoubleReal) i) * j * 0.3));
+			temp_vector.push_back(make_pair(i * 2, ((double) i) * j * 0.3));
 		}
 		vectors.push_back(temp_vector);
 	}
 	encoder.encodeLibSVMVectors(vectors, encoded_vectors);
 	for (Size i = 0; i < count; i++)
 	{
-		labels.push_back(((DoubleReal) i * 2) / 3 + 0.03);
+		labels.push_back(((double) i * 2) / 3 + 0.03);
 	}
 	problem = encoder.encodeLibSVMProblem(encoded_vectors, labels);
 	svm.train(problem);
@@ -997,20 +997,20 @@ START_SECTION((void predict(const std::vector< svm_node * > &vectors, std::vecto
 
 END_SECTION
 
-START_SECTION((void setWeights(const std::vector< Int > &weight_labels, const std::vector< DoubleReal > &weights)))
+START_SECTION((void setWeights(const std::vector< Int > &weight_labels, const std::vector< double > &weights)))
 	NOT_TESTABLE
 END_SECTION
 
-START_SECTION((void getSVCProbabilities(struct svm_problem *problem, std::vector< DoubleReal > &probabilities, std::vector< DoubleReal > &prediction_labels)))
+START_SECTION((void getSVCProbabilities(struct svm_problem *problem, std::vector< double > &probabilities, std::vector< double > &prediction_labels)))
  	LibSVMEncoder encoder;
-	vector< vector< pair<Int, DoubleReal> > > vectors;
-	vector< pair<Int, DoubleReal> > temp_vector;
+	vector< vector< pair<Int, double> > > vectors;
+	vector< pair<Int, double> > temp_vector;
 	vector<svm_node*> encoded_vectors;
 	UInt count = 8;
-	vector<DoubleReal> labels;
-	vector<DoubleReal> predicted_labels;
+	vector<double> labels;
+	vector<double> predicted_labels;
 	svm_problem* problem;
-	vector<DoubleReal> probabilities;
+	vector<double> probabilities;
 
 	svm.setParameter(SVMWrapper::SVM_TYPE, C_SVC);
 	svm.setParameter(SVMWrapper::KERNEL_TYPE, POLY);
@@ -1020,7 +1020,7 @@ START_SECTION((void getSVCProbabilities(struct svm_problem *problem, std::vector
 		temp_vector.clear();
 		for (UInt i = 1; i < 6; i++)
 		{
-			temp_vector.push_back(make_pair(i * 2, ((DoubleReal) i) * j * 0.3));
+			temp_vector.push_back(make_pair(i * 2, ((double) i) * j * 0.3));
 		}
 		vectors.push_back(temp_vector);
 	}

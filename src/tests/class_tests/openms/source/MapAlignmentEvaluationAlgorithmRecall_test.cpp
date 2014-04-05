@@ -74,11 +74,11 @@ START_SECTION((static String getProductName()))
 	TEST_EQUAL(MapAlignmentEvaluationAlgorithmRecall::getProductName(),"recall")
 END_SECTION
 
-START_SECTION((virtual void evaluate(const ConsensusMap &consensus_map_in, const ConsensusMap &consensus_map_gt, const DoubleReal &rt_dev, const DoubleReal &mz_dev, const Peak2D::IntensityType &int_dev, const bool use_charge, DoubleReal &out)))
+START_SECTION((virtual void evaluate(const ConsensusMap &consensus_map_in, const ConsensusMap &consensus_map_gt, const double &rt_dev, const double &mz_dev, const Peak2D::IntensityType &int_dev, const bool use_charge, double &out)))
 	MapAlignmentEvaluationAlgorithmRecall maea;
 	ConsensusMap in;
 	ConsensusMap gt;
-	DoubleReal out;
+	double out;
 
 	ConsensusXMLFile consensus_xml_file_in;
 	consensus_xml_file_in.load( OPENMS_GET_TEST_DATA_PATH("MapAlignmentEvaluationAlgorithm_in.consensusXML"), in );

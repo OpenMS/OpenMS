@@ -96,7 +96,7 @@ START_SECTION((WEIGHTMODE getWeightMode() const ))
 }
 END_SECTION
 
-START_SECTION((DoubleReal getWeight(const AASequence &aa) const ))
+START_SECTION((double getWeight(const AASequence &aa) const ))
 {
   WeightWrapper ww;
   AASequence aa= AASequence::fromString("DFINAGER");
@@ -106,7 +106,7 @@ START_SECTION((DoubleReal getWeight(const AASequence &aa) const ))
 }
 END_SECTION
 
-START_SECTION((DoubleReal getWeight(const EmpiricalFormula &ef) const ))
+START_SECTION((double getWeight(const EmpiricalFormula &ef) const ))
 {
   WeightWrapper ww;
   EmpiricalFormula aa("C12H544");
@@ -116,7 +116,7 @@ START_SECTION((DoubleReal getWeight(const EmpiricalFormula &ef) const ))
 }
 END_SECTION
 
-START_SECTION((DoubleReal getWeight(const Residue &r, Residue::ResidueType res_type=Residue::Full) const ))
+START_SECTION((double getWeight(const Residue &r, Residue::ResidueType res_type=Residue::Full) const ))
 {
   WeightWrapper ww;
   Residue aa("L", "LEU", "L", EmpiricalFormula("C454H33"));

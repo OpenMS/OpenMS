@@ -45,7 +45,7 @@
 using namespace OpenMS;
 using namespace std;
 
-DRange<1> makeRange(DoubleReal a, DoubleReal b)
+DRange<1> makeRange(double a, double b)
 {
   DPosition<1> pa(a), pb(b);
   return DRange<1>(pa, pb);
@@ -112,7 +112,7 @@ START_SECTION((void load(const String &filename, FeatureMap<>&feature_map)))
   TEST_REAL_SIMILAR(e[0].getIntensity(), 300)
   TEST_EQUAL(e[0].getMetaValue("stringparametername"), "stringparametervalue")
   TEST_EQUAL((UInt)e[0].getMetaValue("intparametername"), 4)
-  TEST_REAL_SIMILAR((DoubleReal)e[0].getMetaValue("floatparametername"), 4.551)
+  TEST_REAL_SIMILAR((double)e[0].getMetaValue("floatparametername"), 4.551)
   TEST_REAL_SIMILAR(e[1].getRT(), 0)
   TEST_REAL_SIMILAR(e[1].getMZ(), 35)
   TEST_REAL_SIMILAR(e[1].getIntensity(), 500)
@@ -155,9 +155,9 @@ START_SECTION((void load(const String &filename, FeatureMap<>&feature_map)))
 
   // test meta values:
   TEST_EQUAL(e[0].getMetaValue("myIntList") == ListUtils::create<Int>("1,10,12"), true);
-  TEST_EQUAL(e[0].getMetaValue("myDoubleList") == ListUtils::create<DoubleReal>("1.111,10.999,12.45"), true);
+  TEST_EQUAL(e[0].getMetaValue("myDoubleList") == ListUtils::create<double>("1.111,10.999,12.45"), true);
   TEST_EQUAL(e[0].getMetaValue("myStringList") == ListUtils::create<String>("myABC1,Stuff,12"), true);
-  TEST_EQUAL(e[1].getMetaValue("myDoubleList") == ListUtils::create<DoubleReal>("6.442"), true);
+  TEST_EQUAL(e[1].getMetaValue("myDoubleList") == ListUtils::create<double>("6.442"), true);
 
   //test if loading a second file works (initialization)
   FeatureMap<> e2;

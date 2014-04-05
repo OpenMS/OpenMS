@@ -111,21 +111,21 @@ START_SECTION(const EmpiricalFormula& getNeutralLossDiffFormula() const)
 	NOT_TESTABLE
 END_SECTION
 
-START_SECTION(void setNeutralLossMonoMass(DoubleReal mono_mass))
+START_SECTION(void setNeutralLossMonoMass(double mono_mass))
 	ptr->setNeutralLossMonoMass(123.345678);
 	TEST_REAL_SIMILAR(ptr->getNeutralLossMonoMass(), 123.345678);
 END_SECTION
 
-START_SECTION((DoubleReal getNeutralLossMonoMass() const))
+START_SECTION((double getNeutralLossMonoMass() const))
 	NOT_TESTABLE
 END_SECTION
 
-START_SECTION((void setNeutralLossAverageMass(DoubleReal average_mass)))
+START_SECTION((void setNeutralLossAverageMass(double average_mass)))
 	ptr->setNeutralLossAverageMass(23.345678);
 	TEST_REAL_SIMILAR(ptr->getNeutralLossAverageMass(), 23.345678)
 END_SECTION
 
-START_SECTION(DoubleReal getNeutralLossAverageMass() const)
+START_SECTION(double getNeutralLossAverageMass() const)
 	NOT_TESTABLE
 END_SECTION
 
@@ -242,39 +242,39 @@ START_SECTION(String getSourceClassificationName(Source_Classification classific
 	TEST_STRING_EQUAL(ptr->getSourceClassificationName(ResidueModification::HYPOTHETICAL), "Hypothetical")
 END_SECTION
 
-START_SECTION(void setAverageMass(DoubleReal mass))
+START_SECTION(void setAverageMass(double mass))
 	ptr->setAverageMass(2.0);
 	TEST_REAL_SIMILAR(ptr->getAverageMass(), 2.0)
 END_SECTION
 
-START_SECTION(DoubleReal getAverageMass() const)
+START_SECTION(double getAverageMass() const)
 	NOT_TESTABLE
 END_SECTION
 
-START_SECTION(void setMonoMass(DoubleReal mass))
+START_SECTION(void setMonoMass(double mass))
 	ptr->setMonoMass(3.0);
 	TEST_REAL_SIMILAR(ptr->getMonoMass(), 3.0)
 END_SECTION
 
-START_SECTION(DoubleReal getMonoMass() const)
+START_SECTION(double getMonoMass() const)
 	NOT_TESTABLE
 END_SECTION
 
-START_SECTION(void setDiffAverageMass(DoubleReal mass))
+START_SECTION(void setDiffAverageMass(double mass))
 	ptr->setDiffAverageMass(4.0);
 	TEST_REAL_SIMILAR(ptr->getDiffAverageMass(), 4.0)
 END_SECTION
 
-START_SECTION(DoubleReal getDiffAverageMass() const)
+START_SECTION(double getDiffAverageMass() const)
 	NOT_TESTABLE
 END_SECTION
 
-START_SECTION(void setDiffMonoMass(DoubleReal mass))
+START_SECTION(void setDiffMonoMass(double mass))
 	ptr->setDiffMonoMass(5.0);
 	TEST_REAL_SIMILAR(ptr->getDiffMonoMass(), 5.0)
 END_SECTION
 
-START_SECTION(DoubleReal getDiffMonoMass() const)
+START_SECTION(double getDiffMonoMass() const)
 	NOT_TESTABLE
 END_SECTION
 

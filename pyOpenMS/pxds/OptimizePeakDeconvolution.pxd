@@ -26,7 +26,7 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePeakDeconvolution.h>"
         #  OptimizationFunctions_PenaltyFactors
         PenaltyFactorsIntensity() nogil except +
         PenaltyFactorsIntensity(PenaltyFactorsIntensity) nogil except +
-        DoubleReal height
+        double height
 
 
 cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePeakDeconvolution.h>" namespace "OpenMS::OptimizePeakDeconvolution":

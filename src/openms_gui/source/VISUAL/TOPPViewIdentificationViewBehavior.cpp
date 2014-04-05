@@ -210,14 +210,14 @@ namespace OpenMS
       for (vector<Precursor>::const_iterator it = pcs.begin(); it != pcs.end(); ++it)
       {
         // determine start and stop of isolation window
-        DoubleReal isolation_window_lower_mz = it->getMZ() - it->getIsolationWindowLowerOffset();
-        DoubleReal isolation_window_upper_mz = it->getMZ() + it->getIsolationWindowUpperOffset();
+        double isolation_window_lower_mz = it->getMZ() - it->getIsolationWindowLowerOffset();
+        double isolation_window_upper_mz = it->getMZ() + it->getIsolationWindowUpperOffset();
 
         // determine maximum peak intensity in isolation window
         SpectrumType::const_iterator vbegin = spectrum.MZBegin(isolation_window_lower_mz);
         SpectrumType::const_iterator vend = spectrum.MZEnd(isolation_window_upper_mz);
 
-        DoubleReal max_intensity = (numeric_limits<DoubleReal>::min)();
+        double max_intensity = (numeric_limits<double>::min)();
         for (; vbegin != vend; ++vbegin)
         {
           if (vbegin->getIntensity() > max_intensity)
@@ -232,7 +232,7 @@ namespace OpenMS
 
         Annotation1DDistanceItem * item = new Annotation1DDistanceItem(QString::number(it->getCharge()), lower_position, upper_position);
         // add additional tick at precursor target position (e.g. to show if isolation window is assymetric)
-        vector<DoubleReal> ticks;
+        vector<double> ticks;
         ticks.push_back(it->getMZ());
         item->setTicks(ticks);
         item->setSelected(false);
@@ -299,12 +299,12 @@ namespace OpenMS
       p.setValue("add_isotopes", tv_params.getValue("preferences:idview:add_isotopes"), "If set to 1 isotope peaks of the product ion peaks are added");
       p.setValue("add_abundant_immonium_ions", tv_params.getValue("preferences:idview:add_abundant_immonium_ions"), "Add most abundant immonium ions");
 
-      p.setValue("a_intensity", current_spectrum.getMaxInt() * (DoubleReal)tv_params.getValue("preferences:idview:a_intensity"), "Intensity of the a-ions");
-      p.setValue("b_intensity", current_spectrum.getMaxInt() * (DoubleReal)tv_params.getValue("preferences:idview:b_intensity"), "Intensity of the b-ions");
-      p.setValue("c_intensity", current_spectrum.getMaxInt() * (DoubleReal)tv_params.getValue("preferences:idview:c_intensity"), "Intensity of the c-ions");
-      p.setValue("x_intensity", current_spectrum.getMaxInt() * (DoubleReal)tv_params.getValue("preferences:idview:x_intensity"), "Intensity of the x-ions");
-      p.setValue("y_intensity", current_spectrum.getMaxInt() * (DoubleReal)tv_params.getValue("preferences:idview:y_intensity"), "Intensity of the y-ions");
-      p.setValue("z_intensity", current_spectrum.getMaxInt() * (DoubleReal)tv_params.getValue("preferences:idview:z_intensity"), "Intensity of the z-ions");
+      p.setValue("a_intensity", current_spectrum.getMaxInt() * (double)tv_params.getValue("preferences:idview:a_intensity"), "Intensity of the a-ions");
+      p.setValue("b_intensity", current_spectrum.getMaxInt() * (double)tv_params.getValue("preferences:idview:b_intensity"), "Intensity of the b-ions");
+      p.setValue("c_intensity", current_spectrum.getMaxInt() * (double)tv_params.getValue("preferences:idview:c_intensity"), "Intensity of the c-ions");
+      p.setValue("x_intensity", current_spectrum.getMaxInt() * (double)tv_params.getValue("preferences:idview:x_intensity"), "Intensity of the x-ions");
+      p.setValue("y_intensity", current_spectrum.getMaxInt() * (double)tv_params.getValue("preferences:idview:y_intensity"), "Intensity of the y-ions");
+      p.setValue("z_intensity", current_spectrum.getMaxInt() * (double)tv_params.getValue("preferences:idview:z_intensity"), "Intensity of the z-ions");
       p.setValue("relative_loss_intensity", tv_params.getValue("preferences:idview:relative_loss_intensity"), "Intensity of loss ions, in relation to the intact ion intensity");
       generator.setParameters(p);
 
@@ -415,9 +415,9 @@ namespace OpenMS
 
         // zoom to maximum visible area in real data (as theoretical might be much larger and therefor squeezes the interesting part)
         DRange<2> visible_area = tv_->getActive1DWidget()->canvas()->getVisibleArea();
-        DoubleReal min_mz = tv_->getActive1DWidget()->canvas()->getCurrentLayer().getCurrentSpectrum().getMin()[0];
-        DoubleReal max_mz = tv_->getActive1DWidget()->canvas()->getCurrentLayer().getCurrentSpectrum().getMax()[0];
-        DoubleReal delta_mz = max_mz - min_mz;
+        double min_mz = tv_->getActive1DWidget()->canvas()->getCurrentLayer().getCurrentSpectrum().getMin()[0];
+        double max_mz = tv_->getActive1DWidget()->canvas()->getCurrentLayer().getCurrentSpectrum().getMax()[0];
+        double delta_mz = max_mz - min_mz;
         visible_area.setMin(min_mz - 0.1 * delta_mz);
         visible_area.setMax(max_mz + 0.1 * delta_mz);
 
@@ -426,7 +426,7 @@ namespace OpenMS
         // spectra alignment
         Param param;
 
-        DoubleReal tolerance = tv_params.getValue("preferences:idview:tolerance");
+        double tolerance = tv_params.getValue("preferences:idview:tolerance");
 
         param.setValue("tolerance", tolerance, "Defines the absolute (in Da) or relative (in ppm) tolerance in the alignment");
         tv_->getActive1DWidget()->performAlignment(current_spectrum_layer_index, theoretical_spectrum_layer_index, param);
@@ -576,7 +576,7 @@ namespace OpenMS
     }
   }
 
-  void TOPPViewIdentificationViewBehavior::setVisibleArea1D(DoubleReal l, DoubleReal h)
+  void TOPPViewIdentificationViewBehavior::setVisibleArea1D(double l, double h)
   {
     if (tv_->getActive1DWidget() != 0)
     {

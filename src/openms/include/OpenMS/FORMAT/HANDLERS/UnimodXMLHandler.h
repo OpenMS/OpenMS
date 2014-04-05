@@ -72,9 +72,9 @@ private:
 
       String tag_;
 
-      DoubleReal avge_mass_;
+      double avge_mass_;
 
-      DoubleReal mono_mass_;
+      double mono_mass_;
 
       EmpiricalFormula diff_formula_;
 

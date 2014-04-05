@@ -60,14 +60,14 @@ public:
     ~HistogramDialog();
 
     /// Returns the value of the left splitter
-    Real getLeftSplitter();
+    float getLeftSplitter();
     /// Returns the value of the right splitter
-    Real getRightSplitter();
+    float getRightSplitter();
 
     /// Sets the value of the left splitter
-    void setLeftSplitter(Real position);
+    void setLeftSplitter(float position);
     /// Sets the value of the right splitter
-    void setRightSplitter(Real position);
+    void setRightSplitter(float position);
 
     /// Sets the axis legend
     void setLegend(const String & legend);

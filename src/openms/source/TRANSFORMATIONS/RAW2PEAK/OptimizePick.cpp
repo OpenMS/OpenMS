@@ -165,8 +165,8 @@ namespace OpenMS
 
   int OptimizePick::OptPeakFunctor::operator()(const Eigen::VectorXd &x, Eigen::VectorXd &fvec)
   {
-    const std::vector<DoubleReal> & signal = m_data->signal;
-    const std::vector<DoubleReal> & positions = m_data->positions;
+    const std::vector<double> & signal = m_data->signal;
+    const std::vector<double> & positions = m_data->positions;
     const std::vector<PeakShape> & peaks = m_data->peaks;
     const OptimizationFunctions::PenaltyFactors & penalties = m_data->penalties;
     // iterate over all points of the signal
@@ -228,7 +228,7 @@ namespace OpenMS
   int OptimizePick::OptPeakFunctor::df(const Eigen::VectorXd &x, Eigen::MatrixXd &J)
   {
     std::cout << "rows: " << J.rows() << " colums: " << J.cols() << std::endl;//DEBUG
-    const std::vector<DoubleReal> & positions = m_data->positions;
+    const std::vector<double> & positions = m_data->positions;
     const std::vector<PeakShape> & peaks = m_data->peaks;
     const OptimizationFunctions::PenaltyFactors & penalties = m_data->penalties;
     // iterate over all points of the signal

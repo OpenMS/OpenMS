@@ -68,10 +68,10 @@ START_SECTION((template < typename T, typename E > static bool contains(const st
 }
 END_SECTION
 
-START_SECTION((static bool contains(const std::vector< DoubleReal > &container, const DoubleReal &elem, DoubleReal tolerance=0.00001)))
+START_SECTION((static bool contains(const std::vector< double > &container, const double &elem, double tolerance=0.00001)))
 {
   //
-  std::vector<DoubleReal> dv;
+  std::vector<double> dv;
   dv.push_back(1.2);
   dv.push_back(3.4);
   TEST_EQUAL(ListUtils::contains(dv, 1.2),true)
@@ -101,7 +101,7 @@ START_SECTION((template < typename T > static std::vector<T> create(const std::v
   TEST_EQUAL(sv[2], iv[2])
 
   // create double vector
-  std::vector<DoubleReal> dv = ListUtils::create<DoubleReal>(iv);
+  std::vector<double> dv = ListUtils::create<double>(iv);
   TEST_EQUAL(dv.size(), 3)
   ABORT_IF(dv.size() != 3)
   TEST_EQUAL(dv[0], 1.2)
@@ -114,7 +114,7 @@ START_SECTION((template < typename T > static std::vector<T> create(const std::v
   ABORT_IF(sv2.size() != 4)
   TEST_EQUAL(sv2[3], iv[3])
 
-  TEST_EXCEPTION(Exception::ConversionError, ListUtils::create<DoubleReal>(iv))
+  TEST_EXCEPTION(Exception::ConversionError, ListUtils::create<double>(iv))
 }
 END_SECTION
 
@@ -127,7 +127,7 @@ START_SECTION((template < typename T > static std::vector<T> create(const String
   TEST_EQUAL(sv[1], "no")
   TEST_EQUAL(sv[2], " maybe")
 
-  std::vector<DoubleReal> dv = ListUtils::create<DoubleReal>("1.2,3.5");
+  std::vector<double> dv = ListUtils::create<double>("1.2,3.5");
   TEST_EQUAL(dv.size(), 2)
   ABORT_IF(dv.size() != 2)
   TEST_EQUAL(dv[0], 1.2)

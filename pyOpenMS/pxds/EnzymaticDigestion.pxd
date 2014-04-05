@@ -22,8 +22,8 @@ cdef extern from "<OpenMS/CHEMISTRY/EnzymaticDigestion.h>" namespace "OpenMS":
       bool isLogModelEnabled() nogil except +
       void setLogModelEnabled(bool enabled) nogil except +
 
-      DoubleReal getLogThreshold() nogil except +
-      void setLogThreshold(DoubleReal threshold) nogil except +
+      double getLogThreshold() nogil except +
+      void setLogThreshold(double threshold) nogil except +
 
       # Returns the specificity for the digestion
       Specificity getSpecificity() nogil except +
@@ -46,8 +46,8 @@ cdef extern from "<OpenMS/CHEMISTRY/EnzymaticDigestion.h>" namespace "OpenMS::En
 
     # cdef cppclass CleavageModel:
     #   CleavageModel()
-    #   DoubleReal p_cleave
-    #   DoubleReal p_miss
+    #   double p_cleave
+    #   double p_miss
 
     cdef enum Enzyme:
         # wrap-attach:

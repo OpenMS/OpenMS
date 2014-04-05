@@ -129,7 +129,7 @@ namespace OpenMS
       }
       else
       {
-        cout << '\r' << string(2 * recursion_depth_, ' ') << QString::number(Real(value - begin_) / Real(end_ - begin_) * 100.0, 'f', 2).toStdString()  << " %               ";
+        cout << '\r' << string(2 * recursion_depth_, ' ') << QString::number(float(value - begin_) / float(end_ - begin_) * 100.0, 'f', 2).toStdString()  << " %               ";
         cout << flush;
       }
       break;

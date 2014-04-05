@@ -50,7 +50,7 @@ namespace OpenMS
   }
 
   // values constructor
-  ProteinHit::ProteinHit(DoubleReal score, UInt rank, String accession, String sequence) :
+  ProteinHit::ProteinHit(double score, UInt rank, String accession, String sequence) :
     MetaInfoInterface(),
     score_(score),
     rank_(rank),
@@ -119,7 +119,7 @@ namespace OpenMS
   }
 
   // returns the score of the protein hit
-  Real ProteinHit::getScore() const
+  float ProteinHit::getScore() const
   {
     return score_;
   }
@@ -143,13 +143,13 @@ namespace OpenMS
   }
 
   // returns the coverage (in percent) of the protein hit based upon matched peptides
-  DoubleReal ProteinHit::getCoverage() const
+  double ProteinHit::getCoverage() const
   {
     return coverage_;
   }
 
   // sets the score of the protein hit
-  void ProteinHit::setScore(const DoubleReal score)
+  void ProteinHit::setScore(const double score)
   {
     score_ = score;
   }
@@ -175,7 +175,7 @@ namespace OpenMS
   }
 
   // sets the coverage (in percent) of the protein hit based upon matched peptides
-  void ProteinHit::setCoverage(const DoubleReal coverage)
+  void ProteinHit::setCoverage(const double coverage)
   {
     coverage_ = coverage;
   }

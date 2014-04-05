@@ -58,7 +58,7 @@ namespace OpenMS
              const Int & charge0,
              const Int & charge1,
              const Compomer & compomer,
-             const DoubleReal & mass_diff,
+             const double & mass_diff,
              const bool active) :
     feature0_index_(index0),
     feature1_index_(index1),
@@ -151,25 +151,25 @@ namespace OpenMS
   }
 
   /// Returns the mass difference
-  DoubleReal ChargePair::getMassDiff() const
+  double ChargePair::getMassDiff() const
   {
     return mass_diff_;
   }
 
   /// Sets the mass difference
-  void ChargePair::setMassDiff(DoubleReal mass_diff)
+  void ChargePair::setMassDiff(double mass_diff)
   {
     mass_diff_ = mass_diff;
   }
 
   /// Returns the ILP edge score
-  DoubleReal ChargePair::getEdgeScore() const
+  double ChargePair::getEdgeScore() const
   {
     return score_;
   }
 
   /// Sets the ILP edge score
-  void ChargePair::setEdgeScore(DoubleReal score)
+  void ChargePair::setEdgeScore(double score)
   {
     score_ = score;
   }

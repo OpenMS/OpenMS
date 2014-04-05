@@ -45,7 +45,7 @@ namespace OpenMS
   {
   }
 
-  BinnedSpectrum::BinnedSpectrum(Real size, UInt spread, PeakSpectrum ps) :
+  BinnedSpectrum::BinnedSpectrum(float size, UInt spread, PeakSpectrum ps) :
     MSSpectrum<>(ps), bin_spread_(spread), bin_size_(size), bins_()
   {
     setBinning();
@@ -73,7 +73,7 @@ namespace OpenMS
 
     //make all necessary bins accessible
     this->sortByPosition();
-    bins_ = SparseVector<Real>((UInt)ceil(this->back().getMZ() / bin_size_) + bin_spread_, 0, 0);
+    bins_ = SparseVector<float>((UInt)ceil(this->back().getMZ() / bin_size_) + bin_spread_, 0, 0);
 
     //put all peaks into bins
     UInt bin_number;
@@ -83,7 +83,7 @@ namespace OpenMS
       bin_number = (UInt)floor(this->operator[](i).getMZ() / bin_size_);
       //e.g. bin_size_ = 1.5: first bin covers range [0,1.5] so peak at 1.5 falls in first bin (index 0)
 
-      if (this->operator[](i).getMZ() / bin_size_ == (DoubleReal)bin_number)
+      if (this->operator[](i).getMZ() / bin_size_ == (double)bin_number)
       {
         --bin_number;
       }

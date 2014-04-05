@@ -126,7 +126,7 @@ public:
       //General initialization
       //-------------------------------------------------------------------------
 
-      Map<Size, Map<Size, std::vector<std::pair<DoubleReal, PeakType> > > > traces;
+      Map<Size, Map<Size, std::vector<std::pair<double, PeakType> > > > traces;
 
       SignalToNoiseEstimatorMeanIterative<RichPeakSpectrum> sne;
       LinearResampler resampler;
@@ -134,10 +134,10 @@ public:
       // Split the whole map into traces (== MRM transitions)
       ff_->startProgress(0, traces.size(), "Finding features in traces.");
       Size counter(0);
-      //typename Map<Size, Map<Size, std::vector<std::pair<DoubleReal, PeakType> > > >::const_iterator it1 = traces.begin();
-      //typename Map<Size, std::vector<std::pair<DoubleReal, PeakType> > >::const_iterator it2;
-      DoubleReal min_rt_distance(param_.getValue("min_rt_distance"));
-      DoubleReal min_signal_to_noise_ratio(param_.getValue("min_signal_to_noise_ratio"));
+      //typename Map<Size, Map<Size, std::vector<std::pair<double, PeakType> > > >::const_iterator it1 = traces.begin();
+      //typename Map<Size, std::vector<std::pair<double, PeakType> > >::const_iterator it2;
+      double min_rt_distance(param_.getValue("min_rt_distance"));
+      double min_signal_to_noise_ratio(param_.getValue("min_signal_to_noise_ratio"));
       Size min_num_peaks_per_feature(param_.getValue("min_num_peaks_per_feature"));
       Size feature_id(0);
       bool write_debuginfo(param_.getValue("write_debuginfo").toBool());
@@ -154,7 +154,7 @@ public:
       {
         // throw the peaks into a "spectrum" where the m/z values are RTs in reality (more a chromatogram)
         RichPeakSpectrum chromatogram;
-        //typename std::vector<std::pair<DoubleReal, PeakType> >::const_iterator it3 = it2->second.begin();
+        //typename std::vector<std::pair<double, PeakType> >::const_iterator it3 = it2->second.begin();
         for (MSChromatogram<ChromatogramPeak>::const_iterator it = first_it->begin(); it != first_it->end(); ++it)
         {
           RichPeak1D peak;
@@ -173,14 +173,14 @@ public:
         if (resample_traces)
         {
           // resample the chromatogram, first find minimal distance and use this as resampling distance
-          DoubleReal min_distance(std::numeric_limits<DoubleReal>::max()), old_rt(0);
+          double min_distance(std::numeric_limits<double>::max()), old_rt(0);
           for (RichPeakSpectrum::ConstIterator it = chromatogram.begin(); it != chromatogram.end(); ++it)
           {
             if (write_debuginfo)
             {
               std::cerr << "CHROMATOGRAM: " << it->getMZ() << " " << it->getIntensity() << std::endl;
             }
-            DoubleReal rt_diff = it->getMZ() - old_rt;
+            double rt_diff = it->getMZ() - old_rt;
             if (rt_diff < min_distance && rt_diff > 0)
             {
               min_distance = rt_diff;
@@ -217,7 +217,7 @@ public:
         }
         sne_param.setValue("win_len", (chromatogram.end() - 1)->getMZ() - chromatogram.begin()->getMZ());
 
-        if ((DoubleReal)sne_param.getValue("win_len") < 10e-4)
+        if ((double)sne_param.getValue("win_len") < 10e-4)
         {
           continue;
         }
@@ -230,7 +230,7 @@ public:
         }
         for (RichPeakSpectrum::Iterator sit = chromatogram.begin(); sit != chromatogram.end(); ++sit)
         {
-          DoubleReal sn(sne.getSignalToNoise(sit));
+          double sn(sne.getSignalToNoise(sit));
           sit->setMetaValue("SN", sn);
           if (write_debuginfo)
           {
@@ -243,7 +243,7 @@ public:
         }
 
         // now find sections in the chromatogram which have high s/n value
-        DoubleReal last_rt(0), this_rt(0);
+        double last_rt(0), this_rt(0);
         std::vector<std::vector<DPosition<2> > > sections;
         for (RichPeakSpectrum::Iterator sit = sn_chrom.begin(); sit != sn_chrom.end(); ++sit)
         {
@@ -279,15 +279,15 @@ public:
             continue;
           }
 
-          std::vector<DoubleReal> deltas(2, 0.0);
-          DoubleReal last_int(sections[i][0].getY());
+          std::vector<double> deltas(2, 0.0);
+          double last_int(sections[i][0].getY());
           for (Size j = 1; j < sections[i].size(); ++j)
           {
             deltas.push_back((sections[i][j].getY() - last_int) / last_int);
             last_int = sections[i][j].getY();
             if (write_debuginfo)
             {
-              DoubleReal average_delta = std::accumulate(deltas.begin(), deltas.end(), 0.0) / (DoubleReal)3.0;
+              double average_delta = std::accumulate(deltas.begin(), deltas.end(), 0.0) / (double)3.0;
               std::cerr << "AverageDelta: " << average_delta << " (" << sections[i][j].getX() << ", " << sections[i][j].getY() << ")" << std::endl;
             }
           }
@@ -311,12 +311,12 @@ public:
 
             // add two peaks at the beginning and at the end for better fit
             // therefore calculate average distance first
-            std::vector<DoubleReal> distances;
+            std::vector<double> distances;
             for (Size j = 1; j < filter_spec.size(); ++j)
             {
               distances.push_back(filter_spec[j].getMZ() - filter_spec[j - 1].getMZ());
             }
-            DoubleReal dist_average = std::accumulate(distances.begin(), distances.end(), 0.0) / (DoubleReal)distances.size();
+            double dist_average = std::accumulate(distances.begin(), distances.end(), 0.0) / (double)distances.size();
 
             // append peaks
             Peak1D new_peak;
@@ -352,14 +352,14 @@ public:
               data_to_fit.push_back(p);
             }
             InterpolationModel * model_rt = 0;
-            DoubleReal quality = fitRT_(data_to_fit, model_rt);
+            double quality = fitRT_(data_to_fit, model_rt);
 
             Feature f;
             f.setQuality(0, quality);
             f.setOverallQuality(quality);
 
             ConvexHull2D::PointArrayType hull_points(sections[i].size());
-            DoubleReal intensity_sum(0.0), rt_sum(0.0);
+            double intensity_sum(0.0), rt_sum(0.0);
             for (Size j = 0; j < sections[i].size(); ++j)
             {
               hull_points[j][0] = sections[i][j].getX();
@@ -370,13 +370,13 @@ public:
             }
 
             // create the feature according to fit
-            f.setRT((DoubleReal)model_rt->getParameters().getValue("emg:retention"));
-            f.setMZ((DoubleReal)first_it->getProduct().getMZ());
+            f.setRT((double)model_rt->getParameters().getValue("emg:retention"));
+            f.setMZ((double)first_it->getProduct().getMZ());
             f.setIntensity(intensity_sum);
             ConvexHull2D hull;
             hull.addPoints(hull_points);
             f.getConvexHulls().push_back(hull);
-            f.setMetaValue("MZ", (DoubleReal)first_it->getPrecursor().getMZ());
+            f.setMetaValue("MZ", (double)first_it->getPrecursor().getMZ());
 
 
             // add the model to the feature
@@ -390,13 +390,13 @@ public:
             // writes a feature plot using gnuplot (should be installed on computer)
             if (write_debug_files)
             {
-              String base_name = "debug/" + String((DoubleReal)f.getMetaValue("MZ")) + "_id" + String(feature_id) + "_RT" + String(f.getRT()) + "_Q3" + String(f.getMZ());
+              String base_name = "debug/" + String((double)f.getMetaValue("MZ")) + "_id" + String(feature_id) + "_RT" + String(f.getRT()) + "_Q3" + String(f.getMZ());
               std::ofstream data_out(String(base_name + "_data.dat").c_str());
               for (Size j = 0; j < sections[i].size(); ++j)
               {
                 // RT intensity
-                DoubleReal rt = sections[i][j].getX();
-                DoubleReal intensity = sections[i][j].getY();
+                double rt = sections[i][j].getX();
+                double intensity = sections[i][j].getY();
                 data_out << rt << " " << intensity << std::endl;
               }
               data_out.close();
@@ -412,10 +412,10 @@ public:
               EmgModel emg_model;
               emg_model.setParameters(model_rt->getParameters());
               emg_model.setSamples();
-              DoubleReal bb_min((DoubleReal)emg_model.getParameters().getValue("bounding_box:min"));
-              DoubleReal bb_max((DoubleReal)emg_model.getParameters().getValue("bounding_box:max"));
-              DoubleReal int_step((DoubleReal)emg_model.getParameters().getValue("interpolation_step"));
-              for (DoubleReal pos = bb_min; pos < bb_max; pos += int_step)
+              double bb_min((double)emg_model.getParameters().getValue("bounding_box:min"));
+              double bb_max((double)emg_model.getParameters().getValue("bounding_box:max"));
+              double int_step((double)emg_model.getParameters().getValue("interpolation_step"));
+              for (double pos = bb_min; pos < bb_max; pos += int_step)
               {
                 // RT intensity
                 fit_out << pos << " " << emg_model.getIntensity(pos) << std::endl;
@@ -455,9 +455,9 @@ public:
 
 protected:
 
-    DoubleReal fitRT_(std::vector<PeakType> & rt_input_data, InterpolationModel * & model) const
+    double fitRT_(std::vector<PeakType> & rt_input_data, InterpolationModel * & model) const
     {
-      DoubleReal quality;
+      double quality;
       Param param;
       EmgFitter1D fitter;
 

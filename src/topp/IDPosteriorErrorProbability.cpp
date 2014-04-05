@@ -37,6 +37,7 @@
 #include <OpenMS/MATH/STATISTICS/PosteriorErrorProbabilityModel.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <boost/math/special_functions/fpclassify.hpp> // for "isnan"
 #include <vector>
 
 using namespace OpenMS;
@@ -161,17 +162,23 @@ protected:
     }
     else if (engine.compare("XTandem") == 0)
     {
-      return (-1) * log10(max((DoubleReal)hit.getMetaValue("E-Value"), smallest_e_value_));
+      return (-1) * log10(max((double)hit.getMetaValue("E-Value"), smallest_e_value_));
     }
     else if (engine == "MASCOT")
     {
+      // issue #740: unable to fit data with score 0
+      if (hit.getScore() == 0) 
+      {
+        return numeric_limits<double>::quiet_NaN();
+      }
+      // end issue #740
       if (hit.metaValueExists("EValue"))
       {
-        return (-1) * log10(max((DoubleReal)hit.getMetaValue("EValue"), smallest_e_value_));
+        return (-1) * log10(max((double)hit.getMetaValue("EValue"), smallest_e_value_));
       }
       if (hit.metaValueExists("expect"))
       {
-        return (-1) * log10(max((DoubleReal)hit.getMetaValue("expect"), smallest_e_value_));
+        return (-1) * log10(max((double)hit.getMetaValue("expect"), smallest_e_value_));
       }
     }
     else if (engine == "SpectraST")
@@ -182,7 +189,7 @@ protected:
     {
       if (hit.metaValueExists("E-Value"))
       {
-        return (-1) * log10(max((DoubleReal)hit.getMetaValue("E-Value"), smallest_e_value_));
+        return (-1) * log10(max((double)hit.getMetaValue("E-Value"), smallest_e_value_));
       }
     }
     else
@@ -207,7 +214,7 @@ protected:
     fit_algorithm.setValue("out_plot", getStringOption_("out_plot")); // re-assemble full param (was moved to top-level)
     bool split_charge = getFlag_("split_charge");
     bool top_hits_only = getFlag_("top_hits_only");
-    DoubleReal fdr_for_targets_smaller = getDoubleOption_("fdr_for_targets_smaller");
+    double fdr_for_targets_smaller = getDoubleOption_("fdr_for_targets_smaller");
     bool target_decoy_available = false;
     bool ignore_bad_data = getFlag_("ignore_bad_data");
     bool prob_correct = getFlag_("prob_correct");
@@ -281,16 +288,21 @@ protected:
                 {
                   if (!hits.empty() && (!split_charge || hits[0].getCharge() == *charge))
                   {
-                    scores.push_back(getScore_(*engine, hits[0]));
-                    if (target_decoy_available)
+                    double score = getScore_(*engine, hits[0]);
+                    if (!boost::math::isnan(score)) // issue #740: ignore scores with 0 values, otherwise you will get the error "unable to fit data"
                     {
-                      if (hits[0].getScore() < fdr_for_targets_smaller)
+                      scores.push_back(score);
+
+                      if (target_decoy_available)
                       {
-                        target.push_back(getScore_(*engine, hits[0]));
-                      }
-                      else
-                      {
-                        decoy.push_back(getScore_(*engine, hits[0]));
+                        if (hits[0].getScore() < fdr_for_targets_smaller)
+                        {
+                          target.push_back(score);
+                        }
+                        else
+                        {
+                          decoy.push_back(score);
+                        }
                       }
                     }
                   }
@@ -301,7 +313,11 @@ protected:
                   {
                     if (!split_charge || hit->getCharge() == *charge)
                     {
-                      scores.push_back(getScore_(*engine, *hit));
+                      double score = getScore_(*engine, *hit);
+                      if (!boost::math::isnan(score)) // issue #740: ignore scores with 0 values, otherwise you will get the error "unable to fit data"
+                      {
+                        scores.push_back(score);
+                      }
                     }
                   }
                 }
@@ -392,11 +408,20 @@ protected:
                 {
                   if (!split_charge || hit->getCharge() == charge)
                   {
-                    DoubleReal score;
+                    double score;
                     hit->setMetaValue(score_type, hit->getScore());
-                    score = PEP_model.computeProbability(getScore_(engine, *hit));
-                    if (score > 0 && score < 1) unable_to_fit_data = false;  //only if all it->second[0] are 0 or 1 unable_to_fit_data stays true
-                    if (score > 0.2 && score < 0.8) data_might_not_be_well_fit = false;  //same as above
+
+                    score = getScore_(engine, *hit);
+                    if (boost::math::isnan(score)) // issue #740: ignore scores with 0 values, otherwise you will get the error "unable to fit data"
+                    {
+                      score = 1;
+                    }
+                    else 
+                    { 
+                      score = PEP_model.computeProbability(score);
+                      if (score > 0 && score < 1) unable_to_fit_data = false;  //only if all it->second[0] are 0 or 1 unable_to_fit_data stays true
+                      if (score > 0.2 && score < 0.8) data_might_not_be_well_fit = false;  //same as above
+                    }
                     hit->setScore(score);
                     if (prob_correct)
                     {
@@ -410,8 +435,16 @@ protected:
                 }
                 it->setHits(hits);
               }
-              it->setScoreType("Posterior Error Probability");
-              it->setHigherScoreBetter(false);
+              if (prob_correct)
+              {
+                it->setScoreType("Posterior Probability");
+                it->setHigherScoreBetter(true);
+              }
+              else
+              {
+                it->setScoreType("Posterior Error Probability");
+                it->setHigherScoreBetter(false);
+              }
             }
           }
         }
@@ -429,7 +462,7 @@ protected:
   }
 
   //Used in several functions
-  DoubleReal smallest_e_value_;
+  double smallest_e_value_;
 };
 
 

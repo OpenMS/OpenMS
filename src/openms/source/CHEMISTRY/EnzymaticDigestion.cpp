@@ -160,12 +160,12 @@ namespace OpenMS
     use_log_model_ = enabled;
   }
 
-  DoubleReal EnzymaticDigestion::getLogThreshold() const
+  double EnzymaticDigestion::getLogThreshold() const
   {
     return log_model_threshold_;
   }
 
-  void EnzymaticDigestion::setLogThreshold(DoubleReal threshold)
+  void EnzymaticDigestion::setLogThreshold(double threshold)
   {
     log_model_threshold_ = threshold;
   }
@@ -184,7 +184,7 @@ namespace OpenMS
         }
         SignedSize pos = distance(AASequence::ConstIterator(protein.begin()), 
                                   iterator) - 4; // start position in sequence
-        DoubleReal score_cleave = 0, score_missed = 0;
+        double score_cleave = 0, score_missed = 0;
         for (SignedSize i = 0; i < 9; ++i)
         {
           if ((pos + i >= 0) && (pos + i < (SignedSize)protein.size()))

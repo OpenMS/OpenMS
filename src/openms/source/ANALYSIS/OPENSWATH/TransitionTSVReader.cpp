@@ -826,7 +826,7 @@ namespace OpenMS
 
     // start writing
     std::ofstream os(filename);
-    os.precision(writtenDigits(DoubleReal()));
+    os.precision(writtenDigits(double()));
     for (Size i = 0; i < header_names_.size(); i++)
     {
       os << header_names_[i];

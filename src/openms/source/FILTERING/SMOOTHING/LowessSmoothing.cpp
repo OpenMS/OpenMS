@@ -102,14 +102,14 @@ namespace OpenMS
       qr.computeRegressionWeighted(input_x.begin(), input_x.end(), input_y.begin(), w_begin);
 
       //smooth y-values
-      DoubleReal rt = input_x[outer_idx];
+      double rt = input_x[outer_idx];
       smoothed_output.push_back(qr.eval(rt));
     }
 
     return;
   }
 
-  DoubleReal LowessSmoothing::tricube_(DoubleReal u, DoubleReal t)
+  double LowessSmoothing::tricube_(double u, double t)
   {
     // In our case, u represents a distance and hence should be strictly positive.
     if (u < 0)
@@ -122,8 +122,8 @@ namespace OpenMS
     {
       // (1 - (u/t)^3)^3
       // return pow( ( 1.0 - pow(u/t, 3.0)), 3.0 );
-      DoubleReal quot(u / t);
-      DoubleReal inner_term(1.0 - quot * quot * quot);
+      double quot(u / t);
+      double inner_term(1.0 - quot * quot * quot);
 
       return inner_term * inner_term * inner_term;
     }

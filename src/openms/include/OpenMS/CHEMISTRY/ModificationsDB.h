@@ -115,13 +115,13 @@ public:
     Size findModificationIndex(const String & mod_name) const;
 
     /// query the modifications DB to get the terminal modifications with mass
-    void getTerminalModificationsByDiffMonoMass(std::vector<String> & mods, DoubleReal mass, DoubleReal error, ResidueModification::Term_Specificity term_spec);
+    void getTerminalModificationsByDiffMonoMass(std::vector<String> & mods, double mass, double error, ResidueModification::Term_Specificity term_spec);
 
     /// query the modifications DB to get the modifications with mass, without any specific origin
-    void getModificationsByDiffMonoMass(std::vector<String> & mods, DoubleReal mass, DoubleReal error = 0.0);
+    void getModificationsByDiffMonoMass(std::vector<String> & mods, double mass, double error = 0.0);
 
     /// query the modifications DB to get modifications with the given delta mass at the given residue
-    void getModificationsByDiffMonoMass(std::vector<String> & mods, const String & residue, DoubleReal mass, DoubleReal error = 0.0);
+    void getModificationsByDiffMonoMass(std::vector<String> & mods, const String & residue, double mass, double error = 0.0);
 
     /** @brief returns the best matching modification for the given mass and residue
 
@@ -142,7 +142,7 @@ public:
         @return A pointer to the best matching modification (or NULL if none was found)
 
     */
-    const ResidueModification * getBestModificationsByMonoMass(const String & residue, DoubleReal mass, DoubleReal max_error = 0.0);
+    const ResidueModification * getBestModificationsByMonoMass(const String & residue, double mass, double max_error = 0.0);
 
     /** @brief returns the best matching modification for the given delta mass and residue
 
@@ -163,7 +163,7 @@ public:
         @return A pointer to the best matching modification (or NULL if none was found)
 
     */
-    const ResidueModification * getBestModificationsByDiffMonoMass(const String & residue, DoubleReal mass, DoubleReal max_error = 0.0);
+    const ResidueModification * getBestModificationsByDiffMonoMass(const String & residue, double mass, double max_error = 0.0);
 
     /// adds modifications from a given file in OBO format
     void readFromOBOFile(const String & filename);

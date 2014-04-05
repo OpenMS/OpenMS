@@ -662,8 +662,8 @@ namespace OpenMS
       case DataValue::DOUBLE_LIST:
       {
         String drest = "", irest = "";
-        bool min_set = (it->min_float != -numeric_limits<DoubleReal>::max());
-        bool max_set = (it->max_float != numeric_limits<DoubleReal>::max());
+        bool min_set = (it->min_float != -numeric_limits<double>::max());
+        bool max_set = (it->max_float != numeric_limits<double>::max());
         if (max_set || min_set)
         {
           if (min_set)
@@ -911,7 +911,7 @@ namespace OpenMS
       }
       else if (child->text(2) == "double list")
       {
-        param_->setValue(path, ListUtils::create<DoubleReal>(rlist), description, tag_list);
+        param_->setValue(path, ListUtils::create<double>(rlist), description, tag_list);
         String restrictions = child->data(2, Qt::UserRole).toString();
         vector<String> parts;
         if (restrictions.split(' ', parts))

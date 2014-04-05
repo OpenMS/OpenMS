@@ -166,7 +166,7 @@ private:
       an isotopic pattern that does NOT have the current peak as monoisotopic
       peak.
     */
-    DoubleReal largePeaksBeforeFirstIsotope_(double product_mz,
+    double largePeaksBeforeFirstIsotope_(double product_mz,
                                             SpectrumType& spectrum, double max_ppm_diff, double main_peak);
 
     /**
@@ -175,7 +175,7 @@ private:
       This function will take an array of isotope intensities and compare them
       to the theoretically expected ones using pearson correlation.
     */
-    DoubleReal scoreIsotopePattern_(double product_mz,
+    double scoreIsotopePattern_(double product_mz,
                                    const std::vector<double>& isotopes_int, int putative_fragment_charge);
 
     // Parameters

@@ -4,8 +4,8 @@ from DPosition cimport *
 
 cdef extern from "<OpenMS/KERNEL/ChromatogramPeak.h>" namespace "OpenMS::ChromatogramPeak":
 
-    ctypedef DoubleReal IntensityType
-    ctypedef DoubleReal CoordinateType
+    ctypedef double IntensityType
+    ctypedef double CoordinateType
 
 cdef extern from "<OpenMS/KERNEL/ChromatogramPeak.h>" namespace "OpenMS":
 

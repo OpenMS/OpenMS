@@ -390,9 +390,9 @@ var_yseries_score   -0.0327896378737766
     typedef OpenSwath::LightPeptide PeptideType;
     typedef OpenSwath::LightTransition TransitionType;
 
-    DoubleReal rt_normalization_factor_;
+    double rt_normalization_factor_;
     int add_up_spectra_;
-    DoubleReal spacing_for_spectra_resampling_;
+    double spacing_for_spectra_resampling_;
     OpenSwath_Scores_Usage su_;
 
   public:
@@ -413,8 +413,8 @@ var_yseries_score   -0.0327896378737766
      * @param su_ Which scores to actually compute
      *
     */
-    void initialize(DoubleReal rt_normalization_factor_,
-      int add_up_spectra_, DoubleReal spacing_for_spectra_resampling_,
+    void initialize(double rt_normalization_factor_,
+      int add_up_spectra_, double spacing_for_spectra_resampling_,
       OpenSwath_Scores_Usage & su_);
 
     /** @brief Score a single peakgroup in a chromatogram using only chromatographic properties.

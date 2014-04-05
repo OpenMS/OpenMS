@@ -31,14 +31,14 @@ cdef extern from "<OpenMS/CHEMISTRY/ResidueModification.h>" namespace "OpenMS":
         void setSourceClassification(Source_Classification classification) nogil except +
         Source_Classification getSourceClassification() nogil except +
         String getSourceClassificationName(Source_Classification classification) nogil except +
-        void setAverageMass(DoubleReal mass) nogil except +
-        DoubleReal getAverageMass() nogil except +
-        void setMonoMass(DoubleReal mass) nogil except +
-        DoubleReal getMonoMass() nogil except +
-        void setDiffAverageMass(DoubleReal mass) nogil except +
-        DoubleReal getDiffAverageMass() nogil except +
-        void setDiffMonoMass(DoubleReal mass) nogil except +
-        DoubleReal getDiffMonoMass() nogil except +
+        void setAverageMass(double mass) nogil except +
+        double getAverageMass() nogil except +
+        void setMonoMass(double mass) nogil except +
+        double getMonoMass() nogil except +
+        void setDiffAverageMass(double mass) nogil except +
+        double getDiffAverageMass() nogil except +
+        void setDiffMonoMass(double mass) nogil except +
+        double getDiffMonoMass() nogil except +
         void setFormula(String & composition) nogil except +
         String  getFormula() nogil except +
         void setDiffFormula(EmpiricalFormula & diff_formula) nogil except +
@@ -48,10 +48,10 @@ cdef extern from "<OpenMS/CHEMISTRY/ResidueModification.h>" namespace "OpenMS":
         libcpp_set[ String ]  getSynonyms() nogil except +
         void setNeutralLossDiffFormula(EmpiricalFormula & loss) nogil except +
         EmpiricalFormula  getNeutralLossDiffFormula() nogil except +
-        void setNeutralLossMonoMass(DoubleReal mono_mass) nogil except +
-        DoubleReal getNeutralLossMonoMass() nogil except +
-        void setNeutralLossAverageMass(DoubleReal average_mass) nogil except +
-        DoubleReal getNeutralLossAverageMass() nogil except +
+        void setNeutralLossMonoMass(double mono_mass) nogil except +
+        double getNeutralLossMonoMass() nogil except +
+        void setNeutralLossAverageMass(double average_mass) nogil except +
+        double getNeutralLossAverageMass() nogil except +
         bool hasNeutralLoss() nogil except +
         bool operator==(ResidueModification & modification) nogil except +
         bool operator!=(ResidueModification & modification) nogil except +

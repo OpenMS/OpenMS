@@ -119,24 +119,24 @@ public:
 
         Defaults to 200. Larger values require more time to search.
     */
-    Real getMaxPTMsize() const;
-    void setMaxPTMsize(Real maxptmsize);
+    float getMaxPTMsize() const;
+    void setMaxPTMsize(float maxptmsize);
 
     /**
         @brief Specifies the parent mass tolerance, in Daltons.
 
         A candidate's flanking mass can differ from the tag's flanking mass by no more than this amount.
     */
-    Real getPrecursorMassTolerance() const;
-    void setPrecursorMassTolerance(Real precursor_mass_tolerance);
+    float getPrecursorMassTolerance() const;
+    void setPrecursorMassTolerance(float precursor_mass_tolerance);
 
     /**
         @brief How far b and y peaks can be shifted from their expected masses.
 
         Default is 0.5. Higher values produce a more sensitive but much slower search.
     */
-    Real getPeakMassTolerance() const;
-    void setPeakMassTolerance(Real peak_mass_tolerance);
+    float getPeakMassTolerance() const;
+    void setPeakMassTolerance(float peak_mass_tolerance);
 
     /// If set to true, attempt to guess the precursor charge and mass, and consider multiple charge states if feasible.
     UInt getMulticharge() const;
@@ -166,11 +166,11 @@ private:
     UInt blind_;         ///< If true, use the MS-Alignment algorithm to perform a blind search (allowing arbitrary modification masses). Running a blind search with one mod per peptide is slower than the normal (tag-based) search; running time is approximately 1 second per spectra per megabyte of database. Running a blind search with two mods is significantly slower. We recommend performing "blind" searches against a small database, containing proteins output by an earlier search. (The "Summary.py" script can be used to generate a second-pass database from initial search results)
     /// 0 - false, 1 - true, 2 - not set
 
-    Real maxptmsize_;         ///< For blind search, specifies the maximum modification size (in Da) to consider. Defaults to 200. Larger values require more time to search. <0 is not set
+    float maxptmsize_;         ///< For blind search, specifies the maximum modification size (in Da) to consider. Defaults to 200. Larger values require more time to search. <0 is not set
 
-    Real precursor_mass_tolerance_;         ///< Specifies the parent mass tolerance, in Daltons. A candidate's flanking mass can differ from the tag's flanking mass by no more than this amount. <0 is not set
+    float precursor_mass_tolerance_;         ///< Specifies the parent mass tolerance, in Daltons. A candidate's flanking mass can differ from the tag's flanking mass by no more than this amount. <0 is not set
 
-    Real peak_mass_tolerance_;         ///< How far b and y peaks can be shifted from their expected masses. Default is 0.5. Higher values produce a more sensitive but much slower search. <0 is not set
+    float peak_mass_tolerance_;         ///< How far b and y peaks can be shifted from their expected masses. Default is 0.5. Higher values produce a more sensitive but much slower search. <0 is not set
 
     UInt multicharge_;         ///< If set to true, attempt to guess the precursor charge and mass, and consider multiple charge states if feasible.
     /// 0 - false, 1 - true, 2 - not set

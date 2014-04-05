@@ -88,8 +88,8 @@ public:
       bool traversed;
       FASTAFile::FASTAEntry * fasta_entry;
       enum type  {primary, secondary, primary_indistinguishable, secondary_indistinguishable} protein_type;
-      DoubleReal weight;    //monoisotopic
-      Real coverage;    //in percent
+      double weight;    //monoisotopic
+      float coverage;    //in percent
       //if Protein is indistinguishable all his fellows are in the list indis
       std::list<ProteinEntry *> indis;
       Size index;
@@ -110,7 +110,7 @@ public:
       Size  msd_group;     //index
       Size isd_group;     //index
       bool experimental;
-      Real intensity;
+      float intensity;
       String origin;
     };
 
@@ -124,7 +124,7 @@ public:
       Size number_of_decoy;
       Size number_of_target;
       Size number_of_target_plus_decoy;
-      Real intensity;     // intensity of the MSD Group. Defined as the median of the peptide intensities.
+      float intensity;     // intensity of the MSD Group. Defined as the median of the peptide intensities.
     };
 
     struct ISDGroup

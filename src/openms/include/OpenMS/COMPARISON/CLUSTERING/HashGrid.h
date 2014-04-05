@@ -66,7 +66,7 @@ public:
      * @brief Coordinate for stored pairs.
      */
     // XXX: Check is there is another type handy in OpenMS already
-    typedef DPosition<2, DoubleReal> ClusterCenter;
+    typedef DPosition<2, double> ClusterCenter;
 
     /**
      * @brief Index for cells.
@@ -420,7 +420,7 @@ private:
       typename ClusterCenter::const_iterator lit = key.begin(), rit = cell_dimension.begin();
       for (; it != ret.end(); ++it, ++lit, ++rit)
       {
-        DoubleReal t = std::floor(*lit / *rit);
+        double t = std::floor(*lit / *rit);
         if (t < std::numeric_limits<Int64>::min() || t > std::numeric_limits<Int64>::max()) throw Exception::OutOfRange(__FILE__, __LINE__, __PRETTY_FUNCTION__);
         *it = static_cast<Int64>(t);
       }

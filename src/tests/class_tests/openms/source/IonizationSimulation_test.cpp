@@ -220,7 +220,7 @@ START_SECTION((void ionize(FeatureMapSim &features, ConsensusMap &charge_consens
   IonizationSimulation maldi_sim(rnd_gen_maldi);
   Param maldi_param = maldi_sim.getParameters();
   maldi_param.setValue("ionization_type","MALDI");
-  maldi_param.setValue("maldi:ionization_probabilities", ListUtils::create<DoubleReal>("0.9,0.1"));
+  maldi_param.setValue("maldi:ionization_probabilities", ListUtils::create<double>("0.9,0.1"));
 
   maldi_sim.setParameters(maldi_param);
 

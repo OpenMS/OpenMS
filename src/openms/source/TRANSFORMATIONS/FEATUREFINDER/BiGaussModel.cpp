@@ -127,7 +127,7 @@ namespace OpenMS
 
   void BiGaussModel::setOffset(CoordinateType offset)
   {
-    DoubleReal diff = offset - getInterpolation().getOffset();
+    double diff = offset - getInterpolation().getOffset();
     min_ += diff;
     max_ += diff;
     statistics1_.setMean(statistics1_.mean() + diff);

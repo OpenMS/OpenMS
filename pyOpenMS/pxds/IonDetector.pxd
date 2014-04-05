@@ -22,14 +22,14 @@ cdef extern from "<OpenMS/METADATA/IonDetector.h>" namespace "OpenMS":
         void setAcquisitionMode(AcquisitionMode acquisition_mode) nogil except +
 
         # returns the resolution (in ns)
-        DoubleReal getResolution() nogil except +
+        double getResolution() nogil except +
         # sets the resolution (in ns)
-        void setResolution(DoubleReal resolution) nogil except +
+        void setResolution(double resolution) nogil except +
 
         # returns the analog-to-digital converter sampling frequency (in Hz)
-        DoubleReal getADCSamplingFrequency() nogil except +
+        double getADCSamplingFrequency() nogil except +
         # sets the analog-to-digital converter sampling frequency (in Hz)
-        void setADCSamplingFrequency(DoubleReal ADC_sampling_frequency) nogil except +
+        void setADCSamplingFrequency(double ADC_sampling_frequency) nogil except +
 
         Int getOrder() nogil except +
         # sets the order

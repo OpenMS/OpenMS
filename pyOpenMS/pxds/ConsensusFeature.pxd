@@ -32,11 +32,11 @@ cdef extern from "<OpenMS/KERNEL/ConsensusFeature.h>" namespace "OpenMS":
         void insert(UInt64, BaseFeature) nogil except +
         void insert(UInt64, ConsensusFeature) nogil except +
 
-        Real getQuality()  nogil except +
-        void setQuality(Real q) nogil except +
+        float getQuality()  nogil except +
+        void setQuality(float q) nogil except +
 
-        Real getWidth() nogil except +
-        void setWidth(Real q) nogil except +
+        float getWidth() nogil except +
+        void setWidth(float q) nogil except +
 
         Int getCharge() nogil except +
         void setCharge(Int q) nogil except +
@@ -80,7 +80,7 @@ cdef extern from "<OpenMS/KERNEL/ConsensusFeature.h>" namespace "OpenMS::Consens
       Ratio() nogil except +
       Ratio(Ratio rhs) nogil except +
 
-      DoubleReal ratio_value_
+      double ratio_value_
       String denominator_ref_
       String numerator_ref_
       libcpp_vector[String] description_

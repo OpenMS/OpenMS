@@ -218,7 +218,7 @@ namespace OpenMS
     std::vector<OpenSwath::ISignalToNoisePtr> signal_noise_estimators;
     std::vector<MRMFeature> feature_list;
 
-    DoubleReal sn_win_len_ = (DoubleReal)param_.getValue("TransitionGroupPicker:PeakPickerMRM:sn_win_len");
+    double sn_win_len_ = (double)param_.getValue("TransitionGroupPicker:PeakPickerMRM:sn_win_len");
     unsigned int sn_bin_count_ = (unsigned int)param_.getValue("TransitionGroupPicker:PeakPickerMRM:sn_bin_count");
     for (Size k = 0; k < transition_group.getChromatograms().size(); k++)
     {
@@ -383,7 +383,7 @@ namespace OpenMS
         if (sub_it->getMZ() > quantification_cutoff_)
         {
           total_intensity += sub_it->getIntensity();
-          total_peak_apices += (DoubleReal)sub_it->getMetaValue("peak_apex_int");
+          total_peak_apices += (double)sub_it->getMetaValue("peak_apex_int");
         }
       }
       // overwrite the reported intensities with those above the m/z cutoff
@@ -408,9 +408,9 @@ namespace OpenMS
   void MRMFeatureFinderScoring::updateMembers_()
   {
     stop_report_after_feature_ = (int)param_.getValue("stop_report_after_feature");
-    rt_extraction_window_ = (DoubleReal)param_.getValue("rt_extraction_window");
-    rt_normalization_factor_ = (DoubleReal)param_.getValue("rt_normalization_factor");
-    quantification_cutoff_ = (DoubleReal)param_.getValue("quantification_cutoff");
+    rt_extraction_window_ = (double)param_.getValue("rt_extraction_window");
+    rt_normalization_factor_ = (double)param_.getValue("rt_normalization_factor");
+    quantification_cutoff_ = (double)param_.getValue("quantification_cutoff");
     write_convex_hull_ = param_.getValue("write_convex_hull").toBool();
     add_up_spectra_ = param_.getValue("add_up_spectra");
     spacing_for_spectra_resampling_ = param_.getValue("spacing_for_spectra_resampling");

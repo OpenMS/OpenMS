@@ -157,13 +157,13 @@ START_SECTION((void setLogModelEnabled(bool enabled)))
   TEST_EQUAL(ed.isLogModelEnabled(), false);
 END_SECTION
 
-START_SECTION((DoubleReal getLogThreshold() const))
+START_SECTION((double getLogThreshold() const))
 	EnzymaticDigestion ed;
   ed.setLogThreshold(1.234);
   TEST_EQUAL(ed.getLogThreshold(), 1.234);
 END_SECTION
 
-START_SECTION((void setLogThreshold(DoubleReal threshold)))
+START_SECTION((void setLogThreshold(double threshold)))
   // TESTED ABOVE
   NOT_TESTABLE
 END_SECTION

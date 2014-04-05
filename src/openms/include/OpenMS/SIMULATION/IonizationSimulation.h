@@ -119,7 +119,7 @@ private:
 
     /// set meta values, mz etc after adducts are ready
     void setFeatureProperties_(Feature & f,
-                               const DoubleReal & adduct_mass,
+                               const double & adduct_mass,
                                const String & adduct_formula,
                                const SimChargeType charge,
                                const SimIntensityType new_intensity,
@@ -152,12 +152,12 @@ private:
     /**
      @brief Probability for the binomial distribution of ESI charge states
      */
-    DoubleReal esi_probability_;
+    double esi_probability_;
 
     /**
      @brief Discrete distribution of impure charge adducts like Na+, K+, Ca++ etc besides the usual H+
     */
-    std::vector<DoubleReal> esi_impurity_probabilities_;
+    std::vector<double> esi_impurity_probabilities_;
 
 
     /**
@@ -173,7 +173,7 @@ private:
     /**
      @brief Preprocessed table of discrete distribution (MALDI charges)
     */
-    std::vector<DoubleReal> maldi_probabilities_;
+    std::vector<double> maldi_probabilities_;
 
     /// Maximum m/z detected by mass analyser
     SimCoordinateType maximal_mz_measurement_limit_;

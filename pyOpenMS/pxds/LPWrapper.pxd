@@ -10,37 +10,37 @@ cdef extern from "<OpenMS/DATASTRUCTURES/LPWrapper.h>" namespace "OpenMS":
         Int addRow(libcpp_vector[ int ] row_indices, libcpp_vector[ double ] row_values, String & name) nogil except +
         Int addColumn() nogil except +
         Int addColumn(libcpp_vector[ int ] column_indices, libcpp_vector[ double ] column_values, String & name) nogil except +
-        Int addRow(libcpp_vector[ int ] & row_indices, libcpp_vector[ double ] & row_values, String & name, DoubleReal lower_bound, DoubleReal upper_bound, LPWrapper_Type type_) nogil except +
-        Int addColumn(libcpp_vector[ int ] & column_indices, libcpp_vector[ double ] & column_values, String & name, DoubleReal lower_bound, DoubleReal upper_bound, LPWrapper_Type type_) nogil except +
+        Int addRow(libcpp_vector[ int ] & row_indices, libcpp_vector[ double ] & row_values, String & name, double lower_bound, double upper_bound, LPWrapper_Type type_) nogil except +
+        Int addColumn(libcpp_vector[ int ] & column_indices, libcpp_vector[ double ] & column_values, String & name, double lower_bound, double upper_bound, LPWrapper_Type type_) nogil except +
         void deleteRow(Int index) nogil except +
         void setColumnName(Int index, String & name) nogil except +
         String getColumnName(Int index) nogil except +
         String getRowName(Int index) nogil except +
         Int getRowIndex(String & name) nogil except +
         Int getColumnIndex(String & name) nogil except +
-        DoubleReal getColumnUpperBound(Int index) nogil except +
-        DoubleReal getColumnLowerBound(Int index) nogil except +
-        DoubleReal getRowUpperBound(Int index) nogil except +
-        DoubleReal getRowLowerBound(Int index) nogil except +
+        double getColumnUpperBound(Int index) nogil except +
+        double getColumnLowerBound(Int index) nogil except +
+        double getRowUpperBound(Int index) nogil except +
+        double getRowLowerBound(Int index) nogil except +
         void setRowName(Int index, String & name) nogil except +
-        void setColumnBounds(Int index, DoubleReal lower_bound, DoubleReal upper_bound, LPWrapper_Type type_) nogil except +
-        void setRowBounds(Int index, DoubleReal lower_bound, DoubleReal upper_bound, LPWrapper_Type type_) nogil except +
+        void setColumnBounds(Int index, double lower_bound, double upper_bound, LPWrapper_Type type_) nogil except +
+        void setRowBounds(Int index, double lower_bound, double upper_bound, LPWrapper_Type type_) nogil except +
         void setColumnType(Int index, VariableType type_) nogil except +
         VariableType getColumnType(Int index) nogil except +
-        void setObjective(Int index, DoubleReal obj_value) nogil except +
-        DoubleReal getObjective(Int index) nogil except +
+        void setObjective(Int index, double obj_value) nogil except +
+        double getObjective(Int index) nogil except +
         void setObjectiveSense(Sense sense) nogil except +
         Sense getObjectiveSense() nogil except +
         Int getNumberOfColumns() nogil except +
         Int getNumberOfRows() nogil except +
-        void setElement(Int row_index, Int column_index, DoubleReal value) nogil except +
-        DoubleReal getElement(Int row_index, Int column_index) nogil except +
+        void setElement(Int row_index, Int column_index, double value) nogil except +
+        double getElement(Int row_index, Int column_index) nogil except +
         void readProblem(String filename, String format_) nogil except +
         void writeProblem(String & filename, WriteFormat format_) nogil except +
         Int solve(SolverParam & solver_param, Size verbose_level) nogil except +
         SolverStatus getStatus() nogil except +
-        DoubleReal getObjectiveValue() nogil except +
-        DoubleReal getColumnValue(Int index) nogil except +
+        double getObjectiveValue() nogil except +
+        double getColumnValue(Int index) nogil except +
         Int getNumberOfNonZeroEntriesInRow(Int idx) nogil except +
         void getMatrixRow(Int idx, libcpp_vector[ int ] & indexes) nogil except +
         void setSolver(SOLVER s) nogil except +
@@ -62,7 +62,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/LPWrapper.h>" namespace "OpenMS::LPWrap
         bool enable_mir_cuts
         bool enable_cov_cuts
         bool enable_clq_cuts
-        DoubleReal mip_gap
+        double mip_gap
         Int time_limit
         Int output_freq
         Int output_delay

@@ -351,7 +351,7 @@ START_SECTION((SimCoordinateType getGradientTime() const ))
 }
 END_SECTION
 
-START_SECTION((void wrapSVM(std::vector<AASequence>& peptide_sequences,std::vector<DoubleReal>& predicted_retention_times)))
+START_SECTION((void wrapSVM(std::vector<AASequence>& peptide_sequences,std::vector<double>& predicted_retention_times)))
 {
   // this method is called by "predictRT" so we already test it
   NOT_TESTABLE

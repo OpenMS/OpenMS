@@ -37,7 +37,6 @@
 
 #include <OpenMS/METADATA/ChromatogramSettings.h>
 #include <OpenMS/METADATA/MetaInfoDescription.h>
-#include <OpenMS/FORMAT/DB/PersistentObject.h>
 #include <OpenMS/KERNEL/RangeManager.h>
 #include <OpenMS/KERNEL/ComparatorUtils.h>
 #include <OpenMS/KERNEL/ChromatogramPeak.h>
@@ -53,8 +52,7 @@ namespace OpenMS
   class MSChromatogram :
     public std::vector<PeakT>,
     public RangeManager<1>,
-    public ChromatogramSettings,
-    public PersistentObject
+    public ChromatogramSettings
   {
 
 public:
@@ -62,7 +60,7 @@ public:
     /// Float data array class
     class FloatDataArray :
       public MetaInfoDescription,
-      public std::vector<Real>
+      public std::vector<float>
     {};
 
     /// String data array class
@@ -122,7 +120,6 @@ public:
       ContainerType(),
       RangeManager<1>(),
       ChromatogramSettings(),
-      PersistentObject(),
       name_(),
       float_data_arrays_(),
       string_data_arrays_(),
@@ -134,7 +131,6 @@ public:
       ContainerType(source),
       RangeManager<1>(source),
       ChromatogramSettings(source),
-      PersistentObject(source),
       name_(source.name_),
       float_data_arrays_(source.float_data_arrays_),
       string_data_arrays_(source.string_data_arrays_),
@@ -153,7 +149,6 @@ public:
       ContainerType::operator=(source);
       RangeManager<1>::operator=(source);
       ChromatogramSettings::operator=(source);
-      PersistentObject::operator=(source);
 
       name_ = source.name_;
       float_data_arrays_ = source.float_data_arrays_;
@@ -205,7 +200,7 @@ public:
     ///@}
 
     /// returns the mz of the product entry, makes sense especially for MRM scans
-    inline DoubleReal getMZ() const
+    inline double getMZ() const
     {
       return getProduct().getMZ();
     }
@@ -310,7 +305,7 @@ public:
 
         for (Size i = 0; i < float_data_arrays_.size(); ++i)
         {
-          std::vector<Real> mda_tmp;
+          std::vector<float> mda_tmp;
           for (Size j = 0; j < float_data_arrays_[i].size(); ++j)
           {
             mda_tmp.push_back(*(float_data_arrays_[i].begin() + (sorted_indices[j].second)));
@@ -373,7 +368,7 @@ public:
 
         for (Size i = 0; i < float_data_arrays_.size(); ++i)
         {
-          std::vector<Real> mda_tmp;
+          std::vector<float> mda_tmp;
           for (Size j = 0; j < float_data_arrays_[i].size(); ++j)
           {
             mda_tmp.push_back(*(float_data_arrays_[i].begin() + (sorted_indices[j].second)));
@@ -568,7 +563,6 @@ public:
       if (clear_meta_data)
       {
         clearRanges();
-        clearId();
         this->ChromatogramSettings::operator=(ChromatogramSettings());   // no "clear" method
         name_.clear();
         float_data_arrays_.clear();
@@ -580,9 +574,6 @@ public:
     ///@}
 
 protected:
-    // Docu in base class
-    virtual void clearChildIds_()
-    {}
 
     /// Name
     String name_;

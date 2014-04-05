@@ -65,11 +65,11 @@ START_SECTION((~LibSVMEncoder()))
 	delete ptr;
 END_SECTION
 
-START_SECTION((void encodeCompositionVector(const String &sequence, std::vector< std::pair< Int, DoubleReal > > &encoded_vector, const String &allowed_characters="ACDEFGHIKLMNPQRSTVWY")))
+START_SECTION((void encodeCompositionVector(const String &sequence, std::vector< std::pair< Int, double > > &encoded_vector, const String &allowed_characters="ACDEFGHIKLMNPQRSTVWY")))
 	String sequence = "ACCGGGTTTT";
 	String allowed_characters = "ACNGT";
-	vector< pair<Int, DoubleReal> > encoded_sequence;
-	std::vector< std::pair<Int, DoubleReal> >::iterator it;
+	vector< pair<Int, double> > encoded_sequence;
+	std::vector< std::pair<Int, double> >::iterator it;
 			
 	encoder.encodeCompositionVector(sequence, encoded_sequence, allowed_characters);
 	it = encoded_sequence.begin(); 
@@ -91,11 +91,11 @@ START_SECTION((void encodeCompositionVector(const String &sequence, std::vector<
 	TEST_EQUAL(it == encoded_sequence.end(), true)
 END_SECTION
 
-START_SECTION((void encodeCompositionVectors(const std::vector< String > &sequences, const String &allowed_characters, std::vector< std::vector< std::pair< Int, DoubleReal > > > &composition_vectors)))
+START_SECTION((void encodeCompositionVectors(const std::vector< String > &sequences, const String &allowed_characters, std::vector< std::vector< std::pair< Int, double > > > &composition_vectors)))
 	vector<String> sequences;
 	String allowed_characters = "ACNGT";
-	vector< vector< pair<Int, DoubleReal> > > encoded_sequences;
-	vector< pair<Int, DoubleReal> >::iterator it;
+	vector< vector< pair<Int, double> > > encoded_sequences;
+	vector< pair<Int, double> >::iterator it;
 	sequences.push_back(String("ACCGGGTTTT"));			
 	sequences.push_back(String("ACCA"));			
 			
@@ -129,10 +129,10 @@ START_SECTION((void encodeCompositionVectors(const std::vector< String > &sequen
 	TEST_EQUAL(it == encoded_sequences[1].end(), true)
 END_SECTION
 
-START_SECTION((void encodeLibSVMVectors(const std::vector< std::vector< std::pair< Int, DoubleReal > > > &feature_vectors, std::vector< svm_node * > &libsvm_vectors)))
+START_SECTION((void encodeLibSVMVectors(const std::vector< std::vector< std::pair< Int, double > > > &feature_vectors, std::vector< svm_node * > &libsvm_vectors)))
 	vector<String> sequences;
 	String allowed_characters = "ACNGT";
-	vector<vector< pair<Int, DoubleReal> > > encoded_sequences;
+	vector<vector< pair<Int, double> > > encoded_sequences;
 	vector<svm_node*> libsvm_sequences;
 	svm_node* nodes;
 	vector<svm_node*>::iterator it;
@@ -162,10 +162,10 @@ START_SECTION((void encodeLibSVMVectors(const std::vector< std::vector< std::pai
 	
 END_SECTION
 
-START_SECTION((svm_node* encodeLibSVMVector( const std::vector< std::pair<Int, DoubleReal> >& feature_vector)))
+START_SECTION((svm_node* encodeLibSVMVector( const std::vector< std::pair<Int, double> >& feature_vector)))
 	vector<String> sequences;
 	String allowed_characters = "ACNGT";
-	vector< pair<Int, DoubleReal> > encoded_sequence;
+	vector< pair<Int, double> > encoded_sequence;
 	svm_node* nodes;
 	vector<svm_node*>::iterator it;
 	
@@ -187,15 +187,15 @@ START_SECTION((svm_node* encodeLibSVMVector( const std::vector< std::pair<Int, D
 	delete[] nodes;
 END_SECTION
 
-START_SECTION((svm_problem* encodeLibSVMProblem(const std::vector< svm_node * > &vectors, std::vector< DoubleReal > &labels)))
+START_SECTION((svm_problem* encodeLibSVMProblem(const std::vector< svm_node * > &vectors, std::vector< double > &labels)))
 	vector<String> sequences;
 	String allowed_characters = "ACNGT";
-	vector<vector< pair<Int, DoubleReal> > > encoded_sequences;
+	vector<vector< pair<Int, double> > > encoded_sequences;
 	vector<svm_node*> libsvm_sequences;
 	svm_node* nodes;
 	vector<svm_node*>::iterator it;
 	svm_problem* problem;
-	vector<DoubleReal> labels;
+	vector<double> labels;
 	
 	labels.push_back(2.1);
 	labels.push_back(1.3);
@@ -229,13 +229,13 @@ START_SECTION((svm_problem* encodeLibSVMProblem(const std::vector< svm_node * > 
 
 END_SECTION
 
-START_SECTION((svm_problem* encodeLibSVMProblemWithCompositionAndLengthVectors(const std::vector< String > &sequences, std::vector< DoubleReal > &labels, const String &allowed_characters, UInt maximum_sequence_length)))
+START_SECTION((svm_problem* encodeLibSVMProblemWithCompositionAndLengthVectors(const std::vector< String > &sequences, std::vector< double > &labels, const String &allowed_characters, UInt maximum_sequence_length)))
 	vector<String> sequences;
 	String allowed_characters = "ACNGT";
 	svm_node* nodes;
 	vector<svm_node*>::iterator it;
 	svm_problem* problem;
-	vector<DoubleReal> labels;
+	vector<double> labels;
 	
 	labels.push_back(2.1);
 	labels.push_back(1.3);
@@ -270,13 +270,13 @@ START_SECTION((svm_problem* encodeLibSVMProblemWithCompositionAndLengthVectors(c
 	delete problem;
 END_SECTION
 
-START_SECTION((svm_problem* encodeLibSVMProblemWithCompositionLengthAndWeightVectors(const std::vector< String > &sequences, std::vector< DoubleReal > &labels, const String &allowed_characters)))
+START_SECTION((svm_problem* encodeLibSVMProblemWithCompositionLengthAndWeightVectors(const std::vector< String > &sequences, std::vector< double > &labels, const String &allowed_characters)))
 	vector<String> sequences;
 	String allowed_characters = "ACNGT";
 	svm_node* nodes;
 	vector<svm_node*>::iterator it;
 	svm_problem* problem;
-	vector<DoubleReal> labels;
+	vector<double> labels;
 	
 	labels.push_back(2.1);
 	labels.push_back(1.3);
@@ -315,13 +315,13 @@ START_SECTION((svm_problem* encodeLibSVMProblemWithCompositionLengthAndWeightVec
 	delete problem;
 END_SECTION
 
-START_SECTION((svm_problem* encodeLibSVMProblemWithCompositionVectors(const std::vector< String > &sequences, std::vector< DoubleReal > &labels, const String &allowed_characters)))
+START_SECTION((svm_problem* encodeLibSVMProblemWithCompositionVectors(const std::vector< String > &sequences, std::vector< double > &labels, const String &allowed_characters)))
 	vector<String> sequences;
 	String allowed_characters = "ACNGT";
 	svm_node* nodes;
 	vector<svm_node*>::iterator it;
 	svm_problem* problem;
-	vector<DoubleReal> labels;
+	vector<double> labels;
 	
 	labels.push_back(2.1);
 	labels.push_back(1.3);
@@ -355,7 +355,7 @@ START_SECTION((bool storeLibSVMProblem(const String& filename, const svm_problem
 	vector<String> sequences;
 	String allowed_characters = "ACNGT";
 	svm_problem* problem;
-	vector<DoubleReal> labels;
+	vector<double> labels;
 	String temp_filename = OPENMS_GET_TEST_DATA_PATH("LibSVMEncoder_test.tmp");
 	
 	labels.push_back(2.1);
@@ -383,12 +383,12 @@ START_SECTION((svm_problem* loadLibSVMProblem(const String& filename)))
 
 END_SECTION
 
-START_SECTION((void encodeOligoBorders(String sequence, UInt k_mer_length, const String& allowed_characters, UInt border_length, std::vector< std::pair<Int, DoubleReal> >& libsvm_vector, bool strict = false, bool unpaired=false, bool length_encoding = false)))
+START_SECTION((void encodeOligoBorders(String sequence, UInt k_mer_length, const String& allowed_characters, UInt border_length, std::vector< std::pair<Int, double> >& libsvm_vector, bool strict = false, bool unpaired=false, bool length_encoding = false)))
 	String sequence = "ACNNGTATCA";
 	String allowed_characters = "ACNGT";
 	String output;
 	UInt border_length = 3;
-	vector< pair<Int, DoubleReal> > encoded_sequence;
+	vector< pair<Int, double> > encoded_sequence;
 	
 	encoder.encodeOligoBorders(sequence, 1, allowed_characters, border_length, encoded_sequence);
 	encoder.libSVMVectorToString(encoder.encodeLibSVMVector(encoded_sequence), output);
@@ -402,13 +402,13 @@ START_SECTION((void encodeOligoBorders(String sequence, UInt k_mer_length, const
 	
 END_SECTION
 
-START_SECTION((svm_problem* encodeLibSVMProblemWithOligoBorderVectors(const std::vector< String > &sequences, std::vector< DoubleReal > &labels, UInt k_mer_length, const String &allowed_characters, UInt border_length, bool strict=false, bool unpaired=false, bool length_encoding=false)))
+START_SECTION((svm_problem* encodeLibSVMProblemWithOligoBorderVectors(const std::vector< String > &sequences, std::vector< double > &labels, UInt k_mer_length, const String &allowed_characters, UInt border_length, bool strict=false, bool unpaired=false, bool length_encoding=false)))
 	vector<String> sequences;
 	String allowed_characters = "ACNGT";
 	String output;
 	UInt border_length = 3;
-	vector< pair<Int, DoubleReal> > encoded_sequence;
-  vector<DoubleReal> labels;
+	vector< pair<Int, double> > encoded_sequence;
+  vector<double> labels;
   struct svm_problem* data;
 
   labels.push_back(1);
@@ -422,13 +422,13 @@ START_SECTION((svm_problem* encodeLibSVMProblemWithOligoBorderVectors(const std:
 	TEST_EQUAL(output, "(2, 1) (2, 1) (2, 2) (3, 2) (3, 3) (3, 3) ")
 END_SECTION
 
-START_SECTION((void encodeProblemWithOligoBorderVectors(const std::vector< AASequence > &sequences, UInt k_mer_length, const String &allowed_characters, UInt border_length, std::vector< std::vector< std::pair< Int, DoubleReal > > > &vectors)))
+START_SECTION((void encodeProblemWithOligoBorderVectors(const std::vector< AASequence > &sequences, UInt k_mer_length, const String &allowed_characters, UInt border_length, std::vector< std::vector< std::pair< Int, double > > > &vectors)))
 	vector<AASequence> sequences;
 	String allowed_characters = "ACNGT";
 	String output;
 	UInt border_length = 3;
-	vector< pair<Int, DoubleReal> > encoded_sequence;
-  vector< vector< pair<Int, DoubleReal> > > encoded_sequences;
+	vector< pair<Int, double> > encoded_sequence;
+  vector< vector< pair<Int, double> > > encoded_sequences;
   
   sequences.push_back(AASequence::fromString("ACNNGTATCA"));
   sequences.push_back(AASequence::fromString("AACNNGTACCA"));
@@ -462,11 +462,11 @@ START_SECTION((void encodeProblemWithOligoBorderVectors(const std::vector< AASeq
   
 END_SECTION
 
-START_SECTION((void encodeOligo(const AASequence &sequence, UInt k_mer_length, const String &allowed_characters, std::vector< std::pair< Int, DoubleReal > > &values, bool is_right_border=false)))
+START_SECTION((void encodeOligo(const AASequence &sequence, UInt k_mer_length, const String &allowed_characters, std::vector< std::pair< Int, double > > &values, bool is_right_border=false)))
 	AASequence sequence = AASequence::fromString("ACNNGTATCA");
 	String allowed_characters = "ACNGT";
 	String output;
-	vector< pair<Int, DoubleReal> > encoded_sequence;
+	vector< pair<Int, double> > encoded_sequence;
   ModificationsDB* modifications = ModificationsDB::getInstance();
   bool right_border = true;
 	
@@ -537,7 +537,7 @@ END_SECTION
 START_SECTION((void libSVMVectorToString(svm_node* vector, String& output)))
 	vector<String> sequences;
 	String allowed_characters = "ACNGT";
-	vector< pair<Int, DoubleReal> > encoded_sequence;
+	vector< pair<Int, double> > encoded_sequence;
 	svm_node* nodes;
 	vector<svm_node*>::iterator it;
 	String output;	
@@ -559,7 +559,7 @@ START_SECTION((void libSVMVectorsToString(svm_problem* vector, String& output)))
 	String allowed_characters = "ACNGT";
 	String output;	
 	String correct_output = "(1, 0.1) (2, 0.2) (4, 0.3) (5, 0.4) \n(1, 0.5) (2, 0.5) \n";	
-	vector<DoubleReal> labels;
+	vector<double> labels;
 	svm_problem* problem;
 	
 	labels.push_back(2.1);

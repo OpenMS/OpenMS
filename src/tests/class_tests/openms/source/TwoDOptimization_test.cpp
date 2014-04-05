@@ -336,9 +336,9 @@ START_SECTION(( template <typename InputSpectrumIterator,typename OutputPeakType
 
 END_SECTION
 
-START_SECTION((void setMaxPeakDistance(DoubleReal max_peak_distance)))
+START_SECTION((void setMaxPeakDistance(double max_peak_distance)))
   TOLERANCE_ABSOLUTE(0.0001)
-  DoubleReal max_peak_distance = 0.01;
+  double max_peak_distance = 0.01;
    
   TwoDOptimization opt_2d;
   opt_2d.setMaxPeakDistance(max_peak_distance);
@@ -346,9 +346,9 @@ START_SECTION((void setMaxPeakDistance(DoubleReal max_peak_distance)))
  	TEST_REAL_SIMILAR(max_peak_distance, opt_2d.getMaxPeakDistance())
 END_SECTION
 
-START_SECTION((DoubleReal getMaxPeakDistance() const))
+START_SECTION((double getMaxPeakDistance() const))
   TOLERANCE_ABSOLUTE(0.0001)
-  DoubleReal max_peak_distance = 0.01;
+  double max_peak_distance = 0.01;
    
   TwoDOptimization opt_2d;
   opt_2d.setMaxPeakDistance(max_peak_distance);
@@ -358,9 +358,9 @@ END_SECTION
 
 
 
-START_SECTION((void setMZTolerance(DoubleReal tolerance_mz)))
+START_SECTION((void setMZTolerance(double tolerance_mz)))
   TOLERANCE_ABSOLUTE(0.0001)
-  DoubleReal mz_tolerance = 0.01;
+  double mz_tolerance = 0.01;
    
   TwoDOptimization opt_2d;
   opt_2d.setMZTolerance(mz_tolerance);
@@ -368,9 +368,9 @@ START_SECTION((void setMZTolerance(DoubleReal tolerance_mz)))
  	TEST_REAL_SIMILAR(mz_tolerance, opt_2d.getMZTolerance())
 END_SECTION
 
-START_SECTION((DoubleReal getMZTolerance() const))
+START_SECTION((double getMZTolerance() const))
   TOLERANCE_ABSOLUTE(0.0001)
-  DoubleReal mz_tolerance = 0.01;
+  double mz_tolerance = 0.01;
    
   TwoDOptimization opt_2d;
   opt_2d.setMZTolerance(mz_tolerance);

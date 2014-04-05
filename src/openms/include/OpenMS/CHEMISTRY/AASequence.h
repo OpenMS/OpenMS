@@ -414,10 +414,10 @@ protected:
     EmpiricalFormula getFormula(Residue::ResidueType type = Residue::Full, Int charge = 0) const;
 
     /// returns the average weight of the peptide
-    DoubleReal getAverageWeight(Residue::ResidueType type = Residue::Full, Int charge = 0) const;
+    double getAverageWeight(Residue::ResidueType type = Residue::Full, Int charge = 0) const;
 
     /// returns the mono isotopic weight of the peptide
-    DoubleReal getMonoWeight(Residue::ResidueType type = Residue::Full, Int charge = 0) const;
+    double getMonoWeight(Residue::ResidueType type = Residue::Full, Int charge = 0) const;
 
     /// returns a pointer to the residue at given position
     const Residue & operator[](SignedSize index) const;

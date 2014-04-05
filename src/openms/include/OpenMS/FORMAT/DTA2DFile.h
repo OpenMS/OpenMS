@@ -115,7 +115,7 @@ public:
       typename MapType::SpectrumType spec;
       spec.setRT(-1.0); //to make sure the first RT is different from the the initialized value
       typename MapType::SpectrumType::PeakType p;
-      DoubleReal rt(0.0);
+      double rt(0.0);
       char delimiter;
 
       // default dimension of the data

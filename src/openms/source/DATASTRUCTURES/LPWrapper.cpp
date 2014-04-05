@@ -82,7 +82,7 @@ namespace OpenMS
   {
   }
 
-  Int LPWrapper::addRow(std::vector<Int> row_indices, std::vector<DoubleReal> row_values, const String& name) // return index
+  Int LPWrapper::addRow(std::vector<Int> row_indices, std::vector<double> row_values, const String& name) // return index
   {
     if (row_indices.size() != row_values.size())
       throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Indices and values vectors differ in size");
@@ -128,7 +128,7 @@ namespace OpenMS
       throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid Solver chosen", String(solver_));
   }
 
-  Int LPWrapper::addColumn(std::vector<Int> column_indices, std::vector<DoubleReal> column_values, const String& name)
+  Int LPWrapper::addColumn(std::vector<Int> column_indices, std::vector<double> column_values, const String& name)
   {
     if (column_indices.size() != column_values.size())
       throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Indices and values vectors differ in size");
@@ -155,8 +155,8 @@ namespace OpenMS
       throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid Solver chosen", String(solver_));
   }
 
-  Int LPWrapper::addRow(std::vector<Int>& row_indices, std::vector<DoubleReal>& row_values, const String& name, DoubleReal lower_bound,
-                        DoubleReal upper_bound, Type type)
+  Int LPWrapper::addRow(std::vector<Int>& row_indices, std::vector<double>& row_values, const String& name, double lower_bound,
+                        double upper_bound, Type type)
   {
     Int index = addRow(row_indices, row_values, name);
 
@@ -189,8 +189,8 @@ namespace OpenMS
     return index; // in addRow index is decreased already
   }
 
-  Int LPWrapper::addColumn(std::vector<Int>& column_indices, std::vector<DoubleReal>& column_values, const String& name,
-                           DoubleReal lower_bound, DoubleReal upper_bound, Type type) //return index
+  Int LPWrapper::addColumn(std::vector<Int>& column_indices, std::vector<double>& column_values, const String& name,
+                           double lower_bound, double upper_bound, Type type) //return index
   {
     Int index = addColumn(column_indices, column_values, name);
 
@@ -236,7 +236,7 @@ namespace OpenMS
 #endif
   }
 
-  void LPWrapper::setElement(Int row_index, Int column_index, DoubleReal value)
+  void LPWrapper::setElement(Int row_index, Int column_index, double value)
   {
     if (row_index >= getNumberOfRows() || column_index >= getNumberOfColumns())
     {
@@ -245,7 +245,7 @@ namespace OpenMS
     if (solver_ == LPWrapper::SOLVER_GLPK)
     {
       Int length = glp_get_mat_row(lp_problem_, row_index + 1, NULL, NULL); // get row length
-      DoubleReal* values = new DoubleReal[length + 1];
+      double* values = new double[length + 1];
       Int* indices = new Int[length + 1];
       glp_get_mat_row(lp_problem_, row_index + 1, indices, values);
       bool found = false;
@@ -261,7 +261,7 @@ namespace OpenMS
       if (!found) // if this entry wasn't existing before we have to enter it
       {
         Int* n_indices = new Int[length + 2];
-        DoubleReal* n_values = new DoubleReal[length + 2];
+        double* n_values = new double[length + 2];
         for (Int i = 0; i <= length; ++i)
         {
           n_indices[i] = indices[i];
@@ -285,7 +285,7 @@ namespace OpenMS
 #endif
   }
 
-  DoubleReal LPWrapper::getElement(Int row_index, Int column_index)
+  double LPWrapper::getElement(Int row_index, Int column_index)
   {
     if (row_index >= getNumberOfRows() || column_index >= getNumberOfColumns())
     {
@@ -294,7 +294,7 @@ namespace OpenMS
     if (solver_ == LPWrapper::SOLVER_GLPK)
     {
       Int length = glp_get_mat_row(lp_problem_, row_index + 1, NULL, NULL);
-      DoubleReal* values = new DoubleReal[length + 1];
+      double* values = new double[length + 1];
       Int* indices = new Int[length + 1];
       glp_get_mat_row(lp_problem_, row_index + 1, indices, values);
       for (Int i = 1; i <= length; ++i)
@@ -335,7 +335,7 @@ namespace OpenMS
 #endif
   }
 
-  void LPWrapper::setColumnBounds(Int index, DoubleReal lower_bound, DoubleReal upper_bound, Type type)
+  void LPWrapper::setColumnBounds(Int index, double lower_bound, double upper_bound, Type type)
   {
     if (solver_ == LPWrapper::SOLVER_GLPK)
       glp_set_col_bnds(lp_problem_, index + 1, type, lower_bound, upper_bound);
@@ -365,7 +365,7 @@ namespace OpenMS
 #endif
   }
 
-  void LPWrapper::setRowBounds(Int index, DoubleReal lower_bound, DoubleReal upper_bound, Type type)
+  void LPWrapper::setRowBounds(Int index, double lower_bound, double upper_bound, Type type)
   {
     if (solver_ == LPWrapper::SOLVER_GLPK)
       glp_set_row_bnds(lp_problem_, index + 1, type, lower_bound, upper_bound);
@@ -436,7 +436,7 @@ namespace OpenMS
       throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid Solver chosen", String(solver_));
   }
 
-  void LPWrapper::setObjective(Int index, DoubleReal obj_value)
+  void LPWrapper::setObjective(Int index, double obj_value)
   {
     if (solver_ == LPWrapper::SOLVER_GLPK)
       glp_set_obj_coef(lp_problem_, index + 1, obj_value);
@@ -758,7 +758,7 @@ namespace OpenMS
       throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid Solver chosen", String(solver_));
   }
 
-  DoubleReal LPWrapper::getObjectiveValue()
+  double LPWrapper::getObjectiveValue()
   {
     if (solver_ == LPWrapper::SOLVER_GLPK)
       return glp_mip_obj_val(lp_problem_);
@@ -766,8 +766,8 @@ namespace OpenMS
 #if COINOR_SOLVER == 1
     else if (solver_ == LPWrapper::SOLVER_COINOR)
     {
-      DoubleReal* obj = model_->objectiveArray();
-      DoubleReal obj_val = 0.;
+      double* obj = model_->objectiveArray();
+      double obj_val = 0.;
       for (Int i = 0; i < model_->numberColumns(); ++i)
       {
         obj_val += obj[i] * getColumnValue(i);
@@ -779,7 +779,7 @@ namespace OpenMS
       throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid Solver chosen", String(solver_));
   }
 
-  DoubleReal LPWrapper::getColumnValue(Int index)
+  double LPWrapper::getColumnValue(Int index)
   {
     // glpk uses arrays beginning at pos 1, so we need to shift
     if (solver_ == LPWrapper::SOLVER_GLPK)
@@ -794,7 +794,7 @@ namespace OpenMS
       throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid Solver chosen", String(solver_));
   }
 
-  DoubleReal LPWrapper::getColumnUpperBound(Int index)
+  double LPWrapper::getColumnUpperBound(Int index)
   {
     if (solver_ == LPWrapper::SOLVER_GLPK)
       return glp_get_col_ub(lp_problem_, index + 1);
@@ -808,7 +808,7 @@ namespace OpenMS
       throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid Solver chosen", String(solver_));
   }
 
-  DoubleReal LPWrapper::getColumnLowerBound(Int index)
+  double LPWrapper::getColumnLowerBound(Int index)
   {
     if (solver_ == LPWrapper::SOLVER_GLPK)
       return glp_get_col_lb(lp_problem_, index + 1);
@@ -822,7 +822,7 @@ namespace OpenMS
       throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid Solver chosen", String(solver_));
   }
 
-  DoubleReal LPWrapper::getRowUpperBound(Int index)
+  double LPWrapper::getRowUpperBound(Int index)
   {
     if (solver_ == LPWrapper::SOLVER_GLPK)
       return glp_get_row_ub(lp_problem_, index + 1);
@@ -836,7 +836,7 @@ namespace OpenMS
       throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid Solver chosen", String(solver_));
   }
 
-  DoubleReal LPWrapper::getRowLowerBound(Int index)
+  double LPWrapper::getRowLowerBound(Int index)
   {
     if (solver_ == LPWrapper::SOLVER_GLPK)
       return glp_get_row_lb(lp_problem_, index + 1);
@@ -850,7 +850,7 @@ namespace OpenMS
       throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Invalid Solver chosen", String(solver_));
   }
 
-  DoubleReal LPWrapper::getObjective(Int index)
+  double LPWrapper::getObjective(Int index)
   {
     if (solver_ == LPWrapper::SOLVER_GLPK)
       return glp_get_obj_coef(lp_problem_, index + 1);

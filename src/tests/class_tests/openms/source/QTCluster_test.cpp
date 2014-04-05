@@ -64,7 +64,7 @@ hit.setSequence(AASequence::fromString("CCC"));
 bf.getPeptideIdentifications()[1].insertHit(hit);
 GridFeature gf(bf, 123, 456);
 
-START_SECTION((QTCluster(GridFeature* center_point, Size num_maps, DoubleReal max_distance, bool use_IDs)))
+START_SECTION((QTCluster(GridFeature* center_point, Size num_maps, double max_distance, bool use_IDs)))
 {
   qtc_ptr = new QTCluster(&gf, 2, 11.1, false);
   TEST_NOT_EQUAL(qtc_ptr, qtc_nullPointer);
@@ -79,13 +79,13 @@ END_SECTION
 
 QTCluster cluster(&gf, 2, 11.1, true);
 
-START_SECTION((DoubleReal getCenterRT() const))
+START_SECTION((double getCenterRT() const))
 {
   TEST_EQUAL(cluster.getCenterRT(), 1.1);
 }
 END_SECTION
 
-START_SECTION((DoubleReal getCenterMZ() const))
+START_SECTION((double getCenterMZ() const))
 {
   TEST_EQUAL(cluster.getCenterMZ(), 2.2);
 }
@@ -99,7 +99,7 @@ END_SECTION
 
 GridFeature gf2(bf, 789, 1011);
 
-START_SECTION((void add(GridFeature* element, DoubleReal distance)))
+START_SECTION((void add(GridFeature* element, double distance)))
 {
   cluster.add(&gf2, 3.3);
   TEST_EQUAL(cluster.size(), 2);
@@ -135,7 +135,7 @@ START_SECTION((bool update(const boost::unordered::unordered_map<Size, GridFeatu
 }
 END_SECTION
 
-START_SECTION((DoubleReal getQuality()))
+START_SECTION((double getQuality()))
 {
   TEST_EQUAL(cluster.getQuality(), 0.0);
   cluster.add(&gf2, 3.3);

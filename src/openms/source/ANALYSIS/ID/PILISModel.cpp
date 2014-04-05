@@ -194,10 +194,10 @@ namespace OpenMS
 
 
     Param pre_param(precursor_model_cr_.getParameters());
-    pre_param.setValue("fragment_mass_tolerance", (DoubleReal)param_.getValue("fragment_mass_tolerance"));
+    pre_param.setValue("fragment_mass_tolerance", (double)param_.getValue("fragment_mass_tolerance"));
     pre_param.setValue("variable_modifications", param_.getValue("variable_modifications"));
     pre_param.setValue("fixed_modifications", param_.getValue("fixed_modifications"));
-    pre_param.setValue("pseudo_counts", (DoubleReal)param_.getValue("pseudo_counts"));
+    pre_param.setValue("pseudo_counts", (double)param_.getValue("pseudo_counts"));
     pre_param.setValue("C_term_H2O_loss", "true");
     pre_param.setValue("ion_name", "p");
     precursor_model_cr_.setParameters(pre_param);
@@ -462,24 +462,24 @@ namespace OpenMS
 #endif
 
     // get proton distribution
-    vector<DoubleReal> bb_charge_full, sc_charge_full;
+    vector<double> bb_charge_full, sc_charge_full;
     prot_dist_.getProtonDistribution(bb_charge_full, sc_charge_full, peptide, charge, Residue::YIon);
     prot_dist_.setPeptideProtonDistribution(bb_charge_full, sc_charge_full);
 
     // get start probabilities
-    vector<DoubleReal> bb_init, sc_init, cr_init;
-    DoubleReal precursor_init(0);
+    vector<double> bb_init, sc_init, cr_init;
+    double precursor_init(0);
     bool is_charge_remote = getInitialTransitionProbabilities_(bb_init, cr_init, sc_init, precursor_init, bb_charge_full, sc_charge_full, peptide);
 
     // clear the main Hidden Markov Model
     hmm_.clearInitialTransitionProbabilities();
     hmm_.clearTrainingEmissionProbabilities();
 
-    //DoubleReal harge_sum(0);
+    //double harge_sum(0);
     vector<AASequence> prefixes, suffixes;
 
-    DoubleReal pep_weight(peptide.getMonoWeight());
-    DoubleReal peptide_mz((pep_weight + charge) / (DoubleReal)charge);
+    double pep_weight(peptide.getMonoWeight());
+    double peptide_mz((pep_weight + charge) / (double)charge);
 
     // for each site:
     // 1. set proton distribution,
@@ -505,7 +505,7 @@ namespace OpenMS
       String aa1(aa1_seq.toString()), aa2(aa2_seq.toString());
 
       // calc PAs and get b/y ratios for bxyz pathway
-      vector<DoubleReal> b_cr_ints(charge, 0), y_cr_ints(charge, 0), b_sc_ints(charge, 0), y_sc_ints(charge, 0), b_ints(charge, 0), y_ints(charge, 0), a_ints(charge, 0), ay_ints(charge, 0);
+      vector<double> b_cr_ints(charge, 0), y_cr_ints(charge, 0), b_sc_ints(charge, 0), y_sc_ints(charge, 0), b_ints(charge, 0), y_ints(charge, 0), a_ints(charge, 0), ay_ints(charge, 0);
       prot_dist_.getChargeStateIntensities(peptide, prefix, suffix, charge, Residue::BIon, b_ints, y_ints, ProtonDistributionModel::ChargeDirected);
 
       prot_dist_.getChargeStateIntensities(peptide, prefix, suffix, charge, Residue::AIon, a_ints, ay_ints, ProtonDistributionModel::ChargeDirected);
@@ -536,20 +536,20 @@ namespace OpenMS
 
 
       UInt max_fragment_charge_training = param_.getValue("max_fragment_charge_training");
-      Map<int, DoubleReal> sum_a, sum_b, sum_y;
-      DoubleReal sum_a_ints(0.0), sum_b_ints(0.0), sum_y_ints(0.0);
+      Map<int, double> sum_a, sum_b, sum_y;
+      double sum_a_ints(0.0), sum_b_ints(0.0), sum_y_ints(0.0);
       for (UInt z = 1; z <= max_fragment_charge_training && z <= charge; ++z)
       {
         sum_a[z] = 0;
         sum_b[z] = 0;
         sum_y[z] = 0;
-        DoubleReal charge_remote_threshold((DoubleReal)param_.getValue("charge_remote_threshold"));
-        DoubleReal avail_bb_sum_prefix = getAvailableBackboneCharge_(prefix, Residue::BIon, z);
-        DoubleReal avail_bb_sum_suffix = getAvailableBackboneCharge_(suffix, Residue::YIon, z);
+        double charge_remote_threshold((double)param_.getValue("charge_remote_threshold"));
+        double avail_bb_sum_prefix = getAvailableBackboneCharge_(prefix, Residue::BIon, z);
+        double avail_bb_sum_suffix = getAvailableBackboneCharge_(suffix, Residue::YIon, z);
 
         if (prefix.size() != 2)
         {
-          DoubleReal pre_weight = prefix.getMonoWeight(Residue::BIon);
+          double pre_weight = prefix.getMonoWeight(Residue::BIon);
 
           if (avail_bb_sum_prefix <= charge_remote_threshold)
           {
@@ -564,7 +564,7 @@ namespace OpenMS
         }
         else
         {
-          DoubleReal pre_weight = prefix.getMonoWeight(Residue::BIon);
+          double pre_weight = prefix.getMonoWeight(Residue::BIon);
 
           if (avail_bb_sum_prefix <= charge_remote_threshold)
           {
@@ -576,7 +576,7 @@ namespace OpenMS
           }
         }
 
-        DoubleReal a_pre_weight = prefix.getMonoWeight(Residue::AIon);
+        double a_pre_weight = prefix.getMonoWeight(Residue::AIon);
         if (avail_bb_sum_prefix <= charge_remote_threshold)
         {
           sum_a[z] += a_ion_losses_cr_.train(in_spec, prefix, a_pre_weight, z, pep_weight);
@@ -586,7 +586,7 @@ namespace OpenMS
           sum_a[z] += a_ion_losses_cd_.train(in_spec, prefix, a_pre_weight, z, pep_weight);
         }
 
-        DoubleReal suf_weight = suffix.getMonoWeight(Residue::YIon);
+        double suf_weight = suffix.getMonoWeight(Residue::YIon);
         if (avail_bb_sum_suffix <= charge_remote_threshold)
         {
           //cerr << "Train y-ion losses, CR (avail=" << avail_bb_sum_suffix << ", z=" << z << ", suffix=" << suffix << endl;
@@ -604,7 +604,7 @@ namespace OpenMS
       }
 
       // end state is always needed
-      hmm_.setTrainingEmissionProbability("end" + pos_name, 0.5 / (DoubleReal(peptide.size() - 1)));
+      hmm_.setTrainingEmissionProbability("end" + pos_name, 0.5 / (double(peptide.size() - 1)));
       if (!is_charge_remote)
       {
         //hmm_.setTrainingEmissionProbability("AA"+pos_name, sum_a_ints + sum_b_ints + sum_y_ints);
@@ -619,7 +619,7 @@ namespace OpenMS
         hmm_.enableTransition(aa1 + aa2 + "_bxyz" + pos_name, "bxyz" + pos_name);
         hmm_.enableTransition(aa1 + aa2 + "_bxyz" + pos_name, "end" + pos_name);
 
-        DoubleReal pre_emission_prob(0), suf_emission_prob(0);
+        double pre_emission_prob(0), suf_emission_prob(0);
         for (UInt z = 1; z <= max_fragment_charge_training && z <= charge; ++z)
         {
           pre_emission_prob += b_ints[z - 1] * sum_b[z];
@@ -661,7 +661,7 @@ namespace OpenMS
           hmm_.enableTransition("CR" + pos_name, "A" + pos_name);
           hmm_.enableTransition("CR" + pos_name, "end" + pos_name);
 
-          DoubleReal pre_emission_prob(0), suf_emission_prob(0);
+          double pre_emission_prob(0), suf_emission_prob(0);
           for (UInt z = 1; z <= max_fragment_charge_training && z <= charge; ++z)
           {
             pre_emission_prob += b_cr_ints[z - 1] * sum_b[z];
@@ -695,7 +695,7 @@ namespace OpenMS
           hmm_.enableTransition("CRk-1", "Ak-1");
           hmm_.enableTransition("CRk-1", "endk-1");
 
-          DoubleReal pre_emission_prob(0), suf_emission_prob(0);
+          double pre_emission_prob(0), suf_emission_prob(0);
           for (UInt z = 1; z <= max_fragment_charge_training && z <= charge; ++z)
           {
             pre_emission_prob += b_cr_ints[z - 1] * sum_b[z];
@@ -728,7 +728,7 @@ namespace OpenMS
           hmm_.enableTransition("CRk-2", "Ak-2");
           hmm_.enableTransition("CRk-2", "endk-2");
 
-          DoubleReal pre_emission_prob(0), suf_emission_prob(0);
+          double pre_emission_prob(0), suf_emission_prob(0);
           for (UInt z = 1; z <= max_fragment_charge_training && z <= charge; ++z)
           {
             pre_emission_prob += b_cr_ints[z - 1] * sum_b[z];
@@ -766,7 +766,7 @@ namespace OpenMS
           hmm_.enableTransition("SC" + pos_name, "ASC" + pos_name);
           hmm_.enableTransition("SC" + pos_name, "end" + pos_name);
 
-          DoubleReal pre_emission_prob(0), suf_emission_prob(0);
+          double pre_emission_prob(0), suf_emission_prob(0);
           for (UInt z = 1; z <= max_fragment_charge_training && z <= charge; ++z)
           {
             pre_emission_prob += b_sc_ints[z - 1] * sum_b[z];
@@ -845,7 +845,7 @@ namespace OpenMS
     }
 
     // calc proton distribution
-    vector<DoubleReal> sc_charge_full, bb_charge_full;
+    vector<double> sc_charge_full, bb_charge_full;
     //cerr << "getProtonDistribution: " << peptide << " " << charge << endl;
     prot_dist_.getProtonDistribution(bb_charge_full, sc_charge_full, peptide, charge, Residue::YIon);
     prot_dist_.setPeptideProtonDistribution(bb_charge_full, sc_charge_full);
@@ -861,8 +861,8 @@ namespace OpenMS
     hmm_.clearTrainingEmissionProbabilities();
 
     // set charges
-    vector<DoubleReal> bb_init, sc_init, cr_init;
-    DoubleReal precursor_init(0);
+    vector<double> bb_init, sc_init, cr_init;
+    double precursor_init(0);
     bool is_charge_remote = getInitialTransitionProbabilities_(bb_init, cr_init, sc_init, precursor_init, bb_charge_full, sc_charge_full, peptide);
 #ifdef INIT_CHARGE_DEBUG
     cerr << "is_charge_remote=" << is_charge_remote << endl;
@@ -876,7 +876,7 @@ namespace OpenMS
     vector<AASequence> suffixes, prefixes;
     vector<String> pos_names;
 
-    vector<vector<DoubleReal> > all_b_cr_ints, all_y_cr_ints, all_b_sc_ints, all_y_sc_ints, all_b_ints, all_y_ints, all_a_ints, all_ay_ints;
+    vector<vector<double> > all_b_cr_ints, all_y_cr_ints, all_b_sc_ints, all_y_sc_ints, all_b_ints, all_y_ints, all_a_ints, all_ay_ints;
     // get the paths
     for (Size i = 0; i != peptide.size() - 1; ++i)
     {
@@ -905,7 +905,7 @@ namespace OpenMS
 
       hmm_.setInitialTransitionProbability("BB" + pos_name, bb_init[i]);
 
-      vector<DoubleReal> b_cr_ints(charge, 0), y_cr_ints(charge, 0), b_sc_ints(charge, 0), y_sc_ints(charge, 0), b_ints(charge, 0), y_ints(charge, 0), a_ints(charge, 0), ay_ints(charge, 0);
+      vector<double> b_cr_ints(charge, 0), y_cr_ints(charge, 0), b_sc_ints(charge, 0), y_sc_ints(charge, 0), b_ints(charge, 0), y_ints(charge, 0), a_ints(charge, 0), ay_ints(charge, 0);
       if ((aa1 == "D" || aa1 == "E" || pos_name == "k-1" || pos_name == "k-2") && is_charge_remote)
       {
         hmm_.setInitialTransitionProbability("CR" + pos_name, cr_init[i]);
@@ -1053,7 +1053,7 @@ namespace OpenMS
 
     //cerr << "Collecting peaks..." << endl;
 
-    Map<HMMState *, DoubleReal> tmp;
+    Map<HMMState *, double> tmp;
     hmm_.calculateEmissionProbabilities(tmp);
 
     // clear peaks from last spectrum
@@ -1065,14 +1065,14 @@ namespace OpenMS
 
     UInt max_isotope = (UInt)param_.getValue("max_isotope");
     UInt max_fragment_charge = (UInt)param_.getValue("max_fragment_charge");
-    DoubleReal charge_remote_threshold = (DoubleReal)param_.getValue("charge_remote_threshold");
+    double charge_remote_threshold = (double)param_.getValue("charge_remote_threshold");
     for (Size i = 0; i != prefixes.size(); ++i)
     {
       String aa;
       AASequence aa_seq = AASequence::fromString(peptide[i].getOneLetterCode());
       aa = aa_seq.toString();
 
-      vector<DoubleReal> pre_path_intensities, suf_path_intensities;
+      vector<double> pre_path_intensities, suf_path_intensities;
       pre_path_intensities.push_back(tmp[hmm_.getState("bxyz_" + pos_names[i] + "-prefix-ions")]);
       suf_path_intensities.push_back(tmp[hmm_.getState("bxyz_" + pos_names[i] + "-suffix-ions")]);
 #ifdef INIT_CHARGE_DEBUG
@@ -1106,7 +1106,7 @@ namespace OpenMS
       pre_path_intensities.push_back(tmp[hmm_.getState("axyz_" + pos_names[i] + "-prefix-ions")]);
       suf_path_intensities.push_back(tmp[hmm_.getState("axyz_" + pos_names[i] + "-suffix-ions")]);
 
-      vector<vector<vector<DoubleReal> > > prefix_intensities, suffix_intensities;
+      vector<vector<vector<double> > > prefix_intensities, suffix_intensities;
       prefix_intensities.push_back(all_b_ints);
       suffix_intensities.push_back(all_y_ints);
       const String sc_aa("HKR");
@@ -1137,8 +1137,8 @@ namespace OpenMS
         {
           continue;
         }
-        DoubleReal prefix_weight = prefixes[i].getMonoWeight(Residue::BIon);
-        DoubleReal suffix_weight = suffixes[i].getMonoWeight(Residue::YIon);
+        double prefix_weight = prefixes[i].getMonoWeight(Residue::BIon);
+        double suffix_weight = suffixes[i].getMonoWeight(Residue::YIon);
         IsotopeDistribution prefix_id;
 
         if (int_it != pre_path_intensities.size() - 1)
@@ -1156,7 +1156,7 @@ namespace OpenMS
           if (prefix_intensities[int_it][i][z - 1] > MIN_DECIMAL_VALUE)
           {
             vector<RichPeak1D> b_loss_peaks;
-            DoubleReal avail_bb_sum_prefix(0);
+            double avail_bb_sum_prefix(0);
 
             if (int_it != pre_path_intensities.size() - 1)
             {
@@ -1233,7 +1233,7 @@ namespace OpenMS
           if (suffix_intensities[int_it][i][z - 1] > MIN_DECIMAL_VALUE && int_it != suf_path_intensities.size() - 1)           // no ay
           {
             vector<RichPeak1D> y_loss_peaks;
-            DoubleReal avail_bb_sum_suffix = getAvailableBackboneCharge_(suffixes[i], Residue::YIon, z);
+            double avail_bb_sum_suffix = getAvailableBackboneCharge_(suffixes[i], Residue::YIon, z);
             if (avail_bb_sum_suffix <= charge_remote_threshold)
             {
               y_ion_losses_cr_.getIons(y_loss_peaks, suffixes[i], suffix_intensities[int_it][i][z - 1] * suf_path_intensities[int_it]);
@@ -1285,7 +1285,7 @@ namespace OpenMS
       precursor_model_cd_.getIons(pre_peaks, peptide, precursor_init);
     }
 
-    DoubleReal weight = peptide.getMonoWeight();
+    double weight = peptide.getMonoWeight();
     IsotopeDistribution id(max_isotope);
     id.estimateFromPeptideWeight(weight);
     for (vector<RichPeak1D>::const_iterator it = pre_peaks.begin(); it != pre_peaks.end(); ++it)
@@ -1294,8 +1294,8 @@ namespace OpenMS
     }
 
     // now build the spectrum with the peaks
-    DoubleReal intensity_max(0);
-    for (Map<DoubleReal, vector<RichPeak1D> >::ConstIterator it = peaks_.begin(); it != peaks_.end(); ++it)
+    double intensity_max(0);
+    for (Map<double, vector<RichPeak1D> >::ConstIterator it = peaks_.begin(); it != peaks_.end(); ++it)
     {
       if (it->second.size() == 1 && it->second.begin()->getIntensity() != 0)
       {
@@ -1308,7 +1308,7 @@ namespace OpenMS
       else
       {
         RichPeak1D p;
-        DoubleReal int_sum(0);
+        double int_sum(0);
         p = *it->second.begin();
         set<String> names;
         for (vector<RichPeak1D>::const_iterator pit = it->second.begin(); pit != it->second.end(); ++pit)
@@ -1360,7 +1360,7 @@ namespace OpenMS
         // move cluster to
         if (close_peaks.size() > 1)
         {
-          DoubleReal mz(0), intensity(0);
+          double mz(0), intensity(0);
           String name;
           for (vector<RichPeak1D>::const_iterator pit = close_peaks.begin(); pit != close_peaks.end(); ++pit)
           {
@@ -1377,7 +1377,7 @@ namespace OpenMS
             }
           }
           RichPeak1D peak;
-          peak.setPosition(mz / (DoubleReal)close_peaks.size());
+          peak.setPosition(mz / (double)close_peaks.size());
           peak.setIntensity(intensity);
           peak.setMetaValue("IonName", name);
           new_spec.push_back(peak);
@@ -1396,11 +1396,11 @@ namespace OpenMS
     spec = new_spec;
 
 
-    DoubleReal min_y_int((DoubleReal)param_.getValue("min_y_ion_intensity"));
-    DoubleReal min_b_int((DoubleReal)param_.getValue("min_b_ion_intensity"));
-    DoubleReal min_a_int((DoubleReal)param_.getValue("min_a_ion_intensity"));
-    DoubleReal min_y_loss_int((DoubleReal)param_.getValue("min_y_loss_intensity"));
-    DoubleReal min_b_loss_int((DoubleReal)param_.getValue("min_b_loss_intensity"));
+    double min_y_int((double)param_.getValue("min_y_ion_intensity"));
+    double min_b_int((double)param_.getValue("min_b_ion_intensity"));
+    double min_a_int((double)param_.getValue("min_a_ion_intensity"));
+    double min_y_loss_int((double)param_.getValue("min_y_loss_intensity"));
+    double min_b_loss_int((double)param_.getValue("min_b_loss_intensity"));
 
 
     for (RichPeakSpectrum::Iterator it = spec.begin(); it != spec.end(); ++it)
@@ -1460,19 +1460,19 @@ namespace OpenMS
     return;
   }
 
-  DoubleReal PILISModel::getAvailableBackboneCharge_(const AASequence & ion, Residue::ResidueType res_type, int charge)
+  double PILISModel::getAvailableBackboneCharge_(const AASequence & ion, Residue::ResidueType res_type, int charge)
   {
-    DoubleReal bb_sum(0);
-    vector<DoubleReal> bb_charges, sc_charges;
+    double bb_sum(0);
+    vector<double> bb_charges, sc_charges;
     prot_dist_.getProtonDistribution(bb_charges, sc_charges, ion, charge, res_type);
 
-    for (vector<DoubleReal>::const_iterator it = bb_charges.begin(); it != bb_charges.end(); ++it)
+    for (vector<double>::const_iterator it = bb_charges.begin(); it != bb_charges.end(); ++it)
     {
       bb_sum += *it;
     }
 
     // activation of protons sitting at lysine and histidine side chains
-    DoubleReal side_chain_activation(param_.getValue("side_chain_activation"));
+    double side_chain_activation(param_.getValue("side_chain_activation"));
     for (Size i = 0; i != ion.size(); ++i)
     {
       if (ion[i].getOneLetterCode() != "R")
@@ -1486,25 +1486,25 @@ namespace OpenMS
       bb_sum = 1;
     }
 
-    if (bb_sum < (DoubleReal)param_.getValue("charge_directed_threshold") * charge)
+    if (bb_sum < (double)param_.getValue("charge_directed_threshold") * charge)
     {
-      bb_sum = (DoubleReal)param_.getValue("charge_directed_threshold") * charge;
+      bb_sum = (double)param_.getValue("charge_directed_threshold") * charge;
     }
     return bb_sum;
   }
 
-  bool PILISModel::getInitialTransitionProbabilities_(std::vector<DoubleReal> & bb_init,
-                                                      std::vector<DoubleReal> & cr_init,
-                                                      std::vector<DoubleReal> & sc_init,
-                                                      DoubleReal & precursor_init,
-                                                      const vector<DoubleReal> & bb_charges,
-                                                      const vector<DoubleReal> & sc_charges,
+  bool PILISModel::getInitialTransitionProbabilities_(std::vector<double> & bb_init,
+                                                      std::vector<double> & cr_init,
+                                                      std::vector<double> & sc_init,
+                                                      double & precursor_init,
+                                                      const vector<double> & bb_charges,
+                                                      const vector<double> & sc_charges,
                                                       const AASequence & peptide)
   {
     bool is_charge_remote(false);
 
-    DoubleReal bb_sum(0), bb_sum_orig(0);
-    for (vector<DoubleReal>::const_iterator it = bb_charges.begin(); it != bb_charges.end(); ++it)
+    double bb_sum(0), bb_sum_orig(0);
+    for (vector<double>::const_iterator it = bb_charges.begin(); it != bb_charges.end(); ++it)
     {
       bb_sum += *it;
     }
@@ -1519,18 +1519,18 @@ namespace OpenMS
 #endif
     bb_sum_orig = bb_sum;
 
-    if (bb_sum < (DoubleReal)param_.getValue("charge_remote_threshold"))
+    if (bb_sum < (double)param_.getValue("charge_remote_threshold"))
     {
       is_charge_remote = true;
     }
 
-    if (bb_sum < (DoubleReal)param_.getValue("charge_directed_threshold"))
+    if (bb_sum < (double)param_.getValue("charge_directed_threshold"))
     {
-      bb_sum = (DoubleReal)param_.getValue("charge_directed_threshold");
+      bb_sum = (double)param_.getValue("charge_directed_threshold");
     }
 
     // side-chain activiation
-    DoubleReal side_chain_activation(param_.getValue("side_chain_activation"));
+    double side_chain_activation(param_.getValue("side_chain_activation"));
     for (Size i = 0; i != peptide.size(); ++i)
     {
       if (peptide[i].getOneLetterCode() != "R")
@@ -1548,18 +1548,18 @@ namespace OpenMS
     cerr << "bb_sum after side-chain-activiation=" << bb_sum << endl;
 #endif
 
-    vector<DoubleReal> bb_charges_all = bb_charges;
+    vector<double> bb_charges_all = bb_charges;
     sort(bb_charges_all.begin(), bb_charges_all.end());
-    DoubleReal bb_charges_median = bb_charges_all[(Size)(bb_charges_all.size() / 2.0)];
+    double bb_charges_median = bb_charges_all[(Size)(bb_charges_all.size() / 2.0)];
 #ifdef INIT_CHARGE_DEBUG
     cerr << "bb_charges_median=" << bb_charges_median << endl;
 #endif
 
-    DoubleReal min_enhancement_factor = param_.getValue("min_enhancement_factor");
-    DoubleReal blocker_sum(1.0);
+    double min_enhancement_factor = param_.getValue("min_enhancement_factor");
+    double blocker_sum(1.0);
     for (Size i = 0; i != peptide.size() - 1; ++i)
     {
-      DoubleReal bb_enhance_factor(max(min_enhancement_factor, sqrt(bb_charges[i + 1] / bb_charges_median)));
+      double bb_enhance_factor(max(min_enhancement_factor, sqrt(bb_charges[i + 1] / bb_charges_median)));
 #ifdef INIT_CHARGE_DEBUG
       cerr << "bb_enhance_factor=" << bb_enhance_factor << endl;
 #endif
@@ -1592,7 +1592,7 @@ namespace OpenMS
     precursor_init = (1 - bb_sum) /** bb_charges_median*//*bb_avg*/ / 10.0;
 
     // normalize the initial probability values
-    DoubleReal init_prob_sum(0);
+    double init_prob_sum(0);
     for (Size i = 0; i != bb_init.size(); ++i)
     {
       init_prob_sum += bb_init[i] + sc_init[i] + cr_init[i];
@@ -1610,7 +1610,7 @@ namespace OpenMS
     return is_charge_remote;
   }
 
-  void PILISModel::addPeaks_(DoubleReal mz, int charge, DoubleReal offset, DoubleReal intensity, RichPeakSpectrum & /*spectrum*/, const IsotopeDistribution & id, const String & name)
+  void PILISModel::addPeaks_(double mz, int charge, double offset, double intensity, RichPeakSpectrum & /*spectrum*/, const IsotopeDistribution & id, const String & name)
   {
     if (intensity < MIN_DECIMAL_VALUE)
     {
@@ -1620,14 +1620,14 @@ namespace OpenMS
     UInt i = 0;
     for (IsotopeDistribution::ConstIterator it = id.begin(); it != id.end(); ++it, ++i)
     {
-      DoubleReal pos = (mz + i + charge + offset) / (DoubleReal)charge;
+      double pos = (mz + i + charge + offset) / (double)charge;
       p.setPosition(pos);
       if (it == id.begin())
       {
         p.setMetaValue("IonName", String(name.c_str()));
       }
 
-      if (pos >= (DoubleReal)param_.getValue("lower_mz") && pos <= (DoubleReal)param_.getValue("upper_mz"))
+      if (pos >= (double)param_.getValue("lower_mz") && pos <= (double)param_.getValue("upper_mz"))
       {
         p.setIntensity(intensity * it->second);
         peaks_[p.getMZ()].push_back(p);
@@ -1768,7 +1768,7 @@ namespace OpenMS
 
   void PILISModel::updateMembers_()
   {
-    DoubleReal pseudo_counts = (DoubleReal)param_.getValue("pseudo_counts");
+    double pseudo_counts = (double)param_.getValue("pseudo_counts");
     hmm_.setPseudoCounts(pseudo_counts);
 
     // pass parameters to precursor model

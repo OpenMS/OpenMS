@@ -71,7 +71,7 @@ public:
     struct OPENMS_DLLAPI ProteinGroup
     {
       /// Probability of this group
-      DoubleReal probability;
+      double probability;
       /// Accessions of (indistinguishable) proteins that belong to the same group
       StringList accessions;
 
@@ -117,8 +117,8 @@ public:
       std::vector<String> variable_modifications;           ///< Allowed variable modifications
       DigestionEnzyme enzyme;           ///< The enzyme used for cleavage
       UInt missed_cleavages;           ///< The number of allowed missed cleavages
-      DoubleReal peak_mass_tolerance;           ///< Mass tolerance of fragment ions (Dalton)
-      DoubleReal precursor_tolerance;           ///< Mass tolerance of precursor ions (Dalton)
+      double peak_mass_tolerance;           ///< Mass tolerance of fragment ions (Dalton)
+      double precursor_tolerance;           ///< Mass tolerance of precursor ions (Dalton)
 
       SearchParameters();
 
@@ -173,9 +173,9 @@ public:
     void insertIndistinguishableProteins(const ProteinGroup & group);
 
     /// Returns the protein significance threshold value
-    DoubleReal getSignificanceThreshold() const;
+    double getSignificanceThreshold() const;
     /// Sets the protein significance threshold value
-    void setSignificanceThreshold(DoubleReal value);
+    void setSignificanceThreshold(double value);
     /// Returns the protein score type
     const String & getScoreType() const;
     /// Sets the protein score type
@@ -240,7 +240,7 @@ protected:
     std::vector<ProteinGroup> protein_groups_;
     /// Indistinguishable proteins: @p accessions[0] is "group leader", @p probability is meaningless
     std::vector<ProteinGroup> indistinguishable_proteins_;
-    DoubleReal protein_significance_threshold_;
+    double protein_significance_threshold_;
     //@}
   };
 

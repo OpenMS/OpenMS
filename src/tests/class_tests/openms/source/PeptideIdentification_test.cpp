@@ -56,7 +56,7 @@ using namespace OpenMS;
 using namespace std;
 
 
-DoubleReal peptide_significance_threshold = 42.3;
+double peptide_significance_threshold = 42.3;
 std::vector<PeptideHit> peptide_hits;
 PeptideHit peptide_hit;
 ProteinIdentification protein_identification;
@@ -157,7 +157,7 @@ START_SECTION((bool operator != (const PeptideIdentification& rhs) const))
 END_SECTION
 
 
-START_SECTION((DoubleReal getSignificanceThreshold() const))
+START_SECTION((double getSignificanceThreshold() const))
   PeptideIdentification hits;
   hits.setSignificanceThreshold(peptide_significance_threshold);
   TEST_EQUAL(hits.getSignificanceThreshold(), peptide_significance_threshold)
@@ -183,7 +183,7 @@ START_SECTION((void setHits(const std::vector< PeptideHit > &hits)))
   TEST_EQUAL(hits.getHits() == peptide_hits, true)
 END_SECTION
 
-START_SECTION((void setSignificanceThreshold(DoubleReal value)))
+START_SECTION((void setSignificanceThreshold(double value)))
   PeptideIdentification hits;
   hits.setSignificanceThreshold(peptide_significance_threshold);
   TEST_EQUAL(hits.getSignificanceThreshold(), peptide_significance_threshold)
@@ -453,7 +453,6 @@ START_SECTION(void getNonReferencingHits(const std::vector< String > &accessions
   id.getNonReferencingHits(accessions, peptide_hits);
   TEST_EQUAL(peptide_hits.size(), 1)
   TEST_EQUAL(peptide_hits[0].getSequence(), AASequence::fromString("FIRSTPROTEIN"))
-
 END_SECTION
 
 START_SECTION(void getNonReferencingHits(const std::vector< ProteinHit > &protein_hits, std::vector< PeptideHit > &peptide_hits) const)

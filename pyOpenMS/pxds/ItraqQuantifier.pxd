@@ -39,8 +39,8 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ItraqQuantifier.h>" namespace "O
         Size iso_number_ms2_negative
         Size iso_number_reporter_negative
         Size iso_number_reporter_different
-        DoubleReal iso_solution_different_intensity
-        DoubleReal iso_total_intensity_negative
+        double iso_solution_different_intensity
+        double iso_total_intensity_negative
         Size number_ms2_total
         Size number_ms2_empty
         # TODO STL attribute

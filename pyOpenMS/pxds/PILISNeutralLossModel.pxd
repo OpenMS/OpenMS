@@ -16,8 +16,8 @@ cdef extern from "<OpenMS/ANALYSIS/ID/PILISNeutralLossModel.h>" namespace "OpenM
         #  DefaultParamHandler
         PILISNeutralLossModel() nogil except +
         PILISNeutralLossModel(PILISNeutralLossModel) nogil except +
-        DoubleReal train(MSSpectrum[RichPeak1D] & spec, AASequence & peptide, DoubleReal ion_weight, UInt charge, DoubleReal peptide_weight) nogil except +
-        void getIons(libcpp_vector[ RichPeak1D ] & peaks, AASequence & peptide, DoubleReal initial_prob) nogil except +
+        double train(MSSpectrum[RichPeak1D] & spec, AASequence & peptide, double ion_weight, UInt charge, double peptide_weight) nogil except +
+        void getIons(libcpp_vector[ RichPeak1D ] & peaks, AASequence & peptide, double initial_prob) nogil except +
         void setHMM(HiddenMarkovModel & model) nogil except +
         HiddenMarkovModel  getHMM() nogil except +
         void generateModel() nogil except +

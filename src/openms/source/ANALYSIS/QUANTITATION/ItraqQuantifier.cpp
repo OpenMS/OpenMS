@@ -212,7 +212,7 @@ namespace OpenMS
 
         Size s_negative(0);
         Size s_different_count(0); // happens when naive solution is negative in other channels
-        DoubleReal s_different_intensity(0);
+        double s_different_intensity(0);
         // ISOTOPE CORRECTION: compare solutions of Matrix inversion vs. NNLS
         for (Size index = 0; index < (Size)CHANNEL_COUNT[itraq_type_]; ++index)
         {

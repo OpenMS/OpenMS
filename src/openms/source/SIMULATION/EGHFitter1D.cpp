@@ -60,7 +60,7 @@ namespace OpenMS
     // iterate over all points of the signal
     for (Size i = 0; i < n; i++)
     {
-      DoubleReal t = set[i].getPos();
+      double t = set[i].getPos();
 
       t_diff = t - tR;
       t_diff2 = t_diff * t_diff; // -> (t - t_R)^2
@@ -243,9 +243,9 @@ namespace OpenMS
 
 
     // calculate pearson correlation
-    std::vector<Real> real_data;
+    std::vector<float> real_data;
     real_data.reserve(set.size());
-    std::vector<Real> model_data;
+    std::vector<float> model_data;
     model_data.reserve(set.size());
 
     for (Size i = 0; i < set.size(); ++i)
@@ -270,7 +270,7 @@ namespace OpenMS
 
     // calculate the median
     //Size median = 0;
-    //Real count = 0.0;
+    //float count = 0.0;
     Size apex_rt = 0;
     CoordinateType apex = 0.0;
     for (Size i = 0; i < set.size(); ++i)

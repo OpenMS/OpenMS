@@ -44,9 +44,7 @@
 #include <OpenMS/FILTERING/BASELINE/MorphologicalFilter.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FORMAT/DB/DBConnection.h>
 #include <OpenMS/FORMAT/TextFile.h>
-#include <OpenMS/FORMAT/DB/DBAdapter.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
@@ -59,7 +57,6 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
 #include <OpenMS/VISUAL/DIALOGS/DataFilterDialog.h>
 #include <OpenMS/VISUAL/DIALOGS/TOPPViewOpenDialog.h>
-#include <OpenMS/VISUAL/DIALOGS/DBOpenDialog.h>
 #include <OpenMS/VISUAL/DIALOGS/TheoreticalSpectrumGenerationDialog.h>
 #include <OpenMS/VISUAL/DIALOGS/ToolsDialog.h>
 #include <OpenMS/VISUAL/DIALOGS/TOPPViewPrefDialog.h>
@@ -200,14 +197,12 @@ namespace OpenMS
     QMenu* file = new QMenu("&File", this);
     menuBar()->addMenu(file);
     file->addAction("&Open file", this, SLOT(openFileDialog()), Qt::CTRL + Qt::Key_O);
-    file->addAction("Open from &database", this, SLOT(openDatabaseDialog()), Qt::CTRL + Qt::Key_D);
     file->addAction("Open &example file", this, SLOT(openExampleDialog()));
     file->addAction("&Close", this, SLOT(closeFile()), Qt::CTRL + Qt::Key_W);
     file->addSeparator();
 
     //Meta data
     file->addAction("&Show meta data (file)", this, SLOT(metadataFileDialog()));
-    file->addAction("&Show meta data (database)", this, SLOT(metadataDatabaseDialog()));
     file->addSeparator();
 
     //Recent files
@@ -513,7 +508,7 @@ namespace OpenMS
     connect(spectra_identification_view_widget_, SIGNAL(spectrumSelected(int)), this, SLOT(activate1DSpectrum(int)));
     //connect(spectra_identification_view_widget_, SIGNAL(spectrumSelected(std::vector<int, std::allocator<int> >)), this, SLOT(activate1DSpectrum(std::vector<int, std::allocator<int> >)));
     identificationview_behavior_ = new TOPPViewIdentificationViewBehavior(this);
-    connect(spectra_identification_view_widget_, SIGNAL(requestVisibleArea1D(DoubleReal, DoubleReal)), identificationview_behavior_, SLOT(setVisibleArea1D(DoubleReal, DoubleReal)));
+    connect(spectra_identification_view_widget_, SIGNAL(requestVisibleArea1D(double, double)), identificationview_behavior_, SLOT(setVisibleArea1D(double, double)));
 
     views_tabwidget_->addTab(spectra_view_widget_, "Scan view");
     views_tabwidget_->addTab(spectra_identification_view_widget_, "Identification view");
@@ -601,12 +596,6 @@ namespace OpenMS
     defaults_.setValidStrings("preferences:on_file_change", ListUtils::create<String>("none,ask,update automatically"));
     defaults_.setValue("preferences:topp_cleanup", "true", "If the temporary files for calling of TOPP tools should be removed after the call.");
     defaults_.setValidStrings("preferences:topp_cleanup", ListUtils::create<String>("true,false"));
-    //db
-    defaults_.setValue("preferences:db:host", "localhost", "Database server host name.");
-    defaults_.setValue("preferences:db:login", "NoName", "Database login.");
-    defaults_.setValue("preferences:db:name", "OpenMS", "Database name.");
-    defaults_.setValue("preferences:db:port", 3306, "Database server port.");
-    defaults_.setSectionDescription("preferences:db", "Database settings.");
     // 1d view
     Spectrum1DCanvas* def1 = new Spectrum1DCanvas(Param(), 0);
     defaults_.insert("preferences:1d:", def1->getDefaults());
@@ -677,62 +666,6 @@ namespace OpenMS
   }
 
 
-  void TOPPViewBase::addDataDB(UInt db_id, bool show_options, String caption, UInt window_id)
-  {
-    //set wait cursor
-    setCursor(Qt::WaitCursor);
-
-    //Open DB connection
-    DBConnection con;
-    connectToDB_(con);
-    if (!con.isConnected())
-    {
-      setCursor(Qt::ArrowCursor);
-      return;
-    }
-
-    //load the data
-    DBAdapter db(con);
-
-    // create managed pointer to experiment data
-    ExperimentType* exp = new ExperimentType();
-    ExperimentSharedPtrType exp_sptr(exp);
-
-    FeatureMapType* dummy_map = new FeatureMapType();
-    FeatureMapSharedPtrType dummy_map_sptr(dummy_map);
-
-    ConsensusMapType* dummy_map2 = new ConsensusMapType();
-    ConsensusMapSharedPtrType dummy_map2_sptr(dummy_map2);
-
-    vector<PeptideIdentification> dummy_peptides;
-    try
-    {
-      db.loadExperiment(db_id, *exp);
-    }
-    catch (Exception::BaseException& e)
-    {
-      QMessageBox::critical(this, "Error", (String("Error while reading data: ") + e.what()).c_str());
-      setCursor(Qt::ArrowCursor);
-      return;
-    }
-    exp_sptr->sortSpectra(true);
-    exp_sptr->updateRanges(1);
-
-    //determine if the data is 1D or 2D
-    QSqlQuery result = con.executeQuery(String("SELECT count(id) from DATA_Spectrum where fid_MSExperiment='") + db_id + "' and MSLevel='1'");
-    LayerData::DataType data_type = ((result.value(0).toInt() > 1) ?
-                                     LayerData::DT_PEAK :
-                                     LayerData::DT_CHROMATOGRAM);
-
-    //add data
-    if (caption == "")
-      caption = String("DB entry ") + db_id;
-    addData(dummy_map_sptr, dummy_map2_sptr, dummy_peptides, exp_sptr, data_type, false, show_options, true, "", caption, window_id);
-
-    //Reset cursor
-    setCursor(Qt::ArrowCursor);
-  }
-
   // static
   bool TOPPViewBase::containsMS1Scans(const ExperimentType& exp)
   {
@@ -779,7 +712,7 @@ namespace OpenMS
         ++count;
       }
     }
-    return noise / (DoubleReal)n_scans;
+    return noise / (double)n_scans;
   }
 
   // static
@@ -799,7 +732,7 @@ namespace OpenMS
       }
       for (Size j = 0; j != exp[i].size(); ++j)
       {
-        DoubleReal intensity = exp[i][j].getIntensity();
+        double intensity = exp[i][j].getIntensity();
         if (intensity == 0.0)
         {
           zeros++;
@@ -837,12 +770,6 @@ namespace OpenMS
     QComboBox* map_default = dlg.findChild<QComboBox*>("map_default");
     QComboBox* map_cutoff = dlg.findChild<QComboBox*>("map_cutoff");
     QComboBox* on_file_change = dlg.findChild<QComboBox*>("on_file_change");
-
-    // db tab
-    QLineEdit* db_host = dlg.findChild<QLineEdit*>("db_host");
-    QSpinBox* db_port = dlg.findChild<QSpinBox*>("db_port");
-    QLineEdit* db_name = dlg.findChild<QLineEdit*>("db_name");
-    QLineEdit* db_login = dlg.findChild<QLineEdit*>("db_login");
 
     // 1D view tab
     ColorSelector* color_1D = dlg.findChild<ColorSelector*>("color_1D");
@@ -903,12 +830,6 @@ namespace OpenMS
     map_cutoff->setCurrentIndex(map_cutoff->findText(param_.getValue("preferences:intensity_cutoff").toQString()));
     on_file_change->setCurrentIndex(on_file_change->findText(param_.getValue("preferences:on_file_change").toQString()));
 
-    // db
-    db_host->setText(param_.getValue("preferences:db:host").toQString());
-    db_port->setValue((Int)param_.getValue("preferences:db:port"));
-    db_name->setText(param_.getValue("preferences:db:name").toQString());
-    db_login->setText(param_.getValue("preferences:db:login").toQString());
-
     // 1D view
     color_1D->setColor(QColor(param_.getValue("preferences:1d:peak_color").toQString()));
     selected_1D->setColor(QColor(param_.getValue("preferences:1d:highlighted_peak_color").toQString()));
@@ -926,15 +847,15 @@ namespace OpenMS
     line_width_3D->setValue((Int)param_.getValue("preferences:3d:dot:line_width"));
 
     // id view
-    a_intensity->setValue((DoubleReal)param_.getValue("preferences:idview:a_intensity"));
-    b_intensity->setValue((DoubleReal)param_.getValue("preferences:idview:b_intensity"));
-    c_intensity->setValue((DoubleReal)param_.getValue("preferences:idview:c_intensity"));
-    x_intensity->setValue((DoubleReal)param_.getValue("preferences:idview:x_intensity"));
-    y_intensity->setValue((DoubleReal)param_.getValue("preferences:idview:y_intensity"));
-    z_intensity->setValue((DoubleReal)param_.getValue("preferences:idview:z_intensity"));
-    tolerance->setValue((DoubleReal)param_.getValue("preferences:idview:tolerance"));
+    a_intensity->setValue((double)param_.getValue("preferences:idview:a_intensity"));
+    b_intensity->setValue((double)param_.getValue("preferences:idview:b_intensity"));
+    c_intensity->setValue((double)param_.getValue("preferences:idview:c_intensity"));
+    x_intensity->setValue((double)param_.getValue("preferences:idview:x_intensity"));
+    y_intensity->setValue((double)param_.getValue("preferences:idview:y_intensity"));
+    z_intensity->setValue((double)param_.getValue("preferences:idview:z_intensity"));
+    tolerance->setValue((double)param_.getValue("preferences:idview:tolerance"));
 
-    relative_loss_intensity->setValue((DoubleReal)param_.getValue("preferences:idview:relative_loss_intensity"));
+    relative_loss_intensity->setValue((double)param_.getValue("preferences:idview:relative_loss_intensity"));
 
     if (a_ions.empty())
     {
@@ -1054,12 +975,6 @@ namespace OpenMS
       param_.setValue("preferences:default_map_view", map_default->currentText());
       param_.setValue("preferences:intensity_cutoff", map_cutoff->currentText());
       param_.setValue("preferences:on_file_change", on_file_change->currentText());
-
-      param_.setValue("preferences:db:host", db_host->text());
-      param_.setValue("preferences:db:port", db_port->value());
-      param_.setValue("preferences:db:name", db_name->text());
-      param_.setValue("preferences:db:login", db_login->text());
-      param_.remove("DBPassword");
 
       param_.setValue("preferences:1d:peak_color", color_1D->getColor().name());
       param_.setValue("preferences:1d:highlighted_peak_color", selected_1D->getColor().name());
@@ -1414,7 +1329,7 @@ namespace OpenMS
         //calculate noise
         if (use_intensity_cutoff)
         {
-          DoubleReal cutoff = estimateNoiseFromRandomMS1Scans(*(target_window->canvas()->getCurrentLayer().getPeakData()));
+          double cutoff = estimateNoiseFromRandomMS1Scans(*(target_window->canvas()->getCurrentLayer().getPeakData()));
           //create filter
           DataFilters::DataFilter filter;
           filter.field = DataFilters::INTENSITY;
@@ -2832,53 +2747,6 @@ namespace OpenMS
     }
   }
 
-  void TOPPViewBase::connectToDB_(DBConnection& db)
-  {
-    //get the password if unset
-    if (!param_.exists("DBPassword"))
-    {
-      stringstream ss;
-      ss << "Enter password for user '" << (String)param_.getValue("preferences:db:login") << "' at '" << (String)param_.getValue("preferences:db:host") << ":" << (String)param_.getValue("preferences:db:port") << "' : ";
-      bool ok;
-      QString text = QInputDialog::getText(this, "TOPPView database password", ss.str().c_str(), QLineEdit::Password, QString::null, &ok);
-      if (ok)
-      {
-        param_.setValue("DBPassword", text);
-      }
-    }
-
-    if (param_.exists("DBPassword"))
-    {
-      try
-      {
-        db.connect((String)param_.getValue("preferences:db:name"), (String)param_.getValue("preferences:db:login"), (String)param_.getValue("DBPassword"), (String)param_.getValue("preferences:db:host"), (UInt)param_.getValue("preferences:db:port"));
-      }
-      catch (DBConnection::InvalidQuery& er)
-      {
-        param_.remove("DBPassword");
-        showLogMessage_(LS_ERROR, "Unable to log in to the database server", String("Check the login data in the preferences!\nDatabase error message: ") + er.what());
-      }
-    }
-  }
-
-  void TOPPViewBase::openDatabaseDialog()
-  {
-    DBConnection db;
-    connectToDB_(db);
-    if (db.isConnected())
-    {
-      vector<UInt> result;
-      DBOpenDialog db_dialog(db, result, this);
-      if (db_dialog.exec())
-      {
-        db.disconnect();
-        for (vector<UInt>::iterator it = result.begin(); it != result.end(); ++it)
-        {
-          addDataDB(*it, true);
-        }
-      }
-    }
-  }
 
   void TOPPViewBase::rerunTOPPTool()
   {
@@ -3268,7 +3136,7 @@ namespace OpenMS
         p.setValue("x_intensity", spec_gen_dialog.x_intensity->value(), "Intensity of the x-ions");
         p.setValue("y_intensity", spec_gen_dialog.y_intensity->value(), "Intensity of the y-ions");
         p.setValue("z_intensity", spec_gen_dialog.z_intensity->value(), "Intensity of the z-ions");
-        DoubleReal rel_loss_int = (DoubleReal)(spec_gen_dialog.rel_loss_intensity->value()) / 100.0;
+        double rel_loss_int = (double)(spec_gen_dialog.rel_loss_intensity->value()) / 100.0;
         p.setValue("relative_loss_intensity", rel_loss_int, "Intensity of loss ions, in relation to the intact ion intensity");
         generator.setParameters(p);
 
@@ -3370,14 +3238,14 @@ namespace OpenMS
       }
 
       Param param;
-      DoubleReal tolerance = spec_align_dialog.tolerance_spinbox->value();
+      double tolerance = spec_align_dialog.tolerance_spinbox->value();
       param.setValue("tolerance", tolerance, "Defines the absolute (in Da) or relative (in ppm) mass tolerance");
       String unit_is_ppm = spec_align_dialog.ppm->isChecked() ? "true" : "false";
       param.setValue("is_relative_tolerance", unit_is_ppm, "If true, the mass tolerance is interpreted as ppm value otherwise in Dalton");
 
       active_1d_window->performAlignment((UInt)layer_index_1, (UInt)layer_index_2, param);
 
-      DoubleReal al_score = cc->getAlignmentScore();
+      double al_score = cc->getAlignmentScore();
       Size al_size = cc->getAlignmentSize();
 
       QMessageBox::information(this, "Alignment performed", QString("Aligned %1 pairs of peaks (Score: %2).").arg(al_size).arg(al_score));
@@ -3860,38 +3728,6 @@ namespace OpenMS
       MetaDataBrowser dlg(false, this);
       dlg.add(exp);
       dlg.exec();
-    }
-  }
-
-  void TOPPViewBase::metadataDatabaseDialog()
-  {
-    DBConnection con;
-    connectToDB_(con);
-    if (con.isConnected())
-    {
-      vector<UInt> ids;
-      DBOpenDialog db_dialog(con, ids, ws_);
-      if (db_dialog.exec())
-      {
-        DBAdapter db(con);
-        db.getOptions().setMetadataOnly(true);
-        for (vector<UInt>::iterator it = ids.begin(); it != ids.end(); ++it)
-        {
-          ExperimentType exp;
-          try
-          {
-            db.loadExperiment(*it, exp);
-          }
-          catch (Exception::BaseException& e)
-          {
-            QMessageBox::critical(this, "Error", (String("Error while reading data: ") + e.what()).c_str());
-            return;
-          }
-          MetaDataBrowser dlg(false, this);
-          dlg.add(exp);
-          dlg.exec();
-        }
-      }
     }
   }
 

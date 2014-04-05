@@ -19,10 +19,10 @@ cdef extern from "<OpenMS/DATASTRUCTURES/DRange.h>" namespace "OpenMS":
         DRange2() nogil except +
         DRange2(DRange2) nogil except +
         DRange2(DPosition2 lower, DPosition2 upper) nogil except +
-        DRange2(DoubleReal minx, DoubleReal miny, DoubleReal maxx, DoubleReal maxy) nogil except +
+        DRange2(double minx, double miny, double maxx, double maxy) nogil except +
         bool operator==(DRange2 & rhs) nogil except +
         # bool encloses(DPosition2 & position) nogil except +
-        # bool encloses(DoubleReal x, DoubleReal y) nogil except +
+        # bool encloses(double x, double y) nogil except +
         DRange2 united(DRange2 other_range) nogil except +
         # DRangeIntersection intersects(DRange2 & range_) nogil except +
         bool isIntersected(DRange2 & range_) nogil except +

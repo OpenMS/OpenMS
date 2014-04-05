@@ -7,7 +7,7 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/PeakWidthEstimator.h>" n
     
     cdef cppclass PeakWidthEstimator "OpenMS::PeakWidthEstimator":
         PeakWidthEstimator(PeakWidthEstimator) nogil except + #wrap-ignore
-        # NAMESPACE # void estimateSpectrumFWHM(MSSpectrum[ Peak1D ] & input_, libcpp_set[ boost::tuple[ DoubleReal, DoubleReal, DoubleReal ] ] & fwhms) nogil except +
+        # NAMESPACE # void estimateSpectrumFWHM(MSSpectrum[ Peak1D ] & input_, libcpp_set[ boost::tuple[ double, double, double ] ] & fwhms) nogil except +
         Result estimateFWHM(MSExperiment[ Peak1D, ChromatogramPeak ] & input_) nogil except +
 
 cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/PeakWidthEstimator.h>" namespace "OpenMS::PeakWidthEstimator":
@@ -15,8 +15,8 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/PeakWidthEstimator.h>" n
     cdef cppclass Result "OpenMS::PeakWidthEstimator::Result":
         Result() nogil except +
         Result(Result) nogil except + #wrap-ignore
-        DoubleReal c0
-        DoubleReal c1
-        Result(DoubleReal c0, DoubleReal c1) nogil except +
-        # DoubleReal operator()(DoubleReal mz) nogil except +
+        double c0
+        double c1
+        Result(double c0, double c1) nogil except +
+        # double operator()(double mz) nogil except +
 

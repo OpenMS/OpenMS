@@ -141,7 +141,7 @@ namespace OpenMS
     return old;
   }
 
-  void EdwardsLippertIterator::setTolerance(DoubleReal t)
+  void EdwardsLippertIterator::setTolerance(double t)
   {
     if (t < 0)
     {
@@ -150,12 +150,12 @@ namespace OpenMS
     tol_ = t;
   }
 
-  DoubleReal EdwardsLippertIterator::getTolerance()
+  double EdwardsLippertIterator::getTolerance()
   {
     return tol_;
   }
 
-  void EdwardsLippertIterator::setSpectrum(const vector<DoubleReal> & s)
+  void EdwardsLippertIterator::setSpectrum(const vector<double> & s)
   {
     //check if spectrum is sorted
     for (Size i = 1; i < s.size(); ++i)
@@ -169,7 +169,7 @@ namespace OpenMS
     massMax_ = spec_.back();
   }
 
-  const vector<DoubleReal> & EdwardsLippertIterator::getSpectrum()
+  const vector<double> & EdwardsLippertIterator::getSpectrum()
   {
     return spec_;
   }
@@ -268,7 +268,7 @@ namespace OpenMS
 
   bool EdwardsLippertIterator::hasNext_()
   {
-    DoubleReal mold = m_;
+    double mold = m_;
     unsigned int bold = b_;
     unsigned int eold = e_;
     string res = next_();
@@ -306,7 +306,7 @@ namespace OpenMS
     return true;
   }
 
-  bool EdwardsLippertIterator::isInSpectrum_(DoubleReal & mass)
+  bool EdwardsLippertIterator::isInSpectrum_(double & mass)
   {
     return binary_search(spec_.begin(), spec_.end(), mass, FloatsWithTolLess(tol_));
   }

@@ -156,7 +156,7 @@ public:
       }
 
       String uid_;
-      std::vector<std::pair<String, DoubleReal> > mods_;
+      std::vector<std::pair<String, double> > mods_;
       std::vector<ExperimentalSettings> raw_files_;
       std::map<size_t, FeatureMap<> > feature_maps_;           // iTRAQ needs no FeatureMaps so ExperimentalSettings are not directly mapped to FeatureMaps
     };
@@ -185,7 +185,7 @@ public:
     MSQuantifications();
 
     /// Detailed Constructor
-    MSQuantifications(FeatureMap<> fm, ExperimentalSettings& es, std::vector<DataProcessing>& dps, std::vector<std::vector<std::pair<String, DoubleReal> > > labels = (std::vector<std::vector<std::pair<String, DoubleReal> > >()));
+    MSQuantifications(FeatureMap<> fm, ExperimentalSettings& es, std::vector<DataProcessing>& dps, std::vector<std::vector<std::pair<String, double> > > labels = (std::vector<std::vector<std::pair<String, double> > >()));
 
     /// Destructor
     ~MSQuantifications();
@@ -231,8 +231,8 @@ public:
     void setAnalysisSummaryQuantType(QUANT_TYPES r);
     void addConsensusMap(ConsensusMap & m);
     void assignUIDs();
-    void registerExperiment(MSExperiment<Peak1D> & exp, std::vector<std::vector<std::pair<String, DoubleReal> > > labels);
-    void registerExperiment(ExperimentalSettings & es, std::vector<DataProcessing>& dp, std::vector<std::vector<std::pair<String, DoubleReal> > > labels = (std::vector<std::vector<std::pair<String, DoubleReal> > >()));
+    void registerExperiment(MSExperiment<Peak1D> & exp, std::vector<std::vector<std::pair<String, double> > > labels);
+    void registerExperiment(ExperimentalSettings & es, std::vector<DataProcessing>& dp, std::vector<std::vector<std::pair<String, double> > > labels = (std::vector<std::vector<std::pair<String, double> > >()));
 
 private:
     AnalysisSummary analysis_summary_;

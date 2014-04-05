@@ -58,12 +58,12 @@ START_SECTION((~Precursor()))
 	delete ptr;
 END_SECTION
 
-START_SECTION((DoubleReal getActivationEnergy() const))
+START_SECTION((double getActivationEnergy() const))
   Precursor tmp;
   TEST_EQUAL(tmp.getActivationEnergy(),0);
 END_SECTION
 
-START_SECTION((void setActivationEnergy(DoubleReal activation_energy)))
+START_SECTION((void setActivationEnergy(double activation_energy)))
   Precursor tmp;
   tmp.setActivationEnergy(47.11);
   TEST_REAL_SIMILAR(tmp.getActivationEnergy(),47.11);
@@ -89,23 +89,23 @@ START_SECTION((void setActivationMethods(const set<ActivationMethod>& activation
   TEST_EQUAL(tmp.getActivationMethods().size(),1);
 END_SECTION
 
-START_SECTION((DoubleReal getIsolationWindowUpperOffset() const))
+START_SECTION((double getIsolationWindowUpperOffset() const))
   Precursor tmp;
   TEST_REAL_SIMILAR(tmp.getIsolationWindowUpperOffset(), 0);
 END_SECTION
 
-START_SECTION((void setIsolationWindowUpperOffset(DoubleReal bound)))
+START_SECTION((void setIsolationWindowUpperOffset(double bound)))
   Precursor tmp;
   tmp.setIsolationWindowUpperOffset(22.7);
   TEST_REAL_SIMILAR(tmp.getIsolationWindowUpperOffset(), 22.7);
 END_SECTION
 
-START_SECTION((DoubleReal getIsolationWindowLowerOffset() const))
+START_SECTION((double getIsolationWindowLowerOffset() const))
   Precursor tmp;
   TEST_REAL_SIMILAR(tmp.getIsolationWindowLowerOffset(), 0);
 END_SECTION
 
-START_SECTION((void setIsolationWindowLowerOffset(DoubleReal bound)))
+START_SECTION((void setIsolationWindowLowerOffset(double bound)))
   Precursor tmp;
   tmp.setIsolationWindowLowerOffset(22.8);
   TEST_REAL_SIMILAR(tmp.getIsolationWindowLowerOffset(), 22.8);
@@ -248,7 +248,7 @@ START_SECTION((bool operator!= (const Precursor& rhs) const))
 	TEST_EQUAL(tmp!=tmp2, true);
 END_SECTION
 
-START_SECTION(DoubleReal getUnchargedMass() const)
+START_SECTION(double getUnchargedMass() const)
   Precursor tmp;
   tmp.setMZ(123);
   tmp.setCharge(13);

@@ -39,7 +39,6 @@ using namespace std;
 namespace OpenMS
 {
   HPLC::HPLC() :
-//      PersistentObject(),
     instrument_(),
     column_(),
     temperature_(21),
@@ -52,7 +51,6 @@ namespace OpenMS
   }
 
   HPLC::HPLC(const HPLC & source) :
-//    PersistentObject(source),
     instrument_(source.instrument_),
     column_(source.column_),
     temperature_(source.temperature_),
@@ -74,7 +72,6 @@ namespace OpenMS
     if (source == *this)
       return *this;
 
-//    PersistentObject::operator = (source);
     instrument_ = source.instrument_;
     column_ = source.column_;
     temperature_ = source.temperature_;

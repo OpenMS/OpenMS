@@ -119,7 +119,7 @@ protected:
     f.setLogType(log_type_);
     f.load(in, exp);
 
-    DoubleReal sampling_rate = getDoubleOption_("sampling_rate");
+    double sampling_rate = getDoubleOption_("sampling_rate");
 
     LinearResampler lin_resampler;
     Param resampler_param;

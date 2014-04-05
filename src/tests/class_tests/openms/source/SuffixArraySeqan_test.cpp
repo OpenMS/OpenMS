@@ -114,7 +114,7 @@ START_SECTION(bool isDigestingEnd(const char aa1, const char aa2) const )
 }
 END_SECTION
 
-START_SECTION(DoubleReal getTolerance() const )
+START_SECTION(double getTolerance() const )
 {
 	TEST_REAL_SIMILAR (sa->getTolerance(),0.5);
 	sa->setTolerance(0.1);
@@ -123,7 +123,7 @@ START_SECTION(DoubleReal getTolerance() const )
 }
 END_SECTION
 
-START_SECTION(void setTolerance(DoubleReal t))
+START_SECTION(void setTolerance(double t))
 {
 	TEST_REAL_SIMILAR (sa->getTolerance(),0.5);
 	sa->setTolerance(0.1);
@@ -246,9 +246,9 @@ END_SECTION
 
 #if 1
 
-START_SECTION((void findSpec(std::vector< std::vector< std::pair< std::pair< SignedSize, SignedSize >, DoubleReal > > > &candidates, const std::vector< DoubleReal > &spec)))
+START_SECTION((void findSpec(std::vector< std::vector< std::pair< std::pair< SignedSize, SignedSize >, double > > > &candidates, const std::vector< double > &spec)))
 {
-	DoubleReal masse[255];
+	double masse[255];
 	ResidueDB* rdb = ResidueDB::getInstance();
 		
 	char aa[] = "ARNDCEQGHILKMFPSTWYV";
@@ -263,13 +263,13 @@ START_SECTION((void findSpec(std::vector< std::vector< std::pair< std::pair< Sig
 		masse[(int)aa[i]]=r->getMonoWeight(Residue::Internal);
 	}
 	sa = new SuffixArraySeqan(text,"");
-	vector<DoubleReal> spec;
+	vector<double> spec;
 	//spec.push_back(178.1864);
 	//spec.push_back(441.4806);
 	spec.push_back(AASequence::fromString("AR").getMonoWeight(Residue::Full));
   spec.push_back(AASequence::fromString("AAAR").getMonoWeight(Residue::Full));
-	const vector<DoubleReal> specc (spec);
-	vector <vector< pair<pair<SignedSize, SignedSize>,DoubleReal> > > res;
+	const vector<double> specc (spec);
+	vector <vector< pair<pair<SignedSize, SignedSize>,double> > > res;
 	sa->findSpec(res, specc);
 	TEST_EQUAL(res.size(),specc.size());
 	
@@ -282,13 +282,13 @@ START_SECTION((void findSpec(std::vector< std::vector< std::pair< std::pair< Sig
 	TEST_EQUAL(res.at(1).at(0).first.second,4)
 
 	spec.clear();
-	vector<DoubleReal> specc2 (spec);
+	vector<double> specc2 (spec);
 	res.clear();
 	sa->findSpec(res, specc2);
 	TEST_EQUAL(res.size(),0);
 	spec.push_back(441.4806);	
 	spec.push_back(178.1864);
-	const vector<DoubleReal> specc3 (spec);
+	const vector<double> specc3 (spec);
 	res.clear();
 	TEST_EXCEPTION(Exception::InvalidValue, sa->findSpec(res, specc3));
 	ifstream i_stream;
@@ -297,13 +297,13 @@ START_SECTION((void findSpec(std::vector< std::vector< std::pair< std::pair< Sig
 	getline(i_stream,txt);
 	sa = new SuffixArraySeqan(txt,"");
 	STATUS("Okay!");
-	vector<DoubleReal> spec_new;
+	vector<double> spec_new;
 	for (int i = 500; i < 5000; i += 197)
 	{
-		spec_new.push_back((DoubleReal)i);
+		spec_new.push_back((double)i);
 	}
 	STATUS("Okay!");
-	vector<DoubleReal> specc_new(spec_new);
+	vector<double> specc_new(spec_new);
 	STATUS("Okay!");
 	res.clear();
 	STATUS("Okay!");
@@ -331,7 +331,7 @@ START_SECTION((void findSpec(std::vector< std::vector< std::pair< std::pair< Sig
 		{
 			String seq = txt.substr(res.at(i).at(j).first.first,res.at(i).at(j).first.second);
 			
-			DoubleReal m = EmpiricalFormula("H2O").getMonoWeight();
+			double m = EmpiricalFormula("H2O").getMonoWeight();
 			for (Size k = 0; k < seq.length();k++)
 			{
 				m+=masse[(int)seq[k]];
@@ -424,7 +424,7 @@ START_SECTION((void findSpec(std::vector< std::vector< std::pair< std::pair< Sig
 		for (Size j = 0;j<res.at(i).size();j++)
 		{
 			String seq = txt.substr(res.at(i).at(j).first.first,res.at(i).at(j).first.second);
-			DoubleReal m = EmpiricalFormula("H2O").getMonoWeight();
+			double m = EmpiricalFormula("H2O").getMonoWeight();
 			for (Size k = 0; k < seq.length();k++)
 			{
 				m+=masse[(int)seq[k]];
@@ -439,7 +439,7 @@ START_SECTION((void findSpec(std::vector< std::vector< std::pair< std::pair< Sig
 	//testing if a candidate can belong to serveal input masses
 	spec.push_back(441.4806);
 	spec.push_back(441.4806);
-	const vector<DoubleReal> specc4 (spec);
+	const vector<double> specc4 (spec);
 	sa->setNumberOfModifications(0);
 	sa->setUseTags(false);
 	res.clear();

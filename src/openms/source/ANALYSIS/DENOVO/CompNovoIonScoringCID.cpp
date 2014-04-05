@@ -71,11 +71,11 @@ namespace OpenMS
   {
   }
 
-  void CompNovoIonScoringCID::scoreSpectrum(Map<DoubleReal, IonScore> & ion_scores, PeakSpectrum & CID_spec, DoubleReal precursor_weight, Size charge)
+  void CompNovoIonScoringCID::scoreSpectrum(Map<double, IonScore> & ion_scores, PeakSpectrum & CID_spec, double precursor_weight, Size charge)
   {
     for (PeakSpectrum::ConstIterator it = CID_spec.begin(); it != CID_spec.end(); ++it)
     {
-      DoubleReal it_pos(it->getPosition()[0]);
+      double it_pos(it->getPosition()[0]);
       IonScore ion_score;
       ion_scores[it_pos] = ion_score;
     }
@@ -85,7 +85,7 @@ namespace OpenMS
 
     for (PeakSpectrum::ConstIterator it = CID_spec.begin(); it != CID_spec.end(); ++it)
     {
-      DoubleReal it_pos(it->getPosition()[0]);
+      double it_pos(it->getPosition()[0]);
       IonScore ion_score;
       ion_scores[it_pos] = ion_score;
     }
@@ -106,7 +106,7 @@ namespace OpenMS
     // combine the features and give y-ion scores
     scoreWitnessSet_(charge, precursor_weight, ion_scores, CID_spec);
 
-    for (Map<DoubleReal, IonScore>::iterator it = ion_scores.begin(); it != ion_scores.end(); ++it)
+    for (Map<double, IonScore>::iterator it = ion_scores.begin(); it != ion_scores.end(); ++it)
     {
       it->second.score = it->second.s_witness;
     }
@@ -117,12 +117,12 @@ namespace OpenMS
     decomp_param.setValue("tolerance", fragment_mass_tolerance_);
     decomp_algo.setParameters(decomp_param);
 
-    DoubleReal y_offset = EmpiricalFormula("H2O").getMonoWeight() + Constants::PROTON_MASS_U;
+    double y_offset = EmpiricalFormula("H2O").getMonoWeight() + Constants::PROTON_MASS_U;
 
     // check whether a PRMNode_ can be decomposed into amino acids
     // rescore the peaks that cannot be possible y-ion candidates
-    DoubleReal max_decomp_weight(param_.getValue("max_decomp_weight"));
-    for (Map<DoubleReal, IonScore>::iterator it = ion_scores.begin(); it != ion_scores.end(); ++it)
+    double max_decomp_weight(param_.getValue("max_decomp_weight"));
+    for (Map<double, IonScore>::iterator it = ion_scores.begin(); it != ion_scores.end(); ++it)
     {
       if (it->first > y_offset && (it->first - y_offset) < max_decomp_weight)
       {
@@ -138,10 +138,10 @@ namespace OpenMS
       }
     }
 
-    decomp_param.setValue("tolerance", (DoubleReal)param_.getValue("precursor_mass_tolerance"));
+    decomp_param.setValue("tolerance", (double)param_.getValue("precursor_mass_tolerance"));
     decomp_algo.setParameters(decomp_param);
     // now the upper part with differen tolerance
-    for (Map<DoubleReal, IonScore>::iterator it = ion_scores.begin(); it != ion_scores.end(); ++it)
+    for (Map<double, IonScore>::iterator it = ion_scores.begin(); it != ion_scores.end(); ++it)
     {
       if (it->first < precursor_weight && precursor_weight - it->first < max_decomp_weight)
       {
@@ -161,10 +161,10 @@ namespace OpenMS
     ion_scores[(CID_spec.end() - 1)->getPosition()[0]].score = 1;
   }
 
-  void CompNovoIonScoringCID::scoreWitnessSet_(Size charge, DoubleReal precursor_weight, Map<DoubleReal, IonScore> & ion_scores, const PeakSpectrum & CID_spec)
+  void CompNovoIonScoringCID::scoreWitnessSet_(Size charge, double precursor_weight, Map<double, IonScore> & ion_scores, const PeakSpectrum & CID_spec)
   {
-    DoubleReal precursor_mass_tolerance = (DoubleReal)param_.getValue("precursor_mass_tolerance");
-    vector<DoubleReal> diffs;
+    double precursor_mass_tolerance = (double)param_.getValue("precursor_mass_tolerance");
+    vector<double> diffs;
     //diffs.push_back(28.0);
     diffs.push_back(EmpiricalFormula("NH3").getMonoWeight());
     diffs.push_back(EmpiricalFormula("H2O").getMonoWeight());
@@ -173,19 +173,19 @@ namespace OpenMS
     for (PeakSpectrum::ConstIterator it1 = CID_spec.begin(); it1 != CID_spec.end(); ++it1)
     {
       //Size num_wit(0);
-      DoubleReal wit_score(0.0);
-      DoubleReal pos1(it1->getPosition()[0]);
+      double wit_score(0.0);
+      double pos1(it1->getPosition()[0]);
       wit_score += it1->getIntensity();
       for (PeakSpectrum::ConstIterator it2 = CID_spec.begin(); it2 != CID_spec.end(); ++it2)
       {
-        DoubleReal pos2(it2->getPosition()[0]);
+        double pos2(it2->getPosition()[0]);
 
         // direct ++
         if (charge > 1)
         {
           if (fabs(pos2 * 2 - Constants::PROTON_MASS_U - pos1) < fragment_mass_tolerance_)
           {
-            DoubleReal factor((fragment_mass_tolerance_ - fabs(pos2 * 2 - Constants::PROTON_MASS_U - pos1)) / fragment_mass_tolerance_);
+            double factor((fragment_mass_tolerance_ - fabs(pos2 * 2 - Constants::PROTON_MASS_U - pos1)) / fragment_mass_tolerance_);
             // pos1 is ion, pos2 is ++ion
 #ifdef SCORE_WITNESSSET_DEBUG
             cerr << "scoreWitnessSet: ++ion " << pos1 << " " << pos2 << " (factor=" << factor << ") " << wit_score << " -> ";
@@ -205,12 +205,12 @@ namespace OpenMS
         }
 
         // diffs?
-        for (vector<DoubleReal>::const_iterator it = diffs.begin(); it != diffs.end(); ++it)
+        for (vector<double>::const_iterator it = diffs.begin(); it != diffs.end(); ++it)
         {
           // pos1 is ion, pos2 loss peak
           if (fabs(pos1 - pos2 - *it) < precursor_mass_tolerance)
           {
-            DoubleReal factor((fragment_mass_tolerance_ - fabs(pos1 - pos2 - *it)) / fragment_mass_tolerance_);
+            double factor((fragment_mass_tolerance_ - fabs(pos1 - pos2 - *it)) / fragment_mass_tolerance_);
 #ifdef SCORE_WITNESSSET_DEBUG
             cerr << "scoreWitnessSet: diff " << pos1 << " (" << pos2 << ") " << *it << " (factor=" << factor << ") " << wit_score << " -> ";
 #endif
@@ -224,7 +224,7 @@ namespace OpenMS
         // is there a b-ion?; pos1 is ion, pos2 complementary ion
         if (fabs(pos1 + pos2 - 1 * Constants::PROTON_MASS_U - precursor_weight) < fragment_mass_tolerance_)
         {
-          DoubleReal factor((fragment_mass_tolerance_ - fabs(pos1 + pos2 - Constants::PROTON_MASS_U - precursor_weight)) / fragment_mass_tolerance_);
+          double factor((fragment_mass_tolerance_ - fabs(pos1 + pos2 - Constants::PROTON_MASS_U - precursor_weight)) / fragment_mass_tolerance_);
           factor *= 0.2;
 #ifdef SCORE_WITNESSSET_DEBUG
           cerr << "scoreWitnessSet: complementary " << pos1 << " (" << pos2 << ") (factor=" << factor << ") " << wit_score << " -> ";

@@ -107,27 +107,27 @@ public:
       TraceFitter<PeakType>::optimize_(x_init, functor);
     }
 
-    DoubleReal getLowerRTBound() const
+    double getLowerRTBound() const
     {
       return x0_ - 2.5 * sigma_;
     }
 
-    DoubleReal getUpperRTBound() const
+    double getUpperRTBound() const
     {
       return x0_ + 2.5 * sigma_;
     }
 
-    DoubleReal getHeight() const
+    double getHeight() const
     {
       return height_;
     }
 
-    DoubleReal getCenter() const
+    double getCenter() const
     {
       return x0_;
     }
 
-    DoubleReal getFWHM() const
+    double getFWHM() const
     {
       return 2.35482 * sigma_; // 2 * sqrt(2 * log(2)) * sigma
     }
@@ -135,33 +135,33 @@ public:
     /**
      * @brief Returns the sigma of the fitted gaussian model
      */
-    DoubleReal getSigma() const
+    double getSigma() const
     {
       return sigma_;
     }
 
-    bool checkMaximalRTSpan(const DoubleReal max_rt_span)
+    bool checkMaximalRTSpan(const double max_rt_span)
     {
       return 5.0 * sigma_ > max_rt_span * region_rt_span_;
     }
 
-    bool checkMinimalRTSpan(const std::pair<DoubleReal, DoubleReal>& rt_bounds, const DoubleReal min_rt_span)
+    bool checkMinimalRTSpan(const std::pair<double, double>& rt_bounds, const double min_rt_span)
     {
       return (rt_bounds.second - rt_bounds.first) < (min_rt_span * 5.0 * sigma_);
     }
 
-    DoubleReal getValue(DoubleReal rt) const
+    double getValue(double rt) const
     {
       return height_ * exp(-0.5 * pow(rt - x0_, 2) / pow(sigma_, 2));
     }
 
-    DoubleReal getArea()
+    double getArea()
     {
       // area under the curve, 2.5... is approx. sqrt(2 * pi):
       return 2.506628 * height_ * sigma_;
     }
 
-    String getGnuplotFormula(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType>& trace, const char function_name, const DoubleReal baseline, const DoubleReal rt_shift)
+    String getGnuplotFormula(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType>& trace, const char function_name, const double baseline, const double rt_shift)
     {
       std::stringstream s;
       s << String(function_name)  << "(x)= " << baseline << " + ";
@@ -170,10 +170,10 @@ public:
     }
 
 protected:
-    DoubleReal sigma_;
-    DoubleReal x0_;
-    DoubleReal height_;
-    DoubleReal region_rt_span_;
+    double sigma_;
+    double x0_;
+    double height_;
+    double region_rt_span_;
 
     static const Size NUM_PARAMS_ = 3;
 
@@ -227,11 +227,11 @@ protected:
         for (Size t = 0; t < m_data->traces_ptr->size(); ++t)
         {
           const FeatureFinderAlgorithmPickedHelperStructs::MassTrace<PeakType> & trace = (*m_data->traces_ptr)[t];
-          DoubleReal weight = m_data->weighted ? trace.theoretical_int : 1.0;
+          double weight = m_data->weighted ? trace.theoretical_int : 1.0;
           for (Size i = 0; i < trace.peaks.size(); ++i)
           {
-            DoubleReal rt = trace.peaks[i].first;
-            DoubleReal e = exp(c_fac * pow(rt - x0, 2));
+            double rt = trace.peaks[i].first;
+            double e = exp(c_fac * pow(rt - x0, 2));
             J(count, 0) = trace.theoretical_int * e * weight;
             J(count, 1) = trace.theoretical_int * height * e * (rt - x0) / sig_sq * weight;
             J(count, 2) = 0.125 * trace.theoretical_int * height * e * pow(rt - x0, 2) / sig_3 *weight;
@@ -251,23 +251,23 @@ protected:
 
       // aggregate data; some peaks (where intensity is zero) can be missing!
       // mapping: RT -> total intensity over all mass traces
-      std::list<std::pair<DoubleReal, DoubleReal> > total_intensities;
+      std::list<std::pair<double, double> > total_intensities;
       traces.computeIntensityProfile(total_intensities);
 
       const Size N = total_intensities.size();
       const Size LEN = 2; // window size: 2 * LEN + 1
 
-      std::vector<DoubleReal> totals(N + 2 * LEN); // pad with zeros at ends
+      std::vector<double> totals(N + 2 * LEN); // pad with zeros at ends
       Int index = LEN;
       // LOG_DEBUG << "Summed intensities:\n";
-      for (std::list<std::pair<DoubleReal, DoubleReal> >::iterator it =
+      for (std::list<std::pair<double, double> >::iterator it =
              total_intensities.begin(); it != total_intensities.end(); ++it)
       {
         totals[index++] = it->second;
         // LOG_DEBUG << it->second << std::endl;
       }
 
-      std::vector<DoubleReal> smoothed(N);
+      std::vector<double> smoothed(N);
       Size max_index = 0; // index of max. smoothed intensity
       if (N <= LEN + 1) // not enough distinct x values for smoothing
       {
@@ -281,7 +281,7 @@ protected:
       else // compute moving average for smoothing
       {       
         // LOG_DEBUG << "Smoothed intensities:\n";
-        DoubleReal sum = std::accumulate(&totals[LEN], &totals[2 * LEN], 0.0);
+        double sum = std::accumulate(&totals[LEN], &totals[2 * LEN], 0.0);
         for (Size i = 0; i < N; ++i)
         {
           sum += totals[i + 2 * LEN];
@@ -294,7 +294,7 @@ protected:
       LOG_DEBUG << "Maximum at index " << max_index << std::endl;
       height_ = smoothed[max_index] - traces.baseline;
       LOG_DEBUG << "height: " << height_ << std::endl;
-      std::list<std::pair<DoubleReal, DoubleReal> >::iterator it = total_intensities.begin();
+      std::list<std::pair<double, double> >::iterator it = total_intensities.begin();
       std::advance(it, max_index);
       x0_ = it->first;
       LOG_DEBUG << "x0: " << x0_ << std::endl;
@@ -305,23 +305,23 @@ protected:
       // find RT values where intensity is at half-maximum:
       index = max_index;
       while ((index > 0) && (smoothed[index] > height_ * 0.5)) --index;
-      DoubleReal left_height = smoothed[index];
+      double left_height = smoothed[index];
       it = total_intensities.begin();
       std::advance(it, index);
-      DoubleReal left_rt = it->first;
+      double left_rt = it->first;
       LOG_DEBUG << "Left half-maximum at index " << index << ", RT " << left_rt
                 << std::endl;
       index = max_index;
       while ((index < Int(N - 1)) && (smoothed[index] > height_ * 0.5)) ++index;
-      DoubleReal right_height = smoothed[index];
+      double right_height = smoothed[index];
       it = total_intensities.end();
       std::advance(it, index - Int(N));
-      DoubleReal right_rt = it->first;
+      double right_rt = it->first;
       LOG_DEBUG << "Right half-maximum at index " << index << ", RT "
                 << right_rt << std::endl;
       
-      DoubleReal delta_x = right_rt - left_rt;
-      DoubleReal alpha = (left_height + right_height) * 0.5 / height_; // ~0.5
+      double delta_x = right_rt - left_rt;
+      double alpha = (left_height + right_height) * 0.5 / height_; // ~0.5
       if (alpha >= 1) sigma_ = 1.0; // degenerate case, all values are the same
       else sigma_ = delta_x * 0.5 / sqrt(-2.0 * log(alpha));
       LOG_DEBUG << "sigma: " << sigma_ << std::endl;

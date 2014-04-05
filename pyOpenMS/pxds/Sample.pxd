@@ -39,19 +39,19 @@ cdef extern from "<OpenMS/METADATA/Sample.h>" namespace "OpenMS":
         void setState(SampleState state) nogil except +
 
         # returns the mass (in gram) (default: 0.0)
-        DoubleReal getMass() nogil except +
+        double getMass() nogil except +
         # sets the mass (in gram)
-        void setMass(DoubleReal mass) nogil except +
+        void setMass(double mass) nogil except +
 
         # returns the volume (in ml) (default: 0.0)
-        DoubleReal getVolume() nogil except +
+        double getVolume() nogil except +
         # sets the volume (in ml)
-        void setVolume(DoubleReal volume) nogil except +
+        void setVolume(double volume) nogil except +
 
         # returns the concentration (in g/l) (default: 0.0)
-        DoubleReal getConcentration() nogil except +
+        double getConcentration() nogil except +
         # sets the concentration (in g/l)
-        void setConcentration(DoubleReal concentration) nogil except +
+        void setConcentration(double concentration) nogil except +
 
         # returns a reference to the vector of subsamples that were combined to create this sample
         libcpp_vector[Sample] getSubsamples() nogil except +

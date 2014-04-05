@@ -123,14 +123,14 @@ protected:
     // Members
     UInt sgolay_frame_length_;
     UInt sgolay_polynomial_order_;
-    DoubleReal gauss_width_;
+    double gauss_width_;
     bool use_gauss_;
     bool remove_overlapping_;
 
-    DoubleReal peak_width_;
-    DoubleReal signal_to_noise_;
+    double peak_width_;
+    double signal_to_noise_;
 
-    DoubleReal sn_win_len_;
+    double sn_win_len_;
     UInt sn_bin_count_;
     String method_;
 

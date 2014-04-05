@@ -265,7 +265,7 @@ START_SECTION((void extractChannels(const MSExperiment<Peak1D>&ms_exp_data, Cons
 
     TEST_EQUAL(cm_out.size(), 4)
     ABORT_IF(cm_out.size() != 4)
-    TEST_EQUAL(((DoubleReal)cm_out[0].getMetaValue("precursor_intensity")) != 0.0, true)
+    TEST_EQUAL(((double)cm_out[0].getMetaValue("precursor_intensity")) != 0.0, true)
 
     p.setValue("keep_unannotated_precursor", "true");
     ice.setParameters(p);
@@ -307,7 +307,7 @@ START_SECTION((void extractChannels(const MSExperiment<Peak1D>&ms_exp_data, Cons
     ABORT_IF(cm_out.size() != 4)
     for(ConsensusMap::Iterator cf = cm_out.begin(); cf != cm_out.end(); ++cf)
     {
-      DoubleReal prec_intensity = cf->getMetaValue("precursor_intensity");
+      double prec_intensity = cf->getMetaValue("precursor_intensity");
       TEST_EQUAL(prec_intensity > 5300000.0, true)
     }
   }

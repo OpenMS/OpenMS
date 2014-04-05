@@ -230,11 +230,11 @@ START_SECTION((void load(const String &filename, ProteinIdentification &protein_
   AASequence aa_sequence_3;
   vector<AASequence> temp;
 
-  aa_sequence_1.setStringSequence("LHASGITVTEIPVTATNFK");
+  aa_sequence_1 = AASequence::fromString("LHASGITVTEIPVTATNFK");
   aa_sequence_1.setModification(16, "Deamidated");
-  aa_sequence_2.setStringSequence("MRSLGYVAVISAVATDTDK");
+  aa_sequence_2 = AASequence::fromString("MRSLGYVAVISAVATDTDK");
   aa_sequence_2.setModification(2, "Phospho");
-  aa_sequence_3.setStringSequence("HSKLSAK");
+  aa_sequence_3 = AASequence::fromString("HSKLSAK");
   aa_sequence_3.setModification(4, "Phospho");
   temp.push_back(aa_sequence_1);
   temp.push_back(aa_sequence_2);

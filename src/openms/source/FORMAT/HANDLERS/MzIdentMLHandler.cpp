@@ -229,7 +229,7 @@ namespace OpenMS
         current_id_hit_.setRank(attributeAsInt_(attributes, "rank"));
 
         // optional attributes
-        DoubleReal double_value(0);
+        double double_value(0);
         if (optionalAttributeAsDouble_(double_value, attributes, "calculatedMassToCharge"))
         {
           current_id_hit_.setCalculatedMassToCharge(double_value);

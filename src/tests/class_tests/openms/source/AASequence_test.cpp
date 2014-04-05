@@ -227,14 +227,14 @@ START_SECTION((EmpiricalFormula getFormula(Residue::ResidueType type = Residue::
   TEST_EQUAL(seq.getFormula(Residue::BIon, 0), EmpiricalFormula("O9SH31N5C24"))
 END_SECTION
 
-START_SECTION((DoubleReal getAverageWeight(Residue::ResidueType type = Residue::Full, Int charge=0) const))
+START_SECTION((double getAverageWeight(Residue::ResidueType type = Residue::Full, Int charge=0) const))
   AASequence seq = AASequence::fromString("DFPIANGER");
   TOLERANCE_ABSOLUTE(0.01)
   TEST_REAL_SIMILAR(seq.getAverageWeight(), double(1018.08088))
   TEST_REAL_SIMILAR(seq.getAverageWeight(Residue::YIon, 1), double(1019.09))
 END_SECTION
 
-START_SECTION((DoubleReal getMonoWeight(Residue::ResidueType type = Residue::Full, Int charge=0) const))
+START_SECTION((double getMonoWeight(Residue::ResidueType type = Residue::Full, Int charge=0) const))
   AASequence seq = AASequence::fromString("DFPIANGER");
   TOLERANCE_ABSOLUTE(0.01)
   TEST_REAL_SIMILAR(seq.getMonoWeight(), double(1017.48796))
@@ -620,7 +620,6 @@ END_SECTION
 
 START_SECTION(void getAAFrequencies(Map<String, Size>& frequency_table) const)
   AASequence a = AASequence::fromString("THREEAAAWITHYYY");
-
   Map<String, Size> table;
   a.getAAFrequencies(table);
 

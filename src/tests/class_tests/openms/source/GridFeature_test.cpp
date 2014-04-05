@@ -120,7 +120,7 @@ START_SECTION((const std::set<AASequence>& getAnnotations() const))
 }
 END_SECTION
 
-START_SECTION((DoubleReal getRT() const))
+START_SECTION((double getRT() const))
 {
   BaseFeature bf;
   bf.setRT(4.56);
@@ -129,7 +129,7 @@ START_SECTION((DoubleReal getRT() const))
 }
 END_SECTION
 
-START_SECTION((DoubleReal getMZ() const))
+START_SECTION((double getMZ() const))
 {
   BaseFeature bf;
   bf.setMZ(4.56);

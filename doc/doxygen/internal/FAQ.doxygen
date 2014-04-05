@@ -127,8 +127,6 @@
           - CMAKE_BUILD_TYPE
           - CMAKE_FIND_ROOT_PATH
           - STL_DEBUG
-          - DB_TEST
-          - QT_DB_PLUGIN
           - MT_CUDA_BUILD_TYPE
         Their description will be displayed when you call ccmake.
 

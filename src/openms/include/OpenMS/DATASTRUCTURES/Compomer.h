@@ -68,7 +68,7 @@ public:
     Compomer();
 
     /// Constructor with net-charge and mass
-    Compomer(Int net_charge, DoubleReal mass, DoubleReal log_p);
+    Compomer(Int net_charge, double mass, double log_p);
 
     /// Copy C'tor
     Compomer(const Compomer & p);
@@ -98,7 +98,7 @@ public:
     const Int & getNetCharge() const;
 
     /// mass of all contained adducts
-    const DoubleReal & getMass() const;
+    const double & getMass() const;
 
     /// summed positive charges of contained adducts
     const Int & getPositiveCharges() const;
@@ -107,10 +107,10 @@ public:
     const Int & getNegativeCharges() const;
 
     /// return log probability
-    const DoubleReal & getLogP() const;
+    const double & getLogP() const;
 
     /// return log probability
-    const DoubleReal & getRTShift() const;
+    const double & getRTShift() const;
 
     /// get adducts with their abundance as compact string for both sides
     String getAdductsAsString() const;
@@ -163,11 +163,11 @@ private:
 
     CompomerComponents cmp_; //< adducts of left and right side
     Int net_charge_;         //< net charge (right - left)
-    DoubleReal mass_;        //< net mass (right - left)
+    double mass_;        //< net mass (right - left)
     Int pos_charges_;        //< net charges on the right
     Int neg_charges_;        //< net charges on the left
-    DoubleReal log_p_;   //< log probability of compomer
-    DoubleReal rt_shift_; //< expected net RT shift of compomer (-shift_leftside + shift_rightside)
+    double log_p_;   //< log probability of compomer
+    double rt_shift_; //< expected net RT shift of compomer (-shift_leftside + shift_rightside)
     Size id_;
 
   }; // \Compomer
