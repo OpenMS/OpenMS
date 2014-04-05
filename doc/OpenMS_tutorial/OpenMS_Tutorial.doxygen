@@ -96,7 +96,7 @@ The following	image shows the overall structure of %OpenMS:
 
 Without looking into the details of %OpenMS the situation is very simple. Applications
 can be implemented using %OpenMS, which in turn relies on several external
-libraries: <i>Qt</i> provides visualization, database support and a
+libraries: <i>Qt</i> provides visualization and a
 platform abstraction layer. <i>Xerces</i> allows XML file parsing.
 <i>libSVM</i> is used for machine learning tasks. The <i>Computational
 Geometry Algorithms Library</i> (CGAL) provides data structures and
@@ -109,7 +109,7 @@ handling), basic data structures (e.g. string, points, ranges) and
 system-specific classes (e.g. file system, time). The kernel classes, which
 capture the actual MS data and metadata, are built upon the foundation classes.
 Finally, there is a layer of higher-level functionality that relies on the
-kernel classes. This layer contains database I/O, file I/O supporting several
+kernel classes. This layer contains file I/O supporting several
 file formats, data reduction functionality and all other analysis algorithms.
 
 */
@@ -593,9 +593,9 @@ file formats, data reduction functionality and all other analysis algorithms.
 
 /**
 
-@page tutorial_format File and DB access
+@page tutorial_format File access
 
-  All classes for file and database IO can be found in the @a FORMAT folder.
+  All classes for file IO can be found in the @a FORMAT folder.
   For most file formats, you can use the generic interfaces described in the
   section "File adapter classes" but for some applications (e.g. where CPU or
   memory usage are of concern), also consult the specific interfaces that
@@ -727,14 +727,9 @@ file formats, data reduction functionality and all other analysis algorithms.
 </table>
 \endhtmlonly
 
-@section format_db DB access
-
-  For database access, the class @a DBAdapter is used. As its interface is very similar
-  to the interface of the file adapters, no example is shown here.
-
 @section format_options PeakFileOptions
 
-  In order to have more control over loading data from files or databases,
+  In order to have more control over loading data from files,
   most adapters can be configured using @a PeakFileOptions. The following options
   are available:
   - only a specific retention time range is loaded

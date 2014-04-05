@@ -206,24 +206,6 @@ add_test("TOPP_MapNormalizer_1_out1" ${DIFF} -in1 MapNormalizer.tmp -in2 ${DATA_
 set_tests_properties("TOPP_MapNormalizer_1_out1" PROPERTIES DEPENDS "TOPP_MapNormalizer_1")
 
 #------------------------------------------------------------------------------
-# DBImporter tests
-if (DB_TEST)
-	add_test("TOPP_DBImporter_1" ${TOPP_BIN_PATH}/DBImporter -init -ini ${DATA_DIR_TOPP_BIN}/DBImporter.ini)
-  add_test("TOPP_DBImporter_2" ${TOPP_BIN_PATH}/DBImporter -test -in ${DATA_DIR_TOPP}/DBImporter_input.mzML -ini ${DATA_DIR_TOPP_BIN}/DBImporter.ini)
-endif()
-
-#------------------------------------------------------------------------------
-# DBExporter tests
-if (DB_TEST)
-	add_test("TOPP_DBExporter_1" ${TOPP_BIN_PATH}/DBExporter -test -out DBExporter.tmp -ini ${DATA_DIR_TOPP_BIN}/DBExporter.ini -id 1)
-  add_test("TOPP_DBExporter_1_out1" ${DIFF} -in1 DBExporter.tmp -in2 ${DATA_DIR_TOPP}/DBExporter_output.mzML )
-set_tests_properties("TOPP_DBExporter_1_out1" PROPERTIES DEPENDS "TOPP_DBExporter_1")
-	add_test("TOPP_DBExporter_2" ${TOPP_BIN_PATH}/DBExporter -test -out DBExporter.tmp -ini ${DATA_DIR_TOPP_BIN}/DBExporter.ini -query "SELECT 1")
-  add_test("TOPP_DBExporter_2_out1" ${DIFF} -in1 DBExporter.tmp -in2 ${DATA_DIR_TOPP}/DBExporter_output.mzML )
-set_tests_properties("TOPP_DBExporter_2_out1" PROPERTIES DEPENDS "TOPP_DBExporter_2")
-endif()
-
-#------------------------------------------------------------------------------
 # Decharger tests
 add_test("TOPP_Decharger_1" ${TOPP_BIN_PATH}/Decharger -test -in ${DATA_DIR_TOPP}/Decharger_input.featureXML -ini ${DATA_DIR_TOPP}/Decharger_input.ini -out_fm Decharger_output_fm.tmp -out_cm Decharger_output.tmp -outpairs Decharger_p_output.tmp)
 add_test("TOPP_Decharger_1_out1" ${DIFF} -whitelist "id=" "href=" -in1 Decharger_output.tmp -in2 ${DATA_DIR_TOPP}/Decharger_output.consensusXML )

@@ -80,7 +80,6 @@ namespace OpenMS
       return *this;
 
     ExperimentalSettings::operator=(source);
-    //~ PersistentObject::operator=(source);
 
     //~ reassign members
 
