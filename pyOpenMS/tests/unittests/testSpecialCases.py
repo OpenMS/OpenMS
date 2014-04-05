@@ -38,8 +38,7 @@ def testParamEntry():
     p = pyopenms.ParamEntry()
     message = pyopenms.String()
     assert p.isValid(message)
-    assert message.c_str() == ""
-
+    assert message.c_str() == b""
 
 def testConvexHull2D():
     h = pyopenms.ConvexHull2D()

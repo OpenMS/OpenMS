@@ -36,7 +36,8 @@
         <br>Visual C++ Express 2012 and above support Win64 and OpenMP by default. For older editions (2010 and below) you can find tutorials on how to enable them on the internet.
         <br>If you work with VS2008, installation of the Service Pack 1 (SP1) is required,
             otherwise VS might crash during the compilation of the contrib package.
-        <br><b>Not supported are MinGW (g++ based compiler) and VS2003 (and earlier). Do not use a MinGW-enabled shell since CMake will get confused!</b> Other compilers which are close to the VS toolchain might work, but are not tested.
+        <br><b>Not supported are MinGW (g++ based compiler) and VS2003 (and earlier). Do not use a MinGW-enabled shell since CMake will get confused!</b>
+            Other compilers which are close to the VS toolchain might work, but are not tested.
     <LI>Have CMake 2.8.3 or greater installed (see http://www.cmake.org)<br>
              [VS2012 requires CMake 2.8.10 or later, VS2013 needs CMake 2.8.11.2]
     <LI>If you work with the GIT version of %OpenMS (instead of the Release package), we recommend downloading
@@ -73,12 +74,13 @@
           <LI>download Qt <b>source</b> from http://qt-project.org/downloads as .zip or .tar.gz (or use the prebuild binaries exactly matching your compiler!)
           <LI>extract zip file to a temp location (called <path-to-tmp-qt> henceforth)
                     <LI>[VS2012 and VS2013 only] there is a bug in the latest Qt (4.8.4 and 4.8.5) preventing compilation. Look at http://stackoverflow.com/questions/12113400/compiling-qt-4-8-x-for-visual-studio-2012 for a fix.
-                            Its meant for 4.8.3 though. For 4.8.4 and 4.8.5 you only need to fix HashSet.h!
+                            It's meant for 4.8.3 though. For 4.8.4 and 4.8.5 you only need to fix HashSet.h!
                             If you use VS2013 you additionally need to remove three functions from <path-to-tmp-qt>\src\3rdparty\webkit\Source\JavaScriptCore\wtf\MathExtras.h,
-                            which are already defined by VS12 (round(), roundf and signbit()).
+                            which are already defined by VS2013 (round(), roundf and signbit()).
           <LI>open a Visual Studio Command Line (use x64 version if you want 64bit apps!)
           <LI>$ cd <path-to-tmp-qt>
                     <LI>if you have multiple versions of VS installed you might need to provide the "-platform" param for the next configure command (e.g., -platform win32-msvc2012)
+					<LI>[VS2013 only] Qt 4.8.5 does not support VS2013 out of the box. You need to change QMAKE_COMPILER_DEFINES to <tt>+= _MSC_VER=<b>1800</b> WIN32</tt> in &lt;qt&gt;\mkspecs\win32-msvc2012 and call configure.exe with <tt>-platform win32-msvc2012</tt>.
           <LI>$ configure.exe -opensource -nomake demos -nomake examples -no-script -webkit -prefix <path-to-qt>  ...[more options, e.g. -graphicssystem opengl]
           <LI>$ nmake
           <LI>$ nmake install
@@ -145,7 +147,7 @@ cmake -G "Visual Studio 9 2008 Win64" "c:\dev\contrib"
     </OL>
 
     VS2013 requires SeqAn 1.4.1, which is currently not shipped in the contrib. However, just download the SeqAn source code from www.seqan.de and replace
-    the headers in &lt;path_to_contrib_build&gt;/include/seqan with the headers from the seqan source.
+    the headers in &lt;path_to_contrib_build&gt;/include/seqan with the headers from the SeqAn source.
 
 @section create_doc Building the documentation (optional)
 

@@ -186,7 +186,6 @@ set(format_executables_list
   PepNovoOutfile_test
   PepXMLFileMascot_test
   PepXMLFile_test
-  PersistentObject_test
   ProtXMLFile_test
   SVOutStream_test
   SemanticValidator_test
@@ -209,11 +208,6 @@ set(format_executables_list
   MSDataCachedConsumer_test
   MSDataTransformingConsumer_test
 )
-
-if (DB_TEST)
-  list(APPEND format_executables_list DBConnection_test)
-  list(APPEND format_executables_list DBAdapter_test)
-endif()
 
 set(math_executables_list
   AsymmetricStatistics_test

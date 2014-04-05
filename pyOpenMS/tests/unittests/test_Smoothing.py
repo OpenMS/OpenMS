@@ -7,7 +7,7 @@ class TestGaussFilter(unittest.TestCase):
 
     def setUp(self):
         dirname = os.path.dirname(os.path.abspath(__file__))
-        self.filename = os.path.join(dirname, "test2.mzML")
+        self.filename = os.path.join(dirname, "test2.mzML").encode()
         self.exp = pyopenms.MSExperiment()
         pyopenms.MzMLFile().load(self.filename, self.exp)
 
@@ -30,7 +30,7 @@ class TestSavitzkyGolayFilter(unittest.TestCase):
 
     def setUp(self):
         dirname = os.path.dirname(os.path.abspath(__file__))
-        self.filename = os.path.join(dirname, "test2.mzML")
+        self.filename = os.path.join(dirname, "test2.mzML").encode()
         self.exp = pyopenms.MSExperiment()
         pyopenms.MzMLFile().load(self.filename, self.exp)
 

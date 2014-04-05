@@ -48,10 +48,6 @@
   - @subpage TOPP_INIFileEditor - An editor for %OpenMS configuration files.
 
   <b>File Handling</b>
-<!--  %% removed from Docu (still available in TOPP) because of lack of usage/support
-  - @subpage TOPP_DBExporter - Exports data from an %OpenMS database to a file.
-  - @subpage TOPP_DBImporter - Imports data to an %OpenMS database.
--->
   - @subpage TOPP_DTAExtractor - Extracts spectra of an MS run file to several files in DTA format.
   - @subpage TOPP_FileConverter - Converts between different MS file formats.
   - @subpage TOPP_FileFilter - Extracts or manipulates portions of data from peak, feature or consensus feature files.

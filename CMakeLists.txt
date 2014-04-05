@@ -65,8 +65,6 @@ include(Dart)
 # CMAKE_FIND_ROOT_PATH
 # CMAKE_BUILD_TYPE
 # STL_DEBUG
-# DB_TEST
-# QT_DB_PLUGIN
 #------------------------------------------------------------------------------
 option(MT_ENABLE_OPENMP "Enable OpenMP support" ON)
 option(BOOST_USE_STATIC "Use Boost static libraries." ON)

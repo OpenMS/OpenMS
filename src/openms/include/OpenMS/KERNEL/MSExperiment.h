@@ -37,7 +37,6 @@
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
-#include <OpenMS/FORMAT/DB/PersistentObject.h>
 #include <OpenMS/KERNEL/AreaIterator.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
@@ -67,8 +66,7 @@ namespace OpenMS
   template <typename PeakT = Peak1D, typename ChromatogramPeakT = ChromatogramPeak>
   class MSExperiment :
     public RangeManager<2>,
-    public ExperimentalSettings,
-    public PersistentObject
+    public ExperimentalSettings
   {
 
 public:
@@ -179,7 +177,6 @@ public:
     MSExperiment() :
       RangeManagerType(),
       ExperimentalSettings(),
-      PersistentObject(),
       ms_levels_(),
       total_size_(0)
     {}
@@ -188,7 +185,6 @@ public:
     MSExperiment(const MSExperiment & source) :
       RangeManagerType(source),
       ExperimentalSettings(source),
-      PersistentObject(source),
       ms_levels_(source.ms_levels_),
       total_size_(source.total_size_),
       chromatograms_(source.chromatograms_),
@@ -202,7 +198,6 @@ public:
 
       RangeManagerType::operator=(source);
       ExperimentalSettings::operator=(source);
-      PersistentObject::operator=(source);
 
       ms_levels_     = source.ms_levels_;
       total_size_    = source.total_size_;
@@ -740,11 +735,6 @@ public:
       this->ExperimentalSettings::operator=(from);
       from.ExperimentalSettings::operator=(tmp);
 
-      //swap persistent object
-      tmp.PersistentObject::operator=(* this);
-      this->PersistentObject::operator=(from);
-      from.PersistentObject::operator=(tmp);
-
       // swap chromatograms
       std::swap(chromatograms_, from.chromatograms_);
 
@@ -862,7 +852,6 @@ public:
       if (clear_meta_data)
       {
         clearRanges();
-        clearId();
         this->ExperimentalSettings::operator=(ExperimentalSettings());             // no "clear" method
         chromatograms_.clear();
         ms_levels_.clear();
@@ -872,14 +861,6 @@ public:
 
 protected:
 
-    // Docu in base class
-    virtual void clearChildIds_()
-    {
-      for (Size i = 0; i < spectra_.size(); ++i)
-      {
-        spectra_[i].clearId(true);
-      }
-    }
 
     /// MS levels of the data
     std::vector<UInt> ms_levels_;

@@ -7,7 +7,7 @@ class TestMorphologicalFilter(unittest.TestCase):
 
     def setUp(self):
         dirname = os.path.dirname(os.path.abspath(__file__))
-        self.filename = os.path.join(dirname, "test2.mzML")
+        self.filename = os.path.join(dirname, "test2.mzML").encode()
         self.exp = pyopenms.MSExperiment()
         pyopenms.MzMLFile().load(self.filename, self.exp)
 
@@ -19,7 +19,7 @@ class TestMorphologicalFilter(unittest.TestCase):
         old_firstspec = self.exp[0]
         # needs different parameters to have any effect ...
         params = pyopenms.MorphologicalFilter().getDefaults();
-        params.setValue("struc_elem_length", 0.05, '')
+        params.setValue(b"struc_elem_length", 0.05, b'')
         thisfilter.setParameters(params);
         thisfilter.filterExperiment(self.exp)
 

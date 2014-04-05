@@ -37,7 +37,6 @@
 
 #include <OpenMS/METADATA/ChromatogramSettings.h>
 #include <OpenMS/METADATA/MetaInfoDescription.h>
-#include <OpenMS/FORMAT/DB/PersistentObject.h>
 #include <OpenMS/KERNEL/RangeManager.h>
 #include <OpenMS/KERNEL/ComparatorUtils.h>
 #include <OpenMS/KERNEL/ChromatogramPeak.h>
@@ -53,8 +52,7 @@ namespace OpenMS
   class MSChromatogram :
     public std::vector<PeakT>,
     public RangeManager<1>,
-    public ChromatogramSettings,
-    public PersistentObject
+    public ChromatogramSettings
   {
 
 public:
@@ -122,7 +120,6 @@ public:
       ContainerType(),
       RangeManager<1>(),
       ChromatogramSettings(),
-      PersistentObject(),
       name_(),
       float_data_arrays_(),
       string_data_arrays_(),
@@ -134,7 +131,6 @@ public:
       ContainerType(source),
       RangeManager<1>(source),
       ChromatogramSettings(source),
-      PersistentObject(source),
       name_(source.name_),
       float_data_arrays_(source.float_data_arrays_),
       string_data_arrays_(source.string_data_arrays_),
@@ -153,7 +149,6 @@ public:
       ContainerType::operator=(source);
       RangeManager<1>::operator=(source);
       ChromatogramSettings::operator=(source);
-      PersistentObject::operator=(source);
 
       name_ = source.name_;
       float_data_arrays_ = source.float_data_arrays_;
@@ -568,7 +563,6 @@ public:
       if (clear_meta_data)
       {
         clearRanges();
-        clearId();
         this->ChromatogramSettings::operator=(ChromatogramSettings());   // no "clear" method
         name_.clear();
         float_data_arrays_.clear();
@@ -580,9 +574,6 @@ public:
     ///@}
 
 protected:
-    // Docu in base class
-    virtual void clearChildIds_()
-    {}
 
     /// Name
     String name_;

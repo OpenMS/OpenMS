@@ -44,15 +44,15 @@
         else:
             raise Exception("can not handle parameters of type %s" % (map(type, a)))
 
-    def get(self, str key, default=None):
+    def get(self, bytes key, default=None):
         if self.exists(key):
             return self.getValue(key)
         return default
 
-    def __getitem__(self, str key):
+    def __getitem__(self, bytes key):
         return self.getValue(key)
 
-    def __setitem__(self, str key, value):
+    def __setitem__(self, bytes key, value):
         tags = self.getTags(key)
         desc = self.getDescription(key)
         self.setValue(key, value, desc, tags)

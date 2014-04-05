@@ -1,4 +1,5 @@
 # input-encoding: latin-1
+from __future__ import print_function
 
 import distribute_setup
 distribute_setup.use_setuptools()
@@ -19,7 +20,7 @@ if iswin and IS_DEBUG:
     raise Exception("building pyopenms on windows in debug mode not tested yet.")
 
 # use autowrap to generate Cython and .cpp file for wrapping OpenMS:
-import cPickle
+import pickle
 import os
 import glob
 import shutil
@@ -34,7 +35,7 @@ for include in extra_includes:
 
 
 persisted_data_path = "include_dir.bin"
-autowrap_include_dirs = cPickle.load(open(persisted_data_path, "rb"))
+autowrap_include_dirs = pickle.load(open(persisted_data_path, "rb"))
 
 from setuptools import setup, Extension
 import time
@@ -71,9 +72,9 @@ elif sys.platform == "linux2":
 elif sys.platform == "darwin":
     libraries = ["OpenMS", "OpenSwathAlgo", "SuperHirn", "xerces-c"]
 else:
-    print
-    print "platform ", sys.platform, "not supported yet"
-    print
+    print("\n")
+    print("platform ", sys.platform, "not supported yet")
+    print("\n")
     exit()
 
 library_dirs = [OPEN_MS_BUILD_DIR,
