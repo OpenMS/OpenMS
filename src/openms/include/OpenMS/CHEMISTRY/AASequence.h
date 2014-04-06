@@ -48,7 +48,6 @@ namespace OpenMS
 {
 
   //forward declarations
-  class ResidueDB;
   class ResidueModification;
 
   /**
@@ -524,19 +523,11 @@ protected:
     friend OPENMS_DLLAPI std::istream & operator>>(std::istream & is, const AASequence & peptide);
     //@}
 
-    static AASequence fromString(const String & s)
-    {
-      AASequence aas;
-      parseString_(aas, s);
-      return aas;
-    }
+    // create AASequence object by parsing a String
+    static AASequence fromString(const String & s);
 
-    static AASequence fromString(const char * s)
-    {
-      AASequence aas;
-      parseString_(aas, String(s));
-      return aas;
-    }
+    // create AASequence object by parsing a const char *
+    static AASequence fromString(const char * s);
 
 protected:
 

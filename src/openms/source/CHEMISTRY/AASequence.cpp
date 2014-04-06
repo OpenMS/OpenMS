@@ -66,25 +66,6 @@ namespace OpenMS
   {
   }
 
-  /*
-  AASequence::AASequence(const String & peptide) :
-    valid_(true),
-    n_term_mod_(0),
-    c_term_mod_(0)
-  {
-    parseString_(peptide_, peptide);
-  }
-  */
-
-  /*
-  AASequence::AASequence(const char * peptide) :
-    valid_(true),
-    n_term_mod_(0),
-    c_term_mod_(0)
-  {
-    parseString_(peptide_, String(peptide));
-  }
-*/
   AASequence::~AASequence()
   {
   }
@@ -135,7 +116,7 @@ namespace OpenMS
     ss << *this;
     return String(ss.str());
   }
-
+  
   String AASequence::toUnmodifiedString() const
   {
     if (valid_)
@@ -398,20 +379,6 @@ namespace OpenMS
     return *this;
   }
 
-/*
-  AASequence & AASequence::operator+=(const String & peptide)
-  {
-    vector<const Residue *> vec;
-    parseString_(vec, peptide);
-    for (Size i = 0; i != vec.size(); ++i)
-    {
-      peptide_.push_back(vec[i]);
-    }
-    return *this;
-  }
-
-
-*/
   Size AASequence::size() const
   {
     return peptide_.size();
@@ -616,31 +583,10 @@ namespace OpenMS
     return true;
   }
 
-  /*
-  bool AASequence::operator==(const String & peptide) const
-  {
-    AASequence sequence(peptide);
-    return *this == sequence;
-  }
-
-
-  bool AASequence::operator==(const char * peptide) const
-  {
-    return *this == String(peptide);
-  }
-*/
   bool AASequence::operator!=(const AASequence & peptide) const
   {
     return !(*this == peptide);
   }
-
-  /*
-  bool AASequence::operator!=(const String & sequence) const
-  {
-    return !(*this == sequence);
-  }
-  */
-
 
   bool AASequence::empty() const
   {
@@ -1146,5 +1092,19 @@ namespace OpenMS
   bool AASequence::hasCTerminalModification() const
   {
     return c_term_mod_ != 0;
+  }
+
+  AASequence AASequence::fromString(const String & s)
+  {
+    AASequence aas;
+    parseString_(aas, s);
+    return aas;
+  }
+
+  AASequence AASequence::fromString(const char * s)
+  {
+    AASequence aas;
+    parseString_(aas, String(s));
+    return aas;
   }
 }
