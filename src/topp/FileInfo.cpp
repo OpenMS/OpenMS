@@ -543,12 +543,20 @@ protected:
     }
     else     //peaks
     {
+
+      size_t mem1, mem2;
+      SysInfo::getProcessMemoryConsumption(mem1);
+      
       if (!fh.loadExperiment(in, exp, in_type, log_type_))
       {
         writeLog_("Unsupported or corrupt input file. Aborting!");
         printUsage_();
         return ILLEGAL_PARAMETERS;
       }
+
+      // report memory consumption
+      SysInfo::getProcessMemoryConsumption(mem2);
+      std::cout << "\n\nMem Usage while loading: " << (mem2-mem1)/1024 << " MB" << std::endl;
 
       //check if the meta data indicates that this is peak data
       UInt meta_type = SpectrumSettings::UNKNOWN;

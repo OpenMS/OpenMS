@@ -37,8 +37,9 @@
 #ifdef OPENMS_WINDOWSPLATFORM
 #include "windows.h"
 #include "psapi.h"
-#elif _APPLE__
+#elif __APPLE__
 #include <mach/mach.h>
+#include <mach/mach_init.h>
 #else
 #include <cstdio>
 #include <unistd.h>
@@ -46,51 +47,48 @@
 
 namespace OpenMS
 {
-	bool SysInfo::getProcessMemoryConsumption(size_t& mem_virtual) 
-	{
-		mem_virtual = 0;
+  bool SysInfo::getProcessMemoryConsumption(size_t& mem_virtual)
+  {
+    mem_virtual = 0;
 #ifdef OPENMS_WINDOWSPLATFORM
-		PROCESS_MEMORY_COUNTERS_EX pmc;
-		if (!GetProcessMemoryInfo(GetCurrentProcess(), (PROCESS_MEMORY_COUNTERS*)&pmc, sizeof(pmc)))
-		{
-			return false;
-		}
-		mem_virtual = pmc.PrivateUsage / 1024;  // byte to KB
-#elif _APPLE__
-		struct task_basic_info t_info;
-		mach_msg_type_number_t t_info_count = TASK_BASIC_INFO_COUNT;
+    PROCESS_MEMORY_COUNTERS_EX pmc;
+    if (!GetProcessMemoryInfo(GetCurrentProcess(), (PROCESS_MEMORY_COUNTERS*)&pmc, sizeof(pmc)))
+    {
+      return false;
+    }
+    mem_virtual = pmc.PrivateUsage / 1024; // byte to KB
+#elif __APPLE__
+    struct task_basic_info_64 t_info;
+    mach_msg_type_number_t t_info_count = TASK_BASIC_INFO_64_COUNT;
 
-		if (KERN_SUCCESS != task_info(mach_task_self(),
-			TASK_BASIC_INFO, (task_info_t)&t_info,
-			&t_info_count))
-		{
-			return false;
-		}
-		mem_virtual = t_info.resident_size / 1024;  // byte to KB
-		//mem_resident = t_info.virtual_size / 1024;  // byte to KB
+    if (KERN_SUCCESS != task_info(mach_task_self(),
+                                  TASK_BASIC_INFO_64, (task_info_t)&t_info,
+                                  &t_info_count))
+    {
+      return false;
+    }
+    mem_virtual = t_info.resident_size / 1024; // byte to KB
 #else // Linux
-		
-        long rss = 0L;
-	FILE* fp = NULL;
-	if ( (fp = fopen( "/proc/self/statm", "r" )) == NULL )
-	{
-		return false;
-	}
-	char buf[1024];
-	fread(buf, 1, 1024, fp);
-	//printf("%s", buf);
-        // get 'data size (heap + stack)'  (residence size (vmRSS) is usually too small and not changing, total memory (vmSize) is changing but usually too large)
-	if ( sscanf( buf, "%*s%*s%*s%*s%*s%ld", &rss ) != 1 )
-	{
-		fclose( fp );
-                return false;
+    long rss = 0L;
+    FILE* fp = NULL;
+    if ((fp = fopen("/proc/self/statm", "r")) == NULL)
+    {
+      return false;
+    }
+    char buf[1024];
+    fread(buf, 1, 1024, fp);
+    //printf("%s", buf);
+    // get 'data size (heap + stack)'  (residence size (vmRSS) is usually too small and not changing, total memory (vmSize) is changing but usually too large)
+    if (sscanf(buf, "%*s%*s%*s%*s%*s%ld", &rss) != 1)
+    {
+      fclose(fp);
+      return false;
 
-	}
-	fclose( fp );
-	mem_virtual = (size_t)rss * (size_t)sysconf( _SC_PAGESIZE) / 1024;
-
+    }
+    fclose(fp);
+    mem_virtual = (size_t)rss * (size_t)sysconf(_SC_PAGESIZE) / 1024;
 #endif
-		return true;
-	}
+    return true;
+  }
 
 } // namespace OpenMS

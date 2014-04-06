@@ -36,14 +36,14 @@
 #define OPENMS_SYSTEM_SYSINFO_H
 
 #include <OpenMS/config.h>
-#include <OpenMS/CONCEPT/Types.h>
+#include <cstddef>
 
 namespace OpenMS
 {
 
 	/**
 	@brief Some static functions to get system information
-		
+
 	Supports current memory consumption.
 
 	*/
