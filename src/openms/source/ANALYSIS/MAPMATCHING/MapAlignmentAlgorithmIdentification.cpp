@@ -271,7 +271,7 @@ namespace OpenMS
     {
       if (hasGoodHit_(*pep_it))
       {
-		rt_data[pep_it->getHits()[0].getSequence().toString()].push_back(pep_it->getRT());
+		    rt_data[pep_it->getHits()[0].getSequence().toString()].push_back(pep_it->getRT());
       }
     }
   }

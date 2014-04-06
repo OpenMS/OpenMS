@@ -84,7 +84,7 @@ namespace OpenMS
         charge = 1;
       }
 
-	  double exp_mz = identification.getMZ();
+	    double exp_mz = identification.getMZ();
       double theo_mz =  (it->getSequence().getMonoWeight() + (double)charge * Constants::PROTON_MASS_U) / (double)charge;
       double error(exp_mz - theo_mz);
 

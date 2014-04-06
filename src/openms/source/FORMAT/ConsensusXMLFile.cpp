@@ -878,9 +878,9 @@ namespace OpenMS
     os << "higher_score_better=\"" << (id.isHigherScoreBetter() ? "true" : "false") << "\" ";
     os << "significance_threshold=\"" << id.getSignificanceThreshold() << "\" ";
     //mz
-	if (id.hasMZ())
+	  if (id.hasMZ())
     {
-	  os << "MZ=\"" << id.getMZ() << "\" ";
+	    os << "MZ=\"" << id.getMZ() << "\" ";
     }
     // rt
     if (id.hasRT())
@@ -936,9 +936,9 @@ namespace OpenMS
       os << indent << "\t</PeptideHit>\n";
     }
 
-	//do not write "spectrum_reference" since it is written as attribute already
-	MetaInfoInterface tmp = id;
-	tmp.removeMetaValue("spectrum_reference");
+	  // do not write "spectrum_reference" since it is written as attribute already
+	  MetaInfoInterface tmp = id;
+	  tmp.removeMetaValue("spectrum_reference");
     writeUserParam_("userParam", os, tmp, indentation_level + 1);
     os << indent << "</" << tag_name << ">\n";
   }

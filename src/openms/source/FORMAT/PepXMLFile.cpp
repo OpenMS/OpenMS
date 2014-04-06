@@ -229,9 +229,9 @@ namespace OpenMS
           << " precursor_neutral_mass=\"" << precisionWrapper(precursor_neutral_mass) << "\""
           << " assumed_charge=\"" << h.getCharge() << "\" index=\"" << count << "\"";
 
-		if (it->hasRT())
+		    if (it->hasRT())
         {
-		  f << " retention_time_sec=\"" << it->getRT() << "\" ";
+		      f << " retention_time_sec=\"" << it->getRT() << "\" ";
         }
 
         f << ">\n";

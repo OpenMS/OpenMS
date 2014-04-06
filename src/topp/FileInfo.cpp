@@ -464,7 +464,7 @@ protected:
       Size modified_peptide_count(0);
       Map<String, int> mod_counts;
       
-	  // reading input
+	    // reading input
       IdXMLFile().load(in, id_data.proteins, id_data.peptides, id_data.identifier);
 
       // export metadata to second output stream

@@ -61,9 +61,9 @@ namespace OpenMS
   PeptideIdentification::PeptideIdentification(const PeptideIdentification & rhs) :
     MetaInfoInterface(rhs),
     id_(rhs.id_),
-	rt_(rhs.rt_),
-	mz_(rhs.mz_),
-	hits_(rhs.hits_),
+	  rt_(rhs.rt_),
+	  mz_(rhs.mz_),
+	  hits_(rhs.hits_),
     significance_threshold_(rhs.significance_threshold_),
     score_type_(rhs.score_type_),
     higher_score_better_(rhs.higher_score_better_),
@@ -84,8 +84,8 @@ namespace OpenMS
 
     MetaInfoInterface::operator=(rhs);
     id_ = rhs.id_;
-	rt_ = rhs.rt_;
-	mz_ = rhs.mz_;
+	  rt_ = rhs.rt_;
+	  mz_ = rhs.mz_;
     hits_ = rhs.hits_;
     significance_threshold_ = rhs.significance_threshold_;
     score_type_ = rhs.score_type_;
@@ -100,8 +100,8 @@ namespace OpenMS
   {
     return MetaInfoInterface::operator==(rhs)
            && id_ == rhs.id_
-		   && (rt_ == rhs.rt_ || (!this->hasRT() && !rhs.hasRT())) // might be NaN, so comparing == will always be false
-		   && (mz_ == rhs.mz_ || (!this->hasMZ() && !rhs.hasMZ())) // might be NaN, so comparing == will always be false
+		       && (rt_ == rhs.rt_ || (!this->hasRT() && !rhs.hasRT())) // might be NaN, so comparing == will always be false
+		       && (mz_ == rhs.mz_ || (!this->hasMZ() && !rhs.hasMZ())) // might be NaN, so comparing == will always be false
            && hits_ == rhs.getHits()
            && significance_threshold_ == rhs.getSignificanceThreshold()
            && score_type_ == rhs.score_type_

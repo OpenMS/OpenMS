@@ -352,24 +352,24 @@ protected:
 
     std::set<String> applied_filters;
 
-	// Filtering peptide identification according to set criteria
-	if ((rt_high < double_max) || (rt_low > -double_max))
-	{
-		std::vector<PeptideIdentification> tmp;
-		applied_filters.insert("Filtering by precursor RT ...\n");
-		filter.filterIdentificationsByRT(identifications, rt_low, rt_high, tmp);
-		identifications.swap(tmp);
-	}
+	  // Filtering peptide identification according to set criteria
+	  if ((rt_high < double_max) || (rt_low > -double_max))
+	  {
+		  std::vector<PeptideIdentification> tmp;
+		  applied_filters.insert("Filtering by precursor RT ...\n");
+		  filter.filterIdentificationsByRT(identifications, rt_low, rt_high, tmp);
+		  identifications.swap(tmp);
+	  }
 
-	if ((mz_high < double_max) || (mz_low > -double_max))
-	{
-		std::vector<PeptideIdentification> tmp;
-		applied_filters.insert("Filtering by precursor MZ ...\n");
-		filter.filterIdentificationsByMZ(identifications, mz_low, mz_high, tmp);
-		identifications.swap(tmp);
-	}
+	  if ((mz_high < double_max) || (mz_low > -double_max))
+	  {
+		  std::vector<PeptideIdentification> tmp;
+		  applied_filters.insert("Filtering by precursor MZ ...\n");
+		  filter.filterIdentificationsByMZ(identifications, mz_low, mz_high, tmp);
+		  identifications.swap(tmp);
+	  }
 		
-	// Filtering peptide identification according to set criteria
+	  // Filtering peptide identification according to set criteria
     for (Size i = 0; i < identifications.size(); i++)
     {
       if (unique_per_protein)

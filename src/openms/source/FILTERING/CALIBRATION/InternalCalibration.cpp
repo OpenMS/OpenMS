@@ -62,7 +62,7 @@ namespace OpenMS
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "InternalCalibration: Your Id-file contains PeptideIdentifications with more than one hit, use the IDFilter to select only the best hits.");
       }
-	  if (!pep_ids[p_id].hasRT())
+	    if (!pep_ids[p_id].hasRT())
       {
         throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "InternalCalibration: meta data value 'RT' missing for peptide identification!");
       }

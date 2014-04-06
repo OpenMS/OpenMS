@@ -281,25 +281,25 @@ namespace OpenMS
           os << "higher_score_better=\"false\" ";
         }
         os << "significance_threshold=\"" << peptide_ids[l].getSignificanceThreshold() << "\" ";
-        //mz
+        // mz
         if (peptide_ids[l].hasMZ())
-		{
-			os << "MZ=\"" << peptide_ids[l].getMZ() << "\" ";
-		}
-		// rt
-		if (peptide_ids[l].hasRT())
-		{
-			os << "RT=\"" << peptide_ids[l].getRT() << "\" ";
-		}
-		//spectrum_reference
-		DataValue dv = peptide_ids[l].getMetaValue("spectrum_reference");
+		    {
+			    os << "MZ=\"" << peptide_ids[l].getMZ() << "\" ";
+		    }
+		    // rt
+		    if (peptide_ids[l].hasRT())
+		    {
+			    os << "RT=\"" << peptide_ids[l].getRT() << "\" ";
+		    }
+	    	// spectrum_reference
+		    DataValue dv = peptide_ids[l].getMetaValue("spectrum_reference");
         if (dv != DataValue::EMPTY)
         {
           os << "spectrum_reference=\"" << writeXMLEscape(dv.toString()) << "\" ";
         }
         os << ">\n";
 
-        //write peptide hits
+        // write peptide hits
         for (Size j = 0; j < peptide_ids[l].getHits().size(); ++j)
         {
           os << "\t\t\t<PeptideHit ";
@@ -332,8 +332,8 @@ namespace OpenMS
           os << "\t\t\t</PeptideHit>\n";
         }
 
-		//do not write "spectrum_reference" since it is written as attribute already
-		MetaInfoInterface tmp = peptide_ids[l];
+		    // do not write "spectrum_reference" since it is written as attribute already
+		    MetaInfoInterface tmp = peptide_ids[l];
         tmp.removeMetaValue("spectrum_reference");
         writeUserParam_("UserParam", os, tmp, 3);
         os << "\t\t</PeptideIdentification>\n";

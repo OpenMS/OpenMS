@@ -83,28 +83,28 @@ public:
     /// Inequality operator
     bool operator!=(const PeptideIdentification & rhs) const;
     //@}
+  
+    /// returns the RT of the MS2 spectrum
+    double getRT() const;
+    /// sets the RT of the MS2 spectrum
+    void setRT(double rt);
+    /// shortcut for isnan(getRT())
+    bool hasRT() const;
 
-	/// returns the RT of the MS2 spectrum
-  double getRT() const;
-	/// sets the RT of the MS2 spectrum
-  void setRT(double rt);
-	/// shortcut for isnan(getRT())
-	bool hasRT() const;
+	  /// returns the MZ of the MS2 spectrum
+    double getMZ() const;
+	  /// sets the MZ of the MS2 spectrum
+    void setMZ(double mz);
+	  /// shortcut for isnan(getRT())
+	  bool hasMZ() const;
 
-	/// returns the MZ of the MS2 spectrum
-  double getMZ() const;
-	/// sets the MZ of the MS2 spectrum
-  void setMZ(double mz);
-	/// shortcut for isnan(getRT())
-	bool hasMZ() const;
-
-	/// returns the peptide hits as const
-	const std::vector<PeptideHit>& getHits() const;
-	/// returns the peptide hits
-	std::vector<PeptideHit>& getHits();
-	/// Appends a peptide hit
-	void insertHit(const PeptideHit & hit);
-	/// Sets the peptide hits
+	  /// returns the peptide hits as const
+	  const std::vector<PeptideHit>& getHits() const;
+	  /// returns the peptide hits
+	  std::vector<PeptideHit>& getHits();
+	  /// Appends a peptide hit
+	  void insertHit(const PeptideHit & hit);
+	  /// Sets the peptide hits
     void setHits(const std::vector<PeptideHit> & hits);
 
     /// returns the peptide significance threshold value
@@ -163,11 +163,11 @@ public:
     void getNonReferencingHits(const std::vector<ProteinHit> & protein_hits, std::vector<PeptideHit> & peptide_hits) const;
     //@}
 
-	/// remove the two helper functions below a some point, when we are sure that we did not miss or merge in deprecated code!
-	/// re-implemented from MetaValueInfterface as a precaution against deprecated usage of "RT" and "MZ" values
-	const DataValue & getMetaValue(const String &name) const;
-	/// re-implemented from MetaValueInfterface as a precaution against deprecated usage of "RT" and "MZ" values
-	void setMetaValue(const String &name, const DataValue &value);
+	  /// remove the two helper functions below a some point, when we are sure that we did not miss or merge in deprecated code!
+	  /// re-implemented from MetaValueInfterface as a precaution against deprecated usage of "RT" and "MZ" values
+	  const DataValue & getMetaValue(const String &name) const;
+	  /// re-implemented from MetaValueInfterface as a precaution against deprecated usage of "RT" and "MZ" values
+	  void setMetaValue(const String &name, const DataValue &value);
 
 
 protected:
@@ -177,8 +177,8 @@ protected:
     String score_type_;                                      ///< The score type (Mascot, Sequest, e-value, p-value)
     bool higher_score_better_;                       ///< The score orientation
     String base_name_;
-  double mz_;
-  double rt_;
+    double mz_;
+    double rt_;
   };
 
 } //namespace OpenMS

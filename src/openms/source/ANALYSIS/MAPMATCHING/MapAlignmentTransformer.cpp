@@ -280,7 +280,7 @@ namespace OpenMS
       PeptideIdentification & pepid = pepids[pepid_index];
       if (pepid.hasRT())
       {
-		pepid.setRT(trafo.apply(pepid.getRT()));
+		    pepid.setRT(trafo.apply(pepid.getRT()));
       }
     }
 

@@ -745,8 +745,8 @@ namespace OpenMS
       PeptideIdentification new_ids;
       for (vector<PeptideIdentification>::const_iterator it2 = it1 + 1; it2 != ids.end(); ++it2)
       {
-		double rt2(it2->getRT());
-		double mz2(it2->getMZ());
+		    double rt2(it2->getRT());
+		    double mz2(it2->getMZ());
         if (fabs(rt1 - rt2) < rt_delta && fabs(mz1 - mz2) < mz_delta)
         {
           if (new_ids.empty())
