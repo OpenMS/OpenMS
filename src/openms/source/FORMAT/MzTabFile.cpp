@@ -1337,9 +1337,9 @@ namespace OpenMS
           }
 
           String retention_time;
-          if (pep_id_it->metaValueExists("RT")) // Note: RT stored on pep_id_it not on hit
+          if (pep_id_it->hasRT()) // Note: RT stored on pep_id_it not on hit
           {
-            retention_time = String::number(String(pep_id_it->getMetaValue("RT")).toDouble(), 2);
+            retention_time = String::number(pep_id_it->getRT(), 2);
           }
           else
           {
@@ -1347,9 +1347,9 @@ namespace OpenMS
           }
 
           String mass_to_charge;
-          if (pep_id_it->metaValueExists("MZ")) // Note: MZ stored on pep_id_it not on hit
+          if (pep_id_it->hasMZ()) // Note: MZ stored on pep_id_it not on hit
           {
-            mass_to_charge = String::number(String(pep_id_it->getMetaValue("MZ")).toDouble(), 10);
+            mass_to_charge = String::number(pep_id_it->getMZ(), 10);
           }
           else
           {

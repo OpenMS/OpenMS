@@ -352,21 +352,26 @@ protected:
 
     std::set<String> applied_filters;
 
-    // Filtering peptide identification according to set criteria
+	  // Filtering peptide identification according to set criteria
+	  if ((rt_high < double_max) || (rt_low > -double_max))
+	  {
+		  std::vector<PeptideIdentification> tmp;
+		  applied_filters.insert("Filtering by precursor RT ...\n");
+		  filter.filterIdentificationsByRT(identifications, rt_low, rt_high, tmp);
+		  identifications.swap(tmp);
+	  }
+
+	  if ((mz_high < double_max) || (mz_low > -double_max))
+	  {
+		  std::vector<PeptideIdentification> tmp;
+		  applied_filters.insert("Filtering by precursor MZ ...\n");
+		  filter.filterIdentificationsByMZ(identifications, mz_low, mz_high, tmp);
+		  identifications.swap(tmp);
+	  }
+		
+	  // Filtering peptide identification according to set criteria
     for (Size i = 0; i < identifications.size(); i++)
     {
-      if ((rt_high < double_max) || (rt_low > -double_max))
-      {
-        applied_filters.insert("Filtering by precursor RT ...\n");
-        if (!filter.filterIdentificationsByMetaValueRange(identifications[i], "RT", rt_low, rt_high, precursor_missing)) continue; // don't keep this peptide ID
-      }
-
-      if ((mz_high < double_max) || (mz_low > -double_max))
-      {
-        applied_filters.insert("Filtering by precursor m/z ...\n");
-        if (!filter.filterIdentificationsByMetaValueRange(identifications[i], "MZ", mz_low, mz_high, precursor_missing)) continue; // don't keep this peptide ID
-      }
-
       if (unique_per_protein)
       {
         applied_filters.insert("Filtering unique per proteins ...\n");
@@ -509,8 +514,8 @@ protected:
 
       if (!filtered_identification.getHits().empty())
       {
-        filtered_identification.setMetaValue("RT", identifications[i].getMetaValue("RT"));
-        filtered_identification.setMetaValue("MZ", identifications[i].getMetaValue("MZ"));
+        filtered_identification.setRT(identifications[i].getRT());
+        filtered_identification.setMZ(identifications[i].getMZ());
         filtered_peptide_identifications.push_back(filtered_identification);
       }
 

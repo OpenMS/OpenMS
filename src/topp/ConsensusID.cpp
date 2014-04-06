@@ -189,16 +189,16 @@ protected:
         String file_origin = (String)pep_id_it->getMetaValue("file_origin");
         String scoring = (String)pep_id_it->getIdentifier();
 
-        if (!pep_id_it->metaValueExists("RT") || !pep_id_it->metaValueExists("MZ"))
+        if (!pep_id_it->hasRT() || !pep_id_it->hasMZ())
         {
           LOG_ERROR << "Peptide  " << pep_id_it->getIdentifier() << " with first hit of score:" << pep_id_it->getHits()[0].getScore() << ", seq:" << pep_id_it->getHits()[0].getSequence() << " does NOT have ("
-                    << (!pep_id_it->metaValueExists("RT") ? " RT " : "") << (!pep_id_it->metaValueExists("MZ") ? " MZ " : "") << ") information!\n"
+                    << (!pep_id_it->hasRT() ? " RT " : "") << (!pep_id_it->hasMZ() ? " MZ " : "") << ") information!\n"
                     << "Check the tool that generated the input-idXML. Did you use a new (unsupported) version of a search-engine (in e.g. OMSSAAdapter)? Aborting!" << std::endl;
           return INCOMPATIBLE_INPUT_DATA;
         }
 
-        double rt = (double)(pep_id_it->getMetaValue("RT"));
-        double mz = (double)(pep_id_it->getMetaValue("MZ"));
+        double rt = pep_id_it->getRT();
+        double mz = pep_id_it->getMZ();
         writeDebug_(String("  ID: ") + rt + " / " + mz, 4);
         vector<IDData>::iterator pos = prec_data.begin();
         while (pos != prec_data.end())
@@ -307,8 +307,8 @@ protected:
       for (vector<IDData>::iterator it = final.begin(); it != final.end(); ++it)
       {
         pep_ids.push_back(it->ids[0]);
-        pep_ids.back().setMetaValue("RT", it->rt);
-        pep_ids.back().setMetaValue("MZ", it->mz);
+        pep_ids.back().setRT(it->rt);
+        pep_ids.back().setMZ(it->mz);
         pep_ids.back().setMetaValue("file_origin", it->sourcefile);
       }
 

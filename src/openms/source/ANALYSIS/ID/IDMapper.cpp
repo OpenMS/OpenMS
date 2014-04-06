@@ -253,13 +253,13 @@ namespace OpenMS
   {
     for (Size i = 0; i < ids.size(); ++i)
     {
-      if (!ids[i].metaValueExists("RT"))
+	    if (!ids[i].hasRT())
       {
-        throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "IDMapper: meta data value 'RT' missing for peptide identification!");
+        throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "IDMapper: 'RT' information missing for peptide identification!");
       }
-      if (!ids[i].metaValueExists("MZ"))
+	    if (!ids[i].hasMZ())
       {
-        throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "IDMapper: meta data value 'MZ' missing for peptide identification!");
+        throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "IDMapper: 'MZ' information missing for peptide identification!");
       }
     }
   }
@@ -269,12 +269,12 @@ namespace OpenMS
     mz_values.clear();
     charges.clear();
 
-    rt_pep = id.getMetaValue("RT");
+	  rt_pep = id.getRT();
 
     // collect m/z values of pepId
     if (param_.getValue("mz_reference") == "precursor") // use precursor m/z of pepId
     {
-      mz_values.push_back(id.getMetaValue("MZ"));
+	    mz_values.push_back(id.getMZ());
     }
 
     for (vector<PeptideHit>::const_iterator hit_it = id.getHits().begin();

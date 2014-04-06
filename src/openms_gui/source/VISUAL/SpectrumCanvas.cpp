@@ -537,7 +537,7 @@ namespace OpenMS
         for (vector<PeptideIdentification>::const_iterator it =
                peptides.begin(); it != peptides.end(); ++it)
         {
-          double rt = (double) it->getMetaValue("RT");
+          double rt = it->getRT();
           double mz = getIdentificationMZ_(layer_index, *it);
           if (mz < m_min[mz_dim]) m_min[mz_dim] = mz;
           if (mz > m_max[mz_dim]) m_max[mz_dim] = mz;
@@ -857,7 +857,7 @@ namespace OpenMS
       for (vector<PeptideIdentification>::const_iterator it =
              layer.peptides.begin(); it != layer.peptides.end(); ++it)
       {
-        double rt = (double) it->getMetaValue("RT");
+        double rt = it->getRT();
         double mz = getIdentificationMZ_(current_layer_, *it);
         // TODO: if (layer.filters.passes(*it) && ...)
         if ((rt >= min_rt) && (rt <= max_rt) &&
@@ -1009,7 +1009,7 @@ namespace OpenMS
     }
     else
     {
-      return (double) peptide.getMetaValue("MZ");
+      return peptide.getMZ();
     }
   }
 
