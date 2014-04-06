@@ -192,15 +192,6 @@ endif()
 openms_doc_path("${PROJECT_SOURCE_DIR}/include")
 
 ########################################################
-###              setup python wrapper                ###
-########################################################
-option(PYOPENMS "setup build system for pyOpenMS" OFF)
-IF (PYOPENMS)
-  message(STATUS "run cmake files for pyopenms")
-	include(${OPENMS_HOST_DIRECTORY}/pyOpenMS/pyopenms.cmake)
-ENDIF()
-
-########################################################
 ###    verbose Post-build messages and help targets  ###
 ########################################################
 include(${OPENMS_HOST_DIRECTORY}/cmake/OpenMSBuildSystem_messages.cmake)

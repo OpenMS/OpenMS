@@ -62,9 +62,9 @@ namespace OpenMS
   /**
    * @brief Abstract base class which can consume spectra coming from SWATH experiment stored in a single file.
    *
-   * The class consumes spectra which are coming from a complete SWATH experiment.
-   * It expects each set of SWATH spectra to be separated by an MS1 spectrum and
-   * the order of the SWATH spectra to be preserved. For example, the spectra
+   * The class consumes spectra which are coming from a complete SWATH
+   * experiment. It will group MS2 spectra by their precursor m/z, assuming
+   * that they correspond to the same SWATH window.  For example, the spectra
    * could be arranged in the following fashion:
    *
    * - MS1 Spectrum (no precursor)
@@ -81,6 +81,10 @@ namespace OpenMS
    * from a specific SWATH or an MS1 spectrum and a final function
    * ensureMapsAreFilled_ after which the swath_maps_ vector needs to contain
    * valid pointers to MSExperiment.
+   *
+   * In addition it is possible to provide the swath boundaries and the read in
+   * spectra will be matched by their precursor m/z to the "center" attribute
+   * of the provided Swath maps.
    *
    * Usage:
    *
@@ -102,11 +106,30 @@ public:
     typedef MapType::ChromatogramType ChromatogramType;
 
     FullSwathFileConsumer() :
-      ms1_counter_(0),
-      ms2_counter_(0),
       ms1_map_(), // initialize to null
-      consuming_possible_(true)
-    {}
+      consuming_possible_(true),
+      use_external_boundaries_(false),
+      correct_window_counter_(0)
+    {
+      use_external_boundaries_ = !swath_map_boundaries_.empty();
+    }
+
+    /**
+     * @brief Constructor
+     *
+     * @param swath_boundaries A vector of SwathMaps of which only the center,
+     * lower and upper attributes will be used to infer the expected Swath maps.
+     *
+     */
+    FullSwathFileConsumer(std::vector<OpenSwath::SwathMap> swath_boundaries) :
+      swath_map_boundaries_(swath_boundaries),
+      ms1_map_(), // initialize to null
+      consuming_possible_(true),
+      use_external_boundaries_(false),
+      correct_window_counter_(0)
+    {
+      use_external_boundaries_ = !swath_map_boundaries_.empty();
+    }
 
     ~FullSwathFileConsumer() {}
 
@@ -134,44 +157,39 @@ public:
         map.sptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(ms1_map_);
         map.lower = -1;
         map.upper = -1;
+        map.center = -1;
         map.ms1 = true;
         maps.push_back(map);
       }
 
-      // Handle error condition if the lower/upper window could not be determined ...
-      if ( swath_prec_upper_.size() != swath_maps_.size() || swath_prec_lower_.size() != swath_maps_.size() )
+      // Print warning if the lower/upper window could not be determined and we
+      // required manual determination of the boundaries.
+      if (!use_external_boundaries_ && correct_window_counter_ != swath_maps_.size())
       {
-        std::cout << "Could not correctly read the upper/lower limits of the SWATH windows from your input file. Read " <<
-          swath_prec_upper_.size() << " upper window limits and " << swath_prec_lower_.size() 
-          << " lower window limits (expected " << swath_maps_.size() << " windows)." << std::endl;
-        if (swath_prec_center_.size() == swath_maps_.size() )
-        {
-          std::cout << " ... Using your center windows to annotate the SWATH maps" << std::endl;
-          for (Size i = 0; i < swath_maps_.size(); i++)
-          {
-            swath_prec_upper_.push_back(swath_prec_center_[i]);
-            swath_prec_lower_.push_back(swath_prec_center_[i]);
-          }
-        }
-        else
-        {
-          for (Size i = 0; i < swath_maps_.size(); i++)
-          {
-            swath_prec_upper_.push_back(0.0);
-            swath_prec_lower_.push_back(0.0);
-          }
-        }
+        std::cout << "WARNING: Could not correctly read the upper/lower limits of the SWATH windows from your input file. Read " <<
+          correct_window_counter_ << " correct (non-zero) window limits (expected " << swath_maps_.size() << " windows)." << std::endl;
       }
 
+      size_t nonempty_maps = 0;
       for (Size i = 0; i < swath_maps_.size(); i++)
       {
         OpenSwath::SwathMap map;
         map.sptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(swath_maps_[i]);
-        map.lower = swath_prec_lower_[i];
-        map.upper = swath_prec_upper_[i];
+        map.lower = swath_map_boundaries_[i].lower;
+        map.upper = swath_map_boundaries_[i].upper;
+        map.center = swath_map_boundaries_[i].center;
         map.ms1 = false;
         maps.push_back(map);
+        if (map.sptr->getNrSpectra() > 0) {nonempty_maps++;}
       }
+
+      if (nonempty_maps != swath_map_boundaries_.size())
+      {
+        std::cout << "WARNING: The number nonempty maps found in the input file (" << nonempty_maps << ") is not equal to the number of provided swath window boundaries (" << 
+            swath_map_boundaries_.size() << "). Please check your input." << std::endl;
+      }
+
+
     }
 
     /// Consume a chromatogram -> should not happen when dealing with SWATH maps
@@ -180,8 +198,11 @@ public:
       std::cerr << "Read chromatogram while reading SWATH files, did not expect that!" << std::endl;
     }
 
-    /// Consume a spectrum which may belong either to an MS1 scan or one of n
-    /// MS2 (SWATH) scans
+    /**
+     * @brief * Consume a spectrum which may belong either to an MS1 scan or
+     * one of n MS2 (SWATH) scans
+     *
+     */
     void consumeSpectrum(MapType::SpectrumType& s)
     {
       if (!consuming_possible_)
@@ -189,37 +210,69 @@ public:
         throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
           "FullSwathFileConsumer cannot consume any more spectra after retrieveSwathMaps has been called already");
       }
+
       if (s.getMSLevel() == 1)
       {
-        // append a new MS1 scan, set the MS2 counter to zero and proceed
         consumeMS1Spectrum_(s);
-        ms2_counter_ = 0;
-        ms1_counter_++;
       }
       else
       {
-        // If this is the first encounter of this SWATH map, try to read the
-        // isolation windows
-        if (ms2_counter_ == swath_maps_.size())
+        if (s.getPrecursors().empty())
         {
-          if (!s.getPrecursors().empty())
+          throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+            "Swath scan does not provide a precursor.");
+        }
+
+        const std::vector<Precursor> prec = s.getPrecursors();
+        double center = prec[0].getMZ();
+        double lower = prec[0].getMZ() - prec[0].getIsolationWindowLowerOffset();
+        double upper = prec[0].getMZ() + prec[0].getIsolationWindowUpperOffset();
+        bool found = false;
+
+        // Check if enough information is present to infer the swath
+        if (center <= 0.0)
+        {
+          throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+            "Swath scan does not provide any precursor isolation information.");
+        }
+
+        // try to match the current scan to one of the already known windows
+        for (Size i = 0; i < swath_map_boundaries_.size(); i++)
+        {
+          // We group by the precursor mz (center of the window) since this
+          // should be present in all SWATH scans.
+          if (std::fabs(center - swath_map_boundaries_[i].center) < 1e-6)
           {
-            const std::vector<Precursor> prec = s.getPrecursors();
-            double lower = prec[0].getMZ() - prec[0].getIsolationWindowLowerOffset();
-            double upper = prec[0].getMZ() + prec[0].getIsolationWindowUpperOffset();
-            if (prec[0].getIsolationWindowLowerOffset() > 0.0) swath_prec_lower_.push_back(lower);
-            if (prec[0].getIsolationWindowUpperOffset() > 0.0) swath_prec_upper_.push_back(upper);
-            swath_prec_center_.push_back(prec[0].getMZ());
-            LOG_DEBUG << "Adding Swath centered at " << swath_prec_center_.back() << " m/z with an isolation window of " << lower << " to " << upper << " m/z." << std::endl;
+            found = true;
+            consumeSwathSpectrum_(s, i);
           }
         }
-        else if (ms2_counter_ > swath_prec_center_.size() && ms2_counter_ > swath_prec_lower_.size())
+        if (!found)
         {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-            "FullSwathFileConsumer: MS2 counter is larger than size of swath maps! Are the swath_maps representing the number of read in maps?");
+          if (use_external_boundaries_)
+          {
+            throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+              String("Encountered SWATH scan with boundary ") + center + " m/z which was not present in the provided windows.");
+          }
+          else
+          {
+            consumeSwathSpectrum_(s, swath_map_boundaries_.size());
+
+            // we found a new SWATH window
+            if (lower > 0.0 && upper > 0.0)
+            {correct_window_counter_++;}
+
+            OpenSwath::SwathMap boundary;
+            boundary.lower = lower;
+            boundary.upper = upper;
+            boundary.center = center;
+            swath_map_boundaries_.push_back(boundary);
+
+            LOG_DEBUG << "Adding Swath centered at " << center
+              << " m/z with an isolation window of " << lower << " to " << upper
+              << " m/z." << std::endl;
+          }
         }
-        consumeSwathSpectrum_(s, ms2_counter_);
-        ms2_counter_++;
       }
     }
 
@@ -228,41 +281,46 @@ protected:
     /**
      * @brief Consume an MS2 spectrum belonging to SWATH "swath_nr"
      *
-     * This function should handle a Spectrum belonging to a specific SWATH
+     * This function should handle a spectrum belonging to a specific SWATH
      * (indicated by swath_nr).
      *
-     * @note after this call, swath_maps_.size() _must_ increase by one if
-     * ms2_counter_ == swath_maps_.size() (i.e. if a new swath was encountered
-     * the first time)
      */
     virtual void consumeSwathSpectrum_(MapType::SpectrumType& s, size_t swath_nr) = 0;
 
-    /// @brief Consume an MS1 spectrum
+    /**
+     * @brief Consume an MS1 spectrum
+     *
+     * This function should handle an MS1 spectrum.
+     *
+     */
     virtual void consumeMS1Spectrum_(MapType::SpectrumType& s) = 0;
+
     /**
      * @brief Callback function after the reading is complete
      *
      * Has to ensure that swath_maps_ and ms1_map_ are correctly populated.
      */
-
     virtual void ensureMapsAreFilled_() = 0;
 
-    size_t ms1_counter_;
-    size_t ms2_counter_;
+    /// A list of Swath map identifiers (lower/upper boundary and center)
+    std::vector<OpenSwath::SwathMap> swath_map_boundaries_;
 
     /// A list of SWATH maps and the MS1 map
     std::vector<boost::shared_ptr<MSExperiment<> > > swath_maps_;
     boost::shared_ptr<MSExperiment<> > ms1_map_;
 
-    /// Values of lower limit, center and upper limit of the isolation windows
-    std::vector<double> swath_prec_center_;
-    std::vector<double> swath_prec_lower_;
-    std::vector<double> swath_prec_upper_;
     /// The Experimental settings
     // (MSExperiment has no constructor using ExperimentalSettings)
     MSExperiment<> settings_;
 
+    /// Whether further spectra can still be consumed
     bool consuming_possible_;
+
+    /// Whether to use external input for SWATH boundaries
+    bool use_external_boundaries_;
+
+    /// How many windows were correctly annotated (non-zero window limits)
+    size_t correct_window_counter_;
 
   };
 
@@ -281,6 +339,11 @@ public:
     typedef MapType::SpectrumType SpectrumType;
     typedef MapType::ChromatogramType ChromatogramType;
 
+    RegularSwathFileConsumer() {}
+
+    RegularSwathFileConsumer(std::vector<OpenSwath::SwathMap> known_window_boundaries) :
+      FullSwathFileConsumer(known_window_boundaries) {}
+
 protected:
     void addNewSwathMap_()
     {
@@ -290,10 +353,11 @@ protected:
 
     void consumeSwathSpectrum_(MapType::SpectrumType& s, size_t swath_nr)
     {
-      if (swath_nr == swath_maps_.size())
+      while (swath_maps_.size() <= swath_nr)
       {
         addNewSwathMap_();
       }
+
       swath_maps_[swath_nr]->addSpectrum(s);
     }
 
@@ -342,18 +406,29 @@ public:
       nr_ms2_spectra_(nr_ms2_spectra)
     {}
 
+    CachedSwathFileConsumer(std::vector<OpenSwath::SwathMap> known_window_boundaries,
+            String cachedir, String basename, Size nr_ms1_spectra, std::vector<int> nr_ms2_spectra) :
+      FullSwathFileConsumer(known_window_boundaries),
+      ms1_consumer_(NULL),
+      swath_consumers_(),
+      cachedir_(cachedir),
+      basename_(basename),
+      nr_ms1_spectra_(nr_ms1_spectra),
+      nr_ms2_spectra_(nr_ms2_spectra)
+    {}
+
     ~CachedSwathFileConsumer()
     {
       // Properly delete the MSDataCachedConsumer -> free memory and _close_ file stream
-      while (!swath_consumers_.empty()) 
+      while (!swath_consumers_.empty())
       {
         delete swath_consumers_.back();
-        swath_consumers_.pop_back(); 
+        swath_consumers_.pop_back();
       }
-      if (ms1_consumer_ != NULL) 
-      { 
+      if (ms1_consumer_ != NULL)
+      {
         delete ms1_consumer_;
-        ms1_consumer_ = NULL; 
+        ms1_consumer_ = NULL;
       }
     }
 
@@ -373,11 +448,10 @@ protected:
 
     void consumeSwathSpectrum_(MapType::SpectrumType& s, size_t swath_nr)
     {
-      if (swath_nr == swath_consumers_.size())
+      while (swath_maps_.size() <= swath_nr)
       {
         addNewSwathMap_();
       }
-
       swath_consumers_[swath_nr]->consumeSpectrum(s);
       swath_maps_[swath_nr]->addSpectrum(s); // append for the metadata (actual data is deleted)
     }
@@ -415,15 +489,15 @@ protected:
       // present on disc and the file streams closed.
       //
       // TODO merge with destructor code into own function!
-      while (!swath_consumers_.empty()) 
-      { 
+      while (!swath_consumers_.empty())
+      {
         delete swath_consumers_.back();
-        swath_consumers_.pop_back(); 
+        swath_consumers_.pop_back();
       }
-      if (ms1_consumer_ != NULL) 
-      { 
+      if (ms1_consumer_ != NULL)
+      {
         delete ms1_consumer_;
-        ms1_consumer_ = NULL; 
+        ms1_consumer_ = NULL;
       }
 
       if (have_ms1)
