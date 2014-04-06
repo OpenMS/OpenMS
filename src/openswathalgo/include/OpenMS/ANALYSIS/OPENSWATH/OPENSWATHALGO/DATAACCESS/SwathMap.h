@@ -48,6 +48,7 @@ namespace OpenSwath
     OpenSwath::SpectrumAccessPtr sptr;
     double lower;
     double upper;
+    double center;
     bool ms1;
   };
 

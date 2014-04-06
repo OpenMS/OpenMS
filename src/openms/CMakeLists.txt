@@ -140,15 +140,6 @@ install_directory(${OPENMS_HOST_DIRECTORY}/share/OpenMS/ ${INSTALL_SHARE_DIR} sh
 openms_doc_path("${PROJECT_SOURCE_DIR}/include")
 
 #------------------------------------------------------------------------------
-# setup python wrapper
-#------------------------------------------------------------------------------
-option(PYOPENMS "setup build system for pyOpenMS" OFF)
-if (PYOPENMS)
-  message(STATUS "run cmake files for pyopenms")
-	include(${OPENMS_HOST_DIRECTORY}/pyOpenMS/pyopenms.cmake)
-endif()
-
-#------------------------------------------------------------------------------
 # verbose Post-build messages and help targets
 #------------------------------------------------------------------------------
 include(${OPENMS_HOST_DIRECTORY}/cmake/OpenMSBuildSystem_messages.cmake)

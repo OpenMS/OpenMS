@@ -27,7 +27,7 @@ import shutil
 
 j = os.path.join
 
-src_pyopenms = j(OPEN_MS_SRC, "pyOpenMS")
+src_pyopenms = j(OPEN_MS_SRC, "src/pyOpenMS")
 extra_includes = glob.glob(src_pyopenms + "/extra_includes/*.h*")
 
 for include in extra_includes:
@@ -62,7 +62,7 @@ for OPEN_MS_CONTRIB_BUILD_DIR in OPEN_MS_CONTRIB_BUILD_DIRS.split(";"):
 # library.
 #
 if iswin:
-    if OPEN_MS_BUILD_TYPE.upper() == "DEBUG":
+    if IS_DEBUG:
         libraries = ["OpenMSd", "OpenSwathAlgod", "SuperHirnd", "xerces-c_3D", "QtCored4", "cblas_d"]
     else:
         libraries = ["OpenMS", "OpenSwathAlgo", "SuperHirn", "xerces-c_3", "QtCore4", "cblas"]

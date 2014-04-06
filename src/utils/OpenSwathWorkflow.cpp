@@ -50,9 +50,6 @@
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVReader.h>
 #include <OpenMS/FORMAT/CachedMzML.h>
-#ifdef OPENMS_FORMAT_SWATHFILE_MZXMLSUPPORT
-#include "MSDataReader.h"
-#endif
 #include <OpenMS/FORMAT/SwathFile.h>
 
 // Kernel and implementations
@@ -1246,7 +1243,9 @@ protected:
       SwathWindowLoader::annotateSwathMapsFromFile(swath_windows_file, swath_maps, sort_swath_maps);
 
     for (Size i = 0; i < swath_maps.size(); i++)
-      LOG_DEBUG << "Found swath map " << i << " with lower " << swath_maps[i].lower << " and upper " << swath_maps[i].upper << std::endl;
+      LOG_DEBUG << "Found swath map " << i << " with lower " << swath_maps[i].lower 
+        << " and upper " << swath_maps[i].upper << " and " << swath_maps[i].sptr->getNrSpectra() 
+        << " spectra." << std::endl;
 
     ///////////////////////////////////
     // Get the transformation information (using iRT peptides)

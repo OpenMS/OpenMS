@@ -32,6 +32,9 @@
 # $Authors: Hannes Röst, Uwe Schmitt $
 # --------------------------------------------------------------------------
 
+project("pyOpenMS")
+cmake_minimum_required(VERSION 2.8.3 FATAL_ERROR)
+
 #------------------------------------------------------------------------------
 # find and handle python
 find_package(PythonInterp REQUIRED)
@@ -188,54 +191,54 @@ endif()
 # this can contain older versions of openms shared lib and might confuse
 # the linker when working on pyopenms
 
-FILE(REMOVE_RECURSE "${CMAKE_BINARY_DIR}/pyOpenMS/build")
-FILE(REMOVE_RECURSE "${CMAKE_BINARY_DIR}/pyOpenMS/dist")
+file(REMOVE_RECURSE "${CMAKE_BINARY_DIR}/pyOpenMS/build")
+file(REMOVE_RECURSE "${CMAKE_BINARY_DIR}/pyOpenMS/dist")
 # OpenMS
-FILE(REMOVE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/OpenMSd.dll")
-FILE(REMOVE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/OpenMS.dll")
-FILE(REMOVE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/libOpenMS.so")
-FILE(REMOVE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/libOpenMS.dylib")
+file(REMOVE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/OpenMSd.dll")
+file(REMOVE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/OpenMS.dll")
+file(REMOVE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/libOpenMS.so")
+file(REMOVE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/libOpenMS.dylib")
 # OpenSwathAlgo
-FILE(REMOVE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/OpenSwathAlgod.dll")
-FILE(REMOVE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/OpenSwathAlgo.dll")
-FILE(REMOVE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/libOpenSwathAlgo.so")
-FILE(REMOVE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/libOpenSwathAlgo.dylib")
+file(REMOVE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/OpenSwathAlgod.dll")
+file(REMOVE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/OpenSwathAlgo.dll")
+file(REMOVE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/libOpenSwathAlgo.so")
+file(REMOVE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/libOpenSwathAlgo.dylib")
 # SuperHirn
-FILE(REMOVE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/SuperHirnd.dll")
-FILE(REMOVE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/SuperHirn.dll")
-FILE(REMOVE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/libSuperHirn.so")
-FILE(REMOVE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/libSuperHirn.dylib")
+file(REMOVE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/SuperHirnd.dll")
+file(REMOVE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/SuperHirn.dll")
+file(REMOVE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/libSuperHirn.so")
+file(REMOVE "${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/libSuperHirn.dylib")
 
 #------------------------------------------------------------------------------
 # copy files
-FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS)
-FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/tests/unittests)
-FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/tests/memoryleaktests)
-FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/tests/integration_tests)
-FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms)
-FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/pyTOPP)
-FILE(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/extra_includes)
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS)
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/tests/unittests)
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/tests/memoryleaktests)
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/tests/integration_tests)
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms)
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/pyTOPP)
+file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/extra_includes)
 
-FILE(GLOB _python_files "${OPENMS_HOST_DIRECTORY}/pyOpenMS/pyopenms/*.py")
-FILE(COPY ${_python_files} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms)
+file(GLOB _python_files "${PROJECT_SOURCE_DIR}/pyopenms/*.py")
+file(COPY ${_python_files} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms)
 
-FILE(GLOB _python_files "${OPENMS_HOST_DIRECTORY}/pyOpenMS/pyopenms/*.sh")
-FILE(COPY ${_python_files} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms)
+file(GLOB _python_files "${PROJECT_SOURCE_DIR}/pyopenms/*.sh")
+file(COPY ${_python_files} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms)
 
-FILE(GLOB _python_files "${OPENMS_HOST_DIRECTORY}/pyOpenMS/pyTOPP/*.py")
-FILE(COPY ${_python_files} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyTOPP)
+file(GLOB _python_files "${PROJECT_SOURCE_DIR}/pyTOPP/*.py")
+file(COPY ${_python_files} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyTOPP)
 
-FILE(GLOB _python_files "${OPENMS_HOST_DIRECTORY}/pyOpenMS/tests/unittests/*")
-FILE(COPY ${_python_files} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/tests/unittests)
+file(GLOB _python_files "${PROJECT_SOURCE_DIR}/tests/unittests/*")
+file(COPY ${_python_files} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/tests/unittests)
 
-FILE(GLOB _python_files "${OPENMS_HOST_DIRECTORY}/pyOpenMS/tests/*.mzXML")
-FILE(COPY ${_python_files} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/tests)
+file(GLOB _python_files "${PROJECT_SOURCE_DIR}/tests/*.mzXML")
+file(COPY ${_python_files} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/tests)
 
-FILE(GLOB _python_files "${OPENMS_HOST_DIRECTORY}/pyOpenMS/tests/memoryleaktests/*")
-FILE(COPY ${_python_files} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/tests/memoryleaktests)
+file(GLOB _python_files "${PROJECT_SOURCE_DIR}/tests/memoryleaktests/*")
+file(COPY ${_python_files} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/tests/memoryleaktests)
 
-FILE(GLOB _python_files "${OPENMS_HOST_DIRECTORY}/pyOpenMS/tests/integration_tests/*")
-FILE(COPY ${_python_files} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/tests/integration_tests)
+file(GLOB _python_files "${PROJECT_SOURCE_DIR}/tests/integration_tests/*")
+file(COPY ${_python_files} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/tests/integration_tests)
 
 # list of files required for the pyOpenMS build system
 set(_pyopenms_files
@@ -251,7 +254,7 @@ set(_pyopenms_files
 )
 
 foreach(pyfile ${_pyopenms_files})
-  configure_file(${OPENMS_HOST_DIRECTORY}/pyOpenMS/${pyfile} ${CMAKE_BINARY_DIR}/pyOpenMS/${pyfile} COPYONLY)
+  configure_file(${PROJECT_SOURCE_DIR}/${pyfile} ${CMAKE_BINARY_DIR}/pyOpenMS/${pyfile} COPYONLY)
 endforeach()
 
 set(_sub_pyopenms_files
@@ -261,16 +264,16 @@ set(_sub_pyopenms_files
 
 # list of files located in pyOpenMS/pyopenms
 foreach(pyfile ${_sub_pyopenms_files})
-  configure_file(${OPENMS_HOST_DIRECTORY}/pyOpenMS/${pyfile} ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/${pyfile} COPYONLY)
+  configure_file(${PROJECT_SOURCE_DIR}/${pyfile} ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/${pyfile} COPYONLY)
 endforeach()
 
 if(WIN32)
-    FILE(COPY ${MSVCR90DLL} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms)
-    FILE(COPY ${MSVCP90DLL} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms)
+    file(COPY ${MSVCR90DLL} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms)
+    file(COPY ${MSVCP90DLL} DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms)
     set(FOUND_XERCES FALSE)
     foreach(CONTRIB_PATH ${CONTRIB_DIR})
         if(EXISTS ${CONTRIB_PATH}/lib/xerces-c_3_1.dll)
-            FILE(COPY ${CONTRIB_PATH}/lib/xerces-c_3_1.dll DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms)
+            file(COPY ${CONTRIB_PATH}/lib/xerces-c_3_1.dll DESTINATION ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms)
             set(FOUND_XERCES TRUE)
         endif()
     endforeach()
@@ -283,7 +286,7 @@ endif()
 #------------------------------------------------------------------------------
 # write variables for setup.py as Python script into pyOpenMS/env.py
 
-set(_env_py_in ${OPENMS_HOST_DIRECTORY}/pyOpenMS/env.py.in)
+set(_env_py_in ${PROJECT_SOURCE_DIR}/env.py.in)
 set(_env_py ${CMAKE_BINARY_DIR}/pyOpenMS/env.py)
 
 #------------------------------------------------------------------------------
@@ -363,26 +366,26 @@ endif()
 
 # Please add your test here when you decide to write a new testfile in the tests/unittests folder
 set(pyopenms_unittest_testfiles
-test000.py
-test_BaselineFiltering.py
-test_ChromatogramExtractor.py
-test_Convexhull.py
-testCVTermList.py
-test_DIAScoring.py
-test_FileIO.py
-test_Isobaric_Quantitation.py
-testLightTargetedExperiment.py
-test_MRMFeatureFinderScoring.py
-test_MSNumpressCoder.py
-test_MSSpectrumAndRichSpectrum.py
-test_OpenSwathDataStructures.py
-test_Smoothing.py
-testSpecialCases.py
-test_SpectraFilter.py
-test_SpectrumAccessOpenMS.py
-test_TraML.py
-test_MzMLConsumer.py
-test_MzXMLConsumer.py
+  test000.py
+  test_BaselineFiltering.py
+  test_ChromatogramExtractor.py
+  test_Convexhull.py
+  testCVTermList.py
+  test_DIAScoring.py
+  test_FileIO.py
+  test_Isobaric_Quantitation.py
+  testLightTargetedExperiment.py
+  test_MRMFeatureFinderScoring.py
+  test_MSNumpressCoder.py
+  test_MSSpectrumAndRichSpectrum.py
+  test_OpenSwathDataStructures.py
+  test_Smoothing.py
+  testSpecialCases.py
+  test_SpectraFilter.py
+  test_SpectrumAccessOpenMS.py
+  test_TraML.py
+  test_MzMLConsumer.py
+  test_MzXMLConsumer.py
 )
 
 # Please add your test here when you decide to write a new testfile in the tests/integration_tests folder
