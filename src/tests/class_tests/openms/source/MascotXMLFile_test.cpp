@@ -102,9 +102,9 @@ START_SECTION((void load(const String &filename, ProteinIdentification &protein_
   TEST_EQUAL(search_parameters.variable_modifications[2], "Carbamyl (K)");
   TEST_EQUAL(peptide_identifications.size(), 3)
   TOLERANCE_ABSOLUTE(0.0001)
-  TEST_REAL_SIMILAR(peptide_identifications[0].getMetaValue("MZ"), 789.83)
-  TEST_REAL_SIMILAR(peptide_identifications[1].getMetaValue("MZ"), 135.29)
-  TEST_REAL_SIMILAR(peptide_identifications[2].getMetaValue("MZ"), 982.58)
+  TEST_REAL_SIMILAR(peptide_identifications[0].getMZ(), 789.83)
+  TEST_REAL_SIMILAR(peptide_identifications[1].getMZ(), 135.29)
+  TEST_REAL_SIMILAR(peptide_identifications[2].getMZ(), 982.58)
   TOLERANCE_ABSOLUTE(0.00001)
   TEST_EQUAL(protein_identification.getHits().size(), 2)
   TEST_EQUAL(protein_identification.getHits()[0].getAccession(), "AAN17824")
