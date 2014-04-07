@@ -2650,6 +2650,7 @@ protected:
 	if (use_unassigned_ids)
 	{
 	  const vector<PeptideIdentification> unassigned_ids = feature_map.getUnassignedPeptideIdentifications();
+	  Size unassigned_id_features = 0;
 	  for (vector<PeptideIdentification>::const_iterator it = unassigned_ids.begin(); it != unassigned_ids.end(); ++it)
 	  {
 		  vector<PeptideHit> hits = it->getHits();
@@ -2668,8 +2669,10 @@ protected:
 			id.push_back(*it);
 			f.setPeptideIdentifications(id);
 			feature_map.push_back(f);
+			unassigned_id_features++;
 		  }
 	  }
+	  cout << "Evaluating " << unassigned_id_features << " unassigned identifications." << endl;
 	}
 
 	// determine all spectra that have not been identified and assign an averagine peptide to it
