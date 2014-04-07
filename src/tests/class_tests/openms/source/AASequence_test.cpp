@@ -530,6 +530,7 @@ START_SECTION(const String& getCTerminalModification() const)
   TEST_EQUAL(seq2.getCTerminalModification(), "")
 END_SECTION
 
+/*
 START_SECTION(bool isValid() const)
   AASequence seq1 = AASequence::fromString("(MOD:00051)DABCDEF");
   AASequence seq2 = AASequence::fromString("DABCDEF");
@@ -541,12 +542,12 @@ START_SECTION(bool isValid() const)
   TEST_EQUAL(seq3.isValid(), true)
   TEST_EQUAL(seq4.isValid(), true)
 
-
   AASequence seq5 = AASequence::fromString("blDABCDEF");
   AASequence seq6 = AASequence::fromString("a");
   TEST_EQUAL(seq5.isValid(), false)
   TEST_EQUAL(seq6.isValid(), false)
 END_SECTION
+*/
 
 START_SECTION(bool hasNTerminalModification() const)
   AASequence seq1 = AASequence::fromString("(MOD:00051)DABCDEF");
@@ -694,25 +695,21 @@ START_SECTION([EXTRA] Arbitrary tag in peptides)
   TEST_REAL_SIMILAR(aa.getMonoWeight(), 799.36001 + 999.0)
 
   // test arbitrary differences (e.g. it should be possible to encode arbitrary masses and still get the correct weight)
-    AASequence test1 = AASequence::fromString("PEPTX[160.030654]IDE");
-    TEST_REAL_SIMILAR(test1.getMonoWeight(), 959.39066)
-    AASequence test2 = AASequence::fromString("PEPTX[160.040654]IDE");
-    TEST_REAL_SIMILAR(test2.getMonoWeight(), 959.40066)
-    AASequence test3 = AASequence::fromString("PEPTX[160.050654]IDE");
-    TEST_REAL_SIMILAR(test3.getMonoWeight(), 959.41066)
-    AASequence test4 = AASequence::fromString("PEPTX[160.130654]IDE");
-    TEST_REAL_SIMILAR(test4.getMonoWeight(), 959.49066)
-    AASequence test5 = AASequence::fromString("PEPTX[160.230654]IDE");
-    TEST_REAL_SIMILAR(test5.getMonoWeight(), 959.59066)
+  AASequence test1 = AASequence::fromString("PEPTX[160.030654]IDE");
+  TEST_REAL_SIMILAR(test1.getMonoWeight(), 959.39066)
+  AASequence test2 = AASequence::fromString("PEPTX[160.040654]IDE");
+  TEST_REAL_SIMILAR(test2.getMonoWeight(), 959.40066)
+  AASequence test3 = AASequence::fromString("PEPTX[160.050654]IDE");
+  TEST_REAL_SIMILAR(test3.getMonoWeight(), 959.41066)
+  AASequence test4 = AASequence::fromString("PEPTX[160.130654]IDE");
+  TEST_REAL_SIMILAR(test4.getMonoWeight(), 959.49066)
+  AASequence test5 = AASequence::fromString("PEPTX[160.230654]IDE");
+  TEST_REAL_SIMILAR(test5.getMonoWeight(), 959.59066)
 
   // Faulty / nonsense calculations ...
-  {
-    AASequence test = AASequence::fromString("PEPTX[+160.230654]IDE");
-    TEST_EQUAL(test.isValid(), false)
-    TEST_REAL_SIMILAR(test.getMonoWeight(), 959.59066) // TODO should this throw? or is it your fault to call it on an invalid object?
-    TEST_EQUAL(test.getFormula(), AASequence::fromString("PEPTIDE").getFormula()) // TODO should this throw? or is it your fault to call it on an invalid object?
-  }
-
+  AASequence test;
+  TEST_EXCEPTION(Exception::ParseError, test = AASequence::fromString("PEPTX[+160.230654]IDE"));
+  
   AASequence seq11 = AASequence::fromString("PEPM[147.035405]TIDEK");
   TEST_EQUAL(seq11.isValid(), true)
   TEST_EQUAL(seq11.isModified(),true);

@@ -829,7 +829,7 @@ namespace OpenMS
               aas.valid_ = false;
               aas.sequence_string_.concatenate(split.begin(), split.end());
               aas.peptide_.clear();
-              cerr << "AASequence: cannot convert string '" << peptide << "' into meaningful amino acid sequence, missing ')'!" << endl;
+              throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, peptide, "Cannot convert string into AASequence. Missing ')'!");
               return;
             }
 
@@ -850,7 +850,7 @@ namespace OpenMS
                   aas.valid_ = false;
                   aas.sequence_string_.concatenate(split.begin(), split.end());
                   aas.peptide_.clear();
-                  cerr << "AASequence: cannot convert string '" << peptide << "' into meaningful amino acid sequence, missing ']'!" << endl;
+                  throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, peptide, "Cannot convert string into AASequence. Missing ']'!");
                   return;
                 }
                 tag += res[k];
@@ -862,7 +862,7 @@ namespace OpenMS
               aas.valid_ = false;
               aas.sequence_string_.concatenate(split.begin(), split.end());
               aas.peptide_.clear();
-              cerr << "AASequence: cannot convert string '" << peptide << "' into meaningful amino acid sequence, residue '" << res << "' unknown at position " << j << ", residue #" << i << "!" << endl;
+              throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, peptide, "Cannot convert string into AASequence. Residue '" + res + "' unknown at position " + String(j) + ", residue # " + String(i) + " !");
             }
           }
         }
@@ -875,7 +875,7 @@ namespace OpenMS
         aas.valid_ = false;
         aas.sequence_string_.concatenate(split.begin(), split.end());
         aas.peptide_.clear();
-        cerr << "AASequence: cannot parse residue with name: '" << name << "' from sequence '" << peptide << "'" << endl;
+        throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, peptide, "Cannot convert string into AASequence. Cannot parse residue with name: '" + name + "'!");
         return;
       }
 
@@ -936,8 +936,8 @@ namespace OpenMS
             if (res_ptr->getMonoWeight() <= 0.0)
             {
               aas.valid_ = false;
-              std::cerr << "Warning: Having a difference modification on an unspecified residue (" <<
-                name << "[" << tag <<  "]) will probably not produce a correct mass." << std::endl;
+              throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, peptide, "Cannot convert string into AASequence. Having a difference modification on an unspecified residue (" + name + "[" + tag +  "]) will probably not produce a correct mass.");
+              return;
             }
 
             std::cout <<  "Warning: unknown modification " << tag << " on residue "
@@ -999,6 +999,7 @@ namespace OpenMS
           aas.valid_ = false;
           aas.sequence_string_.concatenate(split.begin(), split.end());
           aas.peptide_.clear();
+          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, peptide, "Cannot convert string into AASequence. Mod and tag are both empty.");
           return;
         }
       }
