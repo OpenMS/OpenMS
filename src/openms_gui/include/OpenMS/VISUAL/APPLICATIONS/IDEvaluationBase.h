@@ -36,6 +36,9 @@
 #ifndef OPENMS_VISUAL_APPLICATIONS_IDEVALUATIONBASE_H
 #define OPENMS_VISUAL_APPLICATIONS_IDEVALUATIONBASE_H
 
+// OpenMS_GUI config
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
+
 //OpenMS
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>

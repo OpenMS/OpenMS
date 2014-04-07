@@ -35,6 +35,9 @@
 #ifndef OPENMS_VISUAL_VISUALIZER_ACQUISITIONINFOVISUALIZER_H
 #define OPENMS_VISUAL_VISUALIZER_ACQUISITIONINFOVISUALIZER_H
 
+// OpenMS_GUI config
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
+
 //OpenMS
 #include <OpenMS/METADATA/AcquisitionInfo.h>
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizer.h>

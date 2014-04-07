@@ -1383,7 +1383,7 @@ set_tests_properties("TOPP_ExecutePipeline_1" PROPERTIES WILL_FAIL 1)
 #------------------------------------------------------------------------------
 # search engine tests (might be optional, depending on presence of external binaries, e.g., omssacl.exe)
 #------------------------------------------------------------------------------
-include("./SEARCHENGINES/CMakeLists.txt")
+include(SEARCHENGINES/search_engine_tests.cmake)
 
 #------------------------------------------------------------------------------
 # UTILS tests (if this becomes too much, we should create a separate directory)

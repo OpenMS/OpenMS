@@ -61,7 +61,7 @@
 namespace OpenMS
 {
 
-  class SUPERHIRN_DLL_EXPORT CentroidData
+  class SUPERHIRN_DLLAPI CentroidData
   {
 public:
 

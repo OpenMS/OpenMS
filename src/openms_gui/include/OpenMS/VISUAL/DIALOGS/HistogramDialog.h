@@ -36,6 +36,9 @@
 #ifndef OPENMS_VISUAL_DIALOGS_HISTOGRAMDIALOG_H
 #define OPENMS_VISUAL_DIALOGS_HISTOGRAMDIALOG_H
 
+// OpenMS_GUI config
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
+
 #include <QtGui/QDialog>
 
 #include <OpenMS/MATH/STATISTICS/Histogram.h>

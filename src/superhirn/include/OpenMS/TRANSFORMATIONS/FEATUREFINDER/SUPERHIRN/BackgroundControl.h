@@ -60,7 +60,7 @@
 namespace OpenMS
 {
 
-  class SUPERHIRN_DLL_EXPORT BackgroundControl
+  class SUPERHIRN_DLLAPI BackgroundControl
   {
 
 private:

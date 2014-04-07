@@ -32,9 +32,11 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-
 #ifndef OPENMS_VISUAL_DIALOGS_SPECTRUM1DPREFDIALOG_H
 #define OPENMS_VISUAL_DIALOGS_SPECTRUM1DPREFDIALOG_H
+
+// OpenMS_GUI config
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 #include <OpenMS/VISUAL/DIALOGS/UIC/ui_Spectrum1DPrefDialog.h>
 

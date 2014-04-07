@@ -35,6 +35,8 @@
 # a collection of wrapper for install functions that allows easier usage
 # througout the OpenMS build system
 
+set(OPENMS_EXPORT_SET "OpenMSTargets")
+
 #------------------------------------------------------------------------------
 # Installs the library lib_target_name and all its headers set via
 # set_target_properties(lib_target_name PROPERTIES PUBLIC_HEADER ${headers})
@@ -43,6 +45,7 @@
 macro(install_library lib_target_name)
   if ("${PACKAGE_TYPE}" STREQUAL "none")
     install(TARGETS ${lib_target_name}
+      EXPORT ${OPENMS_EXPORT_SET}
       LIBRARY DESTINATION ${INSTALL_LIB_DIR}
       ARCHIVE DESTINATION ${INSTALL_LIB_DIR}
       RUNTIME DESTINATION ${INSTALL_LIB_DIR}
@@ -122,5 +125,15 @@ macro(install_code code_snippet component)
   if ("${PACKAGE_TYPE}" STREQUAL "none")
     install(CODE ${code_snippet}
             COMPONENT ${component})
+  endif()
+endmacro()
+
+#------------------------------------------------------------------------------
+# Installs the exported target information
+macro(install_export_targets )
+  if ("${PACKAGE_TYPE}" STREQUAL "none")
+    install(EXPORT ${OPENMS_EXPORT_SET}
+            DESTINATION ${INSTALL_SHARE_DIR}/cmake
+            COMPONENT share)
   endif()
 endmacro()

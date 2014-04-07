@@ -65,7 +65,7 @@ namespace OpenMS
   class CentroidData;
   class LCMSCData;
 
-  class SUPERHIRN_DLL_EXPORT ProcessData
+  class SUPERHIRN_DLLAPI ProcessData
   {
 
 

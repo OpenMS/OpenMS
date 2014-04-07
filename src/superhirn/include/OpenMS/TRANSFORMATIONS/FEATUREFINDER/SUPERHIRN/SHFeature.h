@@ -57,7 +57,7 @@
 namespace OpenMS
 {
 
-  class SUPERHIRN_DLL_EXPORT SHFeature
+  class SUPERHIRN_DLLAPI SHFeature
   {
 
     ////////////////////////////////////////////////

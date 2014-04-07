@@ -32,9 +32,11 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-
 #ifndef OPENMS_VISUAL_SPECTRUMCANVAS_H
 #define OPENMS_VISUAL_SPECTRUMCANVAS_H
+
+// OpenMS_GUI config
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 //OpenMS
 #include <OpenMS/CONCEPT/Types.h>
