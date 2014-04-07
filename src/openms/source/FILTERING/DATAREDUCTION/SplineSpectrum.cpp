@@ -71,59 +71,68 @@ namespace OpenMS
         }
         
         const double newPackage = 2;    // start a new package if delta m/z is greater than newPackage times previous one
-        
-        //assert(mz.size() == intensity.size());
- 		//assert(mz.size() > 2);
        
 		// remove unnecessary zeros, i.e. zero intensity data points with zeros to the left and right
         std::vector<double> mzSlim;
         std::vector<double> intensitySlim;
-        for (unsigned i=0; i<mz.size(); ++i)
+        if (intensity[0]!=0 || intensity[1]!=0)
         {
-            int left = ((int)i-1 < 0)? 0 : ((int)i-1);
-            int right = (i+1 > mz.size()-1)? (mz.size()-1) : (i+1);
-            if (intensity[left] != 0 || intensity[i] != 0 || intensity[right] != 0) {
+            mzSlim.push_back(mz[0]);
+            intensitySlim.push_back(intensity[0]);
+        }
+        bool lastIntensityZero = (intensity[0] == 0);
+        bool currentIntensityZero = (intensity[0] == 0);
+        bool nextIntensityZero = (intensity[1] == 0);
+        for (unsigned i=1; i<mz.size()-1; ++i)
+        {
+            lastIntensityZero = currentIntensityZero;
+            currentIntensityZero = nextIntensityZero;
+            nextIntensityZero = (intensity[i+1] == 0);
+            if (!lastIntensityZero || !currentIntensityZero || !nextIntensityZero)
+            {
                 mzSlim.push_back(mz[i]);
                 intensitySlim.push_back(intensity[i]);
             }
-         }
+        }
+        if (intensity[mz.size()-1]!=0 || intensity[mz.size()-2]!=0)
+        {
+            mzSlim.push_back(mz[mz.size()-1]);
+            intensitySlim.push_back(intensity[mz.size()-1]);
+        }
          
-         // subdivide spectrum into packages
-         std::vector<double> deltaMz;
-         std::vector<bool> startPackage;
-         deltaMz.push_back(0);
-         for (unsigned i=1; i<mzSlim.size(); ++i) {
-            deltaMz.push_back(mzSlim.at(i) - mzSlim[i-1]);
-         }
-         startPackage.push_back(true);
-         for (unsigned i=1; i<mzSlim.size(); i++) {
-            startPackage.push_back(deltaMz[i]/deltaMz[i-1] > newPackage);
-         }
+        // subdivide spectrum into packages
+        std::vector<bool> startPackage;
+        startPackage.push_back(true);
+        startPackage.push_back(false);
+        for (unsigned i=2; i<mzSlim.size(); ++i) {
+            startPackage.push_back((mzSlim[i] - mzSlim[i-1])/(mzSlim[i-1] - mzSlim[i-2]) > newPackage);
+        }
         
         // fill the packages
         std::vector<double> mzPackage;
         std::vector<double> intensityPackage;
-        for (unsigned i=0; i<mz.size(); i++) {
+        for (unsigned i=0; i<mzSlim.size(); ++i) {
             if (startPackage[i] && i > 0) {
                 if (intensityPackage.size() > 2) {
                     // Three or more data points in package. At least one of them will be non-zero since unnecessary zeros removed above.
-                    SplinePackage * package = new SplinePackage(mzPackage, intensityPackage);
-                    packages_.push_back(*package);
+                    packages_.push_back(* new SplinePackage(mzPackage, intensityPackage));
                 }
                 mzPackage.clear();
                 intensityPackage.clear();
             }
-            mzPackage.push_back(mz[i]);
-            intensityPackage.push_back(intensity[i]);
+            mzPackage.push_back(mzSlim[i]);
+            intensityPackage.push_back(intensitySlim[i]);
         }
         // add the last package
         if (intensityPackage.size() > 2) {
-            SplinePackage * package = new SplinePackage(mzPackage, intensityPackage);
-            packages_.push_back(*package);
+            packages_.push_back(* new SplinePackage(mzPackage, intensityPackage));
         }
-        mzPackage.clear();
-        intensityPackage.clear();
-   }
+    }
+   
+    SplinePackage SplineSpectrum::getPackage(int i)
+    {
+        return packages_[i];
+    }
 
     SplineSpectrum::Navigator::Navigator(const std::vector<SplinePackage> * packages)
     {
@@ -136,25 +145,25 @@ namespace OpenMS
         SplinePackage start = (*packages_)[lastPackage_];
         if (mz < start.getMzMin()) {
             for (int i = lastPackage_; i >= 0; --i) {
-                lastPackage_ = i;
-                
                 SplinePackage package = (*packages_)[i];
                 if (mz > package.getMzMax()) {
+                    lastPackage_ = i;
                     return 0.0;
                 }
                 if (mz >= package.getMzMin()) {
+                    lastPackage_ = i;
                     return package.eval(mz);
                 }
             }
         } else {
             for (int i = lastPackage_; i < (int)(*packages_).size(); ++i) {
-                lastPackage_ = i;
-                
                 SplinePackage package = (*packages_)[i];
                 if (mz < package.getMzMin()) {
+                    lastPackage_ = i;
                     return 0.0;
                 }
                 if (mz <= package.getMzMax()) {
+                    lastPackage_ = i;
                     return package.eval(mz);
                 }
             }
@@ -209,7 +218,7 @@ namespace OpenMS
         if (mz + package.getMzStepWidth() > package.getMzMax()) {
             // The next step gets us outside the current package.
             // Let's move to the package to the right. 
-            i++;
+            ++i;
             package = (*packages_)[i];
             // check index limit
             if (i > maxIndex) {

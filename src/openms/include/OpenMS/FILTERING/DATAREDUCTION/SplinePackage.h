@@ -59,20 +59,20 @@ namespace OpenMS
     /**
      * @brief m/z limits of the package in the raw data spectrum
      */
-    DoubleReal mzMin_;
-    DoubleReal mzMax_;
+    double mzMin_;
+    double mzMax_;
 	 
 	/**
 	 * @brief sensible m/z step width with which to scan through the package
 	 * (somewhat smaller than the raw data spacing)
 	 */
-	DoubleReal mzStepWidth_;
+	double mzStepWidth_;
 
 	/**
 	 * @brief intensity limits of the package
 	 */
-	DoubleReal intensityMin_;
-	DoubleReal intensityMax_;
+	double intensityMin_;
+	double intensityMax_;
 	
 	/**
 	 * @brief spline object for interpolation of intensity profile

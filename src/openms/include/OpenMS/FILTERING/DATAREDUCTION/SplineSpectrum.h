@@ -79,6 +79,11 @@ namespace OpenMS
     void init(std::vector<double> mz, std::vector<double> intensity);
     
     /**
+     * @brief returns pline package of index i
+     */
+    SplinePackage getPackage(int i);
+    
+    /**
      * @brief iterator class for access of spline packages
      */
    class Navigator

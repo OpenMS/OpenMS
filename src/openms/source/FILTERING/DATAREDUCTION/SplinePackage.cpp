@@ -47,9 +47,12 @@ namespace OpenMS
 
 	SplinePackage::SplinePackage(std::vector<double> mz, std::vector<double> intensity) 
 	{				
+        if (!(mz.size() == intensity.size() && mz.size() > 2))
+        {
+            throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,"m/z and intensity vectors either not of the same size or too short.");
+        }
+        
 		const double scaling_ = 0.7;    // step width somewhat smaller than the average raw data spacing		
-		assert(mz.size() == intensity.size());
-		assert(mz.size() > 2);
 		
 		mzMin_ = *min_element(mz.begin(), mz.end());
 		mzMax_ = *max_element(mz.begin(), mz.end());		
