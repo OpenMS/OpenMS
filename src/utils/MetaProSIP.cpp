@@ -54,6 +54,8 @@
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
 #include <OpenMS/MATH/MISC/Spline2d.h>
+#include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/MassDecomposition.h>
+#include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/MassDecompositionAlgorithm.h>
 
 //#include "FastEMD/FastEMDWrapper.h"
 
@@ -1439,6 +1441,10 @@ protected:
 
     registerFlag_("use_15N", "Use 15N instead of 13C", false);
     
+	registerFlag_("use_unassigned_ids", "Include identifications not assigned to a feature in pattern detection.", false);
+
+	registerFlag_("use_averagine_ids", "Use averagine peptides as model to perform pattern detection on unidentified peptides.", false);
+
     registerFlag_("plot_merged", "Plot merged spectra", false);
 
     registerFlag_("report_natural_peptides", "Whether purely natural peptides are reported in the quality report.", false);
@@ -1460,7 +1466,7 @@ protected:
     registerDoubleOption_("lowRIA_correlation_threshold", "<tol>", -1, "Correlation threshold for reporting low RIA patterns. Disable and take correlation_threshold value for negative values.", false, true);
   }
   
-  // Perform a simple check if R and all R dependencies are there
+  // Perform a simple check if R and all R dependencies are thereget
   bool checkRDependencies(String tmp_path)
   {
 	String random_name = String::random(8);
@@ -2603,6 +2609,9 @@ protected:
     bool use_N15 = getFlag_("use_15N");
     bool plot_merged = getFlag_("plot_merged");
     bool report_natural_peptides = getFlag_("report_natural_peptides");
+	bool use_unassigned_ids = getFlag_("use_unassigned_ids");	
+	bool use_averagine_ids = getFlag_("use_averagine_ids");
+
     String debug_patterns_name = getStringOption_("debug_patterns_name");
 
     double correlation_threshold = getDoubleOption_("correlation_threshold");
@@ -2636,6 +2645,177 @@ protected:
     FeatureXMLFile fh;
     FeatureMap<> feature_map;
     fh.load(in_features, feature_map);
+
+	// if also unassigned ids are used create a pseudo feature
+	if (use_unassigned_ids)
+	{
+	  const vector<PeptideIdentification> unassigned_ids = feature_map.getUnassignedPeptideIdentifications();
+	  for (vector<PeptideIdentification>::const_iterator it = unassigned_ids.begin(); it != unassigned_ids.end(); ++it)
+	  {
+		  vector<PeptideHit> hits = it->getHits();
+		  if (!hits.empty())
+		  {
+			Feature f;
+			f.setMetaValue("feature_from_id", true);
+		    f.setRT(it->getMetaValue("RT"));
+			// take sequence of first hit to calculate ground truth mz
+			double charge = hits[0].getCharge();
+			double charged_weight = hits[0].getSequence().getMonoWeight(Residue::Full, charge);
+			double mz = charged_weight / charge;
+			f.setMZ(mz);
+			// add id to pseudo feature
+			vector<PeptideIdentification> id;
+			id.push_back(*it);
+			f.setPeptideIdentifications(id);
+			feature_map.push_back(f);
+		  }
+	  }
+	}
+
+	// determine all spectra that have not been identified and assign an averagine peptide to it
+	if (use_averagine_ids)
+	{
+	  // load only MS2 spectra with precursor information
+	  MSExperiment<Peak1D> peak_map;
+	  MzMLFile mh;
+	  std::vector<Int> ms_level(1, 2);
+	  mh.getOptions().setMSLevels(ms_level);
+	  mh.load(in_mzml, peak_map);
+	  peak_map.sortSpectra();
+	  peak_map.updateRanges();
+
+	  // extract rt and mz of all identified precursors and store them in blacklist
+	  vector<Peak2D> blacklisted_precursors;
+	  // in features
+	  for (FeatureMap<>::iterator feature_it = feature_map.begin(); feature_it != feature_map.end(); ++feature_it) // for each peptide feature
+	  {
+		const vector<PeptideIdentification> & f_ids = feature_it->getPeptideIdentifications();
+		for (vector<PeptideIdentification>::const_iterator id_it = f_ids.begin(); id_it != f_ids.end(); ++id_it)
+		{
+		  if (!id_it->getHits().empty())
+		  {
+			// Feature with id found so we don't need to generate averagine id. Find MS2 in experiment and blacklist it.
+		    Peak2D p;
+			const double f_id_rt = id_it->getMetaValue("RT");
+			const double f_id_mz = id_it->getMetaValue("MZ");
+			blacklisted_precursors.push_back(p);
+		  }
+		}	 
+	  }
+
+	  // and in unassigned ids
+	  const vector<PeptideIdentification> unassigned_ids = feature_map.getUnassignedPeptideIdentifications();
+	  for (vector<PeptideIdentification>::const_iterator it = unassigned_ids.begin(); it != unassigned_ids.end(); ++it)
+	  {
+  	    const vector<PeptideHit> hits = it->getHits();
+		if (!hits.empty())
+		{
+		  Peak2D p;
+ 		  p.setRT(it->getMetaValue("RT"));
+		  p.setMZ(it->getMetaValue("MZ"));
+		  blacklisted_precursors.push_back(p);
+		}
+	  }
+
+	  // find index of all precursors that have been blacklisted
+	  vector<Size> blacklist_idx;
+	  for (vector<Peak2D>::const_iterator it = blacklisted_precursors.begin(); it != blacklisted_precursors.end(); ++it)	  
+	  {
+		MSExperiment<>::const_iterator map_rt_begin = peak_map.RTBegin(-std::numeric_limits<double>::max());
+		MSExperiment<>::const_iterator rt_begin = peak_map.RTBegin(it->getRT() - 1e-5);
+
+		blacklist_idx.push_back(std::distance(map_rt_begin, rt_begin));
+	  }
+
+	  map<String, double> aa_frequency;
+	  aa_frequency["A"] = 0.075;
+	  aa_frequency["C"] = 0.018;
+	  aa_frequency["D"] = 0.052;
+	  aa_frequency["E"] = 0.063;
+	  aa_frequency["F"] = 0.039;
+
+	  aa_frequency["G"] = 0.071;
+	  aa_frequency["H"] = 0.022;
+	  aa_frequency["I"] = 0.055;
+	  aa_frequency["K"] = 0.058;
+	  aa_frequency["L"] = 0.091;
+
+	  aa_frequency["M"] = 0.028;
+	  aa_frequency["N"] = 0.046;
+	  aa_frequency["P"] = 0.051;
+	  aa_frequency["Q"] = 0.041;
+	  aa_frequency["R"] = 0.052;
+
+	  aa_frequency["S"] = 0.074;
+	  aa_frequency["T"] = 0.060;
+	  aa_frequency["V"] = 0.065;
+	  aa_frequency["W"] = 0.013;
+	  aa_frequency["Y"] = 0.033;
+
+	  for (Size i = 0; i != peak_map.size(); ++i)
+	  {
+		// precursor not blacklisted?
+		if (find(blacklist_idx.begin(), blacklist_idx.end(), i) == blacklist_idx.end() && !peak_map[i].getPrecursors().empty())
+		{
+		  // store feature with id generated from averagine peptide (pseudo id)
+ 	      Feature f;
+		  
+		  double precursor_mz = peak_map[i].getPrecursors()[0].getMZ();
+		  int precursor_charge = peak_map[i].getPrecursors()[0].getCharge();
+		  double precursor_mass = (double)precursor_charge * precursor_mz - (double)precursor_charge * Constants::PROTON_MASS_U;
+
+		  // add averagine id to pseudo feature
+		  PeptideHit pseudo_hit;
+
+		  // generate pseudo id
+		  MassDecompositionAlgorithm mda;
+		  Param p(mda.getParameters());
+		  p.setValue("tolerance", 0.001); // Da
+		  mda.setParameters(p);
+		  vector<MassDecomposition> decomps;
+		  mda.getDecompositions(decomps, precursor_mass);
+		  
+		  // select peptide candidate that matches best the averagine model
+		  AASequence best_averagine_peptide;
+		  double best_frequency_error = std::numeric_limits<double>::max();
+
+		  for (vector<MassDecomposition>::const_iterator decomp_it = decomps.begin(); decomp_it != decomps.end(); ++decomp_it)
+		  {
+			AASequence tmp_averagine_peptide = AASequence(decomp_it->toExpandedString());
+			Map<String, Size> tmp_count_table;
+			tmp_averagine_peptide.getAAFrequencies(tmp_count_table);
+
+			// calculate deviation from expected aa frequency
+			double error = 0;
+			for (Map<String, Size>::const_iterator c_it = tmp_count_table.begin(); c_it != tmp_count_table.end(); ++c_it)
+			{
+			  double aa_freq = (double)c_it->second / (double)tmp_averagine_peptide.size();
+			  error += fabs(aa_frequency.at(c_it->first) - aa_freq);
+			}
+			
+			if (error < best_frequency_error)
+			{
+		      best_frequency_error = error;
+			  best_averagine_peptide = tmp_averagine_peptide;
+			}
+		  }
+
+		  // set peptide with lowest deviation from averagine
+		  pseudo_hit.setSequence(best_averagine_peptide);
+		  PeptideIdentification pseudo_id;
+		  vector<PeptideHit> pseudo_hits;
+		  pseudo_hits.push_back(pseudo_hit);
+		  pseudo_id.setHits(pseudo_hits);
+		  vector<PeptideIdentification> id;
+		  id.push_back(pseudo_id);
+		  f.setPeptideIdentifications(id);
+		  f.setRT(peak_map[i].getRT());
+		  f.setMZ(precursor_mz);
+		  f.setMetaValue("feature_from_averagine", true);
+		  feature_map.push_back(f);
+		}
+	  }
+	}
 
 	LOG_INFO << "loading experiment..." << endl;
     MSExperiment<Peak1D> peak_map;
