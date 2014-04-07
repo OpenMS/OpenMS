@@ -6,6 +6,7 @@ set(sources_list
 File.cpp
 FileWatcher.cpp
 StopWatch.cpp
+SysInfo.cpp
 )
 
 ### add path to the filenames

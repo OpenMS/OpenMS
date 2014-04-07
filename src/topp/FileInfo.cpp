@@ -49,6 +49,7 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
+#include <OpenMS/SYSTEM/SysInfo.h>
 
 #include <QtCore/QString>
 
@@ -91,7 +92,7 @@ using namespace std;
   <B>INI file documentation of this tool:</B>
   @htmlinclude TOPP_FileInfo.html
 
-  In order to enrich the resulting data of your anaysis pipeline or to quickly compare different outcomes of your pipeline you can invoke the aforementioned information of your input data and (intermediary) results.
+  In order to enrich the resulting data of your analysis pipeline or to quickly compare different outcomes of your pipeline you can invoke the aforementioned information of your input data and (intermediary) results.
 */
 
 // We do not want this class to show up in the docu:
@@ -463,14 +464,21 @@ protected:
       set<String> proteins;
       Size modified_peptide_count(0);
       Map<String, int> mod_counts;
-      
-	    // reading input
+	  
+	  size_t mem1, mem2;
+ 	  SysInfo::getProcessMemoryConsumption(mem1);
+	  
+      // reading input
       IdXMLFile().load(in, id_data.proteins, id_data.peptides, id_data.identifier);
 
+	  SysInfo::getProcessMemoryConsumption(mem2);
+	  std::cout << "\n\nMem Usage while loading: " << (mem2-mem1)/1024 << " MB" << std::endl;
+
       // export metadata to second output stream
-      os_tsv << "database" << "\t" << id_data.proteins.at(0).getSearchParameters().db << "\n"
-             << "database version" << "\t" << id_data.proteins.at(0).getSearchParameters().db_version << "\n"
-             << "taxonomy" << "\t" << id_data.proteins.at(0).getSearchParameters().taxonomy << "\n";
+      os_tsv << "database" << "\t" << id_data.proteins[0].getSearchParameters().db << "\n"
+             << "database version" << "\t" << id_data.proteins[0].getSearchParameters().db_version << "\n"
+             << "taxonomy" << "\t" << id_data.proteins[0].getSearchParameters().taxonomy << "\n";
+
 
       // calculations
       for (Size i = 0; i < id_data.peptides.size(); ++i)
@@ -535,12 +543,20 @@ protected:
     }
     else     //peaks
     {
+
+      size_t mem1, mem2;
+      SysInfo::getProcessMemoryConsumption(mem1);
+      
       if (!fh.loadExperiment(in, exp, in_type, log_type_))
       {
         writeLog_("Unsupported or corrupt input file. Aborting!");
         printUsage_();
         return ILLEGAL_PARAMETERS;
       }
+
+      // report memory consumption
+      SysInfo::getProcessMemoryConsumption(mem2);
+      std::cout << "\n\nMem Usage while loading: " << (mem2-mem1)/1024 << " MB" << std::endl;
 
       //check if the meta data indicates that this is peak data
       UInt meta_type = SpectrumSettings::UNKNOWN;
