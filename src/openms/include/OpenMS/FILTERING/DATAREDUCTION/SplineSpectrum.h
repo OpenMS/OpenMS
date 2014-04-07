@@ -74,19 +74,6 @@ namespace OpenMS
     SplineSpectrum(MSSpectrum<Peak1D> rawSpectrum);
 
     /**
-     * @brief returns the spline interpolated intensity @ m/z
-     * (NB for fast access use SplineSpectrum::Navigator)
-     */
-    double eval(double mz);
-
-    /**
-     * @brief returns the next sensible m/z position
-     *  for scanning through a spectrum
-     * (NB for fast access use SplineSpectrum::Navigator)
-     */
-    double getNextMz(double mz);
-    
-    /**
      * @brief section common for both constructors
      */
     void init(std::vector<double> mz, std::vector<double> intensity);

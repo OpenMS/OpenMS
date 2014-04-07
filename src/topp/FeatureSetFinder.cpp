@@ -526,8 +526,8 @@ public:
 	std::cout << "*** start tests ***\n";
 	// iterate over all spectra of the experiment (RT)
 	Int spectrumID = 0;
- 	std::vector<double> mzMS1_;
-	std::vector<double> intensityMS1_;
+ 	std::vector<double> mzMS1;
+	std::vector<double> intensityMS1;
    for (MSExperiment<Peak1D>::Iterator it = exp.begin(); it != exp.end(); ++it)
     {
 		++spectrumID;
@@ -539,23 +539,23 @@ public:
 			{
 				DoubleReal mzSpec = it2->getMZ();
 				DoubleReal intensitySpec = it2->getIntensity();
-				mzMS1_.push_back(mzSpec);
-				intensityMS1_.push_back(intensitySpec);
+				mzMS1.push_back(mzSpec);
+				intensityMS1.push_back(intensitySpec);
 				//std::cout << "        m/z = " << mzSpec << "   intensity = " << intensitySpec << "\n";
 			}
 		}
 	}
 	// test SplineSpectrum
-	SplineSpectrum * spectrum = new SplineSpectrum(mzMS1_,intensityMS1_);
+	SplineSpectrum * spectrum = new SplineSpectrum(mzMS1,intensityMS1);
 	// test SplinePackage
-	std::vector<double> mz_;
-	std::vector<double> intensity_;
+	std::vector<double> mz;
+	std::vector<double> intensity;
 	for (Int i=7; i<207; ++i)
 	{
-		mz_.push_back(i*1.0);
-		intensity_.push_back(i*i*1.0);
+		mz.push_back(i*1.0);
+		intensity.push_back(i*i*1.0);
 	}
-	SplinePackage * package = new SplinePackage(mz_, intensity_);
+	SplinePackage * package = new SplinePackage(mz, intensity);
  	std::cout << "***   end tests ***\n";
  	std::cout << "\n\n";
 
