@@ -33,10 +33,12 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/test_config.h>
 
 ///////////////////////////
 
 #include <OpenMS/SYSTEM/SysInfo.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include <iostream>
 
 ///////////////////////////
@@ -47,27 +49,27 @@ START_TEST(SysInfo, "$Id$")
 
 START_SECTION(static bool getProcessMemoryConsumption(size_t& mem_virtual))
 {
-	size_t alloc_size = 1024 * 1024 * 10; // alloc 10 MB
-	size_t first, after, final;
-	TEST_EQUAL(SysInfo::getProcessMemoryConsumption(first), true);
-	std::cout << "Memory consumed initally: " << first << " KB" << std::endl;
+  size_t first, after, final;
+  TEST_EQUAL(SysInfo::getProcessMemoryConsumption(first), true);
+  std::cout << "Memory consumed initally: " << first << " KB" << std::endl;
 
-	char* some_mem = new char[alloc_size];
-        std::cerr << some_mem[alloc_size-19] << std::endl;
-	TEST_EQUAL(SysInfo::getProcessMemoryConsumption(after), true);
-	std::cout << "Memory consumed after 10 MB alloc : " << after << " KB" << std::endl;
+  {
+    MSExperiment<> exp;
+    MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_5_long.mzML"), exp);;
 
-	TEST_EQUAL(after - first > alloc_size / 1024, true)
+    TEST_EQUAL(SysInfo::getProcessMemoryConsumption(after), true);
+    std::cout << "Memory consumed after reading 20 MB mzML : " << after << " KB" << std::endl;
 
-	delete[] some_mem;
-	// just for fun. There is probably no guarantee that we get the whole mem back by the memory manager
-	TEST_EQUAL(SysInfo::getProcessMemoryConsumption(final), true);
-	std::cout << "Memory consumed after 10 MB free : " << final << " KB" << std::endl;
+    TEST_EQUAL(after - first > 10000, true)
+  }
 
-	TEST_EQUAL(after > final, true)
+  // just for fun. There is probably no guarantee that we get the whole mem back by the memory manager
+  TEST_EQUAL(SysInfo::getProcessMemoryConsumption(final), true);
+  std::cout << "Memory consumed after 10 MB free : " << final << " KB" << std::endl;
+
+  TEST_EQUAL(after > final, true)
 
 }
 END_SECTION
-
 
 END_TEST
