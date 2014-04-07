@@ -55,7 +55,7 @@ START_SECTION(static bool getProcessMemoryConsumption(size_t& mem_virtual))
 
   {
     MSExperiment<> exp;
-    MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_5_long.mzML"), exp);;
+    MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_5_long.mzML"), exp);
 
     TEST_EQUAL(SysInfo::getProcessMemoryConsumption(after), true);
     std::cout << "Memory consumed after reading 20 MB mzML : " << after << " KB" << std::endl;
@@ -65,7 +65,7 @@ START_SECTION(static bool getProcessMemoryConsumption(size_t& mem_virtual))
 
   // just for fun. There is probably no guarantee that we get the whole mem back by the memory manager
   TEST_EQUAL(SysInfo::getProcessMemoryConsumption(final), true);
-  std::cout << "Memory consumed after 10 MB free : " << final << " KB" << std::endl;
+  std::cout << "Memory consumed after release of MSExperiment: " << final << " KB" << std::endl;
 
   TEST_EQUAL(after > final, true)
 
