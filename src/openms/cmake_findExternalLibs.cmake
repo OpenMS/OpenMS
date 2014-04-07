@@ -165,6 +165,13 @@ endif()
 
 #------------------------------------------------------------------------------
 # Done finding contrib libraries
+# cmake args: -DCrawdad_DIR=/path/to/Crawdad/ -DWITH_CRAWDAD=TRUE
+if (WITH_CRAWDAD)
+  find_package(Crawdad)
+endif()
+
+#------------------------------------------------------------------------------
+# Done finding contrib libraries
 #------------------------------------------------------------------------------
 
 if(MSVC)

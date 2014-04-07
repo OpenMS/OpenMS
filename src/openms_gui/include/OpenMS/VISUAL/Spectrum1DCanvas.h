@@ -35,6 +35,9 @@
 #ifndef OPENMS_VISUAL_SPECTRUM1DCANVAS_H
 #define OPENMS_VISUAL_SPECTRUM1DCANVAS_H
 
+// OpenMS_GUI config
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
+
 // STL
 #include <vector>
 #include <utility>

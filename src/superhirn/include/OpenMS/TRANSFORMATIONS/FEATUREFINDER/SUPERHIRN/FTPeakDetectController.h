@@ -58,7 +58,7 @@
 namespace OpenMS
 {
 
-  class SUPERHIRN_DLL_EXPORT FTPeakDetectController
+  class SUPERHIRN_DLLAPI FTPeakDetectController
   {
 
     ////////////////////////////////////////////////

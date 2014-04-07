@@ -35,7 +35,9 @@
 #ifndef OPENMS_VISUAL_DIALOGS_TOPPASVERTEXNAMEDIALOG_H
 #define OPENMS_VISUAL_DIALOGS_TOPPASVERTEXNAMEDIALOG_H
 
-#include <OpenMS/config.h>
+// OpenMS_GUI config
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
+
 #include <OpenMS/VISUAL/DIALOGS/UIC/ui_TOPPASVertexNameDialog.h>
 
 namespace OpenMS

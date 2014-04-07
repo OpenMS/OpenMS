@@ -16,11 +16,11 @@ FeaFiModule.cpp
 FeatureFinder.cpp
 FeatureFinderAlgorithm.cpp
 FeatureFinderAlgorithmIsotopeWavelet.cpp
+FeatureFinderAlgorithmMRM.cpp
 FeatureFinderAlgorithmPicked.cpp
 FeatureFinderAlgorithmPickedHelperStructs.cpp
 FeatureFinderAlgorithmSimple.cpp
 FeatureFinderAlgorithmSimplest.cpp
-FeatureFinderAlgorithmMRM.cpp
 Fitter1D.cpp
 GaussFitter1D.cpp
 GaussModel.cpp
@@ -39,6 +39,7 @@ ProductModel.cpp
 SeedListGenerator.cpp
 SimpleExtender.cpp
 SimpleSeeder.cpp
+
 )
 
 ### add path to the filenames
@@ -52,15 +53,3 @@ set(OpenMS_sources ${OpenMS_sources} ${sources})
 
 ### source group definition
 source_group("Source Files\\TRANSFORMATIONS\\FEATUREFINDER" FILES ${sources})
-
-set(sources_list_cu
-IsotopeWaveletCudaKernel.cu
-)
-
-set(sources_cu)
-foreach(i ${sources_list_cu})
-        list(APPEND sources_cu ${directory}/${i})
-endforeach(i)
-
-###
-set(Cuda_sources ${Cuda_sources} ${sources_cu})

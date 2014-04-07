@@ -58,7 +58,7 @@
 namespace OpenMS
 {
 
-  class SUPERHIRN_DLL_EXPORT MS2Fragment
+  class SUPERHIRN_DLLAPI MS2Fragment
   {
 
 

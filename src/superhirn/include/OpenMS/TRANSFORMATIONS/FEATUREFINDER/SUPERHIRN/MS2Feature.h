@@ -53,7 +53,7 @@
 namespace OpenMS
 {
 
-  class SUPERHIRN_DLL_EXPORT MS2Feature :
+  class SUPERHIRN_DLLAPI MS2Feature :
     public ClusteredMS2ConsensusSpectrum
   {
 

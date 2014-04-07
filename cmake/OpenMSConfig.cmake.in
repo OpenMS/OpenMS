@@ -1,17 +1,15 @@
 ### CMake OpenMS config file for external code
 ### configured by the OpenMS build system from <OpenMS>/cmake/OpenMSConfig.cmake.in
 
+# we need this to reference the target file
+get_filename_component(OPENMS_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
 
-set(OPENMS_INCLUDE_DIRS "@OPENMS_INCLUDE_DIRS@")
-## manual listing (deprecated)
-#set(OPENMS_INCLUDE_DIRS "@CONTRIB_INCLUDE_DIR@" "@QT_INCLUDE_DIR@" "@QT_QTCORE_INCLUDE_DIR@" "@QT_QTGUI_INCLUDE_DIR@" "@QT_QTOPENGL_INCLUDE_DIR@" "@QT_QTNETWORK_INCLUDE_DIR@" "@QT_QTXML_INCLUDE_DIR@" "@PROJECT_SOURCE_DIR@/include" "@PROJECT_BINARY_DIR@/include")
+# include directories for targets
+@_EXPORT_INCLUDE_BLOCK@
 
 set(OPENMS_ADDCXX_FLAGS "@CF_OPENMS_ADDCXX_FLAGS@")
 
 set(OPENMS_DEFINITIONS "@CF_OPENMS_ADD_DEFINITIONS@")
 
-## create target 'OpenMS', including its dependencies
-## Linux: libOpenMS.so will be in ./lib, Windows: OpenMS.lib will be directly in the binary tree
-include("@CF_LibOpenMSExport@")
-
-
+## The targets file
+include("${OPENMS_CMAKE_DIR}/@_OPENMS_EXPORT_FILE@")

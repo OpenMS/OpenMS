@@ -35,11 +35,13 @@
 #ifndef OPENMS_VISUAL_VISUALIZER_SCANWINDOWVISUALIZER_H
 #define OPENMS_VISUAL_VISUALIZER_SCANWINDOWVISUALIZER_H
 
+// OpenMS_GUI config
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
+
 //OpenMS
 #include <OpenMS/METADATA/ScanWindow.h>
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizer.h>
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizerGUI.h>
-
 
 namespace OpenMS
 {

@@ -35,7 +35,8 @@
 #ifndef OPENMS_VISUAL_TOPPASRESOURCE_H
 #define OPENMS_VISUAL_TOPPASRESOURCE_H
 
-#include <OpenMS/config.h>
+// OpenMS_GUI config
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 #include <QtCore/QString>
 #include <QtCore/QStringList>

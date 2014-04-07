@@ -32,9 +32,11 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-
 #ifndef OPENMS_VISUAL_DIALOGS_LAYERSTATISTICSDIALOG_H
 #define OPENMS_VISUAL_DIALOGS_LAYERSTATISTICSDIALOG_H
+
+// OpenMS_GUI config
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 #include <OpenMS/VISUAL/DIALOGS/UIC/ui_LayerStatisticsDialog.h>
 #include <OpenMS/VISUAL/LayerData.h>

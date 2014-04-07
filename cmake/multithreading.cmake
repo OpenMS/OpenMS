@@ -37,40 +37,6 @@
 # build system.
 
 #------------------------------------------------------------------------------
-# CUDA
-#------------------------------------------------------------------------------
-set(MT_CUDA_BUILD_TYPE Device CACHE STRING "Switch between Device and Emulation mode.")
-if (MT_ENABLE_CUDA)
-	message(STATUS "NVIDIA CUDA: ${MT_CUDA_BUILD_TYPE} mode")
-	find_package(Cuda)
-else()
-  message(STATUS "NVIDIA CUDA: ${MT_ENABLE_CUDA}")
-endif()
-
-if (FOUND_CUDART AND MT_ENABLE_CUDA) #CUDART and not CUDA!!!
-	add_definitions(/DOPENMS_HAS_CUDA)
-	message(STATUS "Found CUDA header files in: ${FOUND_CUDA_NVCC_INCLUDE}") #Not CUDA_INCLUDE_DIR
-	message(STATUS "Found CUDA library at: ${FOUND_CUDART}")
-	INCLUDE_DIRECTORIES(${FOUND_CUDA_NVCC_INCLUDE})
-  set (CUDA_NVCC_INCLUDE_ARGS ${CUDA_NVCC_INCLUDE_ARGS} -I ${PROJECT_BINARY_DIR}/include/)
-endif()
-
-#------------------------------------------------------------------------------
-# TBB
-#------------------------------------------------------------------------------
-set(MT_TBB_INCLUDE_DIR CACHE PATH "Intel Threading Building Blocks 'include' directory.")
-set(MT_TBB_LIBRARY_DIR CACHE PATH "Intel Threading Building Blocks libraries directory.")
-message(STATUS "Intel TBB: ${MT_ENABLE_TBB}")
-if (MT_ENABLE_TBB)
-	find_package(TBB)
-endif()
-
-if (TBB_FOUND)
-	INCLUDE_DIRECTORIES(${MT_TBB_INCLUDE_DIR})
-	add_definitions(/DOPENMS_HAS_TBB)
-endif()
-
-#------------------------------------------------------------------------------
 # OpenMP
 #------------------------------------------------------------------------------
 if (MT_ENABLE_OPENMP)

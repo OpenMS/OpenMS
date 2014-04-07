@@ -57,7 +57,7 @@
 namespace OpenMS
 {
 
-  class SUPERHIRN_DLL_EXPORT LCMSCData
+  class SUPERHIRN_DLLAPI LCMSCData
   {
 public:
     typedef std::map<int, LCElutionPeak> elution_peak_list;

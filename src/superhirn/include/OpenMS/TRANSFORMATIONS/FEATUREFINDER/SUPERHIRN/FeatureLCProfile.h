@@ -55,7 +55,7 @@ namespace OpenMS
 
 // this structure stores the monoisotopic
 // signals of LC elution peak:
-  struct SUPERHIRN_DLL_EXPORT MS1Signal
+  struct SUPERHIRN_DLLAPI MS1Signal
   {
     double mass;
     double TR;
@@ -64,7 +64,7 @@ namespace OpenMS
     int charge;
   };
 
-  class SUPERHIRN_DLL_EXPORT FeatureLCProfile
+  class SUPERHIRN_DLLAPI FeatureLCProfile
   {
 
 
