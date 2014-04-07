@@ -1,16 +1,49 @@
-## optional tests. Configured in OpenMS/cmake/OpenMSBuildSystem_testConfig.cmake
+## MS2 Search-Engines go here...
+## MACRO OPENMS_FINDBINARY:
+## fills ${varname} with the path to the binary given in ${binaryname}
+## @param varname      Name of the variable which will hold the result string (e.g. OMSSA_BINARY)
+## @param binaryname   List of binary names which are searched
+## @param name         Human readable version of binaryname for messages
+macro (OPENMS_FINDBINARY varname binaryname name)
+  find_program(${varname} ${binaryname} PATHS ENV PATH)
+  if (${${varname}} STREQUAL "${varname}-NOTFOUND")
+    message(STATUS "  - ${name} not found")
+  else()
+    get_filename_component(found_executable_name ${${varname}} NAME)
+    message(STATUS "  + ${name} binary found at ${found_executable_name} -> Enabling corresponding tests.")
+  endif()
+endmacro (OPENMS_FINDBINARY)
+
+message(STATUS "Searching for MS2 search engines ...")
+
+#------------------------------------------------------------------------------
+# OMSSA
+OPENMS_FINDBINARY(OMSSA_BINARY "omssacl" "OMSSA")
+
+#------------------------------------------------------------------------------
+# X!Tandem
+OPENMS_FINDBINARY(XTANDEM_BINARY "tandem;tandem.exe" "X!Tandem")
+
+#------------------------------------------------------------------------------
+# MyriMatch
+OPENMS_FINDBINARY(MYRIMATCH_BINARY "myrimatch" "Myrimatch")
+
+#------------------------------------------------------------------------------
+## optional tests
 if (NOT (${OMSSA_BINARY} STREQUAL "OMSSA_BINARY-NOTFOUND"))
   add_test("TOPP_OMSSAAdapter_1" ${TOPP_BIN_PATH}/OMSSAAdapter -test -ini ${DATA_DIR_TOPP}/SEARCHENGINES/OMSSAAdapter_1.ini -database ${DATA_DIR_TOPP}/SEARCHENGINES/OMSSAAdapter_1.fasta -in ${DATA_DIR_TOPP}/SEARCHENGINES/OMSSAAdapter_1.mzML -out OMSSAAdapter_1_out.tmp -omssa_executable "${OMSSA_BINARY}")
   add_test("TOPP_OMSSAAdapter_1_out" ${DIFF} -in1 OMSSAAdapter_1_out.tmp -in2 ${DATA_DIR_TOPP}/SEARCHENGINES/OMSSAAdapter_1_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=")
   set_tests_properties("TOPP_OMSSAAdapter_1_out" PROPERTIES DEPENDS "TOPP_OMSSAAdapter_1")
 endif()
 
+#------------------------------------------------------------------------------
 if (NOT (${XTANDEM_BINARY} STREQUAL "XTANDEM_BINARY-NOTFOUND"))
   add_test("TOPP_XTandemAdapter_1" ${TOPP_BIN_PATH}/XTandemAdapter -test -ini ${DATA_DIR_TOPP}/SEARCHENGINES/XTandemAdapter_1.ini -database ${DATA_DIR_TOPP}/SEARCHENGINES/OMSSAAdapter_1.fasta -in ${DATA_DIR_TOPP}/SEARCHENGINES/OMSSAAdapter_1.mzML -out XTandemAdapter_1_out.tmp -xtandem_executable "${XTANDEM_BINARY}")
   add_test("TOPP_XTandemAdapter_1_out" ${DIFF} -in1 XTandemAdapter_1_out.tmp -in2 ${DATA_DIR_TOPP}/SEARCHENGINES/XTandemAdapter_1_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=")
   set_tests_properties("TOPP_XTandemAdapter_1_out" PROPERTIES DEPENDS "TOPP_XTandemAdapter_1")
 endif()
 
+#------------------------------------------------------------------------------
 if (NOT (${MYRIMATCH_BINARY} STREQUAL "MYRIMATCH_BINARY-NOTFOUND"))
   add_test("TOPP_MyriMatchAdapter_1" ${TOPP_BIN_PATH}/MyriMatchAdapter -test -ini ${DATA_DIR_TOPP}/SEARCHENGINES/MyriMatchAdapter_1.ini -database ${DATA_DIR_TOPP}/SEARCHENGINES/OMSSAAdapter_1.fasta -in ${DATA_DIR_TOPP}/SEARCHENGINES/OMSSAAdapter_1.mzML -out MyriMatchAdapter_1_out.tmp -myrimatch_executable "${MYRIMATCH_BINARY}")
   add_test("TOPP_MyriMatchAdapter_1_out" ${DIFF} -in1 MyriMatchAdapter_1_out.tmp -in2 ${DATA_DIR_TOPP}/SEARCHENGINES/MyriMatchAdapter_1_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=")

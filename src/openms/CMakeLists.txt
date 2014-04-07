@@ -67,10 +67,6 @@ message(STATUS "Info: CF_OPENMS_DOC_PATH: ${CF_OPENMS_DOC_PATH}")
 include(${PROJECT_SOURCE_DIR}/configh.cmake)
 
 #------------------------------------------------------------------------------
-# Configures what is tested (DB-test, MS2-search engines)
-include(${OPENMS_HOST_DIRECTORY}/cmake/OpenMSBuildSystem_testConfig.cmake)
-
-#------------------------------------------------------------------------------
 # big include file for headers and cpp files, that fills the OpenMS_sources variable
 include (${PROJECT_SOURCE_DIR}/includes.cmake)
 
@@ -138,8 +134,3 @@ install_directory(${OPENMS_HOST_DIRECTORY}/share/OpenMS/ ${INSTALL_SHARE_DIR} sh
 #------------------------------------------------------------------------------
 # register relevant paths for the doxygen doc generation
 openms_doc_path("${PROJECT_SOURCE_DIR}/include")
-
-#------------------------------------------------------------------------------
-# verbose Post-build messages and help targets
-#------------------------------------------------------------------------------
-include(${OPENMS_HOST_DIRECTORY}/cmake/OpenMSBuildSystem_messages.cmake)

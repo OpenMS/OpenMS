@@ -148,7 +148,7 @@ set(OPENMS_HOST_BINARY_DIRECTORY "${PROJECT_BINARY_DIR}")
 # CMake Utitlities
 #------------------------------------------------------------------------------
 # include some OpenMS specific macros
-include (${PROJECT_SOURCE_DIR}/cmake/OpenMSBuildSystem_macros.cmake)
+include (${PROJECT_SOURCE_DIR}/cmake/build_system_macros.cmake)
 # .. and some to ease the installation process
 include (${PROJECT_SOURCE_DIR}/cmake/install_macros.cmake)
 # .. and some to ease preparing the documentation builds
@@ -205,10 +205,9 @@ if (MSVC)
 	SET(CMAKE_DEBUG_POSTFIX d)
 endif()
 
-########################################################
-### setup path for external libs (contrib or system) ###
-########################################################
-include(${OPENMS_HOST_DIRECTORY}/cmake/OpenMSBuildSystem_setup_lib_find_paths.cmake)
+#------------------------------------------------------------------------------
+# setup path for external libs (contrib or system)
+include(${OPENMS_HOST_DIRECTORY}/cmake/setup_lib_find_paths.cmake)
 
 #------------------------------------------------------------------------------
 # Initialize package building environment
@@ -238,7 +237,7 @@ set(SEARCH_ENGINES_DIRECTORY "" CACHE PATH "Directory containing the search engi
 
 set(ENABLE_PREPARE_KNIME_PACKAGE OFF CACHE BOOL "If enabled, targets to prepare KNIME packages will be generated. Main target will be 'prepare_knime_package'.")
 if (ENABLE_PREPARE_KNIME_PACKAGE)
-	include(${OPENMS_HOST_DIRECTORY}/cmake/OpenMSBuildSystem_ctdSupport.cmake)
+	include(${OPENMS_HOST_DIRECTORY}/cmake/knime_package_support.cmake)
 endif()
 
 #------------------------------------------------------------------------------
@@ -261,6 +260,7 @@ endif()
 #------------------------------------------------------------------------------
 # Some final messages for the users
 #------------------------------------------------------------------------------
+include(cmake/messages.cmake)
 
 message(STATUS "")
 message(STATUS "-----------------------------------------------------------------")
