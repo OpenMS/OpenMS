@@ -350,8 +350,8 @@ namespace OpenMS
           StringList sp = ListUtils::create<String>(value, '_');
           try
           {
-            actual_peptide_id_.setMetaValue("MZ", sp[0].toDouble());
-            actual_peptide_id_.setMetaValue("RT", sp[1].toDouble());
+            actual_peptide_id_.setMZ(sp[0].toDouble());
+            actual_peptide_id_.setRT(sp[1].toDouble());
           }
           catch (...)
           {

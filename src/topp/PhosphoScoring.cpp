@@ -160,7 +160,7 @@ protected:
               found = without_phospho_str.find("(Phospho)");
             }
             AASequence without_phospho = AASequence::fromString(without_phospho_str);
-            double prec = hits->getMetaValue("MZ");
+            double prec = hits->getMZ();
             double prec_mz = prec * scored_hit.getCharge();
             prec_mz -= scored_hit.getCharge();
             double mono_weight = without_phospho.getMonoWeight();

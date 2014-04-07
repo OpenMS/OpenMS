@@ -71,7 +71,7 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
   std::vector<ProteinIdentification> protein_ids;
   std::vector<PeptideIdentification> peptide_ids;
   String document_id;
-  IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IdXMLFile_whole.idXML"), protein_ids, peptide_ids,document_id);
+  IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IdXMLFile_whole.idXML"), protein_ids, peptide_ids, document_id);
 
   TEST_STRING_EQUAL(document_id,"LSID1234")
   TEST_EQUAL(protein_ids.size(),2)

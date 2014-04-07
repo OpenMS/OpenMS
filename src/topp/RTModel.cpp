@@ -640,12 +640,12 @@ protected:
                 if (temp_type != SVMWrapper::OLIGO)
                 {
                   redundant_peptides.insert(make_pair(temp_peptide_hit.getSequence().toUnmodifiedString(),
-                                                      (double)(identifications[i].getMetaValue("RT"))));
+                                                      identifications[i].getRT()));
                 }
                 else
                 {
                   redundant_modified_peptides.insert(make_pair(temp_peptide_hit.getSequence(),
-                                                               (double)(identifications[i].getMetaValue("RT"))));
+                                                               identifications[i].getRT()));
                 }
               }
             }

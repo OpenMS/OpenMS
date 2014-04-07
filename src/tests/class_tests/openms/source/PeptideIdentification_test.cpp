@@ -157,10 +157,38 @@ START_SECTION((bool operator != (const PeptideIdentification& rhs) const))
 END_SECTION
 
 
+START_SECTION((double getRT() const))
+	PeptideIdentification pi;
+	TEST_EQUAL(pi.hasRT(), false);
+	pi.setRT(1024.0);
+	TEST_EQUAL(pi.getRT(), 1024.0);
+END_SECTION
+
+START_SECTION(void setRT(double mz))
+	NOT_TESTABLE // tested above
+END_SECTION
+
+START_SECTION(bool hasRT())
+	NOT_TESTABLE // tested above
+END_SECTION
+
+START_SECTION((double getMZ() const))
+	PeptideIdentification pi;
+	TEST_EQUAL(pi.hasMZ(), false);
+	pi.setMZ(1024.0);
+	TEST_EQUAL(pi.getMZ(), 1024.0);
+END_SECTION
+
+
+START_SECTION(bool hasMZ())
+  NOT_TESTABLE // tested above
+END_SECTION
+
+
 START_SECTION((double getSignificanceThreshold() const))
-  PeptideIdentification hits;
-  hits.setSignificanceThreshold(peptide_significance_threshold);
-  TEST_EQUAL(hits.getSignificanceThreshold(), peptide_significance_threshold)
+	PeptideIdentification hits;
+	hits.setSignificanceThreshold(peptide_significance_threshold);
+	TEST_EQUAL(hits.getSignificanceThreshold(), peptide_significance_threshold)
 END_SECTION
 
 START_SECTION((const std::vector<PeptideHit>& getHits() const))
@@ -189,20 +217,20 @@ START_SECTION((void setSignificanceThreshold(double value)))
   TEST_EQUAL(hits.getSignificanceThreshold(), peptide_significance_threshold)
 END_SECTION
 
-START_SECTION((String getScoreType() const))
-  PeptideIdentification hits;
-  TEST_EQUAL(hits.getScoreType(),"")
+START_SECTION((String& getScoreType() const))
+	PeptideIdentification hits;
+	TEST_EQUAL(hits.getScoreType(), "")
 END_SECTION
 
 START_SECTION((void setScoreType(const String& type)))
-  PeptideIdentification hits;
-  hits.setScoreType("bla");
-  TEST_EQUAL(hits.getScoreType(),"bla")
+	PeptideIdentification hits;
+	hits.setScoreType("bla");
+	TEST_EQUAL(hits.getScoreType(), "bla")
 END_SECTION
 
 START_SECTION((bool isHigherScoreBetter() const))
-  PeptideIdentification hits;
-  TEST_EQUAL(hits.isHigherScoreBetter(),true)
+	PeptideIdentification hits;
+	TEST_EQUAL(hits.isHigherScoreBetter(), true)
 END_SECTION
 
 START_SECTION((void setHigherScoreBetter(bool value)))
