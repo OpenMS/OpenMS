@@ -74,6 +74,11 @@ namespace OpenMS
     SplineSpectrum(MSSpectrum<Peak1D> rawSpectrum);
 
     /**
+     * @brief destructor
+     */
+    ~SplineSpectrum();
+
+    /**
      * @brief section common for both constructors
      */
     void init(std::vector<double> mz, std::vector<double> intensity);
@@ -103,6 +108,11 @@ namespace OpenMS
          * @brief constructor of iterator
          */
         Navigator(const std::vector<SplinePackage> * packages);
+        
+        /**
+         * @brief destructor
+         */
+        ~Navigator();
         
         /**
          * @brief returns spline interpolated intensity at m/z

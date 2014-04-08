@@ -64,6 +64,11 @@ namespace OpenMS
 		spline_ = new Spline2d<double>(3, mz, intensity);						
 	}
 	
+	SplinePackage::~SplinePackage() 
+	{
+		delete spline_;
+	}
+	
 	double SplinePackage::getMzMin() {
 		return mzMin_;
 	}

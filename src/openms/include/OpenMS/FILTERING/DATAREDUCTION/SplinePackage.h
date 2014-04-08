@@ -85,6 +85,11 @@ namespace OpenMS
      */
     SplinePackage(std::vector<double> mz, std::vector<double> intensity);
     
+     /**
+     * @brief destructor
+     */
+    ~SplinePackage();
+    
     /**
      * @brief returns the minimum m/z for which the spline fit is valid
      */

@@ -63,6 +63,10 @@ namespace OpenMS
 		SplineSpectrum::init(mz, intensity);
     }
     
+    SplineSpectrum::~SplineSpectrum()
+    {
+    }
+    
     void SplineSpectrum::init(std::vector<double> mz, std::vector<double> intensity) {
         
         if (!(mz.size() == intensity.size() && mz.size() > 2))
@@ -138,6 +142,10 @@ namespace OpenMS
     {
         packages_ = packages;
         lastPackage_ = 0;
+    }
+    
+    SplineSpectrum::Navigator::~Navigator()
+    {
     }
     
     double SplineSpectrum::Navigator::eval(double mz) {

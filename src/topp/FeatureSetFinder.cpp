@@ -526,36 +526,43 @@ public:
 	std::cout << "*** start tests ***\n";
 	// iterate over all spectra of the experiment (RT)
 	Int spectrumID = 0;
- 	std::vector<double> mzMS1;
-	std::vector<double> intensityMS1;
-   for (MSExperiment<Peak1D>::Iterator it = exp.begin(); it != exp.end(); ++it)
+	MSExperiment<Peak1D> expNew;
+	for (MSExperiment<Peak1D>::Iterator it = exp.begin(); it != exp.end(); ++it)
     {
 		++spectrumID;
 		DoubleReal rt = it->getRT();
-		if (spectrumID == 200) {
-			std::cout << "    spectrum ID = " << spectrumID << "   RT = " << rt << "\n";
-			// iterate over data points in spectrum (mz)
-			for (MSSpectrum<Peak1D>::Iterator it2 = it->begin(); it2 != it->end(); ++it2)
-			{
-				DoubleReal mzSpec = it2->getMZ();
-				DoubleReal intensitySpec = it2->getIntensity();
-				mzMS1.push_back(mzSpec);
-				intensityMS1.push_back(intensitySpec);
-				//std::cout << "        m/z = " << mzSpec << "   intensity = " << intensitySpec << "\n";
-			}
+		std::vector<double> mzMS1;
+		std::vector<double> intensityMS1;
+		// iterate over data points in spectrum (mz)
+		for (MSSpectrum<Peak1D>::Iterator it2 = it->begin(); it2 != it->end(); ++it2)
+		{
+			double mzSpec = it2->getMZ();
+			double intensitySpec = it2->getIntensity();
+			mzMS1.push_back(mzSpec);
+			intensityMS1.push_back(intensitySpec);
 		}
+		SplineSpectrum * spectrumNew = new SplineSpectrum(mzMS1,intensityMS1);
+		SplineSpectrum::Navigator nav = (*spectrumNew).getNavigator();
+		MSSpectrum<Peak1D> specNew;
+		specNew.setRT(rt);
+		specNew.setMSLevel(1);
+		specNew.setNativeID(String("spline-interpolated=") + spectrumID);
+				
+		for (int i = 0; i < 30*400; ++i)
+		{							
+			Peak1D peakNew;
+			double mzmz = 400.0+i/30;
+			peakNew.setMZ(mzmz);
+			peakNew.setIntensity(nav.eval(mzmz));
+			//peakNew.setIntensity(sin(rt/200)/mzmz);
+			specNew.push_back(peakNew);
+		}
+		expNew.addSpectrum(specNew);
+		
+		mzMS1.clear();
+		intensityMS1.clear();
 	}
-	// test SplineSpectrum
-	SplineSpectrum * spectrum = new SplineSpectrum(mzMS1,intensityMS1);
-	// test SplinePackage
-	std::vector<double> mz;
-	std::vector<double> intensity;
-	for (Int i=7; i<207; ++i)
-	{
-		mz.push_back(i*1.0);
-		intensity.push_back(i*i*1.0);
-	}
-	SplinePackage * package = new SplinePackage(mz, intensity);
+	MzMLFile().store("spline.mzML", expNew);
  	std::cout << "***   end tests ***\n";
  	std::cout << "\n\n";
 
