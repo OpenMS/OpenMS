@@ -51,55 +51,20 @@ set(SuperHirn_sources_h CACHE INTERNAL "This variable should hold all SuperHirn 
 
 # --------------------------------------------------------------------------
 # include the file collections
-include(source/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/sources.cmake)
 include(source/TRANSFORMATIONS/FEATUREFINDER/sources.cmake)
-include(include/OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/sources.cmake)
+include(source/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/sources.cmake)
 include(include/OpenMS/TRANSFORMATIONS/FEATUREFINDER/sources.cmake)
-
-# --------------------------------------------------------------------------
-# expose SuperHirn public includes (including transitive dependencies)
-set(SuperHirn_INTERNAL_INCLUDE_DIRECTORIES ${PROJECT_SOURCE_DIR}/include
-                                           ${PROJECT_BINARY_DIR}/include)
-
-set(SuperHirn_EXTERNAL_INCLUDE_DIRECTORIES ${Boost_INCLUDE_DIRS}
-                                           ${OpenMS_INCLUDE_DIRECTORIES})
-
-set(SuperHirn_INCLUDE_DIRECTORIES ${SuperHirn_INTERNAL_INCLUDE_DIRECTORIES}
-                                  ${SuperHirn_EXTERNAL_INCLUDE_DIRECTORIES}
-    CACHE INTERNAL "SuperHirn include directories" FORCE)
-
-# --------------------------------------------------------------------------
-# add SuperHirn include directories
-include_directories(${SuperHirn_INTERNAL_INCLUDE_DIRECTORIES})
-include_directories(SYSTEM ${SuperHirn_EXTERNAL_INCLUDE_DIRECTORIES})
-
-# --------------------------------------------------------------------------
-# add library
-add_library(SuperHirn ${SuperHirn_sources})
-
-# --------------------------------------------------------------------------
-# autogenerate config.h
-set(SuperHirn_CONFIG_H "include/OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/SuperHirnConfig.h")
-
-include(GenerateExportHeader)
-generate_export_header(SuperHirn
-                      EXPORT_MACRO_NAME SUPERHIRN_DLL_EXPORT
-                      EXPORT_FILE_NAME ${SuperHirn_CONFIG_H})
-
-source_group("Header Files\\OpenMS\\" FILES ${SuperHirn_CONFIG_H})
-set(SuperHirn_sources_h ${SuperHirn_sources_h} ${SuperHirn_CONFIG_H} CACHE INTERNAL "This variable should hold all SuperHirn headers at the end of the config step")
-
-# we also want to install SuperHirn
-install_library(SuperHirn)
-install_headers("${SuperHirn_sources_h};${SuperHirn_CONFIG_H}" SuperHirn)
+include(include/OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/sources.cmake)
 
 #------------------------------------------------------------------------------
-# copy dll to test/doc bin folder on MSVC systems
-copy_dll_to_extern_bin(SuperHirn)
-
-# --------------------------------------------------------------------------
-# link SuperHirn against OpenMS
-target_link_libraries(SuperHirn OpenMS)
+# add the library
+openms_add_library(TARGET_NAME SuperHirn
+                   SOURCE_FILES ${SuperHirn_sources}
+                   HEADER_FILES ${SuperHirn_sources_h}
+                   INTERNAL_INCLUDES ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include
+                   EXTERNAL_INCLUDES ${Boost_INCLUDE_DIRS} ${OpenMS_INCLUDE_DIRECTORIES}
+                   LINK_LIBRARIES OpenMS
+                   DLL_EXPORT_PATH "OpenMS/TRANSFORMATIONS/FEATUREFINDER/SUPERHIRN/")
 
 # --------------------------------------------------------------------------
 # link libraries for SuperHirn tools

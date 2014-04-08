@@ -56,8 +56,6 @@ namespace OpenMS
     tools_map["ConsensusMapNormalizer"] = Internal::ToolDescription("ConsensusMapNormalizer", "Map Alignment");
     tools_map["ConvertTraMLToTSV"] = Internal::ToolDescription("ConvertTraMLToTSV", "Targeted Experiments");
     tools_map["ConvertTSVToTraML"] = Internal::ToolDescription("ConvertTSVToTraML", "Targeted Experiments");
-    tools_map["DBExporter"] = Internal::ToolDescription("DBExporter", "File Handling");
-    tools_map["DBImporter"] = Internal::ToolDescription("DBImporter", "File Handling");
     tools_map["Decharger"] = Internal::ToolDescription("Decharger", "Quantitation");
     tools_map["DTAExtractor"] = Internal::ToolDescription("DTAExtractor", "File Handling");
     tools_map["EICExtractor"] = Internal::ToolDescription("EICExtractor", "Quantitation");

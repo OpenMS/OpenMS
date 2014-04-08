@@ -35,6 +35,9 @@
 #ifndef OPENMS_VISUAL_AXISPAINTER_H
 #define OPENMS_VISUAL_AXISPAINTER_H
 
+// OpenMS_GUI config
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
+
 #include <QtGui/QPainter>
 
 #include <vector>

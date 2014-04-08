@@ -35,7 +35,8 @@
 #ifndef OPENMS_VISUAL_VISUALIZER_BASEVISUALIZER_H
 #define OPENMS_VISUAL_VISUALIZER_BASEVISUALIZER_H
 
-#include <OpenMS/config.h>
+// OpenMS_GUI config
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 namespace OpenMS
 {

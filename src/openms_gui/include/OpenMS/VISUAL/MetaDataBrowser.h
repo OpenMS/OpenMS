@@ -35,6 +35,9 @@
 #ifndef OPENMS_VISUAL_METADATABROWSER_H
 #define OPENMS_VISUAL_METADATABROWSER_H
 
+// OpenMS_GUI config
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
+
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>

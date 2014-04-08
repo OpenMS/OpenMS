@@ -57,7 +57,7 @@ namespace OpenMS
 {
 
 // Class for the storage of raw MS data
-  class SUPERHIRN_DLL_EXPORT RawData
+  class SUPERHIRN_DLLAPI RawData
   {
 
 public:

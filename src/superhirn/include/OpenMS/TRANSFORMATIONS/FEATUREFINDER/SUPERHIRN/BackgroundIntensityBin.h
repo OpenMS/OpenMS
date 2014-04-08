@@ -60,7 +60,7 @@ namespace OpenMS
 
   class MSPeak;
 
-  class SUPERHIRN_DLL_EXPORT BackgroundIntensityBin
+  class SUPERHIRN_DLLAPI BackgroundIntensityBin
   {
 
 private:

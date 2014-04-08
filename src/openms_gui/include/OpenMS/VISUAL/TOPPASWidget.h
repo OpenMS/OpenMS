@@ -32,9 +32,11 @@
 // $Authors: Johannes Junker $
 // --------------------------------------------------------------------------
 
-
 #ifndef OPENMS_VISUAL_TOPPASWIDGET_H
 #define OPENMS_VISUAL_TOPPASWIDGET_H
+
+// OpenMS_GUI config
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>

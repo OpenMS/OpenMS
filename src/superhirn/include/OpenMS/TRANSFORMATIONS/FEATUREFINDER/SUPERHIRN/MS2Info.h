@@ -56,7 +56,7 @@
 namespace OpenMS
 {
 
-  class SUPERHIRN_DLL_EXPORT MS2Info
+  class SUPERHIRN_DLLAPI MS2Info
   {
 
     ////////////////////////////////////////////////

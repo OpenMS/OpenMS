@@ -54,7 +54,7 @@
 namespace OpenMS
 {
 
-  class SUPERHIRN_DLL_EXPORT ConsensusIsotopePattern
+  class SUPERHIRN_DLLAPI ConsensusIsotopePattern
   {
 
     ////////////////////////////////////////////////

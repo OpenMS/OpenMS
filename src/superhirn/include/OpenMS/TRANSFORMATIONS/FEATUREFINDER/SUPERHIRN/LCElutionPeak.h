@@ -65,7 +65,7 @@ namespace OpenMS
   typedef std::vector<elution_peak>::iterator MZ_series_ITERATOR;
   typedef std::multimap<int, MSPeak>::iterator SIGNAL_iterator;
 
-  class SUPERHIRN_DLL_EXPORT LCElutionPeak
+  class SUPERHIRN_DLLAPI LCElutionPeak
   {
 
     ////////////////////////////////////////////////

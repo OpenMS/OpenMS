@@ -165,6 +165,13 @@ endif()
 
 #------------------------------------------------------------------------------
 # Done finding contrib libraries
+# cmake args: -DCrawdad_DIR=/path/to/Crawdad/ -DWITH_CRAWDAD=TRUE
+if (WITH_CRAWDAD)
+  find_package(Crawdad)
+endif()
+
+#------------------------------------------------------------------------------
+# Done finding contrib libraries
 #------------------------------------------------------------------------------
 
 if(MSVC)
@@ -183,7 +190,7 @@ endif()
 SET(QT_MIN_VERSION "4.5.0")
 
 # find qt
-find_package(Qt4 REQUIRED QtCore QtSql QtNetwork QtGui)
+find_package(Qt4 REQUIRED QtCore QtNetwork QtGui)
 
 IF (NOT QT4_FOUND)
   message(STATUS "QT4 not found!")

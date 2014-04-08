@@ -14,7 +14,6 @@ include(source/CHEMISTRY/sources.cmake)
 include(source/CHEMISTRY/MASSDECOMPOSITION/IMS/sources.cmake)
 include(source/CHEMISTRY/MASSDECOMPOSITION/sources.cmake)
 include(source/FORMAT/DATAACCESS/sources.cmake)
-include(source/FORMAT/DB/sources.cmake)
 include(source/FORMAT/HANDLERS/sources.cmake)
 include(source/FORMAT/VALIDATORS/sources.cmake)
 include(source/FORMAT/OPTIONS/sources.cmake)
@@ -65,7 +64,6 @@ include(include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/sources.cmake)
 include(include/OpenMS/CHEMISTRY/MASSDECOMPOSITION/sources.cmake)
 include(include/OpenMS/FORMAT/sources.cmake)
 include(include/OpenMS/FORMAT/DATAACCESS/sources.cmake)
-include(include/OpenMS/FORMAT/DB/sources.cmake)
 include(include/OpenMS/FORMAT/HANDLERS/sources.cmake)
 include(include/OpenMS/FORMAT/VALIDATORS/sources.cmake)
 include(include/OpenMS/FORMAT/OPTIONS/sources.cmake)
@@ -101,9 +99,9 @@ endif(NOT DISABLE_OPENSWATH)
 include(include/OpenMS/APPLICATIONS/sources.cmake)
 
 ## add configured config.h&Co to source group
-source_group("Header Files\\OpenMS" FILES ${OPENMS_CONFIGURED_FILES})
+source_group("Header Files\\OpenMS" FILES ${OpenMS_configured_headers})
 ## merge all headers to sources (for source group view in VS)
-list(APPEND OpenMS_sources ${OpenMS_sources_h} ${OPENMS_CONFIGURED_FILES})
+list(APPEND OpenMS_sources ${OpenMS_sources_h} ${OpenMS_configured_headers})
 
 # TODO track why the duplicate warnings are thrown for all (!) MOC sources
 # Macro problem?

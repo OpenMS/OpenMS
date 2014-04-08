@@ -64,8 +64,8 @@ include_directories(SYSTEM ${OPENMS_CLASS_TESTS_EXTERNAL_INCLUDE_DIRECTORIES})
 #------------------------------------------------------------------------------
 # disable optimization for tests for gcc like compilers
 if (CMAKE_COMPILER_IS_INTELCXX OR CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_CLANG)
-	set(_TMP_CMAKE_CXX_FLAGS_RELEASE ${CMAKE_CXX_FLAGS_RELEASE})
-	set(CMAKE_CXX_FLAGS_RELEASE "-O0")
+  set(_TMP_CMAKE_CXX_FLAGS_RELEASE ${CMAKE_CXX_FLAGS_RELEASE})
+  set(CMAKE_CXX_FLAGS_RELEASE "-O0")
 endif()
 
 #------------------------------------------------------------------------------
@@ -141,14 +141,14 @@ add_dependencies(SIMULATION_TEST ${simulation_executables_list})
 #------------------------------------------------------------------------------
 # Add the actual tests
 foreach(_class_test ${TEST_executables})
-	add_executable(${_class_test} source/${_class_test}.cpp)
-	target_link_libraries(${_class_test} ${OPENMS_LIBRARIES})
-	add_test(${_class_test} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_class_test})
-	# only add OPENMP flags to gcc linker (execpt Mac OS X, due to compiler bug
-	# see https://sourceforge.net/apps/trac/open-ms/ticket/280 for details)
+  add_executable(${_class_test} source/${_class_test}.cpp)
+  target_link_libraries(${_class_test} ${OpenMS_LIBRARIES})
+  add_test(${_class_test} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_class_test})
+  # only add OPENMP flags to gcc linker (execpt Mac OS X, due to compiler bug
+  # see https://sourceforge.net/apps/trac/open-ms/ticket/280 for details)
   if (OPENMP_FOUND AND NOT MSVC AND NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-		set_target_properties(${_class_test} PROPERTIES LINK_FLAGS ${OpenMP_CXX_FLAGS})
-	endif()
+    set_target_properties(${_class_test} PROPERTIES LINK_FLAGS ${OpenMP_CXX_FLAGS})
+  endif()
 endforeach(_class_test)
 
 #------------------------------------------------------------------------------
@@ -160,13 +160,13 @@ set_tests_properties(StopWatch_test PROPERTIES RUN_SERIAL 1)
 #------------------------------------------------------------------------------
 # 2 - add link dependency
 foreach(t ${Boost_dependent_tests})
-	target_link_libraries(${t} ${Boost_LIBRARIES})
+  target_link_libraries(${t} ${Boost_LIBRARIES})
 endforeach()
 
 #------------------------------------------------------------------------------
 # restore old compiler flags
 if (CMAKE_COMPILER_IS_INTELCXX OR CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_CLANG)
-	set(${CMAKE_CXX_FLAGS_RELEASE} ${_TMP_CMAKE_CXX_FLAGS_RELEASE})
+  set(${CMAKE_CXX_FLAGS_RELEASE} ${_TMP_CMAKE_CXX_FLAGS_RELEASE})
 endif()
 
 #------------------------------------------------------------------------------
@@ -179,6 +179,6 @@ add_dependencies(extra_targets Tutorials_build)
 # add filenames to Visual Studio solution tree
 set(sources_VS)
 foreach(i ${TEST_executables})
-	list(APPEND sources_VS "${i}.cpp")
+  list(APPEND sources_VS "${i}.cpp")
 endforeach(i)
 source_group("" FILES ${sources_VS})

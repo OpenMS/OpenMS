@@ -17,11 +17,11 @@ FeaFiModule.h
 FeatureFinder.h
 FeatureFinderAlgorithm.h
 FeatureFinderAlgorithmIsotopeWavelet.h
+FeatureFinderAlgorithmMRM.h
 FeatureFinderAlgorithmPicked.h
 FeatureFinderAlgorithmPickedHelperStructs.h
 FeatureFinderAlgorithmSimple.h
 FeatureFinderAlgorithmSimplest.h
-FeatureFinderAlgorithmMRM.h
 FeatureFinderAlgorithm_impl.h
 FeatureFinderDefs.h
 FeatureFinder_impl.h
@@ -34,8 +34,6 @@ IsotopeFitter1D.h
 IsotopeModel.h
 IsotopeWavelet.h
 IsotopeWaveletConstants.h
-IsotopeWaveletCudaKernel.h
-IsotopeWaveletParallelFor.h
 IsotopeWaveletTransform.h
 LevMarqFitter1D.h
 MaxLikeliFitter1D.h

@@ -28,63 +28,67 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg$
-// $Authors: Marc Sturm $
+// $Maintainer: Chris Bielow $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/SYSTEM/SysInfo.h>
 
-#ifndef OPENMS_VISUAL_DIALOGS_DBOPENDIALOG_H
-#define OPENMS_VISUAL_DIALOGS_DBOPENDIALOG_H
-
-#include <vector>
-#include <QtGui/QDialog>
-#include <OpenMS/CONCEPT/Types.h>
-
-class QLineEdit;
-class QTableWidget;
+#ifdef OPENMS_WINDOWSPLATFORM
+#include "windows.h"
+#include "psapi.h"
+#elif __APPLE__
+#include <mach/mach.h>
+#include <mach/mach_init.h>
+#else
+#include <cstdio>
+#include <unistd.h>
+#endif
 
 namespace OpenMS
 {
-  class DBConnection;
-
-  /**
-      @brief Dialog that allow selecting a spectrum from a DB.
-
-      @ingroup Dialogs
-  */
-  class OPENMS_GUI_DLLAPI DBOpenDialog :
-    public QDialog
+  bool SysInfo::getProcessMemoryConsumption(size_t& mem_virtual)
   {
-    Q_OBJECT
-public:
-    /**
-        @brief Constructor
+    mem_virtual = 0;
+#ifdef OPENMS_WINDOWSPLATFORM
+    PROCESS_MEMORY_COUNTERS_EX pmc;
+    if (!GetProcessMemoryInfo(GetCurrentProcess(), (PROCESS_MEMORY_COUNTERS*)&pmc, sizeof(pmc)))
+    {
+      return false;
+    }
+    mem_virtual = pmc.PrivateUsage / 1024; // byte to KB
+#elif __APPLE__
+    struct task_basic_info_64 t_info;
+    mach_msg_type_number_t t_info_count = TASK_BASIC_INFO_64_COUNT;
 
-        The spectrum ids to load are inserted into the @p result vector.
+    if (KERN_SUCCESS != task_info(mach_task_self(),
+                                  TASK_BASIC_INFO_64, (task_info_t)&t_info,
+                                  &t_info_count))
+    {
+      return false;
+    }
+    mem_virtual = t_info.resident_size / 1024; // byte to KB
+#else // Linux
+    long rss = 0L;
+    FILE* fp = NULL;
+    if ((fp = fopen("/proc/self/statm", "r")) == NULL)
+    {
+      return false;
+    }
+    char buf[1024];
+    fread(buf, 1, 1024, fp);
+    //printf("%s", buf);
+    // get 'data size (heap + stack)'  (residence size (vmRSS) is usually too small and not changing, total memory (vmSize) is changing but usually too large)
+    if (sscanf(buf, "%*s%*s%*s%*s%*s%ld", &rss) != 1)
+    {
+      fclose(fp);
+      return false;
 
-        An external DB connection is used by handing over @p connection.
-    */
-    DBOpenDialog(DBConnection & connection, std::vector<UInt> & result, QWidget * parent = 0);
-    /// Destructor
-    ~DBOpenDialog();
+    }
+    fclose(fp);
+    mem_virtual = (size_t)rss * (size_t)sysconf(_SC_PAGESIZE) / 1024;
+#endif
+    return true;
+  }
 
-private slots:
-    /// Slot for accepting the selection
-    void ok();
-    /// Slot for refreshing the shown spectra
-    void loadSpectra();
-
-protected:
-    /// DB connection
-    DBConnection & connection_;
-    /// reference to the result vector
-    std::vector<UInt> & result_;
-    /// pointer to the search string lineedit
-    QLineEdit * search_string_;
-    /// pointer to the table for displaying the overview
-    QTableWidget * table_;
-  };
-
-} //namespace
-
-#endif //OPENMS_VISUAL_DIALOGS_DBOPENDIALOG_H
+} // namespace OpenMS

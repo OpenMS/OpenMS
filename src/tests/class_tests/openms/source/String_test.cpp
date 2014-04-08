@@ -946,7 +946,7 @@ START_SECTION((String& operator+= (long double d)))
 	ECHO_AND_VALUE(sizeof(double));
 	ECHO_AND_VALUE(std::numeric_limits<double>::digits);
 	ECHO_AND_VALUE(std::numeric_limits<double>::digits10);
-	ECHO_AND_VALUE(writtenDigits<double>());
+	ECHO_AND_VALUE(writtenDigits<double>(0.0));
 
 	ECHO_AND_DO(std::cout.precision(std::numeric_limits<double>::digits10));
 	ECHO_AND_VALUE(typeAsString(7.4) << ": " << 7.4);

@@ -28,36 +28,48 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Rene Hussong$
+// $Maintainer: Chris Bielow $
+// $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-//**************************
-//Uses the sorting code provided by Alan Kaatz
-//**************************
+#include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/test_config.h>
 
+///////////////////////////
 
-#ifndef OPENMS_TRANSFORMATIONS_FEATUREFINDER_ISOTOPEWAVELETCUDAKERNEL_H
-#define OPENMS_TRANSFORMATIONS_FEATUREFINDER_ISOTOPEWAVELETCUDAKERNEL_H
+#include <OpenMS/SYSTEM/SysInfo.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
+#include <iostream>
 
-#include <string>
-#include <cuda.h>
-#include <cuda_runtime.h>
+///////////////////////////
 
-using namespace std;
+using namespace OpenMS;
 
-namespace OpenMS
+START_TEST(SysInfo, "$Id$")
+
+START_SECTION(static bool getProcessMemoryConsumption(size_t& mem_virtual))
 {
-  int checkCUDAError(const char * msg);
+  size_t first, after, final;
+  TEST_EQUAL(SysInfo::getProcessMemoryConsumption(first), true);
+  std::cout << "Memory consumed initally: " << first << " KB" << std::endl;
 
-  void getExternalCudaTransforms(dim3 dimGrid, dim3 dimBlock, float * positions_dev, float * intensities_dev, int from_max_to_left, int from_max_to_right, float * result_dev,
-                                 const int charge, const int to_load, const int to_compute, const int size, float * fwd2, bool highres = false);
+  {
+    MSExperiment<> exp;
+    MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_5_long.mzML"), exp);
 
-  int sortOnDevice(float * array, int * pos_indices, int numElements, int padding);
+    TEST_EQUAL(SysInfo::getProcessMemoryConsumption(after), true);
+    std::cout << "Memory consumed after reading 20 MB mzML : " << after << " KB" << std::endl;
 
-  void scoreOnDevice(int * sorted_positions_indices, float * trans_intensities, float * pos, float * scores,
-                     const int c, const int num_of_scores, const int overall_size, const unsigned int max_peak_cutoff, const float ampl_cutoff);
+    TEST_EQUAL(after - first > 10000, true)
+  }
 
-  void deriveOnDevice(float * spec, float * spec_pos, float * fwd, const int size, float * intensities_dev, bool highres = false);
+  // just for fun. There is probably no guarantee that we get the whole mem back by the memory manager
+  TEST_EQUAL(SysInfo::getProcessMemoryConsumption(final), true);
+  std::cout << "Memory consumed after release of MSExperiment: " << final << " KB" << std::endl;
+
+  TEST_EQUAL(after > final, true)
+
 }
+END_SECTION
 
-#endif
+END_TEST

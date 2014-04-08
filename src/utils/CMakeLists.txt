@@ -45,10 +45,10 @@ include_directories(SYSTEM ${OpenMS_INCLUDE_DIRECTORIES})
 set(UTILS_executables)
 include(executables.cmake)
 foreach(i ${UTILS_executables})
-	add_executable(${i} ${i}.cpp)
+  add_executable(${i} ${i}.cpp)
   # we also want to install each util
   install_tool(${i})
-	target_link_libraries(${i} ${OPENMS_LIBRARIES})
+  target_link_libraries(${i} ${OpenMS_LIBRARIES})
 endforeach(i)
 
 # collection target
@@ -58,7 +58,7 @@ add_dependencies(UTILS ${UTILS_executables})
 ## some regular UTILS need the GUI lib
 include_directories(SYSTEM ${OpenMS_GUI_INCLUDE_DIRECTORIES})
 foreach(i ${UTILS_executables_with_GUIlib})
-	target_link_libraries(${i} ${OPENMS_GUI_LIBRARIES})
+  target_link_libraries(${i} ${OpenMS_GUI_LIBRARIES})
 endforeach(i)
 
 # FFSuperHirn requires linking against SuperHirn

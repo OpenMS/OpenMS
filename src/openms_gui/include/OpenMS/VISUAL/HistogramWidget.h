@@ -32,9 +32,11 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-
 #ifndef OPENMS_VISUAL_HISTOGRAMWIDGET_H
 #define OPENMS_VISUAL_HISTOGRAMWIDGET_H
+
+// OpenMS_GUI config
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 // QT
 #include <QtGui/QWidget>

@@ -37,7 +37,6 @@
 
 #include <OpenMS/METADATA/SpectrumSettings.h>
 #include <OpenMS/METADATA/MetaInfoDescription.h>
-#include <OpenMS/FORMAT/DB/PersistentObject.h>
 #include <OpenMS/KERNEL/RangeManager.h>
 #include <OpenMS/KERNEL/ComparatorUtils.h>
 
@@ -67,8 +66,7 @@ namespace OpenMS
   class MSSpectrum :
     public std::vector<PeakT>,
     public RangeManager<1>,
-    public SpectrumSettings,
-    public PersistentObject
+    public SpectrumSettings
   {
 public:
 
@@ -135,7 +133,6 @@ public:
       ContainerType(),
       RangeManager<1>(),
       SpectrumSettings(),
-      PersistentObject(),
       retention_time_(-1),
       ms_level_(1),
       name_(),
@@ -149,7 +146,6 @@ public:
       ContainerType(source),
       RangeManager<1>(source),
       SpectrumSettings(source),
-      PersistentObject(source),
       retention_time_(source.retention_time_),
       ms_level_(source.ms_level_),
       name_(source.name_),
@@ -170,7 +166,6 @@ public:
       ContainerType::operator=(source);
       RangeManager<1>::operator=(source);
       SpectrumSettings::operator=(source);
-      PersistentObject::operator=(source);
 
       retention_time_ = source.retention_time_;
       ms_level_ = source.ms_level_;
@@ -609,7 +604,6 @@ public:
       if (clear_meta_data)
       {
         clearRanges();
-        clearId();
         this->SpectrumSettings::operator=(SpectrumSettings()); // no "clear" method
         retention_time_ = -1.0;
         ms_level_ = 1;
@@ -621,9 +615,6 @@ public:
     }
 
 protected:
-    // Docu in base class
-    virtual void clearChildIds_()
-    {}
 
     /// Retention time
     double retention_time_;

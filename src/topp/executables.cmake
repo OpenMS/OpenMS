@@ -9,8 +9,6 @@ CompNovo
 CompNovoCID
 ConsensusID
 ConsensusMapNormalizer
-DBExporter
-DBImporter
 DTAExtractor
 Decharger
 EICExtractor

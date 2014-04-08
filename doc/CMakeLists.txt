@@ -79,7 +79,7 @@ add_definitions(/DBOOST_ALL_NO_LIB)
 # build doc executables
 foreach(i ${OpenMS_doc_executables})
 	add_executable(${i} EXCLUDE_FROM_ALL doxygen/parameters/${i}.cpp)
-	target_link_libraries(${i} ${OPENMS_GUI_LIBRARIES})
+	target_link_libraries(${i} ${OpenMS_GUI_LIBRARIES})
 endforeach(i)
 
 # collection target
