@@ -60,7 +60,7 @@
 //#include "FastEMD/FastEMDWrapper.h"
 
 #include <QtCore/QStringList>
-#include <QtCore/QFile>
+#include <QtCore/QFile> 
 #include <QtCore/QDir>
 #include <QtCore/QFileInfo>
 #include <QtCore/QProcess>
@@ -2785,8 +2785,21 @@ protected:
 		  p.setValue("tolerance", 0.001); // Da
 		  mda.setParameters(p);
 		  vector<MassDecomposition> decomps;
-		  mda.getDecompositions(decomps, precursor_mass);
-		  
+
+		  // calculate from full to internal mass
+		  double internal_precursor_mass = precursor_mass - EmpiricalFormula("H2O").getMonoWeight();
+
+		  if (internal_precursor_mass > 1000) continue;
+
+		  LOG_INFO << "decomposing mass: " << precursor_mass << endl;
+		  mda.getDecompositions(decomps, internal_precursor_mass);
+
+		  LOG_INFO << "number of mass decompositions: " << decomps.size() << endl;
+		  if (decomps.empty())
+		  {
+			  continue;
+		  }
+
 		  // select peptide candidate that matches best the averagine model
 		  AASequence best_averagine_peptide;
 		  double best_frequency_error = std::numeric_limits<double>::max();
@@ -2801,6 +2814,7 @@ protected:
 			double error = 0;
 			for (Map<String, Size>::const_iterator c_it = tmp_count_table.begin(); c_it != tmp_count_table.end(); ++c_it)
 			{
+			  // calculate frequency from count
 			  double aa_freq = (double)c_it->second / (double)tmp_averagine_peptide.size();
 			  error += fabs(aa_frequency.at(c_it->first) - aa_freq);
 			}
@@ -2809,11 +2823,18 @@ protected:
 			{
 		      best_frequency_error = error;
 			  best_averagine_peptide = tmp_averagine_peptide;
+
+			  // stop if already error only about 5%
+			  if (best_frequency_error / 20.0 < 0.05)
+			  {
+				  break;
+			  }
 			}
 		  }
 
 		  // set peptide with lowest deviation from averagine
 		  pseudo_hit.setSequence(best_averagine_peptide);
+		  pseudo_hit.setCharge(precursor_charge);
 		  PeptideIdentification pseudo_id;
 		  vector<PeptideHit> pseudo_hits;
 		  pseudo_hits.push_back(pseudo_hit);
@@ -2825,6 +2846,11 @@ protected:
 		  f.setMZ(precursor_mz);
 		  f.setMetaValue("feature_from_averagine", true);
 		  feature_map.push_back(f);
+
+		  LOG_INFO << "averagine seq: " << best_averagine_peptide.toString() << endl;
+		  LOG_INFO << "uncharged precursor weight: " << precursor_mass << endl;
+		  LOG_INFO << "uncharged averagine weight: " << best_averagine_peptide.getMonoWeight() << endl;
+		  LOG_INFO << "frequency mean absolute error: " << best_frequency_error / 20 << endl;
 		}
 	  }
 	  feature_map.updateRanges();
@@ -2931,7 +2957,6 @@ protected:
       }
       sip_peptide.mass_diff = mass_diff;
 
-	  LOG_INFO << "x" << std::endl;
       // collect 13C / 15N peaks
       vector<double> isotopic_intensities = extractIsotopicIntensitiesConsensus(element_count + ADDITIONAL_ISOTOPES, mass_diff, mz_tolerance_ppm_, seeds_rt, feature_hit_theoretical_mz, feature_hit_charge, peak_map);
       double TIC = accumulate(isotopic_intensities.begin(), isotopic_intensities.end(), 0.0);
@@ -2946,7 +2971,6 @@ protected:
         continue;
       }
 
-	  LOG_INFO << "x" << std::endl;
       // FOR VALIDATION: extract the merged peak spectra for later visualization during validation
       sip_peptide.merged = extractPeakSpectrumConsensus(element_count  + ADDITIONAL_ISOTOPES, mass_diff, seeds_rt, feature_hit_theoretical_mz, feature_hit_charge, peak_map);
       // FOR VALIDATION: filter peaks outside of x ppm window around expected isotopic peak
@@ -2956,7 +2980,6 @@ protected:
 
       sip_peptide.global_LR = calculateGlobalLR(isotopic_intensities);
 
-	  LOG_INFO << "x" << std::endl;
 	  LOG_INFO << "isotopic intensities collected: " << isotopic_intensities.size() << endl;
 
 	  LOG_INFO << feature_hit.getSequence().toString() << "\trt: " << max_trace_int_rt << endl;
