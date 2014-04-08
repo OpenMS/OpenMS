@@ -167,7 +167,7 @@ protected:
     else if (engine == "MASCOT")
     {
       // issue #740: unable to fit data with score 0
-      if (hit.getScore() == 0) 
+      if (hit.getScore() == 0.0) 
       {
         return numeric_limits<double>::quiet_NaN();
       }
@@ -262,7 +262,7 @@ protected:
       }
     }
 
-    vector<Int>::iterator charge = charges.begin(); // charges can be empty, no problem if split_charge is not set
+    vector<Int>::iterator charge_it = charges.begin(); // charges can be empty, no problem if split_charge is not set
     if (split_charge && charges.empty())
     {
       throw Exception::Precondition(__FILE__, __LINE__, __PRETTY_FUNCTION__, "split_charge is set and the list of charge states is empty but should not be!");
@@ -286,7 +286,7 @@ protected:
                 vector<PeptideHit> hits = it->getHits();
                 if (top_hits_only)
                 {
-                  if (!hits.empty() && (!split_charge || hits[0].getCharge() == *charge))
+                  if (!hits.empty() && (!split_charge || hits[0].getCharge() == *charge_it))
                   {
                     double score = getScore_(*engine, hits[0]);
                     if (!boost::math::isnan(score)) // issue #740: ignore scores with 0 values, otherwise you will get the error "unable to fit data"
@@ -311,7 +311,7 @@ protected:
                 {
                   for (std::vector<PeptideHit>::iterator  hit  = hits.begin(); hit < hits.end(); ++hit)
                   {
-                    if (!split_charge || hit->getCharge() == *charge)
+                    if (!split_charge || hit->getCharge() == *charge_it)
                     {
                       double score = getScore_(*engine, *hit);
                       if (!boost::math::isnan(score)) // issue #740: ignore scores with 0 values, otherwise you will get the error "unable to fit data"
@@ -333,7 +333,7 @@ protected:
           tmp.push_back(decoy);
           if (split_charge)
           {
-            String engine_with_charge_state = *engine + String(splitter) + String(*charge);
+            String engine_with_charge_state = *engine + String(splitter) + String(*charge_it);
             all_scores.insert(make_pair(engine_with_charge_state, tmp));
           }
           else
@@ -347,10 +347,10 @@ protected:
         decoy.clear();
       }
 
-      if (split_charge) ++charge;
+      if (split_charge) ++charge_it;
 
     }
-    while (charge < charges.end());
+    while (charge_it < charges.end());
 
     if (all_scores.empty())
     {
@@ -398,12 +398,12 @@ protected:
 
           if (engine == prot_iter->getSearchEngine() || engine == searchengine_toUpper)
           {
-            for (vector<PeptideIdentification>::iterator it = peptide_ids.begin(); it < peptide_ids.end(); ++it)
+            for (vector<PeptideIdentification>::iterator pep_it = peptide_ids.begin(); pep_it < peptide_ids.end(); ++pep_it)
             {
-              if (prot_iter->getIdentifier().compare(it->getIdentifier()) == 0)
+              if (prot_iter->getIdentifier().compare(pep_it->getIdentifier()) == 0)
               {
-                String score_type = it->getScoreType() + "_score";
-                vector<PeptideHit> hits = it->getHits();
+                String score_type = pep_it->getScoreType() + "_score";
+                vector<PeptideHit> hits = pep_it->getHits();
                 for (std::vector<PeptideHit>::iterator  hit  = hits.begin(); hit < hits.end(); ++hit)
                 {
                   if (!split_charge || hit->getCharge() == charge)
@@ -414,18 +414,18 @@ protected:
                     score = getScore_(engine, *hit);
                     if (boost::math::isnan(score)) // issue #740: ignore scores with 0 values, otherwise you will get the error "unable to fit data"
                     {
-                      score = 1;
+                      score = 1.0;
                     }
                     else 
                     { 
                       score = PEP_model.computeProbability(score);
-                      if (score > 0 && score < 1) unable_to_fit_data = false;  //only if all it->second[0] are 0 or 1 unable_to_fit_data stays true
+                      if (score > 0.0 && score < 1.0) unable_to_fit_data = false;  //only if all it->second[0] are 0 or 1 unable_to_fit_data stays true
                       if (score > 0.2 && score < 0.8) data_might_not_be_well_fit = false;  //same as above
                     }
                     hit->setScore(score);
                     if (prob_correct)
                     {
-                      hit->setScore(1 - score);
+                      hit->setScore(1.0 - score);
                     }
                     else
                     {
@@ -433,17 +433,17 @@ protected:
                     }
                   }
                 }
-                it->setHits(hits);
+                pep_it->setHits(hits);
               }
               if (prob_correct)
               {
-                it->setScoreType("Posterior Probability");
-                it->setHigherScoreBetter(true);
+                pep_it->setScoreType("Posterior Probability");
+                pep_it->setHigherScoreBetter(true);
               }
               else
               {
-                it->setScoreType("Posterior Error Probability");
-                it->setHigherScoreBetter(false);
+                pep_it->setScoreType("Posterior Error Probability");
+                pep_it->setHigherScoreBetter(false);
               }
             }
           }
