@@ -2008,23 +2008,27 @@ protected:
   // n_scans corresponds to the number of neighboring scan rts that should be extracted
   // n_scan = 2 -> vector size = 1 + 2 + 2
   vector<double> findApexRT(const FeatureMap<>::iterator feature_it, double hit_rt, const MSExperiment<Peak1D>& peak_map, Size n_scans)
-  {
+  {	
     vector<double> seeds_rt;
-    // extract elution profile of 12C containing mass trace using a bounding box
-    // first convex hull contains the monoisotopic 12C trace
-    const DBoundingBox<2>& mono_bb = feature_it->getConvexHulls()[0].getBoundingBox();
-    vector<Peak2D> mono_trace;
+	vector<Peak2D> mono_trace;
 
-    //(min_rt, max_rt, min_mz, max_mz)
-    MSExperiment<Peak1D>::ConstAreaIterator ait = peak_map.areaBeginConst(mono_bb.minPosition()[0], mono_bb.maxPosition()[0], mono_bb.minPosition()[1], mono_bb.maxPosition()[1]);
-    for (; ait != peak_map.areaEndConst(); ++ait)
-    {
-      Peak2D p2d;
-      p2d.setRT(ait.getRT());  // get rt of scan
-      p2d.setMZ(ait->getMZ());  // get peak 1D mz
-      p2d.setIntensity(ait->getIntensity());
-      mono_trace.push_back(p2d);
-    }
+	if (!feature_it->getConvexHulls().empty())
+	{	
+      // extract elution profile of 12C containing mass trace using a bounding box
+      // first convex hull contains the monoisotopic 12C trace
+      const DBoundingBox<2>& mono_bb = feature_it->getConvexHulls()[0].getBoundingBox();
+	  
+      //(min_rt, max_rt, min_mz, max_mz)
+      MSExperiment<Peak1D>::ConstAreaIterator ait = peak_map.areaBeginConst(mono_bb.minPosition()[0], mono_bb.maxPosition()[0], mono_bb.minPosition()[1], mono_bb.maxPosition()[1]);
+      for (; ait != peak_map.areaEndConst(); ++ait)
+      {
+        Peak2D p2d;
+        p2d.setRT(ait.getRT());  // get rt of scan
+        p2d.setMZ(ait->getMZ());  // get peak 1D mz
+        p2d.setIntensity(ait->getIntensity());
+        mono_trace.push_back(p2d);
+      }
+	}
 
     // if there is no 12C mono trace generate a valid starting point
     if (mono_trace.empty())
@@ -2661,6 +2665,10 @@ protected:
 		    f.setRT(it->getMetaValue("RT"));
 			// take sequence of first hit to calculate ground truth mz
 			double charge = hits[0].getCharge();
+			if (charge == 0)
+			{
+				continue;
+			}
 			double charged_weight = hits[0].getSequence().getMonoWeight(Residue::Full, charge);
 			double mz = charged_weight / charge;
 			f.setMZ(mz);
@@ -2672,7 +2680,8 @@ protected:
 			unassigned_id_features++;
 		  }
 	  }
-	  cout << "Evaluating " << unassigned_id_features << " unassigned identifications." << endl;
+	  feature_map.updateRanges();
+	  LOG_INFO << "Evaluating " << unassigned_id_features << " unassigned identifications." << endl;
 	}
 
 	// determine all spectra that have not been identified and assign an averagine peptide to it
@@ -2818,6 +2827,7 @@ protected:
 		  feature_map.push_back(f);
 		}
 	  }
+	  feature_map.updateRanges();
 	}
 
 	LOG_INFO << "loading experiment..." << endl;
@@ -2880,12 +2890,12 @@ protected:
      
       SIPPeptide sip_peptide;
 
-      // retrieve identification information
-      const PeptideHit& feature_hit = tmp_pepid.getHits()[0];
+      // retrieve identification information	  
+      const PeptideHit& feature_hit = tmp_pepid.getHits()[0];	  
       const double feature_hit_score = feature_hit.getScore();
       const double feature_hit_center_mz = feature_it->getMZ();
       const double feature_hit_charge = feature_hit.getCharge();
-      const AASequence feature_hit_aaseq = feature_hit.getSequence();
+      const AASequence feature_hit_aaseq = feature_hit.getSequence();	  
       const String feature_hit_seq = feature_hit.getSequence().toString();
       const double feature_hit_theoretical_mz = feature_hit.getSequence().getMonoWeight(Residue::Full, feature_hit.getCharge()) / feature_hit.getCharge();
 
@@ -2898,8 +2908,8 @@ protected:
       sip_peptide.feature_mz = feature_hit_center_mz;
       sip_peptide.unique = sip_peptide.accessions.size() == 1 ? true : false;                   
 
-      // determine retention time of scans next to the central scan
-      vector<double> seeds_rt = findApexRT(feature_it, feature_hit_center_rt, peak_map, 2); // 1 scan at maximum, 2+2 above and below
+      // determine retention time of scans next to the central scan	  
+	  vector<double> seeds_rt = findApexRT(feature_it, feature_hit_center_rt, peak_map, 2); // 1 scan at maximum, 2+2 above and below	  
       double max_trace_int_rt = seeds_rt[0];
 
       // determine maximum number of peaks and mass difference
@@ -2921,6 +2931,7 @@ protected:
       }
       sip_peptide.mass_diff = mass_diff;
 
+	  LOG_INFO << "x" << std::endl;
       // collect 13C / 15N peaks
       vector<double> isotopic_intensities = extractIsotopicIntensitiesConsensus(element_count + ADDITIONAL_ISOTOPES, mass_diff, mz_tolerance_ppm_, seeds_rt, feature_hit_theoretical_mz, feature_hit_charge, peak_map);
       double TIC = accumulate(isotopic_intensities.begin(), isotopic_intensities.end(), 0.0);
@@ -2935,6 +2946,7 @@ protected:
         continue;
       }
 
+	  LOG_INFO << "x" << std::endl;
       // FOR VALIDATION: extract the merged peak spectra for later visualization during validation
       sip_peptide.merged = extractPeakSpectrumConsensus(element_count  + ADDITIONAL_ISOTOPES, mass_diff, seeds_rt, feature_hit_theoretical_mz, feature_hit_charge, peak_map);
       // FOR VALIDATION: filter peaks outside of x ppm window around expected isotopic peak
@@ -2944,6 +2956,7 @@ protected:
 
       sip_peptide.global_LR = calculateGlobalLR(isotopic_intensities);
 
+	  LOG_INFO << "x" << std::endl;
 	  LOG_INFO << "isotopic intensities collected: " << isotopic_intensities.size() << endl;
 
 	  LOG_INFO << feature_hit.getSequence().toString() << "\trt: " << max_trace_int_rt << endl;
