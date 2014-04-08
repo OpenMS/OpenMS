@@ -263,8 +263,18 @@ namespace OpenMS
     }
     else if (tag_ == "MSHits_pepstring")
     {
-      AASequence seq = AASequence::fromString(value.trim());
-      if (mod_def_set_.getNumberOfFixedModifications() != 0 && seq.isValid())
+      AASequence seq;
+      try
+      {
+        seq = AASequence::fromString(value.trim());
+      } catch (Exception::ParseError &e)
+      {
+        actual_peptide_hit_.setSequence(AASequence());
+        tag_ = "";
+        return;
+      }
+
+      if (mod_def_set_.getNumberOfFixedModifications() != 0)
       {
         set<String> fixed_mod_names = mod_def_set_.getFixedModificationNames();
         for (set<String>::const_iterator it = fixed_mod_names.begin(); it != fixed_mod_names.end(); ++it)

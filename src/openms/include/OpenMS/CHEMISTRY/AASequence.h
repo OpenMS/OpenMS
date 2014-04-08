@@ -456,14 +456,6 @@ protected:
     /** @name Predicates
     */
     //@{
-    /** @brief return true if the instance is valid
-
-            Valid means that a possible given sequence as string was successful
-            converted into a real amino acid sequence which meaningful amino acids
-            and modifications associated with it.
-    */
-    bool isValid() const;
-
     /// returns true if the peptide contains the given residue
     bool has(const Residue & residue) const;
 
@@ -533,11 +525,7 @@ protected:
 
     std::vector<const Residue *> peptide_;
 
-    String sequence_string_;
-
     static void parseString_(AASequence & aas, const String & peptide);
-
-    bool valid_;
 
     const ResidueModification * n_term_mod_;
 

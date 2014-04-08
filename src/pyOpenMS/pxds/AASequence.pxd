@@ -11,8 +11,8 @@ cdef extern from "<OpenMS/CHEMISTRY/AASequence.h>" namespace "OpenMS":
 
         AASequence() nogil except +
         AASequence(AASequence) nogil except + # wrap-ignore
-       
-        # static members 
+
+        # static members
         AASequence fromString(String s) nogil except +
 
         AASequence operator+(AASequence)    nogil except +
@@ -71,9 +71,6 @@ cdef extern from "<OpenMS/CHEMISTRY/AASequence.h>" namespace "OpenMS":
 
         # compute frequency table of amino acids
         void getAAFrequencies(Map[String, size_t]) nogil except + # wrap-ignore
-
-        #  return true if the instance is valid
-        bool isValid() nogil except +
 
         # returns true if the peptude contains the given residue
         bool has(Residue residue) nogil except +
