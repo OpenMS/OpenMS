@@ -654,13 +654,15 @@ namespace OpenMS
     // TODO: at this point we could check whether the modification is actually valid
     // aas.setModification(it->location, "UniMod:" + mo->getAccession().substr(7));
     std::vector<TargetedExperiment::Peptide::Modification> mods;
-    AASequence aa_sequence = AASequence(tr_it->FullPeptideName);
+
+    AASequence aa_sequence = AASequence::fromString(tr_it->FullPeptideName);
+
     ModificationsDB* mod_db = ModificationsDB::getInstance();
 
     // in TraML, the modification the AA starts with residue 1 but the
     // OpenMS objects start with zero -> we start counting with zero here
     // and the TraML handler will add 1 when storing the file.
-    if (aa_sequence.isValid() && std::string::npos == tr_it->FullPeptideName.find("["))
+    if (std::string::npos == tr_it->FullPeptideName.find("["))
     {
       if (!aa_sequence.getNTerminalModification().empty())
       {
@@ -826,7 +828,7 @@ namespace OpenMS
 
     // start writing
     std::ofstream os(filename);
-    os.precision(writtenDigits(DoubleReal()));
+    os.precision(writtenDigits(double()));
     for (Size i = 0; i < header_names_.size(); i++)
     {
       os << header_names_[i];

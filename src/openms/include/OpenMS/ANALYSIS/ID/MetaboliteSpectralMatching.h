@@ -75,20 +75,20 @@ public:
     /// Assignment operator
     SpectralMatch& operator=(const SpectralMatch&);
 
-    DoubleReal getObservedPrecursorMass() const;
-    void setObservedPrecursorMass(const DoubleReal&);
+    double getObservedPrecursorMass() const;
+    void setObservedPrecursorMass(const double&);
 
-    DoubleReal getObservedPrecursorRT() const;
-    void setObservedPrecursorRT(const DoubleReal&);
+    double getObservedPrecursorRT() const;
+    void setObservedPrecursorRT(const double&);
 
-    DoubleReal getFoundPrecursorMass() const;
-    void setFoundPrecursorMass(const DoubleReal&);
+    double getFoundPrecursorMass() const;
+    void setFoundPrecursorMass(const double&);
 
     Int getFoundPrecursorCharge() const;
     void setFoundPrecursorCharge(const Int&);
 
-    DoubleReal getMatchingScore() const;
-    void setMatchingScore(const DoubleReal&);
+    double getMatchingScore() const;
+    void setMatchingScore(const double&);
 
     Size getObservedSpectrumIndex() const;
     void setObservedSpectrumIndex(const Size&);
@@ -119,11 +119,11 @@ public:
 
 
 private:
-    DoubleReal observed_precursor_mass_;
-    DoubleReal observed_precursor_rt_;
-    DoubleReal found_precursor_mass_;
+    double observed_precursor_mass_;
+    double observed_precursor_rt_;
+    double found_precursor_mass_;
     Int found_precursor_charge_;
-    DoubleReal matching_score_;
+    double matching_score_;
     Size observed_spectrum_idx_;
     Size matching_spectrum_idx_;
 
@@ -162,7 +162,7 @@ public:
     virtual ~MetaboliteSpectralMatching();
 
     /// hyperscore computation
-    DoubleReal computeHyperScore(MSSpectrum<Peak1D>, MSSpectrum<Peak1D>, const DoubleReal&, const DoubleReal&);
+    double computeHyperScore(MSSpectrum<Peak1D>, MSSpectrum<Peak1D>, const double&, const double&);
 
     /// main method of MetaboliteSpectralMatching
     void run(MSExperiment<>&, MzTab&);
@@ -175,8 +175,8 @@ private:
     /// private member functions
     void exportMzTab_(const std::vector<SpectralMatch>&, MzTab&);
 
-    DoubleReal precursor_mz_error_;
-    DoubleReal fragment_mz_error_;
+    double precursor_mz_error_;
+    double fragment_mz_error_;
     String mz_error_unit_;
     String ion_mode_;
 

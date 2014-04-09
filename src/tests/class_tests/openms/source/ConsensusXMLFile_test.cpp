@@ -47,7 +47,7 @@ using namespace OpenMS;
 using namespace std;
 
 
-DRange<1> makeRange(DoubleReal a, DoubleReal b)
+DRange<1> makeRange(double a, double b)
 {
   DPosition<1> pa(a), pb(b);
   return DRange<1>(pa, pb);
@@ -129,20 +129,20 @@ TEST_EQUAL(map.getProteinIdentifications()[1].getHits()[0].getSequence(), "OPQRE
 //peptide identifications
 TEST_EQUAL(map[0].getPeptideIdentifications().size(), 2)
 TEST_EQUAL(map[0].getPeptideIdentifications()[0].getHits().size(), 1)
-TEST_EQUAL(map[0].getPeptideIdentifications()[0].getHits()[0].getSequence(), "A")
+TEST_EQUAL(map[0].getPeptideIdentifications()[0].getHits()[0].getSequence(), AASequence::fromString("A"))
 TEST_EQUAL(map[0].getPeptideIdentifications()[1].getHits().size(), 2)
-TEST_EQUAL(map[0].getPeptideIdentifications()[1].getHits()[0].getSequence(), "C")
-TEST_EQUAL(map[0].getPeptideIdentifications()[1].getHits()[1].getSequence(), "D")
+TEST_EQUAL(map[0].getPeptideIdentifications()[1].getHits()[0].getSequence(), AASequence::fromString("C"))
+TEST_EQUAL(map[0].getPeptideIdentifications()[1].getHits()[1].getSequence(), AASequence::fromString("D"))
 TEST_EQUAL(map[1].getPeptideIdentifications().size(), 1)
 TEST_EQUAL(map[1].getPeptideIdentifications()[0].getHits().size(), 1)
-TEST_EQUAL(map[1].getPeptideIdentifications()[0].getHits()[0].getSequence(), "E")
+TEST_EQUAL(map[1].getPeptideIdentifications()[0].getHits()[0].getSequence(),AASequence::fromString( "E"))
 //unassigned peptide identifications
 TEST_EQUAL(map.getUnassignedPeptideIdentifications().size(), 2)
 TEST_EQUAL(map.getUnassignedPeptideIdentifications()[0].getHits().size(), 1)
-TEST_EQUAL(map.getUnassignedPeptideIdentifications()[0].getHits()[0].getSequence(), "F")
+TEST_EQUAL(map.getUnassignedPeptideIdentifications()[0].getHits()[0].getSequence(), AASequence::fromString("F"))
 TEST_EQUAL(map.getUnassignedPeptideIdentifications()[1].getHits().size(), 2)
-TEST_EQUAL(map.getUnassignedPeptideIdentifications()[1].getHits()[0].getSequence(), "G")
-TEST_EQUAL(map.getUnassignedPeptideIdentifications()[1].getHits()[1].getSequence(), "H")
+TEST_EQUAL(map.getUnassignedPeptideIdentifications()[1].getHits()[0].getSequence(), AASequence::fromString("G"))
+TEST_EQUAL(map.getUnassignedPeptideIdentifications()[1].getHits()[1].getSequence(), AASequence::fromString("H"))
 
 //features
 TEST_EQUAL(map.size(), 6)
@@ -179,10 +179,10 @@ TEST_REAL_SIMILAR(it->getIntensity(), 1.78215e+07)
 
 // test meta values:
 TEST_EQUAL(map[0].getMetaValue("myIntList") == ListUtils::create<Int>("1,10,12"), true);
-TEST_EQUAL(map[0].getMetaValue("myDoubleList") == ListUtils::create<DoubleReal>("1.111,10.999,12.45"), true);
+TEST_EQUAL(map[0].getMetaValue("myDoubleList") == ListUtils::create<double>("1.111,10.999,12.45"), true);
 std::cout << "list: " << map[0].getMetaValue("myStringList") << "\n";
 TEST_EQUAL(map[0].getMetaValue("myStringList") == ListUtils::create<String>("myABC1,Stuff,12"), true);
-TEST_EQUAL(map[4].getMetaValue("myDoubleList") == ListUtils::create<DoubleReal>("6.442"), true);
+TEST_EQUAL(map[4].getMetaValue("myDoubleList") == ListUtils::create<double>("6.442"), true);
 
 //PeakFileOptions tests
 
@@ -220,8 +220,8 @@ END_SECTION
 
 START_SECTION([EXTRA](bool isValid(const String &filename)))
 ConsensusXMLFile f;
-TEST_EQUAL(f.isValid(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_1.consensusXML")), true);
-TEST_EQUAL(f.isValid(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_2_options.consensusXML")), true);
+TEST_EQUAL(f.isValid(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_1.consensusXML"), std::cerr), true);
+TEST_EQUAL(f.isValid(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_2_options.consensusXML"), std::cerr), true);
 
 //test if written empty file
 // - this is invalid, so it is not tested :)
@@ -232,7 +232,7 @@ String tmp_filename;
 NEW_TMP_FILE(tmp_filename);
 f.load(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_1.consensusXML"), m);
 f.store(tmp_filename, m);
-TEST_EQUAL(f.isValid(tmp_filename), true);
+TEST_EQUAL(f.isValid(tmp_filename, std::cerr), true);
 END_SECTION
 
 /////////////////////////////////////////////////////////////

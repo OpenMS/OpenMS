@@ -120,7 +120,7 @@ protected:
     registerStringOption_("separator", "<sep>", "", "Field separator for 'table' output format; by default, the 'tab' character is used", false);
   }
 
-  DoubleReal computeMass_(const AASequence & seq, Int charge) const
+  double computeMass_(const AASequence & seq, Int charge) const
   {
     if (use_avg_mass_) return seq.getAverageWeight(res_type_, charge);
     else return seq.getMonoWeight(res_type_, charge);
@@ -132,7 +132,7 @@ protected:
     for (set<Int>::const_iterator it = charges.begin(); it != charges.end();
          ++it)
     {
-      DoubleReal mass = computeMass_(seq, *it);
+      double mass = computeMass_(seq, *it);
       sv_out << seq.toString() << *it << mass;
       sv_out.writeValueOrNan(mass / *it);
       sv_out << endl;
@@ -145,7 +145,7 @@ protected:
     for (set<Int>::const_iterator it = charges.begin(); it != charges.end();
          ++it)
     {
-      DoubleReal mass = computeMass_(seq, *it);
+      double mass = computeMass_(seq, *it);
       if (it != charges.begin()) *output_ << ", ";
       *output_ << "z=" << *it << " m=" << mass << " m/z=";
       if (*it != 0) *output_ << (mass / *it);
@@ -160,7 +160,7 @@ protected:
     for (set<Int>::const_iterator it = charges.begin(); it != charges.end();
          ++it)
     {
-      DoubleReal mass = computeMass_(seq, *it);
+      double mass = computeMass_(seq, *it);
       if (it != charges.begin()) *output_ << " ";
       if (!mz) *output_ << mass;
       else if (*it == 0) *output_ << "inf";
@@ -200,13 +200,17 @@ protected:
       {
         item.unquote();
       }
-      AASequence seq(item);
-      if (!seq.isValid())
+
+      AASequence seq ;
+      try
       {
-        LOG_WARN << "Warning: '" << item
-                 << "' is not a valid peptide sequence - skipping\n";
+        seq = AASequence::fromString(item);
+      } catch (Exception::ParseError &e)
+      {
+        LOG_WARN << "Warning: '" << item << "' is not a valid peptide sequence - skipping\n";
         continue;
       }
+
       set<Int> local_charges(charges);
       Size conversion_failed_count(0);
       while (!line.empty())
@@ -285,13 +289,16 @@ protected:
       }
       for (StringList::iterator it = in_seq.begin(); it != in_seq.end(); ++it)
       {
-        AASequence seq(*it);
-        if (!seq.isValid())
+        AASequence seq;
+        try
         {
-          LOG_WARN << "Warning: '" << *it
-                   << "' is not a valid peptide sequence - skipping\n";
+         seq = AASequence::fromString(*it);
+        } catch (Exception::ParseError & e)
+        {
+          LOG_WARN << "Warning: '" << *it << "' is not a valid peptide sequence - skipping\n";
           continue;
         }
+
         writeLine_(seq, charges);
       }
     }

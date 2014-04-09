@@ -74,8 +74,8 @@ namespace OpenMS
   Histogram<> Spectrum3DWidget::createIntensityDistribution_() const
   {
     //initialize histogram
-    DoubleReal min = canvas_->getCurrentMinIntensity();
-    DoubleReal max = canvas_->getCurrentMaxIntensity();
+    double min = canvas_->getCurrentMinIntensity();
+    double max = canvas_->getCurrentMaxIntensity();
     if (min == max)
     {
       min -= 0.01;
@@ -101,7 +101,7 @@ namespace OpenMS
     Histogram<> tmp;
 
     //determine min and max of the data
-    Real m_min = (numeric_limits<Real>::max)(), m_max = -(numeric_limits<Real>::max)();
+    float m_min = (numeric_limits<float>::max)(), m_max = -(numeric_limits<float>::max)();
     for (ExperimentType::const_iterator s_it = canvas_->getCurrentLayer().getPeakData()->begin(); s_it != canvas_->getCurrentLayer().getPeakData()->end(); ++s_it)
     {
       if (s_it->getMSLevel() != 1)

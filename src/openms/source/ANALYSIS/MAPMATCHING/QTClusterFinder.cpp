@@ -55,8 +55,8 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  void QTClusterFinder::setParameters_(DoubleReal max_intensity,
-                                       DoubleReal max_mz)
+  void QTClusterFinder::setParameters_(double max_intensity,
+                                       double max_mz)
   {
     if (max_mz < 1e-16 || max_mz > 1e16 || max_intensity < -1e16 || max_intensity > 1e16)
     {
@@ -89,8 +89,8 @@ namespace OpenMS
     }
 
     // set up the distance functor (and set other parameters):
-    DoubleReal max_intensity = input_maps[0].getMaxInt();
-    DoubleReal max_mz = input_maps[0].getMax()[1];
+    double max_intensity = input_maps[0].getMaxInt();
+    double max_mz = input_maps[0].getMax()[1];
     for (Size map_index = 1; map_index < num_maps_; ++map_index)
     {
       max_intensity = max(max_intensity, input_maps[map_index].getMaxInt());
@@ -137,7 +137,7 @@ namespace OpenMS
     for (list<QTCluster>::iterator it = clustering.begin(); it != clustering.end(); ++it)
     {
       OpenMSBoost::unordered_map<Size, GridFeature *> elements;
-      typedef std::multimap<DoubleReal, GridFeature *> InnerNeighborMap;
+      typedef std::multimap<double, GridFeature *> InnerNeighborMap;
       typedef OpenMSBoost::unordered_map<Size, InnerNeighborMap > NeighborMap;
       NeighborMap neigh = it->getNeighbors();
       for (NeighborMap::iterator n_it = neigh.begin(); n_it != neigh.end(); ++n_it)
@@ -254,7 +254,7 @@ namespace OpenMS
     clustering.clear();
     distances_.clear();
     // FeatureDistance produces normalized distances (between 0 and 1):
-    const DoubleReal max_distance = 1.0;
+    const double max_distance = 1.0;
 
     // iterate over all grid cells:
     for (Grid::iterator it = grid.begin(); it != grid.end(); ++it)
@@ -282,7 +282,7 @@ namespace OpenMS
               // consider only "real" neighbors, not the element itself:
               if (center_feature != neighbor_feature)
               {
-                DoubleReal dist = getDistance_(center_feature,
+                double dist = getDistance_(center_feature,
                                                neighbor_feature);
                 if (dist == FeatureDistance::infinity)
                 {
@@ -305,7 +305,7 @@ namespace OpenMS
     }
   }
 
-  DoubleReal QTClusterFinder::getDistance_(GridFeature * left,
+  double QTClusterFinder::getDistance_(GridFeature * left,
                                            GridFeature * right)
   {
     // look-up in the distance map:
@@ -318,7 +318,7 @@ namespace OpenMS
     }
     else     // compute distance now and store it for later
     {
-      DoubleReal dist = feature_distance_(left->getFeature(), right->getFeature()).second;
+      double dist = feature_distance_(left->getFeature(), right->getFeature()).second;
       distances_[key] = dist;
       return dist;
     }

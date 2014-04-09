@@ -86,7 +86,7 @@ using namespace std;
     @note that the wavelet transform is very slow on high-resolution spectra (i.e. FT, Orbitrap). We recommend
     to use a noise or intensity filter to remove spurious points first and to speed-up the feature detection process.
 
-    Specialized tools are available for some experimental techniques: @ref TOPP_SILACAnalyzer, @ref TOPP_ITRAQAnalyzer.
+    Specialized tools are available for some experimental techniques: @ref TOPP_ITRAQAnalyzer.
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_FeatureFinderIsotopeWavelet.cli

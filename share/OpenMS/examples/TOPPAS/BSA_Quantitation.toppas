@@ -60,8 +60,6 @@
             <ITEM name="min_score" value="0.8" type="double" description="Minimum seed score a peak has to reach to be used as seed.#br#The seed score is the geometric mean of intensity score, mass trace score and isotope pattern score.#br#If your features show a large deviation from the averagene isotope distribution or from an gaussian elution profile, lower this score." required="false" advanced="false" restrictions="0:1" />
           </NODE>
           <NODE name="fit" description="Settings for the model fitting">
-            <ITEM name="epsilon_abs" value="0.0001" type="double" description="Absolute epsilon used for convergence of the fit." required="false" advanced="true" restrictions="0:" />
-            <ITEM name="epsilon_rel" value="0.0001" type="double" description="Relative epsilon used for convergence of the fit." required="false" advanced="true" restrictions="0:" />
             <ITEM name="max_iterations" value="500" type="int" description="Maximum number of iterations of the fit." required="false" advanced="true" restrictions="1:" />
           </NODE>
           <NODE name="feature" description="Settings for the features (intensity, quality assessment, ...)">

@@ -289,9 +289,9 @@ protected:
 
 
         // debug output
-  //            DoubleReal cent_rt(m_traces_final[i].getCentroidRT());
-  //            DoubleReal cent_mz(m_traces_final[i].getCentroidMZ());
-  //            // DoubleReal cent_int(m_traces_final[i].compute());
+  //            double cent_rt(m_traces_final[i].getCentroidRT());
+  //            double cent_mz(m_traces_final[i].getCentroidMZ());
+  //            // double cent_int(m_traces_final[i].compute());
 
   //            for (MassTrace::const_iterator v_it = m_traces_final[i].begin(); v_it != m_traces_final[i].end(); ++v_it)
   //            {

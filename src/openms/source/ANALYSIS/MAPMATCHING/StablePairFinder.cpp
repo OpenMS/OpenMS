@@ -92,7 +92,7 @@ namespace OpenMS
     checkIds_(input_maps);
 
     // set up the distance functor:
-    DoubleReal max_intensity = max(input_maps[0].getMaxInt(),
+    double max_intensity = max(input_maps[0].getMaxInt(),
                                    input_maps[1].getMaxInt());
     Param distance_params = param_.copy("");
     distance_params.remove("use_identifications");
@@ -105,7 +105,7 @@ namespace OpenMS
     is_singleton[0].resize(input_maps[0].size(), true);
     is_singleton[1].resize(input_maps[1].size(), true);
 
-    typedef pair<DoubleReal, DoubleReal> DoublePair;
+    typedef pair<double, double> DoublePair;
     DoublePair init = make_pair(FeatureDistance::infinity,
                                 FeatureDistance::infinity);
 
@@ -138,8 +138,8 @@ namespace OpenMS
           continue; // mismatch
         }
 
-        pair<bool, DoubleReal> result = feature_distance(feat0, feat1);
-        DoubleReal distance = result.second;
+        pair<bool, double> result = feature_distance(feat0, feat1);
+        double distance = result.second;
         // we only care if distance constraints are satisfied for "best
         // matches", not for second-best; this means that second-best distances
         // can become smaller than best distances!
@@ -209,9 +209,9 @@ namespace OpenMS
                                                input_maps[1][fi1].getPeptideIdentifications().end());
 
           f.computeConsensus();
-          DoubleReal quality = 1.0 - nn_distance_0[fi0].first;
-          DoubleReal quality0 = 1.0 - nn_distance_0[fi0].first * second_nearest_gap_ / nn_distance_0[fi0].second;
-          DoubleReal quality1 = 1.0 - nn_distance_1[fi1].first * second_nearest_gap_ / nn_distance_1[fi1].second;
+          double quality = 1.0 - nn_distance_0[fi0].first;
+          double quality0 = 1.0 - nn_distance_0[fi0].first * second_nearest_gap_ / nn_distance_0[fi0].second;
+          double quality1 = 1.0 - nn_distance_1[fi1].first * second_nearest_gap_ / nn_distance_1[fi1].second;
           quality = quality * quality0 * quality1; // TODO other formula?
 
           // incorporate existing quality values:

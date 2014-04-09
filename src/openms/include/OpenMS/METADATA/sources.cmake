@@ -23,6 +23,7 @@ MetaInfoDescription.h
 MetaInfoInterface.h
 MetaInfoRegistry.h
 Modification.h
+MSQuantifications.h
 PeptideHit.h
 PeptideIdentification.h
 Precursor.h
@@ -48,7 +49,7 @@ CVTermList.h
 ### add path to the filenames
 set(sources_h)
 foreach(i ${sources_list_h})
-	list(APPEND sources_h ${directory}/${i})
+  list(APPEND sources_h ${directory}/${i})
 endforeach(i)
 
 ### source group definition

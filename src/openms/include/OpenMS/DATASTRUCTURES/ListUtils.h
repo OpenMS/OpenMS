@@ -37,8 +37,8 @@
 
 #include <vector>
 #include <algorithm>
-#include <ostream>
 #include <iterator>
+#include <cmath>
 
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/Exception.h>
@@ -62,7 +62,7 @@ namespace OpenMS
 
    @ingroup Datastructures
    */
-  typedef std::vector<DoubleReal> DoubleList;
+  typedef std::vector<double> DoubleList;
 
 
   /**
@@ -81,11 +81,11 @@ namespace OpenMS
   {
 private:
     /**
-      @brief Predicate that to check double equality with a given tolerance.
+      @brief Predicate to check double equality with a given tolerance.
     */
     struct DoubleTolerancePredicate_
     {
-      DoubleTolerancePredicate_(const DoubleReal& target, const DoubleReal& tolerance) :
+      DoubleTolerancePredicate_(const double& target, const double& tolerance) :
         tolerance_(tolerance),
         target_(target)
       {}
@@ -96,16 +96,16 @@ private:
         @param value The value to test.
         @return true if \| @p value - @p target \| \< @p tolerance, false otherwise.
       */
-      inline bool operator()(const DoubleReal& value)
+      inline bool operator()(const double& value)
       {
         return std::fabs(value - target_) < tolerance_;
       }
 
 private:
       /// The allowed tolerance.
-      DoubleReal tolerance_;
+      double tolerance_;
       /// The target value that should be found.
-      DoubleReal target_;
+      double target_;
     };
 
 public:
@@ -160,7 +160,7 @@ public:
 
       @return True if @p elem is contained in @p container, false otherwise.
     */
-    static bool contains(const std::vector<DoubleReal>& container, const DoubleReal& elem, DoubleReal tolerance = 0.00001)
+    static bool contains(const std::vector<double>& container, const double& elem, double tolerance = 0.00001)
     {
       return find_if(container.begin(), container.end(), DoubleTolerancePredicate_(elem, tolerance)) != container.end();
     }
@@ -192,41 +192,6 @@ public:
 
   };
 
-  /**
-    @brief Output stream operator for std::vectors.
-
-    @param os The target stream.
-    @param v The vector to write to stream.
-  */
-  template <typename T>
-  inline std::ostream& operator<<(std::ostream& os, const std::vector<T>& v)
-  {
-    // handle precision settings
-    const std::streamsize prec_save = os.precision();
-    os << std::setprecision(writtenDigits(T()));
-
-    os << "[";
-
-    if (!v.empty())
-    {
-      std::copy(v.begin(), v.end() - 1, std::ostream_iterator<T>(os, ", "));
-      os << v.back();
-    }
-
-    os << "]";
-    // set precision settings back to original values
-    os << std::setprecision(prec_save);
-    return os;
-  }
-
-  /// Operator for appending entries with less code
-  template <typename TString>
-  inline std::vector<String>& operator<<(std::vector<String>& sl, const TString& string)
-  {
-    sl.push_back(string);
-    return sl;
-  }
-
   template <typename T>
   inline std::vector<T> ListUtils::create(const std::vector<String>& s)
   {
@@ -243,7 +208,7 @@ public:
         throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Could not convert string '") + *it + "'");
       }
     }
-    
+
     return c;
   }
 

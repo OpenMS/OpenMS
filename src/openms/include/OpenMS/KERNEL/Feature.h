@@ -123,7 +123,7 @@ public:
     ConvexHull2D & getConvexHull() const;
 
     /// Returns if the mass trace convex hulls of the feature enclose the position specified by @p rt and @p mz
-    bool encloses(DoubleReal rt, DoubleReal mz) const;
+    bool encloses(double rt, double mz) const;
     //@}
 
     /// Assignment operator

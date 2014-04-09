@@ -109,9 +109,7 @@ START_SECTION((GammaDistributionFitResult fit(std::vector< DPosition< 2 > > & po
 	pos.setX(0.9501); pos.setY(0); points.push_back(pos);
 	pos.setX(0.9751); pos.setY(0.2); points.push_back(pos);
 
-	GammaDistributionFitter::GammaDistributionFitResult init_param;
-	init_param.b = 1.0;
-	init_param.p = 3.0;	
+	GammaDistributionFitter::GammaDistributionFitResult init_param(1.0, 3.0);
 
   ptr = new GammaDistributionFitter;
 	ptr->setInitialParameters(init_param);
@@ -126,15 +124,11 @@ END_SECTION
 START_SECTION((void setInitialParameters(const GammaDistributionFitResult & result)))
 {
   GammaDistributionFitter f1;
-  GammaDistributionFitter::GammaDistributionFitResult result;
+  GammaDistributionFitter::GammaDistributionFitResult result (1.0, 5.0);
   f1.setInitialParameters(result);
 	
 	NOT_TESTABLE //implicitly tested in fit method
 }
-END_SECTION
-
-START_SECTION((const String& getGnuplotFormula() const ))
-	TEST_EQUAL(ptr->getGnuplotFormula().hasPrefix("f(x)="), true)
 END_SECTION
 
 

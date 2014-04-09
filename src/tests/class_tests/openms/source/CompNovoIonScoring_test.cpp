@@ -74,7 +74,7 @@ START_SECTION((virtual ~CompNovoIonScoring()))
 }
 END_SECTION
 
-START_SECTION((void scoreSpectra(Map< DoubleReal, IonScore > &CID_ion_scores, PeakSpectrum &CID_spec, PeakSpectrum &ETD_spec, DoubleReal precursor_weight, Size charge)))
+START_SECTION((void scoreSpectra(Map< double, IonScore > &CID_ion_scores, PeakSpectrum &CID_spec, PeakSpectrum &ETD_spec, double precursor_weight, Size charge)))
 {
   TheoreticalSpectrumGenerator tsg;
   Param tsg_param(tsg.getParameters());
@@ -83,7 +83,7 @@ START_SECTION((void scoreSpectra(Map< DoubleReal, IonScore > &CID_ion_scores, Pe
   tsg.setParameters(tsg_param);
 
   RichPeakSpectrum rspec;
-  tsg.getSpectrum(rspec, AASequence("DFPIANGER"));
+  tsg.getSpectrum(rspec, AASequence::fromString("DFPIANGER"));
 
   PeakSpectrum spec;
   for (Size i = 0; i != rspec.size(); ++i)
@@ -95,8 +95,8 @@ START_SECTION((void scoreSpectra(Map< DoubleReal, IonScore > &CID_ion_scores, Pe
   }
 
   RichPeakSpectrum rspec_ETD;
-  tsg.addPeaks(rspec_ETD, AASequence("DFPIANGER"), Residue::ZIon, 1);
-  tsg.addPrecursorPeaks(rspec_ETD, AASequence("DFPIANGER"), 2);
+  tsg.addPeaks(rspec_ETD, AASequence::fromString("DFPIANGER"), Residue::ZIon, 1);
+  tsg.addPrecursorPeaks(rspec_ETD, AASequence::fromString("DFPIANGER"), 2);
   PeakSpectrum spec_ETD;
   for (Size i = 0; i != rspec_ETD.size(); ++i)
   {
@@ -107,18 +107,18 @@ START_SECTION((void scoreSpectra(Map< DoubleReal, IonScore > &CID_ion_scores, Pe
   }
 
   Precursor prec;
-  prec.setMZ((AASequence("DFPLANGER").getMonoWeight() + 2.0 * Constants::PROTON_MASS_U) / 2.0);
+  prec.setMZ((AASequence::fromString("DFPLANGER").getMonoWeight() + 2.0 * Constants::PROTON_MASS_U) / 2.0);
   prec.setCharge(2);
   vector<Precursor> precs;
   precs.push_back(prec);
   spec.setPrecursors(precs);
   spec_ETD.setPrecursors(precs);
 
-	Map<DoubleReal, CompNovoIonScoringBase::IonScore> ion_scores;
+	Map<double, CompNovoIonScoringBase::IonScore> ion_scores;
 	CompNovoIonScoring cnis;
   cnis.scoreSpectra(ion_scores, spec, spec_ETD, 1018.48, 1);
 
-  for (Map<DoubleReal, CompNovoIonScoringBase::IonScore>::ConstIterator it = ion_scores.begin(); it != ion_scores.end(); ++it)
+  for (Map<double, CompNovoIonScoringBase::IonScore>::ConstIterator it = ion_scores.begin(); it != ion_scores.end(); ++it)
   {
 /*
 y1 175.118952187571

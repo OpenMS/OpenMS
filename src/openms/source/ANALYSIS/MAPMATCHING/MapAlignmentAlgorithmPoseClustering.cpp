@@ -77,7 +77,7 @@ namespace OpenMS
   void MapAlignmentAlgorithmPoseClustering::align(const FeatureMap<> & map, TransformationDescription & trafo)
   {
     ConsensusMap map_scene;
-    ConsensusMap::convert(1, map, map_scene, max_num_peaks_considered_);
+    MapConversion::convert(1, map, map_scene, max_num_peaks_considered_);
     align(map_scene, trafo);
   }
 
@@ -85,7 +85,7 @@ namespace OpenMS
   {
     ConsensusMap map_scene;
     MSExperiment<> map2(map);
-    ConsensusMap::convert(1, map2, map_scene, max_num_peaks_considered_); // copy MSExperiment here, since it is sorted internally by intensity
+    MapConversion::convert(1, map2, map_scene, max_num_peaks_considered_); // copy MSExperiment here, since it is sorted internally by intensity
     align(map_scene, trafo);
   }
 
@@ -105,7 +105,7 @@ namespace OpenMS
     for (Size j = 0; j < map_scene.size(); ++j)
     {
       //Calculate new RT
-      DoubleReal rt = map_scene[j].getRT();
+      double rt = map_scene[j].getRT();
       rt = si_trafo.apply(rt);
       //Set RT of consensus feature centroid
       map_scene[j].setRT(rt);
@@ -130,8 +130,8 @@ namespace OpenMS
       if (it->size() == 2)           // two matching features
       {
         ConsensusFeature::iterator feat_it = it->begin();
-        DoubleReal y = feat_it->getRT();
-        DoubleReal x = si_trafo.apply((++feat_it)->getRT());
+        double y = feat_it->getRT();
+        double x = si_trafo.apply((++feat_it)->getRT());
         // one feature should be from the reference map:
         if (feat_it->getMapIndex() != 0)
         {

@@ -220,7 +220,7 @@ START_SECTION((const DateTime& getDateTime() const))
 	TEST_EQUAL(date_time == date, true)
 END_SECTION
 
-START_SECTION((DoubleReal getSignificanceThreshold() const))
+START_SECTION((double getSignificanceThreshold() const))
 	ProteinIdentification hits;
 	hits.setSignificanceThreshold(protein_significance_threshold);
 	TEST_EQUAL(hits.getSignificanceThreshold(), protein_significance_threshold)	
@@ -254,7 +254,7 @@ START_SECTION((void setDateTime(const DateTime& date)))
 	TEST_EQUAL(hits.getDateTime() == date, true)
 END_SECTION
 
-START_SECTION((void setSignificanceThreshold(DoubleReal value)))
+START_SECTION((void setSignificanceThreshold(double value)))
 	ProteinIdentification hits;
 	hits.setSignificanceThreshold(protein_significance_threshold);
 	TEST_EQUAL(hits.getSignificanceThreshold(), protein_significance_threshold)
@@ -472,20 +472,20 @@ START_SECTION((Size computeCoverage(const std::vector< PeptideIdentification > &
   // prep peptides
   std::vector<PeptideIdentification> pep_ids;
   PeptideIdentification pid;
-  PeptideHit phit(0,0,1,AASequence(""));
+  PeptideHit phit(0,0,1,AASequence::fromString(""));
   phit.setProteinAccessions(ListUtils::create<String>("P1"));
-  phit.setSequence(AASequence("MKQSTIALALLPLLFTPVTKARTPEMPVLENRAAQGDITAPGGARRLTGDQTAALRDSLS"));
+  phit.setSequence(AASequence::fromString("MKQSTIALALLPLLFTPVTKARTPEMPVLENRAAQGDITAPGGARRLTGDQTAALRDSLS"));
   pid.insertHit( phit );
-  phit.setSequence(AASequence("DKPAKNIILLIGDGMGDSEITAARNYAEGAGGFFKGIDALPLTGQYTHYALNKKTGKPDY"));
+  phit.setSequence(AASequence::fromString("DKPAKNIILLIGDGMGDSEITAARNYAEGAGGFFKGIDALPLTGQYTHYALNKKTGKPDY"));
   pid.insertHit( phit );
-  phit.setSequence(AASequence("MKQSTIALALLPLLFTPVTKARTPEMPVLENRAAQGDITAPGGARRLTGDQTAALRDSLS"));  // should not count
+  phit.setSequence(AASequence::fromString("MKQSTIALALLPLLFTPVTKARTPEMPVLENRAAQGDITAPGGARRLTGDQTAALRDSLS"));  // should not count
   pid.insertHit( phit );
   pep_ids.push_back(pid);
 
   PeptideIdentification pid2;
-  PeptideHit phit2(0,0,1, AASequence(""));
+  PeptideHit phit2(0,0,1, AASequence::fromString(""));
   phit2.setProteinAccessions(ListUtils::create<String>("P1"));
-  phit2.setSequence(AASequence("MKQSTIALALLPLLFTPVTKARTPEMPVLENRAAQGDITAPGGARRLTGDQTAALRDSLS"));
+  phit2.setSequence(AASequence::fromString("MKQSTIALALLPLLFTPVTKARTPEMPVLENRAAQGDITAPGGARRLTGDQTAALRDSLS"));
   pid2.insertHit( phit2 ); // should not count
   pep_ids.push_back(pid2);
 
@@ -494,7 +494,7 @@ START_SECTION((Size computeCoverage(const std::vector< PeptideIdentification > &
   TEST_REAL_SIMILAR(id.getHits()[0].getCoverage(), 200.0/3.0);
   TEST_REAL_SIMILAR(id.getHits()[1].getCoverage(), 0.0);
 
-  phit2.setSequence(AASequence("VTDSAASATAWSTGVKTYNGALGVDIHEKDHPTILEMAKAAGLATGNVSTAELQDATPAA"));
+  phit2.setSequence(AASequence::fromString("VTDSAASATAWSTGVKTYNGALGVDIHEKDHPTILEMAKAAGLATGNVSTAELQDATPAA"));
   pid2.insertHit( phit2 ); 
   pep_ids.push_back(pid2);
 
@@ -505,13 +505,13 @@ START_SECTION((Size computeCoverage(const std::vector< PeptideIdentification > &
 
   pep_ids.clear();
   PeptideIdentification pid3;
-  PeptideHit phit3(0,0,1,AASequence(""));
+  PeptideHit phit3(0,0,1,AASequence::fromString(""));
   phit3.setProteinAccessions(ListUtils::create<String>("P2"));
-  phit3.setSequence(AASequence("PEMPVLENRAAQGDITAPP")); // 1st half
+  phit3.setSequence(AASequence::fromString("PEMPVLENRAAQGDITAPP")); // 1st half
   pid3.insertHit( phit3 ); 
-  phit3.setSequence(AASequence("GGARRLTGDQTAALRDSLS")); // 2nd half
+  phit3.setSequence(AASequence::fromString("GGARRLTGDQTAALRDSLS")); // 2nd half
   pid3.insertHit( phit3 ); 
-  phit3.setSequence(AASequence("RAAQGDITAPPGGARRLTG")); // middle half
+  phit3.setSequence(AASequence::fromString("RAAQGDITAPPGGARRLTG")); // middle half
   pid3.insertHit( phit3 ); 
   
   pep_ids.push_back(pid3);

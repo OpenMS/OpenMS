@@ -68,7 +68,7 @@ START_SECTION(~MRMDecoy())
 }
 END_SECTION
 
-START_SECTION((std::pair<String, DoubleReal> getDecoyIon(String ionid, std::map< String, std::map< String, DoubleReal > > &decoy_ionseries)))
+START_SECTION((std::pair<String, double> getDecoyIon(String ionid, std::map< String, std::map< String, double > > &decoy_ionseries)))
 {
 	MRMDecoy gen;
 
@@ -235,7 +235,7 @@ START_SECTION([EXTRA] shuffle_peptide_with_terminal_modifications)
 {
   // Shuffle a peptide with C/N terminal modifications
   MRMDecoy gen;
-  AASequence original_sequence = AASequence("(UniMod:272)TESTPEPTIDE(UniMod:193)");
+  AASequence original_sequence = AASequence::fromString("(UniMod:272)TESTPEPTIDE(UniMod:193)");
   TEST_EQUAL(original_sequence.hasNTerminalModification(), true)
   TEST_EQUAL(original_sequence.hasCTerminalModification(), true)
 
@@ -357,10 +357,10 @@ START_SECTION((void generateDecoys(OpenMS::TargetedExperiment& exp,
                         double similarity_threshold, bool remove_CNterm_mods, double precursor_mass_shift);))
 {
   String method = "pseudo-reverse";
-  DoubleReal identity_threshold = 1.0;
+  double identity_threshold = 1.0;
   Int max_attempts = 5;
-  DoubleReal mz_threshold = 0.8;
-  DoubleReal mz_shift = 20;
+  double mz_threshold = 0.8;
+  double mz_shift = 20;
   String decoy_tag = "DECOY_";
   Int min_transitions = 2;
   Int max_transitions = 6;
@@ -400,8 +400,8 @@ START_SECTION((extra))
 {    
   MRMDecoy gen;
 
-  AASequence target_sequence = AASequence("ADSTGTLVITDPTR(UniMod:267)");
-  AASequence decoy_sequence = AASequence("ALDSTTGVDTTPIR(UniMod:267)");
+  AASequence target_sequence = AASequence::fromString("ADSTGTLVITDPTR(UniMod:267)");
+  AASequence decoy_sequence = AASequence::fromString("ALDSTTGVDTTPIR(UniMod:267)");
   MRMDecoy::IonSeries target_ionseries = gen.getIonSeries(target_sequence, 2);
   MRMDecoy::IonSeries decoy_ionseries = gen.getIonSeries(decoy_sequence, 2);
 

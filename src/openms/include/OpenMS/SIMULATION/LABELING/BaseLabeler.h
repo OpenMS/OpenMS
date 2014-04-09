@@ -41,10 +41,6 @@
 
 #include <OpenMS/SIMULATION/SimTypes.h>
 
-// GSL includes (random number generation)
-#include <gsl/gsl_rng.h>
-#include <gsl/gsl_randist.h>
-
 namespace OpenMS
 {
 
@@ -78,7 +74,7 @@ public:
       Internally a pointer to the RNG is stored.
 
     */
-    virtual void setRnd(const SimRandomNumberGenerator & rng);
+    virtual void setRnd(MutableSimRandomNumberGeneratorPtr rng);
 
     /**
       @brief Checks the (simulation) params passed if they are consistent with
@@ -168,7 +164,7 @@ protected:
 
     ConsensusMap consensus_;
 
-    SimRandomNumberGenerator const * rng_;
+    MutableSimRandomNumberGeneratorPtr rng_;
 
     String channel_description_;
 

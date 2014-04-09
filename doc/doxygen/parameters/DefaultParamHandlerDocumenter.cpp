@@ -97,7 +97,6 @@
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumPrecursorComparator.h>
 #include <OpenMS/COMPARISON/SPECTRA/SteinScottImproveScore.h>
 #include <OpenMS/COMPARISON/SPECTRA/ZhangSimilarityScore.h>
-#include <OpenMS/COMPARISON/SPECTRA/CompareFouriertransform.h>
 #include <OpenMS/FILTERING/CALIBRATION/InternalCalibration.h>
 #include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
 #include <OpenMS/FILTERING/SMOOTHING/LowessSmoothing.h>
@@ -130,10 +129,6 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussTraceFitter.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeFitter1D.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeModel.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/LmaGaussFitter1D.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/LmaGaussModel.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/LmaIsotopeFitter1D.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/LmaIsotopeModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MaxLikeliFitter1D.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ModelFitter.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SimpleExtender.h>
@@ -149,7 +144,6 @@
 #include <OpenMS/COMPARISON/SPECTRA/BinnedSumAgreeingIntensities.h>
 #include <OpenMS/COMPARISON/SPECTRA/BinnedSpectralContrastAngle.h>
 #include <OpenMS/COMPARISON/SPECTRA/PeakAlignment.h>
-#include <OpenMS/COMPARISON/SPECTRA/CompareFouriertransform.h>
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMeanIterative.h>
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
 #include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>
@@ -225,12 +219,12 @@ void writeParameters(const String & class_name, const Param & param, bool table_
 
       //restrictions
       bool first = true;
-      if (it->min_float != -(numeric_limits<DoubleReal>::max)())
+      if (it->min_float != -(numeric_limits<double>::max)())
       {
         restrictions += String("min: ") + it->min_float;
         first = false;
       }
-      if (it->max_float != (numeric_limits<DoubleReal>::max)())
+      if (it->max_float != (numeric_limits<double>::max)())
       {
         if (!first)
           restrictions += ' ';
@@ -388,10 +382,6 @@ int main(int argc, char ** argv)
   DOCME(ItraqFourPlexQuantitationMethod);
   DOCME(LabeledPairFinder);
   DOCME(LinearResampler);
-  DOCME(LmaGaussFitter1D);
-  DOCME(LmaGaussModel);
-  DOCME(LmaIsotopeFitter1D);
-  DOCME(LmaIsotopeModel);
   DOCME(MSPFile);
   DOCME(MSSim);
   DOCME(MapAlignmentAlgorithmPoseClustering);
@@ -433,7 +423,6 @@ int main(int argc, char ** argv)
   DOCME(TwoDOptimization);
   DOCME(WindowMower);
   DOCME(ZhangSimilarityScore);
-  DOCME(CompareFouriertransform);
   DOCME(PrecursorIonSelection);
   DOCME(PrecursorIonSelectionPreprocessing);
   DOCME(MorphologicalFilter);
@@ -464,7 +453,7 @@ int main(int argc, char ** argv)
   DOCME(PeptideAndProteinQuant);
   DOCME(Math::PosteriorErrorProbabilityModel);
   // workarounds for documenting model parameters in MapAligners:
-  writeParameters("MapAlignerIdentificationModel", TOPPMapAlignerBase::getModelDefaults("b_spline"), true);
+  writeParameters("MapAlignerIdentificationModel", TOPPMapAlignerBase::getModelDefaults("interpolated"), true);
   writeParameters("MapAlignerPoseClusteringModel", TOPPMapAlignerBase::getModelDefaults("linear"), true);
   writeParameters("MapAlignerSpectrumModel", TOPPMapAlignerBase::getModelDefaults("interpolated"), true);
   writeParameters("MapRTTransformerModel", TOPPMapAlignerBase::getModelDefaults("none"), true);
@@ -487,10 +476,10 @@ int main(int argc, char ** argv)
   DOCME2(Spectrum1DCanvas, Spectrum1DCanvas(Param(), 0));
   DOCME2(Spectrum2DCanvas, Spectrum2DCanvas(Param(), 0));
   DOCME2(Spectrum3DCanvas, Spectrum3DCanvas(Param(), 0));
-  DOCME2(IonizationSimulation, IonizationSimulation(OpenMS::SimRandomNumberGenerator()));
-  DOCME2(RawMSSignalSimulation, RawMSSignalSimulation(OpenMS::SimRandomNumberGenerator()));
-  DOCME2(RawTandemMSSignalSimulation, RawTandemMSSignalSimulation(OpenMS::SimRandomNumberGenerator()))
-  DOCME2(RTSimulation, RTSimulation(OpenMS::SimRandomNumberGenerator()))
+  DOCME2(IonizationSimulation, IonizationSimulation(MutableSimRandomNumberGeneratorPtr()));
+  DOCME2(RawMSSignalSimulation, RawMSSignalSimulation(MutableSimRandomNumberGeneratorPtr()));
+  DOCME2(RawTandemMSSignalSimulation, RawTandemMSSignalSimulation(MutableSimRandomNumberGeneratorPtr()))
+  DOCME2(RTSimulation, RTSimulation(MutableSimRandomNumberGeneratorPtr()))
   DOCME2(GaussTraceFitter, (GaussTraceFitter<Peak1D>()))
   DOCME2(EGHTraceFitter, (EGHTraceFitter<Peak1D>()))
 

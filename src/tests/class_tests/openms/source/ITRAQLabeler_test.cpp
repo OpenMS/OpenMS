@@ -106,21 +106,21 @@ START_SECTION((void postDigestHook(FeatureMapSimVector &)))
   FeatureMap<> fm1, fm2, fm3;
 
   // create peptide
-  PeptideHit pep_hit(1.0, 1, 0, AASequence("AAHJK"));
+  PeptideHit pep_hit(1.0, 1, 0, AASequence::fromString("AAHJK"));
   std::vector<String> prot_accessions;
   prot_accessions.push_back("p1");
   pep_hit.setProteinAccessions(prot_accessions);
   PeptideIdentification pep_id;
   pep_id.insertHit(pep_hit);
   // --
-  PeptideHit pep_hit2(1.0, 1, 0, AASequence("EEEEPPPK"));
+  PeptideHit pep_hit2(1.0, 1, 0, AASequence::fromString("EEEEPPPK"));
   std::vector<String> prot_accessions2;
   prot_accessions2.push_back("p2");
   pep_hit2.setProteinAccessions(prot_accessions2);
   PeptideIdentification pep_id2;
   pep_id2.insertHit(pep_hit2);
   // --
-  PeptideHit pep_hit3(1.0, 1, 0, AASequence("EEEEPPPK")); // same peptide as #2, but from different protein
+  PeptideHit pep_hit3(1.0, 1, 0, AASequence::fromString("EEEEPPPK")); // same peptide as #2, but from different protein
   std::vector<String> prot_accessions3;
   prot_accessions3.push_back("p3");
   pep_hit3.setProteinAccessions(prot_accessions3);
@@ -189,9 +189,8 @@ END_SECTION
 START_SECTION((void postRawTandemMSHook(FeatureMapSimVector &, MSSimExperiment &)))
 {
   ITRAQLabeler i;
-  SimRandomNumberGenerator rnd_gen;
-  rnd_gen.biological_rng = gsl_rng_alloc(gsl_rng_mt19937);
-  rnd_gen.technical_rng = gsl_rng_alloc(gsl_rng_mt19937);
+  MutableSimRandomNumberGeneratorPtr rnd_gen (new SimRandomNumberGenerator);
+  rnd_gen->initialize(false, false);
   i.setRnd(rnd_gen);
 
   FeatureMapSimVector f_maps;
@@ -208,10 +207,10 @@ START_SECTION((void postRawTandemMSHook(FeatureMapSimVector &, MSSimExperiment &
 
   MSSimExperiment exp2=exp;
 
-  std::vector<DoubleReal> eb(4);
+  std::vector<double> eb(4);
   DoubleList elution_bounds(eb);
   elution_bounds[0] = 100; elution_bounds[1] = 509.2; elution_bounds[2] = 120; elution_bounds[3] = 734.3;
-  std::vector<DoubleReal> ei(5, 0.5); // 50% elution profile
+  std::vector<double> ei(5, 0.5); // 50% elution profile
   DoubleList elution_ints(ei);
   Feature f;
   f.setMetaValue("elution_profile_bounds", elution_bounds);

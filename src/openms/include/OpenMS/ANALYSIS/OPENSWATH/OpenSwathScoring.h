@@ -67,6 +67,20 @@ namespace OpenMS
     bool use_nr_peaks_score_;
     bool use_sn_score_;
     bool use_dia_scores_;
+    
+    OpenSwath_Scores_Usage() :
+      use_coelution_score_(true),
+      use_shape_score_(true),
+      use_rt_score_(true),
+      use_library_score_(true),
+      use_elution_model_score_(true),
+      use_intensity_score_(true),
+      use_total_xic_score_(true),
+      use_nr_peaks_score_(true),
+      use_sn_score_(true),
+      use_dia_scores_(true)
+    {}
+
   };
 
   /** @brief A structure to hold the different scores computed by OpenSWATH
@@ -376,9 +390,9 @@ var_yseries_score   -0.0327896378737766
     typedef OpenSwath::LightPeptide PeptideType;
     typedef OpenSwath::LightTransition TransitionType;
 
-    DoubleReal rt_normalization_factor_;
+    double rt_normalization_factor_;
     int add_up_spectra_;
-    DoubleReal spacing_for_spectra_resampling_;
+    double spacing_for_spectra_resampling_;
     OpenSwath_Scores_Usage su_;
 
   public:
@@ -399,8 +413,8 @@ var_yseries_score   -0.0327896378737766
      * @param su_ Which scores to actually compute
      *
     */
-    void initialize(DoubleReal rt_normalization_factor_,
-      int add_up_spectra_, DoubleReal spacing_for_spectra_resampling_,
+    void initialize(double rt_normalization_factor_,
+      int add_up_spectra_, double spacing_for_spectra_resampling_,
       OpenSwath_Scores_Usage & su_);
 
     /** @brief Score a single peakgroup in a chromatogram using only chromatographic properties.

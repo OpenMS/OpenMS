@@ -372,7 +372,7 @@ namespace OpenMS
       return QPointF();
     }
     QPointF nearest = list.first();
-    qreal min_distance = std::numeric_limits<double>::max();
+    qreal min_distance = (std::numeric_limits<double>::max)();
 
     for (QList<QPointF>::const_iterator it = list.begin(); it != list.end(); ++it)
     {
@@ -491,6 +491,11 @@ namespace OpenMS
     {
       // file names are not specified yet
       return ES_NOT_READY_YET;
+    }
+
+    if (target_param_index < 0)
+    {
+      return ES_NO_TARGET_PARAM;
     }
 
     const TOPPASToolVertex::IOInfo & target_param = target_input_files[target_param_index];

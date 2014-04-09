@@ -121,12 +121,6 @@ protected:
     }
     setValidStrings_("model:type", model_types);
     registerFlag_("model:symmetric_regression", "Only for 'linear' model: Perform linear regression on 'y - x' vs. 'y + x', instead of on 'y' vs. 'x'.", true);
-    registerIntOption_("model:num_breakpoints", "<number>", 5,
-                       "Only for 'b_spline' model: Number of breakpoints of the cubic spline in the smoothing step. The breakpoints are spaced uniformly on the retention time interval. More breakpoints mean less smoothing. Reduce this number if the transformation has an unexpected shape.",
-                       false, true);
-    setMinInt_("model:num_breakpoints", 2);
-    registerStringOption_("model:interpolation_type", "<name>", "cspline",
-                          "Only for 'interpolated' model: Type of interpolation to apply.", false, true);
   }
 
   void registerOptionsAndFlags_()
@@ -180,7 +174,7 @@ protected:
     String in = getStringOption_("in");
     String tr_file = getStringOption_("tr");
     String out = getStringOption_("out");
-    DoubleReal min_upper_edge_dist = getDoubleOption_("min_upper_edge_dist");
+    double min_upper_edge_dist = getDoubleOption_("min_upper_edge_dist");
     bool nostrict = getFlag_("no-strict");
 
     // If we have a transformation file, trafo will transform the RT in the

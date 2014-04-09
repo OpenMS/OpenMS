@@ -149,7 +149,7 @@ namespace OpenMS
     normal_widening_model.setVariance(isotope_stdev_ * isotope_stdev_);
     // fill a container with CoordinateType points
     ContainerType normal_widening_coordinate;
-    for (DoubleReal coord = -normal_widening_width;
+    for (double coord = -normal_widening_width;
          coord <= normal_widening_width;
          coord += interpolation_step_
          )
@@ -198,7 +198,7 @@ namespace OpenMS
 
   void ExtendedIsotopeModel::setOffset(CoordinateType offset)
   {
-    DoubleReal diff = offset - getInterpolation().getOffset();
+    double diff = offset - getInterpolation().getOffset();
     monoisotopic_mz_ += diff;
 
     InterpolationModel::setOffset(offset);

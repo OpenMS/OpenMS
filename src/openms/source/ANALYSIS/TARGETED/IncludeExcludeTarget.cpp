@@ -40,8 +40,8 @@ namespace OpenMS
 {
   IncludeExcludeTarget::IncludeExcludeTarget() :
     CVTermList(),
-    precursor_mz_(std::numeric_limits<DoubleReal>::max()),
-    product_mz_(std::numeric_limits<DoubleReal>::max())
+    precursor_mz_(std::numeric_limits<double>::max()),
+    product_mz_(std::numeric_limits<double>::max())
   {
   }
 
@@ -136,12 +136,12 @@ namespace OpenMS
     return compound_ref_;
   }
 
-  void IncludeExcludeTarget::setPrecursorMZ(DoubleReal mz)
+  void IncludeExcludeTarget::setPrecursorMZ(double mz)
   {
     precursor_mz_ = mz;
   }
 
-  DoubleReal IncludeExcludeTarget::getPrecursorMZ() const
+  double IncludeExcludeTarget::getPrecursorMZ() const
   {
     return precursor_mz_;
   }
@@ -161,12 +161,12 @@ namespace OpenMS
     return precursor_cv_terms_;
   }
 
-  void IncludeExcludeTarget::setProductMZ(DoubleReal mz)
+  void IncludeExcludeTarget::setProductMZ(double mz)
   {
     product_mz_ = mz;
   }
 
-  DoubleReal IncludeExcludeTarget::getProductMZ() const
+  double IncludeExcludeTarget::getProductMZ() const
   {
     return product_mz_;
   }

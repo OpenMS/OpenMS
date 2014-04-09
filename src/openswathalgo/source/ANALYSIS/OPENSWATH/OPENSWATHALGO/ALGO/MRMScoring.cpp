@@ -109,8 +109,6 @@ namespace OpenSwath
     msc = std::for_each(deltas.begin(), deltas.end(), msc);
     double deltas_mean = msc.mean();
     double deltas_stdv = msc.sample_stddev();
-    //double deltas_mean = gsl_stats_int_mean(&deltas[0], 1, deltas.size());
-    //double deltas_stdv = gsl_stats_int_sd(&deltas[0], 1, deltas.size());
 
     double xcorr_coelution_score = deltas_mean + deltas_stdv;
     return xcorr_coelution_score;
@@ -156,13 +154,6 @@ namespace OpenSwath
     std::cout << " all weights sum " << weights << std::endl;
 #endif
 
-    /*
-     double deltas_mean = gsl_stats_int_mean(&deltas[0],1,deltas.size() );
-     double deltas_stdv = gsl_stats_int_sd(  &deltas[0],1,deltas.size() );
-
-     double xcorr_coelution_score = deltas_mean + deltas_stdv;
-     return xcorr_coelution_score;
-     */
     return std::accumulate(deltas.begin(), deltas.end(), 0.0);
   }
 

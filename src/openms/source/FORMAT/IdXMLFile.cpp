@@ -35,6 +35,9 @@
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/CONCEPT/PrecisionWrapper.h>
+
 #include <iostream>
 #include <fstream>
 #include <limits>
@@ -96,7 +99,7 @@ namespace OpenMS
     {
       throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
     }
-    os.precision(writtenDigits<DoubleReal>());
+    os.precision(writtenDigits<double>(0.0));
 
     //write header
     os << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
@@ -278,27 +281,25 @@ namespace OpenMS
           os << "higher_score_better=\"false\" ";
         }
         os << "significance_threshold=\"" << peptide_ids[l].getSignificanceThreshold() << "\" ";
-        //mz
-        DataValue dv = peptide_ids[l].getMetaValue("MZ");
-        if (dv != DataValue::EMPTY)
-        {
-          os << "MZ=\"" << dv << "\" ";
-        }
-        //rt
-        dv = peptide_ids[l].getMetaValue("RT");
-        if (dv != DataValue::EMPTY)
-        {
-          os << "RT=\"" << dv << "\" ";
-        }
-        //spectrum_reference
-        dv = peptide_ids[l].getMetaValue("spectrum_reference");
+        // mz
+        if (peptide_ids[l].hasMZ())
+		    {
+			    os << "MZ=\"" << peptide_ids[l].getMZ() << "\" ";
+		    }
+		    // rt
+		    if (peptide_ids[l].hasRT())
+		    {
+			    os << "RT=\"" << peptide_ids[l].getRT() << "\" ";
+		    }
+	    	// spectrum_reference
+		    DataValue dv = peptide_ids[l].getMetaValue("spectrum_reference");
         if (dv != DataValue::EMPTY)
         {
           os << "spectrum_reference=\"" << writeXMLEscape(dv.toString()) << "\" ";
         }
         os << ">\n";
 
-        //write peptide hits
+        // write peptide hits
         for (Size j = 0; j < peptide_ids[l].getHits().size(); ++j)
         {
           os << "\t\t\t<PeptideHit ";
@@ -331,10 +332,8 @@ namespace OpenMS
           os << "\t\t\t</PeptideHit>\n";
         }
 
-        //do not write "RT", "MZ" and "spectrum_reference" as they are written as attributes already
-        MetaInfoInterface tmp = peptide_ids[l];
-        tmp.removeMetaValue("RT");
-        tmp.removeMetaValue("MZ");
+		    // do not write "spectrum_reference" since it is written as attribute already
+		    MetaInfoInterface tmp = peptide_ids[l];
         tmp.removeMetaValue("spectrum_reference");
         writeUserParam_("UserParam", os, tmp, 3);
         os << "\t\t</PeptideIdentification>\n";
@@ -505,7 +504,7 @@ namespace OpenMS
       prot_id_.setScoreType(attributeAsString_(attributes, "score_type"));
 
       //optional significance threshold
-      DoubleReal tmp(0.0);
+      double tmp(0.0);
       optionalAttributeAsDouble_(tmp, attributes, "significance_threshold");
       if (tmp != 0.0)
       {
@@ -550,7 +549,7 @@ namespace OpenMS
       pep_id_.setScoreType(attributeAsString_(attributes, "score_type"));
 
       //optional significance threshold
-      DoubleReal tmp(0.0);
+      double tmp(0.0);
       optionalAttributeAsDouble_(tmp, attributes, "significance_threshold");
       if (tmp != 0.0)
       {
@@ -561,18 +560,18 @@ namespace OpenMS
       pep_id_.setHigherScoreBetter(asBool_(attributeAsString_(attributes, "higher_score_better")));
 
       //MZ
-      DoubleReal tmp2 = -numeric_limits<DoubleReal>::max();
+      double tmp2 = -numeric_limits<double>::max();
       optionalAttributeAsDouble_(tmp2, attributes, "MZ");
-      if (tmp2 != -numeric_limits<DoubleReal>::max())
+      if (tmp2 != -numeric_limits<double>::max())
       {
-        pep_id_.setMetaValue("MZ", tmp2);
+        pep_id_.setMZ(tmp2);
       }
       //RT
-      tmp2 = -numeric_limits<DoubleReal>::max();
+      tmp2 = -numeric_limits<double>::max();
       optionalAttributeAsDouble_(tmp2, attributes, "RT");
-      if (tmp2 != -numeric_limits<DoubleReal>::max())
+      if (tmp2 != -numeric_limits<double>::max())
       {
-        pep_id_.setMetaValue("RT", tmp2);
+        pep_id_.setRT(tmp2);
       }
       Int tmp3 = -numeric_limits<Int>::max();
       optionalAttributeAsInt_(tmp3, attributes, "spectrum_reference");
@@ -589,7 +588,7 @@ namespace OpenMS
 
       pep_hit_.setCharge(attributeAsInt_(attributes, "charge"));
       pep_hit_.setScore(attributeAsDouble_(attributes, "score"));
-      pep_hit_.setSequence(AASequence(attributeAsString_(attributes, "sequence")));
+      pep_hit_.setSequence(AASequence::fromString(String(attributeAsString_(attributes, "sequence"))));
 
       //aa_before
       String tmp;
@@ -644,7 +643,7 @@ namespace OpenMS
       String name = attributeAsString_(attributes, "name");
       String type = attributeAsString_(attributes, "type");
       String value = attributeAsString_(attributes, "value");
-      
+
       if (type == "string")
       {
         last_meta_->setMetaValue(name, value);
@@ -751,7 +750,7 @@ namespace OpenMS
         }
         else
         {
-          fatalError(LOAD, String("Invalid protein reference '") + pos->first + "'");
+          fatalError(LOAD, String("Invalid protein reference '") + *acc_it + "'");
         }
       }
       String value = String(groups[g].probability) + "," + accessions;

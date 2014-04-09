@@ -45,7 +45,6 @@
 
 #include <algorithm>
 #include <limits>
-#include <iostream>
 
 namespace OpenMS
 {
@@ -112,22 +111,22 @@ public:
       map.getProteinIdentifications().insert(map.getProteinIdentifications().end(), protein_ids.begin(), protein_ids.end());
 
       // store mapping of scan RT to index
-      std::multimap<DoubleReal, Size> experiment_precursors;
+      std::multimap<double, Size> experiment_precursors;
       for (Size i = 0; i < map.size(); i++)
       {
         experiment_precursors.insert(std::make_pair(map[i].getRT(), i));
       }
 
       // store mapping of identification RT to index
-      std::multimap<DoubleReal, Size> identifications_precursors;
+      std::multimap<double, Size> identifications_precursors;
       for (Size i = 0; i < ids.size(); i++)
       {
-        identifications_precursors.insert(std::make_pair(ids[i].getMetaValue("RT"), i));
+        identifications_precursors.insert(std::make_pair(ids[i].getRT(), i));
       }
 
       // calculate the actual mapping
-      std::multimap<DoubleReal, Size>::iterator experiment_iterator = experiment_precursors.begin();
-      std::multimap<DoubleReal, Size>::iterator identifications_iterator = identifications_precursors.begin();
+      std::multimap<double, Size>::iterator experiment_iterator = experiment_precursors.begin();
+      std::multimap<double, Size>::iterator identifications_iterator = identifications_precursors.begin();
       Size matches(0);
       while (experiment_iterator != experiment_precursors.end() && identifications_iterator != identifications_precursors.end())
       {
@@ -139,7 +138,7 @@ public:
             // testing whether the m/z fits
             if (!map[experiment_iterator->second].getPrecursors().empty() || mapMS1)
             {
-              if (mapMS1 || (fabs((DoubleReal)(ids[identifications_iterator->second].getMetaValue("MZ")) - map[experiment_iterator->second].getPrecursors()[0].getMZ()) < mz_tolerance_))
+              if (mapMS1 || (fabs(ids[identifications_iterator->second].getMZ() - map[experiment_iterator->second].getPrecursors()[0].getMZ()) < mz_tolerance_))
               {
                 if (!(ids[identifications_iterator->second].empty()))
                 {
@@ -213,8 +212,8 @@ public:
 
       // calculate feature bounding boxes only once:
       std::vector<DBoundingBox<2> > boxes;
-      DoubleReal min_rt = std::numeric_limits<DoubleReal>::max(),
-                 max_rt = -std::numeric_limits<DoubleReal>::max();
+      double min_rt = std::numeric_limits<double>::max(),
+                 max_rt = -std::numeric_limits<double>::max();
       // std::cout << "Precomputing bounding boxes..." << std::endl;
       boxes.reserve(map.size());
       for (typename FeatureMap<FeatureType>::Iterator f_it = map.begin();
@@ -284,7 +283,7 @@ public:
         if (id_it->getHits().empty()) continue;
 
         DoubleList mz_values;
-        DoubleReal rt_value;
+        double rt_value;
         IntList charges;
         getIDDetails_(*id_it, rt_value, mz_values, charges, use_avg_mass);
 
@@ -395,9 +394,9 @@ protected:
     void updateMembers_();
 
     ///Allowed RT deviation
-    DoubleReal rt_tolerance_;
+    double rt_tolerance_;
     ///Allowed m/z deviation
-    DoubleReal mz_tolerance_;
+    double mz_tolerance_;
     ///Measure used for m/z
     Measure measure_;
     ///Ignore charge states during matching?
@@ -406,10 +405,10 @@ protected:
     /// compute absolute Da tolerance, for a given m/z,
     /// when @p measure is MEASURE_DA, the value is unchanged,
     /// for MEASURE_PPM it is computed according to currently allowed ppm tolerance
-    DoubleReal getAbsoluteMZTolerance_(const DoubleReal mz) const;
+    double getAbsoluteMZTolerance_(const double mz) const;
 
     /// check if distance constraint is fulfilled (using @p rt_tolerance_, @p mz_tolerance_ and @p measure_)
-    bool isMatch_(const DoubleReal rt_distance, const DoubleReal mz_theoretical, const DoubleReal mz_observed) const;
+    bool isMatch_(const double rt_distance, const double mz_theoretical, const double mz_observed) const;
 
     /// helper function that checks if all peptide hits are annotated with RT and MZ meta values
     void checkHits_(const std::vector<PeptideIdentification> & ids) const;
@@ -417,7 +416,7 @@ protected:
     /// get RT, m/z and charge value(s) of a PeptideIdentification
     /// - multiple m/z values are returned if "mz_reference" is set to "peptide" (one for each PeptideHit)
     /// - one m/z value is returned if "mz_reference" is set to "precursor"
-    void getIDDetails_(const PeptideIdentification & id, DoubleReal & rt_pep, DoubleList & mz_values, IntList & charges, bool use_avg_mass = false) const;
+    void getIDDetails_(const PeptideIdentification & id, double & rt_pep, DoubleList & mz_values, IntList & charges, bool use_avg_mass = false) const;
 
     /// increase a bounding box by the given RT and m/z tolerances
     void increaseBoundingBox_(DBoundingBox<2> & box);

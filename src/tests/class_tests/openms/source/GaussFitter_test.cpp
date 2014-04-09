@@ -100,21 +100,10 @@ END_SECTION
 START_SECTION((void setInitialParameters(const GaussFitResult& result)))
 {
   GaussFitter f1;
-  GaussFitter::GaussFitResult result;
+  GaussFitter::GaussFitResult result (-1,-1,-1);
   f1.setInitialParameters(result);
 	
 	NOT_TESTABLE //implicitly tested in fit method
-}
-END_SECTION
-
-START_SECTION((const String& getGnuplotFormula() const ))
-{
-  String formula = ptr->getGnuplotFormula();
-	// f(x)=1.01775 * exp(-(x - 0.300549) ** 2 / 2 / (0.136341) ** 2
-	TEST_EQUAL(formula.hasSubstring("f(x)="), true)
-	TEST_EQUAL(formula.hasSubstring(" * exp(-(x - 0.3"), true)
-	TEST_EQUAL(formula.hasSubstring(") ** 2 / 2 / (0.1"), true)
-	TEST_EQUAL(formula.hasSubstring(") ** 2"), true)
 }
 END_SECTION
 

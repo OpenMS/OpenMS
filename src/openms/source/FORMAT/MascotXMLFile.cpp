@@ -34,7 +34,7 @@
 
 #include <OpenMS/FORMAT/MascotXMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
-
+#include <OpenMS/CONCEPT/LogStream.h>
 
 using namespace xercesc;
 using namespace std;
@@ -104,7 +104,7 @@ namespace OpenMS
     for (vector<PeptideIdentification>::iterator id_it = id_data.begin();
          id_it != id_data.end(); ++id_it)
     {
-      if (!id_it->metaValueExists("RT")) no_rt_count++;
+      if (!id_it->hasRT()) ++no_rt_count;
     }
     if (no_rt_count)
     {

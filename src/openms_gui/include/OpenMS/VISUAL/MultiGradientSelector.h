@@ -35,6 +35,9 @@
 #ifndef OPENMS_VISUAL_MULTIGRADIENTSELECTOR_H
 #define OPENMS_VISUAL_MULTIGRADIENTSELECTOR_H
 
+// OpenMS_GUI config
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
+
 //OpenMS
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/VISUAL/MultiGradient.h>

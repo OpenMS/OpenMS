@@ -109,7 +109,7 @@ namespace OpenMS
            ++protein_hit)
       {
         // generate a PeptideHit hit with the correct link to the protein
-        PeptideHit pep_hit(1.0, 1, 0, AASequence(protein_hit->getSequence()));
+        PeptideHit pep_hit(1.0, 1, 0, AASequence::fromString(protein_hit->getSequence()));
         std::vector<String> prot_accessions;
         prot_accessions.push_back(protein_hit->getAccession());
         pep_hit.setProteinAccessions(prot_accessions);
@@ -142,7 +142,7 @@ namespace OpenMS
     UInt min_peptide_length     = param_.getValue("min_peptide_length");
     bool use_log_model          = param_.getValue("model") == "trained" ? true : false;
     UInt missed_cleavages       = param_.getValue("model_naive:missed_cleavages");
-    DoubleReal cleave_threshold = param_.getValue("model_trained:threshold");
+    double cleave_threshold = param_.getValue("model_trained:threshold");
 
     EnzymaticDigestion digestion;
     digestion.setEnzyme(digestion.getEnzymeByName((String)param_.getValue("enzyme")));
@@ -165,7 +165,7 @@ namespace OpenMS
 
       // how many "atomic"(i.e. non-cleavable) peptides are created?
       digestion.setMissedCleavages(0);
-      Size complete_digest_count = digestion.peptideCount(AASequence(protein_hit->getSequence()));
+      Size complete_digest_count = digestion.peptideCount(AASequence::fromString(protein_hit->getSequence()));
       // compute average number of "atomic" peptides summed from all digestion products
       Size number_atomic_whole = 0;
       Size number_of_digestion_products = 0;
@@ -193,7 +193,7 @@ namespace OpenMS
 
       // do real digest
       digestion.setMissedCleavages(missed_cleavages);
-      digestion.digest(AASequence(protein_hit->getSequence()), digestion_products);
+      digestion.digest(AASequence::fromString(protein_hit->getSequence()), digestion_products);
 
       for (std::vector<AASequence>::const_iterator dp_it = digestion_products.begin();
            dp_it != digestion_products.end();
@@ -219,9 +219,9 @@ namespace OpenMS
           f.setIntensity(0.0);
 
           // copy all non-intensity meta values
-          StringList keys;
-          protein_hit->getKeys(keys);
-          for (StringList::iterator key = keys.begin(); key != keys.end(); ++key)
+          StringList lkeys;
+          protein_hit->getKeys(lkeys);
+          for (StringList::iterator key = lkeys.begin(); key != lkeys.end(); ++key)
           {
             if (!key->hasPrefix("intensity"))
             {

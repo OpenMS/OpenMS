@@ -52,18 +52,18 @@ START_TEST(RTSimulation, "$Id$")
 const unsigned long rnd_gen_seed = 1;
 RTSimulation* ptr = 0;
 RTSimulation* nullPointer = 0;
-SimRandomNumberGenerator empty_rnd_gen;
+MutableSimRandomNumberGeneratorPtr empty_rnd_gen (new SimRandomNumberGenerator);
 
-START_SECTION((RTSimulation(const SimRandomNumberGenerator& random_generator)))
+START_SECTION((RTSimulation(const MutableSimRandomNumberGeneratorPtr random_generator)))
 {
   ptr = new RTSimulation(empty_rnd_gen);
-	TEST_NOT_EQUAL(ptr, nullPointer)
+  TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 
 START_SECTION(~RTSimulation())
 {
-	delete ptr;
+  delete ptr;
 }
 END_SECTION
 
@@ -106,12 +106,9 @@ START_SECTION(([EXTRA] Prediction Test - HPLC with relative RTs))
 {
   // init rng
   // init rng
-  SimRandomNumberGenerator rnd_gen;
-
-  rnd_gen.biological_rng = gsl_rng_alloc (gsl_rng_taus);
-  gsl_rng_set(rnd_gen.biological_rng, rnd_gen_seed);
-  rnd_gen.technical_rng = gsl_rng_alloc (gsl_rng_taus);
-  gsl_rng_set(rnd_gen.technical_rng, rnd_gen_seed);
+  MutableSimRandomNumberGeneratorPtr rnd_gen (new SimRandomNumberGenerator);
+  rnd_gen->setBiologicalRngSeed(rnd_gen_seed);
+  rnd_gen->setTechnicalRngSeed(rnd_gen_seed);
 
   // rt svm
   RTSimulation svm_rt_sim(rnd_gen);
@@ -129,28 +126,28 @@ START_SECTION(([EXTRA] Prediction Test - HPLC with relative RTs))
 
   FeatureMapSim svm_rt_features;
   StringList peps = ListUtils::create<String>("TVQMENQFVAFVDK,ACHKKKKHHACAC,AAAAHTKLRTTIPPEFG,RYCNHKTUIKL");
-	for (StringList::const_iterator it=peps.begin(); it!=peps.end(); ++it)
-	{
-		Feature f;
-		PeptideIdentification pep_id;
-		pep_id.insertHit(PeptideHit(1.0, 1, 1, AASequence(*it)));
-		f.getPeptideIdentifications().push_back(pep_id);
-		f.setIntensity(10);
-		svm_rt_features.push_back(f);
-	}
+  for (StringList::const_iterator it=peps.begin(); it!=peps.end(); ++it)
+  {
+    Feature f;
+    PeptideIdentification pep_id;
+    pep_id.insertHit(PeptideHit(1.0, 1, 1, AASequence::fromString(*it)));
+    f.getPeptideIdentifications().push_back(pep_id);
+    f.setIntensity(10);
+    svm_rt_features.push_back(f);
+  }
 
   MSSimExperiment experiment_rt;
   svm_rt_sim.predictRT(svm_rt_features);
 
-	TEST_EQUAL(svm_rt_features.size(), 4)
+  TEST_EQUAL(svm_rt_features.size(), 4)
 
   TEST_REAL_SIMILAR(svm_rt_features[0].getRT(), 234.247)
   TEST_EQUAL(svm_rt_features[0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "TVQMENQFVAFVDK")
 
   TEST_REAL_SIMILAR(svm_rt_features[1].getRT(), 471.292)
-	TEST_EQUAL(svm_rt_features[1].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "RYCNHKTUIKL")
+  TEST_EQUAL(svm_rt_features[1].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "RYCNHKTUIKL")
 
-	TEST_REAL_SIMILAR(svm_rt_features[2].getRT(), 934.046)
+  TEST_REAL_SIMILAR(svm_rt_features[2].getRT(), 934.046)
   TEST_EQUAL(svm_rt_features[2].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "AAAAHTKLRTTIPPEFG")
 
   TEST_REAL_SIMILAR(svm_rt_features[3].getRT(), 946.127)
@@ -162,12 +159,9 @@ END_SECTION
 START_SECTION((void createExperiment(MSSimExperiment & experiment)))
 {
   // init rng
-  SimRandomNumberGenerator rnd_gen;
-
-  rnd_gen.biological_rng = gsl_rng_alloc (gsl_rng_taus);
-  gsl_rng_set(rnd_gen.biological_rng, rnd_gen_seed);
-  rnd_gen.technical_rng = gsl_rng_alloc (gsl_rng_taus);
-  gsl_rng_set(rnd_gen.technical_rng, rnd_gen_seed);
+  MutableSimRandomNumberGeneratorPtr rnd_gen (new SimRandomNumberGenerator);
+  rnd_gen->setBiologicalRngSeed(rnd_gen_seed);
+  rnd_gen->setTechnicalRngSeed(rnd_gen_seed);
 
   // rt svm
   RTSimulation svm_rt_sim(rnd_gen);
@@ -190,7 +184,7 @@ START_SECTION((void createExperiment(MSSimExperiment & experiment)))
   {
     Feature f;
     PeptideIdentification pep_id;
-    pep_id.insertHit(PeptideHit(1.0, 1, 1, AASequence(*it)));
+    pep_id.insertHit(PeptideHit(1.0, 1, 1, AASequence::fromString(*it)));
     f.getPeptideIdentifications().push_back(pep_id);
     f.setIntensity(10);
     svm_rt_features.push_back(f);
@@ -220,12 +214,9 @@ END_SECTION
 START_SECTION(([EXTRA] Prediction Test - No RT column))
 {
   // init rng
-  SimRandomNumberGenerator rnd_gen;
-
-  rnd_gen.biological_rng = gsl_rng_alloc (gsl_rng_taus);
-  gsl_rng_set(rnd_gen.biological_rng, rnd_gen_seed);
-  rnd_gen.technical_rng = gsl_rng_alloc (gsl_rng_taus);
-  gsl_rng_set(rnd_gen.technical_rng, rnd_gen_seed);
+  MutableSimRandomNumberGeneratorPtr rnd_gen (new SimRandomNumberGenerator);
+  rnd_gen->setBiologicalRngSeed(rnd_gen_seed);
+  rnd_gen->setTechnicalRngSeed(rnd_gen_seed);
 
   // no rt scan
   RTSimulation no_rt_sim(rnd_gen);
@@ -240,7 +231,7 @@ START_SECTION(([EXTRA] Prediction Test - No RT column))
   {
     Feature f;
     PeptideIdentification pep_id;
-    pep_id.insertHit(PeptideHit(1.0, 1, 1, AASequence(*it)));
+    pep_id.insertHit(PeptideHit(1.0, 1, 1, AASequence::fromString(*it)));
     f.getPeptideIdentifications().push_back(pep_id);
     f.setIntensity(10);
     no_rt_features.push_back(f);
@@ -261,12 +252,9 @@ END_SECTION
 START_SECTION(([EXTRA] Prediction Test - HPLC with absolute RTs))
 {
   // init rng
-  SimRandomNumberGenerator rnd_gen;
-
-  rnd_gen.biological_rng = gsl_rng_alloc (gsl_rng_taus);
-  gsl_rng_set(rnd_gen.biological_rng, rnd_gen_seed);
-  rnd_gen.technical_rng = gsl_rng_alloc (gsl_rng_taus);
-  gsl_rng_set(rnd_gen.technical_rng, rnd_gen_seed);
+  MutableSimRandomNumberGeneratorPtr rnd_gen (new SimRandomNumberGenerator);
+  rnd_gen->setBiologicalRngSeed(rnd_gen_seed);
+  rnd_gen->setTechnicalRngSeed(rnd_gen_seed);
 
   // absolute rt values
   // rt svm
@@ -292,7 +280,7 @@ START_SECTION(([EXTRA] Prediction Test - HPLC with absolute RTs))
   {
     Feature f;
     PeptideIdentification pep_id;
-    pep_id.insertHit(PeptideHit(1.0, 1, 1, AASequence(*it)));
+    pep_id.insertHit(PeptideHit(1.0, 1, 1, AASequence::fromString(*it)));
     f.getPeptideIdentifications().push_back(pep_id);
     f.setIntensity(10);
     features.push_back(f);
@@ -363,7 +351,7 @@ START_SECTION((SimCoordinateType getGradientTime() const ))
 }
 END_SECTION
 
-START_SECTION((void wrapSVM(std::vector<AASequence>& peptide_sequences,std::vector<DoubleReal>& predicted_retention_times)))
+START_SECTION((void wrapSVM(std::vector<AASequence>& peptide_sequences,std::vector<double>& predicted_retention_times)))
 {
   // this method is called by "predictRT" so we already test it
   NOT_TESTABLE

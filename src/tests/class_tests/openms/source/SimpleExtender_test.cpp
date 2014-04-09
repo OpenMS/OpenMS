@@ -97,8 +97,8 @@ START_SECTION(void extend(const ChargedIndexSet &seed_region, ChargedIndexSet& r
 	MSExperiment<PeakType>::SpectrumType spec;
 	spec.setRT(1);
 
-	DoubleReal mzs[] = {1, 2, 3, 4, 5};
-	DoubleReal its1[] = {1000, 1500,2000, 1500, 1000};
+	double mzs[] = {1, 2, 3, 4, 5};
+	double its1[] = {1000, 1500,2000, 1500, 1000};
 
 	const UInt num = 5;
 
@@ -115,7 +115,7 @@ START_SECTION(void extend(const ChargedIndexSet &seed_region, ChargedIndexSet& r
 	spec.clear(true);
 	spec.setRT(2);
 
-	DoubleReal its2[] = {1000, 1500, 2000, 1500, 1000};
+	double its2[] = {1000, 1500, 2000, 1500, 1000};
 
 	for (Size i=0; i < num; i++)
 	{
@@ -130,7 +130,7 @@ START_SECTION(void extend(const ChargedIndexSet &seed_region, ChargedIndexSet& r
 	spec.clear(true);
 	spec.setRT(3);
 
-	DoubleReal its3[] = {1000, 1500, 5000, 1500, 1000};
+	double its3[] = {1000, 1500, 5000, 1500, 1000};
 
 	for (Size i=0; i < num; i++)
 	{
@@ -146,7 +146,7 @@ START_SECTION(void extend(const ChargedIndexSet &seed_region, ChargedIndexSet& r
 	spec.setRT(4);
 
 	// the last two data points should not be included (see param intensity_factor)
-	DoubleReal its4[] = {1000, 1500, 2000, 0.1, 0.1};
+	double its4[] = {1000, 1500, 2000, 0.1, 0.1};
 
 	for (Size i=0; i < num; i++)
 	{
@@ -304,7 +304,7 @@ START_SECTION(([EXTRA] Extension on real-world data))
 		
 	ifstream infile( OPENMS_GET_TEST_DATA_PATH("SimpleExtender_region1"));
 	
-	DoubleReal intensity, rt, mz;
+	double intensity, rt, mz;
 	
 	ChargedIndexSet::const_iterator citer = region.begin();
 	while ( infile >> rt )
@@ -351,7 +351,7 @@ START_SECTION(([EXTRA] Extension on picked data))
 	
 	ifstream infile( OPENMS_GET_TEST_DATA_PATH("SimpleExtender_region2"));
 	
-	DoubleReal intensity, rt, mz;
+	double intensity, rt, mz;
 	
 	ChargedIndexSet::const_iterator citer = region.begin();
 	while ( infile >> rt )

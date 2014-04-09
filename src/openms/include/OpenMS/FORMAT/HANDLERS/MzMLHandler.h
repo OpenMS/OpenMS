@@ -43,6 +43,8 @@
 
 #include <OpenMS/KERNEL/MSExperiment.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
+
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/FORMAT/HANDLERS/MzMLHandlerHelper.h>
 #include <OpenMS/FORMAT/VALIDATORS/MzMLValidator.h>
@@ -265,7 +267,7 @@ protected:
         bool is32Bit = ( (array_type == "intensity" && pf_options_.getIntensity32Bit()) || pf_options_.getMz32Bit());
         if (! is32Bit || pf_options_.getNumpressConfigurationMassTime().np_compression != MSNumpressCoder::NONE)
         {
-          std::vector<DoubleReal> data_to_encode(container.size());
+          std::vector<double> data_to_encode(container.size());
           if (array_type == "intensity")
           {
             for (Size p = 0; p < container.size(); ++p)
@@ -284,7 +286,7 @@ protected:
         }
         else
         {
-          std::vector<Real> data_to_encode(container.size());
+          std::vector<float> data_to_encode(container.size());
 
           if (array_type == "intensity")
           {
@@ -321,7 +323,7 @@ protected:
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-          for (Size i = 0; i < spectrum_data_.size(); i++)
+          for (SignedSize i = 0; i < (SignedSize)spectrum_data_.size(); i++)
           {
             // parallel exception catching and re-throwing business
             if (!errCount) // no need to parse further if already an error was encountered
@@ -381,7 +383,7 @@ protected:
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
-          for (Size i = 0; i < chromatogram_data_.size(); i++)
+          for (SignedSize i = 0; i < (SignedSize)chromatogram_data_.size(); i++)
           {
             // parallel exception catching and re-throwing business
             try 
@@ -550,8 +552,8 @@ protected:
         spectrum.reserve(default_arr_length);
         for (Size n = 0; n < default_arr_length; n++)
         {
-          DoubleReal mz = mz_precision_64 ? input_data[mz_index].floats_64[n] : input_data[mz_index].floats_32[n];
-          DoubleReal intensity = int_precision_64 ? input_data[int_index].floats_64[n] : input_data[int_index].floats_32[n];
+          double mz = mz_precision_64 ? input_data[mz_index].floats_64[n] : input_data[mz_index].floats_32[n];
+          double intensity = int_precision_64 ? input_data[int_index].floats_64[n] : input_data[int_index].floats_32[n];
           if ((!peak_file_options.hasMZRange() || peak_file_options.getMZRange().encloses(DPosition<1>(mz)))
              && (!peak_file_options.hasIntensityRange() || peak_file_options.getIntensityRange().encloses(DPosition<1>(intensity))))
           {
@@ -572,7 +574,7 @@ protected:
                 {
                   if (n < input_data[i].size)
                   {
-                    DoubleReal value = (input_data[i].precision == MzMLHandlerHelper::BinaryData::PRE_64) ? input_data[i].floats_64[n] : input_data[i].floats_32[n];
+                    double value = (input_data[i].precision == MzMLHandlerHelper::BinaryData::PRE_64) ? input_data[i].floats_64[n] : input_data[i].floats_32[n];
                     spectrum.getFloatDataArrays()[meta_float_array_index].push_back(value);
                   }
                   ++meta_float_array_index;
@@ -708,8 +710,8 @@ protected:
         ChromatogramPeakType tmp;
         for (Size n = 0; n < default_arr_length; n++)
         {
-          DoubleReal rt = rt_precision_64 ? input_data[rt_index].floats_64[n] : input_data[rt_index].floats_32[n];
-          DoubleReal intensity = int_precision_64 ? input_data[int_index].floats_64[n] : input_data[int_index].floats_32[n];
+          double rt = rt_precision_64 ? input_data[rt_index].floats_64[n] : input_data[rt_index].floats_32[n];
+          double intensity = int_precision_64 ? input_data[int_index].floats_64[n] : input_data[int_index].floats_32[n];
           if ((!peak_file_options.hasRTRange() || peak_file_options.getRTRange().encloses(DPosition<1>(rt)))
              && (!peak_file_options.hasIntensityRange() || peak_file_options.getIntensityRange().encloses(DPosition<1>(intensity))))
           {
@@ -730,7 +732,7 @@ protected:
                 {
                   if (n < input_data[i].size)
                   {
-                    DoubleReal value = (input_data[i].precision == MzMLHandlerHelper::BinaryData::PRE_64) ? input_data[i].floats_64[n] : input_data[i].floats_32[n];
+                    double value = (input_data[i].precision == MzMLHandlerHelper::BinaryData::PRE_64) ? input_data[i].floats_64[n] : input_data[i].floats_32[n];
                     inp_chromatogram.getFloatDataArrays()[meta_float_array_index].push_back(value);
                   }
                   ++meta_float_array_index;
@@ -872,6 +874,13 @@ protected:
       /// id of the default data processing (used when no processing is defined)
       String default_processing_;
 
+      /**
+          @brief Data necessary to generate a single spectrum 
+
+          Small struct holds all data necessary to populate a spectrum at a
+          later timepoint (since reading of the base64 data and generation of
+          spectra can be done at distinct timepoints).
+      */
       struct SpectrumData 
       {
         std::vector<BinaryData> data;
@@ -883,6 +892,13 @@ protected:
       /// Vector of spectrum data stored for later parallel processing
       std::vector< SpectrumData > spectrum_data_;
 
+      /**
+          @brief Data necessary to generate a single chromatogram 
+
+          Small struct holds all data necessary to populate a chromatogram at a
+          later timepoint (since reading of the base64 data and generation of
+          chromatogram can be done at distinct timepoints).
+      */
       struct ChromatogramData
       {
         std::vector<BinaryData> data;
@@ -5061,7 +5077,7 @@ protected:
           for (Size m = 0; m < spec.getFloatDataArrays().size(); ++m)
           {
             const typename SpectrumType::FloatDataArray& array = spec.getFloatDataArrays()[m];
-            std::vector<DoubleReal> data64_to_encode(array.size());
+            std::vector<double> data64_to_encode(array.size());
             for (Size p = 0; p < array.size(); ++p)
               data64_to_encode[p] = array[p];
             // TODO also encode float data arrays using numpress? 
@@ -5214,7 +5230,7 @@ protected:
         for (Size m = 0; m < chromatogram.getFloatDataArrays().size(); ++m)
         {
           const typename ChromatogramType::FloatDataArray& array = chromatogram.getFloatDataArrays()[m];
-          std::vector<DoubleReal> data64_to_encode(array.size());
+          std::vector<double> data64_to_encode(array.size());
           for (Size p = 0; p < array.size(); ++p)
             data64_to_encode[p] = array[p];
           // TODO also encode float data arrays using numpress? 

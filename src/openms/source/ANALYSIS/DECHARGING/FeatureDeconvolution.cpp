@@ -200,7 +200,7 @@ namespace OpenMS
       ef -= "H" + String(l_charge); ef.setCharge(l_charge); // effectively subtract electron masses
 
       // RT Shift:
-      DoubleReal rt_shift(0);
+      double rt_shift(0);
       if (adduct.size() >= 3)
       {
         rt_shift = adduct[2].toDouble();
@@ -225,8 +225,8 @@ namespace OpenMS
     }
 
     // RT sanity check:
-    DoubleReal rt_diff_max = param_.getValue("retention_max_diff");
-    DoubleReal rt_diff_max_local = param_.getValue("retention_max_diff_local");
+    double rt_diff_max = param_.getValue("retention_max_diff");
+    double rt_diff_max_local = param_.getValue("retention_max_diff_local");
     if (!had_nonzero_RT) // only 0 RT shift:
     {
       if (rt_diff_max != rt_diff_max_local)
@@ -294,12 +294,12 @@ namespace OpenMS
     Int q_span = param_.getValue("charge_span_max");
     Size max_neutrals = param_.getValue("max_neutrals");
 
-    DoubleReal rt_diff_max = param_.getValue("retention_max_diff");
-    DoubleReal rt_diff_max_local = param_.getValue("retention_max_diff_local");
+    double rt_diff_max = param_.getValue("retention_max_diff");
+    double rt_diff_max_local = param_.getValue("retention_max_diff_local");
 
-    DoubleReal mz_diff_max = param_.getValue("mass_max_diff");
+    double mz_diff_max = param_.getValue("mass_max_diff");
 
-    DoubleReal rt_min_overlap = param_.getValue("min_rt_overlap");
+    double rt_min_overlap = param_.getValue("min_rt_overlap");
 
 
     // sort by RT and then m/z
@@ -310,15 +310,15 @@ namespace OpenMS
 
 
     // search for most & least probable adduct to fix p threshold
-    DoubleReal adduct_lowest_log_p = log(1.0);
-    DoubleReal adduct_highest_log_p = log(0.0000000001);
+    double adduct_lowest_log_p = log(1.0);
+    double adduct_highest_log_p = log(0.0000000001);
     for (Size i = 0; i < potential_adducts_.size(); ++i)
     {
       adduct_lowest_log_p  = std::min(adduct_lowest_log_p, potential_adducts_[i].getLogProb());
       adduct_highest_log_p = std::max(adduct_highest_log_p, potential_adducts_[i].getLogProb());
     }
     Int max_minority_bound = param_.getValue("max_minority_bound");
-    DoubleReal thresh_logp = adduct_lowest_log_p * max_minority_bound +
+    double thresh_logp = adduct_lowest_log_p * max_minority_bound +
                              adduct_highest_log_p * std::max(q_max - max_minority_bound, 0);
 
 
@@ -331,7 +331,7 @@ namespace OpenMS
 
     // holds query results for a mass difference
     MassExplainer::CompomerIterator md_s, md_e;
-    Compomer null_compomer(0, 0, -std::numeric_limits<DoubleReal>::max());
+    Compomer null_compomer(0, 0, -std::numeric_limits<double>::max());
     SignedSize hits(0);
 
     CoordinateType mz1, mz2, m1;
@@ -369,13 +369,13 @@ namespace OpenMS
 
         if (!(f1.getConvexHull().getBoundingBox().isEmpty() || f2.getConvexHull().getBoundingBox().isEmpty()))
         {
-          DoubleReal f_start1 = std::min(f1.getConvexHull().getBoundingBox().minX(), f2.getConvexHull().getBoundingBox().minX());
-          DoubleReal f_start2 = std::max(f1.getConvexHull().getBoundingBox().minX(), f2.getConvexHull().getBoundingBox().minX());
-          DoubleReal f_end1 = std::min(f1.getConvexHull().getBoundingBox().maxX(), f2.getConvexHull().getBoundingBox().maxX());
-          DoubleReal f_end2 = std::max(f1.getConvexHull().getBoundingBox().maxX(), f2.getConvexHull().getBoundingBox().maxX());
+          double f_start1 = std::min(f1.getConvexHull().getBoundingBox().minX(), f2.getConvexHull().getBoundingBox().minX());
+          double f_start2 = std::max(f1.getConvexHull().getBoundingBox().minX(), f2.getConvexHull().getBoundingBox().minX());
+          double f_end1 = std::min(f1.getConvexHull().getBoundingBox().maxX(), f2.getConvexHull().getBoundingBox().maxX());
+          double f_end2 = std::max(f1.getConvexHull().getBoundingBox().maxX(), f2.getConvexHull().getBoundingBox().maxX());
 
-          DoubleReal union_length = f_end2 - f_start1;
-          DoubleReal intersect_length = std::max(0., f_end1 - f_start2);
+          double union_length = f_end2 - f_start1;
+          double intersect_length = std::max(0., f_end1 - f_start2);
 
           if (intersect_length / union_length < rt_min_overlap)
             continue;
@@ -413,7 +413,7 @@ namespace OpenMS
 
             // find possible adduct combinations
             CoordinateType naive_mass_diff = mz2 * q2 - m1;
-            DoubleReal abs_mass_diff = mz_diff_max * q1 + mz_diff_max * q2; // tolerance must increase when looking at M instead of m/z, as error margins increase as well
+            double abs_mass_diff = mz_diff_max * q1 + mz_diff_max * q2; // tolerance must increase when looking at M instead of m/z, as error margins increase as well
             hits = me.query(q2 - q1, naive_mass_diff, abs_mass_diff, thresh_logp, md_s, md_e);
             OPENMS_PRECONDITION(hits >= 0, "FeatureDeconvolution querying #hits got negative result!");
 
@@ -573,7 +573,7 @@ namespace OpenMS
       // forward set of putative edges to ILP
       ILPDCWrapper lp_wrapper;
       // compute best solution (this will REORDER elements on feature_relation[] !) - do not rely on order afterwards!
-      DoubleReal ilp_score = lp_wrapper.compute(fm_out, feature_relation, this->verbose_level_);
+      double ilp_score = lp_wrapper.compute(fm_out, feature_relation, this->verbose_level_);
       LOG_INFO << "ILP score is: " << ilp_score << std::endl;
     }
 
@@ -648,7 +648,7 @@ namespace OpenMS
         }
         else
         {
-          DoubleReal rt_diff =  fabs(fm_out[feature_relation[i].getElementIndex(0)].getRT() - fm_out[feature_relation[i].getElementIndex(1)].getRT());
+          double rt_diff =  fabs(fm_out[feature_relation[i].getElementIndex(0)].getRT() - fm_out[feature_relation[i].getElementIndex(1)].getRT());
           if (verbose_level_ > 2)
           {
             LOG_WARN << "Conflict in f_Q! f_RT:" << fm_out[f_idx_v[f_idx]].getRT() << " f_MZ:" << fm_out[f_idx_v[f_idx]].getMZ() << " f_int:" << fm_out[f_idx_v[f_idx]].getIntensity()

@@ -118,12 +118,12 @@ namespace OpenMS
   {
   }
 
-  void CompNovoIdentificationBase::getCIDSpectrumLight_(PeakSpectrum & spec, const String & sequence, DoubleReal prefix, DoubleReal suffix)
+  void CompNovoIdentificationBase::getCIDSpectrumLight_(PeakSpectrum & spec, const String & sequence, double prefix, double suffix)
   {
-    static DoubleReal h2o_mass = EmpiricalFormula("H2O").getMonoWeight();
+    static double h2o_mass = EmpiricalFormula("H2O").getMonoWeight();
     Peak1D p;
-    DoubleReal b_pos(0.0 + prefix);
-    DoubleReal y_pos(h2o_mass + suffix);
+    double b_pos(0.0 + prefix);
+    double y_pos(h2o_mass + suffix);
     for (Size i = 0; i != sequence.size() - 1; ++i)
     {
       char aa(sequence[i]);
@@ -151,14 +151,14 @@ namespace OpenMS
     return;
   }
 
-  void CompNovoIdentificationBase::getCIDSpectrum_(PeakSpectrum & spec, const String & sequence, Size charge, DoubleReal prefix, DoubleReal suffix)
+  void CompNovoIdentificationBase::getCIDSpectrum_(PeakSpectrum & spec, const String & sequence, Size charge, double prefix, double suffix)
   {
-    static DoubleReal h2o_mass = EmpiricalFormula("H2O").getMonoWeight();
-    static DoubleReal nh3_mass = EmpiricalFormula("NH3").getMonoWeight();
-    static DoubleReal co_mass = EmpiricalFormula("CO").getMonoWeight();
+    static double h2o_mass = EmpiricalFormula("H2O").getMonoWeight();
+    static double nh3_mass = EmpiricalFormula("NH3").getMonoWeight();
+    static double co_mass = EmpiricalFormula("CO").getMonoWeight();
     Peak1D p;
-    DoubleReal b_pos(0 + prefix);
-    DoubleReal y_pos(h2o_mass + suffix);
+    double b_pos(0 + prefix);
+    double y_pos(h2o_mass + suffix);
     bool b_H2O_loss(false), b_NH3_loss(false), y_NH3_loss(false);
 
     for (Size i = 0; i != sequence.size() - 1; ++i)
@@ -177,7 +177,7 @@ namespace OpenMS
           {
             if (z == 1 /*|| b_pos > MIN_DOUBLE_MZ*/)
             {
-              p.setPosition((b_pos + (DoubleReal)z * Constants::PROTON_MASS_U + (DoubleReal)j + Constants::NEUTRON_MASS_U) / (DoubleReal)z);
+              p.setPosition((b_pos + (double)z * Constants::PROTON_MASS_U + (double)j + Constants::NEUTRON_MASS_U) / (double)z);
               p.setIntensity(isotope_distributions_[(Size)b_pos][j] * 0.8 / (z * z));
               spec.push_back(p);
             }
@@ -191,7 +191,7 @@ namespace OpenMS
           {
             b_H2O_loss = true;
             p.setPosition((b_pos + z * Constants::PROTON_MASS_U - h2o_mass) / z);
-            p.setIntensity(0.02 / (DoubleReal)(z * z));
+            p.setIntensity(0.02 / (double)(z * z));
             if (z == 1 /* || b_pos > MIN_DOUBLE_MZ*/)
             {
               spec.push_back(p);
@@ -201,7 +201,7 @@ namespace OpenMS
           {
             b_NH3_loss = true;
             p.setPosition((b_pos + z * Constants::PROTON_MASS_U - nh3_mass) / z);
-            p.setIntensity(0.02 / (DoubleReal)(z * z));
+            p.setIntensity(0.02 / (double)(z * z));
 
             if (z == 1 /* || b_pos > MIN_DOUBLE_MZ*/)
             {
@@ -216,7 +216,7 @@ namespace OpenMS
           if (b_pos - co_mass > min_mz_ && b_pos - co_mass < max_mz_)
           {
             // a-ions
-            p.setPosition((b_pos + z * Constants::PROTON_MASS_U - co_mass) / (DoubleReal)z);
+            p.setPosition((b_pos + z * Constants::PROTON_MASS_U - co_mass) / (double)z);
             p.setIntensity(0.1f);
             spec.push_back(p);
           }
@@ -231,15 +231,15 @@ namespace OpenMS
           {
             if (z == 1 /* || y_pos > MIN_DOUBLE_MZ*/)
             {
-              p.setPosition((y_pos + (DoubleReal)z * Constants::PROTON_MASS_U + (DoubleReal)j * Constants::NEUTRON_MASS_U) / (DoubleReal)z);
-              p.setIntensity(isotope_distributions_[(Size)y_pos][j] / (DoubleReal) (z * z));
+              p.setPosition((y_pos + (double)z * Constants::PROTON_MASS_U + (double)j * Constants::NEUTRON_MASS_U) / (double)z);
+              p.setIntensity(isotope_distributions_[(Size)y_pos][j] / (double) (z * z));
               spec.push_back(p);
             }
           }
 
           // H2O loss
-          p.setPosition((y_pos + z * Constants::PROTON_MASS_U - h2o_mass) / (DoubleReal)z);
-          p.setIntensity(0.1 / (DoubleReal)(z * z));
+          p.setPosition((y_pos + z * Constants::PROTON_MASS_U - h2o_mass) / (double)z);
+          p.setIntensity(0.1 / (double)(z * z));
           if (aa2 == 'Q')           // pyroglutamic acid formation
           {
             p.setIntensity(0.5f);
@@ -253,8 +253,8 @@ namespace OpenMS
           if (y_NH3_loss || aa2 == 'Q' || aa2 == 'N' || aa2 == 'R' || aa2 == 'K')
           {
             y_NH3_loss = true;
-            p.setPosition((y_pos + z * Constants::PROTON_MASS_U - nh3_mass) / (DoubleReal)z);
-            p.setIntensity(0.1 / (DoubleReal)(z * z));
+            p.setPosition((y_pos + z * Constants::PROTON_MASS_U - nh3_mass) / (double)z);
+            p.setIntensity(0.1 / (double)(z * z));
 
             if (z == 1 /*|| y_pos > MIN_DOUBLE_MZ*/)
             {
@@ -278,7 +278,7 @@ namespace OpenMS
       /*
       for (Size j = 0; j != max_isotope; ++j)
       {
-  p.setPosition((precursor_weight + charge - 1 + j)/(DoubleReal)charge);
+  p.setPosition((precursor_weight + charge - 1 + j)/(double)charge);
   p.setIntensity(isotope_distributions_[(Int)p.getPosition()[0]][j] * 0.1);
   spec.push_back(p);
       }
@@ -349,9 +349,9 @@ namespace OpenMS
     }
   }
 
-  void CompNovoIdentificationBase::getDecompositions_(vector<MassDecomposition> & decomps, DoubleReal mass, bool no_caching)
+  void CompNovoIdentificationBase::getDecompositions_(vector<MassDecomposition> & decomps, double mass, bool no_caching)
   {
-    //static Map<DoubleReal, vector<MassDecomposition> > decomp_cache;
+    //static Map<double, vector<MassDecomposition> > decomp_cache;
     if (!no_caching)
     {
       if (decomp_cache_.has(mass))
@@ -372,7 +372,7 @@ namespace OpenMS
     return;
   }
 
-  void CompNovoIdentificationBase::selectPivotIons_(vector<Size> & pivots, Size left, Size right, Map<DoubleReal, CompNovoIonScoringBase::IonScore> & ion_scores, const PeakSpectrum & CID_spec, DoubleReal precursor_weight, bool full_range)
+  void CompNovoIdentificationBase::selectPivotIons_(vector<Size> & pivots, Size left, Size right, Map<double, CompNovoIonScoringBase::IonScore> & ion_scores, const PeakSpectrum & CID_spec, double precursor_weight, bool full_range)
   {
 #ifdef SELECT_PIVOT_DEBUG
     cerr << "void selectPivotIons(pivots[" << pivots.size() << "], " << left << "[" << CID_spec[left].getPosition()[0] << "]" << ", " << right << "[" << CID_spec[right].getPosition()[0]  << "])" << endl;
@@ -421,14 +421,14 @@ namespace OpenMS
       set<Size> used_pos;
       for (Size p = 0; p != min(right - left - 1, max_number_pivot); ++p)
       {
-        DoubleReal max(0);
+        double max(0);
         Size max_pos(0);
 
         bool found_pivot(false);
         for (Size i = left + 1; i < right; ++i)
         {
-          DoubleReal score = ion_scores[CID_spec[i].getPosition()[0]].score;
-          DoubleReal position = CID_spec[i].getPosition()[0];
+          double score = ion_scores[CID_spec[i].getPosition()[0]].score;
+          double position = CID_spec[i].getPosition()[0];
 #ifdef SELECT_PIVOT_DEBUG
           cerr << position << " " << precursor_weight << " " << full_range << " " << score;
 #endif
@@ -481,9 +481,9 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
   }
 
   // s1 should be the original spectrum
-  DoubleReal CompNovoIdentificationBase::compareSpectra_(const PeakSpectrum & s1, const PeakSpectrum & s2)
+  double CompNovoIdentificationBase::compareSpectra_(const PeakSpectrum & s1, const PeakSpectrum & s2)
   {
-    DoubleReal score(0.0);
+    double score(0.0);
 
     PeakSpectrum::ConstIterator it1 = s1.begin();
     PeakSpectrum::ConstIterator it2 = s2.begin();
@@ -491,7 +491,7 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
     Size num_matches(0);
     while (it1 != s1.end() && it2 != s2.end())
     {
-      DoubleReal pos1(it1->getPosition()[0]), pos2(it2->getPosition()[0]);
+      double pos1(it1->getPosition()[0]), pos2(it2->getPosition()[0]);
       if (fabs(pos1 - pos2) < fragment_mass_tolerance_)
       {
         score += it1->getIntensity();
@@ -513,7 +513,7 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
       return 0;
     }
 
-    score /= sqrt((DoubleReal)num_matches);
+    score /= sqrt((double)num_matches);
 
     return score;
   }
@@ -523,7 +523,7 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
     return p1.getScore() > p2.getScore();
   }
 
-  void CompNovoIdentificationBase::windowMower_(PeakSpectrum & spec, DoubleReal windowsize, Size no_peaks)
+  void CompNovoIdentificationBase::windowMower_(PeakSpectrum & spec, double windowsize, Size no_peaks)
   {
     PeakSpectrum copy(spec);
     vector<Peak1D> to_be_deleted;
@@ -588,9 +588,9 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
     IsotopeDistribution iso_dist(max_isotope_);
     for (Size i = 1; i <= max_mz_ * 2; ++i)
     {
-      iso_dist.estimateFromPeptideWeight((DoubleReal)i);
+      iso_dist.estimateFromPeptideWeight((double)i);
       iso_dist.renormalize();
-      vector<DoubleReal> iso(max_isotope_, 0.0);
+      vector<double> iso(max_isotope_, 0.0);
 
       for (Size j = 0; j != iso_dist.size(); ++j)
       {
@@ -611,7 +611,7 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
       }
       else
       {
-        seq += *it;
+        seq += AASequence::fromString(*it);
       }
     }
 
@@ -648,12 +648,12 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
 
     max_number_aa_per_decomp_ = param_.getValue("max_number_aa_per_decomp");
     tryptic_only_ = param_.getValue("tryptic_only").toBool();
-    fragment_mass_tolerance_ = (DoubleReal)param_.getValue("fragment_mass_tolerance");
+    fragment_mass_tolerance_ = (double)param_.getValue("fragment_mass_tolerance");
     max_number_pivot_ = param_.getValue("max_number_pivot");
-    decomp_weights_precision_ = (DoubleReal)param_.getValue("decomp_weights_precision");
-    min_mz_ = (DoubleReal)param_.getValue("min_mz");
-    max_mz_ = (DoubleReal)param_.getValue("max_mz");
-    max_decomp_weight_ = (DoubleReal)param_.getValue("max_decomp_weight");
+    decomp_weights_precision_ = (double)param_.getValue("decomp_weights_precision");
+    min_mz_ = (double)param_.getValue("min_mz");
+    max_mz_ = (double)param_.getValue("max_mz");
+    max_decomp_weight_ = (double)param_.getValue("max_decomp_weight");
     max_subscore_number_ = param_.getValue("max_subscore_number");
     max_isotope_ = param_.getValue("max_isotope");
 
@@ -748,7 +748,7 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
     /*
     cerr << "Following masses are used for identification: " << endl;
 
-    for (Map<char, DoubleReal>::const_iterator it = aa_to_weight_.begin(); it != aa_to_weight_.end(); ++it)
+    for (Map<char, double>::const_iterator it = aa_to_weight_.begin(); it != aa_to_weight_.end(); ++it)
     {
         cerr << it->first << " " << precisionWrapper(it->second) << endl;
     }*/
@@ -761,8 +761,8 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
     decomp_param.setValue("variable_modifications", param_.getValue("variable_modifications"));
     mass_decomp_algorithm_.setParameters(decomp_param);
 
-    min_aa_weight_ = numeric_limits<DoubleReal>::max();
-    for (Map<char, DoubleReal>::const_iterator it = aa_to_weight_.begin(); it != aa_to_weight_.end(); ++it)
+    min_aa_weight_ = numeric_limits<double>::max();
+    for (Map<char, double>::const_iterator it = aa_to_weight_.begin(); it != aa_to_weight_.end(); ++it)
     {
       if (min_aa_weight_ > it->second)
       {

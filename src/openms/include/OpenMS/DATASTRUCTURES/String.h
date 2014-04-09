@@ -306,14 +306,14 @@ public:
 
       @exception Exception::ConversionError is thrown if the string could not be converted to float
     */
-    OPENMS_DLLAPI Real toFloat() const;
+    OPENMS_DLLAPI float toFloat() const;
 
     /**
       @brief Conversion to double
 
       @exception Exception::ConversionError is thrown if the string could not be converted to double
     */
-    OPENMS_DLLAPI DoubleReal toDouble() const;
+    OPENMS_DLLAPI double toDouble() const;
 
     /// Conversion to Qt QString
     OPENMS_DLLAPI QString toQString() const;
@@ -390,13 +390,13 @@ public:
     OPENMS_DLLAPI static String random(UInt length);
 
     ///returns a string for @p d with exactly @p n decimal places
-    OPENMS_DLLAPI static String number(DoubleReal d, UInt n);
+    OPENMS_DLLAPI static String number(double d, UInt n);
     /**
         @brief Returns a string with at maximum @p n characters for @p d
 
         If @p d is larger, scientific notation is used.
     */
-    OPENMS_DLLAPI static String numberLength(DoubleReal d, UInt n);
+    OPENMS_DLLAPI static String numberLength(double d, UInt n);
 
 
     /**

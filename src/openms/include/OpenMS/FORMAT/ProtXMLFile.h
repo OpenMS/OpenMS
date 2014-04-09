@@ -123,7 +123,7 @@ protected:
         @param origin AA one letter code
         @param modification_description [out] Name of the modification, e.g. 'Carboxymethyl (C)'
     */
-    void matchModification_(const DoubleReal mass, const String & origin, String & modification_description);
+    void matchModification_(const double mass, const String & origin, String & modification_description);
 
     /// @name members for loading data
     //@{

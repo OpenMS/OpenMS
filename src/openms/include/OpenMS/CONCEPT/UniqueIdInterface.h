@@ -36,6 +36,7 @@
 #define OPENMS_CONCEPT_UNIQUEIDINTERFACE_H
 
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 
 namespace OpenMS
 {
@@ -93,7 +94,7 @@ public:
     }
 
     /// Destructor
-    ~UniqueIdInterface()
+    virtual ~UniqueIdInterface()
     {
     }
 

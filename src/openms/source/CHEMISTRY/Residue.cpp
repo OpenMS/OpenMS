@@ -37,6 +37,7 @@
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <cstdlib>
+#include <iostream>
 
 using namespace std;
 
@@ -266,27 +267,27 @@ namespace OpenMS
     return one_letter_code_;
   }
 
-  DoubleReal Residue::getPka() const
+  double Residue::getPka() const
   {
     return pka_;
   }
 
-  DoubleReal Residue::getPkb() const
+  double Residue::getPkb() const
   {
     return pkb_;
   }
 
-  DoubleReal Residue::getPkc() const
+  double Residue::getPkc() const
   {
     return pkc_;
   }
 
-  DoubleReal Residue::getPiValue() const
+  double Residue::getPiValue() const
   {
-    DoubleReal temp1 = 0.0;
-    DoubleReal temp2 = 0.0;
-    DoubleReal temp3 = 0.0;
-    DoubleReal pi = 0;
+    double temp1 = 0.0;
+    double temp2 = 0.0;
+    double temp3 = 0.0;
+    double pi = 0;
 
     temp1 = getPka();
     temp2 = getPkb();
@@ -308,17 +309,17 @@ namespace OpenMS
     return pi;
   }
 
-  void Residue::setPka(DoubleReal value)
+  void Residue::setPka(double value)
   {
     pka_ = value;
   }
 
-  void Residue::setPkb(DoubleReal value)
+  void Residue::setPkb(double value)
   {
     pkb_ = value;
   }
 
-  void Residue::setPkc(DoubleReal value)
+  void Residue::setPkc(double value)
   {
     pkc_ = value;
   }
@@ -441,13 +442,13 @@ namespace OpenMS
     }
   }
 
-  void Residue::setAverageWeight(DoubleReal weight)
+  void Residue::setAverageWeight(double weight)
   {
     average_weight_ = weight;
     return;
   }
 
-  DoubleReal Residue::getAverageWeight(ResidueType res_type) const
+  double Residue::getAverageWeight(ResidueType res_type) const
   {
     switch (res_type)
     {
@@ -505,13 +506,13 @@ namespace OpenMS
     }
   }
 
-  void Residue::setMonoWeight(DoubleReal weight)
+  void Residue::setMonoWeight(double weight)
   {
     mono_weight_ = weight;
     return;
   }
 
-  DoubleReal Residue::getMonoWeight(ResidueType res_type) const
+  double Residue::getMonoWeight(ResidueType res_type) const
   {
     switch (res_type)
     {
@@ -645,32 +646,32 @@ namespace OpenMS
     return low_mass_ions_;
   }
 
-  DoubleReal Residue::getBackboneBasicityRight() const
+  double Residue::getBackboneBasicityRight() const
   {
     return gb_bb_r_;
   }
 
-  void Residue::setBackboneBasicityRight(DoubleReal gb_bb_r)
+  void Residue::setBackboneBasicityRight(double gb_bb_r)
   {
     gb_bb_r_ = gb_bb_r;
   }
 
-  DoubleReal Residue::getBackboneBasicityLeft() const
+  double Residue::getBackboneBasicityLeft() const
   {
     return gb_bb_l_;
   }
 
-  void Residue::setBackboneBasicityLeft(DoubleReal gb_bb_l)
+  void Residue::setBackboneBasicityLeft(double gb_bb_l)
   {
     gb_bb_l_ = gb_bb_l;
   }
 
-  DoubleReal Residue::getSideChainBasicity() const
+  double Residue::getSideChainBasicity() const
   {
     return gb_sc_;
   }
 
-  void Residue::setSideChainBasicity(DoubleReal gb_sc)
+  void Residue::setSideChainBasicity(double gb_sc)
   {
     gb_sc_ = gb_sc;
   }

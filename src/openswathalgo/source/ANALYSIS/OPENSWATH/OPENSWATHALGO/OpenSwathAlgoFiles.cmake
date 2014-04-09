@@ -103,5 +103,9 @@ endforeach(i)
 list(APPEND OpenSwathAlgoFiles ${header_algo})
 list(APPEND OpenSwathAlgoFiles ${header_dataaccess})
 
+# define list of headers related to openswathalgo needed for
+# installation and export
+set(OpenSwathAlgoHeaders ${header_algo} ${header_dataaccess})
+
 source_group("Header Files\\ANALYSIS\\OPENSWATH\\OPENSWATHALGO\\DATAACESS" FILES ${header_dataaccess})
 source_group("Header Files\\ANALYSIS\\OPENSWATH\\OPENSWATHALGO\\ALGO" FILES ${header_algo})

@@ -134,7 +134,7 @@ START_SECTION(([FeatureFinderAlgorithmPickedHelperStructs::MassTrace] void updat
 }
 END_SECTION
 
-START_SECTION(([FeatureFinderAlgorithmPickedHelperStructs::MassTrace] DoubleReal getAvgMZ() const ))
+START_SECTION(([FeatureFinderAlgorithmPickedHelperStructs::MassTrace] double getAvgMZ() const ))
 {
   // getAvgMZ computes intensity weighted avg of the mass trace
   TEST_EQUAL(mt1.getAvgMZ(), 1000)
@@ -214,7 +214,7 @@ mt2.peaks.push_back(std::make_pair(678.6, &p2_6));
 
 mt.push_back(mt2);
 
-START_SECTION(([FeatureFinderAlgorithmPickedHelperStructs::MassTraces] bool isValid(DoubleReal seed_mz, DoubleReal trace_tolerance)))
+START_SECTION(([FeatureFinderAlgorithmPickedHelperStructs::MassTraces] bool isValid(double seed_mz, double trace_tolerance)))
 {
   // isValid checks if if we have enough traces
   FeatureFinderAlgorithmPickedHelperStructs::MassTraces<Peak1D> invalid_traces;
@@ -247,11 +247,11 @@ START_SECTION(([FeatureFinderAlgorithmPickedHelperStructs::MassTraces] void upda
 }
 END_SECTION
 
-START_SECTION(([FeatureFinderAlgorithmPickedHelperStructs::MassTraces] std::pair<DoubleReal,DoubleReal> getRTBounds() const ))
+START_SECTION(([FeatureFinderAlgorithmPickedHelperStructs::MassTraces] std::pair<double,double> getRTBounds() const ))
 {
   TEST_EXCEPTION(Exception::Precondition, empty_traces.getRTBounds())
 
-  std::pair<DoubleReal, DoubleReal> bounds = mt.getRTBounds();
+  std::pair<double, double> bounds = mt.getRTBounds();
   TEST_EQUAL(bounds.first, 677.1)
   TEST_EQUAL(bounds.second, 679.8)
 }
@@ -277,15 +277,15 @@ p2_8.setIntensity(0.672624672f);
 p2_8.setMZ(1001);
 mt[1].peaks.push_back(std::make_pair(680.1, &p2_8));
 
-START_SECTION(([FeatureFinderAlgorithmPickedHelperStructs::MassTraces] void computeIntensityProfile(std::list< std::pair<DoubleReal, DoubleReal> > intensity_profile) const))
+START_SECTION(([FeatureFinderAlgorithmPickedHelperStructs::MassTraces] void computeIntensityProfile(std::list< std::pair<double, double> > intensity_profile) const))
 {
-  std::list< std::pair<DoubleReal, DoubleReal> > intensity_profile;
+  std::list< std::pair<double, double> > intensity_profile;
   mt.computeIntensityProfile(intensity_profile);
 
   TEST_EQUAL(intensity_profile.size(), 12)
   ABORT_IF(intensity_profile.size() != 12)
 
-  std::list< std::pair<DoubleReal, DoubleReal> >::iterator profile = intensity_profile.begin();
+  std::list< std::pair<double, double> >::iterator profile = intensity_profile.begin();
 
   // the leading peak
   // 676.8 -> 0.286529652f

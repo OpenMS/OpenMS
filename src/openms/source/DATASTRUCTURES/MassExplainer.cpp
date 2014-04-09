@@ -68,7 +68,7 @@ namespace OpenMS
   }
 
   /// Constructor
-  MassExplainer::MassExplainer(Int q_min, Int q_max, Int max_span, DoubleReal thresh_logp) :
+  MassExplainer::MassExplainer(Int q_min, Int q_max, Int max_span, double thresh_logp) :
     explanations_(),
     adduct_base_(),
     q_min_(q_min),
@@ -81,7 +81,7 @@ namespace OpenMS
   }
 
   /// Constructor
-  MassExplainer::MassExplainer(AdductsType adduct_base, Int q_min, Int q_max, Int max_span, DoubleReal thresh_logp, Size max_neutrals) :
+  MassExplainer::MassExplainer(AdductsType adduct_base, Int q_min, Int q_max, Int max_span, double thresh_logp, Size max_neutrals) :
     explanations_(),
     adduct_base_(adduct_base),
     q_min_(q_min),
@@ -368,7 +368,7 @@ namespace OpenMS
   }
 
   /// create a proper adduct from formula and charge and probability
-  Adduct MassExplainer::createAdduct_(const String & formula, const Int charge, const DoubleReal p) const
+  Adduct MassExplainer::createAdduct_(const String & formula, const Int charge, const double p) const
   {
 
     EmpiricalFormula ef(formula);

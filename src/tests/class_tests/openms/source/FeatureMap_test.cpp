@@ -64,8 +64,8 @@ START_SECTION((FeatureMap()))
 
 	TEST_EQUAL(pl_ptr->getMin(), FeatureMap<>::PositionType::maxPositive())
 	TEST_EQUAL(pl_ptr->getMax(), FeatureMap<>::PositionType::minNegative())
-	TEST_REAL_SIMILAR(pl_ptr->getMinInt(), numeric_limits<DoubleReal>::max())
-	TEST_REAL_SIMILAR(pl_ptr->getMaxInt(), -numeric_limits<DoubleReal>::max())
+	TEST_REAL_SIMILAR(pl_ptr->getMinInt(), numeric_limits<double>::max())
+	TEST_REAL_SIMILAR(pl_ptr->getMaxInt(), -numeric_limits<double>::max())
 END_SECTION
 
 START_SECTION((virtual ~FeatureMap()))
@@ -74,7 +74,7 @@ END_SECTION
 
 std::vector<PeptideIdentification> ids(1);
 PeptideHit hit;
-hit.setSequence(AASequence("ABCDE"));
+hit.setSequence(AASequence::fromString("ABCDE"));
 ids[0].setHits(std::vector<PeptideHit>(1, hit));
 
 Feature feature1;
@@ -95,7 +95,7 @@ Feature feature3;
 feature3.getPosition()[0] = 10.5;
 feature3.getPosition()[1] = 0.0;
 feature3.setIntensity(0.01f);
-hit.setSequence(AASequence("KRGH"));
+hit.setSequence(AASequence::fromString("KRGH"));
 ids[1].setHits(std::vector<PeptideHit>(1, hit)); // different to first hit
 feature3.setPeptideIdentifications(ids);
 
@@ -239,8 +239,8 @@ START_SECTION((FeatureMap& operator = (const FeatureMap& rhs)))
    map2 = FeatureMap<>();
 
 	TEST_EQUAL(map2.size(),0);
-	TEST_REAL_SIMILAR(map2.getMinInt(), numeric_limits<DoubleReal>::max())
-	TEST_REAL_SIMILAR(map2.getMaxInt(), -numeric_limits<DoubleReal>::max())
+	TEST_REAL_SIMILAR(map2.getMinInt(), numeric_limits<double>::max())
+	TEST_REAL_SIMILAR(map2.getMaxInt(), -numeric_limits<double>::max())
   TEST_STRING_EQUAL(map2.getIdentifier(),"")
   TEST_EQUAL(map2.getDataProcessing().size(),0)
 	TEST_EQUAL(map2.getProteinIdentifications().size(),0);

@@ -39,6 +39,7 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
 #include <OpenMS/FORMAT/HANDLERS/MzXMLHandler.h>
+#include <OpenMS/INTERFACES/IMSDataConsumer.h>
 
 namespace OpenMS
 {
@@ -102,6 +103,79 @@ public:
     {
       Internal::MzXMLHandler<MapType> handler(map, filename, schema_version_, *this);
       save_(filename, &handler);
+    }
+
+
+    /**
+      @brief Transforms a map while loading using the supplied MSDataConsumer.
+
+      The result will not be stored by this class.
+    */
+    template <typename MapType>
+    void transform(const String& filename_in, /* const String& filename_out, */ Interfaces::IMSDataConsumer<MapType> * consumer/* , const MapType& map */)
+    {
+      
+      // First pass through the file -> get the meta-data and hand it to the consumer
+      {
+        Size scount = 0, ccount = 0;
+        MapType experimental_settings;
+        bool size_only_before_ = options_.getSizeOnly();
+        options_.setSizeOnly(true);
+        Internal::MzXMLHandler<MapType> handler(experimental_settings, filename_in, getVersion(), *this);
+        handler.setOptions(options_);
+        parse_(filename_in, &handler);
+        scount = handler.getScanCount();
+        options_.setSizeOnly(size_only_before_);
+        consumer->setExpectedSize(scount, ccount);
+        consumer->setExperimentalSettings(experimental_settings);
+      }
+      
+      // Second pass through the data, now read the spectra!
+      {
+        MapType dummy;
+        Internal::MzXMLHandler<MapType> handler(dummy, filename_in, getVersion(), *this);
+        handler.setOptions(options_);
+        handler.setMSDataConsumer(consumer);
+        // TODO catch errors as above ?
+        parse_(filename_in, &handler);
+      }
+    }
+
+    /**
+      @brief Transforms a map while loading using the supplied MSDataConsumer
+
+      The result will be stored in the supplied map.
+    */
+    template <typename MapType>
+    void transform(const String& filename_in, /* const String& filename_out, */ Interfaces::IMSDataConsumer<MapType> * consumer, MapType& map)
+    {
+      // First pass through the file -> get the meta-data and hand it to the consumer
+      {
+        Size scount = 0, ccount = 0;
+        MapType experimental_settings;
+        bool size_only_before_ = options_.getSizeOnly();
+        options_.setSizeOnly(true);
+        Internal::MzXMLHandler<MapType> handler(experimental_settings, filename_in, getVersion(), *this);
+        handler.setOptions(options_);
+        parse_(filename_in, &handler);
+        scount = handler.getScanCount();
+        options_.setSizeOnly(size_only_before_);
+        consumer->setExpectedSize(scount, ccount);
+        consumer->setExperimentalSettings(experimental_settings);
+      }
+
+      // Second pass through the data, now read the spectra!
+      {
+        Internal::MzXMLHandler<MapType> handler(map, filename_in, getVersion(), *this);
+        bool always_append_data = options_.getAlwaysAppendData();
+        options_.setAlwaysAppendData(true);
+        handler.setOptions(options_);
+        handler.setMSDataConsumer(consumer);
+
+        // TODO catch errors as above ?
+        parse_(filename_in, &handler);
+        options_.setAlwaysAppendData(always_append_data);
+      }
     }
 
 private:

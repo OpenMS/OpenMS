@@ -37,6 +37,7 @@
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
@@ -61,28 +62,26 @@ using namespace OpenMS;
 #define RT_FACTOR_PRECISION 1000
 #define RT_MODULO_FACTOR 10000 // last 4 digits is the index
 
-#define SEP '\t'
-
 struct RNPxlReportRow
 {
   bool no_id;
-  DoubleReal rt;
-  DoubleReal original_mz;
+  double rt;
+  double original_mz;
   String accessions;
   String RNA;
   String peptide;
   Int charge;
-  DoubleReal score;
-  DoubleReal peptide_weight;
-  DoubleReal RNA_weight;
-  DoubleReal xl_weight;
-  DoubleReal abs_prec_error;
-  DoubleReal rel_prec_error;
-  Map<String, vector<pair<DoubleReal, DoubleReal> > > marker_ions;
-  DoubleReal m_H;
-  DoubleReal m_2H;
-  DoubleReal m_3H;
-  DoubleReal m_4H;
+  double score;
+  double peptide_weight;
+  double RNA_weight;
+  double xl_weight;
+  double abs_prec_error;
+  double rel_prec_error;
+  Map<String, vector<pair<double, double> > > marker_ions;
+  double m_H;
+  double m_2H;
+  double m_3H;
+  double m_4H;
 
   String getString(String separator)
   {
@@ -103,7 +102,7 @@ struct RNPxlReportRow
     }
 
     // marker ions
-    for (Map<String, vector<pair<DoubleReal, DoubleReal> > >::const_iterator it = marker_ions.begin(); it != marker_ions.end(); ++it)
+    for (Map<String, vector<pair<double, double> > >::const_iterator it = marker_ions.begin(); it != marker_ions.end(); ++it)
     {
       for (Size i = 0; i != it->second.size(); ++i)
       {
@@ -137,7 +136,7 @@ struct RNPxlReportRow
 
 struct MarkerIonExtractor
 {
-  static void extractMarkerIons(Map<String, vector<pair<DoubleReal, DoubleReal> > >& marker_ions, const PeakSpectrum& s, const DoubleReal marker_tolerance)
+  static void extractMarkerIons(Map<String, vector<pair<double, double> > >& marker_ions, const PeakSpectrum& s, const double marker_tolerance)
   {
     marker_ions.clear();
     marker_ions["A"].push_back(make_pair(136.06231, 0.0));
@@ -155,13 +154,13 @@ struct MarkerIonExtractor
     spec.sortByPosition();
 
     // for each nucleotide with marker ions
-    for (Map<String, vector<pair<DoubleReal, DoubleReal> > >::iterator it = marker_ions.begin(); it != marker_ions.end(); ++it)
+    for (Map<String, vector<pair<double, double> > >::iterator it = marker_ions.begin(); it != marker_ions.end(); ++it)
     {
       // for each marker ion of the current nucleotide
       for (Size i = 0; i != it->second.size(); ++i)
       {
-        DoubleReal mz = it->second[i].first;
-        DoubleReal max_intensity = 0;
+        double mz = it->second[i].first;
+        double max_intensity = 0;
         for (PeakSpectrum::ConstIterator sit = spec.begin(); sit != spec.end(); ++sit) // TODO: replace by binary search
         {
           if (sit->getMZ() + marker_tolerance < mz)
@@ -198,9 +197,9 @@ struct RNPxlReportRowHeader
        << "peptide weight" << "RNA weight" << "cross-link weight";
 
     // marker ion fields
-    Map<String, vector<pair<DoubleReal, DoubleReal> > > marker_ions;
+    Map<String, vector<pair<double, double> > > marker_ions;
     MarkerIonExtractor::extractMarkerIons(marker_ions, PeakSpectrum(), 0.0); // call only to generate header entries
-    for (Map<String, vector<pair<DoubleReal, DoubleReal> > >::const_iterator it = marker_ions.begin(); it != marker_ions.end(); ++it)
+    for (Map<String, vector<pair<double, double> > >::const_iterator it = marker_ions.begin(); it != marker_ions.end(); ++it)
     {
       for (Size i = 0; i != it->second.size(); ++i)
       {
@@ -320,10 +319,10 @@ protected:
 
     Size debug_level = (Size)getIntOption_("debug");
 
-    DoubleReal small_peptide_mass_filter_threshold = getDoubleOption_("peptide_mass_threshold");
+    double small_peptide_mass_filter_threshold = getDoubleOption_("peptide_mass_threshold");
 
-    DoubleReal precursor_variant_mz_threshold = getDoubleOption_("precursor_variant_mz_threshold");
-    
+    double precursor_variant_mz_threshold = getDoubleOption_("precursor_variant_mz_threshold");
+
     const String in_fasta_file(getStringOption_("in_fasta"));
 
     RNPxlModificationMassesResult mm = RNPxlModificationsGenerator::initModificationMassesRNA(target_nucleotides, mappings, restrictions, modifications, sequence_restriction, cysteine_adduct, max_length);
@@ -360,7 +359,7 @@ protected:
       ++count;
       if (count % 100 == 0)
       {
-        cout << (DoubleReal) count / exp.size() * 100.0 << "%" << endl;
+        cout << (double) count / exp.size() * 100.0 << "%" << endl;
       }
 
       PeakMap new_exp;
@@ -374,7 +373,7 @@ protected:
         continue;
       }
 
-      DoubleReal prec_pos = it->getPrecursors().begin()->getPosition()[0];
+      double prec_pos = it->getPrecursors().begin()->getPosition()[0];
       Int prec_charge = it->getPrecursors().begin()->getCharge();
       if (prec_charge == 0)
       {
@@ -383,13 +382,13 @@ protected:
       }
 
       // add spec without any modifications
-      DoubleReal orig_rt = it->getRT();
+      double orig_rt = it->getRT();
 
       Size orig_rt_mul = (Size)(orig_rt * RT_FACTOR_PRECISION + 0.5) * RT_FACTOR / RT_FACTOR_PRECISION;
 
       Size mod_count(0);
       PeakSpectrum new_spec = *it;
-      //cout << "add: " << setprecision(15) << (DoubleReal)(orig_rt_mul + mod_count) << endl;
+      //cout << "add: " << setprecision(15) << (double)(orig_rt_mul + mod_count) << endl;
       new_spec.setRT(orig_rt_mul + mod_count++);
       Precursor new_prec;
       new_prec.setMZ(prec_pos);
@@ -401,7 +400,7 @@ protected:
       new_spec.setComment("no_comment");
 
       // Filter: peptide mass < 1750 and first deciamal place < 0.2
-      DoubleReal peptide_weight = prec_pos * prec_charge - prec_charge * Constants::PROTON_MASS_U;
+      double peptide_weight = prec_pos * prec_charge - prec_charge * Constants::PROTON_MASS_U;
       if (peptide_weight < 1750 && peptide_weight - floor(peptide_weight) < 0.2)
       {
         fractional_mass_filtered++;
@@ -432,11 +431,11 @@ protected:
 
       // add a new spec with each of the modifications
       int valid_mod_count = 0;
-      for (Map<String, DoubleReal>::ConstIterator mit = mm.mod_masses.begin(); mit != mm.mod_masses.end(); ++mit)
+      for (Map<String, double>::ConstIterator mit = mm.mod_masses.begin(); mit != mm.mod_masses.end(); ++mit)
       {
         PeakSpectrum spec = *it;
         Precursor p;
-        DoubleReal prec_variant_mz = prec_pos - mit->second / (DoubleReal)prec_charge;
+        double prec_variant_mz = prec_pos - mit->second / (double)prec_charge;
         p.setMZ(prec_variant_mz);
         p.setCharge(prec_charge);
         spec.setName(String(prec_pos) + mit->first);
@@ -514,7 +513,7 @@ protected:
         {
           args << "-debug" << String(getIntOption_("debug")).toQString();
         }
-        
+
         QProcess* p = new QProcess();
         p->setProcessChannelMode(QProcess::MergedChannels);
         p->start("OMSSAAdapter", args);
@@ -533,14 +532,14 @@ protected:
     const string out_csv = getStringOption_("out_csv");
     vector<RNPxlReportRow> csv_rows;
 
-    const DoubleReal marker_tolerance = getDoubleOption_("marker_ions_tolerance");
+    const double marker_tolerance = getDoubleOption_("marker_ions_tolerance");
 
 
     // protein and peptide identifications for all spectra
     vector<PeptideIdentification> whole_experiment_filtered_peptide_ids;
     vector<ProteinIdentification> whole_experiment_filtered_protein_ids;
 
-    Map<String, vector<pair<DoubleReal, DoubleReal> > > marker_ions;
+    Map<String, vector<pair<double, double> > > marker_ions;
 
     Size counter(0);
     for (vector<String>::const_iterator it = file_list_variants_mzML.begin(); it != file_list_variants_mzML.end(); ++it, ++counter)
@@ -586,7 +585,7 @@ protected:
       if (pep_ids.size() == 0)
       {
         row.no_id = true;
-        row.rt = exp.begin()->getRT() / (DoubleReal)RT_FACTOR;
+        row.rt = exp.begin()->getRT() / (double)RT_FACTOR;
         row.original_mz = exp.begin()->getPrecursors().begin()->getMZ();
         row.marker_ions = marker_ions;
         csv_rows.push_back(row);
@@ -606,8 +605,8 @@ protected:
         for (vector<PeptideHit>::const_iterator hit = pit->getHits().begin(); hit != pit->getHits().end(); ++hit)
         {
           pep_hits.push_back(*hit);
-          pep_hits.back().setMetaValue("RT", pit->getMetaValue("RT"));
-          pep_hits.back().setMetaValue("MZ", pit->getMetaValue("MZ"));
+          pep_hits.back().setMetaValue("RT", pit->getRT());
+          pep_hits.back().setMetaValue("MZ", pit->getMZ());
         }
       }
 
@@ -630,8 +629,8 @@ protected:
 
       for (vector<PeptideHit>::const_iterator hit = pep_hits.begin(); hit != pep_hits.end(); ++hit)
       {
-        Size orig_rt = (DoubleReal)hit->getMetaValue("RT");
-        DoubleReal orig_mz = (DoubleReal)hit->getMetaValue("MZ");
+        Size orig_rt = (double)hit->getMetaValue("RT");
+        double orig_mz = (double)hit->getMetaValue("MZ");
         Size xlink_idx = orig_rt % RT_MODULO_FACTOR;
         String xlink_name = "";
 
@@ -640,20 +639,20 @@ protected:
           xlink_name = *(mm.mod_combinations[mm.mod_formula_idx[xlink_idx]].begin()); // take first one (if ambiguous)
         }
 
-        DoubleReal rt = (DoubleReal)orig_rt / (DoubleReal)RT_FACTOR;
-        DoubleReal pep_weight = hit->getSequence().getMonoWeight();
-        DoubleReal rna_weight = EmpiricalFormula(mm.mod_formula_idx[xlink_idx]).getMonoWeight();
+        double rt = (double)orig_rt / (double)RT_FACTOR;
+        double pep_weight = hit->getSequence().getMonoWeight();
+        double rna_weight = EmpiricalFormula(mm.mod_formula_idx[xlink_idx]).getMonoWeight();
 
         // xlink weight for different charge states
-        DoubleReal weight_z1 = (pep_weight + rna_weight + 1.0 * Constants::PROTON_MASS_U);
-        DoubleReal weight_z2 = (pep_weight + rna_weight + 2.0 * Constants::PROTON_MASS_U) / 2.0;
-        DoubleReal weight_z3 = (pep_weight + rna_weight + 3.0 * Constants::PROTON_MASS_U) / 3.0;
-        DoubleReal weight_z4 = (pep_weight + rna_weight + 4.0 * Constants::PROTON_MASS_U) / 4.0;
+        double weight_z1 = (pep_weight + rna_weight + 1.0 * Constants::PROTON_MASS_U);
+        double weight_z2 = (pep_weight + rna_weight + 2.0 * Constants::PROTON_MASS_U) / 2.0;
+        double weight_z3 = (pep_weight + rna_weight + 3.0 * Constants::PROTON_MASS_U) / 3.0;
+        double weight_z4 = (pep_weight + rna_weight + 4.0 * Constants::PROTON_MASS_U) / 4.0;
 
         Size charge = hit->getCharge();
-        DoubleReal ppm_difference(0), absolute_difference(0);
-        DoubleReal exp_mz = orig_mz + rna_weight / (DoubleReal)charge;
-        DoubleReal theo_mz = (pep_weight + rna_weight + (DoubleReal)charge * Constants::PROTON_MASS_U) / (DoubleReal)charge;
+        double ppm_difference(0), absolute_difference(0);
+        double exp_mz = orig_mz + rna_weight / (double)charge;
+        double theo_mz = (pep_weight + rna_weight + (double)charge * Constants::PROTON_MASS_U) / (double)charge;
         absolute_difference = theo_mz - exp_mz;
         ppm_difference = absolute_difference / theo_mz * 1000000;
 
@@ -679,18 +678,18 @@ protected:
         row.RNA_weight = rna_weight;
         row.xl_weight = pep_weight + rna_weight;
 
-        whole_experiment_filtered_peptide_ids.back().setMetaValue("MZ", DataValue(exp_mz));
+        whole_experiment_filtered_peptide_ids.back().setMZ(exp_mz);
         whole_experiment_filtered_peptide_ids.back().setMetaValue("cross link id", DataValue(xlink_idx));
         whole_experiment_filtered_peptide_ids.back().setMetaValue("RNA", DataValue(xlink_name));
         whole_experiment_filtered_peptide_ids.back().setMetaValue("peptide mass", DataValue(pep_weight));
         whole_experiment_filtered_peptide_ids.back().setMetaValue("RNA mass", DataValue(rna_weight));
-        whole_experiment_filtered_peptide_ids.back().setMetaValue("cross link mass", (DoubleReal)pep_weight + rna_weight);
+        whole_experiment_filtered_peptide_ids.back().setMetaValue("cross link mass", (double)pep_weight + rna_weight);
 
-        for (Map<String, vector<pair<DoubleReal, DoubleReal> > >::const_iterator it = marker_ions.begin(); it != marker_ions.end(); ++it)
+        for (Map<String, vector<pair<double, double> > >::const_iterator it = marker_ions.begin(); it != marker_ions.end(); ++it)
         {
           for (Size i = 0; i != it->second.size(); ++i)
           {
-            whole_experiment_filtered_peptide_ids.back().setMetaValue(it->first + "_" + it->second[i].first, (DoubleReal)it->second[i].second * 100.0);
+            whole_experiment_filtered_peptide_ids.back().setMetaValue(it->first + "_" + it->second[i].first, (double)it->second[i].second * 100.0);
           }
         }
 
@@ -704,12 +703,12 @@ protected:
 
         csv_rows.push_back(row);
 
-        whole_experiment_filtered_peptide_ids.back().setMetaValue("Da difference", (DoubleReal)absolute_difference);
-        whole_experiment_filtered_peptide_ids.back().setMetaValue("ppm difference", (DoubleReal)ppm_difference);
-        whole_experiment_filtered_peptide_ids.back().setMetaValue("z1 mass", (DoubleReal)weight_z1);
-        whole_experiment_filtered_peptide_ids.back().setMetaValue("z2 mass", (DoubleReal)weight_z2);
-        whole_experiment_filtered_peptide_ids.back().setMetaValue("z3 mass", (DoubleReal)weight_z3);
-        whole_experiment_filtered_peptide_ids.back().setMetaValue("z4 mass", (DoubleReal)weight_z4);
+        whole_experiment_filtered_peptide_ids.back().setMetaValue("Da difference", (double)absolute_difference);
+        whole_experiment_filtered_peptide_ids.back().setMetaValue("ppm difference", (double)ppm_difference);
+        whole_experiment_filtered_peptide_ids.back().setMetaValue("z1 mass", (double)weight_z1);
+        whole_experiment_filtered_peptide_ids.back().setMetaValue("z2 mass", (double)weight_z2);
+        whole_experiment_filtered_peptide_ids.back().setMetaValue("z3 mass", (double)weight_z3);
+        whole_experiment_filtered_peptide_ids.back().setMetaValue("z4 mass", (double)weight_z4);
       }
     }
 
@@ -732,10 +731,10 @@ protected:
       for (vector<PeptideHit>::const_iterator hit = whole_experiment_filtered_peptide_ids[k].getHits().begin(); hit != whole_experiment_filtered_peptide_ids[k].getHits().end(); ++hit)
       {
         PeptideIdentification np;
-        DoubleReal rt = (DoubleReal)whole_experiment_filtered_peptide_ids[k].getMetaValue("RT");
-        DoubleReal orig_rt = rt / (DoubleReal)RT_FACTOR;
-        np.setMetaValue("RT", orig_rt);
-        np.setMetaValue("MZ", (DoubleReal)whole_experiment_filtered_peptide_ids[k].getMetaValue("MZ"));
+        double rt = whole_experiment_filtered_peptide_ids[k].getRT();
+        double orig_rt = rt / (double)RT_FACTOR;
+        np.setRT(orig_rt);
+        np.setMZ(whole_experiment_filtered_peptide_ids[k].getMZ());
 
         vector<PeptideHit> phs;
         PeptideHit ph = *hit;
@@ -746,7 +745,7 @@ protected:
           DataValue dv = whole_experiment_filtered_peptide_ids[k].getMetaValue(keys[i]);
           if (dv.valueType() == DataValue::DOUBLE_VALUE)
           {
-            ph.setMetaValue(keys[i], (DoubleReal)dv);
+            ph.setMetaValue(keys[i], (double)dv);
           }
           else
           {
@@ -771,7 +770,7 @@ protected:
     p = new QProcess();
     p->setProcessChannelMode(QProcess::MergedChannels);
     p->start("PeptideIndexer", args);
-    p->waitForFinished(999999999);
+    p->waitForFinished(-1);
     QString peptide_indexer_stdout = QString(p->readAllStandardOutput());
     if (getIntOption_("debug") > 0)
     {
@@ -785,12 +784,12 @@ protected:
     IdXMLFile().load(out_idXML, pr_tmp, pt_tmp);
 
     // reindex tabular data to contain protein ids
-    map<DoubleReal, String> map_rt_2_accession;
+    map<double, String> map_rt_2_accession;
     for (vector<PeptideIdentification>::const_iterator pit = pt_tmp.begin(); pit != pt_tmp.end(); ++pit)
     {
       for (vector<PeptideHit>::const_iterator hit = pit->getHits().begin(); hit != pit->getHits().end(); ++hit)
       {
-        DoubleReal rt = (DoubleReal)pit->getMetaValue("RT");
+        double rt = (double)pit->getMetaValue("RT");
         vector<String> accessions = hit->getProteinAccessions();
 
         String accession_string;
@@ -812,9 +811,9 @@ protected:
 
     for (vector<RNPxlReportRow>::iterator rit = csv_rows.begin(); rit != csv_rows.end(); ++rit)
     {
-      DoubleReal current_rt = rit->rt;
-      map<DoubleReal, String>::iterator before = map_rt_2_accession.lower_bound(current_rt);
-      map<DoubleReal, String>::iterator min_distance_it;
+      double current_rt = rit->rt;
+      map<double, String>::iterator before = map_rt_2_accession.lower_bound(current_rt);
+      map<double, String>::iterator min_distance_it;
 
       if (before == map_rt_2_accession.begin())
       {
@@ -826,7 +825,7 @@ protected:
       }
       else
       {
-        map<DoubleReal, String>::iterator after = before;
+        map<double, String>::iterator after = before;
         --before;
         if ((after->first - current_rt) < (current_rt - before->first))
         {

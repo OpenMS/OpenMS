@@ -114,7 +114,7 @@ namespace OpenMS
     // draw ticks
     if (!ticks_.empty())
     {
-      for (vector<DoubleReal>::iterator it = ticks_.begin(); it != ticks_.end(); ++it)
+      for (vector<double>::iterator it = ticks_.begin(); it != ticks_.end(); ++it)
       {
         QPoint tick;
         canvas->dataToWidget(*it, start_point_.getY(), tick, flipped, true);
@@ -181,7 +181,7 @@ namespace OpenMS
     return end_point_;
   }
 
-  void Annotation1DDistanceItem::setTicks(const std::vector<DoubleReal> & ticks)
+  void Annotation1DDistanceItem::setTicks(const std::vector<double> & ticks)
   {
     ticks_ = ticks;
   }

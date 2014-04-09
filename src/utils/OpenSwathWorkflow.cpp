@@ -50,9 +50,6 @@
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVReader.h>
 #include <OpenMS/FORMAT/CachedMzML.h>
-#ifdef OPENMS_FORMAT_SWATHFILE_MZXMLSUPPORT
-#include "MSDataReader.h"
-#endif
 #include <OpenMS/FORMAT/SwathFile.h>
 
 // Kernel and implementations
@@ -80,7 +77,7 @@ namespace OpenMS
 
   static bool SortSwathMapByLower(const OpenSwath::SwathMap left, const OpenSwath::SwathMap right)
   {
-    return left.lower < right.lower;
+    return left.upper < right.upper;
   }
 
   /**
@@ -263,11 +260,18 @@ namespace OpenMS
     */
     TransformationDescription performRTNormalization(const OpenMS::TargetedExperiment & irt_transitions,
             const std::vector< OpenSwath::SwathMap > & swath_maps, double min_rsq, double min_coverage,
-            const Param & feature_finder_param, const ChromExtractParams & cp_irt)
+            const Param & feature_finder_param, const ChromExtractParams & cp_irt, Size debug_level)
     {
       LOG_DEBUG << "performRTNormalization method starting" << std::endl;
       std::vector< OpenMS::MSChromatogram<> > irt_chromatograms;
       simpleExtractChromatograms(swath_maps, irt_transitions, irt_chromatograms, cp_irt);
+      // debug output of the iRT chromatograms
+      if (debug_level > 1)
+      {
+        MSExperiment<> exp;
+        exp.setChromatograms(irt_chromatograms);
+        MzMLFile().store("debug_irts.mzML", exp);
+      }
       LOG_DEBUG << "Extracted number of chromatograms from iRT files: " << irt_chromatograms.size() <<  std::endl;
       // get RT normalization from data
       return RTNormalization(irt_transitions,
@@ -471,44 +475,45 @@ namespace OpenMS
 #endif
       for (SignedSize i = 0; i < boost::numeric_cast<SignedSize>(swath_maps.size()); ++i)
       {
-        if (!swath_maps[i].ms1) { // continue if MS1
+        std::vector< OpenMS::MSChromatogram<> > tmp_chromatograms;
+        if (!swath_maps[i].ms1) { // continue 1 (if MS1)
         TargetedExperiment transition_exp_used;
         OpenSwathHelper::selectSwathTransitions(irt_transitions, transition_exp_used,
             cp.min_upper_edge_dist, swath_maps[i].lower, swath_maps[i].upper);
-        if (transition_exp_used.getTransitions().size() > 0) { // continue if no transitions found
+        if (transition_exp_used.getTransitions().size() > 0) { // continue 2 (if no transitions found)
 
         std::vector< OpenSwath::ChromatogramPtr > tmp_out;
         std::vector< ChromatogramExtractor::ExtractionCoordinates > coordinates;
         ChromatogramExtractor extractor;
-        // TODO for lrage rt extraction windows!
         extractor.prepare_coordinates(tmp_out, coordinates, transition_exp_used,  cp.rt_extraction_window, false);
         extractor.extractChromatograms(swath_maps[i].sptr, tmp_out, coordinates, cp.mz_extraction_window,
             cp.ppm, cp.extraction_function);
+        extractor.return_chromatogram(tmp_out, coordinates,
+            transition_exp_used, SpectrumSettings(), tmp_chromatograms, false);
 
 #ifdef _OPENMP
 #pragma omp critical (featureFinder)
 #endif
         {
-          LOG_DEBUG << "Extracted "  << tmp_out.size() << " chromatograms from SWATH map " <<
-              i << " with m/z " << swath_maps[i].lower << " to " << swath_maps[i].upper << ":" << std::endl;
-          for (Size i = 0; i < tmp_out.size(); i++)
+          LOG_DEBUG << "Extracted "  << tmp_chromatograms.size() << " chromatograms from SWATH map " <<
+            i << " with m/z " << swath_maps[i].lower << " to " << swath_maps[i].upper << ":" << std::endl;
+          for (Size i = 0; i < tmp_chromatograms.size(); i++)
           {
             // Check TIC and remove empty chromatograms (can happen if the
             // extraction window is outside the mass spectrometric acquisition
             // window).
             double tic = std::accumulate(tmp_out[i]->getIntensityArray()->data.begin(),tmp_out[i]->getIntensityArray()->data.end(),0);
             LOG_DEBUG << "Chromatogram "  << coordinates[i].id << " with size "
-                << tmp_out[i]->getIntensityArray()->data.size() << " and TIC " << tic  << std::endl;
-            if (tic <= 0.0)
+              << tmp_out[i]->getIntensityArray()->data.size() << " and TIC " << tic  << std::endl;
+            if (tic > 0.0)
+            {
+              // add the chromatogram to the output
+              chromatograms.push_back(tmp_chromatograms[i]);
+            }
+            else
             {
               std::cerr  << " - Warning: Empty chromatogram " << coordinates[i].id << " detected. Will skip it!" << std::endl;
-              continue;
             }
-
-            OpenMS::MSChromatogram<> chrom;
-            OpenSwathDataAccessHelper::convertToOpenMSChromatogram(chrom, tmp_out[i]);
-            chrom.setNativeID(coordinates[i].id);
-            chromatograms.push_back(chrom);
           }
         }
       } // continue 2
@@ -1073,8 +1078,7 @@ protected:
       feature_finder_param.setValue("TransitionGroupPicker:recalculate_peaks_max_z", 0.75);
       feature_finder_param.setValue("TransitionGroupPicker:PeakPickerMRM:method", "corrected");
       feature_finder_param.setValue("TransitionGroupPicker:PeakPickerMRM:signal_to_noise", 0.1);
-      feature_finder_param.setValue("TransitionGroupPicker:PeakPickerMRM:gauss_width", 30);
-      feature_finder_param.remove("TransitionGroupPicker:PeakPickerMRM:gauss_width");
+      feature_finder_param.setValue("TransitionGroupPicker:PeakPickerMRM:gauss_width", 30.0);
       feature_finder_param.remove("TransitionGroupPicker:PeakPickerMRM:sn_win_len");
       feature_finder_param.remove("TransitionGroupPicker:PeakPickerMRM:sn_bin_count");
 
@@ -1133,12 +1137,20 @@ protected:
     }
   }
 
+  /**
+   * @brief Load the retention time transformation file
+   *
+   * This function will create the retention time transformation either by
+   * loading a provided .trafoXML file or determine it from the data itself by
+   * extracting the transitions specified in the irt_tr_file TraML file.
+   *
+   */
   TransformationDescription loadTrafoFile(String trafo_in, String irt_tr_file,
     const std::vector< OpenSwath::SwathMap > & swath_maps, double min_rsq, double min_coverage,
-    const Param& feature_finder_param, const OpenSwathWorkflow::ChromExtractParams& cp_irt)
+    const Param& feature_finder_param, const OpenSwathWorkflow::ChromExtractParams& cp_irt, Size debug_level)
   {
     TransformationDescription trafo_rtnorm;
-    if (trafo_in.size() > 0)
+    if (!trafo_in.empty())
     {
       // get read RT normalization file
       TransformationXMLFile trafoxml;
@@ -1148,7 +1160,7 @@ protected:
       String model_type = "linear";
       trafo_rtnorm.fitModel(model_type, model_params);
     }
-    else
+    else if (!irt_tr_file.empty())
     {
       OpenSwathWorkflow wf;
       wf.setLogType(log_type_);
@@ -1158,7 +1170,7 @@ protected:
       OpenMS::TargetedExperiment irt_transitions;
       traml.load(irt_tr_file, irt_transitions);
       trafo_rtnorm = wf.performRTNormalization(irt_transitions, swath_maps, min_rsq, min_coverage,
-          feature_finder_param, cp_irt);
+          feature_finder_param, cp_irt, debug_level);
     }
     return trafo_rtnorm;
   }
@@ -1182,23 +1194,24 @@ protected:
     bool split_file = getFlag_("split_file_input");
     bool use_emg_score = getFlag_("use_elution_model_score");
     bool sort_swath_maps = getFlag_("sort_swath_maps");
-    DoubleReal min_upper_edge_dist = getDoubleOption_("min_upper_edge_dist");
-    DoubleReal mz_extraction_window = getDoubleOption_("mz_extraction_window");
-    DoubleReal rt_extraction_window = getDoubleOption_("rt_extraction_window");
-    DoubleReal extra_rt_extract = getDoubleOption_("extra_rt_extraction_window");
+    double min_upper_edge_dist = getDoubleOption_("min_upper_edge_dist");
+    double mz_extraction_window = getDoubleOption_("mz_extraction_window");
+    double rt_extraction_window = getDoubleOption_("rt_extraction_window");
+    double extra_rt_extract = getDoubleOption_("extra_rt_extraction_window");
     String extraction_function = getStringOption_("extraction_function");
     String swath_windows_file = getStringOption_("swath_windows_file");
     int batchSize = (int)getIntOption_("batchSize");
+    Size debug_level = (Size)getIntOption_("debug");
 
-    DoubleReal min_rsq = getDoubleOption_("min_rsq");
-    DoubleReal min_coverage = getDoubleOption_("min_coverage");
+    double min_rsq = getDoubleOption_("min_rsq");
+    double min_coverage = getDoubleOption_("min_coverage");
 
     String readoptions = getStringOption_("readOptions");
     String tmp = getStringOption_("tempDirectory");
 
     if (trafo_in.empty() && irt_tr_file.empty())
-          throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-              "Either rt_norm or tr_irt needs to be set");
+          std::cout << "Since neither rt_norm nor tr_irt is set, OpenSWATH will " <<
+            "not use RT-transformation (rather a null transformation will be applied)" << std::endl;
     if ((out.empty() && out_tsv.empty()) || (!out.empty() && !out_tsv.empty()) )
           throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
               "Either out_features or out_tsv needs to be set (but not both)");
@@ -1230,13 +1243,15 @@ protected:
       SwathWindowLoader::annotateSwathMapsFromFile(swath_windows_file, swath_maps, sort_swath_maps);
 
     for (Size i = 0; i < swath_maps.size(); i++)
-      LOG_DEBUG << "Found swath map " << i << " with lower " << swath_maps[i].lower << " and upper " << swath_maps[i].upper << std::endl;
+      LOG_DEBUG << "Found swath map " << i << " with lower " << swath_maps[i].lower 
+        << " and upper " << swath_maps[i].upper << " and " << swath_maps[i].sptr->getNrSpectra() 
+        << " spectra." << std::endl;
 
     ///////////////////////////////////
     // Get the transformation information (using iRT peptides)
     ///////////////////////////////////
     TransformationDescription trafo_rtnorm = loadTrafoFile(trafo_in, irt_tr_file,
-        swath_maps, min_rsq, min_coverage, feature_finder_param, cp_irt);
+        swath_maps, min_rsq, min_coverage, feature_finder_param, cp_irt, debug_level);
 
     ///////////////////////////////////
     // Load the transitions

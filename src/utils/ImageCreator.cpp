@@ -182,8 +182,8 @@ protected:
     {
       const ConvexHull2D convex_hull = feat_iter->getConvexHull();
       DBoundingBox<2> box = convex_hull.getBoundingBox();
-      DoubleReal rt = feat_iter->getRT();
-      DoubleReal mz = feat_iter->getMZ();
+      double rt = feat_iter->getRT();
+      double mz = feat_iter->getMZ();
       double lower_mz = box.minY();
       double lower_rt = box.minX();
       double upper_mz = box.maxY();
@@ -305,7 +305,7 @@ protected:
 
     //----------------------------------------------------------------
     //Do the actual resampling
-    BilinearInterpolation<DoubleReal, DoubleReal> bilip;
+    BilinearInterpolation<double, double> bilip;
     bilip.getData().resize(rows, cols);
 
     if (!getFlag_("transpose"))
@@ -380,7 +380,7 @@ protected:
     painter->fillRect(0, 0, peaks, scans, Qt::SolidPattern);
     delete painter;
 
-    DoubleReal factor = getDoubleOption_("max_intensity");
+    double factor = getDoubleOption_("max_intensity");
     if (factor == 0)
     {
       factor = (*std::max_element(bilip.getData().begin(), bilip.getData().end()));

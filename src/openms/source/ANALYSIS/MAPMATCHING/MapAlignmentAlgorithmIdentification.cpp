@@ -240,7 +240,7 @@ namespace OpenMS
     for (SeqToList::iterator rt_it = rt_data.begin();
          rt_it != rt_data.end(); ++rt_it)
     {
-      DoubleReal median = Math::median(rt_it->second.begin(),
+      double median = Math::median(rt_it->second.begin(),
                                        rt_it->second.end(), sorted);
       medians.insert(pos, make_pair(rt_it->first, median));
       pos = --medians.end();       // would cause segfault if "medians" were empty
@@ -255,7 +255,7 @@ namespace OpenMS
       return false;
 
     peptide.sort();
-    DoubleReal score = peptide.getHits().begin()->getScore();
+    double score = peptide.getHits().begin()->getScore();
     if (peptide.isHigherScoreBetter())
       return score >= score_threshold_;
 
@@ -271,7 +271,7 @@ namespace OpenMS
     {
       if (hasGoodHit_(*pep_it))
       {
-        rt_data[pep_it->getHits()[0].getSequence().toString()].push_back(pep_it->getMetaValue("RT"));
+		    rt_data[pep_it->getHits()[0].getSequence().toString()].push_back(pep_it->getRT());
       }
     }
   }
@@ -300,7 +300,7 @@ namespace OpenMS
       {
         // find the peptide ID closest in RT to the feature centroid:
         String sequence;
-        DoubleReal rt_distance = numeric_limits<DoubleReal>::max();
+        double rt_distance = numeric_limits<double>::max();
         bool any_good_hit = false;
         for (vector<PeptideIdentification>::iterator pep_it =
                feat_it->getPeptideIdentifications().begin(); pep_it !=
@@ -309,8 +309,8 @@ namespace OpenMS
           if (hasGoodHit_(*pep_it))
           {
             any_good_hit = true;
-            DoubleReal current_distance =
-              abs(double(pep_it->getMetaValue("RT")) - feat_it->getRT());
+            double current_distance =
+              abs(pep_it->getRT() - feat_it->getRT());
             if (current_distance < rt_distance)
             {
               sequence = pep_it->getHits()[0].getSequence().toString();
@@ -418,14 +418,14 @@ namespace OpenMS
       computeMedians_(medians_per_seq, reference_);
     }
 
-    DoubleReal max_rt_shift = param_.getValue("max_rt_shift");
+    double max_rt_shift = param_.getValue("max_rt_shift");
     if (max_rt_shift == 0)
     {
-      max_rt_shift = numeric_limits<DoubleReal>::max();
+      max_rt_shift = numeric_limits<double>::max();
     }
     else if (max_rt_shift <= 1) // compute max. allowed shift from overall retention time range:
     {
-      DoubleReal rt_range, rt_min = reference_.begin()->second,
+      double rt_range, rt_min = reference_.begin()->second,
                  rt_max = rt_min;
       for (SeqToValue::iterator it = ++reference_.begin();
            it != reference_.end(); ++it)

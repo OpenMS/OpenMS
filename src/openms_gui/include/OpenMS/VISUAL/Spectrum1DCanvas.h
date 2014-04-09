@@ -35,6 +35,9 @@
 #ifndef OPENMS_VISUAL_SPECTRUM1DCANVAS_H
 #define OPENMS_VISUAL_SPECTRUM1DCANVAS_H
 
+// OpenMS_GUI config
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
+
 // STL
 #include <vector>
 #include <utility>
@@ -115,13 +118,13 @@ public:
     void dataToWidget(const PeakType & peak, QPoint & point, bool flipped = false, bool percentage = true);
 
     /// Calls SpectrumCanvas::dataToWidget_(), takes mirror mode into account
-    void dataToWidget(DoubleReal x, DoubleReal y, QPoint & point, bool flipped = false, bool percentage = false);
+    void dataToWidget(double x, double y, QPoint & point, bool flipped = false, bool percentage = false);
 
     /// For convenience - calls widgetToData
     PointType widgetToData(const QPoint & pos, bool percentage = false);
 
     /// Calls SpectrumCanvas::widgetToData_(), takes mirror mode into account
-    PointType widgetToData(DoubleReal x, DoubleReal y, bool percentage = false);
+    PointType widgetToData(double x, double y, bool percentage = false);
 
     /// ----- Annotations
 
@@ -146,7 +149,7 @@ public:
     Size getAlignmentSize();
 
     /// Returns the score of the alignment
-    DoubleReal getAlignmentScore();
+    double getAlignmentScore();
 
     /// Returns aligned_peaks_indices_
     std::vector<std::pair<Size, Size> > getAlignedPeaksIndices();
@@ -254,12 +257,12 @@ protected:
     /// Layer index of the second alignment layer
     Size alignment_layer_2_;
     /// Stores the alignment as MZ values of pairs of aligned peaks in both spectra
-    std::vector<std::pair<DoubleReal, DoubleReal> > aligned_peaks_mz_delta_;
+    std::vector<std::pair<double, double> > aligned_peaks_mz_delta_;
     /// Stores the peak indices of pairs of aligned peaks in both spectra
     std::vector<std::pair<Size, Size> > aligned_peaks_indices_;
 
     /// Stores the score of the last alignment
-    DoubleReal alignment_score_;
+    double alignment_score_;
     /// is this widget showing data with swapped m/z and RT axis? (for drawCoordinates_ only)
     bool is_swapped_;
 

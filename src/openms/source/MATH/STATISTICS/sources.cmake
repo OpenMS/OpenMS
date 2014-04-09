@@ -12,6 +12,7 @@ GumbelDistributionFitter.cpp
 Histogram.cpp
 LinearRegression.cpp
 PosteriorErrorProbabilityModel.cpp
+QuadraticRegression.cpp
 ROCCurve.cpp
 )
 

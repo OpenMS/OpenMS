@@ -214,13 +214,13 @@ protected:
     if (!out_mzq.trim().empty())
     {
       MSQuantifications msq;
-      std::vector<std::vector<std::pair<String, DoubleReal> > > labels;
+      std::vector<std::vector<std::pair<String, double> > > labels;
       if (itraq_type == ItraqQuantifier::FOURPLEX)
       {
         for (Size i = 0; i < 4; ++i)
         {
-          std::vector<std::pair<String, DoubleReal> > one_label;
-          one_label.push_back(std::make_pair<String, DoubleReal>(String("Channel ") + String(ItraqConstants::CHANNELS_FOURPLEX[i][0]), DoubleReal(ItraqConstants::CHANNELS_FOURPLEX[i][0])));
+          std::vector<std::pair<String, double> > one_label;
+          one_label.push_back(std::make_pair<String, double>(String("Channel ") + String(ItraqConstants::CHANNELS_FOURPLEX[i][0]), double(ItraqConstants::CHANNELS_FOURPLEX[i][0])));
           labels.push_back(one_label);
         }
       }
@@ -228,8 +228,8 @@ protected:
       {
         for (Size i = 0; i < 8; ++i)
         {
-          std::vector<std::pair<String, DoubleReal> > one_label;
-          one_label.push_back(std::make_pair<String, DoubleReal>(String("Channel ") + String(ItraqConstants::CHANNELS_EIGHTPLEX[i][0]), DoubleReal(ItraqConstants::CHANNELS_EIGHTPLEX[i][0])));
+          std::vector<std::pair<String, double> > one_label;
+          one_label.push_back(std::make_pair<String, double>(String("Channel ") + String(ItraqConstants::CHANNELS_EIGHTPLEX[i][0]), double(ItraqConstants::CHANNELS_EIGHTPLEX[i][0])));
           labels.push_back(one_label);
         }
       }

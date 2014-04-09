@@ -113,11 +113,11 @@ namespace OpenMS
   {
     // section params
     defaults_.insert("Digestion:", DigestSimulation().getDefaults());
-    defaults_.insert("RT:", RTSimulation(SimRandomNumberGenerator()).getDefaults());
+    defaults_.insert("RT:", RTSimulation().getDefaults());
     defaults_.insert("Detectability:", DetectabilitySimulation().getDefaults());
-    defaults_.insert("Ionization:", IonizationSimulation(SimRandomNumberGenerator()).getDefaults());
-    defaults_.insert("RawSignal:", RawMSSignalSimulation(SimRandomNumberGenerator()).getDefaults());
-    defaults_.insert("RawTandemSignal:", RawTandemMSSignalSimulation(SimRandomNumberGenerator()).getDefaults());
+    defaults_.insert("Ionization:", IonizationSimulation().getDefaults());
+    defaults_.insert("RawSignal:", RawMSSignalSimulation().getDefaults());
+    defaults_.insert("RawTandemSignal:", RawTandemMSSignalSimulation().getDefaults());
 
     subsections_.push_back("Labeling");
 
@@ -157,7 +157,7 @@ namespace OpenMS
     return tmp;
   }
 
-  void MSSim::simulate(const SimRandomNumberGenerator & rnd_gen, SampleChannels & channels)
+  void MSSim::simulate(MutableSimRandomNumberGeneratorPtr rnd_gen, SampleChannels & channels)
   {
     /*todo: move to a global config file or into INI file */
     Log_fatal.setPrefix("%S: ");
@@ -291,7 +291,7 @@ namespace OpenMS
       MSSimExperiment::ConstIterator it_rt = experiment_.RTBegin(f.getRT());
       SignedSize scan_index = distance<MSSimExperiment::ConstIterator>(experiment_.begin(), it_rt);
       pi.setMetaValue("RT_index", scan_index);
-      pi.setMetaValue("RT", f.getRT());
+      pi.setRT(f.getRT());
     }
 
     LOG_INFO << "Final number of simulated features: " << feature_maps_[0].size() << "\n";
@@ -425,7 +425,7 @@ namespace OpenMS
       if (ms_it->getMSLevel() != 2) continue;
       // "the" precursor is the one with highest intensity:
       Size index = 0;
-      DoubleReal intensity = ms_it->getPrecursors()[0].getIntensity();
+      double intensity = ms_it->getPrecursors()[0].getIntensity();
       for (Size i = 1; i < ms_it->getPrecursors().size(); ++i)
       {
         if (ms_it->getPrecursors()[i].getIntensity() > intensity)
@@ -437,8 +437,8 @@ namespace OpenMS
       IntList feat_ids = ms_it->getMetaValue("parent_feature_ids");
       const Feature& feature = feature_maps_[0][feat_ids[index]];
       peptides.push_back(feature.getPeptideIdentifications()[0]);
-      peptides.back().setMetaValue("RT", ms_it->getRT());
-      peptides.back().setMetaValue("MZ", ms_it->getPrecursors()[index].getMZ());
+      peptides.back().setRT(ms_it->getRT());
+      peptides.back().setMZ(ms_it->getPrecursors()[index].getMZ());
       const PeptideHit& hit = peptides.back().getHits()[0];
       accessions.insert(hit.getProteinAccessions().begin(),
                         hit.getProteinAccessions().end());

@@ -67,7 +67,7 @@ void SILACClustering::removeSmall_()
 
 void SILACClustering::joinLarge_()
 {
-  typedef std::multimap<DoubleReal, std::pair<PointCoordinate, Cluster> > Sort;
+  typedef std::multimap<double, std::pair<PointCoordinate, Cluster> > Sort;
   Sort sort_mz;
 
   // Sort all input clusters according to MZ
@@ -85,7 +85,7 @@ void SILACClustering::joinLarge_()
 
   grid.clear();
 
-  typedef std::vector<std::pair<DoubleReal, Sort> > SortRT;
+  typedef std::vector<std::pair<double, Sort> > SortRT;
   SortRT sort_rt;
   SortRT::iterator sort_rt_check = sort_rt.end();
 

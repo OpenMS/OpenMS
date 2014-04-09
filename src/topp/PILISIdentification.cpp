@@ -301,8 +301,8 @@ protected:
         cerr << "#cand=" << cand.size() << endl;
         PILIS_id.getIdentification(cand, id, *it);
 
-        id.setMetaValue("RT", it->getRT());
-        id.setMetaValue("MZ", it->getPrecursors()[0].getMZ());
+        id.setRT(it->getRT());
+        id.setMZ(it->getPrecursors()[0].getMZ());
 
         ids.push_back(id);
 
@@ -360,8 +360,8 @@ protected:
     {
       if (it->getMSLevel() == 2)
       {
-        ids[count].setMetaValue("RT", it->getRT());
-        ids[count].setMetaValue("MZ", it->getPrecursors()[0].getMZ());
+        ids[count].setRT(it->getRT());
+        ids[count].setMZ(it->getPrecursors()[0].getMZ());
 
         ids[count].setIdentifier(identifier);
         ids[count++].setHigherScoreBetter(false);

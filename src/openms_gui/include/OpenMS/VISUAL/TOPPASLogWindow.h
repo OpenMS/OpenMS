@@ -35,7 +35,8 @@
 #ifndef OPENMS_VISUAL_TOPPASLOGWINDOW_H
 #define OPENMS_VISUAL_TOPPASLOGWINDOW_H
 
-#include <OpenMS/config.h>
+// OpenMS_GUI config
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 //QT
 #include <QtGui/QTextEdit>

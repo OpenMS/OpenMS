@@ -42,7 +42,7 @@ using std::vector;
 
 namespace OpenMS
 {
-  
+
   const int ICPLLabeler::LIGHT_FEATURE_MAPID_ = 0;
   const int ICPLLabeler::MEDIUM_FEATURE_MAPID_ = 1;
   const int ICPLLabeler::HEAVY_FEATURE_MAPID_ = 2;
@@ -86,7 +86,7 @@ namespace OpenMS
          protein_hit != features.getProteinIdentifications()[0].getHits().end();
          ++protein_hit)
     {
-      AASequence aa(protein_hit->getSequence());
+      AASequence aa = AASequence::fromString(protein_hit->getSequence());
       // modify only if the term is accessible
       if (aa.getNTerminalModification() == "")
       {
@@ -282,8 +282,8 @@ namespace OpenMS
           else
           {
             // merge all three channels
-            Feature c2c1 = mergeFeatures_(heavy_feature, AASequence(heavy_feature_unmodified_sequence), medium_labeled_features_index);
-            Feature completeMerge = mergeFeatures_(c2c1, AASequence(heavy_feature_unmodified_sequence), light_labeled_features_index);
+            Feature c2c1 = mergeFeatures_(heavy_feature, AASequence::fromString(heavy_feature_unmodified_sequence), medium_labeled_features_index);
+            Feature completeMerge = mergeFeatures_(c2c1, AASequence::fromString(heavy_feature_unmodified_sequence), light_labeled_features_index);
 
             final_feature_map.push_back(completeMerge);
           }
@@ -309,7 +309,7 @@ namespace OpenMS
           else
           {
             // merge all three channels
-            Feature completeMerge = mergeFeatures_(heavy_feature, AASequence(heavy_feature_unmodified_sequence), light_labeled_features_index);
+            Feature completeMerge = mergeFeatures_(heavy_feature, AASequence::fromString(heavy_feature_unmodified_sequence), light_labeled_features_index);
             final_feature_map.push_back(completeMerge);
           }
           // remove features from indices
@@ -333,7 +333,7 @@ namespace OpenMS
           else
           {
             // merge all
-            Feature completeMerge = mergeFeatures_(heavy_feature, AASequence(heavy_feature_unmodified_sequence), medium_labeled_features_index);
+            Feature completeMerge = mergeFeatures_(heavy_feature, AASequence::fromString(heavy_feature_unmodified_sequence), medium_labeled_features_index);
             final_feature_map.push_back(completeMerge);
           }
           // remove features from indices
@@ -372,7 +372,7 @@ namespace OpenMS
           else
           {
             // merge
-            Feature completeMerge = mergeFeatures_(medium_labeled_feature, AASequence(medium_labeled_feature_unmodified_sequence), light_labeled_features_index);
+            Feature completeMerge = mergeFeatures_(medium_labeled_feature, AASequence::fromString(medium_labeled_feature_unmodified_sequence), light_labeled_features_index);
             final_feature_map.push_back(completeMerge);
           }
           // remove features from indices
@@ -444,7 +444,7 @@ namespace OpenMS
 
   void ICPLLabeler::postRTHook(FeatureMapSimVector & features_to_simulate)
   {
-    DoubleReal rt_shift = param_.getValue("ICPL_fixed_rtshift");
+    double rt_shift = param_.getValue("ICPL_fixed_rtshift");
 
     if (rt_shift != 0.0)
     {

@@ -48,8 +48,6 @@
 #include <ctime>
 #endif
 
-#include <iostream>
-
 namespace OpenMS
 {
   /**
@@ -122,23 +120,23 @@ public:
     /**	Get clock time.
             Return the accumulated clock (real) time in seconds.
     */
-    DoubleReal getClockTime() const;
+    double getClockTime() const;
 
     /**	Get user time.
             Return the accumulated user time in seconds.
     */
-    DoubleReal getUserTime() const;
+    double getUserTime() const;
 
     /**	Get user time.
             Return the accumulated system time in seconds.
     */
-    DoubleReal getSystemTime() const;
+    double getSystemTime() const;
 
     /**	Get CPU time.
             Return the accumulated CPU time in seconds.
             CPU time is the sum of user time and system time.
     */
-    inline DoubleReal getCPUTime() const
+    inline double getCPUTime() const
     {
       return getUserTime() + getSystemTime();
     }
@@ -240,7 +238,7 @@ public:
     /**
       custom string formatting of time, using only the minimal number of units required (e.g., does not report hours when seconds suffice).
     */
-    static String toString(DoubleReal time);
+    static String toString(double time);
 
 private:
 

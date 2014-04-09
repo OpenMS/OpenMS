@@ -153,7 +153,7 @@ namespace OpenMS
       registerProtein_(protein_name);       // create new protein
 
       // fill protein with life
-      DoubleReal pc_coverage;
+      double pc_coverage;
       if (optionalAttributeAsDouble_(pc_coverage, attributes, "percent_coverage"))
       {
         prot_id_->getHits().back().setCoverage(pc_coverage);
@@ -179,7 +179,7 @@ namespace OpenMS
       // We thus treat each instance as a separate peptide
       // todo/improvement: link them by a group in PeptideIdentification?!
       pep_hit_ = new PeptideHit;
-      pep_hit_->setSequence(AASequence(attributeAsString_(attributes, "peptide_sequence")));
+      pep_hit_->setSequence(AASequence::fromString(String(attributeAsString_(attributes, "peptide_sequence"))));
       pep_hit_->setScore(attributeAsDouble_(attributes, "nsp_adjusted_probability"));
 
       Int charge;
@@ -202,7 +202,7 @@ namespace OpenMS
     {
       // relates to the last seen peptide (we hope)
       Size position = attributeAsInt_(attributes, "position");
-      DoubleReal mass = attributeAsDouble_(attributes, "mass");
+      double mass = attributeAsDouble_(attributes, "mass");
       AASequence temp_aa_sequence(pep_hit_->getSequence());
 
       String temp_description = "";
@@ -273,9 +273,9 @@ namespace OpenMS
       protein_name);
   }
 
-  void ProtXMLFile::matchModification_(const DoubleReal mass, const String & origin, String & modification_description)
+  void ProtXMLFile::matchModification_(const double mass, const String & origin, String & modification_description)
   {
-    DoubleReal mod_mass = mass - ResidueDB::getInstance()->getResidue(origin)->getMonoWeight(Residue::Internal);
+    double mod_mass = mass - ResidueDB::getInstance()->getResidue(origin)->getMonoWeight(Residue::Internal);
     vector<String> mods;
     ModificationsDB::getInstance()->getModificationsByDiffMonoMass(mods, origin, mod_mass, 0.001);
 

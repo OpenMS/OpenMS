@@ -51,7 +51,7 @@ using namespace std;
 
 Weights createWeights()
 {
-  Map<char, DoubleReal> aa_to_weight;
+  Map<char, double> aa_to_weight;
 
   set<const Residue*> residues = ResidueDB::getInstance()->getResidues("Natural19WithoutI");
 
@@ -62,7 +62,7 @@ Weights createWeights()
 
   // init mass decomposer
   IMSAlphabet alphabet;
-  for (Map<char, DoubleReal>::ConstIterator it = aa_to_weight.begin(); it != aa_to_weight.end(); ++it)
+  for (Map<char, double>::ConstIterator it = aa_to_weight.begin(); it != aa_to_weight.end(); ++it)
   {
     alphabet.push_back(String(it->first), it->second);
   }

@@ -39,6 +39,9 @@
 
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
+
+#include <QString>
 
 #include <sstream>
 
@@ -80,22 +83,22 @@ END_SECTION
 START_SECTION((DataValue(long double)))
 	long double x = -3.4L;
 	DataValue d(x);
-	// Note: The implementation uses typedef DoubleReal (as opposed to float, double, long double.)
-	TEST_REAL_SIMILAR((DoubleReal)d, -3.4L)
+	// Note: The implementation uses typedef double (as opposed to float, double, long double.)
+	TEST_REAL_SIMILAR((double)d, -3.4L)
 END_SECTION
 
 START_SECTION((DataValue(double)))
 	double x = -3.0;
 	DataValue d(x);
-	// Note: The implementation uses typedef DoubleReal (as opposed to float, double, long double.)
-	TEST_REAL_SIMILAR((DoubleReal)d, -3.0);
+	// Note: The implementation uses typedef double (as opposed to float, double, long double.)
+	TEST_REAL_SIMILAR((double)d, -3.0);
 END_SECTION
 
 START_SECTION((DataValue(float)))
 	float x = 3.0;
 	DataValue d(x);
-	// Note: The implementation uses typedef DoubleReal (as opposed to float, double, long double.)
-	TEST_REAL_SIMILAR((DoubleReal)d, 3.0);
+	// Note: The implementation uses typedef double (as opposed to float, double, long double.)
+	TEST_REAL_SIMILAR((double)d, 3.0);
 END_SECTION
 
 
@@ -197,8 +200,8 @@ END_SECTION
 // copy ctor
 
 START_SECTION((DataValue(const DataValue&)))
-	DataValue p1((DoubleReal) 1.23);
-	DataValue p3((Real) 1.23);
+	DataValue p1((double) 1.23);
+	DataValue p3((float) 1.23);
 	DataValue p4((Int) -3);
 	DataValue p5((UInt) 123);
 	DataValue p6("test char");
@@ -206,7 +209,7 @@ START_SECTION((DataValue(const DataValue&)))
 	DataValue p8(ListUtils::create<String>("test string,string2,last string"));
 	DataValue p9;
 	DataValue p10(ListUtils::create<Int>("1,2,3,4,5"));
-	DataValue p11(ListUtils::create<DoubleReal>("1.2,2.3,3.4"));
+	DataValue p11(ListUtils::create<double>("1.2,2.3,3.4"));
 	DataValue copy_of_p1(p1);
 	DataValue copy_of_p3(p3);
 	DataValue copy_of_p4(p4);
@@ -217,8 +220,8 @@ START_SECTION((DataValue(const DataValue&)))
 	DataValue copy_of_p9(p9);
 	DataValue copy_of_p10(p10);
 	DataValue copy_of_p11(p11);
-	TEST_REAL_SIMILAR( (DoubleReal) copy_of_p1, 1.23)
-	TEST_REAL_SIMILAR( (Real) copy_of_p3, 1.23)
+	TEST_REAL_SIMILAR( (double) copy_of_p1, 1.23)
+	TEST_REAL_SIMILAR( (float) copy_of_p3, 1.23)
 	TEST_EQUAL( (Int) copy_of_p4, -3)
 	TEST_EQUAL( (UInt) copy_of_p5, 123)
 	TEST_EQUAL( (std::string) copy_of_p6, "test char")
@@ -226,14 +229,14 @@ START_SECTION((DataValue(const DataValue&)))
 	TEST_EQUAL( copy_of_p8 == ListUtils::create<String>("test string,string2,last string"), true)
 	TEST_EQUAL( (copy_of_p9.isEmpty()), true)
 	TEST_EQUAL( copy_of_p10 == ListUtils::create<Int>("1,2,3,4,5"), true)
-	TEST_EQUAL( copy_of_p11 == ListUtils::create<DoubleReal>("1.2,2.3,3.4"), true)
+	TEST_EQUAL( copy_of_p11 == ListUtils::create<double>("1.2,2.3,3.4"), true)
 END_SECTION
 
 // assignment operator
 
 START_SECTION((DataValue& operator = (const DataValue&)))
-	DataValue p1((DoubleReal) 1.23);
-	DataValue p3((Real) 1.23);
+	DataValue p1((double) 1.23);
+	DataValue p3((float) 1.23);
 	DataValue p4((Int) -3);
 	DataValue p5((UInt) 123);
 	DataValue p6("test char");
@@ -241,12 +244,12 @@ START_SECTION((DataValue& operator = (const DataValue&)))
 	DataValue p8(ListUtils::create<String>("test string,string2,last string"));
 	DataValue p9;
 	DataValue p10(ListUtils::create<Int>("1,2,3,4,5"));
-	DataValue p11(ListUtils::create<DoubleReal>("1.2,2.3,3.4"));
+	DataValue p11(ListUtils::create<double>("1.2,2.3,3.4"));
 	DataValue copy_of_p;
 	copy_of_p = p1;
-	TEST_REAL_SIMILAR( (DoubleReal) copy_of_p, 1.23)
+	TEST_REAL_SIMILAR( (double) copy_of_p, 1.23)
 	copy_of_p = p3;
-	TEST_REAL_SIMILAR( (Real) copy_of_p, 1.23)
+	TEST_REAL_SIMILAR( (float) copy_of_p, 1.23)
 	copy_of_p = p4;
 	TEST_EQUAL( (Int) copy_of_p, -3)
 	copy_of_p = p5;
@@ -262,7 +265,7 @@ START_SECTION((DataValue& operator = (const DataValue&)))
 	copy_of_p = p10;
 	TEST_EQUAL(copy_of_p == ListUtils::create<Int>("1,2,3,4,5"), true)
 	copy_of_p = p11;
-	TEST_EQUAL(copy_of_p == ListUtils::create<DoubleReal>("1.2,2.3,3.4"), true)
+	TEST_EQUAL(copy_of_p == ListUtils::create<double>("1.2,2.3,3.4"), true)
 END_SECTION
 
 // Is DataValue object empty?
@@ -271,10 +274,10 @@ START_SECTION((bool isEmpty() const))
 	DataValue p1;
 	bool res1 =  p1.isEmpty();
 	TEST_NOT_EQUAL( res1, false)
-	DataValue p2((Real)1.2);
+	DataValue p2((float)1.2);
 	bool res2 =  p2.isEmpty();
 	TEST_EQUAL( res2, false)
-	TEST_REAL_SIMILAR( (Real) p2, 1.2)
+	TEST_REAL_SIMILAR( (float) p2, 1.2)
 	DataValue p4("2");
 	bool res4 =  p4.isEmpty();
 	TEST_EQUAL( res4, false)
@@ -452,11 +455,11 @@ START_SECTION(([EXTRA] friend bool operator==(const DataValue&, const DataValue&
   DataValue a(5.0);
   DataValue b(5.0);
   TEST_EQUAL(a==b,true);
-  a = DataValue((DoubleReal)15.13);
-  b = DataValue((DoubleReal)15.13);
+  a = DataValue((double)15.13);
+  b = DataValue((double)15.13);
   TEST_EQUAL(a==b,true);
-  a = DataValue((Real)15.13);
-  b = DataValue((Real)(17-1.87));
+  a = DataValue((float)15.13);
+  b = DataValue((float)(17-1.87));
   TEST_EQUAL(a==b,true);
   a = DataValue((Int)5);
   b = DataValue((Int)5);
@@ -467,8 +470,8 @@ START_SECTION(([EXTRA] friend bool operator==(const DataValue&, const DataValue&
   a = DataValue("hello");
   b = DataValue(std::string("hello"));
   TEST_EQUAL(a==b,true);
-  a = DataValue((Real)15.13);
-  b = DataValue((Real)(15.13001));
+  a = DataValue((float)15.13);
+  b = DataValue((float)(15.13001));
   TEST_EQUAL(a==b,false);
 END_SECTION
 
@@ -476,8 +479,8 @@ START_SECTION(([EXTRA] friend bool operator!=(const DataValue&, const DataValue&
   DataValue a(5.0);
   DataValue b(5.1);
   TEST_EQUAL(a!=b,true);
-  a = DataValue((DoubleReal)15.13001);
-  b = DataValue((DoubleReal)15.13);
+  a = DataValue((double)15.13001);
+  b = DataValue((double)15.13);
   TEST_EQUAL(a!=b,true);
 
 END_SECTION
@@ -506,7 +509,7 @@ START_SECTION((String toString() const))
   TEST_EQUAL(a.toString(), "[test string, string2, last string]")
   a = DataValue(ListUtils::create<Int>("1,2,3,4,5"));
   TEST_EQUAL(a.toString(),"[1, 2, 3, 4, 5]")
-  a= DataValue(ListUtils::create<DoubleReal>("1.2,23.3333"));
+  a= DataValue(ListUtils::create<double>("1.2,23.3333"));
   TEST_EQUAL(a.toString(),"[1.2, 23.3333]")
 END_SECTION
 
@@ -543,12 +546,12 @@ START_SECTION((QString toQString() const))
   TEST_EQUAL(a.toQString().toStdString(), "[test string, string2, last string]")
   a =DataValue(ListUtils::create<Int>("1,2,3"));
   TEST_EQUAL(a.toQString().toStdString(), "[1, 2, 3]")
-  a = DataValue(ListUtils::create<DoubleReal>("1.22,43.23232"));
+  a = DataValue(ListUtils::create<double>("1.22,43.23232"));
   TEST_EQUAL(a.toQString().toStdString(),"[1.22, 43.23232]")
 END_SECTION
 
 START_SECTION(([EXTRA] friend std::ostream& operator<<(std::ostream&, const DataValue&)))
-	DataValue a((Int)5), b((UInt)100), c((DoubleReal)1.111), d((DoubleReal)1.1), e("hello "), f(std::string("world")), g;
+	DataValue a((Int)5), b((UInt)100), c((double)1.111), d((double)1.1), e("hello "), f(std::string("world")), g;
 	std::ostringstream os;
   os << a << b << c << d << e << f << g;
   TEST_EQUAL(os.str(),"51001.1111.1hello world")
@@ -579,7 +582,7 @@ START_SECTION((DataType valueType() const))
 	DataValue a7(ListUtils::create<Int>("1,2,3"));
 	TEST_EQUAL(a7.valueType(),DataValue::INT_LIST)
 
-	DataValue a8(ListUtils::create<DoubleReal>("1.2,32.4567"));
+	DataValue a8(ListUtils::create<double>("1.2,32.4567"));
 	TEST_EQUAL(a8.valueType(),DataValue::DOUBLE_LIST);
 END_SECTION
 
@@ -690,7 +693,7 @@ END_SECTION
 
 START_SECTION((DataValue& operator=(const DoubleList&)))
 {
-  DoubleList v = ListUtils::create<DoubleReal>("2.14,-3.45");
+  DoubleList v = ListUtils::create<double>("2.14,-3.45");
   DataValue a("v");
   a = v;
   DoubleList adl = a;

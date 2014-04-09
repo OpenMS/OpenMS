@@ -129,7 +129,7 @@ protected:
     return String(" (") + String::number(100.0 * count / size, 2) + "%)";
   }
 
-  String fiveNumbers(vector<DoubleReal> a, UInt decimal_places)
+  String fiveNumbers(vector<double> a, UInt decimal_places)
   {
     sort(a.begin(), a.end());
     return String::number(a[0], decimal_places) + " " + String::number(a[a.size() / 4], decimal_places) + " " + String::number(a[a.size() / 2], decimal_places) + " " + String::number(a[(3 * a.size()) / 4], decimal_places) + " " + String::number(a.back(), decimal_places);
@@ -148,12 +148,12 @@ protected:
     {
       FeatureXMLFile().load(getStringOption_("abort_reasons"), abort_reasons);
     }
-    DoubleReal mz_tol = getDoubleOption_("mz_tol");
+    double mz_tol = getDoubleOption_("mz_tol");
     writeDebug_(String("Final MZ tolerance: ") + mz_tol, 1);
 
     //determine average RT tolerance:
     //median feature RT span times given factor
-    vector<DoubleReal> rt_spans;
+    vector<double> rt_spans;
     for (Size t = 0; t < features_in.size(); ++t)
     {
       if (features_in[t].getConvexHulls().size() != 0)
@@ -162,7 +162,7 @@ protected:
       }
     }
     //feature convex hulls are available => relative RT span
-    DoubleReal rt_tol = getDoubleOption_("rt_tol_abs");
+    double rt_tol = getDoubleOption_("rt_tol_abs");
     if (rt_tol < 0.0)
     {
       if (!rt_spans.empty())
@@ -184,10 +184,10 @@ protected:
     writeDebug_(String("Final RT tolerance: ") + rt_tol, 1);
 
     //general statistics
-    std::vector<DoubleReal> ints_t;
-    std::vector<DoubleReal> ints_i;
-    std::vector<DoubleReal> ints_found;
-    std::vector<DoubleReal> ints_missed;
+    std::vector<double> ints_t;
+    std::vector<double> ints_i;
+    std::vector<double> ints_found;
+    std::vector<double> ints_missed;
     Map<String, UInt> abort_strings;
 
     for (Size m = 0; m < features_truth.size(); ++m)
@@ -203,7 +203,7 @@ protected:
         //RT match
         if (fabs(f_i.getRT() - f_t.getRT()) < rt_tol)
         {
-          DoubleReal charge_mz_tol = mz_tol / f_t.getCharge();
+          double charge_mz_tol = mz_tol / f_t.getCharge();
           //Exact m/z match
           if (fabs(f_i.getMZ() - f_t.getMZ()) < charge_mz_tol)
           {
@@ -265,7 +265,7 @@ protected:
         ints_missed.push_back(f_t.getIntensity());
 
         //look up the abort reason of the nearest seed
-        DoubleReal best_score_ab = 0;
+        double best_score_ab = 0;
         String reason = "";
         for (Size b = 0; b < abort_reasons.size(); ++b)
         {
@@ -273,7 +273,7 @@ protected:
           if (fabs(f_ab.getRT() - f_t.getRT()) <= rt_tol
              && fabs(f_ab.getMZ() - f_t.getMZ()) <= mz_tol)
           {
-            DoubleReal score = (1.0 - fabs(f_ab.getMZ() - f_t.getMZ()) / mz_tol) * (1.0 - fabs(f_ab.getRT() - f_t.getRT()) / rt_tol);
+            double score = (1.0 - fabs(f_ab.getMZ() - f_t.getMZ()) / mz_tol) * (1.0 - fabs(f_ab.getRT() - f_t.getRT()) / rt_tol);
             if (score > best_score_ab)
             {
               best_score_ab = score;
@@ -390,8 +390,8 @@ protected:
       features_in.sortByIntensity(true);
       UInt f_correct = 0;
       UInt f_false = 0;
-      DoubleReal found = features_in.size();
-      DoubleReal correct = features_truth.size();
+      double found = features_in.size();
+      double correct = features_truth.size();
       for (Size i = 0; i < features_in.size(); ++i)
       {
         if (features_in[i].metaValueExists("correct_hit"))

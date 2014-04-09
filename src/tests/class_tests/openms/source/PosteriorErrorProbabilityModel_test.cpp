@@ -197,43 +197,43 @@ START_SECTION((void fit( std::vector<double>& search_engine_scores, std::vector<
 
 END_SECTION
 
-START_SECTION((void fillDensities(std::vector<double>& x_scores,std::vector<DoubleReal>& incorrect_density,std::vector<DoubleReal>& correct_density)))
+START_SECTION((void fillDensities(std::vector<double>& x_scores,std::vector<double>& incorrect_density,std::vector<double>& correct_density)))
 NOT_TESTABLE
 //tested in fit
 END_SECTION
-START_SECTION((DoubleReal computeMaxLikelihood(std::vector<DoubleReal>& incorrect_density, std::vector<DoubleReal>& correct_density)))
+START_SECTION((double computeMaxLikelihood(std::vector<double>& incorrect_density, std::vector<double>& correct_density)))
 NOT_TESTABLE
 //tested in fit
 END_SECTION
-START_SECTION((DoubleReal one_minus_sum_post(std::vector<DoubleReal>& incorrect_density, std::vector<DoubleReal>& correct_density)))
+START_SECTION((double one_minus_sum_post(std::vector<double>& incorrect_density, std::vector<double>& correct_density)))
 NOT_TESTABLE
 //tested in fit
 END_SECTION
-START_SECTION((DoubleReal sum_post(std::vector<DoubleReal>& incorrect_density, std::vector<DoubleReal>& correct_density)))
+START_SECTION((double sum_post(std::vector<double>& incorrect_density, std::vector<double>& correct_density)))
 NOT_TESTABLE
 //tested in fit
 END_SECTION
-START_SECTION((DoubleReal sum_pos_x0(std::vector<double>& x_scores, std::vector<DoubleReal>& incorrect_density, std::vector<DoubleReal>& correct_density)))
+START_SECTION((double sum_pos_x0(std::vector<double>& x_scores, std::vector<double>& incorrect_density, std::vector<double>& correct_density)))
 NOT_TESTABLE
 //tested in fit
 END_SECTION
-START_SECTION((DoubleReal sum_neg_x0(std::vector<double>& x_scores, std::vector<DoubleReal>& incorrect_density, std::vector<DoubleReal>& correct_density)))
+START_SECTION((double sum_neg_x0(std::vector<double>& x_scores, std::vector<double>& incorrect_density, std::vector<double>& correct_density)))
 NOT_TESTABLE
 //tested in fit
 END_SECTION
-START_SECTION((DoubleReal sum_pos_sigma(std::vector<double>& x_scores, std::vector<DoubleReal>& incorrect_density, std::vector<DoubleReal>& correct_density, DoubleReal positive_mean)))
+START_SECTION((double sum_pos_sigma(std::vector<double>& x_scores, std::vector<double>& incorrect_density, std::vector<double>& correct_density, double positive_mean)))
 NOT_TESTABLE
 //tested in fit
 END_SECTION
-START_SECTION((DoubleReal sum_neg_sigma(std::vector<double>& x_scores, std::vector<DoubleReal>& incorrect_density, std::vector<DoubleReal>& correct_density, DoubleReal positive_mean)))
+START_SECTION((double sum_neg_sigma(std::vector<double>& x_scores, std::vector<double>& incorrect_density, std::vector<double>& correct_density, double positive_mean)))
 NOT_TESTABLE
 //tested in fit
 END_SECTION
-START_SECTION((DoubleReal getGauss(DoubleReal x,const GaussFitter::GaussFitResult& params)))
+START_SECTION((double getGauss(double x,const GaussFitter::GaussFitResult& params)))
 NOT_TESTABLE
 //tested in fit
 END_SECTION
-START_SECTION((DoubleReal getGumbel(DoubleReal x,const GaussFitter::GaussFitResult& params)))
+START_SECTION((double getGumbel(double x,const GaussFitter::GaussFitResult& params)))
 NOT_TESTABLE
 //tested in fit
 END_SECTION
@@ -248,12 +248,12 @@ START_SECTION((GaussFitter::GaussFitResult getIncorrectlyAssignedFitResult() con
 NOT_TESTABLE
 END_SECTION
 
-START_SECTION((DoubleReal getNegativePrior() const))
+START_SECTION((double getNegativePrior() const))
 //tested in fit
 NOT_TESTABLE
 END_SECTION
 
-START_SECTION((DoubleReal getSmallestScore() const))
+START_SECTION((double getSmallestScore() const))
 TEST_REAL_SIMILAR(ptr->getSmallestScore(), -0.39)
 END_SECTION
 
@@ -279,7 +279,7 @@ NOT_TESTABLE
 delete ptr;
 END_SECTION
 
-START_SECTION((DoubleReal computeProbability(DoubleReal score)))
+START_SECTION((double computeProbability(double score)))
 NOT_TESTABLE
 //tested in fit
 END_SECTION

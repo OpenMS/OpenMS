@@ -48,19 +48,10 @@
 #ifndef OPENMS_CONFIG_H
 #define OPENMS_CONFIG_H
 
+// include OPENMS_DLLAPI macros
+#include <OpenMS/OpenMSConfig.h>
+
 // Here are some global configuration flags for OpenMS
-
-// The path to the directory where OpenMS data is installed
-#define OPENMS_DATA_PATH "@CF_OPENMS_DATA_PATH@"
-
-// The path to the directory where OpenMS doc is installed
-#define OPENMS_DOC_PATH "@CF_OPENMS_DOC_PATH@"
-
-// The directory where OpenMS is build
-#define OPENMS_SOURCE_PATH "@PROJECT_SOURCE_DIR@"
-
-// The directory where the OpenMS sources are located
-#define OPENMS_BINARY_PATH "@PROJECT_BINARY_DIR@"
 
 // Define compiler specifics (used in VERY few places only)
 // Microsoft Visual Studio .NET, 2005, 2008
@@ -101,28 +92,6 @@
 // are we building a shared lib?
 #cmakedefine BUILD_SHARED_LIBS
 
-#ifdef OPENMS_WINDOWSPLATFORM
-# ifdef BUILD_SHARED_LIBS
-#  if defined OpenMS_EXPORTS  //automatically defined by CMake when building OpenMS dll
-#    define OPENMS_DLLAPI  __declspec( dllexport )
-#  else
-#    define OPENMS_DLLAPI  __declspec( dllimport )
-#  endif
-#  if defined OpenMS_GUI_EXPORTS  //automatically defined by CMake when building OpenMS-GUI dll
-#    define OPENMS_GUI_DLLAPI  __declspec( dllexport )
-#  else
-#    define OPENMS_GUI_DLLAPI  __declspec( dllimport )
-#  endif
-# endif
-#endif
-#ifndef OPENMS_DLLAPI //leave empty when not building DLL
-# define OPENMS_DLLAPI
-#endif
-#ifndef OPENMS_GUI_DLLAPI //leave empty when not building DLL
-# define OPENMS_GUI_DLLAPI
-#endif
-
-
 #cmakedefine OPENMS_BIG_ENDIAN
 
 // Define on 64 bit architectures
@@ -133,7 +102,6 @@
 #define OPENMS_BYTE_TYPE @CF_OPENMS_BYTE_TYPE@
 #define OPENMS_UINT64_TYPE @CF_OPENMS_UINT64_TYPE@
 //#define OPENMS_SIZE_T_SIGNED @CF_OPENMS_SIZE_T_SIGNED@
-
 
 // if you ever want to do abs() or floor() on this type in VC then use _abs64() and include <stdlib.h> (no kidding!)
 #define PointerSizeInt @CF_OPENMS_INT64_TYPE@
@@ -171,7 +139,6 @@
 #define OPENMS_GLPK_VERSION_MINOR @CF_OPENMS_GLPK_VERSION_MINOR@
 
 // class & TOPP tests
-#define DB_PLUGIN "@CF_QT_DB_PLUGIN@"
 
 #ifdef _OPENMP
   #define IF_MASTERTHREAD if (omp_get_thread_num() ==0)

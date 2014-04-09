@@ -37,12 +37,12 @@
 
 ///////////////////////////
 #include <OpenMS/ANALYSIS/MAPMATCHING/LabeledPairFinder.h>
+///////////////////////////
+
+#include <OpenMS/KERNEL/ConversionHelper.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
-
-
-///////////////////////////
 
 using namespace OpenMS;
 using namespace std;
@@ -139,14 +139,14 @@ START_SECTION((virtual void run(const std::vector<ConsensusMap>& input_maps, Con
 	p.setValue("rt_pair_dist",0.4);
 	p.setValue("rt_dev_low",1.0);
 	p.setValue("rt_dev_high",2.0);
-	p.setValue("mz_pair_dists",ListUtils::create<DoubleReal>(4.0));
+	p.setValue("mz_pair_dists",ListUtils::create<double>(4.0));
 	p.setValue("mz_dev",0.6);
 	pm.setParameters(p);
 
 	ConsensusMap output;
 	TEST_EXCEPTION(Exception::IllegalArgument,pm.run(vector<ConsensusMap>(),output));
 	vector<ConsensusMap> input(1);
-	ConsensusMap::convert(5,features,input[0]);
+	MapConversion::convert(5,features,input[0]);
 	output.getFileDescriptions()[5].label = "light";
 	output.getFileDescriptions()[5].filename = "filename";
 	output.getFileDescriptions()[8] = output.getFileDescriptions()[5];
@@ -167,7 +167,7 @@ START_SECTION((virtual void run(const std::vector<ConsensusMap>& input_maps, Con
 	LabeledPairFinder pm2;
 	Param p2;
 	p2.setValue("rt_estimate","true");
-	p2.setValue("mz_pair_dists", ListUtils::create<DoubleReal>(4.0));
+	p2.setValue("mz_pair_dists", ListUtils::create<double>(4.0));
 	p2.setValue("mz_dev",0.2);
 	pm2.setParameters(p2);
 
@@ -176,7 +176,7 @@ START_SECTION((virtual void run(const std::vector<ConsensusMap>& input_maps, Con
 
 	ConsensusMap output2;
 	vector<ConsensusMap> input2(1);
-	ConsensusMap::convert(5,features2,input2[0]);
+	MapConversion::convert(5,features2,input2[0]);
 	output2.getFileDescriptions()[5].label = "light";
 	output2.getFileDescriptions()[5].filename = "filename";
 	output2.getFileDescriptions()[8] = output.getFileDescriptions()[5];

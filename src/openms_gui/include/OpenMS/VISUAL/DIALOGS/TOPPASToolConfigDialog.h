@@ -35,6 +35,9 @@
 #ifndef OPENMS_VISUAL_DIALOGS_TOPPASTOOLCONFIGDIALOG_H
 #define OPENMS_VISUAL_DIALOGS_TOPPASTOOLCONFIGDIALOG_H
 
+// OpenMS_GUI config
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
+
 class QComboBox;
 class QPushButton;
 class QRadioButton;

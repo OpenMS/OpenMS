@@ -120,22 +120,22 @@ namespace OpenMS
     acquisition_mode_ = acquisition_mode;
   }
 
-  DoubleReal IonDetector::getResolution() const
+  double IonDetector::getResolution() const
   {
     return resolution_;
   }
 
-  void IonDetector::setResolution(DoubleReal resolution)
+  void IonDetector::setResolution(double resolution)
   {
     resolution_ = resolution;
   }
 
-  DoubleReal IonDetector::getADCSamplingFrequency() const
+  double IonDetector::getADCSamplingFrequency() const
   {
     return ADC_sampling_frequency_;
   }
 
-  void IonDetector::setADCSamplingFrequency(DoubleReal ADC_sampling_frequency)
+  void IonDetector::setADCSamplingFrequency(double ADC_sampling_frequency)
   {
     ADC_sampling_frequency_ = ADC_sampling_frequency;
   }

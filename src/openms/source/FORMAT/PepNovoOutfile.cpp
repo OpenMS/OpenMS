@@ -38,6 +38,7 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/PepNovoOutfile.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 #include <iostream>
 #include <fstream>
@@ -74,7 +75,7 @@ namespace OpenMS
     const string & result_filename,
     vector<PeptideIdentification> & peptide_identifications,
     ProteinIdentification & protein_identification,
-    const DoubleReal & score_threshold,
+    const double & score_threshold,
     const IndexPosMappingType & index_to_precursor,
     const map<String, String> & pnovo_modkey_to_mod_id
     )
@@ -154,8 +155,8 @@ namespace OpenMS
         }
       }
     }
-    
-    
+
+
     Size index;
     while (getline(result_file, line))
     {
@@ -176,7 +177,7 @@ namespace OpenMS
         {
           throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Not enough columns (spectrum Id) in file in line " + String(line_number) + String(" (should be 2 or more)!"), result_filename);
         }
-        
+
         try
         {
           index = substrings[2].trim().toInt();
@@ -185,7 +186,7 @@ namespace OpenMS
         {
           throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Expected an index number in line " + String(line_number) + String(" at position 2 (line was: '" + line + "')!"), result_filename);
         }
-        
+
         //cout<<"INDEX: "<<index<<endl;
         peptide_identification = PeptideIdentification();
         bool success = false;
@@ -193,13 +194,13 @@ namespace OpenMS
         {
           if (index_to_precursor.find(index) != index_to_precursor.end())
           {
-            peptide_identification.setMetaValue("RT", index_to_precursor.find(index)->second.first);
-            peptide_identification.setMetaValue("MZ", index_to_precursor.find(index)->second.second);
+            peptide_identification.setRT(index_to_precursor.find(index)->second.first);
+            peptide_identification.setMZ(index_to_precursor.find(index)->second.second);
             success = true;
           }
           else throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Index '" + String(index) + String("' in line '" + line + "' not found in index table (line was: '" + line + "')!"), result_filename);
         }
-        
+
         if (!success)
         { // try to reconstruct from title entry (usually sensible when MGF is supplied to PepNovo)
           try
@@ -209,15 +210,15 @@ namespace OpenMS
               StringList parts = ListUtils::create<String>(substrings[3], '_');
               if (parts.size() >= 2)
               {
-                peptide_identification.setMetaValue("RT", parts[1].toDouble());
-                peptide_identification.setMetaValue("MZ", parts[0].toDouble());
+                peptide_identification.setRT(parts[1].toDouble());
+                peptide_identification.setMZ(parts[0].toDouble());
                 success = true;
               }
             }
           }
           catch (...)
           {
-            
+
           }
           if (!success) throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Precursor could not be reconstructed from title '" + substrings[3] + String("' in line '" + line + "' (line was: '" + line + "')!"), result_filename);
         }
@@ -299,7 +300,7 @@ namespace OpenMS
                 //cout<<mask_it->first<<" "<<mask_it->second<<endl;
                 sequence.substitute(mask_it->first, mask_it->second);
               }
-              peptide_hit.setSequence(AASequence(sequence));
+              peptide_hit.setSequence(AASequence::fromString(sequence));
               peptide_identification.insertHit(peptide_hit);
             }
           }

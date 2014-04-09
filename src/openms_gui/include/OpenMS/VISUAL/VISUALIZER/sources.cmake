@@ -87,7 +87,7 @@ ProductVisualizer.h
 ### add path to the filenames
 set(sources_h)
 foreach(i ${sources_list_h})
-	list(APPEND sources_h ${directory}/${i})
+  list(APPEND sources_h ${directory}/${i})
 endforeach(i)
 
 ### source group definition

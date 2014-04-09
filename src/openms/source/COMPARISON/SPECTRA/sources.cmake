@@ -8,7 +8,6 @@ BinnedSpectralContrastAngle.cpp
 BinnedSpectrum.cpp
 BinnedSpectrumCompareFunctor.cpp
 BinnedSumAgreeingIntensities.cpp
-CompareFouriertransform.cpp
 PeakAlignment.cpp
 PeakSpectrumCompareFunctor.cpp
 SpectraSTSimilarityScore.cpp

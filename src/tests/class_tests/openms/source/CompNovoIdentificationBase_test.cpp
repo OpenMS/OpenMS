@@ -83,7 +83,7 @@ str_set.insert("TESTSTRING");
 std::set<String>::const_iterator it = str_set.begin();
 
 
-START_SECTION([CompNovoIdentificationBase::Permut] Permut(const std::set< String >::const_iterator &permut, DoubleReal s))
+START_SECTION([CompNovoIdentificationBase::Permut] Permut(const std::set< String >::const_iterator &permut, double s))
 	CompNovoIdentificationBase::Permut perm(it, 50.0);
 	TEST_EQUAL(perm.getScore(), 50.0)
 	TEST_EQUAL(*perm.getPermut(), "TESTSTRING")
@@ -117,13 +117,13 @@ START_SECTION([CompNovoIdentificationBase::Permut] void setPermut(const std::set
 	TEST_EQUAL(*perm.getPermut(), "TESTSTRING");
 END_SECTION
 
-START_SECTION([CompNovoIdentificationBase::Permut] void setScore(DoubleReal score))
+START_SECTION([CompNovoIdentificationBase::Permut] void setScore(double score))
 	CompNovoIdentificationBase::Permut perm(it, 50.0);
 	perm.setScore(0.0);
 	TEST_EQUAL(perm.getScore(), 0.0)
 END_SECTION
 
-START_SECTION([CompNovoIdentificationBase::Permut] DoubleReal getScore() const)
+START_SECTION([CompNovoIdentificationBase::Permut] double getScore() const)
 	NOT_TESTABLE //already tested above
 END_SECTION
 

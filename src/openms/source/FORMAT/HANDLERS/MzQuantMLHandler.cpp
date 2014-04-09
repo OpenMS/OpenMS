@@ -282,8 +282,8 @@ namespace OpenMS
       else if (tag_ == "Feature")
       {
         current_id_ = attributeAsString_(attributes, "id");
-        DoubleReal rt = attributeAsDouble_(attributes, "rt");
-        DoubleReal mz = attributeAsDouble_(attributes, "mz");
+        double rt = attributeAsDouble_(attributes, "rt");
+        double mz = attributeAsDouble_(attributes, "mz");
         FeatureHandle fh;
         fh.setRT(rt);
         fh.setMZ(mz);
@@ -318,7 +318,7 @@ namespace OpenMS
 
       if (tag_ == "PeptideSequence")
       {
-        AASequence p(sm_.convert(chars));
+        AASequence p = AASequence::fromString(String(sm_.convert(chars)));
         PeptideHit ph = PeptideHit(0, 0, cf_cf_obj_[current_cf_id_].getCharge(), p);
         cf_cf_obj_[current_cf_id_].getPeptideIdentifications().back().insertHit(ph); // just moments before added
         return;
@@ -633,13 +633,13 @@ namespace OpenMS
       {
         //TODO
         if (accession == "MOD:01522")
-          current_assay_.mods_.push_back(std::make_pair<String, DoubleReal>("114", DoubleReal(114)));
+          current_assay_.mods_.push_back(std::make_pair<String, double>("114", double(114)));
         else if (accession == "MOD:01523")
-          current_assay_.mods_.push_back(std::make_pair<String, DoubleReal>("115", DoubleReal(115)));
+          current_assay_.mods_.push_back(std::make_pair<String, double>("115", double(115)));
         else if (accession == "MOD:01524")
-          current_assay_.mods_.push_back(std::make_pair<String, DoubleReal>("116", DoubleReal(116)));
+          current_assay_.mods_.push_back(std::make_pair<String, double>("116", double(116)));
         else if (accession == "MOD:01525")
-          current_assay_.mods_.push_back(std::make_pair<String, DoubleReal>("117", DoubleReal(117)));
+          current_assay_.mods_.push_back(std::make_pair<String, double>("117", double(117)));
 
       }
       else
@@ -816,10 +816,6 @@ namespace OpenMS
         {
           softwarelist_tag += "\t\t\t<userParam name=\"" + String(dit->getSoftware().getName()) + "\"/>\n";
         }
-        if (dit->getSoftware().getName() == "SILACAnalyzer")
-        {
-          softwarelist_tag += "\t\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1001831\" name=\"SILACAnalyzer\"/>\n";
-        }
         if (dit->getSoftware().getName() == "ITRAQAnalyzer")
         {
           softwarelist_tag += "\t\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1001831\" name=\"ITRAQAnalyzer\"/>\n";
@@ -946,10 +942,10 @@ namespace OpenMS
         switch (cmsq_->getAnalysisSummary().quant_type_) //enum QUANT_TYPES {MS1LABEL=0, MS2LABEL, LABELFREE, SIZE_OF_QUANT_TYPES}; // derived from processing applied
         {
         case 0:
-          for (std::vector<std::pair<String, DoubleReal> >::const_iterator lit = ait->mods_.begin(); lit != ait->mods_.end(); ++lit)
+          for (std::vector<std::pair<String, double> >::const_iterator lit = ait->mods_.begin(); lit != ait->mods_.end(); ++lit)
           {
             String cv_acc, cv_name;
-            switch ((int)std::floor(lit->second + (DoubleReal)0.5)) //delta >! 0
+            switch ((int)std::floor(lit->second + (double)0.5)) //delta >! 0
             {
             case 6:
               cv_acc = "MOD:00544";
@@ -980,7 +976,7 @@ namespace OpenMS
         {
           //~ assay_xml += "\t\t\t\t<Modification massDelta=\"145\" residues=\"N-term\">\n";
           //~ assay_xml += "\t\t\t\t\t<cvParam name =\"itraq label\"/>\n";
-          for (std::vector<std::pair<String, DoubleReal> >::const_iterator lit = ait->mods_.begin(); lit != ait->mods_.end(); ++lit)
+          for (std::vector<std::pair<String, double> >::const_iterator lit = ait->mods_.begin(); lit != ait->mods_.end(); ++lit)
           {
             assay_xml += "\t\t\t\t<Modification massDelta=\"145\">\n";
             String cv_acc, cv_name;
@@ -1040,9 +1036,9 @@ namespace OpenMS
 
       // ---Features and QuantLayers---
       std::vector<UInt64> fid;
-      std::vector<Real> fin, fwi, fqu;
+      std::vector<float> fin, fwi, fqu;
       std::vector<std::vector<std::vector<UInt64> >  > cid; //per consensusmap - per consensus - per feature (first entry is consensus idref)
-      std::vector<std::vector<Real> > f2i;
+      std::vector<std::vector<float> > f2i;
       String peptide_xml, feature_xml = "";
       feature_xml += "\t<FeatureList id=\"featurelist1\" rawFilesGroup_ref=\"rfg_" + glob_rfgr + "\">\n"; //TODO make registerExperiment also register the consensusmaps (and featuremaps) - keep the grouping with ids
       for (std::vector<ConsensusMap>::const_iterator mit = cmsq_->getConsensusMaps().begin(); mit != cmsq_->getConsensusMaps().end(); ++mit)
@@ -1076,7 +1072,7 @@ namespace OpenMS
 
           case 1: //ms2label
           {
-            std::vector<Real> fi;
+            std::vector<float> fi;
             fid.push_back(UniqueIdGenerator::getUniqueId());
             feature_xml += "\t\t<Feature id=\"f_" + String(fid.back()) + "\" rt=\"" + String(cit->getRT()) + "\" mz=\"" + String(cit->getMZ()) + "\" charge=\"" + String(cit->getCharge()) + "\"/>\n";
             //~ std::vector<UInt64> cidvec;
@@ -1327,9 +1323,9 @@ namespace OpenMS
       //TODO: remove dummy
 
       std::vector<UInt64> fid;
-      std::vector<Real> fin, fwi, fqu;
+      std::vector<float> fin, fwi, fqu;
       std::vector<std::vector<std::vector<UInt64> >  > cid; //per consensusmap - per consensus - per feature (first entry is consensus idref)
-      std::vector<std::vector<Real> > f2i;
+      std::vector<std::vector<float> > f2i;
       std::vector<UInt64> idvec;
       idvec.push_back(UniqueIdGenerator::getUniqueId());
 

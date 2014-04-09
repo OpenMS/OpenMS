@@ -76,7 +76,7 @@ public:
 
   }
 
-  static bool compareIDsWithScores(pair<DoubleReal, PeptideIdentification> a, pair<DoubleReal, PeptideIdentification> b)
+  static bool compareIDsWithScores(pair<double, PeptideIdentification> a, pair<double, PeptideIdentification> b)
   {
     if (a.second.isHigherScoreBetter())
     {
@@ -121,8 +121,8 @@ protected:
     PeptideIdentification temp_identification;
     vector<String> chosen_ids;
     bool best_hits = false;
-    vector<pair<DoubleReal, PeptideIdentification> > identifications_with_scores;
-    vector<pair<DoubleReal, PeptideIdentification> >::iterator it = identifications_with_scores.begin();
+    vector<pair<double, PeptideIdentification> > identifications_with_scores;
+    vector<pair<double, PeptideIdentification> >::iterator it = identifications_with_scores.begin();
     vector<PeptideIdentification> temp_identifications;
 
 

@@ -82,10 +82,9 @@ using namespace std;
 		Note that alignment is based on the sequence including modifications, thus an exact match is required. I.e., a peptide with oxidised methionine will not be matched to its unmodified version.
 		For some applications this behaviour is desired, while for others its not, but you can always remove all modifications from the input files if you want to ignore modifications.
 		
-    Since %OpenMS 1.8, the extraction of data for the alignment has been separate from the modeling of RT transformations based on that data. It is now possible to use different models independently of the chosen algorithm. This algorithm has been tested mostly with the "b_spline" model. The different available models are:
+    Since %OpenMS 1.8, the extraction of data for the alignment has been separate from the modeling of RT transformations based on that data. It is now possible to use different models independently of the chosen algorithm. This algorithm has been tested mostly with the "interpolated" model. The different available models are:
     - @ref OpenMS::TransformationModelLinear "linear": Linear model.
-    - @ref OpenMS::TransformationModelBSpline "b_spline": Smoothing spline (non-linear).
-    - @ref OpenMS::TransformationModelInterpolated "interpolated": Different types of interpolation.
+    - @ref OpenMS::TransformationModelInterpolated "interpolated": Smoothing spline (non-linear).
 
     The following parameters control the modeling of RT transformations (they can be set in the "model" section of the INI file):
     @htmlinclude OpenMS_MapAlignerIdentificationModel.parameters @n
@@ -182,7 +181,7 @@ private:
     }
     if (section == "model")
     {
-      return getModelDefaults("b_spline");
+      return getModelDefaults("interpolated");
     }
 
     // shouldn't happen

@@ -35,6 +35,9 @@
 #ifndef OPENMS_VISUAL_SPECTRUM2DWIDGET_H
 #define OPENMS_VISUAL_SPECTRUM2DWIDGET_H
 
+// OpenMS_GUI config
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
+
 // OpenMS
 #include <OpenMS/VISUAL/SpectrumWidget.h>
 #include <OpenMS/VISUAL/Spectrum2DCanvas.h>

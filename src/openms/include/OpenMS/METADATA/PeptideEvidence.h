@@ -66,7 +66,7 @@ public:
     PeptideEvidence();
 
     /// values constructor
-    PeptideEvidence(DoubleReal score,
+    PeptideEvidence(double score,
                     UInt rank,
                     Int charge,
                     const AASequence & sequence);
