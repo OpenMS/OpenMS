@@ -2735,35 +2735,20 @@ protected:
 	  {
 		MSExperiment<>::const_iterator map_rt_begin = peak_map.RTBegin(-std::numeric_limits<double>::max());
 		MSExperiment<>::const_iterator rt_begin = peak_map.RTBegin(it->getRT() - 1e-5);
-
-		blacklist_idx.push_back(std::distance(map_rt_begin, rt_begin));
+		Size index = std::distance(map_rt_begin, rt_begin);
+		//cout << "Blacklist Index: " << index << endl;
+		blacklist_idx.push_back(index);
 	  }
 
-	  map<String, double> aa_frequency;
-	  aa_frequency["A"] = 0.075;
-	  aa_frequency["C"] = 0.018;
-	  aa_frequency["D"] = 0.052;
-	  aa_frequency["E"] = 0.063;
-	  aa_frequency["F"] = 0.039;
+	  // lookup for averagine calulcation
+	  const double averagine_C = 0.0444398894906044;
+	  const double averagine_H = 0.0698157176375389;
+	  const double averagine_N = 0.0122177302837372;
+	  const double averagine_O = 0.013293989934027;
+	  const double averagine_S = 0.000375250005163252;
 
-	  aa_frequency["G"] = 0.071;
-	  aa_frequency["H"] = 0.022;
-	  aa_frequency["I"] = 0.055;
-	  aa_frequency["K"] = 0.058;
-	  aa_frequency["L"] = 0.091;
-
-	  aa_frequency["M"] = 0.028;
-	  aa_frequency["N"] = 0.046;
-	  aa_frequency["P"] = 0.051;
-	  aa_frequency["Q"] = 0.041;
-	  aa_frequency["R"] = 0.052;
-
-	  aa_frequency["S"] = 0.074;
-	  aa_frequency["T"] = 0.060;
-	  aa_frequency["V"] = 0.065;
-	  aa_frequency["W"] = 0.013;
-	  aa_frequency["Y"] = 0.033;
-
+	  Size averagine_id_features = 0;
+	  Size blacklisted_features = 0;
 	  for (Size i = 0; i != peak_map.size(); ++i)
 	  {
 		// precursor not blacklisted?
@@ -2789,47 +2774,70 @@ protected:
 		  // calculate from full to internal mass
 		  double internal_precursor_mass = precursor_mass - EmpiricalFormula("H2O").getMonoWeight();
 
+		  // calculate averagine empirical formula for this mass
+		  double C_num = precursor_mass * averagine_C;
+		  double H_num = precursor_mass * averagine_H;
+		  double N_num = precursor_mass * averagine_N;
+		  double O_num = precursor_mass * averagine_O;
+		  double S_num = precursor_mass * averagine_S;
+
+		  // TODO: remove restriction
 		  if (internal_precursor_mass > 1000) continue;
 
-		  LOG_INFO << "decomposing mass: " << precursor_mass << endl;
+		  cout << "decomposing mass: " << precursor_mass << endl;
 		  mda.getDecompositions(decomps, internal_precursor_mass);
-
-		  LOG_INFO << "number of mass decompositions: " << decomps.size() << endl;
+		  
 		  if (decomps.empty())
 		  {
-			  continue;
+			continue;
 		  }
+
+		  cout << "number of mass decompositions: " << decomps.size() << endl;
 
 		  // select peptide candidate that matches best the averagine model
 		  AASequence best_averagine_peptide;
-		  double best_frequency_error = std::numeric_limits<double>::max();
+		  double best_formula_error = std::numeric_limits<double>::max();
 
+		  Size iter_count = 0;
 		  for (vector<MassDecomposition>::const_iterator decomp_it = decomps.begin(); decomp_it != decomps.end(); ++decomp_it)
 		  {
 			AASequence tmp_averagine_peptide = AASequence(decomp_it->toExpandedString());
-			Map<String, Size> tmp_count_table;
-			tmp_averagine_peptide.getAAFrequencies(tmp_count_table);
+			EmpiricalFormula tmp_averagine_formula = tmp_averagine_peptide.getFormula();
 
-			// calculate deviation from expected aa frequency
-			double error = 0;
-			for (Map<String, Size>::const_iterator c_it = tmp_count_table.begin(); c_it != tmp_count_table.end(); ++c_it)
+			// We want to take the mass decomposition peptide that is closest to the averagine peptide in terms of the count of the labeling element
+			// (as the e.g. N or C, depending on labeling will dominate the isotope distribution)
+			Size error = 0;
+
+			if (use_N15)
 			{
-			  // calculate frequency from count
-			  double aa_freq = (double)c_it->second / (double)tmp_averagine_peptide.size();
-			  error += fabs(aa_frequency.at(c_it->first) - aa_freq);
+		      error += fabs(N_num - (double)tmp_averagine_formula.getNumberOf("N"));
 			}
-			
-			if (error < best_frequency_error)
+			else
 			{
-		      best_frequency_error = error;
+			  error += fabs(C_num - (double)tmp_averagine_formula.getNumberOf("C"));
+			}			
+			
+			if (error < best_formula_error)
+			{
+			  best_formula_error = error;
 			  best_averagine_peptide = tmp_averagine_peptide;
 
-			  // stop if already error only about 5%
-			  if (best_frequency_error / 20.0 < 0.05)
-			  {
-				  break;
-			  }
+			  /*
+			  cout << best_formula_error << endl;
+			  cout << C_num << " " << (double)tmp_averagine_formula.getNumberOf("C") << endl;
+			  cout << H_num << " " << (double)tmp_averagine_formula.getNumberOf("H") << endl;
+			  cout << N_num << " " << (double)tmp_averagine_formula.getNumberOf("N") << endl;
+			  cout << O_num << " " << (double)tmp_averagine_formula.getNumberOf("O") << endl;
+			  cout << S_num << " " << (double)tmp_averagine_formula.getNumberOf("S") << endl;
+			  */
 			}
+
+			// stop if max iterations or optimal solution
+			if (iter_count > 1000 || error < 0.5)
+			{
+			  break;
+			}
+			iter_count++;
 		  }
 
 		  // set peptide with lowest deviation from averagine
@@ -2846,14 +2854,20 @@ protected:
 		  f.setMZ(precursor_mz);
 		  f.setMetaValue("feature_from_averagine", true);
 		  feature_map.push_back(f);
+		  averagine_id_features++;
 
-		  LOG_INFO << "averagine seq: " << best_averagine_peptide.toString() << endl;
-		  LOG_INFO << "uncharged precursor weight: " << precursor_mass << endl;
-		  LOG_INFO << "uncharged averagine weight: " << best_averagine_peptide.getMonoWeight() << endl;
-		  LOG_INFO << "frequency mean absolute error: " << best_frequency_error / 20 << endl;
+		  std::cout << "averagine seq: " << best_averagine_peptide.toString() << endl;
+		  std::cout << "uncharged precursor weight: " << precursor_mass << endl;
+		  std::cout << "uncharged averagine weight: " << best_averagine_peptide.getMonoWeight() << endl;
+		  std::cout << "labeling element count deviation from averagine: " << best_formula_error << endl;
+		} else
+		{
+		  blacklisted_features++;
 		}
 	  }
 	  feature_map.updateRanges();
+	  std::cout << "Evaluating " << averagine_id_features << " averagine identifications." << endl;
+	  std::cout << "Mapped to " << blacklisted_features << " existing features." << endl;
 	}
 
 	LOG_INFO << "loading experiment..." << endl;
