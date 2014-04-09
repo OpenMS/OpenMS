@@ -2801,9 +2801,6 @@ protected:
 		  double O_num = precursor_mass * averagine_O;
 		  double S_num = precursor_mass * averagine_S;
 
-		  // TODO: remove restriction
-		  if (internal_precursor_mass > 1000) continue;
-
 		  cout << "decomposing mass: " << precursor_mass << endl;
 		  mda.getDecompositions(decomps, internal_precursor_mass);
 		  
