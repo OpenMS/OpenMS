@@ -1077,8 +1077,6 @@ add_test("TOPP_TextExporter_8_out1" ${DIFF} -in1 TextExporter_8_output.tmp -in2 
 set_tests_properties("TOPP_TextExporter_8_out1" PROPERTIES DEPENDS "TOPP_TextExporter_8")
 
 #------------------------------------------------------------------------------
-# SILACAnalyzer tests
-#------------------------------------------------------------------------------
 # FeatureLinker tests
 # "labeled" algorithm:
 add_test("TOPP_FeatureLinkerLabeled_1" ${TOPP_BIN_PATH}/FeatureLinkerLabeled -test -ini ${DATA_DIR_TOPP}/FeatureLinkerLabeled_1_parameters.ini -in ${DATA_DIR_TOPP}/FeatureLinkerLabeled_1_input.featureXML -out FeatureLinkerLabeled_1_output.tmp)
