@@ -299,7 +299,6 @@ namespace OpenMS
     return *peptide_[index];
   }
 
-  // TODO: check why sequence string not updated???
   AASequence & AASequence::operator+=(const AASequence & sequence)
   {
     for (Size i = 0; i != sequence.peptide_.size(); ++i)
@@ -320,7 +319,6 @@ namespace OpenMS
     return seq;
   }
 
-  // TODO: check why sequence string not updated???
   AASequence AASequence::operator+(const Residue * residue) const
   {
     if (!ResidueDB::getInstance()->hasResidue(residue))
@@ -332,7 +330,6 @@ namespace OpenMS
     return seq;
   }
 
-  // TODO: check why sequence string not updated???
   AASequence & AASequence::operator+=(const Residue * residue)
   {
     if (!ResidueDB::getInstance()->hasResidue(residue))
@@ -808,7 +805,8 @@ namespace OpenMS
 
       // Retrieve the underlying residue
       const Residue * res_ptr = ResidueDB::getInstance()->getResidue(name);
-      if (res_ptr == 0)
+
+      if (res_ptr == 0 && tag.empty() && mod.empty())
       {
         throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, peptide, "Cannot convert string into AASequence. Cannot parse residue with name: '" + name + "'!");
         return;
@@ -816,10 +814,18 @@ namespace OpenMS
 
       if (!mod.empty() && i > 0)
       {
+        if (res_ptr == 0)
+        {
+          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, peptide, "Cannot convert string into AASequence. Cannot parse residue with name: '" + name + "'!");
+        }
         aas.peptide_.push_back(ResidueDB::getInstance()->getModifiedResidue(res_ptr, mod));
       }
       else if (!mod.empty() && i == 0)
       {
+        if (res_ptr == 0)
+        {
+          throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, peptide, "Cannot convert string into AASequence. Cannot parse residue with name: '" + name + "'!");
+        }
         std::set<const ResidueModification *> mod_candidates;
         ModificationsDB::getInstance()->searchModifications(mod_candidates, res_ptr->getOneLetterCode(), mod, ResidueModification::ANYWHERE);
         if (!mod_candidates.empty())
@@ -838,6 +844,8 @@ namespace OpenMS
       }
       else if (!tag.empty())
       {
+        bool is_NTerm = (res_ptr == 0) && name.empty() ? true : false;
+
         if (tag.hasPrefix("+") || tag.hasPrefix("-"))
         {
           // delta mass
@@ -846,48 +854,86 @@ namespace OpenMS
 
           if (tag.hasSubstring("."))
           {
-            // we have a float, look for an exact match
-            const ResidueModification * mod = ModificationsDB::getInstance()->getBestModificationsByDiffMonoMass(res_ptr->getOneLetterCode(), delta_mass, 1.0);
-            if (mod != NULL)
+            // signed float tag [+123.456] -> look for an exact match
+            if (is_NTerm)
             {
-              result = ResidueDB::getInstance()->getModifiedResidue(res_ptr, mod->getId());
+              vector<String> mods;
+              ModificationsDB::getInstance()->getTerminalModificationsByDiffMonoMass(mods, delta_mass, 1.0, ResidueModification::N_TERM);
+              if (!mods.empty())
+              {
+                aas.n_term_mod_ = &ModificationsDB::getInstance()->getTerminalModification(mods[0], ResidueModification::N_TERM);
+                continue;
+              }
+            } else
+            {
+              if (res_ptr == 0)
+              {
+                throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, peptide, "Cannot convert string into AASequence. Cannot parse residue with name: '" + name + "'!");
+              }
+              const ResidueModification * mod = ModificationsDB::getInstance()->getBestModificationsByDiffMonoMass(res_ptr->getOneLetterCode(), delta_mass, 1.0);
+              if (mod != NULL)
+              {
+                result = ResidueDB::getInstance()->getModifiedResidue(res_ptr, mod->getId());
+              }
             }
           }
           else
           {
-            // we have an integer, look for the first match (usually this is what is intended)
-            std::vector< String > mods;
-            ModificationsDB::getInstance()->getModificationsByDiffMonoMass(mods, res_ptr->getOneLetterCode(), delta_mass, 0.5);
-            if (!mods.empty())
+            // signed integer tag [+123] -> look for the first match (usually this is what is intended)
+            if (is_NTerm)
             {
-              const ResidueModification * mod = &ModificationsDB::getInstance()->getModification(mods[0]);
-              result = ResidueDB::getInstance()->getModifiedResidue(res_ptr, mod->getId());
+              // TODO: handle Nterm
+            } else
+            {
+              std::vector< String > mods;
+              if (res_ptr == 0)
+              {
+                throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, peptide, "Cannot convert string into AASequence. Cannot parse residue with name: '" + name + "'!");
+              }
+              ModificationsDB::getInstance()->getModificationsByDiffMonoMass(mods, res_ptr->getOneLetterCode(), delta_mass, 0.5);
+              if (!mods.empty())
+              {
+                const ResidueModification * mod = &ModificationsDB::getInstance()->getModification(mods[0]);
+                result = ResidueDB::getInstance()->getModifiedResidue(res_ptr, mod->getId());
+              }
             }
           }
 
-          if (result == NULL || res_ptr->getMonoWeight() <= 0.0)
+          // using an amino acid with zero weight and a differential modification on that cannot lead to a valid result!
+          if (res_ptr && res_ptr->getMonoWeight() <= 0.0)
           {
-            // using an amino acid with zero weight and a differential modification on that cannot lead to a valid result!
-            if (res_ptr->getMonoWeight() <= 0.0)
-            {
-              throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, peptide, "Cannot convert string into AASequence. Having a difference modification on an unspecified residue (" + name + "[" + tag +  "]) will probably not produce a correct mass.");
-            }
+            throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, peptide, "Cannot convert string into AASequence. Having a difference modification on an unspecified residue (" + name + "[" + tag +  "]) will probably not produce a correct mass.");
+          }
 
+          if (result == NULL)
+          {
             std::cout <<  "Warning: unknown modification " << tag << " on residue "
               << name << ": will add to the database." << std::endl;
             Residue res(tag, String(""), String(""), EmpiricalFormula(""));
-            res.setMonoWeight(delta_mass + res_ptr->getMonoWeight());
-            res.setAverageWeight(delta_mass + res_ptr->getAverageWeight());
+            if (is_NTerm)
+            {
+              res.setMonoWeight(delta_mass);
+              res.setAverageWeight(delta_mass);
+            } else
+            {
+              res.setMonoWeight(delta_mass + res_ptr->getMonoWeight());
+              res.setAverageWeight(delta_mass + res_ptr->getAverageWeight());
+            }
             ResidueDB::getInstance()->addResidue(res);
             result = ResidueDB::getInstance()->getResidue(tag);
           }
           aas.peptide_.push_back(result);
         }
-        else
+        else  // absolute (unsigned) mass tags []
         {
-          // absolute mass
           double mass = tag.toDouble();
           const Residue* result = NULL;
+
+          const Residue * res_ptr = ResidueDB::getInstance()->getResidue(name);
+          if (res_ptr == 0)
+          {
+            throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, peptide, "Cannot convert string into AASequence. Cannot parse residue with name: '" + name + "'!");
+          }
 
           if (tag.hasSubstring("."))
           {
