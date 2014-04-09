@@ -761,11 +761,14 @@ START_SECTION([EXTRA] Peptide equivalence)
   TEST_EQUAL(AASequence::fromString("PEPTC(UniMod:4)IDE"), AASequence::fromString("PEPTC[160.030654]IDE")) // 103.00919 + 57.02
   TEST_EQUAL(AASequence::fromString("PEPTC(UniMod:4)IDE"), AASequence::fromString("PEPTC[+57.02]IDE"))
 
-  // Test internal Acetylation
+  // Test float mass tag leading to internal Acetylation
   TEST_EQUAL(AASequence::fromString("PEPTC(Acetyl)IDE"), AASequence::fromString("PEPTC[+42.011]IDE"))
 
-  // Test N-terminal Acetylation
+  // Test float mass tag leading to N-terminal Acetylation
   TEST_EQUAL(AASequence::fromString("(Acetyl)PEPTCIDE"), AASequence::fromString("[+42.011]PEPTCIDE"))
+
+  // Test absolute mass tag leading to N-terminal Acetylation
+  TEST_EQUAL(AASequence::fromString("(Acetyl)PEPTCIDE"), AASequence::fromString("[+42]PEPTCIDE"))
 
   // Test Oxidation
   TEST_EQUAL(AASequence::fromString("DFPIAM(UniMod:35)GER"), AASequence::fromString("DFPIAM[+16]GER"))

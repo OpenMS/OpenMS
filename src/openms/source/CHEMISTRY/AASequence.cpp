@@ -882,7 +882,13 @@ namespace OpenMS
             // signed integer tag [+123] -> look for the first match (usually this is what is intended)
             if (is_NTerm)
             {
-              // TODO: handle Nterm
+              vector<String> mods;
+              ModificationsDB::getInstance()->getTerminalModificationsByDiffMonoMass(mods, delta_mass, 0.5, ResidueModification::N_TERM);
+              if (!mods.empty())
+              {
+                aas.n_term_mod_ = &ModificationsDB::getInstance()->getTerminalModification(mods[0], ResidueModification::N_TERM);
+                continue;
+              }
             } else
             {
               std::vector< String > mods;
@@ -928,12 +934,6 @@ namespace OpenMS
         {
           double mass = tag.toDouble();
           const Residue* result = NULL;
-
-          const Residue * res_ptr = ResidueDB::getInstance()->getResidue(name);
-          if (res_ptr == 0)
-          {
-            throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, peptide, "Cannot convert string into AASequence. Cannot parse residue with name: '" + name + "'!");
-          }
 
           if (tag.hasSubstring("."))
           {
