@@ -133,6 +133,8 @@ struct SIPPeptide
   
   double explained_TIC_fraction; ///< fraction of the MS2 TIC that is explained by the maximum correlating decomposition weights
 
+  String feature_type; ///< used to distinguish features from FeatureFinder, or synthetised from ids or averagine ids in reporting
+
   Size non_zero_decomposition_coefficients; ///< decomposition coefficients significantly larger than 0
 
   PeakSpectrum reconstruction; ///< signal reconstruction (debugging)
@@ -306,13 +308,13 @@ class MetaProSIPReporting
     }
   }
 
-    static void plotFilteredSpectra(const String& output_dir, const String& tmp_path, const String& file_suffix, const String& file_extension, const vector<SIPPeptide>& sip_peptides, Size debug_level = 0)
+	static void plotFilteredSpectra(const String& output_dir, const String& tmp_path, const String& file_suffix, const String& file_extension, const vector<SIPPeptide>& sip_peptides, Size debug_level = 0)
   {   
     String filename = String("spectrum_plot") + file_suffix + "." + file_extension;
     String script_filename = String("spectrum_plot") + file_suffix + String(".R");
 
     for (Size i = 0; i != sip_peptides.size(); ++i)
-    {     
+    {  
       TextFile current_script;
       StringList mz_list;
       StringList intensity_list;
@@ -381,7 +383,7 @@ class MetaProSIPReporting
     }
   }
 
-    static void plotMergedSpectra(const String& output_dir, const String& tmp_path, const String& file_suffix, const String& file_extension, const vector<SIPPeptide>& sip_peptides, Size debug_level = 0)
+	static void plotMergedSpectra(const String& output_dir, const String& tmp_path, const String& file_suffix, const String& file_extension, const vector<SIPPeptide>& sip_peptides, Size debug_level = 0)
   { 
     String filename = String("merged_spectra") + file_suffix + "." + file_extension;
     String script_filename = String("merged_spectra") + file_suffix + String(".R");
@@ -456,7 +458,7 @@ class MetaProSIPReporting
     }
   }
 
-    static void writeHTML(const String& qc_output_directory, const String& file_suffix, const String& file_extension, String cluster_type, bool report_natural_peptides, const vector<SIPPeptide>& sip_peptides)
+    static void writeHTML(const String& qc_output_directory, const String& file_suffix, const String& file_extension, String cluster_type, const vector<SIPPeptide>& sip_peptides)
    {
      TextFile current_script;
 
@@ -477,12 +479,6 @@ class MetaProSIPReporting
 
      for (Size i = 0; i != sip_peptides.size(); ++i)
      {
-       // omit reporting of purely natural peptides
-       if (!report_natural_peptides && sip_peptides[i].incorporations.size() == 1 && sip_peptides[i].incorporations[0].rate < 5.0)
-       {
-         continue;
-       }
-
        // heading
        current_script.push_back(String("<h1>") + "RT: " + String(sip_peptides[i].feature_rt) + "</h1>");
 
@@ -517,6 +513,11 @@ class MetaProSIPReporting
        current_script.push_back("<td>charge</td>");
        current_script.push_back(String("<td>" + String(sip_peptides[i].charge) + "</td>"));
        current_script.push_back("</tr>");
+
+	   current_script.push_back("<tr>");
+	   current_script.push_back("<td>feature type</td>");
+	   current_script.push_back(String("<td>" + String(sip_peptides[i].feature_type) + "</td>"));
+	   current_script.push_back("</tr>");
 
        if (!sip_peptides[i].accessions.empty())
        {
@@ -744,8 +745,22 @@ class MetaProSIPReporting
     }
   }
 
-    static void createQualityReport(String tmp_path, String qc_output_directory, String file_suffix, const String& file_extension, vector<SIPPeptide> sip_peptides, bool plot_merged, const vector< vector<SIPPeptide> >& sip_peptide_cluster, Size n_heatmap_bins, double score_plot_y_axis_min, bool report_natural_peptides, String cluster_type)
+    static void createQualityReport(String tmp_path, String qc_output_directory, String file_suffix, const String& file_extension, bool plot_merged, const vector< vector<SIPPeptide> >& sip_peptide_cluster, Size n_heatmap_bins, double score_plot_y_axis_min, bool report_natural_peptides, String cluster_type)
   {
+	vector<SIPPeptide> sip_peptides;
+	for (vector< vector<SIPPeptide> >::const_iterator cit = sip_peptide_cluster.begin(); cit != sip_peptide_cluster.end(); ++cit)
+	{
+	  for (vector<SIPPeptide>::const_iterator sit = cit->begin(); sit != cit->end(); ++sit)
+	  {
+		// skip non natural peptides for repoting if flag is set
+		if (!report_natural_peptides && sit->incorporations.size() == 1 && sit->incorporations[0].rate < 5.0)
+		{
+		  continue;
+		}
+		sip_peptides.push_back(*sit);
+	  }	  
+	}
+
     // heat map based on peptide RIAs
 	LOG_INFO << "Plotting peptide heat map" << endl;
     vector< vector<double> > binned_peptide_ria;
@@ -767,7 +782,7 @@ class MetaProSIPReporting
 
     if (file_extension != "pdf")  // html doesn't support pdf as image
     {
-      writeHTML(qc_output_directory, file_suffix, file_extension, cluster_type, report_natural_peptides, sip_peptides);
+      writeHTML(qc_output_directory, file_suffix, file_extension, cluster_type, sip_peptides);
     }
   }
 
@@ -1085,7 +1100,7 @@ class MetaProSIPReporting
     // sort by sequence
     sort(peptide_to_cluster_index.begin(), peptide_to_cluster_index.end(), SequenceLess());
 
-	out_csv_stream << "Peptide Sequence" << "Quality Report Spectrum" << "Quality report scores" << "Sample Name" << "Protein Accessions" << "Description" << "Unique" << "#Ambiguity members"
+	out_csv_stream << "Peptide Sequence" << "Feature" << "Quality Report Spectrum" << "Quality report scores" << "Sample Name" << "Protein Accessions" << "Description" << "Unique" << "#Ambiguity members"
       << "Score" << "RT" << "Exp. m/z" << "Theo. m/z" << "Charge" << "TIC fraction" << "#non-natural weights" << "Peak intensities" << "Group" << "Global Peptide LR";
 
     for (Size i = 1; i <= 10; ++i)
@@ -1100,7 +1115,7 @@ class MetaProSIPReporting
       const Size& current_cluster_index = peptide_to_cluster_index[i].second;
 
       // output peptide sequence
-	  out_csv_stream << current_SIPpeptide.sequence.toString();
+	  out_csv_stream << current_SIPpeptide.sequence.toString() << current_SIPpeptide.feature_type;
 
       // output quality report links if available
       if (qc_output_directory.empty() || file_suffix.empty())  // if no qc plots have been generated or no unique file_suffix has been provided we can't generate links to spectra and scores
@@ -1179,12 +1194,12 @@ class MetaProSIPReporting
   {
     cluster_labels.clear();
     binned_peptide_ria.clear();
-
+	
     for (vector<vector<SIPPeptide>>::const_iterator cit = sip_clusters.begin(); cit != sip_clusters.end(); ++cit)
     {
       const vector<SIPPeptide>& sip_peptides = *cit;
       for (vector<SIPPeptide>::const_iterator pit = sip_peptides.begin(); pit != sip_peptides.end(); ++pit)
-      {
+      {		  
         vector<double> binned(n_heatmap_bins, 0.0); 
         for (vector<SIPIncorporation>::const_iterator iit = pit->incorporations.begin(); iit != pit->incorporations.end(); ++iit)
         {
@@ -2192,12 +2207,11 @@ protected:
       }
     }
 
-    bool non_natural;
+    bool non_natural = false;
     if (highest_non_natural_rate > 5.0)
     {
       non_natural = true;
     }
-
 
     // used for non-gaussian shape detection
     for (MapRateToScoreType::const_iterator mit = map_rate_to_decomposition_weight.begin(); mit != map_rate_to_decomposition_weight.end(); ++mit)
@@ -2356,7 +2370,7 @@ protected:
     }
   }
 
-  bool non_natural;
+  bool non_natural = false;
   if (highest_non_natural_rate > 5.0)
   {
     non_natural = true;
@@ -2650,6 +2664,12 @@ protected:
     FeatureMap<> feature_map;
     fh.load(in_features, feature_map);
 
+	// annotate as features found using feature finding (to distinguish them from averagine features oder id based features ... see below)
+	for (FeatureMap<>::iterator feature_it = feature_map.begin(); feature_it != feature_map.end(); ++feature_it) 
+	{
+	  feature_it->setMetaValue("feature_type", "feature");
+	}
+
 	// if also unassigned ids are used create a pseudo feature
 	if (use_unassigned_ids)
 	{
@@ -2661,7 +2681,7 @@ protected:
 		  if (!hits.empty())
 		  {
 			Feature f;
-			f.setMetaValue("feature_from_id", true);
+			f.setMetaValue("feature_type", "id");
 		    f.setRT(it->getMetaValue("RT"));
 			// take sequence of first hit to calculate ground truth mz
 			double charge = hits[0].getCharge();
@@ -2852,7 +2872,7 @@ protected:
 		  f.setPeptideIdentifications(id);
 		  f.setRT(peak_map[i].getRT());
 		  f.setMZ(precursor_mz);
-		  f.setMetaValue("feature_from_averagine", true);
+		  f.setMetaValue("feature_type", "averagine_id");
 		  feature_map.push_back(f);
 		  averagine_id_features++;
 
@@ -2929,6 +2949,7 @@ protected:
       tmp_pepid.assignRanks();
      
       SIPPeptide sip_peptide;
+	  sip_peptide.feature_type = feature_it->getMetaValue("feature_type"); // used to annotate feature type in reporting
 
       // retrieve identification information	  
       const PeptideHit& feature_hit = tmp_pepid.getHits()[0];	  
@@ -3205,7 +3226,7 @@ protected:
     // quality report
 	if (!qc_output_directory.empty() && R_is_working)
     {
-      MetaProSIPReporting::createQualityReport(tmp_path, qc_output_directory, file_suffix, file_extension_, sip_peptides, plot_merged, sippeptide_clusters, n_heatmap_bins, score_plot_y_axis_min, report_natural_peptides, cluster_type);
+      MetaProSIPReporting::createQualityReport(tmp_path, qc_output_directory, file_suffix, file_extension_, plot_merged, sippeptide_clusters, n_heatmap_bins, score_plot_y_axis_min, report_natural_peptides, cluster_type);
     }
    
     return EXECUTION_OK;
