@@ -57,18 +57,34 @@ using namespace std;
 <CENTER>
     <table>
         <tr>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ FidoAdapter \f$ \longrightarrow \f$</td>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+            <td ALIGN="center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+            <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ FidoAdapter \f$ \longrightarrow \f$</td>
+            <td ALIGN="center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
         </tr>
         <tr>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDPosteriorErrorProbability\n(with "prob_correct" option) </td>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_ProteinQuantifier </td>
+            <td VALIGN="middle" ALIGN="center" ROWSPAN=1> @ref TOPP_PeptideIndexer\n(with @p annotate_proteins option) </td>
+            <td VALIGN="middle" ALIGN="center" ROWSPAN=2> @ref TOPP_ProteinQuantifier\n(via @p protxml parameter) </td>
+        </tr>
+        <tr>
+            <td VALIGN="middle" ALIGN="center" ROWSPAN=1> @ref TOPP_IDPosteriorErrorProbability\n(with @p prob_correct option) </td>
         </tr>
     </table>
 </CENTER>
 
-    In order to prepare suitable input data for Fido, peptide/protein identification results (e.g. from a database search engine) should be processed with @ref TOPP_PeptideIndexer (with the "prob_correct" option) followed by @ref TOPP_IDPosteriorErrorProbability (with the "annotate_proteins" option).
+    This tool wraps the protein inference algorithm Fido (http://noble.gs.washington.edu/proj/fido/). Fido uses a Bayesian probabilistic model to group and score proteins based on peptide-spectrum matches. It was published in:
+
+    Serang <em>et al.</em>: <a href="http://pubs.acs.org/doi/abs/10.1021/pr100594k">Efficient marginalization to compute protein posterior probabilities from shotgun mass spectrometry data</a> (J. Proteome Res., 2010).
+
+    <b>Input format:</b>
+
+    Care has to be taken to provide suitable input data for this adapter. In the peptide/protein identification results (e.g. coming from a database search engine), the proteins have to be annotated with target/decoy meta data. To achieve this, run @ref TOPP_PeptideIndexer with the @p annotate_proteins option switched on.@n
+    In addition, the scores for peptide hits in the input data have to be posterior probabilities - as produced e.g. by PeptideProphet in the TPP or by @ref TOPP_IDPosteriorErrorProbability (with the @p prob_correct option switched on) in OpenMS. Inputs from @ref TOPP_IDPosteriorErrorProbability (without @p prob_correct) or from @ref TOPP_ConsensusID are treated as special cases: Their posterior error probabilities (lower is better) are converted to posterior probabilities (higher is better) for processing.
+
+    <b>Output format:</b>
+
+    The output of this tool is an augmented version of the input: The protein groups and accompanying posterior probabilities inferred by Fido are stored as "indistinguishable protein groups", attached to the (first) protein identification run of the input data.@n
+    The result can be passed to @ref TOPP_ProteinQuantifier via its @p protxml parameter, to have the protein grouping taken into account during quantification.
+
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_FidoAdapter.cli
@@ -105,6 +121,16 @@ protected:
 #endif
                           "Executable for Fido with parameter estimation", 
                           false);
+
+    registerFlag_("no_cleanup", "Omit clean-up of peptide sequences (removal of non-letter characters, replacement of I with L)");
+    registerFlag_("all_PSMs", "Consider all PSMs of each peptide, instead of only the best one");
+    registerFlag_("group_level", "Perform inference on protein group level (instead of individual protein level). This will lead to higher probabilities for (bigger) protein groups.");
+    registerStringOption_("accuracy", "<choice>", "", "Accuracy level of start parameters. There is a trade-off between accuracy and runtime. Empty uses the default ('best').", false, true);
+    setValidStrings_("accuracy", ListUtils::create<String>(",best,relaxed,sloppy"));
+    registerIntOption_("log2_states", "<number>", 0, "Binary logarithm of the max. number of connected states in a subgraph. For a value N, subgraphs that are bigger than 2^N will be split up, sacrificing accuracy for runtime. '0' uses the default (18).", false);
+    setMinInt_("log2_states", 0);
+    registerIntOption_("log2_states_precalc", "<number>", 0, "Like 'log2_states', but allows to set a separate limit for the precalculation", false, true);
+    setMinInt_("log2_states_precalc", 0);
   }
 
 
@@ -112,11 +138,12 @@ protected:
   {
     String in = getStringOption_("in");
     String out = getStringOption_("out");
-    String fido_executable = getStringOption_("fido_executable");
+    String exe = getStringOption_("exe");
 
     vector<ProteinIdentification> proteins;
     vector<PeptideIdentification> peptides;
 
+    LOG_INFO << "Reading input data..." << endl;
     IdXMLFile().load(in, proteins, peptides);
     if (proteins.empty() || peptides.empty())
     {
@@ -131,6 +158,7 @@ protected:
                << "written to the first run only." << endl;
     }
 
+    LOG_INFO << "Generating temporary files for Fido..." << endl;
     String temp_directory = 
       QDir::toNativeSeparators((File::getTempDirectory() + "/" + 
                                 File::getUniqueName() + "/").toQString());
@@ -139,11 +167,12 @@ protected:
       d.mkpath(temp_directory.toQString());
     }
 
-    String fido_input_graph = temp_directory + "fido_input_graph.dat";
-    String fido_input_proteins = temp_directory + "fido_input_proteins.dat";
+    String fido_input_graph = temp_directory + "fido_input_graph.txt";
+    String fido_input_proteins = temp_directory + "fido_input_proteins.txt";
 
     // write PSM graph:
     ofstream graph_out(fido_input_graph.c_str());
+    bool warned_once = false;
     for (vector<PeptideIdentification>::iterator pep_it = peptides.begin();
          pep_it != peptides.end(); ++pep_it)
     {
@@ -152,13 +181,27 @@ protected:
       const PeptideHit& hit = pep_it->getHits()[0];
       if (hit.getSequence().empty() || 
           hit.getProteinAccessions().empty()) continue;
-
       double score = hit.getScore();
 
       String error_reason;
       if (!pep_it->isHigherScoreBetter())
       {
-        error_reason = "lower scores are better";
+        // workaround for important TOPP tools:
+        String score_type = pep_it->getScoreType();
+        score_type.toLower();
+        if ((score_type == "posterior error probability") || 
+            score_type.hasPrefix("consensus_"))
+        {
+          if (!warned_once)
+          {
+            LOG_WARN << "Warning: Scores of peptide hits seem to be posterior "
+              "error probabilities. Converting to (positive) posterior "
+              "probabilities." << endl;
+            warned_once = true;
+          }
+          score = 1.0 - score;
+        }
+        else error_reason = "lower scores are better";
       }
       else if (score < 0.0)
       {
@@ -233,28 +276,58 @@ protected:
     }
     proteins_out << " }" << endl;
     proteins_out.close();
-    
+
+    LOG_INFO << "Running Fido..." << endl;
+    // Fido parameters:
+    QStringList inputs;
+    if (getFlag_("no_cleanup")) inputs << "-p";
+    if (getFlag_("all_PSMs")) inputs << "-a";
+    if (getFlag_("group_level")) inputs << "-g";
+    String accuracy = getStringOption_("accuracy");
+    if (!accuracy.empty())
+    {
+      if (accuracy == "best") inputs << "-c 1";
+      else if (accuracy == "relaxed") inputs << "-c 2";
+      else if (accuracy == "sloppy") inputs << "-c 3";
+    }
+    inputs << fido_input_graph.toQString() << fido_input_proteins.toQString();
+    Int log2_states = getIntOption_("log2_states");
+    Int log2_states_precalc = getIntOption_("log2_states_precalc");
+    if (log2_states_precalc)
+    {
+      if (!log2_states) log2_states = 18; // actual default value
+      inputs << QString::number(log2_states_precalc);
+    }
+    if (log2_states) inputs << QString::number(log2_states);
+
     // run program and read output:
     QProcess fido;
-    QStringList inputs;
-    inputs << fido_input_graph.toQString() << fido_input_proteins.toQString();
-    fido.start(fido_executable.toQString(), inputs);
+    fido.start(exe.toQString(), inputs);
 
     ExitCodes exit_code = EXECUTION_OK;
     if (!fido.waitForFinished(-1))
     {
-      String msg = "Fatal error running Fido (command: '" + fido_executable +
-        " \"" + String(inputs.join("\" \"")) + "\"').\n"
-        "Does the Fido executable exist?";
+      String msg = "Fatal error running Fido (command: '" + exe + " \"" + 
+        String(inputs.join("\" \"")) + "\"').\nDoes the Fido executable exist?";
       LOG_ERROR << msg << endl;
       exit_code = EXTERNAL_PROGRAM_ERROR;
     }
     else // success!
     {
+      LOG_INFO << "Parsing Fido results and writing output..." << endl;
       String output = QString(fido.readAllStandardOutput());
+      if (debug_level_ > 1)
+      {
+        String fido_output = temp_directory + "fido_output.txt";
+        ofstream results(fido_output.c_str());
+        results << output;
+        results.close();
+      }
+
       vector<String> lines;
       output.split("\n", lines);
 
+      Int protein_counter = 0;
       vector<ProteinIdentification::ProteinGroup> groups;
       for (vector<String>::iterator line_it = lines.begin(); 
            line_it != lines.end(); ++line_it)
@@ -264,36 +337,47 @@ protected:
         istringstream line(*line_it);
         ProteinIdentification::ProteinGroup group;
         line >> group.probability;
-        String accessions;
-        line >> accessions;
-        vector<String> parts;
-        accessions.split(" ", parts);
-        for (vector<String>::iterator part_it = parts.begin(); 
-             part_it != parts.end(); ++part_it)
+        // parse accessions (won't work if accessions can contain spaces!):
+        String accession;
+        line >> accession;
+        while (line)
         {
-          if (part_it->size() > 1) // skip braces and commas
+          if (accession.size() > 1) // skip braces and commas
           {
-            group.accessions.push_back(*part_it);
+            group.accessions.push_back(accession);
           }
+          line >> accession;
+        }
+        if (!group.accessions.empty())
+        {
+          protein_counter += group.accessions.size();
+          groups.push_back(group);
         }
       }
       proteins[0].getIndistinguishableProteins() = groups;
+      LOG_INFO << "Inferred " << protein_counter << " proteins in "
+               << groups.size() << " groups." << endl;
 
       // write output:
       IdXMLFile().store(out, proteins, peptides);
     }
 
     // clean up temporary files
-    if (debug_level_ < 2)
+    if (debug_level_ > 1)
     {
-      File::removeDirRecursively(temp_directory);
-      LOG_INFO << "Set debug level to 2 or higher to keep temporary files at '"
-               << temp_directory << "'" << endl;
+      LOG_DEBUG << "Keeping temporary files at '" << temp_directory
+                << "'. Set debug level to 0 or 1 to remove them." << endl;
     }
     else
     {
-      LOG_INFO << "Keeping temporary files at '" << temp_directory
-               << "'. Set debug level to below 2 to remove them." << endl;
+      LOG_INFO << "Removing temporary files..." << endl;
+      File::removeDirRecursively(temp_directory);
+      if (debug_level_ == 1)
+      {
+        String msg = "Set debug level to 2 or higher to keep temporary files "
+          "at '" + temp_directory + "'.";
+        LOG_DEBUG << msg << endl;
+      }
     }
 
     return exit_code;
