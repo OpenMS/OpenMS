@@ -518,12 +518,12 @@ public:
 
 
 
-	/*
+	
 	// ---------------------------
 	// testing new data structures
 	// ---------------------------
 	std::cout << "\n\n";
-	std::cout << "*** start tests ***\n";
+	std::cout << "*** starting tests ***\n";
 	// iterate over all spectra of the experiment (RT)
 	Int spectrumID = 0;
 	MSExperiment<Peak1D> expNew;
@@ -531,18 +531,29 @@ public:
     {
 		++spectrumID;
 		DoubleReal rt = it->getRT();
-		std::vector<double> mzMS1;
-		std::vector<double> intensityMS1;
+		std::vector<double> mzVector;
+		std::vector<double> intensityVector;
 		// iterate over data points in spectrum (mz)
 		for (MSSpectrum<Peak1D>::Iterator it2 = it->begin(); it2 != it->end(); ++it2)
 		{
 			double mzSpec = it2->getMZ();
 			double intensitySpec = it2->getIntensity();
-			mzMS1.push_back(mzSpec);
-			intensityMS1.push_back(intensitySpec);
+			mzVector.push_back(mzSpec);
+			intensityVector.push_back(intensitySpec);
 		}
-		SplineSpectrum * spectrumNew = new SplineSpectrum(mzMS1,intensityMS1);
-		SplineSpectrum::Navigator nav = (*spectrumNew).getNavigator();
+		
+		if (spectrumID == 200)
+		{
+			SplineSpectrum * spectrumNew = new SplineSpectrum(mzVector,intensityVector);
+			SplineSpectrum::Navigator nav = (*spectrumNew).getNavigator();
+			double intens = nav.eval(486.2);
+			cout << "intensity @ 486.2 Da " << intens << "\n";
+		}
+		
+		//SplineSpectrum * spectrumNew = new SplineSpectrum(mzVector,intensityVector);
+		//SplineSpectrum::Navigator nav = (*spectrumNew).getNavigator();
+
+		
 		MSSpectrum<Peak1D> specNew;
 		specNew.setRT(rt);
 		specNew.setMSLevel(1);
@@ -553,18 +564,18 @@ public:
 			Peak1D peakNew;
 			double mzmz = 400.0+i/30;
 			peakNew.setMZ(mzmz);
-			peakNew.setIntensity(nav.eval(mzmz));
-			//peakNew.setIntensity(sin(rt/200)/mzmz);
+			//peakNew.setIntensity(nav.eval(mzmz));
+			peakNew.setIntensity(rt/mzmz);
 			specNew.push_back(peakNew);
 		}
 		expNew.addSpectrum(specNew);
 		
-		mzMS1.clear();
-		intensityMS1.clear();
+		mzVector.clear();
+		intensityVector.clear();
 	}
 	MzMLFile().store("spline.mzML", expNew);
- 	std::cout << "***   end tests ***\n";
- 	std::cout << "\n\n";*/
+ 	std::cout << "***   ending tests ***\n";
+ 	std::cout << "\n\n";
 
 
 

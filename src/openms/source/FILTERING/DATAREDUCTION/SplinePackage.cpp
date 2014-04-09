@@ -66,7 +66,6 @@ namespace OpenMS
 	
 	SplinePackage::~SplinePackage() 
 	{
-		delete spline_;
 	}
 	
 	double SplinePackage::getMzMin() {
