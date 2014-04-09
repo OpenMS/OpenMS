@@ -75,7 +75,8 @@ class TestIndexedMzMLFileLoader(unittest.TestCase):
 
         self.assertEqual( len(e.getSpectrum(1).get_peaks()[0]), 19800)
         self.assertEqual( len(e.getSpectrum(1).get_peaks()[1]), 19800)
-        self.assertEqual( len(e.getChromatogram(0).get_peaks()), 48)
+        self.assertEqual( len(e.getChromatogram(0).get_peaks()[0]), 48)
+        self.assertEqual( len(e.getChromatogram(0).get_peaks()[1]), 48)
 
         raised = False
         try:
