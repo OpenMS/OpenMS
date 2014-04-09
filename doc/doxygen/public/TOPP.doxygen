@@ -89,7 +89,6 @@
   - @subpage TOPP_Decharger - Decharges and merges different feature charge variants of the same chemical entity.
   - @subpage TOPP_EICExtractor - Quantifies signals at given positions in (raw or picked) LC-MS maps.
   - @subpage TOPP_FeatureFinderCentroided - Detects two-dimensional features in centroided LC-MS data.
-  - @subpage TOPP_FeatureFinderRaw - Detects two-dimensional features in uncentroided (=raw) LC-MS data.
   - @subpage TOPP_FeatureFinderIsotopeWavelet - Detects two-dimensional features in uncentroided (=raw) LC-MS data.
   - @subpage TOPP_FeatureFinderMetabo - Detects two-dimensional features in centroided LC-MS data of metabolites.
   - @subpage TOPP_FeatureFinderMRM - Quantifies features LC-MS/MS MRM data.
@@ -97,7 +96,6 @@
   - @subpage TOPP_ITRAQAnalyzer - Extracts and normalizes iTRAQ information from an MS experiment.
   - @subpage TOPP_ProteinQuantifier - Computes protein abundances from annotated feature/consensus maps
   - @subpage TOPP_ProteinResolver - A peptide-centric algorithm for protein inference.
-  - @subpage TOPP_SILACAnalyzer - Determines the ratio of peak pairs in LC-MS data.
   - @subpage TOPP_SeedListGenerator - Generates seed lists for feature detection.
   - @subpage TOPP_TMTAnalyzer - Extracts and normalizes TMT information from an MS experiment.
 
@@ -110,7 +108,6 @@
   - @subpage TOPP_FeatureLinkerLabeled - Groups corresponding isotope-labeled features in a feature map.
   - @subpage TOPP_FeatureLinkerUnlabeled - Groups corresponding features from multiple maps.
   - @subpage TOPP_FeatureLinkerUnlabeledQT - Groups corresponding features from multiple maps using a QT clustering approach.
-
 
   <b>Protein/Peptide Identification</b>
   - @subpage TOPP_CompNovo - Performs a peptide/protein identification with the CompNovo engine.
@@ -127,6 +124,7 @@
   <b>Protein/Peptide Processing</b>
   - @subpage TOPP_ConsensusID - Computes a consensus identification from peptide identifications of several identification engines.
   - @subpage TOPP_FalseDiscoveryRate - Estimates the false discovery rate on peptide and protein level using decoy searches.
+  - @subpage TOPP_FidoAdapter - Runs the protein inference engine Fido.
   - @subpage TOPP_IDConflictResolver - Resolves ambiguous annotations of features with peptide identifications.
   - @subpage TOPP_IDFilter - Filters results from protein or peptide identification engines based on different criteria.
   - @subpage TOPP_IDMapper - Assigns protein/peptide identifications to feature or consensus features.
