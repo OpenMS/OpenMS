@@ -518,7 +518,7 @@ public:
 
 
 
-
+	/*
 	// ---------------------------
 	// testing new data structures
 	// ---------------------------
@@ -564,7 +564,7 @@ public:
 	}
 	MzMLFile().store("spline.mzML", expNew);
  	std::cout << "***   end tests ***\n";
- 	std::cout << "\n\n";
+ 	std::cout << "\n\n";*/
 
 
 

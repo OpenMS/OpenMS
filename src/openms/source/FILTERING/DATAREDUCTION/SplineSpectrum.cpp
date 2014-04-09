@@ -146,6 +146,7 @@ namespace OpenMS
     
     SplineSpectrum::Navigator::~Navigator()
     {
+        cout << "Navigator is being deleted.\n";
     }
     
     double SplineSpectrum::Navigator::eval(double mz) {
