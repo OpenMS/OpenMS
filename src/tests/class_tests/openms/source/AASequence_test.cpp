@@ -767,7 +767,7 @@ START_SECTION([EXTRA] Peptide equivalence)
   // Test float mass tag leading to N-terminal Acetylation
   TEST_EQUAL(AASequence::fromString("(Acetyl)PEPTCIDE"), AASequence::fromString("[+42.011]PEPTCIDE"))
 
-  // Test absolute mass tag leading to N-terminal Acetylation
+  // Test integer mass tag leading to N-terminal Acetylation
   TEST_EQUAL(AASequence::fromString("(Acetyl)PEPTCIDE"), AASequence::fromString("[+42]PEPTCIDE"))
 
   // Test Oxidation
