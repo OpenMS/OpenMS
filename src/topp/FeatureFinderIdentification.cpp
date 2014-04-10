@@ -130,19 +130,20 @@ protected:
     registerStringOption_("reference_rt", "<choice>", "score", "Method for selecting the reference RT, if there are multiple IDs for a peptide and charge ('score': RT of the best-scoring ID; 'intensity': RT of the ID with the most intense precursor; 'median': median RT of all IDs; 'all': no single reference, use RTs of all IDs, 'adapt': adapt RT windows based on IDs)", false);
     setValidStrings_("reference_rt",
                      ListUtils::create<String>("score,intensity,median,all,adapt"));
-    registerDoubleOption_("rt_window", "<value>", 180, "RT window size (in sec.) for chromatogram extraction.", false);
-    setMinFloat_("rt_window", 0);
-    registerDoubleOption_("mz_window", "<value>", 10, "m/z window size for chromatogram extraction (unit: ppm if 1 or greater, else Da/Th)", false);
-    setMinFloat_("mz_window", 0);
-    registerDoubleOption_("isotope_pmin", "<value>", 0.01, "Minimum probability for an isotope to be included in the assay for a peptide.", false);
-    setMinFloat_("isotope_pmin", 0);
-    setMaxFloat_("isotope_pmin", 1);
+    registerDoubleOption_("rt_window", "<value>", 180.0, "RT window size (in sec.) for chromatogram extraction.", false);
+    setMinFloat_("rt_window", 0.0);
+    registerDoubleOption_("mz_window", "<value>", 10.0, "m/z window size for chromatogram extraction (unit: ppm if 1 or greater, else Da/Th)", false);
+    setMinFloat_("mz_window", 0.0);
+    registerDoubleOption_("isotope_pmin", "<value>", 0.03, "Minimum probability for an isotope to be included in the assay for a peptide.", false);
+    setMinFloat_("isotope_pmin", 0.0);
+    setMaxFloat_("isotope_pmin", 1.0);
     StringList model_choices = ListUtils::create<String>("none,symmetric,asymmetric");
     registerStringOption_("elution_model", "<choice>", model_choices[0], "Elution model to fit to features", false);
     setValidStrings_("elution_model", model_choices);
     // advanced parameters:
     registerFlag_("unweighted_fit", "Suppress weighting of mass traces according to theoretical intensities when fitting elution models", true);
     registerFlag_("no_imputation", "If fitting the elution model fails for a feature, set its intensity to zero instead of imputing a value from the OpenSWATH intensity", true);
+    registerFlag_("all_features", "Return all features found by OpenSWATH for each peptide ID, instead of only the best one", true);
     registerTOPPSubsection_("model_check", "Parameters for checking the validity of elution models and rejecting them if necessary");
     registerDoubleOption_("model_check:boundaries", "<value>", 0.5, "Time points corresponding to this fraction of the elution model height have to be within the data region used for model fitting", false, true);
     setMinFloat_("model_check:boundaries", 0.0);
@@ -915,12 +916,12 @@ protected:
     FeatureMap<> features;
     MRMFeatureFinderScoring mrm_finder;
     Param params = mrm_finder.getParameters();
-    params.setValue("stop_report_after_feature", -1); // 1);
+    params.setValue("stop_report_after_feature", 
+                    getFlag_("all_features")? -1 : 1);
     if (elution_model != "none") params.setValue("write_convex_hull", "true");
     params.setValue("TransitionGroupPicker:min_peak_width", 5.0);
     params.setValue("TransitionGroupPicker:recalculate_peaks", "true");
     params.setValue("TransitionGroupPicker:compute_peak_quality", "true");
-    // params.setValue("TransitionGroupPicker:PeakPickerMRM:use_gauss", "false");
     params.setValue("TransitionGroupPicker:PeakPickerMRM:gauss_width", 20.0);
     params.setValue("TransitionGroupPicker:PeakPickerMRM:peak_width", -1.0);
     params.setValue("TransitionGroupPicker:PeakPickerMRM:method", "corrected");
