@@ -88,10 +88,16 @@
 					<LI> @subpage install_win
 				</UL>
 
+				Development:
+				<UL>
+                                  <LI> <a class="el" href="https://github.com/OpenMS/OpenMS/wiki/Coding-conventions" target="_blank">Coding conventions (online)</a> 
+                                  <LI> <a class="el" href="https://github.com/OpenMS/OpenMS/wiki/Developer-FAQ" target="_blank">Developer FAQ (online)</a> 
+                                  <LI> <a class="el" href="https://github.com/OpenMS/OpenMS/wiki/C&%2343;&%2343;-Guide" target="_blank">CPP Guide (online)</a> 
+				</UL>
+			
 				Documentation:
 				<UL>
 				  <LI> @subpage OpenMS_tutorial
-				  <LI> @subpage coding_conventions
 				  <LI> @subpage pyOpenMS
 					<LI> @subpage external_code
 				</UL>
@@ -99,15 +105,8 @@
 				Misc:
 				<UL>
 					<LI> @subpage known_dev_bugs
-					<LI> @subpage Contributing
 				</UL>
 
-				Internal:
-				<UL>
-				  <LI> @subpage CPP
-				  <LI> @subpage FAQ_Internal
-				</UL>
-			
       </TD>
 
 		</TR>
