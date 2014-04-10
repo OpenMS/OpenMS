@@ -43,7 +43,9 @@
 
 #include <algorithm>
 #include <vector>
+#ifdef DEBUG_FEATUREFINDER
 #include <iostream>
+#endif
 
 namespace OpenMS
 {

@@ -14,12 +14,6 @@
    <string>TOPPView default preferences</string>
   </property>
   <layout class="QVBoxLayout">
-   <property name="spacing">
-    <number>6</number>
-   </property>
-   <property name="margin">
-    <number>9</number>
-   </property>
    <item>
     <widget class="QDialogButtonBox" name="buttonBox">
      <property name="orientation">
@@ -33,7 +27,7 @@
    <item>
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>5</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="tab">
       <attribute name="title">
@@ -249,109 +243,11 @@ p, li { white-space: pre-wrap; }
        </item>
       </layout>
      </widget>
-     <widget class="QWidget" name="tab_2">
-      <attribute name="title">
-       <string>DB</string>
-      </attribute>
-      <layout class="QGridLayout">
-       <property name="margin">
-        <number>9</number>
-       </property>
-       <property name="spacing">
-        <number>6</number>
-       </property>
-       <item row="2" column="2">
-        <spacer>
-         <property name="orientation">
-          <enum>Qt::Horizontal</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>40</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item row="4" column="1">
-        <spacer>
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>20</width>
-           <height>40</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item row="3" column="1">
-        <widget class="QLineEdit" name="db_login"/>
-       </item>
-       <item row="2" column="1">
-        <widget class="QLineEdit" name="db_name"/>
-       </item>
-       <item row="0" column="1">
-        <widget class="QLineEdit" name="db_host"/>
-       </item>
-       <item row="3" column="0">
-        <widget class="QLabel" name="label_4">
-         <property name="text">
-          <string>Login:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="0">
-        <widget class="QLabel" name="label_2">
-         <property name="text">
-          <string>Port:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="0">
-        <widget class="QLabel" name="label">
-         <property name="text">
-          <string>Host:</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="1">
-        <widget class="QSpinBox" name="db_port">
-         <property name="maximumSize">
-          <size>
-           <width>120</width>
-           <height>16777215</height>
-          </size>
-         </property>
-         <property name="minimum">
-          <number>1</number>
-         </property>
-         <property name="maximum">
-          <number>100000</number>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="0">
-        <widget class="QLabel" name="label_3">
-         <property name="text">
-          <string>DB name:</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </widget>
      <widget class="QWidget" name="tab_3">
       <attribute name="title">
        <string>1D View</string>
       </attribute>
       <layout class="QGridLayout">
-       <property name="margin">
-        <number>9</number>
-       </property>
-       <property name="spacing">
-        <number>6</number>
-       </property>
        <item row="4" column="0">
         <spacer>
          <property name="orientation">
@@ -533,12 +429,6 @@ p, li { white-space: pre-wrap; }
        <string>3D View</string>
       </attribute>
       <layout class="QGridLayout">
-       <property name="margin">
-        <number>9</number>
-       </property>
-       <property name="spacing">
-        <number>6</number>
-       </property>
        <item row="0" column="0">
         <widget class="QLabel" name="label_18">
          <property name="text">
@@ -634,7 +524,7 @@ p, li { white-space: pre-wrap; }
          <x>0</x>
          <y>0</y>
          <width>553</width>
-         <height>322</height>
+         <height>333</height>
         </rect>
        </property>
        <layout class="QHBoxLayout" name="horizontalLayout_11">
@@ -959,10 +849,6 @@ p, li { white-space: pre-wrap; }
   <tabstop>recent_files</tabstop>
   <tabstop>map_default</tabstop>
   <tabstop>map_cutoff</tabstop>
-  <tabstop>db_host</tabstop>
-  <tabstop>db_port</tabstop>
-  <tabstop>db_name</tabstop>
-  <tabstop>db_login</tabstop>
   <tabstop>mapping_2D</tabstop>
   <tabstop>shade_3D</tabstop>
   <tabstop>line_width_3D</tabstop>

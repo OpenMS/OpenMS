@@ -38,8 +38,7 @@
 
 #include <QtCore/QString>
 
-#include <boost/lexical_cast.hpp>
-#include <boost/algorithm/string/trim.hpp>
+#include <boost/spirit/include/qi.hpp>
 
 #include <string>
 #include <cmath>
@@ -186,7 +185,7 @@ namespace OpenMS
     string::operator=(s.str());
   }
 
-  String String::numberLength(DoubleReal d, UInt n)
+  String String::numberLength(double d, UInt n)
   {
     stringstream s;
     //reserve one space for the minus sign
@@ -222,7 +221,7 @@ namespace OpenMS
     return s.str().substr(0, n);
   }
 
-  String String::number(DoubleReal d, UInt n)
+  String String::number(double d, UInt n)
   {
     return QString::number(d, 'f', n);
   }
@@ -704,35 +703,47 @@ namespace OpenMS
 
   Int String::toInt() const
   {
-    std::stringstream ss(c_str());
-    Int ret = 0;
-    if (!(ss >> ret))
+    namespace qi = boost::spirit::qi;
+    namespace ascii = boost::spirit::ascii;
+
+    Int ret;
+
+    // boost::spirit::qi was found to be vastly superior to boost::lexical_cast or stringstream extraction (especially for VisualStudio),
+    // so don't change this unless you have benchmarks for all platforms!
+    if (!qi::phrase_parse(this->begin(), this->end(),
+        qi::int_, ascii::space, ret))
+    {
       throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Could not convert string '") + *this + "' to an integer value");
+    }
     return ret;
   }
 
-  Real String::toFloat() const
+  float String::toFloat() const
   {
-    Real ret = 0.0;
-    try
-    {
-      ret = boost::lexical_cast<Real>(boost::trim_copy(*this));
-    }
-    catch (boost::bad_lexical_cast&)
+    namespace qi = boost::spirit::qi;
+    namespace ascii = boost::spirit::ascii;
+
+    float ret;
+
+    // boost::spirit::qi was found to be vastly superior to boost::lexical_cast or stringstream extraction (especially for VisualStudio),
+    // so don't change this unless you have benchmarks for all platforms!
+    if (!qi::phrase_parse(this->begin(), this->end(),
+        qi::float_, ascii::space, ret))
     {
       throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Could not convert string '") + *this + "' to a float value");
     }
     return ret;
   }
 
-  DoubleReal String::toDouble() const
+  double String::toDouble() const
   {
-    DoubleReal ret = 0.0;
-    try
-    {
-      ret = boost::lexical_cast<DoubleReal>(boost::trim_copy(*this));
-    }
-    catch (boost::bad_lexical_cast&)
+    namespace qi = boost::spirit::qi;
+    namespace ascii = boost::spirit::ascii;
+
+    double ret;
+    // boost::spirit::qi was found to be vastly superior to boost::lexical_cast or stringstream extraction (especially for VisualStudio),
+    // so don't change this unless you have benchmarks for all platforms!
+    if (!qi::phrase_parse(this->begin(), this->end(), qi::double_, ascii::space, ret))
     {
       throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Could not convert string '") + *this + "' to a double value");
     }

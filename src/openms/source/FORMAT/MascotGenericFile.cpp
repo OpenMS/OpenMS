@@ -38,6 +38,8 @@
 #include <QtCore/QRegExp>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
+
 using namespace std;
 
 namespace OpenMS
@@ -271,7 +273,7 @@ namespace OpenMS
                                                                              " the maximum upper limit. Only centroided data is allowed. This is most likely raw data.",
                                     String(spec.size()));
     }
-    DoubleReal mz(precursor.getMZ()), rt(spec.getRT());
+    double mz(precursor.getMZ()), rt(spec.getRT());
 
     if (mz == 0)
     {
@@ -349,152 +351,5 @@ namespace OpenMS
     this->endProgress();
   }
 
-  bool MascotGenericFile::getNextSpectrum_(istream& is, vector<pair<String, String> >& spectrum, UInt& charge, DoubleReal& precursor_mz, DoubleReal& precursor_int, DoubleReal& rt, String& title, Size& line_number)
-  {
-    bool ok(false);
-    spectrum.clear();
-    charge = 0;
-    precursor_mz = 0;
-    precursor_int = 0;
-    rt = -1;
-    title = "";
-
-    String line;
-    // seek to next peak list block
-    while (getline(is, line, '\n'))
-    {
-      ++line_number;
-
-      line.trim(); // remove whitespaces, line-endings etc
-
-      // found peak list block?
-      if (line == "BEGIN IONS")
-      {
-        ok = false;
-        while (getline(is, line, '\n'))
-        {
-          ++line_number;
-          line.trim(); // remove whitespaces, line-endings etc
-
-          if (line.empty()) continue;
-
-          if (isdigit(line[0]))
-          { // actual data .. this comes first, since its the most common case
-            vector<String> split;
-            do
-            {
-              if (line.empty())
-              {
-                continue;
-              }
-
-              //line.substitute('\t', ' ');
-              line.split(' ', split);
-              if (split.size() >= 2)
-              {
-                spectrum.push_back(make_pair(split[0], split[1])); // conversion to double is the expensive part, so we defer conversion to MT environment
-                // @improvement add meta info e.g. charge, name... (Andreas)
-              }
-              else
-              {
-                throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "the line (" + line + ") should contain m/z and intensity value separated by whitespace!", "");
-              }
-            }
-            while (getline(is, line, '\n') && ++line_number && line.trim() != "END IONS"); // line.trim() is important here!
-
-            if (line == "END IONS")
-            {
-              // found spectrum
-              return true;
-            }
-            else
-            {
-              throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Reached end of file. Found \"BEGIN IONS\" but not the corresponding \"END IONS\"!", "");
-            }
-          }
-          else if (line.hasPrefix("PEPMASS"))
-          { // parse precursor position
-            String tmp = line.substr(8);
-            tmp.substitute('\t', ' ');
-            vector<String> split;
-            tmp.split(' ', split);
-            if (split.size() == 1)
-            {
-              precursor_mz = split[0].trim().toDouble();
-            }
-            else if (split.size() == 2)
-            {
-              precursor_mz = split[0].trim().toDouble();
-              precursor_int = split[1].trim().toDouble();
-            }
-            else
-            {
-              throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Cannot parse PEPMASS: '" + line + "' in line " + String(line_number) + " (expected 1 or 2 entries, but " + String(split.size()) + " were present!", "");
-            }
-          }
-          else if (line.hasPrefix("CHARGE"))
-          {
-            String tmp = line.substr(7);
-            tmp.remove('+');
-            charge = tmp.toInt();
-          }
-          else if (line.hasPrefix("RTINSECONDS"))
-          {
-            String tmp = line.substr(12);
-            rt = tmp.toDouble();
-          }
-          else if (line.hasPrefix("TITLE"))
-          {
-            // test if we have a line like "TITLE= Cmpd 1, +MSn(595.3), 10.9 min"
-            if (line.hasSubstring("min"))
-            {
-              try
-              {
-                vector<String> split;
-                line.split(',', split);
-                if (!split.empty())
-                {
-                  for (Size i = 0; i != split.size(); ++i)
-                  {
-                    if (split[i].hasSubstring("min"))
-                    {
-                      vector<String> split2;
-                      split[i].trim().split(' ', split2);
-                      if (!split2.empty())
-                      {
-                        rt = split2[0].trim().toDouble() * 60.0;
-                      }
-                    }
-                  }
-                }
-              }
-              catch (Exception::BaseException& /*e*/)
-              {
-                // just do nothing and write the whole title to spec
-                vector<String> split;
-                line.split('=', split);
-                if (split.size() >= 2)
-                {
-                  title = split[1];
-                }
-              }
-            }
-            else // just write the title as metainfo to the spectrum
-            {
-              vector<String> split;
-              line.split('=', split);
-              if (split.size() == 2)
-              {
-                title = split[1];
-              }
-              // TODO concatenate the other parts if the title contains additional '=' chars
-            }
-          }
-        }
-      }
-    }
-
-    return ok;
-  }
 
 } // namespace OpenMS

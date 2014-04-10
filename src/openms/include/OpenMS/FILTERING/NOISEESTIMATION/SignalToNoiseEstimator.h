@@ -40,7 +40,6 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
-#include <iostream>
 #include <vector>
 #include <cmath>
 #include <map>
@@ -193,7 +192,7 @@ protected:
       run = scan_first_;
       while (run != scan_last_)
       {
-        DoubleReal tmp(m - (*run).getIntensity());
+        double tmp(m - (*run).getIntensity());
         v += tmp * tmp;
         ++run;
       }

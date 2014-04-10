@@ -35,7 +35,7 @@
 #ifndef OPENMS_KERNEL_FEATUREHANDLE_H
 #define OPENMS_KERNEL_FEATUREHANDLE_H
 
-#include <iostream>
+#include <iosfwd>
 #include <vector>
 
 #include <OpenMS/KERNEL/Feature.h>
@@ -64,63 +64,28 @@ public:
     /// Charge type
     typedef Int ChargeType;
     /// Feature width type
-    typedef Real WidthType;
+    typedef float WidthType;
     //@}
 
     ///@name Constructors and destructor
     //@{
     /// Default constructor
-    FeatureHandle() :
-      Peak2D(),
-      UniqueIdInterface(),
-      map_index_(0),
-      charge_(0),
-      width_(0)
-    {}
+    FeatureHandle();
 
     /// Constructor with map index, element index and position
-    FeatureHandle(UInt64 map_index, const Peak2D & point, UInt64 element_index) :
-      Peak2D(point),
-      map_index_(map_index),
-      charge_(0),
-      width_(0)
-    {
-      setUniqueId(element_index);
-    }
+    FeatureHandle(UInt64 map_index, const Peak2D & point, UInt64 element_index);
 
     /// Constructor from map index and basic feature
-    FeatureHandle(UInt64 map_index, const BaseFeature & feature) :
-      Peak2D(feature),
-      UniqueIdInterface(feature),
-      map_index_(map_index),
-      charge_(feature.getCharge()),
-      width_(feature.getWidth())
-    {}
+    FeatureHandle(UInt64 map_index, const BaseFeature & feature);
 
     /// Copy constructor
-    FeatureHandle(const FeatureHandle & rhs) :
-      Peak2D(rhs),
-      UniqueIdInterface(rhs),
-      map_index_(rhs.map_index_),
-      charge_(rhs.charge_),
-      width_(rhs.width_)
-    {}
+    FeatureHandle(const FeatureHandle & rhs);
 
     /// Assignment operator
-    FeatureHandle & operator=(const FeatureHandle & rhs)
-    {
-      Peak2D::operator=(rhs);
-      UniqueIdInterface::operator=(rhs);
-      map_index_ = rhs.map_index_;
-      charge_ = rhs.charge_;
-      width_ = rhs.width_;
-
-      return *this;
-    }
+    FeatureHandle & operator=(const FeatureHandle & rhs);
 
     /// Destructor
-    virtual ~FeatureHandle()
-    {}
+    virtual ~FeatureHandle();
 
     /**
       @brief Override (most of all) constness.
@@ -143,74 +108,36 @@ public:
     ///@name Accessors
     //@{
     /// Returns the map index
-    UInt64 getMapIndex() const
-    {
-      return map_index_;
-    }
+    UInt64 getMapIndex() const;
 
     /// Set the map index
-    void setMapIndex(UInt64 i)
-    {
-      map_index_ = i;
-    }
+    void setMapIndex(UInt64 i);
 
     /// Sets the charge
-    void setCharge(ChargeType charge)
-    {
-      charge_ = charge;
-    }
+    void setCharge(ChargeType charge);
 
     /// Returns the charge
-    ChargeType getCharge() const
-    {
-      return charge_;
-    }
+    ChargeType getCharge() const;
 
     /// Sets the width (FWHM)
-    void setWidth(WidthType width)
-    {
-      width_ = width;
-    }
+    void setWidth(WidthType width);
 
     /// Returns the width (FWHM)
-    WidthType getWidth() const
-    {
-      return width_;
-    }
+    WidthType getWidth() const;
 
     //@}
 
     /// Equality operator
-    bool operator==(const FeatureHandle & i) const
-    {
-      return (Peak2D::operator==(i))
-             && (UniqueIdInterface::operator==(i))
-             && (map_index_ == i.map_index_)
-             && (charge_ == i.charge_)
-             && (width_ == i.width_);
-    }
+    bool operator==(const FeatureHandle & i) const;
 
     /// Equality operator
-    bool operator!=(const FeatureHandle & i) const
-    {
-      return !(operator==(i));
-    }
+    bool operator!=(const FeatureHandle & i) const;
 
     /// Comparator by map and unique id
     struct IndexLess :
       std::binary_function<FeatureHandle, FeatureHandle, bool>
     {
-      bool operator()(FeatureHandle const & left, FeatureHandle const & right) const
-      {
-        // if map indices are equal, use unique ids
-        if (left.map_index_ == right.map_index_)
-        {
-          return left.getUniqueId() < right.getUniqueId();
-        }
-        //else use map indices
-        return left.map_index_ < right.map_index_;
-      }
-
+      bool operator()(FeatureHandle const & left, FeatureHandle const & right) const;
     };
 
 protected:
@@ -220,7 +147,7 @@ protected:
     /// Charge of the feature
     Int charge_;
     /// Width of the feature (FWHM)
-    Real width_;
+    float width_;
   };
 
   /**
@@ -245,6 +172,17 @@ private:
     // the const cast is to remove constness, but note that FeatureHandleMutable_ lacks some mutators
     // TODO use const_cast
     return static_cast<FeatureHandleMutable_ &>(const_cast<FeatureHandle &>(*this));
+  }
+
+  inline bool FeatureHandle::IndexLess::operator()(FeatureHandle const & left, FeatureHandle const & right) const
+  {
+    // if map indices are equal, use unique ids
+    if (left.map_index_ == right.map_index_)
+    {
+      return left.getUniqueId() < right.getUniqueId();
+    }
+    //else use map indices
+    return left.map_index_ < right.map_index_;
   }
 
   ///Print the contents of a FeatureHandle to a stream.

@@ -91,8 +91,8 @@ namespace OpenMS
 
       PeptideIdentification id;
       PeakSpectrum CID_spec(*it);
-      DoubleReal cid_rt(it->getRT());
-      DoubleReal cid_mz(0);
+      double cid_rt(it->getRT());
+      double cid_mz(0);
       if (!it->getPrecursors().empty())
       {
         cid_mz = it->getPrecursors().begin()->getMZ();
@@ -103,11 +103,11 @@ namespace OpenMS
         cerr << "CompNovoIdentification: Spectrum id=\"" << it->getNativeID() << "\" at RT=" << cid_rt << " does not have valid precursor information." << endl;
         continue;
       }
-      id.setMetaValue("RT", cid_rt);
-      id.setMetaValue("MZ", cid_mz);
+      id.setRT(cid_rt);
+      id.setMZ(cid_mz);
 
-      DoubleReal etd_rt(0);
-      DoubleReal etd_mz(0);
+      double etd_rt(0);
+      double etd_mz(0);
 
       if ((it + 1) != exp.end() && !(it + 1)->getPrecursors().empty())
       {
@@ -154,7 +154,7 @@ namespace OpenMS
     normalizer.filterSpectrum(new_ETD_spec);
 
     Size charge(0);
-    DoubleReal precursor_weight = 0;
+    double precursor_weight = 0;
 
     bool estimate_precursor_mz = param_.getValue("estimate_precursor_mz").toBool();
 
@@ -180,7 +180,7 @@ namespace OpenMS
         cerr << "No charge annotated with precursor, estimating as 2+" << endl;
         charge = 2;
       }
-      precursor_weight = CID_spec.getPrecursors().begin()->getMZ() * (DoubleReal)charge - (DoubleReal)(charge - 1) * Constants::PROTON_MASS_U;
+      precursor_weight = CID_spec.getPrecursors().begin()->getMZ() * (double)charge - (double)(charge - 1) * Constants::PROTON_MASS_U;
     }
 
 
@@ -216,13 +216,13 @@ namespace OpenMS
       new_ETD_spec.resize(peak_counter);
     }
 
-    DoubleReal precursor_mass_tolerance((DoubleReal)param_.getValue("precursor_mass_tolerance"));
+    double precursor_mass_tolerance((double)param_.getValue("precursor_mass_tolerance"));
 
     // delete the precursor peaks from the ETD spec
     PeakSpectrum ETD_copy;
     for (PeakSpectrum::ConstIterator it = new_ETD_spec.begin(); it != new_ETD_spec.end(); ++it, ++peak_counter)
     {
-      DoubleReal pre_pos((precursor_weight + 1.0 * Constants::PROTON_MASS_U) / precursor_mass_tolerance);
+      double pre_pos((precursor_weight + 1.0 * Constants::PROTON_MASS_U) / precursor_mass_tolerance);
       if (fabs(it->getPosition()[0] - pre_pos) > precursor_mass_tolerance)
       {
         ETD_copy.push_back(*it);
@@ -249,7 +249,7 @@ namespace OpenMS
       for (PeakSpectrum::ConstIterator it1 = CID_spec.begin(); it1 != CID_spec.end(); ++it1)
       {
         // get m/z of complement
-        DoubleReal mz_comp = precursor_weight - it1->getPosition()[0] + Constants::PROTON_MASS_U;
+        double mz_comp = precursor_weight - it1->getPosition()[0] + Constants::PROTON_MASS_U;
 
         // search if peaks are available that have similar m/z values
         Size count(0);
@@ -282,12 +282,12 @@ namespace OpenMS
     Param ion_scoring_param(ion_scoring.getParameters());
     ion_scoring_param.setValue("fragment_mass_tolerance", fragment_mass_tolerance_);
     ion_scoring_param.setValue("decomp_weights_precision", decomp_weights_precision_);
-    ion_scoring_param.setValue("double_charged_iso_threshold", (DoubleReal)param_.getValue("double_charged_iso_threshold"));
+    ion_scoring_param.setValue("double_charged_iso_threshold", (double)param_.getValue("double_charged_iso_threshold"));
     ion_scoring_param.setValue("max_isotope_to_score", param_.getValue("max_isotope_to_score"));
     ion_scoring_param.setValue("max_isotope", max_isotope_);
     ion_scoring.setParameters(ion_scoring_param);
 
-    Map<DoubleReal, IonScore> ion_scores;
+    Map<double, IonScore> ion_scores;
     ion_scoring.scoreSpectra(ion_scores, new_CID_spec, new_ETD_spec, precursor_weight, charge);
 
     new_CID_spec.sortByPosition();
@@ -295,7 +295,7 @@ namespace OpenMS
 
     // check the distances between the ions and reset the max_decomp_weight_ if necessary
     /*
-    DoubleReal max_distance(0);
+    double max_distance(0);
     for (PeakSpectrum::ConstIterator it1 = new_CID_spec.begin(); it1 != new_CID_spec.end(); ++it1)
     {
         PeakSpectrum::ConstIterator it2 = it1;
@@ -303,7 +303,7 @@ namespace OpenMS
 
         if (it2 != new_CID_spec.end())
         {
-            DoubleReal dist = it2->getPosition()[0] - it1->getPosition()[0];
+            double dist = it2->getPosition()[0] - it1->getPosition()[0];
             if (dist > max_distance)
             {
                 max_distance = dist;
@@ -321,7 +321,7 @@ namespace OpenMS
 
     /*
     cerr << "Size of ion_scores " << ion_scores.size() << endl;
-    for (Map<DoubleReal, IonScore>::const_iterator it = ion_scores.begin(); it != ion_scores.end(); ++it)
+    for (Map<double, IonScore>::const_iterator it = ion_scores.begin(); it != ion_scores.end(); ++it)
     {
         cerr << it->first << " " << it->second.score << endl;
     }*/
@@ -329,7 +329,7 @@ namespace OpenMS
 #ifdef WRITE_SCORED_SPEC
     PeakSpectrum filtered_spec(new_CID_spec);
     filtered_spec.clear();
-    for (Map<DoubleReal, CompNovoIonScoring::IonScore>::const_iterator it = ion_scores.begin(); it != ion_scores.end(); ++it)
+    for (Map<double, CompNovoIonScoring::IonScore>::const_iterator it = ion_scores.begin(); it != ion_scores.end(); ++it)
     {
       Peak1D p;
       p.setIntensity(it->second.score);
@@ -472,8 +472,8 @@ namespace OpenMS
       //normalizer.filterSpectrum(ETD_sim_spec);
       //normalizer.filterSpectrum(CID_sim_spec);
 
-      DoubleReal cid_score = zhang_(CID_sim_spec, CID_spec);
-      DoubleReal etd_score = zhang_(ETD_sim_spec, ETD_spec);
+      double cid_score = zhang_(CID_sim_spec, CID_spec);
+      double etd_score = zhang_(ETD_sim_spec, ETD_spec);
 
       PeptideHit hit;
       hit.setScore(cid_score + etd_score);
@@ -535,8 +535,8 @@ namespace OpenMS
       normalizer.filterSpectrum(ETD_sim_spec);
       normalizer.filterSpectrum(CID_sim_spec);
 
-      DoubleReal cid_score = alignment_score(CID_sim_spec, CID_spec);
-      DoubleReal etd_score = alignment_score(ETD_sim_spec, ETD_spec);
+      double cid_score = alignment_score(CID_sim_spec, CID_spec);
+      double etd_score = alignment_score(ETD_sim_spec, ETD_spec);
 
       /*
       cerr << "Final: " << it->getSequence() << " " << cid_score << " " << etd_score << " " << 2 * cid_score + etd_score << endl;
@@ -568,15 +568,15 @@ namespace OpenMS
     return;
   }
 
-  void CompNovoIdentification::getETDSpectrum_(PeakSpectrum & spec, const String & sequence, Size /* charge */, DoubleReal prefix, DoubleReal suffix)
+  void CompNovoIdentification::getETDSpectrum_(PeakSpectrum & spec, const String & sequence, Size /* charge */, double prefix, double suffix)
   {
     Peak1D p;
     p.setIntensity(1.0f);
 
-    DoubleReal c_pos(17.0 + prefix);     // TODO high mass accuracy!!
-    DoubleReal z_pos(3.0 + suffix);
-    DoubleReal b_pos(0.0 + prefix);
-    DoubleReal y_pos(18.0 + suffix);
+    double c_pos(17.0 + prefix);     // TODO high mass accuracy!!
+    double z_pos(3.0 + suffix);
+    double b_pos(0.0 + prefix);
+    double y_pos(18.0 + suffix);
     // sometimes alsa b and y ions are in this spectrum
 
 #ifdef ETD_SPECTRUM_DEBUG
@@ -650,7 +650,7 @@ namespace OpenMS
     return;
   }
 
-  void CompNovoIdentification::reducePermuts_(set<String> & permuts, const PeakSpectrum & CID_spec, const PeakSpectrum & ETD_spec, DoubleReal prefix, DoubleReal suffix)
+  void CompNovoIdentification::reducePermuts_(set<String> & permuts, const PeakSpectrum & CID_spec, const PeakSpectrum & ETD_spec, double prefix, double suffix)
   {
     if (permuts.size() < max_subscore_number_)
     {
@@ -666,7 +666,7 @@ namespace OpenMS
 #ifdef REDUCE_PERMUTS_DEBUG
       if (i % 1000 == 0)
       {
-        cerr << (DoubleReal)i / permuts.size() * 100 << "%" << endl;
+        cerr << (double)i / permuts.size() * 100 << "%" << endl;
       }
 #endif
 
@@ -675,21 +675,21 @@ namespace OpenMS
       getCIDSpectrumLight_(CID_sim_spec, *it, prefix, suffix);
       //getCIDSpectrum_(CID_sim_spec, *it, 1, prefix, suffix);
 
-      DoubleReal cid_score = zhang_(CID_sim_spec, CID_spec);
-      //DoubleReal cid_score = compareSpectra_(CID_spec, CID_sim_spec);
+      double cid_score = zhang_(CID_sim_spec, CID_spec);
+      //double cid_score = compareSpectra_(CID_spec, CID_sim_spec);
       /*if (isnan(cid_score))
           {
               cid_score = 0;
           }*/
 
-      DoubleReal etd_score = zhang_(ETD_sim_spec, ETD_spec);
+      double etd_score = zhang_(ETD_sim_spec, ETD_spec);
       /*if (isnan(etd_score))
       {
           etd_score = 0;
       }*/
 
-      //DoubleReal etd_score = compareSpectra_(ETD_spec, ETD_sim_spec);
-      DoubleReal score = cid_score + etd_score;
+      //double etd_score = compareSpectra_(ETD_spec, ETD_sim_spec);
+      double score = cid_score + etd_score;
 
       score /= it->size();
 
@@ -733,10 +733,10 @@ namespace OpenMS
   }
 
 // divide and conquer algorithm of the sequencing
-  void CompNovoIdentification::getDecompositionsDAC_(set<String> & sequences, Size left, Size right, DoubleReal peptide_weight, const PeakSpectrum & CID_spec, const PeakSpectrum & ETD_spec, Map<DoubleReal, CompNovoIonScoring::IonScore> & ion_scores)
+  void CompNovoIdentification::getDecompositionsDAC_(set<String> & sequences, Size left, Size right, double peptide_weight, const PeakSpectrum & CID_spec, const PeakSpectrum & ETD_spec, Map<double, CompNovoIonScoring::IonScore> & ion_scores)
   {
-    DoubleReal offset_suffix(CID_spec[left].getPosition()[0] - 19.0);
-    DoubleReal offset_prefix(peptide_weight - CID_spec[right].getPosition()[0]);
+    double offset_suffix(CID_spec[left].getPosition()[0] - 19.0);
+    double offset_prefix(peptide_weight - CID_spec[right].getPosition()[0]);
 
 #ifdef DAC_DEBUG
     static int depth_(0);
@@ -746,7 +746,7 @@ namespace OpenMS
     cerr << CID_spec[left].getPosition()[0] << " " << CID_spec[right].getPosition()[0] << " diff=";
 #endif
 
-    DoubleReal diff = CID_spec[right].getPosition()[0] - CID_spec[left].getPosition()[0];
+    double diff = CID_spec[right].getPosition()[0] - CID_spec[left].getPosition()[0];
 
 #ifdef DAC_DEBUG
     cerr << diff << endl;
@@ -862,8 +862,8 @@ namespace OpenMS
 
       // the smaller the 'gap' the greater the chance of not finding anything
       // so we we compute the smaller gap first
-      DoubleReal diff1(CID_spec[*it].getPosition()[0] - CID_spec[left].getPosition()[0]);
-      DoubleReal diff2(CID_spec[right].getPosition()[0] - CID_spec[*it].getPosition()[0]);
+      double diff1(CID_spec[*it].getPosition()[0] - CID_spec[left].getPosition()[0]);
+      double diff2(CID_spec[right].getPosition()[0] - CID_spec[*it].getPosition()[0]);
 
       if (diff1 < diff2)
       {
@@ -971,15 +971,15 @@ namespace OpenMS
 
   }
 
-  DoubleReal CompNovoIdentification::estimatePrecursorWeight_(const PeakSpectrum & ETD_spec, Size & charge)
+  double CompNovoIdentification::estimatePrecursorWeight_(const PeakSpectrum & ETD_spec, Size & charge)
   {
     CompNovoIonScoring ion_scoring;
-    DoubleReal precursor_mass_tolerance((DoubleReal)param_.getValue("precursor_mass_tolerance"));
-    DoubleReal peptide_weight(0);
+    double precursor_mass_tolerance((double)param_.getValue("precursor_mass_tolerance"));
+    double peptide_weight(0);
     // for each possible charge state just get all possible precursor peaks
-    DoubleReal precursor_mz(ETD_spec.getPrecursors().begin()->getMZ());
+    double precursor_mz(ETD_spec.getPrecursors().begin()->getMZ());
     Map<Size, Map<Size, vector<Peak1D> > > peaks;
-    Map<Size, Map<Size, vector<DoubleReal> > > correlations;
+    Map<Size, Map<Size, vector<double> > > correlations;
     for (PeakSpectrum::ConstIterator it = ETD_spec.begin(); it != ETD_spec.end(); ++it)
     {
       for (Size prec_z = 1; prec_z <= 3; ++prec_z)
@@ -990,8 +990,8 @@ namespace OpenMS
           {
             continue;
           }
-          DoubleReal pre_mz = ((DoubleReal)(precursor_mz * peptide_z) - (DoubleReal)(peptide_z - prec_z) * Constants::PROTON_MASS_U) / (DoubleReal)prec_z;
-          if (fabs(it->getMZ() * (DoubleReal)prec_z - pre_mz * (DoubleReal)prec_z) < precursor_mass_tolerance /* / (DoubleReal) prec_z*/)
+          double pre_mz = ((double)(precursor_mz * peptide_z) - (double)(peptide_z - prec_z) * Constants::PROTON_MASS_U) / (double)prec_z;
+          if (fabs(it->getMZ() * (double)prec_z - pre_mz * (double)prec_z) < precursor_mass_tolerance /* / (double) prec_z*/)
           {
             peaks[peptide_z][prec_z].push_back(*it);
             correlations[peptide_z][prec_z].push_back(ion_scoring.scoreIsotopes(ETD_spec, it, prec_z) /* *  it->getIntensity()*/);
@@ -1002,18 +1002,18 @@ namespace OpenMS
     }
 
     // for each possible peptide charge state
-    Map<Size, DoubleReal> correlation_sums;
-    Map<Size, Map<Size, pair<DoubleReal, DoubleReal> > > best_corr_ints;
-    for (Map<Size, Map<Size, vector<DoubleReal> > >::ConstIterator it1 = correlations.begin(); it1 != correlations.end(); ++it1)
+    Map<Size, double> correlation_sums;
+    Map<Size, Map<Size, pair<double, double> > > best_corr_ints;
+    for (Map<Size, Map<Size, vector<double> > >::ConstIterator it1 = correlations.begin(); it1 != correlations.end(); ++it1)
     {
-      DoubleReal correlation_sum(0);
+      double correlation_sum(0);
       // search for the best correlation
-      for (Map<Size, vector<DoubleReal> >::ConstIterator it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
+      for (Map<Size, vector<double> >::ConstIterator it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
       {
-        DoubleReal best_correlation(0);
+        double best_correlation(0);
         Size best_pos(0);
         Size i = 0;
-        for (vector<DoubleReal>::const_iterator it3 = it2->second.begin(); it3 != it2->second.end(); ++it3, ++i)
+        for (vector<double>::const_iterator it3 = it2->second.begin(); it3 != it2->second.end(); ++it3, ++i)
         {
           if (best_correlation == 0 || *it3 > (best_correlation * 1.25))           // must be really better!
           {
@@ -1028,14 +1028,14 @@ namespace OpenMS
       correlation_sums[it1->first] = correlation_sum;
     }
 
-    DoubleReal best_correlation = 0;
+    double best_correlation = 0;
     Size best_charge = 0;
-    for (Map<Size, DoubleReal>::ConstIterator it = correlation_sums.begin(); it != correlation_sums.end(); ++it)
+    for (Map<Size, double>::ConstIterator it = correlation_sums.begin(); it != correlation_sums.end(); ++it)
     {
       //cerr << "Correlations z=" << it->first << ", corr=" << it->second << endl;
-      for (Map<Size, pair<DoubleReal, DoubleReal> >::ConstIterator mit = best_corr_ints[it->first].begin(); mit != best_corr_ints[it->first].end(); ++mit)
+      for (Map<Size, pair<double, double> >::ConstIterator mit = best_corr_ints[it->first].begin(); mit != best_corr_ints[it->first].end(); ++mit)
       {
-        //cerr << "CorrelationIntensity: z=" << mit->first << ", corr=" << mit->second.first << ", m/z=" << mit->second.second << " [M+H]=" << (mit->second.second * (DoubleReal)mit->first) - ((DoubleReal)mit->first - 1) * Constants::NEUTRON_MASS_U  << endl;
+        //cerr << "CorrelationIntensity: z=" << mit->first << ", corr=" << mit->second.first << ", m/z=" << mit->second.second << " [M+H]=" << (mit->second.second * (double)mit->first) - ((double)mit->first - 1) * Constants::NEUTRON_MASS_U  << endl;
       }
       if (best_correlation < it->second)
       {
@@ -1056,9 +1056,9 @@ namespace OpenMS
     {
       // find other best charge state
       best_correlation = 0;
-      DoubleReal best_corr_mz = 0;
+      double best_corr_mz = 0;
       Size best_corr_z = 0;
-      for (Map<Size, pair<DoubleReal, DoubleReal> >::ConstIterator it = best_corr_ints[best_charge].begin(); it != best_corr_ints[best_charge].end(); ++it)
+      for (Map<Size, pair<double, double> >::ConstIterator it = best_corr_ints[best_charge].begin(); it != best_corr_ints[best_charge].end(); ++it)
       {
         if (it->second.first > best_correlation)
         {
@@ -1067,7 +1067,7 @@ namespace OpenMS
           best_corr_z = it->first;
         }
       }
-      peptide_weight = best_corr_mz * (DoubleReal)best_corr_z - (DoubleReal)(best_corr_z - 1) * Constants::PROTON_MASS_U;
+      peptide_weight = best_corr_mz * (double)best_corr_z - (double)(best_corr_z - 1) * Constants::PROTON_MASS_U;
       //cerr << "BestCorr: " << best_correlation << " " << best_corr_mz << " " << best_corr_z << " " << peptide_weight << endl;
     }
 
@@ -1075,23 +1075,23 @@ namespace OpenMS
   }
 
 /*
-    DoubleReal CompNovoIdentification::estimatePrecursorWeight_(const PeakSpectrum& ETD_spec, Size& charge)
+    double CompNovoIdentification::estimatePrecursorWeight_(const PeakSpectrum& ETD_spec, Size& charge)
     {
         CompNovoIonScoring ion_scoring;
-        DoubleReal precursor_mass_tolerance((DoubleReal)param_.getValue("precursor_mass_tolerance"));
-        DoubleReal precursor_weight(0.0);
+        double precursor_mass_tolerance((double)param_.getValue("precursor_mass_tolerance"));
+        double precursor_weight(0.0);
 
         // first we assume the charge is 3;
-        DoubleReal pre_weight_3_z2 = (ETD_spec.getPrecursors().begin()->getMZ() * 3.0 - 1.0 * Constants::PROTON_MASS_U) / 2.0;
+        double pre_weight_3_z2 = (ETD_spec.getPrecursors().begin()->getMZ() * 3.0 - 1.0 * Constants::PROTON_MASS_U) / 2.0;
 
         // now get the charge 2 peaks
-        vector<DoubleReal> precursor_ints_3_z2, iso_scores_3_z2;
+        vector<double> precursor_ints_3_z2, iso_scores_3_z2;
         vector<Peak1D> precursor_peaks_3_z2;
       for (PeakSpectrum::ConstIterator it = ETD_spec.begin(); it != ETD_spec.end(); ++it)
     {
       if (fabs(it->getPosition()[0] - pre_weight_3_z2) < precursor_mass_tolerance)
       {
-          DoubleReal iso_score = ion_scoring.scoreIsotopes(ETD_spec, it, 2);
+          double iso_score = ion_scoring.scoreIsotopes(ETD_spec, it, 2);
           precursor_ints_3_z2.push_back(it->getIntensity());
           precursor_peaks_3_z2.push_back(*it);
                     iso_scores_3_z2.push_back(iso_score);
@@ -1101,14 +1101,14 @@ namespace OpenMS
       }
     }
 
-        DoubleReal pre_weight_2_z1 = ETD_spec.getPrecursors().begin()->getMZ() * 2.0 - 1.0 * Constants::PROTON_MASS_U;
-        vector<DoubleReal> precursor_ints_2_z1, iso_scores_2_z1;
+        double pre_weight_2_z1 = ETD_spec.getPrecursors().begin()->getMZ() * 2.0 - 1.0 * Constants::PROTON_MASS_U;
+        vector<double> precursor_ints_2_z1, iso_scores_2_z1;
         vector<Peak1D> precursor_peaks_2_z1;
         for (PeakSpectrum::ConstIterator it = ETD_spec.begin(); it != ETD_spec.end(); ++it)
         {
             if (fabs(it->getPosition()[0] - pre_weight_2_z1) < precursor_mass_tolerance)
             {
-                DoubleReal iso_score = ion_scoring.scoreIsotopes(ETD_spec, it, 1);
+                double iso_score = ion_scoring.scoreIsotopes(ETD_spec, it, 1);
                 precursor_ints_2_z1.push_back(it->getIntensity());
                 precursor_peaks_2_z1.push_back(*it);
                 iso_scores_2_z1.push_back(iso_score);
@@ -1118,14 +1118,14 @@ namespace OpenMS
             }
         }
 
-        DoubleReal pre_weight_2_z2 = ETD_spec.getPrecursors().begin()->getMZ();
-        vector<DoubleReal> precursor_ints_2_z2, iso_scores_2_z2;
+        double pre_weight_2_z2 = ETD_spec.getPrecursors().begin()->getMZ();
+        vector<double> precursor_ints_2_z2, iso_scores_2_z2;
         vector<Peak1D> precursor_peaks_2_z2;
         for (PeakSpectrum::ConstIterator it = ETD_spec.begin(); it != ETD_spec.end(); ++it)
         {
             if (fabs(it->getPosition()[0] - pre_weight_2_z2) < precursor_mass_tolerance)
             {
-                DoubleReal iso_score = ion_scoring.scoreIsotopes(ETD_spec, it, 2);
+                double iso_score = ion_scoring.scoreIsotopes(ETD_spec, it, 2);
                 precursor_ints_2_z2.push_back(it->getIntensity());
                 precursor_peaks_2_z2.push_back(*it);
                 iso_scores_2_z2.push_back(iso_score);
@@ -1136,7 +1136,7 @@ namespace OpenMS
         }
 
         // now decide which charge variant is more likely
-        DoubleReal max_element_z2(0), max_element_z3(0);
+        double max_element_z2(0), max_element_z3(0);
         if (iso_scores_3_z2.size() > 0)
         {
             max_element_z3 = *max_element(iso_scores_3_z2.begin(), iso_scores_3_z2.end());
@@ -1166,7 +1166,7 @@ namespace OpenMS
             }
         }
 
-        DoubleReal max_element_z2_2(0);
+        double max_element_z2_2(0);
         if (iso_scores_2_z2.size() > 0)
         {
             max_element_z2_2 = *max_element(iso_scores_2_z2.begin(), iso_scores_2_z2.end());
@@ -1203,8 +1203,8 @@ namespace OpenMS
             if (precursor_ints_2_z1.size() > 1)
             {
                 precursor_weight = precursor_peaks_2_z1.begin()->getMZ();
-                DoubleReal pre_int_first = *precursor_ints_2_z1.begin();
-                DoubleReal pre_int_second = *(++precursor_ints_2_z1.begin());
+                double pre_int_first = *precursor_ints_2_z1.begin();
+                double pre_int_second = *(++precursor_ints_2_z1.begin());
 
                 if (pre_int_second / pre_int_first > 10)
                 {
@@ -1215,7 +1215,7 @@ namespace OpenMS
                 {
                     cerr << "Corr. of: " << precursor_peaks_2_z1[0].getMZ() << " " << iso_scores_2_z1[0] << endl;
                     cerr << "Corr. of: " << precursor_peaks_2_z1[1].getMZ() << " " << iso_scores_2_z1[1] << endl;
-                    DoubleReal iso_diff = iso_scores_2_z1[1] - iso_scores_2_z1[0];
+                    double iso_diff = iso_scores_2_z1[1] - iso_scores_2_z1[0];
                     cerr << "Corr. diff: " << iso_diff << endl;
 
                     if ((iso_scores_2_z1[0] < 0 && iso_scores_2_z1[1] > 0) ||

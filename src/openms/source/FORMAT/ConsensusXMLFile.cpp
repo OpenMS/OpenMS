@@ -164,7 +164,7 @@ namespace OpenMS
       act_cons_element_ = ConsensusFeature();
       last_meta_ = &act_cons_element_;
       // quality
-      DoubleReal quality = 0.0;
+      double quality = 0.0;
       if (optionalAttributeAsDouble_(quality, attributes, "quality"))
       {
         act_cons_element_.setQuality(quality);
@@ -396,7 +396,7 @@ namespace OpenMS
       prot_id_.setScoreType(attributeAsString_(attributes, "score_type"));
 
       //optional significance threshold
-      DoubleReal tmp = 0.0;
+      double tmp = 0.0;
       optionalAttributeAsDouble_(tmp, attributes, "significance_threshold");
       if (tmp != 0.0)
       {
@@ -438,7 +438,7 @@ namespace OpenMS
       pep_id_.setScoreType(attributeAsString_(attributes, "score_type"));
 
       //optional significance threshold
-      DoubleReal tmp = 0.0;
+      double tmp = 0.0;
       optionalAttributeAsDouble_(tmp, attributes, "significance_threshold");
       if (tmp != 0.0)
       {
@@ -449,18 +449,18 @@ namespace OpenMS
       pep_id_.setHigherScoreBetter(asBool_(attributeAsString_(attributes, "higher_score_better")));
 
       //MZ
-      DoubleReal tmp2 = -numeric_limits<DoubleReal>::max();
+      double tmp2 = -numeric_limits<double>::max();
       optionalAttributeAsDouble_(tmp2, attributes, "MZ");
-      if (tmp2 != -numeric_limits<DoubleReal>::max())
+      if (tmp2 != -numeric_limits<double>::max())
       {
-        pep_id_.setMetaValue("MZ", tmp2);
+        pep_id_.setMZ(tmp2);
       }
       //RT
-      tmp2 = -numeric_limits<DoubleReal>::max();
+      tmp2 = -numeric_limits<double>::max();
       optionalAttributeAsDouble_(tmp2, attributes, "RT");
-      if (tmp2 != -numeric_limits<DoubleReal>::max())
+      if (tmp2 != -numeric_limits<double>::max())
       {
-        pep_id_.setMetaValue("RT", tmp2);
+        pep_id_.setRT(tmp2);
       }
       Int tmp3 = -numeric_limits<Int>::max();
       optionalAttributeAsInt_(tmp3, attributes, "spectrum_reference");
@@ -589,7 +589,7 @@ namespace OpenMS
       throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
     }
 
-    os.precision(writtenDigits<DoubleReal>());
+    os.precision(writtenDigits<double>(0.0));
 
     setProgress(++progress_);
     os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n";
@@ -878,19 +878,17 @@ namespace OpenMS
     os << "higher_score_better=\"" << (id.isHigherScoreBetter() ? "true" : "false") << "\" ";
     os << "significance_threshold=\"" << id.getSignificanceThreshold() << "\" ";
     //mz
-    DataValue dv = id.getMetaValue("MZ");
-    if (dv != DataValue::EMPTY)
+	  if (id.hasMZ())
     {
-      os << "MZ=\"" << dv.toString() << "\" ";
+	    os << "MZ=\"" << id.getMZ() << "\" ";
     }
     // rt
-    dv = id.getMetaValue("RT");
-    if (dv != DataValue::EMPTY)
+    if (id.hasRT())
     {
-      os << "RT=\"" << dv.toString() << "\" ";
+      os << "RT=\"" << id.getRT() << "\" ";
     }
     // spectrum_reference
-    dv = id.getMetaValue("spectrum_reference");
+    DataValue dv = id.getMetaValue("spectrum_reference");
     if (dv != DataValue::EMPTY)
     {
       os << "spectrum_reference=\"" << dv.toString() << "\" ";
@@ -938,11 +936,9 @@ namespace OpenMS
       os << indent << "\t</PeptideHit>\n";
     }
 
-    //do not write "RT", "MZ" and "spectrum_reference" as they are written as attributes already
-    MetaInfoInterface tmp = id;
-    tmp.removeMetaValue("RT");
-    tmp.removeMetaValue("MZ");
-    tmp.removeMetaValue("spectrum_reference");
+	  // do not write "spectrum_reference" since it is written as attribute already
+	  MetaInfoInterface tmp = id;
+	  tmp.removeMetaValue("spectrum_reference");
     writeUserParam_("userParam", os, tmp, indentation_level + 1);
     os << indent << "</" << tag_name << ">\n";
   }

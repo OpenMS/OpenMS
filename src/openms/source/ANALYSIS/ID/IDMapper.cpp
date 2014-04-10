@@ -111,7 +111,7 @@ namespace OpenMS
     std::vector<std::set<size_t> > mapping(map.size());
 
     DoubleList mz_values;
-    DoubleReal rt_pep;
+    double rt_pep;
     IntList charges;
 
     //iterate over the peptide IDs
@@ -131,7 +131,7 @@ namespace OpenMS
         // iterate over m/z values of pepIds
         for (Size i_mz = 0; i_mz < mz_values.size(); ++i_mz)
         {
-          DoubleReal mz_pep = mz_values[i_mz];
+          double mz_pep = mz_values[i_mz];
 
           // charge states to use for checking:
           IntList current_charges;
@@ -223,7 +223,7 @@ namespace OpenMS
 
   }
 
-  DoubleReal IDMapper::getAbsoluteMZTolerance_(const DoubleReal mz) const
+  double IDMapper::getAbsoluteMZTolerance_(const double mz) const
   {
     if (measure_ == MEASURE_PPM)
     {
@@ -236,7 +236,7 @@ namespace OpenMS
     throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "IDMapper::getAbsoluteTolerance_(): illegal internal state of measure_!", String(measure_));
   }
 
-  bool IDMapper::isMatch_(const DoubleReal rt_distance, const DoubleReal mz_theoretical, const DoubleReal mz_observed) const
+  bool IDMapper::isMatch_(const double rt_distance, const double mz_theoretical, const double mz_observed) const
   {
     if (measure_ == MEASURE_PPM)
     {
@@ -253,28 +253,28 @@ namespace OpenMS
   {
     for (Size i = 0; i < ids.size(); ++i)
     {
-      if (!ids[i].metaValueExists("RT"))
+	    if (!ids[i].hasRT())
       {
-        throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "IDMapper: meta data value 'RT' missing for peptide identification!");
+        throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "IDMapper: 'RT' information missing for peptide identification!");
       }
-      if (!ids[i].metaValueExists("MZ"))
+	    if (!ids[i].hasMZ())
       {
-        throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "IDMapper: meta data value 'MZ' missing for peptide identification!");
+        throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "IDMapper: 'MZ' information missing for peptide identification!");
       }
     }
   }
 
-  void IDMapper::getIDDetails_(const PeptideIdentification & id, DoubleReal & rt_pep, DoubleList & mz_values, IntList & charges, bool use_avg_mass) const
+  void IDMapper::getIDDetails_(const PeptideIdentification & id, double & rt_pep, DoubleList & mz_values, IntList & charges, bool use_avg_mass) const
   {
     mz_values.clear();
     charges.clear();
 
-    rt_pep = id.getMetaValue("RT");
+	  rt_pep = id.getRT();
 
     // collect m/z values of pepId
     if (param_.getValue("mz_reference") == "precursor") // use precursor m/z of pepId
     {
-      mz_values.push_back(id.getMetaValue("MZ"));
+	    mz_values.push_back(id.getMZ());
     }
 
     for (vector<PeptideHit>::const_iterator hit_it = id.getHits().begin();
@@ -285,11 +285,11 @@ namespace OpenMS
 
       if (param_.getValue("mz_reference") == "peptide") // use mass of each pepHit (assuming H+ adducts)
       {
-        DoubleReal mass = use_avg_mass ?
+        double mass = use_avg_mass ?
                           hit_it->getSequence().getAverageWeight(Residue::Full, charge) :
                           hit_it->getSequence().getMonoWeight(Residue::Full, charge);
 
-        mz_values.push_back( mass / (DoubleReal) charge);
+        mz_values.push_back( mass / (double) charge);
       }
     }
   }

@@ -43,7 +43,6 @@
 #include <map>
 #include <vector>
 #include <algorithm>
-#include <gsl/gsl_math.h>
 
 using namespace OpenMS;
 using namespace Math;
@@ -295,7 +294,7 @@ protected:
         // writing the peak data points
         vector<double>::const_iterator cit = conc_vec_begin;
         vector<double>::const_iterator ait = area_vec_begin;
-        dataout.precision(writtenDigits<DoubleReal>());
+        dataout.precision(writtenDigits<double>(0.0));
         for (; cit != conc_vec_end; ++cit, ++ait)
         {
           dataout << *cit << ' ' << *ait << '\n';
@@ -338,7 +337,7 @@ protected:
     //-------------------------------------------------------------
     Param const & add_param =  getParam_();
     writeDebug_("Used parameters", add_param, 3);
-    
+
     CoordinateType tol_mz = getDoubleOption_("mz_tolerance");
     CoordinateType tol_rt = getDoubleOption_("rt_tolerance");
 
@@ -371,7 +370,7 @@ protected:
     StringList files = getStringList_("in");
 
     // collect features
-    vector<DoubleReal> intensities;
+    vector<double> intensities;
     vector<String>::const_iterator cit = files.begin();
     while (cit != files.end())
     {

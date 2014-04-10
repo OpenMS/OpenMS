@@ -106,8 +106,8 @@ using namespace std;
 //Helper class
 struct IDData
 {
-  DoubleReal mz;
-  DoubleReal rt;
+  double mz;
+  double rt;
   String sourcefile;
   vector<PeptideIdentification> ids;
 };
@@ -154,8 +154,8 @@ protected:
     String out = getStringOption_("out");
     bool use_all_hits(getFlag_("use_all_hits"));
 
-    DoubleReal rt_delta = getDoubleOption_("rt_delta");
-    DoubleReal mz_delta = getDoubleOption_("mz_delta");
+    double rt_delta = getDoubleOption_("rt_delta");
+    double mz_delta = getDoubleOption_("mz_delta");
     UInt min_length = getIntOption_("min_length");
 
     //----------------------------------------------------------------
@@ -189,16 +189,16 @@ protected:
         String file_origin = (String)pep_id_it->getMetaValue("file_origin");
         String scoring = (String)pep_id_it->getIdentifier();
 
-        if (!pep_id_it->metaValueExists("RT") || !pep_id_it->metaValueExists("MZ"))
+        if (!pep_id_it->hasRT() || !pep_id_it->hasMZ())
         {
           LOG_ERROR << "Peptide  " << pep_id_it->getIdentifier() << " with first hit of score:" << pep_id_it->getHits()[0].getScore() << ", seq:" << pep_id_it->getHits()[0].getSequence() << " does NOT have ("
-                    << (!pep_id_it->metaValueExists("RT") ? " RT " : "") << (!pep_id_it->metaValueExists("MZ") ? " MZ " : "") << ") information!\n"
+                    << (!pep_id_it->hasRT() ? " RT " : "") << (!pep_id_it->hasMZ() ? " MZ " : "") << ") information!\n"
                     << "Check the tool that generated the input-idXML. Did you use a new (unsupported) version of a search-engine (in e.g. OMSSAAdapter)? Aborting!" << std::endl;
           return INCOMPATIBLE_INPUT_DATA;
         }
 
-        DoubleReal rt = (DoubleReal)(pep_id_it->getMetaValue("RT"));
-        DoubleReal mz = (DoubleReal)(pep_id_it->getMetaValue("MZ"));
+        double rt = pep_id_it->getRT();
+        double mz = pep_id_it->getMZ();
         writeDebug_(String("  ID: ") + rt + " / " + mz, 4);
         vector<IDData>::iterator pos = prec_data.begin();
         while (pos != prec_data.end())
@@ -307,8 +307,8 @@ protected:
       for (vector<IDData>::iterator it = final.begin(); it != final.end(); ++it)
       {
         pep_ids.push_back(it->ids[0]);
-        pep_ids.back().setMetaValue("RT", it->rt);
-        pep_ids.back().setMetaValue("MZ", it->mz);
+        pep_ids.back().setRT(it->rt);
+        pep_ids.back().setMZ(it->mz);
         pep_ids.back().setMetaValue("file_origin", it->sourcefile);
       }
 

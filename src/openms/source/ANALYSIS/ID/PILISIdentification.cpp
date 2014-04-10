@@ -202,7 +202,7 @@ delete sequence_db_;
 
     scorer_ = Factory<PeakSpectrumCompareFunctor>::create(score_name);
     Param scorer_param(scorer_->getParameters());
-    scorer_param.setValue("epsilon", (DoubleReal)param_.getValue("peak_mass_tolerance"));
+    scorer_param.setValue("epsilon", (double)param_.getValue("peak_mass_tolerance"));
     scorer_->setParameters(scorer_param);
 
     double pre_pos = 0.0;
@@ -456,7 +456,7 @@ delete sequence_db_;
         {
           if (mod_split[i][j] == '@')
           {
-            DoubleReal mass_diff(mod_split[i].substr(0, j).toFloat());
+            double mass_diff(mod_split[i].substr(0, j).toFloat());
             if (j != mod_split[i].size() - 2)
             {
               throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "modification in wrong format", "weight@one_letter_code");

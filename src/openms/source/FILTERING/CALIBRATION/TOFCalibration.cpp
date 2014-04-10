@@ -34,6 +34,7 @@
 
 
 #include <OpenMS/FILTERING/CALIBRATION/TOFCalibration.h>
+#include <OpenMS/MATH/STATISTICS/QuadraticRegression.h>
 
 namespace OpenMS
 {
@@ -70,63 +71,37 @@ namespace OpenMS
       matchMasses_(calib_spectra, monoiso_peaks, monoiso_peaks_scan, exp_masses, spec);
 
       // the actual quadratic fitting part
-      gsl_matrix * X, * cov;
-      gsl_vector * y, * c;
       Size n = exp_masses.size();
       if (n < 3)
       {
         continue;
       }
 
-      double chisq;
-
       // matrix containing the observations
-      X = gsl_matrix_alloc(n, 3);
+      std::vector<double> x;
       // vector containing the expected masses
-      y = gsl_vector_alloc(n);
-
-      // vector containing the coefficients of the quadratic function after the fitting
-      c = gsl_vector_alloc(3);
-      // matrix containing the covariances
-      cov = gsl_matrix_alloc(3, 3);
+      std::vector<double> y;
 
       for (Size i = 0; i < n; i++)
       {
         // get the flight time
         double xi = ((calib_peaks_ft_.begin() + spec)->begin() + monoiso_peaks_scan[i])->getMZ();
-        // y_i = a + b*x_i + c*x_i^2  <---- the quadratic equation, a, b, and c shall be determined
-        // x_i^0 = 1 --> enter 1 at the first position of each row
-        gsl_matrix_set(X, i, 0, 1.0);
-
-        // x_i^1 at the second position
-        gsl_matrix_set(X, i, 1, xi);
-        // x_i^2 at the third position
-        gsl_matrix_set(X, i, 2, xi * xi);
-
-        // set expected mass
-        gsl_vector_set(y, i, exp_masses[i]);
-
+        x.push_back(xi);
+        y.push_back(exp_masses[i]);
       }
 
-      gsl_multifit_linear_workspace * work
-        = gsl_multifit_linear_alloc(n, 3);
-
-      gsl_multifit_linear(X, y, c, cov,
-                          &chisq, work);
-
+      Math::QuadraticRegression qr;
+      qr.computeRegression(x.begin(), x.end(), y.begin());
 
 #ifdef DEBUG_CALIBRATION
-      printf("# best fit: Y = %g + %g X + %g X^2\n",
-             gsl_vector_get(c, (0)),
-             gsl_vector_get(c, (1)),
-             gsl_vector_get(c, (2)));
+      std::cout << "chi^2: " << qr.getChiSquared() << std::endl;//DEBUG
+      std::cout << "a: " << qr.getA() << "b: " << qr.getB()
+            << "c: " << qr.getC() << std::endl;//DEBUG
 #endif
       // store the coefficients
-      coeff_quad_fit_.push_back(gsl_vector_get(c, (0)));
-      coeff_quad_fit_.push_back(gsl_vector_get(c, (1)));
-      coeff_quad_fit_.push_back(gsl_vector_get(c, (2)));
-
-      gsl_multifit_linear_free(work);
+      coeff_quad_fit_.push_back(qr.getA());
+      coeff_quad_fit_.push_back(qr.getB());
+      coeff_quad_fit_.push_back(qr.getC());
 
       // determine the errors in ppm
       for (Size p = 0; p < n; ++p)
@@ -148,57 +123,6 @@ namespace OpenMS
     }
     averageErrors_();
     averageCoefficients_();
-
-
-    double * calib_masses = new double[error_medians_.size()];
-    double * error_medians = new double[error_medians_.size()];
-    for (unsigned int i = 0; i < error_medians_.size(); ++i)
-    {
-      calib_masses[i] = calib_masses_[i];
-      error_medians[i] = error_medians_[i];
-    }
-
-    acc_ = gsl_interp_accel_alloc();
-    spline_ = gsl_spline_alloc(gsl_interp_cspline, error_medians_.size());
-    gsl_spline_init(spline_, calib_masses, error_medians, error_medians_.size());
-
-#ifdef DEBUG_CALIBRATION
-    std::cout << "fehler nach spline fitting" << std::endl;
-
-    for (unsigned int spec = 0; spec <  calib_peaks_ft_.size(); ++spec)
-    {
-
-      std::vector<double> exp_masses;
-      std::vector<unsigned int> monoiso;
-      matchMasses_(calib_spectra, monoiso_peaks, monoiso, exp_masses, spec);
-      for (unsigned int p = 0; p < monoiso.size(); ++p)
-      {
-        double xi = mQ_(calib_peaks_ft_[spec][monoiso[p]].getMZ(), spec);
-        if (xi > calib_masses[error_medians_.size() - 1])
-          continue;
-        if (xi < calib_masses[0])
-          continue;
-        std::cout << exp_masses[p] << "\t"
-                  << (xi - exp_masses[p] - gsl_spline_eval(spline_, xi, acc_)) / exp_masses[p] * 1e6
-                  << std::endl;
-
-      }
-
-    }
-
-
-    double xi, yi;
-    std::cout << "interpolation \n\n";
-    for (xi = calib_masses[0]; xi < calib_masses[error_medians_.size() - 1]; xi += 0.01)
-    {
-      yi = gsl_spline_eval(spline_, xi, acc_);
-      std::cout << xi << "\t" << yi << std::endl;
-    }
-    std::cout << "--------------\nend interpolation \n\n";
-#endif
-
-    delete[] calib_masses;
-    delete[] error_medians;
   }
 
   void TOFCalibration::averageCoefficients_()

@@ -32,11 +32,12 @@
 // $Authors: Johannes Junker $
 // --------------------------------------------------------------------------
 
-
 #ifndef OPENMS_VISUAL_DIALOGS_TOPPASINPUTFILEDIALOG_H
 #define OPENMS_VISUAL_DIALOGS_TOPPASINPUTFILEDIALOG_H
 
-#include <OpenMS/config.h>
+// OpenMS_GUI config
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
+
 #include <OpenMS/VISUAL/DIALOGS/UIC/ui_TOPPASInputFileDialog.h>
 
 namespace OpenMS

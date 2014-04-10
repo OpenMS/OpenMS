@@ -8,9 +8,6 @@ ElutionPeakDetection.cpp
 FeatureFindingMetabo.cpp
 IsotopeDistributionCache.cpp
 MassTraceDetection.cpp
-SILACFilter.cpp
-SILACFiltering.cpp
-SILACAnalyzer.cpp
 )
 
 ### add path to the filenames

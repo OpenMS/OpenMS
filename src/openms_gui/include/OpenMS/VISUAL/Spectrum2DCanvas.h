@@ -32,9 +32,11 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-
 #ifndef OPENMS_VISUAL_SPECTRUM2DCANVAS_H
 #define OPENMS_VISUAL_SPECTRUM2DCANVAS_H
+
+// OpenMS_GUI config
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 // OpenMS
 #include <OpenMS/VISUAL/SpectrumCanvas.h>
@@ -171,7 +173,7 @@ protected:
     */
     void paintDots_(Size layer_index, QPainter& p);
 
-    void paintAllIntensities_(Size layer_index, DoubleReal pen_width, QPainter& painter);
+    void paintAllIntensities_(Size layer_index, double pen_width, QPainter& painter);
 
     /**
       @brief Paints maximum intensity of individual peaks.
@@ -275,9 +277,9 @@ protected:
 
       Takes intensity modes into account.
     */
-    inline Int precalculatedColorIndex_(Real val, const MultiGradient& gradient, DoubleReal snap_factor)
+    inline Int precalculatedColorIndex_(float val, const MultiGradient& gradient, double snap_factor)
     {
-      Real gradientPos;
+      float gradientPos;
       switch (intensity_mode_)
       {
       case IM_NONE:
@@ -307,7 +309,7 @@ protected:
 
       Takes intensity modes into account.
     */
-    inline QColor heightColor_(Real val, const MultiGradient& gradient, DoubleReal snap_factor)
+    inline QColor heightColor_(float val, const MultiGradient& gradient, double snap_factor)
     {
       return gradient.precalculatedColorByIndex(precalculatedColorIndex_(val, gradient, snap_factor));
     }
@@ -320,7 +322,7 @@ protected:
       @param y the chart coordinate y
       @param point returned widget coordinates
     */
-    inline void dataToWidget_(DoubleReal x, DoubleReal y, QPoint& point)
+    inline void dataToWidget_(double x, double y, QPoint& point)
     {
       if (!isMzToXAxis())
       {
@@ -352,7 +354,7 @@ protected:
     PeakIndex measurement_start_;
 
     /// translates the visible area by a given offset specified in fractions of current visible area
-    virtual void translateVisibleArea_(DoubleReal mzShiftRel, DoubleReal rtShiftRel);
+    virtual void translateVisibleArea_(double mzShiftRel, double rtShiftRel);
 
     //docu in base class
     virtual void translateLeft_();

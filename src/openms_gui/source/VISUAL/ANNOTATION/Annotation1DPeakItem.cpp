@@ -75,8 +75,8 @@ namespace OpenMS
     // compute bounding box of text_item on the specified painter
     bounding_box_ = painter.boundingRect(QRectF(position_widget, position_widget), Qt::AlignCenter, text_);
 
-    DoubleReal vertical_shift = 0;
-    DoubleReal horizontal_shift = 0;
+    double vertical_shift = 0;
+    double horizontal_shift = 0;
 
     if (canvas->isMzToXAxis())
     {

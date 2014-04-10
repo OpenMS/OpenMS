@@ -1,0 +1,276 @@
+
+n = will probably not be wrapped (even though technically possible - most likely deprecated code, abstract base class or some other reason - 14 TOPP tools, 15 Utils)
+x = cannot not be wrapped (too much code in TOPP tools; 32 TOPP tools, 16 Utils)
+xx = is not yet wrapped, must be done (5 TOPP tools, no Utils)
+ok = is done (42 TOPP tools out of 98 are currently ok, plus 8 utils)
+?  = not yet clear (5 TOPP tools, 2 Utils)
+
+Autwrap has wrapped 366 classes, 3794 methods and 62 enums
+
+
+
+98 TOPP tools, 41 utils
+
+In total, 153 classes are wrapped at the current moment.
+
+x    AdditiveSeries.cpp # 331 lines
+ok   BaselineFilter.cpp # morph filter
+ok   CompNovo.cpp
+ok   CompNovoCID.cpp
+ok   ConsensusID.cpp
+ok   ConsensusMapNormalizer.cpp # all 3 algos
+n    DBExporter.cpp
+n    DBImporter.cpp
+ok   Decharger.cpp
+x    DTAExtractor.cpp # 134 lines
+x    EICExtractor.cpp # 215 lines
+n    ExecutePipeline.cpp
+ok   FalseDiscoveryRate.cpp
+ok   FeatureFinderCentroided.cpp
+ok   FeatureFinderIsotopeWavelet.cpp
+ok   FeatureFinderMetabo.cpp
+n    FeatureFinderMRM.cpp
+n    FeatureLinkerBase.cpp
+?    FeatureLinkerLabeled.cpp
+?    FeatureLinkerUnlabeled.cpp
+ok   FeatureLinkerUnlabeledQT.cpp
+n    FileConverter.cpp  # probably easier to just write in Python
+n    FileFilter.cpp     # probably easier to just write in Python
+x    FileInfo.cpp       # 1000+ lines
+x    FileMerger.cpp     # 300 lines
+n    GenericWrapper.cpp # not useful for Python
+x    HighResPrecursorMassCorrector.cpp # 150 lines.PPHiRes is wrapped
+x    IDConflictResolver.cpp  # ca 90 lines
+x    IDFileConverter.cpp  # 300 lines
+ok   IDFilter.cpp
+ok   IDMapper.cpp
+x    IDMerger.cpp         # 200 lines
+x    IDPosteriorErrorProbability.cpp # 300 lines PosteriorErrorProbabilityModel is wrapped
+xx   IDRipper.cpp         # TODO - not yet done on my side, needs hand-wrapping
+x    IDRTCalibration.cpp # 100 lines
+x    InclusionExclusionListCreator.cpp # TODO should we wrap this? 347 lines
+x    InspectAdapter.cpp # 750 lines
+ok   InternalCalibration.cpp
+ok   ITRAQAnalyzer.cpp
+ok   MapAlignerIdentification.cpp
+ok   MapAlignerPoseClustering.cpp
+n    MapAlignerSpectrum.cpp
+x    MapNormalizer.cpp  # 100 lines
+?    MapRTTransformer.cpp # 150 lines, wrap MapRTTransformer
+x    MapStatistics.cpp    # 400 lines
+x    MascotAdapter.cpp  # 400 lines
+x    MascotAdapterOnline.cpp # 200 lines
+ok   MassTraceExtractor.cpp
+ok   MRMMapper.cpp
+x    MyriMatchAdapter.cpp  # 400 lines
+?    MzTabExporter.cpp     # needs wrapping of depracated method in MzTabFile
+ok   NoiseFilterGaussian.cpp
+ok   NoiseFilterSGolay.cpp
+x    OMSSAAdapter.cpp      # 700 lines
+ok   OpenSwathAnalyzer.cpp
+ok   OpenSwathChromatogramExtractor.cpp
+ok   OpenSwathConfidenceScoring.cpp
+?    OpenSwathDecoyGenerator.cpp
+ok   OpenSwathFeatureXMLToTSV.cpp
+ok   OpenSwathRTNormalizer.cpp
+ok   PeakPickerHiRes.cpp
+ok   PeakPickerWavelet.cpp
+x    PepNovoAdapter.cpp   # 300 lines
+x    PeptideIndexer.cpp   # 500 lines
+xx   PhosphoScoring.cpp # AScore.pxd TODO , RichPeakSpectrum doesnt work
+n    PILISIdentification.cpp
+n    PILISModelCV.cpp
+n    PILISModelTrainer.cpp
+n    PILISSpectraGenerator.cpp
+n    PrecursorIonSelector.cpp
+x    PrecursorMassCorrector.cpp #Isotope Wavelet is wrapped, 200 lines
+x    ProteinInference.cpp    # 200 lines
+x    ProteinQuantifier.cpp # PeptideAndProteinQuant is wrapped, 600 lines
+xx   ProteinResolver.cpp   # 500 lines, has a
+x    PTModel.cpp  # 400 lines
+x    PTPredict.cpp # 200 lines
+ok   Resampler.cpp
+x    RTModel.cpp   # 800 lines
+x    RTPredict.cpp # 600 lines
+xx   SeedListGenerator.cpp # TODO more work required overloading methods
+x    SequestAdapter.cpp   # 1200 lines
+x    SpecLibSearcher.cpp
+ok   SpectraFilterBernNorm.cpp
+ok   SpectraFilterMarkerMower.cpp
+ok   SpectraFilterNLargest.cpp
+ok   SpectraFilterNormalizer.cpp
+ok   SpectraFilterParentPeakMower.cpp
+ok   SpectraFilterScaler.cpp
+ok   SpectraFilterSqrtMower.cpp
+ok   SpectraFilterThresholdMower.cpp
+ok   SpectraFilterWindowMower.cpp
+ok   SpectraMerger.cpp
+x    TextExporter.cpp   # 1000 lines
+ok   TMTAnalyzer.cpp # in theory ok, Itraq Extractor and Quantifier are wrapped
+ok   TOFCalibration.cpp
+x    XTandemAdapter.cpp  # 300 lines
+
+
+UTILS
+
+so far, 3 are wrapped
+
+ok   ConvertTraMLToTSV.cpp
+ok   ConvertTSVToTraML.cpp
+x    CVInspector.cpp   # 400 lines
+x    DecoyDatabase.cpp # 200 lines
+x    DeMeanderize.cpp  # 100 lines
+ok   Digestor.cpp
+ok   DigestorMotif.cpp
+x    ERPairFinder.cpp   # 400 lines
+ok   FeatureFinderSuperHirn.cpp
+n    FFEval.cpp
+n    FuzzyDiff.cpp
+ok   IDDecoyProbability.cpp
+n    IDEvaluator.cpp # plotting tool
+x    IDExtractor.cpp  # 200 lines
+n    IDMassAccuracy.cpp
+n    IDSplitter.cpp
+n    ImageCreator.cpp
+n    INIUpdater.cpp
+n    LabeledEval.cpp
+n    MapAlignmentEvaluation.cpp
+n    MassCalculator.cpp
+n    MRMPairFinder.cpp
+?    MSSimulator.cpp  # 250 lines =
+n    OpenMSInfo.cpp
+n    OpenSwathDIAPreScoring.cpp
+?    OpenSwathMzMLFileCacher.cpp
+n    OpenSwathRewriteToFeatureXML.cpp
+x    QCCalculator.cpp   # 600 lines
+x    QCEmbedder.cpp     # 200 lines
+x    QCExporter.cpp     # 100 lines
+x    QCMerger.cpp       # 200 lines
+x    QCShrinker.cpp     # 100 lines
+x    RNPxl.cpp     # 1300 lines
+x    RNPxlXICFilter.cpp # 200 lines
+x    RTEvaluation.cpp  # 300 lines
+ok   SemanticValidator.cpp
+x    SequenceCoverageCalculator.cpp # 200 lines
+x    SpecLibCreator.cpp # 200 lines
+ok   SvmTheoreticalSpectrumGeneratorTrainer.cpp
+n    TransformationEvaluation.cpp
+x    XMLValidator.cpp # 80 lines
+
+
+The TOPP tools are divided into several subgroups:
+
+# In general, file handling is wrapped by FORMAT/ file handlers. Currently wrapped are the following formats:
+- ConsensusXML
+- FeatureXML
+- IdXML
+- ParamXML
+- PepXML
+- TransformationXML
+- TraML
+- MzData
+- MzML
+- MzQuantML
+- MzXML
+
+File Handling
+
+x  DTAExtractor - Extracts spectra of an MS run file to several files in DTA format. # all in tool
+x  FileConverter - Converts between different MS file formats. # all in tool
+x  FileFilter - Extracts or manipulates portions of data from peak, feature or consensus feature files. # all in tool
+x  FileInfo - Shows basic information about the file, such as data ranges and file type. # all in tool
+x  FileMerger - Merges several MS files into one file. # all in tool
+x  IDMerger - Merges several protein/peptide identification files into one file. # all in tool
+x  IDFileConverter - Converts identification engine file formats. # all in tool
+ok SpectraMerger - Merges spectra from an LC/MS map, either by precursor or by RT blocks # done
+x  TextExporter - Exports various XML formats to a text file. # all in tool
+
+
+Signal Processing and Preprocessing
+
+ok  BaselineFilter - Removes the baseline from profile spectra using a top-hat filter. # morphological filter ok
+ok  InternalCalibration - Applies an internal calibration.  # ok
+x   MapNormalizer - Normalizes peak intensities in an MS run.               # all code in TOPP tool
+ok  NoiseFilter - Removes noise from profile spectra by using different smoothing techniques. # both algos wrapped
+ok  PeakPicker - Finds mass spectrometric peaks in profile mass spectra. # both algos wrapped
+x   PrecursorMassCorrector - Correct the precursor entries of tandem MS scans. #mapped the FeatureFinder, rest of the code is in TOPP tool
+ok  Resampler - Transforms an LC/MS map into an equally-spaced (in RT and m/z) map.
+ok  SpectraFilter - Applies a filter to peak spectra. # done all 9...
+ok  TOFCalibration - Applies time of flight calibration.
+
+
+Quantitation
+
+x   AdditiveSeries - Computes an additive series to quantify a peptide in a set of samples. # all in TOPP Tool
+ok  Decharger - Decharges and merges different feature charge variants of the same chemical entity.
+ok  FeatureFinder - Detects two-dimensional features in LC-MS data.
+ok  ITRAQAnalyzer - Extracts and normalizes iTRAQ information from an MS experiment.
+ok  ProteinQuantifier - Computes protein abundances from annotated feature/consensus maps # done with PeptideAndProteinQuant
+x   SeedListGenerator - Generates seed lists for feature detection. # needs more work
+
+
+Protein/Peptide Identification
+
+ok  CompNovo - Performs a peptide/protein identification with the CompNovo engine.
+x   InspectAdapter - Identifies MS/MS spectra using Inspect (external).
+x   MascotAdapter - Identifies MS/MS spectra using Mascot (external).
+x   MascotAdapterOnline - Identifies MS/MS spectra using Mascot (external).
+x   OMSSAAdapter - Identifies MS/MS spectra using OMSSA (external).
+x   PepNovoAdapter - Identifies MS/MS spectra using PepNovo (external).
+x   XTandemAdapter - Identifies MS/MS spectra using XTandem (external).
+x   SpecLibSearcher - Identifies peptide MS/MS spectra by spectral matching with a searchable spectral library. # too much code in TOPP tool
+
+
+Protein/Peptide Processing
+
+ok  ConsensusID - Computes a consensus identification from peptide identifications of several identification engines.
+ok  FalseDiscoveryRate - Estimates the false discovery rate on peptide and protein level using decoy searches.
+ok  IDDecoyProbability - Estimates peptide probabilities using a decoy search strategy. # UTILS tool wrapped
+ok  IDFilter - Filters results from protein or peptide identification engines based on different criteria. # done
+ok  IDMapper - Assigns protein/peptide identifications to feature or consensus features.
+ok  IDPosteriorErrorProbability - Estimates posterior error probabilities using a mixture model.
+x   IDRTCalibration - Can be used to calibrate RTs of peptide hits linearly to standards. # all in TOPP tool
+x   PeptideIndexer - Refreshes the protein references for all peptide hits. # all in TOPP tool
+x   ProteinInference - Infer proteins from a list of (high-confidence) peptides. # all in TOPP tool
+
+
+Targeted Experiments
+
+x   InclusionExclusionListCreator - Creates inclusion and/or exclusion lists for LC-MS/MS experiments. # most in TOPP tools except OfflinePrecursorSelection
+x   PrecursorIonSelector - A tool for precursor ion selection based on identification results.
+
+
+Peptide Property Prediction
+
+x   PTModel - Trains a model for the prediction of proteotypic peptides from a training set. # most in TOPP tool
+x   PTPredict - Predicts the likelihood of peptides to be proteotypic using a model trained by PTModel. # most in TOPP tool
+x   RTModel - Trains a model for the retention time prediction of peptides from a training set. # most in TOPP tool
+x   RTPredict - Predicts retention times for peptides using a model trained by RTModel. # most in TOPP tool
+
+
+Map Alignment
+
+ok  ConsensusMapNormalizer - Normalizes maps of one consensusXML file (after linking).
+ok  MapAligner - Corrects retention time distortions between maps. # got 2 map aligners pose and id
+ok  FeatureLinker - Groups corresponding features in one map or across maps (after alignment). # got featurelinking qt
+
+
+## no wrapping of graphical tools
+Graphical Tools
+
+TOPPView - A viewer for mass spectrometry data.
+TOPPAS - An assistant for GUI-driven TOPP workflow design.
+INIFileEditor - An editor for OpenMS configuration files.
+
+
+## no wrapping of generic tools
+Misc
+
+GenericWrapper - Allows the generic wrapping of external tools.
+ExecutePipeline - Executes workflows created by TOPPAS.
+
+
+
+
+
+

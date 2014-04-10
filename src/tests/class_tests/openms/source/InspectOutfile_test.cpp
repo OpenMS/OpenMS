@@ -120,7 +120,7 @@ END_SECTION
 
 InspectOutfile file;
 
-START_SECTION(std::vector< Size > load(const String& result_filename, std::vector< PeptideIdentification >& peptide_identifications, ProteinIdentification& protein_identification, const DoubleReal p_value_threshold, const String& database_filename = ""))
+START_SECTION(std::vector< Size > load(const String& result_filename, std::vector< PeptideIdentification >& peptide_identifications, ProteinIdentification& protein_identification, const double p_value_threshold, const String& database_filename = ""))
 	vector< PeptideIdentification > peptide_identifications;
 	ProteinIdentification protein_identification;
 	
@@ -381,18 +381,18 @@ START_SECTION(void getPrecursorRTandMZ(const vector< pair< String, vector< pair 
 	ids_found.push_back(PeptideIdentification());
 	
 	ids.push_back(PeptideIdentification());
-	ids.back().setMetaValue("RT", -1);
-	ids.back().setMetaValue("MZ", 123.456);
+	ids.back().setRT(-1);
+	ids.back().setMZ(123.456);
 	ids.push_back(PeptideIdentification());
-	ids.back().setMetaValue("RT", 180);
-	ids.back().setMetaValue("MZ", 123.456);
+	ids.back().setRT(180);
+	ids.back().setMZ(123.456);
 	
 	file.getPrecursorRTandMZ(files_and_peptide_identification_with_scan_number, ids_found);
 	
-	TEST_REAL_SIMILAR(ids_found.front().getMetaValue("RT"), ids.front().getMetaValue("RT"));
-	TEST_REAL_SIMILAR(ids_found.front().getMetaValue("MZ"), ids.front().getMetaValue("MZ"));
-	TEST_REAL_SIMILAR(ids_found.back().getMetaValue("RT"), ids.back().getMetaValue("RT"));
-	TEST_REAL_SIMILAR(ids_found.back().getMetaValue("MZ"), ids.back().getMetaValue("MZ"));
+	TEST_REAL_SIMILAR(ids_found.front().getRT(), ids.front().getRT());
+	TEST_REAL_SIMILAR(ids_found.front().getMZ(), ids.front().getMZ());
+	TEST_REAL_SIMILAR(ids_found.back().getRT(), ids.back().getRT());
+	TEST_REAL_SIMILAR(ids_found.back().getMZ(), ids.back().getMZ());
 END_SECTION
 
 START_SECTION(void getLabels(const String& source_database_filename, String& ac_label, String& sequence_start_label, String& sequence_end_label, String& comment_label, String& species_label))
@@ -411,7 +411,7 @@ START_SECTION(void getLabels(const String& source_database_filename, String& ac_
 	TEST_STRING_EQUAL(species_label, ">")
 END_SECTION
 
-START_SECTION(vector< Size > getWantedRecords(const String& result_filename, DoubleReal p_value_threshold))
+START_SECTION(vector< Size > getWantedRecords(const String& result_filename, double p_value_threshold))
 
 	// test exceptions
 	TEST_EXCEPTION(Exception::IllegalArgument, file.getWantedRecords("", 2.0))

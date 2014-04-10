@@ -105,19 +105,19 @@ public:
     void setState(SampleState state);
 
     /// returns the mass (in gram) (default: 0.0)
-    DoubleReal getMass() const;
+    double getMass() const;
     /// sets the mass (in gram)
-    void setMass(DoubleReal mass);
+    void setMass(double mass);
 
     /// returns the volume (in ml) (default: 0.0)
-    DoubleReal getVolume() const;
+    double getVolume() const;
     /// sets the volume (in ml)
-    void setVolume(DoubleReal volume);
+    void setVolume(double volume);
 
     /// returns the concentration (in g/l) (default: 0.0)
-    DoubleReal getConcentration() const;
+    double getConcentration() const;
     /// sets the concentration (in g/l)
-    void setConcentration(DoubleReal concentration);
+    void setConcentration(double concentration);
 
     /// returns a mutable reference to the vector of subsamples that were combined to create this sample
     std::vector<Sample> & getSubsamples();
@@ -159,9 +159,9 @@ protected:
     String comment_;
     String organism_;
     SampleState state_;
-    DoubleReal mass_;
-    DoubleReal volume_;
-    DoubleReal concentration_;
+    double mass_;
+    double volume_;
+    double concentration_;
     std::vector<Sample> subsamples_;
     std::list<SampleTreatment *> treatments_;
 

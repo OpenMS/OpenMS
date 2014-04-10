@@ -112,14 +112,14 @@ protected:
 
     registerStringOption_("method", "<type>", "shuffle", "decoy generation method ('shuffle','pseudo-reverse','reverse','shift')", false);
     registerStringOption_("decoy_tag", "<type>", "DECOY_", "decoy tag", false);
-    registerIntOption_("min_transitions", "<int>", 2, "minimal number of transitions", false);
-    registerIntOption_("max_transitions", "<int>", 6, "maximal number of transitions", false);
     registerFlag_("theoretical", "set this flag if only annotated transitions should be used and be corrected to the theoretical mz.");
     registerDoubleOption_("mz_threshold", "<double>", 0.8, "MZ threshold in Thomson for fragment ion annotation", false);
     registerFlag_("exclude_similar", "set this flag if decoy assays with similarity of the peptide sequence to the target assays higher than the identity_threshold should be excluded. If similarity_threshold is over 0, decoy assays with an absolute difference of the decoy and target product mz smaller than similarity_threshold are further excluded.");
     registerDoubleOption_("similarity_threshold", "<double>", -1, "Similarity threshold for absolute difference of the product mz of target and decoy assays for exclusion in Dalton. Suggested value: 0.05", false);
     registerFlag_("append", "set this flag if non-decoy TraML should be appended to the output.");
     registerFlag_("remove_CNterm_mods", "set this flag to remove decoy peptides with C/N terminal modifications (may be necessary depending on the decoy generation method).");
+    registerFlag_("enable_losses", "set this flag if fragment ions should also be annotated with neutral losses.");
+    registerFlag_("enable_isotopes", "set this flag if fragment ions should also be annotated with isotope series.");
     registerDoubleOption_("identity_threshold", "<double>", 0.7, "shuffle: identity threshold for the shuffle algorithm", false);
     registerIntOption_("max_attempts", "<int>", 10, "shuffle: maximum attempts to lower the sequence identity between target and decoy for the shuffle algorithm", false);
     registerDoubleOption_("mz_shift", "<double>", 20, "shift: MZ shift in Thomson for shift decoy method", false);
@@ -132,18 +132,18 @@ protected:
     String out = getStringOption_("out");
     String method = getStringOption_("method");
     String decoy_tag = getStringOption_("decoy_tag");
-    Int min_transitions = getIntOption_("min_transitions");
-    Int max_transitions = getIntOption_("max_transitions");
     bool theoretical = getFlag_("theoretical");
-    DoubleReal mz_threshold = getDoubleOption_("mz_threshold");
+    double mz_threshold = getDoubleOption_("mz_threshold");
     bool exclude_similar = getFlag_("exclude_similar");
-    DoubleReal similarity_threshold = getDoubleOption_("similarity_threshold");
+    double similarity_threshold = getDoubleOption_("similarity_threshold");
     bool append = getFlag_("append");
     bool remove_CNterm_mods = getFlag_("remove_CNterm_mods");
-    DoubleReal identity_threshold = getDoubleOption_("identity_threshold");
+    bool enable_losses = getFlag_("enable_losses");
+    bool enable_isotopes = getFlag_("enable_isotopes");
+    double identity_threshold = getDoubleOption_("identity_threshold");
     Int max_attempts = getIntOption_("max_attempts");
-    DoubleReal mz_shift = getDoubleOption_("mz_shift");
-    DoubleReal precursor_mass_shift = getDoubleOption_("precursor_mass_shift");
+    double mz_shift = getDoubleOption_("mz_shift");
+    double precursor_mass_shift = getDoubleOption_("precursor_mass_shift");
 
     if (method != "shuffle" && method != "pseudo-reverse" && method != "reverse" && method != "shift")
     {
@@ -159,10 +159,8 @@ protected:
 
     MRMDecoy decoys = MRMDecoy();
 
-    std::cout << "Restricting transitions" << std::endl;
-    decoys.restrictTransitions(targeted_exp, min_transitions, max_transitions);
     std::cout << "Generate decoys" << std::endl;
-    decoys.generateDecoys(targeted_exp, targeted_decoy, method, decoy_tag, identity_threshold, max_attempts, mz_threshold, theoretical, mz_shift, exclude_similar, similarity_threshold, remove_CNterm_mods, precursor_mass_shift);
+    decoys.generateDecoys(targeted_exp, targeted_decoy, method, decoy_tag, identity_threshold, max_attempts, mz_threshold, theoretical, mz_shift, exclude_similar, similarity_threshold, remove_CNterm_mods, precursor_mass_shift, enable_losses, enable_isotopes);
 
     if (append)
     {

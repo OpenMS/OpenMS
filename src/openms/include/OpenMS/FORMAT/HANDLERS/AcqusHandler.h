@@ -69,7 +69,7 @@ public:
       virtual ~AcqusHandler();
 
       /// Conversion from index to MZ ratio using internal calibration params
-      DoubleReal getPosition(Size index);
+      double getPosition(Size index);
 
       /// Read param as string
       String getParam(const String & param);
@@ -86,11 +86,11 @@ private:
 
       /**@name Internal params for calibration */
       //@{
-      DoubleReal dw_;
+      double dw_;
       Size delay_;
-      DoubleReal ml1_;
-      DoubleReal ml2_;
-      DoubleReal ml3_;
+      double ml1_;
+      double ml2_;
+      double ml3_;
       Size td_;
       //@}
     };

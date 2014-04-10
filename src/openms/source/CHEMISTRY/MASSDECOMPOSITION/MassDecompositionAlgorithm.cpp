@@ -37,7 +37,9 @@
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/ModificationDefinition.h>
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
+
 #include <set>
+#include <iostream>
 
 using namespace std;
 
@@ -74,9 +76,9 @@ namespace OpenMS
     delete decomposer_;
   }
 
-  void MassDecompositionAlgorithm::getDecompositions(vector<MassDecomposition> & decomps, DoubleReal mass)
+  void MassDecompositionAlgorithm::getDecompositions(vector<MassDecomposition> & decomps, double mass)
   {
-    DoubleReal tolerance((DoubleReal) param_.getValue("tolerance"));
+    double tolerance((double) param_.getValue("tolerance"));
     ims::RealMassDecomposer::decompositions_type decompositions = decomposer_->getDecompositions(mass, tolerance);
 
     for (ims::RealMassDecomposer::decompositions_type::const_iterator pos = decompositions.begin(); pos != decompositions.end(); ++pos)
@@ -101,7 +103,7 @@ namespace OpenMS
   {
     // todo add accessor to tolerance, it is called very often in CID mode
 
-    Map<char, DoubleReal> aa_to_weight;
+    Map<char, double> aa_to_weight;
 
     set<const Residue *> residues = ResidueDB::getInstance()->getResidues((String)param_.getValue("residue_set"));
 
@@ -195,13 +197,13 @@ namespace OpenMS
 
     // init mass decomposer
     alphabet_ = new ims::IMSAlphabet();
-    for (Map<char, DoubleReal>::ConstIterator it = aa_to_weight.begin(); it != aa_to_weight.end(); ++it)
+    for (Map<char, double>::ConstIterator it = aa_to_weight.begin(); it != aa_to_weight.end(); ++it)
     {
       alphabet_->push_back(String(it->first), it->second);
     }
 
     // initializes weights
-    ims::Weights weights(alphabet_->getMasses(), (DoubleReal) param_.getValue("decomp_weights_precision"));
+    ims::Weights weights(alphabet_->getMasses(), (double) param_.getValue("decomp_weights_precision"));
 
     // optimize alphabet by dividing by gcd
     weights.divideByGCD();

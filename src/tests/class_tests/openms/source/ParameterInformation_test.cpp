@@ -67,8 +67,8 @@ START_SECTION(ParameterInformation())
   TEST_EQUAL(ptr->valid_strings.size(), 0)
   TEST_EQUAL(ptr->min_int, -std::numeric_limits<Int>::max())
   TEST_EQUAL(ptr->max_int, std::numeric_limits<Int>::max())
-  TEST_EQUAL(ptr->min_float, -std::numeric_limits<DoubleReal>::max())
-  TEST_EQUAL(ptr->max_float, std::numeric_limits<DoubleReal>::max())
+  TEST_EQUAL(ptr->min_float, -std::numeric_limits<double>::max())
+  TEST_EQUAL(ptr->max_float, std::numeric_limits<double>::max())
 }
 END_SECTION
 
@@ -97,8 +97,8 @@ START_SECTION((ParameterInformation(const String &n, ParameterTypes t, const Str
   TEST_EQUAL(pi1.valid_strings.size(), 0)
   TEST_EQUAL(pi1.min_int, -std::numeric_limits<Int>::max())
   TEST_EQUAL(pi1.max_int, std::numeric_limits<Int>::max())
-  TEST_EQUAL(pi1.min_float, -std::numeric_limits<DoubleReal>::max())
-  TEST_EQUAL(pi1.max_float, std::numeric_limits<DoubleReal>::max())
+  TEST_EQUAL(pi1.min_float, -std::numeric_limits<double>::max())
+  TEST_EQUAL(pi1.max_float, std::numeric_limits<double>::max())
 }
 END_SECTION
 
@@ -121,8 +121,8 @@ START_SECTION((ParameterInformation& operator=(const ParameterInformation &rhs))
   TEST_EQUAL(pi1.valid_strings.size(), 0)
   TEST_EQUAL(pi1.min_int, -std::numeric_limits<Int>::max())
   TEST_EQUAL(pi1.max_int, std::numeric_limits<Int>::max())
-  TEST_EQUAL(pi1.min_float, -std::numeric_limits<DoubleReal>::max())
-  TEST_EQUAL(pi1.max_float, std::numeric_limits<DoubleReal>::max())
+  TEST_EQUAL(pi1.min_float, -std::numeric_limits<double>::max())
+  TEST_EQUAL(pi1.max_float, std::numeric_limits<double>::max())
 
 	ParameterInformation pi2;
 	pi2 = pi1;

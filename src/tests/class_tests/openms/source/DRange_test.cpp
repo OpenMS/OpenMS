@@ -63,8 +63,8 @@ two[1]=2;
 
 //do not modify these points, they are used in many tests
 
-std::cout.precision(writtenDigits<>(DoubleReal()));
-std::cerr.precision(writtenDigits<>(DoubleReal()));
+std::cout.precision(writtenDigits<>(double()));
+std::cerr.precision(writtenDigits<>(double()));
 
 DRange<2>* ptr = 0;
 DRange<2>* nullPointer = 0;

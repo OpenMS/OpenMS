@@ -40,8 +40,6 @@
 
 #include <numeric>
 
-//#include <gsl/gsl_randist.h>
-
 namespace OpenMS
 {
   IsotopeModel::IsotopeModel() :
@@ -128,7 +126,7 @@ namespace OpenMS
 
   void IsotopeModel::setSamples(const EmpiricalFormula & formula)
   {
-    typedef std::vector<DoubleReal> ContainerType;
+    typedef std::vector<double> ContainerType;
     ContainerType isotopes_exact;
 
     isotope_distribution_ = formula.getIsotopeDistribution(max_isotope_);
@@ -173,7 +171,7 @@ namespace OpenMS
       // Actual width for values in the smooth table for normal distribution
       peak_width = isotope_stdev_ * 4.0;  // MAGIC alert, num stdev for smooth table for normal distribution
       ContainerType peak_shape_values_x;
-      for (DoubleReal coord = -peak_width; coord <= peak_width;
+      for (double coord = -peak_width; coord <= peak_width;
            coord += interpolation_step_)
       {
         peak_shape_values_x.push_back(coord);
@@ -188,12 +186,11 @@ namespace OpenMS
     else if (param_.getValue("isotope:mode:mode") == "Lorentzian")
     {
       peak_width = isotope_lorentz_fwhm_ * 8.0; // MAGIC alert: Lorentzian has infinite support, but we need to stop sampling at some point: 8*FWHM
-      for (DoubleReal coord = -peak_width; coord <= peak_width;
+      for (double coord = -peak_width; coord <= peak_width;
            coord += interpolation_step_)
       {
         boost::math::cauchy_distribution<double> cauchy(0., isotope_lorentz_fwhm_ / 2.0);
         double x = boost::math::pdf(cauchy, coord);
-        //double y = gsl_ran_cauchy_pdf(coord, isotope_lorentz_fwhm_/2.0);
         peak_shape_values_y.push_back(x); //cauchy is using HWHM not FWHM
       }
     }
@@ -238,7 +235,7 @@ namespace OpenMS
 
   void IsotopeModel::setOffset(CoordinateType offset)
   {
-    DoubleReal diff = offset - getInterpolation().getOffset();
+    double diff = offset - getInterpolation().getOffset();
     mean_ += diff;
     monoisotopic_mz_ += diff;
 

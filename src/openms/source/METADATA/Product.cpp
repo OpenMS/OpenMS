@@ -85,32 +85,32 @@ namespace OpenMS
     return !(operator==(rhs));
   }
 
-  DoubleReal Product::getMZ() const
+  double Product::getMZ() const
   {
     return mz_;
   }
 
-  void Product::setMZ(DoubleReal mz)
+  void Product::setMZ(double mz)
   {
     mz_ = mz;
   }
 
-  DoubleReal Product::getIsolationWindowLowerOffset() const
+  double Product::getIsolationWindowLowerOffset() const
   {
     return window_low_;
   }
 
-  void Product::setIsolationWindowLowerOffset(DoubleReal bound)
+  void Product::setIsolationWindowLowerOffset(double bound)
   {
     window_low_ = bound;
   }
 
-  DoubleReal Product::getIsolationWindowUpperOffset() const
+  double Product::getIsolationWindowUpperOffset() const
   {
     return window_up_;
   }
 
-  void Product::setIsolationWindowUpperOffset(DoubleReal bound)
+  void Product::setIsolationWindowUpperOffset(double bound)
   {
     window_up_ = bound;
   }

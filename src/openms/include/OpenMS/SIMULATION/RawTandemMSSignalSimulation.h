@@ -59,8 +59,12 @@ public:
     /** @name Constructors and Destructors
       */
     //@{
+
+    /// Default constructor (hidden)
+    RawTandemMSSignalSimulation();
+
     /// Constructor taking a random generator
-    explicit RawTandemMSSignalSimulation(const SimRandomNumberGenerator & rng);
+    explicit RawTandemMSSignalSimulation(MutableSimRandomNumberGeneratorPtr rng);
 
     /// Copy constructor
     RawTandemMSSignalSimulation(const RawTandemMSSignalSimulation & source);
@@ -76,9 +80,6 @@ public:
      */
     void generateRawTandemSignals(const FeatureMapSim &, MSSimExperiment &, MSSimExperiment &);
 
-private:
-    /// Default constructor (hidden)
-    RawTandemMSSignalSimulation();
 
 protected:
     void generateMSESpectra_(const FeatureMapSim & features, const MSSimExperiment & experiment, MSSimExperiment & ms2);
@@ -86,7 +87,7 @@ protected:
     void generatePrecursorSpectra_(const FeatureMapSim & features, const MSSimExperiment & experiment, MSSimExperiment & ms2);
 
     /// Random number generator
-    SimRandomNumberGenerator const * rnd_gen_;
+    MutableSimRandomNumberGeneratorPtr  rnd_gen_;
   };
 
 }

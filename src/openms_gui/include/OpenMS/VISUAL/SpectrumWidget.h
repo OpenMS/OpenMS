@@ -35,6 +35,9 @@
 #ifndef OPENMS_VISUAL_SPECTRUMWIDGET_H
 #define OPENMS_VISUAL_SPECTRUMWIDGET_H
 
+// OpenMS_GUI config
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
+
 //OpenMS
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/MATH/STATISTICS/Histogram.h>
@@ -207,6 +210,8 @@ protected:
     virtual Math::Histogram<> createMetaDistribution_(const String & name) const = 0;
     /// recalculates the Axis ticks
     virtual void recalculateAxes_() = 0;
+    /// correct given area X/Y-values if the values under-/overflow the min-/max values of the data
+    void correctAreaToObeyMinMaxRanges_(SpectrumCanvas::AreaType& area);
 
     ///@name reimplemented Qt events
     //@{

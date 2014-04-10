@@ -116,9 +116,9 @@ protected:
     String gt   = getStringOption_("gt");
     String type = getStringOption_("type");
 
-    DoubleReal rt_dev = getDoubleOption_("rt_dev");
-    DoubleReal mz_dev = getDoubleOption_("mz_dev");
-    DoubleReal int_dev = getDoubleOption_("int_dev");
+    double rt_dev = getDoubleOption_("rt_dev");
+    double mz_dev = getDoubleOption_("mz_dev");
+    double int_dev = getDoubleOption_("int_dev");
 
     bool use_charge = getFlag_("use_charge");
 
@@ -163,8 +163,8 @@ protected:
       MapAlignmentEvaluationAlgorithm * algorithm_p = Factory<MapAlignmentEvaluationAlgorithm>::create("precision");
       MapAlignmentEvaluationAlgorithm * algorithm_r = Factory<MapAlignmentEvaluationAlgorithm>::create("recall");
 
-      DoubleReal precision = 0;
-      DoubleReal recall = 0;
+      double precision = 0;
+      double recall = 0;
 
       //evaluate
       algorithm_p->evaluate(consensus_map_in, consensus_map_gt, rt_dev, mz_dev, int_dev, use_charge, precision);
@@ -180,7 +180,7 @@ protected:
     {
       MapAlignmentEvaluationAlgorithm * algorithm = Factory<MapAlignmentEvaluationAlgorithm>::create(type);
 
-      DoubleReal result = 0;
+      double result = 0;
 
       //evaluate
       algorithm->evaluate(consensus_map_in, consensus_map_gt, rt_dev, mz_dev, int_dev, use_charge, result);

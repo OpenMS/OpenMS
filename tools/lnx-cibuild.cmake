@@ -1,5 +1,5 @@
 # define build name&co for easier identification on cdassh
-set(CTEST_BUILD_NAME "travis-ci-$ENV{TRAVIS_BRANCH}-$ENV{BUILD_NAME}-$ENV{CXX}")
+set(CTEST_BUILD_NAME "travis-ci-$ENV{TRAVIS_REPO_SLUG}-$ENV{TRAVIS_BRANCH}-$ENV{BUILD_NAME}-$ENV{CXX}")
 set(CTEST_SITE "travis-ci-build-server")
 set(CTEST_SOURCE_DIRECTORY "$ENV{SOURCE_DIRECTORY}")
 set(CTEST_BINARY_DIRECTORY "${CTEST_SOURCE_DIRECTORY}/_build")
@@ -10,18 +10,17 @@ message(STATUS "CTEST_BINARY_DIRECTORY: ${CTEST_BINARY_DIRECTORY}")
 set(INITIAL_CACHE
 "CMAKE_FIND_ROOT_PATH=$ENV{SOURCE_DIRECTORY}/contrib\;/usr
 BOOST_USE_STATIC=Off
-CMAKE_BUILD_TYPE=Release"
+CMAKE_BUILD_TYPE=Release
+ENABLE_TUTORIALS=Off
+ENABLE_UNITYBUILD=Off"
 )
 
 # create cache
 file(WRITE "${CTEST_BINARY_DIRECTORY}/CMakeCache.txt" ${INITIAL_CACHE})
 
-# since we have no X on the travis-ci machines we ignore all GUI tests
+# ignore failing GzipIfstream_test which seems to be related to the used
+# zlib version
 set(CTEST_CUSTOM_TESTS_IGNORE
-  TOPPView_test
-  UTILSWRITEINI_IDEvaluator
-  UTILSWRITEINI_IDEvaluator_SectionName
-  UTILSWRITECTD_IDEvaluator
 	GzipIfstream_test
 )
 

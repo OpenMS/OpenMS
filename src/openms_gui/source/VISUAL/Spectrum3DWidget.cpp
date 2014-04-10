@@ -74,8 +74,8 @@ namespace OpenMS
   Histogram<> Spectrum3DWidget::createIntensityDistribution_() const
   {
     //initialize histogram
-    DoubleReal min = canvas_->getCurrentMinIntensity();
-    DoubleReal max = canvas_->getCurrentMaxIntensity();
+    double min = canvas_->getCurrentMinIntensity();
+    double max = canvas_->getCurrentMaxIntensity();
     if (min == max)
     {
       min -= 0.01;
@@ -101,7 +101,7 @@ namespace OpenMS
     Histogram<> tmp;
 
     //determine min and max of the data
-    Real m_min = (numeric_limits<Real>::max)(), m_max = -(numeric_limits<Real>::max)();
+    float m_min = (numeric_limits<float>::max)(), m_max = -(numeric_limits<float>::max)();
     for (ExperimentType::const_iterator s_it = canvas_->getCurrentLayer().getPeakData()->begin(); s_it != canvas_->getCurrentLayer().getPeakData()->end(); ++s_it)
     {
       if (s_it->getMSLevel() != 1)
@@ -190,11 +190,14 @@ namespace OpenMS
     Spectrum2DGoToDialog goto_dialog(this);
     const DRange<3> & area = canvas()->getDataRange();
     goto_dialog.setRange(area.minY(), area.maxY(), area.minX(), area.maxX());
+    goto_dialog.setMinMaxOfRange(canvas()->getDataRange().minY(), canvas()->getDataRange().maxY(), canvas()->getDataRange().minX(), canvas()->getDataRange().maxX());
     goto_dialog.enableFeatureNumber(false);
     if (goto_dialog.exec())
     {
       goto_dialog.fixRange(); // in case user did something invalid
-      canvas()->setVisibleArea(SpectrumCanvas::AreaType(goto_dialog.getMinMZ(), goto_dialog.getMinRT(), goto_dialog.getMaxMZ(), goto_dialog.getMaxRT()));
+      SpectrumCanvas::AreaType area (goto_dialog.getMinMZ(), goto_dialog.getMinRT(), goto_dialog.getMaxMZ(), goto_dialog.getMaxRT());
+      correctAreaToObeyMinMaxRanges_(area);
+      canvas()->setVisibleArea(area);
     }
   }
 

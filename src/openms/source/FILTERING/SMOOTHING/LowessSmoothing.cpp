@@ -38,9 +38,7 @@
 #include <algorithm>
 #include <cstdlib>
 
-#include <gsl/gsl_vector.h>
-#include <gsl/gsl_matrix.h>
-#include <gsl/gsl_multifit.h>
+#include <OpenMS/MATH/STATISTICS/QuadraticRegression.h>
 
 
 namespace OpenMS
@@ -71,7 +69,6 @@ namespace OpenMS
     }
 
     Size input_size = input_y.size();
-    // alpha_ = 1 / ( input_size / window_size_ );
 
     // const Size q = floor( input_size * alpha );
     const Size q = (window_size_ < input_size) ? window_size_ : input_size - 1;
@@ -79,85 +76,40 @@ namespace OpenMS
     DoubleVector distances(input_size, 0.0);
     DoubleVector sortedDistances(input_size, 0.0);
 
-    // DoubleVector smooth_yvals_Vec(input_size);
-
-    gsl_matrix * X = gsl_matrix_alloc(input_size, 3);
-    gsl_matrix * cov = gsl_matrix_alloc(3, 3);
-
-    gsl_vector * weights = gsl_vector_alloc(input_size);
-    gsl_vector * c = gsl_vector_alloc(3);
-    gsl_vector * x = gsl_vector_alloc(3);
-    gsl_vector * yvals_ = gsl_vector_alloc(input_size);
-
-    DoubleReal y, yErr, chisq;
-
-    // Setup the model matrix X for a quadratic fit.
-    // yvals_ = new double[input_size];
-    // Size idx = 0;
-
-    for (Size p_idx = 0; p_idx < input_y.size(); ++p_idx)
-    {
-      DoubleReal rt = input_x[p_idx];
-
-      gsl_matrix_set(X, p_idx, 0, 1.0);
-      gsl_matrix_set(X, p_idx, 1, rt);
-      gsl_matrix_set(X, p_idx, 2, rt * rt);
-
-      gsl_vector_set(yvals_, p_idx, input_y[p_idx]);
-
-      // ++idx;
-    }
-
-
-
-    //for(DoubleVector::const_iterator outer_peak_it = input_y.begin(); outer_peak_it != input_y.end(); ++outer_peak_it )
-    for (Size outer_idx = 0; outer_idx < input_y.size(); ++outer_idx)
+    for (Size outer_idx = 0; outer_idx < input_size; ++outer_idx)
     {
       // Compute distances.
       // Size inner_idx = 0;
-      for (Size inner_idx = 0; inner_idx < input_y.size(); ++inner_idx)
+      for (Size inner_idx = 0; inner_idx < input_size; ++inner_idx)
       {
         distances[inner_idx] = std::fabs(input_x[outer_idx] - input_x[inner_idx]);
         sortedDistances[inner_idx] = distances[inner_idx];
-        // ++inner_idx;
       }
 
       // Sort distances in order from smallest to largest.
-      // std::sort(sortedDistances, sortedDistances + input_size);
       std::sort(sortedDistances.begin(), sortedDistances.end());
 
-
-      // Compute weights.
+      // Compute weigths.
+      std::vector<double> weigths (input_size, 0);
       for (Size inner_idx = 0; inner_idx < input_size; ++inner_idx)
       {
-        gsl_vector_set(weights, inner_idx, tricube_(distances[inner_idx], sortedDistances[q]));
+        weigths.at(inner_idx) = tricube_(distances[inner_idx], sortedDistances[q]);
       }
 
+      //calculate regression
+      Math::QuadraticRegression qr;
+      std::vector<double>::const_iterator w_begin = weigths.begin();
+      qr.computeRegressionWeighted(input_x.begin(), input_x.end(), input_y.begin(), w_begin);
 
-      gsl_multifit_linear_workspace * work = gsl_multifit_linear_alloc(input_size, 3);
-      gsl_multifit_wlinear(X, weights, yvals_, c, cov, &chisq, work);
-      gsl_multifit_linear_free(work);
-
-
-      DoubleReal rt = input_x[outer_idx];
-      gsl_vector_set(x, 0, 1.0);
-      gsl_vector_set(x, 1, rt);
-      gsl_vector_set(x, 2, rt * rt);
-
-      gsl_multifit_linear_est(x, c, cov, &y, &yErr);
-
-      smoothed_output.push_back(y);
+      //smooth y-values
+      double rt = input_x[outer_idx];
+      smoothed_output.push_back(qr.eval(rt));
     }
-
-    gsl_matrix_free(X);
-    gsl_vector_free(weights);
-    gsl_vector_free(c);
-    gsl_matrix_free(cov);
 
     return;
   }
 
-  DoubleReal LowessSmoothing::tricube_(DoubleReal u, DoubleReal t)
+  double LowessSmoothing::tricube_(double u, double t)
   {
     // In our case, u represents a distance and hence should be strictly positive.
     if (u < 0)
@@ -170,8 +122,8 @@ namespace OpenMS
     {
       // (1 - (u/t)^3)^3
       // return pow( ( 1.0 - pow(u/t, 3.0)), 3.0 );
-      DoubleReal quot(u / t);
-      DoubleReal inner_term(1.0 - quot * quot * quot);
+      double quot(u / t);
+      double inner_term(1.0 - quot * quot * quot);
 
       return inner_term * inner_term * inner_term;
     }

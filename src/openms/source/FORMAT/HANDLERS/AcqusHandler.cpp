@@ -96,13 +96,13 @@ namespace OpenMS
       return td_;
     }
 
-    DoubleReal AcqusHandler::getPosition(const Size index)
+    double AcqusHandler::getPosition(const Size index)
     {
-      DoubleReal sqrt_mz_;
-      DoubleReal tof_ = dw_ * index + delay_;
-      DoubleReal a_ = ml3_;
-      DoubleReal b_ = sqrt(1000000000000.0 / ml1_);
-      DoubleReal c_ = ml2_ - tof_;
+      double sqrt_mz_;
+      double tof_ = dw_ * index + delay_;
+      double a_ = ml3_;
+      double b_ = sqrt(1000000000000.0 / ml1_);
+      double c_ = ml2_ - tof_;
 
       if (ml3_ == 0.0)
       {

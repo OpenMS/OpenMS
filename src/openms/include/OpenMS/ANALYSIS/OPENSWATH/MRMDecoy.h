@@ -44,10 +44,11 @@
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/uniform_int.hpp>
 #include <boost/random/variate_generator.hpp>
+#include <boost/unordered_map.hpp>
 
-#include <map>
 #include <string>
 #include <vector>
+#include <map>
 #include <utility> // for pair
 
 // #define DEBUG_MRMDECOY
@@ -109,8 +110,8 @@ public:
                         OpenMS::TargetedExperiment& dec, String method, String decoy_tag,
                         double identity_threshold, int max_attempts, double mz_threshold, 
                         bool theoretical, double mz_shift, bool exclude_similar, 
-                        double similarity_threshold, bool remove_CNterm_mods, double precursor_mass_shift);
-
+                        double similarity_threshold, bool remove_CNterm_mods, 
+                        double precursor_mass_shift, bool enable_losses, bool enable_isotopes);
     /**
       @brief Remove transitions s.t. all peptides have a defined set of transitions.
 
@@ -125,23 +126,23 @@ public:
     typedef std::vector<OpenMS::TargetedExperiment::Peptide> PeptideVectorType;
     typedef std::vector<OpenMS::ReactionMonitoringTransition> TransitionVectorType;
 
-    typedef std::map<String, std::map<String, double> > IonSeries;
-    typedef std::map<String, IonSeries> IonSeriesMapType;
+    typedef boost::unordered_map<String, boost::unordered_map<String, double> > IonSeries;
+    typedef boost::unordered_map<String, IonSeries> IonSeriesMapType;
 
     typedef std::map<String, std::vector<const ReactionMonitoringTransition*> > PeptideTransitionMapType;
 
     /**
       @brief Selects a decoy ion from a set of ions.
     */
-    std::pair<String, DoubleReal> getDecoyIon(String ionid,
-                                              std::map<String, std::map<String, DoubleReal> >& decoy_ionseries);
+    std::pair<String, double> getDecoyIon(String ionid,
+                                              boost::unordered_map<String, boost::unordered_map<String, double> >& decoy_ionseries);
 
     /**
       @brief Selects a target ion from a set of ions.
     */
     std::pair<String, double> getTargetIon(double ProductMZ, double mz_threshold,
-                                           std::map<String, std::map<String, double> > target_ionseries);
-
+                                           boost::unordered_map<String, boost::unordered_map<String, double> > target_ionseries,
+                                           bool enable_losses, bool enable_isotopes);
     /**
       @brief Generate all ion series for an input AASequence
 
@@ -157,7 +158,7 @@ public:
       FEATURE (george): a more generic mechanism to specify which series and losses should be
       generated. possible integration with TheoreticalSpectrumGenerator?
     */
-    std::map<String, std::map<String, double> > getIonSeries(
+    boost::unordered_map<String, boost::unordered_map<String, double> > getIonSeries(
       AASequence sequence, int precursor_charge, int max_isotopes = 2);
 
     /**
@@ -179,7 +180,7 @@ public:
     /**
       @brief Correct the masses according to theoretically computed masses
     */
-    void correctMasses(OpenMS::TargetedExperiment& exp, double mz_threshold);
+    void correctMasses(OpenMS::TargetedExperiment& exp, double mz_threshold, bool enable_losses, bool enable_isotopes);
 
     /**
       @brief Shuffle a peptide (with its modifications) sequence

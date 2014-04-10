@@ -45,32 +45,16 @@ if(NOT Boost_FOUND)
 endif()
 
 #------------------------------------------------------------------------------
-# Export OpenSWATHAlgo include directories
-#------------------------------------------------------------------------------
-set(OPENSWATHALGO_INCLUDE_DIRECTORIES ${PROJECT_SOURCE_DIR}/include
-                                      ${PROJECT_BINARY_DIR}/include
-                                      ${Boost_INCLUDE_DIRS}
-    CACHE INTERNAL "OpenSWATHAlgo include directories" FORCE)
-
-#------------------------------------------------------------------------------
-# Include directories
-include_directories(${OPENSWATHALGO_INCLUDE_DIRECTORIES})
-
-#------------------------------------------------------------------------------
-# Configure OpenSwathAlgoConfig.h.in file for dll_export macros etc.
-# replace any variables in config.h.in with current values
-#------------------------------------------------------------------------------
-set (CONFIGURED_OPENSWATHALGOCONFIG_H ${PROJECT_BINARY_DIR}/include/OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/OpenSwathAlgoConfig.h)
-configure_file(${PROJECT_SOURCE_DIR}/include/OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/OpenSwathAlgoConfig.h.in ${CONFIGURED_OPENSWATHALGOCONFIG_H})
-
-#------------------------------------------------------------------------------
 # get information regarding the openswath files
 include(source/ANALYSIS/OPENSWATH/OPENSWATHALGO/OpenSwathAlgoFiles.cmake)
 
 #------------------------------------------------------------------------------
-# The OpenSWATHAlgo library
-add_library(OpenSwathAlgo ${OpenSwathAlgoFiles})
+# add the library
+openms_add_library(TARGET_NAME OpenSwathAlgo
+                   SOURCE_FILES ${OpenSwathAlgoFiles}
+                   HEADER_FILES ${OpenSwathAlgoHeaders}
+                   INTERNAL_INCLUDES ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include
+                   EXTERNAL_INCLUDES ${Boost_INCLUDE_DIRS}
+                   DLL_EXPORT_PATH "OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/")
 
-#------------------------------------------------------------------------------
-# copy dll to test/doc bin folder on MSVC systems
-copy_dll_to_extern_bin(OpenSwathAlgo)
+openms_doc_path("${PROJECT_SOURCE_DIR}/include")

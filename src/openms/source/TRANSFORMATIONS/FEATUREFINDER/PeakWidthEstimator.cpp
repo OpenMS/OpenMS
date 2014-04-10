@@ -33,19 +33,19 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/PeakWidthEstimator.h>
-
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
+#include <OpenMS/MATH/STATISTICS/LinearRegression.h>
 
-#include <deque>
 #include <boost/tuple/tuple_comparison.hpp>
 
-#include <gsl/gsl_fit.h>
-#include <gsl/gsl_interp.h>
-#include <gsl/gsl_spline.h>
+#include "Wm5IntpAkimaNonuniform1.h"
+
+#include <deque>
+#include <algorithm>
 
 namespace OpenMS
 {
-  void PeakWidthEstimator::estimateSpectrumFWHM(const MSSpectrum<Peak1D> & input, std::set<boost::tuple<DoubleReal, DoubleReal, DoubleReal> > & fwhms)
+  void PeakWidthEstimator::estimateSpectrumFWHM(const MSSpectrum<Peak1D> & input, std::set<boost::tuple<double, double, double> > & fwhms)
   {
     PeakPickerHiRes picker;
 
@@ -59,13 +59,13 @@ namespace OpenMS
 
     for (Size i = 1; i < picked.size() - 1; ++i)
     {
-      DoubleReal mz = picked[i].getMZ();
-      DoubleReal intensity = picked[i].getIntensity();
+      double mz = picked[i].getMZ();
+      double intensity = picked[i].getIntensity();
 
-      DoubleReal half_window_size = 0.25;
+      double half_window_size = 0.25;
 
-      DoubleReal half_dist_left_neighbor = (mz - picked[i - 1].getMZ()) / 2.0;
-      DoubleReal half_dist_right_neighbor = (picked[i + 1].getMZ() - mz) / 2.0;
+      double half_dist_left_neighbor = (mz - picked[i - 1].getMZ()) / 2.0;
+      double half_dist_right_neighbor = (picked[i + 1].getMZ() - mz) / 2.0;
 
       if (half_dist_right_neighbor < half_window_size)
       {
@@ -85,58 +85,64 @@ namespace OpenMS
       MSSpectrum<Peak1D>::ConstIterator begin_window = input.MZBegin(picked[i].getMZ() - half_window_size);
       MSSpectrum<Peak1D>::ConstIterator end_window = input.MZBegin(picked[i].getMZ() + half_window_size);
 
-      std::map<double, double> values;
+      typedef std::pair<double, double> MzIntPair; //mz-intensity pair
+      std::vector< MzIntPair > values;
 
       // Add peak maximum
-      values.insert(std::make_pair(mz, intensity));
+      values.push_back(MzIntPair(mz, intensity));
 
       for (; begin_window != end_window; ++begin_window)
       {
-        values.insert(std::make_pair(begin_window->getMZ(), begin_window->getIntensity()));
+        values.push_back(MzIntPair(begin_window->getMZ(), begin_window->getIntensity()));
       }
+      int true_data_points = 0;
+      std::vector< MzIntPair >::const_iterator iter;
+      for(iter = values.begin(); iter != values.end(); ++iter)
+      {
+        double mz = iter->first;
+        if(mz > std::numeric_limits<double>::epsilon())//null-point
+          ++true_data_points;
+      }
+      //abort if we have less than 4 data points for spline fitting
+      if(true_data_points < 4)
+        continue;
 
       // Make sure we have some zeroes
-      values.insert(std::make_pair(mz - 0.3, 0));
-      values.insert(std::make_pair(mz - 0.25, 0));
-      values.insert(std::make_pair(mz + 0.25, 0));
-      values.insert(std::make_pair(mz + 0.3, 0));
+      values.push_back(MzIntPair(mz - 0.3, 0));
+      values.push_back(MzIntPair(mz - 0.25, 0));
+      values.push_back(MzIntPair(mz + 0.25, 0));
+      values.push_back(MzIntPair(mz + 0.3, 0));
 
-      if (values.size() < 12)
+      //make sure the data points are sorted by mz values
+      std::sort( values.begin(), values.end() );
+
+      //TODO: heavy code-duplication! Compare PeakPickerHiRes
+      //convert into GeomTools Matrix structure
+      std::vector<double> X;
+      std::vector<double> Y;
+      std::vector< std::pair<double, double> >::const_iterator it;
+      for (it = values.begin(); it != values.end(); ++it)
       {
-        continue;
+        X.push_back( it->first );//mz
+        Y.push_back( it->second );//intensity
       }
-
-      std::vector<double> raw_mz_values, raw_int_values;
-      raw_mz_values.reserve(values.size());
-      raw_int_values.reserve(values.size());
-      for (std::map<double, double>::const_iterator it = values.begin(); it != values.end(); ++it)
-      {
-        raw_mz_values.push_back(it->first);
-        raw_int_values.push_back(it->second);
-      }
-
-      // setup gsl splines
-      const Size num_raw_points = raw_mz_values.size();
-      gsl_interp_accel * spline_acc = gsl_interp_accel_alloc();
-      gsl_interp_accel * first_deriv_acc = gsl_interp_accel_alloc();
-      gsl_spline * peak_spline = gsl_spline_alloc(gsl_interp_akima, num_raw_points);
-      gsl_spline_init(peak_spline, &(*raw_mz_values.begin()), &(*raw_int_values.begin()), num_raw_points);
+      Wm5::IntpAkimaNonuniform1<double> peak_spline (values.size(), &X.front(), &Y.front());
 
       // search for half intensity to the left
-      DoubleReal MZ_THRESHOLD = 0.00000001;
-      DoubleReal INTENSITY_THRESHOLD = 0.0001;
+      double MZ_THRESHOLD = 0.00000001;
+      double INTENSITY_THRESHOLD = 0.0001;
 
-      DoubleReal half_maximum = intensity / 2.0;
-      DoubleReal mid;
+      double half_maximum = intensity / 2.0;
+      double mid;
 
       // left bisection
-      DoubleReal left = mz - 0.25;
-      DoubleReal right = mz;
+      double left = mz - 0.25;
+      double right = mz;
 
       do
       {
         mid = (left + right) / 2.0;
-        DoubleReal mid_int = gsl_spline_eval(peak_spline, mid, spline_acc);
+        double mid_int = peak_spline( mid );
 
         // found half maximum
         if (std::fabs(mid_int - half_maximum) < INTENSITY_THRESHOLD)
@@ -157,7 +163,7 @@ namespace OpenMS
       }
       while (std::fabs(left - right) > MZ_THRESHOLD);
 
-      DoubleReal left_fwhm_mz = mid;
+      double left_fwhm_mz = mid;
 
       // right bisection
       left = mz;
@@ -165,7 +171,7 @@ namespace OpenMS
       do
       {
         mid = (left + right) / 2.0;
-        DoubleReal mid_int = gsl_spline_eval(peak_spline, mid, spline_acc);
+        double mid_int = peak_spline( mid );
 
         // found half maximum
         if (std::fabs(mid_int - half_maximum) < INTENSITY_THRESHOLD)
@@ -186,15 +192,10 @@ namespace OpenMS
       }
       while (std::fabs(left - right) > MZ_THRESHOLD);
 
-      DoubleReal right_fwhm_mz = mid;
-
-      // free allocated gsl memory
-      gsl_spline_free(peak_spline);
-      gsl_interp_accel_free(spline_acc);
-      gsl_interp_accel_free(first_deriv_acc);
+      double right_fwhm_mz = mid;
 
       // sanity check (left distance and right distance should be more or less equal)
-      DoubleReal ratio = std::fabs(left_fwhm_mz - mz) / std::fabs(right_fwhm_mz - mz);
+      double ratio = std::fabs(left_fwhm_mz - mz) / std::fabs(right_fwhm_mz - mz);
 
       if (ratio < 0.9 || ratio > 1.1)
       {
@@ -203,7 +204,7 @@ namespace OpenMS
 
       //std::cout << std::fabs(left_fwhm_mz - mz) << " " << std::fabs(right_fwhm_mz - mz) << std::endl;
 
-      DoubleReal fwhm = std::fabs(left_fwhm_mz - mz) + std::fabs(right_fwhm_mz - mz);
+      double fwhm = std::fabs(left_fwhm_mz - mz) + std::fabs(right_fwhm_mz - mz);
 
       fwhms.insert(boost::make_tuple(intensity, mz, fwhm));
     }
@@ -254,7 +255,7 @@ namespace OpenMS
     }
 
     // set of (intensity, mz, peak-width)
-    std::set<boost::tuple<DoubleReal, DoubleReal, DoubleReal> > fwhms;
+    std::set<boost::tuple<double, double, double> > fwhms;
 
     // estimate FWHM on every spectrum
     for (Size scan_idx = 0; scan_idx != exp.size(); ++scan_idx)
@@ -268,29 +269,23 @@ namespace OpenMS
     }
 
     // extract mzs and fwhm for linear regression above the median sorted for the intensity
-    std::vector<double> keys, values, weights;
+    std::vector<double> mzsVec, fwhmsVec, intensitiesVec;
     {
       Size count = fwhms.size() / 2;
-      std::set<boost::tuple<DoubleReal, DoubleReal, DoubleReal> >::reverse_iterator it = fwhms.rbegin();
+      std::set<boost::tuple<double, double, double> >::reverse_iterator it = fwhms.rbegin();
       for (; count && it != fwhms.rend(); --count, ++it)
       {
-        // std::cout << it->get<1>() << ',' << it->get<2>() << ',' << it->get<0>() << std::endl;  // generates nice plots
-        keys.push_back(std::log(it->get<1>()));
-        values.push_back(std::log(it->get<2>()));
-        weights.push_back(it->get<0>());
+//        std::cout << it->get<1>() << ',' << it->get<2>() << ',' << it->get<0>() << std::endl;  // generates nice plots
+        mzsVec.push_back(std::log(it->get<1>()));
+        fwhmsVec.push_back(std::log(it->get<2>()));
+        intensitiesVec.push_back(it->get<0>());
       }
     }
 
-    double c0, c1, cov00, cov01, cov11, chisq;
-    int error = gsl_fit_wlinear(&keys[0], 1, &weights[0], 1, &values[0], 1, keys.size(),
-                                &c0, &c1, &cov00, &cov01, &cov11, &chisq);
+    Math::LinearRegression linreg;
+    linreg.computeRegressionWeighted(0.95, mzsVec.begin(), mzsVec.end(), fwhmsVec.begin(), intensitiesVec.begin());
 
-    if (error)
-    {
-      throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-PeakWidthEstimator", "Error from GSL");
-    }
-
-    return Result(c0, c1);
+    return Result(linreg.getIntercept(), linreg.getSlope());
   }
 
 }

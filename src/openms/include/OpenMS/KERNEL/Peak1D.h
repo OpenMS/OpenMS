@@ -38,7 +38,7 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
 
-#include <ostream>
+#include <iosfwd>
 #include <functional>
 
 namespace OpenMS
@@ -61,11 +61,11 @@ public:
     /// Dimension
     enum {DIMENSION = 1};
     /// Intensity type
-    typedef Real IntensityType;
+    typedef float IntensityType;
     /// Position type
     typedef DPosition<1> PositionType;
     /// Coordinate type
-    typedef DoubleReal CoordinateType;
+    typedef double CoordinateType;
     ///@}
 
     ///@name Constructors and Destructor
@@ -74,6 +74,12 @@ public:
     inline Peak1D() :
       position_(),
       intensity_(0)
+    {}
+
+    /// construct with position and intensity
+    inline Peak1D(PositionType a, IntensityType b) :
+      position_(a),
+      intensity_(b)
     {}
 
     /// Copy constructor

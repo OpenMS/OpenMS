@@ -37,6 +37,7 @@
 
 #include <OpenMS/config.h>
 #include <OpenMS/CONCEPT/Macros.h>
+#include <OpenMS/CONCEPT/PrecisionWrapper.h>
 
 #include <algorithm>
 #include <limits>
@@ -44,11 +45,11 @@
 namespace OpenMS
 {
   /**
- @brief Representation of a coordinate in D-dimensional space.
+    @brief Representation of a coordinate in D-dimensional space.
 
- @ingroup Datastructures
- */
-  template <UInt D, typename TCoordinateType = DoubleReal>
+    @ingroup Datastructures
+  */
+  template <UInt D, typename TCoordinateType = double>
   class DPosition
   {
 public:
@@ -56,34 +57,34 @@ public:
     /// Coordinate type
     typedef TCoordinateType CoordinateType;
     /// Mutable iterator
-    typedef CoordinateType * Iterator;
+    typedef CoordinateType* Iterator;
     /// Non-mutable iterator
-    typedef const CoordinateType * ConstIterator;
+    typedef const CoordinateType* ConstIterator;
     /// Dimensions
     enum
     {
       DIMENSION = D
     };
     /**
-                 @name STL compatibility type definitions
-                 */
+      @name STL compatibility type definitions
+    */
     //@{
     typedef CoordinateType value_type;
-    typedef CoordinateType & reference;
-    typedef CoordinateType * pointer;
-    typedef CoordinateType * iterator;
-    typedef const CoordinateType * const_iterator;
+    typedef CoordinateType& reference;
+    typedef CoordinateType* pointer;
+    typedef CoordinateType* iterator;
+    typedef const CoordinateType* const_iterator;
     //@}
 
     /**
-                 @name Constructors and Destructor
-                 */
+      @name Constructors and Destructor
+    */
     //@{
     /**
-                 @brief Default constructor.
+      @brief Default constructor.
 
-                 Creates a position with all coordinates zero.
-                 */
+      Creates a position with all coordinates zero.
+    */
     DPosition()
     {
       clear();
@@ -101,7 +102,7 @@ public:
     }
 
     /// Copy constructor
-    DPosition(const DPosition & pos)
+    DPosition(const DPosition& pos)
     {
       std::copy(&(pos.coordinate_[0]), &(pos.coordinate_[D]),
                 &(coordinate_[0]));
@@ -116,7 +117,7 @@ public:
     }
 
     /// Assignment operator
-    DPosition & operator=(const DPosition & source)
+    DPosition& operator=(const DPosition& source)
     {
       if (&source == this) return *this;
 
@@ -139,7 +140,7 @@ public:
     }
 
     ///Accessor for the dimensions
-    CoordinateType & operator[](Size index)
+    CoordinateType& operator[](Size index)
     {
       OPENMS_PRECONDITION(index < D, "DPosition<D,TCoordinateType>:operator [] (Position): index overflow!");
       return coordinate_[index];
@@ -174,7 +175,7 @@ public:
     }
 
     /// Equality operator
-    bool operator==(const DPosition & point) const
+    bool operator==(const DPosition& point) const
     {
       for (Size i = 0; i < D; i++)
       {
@@ -184,16 +185,16 @@ public:
     }
 
     /// Equality operator
-    bool operator!=(const DPosition & point) const
+    bool operator!=(const DPosition& point) const
     {
       return !(operator==(point));
     }
 
     /**
-  @brief Lexicographical less than operator.
-  Lexicographical comparison from dimension 0 to dimension D-1 is done.
-*/
-    bool operator<(const DPosition & point) const
+      @brief Lexicographical less than operator.
+      Lexicographical comparison from dimension 0 to dimension D-1 is done.
+    */
+    bool operator<(const DPosition& point) const
     {
       for (Size i = 0; i < D; i++)
       {
@@ -205,7 +206,7 @@ public:
     }
 
     /// Lexicographical greater less or equal operator.
-    bool operator<=(const DPosition & point) const
+    bool operator<=(const DPosition& point) const
     {
       for (Size i = 0; i < D; i++)
       {
@@ -217,7 +218,7 @@ public:
     }
 
     /// Spatially (geometrically) less or equal operator. All coordinates must be "<=".
-    bool spatiallyLessEqual(const DPosition & point) const
+    bool spatiallyLessEqual(const DPosition& point) const
     {
       for (Size i = 0; i < D; i++)
       {
@@ -227,7 +228,7 @@ public:
     }
 
     /// Spatially (geometrically) greater or equal operator. All coordinates must be ">=".
-    bool spatiallyGreaterEqual(const DPosition & point) const
+    bool spatiallyGreaterEqual(const DPosition& point) const
     {
       for (Size i = 0; i < D; i++)
       {
@@ -237,19 +238,19 @@ public:
     }
 
     /// Lexicographical greater than operator.
-    bool operator>(const DPosition & point) const
+    bool operator>(const DPosition& point) const
     {
       return !(operator<=(point));
     }
 
     /// Lexicographical greater or equal operator.
-    bool operator>=(const DPosition & point) const
+    bool operator>=(const DPosition& point) const
     {
       return !operator<(point);
     }
 
     /// Addition (a bit inefficient)
-    DPosition operator+(const DPosition & point) const
+    DPosition operator+(const DPosition& point) const
     {
       DPosition result(*this);
       for (Size i = 0; i < D; ++i)
@@ -260,7 +261,7 @@ public:
     }
 
     /// Addition
-    DPosition & operator+=(const DPosition & point)
+    DPosition& operator+=(const DPosition& point)
     {
       for (Size i = 0; i < D; ++i)
       {
@@ -270,7 +271,7 @@ public:
     }
 
     /// Subtraction (a bit inefficient)
-    DPosition operator-(const DPosition & point) const
+    DPosition operator-(const DPosition& point) const
     {
       DPosition result(*this);
       for (Size i = 0; i < D; ++i)
@@ -281,9 +282,9 @@ public:
     }
 
     /// Subtraction
-    DPosition & operator-=(const DPosition & point)
+    DPosition& operator-=(const DPosition& point)
     {
-      for (Size i = 0; i < D; ++i) 
+      for (Size i = 0; i < D; ++i)
       {
         coordinate_[i] -= point.coordinate_[i];
       }
@@ -291,7 +292,7 @@ public:
     }
 
     /// Negation (a bit inefficient)
-    DPosition   operator - () const
+    DPosition   operator-() const
     {
       DPosition<D, CoordinateType> result(*this);
       for (Size i = 0; i < D; ++i)
@@ -302,7 +303,7 @@ public:
     }
 
     /// Inner product
-    CoordinateType operator*(const DPosition & point) const
+    CoordinateType operator*(const DPosition& point) const
     {
       CoordinateType prod(0);
       for (Size i = 0; i < D; ++i)
@@ -313,7 +314,7 @@ public:
     }
 
     /// Scalar multiplication
-    DPosition & operator*=(CoordinateType scalar)
+    DPosition& operator*=(CoordinateType scalar)
     {
       for (Size i = 0; i < D; ++i)
       {
@@ -323,7 +324,7 @@ public:
     }
 
     /// Scalar division
-    DPosition & operator/=(CoordinateType scalar)
+    DPosition& operator/=(CoordinateType scalar)
     {
       for (Size i = 0; i < D; ++i)
       {
@@ -408,7 +409,7 @@ public:
 protected:
     CoordinateType coordinate_[D];
 
-  };   // DPosition
+  }; // DPosition
 
   /// Scalar multiplication (a bit inefficient)
   template <UInt D, typename TCoordinateType>
@@ -425,7 +426,7 @@ protected:
   template <UInt D, typename TCoordinateType>
   DPosition<D, TCoordinateType> operator*(typename DPosition<D, TCoordinateType>::CoordinateType scalar, DPosition<D, TCoordinateType> position)
   {
-    for (Size i = 0; i < D; ++i) 
+    for (Size i = 0; i < D; ++i)
     {
       position[i] *= scalar;
     }
@@ -445,7 +446,7 @@ protected:
 
   /// Print the contents to a stream.
   template <UInt D, typename TCoordinateType>
-  std::ostream & operator<<(std::ostream & os, const DPosition<D, TCoordinateType> & pos)
+  std::ostream& operator<<(std::ostream& os, const DPosition<D, TCoordinateType>& pos)
   {
     os << precisionWrapper(pos[0]);
     for (UInt i = 1; i < D; ++i)

@@ -68,7 +68,7 @@ START_SECTION(~MRMDecoy())
 }
 END_SECTION
 
-START_SECTION((std::pair<String, DoubleReal> getDecoyIon(String ionid, std::map< String, std::map< String, DoubleReal > > &decoy_ionseries)))
+START_SECTION((std::pair<String, double> getDecoyIon(String ionid, std::map< String, std::map< String, double > > &decoy_ionseries)))
 {
 	MRMDecoy gen;
 
@@ -82,8 +82,8 @@ START_SECTION((std::pair<String, DoubleReal> getDecoyIon(String ionid, std::map<
 	int precursor_charge = 2;
 
 	MRMDecoy::IonSeries reference_ionseries = gen.getIonSeries(aas, precursor_charge);
-	std::pair<String, double> targetion = gen.getTargetIon(ProductMZ,mz_threshold, reference_ionseries);
-	std::pair<String, double> decoyion = gen.getDecoyIon("b7/2+", reference_ionseries);
+  std::pair<String, double> targetion = gen.getTargetIon(ProductMZ,mz_threshold, reference_ionseries, 1, 1);
+  std::pair<String, double> decoyion = gen.getDecoyIon("b7/2+", reference_ionseries);
 	std::pair<String, double> decoyion_missing = gen.getDecoyIon("b17/2+", reference_ionseries);
 
 	TEST_EQUAL(targetion.first,"b7/2+")
@@ -127,6 +127,7 @@ START_SECTION(OpenMS::TargetedExperiment::Peptide shufflePeptide(OpenMS::Targete
   OpenMS::TargetedExperiment::Peptide shuffled = gen.shufflePeptide(peptide, 0.7 , 43);
 
   TEST_EQUAL(shuffled.sequence,expected_sequence)
+  TEST_EQUAL(shuffled.mods.size(), 1)
   TEST_EQUAL(shuffled.mods[0].location,expected_location)
 
   OpenMS::TargetedExperiment::Peptide shuffleAASequence_target_sequence_11;
@@ -168,6 +169,29 @@ START_SECTION(OpenMS::TargetedExperiment::Peptide shufflePeptide(OpenMS::Targete
   OpenMS::TargetedExperiment::Peptide shuffleAASequence_result_00;
   shuffleAASequence_result_00 = gen.shufflePeptide(shuffleAASequence_target_sequence_00, 0.0 , 42, 20);
   TEST_EQUAL(shuffleAASequence_result_00.sequence, shuffleAASequence_expected_00.sequence)
+
+  // ensure that C-terminal K and R are preserved
+  {
+    OpenMS::TargetedExperiment::Peptide original_input;
+    original_input.sequence = "TESTPEPTIDEK";
+    expected_sequence = "ETSTPDPEETIK";
+    OpenMS::TargetedExperiment::Peptide shuffleAASequence_result_00;
+    shuffled = gen.shufflePeptide(original_input, 0.7 , 42, 20);
+    TEST_EQUAL(shuffled.sequence[shuffled.sequence.size()-1], 'K')
+    TEST_EQUAL(shuffled.sequence, expected_sequence)
+  }
+
+  // ensure that C-terminal K and R are preserved
+  {
+    OpenMS::TargetedExperiment::Peptide original_input;
+    original_input.sequence = "TESTPEPTIDER";
+    expected_sequence = "ETSTPDPEETIR";
+    OpenMS::TargetedExperiment::Peptide shuffleAASequence_result_00;
+    shuffled = gen.shufflePeptide(original_input, 0.7 , 42, 20);
+    TEST_EQUAL(shuffled.sequence[shuffled.sequence.size()-1], 'R')
+    TEST_EQUAL(shuffled.sequence, expected_sequence)
+  }
+
 }
 END_SECTION
 
@@ -180,10 +204,14 @@ START_SECTION([EXTRA] shuffle_peptide_with_modifications_and2attempts)
   OpenMS::TargetedExperiment::Peptide peptide;
   peptide.sequence = "GPPSEDGPGVPPPSPR";
   OpenMS::TargetedExperiment::Peptide::Modification modification;
+
+  // modification on the fourth S (counting starts at zero)
   modification.avg_mass_delta = 79.9799;
   modification.location = 3;
   modification.mono_mass_delta = 79.966331;
   peptide.mods.push_back(modification);
+
+  // modification on the second to last S
   modification.avg_mass_delta = 79.9799;
   modification.location = 13;
   modification.mono_mass_delta = 79.966331;
@@ -195,10 +223,46 @@ START_SECTION([EXTRA] shuffle_peptide_with_modifications_and2attempts)
 
   OpenMS::TargetedExperiment::Peptide shuffled = gen.shufflePeptide(peptide, 0.7 , 130);
 
-  // the two modifcations get switched
+  // the two modifications get switched (the first S now comes after the second S)
   TEST_EQUAL(shuffled.sequence, expected_sequence)
+  TEST_EQUAL(shuffled.mods.size(), 2)
   TEST_EQUAL(shuffled.mods[1].location,expected_location_1)
   TEST_EQUAL(shuffled.mods[0].location,expected_location_2)
+}
+END_SECTION
+
+START_SECTION([EXTRA] shuffle_peptide_with_terminal_modifications)
+{
+  // Shuffle a peptide with C/N terminal modifications
+  MRMDecoy gen;
+  AASequence original_sequence = AASequence("(UniMod:272)TESTPEPTIDE(UniMod:193)");
+  TEST_EQUAL(original_sequence.hasNTerminalModification(), true)
+  TEST_EQUAL(original_sequence.hasCTerminalModification(), true)
+
+  OpenMS::TargetedExperiment::Peptide peptide;
+  OpenMS::TargetedExperiment::Peptide::Modification modification;
+  peptide.sequence = original_sequence.toUnmodifiedString();
+
+  // "sulfonation of N-terminus" 
+  modification.avg_mass_delta = 136.1265;
+  modification.location = -1;
+  modification.mono_mass_delta = 135.983029;
+  peptide.mods.push_back(modification);
+
+  //O18 label at both C-terminal oxygens
+  modification.avg_mass_delta = 3.9995;
+  modification.location = peptide.sequence.size();
+  modification.mono_mass_delta = 4.008491;
+  peptide.mods.push_back(modification);
+
+  OpenMS::String expected_sequence = "TETTPEPESID";
+
+  OpenMS::TargetedExperiment::Peptide shuffled = gen.shufflePeptide(peptide, 0.7 , 43);
+
+  TEST_EQUAL(shuffled.sequence, expected_sequence)
+  TEST_EQUAL(shuffled.mods.size(), 2)
+  TEST_EQUAL(shuffled.mods[0].location,-1)
+  TEST_EQUAL(shuffled.mods[1].location,shuffled.sequence.size())
 }
 END_SECTION
 
@@ -242,6 +306,7 @@ START_SECTION(OpenMS::TargetedExperiment::Peptide pseudoreversePeptide(OpenMS::T
 
   OpenMS::TargetedExperiment::Peptide pseudoreverse = gen.pseudoreversePeptide(peptide);
   TEST_EQUAL(pseudoreverse.sequence,expected_sequence)
+  TEST_EQUAL(pseudoreverse.mods.size(), 1)
   TEST_EQUAL(pseudoreverse.mods[0].location,expected_location)
 
   OpenMS::TargetedExperiment::Peptide pseudoreverseAASequence_target_sequence;
@@ -271,6 +336,7 @@ START_SECTION(OpenMS::TargetedExperiment::Peptide reversePeptide(OpenMS::Targete
 
   OpenMS::TargetedExperiment::Peptide reverse = gen.reversePeptide(peptide);
   TEST_EQUAL(reverse.sequence,expected_sequence)
+  TEST_EQUAL(reverse.mods.size(), 1)
   TEST_EQUAL(reverse.mods[0].location,expected_location)
 
   OpenMS::TargetedExperiment::Peptide reverseAASequence_target_sequence;
@@ -291,10 +357,10 @@ START_SECTION((void generateDecoys(OpenMS::TargetedExperiment& exp,
                         double similarity_threshold, bool remove_CNterm_mods, double precursor_mass_shift);))
 {
   String method = "pseudo-reverse";
-  DoubleReal identity_threshold = 1.0;
+  double identity_threshold = 1.0;
   Int max_attempts = 5;
-  DoubleReal mz_threshold = 0.8;
-  DoubleReal mz_shift = 20;
+  double mz_threshold = 0.8;
+  double mz_shift = 20;
   String decoy_tag = "DECOY_";
   Int min_transitions = 2;
   Int max_transitions = 6;
@@ -317,8 +383,7 @@ START_SECTION((void generateDecoys(OpenMS::TargetedExperiment& exp,
   decoys.restrictTransitions(targeted_exp, min_transitions, max_transitions);
   TEST_EQUAL(targeted_exp.getPeptides().size(), 13)
   TEST_EQUAL(targeted_exp.getTransitions().size(), 33)
-  decoys.generateDecoys(targeted_exp, targeted_decoy, method, decoy_tag, identity_threshold, max_attempts, mz_threshold, theoretical, mz_shift, exclude_similar, similarity_threshold, remove_CNterminal_mods, 0.1);
-  traml.store(test, targeted_decoy);
+  decoys.generateDecoys(targeted_exp, targeted_decoy, method, decoy_tag, identity_threshold, max_attempts, mz_threshold, theoretical, mz_shift, exclude_similar, similarity_threshold, remove_CNterminal_mods, 0.1, 1, 1);  traml.store(test, targeted_decoy);
   
   TEST_FILE_EQUAL(test.c_str(), OPENMS_GET_TEST_DATA_PATH(out))
 }
@@ -328,6 +393,45 @@ START_SECTION(void restrictTransitions(OpenMS::TargetedExperiment &exp, int min_
 {
   // see above
   NOT_TESTABLE
+}
+END_SECTION
+
+START_SECTION((extra))
+{    
+  MRMDecoy gen;
+
+  AASequence target_sequence = AASequence("ADSTGTLVITDPTR(UniMod:267)");
+  AASequence decoy_sequence = AASequence("ALDSTTGVDTTPIR(UniMod:267)");
+  MRMDecoy::IonSeries target_ionseries = gen.getIonSeries(target_sequence, 2);
+  MRMDecoy::IonSeries decoy_ionseries = gen.getIonSeries(decoy_sequence, 2);
+
+  {
+    double target_mz = 924.539;
+    double mz_threshold = 0.1;
+
+    std::pair<String, double> targetion = gen.getTargetIon(target_mz, mz_threshold, target_ionseries, 1, 1);
+    std::pair<String, double> decoyion = gen.getDecoyIon(targetion.first, decoy_ionseries);
+
+    TEST_EQUAL(targetion.first,"y8/1+")
+    TEST_REAL_SIMILAR(targetion.second, 924.539)
+
+    TEST_EQUAL(decoyion.first,"y8/1+")
+    TEST_REAL_SIMILAR(decoyion.second, 868.47682)
+  }
+
+  {
+    double target_mz = 1082.608;
+    double mz_threshold = 0.8;
+
+    std::pair<String, double> targetion = gen.getTargetIon(target_mz, mz_threshold, target_ionseries, 1, 1);
+    std::pair<String, double> decoyion = gen.getDecoyIon(targetion.first, decoy_ionseries);
+
+    TEST_EQUAL(targetion.first,"y10/1+")
+    TEST_REAL_SIMILAR(targetion.second, 1082.60856)
+
+    TEST_EQUAL(decoyion.first,"y10/1+")
+    TEST_REAL_SIMILAR(decoyion.second, 1070.57217)
+  }
 }
 END_SECTION
 /////////////////////////////////////////////////////////////

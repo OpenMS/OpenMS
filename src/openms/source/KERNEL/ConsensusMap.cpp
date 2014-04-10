@@ -429,9 +429,9 @@ namespace OpenMS
     {
       for (ConsensusFeature::HandleSetType::const_iterator it = operator[](i).begin(); it != operator[](i).end(); ++it)
       {
-        DoubleReal rt = it->getRT();
-        DoubleReal mz = it->getMZ();
-        DoubleReal intensity = it->getIntensity();
+        double rt = it->getRT();
+        double mz = it->getMZ();
+        double intensity = it->getIntensity();
 
         // update RT
         if (rt < pos_range_.minPosition()[Peak2D::RT])

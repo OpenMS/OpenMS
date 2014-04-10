@@ -35,6 +35,9 @@
 #ifndef OPENMS_VISUAL_TOPPASTOOLVERTEX_H
 #define OPENMS_VISUAL_TOPPASTOOLVERTEX_H
 
+// OpenMS_GUI config
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
+
 #include <OpenMS/VISUAL/TOPPASVertex.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 

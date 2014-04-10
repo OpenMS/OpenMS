@@ -178,11 +178,11 @@ protected:
   IsotopeDistribution iso_dist_; // isotope distribution for current peptide
   TransformationDescription trafo_; // RT transformation (to range 0-1)
   String reference_rt_; // value of "reference_rt" parameter
-  DoubleReal rt_tolerance_; // half the RT window width
+  double rt_tolerance_; // half the RT window width
 
 
   // add transitions for a peptide ion to the library:
-  void addTransitions_(const String& peptide_id, DoubleReal mz, Int charge)
+  void addTransitions_(const String& peptide_id, double mz, Int charge)
   {
     // go through different isotopes:
     Size counter = 0;
@@ -213,12 +213,12 @@ protected:
     DoubleList rts;
     if (charge_data.second.size() == 1) // only one peptide ID
     {
-      rts.push_back(charge_data.second[0]->getMetaValue("RT"));
+      rts.push_back(charge_data.second[0]->getRT());
     }
     else if (reference_rt_ == "score")
     {
       rts.resize(1);
-      DoubleReal best_score;
+      double best_score;
       for (ChargeMap::mapped_type::const_iterator pi_it =
              charge_data.second.begin(); pi_it != charge_data.second.end();
            ++pi_it)
@@ -230,21 +230,21 @@ protected:
             (!higher_better && (hit.getScore() < best_score)))
         {
           best_score = hit.getScore();
-          rts[0] = (*pi_it)->getMetaValue("RT");
+          rts[0] = (*pi_it)->getRT();
         }
       }
     }
     else if (reference_rt_ == "intensity")
     {
       rts.resize(1);
-      DoubleReal highest_intensity = -1;
+      double highest_intensity = -1;
       for (ChargeMap::mapped_type::const_iterator pi_it =
              charge_data.second.begin(); pi_it != charge_data.second.end();
            ++pi_it)
       {
         // find precursor:
-        DoubleReal ms2_rt = (*pi_it)->getMetaValue("RT");
-        DoubleReal prec_mz = (*pi_it)->getMetaValue("MZ");
+        double ms2_rt = (*pi_it)->getRT();
+        double prec_mz = (*pi_it)->getMZ();
         // construct objects for use in "lower_bound" (custom comparison
         // functions involving different types don't work in older version of
         // MS Visual Studio):
@@ -291,7 +291,7 @@ protected:
              charge_data.second.begin(); pi_it != charge_data.second.end();
            ++pi_it)
       {
-        rts.push_back((*pi_it)->getMetaValue("RT"));
+        rts.push_back((*pi_it)->getRT());
       }
       if (reference_rt_ != "all")
       {
@@ -301,13 +301,13 @@ protected:
         if (reference_rt_ == "adapt")
         {
           // store RT region as pair (length, start point) for easier sorting:
-          vector<pair<DoubleReal, DoubleReal> > rt_regions;
+          vector<pair<double, double> > rt_regions;
           rt_regions.push_back(make_pair(rt_tolerance_ * 2.0,
                                          rts[0] - rt_tolerance_));
           for (DoubleList::iterator rt_it = ++rts.begin(); rt_it != rts.end();
                ++rt_it)
           {
-            pair<DoubleReal, DoubleReal>& rt_region = rt_regions.back();
+            pair<double, double>& rt_region = rt_regions.back();
             if (rt_region.second + rt_region.first >= *rt_it - rt_tolerance_)
             { // regions overlap, join them (same start point, new length):
               rt_region.first = *rt_it + rt_tolerance_ - rt_region.second;
@@ -319,14 +319,14 @@ protected:
             }
           }
           sort(rt_regions.begin(), rt_regions.end()); // sort regions by size
-          DoubleReal rt_window = rt_regions.back().first;
+          double rt_window = rt_regions.back().first;
           peptide.setMetaValue("rt_window", rt_window);
           // are there multiple regions of maximal size?
           Int n = rt_regions.size() - 2; // second to last, counting from zero
           while ((n >= 0) && (rt_regions[n].first == rt_window)) --n;
           if (n == Int(rt_regions.size()) - 2) // only one longest region
           {
-            DoubleReal rt_start = rt_regions.back().second;
+            double rt_start = rt_regions.back().second;
             peptide.setMetaValue("rt_start", rt_start);
             peptide.setMetaValue("rt_end", rt_start + rt_window);
             rts.resize(1);
@@ -357,7 +357,7 @@ protected:
     Int charge = charge_data.first;
     peptide.setChargeState(charge);
     peptide.id = peptide.sequence + "/" + String(charge);
-    DoubleReal mz = seq.getMonoWeight(Residue::Full, charge) / charge;
+    double mz = seq.getMonoWeight(Residue::Full, charge) / charge;
 
     TargetedExperiment::Peptide copy = peptide;
     for (Size i = 0; i < rts.size(); ++i)
@@ -384,7 +384,7 @@ protected:
 
     bool weighted = !getFlag_("unweighted_fit");
     bool impute = !getFlag_("no_imputation");
-    DoubleReal check_boundaries = getDoubleOption_("model_check:boundaries");
+    double check_boundaries = getDoubleOption_("model_check:boundaries");
 
     // prepare look-up of transitions by native ID:
     map<String, vector<ReactionMonitoringTransition>::const_iterator> trans_ids;
@@ -409,21 +409,21 @@ protected:
     }
 
     // store model parameters to find outliers later:
-    DoubleReal width_limit = getDoubleOption_("model_check:width");
-    DoubleReal asym_limit = (asymmetric ? 
+    double width_limit = getDoubleOption_("model_check:width");
+    double asym_limit = (asymmetric ? 
                              getDoubleOption_("model_check:asymmetry") : 0.0);
     // store values redundantly - once aligned with the features in the map,
     // once only for successful models:
-    vector<DoubleReal> widths_all, widths_good, asym_all, asym_good;
+    vector<double> widths_all, widths_good, asym_all, asym_good;
     if (width_limit > 0)
     {
       widths_all.resize(features.size(),
-                        numeric_limits<DoubleReal>::quiet_NaN());
+                        numeric_limits<double>::quiet_NaN());
       widths_good.reserve(features.size());
     }
     if (asym_limit > 0)
     {
-      asym_all.resize(features.size(), numeric_limits<DoubleReal>::quiet_NaN());
+      asym_all.resize(features.size(), numeric_limits<double>::quiet_NaN());
       asym_good.reserve(features.size());
     }
 
@@ -456,7 +456,7 @@ protected:
                hull.getHullPoints().begin(); point_it !=
                hull.getHullPoints().end(); ++point_it)
         {
-          DoubleReal intensity = point_it->getY();
+          double intensity = point_it->getY();
           if (intensity > 0) // only use non-zero intensities for fitting
           {
             Peak1D peak;
@@ -470,7 +470,7 @@ protected:
         if (!trace.peaks.empty()) traces.push_back(trace);
       }
       Size max_trace = 0;
-      DoubleReal max_intensity = 0;
+      double max_intensity = 0;
       for (Size i = 0; i < traces.size(); ++i)
       {
         if (traces[i].max_peak->getIntensity() > max_intensity)
@@ -500,7 +500,7 @@ protected:
       }
 
       // record model parameters:
-      DoubleReal center = fitter->getCenter(), height = fitter->getHeight();
+      double center = fitter->getCenter(), height = fitter->getHeight();
       feat_it->setMetaValue("model_height", height);
       feat_it->setMetaValue("model_FWHM", fitter->getFWHM());
       feat_it->setMetaValue("model_center", center);
@@ -521,27 +521,27 @@ protected:
       }
 
       // goodness of fit:
-      DoubleReal mre = -1.0; // mean relative error
+      double mre = -1.0; // mean relative error
       if (fit_success)
       {
         mre = 0.0;
-        DoubleReal total_weights = 0.0;
-        DoubleReal rt_start = max(fitter->getLowerRTBound(), 
+        double total_weights = 0.0;
+        double rt_start = max(fitter->getLowerRTBound(), 
                                   traces[0].peaks[0].first);
-        DoubleReal rt_end = min(fitter->getUpperRTBound(), 
+        double rt_end = min(fitter->getUpperRTBound(), 
                                 traces[0].peaks.rbegin()->first);
 
         for (FeatureFinderAlgorithmPickedHelperStructs::MassTraces<Peak1D>::
                iterator tr_it = traces.begin(); tr_it != traces.end(); ++tr_it)
         {
-          for (vector<pair<DoubleReal, const Peak1D*> >::iterator p_it = 
+          for (vector<pair<double, const Peak1D*> >::iterator p_it = 
                  tr_it->peaks.begin(); p_it != tr_it->peaks.end(); ++p_it)
           {
-            DoubleReal rt = p_it->first;
+            double rt = p_it->first;
             if ((rt >= rt_start) && (rt <= rt_end))
             {
-              DoubleReal model_value = fitter->getValue(rt);
-              DoubleReal diff = fabs(model_value * tr_it->theoretical_int -
+              double model_value = fitter->getValue(rt);
+              double diff = fabs(model_value * tr_it->theoretical_int -
                                      p_it->second->getIntensity());
               mre += diff / model_value;
               total_weights += tr_it->theoretical_int;
@@ -553,9 +553,9 @@ protected:
       feat_it->setMetaValue("model_error", mre);
 
       // check model validity:
-      DoubleReal region_start = DoubleReal(feat_it->getMetaValue("leftWidth"));
-      DoubleReal region_end = DoubleReal(feat_it->getMetaValue("rightWidth"));
-      DoubleReal area = fitter->getArea();
+      double region_start = double(feat_it->getMetaValue("leftWidth"));
+      double region_end = double(feat_it->getMetaValue("rightWidth"));
+      double area = fitter->getArea();
       feat_it->setMetaValue("model_area", area);
       if ((area != area) || (area <= 0.0)) // x != x: test for NaN
       {
@@ -579,26 +579,26 @@ protected:
         // store model parameters to find outliers later:
         if (asymmetric)
         {
-          DoubleReal sigma = feat_it->getMetaValue("model_EGH_sigma");
-          DoubleReal abs_tau = fabs(DoubleReal(feat_it->
+          double sigma = feat_it->getMetaValue("model_EGH_sigma");
+          double abs_tau = fabs(double(feat_it->
                                                getMetaValue("model_EGH_tau")));
           if (width_limit > 0)
           {
             // see implementation of "EGHTraceFitter::getArea":
-            DoubleReal width = sigma * 0.6266571 + abs_tau;
+            double width = sigma * 0.6266571 + abs_tau;
             widths_all[index] = width;
             widths_good.push_back(width);
           }
           if (asym_limit > 0)
           {
-            DoubleReal asymmetry = abs_tau / sigma;
+            double asymmetry = abs_tau / sigma;
             asym_all[index] = asymmetry;
             asym_good.push_back(asymmetry);
           }
         }
         else if (width_limit > 0)
         {
-          DoubleReal width = feat_it->getMetaValue("model_Gauss_sigma");
+          double width = feat_it->getMetaValue("model_Gauss_sigma");
           widths_all[index] = width;
           widths_good.push_back(width);
         }
@@ -609,28 +609,28 @@ protected:
     // find outliers in model parameters:
     if (width_limit > 0)
     {
-      DoubleReal median_width = Math::median(widths_good.begin(),
+      double median_width = Math::median(widths_good.begin(),
                                              widths_good.end());
-      vector<DoubleReal> abs_diffs(widths_good.size());
+      vector<double> abs_diffs(widths_good.size());
       for (Size i = 0; i < widths_good.size(); ++i)
       {
         abs_diffs[i] = fabs(widths_good[i] - median_width);
       }
       // median absolute deviation (constant factor to approximate std. dev.):
-      DoubleReal mad_width = 1.4826 * Math::median(abs_diffs.begin(),
+      double mad_width = 1.4826 * Math::median(abs_diffs.begin(),
                                                    abs_diffs.end());
 
       for (Size i = 0; i < features.size(); ++i)
       {
-        DoubleReal width = widths_all[i];
+        double width = widths_all[i];
         if (width != width) continue; // NaN (failed model)
-        DoubleReal z_width = (width - median_width) / mad_width; // mod. z-score
+        double z_width = (width - median_width) / mad_width; // mod. z-score
         if (z_width > width_limit)
         {
           features[i].setMetaValue("model_status", "5 (width too large)");
           if (asym_limit > 0) // skip asymmetry check below
           {
-            asym_all[i] = numeric_limits<DoubleReal>::quiet_NaN();
+            asym_all[i] = numeric_limits<double>::quiet_NaN();
           }
         }
         else if (z_width < -width_limit)
@@ -638,28 +638,28 @@ protected:
           features[i].setMetaValue("model_status", "6 (width too small)");
           if (asym_limit > 0) // skip asymmetry check below
           {
-            asym_all[i] = numeric_limits<DoubleReal>::quiet_NaN();
+            asym_all[i] = numeric_limits<double>::quiet_NaN();
           }
         }
       }
     }
     if (asym_limit > 0)
     {
-      DoubleReal median_asym = Math::median(asym_good.begin(), asym_good.end());
-      vector<DoubleReal> abs_diffs(asym_good.size());
+      double median_asym = Math::median(asym_good.begin(), asym_good.end());
+      vector<double> abs_diffs(asym_good.size());
       for (Size i = 0; i < asym_good.size(); ++i)
       {
         abs_diffs[i] = fabs(asym_good[i] - median_asym);
       }
       // median absolute deviation (constant factor to approximate std. dev.):
-      DoubleReal mad_asym = 1.4826 * Math::median(abs_diffs.begin(),
+      double mad_asym = 1.4826 * Math::median(abs_diffs.begin(),
                                                   abs_diffs.end());
 
       for (Size i = 0; i < features.size(); ++i)
       {
-        DoubleReal asym = asym_all[i];
+        double asym = asym_all[i];
         if (asym != asym) continue; // NaN (failed model)
-        DoubleReal z_asym = (asym - median_asym) / mad_asym; // mod. z-score
+        double z_asym = (asym - median_asym) / mad_asym; // mod. z-score
         if (z_asym > asym_limit)
         {
           features[i].setMetaValue("model_status", "7 (asymmetry too high)");
@@ -688,10 +688,10 @@ protected:
       }
       else
       {
-        DoubleReal area = feat_it->getMetaValue("model_area");
+        double area = feat_it->getMetaValue("model_area");
         if (impute)
         { // apply log-transform to weight down high outliers:
-          DoubleReal raw_intensity = feat_it->getIntensity();
+          double raw_intensity = feat_it->getIntensity();
           LOG_DEBUG << "Successful model: x = " << raw_intensity << ", y = " 
                     << area << "; log(x) = " << log(raw_intensity) 
                     << ", log(y) = " << log(area) << endl;
@@ -707,14 +707,14 @@ protected:
     if (impute)
     { // impute results for cases where the model fit failed:
       TransformationModelLinear lm(quant_values, Param());
-      DoubleReal slope, intercept;
+      double slope, intercept;
       lm.getParameters(slope, intercept);
       LOG_DEBUG << "LM slope: " << slope << ", intercept: " << intercept 
                 << endl;
       for (vector<FeatureMap<>::Iterator>::iterator it = failed_models.begin();
            it != failed_models.end(); ++it)
       {
-        DoubleReal area = exp(lm.evaluate(log((*it)->getIntensity())));
+        double area = exp(lm.evaluate(log((*it)->getIntensity())));
         (*it)->setIntensity(area);
       }
     }
@@ -733,11 +733,11 @@ protected:
     String chrom_out = getStringOption_("chrom_out");
     String trafo_out = getStringOption_("trafo_out");
     reference_rt_ = getStringOption_("reference_rt");
-    DoubleReal rt_window = getDoubleOption_("rt_window");
+    double rt_window = getDoubleOption_("rt_window");
     rt_tolerance_ = rt_window / 2.0;
-    DoubleReal mz_window = getDoubleOption_("mz_window");
+    double mz_window = getDoubleOption_("mz_window");
     bool mz_window_ppm = mz_window >= 1;
-    DoubleReal isotope_pmin = getDoubleOption_("isotope_pmin");
+    double isotope_pmin = getDoubleOption_("isotope_pmin");
     String elution_model = getStringOption_("elution_model");
 
     //-------------------------------------------------------------
@@ -752,7 +752,7 @@ protected:
 
     // RT transformation to range 0-1:
     ms_data_.updateRanges();
-    DoubleReal min_rt = ms_data_.getMinRT(), max_rt = ms_data_.getMaxRT();
+    double min_rt = ms_data_.getMinRT(), max_rt = ms_data_.getMaxRT();
     TransformationDescription::DataPoints points;
     points.push_back(make_pair(min_rt, 0.0));
     points.push_back(make_pair(max_rt, 1.0));
@@ -870,10 +870,10 @@ protected:
         else
         {
           // is this an intuitive way to store/access the RT?!
-          DoubleReal rt = peptide.rts[0].getCVTerms()["MS:1000896"][0].
+          double rt = peptide.rts[0].getCVTerms()["MS:1000896"][0].
             getValue().toString().toDouble();
           rt = trafo_.apply(rt); // reverse RT transformation
-          DoubleReal rt_win = rt_window;
+          double rt_win = rt_window;
           if (peptide.metaValueExists("rt_window"))
           {
             rt_win = peptide.getMetaValue("rt_window");
@@ -946,15 +946,15 @@ protected:
       feat_it->setMZ(feat_it->getMetaValue("PrecursorMZ"));
       feat_it->setCharge(feat_it->getPeptideIdentifications()[0].getHits()[0].
                          getCharge());
-      DoubleReal rt_min = feat_it->getMetaValue("leftWidth");
-      DoubleReal rt_max = feat_it->getMetaValue("rightWidth");
+      double rt_min = feat_it->getMetaValue("leftWidth");
+      double rt_max = feat_it->getMetaValue("rightWidth");
       if (feat_it->getConvexHulls().empty()) // add hulls for mass traces
       {
         for (vector<Feature>::iterator sub_it =
                feat_it->getSubordinates().begin(); sub_it !=
                feat_it->getSubordinates().end(); ++sub_it)
         {
-          DoubleReal abs_mz_tol = mz_window / 2.0;
+          double abs_mz_tol = mz_window / 2.0;
           if (mz_window_ppm) abs_mz_tol = sub_it->getMZ() * abs_mz_tol * 1.0e-6;
           ConvexHull2D hull;
           hull.addPoint(DPosition<2>(rt_min, sub_it->getMZ() - abs_mz_tol));

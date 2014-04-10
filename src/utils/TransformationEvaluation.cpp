@@ -92,14 +92,14 @@ protected:
     TransformationXMLFile().load(in, trafo_in);
     TransformationDescription::DataPoints data;
 
-    DoubleReal min = getDoubleOption_("min"), max = getDoubleOption_("max"),
+    double min = getDoubleOption_("min"), max = getDoubleOption_("max"),
                step = getDoubleOption_("step");
     if (max <= min)
     {
       data = trafo_in.getDataPoints();
       sort(data.begin(), data.end());
       max = data.back().first;
-      DoubleReal magnitude = floor(log10(max));
+      double magnitude = floor(log10(max));
       max = Math::ceilDecimal(max, magnitude - 1);
       if (max <= min)
       {
@@ -108,9 +108,9 @@ protected:
     }
 
     data.clear();
-    for (DoubleReal value = min; value <= max; value += step)
+    for (double value = min; value <= max; value += step)
     {
-      DoubleReal transformed = trafo_in.apply(value);
+      double transformed = trafo_in.apply(value);
       if (out.empty())
       {
         cout << value << '\t' << transformed << endl;

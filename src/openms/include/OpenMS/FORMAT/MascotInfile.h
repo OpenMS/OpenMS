@@ -68,7 +68,7 @@ public:
     virtual ~MascotInfile();
 
     /// stores the peak list in a MascotInfile that can be used as input for MASCOT shell execution
-    void store(const String & filename, const PeakSpectrum & spec, DoubleReal mz, DoubleReal retention_time, String search_title);
+    void store(const String & filename, const PeakSpectrum & spec, double mz, double retention_time, String search_title);
 
     /// stores the experiment data in a MascotInfile that can be used as input for MASCOT shell execution
     void store(const String & filename, const MSExperiment<> & experiment, String search_title);
@@ -176,14 +176,14 @@ public:
     void setMissedCleavages(UInt missed_cleavages);
 
     /// returns the precursor mass tolerance
-    Real getPrecursorMassTolerance();
+    float getPrecursorMassTolerance();
     /// sets the precursor mass tolerance in Da (default: 2.0)
-    void setPrecursorMassTolerance(Real precursor_mass_tolerance);
+    void setPrecursorMassTolerance(float precursor_mass_tolerance);
 
     /// returns the peak mass tolerance in Da
-    Real getPeakMassTolerance();
+    float getPeakMassTolerance();
     /// sets the peak mass tolerance in Da (default: 1.0)
-    void setPeakMassTolerance(Real ion_mass_tolerance);
+    void setPeakMassTolerance(float ion_mass_tolerance);
 
     /// returns the taxonomy
     const String & getTaxonomy();
@@ -202,7 +202,7 @@ public:
 
 protected:
     /// parent mass
-    DoubleReal mz_;
+    double mz_;
 
     /// charge states to use
     String charges_;
@@ -238,10 +238,10 @@ protected:
     UInt missed_cleavages_;
 
     /// precursor mass tolerance in Da
-    Real precursor_mass_tolerance_;
+    float precursor_mass_tolerance_;
 
     /// m/z tolerance of ions  in Da
-    Real ion_mass_tolerance_;
+    float ion_mass_tolerance_;
 
     /// taxonomy
     String taxonomy_;
@@ -253,7 +253,7 @@ protected:
     String boundary_;
 
     /// the retention time
-    DoubleReal retention_time_;
+    double retention_time_;
 
     /// writes a parameter header
     void writeParameterHeader_(const String & name, FILE * fp, bool line_break = true);

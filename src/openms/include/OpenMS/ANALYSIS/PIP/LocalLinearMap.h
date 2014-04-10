@@ -70,7 +70,7 @@ public:
     {
       UInt xdim;           /**< size of first coordinate */
       UInt ydim;           /**< size of second coordinate */
-      DoubleReal radius;           /**< width of Gaussian neighborhood function */
+      double radius;           /**< width of Gaussian neighborhood function */
     };
 
     /// default constructor
@@ -81,30 +81,30 @@ public:
     ///return parameters of the LocalLinearMap model
     const LLMParam & getLLMParam() const;
     ///return position of the codebook vectors (18-dim)
-    const Matrix<DoubleReal> & getCodebooks() const;
+    const Matrix<double> & getCodebooks() const;
     ///return linear mappings of the codebooks
-    const Matrix<DoubleReal> & getMatrixA() const;
+    const Matrix<double> & getMatrixA() const;
     ///return linear bias
-    const std::vector<DoubleReal> & getVectorWout() const;
+    const std::vector<double> & getVectorWout() const;
     ///return coordinates of codebook vectors on the 2-d grid
     const Matrix<UInt> & getCord() const;
     ///calculate and return normalized amino acid index variables from string representation of peptide
-    void normalizeVector(std::vector<DoubleReal> & aaIndexVariables);
+    void normalizeVector(std::vector<double> & aaIndexVariables);
     ///calculate neighborhood function based on distance of prototypes to winner prototype on two-dimensional grid structure and neighborhood width.
-    std::vector<DoubleReal> neigh(const Matrix<UInt> & cord, Size win, DoubleReal radius);
+    std::vector<double> neigh(const Matrix<UInt> & cord, Size win, double radius);
 
 private:
 
     LLMParam param_;                                            ///<parameters of the model
-    Matrix<DoubleReal> code_;                           ///<codebook vectors
-    Matrix<DoubleReal> A_;                              ///<linear mappings
-    std::vector<DoubleReal> wout_;              ///<linear bias
+    Matrix<double> code_;                           ///<codebook vectors
+    Matrix<double> A_;                              ///<linear mappings
+    std::vector<double> wout_;              ///<linear bias
     Matrix<UInt> cord_;                                     ///<coordinates of codebooks on grid
 
     /// needed to store prototype coordinates
     Matrix<UInt> genCord_(Size xdim, Size ydim);
     ///calculate distance between two prototypes
-    DoubleReal dist_(const Matrix<UInt> & u, const Matrix<UInt> & v, Size a, Size b);
+    double dist_(const Matrix<UInt> & u, const Matrix<UInt> & v, Size a, Size b);
 
     ///Copy constructor not implemented => private
     LocalLinearMap(LocalLinearMap & rhs);

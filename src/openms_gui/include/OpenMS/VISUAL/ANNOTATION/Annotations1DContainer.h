@@ -77,7 +77,7 @@ public:
     typedef DPosition<2> PointType;
 
     /// Coordinate type
-    typedef DoubleReal CoordinateType;
+    typedef double CoordinateType;
 
     /** @brief Returns a pointer to the item at @p pos, or 0, if not existent
 

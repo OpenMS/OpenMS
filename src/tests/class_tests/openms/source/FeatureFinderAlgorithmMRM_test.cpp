@@ -104,7 +104,6 @@ START_SECTION((static FeatureFinderAlgorithm<PeakType,FeatureType>* create()))
   FeatureFinderAlgorithm<Peak1D, Feature>* ptr2 = 0;
 	ptr2 = FeatureFinderAlgorithmMRM<Peak1D, Feature>::create();
   TEST_NOT_EQUAL(ptr2, ffA_nullPointer)
-	delete ptr;
 }
 END_SECTION
 
@@ -113,6 +112,8 @@ START_SECTION((static const String getProductName()))
   TEST_STRING_EQUAL(ptr->getProductName(), "mrm")
 }
 END_SECTION
+
+delete ptr;
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

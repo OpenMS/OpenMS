@@ -1121,8 +1121,8 @@ START_SECTION((void setDefaults(const Param& defaults, const String& prefix="", 
 	defaults.setValue("stringlist2",ListUtils::create<String>("d,e,f"),"stringlist2");
 	defaults.setValue("intlist",ListUtils::create<Int>("1,2,3"),"intlist");
 	defaults.setValue("intlist2",ListUtils::create<Int>("11,22,33"),"intlist2");
-	defaults.setValue("doublelist",ListUtils::create<DoubleReal>("1.2,2.3"),"doublelist");
-	defaults.setValue("doublelist2",ListUtils::create<DoubleReal>("11.22,22.33"),"doublelist2");
+	defaults.setValue("doublelist",ListUtils::create<double>("1.2,2.3"),"doublelist");
+	defaults.setValue("doublelist2",ListUtils::create<double>("11.22,22.33"),"doublelist2");
 	defaults.setSectionDescription("PATH","PATHdesc");
 	Param p2;
 	p2.setValue("PATH:float",-1.0f,"PATH:float");
@@ -1134,8 +1134,8 @@ START_SECTION((void setDefaults(const Param& defaults, const String& prefix="", 
 	p2.setValue("stringlist",ListUtils::create<String>("r,o,c,k,s"),"stringlist");
 	p2.setValue("PATH:intlist2",ListUtils::create<Int>("14,9"),"PATH:intlist2");
 	p2.setValue("intlist", ListUtils::create<Int>("16,9"),"intlist");
-	p2.setValue("PATH:doublelist2",ListUtils::create<DoubleReal>("6.66,6.16"),"PATH:doublelist2");
-	p2.setValue("doublelist",ListUtils::create<DoubleReal>("1.2,5.55"),"doublelist");
+	p2.setValue("PATH:doublelist2",ListUtils::create<double>("6.66,6.16"),"PATH:doublelist2");
+	p2.setValue("doublelist",ListUtils::create<double>("1.2,5.55"),"doublelist");
 
 	TEST_EQUAL(p2.size(),10);
 
@@ -1153,10 +1153,10 @@ START_SECTION((void setDefaults(const Param& defaults, const String& prefix="", 
 
 	TEST_EQUAL(p2.getValue("stringlist") == ListUtils::create<String>("r,o,c,k,s"), true)
 	TEST_EQUAL(p2.getValue("intlist") == ListUtils::create<Int>("16,9"), true)
-	TEST_EQUAL(p2.getValue("doublelist") == ListUtils::create<DoubleReal>("1.2,5.55"), true)
+	TEST_EQUAL(p2.getValue("doublelist") == ListUtils::create<double>("1.2,5.55"), true)
 	TEST_EQUAL(p2.getValue("stringlist2") == ListUtils::create<String>("d,e,f"), true)
 	TEST_EQUAL(p2.getValue("intlist2") == ListUtils::create<Int>("11,22,33"), true)
-	TEST_EQUAL(p2.getValue("doublelist2") == ListUtils::create<DoubleReal>("11.22,22.33"), true)
+	TEST_EQUAL(p2.getValue("doublelist2") == ListUtils::create<double>("11.22,22.33"), true)
 
 
 
@@ -1176,7 +1176,7 @@ START_SECTION((void setDefaults(const Param& defaults, const String& prefix="", 
 
 	TEST_EQUAL(p2.getValue("PATH:stringlist") == ListUtils::create<String>("d,a,v,i,d"), true)
 	TEST_EQUAL(p2.getValue("PATH:intlist") == ListUtils::create<Int>("1,2,3"), true)
-	TEST_EQUAL(p2.getValue("PATH:doublelist") == ListUtils::create<DoubleReal>("1.2,2.3"), true)
+	TEST_EQUAL(p2.getValue("PATH:doublelist") == ListUtils::create<double>("1.2,2.3"), true)
 
 END_SECTION
 
@@ -1385,7 +1385,7 @@ START_SECTION((void setMaxInt(const String &key, Int max)))
   TEST_EXCEPTION(Exception::ElementNotFound, d.setMaxInt("dummy",4))
 END_SECTION
 
-START_SECTION((void setMinFloat(const String &key, DoubleReal min)))
+START_SECTION((void setMinFloat(const String &key, double min)))
   Param d;
   d.setValue("ok",4.5);
   d.setValue("dummy",4);
@@ -1395,7 +1395,7 @@ START_SECTION((void setMinFloat(const String &key, DoubleReal min)))
   TEST_EXCEPTION(Exception::ElementNotFound, d.setMinFloat("dummy",4.5))
 END_SECTION
 
-START_SECTION((void setMaxFloat(const String &key, DoubleReal max)))
+START_SECTION((void setMaxFloat(const String &key, double max)))
   Param d;
   d.setValue("ok",4.5);
   d.setValue("dummy",4);
@@ -1405,35 +1405,44 @@ START_SECTION((void setMaxFloat(const String &key, DoubleReal max)))
   TEST_EXCEPTION(Exception::ElementNotFound, d.setMaxFloat("dummy",4.5))
 END_SECTION
 
+// warnings for unknown parameters
+// keep outside the scope of a single test to avoid destruction, leaving
+// Log_warn in an undefined state
+ostringstream os;
+// checkDefaults sends its warnings to LOG_WARN so we register our own
+// listener here to check the output
+Log_warn.remove(cout);
+Log_warn.insert(os);
 
-START_SECTION((void checkDefaults(const String &name, const Param &defaults, const String& prefix="", std::ostream &os=std::cout) const))
-	//warnings for unknown parameters
-	ostringstream os;
+START_SECTION((void checkDefaults(const String &name, const Param &defaults, const String& prefix="") const))
 	Param p,d;
 	p.setValue("string",String("bla"),"string");
 	p.setValue("int",5,"int");
 	p.setValue("double",47.11,"double");
 
-	p.checkDefaults("Test",d,"",os);
-	TEST_EQUAL(os.str()=="",false);
+	p.checkDefaults("Test",d,"");
+	TEST_EQUAL(os.str()=="",false)
 
 	d.setValue("int",5,"int");
 	d.setValue("double",47.11,"double");
 	os.str("");
-	p.checkDefaults("Test",d,"",os);
-	TEST_EQUAL(os.str()=="",false);
+  os.clear();
+	p.checkDefaults("Test",d,"");
+	TEST_EQUAL(os.str()=="",false)
 
 	p.clear();
 	p.setValue("pref:string",String("bla"),"pref:string");
 	p.setValue("pref:int",5,"pref:int");
 	p.setValue("pref:double",47.11,"pref:double");
 	os.str("");
-	p.checkDefaults("Test",d,"pref",os);
-	TEST_EQUAL(os.str()=="",false);
+  os.clear();
+	p.checkDefaults("Test",d,"pref");
+	TEST_EQUAL(os.str()=="",false)
 
 	os.str("");
-	p.checkDefaults("Test",d,"pref:",os);
-	TEST_EQUAL(os.str()=="",false);
+  os.clear();
+	p.checkDefaults("Test2",d,"pref:");
+	TEST_EQUAL(os.str()=="",false)
 
 	//check string restrictions
 	vector<String> s_rest;
@@ -1444,53 +1453,53 @@ START_SECTION((void checkDefaults(const String &name, const Param &defaults, con
 	d.setValidStrings("stringv", s_rest);
 	p.clear();
 	p.setValue("stringv","a");
-	p.checkDefaults("Param_test",d,"",os);
+	p.checkDefaults("Param_test",d,"");
 	p.setValue("stringv","d");
-	TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,"",os))
+	TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,""))
 
 	//check int restrictions
 	d.setValue("intv",4,"desc");
 	d.setMinInt("intv",-4);
 	p.clear();
 	p.setValue("intv",-4);
-	p.checkDefaults("Param_test",d,"",os);
+	p.checkDefaults("Param_test",d,"");
 	p.setValue("intv",700);
-	p.checkDefaults("Param_test",d,"",os);
+	p.checkDefaults("Param_test",d,"");
 	p.setValue("intv",-5);
-	TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,"",os));
+	TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,""))
 
 	d.setValue("intv2",4,"desc");
 	d.setMaxInt("intv2",4);
 	p.clear();
 	p.setValue("intv2",4);
-	p.checkDefaults("Param_test",d,"",os);
+	p.checkDefaults("Param_test",d,"");
 	p.setValue("intv2",-700);
-	p.checkDefaults("Param_test",d,"",os);
+	p.checkDefaults("Param_test",d,"");
 	p.setValue("intv2",5);
-	TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,"",os));
+	TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,""))
 
 	//check double restrictions
 	d.setValue("doublev",4.0,"desc");
 	d.setMinFloat("doublev",-4.0);
 	p.clear();
 	p.setValue("doublev",-4.0);
-	p.checkDefaults("Param_test",d,"",os);
+	p.checkDefaults("Param_test",d,"");
 	p.setValue("doublev",0.0);
-	p.checkDefaults("Param_test",d,"",os);
+	p.checkDefaults("Param_test",d,"");
 	p.setValue("doublev",7.0);
-	p.checkDefaults("Param_test",d,"",os);
+	p.checkDefaults("Param_test",d,"");
 	p.setValue("doublev",-4.1);
-	TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,"",os));
+	TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,""))
 
 	d.setValue("doublev2",4.0,"desc");
 	d.setMaxFloat("doublev2",4.0);
 	p.clear();
 	p.setValue("doublev2",4.0);
-	p.checkDefaults("Param_test",d,"",os);
+	p.checkDefaults("Param_test",d,"");
 	p.setValue("doublev2",-700.0);
-	p.checkDefaults("Param_test",d,"",os);
+	p.checkDefaults("Param_test",d,"");
 	p.setValue("doublev2",4.1);
-	TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,"",os));
+	TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,""))
 
 	//check list restrictions
 	vector<String> s_rest1;
@@ -1501,24 +1510,30 @@ START_SECTION((void checkDefaults(const String &name, const Param &defaults, con
 	d.setValidStrings("stringlist", s_rest);
 	p.clear();
 	p.setValue("stringlist",ListUtils::create<String>("a,c"));
-	p.checkDefaults("Param_test",d,"",os);
+	p.checkDefaults("Param_test",d,"");
 	p.setValue("stringlist",ListUtils::create<String>("aa,dd,cc"));
-	TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,"",os))
+	TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,""))
 
 
 	//wrong type
 	p.clear();
 	p.setValue("doublev",4);
-	TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,"",os));
+	TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,""))
 	p.clear();
 	p.setValue("intv","bla");
-	TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,"",os));
+	TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,""))
 	p.clear();
 	p.setValue("stringv",4.5);
-	TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,"",os));
+	TEST_EXCEPTION(Exception::InvalidParameter,p.checkDefaults("Param_test",d,""))
 END_SECTION
 
-START_SECTION((void update(const Param& old_version, const bool add_unknown = false, Logger::LogStream& stream = LOG_WARN)))
+START_SECTION((void update(const Param& old_version, const bool add_unknown = false)))
+{
+  NOT_TESTABLE // see full implementation below
+}
+END_SECTION
+
+START_SECTION((void update(const Param& old_version, const bool add_unknown, Logger::LogStream& stream)))
 	Param common;
 	common.setValue("float",1.0f,"float");
 	common.setValue("float2",2.0f,"float2");

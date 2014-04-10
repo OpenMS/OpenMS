@@ -72,9 +72,9 @@ END_SECTION
 
 	ptr = new ClusterAnalyzer();
 
-START_SECTION((std::vector< Real > averageSilhouetteWidth(const std::vector< BinaryTreeNode > &tree, const DistanceMatrix< Real > &original)))
+START_SECTION((std::vector< float > averageSilhouetteWidth(const std::vector< BinaryTreeNode > &tree, const DistanceMatrix< float > &original)))
 {
-	DistanceMatrix<Real> matrix(6,666);
+	DistanceMatrix<float> matrix(6,666);
 	matrix.setValue(1,0,0.5f);
 	matrix.setValue(2,0,0.8f);
 	matrix.setValue(2,1,0.3f);
@@ -91,7 +91,7 @@ START_SECTION((std::vector< Real > averageSilhouetteWidth(const std::vector< Bin
 	matrix.setValue(5,3,0.8f);
 	matrix.setValue(5,4,0.8f);
 
-	vector<Real> asw(5);
+	vector<float> asw(5);
 	asw[0]=0.170833f;
 	asw[1]=0.309722f;
 	asw[2]=0.306412f;
@@ -104,7 +104,7 @@ START_SECTION((std::vector< Real > averageSilhouetteWidth(const std::vector< Bin
 	tree.push_back(BinaryTreeNode(0,1,0.5f));
 	tree.push_back(BinaryTreeNode(0,3,0.6f));
 	tree.push_back(BinaryTreeNode(0,5,0.7f));
-	vector<Real> result = ptr->averageSilhouetteWidth(tree, matrix);
+	vector<float> result = ptr->averageSilhouetteWidth(tree, matrix);
 	TEST_EQUAL(result.size(), asw.size());
 	for (Size i = 0; i < result.size(); ++i)
 	{
@@ -115,9 +115,9 @@ START_SECTION((std::vector< Real > averageSilhouetteWidth(const std::vector< Bin
 }
 END_SECTION
 
-START_SECTION((std::vector< Real > dunnIndices(const std::vector<BinaryTreeNode>& tree, const DistanceMatrix<Real>& original, const bool tree_from_singlelinkage = false)))
+START_SECTION((std::vector< float > dunnIndices(const std::vector<BinaryTreeNode>& tree, const DistanceMatrix<float>& original, const bool tree_from_singlelinkage = false)))
 {
-	DistanceMatrix<Real> matrix(6,666);
+	DistanceMatrix<float> matrix(6,666);
 	matrix.setValue(1,0,0.5f);
 	matrix.setValue(2,0,0.8f);
 	matrix.setValue(2,1,0.3f);
@@ -140,9 +140,9 @@ START_SECTION((std::vector< Real > dunnIndices(const std::vector<BinaryTreeNode>
 	tree.push_back(BinaryTreeNode(0,1,0.5f));
 	tree.push_back(BinaryTreeNode(0,3,0.6f));
 	tree.push_back(BinaryTreeNode(0,5,0.7f));
-	vector<Real> di(5);
+	vector<float> di(5);
 	di[0]=0.4f/0.3f; di[1]=0.5f/0.4f; di[2]=0.6f/0.8f; di[3]=0.7f/0.8f; di[4]=0.0f;
-	vector<Real> result = ptr->dunnIndices(tree, matrix);
+	vector<float> result = ptr->dunnIndices(tree, matrix);
 	TEST_EQUAL(result.size(), di.size());
 	for (Size i = 0; i < result.size(); ++i)
 	{
@@ -159,9 +159,9 @@ START_SECTION((std::vector< Real > dunnIndices(const std::vector<BinaryTreeNode>
 }
 END_SECTION
 
-START_SECTION((std::vector< Real > cohesion(const std::vector< std::vector<Size> >& clusters, const DistanceMatrix<Real>& original)))
+START_SECTION((std::vector< float > cohesion(const std::vector< std::vector<Size> >& clusters, const DistanceMatrix<float>& original)))
 {
-	DistanceMatrix<Real> matrix(6,666);
+	DistanceMatrix<float> matrix(6,666);
 	matrix.setValue(1,0,0.5f);
 	matrix.setValue(2,0,0.8f);
 	matrix.setValue(2,1,0.3f);
@@ -184,12 +184,12 @@ START_SECTION((std::vector< Real > cohesion(const std::vector< std::vector<Size>
 	clusters.push_back(vector<Size>(a+3,a+5));
 	clusters.push_back(vector<Size>(a+5,a+6));
 
-	vector<Real> cohesions;
+	vector<float> cohesions;
 	cohesions.push_back(0.533f);
 	cohesions.push_back(0.4f);
 	cohesions.push_back(0.7f);
 
-	vector<Real> result = ptr->cohesion(clusters, matrix);
+	vector<float> result = ptr->cohesion(clusters, matrix);
 	TEST_EQUAL(cohesions.size(), result.size());
 	for (Size i = 0; i < cohesions.size(); ++i)
 	{
@@ -217,7 +217,7 @@ START_SECTION((std::vector< Real > cohesion(const std::vector< std::vector<Size>
 }
 END_SECTION
 
-START_SECTION((Real averagePopulationAberration(Size cluster_quantity, std::vector<BinaryTreeNode>& tree)))
+START_SECTION((float averagePopulationAberration(Size cluster_quantity, std::vector<BinaryTreeNode>& tree)))
 {
 	vector< BinaryTreeNode > tree;
 	tree.push_back(BinaryTreeNode(1,2,0.3f));
@@ -226,7 +226,7 @@ START_SECTION((Real averagePopulationAberration(Size cluster_quantity, std::vect
 	tree.push_back(BinaryTreeNode(0,3,0.6f));
 	tree.push_back(BinaryTreeNode(0,5,0.7f));
 
-	Real result = ptr->averagePopulationAberration(3, tree);
+	float result = ptr->averagePopulationAberration(3, tree);
 	TEST_REAL_SIMILAR(2.0/3.0, result);
 }
 END_SECTION

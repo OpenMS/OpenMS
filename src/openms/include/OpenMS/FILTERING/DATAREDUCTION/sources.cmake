@@ -8,8 +8,6 @@ ElutionPeakDetection.h
 FeatureFindingMetabo.h
 IsotopeDistributionCache.h
 MassTraceDetection.h
-SILACFilter.h
-SILACFiltering.h
 SILACPattern.h
 SILACPoint.h
 )

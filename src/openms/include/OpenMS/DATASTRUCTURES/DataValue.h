@@ -89,11 +89,11 @@ public:
     DataValue(const IntList&);
     /// specific constructor for double lists
     DataValue(const DoubleList&);
-    /// specific constructor for long double values (note: the implementation uses DoubleReal)
+    /// specific constructor for long double values (note: the implementation uses double)
     DataValue(long double);
-    /// specific constructor for double values (note: the implementation uses DoubleReal)
+    /// specific constructor for double values (note: the implementation uses double)
     DataValue(double);
-    /// specific constructor for float values (note: the implementation uses DoubleReal)
+    /// specific constructor for float values (note: the implementation uses double)
     DataValue(float);
     /// specific constructor for short int values (note: the implementation uses SignedSize)
     DataValue(short int);
@@ -153,7 +153,7 @@ public:
     /**
       @brief conversion operator to long double
 
-      Note: The implementation uses typedef DoubleReal (as opposed to float, double, long double.)
+      Note: The implementation uses typedef double (as opposed to float, double, long double.)
 
       @exception Exception::ConversionError is thrown if a cast from the the wrong type is requested
     */
@@ -162,7 +162,7 @@ public:
     /**
       @brief conversion operator to double
 
-      Note: The implementation uses typedef DoubleReal (as opposed to float, double, long double.)
+      Note: The implementation uses typedef double (as opposed to float, double, long double.)
 
       @exception Exception::ConversionError is thrown if a cast from the the wrong type is requested
     */
@@ -171,7 +171,7 @@ public:
     /**
       @brief conversion operator to float
 
-      Note: The implementation uses typedef DoubleReal (as opposed to float, double, long double.)
+      Note: The implementation uses typedef double (as opposed to float, double, long double.)
 
       @exception Exception::ConversionError is thrown if a cast from the the wrong type is requested
     */
@@ -298,11 +298,11 @@ public:
     DataValue& operator=(const IntList&);
     /// specific assignment for double lists
     DataValue& operator=(const DoubleList&);
-    /// specific assignment for long double values (note: the implementation uses DoubleReal)
+    /// specific assignment for long double values (note: the implementation uses double)
     DataValue& operator=(const long double);
-    /// specific assignment for double values (note: the implementation uses DoubleReal)
+    /// specific assignment for double values (note: the implementation uses double)
     DataValue& operator=(const double);
-    /// specific assignment for float values (note: the implementation uses DoubleReal)
+    /// specific assignment for float values (note: the implementation uses double)
     DataValue& operator=(const float);
     /// specific assignment for short int values (note: the implementation uses SignedSize)
     DataValue& operator=(const short int);
@@ -401,7 +401,7 @@ protected:
     union
     {
       SignedSize ssize_;
-      DoubleReal dou_;
+      double dou_;
       String* str_;
       StringList* str_list_;
       IntList* int_list_;

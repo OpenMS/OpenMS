@@ -109,14 +109,14 @@ protected:
     SVMWrapper svm;
     LibSVMEncoder encoder;
     String allowed_amino_acid_characters = "ACDEFGHIKLMNPQRSTVWY";
-    vector<DoubleReal> predicted_likelihoods;
-    vector<DoubleReal> predicted_labels;
-    map<String, DoubleReal> predicted_data;
+    vector<double> predicted_likelihoods;
+    vector<double> predicted_labels;
+    map<String, double> predicted_data;
     svm_problem* training_data = NULL;
     svm_problem* prediction_data = NULL;
     UInt border_length = 0;
     UInt k_mer_length = 0;
-    DoubleReal sigma = 0;
+    double sigma = 0;
     String temp_string = "";
     UInt maximum_length = 50;
     String inputfile_name = "";
@@ -196,7 +196,7 @@ protected:
       }
     }
 
-    vector<DoubleReal> labels;
+    vector<double> labels;
     labels.resize(peptides.size(), 0);
 
     vector<String>::iterator it_from = peptides.begin();
@@ -204,7 +204,7 @@ protected:
     while (it_from != peptides.end())
     {
       vector<String> temp_peptides;
-      vector<DoubleReal> temp_labels;
+      vector<double> temp_labels;
       UInt i = 0;
       while (i <= max_number_of_peptides && it_to != peptides.end())
       {
@@ -261,7 +261,7 @@ protected:
       temp_peptide_hits = identifications[i].getHits();
       for (Size j = 0; j < temp_peptide_hits.size(); j++)
       {
-        DoubleReal temp_likelihood = predicted_data[temp_peptide_hits[j].getSequence().toUnmodifiedString()];
+        double temp_likelihood = predicted_data[temp_peptide_hits[j].getSequence().toUnmodifiedString()];
 
         temp_peptide_hits[j].setMetaValue("predicted_PT", temp_likelihood);
       }

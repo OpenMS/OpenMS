@@ -203,11 +203,11 @@ START_SECTION((const HMMState* getState(const String& name) const))
 	TEST_EQUAL(ptr->getState("state_name_hidden"), state_ptr)
 END_SECTION
 
-START_SECTION((DoubleReal getTransitionProbability(const String& s1, const String& s2) const))
+START_SECTION((double getTransitionProbability(const String& s1, const String& s2) const))
 	TEST_REAL_SIMILAR(ptr->getTransitionProbability("state_name_hidden", "state_name_emitting"), 0.0)
 END_SECTION
 
-START_SECTION((void setTransitionProbability(const String& s1, const String& s2, DoubleReal prob)))
+START_SECTION((void setTransitionProbability(const String& s1, const String& s2, double prob)))
 	ptr->setTransitionProbability("state_name_hidden", "state_name_emitting", 0.3);
 	TEST_REAL_SIMILAR(ptr->getTransitionProbability("state_name_hidden", "state_name_emitting"), 0.3)
 
@@ -248,7 +248,7 @@ START_SECTION((void addSynonymTransition(const String& name1, const String& name
 	NOT_TESTABLE
 END_SECTION
 
-START_SECTION((void setInitialTransitionProbability(const String& state, DoubleReal prob)))
+START_SECTION((void setInitialTransitionProbability(const String& state, double prob)))
 	ptr->setInitialTransitionProbability("state_name_hidden2", 1.0);
 	NOT_TESTABLE
 
@@ -283,13 +283,13 @@ START_SECTION((void disableTransitions()))
 	NOT_TESTABLE
 END_SECTION
 
-START_SECTION((void calculateEmissionProbabilities(Map<HMMState*, DoubleReal>& emission_probs)))
-	Map<HMMState*, DoubleReal> emission_probs;
+START_SECTION((void calculateEmissionProbabilities(Map<HMMState*, double>& emission_probs)))
+	Map<HMMState*, double> emission_probs;
 	the_hmm.calculateEmissionProbabilities(emission_probs);
 	TEST_EQUAL(emission_probs.size(), 3)
-	DoubleReal sum(0);
+	double sum(0);
 	TOLERANCE_ABSOLUTE(0.01)
-	for (Map<HMMState*, DoubleReal>::ConstIterator it = emission_probs.begin(); it != emission_probs.end(); ++it)
+	for (Map<HMMState*, double>::ConstIterator it = emission_probs.begin(); it != emission_probs.end(); ++it)
 	{
 		if (it->first->getName() == "end")
 		{
@@ -310,7 +310,7 @@ START_SECTION((void calculateEmissionProbabilities(Map<HMMState*, DoubleReal>& e
 	TEST_REAL_SIMILAR(sum , 1.0)
 END_SECTION
 
-START_SECTION((void setTrainingEmissionProbability(const String& state, DoubleReal prob)))
+START_SECTION((void setTrainingEmissionProbability(const String& state, double prob)))
 	the_hmm.setTrainingEmissionProbability("end", 0.5);
 	the_hmm.setTrainingEmissionProbability("AB_3", 0.3);
 	the_hmm.setTrainingEmissionProbability("C_3", 0.2);
@@ -331,13 +331,13 @@ START_SECTION((void estimateUntrainedTransitions()))
 	NOT_TESTABLE // only applicable to the fragmentation model
 END_SECTION
 
-START_SECTION(([EXTRA] void calculateEmissionProbabilities(Map<HMMState*, DoubleReal>& emission_probs)))
-	Map<HMMState*, DoubleReal> emission_probs;
+START_SECTION(([EXTRA] void calculateEmissionProbabilities(Map<HMMState*, double>& emission_probs)))
+	Map<HMMState*, double> emission_probs;
   the_hmm.calculateEmissionProbabilities(emission_probs);
   TEST_EQUAL(emission_probs.size(), 3)
-  DoubleReal sum(0);
+  double sum(0);
 	TOLERANCE_ABSOLUTE(0.01)
-  for (Map<HMMState*, DoubleReal>::ConstIterator it = emission_probs.begin(); it != emission_probs.end(); ++it)
+  for (Map<HMMState*, double>::ConstIterator it = emission_probs.begin(); it != emission_probs.end(); ++it)
   {
     if (it->first->getName() == "end")
     {
@@ -438,12 +438,12 @@ START_SECTION(void addNewState(const String &name))
 	TEST_EQUAL(ptr->getNumberOfStates(), 1)
 END_SECTION
 
-START_SECTION(void setPseudoCounts(DoubleReal pseudo_counts))
+START_SECTION(void setPseudoCounts(double pseudo_counts))
 	ptr->setPseudoCounts(10e-3);
 	NOT_TESTABLE // tested in next section
 END_SECTION
 
-START_SECTION(DoubleReal getPseudoCounts() const)
+START_SECTION(double getPseudoCounts() const)
 	TEST_EQUAL(ptr->getPseudoCounts(), 10e-3)
 END_SECTION
 

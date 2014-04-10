@@ -37,9 +37,7 @@
 #define OPENMS_CHEMISTRY_MASSDECOMPOSITION_IMS_IMSELEMENT_H
 
 #include <string>
-#include <ostream>
-#include <iostream>
-
+#include <iosfwd>
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/IMS/IMSIsotopeDistribution.h>
 
 namespace OpenMS

@@ -100,7 +100,7 @@ END_SECTION
 
 START_SECTION((IMSElement(const name_type &name, mass_type mass)))
 {
-  DoubleReal oxygen_mass = 15.9994;
+  double oxygen_mass = 15.9994;
   IMSElement element("O", oxygen_mass);
   IMSIsotopeDistribution oxygen(oxygen_mass);
 
@@ -176,7 +176,7 @@ END_SECTION
 
 START_SECTION((mass_type getIonMass(int electrons_number=1) const ))
 {
-  DoubleReal expected_ion_mass = hydrogen->getMass() - IMSElement::ELECTRON_MASS_IN_U;
+  double expected_ion_mass = hydrogen->getMass() - IMSElement::ELECTRON_MASS_IN_U;
   TEST_EQUAL(hydrogen->getIonMass(), expected_ion_mass)
   TEST_EQUAL(hydrogen->getIonMass(1), expected_ion_mass)
 
