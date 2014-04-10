@@ -147,9 +147,9 @@ if True or int(os.environ.get("WITH_MEMLEAK_TESTS", 0)):
                 if (i+1)%100 == 0:
                     show_mem("%4d specs processed" % i)
                 spec = pyopenms.MSSpectrum()
-                spec.set_peaks(data)
-                spec.set_peaks(data)
-                spec.set_peaks(data)
+                spec.set_peaks((data[:,0], data[:,1]))
+                spec.set_peaks((data[:,0], data[:,1]))
+                spec.set_peaks((data[:,0], data[:,1]))
                 li.append(spec)
 
             for spec in li:
@@ -164,9 +164,9 @@ if True or int(os.environ.get("WITH_MEMLEAK_TESTS", 0)):
                 if (i+1)%100 == 0:
                     show_mem("%4d specs processed" % i)
                 spec = pyopenms.MSSpectrum()
-                spec.set_peaks(data)
-                spec.set_peaks(data)
-                spec.set_peaks(data)
+                spec.set_peaks((data[:,0], data[:,1]))
+                spec.set_peaks((data[:,0], data[:,1]))
+                spec.set_peaks((data[:,0], data[:,1]))
                 spec.set_peaks(spec.get_peaks())
                 li.append(spec)
 
