@@ -105,11 +105,12 @@ protected:
     registerDoubleOption_("min_coverage", "<double>", 0.6, "Minimum relative amount of RT peptides to keep", false);
 
     registerFlag_("estimateBestPeptides", "Whether the algorithms should choose the best peptides for normalization. Use this option you do not expect all your peptides to be detected in a sample (e.g. due to them being endogenous peptides or using a less curated list of peptides).", false);
-    registerFlag_("useChauvenet", "Whether to use Chauvenet's criterion when testing for a single outlier (using this option is more stringent and can lead to outliers being retained).", false);
 
     registerSubsection_("algorithm", "Algorithm parameters section");
 
     registerSubsection_("peptideEstimation", "Parameters for the peptide estimation (use -estimateBestPeptides to enable).");
+
+    registerSubsection_("outlierDetection", "Parameters for the outlierDetection (use -outlierDetection to enable).");
   }
 
   Param getSubsectionDefaults_(const String & section) const
@@ -126,6 +127,15 @@ protected:
       p.setValue("NrRTBins", 10, "Number of RT bins to use to compute coverage");
       p.setValue("MinPeptidesPerBin", 1, "Minimal number of peptides that are required for a bin to counted as 'covered'");
       p.setValue("MinBinsFilled", 8, "Minimal number of bins required to be covered");
+      return p;
+    }
+    else if (section == "outlierDetection")
+    {
+      Param p;
+      p.setValue("useIterativeJackknife", "false", "Whether to use a Jackknife approach optimizing for maximum r-squared when testing for a single outlier (using this option is more expensive with lots of peptides).");
+      p.setValue("useIterativeChauvenet", "false", "Whether to use Chauvenet's criterion when testing for a single outlier (using this option is more stringent and can lead to outliers being retained).");
+      p.setValue("useRANSAC", "false", "Whether to use the RANSAC outlier detection algorithm.");
+      p.setValue("useRANSACMaxIterations", 1000, "Maximum iterations for the RANSAC outlier detection algorithm.");
       return p;
     }
     return Param();
@@ -241,7 +251,6 @@ protected:
     DoubleReal min_rsq = getDoubleOption_("min_rsq");
     DoubleReal min_coverage = getDoubleOption_("min_coverage");
     bool estimateBestPeptides = getFlag_("estimateBestPeptides");
-    bool useChauvenet = getFlag_("useChauvenet");
     const char * tr_file  = tr_file_str.c_str();
 
     MapType all_xic_maps; // all XICs from all files
@@ -256,7 +265,8 @@ protected:
     std::pair<double,double> RTRange = estimateRTRange(targeted_exp);
     std::cout << "Rt range from " << RTRange.first << " to " << RTRange.second << std::endl;
 
-   Param pepEstimationParams = getParam_().copy("peptideEstimation:", true);
+    Param pepEstimationParams = getParam_().copy("peptideEstimation:", true);
+    Param outlierDetectionParams = getParam_().copy("outlierDetection:", true);
 
     // Store the peptide retention times in an intermediate map
     PeptideRTMap.clear();
@@ -342,8 +352,25 @@ protected:
     }
 
     std::vector<std::pair<double, double> > pairs_corrected;
-    // pairs_corrected = MRMRTNormalizer::rm_outliers(pairs, min_rsq, min_coverage, useChauvenet);
-    pairs_corrected = MRMRTNormalizer::rm_outliers_ransac(pairs, min_rsq, min_coverage, 10000, 6);
+    if (outlierDetectionParams.getValue("useRANSAC") == "true")
+    {
+      double max_rt_threshold = (RTRange.second - RTRange.first) / 30; // estimate of the maximum deviation from RT that is tollerated. Because 120 min gradient can have 4 min elution shift, we use this ratio to find upper RT threshold.
+      pairs_corrected = MRMRTNormalizer::rm_outliers_ransac(pairs, min_rsq, min_coverage, outlierDetectionParams.getValue("useRANSACMaxIterations"), max_rt_threshold);
+    }
+    else
+    {
+      bool useIterativeJackknife = false;
+      if (outlierDetectionParams.getValue("useIterativeJackknife") == "true")
+      {
+        useIterativeJackknife = true;
+      }
+      bool useIterativeChauvenet = false;
+      if (outlierDetectionParams.getValue("useIterativeChauvenet") == "true")
+      {
+        useIterativeChauvenet = true;
+      }
+      pairs_corrected = MRMRTNormalizer::rm_outliers_iterative(pairs, min_rsq, min_coverage, useIterativeChauvenet, useIterativeJackknife);
+    }
 
     // store transformation, using a linear model as default
     TransformationDescription trafo_out;

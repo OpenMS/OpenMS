@@ -43,8 +43,6 @@
 #include <numeric>
 #include <boost/math/special_functions/erf.hpp>
 #include <algorithm>
-#include <gsl/gsl_fit.h>
-#include <gsl/gsl_statistics.h>
 
 namespace OpenMS
 {
@@ -72,9 +70,46 @@ public:
     static double llsm_rss(std::vector<std::pair<double, double> >& pairs, std::pair<double, double >& coefficients  );
   
     static std::vector<std::pair<double, double> > llsm_rss_inliers(std::vector<std::pair<double, double> >&   pairs, std::pair<double, double >& coefficients, double max_threshold);
-  
-    static std::vector<std::pair<double, double> > rm_outliers_ransac(std::vector<std::pair<double, double> >&   pairs, double min_rsq, double min_coverage, int max_iterations, double max_rt_threshold);
-  
+ 
+    /**
+      @brief This function removes potential outliers from a set of paired points.
+       Two thresholds need to be defined, first a lower R^2 limit to accept the
+       regression for the RT normalization and second, the lower limit of peptide
+       coverage. The algorithms then selects candidate outlier peptides using the
+       RANSAC outlier detection algorithm and returns to corrected set of peptides
+       if the two thresholds are satisfied.
+
+      @param pairs Input data
+      @param rsq_limit Minimal R^2 required
+      @param coverage_limit Minimal coverage required (the number of points
+      falls below this fraction, the algorithm aborts)
+      @param max_iterations Maximum iterations for the RANSAC algorithm
+      @param max_rt_threshold Maximum deviation from fit for the retention time.
+       This must be in the unit of the chromatography dimension.
+
+      @return A vector of pairs is returned if the R^2 limit was reached without
+       reaching the coverage limit. If the limits are reached, an exception is
+       thrown.
+
+      @exception Exception::UnableToFit is thrown if fitting cannot be performed
+    */ 
+    static std::vector<std::pair<double, double> > rm_outliers_ransac(std::vector<std::pair<double, double> >& pairs, double rsq_limit, double coverage_limit, size_t max_iterations, double max_rt_threshold);
+
+    /**
+      @brief This function provides a generic implementation of the RANSAC
+       outlier detection algorithm. Is implemented and tested after the
+       SciPy reference: http://wiki.scipy.org/Cookbook/RANSAC
+
+      @param pairs Input data
+      @param n the minimum number of data values required to fit the model
+      @param k the maximum number of iterations allowed in the algorithm 
+      @param t a threshold value for determining when a data point fits a model
+      @param d the number of close data values required to assert that a model fits well to data
+      @param test disables the random component of the algorithm
+
+      @return A vector of pairs
+    */
+    static std::vector<std::pair<double, double> > ransac(std::vector<std::pair<double, double> >& pairs, size_t n, size_t k, double t, size_t d, bool test = false); 
 
     /**
       @brief This function computes a candidate outlier peptide by iteratively
@@ -87,7 +122,20 @@ public:
 
       @exception Exception::UnableToFit is thrown if fitting cannot be performed
     */
-    static int outlier_candidate(std::vector<double>& x, std::vector<double>& y);
+    static int jackknife_outlier_candidate(std::vector<double>& x, std::vector<double>& y);
+
+    /**
+      @brief This function computes a candidate outlier peptide by computing
+       the residuals of all points to the linear fit and selecting the one with
+       the largest deviation. The data points are submitted as two vectors of
+       doubles (x- and y-coordinates).
+
+      @return The position of the candidate outlier peptide as supplied by the
+       vector is returned.
+
+      @exception Exception::UnableToFit is thrown if fitting cannot be performed
+    */
+    static int residual_outlier_candidate(std::vector<double>& x, std::vector<double>& y);
 
     /**
       @brief This function removes potential outliers from a set of paired points.
@@ -112,10 +160,11 @@ public:
 
       @exception Exception::UnableToFit is thrown if fitting cannot be performed
     */
-    static std::vector<std::pair<double, double> > rm_outliers(std::vector<std::pair<double, double> >& pairs,
+    static std::vector<std::pair<double, double> > rm_outliers_iterative(std::vector<std::pair<double, double> >& pairs,
                                                                double rsq_limit, 
                                                                double coverage_limit, 
-                                                               bool use_chauvenet);
+                                                               bool use_chauvenet,
+                                                               bool use_jackknife);
 
     /**
       @brief This function computes Chauvenet's criterion probability for a vector
