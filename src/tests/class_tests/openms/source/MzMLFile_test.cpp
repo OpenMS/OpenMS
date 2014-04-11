@@ -46,7 +46,7 @@ using namespace std;
 
 ///////////////////////////
 
-DRange<1> makeRange(DoubleReal a, DoubleReal b)
+DRange<1> makeRange(double a, double b)
 {
 	DPosition<1> pa(a), pb(b);
 	return DRange<1>(pa, pb);
@@ -339,8 +339,8 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 		TEST_EQUAL(spec.getDataProcessing()[0].getProcessingActions().count(DataProcessing::DEISOTOPING),1)
 		TEST_EQUAL(spec.getDataProcessing()[0].getProcessingActions().count(DataProcessing::CHARGE_DECONVOLUTION),1)
 		TEST_STRING_EQUAL(spec.getDataProcessing()[0].getCompletionTime().get(),"2001-02-03 04:05:00")
-		TEST_REAL_SIMILAR(DoubleReal(spec.getDataProcessing()[0].getMetaValue("low_intensity_threshold")),5.9)
-		TEST_REAL_SIMILAR(DoubleReal(spec.getDataProcessing()[0].getMetaValue("high_intensity_threshold")),10.9)
+		TEST_REAL_SIMILAR(double(spec.getDataProcessing()[0].getMetaValue("low_intensity_threshold")),5.9)
+		TEST_REAL_SIMILAR(double(spec.getDataProcessing()[0].getMetaValue("high_intensity_threshold")),10.9)
 		TEST_EQUAL(spec.getDataProcessing()[0].isMetaEmpty(),false)
 		TEST_EQUAL(spec.getDataProcessing()[1].getSoftware().getName(),"ProteoWizard")
 		TEST_EQUAL(spec.getDataProcessing()[1].getSoftware().getVersion(),"1.0")
@@ -430,8 +430,8 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 		TEST_EQUAL(spec.getDataProcessing()[0].getProcessingActions().count(DataProcessing::DEISOTOPING),1)
 		TEST_EQUAL(spec.getDataProcessing()[0].getProcessingActions().count(DataProcessing::CHARGE_DECONVOLUTION),1)
 		TEST_STRING_EQUAL(spec.getDataProcessing()[0].getCompletionTime().get(),"2001-02-03 04:05:00")
-		TEST_REAL_SIMILAR(DoubleReal(spec.getDataProcessing()[0].getMetaValue("low_intensity_threshold")),5.9)
-		TEST_REAL_SIMILAR(DoubleReal(spec.getDataProcessing()[0].getMetaValue("high_intensity_threshold")),10.9)
+		TEST_REAL_SIMILAR(double(spec.getDataProcessing()[0].getMetaValue("low_intensity_threshold")),5.9)
+		TEST_REAL_SIMILAR(double(spec.getDataProcessing()[0].getMetaValue("high_intensity_threshold")),10.9)
 		TEST_EQUAL(spec.getDataProcessing()[0].isMetaEmpty(),false)
 		TEST_EQUAL(spec.getDataProcessing()[1].getSoftware().getName(),"ProteoWizard")
 		TEST_EQUAL(spec.getDataProcessing()[1].getSoftware().getVersion(),"1.0")
@@ -488,8 +488,8 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 		TEST_EQUAL(spec.getDataProcessing()[0].getProcessingActions().count(DataProcessing::DEISOTOPING),1)
 		TEST_EQUAL(spec.getDataProcessing()[0].getProcessingActions().count(DataProcessing::CHARGE_DECONVOLUTION),1)
 		TEST_STRING_EQUAL(spec.getDataProcessing()[0].getCompletionTime().get(),"2001-02-03 04:05:00")
-		TEST_REAL_SIMILAR(DoubleReal(spec.getDataProcessing()[0].getMetaValue("low_intensity_threshold")),5.9)
-		TEST_REAL_SIMILAR(DoubleReal(spec.getDataProcessing()[0].getMetaValue("high_intensity_threshold")),10.9)
+		TEST_REAL_SIMILAR(double(spec.getDataProcessing()[0].getMetaValue("low_intensity_threshold")),5.9)
+		TEST_REAL_SIMILAR(double(spec.getDataProcessing()[0].getMetaValue("high_intensity_threshold")),10.9)
 		TEST_EQUAL(spec.getDataProcessing()[0].isMetaEmpty(),false)
 	}
 
@@ -600,24 +600,24 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
 	//general
 	TEST_STRING_EQUAL((String)exp.getSample().getMetaValue("sample batch"),"4.4")
 	//spectrum 1
-	TEST_REAL_SIMILAR((DoubleReal)exp[0].getMetaValue("elution time (seconds)"),55.11)
-	TEST_REAL_SIMILAR((DoubleReal)exp[0].getMetaValue("lowest observed m/z"),400.39)
-	TEST_REAL_SIMILAR((DoubleReal)exp[0].getMetaValue("highest observed m/z"),1795.56)
-	TEST_REAL_SIMILAR((DoubleReal)exp[0].getMetaValue("lowest observed wavelength"),500.39)
-	TEST_REAL_SIMILAR((DoubleReal)exp[0].getMetaValue("highest observed wavelength"),795.56)
-	TEST_REAL_SIMILAR((DoubleReal)exp[0].getMetaValue("base peak m/z"),445.347)
-	TEST_REAL_SIMILAR((DoubleReal)exp[0].getMetaValue("base peak intensity"),120054)
-	TEST_REAL_SIMILAR((DoubleReal)exp[0].getMetaValue("total ion current"),16675500)
+	TEST_REAL_SIMILAR((double)exp[0].getMetaValue("elution time (seconds)"),55.11)
+	TEST_REAL_SIMILAR((double)exp[0].getMetaValue("lowest observed m/z"),400.39)
+	TEST_REAL_SIMILAR((double)exp[0].getMetaValue("highest observed m/z"),1795.56)
+	TEST_REAL_SIMILAR((double)exp[0].getMetaValue("lowest observed wavelength"),500.39)
+	TEST_REAL_SIMILAR((double)exp[0].getMetaValue("highest observed wavelength"),795.56)
+	TEST_REAL_SIMILAR((double)exp[0].getMetaValue("base peak m/z"),445.347)
+	TEST_REAL_SIMILAR((double)exp[0].getMetaValue("base peak intensity"),120054)
+	TEST_REAL_SIMILAR((double)exp[0].getMetaValue("total ion current"),16675500)
 	TEST_STRING_EQUAL((String)exp[0].getMetaValue("spectrum title"),"title")
 	TEST_STRING_EQUAL((String)exp[0].getMetaValue("peak list scans"),"15 scans")
 	TEST_STRING_EQUAL((String)exp[0].getMetaValue("peak list raw scans"),"16 scans")
 
 	TEST_STRING_EQUAL((String)exp[0].getMetaValue("mass resolution"),"4.3")
-	TEST_REAL_SIMILAR((DoubleReal)exp[0].getMetaValue("analyzer scan offset"),-4.5)
-	TEST_REAL_SIMILAR((DoubleReal)exp[0].getMetaValue("dwell time"),123.45)
+	TEST_REAL_SIMILAR((double)exp[0].getMetaValue("analyzer scan offset"),-4.5)
+	TEST_REAL_SIMILAR((double)exp[0].getMetaValue("dwell time"),123.45)
 	TEST_STRING_EQUAL((String)exp[0].getMetaValue("filter string"),"+ c NSI Full ms [ 400.00-1800.00]")
 	TEST_STRING_EQUAL((String)exp[0].getMetaValue("preset scan configuration"),"3 abc")
-	TEST_REAL_SIMILAR((DoubleReal)exp[0].getMetaValue("scan rate"),17.17)
+	TEST_REAL_SIMILAR((double)exp[0].getMetaValue("scan rate"),17.17)
 	//spectrum 2
 	TEST_STRING_EQUAL((String)exp[1].getMetaValue("mass resolution"),"4.1")
 	TEST_STRING_EQUAL((String)exp[1].getPrecursors()[0].getMetaValue("collision gas"), "Argon")

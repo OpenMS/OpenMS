@@ -89,7 +89,7 @@ public:
     PeptideHit();
 
     /// values constructor
-    PeptideHit(DoubleReal score,
+    PeptideHit(double score,
                UInt rank,
                Int charge,
                const AASequence & sequence);
@@ -114,7 +114,7 @@ public:
     */
     //@{
     /// returns the score of the peptide hit
-    DoubleReal getScore() const;
+    double getScore() const;
 
     /// returns the rank of the peptide hit
     UInt getRank() const;
@@ -132,7 +132,7 @@ public:
     void setProteinAccessions(const std::vector<String> & accessions);
 
     /// sets the score of the peptide hit
-    void setScore(DoubleReal score);
+    void setScore(double score);
 
     /// sets the rank
     void setRank(UInt newrank);
@@ -161,7 +161,7 @@ public:
 
 
 protected:
-    DoubleReal score_;          ///< the score of the peptide hit
+    double score_;          ///< the score of the peptide hit
     UInt rank_;                         ///< the position(rank) where the hit appeared in the hit list
     Int charge_;         ///< the charge of the peptide
     AASequence sequence_;                               ///< the amino acid sequence of the peptide hit

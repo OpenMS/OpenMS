@@ -37,8 +37,7 @@
 
 #include <OpenMS/DATASTRUCTURES/Param.h>
 
-#include <gsl/gsl_bspline.h>
-#include <gsl/gsl_interp.h>
+#include "OpenMS/MATH/MISC/Spline2d.h"
 
 namespace OpenMS
 {
@@ -53,7 +52,7 @@ namespace OpenMS
   {
 public:
     /// Coordinate pair
-    typedef std::pair<DoubleReal, DoubleReal> DataPoint;
+    typedef std::pair<double, double> DataPoint;
     /// Vector of coordinate pairs
     typedef std::vector<DataPoint> DataPoints;
 
@@ -69,15 +68,15 @@ public:
     virtual ~TransformationModel() {}
 
     /// Evaluates the model at the given value
-    virtual DoubleReal evaluate(const DoubleReal value) const
+    virtual double evaluate(const double value) const
     {
       return value;
     }
 
     /// Gets the (actual) parameters
-    void getParameters(Param & params) const
+    const Param & getParameters() const
     {
-      params = params_;
+      return params_;
     }
 
     /// Gets the default parameters
@@ -116,12 +115,12 @@ public:
     ~TransformationModelLinear();
 
     /// Evaluates the model at the given value
-    virtual DoubleReal evaluate(const DoubleReal value) const;
+    virtual double evaluate(const double value) const;
 
     using TransformationModel::getParameters;
 
     /// Gets the "real" parameters
-    void getParameters(DoubleReal & slope, DoubleReal & intercept) const;
+    void getParameters(double & slope, double & intercept) const;
 
     /// Gets the default parameters
     static void getDefaultParameters(Param & params);
@@ -135,7 +134,7 @@ public:
 
 protected:
     /// Parameters of the linear model
-    DoubleReal slope_, intercept_;
+    double slope_, intercept_;
     /// Was the model estimated from data?
     bool data_given_;
     /// Use symmetric regression?
@@ -148,7 +147,7 @@ protected:
 
        Between the data points, the interpolation uses the neighboring points. Outside the range spanned by the points, we extrapolate using a line through the first and the last point.
 
-       Different types of interpolation (controlled by the parameter @p interpolation_type) are supported: "linear", "polynomial", "cspline", and "akima". Note that the number of required data points may differ between types.
+       Interpolation is done by a cubic spline. Note that at least 4 data point are required.
 
        @ingroup MapAlignment
   */
@@ -168,7 +167,7 @@ public:
     ~TransformationModelInterpolated();
 
     /// Evaluates the model at the given value
-    DoubleReal evaluate(const DoubleReal value) const;
+    double evaluate(const double value) const;
 
     /// Gets the default parameters
     static void getDefaultParameters(Param & params);
@@ -176,79 +175,12 @@ public:
 protected:
     /// Data coordinates
     std::vector<double> x_, y_;
-    /// Number of data points
-    size_t size_;
-    /// Look-up accelerator
-    gsl_interp_accel * acc_;
     /// Interpolation function
-    gsl_interp * interp_;
+    Spline2d<double> * interp_;
     /// Linear model for extrapolation
     TransformationModelLinear * lm_;
   };
 
-
-  /**
-       @brief B-spline model for transformations
-
-       In the range of the data points, the transformation is evaluated from a cubic smoothing spline fit to the points. The number of breakpoints is given as a parameter (@p num_breakpoints). Outside of this range, linear extrapolation through the last point with the slope of the spline at that point is used.
-
-       Positioning of the breakpoints is controlled by the parameter @p break_positions. Valid choices are "uniform" (equidistant spacing on the data range) and "quantiles" (equal numbers of data points in every interval).
-
-       @ingroup MapAlignment
-  */
-  class OPENMS_DLLAPI TransformationModelBSpline :
-    public TransformationModel
-  {
-public:
-    /**
-         @brief Constructor
-
-         @exception IllegalArgument is thrown if not enough data points are given or if the required parameter @p num_breakpoints is missing.
-    */
-    TransformationModelBSpline(const DataPoints & data, const Param & params);
-
-    /// Destructor
-    ~TransformationModelBSpline();
-
-    /// Evaluates the model at the given value
-    DoubleReal evaluate(const DoubleReal value) const;
-
-    /// Gets the default parameters
-    static void getDefaultParameters(Param & params);
-
-protected:
-    /**
-        @brief Finds quantile values
-
-        @param x Data vector to find quantiles in
-        @param quantiles Quantiles to find (values between 0 and 1)
-        @param results Resulting quantiles (vector must be already allocated to the correct size!)
-    */
-    void getQuantiles_(const gsl_vector * x, const std::vector<double> &
-                       quantiles, gsl_vector * results);
-
-    /// Computes the B-spline fit
-    void computeFit_();
-
-    /// Computes the linear extrapolation
-    void computeLinear_(const double pos, double & slope, double & offset,
-                        double & sd_err);
-
-    /// Vectors for B-spline computation
-    gsl_vector * x_, * y_, * w_, * bsplines_, * coeffs_;
-    /// Covariance matrix
-    gsl_matrix * cov_;
-    /// B-spline workspace
-    gsl_bspline_workspace * workspace_;
-    /// Number of data points and coefficients
-    size_t size_, ncoeffs_;
-    // First/last breakpoint
-    double xmin_, xmax_;
-    /// Parameters for linear extrapolation
-    double slope_min_, slope_max_, offset_min_, offset_max_;
-    /// Fitting errors of linear extrapolation
-    double sd_err_left_, sd_err_right_;
-  };
 
 } // end of namespace OpenMS
 

@@ -156,10 +156,10 @@ START_SECTION((bool stop()))
   TEST_EQUAL(s.getClockTime() > 2, true)
   TEST_EQUAL(s.getClockTime() < 4, true)
   
-  DoubleReal t1 = s.getCPUTime();
-  DoubleReal t2 = s.getClockTime();
-  DoubleReal t3 = s.getSystemTime();
-  DoubleReal t4 = s.getUserTime();
+  double t1 = s.getCPUTime();
+  double t2 = s.getClockTime();
+  double t3 = s.getSystemTime();
+  double t4 = s.getUserTime();
   // wait some more
   wait(3);
   // ... and see if time is still the old one
@@ -170,7 +170,7 @@ START_SECTION((bool stop()))
 
 END_SECTION
 
-START_SECTION((DoubleReal getCPUTime() const ))
+START_SECTION((double getCPUTime() const ))
   StopWatch s;
   s.start();
   wait(3);
@@ -186,15 +186,15 @@ START_SECTION((DoubleReal getCPUTime() const ))
   TEST_EQUAL(s.getSystemTime() < 0.5, true) // but no system time
 END_SECTION
 
-START_SECTION((DoubleReal getClockTime() const ))
+START_SECTION((double getClockTime() const ))
   NOT_TESTABLE; // done above
 END_SECTION
 
-START_SECTION((DoubleReal getSystemTime() const ))
+START_SECTION((double getSystemTime() const ))
   NOT_TESTABLE; // done above
 END_SECTION
 
-START_SECTION((DoubleReal getUserTime() const ))
+START_SECTION((double getUserTime() const ))
   NOT_TESTABLE; // done above
 END_SECTION
 
@@ -210,7 +210,7 @@ START_SECTION((virtual ~StopWatch()))
   NOT_TESTABLE; // done above
 END_SECTION
 
-START_SECTION((static String toString(DoubleReal time)))
+START_SECTION((static String toString(double time)))
   
   TEST_EQUAL(StopWatch::toString(0), "0.00 s")
 

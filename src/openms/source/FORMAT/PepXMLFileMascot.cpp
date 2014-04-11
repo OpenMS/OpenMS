@@ -67,15 +67,15 @@ namespace OpenMS
     actual_sequence_ = "";
     actual_modifications_ = vector<pair<String, UInt> >();
     peptides_ = 0;
-    variable_modifications_ = vector<pair<String, DoubleReal> >();
+    variable_modifications_ = vector<pair<String, double> >();
     fixed_modifications_ = vector<String>();
   }
 
-  void PepXMLFileMascot::matchModification_(DoubleReal mass, String & modification_description)
+  void PepXMLFileMascot::matchModification_(double mass, String & modification_description)
   {
     UInt i = 0;
     bool found = false;
-    DoubleReal difference = 0.;
+    double difference = 0.;
 
     while (i < variable_modifications_.size() && !found)
     {
@@ -140,7 +140,7 @@ namespace OpenMS
     }
     else if (element == "mod_aminoacid_mass")
     {
-      DoubleReal modification_mass = 0.;
+      double modification_mass = 0.;
       UInt             modification_position = 0;
       String       temp_description = "";
 

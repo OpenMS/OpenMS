@@ -60,8 +60,8 @@ namespace OpenMS
     Size iso_number_ms2_negative; //< number of MS2 spectra where one or more channels had negative solution
     Size iso_number_reporter_negative; //< number of channels where naive solution was negative
     Size iso_number_reporter_different; //< number of channels >0 where naive solution was different; happens when naive solution is negative in other channels
-    DoubleReal iso_solution_different_intensity; //< absolute intensity difference between both solutions (for channels > 0)
-    DoubleReal iso_total_intensity_negative; //< only for spectra where naive solution is negative
+    double iso_solution_different_intensity; //< absolute intensity difference between both solutions (for channels > 0)
+    double iso_total_intensity_negative; //< only for spectra where naive solution is negative
     Size number_ms2_total; //< total number of MS2 spectra
     Size number_ms2_empty; //< number of empty MS2 (no reporters at all)
     std::map<Size, Size> empty_channels; //< Channel_ID -> Missing; indicating the number of empty channels from all MS2 scans, i.e., numbers are between number_ms2_empty and number_ms2_total

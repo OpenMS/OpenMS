@@ -108,7 +108,7 @@ private:
     FalseDiscoveryRate & operator=(const FalseDiscoveryRate &);
 
     /// calculates the fdr stored into fdrs, given two vectors of scores
-    void calculateFDRs_(Map<DoubleReal, DoubleReal> & score_to_fdr, std::vector<DoubleReal> & target_scores, std::vector<DoubleReal> & decoy_scores, bool q_value, bool higher_score_better);
+    void calculateFDRs_(Map<double, double> & score_to_fdr, std::vector<double> & target_scores, std::vector<double> & decoy_scores, bool q_value, bool higher_score_better);
 
   };
 

@@ -44,6 +44,10 @@
 #include <vector>
 #include <iostream>
 
+#include <boost/random/normal_distribution.hpp>
+#include <boost/random/cauchy_distribution.hpp>
+#include <boost/random/uniform_real.hpp>
+
 using std::vector;
 using std::cout;
 using std::endl;
@@ -52,9 +56,15 @@ using std::endl;
 namespace OpenMS
 {
 
+  RTSimulation::RTSimulation() :
+    DefaultParamHandler("RTSimulation"), rnd_gen_(new SimRandomNumberGenerator())
+  {
+    setDefaultParams_();
+    updateMembers_();
+  }
 
-  RTSimulation::RTSimulation(const SimRandomNumberGenerator& random_generator) :
-    DefaultParamHandler("RTSimulation"), rnd_gen_(&random_generator)
+  RTSimulation::RTSimulation(MutableSimRandomNumberGeneratorPtr random_generator) :
+    DefaultParamHandler("RTSimulation"), rnd_gen_(random_generator)
   {
     setDefaultParams_();
     updateMembers_();
@@ -205,7 +215,7 @@ namespace OpenMS
   {
     LOG_INFO << "RT Simulation ... started" << std::endl;
 
-    vector<DoubleReal>  predicted_retention_times;
+    vector<double>  predicted_retention_times;
     bool is_relative = (param_.getValue("auto_scale") == "true");
     if (param_.getValue("rt_column") == "none")
     {
@@ -249,7 +259,8 @@ namespace OpenMS
         predicted_retention_times[i] = features[i].getMetaValue("rt");
       }
       // add variation
-      SimCoordinateType rt_error = gsl_ran_gaussian(rnd_gen_->technical_rng, rt_ft_stddev) + rt_offset;
+      boost::normal_distribution<SimCoordinateType> ndist (rt_offset,rt_ft_stddev);
+      SimCoordinateType rt_error = ndist(rnd_gen_->getTechnicalRng());
       predicted_retention_times[i] = predicted_retention_times[i] * rt_scale + rt_error;
       //overwrite RT [no randomization] (if given by user)
       if (features[i].metaValueExists("RT"))
@@ -273,16 +284,27 @@ namespace OpenMS
       features[i].setRT(predicted_retention_times[i]);
 
       // determine shape parameters for EGH
-      DoubleReal variance = egh_variance_location_ + (egh_variance_scale_ == 0 ? 0 : gsl_ran_cauchy(rnd_gen_->technical_rng, egh_variance_scale_));
-      DoubleReal tau = egh_tau_location_ + (egh_tau_scale_ == 0 ? 0 : gsl_ran_cauchy(rnd_gen_->technical_rng, egh_tau_scale_));
+      double variance = egh_variance_location_;
+      if(egh_variance_scale_ != 0)
+      {
+        boost::cauchy_distribution<double> cdist (0,egh_variance_scale_);
+        variance += cdist( rnd_gen_->getTechnicalRng() );
+      }
+      double tau = egh_tau_location_;
+      if(egh_tau_scale_ != 0)
+      {
+        boost::cauchy_distribution<double> cdist (0,egh_tau_scale_);
+        tau += cdist( rnd_gen_->getTechnicalRng() );
+      }
 
       // resample variance if it is below 0
       // try this only 10 times to avoid endless loop in case of
       // a bad parameter combination
       Size retry_variance_sampling = 0;
+      boost::cauchy_distribution<double> cdistVar (0.0, egh_variance_scale_);
       while ((variance <= 0 || (fabs(variance - egh_variance_location_) > 10 * egh_variance_scale_)) && retry_variance_sampling < 9)
       {
-        variance = egh_variance_location_ + gsl_ran_cauchy(rnd_gen_->technical_rng, egh_variance_scale_);
+        variance = egh_variance_location_ + cdistVar(rnd_gen_->getTechnicalRng());
         ++retry_variance_sampling;
       }
 
@@ -296,9 +318,10 @@ namespace OpenMS
       // try this only 10 times to avoid endless loop in case of
       // a bad parameter combination
       Size retry_tau_sampling = 0;
+      boost::cauchy_distribution<double> cdistTau (0.0, egh_tau_scale_);
       while (fabs(tau - egh_tau_location_) > 10 * egh_tau_scale_  && retry_tau_sampling < 9)
       {
-        tau = egh_tau_location_ + gsl_ran_cauchy(rnd_gen_->technical_rng, egh_tau_scale_);
+        tau = egh_tau_location_ + cdistTau(rnd_gen_->getTechnicalRng());
         ++retry_tau_sampling;
       }
 
@@ -355,7 +378,7 @@ namespace OpenMS
     q_aa_acidic.clear();
 
     // get params
-    DoubleReal ph = param_.getValue("CE:pH");
+    double ph = param_.getValue("CE:pH");
 
     // calculate charges according to constants and conditions:
 
@@ -382,14 +405,14 @@ namespace OpenMS
     q_aa_acidic["Z"] = q_aa_acidic["E"] * (6.0 / (6.0 + 3.9)) + 0 * (3.9 / (6.0 + 3.9)); // E~6.0; Q~3.9
   }
 
-  void RTSimulation::calculateMT_(FeatureMapSim& features, std::vector<DoubleReal>& predicted_retention_times)
+  void RTSimulation::calculateMT_(FeatureMapSim& features, std::vector<double>& predicted_retention_times)
   {
     Map<String, double> q_cterm, q_nterm, q_aa_basic, q_aa_acidic;
     getChargeContribution_(q_cterm, q_nterm, q_aa_basic, q_aa_acidic);
 
-    DoubleReal alpha = param_.getValue("CE:alpha");
+    double alpha = param_.getValue("CE:alpha");
     bool auto_scale = (param_.getValue("auto_scale") == "true");
-    DoubleReal c = (auto_scale ? 1 : (DoubleReal)param_.getValue("CE:lenght_d") * (DoubleReal)param_.getValue("CE:length_total") / (DoubleReal)param_.getValue("CE:voltage"));
+    double c = (auto_scale ? 1 : (double)param_.getValue("CE:lenght_d") * (double)param_.getValue("CE:length_total") / (double)param_.getValue("CE:voltage"));
 
     predicted_retention_times.resize(features.size());
 
@@ -399,7 +422,7 @@ namespace OpenMS
 
       // ** determine charge of peptide **
 
-      DoubleReal charge = 0;
+      double charge = 0;
       // C&N term charge contribution
       if (q_nterm.has(seq[0]))
         charge +=  q_nterm[seq[0]];
@@ -418,18 +441,18 @@ namespace OpenMS
       }
 
       // ** determine mass of peptide
-      DoubleReal mass = features[i].getPeptideIdentifications()[0].getHits()[0].getSequence().getFormula().getAverageWeight();
+      double mass = features[i].getPeptideIdentifications()[0].getHits()[0].getSequence().getFormula().getAverageWeight();
 
       // ** mobility (mu = mu_ep + mu_eo = (q/MW^alpha) + mu_eo
-      DoubleReal mu = (charge / std::pow(mass, alpha)) + (auto_scale ? 0 : (DoubleReal)param_.getValue("CE:mu_eo"));
+      double mu = (charge / std::pow(mass, alpha)) + (auto_scale ? 0 : (double)param_.getValue("CE:mu_eo"));
       predicted_retention_times[i] = c / mu; // this is L_d*L_t / (mu * V)  as "c = L_d*L_t/V"
     }
 
     // ** only when Auto-Scaling is active ** /
-    std::vector<DoubleReal> rt_sorted(predicted_retention_times);
+    std::vector<double> rt_sorted(predicted_retention_times);
     std::sort(rt_sorted.begin(), rt_sorted.end());
 
-    DoubleReal max_rt = rt_sorted.back();
+    double max_rt = rt_sorted.back();
 
     if (auto_scale)
     {
@@ -437,14 +460,14 @@ namespace OpenMS
 
       //std::cerr << "minRT: " << rt_sorted[0] << "   max: " << rt_sorted.back() << "\n";
       // normalize to 5th - 95th percentile (we want to avoid that few outliers with huge/small MT can compress the others to a small MT range):
-      DoubleReal mt_5p = rt_sorted[rt_sorted.size() * 5 / 100];
-      DoubleReal mt_95p = rt_sorted[rt_sorted.size() * 95 / 100];
+      double mt_5p = rt_sorted[rt_sorted.size() * 5 / 100];
+      double mt_95p = rt_sorted[rt_sorted.size() * 95 / 100];
       // ... assume 95% MT range at 95th percentile
-      DoubleReal range = std::max(1.0, (mt_95p - mt_5p) * 0.9);
+      double range = std::max(1.0, (mt_95p - mt_5p) * 0.9);
 
       //std::cerr << " 5% MT: " << mt_5p << ",   95% MT: " << mt_95p << " Range: " << range << "\n";
 
-      DoubleReal new_offset = mt_5p - range * 0.05;
+      double new_offset = mt_5p - range * 0.05;
 
       // scale MT's between 0 and 1 (except for outliers --> which will get <0 or >1)
       for (Size i = 0; i < features.size(); ++i)
@@ -454,7 +477,7 @@ namespace OpenMS
     }
 
     // the width factor is 1.0 at MT=0 and reaches its max (default 2.0) at MT=max
-    DoubleReal rt_widening_max = 2.0;
+    double rt_widening_max = 2.0;
     for (Size i = 0; i < features.size(); ++i)
     {
       features[i].setMetaValue("RT_CE_width_factor", (predicted_retention_times[i] / max_rt * (rt_widening_max - 1) + 1));
@@ -462,7 +485,7 @@ namespace OpenMS
 
   }
 
-  void RTSimulation::wrapSVM(std::vector<AASequence>& peptide_sequences, std::vector<DoubleReal>& predicted_retention_times)
+  void RTSimulation::wrapSVM(std::vector<AASequence>& peptide_sequences, std::vector<double>& predicted_retention_times)
   {
     String allowed_amino_acid_characters = "ACDEFGHIKLMNPQRSTVWY";
     SVMWrapper svm;
@@ -471,7 +494,7 @@ namespace OpenMS
     SVMData prediction_samples;
     SVMData training_samples;
     UInt k_mer_length = 0;
-    DoubleReal sigma = 0.0;
+    double sigma = 0.0;
     UInt border_length = 0;
     Size max_number_of_peptides(2000); // hard coding pediction bins; larger values only take more memory, result is not affected
 
@@ -541,8 +564,8 @@ namespace OpenMS
       }
       std::vector<AASequence> tmp_peptide_seqs;
       tmp_peptide_seqs.insert(tmp_peptide_seqs.end(), pep_iter_start, pep_iter_stop);
-      std::vector<DoubleReal> tmp_rts(tmp_peptide_seqs.size(), 0);
-      std::vector<DoubleReal> tmp_pred_rts;
+      std::vector<double> tmp_rts(tmp_peptide_seqs.size(), 0);
+      std::vector<double> tmp_pred_rts;
       // Encoding test data
       encoder.encodeProblemWithOligoBorderVectors(tmp_peptide_seqs, k_mer_length, allowed_amino_acid_characters, border_length, prediction_samples.sequences);
       prediction_samples.labels = tmp_rts;
@@ -561,11 +584,12 @@ namespace OpenMS
   void RTSimulation::predictContaminantsRT(FeatureMapSim& contaminants)
   {
     // iterate of feature map
+    boost::uniform_real<SimCoordinateType> udist (0,total_gradient_time_);
     for (Size i = 0; i < contaminants.size(); ++i)
     {
 
       // assign random retention time
-      SimCoordinateType retention_time = gsl_ran_flat(rnd_gen_->technical_rng, 0, total_gradient_time_);
+      SimCoordinateType retention_time = udist(rnd_gen_->getTechnicalRng());
       contaminants[i].setRT(retention_time);
     }
   }
@@ -593,7 +617,7 @@ namespace OpenMS
 
       experiment.resize(number_of_scans);
 
-      DoubleReal current_scan_rt = gradient_min_;
+      double current_scan_rt = gradient_min_;
       Size id = 1;
       for (MSSimExperiment::iterator exp_it = experiment.begin();
            exp_it != experiment.end();
@@ -634,23 +658,24 @@ namespace OpenMS
     // how often do we move over the distortions
     const UInt filter_iterations = param_.getValue("column_condition:distortion");
 
-    DoubleReal previous, current, next;
+    double previous, current, next;
 
     for (UInt fi = 0; fi < filter_iterations; ++fi)
     {
       // initialize the previous value on position 0
-      previous = (DoubleReal) experiment[0].getMetaValue("distortion");
+      previous = (double) experiment[0].getMetaValue("distortion");
+      boost::uniform_real<double> udist (1.0 - std::pow(fi + 1.0, 2) * 0.01, 1.0 + std::pow(fi + 1.0, 2) * 0.01);// distortion gets worse round by round
 #ifdef MSSIM_DEBUG_MOV_AVG_FILTER
       LOG_WARN << "d <- c(" << previous << ", ";
-      vector<DoubleReal> tmp;
+      vector<double> tmp;
 #endif
       for (Size scan = 1; scan < experiment.size() - 1; ++scan)
       {
-        current = (DoubleReal) experiment[scan].getMetaValue("distortion");
-        next = (DoubleReal) experiment[scan + 1].getMetaValue("distortion");
+        current = (double) experiment[scan].getMetaValue("distortion");
+        next = (double) experiment[scan + 1].getMetaValue("distortion");
 
-        DoubleReal smoothed = (previous + current + next) / 3.0;
-        smoothed *= gsl_ran_flat(rnd_gen_->technical_rng, 1.0 - std::pow(fi + 1.0, 2) * 0.01, 1.0 + std::pow(fi + 1.0, 2) * 0.01); // distortion gets worse round by round
+        double smoothed = (previous + current + next) / 3.0;
+        smoothed *= udist(rnd_gen_->getTechnicalRng());
         previous = current;
 
 #ifdef MSSIM_DEBUG_MOV_AVG_FILTER
@@ -663,7 +688,7 @@ namespace OpenMS
 #ifdef MSSIM_DEBUG_MOV_AVG_FILTER
       LOG_WARN << next << ");" << endl;
       LOG_WARN << "smoothed <- c(";
-      LOG_WARN << (DoubleReal) experiment[0].getMetaValue("distortion") << ", ";
+      LOG_WARN << (double) experiment[0].getMetaValue("distortion") << ", ";
       for (Size i = 0; i  < tmp.size(); ++i)
       {
         LOG_WARN << tmp[i] << ", ";

@@ -63,48 +63,8 @@ START_TEST(IsobaricIsotopeCorrector, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-IsobaricIsotopeCorrector* ptr = 0;
-IsobaricIsotopeCorrector* null_ptr = 0;
-
 // 
 ItraqFourPlexQuantitationMethod quant_meth;
-
-START_SECTION((IsobaricIsotopeCorrector(const IsobaricQuantitationMethod *const quant_method)))
-{
-	ptr = new IsobaricIsotopeCorrector(&quant_meth);
-	TEST_NOT_EQUAL(ptr, null_ptr)
-}
-END_SECTION
-
-START_SECTION(~IsobaricIsotopeCorrector())
-{
-	delete ptr;
-}
-END_SECTION
-
-START_SECTION((IsobaricIsotopeCorrector(const IsobaricIsotopeCorrector &other)))
-{
-  IsobaricIsotopeCorrector isocorr(&quant_meth);
-  IsobaricIsotopeCorrector * ptr = new IsobaricIsotopeCorrector(isocorr);
-  TEST_NOT_EQUAL(ptr, null_ptr)
-  delete ptr;
-  
-  // equality cannot be checked
-  NOT_TESTABLE
-}
-END_SECTION
-
-START_SECTION((IsobaricIsotopeCorrector& operator=(const IsobaricIsotopeCorrector &rhs)))
-{
-  IsobaricIsotopeCorrector isocorr(&quant_meth);
-  IsobaricIsotopeCorrector isocorr2(&quant_meth);
-  
-  isocorr2 = isocorr;
-  
-  // equality cannot be checked
-  NOT_TESTABLE
-}
-END_SECTION
 
 START_SECTION((IsobaricQuantifierStatistics correctIsotopicImpurities(const ConsensusMap &consensus_map_in, ConsensusMap &consensus_map_out)))
 {
@@ -117,15 +77,14 @@ START_SECTION((IsobaricQuantifierStatistics correctIsotopicImpurities(const Cons
     cm_out = cm_in;
   
     //
-    IsobaricIsotopeCorrector isoCorrector(&quant_meth);
-    IsobaricQuantifierStatistics stats = isoCorrector.correctIsotopicImpurities(cm_in,cm_out);
+    IsobaricQuantifierStatistics stats = IsobaricIsotopeCorrector::correctIsotopicImpurities(cm_in, cm_out, &quant_meth);
   
     // 1. check the actual result
     String cm_file_out;
     NEW_TMP_FILE(cm_file_out);
     cm_file.store(cm_file_out,cm_out);
   
-    WHITELIST("<?xml-stylesheet");
+    WHITELIST("<?xml-stylesheet,id=\",href=\"file:////");
     TEST_FILE_SIMILAR(cm_file_out,OPENMS_GET_TEST_DATA_PATH("IsobaricIsotopeCorrector_out.consensusXML")); 
 
     // 2. check the returned stats -> values are based on the org. impl.
@@ -153,10 +112,9 @@ START_SECTION((IsobaricQuantifierStatistics correctIsotopicImpurities(const Cons
     // copy in/output
     cm_out = cm_in;
 
-    IsobaricIsotopeCorrector isoCorrector(&quant_meth);
 
     // first run (empty):
-    IsobaricQuantifierStatistics stats = isoCorrector.correctIsotopicImpurities(cm_in, cm_out);
+    IsobaricQuantifierStatistics stats = IsobaricIsotopeCorrector::correctIsotopicImpurities(cm_in, cm_out, &quant_meth);
     TEST_EQUAL(stats.channel_count, 4)
     TEST_EQUAL(stats.iso_number_ms2_negative, 0)
     TEST_EQUAL(stats.iso_number_reporter_negative, 0)
@@ -176,7 +134,7 @@ START_SECTION((IsobaricQuantifierStatistics correctIsotopicImpurities(const Cons
     cm_in.push_back(getCFWithIntensites(v1));
     cm_out = cm_in;
     
-    stats = isoCorrector.correctIsotopicImpurities(cm_in, cm_out);
+    stats = IsobaricIsotopeCorrector::correctIsotopicImpurities(cm_in, cm_out, &quant_meth);
 
     // check the corrected intensities
     ABORT_IF(cm_out[0].getFeatures().size() != 4)
@@ -207,7 +165,7 @@ START_SECTION((IsobaricQuantifierStatistics correctIsotopicImpurities(const Cons
     double v2[4] = {0,0,0,0};
     cm_in.push_back(getCFWithIntensites(v2));
     cm_out = cm_in;
-    stats = isoCorrector.correctIsotopicImpurities(cm_in, cm_out);
+    stats = IsobaricIsotopeCorrector::correctIsotopicImpurities(cm_in, cm_out, &quant_meth);
     
     TEST_EQUAL(stats.channel_count, 4)
     TEST_EQUAL(stats.iso_number_ms2_negative, 1)
@@ -229,8 +187,7 @@ START_SECTION((IsobaricQuantifierStatistics correctIsotopicImpurities(const Cons
     ConsensusMap cm_in, cm_out;
     cm_file.load(OPENMS_GET_TEST_DATA_PATH("ItraqChannelExtractor.consensusXML"),cm_in);
 
-    IsobaricIsotopeCorrector isoCorrector(&quant_meth);
-    TEST_PRECONDITION_VIOLATED(isoCorrector.correctIsotopicImpurities(cm_in,cm_out))
+    TEST_PRECONDITION_VIOLATED(IsobaricIsotopeCorrector::correctIsotopicImpurities(cm_in,cm_out, &quant_meth))
   }
 }
 END_SECTION

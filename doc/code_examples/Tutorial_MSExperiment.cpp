@@ -43,7 +43,7 @@ Int main()
     PeakSpectrum spectrum;
     spectrum.setRT(i);
     spectrum.setMSLevel(1);
-    for (Real mz = 500.0; mz <= 900; mz += 100.0)
+    for (float mz = 500.0; mz <= 900; mz += 100.0)
     {
       Peak1D peak;
       peak.setMZ(mz + i);

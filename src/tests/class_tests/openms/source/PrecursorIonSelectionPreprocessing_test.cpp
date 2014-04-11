@@ -83,28 +83,28 @@ param.setValue("preprocessed_db_path",tmp_filename);
 ptr->setParameters(param);
 ptr->dbPreprocessing(OPENMS_GET_TEST_DATA_PATH("PrecursorIonSelectionPreprocessing_db.fasta"),true);
 
-START_SECTION((const std::map<String,std::vector<DoubleReal> >& getProtMasses() const))
-	std::map<String,std::vector<DoubleReal> > prot_map = ptr->getProtMasses();
+START_SECTION((const std::map<String,std::vector<double> >& getProtMasses() const))
+	std::map<String,std::vector<double> > prot_map = ptr->getProtMasses();
 	TEST_EQUAL(prot_map.size(), 3)
 END_SECTION
 
-START_SECTION((const std::vector<DoubleReal> & getMasses(String acc) const))
-	const std::vector<DoubleReal>& pep_masses= ptr->getMasses("P01008");
+START_SECTION((const std::vector<double> & getMasses(String acc) const))
+	const std::vector<double>& pep_masses= ptr->getMasses("P01008");
 	TEST_EQUAL(pep_masses.size(), 14)
 	TEST_REAL_SIMILAR(pep_masses[0],1356.68332791328)
-	const std::vector<DoubleReal>& pep_masses2= ptr->getMasses("P02787");
+	const std::vector<double>& pep_masses2= ptr->getMasses("P02787");
   TEST_EQUAL(pep_masses2.size(), 19)
 	TEST_REAL_SIMILAR(pep_masses2[0],306.159984588623)
 END_SECTION
 
 
 START_SECTION(void dbPreprocessing(String db_path, bool save=true))
-	std::map<String,std::vector<DoubleReal> > prot_map = ptr->getProtMasses();
+	std::map<String,std::vector<double> > prot_map = ptr->getProtMasses();
 	TEST_EQUAL(prot_map.size(), 3)
 END_SECTION
 
-START_SECTION(DoubleReal getWeight(DoubleReal mass))
-  DoubleReal w = ptr->getWeight(147.113);
+START_SECTION(double getWeight(double mass))
+  double w = ptr->getWeight(147.113);
   TEST_REAL_SIMILAR(w,1)
 END_SECTION
 
@@ -113,11 +113,11 @@ START_SECTION(void loadPreprocessing())
   ldb.setParameters(param);
   ldb.loadPreprocessing();
   TEST_EQUAL(ldb.getProtMasses().size(),3)
-  DoubleReal w = ldb.getWeight(147.113);
+  double w = ldb.getWeight(147.113);
   TEST_REAL_SIMILAR(w,1)
 
-	std::vector<DoubleReal> pep_masses_l = ldb.getMasses("P01008");
-  std::vector<DoubleReal> pep_masses = ptr->getMasses("P01008");
+	std::vector<double> pep_masses_l = ldb.getMasses("P01008");
+  std::vector<double> pep_masses = ptr->getMasses("P01008");
   TEST_EQUAL(pep_masses_l.size(),pep_masses.size())
 	TEST_REAL_SIMILAR(pep_masses_l[0],pep_masses[0])
 END_SECTION
@@ -130,28 +130,28 @@ rt_pt_pp.dbPreprocessing(OPENMS_GET_TEST_DATA_PATH("PrecursorIonSelectionPreproc
 
 START_SECTION(void dbPreprocessing(String db_path,String rt_model_path,String dt_model_path,bool save=true))
   TEST_EQUAL(rt_pt_pp.getProtMasses().size(),3);
-  DoubleReal w = rt_pt_pp.getWeight(147.113);
+  double w = rt_pt_pp.getWeight(147.113);
   TEST_REAL_SIMILAR(w,1)
 	TEST_REAL_SIMILAR(rt_pt_pp.getRT("P01008",1),831.46429)
  	TEST_REAL_SIMILAR(rt_pt_pp.getPT("P01008",1),0.0402)
 END_SECTION
 
-START_SECTION(DoubleReal getRT(String prot_id,Size peptide_index))
+START_SECTION(double getRT(String prot_id,Size peptide_index))
 	TEST_REAL_SIMILAR(rt_pt_pp.getRT("P01008",1),831.46429)
 END_SECTION
 
-START_SECTION(DoubleReal getPT(String prot_id,Size peptide_index))
+START_SECTION(double getPT(String prot_id,Size peptide_index))
   TEST_REAL_SIMILAR(rt_pt_pp.getPT("P01008",1),0.0402)
 END_SECTION
 
-START_SECTION((const std::map<String, std::vector<DoubleReal> >& getProteinRTMap() const))
-  const std::map<String, std::vector<DoubleReal> >& rt_map = rt_pt_pp.getProteinRTMap();
+START_SECTION((const std::map<String, std::vector<double> >& getProteinRTMap() const))
+  const std::map<String, std::vector<double> >& rt_map = rt_pt_pp.getProteinRTMap();
   TEST_REAL_SIMILAR(rt_map.find("P01008")->second[1],831.46429)
   TEST_EQUAL(rt_map.size(),3);
 END_SECTION
 
-START_SECTION((const std::map<String, std::vector<DoubleReal> >& getProteinPTMap() const))
-  const std::map<String, std::vector<DoubleReal> >& pt_map = rt_pt_pp.getProteinPTMap();
+START_SECTION((const std::map<String, std::vector<double> >& getProteinPTMap() const))
+  const std::map<String, std::vector<double> >& pt_map = rt_pt_pp.getProteinPTMap();
   TEST_REAL_SIMILAR(pt_map.find("P01008")->second[1],0.0402)
   TEST_EQUAL(pt_map.size(),3);
 END_SECTION
@@ -184,7 +184,7 @@ START_SECTION((const std::map<char, std::vector<String> > & getFixedModification
 }
 END_SECTION
 
-START_SECTION((void setGaussianParameters(DoubleReal mu, DoubleReal sigma)))
+START_SECTION((void setGaussianParameters(double mu, double sigma)))
 {
   ptr->setGaussianParameters(-3.,10.);
   TEST_REAL_SIMILAR(ptr->getGaussMu(),-3.)
@@ -192,14 +192,14 @@ START_SECTION((void setGaussianParameters(DoubleReal mu, DoubleReal sigma)))
 }
 END_SECTION
 
-START_SECTION((DoubleReal getGaussMu()))
+START_SECTION((double getGaussMu()))
 {
   ptr->setGaussianParameters(-10.,10.);
   TEST_REAL_SIMILAR(ptr->getGaussMu(),-10.)
 }
 END_SECTION
 
-START_SECTION((DoubleReal getGaussSigma()))
+START_SECTION((double getGaussSigma()))
 {
   ptr->setGaussianParameters(-10.,15.);
   TEST_REAL_SIMILAR(ptr->getGaussSigma(),15.)
@@ -212,7 +212,7 @@ hulls[1].addPoint(DPosition<2>(854.5,1.0));
 hulls[1].addPoint(DPosition<2>(854.5,4.0));
 
 
-START_SECTION((DoubleReal getRTProbability(String prot_id, Size peptide_index, Feature &feature)))
+START_SECTION((double getRTProbability(String prot_id, Size peptide_index, Feature &feature)))
 {
   Feature f;
   f.setRT(831.46);
@@ -226,7 +226,7 @@ START_SECTION((DoubleReal getRTProbability(String prot_id, Size peptide_index, F
 }
 END_SECTION
 
-START_SECTION((DoubleReal getRTProbability(DoubleReal pred_rt, Feature &feature)))
+START_SECTION((double getRTProbability(double pred_rt, Feature &feature)))
 {
   Feature f;
   f.setRT(831.46);

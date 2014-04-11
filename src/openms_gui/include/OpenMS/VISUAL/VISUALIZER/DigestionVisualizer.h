@@ -35,6 +35,9 @@
 #ifndef OPENMS_VISUAL_VISUALIZER_DIGESTIONVISUALIZER_H
 #define OPENMS_VISUAL_VISUALIZER_DIGESTIONVISUALIZER_H
 
+// OpenMS_GUI config
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
+
 //OpenMS
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizer.h>
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizerGUI.h>

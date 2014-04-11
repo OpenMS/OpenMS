@@ -47,7 +47,7 @@ using namespace OpenMS;
 using namespace std;
 
 
-DRange<1> makeRange(DoubleReal a, DoubleReal b)
+DRange<1> makeRange(double a, double b)
 {
   DPosition<1> pa(a), pb(b);
   return DRange<1>(pa, pb);
@@ -179,10 +179,10 @@ TEST_REAL_SIMILAR(it->getIntensity(), 1.78215e+07)
 
 // test meta values:
 TEST_EQUAL(map[0].getMetaValue("myIntList") == ListUtils::create<Int>("1,10,12"), true);
-TEST_EQUAL(map[0].getMetaValue("myDoubleList") == ListUtils::create<DoubleReal>("1.111,10.999,12.45"), true);
+TEST_EQUAL(map[0].getMetaValue("myDoubleList") == ListUtils::create<double>("1.111,10.999,12.45"), true);
 std::cout << "list: " << map[0].getMetaValue("myStringList") << "\n";
 TEST_EQUAL(map[0].getMetaValue("myStringList") == ListUtils::create<String>("myABC1,Stuff,12"), true);
-TEST_EQUAL(map[4].getMetaValue("myDoubleList") == ListUtils::create<DoubleReal>("6.442"), true);
+TEST_EQUAL(map[4].getMetaValue("myDoubleList") == ListUtils::create<double>("6.442"), true);
 
 //PeakFileOptions tests
 
@@ -220,8 +220,8 @@ END_SECTION
 
 START_SECTION([EXTRA](bool isValid(const String &filename)))
 ConsensusXMLFile f;
-TEST_EQUAL(f.isValid(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_1.consensusXML")), true);
-TEST_EQUAL(f.isValid(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_2_options.consensusXML")), true);
+TEST_EQUAL(f.isValid(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_1.consensusXML"), std::cerr), true);
+TEST_EQUAL(f.isValid(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_2_options.consensusXML"), std::cerr), true);
 
 //test if written empty file
 // - this is invalid, so it is not tested :)
@@ -232,7 +232,7 @@ String tmp_filename;
 NEW_TMP_FILE(tmp_filename);
 f.load(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_1.consensusXML"), m);
 f.store(tmp_filename, m);
-TEST_EQUAL(f.isValid(tmp_filename), true);
+TEST_EQUAL(f.isValid(tmp_filename, std::cerr), true);
 END_SECTION
 
 /////////////////////////////////////////////////////////////

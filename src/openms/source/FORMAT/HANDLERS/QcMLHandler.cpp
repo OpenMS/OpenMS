@@ -416,10 +416,6 @@ namespace OpenMS
         {
           softwarelist_tag += "\t\t\t<userParam name=\"" + String(dit->getSoftware().getName()) + "\"/>\n";
         }
-        if (dit->getSoftware().getName() == "SILACAnalyzer")
-        {
-          softwarelist_tag +="\t\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1001831\" name=\"SILACAnalyzer\"/>\n";
-        }
         if (dit->getSoftware().getName() == "ITRAQAnalyzer")
         {
           softwarelist_tag +="\t\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1001831\" name=\"ITRAQAnalyzer\"/>\n";

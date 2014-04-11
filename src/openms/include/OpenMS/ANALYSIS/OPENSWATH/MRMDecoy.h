@@ -134,8 +134,8 @@ public:
     /**
       @brief Selects a decoy ion from a set of ions.
     */
-    std::pair<String, DoubleReal> getDecoyIon(String ionid,
-                                              boost::unordered_map<String, boost::unordered_map<String, DoubleReal> >& decoy_ionseries);
+    std::pair<String, double> getDecoyIon(String ionid,
+                                              boost::unordered_map<String, boost::unordered_map<String, double> >& decoy_ionseries);
 
     /**
       @brief Selects a target ion from a set of ions.

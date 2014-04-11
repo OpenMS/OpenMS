@@ -142,7 +142,7 @@ namespace OpenMS
     UInt min_peptide_length     = param_.getValue("min_peptide_length");
     bool use_log_model          = param_.getValue("model") == "trained" ? true : false;
     UInt missed_cleavages       = param_.getValue("model_naive:missed_cleavages");
-    DoubleReal cleave_threshold = param_.getValue("model_trained:threshold");
+    double cleave_threshold = param_.getValue("model_trained:threshold");
 
     EnzymaticDigestion digestion;
     digestion.setEnzyme(digestion.getEnzymeByName((String)param_.getValue("enzyme")));
@@ -219,9 +219,9 @@ namespace OpenMS
           f.setIntensity(0.0);
 
           // copy all non-intensity meta values
-          StringList keys;
-          protein_hit->getKeys(keys);
-          for (StringList::iterator key = keys.begin(); key != keys.end(); ++key)
+          StringList lkeys;
+          protein_hit->getKeys(lkeys);
+          for (StringList::iterator key = lkeys.begin(); key != lkeys.end(); ++key)
           {
             if (!key->hasPrefix("intensity"))
             {

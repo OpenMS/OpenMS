@@ -78,7 +78,7 @@ elements.push_back(hydrogen);
 elements.push_back(oxygen);
 elements.push_back(nitrogen);
 
-DoubleReal carbon_mass = 12.0;
+double carbon_mass = 12.0;
 IMSElement carbon("carbon", carbon_mass);
 
 IMSAlphabet* ptr = 0;

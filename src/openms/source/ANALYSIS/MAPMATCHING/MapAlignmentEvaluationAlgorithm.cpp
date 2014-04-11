@@ -48,7 +48,7 @@ namespace OpenMS
   }
 
   // TODO consider using (RT,MZ,IT) as a unique identifier ?
-  bool MapAlignmentEvaluationAlgorithm::isSameHandle(const FeatureHandle & lhs, const FeatureHandle & rhs, const DoubleReal & rt_dev, const DoubleReal & mz_dev, const Peak2D::IntensityType & int_dev, const bool use_charge)
+  bool MapAlignmentEvaluationAlgorithm::isSameHandle(const FeatureHandle & lhs, const FeatureHandle & rhs, const double & rt_dev, const double & mz_dev, const Peak2D::IntensityType & int_dev, const bool use_charge)
   {
 #if 1
     // use (RT,MZ,IT) as "unique" identifier

@@ -56,13 +56,17 @@ namespace OpenMS
     public DefaultParamHandler
   {
 
+
 public:
     /** @name Constructors and Destructors
       */
     //@{
 
+    /// Default constructor
+    RTSimulation();
+
     /// Constructor taking a random generator
-    explicit RTSimulation(const SimRandomNumberGenerator & random_generator);
+    explicit RTSimulation(MutableSimRandomNumberGeneratorPtr random_generator);
 
     /// Copy constructor
     RTSimulation(const RTSimulation & source);
@@ -92,7 +96,7 @@ public:
     bool isRTColumnOn() const;
 
     /// Wrapper for the SVM RT Prediction (HPLC) using AASequences
-    void wrapSVM(std::vector<AASequence> & peptide_sequences, std::vector<DoubleReal> & predicted_retention_times);
+    void wrapSVM(std::vector<AASequence> & peptide_sequences, std::vector<double> & predicted_retention_times);
 
     SimCoordinateType getGradientTime() const;
 
@@ -100,9 +104,6 @@ public:
     void createExperiment(MSSimExperiment & experiment);
 
 private:
-    /// Default constructor
-    RTSimulation();
-
     /// Set default parameters
     void setDefaultParams_();
 
@@ -119,7 +120,7 @@ private:
              describing widening of MT shape.
       @param predicted_retention_times will contain afterwards the predicted retention times.
     */
-    void calculateMT_(FeatureMapSim & features, std::vector<DoubleReal> & predicted_retention_times);
+    void calculateMT_(FeatureMapSim & features, std::vector<double> & predicted_retention_times);
 
     void getChargeContribution_(Map<String, double> & q_cterm,
                                 Map<String, double> & q_nterm,
@@ -145,18 +146,18 @@ private:
     SimCoordinateType rt_sampling_rate_;
 
     /// EGH tau value
-    DoubleReal egh_tau_location_;
+    double egh_tau_location_;
     /// EGH tau scale parameter of the lorentzian variation
-    DoubleReal egh_tau_scale_;
+    double egh_tau_scale_;
 
     /// EGH sigma value
-    DoubleReal egh_variance_location_;
+    double egh_variance_location_;
     /// EGH sigma scale parameter of the lorentzian variation
-    DoubleReal egh_variance_scale_;
+    double egh_variance_scale_;
 
 protected:
     /// Random number generator
-    SimRandomNumberGenerator const * rnd_gen_;
+    MutableSimRandomNumberGeneratorPtr rnd_gen_;
 
     /// Synchronize members with param class
     void updateMembers_();

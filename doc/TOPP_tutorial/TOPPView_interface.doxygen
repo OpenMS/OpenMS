@@ -39,7 +39,7 @@
 	@page TOPPView_introduction Introduction
 
 	  TOPPView is a viewer for MS and HPLC-MS data. It can be used to inspect files in mzML, mzData, mzXML, ANDI/MS
-	  and several other text-based file formats. It also supports viewing data from an %OpenMS database.
+	  and several other text-based file formats.
 
 	 	In each view, several datasets can be displayed using the layer concept. This allows visual comparison
 	 	of several datasets as well as displaying input data and output data of an algorithm together.
@@ -358,7 +358,6 @@
 
 			<TR> <TD colspan=2><B>File handling</B></TD> </TR>
 			<TR> <TD>CTRL+O</TD> <TD>Open file</TD> </TR>
-			<TR> <TD>CTRL+D</TD> <TD>Open from database</TD> </TR>
 			<TR> <TD>CTRL+W</TD> <TD>Close current window</TD> </TR>
 			<TR> <TD>CTRL+S</TD> <TD>Save current layer</TD> </TR>
 			<TR> <TD>CTRL+SHIFT+S</TD> <TD>Save visible data of current layer</TD> </TR>

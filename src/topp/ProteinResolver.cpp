@@ -46,10 +46,10 @@
 
 #include <QDir>
 
-using std::list;
-using std::vector;
-using std::ofstream;
 using std::endl;
+using std::list;
+using std::ofstream;
+using std::vector;
 
 using namespace OpenMS;
 
@@ -77,7 +77,7 @@ using namespace OpenMS;
   </table>
 </CENTER>
 
-  @experimental This tool has not been tested thoroughly and might behave not as expected!
+  @experimental This tool has not been tested thoroughly and might NOT behave as expected!
 
   This tool is an imlementation of
   <p>
@@ -371,9 +371,9 @@ protected:
           //charge
           out << ph.getCharge();
           //RT
-          out << String(pi.getMetaValue("RT"));
+          out << String(pi.getRT());
           //MZ
-          out << String(pi.getMetaValue("MZ"));
+          out << String(pi.getMZ());
           out << endl;
         }
         else
@@ -392,9 +392,9 @@ protected:
           //charge
           out << ph.getCharge();
           //RT
-          out << String(pi.getMetaValue("RT"));
+          out << String(pi.getRT());
           //MZ
-          out << String(pi.getMetaValue("MZ"));
+          out << String(pi.getMZ());
           out << endl;
         }
       }
@@ -475,8 +475,8 @@ protected:
         target_plus_decoy_peptides += msd->number_of_target_plus_decoy;
         exp_peps += msd->peptides.size();
       }
-      Real fdr1 = (float)decoy_peptides / (float)(target_peptides + target_plus_decoy_peptides);
-      Real fdr2 = (float)(decoy_peptides + target_plus_decoy_peptides) / (float)target_peptides;
+      float fdr1 = (float)decoy_peptides / (float)(target_peptides + target_plus_decoy_peptides);
+      float fdr2 = (float)(decoy_peptides + target_plus_decoy_peptides) / (float)target_peptides;
       out << "Number of target peptides:" << target_peptides << endl;
       out << "Number of decoy peptides:" << decoy_peptides << endl;
       out << "Number of target+decoy peptides:" << target_plus_decoy_peptides << endl;

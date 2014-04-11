@@ -76,7 +76,7 @@ public:
     //@}
 
     ///Returns predicted peak heights (intensities) of a single peptide
-    DoubleReal predict(const AASequence & sequence);
+    double predict(const AASequence & sequence);
 
     /**
       @brief Returns predicted peak heights (intensities) of a single peptide
@@ -86,10 +86,10 @@ public:
       - 1: y coordinates of associated cluster (2nd column)
       - 2: error (RMSE) of the peptide to the associated next prototype (cluster center)
     */
-    DoubleReal predict(const AASequence & sequence, std::vector<DoubleReal> & add_info);
+    double predict(const AASequence & sequence, std::vector<double> & add_info);
 
     ///Returns predicted peak heights (intensities) of several peptides
-    std::vector<DoubleReal> predict(const std::vector<AASequence> & sequences);
+    std::vector<double> predict(const std::vector<AASequence> & sequences);
 
     /**
       @brief Returns predicted peak heights (intensities) of several peptides
@@ -100,16 +100,16 @@ public:
       - 1: y coordinates of associated cluster (2nd column)
       - 2: error (RMSE) of the peptide to the associated next prototype (cluster center)
     */
-    std::vector<DoubleReal> predict(const std::vector<AASequence> & sequences, std::vector<std::vector<DoubleReal> > & add_info);
+    std::vector<double> predict(const std::vector<AASequence> & sequences, std::vector<std::vector<double> > & add_info);
 
 private:
 
     /// calculate and return predicted value based on given LocalLinearMap model for corresponding aaindex variables
-    DoubleReal map_(const std::vector<DoubleReal> & data);
+    double map_(const std::vector<double> & data);
     /// find winning prototype
-    Size findWinner_(const std::vector<DoubleReal> & data);
+    Size findWinner_(const std::vector<double> & data);
     /// calculate assignments of peptides to cluster and the corresponding error
-    std::vector<DoubleReal> calculateAddInfo_(const std::vector<DoubleReal> & data);
+    std::vector<double> calculateAddInfo_(const std::vector<double> & data);
 
     /**
         @brief Calculates an array of properties for an amino acid sequence
@@ -136,7 +136,7 @@ private:
 
         @exception InvalidValue is thrown if an undefined one-letter-code is used
     */
-    std::vector<DoubleReal> getPropertyVector_(const AASequence & sequence);
+    std::vector<double> getPropertyVector_(const AASequence & sequence);
 
     /// Local Linear %Map model
     LocalLinearMap llm_;

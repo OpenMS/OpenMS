@@ -74,13 +74,13 @@ START_SECTION((const std::vector<Peak1D >& getSignal() const))
  TEST_EQUAL(cwt.getSignal().empty(), true)
 END_SECTION
 
-START_SECTION((DoubleReal getScale() const))
+START_SECTION((double getScale() const))
   ContinuousWaveletTransform cwt;
   
   TEST_REAL_SIMILAR(cwt.getScale(), 0)
 END_SECTION
 
-START_SECTION((DoubleReal getSpacing() const))
+START_SECTION((double getSpacing() const))
   ContinuousWaveletTransform cwt;
   
   TEST_REAL_SIMILAR(cwt.getSpacing(), 0)
@@ -210,7 +210,7 @@ START_SECTION((void setRightPaddingIndex(const SignedSize begin_right_padding)))
   TEST_EQUAL(cwt.getRightPaddingIndex(), 2)
 END_SECTION
 
-START_SECTION((void setScale(DoubleReal scale)))
+START_SECTION((void setScale(double scale)))
   ContinuousWaveletTransform cwt;
   cwt.setScale(0.2);
   

@@ -35,11 +35,6 @@
 #ifndef OPENMS_METADATA_METAINFOINTERFACE_H
 #define OPENMS_METADATA_METAINFOINTERFACE_H
 
-#include <map>
-#include <string>
-
-#include <iostream>
-
 #include <OpenMS/METADATA/MetaInfo.h>
 
 namespace OpenMS

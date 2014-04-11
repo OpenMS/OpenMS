@@ -59,7 +59,7 @@ namespace OpenMS
       public std::iterator<std::forward_iterator_tag, ValueT>
     {
 public:
-      typedef DoubleReal CoordinateType;
+      typedef double CoordinateType;
       typedef ValueT PeakType;
       typedef SpectrumIteratorT SpectrumIteratorType;
       typedef PeakIteratorT PeakIteratorType;

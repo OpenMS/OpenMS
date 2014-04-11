@@ -35,12 +35,13 @@
 #ifndef OPENMS_VISUAL_VISUALIZER_CONTACTPERSONVISUALIZER_H
 #define OPENMS_VISUAL_VISUALIZER_CONTACTPERSONVISUALIZER_H
 
+// OpenMS_GUI config
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
+
 //OpenMS
 #include <OpenMS/METADATA/ContactPerson.h>
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizer.h>
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizerGUI.h>
-
-//QT
 
 namespace OpenMS
 {

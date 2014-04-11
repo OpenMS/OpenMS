@@ -175,11 +175,6 @@ protected:
     }
     setValidStrings_("model:type", model_types);
     registerFlag_("model:symmetric_regression", "Only for 'linear' model: Perform linear regression on 'y - x' vs. 'y + x', instead of on 'y' vs. 'x'.");
-    registerIntOption_("model:num_breakpoints", "<number>", 5,
-        "Only for 'b_spline' model: Number of breakpoints of the cubic spline in the smoothing step. The breakpoints are spaced uniformly on the retention time interval. More breakpoints mean less smoothing. Reduce this number if the transformation has an unexpected shape.",
-        false);
-    setMinInt_("model:num_breakpoints", 2);
-    registerStringOption_("model:interpolation_type", "<name>", "cspline", "Only for 'interpolated' model: Type of interpolation to apply.", false);
   }
 
   ExitCodes main_(int, const char **)
@@ -190,9 +185,9 @@ protected:
     bool is_swath = getFlag_("is_swath");
     bool ppm = getFlag_("ppm");
     bool extract_MS1 = getFlag_("extract_MS1");
-    DoubleReal min_upper_edge_dist = getDoubleOption_("min_upper_edge_dist");
-    DoubleReal mz_extraction_window = getDoubleOption_("mz_window");
-    DoubleReal rt_extraction_window = getDoubleOption_("rt_window");
+    double min_upper_edge_dist = getDoubleOption_("min_upper_edge_dist");
+    double mz_extraction_window = getDoubleOption_("mz_window");
+    double rt_extraction_window = getDoubleOption_("rt_window");
 
     String extraction_function = getStringOption_("extraction_function");
 

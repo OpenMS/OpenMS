@@ -52,7 +52,7 @@ namespace OpenMS
   {
   }
 
-  MassTrace::MassTrace(const std::list<PeakType>& trace_peaks, const DoubleReal& scan_time) :
+  MassTrace::MassTrace(const std::list<PeakType>& trace_peaks, const double& scan_time) :
     centroid_mz_(),
     centroid_sd_(),
     centroid_rt_(),
@@ -69,7 +69,7 @@ namespace OpenMS
     }
   }
 
-  MassTrace::MassTrace(const std::vector<PeakType>& trace_peaks, const DoubleReal& scan_time) :
+  MassTrace::MassTrace(const std::vector<PeakType>& trace_peaks, const double& scan_time) :
     trace_peaks_(trace_peaks),
     centroid_mz_(),
     centroid_sd_(),
@@ -130,10 +130,10 @@ namespace OpenMS
     return trace_peaks_[mt_idx];
   }
 
-  DoubleReal MassTrace::computeSmoothedPeakArea() const
+  double MassTrace::computeSmoothedPeakArea() const
   {
     // sum all non-negative (smoothed!) intensities in MassTrace
-    DoubleReal peak_area(0.0);
+    double peak_area(0.0);
 
     for (Size i = 0; i < smoothed_intensities_.size(); ++i)
     {
@@ -148,9 +148,9 @@ namespace OpenMS
     return peak_area;
   }
 
-  DoubleReal MassTrace::computePeakArea() const
+  double MassTrace::computePeakArea() const
   {
-    DoubleReal peak_area(0.0);
+    double peak_area(0.0);
 
     if (trace_peaks_.empty())
       return peak_area;
@@ -177,7 +177,7 @@ namespace OpenMS
       throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "MassTrace appears to be empty! Aborting...", String(trace_peaks_.size()));
     }
 
-    DoubleReal max_int;
+    double max_int;
     Size max_idx(0);
 
     if (use_smoothed_ints)
@@ -191,7 +191,7 @@ namespace OpenMS
 
     for (Size i = 0; i < trace_peaks_.size(); ++i)
     {
-      DoubleReal act_int = use_smoothed_ints ? smoothed_intensities_[i] : trace_peaks_[i].getIntensity();
+      double act_int = use_smoothed_ints ? smoothed_intensities_[i] : trace_peaks_[i].getIntensity();
 
       if (act_int > max_int)
       {
@@ -204,11 +204,11 @@ namespace OpenMS
     return max_idx;
   }
 
-  DoubleReal MassTrace::estimateFWHM(bool use_smoothed_ints)
+  double MassTrace::estimateFWHM(bool use_smoothed_ints)
   {
     Size max_idx(this->findMaxByIntPeak(use_smoothed_ints));
 
-    std::vector<DoubleReal> tmp_ints;
+    std::vector<double> tmp_ints;
 
     if (use_smoothed_ints)
     {
@@ -222,7 +222,7 @@ namespace OpenMS
       }
     }
 
-    DoubleReal half_max_int(tmp_ints[max_idx] / 2.0);
+    double half_max_int(tmp_ints[max_idx] / 2.0);
 
     Size left_border(max_idx), right_border(max_idx);
 
@@ -255,14 +255,14 @@ namespace OpenMS
     fwhm_ = std::fabs(trace_peaks_[fwhm_end_idx_].getRT() - trace_peaks_[fwhm_start_idx_].getRT());
   }
 
-  DoubleReal MassTrace::computeFwhmAreaSmooth() const
+  double MassTrace::computeFwhmAreaSmooth() const
   {
     if (fwhm_start_idx_ == 0 && fwhm_end_idx_ == 0)
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "FWHM beginning/ending indices not computed? Aborting...", String(fwhm_start_idx_) + String(" ") + String(fwhm_end_idx_));
     }
 
-    DoubleReal t_area(0.0);
+    double t_area(0.0);
 
     for (Size i = fwhm_start_idx_; i < fwhm_end_idx_; ++i)
     {
@@ -272,9 +272,9 @@ namespace OpenMS
     return t_area * scan_time_;
   }
 
-  DoubleReal MassTrace::computeFwhmArea() const
+  double MassTrace::computeFwhmArea() const
   {
-    DoubleReal t_area(0.0);
+    double t_area(0.0);
 
     for (Size i = fwhm_start_idx_; i < fwhm_end_idx_; ++i)
     {
@@ -284,18 +284,18 @@ namespace OpenMS
     return t_area * scan_time_;
   }
 
-  DoubleReal MassTrace::computeFwhmAreaSmoothRobust() const
+  double MassTrace::computeFwhmAreaSmoothRobust() const
   {
     if (fwhm_start_idx_ == 0 && fwhm_end_idx_ == 0)
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "FWHM beginning/ending indices not computed? Aborting...", String(fwhm_start_idx_) + String(" ") + String(fwhm_end_idx_));
     }
 
-    DoubleReal t_area(0.0);
+    double t_area(0.0);
 
     for (Size i = fwhm_start_idx_; i < fwhm_end_idx_; ++i)
     {
-      DoubleReal rt_diff(std::fabs(trace_peaks_[i + 1].getRT() - trace_peaks_[i].getRT()));
+      double rt_diff(std::fabs(trace_peaks_[i + 1].getRT() - trace_peaks_[i].getRT()));
 
       if (rt_diff < 1.5 * scan_time_)
       {
@@ -303,8 +303,8 @@ namespace OpenMS
       }
       else
       {
-        DoubleReal averaged_int((smoothed_intensities_[i] + smoothed_intensities_[i + 1]) / 2.0);
-        DoubleReal averaged_rt_diff(rt_diff / 2.0);
+        double averaged_int((smoothed_intensities_[i] + smoothed_intensities_[i + 1]) / 2.0);
+        double averaged_rt_diff(rt_diff / 2.0);
 
         t_area += smoothed_intensities_[i] * averaged_rt_diff;
         t_area += averaged_int * averaged_rt_diff;
@@ -315,18 +315,18 @@ namespace OpenMS
     return t_area;
   }
 
-  DoubleReal MassTrace::computeFwhmAreaRobust() const
+  double MassTrace::computeFwhmAreaRobust() const
   {
     if (fwhm_start_idx_ == 0 && fwhm_end_idx_ == 0)
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "FWHM beginning/ending indices not computed? Aborting...", String(fwhm_start_idx_) + String(" ") + String(fwhm_end_idx_));
     }
 
-    DoubleReal t_area(0.0);
+    double t_area(0.0);
 
     for (Size i = fwhm_start_idx_; i < fwhm_end_idx_; ++i)
     {
-      DoubleReal rt_diff(std::fabs(trace_peaks_[i + 1].getRT() - trace_peaks_[i].getRT()));
+      double rt_diff(std::fabs(trace_peaks_[i + 1].getRT() - trace_peaks_[i].getRT()));
 
       if (rt_diff < 1.5 * scan_time_)
       {
@@ -334,8 +334,8 @@ namespace OpenMS
       }
       else
       {
-        DoubleReal averaged_int((trace_peaks_[i].getIntensity() + trace_peaks_[i + 1].getIntensity()) / 2.0);
-        DoubleReal averaged_rt_diff(rt_diff / 2.0);
+        double averaged_int((trace_peaks_[i].getIntensity() + trace_peaks_[i + 1].getIntensity()) / 2.0);
+        double averaged_rt_diff(rt_diff / 2.0);
 
         t_area += trace_peaks_[i].getIntensity() * averaged_rt_diff;
         t_area += averaged_int * averaged_rt_diff;
@@ -346,7 +346,7 @@ namespace OpenMS
     return t_area;
   }
 
-  DoubleReal MassTrace::getIntensity(bool smoothed) const
+  double MassTrace::getIntensity(bool smoothed) const
   {
     // std::cout << "area old:\t" << computeFwhmAreaSmooth() << "\tarea new:\t" << computeFwhmAreaSmoothRobust() << "area old:\t" << computeFwhmArea() << "\tarea new:\t" << computeFwhmAreaRobust() << std::endl;
 
@@ -358,9 +358,9 @@ namespace OpenMS
     return computeFwhmAreaRobust();
   }
 
-  DoubleReal MassTrace::getMaxIntensity(bool smoothed) const
+  double MassTrace::getMaxIntensity(bool smoothed) const
   {
-    DoubleReal max_int(0.0);
+    double max_int(0.0);
 
     if (smoothed)
     {
@@ -411,14 +411,14 @@ namespace OpenMS
       throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "MassTrace is empty... centroid RT undefined!", String(trace_peaks_.size()));
     }
 
-    DoubleReal trace_area(this->computePeakArea());
+    double trace_area(this->computePeakArea());
 
-    if (trace_area < std::numeric_limits<DoubleReal>::epsilon())
+    if (trace_area < std::numeric_limits<double>::epsilon())
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Peak area equals to zero... impossible to compute weights!", String(trace_peaks_.size()));
     }
 
-    DoubleReal wmean_rt(0.0);
+    double wmean_rt(0.0);
 
     for (MassTrace::const_iterator l_it = trace_peaks_.begin(); l_it != trace_peaks_.end(); ++l_it)
     {
@@ -435,7 +435,7 @@ namespace OpenMS
       throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "MassTrace was not smoothed before! Aborting...", String(smoothed_intensities_.size()));
     }
 
-    DoubleReal trace_area(0.0), wmean_rt(0.0);
+    double trace_area(0.0), wmean_rt(0.0);
 
     for (Size i = 0; i < smoothed_intensities_.size(); ++i)
     {
@@ -446,7 +446,7 @@ namespace OpenMS
       }
     }
 
-    if (trace_area < std::numeric_limits<DoubleReal>::epsilon())
+    if (trace_area < std::numeric_limits<double>::epsilon())
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Peak area equals to zero... impossible to compute weights!", String(trace_peaks_.size()));
     }
@@ -461,7 +461,7 @@ namespace OpenMS
       throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "MassTrace was not smoothed before! Aborting...", String(smoothed_intensities_.size()));
     }
 
-    DoubleReal tmp_max(-1.0);
+    double tmp_max(-1.0);
     Size max_idx(0);
 
     for (Size i = 0; i < smoothed_intensities_.size(); ++i)
@@ -496,7 +496,7 @@ namespace OpenMS
     }
 
     // copy mz values to temp vec
-    std::vector<DoubleReal> temp_rt;
+    std::vector<double> temp_rt;
 
     for (MassTrace::const_iterator l_it = trace_peaks_.begin(); l_it != trace_peaks_.end(); ++l_it)
     {
@@ -535,7 +535,7 @@ namespace OpenMS
     }
 
     // copy mz values to temp vec
-    std::vector<DoubleReal> temp_mz;
+    std::vector<double> temp_mz;
 
     for (MassTrace::const_iterator l_it = trace_peaks_.begin(); l_it != trace_peaks_.end(); ++l_it)
     {
@@ -567,7 +567,7 @@ namespace OpenMS
 
     Size trace_size = trace_peaks_.size();
 
-    DoubleReal sum_mz(0.0);
+    double sum_mz(0.0);
 
     for (MassTrace::const_iterator l_it = trace_peaks_.begin(); l_it != trace_peaks_.end(); ++l_it)
     {
@@ -586,17 +586,17 @@ namespace OpenMS
       throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "MassTrace is empty... centroid MZ undefined!", String(trace_peaks_.size()));
     }
 
-    DoubleReal weighted_sum(0.0);
-    DoubleReal total_weight(0.0);
+    double weighted_sum(0.0);
+    double total_weight(0.0);
 
     for (MassTrace::const_iterator l_it = trace_peaks_.begin(); l_it != trace_peaks_.end(); ++l_it)
     {
-      DoubleReal w_i = (*l_it).getIntensity();
+      double w_i = (*l_it).getIntensity();
       total_weight += w_i;
       weighted_sum += w_i * (*l_it).getMZ();
     }
 
-    if (total_weight < std::numeric_limits<DoubleReal>::epsilon())
+    if (total_weight < std::numeric_limits<double>::epsilon())
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "All weights were equal to zero! Empty trace? Aborting...", String(total_weight));
     }
@@ -611,17 +611,17 @@ namespace OpenMS
       throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "MassTrace is empty... std of MZ undefined!", String(trace_peaks_.size()));
     }
 
-    DoubleReal weighted_sum(0.0);
-    DoubleReal total_weight(0.0);
+    double weighted_sum(0.0);
+    double total_weight(0.0);
 
     for (MassTrace::const_iterator l_it = trace_peaks_.begin(); l_it != trace_peaks_.end(); ++l_it)
     {
-      DoubleReal w_i = l_it->getIntensity();
+      double w_i = l_it->getIntensity();
       total_weight += w_i;
       weighted_sum += w_i * std::exp(2 * std::log(std::abs(l_it->getMZ() - centroid_mz_)));
     }
 
-    if (total_weight < std::numeric_limits<DoubleReal>::epsilon())
+    if (total_weight < std::numeric_limits<double>::epsilon())
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "All weights were equal to zero! Empty trace? Aborting...", String(total_weight));
     }

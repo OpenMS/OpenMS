@@ -35,6 +35,9 @@
 #ifndef OPENMS_VISUAL_SPECTRUM3DOPENGLCANVAS_H
 #define OPENMS_VISUAL_SPECTRUM3DOPENGLCANVAS_H
 
+// OpenMS_GUI config
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
+
 #include <QtOpenGL/QGLWidget>
 
 // OpenMS
@@ -124,7 +127,7 @@ public:
     ///  returns the mz-value : BB-coordinates  --> value
     double scaledInversMZ(double mz);
     /// returns the BB-intensity -coordinate :  values --> BB-coordinates
-    double scaledIntensity(Real intensity, Size layer_index);
+    double scaledIntensity(float intensity, Size layer_index);
 
     /// recalculates the dot gradient interpolation values.
     void recalculateDotGradient_(Size layer);

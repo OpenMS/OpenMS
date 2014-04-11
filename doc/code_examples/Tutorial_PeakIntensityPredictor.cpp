@@ -34,6 +34,8 @@
 
 #include <OpenMS/ANALYSIS/PIP/PeakIntensityPredictor.h>
 
+#include <iostream>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -55,7 +57,7 @@ Int main()
   PeakIntensityPredictor model;
 
   //Perform prediction with LLM model
-  vector<DoubleReal> predicted = model.predict(peptides);
+  vector<double> predicted = model.predict(peptides);
 
   //for each element in peptides print sequence as well as corresponding predicted peak intensity value.
   for (Size i = 0; i < peptides.size(); i++)

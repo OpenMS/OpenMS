@@ -117,14 +117,14 @@ public:
     void setAcquisitionMode(AcquisitionMode acquisition_mode);
 
     /// returns the resolution (in ns)
-    DoubleReal getResolution() const;
+    double getResolution() const;
     /// sets the resolution (in ns)
-    void setResolution(DoubleReal resolution);
+    void setResolution(double resolution);
 
     /// returns the analog-to-digital converter sampling frequency (in Hz)
-    DoubleReal getADCSamplingFrequency() const;
+    double getADCSamplingFrequency() const;
     /// sets the analog-to-digital converter sampling frequency (in Hz)
-    void setADCSamplingFrequency(DoubleReal ADC_sampling_frequency);
+    void setADCSamplingFrequency(double ADC_sampling_frequency);
 
     /**
         @brief returns the position of this part in the whole Instrument.
@@ -143,8 +143,8 @@ public:
 protected:
     Type type_;
     AcquisitionMode acquisition_mode_;
-    DoubleReal resolution_;
-    DoubleReal ADC_sampling_frequency_;
+    double resolution_;
+    double ADC_sampling_frequency_;
     Int order_;
 
   };

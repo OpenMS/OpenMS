@@ -36,6 +36,7 @@
 #include <iostream>
 #include <cstdlib>
 #include <algorithm>
+#include <limits>
 
 #include <OpenMS/CHEMISTRY/IsotopeDistribution.h>
 #include <OpenMS/CHEMISTRY/ElementDB.h>
@@ -175,7 +176,7 @@ namespace OpenMS
     names.push_back("S");
 
     //Averagine element count divided by averagine weight
-    vector<DoubleReal> factors;
+    vector<double> factors;
     factors.push_back(4.9384 / 111.1254);
     factors.push_back(7.7583 / 111.1254);
     factors.push_back(1.3577 / 111.1254);
@@ -362,7 +363,7 @@ namespace OpenMS
     return;
   }
 
-  void IsotopeDistribution::trimRight(DoubleReal cutoff)
+  void IsotopeDistribution::trimRight(double cutoff)
   {
     ContainerType::reverse_iterator riter = distribution_.rbegin();
 
@@ -376,7 +377,7 @@ namespace OpenMS
     distribution_.resize(riter.base() - distribution_.begin());
   }
 
-  void IsotopeDistribution::trimLeft(DoubleReal cutoff)
+  void IsotopeDistribution::trimLeft(double cutoff)
   {
     for (ContainerType::iterator iter = distribution_.begin(); iter != distribution_.end(); ++iter)
     {

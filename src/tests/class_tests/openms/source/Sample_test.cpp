@@ -93,17 +93,17 @@ START_SECTION((SampleState getState() const))
 	TEST_EQUAL(s.getState(),Sample::SAMPLENULL)
 END_SECTION
 
-START_SECTION((DoubleReal getMass() const ))
+START_SECTION((double getMass() const ))
 	Sample s;
 	TEST_REAL_SIMILAR(s.getMass(),0.0)
 END_SECTION
 
-START_SECTION((DoubleReal getVolume() const ))
+START_SECTION((double getVolume() const ))
 	Sample s;
 	TEST_REAL_SIMILAR(s.getVolume(),0.0)
 END_SECTION
 
-START_SECTION((DoubleReal getConcentration() const ))
+START_SECTION((double getConcentration() const ))
 	Sample s;
 	TEST_REAL_SIMILAR(s.getConcentration(),0.0)
 END_SECTION
@@ -138,19 +138,19 @@ START_SECTION((void setState(SampleState state)))
 	TEST_EQUAL(s.getState(),Sample::LIQUID)
 END_SECTION
 
-START_SECTION((void setMass(DoubleReal mass)))
+START_SECTION((void setMass(double mass)))
 	Sample s;
 	s.setMass(4711.2);
 	TEST_REAL_SIMILAR(s.getMass(),4711.2)
 END_SECTION
 
-START_SECTION((void setVolume(DoubleReal volume)))
+START_SECTION((void setVolume(double volume)))
 	Sample s;
 	s.setVolume(4711.3);
 	TEST_REAL_SIMILAR(s.getVolume(),4711.3)
 END_SECTION
 
-START_SECTION((void setConcentration(DoubleReal concentration)))
+START_SECTION((void setConcentration(double concentration)))
 	Sample s;
 	s.setConcentration(4711.4);
 	TEST_REAL_SIMILAR(s.getConcentration(),4711.4)

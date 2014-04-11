@@ -87,9 +87,9 @@ public:
       typedef typename SpectrumType::Iterator Iterator;
       typedef typename SpectrumType::ConstIterator ConstIterator;
 
-      c1_ = (DoubleReal)param_.getValue("C1");
-      c2_ = (DoubleReal)param_.getValue("C2");
-      th_ = (DoubleReal)param_.getValue("threshold");
+      c1_ = (double)param_.getValue("C1");
+      c2_ = (double)param_.getValue("C2");
+      th_ = (double)param_.getValue("threshold");
 
       spectrum.sortByPosition();
 
@@ -144,9 +144,9 @@ public:
     //TODO reimplement DefaultParamHandler::updateMembers_()
 
 private:
-    DoubleReal c1_;
-    DoubleReal c2_;
-    DoubleReal th_;
+    double c1_;
+    double c2_;
+    double th_;
 
     // @}
 

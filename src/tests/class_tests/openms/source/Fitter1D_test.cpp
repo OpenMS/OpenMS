@@ -80,7 +80,7 @@ class TestModel : public Fitter1D
 
   QualityType fit1d(const RawDataArrayType& /*range*/, InterpolationModel*&  /*model*/)
   {
-//    DoubleReal center = 0.0;
+//    double center = 0.0;
 //    center = model->getCenter();
 
     return 1.0;

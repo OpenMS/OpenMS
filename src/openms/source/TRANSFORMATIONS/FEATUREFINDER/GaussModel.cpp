@@ -116,7 +116,7 @@ namespace OpenMS
 
   void GaussModel::setOffset(CoordinateType offset)
   {
-    DoubleReal diff = offset - getInterpolation().getOffset();
+    double diff = offset - getInterpolation().getOffset();
     min_ += diff;
     max_ += diff;
     statistics_.setMean(statistics_.mean() + diff);

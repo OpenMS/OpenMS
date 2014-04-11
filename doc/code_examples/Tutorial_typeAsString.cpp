@@ -29,6 +29,7 @@
 //
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/TypeAsString.h>
 #include <OpenMS/KERNEL/DPeak.h>
 #include <iostream>
 

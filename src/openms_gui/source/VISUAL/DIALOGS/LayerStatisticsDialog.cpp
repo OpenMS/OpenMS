@@ -291,7 +291,7 @@ namespace OpenMS
       computeMetaDataArrayStats_(it_rt->getIntegerDataArrays().begin(), it_rt->getIntegerDataArrays().end());
     }
     if (divisor != 0)
-      avg_intensity_ /= (DoubleReal)divisor;
+      avg_intensity_ /= (double)divisor;
     computeMetaAverages_();
   }
 
@@ -331,9 +331,9 @@ namespace OpenMS
     }
     if (divisor != 0)
     {
-      avg_intensity_ /= (DoubleReal)divisor;
-      avg_charge_ /= (DoubleReal)divisor;
-      avg_quality_ /= (DoubleReal)divisor;
+      avg_intensity_ /= (double)divisor;
+      avg_charge_ /= (double)divisor;
+      avg_quality_ /= (double)divisor;
     }
     computeMetaAverages_();
   }
@@ -381,10 +381,10 @@ namespace OpenMS
     }
     if (divisor != 0)
     {
-      avg_intensity_ /= (DoubleReal)divisor;
-      avg_charge_ /= (DoubleReal)divisor;
-      avg_quality_ /= (DoubleReal)divisor;
-      avg_elements_ /= (DoubleReal)divisor;
+      avg_intensity_ /= (double)divisor;
+      avg_charge_ /= (double)divisor;
+      avg_quality_ /= (double)divisor;
+      avg_elements_ /= (double)divisor;
     }
   }
 
@@ -401,7 +401,7 @@ namespace OpenMS
         it->second.count++;
         if (next_value.valueType() == DataValue::INT_VALUE || next_value.valueType() == DataValue::DOUBLE_VALUE)
         {
-          DoubleReal val = (DoubleReal)next_value;
+          double val = (double)next_value;
           if (val < it->second.min)
             it->second.min = val;
           if (val > it->second.max)
@@ -414,7 +414,7 @@ namespace OpenMS
         MetaStatsValue_ meta_stats_value;
         if (next_value.valueType() == DataValue::INT_VALUE || next_value.valueType() == DataValue::DOUBLE_VALUE)
         {
-          DoubleReal val = (DoubleReal)next_value;
+          double val = (double)next_value;
           meta_stats_value = MetaStatsValue_(1, val, val, val);
         }
         else
@@ -432,14 +432,14 @@ namespace OpenMS
     {
       if (it->second.count != 0)
       {
-        it->second.avg /= (DoubleReal)it->second.count;
+        it->second.avg /= (double)it->second.count;
       }
     }
     for (std::map<String, MetaStatsValue_>::iterator it = meta_array_stats_.begin(); it != meta_array_stats_.end(); ++it)
     {
       if (it->second.count != 0)
       {
-        it->second.avg /= (Real)it->second.count;
+        it->second.avg /= (float)it->second.count;
       }
     }
   }

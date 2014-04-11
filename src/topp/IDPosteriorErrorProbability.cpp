@@ -37,6 +37,7 @@
 #include <OpenMS/MATH/STATISTICS/PosteriorErrorProbabilityModel.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <boost/math/special_functions/fpclassify.hpp> // for "isnan"
 #include <vector>
 
 using namespace OpenMS;
@@ -75,18 +76,16 @@ using namespace std;
 
   No target/decoy information needs to be provided, since the model fits are done on the mixed distribution.
 
-    In order to validate the computed probabilities one can adjust the fit_algorithm subsection.
-
-    There are three parameters for the plot:
-    The parameter 'output_plots' is by default false. If set to true the plot will be created.
+    In order to validate the computed probabilities an optional plot output can be generated.
+    There are two parameters for the plot:
     The scores are plotted in form of bins. Each bin represents a set of scores in a range of (highest_score - smallest_score)/number_of_bins (if all scores have positive values).
     The midpoint of the bin is the mean of the scores it represents.
-    Finally, the parameter output_name should be used to give the plot a unique name. Two files are created. One with the binned scores and one with all steps of the estimation.
-    If top_hits_only is set, only the top hits of each PeptideIndentification are used for the estimation process.
-    Additionally, if 'top_hits_only' is set, target_decoy information are available and a False Discovery Rate run was performed before, an additional plot will be plotted with target and decoy bins(output_plot must be true in fit_algorithm subsection).
+    The parameter 'out_plot' should be used to give the plot a unique name. Two files are created. One with the binned scores and one with all steps of the estimation.
+    If top_hits_only is set, only the top hits of each PeptideIdentification are used for the estimation process.
+    Additionally, if 'top_hits_only' is set and target_decoy information are available and a False Discovery Rate run was performed before, an additional plot will be plotted with target and decoy bins('out_plot' must not be empty).
     A peptide hit is assumed to be a target if its q-value is smaller than fdr_for_targets_smaller.
-
-    Actually, the plots are saved as a gnuplot file. Therefore, to visualize the plots one has to use gnuplot, e.g. gnuplot file_name. This should output a postscript file which contains all steps of the estimation.
+    The plots are saved as a gnuplot file. An attempt is made to call Gnuplot, which will create a PDF file which contains all steps of the estimation. If this fails, the user has to run Gnuplot manually
+    or adjust the PATH environment such that this tool can find it.
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_IDPosteriorErrorProbability.cli
@@ -119,8 +118,8 @@ protected:
     setValidFormats_("in", ListUtils::create<String>("idXML"));
     registerOutputFile_("out", "<file>", "", "output file ");
     setValidFormats_("out", ListUtils::create<String>("idXML"));
-    registerOutputFile_("output_name", "<file>", "", "gnuplot file as txt");
-    setValidFormats_("output_name", ListUtils::create<String>("txt"));
+    registerOutputFile_("out_plot", "<file>", "", "txt file (if gnuplot is available, a corresponding PDF will be created as well.)", false);
+    setValidFormats_("out_plot", ListUtils::create<String>("txt"));
 
     registerDoubleOption_("smallest_e_value", "<value>", 10e-20, "This value gives a lower bound to E-Values. It should not be 0, as transformation in a real number (log of E-value) is not possible for certain values then.", false, true);
     registerFlag_("split_charge", "The search engine scores are split by charge if this flag is set. Thus, for each charge state a new model will be computed.");
@@ -135,11 +134,19 @@ protected:
   //there is only one parameter at the moment
   Param getSubsectionDefaults_(const String& /*section*/) const
   {
-    PosteriorErrorProbabilityModel pepm;
-    return pepm.getParameters();
+    Param p = PosteriorErrorProbabilityModel().getParameters();
+    if (p.exists("out_plot"))
+    { // hide from user -- we have a top-level param for that
+      p.remove("out_plot");
+    }
+    else 
+    {
+      throw Exception::Precondition(__FILE__, __LINE__, __PRETTY_FUNCTION__, "INTERNAL ERROR: Param 'out_plot' was removed from fit-algorithm. Please update param handling internally!");
+    }
+    return p;
   }
 
-  double get_score_(String& engine, const PeptideHit& hit)
+  double getScore_(String& engine, const PeptideHit& hit)
   {
     if (engine == "OMSSA")
     {
@@ -155,17 +162,23 @@ protected:
     }
     else if (engine.compare("XTandem") == 0)
     {
-      return (-1) * log10(max((DoubleReal)hit.getMetaValue("E-Value"), smallest_e_value_));
+      return (-1) * log10(max((double)hit.getMetaValue("E-Value"), smallest_e_value_));
     }
     else if (engine == "MASCOT")
     {
+      // issue #740: unable to fit data with score 0
+      if (hit.getScore() == 0) 
+      {
+        return numeric_limits<double>::quiet_NaN();
+      }
+      // end issue #740
       if (hit.metaValueExists("EValue"))
       {
-        return (-1) * log10(max((DoubleReal)hit.getMetaValue("EValue"), smallest_e_value_));
+        return (-1) * log10(max((double)hit.getMetaValue("EValue"), smallest_e_value_));
       }
       if (hit.metaValueExists("expect"))
       {
-        return (-1) * log10(max((DoubleReal)hit.getMetaValue("expect"), smallest_e_value_));
+        return (-1) * log10(max((double)hit.getMetaValue("expect"), smallest_e_value_));
       }
     }
     else if (engine == "SpectraST")
@@ -176,7 +189,7 @@ protected:
     {
       if (hit.metaValueExists("E-Value"))
       {
-        return (-1) * log10(max((DoubleReal)hit.getMetaValue("E-Value"), smallest_e_value_));
+        return (-1) * log10(max((double)hit.getMetaValue("E-Value"), smallest_e_value_));
       }
     }
     else
@@ -198,9 +211,10 @@ protected:
     String outputfile_name = getStringOption_("out");
     smallest_e_value_ = getDoubleOption_("smallest_e_value");
     Param fit_algorithm = getParam_().copy("fit_algorithm:", true);
+    fit_algorithm.setValue("out_plot", getStringOption_("out_plot")); // re-assemble full param (was moved to top-level)
     bool split_charge = getFlag_("split_charge");
     bool top_hits_only = getFlag_("top_hits_only");
-    DoubleReal fdr_for_targets_smaller = getDoubleOption_("fdr_for_targets_smaller");
+    double fdr_for_targets_smaller = getDoubleOption_("fdr_for_targets_smaller");
     bool target_decoy_available = false;
     bool ignore_bad_data = getFlag_("ignore_bad_data");
     bool prob_correct = getFlag_("prob_correct");
@@ -243,7 +257,7 @@ protected:
     {
       if (!it->getHits().empty())
       {
-        target_decoy_available = (it->getScoreType() == "q-value" &&  it->getHits()[0].getMetaValue("target_decoy") != DataValue::EMPTY);
+        target_decoy_available = (it->getScoreType() == "q-value" &&  it->getHits()[0].metaValueExists("target_decoy"));
         break;
       }
     }
@@ -274,16 +288,21 @@ protected:
                 {
                   if (!hits.empty() && (!split_charge || hits[0].getCharge() == *charge))
                   {
-                    scores.push_back(get_score_(*engine, hits[0]));
-                    if (target_decoy_available)
+                    double score = getScore_(*engine, hits[0]);
+                    if (!boost::math::isnan(score)) // issue #740: ignore scores with 0 values, otherwise you will get the error "unable to fit data"
                     {
-                      if (hits[0].getScore() < fdr_for_targets_smaller)
+                      scores.push_back(score);
+
+                      if (target_decoy_available)
                       {
-                        target.push_back(get_score_(*engine, hits[0]));
-                      }
-                      else
-                      {
-                        decoy.push_back(get_score_(*engine, hits[0]));
+                        if (hits[0].getScore() < fdr_for_targets_smaller)
+                        {
+                          target.push_back(score);
+                        }
+                        else
+                        {
+                          decoy.push_back(score);
+                        }
                       }
                     }
                   }
@@ -294,7 +313,11 @@ protected:
                   {
                     if (!split_charge || hit->getCharge() == *charge)
                     {
-                      scores.push_back(get_score_(*engine, *hit));
+                      double score = getScore_(*engine, *hit);
+                      if (!boost::math::isnan(score)) // issue #740: ignore scores with 0 values, otherwise you will get the error "unable to fit data"
+                      {
+                        scores.push_back(score);
+                      }
                     }
                   }
                 }
@@ -334,6 +357,8 @@ protected:
       writeLog_("No data collected. Check whether search engine is supported.");
       if (!ignore_bad_data) return INPUT_FILE_EMPTY;
     }
+
+    String out_plot  = fit_algorithm.getValue("out_plot").toString().trim();
     for (map<String, vector<vector<double> > >::iterator it = all_scores.begin(); it != all_scores.end(); ++it)
     {
       vector<String> engine_info;
@@ -346,19 +371,20 @@ protected:
       }
       if (split_charge)
       {
-        String output_name  = fit_algorithm.getValue("output_name");
-        fit_algorithm.setValue("output_name", output_name + "_charge_" + String(charge), "...", ListUtils::create<String>("advanced,output file"));
+        // only adapt plot output if plot is requested (this badly violates the output rules and needs to change!)
+        // one way to fix this: plot charges into a single file (no renaming of output file needed) - but this requires major code restructuring
+        if (!out_plot.empty()) fit_algorithm.setValue("out_plot", out_plot + "_charge_" + String(charge));
         PEP_model.setParameters(fit_algorithm);
       }
 
       const bool return_value = PEP_model.fit(it->second[0]);
-      if (!return_value) writeLog_("unable to fit data. Algorithm did not run through for the following search engine: " + engine);
+      if (!return_value) writeLog_("Unable to fit data. Algorithm did not run through for the following search engine: " + engine);
       if (!return_value && !ignore_bad_data) return UNEXPECTED_RESULT;
 
       if (return_value)
       {
-        //plot target_decoy
-        if (target_decoy_available && it->second[0].size() > 0)
+        // plot target_decoy
+        if (!out_plot.empty() && top_hits_only && target_decoy_available && it->second[0].size() > 0)
         {
           PEP_model.plotTargetDecoyEstimation(it->second[1], it->second[2]); //target, decoy
         }
@@ -382,11 +408,20 @@ protected:
                 {
                   if (!split_charge || hit->getCharge() == charge)
                   {
-                    DoubleReal score;
+                    double score;
                     hit->setMetaValue(score_type, hit->getScore());
-                    score = PEP_model.computeProbability(get_score_(engine, *hit));
-                    if (score > 0 && score < 1) unable_to_fit_data = false;  //only if all it->second[0] are 0 or 1 unable_to_fit_data stays true
-                    if (score > 0.2 && score < 0.8) data_might_not_be_well_fit = false;  //same as above
+
+                    score = getScore_(engine, *hit);
+                    if (boost::math::isnan(score)) // issue #740: ignore scores with 0 values, otherwise you will get the error "unable to fit data"
+                    {
+                      score = 1;
+                    }
+                    else 
+                    { 
+                      score = PEP_model.computeProbability(score);
+                      if (score > 0 && score < 1) unable_to_fit_data = false;  //only if all it->second[0] are 0 or 1 unable_to_fit_data stays true
+                      if (score > 0.2 && score < 0.8) data_might_not_be_well_fit = false;  //same as above
+                    }
                     hit->setScore(score);
                     if (prob_correct)
                     {
@@ -400,15 +435,23 @@ protected:
                 }
                 it->setHits(hits);
               }
-              it->setScoreType("Posterior Error Probability");
-              it->setHigherScoreBetter(false);
+              if (prob_correct)
+              {
+                it->setScoreType("Posterior Probability");
+                it->setHigherScoreBetter(true);
+              }
+              else
+              {
+                it->setScoreType("Posterior Error Probability");
+                it->setHigherScoreBetter(false);
+              }
             }
           }
         }
-        if (unable_to_fit_data) writeLog_(String("unable to fit data for search engine: ") + engine);
+        if (unable_to_fit_data) writeLog_(String("Unable to fit data for search engine: ") + engine);
         if (unable_to_fit_data && !ignore_bad_data) return UNEXPECTED_RESULT;
 
-        if (data_might_not_be_well_fit) writeLog_(String("data might not be well fitted for search engine: ") + engine);
+        if (data_might_not_be_well_fit) writeLog_(String("Data might not be well fitted for search engine: ") + engine);
       }
     }
     //-------------------------------------------------------------
@@ -419,7 +462,7 @@ protected:
   }
 
   //Used in several functions
-  DoubleReal smallest_e_value_;
+  double smallest_e_value_;
 };
 
 

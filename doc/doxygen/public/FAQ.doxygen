@@ -68,7 +68,7 @@
 
 				Either of the following actions should fix your problem:
 				- Set the environment variable <i>OPENMS_DATA_PATH</i> to your &lt;%OpenMS&gt;/share/OpenMS/ folder.
-				- [developers only] Use the cmake option <i>-D INSTALL_PREFIX=...</i> to set the installation directory.
+				- [developers only] Use the cmake option <i>-D CMAKE_INSTALL_PREFIX=...</i> to set the installation directory.
 				  Run '<i>make %OpenMS TOPP UTILS</i>' again.
 				- [developers only] Execute <i>cmake</i> in the new location and run '<i>make %OpenMS TOPP UTILS</i>' again.
 

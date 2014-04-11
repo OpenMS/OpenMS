@@ -77,23 +77,23 @@ public:
 
         @note the original sequence is saved in the PeptideHits as MetaValue Search_engine_sequence.
     */
-    PeptideHit compute(PeptideHit & hit, RichPeakSpectrum & real_spectrum, DoubleReal fmt, Int number_of_phospho_sites);
+    PeptideHit compute(PeptideHit & hit, RichPeakSpectrum & real_spectrum, double fmt, Int number_of_phospho_sites);
 
     ///Computes the cumulative binomial probabilities.
-    DoubleReal computeCumulativeScore(UInt N, UInt n, DoubleReal p);
+    double computeCumulativeScore(UInt N, UInt n, double p);
 
     /**
         @brief Finds the peptides with the highest PeptideScores and outputs all information for computing the AScore
         @note This function assumes that there are more permutations than the assumed number of phosphorylations!
     */
-    void computeHighestPeptides(std::vector<std::vector<DoubleReal> > & peptide_site_scores, std::vector<ProbablePhosphoSites> & sites, std::vector<std::vector<Size> > & permutations);
+    void computeHighestPeptides(std::vector<std::vector<double> > & peptide_site_scores, std::vector<ProbablePhosphoSites> & sites, std::vector<std::vector<Size> > & permutations);
     ///Computes the site determining_ions for the given AS and sequences in candidates
     void compute_site_determining_ions(std::vector<RichPeakSpectrum> & th_spectra, ProbablePhosphoSites & candidates, Int charge, std::vector<RichPeakSpectrum> & site_determining_ions);
 private:
     ///computes number of matched ions between windows and the given spectrum. All spectra have to be sorted by Position!
-    Int numberOfMatchedIons_(const RichPeakSpectrum & th, const RichPeakSpectrum & windows, Size depth, DoubleReal fmt);
+    Int numberOfMatchedIons_(const RichPeakSpectrum & th, const RichPeakSpectrum & windows, Size depth, double fmt);
     ///computes the peptide score according to Beausoleil et al. page 1291
-    DoubleReal peptideScore_(std::vector<DoubleReal> & scores);
+    double peptideScore_(std::vector<double> & scores);
 public:
     ///helperfunction
     std::vector<Size> computeTupel_(AASequence & without_phospho);

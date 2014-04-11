@@ -115,8 +115,8 @@ namespace OpenMS
     OpenMS::Interfaces::BinaryDataArrayPtr x_array(new OpenMS::Interfaces::BinaryDataArray);
     for (Size n = 0; n < default_array_length_; n++)
     {
-      DoubleReal xcoord = x_precision_64 ? data_[x_index].floats_64[n] : data_[x_index].floats_32[n];
-      DoubleReal intensity = int_precision_64 ? data_[int_index].floats_64[n] : data_[int_index].floats_32[n];
+      double xcoord = x_precision_64 ? data_[x_index].floats_64[n] : data_[x_index].floats_32[n];
+      double intensity = int_precision_64 ? data_[int_index].floats_64[n] : data_[int_index].floats_32[n];
 
       x_array->data.push_back(xcoord);
       intensity_array->data.push_back(intensity);
@@ -167,8 +167,8 @@ namespace OpenMS
     OpenMS::Interfaces::BinaryDataArrayPtr x_array(new OpenMS::Interfaces::BinaryDataArray);
     for (Size n = 0; n < default_array_length_; n++)
     {
-      DoubleReal xcoord = x_precision_64 ? data_[x_index].floats_64[n] : data_[x_index].floats_32[n];
-      DoubleReal intensity = int_precision_64 ? data_[int_index].floats_64[n] : data_[int_index].floats_32[n];
+      double xcoord = x_precision_64 ? data_[x_index].floats_64[n] : data_[x_index].floats_32[n];
+      double intensity = int_precision_64 ? data_[int_index].floats_64[n] : data_[int_index].floats_32[n];
 
       x_array->data.push_back(xcoord);
       intensity_array->data.push_back(intensity);

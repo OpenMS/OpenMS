@@ -3,7 +3,6 @@ set(directory source/VISUAL/DIALOGS)
 
 ### list all filenames of the directory here
 set(sources_list
-DBOpenDialog.cpp
 DataFilterDialog.cpp
 FeatureEditDialog.cpp
 HistogramDialog.cpp

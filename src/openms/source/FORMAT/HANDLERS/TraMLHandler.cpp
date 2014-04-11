@@ -173,7 +173,7 @@ namespace OpenMS
       else if (tag_ == "Modification")
       {
         TargetedExperiment::Peptide::Modification mod;
-        DoubleReal avg_mass_delta(0), mono_mass_delta(0); // zero means no value
+        double avg_mass_delta(0), mono_mass_delta(0); // zero means no value
         optionalAttributeAsDouble_(avg_mass_delta, attributes, "averageMassDelta");
         optionalAttributeAsDouble_(mono_mass_delta, attributes, "monoisotopicMassDelta");
         mod.avg_mass_delta = avg_mass_delta;

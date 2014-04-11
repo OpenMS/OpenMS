@@ -215,8 +215,8 @@ namespace OpenMS
                               ? (PointType::CoordinateType)x / width()
                               : (PointType::CoordinateType)(height() - y) / height());
       new_area.max_[dim] = new_area.min_[dim] + zoom_factor * (visible_area_.max_[dim] - visible_area_.min_[dim]);
-      new_area.min_[dim] = std::max(new_area.min_[dim], overall_data_range_.min_[dim]);
-      new_area.max_[dim] = std::min(new_area.max_[dim], overall_data_range_.max_[dim]);
+      new_area.min_[dim] = max(new_area.min_[dim], overall_data_range_.min_[dim]);
+      new_area.max_[dim] = min(new_area.max_[dim], overall_data_range_.max_[dim]);
     }
     if (new_area != visible_area_)
     {
@@ -537,8 +537,8 @@ namespace OpenMS
         for (vector<PeptideIdentification>::const_iterator it =
                peptides.begin(); it != peptides.end(); ++it)
         {
-          DoubleReal rt = (DoubleReal) it->getMetaValue("RT");
-          DoubleReal mz = getIdentificationMZ_(layer_index, *it);
+          double rt = it->getRT();
+          double mz = getIdentificationMZ_(layer_index, *it);
           if (mz < m_min[mz_dim]) m_min[mz_dim] = mz;
           if (mz > m_max[mz_dim]) m_max[mz_dim] = mz;
           if (rt < m_min[rt_dim]) m_min[rt_dim] = rt;
@@ -547,7 +547,7 @@ namespace OpenMS
       }
     }
     //Add 1% margin to RT in order to display all the data
-    DoubleReal margin = 0.01 * std::max(1.0, m_max[rt_dim] - m_min[rt_dim]);
+    double margin = 0.01 * max(1.0, m_max[rt_dim] - m_min[rt_dim]);
     m_min[rt_dim] -= margin;
     m_max[rt_dim] += margin;
 
@@ -555,12 +555,12 @@ namespace OpenMS
     overall_data_range_.setMax(m_max);
   }
 
-  DoubleReal SpectrumCanvas::getSnapFactor()
+  double SpectrumCanvas::getSnapFactor()
   {
     return snap_factors_[0];
   }
 
-  DoubleReal SpectrumCanvas::getPercentageFactor()
+  double SpectrumCanvas::getPercentageFactor()
   {
     return percentage_factor_;
   }
@@ -790,10 +790,10 @@ namespace OpenMS
       map.setIdentifier(layer.getFeatureMap()->getIdentifier());
       map.setProteinIdentifications(layer.getFeatureMap()->getProteinIdentifications());
       //Visible area
-      DoubleReal min_rt = getVisibleArea().minPosition()[1];
-      DoubleReal max_rt = getVisibleArea().maxPosition()[1];
-      DoubleReal min_mz = getVisibleArea().minPosition()[0];
-      DoubleReal max_mz = getVisibleArea().maxPosition()[0];
+      double min_rt = getVisibleArea().minPosition()[1];
+      double max_rt = getVisibleArea().maxPosition()[1];
+      double min_mz = getVisibleArea().minPosition()[0];
+      double max_mz = getVisibleArea().maxPosition()[0];
       //copy features
       for (FeatureMapType::ConstIterator it = layer.getFeatureMap()->begin(); it != layer.getFeatureMap()->end(); ++it)
       {
@@ -820,10 +820,10 @@ namespace OpenMS
       //copy file descriptions
       map.getFileDescriptions() = layer.getConsensusMap()->getFileDescriptions();
       //Visible area
-      DoubleReal min_rt = getVisibleArea().minPosition()[1];
-      DoubleReal max_rt = getVisibleArea().maxPosition()[1];
-      DoubleReal min_mz = getVisibleArea().minPosition()[0];
-      DoubleReal max_mz = getVisibleArea().maxPosition()[0];
+      double min_rt = getVisibleArea().minPosition()[1];
+      double max_rt = getVisibleArea().maxPosition()[1];
+      double min_mz = getVisibleArea().minPosition()[0];
+      double max_mz = getVisibleArea().maxPosition()[0];
       //copy features
       for (ConsensusMapType::ConstIterator it = layer.getConsensusMap()->begin(); it != layer.getConsensusMap()->end(); ++it)
       {
@@ -849,16 +849,16 @@ namespace OpenMS
     if (layer.type == LayerData::DT_IDENT)
     {
       //Visible area
-      DoubleReal min_rt = getVisibleArea().minPosition()[1];
-      DoubleReal max_rt = getVisibleArea().maxPosition()[1];
-      DoubleReal min_mz = getVisibleArea().minPosition()[0];
-      DoubleReal max_mz = getVisibleArea().maxPosition()[0];
+      double min_rt = getVisibleArea().minPosition()[1];
+      double max_rt = getVisibleArea().maxPosition()[1];
+      double min_mz = getVisibleArea().minPosition()[0];
+      double max_mz = getVisibleArea().maxPosition()[0];
       //copy features
       for (vector<PeptideIdentification>::const_iterator it =
              layer.peptides.begin(); it != layer.peptides.end(); ++it)
       {
-        DoubleReal rt = (DoubleReal) it->getMetaValue("RT");
-        DoubleReal mz = getIdentificationMZ_(current_layer_, *it);
+        double rt = it->getRT();
+        double mz = getIdentificationMZ_(current_layer_, *it);
         // TODO: if (layer.filters.passes(*it) && ...)
         if ((rt >= min_rt) && (rt <= max_rt) &&
             (mz >= min_mz) && (mz <= max_mz))
@@ -981,7 +981,7 @@ namespace OpenMS
     int width = 4;
     for (int i = 0; i < text.size(); ++i)
     {
-      width = std::max(width, 4 + metrics.width(text[i]));
+      width = max(width, 4 + metrics.width(text[i]));
     }
 
     //draw backgrond for text
@@ -997,7 +997,7 @@ namespace OpenMS
     painter.restore();
   }
 
-  DoubleReal SpectrumCanvas::getIdentificationMZ_(const Size layer_index,
+  double SpectrumCanvas::getIdentificationMZ_(const Size layer_index,
                                                   const PeptideIdentification &
                                                   peptide) const
   {
@@ -1009,7 +1009,7 @@ namespace OpenMS
     }
     else
     {
-      return (DoubleReal) peptide.getMetaValue("MZ");
+      return peptide.getMZ();
     }
   }
 

@@ -84,9 +84,9 @@ public:
     void setPathToFile(const String& path_path_to_file);
 
     /// returns the file size in MB
-    Real getFileSize() const;
+    float getFileSize() const;
     /// sets the file size in MB
-    void setFileSize(Real file_size);
+    void setFileSize(float file_size);
 
     /// returns the file type
     const String& getFileType() const;
@@ -108,7 +108,7 @@ public:
 protected:
     String name_of_file_;
     String path_to_file_;
-    DoubleReal file_size_;
+    double file_size_;
     String file_type_;
     String checksum_;
     ChecksumType checksum_type_;

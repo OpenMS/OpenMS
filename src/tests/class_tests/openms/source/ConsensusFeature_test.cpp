@@ -473,16 +473,16 @@ END_SECTION
 
 START_SECTION((void computeDechargeConsensus(const FeatureMap<>& fm, bool intensity_weighted_averaging=false)))
   
-  DoubleReal proton_mass = ElementDB::getInstance()->getElement("H")->getMonoWeight();
-  DoubleReal natrium_mass = ElementDB::getInstance()->getElement("Na")->getMonoWeight();
+  double proton_mass = ElementDB::getInstance()->getElement("H")->getMonoWeight();
+  double natrium_mass = ElementDB::getInstance()->getElement("Na")->getMonoWeight();
   
-  DoubleReal m = 1000;
-  DoubleReal m1_add = 0.5;
-  DoubleReal mz1 = (m+m1_add+3*proton_mass) / 3;
-  DoubleReal m2_add = 1;
-  DoubleReal mz2 = (m+m2_add+1*proton_mass + 2*natrium_mass) / 3;
-  DoubleReal m3_add = -0.5;
-  DoubleReal mz3 = (m+m3_add+4*proton_mass + natrium_mass) / 5;
+  double m = 1000;
+  double m1_add = 0.5;
+  double mz1 = (m+m1_add+3*proton_mass) / 3;
+  double m2_add = 1;
+  double mz2 = (m+m2_add+1*proton_mass + 2*natrium_mass) / 3;
+  double m3_add = -0.5;
+  double mz3 = (m+m3_add+4*proton_mass + natrium_mass) / 5;
   
   FeatureMap<> fm;
   

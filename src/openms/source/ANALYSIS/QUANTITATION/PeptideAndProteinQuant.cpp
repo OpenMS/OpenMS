@@ -203,7 +203,7 @@ namespace OpenMS
     {
       all_medians.push_back(med_it->second);
     }
-    DoubleReal overall_median = Math::median(all_medians.begin(),
+    double overall_median = Math::median(all_medians.begin(),
                                              all_medians.end());
     SampleAbundances scale_factors;
     for (SampleAbundances::iterator med_it = medians.begin();
@@ -383,7 +383,7 @@ namespace OpenMS
           ab_it->second.resize(top); // remove all but best "top" values
         }
 
-        DoubleReal result;
+        double result;
         if (average == "median")
         {
           result = Math::median(ab_it->second.begin(), ab_it->second.end());

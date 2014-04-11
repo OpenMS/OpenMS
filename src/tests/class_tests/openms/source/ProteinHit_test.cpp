@@ -53,7 +53,7 @@ using namespace OpenMS;
 using namespace std;
 
 
-Real score = 4.4f;
+float score = 4.4f;
 UInt rank = 3;
 String sequence = "ARRAY";
 String accession = "PROOE34";
@@ -71,7 +71,7 @@ START_SECTION(~ProteinHit())
   delete ptr;
 END_SECTION
 
-START_SECTION((ProteinHit(DoubleReal score, UInt rank, String accession, String sequence)))
+START_SECTION((ProteinHit(double score, UInt rank, String accession, String sequence)))
 	ProteinHit hit(score, rank, accession, sequence);
 	TEST_EQUAL(hit.getScore(), score)
 	TEST_EQUAL(hit.getRank(), rank)
@@ -200,7 +200,7 @@ START_SECTION(const String& getSequence() const)
 	TEST_EQUAL(hit.getSequence(), sequence)
 END_SECTION
 
-START_SECTION(Real getScore() const)
+START_SECTION(float getScore() const)
 	ProteinHit hit(score, rank, accession, sequence);
 	TEST_EQUAL(hit.getScore(), score)
 END_SECTION
@@ -211,7 +211,7 @@ START_SECTION(UInt getRank() const)
 END_SECTION
 
 
-START_SECTION(DoubleReal getCoverage() const)
+START_SECTION(double getCoverage() const)
 	ProteinHit hit(score, rank, accession, sequence);
 	TEST_EQUAL(hit.getCoverage(), -1)
 	hit.setCoverage(123.123);
@@ -225,7 +225,7 @@ START_SECTION(void setRank(UInt newrank))
 	TEST_EQUAL(hit.getRank(), rank)	
 END_SECTION
 
-START_SECTION(void setScore(const DoubleReal score))
+START_SECTION(void setScore(const double score))
 	ProteinHit hit;
 	hit.setScore(score);
 	TEST_EQUAL(hit.getScore(), score);
@@ -243,7 +243,7 @@ START_SECTION(void setAccession(const String& accession))
 	TEST_EQUAL(hit.getAccession(), accession)
 END_SECTION
 
-START_SECTION(void setCoverage(const DoubleReal coverage))
+START_SECTION(void setCoverage(const double coverage))
 	ProteinHit hit;
 	hit.setCoverage(123.123);
 	TEST_EQUAL(hit.getCoverage(), 123.123)

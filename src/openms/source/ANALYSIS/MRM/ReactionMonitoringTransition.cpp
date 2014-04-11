@@ -41,7 +41,7 @@ namespace OpenMS
 
   ReactionMonitoringTransition::ReactionMonitoringTransition() :
     CVTermList(),
-    precursor_mz_(std::numeric_limits<DoubleReal>::max()),
+    precursor_mz_(std::numeric_limits<double>::max()),
     decoy_type_(UNKNOWN),
     library_intensity_(-101)
   {
@@ -148,12 +148,12 @@ namespace OpenMS
     return compound_ref_;
   }
 
-  void ReactionMonitoringTransition::setPrecursorMZ(DoubleReal mz)
+  void ReactionMonitoringTransition::setPrecursorMZ(double mz)
   {
     precursor_mz_ = mz;
   }
 
-  DoubleReal ReactionMonitoringTransition::getPrecursorMZ() const
+  double ReactionMonitoringTransition::getPrecursorMZ() const
   {
     return precursor_mz_;
   }
@@ -173,7 +173,7 @@ namespace OpenMS
     return precursor_cv_terms_;
   }
 
-  void ReactionMonitoringTransition::setProductMZ(DoubleReal mz)
+  void ReactionMonitoringTransition::setProductMZ(double mz)
   {
     CVTerm product_mz;
     std::vector<CVTerm> product_cvterms;
@@ -189,7 +189,7 @@ namespace OpenMS
     product_.replaceCVTerms(cvtermlist);
   }
 
-  DoubleReal ReactionMonitoringTransition::getProductMZ() const
+  double ReactionMonitoringTransition::getProductMZ() const
   {
     try
     {
@@ -274,12 +274,12 @@ namespace OpenMS
     decoy_type_ = d;
   }
 
-  DoubleReal ReactionMonitoringTransition::getLibraryIntensity() const
+  double ReactionMonitoringTransition::getLibraryIntensity() const
   {
     return library_intensity_;
   }
 
-  void ReactionMonitoringTransition::setLibraryIntensity(const DoubleReal intensity)
+  void ReactionMonitoringTransition::setLibraryIntensity(const double intensity)
   {
     library_intensity_ = intensity;
   }

@@ -54,14 +54,14 @@ namespace OpenMS
       the unique <i>identifier</i> that links the two.
 
       When loading PeptideHit instances from a File, the retention time and mass-to-charge ratio
-      of the precursor spectrum is stored in the MetaInfoInterface using the names 'MZ' and 'RT'.
+      of the precursor spectrum can be accessed using getRT() and getMZ().
       This information can be used to map the peptide hits to an MSExperiment, a FeatureMap
       or a ConsensusMap using the IDMapper class.
 
         @ingroup Metadata
   */
-  class OPENMS_DLLAPI PeptideIdentification :
-    public MetaInfoInterface
+  class OPENMS_DLLAPI PeptideIdentification 
+	  : public MetaInfoInterface
   {
 public:
 
@@ -83,23 +83,37 @@ public:
     /// Inequality operator
     bool operator!=(const PeptideIdentification & rhs) const;
     //@}
+  
+    /// returns the RT of the MS2 spectrum
+    double getRT() const;
+    /// sets the RT of the MS2 spectrum
+    void setRT(double rt);
+    /// shortcut for isnan(getRT())
+    bool hasRT() const;
 
-    /// returns the peptide hits as const
-    const std::vector<PeptideHit>& getHits() const;
-    /// returns the peptide hits
-    std::vector<PeptideHit>& getHits();
-    /// Appends a peptide hit
-    void insertHit(const PeptideHit & hit);
-    /// Sets the peptide hits
+	  /// returns the MZ of the MS2 spectrum
+    double getMZ() const;
+	  /// sets the MZ of the MS2 spectrum
+    void setMZ(double mz);
+	  /// shortcut for isnan(getRT())
+	  bool hasMZ() const;
+
+	  /// returns the peptide hits as const
+	  const std::vector<PeptideHit>& getHits() const;
+	  /// returns the peptide hits
+	  std::vector<PeptideHit>& getHits();
+	  /// Appends a peptide hit
+	  void insertHit(const PeptideHit & hit);
+	  /// Sets the peptide hits
     void setHits(const std::vector<PeptideHit> & hits);
 
     /// returns the peptide significance threshold value
-    DoubleReal getSignificanceThreshold() const;
+    double getSignificanceThreshold() const;
     /// setting of the peptide significance threshold value
-    void setSignificanceThreshold(DoubleReal value);
+    void setSignificanceThreshold(double value);
 
     /// returns the peptide score type
-    String getScoreType() const;
+    const String& getScoreType() const;
     /// sets the peptide score type
     void setScoreType(const String & type);
 
@@ -112,6 +126,11 @@ public:
     const String & getIdentifier() const;
     /// sets the identifier
     void setIdentifier(const String & id);
+
+    /// returns the base name which links to underlying peak map
+    const String & getBaseName() const;
+    /// sets the base name which links to underlying peak map
+    void setBaseName(const String & base_name);
 
     /// Sorts the hits by score and assigns ranks according to the scores
     void assignRanks();
@@ -144,12 +163,22 @@ public:
     void getNonReferencingHits(const std::vector<ProteinHit> & protein_hits, std::vector<PeptideHit> & peptide_hits) const;
     //@}
 
+	  /// remove the two helper functions below a some point, when we are sure that we did not miss or merge in deprecated code!
+	  /// re-implemented from MetaValueInfterface as a precaution against deprecated usage of "RT" and "MZ" values
+	  const DataValue & getMetaValue(const String &name) const;
+	  /// re-implemented from MetaValueInfterface as a precaution against deprecated usage of "RT" and "MZ" values
+	  void setMetaValue(const String &name, const DataValue &value);
+
+
 protected:
     String id_;                                                          ///< Identifier by which ProteinIdentification and PeptideIdentification are matched
     std::vector<PeptideHit> hits_;               ///< A list containing the peptide hits
-    DoubleReal significance_threshold_;              ///< the peptide significance threshold
+    double significance_threshold_;              ///< the peptide significance threshold
     String score_type_;                                      ///< The score type (Mascot, Sequest, e-value, p-value)
     bool higher_score_better_;                       ///< The score orientation
+    String base_name_;
+    double mz_;
+    double rt_;
   };
 
 } //namespace OpenMS

@@ -68,8 +68,8 @@ public:
     Element(const String & name,
             const String & symbol,
             UInt atomic_number,
-            DoubleReal average_weight,
-            DoubleReal mono_weight,
+            double average_weight,
+            double mono_weight,
             const IsotopeDistribution & isotopes);
 
     /// destructor
@@ -86,16 +86,16 @@ public:
     UInt getAtomicNumber() const;
 
     /// sets the average weight of the element
-    void setAverageWeight(DoubleReal weight);
+    void setAverageWeight(double weight);
 
     /// returns the average weight of the element
-    DoubleReal getAverageWeight() const;
+    double getAverageWeight() const;
 
     /// sets the mono isotopic weight of the element
-    void setMonoWeight(DoubleReal weight);
+    void setMonoWeight(double weight);
 
     /// returns the mono isotopic weight of the element
-    DoubleReal getMonoWeight() const;
+    double getMonoWeight() const;
 
     /// sets the isotope distribution of the element
     void setIsotopeDistribution(const IsotopeDistribution & isotopes);
@@ -148,10 +148,10 @@ protected:
     UInt atomic_number_;
 
     /// average weight over all isotopes
-    DoubleReal average_weight_;
+    double average_weight_;
 
     /// mono isotopic weight of the most frequent isotope
-    DoubleReal mono_weight_;
+    double mono_weight_;
 
     /// distribution of the isotopes
     IsotopeDistribution isotopes_;

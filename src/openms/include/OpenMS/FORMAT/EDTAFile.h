@@ -93,9 +93,9 @@ public:
 
 private:
     /**
-     * Check if column exists and convert String into DoubleReal.
+     * Check if column exists and convert String into double.
      */
-    DoubleReal checkedToDouble_(const std::vector<String> & parts, Size index, DoubleReal def = -1);
+    double checkedToDouble_(const std::vector<String> & parts, Size index, double def = -1);
 
     /**
      * Check if column exists and convert String into Int.

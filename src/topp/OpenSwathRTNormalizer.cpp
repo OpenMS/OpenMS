@@ -248,8 +248,8 @@ protected:
     StringList file_list = getStringList_("in");
     String tr_file_str = getStringOption_("tr");
     String out = getStringOption_("out");
-    DoubleReal min_rsq = getDoubleOption_("min_rsq");
-    DoubleReal min_coverage = getDoubleOption_("min_coverage");
+    double min_rsq = getDoubleOption_("min_rsq");
+    double min_coverage = getDoubleOption_("min_coverage");
     bool estimateBestPeptides = getFlag_("estimateBestPeptides");
     const char * tr_file  = tr_file_str.c_str();
 

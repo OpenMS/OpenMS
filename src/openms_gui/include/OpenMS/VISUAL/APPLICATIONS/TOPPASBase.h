@@ -35,6 +35,9 @@
 #ifndef OPENMS_VISUAL_APPLICATIONS_TOPPASBASE_H
 #define OPENMS_VISUAL_APPLICATIONS_TOPPASBASE_H
 
+// OpenMS_GUI config
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
+
 //OpenMS
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/VISUAL/TOPPASTreeView.h>

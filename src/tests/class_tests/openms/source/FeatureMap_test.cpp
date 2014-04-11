@@ -64,8 +64,8 @@ START_SECTION((FeatureMap()))
 
 	TEST_EQUAL(pl_ptr->getMin(), FeatureMap<>::PositionType::maxPositive())
 	TEST_EQUAL(pl_ptr->getMax(), FeatureMap<>::PositionType::minNegative())
-	TEST_REAL_SIMILAR(pl_ptr->getMinInt(), numeric_limits<DoubleReal>::max())
-	TEST_REAL_SIMILAR(pl_ptr->getMaxInt(), -numeric_limits<DoubleReal>::max())
+	TEST_REAL_SIMILAR(pl_ptr->getMinInt(), numeric_limits<double>::max())
+	TEST_REAL_SIMILAR(pl_ptr->getMaxInt(), -numeric_limits<double>::max())
 END_SECTION
 
 START_SECTION((virtual ~FeatureMap()))
@@ -239,8 +239,8 @@ START_SECTION((FeatureMap& operator = (const FeatureMap& rhs)))
    map2 = FeatureMap<>();
 
 	TEST_EQUAL(map2.size(),0);
-	TEST_REAL_SIMILAR(map2.getMinInt(), numeric_limits<DoubleReal>::max())
-	TEST_REAL_SIMILAR(map2.getMaxInt(), -numeric_limits<DoubleReal>::max())
+	TEST_REAL_SIMILAR(map2.getMinInt(), numeric_limits<double>::max())
+	TEST_REAL_SIMILAR(map2.getMaxInt(), -numeric_limits<double>::max())
   TEST_STRING_EQUAL(map2.getIdentifier(),"")
   TEST_EQUAL(map2.getDataProcessing().size(),0)
 	TEST_EQUAL(map2.getProteinIdentifications().size(),0);

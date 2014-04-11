@@ -35,6 +35,9 @@
 #ifndef OPENMS_VISUAL_AXISTICKCALCULATOR_H
 #define OPENMS_VISUAL_AXISTICKCALCULATOR_H
 
+// OpenMS_GUI config
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
+
 #include <vector>
 #include <OpenMS/CONCEPT/Types.h>
 
@@ -61,7 +64,7 @@ public:
          @param x2 maximum value
          @param grid the grid_vector to fill
     */
-    static void calcGridLines(DoubleReal x1, DoubleReal x2, GridVector & grid);
+    static void calcGridLines(double x1, double x2, GridVector & grid);
 
     /**
          @brief Returns a GridVector with ticks for logarithmic scales.
@@ -70,7 +73,7 @@ public:
          @param x2 maximum value
          @param grid the grid_vector to fill
     */
-    static void calcLogGridLines(DoubleReal x1, DoubleReal x2, GridVector & grid);
+    static void calcLogGridLines(double x1, double x2, GridVector & grid);
 
 private:
 
