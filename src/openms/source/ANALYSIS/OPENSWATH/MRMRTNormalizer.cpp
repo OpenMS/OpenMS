@@ -33,10 +33,17 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMRTNormalizer.h>
+#include <OpenMS/MATH/STATISTICS/LinearRegression.h>
+#include <OpenMS/CONCEPT/LogStream.h> // LOG_DEBUG
+
+#include <numeric>
+#include <boost/math/special_functions/erf.hpp>
+#include <algorithm>
 
 namespace OpenMS
 {
-  std::pair<double, double > MRMRTNormalizer::llsm_fit(std::vector<std::pair<double, double> >& pairs) {
+  std::pair<double, double > MRMRTNormalizer::llsm_fit(std::vector<std::pair<double, double> >& pairs) 
+  {
     // interface for GSL or OpenMS::MATH linear regression implementation
     // standard least-squares fit to a straight line
     // takes as input a standard vector of a standard pair of points in a 2D space
@@ -65,7 +72,8 @@ namespace OpenMS
     return(std::make_pair(c0,c1));
   }
   
-  double MRMRTNormalizer::llsm_rsq(std::vector<std::pair<double, double> >& pairs) {
+  double MRMRTNormalizer::llsm_rsq(std::vector<std::pair<double, double> >& pairs) 
+  {
     // interface for GSL or OpenMS::MATH linear regression implementation
     // standard least-squares fit to a straight line
     // takes as input a standard vector of a standard pair of points in a 2D space
@@ -91,7 +99,8 @@ namespace OpenMS
     return(lin_reg.getRSquared());
   }
   
-  double MRMRTNormalizer::llsm_rss(std::vector<std::pair<double, double> >& pairs, std::pair<double, double >& coefficients  ) {
+  double MRMRTNormalizer::llsm_rss(std::vector<std::pair<double, double> >& pairs, std::pair<double, double >& coefficients  ) 
+  {
     // interface for GSL or OpenMS::MATH linear regression implementation
     // calculates the residual sum of squares of the input points and the linear fit with coefficients c0 & c1.
     double rss = 0;
@@ -104,7 +113,10 @@ namespace OpenMS
     return(rss);
   }
   
-  std::vector<std::pair<double, double> > MRMRTNormalizer::llsm_rss_inliers(std::vector<std::pair<double, double> >&   pairs, std::pair<double, double >& coefficients, double max_threshold) {
+  std::vector<std::pair<double, double> > MRMRTNormalizer::llsm_rss_inliers(
+      std::vector<std::pair<double, double> >& pairs,
+      std::pair<double, double >& coefficients, double max_threshold) 
+  {
     // calculates the residual sum of squares of the input points and the linear fit with coefficients c0 & c1.
     // further removes all points that have an error larger or equal than max_threshold.
   
@@ -120,7 +132,10 @@ namespace OpenMS
     return alsoinliers;
   }
 
-  std::vector<std::pair<double, double> > MRMRTNormalizer::rm_outliers_ransac(std::vector<std::pair<double, double> >& pairs, double rsq_limit, double coverage_limit, size_t max_iterations, double max_rt_threshold) {
+  std::vector<std::pair<double, double> > MRMRTNormalizer::removeOutliersRANSAC(
+      std::vector<std::pair<double, double> >& pairs, double rsq_limit,
+      double coverage_limit, size_t max_iterations, double max_rt_threshold) 
+  {
     size_t n = (size_t)(coverage_limit*pairs.size()/12); // threshold is chosen according to python reference
     size_t k = (size_t)max_iterations;
     double t = max_rt_threshold;
@@ -141,7 +156,9 @@ namespace OpenMS
     return(new_pairs);
   }
 
-  std::vector<std::pair<double, double> > MRMRTNormalizer::ransac(std::vector<std::pair<double, double> >& pairs, size_t n, size_t k, double t, size_t d, bool test) {
+  std::vector<std::pair<double, double> > MRMRTNormalizer::ransac(
+      std::vector<std::pair<double, double> >& pairs, size_t n, size_t k, double t, size_t d, bool test) 
+  {
     // implementation of the RANSAC algorithm according to http://wiki.scipy.org/Cookbook/RANSAC.
   
     std::vector<std::pair<double, double> > maybeinliers, test_points, alsoinliers, betterdata, bestdata;
@@ -199,7 +216,7 @@ namespace OpenMS
     return(bestdata);
   } 
  
-  int MRMRTNormalizer::jackknife_outlier_candidate(std::vector<double>& x, std::vector<double>& y)
+  int MRMRTNormalizer::jackknifeOutlierCandidate(std::vector<double>& x, std::vector<double>& y)
   {
     // Returns candidate outlier: A linear regression and rsq is calculated for
     // the data points with one removed pair. The combination resulting in
@@ -222,7 +239,7 @@ namespace OpenMS
     return max_element(rsq_tmp.begin(), rsq_tmp.end()) - rsq_tmp.begin();
   }
 
-  int MRMRTNormalizer::residual_outlier_candidate(std::vector<double>& x, std::vector<double>& y)
+  int MRMRTNormalizer::residualOutlierCandidate(std::vector<double>& x, std::vector<double>& y)
   {
     // Returns candidate outlier: A linear regression and residuales are calculated for
     // the data points. The one with highest residual error is selected as the outlier candidate. The
@@ -241,8 +258,9 @@ namespace OpenMS
     return max_element(residuals.begin(), residuals.end()) - residuals.begin();
   }
 
-  std::vector<std::pair<double, double> > MRMRTNormalizer::rm_outliers_iterative(
-      std::vector<std::pair<double, double> >& pairs, double rsq_limit, double coverage_limit, bool use_chauvenet, bool use_jackknife)
+  std::vector<std::pair<double, double> > MRMRTNormalizer::removeOutliersIterative(
+      std::vector<std::pair<double, double> >& pairs, double rsq_limit, 
+      double coverage_limit, bool use_chauvenet, std::string method)
   {
     if (pairs.size() < 2)
     {
@@ -290,15 +308,20 @@ namespace OpenMS
 
         int pos;
 
-        if (use_jackknife)
+        if (method == "jackknife")
         {
           // get candidate outlier: removal of which datapoint results in best rsq?
-          pos = jackknife_outlier_candidate(x, y);
+          pos = jackknifeOutlierCandidate(x, y);
         }
-        else
+        else if (method == "largest_residual")
         {
           // get candidate outlier: removal of datapoint with largest residual?
-          pos = residual_outlier_candidate(x, y);
+          pos = residualOutlierCandidate(x, y);
+        }
+        else 
+        {
+          throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+            String("Method ") + method + " is not a valid method for removeOutliersIterative");
         }
 
         // remove if residual is an outlier according to Chauvenet's criterion

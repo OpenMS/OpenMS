@@ -35,14 +35,11 @@
 #ifndef OPENMS_ANALYSIS_OPENSWATH_MRMRTNORMALIZER_H
 #define OPENMS_ANALYSIS_OPENSWATH_MRMRTNORMALIZER_H
 
-// TODO (georger) check if needed
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/CONCEPT/ProgressLogger.h>
-#include <OpenMS/MATH/STATISTICS/LinearRegression.h>
+#include <OpenMS/config.h>
 
-#include <numeric>
-#include <boost/math/special_functions/erf.hpp>
-#include <algorithm>
+#include <cstddef> // for size_t & ptrdiff_t
+#include <vector>
+#include <string>
 
 namespace OpenMS
 {
@@ -61,15 +58,60 @@ namespace OpenMS
   class OPENMS_DLLAPI MRMRTNormalizer
   {
 
-public:
+private:
+  
+    static double llsm_rsq(std::vector<std::pair<double, double> >& pairs);
 
     static std::pair<double, double > llsm_fit(std::vector<std::pair<double, double> >& pairs);
   
-    static double llsm_rsq(std::vector<std::pair<double, double> >& pairs);
-  
     static double llsm_rss(std::vector<std::pair<double, double> >& pairs, std::pair<double, double >& coefficients  );
   
-    static std::vector<std::pair<double, double> > llsm_rss_inliers(std::vector<std::pair<double, double> >&   pairs, std::pair<double, double >& coefficients, double max_threshold);
+    static std::vector<std::pair<double, double> > llsm_rss_inliers(std::vector<std::pair<double, double> >& pairs,
+        std::pair<double, double >& coefficients, double max_threshold);
+
+    /**
+      @brief This function computes a candidate outlier peptide by iteratively
+       leaving one peptide out to find the one which results in the maximum R^2
+       of a first order linear regression of the remaining ones. The data points
+       are submitted as two vectors of doubles (x- and y-coordinates).
+
+      @return The position of the candidate outlier peptide as supplied by the
+       vector is returned.
+
+      @exception Exception::UnableToFit is thrown if fitting cannot be performed
+    */
+    static int jackknifeOutlierCandidate(std::vector<double>& x, std::vector<double>& y);
+
+    /**
+      @brief This function computes a candidate outlier peptide by computing
+       the residuals of all points to the linear fit and selecting the one with
+       the largest deviation. The data points are submitted as two vectors of
+       doubles (x- and y-coordinates).
+
+      @return The position of the candidate outlier peptide as supplied by the
+       vector is returned.
+
+      @exception Exception::UnableToFit is thrown if fitting cannot be performed
+    */
+    static int residualOutlierCandidate(std::vector<double>& x, std::vector<double>& y);
+
+    /**
+      @brief This function computes Chauvenet's criterion probability for a vector
+       and a value whose position is submitted.
+
+      @return Chauvenet's criterion probability
+    */
+    static double chauvenet_probability(std::vector<double>& residuals, int pos);
+
+    /**
+      @brief This function computes Chauvenet's criterion for a vector and a value
+       whose position is submitted.
+
+      @return TRUE, if Chauvenet's criterion is fulfilled and the outlier can be removed.
+    */
+    static bool chauvenet(std::vector<double>& residuals, int pos);
+
+public:
  
     /**
       @brief This function removes potential outliers from a set of paired points.
@@ -93,7 +135,11 @@ public:
 
       @exception Exception::UnableToFit is thrown if fitting cannot be performed
     */ 
-    static std::vector<std::pair<double, double> > rm_outliers_ransac(std::vector<std::pair<double, double> >& pairs, double rsq_limit, double coverage_limit, size_t max_iterations, double max_rt_threshold);
+    static std::vector<std::pair<double, double> > removeOutliersRANSAC(std::vector<std::pair<double, double> >& pairs,
+        double rsq_limit,
+        double coverage_limit,
+        size_t max_iterations,
+        double max_rt_threshold);
 
     /**
       @brief This function provides a generic implementation of the RANSAC
@@ -112,32 +158,6 @@ public:
     static std::vector<std::pair<double, double> > ransac(std::vector<std::pair<double, double> >& pairs, size_t n, size_t k, double t, size_t d, bool test = false); 
 
     /**
-      @brief This function computes a candidate outlier peptide by iteratively
-       leaving one peptide out to find the one which results in the maximum R^2
-       of a first order linear regression of the remaining ones. The data points
-       are submitted as two vectors of doubles (x- and y-coordinates).
-
-      @return The position of the candidate outlier peptide as supplied by the
-       vector is returned.
-
-      @exception Exception::UnableToFit is thrown if fitting cannot be performed
-    */
-    static int jackknife_outlier_candidate(std::vector<double>& x, std::vector<double>& y);
-
-    /**
-      @brief This function computes a candidate outlier peptide by computing
-       the residuals of all points to the linear fit and selecting the one with
-       the largest deviation. The data points are submitted as two vectors of
-       doubles (x- and y-coordinates).
-
-      @return The position of the candidate outlier peptide as supplied by the
-       vector is returned.
-
-      @exception Exception::UnableToFit is thrown if fitting cannot be performed
-    */
-    static int residual_outlier_candidate(std::vector<double>& x, std::vector<double>& y);
-
-    /**
       @brief This function removes potential outliers from a set of paired points.
        Two thresholds need to be defined, first a lower R^2 limit to accept the
        regression for the RT normalization and second, the lower limit of peptide
@@ -150,9 +170,10 @@ public:
       @param rsq_limit Minimal R^2 required
       @param coverage_limit Minimal coverage required (the number of points
       falls below this fraction, the algorithm aborts)
-      @param use_chauvenet Whether to use Chauvenet's criterion to remove
-      outliers (if false, removes any outlier candidate regardless of the
-      criterion)
+      @param use_chauvenet Whether to only remove outliers that fulfill
+      Chauvenet's criterion for outliers (otherwise it will remove any outlier
+      candidate regardless of the criterion)
+      @param method Outlier detection method ("jackknife" or "largest_residual")
 
       @return A vector of pairs is returned if the R^2 limit was reached without
        reaching the coverage limit. If the limits are reached, an exception is
@@ -160,28 +181,11 @@ public:
 
       @exception Exception::UnableToFit is thrown if fitting cannot be performed
     */
-    static std::vector<std::pair<double, double> > rm_outliers_iterative(std::vector<std::pair<double, double> >& pairs,
+    static std::vector<std::pair<double, double> > removeOutliersIterative(std::vector<std::pair<double, double> >& pairs,
                                                                double rsq_limit, 
                                                                double coverage_limit, 
                                                                bool use_chauvenet,
-                                                               bool use_jackknife);
-
-    /**
-      @brief This function computes Chauvenet's criterion probability for a vector
-       and a value whose position is submitted.
-
-      @return Chauvenet's criterion probability
-    */
-    static double chauvenet_probability(std::vector<double>& residuals, int pos);
-
-
-    /**
-      @brief This function computes Chauvenet's criterion for a vector and a value
-       whose position is submitted.
-
-      @return TRUE, if Chauvenet's criterion is fulfilled and the outlier can be removed.
-    */
-    static bool chauvenet(std::vector<double>& residuals, int pos);
+                                                               std::string method);
   };
 
 }

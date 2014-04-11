@@ -295,22 +295,18 @@ protected:
       // Because 120 min gradient can have 4 min elution shift, we use this
       // ratio to find upper RT threshold.
       double max_rt_threshold = (RTRange.second - RTRange.first) / 30;
-      pairs_corrected = MRMRTNormalizer::rm_outliers_ransac(pairs, min_rsq, min_coverage,
+      pairs_corrected = MRMRTNormalizer::removeOutliersRANSAC(pairs, min_rsq, min_coverage,
           outlierDetectionParams.getValue("useRANSACMaxIterations"), max_rt_threshold);
     }
     else
     {
-      bool useIterativeJackknife = false;
+      std::string outlier_method = "largest_residual";
       if (outlierDetectionParams.getValue("useIterativeJackknife") == "true")
       {
-        useIterativeJackknife = true;
+        outlier_method = "jackknife";
       }
-      bool useIterativeChauvenet = false;
-      if (outlierDetectionParams.getValue("useIterativeChauvenet") == "true")
-      {
-        useIterativeChauvenet = true;
-      }
-      pairs_corrected = MRMRTNormalizer::rm_outliers_iterative(pairs, min_rsq, min_coverage, useIterativeChauvenet, useIterativeJackknife);
+      bool useIterativeChauvenet = (outlierDetectionParams.getValue("useIterativeChauvenet") == "true");
+      pairs_corrected = MRMRTNormalizer::removeOutliersIterative(pairs, min_rsq, min_coverage, useIterativeChauvenet, outlier_method);
     }
 
     // store transformation, using a linear model as default
