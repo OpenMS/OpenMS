@@ -2609,12 +2609,17 @@ protected:
     Size n_heatmap_bins = getIntOption_("heatmap_bins");	
     double score_plot_y_axis_min = getDoubleOption_("score_plot_yaxis_min");
 
-    // trying to create qc_output_directory if not present
     QDir qc_dir(qc_output_directory.toQString());
-    if (!qc_dir.exists()) 
+
+	// convert relative paths into absolute path
+	//qc_output_directory = String(qc_dir.absoluteFilePath());
+
+	// trying to create qc_output_directory if not present
+	if (!qc_dir.exists()) 
     {
       qc_dir.mkpath(qc_output_directory.toQString());
     }
+
 
     String out_csv = getStringOption_("out_csv");
 	ofstream out_csv_stream(out_csv.c_str());
@@ -2769,8 +2774,14 @@ protected:
 
 	  Size averagine_id_features = 0;
 	  Size blacklisted_features = 0;
+	  MassDecompositionAlgorithm mda;
+	  Param p(mda.getParameters());
+	  p.setValue("decomp_weights_precision", 1e-6);
+	  p.setValue("tolerance", 1e-3);
+	  mda.setParameters(p);
 	  for (Size i = 0; i != peak_map.size(); ++i)
 	  {
+		  LOG_INFO << (double)i / (double)peak_map.size() * 100.0;
 		// precursor not blacklisted?
 		if (find(blacklist_idx.begin(), blacklist_idx.end(), i) == blacklist_idx.end() && !peak_map[i].getPrecursors().empty())
 		{
@@ -2785,10 +2796,6 @@ protected:
 		  PeptideHit pseudo_hit;
 
 		  // generate pseudo id
-		  MassDecompositionAlgorithm mda;
-		  Param p(mda.getParameters());
-		  p.setValue("tolerance", 0.001); // Da
-		  mda.setParameters(p);
 		  vector<MassDecomposition> decomps;
 
 		  // calculate from full to internal mass
