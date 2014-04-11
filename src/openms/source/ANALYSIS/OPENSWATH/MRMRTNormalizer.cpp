@@ -124,10 +124,19 @@ namespace OpenMS
       std::vector<std::pair<double, double> >& pairs, double rsq_limit,
       double coverage_limit, size_t max_iterations, double max_rt_threshold) 
   {
+    // n is just 20 in the Python example, why is it here limit /  12 ??
     size_t n = (size_t)(coverage_limit*pairs.size()/12); // threshold is chosen according to python reference
     size_t k = (size_t)max_iterations;
     double t = max_rt_threshold;
     size_t d = (size_t)(coverage_limit*pairs.size());
+
+    // TODO what if too few input data are given ? e.g. only 10 points ?
+    // is there any sense to use less than 5 values at all ?? 
+    /*
+    std::cout << " n here " << n << std::endl;
+    if (n < 5) {n=5;}
+    std::cout << " n here " << n << std::endl;
+    */
 
     std::vector<std::pair<double, double> > new_pairs = MRMRTNormalizer::ransac(pairs, n, k, t, d);
 
@@ -156,7 +165,7 @@ namespace OpenMS
     double besterror = std::numeric_limits<double>::max();
     double bettererror;
     double betterrsq = 0;
-    double bestrsq = 0;
+    double bestrsq = 0; // TODO is this var used?
 
     for (size_t ransac_int=0; ransac_int<k; ransac_int++) 
     {
