@@ -571,10 +571,17 @@ namespace OpenMS
       featureFinder.pickExperiment(chromatogram_ptr, featureFile, transition_exp_used, empty_trafo, swath_ptr, transition_group_map);
 
       // find best feature, compute pairs of iRT and real RT
-      simple_find_best_feature(transition_group_map, pairs, PeptideRTMap);
+      std::map<std::string, double> res = OpenSwathHelper::simpleFindBestFeature(transition_group_map);
+      for (std::map<std::string, double>::iterator it = res.begin(); it != res.end(); it++)
+      {
+        pairs.push_back(std::make_pair(it->second, PeptideRTMap[it->first])); // pair<exp_rt, theor_rt>
+      }
 
+      // remove outliers
       std::vector<std::pair<double, double> > pairs_corrected;
-      pairs_corrected = MRMRTNormalizer::rm_outliers(pairs, min_rsq, min_coverage, false);
+      bool chauvenet = false;
+      bool jackknife = true;
+      pairs_corrected = MRMRTNormalizer::rm_outliers_iterative(pairs, min_rsq, min_coverage, chauvenet, jackknife);
 
       // store transformation, using a linear model as default
       TransformationDescription trafo_out;
@@ -586,39 +593,6 @@ namespace OpenMS
 
       this->endProgress();
       return trafo_out;
-    }
-
-    /// Simple method to find the best feature among a set of features (for the RT-normalization peptides)
-    // TODO shared code!! -> OpenSwathRTNormalizer...
-    void simple_find_best_feature(OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType & transition_group_map,
-        std::vector<std::pair<double, double> > & pairs, std::map<OpenMS::String, double> PeptideRTMap)
-    {
-      for (OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType::iterator trgroup_it = transition_group_map.begin();
-          trgroup_it != transition_group_map.end(); ++trgroup_it)
-      {
-        // we need at least one feature to find the best one
-        OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType * transition_group = &trgroup_it->second;
-        if (transition_group->getFeatures().size() == 0)
-        {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
-              "RT normalization: did not find any features for group " + transition_group->getTransitionGroupID());
-        }
-
-        // Find the feature with the highest score
-        double bestRT = -1;
-        double highest_score = -1000;
-        for (std::vector<MRMFeature>::iterator mrmfeature = transition_group->getFeaturesMuteable().begin();
-             mrmfeature != transition_group->getFeaturesMuteable().end(); ++mrmfeature)
-        {
-          if (mrmfeature->getOverallQuality() > highest_score)
-          {
-            bestRT = mrmfeature->getRT();
-            highest_score = mrmfeature->getOverallQuality();
-          }
-        }
-        String pepref = trgroup_it->second.getTransitions()[0].getPeptideRef();
-        pairs.push_back(std::make_pair(bestRT, PeptideRTMap[pepref]));
-      }
     }
 
     /// Helper function to score a set of chromatograms
