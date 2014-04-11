@@ -44,10 +44,6 @@ namespace OpenMS
 {
   std::pair<double, double > MRMRTNormalizer::llsm_fit(std::vector<std::pair<double, double> >& pairs) 
   {
-    // interface for GSL or OpenMS::MATH linear regression implementation
-    // standard least-squares fit to a straight line
-    // takes as input a standard vector of a standard pair of points in a 2D space
-    // and returns the coefficients of the linear regression Y(c,x) = c0 + c1 * x
     std::vector<double> x, y;
 
     for (std::vector<std::pair<double, double> >::iterator it = pairs.begin(); it != pairs.end(); ++it)
@@ -74,10 +70,6 @@ namespace OpenMS
   
   double MRMRTNormalizer::llsm_rsq(std::vector<std::pair<double, double> >& pairs) 
   {
-    // interface for GSL or OpenMS::MATH linear regression implementation
-    // standard least-squares fit to a straight line
-    // takes as input a standard vector of a standard pair of points in a 2D space
-    // and returns the coefficients of the linear regression Y(c,x) = c0 + c1 * x
     std::vector<double> x, y;
 
     for (std::vector<std::pair<double, double> >::iterator it = pairs.begin(); it != pairs.end(); ++it)
@@ -96,35 +88,31 @@ namespace OpenMS
     Math::LinearRegression lin_reg;
     lin_reg.computeRegression(0.95, x.begin(), x.end(), y.begin());
 
-    return(lin_reg.getRSquared());
+    return lin_reg.getRSquared();
   }
   
-  double MRMRTNormalizer::llsm_rss(std::vector<std::pair<double, double> >& pairs, std::pair<double, double >& coefficients  ) 
+  double MRMRTNormalizer::llsm_rss(std::vector<std::pair<double, double> >& pairs, std::pair<double, double >& coefficients) 
   {
-    // interface for GSL or OpenMS::MATH linear regression implementation
-    // calculates the residual sum of squares of the input points and the linear fit with coefficients c0 & c1.
     double rss = 0;
   
     for (std::vector<std::pair<double, double> >::iterator it = pairs.begin(); it != pairs.end(); ++it)
     {
-      rss += pow( it->second - (coefficients.first + ( coefficients.second * it->first)), 2);
+      rss += pow(it->second - (coefficients.first + ( coefficients.second * it->first)), 2);
     }
   
-    return(rss);
+    return rss;
   }
   
   std::vector<std::pair<double, double> > MRMRTNormalizer::llsm_rss_inliers(
       std::vector<std::pair<double, double> >& pairs,
       std::pair<double, double >& coefficients, double max_threshold) 
   {
-    // calculates the residual sum of squares of the input points and the linear fit with coefficients c0 & c1.
-    // further removes all points that have an error larger or equal than max_threshold.
-  
     std::vector<std::pair<double, double> > alsoinliers;
   
     for (std::vector<std::pair<double, double> >::iterator it = pairs.begin(); it != pairs.end(); ++it)
     {
-      if(pow( it->second - (coefficients.first + ( coefficients.second * it->first)), 2) < max_threshold) {
+      if (pow(it->second - (coefficients.first + ( coefficients.second * it->first)), 2) < max_threshold) 
+      {
         alsoinliers.push_back(*it);
       }
     }
@@ -145,15 +133,17 @@ namespace OpenMS
 
     double bestrsq = llsm_rsq(new_pairs);
 
-    if (bestrsq < rsq_limit) {
+    if (bestrsq < rsq_limit) 
+    {
       throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-LinearRegression-RTNormalizer", "WARNING: rsq: " + boost::lexical_cast<std::string>(bestrsq) + " is below limit of " + boost::lexical_cast<std::string>(rsq_limit) + ". Validate assays for RT-peptides and adjust the limit for rsq or coverage.");
     }
 
-    if (new_pairs.size() < d) {
+    if (new_pairs.size() < d) 
+    {
       throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-LinearRegression-RTNormalizer", "WARNING: number of data points: " + boost::lexical_cast<std::string>(new_pairs.size()) + " is below limit of " + boost::lexical_cast<std::string>(d) + ". Validate assays for RT-peptides and adjust the limit for rsq or coverage.");
     }
 
-    return(new_pairs);
+    return new_pairs;
   }
 
   std::vector<std::pair<double, double> > MRMRTNormalizer::ransac(
@@ -168,10 +158,12 @@ namespace OpenMS
     double betterrsq = 0;
     double bestrsq = 0;
 
-    for (size_t ransac_int=0; ransac_int<k; ransac_int++) {
+    for (size_t ransac_int=0; ransac_int<k; ransac_int++) 
+    {
       std::vector<std::pair<double, double> > pairs_shuffled = pairs;
 
-      if (!test) { // disables random selection in test mode
+      if (!test) 
+      { // disables random selection in test mode
         std::random_shuffle(pairs_shuffled.begin(), pairs_shuffled.end());
       }
  
@@ -184,14 +176,16 @@ namespace OpenMS
 
       alsoinliers = llsm_rss_inliers(test_points,coeff,t);
   
-      if (alsoinliers.size() > d) {
+      if (alsoinliers.size() > d) 
+      {
         betterdata = maybeinliers;
         betterdata.insert( betterdata.end(), alsoinliers.begin(), alsoinliers.end() );
         std::pair<double, double > bettercoeff = llsm_fit(betterdata);
         bettererror = llsm_rss(betterdata,bettercoeff);
         betterrsq = llsm_rsq(betterdata);
  
-        if (bettererror < besterror) {
+        if (bettererror < besterror)
+        {
           besterror = bettererror;
           bestcoeff = bettercoeff;
           bestdata = betterdata;
@@ -252,9 +246,9 @@ namespace OpenMS
     for (Size i = 0; i < x.size(); i++)
     {
       residual = fabs(y[i] - (lin_reg.getIntercept() + (lin_reg.getSlope() * x[i])));
-
       residuals.push_back(residual);
     }
+
     return max_element(residuals.begin(), residuals.end()) - residuals.begin();
   }
 
