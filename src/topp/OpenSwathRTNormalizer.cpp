@@ -110,7 +110,7 @@ protected:
 
     registerSubsection_("peptideEstimation", "Parameters for the peptide estimation (use -estimateBestPeptides to enable).");
 
-    registerSubsection_("outlierDetection", "Parameters for the outlierDetection (use -outlierDetection to enable).");
+    registerSubsection_("outlierDetection", "Parameters for the outlierDetection (outlier detection can be done iteratively (by default) which removes one outlier per iteration or using the RANSAC algorithm).");
   }
 
   Param getSubsectionDefaults_(const String & section) const
@@ -132,9 +132,9 @@ protected:
     else if (section == "outlierDetection")
     {
       Param p;
-      p.setValue("useIterativeJackknife", "false", "Whether to use a Jackknife approach optimizing for maximum r-squared when testing for a single outlier (using this option is more expensive with lots of peptides).");
+      p.setValue("outlierMethodIterative", "largest_residual", "Which outlier detection method to use for iterative approach (valid: 'largest_residual', 'jackknife'). Jackknife approach optimizes for maximum r-squared when testing for a single outlier (using this option is more expensive with lots of peptides).");
       p.setValue("useIterativeChauvenet", "false", "Whether to use Chauvenet's criterion when testing for a single outlier (using this option is more stringent and can lead to outliers being retained).");
-      p.setValue("useRANSAC", "false", "Whether to use the RANSAC outlier detection algorithm.");
+      p.setValue("useRANSAC", "false", "Whether to use the RANSAC outlier detection algorithm instead of the iterative method.");
       p.setValue("useRANSACMaxIterations", 1000, "Maximum iterations for the RANSAC outlier detection algorithm.");
       return p;
     }
@@ -278,7 +278,8 @@ protected:
 
     }
 
-    bool enoughPeptides = computeBinnedCoverage(RTRange, pairs, 10, 
+    bool enoughPeptides = computeBinnedCoverage(RTRange, pairs,
+        pepEstimationParams.getValue("NrRTBins"),
         pepEstimationParams.getValue("MinPeptidesPerBin"),
         pepEstimationParams.getValue("MinBinsFilled") );
     // When estimating the best peptides from the data, we need to fulfill the binned coverage
@@ -300,13 +301,9 @@ protected:
     }
     else
     {
-      std::string outlier_method = "largest_residual";
-      if (outlierDetectionParams.getValue("useIterativeJackknife") == "true")
-      {
-        outlier_method = "jackknife";
-      }
-      bool useIterativeChauvenet = (outlierDetectionParams.getValue("useIterativeChauvenet") == "true");
-      pairs_corrected = MRMRTNormalizer::removeOutliersIterative(pairs, min_rsq, min_coverage, useIterativeChauvenet, outlier_method);
+      pairs_corrected = MRMRTNormalizer::removeOutliersIterative(pairs, min_rsq, min_coverage,
+          outlierDetectionParams.getValue("useIterativeChauvenet") == "true",
+          outlierDetectionParams.getValue("outlierMethodIterative"));
     }
 
     // store transformation, using a linear model as default
