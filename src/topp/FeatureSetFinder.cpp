@@ -52,12 +52,12 @@
 
 #include <OpenMS/FILTERING/DATAREDUCTION/SplinePackage.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/SplineSpectrum.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/SILACPoint.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/SILACAnalyzer.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/SILACFilter.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/SILACFiltering.h>
-#include <OpenMS/COMPARISON/CLUSTERING/SILACClustering.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/PeakWidthEstimator.h>
+//#include <OpenMS/FILTERING/DATAREDUCTION/SILACPoint.h>
+//#include <OpenMS/FILTERING/DATAREDUCTION/SILACAnalyzer.h>
+//#include <OpenMS/FILTERING/DATAREDUCTION/SILACFilter.h>
+//#include <OpenMS/FILTERING/DATAREDUCTION/SILACFiltering.h>
+//#include <OpenMS/COMPARISON/CLUSTERING/SILACClustering.h>
+//#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/PeakWidthEstimator.h>
 
 //Contrib includes
 #include <boost/algorithm/string/split.hpp>
@@ -193,7 +193,7 @@ private:
   DoubleReal model_deviation;
   bool allow_missing_peaks;
 
-  typedef SILACClustering Clustering;
+  //typedef SILACClustering Clustering;
 
 public:
   TOPPFeatureSetFinder() :
@@ -425,9 +425,9 @@ public:
   ExitCodes main_(int, const char **)
   {
     // data to be passed through the algorithm
-    vector<vector<SILACPattern> > data;
+    /*vector<vector<SILACPattern> > data;
     MSQuantifications msq;
-    vector<Clustering *> cluster_data;
+    vector<Clustering *> cluster_data;*/
 
     // 
     // Parameter handling
@@ -447,7 +447,7 @@ public:
     // 
     // Initializing the SILACAnalzer with our parameters
     // 
-    SILACAnalyzer analyzer;
+    /*SILACAnalyzer analyzer;
     analyzer.setLogType(log_type_);
     analyzer.initialize(
       // section "sample"
@@ -465,7 +465,7 @@ public:
       model_deviation,
       allow_missing_peaks,
       // labels
-      label_identifiers);
+      label_identifiers);*/
  
     //--------------------------------------------------
     // loading input from .mzML
@@ -493,7 +493,7 @@ public:
     // sort according to RT and MZ
     exp.sortSpectra();
 
-    if (out_mzq != "")
+    /*if (out_mzq != "")
     {
       vector<vector<String> > SILAClabels = analyzer.getSILAClabels(); // list of SILAC labels, e.g. selected_labels="[Lys4,Arg6][Lys8,Arg10]" => SILAClabels[0][1]="Arg6"
 
@@ -514,7 +514,7 @@ public:
     }
     MSQuantifications::QUANT_TYPES quant_type = MSQuantifications::MS1LABEL;
     msq.setAnalysisSummaryQuantType(quant_type);    //add analysis_summary_
-
+	*/
 
 
 
@@ -548,7 +548,7 @@ public:
 		cout << "RT = " << rt << "\n";
 		
 		// construct spline
-		SplineSpectrum * spectrumNew = new SplineSpectrum(mzVector, intensityVector, 0.3);
+		SplineSpectrum * spectrumNew = new SplineSpectrum(mzVector, intensityVector);
 		SplineSpectrum::Navigator nav = (*spectrumNew).getNavigator();
 
 		// fill new experiment
@@ -577,7 +577,7 @@ public:
     // estimate peak width
     //--------------------------------------------------
 
-    LOG_DEBUG << "Estimating peak width..." << endl;
+    /*LOG_DEBUG << "Estimating peak width..." << endl;
     PeakWidthEstimator::Result peak_width;
     try
     {
@@ -786,7 +786,7 @@ public:
       }
 
       analyzer.writeFeatures(out_features, map);
-    }
+    }*/
 
     return EXECUTION_OK;
   }
