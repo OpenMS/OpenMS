@@ -54,8 +54,7 @@ namespace OpenMS
         	
 		mzMin_ = *min_element(mz.begin(), mz.end());
 		mzMax_ = *max_element(mz.begin(), mz.end());
-		scaling_ = scaling;
-		mzStepWidth_ = scaling_*(mzMax_ - mzMin_)/(mz.size() - 1);    // step width somewhat smaller than the average raw data spacing	
+		mzStepWidth_ = scaling*(mzMax_ - mzMin_)/(mz.size() - 1);    // step width somewhat smaller than the average raw data spacing	
 	}
 	
 	SplinePackage::~SplinePackage() 
