@@ -1048,6 +1048,9 @@ add_test("TOPP_FeatureFinderRaw_1" ${TOPP_BIN_PATH}/FeatureFinderRaw -test -ini 
 add_test("TOPP_FeatureFinderRaw_1_out" ${DIFF} -in1 FeatureFinderRaw_1.featureXML.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderRaw_1.featureXML )
 set_tests_properties("TOPP_FeatureFinderRaw_1_out" PROPERTIES DEPENDS "TOPP_FeatureFinderRaw_1")
 
+### FeatureSetFinder tests
+# mzML
+add_test("TOPP_FeatureSetFinder_1" ${TOPP_BIN_PATH}/FeatureSetFinder -test -ini ${DATA_DIR_TOPP}/FeatureSetFinder.ini -in ${DATA_DIR_TOPP}/FeatureSetFinder.mzML)
 
 ### FeatureLinker tests
 # "labeled" algorithm:
