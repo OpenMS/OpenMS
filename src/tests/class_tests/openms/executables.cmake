@@ -265,6 +265,8 @@ MassTraceDetection_test
   SILACFiltering_test
   SILACPattern_test
   SILACPoint_test
+  SplinePackage_test
+  SplineSpectrum_test
   SavitzkyGolayFilter_test
   Scaler_test
   SignalToNoiseEstimatorMeanIterative_test
