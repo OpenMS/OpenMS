@@ -123,11 +123,17 @@ namespace OpenMS
              */
             unsigned lastPackage_;
             
+            /**
+             * @brief m/z limits of the spectrum
+             */
+            double mzMin_;
+            double mzMax_;
+            
             public:
             /**
              * @brief constructor of iterator
              */
-            Navigator(const std::vector<SplinePackage> * packages);
+            Navigator(const std::vector<SplinePackage> * packages, double mzMin, double mzMax);
             
             /**
              * @brief destructor

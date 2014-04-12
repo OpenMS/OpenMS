@@ -177,7 +177,7 @@ namespace OpenMS
         return packages_[i];
     }
 
-    SplineSpectrum::Navigator::Navigator(const std::vector<SplinePackage> * packages) : packages_(packages), lastPackage_(0)
+    SplineSpectrum::Navigator::Navigator(const std::vector<SplinePackage> * packages, double mzMin, double mzMax) : packages_(packages), lastPackage_(0), mzMin_(mzMin), mzMax_(mzMax)
     {
     }
     
@@ -264,7 +264,7 @@ namespace OpenMS
                 if (i > maxIndex)
                 {
                     lastPackage_ = maxIndex;
-                    return 10000;
+                    return mzMax_;
                 }
                 // m/z in the gap?
                 package = (*packages_)[i];
@@ -286,7 +286,7 @@ namespace OpenMS
             if (i > maxIndex)
             {
                 lastPackage_ = maxIndex;
-                return 10000;
+                return mzMax_;
             }
             // jump to min m/z of next package
             lastPackage_ = i;
@@ -303,7 +303,7 @@ namespace OpenMS
     
     SplineSpectrum::Navigator SplineSpectrum::getNavigator()
     {
-        SplineSpectrum::Navigator * nav = new Navigator(&packages_);
+        SplineSpectrum::Navigator * nav = new Navigator(&packages_, mzMin_, mzMax_);
         return *nav;
     }
 

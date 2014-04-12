@@ -64,12 +64,13 @@ namespace OpenMS
 	 
 	/**
 	 * @brief sensible m/z step width with which to scan through the package
-	 * (somewhat smaller than the raw data spacing)
+	 * (raw data spacing times scaling_)
 	 */
 	double mzStepWidth_;
 
 	/**
 	 * @brief scaling factor for m/z step width
+	 * (typically scaling_<1 i.e. step width somewhat smaller than raw data spacing)
 	 */
 	double scaling_;
 
