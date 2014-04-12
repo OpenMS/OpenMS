@@ -65,10 +65,10 @@ public:
     typedef DPosition<2> PointType;
 
     /// Intensity type
-    typedef Real IntensityType;
+    typedef float IntensityType;
 
     /// Coordinate type
-    typedef DoubleReal CoordinateType;
+    typedef double CoordinateType;
 
     /// Destructor
     virtual ~Annotation1DItem();

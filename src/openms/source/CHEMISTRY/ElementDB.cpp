@@ -204,8 +204,8 @@ namespace OpenMS
           String iso_symbol = "(" + String(iit->first) + ")" + symbol;
 
           // set avg and mono to same value for isotopes (old hack...)
-          DoubleReal iso_avg_weight = Z_to_mass[(UInt) iit->first];
-          DoubleReal iso_mono_weight = iso_avg_weight;
+          double iso_avg_weight = Z_to_mass[(UInt) iit->first];
+          double iso_mono_weight = iso_avg_weight;
           IsotopeDistribution iso_isotopes;
           vector<pair<Size, double> > iso_container;
           iso_container.push_back(make_pair(iit->first, 1.0));

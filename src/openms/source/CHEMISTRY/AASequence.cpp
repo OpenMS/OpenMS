@@ -34,11 +34,17 @@
 //
 
 #include <OpenMS/CHEMISTRY/AASequence.h>
+
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 
+#include <OpenMS/CONCEPT/PrecisionWrapper.h>
+
 #include <algorithm>
+
+#include <iostream>
+#include <sstream>
 
 using namespace std;
 
@@ -247,10 +253,10 @@ namespace OpenMS
     return ef;
   }
 
-  DoubleReal AASequence::getAverageWeight(Residue::ResidueType type, Int charge) const
+  double AASequence::getAverageWeight(Residue::ResidueType type, Int charge) const
   {
     // check whether tags are present
-    DoubleReal tag_offset(0);
+    double tag_offset(0);
     for (ConstIterator it = this->begin(); it != this->end(); ++it)
     {
       if (it->getOneLetterCode() == "")
@@ -261,10 +267,10 @@ namespace OpenMS
     return tag_offset + getFormula(type, charge).getAverageWeight();
   }
 
-  DoubleReal AASequence::getMonoWeight(Residue::ResidueType type, Int charge) const
+  double AASequence::getMonoWeight(Residue::ResidueType type, Int charge) const
   {
     // check whether tags are present
-    DoubleReal tag_offset(0);
+    double tag_offset(0);
     for (ConstIterator it = this->begin(); it != this->end(); ++it)
     {
       if (it->getOneLetterCode() == "")
@@ -787,15 +793,10 @@ namespace OpenMS
     const Size& size_peptide = peptide.size();
     for (Size i = 1; i < size_peptide; ++i)
     {
-      if ((isalpha(peptide[i]) && isupper(peptide[i]) && !mod_open) ||
-          (peptide[i] == '[' && !mod_open))
+      if (isalpha(peptide[i]) && isupper(peptide[i]) && !mod_open)
       {
         split.push_back(peptide.substr(pos, i - pos));
         pos = i;
-        //if (mod_open)
-        {
-          mod_open = false;
-        }
       }
       switch (peptide[i])
       {
@@ -816,10 +817,20 @@ namespace OpenMS
           mod_open = false;
           break;
         case '[':
-          // tag_open = true;
+          if (mod_open)
+          {
+            ++num_brackets;
+            continue;
+          }
+          mod_open = true;
           break;
         case ']':
-          // tag_open = false;
+          if (num_brackets != 0)
+          {
+            --num_brackets;
+            continue;
+          }
+          mod_open = false;
           break;
         default:
           break;
@@ -946,9 +957,9 @@ namespace OpenMS
         }
       }
 
-      // now we have the name and the modification name (if there is one), or the tag
+      // Retrieve the underlying residue
       const Residue * res_ptr = getResidueDB_()->getResidue(name);
-      if (res_ptr == 0 && tag == "")
+      if (res_ptr == 0)
       {
         valid_ = false;
         sequence_string_.concatenate(split.begin(), split.end());
@@ -956,11 +967,12 @@ namespace OpenMS
         cerr << "AASequence: cannot parse residue with name: '" << name << "' from sequence '" << peptide << "'" << endl;
         return;
       }
-      if (mod != "" && i > 0)
+
+      if (!mod.empty() && i > 0)
       {
         sequence.push_back(ResidueDB::getInstance()->getModifiedResidue(res_ptr, mod));
       }
-      else if (mod != "" && i == 0)
+      else if (!mod.empty() && i == 0)
       {
         std::set<const ResidueModification *> mod_candidates;
         ModificationsDB::getInstance()->searchModifications(mod_candidates, res_ptr->getOneLetterCode(), mod, ResidueModification::ANYWHERE);
@@ -978,28 +990,99 @@ namespace OpenMS
           }
         }
       }
-      else
+      else if (!tag.empty())
       {
-        if (tag != "")
+        if (tag.hasPrefix("+") || tag.hasPrefix("-"))
         {
-          // if the residue db does not have this tag-residue, we add one
-          if (res_ptr == 0)
+          // delta mass
+          double delta_mass = tag.toDouble();
+          const Residue* result = NULL;
+
+          if (tag.hasSubstring("."))
           {
-            Residue res(tag, String(""), String(""), EmpiricalFormula(""));
-            res.setMonoWeight(tag.toDouble());
-            res.setAverageWeight(tag.toDouble());
-            getResidueDB_()->addResidue(res);
-            sequence.push_back(getResidueDB_()->getResidue(tag));
+            // we have a float, look for an exact match
+            const ResidueModification * mod = ModificationsDB::getInstance()->getBestModificationsByDiffMonoMass(res_ptr->getOneLetterCode(), delta_mass, 1.0);
+            if (mod != NULL)
+            {
+              result = ResidueDB::getInstance()->getModifiedResidue(res_ptr, mod->getId());
+            }
           }
           else
           {
-            sequence.push_back(res_ptr);
+            // we have an integer, look for the first match (usually this is what is intended)
+            std::vector< String > mods;
+            ModificationsDB::getInstance()->getModificationsByDiffMonoMass(mods, res_ptr->getOneLetterCode(), delta_mass, 0.5);
+            if (!mods.empty())
+            {
+              const ResidueModification * mod = &ModificationsDB::getInstance()->getModification(mods[0]);
+              result = ResidueDB::getInstance()->getModifiedResidue(res_ptr, mod->getId());
+            }
           }
+
+          if (result == NULL || res_ptr->getMonoWeight() <= 0.0)
+          {
+            // using an amino acid with zero weight and a differential modification on that cannot lead to a valid result!
+            if (res_ptr->getMonoWeight() <= 0.0)
+            {
+              valid_ = false;
+              std::cerr << "Warning: Having a difference modification on an unspecified residue (" <<
+                name << "[" << tag <<  "]) will probably not produce a correct mass." << std::endl;
+            }
+
+            std::cout <<  "Warning: unknown modification " << tag << " on residue "
+              << name << ": will add to the database." << std::endl;
+            Residue res(tag, String(""), String(""), EmpiricalFormula(""));
+            res.setMonoWeight(delta_mass + res_ptr->getMonoWeight());
+            res.setAverageWeight(delta_mass + res_ptr->getAverageWeight());
+            getResidueDB_()->addResidue(res);
+            result = getResidueDB_()->getResidue(tag);
+          }
+          sequence.push_back(result);
         }
         else
         {
-          sequence.push_back(res_ptr);
+          // absolute mass
+          double mass = tag.toDouble();
+          const Residue* result = NULL;
+
+          if (tag.hasSubstring("."))
+          {
+            // we have a float, look for an exact match
+            const ResidueModification * mod = ModificationsDB::getInstance()->getBestModificationsByMonoMass(res_ptr->getOneLetterCode(), mass, 1.0);
+            if (mod)
+              result = ResidueDB::getInstance()->getModifiedResidue(res_ptr, mod->getId());
+          }
+          else
+          {
+            // we have an integer, look for the first match (usually this is what is intended)
+            std::vector< String > mods;
+            double res_deltamass = mass - (res_ptr->getMonoWeight() - res_ptr->getInternalToFullMonoWeight());
+            ModificationsDB::getInstance()->getModificationsByDiffMonoMass(mods, res_ptr->getOneLetterCode(), res_deltamass, 0.5);
+            if (!mods.empty())
+            {
+              const ResidueModification * mod = &ModificationsDB::getInstance()->getModification(mods[0]);
+              result = ResidueDB::getInstance()->getModifiedResidue(res_ptr, mod->getId());
+            }
+          }
+
+          if (result == NULL || res_ptr->getMonoWeight() <= 0.0)
+          {
+            // using an amino acid with zero weight should lead to an accurate mass representation of the AA (and not try to guess something)... !
+            std::cout <<  "Warning: unknown modification " << tag << " on residue "
+              << name << ": will add to the database." << std::endl;
+            Residue res(tag, String(""), String(""), EmpiricalFormula(""));
+            res.setMonoWeight(mass);
+            res.setAverageWeight(mass);
+            getResidueDB_()->addResidue(res);
+            result = getResidueDB_()->getResidue(tag);
+          }
+          sequence.push_back(result);
         }
+      }
+      else
+      {
+        // mod and tag are both empty
+        sequence.push_back(res_ptr);
         if (sequence.size() < i)
         {
           valid_ = false;

@@ -990,7 +990,7 @@ namespace OpenMS
     connectVisualizer_(visualizer);
   }
 
-  void MetaDataBrowser::filterHits_(DoubleReal threshold, bool higher_better, int tree_item_id)
+  void MetaDataBrowser::filterHits_(double threshold, bool higher_better, int tree_item_id)
   {
     // find item in tree belonging to PeptideIdentification object
     QTreeWidgetItem * item = treeview_->findItems(QString::number(tree_item_id), Qt::MatchExactly | Qt::MatchRecursive, 1).first();

@@ -93,8 +93,6 @@
           </NODE>
           <NODE name="optimization" description="">
             <ITEM name="iterations" value="15" type="int" description="maximal number of iterations for the fitting step" required="false" advanced="true" restrictions="1:" />
-            <ITEM name="delta_abs_error" value="9.99999974737875e-005" type="double" description="if the absolute error gets smaller than this value the fitting is stopped." required="false" advanced="true" restrictions="0:" />
-            <ITEM name="delta_rel_error" value="9.99999974737875e-005" type="double" description="if the relative error gets smaller than this value the fitting is stopped" required="false" advanced="true" restrictions="0:" />
             <NODE name="penalties" description="">
               <ITEM name="position" value="0" type="double" description="penalty term for the fitting of the position:If it differs too much from the initial one it can be penalized " required="false" advanced="true" restrictions="0:" />
               <ITEM name="left_width" value="1" type="double" description="penalty term for the fitting of the left width:If the left width differs too much from the initial one during the fitting it can be penalized." required="false" advanced="true" restrictions="0:" />

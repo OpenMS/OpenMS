@@ -87,7 +87,7 @@ START_SECTION((QColor color(UInt index)))
 	TEST_EQUAL(mg.color(1)==Qt::black,true);
 END_SECTION
 
-START_SECTION((void insert(DoubleReal position, QColor color)))
+START_SECTION((void insert(double position, QColor color)))
 	MultiGradient mg;
 	mg.insert(50,Qt::red);
 	TEST_EQUAL(mg.size(),3);
@@ -134,7 +134,7 @@ START_SECTION((void insert(DoubleReal position, QColor color)))
 	TEST_EQUAL(mg.color(5)==Qt::black,true);
 END_SECTION
 
-START_SECTION((bool remove(DoubleReal position)))
+START_SECTION((bool remove(double position)))
 	MultiGradient mg;
 	mg.insert(25,Qt::green);
 	mg.insert(50,Qt::red);
@@ -165,7 +165,7 @@ START_SECTION((bool remove(DoubleReal position)))
 	TEST_EQUAL(mg.color(1)==Qt::black,true);
 END_SECTION
 
-START_SECTION((bool exists(DoubleReal position)))
+START_SECTION((bool exists(double position)))
 	MultiGradient mg;
 	mg.insert(25,Qt::green);
 	mg.insert(50,Qt::red);
@@ -181,7 +181,7 @@ START_SECTION((bool exists(DoubleReal position)))
 	TEST_EQUAL(mg.exists(100),true);
 END_SECTION
 
-START_SECTION((QColor interpolatedColorAt(DoubleReal position) const))
+START_SECTION((QColor interpolatedColorAt(double position) const))
 	MultiGradient mg;
 	TEST_EQUAL(mg.interpolatedColorAt(0)==Qt::white,true);
 	TEST_EQUAL(mg.interpolatedColorAt(25)==QColor(191,191,191),true);
@@ -221,7 +221,7 @@ START_SECTION((QColor interpolatedColorAt(DoubleReal position) const))
 	TEST_EQUAL(mg2.interpolatedColorAt(100)==Qt::black,true);
 END_SECTION
 
-START_SECTION((QColor interpolatedColorAt(DoubleReal position, DoubleReal min, DoubleReal max) const))
+START_SECTION((QColor interpolatedColorAt(double position, double min, double max) const))
 	MultiGradient mg;
 	mg.insert(50,Qt::red);
 	TEST_EQUAL(mg.interpolatedColorAt(0,0,100)==Qt::white,true);
@@ -241,11 +241,11 @@ START_SECTION((QColor interpolatedColorAt(DoubleReal position, DoubleReal min, D
 	TEST_EQUAL(mg2.interpolatedColorAt(100)==Qt::black,true);
 END_SECTION
 
-START_SECTION((void activatePrecalculationMode(DoubleReal min, DoubleReal max, UInt steps)))
+START_SECTION((void activatePrecalculationMode(double min, double max, UInt steps)))
 NOT_TESTABLE
 END_SECTION
 
-START_SECTION((QColor precalculatedColorAt(DoubleReal position) const ))
+START_SECTION((QColor precalculatedColorAt(double position) const ))
 	MultiGradient mg;
 	mg.insert(0,Qt::white);
 	mg.insert(100,Qt::blue);

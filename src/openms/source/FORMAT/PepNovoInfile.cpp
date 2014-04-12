@@ -94,7 +94,7 @@ namespace OpenMS
 
     ResidueModification::Term_Specificity ts = ModificationsDB::getInstance()->getModification(modification).getTermSpecificity();
     String origin = ModificationsDB::getInstance()->getModification(modification).getOrigin();
-    DoubleReal mass = ModificationsDB::getInstance()->getModification(modification).getDiffMonoMass();
+    double mass = ModificationsDB::getInstance()->getModification(modification).getDiffMonoMass();
     String full_name = ModificationsDB::getInstance()->getModification(modification).getFullName();
     String full_id = ModificationsDB::getInstance()->getModification(modification).getFullId();
 

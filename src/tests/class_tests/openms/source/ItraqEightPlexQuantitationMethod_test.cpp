@@ -39,6 +39,8 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqEightPlexQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqConstants.h>
 ///////////////////////////
+//
+#include <OpenMS/DATASTRUCTURES/Matrix.h>
 
 using namespace OpenMS;
 using namespace std;

@@ -295,7 +295,7 @@ protected:
         for (MSExperiment<>::const_iterator it2 = in.begin(); it2 != in.end(); ++it2)
         {
           //handle rt
-          Real rt_final = it2->getRT();
+          float rt_final = it2->getRT();
           if (rt_auto_number)
           {
             rt_final = ++rt_auto;

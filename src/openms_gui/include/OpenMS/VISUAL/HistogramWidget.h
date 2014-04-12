@@ -32,9 +32,11 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-
 #ifndef OPENMS_VISUAL_HISTOGRAMWIDGET_H
 #define OPENMS_VISUAL_HISTOGRAMWIDGET_H
+
+// OpenMS_GUI config
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 // QT
 #include <QtGui/QWidget>
@@ -74,10 +76,10 @@ public:
     virtual ~HistogramWidget();
 
     /// Returns the value f the lower splitter
-    DoubleReal getLeftSplitter();
+    double getLeftSplitter();
 
     /// Returns the value of the upper splitter
-    DoubleReal getRightSplitter();
+    double getRightSplitter();
 
     /// Set axis legends
     void setLegend(const String & legend);
@@ -87,10 +89,10 @@ public slots:
     void showSplitters(bool on);
 
     /// Sets the value of the right splitter
-    void setRightSplitter(DoubleReal pos);
+    void setRightSplitter(double pos);
 
     /// Sets the value of the left splitter
-    void setLeftSplitter(DoubleReal pos);
+    void setLeftSplitter(double pos);
 
     /// Enables/disables log mode
     void setLogMode(bool log_mode);
@@ -103,10 +105,10 @@ protected:
     bool show_splitters_;
 
     /// Value of the right splitter
-    DoubleReal left_splitter_;
+    double left_splitter_;
 
     /// Value of the right splitter
-    DoubleReal right_splitter_;
+    double right_splitter_;
 
     /// The splitter that is currently dragged (0=none, 1=left, 2=right)
     UInt moving_splitter_;

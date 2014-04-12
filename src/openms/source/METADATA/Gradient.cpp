@@ -41,7 +41,6 @@ using namespace std;
 namespace OpenMS
 {
   Gradient::Gradient() :
-    //   //PersistentObject(),
     eluents_(),
     times_(),
     percentages_()
@@ -50,7 +49,6 @@ namespace OpenMS
   }
 
   Gradient::Gradient(const Gradient & source) :
-    //PersistentObject(source),
     eluents_(source.eluents_),
     times_(source.times_),
     percentages_(source.percentages_)
@@ -71,7 +69,6 @@ namespace OpenMS
     eluents_ = source.eluents_;
     times_ = source.times_;
     percentages_ = source.percentages_;
-    //PersistentObject::operator = (source);
 
     return *this;
   }

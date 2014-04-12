@@ -155,13 +155,13 @@ protected:
     public MzTabNullNaNAndInfAbleBase
   {
 public:
-    void set(const DoubleReal& value)
+    void set(const double& value)
     {
       state_ = MZTAB_CELLSTATE_DEFAULT;
       value_ = value;
     }
 
-    DoubleReal get() const
+    double get() const
     {
       if (state_ == MZTAB_CELLSTATE_DEFAULT)
       {
@@ -216,7 +216,7 @@ public:
     }
 
 protected:
-    DoubleReal value_;
+    double value_;
   };
 
   class MzTabDoubleList :

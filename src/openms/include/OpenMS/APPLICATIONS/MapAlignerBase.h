@@ -91,18 +91,10 @@ public:
     TransformationModelLinear::getDefaultParameters(model_params);
     params.insert("linear:", model_params);
     params.setSectionDescription("linear", "Parameters for 'linear' model");
-    TransformationModelBSpline::getDefaultParameters(model_params);
-    params.insert("b_spline:", model_params);
-    params.setSectionDescription("b_spline", "Parameters for 'b_spline' model");
     TransformationModelInterpolated::getDefaultParameters(model_params);
-    // "polynomial" interpolation is not suitable for RT data, so remove it:
-    const Param::ParamEntry & entry =
-      model_params.getEntry("interpolation_type");
-    StringList interpolation_types = entry.valid_strings;
-    StringList::iterator pos = find(interpolation_types.begin(),
-                                    interpolation_types.end(), "polynomial");
-    interpolation_types.erase(pos);
-    model_params.setValidStrings("interpolation_type", interpolation_types);
+    params.insert("cspline:", model_params);
+    params.setSectionDescription("cspline", "Parameters for 'cspline' model");
+    TransformationModelInterpolated::getDefaultParameters(model_params);
     params.insert("interpolated:", model_params);
     params.setSectionDescription("interpolated",
                                  "Parameters for 'interpolated' model");

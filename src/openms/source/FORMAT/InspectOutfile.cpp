@@ -76,7 +76,7 @@ namespace OpenMS
   }
 
   vector<Size> InspectOutfile::load(const String & result_filename, vector<PeptideIdentification> & peptide_identifications,
-                                    ProteinIdentification & protein_identification, const DoubleReal p_value_threshold, const String & database_filename)
+                                    ProteinIdentification & protein_identification, const double p_value_threshold, const String & database_filename)
   {
     // check whether the p_value is correct
     if ((p_value_threshold < 0) || (p_value_threshold > 1))
@@ -518,8 +518,8 @@ namespace OpenMS
 
       for (vector<pair<Size, Size> >::const_iterator pi_scan_i = fs_i->second.begin(); pi_scan_i != fs_i->second.end(); ++pi_scan_i)
       {
-        ids[pi_scan_i->first].setMetaValue("MZ", experiment[pi_scan_i->second - 1].getPrecursors()[0].getMZ());
-        ids[pi_scan_i->first].setMetaValue("RT", experiment[pi_scan_i->second - 1].getRT());
+        ids[pi_scan_i->first].setMZ(experiment[pi_scan_i->second - 1].getPrecursors()[0].getMZ());
+        ids[pi_scan_i->first].setRT(experiment[pi_scan_i->second - 1].getRT());
       }
     }
   }
@@ -961,7 +961,7 @@ namespace OpenMS
     }
   }
 
-  vector<Size> InspectOutfile::getWantedRecords(const String & result_filename, DoubleReal p_value_threshold)
+  vector<Size> InspectOutfile::getWantedRecords(const String & result_filename, double p_value_threshold)
   {
     // check whether the p_value is correct
     if ((p_value_threshold < 0) || (p_value_threshold > 1))

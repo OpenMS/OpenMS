@@ -60,7 +60,7 @@ START_SECTION((virtual ~GaussFilterAlgorithm()))
     delete dgauss_ptr;
 END_SECTION
 
-START_SECTION((void initialize(DoubleReal gaussian_width, DoubleReal spacing, DoubleReal ppm_tolerance, bool use_ppm_tolerance)))
+START_SECTION((void initialize(double gaussian_width, double spacing, double ppm_tolerance, bool use_ppm_tolerance)))
   // We cannot really test that the variables are correctly set since we dont
   // have access to them.
   dgauss_ptr = new GaussFilterAlgorithm;

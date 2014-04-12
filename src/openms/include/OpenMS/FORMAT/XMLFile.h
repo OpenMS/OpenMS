@@ -41,6 +41,8 @@
 
 #include <xercesc/framework/XMLFormatter.hpp>
 
+#include <iosfwd>
+
 namespace OpenMS
 {
   namespace Internal
@@ -65,10 +67,13 @@ public:
 
         Error messages are printed to the error stream, unless redirected with the attribute @p os .
 
+        @param filename The name of the file to validate.
+        @param os The ostream where error messages should be send.
+       
         @exception Exception::FileNotFound is thrown if the file cannot be found
         @exception Exception::NotImplemented is thrown if there is no schema available for the file type
       */
-      bool isValid(const String & filename, std::ostream & os = std::cerr);
+      bool isValid(const String & filename, std::ostream & os);
 
       ///return the version of the schema
       const String & getVersion() const;

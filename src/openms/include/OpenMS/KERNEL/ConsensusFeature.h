@@ -137,7 +137,7 @@ public:
         return *this;
       }
 
-      DoubleReal ratio_value_;
+      double ratio_value_;
       String denominator_ref_;
       String numerator_ref_;
       std::vector<String> description_;

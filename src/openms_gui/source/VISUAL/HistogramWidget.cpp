@@ -81,12 +81,12 @@ namespace OpenMS
     delete(bottom_axis_);
   }
 
-  DoubleReal HistogramWidget::getLeftSplitter()
+  double HistogramWidget::getLeftSplitter()
   {
     return left_splitter_;
   }
 
-  DoubleReal HistogramWidget::getRightSplitter()
+  double HistogramWidget::getRightSplitter()
   {
     return right_splitter_;
   }
@@ -96,12 +96,12 @@ namespace OpenMS
     show_splitters_ = on;
   }
 
-  void HistogramWidget::setRightSplitter(DoubleReal pos)
+  void HistogramWidget::setRightSplitter(double pos)
   {
     right_splitter_ = min(dist_.maxBound(), pos);
   }
 
-  void HistogramWidget::setLeftSplitter(DoubleReal pos)
+  void HistogramWidget::setLeftSplitter(double pos)
   {
     left_splitter_ = max(dist_.minBound(), pos);
   }
@@ -143,7 +143,7 @@ namespace OpenMS
       //left
       if (moving_splitter_ == 1)
       {
-        left_splitter_ = DoubleReal(Int(e->x()) - Int(margin_)) / (width() - 2 * margin_) * (dist_.maxBound() - dist_.minBound()) + dist_.minBound();
+        left_splitter_ = double(Int(e->x()) - Int(margin_)) / (width() - 2 * margin_) * (dist_.maxBound() - dist_.minBound()) + dist_.minBound();
         //upper bound
         if (left_splitter_ > right_splitter_ - (dist_.maxBound() - dist_.minBound()) / 50.0)
         {
@@ -161,7 +161,7 @@ namespace OpenMS
       if (moving_splitter_ == 2)
       {
 
-        right_splitter_ = DoubleReal(Int(e->x()) - Int(margin_)) / (width() - 2 * margin_ + 2) * (dist_.maxBound() - dist_.minBound()) + dist_.minBound();
+        right_splitter_ = double(Int(e->x()) - Int(margin_)) / (width() - 2 * margin_ + 2) * (dist_.maxBound() - dist_.minBound()) + dist_.minBound();
         //upper bound
         if (right_splitter_ < left_splitter_ + (dist_.maxBound() - dist_.minBound()) / 50.0)
         {
@@ -272,14 +272,14 @@ namespace OpenMS
     {
       if (dist[i] != 0)
       {
-        UInt bin_pos = UInt((DoubleReal(i) / (dist.size() - 1)) * (w - margin_));
-        UInt bin_height = UInt(((DoubleReal)dist[i] / dist.maxValue()) * (h - margin_));
+        UInt bin_pos = UInt((double(i) / (dist.size() - 1)) * (w - margin_));
+        UInt bin_height = UInt(((double)dist[i] / dist.maxValue()) * (h - margin_));
         painter.drawLine(bin_pos + 1, h, bin_pos + 1, h - bin_height);
       }
     }
 
     //calculate total intensity
-    DoubleReal total_sum = 0;
+    double total_sum = 0;
     for (Size i = 0; i < dist.size(); ++i)
     {
       total_sum += dist[i];
@@ -289,11 +289,11 @@ namespace OpenMS
     painter.setPen(Qt::red);
     QPoint last_point(1, h);
     QPoint point;
-    DoubleReal int_sum = 0;
+    double int_sum = 0;
     for (Size i = 0; i < dist.size(); ++i)
     {
       int_sum += dist[i];
-      point.setX(UInt((DoubleReal(i) / (dist.size() - 1)) * (w - margin_)));
+      point.setX(UInt((double(i) / (dist.size() - 1)) * (w - margin_)));
       point.setY(UInt((1 - (int_sum / total_sum)) * (h - margin_) + margin_));
       painter.drawLine(last_point, point);
       last_point = point;

@@ -35,6 +35,9 @@
 #include <OpenMS/FORMAT/MzTab.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/FORMAT/TextFile.h>
+
+#include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
+
 #include <fstream>
 
 using namespace OpenMS;
@@ -496,9 +499,9 @@ namespace OpenMS
       }
 
       // parse peptide section
-      std::vector<DoubleReal> peptide_abundance_sub; // Peptide abundance in the subsample;
-      std::vector<DoubleReal> peptide_abundance_stdev_sub; // Peptide abundance standard deviation.
-      std::vector<DoubleReal> peptide_abundance_std_error_sub; // Peptide abundance standard error.
+      std::vector<double> peptide_abundance_sub; // Peptide abundance in the subsample;
+      std::vector<double> peptide_abundance_stdev_sub; // Peptide abundance standard deviation.
+      std::vector<double> peptide_abundance_std_error_sub; // Peptide abundance standard error.
       std::vector<MzTabOptionalColumnEntry> pep_opt_; // Optional columns must start with opt_.
 
       if (prefix == "PEP")
@@ -1334,9 +1337,9 @@ namespace OpenMS
           }
 
           String retention_time;
-          if (pep_id_it->metaValueExists("RT")) // Note: RT stored on pep_id_it not on hit
+          if (pep_id_it->hasRT()) // Note: RT stored on pep_id_it not on hit
           {
-            retention_time = String::number(String(pep_id_it->getMetaValue("RT")).toDouble(), 2);
+            retention_time = String::number(pep_id_it->getRT(), 2);
           }
           else
           {
@@ -1344,9 +1347,9 @@ namespace OpenMS
           }
 
           String mass_to_charge;
-          if (pep_id_it->metaValueExists("MZ")) // Note: MZ stored on pep_id_it not on hit
+          if (pep_id_it->hasMZ()) // Note: MZ stored on pep_id_it not on hit
           {
-            mass_to_charge = String::number(String(pep_id_it->getMetaValue("MZ")).toDouble(), 10);
+            mass_to_charge = String::number(pep_id_it->getMZ(), 10);
           }
           else
           {
@@ -1764,8 +1767,8 @@ namespace OpenMS
     // std::vector<String> variable_modifications; ///< Allowed variable modifications
     // ProteinIdentification::NamesOfDigestionEnzyme[sp.enzyme]
     // UInt missed_cleavages; ///< The number of allowed missed cleavages
-    // DoubleReal peak_mass_tolerance; ///< Mass tolerance of fragment ions (Dalton)
-    // DoubleReal precursor_tolerance; ///< Mass tolerance of precursor ions (Dalton)
+    // double peak_mass_tolerance; ///< Mass tolerance of fragment ions (Dalton)
+    // double precursor_tolerance; ///< Mass tolerance of precursor ions (Dalton)
 
     // in OpenMS global to a ProteinIdentification
     String UNIT_ID_String = "OpenMS_" + String(run_count);
@@ -1904,7 +1907,7 @@ namespace OpenMS
     return ret;
   }
 
-  String MzTabFile::mapSearchEngineScoreToCvParam_(const String& openms_search_engine_name, DoubleReal score, String score_type)
+  String MzTabFile::mapSearchEngineScoreToCvParam_(const String& openms_search_engine_name, double score, String score_type)
   {
     String s;
 

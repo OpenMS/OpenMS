@@ -185,7 +185,7 @@ namespace OpenMS
     string::operator=(s.str());
   }
 
-  String String::numberLength(DoubleReal d, UInt n)
+  String String::numberLength(double d, UInt n)
   {
     stringstream s;
     //reserve one space for the minus sign
@@ -221,7 +221,7 @@ namespace OpenMS
     return s.str().substr(0, n);
   }
 
-  String String::number(DoubleReal d, UInt n)
+  String String::number(double d, UInt n)
   {
     return QString::number(d, 'f', n);
   }
@@ -718,12 +718,12 @@ namespace OpenMS
     return ret;
   }
 
-  Real String::toFloat() const
+  float String::toFloat() const
   {
     namespace qi = boost::spirit::qi;
     namespace ascii = boost::spirit::ascii;
 
-    Real ret;
+    float ret;
 
     // boost::spirit::qi was found to be vastly superior to boost::lexical_cast or stringstream extraction (especially for VisualStudio),
     // so don't change this unless you have benchmarks for all platforms!
@@ -735,12 +735,12 @@ namespace OpenMS
     return ret;
   }
 
-  DoubleReal String::toDouble() const
+  double String::toDouble() const
   {
     namespace qi = boost::spirit::qi;
     namespace ascii = boost::spirit::ascii;
 
-    DoubleReal ret;
+    double ret;
     // boost::spirit::qi was found to be vastly superior to boost::lexical_cast or stringstream extraction (especially for VisualStudio),
     // so don't change this unless you have benchmarks for all platforms!
     if (!qi::phrase_parse(this->begin(), this->end(), qi::double_, ascii::space, ret))

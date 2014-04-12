@@ -35,6 +35,9 @@
 #ifndef OPENMS_VISUAL_LISTEDITOR_H
 #define OPENMS_VISUAL_LISTEDITOR_H
 
+// OpenMS_GUI config
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
+
 #ifndef Q_MOC_RUN
   #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #endif

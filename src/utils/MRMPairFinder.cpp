@@ -41,8 +41,6 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder_impl.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
-#include <gsl/gsl_statistics.h>
-
 using namespace OpenMS;
 using namespace std;
 
@@ -70,9 +68,9 @@ using namespace std;
 // a SILAC pair, with m/z value rt
 struct SILAC_pair
 {
-  DoubleReal mz_light;
-  DoubleReal mz_heavy;
-  DoubleReal rt;
+  double mz_light;
+  double mz_heavy;
+  double rt;
 };
 
 
@@ -94,15 +92,15 @@ struct MatchedFeature
 // for fast access to defined pair
 struct SILACQuantitation
 {
-  SILACQuantitation(DoubleReal l_intensity, DoubleReal h_intensity, Size index) :
+  SILACQuantitation(double l_intensity, double h_intensity, Size index) :
     light_intensity(l_intensity),
     heavy_intensity(h_intensity),
     idx(index)
   {
   }
 
-  DoubleReal light_intensity;
-  DoubleReal heavy_intensity;
+  double light_intensity;
+  double heavy_intensity;
   Size idx;
 };
 
@@ -149,9 +147,9 @@ protected:
     String out(getStringOption_("out"));
     String feature_out(getStringOption_("feature_out"));
     String pair_in(getStringOption_("pair_in"));
-    DoubleReal mass_tolerance(getDoubleOption_("mass_tolerance"));
-    DoubleReal RT_tolerance(getDoubleOption_("RT_tolerance"));
-    DoubleReal RT_pair_tolerance(getDoubleOption_("RT_pair_tolerance"));
+    double mass_tolerance(getDoubleOption_("mass_tolerance"));
+    double RT_tolerance(getDoubleOption_("RT_tolerance"));
+    double RT_pair_tolerance(getDoubleOption_("RT_pair_tolerance"));
 
     //-------------------------------------------------------------
     // reading input
@@ -163,7 +161,7 @@ protected:
     // read pair file
     ifstream is(pair_in.c_str());
     String line;
-    Map<DoubleReal, Map<DoubleReal, vector<SILAC_pair> > > pairs;
+    Map<double, Map<double, vector<SILAC_pair> > > pairs;
     while (getline(is, line))
     {
       line.trim();
@@ -183,8 +181,8 @@ protected:
         continue;
       }
       SILAC_pair p;
-      DoubleReal prec_mz_light = split[0].toDouble();
-      DoubleReal prec_mz_heavy = split[1].toDouble();
+      double prec_mz_light = split[0].toDouble();
+      double prec_mz_heavy = split[1].toDouble();
       p.mz_light = split[2].toDouble();
       p.mz_heavy = split[3].toDouble();
       p.rt = split[4].toDouble();
@@ -205,9 +203,9 @@ protected:
     // collect the different MRM XIC pairs for each SILAC pair as quantlets
     // then calculate the ratio over the quanlets and calculate some statistics
     FeatureMap<> all_features;
-    for (Map<DoubleReal, Map<DoubleReal, vector<SILAC_pair> > >::ConstIterator it1 = pairs.begin(); it1 != pairs.end(); ++it1)
+    for (Map<double, Map<double, vector<SILAC_pair> > >::ConstIterator it1 = pairs.begin(); it1 != pairs.end(); ++it1)
     {
-      for (Map<DoubleReal, vector<SILAC_pair> >::ConstIterator it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
+      for (Map<double, vector<SILAC_pair> >::ConstIterator it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
       {
         vector<SILACQuantitation> quantlets;
         writeDebug_("Analyzing SILAC pair: " + String(it1->first) + " <-> " + String(it2->first), 3);
@@ -217,14 +215,14 @@ protected:
           FeatureMap<> feature_map_light, feature_map_heavy;
           for (FeatureMap<>::const_iterator it = all_mrm_features.begin(); it != all_mrm_features.end(); ++it)
           {
-            if (fabs((DoubleReal)it->getMetaValue("MZ") - it1->first) < mass_tolerance &&
+            if (fabs((double)it->getMetaValue("MZ") - it1->first) < mass_tolerance &&
                 fabs(it->getMZ() - pit->mz_light) < mass_tolerance &&
                 fabs(it->getRT() - pit->rt) < RT_tolerance)
             {
               feature_map_light.push_back(*it);
             }
 
-            if (fabs((DoubleReal)it->getMetaValue("MZ") - it2->first) < mass_tolerance &&
+            if (fabs((double)it->getMetaValue("MZ") - it2->first) < mass_tolerance &&
                 fabs(it->getMZ() - pit->mz_heavy) < mass_tolerance &&
                 fabs(it->getRT() - pit->rt) < RT_tolerance)
             {
@@ -250,7 +248,7 @@ protected:
             writeDebug_("Finding best feature pair out of " + String(light.size()) + " light and " + String(heavy.size()) + " heavy matching features.", 1);
             // now find "good" matches, means the pair with the smallest m/z deviation
             Feature best_light, best_heavy;
-            DoubleReal best_deviation(numeric_limits<DoubleReal>::max());
+            double best_deviation(numeric_limits<double>::max());
             Size best_idx(it2->second.size());
             for (vector<MatchedFeature>::const_iterator fit1 = light.begin(); fit1 != light.end(); ++fit1)
             {
@@ -260,7 +258,7 @@ protected:
                 {
                   continue;
                 }
-                DoubleReal deviation(0);
+                double deviation(0);
                 deviation = fabs(fit1->f.getMZ() - it2->second[fit1->idx].mz_light) +
                             fabs(fit2->f.getMZ() - it2->second[fit2->idx].mz_heavy);
                 if (deviation < best_deviation && deviation < mass_tolerance)
@@ -299,8 +297,8 @@ protected:
         }
 
         // simply add up all intensities and calculate the final ratio
-        DoubleReal light_sum(0), heavy_sum(0);
-        vector<DoubleReal> light_ints, heavy_ints, ratios;
+        double light_sum(0), heavy_sum(0);
+        vector<double> light_ints, heavy_ints, ratios;
         for (vector<SILACQuantitation>::const_iterator qit1 = quantlets.begin(); qit1 != quantlets.end(); ++qit1)
         {
           light_sum += qit1->light_intensity;
@@ -310,7 +308,7 @@ protected:
           ratios.push_back(qit1->heavy_intensity / qit1->light_intensity * (qit1->heavy_intensity + qit1->light_intensity));
         }
 
-        DoubleReal absdev_ratios = gsl_stats_absdev(&ratios.front(), 1, ratios.size()) / (light_sum + heavy_sum);
+        double absdev_ratios = Math::absdev(ratios.begin(), ratios.begin() + (ratios.size()) / (light_sum + heavy_sum));
         cout << "Ratio: " << it1->first << " <-> " << it2->first << " @ " << it2->second.begin()->rt << " s, ratio(h/l) " << heavy_sum / light_sum << " +/- " << absdev_ratios <<  " " << "(#XIC-pairs for quantation: " + String(ratios.size()) + " )" << endl;
       }
     }

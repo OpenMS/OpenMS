@@ -88,8 +88,8 @@ namespace OpenMS
     std::vector<String> valid_strings;
     Int min_int;
     Int max_int;
-    DoubleReal min_float;
-    DoubleReal max_float;
+    double min_float;
+    double max_float;
     //@}
 
     /// Constructor that takes all members in declaration order

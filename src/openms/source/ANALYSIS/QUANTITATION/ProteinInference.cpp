@@ -187,7 +187,7 @@ namespace OpenMS
       }       // ! map loop
 
       // % coverage of protein by peptides
-      coverage /= DoubleReal(protein_ident.getHits()[i].getSequence().size()) / 100;
+      coverage /= double(protein_ident.getHits()[i].getSequence().size()) / 100;
 
       protein_ident.getHits()[i].setMetaValue("coverage", coverage);
       protein_ident.getHits()[i].setMetaValue("hits", coverage_count);

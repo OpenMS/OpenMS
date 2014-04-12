@@ -131,7 +131,7 @@ protected:
     peptides.swap(pepxml_peptides);
 
     // prepare scores and coverage values of protein hits from the protXML:
-    map<String, pair<DoubleReal, DoubleReal> > hit_values;
+    map<String, pair<double, double> > hit_values;
     ProteinIdentification & protein = protxml_proteins[0];
     for (vector<ProteinHit>::iterator hit_it = protein.getHits().begin();
          hit_it != protein.getHits().end(); ++hit_it)
@@ -162,7 +162,7 @@ protected:
       for (vector<ProteinHit>::iterator hit_it = prot_it->getHits().begin();
            hit_it != prot_it->getHits().end(); ++hit_it)
       {
-        map<String, pair<DoubleReal, DoubleReal> >::const_iterator pos =
+        map<String, pair<double, double> >::const_iterator pos =
           hit_values.find(hit_it->getAccession());
         if (pos == hit_values.end())
         {

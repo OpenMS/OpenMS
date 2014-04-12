@@ -78,7 +78,7 @@ namespace OpenMS
     {
       throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
     }
-    os.precision(writtenDigits<DoubleReal>());
+    os.precision(writtenDigits<double>(0.0));
 
     //write header
     os << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << "\n";
@@ -90,8 +90,7 @@ namespace OpenMS
        << "\">\n";
 
     // write parameters
-    Param params;
-    transformation.getModelParameters(params);
+    Param params = transformation.getModelParameters();
     for (Param::ParamIterator it = params.begin(); it != params.end(); ++it)
     {
       if (it->value.valueType() != DataValue::EMPTY_VALUE)
@@ -150,7 +149,7 @@ namespace OpenMS
     if (element == "TrafoXML")
     {
       //check file version against schema version
-      DoubleReal file_version = attributeAsDouble_(attributes, "version");
+      double file_version = attributeAsDouble_(attributes, "version");
       if (file_version > version_.toDouble())
       {
         warning(LOAD, String("The XML file (") + file_version + ") is newer than the parser (" + version_ + "). This might lead to undefined program behavior.");

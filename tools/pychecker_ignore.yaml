@@ -1,7 +1,7 @@
 PyOpenMSChecker:
 
   # The following methods will be ignored by the checker
-  IgnoreMethods: 
+  IgnoreMethods:
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     #  Manual
@@ -52,24 +52,6 @@ PyOpenMSChecker:
         - colunit_peptide
         - colunit_small_molecule
 
-    # SILAC
-    OpenMS::SILACAnalyzer:
-        - calculateLabelsAndMassShifts
-        - filterData
-        - clusterData
-        - getSILAClabels
-        - getMassShifts
-        - generateClusterConsensusByCluster
-        - generateClusterConsensusByPattern
-        - generateClusterDebug
-        - generateFilterConsensusByPattern
-        - generateClusterFeatureByCluster
-        - readFilterConsensusByPattern
-    OpenMS::SILACFiltering:
-        - peak_width
-        - blacklist
-    OpenMS::SILACFiltering::BlacklistEntry:
-        - range
     OpenMS::SILACPoint:
         - mz_positions
         - intensities
@@ -86,7 +68,7 @@ PyOpenMSChecker:
 
     # static elements
     OpenMS::ChromatogramSettings:
-        - ChromatogramNames 
+        - ChromatogramNames
     OpenMS::ims::IMSElement:
         - ELECTRON_MASS_IN_U
     OpenMS::ItraqConstants:
@@ -222,7 +204,7 @@ PyOpenMSChecker:
         - getTypeByFileName
         - getTypeByContent
         - isSupported
-    
+
     # problematic functions
     OpenMS::MSChromatogram:
         - RTBegin
@@ -391,9 +373,9 @@ PyOpenMSChecker:
     OpenMS::HiddenMarkovModel:
         - write # stream
         - calculateEmissionProbabilities
-        - getState 
+        - getState
     OpenMS::MarkerMower:
-        - insertmarker 
+        - insertmarker
     OpenMS::ProteinResolver::ProteinEntry:
         - peptides
         - fasta_entry
@@ -499,16 +481,16 @@ PyOpenMSChecker:
         - create
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-    #  Base class problem : 
+    #  Base class problem :
     #  Cython cannot handle overloaded functions in the base class, consequently
     #  they will show up as missing. Thus ignore the inherited methods here
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-    
+
     OpenMS::FeatureGroupingAlgorithm:
         - group
         - FeatureGroupingAlgorithm # abstract class
     OpenMS::NeutralLossMarker:
-        - getProductName 
+        - getProductName
     OpenMS::MetaInfoInterface:
         - getMetaValue
         - metaValueExists
@@ -574,7 +556,7 @@ PyOpenMSChecker:
 
 
   # The following classes are ignore completely
-  IgnoreNames: 
+  IgnoreNames:
     - OpenMS::SimpleOpenMSSpectraFactory
 
     # Do not expose List, String and Utils methods - Python has better ones
@@ -605,7 +587,7 @@ PyOpenMSChecker:
     - std::vector
     - std::weak_ptr
 
-    # Internal OpenMS datastructures that cannot be used in Python 
+    # Internal OpenMS datastructures that cannot be used in Python
     - OpenMS::Internal::ClassTest
     - OpenMS::Bzip2Ifstream
     - OpenMS::Bzip2InputStream
@@ -872,9 +854,9 @@ PyOpenMSChecker:
     - OpenMS::TOPPASVertex::VertexRoundPackage
     - TOPPPCV
 
-    ######################################################################## 
+    ########################################################################
     #        Manually cureated list of classes we do not want to wrap
-    ######################################################################## 
+    ########################################################################
     #
     # rarely used classes
     - OpenMS::WeightWrapper
@@ -896,11 +878,8 @@ PyOpenMSChecker:
     - OpenMS::ChromatogramPeak::PositionLess
     - OpenMS::Param::ParamIterator::TraceInfo
     - OpenMS::CmpHypothesesByScore
-    
-    - OpenMS::SvmTheoreticalSpectrumGenerator::DescriptorSet # no public members that we could wrap 
 
-    # models
-    - OpenMS::TransformationModelBSpline
+    - OpenMS::SvmTheoreticalSpectrumGenerator::DescriptorSet # no public members that we could wrap
 
     # Internal OpenMS algorithm datastructures that cannot be used in Python
     - OpenMS::TwoDOptimization::Data
@@ -965,7 +944,6 @@ PyOpenMSChecker:
 
     # Iterators, comperators, helpers
     - OpenMS::CmpMassTraceByMZ
-    - OpenMS::cudaHelp
     - OpenMS::Internal::SemanticValidator::CVTerm
     - OpenMS::AASequence::ConstIterator
     - OpenMS::Internal::IntensityIteratorWrapper
@@ -1010,7 +988,7 @@ PyOpenMSChecker:
     - OpenMS::IsInCollisionEnergyRange
     - OpenMS::IsInIsolationWindowSizeRange
 
-    # CONCEPT 
+    # CONCEPT
     - OpenMS::SingletonRegistry
     - OpenMS::StreamHandler
     - OpenMS::UnaryComposeFunctionAdapter
@@ -1049,7 +1027,7 @@ PyOpenMSChecker:
     - OpenMS::OMSSACSVFile
     - OpenMS::MascotXMLFile
     - OpenMS::OMSSAXMLFile
-     
+
     # OPENSWATH classes
     - OpenSwath::mySqrt
     - OpenSwath::MockTransitionGroup
@@ -1078,7 +1056,7 @@ PyOpenMSChecker:
     - OpenSwath::ChromatogramMeta
     - OpenSwath::ISpectrumAccess
     - OpenSwath::SpectrumMeta
-     
+
     # SuperHirn classes
     - OpenMS::DeconvPeak
     - OpenMS::MS1FeatureMerger::OPERATOR_FEATURE_TR
@@ -1109,7 +1087,7 @@ PyOpenMSChecker:
     - OpenMS::SHFeature
     - OpenMS::SuperHirnParameters
     - OpenMS::SuperHirnUtil
-     
+
     # APPLICATION
     - ModificationMassesResult
     - RNPxlReportRow
@@ -1122,7 +1100,7 @@ PyOpenMSChecker:
     - RNPxlReportRowHeader
     - OpenMS::ConsoleUtils
     - TOPPRNPxl
-     
+
     # Comparators of all sorts
     - OpenMS::ReverseComparator
     - OpenMS::UnnormalizedComparator
@@ -1141,7 +1119,7 @@ PyOpenMSChecker:
     - OpenMS::PrecursorIonSelection::TotalScoreMore
     - OpenMS::ProteinHit::ScoreMore
     - OpenMS::CmpPeakByIntensity
-     
+
     # FEATUREFINDER internals - maybe we want some of them
     - OpenMS::ExtendedIsotopeModel
     - OpenMS::PeakWidthEstimator::Result
@@ -1169,7 +1147,7 @@ PyOpenMSChecker:
     - OpenMS::ExtendedIsotopeFitter1D
     - OpenMS::LmaIsotopeModel
     - OpenMS::FeatureFinderAlgorithmSHCtrl
-    
+
     # Interfaces - they are not ready yet
     - OpenMS::Interfaces::ISpectraWriter
     - OpenMS::Interfaces::ISpectraReader
@@ -1209,7 +1187,7 @@ PyOpenMSChecker:
     - OpenMS::SuffixArrayTrypticSeqan
     - OpenMS::GridFeature
     - OpenMS::BinaryTreeNode
-     
+
     # COMPARISON - mostly functors
     - OpenMS::PeakSpectrumCompareFunctor
     - OpenMS::BinnedSpectrumCompareFunctor::IncompatibleBinning

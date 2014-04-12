@@ -38,11 +38,11 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
-#include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/DATASTRUCTURES/ConvexHull2D.h>
 
 #include <vector>
+#include <list>
+#include <cmath>
 
 namespace OpenMS
 {
@@ -66,13 +66,10 @@ namespace OpenMS
       ///Peak index
       Size peak;
       ///Intensity
-      Real intensity;
+      float intensity;
 
       /// Comparison operator
-      bool operator<(const Seed & rhs) const
-      {
-        return intensity < rhs.intensity;
-      }
+      bool operator<(const Seed& rhs) const;
 
     };
 
@@ -83,15 +80,15 @@ namespace OpenMS
     struct MassTrace
     {
       ///Maximum peak pointer
-      const PeakType * max_peak;
+      const PeakType* max_peak;
       ///RT of maximum peak
-      DoubleReal max_rt;
+      double max_rt;
 
       ///Theoretical intensity value (scaled to [0,1])
-      DoubleReal theoretical_int;
+      double theoretical_int;
 
       ///Contained peaks (pair of RT and pointer to peak)
-      std::vector<std::pair<DoubleReal, const PeakType *> > peaks;
+      std::vector<std::pair<double, const PeakType*> > peaks;
 
       ///determines the convex hull of the trace
       ConvexHull2D getConvexhull() const
@@ -126,10 +123,10 @@ namespace OpenMS
       }
 
       ///Returns the average m/z of all peaks in this trace (weighted by intensity)
-      DoubleReal getAvgMZ() const
+      double getAvgMZ() const
       {
-        DoubleReal sum = 0.0;
-        DoubleReal intensities = 0.0;
+        double sum = 0.0;
+        double intensities = 0.0;
         for (Size i = 0; i < peaks.size(); ++i)
         {
           sum += peaks[i].second->getMZ() * peaks[i].second->getIntensity();
@@ -171,7 +168,7 @@ namespace OpenMS
       }
 
       ///Checks if still valid (seed still contained and enough traces)
-      bool isValid(DoubleReal seed_mz, DoubleReal trace_tolerance)
+      bool isValid(double seed_mz, double trace_tolerance)
       {
         //Abort if too few traces were found
         if (this->size() < 2) return false;
@@ -200,7 +197,7 @@ namespace OpenMS
         }
 
         Size max = 0;
-        DoubleReal max_int = this->at(0).theoretical_int;
+        double max_int = this->at(0).theoretical_int;
         for (Size i = 1; i < this->size(); ++i)
         {
           if (this->at(i).theoretical_int > max_int)
@@ -243,21 +240,21 @@ namespace OpenMS
 
         @exception Exception::Precondition is thrown if there are no mass traces (not only in debug mode)
       */
-      std::pair<DoubleReal, DoubleReal> getRTBounds() const
+      std::pair<double, double> getRTBounds() const
       {
         if (!this->size())
         {
           throw Exception::Precondition(__FILE__, __LINE__, __PRETTY_FUNCTION__, "There must be at least one trace to determine the RT boundaries!");
         }
 
-        DoubleReal min = std::numeric_limits<DoubleReal>::max();
-        DoubleReal max = -std::numeric_limits<DoubleReal>::max();
+        double min = std::numeric_limits<double>::max();
+        double max = -std::numeric_limits<double>::max();
         //Abort if the seed was removed
         for (Size i = 0; i < this->size(); ++i)
         {
           for (Size j = 0; j < this->at(i).peaks.size(); ++j)
           {
-            DoubleReal rt = this->at(i).peaks[j].first;
+            double rt = this->at(i).peaks[j].first;
             if (rt > max) max = rt;
             if (rt < min) min = rt;
           }
@@ -265,10 +262,71 @@ namespace OpenMS
         return std::make_pair(min, max);
       }
 
+      /**
+        @brief Computes a flat representation of MassTraces, i.e., a single
+               intensity value for each point in RT. The flattened representation
+               is comparable to the TIC of the MassTraces.
+
+        @param intensity_profile An empty std::list of pair<double, double> that will be filled.
+                The first element of the pair holds the RT value, the second value the sum of intensities
+                of all peaks in the different mass traces with this specific RT.
+      */
+      void computeIntensityProfile(std::list<std::pair<double, double> >& intensity_profile) const
+      {
+        // typedefs for better readability
+        typedef typename MassTraces<PeakType>::const_iterator TTraceIterator;
+        typedef std::list<std::pair<double, double> >::iterator TProfileIterator;
+        typedef typename std::vector<std::pair<double, const PeakType*> > TMassTracePeakList;
+        typedef typename TMassTracePeakList::const_iterator TTracePeakIterator;
+
+        TTraceIterator trace_it = this->begin();
+        // we add the first trace without check, as the profile is currently empty
+        for (TTracePeakIterator trace_peak_it = trace_it->peaks.begin(); trace_peak_it != trace_it->peaks.end(); ++trace_peak_it)
+        {
+          intensity_profile.push_back(std::make_pair(trace_peak_it->first, trace_peak_it->second->getIntensity()));
+        }
+        ++trace_it;
+
+        // accumulate intensities over all the remaining mass traces
+        for (; trace_it != this->end(); ++trace_it)
+        {
+          TProfileIterator profile_it = intensity_profile.begin();
+          TTracePeakIterator trace_peak_it = trace_it->peaks.begin();
+
+          while (trace_peak_it != trace_it->peaks.end())
+          {
+            // append .. if profile has already ended
+            if (profile_it == intensity_profile.end())
+            {
+              intensity_profile.push_back(std::make_pair(trace_peak_it->first, trace_peak_it->second->getIntensity()));
+              ++trace_peak_it;
+            }
+            // prepend
+            else if (profile_it->first > trace_peak_it->first)
+            {
+              intensity_profile.insert(profile_it, std::make_pair(trace_peak_it->first, trace_peak_it->second->getIntensity()));
+              ++trace_peak_it;
+            }
+            // proceed
+            else if (profile_it->first < trace_peak_it->first)
+            {
+              ++profile_it;
+            }
+            // merge
+            else if (profile_it->first == trace_peak_it->first)
+            {
+              profile_it->second += trace_peak_it->second->getIntensity();
+              ++trace_peak_it;
+              ++profile_it;
+            }
+          }
+        }
+      }
+
       /// Maximum intensity trace
       Size max_trace;
       /// Estimated baseline in the region of the feature (used for the fit)
-      DoubleReal baseline;
+      double baseline;
     };
 
     /**
@@ -277,20 +335,17 @@ namespace OpenMS
     struct OPENMS_DLLAPI TheoreticalIsotopePattern
     {
       ///Vector of intensity contributions
-      std::vector<DoubleReal> intensity;
+      std::vector<double> intensity;
       ///Number of optional peaks at the beginning of the pattern
       Size optional_begin;
       ///Number of optional peaks at the end of the pattern
       Size optional_end;
       ///The maximum intensity contribution before scaling the pattern to 1
-      DoubleReal max;
+      double max;
       ///The number of isotopes trimmed on the left side. This is needed to reconstruct the monoisotopic peak.
       Size trimmed_left;
       /// Returns the size
-      Size size() const
-      {
-        return intensity.size();
-      }
+      Size size() const;
 
     };
 
@@ -304,23 +359,16 @@ namespace OpenMS
       ///Spectrum index (undefined if peak index is -1 or -2)
       std::vector<Size> spectrum;
       ///Peak intensity (0 if peak index is -1 or -2)
-      std::vector<DoubleReal> intensity;
+      std::vector<double> intensity;
       ///m/z score of peak (0 if peak index is -1 or -2)
-      std::vector<DoubleReal> mz_score;
+      std::vector<double> mz_score;
       ///Theoretical m/z value of the isotope peak
-      std::vector<DoubleReal> theoretical_mz;
+      std::vector<double> theoretical_mz;
       ///Theoretical isotope pattern
       TheoreticalIsotopePattern theoretical_pattern;
 
       /// Constructor that resizes the internal vectors
-      explicit IsotopePattern(Size size) :
-        peak(size, -1),
-        spectrum(size),
-        intensity(size),
-        mz_score(size),
-        theoretical_mz(size)
-      {
-      }
+      explicit IsotopePattern(Size size);
 
     };
 

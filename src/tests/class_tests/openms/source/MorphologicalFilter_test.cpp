@@ -1,38 +1,39 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2013.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Clemens Groepl $
 // $Authors: $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/CONCEPT/TypeAsString.h>
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
@@ -294,7 +295,7 @@ START_SECTION((template < typename InputIterator, typename OutputIterator > void
 
 				Param parameters;
 				parameters.setValue("method","erosion");
-				parameters.setValue("struc_elem_length",(DoubleReal)struc_length);
+				parameters.setValue("struc_elem_length",(double)struc_length);
 				mf.setParameters(parameters);
 
 				mf.filterRange(  intensityIteratorWrapper(raw.begin()),
@@ -321,7 +322,7 @@ START_SECTION((template < typename InputIterator, typename OutputIterator > void
 
 				Param parameters;
 				parameters.setValue("method","dilation");
-				parameters.setValue("struc_elem_length",(DoubleReal)struc_length);
+				parameters.setValue("struc_elem_length",(double)struc_length);
 				mf.setParameters(parameters);
 
 				mf.filterRange(  intensityIteratorWrapper(raw.begin()),
@@ -373,7 +374,7 @@ START_SECTION((template < typename InputIterator, typename OutputIterator > void
 
 				Param parameters;
 				parameters.setValue("method","erosion");
-				parameters.setValue("struc_elem_length",(DoubleReal)struc_length);
+				parameters.setValue("struc_elem_length",(double)struc_length);
 				mf.setParameters(parameters);
 
 				mf.filterRange(  intensityIteratorWrapper(raw.begin()),
@@ -400,7 +401,7 @@ START_SECTION((template < typename InputIterator, typename OutputIterator > void
 
 				Param parameters;
 				parameters.setValue("method","dilation");
-				parameters.setValue("struc_elem_length",(DoubleReal)struc_length);
+				parameters.setValue("struc_elem_length",(double)struc_length);
 				mf.setParameters(parameters);
 
 				mf.filterRange(  intensityIteratorWrapper(raw.begin()),
@@ -457,7 +458,7 @@ START_SECTION([EXTRA] (template < typename InputIterator, typename OutputIterato
 
 			Param parameters;
 			parameters.setValue("method","erosion");
-			parameters.setValue("struc_elem_length",(DoubleReal)struc_length);
+			parameters.setValue("struc_elem_length",(double)struc_length);
 			mf.setParameters(parameters);
 
 			mf.filterRange( intensityIteratorWrapper(raw.begin()),
@@ -478,7 +479,7 @@ START_SECTION([EXTRA] (template < typename InputIterator, typename OutputIterato
 			simple_filtered_1.resize(data_size);
 
 			parameters.setValue("method","erosion_simple");
-			parameters.setValue("struc_elem_length",(DoubleReal)struc_length);
+			parameters.setValue("struc_elem_length",(double)struc_length);
 			mf.setParameters(parameters);
 
 			mf.filterRange(  intensityIteratorWrapper(raw.begin()),
@@ -498,7 +499,7 @@ START_SECTION([EXTRA] (template < typename InputIterator, typename OutputIterato
 			simple_filtered_2.resize(data_size);
 
 			parameters.setValue("method","opening");
-			parameters.setValue("struc_elem_length",(DoubleReal)struc_length);
+			parameters.setValue("struc_elem_length",(double)struc_length);
 			mf.setParameters(parameters);
 
 			mf.filterRange(  intensityIteratorWrapper(raw.begin()),
@@ -518,7 +519,7 @@ START_SECTION([EXTRA] (template < typename InputIterator, typename OutputIterato
 			simple_filtered_3.resize(data_size);
 
 			parameters.setValue("method","tophat");
-			parameters.setValue("struc_elem_length",(DoubleReal)struc_length);
+			parameters.setValue("struc_elem_length",(double)struc_length);
 			mf.setParameters(parameters);
 
 			mf.filterRange(  intensityIteratorWrapper(raw.begin()),
@@ -541,7 +542,7 @@ START_SECTION([EXTRA] (template < typename InputIterator, typename OutputIterato
 
 			Param parameters;
 			parameters.setValue("method","dilation");
-			parameters.setValue("struc_elem_length",(DoubleReal)struc_length);
+			parameters.setValue("struc_elem_length",(double)struc_length);
 			mf.setParameters(parameters);
 
 			mf.filterRange(  intensityIteratorWrapper(raw.begin()),
@@ -561,7 +562,7 @@ START_SECTION([EXTRA] (template < typename InputIterator, typename OutputIterato
 			simple_filtered_1.resize(data_size);
 
 			parameters.setValue("method","dilation_simple");
-			parameters.setValue("struc_elem_length",(DoubleReal)struc_length);
+			parameters.setValue("struc_elem_length",(double)struc_length);
 			mf.setParameters(parameters);
 
 			mf.filterRange(  intensityIteratorWrapper(raw.begin()),
@@ -581,7 +582,7 @@ START_SECTION([EXTRA] (template < typename InputIterator, typename OutputIterato
 			simple_filtered_2.resize(data_size);
 
 			parameters.setValue("method","closing");
-			parameters.setValue("struc_elem_length",(DoubleReal)struc_length);
+			parameters.setValue("struc_elem_length",(double)struc_length);
 			mf.setParameters(parameters);
 
 			mf.filterRange(  intensityIteratorWrapper(raw.begin()),
@@ -601,7 +602,7 @@ START_SECTION([EXTRA] (template < typename InputIterator, typename OutputIterato
 			simple_filtered_3.resize(data_size);
 
 			parameters.setValue("method","bothat");
-			parameters.setValue("struc_elem_length",(DoubleReal)struc_length);
+			parameters.setValue("struc_elem_length",(double)struc_length);
 			mf.setParameters(parameters);
 
 			mf.filterRange(  intensityIteratorWrapper(raw.begin()),
@@ -623,21 +624,21 @@ START_SECTION((template <typename PeakType> void filter(MSSpectrum<PeakType>& sp
 {
  	MSSpectrum<Peak1D> raw;
 	Peak1D peak;
-	DoubleReal spacing = 0.25;
+	double spacing = 0.25;
 	for ( UInt i = 0; i < data_size; ++i )
 	{
 		peak.setIntensity(data[i]);
-		peak.setPos( DoubleReal(i) * spacing );
+		peak.setPos( double(i) * spacing );
 		raw.push_back(peak);
 	}
   MorphologicalFilter mf;
-	for ( DoubleReal struc_size = .5; struc_size <= 2; struc_size += .1 )
+	for ( double struc_size = .5; struc_size <= 2; struc_size += .1 )
 	{
 		MSSpectrum<Peak1D> filtered(raw);
 
 		Param parameters;
 		parameters.setValue("method","dilation");
-		parameters.setValue("struc_elem_length",(DoubleReal)struc_size);
+		parameters.setValue("struc_elem_length",(double)struc_size);
 		parameters.setValue("struc_elem_unit","Thomson");
 		mf.setParameters(parameters);
 
@@ -660,15 +661,15 @@ START_SECTION((template <typename PeakType > void filterExperiment(MSExperiment<
  	MSSpectrum<Peak1D> raw;
 	raw.setComment("Let's see if this comment is copied by the filter.");
 	Peak1D peak;
-	DoubleReal spacing = 0.25;
+	double spacing = 0.25;
 	for ( UInt i = 0; i < data_size; ++i )
 	{
 		peak.setIntensity(data[i]);
-		peak.setPos( DoubleReal(i) * spacing );
+		peak.setPos( double(i) * spacing );
 		raw.push_back(peak);
 	}
   MorphologicalFilter mf;
-	for ( DoubleReal struc_size = .5; struc_size <= 2; struc_size += .1 )
+	for ( double struc_size = .5; struc_size <= 2; struc_size += .1 )
 	{
 		MSExperiment<Peak1D> mse_raw;
 		mse_raw.addSpectrum(raw);
@@ -677,7 +678,7 @@ START_SECTION((template <typename PeakType > void filterExperiment(MSExperiment<
 
 		Param parameters;
 		parameters.setValue("method","dilation");
-		parameters.setValue("struc_elem_length",(DoubleReal)struc_size);
+		parameters.setValue("struc_elem_length",(double)struc_size);
 		parameters.setValue("struc_elem_unit","Thomson");
 
 		mf.setParameters(parameters);

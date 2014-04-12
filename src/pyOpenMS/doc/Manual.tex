@@ -1,0 +1,325 @@
+
+\documentclass[10pt]{article}
+% \usepackage{amsmath}
+\usepackage{listings}
+\usepackage{url}
+\setlength{\parindent}{0pt}
+\usepackage[parfill]{parskip}
+% \usepackage{fullpage}
+\usepackage[margin=1.5in]{geometry}
+
+
+
+\usepackage[
+  pdfpagemode=UseOutlines,
+  pdfdisplaydoctitle=true,
+  colorlinks=true,
+  linkcolor=black,
+  filecolor=black,
+  pagecolor=black,
+  urlcolor=black,
+  frenchlinks=true
+]{hyperref}
+
+\usepackage{tocloft}% http://ctan.org/pkg/tocloft
+\setlength{\cftsubsecnumwidth}{3.5em}% Set length of number width in ToC for \subsection
+
+\title{pyOpenMS }
+\author{OpenMS Development Team}
+\date{}
+\begin{document}
+  \maketitle
+
+  % TODO update numbers from time to time
+  pyOpenMS is a set of Python bindings of the C++ OpenMS library. It allows to
+  access a large number of objects (350+) and functions (3900+) of the C++
+  code directly from Python.
+  The main functions of the library are explained in the first section of this
+  manual. A list of all wrapped functions can be found in the appendix of this
+  manual.
+
+  Since all functions in Python directly call C++ and their function signature
+  usually corresponds to the one in C++, the OpenMS documentation is for most
+  cases the most complete and up-to-date reference also and applies directly
+  to pyOpenMS. In this manual, only differences to the existing documentation
+  will be highlighted and some general usecases will be explained. The link to
+  the documentation of the latest release can be found here:
+  \url{http://open-ms.sourceforge.net/documentation/}.
+
+  \tableofcontents
+
+  \pagebreak
+
+  The following section will explain the most important functions of pyOpenMS
+  in more detail with full examples of Python code that can be directly
+  executed.
+
+\section{File Input/Output}
+
+  pyOpenMS supports file input and output for various formats. These formats
+  include \texttt{DTA2D, DTA, EDTA, FeatureXML, Kroenik, MzData, MzIdentML, IdXML, mzML,
+  mzXML, PepXML, ProtXML, TraML, XTandemXML}.
+
+\subsection{Common Pattern}
+
+Most file format objects follow the following idiome
+
+\begin{verbatim}
+from pyopenms import *
+file = FileObject()
+exp = MSExperiment()
+file.load(filename_in, exp)
+# process data
+file.store(filename_in, exp)
+\end{verbatim}
+
+where FileObject can be any of \texttt{DTA2DFile, DTAFile, mzXML, mzML}.
+
+For \texttt{EDTAFile}, you must load and store a \texttt{ConsensusMap} instead
+of an \texttt{MSExperiment}.
+for \texttt{FeatureXMLFile}, you must load and store a \texttt{FeatureMap} instead
+of an \texttt{MSExperiment}.
+
+
+\subsection{IdXML}
+\begin{verbatim}
+from pyopenms import *
+id_file = IdXMLFile()
+filename_in = "input.IdXML"
+filename_out = "output.IdXML"
+protein_ids = []
+peptide_ids = []
+id_file.load(filename_in, protein_ids, peptide_ids)
+# process
+id_file.store(filename_out, protein_ids, peptide_ids)
+\end{verbatim}
+
+see also Section~\ref{IdXMLFile}.
+
+\subsection{PepXML}
+\begin{verbatim}
+from pyopenms import *
+id_file = PepXMLFile()
+filename_in = "input.pep.xml"
+filename_out = "output.pep.xml"
+protein_ids = []
+peptide_ids = []
+id_file.load(filename_in, protein_ids, peptide_ids)
+# process
+id_file.store(filename_out, protein_ids, peptide_ids)
+\end{verbatim}
+
+\texttt{PepXML} also supports loading with an additional parameter specificing
+an MSExperiment which contains the retention time corresponding to the peptide
+hits (since these may not be stored in a pep.xml file).
+
+see also Section~\ref{PepXMLFile}.
+
+\subsection{ProtXML}
+\begin{verbatim}
+from pyopenms import *
+id_file = ProtXMLFile()
+filename_in = "input.prot.xml"
+protein_id = ProteinIdentification()
+peptide_id = PeptideIdentification()
+id_file.load(filename_in, protein_id, peptide_id)
+# process
+# storing not supported
+\end{verbatim}
+
+\texttt{ProtXML} currently only supports loading of data.
+
+\subsection{MzIdentML}
+\begin{verbatim}
+from pyopenms import *
+id_file = MzIdentMLFile()
+filename_in = "input.mzid"
+filename_out = "output.mzid"
+identification = Identification()
+id_file.load(filename_in, identification)
+# process
+id_file.store(filename_out, identification)
+\end{verbatim}
+
+Alternatively, MzIdentMLFile also provides a function to load (but not store)
+data equivalent to IdXML using two empty vectors that will be filled with
+\texttt{ProteinIdentification} and \texttt{PeptideIdentification} objects.
+
+\subsection{TraML}
+\begin{verbatim}
+from pyopenms import *
+tramlfile = TraMLFile()
+filename_in = "input.TraML"
+targeted_exp = TargetedExperiment()
+idtramlfile.load(filename_in, targeted_exp)
+# process
+tramlfilefile.store(filename_out, targeted_exp)
+\end{verbatim}
+
+see also Section~\ref{TraMLFile}.
+
+\subsection{MzML}
+\begin{verbatim}
+from pyopenms import *
+file = MzMLFile()
+exp = MSExperiment()
+filename_in = "input.mzML"
+filename_out = "output.mzML"
+file.load(filename_in, exp)
+# process
+file.store(filename_in, exp)
+\end{verbatim}
+
+see also Section~\ref{MzMLFile}.
+
+\pagebreak
+\section{Parameter Handling}
+
+Paramter handling in OpenMS and pyOpenMS is usually implemented through
+inheritance from \texttt{DefaultParamHandler} and allow access to parameters
+through the \texttt{Param} object. This means, the classes implement the
+methods \texttt{getDefaults}, \texttt{getParameters}, \texttt{setParameters}
+which allows access to the default parameters, the current parameters and
+allows to set the parameters.
+
+The Param file that is returned can be manipulated through the \texttt{setValue} and
+\texttt{getValue} methods (the \texttt{existsts} method can be used to check for existance of a
+key). Using the \texttt{getDescription} method, it is possible to get a help-text for
+each parameter value in an interactive session without consulting the documentation.
+
+\section{Signal Processing and Filter}
+Most signal processing algorithms follow a similar pattern in OpenMS.
+
+\begin{verbatim}
+filter = FilterObject()
+exp = MSExperiment()
+# populate exp
+filter.filterExperiment(exp)
+\end{verbatim}
+
+Since they work on a single \texttt{MSExperiment} object, little input is needed to
+execute a filter directly on the data. Examples of filters that follow this
+pattern are \texttt{GaussFilter, SavitzkyGolayFilter} as well as the spectral
+filters \texttt{BernNorm, MarkerMower, NLargest, Normalizer, ParentPeakMower,
+Scaler, SpectraMerger, SqrtMower, ThresholdMower, WindowMower}.
+
+\section{Complex algorithmic tools}
+
+More complex algorithmic tools require a short explanation and usage:
+
+\subsection{iTRAQ Analyzer}
+
+The iTRAQ Analyzer uses internally two classes, the
+\texttt{ItraqChannelExtractor} and the \texttt{ItraqQuantifier} which are
+described in the following code snippet:
+
+\begin{verbatim}
+
+file = MzMLFile()
+exp = MSExperiment()
+file.load(filename_in, exp)
+consensus_map_raw = ConsensusMap()
+consensus_map_quant = ConsensusMap()
+
+itraq_type = ITRAQ_TYPES.FOURPLEX # other options: EIGHTPLEX, TMT_SIXPLEX
+extract_param = ItraqChannelExtractor().getDefaults()
+itraq_ce = ItraqChannelExtractor(itraq_type, extract_param)
+
+# extract raw signals
+itraq_ce.run(exp, consensus_map_raw)
+
+# do normalization
+quant_param = ItraqQuantifier().getDefaults()
+itraq_quant = ItraqQuantifier(itraq_type, quant_param)
+
+itraq_quant.run(consensus_map_raw, consensus_map_quant)
+
+outfile = ConsensusXMLFile()
+oufile.store(filename_out, consensus_map_quant)
+\end{verbatim}
+
+\subsection{Centroided FeatureFinder}
+
+The FeatureFinder for centroided data is called
+\texttt{FeatureFinderAlgorithmPicked} in OpenMS.
+
+\begin{verbatim}
+# set input_path and out_path
+seeds = FeatureMap()
+
+fh = MzMLFile()
+options = PeakFileOptions()
+options.setMSLevels([1,1])
+fh.setOptions(options)
+input_map = MSExperiment()
+fh.load(input_path, input_map)
+input_map.updateRanges()
+
+ff = FeatureFinder()
+ff.setLogType(LogType.CMD)
+
+# Run the feature finder
+features = FeatureMap()
+name = FeatureFinderAlgorithmPicked.getProductName()
+params = FeatureFinder().getParameters(name)
+ff.run(name, input_map, features, params, seeds)
+
+features.setUniqueIds()
+fh = FeatureXMLFile()
+fh.store(out_path, features)
+\end{verbatim}
+
+\subsection{OpenSwathAnalyzer}
+
+The OpenSwathAnalyzer calls internally an object called
+MRMFeatureFinderScoring (since it does feature finding based on a scoring
+approach). It takes as input the chromatograms and the targeted library
+(transition library) in TraML format. Furthermore, it also takes a
+transformation description and a Swath file as optional arguments.
+
+\begin{verbatim}
+# load chromatograms
+chromatograms = pyopenms.MSExperiment()
+fh = pyopenms.FileHandler()
+fh.loadExperiment("infile.mzML", chromatograms)
+
+# load TraML file
+targeted = pyopenms.TargetedExperiment();
+tramlfile = pyopenms.TraMLFile();
+tramlfile.load("tramlfile.TraML", targeted);
+
+# Create empty files as input and finally as output
+empty_swath = pyopenms.MSExperiment()
+trafo = pyopenms.TransformationDescription()
+output = pyopenms.FeatureMap();
+
+# set up OpenSwath analyzer (featurefinder) and run
+featurefinder = pyopenms.MRMFeatureFinderScoring()
+featurefinder.pickExperiment(chromatograms, output, targeted, trafo, empty_swath)
+
+# Store outfile
+featurexml = pyopenms.FeatureXMLFile()
+featurexml.store("outfile.featureXML", output)
+\end{verbatim}
+
+\section{Iterators}
+
+Several core-OpenMS objects have been adapted to allow iteration in a native
+way in Python. These objects are currently \texttt{ConsensusMap, FeatureMap,
+MSExperiment, MSSpectrum} and \texttt{MSChromatogram}. They thus allow the
+following syntax:
+
+\begin{verbatim}
+for spectrum in ms_experiment:
+  for peak in spectrum:
+    # process an individual peak
+    pass
+\end{verbatim}
+
+\section{Appendix}
+In this appendix, a complete list of all wrapped functions is given, ordered
+by class.
+
+\include{appendix}
+
+\end{document}

@@ -67,29 +67,29 @@ namespace OpenMS
         AccurateMassSearchResult & operator=(const AccurateMassSearchResult& );
 
         /// getter & setter methods
-        DoubleReal getAdductMass() const;
-        void setAdductMass(const DoubleReal&);
+        double getAdductMass() const;
+        void setAdductMass(const double&);
 
-        DoubleReal getQueryMass() const;
-        void setQueryMass(const DoubleReal&);
+        double getQueryMass() const;
+        void setQueryMass(const double&);
 
-        DoubleReal getFoundMass() const;
-        void setFoundMass(const DoubleReal&);
+        double getFoundMass() const;
+        void setFoundMass(const double&);
 
         Int getCharge() const;
         void setCharge(const Int&);
 
-        DoubleReal getErrorPPM() const;
-        void setErrorPPM(const DoubleReal&);
+        double getErrorPPM() const;
+        void setErrorPPM(const double&);
 
-        DoubleReal getObservedRT() const;
-        void setObservedRT(const DoubleReal& rt);
+        double getObservedRT() const;
+        void setObservedRT(const double& rt);
 
-        DoubleReal getObservedIntensity() const;
-        void setObservedIntensity(const DoubleReal&);
+        double getObservedIntensity() const;
+        void setObservedIntensity(const double&);
 
-        std::vector<DoubleReal> getIndividualIntensities() const;
-        void setIndividualIntensities(const std::vector<DoubleReal>&);
+        std::vector<double> getIndividualIntensities() const;
+        void setIndividualIntensities(const std::vector<double>&);
 
         Size getMatchingIndex() const;
         void setMatchingIndex(const Size&);
@@ -106,23 +106,23 @@ namespace OpenMS
         const std::vector<String>& getMatchingHMDBids() const;
         void setMatchingHMDBids(const std::vector<String>&);
 
-        DoubleReal getIsotopesSimScore() const;
-        void setIsotopesSimScore(const DoubleReal&);
+        double getIsotopesSimScore() const;
+        void setIsotopesSimScore(const double&);
 
-        // DoubleReal computeCombinedScore(); // not implemented
+        // double computeCombinedScore(); // not implemented
         // debug/output functions
         void outputResults() const;
 
     private:
         /// Stored information/results of DB query
-        DoubleReal adduct_mass_;
-        DoubleReal query_mass_;
-        DoubleReal found_mass_;
+        double adduct_mass_;
+        double query_mass_;
+        double found_mass_;
         Int charge_;
-        DoubleReal error_ppm_;
-        DoubleReal observed_rt_;
-        DoubleReal observed_intensity_;
-        std::vector<DoubleReal> individual_intensities_;
+        double error_ppm_;
+        double observed_rt_;
+        double observed_intensity_;
+        std::vector<double> individual_intensities_;
         Size matching_index_;
         Size source_feature_index_;
 
@@ -130,7 +130,7 @@ namespace OpenMS
         String empirical_formula_;
         std::vector<String> matching_hmdb_ids_;
 
-        DoubleReal isotopes_sim_score_;
+        double isotopes_sim_score_;
     };
 
   /**
@@ -173,7 +173,7 @@ public:
       @brief search for a specific observed mass by enumerating all possible adducts and search M+X against database
 
        */
-    void queryByMass(const DoubleReal& observed_mass, const Int& observed_charge, std::vector<AccurateMassSearchResult>& results);
+    void queryByMass(const double& observed_mass, const Int& observed_charge, std::vector<AccurateMassSearchResult>& results);
     void queryByFeature(const Feature& feature, const Size& feature_index, std::vector<AccurateMassSearchResult>& results);
     void queryByConsensusFeature(const ConsensusFeature& cfeat, const Size& cf_index, const Size& number_of_maps, std::vector<AccurateMassSearchResult>& results);
 
@@ -232,18 +232,18 @@ private:
     void parseMappingFile_(const String&);
     void parseStructMappingFile_(const String&);
     void parseAdductsFile_(const String& filename, StringList& result);
-    void searchMass_(const DoubleReal&, std::vector<Size>& hit_indices);
+    void searchMass_(const double&, std::vector<Size>& hit_indices);
 
     void parseAdductString_(const String&, std::vector<String>&);
     /**
       @brief given an adduct and an observed mass, we compute the neutral mass (without adduct) and the theoretical charge (of the adduct)
 
     */
-    void computeNeutralMassFromAdduct_(const DoubleReal& observed_mass, const String& adduct_string, DoubleReal& neutral_mass, Int& charge_value);
+    void computeNeutralMassFromAdduct_(const double& observed_mass, const String& adduct_string, double& neutral_mass, Int& charge_value);
 
-    DoubleReal computeCosineSim_(const std::vector<DoubleReal>& x, const std::vector<DoubleReal>& y);
-    DoubleReal computeEuclideanDist_(const std::vector<DoubleReal>& x, const std::vector<DoubleReal>& y);
-    DoubleReal computeIsotopePatternSimilarity_(const Feature&, const EmpiricalFormula&);
+    double computeCosineSim_(const std::vector<double>& x, const std::vector<double>& y);
+    double computeEuclideanDist_(const std::vector<double>& x, const std::vector<double>& y);
+    double computeIsotopePatternSimilarity_(const Feature&, const EmpiricalFormula&);
 
 
     String ion_mode_internal_;
@@ -258,7 +258,7 @@ private:
 
     struct MappingEntry_
     {
-      DoubleReal mass;
+      double mass;
       std::vector<String> massIDs;
       String formula;
     };
@@ -266,12 +266,12 @@ private:
 
     struct CompareEntryAndMass_     // defined here to allow for inlining by compiler
     {
-       DoubleReal asMass( const MappingEntry_& v ) const
+       double asMass( const MappingEntry_& v ) const
        {
           return v.mass;
        }
 
-       DoubleReal asMass( DoubleReal t ) const
+       double asMass( double t ) const
        {
           return t;
        }
@@ -286,7 +286,7 @@ private:
     HMDBPropsMapping hmdb_properties_mapping_;
 
     /// parameter stuff
-    DoubleReal mass_error_value_;
+    double mass_error_value_;
     String mass_error_unit_;
     String ion_mode_;
     bool iso_similarity_;

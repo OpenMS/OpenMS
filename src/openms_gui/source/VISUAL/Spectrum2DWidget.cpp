@@ -67,19 +67,18 @@ namespace OpenMS
     grid_->setColumnStretch(2, 3);
     grid_->setRowStretch(1, 3);
 
-    SpectrumCanvas::ExperimentType* dummy = new SpectrumCanvas::ExperimentType();
+    SpectrumCanvas::ExperimentSharedPtrType shr_ptr = SpectrumCanvas::ExperimentSharedPtrType(new SpectrumCanvas::ExperimentType());
     MSSpectrum<> dummy_spec;
     dummy_spec.push_back(Peak1D());
-    dummy->addSpectrum(dummy_spec);
-    SpectrumCanvas::ExperimentSharedPtrType* shr_ptr = new SpectrumCanvas::ExperimentSharedPtrType(dummy);
+    shr_ptr->addSpectrum(dummy_spec);
 
     projection_vert_ = new  Spectrum1DWidget(Param(), this);
     projection_vert_->hide();
-    projection_vert_->canvas()->addLayer(*shr_ptr);
+    projection_vert_->canvas()->addLayer(shr_ptr);
     grid_->addWidget(projection_vert_, 1, 3, 2, 1);
 
     projection_horz_ = new Spectrum1DWidget(Param(), this);
-    projection_horz_->canvas()->addLayer(*shr_ptr);
+    projection_horz_->canvas()->addLayer(shr_ptr);
     projection_horz_->hide();
     grid_->addWidget(projection_horz_, 0, 1, 1, 2);
 
@@ -177,8 +176,8 @@ namespace OpenMS
   Histogram<> Spectrum2DWidget::createIntensityDistribution_() const
   {
     //initialize histogram
-    DoubleReal min = canvas_->getCurrentMinIntensity();
-    DoubleReal max = canvas_->getCurrentMaxIntensity();
+    double min = canvas_->getCurrentMinIntensity();
+    double max = canvas_->getCurrentMaxIntensity();
     if (min == max)
     {
       min -= 0.01;
@@ -225,7 +224,7 @@ namespace OpenMS
     if (canvas_->getCurrentLayer().type == LayerData::DT_PEAK)
     {
       //determine min and max of the data
-      Real min = numeric_limits<Real>::max(), max = -numeric_limits<Real>::max();
+      float min = numeric_limits<float>::max(), max = -numeric_limits<float>::max();
       for (ExperimentType::const_iterator s_it = canvas_->getCurrentLayer().getPeakData()->begin(); s_it != canvas_->getCurrentLayer().getPeakData()->end(); ++s_it)
       {
         if (s_it->getMSLevel() != 1)
@@ -299,12 +298,12 @@ namespace OpenMS
     else     //Features
     {
       //determine min and max
-      Real min = numeric_limits<Real>::max(), max = -numeric_limits<Real>::max();
+      float min = numeric_limits<float>::max(), max = -numeric_limits<float>::max();
       for (Spectrum2DCanvas::FeatureMapType::ConstIterator it = canvas_->getCurrentLayer().getFeatureMap()->begin(); it != canvas_->getCurrentLayer().getFeatureMap()->end(); ++it)
       {
         if (it->metaValueExists(name))
         {
-          Real value = it->getMetaValue(name);
+          float value = it->getMetaValue(name);
           if (value < min)
             min = value;
           if (value > max)
@@ -317,7 +316,7 @@ namespace OpenMS
       {
         if (it->metaValueExists(name))
         {
-          tmp.inc((Real)(it->getMetaValue(name)));
+          tmp.inc((float)(it->getMetaValue(name)));
         }
       }
 
@@ -448,16 +447,16 @@ namespace OpenMS
         {
           const FeatureMapType & map = *canvas()->getCurrentLayer().getFeatureMap();
           DBoundingBox<2> bb = map[feature_index].getConvexHull().getBoundingBox();
-          DoubleReal rt_margin = (bb.maxPosition()[0] - bb.minPosition()[0]) * 0.5;
-          DoubleReal mz_margin = (bb.maxPosition()[1] - bb.minPosition()[1]) * 2;
+          double rt_margin = (bb.maxPosition()[0] - bb.minPosition()[0]) * 0.5;
+          double mz_margin = (bb.maxPosition()[1] - bb.minPosition()[1]) * 2;
           SpectrumCanvas::AreaType narea(bb.minPosition()[1] - mz_margin, bb.minPosition()[0] - rt_margin, bb.maxPosition()[1] + mz_margin, bb.maxPosition()[0] + rt_margin);
           canvas()->setVisibleArea(narea);
         }
         else // Consensus Feature
         {
           const ConsensusFeature & cf = (*canvas()->getCurrentLayer().getConsensusMap())[feature_index];
-          DoubleReal rt_margin = 30;
-          DoubleReal mz_margin = 5;
+          double rt_margin = 30;
+          double mz_margin = 5;
           SpectrumCanvas::AreaType narea(cf.getMZ() - mz_margin, cf.getRT() - rt_margin, cf.getMZ() + mz_margin, cf.getRT() + rt_margin);
           canvas()->setVisibleArea(narea);
         }

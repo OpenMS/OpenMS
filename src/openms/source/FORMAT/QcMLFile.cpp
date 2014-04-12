@@ -33,11 +33,15 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/QcMLFile.h>
+#include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+
 #include <fstream>
 #include <iostream>
 #include <algorithm>
 #include <boost/range/adaptor/map.hpp>
 #include <boost/range/algorithm/copy.hpp>
+
 
 using namespace std;
 
@@ -292,7 +296,7 @@ namespace OpenMS
   }
 
   QcMLFile::QcMLFile() :
-    XMLHandler("", "0.7"), XMLFile("/SCHEMAS/qcml.xsd", "0.7"), ProgressLogger() //TODO correct version
+    XMLHandler("", "0.7"), XMLFile("/SCHEMAS/qcml.xsd", "0.7"), ProgressLogger() //TODO keep version uptodate
   {
   }
 
@@ -1041,17 +1045,32 @@ namespace OpenMS
     //~ progress_ = 0;
     //~ setProgress(++progress_);
 
+    //~ file should either contain the complete stylesheet injection (including the stylesheet file preamble, the DOCTYPE definition and the stylesheet itself) or be empty
+    String xslt = "";
+    try
+    {
+      String xslt_file = File::find("XSL/QcML_report_sheet.xsl");
+      std::ifstream in(xslt_file.c_str());
+      xslt = String((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+    }
+    catch (Exception::FileNotFound &)
+    {
+      warning(STORE, String("No qcml stylesheet found, result will not be viewable in a browser!"));
+    }
+    
+    
     //open stream
     ofstream os(filename.c_str());
     if (!os)
     {
       throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
     }
-
-    os.precision(writtenDigits<DoubleReal>());
+ 
+    os.precision(writtenDigits<double>(0.0));
 
     //~ setProgress(++progress_);
     //header & xslt
+
     os << "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n";
     os << "<?xml-stylesheet type=\"text/xml\" href=\"#stylesheet\"?>\n";
     os << "<!DOCTYPE catelog [\n"
@@ -1059,103 +1078,8 @@ namespace OpenMS
        << "  id  ID  #REQUIRED>\n"
        << "  ]>\n";
     os << "<qcML xmlns=\"http://www.prime-xs.eu/ms/qcml\" >\n"; //TODO creation date into schema!!
-    os << "<xsl:stylesheet id=\"stylesheet\" version=\"1.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\" xmlns:ns=\"http://www.prime-xs.eu/ms/qcml\" xmlns=\"\">" << "\n"
-       << "	<xsl:template match=\"/\">" << "\n"
-       << "		<html>"<< "\n"
-       << "			<body>"<< "\n"
-       << "				<h2>Run QC</h2>"<< "\n"
-       << "				<xsl:for-each select=\"ns:qcML/ns:runQuality\">"<< "\n"
-       << "					<xsl:apply-templates select=\"ns:qualityParameter[@accession = 'MS:1000577']\"/>"<< "\n"
-       << "					<xsl:apply-templates select=\"ns:qualityParameter[not(@accession = 'MS:1000577')]\"/>"<< "\n"
-       << "				<!--<xsl:apply-templates select=\"ns:qualityParameter[not(@accession = 'MS:1000577') and @value]\" />"<< "\n"
-       << "					<xsl:apply-templates select=\"ns:qualityParameter[not(@value)]\" />-->"<< "\n"
-       << "				</xsl:for-each>"<< "\n"
-       << "				<h2>Set QC</h2>"<< "\n"
-       << "				<xsl:for-each select=\"ns:qcML/ns:setQuality\">"<< "\n"
-       << "					<xsl:apply-templates/>"<< "\n"
-       << "				</xsl:for-each>"<< "\n"
-       << "			</body>"<< "\n"
-       << "		</html>"<< "\n"
-       << "	</xsl:template>" << "\n"
-       << "	<xsl:template match=\"ns:qualityParameter[@accession = 'MS:1000577']\">" << "\n"
-       << "		<h3>"<< "\n"
-       << "			<xsl:value-of select=\"@value\"/>"<< "\n"
-       << "		</h3>"<< "\n"
-       << "	</xsl:template>" << "\n"
-       << "	<xsl:template match=\"ns:qualityParameter[not(@accession = 'MS:1000577') and @value]\">" << "\n"
-       << "		<xsl:value-of select=\"@name\"/>: <xsl:value-of select=\"@value\"/><br/>"<< "\n"
-       << "		<xsl:call-template name=\"qp-attachments\">"<< "\n"
-       << "			<xsl:with-param name=\"qpref\" select=\"@ID\"/>"<< "\n"
-       << "		</xsl:call-template>"<< "\n"
-       << "	</xsl:template>" << "\n"
-       << "	<xsl:template match=\"ns:qualityParameter[not(@value)]\">" << "\n"
-       << "		<xsl:value-of select=\"@name\"/>:<br/>"<< "\n"
-       << "		<xsl:call-template name=\"qp-attachments\">"<< "\n"
-       << "			<xsl:with-param name=\"qpref\" select=\"@ID\"/>"<< "\n"
-       << "		</xsl:call-template>"<< "\n"
-       << "	</xsl:template>" << "\n"
-       << "	<xsl:template match=\"ns:attachment\">" << "\n"
-       << "		<!--Attachments handled otherwise below -->"<< "\n"
-       << "	</xsl:template>" << "\n"
-       << "	<xsl:template name=\"qp-attachments\">" << "\n"
-       << "		<xsl:param name=\"qpref\"/>"<< "\n"
-       << "		<xsl:for-each select=\"../ns:attachment[@qualityParameterRef=$qpref]\"> +<xsl:value-of select=\"@name\"/>+<br/>"<< "\n"
-       << "			<xsl:choose>"<< "\n"
-       << "				<xsl:when test=\"ns:binary\">"<< "\n"
-       << "					<img>"<< "\n"
-       << "						<xsl:attribute name=\"src\"> data:image/png;base64,<xsl:value-of select=\"ns:binary\"/>"<< "\n"
-       << "						</xsl:attribute>"<< "\n"
-       << "					</img>"<< "\n"
-       << "					<br/>"<< "\n"
-       << "				</xsl:when>"<< "\n"
-       << "				<xsl:otherwise>"<< "\n"
-       << "					<table border=\"0\">"<< "\n"
-       << "						<tr bgcolor=\"#B2CCFF\">"<< "\n"
-       << "							<xsl:call-template name=\"output-header\">"<< "\n"
-       << "								<xsl:with-param name=\"list\"><xsl:value-of select=\"ns:table/ns:tableColumnTypes\"/></xsl:with-param>"<< "\n"
-       << "							</xsl:call-template>"<< "\n"
-       << "						</tr>"<< "\n"
-       << "						<xsl:for-each select=\"ns:table/ns:tableRowValues\">"<< "\n"
-       << "							<tr>"<< "\n"
-       << "								<xsl:call-template name=\"output-row\">"<< "\n"
-       << "									<xsl:with-param name=\"list\"><xsl:value-of select=\".\" /></xsl:with-param>"<< "\n"
-       << "								</xsl:call-template>"<< "\n"
-       << "							</tr>"<< "\n"
-       << "						</xsl:for-each>"<< "\n"
-       << "					</table><br/>"<< "\n"
-       << "				</xsl:otherwise>"<< "\n"
-       << "			</xsl:choose>"<< "\n"
-       << "		</xsl:for-each>"<< "\n"
-       << "	</xsl:template>" << "\n"
-       << "	<xsl:template name=\"output-header\">" << "\n"
-       << "		<xsl:param name=\"list\"/>"<< "\n"
-       << "		<xsl:variable name=\"newlist\" select=\"concat(normalize-space($list), ' ')\"/>"<< "\n"
-       << "		<xsl:variable name=\"first\" select=\"substring-before($newlist, ' ')\"/>"<< "\n"
-       << "		<xsl:variable name=\"remaining\" select=\"substring-after($newlist, ' ')\"/>"<< "\n"
-       << "		<th>"<< "\n"
-       << "			<xsl:value-of select=\"$first\"/>"<< "\n"
-       << "		</th>"<< "\n"
-       << "		<xsl:if test=\"$remaining\">"<< "\n"
-       << "			<xsl:call-template name=\"output-header\">"<< "\n"
-       << "				<xsl:with-param name=\"list\" select=\"$remaining\"/>"<< "\n"
-       << "			</xsl:call-template>"<< "\n"
-       << "		</xsl:if>"<< "\n"
-       << "	</xsl:template>" << "\n"
-       << "	<xsl:template name=\"output-row\">" << "\n"
-       << "		<xsl:param name=\"list\"/>"<< "\n"
-       << "		<xsl:variable name=\"newlist\" select=\"concat(normalize-space($list), ' ')\"/>"<< "\n"
-       << "		<xsl:variable name=\"first\" select=\"substring-before($newlist, ' ')\"/>"<< "\n"
-       << "		<xsl:variable name=\"remaining\" select=\"substring-after($newlist, ' ')\"/>"<< "\n"
-       << "		<td>"<< "\n"
-       << "			<xsl:value-of select=\"$first\"/>"<< "\n"
-       << "		</td>"<< "\n"
-       << "		<xsl:if test=\"$remaining\">"<< "\n"
-       << "			<xsl:call-template name=\"output-row\">"<< "\n"
-       << "				<xsl:with-param name=\"list\" select=\"$remaining\"/>"<< "\n"
-       << "			</xsl:call-template>"<< "\n"
-       << "		</xsl:if>"<< "\n"
-       << "	</xsl:template>" << "\n"
-       << "</xsl:stylesheet>" << "\n";
+    
+    os << xslt << "\n";
 
     //content runs
     std::set<String> keys;

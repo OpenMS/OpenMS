@@ -86,9 +86,9 @@ public:
       clean_all_charge_states_ = (Int)param_.getValue("clean_all_charge_states");
       consider_NH3_loss_ = (Int)param_.getValue("consider_NH3_loss");
       consider_H2O_loss_ = (Int)param_.getValue("consider_H2O_loss");
-      window_size_ = (DoubleReal)param_.getValue("window_size");
+      window_size_ = (double)param_.getValue("window_size");
       reduce_by_factor_ = (Int)param_.getValue("reduce_by_factor");
-      factor_ = (DoubleReal)param_.getValue("factor");
+      factor_ = (double)param_.getValue("factor");
       set_to_zero_ = (Int)param_.getValue("set_to_zero");
 
       if (spectrum.getMSLevel() == 1)
@@ -190,9 +190,9 @@ private:
     bool clean_all_charge_states_;
     bool consider_NH3_loss_;
     bool consider_H2O_loss_;
-    DoubleReal window_size_;
+    double window_size_;
     bool reduce_by_factor_;
-    DoubleReal factor_;
+    double factor_;
     bool set_to_zero_;
 
   };

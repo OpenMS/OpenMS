@@ -36,7 +36,6 @@
 #define OPENMS_ANALYSIS_QUANTITATION_ISOBARICQUANTITATIONMETHOD_H
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/DATASTRUCTURES/Matrix.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <OpenMS/KERNEL/Peak2D.h>
@@ -45,6 +44,11 @@
 
 namespace OpenMS
 {
+
+  // Forward declarations
+  template <typename Value>
+  class Matrix;
+
   /**
     @brief Abstract base class describing an isobaric quantitation method in terms of the used channels and an isotope correction matrix.
   */

@@ -43,7 +43,7 @@
 using namespace OpenMS;
 using namespace std;
 
-DRange<1> makeRange(DoubleReal a, DoubleReal b)
+DRange<1> makeRange(double a, double b)
 {
   DPosition<1> pa(a), pb(b);
   return DRange<1>(pa, pb);
@@ -825,13 +825,13 @@ MSExperiment<> e;
 //test if empty file is valid
 NEW_TMP_FILE(tmp_filename);
 f.store(tmp_filename, e);
-TEST_EQUAL(f.isValid(tmp_filename), true);
+TEST_EQUAL(f.isValid(tmp_filename, std::cerr), true);
 
 //test if filled file is valid
 NEW_TMP_FILE(tmp_filename);
 f.load(OPENMS_GET_TEST_DATA_PATH("MzDataFile_1.mzData"), e);
 f.store(tmp_filename, e);
-TEST_EQUAL(f.isValid(tmp_filename), true);
+TEST_EQUAL(f.isValid(tmp_filename, std::cerr), true);
 END_SECTION
 
 START_SECTION(bool isSemanticallyValid(const String& filename, StringList& errors, StringList& warnings))

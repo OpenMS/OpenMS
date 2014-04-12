@@ -71,7 +71,7 @@ public:
     /** @name Helper methods
         */
     /// Allows the iterative computation of the intensity-weighted mean of a mass trace's centroid m/z.
-    void updateIterativeWeightedMeanMZ(const DoubleReal &, const DoubleReal &, DoubleReal &, DoubleReal &, DoubleReal &);
+    void updateIterativeWeightedMeanMZ(const double &, const double &, double &, double &, double &);
 
     /// Computes a rough estimate of the average peak width of the experiment (median) and an estimate of a lower and upper bound for the peak width (+/-2*MAD, median of absolute deviancies).
     // void filterByPeakWidth(std::vector<MassTrace>&, std::vector<MassTrace>&);
@@ -89,15 +89,15 @@ protected:
 
 private:
     // parameter stuff
-    DoubleReal mass_error_ppm_;
-    DoubleReal noise_threshold_int_;
-    DoubleReal chrom_peak_snr_;
+    double mass_error_ppm_;
+    double noise_threshold_int_;
+    double chrom_peak_snr_;
 
     String trace_termination_criterion_;
     Size trace_termination_outliers_;
-    DoubleReal min_sample_rate_;
-    DoubleReal min_trace_length_;
-    DoubleReal max_trace_length_;
+    double min_sample_rate_;
+    double min_trace_length_;
+    double max_trace_length_;
 
     bool reestimate_mt_sd_;
   };

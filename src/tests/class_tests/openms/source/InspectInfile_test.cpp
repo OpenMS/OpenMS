@@ -319,32 +319,32 @@ START_SECTION((UInt getBlind() const))
 END_SECTION
 
 
-START_SECTION(void setMaxPTMsize(Real maxptmsize))
+START_SECTION(void setMaxPTMsize(float maxptmsize))
 	file.setMaxPTMsize(250);
 	TEST_EQUAL(file.getMaxPTMsize(), 250)
 END_SECTION
 
-START_SECTION((Real getMaxPTMsize() const))
+START_SECTION((float getMaxPTMsize() const))
 	TEST_EQUAL(file.getMaxPTMsize(), 250)
 END_SECTION
 
 
-START_SECTION(void setPrecursorMassTolerance(Real precursor_mass_tolerance))
+START_SECTION(void setPrecursorMassTolerance(float precursor_mass_tolerance))
 	file.setPrecursorMassTolerance(1.3f);
 	TEST_REAL_SIMILAR(file.getPrecursorMassTolerance(), 1.3f)
 END_SECTION
 
-START_SECTION((Real getPrecursorMassTolerance() const))
+START_SECTION((float getPrecursorMassTolerance() const))
 	TEST_REAL_SIMILAR(file.getPrecursorMassTolerance(), 1.3f)
 END_SECTION
 
 
-START_SECTION(void setPeakMassTolerance(Real peak_mass_tolerance))
+START_SECTION(void setPeakMassTolerance(float peak_mass_tolerance))
 	file.setPeakMassTolerance(0.3f);
 	TEST_REAL_SIMILAR(file.getPeakMassTolerance(), 0.3f)
 END_SECTION
 
-START_SECTION((Real getPeakMassTolerance() const))
+START_SECTION((float getPeakMassTolerance() const))
 	TEST_REAL_SIMILAR(file.getPeakMassTolerance(), 0.3f)
 END_SECTION
 

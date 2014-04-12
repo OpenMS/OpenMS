@@ -189,9 +189,8 @@ END_SECTION
 START_SECTION((void postRawTandemMSHook(FeatureMapSimVector &, MSSimExperiment &)))
 {
   ITRAQLabeler i;
-  SimRandomNumberGenerator rnd_gen;
-  rnd_gen.biological_rng = gsl_rng_alloc(gsl_rng_mt19937);
-  rnd_gen.technical_rng = gsl_rng_alloc(gsl_rng_mt19937);
+  MutableSimRandomNumberGeneratorPtr rnd_gen (new SimRandomNumberGenerator);
+  rnd_gen->initialize(false, false);
   i.setRnd(rnd_gen);
 
   FeatureMapSimVector f_maps;
@@ -208,10 +207,10 @@ START_SECTION((void postRawTandemMSHook(FeatureMapSimVector &, MSSimExperiment &
 
   MSSimExperiment exp2=exp;
 
-  std::vector<DoubleReal> eb(4);
+  std::vector<double> eb(4);
   DoubleList elution_bounds(eb);
   elution_bounds[0] = 100; elution_bounds[1] = 509.2; elution_bounds[2] = 120; elution_bounds[3] = 734.3;
-  std::vector<DoubleReal> ei(5, 0.5); // 50% elution profile
+  std::vector<double> ei(5, 0.5); // 50% elution profile
   DoubleList elution_ints(ei);
   Feature f;
   f.setMetaValue("elution_profile_bounds", elution_bounds);

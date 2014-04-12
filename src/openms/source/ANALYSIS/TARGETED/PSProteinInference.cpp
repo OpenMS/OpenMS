@@ -68,7 +68,7 @@ namespace OpenMS
 
     //     const vector<String> & accs = ids[i].getHits()[0].getProteinAccessions();
     //     String seq = ids[i].getHits()[0].getSequence().toUnmodifiedString();
-    //     DoubleReal score = ids[i].getHits()[0].getScore();
+    //     double score = ids[i].getHits()[0].getScore();
     //     bool higher_better = ids[i].isHigherScoreBetter();
     //     for(Size a = 0; a < accs.size(); ++a)
     //       {
@@ -145,7 +145,7 @@ namespace OpenMS
       {
         indices.push_back((Int)problem.getColumnIndex(accs[a]));
       }
-      vector<DoubleReal> values(indices.size(), 1.);
+      vector<double> values(indices.size(), 1.);
 
       // enter constraint
       problem.addRow(indices, values, String(p) + peptide_ids[p].getHits()[0].getSequence().toString(), 1., 1., LPWrapper::LOWER_BOUND_ONLY);
@@ -184,7 +184,7 @@ namespace OpenMS
 
       const vector<String> & accs = ids[i].getHits()[0].getProteinAccessions();
       String seq = ids[i].getHits()[0].getSequence().toUnmodifiedString();
-      DoubleReal score = ids[i].getHits()[0].getScore();
+      double score = ids[i].getHits()[0].getScore();
       bool higher_better = ids[i].isHigherScoreBetter();
       for (Size a = 0; a < accs.size(); ++a)
       {
@@ -252,7 +252,7 @@ namespace OpenMS
 
   }
 
-//   DoubleReal PSProteinInference::getProteinProbability(const String& acc,const std::vector<String>& accessions, const std::vector<DoubleReal>& probabilities)
+//   double PSProteinInference::getProteinProbability(const String& acc,const std::vector<String>& accessions, const std::vector<double>& probabilities)
 //   {
 //     std::vector<String>::const_iterator it = std::find(accessions.begin(),accessions.end(),acc);
 //     if(it == accessions.end())  return 0.;
@@ -260,7 +260,7 @@ namespace OpenMS
 //   }
 
 
-  DoubleReal PSProteinInference::getProteinProbability(const String & acc)
+  double PSProteinInference::getProteinProbability(const String & acc)
   {
     std::vector<String>::iterator it = std::find(accessions_.begin(), accessions_.end(), acc);
     if (it == accessions_.end())
@@ -274,7 +274,7 @@ namespace OpenMS
     return find(minimal_protein_list_accessions_.begin(), minimal_protein_list_accessions_.end(), acc) != minimal_protein_list_accessions_.end();
   }
 
-  Int PSProteinInference::getNumberOfProtIds(DoubleReal protein_id_threshold)
+  Int PSProteinInference::getNumberOfProtIds(double protein_id_threshold)
   {
     Int num = 0;
     for (Size i = 0; i < minimal_protein_list_accessions_.size(); ++i)

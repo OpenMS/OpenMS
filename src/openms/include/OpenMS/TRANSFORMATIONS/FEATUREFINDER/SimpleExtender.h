@@ -89,7 +89,7 @@ public:
     /// Coordinates of a point (m/z and rt)
     typedef typename Base::CoordinateType CoordinateType;
     /// Priority of a point (see below)
-    typedef DoubleReal ProbabilityType;
+    typedef double ProbabilityType;
 
     /// Constructor
     SimpleExtender(const MSExperiment<PeakType> * map, FeatureMap<FeatureType> * features, FeatureFinder * ff) :
@@ -164,7 +164,7 @@ public:
       result_region.charge = seed_region.charge;
 
       // re-compute intensity threshold
-      intensity_threshold_ = (DoubleReal)(this->param_).getValue("intensity_factor") * this->getPeakIntensity(seed);
+      intensity_threshold_ = (double)(this->param_).getValue("intensity_factor") * this->getPeakIntensity(seed);
 
 #ifdef DEBUG_FEATUREFINDER
       std::cout << "\n";
@@ -236,7 +236,7 @@ public:
     */
     struct IndexWithPriority
     {
-      IndexWithPriority(const FeatureFinderDefs::IndexPair & i, DoubleReal p) :
+      IndexWithPriority(const FeatureFinderDefs::IndexPair & i, double p) :
         index(i),
         priority(p)
       {
@@ -394,11 +394,11 @@ protected:
       }
       if (this->ff_->getPeakFlag(index) == UNUSED)
       {
-        DoubleReal pr_new = computePeakPriority_(index);
+        double pr_new = computePeakPriority_(index);
 
         if (pr_new > priority_threshold_)
         {
-          //std::map<IndexPair, DoubleReal>::iterator piter = priorities_.find(index);
+          //std::map<IndexPair, double>::iterator piter = priorities_.find(index);
           this->ff_->getPeakFlag(index) = USED;
           priorities_[index] = pr_new;
           boundary_.push(IndexWithPriority(index, pr_new));

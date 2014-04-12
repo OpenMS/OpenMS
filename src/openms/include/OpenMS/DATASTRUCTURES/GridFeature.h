@@ -90,10 +90,10 @@ public:
     const std::set<AASequence> & getAnnotations() const;
 
     /// Returns the feature RT
-    DoubleReal getRT() const;
+    double getRT() const;
 
     /// Returns the feature m/z
-    DoubleReal getMZ() const;
+    double getMZ() const;
   };
 }
 

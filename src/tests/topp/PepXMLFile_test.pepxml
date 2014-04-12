@@ -366,4 +366,34 @@
       </search_result>
 	</spectrum_query>
   </msms_run_summary>
+  <msms_run_summary base_name="PepXMLFile_test2" msManufacturer="ThermoFinnigan" msModel="LTQ FT" msIonization="ESI" msMassAnalyzer="msMassAnalyzer" msDetector="EMT" raw_data_type="raw" raw_data=".mzXML">
+    <sample_enzyme name="trypsin">
+	  <specificity cut="KR" no_cut="P" sense="C"/>
+	</sample_enzyme>
+	<search_summary base_name="PepXMLFile_test2" search_engine="X! Tandem (k-score)" precursor_mass_type="monoisotopic" fragment_mass_type="monoisotopic" search_id="1">
+      <search_database local_path="./current.fasta" type="AA"/>
+      <enzymatic_search_constraint enzyme="trypsin" max_num_internal_cleavages="2" min_number_termini="2" />
+      <aminoacid_modification aminoacid="C" massdiff="57.0215" mass="160.0306" variable="N" />
+      <aminoacid_modification aminoacid="C" massdiff="-17.0265" mass="143.0041" variable="Y" symbol="^" /><!--X! Tandem n-terminal AA variable modification-->
+      <aminoacid_modification aminoacid="E" massdiff="-18.0106" mass="111.0320" variable="Y" symbol="^" /><!--X! Tandem n-terminal AA variable modification-->
+      <aminoacid_modification aminoacid="M" massdiff="15.9949" mass="147.0354" variable="Y" />
+      <aminoacid_modification aminoacid="Q" massdiff="-17.0265" mass="111.0321" variable="Y" symbol="^" /><!--X! Tandem n-terminal AA variable modification-->
+    </search_summary>
+    <spectrum_query spectrum="PepXMLFile_test2.00002.00002.3" start_scan="2" end_scan="2" precursor_neutral_mass="1612.7918" assumed_charge="3" index="1" retention_time_sec="1.3653">
+      <search_result>
+        <search_hit hit_rank="1" peptide="ELNKEMAAEKAKAAAG" peptide_prev_aa="R" peptide_next_aa="E" protein="ddb000449223" num_tot_proteins="3" num_matched_ions="17" tot_num_ions="60" calc_neutral_pep_mass="1612.8247" massdiff="-0.033" num_tol_term="1" num_missed_cleavages="3" is_rejected="0">
+          <alternative_protein protein="ddb000394137" num_tol_term="1"/>
+          <alternative_protein protein="ddb000015734" num_tol_term="1"/>
+          <modification_info>
+            <mod_aminoacid_mass position="1" mass="111.0320" />
+          </modification_info>
+          <search_score name="hyperscore" value="329"/>
+          <search_score name="nextscore" value="323"/>
+          <search_score name="bscore" value="1"/>
+          <search_score name="yscore" value="1"/>
+          <search_score name="expect" value="8"/>
+        </search_hit>
+      </search_result>
+    </spectrum_query>
+  </msms_run_summary>      
 </msms_pipeline_analysis>

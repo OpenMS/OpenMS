@@ -384,7 +384,7 @@ namespace OpenMS
 
         if (!current_precursors.empty() || current_spec.metaValueExists("analyzer scan offset"))
         {
-          DoubleReal pc_val;
+          double pc_val;
           if (current_spec.metaValueExists("analyzer scan offset"))
           {
             pc_val = current_spec.getMetaValue("analyzer scan offset");

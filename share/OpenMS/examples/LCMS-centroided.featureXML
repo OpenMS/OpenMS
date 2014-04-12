@@ -27,8 +27,6 @@
 		<userParam type="float" name="parameter: algorithm:isotopic_pattern:optional_fit_improvement" value="2"/>
 		<userParam type="float" name="parameter: algorithm:isotopic_pattern:mass_window_width" value="25"/>
 		<userParam type="float" name="parameter: algorithm:seed:min_score" value="0.8"/>
-		<userParam type="float" name="parameter: algorithm:fit:epsilon_abs" value="0.0001"/>
-		<userParam type="float" name="parameter: algorithm:fit:epsilon_rel" value="0.0001"/>
 		<userParam type="int" name="parameter: algorithm:fit:max_iterations" value="500"/>
 		<userParam type="float" name="parameter: algorithm:feature:min_score" value="0.7"/>
 		<userParam type="float" name="parameter: algorithm:feature:min_isotope_fit" value="0.8"/>

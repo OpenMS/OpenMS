@@ -35,6 +35,9 @@
 #ifndef OPENMS_VISUAL_MULTIGRADIENT_H
 #define OPENMS_VISUAL_MULTIGRADIENT_H
 
+// OpenMS_GUI config
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
+
 //OpenMS
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Macros.h>
@@ -91,11 +94,11 @@ public:
     MultiGradient & operator=(const MultiGradient & rhs);
 
     /// sets or replaces the color at position @p position
-    void insert(DoubleReal position, QColor color);
+    void insert(double position, QColor color);
     /// removes the color at position @p position
-    bool remove(DoubleReal position);
+    bool remove(double position);
     /// returns if a value for position @p position exists
-    bool exists(DoubleReal position);
+    bool exists(double position);
     /**
       @brief returns the position of the @p index -th point
 
@@ -116,25 +119,25 @@ public:
         If the @p position is higher or lower than the range [0,100] the highest,
         respectively the lowest, color is returned.
     */
-    QColor interpolatedColorAt(DoubleReal position) const;
+    QColor interpolatedColorAt(double position) const;
     /**
         @brief returns the color as @p position with the gradient stretched between @p min and @p max.
 
         If the @p position is higher or lower than the range [min,max] the highest,
         respectively the lowest, color is returned.
     */
-    QColor interpolatedColorAt(DoubleReal position, DoubleReal min, DoubleReal max) const;
+    QColor interpolatedColorAt(double position, double min, double max) const;
 
     /// activates the precalculation of values (only approximate results are given)
-    void activatePrecalculationMode(DoubleReal min, DoubleReal max, UInt steps);
+    void activatePrecalculationMode(double min, double max, UInt steps);
     /// deactivates the precalculation of values ( and deletes the precalculated values)
     void deactivatePrecalculationMode();
 
     /// index of color in precalculated table by position in gradient
-    inline Int precalculatedColorIndex( DoubleReal position ) const
+    inline Int precalculatedColorIndex( double position ) const
     {
-      OPENMS_PRECONDITION(pre_.size() != 0, "MultiGradient::precalculatedColorIndex(DoubleReal): Precalculation mode not activated!");
-      OPENMS_PRECONDITION(position >= pre_min_, (String("MultiGradient::precalculatedColorIndex(DoubleReal): position ") + position + " out of specified range (" + pre_min_ + "-" + (pre_min_ + pre_size_) + ")!").c_str());
+      OPENMS_PRECONDITION(pre_.size() != 0, "MultiGradient::precalculatedColorIndex(double): Precalculation mode not activated!");
+      OPENMS_PRECONDITION(position >= pre_min_, (String("MultiGradient::precalculatedColorIndex(double): position ") + position + " out of specified range (" + pre_min_ + "-" + (pre_min_ + pre_size_) + ")!").c_str());
 
       Int index = (Int)((position - pre_min_) / pre_size_ * pre_steps_);
 
@@ -158,7 +161,7 @@ public:
         - With debug information an Precondition exception is thrown
         - Without debug information array boundaries are violated, which probably causes a segmentation fault.
     */
-    inline QColor precalculatedColorAt(DoubleReal position) const
+    inline QColor precalculatedColorAt(double position) const
     {
       return precalculatedColorByIndex( precalculatedColorIndex( position ) );
     }
@@ -198,15 +201,15 @@ public:
 
 protected:
     /// Map of index and color
-    std::map<DoubleReal, QColor> pos_col_;
+    std::map<double, QColor> pos_col_;
     /// Current interpolation mode
     InterpolationMode interpolation_mode_;
     /// Precalculated colors
     std::vector<QColor> pre_;
     /// Minimum of the precalculated color range
-    DoubleReal pre_min_;
+    double pre_min_;
     /// Width of the precalculated color range
-    DoubleReal pre_size_;
+    double pre_size_;
     /// Steps of the precalculated color range
     UInt pre_steps_;
 

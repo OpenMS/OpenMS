@@ -114,12 +114,12 @@ protected:
     PeptideIdentification filtered_identification_both;
     IDFilter filter;
     bool no_protein_identifiers = true;
-    DoubleReal p_value_dim_1 = getDoubleOption_("p_value_dim_1");
-    DoubleReal p_value_dim_2 = getDoubleOption_("p_value_dim_2");
+    double p_value_dim_1 = getDoubleOption_("p_value_dim_1");
+    double p_value_dim_2 = getDoubleOption_("p_value_dim_2");
     State state = TP;
     State state_rt1 = TP;
     State state_rt2 = TP;
-    vector<DoubleReal> fdrs;
+    vector<double> fdrs;
     fdrs.push_back(0.);
     fdrs.push_back(0.01);
     fdrs.push_back(0.02);
@@ -429,7 +429,7 @@ protected:
 
         if (j % 5 == 4)
         {
-          output_file << " " << (performances[i][j - 4] / ((DoubleReal) performances[i][j - 4] + performances[i][j - 3]));
+          output_file << " " << (performances[i][j - 4] / ((double) performances[i][j - 4] + performances[i][j - 3]));
         }
         else
         {

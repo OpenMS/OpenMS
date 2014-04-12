@@ -43,7 +43,6 @@
 #include <OpenMS/FILTERING/TRANSFORMERS/NLargest.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/SqrtMower.h>
 #include <stdio.h>
-#include <gsl/gsl_statistics_double.h>
 #include <sstream>
 
 using namespace std;
@@ -243,8 +242,8 @@ namespace OpenMS
 
     Size number_of_intensity_levels = (UInt) param_.getValue("number_intensity_levels");
     Size number_of_regions = (UInt) param_.getValue("number_regions");
-    DoubleReal parent_tolerance = param_.getValue("parent_tolerance");
-    DoubleReal peak_tolerance = param_.getValue("peak_tolerance");
+    double parent_tolerance = param_.getValue("parent_tolerance");
+    double peak_tolerance = param_.getValue("peak_tolerance");
     bool write_outfiles = param_.getValue("write_training_files").toBool();
     bool balancing = param_.getValue("svm:svc:balancing").toBool();
 
@@ -341,17 +340,17 @@ namespace OpenMS
     wrap_reg.setParameter(SVMWrapper::SVM_TYPE, 3 + (Int)param_.getValue("svm:svr_type"));
     wrap_reg.setParameter(SVMWrapper::KERNEL_TYPE, (Int)param_.getValue("svm:svr:kernel_type"));
     wrap_reg.setParameter(SVMWrapper::DEGREE, (Int)param_.getValue("svm:svr:degree"));
-    wrap_reg.setParameter(SVMWrapper::C, (DoubleReal)param_.getValue("svm:svr:C"));
-    wrap_reg.setParameter(SVMWrapper::NU, (DoubleReal)param_.getValue("svm:svr:nu"));
-    wrap_reg.setParameter(SVMWrapper::GAMMA, (DoubleReal)param_.getValue("svm:svr:gamma"));
-    wrap_reg.setParameter(SVMWrapper::P, (DoubleReal)param_.getValue("svm:svr:p"));
+    wrap_reg.setParameter(SVMWrapper::C, (double)param_.getValue("svm:svr:C"));
+    wrap_reg.setParameter(SVMWrapper::NU, (double)param_.getValue("svm:svr:nu"));
+    wrap_reg.setParameter(SVMWrapper::GAMMA, (double)param_.getValue("svm:svr:gamma"));
+    wrap_reg.setParameter(SVMWrapper::P, (double)param_.getValue("svm:svr:p"));
 
     wrap_class.setParameter(SVMWrapper::SVM_TYPE, 3 + (Int)param_.getValue("svm:svc_type"));
     wrap_class.setParameter(SVMWrapper::KERNEL_TYPE, (Int)param_.getValue("svm:svc:kernel_type"));
     wrap_class.setParameter(SVMWrapper::DEGREE, (Int)param_.getValue("svm:svc:degree"));
-    wrap_class.setParameter(SVMWrapper::C, (DoubleReal)param_.getValue("svm:svc:C"));
-    wrap_class.setParameter(SVMWrapper::NU, (DoubleReal)param_.getValue("svm:svc:nu"));
-    wrap_class.setParameter(SVMWrapper::GAMMA, (DoubleReal)param_.getValue("svm:svc:gamma"));
+    wrap_class.setParameter(SVMWrapper::C, (double)param_.getValue("svm:svc:C"));
+    wrap_class.setParameter(SVMWrapper::NU, (double)param_.getValue("svm:svc:nu"));
+    wrap_class.setParameter(SVMWrapper::GAMMA, (double)param_.getValue("svm:svc:gamma"));
 
     //-----------------------LOADING THE Grid Search Parameters------------------
 
@@ -359,16 +358,16 @@ namespace OpenMS
     bool additive_cv = param_.getValue("svm:additive_cv").toBool();
 
     //SVR Grid params
-    std::map<SVMWrapper::SVM_parameter_type, DoubleReal> start_values_reg, end_values_reg, step_sizes_reg;
+    std::map<SVMWrapper::SVM_parameter_type, double> start_values_reg, end_values_reg, step_sizes_reg;
     if (grid)
     {
-      DoubleReal gamma_start = (DoubleReal)param_.getValue("svm:svr:gamma_start");
-      DoubleReal gamma_step_size = (DoubleReal)param_.getValue("svm:svr:gamma_step_size");
+      double gamma_start = (double)param_.getValue("svm:svr:gamma_start");
+      double gamma_step_size = (double)param_.getValue("svm:svr:gamma_step_size");
       if (!additive_cv && gamma_step_size <= 1)
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Step size of gamma <= 1 and additive_cv is false. Aborting!");
       }
-      DoubleReal gamma_stop = (DoubleReal)param_.getValue("svm:svr:degree_stop");
+      double gamma_stop = (double)param_.getValue("svm:svr:degree_stop");
       start_values_reg.insert(make_pair(SVMWrapper::GAMMA, gamma_start));
       step_sizes_reg.insert(make_pair(SVMWrapper::GAMMA, gamma_step_size));
       end_values_reg.insert(make_pair(SVMWrapper::GAMMA, gamma_stop));
@@ -394,34 +393,34 @@ namespace OpenMS
 
       if (wrap_reg.getIntParameter(SVMWrapper::SVM_TYPE) == EPSILON_SVR)
       {
-        DoubleReal p_start = 0.;
-        DoubleReal p_step_size = 0.;
-        DoubleReal p_stop = 0.;
+        double p_start = 0.;
+        double p_step_size = 0.;
+        double p_stop = 0.;
 
-        p_start = (DoubleReal)param_.getValue("svm:svr:p_start");
-        p_step_size = (DoubleReal)param_.getValue("svm:svr:p_step_size");
+        p_start = (double)param_.getValue("svm:svr:p_start");
+        p_step_size = (double)param_.getValue("svm:svr:p_step_size");
         if (!additive_cv && p_step_size <= 1)
         {
           throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Step size of p <= 1 and additive_cv is false. Aborting!");
         }
-        p_stop = (DoubleReal)param_.getValue("svm:svr:p_stop");
+        p_stop = (double)param_.getValue("svm:svr:p_stop");
 
         start_values_reg.insert(make_pair(SVMWrapper::P, p_start));
         step_sizes_reg.insert(make_pair(SVMWrapper::P, p_step_size));
         end_values_reg.insert(make_pair(SVMWrapper::P, p_stop));
       }
 
-      DoubleReal c_start = 0.;
-      DoubleReal c_step_size = 0.;
-      DoubleReal c_stop = 0.;
+      double c_start = 0.;
+      double c_step_size = 0.;
+      double c_stop = 0.;
 
-      c_start = (DoubleReal)param_.getValue("svm:svr:c_start");
-      c_step_size = (DoubleReal)param_.getValue("svm:svr:c_step_size");
+      c_start = (double)param_.getValue("svm:svr:c_start");
+      c_step_size = (double)param_.getValue("svm:svr:c_step_size");
       if (!additive_cv && c_step_size <= 1)
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Step size of c <= 1 and additive_cv is false. Aborting!");
       }
-      c_stop = (DoubleReal)param_.getValue("svm:svr:c_stop");
+      c_stop = (double)param_.getValue("svm:svr:c_stop");
 
       start_values_reg.insert(make_pair(SVMWrapper::C, c_start));
       step_sizes_reg.insert(make_pair(SVMWrapper::C, c_step_size));
@@ -429,17 +428,17 @@ namespace OpenMS
 
       if ((wrap_reg.getIntParameter(SVMWrapper::SVM_TYPE) == NU_SVR || wrap_reg.getIntParameter(SVMWrapper::SVM_TYPE) == NU_SVC))
       {
-        DoubleReal nu_start = 0.;
-        DoubleReal nu_step_size = 0.;
-        DoubleReal nu_stop = 0.;
+        double nu_start = 0.;
+        double nu_step_size = 0.;
+        double nu_stop = 0.;
 
-        nu_start = (DoubleReal)param_.getValue("svm:svr:nu_start");
-        nu_step_size = (DoubleReal)param_.getValue("svm:svr:nu_step_size");
+        nu_start = (double)param_.getValue("svm:svr:nu_start");
+        nu_step_size = (double)param_.getValue("svm:svr:nu_step_size");
         if (!additive_cv && nu_step_size <= 1)
         {
           throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Step size of nu <= 1 and additive_cv is false. Aborting!");
         }
-        nu_stop = (DoubleReal)param_.getValue("svm:svr:nu_stop");
+        nu_stop = (double)param_.getValue("svm:svr:nu_stop");
 
         start_values_reg.insert(make_pair(SVMWrapper::NU, nu_start));
         step_sizes_reg.insert(make_pair(SVMWrapper::NU, nu_step_size));
@@ -448,17 +447,17 @@ namespace OpenMS
     }
 
     //SVC Grid params
-    std::map<SVMWrapper::SVM_parameter_type, DoubleReal> start_values_class, end_values_class, step_sizes_class;
+    std::map<SVMWrapper::SVM_parameter_type, double> start_values_class, end_values_class, step_sizes_class;
 
     if (grid)
     {
-      DoubleReal gamma_start = (DoubleReal)param_.getValue("svm:svc:gamma_start");
-      DoubleReal gamma_step_size = (DoubleReal)param_.getValue("svm:svc:gamma_step_size");
+      double gamma_start = (double)param_.getValue("svm:svc:gamma_start");
+      double gamma_step_size = (double)param_.getValue("svm:svc:gamma_step_size");
       if (!additive_cv && gamma_step_size <= 1)
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Step size of gamma <= 1 and additive_cv is false. Aborting!");
       }
-      DoubleReal gamma_stop = (DoubleReal)param_.getValue("svm:svc:degree_stop");
+      double gamma_stop = (double)param_.getValue("svm:svc:degree_stop");
       start_values_class.insert(make_pair(SVMWrapper::GAMMA, gamma_start));
       step_sizes_class.insert(make_pair(SVMWrapper::GAMMA, gamma_step_size));
       end_values_class.insert(make_pair(SVMWrapper::GAMMA, gamma_stop));
@@ -482,17 +481,17 @@ namespace OpenMS
         end_values_class.insert(make_pair(SVMWrapper::DEGREE, degree_stop));
       }
 
-      DoubleReal c_start = 0.;
-      DoubleReal c_step_size = 0.;
-      DoubleReal c_stop = 0.;
+      double c_start = 0.;
+      double c_step_size = 0.;
+      double c_stop = 0.;
 
-      c_start = (DoubleReal)param_.getValue("svm:svc:c_start");
-      c_step_size = (DoubleReal)param_.getValue("svm:svc:c_step_size");
+      c_start = (double)param_.getValue("svm:svc:c_start");
+      c_step_size = (double)param_.getValue("svm:svc:c_step_size");
       if (!additive_cv && c_step_size <= 1)
       {
         throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Step size of c <= 1 and additive_cv is false. Aborting!");
       }
-      c_stop = (DoubleReal)param_.getValue("svm:svc:c_stop");
+      c_stop = (double)param_.getValue("svm:svc:c_stop");
 
       start_values_class.insert(make_pair(SVMWrapper::C, c_start));
       step_sizes_class.insert(make_pair(SVMWrapper::C, c_step_size));
@@ -500,17 +499,17 @@ namespace OpenMS
 
       if ((wrap_class.getIntParameter(SVMWrapper::SVM_TYPE) == NU_SVR || wrap_class.getIntParameter(SVMWrapper::SVM_TYPE) == NU_SVC))
       {
-        DoubleReal nu_start = 0.;
-        DoubleReal  nu_step_size = 0.;
-        DoubleReal nu_stop = 0.;
+        double nu_start = 0.;
+        double  nu_step_size = 0.;
+        double nu_stop = 0.;
 
-        nu_start = (DoubleReal)param_.getValue("svm:svc:nu_start");
-        nu_step_size = (DoubleReal)param_.getValue("svm:svc:nu_step_size");
+        nu_start = (double)param_.getValue("svm:svc:nu_start");
+        nu_step_size = (double)param_.getValue("svm:svc:nu_step_size");
         if (!additive_cv && nu_step_size <= 1)
         {
           throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Step size of nu <= 1 and additive_cv is false. Aborting!");
         }
-        nu_stop = (DoubleReal)param_.getValue("svm:svc:nu_stop");
+        nu_stop = (double)param_.getValue("svm:svc:nu_stop");
 
         start_values_class.insert(make_pair(SVMWrapper::NU, nu_start));
         step_sizes_class.insert(make_pair(SVMWrapper::NU, nu_step_size));
@@ -538,8 +537,8 @@ namespace OpenMS
     {
       //test whether annotation for spectrum match. If theoretical and empirical mass differ too much skip this spectrum
       Int empirical_charge = spectra[index].getPrecursors()[0].getCharge();
-      DoubleReal empirical_parent_mass = spectra[index].getPrecursors()[0].getMZ();
-      DoubleReal theoretical_parent_mass = annotations[index].getMonoWeight(Residue::Full, empirical_charge) / empirical_charge;
+      double empirical_parent_mass = spectra[index].getPrecursors()[0].getMZ();
+      double theoretical_parent_mass = annotations[index].getMonoWeight(Residue::Full, empirical_charge) / empirical_charge;
 
       if (abs(empirical_parent_mass - theoretical_parent_mass) > parent_tolerance)
       {
@@ -607,7 +606,7 @@ namespace OpenMS
           continue;
         }
 
-        DoubleReal true_offset_mass = 0.0;
+        double true_offset_mass = 0.0;
         Residue::ResidueType residue = ion_types[type_nr].residue;
         Int charge = ion_types[type_nr].charge;
         EmpiricalFormula loss = ion_types[type_nr].loss;
@@ -634,7 +633,7 @@ namespace OpenMS
           }
 
           //find the closest peak in the spectrum
-          DoubleReal observed_peak_intensity = -1;
+          double observed_peak_intensity = -1;
           Size true_nearest_peak_ind = input_spec_norm.findNearest(true_offset_mass);
 
           //check whether this peak is within the allowed mass range
@@ -770,7 +769,7 @@ namespace OpenMS
         if (n_fold > 1)
         {
           //perform cross validation
-          std::map<SVMWrapper::SVM_parameter_type, DoubleReal> best_parameters;
+          std::map<SVMWrapper::SVM_parameter_type, double> best_parameters;
           wrap_reg.performCrossValidation(&svm_p_reg,
                                           SVMData(),
                                           false,
@@ -785,7 +784,7 @@ namespace OpenMS
                                           );
 
           //use best parameters to train final svm on full dataset
-          std::map<SVMWrapper::SVM_parameter_type, DoubleReal>::const_iterator best_param_iter;
+          std::map<SVMWrapper::SVM_parameter_type, double>::const_iterator best_param_iter;
           for (best_param_iter = best_parameters.begin(); best_param_iter != best_parameters.end(); ++best_param_iter)
           {
             wrap_reg.setParameter(best_param_iter->first, best_param_iter->second);
@@ -861,7 +860,7 @@ namespace OpenMS
         if (n_fold > 1)
         {
           //perform cross validation
-          std::map<SVMWrapper::SVM_parameter_type, DoubleReal> best_parameters;
+          std::map<SVMWrapper::SVM_parameter_type, double> best_parameters;
           wrap_class.performCrossValidation(&svm_p_class,
                                             SVMData(),
                                             false,
@@ -876,7 +875,7 @@ namespace OpenMS
                                             );
 
           //use best parameters to train final svm on full dataset
-          std::map<SVMWrapper::SVM_parameter_type, DoubleReal>::const_iterator best_param_iter;
+          std::map<SVMWrapper::SVM_parameter_type, double>::const_iterator best_param_iter;
           for (best_param_iter = best_parameters.begin(); best_param_iter != best_parameters.end(); ++best_param_iter)
           {
             wrap_class.setParameter(best_param_iter->first, best_param_iter->second);
@@ -962,10 +961,10 @@ namespace OpenMS
     norm.setParameters(norm_param);
     norm.filterPeakSpectrum(S);
 
-    DoubleReal min_intens =  std::numeric_limits<double>::infinity();
-    DoubleReal max_intens = -1 * std::numeric_limits<double>::infinity();
+    double min_intens =  std::numeric_limits<double>::infinity();
+    double max_intens = -1 * std::numeric_limits<double>::infinity();
 
-    std::vector<DoubleReal> intensities(S.size());
+    std::vector<double> intensities(S.size());
     for (Size i = 0; i < S.size(); ++i)
     {
       //std::cerr<<"before norm: "<<S[i].getIntensity()<<std::endl;
@@ -977,14 +976,14 @@ namespace OpenMS
       }
     }
 
-    DoubleReal lower = 0;
-    DoubleReal upper = 1;
+    double lower = 0;
+    double upper = 1;
     //normalize intensities to one
     for (Size i = 0; i < S.size(); ++i)
     {
       if (S[i].getIntensity() > 0)
       {
-        DoubleReal intens = lower + (upper - lower) *
+        double intens = lower + (upper - lower) *
                             (intensities[i] - min_intens) /
                             (max_intens - min_intens);
         S[i].setIntensity(intens);
@@ -1005,19 +1004,19 @@ namespace OpenMS
                                                                     const std::vector<bool> & is_primary
                                                                     )
   {
-    std::vector<DoubleReal> tmp;
+    std::vector<double> tmp;
     for (Size region = 0; region < number_of_regions; ++region)
     {
       //we start by binning the intensities. We select the bin boarders such that
       //the intensities of the primary ions are equally split
-      std::vector<DoubleReal> & observed_b = observed_intensities[std::make_pair(IonType(Residue::BIon), region)];
+      std::vector<double> & observed_b = observed_intensities[std::make_pair(IonType(Residue::BIon), region)];
       tmp.insert(tmp.end(), observed_b.begin(), observed_b.end());
-      std::vector<DoubleReal> & observed_y = observed_intensities[std::make_pair(IonType(Residue::YIon), region)];
+      std::vector<double> & observed_y = observed_intensities[std::make_pair(IonType(Residue::YIon), region)];
       tmp.insert(tmp.end(), observed_y.begin(), observed_y.end());
     }
 
-    std::vector<DoubleReal> bin_boarders(number_of_intensity_levels);
-    std::vector<DoubleReal> bin_values(number_of_intensity_levels);
+    std::vector<double> bin_boarders(number_of_intensity_levels);
+    std::vector<double> bin_values(number_of_intensity_levels);
     std::sort(tmp.begin(), tmp.end());
 
     //find the first nonzero
@@ -1031,8 +1030,8 @@ namespace OpenMS
     Size prev_index = 0;
     for (Size i = 1; i < number_of_intensity_levels; ++i)
     {
-      Size index = i * (DoubleReal) non_zero_size / (number_of_intensity_levels - 1) + first_non_zero;
-      DoubleReal count = 0;
+      Size index = i * (double) non_zero_size / (number_of_intensity_levels - 1) + first_non_zero;
+      double count = 0;
       for (Size j = prev_index; j < index; ++j)
       {
         count += tmp[j];
@@ -1060,10 +1059,10 @@ namespace OpenMS
     {
       for (Size i = 0; i < ion_types.size(); ++i)
       {
-        std::vector<DoubleReal> & intensities = observed_intensities[std::make_pair(ion_types[i], region)];
+        std::vector<double> & intensities = observed_intensities[std::make_pair(ion_types[i], region)];
         for (Size j = 0; j < intensities.size(); ++j)
         {
-          DoubleReal intens = intensities[j];
+          double intens = intensities[j];
           if (intens == 0.0 || intens == -1.0)
             continue;
 
@@ -1076,8 +1075,8 @@ namespace OpenMS
       }
     }
 
-    std::map<std::pair<IonType, Size>, std::vector<std::vector<DoubleReal> > > joint_counts;
-    std::map<std::pair<IonType, Size>, std::vector<DoubleReal> > background_counts;
+    std::map<std::pair<IonType, Size>, std::vector<std::vector<double> > > joint_counts;
+    std::map<std::pair<IonType, Size>, std::vector<double> > background_counts;
 
     //count joint appearences of primary and secondary peaks
     for (Size i = 0; i < ion_types.size(); ++i)
@@ -1096,10 +1095,10 @@ namespace OpenMS
       }
       for (Size region = 0; region < number_of_regions; ++region)
       {
-        joint_counts[std::make_pair(type, region)].assign(number_of_intensity_levels, std::vector<DoubleReal>(number_of_intensity_levels, 1));
+        joint_counts[std::make_pair(type, region)].assign(number_of_intensity_levels, std::vector<double>(number_of_intensity_levels, 1));
         background_counts[std::make_pair(type, region)].assign(number_of_intensity_levels, number_of_intensity_levels);
-        const std::vector<DoubleReal> & secondary = observed_intensities[std::make_pair(type, region)];
-        const std::vector<DoubleReal> & primary = observed_intensities[std::make_pair(primary_type, region)];
+        const std::vector<double> & secondary = observed_intensities[std::make_pair(type, region)];
+        const std::vector<double> & primary = observed_intensities[std::make_pair(primary_type, region)];
 
         for (Size j = 0; j < primary.size(); ++j)
         {
@@ -1128,7 +1127,7 @@ namespace OpenMS
       for (Size region = 0; region < number_of_regions; ++region)
       {
         info_outfile.push_back("<Region " + String(region) + ">");
-        std::vector<DoubleReal> & back_counts = background_counts[std::make_pair(type, region)];
+        std::vector<double> & back_counts = background_counts[std::make_pair(type, region)];
 
         for (Size prim = 0; prim < number_of_intensity_levels; ++prim)
         {
@@ -1152,8 +1151,8 @@ namespace OpenMS
   void SvmTheoreticalSpectrumGeneratorTrainer::countIntensities_(const PeakSpectrum & spectrum,
                                                                  const AASequence & annotation,
                                                                  IonType type,
-                                                                 std::map<std::pair<IonType, Size>, std::vector<DoubleReal> > & observed_intensities,
-                                                                 DoubleReal tolerance,
+                                                                 std::map<std::pair<IonType, Size>, std::vector<double> > & observed_intensities,
+                                                                 double tolerance,
                                                                  Size number_of_regions
                                                                  )
   {
@@ -1163,7 +1162,7 @@ namespace OpenMS
 
     std::set<String> possible_n_term_losses;
     std::set<String> possible_c_term_losses;
-    DoubleReal true_offset_mass = -1.;
+    double true_offset_mass = -1.;
 
 
     for (Size frag_pos = 1; frag_pos < annotation.size(); ++frag_pos)
@@ -1222,7 +1221,7 @@ namespace OpenMS
       }
 
       //find the closest peak in the spectrum
-      DoubleReal observed_peak_intensity = 0;
+      double observed_peak_intensity = 0;
       Size true_nearest_peak_ind = spectrum.findNearest(true_offset_mass);
 
       //check whether this peak is within the allowed mass range
@@ -1234,7 +1233,7 @@ namespace OpenMS
     }
   }
 
-  void SvmTheoreticalSpectrumGeneratorTrainer::writeTrainingFile_(std::vector<DescriptorSet> & training_input, std::vector<DoubleReal> & training_output, String filename)
+  void SvmTheoreticalSpectrumGeneratorTrainer::writeTrainingFile_(std::vector<DescriptorSet> & training_input, std::vector<double> & training_output, String filename)
   {
     std::cerr << "Creating Training File.. " << filename;
     TextFile file;

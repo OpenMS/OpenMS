@@ -120,7 +120,7 @@ protected:
     registerStringOption_("separator", "<sep>", "", "Field separator for 'table' output format; by default, the 'tab' character is used", false);
   }
 
-  DoubleReal computeMass_(const AASequence & seq, Int charge) const
+  double computeMass_(const AASequence & seq, Int charge) const
   {
     if (use_avg_mass_) return seq.getAverageWeight(res_type_, charge);
     else return seq.getMonoWeight(res_type_, charge);
@@ -132,7 +132,7 @@ protected:
     for (set<Int>::const_iterator it = charges.begin(); it != charges.end();
          ++it)
     {
-      DoubleReal mass = computeMass_(seq, *it);
+      double mass = computeMass_(seq, *it);
       sv_out << seq.toString() << *it << mass;
       sv_out.writeValueOrNan(mass / *it);
       sv_out << endl;
@@ -145,7 +145,7 @@ protected:
     for (set<Int>::const_iterator it = charges.begin(); it != charges.end();
          ++it)
     {
-      DoubleReal mass = computeMass_(seq, *it);
+      double mass = computeMass_(seq, *it);
       if (it != charges.begin()) *output_ << ", ";
       *output_ << "z=" << *it << " m=" << mass << " m/z=";
       if (*it != 0) *output_ << (mass / *it);
@@ -160,7 +160,7 @@ protected:
     for (set<Int>::const_iterator it = charges.begin(); it != charges.end();
          ++it)
     {
-      DoubleReal mass = computeMass_(seq, *it);
+      double mass = computeMass_(seq, *it);
       if (it != charges.begin()) *output_ << " ";
       if (!mz) *output_ << mass;
       else if (*it == 0) *output_ << "inf";

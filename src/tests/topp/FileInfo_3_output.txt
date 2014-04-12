@@ -35,9 +35,9 @@ Intensities:
   num. of values: 10
   mean:           3673.9
   minimum:        1376
-  lower quartile: 2436.5
+  lower quartile: 2137
   median:         3049
-  upper quartile: 4930.25
+  upper quartile: 5804.5
   maximum:        6712
   variance:       3.49692e+06
 
@@ -55,9 +55,9 @@ Overall qualities:
   num. of values: 10
   mean:           0.79855
   minimum:        0.746627
-  lower quartile: 0.759386
+  lower quartile: 0.753474
   median:         0.799752
-  upper quartile: 0.819762
+  upper quartile: 0.839729
   maximum:        0.883375
   variance:       0.00209717
 
@@ -65,9 +65,9 @@ Qualities in retention time dimension:
   num. of values: 10
   mean:           50.8456
   minimum:        50.7882
-  lower quartile: 50.8147
+  lower quartile: 50.8042
   median:         50.8414
-  upper quartile: 50.8757
+  upper quartile: 50.8827
   maximum:        50.9139
   variance:       0.00163704
 
@@ -75,9 +75,9 @@ Qualities in mass-to-charge dimension:
   num. of values: 10
   mean:           0.721523
   minimum:        0.661723
-  lower quartile: 0.694197
+  lower quartile: 0.684805
   median:         0.717808
-  upper quartile: 0.749799
+  upper quartile: 0.763568
   maximum:        0.778111
   variance:       0.00160696
 

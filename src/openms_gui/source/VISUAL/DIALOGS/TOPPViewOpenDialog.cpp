@@ -78,7 +78,7 @@ namespace OpenMS
     if (!cutoff)
     {
       nocutoff_->setChecked(true);
-      cutoff_->setFocus();
+      nocutoff_->setFocus();
     }
     else
     {

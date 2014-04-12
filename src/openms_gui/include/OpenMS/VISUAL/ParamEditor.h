@@ -35,6 +35,9 @@
 #ifndef OPENMS_VISUAL_PARAMEDITOR_H
 #define OPENMS_VISUAL_PARAMEDITOR_H
 
+// OpenMS_GUI config
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
+
 #include <OpenMS/CONCEPT/Types.h>
 
 #include <OpenMS/VISUAL/UIC/ui_ParamEditor.h>

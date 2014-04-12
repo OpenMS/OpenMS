@@ -61,7 +61,7 @@ public:
     /// Destructor
     virtual ~LowessSmoothing();
 
-    typedef std::vector<DoubleReal> DoubleVector;
+    typedef std::vector<double> DoubleVector;
 
     /// Smoothing method that receives x and y coordinates (e.g., RT and intensities) and computes smoothed intensities.
     void smoothData(const DoubleVector &, const DoubleVector &, DoubleVector &);
@@ -70,9 +70,9 @@ protected:
     virtual void updateMembers_();
 
 private:
-    DoubleReal window_size_;
+    double window_size_;
 
-    DoubleReal tricube_(DoubleReal, DoubleReal);
+    double tricube_(double, double);
   };
 
 

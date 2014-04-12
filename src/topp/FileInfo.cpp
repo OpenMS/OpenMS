@@ -49,11 +49,11 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/DATASTRUCTURES/Map.h>
+#include <OpenMS/SYSTEM/SysInfo.h>
 
 #include <QtCore/QString>
 
-#include <gsl/gsl_sort.h>
-#include <gsl/gsl_statistics.h>
+#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -92,7 +92,7 @@ using namespace std;
   <B>INI file documentation of this tool:</B>
   @htmlinclude TOPP_FileInfo.html
 
-  In order to enrich the resulting data of your anaysis pipeline or to quickly compare different outcomes of your pipeline you can invoke the aforementioned information of your input data and (intermediary) results.
+  In order to enrich the resulting data of your analysis pipeline or to quickly compare different outcomes of your pipeline you can invoke the aforementioned information of your input data and (intermediary) results.
 */
 
 // We do not want this class to show up in the docu:
@@ -108,12 +108,10 @@ namespace OpenMS
     vector<PeptideIdentification> peptides;
   };
 
-  /// A little helper class to gather (and dump) some statistics from a vector<double>. Uses statistical functions implemented in GSL.
+  /// A little helper class to gather (and dump) some statistics from a vector<double>.
   struct SomeStatistics
   {
     /**@brief Initialize SomeStatistics from data.
-
-    @note: GSL statistics uses double and so we write double not DoubleReal here and where we use this.
     */
     SomeStatistics & operator()(vector<double> & data)
     {
@@ -122,12 +120,12 @@ namespace OpenMS
       if (count > 0)
       {
         sort(data.begin(), data.end());
-        mean = gsl_stats_mean(&data.front(), 1, data.size());
-        variance = gsl_stats_variance_m(&data.front(), 1, data.size(), mean);
+        mean = Math::mean(data.begin(), data.end());
+        variance = Math::variance(data.begin(), data.end(), mean);
         min = data.front();
-        lowerq = gsl_stats_quantile_from_sorted_data(&data.front(), 1, data.size(), 0.25);
-        median = gsl_stats_median_from_sorted_data(&data.front(), 1, data.size());
-        upperq = gsl_stats_quantile_from_sorted_data(&data.front(), 1, data.size(), 0.75);
+        lowerq = Math::quantile1st(data.begin(), data.end(), true);
+        median = Math::median(data.begin(), data.end(), true);
+        upperq = Math::quantile3rd(data.begin(), data.end(), true);
         max = data.back();
       }
       return *this;
@@ -405,7 +403,7 @@ protected:
 
       // Charge distribution and TIC
       Map<UInt, UInt> charges;
-      DoubleReal tic = 0.0;
+      double tic = 0.0;
       for (Size i = 0; i < feat.size(); ++i)
       {
         charges[feat[i].getCharge()]++;
@@ -466,13 +464,21 @@ protected:
       set<String> proteins;
       Size modified_peptide_count(0);
       Map<String, int> mod_counts;
+	  
+	  size_t mem1, mem2;
+ 	  SysInfo::getProcessMemoryConsumption(mem1);
+	  
       // reading input
       IdXMLFile().load(in, id_data.proteins, id_data.peptides, id_data.identifier);
 
+	  SysInfo::getProcessMemoryConsumption(mem2);
+	  std::cout << "\n\nMem Usage while loading: " << (mem2-mem1)/1024 << " MB" << std::endl;
+
       // export metadata to second output stream
-      os_tsv << "database" << "\t" << id_data.proteins.at(0).getSearchParameters().db << "\n"
-             << "database version" << "\t" << id_data.proteins.at(0).getSearchParameters().db_version << "\n"
-             << "taxonomy" << "\t" << id_data.proteins.at(0).getSearchParameters().taxonomy << "\n";
+      os_tsv << "database" << "\t" << id_data.proteins[0].getSearchParameters().db << "\n"
+             << "database version" << "\t" << id_data.proteins[0].getSearchParameters().db_version << "\n"
+             << "taxonomy" << "\t" << id_data.proteins[0].getSearchParameters().taxonomy << "\n";
+
 
       // calculations
       for (Size i = 0; i < id_data.peptides.size(); ++i)
@@ -537,12 +543,20 @@ protected:
     }
     else     //peaks
     {
+
+      size_t mem1, mem2;
+      SysInfo::getProcessMemoryConsumption(mem1);
+      
       if (!fh.loadExperiment(in, exp, in_type, log_type_))
       {
         writeLog_("Unsupported or corrupt input file. Aborting!");
         printUsage_();
         return ILLEGAL_PARAMETERS;
       }
+
+      // report memory consumption
+      SysInfo::getProcessMemoryConsumption(mem2);
+      std::cout << "\n\nMem Usage while loading: " << (mem2-mem1)/1024 << " MB" << std::endl;
 
       //check if the meta data indicates that this is peak data
       UInt meta_type = SpectrumSettings::UNKNOWN;
@@ -573,7 +587,7 @@ protected:
       //if raw data, determine the spacing
       if (type == SpectrumSettings::RAWDATA)
       {
-        vector<Real> spacing;
+        vector<float> spacing;
         for (Size j = 1; j < exp[i].size(); ++j)
         {
           spacing.push_back(exp[i][j].getMZ() - exp[i][j - 1].getMZ());
@@ -764,7 +778,7 @@ protected:
         {
           os << "Error: Spectrum retention times are not sorted in ascending order" << "\n";
         }
-        vector<DoubleReal> ms1_rts;
+        vector<double> ms1_rts;
         ms1_rts.reserve(exp.size());
         for (Size s = 0; s < exp.size(); ++s)
         {
@@ -836,7 +850,7 @@ protected:
           {
             os << "Error: Peak m/z positions are not sorted in ascending order in spectrum (RT: " << exp[s].getRT() << ")" << "\n";
           }
-          vector<DoubleReal> mzs;
+          vector<double> mzs;
           mzs.reserve(exp[s].size());
           for (Size p = 0; p < exp[s].size(); ++p)
           {

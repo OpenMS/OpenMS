@@ -38,6 +38,7 @@
 #include <boost/lexical_cast.hpp>
 #include <fstream>
 #include <string>
+#include <iostream>
 
 #include <xercesc/framework/MemBufInputSource.hpp>
 #include <xercesc/parsers/XercesDOMParser.hpp>
@@ -80,7 +81,7 @@ namespace OpenMS
       if ( fabs( boost::lexical_cast< long double >(s) - res) > 0.1)
       {
         std::cerr << "Your system may not support addressing a file of this size,"
-          << " only addresses that fit into a " << sizeof(std::streamsize)*8 << 
+          << " only addresses that fit into a " << sizeof(std::streamsize)*8 <<
           " bit integer are supported on your system." << std::endl;
         throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__,
             String("Could not convert string '") + s + "' to an integer on your system.");
@@ -102,7 +103,7 @@ namespace OpenMS
 
     if (indexoffset < 0 || indexoffset > length)
     {
-      std::cerr << "IndexedMzMLDecoder::parseOffsets Error: Offset was " << 
+      std::cerr << "IndexedMzMLDecoder::parseOffsets Error: Offset was " <<
         indexoffset << " (not between 0 and " << length << ")." << std::endl;
       return -1;
     }
@@ -181,7 +182,7 @@ namespace OpenMS
     }
     else
     {
-      std::cerr << "IndexedMzMLDecoder::findIndexListOffset Error: Could not find element indexListOffset in the last " << 
+      std::cerr << "IndexedMzMLDecoder::findIndexListOffset Error: Could not find element indexListOffset in the last " <<
         buffersize << " bytes. Maybe this is not a indexedmzML." << std::endl;
       std::cerr << buffer << std::endl;
     }
@@ -260,8 +261,8 @@ namespace OpenMS
             std::streampos thisOffset = OpenMS::StringUtils::stringToStreampos( String(offset) );
             result.push_back(std::make_pair(std::string(name), thisOffset));
 
-            xercesc::XMLString::release(&name); 
-            xercesc::XMLString::release(&offset); 
+            xercesc::XMLString::release(&name);
+            xercesc::XMLString::release(&offset);
           }
         }
 
@@ -269,7 +270,7 @@ namespace OpenMS
         xercesc::DOMElement* currentElement = dynamic_cast<xercesc::DOMElement*>(currentNode);
         char* tmp_name = xercesc::XMLString::transcode(currentElement->getAttribute(name_tag));
         std::string name(tmp_name);
-        xercesc::XMLString::release(&tmp_name); 
+        xercesc::XMLString::release(&tmp_name);
 
         if (name == "spectrum")
         {
@@ -281,7 +282,7 @@ namespace OpenMS
         }
         else
         {
-          std::cerr << "IndexedMzMLDecoder::domParseIndexedEnd Error: expected only " << 
+          std::cerr << "IndexedMzMLDecoder::domParseIndexedEnd Error: expected only " <<
             "'spectrum' or 'chromatogram' below indexList but found instead '" << name << "'." << std::endl;
           xercesc::XMLString::release(&idref_tag);
           xercesc::XMLString::release(&name_tag);

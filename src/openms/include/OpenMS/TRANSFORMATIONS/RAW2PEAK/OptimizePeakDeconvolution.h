@@ -38,17 +38,9 @@
 
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakShape.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePick.h>
-#include <gsl/gsl_vector.h>
-#include <gsl/gsl_multifit_nlin.h>
-#include <gsl/gsl_blas.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
 //#define DEBUG_DECONV
-#include <iostream>
-#ifdef DEBUG_DECONV
-#include <iostream>
-#include <fstream>
-#endif
 #include <vector>
 
 namespace OpenMS
@@ -82,7 +74,7 @@ namespace OpenMS
 
       ~PenaltyFactorsIntensity(){}
 
-      DoubleReal height;
+      double height;
 
 
     };
@@ -95,7 +87,7 @@ namespace OpenMS
         @brief This class provides the deconvolution of peak regions using non-linear optimization.
 
         Given a vector of peak shapes, this class optimizes all peak shapes parameters using a non-linear optimization.
-        For the non-linear optimization we use the Levenberg-Marquardt algorithm provided by the gsl.
+        For the non-linear optimization we use the Levenberg-Marquardt algorithm.
         There are a few constraints for the parameters: the positions are equidistant according to the peptide
         mass rule, e.g. two consecutive isotopic peaks are 1.003/charge away from each other. Besides the
         peaks have all the same left and right width, respectively.
@@ -119,8 +111,8 @@ public:
     struct Data
     {
       std::vector<PeakShape> peaks;
-      std::vector<DoubleReal> positions;
-      std::vector<DoubleReal> signal;
+      std::vector<double> positions;
+      std::vector<double> signal;
       OptimizationFunctions::PenaltyFactorsIntensity penalties;
       Int charge;
     };
@@ -182,6 +174,7 @@ public:
 
     /// Performs a nonlinear optimization of the peaks that belong to the current isotope pattern
     bool optimize(std::vector<PeakShape> & peaks, Data & data);
+    Size getNumberOfPeaks_(Int charge, std::vector<PeakShape> & temp_shapes, Data & data);
 
 protected:
     // Penalty factors for some parameter in the optimization
@@ -191,13 +184,10 @@ protected:
     Int charge_;
 
     /// distance between two isotopic peaks
-    static const DoubleReal dist_;
+    static const double dist_;
 
     /// A function to determine the number of peaks that lie in the current m/z interval given the distance between the peaks by the current charge state.
-    Size getNumberOfPeaks_(Int charge, std::vector<PeakShape> & temp_shapes, Data & data);
-
-    // After each iteration the fwhm of all peaks is checked whether it isn't too large
-    bool checkFWHM_(std::vector<PeakShape> & peaks, gsl_multifit_fdfsolver * & fit);
+    void setNumberOfPeaks_(Data & data, const std::vector<PeakShape> & temp_shapes, Int charge);
 
     void updateMembers_();
   }; // class

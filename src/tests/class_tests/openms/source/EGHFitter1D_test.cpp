@@ -38,10 +38,10 @@
 ///////////////////////////
 #include <OpenMS/SIMULATION/EGHFitter1D.h>
 #include <OpenMS/SIMULATION/EGHModel.h>
+#include <boost/random/mersenne_twister.hpp>
+#include <boost/random/uniform_real.hpp>
+#include <cmath>//toberemoved
 ///////////////////////////
-
-#include <gsl/gsl_rng.h>
-#include <gsl/gsl_randist.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -139,7 +139,7 @@ START_SECTION((QualityType fit1d(const RawDataArrayType &range, InterpolationMod
 
   RawDataArrayType data_to_fit;
 
-  for (DoubleReal x = 800.0; x < 1200.0; x += 0.1)
+  for (double x = 800.0; x < 1200.0; x += 0.1)
   {
     PeakType p;
     p.setPos(x);
@@ -148,19 +148,16 @@ START_SECTION((QualityType fit1d(const RawDataArrayType &range, InterpolationMod
   }
 
   // make some noise
-  gsl_rng_default_seed = 0.0;
-  gsl_rng* rnd_gen_ = gsl_rng_alloc(gsl_rng_mt19937);
-  DoubleReal distortion = 0.1;
-
+  boost::random::mt19937 rnd_gen_ (0.0);
+  boost::uniform_real<float> udist (-0.1, 0.1);
   for (Size i = 0; i < data_to_fit.size(); ++i)
   {
-    DoubleReal distort = exp(gsl_ran_flat(rnd_gen_, -distortion,
-        +distortion));
+    float distort = std::exp(udist(rnd_gen_));
     data_to_fit[i].setIntensity(data_to_fit[i].getIntensity()
         * distort);
   }
 
-  DoubleReal egh_quality;
+  double egh_quality;
   Param egh_param;
   EGHFitter1D egh_fitter;
 

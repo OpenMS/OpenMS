@@ -43,10 +43,6 @@
 #include <OpenMS/SIMULATION/MSSim.h>
 #include <OpenMS/SIMULATION/SimTypes.h>
 
-// GSL includes (random number generation)
-#include <gsl/gsl_rng.h>
-#include <gsl/gsl_randist.h>
-
 // file types
 #include <OpenMS/FORMAT/DTA2DFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
@@ -271,8 +267,8 @@ protected:
     // initialize the random number generators
     bool biological_random = getParam_().getValue("algorithm:RandomNumberGenerators:biological") == "random";
     bool technical_random = getParam_().getValue("algorithm:RandomNumberGenerators:technical") == "random";
-    SimRandomNumberGenerator rnd_gen;
-    rnd_gen.initialize(biological_random, technical_random);
+    MutableSimRandomNumberGeneratorPtr rnd_gen ( new SimRandomNumberGenerator );
+    rnd_gen->initialize(biological_random, technical_random);
 
     ms_simulation.setLogType(this->log_type_);
 
