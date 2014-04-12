@@ -69,15 +69,9 @@ namespace OpenMS
 	double mzStepWidth_;
 
 	/**
-	 * @brief intensity limits of the package
-	 */
-	double intensityMin_;
-	double intensityMax_;
-	
-	/**
 	 * @brief spline object for interpolation of intensity profile
 	 */
-	Spline2d<double> * spline_;
+	Spline2d<double> spline_;
  
 	public:
      /**
@@ -111,19 +105,9 @@ namespace OpenMS
     bool isInPackage(double mz);
         
     /**
-     * @brief returns the minimum intensity of the package
-     */
-    double getIntensityMin();
-    
-    /**
-     * @brief returns the maximum intensity of the package
-     */
-    double getIntensityMax();
-
-    /**
      * @brief returns polynomial spline function for interpolation in the interval [mzMin:mzMax]
      */
-    Spline2d<double> * getSpline();
+    Spline2d<double> getSpline();
 
     /**
      * @brief returns interpolated intensity @ position mz

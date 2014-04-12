@@ -46,94 +46,110 @@
 
 namespace OpenMS
 {
-  /**
-   * @brief data structure for spline interpolation of MS1 spectra
-   * 
-   * The data structure consists of a set of splines, each interpolating the MS1 spectrum in a certain m/z range.
-   * Between these splines no raw data points exist and the spectrum intensity is identical to zero.
-   *
-   * @see SplinePackage
-   * @see MSSpectrum<Peak1D>
-   */
-  class OPENMS_DLLAPI SplineSpectrum
-  {
     /**
-     * @brief set of spline packages each interpolating in a certain m/z range
+     * @brief data structure for spline interpolation of MS1 spectra
+     * 
+     * The data structure consists of a set of splines, each interpolating the MS1 spectrum in a certain m/z range.
+     * Between these splines no raw data points exist and the spectrum intensity is identical to zero.
+     *
+     * @see SplinePackage
+     * @see MSSpectrum<Peak1D>
      */
-    std::vector<SplinePackage> packages_;
- 
-	public:
-    /**
-     * @brief constructor taking two vectors
-     */
-    SplineSpectrum(std::vector<double> mz, std::vector<double> intensity);
-    
-    /**
-     * @brief constructor taking an MSSpectrum
-     */
-    SplineSpectrum(MSSpectrum<Peak1D> rawSpectrum);
-
-    /**
-     * @brief destructor
-     */
-    ~SplineSpectrum();
-
-    /**
-     * @brief section common for both constructors
-     */
-    void init(std::vector<double> mz, std::vector<double> intensity);
-    
-    /**
-     * @brief returns pline package of index i
-     */
-    SplinePackage getPackage(int i);
-    
-    /**
-     * @brief iterator class for access of spline packages
-     */
-   class Navigator
+    class OPENMS_DLLAPI SplineSpectrum
     {
         /**
-         * @brief list of spline packages to be accessed
+         * @brief m/z limits of the spectrum
          */
-        const std::vector<SplinePackage> * packages_;
-        
+        double mzMin_;
+        double mzMax_;
+    
         /**
-         * @brief index of spline package last accessed
+         * @brief set of spline packages each interpolating in a certain m/z range
          */
-        unsigned lastPackage_;
-        
+        std::vector<SplinePackage> packages_;
+     
         public:
         /**
-         * @brief constructor of iterator
+         * @brief constructor taking two vectors
          */
-        Navigator(const std::vector<SplinePackage> * packages);
+        SplineSpectrum(std::vector<double> mz, std::vector<double> intensity);
         
+        /**
+         * @brief constructor taking an MSSpectrum
+         */
+        SplineSpectrum(MSSpectrum<Peak1D> rawSpectrum);
+    
         /**
          * @brief destructor
          */
-        ~Navigator();
+        ~SplineSpectrum();
+    
+        /**
+         * @brief section common for both constructors
+         */
+        void init(std::vector<double> mz, std::vector<double> intensity);
         
         /**
-         * @brief returns spline interpolated intensity at m/z
-         * (fast access since we can start search from lastPackage)
+         * @brief returns the minimum m/z of the spectrum
          */
-        double eval(double mz);
+        double getMzMin();
         
         /**
-         * @brief returns the next sensible m/z position
-         *  for scanning through a spectrum
-         * (fast access since we can start search from lastPackage)
+         * @brief returns the maximum m/z of the spectrum
          */
-        double getNextMz(double mz);
+        double getMzMax();
+        
+        /**
+         * @brief returns pline package of index i
+         */
+        SplinePackage getPackage(int i);
+        
+        /**
+         * @brief iterator class for access of spline packages
+         */
+        class Navigator
+        {
+            /**
+             * @brief list of spline packages to be accessed
+             */
+            const std::vector<SplinePackage> * packages_;
+                        
+            /**
+             * @brief index of spline package last accessed
+             */
+            unsigned lastPackage_;
+            
+            public:
+            /**
+             * @brief constructor of iterator
+             */
+            Navigator(const std::vector<SplinePackage> * packages);
+            
+            /**
+             * @brief destructor
+             */
+            ~Navigator();
+            
+            /**
+             * @brief returns spline interpolated intensity at m/z
+             * (fast access since we can start search from lastPackage)
+             */
+            double eval(double mz);
+            
+            /**
+             * @brief returns the next sensible m/z position
+             *  for scanning through a spectrum
+             * (fast access since we can start search from lastPackage)
+             */
+            double getNextMz(double mz);
+        };
+        
+        /**
+         * @brief returns an iterarator for access of spline packages
+         */
+        SplineSpectrum::Navigator getNavigator();
+        
     };
-    
-    /**
-     * @brief returns an iterarator for access of spline packages
-     */
-    SplineSpectrum::Navigator getNavigator();
-    
- };
   
 }
 

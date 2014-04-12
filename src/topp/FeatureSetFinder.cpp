@@ -527,6 +527,9 @@ public:
 	// iterate over all spectra of the experiment (RT)
 	Int spectrumID = 0;
 	MSExperiment<Peak1D> expNew;
+	std::vector<double> rtSpline;
+	std::vector<std::vector<double> > mzSpline;
+	std::vector<std::vector<double> > intensitySpline;	
 	for (MSExperiment<Peak1D>::Iterator it = exp.begin(); it != exp.end(); ++it)
     {
 		++spectrumID;
@@ -542,36 +545,26 @@ public:
 			intensityVector.push_back(intensitySpec);
 		}
 		
-		if (spectrumID == 200)
-		{
-			SplineSpectrum * spectrumNew = new SplineSpectrum(mzVector,intensityVector);
-			SplineSpectrum::Navigator nav = (*spectrumNew).getNavigator();
-			double intens = nav.eval(486.2);
-			cout << "intensity @ 486.2 Da " << intens << "\n";
-		}
+		cout << "RT = " << rt << "\n";
 		
-		//SplineSpectrum * spectrumNew = new SplineSpectrum(mzVector,intensityVector);
-		//SplineSpectrum::Navigator nav = (*spectrumNew).getNavigator();
-
+		// construct spline
+		SplineSpectrum * spectrumNew = new SplineSpectrum(mzVector, intensityVector);
+		SplineSpectrum::Navigator nav = (*spectrumNew).getNavigator();
 		
 		MSSpectrum<Peak1D> specNew;
 		specNew.setRT(rt);
 		specNew.setMSLevel(1);
 		specNew.setNativeID(String("spline-interpolated=") + spectrumID);
-				
-		for (int i = 0; i < 30*400; ++i)
-		{							
-			Peak1D peakNew;
-			double mzmz = 400.0+i/30;
-			peakNew.setMZ(mzmz);
-			//peakNew.setIntensity(nav.eval(mzmz));
-			peakNew.setIntensity(rt/mzmz);
-			specNew.push_back(peakNew);
+
+		for (double mz = (*spectrumNew).getMzMin(); mz < (*spectrumNew).getMzMax(); mz = nav.getNextMz(mz))
+		{
+			Peak1D peak;
+			peak.setMZ(mz);
+			peak.setIntensity(nav.eval(mz));
+			specNew.push_back(peak);
 		}
+			
 		expNew.addSpectrum(specNew);
-		
-		mzVector.clear();
-		intensityVector.clear();
 	}
 	MzMLFile().store("spline.mzML", expNew);
  	std::cout << "***   ending tests ***\n";
