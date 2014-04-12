@@ -71,13 +71,17 @@ namespace OpenMS
         public:
         /**
          * @brief constructor taking two vectors
+         * (and an optional scaling factor for the m/z step width)
          */
         SplineSpectrum(std::vector<double> mz, std::vector<double> intensity);
+        SplineSpectrum(std::vector<double> mz, std::vector<double> intensity, double scaling);
         
         /**
          * @brief constructor taking an MSSpectrum
+         * (and an optional scaling factor for the m/z step width)
          */
         SplineSpectrum(MSSpectrum<Peak1D> rawSpectrum);
+        SplineSpectrum(MSSpectrum<Peak1D> rawSpectrum, double scaling);
     
         /**
          * @brief destructor
@@ -87,7 +91,7 @@ namespace OpenMS
         /**
          * @brief section common for both constructors
          */
-        void init(std::vector<double> mz, std::vector<double> intensity);
+        void init(std::vector<double> mz, std::vector<double> intensity, double scaling);
         
         /**
          * @brief returns the minimum m/z of the spectrum

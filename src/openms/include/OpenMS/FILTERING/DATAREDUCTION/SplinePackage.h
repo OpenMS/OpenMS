@@ -69,6 +69,11 @@ namespace OpenMS
 	double mzStepWidth_;
 
 	/**
+	 * @brief scaling factor for m/z step width
+	 */
+	double scaling_;
+
+	/**
 	 * @brief spline object for interpolation of intensity profile
 	 */
 	Spline2d<double> spline_;
@@ -77,7 +82,7 @@ namespace OpenMS
      /**
      * @brief constructor
      */
-    SplinePackage(std::vector<double> mz, std::vector<double> intensity);
+    SplinePackage(std::vector<double> mz, std::vector<double> intensity, double scaling);
     
      /**
      * @brief destructor

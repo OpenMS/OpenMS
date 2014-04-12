@@ -45,18 +45,17 @@ using namespace std;
 namespace OpenMS
 {
 
-	SplinePackage::SplinePackage(std::vector<double> mz, std::vector<double> intensity) : spline_(3, mz, intensity)
+	SplinePackage::SplinePackage(std::vector<double> mz, std::vector<double> intensity, double scaling) : spline_(3, mz, intensity)
 	{				
         if (!(mz.size() == intensity.size() && mz.size() > 2))
         {
             throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,"m/z and intensity vectors either not of the same size or too short.");
         }
-        
-		const double scaling = 0.7;    // step width somewhat smaller than the average raw data spacing		
-		
+        	
 		mzMin_ = *min_element(mz.begin(), mz.end());
-		mzMax_ = *max_element(mz.begin(), mz.end());		
-		mzStepWidth_ = scaling*(mzMax_ - mzMin_)/(mz.size() - 1);
+		mzMax_ = *max_element(mz.begin(), mz.end());
+		scaling_ = scaling;
+		mzStepWidth_ = scaling_*(mzMax_ - mzMin_)/(mz.size() - 1);    // step width somewhat smaller than the average raw data spacing	
 	}
 	
 	SplinePackage::~SplinePackage() 

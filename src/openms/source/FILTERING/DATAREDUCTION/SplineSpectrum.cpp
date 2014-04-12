@@ -48,7 +48,12 @@ namespace OpenMS
 
 	SplineSpectrum::SplineSpectrum(std::vector<double> mz, std::vector<double> intensity) 
 	{				
-        SplineSpectrum::init(mz, intensity);
+        SplineSpectrum::init(mz, intensity, 0.7);
+	}
+    
+	SplineSpectrum::SplineSpectrum(std::vector<double> mz, std::vector<double> intensity, double scaling) 
+	{				
+        SplineSpectrum::init(mz, intensity, scaling);
 	}
     
     SplineSpectrum::SplineSpectrum(MSSpectrum<Peak1D> rawSpectrum) 
@@ -60,14 +65,26 @@ namespace OpenMS
             mz.push_back(it->getMZ());
             intensity.push_back(it->getIntensity());
         }
-		SplineSpectrum::init(mz, intensity);
+		SplineSpectrum::init(mz, intensity, 0.7);
+    }
+    
+    SplineSpectrum::SplineSpectrum(MSSpectrum<Peak1D> rawSpectrum, double scaling) 
+	{		
+        std::vector<double> mz;
+        std::vector<double> intensity;
+        for (MSSpectrum<Peak1D>::Iterator it = rawSpectrum.begin(); it != rawSpectrum.end(); ++it)
+        {
+            mz.push_back(it->getMZ());
+            intensity.push_back(it->getIntensity());
+        }
+		SplineSpectrum::init(mz, intensity, scaling);
     }
     
     SplineSpectrum::~SplineSpectrum()
     {
     }
     
-    void SplineSpectrum::init(std::vector<double> mz, std::vector<double> intensity)
+    void SplineSpectrum::init(std::vector<double> mz, std::vector<double> intensity, double scaling)
     {
         
         if (!(mz.size() == intensity.size() && mz.size() > 2))
@@ -128,7 +145,7 @@ namespace OpenMS
                 if (intensityPackage.size() > 2)
                 {
                     // Three or more data points in package. At least one of them will be non-zero since unnecessary zeros removed above.
-                    package = new SplinePackage(mzPackage, intensityPackage);
+                    package = new SplinePackage(mzPackage, intensityPackage, scaling);
                     packages_.push_back(*package);
                 }
                 mzPackage.clear();
@@ -140,7 +157,7 @@ namespace OpenMS
         // add the last package
         if (intensityPackage.size() > 2)
         {
-            package = new SplinePackage(mzPackage, intensityPackage);
+            package = new SplinePackage(mzPackage, intensityPackage, scaling);
             packages_.push_back(*package);
         }
     }

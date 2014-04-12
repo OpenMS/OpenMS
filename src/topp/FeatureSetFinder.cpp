@@ -548,22 +548,21 @@ public:
 		cout << "RT = " << rt << "\n";
 		
 		// construct spline
-		SplineSpectrum * spectrumNew = new SplineSpectrum(mzVector, intensityVector);
+		SplineSpectrum * spectrumNew = new SplineSpectrum(mzVector, intensityVector, 0.3);
 		SplineSpectrum::Navigator nav = (*spectrumNew).getNavigator();
-		
+
+		// fill new experiment
 		MSSpectrum<Peak1D> specNew;
 		specNew.setRT(rt);
 		specNew.setMSLevel(1);
 		specNew.setNativeID(String("spline-interpolated=") + spectrumID);
-
 		for (double mz = (*spectrumNew).getMzMin(); mz < (*spectrumNew).getMzMax(); mz = nav.getNextMz(mz))
 		{
 			Peak1D peak;
 			peak.setMZ(mz);
 			peak.setIntensity(nav.eval(mz));
 			specNew.push_back(peak);
-		}
-			
+		}			
 		expNew.addSpectrum(specNew);
 	}
 	MzMLFile().store("spline.mzML", expNew);
