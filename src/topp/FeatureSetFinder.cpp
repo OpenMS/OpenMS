@@ -186,11 +186,11 @@ private:
   UInt isotopes_per_peptide_max;
 
   // section "algorithm"
-  DoubleReal rt_threshold;
-  DoubleReal rt_min;
-  DoubleReal intensity_cutoff;
-  DoubleReal intensity_correlation;
-  DoubleReal model_deviation;
+  double rt_threshold;
+  double rt_min;
+  double intensity_cutoff;
+  double intensity_correlation;
+  double model_deviation;
   bool allow_missing_peaks;
 
   //typedef SILACClustering Clustering;
@@ -340,7 +340,7 @@ public:
 
     // get selected charge range
     String charge_string = getParam_().getValue("sample:charge");
-    DoubleReal charge_min_temp, charge_max_temp;
+    double charge_min_temp, charge_max_temp;
     parseRange_(charge_string, charge_min_temp, charge_max_temp);
     charge_min = charge_min_temp;
     charge_max = charge_max_temp;
@@ -351,7 +351,7 @@ public:
 
     // get selected peaks range
     String isotopes_per_peptide_string = getParam_().getValue("sample:peaks_per_peptide");
-    DoubleReal isotopes_per_peptide_min_temp, isotopes_per_peptide_max_temp;
+    double isotopes_per_peptide_min_temp, isotopes_per_peptide_max_temp;
     parseRange_(isotopes_per_peptide_string, isotopes_per_peptide_min_temp, isotopes_per_peptide_max_temp);
     isotopes_per_peptide_min = isotopes_per_peptide_min_temp;
     isotopes_per_peptide_max = isotopes_per_peptide_max_temp;
@@ -375,7 +375,7 @@ public:
     allow_missing_peaks = getFlag_("algorithm:allow_missing_peaks");
   }
 
-  void handleParameters_labels(map<String, DoubleReal> & label_identifiers)
+  void handleParameters_labels(map<String, double> & label_identifiers)
   {
 
     //--------------------------------------------------
@@ -432,7 +432,7 @@ public:
     // 
     // Parameter handling
     // 
-    map<String, DoubleReal> label_identifiers;   // list defining the mass shifts of each label (e.g. "Arg6" => 6.0201290268)
+    map<String, double> label_identifiers;   // list defining the mass shifts of each label (e.g. "Arg6" => 6.0201290268)
     handleParameters_sample();
     handleParameters_algorithm();
     handleParameters_labels(label_identifiers);
@@ -533,7 +533,7 @@ public:
 	for (MSExperiment<Peak1D>::Iterator it = exp.begin(); it != exp.end(); ++it)
     {
 		++spectrumID;
-		DoubleReal rt = it->getRT();
+		double rt = it->getRT();
 		std::vector<double> mzVector;
 		std::vector<double> intensityVector;
 		// iterate over data points in spectrum (mz)
