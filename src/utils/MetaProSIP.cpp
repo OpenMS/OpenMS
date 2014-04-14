@@ -844,66 +844,6 @@ public:
 		}
 	}
 
-	/*
-	static void plotCorrelationData(String tmp_path, String data_filename, Size bins, String file_suffix, const String& file_extension, String qc_output_directory, Int debug_level)
-	{
-	String script_filename = String("cluster_data") + file_suffix + String(".R");
-	String plot_filename = String("cluster_plot") + file_suffix + String(".") + file_extension;
-
-	// add scripts
-	TextFile current_script;
-
-	current_script.push_back("d=read.table('" + tmp_path + "/" + data_filename + "', sep='\\t')");
-	current_script.push_back("m=as.matrix(d[,-(1:2)])");
-	current_script.push_back("m[m<0.0]=0");
-	current_script.push_back("m=t(m)");
-	current_script.push_back("clusters=rep(1,nrow(t(m)))");
-
-	if (file_extension == "png")
-	{
-	current_script.push_back("png('" + tmp_path + "/" + plot_filename + "', width=1280, height=720)");
-	} else if (file_extension == "svg")
-	{
-	current_script.push_back("svg('" + tmp_path + "/" + plot_filename + "', width=16, height=9)");
-	} else if (file_extension == "pdf")
-	{
-	current_script.push_back("pdf('" + tmp_path + "/" + plot_filename + "', width=16, height=9)");
-	}
-
-	current_script.push_back("colors<-adjustcolor(clusters, alpha=0.3)");
-	current_script.push_back("matplot(x=seq(0,99.9,"+ String(100.0/bins)+ "), y=m, type='l', col=colors, ylim=c(0,1), lty=1, ylab='Correlation', xlab='RIA (%)')");
-	current_script.push_back("tmp<-dev.off()");
-	current_script.push_back("r=cbind(clusters, d[,1])");
-	current_script.push_back("r=r[!is.na(r[,1]),]");
-
-	current_script.store(tmp_path + "/" + script_filename);
-
-	QProcess p;
-	QStringList env = QProcess::systemEnvironment();
-	env << QString("R_LIBS=") + tmp_path.toQString();
-	p.setEnvironment(env);
-
-	QStringList qparam;
-	qparam << "--vanilla" << "--quiet" << "--slave" << "--file=" + QString(tmp_path.toQString() + "\\" + script_filename.toQString());
-	p.start("R", qparam);
-	p.waitForFinished(-1);
-	int status = p.exitCode();
-
-	if (status != 0)
-	{
-	std::cerr << "Error: Process returned with non 0 status." << std::endl;
-	} else
-	{
-	QFile(QString(tmp_path.toQString() + "\\" + plot_filename.toQString())).copy(qc_output_directory.toQString() + "/cluster_plot" + file_suffix.toQString() + String(".").toQString() + file_extension.toQString());
-	if (debug_level < 1)
-	{
-	QFile(QString(tmp_path.toQString() + "\\" + data_filename.toQString())).remove();
-	QFile(QString(tmp_path.toQString() + "\\" + script_filename.toQString())).remove();
-	QFile(QString(tmp_path.toQString() + "\\" + plot_filename.toQString())).remove();
-	}
-	}
-	}
-	*/
 	static void createQualityReport(String tmp_path, String qc_output_directory, String file_suffix, const String& file_extension, bool plot_merged, const vector< vector<SIPPeptide> >& sip_peptide_cluster, Size n_heatmap_bins, double score_plot_y_axis_min, bool report_natural_peptides)
 	{
 		vector<SIPPeptide> sip_peptides;
@@ -945,7 +885,7 @@ public:
 		}
 	}
 
-	static void createCSVReport(vector<vector<SIPPeptide> >& sippeptide_cluster, ofstream& os, map<String, String> &proteinid_to_description)
+  static void createCSVReport(vector<vector<SIPPeptide> >& sippeptide_cluster, ofstream& os, map<String, String> &proteinid_to_description)
 	{
 		SVOutStream out_csv_stream(os, "\t", "_", String::NONE);
 		// sort clusters by non increasing size
@@ -1237,7 +1177,7 @@ public:
 		os.close();
 	}
 
-	static void createPeptideCentricCSVReport(const String in_mzML, const String& file_extension, vector<vector<SIPPeptide> >& sippeptide_cluster, ofstream& os, map<String, String> &proteinid_to_description, String qc_output_directory = "", String file_suffix = "")
+  static void createPeptideCentricCSVReport(const String in_mzML, const String& file_extension, vector<vector<SIPPeptide> >& sippeptide_cluster, ofstream& os, map<String, String> &proteinid_to_description, String qc_output_directory, String file_suffix)
 	{
 		SVOutStream out_csv_stream(os, "\t", "_", String::NONE);
 
@@ -1478,7 +1418,7 @@ public:
 
 
 		EmpiricalFormula e = peptide.getFormula();
-		UInt MAXISOTOPES = (UInt)e.getNumberOf("Carbon");
+		Size MAXISOTOPES = (Size)e.getNumberOf("Carbon");
 
 		// calculate isotope distribution for a given peptide and varying incoperation rates
 		// modification of isotope distribution in static ElementDB
@@ -1969,7 +1909,6 @@ protected:
 			}
 		}
 	}
-
 
 	PeakSpectrum extractPeakSpectrum(Size element_count, double mass_diff, double rt, double feature_hit_theoretical_mz, Int feature_hit_charge, const MSExperiment<>& peak_map)
 	{
