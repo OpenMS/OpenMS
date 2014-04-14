@@ -1,6 +1,4 @@
-from Types import *
-from libcpp.vector cimport vector as libcpp_vector
-from libcpp.pair cimport pair as libcpp_pair
+from Types cimport *
 
 cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMRTNormalizer.h>" namespace "OpenMS":
 
@@ -13,7 +11,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMRTNormalizer.h>" namespace "Open
             libcpp_vector[libcpp_pair[double,double]] & pairs,
             double rsq_limit,
             double coverage_limit, 
-            bool use_chauvenet
+            bool use_chauvenet,
             libcpp_string outlier_detection_method 
             ) nogil except + # wrap-attach:MRMRTNormalizer
 
@@ -27,6 +25,6 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMRTNormalizer.h>" namespace "Open
 
     libcpp_vector[libcpp_pair[double,double]] ransac(
             libcpp_vector[libcpp_pair[double,double]] & pairs,
-            size_t n, size_t k, double t, size_t d, bool test)
+            size_t n, size_t k, double t, size_t d, bool test
             ) nogil except + # wrap-attach:MRMRTNormalizer
 
