@@ -124,26 +124,28 @@ private:
 public:
  
     /**
-      @brief This function removes potential outliers from a set of paired points.
+      @brief This function removes potential outliers in a linear regression dataset.
+
        Two thresholds need to be defined, first a lower R^2 limit to accept the
        regression for the RT normalization and second, the lower limit of peptide
        coverage. The algorithms then selects candidate outlier peptides using the
-       RANSAC outlier detection algorithm and returns to corrected set of peptides
+       RANSAC outlier detection algorithm and returns the corrected set of peptides
        if the two thresholds are satisfied.
 
-      @param pairs Input data
+      @param pairs Input data (paired data of type <experimental_rt, theoretical_rt>)
       @param rsq_limit Minimal R^2 required
-      @param coverage_limit Minimal coverage required (the number of points
-      falls below this fraction, the algorithm aborts)
+      @param coverage_limit Minimal coverage required (if the number of points
+       falls below this fraction, the algorithm aborts)
       @param max_iterations Maximum iterations for the RANSAC algorithm
       @param max_rt_threshold Maximum deviation from fit for the retention time.
-       This must be in the unit of the chromatography dimension.
+       This must be in the unit of the second dimension (e.g. theoretical_rt).
 
       @return A vector of pairs is returned if the R^2 limit was reached without
        reaching the coverage limit. If the limits are reached, an exception is
        thrown.
 
-      @exception Exception::UnableToFit is thrown if fitting cannot be performed
+      @exception Exception::UnableToFit is thrown if fitting cannot be
+      performed (rsq_limit and coverage_limit cannot be fulfilled)
     */ 
     static std::vector<std::pair<double, double> > removeOutliersRANSAC(std::vector<std::pair<double, double> >& pairs,
         double rsq_limit,
@@ -156,10 +158,12 @@ public:
        outlier detection algorithm. Is implemented and tested after the
        SciPy reference: http://wiki.scipy.org/Cookbook/RANSAC
 
-      @param pairs Input data
-      @param n the minimum number of data values required to fit the model
+      @param pairs Input data (paired data of type <dim1, dim2>)
+      @param n the minimum number of data points required to fit the model
       @param k the maximum number of iterations allowed in the algorithm 
-      @param t a threshold value for determining when a data point fits a model
+      @param t a threshold value for determining when a data point fits a
+       model. Corresponds to the maximal squared deviation in units of the
+       _second_ dimension (dim2).
       @param d the number of close data values required to assert that a model fits well to data
       @param test disables the random component of the algorithm
 
@@ -168,7 +172,8 @@ public:
     static std::vector<std::pair<double, double> > ransac(std::vector<std::pair<double, double> >& pairs, size_t n, size_t k, double t, size_t d, bool test = false); 
 
     /**
-      @brief This function removes potential outliers from a set of paired points.
+      @brief This function removes potential outliers in a linear regression dataset.
+
        Two thresholds need to be defined, first a lower R^2 limit to accept the
        regression for the RT normalization and second, the lower limit of peptide
        coverage. The algorithms then selects candidate outlier peptides and applies
@@ -176,7 +181,7 @@ public:
        distributed to determine whether the peptides can be removed. This is done
        iteratively until both limits are reached.
 
-      @param pairs Input data
+      @param pairs Input data (paired data of type <experimental_rt, theoretical_rt>)
       @param rsq_limit Minimal R^2 required
       @param coverage_limit Minimal coverage required (the number of points
       falls below this fraction, the algorithm aborts)
@@ -189,7 +194,8 @@ public:
        reaching the coverage limit. If the limits are reached, an exception is
        thrown.
 
-      @exception Exception::UnableToFit is thrown if fitting cannot be performed
+      @exception Exception::UnableToFit is thrown if fitting cannot be
+      performed (rsq_limit and coverage_limit cannot be fulfilled)
     */
     static std::vector<std::pair<double, double> > removeOutliersIterative(std::vector<std::pair<double, double> >& pairs,
                                                                double rsq_limit, 
