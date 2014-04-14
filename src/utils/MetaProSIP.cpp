@@ -57,6 +57,9 @@
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/MassDecomposition.h>
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/MassDecompositionAlgorithm.h>
 
+#include <boost/math/distributions/normal.hpp>
+
+
 //#include "FastEMD/FastEMDWrapper.h"
 
 #include <QtCore/QStringList>
@@ -75,6 +78,7 @@
 
 using namespace OpenMS;
 using namespace std;
+using boost::math::normal;
 
 typedef map< double, double> MapRateToScoreType;
 typedef pair<double, vector<double> > IsotopePattern;
@@ -209,6 +213,117 @@ struct RIALess
     {
       return (a.rate < b.rate);
     }
+};
+
+class MetaProSIPInterpolation
+{
+  public:
+	///< Determine score maxima from rate to score distribution using derivatives from spline interpolation
+	static vector<RateScorePair> getHighPoints(double threshold, const MapRateToScoreType& rate2score)
+	{
+		vector<RateScorePair> high_points;
+		vector<double> x, y;
+
+		// set proper boundaries
+		if (rate2score.find(-0.1) == rate2score.end())
+		{
+			x.push_back(-0.1);
+			y.push_back(0);
+		}
+
+		// copy data
+		for (MapRateToScoreType::const_iterator it = rate2score.begin(); it != rate2score.end(); ++it)
+		{
+			x.push_back(it->first);
+			y.push_back(it->second);
+		}
+
+		if (rate2score.find(100.0) == rate2score.end() && x[x.size() - 1] < 100.0)
+		{
+			x.push_back(100.0);
+			y.push_back(0);
+		}
+
+		const size_t n = x.size();
+
+		Spline2d<double> spline(3, x, y);
+
+		double last_dxdy = 0;
+		for (double xi = x[0]; xi < x[n - 1]; xi += 0.1)
+		{
+			double dxdy = spline.derivatives(xi, 1);
+			//cout << "dxdy " << dxdy << endl;
+			double y = spline.eval(xi);
+			//cout << "y " << y << endl;
+
+			if (last_dxdy > 0.0 && dxdy <= 0 && y > threshold)
+			{
+				RateScorePair rsp;
+				rsp.rate = xi;
+				rsp.score = y;
+				high_points.push_back(rsp);
+			}
+			last_dxdy = dxdy;
+		}
+
+		return high_points;
+	}
+
+};
+
+class MetaProSIPClustering
+{
+public:
+  static vector<double> getRIAClusterCenter(const vector<SIPPeptide> & sip_peptides)
+  {
+	vector<double> cluster;
+	MapRateToScoreType hist;
+
+	for (vector<SIPPeptide>::const_iterator cit = sip_peptides.begin(); cit != sip_peptides.end(); ++cit)
+    {
+	  // build histogram of rates
+	  for (vector<SIPIncorporation>::const_iterator iit = cit->incorporations.begin(); iit != cit->incorporations.end(); ++iit)
+	  {
+		if (hist.find(iit->rate) == hist.end())
+		{
+		  hist[iit->rate] = 1.0;
+		}
+		else
+		{
+		  hist[iit->rate] += 1.0;
+		}		
+	  }
+    }
+
+	// kernel density estimation, TODO: binary search for 5 sigma boundaries
+	vector<double> density(101, 0);
+	for (Size i = 0; i != density.size(); ++i)
+	{
+	  double sum = 0;
+	  for (MapRateToScoreType::const_iterator mit = hist.begin(); mit != hist.end(); ++mit)
+	  {
+		normal s(mit->first, 2.0);
+	    sum += mit->second * pdf(s, (double)i); 
+	  }
+	  density[i] = sum;
+	}
+
+	MapRateToScoreType ria_density;
+
+	for (Size i = 0; i != density.size(); ++i)
+	{
+	  ria_density[i] = density[i];
+	}
+
+	vector<RateScorePair> cluster_center = MetaProSIPInterpolation::getHighPoints(1.0, ria_density);
+
+	// return cluster centers
+	for (vector<RateScorePair>::const_iterator cit = cluster_center.begin(); cit != cluster_center.end(); ++cit)
+	{
+	  cluster.push_back(cit->rate);
+	}
+	return cluster;
+  }
 };
 
 class MetaProSIPReporting
@@ -1558,48 +1673,6 @@ class TOPPMetaProSIP : public TOPPBase
       }
       LOG_INFO << " success" << std::endl;
       return true;
-    }
-
-    ///< Determine score maxima from rate to score distribution using derivatives from spline interpolation
-    vector<RateScorePair> getHighPoints(double threshold, MapRateToScoreType& rate2score, Size NBREAK = 10)
-    {
-      vector<RateScorePair> high_points;
-      const size_t n = rate2score.size() + 2;
-      vector<double> x, y;
-
-      // set proper boundaries
-      x.push_back(-0.1);
-      y.push_back(0);
-
-      // copy data
-      for (MapRateToScoreType::const_iterator it = rate2score.begin(); it != rate2score.end(); ++it)
-      {
-        x.push_back(it->first);
-        y.push_back(it->second);
-      }
-
-      x.push_back(100.0);
-      y.push_back(0);
-
-      Spline2d<double> spline(3, x, y);
-
-      double last_dxdy = 0;
-      for (double xi = x[0]; xi < x[n-1]; xi += 0.1)
-      {
-        double dxdy = spline.derivatives(xi, 1);
-        double y = spline.eval(xi);
-
-        if (last_dxdy > 0.0 && dxdy <= 0 && y > threshold)
-        {
-          RateScorePair rsp;
-          rsp.rate = xi;
-          rsp.score = y;
-          high_points.push_back(rsp);
-        }
-        last_dxdy = dxdy;
-      }
-
-      return high_points;
     }
 
     /// Extracts isotopic intensities from seeds_rt.size() spectra in the given peak map.
@@ -3101,7 +3174,7 @@ class TOPPMetaProSIP : public TOPPBase
         sip_peptide.correlation_map = map_rate_to_correlation_score;
 
         // determine maximum correlations
-        sip_peptide.correlation_maxima = getHighPoints(correlation_threshold, map_rate_to_correlation_score);
+        sip_peptide.correlation_maxima = MetaProSIPInterpolation::getHighPoints(correlation_threshold, map_rate_to_correlation_score);
 
         vector<String> feature_protein_accessions = feature_hit.getProteinAccessions();
 
@@ -3132,6 +3205,8 @@ class TOPPMetaProSIP : public TOPPBase
         normalized_weight_maps.push_back(map_rate_to_normalized_weight);
         correlation_maps.push_back(map_rate_to_correlation_score);
       }
+
+	  vector<double> cluster_center(MetaProSIPClustering::getRIAClusterCenter(sip_peptides));
 
       if (nPSMs == 0)
       {
