@@ -49,6 +49,7 @@
 #include <OpenMS/KERNEL/ChromatogramTools.h>
 #include <OpenMS/FORMAT/MzQuantMLFile.h>
 #include <OpenMS/METADATA/MSQuantifications.h>
+#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 
 #include <OpenMS/FILTERING/DATAREDUCTION/SplinePackage.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/SplineSpectrum.h>
@@ -526,7 +527,7 @@ public:
 	std::cout << "*** starting tests ***\n";
 	// iterate over all spectra of the experiment (RT)
 	Int spectrumID = 0;
-	MSExperiment<Peak1D> expNew;
+	MSExperiment<Peak1D> expSpline;
 	std::vector<double> rtSpline;
 	std::vector<std::vector<double> > mzSpline;
 	std::vector<std::vector<double> > intensitySpline;	
@@ -545,10 +546,10 @@ public:
 			intensityVector.push_back(intensitySpec);
 		}
 		
-		cout << "RT = " << rt << "\n";
+		//cout << "RT = " << rt << "\n";
 		
 		// construct spline
-		SplineSpectrum * spectrumNew = new SplineSpectrum(mzVector, intensityVector);
+		SplineSpectrum * spectrumNew = new SplineSpectrum(mzVector, intensityVector,0.1);
 		SplineSpectrum::Navigator nav = (*spectrumNew).getNavigator();
 
 		// fill new experiment
@@ -563,9 +564,30 @@ public:
 			peak.setIntensity(nav.eval(mz));
 			specNew.push_back(peak);
 		}			
-		expNew.addSpectrum(specNew);
+		expSpline.addSpectrum(specNew);
 	}
-	MzMLFile().store("spline.mzML", expNew);
+	MzMLFile fileSpline;
+	fileSpline.store("spline.mzML", expSpline);
+	
+	// ---------------------------
+	// testing peak picking
+	// ---------------------------
+	PeakPickerHiRes picker;
+	Param param = picker.getParameters();
+    param.setValue("ms1_only", DataValue("true"));
+    param.setValue("signal_to_noise", 0.0);    // signal-to-noise estimation switched off
+    picker.setParameters(param);
+
+	MSExperiment<Peak1D> expPicked;
+    picker.pickExperiment(exp, expPicked);	
+	MzMLFile filePicked;
+	filePicked.store("picked.mzML", expPicked);
+
+	MSExperiment<Peak1D> expPickedSpline;
+    picker.pickExperiment(expSpline, expPickedSpline);	
+	MzMLFile filePickedSpline;
+	filePickedSpline.store("pickedSpline.mzML", expPickedSpline);
+
  	std::cout << "***   ending tests ***\n";
  	std::cout << "\n\n";
 
