@@ -43,9 +43,9 @@
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
 #include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/MascotXMLFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
-
-#include <OpenMS/FORMAT/TextFile.h>
 
 #include <QtCore/QFile>
 #include <QtCore/QProcess>
@@ -130,7 +130,7 @@ protected:
     registerInputFile_("database", "<file>", "", "FASTA file. Non-existing relative file-names are looked up via'OpenMS.ini:id_db_dir'", true, false, ListUtils::create<String>("skipexists"));
     setValidFormats_("database", ListUtils::create<String>("FASTA"));
 
-    registerInputFile_("MSGFPlus_executable", "<executable>", "", "MSGFPlus executable of the installation e.g. 'java - jar MSGFPlus.jar'");
+    registerInputFile_("msgfplus_executable", "<executable>", "", "MSGFPlus executable of the installation e.g. 'java - jar MSGFPlus.jar'");
 
     registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 20, "Precursor mono mass tolerance.", false);
     registerStringOption_("precursor_mass_tolerance_unit", "<unit>", "ppm", "Unit to be used for precursor mass tolerance.", false);
@@ -155,13 +155,16 @@ protected:
 
     registerIntOption_("matches_per_spec", "<num>", 1, "Number of matches per spectrum to be reported", false);
     registerIntOption_("add_features", "<num>", 0, "0: output basic scores only, 1: output additional features", false);
+
+    registerOutputFile_("mzid_out", "<file>", "", "mzIdentML outputfile", false);
+    setValidFormats_("mzid_out", ListUtils::create<String>("mzid"));
   }
 
-  //The following sequence modification methods are used to modify the sequence stored in the tsv such that it can be used by AASequence
+  // The following sequence modification methods are used to modify the sequence stored in the tsv such that it can be used by AASequence
 
-  //Method to cut the first and last character of the sequence.
-  //The sequences in the tsv file has the form K.AAAA.R (AAAA stands for any amino acid sequence.
-  //After this method is used the sequence AAAA results
+  // Method to cut the first and last character of the sequence.
+  // The sequences in the tsv file has the form K.AAAA.R (AAAA stands for any amino acid sequence.
+  // After this method is used the sequence AAAA results
   String cutSequence (String sequence)
   {
     String modifiedSequence = sequence;
@@ -179,8 +182,8 @@ protected:
     return modifiedSequence;
   }
 
-  //Method to replace comma by point.
-  //This is used as point should be used as separator of decimals instead of comma
+  // Method to replace comma by point.
+  // This is used as point should be used as separator of decimals instead of comma
   String changeKomma (String seq)
   {
     std::size_t found = seq.find_first_of(".,");
@@ -192,9 +195,9 @@ protected:
     return seq;
   }
 	
-  //Method to replace the mass representation of modifications.
-  //Modifications in the tsv file has the form M+15.999 e.g.
-  //After using this method the sequence should look like this: M[+15.999] 
+  // Method to replace the mass representation of modifications.
+  // Modifications in the tsv file has the form M+15.999 e.g.
+  // After using this method the sequence should look like this: M[+15.999] 
   String modifySequence (String seq)
   {
     String modifiedSequence = seq;
@@ -216,6 +219,32 @@ protected:
     }
     return modifiedSequence;
   }
+
+  //-------------------------------------------------------------
+  // Parse mzML and create RTMapping
+  //-------------------------------------------------------------
+  
+  void generateRTMapping(Map<String, float>& rt_mapping)
+  {
+    String exp_name = getStringOption_("in");
+
+    if (!exp_name.empty())
+    {
+      PeakMap exp;
+      // load only MS2 spectra:
+      MzMLFile f;
+      f.getOptions().addMSLevel(2);
+      f.load(exp_name, exp);
+
+      for (PeakMap::iterator it = exp.begin(); it != exp.end(); ++it)
+      {
+        String id = it->getNativeID(); // expected format: "... scan=#"
+        if ( id != "") {
+          rt_mapping[id] = it->getRT();
+        }
+      }     
+    }
+  }  
 
   ExitCodes main_(int, const char**)
   {
@@ -263,7 +292,12 @@ protected:
       d.mkpath(temp_directory.toQString());
     }
 
-    String msgfplus_output_filename(temp_directory + "msgfplus_output_file.mzid");
+    String msgfplus_output_filename = getStringOption_("mzid_out");
+    if (msgfplus_output_filename == "")
+    {
+      msgfplus_output_filename = temp_directory + "msgfplus_output_file.mzid";
+    }
+
     String  parameters = "";
     parameters += "-s " + inputfile_name;
     parameters += " -o " + msgfplus_output_filename;
@@ -288,14 +322,12 @@ protected:
       parameters += " -mod " + getStringOption_("mod");
     }
 
-    cout << "Parameters: " << parameters << endl;
-
     //-------------------------------------------------------------
     // execute MSGFPlus
     //-------------------------------------------------------------
    
-    //run MSGFPlus process and create the mzid file  
-    String msgf_executable("java -Xmx3500M -jar " + getStringOption_("MSGFPlus_executable"));
+    // run MSGFPlus process and create the mzid file  
+    String msgf_executable("java -Xmx3500M -jar " + getStringOption_("msgfplus_executable"));
 
     QProcess process;
     int status = process.execute((msgf_executable + " " + parameters).toQString());
@@ -309,7 +341,7 @@ protected:
     // execute tsv converter
     //------------------------------------------------------------- 
     String mzidtotsv_output_filename(temp_directory + "svFile.tsv");
-    String converter_executable("java -cp " + getStringOption_("MSGFPlus_executable") + " edu.ucsd.msjava.ui.MzIDToTsv ");
+    String converter_executable("java -cp " + getStringOption_("msgfplus_executable") + " edu.ucsd.msjava.ui.MzIDToTsv ");
 
     parameters = "-i " +  msgfplus_output_filename;
     parameters += " -o " + mzidtotsv_output_filename;
@@ -327,55 +359,141 @@ protected:
     //-------------------------------------------------------------
     // create idXML
     //------------------------------------------------------------- 
+
+    // initialize map
+    Map<String, float> rt_mapping;
+    generateRTMapping(rt_mapping);
+
     CsvFile tsvfile;
     tsvfile.load(mzidtotsv_output_filename, "\t");
 
-    //create idXML file
-    vector<ProteinIdentification> protein_ids(1);
+    // handle the search parameters
+    ProteinIdentification::DigestionEnzyme enzyme_type;
+    Int enzyme_code = getIntOption_("enzyme");
+
+    if (enzyme_code == 0) {
+      enzyme_type = ProteinIdentification::UNKNOWN_ENZYME;
+    }
+    else if (enzyme_code == 1) {
+      enzyme_type = ProteinIdentification::TRYPSIN;
+    } 
+    else if (enzyme_code == 2) {
+      enzyme_type = ProteinIdentification::CHYMOTRYPSIN;
+    }
+    else if (enzyme_code == 9) {
+      enzyme_type = ProteinIdentification::NO_ENZYME ;     
+    }
+    else enzyme_type = ProteinIdentification::UNKNOWN_ENZYME;
+
+    ProteinIdentification::SearchParameters search_parameters;
+    search_parameters.db = getStringOption_("database");
+    search_parameters.charges = "+" + String(getIntOption_("min_precursor_charge")) + "-+" + String(getIntOption_("max_precursor_charge"));
+
+    ProteinIdentification::PeakMassType mass_type = ProteinIdentification::MONOISOTOPIC;
+    search_parameters.mass_type = mass_type;
+    //search_parameters.fixed_modifications = getStringList_("fixed_modifications"); // TODO: Parse mod config file
+    //search_parameters.variable_modifications = getStringList_("variable_modifications"); // TODO: Parse mod config file
+    search_parameters.precursor_tolerance = getDoubleOption_("precursor_mass_tolerance"); // TODO: convert values to dalton if not already dalton
+    search_parameters.enzyme = enzyme_type;
+
+    // create idXML file
+    vector<ProteinIdentification> protein_ids;
     ProteinIdentification protein_id;
 
-    //store all peptide hits in a map, the key is the scannumber
-    map<int,PeptideIdentification> peptide_hits;
+    DateTime now = DateTime::now();
+    String date_string = now.getDate();
+    String identifier("MSGFPlus_" + date_string);
 
-    DoubleReal score; //use SpecEValue from the tsv file
+    protein_id.setIdentifier(identifier);
+    protein_id.setDateTime(now);
+    protein_id.setSearchParameters(search_parameters);
+    protein_id.setSearchEngineVersion("");
+    protein_id.setSearchEngine("MSGFPlus");
+    protein_id.setScoreType("MSGFPlus");
+
+    // store all peptide identifications in a map, the key is the scannumber
+    map<int,PeptideIdentification> peptide_identifications;
+    set<String> prot_accessions;
+
+    double score; //use SpecEValue from the tsv file
     UInt rank; 
     Int charge;
     AASequence sequence;
-    int scanNumber;
+    int scanNumber;    
     double precursor_mz;
 
-    //iterate over the rows of the tsv file
+    // iterate over the rows of the tsv file
     for (CsvFile::Iterator it = tsvfile.begin() + 1 ; it != tsvfile.end(); ++it)
     {
       vector<String> elements; 
       it->split("\t", elements);
-      scanNumber = elements[2].toInt();
-      score = elements[12].toDouble();
-      rank = 0; //set to 0 in the moment
-      charge = elements[7].toInt();
-      sequence = AASequence(modifySequence(changeKomma(cutSequence(elements[8])))); //sequence must be cutted and modified
-      PeptideHit p_hit(score, rank, charge, sequence);
-      precursor_mz = elements[4].toDouble(); 
-      peptide_hits[scanNumber].insertHit(p_hit);
-      peptide_hits[scanNumber].setMetaValue("MZ", precursor_mz);
-      peptide_hits[scanNumber].setMetaValue("ScanNumber", scanNumber);
-      peptide_hits[scanNumber].setScoreType("SpecEValue");
-      peptide_hits[scanNumber].setHigherScoreBetter(false);
-      peptide_hits[scanNumber].setMetaValue("RT", 0);   //ToDo, retention time is not given in the tsv file yet is set to 0 at the moment
+
+      if ((elements[2] == "") || (elements[2] == "-1")) {
+        scanNumber = elements[1].suffix('=').toInt();
+      } else {
+        scanNumber = elements[2].toInt();
+      }
+      
+      sequence = AASequence::fromString(modifySequence(changeKomma(cutSequence(elements[8]))));
+      vector<PeptideHit> p_hits;
+      String prot_accession = elements[9];
+
+      if (prot_accessions.find(prot_accession) == prot_accessions.end()) {
+        prot_accessions.insert(prot_accession);
+      }
+
+      if (peptide_identifications.find(scanNumber) == peptide_identifications.end()) {
+        score = elements[12].toDouble();
+        rank = 0; //set to 0 in the moment
+        charge = elements[7].toInt();
+        
+        PeptideHit p_hit(score, rank, charge, sequence);
+        p_hit.addProteinAccession(prot_accession);
+        p_hits.push_back(p_hit);
+        
+        precursor_mz = elements[4].toDouble(); 
+        peptide_identifications[scanNumber].setMZ(precursor_mz);
+
+        String spec_id = elements[1];
+        peptide_identifications[scanNumber].setRT(rt_mapping[spec_id]);
+        peptide_identifications[scanNumber].setMetaValue("ScanNumber", scanNumber);        
+        peptide_identifications[scanNumber].setScoreType("SpecEValue");
+        peptide_identifications[scanNumber].setHigherScoreBetter(false);
+        peptide_identifications[scanNumber].setIdentifier(identifier);
+        
+      } else {
+        p_hits = peptide_identifications[scanNumber].getHits();
+        for(vector<PeptideHit>::iterator p_it = p_hits.begin(); p_it != p_hits.end(); ++ p_it)
+        {
+          if(p_it -> getSequence() == sequence) {
+            p_it -> addProteinAccession(prot_accession);
+          }
+        }
+      }
+      peptide_identifications[scanNumber].setHits(p_hits);
     }
 
-    //iterate over map and create a vector<PeptideIdentification>
+    vector<ProteinHit> prot_hits;
+    for(set<String>::iterator it = prot_accessions.begin(); it != prot_accessions.end(); ++ it) {
+      ProteinHit prot_hit = ProteinHit();
+      prot_hit.setAccession(*it);
+      prot_hits.push_back(prot_hit);
+    }
+    protein_id.setHits(prot_hits);
+    protein_ids.push_back(protein_id);
+
+    // iterate over map and create a vector<PeptideIdentification>
     map<int,PeptideIdentification>::iterator it;
     vector<PeptideIdentification> peptide_ids;
     PeptideIdentification pep;
-    for(map<int,PeptideIdentification>::iterator it=peptide_hits.begin(); it!=peptide_hits.end(); ++it)
+    for(map<int,PeptideIdentification>::iterator it = peptide_identifications.begin(); 
+        it != peptide_identifications.end(); ++ it)
     {
       pep = it->second;
       pep.sort();
       peptide_ids.push_back(pep);
     }
     
-    cout << "outputfile_name: " << outputfile_name << endl;
     IdXMLFile().store(outputfile_name, protein_ids, peptide_ids);
     return EXECUTION_OK;
   }	
