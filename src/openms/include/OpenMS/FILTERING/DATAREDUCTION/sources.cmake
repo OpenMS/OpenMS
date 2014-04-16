@@ -8,6 +8,7 @@ ElutionPeakDetection.h
 FeatureFindingMetabo.h
 IsotopeDistributionCache.h
 MassTraceDetection.h
+PeakPattern.h
 SILACPattern.h
 SILACPoint.h
 SplinePackage.h

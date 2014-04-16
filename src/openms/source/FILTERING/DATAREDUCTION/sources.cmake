@@ -8,6 +8,7 @@ ElutionPeakDetection.cpp
 FeatureFindingMetabo.cpp
 IsotopeDistributionCache.cpp
 MassTraceDetection.cpp
+PeakPattern.cpp
 SplinePackage.cpp
 SplineSpectrum.cpp
 )
