@@ -328,6 +328,7 @@ protected:
     //-------------------------------------------------------------
     // parsing parameters
     //-------------------------------------------------------------
+
     String inputfile_name = File::absolutePath(getStringOption_("in"));
     String outputfile_name = getStringOption_("out");
     String db_name = File::absolutePath(String(getStringOption_("database")));
@@ -392,7 +393,6 @@ protected:
     parameters << "-ClassSizeMultiplier" << getDoubleOption_("ClassSizeMultiplier");
     parameters << "-MonoisotopeAdjustmentSet" << getStringOption_("MonoisotopeAdjustmentSet");
     parameters << "-cpus" << getIntOption_("threads");
-    parameters << "-workdir" << tmp_dir; // Bug #753: needed for writing the output.pepXML
 
 
     // Constant parameters
@@ -413,29 +413,28 @@ protected:
     QStringList qparam;
     writeDebug_("MyriMatch arguments:", 1);
     writeDebug_(String("\"") + ListUtils::concatenate(parameters, "\" \"") + "\"", 1);
-
     for (Size i = 0; i < parameters.size(); ++i)
     {
       qparam << parameters[i].toQString();
     }
     QProcess process;
+
     // Bad style, because it breaks relative paths?
     process.setWorkingDirectory(tmp_dir.toQString());
 
-    Int status = process.execute(myrimatch_executable.toQString(), qparam); // Bug #753: using execute instead of start, because with start nothing happends
-
+    process.start(myrimatch_executable.toQString(), qparam, QIODevice::ReadOnly);
+    bool success = process.waitForFinished(-1);
     String myri_msg(QString(process.readAllStandardOutput()));
     String myri_err(QString(process.readAllStandardError()));
     writeDebug_(myri_msg, 1);
     writeDebug_(myri_err, 0);
-
-    if (status != 0 || process.exitStatus() != 0 || process.exitCode() != 0)
+    if (!success || process.exitStatus() != 0 || process.exitCode() != 0)
     {
       writeLog_("Error: MyriMatch problem! (Details can be seen in the logfile: \"" + logfile + "\")");
       writeLog_("Note: This message can also be triggered if you run out of space in your tmp directory");
       return EXTERNAL_PROGRAM_ERROR;
     }
-       
+
     //-------------------------------------------------------------
     // reading MyriMatch output
     //-------------------------------------------------------------
@@ -450,7 +449,6 @@ protected:
 
     vector<ProteinIdentification> protein_identifications;
     vector<PeptideIdentification> peptide_identifications;
-
     if (File::exists(pep_file))
     {
       const bool use_precursor_data = false;
