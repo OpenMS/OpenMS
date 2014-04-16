@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/PeakPattern.h>
 
 #include <vector>
@@ -44,9 +45,58 @@ using namespace std;
 namespace OpenMS
 {
 
-	PeakPattern::PeakPattern(std::vector<double> ms, int msi, int c, int ppp) : massShifts_(ms), massShiftIndex_(msi), charge_(c), peaksPerPeptide_(ppp)
+	PeakPattern::PeakPattern(std::vector<double> ms, int msi, int c, int ppp)
+    : massShifts_(ms), massShiftIndex_(msi), charge_(c), peaksPerPeptide_(ppp)
 	{				
-        mzShifts = ms;
+        // generate m/z shifts
+        for (unsigned i = 0; i < massShifts_.size(); ++i)
+        {
+            for (int j = -1; j < peaksPerPeptide_; ++j)
+            {
+                // j=-1 shift corresponds to the zeroth peak
+                mzShifts_.push_back((massShifts_[i] + j * Constants::C13C12_MASSDIFF_U)/charge_);
+            }
+        }
 	}
+    
+    int PeakPattern::getCharge()
+    {
+        return charge_;
+    }
+    
+    double PeakPattern::getMzShiftAt(int i)
+    {
+        return mzShifts_[i];
+    }
+
+    unsigned PeakPattern::getMzShiftCount()
+    {
+        return mzShifts_.size();
+    }
+
+    double PeakPattern::getMassShiftAt(int i)
+    {
+        return massShifts_[i];
+    }
+
+    unsigned PeakPattern::getMassShiftCount()
+    {
+        return massShifts_.size();
+    }
+
+    int PeakPattern::getMassShiftIndex()
+    {
+        return massShiftIndex_;
+    }
+
+    int PeakPattern::getPeaksPerPeptide()
+    {
+        return peaksPerPeptide_;
+    }
+
+    std::vector<double> PeakPattern::getMassShifts()
+    {
+        return massShifts_;
+    }
 
 }

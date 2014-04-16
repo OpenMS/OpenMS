@@ -53,7 +53,6 @@ namespace OpenMS
      */
     class OPENMS_DLLAPI PeakPattern
     {
-        public:
         /**
          * @brief mass shifts between peptides
          * (including zero mass shift for first peptide)
@@ -81,12 +80,53 @@ namespace OpenMS
          */
         std::vector<double> mzShifts_;
 
+        public:
        /**
          * @brief constructor
          */
         PeakPattern(std::vector<double> ms, int msi, int c, int ppp);
         
-    };
+       /**
+         * @brief returns charge
+         */
+        int getCharge();
+        
+       /**
+         * @brief returns m/z shift at position i
+         */
+        double getMzShiftAt(int i);
+        
+       /**
+         * @brief returns number of m/z shifts
+         */
+        unsigned getMzShiftCount();
+        
+       /**
+         * @brief returns mass shift at position i
+         */
+        double getMassShiftAt(int i);
+        
+        /**
+         * @brief returns number of mass shifts
+         */
+        unsigned getMassShiftCount();
+        
+        /**
+         * @brief returns mass shift index
+         */
+        int getMassShiftIndex();
+        
+        /**
+         * @brief returns peaks per peptide
+         */
+        int getPeaksPerPeptide();
+        
+        /**
+         * @brief returns mass shifts
+         */
+        std::vector<double> getMassShifts();
+        
+   };
   
 }
 
