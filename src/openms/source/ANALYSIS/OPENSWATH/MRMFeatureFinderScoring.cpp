@@ -366,7 +366,7 @@ namespace OpenMS
       {
         pep_hit_.setScore(mrmfeature->getScore("xx_swath_prelim_score"));
       }
-      pep_hit_.setSequence(AASequence(pep->sequence));
+      pep_hit_.setSequence(AASequence::fromString(pep->sequence));
       pep_hit_.addProteinAccession(protein_id);
       pep_id_.insertHit(pep_hit_);
       pep_id_.setIdentifier(run_identifier);

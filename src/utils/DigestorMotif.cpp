@@ -124,7 +124,7 @@ protected:
     mass_acc = getIntOption_("mass_accuracy");
     out_opt = getIntOption_("out_option");
     missed_cleavages = getIntOption_("missed_cleavages");
-    AASequence M = AASequence(getStringOption_("motif"));
+    AASequence M = AASequence::fromString(getStringOption_("motif"));
 
     //-------------------------------------------------------------
     // reading input
@@ -148,7 +148,7 @@ protected:
       temp_protein_hit.setSequence(protein_data[i].sequence);
       temp_protein_hit.setAccession(protein_accessions[0]);
 
-      digestor.digest(AASequence(protein_data[i].sequence), temp_peptides);
+      digestor.digest(AASequence::fromString(protein_data[i].sequence), temp_peptides);
       temp_peptide_hit.setProteinAccessions(protein_accessions);
       for (UInt j = 0; j < temp_peptides.size(); ++j)
       {
@@ -201,7 +201,7 @@ protected:
       {
         protein_accessions[0] = protein_data[i].identifier;
         temp_protein_hit.setAccession(protein_accessions[0]);
-        digestor.digest(AASequence(protein_data[i].sequence), temp_peptides);
+        digestor.digest(AASequence::fromString(protein_data[i].sequence), temp_peptides);
         temp_peptide_hit.setProteinAccessions(protein_accessions);
         for (UInt j = 0; j < temp_peptides.size(); ++j)
         {
@@ -233,7 +233,35 @@ protected:
               peptide_identification.insertHit(temp_peptide_hit);
               if (out_opt == 1 || out_opt == 3)
               {
-                fp_out << counter << SEP << ">" << protein_accessions[0] << SEP << j << SEP << temp_peptides[j] << SEP << EF.getNumberOf("C") << SEP << EF.getNumberOf("H") << SEP << EF.getNumberOf("N") << SEP << EF.getNumberOf("O") << SEP << EF.getNumberOf("S") << SEP << temp_peptides[j].size() << SEP << precisionWrapper(temp_peptides[j].getMonoWeight()) << SEP << precisionWrapper(min_mass) << SEP << precisionWrapper(max_mass) << SEP << temp_peptides[j].getFormula() << SEP << temp_peptides[j].getNumberOf("D") << SEP << temp_peptides[j].getNumberOf("E") << SEP << temp_peptides[j].getNumberOf("K") << SEP << temp_peptides[j].getNumberOf("R") << SEP << temp_peptides[j].getNumberOf("H") << SEP << temp_peptides[j].getNumberOf("Y") << SEP << temp_peptides[j].getNumberOf("W") << SEP << temp_peptides[j].getNumberOf("F") << SEP << temp_peptides[j].getNumberOf("C") << SEP << temp_peptides[j].getNumberOf("M") << SEP << temp_peptides[j].getNumberOf("S") << SEP << temp_peptides[j].getNumberOf("T") << SEP << temp_peptides[j].getNumberOf("N") << SEP << temp_peptides[j].getNumberOf("Q") << SEP << temp_peptides[j].getNumberOf("G") << SEP << temp_peptides[j].getNumberOf("A") << SEP << temp_peptides[j].getNumberOf("V") << SEP << temp_peptides[j].getNumberOf("L") << SEP << temp_peptides[j].getNumberOf("I") << SEP << temp_peptides[j].getNumberOf("P") << SEP << temp_peptides[j].getNumberOf("D") * (-3.5) + temp_peptides[j].getNumberOf("E") * (-3.5) + temp_peptides[j].getNumberOf("K") * (-3.9) + temp_peptides[j].getNumberOf("R") * (-4.5) + temp_peptides[j].getNumberOf("H") * (-3.2) + temp_peptides[j].getNumberOf("Y") * (-1.3) + temp_peptides[j].getNumberOf("W") * (-0.9) + temp_peptides[j].getNumberOf("F") * (2.8) + temp_peptides[j].getNumberOf("C") * (2.5) + temp_peptides[j].getNumberOf("M") * (1.9) + temp_peptides[j].getNumberOf("S") * (-0.8) + temp_peptides[j].getNumberOf("T") * (-0.7) + temp_peptides[j].getNumberOf("N") * (-3.5) + temp_peptides[j].getNumberOf("Q") * (-3.5) + temp_peptides[j].getNumberOf("G") * (-0.4) + temp_peptides[j].getNumberOf("A") * (1.8) + temp_peptides[j].getNumberOf("V") * (4.2) + temp_peptides[j].getNumberOf("L") * (4.5) + temp_peptides[j].getNumberOf("I") * (4.5) + temp_peptides[j].getNumberOf("P") * (-1.6) << "\n";
+                const String unmodified_peptide = temp_peptides[j].toUnmodifiedString();
+                const Size nK = std::count(unmodified_peptide.begin(), unmodified_peptide.end(), 'K');
+                const Size nD = std::count(unmodified_peptide.begin(), unmodified_peptide.end(), 'D');
+                const Size nR = std::count(unmodified_peptide.begin(), unmodified_peptide.end(), 'R');
+                const Size nW = std::count(unmodified_peptide.begin(), unmodified_peptide.end(), 'W');
+                const Size nM = std::count(unmodified_peptide.begin(), unmodified_peptide.end(), 'M');
+                const Size nN = std::count(unmodified_peptide.begin(), unmodified_peptide.end(), 'N');
+                const Size nA = std::count(unmodified_peptide.begin(), unmodified_peptide.end(), 'A');
+                const Size nI = std::count(unmodified_peptide.begin(), unmodified_peptide.end(), 'I');
+                const Size nE = std::count(unmodified_peptide.begin(), unmodified_peptide.end(), 'E');
+                const Size nH = std::count(unmodified_peptide.begin(), unmodified_peptide.end(), 'H');
+                const Size nF = std::count(unmodified_peptide.begin(), unmodified_peptide.end(), 'F');
+                const Size nS = std::count(unmodified_peptide.begin(), unmodified_peptide.end(), 'S');
+                const Size nQ = std::count(unmodified_peptide.begin(), unmodified_peptide.end(), 'Q');
+                const Size nV = std::count(unmodified_peptide.begin(), unmodified_peptide.end(), 'V');
+                const Size nP = std::count(unmodified_peptide.begin(), unmodified_peptide.end(), 'P');
+                const Size nY = std::count(unmodified_peptide.begin(), unmodified_peptide.end(), 'Y');
+                const Size nC = std::count(unmodified_peptide.begin(), unmodified_peptide.end(), 'C');
+                const Size nT = std::count(unmodified_peptide.begin(), unmodified_peptide.end(), 'T');
+                const Size nG = std::count(unmodified_peptide.begin(), unmodified_peptide.end(), 'G');
+                const Size nL = std::count(unmodified_peptide.begin(), unmodified_peptide.end(), 'L');
+
+                fp_out << counter << SEP << ">" << protein_accessions[0] << SEP << j << SEP << temp_peptides[j] << SEP
+                       << EF.getNumberOf("C") << SEP << EF.getNumberOf("H") << SEP << EF.getNumberOf("N") << SEP << EF.getNumberOf("O") << SEP
+                       << EF.getNumberOf("S") << SEP << temp_peptides[j].size() << SEP << precisionWrapper(temp_peptides[j].getMonoWeight()) << SEP
+                       << precisionWrapper(min_mass) << SEP << precisionWrapper(max_mass) << SEP << temp_peptides[j].getFormula() << SEP
+                       << nD << SEP << nE << SEP << nK << SEP << nR << SEP << nH << SEP << nY << SEP << nW << SEP << nF << SEP << nC << SEP
+                       << nM << SEP << nS << SEP << nT << SEP << nN << SEP << nQ << SEP << nG << SEP << nA << SEP << nV << SEP << nL << SEP
+                       << nI << SEP << nP << SEP << nD * (-3.5) + nE * (-3.5) + nK * (-3.9) + nR * (-4.5) + nH * (-3.2) + nY * (-1.3) + nW * (-0.9) + nF * (2.8) + nC * (2.5) + nM * (1.9) + nS * (-0.8) + nT * (-0.7) + nN * (-3.5) + nQ * (-3.5) + nG * (-0.4) + nA * (1.8) + nV * (4.2) + nL * (4.5) + nI * (4.5) + nP * (-1.6) << "\n";
               }
               counter++;
             }

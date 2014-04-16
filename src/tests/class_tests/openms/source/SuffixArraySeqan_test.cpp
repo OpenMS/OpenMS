@@ -266,8 +266,8 @@ START_SECTION((void findSpec(std::vector< std::vector< std::pair< std::pair< Sig
 	vector<double> spec;
 	//spec.push_back(178.1864);
 	//spec.push_back(441.4806);
-	spec.push_back(AASequence("AR").getMonoWeight(Residue::Full));
-  spec.push_back(AASequence("AAAR").getMonoWeight(Residue::Full));
+	spec.push_back(AASequence::fromString("AR").getMonoWeight(Residue::Full));
+  spec.push_back(AASequence::fromString("AAAR").getMonoWeight(Residue::Full));
 	const vector<double> specc (spec);
 	vector <vector< pair<pair<SignedSize, SignedSize>,double> > > res;
 	sa->findSpec(res, specc);

@@ -192,6 +192,10 @@ protected:
         return (-1) * log10(max((double)hit.getMetaValue("E-Value"), smallest_e_value_));
       }
     }
+    else if (engine == "MSGFPlus")
+    {
+      return (-1) * log10(max(hit.getScore(), smallest_e_value_));
+    }
     else
     {
       throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "No parameters for chosen search engine", "The chosen search engine is currently not supported");
@@ -231,7 +235,7 @@ protected:
     vector<Int> charges;
     PosteriorErrorProbabilityModel PEP_model;
     PEP_model.setParameters(fit_algorithm);
-    StringList search_engines = ListUtils::create<String>("XTandem,OMSSA,MASCOT,SpectraST,MyriMatch,SimTandem");
+    StringList search_engines = ListUtils::create<String>("XTandem,OMSSA,MASCOT,SpectraST,MyriMatch,SimTandem,MSGFPlus");
     //-------------------------------------------------------------
     // calculations
     //-------------------------------------------------------------

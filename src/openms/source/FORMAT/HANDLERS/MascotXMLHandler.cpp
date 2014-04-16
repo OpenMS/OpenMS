@@ -267,7 +267,7 @@ namespace OpenMS
 
       else if (tag_ == "pep_seq")
       {
-        AASequence temp_aa_sequence = AASequence(character_buffer_.trim());
+        AASequence temp_aa_sequence = AASequence::fromString(character_buffer_.trim());
 
         // if everything is just read from the MascotXML file
         if (modified_peptides_.empty())
