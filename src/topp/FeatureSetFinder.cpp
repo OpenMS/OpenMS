@@ -53,6 +53,7 @@
 
 #include <OpenMS/FILTERING/DATAREDUCTION/SplinePackage.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/SplineSpectrum.h>
+#include <OpenMS/FILTERING/DATAREDUCTION/PeakPattern.h>
 //#include <OpenMS/FILTERING/DATAREDUCTION/SILACPoint.h>
 //#include <OpenMS/FILTERING/DATAREDUCTION/SILACAnalyzer.h>
 //#include <OpenMS/FILTERING/DATAREDUCTION/SILACFilter.h>
@@ -201,6 +202,8 @@ public:
     TOPPBase("FeatureSetFinder", "Determination of peak ratios in LC-MS data", true), allow_missing_peaks(true)
   {
   }
+  
+  typedef std::vector<double> MassPattern;    // list of mass shifts
 
   //--------------------------------------------------
   // set structure of ini file
@@ -418,6 +421,47 @@ public:
     in_filters = getStringOption_("in_filters");
     out_debug = getStringOption_("out_debug");
   }
+  
+	// generate list of mass patterns
+	std::vector<MassPattern> generateMassPatterns_()
+	{
+		std::vector<MassPattern> list;
+	  
+		MassPattern pattern1;
+		pattern1.push_back(0);
+		pattern1.push_back(8.0443702794);
+	  
+		MassPattern pattern2;
+		pattern1.push_back(0);
+		pattern1.push_back(2*8.0443702794);
+	  
+		list.push_back(pattern1);
+		list.push_back(pattern2);
+	  
+		return list;
+	}
+  
+	// generate list of mass shifts
+	std::vector<PeakPattern> generatePeakPatterns_(int chargeMin, int chargeMax, int peaksPerPeptideMax, std::vector<MassPattern> massPatternList)
+	{
+		std::vector<PeakPattern> list;
+	  
+		// iterate over all charge states (from max to min)
+		// 4+ can be mistaken as 2+, but 2+ not as 4+
+		for (int c = chargeMax; c >= chargeMin; --c)
+		{
+			// iterate over all mass shifts (from min to max)
+			// min -> max, e.g. first (0, 4, 8) then (0, 8, 16)
+			// first look for the more likely non-missed-cleavage cases
+			for (unsigned i = 0; i < massPatternList.size(); ++i)
+			{
+				PeakPattern* pp = new PeakPattern(massPatternList[i], i, c, peaksPerPeptideMax);
+				list.push_back(*pp);
+			}
+		} 
+		
+		return list;
+	}
 
   //--------------------------------------------------
   // filtering
@@ -526,7 +570,7 @@ public:
 	std::cout << "\n\n";
 	std::cout << "*** starting tests ***\n";
 	// iterate over all spectra of the experiment (RT)
-	Int spectrumID = 0;
+	/*Int spectrumID = 0;
 	MSExperiment<Peak1D> expSpline;
 	std::vector<double> rtSpline;
 	std::vector<std::vector<double> > mzSpline;
@@ -567,12 +611,12 @@ public:
 		expSpline.addSpectrum(specNew);
 	}
 	MzMLFile fileSpline;
-	fileSpline.store("spline.mzML", expSpline);
+	fileSpline.store("spline.mzML", expSpline);*/
 	
 	// ---------------------------
 	// testing peak picking
 	// ---------------------------
-	PeakPickerHiRes picker;
+	/*PeakPickerHiRes picker;
 	Param param = picker.getParameters();
     param.setValue("ms1_only", DataValue("true"));
     param.setValue("signal_to_noise", 0.0);    // signal-to-noise estimation switched off
@@ -581,12 +625,25 @@ public:
 	MSExperiment<Peak1D> expPicked;
     picker.pickExperiment(exp, expPicked);	
 	MzMLFile filePicked;
-	filePicked.store("picked.mzML", expPicked);
-
-	MSExperiment<Peak1D> expPickedSpline;
-    picker.pickExperiment(expSpline, expPickedSpline);	
-	MzMLFile filePickedSpline;
-	filePickedSpline.store("pickedSpline.mzML", expPickedSpline);
+	filePicked.store("picked.mzML", expPicked);*/
+	
+	// ---------------------------
+	// testing peak pattern
+	// ---------------------------
+	std::vector<double> shifts;
+	shifts.push_back(1.1);
+	shifts.push_back(1.2);
+	shifts.push_back(2.1);
+	
+	PeakPattern * pp = new PeakPattern(shifts, 3, 4, 5);
+	int cc = (*pp).getCharge();
+	
+	
+	
+	// ---------------------------
+	// testing peak pattern
+	// ---------------------------	
+	std::vector<MassPattern> list = generateMassPatterns_();
 
  	std::cout << "***   ending tests ***\n";
  	std::cout << "\n\n";
