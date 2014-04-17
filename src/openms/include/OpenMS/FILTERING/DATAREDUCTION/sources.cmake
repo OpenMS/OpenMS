@@ -7,6 +7,7 @@ DataFilters.h
 ElutionPeakDetection.h
 FeatureFindingMetabo.h
 FilterResultRaw.h
+FilterResultPeak.h
 IsotopeDistributionCache.h
 MassTraceDetection.h
 PeakPattern.h

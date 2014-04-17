@@ -7,6 +7,7 @@ DataFilters.cpp
 ElutionPeakDetection.cpp
 FeatureFindingMetabo.cpp
 FilterResultRaw.cpp
+FilterResultPeak.cpp
 IsotopeDistributionCache.cpp
 MassTraceDetection.cpp
 PeakPattern.cpp

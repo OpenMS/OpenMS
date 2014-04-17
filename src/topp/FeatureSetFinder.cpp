@@ -55,6 +55,7 @@
 #include <OpenMS/FILTERING/DATAREDUCTION/SplineSpectrum.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/PeakPattern.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/FilterResultRaw.h>
+#include <OpenMS/FILTERING/DATAREDUCTION/FilterResultPeak.h>
 //#include <OpenMS/FILTERING/DATAREDUCTION/SILACPoint.h>
 //#include <OpenMS/FILTERING/DATAREDUCTION/SILACAnalyzer.h>
 //#include <OpenMS/FILTERING/DATAREDUCTION/SILACFilter.h>
@@ -644,8 +645,14 @@ public:
 	// ---------------------------	
 	std::vector<MassPattern> list = generateMassPatterns_();
 	FilterResultRaw * pointRaw = new FilterResultRaw(645.2, shifts, shifts);
+	FilterResultRaw * pointRaw2 = new FilterResultRaw(745.2, shifts, shifts);
 	std::vector<double> intensitiesRaw = (*pointRaw).getIntensities();
 	double intRaw = (*pointRaw).getIntensityAt(2);
+	
+	std::vector<FilterResultRaw> listRaw;
+	listRaw.push_back(*pointRaw);
+	listRaw.push_back(*pointRaw2);
+	FilterResultPeak * pointPeak = new FilterResultPeak(645.2, 1516.9, listRaw);
 
  	std::cout << "***   ending tests ***\n";
  	std::cout << "\n\n";
