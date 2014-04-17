@@ -30,7 +30,6 @@ ok   FeatureFinderCentroided.cpp
 ok   FeatureFinderIsotopeWavelet.cpp
 ok   FeatureFinderMetabo.cpp
 n    FeatureFinderMRM.cpp
-xx   FeatureFinderRaw.cpp # 700+ lines -- Wrap the whole thing?
 n    FeatureLinkerBase.cpp
 ?    FeatureLinkerLabeled.cpp
 ?    FeatureLinkerUnlabeled.cpp
@@ -95,7 +94,6 @@ x    RTModel.cpp   # 800 lines
 x    RTPredict.cpp # 600 lines
 xx   SeedListGenerator.cpp # TODO more work required overloading methods
 x    SequestAdapter.cpp   # 1200 lines
-ok   SILACAnalyzer.cpp    # done, refactored
 x    SpecLibSearcher.cpp
 ok   SpectraFilterBernNorm.cpp
 ok   SpectraFilterMarkerMower.cpp
@@ -208,7 +206,6 @@ ok  Decharger - Decharges and merges different feature charge variants of the sa
 ok  FeatureFinder - Detects two-dimensional features in LC-MS data.
 ok  ITRAQAnalyzer - Extracts and normalizes iTRAQ information from an MS experiment.
 ok  ProteinQuantifier - Computes protein abundances from annotated feature/consensus maps # done with PeptideAndProteinQuant
-ok  SILACAnalyzer - Determines the ratio of peak pairs in LC-MS data. # done after refactoring
 x   SeedListGenerator - Generates seed lists for feature detection. # needs more work
 
 

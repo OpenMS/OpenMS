@@ -33,7 +33,7 @@
   % TODO update numbers from time to time
   pyOpenMS is a set of Python bindings of the C++ OpenMS library. It allows to
   access a large number of objects (350+) and functions (3900+) of the C++
-  code directly from Python. 
+  code directly from Python.
   The main functions of the library are explained in the first section of this
   manual. A list of all wrapped functions can be found in the appendix of this
   manual.
@@ -66,8 +66,8 @@ Most file format objects follow the following idiome
 
 \begin{verbatim}
 from pyopenms import *
-file = FileObject() 
-exp = MSExperiment() 
+file = FileObject()
+exp = MSExperiment()
 file.load(filename_in, exp)
 # process data
 file.store(filename_in, exp)
@@ -84,13 +84,13 @@ of an \texttt{MSExperiment}.
 \subsection{IdXML}
 \begin{verbatim}
 from pyopenms import *
-id_file = IdXMLFile() 
+id_file = IdXMLFile()
 filename_in = "input.IdXML"
 filename_out = "output.IdXML"
 protein_ids = []
 peptide_ids = []
 id_file.load(filename_in, protein_ids, peptide_ids)
-# process 
+# process
 id_file.store(filename_out, protein_ids, peptide_ids)
 \end{verbatim}
 
@@ -99,13 +99,13 @@ see also Section~\ref{IdXMLFile}.
 \subsection{PepXML}
 \begin{verbatim}
 from pyopenms import *
-id_file = PepXMLFile() 
+id_file = PepXMLFile()
 filename_in = "input.pep.xml"
 filename_out = "output.pep.xml"
 protein_ids = []
 peptide_ids = []
 id_file.load(filename_in, protein_ids, peptide_ids)
-# process 
+# process
 id_file.store(filename_out, protein_ids, peptide_ids)
 \end{verbatim}
 
@@ -118,12 +118,12 @@ see also Section~\ref{PepXMLFile}.
 \subsection{ProtXML}
 \begin{verbatim}
 from pyopenms import *
-id_file = ProtXMLFile() 
+id_file = ProtXMLFile()
 filename_in = "input.prot.xml"
 protein_id = ProteinIdentification()
 peptide_id = PeptideIdentification()
 id_file.load(filename_in, protein_id, peptide_id)
-# process 
+# process
 # storing not supported
 \end{verbatim}
 
@@ -132,12 +132,12 @@ id_file.load(filename_in, protein_id, peptide_id)
 \subsection{MzIdentML}
 \begin{verbatim}
 from pyopenms import *
-id_file = MzIdentMLFile() 
+id_file = MzIdentMLFile()
 filename_in = "input.mzid"
 filename_out = "output.mzid"
 identification = Identification()
 id_file.load(filename_in, identification)
-# process 
+# process
 id_file.store(filename_out, identification)
 \end{verbatim}
 
@@ -148,11 +148,11 @@ data equivalent to IdXML using two empty vectors that will be filled with
 \subsection{TraML}
 \begin{verbatim}
 from pyopenms import *
-tramlfile = TraMLFile() 
+tramlfile = TraMLFile()
 filename_in = "input.TraML"
 targeted_exp = TargetedExperiment()
 idtramlfile.load(filename_in, targeted_exp)
-# process 
+# process
 tramlfilefile.store(filename_out, targeted_exp)
 \end{verbatim}
 
@@ -161,12 +161,12 @@ see also Section~\ref{TraMLFile}.
 \subsection{MzML}
 \begin{verbatim}
 from pyopenms import *
-file = MzMLFile() 
-exp = MSExperiment() 
+file = MzMLFile()
+exp = MSExperiment()
 filename_in = "input.mzML"
 filename_out = "output.mzML"
 file.load(filename_in, exp)
-# process 
+# process
 file.store(filename_in, exp)
 \end{verbatim}
 
@@ -188,11 +188,11 @@ key). Using the \texttt{getDescription} method, it is possible to get a help-tex
 each parameter value in an interactive session without consulting the documentation.
 
 \section{Signal Processing and Filter}
-Most signal processing algorithms follow a similar pattern in OpenMS.  
+Most signal processing algorithms follow a similar pattern in OpenMS.
 
 \begin{verbatim}
 filter = FilterObject()
-exp = MSExperiment() 
+exp = MSExperiment()
 # populate exp
 filter.filterExperiment(exp)
 \end{verbatim}
@@ -215,11 +215,11 @@ described in the following code snippet:
 
 \begin{verbatim}
 
-file = MzMLFile() 
-exp = MSExperiment() 
+file = MzMLFile()
+exp = MSExperiment()
 file.load(filename_in, exp)
-consensus_map_raw = ConsensusMap()  
-consensus_map_quant = ConsensusMap() 
+consensus_map_raw = ConsensusMap()
+consensus_map_quant = ConsensusMap()
 
 itraq_type = ITRAQ_TYPES.FOURPLEX # other options: EIGHTPLEX, TMT_SIXPLEX
 extract_param = ItraqChannelExtractor().getDefaults()
@@ -269,55 +269,6 @@ fh = FeatureXMLFile()
 fh.store(out_path, features)
 \end{verbatim}
 
-\subsection{SILACAnalyzer}
-
-\begin{verbatim}
-
-exp = pyopenms.MSExperiment()
-# load experiment (raw data)
-out_map = pyopenms.ConsensusMap()
-
-# Options
-selected_labels = "Lys8"
-charge_min = 2
-charge_max = 4
-missed_cleavages = 0
-isotopes_per_peptide_min = 3
-isotopes_per_peptide_max = 5
-# section "algorithm"
-rt_threshold = 30
-rt_min = 0.0
-intensity_cutoff = 10
-intensity_correlation = 0.7
-model_deviation = 3.0
-allow_missing_peaks = True
-# labels
-label_identifiers = { "Lys8" : 8.0141988132}
-
-analyzer = pyopenms.SILACAnalyzer()
-analyzer.initialize(
-      # section sample
-      selected_labels,
-      charge_min,
-      charge_max,
-      missed_cleavages,
-      isotopes_per_peptide_min,
-      isotopes_per_peptide_max,
-      # section "algorithm"
-      rt_threshold,
-      rt_min,
-      intensity_cutoff,
-      intensity_correlation,
-      model_deviation,
-      allow_missing_peaks,
-      # labels
-      label_identifiers)
-
-analyzer.run_all(exp, out_map)
-
-\end{verbatim}
-
-
 \subsection{OpenSwathAnalyzer}
 
 The OpenSwathAnalyzer calls internally an object called
@@ -356,7 +307,7 @@ featurexml.store("outfile.featureXML", output)
 Several core-OpenMS objects have been adapted to allow iteration in a native
 way in Python. These objects are currently \texttt{ConsensusMap, FeatureMap,
 MSExperiment, MSSpectrum} and \texttt{MSChromatogram}. They thus allow the
-following syntax: 
+following syntax:
 
 \begin{verbatim}
 for spectrum in ms_experiment:
