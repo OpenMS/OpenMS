@@ -7,11 +7,11 @@ MTD	mzTab-ID	PRIDE_1234
 MTD	description	Quantification of a subset of two B-cell lymphoma cell lines using the Super SILAC approach measured as single shots in three replicates
 MTD	sample_processing[1]	[sep, sep:00142, enzyme digestion, ]|[MS, MS:1001251, Trypsin, ]
 MTD	sample_processing[2]	[sep, sep:00211, reversed-phase chromatography, ]
-MTD search_engine_score[1]	[MS, MS:1002338, Andromeda:score, ]
+MTD	search_engine_score[1]	[MS, MS:1002338, Andromeda:score, ]
 MTD	instrument[1]-name	[MS, MS:1000449, LTQ Orbitrap, ]
 MTD	instrument[1]-source	[MS, MS:1000073, electrospray ionization, ]
 MTD	instrument[1]-analyzer	[MS, MS:1000484, orbitrap, ]
-MTD instrument[1]-detector  [MS, MS:1000348, focal plane collector,]
+MTD	instrument[1]-detector	[MS, MS:1000348, focal plane collector,]
 MTD	software[1]	[MS, MS:1001583, MaxQuant, 1.4.1.14]
 MTD	software[1]-setting[1]	MS/MS tol. (FTMS)=20 ppm
 MTD	software[1]-setting[2]	Top MS/MS peaks per 100 Da. (FTMS)=12
@@ -27,10 +27,10 @@ MTD	contact[1]-email	neuhause@biochem.mpg.de
 MTD	contact[2]-name	Sally Deeb
 MTD	contact[2]-affiliation	Max Planck Institute of Biochemistry
 MTD	contact[2]-email	deeb@biochem.mpg.de
-MTD uri[1]	http://www.ebi.ac.uk/pride/url/to/experiment/
-MTD uri[2]	http://www.ebi.ac.uk/pride/another/url/to/experiment/
+MTD	uri[1]	http://www.ebi.ac.uk/pride/url/to/experiment/
+MTD	uri[2]	http://www.ebi.ac.uk/pride/another/url/to/experiment/
 
-TODO check delta masses
+COM	TODO check delta masses
 
 MTD	fixed_mod[1]	[UNIMOD, UNIMOD:4, Carbamidomethyl, -57.0214637236]
 MTD	fixed_mod[1]-site	C
@@ -68,14 +68,15 @@ MTD	ms_run[6]-format	[MS, MS:1000563, Thermo RAW file, ]
 MTD	ms_run[6]-location	file://C:\lymphoma\20120130_EXQ2_SaDe_SA_HT_03.raw
 MTD	ms_run[6]-id_format	[MS, MS:1000768, Thermo nativeID format, ]
 MTD	ms_run[6]-fragmentation_method	[MS, MS:1000422, high-energy collision-induced dissociation, ]
-MTD custom[1]	custom meta value1
-MTD custom[2]	custom meta value2
+MTD	custom[1]	custom meta value1
+MTD	custom[2]	custom meta value2
 MTD	sample[1]-species[1]	[NEWT, NEWT:9606, Homo sapiens (Human), ]
 MTD	sample[1]-cell_type[1]	[CL, CL:0000236, B cell, ]
 MTD	sample[1]-disease[1]	[DOID, DOID:0060058, lymphoma, ]
 MTD	sample[1]-custom[1]	[,,Extraction date, 2011-12-21]
 MTD	sample[1]-custom[2]	[,,Operator, John Black]
-TODO tissue for blood?
+MTD	sample[1]-custom[3]	[,, "test of comma, in cv name", "test of comma, in cv value"]
+COM	TODO tissue for blood?
 MTD	sample[1]-tissue[1]	[, , blood, ]
 MTD	sample[1]-description	DB
 MTD	sample[2]-species[1]	[NEWT, NEWT:9606, Homo sapiens (Human), ]
@@ -83,7 +84,7 @@ MTD	sample[2]-cell_type[1]	[CL, CL:0000236, B cell, ]
 MTD	sample[2]-disease[1]	[DOID, DOID:0060058, lymphoma, ]
 MTD	sample[2]-custom[1]	[,,Extraction date, 2014-10-01]
 MTD	sample[2]-custom[2]	[,,Operator, John Doe]
-TODO tissue for blood?
+COM	TODO tissue for blood?
 MTD	sample[1]-tissue[1]	[, , blood, ]
 MTD	sample[2]-description	HT
 MTD	assay[1]-quantification_reagent	[PRIDE, PRIDE:0000326, SILAC light, ]
@@ -108,8 +109,8 @@ MTD	assay[7]-quantification_reagent	[PRIDE, PRIDE:0000325, SILAC heavy, ]
 MTD	assay[7]-sample_ref	sample[1]
 MTD	assay[7]-ms_run_ref	ms_run[1]
 
-TODO choose proper mod
-TODO site, position
+COM	TODO choose proper mod
+COM	TODO site, position
 
 MTD	assay[7]-quantification_mod[1]	[,, Arg10, ]
 MTD	assay[7]-quantification_mod[2]	[,, Lys8, ]
@@ -181,7 +182,7 @@ MTD	cv[9]-full_name	Human disease ontology (DOID)
 MTD	cv[9]-version	1.2 (2013-10-28)
 MTD	cv[9]-url	http://www.berkeleybop.org/ontologies/doid.obo
 
-TODO colunits
+COM	TODO colunits
 
 PRH	accession	description	taxid	species	database	database_version	search_engine	best_search_engine_score[1]	search_engine_score[1]_ms_run[1]	search_engine_score[1]_ms_run[2]	search_engine_score[1]_ms_run[3]	search_engine_score[1]_ms_run[4]	search_engine_score[1]_ms_run[5]	search_engine_score[1]_ms_run[6]	num_psms_ms_run[1]	num_psms_ms_run[2]	num_psms_ms_run[3]	num_psms_ms_run[4]	num_psms_ms_run[5]	num_psms_ms_run[6]	ambiguity_members	modifications	protein_coverage	protein_abundance_assay[1]	protein_abundance_assay[2]	protein_abundance_assay[3]	protein_abundance_assay[4]	protein_abundance_assay[5]	protein_abundance_assay[6]	protein_abundance_assay[7]	protein_abundance_assay[8]	protein_abundance_assay[9]	protein_abundance_assay[10]	protein_abundance_assay[11]	protein_abundance_assay[12]	protein_abundance_study_variable[1]	protein_abundance_stdev_study_variable[1]	protein_abundance_std_error_study_variable[1]	opt_study_variable[1]_ratio_heavy_to_light	opt_study_variable[1]_ratio_heavy_to_light_variability	protein_abundance_study_variable[2]	protein_abundance_stdev_study_variable[2]	protein_abundance_std_error_study_variable[2]	opt_study_variable[2]_ratio_heavy_to_light	opt_study_variable[2]_ratio_heavy_to_light_variability
 PRT	Q15424	Scaffold attachment factor B1	9606	Homo sapiens (Human)	UniprotKB	2013-05-29 (88820 entries)	[MS, MS:1002337, Andromeda, ]	239.37	239.37	198.85	143.35	184.22	186.75	162.71	41	37	30	34	33	33	B7ZLP6,A0AV56,Q15424-2,F5GZU3,B7Z2F6	171-UNIMOD:35	0.366	null	null	null	null	null	null	null	null	null	null	null	null	24682000000	null	null	0.8729	17.262	24070000000	null	null	1.0253	31.818

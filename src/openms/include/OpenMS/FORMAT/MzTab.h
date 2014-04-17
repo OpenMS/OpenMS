@@ -652,9 +652,13 @@ public:
         String ret = "[";
         ret += CV_label_ + ",";
         ret += accession_ + ",";
-        if (!name_.empty())
+
+        if (name_.hasSubstring(","))
         {
-          ret += String("\"") + name_ + String("\""); // always quote non empty name
+          ret += String("\"") + name_ + String("\""); // quote name if it contains a ","
+        } else
+        {
+          ret += name_;
         }
 
         ret += String(",");
@@ -699,7 +703,6 @@ public:
           }
           else
           {
-
             comma_fields[0].remove('[');
             comma_fields[3].remove(']');
             CV_label_ = comma_fields[0];
@@ -717,7 +720,6 @@ public:
           }
           else
           {
-
             fields[0].remove('[');
             fields[3].remove(']');
             CV_label_ = fields[0];
@@ -1287,7 +1289,7 @@ public:
         }
 
         spec_ref_ = fields[1];
-        ms_file_ = (Size)(fields[0].substitute("ms_file[", "").remove(']').toInt());
+        ms_file_ = (Size)(fields[0].substitute("ms_run[", "").remove(']').toInt());
       }
     }
 
@@ -1297,7 +1299,7 @@ protected:
   };
 
   // MTD
-  
+
   struct MzTabSampleMetaData
   {
     MzTabString description;
@@ -1308,10 +1310,10 @@ protected:
     std::map<Size, MzTabParameter> custom;
   };
 
-  struct MzTabSoftwareMetaData  
+  struct MzTabSoftwareMetaData
   {
-    MzTabParameter software; 
-    std::map<Size, MzTabParameter> setting;
+    MzTabParameter software;
+    std::map<Size, MzTabString> setting;
   };
 
   // all meta data of a mzTab file. Please refer to specification for documentation.
@@ -1325,14 +1327,14 @@ protected:
     MzTabString mz_tab_version;
     MzTabString mz_tab_mode;
     MzTabString mz_tab_type;
-    MzTabString mz_tab_id; 
+    MzTabString mz_tab_id;
     MzTabString title;
     MzTabString description;
     std::map<Size, MzTabParameter> search_engine_score;
 
-    std::map<Size, MzTabParameterList> sample_processing; 
+    std::map<Size, MzTabParameterList> sample_processing;
 
-    std::map<Size, MzTabParameter> instrument_name; 
+    std::map<Size, MzTabParameter> instrument_name;
     std::map<Size, MzTabParameter> instrument_source;
     std::map<Size, MzTabParameter> instrument_analyzer;
     std::map<Size, MzTabParameter> instrument_detector;
@@ -1356,14 +1358,14 @@ protected:
 
     MzTabParameter quantification_method;
 
-    MzTabParameter protein_quantification_unit;     
-    MzTabParameter peptide_quantification_unit; 
+    MzTabParameter protein_quantification_unit;
+    MzTabParameter peptide_quantification_unit;
     MzTabParameter small_molecule_quantification_unit;
 
     std::map<Size, MzTabParameter> ms_run_format;
-    std::map<Size, MzTabParameter> ms_run_location;
+    std::map<Size, MzTabString> ms_run_location;
     std::map<Size, MzTabParameter> ms_run_id_format;
-    std::map<Size, MzTabParameter> ms_run_fragmentation_method;
+    std::map<Size, MzTabParameterList> ms_run_fragmentation_method;
 
     std::map<Size, MzTabParameterList> custom;
 
@@ -1411,8 +1413,8 @@ protected:
     MzTabString database; // Name of the protein database.
     MzTabString database_version; // String Version of the protein database.
     MzTabParameterList search_engine; // Search engine(s) identifying the protein.
-    MzTabParameterList best_search_engine_score;
-    std::map<Size, MzTabParameterList> search_engine_score_ms_run; 
+    std::map<Size, MzTabDouble>  best_search_engine_score;  // best_search_engine_score[1-n]
+    std::map<Size, std::map<Size, MzTabDouble> > search_engine_score_ms_run; // search_engine_score[index1]_ms_run[index2]
     MzTabInteger reliability;
     std::map<Size, MzTabInteger> num_psms_ms_run;
     std::map<Size, MzTabInteger> num_peptides_distinct_ms_run;
@@ -1438,8 +1440,8 @@ protected:
     MzTabString database; // Name of the sequence database.
     MzTabString database_version; // Version (and optionally # of entries).
     MzTabParameterList search_engine; // Search engine(s) that identified the peptide.
-    MzTabParameterList best_search_engine_score; // Search engine(s) score(s) for the peptide.
-    std::map<Size, MzTabParameterList> search_engine_score_ms_run; 
+    std::map<Size, MzTabDouble> best_search_engine_score; // Search engine(s) score(s) for the peptide.
+    std::map<Size, std::map<Size, MzTabDouble> > search_engine_score_ms_run;
     MzTabInteger reliability; // (1-3) 0=null Identification reliability for the peptide.
     MzTabModificationList modifications; // Modifications identified in the peptide.
     MzTabDoubleList retention_time; // Time points in seconds. Semantics may vary.
@@ -1459,19 +1461,19 @@ protected:
   struct MzTabPSMSectionRow
   {
     MzTabString sequence; // The peptide’s sequence.
-    MzTabInteger PSM_ID; 
+    MzTabInteger PSM_ID;
     MzTabString accession; // The protein’s accession.
     MzTabBoolean unique; // 0=false, 1=true, null else: Peptide is unique for the protein.
     MzTabString database; // Name of the sequence database.
     MzTabString database_version; // Version (and optionally # of entries).
     MzTabParameterList search_engine; // Search engine(s) that identified the peptide.
-    MzTabParameterList search_engine_score; // Search engine(s) score(s) for the peptide.
+    std::map<Size, MzTabDouble> search_engine_score; // Search engine(s) score(s) for the peptide.
     MzTabInteger reliability; // (1-3) 0=null Identification reliability for the peptide.
     MzTabModificationList modifications; // Modifications identified in the peptide.
     MzTabDoubleList retention_time; // Time points in seconds. Semantics may vary.
     MzTabDouble charge; // Precursor ion’s charge.
     MzTabDouble exp_mass_to_charge; // Precursor ion’s m/z.
-    MzTabDouble calc_mass_to_charge; 
+    MzTabDouble calc_mass_to_charge;
     MzTabString uri; // Location of the PSM’s source entry.
     MzTabSpectraRef spectra_ref; // Spectra identifying the peptide.
     MzTabString pre;
@@ -1501,8 +1503,8 @@ protected:
     MzTabString uri; // The source entry’s location.
     MzTabSpectraRef spectra_ref; // Spectra identifying the small molecule.
     MzTabParameterList search_engine; // Search engine(s) identifying the small molecule.
-    MzTabParameterList best_search_engine_score; // Search engine(s) identifications score(s).
-    std::map<Size, MzTabParameterList> search_engine_score_ms_run; 
+    std::map<Size, MzTabDouble> best_search_engine_score; // Search engine(s) identifications score(s).
+    std::map<Size, std::map<Size, MzTabDouble> > search_engine_score_ms_run;
     MzTabModificationList modifications; // Modifications identified on the small molecule.
     std::map<Size, MzTabDouble> smallmolecule_abundance_assay;
     std::map<Size, MzTabDouble> smallmolecule_abundance_study_variable;

@@ -49,7 +49,6 @@ MzTabFile::~MzTabFile()
 {
 }
 
-
 std::pair<int, int> MzTabFile::extractIndexPairsFromBrackets_(const String & s)
 {
   QString qs = s.toQString();
@@ -65,17 +64,17 @@ std::pair<int, int> MzTabFile::extractIndexPairsFromBrackets_(const String & s)
   QRegExp rx_first_number(QString("^.*?\\[(\\d+)\\].*$"));
 
   // as above but capture on the second bracket
-  QRegExp rx_second_number(QString("^.*?\\[\\d+\\].*.*?\\[(\\d+)\\].*$")); 
- 
+  QRegExp rx_second_number(QString("^.*?\\[\\d+\\].*.*?\\[(\\d+)\\].*$"));
+
   Int pos_first_number = rx_first_number.indexIn(qs);
-  if (pos_first_number > -1) 
+  if (pos_first_number > -1)
   {
     QString value = rx_first_number.cap(1);
     pair.first = value.toInt();
-  } 
+  }
 
   Int pos_second_number = rx_second_number.indexIn(qs);
-  if (pos_second_number > -1) 
+  if (pos_second_number > -1)
   {
     QString value = rx_second_number.cap(1);
     pair.second = value.toInt();
@@ -123,8 +122,8 @@ void MzTabFile::load(const String& filename, MzTab& mz_tab)
   Size protein_database_index = 0;
   Size protein_database_version_index = 0;
   Size protein_search_engine_index = 0;
-  Size protein_best_search_engine_score_index = 0;
-  map<Size, Size> protein_search_ms_runs_indices; // map run number to column index
+  map<Size, Size> protein_best_search_engine_score_to_column_index;  // score number to column index
+  map<Size, std::pair<Size, Size> > protein_column_index_to_score_runs_pair;   // map column of the protein section to a search_engine_score[index1]_ms_run[index] index pair
   Size protein_reliability_index = 0;
   map<Size, Size> protein_num_psms_ms_run_indices;
   map<Size, Size> protein_num_peptides_distinct_ms_run_indices;
@@ -146,8 +145,8 @@ void MzTabFile::load(const String& filename, MzTab& mz_tab)
   Size peptide_database_index = 0;
   Size peptide_database_version_index = 0;
   Size peptide_search_engine_index = 0;
-  Size peptide_best_search_engine_score_index = 0;
-  map<Size, Size> peptide_search_ms_runs_indices; // map run number to column index
+  map<Size, Size> peptide_best_search_engine_score_to_column_index;
+  map<Size, std::pair<Size, Size> > peptide_column_index_to_score_runs_pair; // map column of the peptide section to a search_engine_score[index1]_ms_run[index] index pair
   Size peptide_reliability_index = 0;
   Size peptide_modifications_index = 0;
   Size peptide_retention_time_index = 0;
@@ -169,7 +168,7 @@ void MzTabFile::load(const String& filename, MzTab& mz_tab)
   Size psm_database_index = 0;
   Size psm_database_version_index = 0;
   Size psm_search_engine_index = 0;
-  Size psm_search_engine_score_index = 0;
+  map<Size, Size> psm_search_engine_score_to_column_index;
   Size psm_reliability_index = 0;
   Size psm_modifications_index = 0;
   Size psm_retention_time_index = 0;
@@ -201,8 +200,8 @@ void MzTabFile::load(const String& filename, MzTab& mz_tab)
   Size smallmolecule_uri_index = 0;
   Size smallmolecule_spectra_ref_index = 0;
   Size smallmolecule_search_engine_index = 0;
-  Size smallmolecule_best_search_engine_score_index = 0;
-  map<Size, Size> smallmolecule_search_ms_runs_indices;
+  map<Size, Size> smallmolecule_best_search_engine_score_to_column_index;
+  map<Size, std::pair<Size, Size> > smallmolecule_column_index_to_score_runs_pair; // map column of the small molecule section to a search_engine_score[index1]_ms_run[index] index pair
   Size smallmolecule_modifications_index = 0;
   map<Size, Size> smallmolecule_abundance_assay_indices;
   map<Size, Size> smallmolecule_abundance_study_variable_indices;
@@ -212,7 +211,7 @@ void MzTabFile::load(const String& filename, MzTab& mz_tab)
   for (TextFile::ConstIterator sit = tf.begin(); sit != tf.end(); ++sit)
   {
     //  std::cout << *sit << std::endl;
-    const String& s = *sit;
+    const String & s = *sit;
 
     // skip empty lines or lines that are too short
     if (s.size() < 3)
@@ -222,10 +221,10 @@ void MzTabFile::load(const String& filename, MzTab& mz_tab)
 
     cout << s << endl;
 
-    const String prefix = s.prefix(3);
+    const String section = s.prefix(3);
 
     // discard comments
-    if (prefix == "COM")
+    if (section == "COM")
     {
       continue;
     }
@@ -233,8 +232,13 @@ void MzTabFile::load(const String& filename, MzTab& mz_tab)
     StringList cells;
     s.split("\t", cells);
 
+    if (cells.size() < 3)
+    {
+      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename, "Error parsing MzTab line: " + String(s) + ". Did you forget to use tabulator as separator?");
+    }
+
     // parse metadata section
-    if (prefix == "MTD")
+    if (section == "MTD")
     {
       StringList meta_key_fields; // the "-" separated fields of the metavalue key
       cells[1].split("-", meta_key_fields);
@@ -275,46 +279,46 @@ void MzTabFile::load(const String& filename, MzTab& mz_tab)
         pl.fromCellString(cells[2]);
         mz_tab_metadata.sample_processing[n] = pl;
       }
-      else if (meta_key.hasPrefix("instrument") && meta_key_fields[1] == "name")
+      else if (meta_key.hasPrefix("instrument[") && meta_key_fields[1] == "name")
       {
         Int n = meta_key_fields[0].substitute("instrument[", "").substitute("]","").trim().toInt();
         MzTabParameter p;
         p.fromCellString(cells[2]);
         mz_tab_metadata.instrument_name[n] = p;
       }
-      else if (meta_key.hasPrefix("instrument") && meta_key_fields[1] == "source")
+      else if (meta_key.hasPrefix("instrument[") && meta_key_fields[1] == "source")
       {
         Int n = meta_key_fields[0].substitute("instrument[", "").substitute("]","").trim().toInt();
         MzTabParameter p;
         p.fromCellString(cells[2]);
         mz_tab_metadata.instrument_source[n] = p;
       }
-      else if (meta_key.hasPrefix("instrument") && meta_key_fields[1] == "analyzer")
+      else if (meta_key.hasPrefix("instrument[") && meta_key_fields[1] == "analyzer")
       {
         Int n = meta_key_fields[0].substitute("instrument[", "").substitute("]","").trim().toInt();
         MzTabParameter p;
         p.fromCellString(cells[2]);
         mz_tab_metadata.instrument_analyzer[n] = p;
       }
-      else if (meta_key.hasPrefix("instrument") && meta_key_fields[1] == "detector")
+      else if (meta_key.hasPrefix("instrument[") && meta_key_fields[1] == "detector")
       {
         Int n = meta_key_fields[0].substitute("instrument[", "").substitute("]","").trim().toInt();
         MzTabParameter p;
         p.fromCellString(cells[2]);
         mz_tab_metadata.instrument_detector[n] = p;
       }
-      else if (meta_key.hasPrefix("software["))
+      else if (meta_key.hasPrefix("software[") && meta_key_fields.size() == 1)
       {
         Int n = meta_key.substitute("software[", "").substitute("]","").trim().toInt();
         MzTabParameter p;
         p.fromCellString(cells[2]);
         mz_tab_metadata.software[n].software = p;
       }
-      else if (meta_key.hasPrefix("software") && meta_key_fields[1].hasPrefix("setting"))
+      else if (meta_key.hasPrefix("software[") && meta_key_fields.size() == 2 && meta_key_fields[1].hasPrefix("setting["))
       {
         Int n = meta_key_fields[0].substitute("software[", "").substitute("]","").trim().toInt();
         Int m = meta_key_fields[1].substitute("setting[", "").substitute("]","").trim().toInt();
-        MzTabParameter p;
+        MzTabString p;
         p.fromCellString(cells[2]);
         mz_tab_metadata.software[n].setting[m] = p;
       }
@@ -365,10 +369,10 @@ void MzTabFile::load(const String& filename, MzTab& mz_tab)
         Int n = meta_key_fields[0].substitute("uri[", "").substitute("]","").trim().toInt();
         MzTabString s;
         s.fromCellString(cells[2]);
-        mz_tab_metadata.uri[n] = s;          
+        mz_tab_metadata.uri[n] = s;
       }
         //TODO: add mandatory check
-      else if (meta_key.hasPrefix("variable_mod["))
+      else if (meta_key.hasPrefix("variable_mod[" &&  meta_key_fields.size() == 1))
       {
         Int n = meta_key.substitute("variable_mod[", "").substitute("]","").trim().toInt();
         MzTabParameter pl;
@@ -376,7 +380,7 @@ void MzTabFile::load(const String& filename, MzTab& mz_tab)
         mz_tab_metadata.variable_mod[n] = pl;
       }
         //TODO: add mandatory check
-      else if (meta_key.hasPrefix("fixed_mod["))
+      else if (meta_key.hasPrefix("fixed_mod[") &&  meta_key_fields.size() == 1) // fixed_mod[1-n]
       {
         Int n = meta_key.substitute("fixed_mod[", "").substitute("]","").trim().toInt();
         MzTabParameter pl;
@@ -410,32 +414,32 @@ void MzTabFile::load(const String& filename, MzTab& mz_tab)
         mz_tab_metadata.small_molecule_quantification_unit = p;
         has_small_molecule_quantification_unit = true;
       }
-      else if (meta_key.hasPrefix("ms_run") && meta_key_fields[1] == "format")
+      else if (meta_key.hasPrefix("ms_run[") && meta_key_fields[1] == "format")
       {
         Int n = meta_key_fields[0].substitute("ms_run[", "").substitute("]","").trim().toInt();
         MzTabParameter p;
         p.fromCellString(cells[2]);
         mz_tab_metadata.ms_run_format[n] = p;
       }
-      else if (meta_key.hasPrefix("ms_run") && meta_key_fields[1] == "location")
+      else if (meta_key.hasPrefix("ms_run[") && meta_key_fields[1] == "location")
       {
         Int n = meta_key_fields[0].substitute("ms_run[", "").substitute("]","").trim().toInt();
-        MzTabParameter p;
+        MzTabString p;
         p.fromCellString(cells[2]);
         mz_tab_metadata.ms_run_location[n] = p;
         count_ms_run_location = std::max((Size)n, (Size)count_ms_run_location); // will be checked to match number of entries in map to detect skipped entries or wrong numbering
       }
-      else if (meta_key.hasPrefix("ms_run") && meta_key_fields[1] == "id_format")
+      else if (meta_key.hasPrefix("ms_run[") && meta_key_fields[1] == "id_format")
       {
         Int n = meta_key_fields[0].substitute("ms_run[", "").substitute("]","").trim().toInt();
         MzTabParameter p;
         p.fromCellString(cells[2]);
         mz_tab_metadata.ms_run_id_format[n] = p;
       }
-      else if (meta_key.hasPrefix("ms_run") && meta_key_fields[1] == "fragmentation_method")
+      else if (meta_key.hasPrefix("ms_run[") && meta_key_fields[1] == "fragmentation_method")
       {
         Int n = meta_key_fields[0].substitute("ms_run[", "").substitute("]","").trim().toInt();
-        MzTabParameter p;
+        MzTabParameterList p;
         p.fromCellString(cells[2]);
         mz_tab_metadata.ms_run_fragmentation_method[n] = p;
       }
@@ -449,7 +453,7 @@ void MzTabFile::load(const String& filename, MzTab& mz_tab)
       else if (meta_key.hasPrefix("sample[") && meta_key_fields[1].hasPrefix("species["))
       {
         Int n = meta_key_fields[0].substitute("sample[", "").substitute("]","").trim().toInt();
-        Int m = meta_key_fields[1].substitute("custom[", "").substitute("]","").trim().toInt();
+        Int m = meta_key_fields[1].substitute("species[", "").substitute("]","").trim().toInt();
         MzTabParameter p;
         p.fromCellString(cells[2]);
         mz_tab_metadata.sample[n].species[m] = p;
@@ -546,16 +550,20 @@ void MzTabFile::load(const String& filename, MzTab& mz_tab)
       else if (meta_key.hasPrefix("study_variable[") && meta_key_fields[1] == "assay_refs")
       {
         Int n = meta_key_fields[0].substitute("study_variable[", "").substitute("]","").trim().toInt();
+        String s = cells[2];
+        s.substitute("assay[","").substitute("]","");
         MzTabIntegerList p;
-        p.fromCellString(cells[2]);
+        p.fromCellString(s);
         mz_tab_metadata.study_variable_sample_refs[n] = p;
         count_study_variable_assay_refs++;
       }
       else if (meta_key.hasPrefix("study_variable[") && meta_key_fields[1] == "sample_refs")
       {
         Int n = meta_key_fields[0].substitute("study_variable[", "").substitute("]","").trim().toInt();
+        String s = cells[2];
+        s.substitute("sample[","").substitute("]","");
         MzTabIntegerList p;
-        p.fromCellString(cells[2]);
+        p.fromCellString(s);
         mz_tab_metadata.study_variable_sample_refs[n] = p;
       }
       else if (meta_key.hasPrefix("study_variable[") && meta_key_fields[1] == "description")
@@ -592,41 +600,42 @@ void MzTabFile::load(const String& filename, MzTab& mz_tab)
     }
 
     // parse protein header section
-    if (prefix == "PRH")
+    if (section == "PRH")
     {
       for (Size i = 0; i != cells.size(); ++i)
       {
-        if (cells[i].hasPrefix("accession"))
+        std::cout << "#" << cells[i] << "#" << std::endl;
+        if (cells[i] == "accession")
         {
           protein_accession_index = i;
-        } else if (cells[i].hasPrefix("description"))
+        } else if (cells[i] == "description")
         {
           protein_description_index = i;
-        } else if (cells[i].hasPrefix("taxid"))
+        } else if (cells[i] == "taxid")
         {
           protein_taxid_index = i;
-        } else if (cells[i].hasPrefix("species"))
+        } else if (cells[i] == "species")
         {
           protein_species_index = i;
-        } else if (cells[i].hasPrefix("database"))
+        } else if (cells[i] == "database")
         {
           protein_database_index = i;
-        } else if (cells[i].hasPrefix("database_version"))
+        } else if (cells[i] == "database_version")
         {
           protein_database_version_index = i;
-        } else if (cells[i].hasPrefix("search_engine"))
+        } else if (cells[i] =="search_engine")
         {
           protein_search_engine_index = i;
         } else if (cells[i].hasPrefix("best_search_engine_score["))
-        { 
+        {
           String s = cells[i];
           Size n = (Size)s.substitute("best_search_engine_score[", "").substitute("]","").trim().toInt();
-          protein_best_search_engine_score_index[n] = i;
+          protein_best_search_engine_score_to_column_index[n] = i;
         } else if (cells[i].hasPrefix("search_engine_score["))
         {
           std::pair<Size, Size> pair = extractIndexPairsFromBrackets_(cells[i].toQString());
-          column_index_to_search_engine_score_ms_runs_pair[i] = pair;
-        } else if (cells[i].hasPrefix("reliability"))
+          protein_column_index_to_score_runs_pair[i] = pair;
+        } else if (cells[i] == "reliability")
         {
           protein_reliability_index = i;
         } else if (cells[i].hasPrefix("num_psms_ms_run["))
@@ -644,19 +653,19 @@ void MzTabFile::load(const String& filename, MzTab& mz_tab)
           String s = cells[i];
           Size n = (Size)s.substitute("num_peptides_unique_ms_run[", "").substitute("]","").trim().toInt();
           protein_num_peptides_unique_ms_run_indices[n] = i;
-        } else if (cells[i].hasPrefix("ambiguity_members"))
+        } else if (cells[i] == "ambiguity_members")
         {
           protein_ambiguity_members_index = i;
-        } else if (cells[i].hasPrefix("modifications"))
+        } else if (cells[i] == "modifications")
         {
           protein_modifications_index = i;
-        } else if (cells[i].hasPrefix("uri"))
+        } else if (cells[i] == "uri")
         {
           protein_uri_index = i;
-        } else if (cells[i].hasPrefix("go_terms"))
+        } else if (cells[i] == "go_terms")
         {
           protein_go_terms_index = i;
-        } else if (cells[i].hasPrefix("protein_coverage"))
+        } else if (cells[i] == "protein_coverage")
         {
           protein_coverage_index = i;
         } else if (cells[i].hasPrefix("protein_abundance_assay["))
@@ -688,7 +697,7 @@ void MzTabFile::load(const String& filename, MzTab& mz_tab)
     }
 
     // parse protein section
-    if (prefix == "PRT")
+    if (section == "PRT")
     {
       // check if all mandatory columns are present
       if (protein_accession_index == 0)
@@ -726,14 +735,15 @@ void MzTabFile::load(const String& filename, MzTab& mz_tab)
         cout << "Error: mandatory protein search_engine column missing" << endl;
       }
 
-      if (protein_best_search_engine_score_index == 0)
+      if (protein_best_search_engine_score_to_column_index.empty())
       {
-        cout << "Error: mandatory protein best_search_engine_score column missing" << endl;
+        cout << "Error: mandatory protein best_search_engine_score[1-n] column missing" << endl;
       }
 
-      if (protein_search_ms_runs_indices.size() == 0 && mz_tab_metadata.mz_tab_mode.toCellString() == "Complete")
+      if (protein_column_index_to_score_runs_pair.size() == 0 && mz_tab_metadata.mz_tab_mode.toCellString() == "Complete")
       {
         cout << "Error: mandatory protein search_engine_score_ms_run column(s) missing" << endl;
+        // TODO: check if number of ms_runs and search_engine_scores match meta data section information
       }
 
       if (protein_num_psms_ms_run_indices.size() == 0 && mz_tab_metadata.mz_tab_mode.toCellString() == "Complete"
@@ -798,11 +808,15 @@ void MzTabFile::load(const String& filename, MzTab& mz_tab)
       row.database.fromCellString(cells[protein_database_index]);
       row.database_version.fromCellString(cells[protein_database_version_index]);
       row.search_engine.fromCellString(cells[protein_search_engine_index]);
-      row.best_search_engine_score.fromCellString(cells[protein_best_search_engine_score_index]);
 
-      for (map<Size, Size>::const_iterator it = protein_search_ms_runs_indices.begin(); it != protein_search_ms_runs_indices.end(); ++it)
+      for (map<Size, Size>::const_iterator it = protein_best_search_engine_score_to_column_index.begin(); it != protein_best_search_engine_score_to_column_index.end(); ++it)
       {
-        row.search_engine_score_ms_run[it->first].fromCellString(cells[it->second]);
+        row.best_search_engine_score[it->first].fromCellString(cells[it->second]);
+      }
+
+      for (map<Size, std::pair<Size, Size> >::const_iterator it = protein_column_index_to_score_runs_pair.begin(); it != protein_column_index_to_score_runs_pair.end(); ++it)
+      {
+        row.search_engine_score_ms_run[it->second.first][it->second.second].fromCellString(cells[it->first]);
       }
 
       if (protein_reliability_index != 0)
@@ -874,58 +888,59 @@ void MzTabFile::load(const String& filename, MzTab& mz_tab)
     }
 
     // parse peptide header section
-    if (prefix == "PEH")
+    if (section == "PEH")
     {
       for (Size i = 0; i != cells.size(); ++i)
       {
-        if (cells[i].hasPrefix("sequence"))
+        if (cells[i] == "sequence")
         {
           peptide_sequence_index = i;
-        } else if (cells[i].hasPrefix("accession"))
+        } else if (cells[i] == "accession")
         {
           peptide_accession_index = i;
-        } else if (cells[i].hasPrefix("unique"))
+        } else if (cells[i] == "unique")
         {
           peptide_unique_index = i;
-        } else if (cells[i].hasPrefix("database"))
+        } else if (cells[i] == "database")
         {
           peptide_database_index = i;
-        } else if (cells[i].hasPrefix("database_version"))
+        } else if (cells[i] == "database_version")
         {
           peptide_database_version_index = i;
-        } else if (cells[i].hasPrefix("search_engine"))
+        } else if (cells[i] == "search_engine")
         {
           peptide_search_engine_index = i;
-        } else if (cells[i].hasPrefix("best_search_engine_score"))
-        {
-          peptide_best_search_engine_score_index = i;
-        } else if (cells[i].hasPrefix("search_engine_score_ms_run["))
+        } else if (cells[i].hasPrefix("best_search_engine_score["))
         {
           String s = cells[i];
-          Size n = (Size)s.substitute("search_engine_score_ms_run[", "").substitute("]","").trim().toInt();
-          peptide_search_ms_runs_indices[n] = i;
-        } else if (cells[i].hasPrefix("reliability"))
+          Size n = (Size)s.substitute("best_search_engine_score[", "").substitute("]","").trim().toInt();
+          peptide_best_search_engine_score_to_column_index[n] = i;
+        } else if (cells[i].hasPrefix("search_engine_score["))
+        {
+          std::pair<Size, Size> pair = extractIndexPairsFromBrackets_(cells[i].toQString());
+          peptide_column_index_to_score_runs_pair[i] = pair;
+        } else if (cells[i] == "reliability")
         {
           peptide_reliability_index = i;
-        } else if (cells[i].hasPrefix("modifications"))
+        } else if (cells[i] == "modifications")
         {
           peptide_modifications_index = i;
-        } else if (cells[i].hasPrefix("retention_time"))
+        } else if (cells[i] == "retention_time")
         {
           peptide_retention_time_index = i;
-        } else if (cells[i].hasPrefix("retention_time_window"))
+        } else if (cells[i] == "retention_time_window")
         {
           peptide_retention_time_window_index = i;
-        }  else if (cells[i].hasPrefix("charge"))
+        }  else if (cells[i] == "charge")
         {
           peptide_charge_index = i;
-        }  else if (cells[i].hasPrefix("mass_to_charge"))
+        }  else if (cells[i] == "mass_to_charge")
         {
           peptide_mass_to_charge_index = i;
-        } else if (cells[i].hasPrefix("uri"))
+        } else if (cells[i] == "uri")
         {
           protein_uri_index = i;
-        } else if (cells[i].hasPrefix("spectra_ref"))
+        } else if (cells[i] == "spectra_ref")
         {
           peptide_spectra_ref_index = i;
         }
@@ -958,7 +973,7 @@ void MzTabFile::load(const String& filename, MzTab& mz_tab)
     }
 
     // parse peptide section
-    if (prefix == "PEP")
+    if (section == "PEP")
     {
       MzTabPeptideSectionRow row;
       row.sequence.fromCellString(cells[peptide_sequence_index]);
@@ -967,11 +982,15 @@ void MzTabFile::load(const String& filename, MzTab& mz_tab)
       row.database.fromCellString(cells[peptide_database_index]);
       row.database_version.fromCellString(cells[peptide_database_version_index]);
       row.search_engine.fromCellString(cells[peptide_search_engine_index]);
-      row.best_search_engine_score.fromCellString(cells[peptide_best_search_engine_score_index]);
 
-      for (map<Size, Size>::const_iterator it = peptide_search_ms_runs_indices.begin(); it != peptide_search_ms_runs_indices.end(); ++it)
+      for (map<Size, Size>::const_iterator it = peptide_best_search_engine_score_to_column_index.begin(); it != peptide_best_search_engine_score_to_column_index.end(); ++it)
       {
-        row.search_engine_score_ms_run[it->first].fromCellString(cells[it->second]);
+        row.best_search_engine_score[it->first].fromCellString(cells[it->second]);
+      }
+
+      for (map<Size, std::pair<Size, Size> >::const_iterator it = peptide_column_index_to_score_runs_pair.begin(); it != peptide_column_index_to_score_runs_pair.end(); ++it)
+      {
+        row.search_engine_score_ms_run[it->second.first][it->second.second].fromCellString(cells[it->first]);
       }
 
       if (peptide_reliability_index != 0)
@@ -1026,71 +1045,73 @@ void MzTabFile::load(const String& filename, MzTab& mz_tab)
     }
 
     // parse PSM header section
-    if (prefix == "PSH")
+    if (section == "PSH")
     {
       for (Size i = 0; i != cells.size(); ++i)
       {
-        if (cells[i].hasPrefix("sequence"))
+        if (cells[i] == "sequence")
         {
           psm_sequence_index = i;
-        } else if (cells[i].hasPrefix("PSM_ID"))
+        } else if (cells[i] == "PSM_ID")
         {
           psm_psm_id_index = i;
-        } else if (cells[i].hasPrefix("accession"))
+        } else if (cells[i] == "accession")
         {
           psm_accession_index = i;
-        } else if (cells[i].hasPrefix("unique"))
+        } else if (cells[i] == "unique")
         {
           psm_unique_index = i;
-        } else if (cells[i].hasPrefix("database"))
+        } else if (cells[i] == "database")
         {
           psm_database_index = i;
-        } else if (cells[i].hasPrefix("database_version"))
+        } else if (cells[i] == "database_version")
         {
           psm_database_version_index = i;
-        } else if (cells[i].hasPrefix("search_engine"))
+        } else if (cells[i] == "search_engine")
         {
           psm_search_engine_index = i;
-        } else if (cells[i].hasPrefix("search_engine_score"))
+        } else if (cells[i].hasPrefix("search_engine_score["))
         {
-          psm_search_engine_score_index = i;
+          String s = cells[i];
+          Size n = (Size)s.substitute("search_engine_score[", "").substitute("]","").trim().toInt();
+          psm_search_engine_score_to_column_index[n] = i;
         } else if (cells[i].hasPrefix("reliability"))
         {
           psm_reliability_index = i;
-        } else if (cells[i].hasPrefix("modifications"))
+        } else if (cells[i] == "modifications")
         {
           psm_modifications_index = i;
-        } else if (cells[i].hasPrefix("retention_time"))
+        } else if (cells[i] == "retention_time")
         {
           psm_retention_time_index = i;
-        } else if (cells[i].hasPrefix("charge"))
+        } else if (cells[i] == "charge")
         {
           psm_charge_index = i;
-        }  else if (cells[i].hasPrefix("exp_mass_to_charge"))
+        }  else if (cells[i] == "exp_mass_to_charge")
         {
           psm_exp_mass_to_charge_index = i;
-        } else if (cells[i].hasPrefix("calc_mass_to_charge"))
+        } else if (cells[i] == "calc_mass_to_charge")
         {
           psm_calc_mass_to_charge_index = i;
-        } else if (cells[i].hasPrefix("uri"))
+        } else if (cells[i] == "uri")
         {
           protein_uri_index = i;
-        } else if (cells[i].hasPrefix("spectra_ref"))
+        } else if (cells[i] == "spectra_ref")
         {
           psm_spectra_ref_index = i;
-        } else if (cells[i].hasPrefix("pre"))
+        } else if (cells[i] == "pre")
         {
           psm_pre_index = i;
-        } else if (cells[i].hasPrefix("post"))
+        } else if (cells[i] == "post")
         {
           psm_post_index = i;
-        } else if (cells[i].hasPrefix("start"))
+        } else if (cells[i] == "start")
         {
           psm_start_index = i;
-        } else if (cells[i].hasPrefix("end"))
+        } else if (cells[i] == "end")
         {
           psm_end_index = i;
-        }  else if (cells[i].hasPrefix("opt_"))
+        }  else if (cells[i] == "opt_")
         {
           psm_custom_opt_columns[cells[i]] = i;
         }
@@ -1099,17 +1120,21 @@ void MzTabFile::load(const String& filename, MzTab& mz_tab)
     }
 
     // parse peptide section
-    if (prefix == "PSM")
+    if (section == "PSM")
     {
       MzTabPSMSectionRow row;
       row.sequence.fromCellString(cells[psm_sequence_index]);
-      row.PSM_ID.fromCellString(cells[psm_sequence_index]);
+      row.PSM_ID.fromCellString(cells[psm_psm_id_index]);
       row.accession.fromCellString(cells[psm_accession_index]);
       row.unique.fromCellString(cells[psm_unique_index]);
       row.database.fromCellString(cells[psm_database_index]);
       row.database_version.fromCellString(cells[psm_database_version_index]);
       row.search_engine.fromCellString(cells[psm_search_engine_index]);
-      row.search_engine_score.fromCellString(cells[psm_search_engine_score_index]);
+
+      for (map<Size, Size>::const_iterator it = psm_search_engine_score_to_column_index.begin(); it != psm_search_engine_score_to_column_index.end(); ++it)
+      {
+        row.search_engine_score[it->first].fromCellString(cells[it->second]);
+      }
 
       if (psm_reliability_index != 0)
       {
@@ -1146,7 +1171,7 @@ void MzTabFile::load(const String& filename, MzTab& mz_tab)
     }
 
     // parse small molecule header section
-    if (prefix == "SMH")
+    if (section == "SMH")
     {
       for (Size i = 0; i != cells.size(); ++i)
       {
@@ -1201,14 +1226,15 @@ void MzTabFile::load(const String& filename, MzTab& mz_tab)
         } else if (cells[i].hasPrefix("search_engine"))
         {
           smallmolecule_search_engine_index = i;
-        } else if (cells[i].hasPrefix("best_search_engine_score"))
-        {
-          smallmolecule_best_search_engine_score_index = i;
-        } else if (cells[i].hasPrefix("search_engine_score_ms_run["))
+        } else if (cells[i].hasPrefix("best_search_engine_score["))
         {
           String s = cells[i];
-          Size n = (Size)s.substitute("search_engine_score_ms_run[", "").substitute("]","").trim().toInt();
-          smallmolecule_search_ms_runs_indices[n] = i;
+          Size n = (Size)s.substitute("best_search_engine_score[", "").substitute("]","").trim().toInt();
+          smallmolecule_best_search_engine_score_to_column_index[n] = i;
+        } else if (cells[i].hasPrefix("search_engine_score["))
+        {
+          std::pair<Size, Size> pair = extractIndexPairsFromBrackets_(cells[i].toQString());
+          smallmolecule_column_index_to_score_runs_pair[i] = pair;
         } else if (cells[i].hasPrefix("modifications"))
         {
           smallmolecule_modifications_index = i;
@@ -1241,7 +1267,7 @@ void MzTabFile::load(const String& filename, MzTab& mz_tab)
     }
 
     // parse small molecule section
-    if (prefix == "SML")
+    if (section == "SML")
     {
       MzTabSmallMoleculeSectionRow row;
       row.identifier.fromCellString(cells[smallmolecule_identifier_index]);
@@ -1271,11 +1297,15 @@ void MzTabFile::load(const String& filename, MzTab& mz_tab)
       row.spectra_ref.fromCellString(cells[smallmolecule_spectra_ref_index]);
 
       row.search_engine.fromCellString(cells[smallmolecule_search_engine_index]);
-      row.best_search_engine_score.fromCellString(cells[smallmolecule_best_search_engine_score_index]);
 
-      for (map<Size, Size>::const_iterator it = smallmolecule_search_ms_runs_indices.begin(); it != smallmolecule_search_ms_runs_indices.end(); ++it)
+      for (map<Size, Size>::const_iterator it = smallmolecule_best_search_engine_score_to_column_index.begin(); it != smallmolecule_best_search_engine_score_to_column_index.end(); ++it)
       {
-        row.search_engine_score_ms_run[it->first].fromCellString(cells[it->second]);
+        row.best_search_engine_score[it->first].fromCellString(cells[it->second]);
+      }
+
+      for (map<Size, std::pair<Size, Size> >::const_iterator it = smallmolecule_column_index_to_score_runs_pair.begin(); it != smallmolecule_column_index_to_score_runs_pair.end(); ++it)
+      {
+        row.search_engine_score_ms_run[it->second.first][it->second.second].fromCellString(cells[it->first]);
       }
 
       // quantification data
@@ -1372,8 +1402,8 @@ void MzTabFile::generateMzTabMetaDataSection_(const MzTabMetaData& md, StringLis
   {
     String s = "MTD\tsoftware[" + String(it->first) + "]\t" + it->second.software.toCellString();
     sl.push_back(s);
- 
-    for (map<Size, MzTabParameter>::const_iterator jt = it->second.setting.begin(); jt != it->second.setting.end(); ++jt)
+
+    for (map<Size, MzTabString>::const_iterator jt = it->second.setting.begin(); jt != it->second.setting.end(); ++jt)
     {
       String s = "MTD\tsoftware[" + String(it->first) + "]-setting[" + String(jt->first) + String("]\t") + jt->second.toCellString();
       sl.push_back(s);
@@ -1385,8 +1415,7 @@ void MzTabFile::generateMzTabMetaDataSection_(const MzTabMetaData& md, StringLis
     String s = "MTD\tsearch_engine_score[\t" + String(it->first) + "]\t" + it->second.toCellString();
     sl.push_back(s);
   }
- 
- 
+
   if (!md.false_discovery_rate.isNull())
   {
     String s = "MTD\tfalse_discovery_rate\t" + md.false_discovery_rate.toCellString();
@@ -1495,7 +1524,7 @@ void MzTabFile::generateMzTabMetaDataSection_(const MzTabMetaData& md, StringLis
   }
 
   // ms_run[1-n]-location
-  for (map<Size, MzTabParameter>::const_iterator it = md.ms_run_location.begin(); it != md.ms_run_location.end(); ++it)
+  for (map<Size, MzTabString>::const_iterator it = md.ms_run_location.begin(); it != md.ms_run_location.end(); ++it)
   {
     String s = "MTD\tms_run[" + String(it->first) + "]-location\t" + it->second.toCellString();
     sl.push_back(s);
@@ -1547,7 +1576,7 @@ void MzTabFile::generateMzTabMetaDataSection_(const MzTabMetaData& md, StringLis
       String s = "MTD\tsample[" + String(it->first) + "]-disease[" + String(sit->first) + "]\t" + sit->second.toCellString();
       sl.push_back(s);
     }
-  
+
     for (map<Size, MzTabParameter>::const_iterator sit = it->second.custom.begin(); sit != it->second.custom.end(); ++sit)
     {
       String s = "MTD\tsample[" + String(it->first) + "]-custom[" + String(sit->first) + "]\t" + sit->second.toCellString();
@@ -1750,11 +1779,18 @@ String MzTabFile::generateMzTabProteinSectionRow_(const MzTabProteinSectionRow& 
   s.push_back(row.database.toCellString());
   s.push_back(row.database_version.toCellString());
   s.push_back(row.search_engine.toCellString());
-  s.push_back(row.best_search_engine_score.toCellString());
 
-  for (std::map<Size, MzTabParameterList>::const_iterator it = row.search_engine_score_ms_run.begin(); it != row.search_engine_score_ms_run.end(); ++it)
+  for (map<Size, MzTabDouble>::const_iterator it = row.best_search_engine_score.begin(); it != row.best_search_engine_score.end(); ++it)
   {
     s.push_back(it->second.toCellString());
+  }
+
+  for (std::map<Size, std::map<Size, MzTabDouble> >::const_iterator it = row.search_engine_score_ms_run.begin(); it != row.search_engine_score_ms_run.end(); ++it)
+  {
+    for (std::map<Size, MzTabDouble>::const_iterator sit = it->second.begin(); sit != it->second.end(); ++sit)
+    {
+      s.push_back(sit->second.toCellString());
+    }
   }
 
   s.push_back(row.reliability.toCellString());
@@ -1910,7 +1946,6 @@ String MzTabFile::generateMzTabPSMHeader_(const vector<String>& optional_columns
   return ListUtils::concatenate(header, "\t");
 }
 
-
 String MzTabFile::generateMzTabPeptideSectionRow_(const MzTabPeptideSectionRow& row) const
 {
   StringList s;
@@ -1921,15 +1956,22 @@ String MzTabFile::generateMzTabPeptideSectionRow_(const MzTabPeptideSectionRow& 
   s.push_back(row.database.toCellString());
   s.push_back(row.database_version.toCellString());
   s.push_back(row.search_engine.toCellString());
-  s.push_back(row.best_search_engine_score.toCellString());
 
-  for (std::map<Size, MzTabParameterList>::const_iterator it = row.search_engine_score_ms_run.begin(); it != row.search_engine_score_ms_run.end(); ++it)
+  for (map<Size, MzTabDouble>::const_iterator it = row.best_search_engine_score.begin(); it != row.best_search_engine_score.end(); ++it)
   {
     s.push_back(it->second.toCellString());
   }
 
-  s.push_back(row.reliability.toCellString()); 
-  s.push_back(row.modifications.toCellString()); 
+  for (map<Size, map<Size, MzTabDouble> >::const_iterator it = row.search_engine_score_ms_run.begin(); it != row.search_engine_score_ms_run.end(); ++it)
+  {
+    for (map<Size, MzTabDouble>::const_iterator sit = it->second.begin(); sit != it->second.end(); ++sit)
+    {
+      s.push_back(sit->second.toCellString());
+    }
+  }
+
+  s.push_back(row.reliability.toCellString());
+  s.push_back(row.modifications.toCellString());
   s.push_back(row.retention_time.toCellString());
   s.push_back(row.charge.toCellString());
   s.push_back(row.mass_to_charge.toCellString());
@@ -1981,7 +2023,12 @@ String MzTabFile::generateMzTabPSMSectionRow_(const MzTabPSMSectionRow& row) con
   s.push_back(row.database.toCellString());
   s.push_back(row.database_version.toCellString());
   s.push_back(row.search_engine.toCellString());
-  s.push_back(row.search_engine_score.toCellString());
+
+  for (map<Size, MzTabDouble>::const_iterator it = row.search_engine_score.begin(); it != row.search_engine_score.end(); ++it)
+  {
+    s.push_back(it->second.toCellString());
+  }
+
   s.push_back(row.reliability.toCellString());
   s.push_back(row.modifications.toCellString());
   s.push_back(row.retention_time.toCellString());
@@ -2073,11 +2120,18 @@ String MzTabFile::generateMzTabSmallMoleculeSectionRow_(const MzTabSmallMolecule
   s.push_back(row.uri.toCellString());
   s.push_back(row.spectra_ref.toCellString());
   s.push_back(row.search_engine.toCellString());
-  s.push_back(row.best_search_engine_score.toCellString());
 
-  for (map<Size, MzTabParameterList>::const_iterator it = row.search_engine_score_ms_run.begin(); it != row.search_engine_score_ms_run.end(); ++it)
+  for (map<Size, MzTabDouble>::const_iterator it = row.best_search_engine_score.begin(); it != row.best_search_engine_score.end(); ++it)
   {
     s.push_back(it->second.toCellString());
+  }
+
+  for (map<Size, map<Size, MzTabDouble> >::const_iterator it = row.search_engine_score_ms_run.begin(); it != row.search_engine_score_ms_run.end(); ++it)
+  {
+    for (map<Size, MzTabDouble>::const_iterator sit = it->second.begin(); sit != it->second.end(); ++sit)
+    {
+      s.push_back(sit->second.toCellString());
+    }
   }
 
   s.push_back(row.modifications.toCellString());
