@@ -36,7 +36,6 @@
 #define OPENMS_FILTERING_DATAREDUCTION_PEAKPATTERN_H
 
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/DATASTRUCTURES/DRange.h>
 
 #include <vector>
 #include <algorithm>
@@ -130,4 +129,4 @@ namespace OpenMS
   
 }
 
-#endif /* SPLINESPECTRUM_H_ */
+#endif /* PEAKPATTERN_H_ */

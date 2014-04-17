@@ -6,6 +6,7 @@ set(sources_list
 DataFilters.cpp
 ElutionPeakDetection.cpp
 FeatureFindingMetabo.cpp
+FilterResultRaw.cpp
 IsotopeDistributionCache.cpp
 MassTraceDetection.cpp
 PeakPattern.cpp

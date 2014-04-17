@@ -47,7 +47,32 @@ namespace OpenMS
 
 	FilterResultRaw::FilterResultRaw(double mz, std::vector<double> mzShifts, std::vector<double> intensities)
     : mz_(mz), mzShifts_(mzShifts), intensities_(intensities)
-	{				
+	{		
 	}
+    
+    double FilterResultRaw::getMz()
+    {
+        return mz_;
+    }
+    
+    double FilterResultRaw::getMzShiftAt(int i)
+    {
+        return mzShifts_[i];
+    }
+    
+    std::vector<double> FilterResultRaw::getMzShifts()
+    {
+        return mzShifts_;
+    }
+    
+    double FilterResultRaw::getIntensityAt(int i)
+    {
+        return intensities_[i];
+    }
+    
+    std::vector<double> FilterResultRaw::getIntensities()
+    {
+        return intensities_;
+    }
     
 }

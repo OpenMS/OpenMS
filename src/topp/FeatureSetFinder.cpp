@@ -54,6 +54,7 @@
 #include <OpenMS/FILTERING/DATAREDUCTION/SplinePackage.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/SplineSpectrum.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/PeakPattern.h>
+#include <OpenMS/FILTERING/DATAREDUCTION/FilterResultRaw.h>
 //#include <OpenMS/FILTERING/DATAREDUCTION/SILACPoint.h>
 //#include <OpenMS/FILTERING/DATAREDUCTION/SILACAnalyzer.h>
 //#include <OpenMS/FILTERING/DATAREDUCTION/SILACFilter.h>
@@ -450,13 +451,13 @@ public:
 		// 4+ can be mistaken as 2+, but 2+ not as 4+
 		for (int c = chargeMax; c >= chargeMin; --c)
 		{
-			// iterate over all mass shifts (from min to max)
-			// min -> max, e.g. first (0, 4, 8) then (0, 8, 16)
+			// iterate over all mass shifts (from small to large shifts)
 			// first look for the more likely non-missed-cleavage cases
+			// e.g. first (0, 4, 8) then (0, 8, 16)
 			for (unsigned i = 0; i < massPatternList.size(); ++i)
 			{
-				PeakPattern* pp = new PeakPattern(massPatternList[i], i, c, peaksPerPeptideMax);
-				list.push_back(*pp);
+				PeakPattern* pattern = new PeakPattern(massPatternList[i], i, c, peaksPerPeptideMax);
+				list.push_back(*pattern);
 			}
 		} 
 		
@@ -638,12 +639,13 @@ public:
 	PeakPattern * pp = new PeakPattern(shifts, 3, 4, 5);
 	int cc = (*pp).getCharge();
 	
-	
-	
 	// ---------------------------
-	// testing peak pattern
+	// testing filter results
 	// ---------------------------	
 	std::vector<MassPattern> list = generateMassPatterns_();
+	FilterResultRaw * pointRaw = new FilterResultRaw(645.2, shifts, shifts);
+	std::vector<double> intensitiesRaw = (*pointRaw).getIntensities();
+	double intRaw = (*pointRaw).getIntensityAt(2);
 
  	std::cout << "***   ending tests ***\n";
  	std::cout << "\n\n";
