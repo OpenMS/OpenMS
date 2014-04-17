@@ -127,31 +127,41 @@ protected:
     setValidFormats_("trafo_out", ListUtils::create<String>("trafoXML"));
 
     addEmptyLine_();
-    registerStringOption_("reference_rt", "<choice>", "score", "Method for selecting the reference RT, if there are multiple IDs for a peptide and charge ('score': RT of the best-scoring ID; 'intensity': RT of the ID with the most intense precursor; 'median': median RT of all IDs; 'all': no single reference, use RTs of all IDs, 'adapt': adapt RT windows based on IDs)", false);
-    setValidStrings_("reference_rt",
-                     ListUtils::create<String>("score,intensity,median,all,adapt"));
-    registerDoubleOption_("rt_window", "<value>", 180.0, "RT window size (in sec.) for chromatogram extraction.", false);
-    setMinFloat_("rt_window", 0.0);
-    registerDoubleOption_("mz_window", "<value>", 10.0, "m/z window size for chromatogram extraction (unit: ppm if 1 or greater, else Da/Th)", false);
-    setMinFloat_("mz_window", 0.0);
-    registerDoubleOption_("isotope_pmin", "<value>", 0.03, "Minimum probability for an isotope to be included in the assay for a peptide.", false);
-    setMinFloat_("isotope_pmin", 0.0);
-    setMaxFloat_("isotope_pmin", 1.0);
-    StringList model_choices = ListUtils::create<String>("none,symmetric,asymmetric");
-    registerStringOption_("elution_model", "<choice>", model_choices[0], "Elution model to fit to features", false);
-    setValidStrings_("elution_model", model_choices);
-    // advanced parameters:
-    registerFlag_("unweighted_fit", "Suppress weighting of mass traces according to theoretical intensities when fitting elution models", true);
-    registerFlag_("no_imputation", "If fitting the elution model fails for a feature, set its intensity to zero instead of imputing a value from the OpenSWATH intensity", true);
-    registerFlag_("all_features", "Return all features found by OpenSWATH for each peptide ID, instead of only the best one", true);
-    registerTOPPSubsection_("model_check", "Parameters for checking the validity of elution models and rejecting them if necessary");
-    registerDoubleOption_("model_check:boundaries", "<value>", 0.5, "Time points corresponding to this fraction of the elution model height have to be within the data region used for model fitting", false, true);
-    setMinFloat_("model_check:boundaries", 0.0);
-    setMaxFloat_("model_check:boundaries", 1.0);
-    registerDoubleOption_("model_check:width", "<value>", 10.0, "Upper limit for acceptable widths of elution models (Gaussian or EGH), expressed in terms of modified (median-based) z-scores; '0' to disable", false, true);
-    setMinFloat_("model_check:width", 0.0);
-    registerDoubleOption_("model_check:asymmetry", "<value>", 10.0, "Upper limit for acceptable asymmetry of elution models (EGH only), expressed in terms of modified (median-based) z-scores; '0' to disable", false, true);
-    setMinFloat_("model_check:asymmetry", 0.0);
+    registerTOPPSubsection_("extract", "Parameters for ion chromatogram extraction");
+    StringList refs = ListUtils::create<String>("adapt,score,intensity,median,all");
+    registerStringOption_("extract:reference_rt", "<choice>", refs[0], "Method for selecting the reference RT, if there are multiple IDs for a peptide and charge ('adapt': adapt RT windows based on IDs, 'score': RT of the best-scoring ID; 'intensity': RT of the ID with the most intense precursor; 'median': median RT of all IDs; 'all': no single reference, use RTs of all IDs)", false);
+    setValidStrings_("extract:reference_rt", refs);
+    registerDoubleOption_("extract:rt_window", "<value>", 60.0, "RT window size (in sec.) for chromatogram extraction.", false);
+    setMinFloat_("extract:rt_window", 0.0);
+    registerDoubleOption_("extract:mz_window", "<value>", 10.0, "m/z window size for chromatogram extraction (unit: ppm if 1 or greater, else Da/Th)", false);
+    setMinFloat_("extract:mz_window", 0.0);
+    registerDoubleOption_("extract:isotope_pmin", "<value>", 0.03, "Minimum probability for an isotope to be included in the assay for a peptide.", false);
+    setMinFloat_("extract:isotope_pmin", 0.0);
+    setMaxFloat_("extract:isotope_pmin", 1.0);
+
+    registerTOPPSubsection_("detect", "Parameters for detecting features in extracted ion chromatograms");
+    StringList modes = ListUtils::create<String>("filtered,OS_best,OS_all");
+    registerStringOption_("detect:mode", "<choice>", modes[0], "Feature detection mode ('filtered': filter data according to expected isotope distribution, then detect elution peak; 'OS_best': use OpenSWATH feature detection, return single best feature per charged peptide; 'OS_all': use OpenSWATH feature detection, return all features)", false);
+    setValidStrings_("detect:mode", modes);
+    registerDoubleOption_("detect:peak_width", "<value>", 20.0, "Elution peak width in seconds for smoothing (Gauss filter)", false);
+    setMinFloat_("detect:peak_width", 0.0);
+    registerDoubleOption_("detect:tolerance", "<value>", 50.0, "Intensity tolerance for finding matching isotope peaks ('filtered' mode only); relative to the square root of the measured intensity");
+    setMinFloat_("detect:tolerance", 0.0);
+
+    registerTOPPSubsection_("model", "Parameters for fitting elution models to features");
+    StringList models = ListUtils::create<String>("none,symmetric,asymmetric");
+    registerStringOption_("model:type", "<choice>", models[0], "Type of elution model to fit to features", false);
+    setValidStrings_("model:type", models);
+    registerFlag_("model:unweighted_fit", "Suppress weighting of mass traces according to theoretical intensities when fitting elution models", true);
+    registerFlag_("model:no_imputation", "If fitting the elution model fails for a feature, set its intensity to zero instead of imputing a value from the OpenSWATH intensity", true);
+    registerTOPPSubsection_("model:check", "Parameters for checking the validity of elution models (and rejecting them if necessary)");
+    registerDoubleOption_("model:check:boundaries", "<value>", 0.5, "Time points corresponding to this fraction of the elution model height have to be within the data region used for model fitting", false, true);
+    setMinFloat_("model:check:boundaries", 0.0);
+    setMaxFloat_("model:check:boundaries", 1.0);
+    registerDoubleOption_("model:check:width", "<value>", 10.0, "Upper limit for acceptable widths of elution models (Gaussian or EGH), expressed in terms of modified (median-based) z-scores; '0' to disable", false, true);
+    setMinFloat_("model:check:width", 0.0);
+    registerDoubleOption_("model:check:asymmetry", "<value>", 10.0, "Upper limit for acceptable asymmetry of elution models (EGH only), expressed in terms of modified (median-based) z-scores; '0' to disable", false, true);
+    setMinFloat_("model:check:asymmetry", 0.0);
 
     // addEmptyLine_();
     // registerSubsection_("algorithm", "Algorithm parameters section");
@@ -166,11 +176,14 @@ protected:
 
   typedef MSExperiment<Peak1D> PeakMap;
 
-  // mapping: charge -> iterator to peptide
-  typedef Map<Int, vector<vector<PeptideIdentification>::iterator> > ChargeMap;
-  // mapping: sequence -> charge -> iterator to peptide
-  typedef Map<AASequence, ChargeMap> PeptideMap;
-  // mapping: assay ID -> RT begin/end
+  // mapping: charge -> pointer to peptides
+  typedef map<Int, vector<PeptideIdentification*> > ChargeMap;
+  // mapping: sequence -> charge -> pointer to peptide
+  typedef map<AASequence, ChargeMap> PeptideMap;
+
+  typedef vector<const MSChromatogram<>*> ChromatogramPtrs;
+  // mapping: charged peptide (ID) -> list of associated chromatograms
+  typedef map<String, ChromatogramPtrs> ChromatogramMap;
 
   PeakMap ms_data_; // input LC-MS data
   TargetedExperiment library_; // assay library
@@ -218,7 +231,7 @@ protected:
     else if (reference_rt_ == "score")
     {
       rts.resize(1);
-      double best_score;
+      double best_score = 0.0;
       for (ChargeMap::mapped_type::const_iterator pi_it =
              charge_data.second.begin(); pi_it != charge_data.second.end();
            ++pi_it)
@@ -374,6 +387,311 @@ protected:
   }
 
 
+  void detectFeatures_(const PeakMap& chrom_data, FeatureMap<>& features,
+                       double peak_width)
+  {
+    GaussFilter gauss_filter;
+    Param params = gauss_filter.getParameters();
+    params.setValue("gaussian_width", peak_width);
+    gauss_filter.setParameters(params);
+    
+    ChromatogramMap chromatogram_groups;
+    for (vector<MSChromatogram<> >::const_iterator chrom_it =
+           chrom_data.getChromatograms().begin(); chrom_it !=
+           chrom_data.getChromatograms().end(); ++chrom_it)
+    {
+      String peptide = chrom_it->getNativeID().prefix('_');
+      chromatogram_groups[peptide].push_back(&(*chrom_it));
+    }
+
+    // mapping: transition (ID) -> theoretical intensity
+    map<String, double> theo_intensities;
+    for (vector<ReactionMonitoringTransition>::const_iterator trans_it = 
+           library_.getTransitions().begin(); trans_it !=
+           library_.getTransitions().end(); ++trans_it)
+    {
+      theo_intensities[trans_it->getNativeID()] = 
+        trans_it->getLibraryIntensity();
+    }
+
+    double tolerance = getDoubleOption_("detect:tolerance");
+    for (ChromatogramMap::iterator group_it = chromatogram_groups.begin();
+         group_it != chromatogram_groups.end(); ++group_it)
+    {
+      // @TODO: add progress counter
+      vector<double> current_theo_ints;
+      for (ChromatogramPtrs::const_iterator ptr_it = group_it->second.begin();
+           ptr_it != group_it->second.end(); ++ptr_it)
+      {
+        current_theo_ints.push_back(theo_intensities[(*ptr_it)->getNativeID()]);
+      }
+      Feature feature;
+      detectFeature_(group_it->first, group_it->second, feature, 
+                     current_theo_ints, gauss_filter, tolerance);
+      if (!feature.getSubordinates().empty())
+      {
+        // add m/z, charge, peptide ID
+      }
+
+      features.push_back(feature);
+    }
+  }
+
+
+  pair<Size, double> findNextExtremum_(const MSChromatogram<>& data, Size start,
+                                       bool go_right=false, 
+                                       bool find_min=false, double fraction=0.0)
+  {
+    Int stop, step, index;
+    if (go_right)
+    {
+      stop = data.size() - 1;
+      step = 1;
+    }
+    else
+    {
+      stop = 0;
+      step = -1;
+    }
+
+    double previous = data[start].getIntensity();
+    double threshold = fraction * previous;
+    Int left_right = find_min ? -1 : 1; // multiply by -1 to change "<" to ">"
+    for (index = start + step; index * step <= stop; index += step)
+    {
+      double current = data[index].getIntensity();
+      if ((left_right * current < left_right * previous) || 
+          ((fraction > 0.0) && (left_right * current < left_right * threshold)))
+      {
+        index -= step; // went a step too far, go back
+        break;
+      }
+      previous = current;
+    }
+    return make_pair(Size(index), previous);
+  }
+
+
+  void detectFeature_(const String& assay_ID, 
+                      const ChromatogramPtrs& chrom_ptrs, Feature& feature, 
+                      const vector<double>& theo_intensities, 
+                      GaussFilter& gauss_filter, double tolerance)
+  {
+    Size n_traces = chrom_ptrs.size(); // number of mass traces/transitions
+    Size n_times = chrom_ptrs[0]->size(); // number of time points
+
+    // extract raw intensities:
+    vector<vector<double> > intensities;
+    for (Size i = 0; i < n_traces; ++i)
+    {
+      const MSChromatogram<>* chrom_ptr = chrom_ptrs[i];
+      for (MSChromatogram<>::ConstIterator peak_it = chrom_ptr->begin();
+           peak_it != chrom_ptr->end(); ++peak_it)
+      {
+        intensities[i].push_back(peak_it->getIntensity());
+      }
+    }
+    // (un)scale intensities according to isotope distribution:
+    vector<vector<double> > scaled;
+    for (Size trace = 0; trace < n_traces; ++trace)
+    {
+      double theo_intensity = theo_intensities[trace];
+      for (Size time = 0; time < n_times; ++time)
+      {
+        scaled[trace][time] = intensities[trace][time] / theo_intensity;
+      }
+    }
+    // find points where intensities match the theoretical values:
+    vector<vector<Size> > matches(n_times);
+    vector<Size> which_matches; // indexes (along time axis) of matches
+    // collect intermediate data in a format suitable for smoothing later:
+    MSChromatogram<> n_matches; // histogram of matching points
+    MSChromatogram<> medians; // median intensities of matches
+    for (Size time = 0; time < n_times; ++time) // for every time step...
+    {
+      vector<pair<double, Size> > points;
+      for (Size trace = 0; trace < n_traces; ++trace)
+      {
+        points.push_back(make_pair(scaled[trace][time], trace));
+      }
+      sort(points.begin(), points.end());
+      vector<Size> region;
+      vector<vector<Size> > regions;
+       // iterate over pairs of points:
+      for (Size trace = 0; trace < n_traces - 1; ++trace)
+      {
+        double avg_intensity = (points[trace].first + 
+                                points[trace + 1].first) * 0.5;
+        bool matching[2];
+        for (Size offset = 0; offset <= 1; ++offset)
+        {
+          Size index = points[trace + offset].second;
+          double unscaled = avg_intensity * theo_intensities[index];
+          double measured = intensities[index][time];
+          double actual_tolerance = tolerance * sqrt(measured);
+          matching[offset] = fabs(unscaled - measured) <= actual_tolerance;
+        }
+        if (matching[0] && matching[1]) // start new or extend existing region
+        {
+          if (region.empty()) region.push_back(points[trace].second);
+          region.push_back(points[trace + 1].second);
+        }
+        else if (!region.empty()) // region not extended - store it
+        {
+          regions.push_back(region);
+          region.clear();
+        }
+      }
+      if (!region.empty()) regions.push_back(region);
+
+      ChromatogramPeak peak; // new point for "n_matches" and "medians"
+      peak.setRT((*chrom_ptrs[0])[time].getRT());
+      // find biggest region, breaking ties by sum of isotope probabilities:
+      if (!regions.empty())
+      {
+        Size best_region_index = 0;
+        double best_total_probability = 0.0;
+        for (Size i = 0; i < regions.size(); ++i)
+        {
+          if (regions[i].size() >= regions[best_region_index].size())
+          {
+            double total_probability = 0.0;
+            for (vector<Size>::iterator index_it = regions[i].begin();
+                 index_it != regions[i].end(); ++index_it)
+            {
+              total_probability += theo_intensities[*index_it];
+            }
+            if ((regions[i].size() > regions[best_region_index].size()) ||
+                (total_probability > best_total_probability))
+            {
+              best_region_index = i;
+              best_total_probability = total_probability;
+            } 
+          }
+        }
+
+        matches[time] = regions[best_region_index];
+        which_matches.push_back(time);
+        vector<double> matching_intensities(regions[best_region_index].size());
+        for (Size i = 0; i < regions[best_region_index].size(); ++i)
+        {
+          matching_intensities[i] = scaled[i][time];
+        }
+        peak.setIntensity(Math::median(matching_intensities.begin(),
+                                       matching_intensities.end()));
+        medians.push_back(peak);
+        peak.setIntensity(matches[time].size());
+      }
+      else peak.setIntensity(0.0);
+      n_matches.push_back(peak);
+    }
+    LOG_INFO << assay_ID << ":" << endl;
+    if (!medians.empty())
+    {
+      // based on the groups of matching points, use the time point with the
+      // highest density of matches as starting point for finding "the" elution
+      // peak (that should later become a feature):
+
+      // apply smoothing to medians of matching scaled intensities:
+      MSChromatogram<> smoothed = medians;
+      gauss_filter.filter(smoothed);     
+      // to estimate the density of matching intensities, apply smoothing to the
+      // histogram (in lieu of kernel density estimation):
+      MSChromatogram<> density = n_matches;
+      gauss_filter.filter(density);
+      // find apex of density:
+      Size max_index = 0;
+      double max_density = 0.0;
+      for (Size i = 0; i < which_matches.size(); ++i)
+      {
+        if (density[which_matches[i]].getIntensity() > max_density)
+        {
+          max_index = i;
+          max_density = density[which_matches[i]].getIntensity();
+        }
+      }
+
+      // now find the parameters (apex, left/right border) of the elution peak
+      // that contains the point of max. density:
+
+      // find nearest apex(es) of smoothed elution profile:
+      pair<Size, double> left_apex = findNextExtremum_(smoothed, max_index);
+      pair<Size, double>  right_apex = findNextExtremum_(smoothed, max_index,
+                                                         true);
+      pair<Size, double> apex = ((left_apex.second > right_apex.second) ? 
+                                 left_apex : right_apex);
+      LOG_INFO << "apex: " << apex.first << ", RT "
+               << smoothed[apex.first].getRT() << ", int. " << apex.second
+               << endl;
+      // find left peak border:
+      pair<Size, double> left_border = 
+        findNextExtremum_(smoothed, apex.first, false, true);
+      // try to extend further based on original (non-smoothed) data:
+      if (medians[left_border.first].getIntensity() <= 
+          smoothed[left_border.first].getIntensity())
+      {
+        left_border = findNextExtremum_(medians, left_border.first, false, 
+                                        true);
+      }
+      // find right peak border:
+      pair<Size, double> right_border = 
+        findNextExtremum_(smoothed, apex.first, true, true);
+      // try to extend further based on original (non-smoothed) data:
+      if (medians[right_border.first].getIntensity() <= 
+          smoothed[right_border.first].getIntensity())
+      {
+        right_border = findNextExtremum_(medians, right_border.first, true, 
+                                         true);
+      }
+
+      // need at least three time points:
+      if (right_border.first - left_border.first < 2) return;
+
+      // fill in (preliminary) feature data:
+      double apex_rt = medians[apex.first].getRT();
+      feature.setRT(apex_rt);
+      double rt_start = medians[left_border.first].getRT();
+      double rt_end = medians[right_border.first].getRT();
+      feature.setMetaValue("leftWidth", rt_start);
+      feature.setMetaValue("rightWidth", rt_end);
+      // approximate area under a Gaussian, assuming width is 5 sigma:
+      double intensity = 0.5 * apex.second * (rt_end - rt_start);
+      feature.setIntensity(intensity);
+      // see comment in "fitElutionModels_" for assumptions about features
+      vector<Feature> subordinates(n_traces);
+      for (Size trace = 0; trace < n_traces; ++trace)
+      {
+        subordinates[trace].setRT(apex_rt);
+        const MSChromatogram<>* chrom_ptr = chrom_ptrs[trace];
+        subordinates[trace].setMZ(chrom_ptr->getMZ());
+        vector<ConvexHull2D> hulls(1);
+        subordinates[trace].setConvexHulls(hulls);
+      }
+      for (Size time = which_matches[left_border.first]; 
+           time <= which_matches[right_border.first]; ++time)
+      {
+        double rt = (*chrom_ptrs[0])[time].getRT();
+        vector<double> intensities(n_traces);
+        for (vector<Size>::iterator index_it = matches[time].begin();
+             index_it != matches[time].end(); ++index_it)
+        {
+          intensities[*index_it] = scaled[*index_it][time];
+        }
+        for (Size trace = 0; trace < n_traces; ++trace)
+        {
+          DPosition<2> point(rt, intensities[trace]);
+          subordinates[trace].getConvexHulls()[0].addPoint(point);
+        }
+      }
+      feature.setSubordinates(subordinates);
+    }
+    else
+    {   
+      LOG_INFO << "apex: --" << endl;
+    }
+  }
+
+
   void fitElutionModels_(FeatureMap<>& features, bool asymmetric=true)
   {
     // assumptions:
@@ -382,17 +700,17 @@ protected:
     // - all convex hulls in one feature contain the same number (> 0) of points
     // - the y coordinates of the hull points store the intensities
 
-    bool weighted = !getFlag_("unweighted_fit");
-    bool impute = !getFlag_("no_imputation");
-    double check_boundaries = getDoubleOption_("model_check:boundaries");
+    bool weighted = !getFlag_("model:unweighted_fit");
+    bool impute = !getFlag_("model:no_imputation");
+    double check_boundaries = getDoubleOption_("model:check:boundaries");
 
     // prepare look-up of transitions by native ID:
-    map<String, vector<ReactionMonitoringTransition>::const_iterator> trans_ids;
+    map<String, const ReactionMonitoringTransition*> trans_ids;
     for (vector<ReactionMonitoringTransition>::const_iterator trans_it =
            library_.getTransitions().begin(); trans_it !=
            library_.getTransitions().end(); ++trans_it)
     {
-      trans_ids[trans_it->getNativeID()] = trans_it;
+      trans_ids[trans_it->getNativeID()] = &(*trans_it);
     }
 
     TraceFitter<Peak1D>* fitter;
@@ -409,9 +727,9 @@ protected:
     }
 
     // store model parameters to find outliers later:
-    double width_limit = getDoubleOption_("model_check:width");
+    double width_limit = getDoubleOption_("model:check:width");
     double asym_limit = (asymmetric ? 
-                             getDoubleOption_("model_check:asymmetry") : 0.0);
+                             getDoubleOption_("model:check:asymmetry") : 0.0);
     // store values redundantly - once aligned with the features in the map,
     // once only for successful models:
     vector<double> widths_all, widths_good, asym_all, asym_good;
@@ -732,13 +1050,16 @@ protected:
     String lib_out = getStringOption_("lib_out");
     String chrom_out = getStringOption_("chrom_out");
     String trafo_out = getStringOption_("trafo_out");
-    reference_rt_ = getStringOption_("reference_rt");
-    double rt_window = getDoubleOption_("rt_window");
+    reference_rt_ = getStringOption_("extract:reference_rt");
+    double rt_window = getDoubleOption_("extract:rt_window");
     rt_tolerance_ = rt_window / 2.0;
-    double mz_window = getDoubleOption_("mz_window");
+    double mz_window = getDoubleOption_("extract:mz_window");
     bool mz_window_ppm = mz_window >= 1;
-    double isotope_pmin = getDoubleOption_("isotope_pmin");
-    String elution_model = getStringOption_("elution_model");
+    double isotope_pmin = getDoubleOption_("extract:isotope_pmin");
+    String detection_mode = getStringOption_("detect:mode");
+    bool filtered_detection = detection_mode == "filtered";
+    double peak_width = getDoubleOption_("detect:peak_width");
+    String elution_model = getStringOption_("model:type");
 
     //-------------------------------------------------------------
     // load input
@@ -778,7 +1099,7 @@ protected:
       if (pep_it->getHits().empty()) continue;
       pep_it->sort();
       PeptideHit& hit = pep_it->getHits()[0];
-      peptide_map[hit.getSequence()][hit.getCharge()].push_back(pep_it);
+      peptide_map[hit.getSequence()][hit.getCharge()].push_back(&(*pep_it));
     }
 
     //-------------------------------------------------------------
@@ -914,21 +1235,32 @@ protected:
     //-------------------------------------------------------------
     LOG_INFO << "Finding chromatographic peaks..." << endl;
     FeatureMap<> features;
-    MRMFeatureFinderScoring mrm_finder;
-    Param params = mrm_finder.getParameters();
-    params.setValue("stop_report_after_feature", 
-                    getFlag_("all_features")? -1 : 1);
-    if (elution_model != "none") params.setValue("write_convex_hull", "true");
-    params.setValue("TransitionGroupPicker:min_peak_width", 5.0);
-    params.setValue("TransitionGroupPicker:recalculate_peaks", "true");
-    params.setValue("TransitionGroupPicker:compute_peak_quality", "true");
-    params.setValue("TransitionGroupPicker:PeakPickerMRM:gauss_width", 20.0);
-    params.setValue("TransitionGroupPicker:PeakPickerMRM:peak_width", -1.0);
-    params.setValue("TransitionGroupPicker:PeakPickerMRM:method", "corrected");
-    mrm_finder.setParameters(params);
-    mrm_finder.setLogType(log_type_);
-    mrm_finder.setStrictFlag(false);
-    mrm_finder.pickExperiment(chrom_data, features, library_, trafo_, ms_data_);
+
+    if (filtered_detection)
+    {
+      detectFeatures_(chrom_data, features, peak_width);
+    }
+    else // OpenSWATH
+    {
+      MRMFeatureFinderScoring mrm_finder;
+      Param params = mrm_finder.getParameters();
+      params.setValue("stop_report_after_feature", 
+                      (detection_mode == "OS_all") ? -1 : 1);
+      if (elution_model != "none") params.setValue("write_convex_hull", "true");
+      params.setValue("TransitionGroupPicker:min_peak_width", peak_width / 4.0);
+      params.setValue("TransitionGroupPicker:recalculate_peaks", "true");
+      params.setValue("TransitionGroupPicker:compute_peak_quality", "true");
+      params.setValue("TransitionGroupPicker:PeakPickerMRM:gauss_width", 
+                      peak_width);
+      params.setValue("TransitionGroupPicker:PeakPickerMRM:peak_width", -1.0);
+      params.setValue("TransitionGroupPicker:PeakPickerMRM:method", 
+                      "corrected");
+      mrm_finder.setParameters(params);
+      mrm_finder.setLogType(log_type_);
+      mrm_finder.setStrictFlag(false);
+      mrm_finder.pickExperiment(chrom_data, features, library_, trafo_,
+                                ms_data_);
+    }
 
     // @TODO add method for resolving overlaps if "reference_rt" is "all"
     if (elution_model != "none")
@@ -943,9 +1275,12 @@ protected:
     for (FeatureMap<>::Iterator feat_it = features.begin();
          feat_it != features.end(); ++feat_it)
     {
-      feat_it->setMZ(feat_it->getMetaValue("PrecursorMZ"));
-      feat_it->setCharge(feat_it->getPeptideIdentifications()[0].getHits()[0].
-                         getCharge());
+      if (!filtered_detection)
+      {
+        feat_it->setMZ(feat_it->getMetaValue("PrecursorMZ"));
+        feat_it->setCharge(feat_it->getPeptideIdentifications()[0].getHits()[0].
+                           getCharge());
+      }
       double rt_min = feat_it->getMetaValue("leftWidth");
       double rt_max = feat_it->getMetaValue("rightWidth");
       if (feat_it->getConvexHulls().empty()) // add hulls for mass traces
