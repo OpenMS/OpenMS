@@ -91,6 +91,8 @@ void MzTabFile::load(const String& filename, MzTab& mz_tab)
   MzTabPeptideSectionRows mz_tab_peptide_section_data;
   MzTabPSMSectionRows mz_tab_psm_section_data;
   MzTabSmallMoleculeSectionRows mz_tab_small_molecule_section_data;
+  map<Size, String> comment_rows;
+  vector<Size> empty_rows;
 
   map<String, Size> protein_custom_opt_columns;  // map column name to original column index
   map<String, Size> peptide_custom_opt_columns;
@@ -208,14 +210,16 @@ void MzTabFile::load(const String& filename, MzTab& mz_tab)
   map<Size, Size> smallmolecule_abundance_stdev_study_variable_indices;
   map<Size, Size> smallmolecule_abundance_std_err_study_variable_indices;
 
-  for (TextFile::ConstIterator sit = tf.begin(); sit != tf.end(); ++sit)
+  Size line_number = 0;
+  for (TextFile::ConstIterator sit = tf.begin(); sit != tf.end(); ++sit, ++line_number)
   {
     //  std::cout << *sit << std::endl;
-    const String & s = *sit;
+    String s = *sit;
 
     // skip empty lines or lines that are too short
-    if (s.size() < 3)
+    if (s.trim().size() < 3)
     {
+      empty_rows.push_back(line_number); // preserve empty lines to map comments to correct position
       continue;
     }
 
@@ -226,6 +230,7 @@ void MzTabFile::load(const String& filename, MzTab& mz_tab)
     // discard comments
     if (section == "COM")
     {
+      comment_rows[line_number] = s; 
       continue;
     }
 
@@ -1346,6 +1351,8 @@ void MzTabFile::load(const String& filename, MzTab& mz_tab)
     mz_tab.setPeptideSectionRows(mz_tab_peptide_section_data);
     mz_tab.setPSMSectionRows(mz_tab_psm_section_data);
     mz_tab.setSmallMoleculeSectionRows(mz_tab_small_molecule_section_data);
+    mz_tab.setEmptyRows(empty_rows);
+    mz_tab.setCommentRows(comment_rows);
 }
 
 void MzTabFile::generateMzTabMetaDataSection_(const MzTabMetaData& md, StringList& sl) const
@@ -1588,9 +1595,7 @@ void MzTabFile::generateMzTabMetaDataSection_(const MzTabMetaData& md, StringLis
       String s = "MTD\tsample[" + String(it->first) + String("]-description\t") + it->second.description.toCellString();
       sl.push_back(s);
     }
-
   }
-
 
   for (map<Size, MzTabParameter>::const_iterator it = md.assay_quantification_reagent.begin(); it != md.assay_quantification_reagent.end(); ++it)
   {
@@ -1642,7 +1647,6 @@ void MzTabFile::generateMzTabMetaDataSection_(const MzTabMetaData& md, StringLis
     String s = "MTD\tstudy_variable[" + String(it->first) + "]-assay_refs\t" + it->second.toCellString();
     sl.push_back(s);
   }
-
 
   for (map<Size, MzTabIntegerList>::const_iterator it = md.study_variable_sample_refs.begin(); it != md.study_variable_sample_refs.end(); ++it)
   {

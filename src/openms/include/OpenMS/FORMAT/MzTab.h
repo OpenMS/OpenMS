@@ -1556,6 +1556,16 @@ protected:
         psm_data_ = psd;
       }
 
+      void setCommentRows(const std::map<Size, String> & com)
+      {
+        comment_rows_ = com; 
+      }
+
+      void setEmptyRows(const std::vector<Size> & empty)
+      {
+        empty_rows_ = empty; 
+      }
+
       const MzTabSmallMoleculeSectionRows& getSmallMoleculeSectionRows() const
       {
         return small_molecule_data_;
@@ -1632,6 +1642,8 @@ protected:
     MzTabPeptideSectionRows peptide_data_;
     MzTabPSMSectionRows psm_data_;
     MzTabSmallMoleculeSectionRows small_molecule_data_;
+    std::vector<Size> empty_rows_;  // index of empty rows
+    std::map<Size, String> comment_rows_; // comments
   };
 
 } // namespace OpenMS
