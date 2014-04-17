@@ -679,54 +679,20 @@ public:
       }
       else
       {
-        String ss = s;
+        //  regex: (".*?"|[^",\]\[\s]+)(?=\s*) splits and returns parameter entries at , (support for comma and [] in quotes) 
+        //  (              start of capturing group
+        //  ".*?"          double quotes + anything but double quotes + double quotes
+        //  |              OR
+        //  [^",\]\[\s]+   1 or more characters excl. double quotes, comma or spaces and [] of any kind
+        //  )
+        //  (?=            FOLLOWED BY
+        //  \s*            0 or more empty spaces
+        //  )         
+        String regex = "(\".*?\"|[^\",\\]\\[\\s]+)(?=\\s*)"
 
-        // quotes (around name) so possibly a comma inside the CV name.
-        if (s.hasSubstring("\""))
+        if (fields.size() != 4)
         {
-          std::vector<String> quoted_fields;
-          ss.split("\"", quoted_fields);
-
-          if (quoted_fields.size() != 3)
-          {
-            throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Could not convert quoted fields in '") + s + "' to MzTabParameter");
-          }
-
-          name_ = quoted_fields[1];
-          ss.substitute(String("\"") + name_ + String("\""), ""); // remove CV name that possibly contains comma
-
-          std::vector<String> comma_fields;
-          ss.split(",", comma_fields);
-          if (comma_fields.size() != 4)
-          {
-            throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Could not convert String '") + s + "' to MzTabParameter");
-          }
-          else
-          {
-            comma_fields[0].remove('[');
-            comma_fields[3].remove(']');
-            CV_label_ = comma_fields[0];
-            accession_ = comma_fields[1];
-            value_ = comma_fields[3];
-          }
-        }
-        else // no quotes (around name) => no extra comma expected
-        {
-          std::vector<String> fields;
-          ss.split(",", fields);
-          if (fields.size() != 4)
-          {
-            throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Could not convert String '") + s + "' to MzTabParameter");
-          }
-          else
-          {
-            fields[0].remove('[');
-            fields[3].remove(']');
-            CV_label_ = fields[0];
-            accession_ = fields[1];
-            name_ = fields[2].remove('"');
-            value_ = fields[3];
-          }
+          throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Could not convert String '") + s + "' to MzTabParameter");
         }
       }
     }
