@@ -679,16 +679,33 @@ public:
       }
       else
       {
-        //  regex: (".*?"|[^",\]\[\s]+)(?=\s*) splits and returns parameter entries at , (support for comma and [] in quotes) 
-        //  (              start of capturing group
-        //  ".*?"          double quotes + anything but double quotes + double quotes
-        //  |              OR
-        //  [^",\]\[\s]+   1 or more characters excl. double quotes, comma or spaces and [] of any kind
-        //  )
-        //  (?=            FOLLOWED BY
-        //  \s*            0 or more empty spaces
-        //  )         
-        String regex = "(\".*?\"|[^\",\\]\\[\\s]+)(?=\\s*)"
+        StringList fields;
+        String field;
+        bool in_quotes = false;
+        String::const_iterator quote_start = s.begin();
+
+        for (String::const_iterator sit = s.begin(); sit != s.end(); ++sit)
+        {
+          if (*sit == '\"')  // start or end of quotes
+          {
+            in_quotes = !in_quotes;
+          } else if (*sit == ',')   // , encountered
+          {
+            if (in_quotes)  // case 1: , in quote
+            {
+              field += ','; // add , (no split)
+            } else // split at , if not in quotes
+            {
+              fields.push_back(field.trim());
+              field.clear();
+            }
+          } else if (*sit != '[' && *sit != ']')
+          {
+            field += *sit;
+          }           
+        }
+
+        fields.push_back(field.trim());
 
         if (fields.size() != 4)
         {
