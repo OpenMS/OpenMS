@@ -45,65 +45,65 @@ using namespace std;
 namespace OpenMS
 {
 
-	SplinePackage::SplinePackage(std::vector<double> mz, std::vector<double> intensity, double scaling) : spline_(3, mz, intensity)
-	{				
-        if (!(mz.size() == intensity.size() && mz.size() > 2))
-        {
-            throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,"m/z and intensity vectors either not of the same size or too short.");
-        }
-        	
-		mzMin_ = *min_element(mz.begin(), mz.end());
-		mzMax_ = *max_element(mz.begin(), mz.end());
-		mzStepWidth_ = scaling*(mzMax_ - mzMin_)/(mz.size() - 1);    // step width somewhat smaller than the average raw data spacing	
-	}
-	
-	SplinePackage::~SplinePackage() 
+SplinePackage::SplinePackage(std::vector<double> mz, std::vector<double> intensity, double scaling) : spline_(3, mz, intensity)
+{
+	if (!(mz.size() == intensity.size() && mz.size() > 2))
 	{
-	}
-	
-	double SplinePackage::getMzMin()
-	{
-		return mzMin_;
+		throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,"m/z and intensity vectors either not of the same size or too short.");
 	}
 
-	double SplinePackage::getMzMax()
+	mzMin_ = *min_element(mz.begin(), mz.end());
+	mzMax_ = *max_element(mz.begin(), mz.end());
+	mzStepWidth_ = scaling*(mzMax_ - mzMin_)/(mz.size() - 1);            // step width somewhat smaller than the average raw data spacing
+}
+
+SplinePackage::~SplinePackage()
+{
+}
+
+double SplinePackage::getMzMin()
+{
+	return mzMin_;
+}
+
+double SplinePackage::getMzMax()
+{
+	return mzMax_;
+}
+
+double SplinePackage::getMzStepWidth()
+{
+	return mzStepWidth_;
+}
+
+bool SplinePackage::isInPackage(double mz)
+{
+	return (mz >= mzMin_ && mz <= mzMax_);
+}
+
+Spline2d<double> SplinePackage::getSpline()
+{
+	return spline_;
+}
+
+double SplinePackage::eval(double mz)
+{
+	if (this->isInPackage(mz))
 	{
-		return mzMax_;
-	}
-	
-	double SplinePackage::getMzStepWidth()
-	{
-		return mzStepWidth_;
-	}
-	
-	bool SplinePackage::isInPackage(double mz)
-	{
-		return (mz >= mzMin_ && mz <= mzMax_);
-	}
-	
-	Spline2d<double> SplinePackage::getSpline()
-	{
-		return spline_;
-	}
-	
-	double SplinePackage::eval(double mz)
-	{
-		if (this->isInPackage(mz))
-		{
-			double intensity = spline_.eval(mz);
-			if (intensity < 0)
-			{
-				return 0;
-			}
-			else
-			{
-				return intensity;
-			}
-		}
-		else
+		double intensity = spline_.eval(mz);
+		if (intensity < 0)
 		{
 			return 0;
 		}
+		else
+		{
+			return intensity;
+		}
 	}
+	else
+	{
+		return 0;
+	}
+}
 
 }

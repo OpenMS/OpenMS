@@ -45,77 +45,77 @@
 
 namespace OpenMS
 {
-  /**
-   * @brief fundamental data structure for SplineSpectrum
-   *
-   * In many cases, data points in MS spctra are not equi-spaced in m/z but consist of packages of 
-   * data points separated by wide m/z ranges with zero intensity. SplinePackage contains the
-   * spline fit of a single set of such data points.
-   *
-   * @see SplineSpectrum
-   */
-  class OPENMS_DLLAPI SplinePackage
- {
-    /**
-     * @brief m/z limits of the package in the raw data spectrum
-     */
-    double mzMin_;
-    double mzMax_;
-	 
-	/**
-	 * @brief sensible m/z step width with which to scan through the package
-	 * (raw data spacing times a scaling factor typically <1)
-	 */
-	double mzStepWidth_;
+/**
+ * @brief fundamental data structure for SplineSpectrum
+ *
+ * In many cases, data points in MS spctra are not equi-spaced in m/z but consist of packages of
+ * data points separated by wide m/z ranges with zero intensity. SplinePackage contains the
+ * spline fit of a single set of such data points.
+ *
+ * @see SplineSpectrum
+ */
+class OPENMS_DLLAPI SplinePackage
+{
+/**
+ * @brief m/z limits of the package in the raw data spectrum
+ */
+double mzMin_;
+double mzMax_;
 
-	/**
-	 * @brief spline object for interpolation of intensity profile
-	 */
-	Spline2d<double> spline_;
- 
-	public:
-     /**
-     * @brief constructor
-     */
-    SplinePackage(std::vector<double> mz, std::vector<double> intensity, double scaling);
-    
-     /**
-     * @brief destructor
-     */
-    ~SplinePackage();
-    
-    /**
-     * @brief returns the minimum m/z for which the spline fit is valid
-     */
-    double getMzMin();
-    
-    /**
-     * @brief returns the maximum m/z for which the spline fit is valid
-     */
-    double getMzMax();
+/**
+ * @brief sensible m/z step width with which to scan through the package
+ * (raw data spacing times a scaling factor typically <1)
+ */
+double mzStepWidth_;
 
-    /**
-     * @brief returns a sensible m/z step width for the package
-     */
-    double getMzStepWidth();
-        
-    /**
-     * @brief returns true if m/z in [mzMin:mzMax] interval else false
-     */
-    bool isInPackage(double mz);
-        
-    /**
-     * @brief returns polynomial spline function for interpolation in the interval [mzMin:mzMax]
-     */
-    Spline2d<double> getSpline();
+/**
+ * @brief spline object for interpolation of intensity profile
+ */
+Spline2d<double> spline_;
 
-    /**
-     * @brief returns interpolated intensity @ position mz
-     */
-    double eval(double mz);
+public:
+/**
+ * @brief constructor
+ */
+SplinePackage(std::vector<double> mz, std::vector<double> intensity, double scaling);
 
- };
-  
+/**
+ * @brief destructor
+ */
+~SplinePackage();
+
+/**
+ * @brief returns the minimum m/z for which the spline fit is valid
+ */
+double getMzMin();
+
+/**
+ * @brief returns the maximum m/z for which the spline fit is valid
+ */
+double getMzMax();
+
+/**
+ * @brief returns a sensible m/z step width for the package
+ */
+double getMzStepWidth();
+
+/**
+ * @brief returns true if m/z in [mzMin:mzMax] interval else false
+ */
+bool isInPackage(double mz);
+
+/**
+ * @brief returns polynomial spline function for interpolation in the interval [mzMin:mzMax]
+ */
+Spline2d<double> getSpline();
+
+/**
+ * @brief returns interpolated intensity @ position mz
+ */
+double eval(double mz);
+
+};
+
 }
 
 #endif /* SPLINEPACKAGE_H_ */
