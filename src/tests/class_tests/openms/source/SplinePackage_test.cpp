@@ -44,9 +44,9 @@ START_TEST(SplinePackage, "$Id$")
 std::vector<double> mz;
 mz.push_back(413.8);
 mz.push_back(413.9);
+mz.push_back(414.0);
 mz.push_back(414.1);
 mz.push_back(414.2);
-mz.push_back(415.5);
 std::vector<double> intensity;
 intensity.push_back(0.0);
 intensity.push_back(100.2);
@@ -58,7 +58,10 @@ SplinePackage sp(mz, intensity, 0.7);
 
 START_SECTION(SplinePackage(mz, intensity, 0.7))
   TEST_EQUAL(sp.getMzMin(), 413.8);
+  TEST_EQUAL(sp.getMzMax(), 414.2);
+  TEST_REAL_SIMILAR(sp.getMzStepWidth(), 0.07);
   TEST_EQUAL(sp.isInPackage(414.05), true);
+  TEST_REAL_SIMILAR(sp.getSpline().eval(414.05), 1000.8);
 END_SECTION
 
 END_TEST

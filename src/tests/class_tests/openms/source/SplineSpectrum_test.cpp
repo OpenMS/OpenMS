@@ -60,6 +60,10 @@ SplineSpectrum ss(mz, intensity);
 
 START_SECTION(SplineSpectrum())
   TEST_EQUAL(ss.getMzMin(), 413.8);
+  TEST_EQUAL(ss.getMzMax(), 414.6);
+  TEST_EQUAL(ss.getPackage(0).getMzMin(), 413.8);
+  TEST_REAL_SIMILAR(ss.getNavigator().eval(413.9), 100.2);
+  TEST_REAL_SIMILAR(ss.getNavigator().getNextMz(413.9), 413.97);
 END_SECTION
 
 END_TEST
