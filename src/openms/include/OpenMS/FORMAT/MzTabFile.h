@@ -69,27 +69,45 @@ public:
 
     typedef std::map<std::pair<String, String>, std::vector<PeptideHit> > MapAccPepType;
 
-    // (deprecated) TODO: use conversion to MzTab data structure and store function below
-    void store(const String& filename, const std::vector<ProteinIdentification>& protein_ids, const std::vector<PeptideIdentification>& peptide_ids, String in, String document_id) const;
-
     // store MzTab file
     void store(const String& filename, const MzTab& mz_tab) const;
 
-    // load MzTab file
-    void load(const String& filename, MzTab& mz_tab);
+    // Set store behaviour of optional "reliability" and "uri" columns (default=no)
+    void storeProteinReliabilityColumn(bool store);
+    void storePeptideReliabilityColumn(bool store);
+    void storePSMReliabilityColumn(bool store);
+    void storeSmallMoleculeReliabilityColumn(bool store);
+    void storeProteinUriColumn(bool store);
+    void storePeptideUriColumn(bool store);
+    void storePSMUriColumn(bool store);
+    void storeSmallMoleculeUriColumn(bool store);
+    void storeProteinGoTerms(bool store);
+
+     // load MzTab file
+    void load(const String & filename, MzTab& mz_tab);
 
 protected:
-    void generateMzTabMetaDataSection_(const MzTabMetaData& map, TextFile& sl) const;
+    bool store_protein_reliability_;
+    bool store_peptide_reliability_;
+    bool store_psm_reliability_;
+    bool store_smallmolecule_reliability_;
+    bool store_protein_uri_;
+    bool store_peptide_uri_;
+    bool store_psm_uri_;
+    bool store_smallmolecule_uri_;
+    bool store_protein_goterms_;
+
+    void generateMzTabMetaDataSection_(const MzTabMetaData& map, StringList& sl) const;
 
     void generateMzTabProteinSection_(const MzTabProteinSectionRows& rows, StringList& sl) const;
 
-    String generateMzTabProteinHeader_(Size search_ms_runs, Size num_psms_ms_runs, Size num_peptides_distinct_ms_runs, Size num_peptides_unique_ms_run, Size assays, Size study_variables, const std::vector<String>& optional_columns) const;
+    String generateMzTabProteinHeader_(Size search_ms_runs, Size n_search_engine_score, Size num_psms_ms_runs, Size num_peptides_distinct_ms_runs, Size num_peptides_unique_ms_run, Size assays, Size study_variables, const std::vector<String>& optional_columns) const;
 
     String generateMzTabProteinSectionRow_(const MzTabProteinSectionRow& row) const;
 
     void generateMzTabPeptideSection_(const MzTabPeptideSectionRows& rows, StringList& sl) const;
 
-    String generateMzTabPeptideHeader_(Size search_ms_runs, Size assays, Size study_variables, const std::vector<String>& optional_columns) const;
+    String generateMzTabPeptideHeader_(Size search_ms_runs, Size n_search_engine_score, Size assays, Size study_variables, const std::vector<String>& optional_columns) const;
 
     String generateMzTabPeptideSectionRow_(const MzTabPeptideSectionRow& row) const;
 
@@ -101,12 +119,12 @@ protected:
 
     void generateMzTabSmallMoleculeSection_(const MzTabSmallMoleculeSectionRows & map, StringList& sl) const;
 
-    String generateMzTabSmallMoleculeHeader_(Size search_ms_runs, Size assays, Size study_variables, const std::vector<String>& optional_columns) const;
+    String generateMzTabSmallMoleculeHeader_(Size search_ms_runs, Size n_search_engine_score, Size assays, Size study_variables, const std::vector<String>& optional_columns) const;
 
     String generateMzTabSmallMoleculeSectionRow_(const MzTabSmallMoleculeSectionRow& row) const;
 
     // auxiliar functions
-    // extract two integers from string (e.g. search_engine_score[1]_ms_run[2] -> 1,2) 
+    // extract two integers from string (e.g. search_engine_score[1]_ms_run[2] -> 1,2)
     static std::pair<int, int> extractIndexPairsFromBrackets_(const String & s);
 
     static void sortPSM_(std::vector<PeptideIdentification>::iterator begin, std::vector<PeptideIdentification>::iterator end);

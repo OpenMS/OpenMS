@@ -650,10 +650,10 @@ public:
       else
       {
         String ret = "[";
-        ret += CV_label_ + ",";
-        ret += accession_ + ",";
+        ret += CV_label_ + ", ";
+        ret += accession_ + ", ";
 
-        if (name_.hasSubstring(","))
+        if (name_.hasSubstring(", "))
         {
           ret += String("\"") + name_ + String("\""); // quote name if it contains a ","
         } else
@@ -661,9 +661,16 @@ public:
           ret += name_;
         }
 
-        ret += String(",");
+        ret += String(", ");
+      
+        if (value_.hasSubstring(", "))
+        {
+          ret += String("\"") + value_ + String("\""); // quote value if it contains a ","
+        } else
+        {
+          ret += value_;
+        }
 
-        ret += value_;
         ret += "]";
         return ret;
       }
@@ -683,7 +690,6 @@ public:
         String field;
         bool in_quotes = false;
         String::const_iterator quote_start = s.begin();
-
         for (String::const_iterator sit = s.begin(); sit != s.end(); ++sit)
         {
           if (*sit == '\"')  // start or end of quotes
@@ -701,6 +707,11 @@ public:
             }
           } else if (*sit != '[' && *sit != ']')
           {
+            // skip leading ws
+            if (*sit == ' ' && field.empty())
+            {
+              continue;
+            }   
             field += *sit;
           }           
         }
@@ -711,6 +722,11 @@ public:
         {
           throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Could not convert String '") + s + "' to MzTabParameter");
         }
+
+        CV_label_ = fields[0];
+        accession_ = fields[1];
+        name_ = fields[2];
+        value_ = fields[3];
       }
     }
 
@@ -780,7 +796,7 @@ public:
         {
           MzTabParameter p;
           lower = fields[i];
-          lower.toLower();
+          lower.toLower().trim();
           if (lower == "null")
           {
             throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("MzTabParameter in MzTabParameterList must not be null '") + s);
@@ -1299,6 +1315,59 @@ protected:
     std::map<Size, MzTabString> setting;
   };
 
+  struct MzTabModificationMetaData
+  {
+    MzTabParameter modification;
+    MzTabString site;
+    MzTabString position;
+  };
+ 
+  struct MzTabAssayMetaData
+  {
+    MzTabParameter quantification_reagent;
+    std::map<Size, MzTabModificationMetaData> quantification_mod;
+    MzTabString sample_ref;
+    MzTabString ms_run_ref;
+  };
+
+  struct MzTabCVMetaData
+  {
+    MzTabString label;
+    MzTabString full_name;
+    MzTabString version;
+    MzTabString url;
+  };
+
+  struct MzTabInstrumentMetaData
+  {
+    MzTabParameter name;
+    MzTabParameter source;
+    MzTabParameter analyzer;
+    MzTabParameter detector;
+  };
+
+  struct MzTabContactMetaData
+  {
+    MzTabString name;
+    MzTabString affiliation;
+    MzTabString email;
+  };
+
+  struct MzTabMSRunMetaData
+  {
+    MzTabParameter format;
+    MzTabString location;
+    MzTabParameter id_format;
+    MzTabParameterList fragmentation_method;
+  };
+
+  struct MzTabStudyVariableMetaData
+  {
+    MzTabIntegerList assay_refs;
+    MzTabIntegerList sample_refs;
+    MzTabString description;
+  };
+
   // all meta data of a mzTab file. Please refer to specification for documentation.
   struct MzTabMetaData
   {
@@ -1313,31 +1382,26 @@ protected:
     MzTabString mz_tab_id;
     MzTabString title;
     MzTabString description;
+
     std::map<Size, MzTabParameter> search_engine_score;
 
     std::map<Size, MzTabParameterList> sample_processing;
 
-    std::map<Size, MzTabParameter> instrument_name;
-    std::map<Size, MzTabParameter> instrument_source;
-    std::map<Size, MzTabParameter> instrument_analyzer;
-    std::map<Size, MzTabParameter> instrument_detector;
+    std::map<Size, MzTabInstrumentMetaData> instrument;
 
     std::map<Size, MzTabSoftwareMetaData> software;
 
     MzTabParameterList false_discovery_rate;
 
     std::map<Size, MzTabString> publication;
-    std::map<Size, MzTabString> contact_name;
-    std::map<Size, MzTabString> contact_affiliation;
-    std::map<Size, MzTabString> contact_email;
+   
+    std::map<Size, MzTabContactMetaData> contact;
+   
     std::map<Size, MzTabString> uri;
 
-    std::map<Size, MzTabParameter> fixed_mod;
-    std::map<Size, MzTabString> fixed_mod_site;
-    std::map<Size, MzTabString> fixed_mod_position;
-    std::map<Size, MzTabParameter> variable_mod;
-    std::map<Size, MzTabString> variable_mod_site;
-    std::map<Size, MzTabString> variable_mod_position;
+    std::map<Size, MzTabModificationMetaData> fixed_mod;
+
+    std::map<Size, MzTabModificationMetaData> variable_mod;
 
     MzTabParameter quantification_method;
 
@@ -1345,31 +1409,17 @@ protected:
     MzTabParameter peptide_quantification_unit;
     MzTabParameter small_molecule_quantification_unit;
 
-    std::map<Size, MzTabParameter> ms_run_format;
-    std::map<Size, MzTabString> ms_run_location;
-    std::map<Size, MzTabParameter> ms_run_id_format;
-    std::map<Size, MzTabParameterList> ms_run_fragmentation_method;
+    std::map<Size, MzTabMSRunMetaData> ms_run;
 
-    std::map<Size, MzTabParameterList> custom;
+    std::map<Size, MzTabParameter> custom;
 
     std::map<Size, MzTabSampleMetaData> sample;
 
-    std::map<Size, MzTabParameter> assay_quantification_reagent;
-    std::map<Size, std::map<Size, MzTabParameter> > assay_quantification_mod;
-    std::map<Size, std::map<Size, MzTabString> > assay_quantification_mod_site;
-    std::map<Size, std::map<Size, MzTabString> > assay_quantification_mod_position;
+    std::map<Size, MzTabAssayMetaData> assay;
 
-    std::map<Size, MzTabString> assay_sample_ref;
-    std::map<Size, MzTabString> assay_ms_run_ref;
-
-    std::map<Size, MzTabIntegerList> study_variable_assay_refs;
-    std::map<Size, MzTabIntegerList> study_variable_sample_refs;
-    std::map<Size, MzTabString> study_variable_description;
-
-    std::map<Size, MzTabString> cv_label;
-    std::map<Size, MzTabString> cv_full_name;
-    std::map<Size, MzTabString> cv_version;
-    std::map<Size, MzTabString> cv_url;
+    std::map<Size, MzTabStudyVariableMetaData> study_variable;
+  
+    std::map<Size, MzTabCVMetaData> cv;
 
     std::vector<String> colunit_protein;
     std::vector<String> colunit_peptide;
@@ -1564,6 +1614,16 @@ protected:
       void setEmptyRows(const std::vector<Size> & empty)
       {
         empty_rows_ = empty; 
+      }
+
+      const std::vector<Size>& getEmptyRows() const
+      {
+        return empty_rows_;
+      }
+
+      const std::map<Size, String>& getCommentRows() const
+      {
+        return comment_rows_;
       }
 
       const MzTabSmallMoleculeSectionRows& getSmallMoleculeSectionRows() const
