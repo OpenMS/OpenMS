@@ -145,7 +145,7 @@ protected:
     setValidStrings_("detect:mode", modes);
     registerDoubleOption_("detect:peak_width", "<value>", 20.0, "Elution peak width in seconds for smoothing (Gauss filter)", false);
     setMinFloat_("detect:peak_width", 0.0);
-    registerDoubleOption_("detect:tolerance", "<value>", 50.0, "Intensity tolerance for finding matching isotope peaks ('filtered' mode only); relative to the square root of the measured intensity");
+    registerDoubleOption_("detect:tolerance", "<value>", 50.0, "Intensity tolerance for finding matching isotope peaks ('filtered' mode only); relative to the square root of the measured intensity", false);
     setMinFloat_("detect:tolerance", 0.0);
 
     registerTOPPSubsection_("model", "Parameters for fitting elution models to features");
@@ -400,18 +400,21 @@ protected:
            chrom_data.getChromatograms().begin(); chrom_it !=
            chrom_data.getChromatograms().end(); ++chrom_it)
     {
-      String peptide = chrom_it->getNativeID().prefix('_');
-      chromatogram_groups[peptide].push_back(&(*chrom_it));
+      String peptide_ref = chrom_it->getNativeID().prefix('_');
+      chromatogram_groups[peptide_ref].push_back(&(*chrom_it));
     }
 
     // mapping: transition (ID) -> theoretical intensity
     map<String, double> theo_intensities;
+    // mapping: peptide (ID) -> mass-to-charge
+    map<String, double> precursor_mzs;
     for (vector<ReactionMonitoringTransition>::const_iterator trans_it = 
            library_.getTransitions().begin(); trans_it !=
            library_.getTransitions().end(); ++trans_it)
     {
       theo_intensities[trans_it->getNativeID()] = 
         trans_it->getLibraryIntensity();
+      precursor_mzs[trans_it->getPeptideRef()] = trans_it->getPrecursorMZ();
     }
 
     double tolerance = getDoubleOption_("detect:tolerance");
@@ -425,15 +428,46 @@ protected:
       {
         current_theo_ints.push_back(theo_intensities[(*ptr_it)->getNativeID()]);
       }
+
+      String peptide_ref = group_it->first;
+      const TargetedExperiment::Peptide& peptide = 
+        library_.getPeptideByRef(peptide_ref);
+      PeptideHit hit;
+      hit.setSequence(AASequence(peptide.sequence));
+      hit.setProteinAccessions(peptide.protein_refs);
+      Int charge = peptide.getChargeState();
+      double mz = precursor_mzs[peptide_ref];
+      hit.setCharge(charge);
+      hit.setMetaValue("MZ", mz);
+      hit.setMetaValue("RT", peptide.rts[0].getCVTerms()["MS:1000896"][0].
+                       getValue().toString().toDouble()); // yes, WTF
+      PeptideIdentification pep_id;
+      pep_id.insertHit(hit);
+
       Feature feature;
-      detectFeature_(group_it->first, group_it->second, feature, 
+      detectFeature_(peptide_ref, group_it->second, feature, 
                      current_theo_ints, gauss_filter, tolerance);
+
       if (!feature.getSubordinates().empty())
       {
-        // add m/z, charge, peptide ID
+        feature.setMZ(mz);
+        feature.setCharge(charge);
+        feature.getPeptideIdentifications().push_back(pep_id);
+        features.push_back(feature);
       }
-
-      features.push_back(feature);
+      else
+      {
+        features.getUnassignedPeptideIdentifications().push_back(pep_id);
+      }
+    }
+    
+    for (vector<TargetedExperiment::Protein>::const_iterator prot_it = 
+           library_.getProteins().begin(); prot_it != 
+           library_.getProteins().end(); ++prot_it)
+    {
+      ProteinHit hit;
+      hit.setAccession(prot_it->id);
+      hit.setSequence(prot_it->sequence);
     }
   }
 
@@ -472,7 +506,7 @@ protected:
   }
 
 
-  void detectFeature_(const String& assay_ID, 
+  void detectFeature_(const String& peptide_ref, 
                       const ChromatogramPtrs& chrom_ptrs, Feature& feature, 
                       const vector<double>& theo_intensities, 
                       GaussFilter& gauss_filter, double tolerance)
@@ -585,7 +619,7 @@ protected:
       else peak.setIntensity(0.0);
       n_matches.push_back(peak);
     }
-    LOG_INFO << assay_ID << ":" << endl;
+    LOG_INFO << peptide_ref << ":" << endl;
     if (!medians.empty())
     {
       // based on the groups of matching points, use the time point with the
@@ -1199,8 +1233,8 @@ protected:
           {
             rt_win = peptide.getMetaValue("rt_window");
           }
-          current.rt_start = rt - rt_win / 2.0;
-          current.rt_end = rt + rt_win / 2.0;
+          current.rt_start = rt - rt_win * 0.5;
+          current.rt_end = rt + rt_win * 0.5;
         }
         coords.push_back(current);
       }
