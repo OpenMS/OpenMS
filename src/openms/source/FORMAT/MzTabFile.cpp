@@ -35,7 +35,7 @@
 #include <OpenMS/FORMAT/MzTab.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/FORMAT/TextFile.h>
-#include <QtCore/QRegExp>
+#include <boost/regex.hpp>
 #include <fstream>
 
 namespace OpenMS
@@ -61,7 +61,6 @@ MzTabFile::~MzTabFile()
 
 std::pair<int, int> MzTabFile::extractIndexPairsFromBrackets_(const String & s)
 {
-  QString qs = s.toQString();
   std::pair<Int, Int> pair(0,0);
 
   // ^        # Match the start of the line
@@ -71,24 +70,22 @@ std::pair<int, int> MzTabFile::extractIndexPairsFromBrackets_(const String & s)
   // \]       # Match closing bracket
   // .*       # Match the rest of the line
   // $        # Match the end of the line
-  QRegExp rx_first_number(QString("^.*?\\[(\\d+)\\].*$"));
+  boost::sregex_token_iterator end;
 
-  // as above but capture on the second bracket
-  QRegExp rx_second_number(QString("^.*?\\[\\d+\\].*.*?\\[(\\d+)\\].*$"));
-
-  Int pos_first_number = rx_first_number.indexIn(qs);
-  if (pos_first_number > -1)
+  boost::regex rx_first_number("^.*?\\[(\\d+)\\].*$");
+  boost::sregex_token_iterator it1(s.begin(), s.end(), rx_first_number, 1);
+  if (it1 != end)
   {
-    QString value = rx_first_number.cap(1);
-    pair.first = value.toInt();
+    pair.first = String(*it1++).toInt();
   }
 
-  Int pos_second_number = rx_second_number.indexIn(qs);
-  if (pos_second_number > -1)
+  boost::regex  rx_second_number("^.*?\\[\\d+\\].*?\\[(\\d+)\\].*$");
+  boost::sregex_token_iterator it2(s.begin(), s.end(), rx_second_number, 1);
+  if (it2 != end)
   {
-    QString value = rx_second_number.cap(1);
-    pair.second = value.toInt();
+    pair.second = String(*it2++).toInt();
   }
+
   return pair;
 }
 
@@ -686,7 +683,7 @@ void MzTabFile::load(const String& filename, MzTab& mz_tab)
           protein_best_search_engine_score_to_column_index[n] = i;
         } else if (cells[i].hasPrefix("search_engine_score["))
         {
-          std::pair<Size, Size> pair = extractIndexPairsFromBrackets_(cells[i].toQString());
+          std::pair<Size, Size> pair = extractIndexPairsFromBrackets_(cells[i]);
           protein_column_index_to_score_runs_pair[i] = pair;
         } else if (cells[i] == "reliability")
         {
@@ -793,10 +790,14 @@ void MzTabFile::load(const String& filename, MzTab& mz_tab)
         cout << "Error: mandatory protein best_search_engine_score[1-n] column missing" << endl;
       }
 
-      if (protein_column_index_to_score_runs_pair.size() == 0 && mz_tab_metadata.mz_tab_mode.toCellString() == "Complete")
+      if (mz_tab_metadata.mz_tab_mode.toCellString() == "Complete")
       {
-        cout << "Error: mandatory protein search_engine_score_ms_run column(s) missing" << endl;
-        // TODO: check if number of ms_runs and search_engine_scores match meta data section information
+        if (protein_column_index_to_score_runs_pair.size() != mz_tab_metadata.ms_run.size())
+        {
+          cout << "Error: mandatory protein search_engine_score_ms_run column(s) missing. Expected "
+               << mz_tab_metadata.ms_run.size() << " ms_runs (meta data section) but only " << protein_column_index_to_score_runs_pair.size()
+               << " ms_runs provide score columns (protein section)." << endl;
+        }
       }
 
       if (protein_num_psms_ms_run_indices.size() == 0 && mz_tab_metadata.mz_tab_mode.toCellString() == "Complete"
