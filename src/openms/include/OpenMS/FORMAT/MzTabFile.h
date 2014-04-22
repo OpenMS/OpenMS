@@ -113,7 +113,7 @@ protected:
 
     void generateMzTabPSMSection_(const MzTabPSMSectionRows& rows, StringList& sl) const;
 
-    String generateMzTabPSMHeader_(const std::vector<String>& optional_columns) const;
+    String generateMzTabPSMHeader_(Size n_search_engine_scores, const std::vector<String>& optional_columns) const;
 
     String generateMzTabPSMSectionRow_(const MzTabPSMSectionRow& row) const;
 

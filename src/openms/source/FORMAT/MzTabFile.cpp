@@ -2072,7 +2072,7 @@ String MzTabFile::generateMzTabPeptideHeader_(Size search_ms_runs, Size n_search
   return ListUtils::concatenate(header, "\t");
 }
 
-String MzTabFile::generateMzTabPSMHeader_(const vector<String>& optional_columns) const
+String MzTabFile::generateMzTabPSMHeader_(Size n_search_engine_scores, const vector<String>& optional_columns) const
 {
   StringList header;
   header.push_back("PSH");
@@ -2083,7 +2083,11 @@ String MzTabFile::generateMzTabPSMHeader_(const vector<String>& optional_columns
   header.push_back("database");
   header.push_back("database_version");
   header.push_back("search_engine");
-  header.push_back("search_engine_score");
+
+  for (Size i = 0; i != n_search_engine_scores; ++i)
+  {
+    header.push_back("search_engine_score[" + String(i + 1) + "]");
+  }
 
   if (store_psm_reliability_)
   {
@@ -2143,6 +2147,7 @@ String MzTabFile::generateMzTabPeptideSectionRow_(const MzTabPeptideSectionRow& 
 
   s.push_back(row.modifications.toCellString());
   s.push_back(row.retention_time.toCellString());
+  s.push_back(row.retention_time_window.toCellString());
   s.push_back(row.charge.toCellString());
   s.push_back(row.mass_to_charge.toCellString());
 
@@ -2154,6 +2159,11 @@ String MzTabFile::generateMzTabPeptideSectionRow_(const MzTabPeptideSectionRow& 
   s.push_back(row.spectra_ref.toCellString());
 
   // quantification columns
+  for (std::map<Size, MzTabDouble>::const_iterator it = row.peptide_abundance_assay.begin(); it != row.peptide_abundance_assay.end(); ++it)
+  {
+    s.push_back(it->second.toCellString());
+  }
+
   std::map<Size, MzTabDouble>::const_iterator sv_it = row.peptide_abundance_study_variable.begin();
   std::map<Size, MzTabDouble>::const_iterator sv_stdev_it = row.peptide_abundance_stdev_study_variable.begin();
   std::map<Size, MzTabDouble>::const_iterator sv_error_it = row.peptide_abundance_std_error_study_variable.begin();
@@ -2443,7 +2453,7 @@ void MzTabFile::store(const String& filename, const MzTab& mz_tab) const
 
   if (!psm_section.empty())
   {
-    out.push_back(generateMzTabPSMHeader_(mz_tab.getPSMOptionalColumnNames()));
+    out.push_back(generateMzTabPSMHeader_(n_search_engine_score, mz_tab.getPSMOptionalColumnNames()));
     generateMzTabPSMSection_(mz_tab.getPSMSectionRows(), out);
   }
 

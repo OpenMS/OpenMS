@@ -29,9 +29,6 @@ MTD	contact[2]-affiliation	Max Planck Institute of Biochemistry
 MTD	contact[2]-email	deeb@biochem.mpg.de
 MTD	uri[1]	http://www.ebi.ac.uk/pride/url/to/experiment/
 MTD	uri[2]	http://www.ebi.ac.uk/pride/another/url/to/experiment/
-
-COM	TODO check delta masses
-
 MTD	fixed_mod[1]	[UNIMOD, UNIMOD:4, Carbamidomethyl, -57.0214637236]
 MTD	fixed_mod[1]-site	C
 MTD	fixed_mod[1]-position	anywhere
@@ -71,8 +68,7 @@ MTD	ms_run[6]-fragmentation_method	[MS, MS:1000422, high-energy collision-induce
 MTD	custom[1]	[, , custom meta value1, ]
 MTD	custom[2]	[, , custom meta value2, ]
 MTD	sample[1]-species[1]	[NEWT, NEWT:9606, Homo sapiens (Human), ]
-COM	TODO tissue for blood?
-MTD	sample[1]-tissue[1]	[, , blood, ]
+MTD	sample[1]-tissue[1]	[BTO, BTO:0000089, blood, ]
 MTD	sample[1]-cell_type[1]	[CL, CL:0000236, B cell, ]
 MTD	sample[1]-disease[1]	[DOID, DOID:0060058, lymphoma, ]
 MTD	sample[1]-custom[1]	[, , Extraction date, 2011-12-21]
@@ -80,6 +76,7 @@ MTD	sample[1]-custom[2]	[, , Operator, John Black]
 MTD	sample[1]-custom[3]	[, , "test of comma, in cv name", "test of comma, in cv value"]
 MTD	sample[1]-description	DB
 MTD	sample[2]-species[1]	[NEWT, NEWT:9606, Homo sapiens (Human), ]
+MTD	sample[2]-tissue[1]	[BTO, BTO:0000089, blood, ]
 MTD	sample[2]-cell_type[1]	[CL, CL:0000236, B cell, ]
 MTD	sample[2]-disease[1]	[DOID, DOID:0060058, lymphoma, ]
 MTD	sample[2]-custom[1]	[, , Extraction date, 2014-10-01]
@@ -104,39 +101,59 @@ MTD	assay[6]-quantification_reagent	[PRIDE, PRIDE:0000326, SILAC light, ]
 MTD	assay[6]-sample_ref	sample[2]
 MTD	assay[6]-ms_run_ref	ms_run[6]
 MTD	assay[7]-quantification_reagent	[PRIDE, PRIDE:0000325, SILAC heavy, ]
-MTD	assay[7]-quantification_mod[1]	[, , Arg10, ]
-MTD	assay[7]-quantification_mod[2]	[, , Lys8, ]
+MTD	assay[7]-quantification_mod[1]	[UNIMOD, UNIMOD:267, Label:13C(6)15N(4), ]
+MTD	assay[7]-quantification_mod[1]-site	R
+MTD	assay[7]-quantification_mod[1]-position	anywhere
+MTD	assay[7]-quantification_mod[2]	[UNIMOD, UNIMOD:259, Label:13C(6)15N(2), ]
+MTD	assay[7]-quantification_mod[2]-site	L
+MTD	assay[7]-quantification_mod[2]-position	anywhere
 MTD	assay[7]-sample_ref	sample[1]
 MTD	assay[7]-ms_run_ref	ms_run[1]
 MTD	assay[8]-quantification_reagent	[PRIDE, PRIDE:0000325, SILAC heavy, ]
-MTD	assay[8]-quantification_mod[1]	[, , Arg10, ]
-MTD	assay[8]-quantification_mod[2]	[, , Lys8, ]
+MTD	assay[8]-quantification_mod[1]	[UNIMOD, UNIMOD:267, Label:13C(6)15N(4), ]
+MTD	assay[8]-quantification_mod[1]-site	R
+MTD	assay[8]-quantification_mod[1]-position	anywhere
+MTD	assay[8]-quantification_mod[2]	[UNIMOD, UNIMOD:259, Label:13C(6)15N(2), ]
+MTD	assay[8]-quantification_mod[2]-site	L
+MTD	assay[8]-quantification_mod[2]-position	anywhere
 MTD	assay[8]-sample_ref	sample[1]
 MTD	assay[8]-ms_run_ref	ms_run[2]
 MTD	assay[9]-quantification_reagent	[PRIDE, PRIDE:0000325, SILAC heavy, ]
-MTD	assay[9]-quantification_mod[1]	[, , Arg10, ]
-MTD	assay[9]-quantification_mod[2]	[, , Lys8, ]
+MTD	assay[9]-quantification_mod[1]	[UNIMOD, UNIMOD:267, Label:13C(6)15N(4), ]
+MTD	assay[9]-quantification_mod[1]-site	R
+MTD	assay[9]-quantification_mod[1]-position	anywhere
+MTD	assay[9]-quantification_mod[2]	[UNIMOD, UNIMOD:259, Label:13C(6)15N(2), ]
+MTD	assay[9]-quantification_mod[2]-site	L
+MTD	assay[9]-quantification_mod[2]-position	anywhere
 MTD	assay[9]-sample_ref	sample[1]
 MTD	assay[9]-ms_run_ref	ms_run[3]
 MTD	assay[10]-quantification_reagent	[PRIDE, PRIDE:0000325, SILAC heavy, ]
-MTD	assay[10]-quantification_mod[1]	[, , Arg10, ]
-MTD	assay[10]-quantification_mod[2]	[, , Lys8, ]
+MTD	assay[10]-quantification_mod[1]	[UNIMOD, UNIMOD:267, Label:13C(6)15N(4), ]
+MTD	assay[10]-quantification_mod[1]-site	R
+MTD	assay[10]-quantification_mod[1]-position	anywhere
+MTD	assay[10]-quantification_mod[2]	[UNIMOD, UNIMOD:259, Label:13C(6)15N(2), ]
+MTD	assay[10]-quantification_mod[2]-site	L
+MTD	assay[10]-quantification_mod[2]-position	anywhere
 MTD	assay[10]-sample_ref	sample[2]
 MTD	assay[10]-ms_run_ref	ms_run[4]
 MTD	assay[11]-quantification_reagent	[PRIDE, PRIDE:0000325, SILAC heavy, ]
-MTD	assay[11]-quantification_mod[1]	[, , Arg10, ]
-MTD	assay[11]-quantification_mod[2]	[, , Lys8, ]
+MTD	assay[11]-quantification_mod[1]	[UNIMOD, UNIMOD:267, Label:13C(6)15N(4), ]
+MTD	assay[11]-quantification_mod[1]-site	R
+MTD	assay[11]-quantification_mod[1]-position	anywhere
+MTD	assay[11]-quantification_mod[2]	[UNIMOD, UNIMOD:259, Label:13C(6)15N(2), ]
+MTD	assay[11]-quantification_mod[2]-site	L
+MTD	assay[11]-quantification_mod[2]-position	anywhere
 MTD	assay[11]-sample_ref	sample[2]
 MTD	assay[11]-ms_run_ref	ms_run[5]
 MTD	assay[12]-quantification_reagent	[PRIDE, PRIDE:0000325, SILAC heavy, ]
-MTD	assay[12]-quantification_mod[1]	[, , Arg10, ]
-MTD	assay[12]-quantification_mod[2]	[, , Lys8, ]
+MTD	assay[12]-quantification_mod[1]	[UNIMOD, UNIMOD:267, Label:13C(6)15N(4), ]
+MTD	assay[12]-quantification_mod[1]-site	R
+MTD	assay[12]-quantification_mod[1]-position	anywhere
+MTD	assay[12]-quantification_mod[2]	[UNIMOD, UNIMOD:259, Label:13C(6)15N(2), ]
+MTD	assay[12]-quantification_mod[2]-site	L
+MTD	assay[12]-quantification_mod[2]-position	anywhere
 MTD	assay[12]-sample_ref	sample[2]
 MTD	assay[12]-ms_run_ref	ms_run[6]
-
-COM	TODO choose proper mod
-COM	TODO site, position
-
 MTD	study_variable[1]-assay_refs	assay[1], assay[2], assay[3], assay[4], assay[5], assay[6]
 MTD	study_variable[1]-sample_refs	sample[1]
 MTD	study_variable[1]-description	DB

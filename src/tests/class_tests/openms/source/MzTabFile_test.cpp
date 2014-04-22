@@ -75,44 +75,6 @@ START_SECTION(void store(const String& filename, MzTab& mzTab) )
   TEST_FILE_SIMILAR(tmpfile.c_str(), OPENMS_GET_TEST_DATA_PATH("MzTabFile_SILAC.mzTab"))
   MzTabFile().load(tmpfile, mzTab_reload);
 }
-{
-  // save and reload mzTab
-  MzTab mzTab;
-  MzTab mzTab_reload;
-  MzTabFile().load(OPENMS_GET_TEST_DATA_PATH("MzTabFile_iTRAQ.mzTab"), mzTab);
-
-  String tmpfile;
-  NEW_TMP_FILE(tmpfile)
-
-  MzTabFile().store(tmpfile, mzTab);
-  TEST_FILE_SIMILAR(tmpfile.c_str(), OPENMS_GET_TEST_DATA_PATH("MzTabFile_iTRAQ.mzTab"))
-  MzTabFile().load(tmpfile, mzTab_reload);
-}
-{
-  // save and reload mzTab
-  MzTab mzTab;
-  MzTab mzTab_reload;
-  MzTabFile().load(OPENMS_GET_TEST_DATA_PATH("MzTabFile_merged.mzTab"), mzTab);
-
-  String tmpfile;
-  NEW_TMP_FILE(tmpfile)
-
-  MzTabFile().store(tmpfile, mzTab);
-  TEST_FILE_SIMILAR(tmpfile.c_str(), OPENMS_GET_TEST_DATA_PATH("MzTabFile_merged.mzTab"))
-  MzTabFile().load(tmpfile, mzTab_reload);
-}
-{
-  MzTab mzTab;
-  MzTab mzTab_reload;
-  MzTabFile().load(OPENMS_GET_TEST_DATA_PATH("MzTabFile_opt_columns.mzTab"), mzTab);
-
-  String tmpfile;
-  NEW_TMP_FILE(tmpfile)
-
-  MzTabFile().store(tmpfile, mzTab);
-  TEST_FILE_SIMILAR(tmpfile.c_str(), OPENMS_GET_TEST_DATA_PATH("MzTabFile_opt_columns.mzTab"))
-  MzTabFile().load(tmpfile, mzTab_reload);
-}
 END_SECTION
 
 START_SECTION(~MzTabFile())
@@ -120,9 +82,6 @@ START_SECTION(~MzTabFile())
   delete ptr;
 }
 END_SECTION
-
-
-
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
