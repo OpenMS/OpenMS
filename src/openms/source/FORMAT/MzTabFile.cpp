@@ -165,9 +165,9 @@ void MzTabFile::load(const String& filename, MzTab& mz_tab)
   Size peptide_uri_index = 0;
   Size peptide_spectra_ref_index = 0;
   map<Size, Size> peptide_abundance_assay_indices;
-  map<Size, Size> peptide_abundance_study_variable_indices;
-  map<Size, Size> peptide_abundance_stdev_study_variable_indices;
-  map<Size, Size> peptide_abundance_std_error_study_variable_indices;
+  map<Size, Size> peptide_abundance_study_variable_to_column_indices;
+  map<Size, Size> peptide_abundance_study_variable_stdev_to_column_indices;
+  map<Size, Size> peptide_abundance_study_variable_std_error_to_column_indices;
 
   // psm section column information
   Size psm_sequence_index = 0;
@@ -1007,17 +1007,17 @@ void MzTabFile::load(const String& filename, MzTab& mz_tab)
         {
           String s = cells[i];
           Size n = (Size)s.substitute("peptide_abundance_study_variable[", "").substitute("]","").trim().toInt();
-          peptide_abundance_stdev_study_variable_indices[n] = i;
+          peptide_abundance_study_variable_to_column_indices[n] = i;
         }  else if (cells[i].hasPrefix("peptide_abundance_stdev_study_variable["))
         {
           String s = cells[i];
           Size n = (Size)s.substitute("peptide_abundance_stdev_study_variable[", "").substitute("]","").trim().toInt();
-          peptide_abundance_stdev_study_variable_indices[n] = i;
+          peptide_abundance_study_variable_stdev_to_column_indices[n] = i;
         }  else if (cells[i].hasPrefix("peptide_abundance_std_error_study_variable["))
         {
           String s = cells[i];
           Size n = (Size)s.substitute("peptide_abundance_std_error_study_variable[", "").substitute("]","").trim().toInt();
-          peptide_abundance_std_error_study_variable_indices[n] = i;
+          peptide_abundance_study_variable_std_error_to_column_indices[n] = i;
         } else if (cells[i].hasPrefix("opt_"))
         {
           peptide_custom_opt_columns[cells[i]] = i;
@@ -1071,17 +1071,17 @@ void MzTabFile::load(const String& filename, MzTab& mz_tab)
         row.peptide_abundance_assay[it->first].fromCellString(cells[it->second]);
       }
 
-      for (map<Size, Size>::const_iterator it = peptide_abundance_study_variable_indices.begin(); it != peptide_abundance_study_variable_indices.end(); ++it)
+      for (map<Size, Size>::const_iterator it = peptide_abundance_study_variable_to_column_indices.begin(); it != peptide_abundance_study_variable_to_column_indices.end(); ++it)
       {
         row.peptide_abundance_study_variable[it->first].fromCellString(cells[it->second]);
       }
 
-      for (map<Size, Size>::const_iterator it = peptide_abundance_stdev_study_variable_indices.begin(); it != peptide_abundance_stdev_study_variable_indices.end(); ++it)
+      for (map<Size, Size>::const_iterator it = peptide_abundance_study_variable_stdev_to_column_indices.begin(); it != peptide_abundance_study_variable_stdev_to_column_indices.end(); ++it)
       {
         row.peptide_abundance_stdev_study_variable[it->first].fromCellString(cells[it->second]);
       }
 
-      for (map<Size, Size>::const_iterator it = peptide_abundance_std_error_study_variable_indices.begin(); it != peptide_abundance_std_error_study_variable_indices.end(); ++it)
+      for (map<Size, Size>::const_iterator it = peptide_abundance_study_variable_std_error_to_column_indices.begin(); it != peptide_abundance_study_variable_std_error_to_column_indices.end(); ++it)
       {
         row.peptide_abundance_std_error_study_variable[it->first].fromCellString(cells[it->second]);
       }
