@@ -432,6 +432,25 @@ START_SECTION((extra))
     TEST_EQUAL(decoyion.first,"y10/1+")
     TEST_REAL_SIMILAR(decoyion.second, 1070.57217)
   }
+
+  {
+    AASequence peptide = AASequence("KVGLDPSQLPVGENGIV");
+    MRMDecoy::IonSeries target_ionseries = gen.getIonSeries(peptide, 2);
+
+    double target_mz_1 = 737.394;
+    double target_mz_2 = 793.936;
+    double mz_threshold = 0.8;
+
+    std::pair<String, double> targetion1 = gen.getTargetIon(target_mz_1, mz_threshold, target_ionseries, 1, 1);
+
+    TEST_EQUAL(targetion1.first,"b15/2+-18")
+    TEST_REAL_SIMILAR(targetion1.second, 737.394)
+
+    std::pair<String, double> targetion2 = gen.getTargetIon(target_mz_2, mz_threshold, target_ionseries, 1, 1);
+
+    TEST_EQUAL(targetion2.first,"b16/2+-18")
+    TEST_REAL_SIMILAR(targetion2.second, 793.936)
+  }
 }
 END_SECTION
 /////////////////////////////////////////////////////////////

@@ -139,30 +139,40 @@ namespace OpenMS
 
     for (boost::unordered_map<String, double>::iterator bit = bionseries.begin(); bit != bionseries.end(); ++bit)
     {
-      bionseries_loss[bit->first + "-17"] = bit->second - 17;
-      bionseries_loss[bit->first + "-18"] = bit->second - 18;
-      bionseries_loss[bit->first + "-34"] = bit->second - 34;
-      bionseries_loss[bit->first + "-35"] = bit->second - 35;
-      bionseries_loss[bit->first + "-36"] = bit->second - 36;
-      bionseries_loss[bit->first + "-44"] = bit->second - 44;
-      bionseries_loss[bit->first + "-45"] = bit->second - 45;
-      bionseries_loss[bit->first + "-46"] = bit->second - 46;
-      bionseries_loss[bit->first + "-64"] = bit->second - 64;
-      bionseries_loss[bit->first + "-98"] = bit->second - 98;
+      std::vector<String> first_split, second_split;
+      bit->first.split("/",first_split);
+      first_split[1].split("+",second_split);
+      int frag_charge = String(second_split[0]).toInt();
+      bionseries_loss[bit->first + "-17"] = bit->second - 17/frag_charge;
+      bionseries_loss[bit->first + "-18"] = bit->second - 18/frag_charge;
+      bionseries_loss[bit->first + "-34"] = bit->second - 34/frag_charge;
+      bionseries_loss[bit->first + "-35"] = bit->second - 35/frag_charge;
+      bionseries_loss[bit->first + "-36"] = bit->second - 36/frag_charge;
+      bionseries_loss[bit->first + "-44"] = bit->second - 44/frag_charge;
+      bionseries_loss[bit->first + "-45"] = bit->second - 45/frag_charge;
+      bionseries_loss[bit->first + "-46"] = bit->second - 46/frag_charge;
+      bionseries_loss[bit->first + "-64"] = bit->second - 64/frag_charge;
+      bionseries_loss[bit->first + "-80"] = bit->second - 80/frag_charge;
+      bionseries_loss[bit->first + "-98"] = bit->second - 98/frag_charge;
     }
     ionseries["b_loss"] = bionseries_loss;
     for (boost::unordered_map<String, double>::iterator bit = bionseries_isotopes.begin(); bit != bionseries_isotopes.end(); ++bit)
     {
-      bionseries_isotopes_loss[bit->first + "-17"] = bit->second - 17;
-      bionseries_isotopes_loss[bit->first + "-18"] = bit->second - 18;
-      bionseries_isotopes_loss[bit->first + "-34"] = bit->second - 34;
-      bionseries_isotopes_loss[bit->first + "-35"] = bit->second - 35;
-      bionseries_isotopes_loss[bit->first + "-36"] = bit->second - 36;
-      bionseries_isotopes_loss[bit->first + "-44"] = bit->second - 44;
-      bionseries_isotopes_loss[bit->first + "-45"] = bit->second - 45;
-      bionseries_isotopes_loss[bit->first + "-46"] = bit->second - 46;
-      bionseries_isotopes_loss[bit->first + "-64"] = bit->second - 64;
-      bionseries_isotopes_loss[bit->first + "-98"] = bit->second - 98;
+      std::vector<String> first_split, second_split;
+      bit->first.split("/",first_split);
+      first_split[1].split("+",second_split);
+      int frag_charge = String(second_split[0]).toInt();
+      bionseries_isotopes_loss[bit->first + "-17"] = bit->second - 17/frag_charge;
+      bionseries_isotopes_loss[bit->first + "-18"] = bit->second - 18/frag_charge;
+      bionseries_isotopes_loss[bit->first + "-34"] = bit->second - 34/frag_charge;
+      bionseries_isotopes_loss[bit->first + "-35"] = bit->second - 35/frag_charge;
+      bionseries_isotopes_loss[bit->first + "-36"] = bit->second - 36/frag_charge;
+      bionseries_isotopes_loss[bit->first + "-44"] = bit->second - 44/frag_charge;
+      bionseries_isotopes_loss[bit->first + "-45"] = bit->second - 45/frag_charge;
+      bionseries_isotopes_loss[bit->first + "-46"] = bit->second - 46/frag_charge;
+      bionseries_isotopes_loss[bit->first + "-64"] = bit->second - 64/frag_charge;
+      bionseries_isotopes_loss[bit->first + "-80"] = bit->second - 80/frag_charge;
+      bionseries_isotopes_loss[bit->first + "-98"] = bit->second - 98/frag_charge;
     }
     ionseries["b_isotopes_loss"] = bionseries_isotopes_loss;
 
@@ -191,30 +201,40 @@ namespace OpenMS
 
     for (boost::unordered_map<String, double>::iterator yit = yionseries.begin(); yit != yionseries.end(); ++yit)
     {
-      yionseries_loss[yit->first + "-17"] = yit->second - 17;
-      yionseries_loss[yit->first + "-18"] = yit->second - 18;
-      yionseries_loss[yit->first + "-34"] = yit->second - 34;
-      yionseries_loss[yit->first + "-35"] = yit->second - 35;
-      yionseries_loss[yit->first + "-36"] = yit->second - 36;
-      yionseries_loss[yit->first + "-44"] = yit->second - 44;
-      yionseries_loss[yit->first + "-45"] = yit->second - 45;
-      yionseries_loss[yit->first + "-46"] = yit->second - 46;
-      yionseries_loss[yit->first + "-64"] = yit->second - 64;
-      yionseries_loss[yit->first + "-98"] = yit->second - 98;
+      std::vector<String> first_split, second_split;
+      yit->first.split("/",first_split);
+      first_split[1].split("+",second_split);
+      int frag_charge = String(second_split[0]).toInt();
+      yionseries_loss[yit->first + "-17"] = yit->second - 17/frag_charge;
+      yionseries_loss[yit->first + "-18"] = yit->second - 18/frag_charge;
+      yionseries_loss[yit->first + "-34"] = yit->second - 34/frag_charge;
+      yionseries_loss[yit->first + "-35"] = yit->second - 35/frag_charge;
+      yionseries_loss[yit->first + "-36"] = yit->second - 36/frag_charge;
+      yionseries_loss[yit->first + "-44"] = yit->second - 44/frag_charge;
+      yionseries_loss[yit->first + "-45"] = yit->second - 45/frag_charge;
+      yionseries_loss[yit->first + "-46"] = yit->second - 46/frag_charge;
+      yionseries_loss[yit->first + "-64"] = yit->second - 64/frag_charge;
+      yionseries_loss[yit->first + "-80"] = yit->second - 80/frag_charge;
+      yionseries_loss[yit->first + "-98"] = yit->second - 98/frag_charge;
     }
     ionseries["y_loss"] = yionseries_loss;
     for (boost::unordered_map<String, double>::iterator yit = yionseries_isotopes.begin(); yit != yionseries_isotopes.end(); ++yit)
     {
-      yionseries_isotopes_loss[yit->first + "-17"] = yit->second - 17;
-      yionseries_isotopes_loss[yit->first + "-18"] = yit->second - 18;
-      yionseries_isotopes_loss[yit->first + "-34"] = yit->second - 34;
-      yionseries_isotopes_loss[yit->first + "-35"] = yit->second - 35;
-      yionseries_isotopes_loss[yit->first + "-36"] = yit->second - 36;
-      yionseries_isotopes_loss[yit->first + "-44"] = yit->second - 44;
-      yionseries_isotopes_loss[yit->first + "-45"] = yit->second - 45;
-      yionseries_isotopes_loss[yit->first + "-46"] = yit->second - 46;
-      yionseries_isotopes_loss[yit->first + "-64"] = yit->second - 64;
-      yionseries_isotopes_loss[yit->first + "-98"] = yit->second - 98;
+      std::vector<String> first_split, second_split;
+      yit->first.split("/",first_split);
+      first_split[1].split("+",second_split);
+      int frag_charge = String(second_split[0]).toInt();
+      yionseries_isotopes_loss[yit->first + "-17"] = yit->second - 17/frag_charge;
+      yionseries_isotopes_loss[yit->first + "-18"] = yit->second - 18/frag_charge;
+      yionseries_isotopes_loss[yit->first + "-34"] = yit->second - 34/frag_charge;
+      yionseries_isotopes_loss[yit->first + "-35"] = yit->second - 35/frag_charge;
+      yionseries_isotopes_loss[yit->first + "-36"] = yit->second - 36/frag_charge;
+      yionseries_isotopes_loss[yit->first + "-44"] = yit->second - 44/frag_charge;
+      yionseries_isotopes_loss[yit->first + "-45"] = yit->second - 45/frag_charge;
+      yionseries_isotopes_loss[yit->first + "-46"] = yit->second - 46/frag_charge;
+      yionseries_isotopes_loss[yit->first + "-64"] = yit->second - 64/frag_charge;
+      yionseries_isotopes_loss[yit->first + "-80"] = yit->second - 80/frag_charge;
+      yionseries_isotopes_loss[yit->first + "-98"] = yit->second - 98/frag_charge;
     }
     ionseries["y_isotopes_loss"] = yionseries_isotopes_loss;
 
@@ -639,7 +659,15 @@ namespace OpenMS
         // determine the current annotation for the target ion and then select
         // the appropriate decoy ion for this target transition
         std::pair<String, double> targetion = getTargetIon(tr.getProductMZ(), mz_threshold, target_ionseries, enable_losses, enable_isotopes);
+        if (targetion.second == -1) {
+          throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Target fragment ion with m/z " + String(tr.getProductMZ()) + " of peptide " + target_peptide_sequence.toString() + " with precursor charge " + String(target_peptide.getChargeState()) + " could not be mapped. Please check whether it is a valid ion and enable losses or isotopes if necessary.");
+        }
+
         std::pair<String, double> decoyion = getDecoyIon(targetion.first, decoy_ionseries);
+        if (decoyion.second == -1) {
+          throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Decoy fragment ion for target fragment ion " + String(targetion.first) + " of peptide " + target_peptide_sequence.toString() + " with precursor charge " + String(target_peptide.getChargeState()) + " could not be mapped. Please check whether it is a valid ion and enable losses or isotopes if necessary.");
+        }
+
         if (method == "shift")
         {
           decoy_tr.setProductMZ(decoyion.second + mz_shift);
@@ -719,6 +747,9 @@ namespace OpenMS
 
           // determine the current annotation for the target ion 
           std::pair<String, double> targetion = getTargetIon(tr.getProductMZ(), mz_threshold, target_ionseries, enable_losses, enable_isotopes);
+          if (targetion.second == -1) {
+            throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Target fragment ion with m/z " + String(tr.getProductMZ()) + " of peptide " + target_peptide_sequence.toString() + " with precursor charge " + String(target_peptide.getChargeState()) + " could not be mapped. Please check whether it is a valid ion and enable losses or isotopes if necessary.");
+          }
           // correct the masses of the input experiment 
           {
             ReactionMonitoringTransition transition = *(pep_it->second[i]); // copy the transition
