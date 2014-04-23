@@ -153,7 +153,7 @@ protected:
     registerStringOption_("model:type", "<choice>", models[0], "Type of elution model to fit to features", false);
     setValidStrings_("model:type", models);
     registerFlag_("model:unweighted_fit", "Suppress weighting of mass traces according to theoretical intensities when fitting elution models", true);
-    registerFlag_("model:no_imputation", "If fitting the elution model fails for a feature, set its intensity to zero instead of imputing a value from the OpenSWATH intensity", true);
+    registerFlag_("model:no_imputation", "If fitting the elution model fails for a feature, set its intensity to zero instead of imputing a value from the initial intensity estimate", true);
     registerTOPPSubsection_("model:check", "Parameters for checking the validity of elution models (and rejecting them if necessary)");
     registerDoubleOption_("model:check:boundaries", "<value>", 0.5, "Time points corresponding to this fraction of the elution model height have to be within the data region used for model fitting", false, true);
     setMinFloat_("model:check:boundaries", 0.0);
@@ -417,11 +417,12 @@ protected:
       precursor_mzs[trans_it->getPeptideRef()] = trans_it->getPrecursorMZ();
     }
 
+    trafo_.invert(); // to assign RTs to peptide IDs derived from assays
     double tolerance = getDoubleOption_("detect:tolerance");
     for (ChromatogramMap::iterator group_it = chromatogram_groups.begin();
          group_it != chromatogram_groups.end(); ++group_it)
     {
-      // @TODO: add progress counter
+      // @TODO: add proper progress counter
       vector<double> current_theo_ints;
       for (ChromatogramPtrs::const_iterator ptr_it = group_it->second.begin();
            ptr_it != group_it->second.end(); ++ptr_it)
@@ -436,15 +437,17 @@ protected:
       hit.setSequence(AASequence(peptide.sequence));
       hit.setProteinAccessions(peptide.protein_refs);
       Int charge = peptide.getChargeState();
-      double mz = precursor_mzs[peptide_ref];
       hit.setCharge(charge);
-      hit.setMetaValue("MZ", mz);
-      hit.setMetaValue("RT", peptide.rts[0].getCVTerms()["MS:1000896"][0].
-                       getValue().toString().toDouble()); // yes, WTF
       PeptideIdentification pep_id;
       pep_id.insertHit(hit);
+      double mz = precursor_mzs[peptide_ref];
+      double rt = peptide.rts[0].getCVTerms()["MS:1000896"][0].getValue().
+        toString().toDouble(); // yes, WTF
+      pep_id.setMZ(mz);
+      pep_id.setRT(trafo_.apply(rt));
 
       Feature feature;
+      feature.setMetaValue("PeptideRef", peptide_ref);
       detectFeature_(peptide_ref, group_it->second, feature, 
                      current_theo_ints, gauss_filter, tolerance);
 
@@ -460,7 +463,9 @@ protected:
         features.getUnassignedPeptideIdentifications().push_back(pep_id);
       }
     }
-    
+    trafo_.invert(); // revert the "invert" above (for consistency)
+
+    features.getProteinIdentifications().resize(1);
     for (vector<TargetedExperiment::Protein>::const_iterator prot_it = 
            library_.getProteins().begin(); prot_it != 
            library_.getProteins().end(); ++prot_it)
@@ -468,7 +473,9 @@ protected:
       ProteinHit hit;
       hit.setAccession(prot_it->id);
       hit.setSequence(prot_it->sequence);
+      features.getProteinIdentifications()[0].insertHit(hit);
     }
+    features.applyMemberFunction(&UniqueIdInterface::ensureUniqueId);
   }
 
 
@@ -490,18 +497,19 @@ protected:
 
     double previous = data[start].getIntensity();
     double threshold = fraction * previous;
-    Int left_right = find_min ? -1 : 1; // multiply by -1 to change "<" to ">"
+    Int min_max = find_min ? -1 : 1; // multiply by -1 to change "<" to ">"
     for (index = start + step; index * step <= stop; index += step)
     {
       double current = data[index].getIntensity();
-      if ((left_right * current < left_right * previous) || 
-          ((fraction > 0.0) && (left_right * current < left_right * threshold)))
+      if ((min_max * current < min_max * previous) || 
+          ((fraction > 0.0) && (min_max * current < min_max * threshold)))
       {
         index -= step; // went a step too far, go back
         break;
       }
       previous = current;
     }
+    if (index * step > stop) index -= step;
     return make_pair(Size(index), previous);
   }
 
@@ -511,11 +519,15 @@ protected:
                       const vector<double>& theo_intensities, 
                       GaussFilter& gauss_filter, double tolerance)
   {
+    LOG_DEBUG << peptide_ref << ":" << endl;
+
     Size n_traces = chrom_ptrs.size(); // number of mass traces/transitions
     Size n_times = chrom_ptrs[0]->size(); // number of time points
 
+    LOG_DEBUG << "traces: " << n_traces << "\ntime steps: " << n_times << endl;
+
     // extract raw intensities:
-    vector<vector<double> > intensities;
+    vector<vector<double> > intensities(n_traces);
     for (Size i = 0; i < n_traces; ++i)
     {
       const MSChromatogram<>* chrom_ptr = chrom_ptrs[i];
@@ -526,10 +538,11 @@ protected:
       }
     }
     // (un)scale intensities according to isotope distribution:
-    vector<vector<double> > scaled;
+    vector<vector<double> > scaled(n_traces);
     for (Size trace = 0; trace < n_traces; ++trace)
     {
       double theo_intensity = theo_intensities[trace];
+      scaled[trace].resize(n_times);
       for (Size time = 0; time < n_times; ++time)
       {
         scaled[trace][time] = intensities[trace][time] / theo_intensity;
@@ -546,20 +559,21 @@ protected:
       vector<pair<double, Size> > points;
       for (Size trace = 0; trace < n_traces; ++trace)
       {
-        points.push_back(make_pair(scaled[trace][time], trace));
+        double intensity = scaled[trace][time];
+        if (intensity > 0) points.push_back(make_pair(intensity, trace));
       }
+
       sort(points.begin(), points.end());
-      vector<Size> region;
       vector<vector<Size> > regions;
-       // iterate over pairs of points:
-      for (Size trace = 0; trace < n_traces - 1; ++trace)
+      vector<Size> region;
+      // iterate over pairs of points:
+      for (Size i = 0; i + 1 < points.size(); ++i)
       {
-        double avg_intensity = (points[trace].first + 
-                                points[trace + 1].first) * 0.5;
+        double avg_intensity = (points[i].first + points[i + 1].first) * 0.5;
         bool matching[2];
         for (Size offset = 0; offset <= 1; ++offset)
         {
-          Size index = points[trace + offset].second;
+          Size index = points[i + offset].second;
           double unscaled = avg_intensity * theo_intensities[index];
           double measured = intensities[index][time];
           double actual_tolerance = tolerance * sqrt(measured);
@@ -567,8 +581,8 @@ protected:
         }
         if (matching[0] && matching[1]) // start new or extend existing region
         {
-          if (region.empty()) region.push_back(points[trace].second);
-          region.push_back(points[trace + 1].second);
+          if (region.empty()) region.push_back(points[i].second);
+          region.push_back(points[i + 1].second);
         }
         else if (!region.empty()) // region not extended - store it
         {
@@ -619,7 +633,6 @@ protected:
       else peak.setIntensity(0.0);
       n_matches.push_back(peak);
     }
-    LOG_INFO << peptide_ref << ":" << endl;
     if (!medians.empty())
     {
       // based on the groups of matching points, use the time point with the
@@ -654,12 +667,13 @@ protected:
                                                          true);
       pair<Size, double> apex = ((left_apex.second > right_apex.second) ? 
                                  left_apex : right_apex);
-      LOG_INFO << "apex: " << apex.first << ", RT "
-               << smoothed[apex.first].getRT() << ", int. " << apex.second
-               << endl;
+      LOG_DEBUG << "apex: " << apex.first << ", RT "
+                << smoothed[apex.first].getRT() << ", int. " << apex.second
+                << endl;
       // find left peak border:
       pair<Size, double> left_border = 
         findNextExtremum_(smoothed, apex.first, false, true);
+      LOG_DEBUG << "left border: " << left_border.first << " -> ";
       // try to extend further based on original (non-smoothed) data:
       if (medians[left_border.first].getIntensity() <= 
           smoothed[left_border.first].getIntensity())
@@ -667,16 +681,19 @@ protected:
         left_border = findNextExtremum_(medians, left_border.first, false, 
                                         true);
       }
+      LOG_DEBUG << left_border.first << endl;
       // find right peak border:
       pair<Size, double> right_border = 
         findNextExtremum_(smoothed, apex.first, true, true);
       // try to extend further based on original (non-smoothed) data:
+      LOG_DEBUG << "right border: " << right_border.first << " -> ";
       if (medians[right_border.first].getIntensity() <= 
           smoothed[right_border.first].getIntensity())
       {
         right_border = findNextExtremum_(medians, right_border.first, true, 
                                          true);
       }
+      LOG_DEBUG << right_border.first << endl;
 
       // need at least three time points:
       if (right_border.first - left_border.first < 2) return;
@@ -698,30 +715,39 @@ protected:
         subordinates[trace].setRT(apex_rt);
         const MSChromatogram<>* chrom_ptr = chrom_ptrs[trace];
         subordinates[trace].setMZ(chrom_ptr->getMZ());
-        vector<ConvexHull2D> hulls(1);
-        subordinates[trace].setConvexHulls(hulls);
+        subordinates[trace].getConvexHulls().resize(1);
+        String native_id = peptide_ref + "_i" + String(trace);
+        subordinates[trace].setMetaValue("native_id", native_id);
+        subordinates[trace].setMetaValue("isotope_probability", 
+                                         theo_intensities[trace]);
       }
+      vector<ConvexHull2D::PointArrayType> hull_points(n_traces);
       for (Size time = which_matches[left_border.first]; 
            time <= which_matches[right_border.first]; ++time)
       {
-        double rt = (*chrom_ptrs[0])[time].getRT();
         vector<double> intensities(n_traces);
         for (vector<Size>::iterator index_it = matches[time].begin();
              index_it != matches[time].end(); ++index_it)
         {
           intensities[*index_it] = scaled[*index_it][time];
         }
+        double rt = (*chrom_ptrs[0])[time].getRT();
         for (Size trace = 0; trace < n_traces; ++trace)
         {
           DPosition<2> point(rt, intensities[trace]);
-          subordinates[trace].getConvexHulls()[0].addPoint(point);
+          hull_points[trace].push_back(point);
         }
+      }
+      for (Size trace = 0; trace < n_traces; ++trace)
+      {
+        subordinates[trace].getConvexHulls()[0].setHullPoints(
+          hull_points[trace]);
       }
       feature.setSubordinates(subordinates);
     }
     else
     {   
-      LOG_INFO << "apex: --" << endl;
+      LOG_DEBUG << "--" << endl;
     }
   }
 
@@ -798,18 +824,25 @@ protected:
              feat_it->getSubordinates().begin(); sub_it !=
              feat_it->getSubordinates().end(); ++sub_it)
       {
-        const ConvexHull2D& hull = sub_it->getConvexHulls()[0];
-        String native_id = sub_it->getMetaValue("native_id");
         FeatureFinderAlgorithmPickedHelperStructs::MassTrace<Peak1D> trace;
-        trace.theoretical_int = trans_ids[native_id]->getLibraryIntensity();
-        sub_it->setMetaValue("isotope_probability", trace.theoretical_int);
         trace.peaks.reserve(points_per_hull);
+        if (sub_it->metaValueExists("isotope_probability"))
+        {
+          trace.theoretical_int = sub_it->getMetaValue("isotope_probability");
+        }
+        else
+        {
+          String native_id = sub_it->getMetaValue("native_id");
+          trace.theoretical_int = trans_ids[native_id]->getLibraryIntensity();
+          sub_it->setMetaValue("isotope_probability", trace.theoretical_int);
+        }
+        const ConvexHull2D& hull = sub_it->getConvexHulls()[0];
         for (ConvexHull2D::PointArrayTypeConstIterator point_it =
                hull.getHullPoints().begin(); point_it !=
                hull.getHullPoints().end(); ++point_it)
         {
           double intensity = point_it->getY();
-          if (intensity > 0) // only use non-zero intensities for fitting
+          if (intensity > 0.0) // only use non-zero intensities for fitting
           {
             Peak1D peak;
             peak.setMZ(sub_it->getMZ());
@@ -821,6 +854,7 @@ protected:
         trace.updateMaximum();
         if (!trace.peaks.empty()) traces.push_back(trace);
       }
+
       Size max_trace = 0;
       double max_intensity = 0;
       for (Size i = 0; i < traces.size(); ++i)
