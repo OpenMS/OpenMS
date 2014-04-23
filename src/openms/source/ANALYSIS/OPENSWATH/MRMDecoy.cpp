@@ -139,15 +139,15 @@ namespace OpenMS
         bionseries_loss["b" + String(i) + "-34" + "^" + String(charge)] = pos - neutralloss_nh3nh3.getMonoWeight()/charge;
         bionseries_loss["b" + String(i) + "-35" + "^" + String(charge)] = pos - neutralloss_h2onh3.getMonoWeight()/charge;
         bionseries_loss["b" + String(i) + "-36" + "^" + String(charge)] = pos - neutralloss_h2oh2o.getMonoWeight()/charge;
-        if (ion.toString().find("N")!=std::string::npos || ion.toString().find("Q")!=std::string::npos)
+        if (sequence.toString().find("N")!=std::string::npos || sequence.toString().find("Q")!=std::string::npos)
         {
           bionseries_loss["b" + String(i) + "-45" + "^" + String(charge)] = pos - neutralloss_ch3no.getMonoWeight()/charge;
         }
-        if (ion.toString().find("M(Oxidation)")!=std::string::npos)
+        if (sequence.toString().find("M(Oxidation)")!=std::string::npos)
         {
           bionseries_loss["b" + String(i) + "-64" + "^" + String(charge)] = pos - neutralloss_ch4so.getMonoWeight()/charge;
         }
-        if (ion.toString().find("S(Phospho)")!=std::string::npos || ion.toString().find("T(Phospho)")!=std::string::npos)
+        if (sequence.toString().find("S(Phospho)")!=std::string::npos || sequence.toString().find("T(Phospho)")!=std::string::npos)
         {
           bionseries_loss["b" + String(i) + "-80" + "^" + String(charge)] = pos - neutralloss_hpo3.getMonoWeight()/charge;
           bionseries_loss["b" + String(i) + "-98" + "^" + String(charge)] = pos - neutralloss_hpo3h2o.getMonoWeight()/charge;
@@ -172,15 +172,15 @@ namespace OpenMS
         yionseries_loss["y" + String(i) + "-36" + "^" + String(charge)] = pos - neutralloss_h2oh2o.getMonoWeight()/charge;
         yionseries_loss["y" + String(i) + "-44" + "^" + String(charge)] = pos - neutralloss_co2.getMonoWeight()/charge;
         yionseries_loss["y" + String(i) + "-46" + "^" + String(charge)] = pos - neutralloss_hccoh.getMonoWeight()/charge;
-        if (ion.toString().find("N")!=std::string::npos || ion.toString().find("Q")!=std::string::npos)
+        if (sequence.toString().find("N")!=std::string::npos || sequence.toString().find("Q")!=std::string::npos)
         { 
           yionseries_loss["y" + String(i) + "-45" + "^" + String(charge)] = pos - neutralloss_ch3no.getMonoWeight()/charge;
         }
-        if (ion.toString().find("M(Oxidation)")!=std::string::npos)
+        if (sequence.toString().find("M(Oxidation)")!=std::string::npos)
         { 
           yionseries_loss["y" + String(i) + "-64" + "^" + String(charge)] = pos - neutralloss_ch4so.getMonoWeight()/charge;
         }
-        if (ion.toString().find("S(Phospho)")!=std::string::npos || ion.toString().find("T(Phospho)")!=std::string::npos)
+        if (sequence.toString().find("S(Phospho)")!=std::string::npos || sequence.toString().find("T(Phospho)")!=std::string::npos)
         { 
           yionseries_loss["y" + String(i) + "-80" + "^" + String(charge)] = pos - neutralloss_hpo3.getMonoWeight()/charge;
           yionseries_loss["y" + String(i) + "-98" + "^" + String(charge)] = pos - neutralloss_hpo3h2o.getMonoWeight()/charge;

@@ -460,10 +460,6 @@ START_SECTION((extra))
 
     TEST_EQUAL(targetion1.first,"y3-45^1")
 
-    std::pair<String, double> targetion2 = gen.getTargetIon(311.1727, mz_threshold, target_ionseries, 1);
-
-    TEST_EQUAL(targetion2.first,"y11-46^3")
-
     std::pair<String, double> targetion3 = gen.getTargetIon(510.2660, mz_threshold, target_ionseries, 1);
 
     TEST_EQUAL(targetion3.first,"b20-35^3")
