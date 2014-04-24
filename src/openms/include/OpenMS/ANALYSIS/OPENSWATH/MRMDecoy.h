@@ -36,7 +36,6 @@
 #define OPENMS_ANALYSIS_OPENSWATH_MRMDECOY_H
 
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
-#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
 #include <boost/algorithm/string.hpp>
@@ -112,7 +111,7 @@ public:
                         double identity_threshold, int max_attempts, double mz_threshold, 
                         bool theoretical, double mz_shift, bool exclude_similar, 
                         double similarity_threshold, bool remove_CNterm_mods, 
-                        double precursor_mass_shift, bool enable_losses);
+                        double precursor_mass_shift, bool enable_losses, bool skip_unannotated);
     /**
       @brief Remove transitions s.t. all peptides have a defined set of transitions.
 

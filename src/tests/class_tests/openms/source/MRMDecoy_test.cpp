@@ -354,7 +354,8 @@ START_SECTION((void generateDecoys(OpenMS::TargetedExperiment& exp,
                         OpenMS::TargetedExperiment& dec, String method, String decoy_tag,
                         double identity_threshold, int max_attempts, double mz_threshold, 
                         bool theoretical, double mz_shift, bool exclude_similar, 
-                        double similarity_threshold, bool remove_CNterm_mods, double precursor_mass_shift);))
+                        double similarity_threshold, bool remove_CNterm_mods, double precursor_mass_shift,
+                        bool enable_losses, bool skip_unannotated);))
 {
   String method = "pseudo-reverse";
   double identity_threshold = 1.0;
@@ -383,7 +384,7 @@ START_SECTION((void generateDecoys(OpenMS::TargetedExperiment& exp,
   decoys.restrictTransitions(targeted_exp, min_transitions, max_transitions);
   TEST_EQUAL(targeted_exp.getPeptides().size(), 13)
   TEST_EQUAL(targeted_exp.getTransitions().size(), 33)
-  decoys.generateDecoys(targeted_exp, targeted_decoy, method, decoy_tag, identity_threshold, max_attempts, mz_threshold, theoretical, mz_shift, exclude_similar, similarity_threshold, remove_CNterminal_mods, 0.1, 1);  traml.store(test, targeted_decoy);
+  decoys.generateDecoys(targeted_exp, targeted_decoy, method, decoy_tag, identity_threshold, max_attempts, mz_threshold, theoretical, mz_shift, exclude_similar, similarity_threshold, remove_CNterminal_mods, 0.1, 1, 0);  traml.store(test, targeted_decoy);
   
   TEST_FILE_EQUAL(test.c_str(), OPENMS_GET_TEST_DATA_PATH(out))
 }

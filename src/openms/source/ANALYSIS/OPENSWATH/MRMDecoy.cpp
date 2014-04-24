@@ -75,7 +75,8 @@ namespace OpenMS
     std::vector<String> SpectraST_order;
     SpectraST_order += "b", "y";
 
-    if (enable_losses) {
+    if (enable_losses)
+    {
       SpectraST_order += "b_loss", "y_loss";
     }
 
@@ -140,14 +141,20 @@ namespace OpenMS
         bionseries_loss["b" + String(i) + "-35" + "^" + String(charge)] = pos - neutralloss_h2onh3.getMonoWeight()/charge;
         bionseries_loss["b" + String(i) + "-36" + "^" + String(charge)] = pos - neutralloss_h2oh2o.getMonoWeight()/charge;
         if (sequence.toString().find("N")!=std::string::npos || sequence.toString().find("Q")!=std::string::npos)
+        // This hack is implemented to enable the annotation of residue specific modifications in the decoy fragments.
+        // If the function is used for generic annotation, use ion.toString() instead of sequence.toString().
         {
           bionseries_loss["b" + String(i) + "-45" + "^" + String(charge)] = pos - neutralloss_ch3no.getMonoWeight()/charge;
         }
         if (sequence.toString().find("M(Oxidation)")!=std::string::npos)
+        // This hack is implemented to enable the annotation of residue specific modifications in the decoy fragments.
+        // If the function is used for generic annotation, use ion.toString() instead of sequence.toString().
         {
           bionseries_loss["b" + String(i) + "-64" + "^" + String(charge)] = pos - neutralloss_ch4so.getMonoWeight()/charge;
         }
         if (sequence.toString().find("S(Phospho)")!=std::string::npos || sequence.toString().find("T(Phospho)")!=std::string::npos)
+        // This hack is implemented to enable the annotation of residue specific modifications in the decoy fragments.
+        // If the function is used for generic annotation, use ion.toString() instead of sequence.toString().
         {
           bionseries_loss["b" + String(i) + "-80" + "^" + String(charge)] = pos - neutralloss_hpo3.getMonoWeight()/charge;
           bionseries_loss["b" + String(i) + "-98" + "^" + String(charge)] = pos - neutralloss_hpo3h2o.getMonoWeight()/charge;
@@ -173,14 +180,20 @@ namespace OpenMS
         yionseries_loss["y" + String(i) + "-44" + "^" + String(charge)] = pos - neutralloss_co2.getMonoWeight()/charge;
         yionseries_loss["y" + String(i) + "-46" + "^" + String(charge)] = pos - neutralloss_hccoh.getMonoWeight()/charge;
         if (sequence.toString().find("N")!=std::string::npos || sequence.toString().find("Q")!=std::string::npos)
+        // This hack is implemented to enable the annotation of residue specific modifications in the decoy fragments.
+        // If the function is used for generic annotation, use ion.toString() instead of sequence.toString().
         { 
           yionseries_loss["y" + String(i) + "-45" + "^" + String(charge)] = pos - neutralloss_ch3no.getMonoWeight()/charge;
         }
         if (sequence.toString().find("M(Oxidation)")!=std::string::npos)
+        // This hack is implemented to enable the annotation of residue specific modifications in the decoy fragments.
+        // If the function is used for generic annotation, use ion.toString() instead of sequence.toString().
         { 
           yionseries_loss["y" + String(i) + "-64" + "^" + String(charge)] = pos - neutralloss_ch4so.getMonoWeight()/charge;
         }
         if (sequence.toString().find("S(Phospho)")!=std::string::npos || sequence.toString().find("T(Phospho)")!=std::string::npos)
+        // This hack is implemented to enable the annotation of residue specific modifications in the decoy fragments.
+        // If the function is used for generic annotation, use ion.toString() instead of sequence.toString().
         { 
           yionseries_loss["y" + String(i) + "-80" + "^" + String(charge)] = pos - neutralloss_hpo3.getMonoWeight()/charge;
           yionseries_loss["y" + String(i) + "-98" + "^" + String(charge)] = pos - neutralloss_hpo3h2o.getMonoWeight()/charge;
@@ -492,7 +505,7 @@ namespace OpenMS
                                 String method, String decoy_tag, double identity_threshold, int max_attempts, 
                                 double mz_threshold, bool theoretical, double mz_shift, bool exclude_similar, 
                                 double similarity_threshold, bool remove_CNterminal_mods, double precursor_mass_shift,
-                                bool enable_losses)  {
+                                bool enable_losses, bool skip_unannotated)  {
     MRMDecoy::PeptideVectorType peptides;
     MRMDecoy::ProteinVectorType proteins;
     MRMDecoy::TransitionVectorType decoy_transitions;
@@ -587,14 +600,7 @@ namespace OpenMS
         // determine the current annotation for the target ion and then select
         // the appropriate decoy ion for this target transition
         std::pair<String, double> targetion = getTargetIon(tr.getProductMZ(), mz_threshold, target_ionseries, enable_losses);
-        if (targetion.second == -1) {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Target fragment ion with m/z " + String(tr.getProductMZ()) + " of peptide " + target_peptide_sequence.toString() + " with precursor charge " + String(target_peptide.getChargeState()) + " could not be mapped. Please check whether it is a valid ion and enable losses or removal of terminal modifications if necessary.");
-        }
-
         std::pair<String, double> decoyion = getDecoyIon(targetion.first, decoy_ionseries);
-        if (decoyion.second == -1) {
-          throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Decoy fragment ion for target fragment ion " + String(targetion.first) + " of peptide " + target_peptide_sequence.toString() + " with precursor charge " + String(target_peptide.getChargeState()) + " could not be mapped. Please check whether it is a valid ion and enable losses or removal of terminal modifications if necessary.");
-        }
 
         if (method == "shift")
         {
@@ -616,6 +622,15 @@ namespace OpenMS
             }
           }
          decoy_transitions.push_back(decoy_tr);
+        }
+        else {
+          if (skip_unannotated)
+          {
+            exclusion_peptides.push_back(decoy_tr.getPeptideRef());
+          }
+          else {
+            throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Decoy fragment ion for target fragment ion " + String(targetion.first) + " of peptide " + target_peptide_sequence.toString() + " with precursor charge " + String(target_peptide.getChargeState()) + " could not be mapped. Please check whether it is a valid ion and enable losses or removal of terminal modifications if necessary. Skipping of unannotated target assays is available as last resort.");
+          }
         }
       } // end loop over transitions
     } // end loop over peptides
@@ -675,7 +690,8 @@ namespace OpenMS
 
           // determine the current annotation for the target ion 
           std::pair<String, double> targetion = getTargetIon(tr.getProductMZ(), mz_threshold, target_ionseries, enable_losses);
-          if (targetion.second == -1) {
+          if (targetion.second == -1)
+          {
             throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Target fragment ion with m/z " + String(tr.getProductMZ()) + " of peptide " + target_peptide_sequence.toString() + " with precursor charge " + String(target_peptide.getChargeState()) + " could not be mapped. Please check whether it is a valid ion and enable losses if necessary.");
           }
           // correct the masses of the input experiment 
