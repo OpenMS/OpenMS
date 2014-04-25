@@ -725,16 +725,16 @@ protected:
       for (Size time = which_matches[left_border.first]; 
            time <= which_matches[right_border.first]; ++time)
       {
-        vector<double> intensities(n_traces);
+        vector<double> current_intensities(n_traces);
         for (vector<Size>::iterator index_it = matches[time].begin();
              index_it != matches[time].end(); ++index_it)
         {
-          intensities[*index_it] = scaled[*index_it][time];
+          current_intensities[*index_it] = intensities[*index_it][time];
         }
         double rt = (*chrom_ptrs[0])[time].getRT();
         for (Size trace = 0; trace < n_traces; ++trace)
         {
-          DPosition<2> point(rt, intensities[trace]);
+          DPosition<2> point(rt, current_intensities[trace]);
           hull_points[trace].push_back(point);
         }
       }
