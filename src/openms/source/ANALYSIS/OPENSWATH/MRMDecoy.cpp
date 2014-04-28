@@ -505,7 +505,7 @@ namespace OpenMS
                                 String method, String decoy_tag, double identity_threshold, int max_attempts, 
                                 double mz_threshold, bool theoretical, double mz_shift, bool exclude_similar, 
                                 double similarity_threshold, bool remove_CNterminal_mods, double precursor_mass_shift,
-                                bool enable_losses, bool skip_unannotated)  {
+                                bool enable_losses, bool remove_unannotated)  {
     MRMDecoy::PeptideVectorType peptides;
     MRMDecoy::ProteinVectorType proteins;
     MRMDecoy::TransitionVectorType decoy_transitions;
@@ -623,12 +623,14 @@ namespace OpenMS
           }
          decoy_transitions.push_back(decoy_tr);
         }
-        else {
-          if (skip_unannotated)
+        else
+        {
+          if (remove_unannotated)
           {
             exclusion_peptides.push_back(decoy_tr.getPeptideRef());
           }
-          else {
+          else
+          {
             throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Decoy fragment ion for target fragment ion " + String(targetion.first) + " of peptide " + target_peptide_sequence.toString() + " with precursor charge " + String(target_peptide.getChargeState()) + " could not be mapped. Please check whether it is a valid ion and enable losses or removal of terminal modifications if necessary. Skipping of unannotated target assays is available as last resort.");
           }
         }
@@ -692,7 +694,7 @@ namespace OpenMS
           std::pair<String, double> targetion = getTargetIon(tr.getProductMZ(), mz_threshold, target_ionseries, enable_losses);
           if (targetion.second == -1)
           {
-            throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Target fragment ion with m/z " + String(tr.getProductMZ()) + " of peptide " + target_peptide_sequence.toString() + " with precursor charge " + String(target_peptide.getChargeState()) + " could not be mapped. Please check whether it is a valid ion and enable losses if necessary.");
+            throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Target fragment ion with m/z " + String(tr.getProductMZ()) + " of peptide " + target_peptide_sequence.toString() + " with precursor charge " + String(target_peptide.getChargeState()) + " could not be mapped. Please check whether it is a valid ion and an appropriate mz_threshold was chosen and enable losses if necessary.");
           }
           // correct the masses of the input experiment 
           {

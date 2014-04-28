@@ -457,10 +457,6 @@ START_SECTION((extra))
 
     double mz_threshold = 0.05;
 
-    std::pair<String, double> targetion1 = gen.getTargetIon(244.1284, mz_threshold, target_ionseries, 1);
-
-    TEST_EQUAL(targetion1.first,"y3-45^1")
-
     std::pair<String, double> targetion3 = gen.getTargetIon(510.2660, mz_threshold, target_ionseries, 1);
 
     TEST_EQUAL(targetion3.first,"b20-35^3")

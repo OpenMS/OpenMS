@@ -118,8 +118,8 @@ protected:
     registerDoubleOption_("similarity_threshold", "<double>", -1, "Similarity threshold for absolute difference of the product mz of target and decoy assays for exclusion in Dalton. Suggested value: 0.05", false);
     registerFlag_("append", "set this flag if non-decoy TraML should be appended to the output.");
     registerFlag_("remove_CNterm_mods", "set this flag to remove decoy peptides with C/N terminal modifications (may be necessary depending on the decoy generation method).");
+    registerFlag_("remove_unannotated", "set this flag if target assays with unannotated ions should be ignored from decoy generation.");
     registerFlag_("enable_losses", "set this flag if fragment ions should also be annotated with neutral losses.");
-    registerFlag_("skip_unannotated", "set this flag if target assays with unannotated ions should be ignored from decoy generation.");
     registerDoubleOption_("identity_threshold", "<double>", 0.7, "shuffle: identity threshold for the shuffle algorithm", false);
     registerIntOption_("max_attempts", "<int>", 10, "shuffle: maximum attempts to lower the sequence identity between target and decoy for the shuffle algorithm", false);
     registerDoubleOption_("mz_shift", "<double>", 20, "shift: MZ shift in Thomson for shift decoy method", false);
@@ -138,8 +138,8 @@ protected:
     double similarity_threshold = getDoubleOption_("similarity_threshold");
     bool append = getFlag_("append");
     bool remove_CNterm_mods = getFlag_("remove_CNterm_mods");
+    bool remove_unannotated = getFlag_("remove_unannotated");
     bool enable_losses = getFlag_("enable_losses");
-    bool skip_unannotated = getFlag_("skip_unannotated");
     double identity_threshold = getDoubleOption_("identity_threshold");
     Int max_attempts = getIntOption_("max_attempts");
     double mz_shift = getDoubleOption_("mz_shift");
@@ -160,7 +160,7 @@ protected:
     MRMDecoy decoys = MRMDecoy();
 
     std::cout << "Generate decoys" << std::endl;
-    decoys.generateDecoys(targeted_exp, targeted_decoy, method, decoy_tag, identity_threshold, max_attempts, mz_threshold, theoretical, mz_shift, exclude_similar, similarity_threshold, remove_CNterm_mods, precursor_mass_shift, enable_losses, skip_unannotated);
+    decoys.generateDecoys(targeted_exp, targeted_decoy, method, decoy_tag, identity_threshold, max_attempts, mz_threshold, theoretical, mz_shift, exclude_similar, similarity_threshold, remove_CNterm_mods, precursor_mass_shift, enable_losses, remove_unannotated);
 
     if (append)
     {
