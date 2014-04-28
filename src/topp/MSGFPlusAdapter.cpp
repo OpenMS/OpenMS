@@ -222,9 +222,11 @@ protected:
 
   //-------------------------------------------------------------
   // Parse mzML and create RTMapping
+  // get RT: it doesn't exist in output from MSGFPlus
+  // get MZ: it is rounded after converting to tsv
   //-------------------------------------------------------------
   
-  void generateRTMapping(Map<String, float>& rt_mapping)
+  void generateInputfileMapping(Map<String, vector<float> >& rt_mapping)
   {
     String exp_name = getStringOption_("in");
 
@@ -240,7 +242,8 @@ protected:
       {
         String id = it->getNativeID(); // expected format: "... scan=#"
         if ( id != "") {
-          rt_mapping[id] = it->getRT();
+          rt_mapping[id].push_back(it->getRT());
+          rt_mapping[id].push_back(it->getPrecursors()[0].getMZ());
         }
       }     
     }
@@ -292,10 +295,18 @@ protected:
       d.mkpath(temp_directory.toQString());
     }
 
-    String msgfplus_output_filename = getStringOption_("mzid_out");
+    String msgfplus_output_filename_ori = getStringOption_("mzid_out");
+    String msgfplus_output_filename = msgfplus_output_filename_ori;
+    bool remove_output_suffix = false;
+
     if (msgfplus_output_filename == "")
     {
       msgfplus_output_filename = temp_directory + "msgfplus_output_file.mzid";
+    } 
+    else if (msgfplus_output_filename.suffix('.') != "mzid") 
+    {
+      msgfplus_output_filename += ".mzid";
+      remove_output_suffix = true;
     }
 
     String  parameters = "";
@@ -361,8 +372,8 @@ protected:
     //------------------------------------------------------------- 
 
     // initialize map
-    Map<String, float> rt_mapping;
-    generateRTMapping(rt_mapping);
+    Map<String, vector<float> > rt_mapping;
+    generateInputfileMapping(rt_mapping);
 
     CsvFile tsvfile;
     tsvfile.load(mzidtotsv_output_filename, "\t");
@@ -450,12 +461,11 @@ protected:
         PeptideHit p_hit(score, rank, charge, sequence);
         p_hit.addProteinAccession(prot_accession);
         p_hits.push_back(p_hit);
-        
-        precursor_mz = elements[4].toDouble(); 
-        peptide_identifications[scanNumber].setMZ(precursor_mz);
 
         String spec_id = elements[1];
-        peptide_identifications[scanNumber].setRT(rt_mapping[spec_id]);
+        peptide_identifications[scanNumber].setRT(rt_mapping[spec_id][0]);
+        peptide_identifications[scanNumber].setMZ(rt_mapping[spec_id][1]);
+
         peptide_identifications[scanNumber].setMetaValue("ScanNumber", scanNumber);        
         peptide_identifications[scanNumber].setScoreType("SpecEValue");
         peptide_identifications[scanNumber].setHigherScoreBetter(false);
@@ -495,6 +505,11 @@ protected:
     }
     
     IdXMLFile().store(outputfile_name, protein_ids, peptide_ids);
+
+    if(remove_output_suffix) {
+      QFile::rename(msgfplus_output_filename.toQString(), msgfplus_output_filename_ori.toQString());
+    }
+
     return EXECUTION_OK;
   }	
 };
