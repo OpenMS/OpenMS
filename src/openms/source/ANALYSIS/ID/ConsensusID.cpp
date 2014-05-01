@@ -207,6 +207,7 @@ namespace OpenMS
     map<AASequence, double> scores;
     UInt considered_hits = (UInt)(param_.getValue("considered_hits"));
     UInt number_of_runs = (UInt)(param_.getValue("number_of_runs"));
+    String score_type = ids[0].getScoreType();
 
     //iterate over the different ID runs
     for (vector<PeptideIdentification>::iterator id = ids.begin(); id != ids.end(); ++id)
@@ -255,7 +256,8 @@ namespace OpenMS
     // replace IDs by consensus
     ids.clear();
     ids.resize(1);
-    ids[0].setScoreType("Consensus_averaged");
+    ids[0].setScoreType(String("Consensus_ranked (") + score_type + ")");
+    ids[0].setHigherScoreBetter(true);
 
     for (map<AASequence, double>::const_iterator it = scores.begin(); it != scores.end(); ++it)
     {
@@ -284,21 +286,23 @@ namespace OpenMS
 #ifdef DEBUG_ID_CONSENSUS
       cout << " - ID run" << endl;
 #endif
+
+      //check the score type
+      if (id->getScoreType() != score_type)
+      {
+        cerr << "Warning: You are averaging different types of scores: '" << score_type << "' and '" << id->getScoreType() << "'" << endl;
+      }
+      if (id->isHigherScoreBetter() != higher_better)
+      {
+        cerr << "Warning: The score of the identifications have disagreeing score orientation!" << endl;
+      }
+
       //make sure that the ranks are present
       id->assignRanks();
       //iterate over the hits
       UInt hit_count = 1;
       for (vector<PeptideHit>::const_iterator hit = id->getHits().begin(); hit != id->getHits().end() && hit_count <= considered_hits; ++hit)
       {
-        //check the score type
-        if (id->getScoreType() != score_type)
-        {
-          cerr << "Warning: You are averaging different types of scores: '" << score_type << "' and '" << id->getScoreType() << "'" << endl;
-        }
-        if (id->isHigherScoreBetter() != higher_better)
-        {
-          cerr << "Warning: The score of the identifications have disagreeing score orientation!" << endl;
-        }
         if (scores.find(hit->getSequence()) == scores.end())                            //.end zeigt auf ein Element nach dem letzten
         {
 #ifdef DEBUG_ID_CONSENSUS
@@ -357,7 +361,6 @@ namespace OpenMS
     int penalty = (UInt)param_.getValue("PEPMatrix:penalty");
     double common = (double)param_.getValue("PEPMatrix:common");
 
-
     String score_type = ids[0].getScoreType();
     bool higher_better = ids[0].isHigherScoreBetter();
 
@@ -366,28 +369,28 @@ namespace OpenMS
 #ifdef DEBUG_ID_CONSENSUS
       cout << " - ID run" << endl;
 #endif
+
+      //check the score type
+      if (id->getScoreType() != score_type)
+      {
+        cerr << "Warning: You are working with different types of scores: '" << score_type << "' and '" << id->getScoreType() << "'" << endl;
+      }
+      if (id->isHigherScoreBetter() != higher_better)
+      {
+        cerr << "Warning: The score of the identifications have disagreeing score orientation!" << endl;
+      }
+      if (higher_better)
+      {
+        cerr << "You need to calculate posterior error probabilities as input scores!" << endl;
+      }
+       
       //make sure that the ranks are present
       id->assignRanks();
 
       //iterate over the hits
       UInt hit_count = 1;
-
       for (vector<PeptideHit>::const_iterator hit = id->getHits().begin(); hit != id->getHits().end() && hit_count <= considered_hits; ++hit)
       {
-
-        //check the score type
-        if (id->getScoreType() != score_type)
-        {
-          cerr << "Warning: You are working with different types of scores: '" << score_type << "' and '" << id->getScoreType() << "'" << endl;
-        }
-        if (id->isHigherScoreBetter() != higher_better)
-        {
-          cerr << "Warning: The score of the identifications have disagreeing score orientation!" << endl;
-        }
-        if (!higher_better)
-        {
-          cerr << "You need to calculate posterior error probabilities as input scores!" << endl;
-        }
         double a_score = (double)hit->getScore();
         double a_sim = 1;
         double NumberAnnots = 1;
@@ -526,6 +529,21 @@ namespace OpenMS
 #ifdef DEBUG_ID_CONSENSUS
       cout << " - ID run" << endl;
 #endif
+
+      //check the score type
+      if (id->getScoreType() != score_type)
+      {
+        cerr << "Warning: You are working with different types of scores: '" << score_type << "' and '" << id->getScoreType() << "'" << endl;
+      }
+      if (id->isHigherScoreBetter() != higher_better)
+      {
+        cerr << "Warning: The score of the identifications have disagreeing score orientation!" << endl;
+      }
+      if (higher_better)
+      {
+        cerr << "You need to calculate posterior error probabilities as input scores!" << endl;
+      }
+
       //make sure that the ranks are present
       id->assignRanks();
 
@@ -534,20 +552,6 @@ namespace OpenMS
 
       for (vector<PeptideHit>::const_iterator hit = id->getHits().begin(); hit != id->getHits().end() && hit_count <= considered_hits; ++hit)
       {
-
-        //check the score type
-        if (id->getScoreType() != score_type)
-        {
-          cerr << "Warning: You are working with different types of scores: '" << score_type << "' and '" << id->getScoreType() << "'" << endl;
-        }
-        if (id->isHigherScoreBetter() != higher_better)
-        {
-          cerr << "Warning: The score of the identifications have disagreeing score orientation!" << endl;
-        }
-        if (!higher_better)
-        {
-          cerr << "You need to calculate posterior error probabilities as input scores!" << endl;
-        }
         //double a_score=(double)hit->getMetaValue("PEP");
         double a_score = (double)hit->getScore();
         double a_sim = 1;
