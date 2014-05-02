@@ -357,7 +357,7 @@ protected:
     parameters = "-i " +  msgfplus_output_filename;
     parameters += " -o " + mzidtotsv_output_filename;
     parameters += " -showQValue 1";
-    parameters += " -showDecoy 0";
+    parameters += " -showDecoy 1";
     parameters += " -unroll 1";
 
     status = process.execute((converter_executable + " " + parameters).toQString());
