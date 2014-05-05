@@ -215,6 +215,7 @@ set(math_executables_list
   AveragePosition_test
   BasicStatistics_test
   BilinearInterpolation_test
+  CubicSpline2d_test
   GammaDistributionFitter_test
   GaussFitter_test
   GumbelDistributionFitter_test
