@@ -46,7 +46,6 @@ namespace OpenMS
  * as described in R.L. Burden, J.D. Faires, Numerical Analysis, 4th ed.
  * PWS-Kent, 1989, ISBN 0-53491-585-X, pp. 126-131.
  */
-template<typename ValType = double>
 class CubicSpline2d
 {
     private:
@@ -65,7 +64,7 @@ class CubicSpline2d
      * Coordinates must match by index. Vectors must be the same size
      * and sorted in x.
      */
-    CubicSpline2d(const std::vector<ValType>& x, const std::vector<ValType>& y)
+    CubicSpline2d(const std::vector<double>& x, const std::vector<double>& y)
     {
         if (x.empty() || x.size() != y.size())
         {
@@ -78,7 +77,7 @@ class CubicSpline2d
     /** 
      * create spline interpolation from a map
      */
-    CubicSpline2d(const std::map<ValType, ValType>& m)
+    CubicSpline2d(const std::map<double, double>& m)
     {    
         if (m.empty())
         {
@@ -88,7 +87,7 @@ class CubicSpline2d
         std::vector<double> x;
         std::vector<double> y;
         
-        typename std::map<ValType, ValType>::const_iterator map_it;
+        typename std::map<double, double>::const_iterator map_it;
         for (map_it = m.begin(); map_it != m.end(); ++map_it)
         {
             x.push_back(map_it->first);
@@ -101,14 +100,14 @@ class CubicSpline2d
     /** 
      * evaluates spline at position x
      */
-    ValType eval(ValType x) const
+    double eval(double x) const
     {
         if (x < x_[0] || x > x_[x_.size()-1])
         {
             throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Argument out of range of spline interpolation.");
         }
 
-        int i = std::lower_bound (x_.begin(), x_.end(), x);
+        int i = std::lower_bound (x_.begin(), x_.end(), x) - x_.begin() - 1;
         double xx = x - x_[i];
         
         return ((d_[i]*xx + c_[i])*xx + b_[i])*xx + a_[i];
@@ -117,7 +116,7 @@ class CubicSpline2d
     /** 
      * evaluates derivative of spline at position x
      */
-    ValType derivatives(ValType x, unsigned order) const
+    double derivatives(double x, unsigned order) const
     {
         if (x < x_[0] || x > x_[x_.size()-1])
         {
@@ -129,7 +128,7 @@ class CubicSpline2d
             throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Only first and second derivative defined on cubic spline");
         }
 
-        int i = std::lower_bound (x_.begin(), x_.end(), x);
+        int i = std::lower_bound (x_.begin(), x_.end(), x) - x_.begin() - 1;
         double xx = x - x_[i];
         
         if (order==1)
@@ -144,7 +143,7 @@ class CubicSpline2d
 
   private:
   
-    void init(const std::vector<ValType>& x, const std::vector<ValType>& y)
+    void init(const std::vector<double>& x, const std::vector<double>& y)
     {
       const size_t n = x.size() - 1;
       
@@ -182,6 +181,7 @@ class CubicSpline2d
           d_.push_back(d[i]);
           x_.push_back(x[i]);
       }
+      x_.push_back(x[n]);
 
     }
     
