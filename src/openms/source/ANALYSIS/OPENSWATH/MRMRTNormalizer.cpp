@@ -122,21 +122,22 @@ namespace OpenMS
 
   std::vector<std::pair<double, double> > MRMRTNormalizer::removeOutliersRANSAC(
       std::vector<std::pair<double, double> >& pairs, double rsq_limit,
-      double coverage_limit, size_t max_iterations, double max_rt_threshold) 
+      double coverage_limit, size_t max_iterations, double max_rt_threshold, size_t sampling_size) 
   {
-    // n is just 20 in the Python example, why is it here limit /  12 ??
-    size_t n = (size_t)(coverage_limit*pairs.size()/12); // threshold is chosen according to python reference
+    size_t n = sampling_size;
     size_t k = (size_t)max_iterations;
-    double t = max_rt_threshold;
+    double t = max_rt_threshold*max_rt_threshold;
     size_t d = (size_t)(coverage_limit*pairs.size());
 
-    // TODO what if too few input data are given ? e.g. only 10 points ?
-    // is there any sense to use less than 5 values at all ?? 
-    /*
-    std::cout << " n here " << n << std::endl;
-    if (n < 5) {n=5;}
-    std::cout << " n here " << n << std::endl;
-    */
+    if (n < 5)
+    {
+      throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-LinearRegression-RTNormalizer", "WARNING: RANSAC: " + boost::lexical_cast<std::string>(n) + " sampled RT peptides is below limit of 5 peptides required for the RANSAC outlier detection algorithm.");
+    }
+
+    if (pairs.size() < 30)
+    {
+      throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-LinearRegression-RTNormalizer", "WARNING: RANSAC: " + boost::lexical_cast<std::string>(pairs.size()) + " input RT peptides is below limit of 30 peptides required for the RANSAC outlier detection algorithm.");
+    }
 
     std::vector<std::pair<double, double> > new_pairs = MRMRTNormalizer::ransac(pairs, n, k, t, d);
 
@@ -311,12 +312,12 @@ namespace OpenMS
 
         int pos;
 
-        if (method == "jackknife")
+        if (method == "iter_jackknife")
         {
           // get candidate outlier: removal of which datapoint results in best rsq?
           pos = jackknifeOutlierCandidate(x, y);
         }
-        else if (method == "largest_residual")
+        else if (method == "iter_residual")
         {
           // get candidate outlier: removal of datapoint with largest residual?
           pos = residualOutlierCandidate(x, y);
