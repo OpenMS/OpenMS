@@ -45,7 +45,7 @@ namespace OpenMS
      * as described in R.L. Burden, J.D. Faires, Numerical Analysis, 4th ed.
      * PWS-Kent, 1989, ISBN 0-53491-585-X, pp. 126-131.
      */
-    class CubicSpline2d
+    class OPENMS_DLLAPI CubicSpline2d
     {
 
         std::vector<double> a_;    // constant spline coefficients
