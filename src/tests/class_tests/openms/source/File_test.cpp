@@ -101,10 +101,10 @@ END_SECTION
 
 START_SECTION((static String find(const String &filename, StringList directories=StringList())))
 	TEST_EXCEPTION(Exception::FileNotFound,File::find("File.h"))
-  TEST_NOT_EQUAL(File::find("OpenMS_DB.sql"),"");
+  TEST_NOT_EQUAL(File::find("CV/psi-ms.obo"),"");
   TEST_EXCEPTION(Exception::FileNotFound,File::find(""))
 END_SECTION
-  
+
 START_SECTION((static String findDoc(const String& filename)))
 	TEST_EXCEPTION(Exception::FileNotFound,File::findDoc("non-existing-documentation"))
   // should exist in every valid source tree (we cannot test for Doxyfile since doxygen might not be installed)
