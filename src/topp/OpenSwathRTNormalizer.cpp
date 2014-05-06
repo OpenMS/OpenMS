@@ -135,7 +135,7 @@ protected:
       p.setValue("outlierMethod", "iter_residual", "Which outlier detection method to use (valid: 'iter_residual', 'iter_jackknife', 'ransac', 'none'). Iterative methods remove one outlier at a time. Jackknife approach optimizes for maximum r-squared improvement while 'iter_residual' removes the datapoint with the largest residual error (removal by residual is computationally cheaper, use this with lots of peptides).");
       p.setValue("useIterativeChauvenet", "false", "Whether to use Chauvenet's criterion when using iterative methods. This should be used if the algorithm removes too many datapoints but it may lead to true outliers being retained.");
       p.setValue("RANSACMaxIterations", 1000, "Maximum iterations for the RANSAC outlier detection algorithm.");
-      p.setValue("RANSACMaxRTThreshold", -1, "Maximum threshold in RT dimension for the RANSAC outlier detection algorithm. Set to -1 to enable automatic configuration based on the assumption that peaks can shift maximum of ±4 min in a two hour gradient.");
+      p.setValue("RANSACMaxPercentRTThreshold", 3, "Maximum threshold in RT dimension for the RANSAC outlier detection algorithm (in percent of the total gradient). Default is set to 3% which is around +/- 4 minutes on a 120 gradient.");
       p.setValue("RANSACSamplingSize", 10, "Sampling size of data points per iteration for the RANSAC outlier detection algorithm.");
       return p;
     }
@@ -284,18 +284,17 @@ protected:
     else if (outlier_method == "ransac")
     {
       // estimate of the maximum deviation from RT that is tolerated.
-      // Because 120 min gradient can have 4 min elution shift, we use this
-      // ratio to find upper RT threshold.
-
-      double max_rt_threshold = (RTRange.second - RTRange.first) / 30;
-      if (outlierDetectionParams.getValue("RANSACMaxRTThreshold") != "-1") {
-        max_rt_threshold = outlierDetectionParams.getValue("RANSACMaxRTThreshold");
-      }
+      // Because 120 min gradient can have around 4 min elution shift, we 3 %
+      // of the gradient to find upper RT threshold (3.6 min).
+      double pcnt_rt_threshold = outlierDetectionParams.getValue("RANSACMaxPercentRTThreshold");
+      double max_rt_threshold = (RTRange.second - RTRange.first) * pcnt_rt_threshold / 100.0;
 
       pairs_corrected = MRMRTNormalizer::removeOutliersRANSAC(pairs, min_rsq, min_coverage,
-        outlierDetectionParams.getValue("RANSACMaxIterations"), max_rt_threshold, outlierDetectionParams.getValue("RANSACSamplingSize"));
+        outlierDetectionParams.getValue("RANSACMaxIterations"), max_rt_threshold,
+        outlierDetectionParams.getValue("RANSACSamplingSize"));
     }
-    else if (outlier_method == "none") {
+    else if (outlier_method == "none") 
+    {
       pairs_corrected = pairs;
     }
     else 

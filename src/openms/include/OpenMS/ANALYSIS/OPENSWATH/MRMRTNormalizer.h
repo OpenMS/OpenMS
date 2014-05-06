@@ -138,6 +138,7 @@ public:
        falls below this fraction, the algorithm aborts)
       @param max_iterations Maximum iterations for the RANSAC algorithm
       @param max_rt_threshold Maximum deviation from fit for the retention time.
+       This must be in the unit of the second dimension (e.g. theoretical_rt).
       @param sampling_size The number of data points to sample for the RANSAC algorithm.
 
       @return A vector of pairs is returned if the R^2 limit was reached without
