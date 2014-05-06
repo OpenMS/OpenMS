@@ -75,19 +75,36 @@ for (int i=0; i<mz.size(); ++i)
 CubicSpline2d sp1(mz, intensity);
 CubicSpline2d sp2(map);
 
-START_SECTION(CubicSpline2d(mz, intensity))
+CubicSpline2d* nullPointer = 0;
+
+START_SECTION(CubicSpline2d(const std::vector<double>& x, const std::vector<double>& y))
+  CubicSpline2d* sp3 = new CubicSpline2d(mz, intensity);
+  TEST_NOT_EQUAL(sp3, nullPointer)
+END_SECTION
+
+START_SECTION(CubicSpline2d(const std::map<double, double>& m))
+  CubicSpline2d* sp4 = new CubicSpline2d(map);
+  TEST_NOT_EQUAL(sp4, nullPointer)
+END_SECTION
+
+START_SECTION(double eval(double x))
   // near border of spline range
   TEST_REAL_SIMILAR(sp1.eval(486.785), 35203.124211885166);
+  TEST_REAL_SIMILAR(sp2.eval(486.785), 35203.124211885166);
+  // inside spline range
+  TEST_REAL_SIMILAR(sp1.eval(486.794), 2270517.50463);
+  TEST_REAL_SIMILAR(sp2.eval(486.794), 2270517.50463);
+END_SECTION
+
+START_SECTION(double derivatives(double x, unsigned order))
+  // near border of spline range
   TEST_REAL_SIMILAR(sp1.derivatives(486.785,1), 35203124.2107165);
   TEST_REAL_SIMILAR(sp1.derivatives(486.785,2), 2044741557.1305177);
-  TEST_REAL_SIMILAR(sp2.eval(486.785), 35203.124211885166);
   TEST_REAL_SIMILAR(sp2.derivatives(486.785,1), 35203124.2107165);
   TEST_REAL_SIMILAR(sp2.derivatives(486.785,2), 2044741557.1305177);
   // inside spline range
-  TEST_REAL_SIMILAR(sp1.eval(486.794), 2270517.50463);
   TEST_REAL_SIMILAR(sp1.derivatives(486.794,1), 569127384.64354789);
   TEST_REAL_SIMILAR(sp1.derivatives(486.794,2), 45836833597.227844);
-  TEST_REAL_SIMILAR(sp2.eval(486.794), 2270517.50463);
   TEST_REAL_SIMILAR(sp2.derivatives(486.794,1), 569127384.64354789);
   TEST_REAL_SIMILAR(sp2.derivatives(486.794,2), 45836833597.227844);
 END_SECTION
