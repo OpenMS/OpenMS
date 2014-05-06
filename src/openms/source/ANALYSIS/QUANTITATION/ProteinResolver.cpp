@@ -468,10 +468,10 @@ namespace OpenMS
       protein_nodes[i].traversed = false;
       protein_nodes[i].index = i;
       protein_nodes[i].protein_type = ProteinEntry::secondary;
-      protein_nodes[i].weight = AASequence(protein_data_[i].sequence).getMonoWeight();
+      protein_nodes[i].weight = AASequence::fromString(protein_data_[i].sequence).getMonoWeight();
       protein_nodes[i].coverage = 0.;
       protein_nodes[i].number_of_experimental_peptides = 0;
-      digestor.digest(AASequence(protein_data_[i].sequence), temp_peptides);
+      digestor.digest(AASequence::fromString(protein_data_[i].sequence), temp_peptides);
       for (Size j = 0; j < temp_peptides.size(); ++j)
       {
         if (temp_peptides[j].size() >= min_size)

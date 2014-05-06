@@ -348,7 +348,7 @@ protected:
       {
         for (Size i = 0; i < peptides.size(); ++i)
         {
-          modified_peptides.push_back(AASequence(peptides[i]));
+          modified_peptides.push_back(AASequence::fromString(peptides[i]));
         }
         peptides.clear();
       }

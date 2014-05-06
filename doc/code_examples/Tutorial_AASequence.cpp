@@ -36,7 +36,7 @@ using namespace std;
 
 Int main()
 {
-  AASequence seq("DFPIANGER");
+  AASequence seq = AASequence::fromString("DFPIANGER");
 
   AASequence prefix(seq.getPrefix(4));
   AASequence suffix(seq.getSuffix(5));

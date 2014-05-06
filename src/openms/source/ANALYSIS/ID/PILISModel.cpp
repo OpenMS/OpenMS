@@ -687,7 +687,7 @@ namespace OpenMS
         }
       }
 
-      if (is_charge_remote && !peptide.has("D") && !peptide.has("E"))
+      if (is_charge_remote && !peptide.toUnmodifiedString().has('D') && !peptide.toUnmodifiedString().has('E'))
       {
 
         if (pos_name == "k-1")
@@ -988,7 +988,7 @@ namespace OpenMS
         }
       }
 
-      if (!peptide.has("D") && !peptide.has("E") && is_charge_remote)
+      if (!peptide.toUnmodifiedString().has('D') && !peptide.toUnmodifiedString().has('E') && is_charge_remote)
       {
         if (pos_name == "k-1")
         {
@@ -1069,8 +1069,7 @@ namespace OpenMS
     for (Size i = 0; i != prefixes.size(); ++i)
     {
       String aa;
-      AASequence aa_seq;
-      aa_seq += peptide[i].getOneLetterCode();
+      AASequence aa_seq = AASequence::fromString(peptide[i].getOneLetterCode());
       aa = aa_seq.toString();
 
       vector<double> pre_path_intensities, suf_path_intensities;

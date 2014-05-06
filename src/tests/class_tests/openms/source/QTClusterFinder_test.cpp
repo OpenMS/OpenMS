@@ -91,10 +91,10 @@ START_SECTION((void run(const std::vector<FeatureMap<> >& input_maps, ConsensusM
   feat2.setPosition(pos2);
   feat2.setUniqueId(1);
   PeptideHit hit;
-  hit.setSequence(AASequence("AAA"));
+  hit.setSequence(AASequence::fromString("AAA"));
   feat1.getPeptideIdentifications().resize(1);
   feat1.getPeptideIdentifications()[0].insertHit(hit);
-  hit.setSequence(AASequence("CCC"));
+  hit.setSequence(AASequence::fromString("CCC"));
   feat2.getPeptideIdentifications().resize(1);
   feat2.getPeptideIdentifications()[0].insertHit(hit);
   input[0].push_back(feat1);
@@ -112,10 +112,10 @@ START_SECTION((void run(const std::vector<FeatureMap<> >& input_maps, ConsensusM
   feat4.setUniqueId(1);
   feat5.setPosition(pos5);
   feat5.setUniqueId(2);
-  hit.setSequence(AASequence("DDD"));
+  hit.setSequence(AASequence::fromString("DDD"));
   feat3.getPeptideIdentifications().resize(1);
   feat3.getPeptideIdentifications()[0].insertHit(hit);
-  hit.setSequence(AASequence("AAA"));
+  hit.setSequence(AASequence::fromString("AAA"));
   feat4.getPeptideIdentifications().resize(1);
   feat4.getPeptideIdentifications()[0].insertHit(hit);
   // no peptide ID for "feat5"
@@ -219,10 +219,10 @@ START_SECTION((void run(const std::vector<FeatureMap<> >& input_maps, ConsensusM
   feat6.setUniqueId(0);
   feat7.setPosition(pos7);
   feat7.setUniqueId(1);
-  hit.setSequence(AASequence("EEE"));
+  hit.setSequence(AASequence::fromString("EEE"));
   feat6.getPeptideIdentifications().resize(1);
   feat6.getPeptideIdentifications()[0].insertHit(hit);
-  hit.setSequence(AASequence("CCC"));
+  hit.setSequence(AASequence::fromString("CCC"));
   feat7.getPeptideIdentifications().resize(1);
   feat7.getPeptideIdentifications()[0].insertHit(hit);
   input[2].push_back(feat6);

@@ -235,7 +235,7 @@ START_SECTION([EXTRA] shuffle_peptide_with_terminal_modifications)
 {
   // Shuffle a peptide with C/N terminal modifications
   MRMDecoy gen;
-  AASequence original_sequence = AASequence("(UniMod:272)TESTPEPTIDE(UniMod:193)");
+  AASequence original_sequence = AASequence::fromString("(UniMod:272)TESTPEPTIDE(UniMod:193)");
   TEST_EQUAL(original_sequence.hasNTerminalModification(), true)
   TEST_EQUAL(original_sequence.hasCTerminalModification(), true)
 
@@ -401,8 +401,8 @@ START_SECTION((extra))
 {    
   MRMDecoy gen;
 
-  AASequence target_sequence = AASequence("ADSTGTLVITDPTR(UniMod:267)");
-  AASequence decoy_sequence = AASequence("ALDSTTGVDTTPIR(UniMod:267)");
+  AASequence target_sequence = AASequence::fromString("ADSTGTLVITDPTR(UniMod:267)");
+  AASequence decoy_sequence = AASequence::fromString("ALDSTTGVDTTPIR(UniMod:267)");
   MRMDecoy::IonSeries target_ionseries = gen.getIonSeries(target_sequence, 2);
   MRMDecoy::IonSeries decoy_ionseries = gen.getIonSeries(decoy_sequence, 2);
 

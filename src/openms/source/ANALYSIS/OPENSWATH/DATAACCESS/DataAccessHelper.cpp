@@ -114,7 +114,7 @@ namespace OpenMS
 
       // legacy
 #if 1
-      if (transition_exp_.getTransitions()[i].getCVTerms().has("decoy") && 
+      if (transition_exp_.getTransitions()[i].getCVTerms().has("decoy") &&
           transition_exp_.getTransitions()[i].getCVTerms()["decoy"][0].getValue().toString() == "1" )
       {
         t.decoy = true;
@@ -127,7 +127,7 @@ namespace OpenMS
       {
         t.decoy = true;
       }
-      else if (transition_exp_.getTransitions()[i].getCVTerms().has("MS:1002007") && 
+      else if (transition_exp_.getTransitions()[i].getCVTerms().has("MS:1002007") &&
           transition_exp_.getTransitions()[i].getCVTerms().has("MS:1002008"))    // both == illegal
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
@@ -135,7 +135,7 @@ namespace OpenMS
       }
       else
 #endif
-      if (transition_exp_.getTransitions()[i].getDecoyTransitionType() == ReactionMonitoringTransition::UNKNOWN || 
+      if (transition_exp_.getTransitions()[i].getDecoyTransitionType() == ReactionMonitoringTransition::UNKNOWN ||
           transition_exp_.getTransitions()[i].getDecoyTransitionType() == ReactionMonitoringTransition::TARGET)
       {
         // assume its target
@@ -197,14 +197,14 @@ namespace OpenMS
 
         }
       }
-        
+
     }
     // transition_exp.peptides.push_back(p);
   }
 
   void OpenSwathDataAccessHelper::convertPeptideToAASequence(const OpenSwath::LightPeptide & peptide, AASequence & aa_sequence)
   {
-      aa_sequence = AASequence(peptide.sequence);
+      aa_sequence = AASequence::fromString(peptide.sequence);
       for (std::vector<OpenSwath::LightModification>::const_iterator it = peptide.modifications.begin(); it != peptide.modifications.end(); ++it)
       {
         TargetedExperimentHelper::setModification(it->location, boost::numeric_cast<int>(peptide.sequence.size()), it->unimod_id, aa_sequence);
