@@ -38,155 +38,69 @@
 #include <vector>
 #include <map>
 
-
 namespace OpenMS
 {
-/**
- * @brief cubic spline interpolation
- * as described in R.L. Burden, J.D. Faires, Numerical Analysis, 4th ed.
- * PWS-Kent, 1989, ISBN 0-53491-585-X, pp. 126-131.
- */
-class CubicSpline2d
-{
-    private:
-    
-    std::vector<double> a_;    // constant spline coefficients
-    std::vector<double> b_;    // linear spline coefficients
-    std::vector<double> c_;    // quadratic spline coefficients
-    std::vector<double> d_;    // cubic spline coefficients
-    std::vector<double> x_;    // knots
+  /**
+   * @brief cubic spline interpolation
+   * as described in R.L. Burden, J.D. Faires, Numerical Analysis, 4th ed.
+   * PWS-Kent, 1989, ISBN 0-53491-585-X, pp. 126-131.
+   */
+  class OPENMS_DLLAPI CubicSpline2d
+  {
 
-    public:
-    
-    /** 
-     * create spline interpolation from two vectors
+    std::vector<double> a_;        // constant spline coefficients
+    std::vector<double> b_;        // linear spline coefficients
+    std::vector<double> c_;        // quadratic spline coefficients
+    std::vector<double> d_;        // cubic spline coefficients
+    std::vector<double> x_;        // knots
+
+public:
+
+    /**
+     * @brief constructor of spline interpolation
      *
-     * Coordinates must match by index. Vectors must be the same size
-     * and sorted in x.
+     * @param x x-coordinates of input data points (knots)
+     * @param y y-coordinates of input data points
+     * The coordinates must match by index. Both vectors must be
+     * the same size and sorted in x.
      */
-    CubicSpline2d(const std::vector<double>& x, const std::vector<double>& y)
-    {
-        if (x.empty() || x.size() != y.size())
-        {
-            throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,"x and y vectors either not of the same size or empty.");
-        }
+    CubicSpline2d(const std::vector<double>& x, const std::vector<double>& y);
 
-        init(x,y);
-    }
-
-    /** 
-     * create spline interpolation from a map
+    /**
+     * @brief constructor of spline interpolation
+     *
+     * @param m (x,y) coordinates of input data points
      */
-    CubicSpline2d(const std::map<double, double>& m)
-    {    
-        if (m.empty())
-        {
-            throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Map is empty.");
-        }
-        
-        std::vector<double> x;
-        std::vector<double> y;
-        
-        typename std::map<double, double>::const_iterator map_it;
-        for (map_it = m.begin(); map_it != m.end(); ++map_it)
-        {
-            x.push_back(map_it->first);
-            y.push_back(map_it->second);
-        }
-        
-        init(x,y);
-    }
+    CubicSpline2d(const std::map<double, double>& m);
 
-    /** 
-     * evaluates spline at position x
+    /**
+     * @brief evaluates the spline at position x
+     *
+     * @param x x-position
      */
-    double eval(double x) const
-    {
-        if (x < x_[0] || x > x_[x_.size()-1])
-        {
-            throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Argument out of range of spline interpolation.");
-        }
+    double eval(double x);
 
-        int i = std::lower_bound (x_.begin(), x_.end(), x) - x_.begin() - 1;
-        double xx = x - x_[i];
-        
-        return ((d_[i]*xx + c_[i])*xx + b_[i])*xx + a_[i];
-    }
-    
-    /** 
-     * evaluates derivative of spline at position x
+    /**
+     * @brief evaluates derivative of spline at position x
+     *
+     * @param x x-position
+     * @param order order of the derivative
+     * Only order 1 or 2 make sense for cubic splines.
      */
-    double derivatives(double x, unsigned order) const
-    {
-        if (x < x_[0] || x > x_[x_.size()-1])
-        {
-            throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Argument out of range of spline interpolation.");
-        }
+    double derivatives(double x, unsigned order);
 
-        if (order!=1 && order!=2)
-        {
-            throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Only first and second derivative defined on cubic spline");
-        }
+private:
 
-        int i = std::lower_bound (x_.begin(), x_.end(), x) - x_.begin() - 1;
-        double xx = x - x_[i];
-        
-        if (order==1)
-        {
-            return (d_[i]*xx + c_[i])*xx + b_[i];
-        }
-        else
-        {
-            return d_[i]*xx + c_[i];
-        }
-    }
+    /**
+     * @brief initialize the spline
+     *
+     * @param x x-coordinates of input data points (knots)
+     * @param y y-coordinates of input data points
+     */
+    void init(const std::vector<double>& x, const std::vector<double>& y);
 
-  private:
-  
-    void init(const std::vector<double>& x, const std::vector<double>& y)
-    {
-      const size_t n = x.size() - 1;
-      
-      std::vector<double> h(n, 0.0);
-      for (unsigned i = 0; i < n; ++i)
-      {
-          h[i] = x[i+1] - x[i];
-      }
-      
-      std::vector<double> mu(n, 0.0);
-      std::vector<double> z(n+1, 0.0);
-      double l = 0;
-      for (unsigned i = 1; i < n; ++i)
-      {
-          l = 2*(x[i+1] - x[i-1]) - h[i-1]*mu[i-1];
-          mu[i] = h[i] / l;
-          z[i] = (3*(y[i+1] * h[i-1] - y[i]*(x[i+1] - x[i -1]) + y[i - 1]*h[i]) / (h[i-1]*h[i]) - h[i-1]*z[i-1])/l;
-      }
-      
-      std::vector<double> b(n, 0.0);
-      std::vector<double> c(n+1, 0.0);
-      std::vector<double> d(n, 0.0);
-      for (int j = n-1; j>=0; --j)
-      {
-          c[j] = z[j] - mu[j] * c[j+1];
-          b[j] = (y[j+1] - y[j]) / h[j] - h[j] * (c[j+1] + 2*c[j])/3;
-          d[j] = (c[j+1] - c[j])/(3*h[j]);
-      }
-      
-      for (unsigned i = 0; i < n; ++i)
-      {
-          a_.push_back(y[i]);
-          b_.push_back(b[i]);
-          c_.push_back(c[i]);
-          d_.push_back(d[i]);
-          x_.push_back(x[i]);
-      }
-      x_.push_back(x[n]);
-
-    }
-    
   };
-  
+
 }
 
 #endif /* CUBICSPLINE2D_H_ */
