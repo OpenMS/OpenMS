@@ -40,11 +40,11 @@
 
 namespace OpenMS
 {
-/**
- * @brief cubic spline interpolation
- * as described in R.L. Burden, J.D. Faires, Numerical Analysis, 4th ed.
- * PWS-Kent, 1989, ISBN 0-53491-585-X, pp. 126-131.
- */
+  /**
+   * @brief cubic spline interpolation
+   * as described in R.L. Burden, J.D. Faires, Numerical Analysis, 4th ed.
+   * PWS-Kent, 1989, ISBN 0-53491-585-X, pp. 126-131.
+   */
   class OPENMS_DLLAPI CubicSpline2d
   {
 
@@ -56,47 +56,47 @@ namespace OpenMS
 
 public:
 
-/**
- * @brief constructor of spline interpolation
- *
- * @param x x-coordinates of input data points (knots)
- * @param y y-coordinates of input data points
- * The coordinates must match by index. Both vectors must be
- * the same size and sorted in x.
- */
+    /**
+     * @brief constructor of spline interpolation
+     *
+     * @param x x-coordinates of input data points (knots)
+     * @param y y-coordinates of input data points
+     * The coordinates must match by index. Both vectors must be
+     * the same size and sorted in x.
+     */
     CubicSpline2d(const std::vector<double>& x, const std::vector<double>& y);
 
-/**
- * @brief constructor of spline interpolation
- *
- * @param m (x,y) coordinates of input data points
- */
+    /**
+     * @brief constructor of spline interpolation
+     *
+     * @param m (x,y) coordinates of input data points
+     */
     CubicSpline2d(const std::map<double, double>& m);
 
-/**
- * @brief evaluates the spline at position x
- *
- * @param x x-position
- */
+    /**
+     * @brief evaluates the spline at position x
+     *
+     * @param x x-position
+     */
     double eval(double x);
 
-/**
- * @brief evaluates derivative of spline at position x
- *
- * @param x x-position
- * @param order order of the derivative
- * Only order 1 or 2 make sense for cubic splines.
- */
+    /**
+     * @brief evaluates derivative of spline at position x
+     *
+     * @param x x-position
+     * @param order order of the derivative
+     * Only order 1 or 2 make sense for cubic splines.
+     */
     double derivatives(double x, unsigned order);
 
 private:
 
-/**
- * @brief initialize the spline
- *
- * @param x x-coordinates of input data points (knots)
- * @param y y-coordinates of input data points
- */
+    /**
+     * @brief initialize the spline
+     *
+     * @param x x-coordinates of input data points (knots)
+     * @param y y-coordinates of input data points
+     */
     void init(const std::vector<double>& x, const std::vector<double>& y);
 
   };
