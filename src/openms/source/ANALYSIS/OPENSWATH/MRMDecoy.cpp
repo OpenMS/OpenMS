@@ -48,7 +48,7 @@ namespace OpenMS
     using namespace boost::assign;
     // Select SpectraST Style
     std::vector<String> SpectraST_order;
-    SpectraST_order += "b", "b_loss", "y", "y_loss", "a", "b_isotopes", "b_isotopes_loss", "y_isotopes", "y_isotopes_loss", "a_isotopes";
+    SpectraST_order += "b", "y", "b_loss", "y_loss";
 
     // Iterate over ion type and then ordinal
     std::pair<String, double> ion;
@@ -67,22 +67,17 @@ namespace OpenMS
     return ion;
   }
 
-  std::pair<String, double> MRMDecoy::getTargetIon(double ProductMZ, double mz_threshold, boost::unordered_map<String, boost::unordered_map<String, double> > target_ionseries, bool enable_losses, bool enable_isotopes)
+  std::pair<String, double> MRMDecoy::getTargetIon(double ProductMZ, double mz_threshold, boost::unordered_map<String, boost::unordered_map<String, double> > target_ionseries, bool enable_losses)
   {
     // make sure to only use annotated transitions and to use the theoretical MZ
     using namespace boost::assign;
     // Select SpectraST Style
     std::vector<String> SpectraST_order;
-    SpectraST_order += "b", "y", "a";
+    SpectraST_order += "b", "y";
 
-    if (enable_losses) {
+    if (enable_losses)
+    {
       SpectraST_order += "b_loss", "y_loss";
-    }
-    if (enable_isotopes) {
-      SpectraST_order += "b_isotopes", "y_isotopes", "a_isotopes";
-    }
-    if (enable_isotopes && enable_losses) {
-      SpectraST_order += "b_isotopes_loss", "y_isotopes_loss";
     }
 
     // Iterate over ion type and then ordinal
@@ -98,20 +93,39 @@ namespace OpenMS
         {
           closest_delta = std::fabs(ordinal->second - ProductMZ);
           ion = make_pair(ordinal->first, ordinal->second);
-          break;
         }
       }
     }
     return ion;
   }
 
-  boost::unordered_map<String, boost::unordered_map<String, double> > MRMDecoy::getIonSeries(AASequence sequence, int precursor_charge, int max_isotope)
+  boost::unordered_map<String, boost::unordered_map<String, double> > MRMDecoy::getIonSeries(AASequence sequence, int precursor_charge)
   {
     boost::unordered_map<String, boost::unordered_map<String, double> > ionseries;
-    boost::unordered_map<String, double> bionseries, bionseries_isotopes, bionseries_loss,
-                             bionseries_isotopes_loss, yionseries, yionseries_isotopes,
-                             yionseries_loss, yionseries_isotopes_loss, aionseries,
-                             aionseries_isotopes;
+    boost::unordered_map<String, double> bionseries, bionseries_loss,
+                             yionseries, yionseries_loss, aionseries;
+
+    // Neutral losses of all ion series
+    static const EmpiricalFormula neutralloss_h2o("H2O"); // -18 H2O loss
+    static const EmpiricalFormula neutralloss_nh3("NH3"); // -17 NH3 loss
+    
+    static const EmpiricalFormula neutralloss_h2oh2o("H2OH2O"); // -36 2 * H2O loss
+    static const EmpiricalFormula neutralloss_nh3nh3("NH3NH3"); // -34 2 * NH3 loss
+    static const EmpiricalFormula neutralloss_h2onh3("H2ONH3"); // -35 H2O & NH3 loss
+    
+    // Neutral loss (oxidation) of methionine only
+    static const EmpiricalFormula neutralloss_ch4so("CH4SO"); // -64 CH4SO loss
+    
+    // Neutral losses (phospho) of serine and threonine only
+    static const EmpiricalFormula neutralloss_hpo3("HPO3"); // -80 HPO3 loss
+    static const EmpiricalFormula neutralloss_hpo3h2o("HPO3H2O"); // -98 HPO3 loss
+    
+    // Neutral loss of asparagine and glutamine only
+    static const EmpiricalFormula neutralloss_ch3no("CH3NO"); // -45 CH3NO loss
+    
+    // Neutral losses of y-ions only
+    static const EmpiricalFormula neutralloss_co2("CO2"); // -44 CO2 loss
+    static const EmpiricalFormula neutralloss_hccoh("HCOOH"); // -46 HCOOH loss
 
     for (int charge = 1; charge <= precursor_charge; ++charge)
     {
@@ -120,51 +134,35 @@ namespace OpenMS
         AASequence ion = sequence.getPrefix(i);
         double pos = ion.getMonoWeight(Residue::BIon, charge) / (double) charge;
 
-        bionseries["b" + String(i) + "/" + String(charge) + "+"] = pos;
-
-        IsotopeDistribution dist = ion.getFormula(Residue::BIon, charge).getIsotopeDistribution(max_isotope);
-        UInt j(0);
-        for (IsotopeDistribution::ConstIterator it = dist.begin(); it != dist.end(); ++it, ++j)
+        bionseries["b" + String(i) + "^" + String(charge)] = pos;
+        bionseries_loss["b" + String(i) + "-17" + "^" + String(charge)] = pos - neutralloss_nh3.getMonoWeight()/charge;
+        bionseries_loss["b" + String(i) + "-18" + "^" + String(charge)] = pos - neutralloss_h2o.getMonoWeight()/charge;
+        bionseries_loss["b" + String(i) + "-34" + "^" + String(charge)] = pos - neutralloss_nh3nh3.getMonoWeight()/charge;
+        bionseries_loss["b" + String(i) + "-35" + "^" + String(charge)] = pos - neutralloss_h2onh3.getMonoWeight()/charge;
+        bionseries_loss["b" + String(i) + "-36" + "^" + String(charge)] = pos - neutralloss_h2oh2o.getMonoWeight()/charge;
+        if (sequence.toString().find("N")!=std::string::npos || sequence.toString().find("Q")!=std::string::npos)
+        // This hack is implemented to enable the annotation of residue specific modifications in the decoy fragments.
+        // If the function is used for generic annotation, use ion.toString() instead of sequence.toString().
         {
-          if (j > 0)
-          {
-            bionseries_isotopes["b" + String(i) + "/" + String(charge) + "+" + "/" + "iso" + String(j)] = ((double) (
-                                                                                                             pos + (double) j * Constants::NEUTRON_MASS_U) / (double) charge);
-          }
+          bionseries_loss["b" + String(i) + "-45" + "^" + String(charge)] = pos - neutralloss_ch3no.getMonoWeight()/charge;
+        }
+        if (sequence.toString().find("M(Oxidation)")!=std::string::npos)
+        // This hack is implemented to enable the annotation of residue specific modifications in the decoy fragments.
+        // If the function is used for generic annotation, use ion.toString() instead of sequence.toString().
+        {
+          bionseries_loss["b" + String(i) + "-64" + "^" + String(charge)] = pos - neutralloss_ch4so.getMonoWeight()/charge;
+        }
+        if (sequence.toString().find("S(Phospho)")!=std::string::npos || sequence.toString().find("T(Phospho)")!=std::string::npos)
+        // This hack is implemented to enable the annotation of residue specific modifications in the decoy fragments.
+        // If the function is used for generic annotation, use ion.toString() instead of sequence.toString().
+        {
+          bionseries_loss["b" + String(i) + "-80" + "^" + String(charge)] = pos - neutralloss_hpo3.getMonoWeight()/charge;
+          bionseries_loss["b" + String(i) + "-98" + "^" + String(charge)] = pos - neutralloss_hpo3h2o.getMonoWeight()/charge;
         }
       }
     }
     ionseries["b"] = bionseries;
-    ionseries["b_isotopes"] = bionseries_isotopes;
-
-    for (boost::unordered_map<String, double>::iterator bit = bionseries.begin(); bit != bionseries.end(); ++bit)
-    {
-      bionseries_loss[bit->first + "-17"] = bit->second - 17;
-      bionseries_loss[bit->first + "-18"] = bit->second - 18;
-      bionseries_loss[bit->first + "-34"] = bit->second - 34;
-      bionseries_loss[bit->first + "-35"] = bit->second - 35;
-      bionseries_loss[bit->first + "-36"] = bit->second - 36;
-      bionseries_loss[bit->first + "-44"] = bit->second - 44;
-      bionseries_loss[bit->first + "-45"] = bit->second - 45;
-      bionseries_loss[bit->first + "-46"] = bit->second - 46;
-      bionseries_loss[bit->first + "-64"] = bit->second - 64;
-      bionseries_loss[bit->first + "-98"] = bit->second - 98;
-    }
     ionseries["b_loss"] = bionseries_loss;
-    for (boost::unordered_map<String, double>::iterator bit = bionseries_isotopes.begin(); bit != bionseries_isotopes.end(); ++bit)
-    {
-      bionseries_isotopes_loss[bit->first + "-17"] = bit->second - 17;
-      bionseries_isotopes_loss[bit->first + "-18"] = bit->second - 18;
-      bionseries_isotopes_loss[bit->first + "-34"] = bit->second - 34;
-      bionseries_isotopes_loss[bit->first + "-35"] = bit->second - 35;
-      bionseries_isotopes_loss[bit->first + "-36"] = bit->second - 36;
-      bionseries_isotopes_loss[bit->first + "-44"] = bit->second - 44;
-      bionseries_isotopes_loss[bit->first + "-45"] = bit->second - 45;
-      bionseries_isotopes_loss[bit->first + "-46"] = bit->second - 46;
-      bionseries_isotopes_loss[bit->first + "-64"] = bit->second - 64;
-      bionseries_isotopes_loss[bit->first + "-98"] = bit->second - 98;
-    }
-    ionseries["b_isotopes_loss"] = bionseries_isotopes_loss;
 
     for (int charge = 1; charge <= precursor_charge; ++charge)
     {
@@ -172,75 +170,38 @@ namespace OpenMS
       {
         AASequence ion = sequence.getSuffix(i);
         double pos = ion.getMonoWeight(Residue::YIon, charge) / (double) charge;
-        yionseries["y" + String(i) + "/" + String(charge) + "+"] = pos;
 
-        IsotopeDistribution dist = ion.getFormula(Residue::YIon, charge).getIsotopeDistribution(max_isotope);
-        UInt j(0);
-        for (IsotopeDistribution::ConstIterator it = dist.begin(); it != dist.end(); ++it, ++j)
-        {
-          if (j > 0)
-          {
-            yionseries_isotopes["y" + String(i) + "/" + String(charge) + "+" + "/" + "iso" + String(j)] = ((double) (
-                                                                                                             pos + (double) j * Constants::NEUTRON_MASS_U) / (double) charge);
-          }
+        yionseries["y" + String(i) + "^" + String(charge)] = pos;
+        yionseries_loss["y" + String(i) + "-17" + "^" + String(charge)] = pos - neutralloss_nh3.getMonoWeight()/charge;
+        yionseries_loss["y" + String(i) + "-18" + "^" + String(charge)] = pos - neutralloss_h2o.getMonoWeight()/charge;
+        yionseries_loss["y" + String(i) + "-34" + "^" + String(charge)] = pos - neutralloss_nh3nh3.getMonoWeight()/charge;
+        yionseries_loss["y" + String(i) + "-35" + "^" + String(charge)] = pos - neutralloss_h2onh3.getMonoWeight()/charge;
+        yionseries_loss["y" + String(i) + "-36" + "^" + String(charge)] = pos - neutralloss_h2oh2o.getMonoWeight()/charge;
+        yionseries_loss["y" + String(i) + "-44" + "^" + String(charge)] = pos - neutralloss_co2.getMonoWeight()/charge;
+        yionseries_loss["y" + String(i) + "-46" + "^" + String(charge)] = pos - neutralloss_hccoh.getMonoWeight()/charge;
+        if (sequence.toString().find("N")!=std::string::npos || sequence.toString().find("Q")!=std::string::npos)
+        // This hack is implemented to enable the annotation of residue specific modifications in the decoy fragments.
+        // If the function is used for generic annotation, use ion.toString() instead of sequence.toString().
+        { 
+          yionseries_loss["y" + String(i) + "-45" + "^" + String(charge)] = pos - neutralloss_ch3no.getMonoWeight()/charge;
+        }
+        if (sequence.toString().find("M(Oxidation)")!=std::string::npos)
+        // This hack is implemented to enable the annotation of residue specific modifications in the decoy fragments.
+        // If the function is used for generic annotation, use ion.toString() instead of sequence.toString().
+        { 
+          yionseries_loss["y" + String(i) + "-64" + "^" + String(charge)] = pos - neutralloss_ch4so.getMonoWeight()/charge;
+        }
+        if (sequence.toString().find("S(Phospho)")!=std::string::npos || sequence.toString().find("T(Phospho)")!=std::string::npos)
+        // This hack is implemented to enable the annotation of residue specific modifications in the decoy fragments.
+        // If the function is used for generic annotation, use ion.toString() instead of sequence.toString().
+        { 
+          yionseries_loss["y" + String(i) + "-80" + "^" + String(charge)] = pos - neutralloss_hpo3.getMonoWeight()/charge;
+          yionseries_loss["y" + String(i) + "-98" + "^" + String(charge)] = pos - neutralloss_hpo3h2o.getMonoWeight()/charge;
         }
       }
     }
     ionseries["y"] = yionseries;
-    ionseries["y_isotopes"] = yionseries_isotopes;
-
-    for (boost::unordered_map<String, double>::iterator yit = yionseries.begin(); yit != yionseries.end(); ++yit)
-    {
-      yionseries_loss[yit->first + "-17"] = yit->second - 17;
-      yionseries_loss[yit->first + "-18"] = yit->second - 18;
-      yionseries_loss[yit->first + "-34"] = yit->second - 34;
-      yionseries_loss[yit->first + "-35"] = yit->second - 35;
-      yionseries_loss[yit->first + "-36"] = yit->second - 36;
-      yionseries_loss[yit->first + "-44"] = yit->second - 44;
-      yionseries_loss[yit->first + "-45"] = yit->second - 45;
-      yionseries_loss[yit->first + "-46"] = yit->second - 46;
-      yionseries_loss[yit->first + "-64"] = yit->second - 64;
-      yionseries_loss[yit->first + "-98"] = yit->second - 98;
-    }
     ionseries["y_loss"] = yionseries_loss;
-    for (boost::unordered_map<String, double>::iterator yit = yionseries_isotopes.begin(); yit != yionseries_isotopes.end(); ++yit)
-    {
-      yionseries_isotopes_loss[yit->first + "-17"] = yit->second - 17;
-      yionseries_isotopes_loss[yit->first + "-18"] = yit->second - 18;
-      yionseries_isotopes_loss[yit->first + "-34"] = yit->second - 34;
-      yionseries_isotopes_loss[yit->first + "-35"] = yit->second - 35;
-      yionseries_isotopes_loss[yit->first + "-36"] = yit->second - 36;
-      yionseries_isotopes_loss[yit->first + "-44"] = yit->second - 44;
-      yionseries_isotopes_loss[yit->first + "-45"] = yit->second - 45;
-      yionseries_isotopes_loss[yit->first + "-46"] = yit->second - 46;
-      yionseries_isotopes_loss[yit->first + "-64"] = yit->second - 64;
-      yionseries_isotopes_loss[yit->first + "-98"] = yit->second - 98;
-    }
-    ionseries["y_isotopes_loss"] = yionseries_isotopes_loss;
-
-    for (int charge = 1; charge <= precursor_charge; ++charge)
-    {
-      for (Size i = 1; i < sequence.size(); ++i)
-      {
-        AASequence ion = sequence.getPrefix(i);
-        double pos = ion.getMonoWeight(Residue::AIon, charge) / (double) charge;
-
-        aionseries["a" + String(i) + "/" + String(charge) + "+"] = pos;
-
-        IsotopeDistribution dist = ion.getFormula(Residue::AIon, charge).getIsotopeDistribution(max_isotope);
-        UInt j(0);
-        for (IsotopeDistribution::ConstIterator it = dist.begin(); it != dist.end(); ++it, ++j)
-        {
-          if (j > 0)
-          {
-            aionseries_isotopes["a" + String(i) + "/" + String(charge) + "+" + "/" + "iso" + String(j)] = ((double) (
-                                                                                                             pos + (double) j * Constants::NEUTRON_MASS_U) / (double) charge);
-          }
-        }
-      }
-    }
-    ionseries["a"] = aionseries;
-    ionseries["a_isotopes"] = aionseries_isotopes;
 
     return ionseries;
   }
@@ -544,7 +505,7 @@ namespace OpenMS
                                 String method, String decoy_tag, double identity_threshold, int max_attempts, 
                                 double mz_threshold, bool theoretical, double mz_shift, bool exclude_similar, 
                                 double similarity_threshold, bool remove_CNterminal_mods, double precursor_mass_shift,
-                                bool enable_losses, bool enable_isotopes)  {
+                                bool enable_losses, bool remove_unannotated)  {
     MRMDecoy::PeptideVectorType peptides;
     MRMDecoy::ProteinVectorType proteins;
     MRMDecoy::TransitionVectorType decoy_transitions;
@@ -638,8 +599,9 @@ namespace OpenMS
 
         // determine the current annotation for the target ion and then select
         // the appropriate decoy ion for this target transition
-        std::pair<String, double> targetion = getTargetIon(tr.getProductMZ(), mz_threshold, target_ionseries, enable_losses, enable_isotopes);
+        std::pair<String, double> targetion = getTargetIon(tr.getProductMZ(), mz_threshold, target_ionseries, enable_losses);
         std::pair<String, double> decoyion = getDecoyIon(targetion.first, decoy_ionseries);
+
         if (method == "shift")
         {
           decoy_tr.setProductMZ(decoyion.second + mz_shift);
@@ -660,6 +622,17 @@ namespace OpenMS
             }
           }
          decoy_transitions.push_back(decoy_tr);
+        }
+        else
+        {
+          if (remove_unannotated)
+          {
+            exclusion_peptides.push_back(decoy_tr.getPeptideRef());
+          }
+          else
+          {
+            throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Decoy fragment ion for target fragment ion " + String(targetion.first) + " of peptide " + target_peptide_sequence.toString() + " with precursor charge " + String(target_peptide.getChargeState()) + " could not be mapped. Please check whether it is a valid ion and enable losses or removal of terminal modifications if necessary. Skipping of unannotated target assays is available as last resort.");
+          }
         }
       } // end loop over transitions
     } // end loop over peptides
@@ -688,11 +661,11 @@ namespace OpenMS
 
     if (theoretical)
     {
-      correctMasses(exp, mz_threshold, enable_losses, enable_isotopes);
+      correctMasses(exp, mz_threshold, enable_losses);
     }
   }
 
-  void MRMDecoy::correctMasses(OpenMS::TargetedExperiment& exp, double mz_threshold, bool enable_losses, bool enable_isotopes)
+  void MRMDecoy::correctMasses(OpenMS::TargetedExperiment& exp, double mz_threshold, bool enable_losses)
   {
     MRMDecoy::TransitionVectorType target_transitions;
     // hash of the peptide reference containing all transitions
@@ -718,7 +691,11 @@ namespace OpenMS
           const ReactionMonitoringTransition tr = *(pep_it->second[i]);
 
           // determine the current annotation for the target ion 
-          std::pair<String, double> targetion = getTargetIon(tr.getProductMZ(), mz_threshold, target_ionseries, enable_losses, enable_isotopes);
+          std::pair<String, double> targetion = getTargetIon(tr.getProductMZ(), mz_threshold, target_ionseries, enable_losses);
+          if (targetion.second == -1)
+          {
+            throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Target fragment ion with m/z " + String(tr.getProductMZ()) + " of peptide " + target_peptide_sequence.toString() + " with precursor charge " + String(target_peptide.getChargeState()) + " could not be mapped. Please check whether it is a valid ion and an appropriate mz_threshold was chosen and enable losses if necessary.");
+          }
           // correct the masses of the input experiment 
           {
             ReactionMonitoringTransition transition = *(pep_it->second[i]); // copy the transition

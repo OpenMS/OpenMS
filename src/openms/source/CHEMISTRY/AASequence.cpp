@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Andreas Bertsch $
+// $Maintainer: Timo Sachsenberg $
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 //
@@ -151,8 +151,7 @@ namespace OpenMS
       if (peptide_.size() == 1)
       {
         ef += peptide_[0]->getFormula(type);
-      }
-      else
+      } else
       {
         for (Size i = 0; i != peptide_.size(); ++i)
         {
@@ -279,8 +278,7 @@ namespace OpenMS
     if (index < 0)
     {
       throw Exception::IndexUnderflow(__FILE__, __LINE__, __PRETTY_FUNCTION__, index, 0);
-    }
-    else
+    } else
     {
       if (Size(index) >= size())
       {
@@ -422,8 +420,7 @@ namespace OpenMS
     if (sequence.empty())
     {
       return true;
-    }
-    else
+    } else
     {
       if (sequence.size() <= peptide_.size())
       {
@@ -440,8 +437,7 @@ namespace OpenMS
                 {
                   return true;
                 }
-              }
-              else
+              } else
               {
                 break;
               }
@@ -584,8 +580,7 @@ namespace OpenMS
         if (peptide.peptide_[i]->getOneLetterCode() != "")
         {
           os << peptide.peptide_[i]->getOneLetterCode();
-        }
-        else
+        } else
         {
           os << "[" << precisionWrapper(peptide.peptide_[i]->getMonoWeight()) << "]";
         }
@@ -593,25 +588,21 @@ namespace OpenMS
         if (id != "")
         {
           os << "(" << id << ")";
-        }
-        else
+        } else
         {
           os << "([" << precisionWrapper(ModificationsDB::getInstance()->getModification(peptide.peptide_[i]->getOneLetterCode(), peptide.peptide_[i]->getModification(), ResidueModification::ANYWHERE).getDiffMonoMass()) << "])";
         }
-      }
-      else
+      } else
       {
         if (peptide.peptide_[i]->getOneLetterCode() != "")
         {
           os << peptide.peptide_[i]->getOneLetterCode();
-        }
-        else
+        } else
         {
           if (peptide.peptide_[i]->getShortName() != "")
           {
             os << peptide.peptide_[i]->getShortName();
-          }
-          else
+          } else
           {
             os << "[" << precisionWrapper(peptide.peptide_[i]->getMonoWeight()) << "]";
           }
@@ -730,12 +721,10 @@ namespace OpenMS
         if (*rIt == '(' && brackets == 0)
         {
           break; // we reached beginning of mod
-        }
-        else if (*rIt == ')')
+        } else if (*rIt == ')')
         {
           ++brackets;
-        }
-        else if (*rIt == '(')
+        } else if (*rIt == '(')
         {
           --brackets;
         }
@@ -765,8 +754,7 @@ namespace OpenMS
         if (isalpha(res[j]))
         {
           name += res[j];
-        }
-        else
+        } else
         {
           if (res[j] == '(')
           {
@@ -780,8 +768,7 @@ namespace OpenMS
               mod += res[k];
             }
             break;
-          }
-          else
+          } else
           {
             if (res[j] == '[')
             {
@@ -794,8 +781,7 @@ namespace OpenMS
                 tag += res[k];
               }
               break;
-            }
-            else
+            } else
             {
               throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, peptide, "Cannot convert string into AASequence. Residue '" + res + "' unknown at position " + String(j) + ", residue # " + String(i) + " !");
             }
@@ -819,8 +805,7 @@ namespace OpenMS
           throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, peptide, "Cannot convert string into AASequence. Cannot parse residue with name: '" + name + "'!");
         }
         aas.peptide_.push_back(ResidueDB::getInstance()->getModifiedResidue(res_ptr, mod));
-      }
-      else if (!mod.empty() && i == 0)
+      } else if (!mod.empty() && i == 0)
       {
         if (res_ptr == 0)
         {
@@ -831,8 +816,7 @@ namespace OpenMS
         if (!mod_candidates.empty())
         {
           aas.peptide_.push_back(ResidueDB::getInstance()->getModifiedResidue(res_ptr, mod));
-        }
-        else
+        } else
         {
           ModificationsDB::getInstance()->searchTerminalModifications(mod_candidates, mod, ResidueModification::N_TERM);
           if (!mod_candidates.empty())
@@ -841,8 +825,7 @@ namespace OpenMS
             aas.peptide_.push_back(res_ptr);
           }
         }
-      }
-      else if (!tag.empty())
+      } else if (!tag.empty())
       {
         bool is_NTerm = (res_ptr == 0) && name.empty() ? true : false;
 
@@ -876,8 +859,7 @@ namespace OpenMS
                 result = ResidueDB::getInstance()->getModifiedResidue(res_ptr, mod->getId());
               }
             }
-          }
-          else
+          } else
           {
             // signed integer tag [+123] -> look for the first match (usually this is what is intended)
             if (is_NTerm)
@@ -929,8 +911,7 @@ namespace OpenMS
             result = ResidueDB::getInstance()->getResidue(tag);
           }
           aas.peptide_.push_back(result);
-        }
-        else  // absolute (unsigned) mass tags []
+        } else  // absolute (unsigned) mass tags []
         {
           double mass = tag.toDouble();
           const Residue* result = NULL;
@@ -941,8 +922,7 @@ namespace OpenMS
             const ResidueModification * mod = ModificationsDB::getInstance()->getBestModificationsByMonoMass(res_ptr->getOneLetterCode(), mass, 1.0);
             if (mod)
               result = ResidueDB::getInstance()->getModifiedResidue(res_ptr, mod->getId());
-          }
-          else
+          } else
           {
             // we have an integer, look for the first match (usually this is what is intended)
             std::vector< String > mods;
@@ -958,8 +938,7 @@ namespace OpenMS
           if (result == NULL || res_ptr->getMonoWeight() <= 0.0)
           {
             // using an amino acid with zero weight should lead to an accurate mass representation of the AA (and not try to guess something)... !
-            std::cout <<  "Warning: unknown modification " << tag << " on residue "
-              << name << ": will add to the database." << std::endl;
+            std::cout <<  "Warning: unknown modification " << tag << " on residue " << name << ": will add to the database." << std::endl;
             Residue res(tag, String(""), String(""), EmpiricalFormula(""));
             res.setMonoWeight(mass);
             res.setAverageWeight(mass);
@@ -968,8 +947,7 @@ namespace OpenMS
           }
           aas.peptide_.push_back(result);
         }
-      }
-      else
+      } else
       {
         // mod and tag are both empty
         aas.peptide_.push_back(res_ptr);

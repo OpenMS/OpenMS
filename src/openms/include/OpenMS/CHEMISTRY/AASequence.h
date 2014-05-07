@@ -90,17 +90,17 @@ namespace OpenMS
   */
   class OPENMS_DLLAPI AASequence
   {
+    public:
 
-public:
-    class Iterator;
+      class Iterator;
 
-    /** @brief ConstIterator for AASequence
+      /** @brief ConstIterator for AASequence
 
-            AASequence constant iterator
-    */
+                 AASequence constant iterator
+      */
     class OPENMS_DLLAPI ConstIterator
     {
-public:
+    public:
 
       // TODO Iterator constructor for ConstIterator
 
@@ -219,7 +219,7 @@ public:
 
       //@}
 
-protected:
+  protected:
 
       // pointer to the AASequence vector
       const std::vector<const Residue *> * vector_;
@@ -235,7 +235,7 @@ protected:
     */
     class OPENMS_DLLAPI Iterator
     {
-public:
+      public:
 
       friend class AASequence::ConstIterator;
 
@@ -351,7 +351,7 @@ public:
 
       //@}
 
-protected:
+    protected:
 
       // pointer to the AASequence vector
       std::vector<const Residue *> * vector_;
@@ -515,13 +515,19 @@ protected:
     friend OPENMS_DLLAPI std::istream & operator>>(std::istream & is, const AASequence & peptide);
     //@}
 
-    // create AASequence object by parsing a String
+    /** 
+      @brief create AASequence object by parsing a String
+      @throws Exception::ParseError if an invalid string representation of an AA sequence is passed
+    */
     static AASequence fromString(const String & s);
 
-    // create AASequence object by parsing a const char *
+    /** 
+      @brief create AASequence object by parsing a const char *
+      @throws Exception::ParseError if an invalid string representation of an AA sequence is passed
+    */
     static AASequence fromString(const char * s);
 
-protected:
+  protected:
 
     std::vector<const Residue *> peptide_;
 
