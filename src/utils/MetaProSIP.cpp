@@ -443,7 +443,12 @@ public:
 		p.setEnvironment(env);
 
 		QStringList qparam;
-		qparam << "--vanilla" << "--quiet" << "--slave" << "--file=" + QString(tmp_path.toQString() + "\\" + script_filename.toQString());
+    qparam << "--vanilla";
+    if (debug_level < 1)
+    {
+      qparam << "--quiet";
+    }    
+    qparam << "--slave" << "--file=" + QString(tmp_path.toQString() + "\\" + script_filename.toQString());
 		p.start("R", qparam);
 		p.waitForFinished(-1);
 		int status = p.exitCode();
@@ -861,11 +866,10 @@ public:
 		}
 
 		// heat map based on peptide RIAs
-		LOG_INFO << "Plotting peptide heat map" << endl;
+		LOG_INFO << "Plotting peptide heat map of " << sip_peptides.size() << endl;
 		vector< vector<double> > binned_peptide_ria;
 		vector<String> class_labels;
 		createBinnedPeptideRIAData_(n_heatmap_bins, sip_peptide_cluster, binned_peptide_ria, class_labels);
-
 		plotHeatMap(qc_output_directory, tmp_path, "_peptide" + file_suffix, file_extension, binned_peptide_ria, class_labels);
 
 		LOG_INFO << "Plotting filtered spectra for quality report" << endl;
@@ -1881,7 +1885,7 @@ protected:
 			double correlation_score = Math::pearsonCorrelationCoefficient(pattern_begin, pattern_end, intensities_begin, intensities_end);
 
 			// remove correlations that show higher similarity to an averagine peptide
-			if (averagine_correlation[ii] > correlation_score - min_correlation_distance_to_averagine)
+      if (correlation_score < averagine_correlation[ii] + min_correlation_distance_to_averagine)
 			{
 				map_rate_to_correlation_score[rate] = 0;
 				continue;
@@ -2631,6 +2635,11 @@ protected:
 
 		// check if R and dependencies are installed
 		bool R_is_working = checkRDependencies(tmp_path);
+    if (!R_is_working)
+    {
+      LOG_INFO << "There was a problem detecting R and/or of one of the required libraries. Make sure you have the directory of your R executable in your system path variable." << endl;
+      return EXTERNAL_PROGRAM_ERROR;
+    }
 
 		bool cluster_flag = getFlag_("cluster") && R_is_working;
 
@@ -3074,7 +3083,7 @@ protected:
 			sip_peptide.decomposition_map = map_rate_to_decomposition_weight;
 
 			// calculate Pearson correlation coefficients
-			calculateCorrelation(feature_hit_seq, isotopic_intensities, patterns, map_rate_to_correlation_score, use_N15);
+      calculateCorrelation(feature_hit_seq, isotopic_intensities, patterns, map_rate_to_correlation_score, use_N15, min_correlation_distance_to_averagine);
 
 			// restore original correlation of natural RIAs (take maximum of observed correlations)
 			if (getFlag_("filter_monoisotopic"))
