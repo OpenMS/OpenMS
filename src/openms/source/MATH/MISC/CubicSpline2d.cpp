@@ -62,7 +62,7 @@ namespace OpenMS
     std::vector<double> x;
     std::vector<double> y;
 
-    typename std::map<double, double>::const_iterator map_it;
+    std::map<double, double>::const_iterator map_it;
     for (map_it = m.begin(); map_it != m.end(); ++map_it)
     {
       x.push_back(map_it->first);
