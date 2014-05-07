@@ -104,7 +104,7 @@ public:
 
     /**
     @brief setter for spectrum
-    @param s ms spectrum given as vector of DoubleReals
+    @param s ms spectrum given as vector of doubles
     @throw Exception::InvalidValue if spectrum is not sorted ascendingly
     */
     virtual void setSpectrum(const std::vector<double> & s) = 0;

@@ -105,7 +105,7 @@ START_SECTION((void filterDetectability(FeatureMapSim & features)))
   {
     Feature f;
     PeptideIdentification pep_id;
-    pep_id.insertHit(PeptideHit(1.0, 1, 1, AASequence(*it)));
+    pep_id.insertHit(PeptideHit(1.0, 1, 1, AASequence::fromString(*it)));
     f.getPeptideIdentifications().push_back(pep_id);
     f.setIntensity(10);
     no_detect_features.push_back(f);
@@ -132,7 +132,7 @@ START_SECTION((void filterDetectability(FeatureMapSim & features)))
   {
     Feature f;
     PeptideIdentification pep_id;
-    pep_id.insertHit(PeptideHit(1.0, 1, 1, AASequence(*it)));
+    pep_id.insertHit(PeptideHit(1.0, 1, 1, AASequence::fromString(*it)));
     f.getPeptideIdentifications().push_back(pep_id);
     f.setIntensity(10);
     svm_features.push_back(f);

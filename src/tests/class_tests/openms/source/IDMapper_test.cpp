@@ -160,14 +160,14 @@ START_SECTION((template <typename PeakType> void annotate(MSExperiment< PeakType
   //scan 1
   TEST_EQUAL(experiment[0].getPeptideIdentifications().size(), 1)
   TEST_EQUAL(experiment[0].getPeptideIdentifications()[0].getHits().size(), 2)
-  TEST_EQUAL(experiment[0].getPeptideIdentifications()[0].getHits()[0].getSequence(), "LHASGITVTEIPVTATNFK")
-  TEST_EQUAL(experiment[0].getPeptideIdentifications()[0].getHits()[1].getSequence(), "MRSLGYVAVISAVATDTDK")
+  TEST_EQUAL(experiment[0].getPeptideIdentifications()[0].getHits()[0].getSequence(), AASequence::fromString("LHASGITVTEIPVTATNFK"))
+  TEST_EQUAL(experiment[0].getPeptideIdentifications()[0].getHits()[1].getSequence(), AASequence::fromString("MRSLGYVAVISAVATDTDK"))
   //scan 2
   TEST_EQUAL(experiment[1].getPeptideIdentifications().size(), 0)
   //scan 3
   TEST_EQUAL(experiment[2].getPeptideIdentifications().size(), 1)
   TEST_EQUAL(experiment[2].getPeptideIdentifications()[0].getHits().size(), 1)
-  TEST_EQUAL(experiment[2].getPeptideIdentifications()[0].getHits()[0].getSequence(), "HSKLSAK")
+  TEST_EQUAL(experiment[2].getPeptideIdentifications()[0].getHits()[0].getSequence(), AASequence::fromString("HSKLSAK"))
 }
 END_SECTION
 
@@ -211,19 +211,19 @@ START_SECTION((template < typename FeatureType > void annotate(FeatureMap< Featu
   TEST_EQUAL(fm[0].getPeptideIdentifications()[4].getHits().size(),1)
   TEST_EQUAL(fm[0].getPeptideIdentifications()[5].getHits().size(),1)
   TEST_EQUAL(fm[0].getPeptideIdentifications()[6].getHits().size(),1)
-  TEST_EQUAL(fm[0].getPeptideIdentifications()[0].getHits()[0].getSequence(),"A")
-  TEST_EQUAL(fm[0].getPeptideIdentifications()[1].getHits()[0].getSequence(),"K")
-  TEST_EQUAL(fm[0].getPeptideIdentifications()[2].getHits()[0].getSequence(),"C")
-  TEST_EQUAL(fm[0].getPeptideIdentifications()[3].getHits()[0].getSequence(),"D")
-  TEST_EQUAL(fm[0].getPeptideIdentifications()[4].getHits()[0].getSequence(),"E")
-  TEST_EQUAL(fm[0].getPeptideIdentifications()[5].getHits()[0].getSequence(),"F")
-  TEST_EQUAL(fm[0].getPeptideIdentifications()[6].getHits()[0].getSequence(),"I")
+  TEST_EQUAL(fm[0].getPeptideIdentifications()[0].getHits()[0].getSequence(),AASequence::fromString("A"))
+  TEST_EQUAL(fm[0].getPeptideIdentifications()[1].getHits()[0].getSequence(),AASequence::fromString("K"))
+  TEST_EQUAL(fm[0].getPeptideIdentifications()[2].getHits()[0].getSequence(),AASequence::fromString("C"))
+  TEST_EQUAL(fm[0].getPeptideIdentifications()[3].getHits()[0].getSequence(),AASequence::fromString("D"))
+  TEST_EQUAL(fm[0].getPeptideIdentifications()[4].getHits()[0].getSequence(),AASequence::fromString("E"))
+  TEST_EQUAL(fm[0].getPeptideIdentifications()[5].getHits()[0].getSequence(),AASequence::fromString("F"))
+  TEST_EQUAL(fm[0].getPeptideIdentifications()[6].getHits()[0].getSequence(),AASequence::fromString("I"))
 
   //test unassigned peptide ids
   TEST_EQUAL(fm.getUnassignedPeptideIdentifications().size(),3)
-  TEST_EQUAL(fm.getUnassignedPeptideIdentifications()[0].getHits()[0].getSequence(),"G")
-  TEST_EQUAL(fm.getUnassignedPeptideIdentifications()[1].getHits()[0].getSequence(),"H")
-  TEST_EQUAL(fm.getUnassignedPeptideIdentifications()[2].getHits()[0].getSequence(),"L")
+  TEST_EQUAL(fm.getUnassignedPeptideIdentifications()[0].getHits()[0].getSequence(),AASequence::fromString("G"))
+  TEST_EQUAL(fm.getUnassignedPeptideIdentifications()[1].getHits()[0].getSequence(),AASequence::fromString("H"))
+  TEST_EQUAL(fm.getUnassignedPeptideIdentifications()[2].getHits()[0].getSequence(),AASequence::fromString("L"))
 
   //--------------------------------------------------------------------------------------
   //TEST MAPPING TO CENTROIDS
@@ -235,7 +235,7 @@ START_SECTION((template < typename FeatureType > void annotate(FeatureMap< Featu
   p.setValue("ignore_charge", "true");
   mapper.setParameters(p);
 
-mapper.annotate(fm2,identifications,protein_identifications, true, true);
+  mapper.annotate(fm2,identifications,protein_identifications, true, true);
 
   //test protein ids
   TEST_EQUAL(fm2.getProteinIdentifications().size(),1)
@@ -247,19 +247,19 @@ mapper.annotate(fm2,identifications,protein_identifications, true, true);
   TEST_EQUAL(fm2[0].getPeptideIdentifications().size(),2)
   TEST_EQUAL(fm2[0].getPeptideIdentifications()[0].getHits().size(),1)
   TEST_EQUAL(fm2[0].getPeptideIdentifications()[1].getHits().size(),1)
-  TEST_EQUAL(fm2[0].getPeptideIdentifications()[0].getHits()[0].getSequence(),"A")
-  TEST_EQUAL(fm2[0].getPeptideIdentifications()[1].getHits()[0].getSequence(),"K")
+  TEST_EQUAL(fm2[0].getPeptideIdentifications()[0].getHits()[0].getSequence(),AASequence::fromString("A"))
+  TEST_EQUAL(fm2[0].getPeptideIdentifications()[1].getHits()[0].getSequence(),AASequence::fromString("K"))
 
   //test unassigned peptide ids
   TEST_EQUAL(fm2.getUnassignedPeptideIdentifications().size(),8)
-  TEST_EQUAL(fm2.getUnassignedPeptideIdentifications()[0].getHits()[0].getSequence(),"C")
-  TEST_EQUAL(fm2.getUnassignedPeptideIdentifications()[1].getHits()[0].getSequence(),"D")
-  TEST_EQUAL(fm2.getUnassignedPeptideIdentifications()[2].getHits()[0].getSequence(),"E")
-  TEST_EQUAL(fm2.getUnassignedPeptideIdentifications()[3].getHits()[0].getSequence(),"F")
-  TEST_EQUAL(fm2.getUnassignedPeptideIdentifications()[4].getHits()[0].getSequence(),"G")
-  TEST_EQUAL(fm2.getUnassignedPeptideIdentifications()[5].getHits()[0].getSequence(),"H")
-  TEST_EQUAL(fm2.getUnassignedPeptideIdentifications()[6].getHits()[0].getSequence(),"I")
-  TEST_EQUAL(fm2.getUnassignedPeptideIdentifications()[7].getHits()[0].getSequence(),"L")
+  TEST_EQUAL(fm2.getUnassignedPeptideIdentifications()[0].getHits()[0].getSequence(),AASequence::fromString("C"))
+  TEST_EQUAL(fm2.getUnassignedPeptideIdentifications()[1].getHits()[0].getSequence(),AASequence::fromString("D"))
+  TEST_EQUAL(fm2.getUnassignedPeptideIdentifications()[2].getHits()[0].getSequence(),AASequence::fromString("E"))
+  TEST_EQUAL(fm2.getUnassignedPeptideIdentifications()[3].getHits()[0].getSequence(),AASequence::fromString("F"))
+  TEST_EQUAL(fm2.getUnassignedPeptideIdentifications()[4].getHits()[0].getSequence(),AASequence::fromString("G"))
+  TEST_EQUAL(fm2.getUnassignedPeptideIdentifications()[5].getHits()[0].getSequence(),AASequence::fromString("H"))
+  TEST_EQUAL(fm2.getUnassignedPeptideIdentifications()[6].getHits()[0].getSequence(),AASequence::fromString("I"))
+  TEST_EQUAL(fm2.getUnassignedPeptideIdentifications()[7].getHits()[0].getSequence(),AASequence::fromString("L"))
 
   // ******* test charge-specific matching *******
 
@@ -286,9 +286,9 @@ mapper.annotate(fm2,identifications,protein_identifications, true, true);
   TEST_EQUAL(fm[0].getPeptideIdentifications()[0].getHits().size(),1)
   TEST_EQUAL(fm[0].getPeptideIdentifications()[1].getHits().size(),1)
   TEST_EQUAL(fm[0].getPeptideIdentifications()[2].getHits().size(),1)
-  TEST_EQUAL(fm[0].getPeptideIdentifications()[0].getHits()[0].getSequence(),"A")
-  TEST_EQUAL(fm[0].getPeptideIdentifications()[1].getHits()[0].getSequence(),"K")
-  TEST_EQUAL(fm[0].getPeptideIdentifications()[2].getHits()[0].getSequence(),"C")
+  TEST_EQUAL(fm[0].getPeptideIdentifications()[0].getHits()[0].getSequence(), AASequence::fromString("A"))
+  TEST_EQUAL(fm[0].getPeptideIdentifications()[1].getHits()[0].getSequence(), AASequence::fromString("K"))
+  TEST_EQUAL(fm[0].getPeptideIdentifications()[2].getHits()[0].getSequence(), AASequence::fromString("C"))
 
   //test unassigned peptide ids
   TEST_EQUAL(fm.getUnassignedPeptideIdentifications().size(), 7)
@@ -310,28 +310,28 @@ mapper.annotate(fm2,identifications,protein_identifications, true, true);
   //test peptide ids
   TEST_EQUAL(fm_ppm[0].getPeptideIdentifications().size(),1)
   TEST_EQUAL(fm_ppm[0].getPeptideIdentifications()[0].getHits().size(),2)
-  TEST_EQUAL(fm_ppm[0].getPeptideIdentifications()[0].getHits()[0].getSequence(),"LHASGITVTEIPVTATNFK")
+  TEST_EQUAL(fm_ppm[0].getPeptideIdentifications()[0].getHits()[0].getSequence(), AASequence::fromString("LHASGITVTEIPVTATNFK"))
 
   TEST_EQUAL(fm_ppm[1].getPeptideIdentifications().size(),0)
 
   TEST_EQUAL(fm_ppm[2].getPeptideIdentifications().size(),1)
   TEST_EQUAL(fm_ppm[2].getPeptideIdentifications()[0].getHits().size(),1)
-  TEST_EQUAL(fm_ppm[2].getPeptideIdentifications()[0].getHits()[0].getSequence(),"HSKLSAK")
+  TEST_EQUAL(fm_ppm[2].getPeptideIdentifications()[0].getHits()[0].getSequence(), AASequence::fromString("HSKLSAK"))
 
   TEST_EQUAL(fm_ppm[3].getPeptideIdentifications().size(),0)
 
   TEST_EQUAL(fm_ppm[4].getPeptideIdentifications().size(),1)
   TEST_EQUAL(fm_ppm[4].getPeptideIdentifications()[0].getHits().size(),2)
-  TEST_EQUAL(fm_ppm[4].getPeptideIdentifications()[0].getHits()[0].getSequence(),"RASNSPQDPQSATAHSFR")
+  TEST_EQUAL(fm_ppm[4].getPeptideIdentifications()[0].getHits()[0].getSequence(), AASequence::fromString("RASNSPQDPQSATAHSFR"))
 
   TEST_EQUAL(fm_ppm[5].getPeptideIdentifications().size(),0)
 
 
   TEST_EQUAL(fm_ppm.getUnassignedPeptideIdentifications().size(),2)
-  TEST_EQUAL(fm_ppm.getUnassignedPeptideIdentifications()[0].getHits()[0].getSequence(),"DEAD")
-  TEST_EQUAL(fm_ppm.getUnassignedPeptideIdentifications()[0].getHits()[1].getSequence(),"DEADA")
-  TEST_EQUAL(fm_ppm.getUnassignedPeptideIdentifications()[1].getHits()[0].getSequence(),"DEADAA")
-  TEST_EQUAL(fm_ppm.getUnassignedPeptideIdentifications()[1].getHits()[1].getSequence(),"DEADAAA")
+  TEST_EQUAL(fm_ppm.getUnassignedPeptideIdentifications()[0].getHits()[0].getSequence(), AASequence::fromString("DEAD"))
+  TEST_EQUAL(fm_ppm.getUnassignedPeptideIdentifications()[0].getHits()[1].getSequence(), AASequence::fromString("DEADA"))
+  TEST_EQUAL(fm_ppm.getUnassignedPeptideIdentifications()[1].getHits()[0].getSequence(), AASequence::fromString("DEADAA"))
+  TEST_EQUAL(fm_ppm.getUnassignedPeptideIdentifications()[1].getHits()[1].getSequence(), AASequence::fromString("DEADAAA"))
 }
 END_SECTION
 
@@ -388,9 +388,9 @@ START_SECTION((void annotate(ConsensusMap& map, const std::vector<PeptideIdentif
 
     TEST_EQUAL(cm[0].getPeptideIdentifications().size(), 1);
     TEST_EQUAL(cm[0].getPeptideIdentifications()[0].getHits()[0].getSequence(),
-               "ACSF");
+    AASequence::fromString("ACSF"));
     TEST_EQUAL(cm.getUnassignedPeptideIdentifications().size(),
-               peptide_ids.size() - 1);
+    peptide_ids.size() - 1);
 
     cm[0].getPeptideIdentifications().clear();
     cm.getUnassignedPeptideIdentifications().clear();

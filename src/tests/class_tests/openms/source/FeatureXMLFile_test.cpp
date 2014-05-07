@@ -138,20 +138,20 @@ START_SECTION((void load(const String &filename, FeatureMap<>&feature_map)))
   //peptide identifications
   TEST_EQUAL(e[0].getPeptideIdentifications().size(), 2)
   TEST_EQUAL(e[0].getPeptideIdentifications()[0].getHits().size(), 1)
-  TEST_EQUAL(e[0].getPeptideIdentifications()[0].getHits()[0].getSequence(), "A")
+  TEST_EQUAL(e[0].getPeptideIdentifications()[0].getHits()[0].getSequence(), AASequence::fromString("A"))
   TEST_EQUAL(e[0].getPeptideIdentifications()[1].getHits().size(), 2)
-  TEST_EQUAL(e[0].getPeptideIdentifications()[1].getHits()[0].getSequence(), "C")
-  TEST_EQUAL(e[0].getPeptideIdentifications()[1].getHits()[1].getSequence(), "D")
+  TEST_EQUAL(e[0].getPeptideIdentifications()[1].getHits()[0].getSequence(), AASequence::fromString("C"))
+  TEST_EQUAL(e[0].getPeptideIdentifications()[1].getHits()[1].getSequence(), AASequence::fromString("D"))
   TEST_EQUAL(e[1].getPeptideIdentifications().size(), 1)
   TEST_EQUAL(e[1].getPeptideIdentifications()[0].getHits().size(), 1)
-  TEST_EQUAL(e[1].getPeptideIdentifications()[0].getHits()[0].getSequence(), "E")
+  TEST_EQUAL(e[1].getPeptideIdentifications()[0].getHits()[0].getSequence(), AASequence::fromString("E"))
   //unassigned peptide identifications
   TEST_EQUAL(e.getUnassignedPeptideIdentifications().size(), 2)
   TEST_EQUAL(e.getUnassignedPeptideIdentifications()[0].getHits().size(), 1)
-  TEST_EQUAL(e.getUnassignedPeptideIdentifications()[0].getHits()[0].getSequence(), "F")
+  TEST_EQUAL(e.getUnassignedPeptideIdentifications()[0].getHits()[0].getSequence(), AASequence::fromString("F"))
   TEST_EQUAL(e.getUnassignedPeptideIdentifications()[1].getHits().size(), 2)
-  TEST_EQUAL(e.getUnassignedPeptideIdentifications()[1].getHits()[0].getSequence(), "G")
-  TEST_EQUAL(e.getUnassignedPeptideIdentifications()[1].getHits()[1].getSequence(), "H")
+  TEST_EQUAL(e.getUnassignedPeptideIdentifications()[1].getHits()[0].getSequence(), AASequence::fromString("G"))
+  TEST_EQUAL(e.getUnassignedPeptideIdentifications()[1].getHits()[1].getSequence(), AASequence::fromString("H"))
 
   // test meta values:
   TEST_EQUAL(e[0].getMetaValue("myIntList") == ListUtils::create<Int>("1,10,12"), true);

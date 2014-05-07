@@ -173,7 +173,7 @@ namespace OpenMS
     for (; entry_iter != fasta_entries.end(); ++entry_iter)
     {
       // digest sequence
-      AASequence aa_seq(entry_iter->sequence);
+      AASequence aa_seq = AASequence::fromString(entry_iter->sequence);
       std::vector<AASequence> vec;
       digest.digest(aa_seq, vec);
 

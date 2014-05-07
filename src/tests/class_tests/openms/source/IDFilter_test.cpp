@@ -101,8 +101,8 @@ START_SECTION((void filterIdentificationsByProteins(const PeptideIdentification 
 
   TEST_EQUAL(identification2.getScoreType() , "Mascot")
   TEST_EQUAL(identification2.getHits().size(), 2)
-  TEST_EQUAL(identification2.getHits()[0].getSequence(), "LHASGITVTEIPVTATNFK")
-  TEST_EQUAL(identification2.getHits()[1].getSequence(), "MRSLGYVAVISAVATDTDK")
+  TEST_EQUAL(identification2.getHits()[0].getSequence(), AASequence::fromString("LHASGITVTEIPVTATNFK"))
+  TEST_EQUAL(identification2.getHits()[1].getSequence(), AASequence::fromString("MRSLGYVAVISAVATDTDK"))
 END_SECTION
 
 START_SECTION((template <class IdentificationType> void filterIdentificationsByThreshold(const IdentificationType &identification, double threshold_fraction, IdentificationType &filtered_identification)))
@@ -121,16 +121,16 @@ START_SECTION((template <class IdentificationType> void filterIdentificationsByT
   TEST_EQUAL(peptide_hits.size(), 5)
   TEST_REAL_SIMILAR(peptide_hits[0].getScore() , 40)
   TEST_EQUAL(peptide_hits[0].getRank() , 1)
-  TEST_EQUAL((identification2.getHits()[0].getSequence()=="FINFGVNVEVLSRFQTK" && identification2.getHits()[1].getSequence()=="MSLLSNMISIVKVGYNAR") || (identification2.getHits()[0].getSequence()=="MSLLSNMISIVKVGYNAR" && identification2.getHits()[1].getSequence()=="FINFGVNVEVLSRFQTK") , true)
+  TEST_EQUAL((identification2.getHits()[0].getSequence()==AASequence::fromString("FINFGVNVEVLSRFQTK") && identification2.getHits()[1].getSequence()==AASequence::fromString("MSLLSNMISIVKVGYNAR")) || (identification2.getHits()[0].getSequence()==AASequence::fromString("MSLLSNMISIVKVGYNAR") && identification2.getHits()[1].getSequence()==AASequence::fromString("FINFGVNVEVLSRFQTK")) , true)
   TEST_REAL_SIMILAR(peptide_hits[1].getScore() , 40)
   TEST_EQUAL(peptide_hits[1].getRank() , 1)
-  TEST_EQUAL(peptide_hits[2].getSequence() , "THPYGHAIVAGIERYPSK")
+  TEST_EQUAL(peptide_hits[2].getSequence() , AASequence::fromString("THPYGHAIVAGIERYPSK"))
   TEST_REAL_SIMILAR(peptide_hits[2].getScore() , 39)
   TEST_EQUAL(peptide_hits[2].getRank() , 2)
-  TEST_EQUAL(peptide_hits[3].getSequence() , "LHASGITVTEIPVTATNFK")
+  TEST_EQUAL(peptide_hits[3].getSequence() , AASequence::fromString("LHASGITVTEIPVTATNFK"))
   TEST_REAL_SIMILAR(peptide_hits[3].getScore() , 34.85)
   TEST_EQUAL(peptide_hits[3].getRank() , 3)
-  TEST_EQUAL(peptide_hits[4].getSequence() , "MRSLGYVAVISAVATDTDK")
+  TEST_EQUAL(peptide_hits[4].getSequence() , AASequence::fromString("MRSLGYVAVISAVATDTDK"))
   TEST_REAL_SIMILAR(peptide_hits[4].getScore() , 33.85)
   TEST_EQUAL(peptide_hits[4].getRank() , 4)
 END_SECTION
@@ -150,25 +150,25 @@ START_SECTION((template <class IdentificationType> void filterIdentificationsByS
   TEST_EQUAL(peptide_hits.size(), 5)
   TEST_REAL_SIMILAR(peptide_hits[0].getScore() , 40)
   TEST_EQUAL(peptide_hits[0].getRank() , 1)
-  TEST_EQUAL((identification2.getHits()[0].getSequence()=="FINFGVNVEVLSRFQTK" && identification2.getHits()[1].getSequence()=="MSLLSNMISIVKVGYNAR") || (identification2.getHits()[0].getSequence()=="MSLLSNMISIVKVGYNAR" && identification2.getHits()[1].getSequence()=="FINFGVNVEVLSRFQTK") , true)
+  TEST_EQUAL((identification2.getHits()[0].getSequence()==AASequence::fromString("FINFGVNVEVLSRFQTK") && identification2.getHits()[1].getSequence()==AASequence::fromString("MSLLSNMISIVKVGYNAR")) || (identification2.getHits()[0].getSequence()==AASequence::fromString("MSLLSNMISIVKVGYNAR") && identification2.getHits()[1].getSequence()==AASequence::fromString("FINFGVNVEVLSRFQTK")) , true)
   TEST_REAL_SIMILAR(peptide_hits[1].getScore() , 40)
   TEST_EQUAL(peptide_hits[1].getRank() , 1)
-  TEST_EQUAL(peptide_hits[2].getSequence() , "THPYGHAIVAGIERYPSK")
+  TEST_EQUAL(peptide_hits[2].getSequence() , AASequence::fromString("THPYGHAIVAGIERYPSK"))
   TEST_REAL_SIMILAR(peptide_hits[2].getScore() , 39)
   TEST_EQUAL(peptide_hits[2].getRank() , 2)
-  TEST_EQUAL(peptide_hits[3].getSequence() , "LHASGITVTEIPVTATNFK")
+  TEST_EQUAL(peptide_hits[3].getSequence() , AASequence::fromString("LHASGITVTEIPVTATNFK"))
   TEST_REAL_SIMILAR(peptide_hits[3].getScore() , 34.85)
   TEST_EQUAL(peptide_hits[3].getRank() , 3)
-  TEST_EQUAL(peptide_hits[4].getSequence() , "MRSLGYVAVISAVATDTDK")
+  TEST_EQUAL(peptide_hits[4].getSequence() , AASequence::fromString("MRSLGYVAVISAVATDTDK"))
   TEST_REAL_SIMILAR(peptide_hits[4].getScore() , 33.85)
   TEST_EQUAL(peptide_hits[4].getRank() , 4)
 END_SECTION
 
 START_SECTION((void filterIdentificationsByLength(const PeptideIdentification &identification, PeptideIdentification &filtered_identification, Size min_length, Size max_length)))
   PeptideIdentification identification_len(identification);
-  AASequence eighter("OKTAMERR");
-  AASequence niner("NONAMERRR");
-  AASequence tener("DECAMERRRR");
+  AASequence eighter = AASequence::fromString("OKTAMERR");
+  AASequence niner = AASequence::fromString("NONAMERRR");
+  AASequence tener = AASequence::fromString("DECAMERRRR");
   identification_len.insertHit(PeptideHit (99.99, 1, 2, eighter));
   identification_len.insertHit(PeptideHit (99.99, 1, 2, niner));
   identification_len.insertHit(PeptideHit (99.99, 1, 2, tener)) ;
@@ -231,10 +231,10 @@ START_SECTION((void filterIdentificationsByExclusionPeptides(const PeptideIdenti
   TEST_EQUAL(identification2.getScoreType() , "Mascot")
 
   TEST_EQUAL(peptide_hits.size(), 2)
-  TEST_EQUAL(peptide_hits[0].getSequence() , "TGCDTWGQGTLVTVSSASTK")
+  TEST_EQUAL(peptide_hits[0].getSequence() , AASequence::fromString("TGCDTWGQGTLVTVSSASTK"))
   TEST_REAL_SIMILAR(peptide_hits[0].getScore() , 10.93)
   TEST_EQUAL(peptide_hits[0].getRank() , 1)
-  TEST_EQUAL(peptide_hits[1].getSequence() , "TLCHHDATFDNLVWTPK")
+  TEST_EQUAL(peptide_hits[1].getSequence() , AASequence::fromString("TLCHHDATFDNLVWTPK"))
   TEST_REAL_SIMILAR(peptide_hits[1].getScore() , 10.37)
   TEST_EQUAL(peptide_hits[1].getRank() , 2)
   protein_hits = protein_identification.getHits();
@@ -268,10 +268,10 @@ START_SECTION((template<class PeakT> void filterIdentificationsByProteins(MSExpe
   TEST_EQUAL(identification2.getScoreType() , "Mascot")
 
   TEST_EQUAL(peptide_hits.size(), 2)
-  TEST_EQUAL(peptide_hits[0].getSequence() , "LHASGITVTEIPVTATNFK")
+  TEST_EQUAL(peptide_hits[0].getSequence() , AASequence::fromString("LHASGITVTEIPVTATNFK"))
   TEST_REAL_SIMILAR(peptide_hits[0].getScore() , 34.85)
   TEST_EQUAL(peptide_hits[0].getRank() , 1)
-  TEST_EQUAL(peptide_hits[1].getSequence() , "MRSLGYVAVISAVATDTDK")
+  TEST_EQUAL(peptide_hits[1].getSequence() , AASequence::fromString("MRSLGYVAVISAVATDTDK"))
   TEST_REAL_SIMILAR(peptide_hits[1].getScore() , 33.85)
   TEST_EQUAL(peptide_hits[1].getRank() , 2)
 
@@ -293,7 +293,8 @@ START_SECTION((void filterIdentificationsByBestHits(const PeptideIdentification&
   TEST_EQUAL(identification2.getHits()[0].getRank() , 1)
   TEST_REAL_SIMILAR(identification2.getHits()[1].getScore() , 40)
   TEST_EQUAL(identification2.getHits()[1].getRank() , 1)
-  TEST_EQUAL((identification2.getHits()[0].getSequence()=="FINFGVNVEVLSRFQTK" && identification2.getHits()[1].getSequence()=="MSLLSNMISIVKVGYNAR") || (identification2.getHits()[0].getSequence()=="MSLLSNMISIVKVGYNAR" && identification2.getHits()[1].getSequence()=="FINFGVNVEVLSRFQTK") , true)
+  TEST_EQUAL((identification2.getHits()[0].getSequence()==AASequence::fromString("FINFGVNVEVLSRFQTK") && identification2.getHits()[1].getSequence()==AASequence::fromString("MSLLSNMISIVKVGYNAR"))
+          || (identification2.getHits()[0].getSequence()==AASequence::fromString("MSLLSNMISIVKVGYNAR") && identification2.getHits()[1].getSequence()==AASequence::fromString("FINFGVNVEVLSRFQTK")) , true)
 END_SECTION
 
 START_SECTION((template <class PeakT> void filterIdentificationsByThresholds(MSExperiment< PeakT > &experiment, double peptide_threshold_fraction, double protein_threshold_fraction)))
@@ -322,16 +323,18 @@ START_SECTION((template <class PeakT> void filterIdentificationsByThresholds(MSE
   TEST_EQUAL(peptide_hits.size(), 5)
   TEST_REAL_SIMILAR(peptide_hits[0].getScore() , 40)
   TEST_EQUAL(peptide_hits[0].getRank() , 1)
-  TEST_EQUAL((identification2.getHits()[0].getSequence()=="FINFGVNVEVLSRFQTK" && identification2.getHits()[1].getSequence()=="MSLLSNMISIVKVGYNAR") || (identification2.getHits()[0].getSequence()=="MSLLSNMISIVKVGYNAR" && identification2.getHits()[1].getSequence()=="FINFGVNVEVLSRFQTK") , true)
+  TEST_EQUAL((identification2.getHits()[0].getSequence()==AASequence::fromString("FINFGVNVEVLSRFQTK") && identification2.getHits()[1].getSequence()==AASequence::fromString("MSLLSNMISIVKVGYNAR"))
+          || (identification2.getHits()[0].getSequence()==AASequence::fromString("MSLLSNMISIVKVGYNAR") && identification2.getHits()[1].getSequence()==AASequence::fromString("FINFGVNVEVLSRFQTK")) , true)
+
   TEST_REAL_SIMILAR(peptide_hits[1].getScore() , 40)
   TEST_EQUAL(peptide_hits[1].getRank() , 1)
-  TEST_EQUAL(peptide_hits[2].getSequence() , "THPYGHAIVAGIERYPSK")
+  TEST_EQUAL(peptide_hits[2].getSequence() , AASequence::fromString("THPYGHAIVAGIERYPSK"))
   TEST_REAL_SIMILAR(peptide_hits[2].getScore() , 39)
   TEST_EQUAL(peptide_hits[2].getRank() , 2)
-  TEST_EQUAL(peptide_hits[3].getSequence() , "LHASGITVTEIPVTATNFK")
+  TEST_EQUAL(peptide_hits[3].getSequence() , AASequence::fromString("LHASGITVTEIPVTATNFK"))
   TEST_REAL_SIMILAR(peptide_hits[3].getScore() , 34.85)
   TEST_EQUAL(peptide_hits[3].getRank() , 3)
-  TEST_EQUAL(peptide_hits[4].getSequence() , "MRSLGYVAVISAVATDTDK")
+  TEST_EQUAL(peptide_hits[4].getSequence() , AASequence::fromString("MRSLGYVAVISAVATDTDK"))
   TEST_REAL_SIMILAR(peptide_hits[4].getScore() , 33.85)
   TEST_EQUAL(peptide_hits[4].getRank() , 4)
 END_SECTION
@@ -362,16 +365,18 @@ START_SECTION((template <class PeakT> void filterIdentificationsByScores(MSExper
   TEST_EQUAL(peptide_hits.size(), 5)
   TEST_REAL_SIMILAR(peptide_hits[0].getScore() , 40)
   TEST_EQUAL(peptide_hits[0].getRank() , 1)
-  TEST_EQUAL((identification2.getHits()[0].getSequence()=="FINFGVNVEVLSRFQTK" && identification2.getHits()[1].getSequence()=="MSLLSNMISIVKVGYNAR") || (identification2.getHits()[0].getSequence()=="MSLLSNMISIVKVGYNAR" && identification2.getHits()[1].getSequence()=="FINFGVNVEVLSRFQTK") , true)
+  TEST_EQUAL((identification2.getHits()[0].getSequence()==AASequence::fromString("FINFGVNVEVLSRFQTK") && identification2.getHits()[1].getSequence()==AASequence::fromString("MSLLSNMISIVKVGYNAR"))
+          || (identification2.getHits()[0].getSequence()==AASequence::fromString("MSLLSNMISIVKVGYNAR") && identification2.getHits()[1].getSequence()==AASequence::fromString("FINFGVNVEVLSRFQTK")) , true)
+
   TEST_REAL_SIMILAR(peptide_hits[1].getScore() , 40)
   TEST_EQUAL(peptide_hits[1].getRank() , 1)
-  TEST_EQUAL(peptide_hits[2].getSequence() , "THPYGHAIVAGIERYPSK")
+  TEST_EQUAL(peptide_hits[2].getSequence() , AASequence::fromString("THPYGHAIVAGIERYPSK"))
   TEST_REAL_SIMILAR(peptide_hits[2].getScore() , 39)
   TEST_EQUAL(peptide_hits[2].getRank() , 2)
-  TEST_EQUAL(peptide_hits[3].getSequence() , "LHASGITVTEIPVTATNFK")
+  TEST_EQUAL(peptide_hits[3].getSequence() , AASequence::fromString("LHASGITVTEIPVTATNFK"))
   TEST_REAL_SIMILAR(peptide_hits[3].getScore() , 34.85)
   TEST_EQUAL(peptide_hits[3].getRank() , 3)
-  TEST_EQUAL(peptide_hits[4].getSequence() , "MRSLGYVAVISAVATDTDK")
+  TEST_EQUAL(peptide_hits[4].getSequence() , AASequence::fromString("MRSLGYVAVISAVATDTDK"))
   TEST_REAL_SIMILAR(peptide_hits[4].getScore() , 33.85)
   TEST_EQUAL(peptide_hits[4].getRank() , 4)
 END_SECTION
@@ -400,10 +405,11 @@ START_SECTION((template < class PeakT > void filterIdentificationsByBestNHits(MS
   TEST_EQUAL(peptide_hits.size(), 3)
   TEST_REAL_SIMILAR(peptide_hits[0].getScore() , 40)
   TEST_EQUAL(peptide_hits[0].getRank() , 1)
-  TEST_EQUAL((identification2.getHits()[0].getSequence()=="FINFGVNVEVLSRFQTK" && identification2.getHits()[1].getSequence()=="MSLLSNMISIVKVGYNAR") || (identification2.getHits()[0].getSequence()=="MSLLSNMISIVKVGYNAR" && identification2.getHits()[1].getSequence()=="FINFGVNVEVLSRFQTK") , true)
+  TEST_EQUAL((identification2.getHits()[0].getSequence()==AASequence::fromString("FINFGVNVEVLSRFQTK") && identification2.getHits()[1].getSequence()==AASequence::fromString("MSLLSNMISIVKVGYNAR"))
+          || (identification2.getHits()[0].getSequence()==AASequence::fromString("MSLLSNMISIVKVGYNAR") && identification2.getHits()[1].getSequence()==AASequence::fromString("FINFGVNVEVLSRFQTK")) , true)
   TEST_REAL_SIMILAR(peptide_hits[1].getScore() , 40)
   TEST_EQUAL(peptide_hits[1].getRank() , 1)
-  TEST_EQUAL(peptide_hits[2].getSequence() , "THPYGHAIVAGIERYPSK")
+  TEST_EQUAL(peptide_hits[2].getSequence() , AASequence::fromString("THPYGHAIVAGIERYPSK"))
   TEST_REAL_SIMILAR(peptide_hits[2].getScore() , 39)
   TEST_EQUAL(peptide_hits[2].getRank() , 2)
 
@@ -420,10 +426,11 @@ START_SECTION((template < class IdentificationType > void filterIdentificationsB
   TEST_EQUAL(peptide_hits.size(), 3)
   TEST_REAL_SIMILAR(peptide_hits[0].getScore() , 40)
   TEST_EQUAL(peptide_hits[0].getRank() , 1)
-  TEST_EQUAL((identification2.getHits()[0].getSequence()=="FINFGVNVEVLSRFQTK" && identification2.getHits()[1].getSequence()=="MSLLSNMISIVKVGYNAR") || (identification2.getHits()[0].getSequence()=="MSLLSNMISIVKVGYNAR" && identification2.getHits()[1].getSequence()=="FINFGVNVEVLSRFQTK") , true)
+  TEST_EQUAL((identification2.getHits()[0].getSequence()==AASequence::fromString("FINFGVNVEVLSRFQTK") && identification2.getHits()[1].getSequence()==AASequence::fromString("MSLLSNMISIVKVGYNAR"))
+          || (identification2.getHits()[0].getSequence()==AASequence::fromString("MSLLSNMISIVKVGYNAR") && identification2.getHits()[1].getSequence()==AASequence::fromString("FINFGVNVEVLSRFQTK")) , true)
   TEST_REAL_SIMILAR(peptide_hits[1].getScore() , 40)
   TEST_EQUAL(peptide_hits[1].getRank() , 1)
-  TEST_EQUAL(peptide_hits[2].getSequence() , "THPYGHAIVAGIERYPSK")
+  TEST_EQUAL(peptide_hits[2].getSequence() , AASequence::fromString("THPYGHAIVAGIERYPSK"))
   TEST_REAL_SIMILAR(peptide_hits[2].getScore() , 39)
   TEST_EQUAL(peptide_hits[2].getRank() , 2)
 
@@ -440,10 +447,10 @@ START_SECTION((void filterIdentificationsByRTPValues(const PeptideIdentification
   vector<PeptideHit> hits = filtered_identification.getHits();
 
   TEST_EQUAL(hits.size(), 4)
-  TEST_EQUAL(hits[0].getSequence(), "LHASGITVTEIPVTATNFK")
-  TEST_EQUAL(hits[1].getSequence(), "DLEPGTDYEVTVSTLFGR")
-  TEST_EQUAL(hits[2].getSequence(), "FINFGVNVEVLSRFQTK")
-  TEST_EQUAL(hits[3].getSequence(), "MSLLSNMISIVKVGYNAR")
+  TEST_EQUAL(hits[0].getSequence(), AASequence::fromString("LHASGITVTEIPVTATNFK"))
+  TEST_EQUAL(hits[1].getSequence(), AASequence::fromString("DLEPGTDYEVTVSTLFGR"))
+  TEST_EQUAL(hits[2].getSequence(), AASequence::fromString("FINFGVNVEVLSRFQTK"))
+  TEST_EQUAL(hits[3].getSequence(), AASequence::fromString("MSLLSNMISIVKVGYNAR"))
 END_SECTION
 
 START_SECTION((void filterIdentificationsByRTFirstDimPValues(const PeptideIdentification &identification, PeptideIdentification &filtered_identification, double p_value=0.05)))
@@ -457,10 +464,10 @@ START_SECTION((void filterIdentificationsByRTFirstDimPValues(const PeptideIdenti
   vector<PeptideHit> hits = filtered_identification.getHits();
 
   TEST_EQUAL(hits.size(), 4)
-  TEST_EQUAL(hits[0].getSequence(), "LHASGITVTEIPVTATNFK")
-  TEST_EQUAL(hits[1].getSequence(), "DLEPGTDYEVTVSTLFGR")
-  TEST_EQUAL(hits[2].getSequence(), "FINFGVNVEVLSRFQTK")
-  TEST_EQUAL(hits[3].getSequence(), "MSLLSNMISIVKVGYNAR")
+  TEST_EQUAL(hits[0].getSequence(), AASequence::fromString("LHASGITVTEIPVTATNFK"))
+  TEST_EQUAL(hits[1].getSequence(), AASequence::fromString("DLEPGTDYEVTVSTLFGR"))
+  TEST_EQUAL(hits[2].getSequence(), AASequence::fromString("FINFGVNVEVLSRFQTK"))
+  TEST_EQUAL(hits[3].getSequence(), AASequence::fromString("MSLLSNMISIVKVGYNAR"))
 END_SECTION
 
 START_SECTION((void removeUnreferencedProteinHits(const ProteinIdentification &identification, const std::vector< PeptideIdentification > peptide_identifications, ProteinIdentification &filtered_identification)))
@@ -480,7 +487,7 @@ START_SECTION((void filterIdentificationsUnique(const PeptideIdentification &ide
   PeptideIdentification id, id2;
   vector<PeptideHit> hits;
   PeptideHit hit;
-  hit.setSequence(AASequence("DFPIANGER"));
+  hit.setSequence(AASequence::fromString("DFPIANGER"));
   hit.setCharge(1);
   hit.setScore(0.3);
   hits.push_back(hit);
@@ -488,7 +495,7 @@ START_SECTION((void filterIdentificationsUnique(const PeptideIdentification &ide
   hits.push_back(hit);
   hit.setScore(0.5);
   hits.push_back(hit);
-  hit.setSequence(AASequence("DFPIANGEK"));
+  hit.setSequence(AASequence::fromString("DFPIANGEK"));
   hits.push_back(hit);
   hits.push_back(hit);
   hits.push_back(hit);
