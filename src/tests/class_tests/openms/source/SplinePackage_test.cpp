@@ -54,14 +54,37 @@ intensity.push_back(20.3);
 intensity.push_back(2000.4);
 intensity.push_back(4.3);
 
-SplinePackage sp(mz, intensity, 0.7);
+SplinePackage sp1(mz, intensity, 0.7);
 
-START_SECTION(SplinePackage(mz, intensity, 0.7))
-  TEST_EQUAL(sp.getMzMin(), 413.8);
-  TEST_EQUAL(sp.getMzMax(), 414.2);
-  TEST_REAL_SIMILAR(sp.getMzStepWidth(), 0.07);
-  TEST_EQUAL(sp.isInPackage(414.05), true);
-  TEST_REAL_SIMILAR(sp.getSpline().eval(414.05), 1000.8);
+SplinePackage* nullPointer = 0;
+
+START_SECTION(SplinePackage(std::vector<double> mz, std::vector<double> intensity, double scaling))
+  SplinePackage* sp2 = new SplinePackage(mz, intensity, 0.7);
+  TEST_NOT_EQUAL(sp2, nullPointer)
+END_SECTION
+
+START_SECTION(getMzMin())
+  TEST_EQUAL(sp1.getMzMin(), 413.8);
+END_SECTION
+
+START_SECTION(getMzMax())
+  TEST_EQUAL(sp1.getMzMax(), 414.2);
+END_SECTION
+
+START_SECTION(getMzStepWidth())
+  TEST_REAL_SIMILAR(sp1.getMzStepWidth(), 0.07);
+END_SECTION
+
+START_SECTION(isInPackage(double mz))
+  TEST_EQUAL(sp1.isInPackage(414.05), true);
+END_SECTION
+
+START_SECTION(getSpline())
+  TEST_REAL_SIMILAR(sp1.getSpline().eval(414.05), 1000.8);
+END_SECTION
+
+START_SECTION(eval(double mz))
+  TEST_REAL_SIMILAR(sp1.eval(414.05), 1000.8);
 END_SECTION
 
 END_TEST

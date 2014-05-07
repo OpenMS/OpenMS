@@ -56,14 +56,33 @@ intensity.push_back(0.0);
 intensity.push_back(130.2);
 intensity.push_back(0.0);
 
-SplineSpectrum ss(mz, intensity);
+SplineSpectrum ss1(mz, intensity);
+
+SplineSpectrum* nullPointer = 0;
 
 START_SECTION(SplineSpectrum())
-  TEST_EQUAL(ss.getMzMin(), 413.8);
-  TEST_EQUAL(ss.getMzMax(), 414.6);
-  TEST_EQUAL(ss.getPackage(0).getMzMin(), 413.8);
-  TEST_REAL_SIMILAR(ss.getNavigator().eval(413.9), 100.2);
-  TEST_REAL_SIMILAR(ss.getNavigator().getNextMz(413.9), 413.97);
+  SplineSpectrum* ss2 = new SplineSpectrum(mz, intensity);
+  TEST_NOT_EQUAL(ss2, nullPointer)
+END_SECTION
+
+START_SECTION(getMzMin())
+  TEST_EQUAL(ss1.getMzMin(), 413.8);
+END_SECTION
+
+START_SECTION(getMzMax())
+  TEST_EQUAL(ss1.getMzMax(), 414.6);
+END_SECTION
+
+START_SECTION(getPackage(int i))
+  TEST_EQUAL(ss1.getPackage(0).getMzMin(), 413.8);
+END_SECTION
+
+START_SECTION(getNavigator().eval(double mz))
+  TEST_REAL_SIMILAR(ss1.getNavigator().eval(413.9), 100.2);
+END_SECTION
+
+START_SECTION(getNavigator().getNextMz(double mz))
+  TEST_REAL_SIMILAR(ss1.getNavigator().getNextMz(413.9), 413.97);
 END_SECTION
 
 END_TEST
