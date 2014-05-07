@@ -45,14 +45,14 @@ namespace OpenMS
  * as described in R.L. Burden, J.D. Faires, Numerical Analysis, 4th ed.
  * PWS-Kent, 1989, ISBN 0-53491-585-X, pp. 126-131.
  */
-class OPENMS_DLLAPI CubicSpline2d
-{
+  class OPENMS_DLLAPI CubicSpline2d
+  {
 
-std::vector<double> a_;            // constant spline coefficients
-std::vector<double> b_;            // linear spline coefficients
-std::vector<double> c_;            // quadratic spline coefficients
-std::vector<double> d_;            // cubic spline coefficients
-std::vector<double> x_;            // knots
+    std::vector<double> a_;        // constant spline coefficients
+    std::vector<double> b_;        // linear spline coefficients
+    std::vector<double> c_;        // quadratic spline coefficients
+    std::vector<double> d_;        // cubic spline coefficients
+    std::vector<double> x_;        // knots
 
 public:
 
@@ -64,21 +64,21 @@ public:
  * The coordinates must match by index. Both vectors must be
  * the same size and sorted in x.
  */
-CubicSpline2d(const std::vector<double>& x, const std::vector<double>& y);
+    CubicSpline2d(const std::vector<double>& x, const std::vector<double>& y);
 
 /**
  * @brief constructor of spline interpolation
  *
  * @param m (x,y) coordinates of input data points
  */
-CubicSpline2d(const std::map<double, double>& m);
+    CubicSpline2d(const std::map<double, double>& m);
 
 /**
  * @brief evaluates the spline at position x
  *
  * @param x x-position
  */
-double eval(double x);
+    double eval(double x);
 
 /**
  * @brief evaluates derivative of spline at position x
@@ -87,7 +87,7 @@ double eval(double x);
  * @param order order of the derivative
  * Only order 1 or 2 make sense for cubic splines.
  */
-double derivatives(double x, unsigned order);
+    double derivatives(double x, unsigned order);
 
 private:
 
@@ -97,9 +97,9 @@ private:
  * @param x x-coordinates of input data points (knots)
  * @param y y-coordinates of input data points
  */
-void init(const std::vector<double>& x, const std::vector<double>& y);
+    void init(const std::vector<double>& x, const std::vector<double>& y);
 
-};
+  };
 
 }
 
