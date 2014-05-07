@@ -1,30 +1,30 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2013.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
@@ -93,7 +93,7 @@ START_SECTION((std::pair<String, double> getDecoyIon(String ionid, std::map< Str
 END_SECTION
 
 START_SECTION((std::vector<std::pair<std::string::size_type, std::string> > find_all_tryptic(std::string sequence)))
-{    
+{
   MRMDecoy gen;
 
   String sequence = "TRESTPEPTIKDE";
@@ -243,7 +243,7 @@ START_SECTION([EXTRA] shuffle_peptide_with_terminal_modifications)
   OpenMS::TargetedExperiment::Peptide::Modification modification;
   peptide.sequence = original_sequence.toUnmodifiedString();
 
-  // "sulfonation of N-terminus" 
+  // "sulfonation of N-terminus"
   modification.avg_mass_delta = 136.1265;
   modification.location = -1;
   modification.mono_mass_delta = 135.983029;
@@ -352,8 +352,8 @@ END_SECTION
 /// Public methods
 START_SECTION((void generateDecoys(OpenMS::TargetedExperiment& exp,
                         OpenMS::TargetedExperiment& dec, String method, String decoy_tag,
-                        double identity_threshold, int max_attempts, double mz_threshold, 
-                        bool theoretical, double mz_shift, bool exclude_similar, 
+                        double identity_threshold, int max_attempts, double mz_threshold,
+                        bool theoretical, double mz_shift, bool exclude_similar,
                         double similarity_threshold, bool remove_CNterm_mods, double precursor_mass_shift,
                         bool enable_losses, bool skip_unannotated);))
 {
@@ -377,15 +377,15 @@ START_SECTION((void generateDecoys(OpenMS::TargetedExperiment& exp,
   TraMLFile traml;
   TargetedExperiment targeted_exp;
   TargetedExperiment targeted_decoy;
-        
+
   traml.load(OPENMS_GET_TEST_DATA_PATH(in), targeted_exp);
-    
+
   MRMDecoy decoys = MRMDecoy();
   decoys.restrictTransitions(targeted_exp, min_transitions, max_transitions);
   TEST_EQUAL(targeted_exp.getPeptides().size(), 13)
   TEST_EQUAL(targeted_exp.getTransitions().size(), 33)
   decoys.generateDecoys(targeted_exp, targeted_decoy, method, decoy_tag, identity_threshold, max_attempts, mz_threshold, theoretical, mz_shift, exclude_similar, similarity_threshold, remove_CNterminal_mods, 0.1, 1, 0);  traml.store(test, targeted_decoy);
-  
+
   TEST_FILE_EQUAL(test.c_str(), OPENMS_GET_TEST_DATA_PATH(out))
 }
 END_SECTION
@@ -398,7 +398,7 @@ START_SECTION(void restrictTransitions(OpenMS::TargetedExperiment &exp, int min_
 END_SECTION
 
 START_SECTION((extra))
-{    
+{
   MRMDecoy gen;
 
   AASequence target_sequence = AASequence::fromString("ADSTGTLVITDPTR(UniMod:267)");
@@ -435,7 +435,7 @@ START_SECTION((extra))
   }
 
   {
-    AASequence peptide = AASequence("KVGLDPSQLPVGENGIV");
+    AASequence peptide = AASequence::fromString("KVGLDPSQLPVGENGIV");
     MRMDecoy::IonSeries target_ionseries = gen.getIonSeries(peptide, 2);
 
     double target_mz_1 = 737.394;
@@ -452,7 +452,7 @@ START_SECTION((extra))
   }
   {
     // Neutral loss of H2ONH3, H2OH2O, CH3NO, HCOOH
-    AASequence peptide = AASequence("AAAAAAAAAPAAAATAPTTAATTAATAAQ");
+    AASequence peptide = AASequence::fromString("AAAAAAAAAPAAAATAPTTAATTAATAAQ");
     MRMDecoy::IonSeries target_ionseries = gen.getIonSeries(peptide, 3);
 
     double mz_threshold = 0.05;
@@ -467,7 +467,7 @@ START_SECTION((extra))
   }
   {
     // Neutral loss of H2O, NH3
-    AASequence peptide = AASequence("AAAAAAALQAK");
+    AASequence peptide = AASequence::fromString("AAAAAAALQAK");
     MRMDecoy::IonSeries target_ionseries = gen.getIonSeries(peptide, 2);
 
     double mz_threshold = 0.05;
@@ -486,7 +486,7 @@ START_SECTION((extra))
   }
   {
     // Neutral loss of NH3NH3
-    AASequence peptide = AASequence("AALQEELQLC(UniMod:4)K");
+    AASequence peptide = AASequence::fromString("AALQEELQLC(UniMod:4)K");
     MRMDecoy::IonSeries target_ionseries = gen.getIonSeries(peptide, 2);
 
     double mz_threshold = 0.05;
@@ -497,7 +497,7 @@ START_SECTION((extra))
   }
   {
     // Neutral loss (oxidation) of methionine only
-    AASequence peptide = AASequence("AFADALEVIPMALSENSGM(UniMod:35)NPIQTMTEVR");
+    AASequence peptide = AASequence::fromString("AFADALEVIPMALSENSGM(UniMod:35)NPIQTMTEVR");
     MRMDecoy::IonSeries target_ionseries = gen.getIonSeries(peptide, 3);
 
     double mz_threshold = 0.05;
@@ -512,7 +512,7 @@ START_SECTION((extra))
   }
   {
     // Neutral losses (phospho) of serine and threonine only
-    AASequence peptide = AASequence("AFADALEVIPMALSENS(Phospho)GM(UniMod:35)NPIQTMTEVR");
+    AASequence peptide = AASequence::fromString("AFADALEVIPMALSENS(Phospho)GM(UniMod:35)NPIQTMTEVR");
     MRMDecoy::IonSeries target_ionseries = gen.getIonSeries(peptide, 3);
 
     double mz_threshold = 0.05;
