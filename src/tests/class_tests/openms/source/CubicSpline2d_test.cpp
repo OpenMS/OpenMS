@@ -96,11 +96,6 @@ START_SECTION(double eval(double x))
   TEST_REAL_SIMILAR(sp2.eval(486.794), 2270517.50463);
 END_SECTION
 
-START_SECTION(double evalNonNegative(double x))
-  TEST_REAL_SIMILAR(sp1.evalNonNegative(486.81099998), 0);
-  TEST_REAL_SIMILAR(sp2.evalNonNegative(486.81099998), 0);
-END_SECTION
-
 START_SECTION(double derivatives(double x, unsigned order))
   // near border of spline range
   TEST_REAL_SIMILAR(sp1.derivatives(486.785,1), 35203124.2107165);

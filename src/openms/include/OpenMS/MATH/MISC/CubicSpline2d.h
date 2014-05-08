@@ -81,13 +81,6 @@ public:
     double eval(double x);
 
     /**
-     * @brief evaluates the spline at position x and returns a non-negative value
-     *
-     * @param x x-position
-     */
-    double evalNonNegative(double x);
-
-    /**
      * @brief evaluates derivative of spline at position x
      *
      * @param x x-position

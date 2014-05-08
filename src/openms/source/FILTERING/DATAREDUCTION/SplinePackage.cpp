@@ -90,7 +90,7 @@ double SplinePackage::eval(double mz)
 {
 	if (this->isInPackage(mz))
 	{
-        return spline_.evalNonNegative(mz);
+        return max(0.0, spline_.eval(mz));
 	}
 	else
 	{
