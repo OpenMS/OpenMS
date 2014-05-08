@@ -1809,7 +1809,7 @@ protected:
 
 	///< Calculates the correlation between measured isotopic_intensities and the theoretical isotopic patterns for all incorporation rates
 	void calculateCorrelation(String seq, const vector<double>& isotopic_intensities, IsotopePatterns patterns,
-		MapRateToScoreType& map_rate_to_correlation_score, bool use_N15, double min_correlation_distance_to_averagine = 0.0)
+		MapRateToScoreType& map_rate_to_correlation_score, bool use_N15, double min_correlation_distance_to_averagine)
 	{
 		double observed_peak_fraction = getDoubleOption_("observed_peak_fraction");
 
@@ -1824,35 +1824,48 @@ protected:
 		double peptide_weight = AASequence(seq).getMonoWeight(Residue::Full, 0);
 
 		const Size AVERAGINE_CORR_OFFSET = 3;
-		std::vector<double> averagine_correlation(AVERAGINE_CORR_OFFSET, 0.0); // doesn't make sense to correlate the unlabeled peptide with known sequence to the averagine peptide so skip the first 3 peaks
-		//std::cout << "isotopic_intensities.size() " << isotopic_intensities.size() << std::endl;
 
-		for (Size ii = AVERAGINE_CORR_OFFSET; ii < isotopic_intensities.size() - ADDITIONAL_ISOTOPES; ++ii)
+    // calculate correlation for averagine peptides
+    std::vector<double> averagine_correlation(isotopic_intensities.size(), 0.0);
+
+    // extended by zeros on both sides to simplify correlation
+    vector<double> ext_isotopic_intensities(AVERAGINE_CORR_OFFSET, 0.0);
+    ext_isotopic_intensities.insert(ext_isotopic_intensities.end(), isotopic_intensities.begin(), isotopic_intensities.end());
+    for (Size i = 0; i != AVERAGINE_CORR_OFFSET; ++i)
+    {
+      ext_isotopic_intensities.push_back(0.0);
+    }
+
+		for (Size ii = 0; ii < isotopic_intensities.size(); ++ii)
 		{
 			// calculate isotope distribution of averagine peptide as this will be used to detect spurious correlations with coeluting peptides
 			// Note: actually it would be more accurate to use 15N-14N or 13C-12C distances. This doesn't affect averagine distribution much so this approximation is sufficient. (see TODO)
 			double current_weight = peptide_weight + ii * 1.0;  // TODO: use 13C-12C or 15N-14N instead of 1.0 as mass distance to be super accurate
-			IsotopeDistribution averagine = IsotopeDistribution(20);
+			IsotopeDistribution averagine = IsotopeDistribution(10);
 			averagine.estimateFromPeptideWeight(current_weight);
 
-			//std::cout << "current_weight " << current_weight << std::endl;
-
 			std::vector<std::pair<Size, double> > averagine_intensities_pairs = averagine.getContainer();
-			// add zero intensites to the left of distribution as we are doing a sliding correlation and explicitly want to correlate the region before the actual averagine peptide
-			// as this often discriminates between the gaussian shape of a peptide with incorporation and a natural peptide
-			std::vector<double> averagine_intensities(AVERAGINE_CORR_OFFSET, 0.0); // add 0 intensity bins
-			//std::cout << "averagine_intensities.size() " << averagine_intensities.size() << std::endl;
-			for (Size i = 0; i != 5; ++i)
+    
+      // zeros to the left for sliding window correlation
+      std::vector<double> averagine_intensities(AVERAGINE_CORR_OFFSET, 0.0); // add 0 intensity bins left to actual averagine pattern
+
+      for (Size i = 0; i != averagine_intensities_pairs.size(); ++i)
 			{
-				averagine_intensities.push_back(averagine_intensities_pairs[i].second);  // add intensities of actual theoretical isotope pattern
+				averagine_intensities.push_back(averagine_intensities_pairs[i].second); 
 			}
-			/*
-		std::cout << "ii - AVERAGINE_CORR_OFFSET " << ii - AVERAGINE_CORR_OFFSET << std::endl;
-		std::cout << "ii + ADDITIONAL_ISOTOPES " << ii + ADDITIONAL_ISOTOPES << std::endl;
-		std::cout << "averagine_intensities.size() " << averagine_intensities.size() << std::endl;
-		*/
-			double corr_with_averagine = Math::pearsonCorrelationCoefficient(averagine_intensities.begin(), averagine_intensities.end(), isotopic_intensities.begin() + ii - AVERAGINE_CORR_OFFSET, isotopic_intensities.begin() + ii + ADDITIONAL_ISOTOPES);
-			averagine_correlation.push_back(corr_with_averagine);
+
+      // zeros to the right
+      for (Size i = 0; i != AVERAGINE_CORR_OFFSET; ++i)
+      {
+        averagine_intensities.push_back(0.0);
+      }
+
+      // number of bins that can be correlated
+      Int max_correlated_values = std::min((int)ext_isotopic_intensities.size() - ii, averagine_intensities.size());
+
+      double corr_with_averagine = Math::pearsonCorrelationCoefficient(averagine_intensities.begin(), averagine_intensities.begin() + max_correlated_values, 
+        ext_isotopic_intensities.begin() + ii, ext_isotopic_intensities.begin() + ii + max_correlated_values);
+			averagine_correlation[ii] = corr_with_averagine;
 		}
 
 		// calculate correlation of RIA peptide with measured data
@@ -3064,7 +3077,7 @@ protected:
 			if (getFlag_("filter_monoisotopic"))
 			{
 				// calculate correlation of natural RIAs (for later reporting) before we subtract the intensities. This is somewhat redundant but no speed bottleneck.
-				calculateCorrelation(feature_hit_seq, isotopic_intensities, patterns, tmp_map_rate_to_correlation_score, use_N15);
+				calculateCorrelation(feature_hit_seq, isotopic_intensities, patterns, tmp_map_rate_to_correlation_score, use_N15, 0.0);
 				for (Size i = 0; i != sip_peptide.reconstruction_monoistopic.size(); ++i)
 				{
 					if (i == 0)
