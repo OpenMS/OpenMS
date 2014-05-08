@@ -85,6 +85,21 @@ namespace OpenMS
     return ((d_[i] * xx + c_[i]) * xx + b_[i]) * xx + a_[i];
   }
 
+  double CubicSpline2d::evalNonNegative(double x)
+  {
+      
+    double result = eval(x);
+    
+    if (result < 0)
+    {
+        return 0;
+    }
+    else
+    {
+        return result;
+    }
+  }
+
   double CubicSpline2d::derivatives(double x, unsigned order)
   {
     if (x < x_[0] || x > x_[x_.size() - 1])
