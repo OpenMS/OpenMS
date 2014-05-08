@@ -1015,8 +1015,8 @@ protected:
     setValidFormats_("tr", ListUtils::create<String>("csv,traML"));
 
     // one of the following two needs to be set
-    registerInputFile_("tr_irt", "<file>", "", "transition file ('TraML' or 'csv')", false);
-    setValidFormats_("tr_irt", ListUtils::create<String>("csv,traML"));
+    registerInputFile_("tr_irt", "<file>", "", "transition file ('TraML')", false);
+    setValidFormats_("tr_irt", ListUtils::create<String>("traML"));
 
     registerInputFile_("rt_norm", "<file>", "", "RT normalization file (how to map the RTs of this run to the ones stored in the library). If set, tr_irt may be omitted.", false, true);
     setValidFormats_("rt_norm", ListUtils::create<String>("trafoXML"));
