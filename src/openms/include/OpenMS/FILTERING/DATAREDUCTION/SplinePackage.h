@@ -37,7 +37,7 @@
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
-#include <OpenMS/MATH/MISC/Spline2d.h>
+#include <OpenMS/MATH/MISC/CubicSpline2d.h>
 
 #include <vector>
 #include <algorithm>
@@ -71,7 +71,7 @@ double mzStepWidth_;
 /**
  * @brief spline object for interpolation of intensity profile
  */
-Spline2d<double> spline_;
+CubicSpline2d spline_;
 
 public:
 /**
@@ -107,7 +107,7 @@ bool isInPackage(double mz);
 /**
  * @brief returns polynomial spline function for interpolation in the interval [mzMin:mzMax]
  */
-Spline2d<double> getSpline();
+CubicSpline2d getSpline();
 
 /**
  * @brief returns interpolated intensity @ position mz

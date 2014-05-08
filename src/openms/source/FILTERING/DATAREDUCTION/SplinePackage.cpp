@@ -34,7 +34,7 @@
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/SplinePackage.h>
-#include <OpenMS/MATH/MISC/Spline2d.h>
+#include <OpenMS/MATH/MISC/CubicSpline2d.h>
 
 #include <vector>
 #include <algorithm>
@@ -45,7 +45,7 @@ using namespace std;
 namespace OpenMS
 {
 
-SplinePackage::SplinePackage(std::vector<double> mz, std::vector<double> intensity, double scaling) : spline_(3, mz, intensity)
+SplinePackage::SplinePackage(std::vector<double> mz, std::vector<double> intensity, double scaling) : spline_(mz, intensity)
 {
 	if (!(mz.size() == intensity.size() && mz.size() > 2))
 	{
@@ -81,7 +81,7 @@ bool SplinePackage::isInPackage(double mz)
 	return (mz >= mzMin_ && mz <= mzMax_);
 }
 
-Spline2d<double> SplinePackage::getSpline()
+CubicSpline2d SplinePackage::getSpline()
 {
 	return spline_;
 }
@@ -90,15 +90,7 @@ double SplinePackage::eval(double mz)
 {
 	if (this->isInPackage(mz))
 	{
-		double intensity = spline_.eval(mz);
-		if (intensity < 0)
-		{
-			return 0;
-		}
-		else
-		{
-			return intensity;
-		}
+        return spline_.evalNonNegative(mz);
 	}
 	else
 	{

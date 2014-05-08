@@ -87,8 +87,15 @@ namespace OpenMS
 
   double CubicSpline2d::evalNonNegative(double x)
   {
-      
-    double result = eval(x);
+    if (x < x_[0] || x > x_[x_.size() - 1])
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Argument out of range of spline interpolation.");
+    }
+
+    int i = std::lower_bound(x_.begin(), x_.end(), x) - x_.begin() - 1;
+    double xx = x - x_[i];
+
+    double result = ((d_[i] * xx + c_[i]) * xx + b_[i]) * xx + a_[i];
     
     if (result < 0)
     {
