@@ -860,6 +860,15 @@ namespace OpenMS
           // skip to next map (only increase i)
           continue;
         }
+        if (j >= swath_prec_lower_.size() )
+        {
+          std::cerr << "Trying to access annotation for SWATH map " << j << 
+            " but there are only " << swath_prec_lower_.size() << " windows in the" << 
+            " swath_windows_file. Please check your input." << std::endl;
+          throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
+              "The number of SWATH maps read from the raw data and from the annotation file do not match.");
+        }
+
         std::cout << "Re-annotate from file: SWATH " << 
           swath_maps[i].lower << " / " << swath_maps[i].upper << " is annotated with " << 
           swath_prec_lower_[j] << " / " << swath_prec_upper_[j] << std::endl;
@@ -901,6 +910,7 @@ namespace OpenMS
       std::ifstream data(filename.c_str());
       std::string line;
       std::getline(data, line); //skip header
+      std::cout << "Read Swath window header " << line << std::endl;
       double lower, upper;
       while (std::getline(data, line))
       {
@@ -913,6 +923,7 @@ namespace OpenMS
         swath_prec_upper_.push_back(upper);
       }
       assert(swath_prec_lower_.size() == swath_prec_upper_.size());
+      std::cout << "Read Swath window file with " << swath_prec_lower_.size() << " SWATH windows." << std::endl;
     }
 
   };
