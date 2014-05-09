@@ -2210,7 +2210,7 @@ protected:
 		const MapRateToScoreType& map_rate_to_decomposition_weight = sip_peptide.decomposition_map;
 		const MapRateToScoreType& map_rate_to_correlation_score = sip_peptide.correlation_map;
 		vector<SIPIncorporation> sip_incorporations;
-		const vector<RateScorePair>&  corr_maxima = sip_peptide.correlation_maxima;
+		const vector<RateScorePair>& corr_maxima = sip_peptide.correlation_maxima;
 
 		double explained_TIC_fraction = 0;
 		double TIC = 0;
@@ -2282,7 +2282,7 @@ protected:
 		}
 
 		bool non_natural = false;
-		if (highest_non_natural_rate > 5.0)
+    if (highest_non_natural_rate > 5.0 && highest_non_natural_abundance > min_decomposition_weight)
 		{
 			non_natural = true;
 		}
