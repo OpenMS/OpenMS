@@ -795,7 +795,6 @@ namespace OpenMS
       if (res_ptr == 0 && tag.empty() && mod.empty())
       {
         throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, peptide, "Cannot convert string into AASequence. Cannot parse residue with name: '" + name + "'!");
-        return;
       }
 
       if (!mod.empty() && i > 0)
@@ -954,7 +953,6 @@ namespace OpenMS
         if (aas.peptide_.size() < i)
         {
           throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, peptide, "Cannot convert string into AASequence. Mod and tag are both empty.");
-          return;
         }
       }
     }

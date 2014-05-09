@@ -201,7 +201,7 @@ protected:
         item.unquote();
       }
 
-      AASequence seq ;
+      AASequence seq;
       try
       {
         seq = AASequence::fromString(item);
