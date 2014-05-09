@@ -58,9 +58,9 @@ bf.setMZ(2.2);
 bf.setCharge(3);
 bf.getPeptideIdentifications().resize(2);
 PeptideHit hit;
-hit.setSequence(AASequence("AAA"));
+hit.setSequence(AASequence::fromString("AAA"));
 bf.getPeptideIdentifications()[0].insertHit(hit);
-hit.setSequence(AASequence("CCC"));
+hit.setSequence(AASequence::fromString("CCC"));
 bf.getPeptideIdentifications()[1].insertHit(hit);
 GridFeature gf(bf, 123, 456);
 
@@ -146,8 +146,8 @@ END_SECTION
 START_SECTION((const set<AASequence>& getAnnotations()))
 {
   TEST_EQUAL(cluster.getAnnotations().size(), 2);
-  TEST_EQUAL(*(cluster.getAnnotations().begin()), "AAA");
-  TEST_EQUAL(*(cluster.getAnnotations().rbegin()), "CCC");
+  TEST_EQUAL(*(cluster.getAnnotations().begin()), AASequence::fromString("AAA"));
+  TEST_EQUAL(*(cluster.getAnnotations().rbegin()), AASequence::fromString("CCC"));
   QTCluster cluster2(&gf, 2, 11.1, false);
   TEST_EQUAL(cluster2.getAnnotations().empty(), true);
 }

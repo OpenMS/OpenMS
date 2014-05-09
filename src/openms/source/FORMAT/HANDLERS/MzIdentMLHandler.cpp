@@ -283,7 +283,7 @@ namespace OpenMS
       if (tag_ == "peptideSequence")
       {
         String pep = sm_.convert(chars);
-        actual_peptide_ = AASequence(pep);
+        actual_peptide_ = AASequence::fromString(pep);
         return;
       }
 

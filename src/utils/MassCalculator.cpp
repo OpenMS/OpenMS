@@ -200,13 +200,17 @@ protected:
       {
         item.unquote();
       }
-      AASequence seq(item);
-      if (!seq.isValid())
+
+      AASequence seq;
+      try
       {
-        LOG_WARN << "Warning: '" << item
-                 << "' is not a valid peptide sequence - skipping\n";
+        seq = AASequence::fromString(item);
+      } catch (Exception::ParseError &e)
+      {
+        LOG_WARN << "Warning: '" << item << "' is not a valid peptide sequence - skipping\n";
         continue;
       }
+
       set<Int> local_charges(charges);
       Size conversion_failed_count(0);
       while (!line.empty())
@@ -285,13 +289,16 @@ protected:
       }
       for (StringList::iterator it = in_seq.begin(); it != in_seq.end(); ++it)
       {
-        AASequence seq(*it);
-        if (!seq.isValid())
+        AASequence seq;
+        try
         {
-          LOG_WARN << "Warning: '" << *it
-                   << "' is not a valid peptide sequence - skipping\n";
+         seq = AASequence::fromString(*it);
+        } catch (Exception::ParseError & e)
+        {
+          LOG_WARN << "Warning: '" << *it << "' is not a valid peptide sequence - skipping\n";
           continue;
         }
+
         writeLine_(seq, charges);
       }
     }

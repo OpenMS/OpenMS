@@ -28,42 +28,79 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Alexandra Scherbart $
-// $Authors: $
+// $Maintainer: Lars Nilse $
+// $Authors: Lars Nilse $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/PIP/PeakIntensityPredictor.h>
+#ifndef OPENMS_MATH_MISC_CUBICSPLINE2D_H_
+#define OPENMS_MATH_MISC_CUBICSPLINE2D_H_
 
-#include <iostream>
+#include <vector>
+#include <map>
 
-using namespace OpenMS;
-using namespace std;
-
-Int main()
+namespace OpenMS
 {
-  //Create a vector for the predicted values that is large enough to hold them all
-  vector<AASequence> peptides;
-  peptides.push_back(AASequence::fromString("IVGLMPHPEHAVEK"));
-  peptides.push_back(AASequence::fromString("LADNISNAMQGISEATEPR"));
-  peptides.push_back(AASequence::fromString("ELDHSDTIEVIVNPEDIDYDAASEQAR"));
-  peptides.push_back(AASequence::fromString("AVDTVR"));
-  peptides.push_back(AASequence::fromString("AAWQVK"));
-  peptides.push_back(AASequence::fromString("FLGTQGR"));
-  peptides.push_back(AASequence::fromString("NYPSDWSDVDTK"));
-  peptides.push_back(AASequence::fromString("GSPSFGPESISTETWSAEPYGR"));
-  peptides.push_back(AASequence::fromString("TELGFDPEAHFAIDDEVIAHTR"));
-
-  //Create new predictor model with vector of AASequences
-  PeakIntensityPredictor model;
-
-  //Perform prediction with LLM model
-  vector<double> predicted = model.predict(peptides);
-
-  //for each element in peptides print sequence as well as corresponding predicted peak intensity value.
-  for (Size i = 0; i < peptides.size(); i++)
+  /**
+   * @brief cubic spline interpolation
+   * as described in R.L. Burden, J.D. Faires, Numerical Analysis, 4th ed.
+   * PWS-Kent, 1989, ISBN 0-53491-585-X, pp. 126-131.
+   */
+  class OPENMS_DLLAPI CubicSpline2d
   {
-    cout << "Intensity of " << peptides[i] << " is " << predicted[i] << endl;
-  }
 
-  return 0;
-} //end of main
+    std::vector<double> a_;        // constant spline coefficients
+    std::vector<double> b_;        // linear spline coefficients
+    std::vector<double> c_;        // quadratic spline coefficients
+    std::vector<double> d_;        // cubic spline coefficients
+    std::vector<double> x_;        // knots
+
+public:
+
+    /**
+     * @brief constructor of spline interpolation
+     *
+     * @param x x-coordinates of input data points (knots)
+     * @param y y-coordinates of input data points
+     * The coordinates must match by index. Both vectors must be
+     * the same size and sorted in x.
+     */
+    CubicSpline2d(const std::vector<double>& x, const std::vector<double>& y);
+
+    /**
+     * @brief constructor of spline interpolation
+     *
+     * @param m (x,y) coordinates of input data points
+     */
+    CubicSpline2d(const std::map<double, double>& m);
+
+    /**
+     * @brief evaluates the spline at position x
+     *
+     * @param x x-position
+     */
+    double eval(double x);
+
+    /**
+     * @brief evaluates derivative of spline at position x
+     *
+     * @param x x-position
+     * @param order order of the derivative
+     * Only order 1 or 2 make sense for cubic splines.
+     */
+    double derivatives(double x, unsigned order);
+
+private:
+
+    /**
+     * @brief initialize the spline
+     *
+     * @param x x-coordinates of input data points (knots)
+     * @param y y-coordinates of input data points
+     */
+    void init(const std::vector<double>& x, const std::vector<double>& y);
+
+  };
+
+}
+
+#endif /* CUBICSPLINE2D_H_ */

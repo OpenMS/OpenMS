@@ -4,6 +4,7 @@ set(directory include/OpenMS/MATH/MISC)
 ### list all header files of the directory here
 set(sources_list_h
 BilinearInterpolation.h
+CubicSpline2d.h
 LinearInterpolation.h
 MathFunctions.h
 NonNegativeLeastSquaresSolver.h

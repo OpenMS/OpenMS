@@ -172,7 +172,7 @@ namespace seqan
 
     void addHit(OpenMS::Size idx_pep, OpenMS::Size idx_prot, const OpenMS::String& seq_pep, const OpenMS::String& protein, OpenMS::Size position)
     {
-      if (enzyme_.isValidProduct(AASequence(protein), position, seq_pep.length()))
+      if (enzyme_.isValidProduct(AASequence::fromString(protein), position, seq_pep.length()))
       {
         pep_to_prot[idx_pep].insert(idx_prot);
         ++filter_passed;

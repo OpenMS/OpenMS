@@ -145,7 +145,7 @@ namespace OpenMS
         // remove damn (O), also defined in 'Mods=' comment
         peptide.substitute("(O)", "");
         PeptideIdentification id;
-        id.insertHit(PeptideHit(0, 0, split2[1].toInt(), AASequence(peptide)));
+        id.insertHit(PeptideHit(0, 0, split2[1].toInt(), AASequence::fromString(peptide)));
         ids.push_back(id);
         inst_type_correct = true;
       }

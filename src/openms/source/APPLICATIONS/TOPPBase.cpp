@@ -1109,7 +1109,7 @@ namespace OpenMS
   {
     if (required)
     {
-      throw InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Registering an Int param (" + name + ") as 'required' is forbidden! (there is no value to indicate it is missing)!", String(default_value));
+      throw InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Registering a double param (" + name + ") as 'required' is forbidden (there is no value to indicate it is missing)!", String(default_value));
     }
     parameters_.push_back(ParameterInformation(name, ParameterInformation::DOUBLE, argument, default_value, description, required, advanced));
   }
@@ -1118,7 +1118,7 @@ namespace OpenMS
   {
     if (required)
     {
-      throw InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Registering an Int param (" + name + ") as 'required' is forbidden! (there is no value to indicate it is missing)!", String(default_value));
+      throw InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Registering an Int param (" + name + ") as 'required' is forbidden (there is no value to indicate it is missing)!", String(default_value));
     }
     parameters_.push_back(ParameterInformation(name, ParameterInformation::INT, argument, default_value, description, required, advanced));
   }

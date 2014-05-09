@@ -21,17 +21,17 @@
 			<UserParam type="string" name="indistinguishable_proteins_0" value="0,PH_0,PH_1"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="MOWSE" higher_score_better="false" significance_threshold="0" MZ="675.9" RT="1234.5" spectrum_reference="17" >
-			<PeptideHit score="0.9" sequence="PEP1" charge="1" aa_before="A" aa_after="B" protein_refs="PH_0 PH_1" >
+			<PeptideHit score="0.9" sequence="PEPTIDER" charge="1" aa_before="A" aa_after="B" protein_refs="PH_0 PH_1" >
 				<UserParam type="string" name="name" value="PeptideHit"/>
 			</PeptideHit>
-			<PeptideHit score="1.4" sequence="PEP2" charge="1" >
+			<PeptideHit score="1.4" sequence="PEPTIDERR" charge="1" >
 			</PeptideHit>
 			<UserParam type="string" name="name" value="PeptideIdentification"/>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="MOWSE" higher_score_better="true" significance_threshold="0" >
-			<PeptideHit score="44.4" sequence="PEP3" charge="2" >
+			<PeptideHit score="44.4" sequence="PEPTIDERRR" charge="2" >
 			</PeptideHit>
-			<PeptideHit score="33.3" sequence="PEP4" charge="2" >
+			<PeptideHit score="33.3" sequence="PEPTIDERRRR" charge="2" >
 			</PeptideHit>
 		</PeptideIdentification>
 	</IdentificationRun>
@@ -41,7 +41,7 @@
 			</ProteinHit>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="MOWSE" higher_score_better="true" significance_threshold="0" >
-			<PeptideHit score="1.4" sequence="PEP5" charge="1" protein_refs="PH_2" >
+			<PeptideHit score="1.4" sequence="PEPTIDERRRRR" charge="1" protein_refs="PH_2" >
 			</PeptideHit>
 		</PeptideIdentification>
 	</IdentificationRun>
