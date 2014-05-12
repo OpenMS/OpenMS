@@ -472,7 +472,6 @@ set(transformations_executables_list
   PeakPickerCWT_test
   PeakPickerHiRes_test
   PeakPickerMaxima_test
-  PeakPickerMaximaSpeed_test
 PeakWidthEstimator_test
   PeakShape_test
   ProductModel_test
