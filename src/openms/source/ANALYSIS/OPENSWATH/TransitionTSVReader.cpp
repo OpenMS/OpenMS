@@ -83,42 +83,7 @@ namespace OpenMS
 
   const std::vector<std::string> TransitionTSVReader::header_names_(strarray_, strarray_ + 18);
 
-  void TransitionTSVReader::readTSVInput_(const char* filename, std::vector<TSVTransition>& transition_list)
-  {
-    std::ifstream data(filename);
-    std::string   line;
-    std::string   tmp;
-    std::getline(data, line); //skip header
-    while (std::getline(data, line))
-    {
-      std::stringstream lineStream(line);
-
-      TSVTransition mytransition;
-      lineStream >> mytransition.precursor;
-      lineStream >> mytransition.product;
-      lineStream >> mytransition.rt_calibrated;
-      lineStream >> mytransition.transition_name;
-      lineStream >> mytransition.CE;
-      lineStream >> mytransition.library_intensity;
-      lineStream >> mytransition.group_id;
-      lineStream >> mytransition.decoy;
-      lineStream >> mytransition.PeptideSequence;
-      lineStream >> mytransition.ProteinName;
-      lineStream >> mytransition.Annotation;
-      lineStream >> mytransition.FullPeptideName;
-      lineStream >> tmp;
-      lineStream >> tmp;
-      lineStream >> tmp;
-      lineStream >> mytransition.precursor_charge;
-      lineStream >> mytransition.group_label;
-
-      cleanupTransitions_(mytransition);
-
-      transition_list.push_back(mytransition);
-    }
-  }
-
-  void TransitionTSVReader::getTSVHeader_(std::string& line, char& delimiter,
+  void TransitionTSVReader::getTSVHeader_(const std::string& line, char& delimiter,
                                           std::vector<std::string> header, std::map<std::string, int>& header_dict)
   {
     std::string tmp;
@@ -1148,7 +1113,6 @@ namespace OpenMS
   void TransitionTSVReader::convertTSVToTargetedExperiment(const char* filename, FileTypes::Type filetype, OpenMS::TargetedExperiment& targeted_exp)
   {
     std::vector<TSVTransition> transition_list;
-    // readTSVInput_(filename, transition_list);
     readUnstructuredTSVInput_(filename, filetype, transition_list);
     TSVToTargetedExperiment_(transition_list, targeted_exp);
 
