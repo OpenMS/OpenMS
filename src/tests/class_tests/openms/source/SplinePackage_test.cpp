@@ -79,10 +79,6 @@ START_SECTION(isInPackage(double mz))
   TEST_EQUAL(sp1.isInPackage(414.05), true);
 END_SECTION
 
-START_SECTION(getSpline())
-  TEST_REAL_SIMILAR(sp1.getSpline().eval(414.05), 1134.08593750018);
-END_SECTION
-
 START_SECTION(eval(double mz))
   TEST_REAL_SIMILAR(sp1.eval(414.05), 1134.08593750018);
 END_SECTION

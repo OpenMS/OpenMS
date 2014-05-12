@@ -105,11 +105,6 @@ double getMzStepWidth();
 bool isInPackage(double mz);
 
 /**
- * @brief returns polynomial spline function for interpolation in the interval [mzMin:mzMax]
- */
-CubicSpline2d getSpline();
-
-/**
  * @brief returns interpolated intensity @ position mz
  */
 double eval(double mz);

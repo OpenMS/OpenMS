@@ -81,11 +81,6 @@ bool SplinePackage::isInPackage(double mz)
 	return (mz >= mzMin_ && mz <= mzMax_);
 }
 
-CubicSpline2d SplinePackage::getSpline()
-{
-	return spline_;
-}
-
 double SplinePackage::eval(double mz)
 {
 	if (this->isInPackage(mz))
