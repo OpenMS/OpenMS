@@ -44,7 +44,7 @@
 #include <OpenMS/DATASTRUCTURES/SuffixArrayTrypticCompressed.h>
 #include <OpenMS/DATASTRUCTURES/SuffixArray.h>
 #include <fstream>
-
+#include <cmath>
 using namespace std;
 
 namespace OpenMS
@@ -228,9 +228,9 @@ namespace OpenMS
         big_string_.getPeptide(fe, ca[i][j].first.first, ca[i][j].first.second);
 
         String mod_str;
-        if (ca[i][j].second != 0)
+        if (! (fabs(ca[i][j].second) <= std::numeric_limits<double>::epsilon()) )
         {
-          String mod_str;
+          //String mod_str;
           if (modification_output_method_ == "mass")
           {
             //stringstream ss;

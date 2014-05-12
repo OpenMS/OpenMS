@@ -75,7 +75,7 @@ namespace OpenMS
   DataValue::DataValue(long double p) :
     value_type_(DOUBLE_VALUE), unit_("")
   {
-    data_.dou_ = p;
+    data_.dou_ = (double)(p);
   }
 
   DataValue::DataValue(double p) :
@@ -341,7 +341,7 @@ namespace OpenMS
   DataValue& DataValue::operator=(const long double arg)
   {
     clear_();
-    data_.dou_ = arg;
+    data_.dou_ = (double)(arg);
     value_type_ = DOUBLE_VALUE;
     return *this;
   }
@@ -465,7 +465,7 @@ namespace OpenMS
     {
       return float(data_.ssize_);
     }
-    return data_.dou_;
+    return (float)(data_.dou_);
   }
 
   DataValue::operator short int() const
@@ -474,7 +474,7 @@ namespace OpenMS
     {
       throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert non-integer DataValue to short int");
     }
-    return data_.ssize_;
+    return (short int)(data_.ssize_);
   }
 
   DataValue::operator unsigned short int() const
@@ -487,7 +487,7 @@ namespace OpenMS
     {
       throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert negative integer DataValue to unsigned short int");
     }
-    return data_.ssize_;
+    return (unsigned short int)(data_.ssize_);
   }
 
   DataValue::operator int() const
@@ -496,7 +496,7 @@ namespace OpenMS
     {
       throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert non-integer DataValue to int");
     }
-    return data_.ssize_;
+    return (int)(data_.ssize_);//return data_.ssize_;
   }
 
   DataValue::operator unsigned int() const
@@ -509,7 +509,7 @@ namespace OpenMS
     {
       throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert negative integer DataValue to unsigned int");
     }
-    return data_.ssize_;
+    return (unsigned int)(data_.ssize_); 
   }
 
   DataValue::operator long int() const
@@ -624,48 +624,44 @@ namespace OpenMS
   String DataValue::toString() const
   {
     stringstream ss;
-    switch (value_type_)
-    {
-    case DataValue::EMPTY_VALUE: break;
+	switch (value_type_)
+	{
+		case DataValue::EMPTY_VALUE: break;
 
-    case DataValue::STRING_VALUE: return *(data_.str_); break;
+		case DataValue::STRING_VALUE: return *(data_.str_); //break;
 
-    case DataValue::STRING_LIST: ss << *(data_.str_list_); break;
+		case DataValue::STRING_LIST: ss << *(data_.str_list_); break;
 
-    case DataValue::INT_LIST: ss << *(data_.int_list_); break;
+		case DataValue::INT_LIST: ss << *(data_.int_list_); break;
 
-    case DataValue::DOUBLE_LIST: ss << *(data_.dou_list_); break;
+		case DataValue::DOUBLE_LIST: ss << *(data_.dou_list_); break;
 
-    case DataValue::INT_VALUE: ss << data_.ssize_; break;
+		case DataValue::INT_VALUE: ss << data_.ssize_; break;
 
-    case DataValue::DOUBLE_VALUE: ss << precisionWrapper(data_.dou_); break;
-
-    default: throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert DataValue to String");
-    }
+		case DataValue::DOUBLE_VALUE: ss << precisionWrapper(data_.dou_); break;
+	}
     return ss.str();
   }
 
   QString DataValue::toQString() const
   {
     QString result;
-    switch (value_type_)
-    {
-    case DataValue::EMPTY_VALUE: break;
+	switch (value_type_)
+	{
+		case DataValue::EMPTY_VALUE: break;
 
-    case DataValue::STRING_VALUE: result = QString::fromStdString(*(data_.str_)); break;
+		case DataValue::STRING_VALUE: result = QString::fromStdString(*(data_.str_)); break;
 
-    case DataValue::STRING_LIST: result = QString::fromStdString(this->toString()); break;
+		case DataValue::STRING_LIST: result = QString::fromStdString(this->toString()); break;
 
-    case DataValue::INT_LIST: result = QString::fromStdString(this->toString()); break;
+		case DataValue::INT_LIST: result = QString::fromStdString(this->toString()); break;
 
-    case DataValue::DOUBLE_LIST: result = QString::fromStdString(this->toString()); break;
+		case DataValue::DOUBLE_LIST: result = QString::fromStdString(this->toString()); break;
 
-    case DataValue::INT_VALUE: result.setNum(data_.ssize_); break;
+		case DataValue::INT_VALUE: result.setNum(data_.ssize_); break;
 
-    case DataValue::DOUBLE_VALUE: result.setNum(data_.dou_, 'f'); break;
-
-    default: throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Could not convert DataValue to QString");
-    }
+		case DataValue::DOUBLE_VALUE: result.setNum(data_.dou_, 'f'); break;
+	}
     return result;
   }
 

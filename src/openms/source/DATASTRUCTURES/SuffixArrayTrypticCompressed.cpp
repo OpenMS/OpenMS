@@ -188,11 +188,11 @@ protected:
             if (is_at_start && isDigestingEnd(start_char, next_char))
             {
 
-              SignedSize start_pos = (i + 1);
-              pair<SignedSize, SignedSize> p(start_pos, next_pos - start_pos);
-              if (p.second != 0)
+              start_pos = (i + 1);
+              pair<SignedSize, SignedSize> lp(start_pos, next_pos - start_pos);
+              if (lp.second != 0)
               {
-                indices_.push_back(p);
+                indices_.push_back(lp);
               }
             }
             is_at_start = false;
@@ -570,11 +570,11 @@ protected:
                   {
                     ++nres;
                     pair<pair<SignedSize, SignedSize>, double> pnew(pair<SignedSize, SignedSize>(indices_[i + z].first, j + 1), found_masses[o]);
-                    Size first_occ_copy = first_occ;
-                    while (first_occ_copy < spec.size() && spec[first_occ_copy] <= mass_with_mods + tol_)
+                    Size lfirst_occ_copy = first_occ;
+                    while (lfirst_occ_copy < spec.size() && spec[lfirst_occ_copy] <= mass_with_mods + tol_)
                     {
-                      candidates[first_occ_copy].push_back(pnew);
-                      ++first_occ_copy;
+                      candidates[lfirst_occ_copy].push_back(pnew);
+                      ++lfirst_occ_copy;
                     }
                   }
                 }

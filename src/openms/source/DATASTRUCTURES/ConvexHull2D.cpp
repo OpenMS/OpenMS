@@ -33,7 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/DATASTRUCTURES/ConvexHull2D.h>
-
+#include <cmath>
 namespace OpenMS
 {
 
@@ -120,10 +120,10 @@ namespace OpenMS
         p.setX(it->first);
         p.setY(it->second.maxPosition()[0]);
         // turning point (avoid listing it twice if last scan only has a single point)
-        if ((it == map_points_.rbegin()) && (it->second.width() == 0))
+        if ( it == map_points_.rbegin() && ( fabs(it->second.width()) <= std::numeric_limits<double>::epsilon()) )
           continue;
         // do not list first scan again if it's only a single point
-        else if (it == --map_points_.rend() && (it->second.width() == 0))
+        else if (it == --map_points_.rend() && (fabs(it->second.width()) <= std::numeric_limits<double>::epsilon()) )
           continue;
         outer_points_.push_back(p);
       }

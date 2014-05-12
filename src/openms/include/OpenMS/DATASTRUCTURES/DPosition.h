@@ -41,7 +41,7 @@
 
 #include <algorithm>
 #include <limits>
-
+#include <cmath>
 namespace OpenMS
 {
   /**
@@ -179,7 +179,7 @@ public:
     {
       for (Size i = 0; i < D; i++)
       {
-        if (coordinate_[i] != point.coordinate_[i]) return false;
+        if (!(std::abs(coordinate_[i] - point.coordinate_[i]) <= std::numeric_limits<double>::epsilon()) ) return false;
       }
       return true;
     }

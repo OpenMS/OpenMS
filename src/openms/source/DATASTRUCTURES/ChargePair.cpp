@@ -34,7 +34,7 @@
 
 #include <OpenMS/DATASTRUCTURES/ChargePair.h>
 #include <OpenMS/DATASTRUCTURES/Adduct.h>
-
+#include <cmath>
 #include <iostream>
 
 namespace OpenMS
@@ -195,7 +195,7 @@ namespace OpenMS
            (feature0_charge_ == i.feature0_charge_) &&
            (feature1_charge_ == i.feature1_charge_) &&
            (compomer_ == i.compomer_) &&
-           (mass_diff_ == i.mass_diff_) &&
+           (std::abs(mass_diff_ - i.mass_diff_) <= std::numeric_limits<double>::epsilon() ) && 	//(mass_diff_ == i.mass_diff_) &&
            (is_active_ == i.is_active_);
   }
 
