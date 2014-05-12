@@ -56,23 +56,6 @@ namespace OpenMS
  */
 class OPENMS_DLLAPI SplinePackage
 {
-/**
- * @brief m/z limits of the package in the raw data spectrum
- */
-double mzMin_;
-double mzMax_;
-
-/**
- * @brief sensible m/z step width with which to scan through the package
- * (raw data spacing times a scaling factor typically <1)
- */
-double mzStepWidth_;
-
-/**
- * @brief spline object for interpolation of intensity profile
- */
-CubicSpline2d spline_;
-
 public:
 /**
  * @brief constructor
@@ -108,6 +91,24 @@ bool isInPackage(double mz);
  * @brief returns interpolated intensity @ position mz
  */
 double eval(double mz);
+
+private:
+/**
+ * @brief m/z limits of the package in the raw data spectrum
+ */
+double mzMin_;
+double mzMax_;
+
+/**
+ * @brief sensible m/z step width with which to scan through the package
+ * (raw data spacing times a scaling factor typically <1)
+ */
+double mzStepWidth_;
+
+/**
+ * @brief spline object for interpolation of intensity profile
+ */
+CubicSpline2d spline_;
 
 };
 

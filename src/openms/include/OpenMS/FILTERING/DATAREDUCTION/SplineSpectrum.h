@@ -57,17 +57,6 @@ namespace OpenMS
  */
 class OPENMS_DLLAPI SplineSpectrum
 {
-/**
- * @brief m/z limits of the spectrum
- */
-double mzMin_;
-double mzMax_;
-
-/**
- * @brief set of spline packages each interpolating in a certain m/z range
- */
-std::vector<SplinePackage> packages_;
-
 public:
 /**
  * @brief constructor taking two vectors
@@ -104,31 +93,27 @@ double getMzMin();
 double getMzMax();
 
 /**
- * @brief returns pline package of index i
+ * @brief returns spline package of index i
  */
 SplinePackage getPackage(int i);
 
-/**
- * @brief iterator class for access of spline packages
- */
-class Navigator
-{
-/**
- * @brief list of spline packages to be accessed
- */
-const std::vector<SplinePackage> * packages_;
-
-/**
- * @brief index of spline package last accessed
- */
-unsigned lastPackage_;
-
+private:
 /**
  * @brief m/z limits of the spectrum
  */
 double mzMin_;
 double mzMax_;
 
+/**
+ * @brief set of spline packages each interpolating in a certain m/z range
+ */
+std::vector<SplinePackage> packages_;
+
+/**
+ * @brief iterator class for access of spline packages
+ */
+class OPENMS_DLLAPI Navigator
+{
 public:
 /**
  * @brief constructor of iterator
@@ -152,10 +137,28 @@ double eval(double mz);
  * (fast access since we can start search from lastPackage)
  */
 double getNextMz(double mz);
-};
+
+private:
+/**
+ * @brief list of spline packages to be accessed
+ */
+const std::vector<SplinePackage> * packages_;
 
 /**
- * @brief returns an iterarator for access of spline packages
+ * @brief index of spline package last accessed
+ */
+unsigned lastPackage_;
+
+/**
+ * @brief m/z limits of the spectrum
+ */
+double mzMin_;
+double mzMax_;
+};
+
+public:
+/**
+ * @brief returns an iterator for access of spline packages
  */
 SplineSpectrum::Navigator getNavigator();
 
