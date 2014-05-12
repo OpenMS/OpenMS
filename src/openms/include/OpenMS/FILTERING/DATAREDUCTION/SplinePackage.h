@@ -70,27 +70,27 @@ SplinePackage(std::vector<double> mz, std::vector<double> intensity, double scal
 /**
  * @brief returns the minimum m/z for which the spline fit is valid
  */
-double getMzMin();
+double getMzMin() const;
 
 /**
  * @brief returns the maximum m/z for which the spline fit is valid
  */
-double getMzMax();
+double getMzMax() const;
 
 /**
  * @brief returns a sensible m/z step width for the package
  */
-double getMzStepWidth();
+double getMzStepWidth() const;
 
 /**
  * @brief returns true if m/z in [mzMin:mzMax] interval else false
  */
-bool isInPackage(double mz);
+bool isInPackage(double mz) const;
 
 /**
  * @brief returns interpolated intensity @ position mz
  */
-double eval(double mz);
+double eval(double mz) const;
 
 private:
 /**

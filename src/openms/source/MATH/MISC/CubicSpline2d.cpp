@@ -49,7 +49,7 @@ namespace OpenMS
       throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "x and y vectors either not of the same size or empty.");
     }
 
-    init(x, y);
+    init_(x, y);
   }
 
   CubicSpline2d::CubicSpline2d(const std::map<double, double>& m)
@@ -69,10 +69,10 @@ namespace OpenMS
       y.push_back(map_it->second);
     }
 
-    init(x, y);
+    init_(x, y);
   }
 
-  double CubicSpline2d::eval(double x)
+  double CubicSpline2d::eval(double x) const
   {
     if (x < x_[0] || x > x_[x_.size() - 1])
     {
@@ -85,7 +85,7 @@ namespace OpenMS
     return ((d_[i] * xx + c_[i]) * xx + b_[i]) * xx + a_[i];
   }
 
-  double CubicSpline2d::derivatives(double x, unsigned order)
+  double CubicSpline2d::derivatives(double x, unsigned order) const
   {
     if (x < x_[0] || x > x_[x_.size() - 1])
     {
@@ -110,7 +110,7 @@ namespace OpenMS
     }
   }
 
-  void CubicSpline2d::init(const std::vector<double>& x, const std::vector<double>& y)
+  void CubicSpline2d::init_(const std::vector<double>& x, const std::vector<double>& y)
   {
     const size_t n = x.size() - 1;
 

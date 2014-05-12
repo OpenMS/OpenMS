@@ -78,7 +78,7 @@ public:
      *
      * @param x x-position
      */
-    double eval(double x);
+    double eval(double x) const;
 
     /**
      * @brief evaluates derivative of spline at position x
@@ -87,7 +87,7 @@ public:
      * @param order order of the derivative
      * Only order 1 or 2 make sense for cubic splines.
      */
-    double derivatives(double x, unsigned order);
+    double derivatives(double x, unsigned order) const;
 
 private:
 
@@ -97,7 +97,7 @@ private:
      * @param x x-coordinates of input data points (knots)
      * @param y y-coordinates of input data points
      */
-    void init(const std::vector<double>& x, const std::vector<double>& y);
+    void init_(const std::vector<double>& x, const std::vector<double>& y);
 
   };
 

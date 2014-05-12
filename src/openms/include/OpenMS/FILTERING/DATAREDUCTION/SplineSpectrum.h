@@ -78,24 +78,19 @@ SplineSpectrum(MSSpectrum<Peak1D> rawSpectrum, double scaling);
 ~SplineSpectrum();
 
 /**
- * @brief section common for both constructors
- */
-void init(std::vector<double> mz, std::vector<double> intensity, double scaling);
-
-/**
  * @brief returns the minimum m/z of the spectrum
  */
-double getMzMin();
+double getMzMin() const;
 
 /**
  * @brief returns the maximum m/z of the spectrum
  */
-double getMzMax();
+double getMzMax() const;
 
 /**
  * @brief returns spline package of index i
  */
-SplinePackage getPackage(int i);
+SplinePackage getPackage(int i) const;
 
 private:
 /**
@@ -108,6 +103,11 @@ double mzMax_;
  * @brief set of spline packages each interpolating in a certain m/z range
  */
 std::vector<SplinePackage> packages_;
+
+/**
+ * @brief section common for both constructors
+ */
+void init_(std::vector<double> mz, std::vector<double> intensity, double scaling);
 
 /**
  * @brief iterator class for access of spline packages

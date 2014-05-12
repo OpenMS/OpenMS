@@ -61,27 +61,27 @@ SplinePackage::~SplinePackage()
 {
 }
 
-double SplinePackage::getMzMin()
+double SplinePackage::getMzMin() const
 {
 	return mzMin_;
 }
 
-double SplinePackage::getMzMax()
+double SplinePackage::getMzMax() const
 {
 	return mzMax_;
 }
 
-double SplinePackage::getMzStepWidth()
+double SplinePackage::getMzStepWidth() const
 {
 	return mzStepWidth_;
 }
 
-bool SplinePackage::isInPackage(double mz)
+bool SplinePackage::isInPackage(double mz) const
 {
 	return (mz >= mzMin_ && mz <= mzMax_);
 }
 
-double SplinePackage::eval(double mz)
+double SplinePackage::eval(double mz) const
 {
 	if (this->isInPackage(mz))
 	{

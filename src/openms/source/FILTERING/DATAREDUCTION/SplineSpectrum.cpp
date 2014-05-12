@@ -48,12 +48,12 @@ namespace OpenMS
 
 SplineSpectrum::SplineSpectrum(std::vector<double> mz, std::vector<double> intensity)
 {
-	SplineSpectrum::init(mz, intensity, 0.7);
+	SplineSpectrum::init_(mz, intensity, 0.7);
 }
 
 SplineSpectrum::SplineSpectrum(std::vector<double> mz, std::vector<double> intensity, double scaling)
 {
-	SplineSpectrum::init(mz, intensity, scaling);
+	SplineSpectrum::init_(mz, intensity, scaling);
 }
 
 SplineSpectrum::SplineSpectrum(MSSpectrum<Peak1D> rawSpectrum)
@@ -65,7 +65,7 @@ SplineSpectrum::SplineSpectrum(MSSpectrum<Peak1D> rawSpectrum)
 		mz.push_back(it->getMZ());
 		intensity.push_back(it->getIntensity());
 	}
-	SplineSpectrum::init(mz, intensity, 0.7);
+	SplineSpectrum::init_(mz, intensity, 0.7);
 }
 
 SplineSpectrum::SplineSpectrum(MSSpectrum<Peak1D> rawSpectrum, double scaling)
@@ -77,14 +77,14 @@ SplineSpectrum::SplineSpectrum(MSSpectrum<Peak1D> rawSpectrum, double scaling)
 		mz.push_back(it->getMZ());
 		intensity.push_back(it->getIntensity());
 	}
-	SplineSpectrum::init(mz, intensity, scaling);
+	SplineSpectrum::init_(mz, intensity, scaling);
 }
 
 SplineSpectrum::~SplineSpectrum()
 {
 }
 
-void SplineSpectrum::init(std::vector<double> mz, std::vector<double> intensity, double scaling)
+void SplineSpectrum::init_(std::vector<double> mz, std::vector<double> intensity, double scaling)
 {
 
 	if (!(mz.size() == intensity.size() && mz.size() > 2))
@@ -162,17 +162,17 @@ void SplineSpectrum::init(std::vector<double> mz, std::vector<double> intensity,
 	}
 }
 
-double SplineSpectrum::getMzMin()
+double SplineSpectrum::getMzMin() const
 {
 	return mzMin_;
 }
 
-double SplineSpectrum::getMzMax()
+double SplineSpectrum::getMzMax() const
 {
 	return mzMax_;
 }
 
-SplinePackage SplineSpectrum::getPackage(int i)
+SplinePackage SplineSpectrum::getPackage(int i) const
 {
 	return packages_[i];
 }
