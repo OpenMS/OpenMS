@@ -187,8 +187,7 @@ SplineSpectrum::Navigator::~Navigator()
 
 double SplineSpectrum::Navigator::eval(double mz)
 {
-	SplinePackage start = (*packages_)[lastPackage_];
-	if (mz < start.getMzMin())
+	if (mz < (*packages_)[lastPackage_].getMzMin())
 	{
 		for (int i = lastPackage_; i >= 0; --i)
 		{
