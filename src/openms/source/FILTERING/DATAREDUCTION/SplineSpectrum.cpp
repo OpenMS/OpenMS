@@ -187,22 +187,20 @@ SplineSpectrum::Navigator::~Navigator()
 
 double SplineSpectrum::Navigator::eval(double mz)
 {
-
 	SplinePackage start = (*packages_)[lastPackage_];
 	if (mz < start.getMzMin())
 	{
 		for (int i = lastPackage_; i >= 0; --i)
 		{
-			SplinePackage package = (*packages_)[i];
-			if (mz > package.getMzMax())
+			if (mz > (*packages_)[i].getMzMax())
 			{
 				lastPackage_ = i;
 				return 0.0;
 			}
-			if (mz >= package.getMzMin())
+			if (mz >= (*packages_)[i].getMzMin())
 			{
 				lastPackage_ = i;
-				return package.eval(mz);
+				return (*packages_)[i].eval(mz);
 			}
 		}
 	}
@@ -210,16 +208,15 @@ double SplineSpectrum::Navigator::eval(double mz)
 	{
 		for (int i = lastPackage_; i < (int)(*packages_).size(); ++i)
 		{
-			SplinePackage package = (*packages_)[i];
-			if (mz < package.getMzMin())
+			if (mz < (*packages_)[i].getMzMin())
 			{
 				lastPackage_ = i;
 				return 0.0;
 			}
-			if (mz <= package.getMzMax())
+			if (mz <= (*packages_)[i].getMzMax())
 			{
 				lastPackage_ = i;
-				return package.eval(mz);
+				return (*packages_)[i].eval(mz);
 			}
 		}
 	}
@@ -244,16 +241,14 @@ double SplineSpectrum::Navigator::getNextMz(double mz)
 			if (i < minIndex)
 			{
 				lastPackage_ = minIndex;
-				package = (*packages_)[minIndex];
-				return package.getMzMin();
+				return (*packages_)[minIndex].getMzMin();
 			}
 			// m/z in the gap?
 			package = (*packages_)[i];
 			if (mz > package.getMzMax())
 			{
 				lastPackage_ = i + 1;
-				package = (*packages_)[i+1];
-				return package.getMzMin();
+				return (*packages_)[i+1].getMzMin();
 			}
 		}
 		else if (mz > package.getMzMax())
@@ -290,8 +285,7 @@ double SplineSpectrum::Navigator::getNextMz(double mz)
 		}
 		// jump to min m/z of next package
 		lastPackage_ = i;
-		package = (*packages_)[i];
-		return package.getMzMin();
+		return (*packages_)[i].getMzMin();
 	}
 	else
 	{
@@ -303,8 +297,7 @@ double SplineSpectrum::Navigator::getNextMz(double mz)
 
 SplineSpectrum::Navigator SplineSpectrum::getNavigator()
 {
-	SplineSpectrum::Navigator * nav = new Navigator(&packages_, mzMin_, mzMax_);
-	return *nav;
+	return Navigator(&packages_, mzMin_, mzMax_);
 }
 
 }
