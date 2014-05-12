@@ -229,10 +229,9 @@ namespace OpenMS
           << " precursor_neutral_mass=\"" << precisionWrapper(precursor_neutral_mass) << "\""
           << " assumed_charge=\"" << h.getCharge() << "\" index=\"" << count << "\"";
 
-        DataValue dv = it->getMetaValue("RT");
-        if (dv != DataValue::EMPTY)
+		    if (it->hasRT())
         {
-          f << " retention_time_sec=\"" << dv << "\" ";
+		      f << " retention_time_sec=\"" << it->getRT() << "\" ";
         }
 
         f << ">\n";
@@ -624,8 +623,8 @@ namespace OpenMS
     else if (element == "search_result") // parent: "spectrum_query"
     {     // creates a new PeptideIdentification
       current_peptide_ = PeptideIdentification();
-      current_peptide_.setMetaValue("RT", rt_);
-      current_peptide_.setMetaValue("MZ", mz_);
+      current_peptide_.setRT(rt_);
+      current_peptide_.setMZ(mz_);
       current_peptide_.setBaseName(current_base_name_);
 
       search_id_ = 1; // references "search_summary"
@@ -998,7 +997,7 @@ namespace OpenMS
     }
     else if (element == "search_hit")
     {
-      AASequence temp_aa_sequence = AASequence(current_sequence_);
+      AASequence temp_aa_sequence = AASequence::fromString(current_sequence_);
 
       // modification position is 1-based
       for (vector<pair<String, Size> >::const_iterator it = current_modifications_.begin(); it != current_modifications_.end(); ++it)

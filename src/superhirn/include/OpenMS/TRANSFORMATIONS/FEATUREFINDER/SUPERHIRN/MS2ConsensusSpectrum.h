@@ -62,7 +62,7 @@
 namespace OpenMS
 {
 
-  class SUPERHIRN_DLL_EXPORT MS2ConsensusSpectrum
+  class SUPERHIRN_DLLAPI MS2ConsensusSpectrum
   {
 
 

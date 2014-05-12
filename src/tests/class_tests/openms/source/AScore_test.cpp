@@ -406,7 +406,7 @@ START_SECTION((void compute_site_determining_ions(PeptideHit& hit, Size first,Si
 END_SECTION
 
 START_SECTION((std::vector<Size> computeTupel_(AASequence& without_phospho)))
-AASequence phospho("VTQSPSSP");
+AASequence phospho = AASequence::fromString("VTQSPSSP");
 vector<Size> tupel(ptr->computeTupel_(phospho));
 TEST_EQUAL(4, tupel.size())
 TEST_EQUAL(1, tupel[0])

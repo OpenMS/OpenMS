@@ -51,6 +51,14 @@ add_subdirectory(openms)
 add_subdirectory(superhirn)
 
 #------------------------------------------------------------------------------
+# pyOpenMS
+#------------------------------------------------------------------------------
+option(PYOPENMS "setup build system for pyOpenMS" OFF)
+if(PYOPENMS)
+  add_subdirectory(pyOpenMS)
+endif()
+
+#------------------------------------------------------------------------------
 # OpenMS gui lib
 #------------------------------------------------------------------------------
 add_subdirectory(openms_gui)

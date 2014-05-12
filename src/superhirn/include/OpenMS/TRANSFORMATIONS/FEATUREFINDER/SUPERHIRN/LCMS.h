@@ -55,7 +55,7 @@
 namespace OpenMS
 {
 
-  class SUPERHIRN_DLL_EXPORT LCMS
+  class SUPERHIRN_DLLAPI LCMS
   {
 
     ////////////////////////////////////////////////

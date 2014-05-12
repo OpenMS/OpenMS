@@ -192,7 +192,7 @@ namespace OpenMS
     }
 
     PeptideIdentification peptide_identification;
-    peptide_identification.setMetaValue("MZ", precursor_mz_value);
+    peptide_identification.setMZ(precursor_mz_value);
     peptide_identification.setIdentifier(identifier);
     peptide_identification.setSignificanceThreshold(p_value_threshold);
 
@@ -304,7 +304,7 @@ namespace OpenMS
           if ((bool) isalpha(*c_i) && (bool) isupper(*c_i))
             sequence.append(1, *c_i);
         }
-        peptide_hit.setSequence(AASequence(sequence));
+        peptide_hit.setSequence(AASequence::fromString(sequence));
 
         peptide_hit.setRank(substrings[rank_sp_column].substr(0, substrings[rank_sp_column].find('/')).toInt());
 

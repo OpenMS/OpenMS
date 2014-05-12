@@ -35,12 +35,11 @@
 #ifndef OPENMS_VISUAL_APPLICATIONS_MISC_QAPPLICATIONTOPP_H
 #define OPENMS_VISUAL_APPLICATIONS_MISC_QAPPLICATIONTOPP_H
 
-
-#include <OpenMS/config.h>
+// OpenMS_GUI config
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 //Qt
 #include <QtGui/QApplication>
-
 
 namespace OpenMS
 {
@@ -70,7 +69,7 @@ public:
     */
     virtual bool notify(QObject* rec, QEvent* ev);
 
-    /* 
+    /*
       Reimplemented from QApplication, to handle QEvent::FileOpen to enable handling of odoc event on MacOSX
     */
     bool event(QEvent*);

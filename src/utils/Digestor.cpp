@@ -206,11 +206,11 @@ protected:
       vector<AASequence> temp_peptides;
       if (enzyme == "none")
       {
-        temp_peptides.push_back(AASequence(protein_data[i].sequence));
+        temp_peptides.push_back(AASequence::fromString(protein_data[i].sequence));
       }
       else
       {
-        digestor.digest(AASequence(protein_data[i].sequence), temp_peptides);
+        digestor.digest(AASequence::fromString(protein_data[i].sequence), temp_peptides);
       }
 
       for (Size j = 0; j < temp_peptides.size(); ++j)

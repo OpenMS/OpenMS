@@ -148,5 +148,14 @@
 				<UserParam type="float" name="EValue" value="2.39883291902e-07"/>
 			</PeptideHit>
 		</PeptideIdentification>
+		<PeptideIdentification score_type="Mascot" higher_score_better="true" significance_threshold="13" MZ="417.1908" RT="2289.66040039063" >
+			<PeptideHit score="0" sequence="(Acetyl)MNELN(Deamidated)Q(Deamidated)EISK" charge="3" protein_refs="PH_9" >
+				<UserParam type="float" name="homology_threshold" value="13"/>
+				<UserParam type="float" name="identity_threshold" value="13"/>
+				<UserParam type="float" name="EValue" value="1e+099"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="protein_references" value="non-unique"/>
+			</PeptideHit>
+		</PeptideIdentification>
 	</IdentificationRun>
 </IdXML>

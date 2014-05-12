@@ -165,7 +165,7 @@ protected:
   void InternalCalibration::calibrateMapSpectrumwise(const MSExperiment<InputPeakType> & exp, MSExperiment<InputPeakType> & calibrated_exp, std::vector<double> & ref_masses)
   {
 #ifdef DEBUG_CALIBRATION
-    std::cout.precision(writtenDigits<double>());
+    std::cout.precision(writtenDigits<double>(0.0));
 #endif
     if (exp.empty())
     {
@@ -278,26 +278,26 @@ protected:
         Int charge = ref_ids[p_id].getHits()[p_h].getCharge();
         double theo_mass = ref_ids[p_id].getHits()[p_h].getSequence().getMonoWeight(Residue::Full, charge) / (double)charge;
         // first find corresponding ms1-spectrum
-        typename MSExperiment<InputPeakType>::ConstIterator rt_iter = exp.RTBegin(ref_ids[p_id].getMetaValue("RT"));
+        typename MSExperiment<InputPeakType>::ConstIterator rt_iter = exp.RTBegin(ref_ids[p_id].getRT());
         while (rt_iter != exp.begin() && rt_iter->getMSLevel() != 1)
         {
           --rt_iter;
         }
         // now find closest peak
-        typename MSSpectrum<InputPeakType>::ConstIterator mz_iter = rt_iter->MZBegin(ref_ids[p_id].getMetaValue("MZ"));
-        //std::cout << mz_iter->getMZ() <<" "<<(double)ref_ids[p_id].getMetaValue("MZ")<<"\t";
-        double dist = (double)ref_ids[p_id].getMetaValue("MZ") - mz_iter->getMZ();
+        typename MSSpectrum<InputPeakType>::ConstIterator mz_iter = rt_iter->MZBegin(ref_ids[p_id].getMZ());
+        //std::cout << mz_iter->getMZ() <<" "<<(double)ref_ids[p_id].getMZ()<<"\t";
+        double dist = ref_ids[p_id].getMZ() - mz_iter->getMZ();
         //std::cout << dist << "\t";
         if ((mz_iter + 1) != rt_iter->end()
-           && fabs((mz_iter + 1)->getMZ() - (double)ref_ids[p_id].getMetaValue("MZ")) < fabs(dist)
+           && fabs((mz_iter + 1)->getMZ() - ref_ids[p_id].getMZ()) < fabs(dist)
            && mz_iter != rt_iter->begin()
-           && fabs((mz_iter - 1)->getMZ() - (double)ref_ids[p_id].getMetaValue("MZ")) < fabs((mz_iter + 1)->getMZ() - (double)ref_ids[p_id].getMetaValue("MZ")))                 // if mz_iter +1 has smaller dist than mz_iter and mz_iter-1
+           && fabs((mz_iter - 1)->getMZ() - ref_ids[p_id].getMZ()) < fabs((mz_iter + 1)->getMZ() - ref_ids[p_id].getMZ()))  // if mz_iter +1 has smaller dist than mz_iter and mz_iter-1
         {
           if ((use_ppm &&
-               fabs((mz_iter + 1)->getMZ() - (double)ref_ids[p_id].getMetaValue("MZ")) / (double)ref_ids[p_id].getMetaValue("MZ") * 1e06 < mz_tolerance) ||
-              (!use_ppm && fabs((mz_iter + 1)->getMZ() - (double)ref_ids[p_id].getMetaValue("MZ")) < mz_tolerance))
+               fabs((mz_iter + 1)->getMZ() - ref_ids[p_id].getMZ()) / ref_ids[p_id].getMZ() * 1e06 < mz_tolerance) ||
+              (!use_ppm && fabs((mz_iter + 1)->getMZ() - ref_ids[p_id].getMZ()) < mz_tolerance))
           {
-            //std::cout <<(mz_iter +1)->getMZ() - (double)ref_ids[p_id].getMetaValue("MZ")<<"\t";
+            //std::cout <<(mz_iter +1)->getMZ() - ref_ids[p_id].getMZ()<<"\t";
             observed_masses.push_back((mz_iter + 1)->getMZ());
             theoretical_masses.push_back(theo_mass);
             //std::cout << (mz_iter +1)->getMZ() << " ~ "<<theo_mass << " charge: "<<ref_ids[p_id].getHits()[p_h].getCharge()
@@ -305,13 +305,13 @@ protected:
           }
         }
         else if (mz_iter != rt_iter->begin()
-                && fabs((mz_iter - 1)->getMZ() - (double)ref_ids[p_id].getMetaValue("MZ")) < fabs(dist))                        // if mz_iter-1 has smaller dist than mz_iter
+                && fabs((mz_iter - 1)->getMZ() - ref_ids[p_id].getMZ()) < fabs(dist))                        // if mz_iter-1 has smaller dist than mz_iter
         {
           if ((use_ppm &&
-               fabs((mz_iter - 1)->getMZ() - (double)ref_ids[p_id].getMetaValue("MZ")) / (double)ref_ids[p_id].getMetaValue("MZ") * 1e06 < mz_tolerance) ||
-              (!use_ppm && fabs((mz_iter - 1)->getMZ() - (double)ref_ids[p_id].getMetaValue("MZ")) < mz_tolerance))
+               fabs((mz_iter - 1)->getMZ() - ref_ids[p_id].getMZ()) / ref_ids[p_id].getMZ() * 1e06 < mz_tolerance) ||
+              (!use_ppm && fabs((mz_iter - 1)->getMZ() - ref_ids[p_id].getMZ()) < mz_tolerance))
           {
-            //std::cout <<(mz_iter -1)->getMZ() - (double)ref_ids[p_id].getMetaValue("MZ")<<"\t";
+            //std::cout <<(mz_iter -1)->getMZ() - ref_ids[p_id].getMZ()<<"\t";
             observed_masses.push_back((mz_iter - 1)->getMZ());
             theoretical_masses.push_back(theo_mass);
             //std::cout << (mz_iter -1)->getMZ() << " ~ "<<theo_mass << " charge: "<<ref_ids[p_id].getHits()[p_h].getCharge()
@@ -321,8 +321,8 @@ protected:
         else
         {
           if ((use_ppm &&
-               fabs((mz_iter)->getMZ() - (double)ref_ids[p_id].getMetaValue("MZ")) / (double)ref_ids[p_id].getMetaValue("MZ") * 1e06 < mz_tolerance) ||
-              (!use_ppm && fabs((mz_iter)->getMZ() - (double)ref_ids[p_id].getMetaValue("MZ")) < mz_tolerance))
+               fabs((mz_iter)->getMZ() - ref_ids[p_id].getMZ()) / ref_ids[p_id].getMZ() * 1e06 < mz_tolerance) ||
+              (!use_ppm && fabs((mz_iter)->getMZ() - ref_ids[p_id].getMZ()) < mz_tolerance))
           {
 
             observed_masses.push_back(mz_iter->getMZ());

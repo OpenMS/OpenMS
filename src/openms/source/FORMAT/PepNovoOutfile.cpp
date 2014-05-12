@@ -194,8 +194,8 @@ namespace OpenMS
         {
           if (index_to_precursor.find(index) != index_to_precursor.end())
           {
-            peptide_identification.setMetaValue("RT", index_to_precursor.find(index)->second.first);
-            peptide_identification.setMetaValue("MZ", index_to_precursor.find(index)->second.second);
+            peptide_identification.setRT(index_to_precursor.find(index)->second.first);
+            peptide_identification.setMZ(index_to_precursor.find(index)->second.second);
             success = true;
           }
           else throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Index '" + String(index) + String("' in line '" + line + "' not found in index table (line was: '" + line + "')!"), result_filename);
@@ -210,8 +210,8 @@ namespace OpenMS
               StringList parts = ListUtils::create<String>(substrings[3], '_');
               if (parts.size() >= 2)
               {
-                peptide_identification.setMetaValue("RT", parts[1].toDouble());
-                peptide_identification.setMetaValue("MZ", parts[0].toDouble());
+                peptide_identification.setRT(parts[1].toDouble());
+                peptide_identification.setMZ(parts[0].toDouble());
                 success = true;
               }
             }
@@ -300,7 +300,7 @@ namespace OpenMS
                 //cout<<mask_it->first<<" "<<mask_it->second<<endl;
                 sequence.substitute(mask_it->first, mask_it->second);
               }
-              peptide_hit.setSequence(AASequence(sequence));
+              peptide_hit.setSequence(AASequence::fromString(sequence));
               peptide_identification.insertHit(peptide_hit);
             }
           }

@@ -571,7 +571,7 @@ protected:
         {
           if (temp_type == SVMWrapper::OLIGO)
           {
-            redundant_modified_peptides.insert(make_pair(AASequence(training_peptides[i]),
+            redundant_modified_peptides.insert(make_pair(AASequence::fromString(training_peptides[i]),
                                                          training_retention_times[i]));
           }
           else
@@ -640,12 +640,12 @@ protected:
                 if (temp_type != SVMWrapper::OLIGO)
                 {
                   redundant_peptides.insert(make_pair(temp_peptide_hit.getSequence().toUnmodifiedString(),
-                                                      (double)(identifications[i].getMetaValue("RT"))));
+                                                      identifications[i].getRT()));
                 }
                 else
                 {
                   redundant_modified_peptides.insert(make_pair(temp_peptide_hit.getSequence(),
-                                                               (double)(identifications[i].getMetaValue("RT"))));
+                                                               identifications[i].getRT()));
                 }
               }
             }

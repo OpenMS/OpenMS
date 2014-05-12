@@ -64,8 +64,6 @@ TransformationDescription td(data);
 Param params;
 td.fitModel("linear", params);
 
-const UInt metaIndexRT = MetaInfo::registry().getIndex("RT");
-
 START_SECTION(MapAlignmentTransformer())
 {
 	ptr = new MapAlignmentTransformer();
@@ -225,16 +223,16 @@ START_SECTION((static void transformPeptideIdentifications(std::vector< std::vec
   PeptideIdentification pi;
   std::vector< PeptideIdentification > pIs;
 
-  pi.setMetaValue(metaIndexRT, 11.1);
+  pi.setRT(11.1);
   pIs.push_back(pi);
 
-  pi.setMetaValue(metaIndexRT, 11.5);
+  pi.setRT(11.5);
   pIs.push_back(pi);
 
-  pi.setMetaValue(metaIndexRT, 12.2);
+  pi.setRT(12.2);
   pIs.push_back(pi);
 
-  pi.setMetaValue(metaIndexRT, 12.5);
+  pi.setRT(12.5);
   pIs.push_back(pi);
 
   std::vector< std::vector< PeptideIdentification > > maps;
@@ -248,15 +246,15 @@ START_SECTION((static void transformPeptideIdentifications(std::vector< std::vec
   MapAlignmentTransformer::transformPeptideIdentifications(maps, trafos);
 
   // check the spectra
-  TEST_EQUAL(maps[0][0].getMetaValue(metaIndexRT), 23.2)
-  TEST_EQUAL(maps[0][1].getMetaValue(metaIndexRT), 24.0)
-  TEST_EQUAL(maps[0][2].getMetaValue(metaIndexRT), 25.4)
-  TEST_EQUAL(maps[0][3].getMetaValue(metaIndexRT), 26.0)
+  TEST_EQUAL(maps[0][0].getRT(), 23.2)
+  TEST_EQUAL(maps[0][1].getRT(), 24.0)
+  TEST_EQUAL(maps[0][2].getRT(), 25.4)
+  TEST_EQUAL(maps[0][3].getRT(), 26.0)
 
-  TEST_EQUAL(maps[1][0].getMetaValue(metaIndexRT), 23.2)
-  TEST_EQUAL(maps[1][1].getMetaValue(metaIndexRT), 24.0)
-  TEST_EQUAL(maps[1][2].getMetaValue(metaIndexRT), 25.4)
-  TEST_EQUAL(maps[1][3].getMetaValue(metaIndexRT), 26.0)
+  TEST_EQUAL(maps[1][0].getRT(), 23.2)
+  TEST_EQUAL(maps[1][1].getRT(), 24.0)
+  TEST_EQUAL(maps[1][2].getRT(), 25.4)
+  TEST_EQUAL(maps[1][3].getRT(), 26.0)
 
   trafos.push_back(td);
   TEST_EXCEPTION(Exception::IllegalArgument, MapAlignmentTransformer::transformPeptideIdentifications(maps, trafos))
@@ -362,25 +360,25 @@ START_SECTION((static void transformSinglePeptideIdentification(std::vector< Pep
   PeptideIdentification pi;
   std::vector< PeptideIdentification > pIs;
 
-  pi.setMetaValue(metaIndexRT, 11.1);
+  pi.setRT(11.1);
   pIs.push_back(pi);
 
-  pi.setMetaValue(metaIndexRT, 11.5);
+  pi.setRT(11.5);
   pIs.push_back(pi);
 
-  pi.setMetaValue(metaIndexRT, 12.2);
+  pi.setRT(12.2);
   pIs.push_back(pi);
 
-  pi.setMetaValue(metaIndexRT, 12.5);
+  pi.setRT(12.5);
   pIs.push_back(pi);
 
   MapAlignmentTransformer::transformSinglePeptideIdentification(pIs, td);
 
   // check the spectra
-  TEST_EQUAL(pIs[0].getMetaValue(metaIndexRT), 23.2)
-  TEST_EQUAL(pIs[1].getMetaValue(metaIndexRT), 24.0)
-  TEST_EQUAL(pIs[2].getMetaValue(metaIndexRT), 25.4)
-  TEST_EQUAL(pIs[3].getMetaValue(metaIndexRT), 26.0)
+  TEST_EQUAL(pIs[0].getRT(), 23.2)
+  TEST_EQUAL(pIs[1].getRT(), 24.0)
+  TEST_EQUAL(pIs[2].getRT(), 25.4)
+  TEST_EQUAL(pIs[3].getRT(), 26.0)
 }
 END_SECTION
 

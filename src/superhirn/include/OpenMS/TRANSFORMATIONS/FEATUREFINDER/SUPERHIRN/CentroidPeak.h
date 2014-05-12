@@ -57,7 +57,7 @@
 namespace OpenMS
 {
 
-  class SUPERHIRN_DLL_EXPORT CentroidPeak
+  class SUPERHIRN_DLLAPI CentroidPeak
   {
 public:
 

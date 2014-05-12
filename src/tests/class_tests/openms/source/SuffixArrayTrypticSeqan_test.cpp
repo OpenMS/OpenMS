@@ -102,11 +102,11 @@ START_SECTION([EXTRA]SuffixArrayTrypticSeqan::findSpec(const std::vector<double>
 	//spec.push_back(387.4392);
 
 
-	spec.push_back(AASequence("AR").getMonoWeight(Residue::Full));		// AR
-	spec.push_back(AASequence("AAAR").getMonoWeight(Residue::Full));		// AAAR
+	spec.push_back(AASequence::fromString("AR").getMonoWeight(Residue::Full));		// AR
+	spec.push_back(AASequence::fromString("AAAR").getMonoWeight(Residue::Full));		// AAAR
 
-	cerr << 245.2816 << " " << AASequence("AR").getMonoWeight(Residue::Full) << endl;
-	cerr << 387.4392 << " " << AASequence("AAAR").getMonoWeight(Residue::Full) << endl;
+	cerr << 245.2816 << " " << AASequence::fromString("AR").getMonoWeight(Residue::Full) << endl;
+	cerr << 387.4392 << " " << AASequence::fromString("AAAR").getMonoWeight(Residue::Full) << endl;
 
 	vector <vector< pair<pair<SignedSize, SignedSize>,double> > > res;
 	cerr << "res.size()=" << res.size() << endl;

@@ -493,6 +493,11 @@ namespace OpenMS
       return ES_NOT_READY_YET;
     }
 
+    if (target_param_index < 0)
+    {
+      return ES_NO_TARGET_PARAM;
+    }
+
     const TOPPASToolVertex::IOInfo & target_param = target_input_files[target_param_index];
     StringList target_param_types = target_param.valid_types;
 

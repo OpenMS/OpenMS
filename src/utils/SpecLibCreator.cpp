@@ -257,7 +257,7 @@ protected:
             speci.push_back(richy);
           }
           PeptideHit hit;                  // = *it->getPeptideIdentifications().begin()->getHits().begin();
-          AASequence aa(list[i][peptide]);
+          AASequence aa = AASequence::fromString(list[i][peptide]);
           hit.setSequence(aa);
           hit.setCharge(list[i][charge_state].toInt());
           vector<PeptideHit> hits;

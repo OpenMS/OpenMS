@@ -62,8 +62,6 @@ using namespace OpenMS;
 #define RT_FACTOR_PRECISION 1000
 #define RT_MODULO_FACTOR 10000 // last 4 digits is the index
 
-#define SEP '\t'
-
 struct RNPxlReportRow
 {
   bool no_id;
@@ -607,8 +605,8 @@ protected:
         for (vector<PeptideHit>::const_iterator hit = pit->getHits().begin(); hit != pit->getHits().end(); ++hit)
         {
           pep_hits.push_back(*hit);
-          pep_hits.back().setMetaValue("RT", pit->getMetaValue("RT"));
-          pep_hits.back().setMetaValue("MZ", pit->getMetaValue("MZ"));
+          pep_hits.back().setMetaValue("RT", pit->getRT());
+          pep_hits.back().setMetaValue("MZ", pit->getMZ());
         }
       }
 
@@ -680,7 +678,7 @@ protected:
         row.RNA_weight = rna_weight;
         row.xl_weight = pep_weight + rna_weight;
 
-        whole_experiment_filtered_peptide_ids.back().setMetaValue("MZ", DataValue(exp_mz));
+        whole_experiment_filtered_peptide_ids.back().setMZ(exp_mz);
         whole_experiment_filtered_peptide_ids.back().setMetaValue("cross link id", DataValue(xlink_idx));
         whole_experiment_filtered_peptide_ids.back().setMetaValue("RNA", DataValue(xlink_name));
         whole_experiment_filtered_peptide_ids.back().setMetaValue("peptide mass", DataValue(pep_weight));
@@ -733,10 +731,10 @@ protected:
       for (vector<PeptideHit>::const_iterator hit = whole_experiment_filtered_peptide_ids[k].getHits().begin(); hit != whole_experiment_filtered_peptide_ids[k].getHits().end(); ++hit)
       {
         PeptideIdentification np;
-        double rt = (double)whole_experiment_filtered_peptide_ids[k].getMetaValue("RT");
+        double rt = whole_experiment_filtered_peptide_ids[k].getRT();
         double orig_rt = rt / (double)RT_FACTOR;
-        np.setMetaValue("RT", orig_rt);
-        np.setMetaValue("MZ", (double)whole_experiment_filtered_peptide_ids[k].getMetaValue("MZ"));
+        np.setRT(orig_rt);
+        np.setMZ(whole_experiment_filtered_peptide_ids[k].getMZ());
 
         vector<PeptideHit> phs;
         PeptideHit ph = *hit;
@@ -772,7 +770,7 @@ protected:
     p = new QProcess();
     p->setProcessChannelMode(QProcess::MergedChannels);
     p->start("PeptideIndexer", args);
-    p->waitForFinished(999999999);
+    p->waitForFinished(-1);
     QString peptide_indexer_stdout = QString(p->readAllStandardOutput());
     if (getIntOption_("debug") > 0)
     {

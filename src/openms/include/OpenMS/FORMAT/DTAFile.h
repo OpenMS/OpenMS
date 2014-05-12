@@ -81,10 +81,10 @@ public:
         throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
       }
 
-      //  Delete old spectrum
+      // delete old spectrum
       spectrum.clear(true);
 
-      //temporary variables
+      // temporary variables
       String line;
       std::vector<String> strings(2);
       typename SpectrumType::PeakType p;
@@ -93,11 +93,11 @@ public:
       // line number counter
       Size line_number = 1;
 
-      //read first line and store precursor m/z and charge
+      // read first line and store precursor m/z and charge
       getline(is, line, '\n');
       line.trim();
 
-      //test which delimiter is used in the line
+      // test which delimiter is used in the line
       if (line.has('\t'))
       {
         delimiter = '\t';
@@ -190,9 +190,9 @@ public:
       {
         throw Exception::UnableToCreateFile(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
       }
-      os.precision(writtenDigits<double>());
+      os.precision(writtenDigits<double>(0.0));
 
-      //write precursor information
+      // write precursor information
       Precursor precursor;
       if (spectrum.getPrecursors().size() > 0)
       {
@@ -202,29 +202,29 @@ public:
       {
         std::cerr << "Warning: The spectrum written to the DTA file '" << filename << "' has more than one precursor. The first precursor is used!" << "\n";
       }
-      //unknown charge
+      // unknown charge
       if (precursor.getCharge() == 0)
       {
         os << precursor.getMZ();
       }
-      //known charge
+      // known charge
       else
       {
         os << ((precursor.getMZ() - 1.0) * precursor.getCharge() + 1.0);
       }
-      //charge
+      // charge
       os << " " << precursor.getCharge() << "\n";
 
-      // Iterate over all peaks of the spectrum and
+      // iterate over all peaks of the spectrum and
       // write one line for each peak of the spectrum.
       typename SpectrumType::ConstIterator it(spectrum.begin());
       for (; it != spectrum.end(); ++it)
       {
-        // Write m/z and intensity.
+        // write m/z and intensity
         os << it->getPosition() << " " << it->getIntensity() << "\n";
       }
 
-      // Done.
+      // done
       os.close();
     }
 

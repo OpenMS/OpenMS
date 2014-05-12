@@ -50,9 +50,6 @@
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVReader.h>
 #include <OpenMS/FORMAT/CachedMzML.h>
-#ifdef OPENMS_FORMAT_SWATHFILE_MZXMLSUPPORT
-#include "MSDataReader.h"
-#endif
 #include <OpenMS/FORMAT/SwathFile.h>
 
 // Kernel and implementations
@@ -863,6 +860,15 @@ namespace OpenMS
           // skip to next map (only increase i)
           continue;
         }
+        if (j >= swath_prec_lower_.size() )
+        {
+          std::cerr << "Trying to access annotation for SWATH map " << j << 
+            " but there are only " << swath_prec_lower_.size() << " windows in the" << 
+            " swath_windows_file. Please check your input." << std::endl;
+          throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, 
+              "The number of SWATH maps read from the raw data and from the annotation file do not match.");
+        }
+
         std::cout << "Re-annotate from file: SWATH " << 
           swath_maps[i].lower << " / " << swath_maps[i].upper << " is annotated with " << 
           swath_prec_lower_[j] << " / " << swath_prec_upper_[j] << std::endl;
@@ -904,6 +910,7 @@ namespace OpenMS
       std::ifstream data(filename.c_str());
       std::string line;
       std::getline(data, line); //skip header
+      std::cout << "Read Swath window header " << line << std::endl;
       double lower, upper;
       while (std::getline(data, line))
       {
@@ -916,6 +923,7 @@ namespace OpenMS
         swath_prec_upper_.push_back(upper);
       }
       assert(swath_prec_lower_.size() == swath_prec_upper_.size());
+      std::cout << "Read Swath window file with " << swath_prec_lower_.size() << " SWATH windows." << std::endl;
     }
 
   };
@@ -1007,8 +1015,8 @@ protected:
     setValidFormats_("tr", ListUtils::create<String>("csv,traML"));
 
     // one of the following two needs to be set
-    registerInputFile_("tr_irt", "<file>", "", "transition file ('TraML' or 'csv')", false);
-    setValidFormats_("tr_irt", ListUtils::create<String>("csv,traML"));
+    registerInputFile_("tr_irt", "<file>", "", "transition file ('TraML')", false);
+    setValidFormats_("tr_irt", ListUtils::create<String>("traML"));
 
     registerInputFile_("rt_norm", "<file>", "", "RT normalization file (how to map the RTs of this run to the ones stored in the library). If set, tr_irt may be omitted.", false, true);
     setValidFormats_("rt_norm", ListUtils::create<String>("trafoXML"));
@@ -1246,7 +1254,9 @@ protected:
       SwathWindowLoader::annotateSwathMapsFromFile(swath_windows_file, swath_maps, sort_swath_maps);
 
     for (Size i = 0; i < swath_maps.size(); i++)
-      LOG_DEBUG << "Found swath map " << i << " with lower " << swath_maps[i].lower << " and upper " << swath_maps[i].upper << std::endl;
+      LOG_DEBUG << "Found swath map " << i << " with lower " << swath_maps[i].lower 
+        << " and upper " << swath_maps[i].upper << " and " << swath_maps[i].sptr->getNrSpectra() 
+        << " spectra." << std::endl;
 
     ///////////////////////////////////
     // Get the transformation information (using iRT peptides)

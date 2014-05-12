@@ -285,13 +285,6 @@ public:
     bool checkCompliance(const BinnedSpectrum & bs) const;
 
 
-protected:
-    // docu in base class
-    virtual void clearChildIds_()
-    {
-      //TODO Persistence
-    }
-
   };
 
 }

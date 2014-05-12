@@ -223,17 +223,13 @@ protected:
             if (it->getHits().size() > 0)
             {
               PeptideHit hit = *it->getHits().begin();
-              if (!hit.getSequence().isValid())
-              {
-                continue;
-              }
               MassDifference md;
               Int charge = hit.getCharge();
               if (charge == 0)
               {
                 charge = 1;
               }
-              md.exp_mz = (double)it->getMetaValue("MZ");
+              md.exp_mz = it->getMZ();
               md.theo_mz = (hit.getSequence().getMonoWeight() + (double)charge * Constants::PROTON_MASS_U) / (double)charge;
               md.charge = charge;
               precursor_diffs.push_back(md);
@@ -268,10 +264,6 @@ protected:
             {
               PeptideHit hit = *it->getHits().begin();
 
-              if (!hit.getSequence().isValid())
-              {
-                continue;
-              }
               RichPeakSpectrum theo_spec;
               tsg.addPeaks(theo_spec, hit.getSequence(), Residue::YIon);
               tsg.addPeaks(theo_spec, hit.getSequence(), Residue::BIon);

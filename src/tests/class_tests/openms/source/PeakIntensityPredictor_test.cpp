@@ -49,9 +49,9 @@ START_TEST(PeakIntensityPredictor, "$Id$")
 
 TOLERANCE_ABSOLUTE(0.001)
 
-AASequence seq1("LTSEAR");
-AASequence seq2("AEAQIR");
-AASequence seq3("TLEDAR");
+AASequence seq1 = AASequence::fromString("LTSEAR");
+AASequence seq2 = AASequence::fromString("AEAQIR");
+AASequence seq3 = AASequence::fromString("TLEDAR");
 
 vector<AASequence> vec;
 vec.push_back(seq1);

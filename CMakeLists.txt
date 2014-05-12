@@ -65,12 +65,7 @@ include(Dart)
 # CMAKE_FIND_ROOT_PATH
 # CMAKE_BUILD_TYPE
 # STL_DEBUG
-# DB_TEST
-# QT_DB_PLUGIN
-# MT_CUDA_BUILD_TYPE
 #------------------------------------------------------------------------------
-option(MT_ENABLE_CUDA "Enable experimental CUDA support" OFF)
-option(MT_ENABLE_TBB "Enable Intel TBB support" OFF)
 option(MT_ENABLE_OPENMP "Enable OpenMP support" ON)
 option(BOOST_USE_STATIC "Use Boost static libraries." ON)
 option(HAS_XSERVER "Indicates if an X server is available. If set to Off it will disable certain tests and the doc target." ON)
@@ -145,26 +140,26 @@ endif()
 set(BUILD_SHARED_LIBS true)
 
 #------------------------------------------------------------------------------
-# CMake Utilities
-#------------------------------------------------------------------------------
-# include some OpenMS specific macros
-include (${PROJECT_SOURCE_DIR}/cmake/OpenMSBuildSystem_macros.cmake)
-# .. and some to ease the installation process
-include (${PROJECT_SOURCE_DIR}/cmake/install_macros.cmake)
-# .. and some to ease preparing the documentation builds
-include (${PROJECT_SOURCE_DIR}/cmake/doc_macros.cmake)
-
-#------------------------------------------------------------------------------
-# Directories
-#------------------------------------------------------------------------------
-
-#------------------------------------------------------------------------------
 # Host directory for referencing from subprojects
 set(OPENMS_HOST_DIRECTORY "${PROJECT_SOURCE_DIR}")
 set(OPENMS_HOST_BINARY_DIRECTORY "${PROJECT_BINARY_DIR}")
 
 #------------------------------------------------------------------------------
-# Output directory
+# CMake Utitlities
+#------------------------------------------------------------------------------
+# include some OpenMS specific macros
+include (${PROJECT_SOURCE_DIR}/cmake/build_system_macros.cmake)
+# .. and some to ease the installation process
+include (${PROJECT_SOURCE_DIR}/cmake/install_macros.cmake)
+# .. and some to ease preparing the documentation builds
+include (${PROJECT_SOURCE_DIR}/cmake/doc_macros.cmake)
+# .. and some to ease the installation proces
+include (${PROJECT_SOURCE_DIR}/cmake/add_library_macros.cmake)
+# .. and some to ease the export process
+include (${PROJECT_SOURCE_DIR}/cmake/export_macros.cmake)
+
+#------------------------------------------------------------------------------
+# Output directories
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${OPENMS_HOST_BINARY_DIRECTORY}/lib")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${OPENMS_HOST_BINARY_DIRECTORY}/bin")
 set(OPENMS_BINARY_DIR "${OPENMS_HOST_BINARY_DIRECTORY}/bin")
@@ -210,10 +205,9 @@ if (MSVC)
 	SET(CMAKE_DEBUG_POSTFIX d)
 endif()
 
-########################################################
-### setup path for external libs (contrib or system) ###
-########################################################
-include(${OPENMS_HOST_DIRECTORY}/cmake/OpenMSBuildSystem_setup_lib_find_paths.cmake)
+#------------------------------------------------------------------------------
+# setup path for external libs (contrib or system)
+include(${OPENMS_HOST_DIRECTORY}/cmake/setup_lib_find_paths.cmake)
 
 #------------------------------------------------------------------------------
 # Initialize package building environment
@@ -243,76 +237,30 @@ set(SEARCH_ENGINES_DIRECTORY "" CACHE PATH "Directory containing the search engi
 
 set(ENABLE_PREPARE_KNIME_PACKAGE OFF CACHE BOOL "If enabled, targets to prepare KNIME packages will be generated. Main target will be 'prepare_knime_package'.")
 if (ENABLE_PREPARE_KNIME_PACKAGE)
-	include(${OPENMS_HOST_DIRECTORY}/cmake/OpenMSBuildSystem_ctdSupport.cmake)
+	include(${OPENMS_HOST_DIRECTORY}/cmake/knime_package_support.cmake)
 endif()
 
-######################################################
-#### build settings and configs for external code ####
-######################################################
-if ("${PACKAGE_TYPE}" STREQUAL "none")
-	## grep definitions (-D<XXX>) that were set using 'add_definitions()'
-	get_property(OPENMS_CMP_DEFS DIRECTORY . PROPERTY COMPILE_DEFINITIONS)
-	## convert to CXX flags
-	foreach(i ${OPENMS_CMP_DEFS})
-		set(CF_OPENMS_ADDCXX_FLAGS "${CF_OPENMS_ADDCXX_FLAGS} -D${i}")
-	endforeach(i)
-	## for add_definition commands (currently empty, but who knows...)
-	set(CF_OPENMS_ADD_DEFINITIONS)
-	## the filename for library settings (this file will be included in OpenMSConfig.cmake)
-	set(CF_LibOpenMSExport ${PROJECT_BINARY_DIR}/cmake/OpenMSLibraryExport.cmake)
+#------------------------------------------------------------------------------
+# Handle export of targets and install them
+openms_export_targes()
+install_export_targets()
 
-	## create code that allows to call find_package()
-	## (must come after the above code that sets the variables!)
-	get_directory_property(OPENMS_INCLUDE_DIRS  INCLUDE_DIRECTORIES)
-	configure_file(
-		"${OPENMS_HOST_DIRECTORY}/cmake/OpenMSConfig.cmake.in"
-		"${PROJECT_BINARY_DIR}/cmake/OpenMSConfig.cmake"
-		@ONLY
-	)
-
-  #------------------------------------------------------------------------------
-  # REMOVE with the fix of #676
-	## Create OpenMSLibraryExport.cmake:
-	## Note: export_build_settings and
-	##       export_library_dependencies are deprecated and should not be used
-	if ("${INSTALL_PREFIX}" STREQUAL ".")
-		set(CVERSION "${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION}.${CMAKE_PATCH_VERSION}")
-		if (CVERSION VERSION_LESS "2.8.0")
-			message(STATUS "Info: Cannot register OpenMS with CMake! For external code, set the path to OpenMS during find_package() manually.")
-		else()
-			## register OpenMS with CMake so that it can be found easily
-			export(PACKAGE OpenMS)
-		endif()
-		## export our lib
-    if(NOT DISABLE_OPENSWATH)
-      export(TARGETS OpenMS OpenSwathAlgo FILE ${CF_LibOpenMSExport})
-    else()
-      export(TARGETS OpenMS FILE ${CF_LibOpenMSExport})
-    endif(NOT DISABLE_OPENSWATH)
-	else()
-		# include(cmake/OpenMSBuildSystem_install.cmake)
-	endif()
-  #------------------------------------------------------------------------------
-else()
-	# install routines for MacOSX
-	if("${PACKAGE_TYPE}" STREQUAL "dmg")
-		include(cmake/package_dragndrop_dmg.cmake)
-	endif()
-
-  # .. rpms
-	if("${PACKAGE_TYPE}" STREQUAL "rpm")
-		include(cmake/package_rpm.cmake)
-	endif()
-
-  # .. deps
-	if("${PACKAGE_TYPE}" STREQUAL "deb")
-		include(cmake/package_deb.cmake)
-	endif()
+#------------------------------------------------------------------------------
+# build settings and configs for external code
+#------------------------------------------------------------------------------
+# install routines for ..
+if("${PACKAGE_TYPE}" STREQUAL "dmg") # .. MacOSX
+  include(cmake/package_dragndrop_dmg.cmake)
+elseif("${PACKAGE_TYPE}" STREQUAL "rpm") # .. rpms
+  include(cmake/package_rpm.cmake)
+elseif("${PACKAGE_TYPE}" STREQUAL "deb") # .. deps
+  include(cmake/package_deb.cmake)
 endif()
 
 #------------------------------------------------------------------------------
 # Some final messages for the users
 #------------------------------------------------------------------------------
+include(cmake/messages.cmake)
 
 message(STATUS "")
 message(STATUS "-----------------------------------------------------------------")

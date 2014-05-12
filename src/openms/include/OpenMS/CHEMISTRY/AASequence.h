@@ -48,7 +48,6 @@ namespace OpenMS
 {
 
   //forward declarations
-  class ResidueDB;
   class ResidueModification;
 
   /**
@@ -67,13 +66,13 @@ namespace OpenMS
 
       Modifications are specified using a unique string identifier present in the ModificationsDB in brackets
       after the modified amino acid or by providing the mass of the residue in square brackets. For example
-      AASequence("DFPIAM(Oxidation)GER") creates an instance of the peptide DFPIAMGER with an oxidized methionine
-      (AASequence("DFPIAM[+16]GER") and AASequence("DFPIAM[147]GER") are equivalent). N-terminal modifications
+      AASequence::fromString("DFPIAM(Oxidation)GER") creates an instance of the peptide DFPIAMGER with an oxidized methionine
+      (AASequence::fromString("DFPIAM[+16]GER") and AASequence::fromString("DFPIAM[147]GER") are equivalent). N-terminal modifications
       are specified by writing the modification as prefix to the sequence. C-terminal modifications are specified by
       writing the modification as suffix. C-terminal modifications are distinguished from modifications of the last amino
       acid by considering the specificity of the modification as stored in ModificationsDB.
 
-      Note there is a subtle difference between AASequence("DFPIAM[+16]GER") and AASequence("DFPIAM[+15.9949]GER") - while
+      Note there is a subtle difference between AASequence::fromString("DFPIAM[+16]GER") and AASequence::fromString("DFPIAM[+15.9949]GER") - while
       the former will try to find the _first_ modification matching to a mass difference of 16 +/- 0.5, the latter will
       try to find the closest matching modification to the exact mass. This usually gives the intended results.
 
@@ -91,17 +90,17 @@ namespace OpenMS
   */
   class OPENMS_DLLAPI AASequence
   {
+    public:
 
-public:
-    class Iterator;
+      class Iterator;
 
-    /** @brief ConstIterator for AASequence
+      /** @brief ConstIterator for AASequence
 
-            AASequence constant iterator
-    */
+                 AASequence constant iterator
+      */
     class OPENMS_DLLAPI ConstIterator
     {
-public:
+    public:
 
       // TODO Iterator constructor for ConstIterator
 
@@ -220,7 +219,7 @@ public:
 
       //@}
 
-protected:
+  protected:
 
       // pointer to the AASequence vector
       const std::vector<const Residue *> * vector_;
@@ -236,7 +235,7 @@ protected:
     */
     class OPENMS_DLLAPI Iterator
     {
-public:
+      public:
 
       friend class AASequence::ConstIterator;
 
@@ -352,7 +351,7 @@ public:
 
       //@}
 
-protected:
+    protected:
 
       // pointer to the AASequence vector
       std::vector<const Residue *> * vector_;
@@ -360,8 +359,6 @@ protected:
       // position in the AASequence vector
       difference_type position_;
     };
-
-
 
     /** @name Constructors and Destructors
     */
@@ -371,12 +368,6 @@ protected:
 
     /// copy constructor
     AASequence(const AASequence & rhs);
-
-    /// copy constructor from a String
-    explicit AASequence(const String & rhs);
-
-    /// copy constructor from char* string
-    explicit AASequence(const char * rhs);
 
     /// destructor
     virtual ~AASequence();
@@ -412,9 +403,6 @@ protected:
     /// returns the Id of the C-term modification; an empty string is returned if none was set
     const String & getCTerminalModification() const;
 
-    /// sets the string of the sequence; returns true if the conversion to real AASequence was successful, false otherwise
-    bool setStringSequence(const String & sequence);
-
     /// returns a pointer to the residue, which is at position index
     const Residue & getResidue(SignedSize index) const;
 
@@ -439,26 +427,14 @@ protected:
     /// adds the residues of the peptide
     AASequence operator+(const AASequence & peptide) const;
 
-    /// adds the residues of the peptide, which is given as a string
-    AASequence operator+(const String & peptide) const;
-
-    /// adds the residue of the peptide, which is given as string literal
-    AASequence operator+(const char * rhs) const;
-
-    /// adds the residue to the peptide; the residue must be a valid residue of the ResidueDB
-    AASequence operator+(const Residue * residue) const;
-
     /// adds the residues of a peptide
     AASequence & operator+=(const AASequence &);
 
-    /// adds the residues of a peptide, which is given as a string
-    AASequence & operator+=(const String &);
+    /// adds the residues of the peptide
+    AASequence operator+(const Residue * residue) const;
 
-    /// adds the residues of a peptide, which is given as string literal
-    AASequence & operator+=(const char * rhs);
-
-    /// adds the residue to the peptide; the residue must be a valid residue of the ResidueDB
-    AASequence & operator+=(const Residue * residue);
+    /// adds the residues of a peptide
+    AASequence & operator+=(const Residue *);
 
     /// returns the number of residues
     Size size() const;
@@ -472,9 +448,6 @@ protected:
     /// returns a peptide sequence of number residues, beginning at position index
     AASequence getSubsequence(Size index, UInt number) const;
 
-    /// counts the number of occurrences of residue given by a string
-    Size getNumberOf(const String & residue) const;
-
     /// compute frequency table of amino acids
     void getAAFrequencies(Map<String, Size> & frequency_table) const;
 
@@ -483,43 +456,20 @@ protected:
     /** @name Predicates
     */
     //@{
-    /** @brief return true if the instance is valid
-
-            Valid means that a possible given sequence as string was successful
-            converted into a real amino acid sequence which meaningful amino acids
-            and modifications associated with it.
-    */
-    bool isValid() const;
-
     /// returns true if the peptide contains the given residue
     bool has(const Residue & residue) const;
-
-    /// returns true if the peptide contains the given residue
-    bool has(const String & name) const;
 
     /// returns true if the peptide contains the given peptide
     /// @note c-term and n-term mods are ignored
     bool hasSubsequence(const AASequence & peptide) const;
 
-    /// returns true if the peptide contains the given peptide
-    /// @note c-term and n-term mods are ignored
-    bool hasSubsequence(const String & peptide) const;
-
     /// returns true if the peptide has the given prefix
     /// n-term mod is also checked (c-term as well, if prefix is of same length)
     bool hasPrefix(const AASequence & peptide) const;
 
-    /// returns true if the peptide has the given prefix
-    /// n-term mod is also checked (c-term as well, if prefix is of same length)
-    bool hasPrefix(const String & peptide) const;
-
     /// returns true if the peptide has the given suffix
     /// c-term mod is also checked (n-term as well, if suffix is of same length)
     bool hasSuffix(const AASequence & peptide) const;
-
-    /// returns true if the peptide has the given suffix
-    /// c-term mod is also checked (n-term as well, if suffix is of same length)
-    bool hasSuffix(const String & peptide) const;
 
     /// predicate which is true if the peptide is N-term modified
     bool hasNTerminalModification() const;
@@ -527,7 +477,7 @@ protected:
     /// predicate which is true if the peptide is C-term modified
     bool hasCTerminalModification() const;
 
-    // returns true if any of the residues is modified
+    /// returns true if any of the residues is modified
     bool isModified() const;
 
     /// returns true if the residue at the position is modified
@@ -536,23 +486,11 @@ protected:
     /// equality operator
     bool operator==(const AASequence & rhs) const;
 
-    /// equality operator given the peptide as a string
-    bool operator==(const String & rhs) const;
-
-    /// equality operator given the peptide as string literal
-    bool operator==(const char * rhs) const;
-
     /// lesser than operator which compares the C-term mods, sequence and N-term mods; can be used for maps
     bool operator<(const AASequence & rhs) const;
 
     /// inequality operator
     bool operator!=(const AASequence & rhs) const;
-
-    /// inequality operator given the peptide as a string
-    bool operator!=(const String & rhs) const;
-
-    /// inequality operator given the peptide as string literal
-    bool operator!=(const char * rhs) const;
     //@}
 
     /** @name Iterators
@@ -577,17 +515,23 @@ protected:
     friend OPENMS_DLLAPI std::istream & operator>>(std::istream & is, const AASequence & peptide);
     //@}
 
-protected:
+    /** 
+      @brief create AASequence object by parsing a String
+      @throws Exception::ParseError if an invalid string representation of an AA sequence is passed
+    */
+    static AASequence fromString(const String & s);
+
+    /** 
+      @brief create AASequence object by parsing a const char *
+      @throws Exception::ParseError if an invalid string representation of an AA sequence is passed
+    */
+    static AASequence fromString(const char * s);
+
+  protected:
 
     std::vector<const Residue *> peptide_;
 
-    String sequence_string_;
-
-    void parseString_(std::vector<const Residue *> & sequence, const String & peptide);
-
-    ResidueDB * getResidueDB_() const;
-
-    bool valid_;
+    static void parseString_(AASequence & aas, const String & peptide);
 
     const ResidueModification * n_term_mod_;
 
@@ -599,5 +543,6 @@ protected:
   OPENMS_DLLAPI std::istream & operator>>(std::istream & os, const AASequence & peptide);
 
 } // namespace OpenMS
+
 
 #endif

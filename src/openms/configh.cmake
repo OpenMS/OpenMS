@@ -159,9 +159,6 @@ include(CheckFunctionExists)
 CHECK_FUNCTION_EXISTS("kill" OPENMS_HAS_KILL)
 CHECK_FUNCTION_EXISTS("sysconf" OPENMS_HAS_SYSCONF)
 
-#------------------------------------------------------------------------------
-# user flag with default "QMYSQL" (put in config.h)
-set(CF_QT_DB_PLUGIN "QMYSQL" CACHE STRING "User switch to change the Qt database plugin.")
 
 #------------------------------------------------------------------------------
 # Create the config.h

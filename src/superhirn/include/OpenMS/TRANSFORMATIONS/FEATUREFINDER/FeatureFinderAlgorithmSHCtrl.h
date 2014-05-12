@@ -53,7 +53,7 @@ namespace OpenMS
 
       @ingroup FeatureFinder
   */
-  class SUPERHIRN_DLL_EXPORT FeatureFinderAlgorithmSHCtrl
+  class SUPERHIRN_DLLAPI FeatureFinderAlgorithmSHCtrl
   {
 public:
     typedef std::pair<double, boost::shared_ptr<RawData> > MyMap;

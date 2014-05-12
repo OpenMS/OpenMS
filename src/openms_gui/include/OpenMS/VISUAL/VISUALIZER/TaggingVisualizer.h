@@ -36,6 +36,9 @@
 #ifndef OPENMS_VISUAL_VISUALIZER_TAGGINGVISUALIZER_H
 #define OPENMS_VISUAL_VISUALIZER_TAGGINGVISUALIZER_H
 
+// OpenMS_GUI config
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
+
 //OpenMS
 #include <OpenMS/METADATA/Tagging.h>
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizer.h>

@@ -58,26 +58,26 @@ using namespace std;
     @brief This application is used to predict retention times
                  for peptides or peptide separation.
 
-  This methods and applications of this model are described
-  in several publications:
+    This methods and applications of this model are described
+    in several publications:
 
-  Nico Pfeifer, Andreas Leinenbach, Christian G. Huber and Oliver Kohlbacher
-  Statistical learning of peptide retention behavior in chromatographic separations: A new kernel-based approach for computational proteomics.
-  BMC Bioinformatics 2007, 8:468
+    Nico Pfeifer, Andreas Leinenbach, Christian G. Huber and Oliver Kohlbacher
+    Statistical learning of peptide retention behavior in chromatographic separations: A new kernel-based approach for computational proteomics.
+    BMC Bioinformatics 2007, 8:468
 
-  Nico Pfeifer, Andreas Leinenbach, Christian G. Huber and Oliver Kohlbacher
-  Improving Peptide Identification in Proteome Analysis by a Two-Dimensional Retention Time Filtering Approach
-  J. Proteome Res. 2009, 8(8):4109-15
+    Nico Pfeifer, Andreas Leinenbach, Christian G. Huber and Oliver Kohlbacher
+    Improving Peptide Identification in Proteome Analysis by a Two-Dimensional Retention Time Filtering Approach
+    J. Proteome Res. 2009, 8(8):4109-15
 
 
     The input of this application
-    is an svm model and an idXML
-    file with peptide identifications. The svm model file is specified
-    by the <b>svm_model</b> parameter in the command line or the ini file.
+    is an svm model and a file with peptide identifications (idXML or text).
+    The svm model file is specified
+    by the <b>svm_model</b> parameter in the command line or the INI file.
     This file should have been produced by the @ref TOPP_RTModel application.
     <br>
     For retention time prediction the peptide sequences are extracted
-    from the idXML inputfile
+    from the idXML/text inputfile
     and passed to the svm. The svm then predicts retention times
     according to the trained model. The predicted retention times
     are stored as @code <userParam name="predicted_retention_time" value="<predicted retention time>" />
@@ -88,14 +88,14 @@ using namespace std;
     to be collected by the column and 'out_id:negative' is the file
     of the predicted flowthrough peptides.
 
-  Retention time prediction and separation prediction cannot be combined!
+    Retention time prediction and separation prediction cannot be combined!
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude TOPP_RTPredict.cli
     <B>INI file documentation of this tool:</B>
     @htmlinclude TOPP_RTPredict.html
 
-    @todo This need serious clean up! Combining certain input and output options will
+    @todo This needs serious clean up! Combining certain input and output options will
           result in strange behaviour, especially when using text output/input.
 */
 
@@ -115,32 +115,33 @@ public:
 protected:
   void registerOptionsAndFlags_()
   {
-    //input
-    registerInputFile_("in_id", "<file>", "", "peptides with precursor information", false);
+    // input
+    registerInputFile_("in_id", "<file>", "", "Peptides with precursor information", false);
     setValidFormats_("in_id", ListUtils::create<String>("idXML"));
-    registerInputFile_("in_text", "<file>", "", "peptides as text-based file", false);
+    registerInputFile_("in_text", "<file>", "", "Peptides as text-based file", false);
     setValidFormats_("in_text", ListUtils::create<String>("txt"));
 
-    //output
+    registerInputFile_("svm_model", "<file>", "", "svm model in libsvm format (can be produced by RTModel)");
+    setValidFormats_("svm_model", ListUtils::create<String>("txt"));
+
+    registerDoubleOption_("total_gradient_time", "<time>", 1.0, "The time (in seconds) of the gradient (peptide RT prediction)", false);
+    setMinFloat_("total_gradient_time", 0.00001);
+    registerIntOption_("max_number_of_peptides", "<int>", 100000, "The maximum number of peptides considered at once (bigger number will lead to faster results but needs more memory).", false, true);
+
+    // output
     registerTOPPSubsection_("out_id", "Output files in idXML format");
     registerOutputFile_("out_id:file", "<file>", "", "Output file with peptide RT prediction", false);
     setValidFormats_("out_id:file", ListUtils::create<String>("idXML"));
-    registerOutputFile_("out_id:positive", "<file>", "", "Output file in idXML format containing positive predictions (peptide separation prediction - requires negative file to be present as well)\n", false);
+    registerOutputFile_("out_id:positive", "<file>", "", "Output file in idXML format containing positive predictions for peptide separation prediction - requires 'out_id:negative' to be present as well.", false);
     setValidFormats_("out_id:positive", ListUtils::create<String>("idXML"));
-    registerOutputFile_("out_id:negative", "<file>", "", "Output file in idXML format containing negative predictions (peptide separation prediction - requires positive file to be present as well)\n", false);
+    registerOutputFile_("out_id:negative", "<file>", "", "Output file in idXML format containing negative predictions for peptide separation prediction - requires 'out_id:positive' to be present as well.", false);
     setValidFormats_("out_id:negative", ListUtils::create<String>("idXML"));
-    registerFlag_("out_id:rewrite_peptideidentification_rtmz", "rewrites each peptideidentification's rt and mz from prediction and calculation (according to the best hit)", true);
+    registerFlag_("out_id:rewrite_peptideidentification_rtmz", "Rewrites each peptideidentification's rt and mz from prediction and calculation (according to the best hit)", true);
 
     registerTOPPSubsection_("out_text", "Output files in text format");
     registerOutputFile_("out_text:file", "<file>", "", "Output file with predicted RT values", false);
     setValidFormats_("out_text:file", ListUtils::create<String>("csv"));
 
-    registerInputFile_("svm_model", "<file>", "", "svm model in libsvm format (can be produced by RTModel)");
-    setValidFormats_("svm_model", ListUtils::create<String>("txt"));
-
-    registerDoubleOption_("total_gradient_time", "<time>", 1.0, "the time (in seconds) of the gradient (peptide RT prediction)", false);
-    setMinFloat_("total_gradient_time", 0.00001);
-    registerIntOption_("max_number_of_peptides", "<int>", 100000, "the maximum number of peptides considered at once (bigger number will lead to faster results but needs more memory).\n", false, true);
   }
 
   void loadStrings_(String filename, std::vector<String>& sequences)
@@ -347,7 +348,7 @@ protected:
       {
         for (Size i = 0; i < peptides.size(); ++i)
         {
-          modified_peptides.push_back(AASequence(peptides[i]));
+          modified_peptides.push_back(AASequence::fromString(peptides[i]));
         }
         peptides.clear();
       }
@@ -512,9 +513,9 @@ protected:
             else
             {
               temp_point.first = 0;
-              if (identifications[i].metaValueExists("RT"))
+              if (identifications[i].hasRT())
               {
-                temp_point.first = identifications[i].getMetaValue("RT");
+                temp_point.first = identifications[i].getRT();
               }
             }
             if (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
@@ -533,9 +534,9 @@ protected:
             }
             else
             {
-              if (identifications[i].metaValueExists("RT"))
+              if (identifications[i].hasRT())
               {
-                performance_retention_times.push_back(identifications[i].getMetaValue("RT"));
+                performance_retention_times.push_back(identifications[i].getRT());
               }
               else
               {
@@ -556,8 +557,8 @@ protected:
             double mz =  identifications[i].getHits().front().getSequence().getMonoWeight(Residue::Full, charge) / double(charge);
             double rt =  identifications[i].getHits().front().getMetaValue("predicted_RT");
 
-            identifications[i].setMetaValue("RT", rt);
-            identifications[i].setMetaValue("MZ", mz);
+            identifications[i].setRT(rt);
+			identifications[i].setMZ(mz);
           }
 
           identifications[i].setHits(temp_peptide_hits);
@@ -604,15 +605,9 @@ protected:
             }
           }
 
-          if (identifications[i].metaValueExists("MZ"))
-          {
-            temp_identification.setMetaValue("MZ", identifications[i].getMetaValue("MZ"));
-          }
-          if (identifications[i].metaValueExists("RT"))
-          {
-            temp_identification.setMetaValue("RT", identifications[i].getMetaValue("RT"));
-          }
-
+          temp_identification.setMZ(identifications[i].getMZ());
+          temp_identification.setRT(identifications[i].getRT());
+         
           temp_identification = identifications[i];
           temp_identification.setHits(hits_positive);
           identifications_positive.push_back(temp_identification);

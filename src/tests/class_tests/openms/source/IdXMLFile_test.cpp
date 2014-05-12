@@ -71,7 +71,7 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
   std::vector<ProteinIdentification> protein_ids;
   std::vector<PeptideIdentification> peptide_ids;
   String document_id;
-  IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IdXMLFile_whole.idXML"), protein_ids, peptide_ids,document_id);
+  IdXMLFile().load(OPENMS_GET_TEST_DATA_PATH("IdXMLFile_whole.idXML"), protein_ids, peptide_ids, document_id);
 
   TEST_STRING_EQUAL(document_id,"LSID1234")
   TEST_EQUAL(protein_ids.size(),2)
@@ -123,14 +123,14 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
   TEST_EQUAL(peptide_ids[0].getScoreType(),"MOWSE")
   TEST_EQUAL(peptide_ids[0].isHigherScoreBetter(),false)
   TEST_EQUAL(peptide_ids[0].getIdentifier(),"Mascot_2006-01-12T12:13:14")
-  TEST_REAL_SIMILAR((double)(peptide_ids[0].getMetaValue("MZ")),675.9)
-  TEST_REAL_SIMILAR((double)(peptide_ids[0].getMetaValue("RT")),1234.5)
+  TEST_REAL_SIMILAR(peptide_ids[0].getMZ(),675.9)
+  TEST_REAL_SIMILAR(peptide_ids[0].getRT(),1234.5)
   TEST_EQUAL((UInt)(peptide_ids[0].getMetaValue("spectrum_reference")),17)
   TEST_EQUAL((String)(peptide_ids[0].getMetaValue("name")),"PeptideIdentification")
   TEST_EQUAL(peptide_ids[0].getHits().size(),2)
   //peptide hit 1
   TEST_REAL_SIMILAR(peptide_ids[0].getHits()[0].getScore(),0.9)
-  TEST_EQUAL(peptide_ids[0].getHits()[0].getSequence(),"PEP1")
+  TEST_EQUAL(peptide_ids[0].getHits()[0].getSequence(), AASequence::fromString("PEPTIDER"))
   TEST_EQUAL(peptide_ids[0].getHits()[0].getCharge(),1)
   TEST_EQUAL(peptide_ids[0].getHits()[0].getAABefore(),'A')
   TEST_EQUAL(peptide_ids[0].getHits()[0].getAAAfter(),'B')
@@ -140,7 +140,7 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
   TEST_EQUAL((String)(peptide_ids[0].getHits()[0].getMetaValue("name")),"PeptideHit")
   //peptide hit 2
   TEST_REAL_SIMILAR(peptide_ids[0].getHits()[1].getScore(),1.4)
-  TEST_EQUAL(peptide_ids[0].getHits()[1].getSequence(),"PEP2")
+  TEST_EQUAL(peptide_ids[0].getHits()[1].getSequence(), AASequence::fromString("PEPTIDERR"))
   TEST_EQUAL(peptide_ids[0].getHits()[1].getCharge(),1)
   TEST_EQUAL(peptide_ids[0].getHits()[1].getProteinAccessions().size(),0)
   TEST_EQUAL(peptide_ids[0].getHits()[1].getAABefore(),' ')
@@ -153,7 +153,7 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
   TEST_EQUAL(peptide_ids[1].getHits().size(),2)
   //peptide hit 1
   TEST_REAL_SIMILAR(peptide_ids[1].getHits()[0].getScore(),44.4)
-  TEST_EQUAL(peptide_ids[1].getHits()[0].getSequence(),"PEP3")
+  TEST_EQUAL(peptide_ids[1].getHits()[0].getSequence(), AASequence::fromString("PEPTIDERRR"))
   TEST_EQUAL(peptide_ids[1].getHits()[0].getCharge(),2)
   TEST_EQUAL(peptide_ids[1].getHits()[0].getProteinAccessions().size(),0)
   TEST_EQUAL(peptide_ids[1].getHits()[0].getAABefore(),' ')
@@ -161,7 +161,7 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
 
   //peptide hit 2
   TEST_REAL_SIMILAR(peptide_ids[1].getHits()[1].getScore(),33.3)
-  TEST_EQUAL(peptide_ids[1].getHits()[1].getSequence(),"PEP4")
+  TEST_EQUAL(peptide_ids[1].getHits()[1].getSequence(), AASequence::fromString("PEPTIDERRRR"))
   TEST_EQUAL(peptide_ids[1].getHits()[1].getCharge(),2)
   TEST_EQUAL(peptide_ids[1].getHits()[1].getProteinAccessions().size(),0)
   TEST_EQUAL(peptide_ids[1].getHits()[1].getAABefore(),' ')
@@ -200,7 +200,7 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
   TEST_EQUAL(peptide_ids[2].getHits().size(),1)
   //peptide hit 1
   TEST_REAL_SIMILAR(peptide_ids[2].getHits()[0].getScore(),1.4)
-  TEST_EQUAL(peptide_ids[2].getHits()[0].getSequence(),"PEP5")
+  TEST_EQUAL(peptide_ids[2].getHits()[0].getSequence(), AASequence::fromString("PEPTIDERRRRR"))
   TEST_EQUAL(peptide_ids[2].getHits()[0].getCharge(),1)
   TEST_EQUAL(peptide_ids[2].getHits()[0].getProteinAccessions().size(),1)
   TEST_EQUAL(peptide_ids[2].getHits()[0].getProteinAccessions()[0],"PROT3")

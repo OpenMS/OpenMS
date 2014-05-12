@@ -35,7 +35,8 @@
 #ifndef OPENMS_VISUAL_DIALOGS_SAVEIMAGEDIALOG_H
 #define OPENMS_VISUAL_DIALOGS_SAVEIMAGEDIALOG_H
 
-#include <OpenMS/config.h>
+// OpenMS_GUI config
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 #include <QtGui/QDialog>
 #include <QtGui/QComboBox>

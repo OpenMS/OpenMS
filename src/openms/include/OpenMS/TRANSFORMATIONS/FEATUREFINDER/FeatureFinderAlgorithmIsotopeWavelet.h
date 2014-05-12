@@ -44,42 +44,30 @@
 #include <time.h>
 #include <algorithm>
 
-#ifdef OPENMS_HAS_TBB
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWaveletParallelFor.h>
-#include <tbb/task_scheduler_init.h>
-#include <tbb/pipeline.h>
-#include <tbb/parallel_for.h>
-#endif
-
-
 namespace OpenMS
 {
   /**
-      @brief Implements the isotope wavelet feature finder.
+    @brief Implements the isotope wavelet feature finder.
 
-  The FeatureFinderAlgorithmIsotopeWavelet class has been designed for finding features in 1D
-  or 2D MS data sets using the isotope wavelet. In the case of two dimensional data, the class
-  provides additionally the sweep line algorithm. Please note that the algorithm implemented
-  here is only marginally related to the algorithm presented in
-  Schulz-Trieglaff et al. (2007, 2008), as no fitting procedure is applied anymore after the
-  wavelet-based seeding step. The wavelet has been designed to extract even very lowly-abundant
-  features (see Hussong et al. (2007, 2009)), usually featuring a very low
-  signal-to-noise ratio. The wavelet in its current implementation is not able to resolve
-  overlapping patterns (see also Hussong et al. (2009)) and slightly shifts masses to the right
-   due to the construction of the wavelet.
+    The FeatureFinderAlgorithmIsotopeWavelet class has been designed for finding features in 1D
+    or 2D MS data sets using the isotope wavelet. In the case of two dimensional data, the class
+    provides additionally the sweep line algorithm. Please note that the algorithm implemented
+    here is only marginally related to the algorithm presented in
+    Schulz-Trieglaff et al. (2007, 2008), as no fitting procedure is applied anymore after the
+    wavelet-based seeding step. The wavelet has been designed to extract even very lowly-abundant
+    features (see Hussong et al. (2007, 2009)), usually featuring a very low
+    signal-to-noise ratio. The wavelet in its current implementation is not able to resolve
+    overlapping patterns (see also Hussong et al. (2009)) and slightly shifts masses to the right
+    due to the construction of the wavelet.
 
-      @htmlinclude OpenMS_FeatureFinderAlgorithmIsotopeWavelet.parameters
+    @htmlinclude OpenMS_FeatureFinderAlgorithmIsotopeWavelet.parameters
 
-      @ingroup FeatureFinder
+    @ingroup FeatureFinder
   */
   template <typename PeakType, typename FeatureType>
   class FeatureFinderAlgorithmIsotopeWavelet :
     public FeatureFinderAlgorithm<PeakType, FeatureType>
   {
-#ifdef OPENMS_HAS_TBB
-    friend class IsotopeWaveletParallelFor<PeakType, FeatureType>;
-#endif
-
 public:
 
     typedef FeatureFinderAlgorithm<PeakType, FeatureType> Base;
@@ -112,11 +100,6 @@ public:
                                                    "for spectra featuring large m/z-gaps (present in FTICR and Orbitrap data, e.g.). Please check "
                                                    "a single MS scan out of your recording, if you are unsure.");
       this->defaults_.setValidStrings("hr_data", ListUtils::create<String>("true,false"));
-
-#if (defined(OPENMS_HAS_CUDA) || defined(OPENMS_HAS_TBB))
-      this->defaults_.setValue("parallel:use_gpus", "-1", "A comma-separated list of IDs corresponding to the GPU devices to use.\n"
-                                                          "'-1' disables parallelization (CUDA/TBB) at all.\n");
-#endif
 
       this->defaults_.setValue("sweep_line:rt_votes_cutoff", 5, "Defines the minimum number of "
                                                                 "subsequent scans where a pattern must occur to be considered as a feature.", ListUtils::create<String>("advanced"));
@@ -226,15 +209,6 @@ public:
       double min_mz = this->map_->getMin()[1];
 
       Size max_size = 0;
-#ifdef OPENMS_HAS_CUDA
-      if (use_cuda_)               //some preprocessing necessary for the GPU computation
-      {
-        for (UInt i = 0; i < this->map_->size(); ++i)
-        {
-          max_size = std::max(max_size, (*this->map_)[i].size());
-        }
-      }
-#endif
 
       //Check for useless RT_votes_cutoff_ parameter
       if (RT_votes_cutoff_ > this->map_->size())
@@ -250,64 +224,7 @@ public:
       progress_counter_ = 0;
       this->ff_->startProgress(0, 2 * this->map_->size() * max_charge_, "analyzing spectra");
 
-#if defined(OPENMS_HAS_TBB) && defined(OPENMS_HAS_CUDA)
-      if (use_tbb_)
-      {
-        UInt num_gpus = this->gpu_ids_.size();
-        tbb::task_scheduler_init init(num_gpus);
-        std::vector<IsotopeWaveletTransform<PeakType> *> iwts(num_gpus);
-
-        for (UInt t = 0; t < num_gpus; ++t)
-        {
-          iwts[t] = new IsotopeWaveletTransform<PeakType>(min_mz, max_mz, max_charge_, max_size, true, hr_data_, intensity_type_);
-        }
-
-        static tbb::affinity_partitioner ap;
-        //The parallel execution over all available GPU devices
-        tbb::parallel_for(tbb::blocked_range<size_t>(0, num_gpus, 1), IsotopeWaveletParallelFor<PeakType, FeatureType>(iwts, this), ap);
-
-#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
-        std::cout << "Merging."; std::cout.flush();
-#endif
-
-        for (UInt t = 1; t < num_gpus; ++t)
-        {
-          iwts[0]->mergeFeatures(iwts[t], RT_interleave_, RT_votes_cutoff_);
-        }
-
-#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
-        std::cout << "Final mapping."; std::cout.flush();
-#endif
-        *this->features_ = iwts[0]->mapSeeds2Features(*this->map_, real_RT_votes_cutoff_);
-
-        for (UInt t = 0; t < num_gpus; ++t)
-        {
-          delete (iwts[t]);
-        }
-      }
-#else
-      if (use_tbb_)
-      {
-        std::cerr << "Error: You requested computation via TBB, but OpenMS has not been configured for TBB usage." << std::endl;
-        std::cerr << "Error: You need to rebuild OpenMS using the configure flag \"--enable-tbb-release\" or \"--enable-tbb-debug\"." << std::endl;
-        std::cerr << "Error: Please note that the multithreaded FeatureFinder needs necessarily the CUDA library, which must be enabled with \"--enable-cuda\"." << std::endl;
-      }
-#endif
-
-      if (!use_tbb_)
-      {
-        IsotopeWaveletTransform<PeakType> * iwt = new IsotopeWaveletTransform<PeakType>(min_mz, max_mz, max_charge_, max_size, use_cuda_, hr_data_, intensity_type_);
-#ifdef OPENMS_HAS_CUDA
-        if (use_cuda_)
-        {
-          cudaSetDevice(gpu_ids_[0]);
-          std::cout << "Using device with ID: " << gpu_ids_[0] << std::endl;
-          cudaDeviceProp props;
-          cudaGetDeviceProperties(&props, gpu_ids_[0]);
-          std::cout << "This device is named: " << props.name << std::endl;
-        }
-#endif
-
+        IsotopeWaveletTransform<PeakType> * iwt = new IsotopeWaveletTransform<PeakType>(min_mz, max_mz, max_charge_, max_size, hr_data_, intensity_type_);
         for (UInt i = 0; i < this->map_->size(); ++i)
         {
           const MSSpectrum<PeakType> & c_ref((*this->map_)[i]);
@@ -326,167 +243,77 @@ public:
             continue;
           }
 
-          if (!use_cuda_)
+          if (!hr_data_)                 //LowRes data
           {
-            if (!hr_data_)                 //LowRes data
+            iwt->initializeScan((*this->map_)[i]);
+            for (UInt c = 0; c < max_charge_; ++c)
             {
-              iwt->initializeScan((*this->map_)[i]);
-              for (UInt c = 0; c < max_charge_; ++c)
+              MSSpectrum<PeakType> c_trans(c_ref);
+
+              iwt->getTransform(c_trans, c_ref, c);
+
+#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
+              std::stringstream stream;
+              stream << "cpu_lowres_" << c_ref.getRT() << "_" << c + 1 << ".trans\0";
+              std::ofstream ofile(stream.str().c_str());
+              for (UInt k = 0; k < c_ref.size(); ++k)
               {
-                MSSpectrum<PeakType> c_trans(c_ref);
-
-                iwt->getTransform(c_trans, c_ref, c);
-
-#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
-                std::stringstream stream;
-                stream << "cpu_lowres_" << c_ref.getRT() << "_" << c + 1 << ".trans\0";
-                std::ofstream ofile(stream.str().c_str());
-                for (UInt k = 0; k < c_ref.size(); ++k)
-                {
-                  ofile << ::std::setprecision(8) << std::fixed << c_trans[k].getMZ() << "\t" << c_trans[k].getIntensity() << "\t" << c_ref[k].getIntensity() << std::endl;
-                }
-                ofile.close();
-#endif
-
-#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
-                std::cout << "transform O.K. ... "; std::cout.flush();
-#endif
-                this->ff_->setProgress(++progress_counter_);
-
-                iwt->identifyCharge(c_trans, c_ref, i, c, intensity_threshold_, check_PPMs_);
-
-#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
-                std::cout << "charge recognition O.K. ... "; std::cout.flush();
-#endif
-                this->ff_->setProgress(++progress_counter_);
+                ofile << ::std::setprecision(8) << std::fixed << c_trans[k].getMZ() << "\t" << c_trans[k].getIntensity() << "\t" << c_ref[k].getIntensity() << std::endl;
               }
-            }
-            else                 //HighRes data
-            {
-              MSSpectrum<PeakType> * new_spec(NULL);
-              for (UInt c = 0; c < max_charge_; ++c)
-              {
-                new_spec = createHRData(i);
-                iwt->initializeScan(*new_spec, c);
-                MSSpectrum<PeakType> c_trans(*new_spec);
-
-                iwt->getTransformHighRes(c_trans, *new_spec, c);
-
-#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
-                std::stringstream stream;
-                stream << "cpu_highres_" << new_spec->getRT() << "_" << c + 1 << ".trans\0";
-                std::ofstream ofile(stream.str().c_str());
-                for (UInt k = 0; k < new_spec->size(); ++k)
-                {
-                  ofile << ::std::setprecision(8) << std::fixed << c_trans[k].getMZ() << "\t" << c_trans[k].getIntensity() << "\t" << (*new_spec)[k].getIntensity() << std::endl;
-                }
-                ofile.close();
+              ofile.close();
 #endif
 
 #ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
-                std::cout << "transform O.K. ... "; std::cout.flush();
+              std::cout << "transform O.K. ... "; std::cout.flush();
 #endif
-                this->ff_->setProgress(++progress_counter_);
+              this->ff_->setProgress(++progress_counter_);
 
-                iwt->identifyCharge(c_trans, *new_spec, i, c, intensity_threshold_, check_PPMs_);
+              iwt->identifyCharge(c_trans, c_ref, i, c, intensity_threshold_, check_PPMs_);
 
 #ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
-                std::cout << "charge recognition O.K. ... "; std::cout.flush();
+              std::cout << "charge recognition O.K. ... "; std::cout.flush();
 #endif
-                this->ff_->setProgress(++progress_counter_);
-
-                delete (new_spec); new_spec = NULL;
-              }
+              this->ff_->setProgress(++progress_counter_);
             }
           }
-          else               //use CUDA but not TBB
+          else                 //HighRes data
           {
-#ifdef OPENMS_HAS_CUDA
-            bool success = true;
-            typename IsotopeWaveletTransform<PeakType>::TransSpectrum * c_trans(NULL); MSSpectrum<PeakType> * new_spec(NULL);
-            if (!hr_data_)                     //LowRes data
+            MSSpectrum<PeakType> * new_spec(NULL);
+            for (UInt c = 0; c < max_charge_; ++c)
             {
-              c_trans = new typename IsotopeWaveletTransform<PeakType>::TransSpectrum(&(*this->map_)[i]);
-              success = iwt->initializeScanCuda((*this->map_)[i]) == Constants::CUDA_INIT_SUCCESS;
+              new_spec = createHRData(i);
+              iwt->initializeScan(*new_spec, c);
+              MSSpectrum<PeakType> c_trans(*new_spec);
 
-              if (success)
+              iwt->getTransformHighRes(c_trans, *new_spec, c);
+
+#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
+              std::stringstream stream;
+              stream << "cpu_highres_" << new_spec->getRT() << "_" << c + 1 << ".trans\0";
+              std::ofstream ofile(stream.str().c_str());
+              for (UInt k = 0; k < new_spec->size(); ++k)
               {
-                for (UInt c = 0; c < max_charge_; ++c)
-                {
-                  iwt->getTransformCuda(*c_trans, c);
-
-#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
-                  std::stringstream stream;
-                  stream << "gpu_lowres_" << ((*this->map_)[i]).getRT() << "_" << c + 1 << ".trans\0";
-                  std::ofstream ofile(stream.str().c_str());
-                  for (UInt k = 0; k < c_trans->size(); ++k)
-                  {
-                    ofile << ::std::setprecision(8) << std::fixed << c_trans->getMZ(k) << "\t" <<  c_trans->getTransIntensity(k) << "\t" << c_trans->getRefIntensity(k) << std::endl;
-                  }
-                  ofile.close();
-#endif
-
-#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
-                  std::cout << "cuda transform for charge " << c + 1 << "  O.K. ... "; std::cout.flush();
-#endif
-                  this->ff_->setProgress(++progress_counter_);
-
-                  iwt->identifyChargeCuda(*c_trans, i, c, intensity_threshold_, check_PPMs_);
-
-#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
-                  std::cout << "cuda charge recognition for charge " << c + 1 << " O.K." << std::endl;
-#endif
-                  this->ff_->setProgress(++progress_counter_);
-                }
-                iwt->finalizeScanCuda();
+                ofile << ::std::setprecision(8) << std::fixed << c_trans[k].getMZ() << "\t" << c_trans[k].getIntensity() << "\t" << (*new_spec)[k].getIntensity() << std::endl;
               }
-              else
-              {
-                std::cout << "Warning/Error generated at scan " << i << " (" << ((*this->map_)[i]).getRT() << ")." << std::endl;
-              }
+              ofile.close();
+#endif
+
+#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
+              std::cout << "transform O.K. ... "; std::cout.flush();
+#endif
+              this->ff_->setProgress(++progress_counter_);
+
+              iwt->identifyCharge(c_trans, *new_spec, i, c, intensity_threshold_, check_PPMs_);
+
+#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
+              std::cout << "charge recognition O.K. ... "; std::cout.flush();
+#endif
+              this->ff_->setProgress(++progress_counter_);
+
+              delete (new_spec); new_spec = NULL;
             }
-            else                     //HighRes data
-            {
-              c_trans = prepareHRDataCuda(i, iwt);
-              for (UInt c = 0; c < max_charge_; ++c)
-              {
-                iwt->getTransformCuda(*c_trans, c);
-
-#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
-                std::stringstream stream;
-                stream << "gpu_highres_" << ((*this->map_)[i]).getRT() << "_" << c + 1 << ".trans\0";
-                std::ofstream ofile(stream.str().c_str());
-                for (UInt k = 0; k < c_trans->size(); ++k)
-                {
-                  ofile << ::std::setprecision(8) << std::fixed << c_trans->getMZ(k) << "\t" <<  c_trans->getTransIntensity(k)  << "\t" << c_trans->getRefIntensity(k) << std::endl;
-                }
-                ofile.close();
-#endif
-
-#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
-                std::cout << "cuda transform for charge " << c + 1 << "  O.K. ... "; std::cout.flush();
-#endif
-                this->ff_->setProgress(++progress_counter_);
-
-                iwt->identifyChargeCuda(*c_trans, i, c, intensity_threshold_, check_PPMs_);
-
-#ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
-                std::cout << "cuda charge recognition for charge " << c + 1 << " O.K." << std::endl;
-#endif
-                this->ff_->setProgress(++progress_counter_);
-              }
-              c_trans->destroy();
-              iwt->finalizeScanCuda();
-            }
-
-            delete (new_spec); new_spec = NULL;
-            delete (c_trans); c_trans = NULL;
-
-#else
-            std::cerr << "Error: You requested computation on GPU, but OpenMS has not been configured for CUDA usage." << std::endl;
-            std::cerr << "Error: You need to rebuild OpenMS using the configure flag \"--enable-cuda\"." << std::endl;
-#endif
           }
+
 
           iwt->updateBoxStates(*this->map_, i, RT_interleave_, real_RT_votes_cutoff_);
 #ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
@@ -507,14 +334,6 @@ public:
         *this->features_ = iwt->mapSeeds2Features(*this->map_, real_RT_votes_cutoff_);
 
         delete (iwt);
-      }
-      else
-      {
-#ifndef OPENMS_HAS_TBB
-        std::cerr << "Error: You requested multi-threaded computation via threading building blocks, but OpenMS has not been configured for TBB usage." << std::endl;
-        std::cerr << "Error: You need to rebuild OpenMS with -DENABLE_TBB=ON." << std::endl;
-#endif
-      }
     }
 
     static const String getProductName()
@@ -545,15 +364,10 @@ protected:
     double intensity_threshold_;     ///<The only parameter of the isotope wavelet
     UInt RT_votes_cutoff_, real_RT_votes_cutoff_, RT_interleave_;     ///<The number of subsequent scans a pattern must cover in order to be considered as signal
     String use_gpus_, intensity_type_;
-    bool use_tbb_, use_cuda_, check_PPMs_, hr_data_;
+    bool check_PPMs_, hr_data_;
     std::vector<UInt> gpu_ids_;     ///< A list of all GPU devices that can be used
 
-#if defined(OPENMS_HAS_TBB) && defined(OPENMS_HAS_CUDA)
-    tbb::atomic<int> progress_counter_;
-    Int device_num_, gpu_to_exclude_;
-#else
     Int progress_counter_;
-#endif
 
     void updateMembers_()
     {
@@ -565,37 +379,6 @@ protected:
       check_PPMs_ = ((String)(this->param_.getValue("check_ppm")) == "true");
       hr_data_ = ((String)(this->param_.getValue("hr_data")) == "true");
       intensity_type_ = ((String)(this->param_.getValue("intensity_type")));
-#if defined(OPENMS_HAS_CUDA) || defined(OPENMS_HAS_TBB)
-      use_gpus_ = this->param_.getValue("parallel:use_gpus");
-      std::vector<String> tokens;
-      if (!use_gpus_.split(',', tokens))
-      {
-        tokens.push_back(use_gpus_);
-      }
-      //Attention: updateMembers_ can be called several times!
-      gpu_ids_.clear();
-      if (tokens[0].trim().toInt() == -1)           //no parallelization
-      {
-        use_cuda_ = false;
-        use_tbb_ = false;
-        return;
-      }
-      gpu_ids_.push_back(tokens[0].trim().toInt());
-      use_cuda_ = true;
-      use_tbb_ = false;
-      for (UInt i = 1; i < tokens.size(); ++i)
-      {
-        if (tokens[i].trim().toInt() == (Int) gpu_ids_[i - 1])
-        {
-          continue;
-        }
-        gpu_ids_.push_back(tokens[i].trim().toInt());
-        use_tbb_ = true;
-      }
-#else
-      use_cuda_ = false;
-      use_tbb_ = false;
-#endif
     }
 
   };

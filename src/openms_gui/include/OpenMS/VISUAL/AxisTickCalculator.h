@@ -35,6 +35,9 @@
 #ifndef OPENMS_VISUAL_AXISTICKCALCULATOR_H
 #define OPENMS_VISUAL_AXISTICKCALCULATOR_H
 
+// OpenMS_GUI config
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
+
 #include <vector>
 #include <OpenMS/CONCEPT/Types.h>
 

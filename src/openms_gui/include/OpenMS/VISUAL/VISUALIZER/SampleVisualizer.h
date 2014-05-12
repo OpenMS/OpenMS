@@ -35,11 +35,13 @@
 #ifndef OPENMS_VISUAL_VISUALIZER_SAMPLEVISUALIZER_H
 #define OPENMS_VISUAL_VISUALIZER_SAMPLEVISUALIZER_H
 
+// OpenMS_GUI config
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
+
 //OpenMS
 #include <OpenMS/METADATA/Sample.h>
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizer.h>
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizerGUI.h>
-
 
 namespace OpenMS
 {
