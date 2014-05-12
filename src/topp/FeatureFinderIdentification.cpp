@@ -434,7 +434,7 @@ protected:
       const TargetedExperiment::Peptide& peptide = 
         library_.getPeptideByRef(peptide_ref);
       PeptideHit hit;
-      hit.setSequence(AASequence(peptide.sequence));
+      hit.setSequence(AASequence::fromString(peptide.sequence));
       hit.setProteinAccessions(peptide.protein_refs);
       Int charge = peptide.getChargeState();
       hit.setCharge(charge);
