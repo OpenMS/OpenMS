@@ -125,7 +125,7 @@ protected:
       IdXMLFile().load(in, prot_ids, pep_ids, document_id);
 
       MzTabFile mztab;
-      mztab.store(out, prot_ids, pep_ids, in, document_id);
+      // mztab.store(out, prot_ids, pep_ids, in, document_id);
 
       return EXECUTION_OK;
     }
