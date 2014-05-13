@@ -44,6 +44,30 @@
 using namespace OpenMS;
 using namespace std;
 
+class OPENMS_DLLAPI CountingMSDataConsumer :
+  public Interfaces::IMSDataConsumer< MSExperiment<> >
+{
+public:
+  size_t spec_counter;
+  size_t chrom_counter;
+  double spec_tic;
+  double chrom_tic;
+
+  CountingMSDataConsumer() : spec_counter(0), chrom_counter(0), spec_tic(0), chrom_tic(0) {}
+  void setExperimentalSettings(const ExperimentalSettings &) {}
+  void setExpectedSize(Size, Size) {}
+  void consumeSpectrum(SpectrumType & s) 
+  {
+    spec_counter++; 
+    for (Size i = 0; i < s.size(); i++) {spec_tic += s[i].getIntensity();} 
+  }
+  void consumeChromatogram(ChromatogramType & c)
+  {
+    chrom_counter++; 
+    for (Size i = 0; i < c.size(); i++) {chrom_tic += c[i].getIntensity();} 
+  }
+};
+
 ///////////////////////////
 
 DRange<1> makeRange(double a, double b)
@@ -984,6 +1008,7 @@ START_SECTION(bool isValid(const String& filename, std::ostream& os = std::cerr)
 END_SECTION
 
 START_SECTION(bool isSemanticallyValid(const String& filename, StringList& errors, StringList& warnings))
+{
 	std::string tmp_filename;
 	MzMLFile file;
 	StringList errors, warnings;
@@ -1034,8 +1059,53 @@ START_SECTION(bool isSemanticallyValid(const String& filename, StringList& error
 //	{
 //		cout << "WARNING: " << warnings[i] << endl;
 //	}
+}
 END_SECTION
 
+double expected_spectra_tic = 0.0;
+
+for (UInt i=0; i<15; ++i) { expected_spectra_tic += 15-i; }
+for (UInt i=0; i<10; ++i) { expected_spectra_tic += 20-2*i; }
+for (UInt i=0; i<15; ++i) { expected_spectra_tic += 15-i; }
+
+double expected_chromatogram_tic = 0;
+for (UInt i=0; i<15; ++i) { expected_chromatogram_tic += 15-i; }
+for (UInt i=0; i<10; ++i) { expected_chromatogram_tic += 10-i; }
+
+START_SECTION((template <typename MapType> void transform(const String& filename_in, Interfaces::IMSDataConsumer<MapType> * consumer)))
+{
+  CountingMSDataConsumer c;
+  MzMLFile file;
+
+  file.transform(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), &c);
+
+  TEST_EQUAL(c.spec_counter, 4);
+  TEST_EQUAL(c.chrom_counter, 2);
+  TEST_EQUAL(c.spec_tic, 350);
+  TEST_EQUAL(c.spec_tic, expected_spectra_tic);
+  TEST_EQUAL(c.chrom_tic, 175);
+  TEST_EQUAL(c.chrom_tic, expected_chromatogram_tic);
+}
+END_SECTION
+
+START_SECTION((template <typename MapType> void transform(const String& filename_in, Interfaces::IMSDataConsumer<MapType> * consumer, MapType& map)))
+{
+  CountingMSDataConsumer c;
+  MzMLFile file;
+  MSExperiment<> e;
+
+  file.transform(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), &c, e);
+
+  TEST_EQUAL(c.spec_counter, 4);
+  TEST_EQUAL(c.chrom_counter, 2);
+  TEST_EQUAL(c.spec_tic, 350);
+  TEST_EQUAL(c.chrom_tic, 175);
+  TEST_EQUAL(e.getNrSpectra(), 4);
+  TEST_EQUAL(e.getNrChromatograms(), 2);
+
+}
+END_SECTION
+    
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

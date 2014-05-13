@@ -139,37 +139,17 @@ public:
     /**
       @brief Transforms a map while loading using the supplied MSDataConsumer.
 
-      The result will not be stored by this class.
+      @note The resulting data will have to be handled by the IMSDataConsumer consumer will not be stored by this class.
     */
     template <typename MapType>
-    void transform(const String& filename_in, /* const String& filename_out, */ Interfaces::IMSDataConsumer<MapType> * consumer/* , const MapType& map */)
+    void transform(const String& filename_in, Interfaces::IMSDataConsumer<MapType> * consumer)
     {
-      //    typedef MSExperiment<> MapType;
-      
-      // First pass through the file -> get the meta-data and hand it to the consumer
-      {
-        Size scount = 0, ccount = 0;
-        MapType experimental_settings;
-        bool size_only_before_ = options_.getSizeOnly();
-        options_.setSizeOnly(true);
-        Internal::MzMLHandler<MapType> handler(experimental_settings, filename_in, getVersion(), *this);
-        handler.setOptions(options_);
-        parse_(filename_in, &handler);
-        handler.getCounts(scount, ccount);
-        options_.setSizeOnly(size_only_before_);
-        consumer->setExpectedSize(scount, ccount);
-        consumer->setExperimentalSettings(experimental_settings);
-      }
-      
-      // Second pass through the data, now read the spectra!
-      {
-        MapType dummy;
-        Internal::MzMLHandler<MapType> handler(dummy, filename_in, getVersion(), *this);
-        handler.setOptions(options_);
-        handler.setMSDataConsumer(consumer);
-        // TODO catch errors as above ?
-        parse_(filename_in, &handler);
-      }
+      MapType dummy;
+      Internal::MzMLHandler<MapType> handler(dummy, filename_in, getVersion(), *this);
+      handler.setOptions(options_);
+      handler.setMSDataConsumer(consumer);
+      // TODO catch errors as above ?
+      parse_(filename_in, &handler);
     }
 
     /**
@@ -178,35 +158,17 @@ public:
       The result will be stored in the supplied map.
     */
     template <typename MapType>
-    void transform(const String& filename_in, /* const String& filename_out, */ Interfaces::IMSDataConsumer<MapType> * consumer, MapType& map)
+    void transform(const String& filename_in, Interfaces::IMSDataConsumer<MapType> * consumer, MapType& map)
     {
-      // First pass through the file -> get the meta-data and hand it to the consumer
-      {
-        Size scount = 0, ccount = 0;
-        MapType experimental_settings;
-        bool size_only_before_ = options_.getSizeOnly();
-        options_.setSizeOnly(true);
-        Internal::MzMLHandler<MapType> handler(experimental_settings, filename_in, getVersion(), *this);
-        handler.setOptions(options_);
-        parse_(filename_in, &handler);
-        handler.getCounts(scount, ccount);
-        options_.setSizeOnly(size_only_before_);
-        consumer->setExpectedSize(scount, ccount);
-        consumer->setExperimentalSettings(experimental_settings);
-      }
+      Internal::MzMLHandler<MapType> handler(map, filename_in, getVersion(), *this);
+      bool always_append_data = options_.getAlwaysAppendData();
+      options_.setAlwaysAppendData(true);
+      handler.setOptions(options_);
+      handler.setMSDataConsumer(consumer);
 
-      // Second pass through the data, now read the spectra!
-      {
-        Internal::MzMLHandler<MapType> handler(map, filename_in, getVersion(), *this);
-        bool always_append_data = options_.getAlwaysAppendData();
-        options_.setAlwaysAppendData(true);
-        handler.setOptions(options_);
-        handler.setMSDataConsumer(consumer);
-
-        // TODO catch errors as above ?
-        parse_(filename_in, &handler);
-        options_.setAlwaysAppendData(always_append_data);
-      }
+      // TODO catch errors as above ?
+      parse_(filename_in, &handler);
+      options_.setAlwaysAppendData(always_append_data);
     }
 
     /**
