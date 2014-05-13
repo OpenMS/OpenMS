@@ -207,7 +207,6 @@ namespace OpenMS
         return ((*iterator == 'R' || *iterator == 'K') && 
                 ((iterator + 1) == protein.end() || *(iterator + 1) != 'P'));
       }
-      break;
     default:
       return false;
     }
@@ -245,21 +244,41 @@ namespace OpenMS
       return false;
     }
 
-    if (specificity_ == SPEC_NONE) return true; // we don't care about terminal ends
+    if (specificity_ == SPEC_NONE) 
+    {
+      return true; // we don't care about terminal ends
+    }
     else
     { // either SPEC_SEMI or SPEC_FULL
       bool spec_c = false, spec_n = false;
+
       // test each end
-      if (pep_pos == 0 || (pep_pos==1 && protein.getResidue((Size)0).getOneLetterCode()=="M") || isCleavageSite_(protein, protein.begin() + (pep_pos - 1))) spec_n = true;
-      if (pep_pos+pep_length == protein.size() || isCleavageSite_(protein, protein.begin() + (pep_pos + pep_length - 1))) spec_c = true;
+      if (pep_pos == 0 || 
+           (pep_pos==1 && protein.getResidue((Size)0).getOneLetterCode()=="M") || 
+           isCleavageSite_(protein, protein.begin() + (pep_pos - 1))) 
+      {
+        spec_n = true;
+      }
+
+      if (pep_pos+pep_length == protein.size() || 
+            isCleavageSite_(protein, protein.begin() + (pep_pos + pep_length - 1))) 
+      {
+        spec_c = true;
+      }
       
-      if (spec_n && spec_c) return true; // if both are fine, its definitely valid
-      else if ((specificity_ == SPEC_SEMI) && (spec_n || spec_c)) return true; // one only for SEMI
-      else return false;
+      if (spec_n && spec_c) 
+      {
+        return true; // if both are fine, its definitely valid
+      }
+      else if ((specificity_ == SPEC_SEMI) && (spec_n || spec_c)) 
+      {
+        return true; // one only for SEMI
+      }
+      else 
+      {
+        return false;
+      }
     }
-
-    return false;
-
   }
 
   Size EnzymaticDigestion::peptideCount(const AASequence& protein)

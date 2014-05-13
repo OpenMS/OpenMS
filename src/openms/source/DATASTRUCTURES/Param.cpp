@@ -1424,7 +1424,7 @@ namespace OpenMS
           //track changes (leave a node)
           trace_.push_back(TraceInfo(last->name, last->description, false));
 
-          //check of new subtree is accessable
+          //check of new subtree is accessible
           UInt next_index = (last - &(node->nodes[0])) + 1;
           if (next_index < node->nodes.size())
           {
@@ -1439,7 +1439,7 @@ namespace OpenMS
       }
     }
 
-    return *this;
+    return *this; // TODO unreachable code
   }
 
   bool Param::ParamIterator::operator==(const ParamIterator& rhs) const

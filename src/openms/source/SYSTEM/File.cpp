@@ -257,8 +257,7 @@ namespace OpenMS
     //if the file was not found, throw an exception
     throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, filename);
 
-    //this is never reached, but needs to be there to avoid compiler warnings
-    return "";
+    return ""; //this is never reached, but needs to be there to avoid compiler warnings
   }
 
   bool File::fileList(const String& dir, const String& file_pattern, StringList& output, bool full_path)
