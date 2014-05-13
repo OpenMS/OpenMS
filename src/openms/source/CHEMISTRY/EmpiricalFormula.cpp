@@ -505,7 +505,7 @@ namespace OpenMS
   SignedSize EmpiricalFormula::parseFormula_(Map<const Element *, SignedSize> & ef, const String & input_formula) const
   {
     SignedSize charge = 0;
-    String formula(input_formula), symbol, number;
+    String formula(input_formula);
 
     // we start with the charge part, read until the begin of the formula or a element symbol occurs
     String suffix;

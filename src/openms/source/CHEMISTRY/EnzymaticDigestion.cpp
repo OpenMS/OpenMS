@@ -190,12 +190,12 @@ namespace OpenMS
           if ((pos + i >= 0) && (pos + i < (SignedSize)protein.size()))
           {
             BindingSite bs(i, protein[pos + i].getOneLetterCode());
-            Map<BindingSite, CleavageModel>::const_iterator pos = 
+            Map<BindingSite, CleavageModel>::const_iterator pos_it = 
               model_data_.find(bs);
-            if (pos != model_data_.end()) // no data for non-std. amino acids
+            if (pos_it != model_data_.end()) // no data for non-std. amino acids
             {
-              score_cleave += pos->second.p_cleave;
-              score_missed += pos->second.p_miss;
+              score_cleave += pos_it->second.p_cleave;
+              score_missed += pos_it->second.p_miss;
             }
           }
         }

@@ -93,14 +93,14 @@ namespace OpenMS
 
       void
       setWhitelist(const char* const /* file */, const int line,
-                   const std::string& whitelist)
+                   const std::string& whitelist_)
       {
-        TEST::whitelist = ListUtils::create<String>(whitelist);
+        TEST::whitelist = ListUtils::create<String>(whitelist_);
 
         if ((TEST::verbose > 1) || (!TEST::this_test && (TEST::verbose > 0)))
         {
           TEST::initialNewline();
-          std__cout << " +  line " << line << ":  WHITELIST(\"" << whitelist
+          std__cout << " +  line " << line << ":  WHITELIST(\"" << whitelist_
                     << "\"):   whitelist is: " << TEST::whitelist << std::endl;
         }
         return;

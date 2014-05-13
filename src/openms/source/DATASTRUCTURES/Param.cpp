@@ -265,11 +265,11 @@ namespace OpenMS
     return true;
   }
 
-  Param::ParamNode::EntryIterator Param::ParamNode::findEntry(const String& name)
+  Param::ParamNode::EntryIterator Param::ParamNode::findEntry(const String& local_name)
   {
     for (EntryIterator it = entries.begin(); it != entries.end(); ++it)
     {
-      if (it->name == name)
+      if (it->name == local_name)
       {
         return it;
       }
@@ -277,11 +277,11 @@ namespace OpenMS
     return entries.end();
   }
 
-  Param::ParamNode::NodeIterator Param::ParamNode::findNode(const String& name)
+  Param::ParamNode::NodeIterator Param::ParamNode::findNode(const String& local_name)
   {
     for (NodeIterator it = nodes.begin(); it != nodes.end(); ++it)
     {
-      if (it->name == name)
+      if (it->name == local_name)
       {
         return it;
       }
@@ -289,27 +289,27 @@ namespace OpenMS
     return nodes.end();
   }
 
-  Param::ParamNode* Param::ParamNode::findParentOf(const String& name)
+  Param::ParamNode* Param::ParamNode::findParentOf(const String& local_name)
   {
     //cout << "findParentOf nodename: " << this->name << " - nodes: " << this->nodes.size() << " - find: "<< name << endl;
-    if (!name.has(':')) // we are in the right child
+    if (!local_name.has(':')) // we are in the right child
     {
       //check if a node or entry prefix match
       for (Size i = 0; i < nodes.size(); ++i)
       {
-        if (nodes[i].name.hasPrefix(name))
+        if (nodes[i].name.hasPrefix(local_name))
           return this;
       }
       for (Size i = 0; i < entries.size(); ++i)
       {
-        if (entries[i].name.hasPrefix(name))
+        if (entries[i].name.hasPrefix(local_name))
           return this;
       }
       return 0;
     }
     else //several subnodes to browse through
     {
-      String prefix = name.prefix(':');
+      String prefix = local_name.prefix(':');
       //cout << " - Prefix: '" << prefix << "'" << endl;
       NodeIterator it = findNode(prefix);
       if (it == nodes.end()) //subnode not found
@@ -317,19 +317,19 @@ namespace OpenMS
         return 0;
       }
       //recursively call findNode for the rest of the path
-      String new_name = name.substr(it->name.size() + 1);
+      String new_name = local_name.substr(it->name.size() + 1);
       //cout << " - Next name: '" << new_name << "'" << endl;
       return it->findParentOf(new_name);
     }
   }
 
-  Param::ParamEntry* Param::ParamNode::findEntryRecursive(const String& name)
+  Param::ParamEntry* Param::ParamNode::findEntryRecursive(const String& local_name)
   {
-    ParamNode* parent = findParentOf(name);
+    ParamNode* parent = findParentOf(local_name);
     if (parent == 0)
       return 0;
 
-    EntryIterator it = parent->findEntry(suffix(name));
+    EntryIterator it = parent->findEntry(suffix(local_name));
     if (it == parent->entries.end())
       return 0;
 
