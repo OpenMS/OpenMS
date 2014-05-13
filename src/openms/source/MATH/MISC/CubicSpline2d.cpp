@@ -102,11 +102,11 @@ namespace OpenMS
 
     if (order == 1)
     {
-      return b_[i] + 2 * c_[i] * xx + 3 * d_[i] * (xx * xx);
+      return b_[i] + 2 * c_[i] * xx + 3 * d_[i] * xx * xx;
     }
     else if (order == 2)
     {
-      return 2 * c_[i] + 6 * d_[i] * (xx);
+      return 2 * c_[i] + 6 * d_[i] * xx;
     }
     else
     {
