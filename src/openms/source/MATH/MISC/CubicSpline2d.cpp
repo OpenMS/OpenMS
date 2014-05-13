@@ -122,10 +122,9 @@ namespace OpenMS
 
     std::vector<double> mu(n, 0.0);
     std::vector<double> z(n + 1, 0.0);
-    double l = 0;
     for (unsigned i = 1; i < n; ++i)
     {
-      l = 2 * (x[i + 1] - x[i - 1]) - h[i - 1] * mu[i - 1];
+      double l = 2 * (x[i + 1] - x[i - 1]) - h[i - 1] * mu[i - 1];
       mu[i] = h[i] / l;
       z[i] = (3 * (y[i + 1] * h[i - 1] - y[i] * (x[i + 1] - x[i - 1]) + y[i - 1] * h[i]) / (h[i - 1] * h[i]) - h[i - 1] * z[i - 1]) / l;
     }
