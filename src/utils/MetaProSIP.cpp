@@ -447,7 +447,7 @@ public:
     {
       qparam << "--quiet";
     }
-    qparam << "--slave" << "--file=" + QString(tmp_path.toQString() + "\\" + script_filename.toQString());
+    qparam << "--slave" << "--file=" + QString(tmp_path.toQString() + "/" + script_filename.toQString());
     p.start("R", qparam);
     p.waitForFinished(-1);
     int status = p.exitCode();
@@ -459,11 +459,11 @@ public:
     }
     else
     {
-      QFile(QString(tmp_path.toQString() + "\\" + filename.toQString())).copy(output_dir.toQString() + "/heatmap" + file_suffix.toQString() + "." + file_extension.toQString());
+      QFile(QString(tmp_path.toQString() + "/" + filename.toQString())).copy(output_dir.toQString() + "/heatmap" + file_suffix.toQString() + "." + file_extension.toQString());
       if (debug_level < 1)
       {
-        QFile(QString(tmp_path.toQString() + "\\" + script_filename.toQString())).remove();
-        QFile(QString(tmp_path.toQString() + "\\" + filename.toQString())).remove();
+        QFile(QString(tmp_path.toQString() + "/" + script_filename.toQString())).remove();
+        QFile(QString(tmp_path.toQString() + "/" + filename.toQString())).remove();
       }
     }
   }
@@ -525,7 +525,7 @@ public:
       p.setProcessEnvironment(env);
 
       QStringList qparam;
-      qparam << "--vanilla" << "--quiet" << "--slave" << "--file=" + QString(tmp_path.toQString() + "\\" + script_filename.toQString());
+      qparam << "--vanilla" << "--quiet" << "--slave" << "--file=" + QString(tmp_path.toQString() + "/" + script_filename.toQString());
       p.start("R", qparam);
       p.waitForFinished(-1);
       int status = p.exitCode();
@@ -536,11 +536,11 @@ public:
       }
       else
       {
-        QFile(QString(tmp_path.toQString() + "\\" + filename.toQString())).copy(output_dir.toQString() + "/spectrum" + file_suffix.toQString() + "_rt_" + String(sip_peptides[i].feature_rt).toQString() + "." + file_extension.toQString());
+        QFile(QString(tmp_path.toQString() + "/" + filename.toQString())).copy(output_dir.toQString() + "/spectrum" + file_suffix.toQString() + "_rt_" + String(sip_peptides[i].feature_rt).toQString() + "." + file_extension.toQString());
         if (debug_level < 1)
         {
-          QFile(QString(tmp_path.toQString() + "\\" + script_filename.toQString())).remove();
-          QFile(QString(tmp_path.toQString() + "\\" + filename.toQString())).remove();
+          QFile(QString(tmp_path.toQString() + "/" + script_filename.toQString())).remove();
+          QFile(QString(tmp_path.toQString() + "/" + filename.toQString())).remove();
         }
       }
     }
@@ -603,7 +603,7 @@ public:
       p.setProcessEnvironment(env);
 
       QStringList qparam;
-      qparam << "--vanilla" << "--quiet" << "--slave" << "--file=" + QString(tmp_path.toQString() + "\\" + script_filename.toQString());
+      qparam << "--vanilla" << "--quiet" << "--slave" << "--file=" + QString(tmp_path.toQString() + "/" + script_filename.toQString());
       p.start("R", qparam);
       p.waitForFinished(-1);
       int status = p.exitCode();
@@ -614,11 +614,11 @@ public:
       }
       else
       {
-        QFile(QString(tmp_path.toQString() + "\\" + filename.toQString())).copy(output_dir.toQString() + "/merged_spectra" + file_suffix.toQString() + "_rt_" + String(sip_peptides[i].feature_rt).toQString() + "." + file_extension.toQString());
+        QFile(QString(tmp_path.toQString() + "/" + filename.toQString())).copy(output_dir.toQString() + "/merged_spectra" + file_suffix.toQString() + "_rt_" + String(sip_peptides[i].feature_rt).toQString() + "." + file_extension.toQString());
         if (debug_level < 1)
         {
-          QFile(QString(tmp_path.toQString() + "\\" + script_filename.toQString())).remove();
-          QFile(QString(tmp_path.toQString() + "\\" + filename.toQString())).remove();
+          QFile(QString(tmp_path.toQString() + "/" + script_filename.toQString())).remove();
+          QFile(QString(tmp_path.toQString() + "/" + filename.toQString())).remove();
         }
       }
     }
@@ -827,7 +827,7 @@ public:
       p.setProcessEnvironment(env);
 
       QStringList qparam;
-      qparam << "--vanilla" << "--quiet" << "--slave" << "--file=" + QString(tmp_path.toQString() + "\\" + script_filename.toQString());
+      qparam << "--vanilla" << "--quiet" << "--slave" << "--file=" + QString(tmp_path.toQString() + "/" + script_filename.toQString());
       p.start("R", qparam);
       p.waitForFinished(-1);
       int status = p.exitCode();
@@ -838,11 +838,11 @@ public:
       }
       else
       {
-        QFile(QString(tmp_path.toQString() + "\\" + score_filename.toQString())).copy(output_dir.toQString() + "/scores" + file_suffix.toQString() + "_rt_" + String(sip_peptides[i].feature_rt).toQString() + "." + file_extension.toQString());
+        QFile(QString(tmp_path.toQString() + "/" + score_filename.toQString())).copy(output_dir.toQString() + "/scores" + file_suffix.toQString() + "_rt_" + String(sip_peptides[i].feature_rt).toQString() + "." + file_extension.toQString());
         if (debug_level < 1)
         {
-          QFile(QString(tmp_path.toQString() + "\\" + script_filename.toQString())).remove();
-          QFile(QString(tmp_path.toQString() + "\\" + score_filename.toQString())).remove();
+          QFile(QString(tmp_path.toQString() + "/" + script_filename.toQString())).remove();
+          QFile(QString(tmp_path.toQString() + "/" + score_filename.toQString())).remove();
         }
       }
     }
@@ -2545,7 +2545,7 @@ protected:
   current_script.store(tmp_path + "/" + script_filename);
 
   QStringList qparam;
-  qparam << "--vanilla" << "--quiet" << "--slave" << "--file=" + QString(tmp_path.toQString() + "\\" + script_filename.toQString());
+  qparam << "--vanilla" << "--quiet" << "--slave" << "--file=" + QString(tmp_path.toQString() + "/" + script_filename.toQString());
   Int status = QProcess::execute("R", qparam);
   if (status != 0)
   {
@@ -2554,62 +2554,12 @@ protected:
   {
   if (debug_level < 1)
   {
-  QFile(QString(tmp_path.toQString() + "\\" + data_filename.toQString())).remove();
-  QFile(QString(tmp_path.toQString() + "\\" + script_filename.toQString())).remove();
+  QFile(QString(tmp_path.toQString() + "/" + data_filename.toQString())).remove();
+  QFile(QString(tmp_path.toQString() + "/" + script_filename.toQString())).remove();
   }
   }
   }
   */
-
-  void emdClusterData_(String tmp_path, String data_filename, String file_suffix, String qc_output_directory, Int debug_level)
-  {
-    String script_filename = String("cluster_data") + file_suffix + String(".R");
-    String result_filename = String("cluster_result") + file_suffix + String(".dat");
-
-    // add scripts
-    TextFile current_script;
-
-    current_script.push_back("library(fpc)");
-    current_script.push_back("d=read.table('" + tmp_path + "/" + data_filename + "', sep='\\t')");
-    current_script.push_back("m=as.matrix(d[,-(1:2)])");
-    current_script.push_back("m=t(m)");
-    current_script.push_back("clusters=rep(1,nrow(t(m)))");
-
-    current_script.push_back("if (nrow(t(m))>=20)");
-    current_script.push_back("{");
-    current_script.push_back("result<-dbscan(t(m), eps=9999, MinPts=3, method=\"dist\")");  // 9999 corresponds to an eps of 9.999% RIA
-    current_script.push_back("clusters=predict(result)");
-    current_script.push_back("}");
-    current_script.push_back("r=cbind(clusters, d[,1])");
-    current_script.push_back("r=r[!is.na(r[,1]),]");
-    current_script.push_back("write.table(r, '" + tmp_path + "/" + result_filename + "', col.names=FALSE, row.names=FALSE, sep='\t')");
-
-    current_script.store(tmp_path + "/" + script_filename);
-
-    QProcess p;
-    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
-    env.insert("R_LIBS=", tmp_path.toQString());
-    p.setProcessEnvironment(env);
-
-    QStringList qparam;
-    qparam << "--vanilla" << "--quiet" << "--slave" << "--file=" + QString(tmp_path.toQString() + "\\" + script_filename.toQString());
-    p.start("R", qparam);
-    p.waitForFinished(-1);
-    Int status = p.exitCode();
-
-    if (status != 0)
-    {
-      std::cerr << "Error: Process returned with non 0 status." << std::endl;
-    }
-    else
-    {
-      if (debug_level < 1)
-      {
-        QFile(QString(tmp_path.toQString() + "\\" + data_filename.toQString())).remove();
-        QFile(QString(tmp_path.toQString() + "\\" + script_filename.toQString())).remove();
-      }
-    }
-  }
 
   ExitCodes main_(int, const char**)
   {
