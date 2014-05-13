@@ -88,8 +88,7 @@ protected:
     String const& str_; ///< string
   };
 
-
-// gets the index of the next separator character
+  // gets the index of the next separator character
   SignedSize SuffixArrayTrypticCompressed::getNextSep_(const SignedSize p) const
   {
     for (Size i = (p + 1); i < s_.length(); ++i)
@@ -102,7 +101,7 @@ protected:
     return -1;
   }
 
-// getting lowest common prefix of two entrys of suffix array
+  // getting lowest common prefix of two entries of suffix array
   SignedSize SuffixArrayTrypticCompressed::getLCP_(const pair<SignedSize, SignedSize>& last_point, const pair<SignedSize, SignedSize>& current_point)
   {
     SignedSize lastBegin = last_point.first;
@@ -121,7 +120,7 @@ protected:
     return last_point.second;
   }
 
-// constructor
+  // constructor
   SuffixArrayTrypticCompressed::SuffixArrayTrypticCompressed(const String& st, const String& sa_file_name, const WeightWrapper::WEIGHTMODE weight_mode) :
     WeightWrapper(weight_mode),
     s_(st),
@@ -131,13 +130,13 @@ protected:
     use_tags_ = false;
     if (st[0] != '$')
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "String has to start with empyt string ($)", "");
+      throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "String has to start with empty string ($)", "");
     }
     if (st[st.length() - 1] != '$')
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "String has to end with separator ($)", "");
     }
-    //creating array with aminoacid masses
+    //creating array with amino acid masses
     ResidueDB* rdb = ResidueDB::getInstance();
 
     char aa[] = "ARNDCEQGHILKMFPSTWYV";
@@ -167,7 +166,9 @@ protected:
         if (next_pos < i)
           next_pos = getNextSep_(i);
         const char start_char = s_[i];
-        // here we have to pay attension that we are not running out of the string, so if we do we set the next character to a character that will allow a digestion before (e.i. for trypsin everything but P)
+        // here we have to pay attention that we are not running out of the
+        // string, so if we do we set the next character to a character that
+        // will allow a digestion before (i.e. for trypsin everything but P)
         const char next_char = (i < s_.length()) ? s_[i + 1] : 'T';
         if (start_char == '$')
         {
@@ -175,19 +176,25 @@ protected:
         }
         else
         {
-          // if we have been at a start postion in last step or if we reached a digesting site we add the index the the suffix array
+          // if we have been at a start position in last step or if we reached
+          // a digesting site we add the index the suffix array
           if (is_at_start || isDigestingEnd(start_char, next_char))
           {
-            SignedSize start_pos = (is_at_start) ? i : (i + 1);
-            pair<SignedSize, SignedSize> p(start_pos, next_pos - start_pos);
-            if (p.second != 0)
+
+            // this we do always
             {
-              indices_.push_back(p);
+              SignedSize start_pos = (is_at_start) ? i : (i + 1);
+              pair<SignedSize, SignedSize> p(start_pos, next_pos - start_pos);
+              if (p.second != 0)
+              {
+                indices_.push_back(p);
+              }
             }
-            // if we are at start and now at a digesting site we must assure not to forget the index of the distested part
+
+            // if we are at start and now at a digesting site we must assure
+            // not to forget the index of the digested part
             if (is_at_start && isDigestingEnd(start_char, next_char))
             {
-
               SignedSize start_pos = (i + 1);
               pair<SignedSize, SignedSize> p(start_pos, next_pos - start_pos);
               if (p.second != 0)
