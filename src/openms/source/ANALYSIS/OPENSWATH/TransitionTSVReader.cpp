@@ -297,6 +297,9 @@ namespace OpenMS
       }
       else if (header_dict.find("SpectraSTRetentionTime") != header_dict.end())
       {
+        // If SpectraST was run in RT normalization mode, the retention time is annotated as following: "3887.50(57.30)"
+        // 3887.50 refers to the non-normalized RT of the individual or consensus run, and 57.30 refers to the normalized
+        // iRT.
         size_t start_position = tmp_line[header_dict["SpectraSTRetentionTime"]].find("(");
         if (start_position != std::string::npos)
         {
