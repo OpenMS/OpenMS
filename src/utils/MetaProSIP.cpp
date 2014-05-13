@@ -222,12 +222,9 @@ public:
     vector<RateScorePair> high_points;
     vector<double> x, y;
 
-    // set proper boundaries
-    if (rate2score.find(-0.1) == rate2score.end())
-    {
-      x.push_back(-0.1);
-      y.push_back(0);
-    }
+    // set proper boundaries (uniform spacing)
+    x.push_back(-100.0/(double)rate2score.size());
+    y.push_back(0);
 
     // copy data
     for (MapRateToScoreType::const_iterator it = rate2score.begin(); it != rate2score.end(); ++it)
@@ -252,14 +249,14 @@ public:
     {
       double dxdy = spline.derivatives(xi,1);
       //cout << "dxdy " << dxdy << endl;
-      double y = spline.eval(xi);
+      double yi = spline.eval(xi);
       //cout << "y " << y << endl;
 
-      if (last_dxdy > 0.0 && dxdy <= 0 && y > threshold)
+      if (last_dxdy > 0.0 && dxdy <= 0 && yi > threshold)
       {
         RateScorePair rsp;
         rsp.rate = xi;
-        rsp.score = y;
+        rsp.score = yi;
         high_points.push_back(rsp);
       }
       last_dxdy = dxdy;
@@ -440,9 +437,9 @@ public:
     current_script.store(tmp_path + "/" + script_filename);
 
     QProcess p;
-    QStringList env = QProcess::systemEnvironment();
-    env << QString("R_LIBS=") + tmp_path.toQString();
-    p.setEnvironment(env);
+    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+    env.insert("R_LIBS=", tmp_path.toQString());
+    p.setProcessEnvironment(env);
 
     QStringList qparam;
     qparam << "--vanilla";
@@ -523,9 +520,9 @@ public:
       current_script.store(tmp_path + "/" + script_filename);
 
       QProcess p;
-      QStringList env = QProcess::systemEnvironment();
-      env << QString("R_LIBS=") + tmp_path.toQString();
-      p.setEnvironment(env);
+      QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+      env.insert("R_LIBS=", tmp_path.toQString());
+      p.setProcessEnvironment(env);
 
       QStringList qparam;
       qparam << "--vanilla" << "--quiet" << "--slave" << "--file=" + QString(tmp_path.toQString() + "\\" + script_filename.toQString());
@@ -601,9 +598,9 @@ public:
       current_script.store(tmp_path + "/" + script_filename);
 
       QProcess p;
-      QStringList env = QProcess::systemEnvironment();
-      env << QString("R_LIBS=") + tmp_path.toQString();
-      p.setEnvironment(env);
+      QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+      env.insert("R_LIBS=", tmp_path.toQString());
+      p.setProcessEnvironment(env);
 
       QStringList qparam;
       qparam << "--vanilla" << "--quiet" << "--slave" << "--file=" + QString(tmp_path.toQString() + "\\" + script_filename.toQString());
@@ -825,9 +822,9 @@ public:
       current_script.store(tmp_path + "/" + script_filename);
 
       QProcess p;
-      QStringList env = QProcess::systemEnvironment();
-      env << QString("R_LIBS=") + tmp_path.toQString();
-      p.setEnvironment(env);
+      QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+      env.insert("R_LIBS=", tmp_path.toQString());
+      p.setProcessEnvironment(env);
 
       QStringList qparam;
       qparam << "--vanilla" << "--quiet" << "--slave" << "--file=" + QString(tmp_path.toQString() + "\\" + script_filename.toQString());
@@ -1598,9 +1595,9 @@ protected:
     LOG_INFO << "Checking R...";
     {
       QProcess p;
-      QStringList env = QProcess::systemEnvironment();
-      env << QString("R_LIBS=") + tmp_path.toQString();
-      p.setEnvironment(env);
+      QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+      env.insert("R_LIBS=", tmp_path.toQString());
+      p.setProcessEnvironment(env);
 
       QStringList checkRinPathQParam;
       checkRinPathQParam << "--vanilla" << "--quiet" << "--slave" << "--file=" + script_filename.toQString();
@@ -1640,9 +1637,9 @@ protected:
     current_script.store(script_filename);
 
     QProcess p;
-    QStringList env = QProcess::systemEnvironment();
-    env << QString("R_LIBS=") + tmp_path.toQString();
-    p.setEnvironment(env);
+    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+    env.insert("R_LIBS=", tmp_path.toQString());
+    p.setProcessEnvironment(env);
 
     QStringList qparam;
     qparam << "--vanilla" << "--quiet" << "--slave" << "--file=" + script_filename.toQString();
@@ -2249,8 +2246,6 @@ protected:
 
         max_corr_TIC += int_sum;
 
-        PeakSpectrum theoretical_spectrum;
-
         // find closest idx (could be more efficient using binary search)
         Size closest_idx = 0;
         for (Size i = 0; i != patterns.size(); ++i)
@@ -2262,7 +2257,23 @@ protected:
         }
         sip_incorporation.theoretical = isotopicIntensitiesToSpectrum(sip_peptide.mz_theo, sip_peptide.mass_diff, sip_peptide.charge, patterns[closest_idx].second);
 
-        sip_incorporations.push_back(sip_incorporation);
+        if (int_sum > 1e-4)
+        {
+          sip_incorporations.push_back(sip_incorporation);
+        } else
+        {
+          cout << "warning: prevented adding of 0 abundance decomposition at rate " << rate << endl;
+          cout << "decomposition: " << endl;
+          for ( MapRateToScoreType::const_iterator it = map_rate_to_decomposition_weight.begin(); it != map_rate_to_decomposition_weight.end(); ++it)
+          {
+            cout << it->first << " " << it->second << endl;
+          }
+          cout << "correlation: " << endl;
+          for ( MapRateToScoreType::const_iterator it = map_rate_to_correlation_score.begin(); it != map_rate_to_correlation_score.end(); ++it)
+          {
+            cout << it->first << " " << it->second << endl;
+          }
+        }
       }
     }
 
@@ -2576,9 +2587,9 @@ protected:
     current_script.store(tmp_path + "/" + script_filename);
 
     QProcess p;
-    QStringList env = QProcess::systemEnvironment();
-    env << QString("R_LIBS=") + tmp_path.toQString();
-    p.setEnvironment(env);
+    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+    env.insert("R_LIBS=", tmp_path.toQString());
+    p.setProcessEnvironment(env);
 
     QStringList qparam;
     qparam << "--vanilla" << "--quiet" << "--slave" << "--file=" + QString(tmp_path.toQString() + "\\" + script_filename.toQString());
@@ -2696,7 +2707,7 @@ protected:
         {
           Feature f;
           f.setMetaValue("feature_type", "id");
-          f.setRT(it->getMetaValue("RT"));
+          f.setRT(it->getRT());
           // take sequence of first hit to calculate ground truth mz
           double charge = hits[0].getCharge();
           if (charge == 0)
@@ -2742,8 +2753,8 @@ protected:
           {
             // Feature with id found so we don't need to generate averagine id. Find MS2 in experiment and blacklist it.
             Peak2D p;
-            const double f_id_rt = id_it->getMetaValue("RT");
-            const double f_id_mz = id_it->getMetaValue("MZ");
+            p.setRT(id_it->getRT());
+            p.setMZ(id_it->getMZ());
             blacklisted_precursors.push_back(p);
           }
         }
@@ -2757,8 +2768,8 @@ protected:
         if (!hits.empty())
         {
           Peak2D p;
-          p.setRT(it->getMetaValue("RT"));
-          p.setMZ(it->getMetaValue("MZ"));
+          p.setRT(it->getRT());
+          p.setMZ(it->getMZ());
           blacklisted_precursors.push_back(p);
         }
       }
