@@ -186,6 +186,7 @@ namespace OpenMS
       getTSVHeader_(line, delimiter, header, header_dict);
     }
 
+    bool spectrast_legacy = 0; // we will check below if SpectraST was run in legacy (<5.0) mode or if the RT normalization was forgotten.
     int cnt = 0;
     while (std::getline(data, line))
     {
@@ -278,6 +279,7 @@ namespace OpenMS
         else
         {
           // SpectraST was run without RT Normalization mode
+          spectrast_legacy = 1;
           mytransition.rt_calibrated = String(tmp_line[header_dict["SpectraSTRetentionTime"]]).toDouble();
         }
       }
@@ -415,11 +417,6 @@ namespace OpenMS
 
           mytransition.fragment_mzdelta = String(best_fragment_annotation_with_deviation[1]).toDouble();
         }
-        else
-        {
-          tmp_line.clear();
-          continue;
-        }
       }
 
       cleanupTransitions_(mytransition);
@@ -450,6 +447,12 @@ namespace OpenMS
 #endif
 
       tmp_line.clear();
+    }
+
+    if (spectrast_legacy && retentionTimeInterpretation_ == "iRT")
+    {
+      std::cout << "Warning: SpectraST was not run in RT normalization mode but the converted list was interpreted to have iRT units. Check whether you need to adapt the parameter -algorithm:retentionTimeInterpretation. You can ignore this warning if you used a legacy SpectraST 4.0 file." << std::endl;
+
     }
   }
 
@@ -630,130 +633,136 @@ namespace OpenMS
       p.setChargeState(tr_it->fragment_charge);
       rm_trans.setProduct(p);
     }
+
     // add interpretation
+    OpenMS::ReactionMonitoringTransition::Product p = rm_trans.getProduct();
+    CVTermList interpretation;
+
     if (tr_it->fragment_nr != -1)
     {
-      OpenMS::ReactionMonitoringTransition::Product p = rm_trans.getProduct();
-      CVTermList interpretation;
       CVTerm rank;
       rank.setCVIdentifierRef("MS");
       rank.setAccession("MS:1000926");
       rank.setName("product interpretation rank");
       rank.setValue(1); // we only store the best interpretation
+      interpretation.addCVTerm(rank);
+    }
+
+    if (tr_it->fragment_nr != -1)
+    {
       CVTerm frag_nr;
       frag_nr.setCVIdentifierRef("MS");
       frag_nr.setAccession("MS:1000903");
       frag_nr.setName("product ion series ordinal");
       frag_nr.setValue(tr_it->fragment_nr);
-
-      if (tr_it->fragment_mzdelta != -1)
-      {
-        CVTerm frag_mzdelta;
-        frag_mzdelta.setCVIdentifierRef("MS");
-        frag_mzdelta.setAccession("MS:1000904");
-        frag_mzdelta.setName("product ion m/z delta");
-        frag_mzdelta.setValue(tr_it->fragment_mzdelta);
-        interpretation.addCVTerm(frag_mzdelta);
-      }
-
-      if (tr_it->fragment_modification < 0)
-      {
-        CVTerm frag_loss;
-        frag_loss.setCVIdentifierRef("MS");
-        frag_loss.setAccession("MS:1001524");
-        frag_loss.setName("fragment neutral loss");
-
-        frag_loss.setValue(tr_it->fragment_modification);
-        interpretation.addCVTerm(frag_loss);
-      }
-
-      // figure out which fragment it is
-      if (tr_it->fragment_type == "v")
-      {
-        CVTerm ion;
-        ion.setCVIdentifierRef("MS");
-        ion.setAccession("MS:1001237");
-        ion.setName("frag: v ion");
-        interpretation.addCVTerm(ion);
-      }
-      else if (tr_it->fragment_type == "w")
-      {
-        CVTerm ion;
-        ion.setCVIdentifierRef("MS");
-        ion.setAccession("MS:1001238");
-        ion.setName("frag: w ion");
-        interpretation.addCVTerm(ion);
-      }
-      else if (tr_it->fragment_type == "x")
-      {
-        CVTerm ion;
-        ion.setCVIdentifierRef("MS");
-        ion.setAccession("MS:1001228");
-        ion.setName("frag: x ion");
-        interpretation.addCVTerm(ion);
-      }
-      else if (tr_it->fragment_type == "y")
-      {
-        CVTerm ion;
-        ion.setCVIdentifierRef("MS");
-        ion.setAccession("MS:1001220");
-        ion.setName("frag: y ion");
-        interpretation.addCVTerm(ion);
-      }
-      else if (tr_it->fragment_type == "z")
-      {
-        CVTerm ion;
-        ion.setCVIdentifierRef("MS");
-        ion.setAccession("MS:1001230");
-        ion.setName("frag: z ion");
-        interpretation.addCVTerm(ion);
-      }
-      else if (tr_it->fragment_type == "a")
-      {
-        CVTerm ion;
-        ion.setCVIdentifierRef("MS");
-        ion.setAccession("MS:1001229");
-        ion.setName("frag: a ion");
-        interpretation.addCVTerm(ion);
-      }
-      else if (tr_it->fragment_type == "b")
-      {
-        CVTerm ion;
-        ion.setCVIdentifierRef("MS");
-        ion.setAccession("MS:1001224");
-        ion.setName("frag: b ion");
-        interpretation.addCVTerm(ion);
-      }
-      else if (tr_it->fragment_type == "c")
-      {
-        CVTerm ion;
-        ion.setCVIdentifierRef("MS");
-        ion.setAccession("MS:1001231");
-        ion.setName("frag: c ion");
-        interpretation.addCVTerm(ion);
-      }
-      else if (tr_it->fragment_type == "d")
-      {
-        CVTerm ion;
-        ion.setCVIdentifierRef("MS");
-        ion.setAccession("MS:1001236");
-        ion.setName("frag: d ion");
-        interpretation.addCVTerm(ion);
-      }
-      else
-      {
-        CVTerm ion;
-        ion.setCVIdentifierRef("MS");
-        ion.setAccession("MS:1001240");
-        ion.setName("non-identified ion");
-        interpretation.addCVTerm(ion);
-      }
-
-      interpretation.addCVTerm(rank);
       interpretation.addCVTerm(frag_nr);
-      p.addInterpretation(interpretation);
-      rm_trans.setProduct(p);
     }
+
+    if (tr_it->fragment_mzdelta != -1)
+    {
+      CVTerm frag_mzdelta;
+      frag_mzdelta.setCVIdentifierRef("MS");
+      frag_mzdelta.setAccession("MS:1000904");
+      frag_mzdelta.setName("product ion m/z delta");
+      frag_mzdelta.setValue(tr_it->fragment_mzdelta);
+      interpretation.addCVTerm(frag_mzdelta);
+    }
+
+    if (tr_it->fragment_modification < 0)
+    {
+      CVTerm frag_loss;
+      frag_loss.setCVIdentifierRef("MS");
+      frag_loss.setAccession("MS:1001524");
+      frag_loss.setName("fragment neutral loss");
+      frag_loss.setValue(tr_it->fragment_modification);
+      interpretation.addCVTerm(frag_loss);
+    }
+
+    // figure out which fragment it is
+    if (tr_it->fragment_type == "v")
+    {
+      CVTerm ion;
+      ion.setCVIdentifierRef("MS");
+      ion.setAccession("MS:1001237");
+      ion.setName("frag: v ion");
+      interpretation.addCVTerm(ion);
+    }
+    else if (tr_it->fragment_type == "w")
+    {
+      CVTerm ion;
+      ion.setCVIdentifierRef("MS");
+      ion.setAccession("MS:1001238");
+      ion.setName("frag: w ion");
+      interpretation.addCVTerm(ion);
+    }
+    else if (tr_it->fragment_type == "x")
+    {
+      CVTerm ion;
+      ion.setCVIdentifierRef("MS");
+      ion.setAccession("MS:1001228");
+      ion.setName("frag: x ion");
+      interpretation.addCVTerm(ion);
+    }
+    else if (tr_it->fragment_type == "y")
+    {
+      CVTerm ion;
+      ion.setCVIdentifierRef("MS");
+      ion.setAccession("MS:1001220");
+      ion.setName("frag: y ion");
+      interpretation.addCVTerm(ion);
+    }
+    else if (tr_it->fragment_type == "z")
+    {
+      CVTerm ion;
+      ion.setCVIdentifierRef("MS");
+      ion.setAccession("MS:1001230");
+      ion.setName("frag: z ion");
+      interpretation.addCVTerm(ion);
+    }
+    else if (tr_it->fragment_type == "a")
+    {
+      CVTerm ion;
+      ion.setCVIdentifierRef("MS");
+      ion.setAccession("MS:1001229");
+      ion.setName("frag: a ion");
+      interpretation.addCVTerm(ion);
+    }
+    else if (tr_it->fragment_type == "b")
+    {
+      CVTerm ion;
+      ion.setCVIdentifierRef("MS");
+      ion.setAccession("MS:1001224");
+      ion.setName("frag: b ion");
+      interpretation.addCVTerm(ion);
+    }
+    else if (tr_it->fragment_type == "c")
+    {
+      CVTerm ion;
+      ion.setCVIdentifierRef("MS");
+      ion.setAccession("MS:1001231");
+      ion.setName("frag: c ion");
+      interpretation.addCVTerm(ion);
+    }
+    else if (tr_it->fragment_type == "d")
+    {
+      CVTerm ion;
+      ion.setCVIdentifierRef("MS");
+      ion.setAccession("MS:1001236");
+      ion.setName("frag: d ion");
+      interpretation.addCVTerm(ion);
+    }
+    else
+    {
+      CVTerm ion;
+      ion.setCVIdentifierRef("MS");
+      ion.setAccession("MS:1001240");
+      ion.setName("non-identified ion");
+      interpretation.addCVTerm(ion);
+    }
+
+    p.addInterpretation(interpretation);
+    rm_trans.setProduct(p);
+
 
     // add collision energy
     if (tr_it->CE > 0.0)
