@@ -89,6 +89,12 @@ private:
     typedef std::vector<OpenMS::TargetedExperiment::Peptide> PeptideVectorType;
     typedef std::vector<OpenMS::ReactionMonitoringTransition> TransitionVectorType;
 
+    /**
+      @brief Internal structure to represent a transition
+
+      Internal structure to represent a single line from a transition input
+      file (one transition).
+    */
     struct TSVTransition
     {
       double precursor;
@@ -117,23 +123,56 @@ private:
 
     static const std::vector<std::string> header_names_;
 
-    /// read TSV input with columns in defined order
-    void readTSVInput_(const char* filename, std::vector<TSVTransition>& transition_list);
+    /** @brief Determine separator in a CSV file and check for correct headers
+     *
+     * @param line The header to be parsed
+     * @param delimiter The delimiter which will be determined from the input
+     * @param header The fields of the header
+     * @param header_dict The map which maps the fields in the header to their position
+     *
+    */
+    void getTSVHeader_(const std::string& line, char& delimiter, std::vector<std::string> header, std::map<std::string, int>& header_dict);
 
-    /// determine separator in a CSV file and check for correct headers
-    void getTSVHeader_(std::string& line, char& delimiter, std::vector<std::string> header, std::map<std::string, int>& header_dict);
-
-    /// read tab or comma separated input with columns defined by their column headers only
+    /** @brief Read tab or comma separated input with columns defined by their column headers only
+     *
+     * @param filename The input file
+     * @param filetype The type of file ("mrm" or "tsv")
+     * @param transition_list The output list of transitions
+     *
+    */
     void readUnstructuredTSVInput_(const char* filename, FileTypes::Type filetype, std::vector<TSVTransition>& transition_list);
 
-    /// do post-processing on read input data (removing quotes etc)
+    /** @brief Cleanup of the read fields (removing quotes etc.)
+    */
     void cleanupTransitions_(TSVTransition& mytransition);
 
-    /// store a list of TSVTransition objects properly in a TargetedExperiment
+    /** @brief Convert a list of TSVTransition to a TargetedExperiment
+     *
+     * Converts the list (read from csv/mrm) file into a object model using the
+     * TargetedExperiment with proper hierarchical structure from Transition to
+     * Peptide to Protein.
+     *
+    */
     void TSVToTargetedExperiment_(std::vector<TSVTransition>& transition_list, OpenMS::TargetedExperiment& exp);
 
+    /** @brief Convert a list of TSVTransition to a LightTargetedExperiment
+     *
+     * Converts the list (read from csv/mrm) file into a object model using the
+     * LightTargetedExperiment with proper hierarchical structure from
+     * Transition to Peptide to Protein.
+     *
+    */
     void TSVToTargetedExperiment_(std::vector<TSVTransition>& transition_list, OpenSwath::LightTargetedExperiment& exp);
 
+    /** @name  Conversion functions from TSVTransition objects to TraML datastructures
+     *
+     * These functions convert the relevant data from a TSVTransition to the
+     * datastructures used by the TraML handler, namely
+     * ReactionMonitoringTransition, TargetedExperiment::Protein and
+     * TargetedExperiment::Peptide.
+     *
+   */
+    //@{
     void createTransition_(std::vector<TSVTransition>::iterator& tr_it, OpenMS::ReactionMonitoringTransition& rm_trans);
 
     void createProtein_(std::vector<TSVTransition>::iterator& tr_it, OpenMS::TargetedExperiment::Protein& protein);
@@ -142,6 +181,8 @@ private:
 
     void addModification_(std::vector<TargetedExperiment::Peptide::Modification>& mods,
                           int location, ResidueModification& rmod, const String& name);
+    //@}
+
 
     /// write a TargetedExperiment to a file
     void writeTSVOutput_(const char* filename, OpenMS::TargetedExperiment& targeted_exp);
@@ -161,13 +202,30 @@ public:
     ~TransitionTSVReader();
     //@}
 
-    /// Write out a targeted experiment (TraML structure) into a tsv file
+    /** @brief Write out a targeted experiment (TraML structure) into a tsv file
+     *
+     * @param filename The output file
+     * @param targeted_exp The targeted experiment
+     *
+    */
     void convertTargetedExperimentToTSV(const char* filename, OpenMS::TargetedExperiment& targeted_exp);
 
-    /// Read in a tsv file and construct a targeted experiment (TraML structure)
+    /** @brief Read in a tsv/mrm file and construct a targeted experiment (TraML structure)
+     *
+     * @param filename The input file
+     * @param filetype The type of file ("mrm" or "tsv")
+     * @param targeted_exp The output targeted experiment
+     *
+    */
     void convertTSVToTargetedExperiment(const char* filename, FileTypes::Type filetype, OpenMS::TargetedExperiment& targeted_exp);
 
-    /// Read in a tsv file and construct a targeted experiment (Light transition structure)
+    /** @brief Read in a tsv file and construct a targeted experiment (Light transition structure)
+     *
+     * @param filename The input file
+     * @param filetype The type of file ("mrm" or "tsv")
+     * @param targeted_exp The output targeted experiment
+     *
+    */
     void convertTSVToTargetedExperiment(const char* filename, FileTypes::Type filetype, OpenSwath::LightTargetedExperiment& targeted_exp);
 
     /// Validate a TargetedExperiment (check that all ids are unique)
