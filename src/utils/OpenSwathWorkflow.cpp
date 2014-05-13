@@ -580,8 +580,7 @@ namespace OpenMS
       // remove outliers
       std::vector<std::pair<double, double> > pairs_corrected;
       bool chauvenet = false;
-      bool jackknife = true;
-      pairs_corrected = MRMRTNormalizer::rm_outliers_iterative(pairs, min_rsq, min_coverage, chauvenet, jackknife);
+      pairs_corrected = MRMRTNormalizer::removeOutliersIterative(pairs, min_rsq, min_coverage, chauvenet, "iter_jackknife");
 
       // store transformation, using a linear model as default
       TransformationDescription trafo_out;

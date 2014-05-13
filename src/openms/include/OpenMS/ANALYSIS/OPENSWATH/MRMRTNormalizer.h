@@ -190,7 +190,7 @@ public:
       @param use_chauvenet Whether to only remove outliers that fulfill
       Chauvenet's criterion for outliers (otherwise it will remove any outlier
       candidate regardless of the criterion)
-      @param method Outlier detection method ("jackknife" or "largest_residual")
+      @param method Outlier detection method ("iter_jackknife" or "iter_residual")
 
       @return A vector of pairs is returned if the R^2 limit was reached without
        reaching the coverage limit. If the limits are reached, an exception is
