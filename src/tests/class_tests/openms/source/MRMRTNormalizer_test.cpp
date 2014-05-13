@@ -114,7 +114,7 @@ START_SECTION((static std::vector<std::pair<double, double> > removeOutliersIter
     input1.push_back(std::make_pair(x1[i], y1[i]));
   }
 
-  std::vector<std::pair<double, double> > output1 = MRMRTNormalizer::removeOutliersIterative(input1, 0.9, 0.5, true, "largest_residual");
+  std::vector<std::pair<double, double> > output1 = MRMRTNormalizer::removeOutliersIterative(input1, 0.9, 0.5, true, "iter_residual");
   TEST_EQUAL( output1.size() , input1.size() );
   }
 
@@ -130,7 +130,7 @@ START_SECTION((static std::vector<std::pair<double, double> > removeOutliersIter
     input2.push_back(std::make_pair(x2[i], y2[i]));
   }
   
-  std::vector<std::pair<double, double> > output2 = MRMRTNormalizer::removeOutliersIterative(input2, 0.9, 0.5, true, "largest_residual");
+  std::vector<std::pair<double, double> > output2 = MRMRTNormalizer::removeOutliersIterative(input2, 0.9, 0.5, true, "iter_residual");
   TEST_EQUAL( output2.size() , input2.size() - 1 );
 
   TEST_EQUAL( output2[0].first,  input2[0].first );
@@ -152,7 +152,7 @@ START_SECTION((static std::vector<std::pair<double, double> > removeOutliersIter
     input3.push_back(std::make_pair(x3[i], y3[i]));
   }
 
-  std::vector<std::pair<double, double> > output3 = MRMRTNormalizer::removeOutliersIterative(input3, 0.9, 0.2, true, "largest_residual");
+  std::vector<std::pair<double, double> > output3 = MRMRTNormalizer::removeOutliersIterative(input3, 0.9, 0.2, true, "iter_residual");
   TEST_EQUAL( output3.size() , input3.size() - 2 );
 
   TEST_EQUAL( output3[18].first,  input3[18].first );
@@ -172,7 +172,7 @@ START_SECTION((static std::vector<std::pair<double, double> > removeOutliersIter
     input2.push_back(std::make_pair(x2[i], y2[i]));
   }
   
-  std::vector<std::pair<double, double> > output2 = MRMRTNormalizer::removeOutliersIterative(input2, 0.9, 0.5, false, "largest_residual");
+  std::vector<std::pair<double, double> > output2 = MRMRTNormalizer::removeOutliersIterative(input2, 0.9, 0.5, false, "iter_residual");
   TEST_EQUAL( output2.size() , input2.size() - 1 );
 
   TEST_EQUAL( output2[0].first,  input2[0].first );
@@ -194,7 +194,7 @@ START_SECTION((static std::vector<std::pair<double, double> > removeOutliersIter
     input3.push_back(std::make_pair(x3[i], y3[i]));
   }
 
-  std::vector<std::pair<double, double> > output3 = MRMRTNormalizer::removeOutliersIterative(input3, 0.9, 0.2, false, "largest_residual");
+  std::vector<std::pair<double, double> > output3 = MRMRTNormalizer::removeOutliersIterative(input3, 0.9, 0.2, false, "iter_residual");
   TEST_EQUAL( output3.size() , input3.size() - 2 );
 
   TEST_EQUAL( output3[18].first,  input3[18].first );
@@ -203,7 +203,7 @@ START_SECTION((static std::vector<std::pair<double, double> > removeOutliersIter
 
   // Tests with jackknife
 
-  // TODO : find a testcase where jackknife and largest_residual are different!
+  // TODO : find a testcase where jackknife and iter_residual are different!
   {
   static const double arrx2[] = { 1.1,2.0,3.3,3.9,4.9,6.2 };
   std::vector<double> x2 (arrx2, arrx2 + sizeof(arrx2) / sizeof(arrx2[0]) );
@@ -216,7 +216,7 @@ START_SECTION((static std::vector<std::pair<double, double> > removeOutliersIter
     input2.push_back(std::make_pair(x2[i], y2[i]));
   }
   
-  std::vector<std::pair<double, double> > output2 = MRMRTNormalizer::removeOutliersIterative(input2, 0.9, 0.5, false, "jackknife");
+  std::vector<std::pair<double, double> > output2 = MRMRTNormalizer::removeOutliersIterative(input2, 0.9, 0.5, false, "iter_jackknife");
   TEST_EQUAL( output2.size() , input2.size() - 1 );
 
   TEST_EQUAL( output2[0].first,  input2[0].first );
@@ -238,7 +238,7 @@ START_SECTION((static std::vector<std::pair<double, double> > removeOutliersIter
     input3.push_back(std::make_pair(x3[i], y3[i]));
   }
 
-  std::vector<std::pair<double, double> > output3 = MRMRTNormalizer::removeOutliersIterative(input3, 0.9, 0.2, false, "jackknife");
+  std::vector<std::pair<double, double> > output3 = MRMRTNormalizer::removeOutliersIterative(input3, 0.9, 0.2, false, "iter_jackknife");
   TEST_EQUAL( output3.size() , input3.size() - 2 );
 
   TEST_EQUAL( output3[18].first,  input3[18].first );
