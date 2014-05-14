@@ -1,7 +1,8 @@
 OpenMS
 ====== 
 
-[![Build Status](https://travis-ci.org/OpenMS/OpenMS.svg?branch=develop)](https://travis-ci.org/OpenMS/OpenMS) 
+[![Build Status](https://travis-ci.org/OpenMS/OpenMS.svg?branch=develop)](https://travis-ci.org/OpenMS/OpenMS) [![Project Stats](https://www.ohloh.net/p/open-ms/widgets/project_thin_badge.gif)](https://www.ohloh.net/p/open-ms)
+
 
 
 OpenMS is an open-source software C++ library for LC-MS data management and
