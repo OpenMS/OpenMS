@@ -267,6 +267,7 @@ MassTraceDetection_test
   Scaler_test
   SignalToNoiseEstimatorMeanIterative_test
   SignalToNoiseEstimatorMedian_test
+  SignalToNoiseEstimatorMedianRapid_test
   SignalToNoiseEstimator_test
   SqrtMower_test
   TICFilter_test
@@ -472,6 +473,7 @@ set(transformations_executables_list
   OptimizePick_test
   PeakPickerCWT_test
   PeakPickerHiRes_test
+  PeakPickerMaxima_test
 PeakWidthEstimator_test
   PeakShape_test
   ProductModel_test

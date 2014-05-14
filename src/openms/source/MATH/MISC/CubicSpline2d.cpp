@@ -97,9 +97,9 @@ namespace OpenMS
       throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Argument out of range of spline interpolation.");
     }
 
-    if (order != 1 && order != 2)
+    if (order != 1 && order != 2 && order != 3)
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Only first and second derivative defined on cubic spline");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Only first, second and third derivative defined on cubic spline");
     }
 
     int i = std::lower_bound(x_.begin(), x_.end(), x) - x_.begin() - 1;
@@ -107,11 +107,15 @@ namespace OpenMS
 
     if (order == 1)
     {
-      return (d_[i] * xx + c_[i]) * xx + b_[i];
+      return b_[i] + 2 * c_[i] * xx + 3 * d_[i] * xx * xx;
+    }
+    else if (order == 2)
+    {
+      return 2 * c_[i] + 6 * d_[i] * xx;
     }
     else
     {
-      return d_[i] * xx + c_[i];
+      return 6 * d_[i];
     }
   }
 
