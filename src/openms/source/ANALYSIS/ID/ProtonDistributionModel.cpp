@@ -1847,7 +1847,6 @@ namespace OpenMS
         //cerr << position << " " << left_gb << " " << right_gb << endl;
       }
     }
-    return;
   }
 
 } // namespace OpenMS

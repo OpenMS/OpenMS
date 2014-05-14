@@ -170,7 +170,6 @@ public:
       else
       {
         throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Trying to extract MzTab Double value from non-double valued cell. Did you check the cell state before querying the value?"));
-        return 0;
       }
     }
 
@@ -316,7 +315,6 @@ public:
       else
       {
         throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Trying to extract MzTab Integer value from non-integer valued cell. Did you check the cell state before querying the value?"));
-        return 0;
       }
     }
 

@@ -86,7 +86,6 @@ namespace OpenMS
         {
         case Z_MEM_ERROR:
           throw Exception::OutOfMemory(__FILE__, __LINE__, __PRETTY_FUNCTION__, compressed_length);
-          break;
 
         case Z_BUF_ERROR:
           compressed_length *= 2;

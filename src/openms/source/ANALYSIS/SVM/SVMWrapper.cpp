@@ -263,34 +263,22 @@ namespace OpenMS
       {
         return (Int)kernel_type_;
       }
-      break;
 
     case (SVM_TYPE):
       return param_->svm_type;
 
-      break;
-
     case (DEGREE):
       return (Int) param_->degree;
-
-      break;
 
     case (BORDER_LENGTH):
       return (Int)border_length_;
 
-      break;
-
     case (PROBABILITY):
       return param_->probability;
 
-      break;
-
     default:
       return -1;
-
-      break;
     }
-    return -1;
   }
 
   void SVMWrapper::setParameter(SVM_parameter_type type, double value)
@@ -337,32 +325,20 @@ namespace OpenMS
     case (C):
       return param_->C;
 
-      break;
-
     case (P):
       return param_->p;
-
-      break;
 
     case (NU):
       return param_->nu;
 
-      break;
-
     case (GAMMA):
       return param_->gamma;
-
-      break;
 
     case (SIGMA):
       return sigma_;
 
-      break;
-
     default:
       return -1;
-
-      break;
     }
   }
 
