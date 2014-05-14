@@ -437,9 +437,9 @@ public:
     current_script.store(tmp_path + "/" + script_filename);
 
     QProcess p;
-    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
-    env.insert("R_LIBS=", tmp_path.toQString());
-    p.setProcessEnvironment(env);
+    QStringList env = QProcess::systemEnvironment();
+    env << QString("R_LIBS=") + tmp_path.toQString();
+    p.setEnvironment(env);
 
     QStringList qparam;
     qparam << "--vanilla";
@@ -520,9 +520,9 @@ public:
       current_script.store(tmp_path + "/" + script_filename);
 
       QProcess p;
-      QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
-      env.insert("R_LIBS=", tmp_path.toQString());
-      p.setProcessEnvironment(env);
+      QStringList env = QProcess::systemEnvironment();
+      env << QString("R_LIBS=") + tmp_path.toQString();
+      p.setEnvironment(env);
 
       QStringList qparam;
       qparam << "--vanilla" << "--quiet" << "--slave" << "--file=" + QString(tmp_path.toQString() + "/" + script_filename.toQString());
@@ -598,9 +598,9 @@ public:
       current_script.store(tmp_path + "/" + script_filename);
 
       QProcess p;
-      QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
-      env.insert("R_LIBS=", tmp_path.toQString());
-      p.setProcessEnvironment(env);
+      QStringList env = QProcess::systemEnvironment();
+      env << QString("R_LIBS=") + tmp_path.toQString();
+      p.setEnvironment(env);
 
       QStringList qparam;
       qparam << "--vanilla" << "--quiet" << "--slave" << "--file=" + QString(tmp_path.toQString() + "/" + script_filename.toQString());
@@ -822,9 +822,9 @@ public:
       current_script.store(tmp_path + "/" + script_filename);
 
       QProcess p;
-      QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
-      env.insert("R_LIBS=", tmp_path.toQString());
-      p.setProcessEnvironment(env);
+      QStringList env = QProcess::systemEnvironment();
+      env << QString("R_LIBS=") + tmp_path.toQString();
+      p.setEnvironment(env);
 
       QStringList qparam;
       qparam << "--vanilla" << "--quiet" << "--slave" << "--file=" + QString(tmp_path.toQString() + "/" + script_filename.toQString());
@@ -1597,9 +1597,9 @@ protected:
     LOG_INFO << "Checking R...";
     {
       QProcess p;
-      QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
-      env.insert("R_LIBS=", tmp_path.toQString());
-      p.setProcessEnvironment(env);
+      QStringList env = QProcess::systemEnvironment();
+      env << QString("R_LIBS=") + tmp_path.toQString();
+      p.setEnvironment(env);
 
       QStringList checkRinPathQParam;
       checkRinPathQParam << "--vanilla" << "--quiet" << "--slave" << "--file=" + script_filename.toQString();
@@ -1633,15 +1633,13 @@ protected:
     current_script.push_back("    eval(parse(text = paste(\"library(\", x, \")\", sep = \"\")))");
     current_script.push_back("  }");
     current_script.push_back("}");
-    current_script.push_back("LoadOrInstallPackage(fpc)");
     current_script.push_back("LoadOrInstallPackage(gplots)");
-    current_script.push_back("LoadOrInstallPackage(clValid)");
     current_script.store(script_filename);
 
     QProcess p;
-    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
-    env.insert("R_LIBS=", tmp_path.toQString());
-    p.setProcessEnvironment(env);
+    QStringList env = QProcess::systemEnvironment();
+    env << QString("R_LIBS=") + tmp_path.toQString();
+    p.setEnvironment(env);
 
     QStringList qparam;
     qparam << "--vanilla" << "--quiet" << "--slave" << "--file=" + script_filename.toQString();
@@ -1651,12 +1649,12 @@ protected:
 
     if (status != 0)
     {
-      LOG_ERROR << "Problem finding all R dependencies. Check if R and following libraries are installed:" << std::endl;
+      LOG_ERROR << "\nProblem finding all R dependencies. Check if R and following libraries are installed:" << std::endl;
       for (Size i = 0; i != current_script.size(); ++i)
       {
         LOG_ERROR << current_script[i] << std::endl;
-        return false;
       }
+      return false;
     }
     LOG_INFO << " success" << std::endl;
     return true;
