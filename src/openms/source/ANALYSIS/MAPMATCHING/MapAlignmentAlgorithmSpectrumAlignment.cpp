@@ -260,11 +260,11 @@ namespace OpenMS
                   }
                   else
                   {
-                    temp.push_back((float)j + xbegin - 1);
-                    temp.push_back((float)i + ybegin - 1);
-                    temp.push_back(s);
-                    temp.push_back(0);
-                    debugscorematrix_.push_back(temp);
+                    ltemp.push_back((float)j + xbegin - 1);
+                    ltemp.push_back((float)i + ybegin - 1);
+                    ltemp.push_back(s);
+                    ltemp.push_back(0);
+                    debugscorematrix_.push_back(ltemp);
                   }
                 }
                 float mv = -999.0;
