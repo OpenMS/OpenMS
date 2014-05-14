@@ -56,6 +56,7 @@ namespace OpenMS
     }
     else
     {
+      // TODO clang complains this is unreachable
       head_[0] = '\0';
       head_[1] = '\0';
     }

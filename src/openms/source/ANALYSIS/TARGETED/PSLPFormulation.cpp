@@ -1419,7 +1419,11 @@ namespace OpenMS
                       dt = map_iter->second[p];
                     }
                     else
+                    {
+                      // TODO use_detectability is set to true, so this can never be executed
                       dt = 1.;
+                    }
+
                     // weight is detectability * rt_weight
                     double weight = dt * rt_weight;
                     double obj = model_->getObjective(f_v_idx);
@@ -1724,6 +1728,7 @@ namespace OpenMS
                               }
                               else
                               {
+                                // TODO use_detectability is set to true, so this can never be executed
                                 dt = 1.;
                               }
 
