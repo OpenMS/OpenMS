@@ -62,7 +62,8 @@ public:
      * @param x x-coordinates of input data points (knots)
      * @param y y-coordinates of input data points
      * The coordinates must match by index. Both vectors must be
-     * the same size and sorted in x.
+     * the same size and sorted in x. Sortedness in x is required
+     * for @see SplinePackage.
      */
     CubicSpline2d(const std::vector<double>& x, const std::vector<double>& y);
 

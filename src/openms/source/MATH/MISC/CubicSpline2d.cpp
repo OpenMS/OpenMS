@@ -49,6 +49,11 @@ namespace OpenMS
       throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "x and y vectors either not of the same size or empty.");
     }
 
+    if (std::adjacent_find(x.begin(), x.end(), std::greater<double>()) != x.end())
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "x vector is not sorted.");
+    }
+
     init_(x, y);
   }
 
