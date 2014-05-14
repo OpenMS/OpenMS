@@ -169,11 +169,6 @@ double SplineSpectrum::getMzMax() const
 	return mzMax_;
 }
 
-SplinePackage SplineSpectrum::getPackage(int i) const
-{
-	return packages_[i];
-}
-
 SplineSpectrum::Navigator::Navigator(const std::vector<SplinePackage> * packages, double mzMin, double mzMax) : packages_(packages), lastPackage_(0), mzMin_(mzMin), mzMax_(mzMax)
 {
 }

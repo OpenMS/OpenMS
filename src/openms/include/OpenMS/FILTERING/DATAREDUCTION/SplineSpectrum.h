@@ -87,11 +87,6 @@ double getMzMin() const;
  */
 double getMzMax() const;
 
-/**
- * @brief returns spline package of index i
- */
-SplinePackage getPackage(int i) const;
-
 private:
 /**
  * @brief m/z limits of the spectrum

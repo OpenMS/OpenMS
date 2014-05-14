@@ -73,10 +73,6 @@ START_SECTION(getMzMax())
   TEST_EQUAL(ss1.getMzMax(), 414.6);
 END_SECTION
 
-START_SECTION(getPackage(int i))
-  TEST_EQUAL(ss1.getPackage(0).getMzMin(), 413.8);
-END_SECTION
-
 START_SECTION(getNavigator().eval(double mz))
   TEST_REAL_SIMILAR(ss1.getNavigator().eval(413.9), 100.2);
 END_SECTION
