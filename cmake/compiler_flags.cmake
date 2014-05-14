@@ -45,6 +45,7 @@ if (CMAKE_COMPILER_IS_GNUCXX)
   add_definitions(-Wall -Wextra 
     -fvisibility=hidden
     -Wno-non-virtual-dtor 
+    -Wno-unknown-pragmas
     -Wno-long-long 
     -Wno-unknown-pragmas
     -Wno-unused-function
@@ -115,6 +116,7 @@ elseif ("${CMAKE_C_COMPILER_ID}" MATCHES "Clang")
                   -Wno-weak-vtables
                   -Wfloat-equal
                   -Wno-documentation-unknown-command
+                  -Wno-undef
                   -Wno-documentation)
 else()
 	set(CMAKE_COMPILER_IS_INTELCXX true CACHE INTERNAL "Is Intel C++ compiler (icpc)")
@@ -137,3 +139,4 @@ if (CXX_WARN_CONVERSION)
 	endif()
 endif()
 message(STATUS "Compiler checks for conversion: ${CXX_WARN_CONVERSION}")
+
