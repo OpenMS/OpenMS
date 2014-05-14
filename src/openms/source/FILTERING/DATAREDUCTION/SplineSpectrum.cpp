@@ -84,7 +84,7 @@ SplineSpectrum::~SplineSpectrum()
 {
 }
 
-void SplineSpectrum::init_(std::vector<double> mz, std::vector<double> intensity, double scaling)
+void SplineSpectrum::init_(std::vector<double>& mz, std::vector<double>& intensity, double scaling)
 {
 
 	if (!(mz.size() == intensity.size() && mz.size() > 2))
@@ -145,8 +145,7 @@ void SplineSpectrum::init_(std::vector<double> mz, std::vector<double> intensity
 			if (intensityPackage.size() > 2)
 			{
 				// Three or more data points in package. At least one of them will be non-zero since unnecessary zeros removed above.
-				package = new SplinePackage(mzPackage, intensityPackage, scaling);
-				packages_.push_back(*package);
+				packages_.push_back(SplinePackage(mzPackage, intensityPackage, scaling));
 			}
 			mzPackage.clear();
 			intensityPackage.clear();
@@ -157,8 +156,7 @@ void SplineSpectrum::init_(std::vector<double> mz, std::vector<double> intensity
 	// add the last package
 	if (intensityPackage.size() > 2)
 	{
-		package = new SplinePackage(mzPackage, intensityPackage, scaling);
-		packages_.push_back(*package);
+		packages_.push_back(SplinePackage(mzPackage, intensityPackage, scaling));
 	}
 }
 

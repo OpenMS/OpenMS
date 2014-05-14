@@ -107,7 +107,7 @@ std::vector<SplinePackage> packages_;
 /**
  * @brief section common for both constructors
  */
-void init_(std::vector<double> mz, std::vector<double> intensity, double scaling);
+void init_(std::vector<double>& mz, std::vector<double>& intensity, double scaling);
 
 /**
  * @brief iterator class for access of spline packages
