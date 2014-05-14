@@ -3781,7 +3781,10 @@ protected:
       //activation
       //--------------------------------------------------------------------------------------------
       os << "\t\t\t\t\t\t<activation>\n";
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wfloat-equal"
       if (precursor.getActivationEnergy() != 0)
+#pragma clang diagnostic pop
       {
         os << "\t\t\t\t\t\t\t<cvParam cvRef=\"MS\" accession=\"MS:1000509\" name=\"activation energy\" value=\"" << precursor.getActivationEnergy() << "\" unitAccession=\"UO:0000266\" unitName=\"electronvolt\" unitCvRef=\"UO\" />\n";
       }

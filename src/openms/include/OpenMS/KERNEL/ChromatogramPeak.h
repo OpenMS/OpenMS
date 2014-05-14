@@ -177,7 +177,10 @@ public:
     /// Equality operator
     inline bool operator==(const ChromatogramPeak & rhs) const
     {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wfloat-equal"
       return intensity_ == rhs.intensity_ && position_ == rhs.position_;
+#pragma clang diagnostic pop
     }
 
     /// Equality operator

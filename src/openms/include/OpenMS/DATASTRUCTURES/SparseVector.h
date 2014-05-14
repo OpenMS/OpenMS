@@ -121,7 +121,10 @@ public:
     SparseVector(size_type size, Value value, Value se = 0) :
       values_(), size_(size), sparse_element_(se)
     {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wfloat-equal"
       if (value != sparse_element_)          //change, if sparse element is another
+#pragma clang diagnostic pop
       {
         map_iterator i = values_.begin();
         for (size_type s = 0; s < size; ++s)
