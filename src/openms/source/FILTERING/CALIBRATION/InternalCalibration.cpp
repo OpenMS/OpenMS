@@ -194,7 +194,7 @@ namespace OpenMS
     for (Size f = 0; f < feature_map.size(); ++f)
     {
       double f_mz = feature_map[f].getMZ();
-      f_mz = trafo_.apply(mz);
+      f_mz = trafo_.apply(f_mz);
       calibrated_feature_map[f].setMZ(f_mz);
 
       // apply transformation to convex hulls and subordinates
