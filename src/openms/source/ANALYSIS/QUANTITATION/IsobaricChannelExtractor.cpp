@@ -162,20 +162,23 @@ namespace OpenMS
                                                                  Peak1D::CoordinateType theoretical_mz,
                                                                  const Peak1D::CoordinateType isotope_offset) const
   {
+    LOG_INFO << "Scanning window: " << precisionWrapper(lower_mz_bound) << ":" << precisionWrapper(upper_mz_bound) << std::endl;
     double intensity_contribution = 0.0;
 
     // move theoretical_mz to first potential isotopic peak
     theoretical_mz += isotope_offset;
 
+    // find peak for the given theoretical-m/z
+    Size potential_peak = precursor->findNearest(theoretical_mz);
+    
     // check if we are still in the isolation window
-    while (theoretical_mz > lower_mz_bound && theoretical_mz < upper_mz_bound)
+    while ((*precursor)[potential_peak].getMZ() >= lower_mz_bound && (*precursor)[potential_peak].getMZ() < upper_mz_bound)
     {
-      Size potential_peak = precursor->findNearest(theoretical_mz);
-
       // is isotopic ?
       if (fabs(theoretical_mz - (*precursor)[potential_peak].getMZ()) < max_precursor_isotope_deviation_)
       {
         intensity_contribution += (*precursor)[potential_peak].getIntensity();
+        LOG_INFO << "Peak " << precisionWrapper((*precursor)[potential_peak].getMZ()) << " it: " << precisionWrapper((*precursor)[potential_peak].getIntensity()) << std::endl;
       }
       else
       {
@@ -185,6 +188,8 @@ namespace OpenMS
 
       // update mz with the defined offset
       theoretical_mz += isotope_offset;
+      // find next peak
+      potential_peak = precursor->findNearest(theoretical_mz);
     }
 
     return intensity_contribution;
@@ -226,6 +231,14 @@ namespace OpenMS
     // search right of precursor for isotopic peaks
     precursor_intensity += sumPotentialIsotopePeaks_(precursor, isolation_lower_mz->getMZ(), isolation_upper_mz->getMZ(), precursor_peak.getMZ(), charge_dist);
 
+    
+    double purity = precursor_intensity / total_intensity;
+    
+    if(purity < 0.0 || purity > 1.0)
+    {
+      LOG_ERROR << "Purity computation failed: " << purity << ", " << precursor->getNativeID() << std::endl;
+    }
+    
     return precursor_intensity / total_intensity;
   }
 
