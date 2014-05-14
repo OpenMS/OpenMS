@@ -273,7 +273,8 @@ namespace OpenMS
   {
     checkIteratorsNotNULL(begin, end);
     double sum = 0.0;
-    if(mean == std::numeric_limits<double>::max())
+    if (mean == std::numeric_limits<double>::max())
+    {
       mean = Math::mean(begin, end);
     }
     for (IteratorType iter=begin; iter!=end; ++iter)
