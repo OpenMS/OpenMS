@@ -52,8 +52,8 @@ SplinePackage::SplinePackage(std::vector<double> mz, std::vector<double> intensi
 		throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,"m/z and intensity vectors either not of the same size or too short.");
 	}
 
-	mzMin_ = *min_element(mz.begin(), mz.end());
-	mzMax_ = *max_element(mz.begin(), mz.end());
+	mzMin_ = mz.front();
+	mzMax_ = mz.back();
 	mzStepWidth_ = scaling*(mzMax_ - mzMin_)/(mz.size() - 1);            // step width somewhat smaller than the average raw data spacing
 }
 
