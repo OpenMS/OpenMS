@@ -249,14 +249,14 @@ namespace OpenMS
                 s   =   scoreCalculation_(i, j, xbegin, ybegin, pattern, aligned, buffermatrix, column_row_orientation);
                 if (debug_)
                 {
-                  std::vector<float> temp;
+                  std::vector<float> ltemp;
                   if (!column_row_orientation)
                   {
-                    temp.push_back((float)i + xbegin - 1);
-                    temp.push_back((float)j + ybegin - 1);
-                    temp.push_back(s);
-                    temp.push_back(0);
-                    debugscorematrix_.push_back(temp);
+                    ltemp.push_back((float)i + xbegin - 1);
+                    ltemp.push_back((float)j + ybegin - 1);
+                    ltemp.push_back(s);
+                    ltemp.push_back(0);
+                    debugscorematrix_.push_back(ltemp);
                   }
                   else
                   {
