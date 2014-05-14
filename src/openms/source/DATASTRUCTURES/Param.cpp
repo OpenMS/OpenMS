@@ -344,21 +344,21 @@ namespace OpenMS
     ParamNode* insert_node = this;
     while (prefix2.has(':'))
     {
-      String name = prefix2.prefix(':');
+      String local_name = prefix2.prefix(':');
       //check if the node already exists
-      NodeIterator it = insert_node->findNode(name);
+      NodeIterator it = insert_node->findNode(local_name);
       if (it != insert_node->nodes.end()) //exists
       {
         insert_node = &(*it);
       }
       else //create it
       {
-        insert_node->nodes.push_back(ParamNode(name, ""));
+        insert_node->nodes.push_back(ParamNode(local_name, ""));
         insert_node = &(insert_node->nodes.back());
         //cerr << " - Created new node: " << insert_node->name << endl;
       }
       //remove prefix
-      prefix2 = prefix2.substr(name.size() + 1);
+      prefix2 = prefix2.substr(local_name.size() + 1);
     }
 
     //check if the node already exists
@@ -395,22 +395,22 @@ namespace OpenMS
     ParamNode* insert_node = this;
     while (prefix2.has(':'))
     {
-      String name = prefix2.prefix(':');
+      String local_name = prefix2.prefix(':');
       //cerr << " - looking for node: " << name << endl;
       //look up if the node already exists
-      NodeIterator it = insert_node->findNode(name);
+      NodeIterator it = insert_node->findNode(local_name);
       if (it != insert_node->nodes.end()) //exists
       {
         insert_node = &(*it);
       }
       else //create it
       {
-        insert_node->nodes.push_back(ParamNode(name, ""));
+        insert_node->nodes.push_back(ParamNode(local_name, ""));
         insert_node = &(insert_node->nodes.back());
         //cerr << " - Created new node: " << insert_node->name << endl;
       }
       //remove prefix
-      prefix2 = prefix2.substr(name.size() + 1);
+      prefix2 = prefix2.substr(local_name.size() + 1);
       //cerr << " - new prefix: " << prefix2 << endl;
     }
 
@@ -1173,17 +1173,19 @@ namespace OpenMS
         target_name = it.getName();
 
       }
-      else // old param non-existant in new param
+      else // old param non-existent in new param
       {
         // search by suffix in new param. Only match complete names, e.g. myname will match newsection:myname, but not newsection:othermyname
-        Param::ParamEntry entry = old_version.getEntry(it.getName());
-        // since the old param with full path does not exist within new param, we will never find the new entry by using exists() as above, thus its safe to
-        // modify it here
-        ParamIterator it_match = this->findFirst(entry.name);
+        Param::ParamEntry l1_entry = old_version.getEntry(it.getName());
+        // since the old param with full path does not exist within new param,
+        // we will never find the new entry by using exists() as above, thus
+        // its safe to modify it here
+
+        ParamIterator it_match = this->findFirst(l1_entry.name);
         if (it_match != this->end())
         {
           // make sure the same leaf name does not exist at any other position
-          if (this->findNext(entry.name, it_match) == this->end())
+          if (this->findNext(l1_entry.name, it_match) == this->end())
           {
             stream << "Found '" << it.getName() << "' as '" << it_match.getName() << "' in new param." << std::endl;
             new_entry = this->getEntry(it_match.getName());
@@ -1196,13 +1198,13 @@ namespace OpenMS
           if (add_unknown)
           {
             stream << "Unknown (or deprecated) Parameter '" << it.getName() << "' given in old parameter file! Adding to current set ..." << std::endl;
-            Param::ParamEntry entry = old_version.getEntry(it.getName());
+            Param::ParamEntry local_entry = old_version.getEntry(it.getName());
             String prefix = "";
             if (it.getName().has(':'))
             {
               prefix = it.getName().substr(0, 1 + it.getName().find_last_of(':'));
             }
-            this->root_.insert(entry, prefix); //->setValue(it.getName(), entry.value, entry.description, entry.tags);
+            this->root_.insert(local_entry, prefix); //->setValue(it.getName(), local_entry.value, local_entry.description, local_entry.tags);
           }
           else
           {

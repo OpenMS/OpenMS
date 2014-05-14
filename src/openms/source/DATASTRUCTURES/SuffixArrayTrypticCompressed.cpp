@@ -565,8 +565,12 @@ protected:
                   ++first_occ_copy;
                 }
               }
-              // if lcp value is bigger than we have walked into the string we add the next entry (indicated by skip vector)
-              // isDigestingEnd assures the no wrong hits are added (when we are at the end of a entry and it was no digesting site we must not add the next sequences)
+
+              // if lcp value is bigger than we have walked into the string we
+              // add the next entry (indicated by skip vector)
+              // isDigestingEnd assures the no wrong hits are added (when we
+              // are at the end of a entry and it was no digesting site we must
+              // not add the next sequences)
               if ((j + 1) <= lcp_[i] && (isDigestingEnd(c, cn) || have_to_go_in))
               {
                 for (SignedSize z = 1; z <= skip_[i]; ++z)
@@ -577,11 +581,11 @@ protected:
                   {
                     ++nres;
                     pair<pair<SignedSize, SignedSize>, double> pnew(pair<SignedSize, SignedSize>(indices_[i + z].first, j + 1), found_masses[o]);
-                    Size first_occ_copy = first_occ;
-                    while (first_occ_copy < spec.size() && spec[first_occ_copy] <= mass_with_mods + tol_)
+                    Size l_first_occ_copy = first_occ;
+                    while (l_first_occ_copy < spec.size() && spec[l_first_occ_copy] <= mass_with_mods + tol_)
                     {
-                      candidates[first_occ_copy].push_back(pnew);
-                      ++first_occ_copy;
+                      candidates[l_first_occ_copy].push_back(pnew);
+                      ++l_first_occ_copy;
                     }
                   }
                 }
@@ -590,10 +594,13 @@ protected:
           }
         }
 
-        // if we are reaching a lcp postion we add this entry to history
+        // if we are reaching a lcp position we add this entry to history
         if (j == (lcp_[i] - 1) && lcp_[i] > 0)
         {
-          history.push(pair<pair<SignedSize, map<double, SignedSize> >, pair<SignedSize, double> >(pair<SignedSize, map<double, SignedSize> >(i + skip_[i], map<double, SignedSize>(modification_map)), pair<SignedSize, double>(j, m)));
+          history.push(
+              pair<pair<SignedSize, map<double, SignedSize> >, pair<SignedSize, double> >(
+                pair<SignedSize, map<double, SignedSize> >(i + skip_[i], map<double, SignedSize>(modification_map)),
+                pair<SignedSize, double>(j, m)));
         }
         // if mass is to big we can skip the sub tree
         if (m > mmax + tol_)
