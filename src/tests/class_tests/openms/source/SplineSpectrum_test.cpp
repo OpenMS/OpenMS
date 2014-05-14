@@ -39,46 +39,69 @@
 
 using namespace OpenMS;
 
+double Gauss1(double x)
+{
+    return exp(- pow(x-416.8, 2)/(2*0.15*0.15));
+}
+
+double Gauss2(double x)
+{
+    return exp(- pow(x-418.7, 2)/(2*0.15*0.15));
+}
+
 START_TEST(SplineSpectrum, "$Id$")
 
 std::vector<double> mz;
-mz.push_back(413.8);
-mz.push_back(413.9);
-mz.push_back(414.0);
-mz.push_back(414.3);
-mz.push_back(414.4);
-mz.push_back(414.6);
 std::vector<double> intensity;
-intensity.push_back(0.0);
-intensity.push_back(100.2);
-intensity.push_back(0.0);
-intensity.push_back(0.0);
-intensity.push_back(130.2);
-intensity.push_back(0.0);
+for (int i=0; i < 11; ++i)
+{
+    mz.push_back(416.3 + 0.1*i);
+    intensity.push_back(Gauss1(416.3+0.1*i));
+}
+for (int i=0; i < 11; ++i)
+{
+    mz.push_back(418.2 + 0.1*i);
+    intensity.push_back(Gauss1(418.2+0.1*i));
+}
 
-SplineSpectrum ss1(mz, intensity);
-
+SplineSpectrum* ptr = 0;
 SplineSpectrum* nullPointer = 0;
 
 START_SECTION(SplineSpectrum())
-  SplineSpectrum* ss2 = new SplineSpectrum(mz, intensity);
-  TEST_NOT_EQUAL(ss2, nullPointer)
+{
+	ptr = new SplineSpectrum(mz,intensity);
+	TEST_NOT_EQUAL(ptr, nullPointer)
+}
 END_SECTION
 
+SplineSpectrum spectrum(mz, intensity);
+
 START_SECTION(getMzMin())
-  TEST_EQUAL(ss1.getMzMin(), 413.8);
+  TEST_EQUAL(spectrum.getMzMin(), 416.3);
 END_SECTION
 
 START_SECTION(getMzMax())
-  TEST_EQUAL(ss1.getMzMax(), 414.6);
+  TEST_EQUAL(spectrum.getMzMax(), 419.2);
 END_SECTION
 
 START_SECTION(getNavigator().eval(double mz))
-  TEST_REAL_SIMILAR(ss1.getNavigator().eval(413.9), 100.2);
+  // outside range of Gaussians
+  TEST_EQUAL(spectrum.getNavigator().eval(400.0), 0);
+  TEST_EQUAL(spectrum.getNavigator().eval(417.8), 0);
+  TEST_EQUAL(spectrum.getNavigator().eval(500.0), 0);
+  // near the edge
+  TEST_REAL_SIMILAR(spectrum.getNavigator().eval(416.33), 0.007848195698809);  // expected 0.00738068453767004 differs by 6%
+  // near the maximum
+  TEST_REAL_SIMILAR(spectrum.getNavigator().eval(416.81), 0.997572728799559);  // expected 0.99778024508561 differs by 0.02%
 END_SECTION
 
 START_SECTION(getNavigator().getNextMz(double mz))
-  TEST_REAL_SIMILAR(ss1.getNavigator().getNextMz(413.9), 413.97);
+  // advancing within package
+  TEST_EQUAL(spectrum.getNavigator().getNextMz(417.0), 417.07);
+  // advancing to next package
+  TEST_EQUAL(spectrum.getNavigator().getNextMz(417.29), 418.2);
+  // advancing beyond range
+  TEST_REAL_SIMILAR(spectrum.getNavigator().getNextMz(500.0), 419.2);
 END_SECTION
 
 END_TEST
