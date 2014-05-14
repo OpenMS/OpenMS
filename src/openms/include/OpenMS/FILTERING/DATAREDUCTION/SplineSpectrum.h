@@ -69,8 +69,8 @@ SplineSpectrum(const std::vector<double>& mz, const std::vector<double>& intensi
  * @brief constructor taking an MSSpectrum
  * (and an optional scaling factor for the m/z step width)
  */
-SplineSpectrum(MSSpectrum<Peak1D> rawSpectrum);
-SplineSpectrum(MSSpectrum<Peak1D> rawSpectrum, double scaling);
+SplineSpectrum(MSSpectrum<Peak1D>& rawSpectrum);
+SplineSpectrum(MSSpectrum<Peak1D>& rawSpectrum, double scaling);
 
 /**
  * @brief destructor

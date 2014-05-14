@@ -56,7 +56,7 @@ SplineSpectrum::SplineSpectrum(const std::vector<double>& mz, const std::vector<
 	SplineSpectrum::init_(mz, intensity, scaling);
 }
 
-SplineSpectrum::SplineSpectrum(MSSpectrum<Peak1D> rawSpectrum)
+SplineSpectrum::SplineSpectrum(MSSpectrum<Peak1D>& rawSpectrum)
 {
 	std::vector<double> mz;
 	std::vector<double> intensity;
@@ -68,7 +68,7 @@ SplineSpectrum::SplineSpectrum(MSSpectrum<Peak1D> rawSpectrum)
 	SplineSpectrum::init_(mz, intensity, 0.7);
 }
 
-SplineSpectrum::SplineSpectrum(MSSpectrum<Peak1D> rawSpectrum, double scaling)
+SplineSpectrum::SplineSpectrum(MSSpectrum<Peak1D>& rawSpectrum, double scaling)
 {
 	std::vector<double> mz;
 	std::vector<double> intensity;
