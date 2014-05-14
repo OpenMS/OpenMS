@@ -282,7 +282,7 @@ size_t encodeLinear(
 	for (i=2; i<dataSize; i++) {
 		ints[0] = ints[1];
 		ints[1] = ints[2];
-		if (THROW_ON_OVERFLOW && 
+		if (MS_NUMPRESS_THROW_ON_OVERFLOW && 
 				data[i] * fixedPoint + 0.5 > LLONG_MAX	) {
 			throw "[MSNumpress::encodeLinear] Next number overflows LLONG_MAX.";
 		}
@@ -290,7 +290,7 @@ size_t encodeLinear(
 		ints[2] = static_cast<long long>(data[i] * fixedPoint + 0.5);
 		extrapol = ints[1] + (ints[1] - ints[0]);
 
-		if (THROW_ON_OVERFLOW && 
+		if (MS_NUMPRESS_THROW_ON_OVERFLOW && 
 				(		ints[2] - extrapol > INT_MAX 
 					|| 	ints[2] - extrapol < INT_MIN	)) {
 			throw "[MSNumpress::encodeLinear] Cannot encode a number that exceeds the bounds of [-INT_MAX, INT_MAX].";
@@ -558,7 +558,7 @@ size_t encodePic(
 
 	for (i=0; i<dataSize; i++) {
 		
-		if (THROW_ON_OVERFLOW && 
+		if (MS_NUMPRESS_THROW_ON_OVERFLOW && 
 				(data[i] + 0.5 > INT_MAX || data[i] < -0.5)		){
 			throw "[MSNumpress::encodePic] Cannot use Pic to encode a number larger than INT_MAX or smaller than 0.";
 		}
@@ -691,7 +691,7 @@ size_t encodeSlof(
 	for (i=0; i<dataSize; i++) {
 		temp = log(data[i]+1) * fixedPoint + 0.5;
 
-		if (THROW_ON_OVERFLOW && 
+		if (MS_NUMPRESS_THROW_ON_OVERFLOW && 
 				temp > USHRT_MAX		) {
 			throw "[MSNumpress::encodeSlof] Cannot encode a number that overflows USHRT_MAX.";
 		}

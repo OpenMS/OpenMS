@@ -59,8 +59,8 @@
 
 // defines whether to throw an exception when a number cannot be encoded safely
 // with the given parameters
-#ifndef THROW_ON_OVERFLOW
-#define THROW_ON_OVERFLOW true
+#ifndef MS_NUMPRESS_THROW_ON_OVERFLOW
+#define MS_NUMPRESS_THROW_ON_OVERFLOW true
 #endif
 
 namespace ms {
