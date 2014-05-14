@@ -1372,7 +1372,7 @@ public:
     double S_err = 0;
     double predicted_sum = 0;
     PeakSpectrum reconstructed;
-    PeakSpectrum alphas;
+
     for (Size row = 0; row != isotopic_intensities.size(); ++row)
     {
       double predicted = 0;
@@ -1530,13 +1530,15 @@ protected:
 
     registerDoubleOption_("mz_tolerance_ppm", "<tol>", 10.0, "Tolerance in ppm", false);
 
-    registerDoubleOption_("intensity_threshold", "<tol>", 1000.0, "Intensity threshold to consider a peak.", false);
+    registerDoubleOption_("intensity_threshold", "<tol>", 1000.0, "Intensity threshold to collect peaks in the MS1 spectrum.", false);
 
-    registerDoubleOption_("correlation_threshold", "<tol>", 0.5, "Correlation threshold for reporting a pattern", false);
+    registerDoubleOption_("correlation_threshold", "<tol>", 0.6, "Correlation threshold for reporting a RIA", false);
+
+    registerDoubleOption_("decomposition_threshold", "<tol>", 0.7, "Minimum R² of decomposition that must be achieved for a peptide to be reported.", false);
 
     registerDoubleOption_("weight_merge_window", "<tol>", 5.0, "Decomposition coefficients within +- this rate window will be combined", false);
 
-    registerDoubleOption_("min_correlation_distance_to_averagine", "<tol>", 0.0, "Minimum difference in correlation between incorporation pattern and averagine pattern. Positive values filter all RIAs passing the correlation threshold but that also show a better correlation to an averagine peptide.", false);
+    registerDoubleOption_("min_correlation_distance_to_averagine", "<tol>", -1.0, "Minimum difference in correlation between incorporation pattern and averagine pattern. Positive values filter all RIAs passing the correlation threshold but that also show a better correlation to an averagine peptide. Disabled for values <= -1", false, true);
 
     registerDoubleOption_("pattern_15N_TIC_threshold", "<threshold>", 0.95, "The most intense peaks of the theoretical pattern contributing to at least this TIC fraction are taken into account.", false, true);
     registerDoubleOption_("pattern_13C_TIC_threshold", "<threshold>", 0.95, "The most intense peaks of the theoretical pattern contributing to at least this TIC fraction are taken into account.", false, true);
@@ -2522,6 +2524,8 @@ protected:
     double mz_tolerance_ppm_ = getDoubleOption_("mz_tolerance_ppm");
     double weight_merge_window_ = getDoubleOption_("weight_merge_window");
     double intensity_threshold_ = getDoubleOption_("intensity_threshold");
+    double decomposition_threshold = getDoubleOption_("decomposition_threshold");
+
     String qc_output_directory = getStringOption_("qc_output_directory");
     Size n_heatmap_bins = getIntOption_("heatmap_bins");
     double score_plot_y_axis_min = getDoubleOption_("score_plot_yaxis_min");
@@ -3042,7 +3046,7 @@ protected:
       }
 
       // store sip peptide
-      if (sip_peptide.incorporations.size() != 0)
+      if (sip_peptide.incorporations.size() != 0 && sip_peptide.RR > decomposition_threshold)
       {
         if (debug_level > 0)
         {
