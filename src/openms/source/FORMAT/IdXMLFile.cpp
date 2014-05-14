@@ -63,7 +63,8 @@ namespace OpenMS
     load(filename, protein_ids, peptide_ids, document_id);
   }
 
-  void IdXMLFile::load(const String & filename, vector<ProteinIdentification> & protein_ids, vector<PeptideIdentification> & peptide_ids, String & document_id)
+  void IdXMLFile::load(const String & filename, vector<ProteinIdentification> & protein_ids, 
+      vector<PeptideIdentification> & peptide_ids, String & document_id)
   {
     //Filename for error messages in XMLHandler
     file_ = filename;

@@ -801,9 +801,9 @@ namespace OpenMS
       os << "\t\t\t</groupedElementList>\n";
 
       // write PeptideIdentification
-      for (UInt i = 0; i < elem.getPeptideIdentifications().size(); ++i)
+      for (UInt j = 0; j < elem.getPeptideIdentifications().size(); ++j)
       {
-        writePeptideIdentification_(filename, os, elem.getPeptideIdentifications()[i], "PeptideIdentification", 3);
+        writePeptideIdentification_(filename, os, elem.getPeptideIdentifications()[j], "PeptideIdentification", 3);
       }
 
       writeUserParam_("userParam", os, elem, 3);

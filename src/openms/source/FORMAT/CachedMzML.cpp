@@ -183,10 +183,10 @@ namespace OpenMS
     {
       setProgress(i);
 
-      Size chrom_size;
+      Size ch_size;
       chrom_index_.push_back(ifs.tellg());
-      ifs.read((char*)&chrom_size, sizeof(chrom_size));
-      ifs.seekg(chrom_offset + (sizeof(DatumSingleton)) * 2 * (chrom_size), ifs.cur);
+      ifs.read((char*)&ch_size, sizeof(ch_size));
+      ifs.seekg(chrom_offset + (sizeof(DatumSingleton)) * 2 * (ch_size), ifs.cur);
     }
 
     ifs.close();
@@ -220,12 +220,12 @@ namespace OpenMS
       {
         exp[i].getDataProcessing().push_back(dp);
       }
-      std::vector<MSChromatogram<ChromatogramPeak> > chromatograms = exp.getChromatograms();
-      for (Size i=0; i<chromatograms.size(); ++i)
+      std::vector<MSChromatogram<ChromatogramPeak> > l_chromatograms = exp.getChromatograms();
+      for (Size i=0; i<l_chromatograms.size(); ++i)
       {
-        chromatograms[i].getDataProcessing().push_back(dp);
+        l_chromatograms[i].getDataProcessing().push_back(dp);
       }
-      exp.setChromatograms(chromatograms);
+      exp.setChromatograms(l_chromatograms);
     }
 
     // store the meta data using the regular MzMLFile
