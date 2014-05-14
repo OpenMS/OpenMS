@@ -83,7 +83,7 @@ namespace OpenMS
     last_meta_ = 0;
     parameters_.clear();
     param_ = ProteinIdentification::SearchParameters();
-    String id_ = "";
+    String id_ = ""; // TODO check, did you mean to shadow id_ ?
     prot_id_ = ProteinIdentification();
     pep_id_ = PeptideIdentification();
     prot_hit_ = ProteinHit();
@@ -373,7 +373,7 @@ namespace OpenMS
     last_meta_ = 0;
     parameters_.clear();
     param_ = ProteinIdentification::SearchParameters();
-    String id_ = "";
+    String id_ = ""; // TODO did you mean to shadow id_ ?
     prot_id_ = ProteinIdentification();
     pep_id_ = PeptideIdentification();
     prot_hit_ = ProteinHit();

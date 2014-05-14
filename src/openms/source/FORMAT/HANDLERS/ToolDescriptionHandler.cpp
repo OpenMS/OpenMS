@@ -206,8 +206,8 @@ namespace OpenMS
       else
         return;  // TODO...
 
+      // TODO unreachable code, what should be done here?
       error(LOAD, "ToolDescriptionHandler::endElement: Unkown element found: '" + endtag_ + "', ignoring.");
-
     }
 
     void ToolDescriptionHandler::writeTo(std::ostream & /*os*/)

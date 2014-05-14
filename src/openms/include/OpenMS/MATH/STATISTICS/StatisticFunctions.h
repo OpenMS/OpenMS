@@ -170,10 +170,13 @@ namespace OpenMS
       return *it;
     }
   }
+
   /**
     @brief Calculates the first quantile of a range of values
 
-    The range is devided into half and the median for the first half is returned.
+    The range is divided into half and the median for the first half is returned.
+
+    TODO: use std::nth_element instead of sorting the  whole range
 
     @param begin Start of range
     @param end End of range (past-the-end iterator)
@@ -273,7 +276,8 @@ namespace OpenMS
   {
     checkIteratorsNotNULL(begin, end);
     double sum = 0.0;
-    if(mean == std::numeric_limits<double>::max())
+    if (mean == std::numeric_limits<double>::max()) // TODO float comparison: use mean >= ... ?
+    {
       mean = Math::mean(begin, end);
     }
     for (IteratorType iter=begin; iter!=end; ++iter)

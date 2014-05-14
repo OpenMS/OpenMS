@@ -785,7 +785,7 @@ protected:
     ofile.close();
 #endif
 
-    ConstRefVector<MSSpectrum<PeakType> > c_sorted_candidate_(diffed.begin(), diffed.end());
+    ConstRefVector<MSSpectrum<PeakType> > c_sorted_candidate_(diffed.begin(), diffed.end()); // TODO is it intentional to shadow c_sorted_candidate_ ?
 
     //Sort the transform in descending order according to the intensities present in the transform
     c_sorted_candidate_.sortByIntensity();

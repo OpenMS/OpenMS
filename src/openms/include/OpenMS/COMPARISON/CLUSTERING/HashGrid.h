@@ -272,8 +272,9 @@ public:
     const CellIndex & grid_dimension;
 
 public:
-    HashGrid(const ClusterCenter & cell_dimension) :
-      cell_dimension(cell_dimension), grid_dimension(grid_dimension_)
+    HashGrid(const ClusterCenter & local_cell_dimension) :
+      cell_dimension(local_cell_dimension), 
+      grid_dimension(grid_dimension_) // TODO where does grid_dimension_ come from ? Is it initialized?
     {}
 
     /**
