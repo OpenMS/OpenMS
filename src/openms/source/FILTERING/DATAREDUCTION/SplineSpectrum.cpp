@@ -46,12 +46,12 @@ using namespace std;
 namespace OpenMS
 {
 
-SplineSpectrum::SplineSpectrum(std::vector<double> mz, std::vector<double> intensity)
+SplineSpectrum::SplineSpectrum(const std::vector<double>& mz, const std::vector<double>& intensity)
 {
 	SplineSpectrum::init_(mz, intensity, 0.7);
 }
 
-SplineSpectrum::SplineSpectrum(std::vector<double> mz, std::vector<double> intensity, double scaling)
+SplineSpectrum::SplineSpectrum(const std::vector<double>& mz, const std::vector<double>& intensity, double scaling)
 {
 	SplineSpectrum::init_(mz, intensity, scaling);
 }
@@ -84,7 +84,7 @@ SplineSpectrum::~SplineSpectrum()
 {
 }
 
-void SplineSpectrum::init_(std::vector<double>& mz, std::vector<double>& intensity, double scaling)
+void SplineSpectrum::init_(const std::vector<double>& mz, const std::vector<double>& intensity, double scaling)
 {
 
 	if (!(mz.size() == intensity.size() && mz.size() > 2))
@@ -135,7 +135,6 @@ void SplineSpectrum::init_(std::vector<double>& mz, std::vector<double>& intensi
 	}
 
 	// fill the packages
-	SplinePackage * package;
 	std::vector<double> mzPackage;
 	std::vector<double> intensityPackage;
 	for (unsigned i=0; i<mzSlim.size(); ++i)

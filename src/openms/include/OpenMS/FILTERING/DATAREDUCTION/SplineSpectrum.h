@@ -62,8 +62,8 @@ public:
  * @brief constructor taking two vectors
  * (and an optional scaling factor for the m/z step width)
  */
-SplineSpectrum(std::vector<double> mz, std::vector<double> intensity);
-SplineSpectrum(std::vector<double> mz, std::vector<double> intensity, double scaling);
+SplineSpectrum(const std::vector<double>& mz, const std::vector<double>& intensity);
+SplineSpectrum(const std::vector<double>& mz, const std::vector<double>& intensity, double scaling);
 
 /**
  * @brief constructor taking an MSSpectrum
@@ -107,7 +107,7 @@ std::vector<SplinePackage> packages_;
 /**
  * @brief section common for both constructors
  */
-void init_(std::vector<double>& mz, std::vector<double>& intensity, double scaling);
+void init_(const std::vector<double>& mz, const std::vector<double>& intensity, double scaling);
 
 /**
  * @brief iterator class for access of spline packages
