@@ -1897,7 +1897,7 @@ protected:
       double correlation_score = Math::pearsonCorrelationCoefficient(pattern_begin, pattern_end, intensities_begin, intensities_end);
 
       // remove correlations that show higher similarity to an averagine peptide
-      if (correlation_score < averagine_correlation[ii] + min_correlation_distance_to_averagine)
+      if (rate > 5.0 && correlation_score < averagine_correlation[ii] + min_correlation_distance_to_averagine)
       {
         map_rate_to_correlation_score[rate] = 0;
         continue;
@@ -2512,54 +2512,6 @@ protected:
 
     return sum_incorporated / sum;
   }
-
-  /*
-  void emdClusterData_(String tmp_path, String data_filename, String file_suffix, String qc_output_directory, Int debug_level)
-  {
-  String script_filename = String("cluster_data") + file_suffix + String(".R");
-  String result_filename = String("cluster_result") + file_suffix + String(".dat");
-
-  // add scripts
-  TextFile current_script;
-
-  current_script.push_back("library(clValid)");
-  current_script.push_back("d=read.table('" + tmp_path + "/" + data_filename + "', sep='\\t')");
-  current_script.push_back("m=as.matrix(d[,-(1:2)])");
-  current_script.push_back("m=t(m)");
-  current_script.push_back("clusters=rep(1,nrow(t(m)))");
-
-  current_script.push_back("if (nrow(t(m))>=20)");
-  current_script.push_back("{");
-  current_script.push_back("max_clust<-max(3,nrow(t(m))%/%5)");  // on average there should be at least 5 spectra per group and we want to check at least 2 to 3 cluster
-  current_script.push_back("max_clust<-min(max_clust, 10)");  // at most 10 cluster
-  current_script.push_back("result<-clValid(t(m), nClust=2:max_clust, clMethods=c('pam'), validation='internal', maxitem=nrow(t(m)), diss=TRUE)");
-  current_script.push_back("k=as.numeric(as.matrix(optimalScores(result)[,\"Clusters\"]))");
-  current_script.push_back("k=median(k)");
-  current_script.push_back("cl=pam(x=t(m), k=k, diss=TRUE)");
-  current_script.push_back("clusters=cl$cluster");
-  current_script.push_back("}");
-  current_script.push_back("r=cbind(clusters, d[,1])");
-  current_script.push_back("r=r[!is.na(r[,1]),]");
-  current_script.push_back("write.table(r, '" + tmp_path + "/" + result_filename + "', col.names=FALSE, row.names=FALSE, sep='\t')");
-
-  current_script.store(tmp_path + "/" + script_filename);
-
-  QStringList qparam;
-  qparam << "--vanilla" << "--quiet" << "--slave" << "--file=" + QString(tmp_path.toQString() + "/" + script_filename.toQString());
-  Int status = QProcess::execute("R", qparam);
-  if (status != 0)
-  {
-  std::cerr << "Error: Process returned with non 0 status." << std::endl;
-  } else
-  {
-  if (debug_level < 1)
-  {
-  QFile(QString(tmp_path.toQString() + "/" + data_filename.toQString())).remove();
-  QFile(QString(tmp_path.toQString() + "/" + script_filename.toQString())).remove();
-  }
-  }
-  }
-  */
 
   ExitCodes main_(int, const char**)
   {
