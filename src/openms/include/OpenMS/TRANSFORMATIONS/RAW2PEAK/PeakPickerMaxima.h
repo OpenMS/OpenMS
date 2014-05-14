@@ -82,7 +82,7 @@ public:
       It also contains the original index in the m/z axis where the peak was
       found as well as an estimate of its right and left boundary. 
     */
-    struct PeakCandidate 
+    struct OPENMS_DLLAPI PeakCandidate 
     {
       /// index of the peak apex (relative to the input data) 
       int pos;

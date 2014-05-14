@@ -68,7 +68,7 @@ namespace OpenMS
 
     @ingroup SignalProcessing
   */
-  class SignalToNoiseEstimatorMedianRapid 
+  class OPENMS_DLLAPI SignalToNoiseEstimatorMedianRapid 
   {
     /// Window length parameter
     double window_length_;
@@ -87,7 +87,7 @@ public:
       set of windows offset by 1/2 of the window width) and the reported value
       is the average of these two values.
     */
-    struct NoiseEstimator 
+    struct OPENMS_DLLAPI NoiseEstimator 
     {
       /// Number of windows in m/z direction for which noise values are stored 
       int nr_windows;
