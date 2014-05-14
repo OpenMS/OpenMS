@@ -1449,6 +1449,7 @@ protected:
       if (equal_(qname, s_spectrum))
       {
 
+        // TODO : what is this supposed to do? The RT may be negative due to transformations!
         // catch errors stemming from confusion about elution time and scan time
         if (spec_.getRT() == -1.0 && spec_.metaValueExists("elution time (seconds)"))
         {
