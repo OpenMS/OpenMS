@@ -93,7 +93,7 @@ public:
       int nr_windows;
       /// Start of m/z domain 
       double mz_start;
-      /// Lenght of the window in m/z direction
+      /// Length of the window in m/z direction
       double window_length;
       /// Noise values for window starting at mz_start (length = nr_windows)
       std::vector<double> result_windows_even;

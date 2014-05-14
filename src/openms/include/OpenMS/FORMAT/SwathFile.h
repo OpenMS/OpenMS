@@ -301,14 +301,14 @@ protected:
             const std::vector<Precursor> prec = s.getPrecursors();
             double center = prec[0].getMZ();
             bool found = false;
-            for (Size i = 0; i < known_window_boundaries.size();  i++)
+            for (Size j = 0; j < known_window_boundaries.size();  j++)
             {
               // We group by the precursor mz (center of the window) since this
               // should be present
-              if (std::fabs(center - known_window_boundaries[i].center) < 1e-6)
+              if (std::fabs(center - known_window_boundaries[j].center) < 1e-6)
               {
                 found = true;
-                swath_counter[i]++;
+                swath_counter[j]++;
               }
             }
             if (!found)
