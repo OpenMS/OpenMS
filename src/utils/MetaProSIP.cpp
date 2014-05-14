@@ -53,7 +53,6 @@
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
-//#include "Wm5IntpAkimaNonuniform1.h"
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/MassDecomposition.h>
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/MassDecompositionAlgorithm.h>
@@ -1584,7 +1583,7 @@ protected:
   }
 
   // Perform a simple check if R and all R dependencies are thereget
-  bool checkRDependencies(String tmp_path)
+  bool checkRDependencies(String tmp_path, StringList package_names)
   {
     String random_name = String::random(8);
     String script_filename = tmp_path + String("/") + random_name + String(".R");
@@ -1633,7 +1632,11 @@ protected:
     current_script.push_back("    eval(parse(text = paste(\"library(\", x, \")\", sep = \"\")))");
     current_script.push_back("  }");
     current_script.push_back("}");
-    current_script.push_back("LoadOrInstallPackage(gplots)");
+    for (StringList::const_iterator it = package_names.begin(); it != package_names.end(); ++it)
+    {
+      current_script.push_back("LoadOrInstallPackage(" + *it + ")");
+    }
+
     current_script.store(script_filename);
 
     QProcess p;
@@ -2564,14 +2567,16 @@ protected:
     tmp_path.substitute('\\', '/');
 
     // check if R and dependencies are installed
-    bool R_is_working = checkRDependencies(tmp_path);
+    StringList package_names;
+    package_names.push_back("gplots");
+    bool R_is_working = checkRDependencies(tmp_path, package_names);
     if (!R_is_working)
     {
       LOG_INFO << "There was a problem detecting R and/or of one of the required libraries. Make sure you have the directory of your R executable in your system path variable." << endl;
       return EXTERNAL_PROGRAM_ERROR;
     }
 
-    bool cluster_flag = getFlag_("cluster") && R_is_working;
+    bool cluster_flag = getFlag_("cluster");
 
     // read descriptions from FASTA and create map for fast annotation
     LOG_INFO << "loading sequences..." << endl;
