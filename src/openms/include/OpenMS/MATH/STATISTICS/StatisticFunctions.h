@@ -95,7 +95,7 @@ namespace OpenMS
   /**
   @brief Helper function checking if an iterator and a co-iterator both have a next element
 
-  @exception Exception::InvalidRange is thrown if the itorerator do not end simultaniously
+  @exception Exception::InvalidRange is thrown if the iterator do not end simultaneously
 
   @ingroup MathFunctionsStatistics
   */
@@ -197,7 +197,7 @@ namespace OpenMS
   /**
     @brief Calculates the first quantile of a range of values
 
-    The range is devided into half and the median for the first half is returned.
+    The range is divided into half and the median for the first half is returned.
 
     @param begin Start of range
     @param end End of range (past-the-end iterator)
@@ -215,7 +215,7 @@ namespace OpenMS
     checkIteratorsNotNULL(begin, end);
 
     Size size = std::distance(begin, end);
-      return median(begin + (size/2)+1, end, sorted); //+1 to exclude median values
+    return median(begin + (size/2)+1, end, sorted); //+1 to exclude median values
   }
 
   /**
@@ -232,17 +232,20 @@ namespace OpenMS
   {
     checkIteratorsNotNULL(begin, end);
     double sum = 0.0;
-    if(mean == std::numeric_limits<double>::max())
+    if (mean == std::numeric_limits<double>::max()) // TODO float comparison: use mean >= ... ?
+    {
       mean = Math::mean(begin, end);
-    for(IteratorType iter=begin; iter!=end; ++iter)
+    }
+    for (IteratorType iter=begin; iter!=end; ++iter)
     {
       double diff = *iter - mean;
       sum += diff * diff;
     }
     return sum / (std::distance(begin, end)-1);
   }
+
   /**
-  @brief Calculates the standart deviation of a range of values.
+  @brief Calculates the standard deviation of a range of values.
 
   @exception Exception::InvalidRange is thrown if the range is empty
 
@@ -257,7 +260,7 @@ namespace OpenMS
     return std::sqrt( variance(begin, end, mean) );
   }
   /**
-  @brief Calculates the abselute deviation of a range of values
+  @brief Calculates the absolute deviation of a range of values
 
   @exception Exception::InvalidRange is thrown if the range is empty
 
@@ -272,7 +275,8 @@ namespace OpenMS
     double sum = 0.0;
     if(mean == std::numeric_limits<double>::max())
       mean = Math::mean(begin, end);
-    for(IteratorType iter=begin; iter!=end; ++iter)
+    }
+    for (IteratorType iter=begin; iter!=end; ++iter)
     {
       sum += *iter - mean;
     }
@@ -391,7 +395,10 @@ namespace OpenMS
     /**
       @brief Calculates the Matthews correlation coefficient for the values in [begin_a, end_a) and [begin_b, end_b)
 
-      Calculates the Matthews correlation coefficient for the data given by the two iterator ranges. The values in [begin_a, end_a) have to be the predicted labels and the values in [begin_b, end_b) have to be the real labels.
+      Calculates the Matthews correlation coefficient for the data given by the
+      two iterator ranges. The values in [begin_a, end_a) have to be the
+      predicted labels and the values in [begin_b, end_b) have to be the real
+      labels.
 
       @exception Exception::InvalidRange is thrown if the iterator ranges are not of the same length or empty.
 
@@ -594,7 +601,9 @@ namespace OpenMS
 
       // check for division by zero
       if (!sqsum_data || !sqsum_model)
+      {
         return 0;
+      }
 
       return sum_model_data / (sqrt(sqsum_data) * sqrt(sqsum_model));
     }
