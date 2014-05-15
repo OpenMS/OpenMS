@@ -287,7 +287,7 @@ void MassTraceDetection::run(const MSExperiment<Peak1D> & input_exp, std::vector
     }
 
 
-    Size min_flank_scans(3);
+    // Size min_flank_scans(3);
 
     // discard last spectrum's offset
     spec_offsets.pop_back();
@@ -344,7 +344,8 @@ void MassTraceDetection::run(const MSExperiment<Peak1D> & input_exp, std::vector
 
         // double outlier_ratio(0.3);
 
-        double ftl_mean(centroid_mz), ftl_sd((centroid_mz / 1000000) * mass_error_ppm_);
+        // double ftl_mean(centroid_mz);
+        double ftl_sd((centroid_mz / 1000000) * mass_error_ppm_);
         double intensity_so_far(apex_peak.getIntensity());
 
         while (((trace_down_idx > 0) && toggle_down) || ((trace_up_idx < work_exp.size() - 1) && toggle_up))
@@ -374,8 +375,8 @@ void MassTraceDetection::run(const MSExperiment<Peak1D> & input_exp, std::vector
                     Size left_next_idx = work_exp[trace_down_idx - 1].findNearest(left_bound);
                     Size right_next_idx = work_exp[trace_down_idx - 1].findNearest(right_bound);
 
-                    double left_mz(work_exp[trace_down_idx - 1][left_next_idx].getMZ());
-                    double right_mz(work_exp[trace_down_idx - 1][right_next_idx].getMZ());
+                    // double left_mz(work_exp[trace_down_idx - 1][left_next_idx].getMZ());
+                    // double right_mz(work_exp[trace_down_idx - 1][right_next_idx].getMZ());
 
                     // std::cout << "next: " << next_down_peak_mz << std::endl;
 
