@@ -771,7 +771,7 @@ namespace OpenMS
     {
       throw InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Parameter '" + full_name + "' marked as both input and output file");
     }
-    enum ParameterInformation::ParameterTypes type;
+    enum ParameterInformation::ParameterTypes type = ParameterInformation::NONE;
     switch (entry.value.valueType())
     {
     case DataValue::STRING_VALUE:
