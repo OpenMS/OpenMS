@@ -696,7 +696,9 @@ namespace OpenMS
 
     SimIntensityType intensity_sum(0.0);
 
-    Int end_scan  = std::numeric_limits<Int>::min();
+#ifdef OPENMS_ASSERTIONS
+    Int end_scan = std::numeric_limits<Int>::min(); // only used in Debug build
+#endif
 
     IsotopeModel* isomodel = static_cast<IsotopeModel*>(pm.getModel(1));
     IsotopeDistribution iso_dist = isomodel->getIsotopeDistribution();
@@ -780,7 +782,9 @@ namespace OpenMS
         intensity_sum += point.getIntensity();
       }
       //update last scan affected
+#ifdef OPENMS_ASSERTIONS
       end_scan = exp_iter - experiment.begin();
+#endif
     }
 
     OPENMS_POSTCONDITION(end_scan != std::numeric_limits<Int>::min(), "RawMSSignalSimulation::samplePeptideModel2D_(): setting RT bounds failed!");
