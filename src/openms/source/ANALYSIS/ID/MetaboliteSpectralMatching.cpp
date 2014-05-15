@@ -443,8 +443,8 @@ void MetaboliteSpectralMatching::run(MSExperiment<> & msexp, MzTab& mztab_out)
             Size start_idx(lower_it - mz_keys.begin());
             Size end_idx(upper_it - mz_keys.begin());
 
-            double max_hyper_score(0.0);
-            Size best_idx(start_idx);
+            // double max_hyper_score(0.0);
+            // Size best_idx(start_idx);
 
             //std::cout << "identifying " << msexp[spec_idx].getMetaValue("Massbank_Accession_ID") << std::endl;
 
@@ -548,7 +548,7 @@ void MetaboliteSpectralMatching::exportMzTab_(const std::vector<SpectralMatch>& 
     MzTabSmallMoleculeSectionData sm_data_section;
     MzTabSmallMoleculeSectionRows all_sm_rows;
 
-    Size id_group(1);
+    // Size id_group(1);
 
 
     for (Size id_idx = 0; id_idx < overall_results.size(); ++id_idx)
