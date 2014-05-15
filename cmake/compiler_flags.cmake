@@ -45,6 +45,7 @@ if (CMAKE_COMPILER_IS_GNUCXX)
   add_definitions(-Wall -Wextra 
     -Wno-non-virtual-dtor 
     -Wno-long-long 
+    -Wno-unknown-pragmas
     -Wno-variadic-macros)
 
   if (NOT MT_ENABLE_CUDA)  # necessary since CUDA contains non-pedantic code
