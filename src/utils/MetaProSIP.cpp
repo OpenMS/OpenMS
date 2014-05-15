@@ -109,7 +109,7 @@ struct SIPPeptide
   bool unique; ///< if the peptide is unique and therefor identifies the protein umambigously
 
   double mz_theo; ///< theoretical mz
-  
+
   double mass_theo;  ///< uncharged theoretical mass
 
   double score; ///< search engine score or q-value if fdr filtering is applied
@@ -1326,7 +1326,7 @@ class MetaProSIPDecomposition
 {
 public:
   ///> Perform the decomposition
-  static Int calculateDecompositionWeightsIsotopicPatterns(Size n_bins, const vector<double>& isotopic_intensities, const IsotopePatterns& patterns, MapRateToScoreType& map_rate_to_decomposition_weight, bool use_N15, SIPPeptide& sip_peptide)
+  static Int calculateDecompositionWeightsIsotopicPatterns(Size n_bins, const vector<double>& isotopic_intensities, const IsotopePatterns& patterns, MapRateToScoreType& map_rate_to_decomposition_weight, SIPPeptide& sip_peptide)
   {
     Matrix<double> beta(n_bins, 1);
     Matrix<double> intensity_vector(isotopic_intensities.size(), 1);
@@ -1500,7 +1500,7 @@ public:
   }
 
 
-  static IsotopePatterns MetaProSIPDecomposition::calculateIsotopePatternsFor15NRangeOfAveraginePeptide(double mass)
+  static IsotopePatterns calculateIsotopePatternsFor15NRangeOfAveraginePeptide(double mass)
   {
     IsotopePatterns ret;
     const Element * e1 = ElementDB::getInstance()->getElement("Nitrogen");
@@ -1541,7 +1541,7 @@ public:
     return ret;
   }
 
-  static IsotopePatterns MetaProSIPDecomposition::calculateIsotopePatternsFor13CRangeOfAveraginePeptide(double mass)
+  static IsotopePatterns calculateIsotopePatternsFor13CRangeOfAveraginePeptide(double mass)
   {
     IsotopePatterns ret;
 
@@ -1589,11 +1589,11 @@ class TOPPMetaProSIP : public TOPPBase
 {
 public:
   TOPPMetaProSIP()
-    : ADDITIONAL_ISOTOPES(5),
-    FEATURE_STRING("feature"), 
+    : TOPPBase("MetaProSIP", "Performs proteinSIP on peptide features for elemental flux analysis.", false),
+    ADDITIONAL_ISOTOPES(5),
+    FEATURE_STRING("feature"),
     UNASSIGNED_ID_STRING("id"),
-    UNIDENTIFIED_STRING("unidentified"),
-    TOPPBase("MetaProSIP", "Performs proteinSIP on peptide features for elemental flux analysis.", false)
+    UNIDENTIFIED_STRING("unidentified")
   {
   }
 
@@ -1808,7 +1808,7 @@ protected:
   }
 
   ///>
-  PeakSpectrum filterPeakSpectrumForIsotopicPeaks(Size element_count, double mass_diff, double seed_mz,
+  PeakSpectrum filterPeakSpectrumForIsotopicPeaks(double mass_diff, double seed_mz,
     double seed_charge, const PeakSpectrum& spectrum, double ppm = 10.0)
   {
     PeakSpectrum ret;
@@ -2885,12 +2885,12 @@ protected:
       const double feature_hit_score = feature_hit.getScore();
       const double feature_hit_center_mz = feature_it->getMZ();
       const double feature_hit_charge = feature_hit.getCharge();
-      
+
       String feature_hit_seq = "";
       double feature_hit_theoretical_mz = 0;
       AASequence feature_hit_aaseq;
       // set theoretical mz of peptide hit to:
-      //   mz of sequence if we have a sequence identified 
+      //   mz of sequence if we have a sequence identified
       // otherwise:
       //   mz of precursor (stored in feature mz) if no sequence identified
       if (sip_peptide.feature_type == FEATURE_STRING || sip_peptide.feature_type == UNASSIGNED_ID_STRING)
@@ -2903,7 +2903,7 @@ protected:
       {
         feature_hit_aaseq = AASequence();
         feature_hit_seq = String("");
-        feature_hit_theoretical_mz = feature_hit_center_mz;        
+        feature_hit_theoretical_mz = feature_hit_center_mz;
       }
 
       sip_peptide.accessions = feature_hit.getProteinAccessions();
@@ -2932,7 +2932,7 @@ protected:
         element_count = use_N15 ? e.getNumberOf("Nitrogen") : e.getNumberOf("Carbon");
       }
       else if (sip_peptide.feature_type == UNIDENTIFIED_STRING)
-      {        
+      {
         // calculate number of expected labeling elements using averagine model
         element_count = use_N15 ? sip_peptide.mass_theo * 0.0122177302837372 : sip_peptide.mass_theo * 0.0444398894906044;
       }
@@ -2954,7 +2954,7 @@ protected:
       // FOR VALIDATION: extract the merged peak spectra for later visualization during validation
       sip_peptide.merged = extractPeakSpectrumConsensus(element_count + ADDITIONAL_ISOTOPES, sip_peptide.mass_diff, seeds_rt, feature_hit_theoretical_mz, feature_hit_charge, peak_map);
       // FOR VALIDATION: filter peaks outside of x ppm window around expected isotopic peak
-      sip_peptide.filtered_merged = filterPeakSpectrumForIsotopicPeaks(element_count + ADDITIONAL_ISOTOPES, sip_peptide.mass_diff, feature_hit_theoretical_mz, feature_hit_charge, sip_peptide.merged, mz_tolerance_ppm_);
+      sip_peptide.filtered_merged = filterPeakSpectrumForIsotopicPeaks(sip_peptide.mass_diff, feature_hit_theoretical_mz, feature_hit_charge, sip_peptide.merged, mz_tolerance_ppm_);
       // store accumulated intensities at theoretical positions
       sip_peptide.accumulated = isotopicIntensitiesToSpectrum(feature_hit_theoretical_mz, sip_peptide.mass_diff, feature_hit_charge, isotopic_intensities);
 
@@ -2977,7 +2977,7 @@ protected:
       {
         patterns = use_N15 ? MetaProSIPDecomposition::calculateIsotopePatternsFor15NRangeOfAveraginePeptide(sip_peptide.mass_theo) : MetaProSIPDecomposition::calculateIsotopePatternsFor13CRangeOfAveraginePeptide(sip_peptide.mass_theo);
       }
-    
+
       // store theoretical patterns for visualization
       sip_peptide.patterns = patterns;
       for (IsotopePatterns::const_iterator pit = sip_peptide.patterns.begin(); pit != sip_peptide.patterns.end(); ++pit)
@@ -2990,7 +2990,7 @@ protected:
 
       // calculate decomposition into isotopic patterns
       MapRateToScoreType map_rate_to_decomposition_weight;
-      Int result = MetaProSIPDecomposition::calculateDecompositionWeightsIsotopicPatterns(element_count, isotopic_intensities, patterns, map_rate_to_decomposition_weight, use_N15, sip_peptide);
+      Int result = MetaProSIPDecomposition::calculateDecompositionWeightsIsotopicPatterns(element_count, isotopic_intensities, patterns, map_rate_to_decomposition_weight, sip_peptide);
 
       // set first intensity to zero and remove first 2 possible RIAs (0% and e.g. 1.07% for carbon)
       MapRateToScoreType tmp_map_rate_to_correlation_score;
