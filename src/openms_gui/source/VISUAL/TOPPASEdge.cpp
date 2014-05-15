@@ -221,7 +221,7 @@ namespace OpenMS
     if (!str.isEmpty())
     {
       painter->save();
-      qreal pc = path_line_short.percentAtLength(10);
+      // qreal pc = path_line_short.percentAtLength(10);
       QPointF point = path_line_short.pointAtPercent(0.95);
       painter->translate(point);
       painter->rotate(text_angle);
