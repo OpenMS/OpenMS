@@ -49,7 +49,7 @@ namespace OpenMS
     For each scan, we define a set of windows of a pre-defined size (param:
     <i>window_length_</i>) in m/z domain for which the intensity median is
     calculated.  The noise for a data point is estimated to be the median of the
-    intensities of the current window. 
+    intensities of the current window.
 
     To get a more robust noise estimate, the nose value is calculated two times
     for two sets of windows that are shifted by 1/2 of the window size and the
@@ -57,18 +57,18 @@ namespace OpenMS
 
     A call to estimateNoise will return an object of type NoiseEstimator which
     then provides a function get_noise_value which will return the noise value
-    for a given m/z value. 
+    for a given m/z value.
 
     The idea behind this class is to have an estimator for signal to noise that
     gives similar results to SignalToNoiseEstimatorMedian but performs faster.
-    Note that it will not give identical results as SignalToNoiseEstimatorMedian 
+    Note that it will not give identical results as SignalToNoiseEstimatorMedian
     but for many application the results from this class will be sufficient.
 
     @htmlinclude OpenMS_SignalToNoiseEstimatorRapid.parameters
 
     @ingroup SignalProcessing
   */
-  class OPENMS_DLLAPI SignalToNoiseEstimatorMedianRapid 
+  class OPENMS_DLLAPI SignalToNoiseEstimatorMedianRapid
   {
     /// Window length parameter
     double window_length_;
@@ -87,11 +87,11 @@ public:
       set of windows offset by 1/2 of the window width) and the reported value
       is the average of these two values.
     */
-    struct OPENMS_DLLAPI NoiseEstimator 
+    struct OPENMS_DLLAPI NoiseEstimator
     {
-      /// Number of windows in m/z direction for which noise values are stored 
+      /// Number of windows in m/z direction for which noise values are stored
       int nr_windows;
-      /// Start of m/z domain 
+      /// Start of m/z domain
       double mz_start;
       /// Lenght of the window in m/z direction
       double window_length;
@@ -112,7 +112,7 @@ public:
       /**
         @brief Return the noise value at a given m/z position
 
-        Will return the noise value at a given m/z position. 
+        Will return the noise value at a given m/z position.
 
         @note Will return 1.0 if the noise would be lower than 1.0
       */

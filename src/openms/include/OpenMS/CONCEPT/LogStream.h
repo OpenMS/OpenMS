@@ -174,7 +174,7 @@ public:
         It also includes the minimum and maximum level at which the
         LogStream redirects messages to this stream.
       */
-      OPENMS_DLLAPI struct StreamStruct
+      struct OPENMS_DLLAPI StreamStruct
       {
         std::ostream * stream;
         std::string         prefix;

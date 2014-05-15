@@ -49,11 +49,13 @@ macro(find_boost)
 
   set(BOOST_MOC_ARGS "")
 
-  # see: https://bugreports.qt-project.org/browse/QTBUG-22829
-  # Confirmed only on mac os x and leads to problems on win32 and lnx
-  # so we handle it for now only on mac os x and boost versions > 1.52
-  if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin" OR ${Boost_MINOR_VERSION} GREATER "52")
-  	set(BOOST_MOC_ARGS "-DBOOST_NO_TEMPLATE_PARTIAL_SPECIALIZATION")
+  if(Boost_FOUND)
+    # see: https://bugreports.qt-project.org/browse/QTBUG-22829
+    # Confirmed only on mac os x and leads to problems on win32 and lnx
+    # so we handle it for now only on mac os x and boost versions > 1.52
+    if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin" OR ${Boost_MINOR_VERSION} GREATER "52")
+      set(BOOST_MOC_ARGS "-DBOOST_NO_TEMPLATE_PARTIAL_SPECIALIZATION")
+    endif()
   endif()
 endmacro(find_boost)
 

@@ -65,7 +65,7 @@ namespace OpenSwath
   */
 
   /// The structure into which encoded binary data goes.
-  struct OSBinaryDataArray
+  struct OPENSWATHALGO_DLLAPI OSBinaryDataArray
   {
     /// this optional attribute may reference the 'id' attribute of the appropriate dataProcessing.
     //DataProcessingPtr dataProcessingPtr;
@@ -73,11 +73,11 @@ namespace OpenSwath
     /// the binary data.
     std::vector<double> data;
   };
-  OPENSWATHALGO_DLLAPI typedef OSBinaryDataArray BinaryDataArray;
-  OPENSWATHALGO_DLLAPI typedef boost::shared_ptr<BinaryDataArray> BinaryDataArrayPtr;
+  typedef OSBinaryDataArray BinaryDataArray;
+  typedef boost::shared_ptr<BinaryDataArray> BinaryDataArrayPtr;
 
   /// Identifying information for a chromatogram
-  struct OSChromatogramMeta
+  struct OPENSWATHALGO_DLLAPI OSChromatogramMeta
   {
     /// the zero-based, consecutive index of the chromatogram in the ChromatogramList.
     std::size_t index;
@@ -89,11 +89,11 @@ namespace OpenSwath
     }
 
   };
-  OPENSWATHALGO_DLLAPI typedef OSChromatogramMeta ChromatogramMeta;
-  OPENSWATHALGO_DLLAPI typedef boost::shared_ptr<ChromatogramMeta> ChromatogramMetaPtr;
+  typedef OSChromatogramMeta ChromatogramMeta;
+  typedef boost::shared_ptr<ChromatogramMeta> ChromatogramMetaPtr;
 
   /// A single chromatogram.
-  struct OSChromatogram
+  struct OPENSWATHALGO_DLLAPI OSChromatogram
   {
     /// default length of binary data arrays contained in this element.
     std::size_t defaultArrayLength;
@@ -150,11 +150,11 @@ public:
     }
 
   };
-  OPENSWATHALGO_DLLAPI typedef OSChromatogram Chromatogram;
-  OPENSWATHALGO_DLLAPI typedef boost::shared_ptr<Chromatogram> ChromatogramPtr;
+  typedef OSChromatogram Chromatogram;
+  typedef boost::shared_ptr<Chromatogram> ChromatogramPtr;
 
   /// Identifying information for a spectrum
-  struct OSSpectrumMeta
+  struct OPENSWATHALGO_DLLAPI OSSpectrumMeta
   {
     /// the zero-based, consecutive index of the spectrum in the SpectrumList.
     size_t index;
@@ -172,11 +172,11 @@ public:
     }
 
   };
-  OPENSWATHALGO_DLLAPI typedef OSSpectrumMeta SpectrumMeta;
-  OPENSWATHALGO_DLLAPI typedef boost::shared_ptr<SpectrumMeta> SpectrumMetaPtr;
+  typedef OSSpectrumMeta SpectrumMeta;
+  typedef boost::shared_ptr<SpectrumMeta> SpectrumMetaPtr;
 
   /// The structure that captures the generation of a peak list (including the underlying acquisitions)
-  struct OSSpectrum
+  struct OPENSWATHALGO_DLLAPI OSSpectrum
   {
     /// default length of binary data arrays contained in this element.
     std::size_t defaultArrayLength;
@@ -228,8 +228,8 @@ public:
     }
 
   };
-  OPENSWATHALGO_DLLAPI typedef OSSpectrum Spectrum;
-  OPENSWATHALGO_DLLAPI typedef boost::shared_ptr<Spectrum> SpectrumPtr;
+  typedef OSSpectrum Spectrum;
+  typedef boost::shared_ptr<Spectrum> SpectrumPtr;
 } //end Namespace OpenSwath
 
 #endif // OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_DATAACCESS_DATASTRUCTURES_H
