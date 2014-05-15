@@ -67,7 +67,7 @@ intensity.push_back(59152.21);
 intensity.push_back(0.0);
 
 std::map<double,double> map;
-for (int i=0; i<mz.size(); ++i)
+for (Size i=0; i<mz.size(); ++i)
 {
     map.insert(std::pair<double,double>(mz[i], intensity[i]));
 }

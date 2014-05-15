@@ -113,11 +113,12 @@ START_SECTION((static void setSeed(UInt seed)))
   unique_ids.push_back(large_int);
 
   OpenMS::UniqueIdGenerator::setSeed(one_moment_in_time);
-  for (int i=0; i<unique_ids.size(); ++i)
+  for (Size i=0; i<unique_ids.size(); ++i)
   {
     OpenMS::UInt64 uid = OpenMS::UniqueIdGenerator::getUniqueId();
     TEST_EQUAL(uid,unique_ids[i]);
   }
+
   /* check if the same sequence is generated form the same seed */
   std::vector<OpenMS::UInt64> ids;
   ids.reserve(nofIdsToGenerate);
