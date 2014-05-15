@@ -75,6 +75,63 @@ public:
     void extractChannels(const MSExperiment<Peak1D>& ms_exp_data, ConsensusMap& consensus_map);
 
 private:
+    /**
+      @brief Small struct to capture the current state of the purity computation.
+    */
+    struct PuritySate
+    {
+      /// Iterator pointing to the potential ms1 precursor scan
+      MSExperiment<Peak1D>::ConstIterator precursorScan;
+      /// Iterator pointing to the potential follow up ms1 scan
+      MSExperiment<Peak1D>::ConstIterator followUpScan;
+      /// Iterator pointing to the potential follow up ms1 scan
+      MSExperiment<Peak1D>::ConstIterator activeScan;
+
+      /// Indicates if a precursor was found
+      bool hasPrecursorScan;
+      /// Indicates if a follow up scan was found
+      bool hasFollowUpScan;
+      /// reference to the experiment to analyze
+      const MSExperiment<Peak1D>& baseExperiment;
+
+      PuritySate(const MSExperiment<>& targetExp) :
+        baseExperiment(targetExp)
+      {
+        precursorScan = baseExperiment.end();
+        hasPrecursorScan = false;
+
+        // find the first ms1 scan in the experiment
+        followUpScan = baseExperiment.begin();
+        while (followUpScan->getMSLevel() != 1 && followUpScan != baseExperiment.end())
+        {
+          ++followUpScan;
+        }
+
+        // check if we found one
+        hasFollowUpScan = followUpScan != baseExperiment.end();
+      }
+
+      void advanceFollowUp(const double rt)
+      {
+        // advance follow up scan until we found a ms1 scan with a bigger RT
+        while (followUpScan->getMSLevel() != 1 &&
+               followUpScan != baseExperiment.end() &&
+               followUpScan->getRT() < rt)
+        {
+          ++followUpScan;
+        }
+
+        // check if we found one
+        hasFollowUpScan = followUpScan != baseExperiment.end();
+      }
+
+      bool followUpValid(const double rt)
+      {
+        return hasFollowUpScan ? rt < followUpScan->getRT() : true;
+      }
+
+    };
+
     /// The used quantitation method (itraq4plex, tmt6plex,..).
     const IsobaricQuantitationMethod* quant_method_;
 
@@ -128,7 +185,7 @@ private:
       @param precursor Iterator pointing to the precursor spectrum of ms2_spec.
       @return Fraction of the total intensity in the isolation window of the precursor spectrum that was assigned to the precursor.
     */
-    double computePrecursorPurity_(const MSExperiment<>::ConstIterator& ms2_spec, const MSExperiment<>::ConstIterator& precursor) const;
+    double computePrecursorPurity_(const MSExperiment<Peak1D>::ConstIterator& ms2_spec, const PuritySate& pState) const;
 
     /**
       @brief Computes the sum of all isotopic peak intensities in the window defined by (lower|upper)_mz_bound beginning from theoretical_isotope_mz.

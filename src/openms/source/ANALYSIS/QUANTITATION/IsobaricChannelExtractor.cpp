@@ -138,7 +138,7 @@ namespace OpenMS
 
   bool IsobaricChannelExtractor::isValidPrecursor_(const Precursor& precursor) const
   {
-    return (precursor.getIntensity() == 0.0 && keep_unannotated_precursor_) || !(precursor.getIntensity() < min_precursor_intensity_);
+    return (!(precursor.getIntensity() > 0.0) && keep_unannotated_precursor_) || !(precursor.getIntensity() < min_precursor_intensity_);
   }
 
   bool IsobaricChannelExtractor::hasLowIntensityReporter_(const ConsensusFeature& cf) const
@@ -195,15 +195,15 @@ namespace OpenMS
     return intensity_contribution;
   }
 
-  double IsobaricChannelExtractor::computePrecursorPurity_(const MSExperiment<Peak1D>::ConstIterator& ms2_spec, const MSExperiment<Peak1D>::ConstIterator& precursor) const
+  double IsobaricChannelExtractor::computePrecursorPurity_(const MSExperiment<Peak1D>::ConstIterator& ms2_spec, const PuritySate & pState) const
   {
     // we cannot analyze precursors without a charge
     if (ms2_spec->getPrecursors()[0].getCharge() == 0)
       return 1.0;
 
     // compute boundaries
-    const MSExperiment<>::SpectrumType::ConstIterator isolation_lower_mz = precursor->MZBegin(ms2_spec->getPrecursors()[0].getMZ() - ms2_spec->getPrecursors()[0].getIsolationWindowLowerOffset());
-    const MSExperiment<>::SpectrumType::ConstIterator isolation_upper_mz = precursor->MZEnd(ms2_spec->getPrecursors()[0].getMZ() + ms2_spec->getPrecursors()[0].getIsolationWindowUpperOffset());
+    const MSExperiment<>::SpectrumType::ConstIterator isolation_lower_mz = pState.precursorScan->MZBegin(ms2_spec->getPrecursors()[0].getMZ() - ms2_spec->getPrecursors()[0].getIsolationWindowLowerOffset());
+    const MSExperiment<>::SpectrumType::ConstIterator isolation_upper_mz = pState.precursorScan->MZEnd(ms2_spec->getPrecursors()[0].getMZ() + ms2_spec->getPrecursors()[0].getIsolationWindowUpperOffset());
     
     Peak1D::IntensityType total_intensity = 0;
 
@@ -219,29 +219,29 @@ namespace OpenMS
     // for c == charge of precursor
     
     // precursor mz
-    Size precursor_peak_idx = precursor->findNearest(ms2_spec->getPrecursors()[0].getMZ());
-    Peak1D precursor_peak = (*precursor)[precursor_peak_idx];
+    Size precursor_peak_idx = pState.precursorScan->findNearest(ms2_spec->getPrecursors()[0].getMZ());
+    Peak1D precursor_peak = (*pState.precursorScan)[precursor_peak_idx];
     Peak1D::IntensityType precursor_intensity = precursor_peak.getIntensity();
 
     // compute the
     double charge_dist = Constants::NEUTRON_MASS_U / (double) ms2_spec->getPrecursors()[0].getCharge();
 
     // search left of precursor for isotopic peaks
-    precursor_intensity += sumPotentialIsotopePeaks_(precursor, isolation_lower_mz->getMZ(), isolation_upper_mz->getMZ(), precursor_peak.getMZ(), -1 * charge_dist);
+    precursor_intensity += sumPotentialIsotopePeaks_(pState.precursorScan, isolation_lower_mz->getMZ(), isolation_upper_mz->getMZ(), precursor_peak.getMZ(), -1 * charge_dist);
     // search right of precursor for isotopic peaks
-    precursor_intensity += sumPotentialIsotopePeaks_(precursor, isolation_lower_mz->getMZ(), isolation_upper_mz->getMZ(), precursor_peak.getMZ(), charge_dist);
+    precursor_intensity += sumPotentialIsotopePeaks_(pState.precursorScan, isolation_lower_mz->getMZ(), isolation_upper_mz->getMZ(), precursor_peak.getMZ(), charge_dist);
 
     
     double purity = precursor_intensity / total_intensity;
     
     if(purity < 0.0 || purity > 1.0)
     {
-      LOG_ERROR << "Purity computation failed: " << purity << ", " << precursor->getNativeID() << std::endl;
+      LOG_ERROR << "Purity computation failed: " << purity << ", " << pState.precursorScan->getNativeID() << std::endl;
     }
     
     return precursor_intensity / total_intensity;
   }
-
+  
   void IsobaricChannelExtractor::extractChannels(const MSExperiment<Peak1D>& ms_exp_data, ConsensusMap& consensus_map)
   {
     if (ms_exp_data.empty())
@@ -257,7 +257,7 @@ namespace OpenMS
 
     // create predicate for spectrum checking
     LOG_INFO << "Selecting scans with activation mode: " << (selected_activation_ == "" ? "any" : selected_activation_) << "\n";
-    HasActivationMethod<MSExperiment<Peak1D>::SpectrumType> activation_predicate(ListUtils::create<String>(selected_activation_));
+    HasActivationMethod<MSExperiment<Peak1D>::SpectrumType> isValidActivation(ListUtils::create<String>(selected_activation_));
 
     // now we have picked data
     // --> assign peaks to channels
@@ -266,18 +266,27 @@ namespace OpenMS
     // remember the current precusor spectrum
     MSExperiment<Peak1D>::ConstIterator prec_spec = ms_exp_data.end();
 
+    PuritySate pState(ms_exp_data);
+    
     for (MSExperiment<Peak1D>::ConstIterator it = ms_exp_data.begin(); it != ms_exp_data.end(); ++it)
     {
       // remember the last MS1 spectra as we assume it to be the precursor spectrum
       if (it->getMSLevel() ==  1)
       {
         // remember potential precursor and continue
-        prec_spec = it;
+        pState.precursorScan = it;
         continue;
       }
 
-      if (selected_activation_ == "" || activation_predicate(*it))
+      if (selected_activation_ == "" || isValidActivation(*it))
       {
+        // find following ms1 scan (needed for purity computation)
+        if (!pState.followUpValid(it->getRT()))
+        {
+          // advance iterator
+          pState.advanceFollowUp(it->getRT());
+        }
+        
         // check if precursor is available
         if (it->getPrecursors().empty())
         {
@@ -295,7 +304,7 @@ namespace OpenMS
         double precursor_purity = -1.0;
         if (prec_spec != ms_exp_data.end())
         {
-          precursor_purity = computePrecursorPurity_(it, prec_spec);
+          precursor_purity = computePrecursorPurity_(it, pState);
           // check if purity is high enough
           if (precursor_purity < min_precursor_purity_)
           {
