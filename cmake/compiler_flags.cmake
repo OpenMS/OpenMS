@@ -43,6 +43,7 @@ if (CMAKE_COMPILER_IS_GNUCXX)
 	list(GET GCC_VERSION_COMPONENTS 1 GNUCXX_MINOR_VERSION)
 
   add_definitions(-Wall -Wextra 
+    -Werror
     -Wno-non-virtual-dtor 
     -Wno-long-long 
     -Wno-unknown-pragmas
