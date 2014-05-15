@@ -48,164 +48,174 @@
 
 namespace OpenMS
 {
-  /**
+/**
       @brief Data model of MzTab files.
       Please see the official MzTab specification at https://code.google.com/p/mztab/
 
       @ingroup FileIO
   */
 
-  // MzTab supports null, NaN, Inf for cells with Integer or Double values. MzTabCellType explicitly defines the state of the cell for these types.
-  enum MzTabCellStateType
-  {
-    MZTAB_CELLSTATE_DEFAULT,
-    MZTAB_CELLSTATE_NULL,
-    MZTAB_CELLSTATE_NAN,
-    MZTAB_CELLSTATE_INF,
-    SIZE_OF_MZTAB_CELLTYPE
-  };
+// MzTab supports null, NaN, Inf for cells with Integer or Double values. MzTabCellType explicitly defines the state of the cell for these types.
+enum MzTabCellStateType
+{
+  MZTAB_CELLSTATE_DEFAULT,
+  MZTAB_CELLSTATE_NULL,
+  MZTAB_CELLSTATE_NAN,
+  MZTAB_CELLSTATE_INF,
+  SIZE_OF_MZTAB_CELLTYPE
+};
 
-  // basic interface for all MzTab datatypes (can be null; are converted from and to cell string)
-  class MzTabNullAbleInterface
-  {
-    public:
-      virtual bool isNull() const = 0;
-      virtual void setNull(bool b) = 0;
-      virtual String toCellString() const = 0;
-      virtual void fromCellString(const String&) = 0;
-  };
+// basic interface for all MzTab datatypes (can be null; are converted from and to cell string)
+class MzTabNullAbleInterface
+{
+  public:
+    virtual ~MzTabNullAbleInterface() {}
+    virtual bool isNull() const = 0;
+    virtual void setNull(bool b) = 0;
+    virtual String toCellString() const = 0;
+    virtual void fromCellString(const String&) = 0;
+};
 
-  // interface for NaN- and Inf- able datatypes (Double and Integer in MzTab). These are as well null-able
-  class MzTabNullNaNAndInfAbleInterface :
+// interface for NaN- and Inf- able datatypes (Double and Integer in MzTab). These are as well null-able
+class MzTabNullNaNAndInfAbleInterface :
     public MzTabNullAbleInterface
-  {
-    public:
-      virtual bool isNaN() const = 0;
-      virtual void setNaN() = 0;
-      virtual bool isInf() const = 0;
-      virtual void setInf() = 0;
-  };
+{
+  public:
+    virtual ~MzTabNullNaNAndInfAbleInterface() {}
+    virtual bool isNaN() const = 0;
+    virtual void setNaN() = 0;
+    virtual bool isInf() const = 0;
+    virtual void setInf() = 0;
+};
 
-  // base class for atomic, non-container types (Double, Int)
-  class MzTabNullAbleBase :
+// base class for atomic, non-container types (Double, Int)
+class MzTabNullAbleBase :
     public MzTabNullAbleInterface
-  {
-    public:
-      MzTabNullAbleBase() :
-        null_(true)
-      {
-      }
+{
+  public:
+    MzTabNullAbleBase() :
+      null_(true)
+    {
+    }
 
-      bool isNull() const
-      {
-        return null_;
-      }
+    virtual ~MzTabNullAbleBase()
+    {
+    }
 
-      void setNull(bool b)
-      {
-        null_ = b;
-      }
+    bool isNull() const
+    {
+      return null_;
+    }
+
+    void setNull(bool b)
+    {
+      null_ = b;
+    }
 
   protected:
     bool null_;
-  };
+};
 
-  // base class for the atomic non-container like MzTab data types (Double, Int)
-  class MzTabNullNaNAndInfAbleBase :
+// base class for the atomic non-container like MzTab data types (Double, Int)
+class MzTabNullNaNAndInfAbleBase :
     public MzTabNullNaNAndInfAbleInterface
-  {
-    public:
-      MzTabNullNaNAndInfAbleBase() :
-        state_(MZTAB_CELLSTATE_NULL)
-      {
-      }
+{
+  public:
+    MzTabNullNaNAndInfAbleBase() :
+      state_(MZTAB_CELLSTATE_NULL)
+    {
+    }
 
-      bool isNull() const
-      {
-        return state_ == MZTAB_CELLSTATE_NULL;
-      }
+    virtual ~MzTabNullNaNAndInfAbleBase() {}
 
-      void setNull(bool b)
-      {
-        state_ = b ? MZTAB_CELLSTATE_NULL : MZTAB_CELLSTATE_DEFAULT;
-      }
+    bool isNull() const
+    {
+      return state_ == MZTAB_CELLSTATE_NULL;
+    }
 
-      bool isNaN() const
-      {
-        return state_ == MZTAB_CELLSTATE_NAN;
-      }
+    bool isNull() const
+    {
+      return state_ == MZTAB_CELLSTATE_NULL;
+    }
 
-      void setNaN()
-      {
-        state_ = MZTAB_CELLSTATE_NAN;
-      }
+    void setNull(bool b)
+    {
+      state_ = b ? MZTAB_CELLSTATE_NULL : MZTAB_CELLSTATE_DEFAULT;
+    }
 
-      bool isInf() const
-      {
-        return state_ == MZTAB_CELLSTATE_INF;
-      }
+    bool isNaN() const
+    {
+      return state_ == MZTAB_CELLSTATE_NAN;
+    }
 
-      void setInf()
-      {
-        state_ = MZTAB_CELLSTATE_INF;
-      }
+    void setNaN()
+    {
+      state_ = MZTAB_CELLSTATE_NAN;
+    }
 
-    protected:
-      MzTabCellStateType state_;
-  };
+    bool isInf() const
+    {
+      return state_ == MZTAB_CELLSTATE_INF;
+    }
 
-  class MzTabDouble :
+    void setInf()
+    {
+      state_ = MZTAB_CELLSTATE_INF;
+    }
+
+  protected:
+    MzTabCellStateType state_;
+};
+
+class MzTabDouble :
     public MzTabNullNaNAndInfAbleBase
-  {
-    public:
-      MzTabDouble()
-        : value_(0.0)
-      {
+{
+  public:
+    MzTabDouble()
+      : value_(0.0)
+    {
+    }
 
+    virtual ~MzTabDouble() {}
+
+    void set(const double& value)
+    {
+      state_ = MZTAB_CELLSTATE_DEFAULT;
+      value_ = value;
+    }
+    explicit MzTabDouble(const double v)
+    {
+      set(v);
+    }
+
+    double get() const
+    {
+      if (state_ != MZTAB_CELLSTATE_DEFAULT)
+      {
+        throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Trying to extract MzTab Double value from non-double valued cell. Did you check the cell state before querying the value?"));
       }
 
-      explicit MzTabDouble(const double v)
+      return value_;
+    }
+
+    String toCellString() const
+    {
+      switch (state_)
       {
-        set(v);
+      case MZTAB_CELLSTATE_NULL:
+        return String("null");
+
+      case MZTAB_CELLSTATE_NAN:
+        return String("NaN");
+
+      case MZTAB_CELLSTATE_INF:
+        return String("Inf");
+
+      case MZTAB_CELLSTATE_DEFAULT:
+      default:
+        return String(value_);
       }
-
-      void set(const double& value)
-      {
-        state_ = MZTAB_CELLSTATE_DEFAULT;
-        value_ = value;
-      }
-
-      double get() const
-      {
-        if (state_ == MZTAB_CELLSTATE_DEFAULT)
-        {
-          return value_;
-        }
-        else
-        {
-          throw Exception::ElementNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, String("Trying to extract MzTab Double value from non-double valued cell. Did you check the cell state before querying the value?"));
-          return 0;
-        }
-      }
-
-      String toCellString() const
-      {
-        switch (state_)
-        {
-        case MZTAB_CELLSTATE_NULL:
-          return String("null");
-
-        case MZTAB_CELLSTATE_NAN:
-          return String("NaN");
-
-        case MZTAB_CELLSTATE_INF:
-          return String("Inf");
-
-        case MZTAB_CELLSTATE_DEFAULT:
-        default:
-          return String(value_);
-        }
-      }
+    }
 
     void fromCellString(const String& s)
     {
@@ -229,14 +239,14 @@ namespace OpenMS
       }
     }
 
-protected:
+  protected:
     double value_;
-  };
+};
 
-  class MzTabDoubleList :
+class MzTabDoubleList :
     public MzTabNullAbleBase
-  {
-public:
+{
+  public:
     MzTabDoubleList()
     {
     }
@@ -309,14 +319,14 @@ public:
       entries_ = entries;
     }
 
-protected:
+  protected:
     std::vector<MzTabDouble> entries_;
-  };
+};
 
-  class MzTabInteger :
+class MzTabInteger :
     public MzTabNullNaNAndInfAbleBase
-  {
-public:
+{
+  public:
 
     virtual ~MzTabInteger() {}
 
@@ -379,14 +389,14 @@ public:
       }
     }
 
-protected:
+  protected:
     Int value_;
-  };
+};
 
-  class MzTabIntegerList :
+class MzTabIntegerList :
     public MzTabNullAbleBase
-  {
-public:
+{
+  public:
     MzTabIntegerList()
     {
     }
@@ -457,14 +467,14 @@ public:
       entries_ = entries;
     }
 
-protected:
+  protected:
     std::vector<MzTabInteger> entries_;
-  };
+};
 
-  class MzTabBoolean :
+class MzTabBoolean :
     public MzTabNullAbleBase
-  {
-public:
+{
+  public:
     MzTabBoolean()
       :value_(false)
     {
@@ -533,14 +543,14 @@ public:
       }
     }
 
-protected:
+  protected:
     bool value_;
-  };
+};
 
-  class MzTabString :
+class MzTabString :
     public MzTabNullAbleInterface
-  {
-    public:
+{
+  public:
 
     MzTabString()
       :value_()
@@ -603,14 +613,14 @@ protected:
       set(s);
     }
 
-protected:
+  protected:
     String value_;
-  };
+};
 
-  class MzTabParameter :
+class MzTabParameter :
     public MzTabNullAbleInterface
-  {
-public:
+{
+  public:
 
     virtual ~MzTabParameter() {}
 
@@ -763,17 +773,17 @@ public:
       }
     }
 
-protected:
+  protected:
     String CV_label_;
     String accession_;
     String name_;
     String value_;
-  };
+};
 
-  class MzTabParameterList :
+class MzTabParameterList :
     public MzTabNullAbleInterface
-  {
-public:
+{
+  public:
 
     virtual ~MzTabParameterList() {}
 
@@ -850,14 +860,14 @@ public:
       parameters_ = parameters;
     }
 
-protected:
+  protected:
     std::vector<MzTabParameter> parameters_;
-  };
+};
 
-  class MzTabStringList :
+class MzTabStringList :
     public MzTabNullAbleInterface
-  {
-public:
+{
+  public:
     MzTabStringList() :
       sep_('|')
     {
@@ -938,15 +948,15 @@ public:
       entries_ = entries;
     }
 
-protected:
+  protected:
     std::vector<MzTabString> entries_;
     char sep_;
-  };
+};
 
-  struct MzTabModification :
+struct MzTabModification :
     public MzTabNullAbleInterface
-  {
-public:
+{
+  public:
 
     virtual ~MzTabModification() {}
 
@@ -1086,15 +1096,15 @@ public:
       }
     }
 
-protected:
+  protected:
     std::vector<std::pair<Size, MzTabParameter> > pos_param_pairs_;
     MzTabString mod_identifier_;
-  };
+};
 
-  class MzTabModificationList :
+class MzTabModificationList :
     public MzTabNullAbleBase
-  {
-public:
+{
+  public:
     virtual ~MzTabModificationList() {}
 
     bool isNull() const
@@ -1216,15 +1226,15 @@ public:
       entries_ = entries;
     }
 
-protected:
+  protected:
     std::vector<MzTabModification> entries_;
 
-  };
+};
 
-  class MzTabSpectraRef :
+class MzTabSpectraRef :
     public MzTabNullAbleInterface
-  {
-public:
+{
+  public:
     MzTabSpectraRef() :
       ms_run_(0)
     {
@@ -1320,85 +1330,85 @@ public:
       }
     }
 
-protected:
+  protected:
     Size ms_run_; // number is specified in the meta data section.
     String spec_ref_;
-  };
+};
 
-  // MTD
+// MTD
 
-  struct MzTabSampleMetaData
-  {
+struct MzTabSampleMetaData
+{
     MzTabString description;
     std::map<Size, MzTabParameter> species;
     std::map<Size, MzTabParameter> tissue;
     std::map<Size, MzTabParameter> cell_type;
     std::map<Size, MzTabParameter> disease;
     std::map<Size, MzTabParameter> custom;
-  };
+};
 
-  struct MzTabSoftwareMetaData
-  {
+struct MzTabSoftwareMetaData
+{
     MzTabParameter software;
     std::map<Size, MzTabString> setting;
-  };
+};
 
-  struct MzTabModificationMetaData
-  {
+struct MzTabModificationMetaData
+{
     MzTabParameter modification;
     MzTabString site;
     MzTabString position;
-  };
+};
 
-  struct MzTabAssayMetaData
-  {
+struct MzTabAssayMetaData
+{
     MzTabParameter quantification_reagent;
     std::map<Size, MzTabModificationMetaData> quantification_mod;
     MzTabString sample_ref;
     MzTabString ms_run_ref;
-  };
+};
 
-  struct MzTabCVMetaData
-  {
+struct MzTabCVMetaData
+{
     MzTabString label;
     MzTabString full_name;
     MzTabString version;
     MzTabString url;
-  };
+};
 
-  struct MzTabInstrumentMetaData
-  {
+struct MzTabInstrumentMetaData
+{
     MzTabParameter name;
     MzTabParameter source;
     std::map<Size, MzTabParameter> analyzer;
     MzTabParameter detector;
-  };
+};
 
-  struct MzTabContactMetaData
-  {
+struct MzTabContactMetaData
+{
     MzTabString name;
     MzTabString affiliation;
     MzTabString email;
-  };
+};
 
-  struct MzTabMSRunMetaData
-  {
+struct MzTabMSRunMetaData
+{
     MzTabParameter format;
     MzTabString location;
     MzTabParameter id_format;
     MzTabParameterList fragmentation_method;
-  };
+};
 
-  struct MzTabStudyVariableMetaData
-  {
+struct MzTabStudyVariableMetaData
+{
     MzTabIntegerList assay_refs;
     MzTabIntegerList sample_refs;
     MzTabString description;
-  };
+};
 
-  // all meta data of a mzTab file. Please refer to specification for documentation.
-  struct MzTabMetaData
-  {
+// all meta data of a mzTab file. Please refer to specification for documentation.
+struct MzTabMetaData
+{
     MzTabMetaData()
     {
       mz_tab_version.fromCellString(String("1.0.0"));
@@ -1456,13 +1466,13 @@ protected:
     std::vector<String> colunit_peptide;
     std::vector<String> colunit_psm;
     std::vector<String> colunit_small_molecule;
-  };
+};
 
-  typedef std::pair<String, MzTabString> MzTabOptionalColumnEntry; //  column name (not null able), value (null able)
+typedef std::pair<String, MzTabString> MzTabOptionalColumnEntry; //  column name (not null able), value (null able)
 
-  // PRT - Protein section (Table based)
-  struct MzTabProteinSectionRow
-  {
+// PRT - Protein section (Table based)
+struct MzTabProteinSectionRow
+{
     MzTabProteinSectionRow()
     {
       // use "," as list separator because "|" can be used for go terms and protein accessions
@@ -1493,11 +1503,11 @@ protected:
     std::map<Size, MzTabDouble> protein_abundance_stdev_study_variable;
     std::map<Size, MzTabDouble> protein_abundance_std_error_study_variable;
     std::vector<MzTabOptionalColumnEntry> opt_; // Optional Columns must start with “opt_”
-  };
+};
 
-  // PEP - Peptide section (Table based)
-  struct MzTabPeptideSectionRow
-  {
+// PEP - Peptide section (Table based)
+struct MzTabPeptideSectionRow
+{
     MzTabString sequence; // The peptide’s sequence.
     MzTabString accession; // The protein’s accession.
     MzTabBoolean unique; // 0=false, 1=true, null else: Peptide is unique for the protein.
@@ -1519,11 +1529,11 @@ protected:
     std::map<Size, MzTabDouble> peptide_abundance_stdev_study_variable;
     std::map<Size, MzTabDouble> peptide_abundance_std_error_study_variable;
     std::vector<MzTabOptionalColumnEntry> opt_; // Optional columns must start with “opt_”.
-  };
+};
 
-  // PSM - PSM section (Table based)
-  struct MzTabPSMSectionRow
-  {
+// PSM - PSM section (Table based)
+struct MzTabPSMSectionRow
+{
     MzTabString sequence; // The peptide’s sequence.
     MzTabInteger PSM_ID;
     MzTabString accession; // The protein’s accession.
@@ -1545,11 +1555,11 @@ protected:
     MzTabString start;
     MzTabString end;
     std::vector<MzTabOptionalColumnEntry> opt_; // Optional columns must start with “opt_”.
-  };
+};
 
-  // SML Small molecule section (table based)
-  struct MzTabSmallMoleculeSectionRow
-  {
+// SML Small molecule section (table based)
+struct MzTabSmallMoleculeSectionRow
+{
     MzTabStringList identifier; // The small molecule’s identifier.
     MzTabString chemical_formula; // Chemical formula of the identified compound.
     MzTabString smiles; // Molecular structure in SMILES format.
@@ -1575,97 +1585,97 @@ protected:
     std::map<Size, MzTabDouble> smallmolecule_abundance_stdev_study_variable;
     std::map<Size, MzTabDouble> smallmolecule_abundance_std_error_study_variable;
     std::vector<MzTabOptionalColumnEntry> opt_; // Optional columns must start with “opt_”.
-  };
+};
 
-  typedef std::vector<MzTabProteinSectionRow> MzTabProteinSectionRows;
-  typedef std::vector<MzTabPeptideSectionRow> MzTabPeptideSectionRows;
-  typedef std::vector<MzTabPSMSectionRow> MzTabPSMSectionRows;
-  typedef std::vector<MzTabSmallMoleculeSectionRow> MzTabSmallMoleculeSectionRows;
+typedef std::vector<MzTabProteinSectionRow> MzTabProteinSectionRows;
+typedef std::vector<MzTabPeptideSectionRow> MzTabPeptideSectionRows;
+typedef std::vector<MzTabPSMSectionRow> MzTabPSMSectionRows;
+typedef std::vector<MzTabSmallMoleculeSectionRow> MzTabSmallMoleculeSectionRows;
 
-  /**
+/**
       @brief Data model of MzTab files.
       Please see the official MzTab specification at https://code.google.com/p/mztab/
 
       @ingroup FileIO
  */
-  class OPENMS_DLLAPI MzTab
-  {
-    public:
-      /// Default constructor
-      MzTab() {}
+class OPENMS_DLLAPI MzTab
+{
+  public:
+    /// Default constructor
+    MzTab() {}
 
-      /// Destructor
-      ~MzTab() {}
+    /// Destructor
+    ~MzTab() {}
 
-      const MzTabMetaData& getMetaData() const
-      {
-        return meta_data_;
-      }
+    const MzTabMetaData& getMetaData() const
+    {
+      return meta_data_;
+    }
 
-      void setMetaData(const MzTabMetaData& md)
-      {
-        meta_data_ = md;
-      }
+    void setMetaData(const MzTabMetaData& md)
+    {
+      meta_data_ = md;
+    }
 
-      const MzTabProteinSectionRows& getProteinSectionRows() const
-      {
-        return protein_data_;
-      }
+    const MzTabProteinSectionRows& getProteinSectionRows() const
+    {
+      return protein_data_;
+    }
 
-      void setProteinSectionRows(const MzTabProteinSectionRows& psd)
-      {
-        protein_data_ = psd;
-      }
+    void setProteinSectionRows(const MzTabProteinSectionRows& psd)
+    {
+      protein_data_ = psd;
+    }
 
-      const MzTabPeptideSectionRows& getPeptideSectionRows() const
-      {
-        return peptide_data_;
-      }
+    const MzTabPeptideSectionRows& getPeptideSectionRows() const
+    {
+      return peptide_data_;
+    }
 
-      void setPeptideSectionRows(const MzTabPeptideSectionRows& psd)
-      {
-        peptide_data_ = psd;
-      }
+    void setPeptideSectionRows(const MzTabPeptideSectionRows& psd)
+    {
+      peptide_data_ = psd;
+    }
 
-      const MzTabPSMSectionRows& getPSMSectionRows() const
-      {
-        return psm_data_;
-      }
+    const MzTabPSMSectionRows& getPSMSectionRows() const
+    {
+      return psm_data_;
+    }
 
-      void setPSMSectionRows(const MzTabPSMSectionRows& psd)
-      {
-        psm_data_ = psd;
-      }
+    void setPSMSectionRows(const MzTabPSMSectionRows& psd)
+    {
+      psm_data_ = psd;
+    }
 
-      void setCommentRows(const std::map<Size, String> & com)
-      {
-        comment_rows_ = com;
-      }
+    void setCommentRows(const std::map<Size, String> & com)
+    {
+      comment_rows_ = com;
+    }
 
-      void setEmptyRows(const std::vector<Size> & empty)
-      {
-        empty_rows_ = empty;
-      }
+    void setEmptyRows(const std::vector<Size> & empty)
+    {
+      empty_rows_ = empty;
+    }
 
-      const std::vector<Size>& getEmptyRows() const
-      {
-        return empty_rows_;
-      }
+    const std::vector<Size>& getEmptyRows() const
+    {
+      return empty_rows_;
+    }
 
-      const std::map<Size, String>& getCommentRows() const
-      {
-        return comment_rows_;
-      }
+    const std::map<Size, String>& getCommentRows() const
+    {
+      return comment_rows_;
+    }
 
-      const MzTabSmallMoleculeSectionRows& getSmallMoleculeSectionRows() const
-      {
-        return small_molecule_data_;
-      }
+    const MzTabSmallMoleculeSectionRows& getSmallMoleculeSectionRows() const
+    {
+      return small_molecule_data_;
+    }
 
-      void setSmallMoleculeSectionRows(const MzTabSmallMoleculeSectionRows& smsd)
-      {
-        small_molecule_data_ = smsd;
-      }
+    void setSmallMoleculeSectionRows(const MzTabSmallMoleculeSectionRows& smsd)
+    {
+      small_molecule_data_ = smsd;
+    }
 
     // Extract opt_ (custom, optional column names)
     std::vector<String> getProteinOptionalColumnNames() const
@@ -1735,7 +1745,7 @@ protected:
     MzTabSmallMoleculeSectionRows small_molecule_data_;
     std::vector<Size> empty_rows_;  // index of empty rows
     std::map<Size, String> comment_rows_; // comments
-  };
+};
 
 } // namespace OpenMS
 
