@@ -264,8 +264,6 @@ namespace OpenMS
     UInt64 element_index(0);
 
     // remember the current precusor spectrum
-    MSExperiment<Peak1D>::ConstIterator prec_spec = ms_exp_data.end();
-
     PuritySate pState(ms_exp_data);
     
     for (MSExperiment<Peak1D>::ConstIterator it = ms_exp_data.begin(); it != ms_exp_data.end(); ++it)
@@ -302,7 +300,7 @@ namespace OpenMS
 
         // check precursor purity if we have a valid precursor ..
         double precursor_purity = -1.0;
-        if (prec_spec != ms_exp_data.end())
+        if (pState.precursorScan != ms_exp_data.end())
         {
           precursor_purity = computePrecursorPurity_(it, pState);
           // check if purity is high enough
@@ -366,12 +364,12 @@ namespace OpenMS
         }
 
         // check featureHandles are not empty
-        if (overall_intensity == 0)
+        if (!(overall_intensity > 0))
         {
           cf.setMetaValue("all_empty", String("true"));
         }
         // add purity information if we could compute it
-        if (precursor_purity != -1.0)
+        if (precursor_purity > 0.0)
         {
           cf.setMetaValue("precursor_purity", precursor_purity);
         }
