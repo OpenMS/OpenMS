@@ -208,7 +208,7 @@ protected:
     {
       MSQuantifications msq;
       std::vector<std::vector<std::pair<String, double> > > labels;
-      for (Size i = 0; i < ItraqConstants::CHANNEL_COUNT[ItraqConstants::TMT_SIXPLEX]; ++i)
+      for (Size i = 0; i < static_cast<Size>(ItraqConstants::CHANNEL_COUNT[ItraqConstants::TMT_SIXPLEX]); ++i)
       {
         std::vector<std::pair<String, double> > one_label;
         one_label.push_back(std::make_pair<String, double>(String("Channel ") + String(ItraqConstants::CHANNELS_TMT_SIXPLEX[i][0]), double(ItraqConstants::CHANNELS_FOURPLEX[i][0])));
