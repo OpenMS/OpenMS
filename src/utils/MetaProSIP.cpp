@@ -109,6 +109,8 @@ struct SIPPeptide
   bool unique; ///< if the peptide is unique and therefor identifies the protein umambigously
 
   double mz_theo; ///< theoretical mz
+  
+  double mass_theo;  ///< uncharged theoretical mass
 
   double score; ///< search engine score or q-value if fdr filtering is applied
 
@@ -1324,9 +1326,8 @@ class MetaProSIPDecomposition
 {
 public:
   ///> Perform the decomposition
-  static Int calculateDecompositionWeightsIsotopicPatterns(const String& seq, const vector<double>& isotopic_intensities, const IsotopePatterns& patterns, MapRateToScoreType& map_rate_to_decomposition_weight, bool use_N15, SIPPeptide& sip_peptide)
+  static Int calculateDecompositionWeightsIsotopicPatterns(Size n_bins, const vector<double>& isotopic_intensities, const IsotopePatterns& patterns, MapRateToScoreType& map_rate_to_decomposition_weight, bool use_N15, SIPPeptide& sip_peptide)
   {
-    Size n_bins = use_N15 ? AASequence::fromString(seq).getFormula().getNumberOf("Nitrogen") : AASequence::fromString(seq).getFormula().getNumberOf("Carbon");
     Matrix<double> beta(n_bins, 1);
     Matrix<double> intensity_vector(isotopic_intensities.size(), 1);
 
@@ -1497,19 +1498,110 @@ public:
     e2->setIsotopeDistribution(isotopes);
     return ret;
   }
+
+
+  static IsotopePatterns MetaProSIPDecomposition::calculateIsotopePatternsFor15NRangeOfAveraginePeptide(double mass)
+  {
+    IsotopePatterns ret;
+    const Element * e1 = ElementDB::getInstance()->getElement("Nitrogen");
+    Element * e2 = const_cast<Element *>(e1);
+
+    // calculate number of expected labeling elements using averagine model
+    Size element_count = mass * 0.0122177302837372;
+
+    // calculate isotope distribution for a given peptide and varying incoperation rates
+    // modification of isotope distribution in static ElementDB
+    for (double abundance = 0; abundance < 100.0 - 1e-8; abundance += 100.0 / (double)element_count)
+    {
+      double a = abundance / 100.0;
+      IsotopeDistribution isotopes;
+      std::vector<std::pair<Size, double> > container;
+      container.push_back(make_pair(14, 1.0 - a));
+      container.push_back(make_pair(15, a));
+      isotopes.set(container);
+      e2->setIsotopeDistribution(isotopes);
+      IsotopeDistribution dist(element_count);
+      dist.estimateFromPeptideWeight(mass);
+      container = dist.getContainer();
+      vector<double> intensities;
+      for (Size i = 0; i != container.size(); ++i)
+      {
+        intensities.push_back(container[i].second);
+      }
+      ret.push_back(make_pair(abundance, intensities));
+    }
+
+    // reset to natural occurance
+    IsotopeDistribution isotopes;
+    std::vector<std::pair<Size, double> > container;
+    container.push_back(make_pair(14, 0.99632));
+    container.push_back(make_pair(15, 0.368));
+    isotopes.set(container);
+    e2->setIsotopeDistribution(isotopes);
+    return ret;
+  }
+
+  static IsotopePatterns MetaProSIPDecomposition::calculateIsotopePatternsFor13CRangeOfAveraginePeptide(double mass)
+  {
+    IsotopePatterns ret;
+
+    const Element * e1 = ElementDB::getInstance()->getElement("Carbon");
+    Element * e2 = const_cast<Element *>(e1);
+    Size element_count = mass * 0.0444398894906044;
+
+    // calculate isotope distribution for a given peptide and varying incoperation rates
+    // modification of isotope distribution in static ElementDB
+    for (double abundance = 0.0; abundance < 100.0 - 1e-8; abundance += 100.0 / (double)element_count)
+    {
+      double a = abundance / 100.0;
+      IsotopeDistribution isotopes;
+      std::vector<std::pair<Size, double> > container;
+      container.push_back(make_pair(12, 1.0 - a));
+      container.push_back(make_pair(13, a));
+      isotopes.set(container);
+      e2->setIsotopeDistribution(isotopes);
+      IsotopeDistribution dist(element_count);
+      dist.estimateFromPeptideWeight(mass);
+      container = dist.getContainer();
+      vector<double> intensities;
+      for (Size i = 0; i != container.size(); ++i)
+      {
+        intensities.push_back(container[i].second);
+      }
+      ret.push_back(make_pair(abundance, intensities));
+    }
+
+    // reset to natural occurance
+    IsotopeDistribution isotopes;
+    std::vector<std::pair<Size, double> > container;
+    container.push_back(make_pair(12, 0.9893));
+    container.push_back(make_pair(13, 0.0107));
+    isotopes.set(container);
+    e2->setIsotopeDistribution(isotopes);
+    return ret;
+  }
+
 };
+
+
 
 class TOPPMetaProSIP : public TOPPBase
 {
 public:
   TOPPMetaProSIP()
     : ADDITIONAL_ISOTOPES(5),
+    FEATURE_STRING("feature"), 
+    UNASSIGNED_ID_STRING("id"),
+    UNIDENTIFIED_STRING("unidentified"),
     TOPPBase("MetaProSIP", "Performs proteinSIP on peptide features for elemental flux analysis.", false)
   {
   }
 
 protected:
   Size ADDITIONAL_ISOTOPES;
+  std::string FEATURE_STRING;
+  std::string UNASSIGNED_ID_STRING;
+  std::string UNIDENTIFIED_STRING;
   void registerOptionsAndFlags_()
   {
     registerInputFile_("in_mzML", "<file>", "", "Centroided MS1 data");
@@ -1810,20 +1902,20 @@ protected:
   }
 
   ///< Calculates the correlation between measured isotopic_intensities and the theoretical isotopic patterns for all incorporation rates
-  void calculateCorrelation(String seq, const vector<double>& isotopic_intensities, IsotopePatterns patterns,
-    MapRateToScoreType& map_rate_to_correlation_score, bool use_N15, double min_correlation_distance_to_averagine)
+  void calculateCorrelation(Size n_element, const vector<double>& isotopic_intensities, IsotopePatterns patterns,
+    MapRateToScoreType& map_rate_to_correlation_score, bool use_N15, double mass, double min_correlation_distance_to_averagine)
   {
     double observed_peak_fraction = getDoubleOption_("observed_peak_fraction");
 
     LOG_INFO << "Calculating " << patterns.size() << " isotope patterns with " << ADDITIONAL_ISOTOPES << " additional isotopes." << endl;
-    Size n_element = use_N15 ? AASequence::fromString(seq).getFormula().getNumberOf("Nitrogen") : AASequence::fromString(seq).getFormula().getNumberOf("Carbon");
+
     double TIC_threshold = use_N15 ? getDoubleOption_("pattern_15N_TIC_threshold") : getDoubleOption_("pattern_13C_TIC_threshold"); // N15 has smaller RIA resolution and multiple RIA peaks tend to overlap more in correlation. This reduces the width of the pattern leading to better distinction
 
     double max_incorporation_rate = 100.0;
     double incorporation_step = max_incorporation_rate / (double)n_element;
 
     // calculate correlation with a natural averagine peptide (used to filter out coeluting peptides)
-    double peptide_weight = AASequence::fromString(seq).getMonoWeight(Residue::Full, 0);
+    double peptide_weight = mass;
 
     const Size AVERAGINE_CORR_OFFSET = 3;
 
@@ -2133,7 +2225,7 @@ protected:
     }
 
     // determine trace peak with highest intensity
-    double max_trace_int = -1;
+    double max_trace_int = -1e16;
     double max_trace_int_idx = 0;
 
     for (Size j = 0; j != mono_trace.size(); ++j)
@@ -2150,7 +2242,7 @@ protected:
     for (Size i = 1; i <= n_scans; ++i)
     {
       double rt_after = max_trace_int_rt;
-      if (max_trace_int_idx < mono_trace.size() - i)
+      if (max_trace_int_idx < (Int)mono_trace.size() - (Int)i)
       {
         rt_after = mono_trace[max_trace_int_idx + i].getRT();
       }
@@ -2542,7 +2634,6 @@ protected:
       qc_dir.mkpath(qc_output_directory.toQString());
     }
 
-
     String out_csv = getStringOption_("out_csv");
     ofstream out_csv_stream(out_csv.c_str());
     out_csv_stream << fixed << setprecision(4);
@@ -2601,7 +2692,7 @@ protected:
     // annotate as features found using feature finding (to distinguish them from averagine features oder id based features ... see below)
     for (FeatureMap<>::iterator feature_it = feature_map.begin(); feature_it != feature_map.end(); ++feature_it)
     {
-      feature_it->setMetaValue("feature_type", "feature");
+      feature_it->setMetaValue("feature_type", FEATURE_STRING);
     }
 
     // if also unassigned ids are used create a pseudo feature
@@ -2615,7 +2706,7 @@ protected:
         if (!hits.empty())
         {
           Feature f;
-          f.setMetaValue("feature_type", "id");
+          f.setMetaValue("feature_type", UNASSIGNED_ID_STRING);
           f.setRT(it->getRT());
           // take sequence of first hit to calculate ground truth mz
           double charge = hits[0].getCharge();
@@ -2694,23 +2785,8 @@ protected:
         blacklist_idx.push_back(index);
       }
 
-      // lookup for averagine calulcation
-      const double averagine_C = 0.0444398894906044;
-      const double averagine_H = 0.0698157176375389;
-      const double averagine_N = 0.0122177302837372;
-      const double averagine_O = 0.013293989934027;
-      const double averagine_S = 0.000375250005163252;
-
-      Size averagine_id_features = 0;
-      Size blacklisted_features = 0;
-      MassDecompositionAlgorithm mda;
-      Param p(mda.getParameters());
-      p.setValue("decomp_weights_precision", 1e-6);
-      p.setValue("tolerance", 1e-3);
-      mda.setParameters(p);
       for (Size i = 0; i != peak_map.size(); ++i)
       {
-        LOG_INFO << (double)i / (double)peak_map.size() * 100.0;
         // precursor not blacklisted?
         if (find(blacklist_idx.begin(), blacklist_idx.end(), i) == blacklist_idx.end() && !peak_map[i].getPrecursors().empty())
         {
@@ -2724,86 +2800,8 @@ protected:
           // add averagine id to pseudo feature
           PeptideHit pseudo_hit;
 
-          // generate pseudo id
-          vector<MassDecomposition> decomps;
-
-          // calculate from full to internal mass
-          double internal_precursor_mass = precursor_mass - EmpiricalFormula("H2O").getMonoWeight();
-
-          if (internal_precursor_mass > 3000)
-            continue;
-
-          // calculate averagine empirical formula for this mass
-          double C_num = precursor_mass * averagine_C;
-          double H_num = precursor_mass * averagine_H;
-          double N_num = precursor_mass * averagine_N;
-          double O_num = precursor_mass * averagine_O;
-          double S_num = precursor_mass * averagine_S;
-
-          cout << "decomposing mass: " << precursor_mass << endl;
-          mda.getDecompositions(decomps, internal_precursor_mass);
-
-          if (decomps.empty())
-          {
-            continue;
-          }
-
-          cout << "number of mass decompositions: " << decomps.size() << endl;
-
-          // select peptide candidate that matches best the averagine model
-          AASequence best_averagine_peptide;
-          double best_labeling_element_error = std::numeric_limits<double>::max();
-          double best_total_error = std::numeric_limits<double>::max();
-
-          Size iter_count = 0;
-          for (vector<MassDecomposition>::const_iterator decomp_it = decomps.begin(); decomp_it != decomps.end(); ++decomp_it)
-          {
-            AASequence tmp_averagine_peptide = AASequence::fromString(decomp_it->toExpandedString());
-            EmpiricalFormula tmp_averagine_formula = tmp_averagine_peptide.getFormula();
-
-            // We want to take the mass decomposition peptide that is closest to the averagine peptide in terms of the count of the labeling element
-            // (as the e.g. N or C, depending on labeling will dominate the isotope distribution)
-            double labeling_element_error = 0;
-
-            double total_error = fabs(C_num - (double)tmp_averagine_formula.getNumberOf("C")) + fabs(H_num - (double)tmp_averagine_formula.getNumberOf("H"))
-              + fabs(N_num - (double)tmp_averagine_formula.getNumberOf("N")) + fabs(O_num - (double)tmp_averagine_formula.getNumberOf("O"))
-              + fabs(S_num - (double)tmp_averagine_formula.getNumberOf("S"));
-
-            if (use_N15)
-            {
-              labeling_element_error += round(fabs(N_num - (double)tmp_averagine_formula.getNumberOf("N")));
-            }
-            else
-            {
-              labeling_element_error += round(fabs(C_num - (double)tmp_averagine_formula.getNumberOf("C")));
-            }
-
-            if (labeling_element_error < best_labeling_element_error)
-            {
-              best_labeling_element_error = labeling_element_error;
-              best_total_error = total_error;
-              best_averagine_peptide = tmp_averagine_peptide;
-            }
-            else if (labeling_element_error == best_labeling_element_error) // if same error on labeling element optimize other elements
-            {
-              if (total_error < best_total_error)
-              {
-                best_labeling_element_error = labeling_element_error;
-                best_total_error = total_error;
-                best_averagine_peptide = tmp_averagine_peptide;
-              }
-            }
-
-            // stop if max iterations
-            if (iter_count > 1e6)
-            {
-              break;
-            }
-            iter_count++;
-          }
-
           // set peptide with lowest deviation from averagine
-          pseudo_hit.setSequence(best_averagine_peptide);
+          pseudo_hit.setSequence(AASequence());  // set empty sequence
           pseudo_hit.setCharge(precursor_charge);
           PeptideIdentification pseudo_id;
           vector<PeptideHit> pseudo_hits;
@@ -2814,23 +2812,11 @@ protected:
           f.setPeptideIdentifications(id);
           f.setRT(peak_map[i].getRT());
           f.setMZ(precursor_mz);
-          f.setMetaValue("feature_type", "averagine_id");
+          f.setMetaValue("feature_type", UNIDENTIFIED_STRING);
           feature_map.push_back(f);
-          averagine_id_features++;
-
-          std::cout << "averagine seq: " << best_averagine_peptide.toString() << endl;
-          std::cout << "uncharged precursor weight: " << precursor_mass << endl;
-          std::cout << "uncharged averagine weight: " << best_averagine_peptide.getMonoWeight() << endl;
-          std::cout << "labeling element count deviation from averagine: " << best_labeling_element_error << endl;
-        }
-        else
-        {
-          blacklisted_features++;
         }
       }
       feature_map.updateRanges();
-      std::cout << "Evaluating " << averagine_id_features << " averagine identifications." << endl;
-      std::cout << "Mapped to " << blacklisted_features << " existing features." << endl;
     }
 
     LOG_INFO << "loading experiment..." << endl;
@@ -2899,13 +2885,31 @@ protected:
       const double feature_hit_score = feature_hit.getScore();
       const double feature_hit_center_mz = feature_it->getMZ();
       const double feature_hit_charge = feature_hit.getCharge();
-      const AASequence feature_hit_aaseq = feature_hit.getSequence();
-      const String feature_hit_seq = feature_hit.getSequence().toString();
-      const double feature_hit_theoretical_mz = feature_hit.getSequence().getMonoWeight(Residue::Full, feature_hit.getCharge()) / feature_hit.getCharge();
+      
+      String feature_hit_seq = "";
+      double feature_hit_theoretical_mz = 0;
+      AASequence feature_hit_aaseq;
+      // set theoretical mz of peptide hit to:
+      //   mz of sequence if we have a sequence identified 
+      // otherwise:
+      //   mz of precursor (stored in feature mz) if no sequence identified
+      if (sip_peptide.feature_type == FEATURE_STRING || sip_peptide.feature_type == UNASSIGNED_ID_STRING)
+      {
+        feature_hit_aaseq = feature_hit.getSequence();
+        feature_hit_seq = feature_hit_aaseq.toString();
+        feature_hit_theoretical_mz = feature_hit_aaseq.getMonoWeight(Residue::Full, feature_hit.getCharge()) / feature_hit.getCharge();
+      }
+      else if (sip_peptide.feature_type == UNIDENTIFIED_STRING)
+      {
+        feature_hit_aaseq = AASequence();
+        feature_hit_seq = String("");
+        feature_hit_theoretical_mz = feature_hit_center_mz;        
+      }
 
       sip_peptide.accessions = feature_hit.getProteinAccessions();
       sip_peptide.sequence = feature_hit_aaseq;
       sip_peptide.mz_theo = feature_hit_theoretical_mz;
+      sip_peptide.mass_theo = feature_hit_theoretical_mz * feature_hit_charge - feature_hit_charge * Constants::PROTON_MASS_U;
       sip_peptide.charge = feature_hit_charge;
       sip_peptide.score = feature_hit_score;
       sip_peptide.feature_rt = feature_hit_center_rt;
@@ -2918,26 +2922,23 @@ protected:
 
       // determine maximum number of peaks and mass difference
       EmpiricalFormula e = feature_hit_aaseq.getFormula();
-      //cout << "Empirical formula: " << e.getString() << endl;
 
-      double mass_diff;
+      // assign mass difference between labeling element isotopes
+      sip_peptide.mass_diff = use_N15 ? 0.9970349 : 1.003354837810;
+
       Size element_count;
-      if (!use_N15)
+      if (sip_peptide.feature_type == FEATURE_STRING || sip_peptide.feature_type == UNASSIGNED_ID_STRING)
       {
-        mass_diff = 1.003354837810;
-        element_count = e.getNumberOf("Carbon");
-        //cout << "Carbon count: " << element_count << endl;
+        element_count = use_N15 ? e.getNumberOf("Nitrogen") : e.getNumberOf("Carbon");
       }
-      else
-      {
-        mass_diff = 0.9970349;
-        element_count = e.getNumberOf("Nitrogen");
-        //cout << "Nitrogen count: " << element_count << endl;
+      else if (sip_peptide.feature_type == UNIDENTIFIED_STRING)
+      {        
+        // calculate number of expected labeling elements using averagine model
+        element_count = use_N15 ? sip_peptide.mass_theo * 0.0122177302837372 : sip_peptide.mass_theo * 0.0444398894906044;
       }
-      sip_peptide.mass_diff = mass_diff;
 
       // collect 13C / 15N peaks
-      vector<double> isotopic_intensities = extractIsotopicIntensitiesConsensus(element_count + ADDITIONAL_ISOTOPES, mass_diff, mz_tolerance_ppm_, seeds_rt, feature_hit_theoretical_mz, feature_hit_charge, peak_map);
+      vector<double> isotopic_intensities = extractIsotopicIntensitiesConsensus(element_count + ADDITIONAL_ISOTOPES, sip_peptide.mass_diff, mz_tolerance_ppm_, seeds_rt, feature_hit_theoretical_mz, feature_hit_charge, peak_map);
       double TIC = accumulate(isotopic_intensities.begin(), isotopic_intensities.end(), 0.0);
 
       // no Peaks collected
@@ -2951,16 +2952,15 @@ protected:
       }
 
       // FOR VALIDATION: extract the merged peak spectra for later visualization during validation
-      sip_peptide.merged = extractPeakSpectrumConsensus(element_count + ADDITIONAL_ISOTOPES, mass_diff, seeds_rt, feature_hit_theoretical_mz, feature_hit_charge, peak_map);
+      sip_peptide.merged = extractPeakSpectrumConsensus(element_count + ADDITIONAL_ISOTOPES, sip_peptide.mass_diff, seeds_rt, feature_hit_theoretical_mz, feature_hit_charge, peak_map);
       // FOR VALIDATION: filter peaks outside of x ppm window around expected isotopic peak
-      sip_peptide.filtered_merged = filterPeakSpectrumForIsotopicPeaks(element_count + ADDITIONAL_ISOTOPES, mass_diff, feature_hit_theoretical_mz, feature_hit_charge, sip_peptide.merged, mz_tolerance_ppm_);
+      sip_peptide.filtered_merged = filterPeakSpectrumForIsotopicPeaks(element_count + ADDITIONAL_ISOTOPES, sip_peptide.mass_diff, feature_hit_theoretical_mz, feature_hit_charge, sip_peptide.merged, mz_tolerance_ppm_);
       // store accumulated intensities at theoretical positions
-      sip_peptide.accumulated = isotopicIntensitiesToSpectrum(feature_hit_theoretical_mz, mass_diff, feature_hit_charge, isotopic_intensities);
+      sip_peptide.accumulated = isotopicIntensitiesToSpectrum(feature_hit_theoretical_mz, sip_peptide.mass_diff, feature_hit_charge, isotopic_intensities);
 
       sip_peptide.global_LR = calculateGlobalLR(isotopic_intensities);
 
       LOG_INFO << "isotopic intensities collected: " << isotopic_intensities.size() << endl;
-
       LOG_INFO << feature_hit.getSequence().toString() << "\trt: " << max_trace_int_rt << endl;
 
       // correlation filtering
@@ -2969,22 +2969,20 @@ protected:
       IsotopePatterns patterns;
 
       // calculate isotopic patterns for the given sequence, incoroporation interval/steps
-      // pair<incoperation rate, isotopic peaks>
-
-      if (!use_N15)
+      if (sip_peptide.feature_type == FEATURE_STRING || sip_peptide.feature_type == UNASSIGNED_ID_STRING)
       {
-        patterns = MetaProSIPDecomposition::calculateIsotopePatternsFor13CRange(AASequence::fromString(feature_hit_seq));
+        patterns = use_N15 ? MetaProSIPDecomposition::calculateIsotopePatternsFor15NRange(AASequence::fromString(feature_hit_seq)) : MetaProSIPDecomposition::calculateIsotopePatternsFor13CRange(AASequence::fromString(feature_hit_seq));
       }
-      else
+      else if (sip_peptide.feature_type == UNIDENTIFIED_STRING)
       {
-        patterns = MetaProSIPDecomposition::calculateIsotopePatternsFor15NRange(AASequence::fromString(feature_hit_seq));
+        patterns = use_N15 ? MetaProSIPDecomposition::calculateIsotopePatternsFor15NRangeOfAveraginePeptide(sip_peptide.mass_theo) : MetaProSIPDecomposition::calculateIsotopePatternsFor13CRangeOfAveraginePeptide(sip_peptide.mass_theo);
       }
-
+    
       // store theoretical patterns for visualization
       sip_peptide.patterns = patterns;
       for (IsotopePatterns::const_iterator pit = sip_peptide.patterns.begin(); pit != sip_peptide.patterns.end(); ++pit)
       {
-        PeakSpectrum p = isotopicIntensitiesToSpectrum(feature_hit_theoretical_mz, mass_diff, feature_hit_charge, pit->second);
+        PeakSpectrum p = isotopicIntensitiesToSpectrum(feature_hit_theoretical_mz, sip_peptide.mass_diff, feature_hit_charge, pit->second);
         p.setMetaValue("rate", (double)pit->first);
         p.setMSLevel(2);
         sip_peptide.pattern_spectra.push_back(p);
@@ -2992,14 +2990,14 @@ protected:
 
       // calculate decomposition into isotopic patterns
       MapRateToScoreType map_rate_to_decomposition_weight;
-      Int result = MetaProSIPDecomposition::calculateDecompositionWeightsIsotopicPatterns(feature_hit_seq, isotopic_intensities, patterns, map_rate_to_decomposition_weight, use_N15, sip_peptide);
+      Int result = MetaProSIPDecomposition::calculateDecompositionWeightsIsotopicPatterns(element_count, isotopic_intensities, patterns, map_rate_to_decomposition_weight, use_N15, sip_peptide);
 
       // set first intensity to zero and remove first 2 possible RIAs (0% and e.g. 1.07% for carbon)
       MapRateToScoreType tmp_map_rate_to_correlation_score;
       if (getFlag_("filter_monoisotopic"))
       {
         // calculate correlation of natural RIAs (for later reporting) before we subtract the intensities. This is somewhat redundant but no speed bottleneck.
-        calculateCorrelation(feature_hit_seq, isotopic_intensities, patterns, tmp_map_rate_to_correlation_score, use_N15, 0.0);
+        calculateCorrelation(element_count, isotopic_intensities, patterns, tmp_map_rate_to_correlation_score, use_N15, sip_peptide.mass_theo, -1.0);
         for (Size i = 0; i != sip_peptide.reconstruction_monoistopic.size(); ++i)
         {
           if (i == 0)
@@ -3018,7 +3016,7 @@ protected:
       sip_peptide.decomposition_map = map_rate_to_decomposition_weight;
 
       // calculate Pearson correlation coefficients
-      calculateCorrelation(feature_hit_seq, isotopic_intensities, patterns, map_rate_to_correlation_score, use_N15, min_correlation_distance_to_averagine);
+      calculateCorrelation(element_count, isotopic_intensities, patterns, map_rate_to_correlation_score, use_N15, sip_peptide.mass_theo, min_correlation_distance_to_averagine);
 
       // restore original correlation of natural RIAs (take maximum of observed correlations)
       if (getFlag_("filter_monoisotopic"))
