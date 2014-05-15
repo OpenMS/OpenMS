@@ -129,7 +129,7 @@ protected:
     registerSubsection_("algorithm", "Additional parameters for FDR and image sizes.");
   }
 
-  ExitCodes main_(int argc, const char ** argv)
+  ExitCodes main_(int, const char **)
   {
     //----------------------------------------------------------------
     // load data
