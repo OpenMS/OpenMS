@@ -372,8 +372,8 @@ void MassTraceDetection::run(const MSExperiment<Peak1D> & input_exp, std::vector
 
                     //                  std::cout << "down: " << centroid_mz << " "<<  ftl_sd << std::endl;
 
-                    Size left_next_idx = work_exp[trace_down_idx - 1].findNearest(left_bound);
-                    Size right_next_idx = work_exp[trace_down_idx - 1].findNearest(right_bound);
+                    // Size left_next_idx = work_exp[trace_down_idx - 1].findNearest(left_bound);
+                    // Size right_next_idx = work_exp[trace_down_idx - 1].findNearest(right_bound);
 
                     // double left_mz(work_exp[trace_down_idx - 1][left_next_idx].getMZ());
                     // double right_mz(work_exp[trace_down_idx - 1][right_next_idx].getMZ());
