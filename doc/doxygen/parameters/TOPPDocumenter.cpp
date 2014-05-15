@@ -118,7 +118,7 @@ void convertINI2HTML(const Param & p, ostream & os)
 
     //restrictions
     String restrictions = "";
-    bool escape_restrictions(true);
+    // bool escape_restrictions(true); // TODO why is this set ?
     switch (value_type)
     {
     case DataValue::INT_VALUE:
@@ -138,7 +138,7 @@ void convertINI2HTML(const Param & p, ostream & os)
         else
           restrictions += "&#8734;";
       }
-      escape_restrictions = false;     // prevent html escape of infinity symbol
+      // escape_restrictions = false;     // prevent html escape of infinity symbol
     }
     break;
 
@@ -159,7 +159,7 @@ void convertINI2HTML(const Param & p, ostream & os)
         else
           restrictions += "&#8734;";
       }
-      escape_restrictions = false;     // prevent html escape of infinity symbol
+      // escape_restrictions = false;     // prevent html escape of infinity symbol
     }
     break;
 
