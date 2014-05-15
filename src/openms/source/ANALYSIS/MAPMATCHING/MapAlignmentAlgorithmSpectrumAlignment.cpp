@@ -392,22 +392,23 @@ namespace OpenMS
           j = j - 1;
       }
     }
-    for (Size i = 0; i < xvar.size(); ++i)
+
+    for (Size k = 0; k < xvar.size(); ++k)
     {
       if (xcoordinate.size() > 0)
       {
-        if (xvar[xvar.size() - 1 - i] != xcoordinate[xcoordinate.size() - 1])
+        if (xvar[xvar.size() - 1 - k] != xcoordinate[xcoordinate.size() - 1])
         {
-          xcoordinate.push_back(xvar[xvar.size() - 1 - i]);
-          ycoordinate.push_back(yvar[yvar.size() - 1 - i]);
-          xcoordinatepattern.push_back(xxvar[xxvar.size() - 1 - i]);
+          xcoordinate.push_back(xvar[xvar.size() - 1 - k]);
+          ycoordinate.push_back(yvar[yvar.size() - 1 - k]);
+          xcoordinatepattern.push_back(xxvar[xxvar.size() - 1 - k]);
         }
       }
       else
       {
-        xcoordinate.push_back(xvar[xvar.size() - 1 - i]);
-        ycoordinate.push_back(yvar[yvar.size() - 1 - i]);
-        xcoordinatepattern.push_back(xxvar[xxvar.size() - 1 - i]);
+        xcoordinate.push_back(xvar[xvar.size() - 1 - k]);
+        ycoordinate.push_back(yvar[yvar.size() - 1 - k]);
+        xcoordinatepattern.push_back(xxvar[xxvar.size() - 1 - k]);
       }
     }
     //std::cout<< xcoordinate.size()<< std::endl;
