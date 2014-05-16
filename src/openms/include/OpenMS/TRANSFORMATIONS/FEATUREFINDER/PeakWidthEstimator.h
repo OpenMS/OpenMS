@@ -63,11 +63,13 @@ public:
       double c0, c1;
 
       Result() :
-        c0(0), c1(0)
+        c0(0), 
+        c1(0)
       {}
 
-      Result(const double c0, const double c1) :
-        c0(c0), c1(c1)
+      Result(const double local_c0, const double local_c1) :
+        c0(local_c0), 
+        c1(local_c1)
       {}
 
       double operator()(const double mz) const

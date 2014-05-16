@@ -99,17 +99,17 @@ START_SECTION((static void setSeed(UInt seed)))
   /* check if the generator changed */
   UInt64 large_int = 0;
   std::vector<UInt64> unique_ids;
-  large_int = 4039984684862977299;
+  large_int = 4039984684862977299U;
   unique_ids.push_back(large_int);
-  large_int = 11561668883169444769;
+  large_int = 11561668883169444769U;
   unique_ids.push_back(large_int);
-  large_int = 8153960635892418594;
+  large_int = 8153960635892418594U;
   unique_ids.push_back(large_int);
-  large_int = 12940485248168291983;
+  large_int = 12940485248168291983U;
   unique_ids.push_back(large_int);
-  large_int = 11522917731873626020;
+  large_int = 11522917731873626020U;
   unique_ids.push_back(large_int);
-  large_int = 4387255872055054320;
+  large_int = 4387255872055054320U;
   unique_ids.push_back(large_int);
 
   OpenMS::UniqueIdGenerator::setSeed(one_moment_in_time);

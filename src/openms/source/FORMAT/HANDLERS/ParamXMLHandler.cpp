@@ -129,13 +129,13 @@ namespace OpenMS
         Int restrictions_index = attributes.getIndex(s_restrictions);
         if (restrictions_index != -1)
         {
-          String value = sm_.convert(attributes.getValue(restrictions_index));
+          String val = sm_.convert(attributes.getValue(restrictions_index));
           std::vector<String> parts;
           if (type == "int")
           {
-            value.split(':', parts);
+            val.split(':', parts);
             if (parts.size() != 2)
-              value.split('-', parts); //for downward compatibility
+              val.split('-', parts); //for downward compatibility
             if (parts.size() == 2)
             {
               if (parts[0] != "")
@@ -154,14 +154,14 @@ namespace OpenMS
           }
           else if (type == "string")
           {
-            value.split(',', parts);
+            val.split(',', parts);
             param_.setValidStrings(name, parts);
           }
           else if (type == "float" || type == "double")
           {
-            value.split(':', parts);
+            val.split(':', parts);
             if (parts.size() != 2)
-              value.split('-', parts); //for downward compatibility
+              val.split('-', parts); //for downward compatibility
             if (parts.size() == 2)
             {
               if (parts[0] != "")
@@ -186,10 +186,10 @@ namespace OpenMS
           Int supported_formats_index = attributes.getIndex(s_supported_formats);
           if (supported_formats_index != -1)
           {
-            String value = sm_.convert(attributes.getValue(supported_formats_index));
+            String val = sm_.convert(attributes.getValue(supported_formats_index));
             std::vector<String> parts;
 
-            value.split(',', parts);
+            val.split(',', parts);
             param_.setValidStrings(name, parts);
           }
         }

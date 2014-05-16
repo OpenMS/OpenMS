@@ -544,7 +544,7 @@ namespace OpenMS
       {
         is_spectrum_usable[index] = false;
         --usable_spectra;
-        std::cerr << "skipping spectrum " << index << " due to parent mass missmatch" << std::endl;
+        std::cerr << "skipping spectrum " << index << " due to parent mass mismatch" << std::endl;
       }
       else if (precursor_charge != empirical_charge)
       {
@@ -554,7 +554,7 @@ namespace OpenMS
       }
     }
 
-    //only required for generatrion of descriptors
+    //only required for generation of descriptors
     SvmTheoreticalSpectrumGenerator spec_gen;
 
     //Amino acid sequences used for obtaining prefix and suffix mass
@@ -588,7 +588,7 @@ namespace OpenMS
         continue;
       }
 
-      Size precursor_charge = map_it->getPrecursors()[0].getCharge();
+      Size local_precursor_charge = map_it->getPrecursors()[0].getCharge();
       PeakSpectrum input_spec_norm(*map_it);
 
       normalizeIntensity(input_spec_norm);
@@ -643,7 +643,7 @@ namespace OpenMS
           }
 
           DescriptorSet descriptors;
-          spec_gen.generateDescriptorSet_(annotations[spec_index], frag_pos - 1, ion_types[type_nr], precursor_charge, descriptors);
+          spec_gen.generateDescriptorSet_(annotations[spec_index], frag_pos - 1, ion_types[type_nr], local_precursor_charge, descriptors);
 
           training_input[type_nr].push_back(descriptors);
           training_output[type_nr].push_back(observed_peak_intensity);
@@ -1078,7 +1078,7 @@ namespace OpenMS
     std::map<std::pair<IonType, Size>, std::vector<std::vector<double> > > joint_counts;
     std::map<std::pair<IonType, Size>, std::vector<double> > background_counts;
 
-    //count joint appearences of primary and secondary peaks
+    //count joint appearances of primary and secondary peaks
     for (Size i = 0; i < ion_types.size(); ++i)
     {
       const IonType & type = ion_types[i];

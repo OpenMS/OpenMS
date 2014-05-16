@@ -156,8 +156,8 @@ namespace OpenMS
     }
 
 
-    double get_quick_lda_score(double library_corr, double library_norm_manhattan, double norm_rt_score, double xcorr_coelution_score,
-                               double xcorr_shape_score, double log_sn_score)
+    double get_quick_lda_score(double library_corr_, double library_norm_manhattan_, double norm_rt_score_, double xcorr_coelution_score_,
+                               double xcorr_shape_score_, double log_sn_score_)
     {
       // some scores based on manual evaluation of 80 chromatograms
       // quick LDA average model on 100 2 x Crossvalidated runs (0.85 TPR/0.17 FDR)
@@ -172,12 +172,12 @@ namespace OpenMS
       //
       // NOTE this score means "better" if it is more negative!
       double lda_quick_score =
-        library_corr                    * -0.5319046 +
-        library_norm_manhattan          *  2.1643962 +
-        norm_rt_score                   *  8.0353047 +
-        xcorr_coelution_score           *  0.1458914 +
-        xcorr_shape_score               * -1.6901925 +
-        log_sn_score                    * -0.8002824;
+        library_corr_                    * -0.5319046 +
+        library_norm_manhattan_          *  2.1643962 +
+        norm_rt_score_                   *  8.0353047 +
+        xcorr_coelution_score_           *  0.1458914 +
+        xcorr_shape_score_               * -1.6901925 +
+        log_sn_score_                    * -0.8002824;
       return lda_quick_score;
     }
 

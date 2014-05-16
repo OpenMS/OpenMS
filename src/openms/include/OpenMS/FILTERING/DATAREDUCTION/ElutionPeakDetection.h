@@ -92,7 +92,7 @@ private:
     // double scan_time_;
     double chrom_peak_snr_;
     double noise_threshold_int_;
-    double sample_rate_;
+    //double sample_rate_;
 
     double min_fwhm_;
     double max_fwhm_;

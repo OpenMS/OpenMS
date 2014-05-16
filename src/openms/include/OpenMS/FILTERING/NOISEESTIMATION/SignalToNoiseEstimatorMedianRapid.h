@@ -93,7 +93,7 @@ public:
       int nr_windows;
       /// Start of m/z domain
       double mz_start;
-      /// Lenght of the window in m/z direction
+      /// Length of the window in m/z direction
       double window_length;
       /// Noise values for window starting at mz_start (length = nr_windows)
       std::vector<double> result_windows_even;
@@ -101,12 +101,12 @@ public:
       std::vector<double> result_windows_odd;
 
       /// Constructor
-      NoiseEstimator(double nr_windows, double mz_start, double win_len) :
-        nr_windows(nr_windows),
-        mz_start(mz_start),
-        window_length(win_len),
-        result_windows_even(nr_windows),
-        result_windows_odd(nr_windows+1)
+      NoiseEstimator(double nr_windows_, double mz_start_, double win_len_) :
+        nr_windows(nr_windows_),
+        mz_start(mz_start_),
+        window_length(win_len_),
+        result_windows_even(nr_windows_),
+        result_windows_odd(nr_windows_+1)
       {}
 
       /**

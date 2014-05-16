@@ -48,26 +48,26 @@ namespace OpenMS
   PeptideIdentification::PeptideIdentification() :
     MetaInfoInterface(),
     id_(),
-    rt_(std::numeric_limits<double>::quiet_NaN()),
-    mz_(std::numeric_limits<double>::quiet_NaN()),
     hits_(),
     significance_threshold_(0.0),
     score_type_(),
     higher_score_better_(true),
-    base_name_()
+    base_name_(),
+    mz_(std::numeric_limits<double>::quiet_NaN()),
+    rt_(std::numeric_limits<double>::quiet_NaN())
   {
   }
 
   PeptideIdentification::PeptideIdentification(const PeptideIdentification & rhs) :
     MetaInfoInterface(rhs),
     id_(rhs.id_),
-	  rt_(rhs.rt_),
-	  mz_(rhs.mz_),
 	  hits_(rhs.hits_),
     significance_threshold_(rhs.significance_threshold_),
     score_type_(rhs.score_type_),
     higher_score_better_(rhs.higher_score_better_),
-    base_name_(rhs.base_name_)
+    base_name_(rhs.base_name_),
+	  mz_(rhs.mz_),
+	  rt_(rhs.rt_)
   {
   }
 

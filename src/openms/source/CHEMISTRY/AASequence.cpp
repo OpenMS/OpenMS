@@ -748,7 +748,7 @@ namespace OpenMS
     for (Size i = 0; i != split.size(); ++i)
     {
       const String& res = split[i];
-      String name, mod, tag;
+      String name, modstr, tag;
       for (Size j = 0; j != res.size(); ++j)
       {
         if (isalpha(res[j]))
@@ -765,7 +765,7 @@ namespace OpenMS
 
             for (Size k = j + 1; k < res.size() - 1; ++k)             // skip last ')'
             {
-              mod += res[k];
+              modstr += res[k];
             }
             break;
           } else
@@ -792,35 +792,35 @@ namespace OpenMS
       // Retrieve the underlying residue
       const Residue * res_ptr = ResidueDB::getInstance()->getResidue(name);
 
-      if (res_ptr == 0 && tag.empty() && mod.empty())
+      if (res_ptr == 0 && tag.empty() && modstr.empty())
       {
         throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, peptide, "Cannot convert string into AASequence. Cannot parse residue with name: '" + name + "'!");
       }
 
-      if (!mod.empty() && i > 0)
+      if (!modstr.empty() && i > 0)
       {
         if (res_ptr == 0)
         {
           throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, peptide, "Cannot convert string into AASequence. Cannot parse residue with name: '" + name + "'!");
         }
-        aas.peptide_.push_back(ResidueDB::getInstance()->getModifiedResidue(res_ptr, mod));
-      } else if (!mod.empty() && i == 0)
+        aas.peptide_.push_back(ResidueDB::getInstance()->getModifiedResidue(res_ptr, modstr));
+      } else if (!modstr.empty() && i == 0)
       {
         if (res_ptr == 0)
         {
           throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, peptide, "Cannot convert string into AASequence. Cannot parse residue with name: '" + name + "'!");
         }
         std::set<const ResidueModification *> mod_candidates;
-        ModificationsDB::getInstance()->searchModifications(mod_candidates, res_ptr->getOneLetterCode(), mod, ResidueModification::ANYWHERE);
+        ModificationsDB::getInstance()->searchModifications(mod_candidates, res_ptr->getOneLetterCode(), modstr, ResidueModification::ANYWHERE);
         if (!mod_candidates.empty())
         {
-          aas.peptide_.push_back(ResidueDB::getInstance()->getModifiedResidue(res_ptr, mod));
+          aas.peptide_.push_back(ResidueDB::getInstance()->getModifiedResidue(res_ptr, modstr));
         } else
         {
-          ModificationsDB::getInstance()->searchTerminalModifications(mod_candidates, mod, ResidueModification::N_TERM);
+          ModificationsDB::getInstance()->searchTerminalModifications(mod_candidates, modstr, ResidueModification::N_TERM);
           if (!mod_candidates.empty())
           {
-            aas.n_term_mod_ = &ModificationsDB::getInstance()->getTerminalModification(mod, ResidueModification::N_TERM);
+            aas.n_term_mod_ = &ModificationsDB::getInstance()->getTerminalModification(modstr, ResidueModification::N_TERM);
             aas.peptide_.push_back(res_ptr);
           }
         }
@@ -852,10 +852,10 @@ namespace OpenMS
               {
                 throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, peptide, "Cannot convert string into AASequence. Cannot parse residue with name: '" + name + "'!");
               }
-              const ResidueModification * mod = ModificationsDB::getInstance()->getBestModificationsByDiffMonoMass(res_ptr->getOneLetterCode(), delta_mass, 1.0);
-              if (mod != NULL)
+              const ResidueModification * this_mod = ModificationsDB::getInstance()->getBestModificationsByDiffMonoMass(res_ptr->getOneLetterCode(), delta_mass, 1.0);
+              if (this_mod != NULL)
               {
-                result = ResidueDB::getInstance()->getModifiedResidue(res_ptr, mod->getId());
+                result = ResidueDB::getInstance()->getModifiedResidue(res_ptr, this_mod->getId());
               }
             }
           } else
@@ -880,8 +880,8 @@ namespace OpenMS
               ModificationsDB::getInstance()->getModificationsByDiffMonoMass(mods, res_ptr->getOneLetterCode(), delta_mass, 0.5);
               if (!mods.empty())
               {
-                const ResidueModification * mod = &ModificationsDB::getInstance()->getModification(mods[0]);
-                result = ResidueDB::getInstance()->getModifiedResidue(res_ptr, mod->getId());
+                const ResidueModification * this_mod = &ModificationsDB::getInstance()->getModification(mods[0]);
+                result = ResidueDB::getInstance()->getModifiedResidue(res_ptr, this_mod->getId());
               }
             }
           }
@@ -896,17 +896,17 @@ namespace OpenMS
           {
             std::cout <<  "Warning: unknown modification " << tag << " on residue "
               << name << ": will add to the database." << std::endl;
-            Residue res(tag, String(""), String(""), EmpiricalFormula(""));
+            Residue new_res(tag, String(""), String(""), EmpiricalFormula(""));
             if (is_NTerm)
             {
-              res.setMonoWeight(delta_mass);
-              res.setAverageWeight(delta_mass);
+              new_res.setMonoWeight(delta_mass);
+              new_res.setAverageWeight(delta_mass);
             } else
             {
-              res.setMonoWeight(delta_mass + res_ptr->getMonoWeight());
-              res.setAverageWeight(delta_mass + res_ptr->getAverageWeight());
+              new_res.setMonoWeight(delta_mass + res_ptr->getMonoWeight());
+              new_res.setAverageWeight(delta_mass + res_ptr->getAverageWeight());
             }
-            ResidueDB::getInstance()->addResidue(res);
+            ResidueDB::getInstance()->addResidue(new_res);
             result = ResidueDB::getInstance()->getResidue(tag);
           }
           aas.peptide_.push_back(result);
@@ -918,9 +918,9 @@ namespace OpenMS
           if (tag.hasSubstring("."))
           {
             // we have a float, look for an exact match
-            const ResidueModification * mod = ModificationsDB::getInstance()->getBestModificationsByMonoMass(res_ptr->getOneLetterCode(), mass, 1.0);
-            if (mod)
-              result = ResidueDB::getInstance()->getModifiedResidue(res_ptr, mod->getId());
+            const ResidueModification * this_mod = ModificationsDB::getInstance()->getBestModificationsByMonoMass(res_ptr->getOneLetterCode(), mass, 1.0);
+            if (this_mod)
+              result = ResidueDB::getInstance()->getModifiedResidue(res_ptr, this_mod->getId());
           } else
           {
             // we have an integer, look for the first match (usually this is what is intended)
@@ -929,8 +929,8 @@ namespace OpenMS
             ModificationsDB::getInstance()->getModificationsByDiffMonoMass(mods, res_ptr->getOneLetterCode(), res_deltamass, 0.5);
             if (!mods.empty())
             {
-              const ResidueModification * mod = &ModificationsDB::getInstance()->getModification(mods[0]);
-              result = ResidueDB::getInstance()->getModifiedResidue(res_ptr, mod->getId());
+              const ResidueModification * this_mod = &ModificationsDB::getInstance()->getModification(mods[0]);
+              result = ResidueDB::getInstance()->getModifiedResidue(res_ptr, this_mod->getId());
             }
           }
 
@@ -938,10 +938,10 @@ namespace OpenMS
           {
             // using an amino acid with zero weight should lead to an accurate mass representation of the AA (and not try to guess something)... !
             std::cout <<  "Warning: unknown modification " << tag << " on residue " << name << ": will add to the database." << std::endl;
-            Residue res(tag, String(""), String(""), EmpiricalFormula(""));
-            res.setMonoWeight(mass);
-            res.setAverageWeight(mass);
-            ResidueDB::getInstance()->addResidue(res);
+            Residue new_res(tag, String(""), String(""), EmpiricalFormula(""));
+            new_res.setMonoWeight(mass);
+            new_res.setAverageWeight(mass);
+            ResidueDB::getInstance()->addResidue(new_res);
             result = ResidueDB::getInstance()->getResidue(tag);
           }
           aas.peptide_.push_back(result);

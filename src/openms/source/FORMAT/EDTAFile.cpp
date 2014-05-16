@@ -302,7 +302,7 @@ namespace OpenMS
         entry += String("\t") + it->getRT() + "\t" + it->getMZ() + "\t" + it->getIntensity() + "\t" + it->getCharge();
       }
       // missing sub-features
-      for (Size i = handle.size(); i < max_sub; ++i)
+      for (Size j = handle.size(); j < max_sub; ++j)
       {
         entry += "\tNA\tNA\tNA\tNA";
       }

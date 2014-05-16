@@ -1943,8 +1943,6 @@ namespace OpenMS
   Param TOPPBase::getSubsectionDefaults_(const String& /*section*/) const
   {
     throw NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
-
-    return Param();
   }
 
   Param TOPPBase::getDefaultParameters_() const

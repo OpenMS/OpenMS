@@ -351,6 +351,7 @@ namespace OpenMS
     return type;
   }
 
+  void printStreamConfig_(std::ostream & os, const String & name, const std::set<String> & stream_names, const std::map<String, StreamHandler::StreamType> & stream_type_map);
   void printStreamConfig_(std::ostream & os, const String & name, const std::set<String> & stream_names, const std::map<String, StreamHandler::StreamType> & stream_type_map)
   {
     os << name << endl;

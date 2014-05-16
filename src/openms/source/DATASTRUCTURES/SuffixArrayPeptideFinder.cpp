@@ -230,7 +230,6 @@ namespace OpenMS
         String mod_str;
         if (ca[i][j].second != 0)
         {
-          String mod_str;
           if (modification_output_method_ == "mass")
           {
             //stringstream ss;

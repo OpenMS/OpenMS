@@ -185,7 +185,7 @@ void updateWeightedSDEstimateRobust(PeakType p, const double & mean_t1, double &
     last_weights_sum = weights_sum;
 }
 
-void computeWeightedSDEstimate(std::list<PeakType> tmp, const double & mean_t, double & sd_t, const double & lower_sd_bound)
+void computeWeightedSDEstimate(std::list<PeakType> tmp, const double & mean_t, double & sd_t, const double & /* lower_sd_bound */)
 {
     double denom(0.0), weights_sum(0.0);
 
