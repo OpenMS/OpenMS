@@ -165,8 +165,10 @@ namespace OpenMS
     std::pair<double, double > bestcoeff;
     double besterror = std::numeric_limits<double>::max();
     double bettererror;
+#ifdef DEBUG_MRMRTNORMALIZER 
     double betterrsq = 0;
-    double bestrsq = 0; // TODO is this var used?
+    double bestrsq = 0;
+#endif
 
     for (size_t ransac_int=0; ransac_int<k; ransac_int++) 
     {
@@ -192,16 +194,18 @@ namespace OpenMS
         betterdata.insert( betterdata.end(), alsoinliers.begin(), alsoinliers.end() );
         std::pair<double, double > bettercoeff = llsm_fit(betterdata);
         bettererror = llsm_rss(betterdata,bettercoeff);
+#ifdef DEBUG_MRMRTNORMALIZER 
         betterrsq = llsm_rsq(betterdata);
+#endif
  
         if (bettererror < besterror)
         {
           besterror = bettererror;
           bestcoeff = bettercoeff;
           bestdata = betterdata;
-          bestrsq = betterrsq;
  
 #ifdef DEBUG_MRMRTNORMALIZER 
+          bestrsq = betterrsq;
           std::cout << "RANSAC " << ransac_int << ": Points: " << betterdata.size() << " RSQ: " << bestrsq << " Error: " << besterror << " c0: " << bestcoeff.first << " c1: " << bestcoeff.second << std::endl;
 #endif
         }
