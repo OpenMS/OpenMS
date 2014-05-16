@@ -121,4 +121,63 @@ namespace OpenMS
     }
   }
 
+  std::pair<double,double> OpenSwathHelper::estimateRTRange(OpenSwath::LightTargetedExperiment & exp)
+  {
+    if (exp.getPeptides().empty()) 
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+        "Input list of targets is empty.");
+    }
+    double max = exp.getPeptides()[0].rt;
+    double min = exp.getPeptides()[0].rt;
+    for (Size i = 0; i < exp.getPeptides().size(); i++)
+    {
+      if (exp.getPeptides()[i].rt < min) min = exp.getPeptides()[i].rt;
+      if (exp.getPeptides()[i].rt > max) max = exp.getPeptides()[i].rt;
+    }
+    return std::make_pair(min,max);
+  }
+
+  std::map<std::string, double> OpenSwathHelper::simpleFindBestFeature(
+      OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType & transition_group_map, 
+      bool useQualCutoff, double qualCutoff)
+  {
+    std::map<std::string, double> result;
+    for (OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType::iterator trgroup_it = transition_group_map.begin();
+        trgroup_it != transition_group_map.end(); trgroup_it++)
+    {
+      // we need at least one feature to find the best one
+      OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType * transition_group = &trgroup_it->second;
+      if (transition_group->getFeatures().size() == 0)
+      {
+        std::cout << "Did not find any features for group " + transition_group->getTransitionGroupID() << std::endl;
+        continue;
+      }
+
+      // Find the feature with the highest score
+      MRMFeature * bestf = NULL;
+      double highest_score = 0;
+      for (std::vector<MRMFeature>::iterator mrmfeature = transition_group->getFeaturesMuteable().begin();
+           mrmfeature != transition_group->getFeaturesMuteable().end(); ++mrmfeature)
+      {
+        if (!bestf || mrmfeature->getOverallQuality() > highest_score)
+        {
+          bestf = &(*mrmfeature);
+          highest_score = mrmfeature->getOverallQuality();
+        }
+      }
+
+      // Skip if we did not find a feature or do not exceed a certain quality
+      if (!bestf || (useQualCutoff && bestf->getOverallQuality() < qualCutoff) ) 
+      {
+        continue;
+      }
+
+      // If we have a found a best feature, add it to the vector
+      String pepref = trgroup_it->second.getTransitions()[0].getPeptideRef();
+      result[ pepref ] = bestf->getRT();
+    }
+    return result;
+  }
+
 }

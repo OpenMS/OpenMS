@@ -789,6 +789,14 @@ OpenSwathDecoyGenerator.TraML.tmp -method pseudo-reverse -remove_CNterm_mods -te
   add_test("TOPP_OpenSwathRTNormalizer_test_1" ${TOPP_BIN_PATH}/OpenSwathRTNormalizer -in ${DATA_DIR_TOPP}/OpenSwathRTNormalizer_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathRTNormalizer_1_input.TraML -out OpenSwathRTNormalizer_1_output.trafoXML.tmp -test)
   add_test("TOPP_OpenSwathRTNormalizer_test_1_out1" ${DIFF} -in1 OpenSwathRTNormalizer_1_output.trafoXML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathRTNormalizer_1_output.trafoXML)
   set_tests_properties("TOPP_OpenSwathRTNormalizer_test_1_out1" PROPERTIES DEPENDS "TOPP_OpenSwathRTNormalizer_test_1")
+  add_test("TOPP_OpenSwathRTNormalizer_test_2" ${TOPP_BIN_PATH}/OpenSwathRTNormalizer -in ${DATA_DIR_TOPP}/OpenSwathRTNormalizer_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathRTNormalizer_1_input.TraML -out OpenSwathRTNormalizer_1_output.trafoXML.tmp -test -estimateBestPeptides -peptideEstimation:NrRTBins 30 -peptideEstimation:MinBinsFilled 30)
+  set_tests_properties("TOPP_OpenSwathRTNormalizer_test_2" PROPERTIES WILL_FAIL 1) ## will not reach bin coverage
+  add_test("TOPP_OpenSwathRTNormalizer_test_3" ${TOPP_BIN_PATH}/OpenSwathRTNormalizer -in ${DATA_DIR_TOPP}/OpenSwathRTNormalizer_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathRTNormalizer_1_input.TraML -out OpenSwathRTNormalizer_3_output.trafoXML.tmp -test -estimateBestPeptides -peptideEstimation:NrRTBins 3 -peptideEstimation:MinBinsFilled 3)
+  add_test("TOPP_OpenSwathRTNormalizer_test_3_out1" ${DIFF} -in1 OpenSwathRTNormalizer_3_output.trafoXML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathRTNormalizer_3_output.trafoXML)
+  set_tests_properties("TOPP_OpenSwathRTNormalizer_test_3_out1" PROPERTIES DEPENDS "TOPP_OpenSwathRTNormalizer_test_3")
+  add_test("TOPP_OpenSwathRTNormalizer_test_4" ${TOPP_BIN_PATH}/OpenSwathRTNormalizer -in ${DATA_DIR_TOPP}/OpenSwathRTNormalizer_1_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathRTNormalizer_1_input.TraML -out OpenSwathRTNormalizer_4_output.trafoXML.tmp -test -outlierDetection:outlierMethod iter_residual)
+  add_test("TOPP_OpenSwathRTNormalizer_test_4_out1" ${DIFF} -in1 OpenSwathRTNormalizer_4_output.trafoXML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathRTNormalizer_4_output.trafoXML)
+  set_tests_properties("TOPP_OpenSwathRTNormalizer_test_4_out1" PROPERTIES DEPENDS "TOPP_OpenSwathRTNormalizer_test_4")
 
   add_test("TOPP_OpenSwathConfidenceScoring_1" ${TOPP_BIN_PATH}/OpenSwathConfidenceScoring -test -in ${DATA_DIR_TOPP}/OpenSwathFeatureXMLToTSV_input.featureXML -lib ${DATA_DIR_TOPP}/OpenSwathFeatureXMLToTSV_input.TraML -trafo ${DATA_DIR_TOPP}/OpenSwathConfidenceScoring_1_input.trafoXML -transitions 2 -decoys 1 -out OpenSwathConfidenceScoring_1_output.tmp)
   add_test("TOPP_OpenSwathConfidenceScoring_1_out1" ${DIFF} -in1 OpenSwathConfidenceScoring_1_output.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathConfidenceScoring_1_output.featureXML)
