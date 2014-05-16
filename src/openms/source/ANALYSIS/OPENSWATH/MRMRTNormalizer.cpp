@@ -33,11 +33,194 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMRTNormalizer.h>
+#include <OpenMS/MATH/STATISTICS/LinearRegression.h>
+#include <OpenMS/CONCEPT/LogStream.h> // LOG_DEBUG
+
+#include <numeric>
+#include <boost/math/special_functions/erf.hpp>
+#include <algorithm>
 
 namespace OpenMS
 {
+  std::pair<double, double > MRMRTNormalizer::llsm_fit(std::vector<std::pair<double, double> >& pairs) 
+  {
+    std::vector<double> x, y;
 
-  int MRMRTNormalizer::outlier_candidate(std::vector<double>& x, std::vector<double>& y)
+    for (std::vector<std::pair<double, double> >::iterator it = pairs.begin(); it != pairs.end(); ++it)
+    {
+      x.push_back(it->first);
+      y.push_back(it->second);
+    }
+    
+    // GSL implementation
+    //double c0, c1, cov00, cov01, cov11, sumsq;
+    //double* xa = &x[0];
+    //double* ya = &y[0];
+    //gsl_fit_linear(xa, 1, ya, 1, pairs.size(), &c0, &c1, &cov00, &cov01, &cov11, &sumsq);
+ 
+    // OpenMS::MATH implementation
+    Math::LinearRegression lin_reg;
+    lin_reg.computeRegression(0.95, x.begin(), x.end(), y.begin());
+    double c0, c1;
+    c0 = lin_reg.getIntercept();
+    c1 = lin_reg.getSlope(); 
+
+    return(std::make_pair(c0,c1));
+  }
+  
+  double MRMRTNormalizer::llsm_rsq(std::vector<std::pair<double, double> >& pairs) 
+  {
+    std::vector<double> x, y;
+
+    for (std::vector<std::pair<double, double> >::iterator it = pairs.begin(); it != pairs.end(); ++it)
+    {
+      x.push_back(it->first);
+      y.push_back(it->second);
+    }
+
+    // GSL implementation
+    //double* xa = &x[0];
+    //double* ya = &y[0];
+    //double r = gsl_stats_correlation(xa, 1, ya, 1, pairs.size());
+    //return(r);
+
+    // OpenMS::MATH implementation
+    Math::LinearRegression lin_reg;
+    lin_reg.computeRegression(0.95, x.begin(), x.end(), y.begin());
+
+    return lin_reg.getRSquared();
+  }
+  
+  double MRMRTNormalizer::llsm_rss(std::vector<std::pair<double, double> >& pairs, std::pair<double, double >& coefficients) 
+  {
+    double rss = 0;
+  
+    for (std::vector<std::pair<double, double> >::iterator it = pairs.begin(); it != pairs.end(); ++it)
+    {
+      rss += pow(it->second - (coefficients.first + ( coefficients.second * it->first)), 2);
+    }
+  
+    return rss;
+  }
+  
+  std::vector<std::pair<double, double> > MRMRTNormalizer::llsm_rss_inliers(
+      std::vector<std::pair<double, double> >& pairs,
+      std::pair<double, double >& coefficients, double max_threshold) 
+  {
+    std::vector<std::pair<double, double> > alsoinliers;
+  
+    for (std::vector<std::pair<double, double> >::iterator it = pairs.begin(); it != pairs.end(); ++it)
+    {
+      if (pow(it->second - (coefficients.first + ( coefficients.second * it->first)), 2) < max_threshold) 
+      {
+        alsoinliers.push_back(*it);
+      }
+    }
+  
+    return alsoinliers;
+  }
+
+  std::vector<std::pair<double, double> > MRMRTNormalizer::removeOutliersRANSAC(
+      std::vector<std::pair<double, double> >& pairs, double rsq_limit,
+      double coverage_limit, size_t max_iterations, double max_rt_threshold, size_t sampling_size) 
+  {
+    size_t n = sampling_size;
+    size_t k = (size_t)max_iterations;
+    double t = max_rt_threshold*max_rt_threshold;
+    size_t d = (size_t)(coverage_limit*pairs.size());
+
+    if (n < 5)
+    {
+      throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-LinearRegression-RTNormalizer", "WARNING: RANSAC: " + boost::lexical_cast<std::string>(n) + " sampled RT peptides is below limit of 5 peptides required for the RANSAC outlier detection algorithm.");
+    }
+
+    if (pairs.size() < 30)
+    {
+      throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-LinearRegression-RTNormalizer", "WARNING: RANSAC: " + boost::lexical_cast<std::string>(pairs.size()) + " input RT peptides is below limit of 30 peptides required for the RANSAC outlier detection algorithm.");
+    }
+
+    std::vector<std::pair<double, double> > new_pairs = MRMRTNormalizer::ransac(pairs, n, k, t, d);
+
+    double bestrsq = llsm_rsq(new_pairs);
+
+    if (bestrsq < rsq_limit) 
+    {
+      throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-LinearRegression-RTNormalizer", "WARNING: rsq: " + boost::lexical_cast<std::string>(bestrsq) + " is below limit of " + boost::lexical_cast<std::string>(rsq_limit) + ". Validate assays for RT-peptides and adjust the limit for rsq or coverage.");
+    }
+
+    if (new_pairs.size() < d) 
+    {
+      throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-LinearRegression-RTNormalizer", "WARNING: number of data points: " + boost::lexical_cast<std::string>(new_pairs.size()) + " is below limit of " + boost::lexical_cast<std::string>(d) + ". Validate assays for RT-peptides and adjust the limit for rsq or coverage.");
+    }
+
+    return new_pairs;
+  }
+
+  std::vector<std::pair<double, double> > MRMRTNormalizer::ransac(
+      std::vector<std::pair<double, double> >& pairs, size_t n, size_t k, double t, size_t d, bool test) 
+  {
+    // implementation of the RANSAC algorithm according to http://wiki.scipy.org/Cookbook/RANSAC.
+  
+    std::vector<std::pair<double, double> > maybeinliers, test_points, alsoinliers, betterdata, bestdata;
+    std::pair<double, double > bestcoeff;
+    double besterror = std::numeric_limits<double>::max();
+    double bettererror;
+    double betterrsq = 0;
+    double bestrsq = 0; // TODO is this var used?
+
+    for (size_t ransac_int=0; ransac_int<k; ransac_int++) 
+    {
+      std::vector<std::pair<double, double> > pairs_shuffled = pairs;
+
+      if (!test) 
+      { // disables random selection in test mode
+        std::random_shuffle(pairs_shuffled.begin(), pairs_shuffled.end());
+      }
+ 
+      maybeinliers.clear();
+      test_points.clear();
+      std::copy( pairs_shuffled.begin(), pairs_shuffled.begin()+n, std::back_inserter(maybeinliers) );
+      std::copy( pairs_shuffled.begin()+n, pairs_shuffled.end(), std::back_inserter(test_points) );
+
+      std::pair<double, double > coeff = llsm_fit(maybeinliers);
+
+      alsoinliers = llsm_rss_inliers(test_points,coeff,t);
+  
+      if (alsoinliers.size() > d) 
+      {
+        betterdata = maybeinliers;
+        betterdata.insert( betterdata.end(), alsoinliers.begin(), alsoinliers.end() );
+        std::pair<double, double > bettercoeff = llsm_fit(betterdata);
+        bettererror = llsm_rss(betterdata,bettercoeff);
+        betterrsq = llsm_rsq(betterdata);
+ 
+        if (bettererror < besterror)
+        {
+          besterror = bettererror;
+          bestcoeff = bettercoeff;
+          bestdata = betterdata;
+          bestrsq = betterrsq;
+ 
+#ifdef DEBUG_MRMRTNORMALIZER 
+          std::cout << "RANSAC " << ransac_int << ": Points: " << betterdata.size() << " RSQ: " << bestrsq << " Error: " << besterror << " c0: " << bestcoeff.first << " c1: " << bestcoeff.second << std::endl;
+#endif
+        }
+      }
+    }
+   
+#ifdef DEBUG_MRMRTNORMALIZER
+    std::cout << "=======STARTPOINTS=======" << std::endl;
+    for (std::vector<std::pair<double, double> >::iterator it = bestdata.begin(); it != bestdata.end(); ++it)
+    {
+      std::cout << it->first << "\t" << it->second << std::endl;
+    }
+    std::cout << "=======ENDPOINTS=======" << std::endl;
+#endif
+ 
+    return(bestdata);
+  } 
+ 
+  int MRMRTNormalizer::jackknifeOutlierCandidate(std::vector<double>& x, std::vector<double>& y)
   {
     // Returns candidate outlier: A linear regression and rsq is calculated for
     // the data points with one removed pair. The combination resulting in
@@ -60,8 +243,28 @@ namespace OpenMS
     return max_element(rsq_tmp.begin(), rsq_tmp.end()) - rsq_tmp.begin();
   }
 
-  std::vector<std::pair<double, double> > MRMRTNormalizer::rm_outliers(
-      std::vector<std::pair<double, double> >& pairs, double rsq_limit, double coverage_limit, bool use_chauvenet)
+  int MRMRTNormalizer::residualOutlierCandidate(std::vector<double>& x, std::vector<double>& y)
+  {
+    // Returns candidate outlier: A linear regression and residuales are calculated for
+    // the data points. The one with highest residual error is selected as the outlier candidate. The
+    // corresponding iterator position is then returned.
+    Math::LinearRegression lin_reg;
+    lin_reg.computeRegression(0.95, x.begin(), x.end(), y.begin());
+    double residual;
+    std::vector<double> residuals;
+
+    for (Size i = 0; i < x.size(); i++)
+    {
+      residual = fabs(y[i] - (lin_reg.getIntercept() + (lin_reg.getSlope() * x[i])));
+      residuals.push_back(residual);
+    }
+
+    return max_element(residuals.begin(), residuals.end()) - residuals.begin();
+  }
+
+  std::vector<std::pair<double, double> > MRMRTNormalizer::removeOutliersIterative(
+      std::vector<std::pair<double, double> >& pairs, double rsq_limit, 
+      double coverage_limit, bool use_chauvenet, std::string method)
   {
     if (pairs.size() < 2)
     {
@@ -108,8 +311,22 @@ namespace OpenMS
         }
 
         int pos;
-        // get candidate outlier: removal of which datapoint results in best rsq?
-        pos = outlier_candidate(x, y);
+
+        if (method == "iter_jackknife")
+        {
+          // get candidate outlier: removal of which datapoint results in best rsq?
+          pos = jackknifeOutlierCandidate(x, y);
+        }
+        else if (method == "iter_residual")
+        {
+          // get candidate outlier: removal of datapoint with largest residual?
+          pos = residualOutlierCandidate(x, y);
+        }
+        else 
+        {
+          throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+            String("Method ") + method + " is not a valid method for removeOutliersIterative");
+        }
 
         // remove if residual is an outlier according to Chauvenet's criterion
         // or if testing is turned off
@@ -140,6 +357,15 @@ namespace OpenMS
     {
       pairs_corrected.push_back(std::make_pair(x[i], y[i]));
     }
+
+#ifdef DEBUG_MRMRTNORMALIZER
+    std::cout << "=======STARTPOINTS=======" << std::endl;
+    for (std::vector<std::pair<double, double> >::iterator it = pairs_corrected.begin(); it != pairs_corrected.end(); ++it)
+    {
+      std::cout << it->first << "\t" << it->second << std::endl;
+    }
+    std::cout << "=======ENDPOINTS=======" << std::endl;
+#endif
 
     return pairs_corrected;
   }

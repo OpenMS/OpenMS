@@ -220,6 +220,7 @@ public:
         double qual = computeQuality_(transition_group, picked_chroms, chr_idx, best_left, best_right, outlier);
         if (qual < min_qual_) {return mrmFeature; }
         mrmFeature.setMetaValue("potentialOutlier", outlier);
+        mrmFeature.setMetaValue("initialPeakQuality", qual);
         mrmFeature.setOverallQuality(qual);
       }
 
