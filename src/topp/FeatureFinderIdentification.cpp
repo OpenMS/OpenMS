@@ -217,7 +217,10 @@ protected:
     else if (reference_rt_ == "score")
     {
       rts.resize(1);
-      double best_score;
+
+      // Initialization value does not matter here since we set the values in
+      // the first run anyways.
+      double best_score = 0; 
       for (ChargeMap::mapped_type::const_iterator pi_it =
              charge_data.second.begin(); pi_it != charge_data.second.end();
            ++pi_it)
