@@ -49,7 +49,7 @@ cdef extern from "<OpenMS/METADATA/PeptideHit.h>" namespace "OpenMS":
         # so we do not declare them here, but separately in each derived
         # class which we want to be wrapped:
         void getKeys(libcpp_vector[String] & keys) nogil except +
-        void getKeys(libcpp_vector[unsigned int] & keys) nogil except +
+        void getKeys(libcpp_vector[unsigned int] & keys) nogil except + # wrap-as:getKeysAsIntegers
         DataValue getMetaValue(unsigned int) nogil except +
         DataValue getMetaValue(String) nogil except +
         void setMetaValue(unsigned int, DataValue) nogil except +
