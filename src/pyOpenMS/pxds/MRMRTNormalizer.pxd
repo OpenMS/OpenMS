@@ -20,7 +20,8 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/MRMRTNormalizer.h>" namespace "Open
             double rsq_limit,
             double coverage_limit, 
             size_t max_iterations,
-            double max_rt_threshold
+            double max_rt_threshold,
+            size_t sampling_size
             ) nogil except + # wrap-attach:MRMRTNormalizer
 
     libcpp_vector[libcpp_pair[double,double]] ransac(
