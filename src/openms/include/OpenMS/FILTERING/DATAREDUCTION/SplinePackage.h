@@ -96,14 +96,14 @@ private:
 /**
  * @brief m/z limits of the package in the raw data spectrum
  */
-double mzMin_;
-double mzMax_;
+double mz_min_;
+double mz_max_;
 
 /**
  * @brief sensible m/z step width with which to scan through the package
  * (raw data spacing times a scaling factor typically <1)
  */
-double mzStepWidth_;
+double mz_step_width_;
 
 /**
  * @brief spline object for interpolation of intensity profile

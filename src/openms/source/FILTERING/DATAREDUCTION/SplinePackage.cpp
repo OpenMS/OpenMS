@@ -52,9 +52,9 @@ SplinePackage::SplinePackage(std::vector<double> mz, std::vector<double> intensi
 		throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,"m/z and intensity vectors either not of the same size or too short.");
 	}
 
-	mzMin_ = mz.front();
-	mzMax_ = mz.back();
-	mzStepWidth_ = scaling*(mzMax_ - mzMin_)/(mz.size() - 1);            // step width somewhat smaller than the average raw data spacing
+	mz_min_ = mz.front();
+	mz_max_ = mz.back();
+	mz_step_width_ = scaling*(mz_max_ - mz_min_)/(mz.size() - 1);            // step width somewhat smaller than the average raw data spacing
 }
 
 SplinePackage::~SplinePackage()
@@ -63,22 +63,22 @@ SplinePackage::~SplinePackage()
 
 double SplinePackage::getMzMin() const
 {
-	return mzMin_;
+	return mz_min_;
 }
 
 double SplinePackage::getMzMax() const
 {
-	return mzMax_;
+	return mz_max_;
 }
 
 double SplinePackage::getMzStepWidth() const
 {
-	return mzStepWidth_;
+	return mz_step_width_;
 }
 
 bool SplinePackage::isInPackage(double mz) const
 {
-	return (mz >= mzMin_ && mz <= mzMax_);
+	return (mz >= mz_min_ && mz <= mz_max_);
 }
 
 double SplinePackage::eval(double mz) const

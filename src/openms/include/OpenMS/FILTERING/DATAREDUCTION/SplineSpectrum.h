@@ -91,8 +91,8 @@ private:
 /**
  * @brief m/z limits of the spectrum
  */
-double mzMin_;
-double mzMax_;
+double mz_min_;
+double mz_max_;
 
 /**
  * @brief set of spline packages each interpolating in a certain m/z range
@@ -142,13 +142,13 @@ const std::vector<SplinePackage> * packages_;
 /**
  * @brief index of spline package last accessed
  */
-unsigned lastPackage_;
+unsigned last_package_;
 
 /**
  * @brief m/z limits of the spectrum
  */
-double mzMin_;
-double mzMax_;
+double mz_min_;
+double mz_max_;
 };
 
 public:
