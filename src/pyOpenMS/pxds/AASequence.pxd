@@ -12,8 +12,6 @@ cdef extern from "<OpenMS/CHEMISTRY/AASequence.h>" namespace "OpenMS":
         AASequence() nogil except +
         AASequence(AASequence) nogil except + # wrap-ignore
 
-        # static members
-        AASequence fromString(String s) nogil except +
 
         AASequence operator+(AASequence)    nogil except +
         AASequence iadd(AASequence)   nogil except + # wrap-as:operator+=
@@ -99,3 +97,7 @@ cdef extern from "<OpenMS/CHEMISTRY/AASequence.h>" namespace "OpenMS":
         # returns true if the residue at the position is modified
         bool isModified(Size index) nogil except +
 
+cdef extern from "<OpenMS/CHEMISTRY/AASequence.h>" namespace "OpenMS::AASequence":
+
+        # static members
+        AASequence fromString(String s) nogil except +  # wrap-attach:AASequence
