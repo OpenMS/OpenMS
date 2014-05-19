@@ -70,7 +70,8 @@ SplineSpectrum* nullPointer = 0;
 START_SECTION(SplineSpectrum())
 {
 	ptr = new SplineSpectrum(mz,intensity);
-	TEST_NOT_EQUAL(ptr, nullPointer)
+	TEST_NOT_EQUAL(ptr, nullPointer);
+    delete ptr;
 }
 END_SECTION
 
@@ -84,7 +85,7 @@ START_SECTION(getMzMax())
   TEST_EQUAL(spectrum.getMzMax(), 419.2);
 END_SECTION
 
-START_SECTION(getNavigator().eval(double mz))
+START_SECTION(double SplineSpectrum::Navigator::eval(double mz))
   // outside range of Gaussians
   TEST_EQUAL(spectrum.getNavigator().eval(400.0), 0);
   TEST_EQUAL(spectrum.getNavigator().eval(417.8), 0);
@@ -95,7 +96,7 @@ START_SECTION(getNavigator().eval(double mz))
   TEST_REAL_SIMILAR(spectrum.getNavigator().eval(416.81), 0.997572728799559);  // expected 0.99778024508561 differs by 0.02%
 END_SECTION
 
-START_SECTION(getNavigator().getNextMz(double mz))
+START_SECTION(double SplineSpectrum::Navigator::getNextMz(double mz))
   // advancing within package
   TEST_EQUAL(spectrum.getNavigator().getNextMz(417.0), 417.07);
   // advancing to next package
