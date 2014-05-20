@@ -57,7 +57,7 @@ cdef extern from "<OpenMS/METADATA/IdentificationHit.h>" namespace "OpenMS":
 
         # COPY-PASTE from MetaInfoInterface
         void getKeys(libcpp_vector[String] & keys) nogil except +
-        void getKeys(libcpp_vector[unsigned int] & keys) nogil except +
+        void getKeys(libcpp_vector[unsigned int] & keys) nogil except + # wrap-as:getKeysAsIntegers
         DataValue getMetaValue(unsigned int) nogil except +
         DataValue getMetaValue(String) nogil except +
         void setMetaValue(unsigned int, DataValue) nogil except +

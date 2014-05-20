@@ -32,76 +32,86 @@
 // $Authors: Lars Nilse $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_MATH_MISC_CUBICSPLINE2D_H_
-#define OPENMS_MATH_MISC_CUBICSPLINE2D_H_
+#ifndef OPENMS_FILTERING_DATAREDUCTION_SPLINEPACKAGE_H
+#define OPENMS_FILTERING_DATAREDUCTION_SPLINEPACKAGE_H
+
+#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/DATASTRUCTURES/DRange.h>
+#include <OpenMS/MATH/MISC/CubicSpline2d.h>
 
 #include <vector>
-#include <map>
+#include <algorithm>
+#include <iostream>
 
 namespace OpenMS
 {
-  /**
-   * @brief cubic spline interpolation
-   * as described in R.L. Burden, J.D. Faires, Numerical Analysis, 4th ed.
-   * PWS-Kent, 1989, ISBN 0-53491-585-X, pp. 126-131.
-   */
-  class OPENMS_DLLAPI CubicSpline2d
-  {
-
-    std::vector<double> a_;        // constant spline coefficients
-    std::vector<double> b_;        // linear spline coefficients
-    std::vector<double> c_;        // quadratic spline coefficients
-    std::vector<double> d_;        // cubic spline coefficients
-    std::vector<double> x_;        // knots
-
+/**
+ * @brief fundamental data structure for SplineSpectrum
+ *
+ * In many cases, data points in MS spctra are not equi-spaced in m/z but consist of packages of
+ * data points separated by wide m/z ranges with zero intensity. SplinePackage contains the
+ * spline fit of a single set of such data points.
+ *
+ * @see SplineSpectrum
+ */
+class OPENMS_DLLAPI SplinePackage
+{
 public:
+/**
+ * @brief constructor
+ */
+SplinePackage(std::vector<double> mz, std::vector<double> intensity, double scaling);
 
-    /**
-     * @brief constructor of spline interpolation
-     *
-     * @param x x-coordinates of input data points (knots)
-     * @param y y-coordinates of input data points
-     * The coordinates must match by index. Both vectors must be
-     * the same size and sorted in x. Sortedness in x is required
-     * for @see SplinePackage.
-     */
-    CubicSpline2d(const std::vector<double>& x, const std::vector<double>& y);
+/**
+ * @brief destructor
+ */
+~SplinePackage();
 
-    /**
-     * @brief constructor of spline interpolation
-     *
-     * @param m (x,y) coordinates of input data points
-     */
-    CubicSpline2d(const std::map<double, double>& m);
+/**
+ * @brief returns the minimum m/z for which the spline fit is valid
+ */
+double getMzMin() const;
 
-    /**
-     * @brief evaluates the spline at position x
-     *
-     * @param x x-position
-     */
-    double eval(double x) const;
+/**
+ * @brief returns the maximum m/z for which the spline fit is valid
+ */
+double getMzMax() const;
 
-    /**
-     * @brief evaluates derivative of spline at position x
-     *
-     * @param x x-position
-     * @param order order of the derivative
-     * Only order 1 or 2 make sense for cubic splines.
-     */
-    double derivatives(double x, unsigned order) const;
+/**
+ * @brief returns a sensible m/z step width for the package
+ */
+double getMzStepWidth() const;
+
+/**
+ * @brief returns true if m/z in [mzMin:mzMax] interval else false
+ */
+bool isInPackage(double mz) const;
+
+/**
+ * @brief returns interpolated intensity @ position mz
+ */
+double eval(double mz) const;
 
 private:
+/**
+ * @brief m/z limits of the package in the raw data spectrum
+ */
+double mz_min_;
+double mz_max_;
 
-    /**
-     * @brief initialize the spline
-     *
-     * @param x x-coordinates of input data points (knots)
-     * @param y y-coordinates of input data points
-     */
-    void init_(const std::vector<double>& x, const std::vector<double>& y);
+/**
+ * @brief sensible m/z step width with which to scan through the package
+ * (raw data spacing times a scaling factor typically <1)
+ */
+double mz_step_width_;
 
-  };
+/**
+ * @brief spline object for interpolation of intensity profile
+ */
+CubicSpline2d spline_;
+
+};
 
 }
 
-#endif /* CUBICSPLINE2D_H_ */
+#endif /* SPLINEPACKAGE_H_ */

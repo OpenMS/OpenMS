@@ -32,76 +32,65 @@
 // $Authors: Lars Nilse $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_MATH_MISC_CUBICSPLINE2D_H_
-#define OPENMS_MATH_MISC_CUBICSPLINE2D_H_
+#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/FILTERING/DATAREDUCTION/SplinePackage.h>
+#include <OpenMS/MATH/MISC/CubicSpline2d.h>
 
 #include <vector>
-#include <map>
+#include <algorithm>
+#include <iostream>
+
+using namespace std;
 
 namespace OpenMS
 {
-  /**
-   * @brief cubic spline interpolation
-   * as described in R.L. Burden, J.D. Faires, Numerical Analysis, 4th ed.
-   * PWS-Kent, 1989, ISBN 0-53491-585-X, pp. 126-131.
-   */
-  class OPENMS_DLLAPI CubicSpline2d
-  {
 
-    std::vector<double> a_;        // constant spline coefficients
-    std::vector<double> b_;        // linear spline coefficients
-    std::vector<double> c_;        // quadratic spline coefficients
-    std::vector<double> d_;        // cubic spline coefficients
-    std::vector<double> x_;        // knots
+SplinePackage::SplinePackage(std::vector<double> mz, std::vector<double> intensity, double scaling) : spline_(mz, intensity)
+{
+	if (!(mz.size() == intensity.size() && mz.size() > 2))
+	{
+		throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,"m/z and intensity vectors either not of the same size or too short.");
+	}
 
-public:
-
-    /**
-     * @brief constructor of spline interpolation
-     *
-     * @param x x-coordinates of input data points (knots)
-     * @param y y-coordinates of input data points
-     * The coordinates must match by index. Both vectors must be
-     * the same size and sorted in x. Sortedness in x is required
-     * for @see SplinePackage.
-     */
-    CubicSpline2d(const std::vector<double>& x, const std::vector<double>& y);
-
-    /**
-     * @brief constructor of spline interpolation
-     *
-     * @param m (x,y) coordinates of input data points
-     */
-    CubicSpline2d(const std::map<double, double>& m);
-
-    /**
-     * @brief evaluates the spline at position x
-     *
-     * @param x x-position
-     */
-    double eval(double x) const;
-
-    /**
-     * @brief evaluates derivative of spline at position x
-     *
-     * @param x x-position
-     * @param order order of the derivative
-     * Only order 1 or 2 make sense for cubic splines.
-     */
-    double derivatives(double x, unsigned order) const;
-
-private:
-
-    /**
-     * @brief initialize the spline
-     *
-     * @param x x-coordinates of input data points (knots)
-     * @param y y-coordinates of input data points
-     */
-    void init_(const std::vector<double>& x, const std::vector<double>& y);
-
-  };
-
+	mz_min_ = mz.front();
+	mz_max_ = mz.back();
+	mz_step_width_ = scaling*(mz_max_ - mz_min_)/(mz.size() - 1);            // step width somewhat smaller than the average raw data spacing
 }
 
-#endif /* CUBICSPLINE2D_H_ */
+SplinePackage::~SplinePackage()
+{
+}
+
+double SplinePackage::getMzMin() const
+{
+	return mz_min_;
+}
+
+double SplinePackage::getMzMax() const
+{
+	return mz_max_;
+}
+
+double SplinePackage::getMzStepWidth() const
+{
+	return mz_step_width_;
+}
+
+bool SplinePackage::isInPackage(double mz) const
+{
+	return (mz >= mz_min_ && mz <= mz_max_);
+}
+
+double SplinePackage::eval(double mz) const
+{
+	if (this->isInPackage(mz))
+	{
+        return max(0.0, spline_.eval(mz));
+	}
+	else
+	{
+		return 0;
+	}
+}
+
+}
