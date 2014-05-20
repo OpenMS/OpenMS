@@ -44,6 +44,7 @@ if (CMAKE_COMPILER_IS_GNUCXX)
 
   add_definitions(-Wall -Wextra 
     -Werror
+    -fvisibility=hidden
     -Wno-non-virtual-dtor 
     -Wno-long-long 
     -Wno-unknown-pragmas
