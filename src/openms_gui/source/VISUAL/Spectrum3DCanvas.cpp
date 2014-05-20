@@ -182,10 +182,13 @@ namespace OpenMS
     return static_cast<Spectrum3DOpenGLCanvas *>(openglcanvas_);
   }
 
+#ifdef DEBUG_TOPPVIEW
   void Spectrum3DCanvas::update_(const char * caller)
   {
-#ifdef DEBUG_TOPPVIEW
     cout << "BEGIN " << __PRETTY_FUNCTION__ << " caller: " << caller << endl;
+#else
+  void Spectrum3DCanvas::update_(const char * /* caller */)
+  {
 #endif
 
     if (update_buffer_)

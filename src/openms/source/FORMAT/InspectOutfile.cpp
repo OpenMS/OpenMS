@@ -42,6 +42,9 @@
 
 #include <set>
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunreachable-code"
+
 using namespace std;
 
 namespace OpenMS
@@ -1127,3 +1130,6 @@ namespace OpenMS
   const String InspectOutfile::score_type_ = "Inspect";
 
 } //namespace OpenMS
+
+#pragma clang diagnostic pop
+

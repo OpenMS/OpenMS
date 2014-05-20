@@ -213,7 +213,7 @@ protected:
           bool set = false;
           for (Size j = 0; j < li.size(); ++j)
           {
-            if (j==runset_col)
+            if (j==static_cast<Size>(runset_col))
             {
               if (qcmlfile.existsRun(li[j])) //TODO this only works for real run IDs
               {

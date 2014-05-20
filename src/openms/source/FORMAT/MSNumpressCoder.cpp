@@ -274,8 +274,6 @@ namespace OpenMS
       case NONE:
       {
         return;
-
-        break;
       }
       }
 

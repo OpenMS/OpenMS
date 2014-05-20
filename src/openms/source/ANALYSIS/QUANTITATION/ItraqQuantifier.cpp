@@ -158,7 +158,7 @@ namespace OpenMS
       Eigen::VectorXd b;
       b.resize(CHANNEL_COUNT[itraq_type_]);
       b.setZero();
-      std::vector<double> x (CHANNEL_COUNT[itraq_type_], 0);
+      std::vector<double> vec_x (CHANNEL_COUNT[itraq_type_], 0);
 
 
       if(!ludecomp.isInvertible())
@@ -198,9 +198,9 @@ namespace OpenMS
         }
 
         // solve
-        Eigen::MatrixXd x = ludecomp.solve( b );
+        Eigen::MatrixXd matrix_x = ludecomp.solve( b );
         // check if a solutioon exists
-        if (! ((*m) * x).isApprox(b))
+        if (! ((*m) * matrix_x).isApprox(b))
         {
           throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "ItraqQuantifier: Invalid entry in Param 'isotope_correction_values'; Cannot multiply!");
         }
@@ -216,14 +216,14 @@ namespace OpenMS
         // ISOTOPE CORRECTION: compare solutions of Matrix inversion vs. NNLS
         for (Size index = 0; index < (Size)CHANNEL_COUNT[itraq_type_]; ++index)
         {
-          if (x(index) < 0.0)
+          if (matrix_x(index) < 0.0)
           {
             ++s_negative;
           }
-          else if (std::fabs(m_x(index, 0) - x(index)) > 0.000001)
+          else if (std::fabs(m_x(index, 0) - matrix_x(index)) > 0.000001)
           {
             ++s_different_count;
-            s_different_intensity += std::fabs(m_x(index, 0) - x(index));
+            s_different_intensity += std::fabs(m_x(index, 0) - matrix_x(index));
           }
         }
 

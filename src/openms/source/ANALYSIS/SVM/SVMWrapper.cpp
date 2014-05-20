@@ -244,9 +244,6 @@ namespace OpenMS
         param_->probability = value;
       }
       break;
-
-    default:
-      break;
     }
   }
 

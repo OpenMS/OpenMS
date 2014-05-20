@@ -292,7 +292,7 @@ protected:
       return ILLEGAL_PARAMETERS;
     }
 
-    bool precursor_missing = getFlag_("precursor:allow_missing");
+    // bool precursor_missing = getFlag_("precursor:allow_missing");
     bool best_strict = getFlag_("best:strict");
     UInt min_length = getIntOption_("min_length");
     UInt max_length = getIntOption_("max_length");

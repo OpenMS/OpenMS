@@ -418,7 +418,7 @@ namespace OpenMS
         UniqueIdInterface uid;
         uid.setUniqueId(feature_id);
 
-        Size feature_index;
+        Size feature_index(-1); // TODO : not use -1 
         if (canvas()->getCurrentLayer().type == LayerData::DT_FEATURE)
           feature_index = canvas()->getCurrentLayer().getFeatureMap()->uniqueIdToIndex(uid.getUniqueId());
         else if (canvas()->getCurrentLayer().type == LayerData::DT_CONSENSUS)
