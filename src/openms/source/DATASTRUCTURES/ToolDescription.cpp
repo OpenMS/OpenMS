@@ -53,7 +53,7 @@ namespace OpenMS
       return *this;
     }
 
-    MappingParam & MappingParam::operator=(const MappingParam & rhs)
+    OPENMS_DLLAPI MappingParam & MappingParam::operator=(const MappingParam & rhs)
     {
       if (this == &rhs) return *this;
 
