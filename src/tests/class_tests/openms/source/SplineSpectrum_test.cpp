@@ -37,6 +37,9 @@
 
 #include <OpenMS/FILTERING/DATAREDUCTION/SplineSpectrum.h>
 
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
+
 using namespace OpenMS;
 
 double Gauss1(double x)
@@ -71,7 +74,7 @@ START_SECTION(SplineSpectrum())
 {
 	ptr = new SplineSpectrum(mz,intensity);
 	TEST_NOT_EQUAL(ptr, nullPointer);
-    delete ptr;
+  delete ptr;
 }
 END_SECTION
 
@@ -104,5 +107,44 @@ START_SECTION(double SplineSpectrum::Navigator::getNextMz(double mz))
   // advancing beyond range
   TEST_REAL_SIMILAR(spectrum.getNavigator().getNextMz(500.0), 419.2);
 END_SECTION
+
+/*
+START_SECTION([EXTRA] performance test)
+  
+  MSExperiment<> exp;
+  MzMLFile().load(String(OPENMS_GET_TEST_DATA_PATH("MzMLFile_5_long.mzML")), exp);
+
+  ABORT_IF(exp.size() != 1)
+
+  StopWatch sw;
+
+  sw.start();
+  for (int i=0; i<10; ++i)
+  {
+    SplineSpectrum ss(exp.getSpectrum(0));
+  }
+  sw.stop();
+  std::cout << "Initializations (1e3) took: " << sw.getCPUTime() << std::endl;
+
+  SplineSpectrum ss(exp.getSpectrum(0));
+  
+  sw.reset();
+  sw.start();
+  for (int i = 0; i < 10; ++i)
+  {
+    SplineSpectrum::Navigator nav = ss.getNavigator();
+    for (MSSpectrum<>::const_iterator it = exp.getSpectrum(0).begin(); it != exp.getSpectrum(0).end(); ++it)
+    {
+      double s = nav.eval(it->getMZ());
+    }
+  }
+  sw.stop();
+  std::cout << "Eval (1e3) took: " << sw.getCPUTime() << std::endl;
+
+
+
+END_SECTION
+ 
+*/ 
 
 END_TEST
