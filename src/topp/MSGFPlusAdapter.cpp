@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Mathias Walzer $
-// $Authors: Dilek Dere, Mathias Walzer $
+// $Maintainer: Mathias Walzerr $
+// $Authors: Dilek Dere, Mathias Walzer, Petra Gutenbrunner $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/MzMLFile.h>
@@ -133,17 +133,34 @@ protected:
     registerInputFile_("msgfplus_executable", "<executable>", "", "MSGFPlus executable of the installation e.g. 'java - jar MSGFPlus.jar'");
 
     registerDoubleOption_("precursor_mass_tolerance", "<tolerance>", 20, "Precursor mono mass tolerance.", false);
-    registerStringOption_("precursor_mass_tolerance_unit", "<unit>", "ppm", "Unit to be used for precursor mass tolerance.", false);
-    setValidStrings_("precursor_mass_tolerance_unit", ListUtils::create<String>("Da,ppm"));
+    registerStringOption_("precursor_error_units", "<unit>", "ppm", "Unit to be used for precursor mass tolerance.", false);
+    setValidStrings_("precursor_error_units", ListUtils::create<String>("Da,ppm"));
 
-    registerStringOption_("isotope_error_range", "<range>", "0,1", "Range of allowed isotope peak errors. Takes into account of the error introduced by chooosing a non-monoisotopic peak for fragmentation. The combination of -t and -ti determins the precursor mass tolerance. E.g. -precursor_mass_tolerance 20 -precursor_mass_tolerance_unit ppm -isotope_error_range -1,2 tests abs(exp-calc-n*1.00335Da)<20ppm for n=-1, 0, 1, 2", false);
+    registerStringOption_("isotope_error_range", "<range>", "0,1", "Range of allowed isotope peak errors. Takes into account of the error introduced by chooosing a non-monoisotopic peak for fragmentation. The combination of -t and -ti determins the precursor mass tolerance. E.g. -precursor_mass_tolerance 20 -precursor_error_units ppm -isotope_error_range -1,2 tests abs(exp-calc-n*1.00335Da)<20ppm for n=-1, 0, 1, 2", false);
 
     registerIntOption_("decoy", "<0/1>", 0, "0: don't search decoy database, 1: search decoy database", false);
+    setMinInt_("decoy", 0);
+    setMaxInt_("decoy", 1);
+
     registerIntOption_("fragment_method", "<method>", 0, "0: As written in the spectrum or CID if no info, 1: CID, 2: ETD, 3: HCD", false);
+    setMinInt_("fragment_method", 0);
+    setMaxInt_("fragment_method", 3);
+
     registerIntOption_("instrument", "<instrument>", 0, "0: Low-res LCQ/LTQ, 1: High-res LTQ, 2: TOF, 3: Q-Exactive", false);
+    setMinInt_("instrument", 0);
+    setMaxInt_("instrument", 3);
+
     registerIntOption_("enzyme", "<enzyme>", 1, "0: unspecific cleavage, 1: Trypsin, 2: Chymotrypsin, 3: Lys-C, 4: Lys-N, 5: glutamyl endopeptidase, 6: Arg-C, 7: Asp-N, 8: alphaLP, 9: no cleavage", false);
-    registerIntOption_("protocol", "<protocol>", 0, "0: NoProtocol, 1: Phosphorylation, 2: iTRAQ, 3: iTRAQPhospho, 4: TMT", false);    
+    setMinInt_("enzyme", 0);
+    setMaxInt_("enzyme", 9);
+
+    registerIntOption_("protocol", "<protocol>", 0, "0: NoProtocol, 1: Phosphorylation, 2: iTRAQ, 3: iTRAQPhospho, 4: TMT", false);
+    setMinInt_("protocol", 0);
+    setMaxInt_("protocol", 4);
+
     registerIntOption_("tolerable_termini", "<num>", 2, "For trypsin, 0: non-tryptic, 1: semi-tryptic, 2: fully-tryptic peptides only.", false);
+    setMinInt_("tolerable_termini", 0);
+    setMaxInt_("tolerable_termini", 2);
     
     registerInputFile_("mod", "<file>", "", "Modification configuration file", false);
 
@@ -155,9 +172,13 @@ protected:
 
     registerIntOption_("matches_per_spec", "<num>", 1, "Number of matches per spectrum to be reported", false);
     registerIntOption_("add_features", "<num>", 0, "0: output basic scores only, 1: output additional features", false);
+    setMinInt_("add_features", 0);
+    setMaxInt_("add_features", 1);
 
     registerOutputFile_("mzid_out", "<file>", "", "mzIdentML outputfile", false);
     setValidFormats_("mzid_out", ListUtils::create<String>("mzid"));
+
+    registerStringOption_("java_memory_size", "<size>", "Xmx3500M", "Maximum Java heap size, Xmx<size>", false);
   }
 
   // The following sequence modification methods are used to modify the sequence stored in the tsv such that it can be used by AASequence
@@ -184,7 +205,7 @@ protected:
 
   // Method to replace comma by point.
   // This is used as point should be used as separator of decimals instead of comma
-  String changeKomma (String seq)
+  String fixDecimalSeparator (String seq)
   {
     std::size_t found = seq.find_first_of(".,");
     while (found!=std::string::npos) 
@@ -241,7 +262,8 @@ protected:
       for (PeakMap::iterator it = exp.begin(); it != exp.end(); ++it)
       {
         String id = it->getNativeID(); // expected format: "... scan=#"
-        if ( id != "") {
+        if ( id != "") 
+        {
           rt_mapping[id].push_back(it->getRT());
           rt_mapping[id].push_back(it->getPrecursors()[0].getMZ());
         }
@@ -313,7 +335,7 @@ protected:
     parameters += "-s " + inputfile_name;
     parameters += " -o " + msgfplus_output_filename;
     parameters += " -d " + db_name;
-    parameters += " -t " + String(getDoubleOption_("precursor_mass_tolerance")) + getStringOption_("precursor_mass_tolerance_unit");
+    parameters += " -t " + String(getDoubleOption_("precursor_mass_tolerance")) + getStringOption_("precursor_error_units");
     parameters += " -ti " + getStringOption_("isotope_error_range");
     parameters += " -tda " + String(getIntOption_("decoy"));
     parameters += " -m " + String(getIntOption_("fragment_method"));
@@ -329,7 +351,8 @@ protected:
     parameters += " -addFeatures " + String(getIntOption_("add_features"));
 
     String modfile_name = getStringOption_("mod");
-    if(modfile_name != "") {
+    if(modfile_name != "") 
+    {
       parameters += " -mod " + getStringOption_("mod");
     }
 
@@ -337,8 +360,9 @@ protected:
     // execute MSGFPlus
     //-------------------------------------------------------------
    
-    // run MSGFPlus process and create the mzid file  
-    String msgf_executable("java -Xmx3500M -jar " + getStringOption_("msgfplus_executable"));
+    // run MSGFPlus process and create the mzid file
+    String max_memory_size = "-" + getStringOption_("java_memory_size");
+    String msgf_executable("java " + max_memory_size + " -jar " + getStringOption_("msgfplus_executable"));
 
     QProcess process;
     int status = process.execute((msgf_executable + " " + parameters).toQString());
@@ -363,7 +387,7 @@ protected:
     status = process.execute((converter_executable + " " + parameters).toQString());
     if (status != 0)
     {
-      writeLog_("MzIDToTSVConverter problem. Aborting! \nDoes the MzIDToTSVConverter executable exist?");
+      writeLog_("MzIDToTSVConverter problem. Aborting!");
       return EXTERNAL_PROGRAM_ERROR;
     }
 
@@ -382,16 +406,20 @@ protected:
     ProteinIdentification::DigestionEnzyme enzyme_type;
     Int enzyme_code = getIntOption_("enzyme");
 
-    if (enzyme_code == 0) {
+    if (enzyme_code == 0) 
+    {
       enzyme_type = ProteinIdentification::UNKNOWN_ENZYME;
     }
-    else if (enzyme_code == 1) {
+    else if (enzyme_code == 1) 
+    {
       enzyme_type = ProteinIdentification::TRYPSIN;
     } 
-    else if (enzyme_code == 2) {
+    else if (enzyme_code == 2) 
+    {
       enzyme_type = ProteinIdentification::CHYMOTRYPSIN;
     }
-    else if (enzyme_code == 9) {
+    else if (enzyme_code == 9) 
+    {
       enzyme_type = ProteinIdentification::NO_ENZYME ;     
     }
     else enzyme_type = ProteinIdentification::UNKNOWN_ENZYME;
@@ -430,8 +458,7 @@ protected:
     UInt rank; 
     Int charge;
     AASequence sequence;
-    int scanNumber;    
-    double precursor_mz;
+    int scanNumber;
 
     // iterate over the rows of the tsv file
     for (CsvFile::Iterator it = tsvfile.begin() + 1 ; it != tsvfile.end(); ++it)
@@ -439,21 +466,26 @@ protected:
       vector<String> elements; 
       it->split("\t", elements);
 
-      if ((elements[2] == "") || (elements[2] == "-1")) {
+      if ((elements[2] == "") || (elements[2] == "-1")) 
+      {
         scanNumber = elements[1].suffix('=').toInt();
-      } else {
+      } 
+      else 
+      {
         scanNumber = elements[2].toInt();
       }
       
-      sequence = AASequence::fromString(modifySequence(changeKomma(cutSequence(elements[8]))));
+      sequence = AASequence::fromString(modifySequence(fixDecimalSeparator(cutSequence(elements[8]))));
       vector<PeptideHit> p_hits;
       String prot_accession = elements[9];
 
-      if (prot_accessions.find(prot_accession) == prot_accessions.end()) {
+      if (prot_accessions.find(prot_accession) == prot_accessions.end()) 
+      {
         prot_accessions.insert(prot_accession);
       }
 
-      if (peptide_identifications.find(scanNumber) == peptide_identifications.end()) {
+      if (peptide_identifications.find(scanNumber) == peptide_identifications.end()) 
+      {
         score = elements[12].toDouble();
         rank = 0; //set to 0 in the moment
         charge = elements[7].toInt();
@@ -471,11 +503,14 @@ protected:
         peptide_identifications[scanNumber].setHigherScoreBetter(false);
         peptide_identifications[scanNumber].setIdentifier(identifier);
         
-      } else {
+      } 
+      else 
+      {
         p_hits = peptide_identifications[scanNumber].getHits();
         for(vector<PeptideHit>::iterator p_it = p_hits.begin(); p_it != p_hits.end(); ++ p_it)
         {
-          if(p_it -> getSequence() == sequence) {
+          if(p_it -> getSequence() == sequence) 
+          {
             p_it -> addProteinAccession(prot_accession);
           }
         }
@@ -484,7 +519,8 @@ protected:
     }
 
     vector<ProteinHit> prot_hits;
-    for(set<String>::iterator it = prot_accessions.begin(); it != prot_accessions.end(); ++ it) {
+    for(set<String>::iterator it = prot_accessions.begin(); it != prot_accessions.end(); ++ it) 
+    {
       ProteinHit prot_hit = ProteinHit();
       prot_hit.setAccession(*it);
       prot_hits.push_back(prot_hit);
@@ -506,7 +542,8 @@ protected:
     
     IdXMLFile().store(outputfile_name, protein_ids, peptide_ids);
 
-    if(remove_output_suffix) {
+    if(remove_output_suffix) 
+    {
       QFile::rename(msgfplus_output_filename.toQString(), msgfplus_output_filename_ori.toQString());
     }
 
@@ -521,6 +558,3 @@ int main(int argc, const char** argv)
 
   return tool.main(argc, argv);
 }
-
-  
-  
