@@ -187,17 +187,6 @@ private:
     */
     double computePrecursorPurity_(const MSExperiment<Peak1D>::ConstIterator& ms2_spec, const PuritySate& pState) const;
 
-    /**
-      @brief Computes the sum of all isotopic peak intensities in the window defined by (lower|upper)_mz_bound beginning from theoretical_isotope_mz.
-
-      @param precursor Iterator pointing to the precursor spectrum used for extracting the peaks.
-      @param lower_mz_bound Lower bound of the isolation window to analyze.
-      @param upper_mz_bound Upper bound of the isolation window to analyze.
-      @param theoretical_mz The start position for the search. Note that the intensity at this position will not included in the sum.
-      @param isotope_offset The offset with which the isolation window should be searched (i.e., +/- NEUTRON_MASS/precursor_charge, +/- determines if it scans from left or right from the theoretical_isotope_mz).
-    */
-    double sumPotentialIsotopePeaks_(const MSExperiment<Peak1D>::ConstIterator& precursor, const Peak1D::CoordinateType& lower_mz_bound, const Peak1D::CoordinateType& upper_mz_bound, Peak1D::CoordinateType theoretical_mz, const Peak1D::CoordinateType isotope_offset) const;
-
 protected:
     /// implemented for DefaultParamHandler
     void setDefaultParams_();

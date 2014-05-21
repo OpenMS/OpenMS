@@ -94,7 +94,7 @@ namespace OpenMS
     StringList activation_list;
     activation_list.insert(activation_list.begin(), Precursor::NamesOfActivationMethod, Precursor::NamesOfActivationMethod + Precursor::SIZE_OF_ACTIVATIONMETHOD - 1);
     activation_list.push_back(""); // allow disabling this
-    
+
     defaults_.setValidStrings("select_activation", activation_list);
 
     defaults_.setValue("reporter_mass_shift", 0.1, "Allowed shift (left to right) in Da from the expected position.");
@@ -156,92 +156,214 @@ namespace OpenMS
     return false;
   }
 
-  double IsobaricChannelExtractor::sumPotentialIsotopePeaks_(const MSExperiment<Peak1D>::ConstIterator& precursor,
-                                                                 const Peak1D::CoordinateType& lower_mz_bound,
-                                                                 const Peak1D::CoordinateType& upper_mz_bound,
-                                                                 Peak1D::CoordinateType theoretical_mz,
-                                                                 const Peak1D::CoordinateType isotope_offset) const
+  double IsobaricChannelExtractor::computePrecursorPurity_(const MSExperiment<Peak1D>::ConstIterator& ms2_spec, const PuritySate& pState) const
   {
-    LOG_INFO << "Scanning window: " << precisionWrapper(lower_mz_bound) << ":" << precisionWrapper(upper_mz_bound) << std::endl;
-    double intensity_contribution = 0.0;
+    const double tolerance_in_ppm = 10.0;
 
-    // move theoretical_mz to first potential isotopic peak
-    theoretical_mz += isotope_offset;
-
-    // find peak for the given theoretical-m/z
-    Size potential_peak = precursor->findNearest(theoretical_mz);
-    
-    // check if we are still in the isolation window
-    while ((*precursor)[potential_peak].getMZ() >= lower_mz_bound && (*precursor)[potential_peak].getMZ() < upper_mz_bound)
-    {
-      // is isotopic ?
-      if (fabs(theoretical_mz - (*precursor)[potential_peak].getMZ()) < max_precursor_isotope_deviation_)
-      {
-        intensity_contribution += (*precursor)[potential_peak].getIntensity();
-        LOG_INFO << "Peak " << precisionWrapper((*precursor)[potential_peak].getMZ()) << " it: " << precisionWrapper((*precursor)[potential_peak].getIntensity()) << std::endl;
-      }
-      else
-      {
-        // we abort in case of missing peaks
-        break;
-      }
-
-      // update mz with the defined offset
-      theoretical_mz += isotope_offset;
-      // find next peak
-      potential_peak = precursor->findNearest(theoretical_mz);
-    }
-
-    return intensity_contribution;
-  }
-
-  double IsobaricChannelExtractor::computePrecursorPurity_(const MSExperiment<Peak1D>::ConstIterator& ms2_spec, const PuritySate & pState) const
-  {
     // we cannot analyze precursors without a charge
     if (ms2_spec->getPrecursors()[0].getCharge() == 0)
       return 1.0;
 
-    // compute boundaries
-    const MSExperiment<>::SpectrumType::ConstIterator isolation_lower_mz = pState.precursorScan->MZBegin(ms2_spec->getPrecursors()[0].getMZ() - ms2_spec->getPrecursors()[0].getIsolationWindowLowerOffset());
-    const MSExperiment<>::SpectrumType::ConstIterator isolation_upper_mz = pState.precursorScan->MZEnd(ms2_spec->getPrecursors()[0].getMZ() + ms2_spec->getPrecursors()[0].getIsolationWindowUpperOffset());
-    
-    Peak1D::IntensityType total_intensity = 0;
+    // compute the
+    const double charge_dist = Constants::NEUTRON_MASS_U / (double) ms2_spec->getPrecursors()[0].getCharge();
 
-    // get total intensity
-    for (MSExperiment<>::SpectrumType::ConstIterator isolation_it = isolation_lower_mz;
-         isolation_it != isolation_upper_mz;
-         ++isolation_it)
+    // the actual boundary values
+    const double strict_lower_mz = ms2_spec->getPrecursors()[0].getMZ() - ms2_spec->getPrecursors()[0].getIsolationWindowLowerOffset();
+    const double strict_upper_mz = ms2_spec->getPrecursors()[0].getMZ() + ms2_spec->getPrecursors()[0].getIsolationWindowUpperOffset();
+
+    const double fuzzy_lower_mz = strict_lower_mz - (strict_lower_mz * tolerance_in_ppm / 1000000);
+    const double fuzzy_upper_mz = strict_upper_mz + (strict_upper_mz * tolerance_in_ppm / 1000000);
+
+    // first find the actual precursor peak
+    Size precursor_peak_idx = pState.precursorScan->findNearest(ms2_spec->getPrecursors()[0].getMZ());
+    const Peak1D& precursor_peak = (*pState.precursorScan)[precursor_peak_idx];
+
+    std::cerr << "Analyzing precursor window [" << strict_lower_mz << ", " << strict_upper_mz << "]" << std::endl;
+    std::cerr << "Precursor peak: " << precursor_peak << " (-" << ms2_spec->getPrecursors()[0].getIsolationWindowLowerOffset() << " / +" << ms2_spec->getPrecursors()[0].getIsolationWindowUpperOffset() << ")" << std::endl;
+    std::cerr << "Charge: " << ms2_spec->getPrecursors()[0].getCharge() << " charge_dist: " << charge_dist << std::endl;
+
+    Peak1D::IntensityType precursor_intensity = precursor_peak.getIntensity();
+    Peak1D::IntensityType total_intensity = precursor_peak.getIntensity();
+
+    // go left and check for potential isotope peaks
+    int idx = static_cast<int>(precursor_peak_idx) - 1;
+
+    // last and expected next peak values
+    double last_matching_mz = precursor_peak.getMZ();
+    double expected_next_mz = last_matching_mz - charge_dist;
+
+
+    // reasonably large value to ensure that also at the beginning, the difference will decrease
+    double previous_diff = 1000.0;
+    double min_diff = 1000.0;
+    double min_diff_intensity = 0.0;
+    double min_diff_mz = 0.0;
+
+    std::cerr << "Expect next isotopic peak at m/z: " << expected_next_mz << std::endl;
+
+    // check if we are still in the boundaries of our
+    while (idx >= 0 && (*pState.precursorScan)[idx].getMZ() > fuzzy_lower_mz)
     {
-      total_intensity += isolation_it->getIntensity();
+      // we do a look ahead to know when we are in the last iteration
+      bool is_last_scan = (idx == 0 || (*pState.precursorScan)[idx - 1].getMZ() <= fuzzy_lower_mz);
+
+      // check if we take the total intensity or just a fraction
+      double intensity_contribution;
+      if ((*pState.precursorScan)[idx].getMZ() > strict_lower_mz)
+      {
+        intensity_contribution = (*pState.precursorScan)[idx].getIntensity();
+      }
+      else
+      {
+        // we're in the fuzzy area, so we will take only 50% of the given intensity
+        // since we assume that the isolation window borders are not sharp
+        intensity_contribution = 0.5 * (*pState.precursorScan)[idx].getIntensity();
+      }
+
+      // contribution to toal intensity
+      total_intensity += intensity_contribution;
+
+      // check if it is an isotope peak
+      double current_diff = std::fabs((*pState.precursorScan)[idx].getMZ() - expected_next_mz);
+
+      std::cerr << "Current peak: " << (*pState.precursorScan)[idx] << " (delta: " << current_diff << ")" << std::endl;
+
+      // difference increases again -> current min seams to be a match or there is no peak at all
+      // or we have the last scan so we will try to match the current state against the isotopes
+      if (current_diff > previous_diff || is_last_scan)
+      {
+        if (std::fabs(min_diff - charge_dist) < (charge_dist * tolerance_in_ppm / 1000000))
+        {
+          // this is an isotopic peak, update intensity ..
+          precursor_intensity += min_diff_intensity;
+          // last and next pos
+          last_matching_mz = min_diff_mz;
+          expected_next_mz = last_matching_mz - charge_dist;
+
+          std::cerr << "Expect next isotopic peak at m/z: " << expected_next_mz << std::endl;
+        }
+        else
+        {
+          // the peak didn't satisfy the required constraints
+          // -> set values to theoretical positions
+          last_matching_mz = expected_next_mz;
+          expected_next_mz = last_matching_mz - charge_dist;
+          std::cerr << "Expect next isotopic peak at m/z: " << expected_next_mz << std::endl;
+        }
+
+        // update currentDiff/minDiff to next pos, such that the diffs decrease again
+        current_diff = std::fabs((*pState.precursorScan)[idx].getMZ() - expected_next_mz);
+        min_diff = std::fabs((*pState.precursorScan)[idx].getMZ() - expected_next_mz);
+      }
+      else if (current_diff < min_diff)
+      {
+        // update the minima if diff decreased
+        min_diff = current_diff;
+        min_diff_intensity = intensity_contribution;
+        min_diff_mz = (*pState.precursorScan)[idx].getMZ();
+      }
+
+      // next peak
+      previous_diff = current_diff;
+      --idx;
+    }
+
+    // now go to the right
+    // go left and check for potential isotope peaks
+    idx = static_cast<int>(precursor_peak_idx) + 1;
+
+    // last and expected next peak values
+    last_matching_mz = precursor_peak.getMZ();
+    expected_next_mz = last_matching_mz + charge_dist;
+
+
+    // reasonably large value to ensure that also at the beginning, the difference will decrease
+    previous_diff = 1000.0;
+    min_diff = 1000.0;
+    min_diff_intensity = 0.0;
+    min_diff_mz = 0.0;
+
+    std::cerr << "Expect next isotopic peak at m/z: " << expected_next_mz << std::endl;
+
+    // check if we are still in the boundaries of our
+    while (idx < static_cast<int>((*pState.precursorScan).size()) && (*pState.precursorScan)[idx].getMZ() < fuzzy_upper_mz)
+    {
+      // we do a look ahead to know when we are in the last iteration
+      bool is_last_scan = (idx == 0 || (*pState.precursorScan)[idx - 1].getMZ() <= fuzzy_lower_mz);
+
+      // check if we take the total intensity or just a fraction
+      double intensity_contribution;
+      if ((*pState.precursorScan)[idx].getMZ() < strict_upper_mz)
+      {
+        intensity_contribution = (*pState.precursorScan)[idx].getIntensity();
+      }
+      else
+      {
+        // we're in the fuzzy area, so we will take only 50% of the given intensity
+        // since we assume that the isolation window borders are not sharp
+        intensity_contribution = 0.5 * (*pState.precursorScan)[idx].getIntensity();
+      }
+
+      // contribution to toal intensity
+      total_intensity += intensity_contribution;
+
+      // check if it is an isotope peak
+      double current_diff = std::fabs((*pState.precursorScan)[idx].getMZ() - expected_next_mz);
+
+      std::cerr << "Current peak: " << (*pState.precursorScan)[idx] << " (delta: " << current_diff << ")" << std::endl;
+
+      // difference increases again -> current min seams to be a match or there is no peak at all
+      // or we have the last scan so we will try to match the current state against the isotopes
+      if (current_diff > previous_diff || is_last_scan)
+      {
+        if (std::fabs(min_diff - charge_dist) < (charge_dist * tolerance_in_ppm / 1000000))
+        {
+          // this is an isotopic peak, update intensity ..
+          precursor_intensity += min_diff_intensity;
+          // last and next pos
+          last_matching_mz = min_diff_mz;
+          expected_next_mz = last_matching_mz + charge_dist;
+          std::cerr << "Expect next isotopic peak at m/z: " << expected_next_mz << std::endl;
+        }
+        else
+        {
+          // the peak didn't satisfy the required constraints
+          // -> set values to theoretical positions
+          last_matching_mz = expected_next_mz;
+          expected_next_mz = last_matching_mz + charge_dist;
+          std::cerr << "Expect next isotopic peak at m/z: " << expected_next_mz << std::endl;
+        }
+
+        // update currentDiff/minDiff to next pos, such that the diffs decrease again
+        current_diff = std::fabs((*pState.precursorScan)[idx].getMZ() - expected_next_mz);
+        min_diff = std::fabs((*pState.precursorScan)[idx].getMZ() - expected_next_mz);
+      }
+      else if (current_diff < min_diff)
+      {
+        // update the minima if diff decreased
+        min_diff = current_diff;
+        min_diff_intensity = intensity_contribution;
+        min_diff_mz = (*pState.precursorScan)[idx].getMZ();
+      }
+
+      // next peak
+      previous_diff = current_diff;
+      ++idx;
     }
 
     // now get the intensity of the precursor .. we assume everything in the distance of 1/c to belong to the precursor
     // for c == charge of precursor
-    
-    // precursor mz
-    Size precursor_peak_idx = pState.precursorScan->findNearest(ms2_spec->getPrecursors()[0].getMZ());
-    Peak1D precursor_peak = (*pState.precursorScan)[precursor_peak_idx];
-    Peak1D::IntensityType precursor_intensity = precursor_peak.getIntensity();
 
-    // compute the
-    double charge_dist = Constants::NEUTRON_MASS_U / (double) ms2_spec->getPrecursors()[0].getCharge();
-
-    // search left of precursor for isotopic peaks
-    precursor_intensity += sumPotentialIsotopePeaks_(pState.precursorScan, isolation_lower_mz->getMZ(), isolation_upper_mz->getMZ(), precursor_peak.getMZ(), -1 * charge_dist);
-    // search right of precursor for isotopic peaks
-    precursor_intensity += sumPotentialIsotopePeaks_(pState.precursorScan, isolation_lower_mz->getMZ(), isolation_upper_mz->getMZ(), precursor_peak.getMZ(), charge_dist);
-
-    
     double purity = precursor_intensity / total_intensity;
-    
-    if(purity < 0.0 || purity > 1.0)
+
+    if (purity < 0.0 || purity > 1.0)
     {
-      LOG_ERROR << "Purity computation failed: " << purity << ", " << pState.precursorScan->getNativeID() << std::endl;
+      LOG_ERROR << "Purity computation failed: " << purity << ", " << pState.precursorScan->getNativeID() << " (signal intensity: " << precursor_intensity << ", total intensity: " << total_intensity << ")" << std::endl;
     }
-    
+
     return precursor_intensity / total_intensity;
   }
-  
+
   void IsobaricChannelExtractor::extractChannels(const MSExperiment<Peak1D>& ms_exp_data, ConsensusMap& consensus_map)
   {
     if (ms_exp_data.empty())
@@ -265,7 +387,7 @@ namespace OpenMS
 
     // remember the current precusor spectrum
     PuritySate pState(ms_exp_data);
-    
+
     for (MSExperiment<Peak1D>::ConstIterator it = ms_exp_data.begin(); it != ms_exp_data.end(); ++it)
     {
       // remember the last MS1 spectra as we assume it to be the precursor spectrum
@@ -284,7 +406,7 @@ namespace OpenMS
           // advance iterator
           pState.advanceFollowUp(it->getRT());
         }
-        
+
         // check if precursor is available
         if (it->getPrecursors().empty())
         {
@@ -379,7 +501,7 @@ namespace OpenMS
         // .. as well as additional meta information
         cf.setMetaValue("precursor_intensity", it->getPrecursors()[0].getIntensity());
         cf.setMetaValue("precursor_charge", it->getPrecursors()[0].getCharge());
-        
+
         cf.setIntensity(overall_intensity);
         consensus_map.push_back(cf);
 
