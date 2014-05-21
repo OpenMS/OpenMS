@@ -108,7 +108,7 @@ START_SECTION(double SplineSpectrum::Navigator::getNextMz(double mz))
   TEST_REAL_SIMILAR(spectrum.getNavigator().getNextMz(500.0), 419.2);
 END_SECTION
 
-/*
+
 START_SECTION([EXTRA] performance test)
   
   MSExperiment<> exp;
@@ -119,18 +119,18 @@ START_SECTION([EXTRA] performance test)
   StopWatch sw;
 
   sw.start();
-  for (int i=0; i<10; ++i)
+  for (int i = 0; i < 30; ++i)
   {
     SplineSpectrum ss(exp.getSpectrum(0));
   }
   sw.stop();
-  std::cout << "Initializations (1e3) took: " << sw.getCPUTime() << std::endl;
+  std::cout << "\n\nInitializations (1e3) took: " << sw.getCPUTime() << std::endl;
 
   SplineSpectrum ss(exp.getSpectrum(0));
   
   sw.reset();
   sw.start();
-  for (int i = 0; i < 10; ++i)
+  for (int i = 0; i < 30; ++i)
   {
     SplineSpectrum::Navigator nav = ss.getNavigator();
     for (MSSpectrum<>::const_iterator it = exp.getSpectrum(0).begin(); it != exp.getSpectrum(0).end(); ++it)
@@ -145,6 +145,6 @@ START_SECTION([EXTRA] performance test)
 
 END_SECTION
  
-*/ 
+
 
 END_TEST

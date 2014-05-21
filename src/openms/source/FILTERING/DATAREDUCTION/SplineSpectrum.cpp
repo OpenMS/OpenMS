@@ -89,13 +89,13 @@ void SplineSpectrum::init_(const std::vector<double>& mz, const std::vector<doub
 
 	if (!(mz.size() == intensity.size() && mz.size() > 2))
 	{
-		throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,"m/z and intensity vectors either not of the same size or too short.");
+		throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "m/z and intensity vectors either not of the same size or too short.");
 	}
 
 	const double new_package = 2;    // start a new package if delta m/z is greater than new_package times previous one
 
-	mz_min_ = mz[0];
-	mz_max_ = mz[mz.size() -1];
+	mz_min_ = mz.front();
+	mz_max_ = mz.back();
 
 	// remove unnecessary zeros, i.e. zero intensity data points with zeros to the left and right
 	std::vector<double> mz_slim;
@@ -108,7 +108,7 @@ void SplineSpectrum::init_(const std::vector<double>& mz, const std::vector<doub
 	bool last_intensity_zero = (intensity[0] == 0);
 	bool current_intensity_zero = (intensity[0] == 0);
 	bool next_intensity_zero = (intensity[1] == 0);
-	for (unsigned i=1; i<mz.size()-1; ++i)
+	for (int i=1; i<mz.size()-1; ++i)
 	{
 		last_intensity_zero = current_intensity_zero;
 		current_intensity_zero = next_intensity_zero;
@@ -129,7 +129,7 @@ void SplineSpectrum::init_(const std::vector<double>& mz, const std::vector<doub
 	std::vector<bool> start_package;
 	start_package.push_back(true);
 	start_package.push_back(false);
-	for (unsigned i=2; i<mz_slim.size(); ++i)
+	for (int i=2; i<mz_slim.size(); ++i)
 	{
 		start_package.push_back((mz_slim[i] - mz_slim[i-1])/(mz_slim[i-1] - mz_slim[i-2]) > new_package);
 	}
@@ -137,7 +137,7 @@ void SplineSpectrum::init_(const std::vector<double>& mz, const std::vector<doub
 	// fill the packages
 	std::vector<double> mz_package;
 	std::vector<double> intensity_package;
-	for (unsigned i=0; i<mz_slim.size(); ++i)
+	for (int i=0; i<mz_slim.size(); ++i)
 	{
 		if (start_package[i] && i > 0)
 		{
@@ -184,8 +184,8 @@ SplineSpectrum::Navigator::~Navigator()
 double SplineSpectrum::Navigator::eval(double mz)
 {
 	if (mz < (*packages_)[last_package_].getMzMin())
-	{
-		for (int i = last_package_; i >= 0; --i)
+	{ // look left
+    for (int i = last_package_; i > 0; --i)
 		{
 			if (mz > (*packages_)[i].getMzMax())
 			{
@@ -200,7 +200,7 @@ double SplineSpectrum::Navigator::eval(double mz)
 		}
 	}
 	else
-	{
+	{ // look right
 		for (int i = last_package_; i < (int)(*packages_).size(); ++i)
 		{
 			if (mz < (*packages_)[i].getMzMin())
