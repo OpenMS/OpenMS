@@ -261,8 +261,8 @@ namespace seqan
     524288, //19 Val Valine
     12, //20 Aspartic Acid, Asparagine
     96, //21 Glutamic Acid, Glutamine
-    -1, //22 Unknown (matches ALL)
-    -1, //23 Terminator (dummy)
+    static_cast<unsigned>(-1), //22 Unknown (matches ALL)
+    static_cast<unsigned>(-1), //23 Terminator (dummy)
   };
 
 
