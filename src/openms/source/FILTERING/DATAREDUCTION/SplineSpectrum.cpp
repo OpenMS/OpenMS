@@ -108,7 +108,7 @@ void SplineSpectrum::init_(const std::vector<double>& mz, const std::vector<doub
 	bool last_intensity_zero = (intensity[0] == 0);
 	bool current_intensity_zero = (intensity[0] == 0);
 	bool next_intensity_zero = (intensity[1] == 0);
-	for (int i=1; i<mz.size()-1; ++i)
+  for (unsigned i = 1; i<mz.size() - 1; ++i)
 	{
 		last_intensity_zero = current_intensity_zero;
 		current_intensity_zero = next_intensity_zero;
@@ -129,7 +129,7 @@ void SplineSpectrum::init_(const std::vector<double>& mz, const std::vector<doub
 	std::vector<bool> start_package;
 	start_package.push_back(true);
 	start_package.push_back(false);
-	for (int i=2; i<mz_slim.size(); ++i)
+  for (unsigned i = 2; i<mz_slim.size(); ++i)
 	{
 		start_package.push_back((mz_slim[i] - mz_slim[i-1])/(mz_slim[i-1] - mz_slim[i-2]) > new_package);
 	}
@@ -137,7 +137,7 @@ void SplineSpectrum::init_(const std::vector<double>& mz, const std::vector<doub
 	// fill the packages
 	std::vector<double> mz_package;
 	std::vector<double> intensity_package;
-	for (int i=0; i<mz_slim.size(); ++i)
+  for (unsigned i = 0; i<mz_slim.size(); ++i)
 	{
 		if (start_package[i] && i > 0)
 		{
@@ -185,7 +185,7 @@ double SplineSpectrum::Navigator::eval(double mz)
 {
 	if (mz < (*packages_)[last_package_].getMzMin())
 	{ // look left
-    for (int i = last_package_; i > 0; --i)
+    for (unsigned i = last_package_; i > 0; --i)
 		{
 			if (mz > (*packages_)[i].getMzMax())
 			{
@@ -201,7 +201,7 @@ double SplineSpectrum::Navigator::eval(double mz)
 	}
 	else
 	{ // look right
-		for (int i = last_package_; i < (int)(*packages_).size(); ++i)
+    for (unsigned i = last_package_; i < (unsigned)(*packages_).size(); ++i)
 		{
 			if (mz < (*packages_)[i].getMzMin())
 			{
