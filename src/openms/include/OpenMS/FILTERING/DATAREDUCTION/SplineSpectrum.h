@@ -88,6 +88,10 @@ class OPENMS_DLLAPI SplineSpectrum
     double getMzMax() const;
 
   private:
+
+    /// hide default C'tor
+    SplineSpectrum();
+    
     /**
      * @brief m/z limits of the spectrum
      */
