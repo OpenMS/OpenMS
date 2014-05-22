@@ -56,7 +56,7 @@ START_TEST(FASTAFile, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-FASTAFile* ptr;
+FASTAFile* ptr = 0;
 START_SECTION((FASTAFile()))
   ptr = new FASTAFile();
   TEST_EQUAL(ptr == 0, false)
