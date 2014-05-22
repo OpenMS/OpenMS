@@ -100,6 +100,25 @@ START_SECTION(double getMzMax() const)
   TEST_EQUAL(spectrum.getMzMax(), 419.2);
 END_SECTION
 
+MSSpectrum<> empty_spec;
+SplineSpectrum ss_empty(empty_spec);
+
+START_SECTION(unsigned getSplineCount() const)
+  TEST_EQUAL(spectrum.getSplineCount(), 2)
+  
+  // this should be used before getNavigator()
+  TEST_EQUAL(ss_empty.getSplineCount(), 0)
+END_SECTION
+
+START_SECTION(SplineSpectrum::Navigator getNavigator())
+  // just to test if it can be called
+  SplineSpectrum::Navigator nav = spectrum.getNavigator();
+
+  // test exception on empty spectrum
+  TEST_EXCEPTION(Exception::InvalidSize, ss_empty.getNavigator())
+
+END_SECTION
+
 START_SECTION(double SplineSpectrum::Navigator::eval(double mz))
   // outside range of Gaussians
   TEST_EQUAL(spectrum.getNavigator().eval(400.0), 0);

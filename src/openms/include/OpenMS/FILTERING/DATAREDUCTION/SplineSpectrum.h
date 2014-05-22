@@ -61,6 +61,8 @@ class OPENMS_DLLAPI SplineSpectrum
     /**
      * @brief constructor taking two vectors
      * (and an optional scaling factor for the m/z step width)
+     *
+     *  @note Vectors are assumed to be sorted by m/z!
      */
     SplineSpectrum(const std::vector<double>& mz, const std::vector<double>& intensity);
     SplineSpectrum(const std::vector<double>& mz, const std::vector<double>& intensity, double scaling);
@@ -87,6 +89,78 @@ class OPENMS_DLLAPI SplineSpectrum
      */
     double getMzMax() const;
 
+    /** Get number of spline packages found during initialization
+     *
+     *  Note that this function should be called right after the C'tor to ensure the spectrum
+     *  has some usable data to work on.
+     *  In case there are no packages, a subsequent call to getNavigator() will throw an exception.
+     */
+    unsigned getSplineCount() const;
+
+    /**
+    * @brief iterator class for access of spline packages
+    */
+    class OPENMS_DLLAPI Navigator
+    {
+      public:
+        /**
+        * @brief constructor of iterator
+        */
+        Navigator(const std::vector<SplinePackage> * packages, double mzMin, double mzMax);
+
+        /**
+        * @brief destructor
+        */
+        ~Navigator();
+
+        /**
+        * @brief returns spline interpolated intensity at m/z
+        * (fast access since we can start search from lastPackage)
+        */
+        double eval(double mz);
+
+        /**
+        * @brief returns the next sensible m/z position
+        *  for scanning through a spectrum
+        * (fast access since we can start search from lastPackage)
+        */
+        double getNextMz(double mz);
+
+      private:
+        
+        /// hide default Ctor
+        Navigator();
+
+        /**
+        * @brief list of spline packages to be accessed
+        */
+        const std::vector<SplinePackage> * packages_;
+
+        /**
+        * @brief index of spline package last accessed
+        */
+        unsigned last_package_;
+
+        /**
+        * @brief m/z limits of the spectrum
+        */
+        double mz_min_;
+        double mz_max_;
+    };
+
+    /**
+    * @brief returns an iterator for access of spline packages
+    *
+    * Will throw an exception if no packages were found during construction.
+    * Check using getSplineCount().
+    *
+    * Make sure that the underlying SplineSpectrum does not run out-of-scope since the
+    * Navigator relies on its data.
+    *
+    * @throw Exception::InvalidSize if packages is empty
+    */
+    SplineSpectrum::Navigator getNavigator();
+
   private:
 
     /// hide default C'tor
@@ -104,64 +178,10 @@ class OPENMS_DLLAPI SplineSpectrum
     std::vector<SplinePackage> packages_;
 
     /**
-     * @brief section common for both constructors
+     * @brief section common for all constructors
      */
     void init_(const std::vector<double>& mz, const std::vector<double>& intensity, double scaling);
 
-
-public:
-
-    /**
-     * @brief iterator class for access of spline packages
-     */
-    class OPENMS_DLLAPI Navigator
-    {
-      public:
-        /**
-         * @brief constructor of iterator
-         */
-        Navigator(const std::vector<SplinePackage> * packages, double mzMin, double mzMax);
-
-        /**
-         * @brief destructor
-         */
-        ~Navigator();
-
-        /**
-         * @brief returns spline interpolated intensity at m/z
-         * (fast access since we can start search from lastPackage)
-         */
-        double eval(double mz);
-
-        /**
-         * @brief returns the next sensible m/z position
-         *  for scanning through a spectrum
-         * (fast access since we can start search from lastPackage)
-         */
-        double getNextMz(double mz);
-
-      private:
-        /**
-         * @brief list of spline packages to be accessed
-         */
-        const std::vector<SplinePackage> * packages_;
-
-        /**
-         * @brief index of spline package last accessed
-         */
-        unsigned last_package_;
-
-        /**
-         * @brief m/z limits of the spectrum
-         */
-        double mz_min_;
-        double mz_max_;
-    };
-
-    /**
-     * @brief returns an iterator for access of spline packages
-     */
-    SplineSpectrum::Navigator getNavigator();
 
 };
 

@@ -87,10 +87,15 @@ SplineSpectrum::~SplineSpectrum()
 void SplineSpectrum::init_(const std::vector<double>& mz, const std::vector<double>& intensity, double scaling)
 {
 
-	if (!(mz.size() == intensity.size() && mz.size() > 2))
+	if (mz.size() != intensity.size())
 	{
-		throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "m/z and intensity vectors either not of the same size or too short.");
+		throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "m/z and intensity vectors not of the same size.");
 	}
+
+  if (mz.empty())
+  {
+    return;
+  }
 
 	const double new_package = 2;    // start a new package if delta m/z is greater than new_package times previous one
 
@@ -157,6 +162,7 @@ void SplineSpectrum::init_(const std::vector<double>& mz, const std::vector<doub
 	{
 		packages_.push_back(SplinePackage(mz_package, intensity_package, scaling));
 	}
+
 }
 
 double SplineSpectrum::getMzMin() const
@@ -167,6 +173,20 @@ double SplineSpectrum::getMzMin() const
 double SplineSpectrum::getMzMax() const
 {
 	return mz_max_;
+}
+
+unsigned SplineSpectrum::getSplineCount() const
+{
+  return packages_.size();
+}
+
+SplineSpectrum::Navigator SplineSpectrum::getNavigator()
+{
+  if (packages_.empty())
+  {
+    throw Exception::InvalidSize(__FILE__, __LINE__, __PRETTY_FUNCTION__, 0);
+  }
+  return Navigator(&packages_, mz_min_, mz_max_);
 }
 
 SplineSpectrum::Navigator::Navigator(const std::vector<SplinePackage> * packages, double mz_min, double mz_max) 
@@ -290,9 +310,6 @@ double SplineSpectrum::Navigator::getNextMz(double mz)
 	}
 }
 
-SplineSpectrum::Navigator SplineSpectrum::getNavigator()
-{
-	return Navigator(&packages_, mz_min_, mz_max_);
-}
+
 
 }
