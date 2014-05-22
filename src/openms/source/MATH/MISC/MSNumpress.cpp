@@ -29,9 +29,11 @@
         OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
         SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-#include <iostream>
-#include <cmath>
+
+#include <algorithm>  // for min() and max() in VS2013
 #include <climits>
+#include <cmath>
+#include <iostream>
 #include <OpenMS/MATH/MISC/MSNumpress.h>
 
 

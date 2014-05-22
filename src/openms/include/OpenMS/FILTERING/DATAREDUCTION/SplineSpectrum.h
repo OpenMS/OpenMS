@@ -47,7 +47,7 @@
 namespace OpenMS
 {
 /**
- * @brief data structure for spline interpolation of MS1 spectra
+ * @brief Data structure for spline interpolation of MS1 spectra
  *
  * The data structure consists of a set of splines, each interpolating the MS1 spectrum in a certain m/z range.
  * Between these splines no raw data points exist and the spectrum intensity is identical to zero.
@@ -57,105 +57,131 @@ namespace OpenMS
  */
 class OPENMS_DLLAPI SplineSpectrum
 {
-public:
-/**
- * @brief constructor taking two vectors
- * (and an optional scaling factor for the m/z step width)
- */
-SplineSpectrum(const std::vector<double>& mz, const std::vector<double>& intensity);
-SplineSpectrum(const std::vector<double>& mz, const std::vector<double>& intensity, double scaling);
+  public:
+    /**
+     * @brief constructor taking two vectors
+     * (and an optional scaling factor for the m/z step width)
+     *
+     *  @note Vectors are assumed to be sorted by m/z!
+     */
+    SplineSpectrum(const std::vector<double>& mz, const std::vector<double>& intensity);
+    SplineSpectrum(const std::vector<double>& mz, const std::vector<double>& intensity, double scaling);
 
-/**
- * @brief constructor taking an MSSpectrum
- * (and an optional scaling factor for the m/z step width)
- */
-SplineSpectrum(MSSpectrum<Peak1D>& rawSpectrum);
-SplineSpectrum(MSSpectrum<Peak1D>& rawSpectrum, double scaling);
+    /**
+     * @brief constructor taking an MSSpectrum
+     * (and an optional scaling factor for the m/z step width)
+     */
+    SplineSpectrum(MSSpectrum<Peak1D>& raw_spectrum);
+    SplineSpectrum(MSSpectrum<Peak1D>& raw_spectrum, double scaling);
 
-/**
- * @brief destructor
- */
-~SplineSpectrum();
+    /**
+     * @brief destructor
+     */
+    ~SplineSpectrum();
 
-/**
- * @brief returns the minimum m/z of the spectrum
- */
-double getMzMin() const;
+    /**
+     * @brief returns the minimum m/z of the spectrum
+     */
+    double getMzMin() const;
 
-/**
- * @brief returns the maximum m/z of the spectrum
- */
-double getMzMax() const;
+    /**
+     * @brief returns the maximum m/z of the spectrum
+     */
+    double getMzMax() const;
 
-private:
-/**
- * @brief m/z limits of the spectrum
- */
-double mz_min_;
-double mz_max_;
+    /** Get number of spline packages found during initialization
+     *
+     *  Note that this function should be called right after the C'tor to ensure the spectrum
+     *  has some usable data to work on.
+     *  In case there are no packages, a subsequent call to getNavigator() will throw an exception.
+     */
+    unsigned getSplineCount() const;
 
-/**
- * @brief set of spline packages each interpolating in a certain m/z range
- */
-std::vector<SplinePackage> packages_;
+    /**
+    * @brief iterator class for access of spline packages
+    */
+    class OPENMS_DLLAPI Navigator
+    {
+      public:
+        /**
+        * @brief constructor of iterator
+        */
+        Navigator(const std::vector<SplinePackage> * packages, double mzMin, double mzMax);
 
-/**
- * @brief section common for both constructors
- */
-void init_(const std::vector<double>& mz, const std::vector<double>& intensity, double scaling);
+        /**
+        * @brief destructor
+        */
+        ~Navigator();
 
-/**
- * @brief iterator class for access of spline packages
- */
-class OPENMS_DLLAPI Navigator
-{
-public:
-/**
- * @brief constructor of iterator
- */
-Navigator(const std::vector<SplinePackage> * packages, double mzMin, double mzMax);
+        /**
+        * @brief returns spline interpolated intensity at m/z
+        * (fast access since we can start search from lastPackage)
+        */
+        double eval(double mz);
 
-/**
- * @brief destructor
- */
-~Navigator();
+        /**
+        * @brief returns the next sensible m/z position
+        *  for scanning through a spectrum
+        * (fast access since we can start search from lastPackage)
+        */
+        double getNextMz(double mz);
 
-/**
- * @brief returns spline interpolated intensity at m/z
- * (fast access since we can start search from lastPackage)
- */
-double eval(double mz);
+      private:
+        
+        /// hide default Ctor
+        Navigator();
 
-/**
- * @brief returns the next sensible m/z position
- *  for scanning through a spectrum
- * (fast access since we can start search from lastPackage)
- */
-double getNextMz(double mz);
+        /**
+        * @brief list of spline packages to be accessed
+        */
+        const std::vector<SplinePackage> * packages_;
 
-private:
-/**
- * @brief list of spline packages to be accessed
- */
-const std::vector<SplinePackage> * packages_;
+        /**
+        * @brief index of spline package last accessed
+        */
+        unsigned last_package_;
 
-/**
- * @brief index of spline package last accessed
- */
-unsigned last_package_;
+        /**
+        * @brief m/z limits of the spectrum
+        */
+        double mz_min_;
+        double mz_max_;
+    };
 
-/**
- * @brief m/z limits of the spectrum
- */
-double mz_min_;
-double mz_max_;
-};
+    /**
+    * @brief returns an iterator for access of spline packages
+    *
+    * Will throw an exception if no packages were found during construction.
+    * Check using getSplineCount().
+    *
+    * Make sure that the underlying SplineSpectrum does not run out-of-scope since the
+    * Navigator relies on its data.
+    *
+    * @throw Exception::InvalidSize if packages is empty
+    */
+    SplineSpectrum::Navigator getNavigator();
 
-public:
-/**
- * @brief returns an iterator for access of spline packages
- */
-SplineSpectrum::Navigator getNavigator();
+  private:
+
+    /// hide default C'tor
+    SplineSpectrum();
+    
+    /**
+     * @brief m/z limits of the spectrum
+     */
+    double mz_min_;
+    double mz_max_;
+
+    /**
+     * @brief set of spline packages each interpolating in a certain m/z range
+     */
+    std::vector<SplinePackage> packages_;
+
+    /**
+     * @brief section common for all constructors
+     */
+    void init_(const std::vector<double>& mz, const std::vector<double>& intensity, double scaling);
+
 
 };
 
