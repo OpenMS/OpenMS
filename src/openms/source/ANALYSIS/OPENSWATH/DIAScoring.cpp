@@ -287,7 +287,6 @@ namespace OpenMS
     OPENMS_PRECONDITION(putative_fragment_charge > 0, "Charge is a positive integer");
 
     typedef OpenMS::FeatureFinderAlgorithmPickedHelperStructs::TheoreticalIsotopePattern TheoreticalIsotopePattern;
-    typedef OpenMS::FeatureFinderAlgorithmPickedHelperStructs::IsotopePattern IsotopePattern;
 
     // create the theoretical distribution
     IsotopeDistribution d;

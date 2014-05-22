@@ -47,6 +47,7 @@ if (CMAKE_COMPILER_IS_GNUCXX)
     -Wno-non-virtual-dtor 
     -Wno-long-long 
     -Wno-unknown-pragmas
+    -Wno-unused-function
     -Wno-variadic-macros)
 
   if (NOT MT_ENABLE_CUDA)  # necessary since CUDA contains non-pedantic code
