@@ -37,6 +37,9 @@
 
 #include <OpenMS/FILTERING/DATAREDUCTION/SplineSpectrum.h>
 
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
+
 using namespace OpenMS;
 
 double Gauss1(double x)
@@ -67,22 +70,53 @@ for (int i=0; i < 11; ++i)
 SplineSpectrum* ptr = 0;
 SplineSpectrum* nullPointer = 0;
 
-START_SECTION(SplineSpectrum())
+START_SECTION(SplineSpectrum(const std::vector<double>& mz, const std::vector<double>& intensity))
 {
-	ptr = new SplineSpectrum(mz,intensity);
+	ptr = new SplineSpectrum(mz, intensity);
 	TEST_NOT_EQUAL(ptr, nullPointer);
-    delete ptr;
+  delete ptr;
 }
+END_SECTION
+
+START_SECTION(SplineSpectrum(const std::vector<double>& mz, const std::vector<double>& intensity, double scaling))
+  // TODO
+END_SECTION
+
+START_SECTION(SplineSpectrum(MSSpectrum<Peak1D>& raw_spectrum))
+// TODO
+END_SECTION
+
+START_SECTION(SplineSpectrum(MSSpectrum<Peak1D>& raw_spectrum, double scaling))
+// TODO
 END_SECTION
 
 SplineSpectrum spectrum(mz, intensity);
 
-START_SECTION(getMzMin())
+START_SECTION(double getMzMin() const)
   TEST_EQUAL(spectrum.getMzMin(), 416.3);
 END_SECTION
 
-START_SECTION(getMzMax())
+START_SECTION(double getMzMax() const)
   TEST_EQUAL(spectrum.getMzMax(), 419.2);
+END_SECTION
+
+MSSpectrum<> empty_spec;
+SplineSpectrum ss_empty(empty_spec);
+
+START_SECTION(unsigned getSplineCount() const)
+  TEST_EQUAL(spectrum.getSplineCount(), 2)
+  
+  // this should be used before getNavigator()
+  TEST_EQUAL(ss_empty.getSplineCount(), 0)
+END_SECTION
+
+START_SECTION(SplineSpectrum::Navigator getNavigator())
+  // just to test if it can be called
+  SplineSpectrum::Navigator nav = spectrum.getNavigator();
+
+  // test exception on empty spectrum
+  TEST_EXCEPTION(Exception::InvalidSize, ss_empty.getNavigator())
+
 END_SECTION
 
 START_SECTION(double SplineSpectrum::Navigator::eval(double mz))
@@ -104,5 +138,8 @@ START_SECTION(double SplineSpectrum::Navigator::getNextMz(double mz))
   // advancing beyond range
   TEST_REAL_SIMILAR(spectrum.getNavigator().getNextMz(500.0), 419.2);
 END_SECTION
+
+
+
 
 END_TEST

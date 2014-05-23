@@ -105,22 +105,6 @@ private:
     */
     static int residualOutlierCandidate(std::vector<double>& x, std::vector<double>& y);
 
-    /**
-      @brief This function computes Chauvenet's criterion probability for a vector
-       and a value whose position is submitted.
-
-      @return Chauvenet's criterion probability
-    */
-    static double chauvenet_probability(std::vector<double>& residuals, int pos);
-
-    /**
-      @brief This function computes Chauvenet's criterion for a vector and a value
-       whose position is submitted.
-
-      @return TRUE, if Chauvenet's criterion is fulfilled and the outlier can be removed.
-    */
-    static bool chauvenet(std::vector<double>& residuals, int pos);
-
 public:
  
     /**
@@ -204,6 +188,22 @@ public:
                                                                double coverage_limit, 
                                                                bool use_chauvenet,
                                                                std::string method);
+
+    /**
+      @brief This function computes Chauvenet's criterion probability for a vector
+       and a value whose position is submitted.
+
+      @return Chauvenet's criterion probability
+    */
+    static double chauvenet_probability(std::vector<double>& residuals, int pos);
+
+    /**
+      @brief This function computes Chauvenet's criterion for a vector and a value
+       whose position is submitted.
+
+      @return TRUE, if Chauvenet's criterion is fulfilled and the outlier can be removed.
+    */
+    static bool chauvenet(std::vector<double>& residuals, int pos);
   };
 
 }

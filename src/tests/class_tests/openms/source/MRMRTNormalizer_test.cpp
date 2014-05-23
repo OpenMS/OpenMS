@@ -36,7 +36,6 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-#define private public
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMRTNormalizer.h>
 ///////////////////////////
 
@@ -56,7 +55,7 @@ START_TEST(MRMRTNormalizer, "$Id$")
 // ~MRMRTNormalizer() 
 //
 
-
+/*
 START_SECTION((static int jackknifeOutlierCandidate(std::vector<double> & x, std::vector<double> & y)))
 {
   static const double arrx1[] = { 1.1, 2.0,3.3,3.9,4.9,6.2  };
@@ -77,7 +76,9 @@ START_SECTION((static int jackknifeOutlierCandidate(std::vector<double> & x, std
 
 }
 END_SECTION
+*/
 
+/*
 START_SECTION((static int residualOutlierCandidate(std::vector<double> & x, std::vector<double> & y)))
 {
   static const double arrx1[] = { 1.1, 2.0,3.3,3.9,4.9,6.2  };
@@ -98,7 +99,7 @@ START_SECTION((static int residualOutlierCandidate(std::vector<double> & x, std:
 
 }
 END_SECTION
-
+*/
                                                                
 START_SECTION((static std::vector<std::pair<double, double> > removeOutliersIterative(std::vector<std::pair<double, double> > & pairs, double rsq_limit, double coverage_limit, bool use_chauvenet, std::string method)))
 {
@@ -297,7 +298,7 @@ START_SECTION((static bool chauvenet(std::vector<double> & residuals, int pos)))
 }
 END_SECTION
 
-
+/*
 START_SECTION((static std::pair<double, double > llsm_fit(std::vector<std::pair<double, double> >& pairs)))
 {
   std::vector<std::pair<double, double> > test_pairs;
@@ -382,12 +383,16 @@ START_SECTION((static std::pair<double, double > llsm_fit(std::vector<std::pair<
   TEST_EQUAL( inliers.size(), 15);
 }
 END_SECTION
+*/
 
+/*
 START_SECTION(static double llsm_rss(std::vector<std::pair<double, double> >& pairs, std::pair<double, double >& coefficients  ) )
   // tested above in llsm_fit
   NOT_TESTABLE
 END_SECTION
+*/
 
+/*
 START_SECTION((static std::vector<std::pair<double, double> > llsm_rss_inliers(std::vector<std::pair<double, double> >&   pairs, std::pair<double, double >& coefficients, double max_threshold)))
   // tested above in llsm_fit
   NOT_TESTABLE
@@ -395,7 +400,7 @@ END_SECTION
 START_SECTION((static std::vector<std::pair<double, double> > ransac(std::vector<std::pair<double, double> >& pairs, size_t n, size_t k, double t, size_t d)))
 {
 // Python reference implementation that was used to generate the test data: http://wiki.scipy.org/Cookbook/RANSAC
-/*
+
 import numpy
 import scipy # use numpy if scipy unavailable
 import scipy.linalg # use numpy if scipy unavailable
@@ -640,7 +645,7 @@ def test():
 if __name__=='__main__':
     test()
     
-*/
+
 
   std::vector<std::pair<double, double> > test_pairs, test_pairs_out;
 
@@ -736,6 +741,7 @@ if __name__=='__main__':
 
 }
 END_SECTION
+*/
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

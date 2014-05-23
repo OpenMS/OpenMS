@@ -38,6 +38,7 @@
 ///////////////////////////
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <ctime>
+#include <algorithm> // for std::sort and std::adjacent_find
 #include <boost/accumulators/statistics/covariance.hpp>
 #include BOOST_TYPEOF_INCREMENT_REGISTRATION_GROUP()
 ///////////////////////////
@@ -77,15 +78,9 @@ START_SECTION((static UInt64 getUniqueId()))
     ids.push_back(OpenMS::UniqueIdGenerator::getUniqueId());
   }
   std::sort(ids.begin(), ids.end());
-  BOOST_AUTO(iter, ids.begin()+1);
-  for(; iter!=ids.end(); ++iter)
-  {
-    if(*iter == *(iter-1))
-    {
-      TEST_NOT_EQUAL(*iter, *(iter-1));
-    }
-  }
-  TEST_NOT_EQUAL(*iter, *(iter-1));
+  // check if the generated ids contain (at least) two equal ones
+  std::vector<OpenMS::UInt64>::iterator iter = std::adjacent_find(ids.begin(), ids.end());
+  TEST_EQUAL(iter == ids.end(), true);
 }
 END_SECTION
 

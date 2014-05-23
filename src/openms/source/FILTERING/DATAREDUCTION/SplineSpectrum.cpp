@@ -56,11 +56,11 @@ SplineSpectrum::SplineSpectrum(const std::vector<double>& mz, const std::vector<
 	SplineSpectrum::init_(mz, intensity, scaling);
 }
 
-SplineSpectrum::SplineSpectrum(MSSpectrum<Peak1D>& rawSpectrum)
+SplineSpectrum::SplineSpectrum(MSSpectrum<Peak1D>& raw_spectrum)
 {
 	std::vector<double> mz;
 	std::vector<double> intensity;
-	for (MSSpectrum<Peak1D>::Iterator it = rawSpectrum.begin(); it != rawSpectrum.end(); ++it)
+  for (MSSpectrum<Peak1D>::Iterator it = raw_spectrum.begin(); it != raw_spectrum.end(); ++it)
 	{
 		mz.push_back(it->getMZ());
 		intensity.push_back(it->getIntensity());
@@ -68,11 +68,11 @@ SplineSpectrum::SplineSpectrum(MSSpectrum<Peak1D>& rawSpectrum)
 	SplineSpectrum::init_(mz, intensity, 0.7);
 }
 
-SplineSpectrum::SplineSpectrum(MSSpectrum<Peak1D>& rawSpectrum, double scaling)
+SplineSpectrum::SplineSpectrum(MSSpectrum<Peak1D>& raw_spectrum, double scaling)
 {
 	std::vector<double> mz;
 	std::vector<double> intensity;
-	for (MSSpectrum<Peak1D>::Iterator it = rawSpectrum.begin(); it != rawSpectrum.end(); ++it)
+  for (MSSpectrum<Peak1D>::Iterator it = raw_spectrum.begin(); it != raw_spectrum.end(); ++it)
 	{
 		mz.push_back(it->getMZ());
 		intensity.push_back(it->getIntensity());
@@ -87,15 +87,20 @@ SplineSpectrum::~SplineSpectrum()
 void SplineSpectrum::init_(const std::vector<double>& mz, const std::vector<double>& intensity, double scaling)
 {
 
-	if (!(mz.size() == intensity.size() && mz.size() > 2))
+	if (mz.size() != intensity.size())
 	{
-		throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,"m/z and intensity vectors either not of the same size or too short.");
+		throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "m/z and intensity vectors not of the same size.");
 	}
+
+  if (mz.empty())
+  {
+    return;
+  }
 
 	const double new_package = 2;    // start a new package if delta m/z is greater than new_package times previous one
 
-	mz_min_ = mz[0];
-	mz_max_ = mz[mz.size() -1];
+	mz_min_ = mz.front();
+	mz_max_ = mz.back();
 
 	// remove unnecessary zeros, i.e. zero intensity data points with zeros to the left and right
 	std::vector<double> mz_slim;
@@ -108,7 +113,7 @@ void SplineSpectrum::init_(const std::vector<double>& mz, const std::vector<doub
 	bool last_intensity_zero = (intensity[0] == 0);
 	bool current_intensity_zero = (intensity[0] == 0);
 	bool next_intensity_zero = (intensity[1] == 0);
-	for (unsigned i=1; i<mz.size()-1; ++i)
+  for (unsigned i = 1; i<mz.size() - 1; ++i)
 	{
 		last_intensity_zero = current_intensity_zero;
 		current_intensity_zero = next_intensity_zero;
@@ -129,7 +134,7 @@ void SplineSpectrum::init_(const std::vector<double>& mz, const std::vector<doub
 	std::vector<bool> start_package;
 	start_package.push_back(true);
 	start_package.push_back(false);
-	for (unsigned i=2; i<mz_slim.size(); ++i)
+  for (unsigned i = 2; i<mz_slim.size(); ++i)
 	{
 		start_package.push_back((mz_slim[i] - mz_slim[i-1])/(mz_slim[i-1] - mz_slim[i-2]) > new_package);
 	}
@@ -137,7 +142,7 @@ void SplineSpectrum::init_(const std::vector<double>& mz, const std::vector<doub
 	// fill the packages
 	std::vector<double> mz_package;
 	std::vector<double> intensity_package;
-	for (unsigned i=0; i<mz_slim.size(); ++i)
+  for (unsigned i = 0; i<mz_slim.size(); ++i)
 	{
 		if (start_package[i] && i > 0)
 		{
@@ -157,6 +162,7 @@ void SplineSpectrum::init_(const std::vector<double>& mz, const std::vector<doub
 	{
 		packages_.push_back(SplinePackage(mz_package, intensity_package, scaling));
 	}
+
 }
 
 double SplineSpectrum::getMzMin() const
@@ -169,7 +175,25 @@ double SplineSpectrum::getMzMax() const
 	return mz_max_;
 }
 
-SplineSpectrum::Navigator::Navigator(const std::vector<SplinePackage> * packages, double mz_min, double mz_max) : packages_(packages), last_package_(0), mz_min_(mz_min), mz_max_(mz_max)
+unsigned SplineSpectrum::getSplineCount() const
+{
+  return packages_.size();
+}
+
+SplineSpectrum::Navigator SplineSpectrum::getNavigator()
+{
+  if (packages_.empty())
+  {
+    throw Exception::InvalidSize(__FILE__, __LINE__, __PRETTY_FUNCTION__, 0);
+  }
+  return Navigator(&packages_, mz_min_, mz_max_);
+}
+
+SplineSpectrum::Navigator::Navigator(const std::vector<SplinePackage> * packages, double mz_min, double mz_max) 
+  : packages_(packages),
+    last_package_(0),
+    mz_min_(mz_min),
+    mz_max_(mz_max)
 {
 }
 
@@ -180,8 +204,8 @@ SplineSpectrum::Navigator::~Navigator()
 double SplineSpectrum::Navigator::eval(double mz)
 {
 	if (mz < (*packages_)[last_package_].getMzMin())
-	{
-		for (int i = last_package_; i >= 0; --i)
+	{ // look left
+    for (unsigned i = last_package_; i > 0; --i)
 		{
 			if (mz > (*packages_)[i].getMzMax())
 			{
@@ -196,8 +220,8 @@ double SplineSpectrum::Navigator::eval(double mz)
 		}
 	}
 	else
-	{
-		for (int i = last_package_; i < (int)(*packages_).size(); ++i)
+	{ // look right
+    for (unsigned i = last_package_; i < (unsigned)(*packages_).size(); ++i)
 		{
 			if (mz < (*packages_)[i].getMzMin())
 			{
@@ -286,9 +310,6 @@ double SplineSpectrum::Navigator::getNextMz(double mz)
 	}
 }
 
-SplineSpectrum::Navigator SplineSpectrum::getNavigator()
-{
-	return Navigator(&packages_, mz_min_, mz_max_);
-}
+
 
 }

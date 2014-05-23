@@ -241,8 +241,12 @@ namespace OpenMS
 
     data1.resize(spec_size);
     data2.resize(spec_size);
-    ifs.read((char*)&data1[0], spec_size * sizeof(DatumSingleton));
-    ifs.read((char*)&data2[0], spec_size * sizeof(DatumSingleton));
+
+    if (spec_size > 0)
+    {
+      ifs.read((char*)&data1[0], spec_size * sizeof(DatumSingleton));
+      ifs.read((char*)&data2[0], spec_size * sizeof(DatumSingleton));
+    }
   }
 
   void CachedmzML::readChromatogram_(Datavector& data1, Datavector& data2, std::ifstream& ifs) const
@@ -251,8 +255,12 @@ namespace OpenMS
     ifs.read((char*)&spec_size, sizeof(spec_size));
     data1.resize(spec_size);
     data2.resize(spec_size);
-    ifs.read((char*)&data1[0], spec_size * sizeof(DatumSingleton));
-    ifs.read((char*)&data2[0], spec_size * sizeof(DatumSingleton));
+
+    if (spec_size > 0)
+    {
+      ifs.read((char*)&data1[0], spec_size * sizeof(DatumSingleton));
+      ifs.read((char*)&data2[0], spec_size * sizeof(DatumSingleton));
+    }
   }
 
   void CachedmzML::readSpectrum_(SpectrumType& spectrum, std::ifstream& ifs) const
@@ -303,6 +311,13 @@ namespace OpenMS
     dbl_field_ = spectrum.getRT();
     ofs.write((char*)&dbl_field_, sizeof(dbl_field_));
 
+    // Catch empty spectrum: we do not write any data and since the "size" we
+    // just wrote is zero, no data will be read
+    if (spectrum.empty())
+    {
+      return;
+    }
+
     Datavector mz_data;
     Datavector int_data;
     for (Size j = 0; j < spectrum.size(); j++)
@@ -310,6 +325,7 @@ namespace OpenMS
       mz_data.push_back(spectrum[j].getMZ());
       int_data.push_back(spectrum[j].getIntensity());
     }
+
     ofs.write((char*)&mz_data.front(), mz_data.size() * sizeof(mz_data.front()));
     ofs.write((char*)&int_data.front(), int_data.size() * sizeof(int_data.front()));
   }
@@ -318,6 +334,14 @@ namespace OpenMS
   {
     Size exp_size = chromatogram.size();
     ofs.write((char*)&exp_size, sizeof(exp_size));
+
+    // Catch empty chromatogram: we do not write any data and since the "size" we
+    // just wrote is zero, no data will be read
+    if (chromatogram.empty())
+    {
+      return;
+    }
+
     Datavector rt_data;
     Datavector int_data;
     for (Size j = 0; j < chromatogram.size(); j++)
