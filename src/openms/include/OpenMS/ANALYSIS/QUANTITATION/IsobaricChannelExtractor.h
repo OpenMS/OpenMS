@@ -187,6 +187,15 @@ private:
     */
     double computePrecursorPurity_(const MSExperiment<Peak1D>::ConstIterator& ms2_spec, const PuritySate& pState) const;
 
+    /**
+      @brief Computes the purity of the precursor given an iterator pointing to the MS/MS spectrum and a reference to the potential precursor spectrum.
+
+      @param ms2_spec Iterator pointing to the ms2 spectrum.
+      @param precursor Iterator pointing to the precursor spectrum of ms2_spec.
+      @return Fraction of the total intensity in the isolation window of the precursor spectrum that was assigned to the precursor.
+    */
+    double computeSingleScanPrecursorPurity_(const MSExperiment<Peak1D>::ConstIterator& ms2_spec, const MSExperiment<Peak1D>::SpectrumType& precursor_spec) const;
+
 protected:
     /// implemented for DefaultParamHandler
     void setDefaultParams_();
