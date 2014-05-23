@@ -314,7 +314,16 @@ class MetaProSIPClustering
         ria_density[i] = density[i];
       }
 
-      vector<RateScorePair> cluster_center = MetaProSIPInterpolation::getHighPoints(1.0, ria_density);
+      /*
+      TextFile t;
+      for (MapRateToScoreType::const_iterator mit = ria_density.begin(); mit != ria_density.end(); ++mit)
+      {
+        t.push_back(String(mit->second));
+      }
+      t.store("/abi-data/sachsenb/OpenMS_IDE/dump.txt");
+      */
+
+      vector<RateScorePair> cluster_center = MetaProSIPInterpolation::getHighPoints(0.5, ria_density);
 
       // return cluster centers
       for (vector<RateScorePair>::const_iterator cit = cluster_center.begin(); cit != cluster_center.end(); ++cit)
@@ -853,7 +862,7 @@ class MetaProSIPReporting
       }
     }
 
-    static void createQualityReport(String tmp_path, String qc_output_directory, String file_suffix, const String& file_extension, bool plot_merged, const vector< vector<SIPPeptide> >& sip_peptide_cluster, Size n_heatmap_bins, double score_plot_y_axis_min, bool report_natural_peptides)
+    static void createQualityReport(String tmp_path, String qc_output_directory, String file_suffix, const String& file_extension, const vector< vector<SIPPeptide> >& sip_peptide_cluster, Size n_heatmap_bins, double score_plot_y_axis_min, bool report_natural_peptides)
     {
       vector<SIPPeptide> sip_peptides;
       for (vector< vector<SIPPeptide> >::const_iterator cit = sip_peptide_cluster.begin(); cit != sip_peptide_cluster.end(); ++cit)
@@ -878,14 +887,6 @@ class MetaProSIPReporting
 
       LOG_INFO << "Plotting filtered spectra for quality report" << endl;
       plotFilteredSpectra(qc_output_directory, tmp_path, file_suffix, file_extension, sip_peptides);
-
-      /*
-    if (plot_merged)
-    {
-      LOG_INFO << "Plotting merged spectra for quality report" << endl;
-      plotMergedSpectra(qc_output_directory, tmp_path, file_suffix, file_extension, sip_peptides);
-    }
-    */
 
       LOG_INFO << "Plotting correlation score and weight distribution" << endl;
       plotScoresAndWeights(qc_output_directory, tmp_path, file_suffix, file_extension, sip_peptides, score_plot_y_axis_min);
@@ -1084,7 +1085,7 @@ class MetaProSIPReporting
               }
 
               // blank entries for nicer formatting
-              for (Int q = 0; q < max_incorporations - v_it->incorporations.size(); ++q)
+              for (Int q = 0; q < (Int)max_incorporations - (Int)v_it->incorporations.size(); ++q)
               {
                 out_csv_stream << "" << "" << "";
               }
@@ -1168,7 +1169,7 @@ class MetaProSIPReporting
             }
 
             // blank entries for nicer formatting
-            for (Int q = 0; q < max_incorporations - v_it->incorporations.size(); ++q)
+            for (Int q = 0; q < (Int)max_incorporations - (Int)v_it->incorporations.size(); ++q)
             {
               out_csv_stream << "" << "" << "";
             }
@@ -1699,6 +1700,7 @@ class RIntegration
       LOG_INFO << "Checking R...";
       {
         QProcess p;
+        p.setProcessChannelMode(QProcess::MergedChannels);
         QStringList env = QProcess::systemEnvironment();
         env << QString("R_LIBS=") + tmp_path.toQString();
         p.setEnvironment(env);
@@ -1743,6 +1745,7 @@ class RIntegration
       current_script.store(script_filename);
 
       QProcess p;
+      p.setProcessChannelMode(QProcess::MergedChannels);
       QStringList env = QProcess::systemEnvironment();
       env << QString("R_LIBS=") + tmp_path.toQString();
       p.setEnvironment(env);
@@ -1760,6 +1763,8 @@ class RIntegration
         {
           LOG_ERROR << current_script[i] << std::endl;
         }
+        QString s = p.readAllStandardOutput();
+        LOG_ERROR << s.toStdString() << std::endl;
         return false;
       }
       LOG_INFO << " success" << std::endl;
@@ -2589,7 +2594,6 @@ class TOPPMetaProSIP : public TOPPBase
         //cout << current_seed.first << " " << current_seed.second << endl;
 
         // find weights in window to merge, remove from seed map. maybe also remove from original map depending on whether we want to quantify the weight only 1 time
-        const double weight = current_seed.first;
         const double rate = current_seed.second;
 
         SIPIncorporation sip_incorporation;
@@ -2607,8 +2611,7 @@ class TOPPMetaProSIP : public TOPPBase
         for (; l1 != h1; ++l1)
         {
           // remove from seed map
-          Int erased = seeds_weight_rate_pair.erase(make_pair(l1->second, l1->first));
-          //cout << "erasing: " << l1->second << " " << l1->first << " " << erased << endl;
+          seeds_weight_rate_pair.erase(make_pair(l1->second, l1->first));
         }
 
         // Sum up decomposition intensities for quantification in merge window
@@ -2905,7 +2908,7 @@ class TOPPMetaProSIP : public TOPPBase
 
             double precursor_mz = peak_map[i].getPrecursors()[0].getMZ();
             int precursor_charge = peak_map[i].getPrecursors()[0].getCharge();
-            double precursor_mass = (double)precursor_charge * precursor_mz - (double)precursor_charge * Constants::PROTON_MASS_U;
+            //double precursor_mass = (double)precursor_charge * precursor_mz - (double)precursor_charge * Constants::PROTON_MASS_U;
 
             // add averagine id to pseudo feature
             PeptideHit pseudo_hit;
@@ -3041,7 +3044,7 @@ class TOPPMetaProSIP : public TOPPBase
         {
           element_count = use_N15 ? e.getNumberOf("Nitrogen") : e.getNumberOf("Carbon");
         }
-        else if (sip_peptide.feature_type == UNIDENTIFIED_STRING)
+        else // if (sip_peptide.feature_type == UNIDENTIFIED_STRING)
         {
           // calculate number of expected labeling elements using averagine model
           element_count = use_N15 ? sip_peptide.mass_theo * 0.0122177302837372 : sip_peptide.mass_theo * 0.0444398894906044;
@@ -3060,12 +3063,7 @@ class TOPPMetaProSIP : public TOPPBase
           }
           continue;
         }
-        /*
-      // FOR VALIDATION: extract the merged peak spectra for later visualization during validation
-      sip_peptide.merged = extractPeakSpectrumConsensus(element_count + ADDITIONAL_ISOTOPES, sip_peptide.mass_diff, seeds_rt, feature_hit_theoretical_mz, feature_hit_charge, peak_map);
-      // FOR VALIDATION: filter peaks outside of x ppm window around expected isotopic peak
-      sip_peptide.filtered_merged = filterPeakSpectrumForIsotopicPeaks(sip_peptide.mass_diff, feature_hit_theoretical_mz, feature_hit_charge, sip_peptide.merged, mz_tolerance_ppm_);
-      */
+
         // store accumulated intensities at theoretical positions
         sip_peptide.accumulated = isotopicIntensitiesToSpectrum(feature_hit_theoretical_mz, sip_peptide.mass_diff, feature_hit_charge, isotopic_intensities);
 
@@ -3101,7 +3099,7 @@ class TOPPMetaProSIP : public TOPPBase
 
         // calculate decomposition into isotopic patterns
         MapRateToScoreType map_rate_to_decomposition_weight;
-        Int result = MetaProSIPDecomposition::calculateDecompositionWeightsIsotopicPatterns(element_count, isotopic_intensities, patterns, map_rate_to_decomposition_weight, sip_peptide);
+        MetaProSIPDecomposition::calculateDecompositionWeightsIsotopicPatterns(element_count, isotopic_intensities, patterns, map_rate_to_decomposition_weight, sip_peptide);
 
         // set first intensity to zero and remove first 2 possible RIAs (0% and e.g. 1.07% for carbon)
         MapRateToScoreType tmp_map_rate_to_correlation_score;
@@ -3192,16 +3190,6 @@ class TOPPMetaProSIP : public TOPPBase
       MSExperiment<Peak1D> debug_exp = peak_map;
       debug_exp.clear(false);
 
-      unsigned int bins = 1000;
-
-      /*
-    for (Size i = 0; i != sip_peptides.size(); ++i)
-    {
-      const SIPPeptide& sip_peptide = sip_peptides[i];
-      addDebugSpectra(debug_exp, sip_peptide);
-    }
-    */
-
       vector<vector<SIPPeptide> > sippeptide_clusters;  // vector of cluster
       if (cluster_flag)  // data has been clustered so read back the result from R
       {
@@ -3238,7 +3226,7 @@ class TOPPMetaProSIP : public TOPPBase
       if (!qc_output_directory.empty() && R_is_working)
       {
         // TODO plot merged is now passed as false
-        MetaProSIPReporting::createQualityReport(tmp_path, qc_output_directory, file_suffix, file_extension_, false, sippeptide_clusters, n_heatmap_bins, score_plot_y_axis_min, report_natural_peptides);
+        MetaProSIPReporting::createQualityReport(tmp_path, qc_output_directory, file_suffix, file_extension_, sippeptide_clusters, n_heatmap_bins, score_plot_y_axis_min, report_natural_peptides);
       }
 
       return EXECUTION_OK;
