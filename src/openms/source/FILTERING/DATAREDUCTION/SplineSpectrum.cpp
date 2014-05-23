@@ -205,7 +205,7 @@ double SplineSpectrum::Navigator::eval(double mz)
 {
 	if (mz < (*packages_)[last_package_].getMzMin())
 	{ // look left
-    for (unsigned i = last_package_; i > 0; --i)
+    for (int i = (int) last_package_; i >= 0; --i)
 		{
 			if (mz > (*packages_)[i].getMzMax())
 			{
