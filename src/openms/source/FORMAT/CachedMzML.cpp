@@ -241,8 +241,12 @@ namespace OpenMS
 
     data1.resize(spec_size);
     data2.resize(spec_size);
-    ifs.read((char*)&data1[0], spec_size * sizeof(DatumSingleton));
-    ifs.read((char*)&data2[0], spec_size * sizeof(DatumSingleton));
+
+    if (spec_size > 0)
+    {
+      ifs.read((char*)&data1[0], spec_size * sizeof(DatumSingleton));
+      ifs.read((char*)&data2[0], spec_size * sizeof(DatumSingleton));
+    }
   }
 
   void CachedmzML::readChromatogram_(Datavector& data1, Datavector& data2, std::ifstream& ifs) const
@@ -251,8 +255,12 @@ namespace OpenMS
     ifs.read((char*)&spec_size, sizeof(spec_size));
     data1.resize(spec_size);
     data2.resize(spec_size);
-    ifs.read((char*)&data1[0], spec_size * sizeof(DatumSingleton));
-    ifs.read((char*)&data2[0], spec_size * sizeof(DatumSingleton));
+
+    if (spec_size > 0)
+    {
+      ifs.read((char*)&data1[0], spec_size * sizeof(DatumSingleton));
+      ifs.read((char*)&data2[0], spec_size * sizeof(DatumSingleton));
+    }
   }
 
   void CachedmzML::readSpectrum_(SpectrumType& spectrum, std::ifstream& ifs) const
