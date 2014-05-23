@@ -144,12 +144,6 @@ struct SIPPeptide
 
     vector<double> reconstruction_monoistopic; ///< signal reconstruction of natural peptide (at mono-isotopic peak)
 
-    /*
-  PeakSpectrum merged;
-
-  PeakSpectrum filtered_merged;
-  */
-
     PeakSpectrum accumulated;
 
     vector<SIPIncorporation> incorporations;
@@ -157,35 +151,6 @@ struct SIPPeptide
     IsotopePatterns patterns;
 
     vector<PeakSpectrum> pattern_spectra;
-};
-
-struct SIPSummaryStatistic
-{
-    double median_LR;
-    double median_RIA;
-    double stdev_LR;
-    double stdev_RIA;
-};
-
-/// datastructure for reporting a protein group with one or more SIP peptides
-struct SIPProteinReport
-{
-    String accession;
-    String description;
-    SIPSummaryStatistic protein_statistic;
-    vector<SIPPeptide> peptides;
-};
-
-struct SIPGroupReport
-{
-    vector<SIPProteinReport> grouped_proteins;
-    SIPSummaryStatistic group_statistics;
-};
-
-// A group of proteins (e.g. different cluster, each corresponding to a distinct RIA)
-struct SIPGroupsReport
-{
-    map<Size, SIPGroupReport> map_id_to_protein_group;  // All proteins associated with a group
 };
 
 ///< comparator for vectors of SIPPeptides based on their size. Used to sort by group size.
@@ -557,86 +522,6 @@ class MetaProSIPReporting
         }
       }
     }
-
-    /*
-  static void plotMergedSpectra(const String& output_dir, const String& tmp_path, const String& file_suffix, const String& file_extension, const vector<SIPPeptide>& sip_peptides, Size debug_level = 0)
-  {
-    String filename = String("merged_spectra") + file_suffix + "." + file_extension;
-    String script_filename = String("merged_spectra") + file_suffix + String(".R");
-
-    for (Size i = 0; i != sip_peptides.size(); ++i)
-    {
-      TextFile current_script;
-      StringList mz_list;
-      StringList intensity_list;
-
-      for (Size j = 0; j != sip_peptides[i].merged.size(); ++j)
-      {
-        const Peak1D& peak = sip_peptides[i].merged[j];
-        mz_list.push_back(String(peak.getMZ()));
-        intensity_list.push_back(String(peak.getIntensity()));
-      }
-
-      String mz_list_string;
-      mz_list_string.concatenate(mz_list.begin(), mz_list.end(), ",");
-
-      String intensity_list_string;
-      intensity_list_string.concatenate(intensity_list.begin(), intensity_list.end(), ",");
-
-      current_script.push_back("mz<-c(" + mz_list_string + ")");
-      current_script.push_back("int<-c(" + intensity_list_string + ")");
-      current_script.push_back("x0=mz; x1=mz; y0=rep(0, length(x0)); y1=int");
-
-      if (file_extension == "png")
-      {
-        current_script.push_back("png('" + tmp_path + "/" + filename + "')");
-      }
-      else if (file_extension == "svg")
-      {
-        current_script.push_back("svg('" + tmp_path + "/" + filename + "', width=8, height=4.5)");
-      }
-      else if (file_extension == "pdf")
-      {
-        current_script.push_back("pdf('" + tmp_path + "/" + filename + "', width=8, height=4.5)");
-      }
-
-      current_script.push_back("plot.new()");
-      current_script.push_back("plot.window(xlim=c(min(mz),max(mz)), ylim=c(0,max(int)))");
-      current_script.push_back("axis(1); axis(2)");
-      current_script.push_back("title(xlab=\"m/z\")");
-      current_script.push_back("title(ylab=\"intensity\")");
-      current_script.push_back("box()");
-      current_script.push_back("segments(x0,y0,x1,y1)");
-      current_script.push_back("tmp<-dev.off()");
-      current_script.store(tmp_path + "/" + script_filename);
-
-      QProcess p;
-      QStringList env = QProcess::systemEnvironment();
-      env << QString("R_LIBS=") + tmp_path.toQString();
-      p.setEnvironment(env);
-
-      QStringList qparam;
-      qparam << "--vanilla" << "--quiet" << "--slave" << "--file=" + QString(tmp_path.toQString() + "/" + script_filename.toQString());
-      p.start("R", qparam);
-      p.waitForFinished(-1);
-      int status = p.exitCode();
-
-      if (status != 0)
-      {
-        std::cerr << "Error: Process returned with non 0 status." << std::endl;
-      }
-      else
-      {
-        QFile(QString(tmp_path.toQString() + "/" + filename.toQString())).copy(output_dir.toQString() + "/merged_spectra" + file_suffix.toQString() + "_rt_" + String(sip_peptides[i].feature_rt).toQString() + "." + file_extension.toQString());
-        if (debug_level < 1)
-        {
-          QFile(QString(tmp_path.toQString() + "/" + script_filename.toQString())).remove();
-          QFile(QString(tmp_path.toQString() + "/" + filename.toQString())).remove();
-        }
-      }
-    }
-  }
-  */
 
     static void writeHTML(const String& qc_output_directory, const String& file_suffix, const String& file_extension, const vector<SIPPeptide>& sip_peptides)
     {
@@ -1824,9 +1709,6 @@ class TOPPMetaProSIP : public TOPPBase
       registerDoubleOption_("pattern_13C_TIC_threshold", "<threshold>", 0.95, "The most intense peaks of the theoretical pattern contributing to at least this TIC fraction are taken into account.", false, true);
       registerIntOption_("heatmap_bins", "<threshold>", 20, "Number of RIA bins for heat map generation.", false, true);
 
-      registerOutputFile_("debug_patterns_name", "<file>", "", "mzML file debug spectra and patterns are generated in", false);
-      setValidFormats_("debug_patterns_name", ListUtils::create<String>("mzML"));
-
       registerStringOption_("plot_extension", "<extension>", "png", "Extension used for plots (png|svg|pdf).", false);
       StringList valid_extensions;
       valid_extensions.push_back("png");
@@ -1841,8 +1723,6 @@ class TOPPMetaProSIP : public TOPPBase
       registerFlag_("use_unassigned_ids", "Include identifications not assigned to a feature in pattern detection.", false);
 
       registerFlag_("use_averagine_ids", "Use averagine peptides as model to perform pattern detection on unidentified peptides.", false);
-
-      //registerFlag_("plot_merged", "Plot merged spectra", false);
 
       registerFlag_("report_natural_peptides", "Whether purely natural peptides are reported in the quality report.", false);
 
@@ -1862,90 +1742,6 @@ class TOPPMetaProSIP : public TOPPBase
 
       registerDoubleOption_("lowRIA_correlation_threshold", "<tol>", -1, "Correlation threshold for reporting low RIA patterns. Disable and take correlation_threshold value for negative values.", false, true);
     }
-
-    /*
-  /// Extracts isotopic intensities from seeds_rt.size() spectra in the given peak map.
-  /// To reduce noise the mean intensity at each isotopic position is returned.
-  vector<double> extractIsotopicIntensitiesConsensus(Size element_count, double mass_diff,
-    double mz_tolerance_ppm,
-    const vector<double>& seeds_rt,
-    double seed_mz,
-    double seed_charge,
-    const MSExperiment<Peak1D>& peak_map)
-  {
-    vector<vector<double> > all_intensities;
-    // extract intensities auf central spectrum (at time seeds_rt[0])
-    vector<double> isotopic_intensities = extractIsotopicIntensities(element_count, mass_diff, mz_tolerance_ppm, seeds_rt[0], seed_mz, seed_charge, peak_map);
-    all_intensities.push_back(isotopic_intensities);
-
-    // extract intensities auf neighbouring spectra
-    for (Size i = 1; i < seeds_rt.size(); ++i)
-    {
-      vector<double> tmp = extractIsotopicIntensities(element_count, mass_diff, mz_tolerance_ppm, seeds_rt[i], seed_mz, seed_charge, peak_map);
-      all_intensities.push_back(tmp);
-    }
-
-    // calculate mean for each bucket
-    for (Size p = 0; p != isotopic_intensities.size(); ++p)
-    {
-      double sum = 0;
-      for (Size i = 0; i != all_intensities.size(); ++i)
-      {
-        sum += all_intensities[i][p];
-      }
-      isotopic_intensities[p] = sum / seeds_rt.size();
-
-      //cout << isotopic_intensities[p] << endl;
-    }
-
-    return isotopic_intensities;
-  }
-  */
-
-    /*
-  ///> Extracts peaks at the theoretical position of the isotopic intensities from seeds_rt.size() spectra in the given peak map.
-  PeakSpectrum extractPeakSpectrumConsensus(Size element_count, double mass_diff,
-    const vector<double>& seeds_rt,
-    double seed_mz,
-    double seed_charge,
-    const MSExperiment<Peak1D>& peak_map)
-  {
-    MSExperiment<> to_merge;
-    for (Size i = 0; i != seeds_rt.size(); ++i)
-    {
-      to_merge.addSpectrum(extractPeakSpectrum(element_count, mass_diff, seeds_rt[i], seed_mz, seed_charge, peak_map));
-    }
-    return mergeSpectra(to_merge);
-  }
-  */
-    /*
-  ///>
-  PeakSpectrum filterPeakSpectrumForIsotopicPeaks(double mass_diff, double seed_mz,
-    double seed_charge, const PeakSpectrum& spectrum, double ppm = 10.0)
-  {
-    PeakSpectrum ret;
-    double iso_dist = mass_diff / seed_charge;
-
-    for (PeakSpectrum::ConstIterator it = spectrum.begin(); it != spectrum.end(); ++it)
-    {
-      double mz_dist = it->getMZ() - seed_mz;
-      if (mz_dist < -seed_mz * ppm * 1e-6)
-      {
-        continue;
-      }
-      Size k = (Size)(mz_dist / iso_dist + 0.5);  // determine which k-th isotopic peak we probably are dealing with
-      // determine ppm window the peak must lie in
-      double mz = seed_mz + k * mass_diff / seed_charge;
-      double min_mz = mz - mz * ppm * 1e-6;
-      double max_mz = mz + mz * ppm * 1e-6;
-      if (it->getMZ() > min_mz && it->getMZ() < max_mz)
-      {
-        ret.push_back(*it);
-      }
-    }
-    return ret;
-  }
-  */
 
     ///> filter intensity to remove noise or additional incorporation peaks that otherwise might interfere with correlation calculation
     void filterIsotopicIntensities(vector<double>::const_iterator& pattern_begin, vector<double>::const_iterator& pattern_end,
@@ -1997,8 +1793,6 @@ class TOPPMetaProSIP : public TOPPBase
           break;
         }
       }
-
-      //cout << "before: " << std::distance(pattern_begin, pattern_end) << endl;
 
       vector<double>::const_iterator tmp_pattern_it(pattern_begin);
       vector<double>::const_iterator tmp_intensity_it(intensities_begin);
@@ -2149,14 +1943,6 @@ class TOPPMetaProSIP : public TOPPBase
         }
       }
       return ret;
-    }
-
-    void saveDebugSpectrum(String filename, const PeakSpectrum& ps)
-    {
-      MSExperiment<> exp;
-      exp.addSpectrum(ps);
-      MzMLFile mtest;
-      mtest.store(filename, exp);
     }
 
     // collects intensities starting at seed_mz/_rt, if no peak is found at the expected position a 0 is added
@@ -3231,54 +3017,6 @@ class TOPPMetaProSIP : public TOPPBase
 
       return EXECUTION_OK;
     }
-
-    /*
-  void addDebugSpectra(MSExperiment<Peak1D>& debug_exp, const SIPPeptide& sip_peptide)
-  {
-    debug_exp.addSpectrum(sip_peptide.merged);
-    debug_exp[debug_exp.size() - 1].setRT(sip_peptide.feature_rt);
-    debug_exp.addSpectrum(sip_peptide.filtered_merged);
-    debug_exp[debug_exp.size() - 1].setRT(sip_peptide.feature_rt + 1e-6);
-    debug_exp.addSpectrum(sip_peptide.accumulated);
-    debug_exp[debug_exp.size() - 1].setRT(sip_peptide.feature_rt + 2e-6);
-    debug_exp.addSpectrum(sip_peptide.reconstruction);
-    debug_exp[debug_exp.size() - 1].setRT(sip_peptide.feature_rt + 3e-6);
-
-    // theoretical spectra that have been chosen by correlation and decomposition
-    for (Size j = 0; j != sip_peptide.incorporations.size(); ++j)
-    {
-      const SIPIncorporation& si = sip_peptide.incorporations[j];
-      PeakSpectrum ps = si.theoretical;
-      ps.setMSLevel(2);
-      ps.setRT(sip_peptide.feature_rt + 4e-6 + j *  1e-6);
-      Precursor pc;
-      pc.setMZ(si.rate);
-      vector<Precursor> pcs;
-      pcs.push_back(pc);
-      ps.setPrecursors(pcs);
-      debug_exp.addSpectrum(ps);
-    }
-
-    // push empty spectrum
-    debug_exp.addSpectrum(PeakSpectrum());
-    debug_exp[debug_exp.size() - 1].setRT(sip_peptide.feature_rt + 5e-6);
-
-    // push all theoretical patterns
-    for (Size j = 0; j != sip_peptide.pattern_spectra.size(); ++j)
-    {
-      PeakSpectrum ps = sip_peptide.pattern_spectra[j];
-      ps.setRT(sip_peptide.feature_rt + 5e-6 + (j + 1) *  1e-6);
-      Precursor pc;
-      double rate = (double)ps.getMetaValue("rate");
-      pc.setMZ(rate);
-      vector<Precursor> pcs;
-      pcs.push_back(pc);
-      ps.setPrecursors(pcs);
-      //cout << "adding MS" << ps.getMSLevel() << " with " << ps.getPrecursors().size() << " precursors " << ps.getPrecursors()[0].getMZ() << endl;
-      debug_exp.addSpectrum(ps);
-    }
-  }
-  */
 };
 
 int main(int argc, const char** argv)
