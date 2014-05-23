@@ -609,7 +609,6 @@ namespace OpenMS
       typedef OpenSwath::LightTransition TransitionType;
       // a transition group holds the MSSpectra with the Chromatogram peaks from above
       typedef MRMTransitionGroup<MSSpectrum <ChromatogramPeak>, TransitionType> MRMTransitionGroupType;
-      typedef std::map<String, MRMTransitionGroupType> TransitionGroupMapType;
       // this is the type in which we store the chromatograms for this analysis
       typedef MSSpectrum<ChromatogramPeak> RichPeakChromatogram;
 
