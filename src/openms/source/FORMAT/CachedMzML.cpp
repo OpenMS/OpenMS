@@ -242,11 +242,11 @@ namespace OpenMS
     data1.resize(spec_size);
     data2.resize(spec_size);
 
-	  if (spec_size > 0)
-	  {
+    if (spec_size > 0)
+    {
       ifs.read((char*)&data1[0], spec_size * sizeof(DatumSingleton));
       ifs.read((char*)&data2[0], spec_size * sizeof(DatumSingleton));
-	  }
+    }
   }
 
   void CachedmzML::readChromatogram_(Datavector& data1, Datavector& data2, std::ifstream& ifs) const
