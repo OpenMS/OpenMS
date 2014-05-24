@@ -273,7 +273,10 @@ public:
 
 public:
     HashGrid(const ClusterCenter & cell_dimension) :
-      cell_dimension(cell_dimension), grid_dimension(grid_dimension_)
+      cells_(), 
+      grid_dimension_(), 
+      cell_dimension(cell_dimension), 
+      grid_dimension(grid_dimension_)
     {}
 
     /**

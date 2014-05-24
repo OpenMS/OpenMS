@@ -217,8 +217,8 @@ public:
      * @brief Constructor
      * @param cluster_dimension Max dimension of cluster
      */
-    HierarchicalClustering(const PointCoordinate & cluster_dimension) :
-      grid(cluster_dimension)
+    HierarchicalClustering(const PointCoordinate & local_cluster_dimension) :
+      grid(local_cluster_dimension)
     {}
 
     /**
@@ -249,6 +249,7 @@ public:
     }
 
 protected:
+
     /**
      * @brief Insert new Cluster into grid.
      * @param p Point to insert.
