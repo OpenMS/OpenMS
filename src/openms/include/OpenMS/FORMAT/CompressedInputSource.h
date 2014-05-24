@@ -49,20 +49,20 @@ namespace OpenMS
   {
 public:
     ///Constructor
-    CompressedInputSource(const   String & file_path, const char * header, xercesc::MemoryManager * const manager = xercesc::XMLPlatformUtils::fgMemoryManager);
+    CompressedInputSource(const   String & file_path, const String & header, xercesc::MemoryManager * const manager = xercesc::XMLPlatformUtils::fgMemoryManager);
     ///Constructor
-    CompressedInputSource(const   XMLCh * const file_path, const char * header, xercesc::MemoryManager * const manager = xercesc::XMLPlatformUtils::fgMemoryManager);
+    CompressedInputSource(const   XMLCh * const file_path, const String & header, xercesc::MemoryManager * const manager = xercesc::XMLPlatformUtils::fgMemoryManager);
     ///Constructor
     virtual ~CompressedInputSource();
 
     /**
        @brief Depending on the header in the Constructor a Bzip2InputStream or a GzipInputStream object is returned
-         @note InputSource interface implementation
-       */
+       @note InputSource interface implementation
+    */
     virtual xercesc::BinInputStream * makeStream() const;
 
 private:
-    char head_[2];
+    String head_;
     /// private CTor - not implemented
     CompressedInputSource();
     CompressedInputSource(const CompressedInputSource & source);
