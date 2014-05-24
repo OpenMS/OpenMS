@@ -170,6 +170,7 @@ namespace OpenMS
       return *it;
     }
   }
+
   /**
     @brief Calculates the first quantile of a range of values
 
@@ -189,15 +190,23 @@ namespace OpenMS
   {
     checkIteratorsNotNULL(begin, end);
 
+    if (!sorted)
+    {
+      std::sort(begin, end);
+    }
+
     Size size = std::distance(begin, end);
     if (size % 2 == 0)
-      return median(begin, begin + (size/2)-1, sorted); //-1 to exclude median values
-    return median(begin, begin + (size/2), sorted);
+    {
+      return median(begin, begin + (size/2)-1, true); //-1 to exclude median values
+    }
+    return median(begin, begin + (size/2), true);
   }
-  /**
-    @brief Calculates the first quantile of a range of values
 
-    The range is divided into half and the median for the first half is returned.
+  /**
+    @brief Calculates the third quantile of a range of values
+
+    The range is divided into half and the median for the second half is returned.
 
     @param begin Start of range
     @param end End of range (past-the-end iterator)
@@ -207,15 +216,18 @@ namespace OpenMS
 
     @ingroup MathFunctionsStatistics
   */
-
   template <typename IteratorType>
   static double quantile3rd(
       IteratorType begin, IteratorType end, bool sorted = false)
   {
     checkIteratorsNotNULL(begin, end);
+    if (!sorted)
+    {
+      std::sort(begin, end);
+    }
 
     Size size = std::distance(begin, end);
-    return median(begin + (size/2)+1, end, sorted); //+1 to exclude median values
+    return median(begin + (size/2)+1, end, true); //+1 to exclude median values
   }
 
   /**
@@ -232,7 +244,7 @@ namespace OpenMS
   {
     checkIteratorsNotNULL(begin, end);
     double sum = 0.0;
-    if (mean == std::numeric_limits<double>::max()) // TODO float comparison: use mean >= ... ?
+    if (mean == std::numeric_limits<double>::max())
     {
       mean = Math::mean(begin, end);
     }
@@ -259,6 +271,7 @@ namespace OpenMS
     checkIteratorsNotNULL(begin, end);
     return std::sqrt( variance(begin, end, mean) );
   }
+
   /**
   @brief Calculates the absolute deviation of a range of values
 
