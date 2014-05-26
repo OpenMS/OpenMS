@@ -127,7 +127,8 @@ public:
         scan_count(0),
         chromatogram_count(0),
         skip_chromatogram_(false),
-        skip_spectrum_(false) /* ,
+        skip_spectrum_(false),
+        rt_set_(false) /* ,
                 validator_(mapping_, cv_) */
       {
         cv_.loadFromOBO("MS", File::find("/CV/psi-ms.obo"));
@@ -163,7 +164,8 @@ public:
         scan_count(0),
         chromatogram_count(0),
         skip_chromatogram_(false),
-        skip_spectrum_(false) /* ,
+        skip_spectrum_(false),
+        rt_set_(false) /* ,
                 validator_(mapping_, cv_) */
       {
         cv_.loadFromOBO("MS", File::find("/CV/psi-ms.obo"));
@@ -933,6 +935,9 @@ protected:
       bool skip_chromatogram_;
       bool skip_spectrum_;
 
+      // Remeber whether the RT of the spectrum was set or not
+      bool rt_set_;
+
       ///Controlled vocabulary (psi-ms from OpenMS/share/OpenMS/CV/psi-ms.obo)
       ControlledVocabulary cv_;
       CVMappings mapping_;
@@ -1450,7 +1455,7 @@ protected:
       {
 
         // catch errors stemming from confusion about elution time and scan time
-        if (spec_.getRT() == -1.0 && spec_.metaValueExists("elution time (seconds)"))
+        if (!rt_set_ && spec_.metaValueExists("elution time (seconds)"))
         {
           spec_.setRT(spec_.getMetaValue("elution time (seconds)"));
         }
@@ -1480,6 +1485,7 @@ protected:
         }
 
         skip_spectrum_ = false;
+        rt_set_ = false;
         if (options_.getSizeOnly()) {skip_spectrum_ = true;}
         logger_.setProgress(++scan_count);
         data_.clear();
@@ -2221,10 +2227,12 @@ protected:
           if (unit_accession == "UO:0000031") //minutes
           {
             spec_.setRT(60.0 * value.toDouble());
+            rt_set_ = true;
           }
           else //seconds
           {
             spec_.setRT(value.toDouble());
+            rt_set_ = true;
           }
           if (options_.hasRTRange() && !options_.getRTRange().encloses(DPosition<1>(spec_.getRT())))
           {
