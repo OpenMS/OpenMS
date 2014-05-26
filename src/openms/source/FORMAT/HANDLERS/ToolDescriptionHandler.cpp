@@ -204,10 +204,7 @@ namespace OpenMS
         return;
       }
       else
-        return;  // TODO...
-
-      error(LOAD, "ToolDescriptionHandler::endElement: Unkown element found: '" + endtag_ + "', ignoring.");
-
+        return;  // TODO...handle other end tags?
     }
 
     void ToolDescriptionHandler::writeTo(std::ostream & /*os*/)
