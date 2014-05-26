@@ -150,10 +150,14 @@ START_SECTION(double SplineSpectrum::Navigator::eval(double mz))
   TEST_REAL_SIMILAR(spectrum2.getNavigator().eval(416.33), 0.007848195698809);  // expected 0.00738068453767004 differs by 6%
   // near the maximum
   TEST_REAL_SIMILAR(spectrum2.getNavigator().eval(416.81), 0.997572728799559);  // expected 0.99778024508561 differs by 0.02%
-  // evaluation in first and then last package
+  // evaluation in first package, then search in last package
   SplineSpectrum::Navigator nav = spectrum2.getNavigator();
   TEST_REAL_SIMILAR(nav.eval(416.81), 0.997572728799559);
   TEST_REAL_SIMILAR(nav.eval(418.75), 0.944147611428987);
+  // evaluation in last package, then search in first package
+  SplineSpectrum::Navigator nav2 = spectrum2.getNavigator();
+  TEST_REAL_SIMILAR(nav2.eval(418.75), 0.944147611428987);
+  TEST_REAL_SIMILAR(nav2.eval(416.81), 0.997572728799559);
 END_SECTION
 
 START_SECTION(double SplineSpectrum::Navigator::getNextMz(double mz))
