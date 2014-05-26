@@ -106,7 +106,11 @@ namespace OpenMS
     std::nth_element(first, first + iterator_pos / 2, last);
 
     double median;
-    if (iterator_pos % 2 == 0)
+    if (iterator_pos == 0)
+    {
+      median = 0.0;
+    }
+    else if (iterator_pos % 2 == 0)
     {
       // even case
       // compute the arithmethic mean between the two middle elements
