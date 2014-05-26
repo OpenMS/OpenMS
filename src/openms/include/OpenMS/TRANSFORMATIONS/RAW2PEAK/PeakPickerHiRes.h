@@ -200,7 +200,6 @@ public:
             continue;
           }
 
-
           std::map<double, double> peak_raw_data;
 
           peak_raw_data[central_peak_mz] = central_peak_int;
@@ -212,7 +211,7 @@ public:
           Size k = 2;
 
           Size missing_left(0);
-          Size leftBoundary(i-1);    // index of the left boundary for the spline interpolation
+          Size left_boundary(i-1);    // index of the left boundary for the spline interpolation
 
           while ( k <= i//prevent underflow
                 && (i - k + 1) > 0
@@ -238,7 +237,7 @@ public:
               ++missing_left;
             }
 
-            leftBoundary = i - k;
+            left_boundary = i - k;
             ++k;
 
           }
@@ -247,7 +246,7 @@ public:
           k = 2;
           
           Size missing_right(0);
-          Size rightBoundary(i+1);    // index of the left boundary for the spline interpolation
+          Size right_boundary(i+1);    // index of the left boundary for the spline interpolation
           
           while ((i + k) < input.size()
                 && (missing_right < 2)
@@ -271,7 +270,7 @@ public:
               ++missing_right;
             }
 
-            rightBoundary = i + k;
+            right_boundary = i + k;
             ++k;
           }
 
@@ -326,8 +325,8 @@ public:
           PeakBoundary peak_boundary;
           peak.setMZ(max_peak_mz);
           peak.setIntensity(max_peak_int);
-          peak_boundary.mz_min = input[leftBoundary].getMZ();
-          peak_boundary.mz_max = input[rightBoundary].getMZ();
+          peak_boundary.mz_min = input[left_boundary].getMZ();
+          peak_boundary.mz_max = input[right_boundary].getMZ();
           output.push_back(peak);
           boundaries.push_back(peak_boundary);
 
