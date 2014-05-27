@@ -55,8 +55,7 @@ endif()
 #   * never mix Release/Debug versions of libraries. Leads to strange segfaults,
 #     stack corruption etc, due to different runtime libs ...
 # compiler-wise: use the same compiler for contrib and OpenMS!
-
-OPENMS_CHECKLIB(CONTRIB_XERCESC "xerces-c_3;xerces-c_static_3;libxerces-c;xerces-c" "xerces-c_3D;xerces-c_static_3D;libxerces-c;xerces-c" "xerces_c")
+find_package(XercesC REQUIRED)
 
 #------------------------------------------------------------------------------
 # BOOST
@@ -74,12 +73,7 @@ endif()
 
 #------------------------------------------------------------------------------
 # SEQAN
-find_package(SEQAN 1.4.0)
-if(SEQAN_FOUND)
-  message(STATUS "Found SEQAN version ${SEQAN_VERSION_MAJOR}.${SEQAN_VERSION_MINOR}.${SEQAN_VERSION_PATCH}" )
-else()
-  message(FATAL_ERROR "SeqAn could not be found. Please install it from www.seqan.de or download and install the OpenMS contrib package.")
-endif()
+find_package(SEQAN 1.4.0 REQUIRED)
 
 #------------------------------------------------------------------------------
 # libsvm

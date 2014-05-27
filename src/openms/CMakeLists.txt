@@ -76,7 +76,7 @@ set(OPENMS_DEP_LIBRARIES  ${CONTRIB_CBC}
                           ${GSL_LIBRARIES}
                           ${GSL_CBLAS_LIBRARIES}
                           ${DEP_LIBSVM_LIBRARY}
-                          ${CONTRIB_XERCESC}
+                          ${XercesC_LIBRARY}
                           ${Boost_LIBRARIES}
                           ${WM5_LIBRARIES}
                           ${BZIP2_LIBRARIES}
@@ -117,7 +117,7 @@ openms_add_library(TARGET_NAME  OpenMS
                                      ${WM5_INCLUDE_DIRS}
                                      ${OpenSwathAlgo_INCLUDE_DIRECTORIES}
                                      ${CRAWDAD_INCLUDE_DIRS}
-                                     ${CONTRIB_INCLUDE_DIR}
+                                     ${XercesC_INCLUDE_DIR}
                    LINK_LIBRARIES OpenSwathAlgo
                                   ${APPLE_EXTRA_LIBS}
                                   ${QT_LIBRARIES}
