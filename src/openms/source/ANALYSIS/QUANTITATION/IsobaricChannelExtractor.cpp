@@ -39,6 +39,44 @@
 
 namespace OpenMS
 {
+  
+  IsobaricChannelExtractor::PuritySate_::PuritySate_(const MSExperiment<>& targetExp) :
+  baseExperiment(targetExp)
+  {
+    precursorScan = baseExperiment.end();
+    hasPrecursorScan = false;
+    
+    // find the first ms1 scan in the experiment
+    followUpScan = baseExperiment.begin();
+    while (followUpScan->getMSLevel() != 1 && followUpScan != baseExperiment.end())
+    {
+      ++followUpScan;
+    }
+    
+    // check if we found one
+    hasFollowUpScan = followUpScan != baseExperiment.end();
+  }
+  
+  void IsobaricChannelExtractor::PuritySate_::advanceFollowUp(const double rt)
+  {
+    // advance follow up scan until we found a ms1 scan with a bigger RT
+    while (true)
+    {
+      ++followUpScan;
+      if ((followUpScan->getMSLevel() == 1 && followUpScan->getRT() > rt) || followUpScan == baseExperiment.end())
+      {
+        break;
+      }
+    }
+    
+    // check if we found one
+    hasFollowUpScan = followUpScan != baseExperiment.end();
+  }
+  
+  bool IsobaricChannelExtractor::PuritySate_::followUpValid(const double rt)
+  {
+    return hasFollowUpScan ? rt < followUpScan->getRT() : true;
+  }
 
   IsobaricChannelExtractor::IsobaricChannelExtractor(const IsobaricQuantitationMethod* const quant_method) :
     DefaultParamHandler("IsobaricChannelExtractor"),
@@ -343,7 +381,7 @@ namespace OpenMS
     return precursor_intensity / total_intensity;
   }
 
-  double IsobaricChannelExtractor::computePrecursorPurity_(const MSExperiment<Peak1D>::ConstIterator& ms2_spec, const PuritySate& pState) const
+  double IsobaricChannelExtractor::computePrecursorPurity_(const MSExperiment<Peak1D>::ConstIterator& ms2_spec, const PuritySate_& pState) const
   {
     // we cannot analyze precursors without a charge
     if (ms2_spec->getPrecursors()[0].getCharge() == 0)
@@ -398,7 +436,7 @@ namespace OpenMS
     UInt64 element_index(0);
 
     // remember the current precusor spectrum
-    PuritySate pState(ms_exp_data);
+    PuritySate_ pState(ms_exp_data);
 
     for (MSExperiment<Peak1D>::ConstIterator it = ms_exp_data.begin(); it != ms_exp_data.end(); ++it)
     {
