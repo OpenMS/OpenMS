@@ -117,8 +117,8 @@ namespace OpenMS
     defaults_.setMinFloat("min_precursor_purity", 0.0);
     defaults_.setMaxFloat("min_precursor_purity", 1.0);
 
-    defaults_.setValue("precursor_isotope_deviation", 10, "Maximum allowed deviation in ppm between theoretical and observed isotopic peaks of the precursor peak in the isolation window to be counted as part of the precursor.");
-    defaults_.setMinInt("precursor_isotope_deviation", 0);
+    defaults_.setValue("precursor_isotope_deviation", 10.0, "Maximum allowed deviation in ppm between theoretical and observed isotopic peaks of the precursor peak in the isolation window to be counted as part of the precursor.");
+    defaults_.setMinFloat("precursor_isotope_deviation", 0.0);
     defaults_.addTag("precursor_isotope_deviation", "advanced");
 
     defaultsToParam_();
@@ -173,10 +173,6 @@ namespace OpenMS
     Size precursor_peak_idx = precursor_spec.findNearest(ms2_spec->getPrecursors()[0].getMZ());
     const Peak1D& precursor_peak = precursor_spec[precursor_peak_idx];
 
-    std::cerr << "Analyzing precursor window [" << strict_lower_mz << ", " << strict_upper_mz << "]" << std::endl;
-    std::cerr << "Precursor peak: " << precursor_peak << " (-" << ms2_spec->getPrecursors()[0].getIsolationWindowLowerOffset() << " / +" << ms2_spec->getPrecursors()[0].getIsolationWindowUpperOffset() << ")" << std::endl;
-    std::cerr << "Charge: " << ms2_spec->getPrecursors()[0].getCharge() << " charge_dist: " << charge_dist << std::endl;
-
     Peak1D::IntensityType precursor_intensity = precursor_peak.getIntensity();
     Peak1D::IntensityType total_intensity = precursor_peak.getIntensity();
 
@@ -193,8 +189,6 @@ namespace OpenMS
     double min_diff = 1000.0;
     double min_diff_intensity = 0.0;
     double min_diff_mz = 0.0;
-
-    std::cerr << "Expect next isotopic peak at m/z: " << expected_next_mz << std::endl;
 
     // check if we are still in the boundaries of our
     while (idx >= 0 && precursor_spec[idx].getMZ() > fuzzy_lower_mz)
@@ -221,8 +215,6 @@ namespace OpenMS
       // check if it is an isotope peak
       double current_diff = std::fabs(precursor_spec[idx].getMZ() - expected_next_mz);
 
-      std::cerr << "Current peak: " << precursor_spec[idx] << " (delta: " << current_diff << ")" << std::endl;
-
       // difference increases again -> current min seams to be a match or there is no peak at all
       // or we have the last scan so we will try to match the current state against the isotopes
       if (current_diff > previous_diff || is_last_scan)
@@ -235,7 +227,6 @@ namespace OpenMS
           last_matching_mz = min_diff_mz;
           expected_next_mz = last_matching_mz - charge_dist;
 
-          std::cerr << "Expect next isotopic peak at m/z: " << expected_next_mz << std::endl;
         }
         else
         {
@@ -243,7 +234,6 @@ namespace OpenMS
           // -> set values to theoretical positions
           last_matching_mz = expected_next_mz;
           expected_next_mz = last_matching_mz - charge_dist;
-          std::cerr << "Expect next isotopic peak at m/z: " << expected_next_mz << std::endl;
         }
 
         // update currentDiff/minDiff to next pos, such that the diffs decrease again
@@ -278,8 +268,6 @@ namespace OpenMS
     min_diff_intensity = 0.0;
     min_diff_mz = 0.0;
 
-    std::cerr << "Expect next isotopic peak at m/z: " << expected_next_mz << std::endl;
-
     // check if we are still in the boundaries of our
     while (idx < static_cast<int>(precursor_spec.size()) && precursor_spec[idx].getMZ() < fuzzy_upper_mz)
     {
@@ -305,8 +293,6 @@ namespace OpenMS
       // check if it is an isotope peak
       double current_diff = std::fabs(precursor_spec[idx].getMZ() - expected_next_mz);
 
-      std::cerr << "Current peak: " << precursor_spec[idx] << " (delta: " << current_diff << ")" << std::endl;
-
       // difference increases again -> current min seams to be a match or there is no peak at all
       // or we have the last scan so we will try to match the current state against the isotopes
       if (current_diff > previous_diff || is_last_scan)
@@ -318,7 +304,6 @@ namespace OpenMS
           // last and next pos
           last_matching_mz = min_diff_mz;
           expected_next_mz = last_matching_mz + charge_dist;
-          std::cerr << "Expect next isotopic peak at m/z: " << expected_next_mz << std::endl;
         }
         else
         {
@@ -326,7 +311,6 @@ namespace OpenMS
           // -> set values to theoretical positions
           last_matching_mz = expected_next_mz;
           expected_next_mz = last_matching_mz + charge_dist;
-          std::cerr << "Expect next isotopic peak at m/z: " << expected_next_mz << std::endl;
         }
 
         // update currentDiff/minDiff to next pos, such that the diffs decrease again
@@ -363,9 +347,33 @@ namespace OpenMS
   {
     // we cannot analyze precursors without a charge
     if (ms2_spec->getPrecursors()[0].getCharge() == 0)
+    {
       return 1.0;
+    }
     else
-      return computeSingleScanPrecursorPurity_(ms2_spec, *pState.precursorScan);
+    {
+      // compute purity of preceeding ms1 scan
+      double early_scan_purity = computeSingleScanPrecursorPurity_(ms2_spec, *(pState.precursorScan));
+
+      if (pState.hasFollowUpScan)
+      {
+        double late_scan_purity = computeSingleScanPrecursorPurity_(ms2_spec, *(pState.followUpScan));
+
+        // calculating the extrapolated, S2I value as a time weighted linear combination of the two scans
+        // see: Savitski MM, Sweetman G, Askenazi M, Marto JA, Lang M, Zinn N, et al. (2011).
+        // Delayed fragmentation and optimized isolation width settings for improvement of protein
+        // identification and accuracy of isobaric mass tag quantification on Orbitrap-type mass
+        // spectrometers. Analytical chemistry 83: 8959–67.
+        // Available from: http://www.ncbi.nlm.nih.gov/pubmed/22017476
+        return (ms2_spec->getRT() - pState.precursorScan->getRT()) *
+               ((late_scan_purity - early_scan_purity) / (pState.followUpScan->getRT() - pState.precursorScan->getRT()))
+               + early_scan_purity;
+      }
+      else
+      {
+        return early_scan_purity;
+      }
+    }
   }
 
   void IsobaricChannelExtractor::extractChannels(const MSExperiment<Peak1D>& ms_exp_data, ConsensusMap& consensus_map)

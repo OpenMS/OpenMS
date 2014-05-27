@@ -492,9 +492,9 @@ START_SECTION((void extractChannels(const MSExperiment<Peak1D>&ms_exp_data, Cons
 
     // check results
     TEST_REAL_SIMILAR(cm_out[0].getMetaValue("precursor_purity"), 1.0)
-    TEST_REAL_SIMILAR(cm_out[1].getMetaValue("precursor_purity"), 0.65472)
-    TEST_REAL_SIMILAR(cm_out[2].getMetaValue("precursor_purity"), 0.775739)
-    TEST_REAL_SIMILAR(cm_out[3].getMetaValue("precursor_purity"), 0.72009)
+    TEST_REAL_SIMILAR(cm_out[1].getMetaValue("precursor_purity"), 0.692434)
+    TEST_REAL_SIMILAR(cm_out[2].getMetaValue("precursor_purity"), 0.824561)
+    TEST_REAL_SIMILAR(cm_out[3].getMetaValue("precursor_purity"), 0.731295)
     TEST_REAL_SIMILAR(cm_out[4].getMetaValue("precursor_purity"), 1.0)
 
     // now filter by purity
@@ -509,7 +509,7 @@ START_SECTION((void extractChannels(const MSExperiment<Peak1D>&ms_exp_data, Cons
 
     // check results
     TEST_REAL_SIMILAR(cm_filtered[0].getMetaValue("precursor_purity"), 1.0)
-    TEST_REAL_SIMILAR(cm_filtered[1].getMetaValue("precursor_purity"), 0.775739)
+    TEST_REAL_SIMILAR(cm_filtered[1].getMetaValue("precursor_purity"), 0.824561)
     TEST_REAL_SIMILAR(cm_filtered[2].getMetaValue("precursor_purity"), 1.0)
   }
 }

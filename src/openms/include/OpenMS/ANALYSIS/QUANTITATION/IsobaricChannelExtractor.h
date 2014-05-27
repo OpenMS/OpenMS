@@ -114,11 +114,13 @@ private:
       void advanceFollowUp(const double rt)
       {
         // advance follow up scan until we found a ms1 scan with a bigger RT
-        while (followUpScan->getMSLevel() != 1 &&
-               followUpScan != baseExperiment.end() &&
-               followUpScan->getRT() < rt)
+        while (true)
         {
           ++followUpScan;
+          if ((followUpScan->getMSLevel() == 1 && followUpScan->getRT() > rt) || followUpScan == baseExperiment.end())
+          {
+            break;
+          }
         }
 
         // check if we found one
