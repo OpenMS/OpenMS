@@ -77,8 +77,8 @@ public:
 private:
     /**
       @brief Small struct to capture the current state of the purity computation.
-     
-      It basically contains two iterators pointing to the current potential 
+
+      It basically contains two iterators pointing to the current potential
       ms1 precursor scan of an ms2 scan and the ms1 scan immediatly
       following the current ms2 scan.
     */
@@ -88,7 +88,7 @@ private:
       MSExperiment<Peak1D>::ConstIterator precursorScan;
       /// Iterator pointing to the potential follow up ms1 scan
       MSExperiment<Peak1D>::ConstIterator followUpScan;
-      
+
       /// Indicates if a precursor was found
       bool hasPrecursorScan;
       /// Indicates if a follow up scan was found
@@ -98,21 +98,21 @@ private:
 
       /**
         @brief C'tor taking the experiment that will be analyzed.
-       
+
         @param targetExp The experiment that will be analyzed.
       */
       PuritySate_(const MSExperiment<>& targetExp);
-      
+
       /**
         @brief Searches the experiment for the next ms1 spectrum with a retention time bigger then @p rt.
-       
+
         @param rt The next follow up scan should have a retention bigger then this value.
       */
       void advanceFollowUp(const double rt);
 
       /**
         @brief Check if the currently selected follow up scan has a retention time bigger then the given value.
-       
+
         @param rt The retention time to check.
       */
       bool followUpValid(const double rt);

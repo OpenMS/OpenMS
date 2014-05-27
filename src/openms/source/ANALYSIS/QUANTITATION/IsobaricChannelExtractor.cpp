@@ -39,40 +39,40 @@
 
 namespace OpenMS
 {
-  
+
   IsobaricChannelExtractor::PuritySate_::PuritySate_(const MSExperiment<>& targetExp) :
-  baseExperiment(targetExp)
+    baseExperiment(targetExp)
   {
     precursorScan = baseExperiment.end();
     hasPrecursorScan = false;
-    
+
     // find the first ms1 scan in the experiment
     followUpScan = baseExperiment.begin();
     while (followUpScan->getMSLevel() != 1 && followUpScan != baseExperiment.end())
     {
       ++followUpScan;
     }
-    
+
     // check if we found one
     hasFollowUpScan = followUpScan != baseExperiment.end();
   }
-  
+
   void IsobaricChannelExtractor::PuritySate_::advanceFollowUp(const double rt)
   {
     // advance follow up scan until we found a ms1 scan with a bigger RT
-    while (true)
+    while (followUpScan != baseExperiment.end())
     {
       ++followUpScan;
-      if ((followUpScan->getMSLevel() == 1 && followUpScan->getRT() > rt) || followUpScan == baseExperiment.end())
+      if (followUpScan->getMSLevel() == 1 && followUpScan->getRT() > rt)
       {
         break;
       }
     }
-    
+
     // check if we found one
     hasFollowUpScan = followUpScan != baseExperiment.end();
   }
-  
+
   bool IsobaricChannelExtractor::PuritySate_::followUpValid(const double rt)
   {
     return hasFollowUpScan ? rt < followUpScan->getRT() : true;
