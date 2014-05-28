@@ -39,15 +39,16 @@
 
 namespace OpenMS
 {
-    /**
-      @brief Empty (NOP) function
-    */
-    extern void FunctionSpectrumNOP (MSSpectrum<Peak1D> & /* s */);
 
     /**
       @brief Empty (NOP) function
     */
-    extern void FunctionChromatogramNOP (MSChromatogram<ChromatogramPeak> & /* c */);
+    OPENMS_DLLAPI extern void FunctionSpectrumNOP (MSSpectrum<Peak1D> & /* s */);
+
+    /**
+      @brief Empty (NOP) function
+    */
+    OPENMS_DLLAPI extern void FunctionChromatogramNOP (MSChromatogram<ChromatogramPeak> & /* c */);
 
     /**
       @brief Transforming consumer of MS data
