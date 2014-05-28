@@ -77,7 +77,6 @@ for (unsigned i=0; i < mz.size(); ++i)
     spectrum.push_back(peak);
 }
 
-SplineSpectrum* ptr = 0;
 SplineSpectrum* nullPointer = 0;
 
 START_SECTION(SplineSpectrum(const std::vector<double>& mz, const std::vector<double>& intensity))
