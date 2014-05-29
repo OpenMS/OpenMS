@@ -1053,9 +1053,8 @@ namespace OpenMS
     return;
   }
 
-  void AccurateMassSearchEngine::parseAdductString_(const String& addstr, std::vector<String>& components)
+  void AccurateMassSearchEngine::parseAdductString_(const String& /* addstr */, std::vector<String>& /* components */)
   {
-
   }
 
   void AccurateMassSearchEngine::computeNeutralMassFromAdduct_(const double& adduct_mass, const String& adduct_string, double& neutral_mass, Int& charge_value)

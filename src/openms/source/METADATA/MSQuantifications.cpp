@@ -198,7 +198,7 @@ namespace OpenMS
     data_processings_ = exp[0].getDataProcessing();             //TODO check if empty, overwrite MSExperiments inherited front method to work. [0] operator is ugly!
   }
   
-  void MSQuantifications::registerExperiment(ExperimentalSettings & es, std::vector<DataProcessing>& dps,  std::vector<std::vector<std::pair<String, double> > > label)
+  void MSQuantifications::registerExperiment(ExperimentalSettings & es, std::vector<DataProcessing>& /* dps */,  std::vector<std::vector<std::pair<String, double> > > label)
   {
     for (std::vector<std::vector<std::pair<String, double> > >::const_iterator lit = label.begin(); lit != label.end(); ++lit)
     {

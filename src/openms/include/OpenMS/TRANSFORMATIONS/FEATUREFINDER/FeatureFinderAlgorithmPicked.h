@@ -1638,16 +1638,16 @@ protected:
       //search in the center spectrum
       const SpectrumType& spectrum = map_[spectrum_index];
       peak_index = nearest_(pos, spectrum, peak_index);
-      double mz_score = positionScore_(pos, spectrum[peak_index].getMZ(), pattern_tolerance_);
+      double this_mz_score = positionScore_(pos, spectrum[peak_index].getMZ(), pattern_tolerance_);
       pattern.theoretical_mz[pattern_index] = pos;
 
-      if (mz_score != 0.0)
+      if (this_mz_score != 0.0)
       {
         if (debug_) log_ << String::number(spectrum[peak_index].getIntensity(), 1) << " ";
         pattern.peak[pattern_index] = peak_index;
         pattern.spectrum[pattern_index] = spectrum_index;
         intensity += spectrum[peak_index].getIntensity();
-        pos_score += mz_score;
+        pos_score += this_mz_score;
         ++matches;
       }
 
@@ -1671,6 +1671,7 @@ protected:
           }
         }
       }
+
       //next spectrum
       if (spectrum_index != map_.size() - 1 && !map_[spectrum_index + 1].empty())
       {
@@ -1691,6 +1692,7 @@ protected:
           }
         }
       }
+
       //no isotope found
       if (matches == 0)
       {

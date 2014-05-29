@@ -38,6 +38,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>
 
 namespace OpenMS
 {
@@ -66,6 +67,7 @@ public:
     static void selectSwathTransitions(const OpenSwath::LightTargetedExperiment& targeted_exp,
                                        OpenSwath::LightTargetedExperiment& transition_exp_used, double min_upper_edge_dist,
                                        double lower, double upper);
+
     /**
       @brief Get the lower / upper offset for this SWATH map and do some sanity checks
 
@@ -111,6 +113,22 @@ public:
       return true;
 
     }
+
+    /**
+      @brief Estimate the retention time span of a targeted experiment (returns min/max values as a pair)
+    */
+    static std::pair<double,double> estimateRTRange(OpenSwath::LightTargetedExperiment & exp);
+
+    /**
+      @brief Simple method to extrac the best Feature for each transition group (e.g. for RT alignment)
+
+      @param transition_group_map Input data
+      @param pairs Output (containing pairs of  mapping  data
+
+    */
+    static std::map<std::string, double> simpleFindBestFeature(
+        OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType & transition_group_map, 
+        bool useQualCutoff = false, double qualCutoff = 0.0);
 
   };
 }

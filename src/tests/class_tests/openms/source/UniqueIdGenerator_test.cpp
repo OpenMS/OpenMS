@@ -38,6 +38,7 @@
 ///////////////////////////
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <ctime>
+#include <algorithm> // for std::sort and std::adjacent_find
 #include <boost/accumulators/statistics/covariance.hpp>
 #include BOOST_TYPEOF_INCREMENT_REGISTRATION_GROUP()
 ///////////////////////////
@@ -77,15 +78,9 @@ START_SECTION((static UInt64 getUniqueId()))
     ids.push_back(OpenMS::UniqueIdGenerator::getUniqueId());
   }
   std::sort(ids.begin(), ids.end());
-  BOOST_AUTO(iter, ids.begin()+1);
-  for(; iter!=ids.end(); ++iter)
-  {
-    if(*iter == *(iter-1))
-    {
-      TEST_NOT_EQUAL(*iter, *(iter-1));
-    }
-  }
-  TEST_NOT_EQUAL(*iter, *(iter-1));
+  // check if the generated ids contain (at least) two equal ones
+  std::vector<OpenMS::UInt64>::iterator iter = std::adjacent_find(ids.begin(), ids.end());
+  TEST_EQUAL(iter == ids.end(), true);
 }
 END_SECTION
 
@@ -99,25 +94,26 @@ START_SECTION((static void setSeed(UInt seed)))
   /* check if the generator changed */
   UInt64 large_int = 0;
   std::vector<UInt64> unique_ids;
-  large_int = 4039984684862977299;
+  large_int = 4039984684862977299U;
   unique_ids.push_back(large_int);
-  large_int = 11561668883169444769;
+  large_int = 11561668883169444769U;
   unique_ids.push_back(large_int);
-  large_int = 8153960635892418594;
+  large_int = 8153960635892418594U;
   unique_ids.push_back(large_int);
-  large_int = 12940485248168291983;
+  large_int = 12940485248168291983U;
   unique_ids.push_back(large_int);
-  large_int = 11522917731873626020;
+  large_int = 11522917731873626020U;
   unique_ids.push_back(large_int);
-  large_int = 4387255872055054320;
+  large_int = 4387255872055054320U;
   unique_ids.push_back(large_int);
 
   OpenMS::UniqueIdGenerator::setSeed(one_moment_in_time);
-  for (int i=0; i<unique_ids.size(); ++i)
+  for (Size i=0; i<unique_ids.size(); ++i)
   {
     OpenMS::UInt64 uid = OpenMS::UniqueIdGenerator::getUniqueId();
     TEST_EQUAL(uid,unique_ids[i]);
   }
+
   /* check if the same sequence is generated form the same seed */
   std::vector<OpenMS::UInt64> ids;
   ids.reserve(nofIdsToGenerate);

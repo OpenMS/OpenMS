@@ -42,6 +42,9 @@
 
 #include <set>
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunreachable-code"
+
 using namespace std;
 
 namespace OpenMS
@@ -250,7 +253,7 @@ namespace OpenMS
           sequence.append(1, *c_i);
       }
 
-      peptide_hit.setSequence(AASequence(sequence));
+      peptide_hit.setSequence(AASequence::fromString(sequence));
       peptide_hit.addProteinAccession(accession);
 
       peptide_identification.insertHit(peptide_hit);
@@ -1127,3 +1130,6 @@ namespace OpenMS
   const String InspectOutfile::score_type_ = "Inspect";
 
 } //namespace OpenMS
+
+#pragma clang diagnostic pop
+

@@ -67,8 +67,9 @@ namespace OpenMS
       without_phospho_str.erase(found, String("(Phospho)").size());
       found = without_phospho_str.find("(Phospho)");
     }
-    AASequence without_phospho(without_phospho_str);
-    Int number_of_STY = Int(without_phospho.getNumberOf("S") + without_phospho.getNumberOf("T") + without_phospho.getNumberOf("Y"));
+    AASequence without_phospho = AASequence::fromString(without_phospho_str);
+    String umps = without_phospho.toUnmodifiedString(); // unmodified phosphostring
+    Int number_of_STY = Int(std::count(umps.begin(), umps.end(), 'S') + std::count(umps.begin(), umps.end(), 'T') + std::count(umps.begin(), umps.end(), 'Y'));
     if (real_spectrum.empty() || number_of_phospho_sites < 1 || number_of_STY == 0)
     {
       return PeptideHit(-1, 0, hit.getCharge(), without_phospho);
@@ -179,7 +180,7 @@ namespace OpenMS
         ranking.insert(pair<double, Size>(current_score, it));
       }
       phospho.setScore(ranking.rbegin()->first);
-      phospho.setSequence(AASequence(th_spectra[ranking.rbegin()->second].getName()));
+      phospho.setSequence(AASequence::fromString(th_spectra[ranking.rbegin()->second].getName()));
     }
     phospho.setCharge(hit.getCharge());
     phospho.setMetaValue("Search_engine_sequence", hit.getSequence().toString());
@@ -339,25 +340,25 @@ namespace OpenMS
     TheoreticalSpectrumGenerator spectrum_generator;
     AASequence pref, suf, pref_with_phospho_first, pref_with_phospho_second, suf_with_phospho_first, suf_with_phospho_second;
     RichPeakSpectrum prefix, suffix, prefix_with_phospho_first, prefix_with_phospho_second, suffix_with_phospho_second, suffix_with_phospho_first;
-    AASequence first(th_spectra[candidates.seq_1].getName());
-    AASequence second(th_spectra[candidates.seq_2].getName());
+    AASequence first(AASequence::fromString(th_spectra[candidates.seq_1].getName()));
+    AASequence second(AASequence::fromString(th_spectra[candidates.seq_2].getName()));
     if (candidates.first < candidates.second)
     {
-      pref.setStringSequence(first.getPrefix(candidates.first + 1).toString());
-      suf.setStringSequence(second.getSuffix(second.size() - candidates.second - 1).toString());
-      pref_with_phospho_first.setStringSequence(first.getPrefix(candidates.second + 1).toString());
-      pref_with_phospho_second.setStringSequence(second.getPrefix(candidates.second + 1).toString());
-      suf_with_phospho_first.setStringSequence(first.getSuffix(first.size() - candidates.first).toString());
-      suf_with_phospho_second.setStringSequence(second.getSuffix(second.size() - candidates.first).toString());
+      pref = AASequence::fromString(first.getPrefix(candidates.first + 1).toString());
+      suf = AASequence::fromString(second.getSuffix(second.size() - candidates.second - 1).toString());
+      pref_with_phospho_first = AASequence::fromString(first.getPrefix(candidates.second + 1).toString());
+      pref_with_phospho_second = AASequence::fromString(second.getPrefix(candidates.second + 1).toString());
+      suf_with_phospho_first = AASequence::fromString(first.getSuffix(first.size() - candidates.first).toString());
+      suf_with_phospho_second = AASequence::fromString(second.getSuffix(second.size() - candidates.first).toString());
     }
     else
     {
-      pref.setStringSequence(second.getPrefix(candidates.second + 1).toString());
-      suf.setStringSequence(first.getSuffix(first.size() - candidates.first - 1).toString());
-      pref_with_phospho_first.setStringSequence(first.getPrefix(candidates.first + 1).toString());
-      pref_with_phospho_second.setStringSequence(second.getPrefix(candidates.first + 1).toString());
-      suf_with_phospho_first.setStringSequence(first.getSuffix(first.size() - candidates.second).toString());
-      suf_with_phospho_second.setStringSequence(second.getSuffix(first.size() - candidates.second).toString());
+      pref = AASequence::fromString(second.getPrefix(candidates.second + 1).toString());
+      suf = AASequence::fromString(first.getSuffix(first.size() - candidates.first - 1).toString());
+      pref_with_phospho_first = AASequence::fromString(first.getPrefix(candidates.first + 1).toString());
+      pref_with_phospho_second = AASequence::fromString(second.getPrefix(candidates.first + 1).toString());
+      suf_with_phospho_first = AASequence::fromString(first.getSuffix(first.size() - candidates.second).toString());
+      suf_with_phospho_second = AASequence::fromString(second.getSuffix(first.size() - candidates.second).toString());
     }
     spectrum_generator.addPeaks(prefix, pref, Residue::BIon, charge);
     spectrum_generator.addPeaks(suffix, suf, Residue::YIon, charge);

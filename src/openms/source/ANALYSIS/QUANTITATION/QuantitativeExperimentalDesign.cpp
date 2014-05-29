@@ -340,9 +340,9 @@ namespace OpenMS
 
     // read the header and split according separator
     StringList header;
-    TextFile::Iterator iter = file.begin();
-    iter->split(separator, header);
-    ++iter;
+    TextFile::Iterator titer = file.begin();
+    titer->split(separator, header);
+    ++titer;
 
     // define the column of file name and experimental setting
     UInt expCol = -1;
@@ -351,21 +351,21 @@ namespace OpenMS
 
     // read rest of the file, each row is already split according to separator
     vector<StringList> rows;
-    for (; iter != file.end(); ++iter)
+    for (; titer != file.end(); ++titer)
     {
       StringList column;
-      iter->split(separator, column);
+      titer->split(separator, column);
       rows.push_back(column);
     }
 
     // map all file names to the respective experimental setting
     map<String, StringList>::iterator it;
 
-    for (vector<StringList>::iterator iter = rows.begin(); iter != rows.end(); ++iter)
+    for (vector<StringList>::iterator liter = rows.begin(); liter != rows.end(); ++liter)
     {
       // get experimental setting and file name
-      String experiment = iter->at(expCol);
-      String fileName = iter->at(fileCol);
+      String experiment = liter->at(expCol);
+      String fileName = liter->at(fileCol);
 
       // search for experimental setting
       it = experiments.find(experiment);

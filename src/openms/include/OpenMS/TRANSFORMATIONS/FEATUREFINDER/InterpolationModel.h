@@ -153,7 +153,6 @@ public:
     virtual CoordinateType getCenter() const
     {
       throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
-      return CoordinateType();           // we will never get here, but this avoids a warning
     }
 
     /// set sample/supporting points of interpolation wrt params.

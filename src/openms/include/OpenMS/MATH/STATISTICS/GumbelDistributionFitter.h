@@ -64,9 +64,9 @@ public:
       /// struct to represent the parameters of a gumbel distribution
       struct GumbelDistributionFitResult
       {
-        GumbelDistributionFitResult(double a = 1.0, double b=2.0) :
-          a(a),
-          b(b)
+        GumbelDistributionFitResult(double local_a = 1.0, double local_b = 2.0) :
+          a(local_a),
+          b(local_b)
         {
         }
 

@@ -215,6 +215,7 @@ set(math_executables_list
   AveragePosition_test
   BasicStatistics_test
   BilinearInterpolation_test
+  CubicSpline2d_test
   GammaDistributionFitter_test
   GaussFitter_test
   GumbelDistributionFitter_test
@@ -260,10 +261,13 @@ MassTraceDetection_test
   PeakMarker_test
   SILACPattern_test
   SILACPoint_test
+  SplinePackage_test
+  SplineSpectrum_test
   SavitzkyGolayFilter_test
   Scaler_test
   SignalToNoiseEstimatorMeanIterative_test
   SignalToNoiseEstimatorMedian_test
+  SignalToNoiseEstimatorMedianRapid_test
   SignalToNoiseEstimator_test
   SqrtMower_test
   TICFilter_test
@@ -469,6 +473,7 @@ set(transformations_executables_list
   OptimizePick_test
   PeakPickerCWT_test
   PeakPickerHiRes_test
+  PeakPickerMaxima_test
 PeakWidthEstimator_test
   PeakShape_test
   ProductModel_test

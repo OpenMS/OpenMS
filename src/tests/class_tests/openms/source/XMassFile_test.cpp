@@ -67,7 +67,6 @@ START_SECTION(template<typename SpectrumType> void load(const String& filename, 
 	MSSpectrum<>::ConstIterator it;
   TextFile::Iterator f_it;
 	XMassFile f;
-	Size index;
 
 	TEST_EXCEPTION(Exception::FileNotFound, f.load("data_Idontexist", s);)
 

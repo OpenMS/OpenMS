@@ -102,7 +102,7 @@ START_SECTION((void setInitialParameters(const GaussFitResult& result)))
   GaussFitter f1;
   GaussFitter::GaussFitResult result (-1,-1,-1);
   f1.setInitialParameters(result);
-	
+
 	NOT_TESTABLE //implicitly tested in fit method
 }
 END_SECTION

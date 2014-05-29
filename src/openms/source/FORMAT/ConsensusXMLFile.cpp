@@ -477,7 +477,7 @@ namespace OpenMS
       pep_hit_ = PeptideHit();
       pep_hit_.setCharge(attributeAsInt_(attributes, "charge"));
       pep_hit_.setScore(attributeAsDouble_(attributes, "score"));
-      pep_hit_.setSequence(AASequence(attributeAsString_(attributes, "sequence")));
+      pep_hit_.setSequence(AASequence::fromString(String(attributeAsString_(attributes, "sequence"))));
 
       //aa_before
       String tmp = "";
@@ -801,9 +801,9 @@ namespace OpenMS
       os << "\t\t\t</groupedElementList>\n";
 
       // write PeptideIdentification
-      for (UInt i = 0; i < elem.getPeptideIdentifications().size(); ++i)
+      for (UInt j = 0; j < elem.getPeptideIdentifications().size(); ++j)
       {
-        writePeptideIdentification_(filename, os, elem.getPeptideIdentifications()[i], "PeptideIdentification", 3);
+        writePeptideIdentification_(filename, os, elem.getPeptideIdentifications()[j], "PeptideIdentification", 3);
       }
 
       writeUserParam_("userParam", os, elem, 3);

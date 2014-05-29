@@ -63,7 +63,8 @@ namespace OpenMS
     load(filename, protein_ids, peptide_ids, document_id);
   }
 
-  void IdXMLFile::load(const String & filename, vector<ProteinIdentification> & protein_ids, vector<PeptideIdentification> & peptide_ids, String & document_id)
+  void IdXMLFile::load(const String & filename, vector<ProteinIdentification> & protein_ids, 
+      vector<PeptideIdentification> & peptide_ids, String & document_id)
   {
     //Filename for error messages in XMLHandler
     file_ = filename;
@@ -83,7 +84,7 @@ namespace OpenMS
     last_meta_ = 0;
     parameters_.clear();
     param_ = ProteinIdentification::SearchParameters();
-    String id_ = "";
+    id_ = "";
     prot_id_ = ProteinIdentification();
     pep_id_ = PeptideIdentification();
     prot_hit_ = ProteinHit();
@@ -373,7 +374,7 @@ namespace OpenMS
     last_meta_ = 0;
     parameters_.clear();
     param_ = ProteinIdentification::SearchParameters();
-    String id_ = "";
+    id_ = "";
     prot_id_ = ProteinIdentification();
     pep_id_ = PeptideIdentification();
     prot_hit_ = ProteinHit();
@@ -588,7 +589,7 @@ namespace OpenMS
 
       pep_hit_.setCharge(attributeAsInt_(attributes, "charge"));
       pep_hit_.setScore(attributeAsDouble_(attributes, "score"));
-      pep_hit_.setSequence(AASequence(attributeAsString_(attributes, "sequence")));
+      pep_hit_.setSequence(AASequence::fromString(String(attributeAsString_(attributes, "sequence"))));
 
       //aa_before
       String tmp;

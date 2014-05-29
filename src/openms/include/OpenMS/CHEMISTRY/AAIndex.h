@@ -1100,8 +1100,6 @@ protected:
       default:
         throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Unknown amino acid one-letter-code", String(aa));
       }
-
-      return 0.0; //this should never be reached, but is necessary to suppress compiler warnings on older compilers
     }
 
     /**
@@ -1182,8 +1180,6 @@ protected:
         throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Unknown amino acid one-letter-code", String(aa));
 
       }
-
-      return 0.0; //this should never be reached, but is necessary to suppress compiler warnings on older compilers
     }
 
     /**
@@ -1263,8 +1259,6 @@ protected:
       default:
         throw Exception::InvalidValue(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Unknown amino acid one-letter-code", String(aa));
       }
-
-      return 0.0; //this should never be reached, but is necessary to suppress compiler warnings on older compilers
     }
 
 private:

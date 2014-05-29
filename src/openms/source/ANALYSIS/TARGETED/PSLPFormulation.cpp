@@ -1351,7 +1351,6 @@ namespace OpenMS
     double min_rt_weight = param_.getValue("thresholds:min_rt_weight");
     double mz_tolerance = param_.getValue("mz_tolerance");
     double log_weight = param_.getValue("combined_ilp:k3");
-    const bool use_detectability = true; //param_.getValue("use_detectability") == "true" ? true : false;
 #ifdef DEBUG_OPS
     std::cout << "k3: " << log_weight << std::endl;
     std::cout << "parsed all parameters" << std::endl;
@@ -1413,13 +1412,7 @@ namespace OpenMS
                       ++f_v_idx;
                       continue;
                     }
-                    double dt;
-                    if (use_detectability)
-                    {
-                      dt = map_iter->second[p];
-                    }
-                    else
-                      dt = 1.;
+                    double dt = map_iter->second[p];
                     // weight is detectability * rt_weight
                     double weight = dt * rt_weight;
                     double obj = model_->getObjective(f_v_idx);
@@ -1475,7 +1468,6 @@ namespace OpenMS
     double min_rt_weight = param_.getValue("thresholds:min_rt_weight");
     double min_pred_pep_weight = param_.getValue("thresholds:min_pred_pep_prob");
     double mz_tolerance = param_.getValue("mz_tolerance");
-    const bool use_detectability = true; //param_.getValue("use_detectability") == "true" ? true : false;
     double min_protein_probability = param_.getValue("thresholds:min_protein_probability");
     double k1 =  param_.getValue("combined_ilp:k1");
 #ifdef DEBUG_OPS
@@ -1717,16 +1709,7 @@ namespace OpenMS
                             if (!found_index)
                             {
                               // weight is detectability * rt_weight
-                              double dt;
-                              if (use_detectability)
-                              {
-                                dt = map_iter->second[p];
-                              }
-                              else
-                              {
-                                dt = 1.;
-                              }
-
+                              double dt = map_iter->second[p];
                               double weight = dt * rt_weight;
 #ifdef DEBUG_OPS
                               std::cout << dt << " * " << rt_weight

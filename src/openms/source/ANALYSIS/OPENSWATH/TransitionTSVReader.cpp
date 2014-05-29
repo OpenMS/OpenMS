@@ -154,16 +154,29 @@ namespace OpenMS
     // could not determine the delimiter correctly
     if (header.size() < min_header_size)
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Determined your csv/tsv file to have delimiter " + (String)txt_delimiter + ", but the parsed header has only " + (String)header.size() + " fields instead of the minimal " + (String)min_header_size + ". Please check your input file.");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Determined your csv/tsv file to have delimiter '" + (String)txt_delimiter + "', but the parsed header has only " + (String)header.size() + " fields instead of the minimal " + (String)min_header_size + ". Please check your input file.");
     }
 
-    int requiredFields[7] = { 0, 1, 3, 5, 6, 7, 8 };
-    for (int i = 0; i < 7; i++)
+    int requiredFields[8] = { 0, 1, 3, 5, 6, 7, 8, 9};
+    /*
+     * required fields:
+     *
+
+      "PrecursorMz",
+      "ProductMz",
+      "transition_name",
+      "LibraryIntensity",
+      "transition_group_id",
+      "decoy",
+      "PeptideSequence",
+      "ProteinName"
+    */
+    for (int i = 0; i < 8; i++)
     {
       if (header_dict.find(header_names_[requiredFields[i]]) == header_dict.end())
       {
-        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "I determined that your your csv/tsv file has the delimiter " + (String)txt_delimiter +
-            ".\nBut the parsed header does not have the required field \""+ (String)header_names_[requiredFields[i]] + "\". Please check your input file.");
+        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "I determined that your your csv/tsv file has the delimiter '" + (String)txt_delimiter +
+            "'.\nBut the parsed header does not have the required field \""+ (String)header_names_[requiredFields[i]] + "\". Please check your input file.");
       }
     }
 
@@ -205,6 +218,7 @@ namespace OpenMS
       TSVTransition mytransition;
 
 
+      // Required columns (they are guaranteed to be present, see getTSVHeader_)
       mytransition.precursor                    =                      String(tmp_line[header_dict["PrecursorMz"]]).toDouble();
       mytransition.product                      =                      String(tmp_line[header_dict["ProductMz"]]).toDouble();
       mytransition.transition_name              =                             tmp_line[header_dict["transition_name"]];
@@ -654,13 +668,15 @@ namespace OpenMS
     // TODO: at this point we could check whether the modification is actually valid
     // aas.setModification(it->location, "UniMod:" + mo->getAccession().substr(7));
     std::vector<TargetedExperiment::Peptide::Modification> mods;
-    AASequence aa_sequence = AASequence(tr_it->FullPeptideName);
+
+    AASequence aa_sequence = AASequence::fromString(tr_it->FullPeptideName);
+
     ModificationsDB* mod_db = ModificationsDB::getInstance();
 
     // in TraML, the modification the AA starts with residue 1 but the
     // OpenMS objects start with zero -> we start counting with zero here
     // and the TraML handler will add 1 when storing the file.
-    if (aa_sequence.isValid() && std::string::npos == tr_it->FullPeptideName.find("["))
+    if (std::string::npos == tr_it->FullPeptideName.find("["))
     {
       if (!aa_sequence.getNTerminalModification().empty())
       {

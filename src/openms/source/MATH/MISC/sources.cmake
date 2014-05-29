@@ -4,6 +4,7 @@ set(directory source/MATH/MISC)
 ### list all filenames of the directory here
 set(sources_list
 BilinearInterpolation.cpp
+CubicSpline2d.cpp
 LinearInterpolation.cpp
 MathFunctions.cpp
 NonNegativeLeastSquaresSolver.cpp

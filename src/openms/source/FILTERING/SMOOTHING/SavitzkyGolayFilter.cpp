@@ -83,7 +83,7 @@ namespace OpenMS
       Eigen::MatrixXd A (frame_size_, order_ + 1);
       for (int i = -nl; i <= nr; i++)
       {
-        for (int j = 0; j <= order_; j++)
+        for (int j = 0; j <= static_cast<int>(order_); j++)
         {
           A(i + nl, j) = std::pow((float)i, j);//pow(int, int) is not defined
         }

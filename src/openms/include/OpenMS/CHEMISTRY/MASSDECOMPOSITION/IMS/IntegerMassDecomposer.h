@@ -272,7 +272,7 @@ private:
         // caches often used i-th alphabet mass
         value_type currentMass = _alphabet.getWeight(i);
 
-        value_type d = Math::gcd(smallestMass, currentMass);
+        value_type d = Math::gcd(smallestMass, currentMass); // TODO shadows d
 
         // fills cache for various variables.
         // note that values for i==0 are never assigned since they're unused anyway.
@@ -302,13 +302,13 @@ private:
           // current residue (in paper variable 'r' is used)
           size_type p = 0;
           // counter for creation of witness vector
-          decomposition_value_type counter = 0;
+          decomposition_value_type local_counter = 0;
 
           for (size_type m = smallestMass; m > 0; --m)
           {
             n += currentMass;
             p += p_inc;
-            ++counter;
+            ++local_counter;
             if (p >= smallestMass)
             {
               p -= smallestMass;
@@ -316,11 +316,11 @@ private:
             if (n > prev_column[p])
             {
               n = prev_column[p];
-              counter = 0;
+              local_counter = 0;
             }
             else
             {
-              _witnessVector[p] = std::make_pair(i, counter);
+              _witnessVector[p] = std::make_pair(i, local_counter);
             }
             cur_column[p] = n;
           }

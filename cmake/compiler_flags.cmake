@@ -42,7 +42,20 @@ if (CMAKE_COMPILER_IS_GNUCXX)
 	list(GET GCC_VERSION_COMPONENTS 0 GNUCXX_MAJOR_VERSION)
 	list(GET GCC_VERSION_COMPONENTS 1 GNUCXX_MINOR_VERSION)
 
-  add_definitions(-Wall -Wextra -Wno-non-virtual-dtor -Wno-long-long -Wno-variadic-macros)
+  add_definitions(-Wall -Wextra 
+    -fvisibility=hidden
+    -Wno-non-virtual-dtor 
+    -Wno-long-long 
+    -Wno-unknown-pragmas
+    -Wno-unused-function
+    -Wno-variadic-macros)
+
+  option(ENABLE_GCC_WERROR "Enable -WError on gcc compilers" OFF)
+  if (ENABLE_GCC_WERROR)
+    add_definitions(-Werror)
+    message(STATUS "Enable -Werror for gcc - note that this may not work on all compilers and system settings!")
+  endif()
+
   if (NOT MT_ENABLE_CUDA)  # necessary since CUDA contains non-pedantic code
 		add_definitions(--pedantic)
 	endif()

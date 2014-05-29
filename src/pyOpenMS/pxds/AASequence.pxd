@@ -12,7 +12,6 @@ cdef extern from "<OpenMS/CHEMISTRY/AASequence.h>" namespace "OpenMS":
         AASequence() nogil except +
         AASequence(AASequence) nogil except + # wrap-ignore
 
-        AASequence(char *) nogil except +
 
         AASequence operator+(AASequence)    nogil except +
         AASequence iadd(AASequence)   nogil except + # wrap-as:operator+=
@@ -41,9 +40,6 @@ cdef extern from "<OpenMS/CHEMISTRY/AASequence.h>" namespace "OpenMS":
         # returns the Id of the C-term modification nogil except + an empty string is returned if none was set
         String getCTerminalModification() nogil except +
 
-        # sets the string of the sequence nogil except + returns true if the conversion to real AASequence was successful, false otherwise
-        bool setStringSequence(String sequence) nogil except +
-
         # returns a pointer to the residue, which is at position index
         Residue getResidue(SignedSize index) nogil except +
 
@@ -71,44 +67,23 @@ cdef extern from "<OpenMS/CHEMISTRY/AASequence.h>" namespace "OpenMS":
         # returns a peptide sequence of number residues, beginning at position index
         AASequence getSubsequence(Size index, UInt number) nogil except +
 
-        # counts the number of occurrences of residue given by a string
-        Size getNumberOf(String residue) nogil except +
-
         # compute frequency table of amino acids
         void getAAFrequencies(Map[String, size_t]) nogil except + # wrap-ignore
 
-        #  return true if the instance is valid
-        bool isValid() nogil except +
-
         # returns true if the peptude contains the given residue
         bool has(Residue residue) nogil except +
-
-        # returns true if the peptide contains the given residue
-        bool has(String name) nogil except +
 
         # returns true if the peptide contains the given peptide
         # @note c-term and n-term mods are ignored
         bool hasSubsequence(AASequence peptide) nogil except +
 
-        # returns true if the peptide contains the given peptide
-        # @note c-term and n-term mods are ignored
-        bool hasSubsequence(String peptide) nogil except +
-
         # returns true if the peptide has the given prefix
         # n-term mod is also checked (c-term as well, if prefix is of same length)
         bool hasPrefix(AASequence peptide) nogil except +
 
-        # returns true if the peptide has the given prefix
-        # n-term mod is also checked (c-term as well, if prefix is of same length)
-        bool hasPrefix(String peptide) nogil except +
-
         # returns true if the peptide has the given suffix
         # c-term mod is also checked (n-term as well, if suffix is of same length)
         bool hasSuffix(AASequence peptide) nogil except +
-
-        # returns true if the peptide has the given suffix
-        # c-term mod is also checked (n-term as well, if suffix is of same length)
-        bool hasSuffix(String peptide) nogil except +
 
         # predicate which is true if the peptide is N-term modified
         bool hasNTerminalModification() nogil except +
@@ -122,3 +97,7 @@ cdef extern from "<OpenMS/CHEMISTRY/AASequence.h>" namespace "OpenMS":
         # returns true if the residue at the position is modified
         bool isModified(Size index) nogil except +
 
+cdef extern from "<OpenMS/CHEMISTRY/AASequence.h>" namespace "OpenMS::AASequence":
+
+        # static members
+        AASequence fromString(String s) nogil except +  # wrap-attach:AASequence

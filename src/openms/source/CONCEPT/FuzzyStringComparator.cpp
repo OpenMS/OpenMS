@@ -827,7 +827,7 @@ namespace OpenMS
                           // a macro here... So we use a real function name (both internally and externally)
   }
 
-  FuzzyStringComparator::PrefixInfo_::PrefixInfo_(const InputLine& input_line, const int tab_width_, const int first_column_) :
+  FuzzyStringComparator::PrefixInfo_::PrefixInfo_(const InputLine& input_line, const int this_tab_width_, const int this_first_column_) :
     prefix(input_line.line_.str()), line_column(0)
   {
     prefix = prefix.prefix(size_t(input_line.line_position_));
@@ -841,10 +841,10 @@ namespace OpenMS
       }
       else
       {
-        line_column = (line_column / tab_width_ + 1) * tab_width_;
+        line_column = (line_column / this_tab_width_ + 1) * this_tab_width_;
       }
     }
-    line_column += first_column_;
+    line_column += this_first_column_;
   }
 
 } //namespace OpenMS

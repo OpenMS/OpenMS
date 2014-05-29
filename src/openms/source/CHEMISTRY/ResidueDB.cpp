@@ -376,10 +376,10 @@ namespace OpenMS
       if (key.hasSubstring("ResidueSets"))
       {
         StringList residue_sets = ListUtils::create<String>(value);
-        for (StringList::const_iterator it = residue_sets.begin(); it != residue_sets.end(); ++it)
+        for (StringList::const_iterator local_it = residue_sets.begin(); local_it != residue_sets.end(); ++local_it)
         {
-          res_ptr->addResidueSet(*it);
-          residue_sets_.insert(*it);
+          res_ptr->addResidueSet(*local_it);
+          residue_sets_.insert(*local_it);
         }
         continue;
       }

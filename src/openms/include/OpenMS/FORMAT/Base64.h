@@ -677,7 +677,7 @@ private:
     czip.resize(4);
     czip[0] = (bazip.size() & 0xff000000) >> 24;
     czip[1] = (bazip.size() & 0x00ff0000) >> 16;
-    czip[2] = (bazip.size() | 0x00000800) >> 8;
+    czip[2] = (bazip.size() & 0x0000ff00) >> 8;
     czip[3] = (bazip.size() & 0x000000ff);
     czip += bazip;
     QByteArray base64_uncompressed = qUncompress(czip);

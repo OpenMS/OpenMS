@@ -6,6 +6,7 @@ set(sources_list
 SignalToNoiseEstimator.cpp
 SignalToNoiseEstimatorMeanIterative.cpp
 SignalToNoiseEstimatorMedian.cpp
+SignalToNoiseEstimatorMedianRapid.cpp
 )
 
 ### add path to the filenames

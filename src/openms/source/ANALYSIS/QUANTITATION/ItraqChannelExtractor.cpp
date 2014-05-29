@@ -138,7 +138,7 @@ namespace OpenMS
 #endif
     consensus_map.clear(false);
     // set <mapList> header
-    Int index = 0;
+    Int index_cnt = 0;
     for (ChannelMapType::const_iterator cm_it = channel_map_.begin(); cm_it != channel_map_.end(); ++cm_it)
     {
       // structure of Map cm_it
@@ -159,7 +159,7 @@ namespace OpenMS
       channel_as_map.setMetaValue("channel_description", cm_it->second.description);
       channel_as_map.setMetaValue("channel_center", cm_it->second.center);
       channel_as_map.setMetaValue("channel_active", String(cm_it->second.active ? "true" : "false"));
-      consensus_map.getFileDescriptions()[index++] = channel_as_map;
+      consensus_map.getFileDescriptions()[index_cnt++] = channel_as_map;
     }
 
     // create consensusElements

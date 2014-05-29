@@ -237,8 +237,8 @@ START_SECTION((void findSpec(std::vector< std::vector< std::pair< std::pair< Sig
 	sa = new SuffixArrayTrypticCompressed(text, "");
 	vector<double> spec;
 	//spec.push_back(245.2816);
-	spec.push_back(AASequence("AR").getMonoWeight(Residue::Full));
-	spec.push_back(AASequence("AAAR").getMonoWeight(Residue::Full));
+	spec.push_back(AASequence::fromString("AR").getMonoWeight(Residue::Full));
+	spec.push_back(AASequence::fromString("AAAR").getMonoWeight(Residue::Full));
 	//spec.push_back(387.4392);
 	vector<double> specc(spec);
 	vector<vector<pair<pair<SignedSize, SignedSize>, double> > > res;

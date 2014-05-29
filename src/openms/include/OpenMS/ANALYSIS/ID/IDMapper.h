@@ -312,11 +312,11 @@ public:
           }
 
           // iterate over m/z values (only one if "mz_ref." is "precursor"):
-          Size index = 0;
+          Size l_index = 0;
           for (DoubleList::iterator mz_it = mz_values.begin();
-               mz_it != mz_values.end(); ++mz_it, ++index)
+               mz_it != mz_values.end(); ++mz_it, ++l_index)
           {
-            if (check_charge && (charges[index] != feat.getCharge()))
+            if (check_charge && (charges[l_index] != feat.getCharge()))
             {
               continue;                   // charge states need to match
             }

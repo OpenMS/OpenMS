@@ -267,7 +267,7 @@ namespace OpenMS
 
       else if (tag_ == "pep_seq")
       {
-        AASequence temp_aa_sequence = AASequence(character_buffer_.trim());
+        AASequence temp_aa_sequence = AASequence::fromString(character_buffer_.trim());
 
         // if everything is just read from the MascotXML file
         if (modified_peptides_.empty())
@@ -638,6 +638,7 @@ namespace OpenMS
 
       else if (tag_ == "u_peptide" || tag_ == "q_peptide")
       {
+        id_data_[peptide_identification_index_].setIdentifier(identifier_);
         id_data_[peptide_identification_index_].setScoreType("Mascot");
         id_data_[peptide_identification_index_].insertHit(actual_peptide_hit_);
         actual_peptide_hit_ = PeptideHit();

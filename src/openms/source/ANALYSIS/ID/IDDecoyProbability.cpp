@@ -336,7 +336,7 @@ namespace OpenMS
     try{
         result_gauss = gf.fit(diff_data);
     }
-    catch(Exception::UnableToFit& e)
+    catch(Exception::UnableToFit& /* e */)
     {
       result_gauss.A = gauss_A;
       result_gauss.x0 = gauss_x0;

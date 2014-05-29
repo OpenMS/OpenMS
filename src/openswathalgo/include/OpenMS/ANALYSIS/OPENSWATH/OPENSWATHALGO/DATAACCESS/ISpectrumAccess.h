@@ -70,7 +70,7 @@ public:
     virtual std::string getChromatogramNativeID(int id) const = 0;
   };
 
-  OPENSWATHALGO_DLLAPI typedef boost::shared_ptr<ISpectrumAccess> SpectrumAccessPtr;
+  typedef boost::shared_ptr<ISpectrumAccess> SpectrumAccessPtr;
 }
 
 #endif // OPENMS_ANALYSIS_OPENSWATH_OPENSWATHALGO_DATAACCESS_ISPECTRUMACCESS_H

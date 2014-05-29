@@ -265,11 +265,11 @@ namespace OpenMS
     return true;
   }
 
-  Param::ParamNode::EntryIterator Param::ParamNode::findEntry(const String& name)
+  Param::ParamNode::EntryIterator Param::ParamNode::findEntry(const String& local_name)
   {
     for (EntryIterator it = entries.begin(); it != entries.end(); ++it)
     {
-      if (it->name == name)
+      if (it->name == local_name)
       {
         return it;
       }
@@ -277,11 +277,11 @@ namespace OpenMS
     return entries.end();
   }
 
-  Param::ParamNode::NodeIterator Param::ParamNode::findNode(const String& name)
+  Param::ParamNode::NodeIterator Param::ParamNode::findNode(const String& local_name)
   {
     for (NodeIterator it = nodes.begin(); it != nodes.end(); ++it)
     {
-      if (it->name == name)
+      if (it->name == local_name)
       {
         return it;
       }
@@ -289,27 +289,27 @@ namespace OpenMS
     return nodes.end();
   }
 
-  Param::ParamNode* Param::ParamNode::findParentOf(const String& name)
+  Param::ParamNode* Param::ParamNode::findParentOf(const String& local_name)
   {
     //cout << "findParentOf nodename: " << this->name << " - nodes: " << this->nodes.size() << " - find: "<< name << endl;
-    if (!name.has(':')) // we are in the right child
+    if (!local_name.has(':')) // we are in the right child
     {
       //check if a node or entry prefix match
       for (Size i = 0; i < nodes.size(); ++i)
       {
-        if (nodes[i].name.hasPrefix(name))
+        if (nodes[i].name.hasPrefix(local_name))
           return this;
       }
       for (Size i = 0; i < entries.size(); ++i)
       {
-        if (entries[i].name.hasPrefix(name))
+        if (entries[i].name.hasPrefix(local_name))
           return this;
       }
       return 0;
     }
     else //several subnodes to browse through
     {
-      String prefix = name.prefix(':');
+      String prefix = local_name.prefix(':');
       //cout << " - Prefix: '" << prefix << "'" << endl;
       NodeIterator it = findNode(prefix);
       if (it == nodes.end()) //subnode not found
@@ -317,19 +317,19 @@ namespace OpenMS
         return 0;
       }
       //recursively call findNode for the rest of the path
-      String new_name = name.substr(it->name.size() + 1);
+      String new_name = local_name.substr(it->name.size() + 1);
       //cout << " - Next name: '" << new_name << "'" << endl;
       return it->findParentOf(new_name);
     }
   }
 
-  Param::ParamEntry* Param::ParamNode::findEntryRecursive(const String& name)
+  Param::ParamEntry* Param::ParamNode::findEntryRecursive(const String& local_name)
   {
-    ParamNode* parent = findParentOf(name);
+    ParamNode* parent = findParentOf(local_name);
     if (parent == 0)
       return 0;
 
-    EntryIterator it = parent->findEntry(suffix(name));
+    EntryIterator it = parent->findEntry(suffix(local_name));
     if (it == parent->entries.end())
       return 0;
 
@@ -344,21 +344,21 @@ namespace OpenMS
     ParamNode* insert_node = this;
     while (prefix2.has(':'))
     {
-      String name = prefix2.prefix(':');
+      String local_name = prefix2.prefix(':');
       //check if the node already exists
-      NodeIterator it = insert_node->findNode(name);
+      NodeIterator it = insert_node->findNode(local_name);
       if (it != insert_node->nodes.end()) //exists
       {
         insert_node = &(*it);
       }
       else //create it
       {
-        insert_node->nodes.push_back(ParamNode(name, ""));
+        insert_node->nodes.push_back(ParamNode(local_name, ""));
         insert_node = &(insert_node->nodes.back());
         //cerr << " - Created new node: " << insert_node->name << endl;
       }
       //remove prefix
-      prefix2 = prefix2.substr(name.size() + 1);
+      prefix2 = prefix2.substr(local_name.size() + 1);
     }
 
     //check if the node already exists
@@ -395,22 +395,22 @@ namespace OpenMS
     ParamNode* insert_node = this;
     while (prefix2.has(':'))
     {
-      String name = prefix2.prefix(':');
+      String local_name = prefix2.prefix(':');
       //cerr << " - looking for node: " << name << endl;
       //look up if the node already exists
-      NodeIterator it = insert_node->findNode(name);
+      NodeIterator it = insert_node->findNode(local_name);
       if (it != insert_node->nodes.end()) //exists
       {
         insert_node = &(*it);
       }
       else //create it
       {
-        insert_node->nodes.push_back(ParamNode(name, ""));
+        insert_node->nodes.push_back(ParamNode(local_name, ""));
         insert_node = &(insert_node->nodes.back());
         //cerr << " - Created new node: " << insert_node->name << endl;
       }
       //remove prefix
-      prefix2 = prefix2.substr(name.size() + 1);
+      prefix2 = prefix2.substr(local_name.size() + 1);
       //cerr << " - new prefix: " << prefix2 << endl;
     }
 
@@ -1173,17 +1173,19 @@ namespace OpenMS
         target_name = it.getName();
 
       }
-      else // old param non-existant in new param
+      else // old param non-existent in new param
       {
         // search by suffix in new param. Only match complete names, e.g. myname will match newsection:myname, but not newsection:othermyname
-        Param::ParamEntry entry = old_version.getEntry(it.getName());
-        // since the old param with full path does not exist within new param, we will never find the new entry by using exists() as above, thus its safe to
-        // modify it here
-        ParamIterator it_match = this->findFirst(entry.name);
+        Param::ParamEntry l1_entry = old_version.getEntry(it.getName());
+        // since the old param with full path does not exist within new param,
+        // we will never find the new entry by using exists() as above, thus
+        // its safe to modify it here
+
+        ParamIterator it_match = this->findFirst(l1_entry.name);
         if (it_match != this->end())
         {
           // make sure the same leaf name does not exist at any other position
-          if (this->findNext(entry.name, it_match) == this->end())
+          if (this->findNext(l1_entry.name, it_match) == this->end())
           {
             stream << "Found '" << it.getName() << "' as '" << it_match.getName() << "' in new param." << std::endl;
             new_entry = this->getEntry(it_match.getName());
@@ -1196,13 +1198,13 @@ namespace OpenMS
           if (add_unknown)
           {
             stream << "Unknown (or deprecated) Parameter '" << it.getName() << "' given in old parameter file! Adding to current set ..." << std::endl;
-            Param::ParamEntry entry = old_version.getEntry(it.getName());
+            Param::ParamEntry local_entry = old_version.getEntry(it.getName());
             String prefix = "";
             if (it.getName().has(':'))
             {
               prefix = it.getName().substr(0, 1 + it.getName().find_last_of(':'));
             }
-            this->root_.insert(entry, prefix); //->setValue(it.getName(), entry.value, entry.description, entry.tags);
+            this->root_.insert(local_entry, prefix); //->setValue(it.getName(), local_entry.value, local_entry.description, local_entry.tags);
           }
           else
           {
@@ -1424,7 +1426,7 @@ namespace OpenMS
           //track changes (leave a node)
           trace_.push_back(TraceInfo(last->name, last->description, false));
 
-          //check of new subtree is accessable
+          //check of new subtree is accessible
           UInt next_index = (last - &(node->nodes[0])) + 1;
           if (next_index < node->nodes.size())
           {
@@ -1439,7 +1441,7 @@ namespace OpenMS
       }
     }
 
-    return *this;
+    return *this; // TODO unreachable code
   }
 
   bool Param::ParamIterator::operator==(const ParamIterator& rhs) const

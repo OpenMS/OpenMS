@@ -611,7 +611,7 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
       }
       else
       {
-        seq += *it;
+        seq += AASequence::fromString(*it);
       }
     }
 
