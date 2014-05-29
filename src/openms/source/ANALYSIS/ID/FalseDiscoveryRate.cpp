@@ -159,13 +159,13 @@ namespace OpenMS
             }
 
             String target_decoy(it->getHits()[i].getMetaValue("target_decoy"));
-            if (target_decoy == "target")
+            if (target_decoy == "target" || target_decoy == "target+decoy")
             {
               target_scores.push_back(it->getHits()[i].getScore());
             }
             else
             {
-              if (target_decoy == "decoy" || target_decoy == "target+decoy")
+              if (target_decoy == "decoy")
               {
                 decoy_scores.push_back(it->getHits()[i].getScore());
               }
@@ -251,7 +251,7 @@ namespace OpenMS
               }
 
               String target_decoy(hits[i].getMetaValue("target_decoy"));
-              if (target_decoy == "target")
+              if (target_decoy == "target" || target_decoy == "target+decoy")
               {
                 // if it is a target hit, there are now decoys, fdr/q-value should be zero then
                 new_hits.push_back(hits[i]);
@@ -261,7 +261,7 @@ namespace OpenMS
               }
               else
               {
-                if (target_decoy != "decoy" && target_decoy != "target+decoy")
+                if (target_decoy != "decoy")
                 {
                   LOG_FATAL_ERROR << "Unknown value of meta value 'target_decoy': '" << target_decoy << "'!" << endl;
                 }
@@ -300,7 +300,7 @@ namespace OpenMS
             if (hit.metaValueExists("target_decoy"))
             {
               String meta_value = (String)hit.getMetaValue("target_decoy");
-              if ((meta_value == "decoy" || meta_value == "target+decoy") && !add_decoy_peptides)
+              if(meta_value == "decoy" && !add_decoy_peptides)
               {
                 continue;
               }
@@ -650,15 +650,16 @@ namespace OpenMS
       }
     }
 
+
     // assign q-value of decoy_score to closest target_score
     for (Size i = 0; i != decoy_scores.size(); ++i)
     {
       Size closest_idx = 0;
-      for (Size k = 0; k != target_scores.size(); ++k)
+      for (Size j = 0; j != target_scores.size(); ++j)
       {
-        if (fabs(decoy_scores[i] - target_scores[k]) < fabs(decoy_scores[i] - target_scores[closest_idx]))
+        if (fabs(decoy_scores[i] - target_scores[j]) < fabs(decoy_scores[i] - target_scores[closest_idx]))
         {
-          closest_idx = k;
+          closest_idx = j;
         }
       }
       score_to_fdr[decoy_scores[i]] = score_to_fdr[target_scores[closest_idx]];
