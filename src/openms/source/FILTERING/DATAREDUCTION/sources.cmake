@@ -11,6 +11,7 @@ FilterResultPeak.cpp
 FilterResultRaw.cpp
 IsotopeDistributionCache.cpp
 MassTraceDetection.cpp
+MultiplexFiltering.cpp
 PeakPattern.cpp
 SplinePackage.cpp
 SplineSpectrum.cpp
