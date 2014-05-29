@@ -36,9 +36,9 @@
 #define OPENMS_FILTERING_DATAREDUCTION_MULTIPLEXFILTERING_H
 
 #include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/PeakPattern.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/FilterResult.h>
-#include <OpenMS/MATH/MISC/Spline2d.h>
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
 
 #include <vector>
@@ -66,7 +66,8 @@ namespace OpenMS
          * @brief profile and centroided experimental data
          */
         MSExperiment<Peak1D> exp_profile_;
-        MSExperiment<RichPeak1D> exp_picked_;
+        MSExperiment<Peak1D> exp_picked_;
+        std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries_;
         
         /**
          * @brief list of peak patterns
@@ -92,7 +93,7 @@ namespace OpenMS
         /**
          * @brief constructor
          */
-        MultiplexFiltering(MSExperiment<Peak1D> exp_profile, MSExperiment<RichPeak1D> exp_picked, std::vector<PeakPattern> patterns, int peaks_per_peptide_max, double mz_tolerance, bool mz_tolerance_unit);
+        MultiplexFiltering(MSExperiment<Peak1D> exp_profile, MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries, std::vector<PeakPattern> patterns, int peaks_per_peptide_max, double mz_tolerance, bool mz_tolerance_unit);
         
         /**
          * @brief filter for patterns

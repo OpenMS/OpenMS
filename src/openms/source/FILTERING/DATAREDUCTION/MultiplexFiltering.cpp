@@ -34,12 +34,12 @@
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/PeakPattern.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/FilterResult.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/SplinePackage.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/SplineSpectrum.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/MultiplexFiltering.h>
-#include <OpenMS/MATH/MISC/Spline2d.h>
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
 
 #include <vector>
@@ -51,8 +51,8 @@ using namespace std;
 namespace OpenMS
 {
 
-	MultiplexFiltering::MultiplexFiltering(MSExperiment<Peak1D> exp_profile, MSExperiment<RichPeak1D> exp_picked, std::vector<PeakPattern> patterns, int peaks_per_peptide_max, double mz_tolerance, bool mz_tolerance_unit)
-    : exp_profile_(exp_profile), exp_picked_(exp_picked), patterns_(patterns), peaks_per_peptide_max_(peaks_per_peptide_max), mz_tolerance_(mz_tolerance), mz_tolerance_unit_(mz_tolerance_unit)
+	MultiplexFiltering::MultiplexFiltering(MSExperiment<Peak1D> exp_profile, MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries, std::vector<PeakPattern> patterns, int peaks_per_peptide_max, double mz_tolerance, bool mz_tolerance_unit)
+    : exp_profile_(exp_profile), exp_picked_(exp_picked), boundaries_(boundaries), patterns_(patterns), peaks_per_peptide_max_(peaks_per_peptide_max), mz_tolerance_(mz_tolerance), mz_tolerance_unit_(mz_tolerance_unit)
 	{		
         if (exp_profile_.size() != exp_picked_.size())
         {
@@ -85,7 +85,7 @@ namespace OpenMS
             
             // loop over (picked) spectra
             MSExperiment<Peak1D>::Iterator it_rt2 = exp_profile_.begin();
-            for (MSExperiment<RichPeak1D>::Iterator it_rt = exp_picked_.begin(); it_rt != exp_picked_.end(); ++it_rt)
+            for (MSExperiment<Peak1D>::Iterator it_rt = exp_picked_.begin(); it_rt != exp_picked_.end(); ++it_rt)
             {
                 double rt = it_rt->getRT();
                 double rt2 = it_rt2->getRT();
@@ -100,11 +100,11 @@ namespace OpenMS
                 std::vector<double> peak_min;
                 std::vector<double> peak_max;
                 std::vector<double> peak_intensity;
-                for (MSSpectrum<RichPeak1D>::Iterator it_mz = it_rt->begin(); it_mz != it_rt->end(); ++it_mz)
+                for (MSSpectrum<Peak1D>::Iterator it_mz = it_rt->begin(); it_mz != it_rt->end(); ++it_mz)
                 {
                     peak_position.push_back(it_mz->getMZ());
-                    peak_min.push_back(it_mz->getMetaValue("mzMin"));
-                    peak_max.push_back(it_mz->getMetaValue("mzMax"));
+                    //peak_min.push_back(it_mz->getMetaValue("mzMin"));
+                    //peak_max.push_back(it_mz->getMetaValue("mzMax"));
                     peak_intensity.push_back(it_mz->getIntensity());
                 }
                 
