@@ -100,6 +100,7 @@ namespace OpenMS
                 std::vector<double> peak_min;
                 std::vector<double> peak_max;
                 std::vector<double> peak_intensity;
+                int j = -1;
                 for (MSSpectrum<Peak1D>::Iterator it_mz = it_rt->begin(); it_mz != it_rt->end(); ++it_mz)
                 {
                     peak_position.push_back(it_mz->getMZ());

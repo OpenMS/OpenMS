@@ -60,7 +60,49 @@ namespace OpenMS
      * @see FilterResult
      */
     class OPENMS_DLLAPI MultiplexFiltering
-    {
+    {        
+        public:
+        /**
+         * @brief constructor
+         * 
+         * @param exp_profile
+         * @param exp_picked
+         * @param boundaries
+         * @param patterns
+         * @param peaks_per_peptide_max
+         * @param mz_tolerance
+         * @param mz_tolerance_unit
+         */
+        MultiplexFiltering(MSExperiment<Peak1D> exp_profile, MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries, std::vector<PeakPattern> patterns, int peaks_per_peptide_max, double mz_tolerance, bool mz_tolerance_unit);
+        
+        /**
+         * @brief filter for patterns
+         * (generates a filter result for each pattern)
+         */
+        std::vector<FilterResult> filter();
+        
+        private:
+        /**
+         * @brief position and blacklist filter
+         * 
+         * @param pattern
+         * @param peak_position
+         * @param peak
+         * @param mz_shifts_actual
+         * @param mz_shifts_actual_indices
+         */
+        int positionsAndBlacklistFilter(PeakPattern pattern, std::vector<double> peak_position, int peak, std::vector<double> & mz_shifts_actual, std::vector<int> & mz_shifts_actual_indices);
+        
+        /**
+         * @brief returns the index of a peak at m/z
+         * (finds not only a valid peak, i.e. within certain m/z deviation, but the best of the valid peaks)
+         * 
+         * @param peak_position
+         * @param start
+         * @param mz
+         * @param scaling
+         */
+        int getPeakIndex(std::vector<double> peak_position, int start, double mz, double scaling);
         
         /**
          * @brief profile and centroided experimental data
@@ -88,30 +130,6 @@ namespace OpenMS
          * @brief unit for m/z shift tolerance (ppm - true, Da - false)
          */
         bool mz_tolerance_unit_;
-
-        public:
-        /**
-         * @brief constructor
-         */
-        MultiplexFiltering(MSExperiment<Peak1D> exp_profile, MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries, std::vector<PeakPattern> patterns, int peaks_per_peptide_max, double mz_tolerance, bool mz_tolerance_unit);
-        
-        /**
-         * @brief filter for patterns
-         * (generates a filter result for each pattern)
-         */
-        std::vector<FilterResult> filter();
-        
-        private:
-        /**
-         * @brief position and blacklist filter
-         */
-        int positionsAndBlacklistFilter(PeakPattern pattern, std::vector<double> peak_position, int peak, std::vector<double> & mz_shifts_actual, std::vector<int> & mz_shifts_actual_indices);
-        
-        /**
-         * @brief returns the index of a peak at m/z
-         * (finds not only a valid peak, i.e. within certain m/z deviation, but the best of the valid peaks)
-         */
-        int getPeakIndex(std::vector<double> peak_position, int start, double mz, double scaling);
         
    };
   
