@@ -58,14 +58,20 @@ namespace OpenMS
         {
             throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Profile and centroided data do not contain same number of spectra.");
         }
+        
+        if (exp_picked_.size() != boundaries_.size())
+        {
+            throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Centroided data and the corresponding list of peak boundaries do not contain same number of spectra.");
+        }
 	}
     
     std::vector<FilterResult> MultiplexFiltering::filter()
     {
         // CONSTANTS
         
-        //cout << "number of raw spectra = " << exp_profile_.size() << "\n";        
-        //cout << "number of picked spectra = " << exp_picked_.size() << "\n";
+        cout << "number of raw spectra = " << exp_profile_.size() << "\n";        
+        cout << "number of picked spectra = " << exp_picked_.size() << "\n";
+        cout << "number of peak boundary spectra = " << boundaries_.size() << "\n";
         
                 
         // list of filter results for each peak pattern
