@@ -51,7 +51,7 @@ using namespace std;
 namespace OpenMS
 {
 
-	MultiplexFiltering::MultiplexFiltering(MSExperiment<Peak1D> exp_profile, MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries, std::vector<PeakPattern> patterns, int peaks_per_peptide_max, double mz_tolerance, bool mz_tolerance_unit)
+	MultiplexFiltering::MultiplexFiltering(MSExperiment<Peak1D> exp_profile, MSExperiment<Peak1D> exp_picked, vector<vector<PeakPickerHiRes::PeakBoundary> > boundaries, std::vector<PeakPattern> patterns, int peaks_per_peptide_max, double mz_tolerance, bool mz_tolerance_unit)
     : exp_profile_(exp_profile), exp_picked_(exp_picked), boundaries_(boundaries), patterns_(patterns), peaks_per_peptide_max_(peaks_per_peptide_max), mz_tolerance_(mz_tolerance), mz_tolerance_unit_(mz_tolerance_unit)
 	{		
         if (exp_profile_.size() != exp_picked_.size())
@@ -65,7 +65,7 @@ namespace OpenMS
         }
 	}
     
-    std::vector<FilterResult> MultiplexFiltering::filter()
+    vector<FilterResult> MultiplexFiltering::filter()
     {
         // CONSTANTS
         
@@ -75,7 +75,7 @@ namespace OpenMS
         
                 
         // list of filter results for each peak pattern
-        std::vector<FilterResult> filter_results;
+        vector<FilterResult> filter_results;
         
         // loop over patterns
         for (unsigned pattern = 0; pattern < patterns_.size(); ++pattern)
@@ -83,36 +83,44 @@ namespace OpenMS
             cout << "peak pattern " << pattern << "\n";
             
             // data structure storing peaks which pass all filters
-            FilterResult * result = new FilterResult();
+            FilterResult result;
             
             // m/z position passing all filters (is rejected by a particular filter)
-            std::vector<std::vector<double> > debug_filtered;
-            std::vector<std::vector<double> > debug_rejected;
+            vector<vector<double> > debug_filtered;
+            vector<vector<double> > debug_rejected;
             
-            // loop over (picked) spectra
-            MSExperiment<Peak1D>::Iterator it_rt2 = exp_profile_.begin();
-            for (MSExperiment<Peak1D>::Iterator it_rt = exp_picked_.begin(); it_rt != exp_picked_.end(); ++it_rt)
+            // loop over spectra
+            MSExperiment<Peak1D>::Iterator it_rt_profile;
+            MSExperiment<Peak1D>::Iterator it_rt_picked;
+            vector<vector<PeakPickerHiRes::PeakBoundary> >::const_iterator it_rt_boundaries;
+            for (it_rt_profile = exp_profile_.begin(), it_rt_picked = exp_picked_.begin(), it_rt_boundaries = boundaries_.begin();
+                it_rt_profile < exp_profile_.end() && it_rt_picked < exp_picked_.end() && it_rt_boundaries < boundaries_.end();
+                ++it_rt_profile, ++it_rt_picked, ++it_rt_boundaries)
             {
-                double rt = it_rt->getRT();
-                double rt2 = it_rt2->getRT();
-                //cout << "    RT = " << rt << "    RT2 = " << rt2 << "\n";
+                double rt_profile = it_rt_profile->getRT();
+                double rt_picked = it_rt_picked->getRT();
+                cout << "    RT (profile) = " << rt_profile << "    RT (picked) = " << rt_picked << "\n";
                 
                 // spline fit profile data
-                SplineSpectrum * spline = new SplineSpectrum(*it_rt2);
-                SplineSpectrum::Navigator nav = (*spline).getNavigator();
+                SplineSpectrum spline(*it_rt_profile);
+                SplineSpectrum::Navigator nav = spline.getNavigator();
                 
                 // vectors of peak details 
                 std::vector<double> peak_position;
                 std::vector<double> peak_min;
                 std::vector<double> peak_max;
                 std::vector<double> peak_intensity;
-                int j = -1;
-                for (MSSpectrum<Peak1D>::Iterator it_mz = it_rt->begin(); it_mz != it_rt->end(); ++it_mz)
+                MSSpectrum<Peak1D>::Iterator it_mz;
+                vector<PeakPickerHiRes::PeakBoundary>::const_iterator it_mz_boundary;
+                for (it_mz = it_rt_picked->begin(), it_mz_boundary = it_rt_boundaries->begin();
+                    it_mz < it_rt_picked->end(), it_mz_boundary < it_rt_boundaries->end();
+                    ++it_mz, ++it_mz_boundary)
                 {
                     peak_position.push_back(it_mz->getMZ());
-                    //peak_min.push_back(it_mz->getMetaValue("mzMin"));
-                    //peak_max.push_back(it_mz->getMetaValue("mzMax"));
+                    peak_min.push_back((*it_mz_boundary).mz_min);
+                    peak_max.push_back((*it_mz_boundary).mz_max);
                     peak_intensity.push_back(it_mz->getIntensity());
+                    //cout << "m/z = " << it_mz->getMZ() << "  [" << (*it_mz_boundary).mz_min << ", " << (*it_mz_boundary).mz_max << "]\n";
                 }
                 
                 // iterate over data points in spectrum (mz)
@@ -155,11 +163,10 @@ namespace OpenMS
                      
                 }                
              
-                ++it_rt2;
             }
             
             // add results of this pattern to list
-            filter_results.push_back(*result);
+            filter_results.push_back(result);
         }
         
         return filter_results;
