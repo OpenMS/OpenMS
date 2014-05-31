@@ -112,6 +112,16 @@ namespace OpenMS
         
         /**
          * @brief returns the index of a peak at m/z
+         * 
+         * @param peak_position
+         * @param peak_boundary
+         * @param mz
+         * @param scaling
+         */
+        int getPeakIndex(std::vector<double> peak_position, std::vector<PeakPickerHiRes::PeakBoundary> peak_boundary, double mz, double scaling);
+        
+        /**
+         * @brief returns the index of a peak at m/z
          * (finds not only a valid peak, i.e. within certain m/z deviation, but the best of the valid peaks)
          * 
          * @param peak_position

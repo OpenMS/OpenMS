@@ -65,22 +65,34 @@ namespace OpenMS
         }
         
         // fill peak registry and initialise blacklist
-        for (MSExperiment<Peak1D>::Iterator it_rt = exp_picked_.begin(); it_rt < exp_picked_.end(); ++it_rt)
+        MSExperiment<Peak1D>::Iterator it_rt;
+        vector<vector<PeakPickerHiRes::PeakBoundary> >::const_iterator it_rt_boundaries;
+        for (it_rt = exp_picked_.begin(), it_rt_boundaries = boundaries_.begin();
+            it_rt < exp_picked_.end() && it_rt_boundaries < boundaries_.end();
+            ++it_rt, ++it_rt_boundaries)
         {
             vector<PeakReference> registry_spec;
             vector<BlackListEntry> blacklist_spec;
             for (MSSpectrum<Peak1D>::Iterator it_mz = it_rt->begin(); it_mz < it_rt->end(); ++it_mz)
             {
                 PeakReference reference;
-                reference.index_in_last_spectrum = 25;
-                reference.index_in_next_spectrum = 26;
+                reference.index_in_last_spectrum = -1;
+                reference.index_in_next_spectrum = -1;
+                if (it_rt-1 >= exp_picked_.begin())
+                {
+                   reference.index_in_last_spectrum = 34;
+                }
+                if (it_rt+1 <= exp_picked_.end())
+                {
+                   reference.index_in_next_spectrum = 34;
+                }
                 registry_spec.push_back(reference);
 
                 BlackListEntry entry;
                 entry.black = false;
-                entry.black_exception_mass_shift_index = 22;
-                entry.black_exception_charge = 4;
-                entry.black_exception_mz_position = 16;
+                entry.black_exception_mass_shift_index = 0;
+                entry.black_exception_charge = 0;
+                entry.black_exception_mz_position = 0;
                 blacklist_spec.push_back(entry);
             }
             registry_.push_back(registry_spec);
@@ -267,6 +279,16 @@ namespace OpenMS
         // and (optionally) remove peaks following missing ones
         
         return 3;
+    }
+    
+    int MultiplexFiltering::getPeakIndex(std::vector<double> peak_position, std::vector<PeakPickerHiRes::PeakBoundary> peak_boundary, double mz, double scaling)
+    {
+        if (peak_position.size() != peak_boundary.size())
+        {
+            throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Number of peaks and number of peak boundaries differ.");
+        }
+
+        return 24;
     }
     
     int MultiplexFiltering::getPeakIndex(std::vector<double> peak_position, int start, double mz, double scaling)
