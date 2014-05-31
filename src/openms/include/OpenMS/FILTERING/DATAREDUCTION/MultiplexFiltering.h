@@ -69,11 +69,12 @@ namespace OpenMS
          * @param exp_picked    experimental data in centroid mode
          * @param boundaries    peak boundaries for exp_picked
          * @param patterns    patterns of isotopic peaks to be searched for
+         * @param peaks_per_peptide_min    minimum number of isotopic peaks in peptides
          * @param peaks_per_peptide_max    maximum number of isotopic peaks in peptides
          * @param mz_tolerance    error margin in m/z for matching expected patterns to experimental data
          * @param mz_tolerance_unit    unit for mz_tolerance, ppm (true), Da (false)
          */
-        MultiplexFiltering(MSExperiment<Peak1D> exp_profile, MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries, std::vector<PeakPattern> patterns, int peaks_per_peptide_max, double mz_tolerance, bool mz_tolerance_unit);
+        MultiplexFiltering(MSExperiment<Peak1D> exp_profile, MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries, std::vector<PeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, double mz_tolerance, bool mz_tolerance_unit);
         
         /**
          * @brief filter for patterns
@@ -115,6 +116,11 @@ namespace OpenMS
          * @brief list of peak patterns
          */
         std::vector<PeakPattern> patterns_;
+
+        /**
+         * @brief minimum number of isotopic peaks per peptide
+         */
+        int peaks_per_peptide_min_;
 
         /**
          * @brief maximum number of isotopic peaks per peptide
