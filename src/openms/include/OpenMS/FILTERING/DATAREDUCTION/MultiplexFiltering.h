@@ -62,6 +62,22 @@ namespace OpenMS
     class OPENMS_DLLAPI MultiplexFiltering
     {        
         public:
+        /// structure for peak position in neighbouring spectra
+        struct Navigator
+        {
+            int index_in_last_spectrum;
+            int index_in_next_spectrum;
+        };
+
+        /// structure for peak blacklisting
+        struct BlackList
+        {
+            bool black;
+            int black_exception_mass_shift_index;
+            int black_exception_charge;
+            int black_exception_mz_position;
+        };
+
         /**
          * @brief constructor
          * 

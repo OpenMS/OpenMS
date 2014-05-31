@@ -230,11 +230,11 @@ namespace OpenMS
             for (int peptide = 0; peptide < (int) pattern.getMassShiftCount(); ++peptide)
             {
                 int mz_position = peptide * (peaks_per_peptide_max_ + 1) + isotope +1;    // index in m/z shift list
-                int peakIndex = mz_shifts_actual_indices[mz_position];    // index of the peak in the spectrum
-                if (peakIndex != -1)
+                int peak_index = mz_shifts_actual_indices[mz_position];    // index of the peak in the spectrum
+                if (peak_index != -1)
                 {
                     bool black = true;
-                    bool blackException = true;
+                    bool black_exception = true;
                 }
             }
         }
