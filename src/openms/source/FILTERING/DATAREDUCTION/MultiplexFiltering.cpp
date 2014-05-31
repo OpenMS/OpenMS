@@ -63,6 +63,30 @@ namespace OpenMS
         {
             throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Centroided data and the corresponding list of peak boundaries do not contain same number of spectra.");
         }
+        
+        // fill peak registry and initialise blacklist
+        for (MSExperiment<Peak1D>::Iterator it_rt = exp_picked_.begin(); it_rt < exp_picked_.end(); ++it_rt)
+        {
+            vector<PeakReference> registry_spec;
+            vector<BlackListEntry> blacklist_spec;
+            for (MSSpectrum<Peak1D>::Iterator it_mz = it_rt->begin(); it_mz < it_rt->end(); ++it_mz)
+            {
+                PeakReference reference;
+                reference.index_in_last_spectrum = 25;
+                reference.index_in_next_spectrum = 26;
+                registry_spec.push_back(reference);
+
+                BlackListEntry entry;
+                entry.black = false;
+                entry.black_exception_mass_shift_index = 22;
+                entry.black_exception_charge = 4;
+                entry.black_exception_mz_position = 16;
+                blacklist_spec.push_back(entry);
+            }
+            registry_.push_back(registry_spec);
+            blacklist_.push_back(blacklist_spec);
+        }
+       
 	}
     
     vector<FilterResult> MultiplexFiltering::filter()

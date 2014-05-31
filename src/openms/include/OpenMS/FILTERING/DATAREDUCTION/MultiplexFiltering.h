@@ -63,14 +63,14 @@ namespace OpenMS
     {        
         public:
         /// structure for peak position in neighbouring spectra
-        struct Navigator
+        struct PeakReference
         {
             int index_in_last_spectrum;
             int index_in_next_spectrum;
         };
 
         /// structure for peak blacklisting
-        struct BlackList
+        struct BlackListEntry
         {
             bool black;
             int black_exception_mass_shift_index;
@@ -128,6 +128,12 @@ namespace OpenMS
         MSExperiment<Peak1D> exp_picked_;
         std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries_;
         
+         /**
+         * @brief auxiliary structs for navigation and blacklisting 
+         */
+        std::vector<std::vector<PeakReference> > registry_;
+        std::vector<std::vector<BlackListEntry> > blacklist_;
+       
         /**
          * @brief list of peak patterns
          */
