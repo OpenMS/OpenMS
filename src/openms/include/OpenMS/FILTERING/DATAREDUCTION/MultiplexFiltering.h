@@ -90,7 +90,7 @@ namespace OpenMS
          * @param mz_tolerance    error margin in m/z for matching expected patterns to experimental data
          * @param mz_tolerance_unit    unit for mz_tolerance, ppm (true), Da (false)
          */
-        MultiplexFiltering(MSExperiment<Peak1D> exp_profile, MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries, std::vector<PeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, double mz_tolerance, bool mz_tolerance_unit);
+        MultiplexFiltering(MSExperiment<Peak1D> exp_profile, MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries, std::vector<PeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double mz_tolerance, bool mz_tolerance_unit);
         
         /**
          * @brief filter for patterns
@@ -108,12 +108,13 @@ namespace OpenMS
          * @param mz_shifts_actual
          * @param mz_shifts_actual_indices
          */
-        int positionsAndBlacklistFilter(PeakPattern pattern, std::vector<double> peak_position, int peak, std::vector<double> & mz_shifts_actual, std::vector<int> & mz_shifts_actual_indices);
+        int positionsAndBlacklistFilter(PeakPattern pattern, int spectrum, std::vector<double> peak_position, int peak, std::vector<double> & mz_shifts_actual, std::vector<int> & mz_shifts_actual_indices);
         
         /**
          * @brief returns the index of a peak at m/z
+         * (for initialisation of peak registry)
          * 
-         * @param spectrum_index
+         * @param spectrum_index    index of the spectrum in exp_picked_ and boundaries_
          * @param mz
          * @param scaling
          */
@@ -157,6 +158,11 @@ namespace OpenMS
          * @brief maximum number of isotopic peaks per peptide
          */
         int peaks_per_peptide_max_;
+
+        /**
+         * @brief flag for missing peaks
+         */
+        bool missing_peaks_;
 
         /**
          * @brief m/z shift tolerance

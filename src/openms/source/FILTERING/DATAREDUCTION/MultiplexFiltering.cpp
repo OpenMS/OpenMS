@@ -51,8 +51,8 @@ using namespace std;
 namespace OpenMS
 {
 
-	MultiplexFiltering::MultiplexFiltering(MSExperiment<Peak1D> exp_profile, MSExperiment<Peak1D> exp_picked, vector<vector<PeakPickerHiRes::PeakBoundary> > boundaries, std::vector<PeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, double mz_tolerance, bool mz_tolerance_unit)
-    : exp_profile_(exp_profile), exp_picked_(exp_picked), boundaries_(boundaries), patterns_(patterns), peaks_per_peptide_min_(peaks_per_peptide_min), peaks_per_peptide_max_(peaks_per_peptide_max), mz_tolerance_(mz_tolerance), mz_tolerance_unit_(mz_tolerance_unit)
+	MultiplexFiltering::MultiplexFiltering(MSExperiment<Peak1D> exp_profile, MSExperiment<Peak1D> exp_picked, vector<vector<PeakPickerHiRes::PeakBoundary> > boundaries, std::vector<PeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double mz_tolerance, bool mz_tolerance_unit)
+    : exp_profile_(exp_profile), exp_picked_(exp_picked), boundaries_(boundaries), patterns_(patterns), peaks_per_peptide_min_(peaks_per_peptide_min), peaks_per_peptide_max_(peaks_per_peptide_max), missing_peaks_(missing_peaks), mz_tolerance_(mz_tolerance), mz_tolerance_unit_(mz_tolerance_unit)
 	{		
         if (exp_profile_.size() != exp_picked_.size())
         {
@@ -79,15 +79,21 @@ namespace OpenMS
             {
                 // peak registry
                 PeakReference reference;
-                reference.index_in_last_spectrum = -1;
-                reference.index_in_next_spectrum = -1;
                 if (index > 0)
                 {
                     reference.index_in_last_spectrum = getPeakIndex(index - 1, it_mz->getMZ(), 1.0);
                 }
+                else
+                {
+                    reference.index_in_last_spectrum = -1;
+                }
                 if (index + 1 < exp_picked_.size())
                 {
                     reference.index_in_next_spectrum = getPeakIndex(index + 1, it_mz->getMZ(), 1.0);
+                }
+                else
+                {
+                    reference.index_in_next_spectrum = -1;
                 }
                 registry_spec.push_back(reference);
 
@@ -135,6 +141,7 @@ namespace OpenMS
                     throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Number of peaks and number of peak boundaries differ.");
                 }
 
+                int spectrum = it_rt_profile - exp_profile_.begin();    // index of the spectrum in exp_profile_, exp_picked_ and boundaries_
                 double rt_profile = it_rt_profile->getRT();
                 double rt_picked = it_rt_picked->getRT();
                 //cout << "    RT (profile) = " << rt_profile << "    RT (picked) = " << rt_picked << "\n";
@@ -171,7 +178,7 @@ namespace OpenMS
                      */
                     std::vector<double> mz_shifts_actual;    // actual m/z shifts (differ slightly from expected m/z shifts)
                     std::vector<int> mz_shifts_actual_indices;
-                    int peaks_found_in_all_peptides = positionsAndBlacklistFilter(patterns_[pattern], peak_position, peak, mz_shifts_actual, mz_shifts_actual_indices);
+                    int peaks_found_in_all_peptides = positionsAndBlacklistFilter(patterns_[pattern], spectrum, peak_position, peak, mz_shifts_actual, mz_shifts_actual_indices);
                    
                     /**
                      * Filter (2): blunt intensity filter
@@ -210,7 +217,7 @@ namespace OpenMS
         return filter_results;
     }
     
-    int MultiplexFiltering::positionsAndBlacklistFilter(PeakPattern pattern, std::vector<double> peak_position, int peak, std::vector<double> & mz_shifts_actual, std::vector<int> & mz_shifts_actual_indices)
+    int MultiplexFiltering::positionsAndBlacklistFilter(PeakPattern pattern, int spectrum, std::vector<double> peak_position, int peak, std::vector<double> & mz_shifts_actual, std::vector<int> & mz_shifts_actual_indices)
     {
         // Try to find peaks at the expected m/z positions
         // loop over expected m/z shifts of a peak pattern
@@ -265,20 +272,49 @@ namespace OpenMS
             // loop over peptides
             for (int peptide = 0; peptide < (int) pattern.getMassShiftCount(); ++peptide)
             {
-                int mz_position = peptide * (peaks_per_peptide_max_ + 1) + isotope +1;    // index in m/z shift list
+                int mz_position = peptide * (peaks_per_peptide_max_ + 1) + isotope + 1;    // index in m/z shift list
                 int peak_index = mz_shifts_actual_indices[mz_position];    // index of the peak in the spectrum
                 if (peak_index != -1)
                 {
-                    bool black = true;
-                    bool black_exception = true;
+                    bool black = blacklist_[spectrum][peak_index].black;
+                    bool black_exception = blacklist_[spectrum][peak_index].black_exception_mass_shift_index == pattern.getMassShiftIndex() &&
+                        blacklist_[spectrum][peak_index].black_exception_charge == pattern.getCharge() &&
+                        blacklist_[spectrum][peak_index].black_exception_mz_position == mz_position;
+                    if (black && !black_exception)
+                    {
+                        mz_shifts_actual[mz_position] = -1000;
+                        mz_shifts_actual_indices[mz_position] = -1;
+                    }
                 }
             }
         }
         
         // count how many isotopic peaks seen simultaneously in all of the peptides
         // and (optionally) remove peaks following missing ones
+        int peaks_found_in_all_peptides = peaks_per_peptide_max_;
+        for (int peptide = 0; peptide < (int) pattern.getMassShiftCount(); ++peptide)
+        {
+            bool missing_peak_seen = false;
+            for (int isotope = 0; isotope < peaks_per_peptide_max_; ++isotope)
+            {
+                int mz_position = peptide * (peaks_per_peptide_max_ +1) + isotope + 1;    // index in m/z shift list
+                int index = mz_shifts_actual_indices[mz_position];    // peak index in spectrum
+                if (index == -1)
+                {
+                    missing_peak_seen = true;
+                    peaks_found_in_all_peptides = min(peaks_found_in_all_peptides, isotope);
+                }
+                // if missing peaks are not allowed and we have already encountered one,
+                // delete all higher isotopic peaks
+                if (missing_peaks_ && missing_peak_seen)
+                {
+                    mz_shifts_actual[mz_position] = -1000;
+                    mz_shifts_actual_indices[mz_position] = -1;
+                }
+            }
+        }
         
-        return 3;
+        return peaks_found_in_all_peptides;
     }
     
     int MultiplexFiltering::getPeakIndex(int spectrum_index, double mz, double scaling)
