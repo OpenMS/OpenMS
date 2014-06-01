@@ -113,6 +113,13 @@ namespace OpenMS
         int positionsAndBlacklistFilter(PeakPattern pattern, int spectrum, std::vector<double> peak_position, int peak, std::vector<double> & mz_shifts_actual, std::vector<int> & mz_shifts_actual_indices);
         
         /**
+         * @brief mono-isotopic peak intensity filter
+         * 
+         * @param ...
+         */
+        bool monoIsotopicPeakIntensityFilter(PeakPattern pattern);
+        
+        /**
          * @brief returns the index of a peak at m/z
          * (for initialisation of peak registry)
          * 

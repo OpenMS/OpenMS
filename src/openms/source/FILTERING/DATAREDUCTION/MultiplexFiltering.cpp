@@ -196,6 +196,7 @@ namespace OpenMS
                      * Filter (2): blunt intensity filter
                      * Are the mono-isotopic peak intensities of all peptides above the cutoff?
                      */
+                    bool bluntVeto = monoIsotopicPeakIntensityFilter(patterns_[pattern]);
                      
                     /**
                      * Filter (3): non-local intensity filter
@@ -327,6 +328,20 @@ namespace OpenMS
         }
         
         return peaks_found_in_all_peptides;
+    }
+    
+    bool MultiplexFiltering::monoIsotopicPeakIntensityFilter(PeakPattern pattern)
+    {
+        bool blunt_intensity_veto = false;
+        for (int peptide = 0; peptide < (int) pattern.getMassShiftCount(); ++peptide)
+        {
+            if (false)  // TO DO
+            {
+                blunt_intensity_veto = true;
+            }
+        }
+        
+        return blunt_intensity_veto;
     }
     
     int MultiplexFiltering::getPeakIndex(int spectrum_index, double mz, double scaling)
