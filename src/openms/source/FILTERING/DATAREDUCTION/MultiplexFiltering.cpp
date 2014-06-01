@@ -71,25 +71,27 @@ namespace OpenMS
             it_rt < exp_picked_.end() && it_rt_boundaries < boundaries_.end();
             ++it_rt, ++it_rt_boundaries)
         {
+            int index = it_rt - exp_picked_.begin();
+            
             vector<PeakReference> registry_spec;
             vector<BlackListEntry> blacklist_spec;
             for (MSSpectrum<Peak1D>::Iterator it_mz = it_rt->begin(); it_mz < it_rt->end(); ++it_mz)
             {
+                // peak registry
                 PeakReference reference;
                 reference.index_in_last_spectrum = -1;
                 reference.index_in_next_spectrum = -1;
-                if (it_rt != exp_picked_.begin())
+                if (index > 0)
                 {
-                    reference.index_in_last_spectrum = getPeakIndex(*(it_rt-1), *(it_rt_boundaries-1), it_mz->getMZ(), 1.0);
-                    //reference.index_in_last_spectrum = 24;
+                    reference.index_in_last_spectrum = getPeakIndex(index - 1, it_mz->getMZ(), 1.0);
                 }
-                if (it_rt != exp_picked_.end())
+                if (index + 1 < exp_picked_.size())
                 {
-                   reference.index_in_next_spectrum = getPeakIndex(*(it_rt+1), *(it_rt_boundaries+1), it_mz->getMZ(), 1.0);
-                   //reference.index_in_next_spectrum = 25;
+                    reference.index_in_next_spectrum = getPeakIndex(index + 1, it_mz->getMZ(), 1.0);
                 }
                 registry_spec.push_back(reference);
 
+                // blacklist
                 BlackListEntry entry;
                 entry.black = false;
                 entry.black_exception_mass_shift_index = 0;
@@ -105,10 +107,6 @@ namespace OpenMS
     
     vector<FilterResult> MultiplexFiltering::filter()
     {
-        //cout << "number of raw spectra = " << exp_profile_.size() << "\n";        
-        //cout << "number of picked spectra = " << exp_picked_.size() << "\n";
-        //cout << "number of peak boundary spectra = " << boundaries_.size() << "\n";
-        
         // list of filter results for each peak pattern
         vector<FilterResult> filter_results;
         
@@ -283,24 +281,29 @@ namespace OpenMS
         return 3;
     }
     
-    int MultiplexFiltering::getPeakIndex(const MSSpectrum<Peak1D> spectrum, const std::vector<PeakPickerHiRes::PeakBoundary> boundaries, double mz, double scaling)
+    int MultiplexFiltering::getPeakIndex(int spectrum_index, double mz, double scaling)
     {
-        if (spectrum.size() != boundaries.size())
+        MSExperiment<Peak1D>::Iterator it_rt = exp_picked_.begin() + spectrum_index;
+        vector<vector<PeakPickerHiRes::PeakBoundary> >::const_iterator it_rt_boundaries = boundaries_.begin() + spectrum_index;
+        
+        MSSpectrum<Peak1D>::Iterator it_mz;
+        vector<PeakPickerHiRes::PeakBoundary>::const_iterator it_mz_boundaries;
+        for (it_mz = it_rt->begin(), it_mz_boundaries = it_rt_boundaries->begin();
+            it_mz < it_rt->end(), it_mz_boundaries < it_rt_boundaries->end();
+            ++it_mz, ++it_mz_boundaries)
         {
-            throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Number of peaks and number of peak boundaries differ.");
+            if (mz >= scaling * (*it_mz_boundaries).mz_min + (1 - scaling) * it_mz->getMZ() &&
+                mz <= scaling * (*it_mz_boundaries).mz_max + (1 - scaling) * it_mz->getMZ())
+            {
+                return it_mz - it_rt->begin();
+            }
+            if (mz < scaling * (*it_mz_boundaries).mz_min + (1 - scaling) * it_mz->getMZ())
+            {
+                return -1;
+            }
         }
-        
-        //cout << "size = " << spectrum.size() << "\n";
-        
-        /*MSSpectrum<Peak1D>::Iterator it_mz;
-        for (it_mz = spectrum->begin();
-            it_mz < spectrum->end();
-            ++it_mz)
-        {
-            double a = 3.0;
-        }*/
-     
-        return 24;
+    
+        return -1;
     }
     
     int MultiplexFiltering::getPeakIndex(std::vector<double> peak_position, int start, double mz, double scaling)
