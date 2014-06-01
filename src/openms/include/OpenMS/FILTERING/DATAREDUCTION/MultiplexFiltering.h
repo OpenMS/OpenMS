@@ -113,12 +113,12 @@ namespace OpenMS
         /**
          * @brief returns the index of a peak at m/z
          * 
-         * @param peak_position
-         * @param peak_boundary
+         * @param spectrum
+         * @param boundaries
          * @param mz
          * @param scaling
          */
-        int getPeakIndex(std::vector<double> peak_position, std::vector<PeakPickerHiRes::PeakBoundary> peak_boundary, double mz, double scaling);
+        int getPeakIndex(const MSSpectrum<Peak1D> spectrum, const std::vector<PeakPickerHiRes::PeakBoundary> boundaries, double mz, double scaling);
         
         /**
          * @brief returns the index of a peak at m/z

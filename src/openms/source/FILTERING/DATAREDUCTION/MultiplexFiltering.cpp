@@ -78,13 +78,15 @@ namespace OpenMS
                 PeakReference reference;
                 reference.index_in_last_spectrum = -1;
                 reference.index_in_next_spectrum = -1;
-                if (it_rt-1 >= exp_picked_.begin())
+                if (it_rt != exp_picked_.begin())
                 {
-                   reference.index_in_last_spectrum = 34;
+                    reference.index_in_last_spectrum = getPeakIndex(*(it_rt-1), *(it_rt_boundaries-1), it_mz->getMZ(), 1.0);
+                    //reference.index_in_last_spectrum = 24;
                 }
-                if (it_rt+1 <= exp_picked_.end())
+                if (it_rt != exp_picked_.end())
                 {
-                   reference.index_in_next_spectrum = 34;
+                   reference.index_in_next_spectrum = getPeakIndex(*(it_rt+1), *(it_rt_boundaries+1), it_mz->getMZ(), 1.0);
+                   //reference.index_in_next_spectrum = 25;
                 }
                 registry_spec.push_back(reference);
 
@@ -281,20 +283,30 @@ namespace OpenMS
         return 3;
     }
     
-    int MultiplexFiltering::getPeakIndex(std::vector<double> peak_position, std::vector<PeakPickerHiRes::PeakBoundary> peak_boundary, double mz, double scaling)
+    int MultiplexFiltering::getPeakIndex(const MSSpectrum<Peak1D> spectrum, const std::vector<PeakPickerHiRes::PeakBoundary> boundaries, double mz, double scaling)
     {
-        if (peak_position.size() != peak_boundary.size())
+        if (spectrum.size() != boundaries.size())
         {
             throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,"Number of peaks and number of peak boundaries differ.");
         }
-
+        
+        //cout << "size = " << spectrum.size() << "\n";
+        
+        /*MSSpectrum<Peak1D>::Iterator it_mz;
+        for (it_mz = spectrum->begin();
+            it_mz < spectrum->end();
+            ++it_mz)
+        {
+            double a = 3.0;
+        }*/
+     
         return 24;
     }
     
     int MultiplexFiltering::getPeakIndex(std::vector<double> peak_position, int start, double mz, double scaling)
     {
-        std::vector<int> validIndex;    // indices of valid peaks that lie within the ppm range of the expected peak
-        std::vector<double> validDeviation;    // ppm deviations between expected and (valid) actual peaks
+        vector<int> validIndex;    // indices of valid peaks that lie within the ppm range of the expected peak
+        vector<double> validDeviation;    // ppm deviations between expected and (valid) actual peaks
         
         if (peak_position[start] < mz)
         {                                                                                                   
