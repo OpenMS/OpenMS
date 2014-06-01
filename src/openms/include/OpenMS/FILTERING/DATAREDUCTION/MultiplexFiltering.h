@@ -87,10 +87,12 @@ namespace OpenMS
          * @param patterns    patterns of isotopic peaks to be searched for
          * @param peaks_per_peptide_min    minimum number of isotopic peaks in peptides
          * @param peaks_per_peptide_max    maximum number of isotopic peaks in peptides
+         * @param missing_peaks    flag for missing peaks
          * @param mz_tolerance    error margin in m/z for matching expected patterns to experimental data
          * @param mz_tolerance_unit    unit for mz_tolerance, ppm (true), Da (false)
+         * @param debug    debug mode
          */
-        MultiplexFiltering(MSExperiment<Peak1D> exp_profile, MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries, std::vector<PeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double mz_tolerance, bool mz_tolerance_unit);
+        MultiplexFiltering(MSExperiment<Peak1D> exp_profile, MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries, std::vector<PeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double mz_tolerance, bool mz_tolerance_unit, bool debug);
         
         /**
          * @brief filter for patterns
@@ -173,6 +175,11 @@ namespace OpenMS
          * @brief unit for m/z shift tolerance (ppm - true, Da - false)
          */
         bool mz_tolerance_unit_;
+        
+        /**
+         * @brief debug mode
+         */
+        bool debug_;
         
    };
   

@@ -51,8 +51,8 @@ using namespace std;
 namespace OpenMS
 {
 
-	MultiplexFiltering::MultiplexFiltering(MSExperiment<Peak1D> exp_profile, MSExperiment<Peak1D> exp_picked, vector<vector<PeakPickerHiRes::PeakBoundary> > boundaries, std::vector<PeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double mz_tolerance, bool mz_tolerance_unit)
-    : exp_profile_(exp_profile), exp_picked_(exp_picked), boundaries_(boundaries), patterns_(patterns), peaks_per_peptide_min_(peaks_per_peptide_min), peaks_per_peptide_max_(peaks_per_peptide_max), missing_peaks_(missing_peaks), mz_tolerance_(mz_tolerance), mz_tolerance_unit_(mz_tolerance_unit)
+	MultiplexFiltering::MultiplexFiltering(MSExperiment<Peak1D> exp_profile, MSExperiment<Peak1D> exp_picked, vector<vector<PeakPickerHiRes::PeakBoundary> > boundaries, std::vector<PeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double mz_tolerance, bool mz_tolerance_unit, bool debug)
+    : exp_profile_(exp_profile), exp_picked_(exp_picked), boundaries_(boundaries), patterns_(patterns), peaks_per_peptide_min_(peaks_per_peptide_min), peaks_per_peptide_max_(peaks_per_peptide_max), missing_peaks_(missing_peaks), mz_tolerance_(mz_tolerance), mz_tolerance_unit_(mz_tolerance_unit), debug_(debug)
 	{		
         if (exp_profile_.size() != exp_picked_.size())
         {
@@ -179,6 +179,18 @@ namespace OpenMS
                     std::vector<double> mz_shifts_actual;    // actual m/z shifts (differ slightly from expected m/z shifts)
                     std::vector<int> mz_shifts_actual_indices;
                     int peaks_found_in_all_peptides = positionsAndBlacklistFilter(patterns_[pattern], spectrum, peak_position, peak, mz_shifts_actual, mz_shifts_actual_indices);
+                    if (peaks_found_in_all_peptides < peaks_per_peptide_min_)
+                    {
+                        if (debug_)
+                        {
+                            vector<double> rt_mz_flag;
+                            rt_mz_flag.push_back(rt_picked);
+                            rt_mz_flag.push_back(peak_position[peak]);
+                            rt_mz_flag.push_back(1);    // filter 1 failed
+                            debug_rejected.push_back(rt_mz_flag);
+                        }
+                        continue;
+                    }
                    
                     /**
                      * Filter (2): blunt intensity filter
