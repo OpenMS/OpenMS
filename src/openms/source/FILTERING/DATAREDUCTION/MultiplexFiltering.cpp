@@ -151,10 +151,10 @@ namespace OpenMS
                 SplineSpectrum::Navigator nav = spline.getNavigator();
                 
                 // vectors of peak details 
-                std::vector<double> peak_position;
-                std::vector<double> peak_min;
-                std::vector<double> peak_max;
-                std::vector<double> peak_intensity;
+                vector<double> peak_position;
+                vector<double> peak_min;
+                vector<double> peak_max;
+                vector<double> peak_intensity;
                 MSSpectrum<Peak1D>::Iterator it_mz;
                 vector<PeakPickerHiRes::PeakBoundary>::const_iterator it_mz_boundary;
                 for (it_mz = it_rt_picked->begin(), it_mz_boundary = it_rt_boundaries->begin();
@@ -210,6 +210,10 @@ namespace OpenMS
                         continue;
                     }
                      
+                    // Arrangement of peaks looks promising. Now scan through the spline fitted data.
+                    vector<double> raw_entries;    // raw data points of this peak that will pass the remaining filters
+                    bool blacklisted = false;    // Has this peak already been blacklisted?
+                    
                     /**
                      * Filter (3): non-local intensity filter
                      * Are the spline interpolated intensities at m/z above the threshold?
