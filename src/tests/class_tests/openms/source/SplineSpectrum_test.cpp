@@ -78,18 +78,23 @@ for (unsigned i=0; i < mz.size(); ++i)
 }
 
 SplineSpectrum* nullPointer = 0;
+SplineSpectrum* ptr;
 
 START_SECTION(SplineSpectrum(const std::vector<double>& mz, const std::vector<double>& intensity))
 {
-	SplineSpectrum spline(mz, intensity);
-	TEST_NOT_EQUAL(&spline, nullPointer);
+    ptr = new SplineSpectrum(mz, intensity);
+    TEST_NOT_EQUAL(ptr, nullPointer);
+    TEST_REAL_SIMILAR((*ptr).getMzMin(), 416.3)
+    delete ptr;
 }
 END_SECTION
 
 START_SECTION(SplineSpectrum(const std::vector<double>& mz, const std::vector<double>& intensity, double scaling))
 {
-	SplineSpectrum spline(mz, intensity, 0.7);
-	TEST_NOT_EQUAL(&spline, nullPointer);
+    ptr = new SplineSpectrum(mz, intensity, 0.7);
+    TEST_NOT_EQUAL(ptr, nullPointer);
+    TEST_REAL_SIMILAR((*ptr).getMzMin(), 416.3)
+    delete ptr;
 }
 END_SECTION
 
