@@ -77,10 +77,16 @@ for (unsigned i=0; i < mz.size(); ++i)
     spectrum.push_back(peak);
 }
 
+SplineSpectrum* nullPointer = 0;
+SplineSpectrum* ptr;
+
 START_SECTION(SplineSpectrum(const std::vector<double>& mz, const std::vector<double>& intensity))
 {
     SplineSpectrum spline(mz, intensity);
-    TEST_REAL_SIMILAR(spline.getMzMin(), 416.3)
+    TEST_REAL_SIMILAR(spline.getMzMin(), 416.3);
+    ptr = new SplineSpectrum(mz, intensity);
+    TEST_NOT_EQUAL(ptr, nullPointer);
+    delete ptr;
 }
 END_SECTION
 
@@ -88,6 +94,9 @@ START_SECTION(SplineSpectrum(const std::vector<double>& mz, const std::vector<do
 {
     SplineSpectrum spline(mz, intensity, 0.7);
     TEST_REAL_SIMILAR(spline.getMzMin(), 416.3)
+    ptr = new SplineSpectrum(mz, intensity, 0.7);
+    TEST_NOT_EQUAL(ptr, nullPointer);
+    delete ptr;
 }
 END_SECTION
 
@@ -95,6 +104,9 @@ START_SECTION(SplineSpectrum(MSSpectrum<Peak1D>& raw_spectrum))
 {
 	SplineSpectrum spline(spectrum);
     TEST_REAL_SIMILAR(spline.getMzMin(), 416.3)
+    ptr = new SplineSpectrum(spectrum);
+    TEST_NOT_EQUAL(ptr, nullPointer);
+    delete ptr;
 }
 END_SECTION
 
@@ -102,6 +114,9 @@ START_SECTION(SplineSpectrum(MSSpectrum<Peak1D>& raw_spectrum, double scaling))
 {
 	SplineSpectrum spline(spectrum, 0.7);
     TEST_REAL_SIMILAR(spline.getMzMin(), 416.3)
+    ptr = new SplineSpectrum(spectrum, 0.7);
+    TEST_NOT_EQUAL(ptr, nullPointer);
+    delete ptr;
 }
 END_SECTION
 
