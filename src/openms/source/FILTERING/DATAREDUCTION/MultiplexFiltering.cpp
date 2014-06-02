@@ -51,8 +51,8 @@ using namespace std;
 namespace OpenMS
 {
 
-	MultiplexFiltering::MultiplexFiltering(MSExperiment<Peak1D> exp_profile, MSExperiment<Peak1D> exp_picked, vector<vector<PeakPickerHiRes::PeakBoundary> > boundaries, std::vector<PeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double mz_tolerance, bool mz_tolerance_unit, bool debug)
-    : exp_profile_(exp_profile), exp_picked_(exp_picked), boundaries_(boundaries), patterns_(patterns), peaks_per_peptide_min_(peaks_per_peptide_min), peaks_per_peptide_max_(peaks_per_peptide_max), missing_peaks_(missing_peaks), mz_tolerance_(mz_tolerance), mz_tolerance_unit_(mz_tolerance_unit), debug_(debug)
+	MultiplexFiltering::MultiplexFiltering(MSExperiment<Peak1D> exp_profile, MSExperiment<Peak1D> exp_picked, vector<vector<PeakPickerHiRes::PeakBoundary> > boundaries, std::vector<PeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double intensity_cutoff, double mz_tolerance, bool mz_tolerance_unit, bool debug)
+    : exp_profile_(exp_profile), exp_picked_(exp_picked), boundaries_(boundaries), patterns_(patterns), peaks_per_peptide_min_(peaks_per_peptide_min), peaks_per_peptide_max_(peaks_per_peptide_max), missing_peaks_(missing_peaks), intensity_cutoff_(intensity_cutoff), mz_tolerance_(mz_tolerance), mz_tolerance_unit_(mz_tolerance_unit), debug_(debug)
 	{		
         if (exp_profile_.size() != exp_picked_.size())
         {
@@ -196,7 +196,19 @@ namespace OpenMS
                      * Filter (2): blunt intensity filter
                      * Are the mono-isotopic peak intensities of all peptides above the cutoff?
                      */
-                    bool bluntVeto = monoIsotopicPeakIntensityFilter(patterns_[pattern]);
+                    bool bluntVeto = monoIsotopicPeakIntensityFilter(patterns_[pattern], spectrum, mz_shifts_actual_indices);
+                    if (bluntVeto)
+                    {
+                        if (debug_)
+                        {
+                            vector<double> rt_mz_flag;
+                            rt_mz_flag.push_back(rt_picked);
+                            rt_mz_flag.push_back(peak_position[peak]);
+                            rt_mz_flag.push_back(2);    // filter 2 failed
+                            debug_rejected.push_back(rt_mz_flag);
+                        }
+                        continue;
+                    }
                      
                     /**
                      * Filter (3): non-local intensity filter
@@ -330,7 +342,7 @@ namespace OpenMS
         return peaks_found_in_all_peptides;
     }
     
-    bool MultiplexFiltering::monoIsotopicPeakIntensityFilter(PeakPattern pattern)
+    bool MultiplexFiltering::monoIsotopicPeakIntensityFilter(PeakPattern pattern, int spectrum, std::vector<int> & mz_shifts_actual_indices)
     {
         bool blunt_intensity_veto = false;
         for (int peptide = 0; peptide < (int) pattern.getMassShiftCount(); ++peptide)
