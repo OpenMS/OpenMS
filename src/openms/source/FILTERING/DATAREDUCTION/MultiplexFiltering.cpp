@@ -177,7 +177,7 @@ namespace OpenMS
                      * Are there non-black peaks with the expected relative m/z shifts?
                      */
                     std::vector<double> mz_shifts_actual;    // actual m/z shifts (differ slightly from expected m/z shifts)
-                    std::vector<int> mz_shifts_actual_indices;
+                    std::vector<int> mz_shifts_actual_indices;    // peak indices in the spectrum corresponding to the actual m/z shifts
                     int peaks_found_in_all_peptides = positionsAndBlacklistFilter(patterns_[pattern], spectrum, peak_position, peak, mz_shifts_actual, mz_shifts_actual_indices);
                     if (peaks_found_in_all_peptides < peaks_per_peptide_min_)
                     {
@@ -342,18 +342,19 @@ namespace OpenMS
         return peaks_found_in_all_peptides;
     }
     
-    bool MultiplexFiltering::monoIsotopicPeakIntensityFilter(PeakPattern pattern, int spectrum, std::vector<int> & mz_shifts_actual_indices)
+    bool MultiplexFiltering::monoIsotopicPeakIntensityFilter(PeakPattern pattern, int spectrum_index, std::vector<int> & mz_shifts_actual_indices)
     {
-        bool blunt_intensity_veto = false;
+        MSExperiment<Peak1D>::Iterator it_rt = exp_picked_.begin() + spectrum_index;
         for (int peptide = 0; peptide < (int) pattern.getMassShiftCount(); ++peptide)
         {
-            if (false)  // TO DO
+            int peak_index = mz_shifts_actual_indices[peptide * (peaks_per_peptide_max_ + 1) +1];
+            MSSpectrum<Peak1D>::Iterator it_mz = it_rt->begin() + peak_index;
+            if (it_mz->getIntensity() < intensity_cutoff_)
             {
-                blunt_intensity_veto = true;
+                return true;
             }
         }
-        
-        return blunt_intensity_veto;
+        return false;
     }
     
     int MultiplexFiltering::getPeakIndex(int spectrum_index, double mz, double scaling)

@@ -118,10 +118,10 @@ namespace OpenMS
          * @brief mono-isotopic peak intensity filter
          * 
          * @param pattern
-         * @param spectrum    index of the spectrum in exp_picked_ and boundaries_
+         * @param spectrum_index    index of the spectrum in exp_picked_ and boundaries_
          * @param mz_shifts_actual_indices
          */
-        bool monoIsotopicPeakIntensityFilter(PeakPattern pattern, int spectrum, std::vector<int> & mz_shifts_actual_indices);
+        bool monoIsotopicPeakIntensityFilter(PeakPattern pattern, int spectrum_index, std::vector<int> & mz_shifts_actual_indices);
         
         /**
          * @brief returns the index of a peak at m/z
