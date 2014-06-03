@@ -40,6 +40,7 @@
 #include <OpenMS/FILTERING/DATAREDUCTION/PeakPattern.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/FilterResult.h>
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
+#include <OpenMS/FILTERING/DATAREDUCTION/SplineSpectrum.h>
 
 #include <vector>
 #include <algorithm>
@@ -122,6 +123,19 @@ namespace OpenMS
          * @param mz_shifts_actual_indices
          */
         bool monoIsotopicPeakIntensityFilter(PeakPattern pattern, int spectrum_index, std::vector<int> & mz_shifts_actual_indices);
+        
+        /**
+         * @brief non-local intensity filter
+         * 
+         * @param pattern
+         * @param spectrum_index    index of the spectrum in exp_picked_ and boundaries_
+         * @param mz_shifts_actual
+         * @param mz_shifts_actual_indices
+         * @param intensities_actual
+         * @param peaks_found_in_all_peptides
+         * @param mz
+         */
+        int nonLocalIntensityFilter(PeakPattern pattern, int spectrum_index, std::vector<double> & mz_shifts_actual, std::vector<int> & mz_shifts_actual_indices, SplineSpectrum::Navigator nav, std::vector<double> & intensities_actual, int peaks_found_in_all_peptides, double mz);
         
         /**
          * @brief returns the index of a peak at m/z

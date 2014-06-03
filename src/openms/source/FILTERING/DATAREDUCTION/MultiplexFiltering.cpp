@@ -189,7 +189,7 @@ namespace OpenMS
                             rt_mz_flag.push_back(1);    // filter 1 failed
                             debug_rejected.push_back(rt_mz_flag);
                         }
-                        continue;
+                        //continue;
                     }
                    
                     /**
@@ -207,33 +207,51 @@ namespace OpenMS
                             rt_mz_flag.push_back(2);    // filter 2 failed
                             debug_rejected.push_back(rt_mz_flag);
                         }
-                        continue;
+                        //continue;
                     }
                      
                     // Arrangement of peaks looks promising. Now scan through the spline fitted data.
                     vector<double> raw_entries;    // raw data points of this peak that will pass the remaining filters
                     bool blacklisted = false;    // Has this peak already been blacklisted?
-                    
-                    /**
-                     * Filter (3): non-local intensity filter
-                     * Are the spline interpolated intensities at m/z above the threshold?
-                     */
-                     
-                    /**
-                     * Filter (4): zeroth peak filter
-                     * There should not be a significant peak to the left of the mono-isotopic
-                     * (i.e. first) peak.
-                     */
-                     
-                    /**
-                     * Filter (5): peptide similarity filter
-                     * How similar are the isotope patterns of the peptides?
-                     */
-                     
-                    /**
-                     * Filter (6): averagine similarity filter
-                     * Does each individual isotope pattern resemble a peptide?
-                     */
+                    for (double mz = peak_min[peak]; mz < peak_max[peak]; mz = nav.getNextMz(mz))
+                    {
+                        //cout << "m/z = " << mz << "\n";
+                        
+                        /**
+                         * Filter (3): non-local intensity filter
+                         * Are the spline interpolated intensities at m/z above the threshold?
+                         */
+                        vector<double> intensities_actual;    // spline interpolated intensities @ m/z + actual m/z shift
+                        int peaks_found_in_all_peptides_spline = nonLocalIntensityFilter(patterns_[pattern], spectrum, mz_shifts_actual, mz_shifts_actual_indices, nav, intensities_actual, peaks_found_in_all_peptides, mz);
+                        if (peaks_found_in_all_peptides_spline < peaks_per_peptide_min_)
+                        {
+                            if (debug_)
+                            {
+                                vector<double> rt_mz_flag;
+                                rt_mz_flag.push_back(rt_picked);
+                                rt_mz_flag.push_back(mz);
+                                rt_mz_flag.push_back(3);    // filter 3 failed
+                                debug_rejected.push_back(rt_mz_flag);
+                            }
+                            //continue;
+                        }
+                         
+                        /**
+                         * Filter (4): zeroth peak filter
+                         * There should not be a significant peak to the left of the mono-isotopic
+                         * (i.e. first) peak.
+                         */
+                         
+                        /**
+                         * Filter (5): peptide similarity filter
+                         * How similar are the isotope patterns of the peptides?
+                         */
+                         
+                        /**
+                         * Filter (6): averagine similarity filter
+                         * Does each individual isotope pattern resemble a peptide?
+                         */
+                    }
                      
                 }                
              
@@ -359,6 +377,42 @@ namespace OpenMS
             }
         }
         return false;
+    }
+    
+    int MultiplexFiltering::nonLocalIntensityFilter(PeakPattern pattern, int spectrum_index, std::vector<double> & mz_shifts_actual, std::vector<int> & mz_shifts_actual_indices, SplineSpectrum::Navigator nav, std::vector<double> & intensities_actual, int peaks_found_in_all_peptides, double mz)
+    {
+        // calculate intensities
+        for (int i = 0; i < (int) mz_shifts_actual_indices.size(); ++i)
+        {
+            if (mz_shifts_actual_indices[i] != -1)
+            {
+                intensities_actual.push_back(nav.eval(mz + mz_shifts_actual[i]));
+            }
+            else
+            {
+                intensities_actual.push_back(-1000.0);
+            }
+        }
+        
+        // peaks_found_in_all_peptides is the number of peaks in this region. At this particular m/z
+        // some of the intensities might be below the cutoff. => return isotope
+        for (int isotope = 0; isotope < peaks_found_in_all_peptides; ++isotope)
+        {
+            bool seen_in_all_peptides = true;
+            for (int peptide = 0; peptide < pattern.getMassShiftCount(); ++peptide)
+            {
+                if (intensities_actual[peptide * (peaks_per_peptide_max_ + 1) + isotope + 1] < intensity_cutoff_)
+                {
+                    seen_in_all_peptides = false;
+                }
+            }
+            if (!seen_in_all_peptides)
+            {
+                return isotope;
+            }
+        }
+        
+        return peaks_found_in_all_peptides;
     }
     
     int MultiplexFiltering::getPeakIndex(int spectrum_index, double mz, double scaling)
