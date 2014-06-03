@@ -138,6 +138,14 @@ namespace OpenMS
         int nonLocalIntensityFilter(PeakPattern pattern, int spectrum_index, std::vector<double> & mz_shifts_actual, std::vector<int> & mz_shifts_actual_indices, SplineSpectrum::Navigator nav, std::vector<double> & intensities_actual, int peaks_found_in_all_peptides, double mz);
         
         /**
+         * @brief zeroth peak veto filter
+         * 
+         * @param pattern
+         * @param intensities_actual
+         */
+        bool zerothPeakVetoFilter(PeakPattern pattern, std::vector<double> & intensities_actual);
+        
+        /**
          * @brief returns the index of a peak at m/z
          * (for initialisation of peak registry)
          * 

@@ -241,6 +241,19 @@ namespace OpenMS
                          * There should not be a significant peak to the left of the mono-isotopic
                          * (i.e. first) peak.
                          */
+                        bool zero_peak_veto = zerothPeakVetoFilter(patterns_[pattern], intensities_actual);
+                        if (zero_peak_veto)
+                        {
+                            if (debug_)
+                            {
+                                vector<double> rt_mz_flag;
+                                rt_mz_flag.push_back(rt_picked);
+                                rt_mz_flag.push_back(mz);
+                                rt_mz_flag.push_back(4);    // filter 4 failed
+                                debug_rejected.push_back(rt_mz_flag);
+                            }
+                            //continue;
+                        }
                          
                         /**
                          * Filter (5): peptide similarity filter
@@ -413,6 +426,22 @@ namespace OpenMS
         }
         
         return peaks_found_in_all_peptides;
+    }
+    
+    bool MultiplexFiltering::zerothPeakVetoFilter(PeakPattern pattern, std::vector<double> & intensities_actual)
+    {
+        for (int peptide = 0; peptide < pattern.getMassShiftCount(); ++peptide)
+        {
+            // scaling factor for the zeroth peak intensity
+            // (The zeroth peak is problematic if its intensity exceeds zero_scaling * intensity of mono-isotopic peak.)
+            double zero_scaling = 0.7;
+            if (intensities_actual[peptide * (peaks_per_peptide_max_ + 1)] > zero_scaling * intensities_actual[peptide * (peaks_per_peptide_max_ + 1) + 1])
+            {
+                return true;
+            }
+        }
+        
+        return false;
     }
     
     int MultiplexFiltering::getPeakIndex(int spectrum_index, double mz, double scaling)
