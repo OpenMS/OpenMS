@@ -94,7 +94,7 @@ file(COPY        ${PROJECT_SOURCE_DIR}/cmake/knime/icons
 set(CTD_executables ${TOPP_TOOLS} ${UTILS_TOOLS})
 
 # remove tools that do not produce CTDs
-list(REMOVE_ITEM CTD_executables PhosphoScoring OpenMSInfo GenericWrapper InspectAdapter MascotAdapter PILISIdentification PILISModelCV PILISModelTrainer PILISSpectraGenerator SvmTheoreticalSpectrumGeneratorTrainer OpenSwathMzMLFileCacher PepNovoAdapter)
+list(REMOVE_ITEM CTD_executables PhosphoScoring OpenMSInfo GenericWrapper InspectAdapter MascotAdapter PILISIdentification PILISModelCV PILISModelTrainer PILISSpectraGenerator SvmTheoreticalSpectrumGeneratorTrainer OpenSwathMzMLFileCacher PepNovoAdapter IDEvaluator)
 
 # pseudo-ctd target
 add_custom_target(
