@@ -90,11 +90,13 @@ namespace OpenMS
          * @param peaks_per_peptide_max    maximum number of isotopic peaks in peptides
          * @param missing_peaks    flag for missing peaks
          * @param intensity_cutoff    intensity cutoff
+         * @param peptide_similarity    similarity between isotopic patterns of light and heavy peptides
+         * @param averagine_similarity    similarity between averagine model and each of the peptide isotope patterns
          * @param mz_tolerance    error margin in m/z for matching expected patterns to experimental data
          * @param mz_tolerance_unit    unit for mz_tolerance, ppm (true), Da (false)
          * @param debug    debug mode
          */
-        MultiplexFiltering(MSExperiment<Peak1D> exp_profile, MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries, std::vector<PeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double intensity_cutoff, double mz_tolerance, bool mz_tolerance_unit, bool debug);
+        MultiplexFiltering(MSExperiment<Peak1D> exp_profile, MSExperiment<Peak1D> exp_picked, std::vector<std::vector<PeakPickerHiRes::PeakBoundary> > boundaries, std::vector<PeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double intensity_cutoff, double peptide_similarity, double averagine_similarity, double mz_tolerance, bool mz_tolerance_unit, bool debug);
         
         /**
          * @brief filter for patterns
@@ -146,6 +148,16 @@ namespace OpenMS
         bool zerothPeakVetoFilter(PeakPattern pattern, std::vector<double> & intensities_actual);
         
         /**
+         * @brief peptide similarity veto filter
+         * 
+         * @param pattern
+         * @param intensities_actual
+         * @param isotope_pattern_1
+         * @param isotope_pattern_2
+         */
+        bool peptideSimilarityVetoFilter(PeakPattern pattern, std::vector<double> & intensities_actual, int peaks_found_in_all_peptides_spline, std::vector<double> & isotope_pattern_1, std::vector<double> & isotope_pattern_2);
+        
+        /**
          * @brief returns the index of a peak at m/z
          * (for initialisation of peak registry)
          * 
@@ -165,6 +177,14 @@ namespace OpenMS
          * @param scaling
          */
         int getPeakIndex(std::vector<double> peak_position, int start, double mz, double scaling);
+        
+        /**
+         * @brief returns a score for the similarity of two isotopic patterns
+         * 
+         * @param pattern1
+         * @param pattern2
+         */
+        double getPatternSimilarity(std::vector<double> pattern1, std::vector<double> pattern2);
         
         /**
          * @brief profile and centroided experimental data
@@ -203,6 +223,16 @@ namespace OpenMS
          * @brief intensity cutoff
          */
         bool intensity_cutoff_;
+
+        /**
+         * @brief peptide similarity
+         */
+        bool peptide_similarity_;
+
+        /**
+         * @brief averagine similarity
+         */
+        bool averagine_similarity_;
 
         /**
          * @brief m/z shift tolerance
