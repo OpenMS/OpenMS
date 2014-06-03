@@ -711,12 +711,12 @@ namespace OpenMS
 
     ///////////////////////////////////////////////////////////////////
     // work on rt_low_hash_ and rt_high_hash_
-    double rt_low_low;
+    // double rt_low_low;
     double rt_low_centroid;
-    double rt_low_high;
-    double rt_high_low;
+    // double rt_low_high;
+    // double rt_high_low;
     double rt_high_centroid;
-    double rt_high_high;
+    // double rt_high_high;
     do
     {
 
@@ -912,9 +912,9 @@ namespace OpenMS
           data_range_end = ceil(std::min<double>(mean + scaling_cutoff_stdev_multiplier * stdev + 1, data_size));
           const double outside_mean = rt_low_hash_.index2key(mean);
           const double outside_stdev = stdev * rt_low_hash_.getScale();
-          rt_low_low = (outside_mean - outside_stdev);
+          // rt_low_low = (outside_mean - outside_stdev);
           rt_low_centroid = (outside_mean);
-          rt_low_high = (outside_mean + outside_stdev);
+          // rt_low_high = (outside_mean + outside_stdev);
           if (do_dump_buckets)
           {
             dump_buckets_low_file << "# loop: " << loop << "  mean: " << outside_mean << "  stdev: " << outside_stdev << "  (mean-stdev): " << outside_mean
@@ -943,9 +943,9 @@ namespace OpenMS
           data_range_end = ceil(std::min<double>(mean + scaling_cutoff_stdev_multiplier * stdev + 2, data_size));
           const double outside_mean = rt_high_hash_.index2key(mean);
           const double outside_stdev = stdev * rt_high_hash_.getScale();
-          rt_high_low = (outside_mean - outside_stdev);
+          // rt_high_low = (outside_mean - outside_stdev);
           rt_high_centroid = (outside_mean);
-          rt_high_high = (outside_mean + outside_stdev);
+          // rt_high_high = (outside_mean + outside_stdev);
           if (do_dump_buckets)
           {
             dump_buckets_high_file << "# loop: " << loop << "  mean: " << outside_mean << "  stdev: " << outside_stdev << "  (mean-stdev): " << outside_mean

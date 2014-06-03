@@ -649,12 +649,13 @@ double FeatureFindingMetabo::scoreRT_(const MassTrace& tr1, const MassTrace& tr2
     //            return 0.0;
     //        }
 
-    double rt_range(0.0), overlap(0.0);
+    double overlap(0.0);
 
-    if (coinciding_rts.size() > 0)
-    {
-        rt_range = std::fabs(coinciding_rts.rbegin()->first - coinciding_rts.begin()->first);
-    }
+    // double rt_range(0.0)
+    // if (coinciding_rts.size() > 0)
+    // {
+    //     rt_range = std::fabs(coinciding_rts.rbegin()->first - coinciding_rts.begin()->first);
+    // }
 
     if (overlap_rts.size() > 0)
     {

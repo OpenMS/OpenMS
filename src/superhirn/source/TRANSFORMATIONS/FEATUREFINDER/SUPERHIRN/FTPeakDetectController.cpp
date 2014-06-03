@@ -270,7 +270,6 @@ namespace OpenMS
     SHFeature * fakeMS1 = new SHFeature(in);
     lcms_->add_feature(fakeMS1);
     delete fakeMS1;
-    fakeMS1 = NULL;
     in = NULL;
   }
 
@@ -332,7 +331,7 @@ namespace OpenMS
 
       // add it to the LC_MS run:
       lcms_->add_feature(TMP);
-      TMP = NULL;
+      delete TMP;
 
     }
     PEAK = NULL;

@@ -101,8 +101,8 @@ public:
       /// @brief Structure that represents an isotope peak - pair of mass and abundance.
       struct Peak
       {
-        Peak(mass_type mass = 0.0, abundance_type abundance = 0.0) :
-          mass(mass), abundance(abundance)
+        Peak(mass_type local_mass = 0.0, abundance_type local_abundance = 0.0) :
+          mass(local_mass), abundance(local_abundance)
         {}
 
         bool operator==(const Peak & peak) const

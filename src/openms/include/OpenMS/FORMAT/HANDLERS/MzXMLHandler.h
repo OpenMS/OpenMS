@@ -253,7 +253,6 @@ protected:
       void doPopulateSpectraWithData_(SpectrumData & spectrum_data)
       {
         typedef typename SpectrumType::PeakType PeakType;
-        Base64 decoder_;
 
         //std::cout << "reading scan" << "\n";
         if (spectrum_data.char_rest_ == "") // no peaks

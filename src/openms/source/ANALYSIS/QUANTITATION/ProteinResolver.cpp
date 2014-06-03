@@ -118,8 +118,7 @@ namespace OpenMS
     LOG_INFO << "ISD groups done! size: " << isd_groups->size() << std::endl;
 
     // Including all MSMS derived peptides into the graph
-    Size found_peptides;
-    found_peptides = includeMSMSPeptides_(peptide_identifications, *peptide_nodes);
+    includeMSMSPeptides_(peptide_identifications, *peptide_nodes);
 
     // building MSD Groups
     buildingMSDGroups_(*msd_groups, *isd_groups);
@@ -159,8 +158,7 @@ namespace OpenMS
     buildingISDGroups_(*protein_nodes, *peptide_nodes, *isd_groups);
 
     // Including all MSMS derived peptides into the graph
-    Size found_peptides;
-    found_peptides = includeMSMSPeptides_(consensus, *peptide_nodes);
+    includeMSMSPeptides_(consensus, *peptide_nodes);
 
     // building MSD Groups
     buildingMSDGroups_(*msd_groups, *isd_groups);
@@ -468,10 +466,10 @@ namespace OpenMS
       protein_nodes[i].traversed = false;
       protein_nodes[i].index = i;
       protein_nodes[i].protein_type = ProteinEntry::secondary;
-      protein_nodes[i].weight = AASequence(protein_data_[i].sequence).getMonoWeight();
+      protein_nodes[i].weight = AASequence::fromString(protein_data_[i].sequence).getMonoWeight();
       protein_nodes[i].coverage = 0.;
       protein_nodes[i].number_of_experimental_peptides = 0;
-      digestor.digest(AASequence(protein_data_[i].sequence), temp_peptides);
+      digestor.digest(AASequence::fromString(protein_data_[i].sequence), temp_peptides);
       for (Size j = 0; j < temp_peptides.size(); ++j)
       {
         if (temp_peptides[j].size() >= min_size)

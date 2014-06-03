@@ -997,7 +997,7 @@ namespace OpenMS
     }
     else if (element == "search_hit")
     {
-      AASequence temp_aa_sequence = AASequence(current_sequence_);
+      AASequence temp_aa_sequence = AASequence::fromString(current_sequence_);
 
       // modification position is 1-based
       for (vector<pair<String, Size> >::const_iterator it = current_modifications_.begin(); it != current_modifications_.end(); ++it)

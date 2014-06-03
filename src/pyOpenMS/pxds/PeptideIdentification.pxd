@@ -33,6 +33,14 @@ cdef extern from "<OpenMS/METADATA/PeptideIdentification.h>" namespace "OpenMS":
         String     getIdentifier() nogil except +
         void       setIdentifier(String) nogil except +
 
+        bool       hasMZ() nogil except +
+        double     getMZ() nogil except +
+        void       setMZ(double) nogil except +
+
+        bool       hasRT() nogil except +
+        double     getRT() nogil except +
+        void       setRT(double) nogil except +
+
         String     getBaseName() nogil except +
         void       setBaseName(String) nogil except +
 
@@ -53,7 +61,7 @@ cdef extern from "<OpenMS/METADATA/PeptideIdentification.h>" namespace "OpenMS":
         # so we do not declare them here, but separately in each derived
         # class which we want to be wrapped:
         void getKeys(libcpp_vector[String] & keys) nogil except +
-        void getKeys(libcpp_vector[unsigned int] & keys) nogil except +
+        void getKeys(libcpp_vector[unsigned int] & keys) nogil except + # wrap-as:getKeysAsIntegers
         DataValue getMetaValue(unsigned int) nogil except +
         DataValue getMetaValue(String) nogil except +
         void setMetaValue(unsigned int, DataValue) nogil except +

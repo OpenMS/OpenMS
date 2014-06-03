@@ -73,7 +73,7 @@ public:
     ConstSpectraIterator endSpectra() const;
     */
   };
-  OPENMS_DLLAPI typedef boost::shared_ptr<ISpectraReader> SpectraReaderPtr;
+  typedef boost::shared_ptr<ISpectraReader> SpectraReaderPtr;
 
 
   /**
@@ -102,7 +102,7 @@ public:
     ConstChromatogramIterator endChromatograms() const;
     */
   };
-  OPENMS_DLLAPI typedef boost::shared_ptr<IChromatogramsReader> ChromatogramsReaderPtr;
+  typedef boost::shared_ptr<IChromatogramsReader> ChromatogramsReaderPtr;
 
 
   class OPENMS_DLLAPI ISpectraWriter
@@ -114,7 +114,7 @@ public:
     /// write all cached data to disk
     virtual void flush() = 0;
   };
-  OPENMS_DLLAPI typedef boost::shared_ptr<ISpectraWriter> SpectraWriterPtr;
+  typedef boost::shared_ptr<ISpectraWriter> SpectraWriterPtr;
 
 
   class OPENMS_DLLAPI IChromatogramsWriter
@@ -126,7 +126,7 @@ public:
     /// write all cached data to disk
     virtual void flush() = 0;
   };
-  OPENMS_DLLAPI typedef boost::shared_ptr<IChromatogramsWriter> ChromatogramsWriterPtr;
+  typedef boost::shared_ptr<IChromatogramsWriter> ChromatogramsWriterPtr;
 
 } //end namespace Interfaces
 } //end namespace OpenMS

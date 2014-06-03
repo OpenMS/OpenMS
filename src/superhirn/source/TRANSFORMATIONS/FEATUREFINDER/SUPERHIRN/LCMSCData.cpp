@@ -125,22 +125,17 @@ namespace OpenMS
 
     if (P == get_DATA_end())
     {
-
       // ok, not yet inserted this mass:
       elution_peak_list tmp;
       tmp.insert(pair<int, LCElutionPeak>(APEX, *in));
-      in = NULL;
 
       // insert into m/z list:
       DATA.insert(pair<double, elution_peak_list>(MZ, tmp));
-
     }
     else
     {
-
       // ok, already existing:
       (*P).second.insert(pair<int, LCElutionPeak>(APEX, *in));
-      in = NULL;
     }
   }
 

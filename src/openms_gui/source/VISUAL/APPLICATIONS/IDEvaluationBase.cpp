@@ -440,23 +440,23 @@ namespace OpenMS
     }
     bool svg = (suffix.compare("svg", Qt::CaseInsensitive) == 0);
 
-    QSize items_bounding_rect = spec_1d_->size();
-    qreal wh_proportion = (qreal)(items_bounding_rect.width()) / (qreal)(items_bounding_rect.height());
-    bool w_larger_than_h = wh_proportion > 1;
-    qreal x2, y2;
+    // QSize items_bounding_rect = spec_1d_->size();
+    // qreal wh_proportion = (qreal)(items_bounding_rect.width()) / (qreal)(items_bounding_rect.height());
+    // bool w_larger_than_h = wh_proportion > 1;
 
-    qreal small_edge_length = svg ? 500 : 4000;
+    // qreal small_edge_length = svg ? 500 : 4000;
 
-    if (w_larger_than_h)
-    {
-      x2 = wh_proportion * small_edge_length;
-      y2 = small_edge_length;
-    }
-    else
-    {
-      x2 = small_edge_length;
-      y2 = (1.0 / wh_proportion) * small_edge_length;
-    }
+    // qreal x2, y2;
+    // if (w_larger_than_h)
+    // {
+    //   x2 = wh_proportion * small_edge_length;
+    //   y2 = small_edge_length;
+    // }
+    // else
+    // {
+    //   x2 = small_edge_length;
+    //   y2 = (1.0 / wh_proportion) * small_edge_length;
+    // }
     
     double h = param_.getValue("image:height");
     double w = param_.getValue("image:width");
@@ -595,7 +595,7 @@ namespace OpenMS
     e->ignore();
   }
 
-  void IDEvaluationBase::closeEvent(QCloseEvent* event)
+  void IDEvaluationBase::closeEvent(QCloseEvent* /* event */)
   {
     //ws_->closeAllWindows();
     //event->accept();

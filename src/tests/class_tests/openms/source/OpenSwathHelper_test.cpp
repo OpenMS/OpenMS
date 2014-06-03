@@ -148,6 +148,38 @@ START_SECTION(static void checkSwathMap(const OpenMS::MSExperiment< Peak1D > &sw
 }
 END_SECTION
 
+START_SECTION((static std::pair<double,double> estimateRTRange(OpenSwath::LightTargetedExperiment & exp)))
+{
+  LightTargetedExperiment exp;
+
+  LightPeptide pep1;
+  LightPeptide pep2;
+  LightPeptide pep3;
+
+  pep1.rt = -100.0;
+  pep2.rt = 900.0;
+  pep3.rt = 300.0;
+
+  std::vector<LightPeptide> peptides;
+  peptides.push_back(pep1);
+  peptides.push_back(pep2);
+  peptides.push_back(pep3);
+
+  exp.peptides = peptides;
+
+  std::pair<double, double> range = OpenSwathHelper::estimateRTRange(exp);
+  TEST_REAL_SIMILAR(range.first, -100)
+  TEST_REAL_SIMILAR(range.second, 900)
+}
+END_SECTION
+
+START_SECTION((static std::map<std::string, double> simple_find_best_feature(OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType & transition_group_map, 
+        bool useQualCutoff = false, double qualCutoff = 0.0)))
+{
+  NOT_TESTABLE
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

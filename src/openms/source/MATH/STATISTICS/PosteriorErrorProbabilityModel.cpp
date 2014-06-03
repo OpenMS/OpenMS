@@ -531,12 +531,12 @@ namespace OpenMS
       {
         (*it)[1] = ((*it)[1] / ((decoy.size() + target.size())  * dividing_score));
         (*it)[2] = ((*it)[2] / ((decoy.size() + target.size())  * dividing_score));
-        String temp  = (*it)[0];
-        temp += "\t";
-        temp += (*it)[1];
-        temp += "\t";
-        temp += (*it)[2];
-        data_points << temp;
+        String temp_ = (*it)[0];
+        temp_ += "\t";
+        temp_ += (*it)[1];
+        temp_ += "\t";
+        temp_ += (*it)[2];
+        data_points << temp_;
       }
       data_points.store((String)param_.getValue("out_plot") + "_target_decoy_scores.txt");
       TextFile file;

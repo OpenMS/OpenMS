@@ -159,13 +159,13 @@ namespace OpenMS
             }
 
             String target_decoy(it->getHits()[i].getMetaValue("target_decoy"));
-            if (target_decoy == "target")
+            if (target_decoy == "target" || target_decoy == "target+decoy")
             {
               target_scores.push_back(it->getHits()[i].getScore());
             }
             else
             {
-              if (target_decoy == "decoy" || target_decoy == "target+decoy")
+              if (target_decoy == "decoy")
               {
                 decoy_scores.push_back(it->getHits()[i].getScore());
               }
@@ -251,7 +251,7 @@ namespace OpenMS
               }
 
               String target_decoy(hits[i].getMetaValue("target_decoy"));
-              if (target_decoy == "target")
+              if (target_decoy == "target" || target_decoy == "target+decoy")
               {
                 // if it is a target hit, there are now decoys, fdr/q-value should be zero then
                 new_hits.push_back(hits[i]);
@@ -261,7 +261,7 @@ namespace OpenMS
               }
               else
               {
-                if (target_decoy != "decoy" && target_decoy != "target+decoy")
+                if (target_decoy != "decoy")
                 {
                   LOG_FATAL_ERROR << "Unknown value of meta value 'target_decoy': '" << target_decoy << "'!" << endl;
                 }
@@ -300,7 +300,7 @@ namespace OpenMS
             if (hit.metaValueExists("target_decoy"))
             {
               String meta_value = (String)hit.getMetaValue("target_decoy");
-              if ((meta_value == "decoy" || meta_value == "target+decoy") && !add_decoy_peptides)
+              if(meta_value == "decoy" && !add_decoy_peptides)
               {
                 continue;
               }

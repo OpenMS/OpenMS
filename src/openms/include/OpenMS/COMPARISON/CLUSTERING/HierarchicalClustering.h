@@ -136,8 +136,8 @@ public:
 public:
       BoundingBox bbox;
 
-      Cluster(const BoundingBox & bbox) :
-        bbox(bbox)
+      Cluster(const BoundingBox & local_bbox) :
+        bbox(local_bbox)
       {}
     };
 
@@ -165,15 +165,23 @@ public:
       const bool center;
       const PointRef ref;
 
-      TreeNode(const PointCoordinate & coord, const PointRef & ref, bool center) :
-        coord(coord), bbox(coord), left(0), right(0), points(1), center(center), ref(ref)
+      TreeNode(const PointCoordinate & local_coord, const PointRef & local_ref, bool local_center) :
+        coord(local_coord),
+        bbox(local_coord),
+        left(0),
+        right(0),
+        points(1),
+        center(local_center),
+        ref(local_ref)
       {}
 
-      TreeNode(const PointCoordinate & coord, const BoundingBox & bbox, TreeNode * left, TreeNode * right) :
-        coord(coord), bbox(bbox),
-        left(left), right(right),
-        points(left->points + right->points),
-        center(left->center && right->center),
+      TreeNode(const PointCoordinate & local_coord, const BoundingBox & local_bbox, TreeNode * local_left, TreeNode * local_right) :
+        coord(local_coord),
+        bbox(local_bbox),
+        left(local_left),
+        right(local_right),
+        points(local_left->points + local_right->points),
+        center(local_left->center && local_right->center),
         ref(PointRef())
       {}
     };
@@ -188,8 +196,10 @@ public:
       double distance;
       TreeNode * left, * right;
 
-      TreeDistance(const double & distance, TreeNode * left, TreeNode * right) :
-        distance(distance), left(left), right(right)
+      TreeDistance(const double & local_distance, TreeNode * local_left, TreeNode * local_right) :
+        distance(local_distance),
+        left(local_left),
+        right(local_right)
       {}
 
       bool operator>(const TreeDistance & rhs) const
@@ -207,8 +217,8 @@ public:
      * @brief Constructor
      * @param cluster_dimension Max dimension of cluster
      */
-    HierarchicalClustering(const PointCoordinate & cluster_dimension) :
-      grid(cluster_dimension)
+    HierarchicalClustering(const PointCoordinate & local_cluster_dimension) :
+      grid(local_cluster_dimension)
     {}
 
     /**
@@ -239,6 +249,7 @@ public:
     }
 
 protected:
+
     /**
      * @brief Insert new Cluster into grid.
      * @param p Point to insert.

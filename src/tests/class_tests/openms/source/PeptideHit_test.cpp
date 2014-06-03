@@ -54,7 +54,7 @@ using namespace std;
 
 double score = 4.4;
 uint rank = 3;
-AASequence sequence = AASequence("ARRAY");
+AASequence sequence = AASequence::fromString("ARRAY");
 std::string sequence2 = "  ARRAY  ";
 Int charge = 2;
 

@@ -8,8 +8,8 @@ ElutionPeakDetection.h
 FeatureFindingMetabo.h
 IsotopeDistributionCache.h
 MassTraceDetection.h
-SILACPattern.h
-SILACPoint.h
+SplinePackage.h
+SplineSpectrum.h
 )
 
 ### add path to the filenames

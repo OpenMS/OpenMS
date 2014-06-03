@@ -76,14 +76,21 @@ namespace OpenMS
       return false;
     }
     char buf[1024];
-    fread(buf, 1, 1024, fp);
+    size_t result = fread(buf, 1, 1024, fp);
+    // We may not read 1024 bytes (most likely not) which means we reached EFO.
+    // To check whether reading fewer bytes is due to an error or EOF, we need
+    // to check ferror. Reaching EOF is okay, so we do not check feof.
+    if (result != 1024 && ferror(fp))
+    {
+      fclose(fp);
+      return false;
+    }
     //printf("%s", buf);
     // get 'data size (heap + stack)'  (residence size (vmRSS) is usually too small and not changing, total memory (vmSize) is changing but usually too large)
     if (sscanf(buf, "%*s%*s%*s%*s%*s%ld", &rss) != 1)
     {
       fclose(fp);
       return false;
-
     }
     fclose(fp);
     mem_virtual = (size_t)rss * (size_t)sysconf(_SC_PAGESIZE) / 1024;

@@ -342,9 +342,9 @@ namespace OpenMS
     //   double shift_high;
 
     // OLD STUFF
-    double shift_low;
+    // double shift_low;
     double shift_centroid;
-    double shift_high;
+    // double shift_high;
     do
     {
 
@@ -472,9 +472,9 @@ namespace OpenMS
           data_range_end = ceil(std::min<double>(mean + scaling_cutoff_stdev_multiplier * stdev + 1, data_size));
           const double outside_mean = shift_hash_.index2key(mean);
           const double outside_stdev = stdev * shift_hash_.getScale();
-          shift_low = (outside_mean - outside_stdev);
+          // shift_low = (outside_mean - outside_stdev);
           shift_centroid = (outside_mean);
-          shift_high = (outside_mean + outside_stdev);
+          // shift_high = (outside_mean + outside_stdev);
           if (do_dump_buckets)
           {
             dump_buckets_file << "# loop: " << loop << "  mean: " << outside_mean << "  stdev: " << outside_stdev << "  (mean-stdev): "

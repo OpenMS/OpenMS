@@ -83,7 +83,7 @@ START_SECTION((void scoreSpectra(Map< double, IonScore > &CID_ion_scores, PeakSp
   tsg.setParameters(tsg_param);
 
   RichPeakSpectrum rspec;
-  tsg.getSpectrum(rspec, AASequence("DFPIANGER"));
+  tsg.getSpectrum(rspec, AASequence::fromString("DFPIANGER"));
 
   PeakSpectrum spec;
   for (Size i = 0; i != rspec.size(); ++i)
@@ -95,8 +95,8 @@ START_SECTION((void scoreSpectra(Map< double, IonScore > &CID_ion_scores, PeakSp
   }
 
   RichPeakSpectrum rspec_ETD;
-  tsg.addPeaks(rspec_ETD, AASequence("DFPIANGER"), Residue::ZIon, 1);
-  tsg.addPrecursorPeaks(rspec_ETD, AASequence("DFPIANGER"), 2);
+  tsg.addPeaks(rspec_ETD, AASequence::fromString("DFPIANGER"), Residue::ZIon, 1);
+  tsg.addPrecursorPeaks(rspec_ETD, AASequence::fromString("DFPIANGER"), 2);
   PeakSpectrum spec_ETD;
   for (Size i = 0; i != rspec_ETD.size(); ++i)
   {
@@ -107,7 +107,7 @@ START_SECTION((void scoreSpectra(Map< double, IonScore > &CID_ion_scores, PeakSp
   }
 
   Precursor prec;
-  prec.setMZ((AASequence("DFPLANGER").getMonoWeight() + 2.0 * Constants::PROTON_MASS_U) / 2.0);
+  prec.setMZ((AASequence::fromString("DFPLANGER").getMonoWeight() + 2.0 * Constants::PROTON_MASS_U) / 2.0);
   prec.setCharge(2);
   vector<Precursor> precs;
   precs.push_back(prec);

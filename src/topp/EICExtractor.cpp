@@ -143,11 +143,11 @@ struct HeaderInfo
 
     String search = "$$ Sample Description:";
     Size pos = content.find(search);
-    if (pos != -1)
+    if (pos != std::string::npos)
     {
       pos += search.size();
       Size pos_end = content.find("$$", pos);
-      if (pos_end != -1)
+      if (pos_end != std::string::npos)
       {
         String tmp = content.substr(pos, pos_end - pos - 1);
         if (!tmp.trim().empty()) header_description = tmp;

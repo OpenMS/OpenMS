@@ -628,7 +628,7 @@ namespace OpenMS
     {
     case DataValue::EMPTY_VALUE: break;
 
-    case DataValue::STRING_VALUE: return *(data_.str_); break;
+    case DataValue::STRING_VALUE: return *(data_.str_);
 
     case DataValue::STRING_LIST: ss << *(data_.str_list_); break;
 

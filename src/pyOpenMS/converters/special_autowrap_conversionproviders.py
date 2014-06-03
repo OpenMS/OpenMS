@@ -140,6 +140,7 @@ class OpenMSDataValue(TypeConverterBase):
                     |cdef DataValue _value = DataValue.__new__(DataValue)
                     |_value.inst = shared_ptr[_DataValue](new _DataValue($input_cpp_var))
                     |cdef int _type = $input_cpp_var.valueType()
+                    |cdef object $output_py_var
                     |if _type == DataType.STRING_VALUE:
                     |    $output_py_var = _value.toString()
                     |elif _type == DataType.INT_VALUE:
@@ -152,6 +153,8 @@ class OpenMSDataValue(TypeConverterBase):
                     |    $output_py_var = _value.toDoubleList()
                     |elif _type == DataType.STRING_LIST:
                     |    $output_py_var = _value.toStringList()
+                    |elif _type == DataType.EMPTY_VALUE:
+                    |    $output_py_var = None
                     |else:
                     |    raise Exception("DataValue instance has invalid value type %d" % _type)
                 """, locals())

@@ -102,13 +102,20 @@ namespace OpenMS
         if (fp != NULL)
         {
           char buff[100];
-          fgets(buff, sizeof(buff), fp);
-          pclose(fp);
-          String output(buff);
-          StringList components;
-          output.split(' ', components);
-          if (components.size() == 2)
-            console_width_ = components[1].toInt();
+          if (fgets(buff, sizeof(buff), fp) != NULL)
+          {
+            pclose(fp);
+            String output(buff);
+            StringList components;
+            output.split(' ', components);
+            if (components.size() == 2)
+              console_width_ = components[1].toInt();
+          }
+          else
+          {
+            // TODO: throw ?
+            LOG_DEBUG << "Could not read 100 characters from file." << std::endl;
+          }
         }
         else
         {

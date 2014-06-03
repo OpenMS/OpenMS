@@ -176,6 +176,7 @@
           <Interpretation>
             <cvParam cvRef="MS" accession="MS:1000903" name="product ion series ordinal" value="6"/>
             <cvParam cvRef="MS" accession="MS:1000926" name="product interpretation rank" value="1"/>
+            <cvParam cvRef="MS" accession="MS:1001229" name="frag: a ion"/>
           </Interpretation>
         </InterpretationList>
       </Product>

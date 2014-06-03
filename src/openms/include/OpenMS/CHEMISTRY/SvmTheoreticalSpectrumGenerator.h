@@ -93,10 +93,10 @@ public:
       }
 
       //Custom constructor
-      IonType(Residue::ResidueType residue, EmpiricalFormula loss = EmpiricalFormula(), Int charge = 1) :
-        residue(residue),
-        loss(loss),
-        charge(charge)
+      IonType(Residue::ResidueType local_residue, EmpiricalFormula local_loss = EmpiricalFormula(), Int local_charge = 1) :
+        residue(local_residue),
+        loss(local_loss),
+        charge(local_charge)
       {
       }
 

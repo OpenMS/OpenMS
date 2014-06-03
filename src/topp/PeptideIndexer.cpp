@@ -171,7 +171,7 @@ namespace seqan
 
     void addHit(OpenMS::Size idx_pep, OpenMS::Size idx_prot, const OpenMS::String& seq_pep, const OpenMS::String& protein, OpenMS::Size position)
     {
-      if (enzyme_.isValidProduct(AASequence(protein), position, seq_pep.length()))
+      if (enzyme_.isValidProduct(AASequence::fromString(protein), position, seq_pep.length()))
       {
         pep_to_prot[idx_pep].insert(idx_prot);
         ++filter_passed;
@@ -260,8 +260,8 @@ namespace seqan
     524288, //19 Val Valine
     12, //20 Aspartic Acid, Asparagine
     96, //21 Glutamic Acid, Glutamine
-    unsigned(-1), //22 Unknown (matches ALL)
-    unsigned(-1), //23 Terminator (dummy)
+    static_cast<unsigned>(-1), //22 Unknown (matches ALL)
+    static_cast<unsigned>(-1), //23 Terminator (dummy)
   };
 
 

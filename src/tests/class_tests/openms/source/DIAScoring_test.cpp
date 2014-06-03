@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2013.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Hannes Roest $
 // $Authors: Hannes Roest $
@@ -84,7 +84,7 @@ START_SECTION(([EXTRA] void MRMFeatureScoring::getBYSeries(AASequence& a, int ch
   OpenMS::DIAScoring diascoring;
   String sequence = "SYVAWDR";
   std::vector<double> bseries, yseries;
-  OpenMS::AASequence a = OpenMS::AASequence(sequence);
+  OpenMS::AASequence a = OpenMS::AASequence::fromString(sequence);
   OpenMS::DIAHelpers::getBYSeries(a,  bseries, yseries, 1);
 
   TEST_EQUAL(bseries.size(), 5)
@@ -130,16 +130,16 @@ START_SECTION(([EXTRA] void MRMFeatureScoring::getBYSeries(AASequence& a, int ch
   TEST_REAL_SIMILAR (yseries[4], 646.33133  );
   TEST_REAL_SIMILAR (yseries[5], 809.39466 + 79.9657);
   //TEST_REAL_SIMILAR (yseries[6], 896.42668  );
-    
+
 }
 END_SECTION
 
-OpenSwath::LightTransition mock_tr1; 
+OpenSwath::LightTransition mock_tr1;
 mock_tr1.product_mz = 500;
 mock_tr1.charge = 1;
 mock_tr1.transition_name = "group1";
 
-OpenSwath::LightTransition mock_tr2; 
+OpenSwath::LightTransition mock_tr2;
 mock_tr2.product_mz = 600;
 mock_tr2.charge = 1;
 mock_tr2.transition_name = "group2";
@@ -190,7 +190,7 @@ START_SECTION([EXTRA] forward void dia_isotope_scores(const std::vector<Transiti
   transitions.push_back(mock_tr2);
 
   DIAScoring diascoring;
-  diascoring.set_dia_parameters(0.05, false, 30, 50, 4, 4); // here we use 50 ppm and a cutoff of 30 in intensity 
+  diascoring.set_dia_parameters(0.05, false, 30, 50, 4, 4); // here we use 50 ppm and a cutoff of 30 in intensity
   double isotope_corr = 0, isotope_overlap = 0;
   diascoring.dia_isotope_scores(transitions, sptr, imrmfeature_test, isotope_corr, isotope_overlap);
   // >> exp = [240, 74, 39, 15, 0]
@@ -251,7 +251,7 @@ START_SECTION([EXTRA] backward void dia_isotope_scores(const std::vector<Transit
   transitions.push_back(mock_tr1);
 
   DIAScoring diascoring;
-  diascoring.set_dia_parameters(0.05, false, 30, 50, 4, 4); // here we use 50 ppm and a cutoff of 30 in intensity 
+  diascoring.set_dia_parameters(0.05, false, 30, 50, 4, 4); // here we use 50 ppm and a cutoff of 30 in intensity
   double isotope_corr = 0, isotope_overlap = 0;
   diascoring.dia_isotope_scores(transitions, sptr, imrmfeature_test, isotope_corr, isotope_overlap);
 
@@ -314,7 +314,7 @@ START_SECTION ( void dia_isotope_scores(const std::vector< TransitionType > &tra
   transitions.push_back(mock_tr2);
 
   DIAScoring diascoring;
-  diascoring.set_dia_parameters(0.05, false, 30, 50, 4, 4); // here we use 50 ppm and a cutoff of 30 in intensity 
+  diascoring.set_dia_parameters(0.05, false, 30, 50, 4, 4); // here we use 50 ppm and a cutoff of 30 in intensity
   double isotope_corr = 0, isotope_overlap = 0;
   diascoring.dia_isotope_scores(transitions, sptr, imrmfeature_test, isotope_corr, isotope_overlap);
 
@@ -326,7 +326,7 @@ START_SECTION ( void dia_isotope_scores(const std::vector< TransitionType > &tra
 END_SECTION
 
 START_SECTION ( void dia_massdiff_score(const std::vector< TransitionType > &transitions, SpectrumType spectrum, const std::vector< double > &normalized_library_intensity, double &ppm_score, double &ppm_score_weighted) )
-{ 
+{
   OpenSwath::SpectrumPtr sptr = (OpenSwath::SpectrumPtr)(new OpenSwath::Spectrum);
   std::vector<OpenSwath::BinaryDataArrayPtr> binaryDataArrayPtrs;
   OpenSwath::BinaryDataArrayPtr data1 = (OpenSwath::BinaryDataArrayPtr)(new OpenSwath::BinaryDataArray);
@@ -387,9 +387,9 @@ START_SECTION ( void dia_massdiff_score(const std::vector< TransitionType > &tra
   std::vector<double> normalized_library_intensity;
   normalized_library_intensity.push_back(0.7);
   normalized_library_intensity.push_back(0.3);
-  diascoring.dia_massdiff_score(transitions, sptr, normalized_library_intensity, ppm_score, ppm_score_weighted); 
+  diascoring.dia_massdiff_score(transitions, sptr, normalized_library_intensity, ppm_score, ppm_score_weighted);
 
-  TEST_REAL_SIMILAR(ppm_score, 15 + 10); // 15 ppm and 10 ppm 
+  TEST_REAL_SIMILAR(ppm_score, 15 + 10); // 15 ppm and 10 ppm
   TEST_REAL_SIMILAR(ppm_score_weighted, 15 * 0.7 + 10* 0.3); // weighted
 }
 END_SECTION
@@ -408,7 +408,7 @@ START_SECTION ( void dia_by_ion_score(SpectrumType spectrum, AASequence &sequenc
   };
   std::vector<double> intensity (arr1, arr1 + sizeof(arr1) / sizeof(arr1[0]) );
   static const double arr2[] = {
-    // four of the naked b/y ions 
+    // four of the naked b/y ions
     // as well as one of the modified b and y ions ion each
     350.17164, // b
     421.20875, // b
@@ -429,10 +429,10 @@ START_SECTION ( void dia_by_ion_score(SpectrumType spectrum, AASequence &sequenc
   diascoring.set_dia_parameters(0.05, false, 30, 50, 4, 4); // here we use a large enough window so that none of our peaks falls out
   String sequence = "SYVAWDR";
   std::vector<double> bseries, yseries;
-  AASequence a = AASequence(sequence);
+  AASequence a = AASequence::fromString(sequence);
 
   double bseries_score = 0, yseries_score = 0;
-  diascoring.dia_by_ion_score(sptr, a, 1, bseries_score, yseries_score); 
+  diascoring.dia_by_ion_score(sptr, a, 1, bseries_score, yseries_score);
 
   TEST_REAL_SIMILAR (bseries_score, 2);
   TEST_REAL_SIMILAR (yseries_score, 2);
@@ -440,7 +440,7 @@ START_SECTION ( void dia_by_ion_score(SpectrumType spectrum, AASequence &sequenc
   // now add a modification to the sequence
   a.setModification(1, "Phospho" ); // modify the Y
   bseries_score = 0, yseries_score = 0;
-  diascoring.dia_by_ion_score(sptr, a, 1, bseries_score, yseries_score); 
+  diascoring.dia_by_ion_score(sptr, a, 1, bseries_score, yseries_score);
 
   TEST_REAL_SIMILAR (bseries_score, 1);
   TEST_REAL_SIMILAR (yseries_score, 3);

@@ -264,11 +264,11 @@ namespace OpenMS
         }
         if (!found)
         {
-          // infere this peak
-          Peak1D p;
-          p.setIntensity(it1->getIntensity());
-          p.setPosition(mz_comp);
-          new_CID_spec.push_back(p);
+          // infer this peak
+          Peak1D lp;
+          lp.setIntensity(it1->getIntensity());
+          lp.setPosition(mz_comp);
+          new_CID_spec.push_back(lp);
         }
       }
       // add putative b/y-ions from c/z ions

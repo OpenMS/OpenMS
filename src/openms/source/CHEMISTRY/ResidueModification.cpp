@@ -362,6 +362,7 @@ namespace OpenMS
     {
       classification = classification_;
     }
+
     switch (classification)
     {
     case ARTIFACT: return "Artefact"; // return Artefact (BE) not Artifcat (AE)
@@ -398,7 +399,6 @@ namespace OpenMS
 
     default: return "Unknown";
     }
-    return "Unknown";
   }
 
   void ResidueModification::setAverageMass(double mass)

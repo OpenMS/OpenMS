@@ -99,7 +99,7 @@ END_SECTION
 START_SECTION((double getWeight(const AASequence &aa) const ))
 {
   WeightWrapper ww;
-  AASequence aa("DFINAGER");
+  AASequence aa= AASequence::fromString("DFINAGER");
   TEST_EQUAL(ww.getWeight(aa), aa.getMonoWeight())
   WeightWrapper ww2(WeightWrapper::AVERAGE);
   TEST_EQUAL(ww2.getWeight(aa), aa.getAverageWeight())

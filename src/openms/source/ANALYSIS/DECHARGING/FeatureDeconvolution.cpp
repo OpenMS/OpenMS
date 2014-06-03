@@ -706,7 +706,6 @@ namespace OpenMS
     // if no mapping is found, make a new CF.
     // if new pair spans two existing CFs -> merge CFs
     typedef std::map<Size, Size> CliqueMap;
-    typedef CliqueMap::const_iterator MapCI;
     CliqueMap clique_register;
 
     StringList scores;

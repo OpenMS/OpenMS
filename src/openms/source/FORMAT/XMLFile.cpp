@@ -121,8 +121,10 @@ private:
 
       //is it bzip2 or gzip compressed?
       std::ifstream file(filename.c_str());
-      char bz[2];
-      file.read(bz, 2);
+      char tmp_bz[3];
+      file.read(tmp_bz, 2);
+      tmp_bz[2] = '\0';
+      String bz = String(tmp_bz);
       xercesc::InputSource * source;
 
       char g1 = 0x1f;
@@ -132,7 +134,7 @@ private:
       g2 |= 1 << 1;
       g2 |= 1 << 0;
       //g2 = static_cast<char>(0x8b); // can make troubles if it is casted to 0x7F which is the biggest number signed char can save
-      if ((bz[0] == 'B' && bz[1] == 'Z') ||    (bz[0] == g1 && bz[1] == g2))
+      if ((bz[0] == 'B' && bz[1] == 'Z') || (bz[0] == g1 && bz[1] == g2))
       {
         source = new CompressedInputSource(StringManager().convert(filename.c_str()), bz);
       }
