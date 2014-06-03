@@ -5,6 +5,7 @@ from Types cimport *
 from FileTypes cimport *
 
 from TargetedExperiment cimport *
+from LightTargetedExperiment cimport LightTargetedExperiment
 
 cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/TransitionTSVReader.h>" namespace "OpenMS":
 
@@ -18,6 +19,8 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/TransitionTSVReader.h>" namespace "
         void convertTargetedExperimentToTSV(char * filename, TargetedExperiment& targeted_exp) nogil except +
     
         void convertTSVToTargetedExperiment(char * filename, Type filetype, TargetedExperiment& targeted_exp) nogil except +
+
+        void convertTSVToTargetedExperiment(char * filename, Type filetype, LightTargetedExperiment& targeted_exp) nogil except +
     
         void validateTargetedExperiment(TargetedExperiment targeted_exp) nogil except +
 
