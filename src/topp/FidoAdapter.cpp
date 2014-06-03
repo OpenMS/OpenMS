@@ -63,7 +63,7 @@ using namespace std;
         </tr>
         <tr>
             <td VALIGN="middle" ALIGN="center" ROWSPAN=1> @ref TOPP_PeptideIndexer\n(with @p annotate_proteins option) </td>
-            <td VALIGN="middle" ALIGN="center" ROWSPAN=2> @ref TOPP_ProteinQuantifier\n(via @p protxml parameter) </td>
+            <td VALIGN="middle" ALIGN="center" ROWSPAN=2> @ref TOPP_ProteinQuantifier\n(via @p protein_groups parameter) </td>
         </tr>
         <tr>
             <td VALIGN="middle" ALIGN="center" ROWSPAN=1> @ref TOPP_IDPosteriorErrorProbability\n(with @p prob_correct option) </td>
@@ -83,7 +83,7 @@ using namespace std;
     <b>Output format:</b>
 
     The output of this tool is an augmented version of the input: The protein groups and accompanying posterior probabilities inferred by Fido are stored as "indistinguishable protein groups", attached to the (first) protein identification run of the input data.@n
-    The result can be passed to @ref TOPP_ProteinQuantifier via its @p protxml parameter, to have the protein grouping taken into account during quantification.
+    The result can be passed to @ref TOPP_ProteinQuantifier via its @p protein_groups parameter, to have the protein grouping taken into account during quantification.
 
 
     <B>The command line parameters of this tool are:</B>
