@@ -236,6 +236,12 @@ else()
 		endif()
 	endforeach()
 
+  # additionally query the executables and libs for the qt libs
+  add_custom_command(
+    TARGET prepare_knime_payload_libs POST_BUILD
+    COMMAND ${PROJECT_SOURCE_DIR}/cmake/knime/find_qt_libs.sh ${PROJECT_BINARY_DIR}/bin ${PROJECT_BINARY_DIR}/lib ${PAYLOAD_LIB_PATH}
+  )
+
 	add_custom_command(
 		TARGET prepare_knime_payload_libs POST_BUILD
 		COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_BINARY_DIR}/lib/libOpenMS.so ${PAYLOAD_LIB_PATH}
