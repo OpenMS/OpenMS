@@ -515,23 +515,34 @@ namespace OpenMS
     friend OPENMS_DLLAPI std::istream & operator>>(std::istream & is, const AASequence & peptide);
     //@}
 
-    /** 
+    /**
       @brief create AASequence object by parsing a String
       @throws Exception::ParseError if an invalid string representation of an AA sequence is passed
     */
     static AASequence fromString(const String & s);
 
-    /** 
+    /**
       @brief create AASequence object by parsing a const char *
       @throws Exception::ParseError if an invalid string representation of an AA sequence is passed
     */
     static AASequence fromString(const char * s);
+
+    /**
+      @brief create AASequence object by parsing a string consisting only of unmodified residues.
+             Single letter codes of residues are directly converted to Residue *. Unknown characters like whitespaces
+             or brackets raise a ParseError exception.
+      @throws Exception::ParseError if brackets are found in a string represenation of an unmodified AA sequence
+    */
+
+    static AASequence fromUnmodifiedString(const String &s);
 
   protected:
 
     std::vector<const Residue *> peptide_;
 
     static void parseString_(AASequence & aas, const String & peptide);
+
+    inline static bool parseUnmodifiedString_(AASequence & aas, const String & peptide);
 
     const ResidueModification * n_term_mod_;
 

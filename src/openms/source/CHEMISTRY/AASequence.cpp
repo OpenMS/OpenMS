@@ -619,7 +619,6 @@ namespace OpenMS
 
   void AASequence::parseString_(AASequence& aas, const String & pep)
   {
-    aas.peptide_.clear();
     String peptide(pep);
     peptide.trim();
 
@@ -790,7 +789,7 @@ namespace OpenMS
       }
 
       // Retrieve the underlying residue
-      const Residue * res_ptr = ResidueDB::getInstance()->getResidue(name);
+      const Residue * res_ptr = ResidueDB::getInstance()->getResidue(name[0]);
 
       if (res_ptr == 0 && tag.empty() && modstr.empty())
       {
@@ -958,6 +957,24 @@ namespace OpenMS
     }
   }
 
+  inline bool AASequence::parseUnmodifiedString_(AASequence & aas, const String &peptide)
+  {
+    static ResidueDB * rdb = ResidueDB::getInstance();
+    aas.peptide_.reserve(peptide.size());
+    for (string::const_iterator sit = peptide.begin(); sit != peptide.end(); ++sit)
+    {
+      const Residue * r = rdb->getResidue(*sit);
+      if (r)
+      {
+        aas.peptide_.push_back(r);
+      } else
+      {
+        return false;
+      }
+    }
+    return true;
+  }
+
   void AASequence::getAAFrequencies(Map<String, Size> & frequency_table) const
   {
     frequency_table.clear();
@@ -1030,14 +1047,34 @@ namespace OpenMS
   AASequence AASequence::fromString(const String & s)
   {
     AASequence aas;
-    parseString_(aas, s);
+    if (!parseUnmodifiedString_(aas, s))
+    {
+      AASequence modified_aas;
+      parseString_(modified_aas, s);
+      return modified_aas;
+    }
     return aas;
   }
 
   AASequence AASequence::fromString(const char * s)
   {
     AASequence aas;
-    parseString_(aas, String(s));
+    if (!parseUnmodifiedString_(aas, s))
+    {
+      AASequence modified_aas;
+      parseString_(modified_aas, String(s));
+      return modified_aas;
+    }
+    return aas;
+  }
+
+  AASequence AASequence::fromUnmodifiedString(const String & s)
+  {
+    AASequence aas;
+    if (!parseUnmodifiedString_(aas, s))
+    {
+      throw Exception::ParseError(__FILE__, __LINE__, __PRETTY_FUNCTION__, s, "Cannot convert string into unmodified AASequence. Brackets encountered.");
+    }
     return aas;
   }
 }
