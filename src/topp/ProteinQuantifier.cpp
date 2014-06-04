@@ -339,7 +339,7 @@ protected:
   {
     registerInputFile_("in", "<file>", "", "Input file");
     setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML,idXML"));
-    registerInputFile_("protein_groups", "<file>", "", "Protein inference results for the identification runs that were used to annotate the input (ProteinProphet: protXML converted to idXML, Fido: output of FidoAdapter).\nInformation about indistinguishable proteins will be used for protein quantification.", false);
+    registerInputFile_("protein_groups", "<file>", "", "Protein inference results for the identification runs that were used to annotate the input (e.g. from ProteinProphet via IDFileConverter or Fido via FidoAdapter).\nInformation about indistinguishable proteins will be used for protein quantification.", false);
     setValidFormats_("protein_groups", ListUtils::create<String>("idXML"));
     registerOutputFile_("out", "<file>", "", "Output file for protein abundances", false);
     setValidFormats_("out", ListUtils::create<String>("csv"));
@@ -483,7 +483,7 @@ protected:
     {
       for (vector<ProteinIdentification::ProteinGroup>::iterator group_it =
              proteins_.getIndistinguishableProteins().begin(); group_it !=
-           proteins_.getIndistinguishableProteins().end(); ++group_it)
+             proteins_.getIndistinguishableProteins().end(); ++group_it)
       {
         StringList& accessions = leader_to_accessions[group_it->
                                                       accessions[0]];
@@ -567,10 +567,14 @@ protected:
     if (proteins) // parameters relevant only for protein output
     {
       relevant_params.push_back("top");
-      relevant_params.push_back("average");
-      relevant_params.push_back("include_all");
+      Size top = algo_params_.getValue("top");
+      if (top != 1)
+      {
+        relevant_params.push_back("average");
+        if (top != 0) relevant_params.push_back("include_all");
+      }
     }
-    relevant_params.push_back("filter_charge"); // also relevant for peptide output
+    relevant_params.push_back("filter_charge"); // also for peptide output
     if (files_.size() > 1) // flags only for consensusXML input
     {
       relevant_params.push_back("consensus:normalize");
@@ -922,15 +926,13 @@ protected:
         vector<ProteinIdentification> proteins;
         vector<PeptideIdentification> peptides;
         IdXMLFile().load(protein_groups, proteins, peptides);
-        if ((proteins.size() == 1) && (peptides.size() == 1))
+        if (proteins.empty() || 
+            proteins[0].getIndistinguishableProteins().empty())
         {
-          proteins_ = proteins[0];
-          peptides_ = peptides[0];
+          throw Exception::MissingInformation(__FILE__, __LINE__, __PRETTY_FUNCTION__, "No information on indistinguishable protein groups found in file '" + protein_groups + "'");
         }
-        else
-        {
-          throw Exception::InvalidParameter(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Expected protein inference results (with only one 'ProteinIdentification' and one 'PeptideIdentification' instance) in file '" + protein_groups + "'");
-        }
+        proteins_ = proteins[0]; // inference data is attached to first ID run
+        if (peptides.size() == 1) peptides_ = peptides[0];
       }
       quantifier.quantifyProteins(proteins_);
     }
