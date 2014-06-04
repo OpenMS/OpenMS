@@ -478,21 +478,22 @@ protected:
 
     out << endl;
 
-    map<String, StringList> leader_to_accessions;
+    // mapping: accession of leader -> (accessions of grouped proteins, score)
+    map<String, pair<StringList, double> > leader_to_group;
     if (!proteins_.getIndistinguishableProteins().empty())
     {
       for (vector<ProteinIdentification::ProteinGroup>::iterator group_it =
              proteins_.getIndistinguishableProteins().begin(); group_it !=
              proteins_.getIndistinguishableProteins().end(); ++group_it)
       {
-        StringList& accessions = leader_to_accessions[group_it->
-                                                      accessions[0]];
+        StringList& accessions = leader_to_group[group_it->accessions[0]].first;
         accessions = group_it->accessions;
         for (StringList::iterator acc_it = accessions.begin();
              acc_it != accessions.end(); ++acc_it)
         {
           acc_it->substitute('/', '_'); // to allow concatenation later
         }
+        leader_to_group[group_it->accessions[0]].second = group_it->probability;
       }
     }
 
@@ -501,23 +502,21 @@ protected:
     {
       if (q_it->second.total_abundances.empty()) continue; // not quantified
 
-      if (leader_to_accessions.empty())
+      if (leader_to_group.empty())
       {
         out << q_it->first << 1;
+        if (proteins_.getHits().empty()) out << 0;
+        else
+        {
+          vector<ProteinHit>::iterator pos = proteins_.findHit(q_it->first);
+          out << pos->getScore();
+        }
       }
       else
       {
-        out << ListUtils::concatenate(leader_to_accessions[q_it->first], '/')
-            << leader_to_accessions[q_it->first].size();
-      }
-      if (proteins_.getHits().empty())
-      {
-        out << 0;
-      }
-      else
-      {
-        vector<ProteinHit>::iterator pos = proteins_.findHit(q_it->first);
-        out << pos->getScore();
+        pair<StringList, double>& group = leader_to_group[q_it->first];
+        out << ListUtils::concatenate(group.first, '/') << group.first.size()
+            << group.second;
       }
       Size n_peptide = q_it->second.abundances.size();
       out << n_peptide;
@@ -685,6 +684,7 @@ protected:
       accession_map[ph_it->getAccession()] = ph_it;
     }
     // indistinguishable proteins:
+    // @TODO: include group probability in output (as in "writeProteinTable_")?
     map<String, StringList> leader_to_accessions;
     for (vector<ProteinIdentification::ProteinGroup>::iterator group_it =
            proteins_.getIndistinguishableProteins().begin(); group_it !=
