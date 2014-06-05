@@ -44,6 +44,8 @@
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
 
 // Files
+#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
@@ -983,8 +985,10 @@ protected:
     registerInputFileList_("in", "<files>", StringList(), "Input files separated by blank");
     setValidFormats_("in", ListUtils::create<String>("mzML,mzXML"));
 
-    registerInputFile_("tr", "<file>", "", "transition file ('TraML' or 'csv')");
-    setValidFormats_("tr", ListUtils::create<String>("csv,traML"));
+    registerInputFile_("tr", "<file>", "", "transition file ('TraML','tsv' or 'csv')");
+    setValidFormats_("tr", ListUtils::create<String>("traML,tsv,csv"));
+    registerStringOption_("tr_type", "<type>", "", "input file type -- default: determined from file extension or content\n", false);
+    setValidStrings_("tr_type", ListUtils::create<String>("traML,tsv,csv"));
 
     // one of the following two needs to be set
     registerInputFile_("tr_irt", "<file>", "", "transition file ('TraML')", false);
@@ -1166,6 +1170,22 @@ protected:
     StringList file_list = getStringList_("in");
     String tr_file = getStringOption_("tr");
 
+    //tr_file input file type
+    FileHandler fh_tr_type;
+    FileTypes::Type tr_type = FileTypes::nameToType(getStringOption_("tr_type"));
+    
+    if (tr_type == FileTypes::UNKNOWN)
+    {
+      tr_type = fh_tr_type.getType(tr_file);
+      writeDebug_(String("Input file type: ") + FileTypes::typeToName(tr_type), 2);
+    }
+    
+    if (tr_type == FileTypes::UNKNOWN)
+    {
+      writeLog_("Error: Could not determine input file type!");
+      return PARSE_ERROR;
+    }
+
     String out = getStringOption_("out_features");
     String out_tsv = getStringOption_("out_tsv");
 
@@ -1252,7 +1272,7 @@ protected:
     }
     else
     {
-      TransitionTSVReader().convertTSVToTargetedExperiment(tr_file.c_str(), transition_exp);
+      TransitionTSVReader().convertTSVToTargetedExperiment(tr_file.c_str(), tr_type, transition_exp);
     }
     progresslogger.endProgress();
 

@@ -64,47 +64,77 @@ for (int i=0; i < 11; ++i)
 for (int i=0; i < 11; ++i)
 {
     mz.push_back(418.2 + 0.1*i);
-    intensity.push_back(Gauss1(418.2+0.1*i));
+    intensity.push_back(Gauss2(418.2+0.1*i));
 }
 
-SplineSpectrum* ptr = 0;
+MSSpectrum<Peak1D> spectrum;
+Peak1D peak;
+spectrum.setRT(1789.0714);
+for (unsigned i=0; i < mz.size(); ++i)
+{
+    peak.setMZ(mz[i]);
+    peak.setIntensity(intensity[i]);
+    spectrum.push_back(peak);
+}
+
 SplineSpectrum* nullPointer = 0;
+SplineSpectrum* ptr;
 
 START_SECTION(SplineSpectrum(const std::vector<double>& mz, const std::vector<double>& intensity))
 {
-	ptr = new SplineSpectrum(mz, intensity);
-	TEST_NOT_EQUAL(ptr, nullPointer);
-  delete ptr;
+    SplineSpectrum spline(mz, intensity);
+    TEST_REAL_SIMILAR(spline.getMzMin(), 416.3);
+    ptr = new SplineSpectrum(mz, intensity);
+    TEST_NOT_EQUAL(ptr, nullPointer);
+    delete ptr;
 }
 END_SECTION
 
 START_SECTION(SplineSpectrum(const std::vector<double>& mz, const std::vector<double>& intensity, double scaling))
-  // TODO
+{
+    SplineSpectrum spline(mz, intensity, 0.7);
+    TEST_REAL_SIMILAR(spline.getMzMin(), 416.3)
+    ptr = new SplineSpectrum(mz, intensity, 0.7);
+    TEST_NOT_EQUAL(ptr, nullPointer);
+    delete ptr;
+}
 END_SECTION
 
 START_SECTION(SplineSpectrum(MSSpectrum<Peak1D>& raw_spectrum))
-// TODO
+{
+	SplineSpectrum spline(spectrum);
+    TEST_REAL_SIMILAR(spline.getMzMin(), 416.3)
+    ptr = new SplineSpectrum(spectrum);
+    TEST_NOT_EQUAL(ptr, nullPointer);
+    delete ptr;
+}
 END_SECTION
 
 START_SECTION(SplineSpectrum(MSSpectrum<Peak1D>& raw_spectrum, double scaling))
-// TODO
+{
+	SplineSpectrum spline(spectrum, 0.7);
+    TEST_REAL_SIMILAR(spline.getMzMin(), 416.3)
+    ptr = new SplineSpectrum(spectrum, 0.7);
+    TEST_NOT_EQUAL(ptr, nullPointer);
+    delete ptr;
+}
 END_SECTION
 
-SplineSpectrum spectrum(mz, intensity);
+SplineSpectrum spectrum2(mz, intensity);
 
 START_SECTION(double getMzMin() const)
-  TEST_EQUAL(spectrum.getMzMin(), 416.3);
+  TEST_EQUAL(spectrum2.getMzMin(), 416.3);
 END_SECTION
 
 START_SECTION(double getMzMax() const)
-  TEST_EQUAL(spectrum.getMzMax(), 419.2);
+  TEST_EQUAL(spectrum2.getMzMax(), 419.2);
 END_SECTION
 
 MSSpectrum<> empty_spec;
 SplineSpectrum ss_empty(empty_spec);
 
 START_SECTION(unsigned getSplineCount() const)
-  TEST_EQUAL(spectrum.getSplineCount(), 2)
+  TEST_EQUAL(spectrum2.getSplineCount(), 2)
   
   // this should be used before getNavigator()
   TEST_EQUAL(ss_empty.getSplineCount(), 0)
@@ -112,7 +142,7 @@ END_SECTION
 
 START_SECTION(SplineSpectrum::Navigator getNavigator())
   // just to test if it can be called
-  SplineSpectrum::Navigator nav = spectrum.getNavigator();
+  SplineSpectrum::Navigator nav = spectrum2.getNavigator();
 
   // test exception on empty spectrum
   TEST_EXCEPTION(Exception::InvalidSize, ss_empty.getNavigator())
@@ -121,22 +151,30 @@ END_SECTION
 
 START_SECTION(double SplineSpectrum::Navigator::eval(double mz))
   // outside range of Gaussians
-  TEST_EQUAL(spectrum.getNavigator().eval(400.0), 0);
-  TEST_EQUAL(spectrum.getNavigator().eval(417.8), 0);
-  TEST_EQUAL(spectrum.getNavigator().eval(500.0), 0);
+  TEST_EQUAL(spectrum2.getNavigator().eval(400.0), 0);
+  TEST_EQUAL(spectrum2.getNavigator().eval(417.8), 0);
+  TEST_EQUAL(spectrum2.getNavigator().eval(500.0), 0);
   // near the edge
-  TEST_REAL_SIMILAR(spectrum.getNavigator().eval(416.33), 0.007848195698809);  // expected 0.00738068453767004 differs by 6%
+  TEST_REAL_SIMILAR(spectrum2.getNavigator().eval(416.33), 0.007848195698809);  // expected 0.00738068453767004 differs by 6%
   // near the maximum
-  TEST_REAL_SIMILAR(spectrum.getNavigator().eval(416.81), 0.997572728799559);  // expected 0.99778024508561 differs by 0.02%
+  TEST_REAL_SIMILAR(spectrum2.getNavigator().eval(416.81), 0.997572728799559);  // expected 0.99778024508561 differs by 0.02%
+  // evaluation in first package, then search in last package
+  SplineSpectrum::Navigator nav = spectrum2.getNavigator();
+  TEST_REAL_SIMILAR(nav.eval(416.81), 0.997572728799559);
+  TEST_REAL_SIMILAR(nav.eval(418.75), 0.944147611428987);
+  // evaluation in last package, then search in first package
+  SplineSpectrum::Navigator nav2 = spectrum2.getNavigator();
+  TEST_REAL_SIMILAR(nav2.eval(418.75), 0.944147611428987);
+  TEST_REAL_SIMILAR(nav2.eval(416.81), 0.997572728799559);
 END_SECTION
 
 START_SECTION(double SplineSpectrum::Navigator::getNextMz(double mz))
   // advancing within package
-  TEST_EQUAL(spectrum.getNavigator().getNextMz(417.0), 417.07);
+  TEST_EQUAL(spectrum2.getNavigator().getNextMz(417.0), 417.07);
   // advancing to next package
-  TEST_EQUAL(spectrum.getNavigator().getNextMz(417.29), 418.2);
+  TEST_EQUAL(spectrum2.getNavigator().getNextMz(417.29), 418.2);
   // advancing beyond range
-  TEST_REAL_SIMILAR(spectrum.getNavigator().getNextMz(500.0), 419.2);
+  TEST_REAL_SIMILAR(spectrum2.getNavigator().getNextMz(500.0), 419.2);
 END_SECTION
 
 

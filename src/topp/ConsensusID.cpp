@@ -185,6 +185,7 @@ protected:
       vector<IDData> prec_data, final;
       for (vector<PeptideIdentification>::iterator pep_id_it = pep_ids.begin(); pep_id_it != pep_ids.end(); ++pep_id_it)
       {
+        pep_id_it->assignRanks();
         PeptideIdentification pep_copy = *pep_id_it;             // copy, for modifying it later
         String file_origin = (String)pep_id_it->getMetaValue("file_origin");
         String scoring = (String)pep_id_it->getIdentifier();
@@ -277,10 +278,13 @@ protected:
         tmp.mz = fin->mz;
         tmp.rt = fin->rt;
         tmp.sourcefile = fin->sourcefile;
-        PeptideIdentification t;
         vector<PeptideHit> P;
+        PeptideIdentification t;
+        vector<PeptideIdentification>::iterator tt = fin->ids.begin();
+        t.setScoreType(tt->getScoreType());
+        t.setHigherScoreBetter(tt->isHigherScoreBetter());
 
-        for (vector<PeptideIdentification>::iterator tt = fin->ids.begin(); tt != fin->ids.end(); ++tt)
+        for (; tt != fin->ids.end(); ++tt)
         {
           for (vector<PeptideHit>::const_iterator pit = tt->getHits().begin(); pit != tt->getHits().end(); ++pit)
           {

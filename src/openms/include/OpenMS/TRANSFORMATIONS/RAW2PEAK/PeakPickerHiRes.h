@@ -187,10 +187,9 @@ public:
           }
 
           //checking signal-to-noise?
-          if ((i > 1
-              && std::fabs(left_neighbor_mz - input[i - 2].getMZ()) < spacing_difference_ * min_spacing
+          if (std::fabs(left_neighbor_mz - input[i - 2].getMZ()) < spacing_difference_ * min_spacing
               && left_neighbor_int < input[i - 2].getIntensity()
-              && act_snt_l2 >= signal_to_noise_)
+              && act_snt_l2 >= signal_to_noise_
               && (i + 2) < input.size()
               && std::fabs(input[i + 2].getMZ() - right_neighbor_mz) < spacing_difference_ * min_spacing
               && right_neighbor_int < input[i + 2].getIntensity()
