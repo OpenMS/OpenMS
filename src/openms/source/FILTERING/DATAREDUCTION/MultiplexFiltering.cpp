@@ -41,7 +41,6 @@
 #include <OpenMS/FILTERING/DATAREDUCTION/SplineSpectrum.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/MultiplexFiltering.h>
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
-#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
 #include <vector>
 #include <algorithm>
@@ -52,8 +51,8 @@ using namespace std;
 namespace OpenMS
 {
 
-	MultiplexFiltering::MultiplexFiltering(MSExperiment<Peak1D> exp_profile, MSExperiment<Peak1D> exp_picked, vector<vector<PeakPickerHiRes::PeakBoundary> > boundaries, std::vector<PeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double intensity_cutoff, double peptide_similarity, double averagine_similarity, double mz_tolerance, bool mz_tolerance_unit, bool debug)
-    : exp_profile_(exp_profile), exp_picked_(exp_picked), boundaries_(boundaries), patterns_(patterns), peaks_per_peptide_min_(peaks_per_peptide_min), peaks_per_peptide_max_(peaks_per_peptide_max), missing_peaks_(missing_peaks), intensity_cutoff_(intensity_cutoff), peptide_similarity_(peptide_similarity), averagine_similarity_(averagine_similarity), mz_tolerance_(mz_tolerance), mz_tolerance_unit_(mz_tolerance_unit), debug_(debug)
+	MultiplexFiltering::MultiplexFiltering(MSExperiment<Peak1D> exp_profile, MSExperiment<Peak1D> exp_picked, vector<vector<PeakPickerHiRes::PeakBoundary> > boundaries, std::vector<PeakPattern> patterns, int peaks_per_peptide_min, int peaks_per_peptide_max, bool missing_peaks, double intensity_cutoff, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, bool debug)
+    : exp_profile_(exp_profile), exp_picked_(exp_picked), boundaries_(boundaries), patterns_(patterns), peaks_per_peptide_min_(peaks_per_peptide_min), peaks_per_peptide_max_(peaks_per_peptide_max), missing_peaks_(missing_peaks), intensity_cutoff_(intensity_cutoff), mz_tolerance_(mz_tolerance), mz_tolerance_unit_(mz_tolerance_unit), peptide_similarity_(peptide_similarity), averagine_similarity_(averagine_similarity), debug_(debug)
 	{		
         if (exp_profile_.size() != exp_picked_.size())
         {
@@ -260,9 +259,7 @@ namespace OpenMS
                          * Filter (5): peptide similarity filter
                          * How similar are the isotope patterns of the peptides?
                          */
-                        vector<double> isotope_pattern_1;
-                        vector<double> isotope_pattern_2;
-                        bool peptide_similarity_veto = peptideSimilarityVetoFilter(patterns_[pattern], intensities_actual, peaks_found_in_all_peptides_spline, isotope_pattern_1, isotope_pattern_2);
+                        bool peptide_similarity_veto = peptideSimilarityFilter(patterns_[pattern], intensities_actual);
                         if (peptide_similarity_veto)
                         {
                             if (debug_)
@@ -275,11 +272,24 @@ namespace OpenMS
                             }
                             //continue;
                         }
-                        
+                         
                         /**
                          * Filter (6): averagine similarity filter
                          * Does each individual isotope pattern resemble a peptide?
                          */
+                        bool averagine_similarity_veto = averagineSimilarityFilter(patterns_[pattern], intensities_actual);
+                        if (averagine_similarity_veto)
+                        {
+                            if (debug_)
+                            {
+                                vector<double> rt_mz_flag;
+                                rt_mz_flag.push_back(rt_picked);
+                                rt_mz_flag.push_back(mz);
+                                rt_mz_flag.push_back(6);    // filter 6 failed
+                                debug_rejected.push_back(rt_mz_flag);
+                            }
+                            //continue;
+                        }
                     }
                      
                 }                
@@ -460,21 +470,13 @@ namespace OpenMS
         return false;
     }
     
-    bool MultiplexFiltering::peptideSimilarityVetoFilter(PeakPattern pattern, std::vector<double> & intensities_actual, int peaks_found_in_all_peptides_spline, std::vector<double> & isotope_pattern_1, std::vector<double> & isotope_pattern_2)
+    bool MultiplexFiltering::peptideSimilarityFilter(PeakPattern pattern, std::vector<double> & intensities_actual)
     {
-        for (int peptide = 0; peptide < pattern.getMassShiftCount(); ++peptide)
-        {
-            for (int isotope = 0; isotope < peaks_found_in_all_peptides_spline; ++isotope)
-            {
-                isotope_pattern_1.push_back(intensities_actual[isotope +1]);
-                isotope_pattern_2.push_back(intensities_actual[peptide * (peaks_per_peptide_max_ + 1) + isotope +1]);
-                if (getPatternSimilarity(isotope_pattern_1, isotope_pattern_2) < peptide_similarity_)
-                {
-                    return true;
-                }
-            }
-        }
-               
+        return false;
+    }
+    
+    bool MultiplexFiltering::averagineSimilarityFilter(PeakPattern pattern, std::vector<double> & intensities_actual)
+    {
         return false;
     }
     
@@ -585,12 +587,6 @@ namespace OpenMS
             
             return bestIndex;
         }
-    }
-    
-    double getPatternSimilarity(std::vector<double> pattern1, std::vector<double> pattern2)
-    {
-        // simple Pearson correlation for comparing isotope patterns
-        return Math::pearsonCorrelationCoefficient(pattern1.begin(), pattern1.end(), pattern2.begin(), pattern2.end());
     }
         
 }
