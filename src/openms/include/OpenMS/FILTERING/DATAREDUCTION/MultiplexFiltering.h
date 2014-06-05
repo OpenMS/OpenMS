@@ -40,6 +40,7 @@
 #include <OpenMS/FILTERING/DATAREDUCTION/PeakPattern.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/FilterResult.h>
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
+#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/SplineSpectrum.h>
 
 #include <vector>
@@ -177,6 +178,14 @@ namespace OpenMS
          * @param scaling
          */
         int getPeakIndex(std::vector<double> peak_position, int start, double mz, double scaling);
+        
+        /**
+         * @brief returns similarity of two isotope patterns
+         * 
+         * @param    isotope pattern 1
+         * @param    isotope pattern 2
+         */
+        //double getPatternSimilarity(std::vector<double> & pattern1, std::vector<double> & pattern2);
         
         /**
          * @brief profile and centroided experimental data

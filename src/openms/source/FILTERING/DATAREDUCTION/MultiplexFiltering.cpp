@@ -40,6 +40,7 @@
 #include <OpenMS/FILTERING/DATAREDUCTION/SplinePackage.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/SplineSpectrum.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/MultiplexFiltering.h>
+#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
 
 #include <vector>
@@ -481,6 +482,7 @@ namespace OpenMS
                 isotope_pattern_1.push_back(intensities_actual[isotope + 1]);
                 isotope_pattern_2.push_back(intensities_actual[peptide * (peaks_per_peptide_max_ + 1) + isotope + 1]);
             }
+            //if (getPatternSimilarity(isotope_pattern_1, isotope_pattern_2) < peptide_similarity_)
             if (0.1 < peptide_similarity_)
             {
                 return true;
@@ -603,5 +605,11 @@ namespace OpenMS
             return bestIndex;
         }
     }
+    
+    /*double getPatternSimilarity(vector<double> & pattern1, vector<double> & pattern2)
+    {
+        //return Math::pearsonCorrelationCoefficient(pattern1.begin(), pattern1.end(), pattern2.begin(), pattern2.end());
+        return 25.6;
+    }*/
         
 }
