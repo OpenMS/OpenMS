@@ -40,7 +40,6 @@
 #include <OpenMS/FILTERING/DATAREDUCTION/PeakPattern.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/FilterResult.h>
 #include <OpenMS/MATH/MISC/CubicSpline2d.h>
-#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/SplineSpectrum.h>
 
 #include <vector>
@@ -151,7 +150,7 @@ namespace OpenMS
         /**
          * @brief peptide similarity filter
          */
-        bool peptideSimilarityFilter(PeakPattern pattern, std::vector<double> & intensities_actual, int peaks_found_in_all_peptides_spline, std::vector<double> & isotope_pattern_1, std::vector<double> & isotope_pattern_2);
+        bool peptideSimilarityFilter(PeakPattern pattern, std::vector<double> & intensities_actual, int peaks_found_in_all_peptides_spline, std::vector<double> isotope_pattern_1, std::vector<double> isotope_pattern_2);
         
         /**
          * @brief averagine similarity filter
@@ -182,10 +181,10 @@ namespace OpenMS
         /**
          * @brief returns similarity of two isotope patterns
          * 
-         * @param    isotope pattern 1
-         * @param    isotope pattern 2
+         * @param pattern1   isotope pattern 1
+         * @param pattern2   isotope pattern 2
          */
-        //double getPatternSimilarity(std::vector<double> & pattern1, std::vector<double> & pattern2);
+        double getPatternSimilarity(std::vector<double> pattern1, std::vector<double> pattern2);
         
         /**
          * @brief profile and centroided experimental data

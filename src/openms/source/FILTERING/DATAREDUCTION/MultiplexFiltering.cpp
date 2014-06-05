@@ -473,7 +473,7 @@ namespace OpenMS
         return false;
     }
     
-    bool MultiplexFiltering::peptideSimilarityFilter(PeakPattern pattern, vector<double> & intensities_actual, int peaks_found_in_all_peptides_spline, vector<double> & isotope_pattern_1, vector<double> & isotope_pattern_2)
+    bool MultiplexFiltering::peptideSimilarityFilter(PeakPattern pattern, vector<double> & intensities_actual, int peaks_found_in_all_peptides_spline, vector<double> isotope_pattern_1, vector<double> isotope_pattern_2)
     {
         for (int peptide = 0; peptide < pattern.getMassShiftCount(); ++peptide)
         {
@@ -482,8 +482,7 @@ namespace OpenMS
                 isotope_pattern_1.push_back(intensities_actual[isotope + 1]);
                 isotope_pattern_2.push_back(intensities_actual[peptide * (peaks_per_peptide_max_ + 1) + isotope + 1]);
             }
-            //if (getPatternSimilarity(isotope_pattern_1, isotope_pattern_2) < peptide_similarity_)
-            if (0.1 < peptide_similarity_)
+            if (getPatternSimilarity(isotope_pattern_1, isotope_pattern_2) < peptide_similarity_)
             {
                 return true;
             }
@@ -606,10 +605,9 @@ namespace OpenMS
         }
     }
     
-    /*double getPatternSimilarity(vector<double> & pattern1, vector<double> & pattern2)
+    double MultiplexFiltering::getPatternSimilarity(vector<double> pattern1, vector<double> pattern2)
     {
-        //return Math::pearsonCorrelationCoefficient(pattern1.begin(), pattern1.end(), pattern2.begin(), pattern2.end());
-        return 25.6;
-    }*/
+        return OpenMS::Math::pearsonCorrelationCoefficient(pattern1.begin(), pattern1.end(), pattern2.begin(), pattern2.end());
+    }
         
 }
