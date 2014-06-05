@@ -129,7 +129,7 @@ protected:
     addEmptyLine_();
     registerTOPPSubsection_("extract", "Parameters for ion chromatogram extraction");
     StringList refs = ListUtils::create<String>("adapt,score,intensity,median,all");
-    registerStringOption_("extract:reference_rt", "<choice>", refs[0], "Method for selecting the reference RT, if there are multiple IDs for a peptide and charge ('adapt': adapt RT windows based on IDs, 'score': RT of the best-scoring ID; 'intensity': RT of the ID with the most intense precursor; 'median': median RT of all IDs; 'all': no single reference, use RTs of all IDs)", false);
+    registerStringOption_("extract:reference_rt", "<choice>", refs[0], "Method for selecting the reference RT, if there are multiple IDs for a peptide and charge. 'adapt': adapt RT windows based on IDs; 'score': RT of the best-scoring ID; 'intensity': RT of the ID with the most intense precursor; 'median': median RT of all IDs; 'all': no single reference, use RTs of all IDs (requires further processing of results).", false);
     setValidStrings_("extract:reference_rt", refs);
     registerDoubleOption_("extract:rt_window", "<value>", 60.0, "RT window size (in sec.) for chromatogram extraction.", false);
     setMinFloat_("extract:rt_window", 0.0);
@@ -140,16 +140,16 @@ protected:
     setMaxFloat_("extract:isotope_pmin", 1.0);
 
     registerTOPPSubsection_("detect", "Parameters for detecting features in extracted ion chromatograms");
-    StringList modes = ListUtils::create<String>("filtered,OS_best,OS_all");
-    registerStringOption_("detect:mode", "<choice>", modes[0], "Feature detection mode ('filtered': filter data according to expected isotope distribution, then detect elution peak; 'OS_best': use OpenSWATH feature detection, return single best feature per charged peptide; 'OS_all': use OpenSWATH feature detection, return all features)", false);
+    StringList modes = ListUtils::create<String>("OS_best,OS_all,filtered");
+    registerStringOption_("detect:mode", "<choice>", modes[0], "Feature detection mode. 'OS_best': use OpenSWATH feature detection, return single best feature per charged peptide; 'OS_all': use OpenSWATH feature detection, return all features (requires further processing of results); 'filtered': filter data according to expected isotope distribution, then detect elution peak (experimental).", false);
     setValidStrings_("detect:mode", modes);
-    registerDoubleOption_("detect:peak_width", "<value>", 20.0, "Elution peak width in seconds for smoothing (Gauss filter)", false);
+    registerDoubleOption_("detect:peak_width", "<value>", 30.0, "Elution peak width in seconds for smoothing (Gauss filter)", false);
     setMinFloat_("detect:peak_width", 0.0);
     registerDoubleOption_("detect:tolerance", "<value>", 50.0, "Intensity tolerance for finding matching isotope peaks ('filtered' mode only); relative to the square root of the measured intensity", false);
     setMinFloat_("detect:tolerance", 0.0);
 
     registerTOPPSubsection_("model", "Parameters for fitting elution models to features");
-    StringList models = ListUtils::create<String>("none,symmetric,asymmetric");
+    StringList models = ListUtils::create<String>("symmetric,asymmetric,none");
     registerStringOption_("model:type", "<choice>", models[0], "Type of elution model to fit to features", false);
     setValidStrings_("model:type", models);
     registerFlag_("model:unweighted_fit", "Suppress weighting of mass traces according to theoretical intensities when fitting elution models", true);
