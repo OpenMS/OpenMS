@@ -501,7 +501,7 @@ class SimpleSearchEngine
         progresslogger.setProgress((Size)(fasta_it - fasta_db.begin()));  
         vector<AASequence> current_digest;
         digestor.digest(AASequence::fromUnmodifiedString(fasta_it->sequence), current_digest);
-        // c++ STL pattern for deleting entries from vector based on predicate evaluation
+         // c++ STL pattern for deleting entries from vector based on predicate evaluation
         current_digest.erase(std::remove_if(current_digest.begin(), current_digest.end(), HasInvalidPeptideLengthPredicate_), current_digest.end());
         // make unique
         set<AASequence> tmp(current_digest.begin(), current_digest.end());
