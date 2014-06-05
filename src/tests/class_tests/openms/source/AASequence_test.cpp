@@ -823,7 +823,7 @@ START_SECTION([EXTRA] Tag in peptides)
 }
 END_SECTION
 
-/*
+
 START_SECTION([EXTRA] performance)
 {
   StopWatch s;
@@ -833,10 +833,27 @@ START_SECTION([EXTRA] performance)
     AASequence aa1 = AASequence::fromUnmodifiedString("DFPIANGER");
   }
   s.stop();
-  cout << StopWatch::toString(s.getClockTime()) << endl;
+  cout << "fromUnmodifiedString: " << StopWatch::toString(s.getClockTime()) << endl;
+  s.clear();
+  s.start();
+  for (Size i = 0; i != 1000000; ++i)
+  {
+    AASequence aa1 = AASequence::fromString("DFPIANGER");
+  }
+  s.stop();
+  cout <<  "fromString: " << StopWatch::toString(s.getClockTime()) << endl;
+  s.clear();
+  s.start();
+  for (Size i = 0; i != 1000000; ++i)
+  {
+    AASequence aa1 = AASequence::fromString("DFPIANGEM(Oxidation)R");
+  }
+  s.stop();
+
+  cout <<  "fromString - later recover: " << StopWatch::toString(s.getClockTime()) << endl;
 }
 END_SECTION
-*/
+
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
