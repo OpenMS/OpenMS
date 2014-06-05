@@ -259,7 +259,9 @@ namespace OpenMS
                          * Filter (5): peptide similarity filter
                          * How similar are the isotope patterns of the peptides?
                          */
-                        bool peptide_similarity_veto = peptideSimilarityFilter(patterns_[pattern], intensities_actual);
+                        vector<double> isotope_pattern_1;
+                        vector<double> isotope_pattern_2;
+                        bool peptide_similarity_veto = peptideSimilarityFilter(patterns_[pattern], intensities_actual, peaks_found_in_all_peptides_spline, isotope_pattern_1, isotope_pattern_2);
                         if (peptide_similarity_veto)
                         {
                             if (debug_)
@@ -454,7 +456,7 @@ namespace OpenMS
         return peaks_found_in_all_peptides;
     }
     
-    bool MultiplexFiltering::zerothPeakVetoFilter(PeakPattern pattern, std::vector<double> & intensities_actual)
+    bool MultiplexFiltering::zerothPeakVetoFilter(PeakPattern pattern, vector<double> & intensities_actual)
     {
         for (int peptide = 0; peptide < pattern.getMassShiftCount(); ++peptide)
         {
@@ -470,12 +472,25 @@ namespace OpenMS
         return false;
     }
     
-    bool MultiplexFiltering::peptideSimilarityFilter(PeakPattern pattern, std::vector<double> & intensities_actual)
+    bool MultiplexFiltering::peptideSimilarityFilter(PeakPattern pattern, vector<double> & intensities_actual, int peaks_found_in_all_peptides_spline, vector<double> & isotope_pattern_1, vector<double> & isotope_pattern_2)
     {
+        for (int peptide = 0; peptide < pattern.getMassShiftCount(); ++peptide)
+        {
+            for (int isotope = 0; isotope < peaks_found_in_all_peptides_spline; ++isotope)
+            {
+                isotope_pattern_1.push_back(intensities_actual[isotope + 1]);
+                isotope_pattern_2.push_back(intensities_actual[peptide * (peaks_per_peptide_max_ + 1) + isotope + 1]);
+            }
+            if (0.1 < peptide_similarity_)
+            {
+                return true;
+            }
+        }
+        
         return false;
     }
     
-    bool MultiplexFiltering::averagineSimilarityFilter(PeakPattern pattern, std::vector<double> & intensities_actual)
+    bool MultiplexFiltering::averagineSimilarityFilter(PeakPattern pattern, vector<double> & intensities_actual)
     {
         return false;
     }

@@ -150,7 +150,7 @@ namespace OpenMS
         /**
          * @brief peptide similarity filter
          */
-        bool peptideSimilarityFilter(PeakPattern pattern, std::vector<double> & intensities_actual);
+        bool peptideSimilarityFilter(PeakPattern pattern, std::vector<double> & intensities_actual, int peaks_found_in_all_peptides_spline, std::vector<double> & isotope_pattern_1, std::vector<double> & isotope_pattern_2);
         
         /**
          * @brief averagine similarity filter
