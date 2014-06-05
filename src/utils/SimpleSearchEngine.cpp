@@ -603,8 +603,8 @@ class SimpleSearchEngine
           PeptideIdentification pi;
           pi.setScoreType("hyperscore");
           pi.setHigherScoreBetter(true);
-          pi.setMetaValue("RT", exp[scan_index].getRT());
-          pi.setMetaValue("MZ", exp[scan_index].getPrecursors()[0].getMZ());
+          pi.setRT(exp[scan_index].getRT());
+          pi.setMZ(exp[scan_index].getPrecursors()[0].getMZ());
           pi.setHits(*pit);
           pi.assignRanks();
 
