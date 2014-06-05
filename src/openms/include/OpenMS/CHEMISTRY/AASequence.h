@@ -90,26 +90,26 @@ namespace OpenMS
   */
   class OPENMS_DLLAPI AASequence
   {
-    public:
+public:
 
-      class Iterator;
+    class Iterator;
 
-      /** @brief ConstIterator for AASequence
+    /** @brief ConstIterator for AASequence
 
-                 AASequence constant iterator
-      */
+               AASequence constant iterator
+    */
     class OPENMS_DLLAPI ConstIterator
     {
-    public:
+public:
 
       // TODO Iterator constructor for ConstIterator
 
-      typedef const Residue & const_reference;
-      typedef Residue & reference;
-      typedef const Residue * const_pointer;
-      typedef std::vector<const Residue *>::difference_type difference_type;
+      typedef const Residue& const_reference;
+      typedef Residue& reference;
+      typedef const Residue* const_pointer;
+      typedef std::vector<const Residue*>::difference_type difference_type;
       typedef Residue value_type;
-      typedef const Residue * pointer;
+      typedef const Residue* pointer;
       typedef std::random_access_iterator_tag iterator_category;
 
       /** @name Constructors and destructors
@@ -121,21 +121,21 @@ namespace OpenMS
       }
 
       /// detailed constructor with pointer to the vector and offset position
-      ConstIterator(const std::vector<const Residue *> * vec_ptr, difference_type position)
+      ConstIterator(const std::vector<const Residue*>* vec_ptr, difference_type position)
       {
         vector_ = vec_ptr;
         position_ = position;
       }
 
       /// copy constructor
-      ConstIterator(const ConstIterator & rhs) :
+      ConstIterator(const ConstIterator& rhs) :
         vector_(rhs.vector_),
         position_(rhs.position_)
       {
       }
 
       /// copy constructor from Iterator
-      ConstIterator(const AASequence::Iterator & rhs) :
+      ConstIterator(const AASequence::Iterator& rhs) :
         vector_(rhs.vector_),
         position_(rhs.position_)
       {
@@ -149,7 +149,7 @@ namespace OpenMS
       //@}
 
       /// assignment operator
-      ConstIterator & operator=(const ConstIterator & rhs)
+      ConstIterator& operator=(const ConstIterator& rhs)
       {
         if (this != &rhs)
         {
@@ -192,26 +192,26 @@ namespace OpenMS
       }
 
       /// equality comparator
-      bool operator==(const ConstIterator & rhs) const
+      bool operator==(const ConstIterator& rhs) const
       {
         return vector_ == rhs.vector_ && position_ == rhs.position_;
       }
 
       /// inequality operator
-      bool operator!=(const ConstIterator & rhs) const
+      bool operator!=(const ConstIterator& rhs) const
       {
         return vector_ != rhs.vector_ || position_ != rhs.position_;
       }
 
       /// increment operator
-      ConstIterator & operator++()
+      ConstIterator& operator++()
       {
         ++position_;
         return *this;
       }
 
       /// decrement operator
-      ConstIterator & operator--()
+      ConstIterator& operator--()
       {
         --position_;
         return *this;
@@ -219,10 +219,10 @@ namespace OpenMS
 
       //@}
 
-  protected:
+protected:
 
       // pointer to the AASequence vector
-      const std::vector<const Residue *> * vector_;
+      const std::vector<const Residue*>* vector_;
 
       // position in the AASequence vector
       difference_type position_;
@@ -235,15 +235,15 @@ namespace OpenMS
     */
     class OPENMS_DLLAPI Iterator
     {
-      public:
+public:
 
       friend class AASequence::ConstIterator;
 
-      typedef const Residue & const_reference;
-      typedef Residue & reference;
-      typedef const Residue * const_pointer;
-      typedef const Residue * pointer;
-      typedef std::vector<const Residue *>::difference_type difference_type;
+      typedef const Residue& const_reference;
+      typedef Residue& reference;
+      typedef const Residue* const_pointer;
+      typedef const Residue* pointer;
+      typedef std::vector<const Residue*>::difference_type difference_type;
 
       /** @name Constructors and destructors
       */
@@ -254,14 +254,14 @@ namespace OpenMS
       }
 
       /// detailed constructor with pointer to the vector and offset position
-      Iterator(std::vector<const Residue *> * vec_ptr, difference_type position)
+      Iterator(std::vector<const Residue*>* vec_ptr, difference_type position)
       {
         vector_ = vec_ptr;
         position_ = position;
       }
 
       /// copy constructor
-      Iterator(const Iterator & rhs) :
+      Iterator(const Iterator& rhs) :
         vector_(rhs.vector_),
         position_(rhs.position_)
       {
@@ -275,7 +275,7 @@ namespace OpenMS
       //@}
 
       /// assignment operator
-      Iterator & operator=(const Iterator & rhs)
+      Iterator& operator=(const Iterator& rhs)
       {
         if (this != &rhs)
         {
@@ -324,26 +324,26 @@ namespace OpenMS
       }
 
       /// equality comparator
-      bool operator==(const Iterator & rhs) const
+      bool operator==(const Iterator& rhs) const
       {
         return vector_ == rhs.vector_ && position_ == rhs.position_;
       }
 
       /// inequality operator
-      bool operator!=(const Iterator & rhs) const
+      bool operator!=(const Iterator& rhs) const
       {
         return vector_ != rhs.vector_ || position_ != rhs.position_;
       }
 
       /// increment operator
-      Iterator & operator++()
+      Iterator& operator++()
       {
         ++position_;
         return *this;
       }
 
       /// decrement operator
-      Iterator & operator--()
+      Iterator& operator--()
       {
         --position_;
         return *this;
@@ -351,10 +351,10 @@ namespace OpenMS
 
       //@}
 
-    protected:
+protected:
 
       // pointer to the AASequence vector
-      std::vector<const Residue *> * vector_;
+      std::vector<const Residue*>* vector_;
 
       // position in the AASequence vector
       difference_type position_;
@@ -367,14 +367,14 @@ namespace OpenMS
     AASequence();
 
     /// copy constructor
-    AASequence(const AASequence & rhs);
+    AASequence(const AASequence& rhs);
 
     /// destructor
     virtual ~AASequence();
     //@}
 
     /// assignment operator
-    AASequence & operator=(const AASequence & rhs);
+    AASequence& operator=(const AASequence& rhs);
 
     /// check if sequence is empty
     bool empty() const;
@@ -389,25 +389,25 @@ namespace OpenMS
     String toUnmodifiedString() const;
 
     /// set the modification of the residue at position index
-    void setModification(Size index, const String & modification);
+    void setModification(Size index, const String& modification);
 
     /// sets the N-terminal modification
-    void setNTerminalModification(const String & modification);
+    void setNTerminalModification(const String& modification);
 
     /// returns the Id of the N-term modification; an empty string is returned if none was set
-    const String & getNTerminalModification() const;
+    const String& getNTerminalModification() const;
 
     /// sets the C-terminal modification
-    void setCTerminalModification(const String & modification);
+    void setCTerminalModification(const String& modification);
 
     /// returns the Id of the C-term modification; an empty string is returned if none was set
-    const String & getCTerminalModification() const;
+    const String& getCTerminalModification() const;
 
     /// returns a pointer to the residue, which is at position index
-    const Residue & getResidue(SignedSize index) const;
+    const Residue& getResidue(SignedSize index) const;
 
     /// returns a pointer to the residue, which is at position index
-    const Residue & getResidue(Size index) const;
+    const Residue& getResidue(Size index) const;
 
     /// returns the formula of the peptide
     EmpiricalFormula getFormula(Residue::ResidueType type = Residue::Full, Int charge = 0) const;
@@ -419,22 +419,22 @@ namespace OpenMS
     double getMonoWeight(Residue::ResidueType type = Residue::Full, Int charge = 0) const;
 
     /// returns a pointer to the residue at given position
-    const Residue & operator[](SignedSize index) const;
+    const Residue& operator[](SignedSize index) const;
 
     /// returns a pointer to the residue at given position
-    const Residue & operator[](Size index) const;
+    const Residue& operator[](Size index) const;
 
     /// adds the residues of the peptide
-    AASequence operator+(const AASequence & peptide) const;
+    AASequence operator+(const AASequence& peptide) const;
 
     /// adds the residues of a peptide
-    AASequence & operator+=(const AASequence &);
+    AASequence& operator+=(const AASequence&);
 
     /// adds the residues of the peptide
-    AASequence operator+(const Residue * residue) const;
+    AASequence operator+(const Residue* residue) const;
 
     /// adds the residues of a peptide
-    AASequence & operator+=(const Residue *);
+    AASequence& operator+=(const Residue*);
 
     /// returns the number of residues
     Size size() const;
@@ -449,7 +449,7 @@ namespace OpenMS
     AASequence getSubsequence(Size index, UInt number) const;
 
     /// compute frequency table of amino acids
-    void getAAFrequencies(Map<String, Size> & frequency_table) const;
+    void getAAFrequencies(Map<String, Size>& frequency_table) const;
 
     //@}
 
@@ -457,19 +457,19 @@ namespace OpenMS
     */
     //@{
     /// returns true if the peptide contains the given residue
-    bool has(const Residue & residue) const;
+    bool has(const Residue& residue) const;
 
     /// returns true if the peptide contains the given peptide
     /// @note c-term and n-term mods are ignored
-    bool hasSubsequence(const AASequence & peptide) const;
+    bool hasSubsequence(const AASequence& peptide) const;
 
     /// returns true if the peptide has the given prefix
     /// n-term mod is also checked (c-term as well, if prefix is of same length)
-    bool hasPrefix(const AASequence & peptide) const;
+    bool hasPrefix(const AASequence& peptide) const;
 
     /// returns true if the peptide has the given suffix
     /// c-term mod is also checked (n-term as well, if suffix is of same length)
-    bool hasSuffix(const AASequence & peptide) const;
+    bool hasSuffix(const AASequence& peptide) const;
 
     /// predicate which is true if the peptide is N-term modified
     bool hasNTerminalModification() const;
@@ -484,13 +484,13 @@ namespace OpenMS
     bool isModified(Size index) const;
 
     /// equality operator
-    bool operator==(const AASequence & rhs) const;
+    bool operator==(const AASequence& rhs) const;
 
     /// lesser than operator which compares the C-term mods, sequence and N-term mods; can be used for maps
-    bool operator<(const AASequence & rhs) const;
+    bool operator<(const AASequence& rhs) const;
 
     /// inequality operator
-    bool operator!=(const AASequence & rhs) const;
+    bool operator!=(const AASequence& rhs) const;
     //@}
 
     /** @name Iterators
@@ -509,23 +509,23 @@ namespace OpenMS
     */
     //@{
     /// writes a peptide to an output stream
-    friend OPENMS_DLLAPI std::ostream & operator<<(std::ostream & os, const AASequence & peptide);
+    friend OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const AASequence& peptide);
 
     /// reads a peptide from an input stream
-    friend OPENMS_DLLAPI std::istream & operator>>(std::istream & is, const AASequence & peptide);
+    friend OPENMS_DLLAPI std::istream& operator>>(std::istream& is, const AASequence& peptide);
     //@}
 
     /**
       @brief create AASequence object by parsing a String
       @throws Exception::ParseError if an invalid string representation of an AA sequence is passed
     */
-    static AASequence fromString(const String & s);
+    static AASequence fromString(const String& s);
 
     /**
       @brief create AASequence object by parsing a const char *
       @throws Exception::ParseError if an invalid string representation of an AA sequence is passed
     */
-    static AASequence fromString(const char * s);
+    static AASequence fromString(const char* s);
 
     /**
       @brief create AASequence object by parsing a string consisting only of unmodified residues.
@@ -534,24 +534,24 @@ namespace OpenMS
       @throws Exception::ParseError if brackets are found in a string represenation of an unmodified AA sequence
     */
 
-    static AASequence fromUnmodifiedString(const String &s);
+    static AASequence fromUnmodifiedString(const String& s);
 
-  protected:
+protected:
 
-    std::vector<const Residue *> peptide_;
+    std::vector<const Residue*> peptide_;
 
-    static void parseString_(AASequence & aas, const String & peptide);
+    static void parseString_(AASequence& aas, const String& peptide);
 
-    inline static bool parseUnmodifiedString_(AASequence & aas, const String & peptide);
+    inline static bool parseUnmodifiedString_(AASequence& aas, const String& peptide);
 
-    const ResidueModification * n_term_mod_;
+    const ResidueModification* n_term_mod_;
 
-    const ResidueModification * c_term_mod_;
+    const ResidueModification* c_term_mod_;
   };
 
-  OPENMS_DLLAPI std::ostream & operator<<(std::ostream & os, const AASequence & peptide);
+  OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const AASequence& peptide);
 
-  OPENMS_DLLAPI std::istream & operator>>(std::istream & os, const AASequence & peptide);
+  OPENMS_DLLAPI std::istream& operator>>(std::istream& os, const AASequence& peptide);
 
 } // namespace OpenMS
 
