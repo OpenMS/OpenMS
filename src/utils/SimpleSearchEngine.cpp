@@ -69,6 +69,10 @@
 #include <boost/unordered_set.hpp>
 #include <boost/functional/hash.hpp>
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 using namespace OpenMS;
 using namespace std;
 using namespace boost::unordered;
@@ -495,12 +499,21 @@ class SimpleSearchEngine
       Size max_variable_mods_per_peptide = getIntOption_("peptide_max_var_mods");
 
       boost::unordered_set<Size> cached_peptides;
+
       progresslogger.startProgress(0, (Size)(fasta_db.end() - fasta_db.begin()), "scoring peptides...");
-      for (vector<FASTAFile::FASTAEntry>::const_iterator fasta_it = fasta_db.begin(); fasta_it != fasta_db.end(); ++fasta_it)
+
+#ifdef _OPENMP
+#pragma omp parallel for
+#endif
+      for (SignedSize fasta_index = 0; fasta_index < (SignedSize)fasta_db.size(); ++fasta_index)
+      //for (vector<FASTAFile::FASTAEntry>::const_iterator fasta_it = fasta_db.begin(); fasta_it != fasta_db.end(); ++fasta_it)
       {
-        progresslogger.setProgress((Size)(fasta_it - fasta_db.begin()));  
+        progresslogger.setProgress((SignedSize)fasta_index);  
         vector<AASequence> current_digest;
-        digestor.digest(AASequence::fromUnmodifiedString(fasta_it->sequence), current_digest);
+
+        const AASequence & seq = AASequence::fromUnmodifiedString(fasta_db[fasta_index].sequence);
+        digestor.digest(seq, current_digest);
+
          // c++ STL pattern for deleting entries from vector based on predicate evaluation
         current_digest.erase(std::remove_if(current_digest.begin(), current_digest.end(), HasInvalidPeptideLengthPredicate_), current_digest.end());
         // make unique
@@ -510,13 +523,19 @@ class SimpleSearchEngine
         for (set<AASequence>::iterator set_it = tmp.begin(); set_it != tmp.end(); )  // note that this is the STL pattern for deleting while iterating a set so don't change operator order
         {
           Size string_hash = boost::hash<std::string>()(set_it->toUnmodifiedString());
-          if (cached_peptides.find(string_hash) != cached_peptides.end())
+
+#ifdef _OPENMP
+#pragma omp critical
+#endif
           {
-            tmp.erase(set_it++);
-          } else
-          {
-            ++set_it;
-            cached_peptides.insert(string_hash);  // ok to add already here as s is unique for this digested protein
+            if (cached_peptides.find(string_hash) != cached_peptides.end())
+            {
+              tmp.erase(set_it++);
+            } else
+            {
+              ++set_it;
+              cached_peptides.insert(string_hash);  // ok to add already here as s is unique for this digested protein
+            }
           }
         }
 
@@ -575,6 +594,9 @@ class SimpleSearchEngine
             hit.setSequence(candidate);
             hit.setCharge(exp_spectrum.getPrecursors()[0].getCharge());
             hit.setScore(score);
+#ifdef _OPENMP
+#pragma omp critical
+#endif
             peptide_hits[scan_index].push_back(hit);
           }
         }
@@ -607,7 +629,6 @@ class SimpleSearchEngine
           pi.setMZ(exp[scan_index].getPrecursors()[0].getMZ());
           pi.setHits(*pit);
           pi.assignRanks();
-
           peptide_ids.push_back(pi);
         }
       }
