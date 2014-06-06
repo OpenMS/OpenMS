@@ -280,7 +280,7 @@ namespace OpenMS
                          * Filter (6): averagine similarity filter
                          * Does each individual isotope pattern resemble a peptide?
                          */
-                        bool averagine_similarity_veto = averagineSimilarityFilter(patterns_[pattern], intensities_actual);
+                        bool averagine_similarity_veto = averagineSimilarityFilter(patterns_[pattern], intensities_actual, peaks_found_in_all_peptides_spline, mz);
                         if (averagine_similarity_veto)
                         {
                             if (debug_)
@@ -491,8 +491,21 @@ namespace OpenMS
         return false;
     }
     
-    bool MultiplexFiltering::averagineSimilarityFilter(PeakPattern pattern, vector<double> & intensities_actual)
+    bool MultiplexFiltering::averagineSimilarityFilter(PeakPattern pattern, vector<double> & intensities_actual, int peaks_found_in_all_peptides_spline, double mz)
     {
+        for (int peptide = 0; peptide < pattern.getMassShiftCount(); ++peptide)
+        {
+            vector<double> isotope_pattern;
+            for (int isotope = 0; isotope < peaks_found_in_all_peptides_spline; ++isotope)
+            {
+                isotope_pattern.push_back(intensities_actual[peptide * (peaks_per_peptide_max_ + 1) + isotope + 1]);
+            }
+            if (getAveragineSimilarity(isotope_pattern, mz * pattern.getCharge()) < averagine_similarity_)
+            {
+                return true;
+            }
+        }
+        
         return false;
     }
     
@@ -609,5 +622,10 @@ namespace OpenMS
     {
         return OpenMS::Math::pearsonCorrelationCoefficient(pattern1.begin(), pattern1.end(), pattern2.begin(), pattern2.end());
     }
-        
+    
+    double MultiplexFiltering::getAveragineSimilarity(vector<double> pattern, double m)
+    {
+        return 1.0;
+    }
+
 }

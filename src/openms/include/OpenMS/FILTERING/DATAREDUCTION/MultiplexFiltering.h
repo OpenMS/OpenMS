@@ -155,7 +155,7 @@ namespace OpenMS
         /**
          * @brief averagine similarity filter
          */
-        bool averagineSimilarityFilter(PeakPattern pattern, std::vector<double> & intensities_actual);
+        bool averagineSimilarityFilter(PeakPattern pattern, std::vector<double> & intensities_actual, int peaks_found_in_all_peptides_spline, double mz);
         
         /**
          * @brief returns the index of a peak at m/z
@@ -185,6 +185,14 @@ namespace OpenMS
          * @param pattern2   isotope pattern 2
          */
         double getPatternSimilarity(std::vector<double> pattern1, std::vector<double> pattern2);
+        
+        /**
+         * @brief returns similarity of an isotope pattern and an averagine pattern at mass m
+         * 
+         * @param pattern1   isotope pattern 1
+         * @param m    mass
+         */
+        double getAveragineSimilarity(std::vector<double> pattern, double m);
         
         /**
          * @brief profile and centroided experimental data
