@@ -523,30 +523,30 @@ namespace OpenMS
     
     int MultiplexFiltering::getPeakIndex(std::vector<double> peak_position, int start, double mz, double scaling)
     {
-        vector<int> validIndex;    // indices of valid peaks that lie within the ppm range of the expected peak
-        vector<double> validDeviation;    // ppm deviations between expected and (valid) actual peaks
+        vector<int> valid_index;    // indices of valid peaks that lie within the ppm range of the expected peak
+        vector<double> valid_deviation;    // ppm deviations between expected and (valid) actual peaks
         
         if (peak_position[start] < mz)
         {                                                                                                   
             for (unsigned i = start; i < peak_position.size(); ++i)
             {
-                double mzMin;
-                double mzMax;
+                double mz_min;
+                double mz_max;
                 if (mz_tolerance_unit_)
                 {
-                    mzMin = (1 - scaling * mz_tolerance_ / 1000000) * peak_position[i];
-                    mzMax = (1 + scaling * mz_tolerance_ / 1000000) * peak_position[i];
+                    mz_min = (1 - scaling * mz_tolerance_ / 1000000) * peak_position[i];
+                    mz_max = (1 + scaling * mz_tolerance_ / 1000000) * peak_position[i];
                 }
                 else
                 {
-                    mzMin = peak_position[i] - scaling * mz_tolerance_;
-                    mzMax = peak_position[i] + scaling * mz_tolerance_;
+                    mz_min = peak_position[i] - scaling * mz_tolerance_;
+                    mz_max = peak_position[i] + scaling * mz_tolerance_;
                 }
                 
-                if (mz >= mzMin && mz <= mzMax)
+                if (mz >= mz_min && mz <= mz_max)
                 {
-                    validIndex.push_back(i);
-                    validDeviation.push_back(std::abs(mz - peak_position[i]) / mz * 1000000);
+                    valid_index.push_back(i);
+                    valid_deviation.push_back(std::abs(mz - peak_position[i]) / mz * 1000000);
                 }
                 if (mz < peak_position[i])
                 {
@@ -558,23 +558,23 @@ namespace OpenMS
         {
             for (int i = start; i >= 0; --i)
             {
-                double mzMin;
-                double mzMax;
+                double mz_min;
+                double mz_max;
                 if (mz_tolerance_unit_)
                 {
-                    mzMin = (1 - scaling * mz_tolerance_ / 1000000) * peak_position[i];
-                    mzMax = (1 + scaling * mz_tolerance_ / 1000000) * peak_position[i];
+                    mz_min = (1 - scaling * mz_tolerance_ / 1000000) * peak_position[i];
+                    mz_max = (1 + scaling * mz_tolerance_ / 1000000) * peak_position[i];
                 }
                 else
                 {
-                    mzMin = peak_position[i] - scaling * mz_tolerance_;
-                    mzMax = peak_position[i] + scaling * mz_tolerance_;
+                    mz_min = peak_position[i] - scaling * mz_tolerance_;
+                    mz_max = peak_position[i] + scaling * mz_tolerance_;
                 }
                 
-                if (mz >= mzMin && mz <= mzMax)
+                if (mz >= mz_min && mz <= mz_max)
                 {
-                    validIndex.push_back(i);
-                    validDeviation.push_back(std::abs(mz - peak_position[i]) / mz * 1000000);
+                    valid_index.push_back(i);
+                    valid_deviation.push_back(std::abs(mz - peak_position[i]) / mz * 1000000);
                 }
                 if (mz > peak_position[i])
                 {
@@ -583,25 +583,25 @@ namespace OpenMS
             }
         }
         
-        if (validIndex.size() == 0)
+        if (valid_index.size() == 0)
         {
             return -1;
         }
         else
         {
             // find best index
-            int bestIndex = -1;
-            double bestDeviation = validDeviation[0];
-            for (unsigned i = 1; i < validIndex.size(); ++i)
+            int best_index = -1;
+            double best_deviation = valid_deviation[0];
+            for (unsigned i = 1; i < valid_index.size(); ++i)
             {
-                if (validDeviation[i] < bestDeviation)
+                if (valid_deviation[i] < best_deviation)
                 {
-                    bestIndex = validIndex[i];
-                    bestDeviation = validDeviation[i];
+                    best_index = valid_index[i];
+                    best_deviation = valid_deviation[i];
                 }
             }
             
-            return bestIndex;
+            return best_index;
         }
     }
     
