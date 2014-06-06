@@ -67,7 +67,7 @@ foreach(_lib ${WM5_LIBS})
     set(_ALL_WM5_LIBS_FOUND FALSE)
   endif(${_WM5LIB}_LIBRARY)
 
-  set(_WM5_LIBRARIES ${WM5_LIBRARIES} ${${_WM5LIB}_LIBRARY})
+  set(_WM5_LIBRARIES ${_WM5_LIBRARIES} ${${_WM5LIB}_LIBRARY})
 endforeach(_lib ${WM5_LIBS})
 
 #------------------------------------------------------------------------------
