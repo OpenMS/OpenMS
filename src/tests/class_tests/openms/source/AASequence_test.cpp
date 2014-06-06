@@ -156,7 +156,7 @@ START_SECTION(AASequence fromString(const String& rhs))
   TEST_EXCEPTION(Exception::ParseError, AASequence::fromString("a"));
 END_SECTION
 
-START_SECTION(AASequence& operator = (const AASequence& rhs))
+START_SECTION(AASequence& operator=(const AASequence& rhs))
   AASequence seq = AASequence::fromString("AAA");
   AASequence seq2 = AASequence::fromString("AAA");
   TEST_EQUAL(seq, seq2)
@@ -173,7 +173,7 @@ START_SECTION(([EXTRA]Test modifications with brackets))
   TEST_EQUAL(seq2.isModified(), true)
 END_SECTION
 
-START_SECTION(bool operator == (const AASequence& rhs) const)
+START_SECTION(bool operator==(const AASequence& rhs) const)
   AASequence seq1 = AASequence::fromString("(Acetyl)DFPIANGER");
   AASequence seq2 = AASequence::fromString("DFPIANGER");
   TEST_EQUAL(seq2 == AASequence::fromString("DFPIANGER"), true)
@@ -245,7 +245,7 @@ START_SECTION((double getMonoWeight(Residue::ResidueType type = Residue::Full, I
 
 END_SECTION
 
-START_SECTION(const Residue& operator [] (SignedSize index) const)
+START_SECTION(const Residue& operator[](SignedSize index) const)
   AASequence seq = AASequence::fromString("DFPIANGER");
   SignedSize index = 0;
   TEST_EQUAL(seq[index].getOneLetterCode(), "D")
@@ -255,7 +255,7 @@ START_SECTION(const Residue& operator [] (SignedSize index) const)
   TEST_EXCEPTION(Exception::IndexOverflow, seq[index])
 END_SECTION
 
-START_SECTION(const Residue& operator [] (Size index) const)
+START_SECTION(const Residue& operator[](Size index) const)
   AASequence seq = AASequence::fromString("DFPIANGER");
   Size index = 0;
   TEST_EQUAL(seq[index].getOneLetterCode(), "D")
@@ -263,20 +263,20 @@ START_SECTION(const Residue& operator [] (Size index) const)
   TEST_EXCEPTION(Exception::IndexOverflow, seq[index])
 END_SECTION
 
-START_SECTION(AASequence operator + (const AASequence& peptide) const)
+START_SECTION(AASequence operator+(const AASequence& peptide) const)
   AASequence seq1 = AASequence::fromString("DFPIANGER");
   AASequence seq2 = AASequence::fromString("DFP");
   AASequence seq3 = AASequence::fromString("IANGER");
   TEST_EQUAL(seq1, seq2 + seq3);
 END_SECTION
 
-START_SECTION(AASequence operator + (const Residue* residue) const)
+START_SECTION(AASequence operator+(const Residue* residue) const)
   AASequence seq1 = AASequence::fromString("DFPIANGER");
   AASequence seq2 = AASequence::fromString("DFPIANGE");
   TEST_EQUAL(seq1, seq2 + ResidueDB::getInstance()->getResidue("R"))
 END_SECTION
 
-START_SECTION(AASequence& operator += (const AASequence&))
+START_SECTION(AASequence& operator+=(const AASequence&))
   AASequence seq1 = AASequence::fromString("DFPIANGER");
   AASequence seq2 = AASequence::fromString("DFP");
   AASequence seq3 = AASequence::fromString("IANGER");
@@ -284,7 +284,7 @@ START_SECTION(AASequence& operator += (const AASequence&))
   TEST_EQUAL(seq1, seq2)
 END_SECTION
 
-START_SECTION(AASequence& operator += (const Residue* residue))
+START_SECTION(AASequence& operator+=(const Residue* residue))
   AASequence seq1 = AASequence::fromString("DFPIANGER");
   AASequence seq2 = AASequence::fromString("DFPIANGE");
   seq2 += ResidueDB::getInstance()->getResidue("R");

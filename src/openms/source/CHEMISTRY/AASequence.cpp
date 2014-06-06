@@ -617,7 +617,7 @@ namespace OpenMS
     return os;
   }
 
-  void AASequence::parseString_(AASequence& aas, const String & pep)
+  void AASequence::parseString_(AASequence& aas, const String& pep)
   {
     aas.peptide_.clear();
     String peptide(pep);
