@@ -126,11 +126,13 @@ namespace OpenMS
       // Calculate the difference of the theoretical mass and the actually measured mass
       double left = transition->getProductMZ() - dia_extract_window_ / 2.0;
       double right = transition->getProductMZ() + dia_extract_window_ / 2.0;
-      integrateWindow(spectrum, left, right, mz, intensity, dia_centroided_);
-      if (mz == -1)
+      bool signalFound = integrateWindow(spectrum, left, right, mz, intensity, dia_centroided_);
+
+      // Continue if no signal was found - we therefore don't make a statement
+      // about the mass difference if no signal is present.
+      if (!signalFound)
       {
-        // TODO this gives a perfect score...
-        mz = (left + right) / 2.0;
+        continue;
       }
 
       double diff_ppm = std::fabs(mz - transition->getProductMZ()) * 1000000 / transition->getProductMZ();
@@ -151,12 +153,11 @@ namespace OpenMS
       // Calculate the difference of the theoretical mass and the actually measured mass
       double left = precursor_mz - dia_extract_window_ / 2.0;
       double right = precursor_mz + dia_extract_window_ / 2.0;
-      integrateWindow(spectrum, left, right, mz, intensity, dia_centroided_);
+      bool signalFound = integrateWindow(spectrum, left, right, mz, intensity, dia_centroided_);
 
-      // Catch a value of -1 (no signal found inside the window) and replace it
-      // with the most extreme value.
-      // Otherwise calculate the difference in ppm.
-      if (mz == -1)
+      // Catch if no signal was found and replace it with the most extreme
+      // value. Otherwise calculate the difference in ppm.
+      if (!signalFound)
       {
         ppm_score = dia_extract_window_ / precursor_mz * 1000000;
         return false;
@@ -180,14 +181,13 @@ namespace OpenMS
     double mz, intensity, left, right;
     std::vector<double> yseries, bseries;
     OpenMS::DIAHelpers::getBYSeries(sequence, bseries, yseries, charge);
-    double ppmdiff;
     for (Size it = 0; it < bseries.size(); it++)
     {
       left = bseries[it] - dia_extract_window_ / 2.0;
       right = bseries[it] + dia_extract_window_ / 2.0;
-      integrateWindow(spectrum, left, right, mz, intensity, dia_centroided_);
-      ppmdiff = std::fabs(bseries[it] - mz) * 1000000 / bseries[it];
-      if (mz != -1 && ppmdiff < dia_byseries_ppm_diff_ && intensity > dia_byseries_intensity_min_)
+      bool signalFound = integrateWindow(spectrum, left, right, mz, intensity, dia_centroided_);
+      double ppmdiff = std::fabs(bseries[it] - mz) * 1000000 / bseries[it];
+      if (signalFound && ppmdiff < dia_byseries_ppm_diff_ && intensity > dia_byseries_intensity_min_)
       {
         bseries_score++;
       }
@@ -196,9 +196,9 @@ namespace OpenMS
     {
       left = yseries[it] - dia_extract_window_ / 2.0;
       right = yseries[it] + dia_extract_window_ / 2.0;
-      integrateWindow(spectrum, left, right, mz, intensity, dia_centroided_);
-      ppmdiff = std::fabs(yseries[it] - mz) * 1000000 / yseries[it];
-      if (mz != -1 && ppmdiff < dia_byseries_ppm_diff_ && intensity > dia_byseries_intensity_min_)
+      bool signalFound = integrateWindow(spectrum, left, right, mz, intensity, dia_centroided_);
+      double ppmdiff = std::fabs(yseries[it] - mz) * 1000000 / yseries[it];
+      if (signalFound && ppmdiff < dia_byseries_ppm_diff_ && intensity > dia_byseries_intensity_min_)
       {
         yseries_score++;
       }
@@ -278,10 +278,13 @@ namespace OpenMS
     {
       double left = product_mz - dia_extract_window_ / 2.0 - C13C12_MASSDIFF_U / (double) ch;
       double right = product_mz + dia_extract_window_ / 2.0 - C13C12_MASSDIFF_U / (double) ch;
-      integrateWindow(spectrum, left, right, mz, intensity, dia_centroided_);
-      if (mz == -1)
+      bool signalFound = integrateWindow(spectrum, left, right, mz, intensity, dia_centroided_);
+
+      // Continue if no signal was found - we therefore don't make a statement
+      // about the mass difference if no signal is present.
+      if (!signalFound)
       {
-        mz = (left + right) / 2.0;
+        continue;
       }
 
       double ratio = intensity / main_peak;
