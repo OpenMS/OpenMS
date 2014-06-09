@@ -74,8 +74,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/SpectrumHelpers.h> // integrate Window
 #include <OpenMS/MATH/STATISTICS/LinearRegression.h>
 
-#include <gsl/gsl_multifit.h>
-#include <gsl/gsl_spline.h>
+#include <OpenMS/MATH/STATISTICS/QuadraticRegression.h>
 
 #include <assert.h>
 
@@ -930,46 +929,11 @@ private:
       else if (corr_type == "quadratic_regression")
       {
         // Quadratic fit
-        gsl_matrix * X, * cov;
-        gsl_vector * y, * c;
-        int n = exp_mz.size();
-        // matrix containing the observations
-        X = gsl_matrix_alloc(n, 3);
-        // vector containing the expected masses
-        y = gsl_vector_alloc(n);
-
-        // vector containing the coefficients of the quadratic function after the fitting
-        c = gsl_vector_alloc(3);
-        // matrix containing the covariances
-        cov = gsl_matrix_alloc(3, 3);
-
-        double chisq;
-        for (Size i = 0; i < exp_mz.size(); i++)
-        {
-          // get the flight time
-          double xi = exp_mz[i];
-          // y_i = a + b*x_i + c*x_i^2  <---- the quadratic equation, a, b, and c shall be determined
-          // x_i^0 = 1 --> enter 1 at the first position of each row
-          gsl_matrix_set(X, i, 0, 1.0);
-
-          // x_i^1 at the second position
-          gsl_matrix_set(X, i, 1, xi);
-          // x_i^2 at the third position
-          gsl_matrix_set(X, i, 2, xi * xi);
-
-          // set expected mass
-          gsl_vector_set(y, i, theo_mz[i]);
-        }
-        gsl_multifit_linear_workspace * work
-          = gsl_multifit_linear_alloc(n, 3);
-
-        gsl_multifit_linear(X, y, c, cov,
-                            &chisq, work);
-
-        regression_params.push_back(gsl_vector_get(c, (0)));
-        regression_params.push_back(gsl_vector_get(c, (1)));
-        regression_params.push_back(gsl_vector_get(c, (2)));
-        gsl_multifit_linear_free(work);
+        Math::QuadraticRegression qr;
+        qr.computeRegression(exp_mz.begin(), exp_mz.end(), theo_mz.begin());
+        regression_params.push_back(qr.getA());
+        regression_params.push_back(qr.getB());
+        regression_params.push_back(qr.getC());
       }
       else 
       {
