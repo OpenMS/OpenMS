@@ -58,6 +58,7 @@
 // Kernel and implementations
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMS.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessTransforming.h>
 
 // Helpers
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>
@@ -70,13 +71,66 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h>
 
+#include <OpenMS/ANALYSIS/OPENSWATH/OPENSWATHALGO/DATAACCESS/SpectrumHelpers.h> // integrate Window
+#include <OpenMS/MATH/STATISTICS/LinearRegression.h>
+
+#include <gsl/gsl_multifit.h>
+#include <gsl/gsl_spline.h>
+
 #include <assert.h>
+
+// #define OPENSWATH_WORKFLOW_DEBUG
 
 using namespace OpenMS;
 
 // The workflow class and the TSV writer
 namespace OpenMS
 {
+
+  /**
+   * @brief A transforming m/z wrapper around spectrum access using a quadratic equation. 
+   *
+   * For each spectrum access, each m/z value is tranformed using the equation 
+   *    mz = a + b * mz + c * mz^2
+   * 
+   * This can be used to implement an on-line mass correction for TOF
+   * instruments (for example).
+   *
+   */
+  class SpectrumAccessQuadMZTransforming :
+    public SpectrumAccessTransforming
+  {
+public:
+
+    explicit SpectrumAccessQuadMZTransforming(OpenSwath::SpectrumAccessPtr sptr,
+        double a, double b, double c) :
+      SpectrumAccessTransforming(sptr)
+      , a_(a), b_(b), c_(c)
+    {}
+        
+    ~SpectrumAccessQuadMZTransforming() {}
+
+    OpenSwath::SpectrumPtr getSpectrumById(int id)
+    {
+      OpenSwath::SpectrumPtr s = sptr_->getSpectrumById(id);
+      for(size_t i = 0; i < s->getMZArray()->data.size(); i++)
+      {
+        // mz = a + b * mz + c * mz^2
+        s->getMZArray()->data[i] = 
+          a_ + 
+          b_ * s->getMZArray()->data[i] +
+          c_ * s->getMZArray()->data[i] * s->getMZArray()->data[i];
+      }
+      return s;
+    }
+
+private:
+
+    double a_;
+    double b_;
+    double c_;
+
+  };
 
   /**
    * @brief Class to write out an OpenSwath TSV output (mProphet input)
@@ -332,8 +386,8 @@ namespace OpenMS
      *
     */
     TransformationDescription performRTNormalization(const OpenMS::TargetedExperiment & irt_transitions,
-            const std::vector< OpenSwath::SwathMap > & swath_maps, double min_rsq, double min_coverage,
-            const Param & feature_finder_param, const ChromExtractParams & cp_irt, Size debug_level)
+            std::vector< OpenSwath::SwathMap > & swath_maps, double min_rsq, double min_coverage,
+            const Param & feature_finder_param, const ChromExtractParams & cp_irt, Size debug_level, String mz_correction_function)
     {
       LOG_DEBUG << "performRTNormalization method starting" << std::endl;
       std::vector< OpenMS::MSChromatogram<> > irt_chromatograms;
@@ -360,8 +414,9 @@ namespace OpenMS
       LOG_DEBUG << "Extracted number of chromatograms from iRT files: " << irt_chromatograms.size() <<  std::endl;
 
       // get RT normalization from data
-      return RTNormalization(irt_transitions,
-              irt_chromatograms, min_rsq, min_coverage, feature_finder_param);
+      TransformationDescription tr = RTNormalization(irt_transitions,
+              irt_chromatograms, min_rsq, min_coverage, feature_finder_param, swath_maps, mz_correction_function);
+      return tr;
     }
 
     /** @brief Execute the OpenSWATH workflow on a set of SwathMaps and transitions.
@@ -546,12 +601,18 @@ namespace OpenMS
 
   private:
 
-    /** @brief Select which peptides to analyze in the next batch and copy the corresponding peptides and transitions to transition_exp_used
+    /** @brief Select which peptides to analyze in the next batch (and copy to output)
      *
-     * @param transition_exp_used input (all transitions for this swath)
-     * @param transition_exp_used output (contains only transitions for the next batch)
+     * This function will select which peptides to analyze in the next batch j
+     * and will copy the the corresponding peptides and transitions into the
+     * output structure. The output will contain batch_size peptides.
+     *
+     * @param transition_exp_used_all input (all transitions for this swath)
+     * @param transition_exp_used output (will contain only transitions for the next batch)
      * @param batch_size how many peptides per batch
      * @param j batch number (peptides from j*batch_size to j*batch_size+batch_size will be copied)
+     *
+     * @note The proteins will be copied completely without checking for a match
      *
     */
     void selectPeptidesForBatch_(const OpenSwath::LightTargetedExperiment& transition_exp_used_all,
@@ -572,9 +633,19 @@ namespace OpenMS
       copyBatchTransitions_(transition_exp_used.peptides, transition_exp_used_all.transitions, transition_exp_used.transitions);
     }
 
-    /// Copy the required transitions from all_transitions to output (e.g. those that match a peptide in the used_peptides vector)
+    /** @brief Copy the required transitions to output
+     *
+     * Copy all transitions matching to one of the peptides in the selected
+     * peptide vector from all_transitions to the output.
+     *
+     * @param used_peptides Which peptides to be used
+     * @param all_transitions Transitions vector from which to select transitions
+     * @param output Output vector containing matching transitions (taken from all_transitions)
+     *
+    */
     void copyBatchTransitions_(const std::vector<OpenSwath::LightPeptide>& used_peptides,
-        const std::vector<OpenSwath::LightTransition>& all_transitions, std::vector<OpenSwath::LightTransition>& output)
+      const std::vector<OpenSwath::LightTransition>& all_transitions,
+      std::vector<OpenSwath::LightTransition>& output)
     {
       std::set<std::string> selected_peptides;
       for (Size i = 0; i < used_peptides.size(); i++)
@@ -668,7 +739,7 @@ namespace OpenMS
     */
     TransformationDescription RTNormalization(TargetedExperiment transition_exp_,
             std::vector< OpenMS::MSChromatogram<> > chromatograms, double min_rsq, double min_coverage,
-            Param feature_finder_param)
+            Param feature_finder_param, std::vector< OpenSwath::SwathMap > & swath_maps, String mz_correction_function)
     {
       LOG_DEBUG << "Start of RTNormalization method" << std::endl;
       this->startProgress(0, 1, "Retention time normalization");
@@ -721,6 +792,9 @@ namespace OpenMS
         pairs.push_back(std::make_pair(it->second, PeptideRTMap[it->first])); // pair<exp_rt, theor_rt>
       }
 
+      //correctMZ(transition_group_map, swath_maps, "quadratic_regression");
+      correctMZ(transition_group_map, swath_maps, mz_correction_function);
+
       // remove outliers using the jackknife approach 
       std::vector<std::pair<double, double> > pairs_corrected;
       bool chauvenet = false;
@@ -736,6 +810,200 @@ namespace OpenMS
 
       this->endProgress();
       return trafo_out;
+    }
+
+    /**
+     * @brief Correct the m/z values of a SWATH map based on the RT-normalization peptides
+     *
+     */
+    void correctMZ(OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType & transition_group_map,
+            std::vector< OpenSwath::SwathMap > & swath_maps, std::string corr_type)
+    {
+
+      double mz_extr_window = 0.05;
+
+#ifdef OPENSWATH_WORKFLOW_DEBUG
+      std::cout.precision(16);
+      std::ofstream os("debug_ppmdiff.txt");
+      os.precision(writtenDigits(double()));
+/* display in R
+
+   df = read.csv("debug_ppmdiff.txt", sep="\t" , header=F)
+   colnames(df) = c("mz", "theomz", "dppm", "int", "rt")
+   df$absd = df$theomz-df$mz
+   plot(df$mz, df$absd)
+   plot(df$mz, df$dppm)
+
+   linm = lm(theomz ~ mz, df)
+   quadm = lm(theomz ~ mz + mz*mz, df)
+
+   df$x2 = df$mz*df$mz
+   quadm = lm(theomz ~ mz + x2, df)
+
+
+*/
+#endif
+
+      TransformationDescription::DataPoints data_all;
+      std::vector<double> weights;
+      std::vector<double> exp_mz;
+      std::vector<double> theo_mz;
+      for (OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType::iterator trgroup_it = transition_group_map.begin();
+          trgroup_it != transition_group_map.end(); ++trgroup_it)
+      {
+        // we need at least one feature to find the best one
+        OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType * transition_group = &trgroup_it->second;
+        if (transition_group->getFeatures().size() == 0) {continue;}
+
+        // Find the feature with the highest score
+        double bestRT = -1;
+        double highest_score = -1000;
+        for (std::vector<MRMFeature>::iterator mrmfeature = transition_group->getFeaturesMuteable().begin();
+             mrmfeature != transition_group->getFeaturesMuteable().end(); ++mrmfeature)
+        {
+          if (mrmfeature->getOverallQuality() > highest_score)
+          {
+            bestRT = mrmfeature->getRT();
+            highest_score = mrmfeature->getOverallQuality();
+          }
+        }
+
+        // Get the corresponding SWATH map
+        SignedSize res = -1;
+        for (SignedSize i = 0; i < boost::numeric_cast<SignedSize>(swath_maps.size()); ++i)
+        {
+          if (swath_maps[i].lower < transition_group->getTransitions()[0].precursor_mz && 
+          swath_maps[i].upper >= transition_group->getTransitions()[0].precursor_mz)
+          {res = i; break;}
+        }
+
+        // Get the spectrum for this RT and extract raw datapoints for the
+        // calibrating transitions 
+        OpenSwath::SpectrumPtr sp = OpenSwathScoring().getAddedSpectra_(swath_maps[res].sptr, bestRT, 1);
+        for (std::vector< OpenMS::MRMFeatureFinderScoring::TransitionType >::const_iterator 
+            tr = transition_group->getTransitions().begin(); 
+            tr != transition_group->getTransitions().end(); tr++)
+        {
+          double mz, intensity;
+          double left = tr->product_mz - mz_extr_window / 2.0;
+          double right = tr->product_mz + mz_extr_window / 2.0;
+          bool centroided = false;
+
+          OpenSwath::integrateWindow(sp, left, right, mz, intensity, centroided);
+          if (mz == -1) {continue;}
+
+          data_all.push_back(std::make_pair(mz, tr->product_mz));
+          weights.push_back( log2(intensity) ); // regression weight is the log2 intensity
+          exp_mz.push_back( mz );
+          theo_mz.push_back( tr->product_mz ); // y = target = theoretical
+
+#ifdef OPENSWATH_WORKFLOW_DEBUG
+          double diff_ppm = (mz - tr->product_mz) * 1000000 / tr->product_mz;
+          os << mz << "\t" << tr->product_mz << "\t" << diff_ppm << "\t" << log2(intensity) << "\t" << bestRT << std::endl;
+#endif
+        }
+      }
+
+      std::vector<double> regression_params;
+      if (corr_type == "none")
+      {
+        return;
+      }
+      else if (corr_type == "unweighted_regression")
+      {
+        double confidence_interval_P(0.0);
+        Math::LinearRegression lr;
+        lr.computeRegression(confidence_interval_P, exp_mz.begin(), exp_mz.end(), theo_mz.begin());
+        regression_params.push_back(lr.getIntercept());
+        regression_params.push_back(lr.getSlope());
+        regression_params.push_back(0.0);
+      }
+      else if (corr_type == "weighted_regression")
+      {
+        double confidence_interval_P(0.0);
+        Math::LinearRegression lr;
+        lr.computeRegressionWeighted(confidence_interval_P, exp_mz.begin(), exp_mz.end(), theo_mz.begin(), weights.begin());
+        regression_params.push_back(lr.getIntercept());
+        regression_params.push_back(lr.getSlope());
+        regression_params.push_back(0.0);
+      }
+      else if (corr_type == "quadratic_regression")
+      {
+        // Quadratic fit
+        gsl_matrix * X, * cov;
+        gsl_vector * y, * c;
+        int n = exp_mz.size();
+        // matrix containing the observations
+        X = gsl_matrix_alloc(n, 3);
+        // vector containing the expected masses
+        y = gsl_vector_alloc(n);
+
+        // vector containing the coefficients of the quadratic function after the fitting
+        c = gsl_vector_alloc(3);
+        // matrix containing the covariances
+        cov = gsl_matrix_alloc(3, 3);
+
+        double chisq;
+        for (Size i = 0; i < exp_mz.size(); i++)
+        {
+          // get the flight time
+          double xi = exp_mz[i];
+          // y_i = a + b*x_i + c*x_i^2  <---- the quadratic equation, a, b, and c shall be determined
+          // x_i^0 = 1 --> enter 1 at the first position of each row
+          gsl_matrix_set(X, i, 0, 1.0);
+
+          // x_i^1 at the second position
+          gsl_matrix_set(X, i, 1, xi);
+          // x_i^2 at the third position
+          gsl_matrix_set(X, i, 2, xi * xi);
+
+          // set expected mass
+          gsl_vector_set(y, i, theo_mz[i]);
+        }
+        gsl_multifit_linear_workspace * work
+          = gsl_multifit_linear_alloc(n, 3);
+
+        gsl_multifit_linear(X, y, c, cov,
+                            &chisq, work);
+
+        regression_params.push_back(gsl_vector_get(c, (0)));
+        regression_params.push_back(gsl_vector_get(c, (1)));
+        regression_params.push_back(gsl_vector_get(c, (2)));
+        gsl_multifit_linear_free(work);
+      }
+      else 
+      {
+        throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__,
+            "Unknown correction type " + corr_type);
+      }
+
+      printf("# mz regression parameters: Y = %g + %g X + %g X^2\n",
+             regression_params[0],
+             regression_params[1],
+             regression_params[2]);
+
+#ifdef OPENSWATH_WORKFLOW_DEBUG
+      os.close();
+      double s_ppm_before = 0;
+      double s_ppm_after = 0;
+      for (TransformationDescription::DataPoints::iterator d = data_all.begin(); d != data_all.end(); d++)
+      {
+        double ppm_before = (d->first - d->second) * 1000000 / d->first;
+        double ppm_after = ((d->first*d->first*regression_params[2] + d->first*regression_params[1]+regression_params[0]) - d->second) * 1000000 / d->second;
+        s_ppm_before += std::fabs(ppm_before);
+        s_ppm_after += std::fabs(ppm_after);
+      }
+      std::cout <<" sum residual sq ppm before " << s_ppm_before << " / after " << s_ppm_after << std::endl;
+#endif
+
+      // Replace the swath files with a transforming wrapper.
+      for (SignedSize i = 0; i < boost::numeric_cast<SignedSize>(swath_maps.size()); ++i)
+      {
+        swath_maps[i].sptr = boost::shared_ptr<OpenSwath::ISpectrumAccess>(
+          new SpectrumAccessQuadMZTransforming(swath_maps[i].sptr, 
+            regression_params[0], regression_params[1], regression_params[2]));
+      }
+
     }
 
     /// Helper function to score a set of chromatograms
@@ -1120,6 +1388,9 @@ protected:
     registerStringOption_("readOptions", "<name>", "normal", "Whether to run OpenSWATH directly on the input data, cache data to disk first or to perform a datareduction step first. If you choose cache, make sure to also set tempDirectory", false, true);
     setValidStrings_("readOptions", ListUtils::create<String>("normal,cache"));
 
+    registerStringOption_("mz_correction_function", "<name>", "none", "Use the retention time normalization peptide MS2 masses to perform a mass correction (linear, weighted by intensity linear or quadratic) of all spectra.", false, true);
+    setValidStrings_("mz_correction_function", ListUtils::create<String>("none,unweighted_regression,weighted_regression,quadratic_regression"));
+
     // TODO terminal slash !
     registerStringOption_("tempDirectory", "<tmp>", "/tmp/", "Temporary directory to store cached files for example", false, true);
 
@@ -1227,8 +1498,8 @@ protected:
    *
    */
   TransformationDescription loadTrafoFile(String trafo_in, String irt_tr_file,
-    const std::vector< OpenSwath::SwathMap > & swath_maps, double min_rsq, double min_coverage,
-    const Param& feature_finder_param, const OpenSwathWorkflow::ChromExtractParams& cp_irt, Size debug_level)
+    std::vector< OpenSwath::SwathMap > & swath_maps, double min_rsq, double min_coverage,
+    const Param& feature_finder_param, const OpenSwathWorkflow::ChromExtractParams& cp_irt, Size debug_level, String mz_correction_function)
   {
     TransformationDescription trafo_rtnorm;
     if (!trafo_in.empty())
@@ -1251,7 +1522,7 @@ protected:
       OpenMS::TargetedExperiment irt_transitions;
       traml.load(irt_tr_file, irt_transitions);
       trafo_rtnorm = wf.performRTNormalization(irt_transitions, swath_maps, min_rsq, min_coverage,
-          feature_finder_param, cp_irt, debug_level);
+          feature_finder_param, cp_irt, debug_level, mz_correction_function);
     }
     return trafo_rtnorm;
   }
@@ -1305,6 +1576,7 @@ protected:
     double min_coverage = getDoubleOption_("min_coverage");
 
     String readoptions = getStringOption_("readOptions");
+    String mz_correction_function = getStringOption_("mz_correction_function");
     String tmp = getStringOption_("tempDirectory");
 
     ///////////////////////////////////
@@ -1387,7 +1659,7 @@ protected:
     // Get the transformation information (using iRT peptides)
     ///////////////////////////////////
     TransformationDescription trafo_rtnorm = loadTrafoFile(trafo_in, irt_tr_file,
-        swath_maps, min_rsq, min_coverage, feature_finder_param, cp_irt, debug_level);
+        swath_maps, min_rsq, min_coverage, feature_finder_param, cp_irt, debug_level, mz_correction_function);
 
     ///////////////////////////////////
     // Load the transitions
