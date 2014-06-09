@@ -6,6 +6,7 @@ set(sources_list
 MRMFeatureAccessOpenMS.cpp
 SpectrumAccessOpenMS.cpp
 SpectrumAccessOpenMSCached.cpp
+SpectrumAccessTransforming.cpp
 DataAccessHelper.cpp
 SimpleOpenMSSpectraAccessFactory.cpp
 )
