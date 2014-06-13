@@ -296,14 +296,24 @@ namespace OpenMS
                         }
  
                         /**
-                         * All filters passed!
+                         * All filters passed.
                          */
-                       
                         if (debug_)
                         {
-                            double s = 9;
+                            vector<double> rt_mz_flag;
+                            rt_mz_flag.push_back(rt_picked);
+                            rt_mz_flag.push_back(mz);
+                            rt_mz_flag.push_back(intensities_actual[1]);    // all filters passed
+                            debug_rejected.push_back(rt_mz_flag);
                         }
                         
+                        // add raw data point to list that passed all filters
+                        
+                        // blacklist peaks in the current spectrum and the two neighbouring ones
+                        if (!blacklisted)
+                        {
+                            blacklisted = true;
+                        }
                         
                     }
                      
@@ -519,6 +529,11 @@ namespace OpenMS
         }
         
         return false;
+    }
+    
+    void MultiplexFiltering::blacklistPeaks(PeakPattern pattern, int peaks_found_in_all_peptides_spline)
+    {
+        double r = 3.4;
     }
     
     int MultiplexFiltering::getPeakIndex(int spectrum_index, double mz, double scaling)

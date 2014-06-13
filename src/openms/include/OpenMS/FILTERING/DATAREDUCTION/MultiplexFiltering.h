@@ -158,6 +158,11 @@ namespace OpenMS
         bool averagineSimilarityFilter(PeakPattern pattern, std::vector<double> & intensities_actual, int peaks_found_in_all_peptides_spline, double mz);
         
         /**
+         * @brief blacklist peaks
+         */
+        void blacklistPeaks(PeakPattern pattern, int peaks_found_in_all_peptides_spline);
+        
+        /**
          * @brief returns the index of a peak at m/z
          * (for initialisation of peak registry)
          * 
