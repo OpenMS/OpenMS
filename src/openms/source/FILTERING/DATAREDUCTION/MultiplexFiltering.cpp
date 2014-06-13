@@ -294,6 +294,17 @@ namespace OpenMS
                             }
                             //continue;
                         }
+ 
+                        /**
+                         * All filters passed!
+                         */
+                       
+                        if (debug_)
+                        {
+                            double s = 9;
+                        }
+                        
+                        
                     }
                      
                 }                
