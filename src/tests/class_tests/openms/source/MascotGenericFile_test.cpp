@@ -80,44 +80,42 @@ START_SECTION((void store(std::ostream &os, const String &filename, const PeakMa
 	PeakMap exp;
 	ptr->load(OPENMS_GET_TEST_DATA_PATH("MascotInfile_test.mascot_in"), exp);
 	
-	stringstream ss;
-	ptr->store(ss, "bla", exp);
+  // handling of modifications:
+  Param params = ptr->getParameters();
+  params.setValue("fixed_modifications", ListUtils::create<String>("Carbamidomethyl (C),Phospho (S)"));
+  params.setValue("variable_modifications", ListUtils::create<String>("Oxidation (M),Deamidated (N),Deamidated (Q)"));
+  ptr->setParameters(params);
 
-	// BEGIN IONS
-	// TITLE=Testtitle
-	// PEPMASS=1998
-	// RTINSECONDS=25.379
-	// 1 1
-	// 2 4
-	// 3 9
-	// 4 16
-	// 5 25
-	// 6 36
-	// 7 49
-	// 8 64
-	// 9 81
-	// END IONS
+	stringstream ss;
+	ptr->store(ss, "test", exp);
+
 	vector<String> strings;
-	strings.push_back("BEGIN IONS");
-	strings.push_back("TITLE=Testtitle");
-	strings.push_back("PEPMASS=1998");
-	strings.push_back("RTINSECONDS=25.37");
-	strings.push_back("1 1");
-	strings.push_back("2 4");
-	strings.push_back("3 9");
-	strings.push_back("4 16");
-	strings.push_back("5 25");
-	strings.push_back("6 36");
-	strings.push_back("7 49");
-	strings.push_back("8 64");
-	strings.push_back("9 81");
-	strings.push_back("END IONS");
+	strings.push_back("BEGIN IONS\n"
+                    "TITLE=1998_25.379_index=0_test\n" // different from input!
+                    "PEPMASS=1998\n"
+                    "RTINSECONDS=25.379");
+	strings.push_back("1 1\n"
+                    "2 4\n"
+                    "3 9\n"
+                    "4 16\n"
+                    "5 25\n"
+                    "6 36\n"
+                    "7 49\n"
+                    "8 64\n"
+                    "9 81\n"
+                    "END IONS\n");
+  strings.push_back("MODS=Carbamidomethyl (C)\n");
+  strings.push_back("MODS=Phospho (ST)\n");
+  strings.push_back("IT_MODS=Deamidated (NQ)");
+  strings.push_back("IT_MODS=Oxidation (M)");
 
 	String mgf_file(ss.str());
-	for (Size i = 0; i != strings.size(); ++i)
+	for (Size i = 0; i < strings.size(); ++i)
 	{
-		TEST_EQUAL(mgf_file.hasSubstring(mgf_file[i]), true)
-	}	
+		TEST_EQUAL(mgf_file.hasSubstring(strings[i]), true)
+	}
+
+  ptr->setParameters(ptr->getDefaults()); // reset parameters
 }
 END_SECTION
 
