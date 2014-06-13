@@ -178,8 +178,8 @@ namespace OpenMS
                      * Filter (1): m/z position and blacklist filter
                      * Are there non-black peaks with the expected relative m/z shifts?
                      */
-                    std::vector<double> mz_shifts_actual;    // actual m/z shifts (differ slightly from expected m/z shifts)
-                    std::vector<int> mz_shifts_actual_indices;    // peak indices in the spectrum corresponding to the actual m/z shifts
+                    vector<double> mz_shifts_actual;    // actual m/z shifts (differ slightly from expected m/z shifts)
+                    vector<int> mz_shifts_actual_indices;    // peak indices in the spectrum corresponding to the actual m/z shifts
                     int peaks_found_in_all_peptides = positionsAndBlacklistFilter(patterns_[pattern], spectrum, peak_position, peak, mz_shifts_actual, mz_shifts_actual_indices);
                     if (peaks_found_in_all_peptides < peaks_per_peptide_min_)
                     {
@@ -308,12 +308,17 @@ namespace OpenMS
                         }
                         
                         // add raw data point to list that passed all filters
+                        // TO DO
                         
                         // blacklist peaks in the current spectrum and the two neighbouring ones
                         if (!blacklisted)
                         {
+                            blacklistPeaks(patterns_[pattern], spectrum, mz_shifts_actual_indices, peaks_found_in_all_peptides_spline);
                             blacklisted = true;
                         }
+                        
+                        // add the peak with its corresponding raw data to the result
+                        // TO DO
                         
                     }
                      
@@ -531,9 +536,47 @@ namespace OpenMS
         return false;
     }
     
-    void MultiplexFiltering::blacklistPeaks(PeakPattern pattern, int peaks_found_in_all_peptides_spline)
+    void MultiplexFiltering::blacklistPeaks(PeakPattern pattern, int spectrum, vector<int> & mz_shifts_actual_indices, int peaks_found_in_all_peptides_spline)
     {
-        double r = 3.4;
+        for (int peptide = 0; peptide < (int) pattern.getMassShiftCount(); ++peptide)
+        {
+            for (int isotope = 0; isotope < peaks_found_in_all_peptides_spline; ++isotope)
+            {
+                int mz_position = peptide * (peaks_per_peptide_max_ + 1) + isotope + 1;    // index in m/z shift list
+                int peak_index = -1;
+                
+                // blacklist peaks in this spectrum
+                peak_index = mz_shifts_actual_indices[mz_position];
+                if (peak_index != -1 && !blacklist_[spectrum][peak_index].black)
+                {
+                    blacklist_[spectrum][peak_index].black = true;
+                    blacklist_[spectrum][peak_index].black_exception_mass_shift_index = pattern.getMassShiftIndex();
+                    blacklist_[spectrum][peak_index].black_exception_charge = pattern.getCharge();
+                    blacklist_[spectrum][peak_index].black_exception_mz_position = mz_position;
+                }
+                
+                // blacklist peaks in previous spectrum
+                peak_index = registry_[spectrum][mz_shifts_actual_indices[mz_position]].index_in_last_spectrum;
+                if (peak_index != -1 && !blacklist_[spectrum-1][peak_index].black)
+                {
+                    blacklist_[spectrum-1][peak_index].black = true;
+                    blacklist_[spectrum-1][peak_index].black_exception_mass_shift_index = pattern.getMassShiftIndex();
+                    blacklist_[spectrum-1][peak_index].black_exception_charge = pattern.getCharge();
+                    blacklist_[spectrum-1][peak_index].black_exception_mz_position = mz_position;
+                }
+                
+                // blacklist peaks in next spectrum
+                peak_index = registry_[spectrum][mz_shifts_actual_indices[mz_position]].index_in_next_spectrum;
+                if (peak_index != -1 && !blacklist_[spectrum+1][peak_index].black)
+                {
+                    blacklist_[spectrum+1][peak_index].black = true;
+                    blacklist_[spectrum+1][peak_index].black_exception_mass_shift_index = pattern.getMassShiftIndex();
+                    blacklist_[spectrum+1][peak_index].black_exception_charge = pattern.getCharge();
+                    blacklist_[spectrum+1][peak_index].black_exception_mz_position = mz_position;
+                }
+                
+            }
+       }
     }
     
     int MultiplexFiltering::getPeakIndex(int spectrum_index, double mz, double scaling)

@@ -160,7 +160,7 @@ namespace OpenMS
         /**
          * @brief blacklist peaks
          */
-        void blacklistPeaks(PeakPattern pattern, int peaks_found_in_all_peptides_spline);
+        void blacklistPeaks(PeakPattern pattern, int spectrum, std::vector<int> & mz_shifts_actual_indices, int peaks_found_in_all_peptides_spline);
         
         /**
          * @brief returns the index of a peak at m/z
