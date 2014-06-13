@@ -35,6 +35,7 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/PeakPattern.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/FilterResult.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/SplinePackage.h>
@@ -88,7 +89,7 @@ namespace OpenMS
                 {
                     reference.index_in_last_spectrum = -1;
                 }
-                if (index + 1 < exp_picked_.size())
+                if (index + 1 < (int) exp_picked_.size())
                 {
                     reference.index_in_next_spectrum = getPeakIndex(index + 1, it_mz->getMZ(), 1.0);
                 }
@@ -441,7 +442,7 @@ namespace OpenMS
         for (int isotope = 0; isotope < peaks_found_in_all_peptides; ++isotope)
         {
             bool seen_in_all_peptides = true;
-            for (int peptide = 0; peptide < pattern.getMassShiftCount(); ++peptide)
+            for (int peptide = 0; peptide < (int) pattern.getMassShiftCount(); ++peptide)
             {
                 if (intensities_actual[peptide * (peaks_per_peptide_max_ + 1) + isotope + 1] < intensity_cutoff_)
                 {
@@ -459,7 +460,7 @@ namespace OpenMS
     
     bool MultiplexFiltering::zerothPeakVetoFilter(PeakPattern pattern, vector<double> & intensities_actual)
     {
-        for (int peptide = 0; peptide < pattern.getMassShiftCount(); ++peptide)
+        for (int peptide = 0; peptide < (int) pattern.getMassShiftCount(); ++peptide)
         {
             // scaling factor for the zeroth peak intensity
             // (The zeroth peak is problematic if its intensity exceeds zero_scaling * intensity of mono-isotopic peak.)
@@ -475,7 +476,7 @@ namespace OpenMS
     
     bool MultiplexFiltering::peptideSimilarityFilter(PeakPattern pattern, vector<double> & intensities_actual, int peaks_found_in_all_peptides_spline, vector<double> isotope_pattern_1, vector<double> isotope_pattern_2)
     {
-        for (int peptide = 0; peptide < pattern.getMassShiftCount(); ++peptide)
+        for (int peptide = 0; peptide < (int) pattern.getMassShiftCount(); ++peptide)
         {
             for (int isotope = 0; isotope < peaks_found_in_all_peptides_spline; ++isotope)
             {
@@ -493,7 +494,7 @@ namespace OpenMS
     
     bool MultiplexFiltering::averagineSimilarityFilter(PeakPattern pattern, vector<double> & intensities_actual, int peaks_found_in_all_peptides_spline, double mz)
     {
-        for (int peptide = 0; peptide < pattern.getMassShiftCount(); ++peptide)
+        for (int peptide = 0; peptide < (int) pattern.getMassShiftCount(); ++peptide)
         {
             vector<double> isotope_pattern;
             for (int isotope = 0; isotope < peaks_found_in_all_peptides_spline; ++isotope)
@@ -625,7 +626,17 @@ namespace OpenMS
     
     double MultiplexFiltering::getAveragineSimilarity(vector<double> pattern, double m)
     {
-        return 1.0;
+        // construct averagine distribution
+        IsotopeDistribution distribution;
+        vector<double> averagine_pattern;
+        distribution.setMaxIsotope(pattern.size());
+        distribution.estimateFromPeptideWeight(m);
+        for (IsotopeDistribution::Iterator it = distribution.begin(); it != distribution.end(); ++it)
+        {
+            averagine_pattern.push_back(it->second);
+        }
+        
+        return getPatternSimilarity(pattern, averagine_pattern);
     }
 
 }
