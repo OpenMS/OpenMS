@@ -256,7 +256,7 @@ namespace OpenMS
                             }
                             //continue;
                         }
-                         
+                        
                         /**
                          * Filter (5): peptide similarity filter
                          * How similar are the isotope patterns of the peptides?
@@ -621,6 +621,11 @@ namespace OpenMS
     
     double MultiplexFiltering::getPatternSimilarity(vector<double> pattern1, vector<double> pattern2)
     {
+        if (pattern1.empty() || pattern2.empty())
+        {
+            return -1000.0;
+        }
+        
         return OpenMS::Math::pearsonCorrelationCoefficient(pattern1.begin(), pattern1.end(), pattern2.begin(), pattern2.end());
     }
     

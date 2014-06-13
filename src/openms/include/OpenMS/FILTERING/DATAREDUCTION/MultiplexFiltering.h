@@ -180,6 +180,7 @@ namespace OpenMS
         
         /**
          * @brief returns similarity of two isotope patterns
+         * (simple Pearson correlation coefficient)
          * 
          * @param pattern1   isotope pattern 1
          * @param pattern2   isotope pattern 2
