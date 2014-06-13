@@ -118,7 +118,7 @@ private:
                         const std::vector<std::vector<std::pair<Size, Size> > >& mass_ranges,
                         const MSExperiment<InputPeakType>& experiment,
                         const std::set<Int>& charges_set,
-                        std::vector<std::vector<std::pair<Size, DoubleReal> > >& xics);
+                        std::vector<std::vector<std::pair<Size, double> > >& xics);
 
     /**
       @brief Eliminates overlapping peaks.
@@ -130,7 +130,7 @@ private:
     template <typename T>
     void updateExclusionList_(std::vector<std::pair<T, Size> >& exclusion_list);
 
-    void updateExclusionList_(std::map<std::pair<DoubleReal, DoubleReal>, Size, PairComparatorSecondElement<std::pair<DoubleReal, DoubleReal> > >& exclusion_list);
+    void updateExclusionList_(std::map<std::pair<double, double>, Size, PairComparatorSecondElement<std::pair<double, double> > >& exclusion_list);
 
     LPWrapper::SOLVER solver_;
   };
@@ -233,9 +233,9 @@ private:
         if (spec_iter == experiment.end())
           --spec_iter;
 
-        DoubleReal dist1 = fabs(spec_iter->getRT() - features[f].getRT());
-        DoubleReal dist2 = std::numeric_limits<DoubleReal>::max();
-        DoubleReal dist3 = std::numeric_limits<DoubleReal>::max();
+        double dist1 = fabs(spec_iter->getRT() - features[f].getRT());
+        double dist2 = std::numeric_limits<double>::max();
+        double dist3 = std::numeric_limits<double>::max();
         if ((spec_iter + 1) != experiment.end())
         {
           dist2 = fabs((spec_iter + 1)->getRT() - features[f].getRT());
@@ -282,7 +282,7 @@ private:
           charge = 1;
         while (mz_end + 1 != spec_iter->end())
         {
-          if (fabs((mz_end + 1)->getMZ() - features[f].getMZ()) < 3.0 / (DoubleReal)charge)
+          if (fabs((mz_end + 1)->getMZ() - features[f].getMZ()) < 3.0 / (double)charge)
             ++mz_end;
           else
             break;
@@ -307,7 +307,7 @@ private:
                                                     const std::vector<std::vector<std::pair<Size, Size> > >& mass_ranges,
                                                     const MSExperiment<InputPeakType>& experiment,
                                                     const std::set<Int>& charges_set,
-                                                    std::vector<std::vector<std::pair<Size, DoubleReal> > >& xics)
+                                                    std::vector<std::vector<std::pair<Size, double> > >& xics)
   {
     xics.clear();
     xics.resize(experiment.size());
@@ -323,7 +323,7 @@ private:
       for (Size s = 0; s < mass_ranges[f].size(); s += 2)
       {
         // sum intensity over all raw datapoints belonging to the feature in the current scan
-        DoubleReal weight = 0.;
+        double weight = 0.;
         for (Size j = mass_ranges[f][s].second; j <= mass_ranges[f][s + 1].second; ++j)
         {
           weight += experiment[mass_ranges[f][s].first][j].getIntensity();
@@ -335,7 +335,7 @@ private:
 
     for (Size s = 0; s < xics.size(); ++s)
     {
-      sort(xics[s].begin(), xics[s].end(), PairComparatorSecondElement<std::pair<Size, DoubleReal> >());
+      sort(xics[s].begin(), xics[s].end(), PairComparatorSecondElement<std::pair<Size, double> >());
     }
   }
 
@@ -347,13 +347,13 @@ private:
                                                                            bool feature_based)
   {
 
-    const DoubleReal window = param_.getValue("selection_window");
-    const DoubleReal excl_window = param_.getValue("min_peak_distance");
+    const double window = param_.getValue("selection_window");
+    const double excl_window = param_.getValue("min_peak_distance");
 
     // get the mass ranges for each features for each scan it occurs in
     std::vector<std::vector<std::pair<Size, Size> > >  indices;
     getMassRanges(features, experiment, indices);
-    DoubleReal rt_dist = 0.;
+    double rt_dist = 0.;
     if (experiment.size() > 1)
     {
       rt_dist = experiment[1].getRT() - experiment[0].getRT();
@@ -452,9 +452,9 @@ private:
       }
 
       bool dynamic_exclusion = param_.getValue("Exclusion:use_dynamic_exclusion") == "true" ? true : false;
-      typedef std::map<std::pair<DoubleReal, DoubleReal>, Size, PairComparatorSecondElement<std::pair<DoubleReal, DoubleReal> > > ExclusionListType;
+      typedef std::map<std::pair<double, double>, Size, PairComparatorSecondElement<std::pair<double, double> > > ExclusionListType;
       ExclusionListType exclusion_list;
-      Size exclusion_specs = (Size)(floor((DoubleReal)param_.getValue("Exclusion:exclusion_time") / (DoubleReal) rt_dist));
+      Size exclusion_specs = (Size)(floor((double)param_.getValue("Exclusion:exclusion_time") / (double) rt_dist));
       if (!dynamic_exclusion)
       {
         //if the dynamic exclusion if not active we use the exclusion list to guarantee no two peaks within min_peak_distance are selected for single scan
@@ -495,8 +495,8 @@ private:
 
         while (selected_peaks < max_spec && j < scan.size())
         {
-          DoubleReal peak_mz = scan[j].getMZ();
-          DoubleReal peak_rt = scan.getRT();
+          double peak_mz = scan[j].getMZ();
+          double peak_rt = scan.getRT();
 
           ExclusionListType::iterator it_low = exclusion_list.lower_bound(std::make_pair(peak_mz, peak_mz));
           if (it_low != exclusion_list.end() && it_low->first.first <= peak_mz)
@@ -512,7 +512,7 @@ private:
           std::set<std::pair<Size, Size> > selected_mt;
           IntList parent_feature_ids;
 
-          DoubleReal local_mz = peak_mz;
+          double local_mz = peak_mz;
           //std::cerr<<"MZ pos: "<<local_mz<<std::endl;
           for (Size scan_feat_id = 0; scan_feat_id < scan_features[i].size(); ++scan_feat_id)
           {
@@ -520,12 +520,12 @@ private:
             if (bounding_boxes_f[feature_num].encloses(peak_rt, local_mz))
             {
               //find a mass trace enclosing the point
-              DoubleReal feature_intensity = 0;
+              double feature_intensity = 0;
               for (Size mass_trace_num = 0; mass_trace_num < features[feature_num].getConvexHulls().size(); ++mass_trace_num)
               {
                 if (bounding_boxes[std::make_pair(feature_num, mass_trace_num)].encloses(DPosition<2>(peak_rt, local_mz)))
                 {
-                  DoubleReal elu_factor = 1.0, iso_factor = 1.0;
+                  double elu_factor = 1.0, iso_factor = 1.0;
                   //get the intensity factor for the position in the elution profile
                   if (meta_values_present)
                   {
@@ -574,7 +574,7 @@ private:
                                                       const MSExperiment<InputPeakType>& experiment)
   {
     std::vector<std::vector<std::pair<Size, Size> > > checked_mass_ranges;
-    DoubleReal min_peak_distance = param_.getValue("min_peak_distance");
+    double min_peak_distance = param_.getValue("min_peak_distance");
     checked_mass_ranges.reserve(mass_ranges.size());
     for (Size f = 0; f < mass_ranges.size(); ++f)
     {
@@ -661,9 +661,9 @@ private:
     exclusion_list.erase(iter, exclusion_list.end());
   }
 
-  inline  void OfflinePrecursorIonSelection::updateExclusionList_(std::map<std::pair<DoubleReal, DoubleReal>, Size, PairComparatorSecondElement<std::pair<DoubleReal, DoubleReal> > >& exclusion_list)
+  inline  void OfflinePrecursorIonSelection::updateExclusionList_(std::map<std::pair<double, double>, Size, PairComparatorSecondElement<std::pair<double, double> > >& exclusion_list)
   {
-    std::map<std::pair<DoubleReal, DoubleReal>, Size, PairComparatorSecondElement<std::pair<DoubleReal, DoubleReal> > >::iterator it;
+    std::map<std::pair<double, double>, Size, PairComparatorSecondElement<std::pair<double, double> > >::iterator it;
 
     it = exclusion_list.begin();
 

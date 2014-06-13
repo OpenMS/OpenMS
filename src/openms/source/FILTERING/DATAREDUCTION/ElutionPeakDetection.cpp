@@ -33,14 +33,15 @@
 // --------------------------------------------------------------------------
 
 
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/ElutionPeakDetection.h>
 #include <OpenMS/FILTERING/SMOOTHING/LowessSmoothing.h>
+#include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
-#include <sstream>
-#include <numeric>
 #include <algorithm>
+#include <numeric>
+#include <sstream>
 
 #include <boost/dynamic_bitset.hpp>
 
@@ -63,7 +64,7 @@ ElutionPeakDetection::ElutionPeakDetection() :
     defaults_.setValue("max_fwhm", 60.0, "Maximum full-width-at-half-maximum of chromatographic peaks (in seconds). Ignored if paramter width_filtering is off or auto.", ListUtils::create<String>("advanced"));
 
     defaults_.setValue("masstrace_snr_filtering", "false", "Apply post-filtering by signal-to-noise ratio after smoothing.", ListUtils::create<String>("advanced"));
-  defaults_.setValidStrings("masstrace_snr_filtering", ListUtils::create<String>("false,true"));
+    defaults_.setValidStrings("masstrace_snr_filtering", ListUtils::create<String>("false,true"));
 
     // defaults_.setValue("min_trace_length", 5.0, "Minimum length of a mass trace (in seconds).", ListUtils::create<String>("advanced"));
     // defaults_.setValue("max_trace_length", 300.0, "Maximum length of a mass trace (in seconds).", ListUtils::create<String>("advanced"));
@@ -79,18 +80,18 @@ ElutionPeakDetection::~ElutionPeakDetection()
 }
 
 
-DoubleReal ElutionPeakDetection::computeMassTraceNoise(const MassTrace& tr)
+double ElutionPeakDetection::computeMassTraceNoise(const MassTrace& tr)
 {
     // compute RMSE
-    DoubleReal squared_sum(0.0);
-    std::vector<DoubleReal> smooth_ints(tr.getSmoothedIntensities());
+    double squared_sum(0.0);
+    std::vector<double> smooth_ints(tr.getSmoothedIntensities());
 
     for (Size i = 0; i < smooth_ints.size(); ++i)
     {
         squared_sum += (tr[i].getIntensity() - smooth_ints[i])*(tr[i].getIntensity() - smooth_ints[i]);
     }
 
-    DoubleReal rmse(0.0);
+    double rmse(0.0);
 
     if (smooth_ints.size() > 0)
     {
@@ -100,9 +101,9 @@ DoubleReal ElutionPeakDetection::computeMassTraceNoise(const MassTrace& tr)
     return rmse;
 }
 
-DoubleReal ElutionPeakDetection::computeMassTraceSNR(const MassTrace& tr)
+double ElutionPeakDetection::computeMassTraceSNR(const MassTrace& tr)
 {
-    DoubleReal noise_area(1.0), signal_area(0.0), snr(0.0);
+    double noise_area(1.0), signal_area(0.0), snr(0.0);
 
     if (tr.getSize() > 0)
     {
@@ -117,11 +118,11 @@ DoubleReal ElutionPeakDetection::computeMassTraceSNR(const MassTrace& tr)
     return snr;
 }
 
-DoubleReal ElutionPeakDetection::computeApexSNR(const MassTrace& tr)
+double ElutionPeakDetection::computeApexSNR(const MassTrace& tr)
 {
-    DoubleReal snr(0.0);
-    DoubleReal noise_level(computeMassTraceNoise(tr));
-    DoubleReal smoothed_apex_int(tr.getMaxIntensity(true));
+    double snr(0.0);
+    double noise_level(computeMassTraceNoise(tr));
+    double smoothed_apex_int(tr.getMaxIntensity(true));
 
     if (noise_level > 0.0)
     {
@@ -135,7 +136,7 @@ DoubleReal ElutionPeakDetection::computeApexSNR(const MassTrace& tr)
 
 void ElutionPeakDetection::findLocalExtrema(const MassTrace& tr, const Size & num_neighboring_peaks, std::vector<Size> & chrom_maxes, std::vector<Size> & chrom_mins)
 {
-    std::vector<DoubleReal> smoothed_ints_vec(tr.getSmoothedIntensities());
+    std::vector<double> smoothed_ints_vec(tr.getSmoothedIntensities());
 
     Size mt_length(smoothed_ints_vec.size());
 
@@ -153,7 +154,7 @@ void ElutionPeakDetection::findLocalExtrema(const MassTrace& tr, const Size & nu
     // std::cout << "neighboring peaks: " << num_neighboring_peaks << std::endl;
 
     //  Store indices along with smoothed_ints to keep track of the peak order
-    std::multimap<DoubleReal, Size> intensity_indices;
+    std::multimap<double, Size> intensity_indices;
     boost::dynamic_bitset<> used_idx(mt_length);
 
     for (Size i = 0; i < mt_length; ++i)
@@ -162,9 +163,9 @@ void ElutionPeakDetection::findLocalExtrema(const MassTrace& tr, const Size & nu
     }
 
 
-    for (std::multimap<DoubleReal, Size>::const_iterator c_it = intensity_indices.begin(); c_it != intensity_indices.end(); ++c_it)
+    for (std::multimap<double, Size>::const_iterator c_it = intensity_indices.begin(); c_it != intensity_indices.end(); ++c_it)
     {
-        DoubleReal ref_int = c_it->first;
+        double ref_int = c_it->first;
         Size ref_idx = c_it->second;
 
         if (!(used_idx[ref_idx]) && ref_int > 0.0)
@@ -236,11 +237,11 @@ void ElutionPeakDetection::findLocalExtrema(const MassTrace& tr, const Size & nu
 
             while ((left_bound + 1) < right_bound)
             {
-                DoubleReal mid_dist((right_bound - left_bound) / 2.0);
+                double mid_dist((right_bound - left_bound) / 2.0);
 
                 Size mid_element_idx(left_bound + std::floor(mid_dist));
 
-                DoubleReal mid_element_int = smoothed_ints_vec[mid_element_idx];
+                double mid_element_int = smoothed_ints_vec[mid_element_idx];
 
                 if (mid_element_int <= smoothed_ints_vec[mid_element_idx + 1])
                 {
@@ -256,22 +257,22 @@ void ElutionPeakDetection::findLocalExtrema(const MassTrace& tr, const Size & nu
             Size min_rt((smoothed_ints_vec[left_bound] < smoothed_ints_vec[right_bound]) ? left_bound : right_bound);
 
             // check for valley depth between chromatographic peaks
-            DoubleReal min_int(1.0);
+            double min_int(1.0);
             if (smoothed_ints_vec[min_rt] > min_int)
             {
                 min_int = smoothed_ints_vec[min_rt];
             }
 
-            DoubleReal left_max_int(smoothed_ints_vec[chrom_maxes[i]]);
-            DoubleReal right_max_int(smoothed_ints_vec[chrom_maxes[j]]);
+            double left_max_int(smoothed_ints_vec[chrom_maxes[i]]);
+            double right_max_int(smoothed_ints_vec[chrom_maxes[j]]);
 
-            DoubleReal left_rt(tr[chrom_maxes[i]].getRT());
-            DoubleReal mid_rt(tr[min_rt].getRT());
-            DoubleReal right_rt(tr[chrom_maxes[j]].getRT());
+            double left_rt(tr[chrom_maxes[i]].getRT());
+            double mid_rt(tr[min_rt].getRT());
+            double right_rt(tr[chrom_maxes[j]].getRT());
 
-            DoubleReal left_dist(std::fabs(mid_rt - left_rt));
-            DoubleReal right_dist(std::fabs(right_rt - mid_rt));
-            DoubleReal min_dist(min_fwhm_ / 2.0);
+            double left_dist(std::fabs(mid_rt - left_rt));
+            double right_dist(std::fabs(right_rt - mid_rt));
+            double min_dist(min_fwhm_ / 2.0);
 
             // out debug info
             // std::cout << tr.getLabel() << ": i,j " << i << "," << j << ":" << left_max_int << " min: " << min_int << " " << right_max_int << " l " << left_rt << " r " << right_rt << " m " << mid_rt << std::endl;
@@ -350,20 +351,20 @@ void ElutionPeakDetection::filterByPeakWidth(std::vector<MassTrace> & mt_vec, st
 {
     filt_mtraces.clear();
 
-    std::multimap<DoubleReal, Size> sorted_by_peakwidth;
+    std::multimap<double, Size> sorted_by_peakwidth;
 
     for (Size i = 0; i < mt_vec.size(); ++i)
     {
         sorted_by_peakwidth.insert(std::make_pair(mt_vec[i].estimateFWHM(true), i));
     }
 
-    DoubleReal mapsize(sorted_by_peakwidth.size());
+    double mapsize(sorted_by_peakwidth.size());
     Size lower_quartile_idx(std::floor(mapsize * 0.05));
     Size upper_quartile_idx(std::floor(mapsize * 0.95));
     Size count_mt(0);
 
     // filter out mass traces below lower quartile and above upper quartile
-    for (std::multimap<DoubleReal, Size>::const_iterator m_it = sorted_by_peakwidth.begin(); m_it != sorted_by_peakwidth.end(); ++m_it)
+    for (std::multimap<double, Size>::const_iterator m_it = sorted_by_peakwidth.begin(); m_it != sorted_by_peakwidth.end(); ++m_it)
     {
         if (count_mt >= lower_quartile_idx && count_mt <= upper_quartile_idx)
         {
@@ -380,43 +381,14 @@ void ElutionPeakDetection::filterByPeakWidth(std::vector<MassTrace> & mt_vec, st
 
 void ElutionPeakDetection::detectElutionPeaks_(MassTrace & mt, std::vector<MassTrace> & single_mtraces)
 {
-    std::vector<DoubleReal> rts, ints;
-
-    for (MassTrace::const_iterator c_it = mt.begin(); c_it != mt.end(); ++c_it)
-    {
-        rts.push_back(c_it->getRT());
-        ints.push_back(c_it->getIntensity());
-    }
-
-    std::vector<DoubleReal> smoothed_data;
-
-
-    LowessSmoothing lowess_smooth;
-    Param lowess_params;
-
-    // use dynamically computed window sizes
-
+    //smooth data
+    std::vector<double> smoothed_data;
     // Size win_size = mt.getFWHMScansNum();
-
-    // use one global window size for all mass traces to smooth
-    DoubleReal scan_time(mt.getScanTime());
+    double scan_time(mt.getScanTime());
     Size win_size = std::ceil(chrom_fwhm_ / scan_time);
+    smoothData(mt, win_size);
 
-    // std::cout << "win_size elution: " << scan_time << " " << win_size << std::endl;
 
-    // if there is no previous FWHM estimation... do it now
-    //    if (win_size == 0)
-    //    {
-    //        mt.estimateFWHM(false); // estimate FWHM
-    //        win_size = mt.getFWHMScansNum();
-    //    }
-
-    lowess_params.setValue("window_size", win_size);
-    lowess_smooth.setParameters(lowess_params);
-
-    lowess_smooth.smoothData(rts, ints, smoothed_data);
-
-    mt.setSmoothedIntensities(smoothed_data);
 
     // debug intensities
 
@@ -445,7 +417,7 @@ void ElutionPeakDetection::detectElutionPeaks_(MassTrace & mt, std::vector<MassT
         // check mass trace filter criteria (if enabled)
         if (pw_filtering_ == "fixed")
         {
-            DoubleReal act_fwhm(mt.estimateFWHM(true));
+            double act_fwhm(mt.estimateFWHM(true));
 
             // std::cout << "act_fwhm: " << act_fwhm << " ";
 
@@ -476,7 +448,7 @@ void ElutionPeakDetection::detectElutionPeaks_(MassTrace & mt, std::vector<MassT
             }
 
             // check for minimum/maximum trace length
-            //          DoubleReal mt_length(std::fabs(mt.rbegin()->getRT() - mt.begin()->getRT()));
+            //          double mt_length(std::fabs(mt.rbegin()->getRT() - mt.begin()->getRT()));
 
             //        if ((mt_length >= min_trace_length_) && (mt_length <= max_trace_length_))
             // if (mt_quality >= 1.2)
@@ -501,7 +473,7 @@ void ElutionPeakDetection::detectElutionPeaks_(MassTrace & mt, std::vector<MassT
         {
             // copy subtrace between cp_it and splitpoint
             std::vector<PeakType> tmp_mt;
-            std::vector<DoubleReal> smoothed_tmp;
+            std::vector<double> smoothed_tmp;
 
             while (last_idx <= mins[min_idx])
             {
@@ -515,7 +487,7 @@ void ElutionPeakDetection::detectElutionPeaks_(MassTrace & mt, std::vector<MassT
 
 //            if (tmp_mt.size() >= win_size / 2)
 //            {
-                DoubleReal scantime(mt.getScanTime());
+                double scantime(mt.getScanTime());
                 MassTrace new_mt(tmp_mt, scantime);
 
                 // copy smoothed ints
@@ -529,7 +501,7 @@ void ElutionPeakDetection::detectElutionPeaks_(MassTrace & mt, std::vector<MassT
                 // check mass trace filter criteria (if enabled)
                 if (pw_filtering_ == "fixed")
                 {
-                    DoubleReal act_fwhm(new_mt.estimateFWHM(true));
+                    double act_fwhm(new_mt.estimateFWHM(true));
 
                     // std::cout << "act_fwhm: " << act_fwhm << " ";
 
@@ -570,9 +542,9 @@ void ElutionPeakDetection::detectElutionPeaks_(MassTrace & mt, std::vector<MassT
                     {
                         new_mt.estimateFWHM(true);
                     }
-                    // DoubleReal mt_quality(computeApexSNR(new_mt));
+                    // double mt_quality(computeApexSNR(new_mt));
 
-                    // DoubleReal new_mt_length(std::fabs(new_mt.rbegin()->getRT() - new_mt.begin()->getRT()));
+                    // double new_mt_length(std::fabs(new_mt.rbegin()->getRT() - new_mt.begin()->getRT()));
 
                     // if ((new_mt_length >= min_trace_length_) && (new_mt_length <= max_trace_length_))
                     //{
@@ -587,7 +559,7 @@ void ElutionPeakDetection::detectElutionPeaks_(MassTrace & mt, std::vector<MassT
         // don't forget the trailing trace
         std::vector<PeakType> tmp_mt;
 
-        std::vector<DoubleReal> smoothed_tmp;
+        std::vector<double> smoothed_tmp;
 
         while (last_idx < mt.getSize())
         {
@@ -599,7 +571,7 @@ void ElutionPeakDetection::detectElutionPeaks_(MassTrace & mt, std::vector<MassT
 
 //        if (tmp_mt.size() >= win_size / 2)
 //        {
-            DoubleReal scantime(mt.getScanTime());
+            double scantime(mt.getScanTime());
             MassTrace new_mt(tmp_mt, scantime);
 
             // copy smoothed ints
@@ -612,7 +584,7 @@ void ElutionPeakDetection::detectElutionPeaks_(MassTrace & mt, std::vector<MassT
             // check mass trace filter criteria (if enabled)
             if (pw_filtering_ == "fixed")
             {
-                DoubleReal act_fwhm(new_mt.estimateFWHM(true));
+                double act_fwhm(new_mt.estimateFWHM(true));
 
                 // std::cout << "act_fwhm: " << act_fwhm << " ";
 
@@ -650,9 +622,9 @@ void ElutionPeakDetection::detectElutionPeaks_(MassTrace & mt, std::vector<MassT
                 {
                     new_mt.estimateFWHM(true);
                 }
-                // DoubleReal mt_quality(computeApexSNR(new_mt));
+                // double mt_quality(computeApexSNR(new_mt));
 
-                //                DoubleReal mt_length(std::fabs(new_mt.rbegin()->getRT() - new_mt.begin()->getRT()));
+                //                double mt_length(std::fabs(new_mt.rbegin()->getRT() - new_mt.begin()->getRT()));
 
                 //                if ((mt_length >= min_trace_length_) && (mt_length <= max_trace_length_))
                 //                {
@@ -666,15 +638,62 @@ void ElutionPeakDetection::detectElutionPeaks_(MassTrace & mt, std::vector<MassT
     return;
 }
 
+void ElutionPeakDetection::smoothData(MassTrace & mt, int win_size)
+{
+  //alternative smoothing using SavitzkyGolay
+    //looking at the unit test, this mehtod gives better fits than lowess smoothing
+    //reference paper uses lowess smoothing
+
+    MSSpectrum<PeakType> spectrum;
+    spectrum.insert(spectrum.begin(), mt.begin(), mt.end());
+    SavitzkyGolayFilter sg;
+    Param param;
+    param.setValue("polynomial_order",2);
+    param.setValue("frame_length",win_size);
+    sg.setParameters(param);
+    sg.filter(spectrum);
+    MSSpectrum<PeakType>::iterator iter = spectrum.begin();
+    std::vector<double> smoothed_intensities;
+    for(; iter!=spectrum.end(); ++iter)
+      smoothed_intensities.push_back(iter->getIntensity());
+    mt.setSmoothedIntensities(smoothed_intensities);
+  //alternative end
+
+  // std::cout << "win_size elution: " << scan_time << " " << win_size << std::endl;
+
+  // if there is no previous FWHM estimation... do it now
+  //    if (win_size == 0)
+  //    {
+  //        mt.estimateFWHM(false); // estimate FWHM
+  //        win_size = mt.getFWHMScansNum();
+  //    }
+
+  // use one global window size for all mass traces to smooth
+//  std::vector<double> rts, ints;
+//
+//  for (MassTrace::const_iterator c_it = mt.begin(); c_it != mt.end(); ++c_it)
+//  {
+//      rts.push_back(c_it->getRT());
+//      ints.push_back(c_it->getIntensity());
+//  }
+//  LowessSmoothing lowess_smooth;
+//  Param lowess_params;
+//  lowess_params.setValue("window_size", win_size);
+//  lowess_smooth.setParameters(lowess_params);
+//  std::vector<double> smoothed_data;
+//  lowess_smooth.smoothData(rts, ints, smoothed_data);
+//  mt.setSmoothedIntensities(smoothed_data);
+}
+
 void ElutionPeakDetection::updateMembers_()
 {
-    chrom_fwhm_ = (DoubleReal)param_.getValue("chrom_fwhm");
-    chrom_peak_snr_ = (DoubleReal)param_.getValue("chrom_peak_snr");
-    noise_threshold_int_ = (DoubleReal)param_.getValue("noise_threshold_int");
-    // min_trace_length_ = (DoubleReal)param_.getValue("min_trace_length");
-    // max_trace_length_ = (DoubleReal)param_.getValue("max_trace_length");
-    min_fwhm_ = (DoubleReal)param_.getValue("min_fwhm");
-    max_fwhm_ = (DoubleReal)param_.getValue("max_fwhm");
+    chrom_fwhm_ = (double)param_.getValue("chrom_fwhm");
+    chrom_peak_snr_ = (double)param_.getValue("chrom_peak_snr");
+    noise_threshold_int_ = (double)param_.getValue("noise_threshold_int");
+    // min_trace_length_ = (double)param_.getValue("min_trace_length");
+    // max_trace_length_ = (double)param_.getValue("max_trace_length");
+    min_fwhm_ = (double)param_.getValue("min_fwhm");
+    max_fwhm_ = (double)param_.getValue("max_fwhm");
 
     pw_filtering_ = param_.getValue("width_filtering");
     mt_snr_filtering_ = param_.getValue("masstrace_snr_filtering").toBool();

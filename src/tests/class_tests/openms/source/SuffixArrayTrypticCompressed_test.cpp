@@ -92,14 +92,14 @@ START_SECTION(bool isDigestingEnd(const char aa1, const char aa2) const )
 	TEST_EQUAL (sa->isDigestingEnd('A','R'),false);
 END_SECTION
 
-START_SECTION(DoubleReal getTolerance () const)
+START_SECTION(double getTolerance () const)
 	TEST_REAL_SIMILAR (sa->getTolerance(),0.5);
 	sa->setTolerance(0.1);
 	TEST_REAL_SIMILAR (sa->getTolerance(),0.1);
 	sa->setTolerance(0.5);
 END_SECTION
 
-START_SECTION(void setTolerance(DoubleReal t))
+START_SECTION(void setTolerance(double t))
 	TEST_REAL_SIMILAR (sa->getTolerance(),0.5);
 	sa->setTolerance(0.1);
 	TEST_REAL_SIMILAR (sa->getTolerance(),0.1);
@@ -218,8 +218,8 @@ START_SECTION(void printStatistic())
 	//only for internal use
 END_SECTION
 
-START_SECTION((void findSpec(std::vector< std::vector< std::pair< std::pair< SignedSize, SignedSize >, DoubleReal > > > &candidates, const std::vector< DoubleReal > &spec)))
-	DoubleReal masse[255];
+START_SECTION((void findSpec(std::vector< std::vector< std::pair< std::pair< SignedSize, SignedSize >, double > > > &candidates, const std::vector< double > &spec)))
+	double masse[255];
 	ResidueDB* rdb = ResidueDB::getInstance();
 		
 	char aa[] = "ARNDCEQGHILKMFPSTWYV";
@@ -235,13 +235,13 @@ START_SECTION((void findSpec(std::vector< std::vector< std::pair< std::pair< Sig
 	}
 
 	sa = new SuffixArrayTrypticCompressed(text, "");
-	vector<DoubleReal> spec;
+	vector<double> spec;
 	//spec.push_back(245.2816);
-	spec.push_back(AASequence("AR").getMonoWeight(Residue::Full));
-	spec.push_back(AASequence("AAAR").getMonoWeight(Residue::Full));
+	spec.push_back(AASequence::fromString("AR").getMonoWeight(Residue::Full));
+	spec.push_back(AASequence::fromString("AAAR").getMonoWeight(Residue::Full));
 	//spec.push_back(387.4392);
-	vector<DoubleReal> specc(spec);
-	vector<vector<pair<pair<SignedSize, SignedSize>, DoubleReal> > > res;
+	vector<double> specc(spec);
+	vector<vector<pair<pair<SignedSize, SignedSize>, double> > > res;
 	sa->findSpec(res, specc);
 	
 	TEST_EQUAL(res.size(),specc.size());
@@ -257,13 +257,13 @@ START_SECTION((void findSpec(std::vector< std::vector< std::pair< std::pair< Sig
 
 				
 	spec.clear();
-	const vector<DoubleReal> specc2(spec);
+	const vector<double> specc2(spec);
 	res.clear();
 	sa->findSpec(res, specc2);
 	TEST_EQUAL(res.size(),0);
 	spec.push_back(441.4806);	
 	spec.push_back(178.1864);
-	const vector<DoubleReal> specc3 (spec);
+	const vector<double> specc3 (spec);
 	res.clear();
 	TEST_EXCEPTION(Exception::InvalidValue, sa->findSpec(res, specc3));
 	ifstream i_stream;
@@ -276,12 +276,12 @@ START_SECTION((void findSpec(std::vector< std::vector< std::pair< std::pair< Sig
   sa->setUseTags(false);
 	
 	
-	vector<DoubleReal> spec_new;
+	vector<double> spec_new;
 	for (int i = 500; i < 5000; i += 197)
 	{
-		spec_new.push_back((DoubleReal)i);
+		spec_new.push_back((double)i);
 	}
-	const vector<DoubleReal> specc_new (spec_new);
+	const vector<double> specc_new (spec_new);
 	res.clear();
 	sa->findSpec(res, specc_new);
 	//checking for doubled results;
@@ -306,7 +306,7 @@ START_SECTION((void findSpec(std::vector< std::vector< std::pair< std::pair< Sig
 		for (Size j = 0;j<res.at(i).size();++j)
 		{
 			String seq = txt.substr(res.at(i).at(j).first.first,res.at(i).at(j).first.second);
-			DoubleReal m = EmpiricalFormula("H2O").getMonoWeight();
+			double m = EmpiricalFormula("H2O").getMonoWeight();
 			for (Size k = 0; k < seq.length();++k)
 			{
 				m += masse[(int)seq[k]];
@@ -397,7 +397,7 @@ START_SECTION((void findSpec(std::vector< std::vector< std::pair< std::pair< Sig
 		for (Size j = 0;j<res.at(i).size();j++)
 		{
 			String seq = txt.substr(res.at(i).at(j).first.first,res.at(i).at(j).first.second);
-			DoubleReal m = EmpiricalFormula("H2O").getMonoWeight();
+			double m = EmpiricalFormula("H2O").getMonoWeight();
 			for (Size k = 0; k < seq.length();k++)
 			{
 				m += masse[(int)seq[k]];
@@ -415,7 +415,7 @@ START_SECTION((void findSpec(std::vector< std::vector< std::pair< std::pair< Sig
 	spec.clear();
 	spec.push_back(441.4806);
 	spec.push_back(441.4806);
-	const vector<DoubleReal> specc4 (spec);
+	const vector<double> specc4 (spec);
 	sa->setNumberOfModifications(0);
 	sa->setUseTags(false);
 	res.clear();

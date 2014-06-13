@@ -63,8 +63,7 @@ namespace OpenMS
     data_ = rhs.data_;
     model_type_ = "none";
     model_ = 0;     // initialize this before the "delete" call in "fitModel"!
-    Param params;
-    rhs.getModelParameters(params);
+    Param params = rhs.getModelParameters();
     fitModel(rhs.model_type_, params);
   }
 
@@ -76,8 +75,7 @@ namespace OpenMS
 
     data_ = rhs.data_;
     model_type_ = "none";
-    Param params;
-    rhs.getModelParameters(params);
+    Param params = rhs.getModelParameters();
     fitModel(rhs.model_type_, params);
 
     return *this;
@@ -100,7 +98,7 @@ namespace OpenMS
     {
       model_ = new TransformationModelLinear(data_, params);
       // // debug output:
-      // DoubleReal slope, intercept;
+      // double slope, intercept;
       // TransformationModelLinear* lm = dynamic_cast<TransformationModelLinear*>(model_);
       // lm->getParameters(slope, intercept);
       // cout << "slope: " << slope << ", intercept: " << intercept << endl;
@@ -109,10 +107,6 @@ namespace OpenMS
     {
       model_ = new TransformationModelInterpolated(data_, params);
     }
-    else if (model_type == "b_spline")
-    {
-      model_ = new TransformationModelBSpline(data_, params);
-    }
     else
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, __PRETTY_FUNCTION__, "unknown model type '" + model_type + "'");
@@ -120,7 +114,7 @@ namespace OpenMS
     model_type_ = model_type;
   }
 
-  DoubleReal TransformationDescription::apply(DoubleReal value) const
+  double TransformationDescription::apply(double value) const
   {
     return model_->evaluate(value);
   }
@@ -150,9 +144,9 @@ namespace OpenMS
     return data_;
   }
 
-  void TransformationDescription::getModelParameters(Param & params) const
+  const Param& TransformationDescription::getModelParameters() const
   {
-    model_->getParameters(params);
+    return model_->getParameters();
   }
 
   void TransformationDescription::invert()
@@ -171,8 +165,7 @@ namespace OpenMS
     }
     else
     {
-      Param params;
-      getModelParameters(params);
+      Param params = getModelParameters();
       fitModel(model_type_, params);
     }
   }

@@ -57,8 +57,8 @@ namespace OpenMS
 
   void GaussFilter::updateMembers_()
   {
-    gauss_algo_.initialize((DoubleReal)param_.getValue("gaussian_width"), spacing_,
-            (DoubleReal)param_.getValue("ppm_tolerance"), param_.getValue("use_ppm_tolerance").toBool());
+    gauss_algo_.initialize((double)param_.getValue("gaussian_width"), spacing_,
+            (double)param_.getValue("ppm_tolerance"), param_.getValue("use_ppm_tolerance").toBool());
   }
 
 }

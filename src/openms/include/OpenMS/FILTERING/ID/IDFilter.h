@@ -78,7 +78,7 @@ public:
       if (identifications.size() == 0) return false;
 
       bool is_higher_score_better = identifications[0].isHigherScoreBetter();
-      DoubleReal best_score = (is_higher_score_better ? -1 : 1) * std::numeric_limits<DoubleReal>::max(); // worst score we can think of
+      double best_score = (is_higher_score_better ? -1 : 1) * std::numeric_limits<double>::max(); // worst score we can think of
 
       Size best_i_index(0), best_h_index(0);
       Size max_h(-1);
@@ -91,7 +91,7 @@ public:
         max_h = (assume_sorted ? 1 : identifications[i].getHits().size());        
         for (Size h = 0; h < max_h; ++h)
         {
-          DoubleReal score = identifications[i].getHits()[h].getScore();
+          double score = identifications[i].getHits()[h].getScore();
           // better score?
           if (score > best_score * (is_higher_score_better ? 1 : -1))
           {
@@ -111,7 +111,7 @@ public:
 
     /// filters a ProteinIdentification or PeptideIdentification by only allowing peptides/proteins which reach a score above @p threshold_fraction * SignificanceThreshold
     template <class IdentificationType>
-    void filterIdentificationsByThreshold(const IdentificationType& identification, DoubleReal threshold_fraction, IdentificationType& filtered_identification)
+    void filterIdentificationsByThreshold(const IdentificationType& identification, double threshold_fraction, IdentificationType& filtered_identification)
     {
       typedef typename IdentificationType::HitType HitType;
       std::vector<HitType> temp_hits;
@@ -145,7 +145,7 @@ public:
       @p threshold_score are removed.
     */
     template <class IdentificationType>
-    void filterIdentificationsByScore(const IdentificationType& identification, DoubleReal threshold_score, IdentificationType& filtered_identification)
+    void filterIdentificationsByScore(const IdentificationType& identification, double threshold_score, IdentificationType& filtered_identification)
     {
       typedef typename IdentificationType::HitType HitType;
       std::vector<HitType> temp_hits;
@@ -275,7 +275,7 @@ public:
 
        @returns Whether the peptide ID passes the check
     */
-    bool filterIdentificationsByMetaValueRange(const PeptideIdentification& identification, const String& key, DoubleReal low, DoubleReal high, bool missing = false);
+    bool filterIdentificationsByMetaValueRange(const PeptideIdentification& identification, const String& key, double low, double high, bool missing = false);
     
     /// filters a PeptideIdentification corresponding to the given proteins
     /// PeptideHits with no matching @em proteins are removed.
@@ -309,16 +309,24 @@ public:
     void filterIdentificationsUnique(const PeptideIdentification& identification, PeptideIdentification& filtered_identification);
 
     /// filter identifications by deviation to the theoretical mass
-    void filterIdentificationsByMzError(const PeptideIdentification& identification, DoubleReal mass_error, bool unit_ppm, PeptideIdentification& filtered_identification);
+    void filterIdentificationsByMzError(const PeptideIdentification& identification, double mass_error, bool unit_ppm, PeptideIdentification& filtered_identification);
 
-    /**
+    /// only peptides that are in a certain precursor RT range will be kept
+    /// Peptides with no RT value will be removed in any case
+    void filterIdentificationsByRT(const std::vector<PeptideIdentification>& identifications, double min_rt, double max_rt, std::vector<PeptideIdentification>& filtered_identifications);
+
+    /// only peptides that are in a certain precursor MZ range will be kept
+    /// Peptides with no MZ value will be removed in any case
+    void filterIdentificationsByMZ(const std::vector<PeptideIdentification>& identifications, double min_mz, double max_mz, std::vector<PeptideIdentification>& filtered_identifications);
+
+	/**
           @brief Filters the peptide hits according to their predicted rt p-values
 
           Filters the peptide hits of this ProteinIdentification by the
           probability (p-value) of a correct ProteinIdentification having a deviation between
           observed and predicted rt equal or bigger than allowed.
       */
-    void filterIdentificationsByRTPValues(const PeptideIdentification& identification, PeptideIdentification& filtered_identification, DoubleReal p_value = 0.05);
+    void filterIdentificationsByRTPValues(const PeptideIdentification& identification, PeptideIdentification& filtered_identification, double p_value = 0.05);
 
     /**
           @brief Filters the peptide hits according to their predicted rt p-values of the first dimension
@@ -327,11 +335,11 @@ public:
           probability (p-value) of a correct ProteinIdentification having a deviation between
           observed and predicted rt equal or bigger than allowed.
       */
-    void filterIdentificationsByRTFirstDimPValues(const PeptideIdentification& identification, PeptideIdentification& filtered_identification, DoubleReal p_value = 0.05);
+    void filterIdentificationsByRTFirstDimPValues(const PeptideIdentification& identification, PeptideIdentification& filtered_identification, double p_value = 0.05);
 
     /// filters an MS/MS experiment corresponding to the threshold_fractions
     template <class PeakT>
-    void filterIdentificationsByThresholds(MSExperiment<PeakT>& experiment, DoubleReal peptide_threshold_fraction, DoubleReal protein_threshold_fraction)
+    void filterIdentificationsByThresholds(MSExperiment<PeakT>& experiment, double peptide_threshold_fraction, double protein_threshold_fraction)
     {
       //filter protein hits
       ProteinIdentification temp_protein_identification;
@@ -368,7 +376,7 @@ public:
 
     /// filters an MS/MS experiment corresponding to the threshold_fractions
     template <class PeakT>
-    void filterIdentificationsByScores(MSExperiment<PeakT>& experiment, DoubleReal peptide_threshold_score, DoubleReal protein_threshold_score)
+    void filterIdentificationsByScores(MSExperiment<PeakT>& experiment, double peptide_threshold_score, double protein_threshold_score)
     {
       //filter protein hits
       ProteinIdentification temp_protein_identification;

@@ -87,12 +87,12 @@ public:
     /** @name Accessors
      */
     //@{
-    void scoreSpectrum(Map<DoubleReal, IonScore> & CID_ion_scores, PeakSpectrum & CID_spec, DoubleReal precursor_weight, Size charge);
+    void scoreSpectrum(Map<double, IonScore> & CID_ion_scores, PeakSpectrum & CID_spec, double precursor_weight, Size charge);
     //@}
 
 protected:
 
-    void scoreWitnessSet_(Size charge, DoubleReal precursor_weight, Map<DoubleReal, IonScore> & CID_nodes, const PeakSpectrum & CID_orig_spec);
+    void scoreWitnessSet_(Size charge, double precursor_weight, Map<double, IonScore> & CID_nodes, const PeakSpectrum & CID_orig_spec);
   };
 
 }

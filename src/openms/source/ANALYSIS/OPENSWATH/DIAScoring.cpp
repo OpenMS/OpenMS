@@ -78,10 +78,10 @@ namespace OpenMS
 
   void DIAScoring::updateMembers_()
   {
-    dia_extract_window_ = (DoubleReal)param_.getValue("dia_extraction_window");
+    dia_extract_window_ = (double)param_.getValue("dia_extraction_window");
     dia_centroided_ = param_.getValue("dia_centroided").toBool();
-    dia_byseries_intensity_min_ = (DoubleReal)param_.getValue("dia_byseries_intensity_min");
-    dia_byseries_ppm_diff_ = (DoubleReal)param_.getValue("dia_byseries_ppm_diff");
+    dia_byseries_intensity_min_ = (double)param_.getValue("dia_byseries_intensity_min");
+    dia_byseries_ppm_diff_ = (double)param_.getValue("dia_byseries_ppm_diff");
 
     dia_nr_isotopes_ = (int)param_.getValue("dia_nr_isotopes");
     dia_nr_charges_ = (int)param_.getValue("dia_nr_charges");
@@ -225,8 +225,8 @@ namespace OpenMS
       // collect the potential isotopes of this peak
       for (int iso = 0; iso <= dia_nr_isotopes_; ++iso)
       {
-        double left = transitions[k].getProductMZ() - dia_extract_window_ / 2.0 + iso * C13C12_MASSDIFF_U / static_cast<DoubleReal>(putative_fragment_charge);
-        double right = transitions[k].getProductMZ() + dia_extract_window_ / 2.0 + iso * C13C12_MASSDIFF_U / static_cast<DoubleReal>(putative_fragment_charge);
+        double left = transitions[k].getProductMZ() - dia_extract_window_ / 2.0 + iso * C13C12_MASSDIFF_U / static_cast<double>(putative_fragment_charge);
+        double right = transitions[k].getProductMZ() + dia_extract_window_ / 2.0 + iso * C13C12_MASSDIFF_U / static_cast<double>(putative_fragment_charge);
         double mz, intensity;
         integrateWindow(spectrum, left, right, mz, intensity, dia_centroided_);
         isotopes_int.push_back(intensity);
@@ -242,7 +242,7 @@ namespace OpenMS
   }
 
   /// Search for a large peak _before_ (lower m/z) the current peak
-  DoubleReal DIAScoring::largePeaksBeforeFirstIsotope_(double product_mz,
+  double DIAScoring::largePeaksBeforeFirstIsotope_(double product_mz,
                                                       SpectrumType& spectrum, double max_ppm_diff, double main_peak)
   {
     double result = 0;
@@ -250,8 +250,8 @@ namespace OpenMS
 
     for (int ch = 1; ch <= dia_nr_charges_; ++ch)
     {
-      double left = product_mz - dia_extract_window_ / 2.0 - C13C12_MASSDIFF_U / (DoubleReal) ch;
-      double right = product_mz + dia_extract_window_ / 2.0 - C13C12_MASSDIFF_U / (DoubleReal) ch;
+      double left = product_mz - dia_extract_window_ / 2.0 - C13C12_MASSDIFF_U / (double) ch;
+      double right = product_mz + dia_extract_window_ / 2.0 - C13C12_MASSDIFF_U / (double) ch;
       integrateWindow(spectrum, left, right, mz, intensity, dia_centroided_);
       if (mz == -1)
       {
@@ -263,7 +263,7 @@ namespace OpenMS
       {
         ratio = 0;
       }
-      double ddiff_ppm = std::fabs(mz - (product_mz - 1.0 / (DoubleReal) ch)) * 1000000 / product_mz;
+      double ddiff_ppm = std::fabs(mz - (product_mz - 1.0 / (double) ch)) * 1000000 / product_mz;
 
       // FEATURE we should fit a theoretical distribution to see whether we really are a secondary peak
       if (ratio > 1 && ddiff_ppm < max_ppm_diff)
@@ -281,13 +281,12 @@ namespace OpenMS
   }
 
   /// Compare an experimental isotope pattern to a theoretical one
-  DoubleReal DIAScoring::scoreIsotopePattern_(double product_mz,
+  double DIAScoring::scoreIsotopePattern_(double product_mz,
                                              const std::vector<double>& isotopes_int, int putative_fragment_charge)
   {
     OPENMS_PRECONDITION(putative_fragment_charge > 0, "Charge is a positive integer");
 
     typedef OpenMS::FeatureFinderAlgorithmPickedHelperStructs::TheoreticalIsotopePattern TheoreticalIsotopePattern;
-    typedef OpenMS::FeatureFinderAlgorithmPickedHelperStructs::IsotopePattern IsotopePattern;
 
     // create the theoretical distribution
     IsotopeDistribution d;
@@ -305,7 +304,7 @@ namespace OpenMS
     isotopes.optional_end = dia_nr_isotopes_;
 
     //scale the distribution to a maximum of 1
-    DoubleReal max = 0.0;
+    double max = 0.0;
     for (Size i = 0; i < isotopes.intensity.size(); ++i)
     {
       if (isotopes.intensity[i] > max)
@@ -321,7 +320,7 @@ namespace OpenMS
     isotopes.trimmed_left = 0;
 
     // score the pattern against a theoretical one
-    DoubleReal int_score = OpenSwath::cor_pearson(isotopes_int.begin(), isotopes_int.end(), isotopes.intensity.begin());
+    double int_score = OpenSwath::cor_pearson(isotopes_int.begin(), isotopes_int.end(), isotopes.intensity.begin());
     if (boost::math::isnan(int_score))
     {
       int_score = 0;

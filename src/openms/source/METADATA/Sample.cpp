@@ -195,32 +195,32 @@ namespace OpenMS
     state_ = state;
   }
 
-  DoubleReal Sample::getMass() const
+  double Sample::getMass() const
   {
     return mass_;
   }
 
-  void Sample::setMass(DoubleReal mass)
+  void Sample::setMass(double mass)
   {
     mass_ = mass;
   }
 
-  DoubleReal Sample::getVolume() const
+  double Sample::getVolume() const
   {
     return volume_;
   }
 
-  void Sample::setVolume(DoubleReal volume)
+  void Sample::setVolume(double volume)
   {
     volume_ = volume;
   }
 
-  DoubleReal Sample::getConcentration() const
+  double Sample::getConcentration() const
   {
     return concentration_;
   }
 
-  void Sample::setConcentration(DoubleReal concentration)
+  void Sample::setConcentration(double concentration)
   {
     concentration_ = concentration;
   }

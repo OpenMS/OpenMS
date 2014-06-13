@@ -69,8 +69,8 @@ public:
       Size feature;
       Int scan;
       Size variable;
-      DoubleReal rt_probability;
-      DoubleReal signal_weight;
+      double rt_probability;
+      double signal_weight;
       String prot_acc;
     };
 
@@ -174,7 +174,7 @@ protected:
 
     template <typename InputPeakType>
     void getXIC_(const std::vector<std::pair<Size, Size> > & end_points,
-                 std::vector<DoubleReal> & weights,
+                 std::vector<double> & weights,
                  const MSExperiment<InputPeakType> & experiment,
                  const bool normalize);
 
@@ -182,7 +182,7 @@ protected:
       @brief Calculates the XICs for all features.
     */
     template <typename InputPeakType>
-    void calculateXICs_(std::vector<std::vector<DoubleReal> > & xics,
+    void calculateXICs_(std::vector<std::vector<double> > & xics,
                         const FeatureMap<> & features,
                         const MSExperiment<InputPeakType> & experiment,
                         const std::vector<std::vector<std::pair<Size, Size> > > & mass_ranges,
@@ -191,18 +191,18 @@ protected:
     /**
       @brief Creates and solves the ILP.
     */
-    void createAndSolveILP_(const FeatureMap<> & features, std::vector<std::vector<DoubleReal> > & intensity_weights,
+    void createAndSolveILP_(const FeatureMap<> & features, std::vector<std::vector<double> > & intensity_weights,
                             std::set<Int> & charges_set, std::vector<std::vector<std::pair<Size, Size> > > & mass_ranges,
                             std::vector<IndexTriple> & variable_indices, std::vector<int> & solution_indices,
                             UInt ms2_spectra_per_rt_bin, Size number_of_scans);
 
-    void createAndSolveCombinedLPFeatureBased_(const FeatureMap<> & features, std::vector<std::vector<DoubleReal> > & intensity_weights,
+    void createAndSolveCombinedLPFeatureBased_(const FeatureMap<> & features, std::vector<std::vector<double> > & intensity_weights,
                                                std::set<Int> & charges_set, std::vector<std::vector<std::pair<Size, Size> > > & mass_ranges,
                                                std::vector<IndexTriple> & variable_indices, std::vector<Int> & solution_indices,
                                                UInt ms2_spectra_per_rt_bin, Size number_of_scans, Size step_size = 0, bool sequential_order = false);
 
     void addProteinToILP_(PrecursorIonSelectionPreprocessing & preprocessing,
-                          std::map<String, std::vector<DoubleReal> >::const_iterator map_iter,
+                          std::map<String, std::vector<double> >::const_iterator map_iter,
                           Size & counter, Size & pep_counter, Size & feature_counter,
                           std::vector<IndexTriple> & variable_indices,
                           std::map<String, Size> & protein_penalty_index_map, FeatureMap<> & precursors);
@@ -234,15 +234,15 @@ protected:
 
   template <typename InputPeakType>
   void PSLPFormulation::getXIC_(const std::vector<std::pair<Size, Size> > & end_points,
-                                std::vector<DoubleReal> & weights,
+                                std::vector<double> & weights,
                                 const MSExperiment<InputPeakType> & experiment,
                                 const bool normalize)
   {
-    DoubleReal max_weight = 0.;
+    double max_weight = 0.;
     weights.clear();
     for (Size i = 0; i < end_points.size(); i += 2)
     {
-      DoubleReal weight = 0.;
+      double weight = 0.;
       for (Size j = end_points[i].second; j <= end_points[i + 1].second; ++j)
       {
         weight += experiment[end_points[i].first][j].getIntensity();
@@ -272,7 +272,7 @@ protected:
   }
 
   template <typename InputPeakType>
-  void PSLPFormulation::calculateXICs_(std::vector<std::vector<DoubleReal> > & xics,
+  void PSLPFormulation::calculateXICs_(std::vector<std::vector<double> > & xics,
                                        const FeatureMap<> & features,
                                        const MSExperiment<InputPeakType> & experiment,
                                        const std::vector<std::vector<std::pair<Size, Size> > > & mass_ranges,
@@ -295,7 +295,7 @@ protected:
                                                                      std::vector<int> & solution_indices)
   {
 
-    std::vector<std::vector<DoubleReal> > intensity_weights;
+    std::vector<std::vector<double> > intensity_weights;
     if (param_.getValue("feature_based:no_intensity_normalization") == "false")
     {
       calculateXICs_(intensity_weights, features, experiment, mass_ranges, true);
@@ -328,7 +328,7 @@ protected:
                                                                             Size step_size, bool sequential_order)
   {
 
-    std::vector<std::vector<DoubleReal> > intensity_weights;
+    std::vector<std::vector<double> > intensity_weights;
     calculateXICs_(intensity_weights, features, experiment, mass_ranges, true);
 #ifdef DEBUG_OPS
     std::cout << "got xics" << std::endl;

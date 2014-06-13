@@ -48,24 +48,24 @@ MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("PeakPickerHiRes_orbitrap.mzML"), inpu
 
 TOLERANCE_RELATIVE(1.001);
 
-START_SECTION(static void estimateSpectrumFWHM(const MSSpectrum<> &, std::set<boost::tuple<DoubleReal, DoubleReal, DoubleReal> > &))
+START_SECTION(static void estimateSpectrumFWHM(const MSSpectrum<> &, std::set<boost::tuple<double, double, double> > &))
 {
-  typedef std::set<boost::tuple<DoubleReal, DoubleReal, DoubleReal> > Fwhm;
+  typedef std::set<boost::tuple<double, double, double> > Fwhm;
   Fwhm fwhm;
   PeakWidthEstimator::estimateSpectrumFWHM(input[0], fwhm);
-  TEST_EQUAL(fwhm.size(), 155);
+  TEST_EQUAL(fwhm.size(), 34);
   Fwhm::const_reverse_iterator it = fwhm.rbegin();
-  TEST_REAL_SIMILAR(it->get<0>(), 202394.);
-  TEST_REAL_SIMILAR(it->get<1>(), 591.358);
-  TEST_REAL_SIMILAR(it->get<2>(), .010647);
+  TEST_REAL_SIMILAR(it->get<0>(), 70077.03125);
+  TEST_REAL_SIMILAR(it->get<1>(), 373.233354572207);
+  TEST_REAL_SIMILAR(it->get<2>(), 0.00534878671169281);
 }
 END_SECTION
 
 START_SECTION(static Result estimateFWHM(const MSExperiment<> &))
 {
   PeakWidthEstimator::Result r(PeakWidthEstimator::estimateFWHM(input));
-  TEST_REAL_SIMILAR(r.c0, -14.15849);
-  TEST_REAL_SIMILAR(r.c1, 1.50632);
+  TEST_REAL_SIMILAR(r.c0, -13.3983270252558);
+  TEST_REAL_SIMILAR(r.c1, 1.3776281072285);
 }
 END_SECTION
 

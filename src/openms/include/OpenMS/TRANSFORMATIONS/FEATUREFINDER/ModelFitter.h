@@ -40,7 +40,6 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ProductModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ExtendedIsotopeModel.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/LmaIsotopeModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/Fitter1D.h>
 #include <OpenMS/MATH/STATISTICS/AsymmetricStatistics.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
@@ -49,8 +48,11 @@
 
 #include <boost/math/special_functions/fpclassify.hpp>
 
+#ifdef DEBUG_FEATUREFINDER
 #include <iostream>
 #include <fstream>
+#endif
+
 #include <numeric>
 #include <cmath>
 #include <vector>
@@ -293,7 +295,7 @@ public:
             IntensityType model_int = model2D_.getIntensity(DPosition<2>(this->getPeakRt(*it), this->getPeakMz(*it)));
             if (model_int > model_max) model_max = model_int;
           }
-          model2D_.setCutOff(model_max * Real(this->param_.getValue("intensity_cutoff_factor")));
+          model2D_.setCutOff(model_max * float(this->param_.getValue("intensity_cutoff_factor")));
 
           // Cutoff low intensities wrt to model maximum -> cutoff independent of scaling
           IndexSet model_set;
@@ -348,11 +350,7 @@ public:
           // feature charge ...
           // if we used a simple Gaussian model to fit the feature, we can't say anything about
           // its charge state. The value 0 indicates that charge state is undetermined.
-          if (model2D_.getModel(MZ)->getName() == "LmaIsotopeModel")
-          {
-            f.setCharge(static_cast<LmaIsotopeModel *>(model2D_.getModel(MZ))->getCharge());
-          }
-          else if (model2D_.getModel(MZ)->getName() == "IsotopeModel")
+          if (model2D_.getModel(MZ)->getName() == "IsotopeModel")
           {
             f.setCharge(static_cast<IsotopeModel *>(model2D_.getModel(MZ))->getCharge());
           }
@@ -475,7 +473,7 @@ public:
       // not enough peaks left for feature
 
       // fit has too low quality or fit was not possible i.e. because of zero stdev
-      if (best_feature.getOverallQuality() < (Real) (this->param_.getValue("quality:minimum")))
+      if (best_feature.getOverallQuality() < (float) (this->param_.getValue("quality:minimum")))
       {
         String mess = String("Skipping feature, correlation too small: ") + best_feature.getOverallQuality();
         throw Exception::UnableToFit(__FILE__, __LINE__, __PRETTY_FUNCTION__, "UnableToFit-Correlation", mess.c_str());
@@ -545,7 +543,7 @@ protected:
       QualityType max_quality_mz = -std::numeric_limits<QualityType>::max();
 
       InterpolationModel * best_model_mz = 0;
-      for (Real stdev = iso_stdev_first_; stdev <= iso_stdev_last_; stdev += iso_stdev_stepsize_)
+      for (float stdev = iso_stdev_first_; stdev <= iso_stdev_last_; stdev += iso_stdev_stepsize_)
       {
         isotope_stdev_ = stdev;
 
@@ -581,9 +579,9 @@ protected:
       // Calculate the pearson correlation coefficient for the values in [begin_a, end_a) and [begin_b, end_b)
       if (algorithm_ != "")
       {
-        std::vector<Real> real_data;
+        std::vector<float> real_data;
         real_data.reserve(set.size());
-        std::vector<Real> model_data;
+        std::vector<float> model_data;
         model_data.reserve(set.size());
 
         for (IndexSet::const_iterator it = set.begin(); it != set.end(); ++it)
@@ -665,30 +663,10 @@ protected:
         param.setValue("statistics:mean", monoisotopic_mz_);
       }
 
-      if (charge != 0)       // charge is not zero
-      {
-        param.setValue("charge", charge);
-        param.setValue("isotope:stdev", isotope_stdev_);
-        param.setValue("isotope:maximum", max_isotope_);
-        fitter = Factory<Fitter1D>::create("IsotopeFitter1D");
-      }
-      else       // charge is zero
-      {
-        if (algorithm_ == "simplest")       // Fit with GaussModel
-        {
-          param.setValue("charge", charge);
-          param.setValue("isotope:stdev", isotope_stdev_);
-          param.setValue("isotope:maximum", max_isotope_);
-          fitter = Factory<Fitter1D>::create("IsotopeFitter1D");
-        }
-        else         // Fit with LmaGaussModel
-        {
-          param.setValue("max_iteration", max_iteration_);
-          param.setValue("deltaAbsError", deltaAbsError_);
-          param.setValue("deltaRelError", deltaRelError_);
-          fitter = Factory<Fitter1D>::create("LmaGaussFitter1D");
-        }
-      }
+      param.setValue("charge", charge);
+      param.setValue("isotope:stdev", isotope_stdev_);
+      param.setValue("isotope:maximum", max_isotope_);
+      fitter = Factory<Fitter1D>::create("IsotopeFitter1D");
 
       // Set parameter for fitter
       fitter->setParameters(param);

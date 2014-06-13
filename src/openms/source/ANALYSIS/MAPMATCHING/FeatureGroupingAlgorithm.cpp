@@ -39,6 +39,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmLabeled.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmUnlabeled.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmQT.h>
+#include <OpenMS/KERNEL/ConversionHelper.h>
 
 using namespace std;
 
@@ -67,7 +68,7 @@ namespace OpenMS
     for (Size i = 0; i < maps.size(); ++i)
     {
       FeatureMap<> fm;
-      ConsensusMap::convert(maps[i], true, fm);
+      MapConversion::convert(maps[i], true, fm);
       maps_f.push_back(fm);
     }
     // call FeatureMap version of group()

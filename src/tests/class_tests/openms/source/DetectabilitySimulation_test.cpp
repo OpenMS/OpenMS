@@ -53,14 +53,14 @@ DetectabilitySimulation* ptr = 0;
 DetectabilitySimulation* nullPointer = 0;
 START_SECTION(DetectabilitySimulation())
 {
-	ptr = new DetectabilitySimulation();
-	TEST_NOT_EQUAL(ptr, nullPointer)
+  ptr = new DetectabilitySimulation();
+  TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 
 START_SECTION(~DetectabilitySimulation())
 {
-	delete ptr;
+  delete ptr;
 }
 END_SECTION
 
@@ -81,12 +81,12 @@ START_SECTION((DetectabilitySimulation& operator=(const DetectabilitySimulation 
   DetectabilitySimulation detect_sim1;
   DetectabilitySimulation detect_sim2(detect_sim1);
 
-	Param p = detect_sim1.getParameters();
-	p.setValue("min_detect", 0.0);
-	detect_sim1.setParameters(p);
-	TEST_NOT_EQUAL(detect_sim1.getParameters(),detect_sim2.getParameters());
-	detect_sim2 = detect_sim1;
-	TEST_EQUAL(detect_sim2.getParameters(),detect_sim2.getParameters());
+  Param p = detect_sim1.getParameters();
+  p.setValue("min_detect", 0.0);
+  detect_sim1.setParameters(p);
+  TEST_NOT_EQUAL(detect_sim1.getParameters(),detect_sim2.getParameters());
+  detect_sim2 = detect_sim1;
+  TEST_EQUAL(detect_sim2.getParameters(),detect_sim2.getParameters());
 }
 END_SECTION
 
@@ -105,7 +105,7 @@ START_SECTION((void filterDetectability(FeatureMapSim & features)))
   {
     Feature f;
     PeptideIdentification pep_id;
-    pep_id.insertHit(PeptideHit(1.0, 1, 1, AASequence(*it)));
+    pep_id.insertHit(PeptideHit(1.0, 1, 1, AASequence::fromString(*it)));
     f.getPeptideIdentifications().push_back(pep_id);
     f.setIntensity(10);
     no_detect_features.push_back(f);
@@ -128,15 +128,15 @@ START_SECTION((void filterDetectability(FeatureMapSim & features)))
   detect_svm.setParameters(svm_params);
 
   FeatureMapSim svm_features;
-	for (StringList::const_iterator it=peps.begin(); it!=peps.end(); ++it)
-	{
-		Feature f;
-		PeptideIdentification pep_id;
-		pep_id.insertHit(PeptideHit(1.0, 1, 1, AASequence(*it)));
-		f.getPeptideIdentifications().push_back(pep_id);
-		f.setIntensity(10);
-		svm_features.push_back(f);
-	}
+  for (StringList::const_iterator it=peps.begin(); it!=peps.end(); ++it)
+  {
+    Feature f;
+    PeptideIdentification pep_id;
+    pep_id.insertHit(PeptideHit(1.0, 1, 1, AASequence::fromString(*it)));
+    f.getPeptideIdentifications().push_back(pep_id);
+    f.setIntensity(10);
+    svm_features.push_back(f);
+  }
 
   detect_svm.filterDetectability(svm_features);
 
@@ -156,7 +156,7 @@ START_SECTION((void filterDetectability(FeatureMapSim & features)))
 }
 END_SECTION
 
-START_SECTION((void predictDetectabilities(std::vector<String>& peptides_vector,std::vector<DoubleReal>& labels, std::vector<DoubleReal>& detectabilities)))
+START_SECTION((void predictDetectabilities(std::vector<String>& peptides_vector,std::vector<double>& labels, std::vector<double>& detectabilities)))
 {
   // this method is called by "filterDetectability" so we already test it
   NOT_TESTABLE

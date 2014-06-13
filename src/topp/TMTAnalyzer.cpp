@@ -207,11 +207,11 @@ protected:
     if (!out_mzq.trim().empty())
     {
       MSQuantifications msq;
-      std::vector<std::vector<std::pair<String, DoubleReal> > > labels;
-      for (Size i = 0; i < ItraqConstants::CHANNEL_COUNT[ItraqConstants::TMT_SIXPLEX]; ++i)
+      std::vector<std::vector<std::pair<String, double> > > labels;
+      for (Size i = 0; i < static_cast<Size>(ItraqConstants::CHANNEL_COUNT[ItraqConstants::TMT_SIXPLEX]); ++i)
       {
-        std::vector<std::pair<String, DoubleReal> > one_label;
-        one_label.push_back(std::make_pair<String, DoubleReal>(String("Channel ") + String(ItraqConstants::CHANNELS_TMT_SIXPLEX[i][0]), DoubleReal(ItraqConstants::CHANNELS_FOURPLEX[i][0])));
+        std::vector<std::pair<String, double> > one_label;
+        one_label.push_back(std::make_pair<String, double>(String("Channel ") + String(ItraqConstants::CHANNELS_TMT_SIXPLEX[i][0]), double(ItraqConstants::CHANNELS_FOURPLEX[i][0])));
         labels.push_back(one_label);
       }
       msq.registerExperiment(exp, labels);       //add assays

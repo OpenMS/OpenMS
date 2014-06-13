@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
 // ETH Zurich, and Freie Universitaet Berlin 2002-2013.
-// 
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Andreas Bertsch $
 // $Authors: Marc Sturm $
@@ -45,7 +45,7 @@
 using namespace OpenMS;
 using namespace std;
 
-DRange<1> makeRange(DoubleReal a, DoubleReal b)
+DRange<1> makeRange(double a, double b)
 {
 	DPosition<1> pa(a), pb(b);
 	return DRange<1>(pa, pb);
@@ -172,7 +172,7 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 		TEST_EQUAL(e[i].getDataProcessing()[1].getSoftware().getName(), "MS-Y");
 		TEST_EQUAL(e[i].getDataProcessing()[1].getSoftware().getVersion(), "1.1");
 		TEST_STRING_EQUAL(e[i].getDataProcessing()[1].getMetaValue("#type").toString(), "processing");
-		TEST_REAL_SIMILAR((DoubleReal)(e[i].getDataProcessing()[1].getMetaValue("#intensity_cutoff")), 3.4);
+		TEST_REAL_SIMILAR((double)(e[i].getDataProcessing()[1].getMetaValue("#intensity_cutoff")), 3.4);
 		TEST_STRING_EQUAL(e[i].getDataProcessing()[1].getMetaValue("processing 3").toString(), "done 3");
 		TEST_EQUAL(e[i].getDataProcessing()[1].getCompletionTime().get(), "0000-00-00 00:00:00");
 		TEST_EQUAL(e[i].getDataProcessing()[1].getProcessingActions().size(),3)
@@ -180,7 +180,7 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 		TEST_EQUAL(e[i].getDataProcessing()[1].getProcessingActions().count(DataProcessing::CHARGE_DECONVOLUTION),1)
 		TEST_EQUAL(e[i].getDataProcessing()[1].getProcessingActions().count(DataProcessing::PEAK_PICKING),1)
 	}
-	
+
 	//---------------------------------------------------------------------------
   // instrument
   //---------------------------------------------------------------------------
@@ -240,7 +240,7 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
  	TEST_EQUAL(e.getSample().getMass(), 0.0f)
 	TEST_EQUAL(e.getSample().getVolume(), 0.0f)
 	TEST_EQUAL(e.getSample().getConcentration(), 0.0f)
-	
+
 	//---------------------------------------------------------------------------
 	// precursors
 	//---------------------------------------------------------------------------
@@ -248,13 +248,13 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 	TEST_EQUAL(e[1].getPrecursors().size(),0)
 	TEST_EQUAL(e[2].getPrecursors().size(),0)
 	TEST_EQUAL(e[3].getPrecursors().size(),3)
-	
+
 	TEST_REAL_SIMILAR(e[3].getPrecursors()[0].getMZ(),101.0)
 	TEST_REAL_SIMILAR(e[3].getPrecursors()[0].getIntensity(),100.0)
 	TEST_REAL_SIMILAR(e[3].getPrecursors()[0].getIsolationWindowLowerOffset(),5)
 	TEST_REAL_SIMILAR(e[3].getPrecursors()[0].getIsolationWindowUpperOffset(),5)
 	TEST_EQUAL(e[3].getPrecursors()[0].getCharge(),1)
-	
+
 	TEST_REAL_SIMILAR(e[3].getPrecursors()[1].getMZ(),201.0)
 	TEST_REAL_SIMILAR(e[3].getPrecursors()[1].getIntensity(),200.0)
 	TEST_REAL_SIMILAR(e[3].getPrecursors()[1].getIsolationWindowLowerOffset(),10)
@@ -266,7 +266,7 @@ START_SECTION((template<typename MapType> void load(const String& filename, MapT
 	TEST_REAL_SIMILAR(e[3].getPrecursors()[2].getIsolationWindowLowerOffset(),15)
 	TEST_REAL_SIMILAR(e[3].getPrecursors()[2].getIsolationWindowUpperOffset(),15)
 	TEST_EQUAL(e[3].getPrecursors()[2].getCharge(),3)
-	
+
 	/////////////////////// TESTING SPECIAL CASES ///////////////////////
 
 	//load a second time to make sure everything is re-initialized correctly
@@ -468,10 +468,10 @@ START_SECTION(([EXTRA] load with intensity range))
 	TEST_REAL_SIMILAR(e[2][1].getIntensity(), 300)
 	TEST_REAL_SIMILAR(e[2][2].getPosition()[0], 130)
 	TEST_REAL_SIMILAR(e[2][2].getIntensity(), 200)
-	
-	
 
-	
+
+
+
 END_SECTION
 
 START_SECTION(([EXTRA] load/store for nested scans))
@@ -554,7 +554,7 @@ START_SECTION((template<typename MapType> void store(const String& filename, con
 	f.store(tmp_filename,e1);
 	f.load(tmp_filename,e2);
 	TEST_EQUAL(e1==e2, true);
-	
+
 END_SECTION
 
 START_SECTION([EXTRA] static bool isValid(const String& filename))
@@ -568,7 +568,7 @@ START_SECTION([EXTRA] static bool isValid(const String& filename))
 	NEW_TMP_FILE(tmp_filename);
 	f.load(OPENMS_GET_TEST_DATA_PATH("MzXMLFile_1.mzXML"),e);
   f.store(tmp_filename,e);
-  TEST_EQUAL(f.isValid(tmp_filename),true);
+  TEST_EQUAL(f.isValid(tmp_filename, std::cerr),true);
 END_SECTION
 
 /////////////////////////////////////////////////////////////

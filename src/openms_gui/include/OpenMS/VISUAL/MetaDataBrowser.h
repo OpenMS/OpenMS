@@ -35,6 +35,9 @@
 #ifndef OPENMS_VISUAL_METADATABROWSER_H
 #define OPENMS_VISUAL_METADATABROWSER_H
 
+// OpenMS_GUI config
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
+
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
@@ -253,7 +256,7 @@ protected:
     void connectVisualizer_(BaseVisualizerGUI * ptr);
 
     /// Filters hits according to a score @a threshold. Takes the score orientation into account
-    void filterHits_(DoubleReal threshold, bool higher_better, int tree_item_id);
+    void filterHits_(double threshold, bool higher_better, int tree_item_id);
     /// Shows hits.
     void showAllHits_(int tree_item_id);
 

@@ -35,7 +35,9 @@
 #ifndef OPENMS_VISUAL_TOPPASRESOURCES_H
 #define OPENMS_VISUAL_TOPPASRESOURCES_H
 
-#include <OpenMS/config.h>
+// OpenMS_GUI config
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
+
 #include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/DATASTRUCTURES/String.h>

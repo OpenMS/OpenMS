@@ -116,7 +116,7 @@ protected:
     String in(getStringOption_("in"));
     String id(getStringOption_("id"));
     String out(getStringOption_("out"));
-    DoubleReal fragment_mass_tolerance(getDoubleOption_("fragment_mass_tolerance"));
+    double fragment_mass_tolerance(getDoubleOption_("fragment_mass_tolerance"));
     AScore scoring_function;
     MzMLFile f;
     f.setLogType(log_type_);
@@ -159,13 +159,13 @@ protected:
               without_phospho_str.erase(found, String("(Phospho)").size());
               found = without_phospho_str.find("(Phospho)");
             }
-            AASequence without_phospho(without_phospho_str);
-            DoubleReal prec = hits->getMetaValue("MZ");
-            DoubleReal prec_mz = prec * scored_hit.getCharge();
+            AASequence without_phospho = AASequence::fromString(without_phospho_str);
+            double prec = hits->getMZ();
+            double prec_mz = prec * scored_hit.getCharge();
             prec_mz -= scored_hit.getCharge();
-            DoubleReal mono_weight = without_phospho.getMonoWeight();
-            DoubleReal ha = prec_mz - mono_weight;
-            DoubleReal nps = ha / 79.966331; // 79.966331 = mass of HPO3
+            double mono_weight = without_phospho.getMonoWeight();
+            double ha = prec_mz - mono_weight;
+            double nps = ha / 79.966331; // 79.966331 = mass of HPO3
             number_of_phospho_sites = (Int)floor(nps + 0.5);
           }
           PeptideHit phospho_sites;

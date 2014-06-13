@@ -99,7 +99,7 @@ namespace OpenMS
                        show_legend_, legend_, allow_short_numbers_, is_log_, is_inverse_orientation_);
   }
 
-  void AxisWidget::setAxisBounds(DoubleReal min, DoubleReal max)
+  void AxisWidget::setAxisBounds(double min, double max)
   {
     if (min >= max)
     {
@@ -236,12 +236,12 @@ namespace OpenMS
     allow_short_numbers_ = short_nums;
   }
 
-  DoubleReal AxisWidget::getAxisMinimum() const
+  double AxisWidget::getAxisMinimum() const
   {
     return min_;
   }
 
-  DoubleReal AxisWidget::getAxisMaximum() const
+  double AxisWidget::getAxisMaximum() const
   {
     return max_;
   }

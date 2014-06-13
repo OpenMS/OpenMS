@@ -35,6 +35,8 @@
 
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 
+#include <iostream>
+
 using namespace std;
 
 namespace OpenMS
@@ -360,6 +362,7 @@ namespace OpenMS
     {
       classification = classification_;
     }
+
     switch (classification)
     {
     case ARTIFACT: return "Artefact"; // return Artefact (BE) not Artifcat (AE)
@@ -396,45 +399,44 @@ namespace OpenMS
 
     default: return "Unknown";
     }
-    return "Unknown";
   }
 
-  void ResidueModification::setAverageMass(DoubleReal mass)
+  void ResidueModification::setAverageMass(double mass)
   {
     average_mass_ = mass;
   }
 
-  DoubleReal ResidueModification::getAverageMass() const
+  double ResidueModification::getAverageMass() const
   {
     return average_mass_;
   }
 
-  void ResidueModification::setMonoMass(DoubleReal mass)
+  void ResidueModification::setMonoMass(double mass)
   {
     mono_mass_ = mass;
   }
 
-  DoubleReal ResidueModification::getMonoMass() const
+  double ResidueModification::getMonoMass() const
   {
     return mono_mass_;
   }
 
-  void ResidueModification::setDiffAverageMass(DoubleReal mass)
+  void ResidueModification::setDiffAverageMass(double mass)
   {
     diff_average_mass_ = mass;
   }
 
-  DoubleReal ResidueModification::getDiffAverageMass() const
+  double ResidueModification::getDiffAverageMass() const
   {
     return diff_average_mass_;
   }
 
-  void ResidueModification::setDiffMonoMass(DoubleReal mass)
+  void ResidueModification::setDiffMonoMass(double mass)
   {
     diff_mono_mass_ = mass;
   }
 
-  DoubleReal ResidueModification::getDiffMonoMass() const
+  double ResidueModification::getDiffMonoMass() const
   {
     return diff_mono_mass_;
   }
@@ -484,22 +486,22 @@ namespace OpenMS
     return neutral_loss_diff_formula_;
   }
 
-  void ResidueModification::setNeutralLossMonoMass(DoubleReal mono_mass)
+  void ResidueModification::setNeutralLossMonoMass(double mono_mass)
   {
     neutral_loss_mono_mass_ = mono_mass;
   }
 
-  DoubleReal ResidueModification::getNeutralLossMonoMass() const
+  double ResidueModification::getNeutralLossMonoMass() const
   {
     return neutral_loss_mono_mass_;
   }
 
-  void ResidueModification::setNeutralLossAverageMass(DoubleReal average_mass)
+  void ResidueModification::setNeutralLossAverageMass(double average_mass)
   {
     neutral_loss_average_mass_ = average_mass;
   }
 
-  DoubleReal ResidueModification::getNeutralLossAverageMass() const
+  double ResidueModification::getNeutralLossAverageMass() const
   {
     return neutral_loss_average_mass_;
   }

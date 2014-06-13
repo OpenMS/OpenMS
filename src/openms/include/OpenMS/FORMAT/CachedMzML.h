@@ -142,8 +142,12 @@ public:
 
       data1->data.resize(spec_size);
       data2->data.resize(spec_size);
-      ifs.read((char*) &(data1->data)[0], spec_size * sizeof(double));
-      ifs.read((char*) &(data2->data)[0], spec_size * sizeof(double));
+
+      if (spec_size > 0)
+      {
+        ifs.read((char*) &(data1->data)[0], spec_size * sizeof(double));
+        ifs.read((char*) &(data2->data)[0], spec_size * sizeof(double));
+      }
     }
 
     /**

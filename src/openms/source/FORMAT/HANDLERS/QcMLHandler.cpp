@@ -205,13 +205,13 @@ namespace OpenMS
       {
         //TODO
         if (accession == "MOD:01522")
-          current_assay_.mods_.push_back(std::make_pair<String, DoubleReal>("114", DoubleReal(114)));
+          current_assay_.mods_.push_back(std::make_pair<String, double>("114", double(114)));
         else if (accession == "MOD:01523")
-          current_assay_.mods_.push_back(std::make_pair<String, DoubleReal>("115", DoubleReal(115)));
+          current_assay_.mods_.push_back(std::make_pair<String, double>("115", double(115)));
         else if (accession == "MOD:01524")
-          current_assay_.mods_.push_back(std::make_pair<String, DoubleReal>("116", DoubleReal(116)));
+          current_assay_.mods_.push_back(std::make_pair<String, double>("116", double(116)));
         else if (accession == "MOD:01525")
-          current_assay_.mods_.push_back(std::make_pair<String, DoubleReal>("117", DoubleReal(117)));
+          current_assay_.mods_.push_back(std::make_pair<String, double>("117", double(117)));
 
       }
       else
@@ -416,10 +416,6 @@ namespace OpenMS
         {
           softwarelist_tag += "\t\t\t<userParam name=\"" + String(dit->getSoftware().getName()) + "\"/>\n";
         }
-        if (dit->getSoftware().getName() == "SILACAnalyzer")
-        {
-          softwarelist_tag +="\t\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1001831\" name=\"SILACAnalyzer\"/>\n";
-        }
         if (dit->getSoftware().getName() == "ITRAQAnalyzer")
         {
           softwarelist_tag +="\t\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1001831\" name=\"ITRAQAnalyzer\"/>\n";
@@ -541,10 +537,10 @@ namespace OpenMS
         switch (cmsq_->getAnalysisSummary().quant_type_) //enum QUANT_TYPES {MS1LABEL=0, MS2LABEL, LABELFREE, SIZE_OF_QUANT_TYPES}; // derived from processing applied
         {
         case 0:
-          for (std::vector<std::pair<String, DoubleReal> >::const_iterator lit = ait->mods_.begin(); lit != ait->mods_.end(); ++lit)
+          for (std::vector<std::pair<String, double> >::const_iterator lit = ait->mods_.begin(); lit != ait->mods_.end(); ++lit)
           {
             String cv_acc, cv_name;
-            switch ((int)std::floor(lit->second + (DoubleReal)0.5)) //delta >! 0
+            switch ((int)std::floor(lit->second + (double)0.5)) //delta >! 0
             {
             case 6:
               cv_acc = "MOD:00544";
@@ -575,7 +571,7 @@ namespace OpenMS
         {
           //~ assay_xml += "\t\t\t\t<Modification massDelta=\"145\" residues=\"N-term\">\n";
           //~ assay_xml += "\t\t\t\t\t<cvParam name =\"itraq label\"/>\n";
-          for (std::vector<std::pair<String, DoubleReal> >::const_iterator lit = ait->mods_.begin(); lit != ait->mods_.end(); ++lit)
+          for (std::vector<std::pair<String, double> >::const_iterator lit = ait->mods_.begin(); lit != ait->mods_.end(); ++lit)
           {
             assay_xml += "\t\t\t\t<Modification massDelta=\"145\">\n";
             String cv_acc, cv_name;

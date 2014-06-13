@@ -57,6 +57,12 @@
 #include <cstddef>
 #include <vector>
 
+// defines whether to throw an exception when a number cannot be encoded safely
+// with the given parameters
+#ifndef MS_NUMPRESS_THROW_ON_OVERFLOW
+#define MS_NUMPRESS_THROW_ON_OVERFLOW true
+#endif
+
 namespace ms {
 namespace numpress {
 
@@ -69,10 +75,10 @@ namespace MSNumpress {
 	/**
 	 * Encodes the doubles in data by first using a 
 	 *   - lossy conversion to a 4 byte 5 decimal fixed point representation
-	 *   - storing the residuals from a linear prediction after first to values
+	 *   - storing the residuals from a linear prediction after first two values
 	 *   - encoding by encodeInt (see above) 
 	 * 
-	 * The resulting binary is maximally dataSize * 5 bytes, but much less if the 
+	 * The resulting binary is maximally 8 + dataSize * 5 bytes, but much less if the 
 	 * data is reasonably smooth on the first order.
 	 *
 	 * This encoding is suitable for typical m/z or retention time binary arrays. 
@@ -106,9 +112,9 @@ namespace MSNumpress {
 	/**
      * Decodes data encoded by encodeLinear. 
 	 *
-	 * result vector guaranteed to be shorter than twice the data length (in nbr of values)
+	 * result vector guaranteed to be shorter or equal to (|data| - 8) * 2
 	 *
-	 * Note that this method may throw a const char* if it deems the input data to be corrupt, ei.
+	 * Note that this method may throw a const char* if it deems the input data to be corrupt, i.e.
 	 * that the last encoded int does not use the last byte in the data. In addition the last encoded 
 	 * int need to use either the last halfbyte, or the second last followed by a 0x0 halfbyte. 
 	 *
@@ -125,7 +131,7 @@ namespace MSNumpress {
 	/**
 	 * Calls lower level decodeLinear while handling vector sizes appropriately
 	 *
-	 * Note that this method may throw a const char* if it deems the input data to be corrupt, ei.
+	 * Note that this method may throw a const char* if it deems the input data to be corrupt, i.e..
 	 * that the last encoded int does not use the last byte in the data. In addition the last encoded 
 	 * int need to use either the last halfbyte, or the second last followed by a 0x0 halfbyte. 
 	 *
@@ -140,7 +146,7 @@ namespace MSNumpress {
 	
 	
 	/**
-	 * Encodes the doubles in data by storing the residuals from a linear prediction after first to values.
+	 * Encodes the doubles in data by storing the residuals from a linear prediction after first two values.
 	 * 
 	 * The resulting binary is the same size as the input data.
 	 *
@@ -162,12 +168,14 @@ namespace MSNumpress {
 	 *
 	 * result vector is the same size as the input data.
 	 *
+	 * Might throw const char* is something goes wrong during decoding.
+	 *
 	 * @data		pointer to array of bytes to be decoded (need memorycont. repr.)
 	 * @dataSize	number of bytes from *data to decode
 	 * @result		pointer to were resulting doubles should be stored
-	 * @return		the number of decoded bytes or -1 if something went wrong.
+	 * @return		the number of decoded bytes
 	 */
-	int decodeSafe(
+	size_t decodeSafe(
 		const unsigned char *data,
 		const size_t dataSize,
 		double *result);
@@ -205,9 +213,9 @@ namespace MSNumpress {
 	/**
 	 * Decodes data encoded by encodePic
 	 *
-	 * result vector guaranteed to be shorter of equal to twice the data length (in nbr of values)
+	 * result vector guaranteed to be shorter of equal to |data| * 2
 	 *
-	 * Note that this method may throw a const char* if it deems the input data to be corrupt, ei.
+	 * Note that this method may throw a const char* if it deems the input data to be corrupt, i.e.
 	 * that the last encoded int does not use the last byte in the data. In addition the last encoded 
 	 * int need to use either the last halfbyte, or the second last followed by a 0x0 halfbyte. 
 	 *
@@ -224,7 +232,7 @@ namespace MSNumpress {
 	/**
 	 * Calls lower level decodePic while handling vector sizes appropriately
 	 *
-	 * Note that this method may throw a const char* if it deems the input data to be corrupt, ei.
+	 * Note that this method may throw a const char* if it deems the input data to be corrupt, i.e.
 	 * that the last encoded int does not use the last byte in the data. In addition the last encoded 
 	 * int need to use either the last halfbyte, or the second last followed by a 0x0 halfbyte. 
 	 *
@@ -248,7 +256,7 @@ namespace MSNumpress {
 	 * 
 	 * unsigned short fp = log(d + 1) * fixedPoint + 0.5
 	 *
-	 * result vector is exactly twice the data length (in nbr of values)
+	 * the result vector is exactly |data| * 2 + 8 bytes long
 	 *
 	 * @data		pointer to array of double to be encoded (need memorycont. repr.)
 	 * @dataSize	number of doubles from *data to encode
@@ -274,6 +282,8 @@ namespace MSNumpress {
 
 	/**
 	 * Decodes data encoded by encodeSlof
+	 *
+	 * The return will include exactly (|data| - 8) / 2 doubles.
 	 *
 	 * Note that this method may throw a const char* if it deems the input data to be corrupt.
 	 *

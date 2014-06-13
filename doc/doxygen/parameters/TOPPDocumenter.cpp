@@ -43,6 +43,7 @@
 #include <QDir>
 
 #include <fstream>
+#include <iostream>
 
 #include <boost/algorithm/string.hpp>
 
@@ -117,7 +118,6 @@ void convertINI2HTML(const Param & p, ostream & os)
 
     //restrictions
     String restrictions = "";
-    bool escape_restrictions(true);
     switch (value_type)
     {
     case DataValue::INT_VALUE:
@@ -137,15 +137,14 @@ void convertINI2HTML(const Param & p, ostream & os)
         else
           restrictions += "&#8734;";
       }
-      escape_restrictions = false;     // prevent html escape of infinity symbol
     }
     break;
 
     case DataValue::DOUBLE_VALUE:
     case DataValue::DOUBLE_LIST:
     {
-      bool min_set = (it->min_float != -numeric_limits<DoubleReal>::max());
-      bool max_set = (it->max_float != numeric_limits<DoubleReal>::max());
+      bool min_set = (it->min_float != -numeric_limits<double>::max());
+      bool max_set = (it->max_float != numeric_limits<double>::max());
       if (max_set || min_set)
       {
         if (min_set)
@@ -158,7 +157,6 @@ void convertINI2HTML(const Param & p, ostream & os)
         else
           restrictions += "&#8734;";
       }
-      escape_restrictions = false;     // prevent html escape of infinity symbol
     }
     break;
 
@@ -278,7 +276,7 @@ int main(int argc, char ** argv)
     cerr << "Please specify the path where the TOPP/UTIL binaries are located." << endl;
     return EXIT_FAILURE;
   }
-  
+
   String binary_directory = String(argv[1]).ensureLastChar('/');
 
   if(!File::exists(binary_directory))
@@ -286,7 +284,7 @@ int main(int argc, char ** argv)
     cerr << "The given binary directory does not exist. Aborting." << endl;
     return EXIT_FAILURE;
   }
-  
+
   //TOPP tools
   ToolListType topp_tools = ToolHandler::getTOPPToolList(true);   // include GenericWrapper (can be called with --help without error, even though it has a type)
   topp_tools["TOPPView"] = Internal::ToolDescription();   // these two need to be excluded from writing an INI file later!

@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <clocale>
 
 namespace OpenMS
 {

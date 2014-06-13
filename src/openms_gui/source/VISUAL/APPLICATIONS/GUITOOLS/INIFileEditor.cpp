@@ -53,6 +53,7 @@
 #   include <Windows.h>
 #endif
 
+#include <OpenMS/DATASTRUCTURES/Map.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -76,10 +77,10 @@ int main(int argc, const char** argv)
   // when shipping on mac os x
   QApplication::setLibraryPaths(QStringList());
 #endif
-  
+
   // ensure correct encoding of paths
   QTextCodec::setCodecForCStrings(QTextCodec::codecForName("UTF-8"));
-  
+
   Map<String, String> option_lists;
   Map<String, String> options;
   options["-print"] = "print";

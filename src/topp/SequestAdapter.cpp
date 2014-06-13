@@ -148,7 +148,7 @@ protected:
 
     // TODO: if this get rewritten at some point you can use 'registerInputFile_()' to have the user
     // specify the location of 'sequest.exe' (or similar). In this case also use "skipexists as a tag argument
-    // e.g.	registerInputFile_("xtandem_executable", "<file>", "", "X!Tandem executable of the installtation e.g. 'tandem.exe'", true, false, StringList::create("skipexists"));
+    // e.g.	registerInputFile_("xtandem_executable", "<file>", "", "X!Tandem executable of the installtation e.g. 'tandem.exe'", true, false, ListUtils::create<String>("skipexists"));
     // to avoid TOPPBase throwing an error when sequest.exe is not found in the current directory, but can be found in $PATH
 
     registerStringOption_("sequest_computer", "<name>", "", "the name of the computer in the network that hosts Sequest\n"
@@ -295,7 +295,7 @@ protected:
     MSExperiment<Peak1D> & msexperiment,
     const String & common_name,
     const vector<Int> & charges,
-    map<String, DoubleReal> & outfile_names_and_precursor_retention_times,
+    map<String, double> & outfile_names_and_precursor_retention_times,
     vector<String> & dta_filenames,
     bool make_dtas = true)
   {
@@ -397,7 +397,7 @@ protected:
 
     vector<Int> charges;
 
-    DoubleReal
+    double
     Real_buffer(0.0),
     Real_buffer2(0.0),
     p_value(1.0);
@@ -415,7 +415,7 @@ protected:
     StringList out_files;
 
     // the outfile-names and their retention_times
-    map<String, DoubleReal> outfile_names_and_precursor_retention_times;
+    map<String, double> outfile_names_and_precursor_retention_times;
 
     // the names of the dta_files - used to erase them afterwards
     vector<String> dta_filenames;
@@ -934,7 +934,7 @@ protected:
       {
         for (vector<String>::iterator substrings_it = substrings.begin(); substrings_it != substrings.end(); ++substrings_it)
         {
-          // the values are expected to be DoubleReal, otherwise they will be seen as 0!
+          // the values are expected to be double, otherwise they will be seen as 0!
           Real_buffer = String(substrings_it->c_str()).toDouble();
           if ((Real_buffer < 0) || (Real_buffer > 1))
           {
@@ -1207,10 +1207,10 @@ protected:
       }
       if (exit_code == EXECUTION_OK)
       {
-        vector<pair<String, vector<DoubleReal> > > filenames_and_pvalues;
+        vector<pair<String, vector<double> > > filenames_and_pvalues;
         for (StringList::iterator out_files_it = out_files.begin(); out_files_it != out_files.end(); ++out_files_it)
         {
-          filenames_and_pvalues.push_back(make_pair(out_directory + *out_files_it, vector<DoubleReal>()));
+          filenames_and_pvalues.push_back(make_pair(out_directory + *out_files_it, vector<double>()));
         }
         //              sequest_outfile.getPValuesFromOutFiles(filenames_and_pvalues);
 
@@ -1233,7 +1233,7 @@ protected:
         protein_identification.setSearchParameters(sp);
 
         Size peptide_identification_size = peptide_identifications.size();
-        for (vector<pair<String, vector<DoubleReal> > >::iterator filenames_and_pvalues_it = filenames_and_pvalues.begin(); filenames_and_pvalues_it != filenames_and_pvalues.end(); ++filenames_and_pvalues_it)
+        for (vector<pair<String, vector<double> > >::iterator filenames_and_pvalues_it = filenames_and_pvalues.begin(); filenames_and_pvalues_it != filenames_and_pvalues.end(); ++filenames_and_pvalues_it)
         {
           try
           {

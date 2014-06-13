@@ -163,23 +163,23 @@ namespace OpenMS
                                     rhs.protein_identifications_.end());
 
     // ensure non-redundant modification parameter
-    for (std::vector<ProteinIdentification>::iterator it = protein_identifications_.begin();
-         it != protein_identifications_.end();
-         ++it)
+    for (std::vector<ProteinIdentification>::iterator it_1 = protein_identifications_.begin();
+         it_1 != protein_identifications_.end();
+         ++it_1)
     {
-      std::vector<String>::iterator it2;
+      std::vector<String>::iterator it_2;
 
       // remove redundant variable modifications
-      std::vector<String> & varMod = const_cast<std::vector<String> &>(it->getSearchParameters().variable_modifications);
+      std::vector<String> & varMod = const_cast<std::vector<String> &>(it_1->getSearchParameters().variable_modifications);
       sort(varMod.begin(), varMod.end());
-      it2 = unique(varMod.begin(), varMod.end());
-      varMod.resize(it2 - varMod.begin());
+      it_2 = unique(varMod.begin(), varMod.end());
+      varMod.resize(it_2 - varMod.begin());
 
       // remove redundant fixed modifications
-      std::vector<String> & fixMod = const_cast<std::vector<String> &>(it->getSearchParameters().fixed_modifications);
+      std::vector<String> & fixMod = const_cast<std::vector<String> &>(it_1->getSearchParameters().fixed_modifications);
       sort(fixMod.begin(), fixMod.end());
-      it2 = unique(fixMod.begin(), fixMod.end());
-      fixMod.resize(it2 - fixMod.begin());
+      it_2 = unique(fixMod.begin(), fixMod.end());
+      fixMod.resize(it_2 - fixMod.begin());
     }
 
     // append unassignedPeptideIdentifiactions
@@ -429,9 +429,9 @@ namespace OpenMS
     {
       for (ConsensusFeature::HandleSetType::const_iterator it = operator[](i).begin(); it != operator[](i).end(); ++it)
       {
-        DoubleReal rt = it->getRT();
-        DoubleReal mz = it->getMZ();
-        DoubleReal intensity = it->getIntensity();
+        double rt = it->getRT();
+        double mz = it->getMZ();
+        double intensity = it->getIntensity();
 
         // update RT
         if (rt < pos_range_.minPosition()[Peak2D::RT])

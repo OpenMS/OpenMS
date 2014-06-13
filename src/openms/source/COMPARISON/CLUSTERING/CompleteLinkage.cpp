@@ -61,7 +61,7 @@ namespace OpenMS
     return *this;
   }
 
-  void CompleteLinkage::operator()(DistanceMatrix<Real> & original_distance, std::vector<BinaryTreeNode> & cluster_tree, const Real threshold /*=1*/) const
+  void CompleteLinkage::operator()(DistanceMatrix<float> & original_distance, std::vector<BinaryTreeNode> & cluster_tree, const float threshold /*=1*/) const
   {
     // attention: clustering process is done by clustering the indices
     // pointing to elements in inputvector and distances in inputmatrix
@@ -111,14 +111,14 @@ namespace OpenMS
         //lance-williams update for d((i,j),k): 0.5* d(i,k) + 0.5* d(j,k) + 0.5* |d(i,k)-d(j,k)|
         for (Size k = 0; k < min.second; ++k)
         {
-          Real dik = original_distance.getValue(min.first, k);
-          Real djk = original_distance.getValue(min.second, k);
+          float dik = original_distance.getValue(min.first, k);
+          float djk = original_distance.getValue(min.second, k);
           original_distance.setValueQuick(min.second, k, (0.5f * dik + 0.5f * djk + 0.5f * std::fabs(dik - djk)));
         }
         for (Size k = min.second + 1; k < original_distance.dimensionsize(); ++k)
         {
-          Real dik = original_distance.getValue(min.first, k);
-          Real djk = original_distance.getValue(min.second, k);
+          float dik = original_distance.getValue(min.first, k);
+          float djk = original_distance.getValue(min.second, k);
           original_distance.setValueQuick(k, min.second, (0.5f * dik + 0.5f * djk + 0.5f * std::fabs(dik - djk)));
         }
 

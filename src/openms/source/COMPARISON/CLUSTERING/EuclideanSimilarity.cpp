@@ -60,13 +60,13 @@ namespace OpenMS
     return *this;
   }
 
-  Real EuclideanSimilarity::operator()(const std::pair<Real, Real> & c) const
+  float EuclideanSimilarity::operator()(const std::pair<float, float> & c) const
   {
     return operator()(c, c);
   }
 
   // calculates euclidean distance between two points
-  Real EuclideanSimilarity::operator()(const std::pair<Real, Real> & a, const std::pair<Real, Real> & b) const
+  float EuclideanSimilarity::operator()(const std::pair<float, float> & a, const std::pair<float, float> & b) const
   {
     if (scale_ == 0)
     {
@@ -76,7 +76,7 @@ namespace OpenMS
     return 1 - (sqrt((a.first - b.first) * (a.first - b.first) + (a.second - b.second) * (a.second - b.second)) / scale_);
   }
 
-  void EuclideanSimilarity::setScale(Real x)
+  void EuclideanSimilarity::setScale(float x)
   {
     scale_ = x;
   }

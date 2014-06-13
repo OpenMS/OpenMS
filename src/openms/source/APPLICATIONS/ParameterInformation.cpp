@@ -48,8 +48,8 @@ namespace OpenMS
     valid_strings(),
     min_int(-std::numeric_limits<Int>::max()),
     max_int(std::numeric_limits<Int>::max()),
-    min_float(-std::numeric_limits<DoubleReal>::max()),
-    max_float(std::numeric_limits<DoubleReal>::max())
+    min_float(-std::numeric_limits<double>::max()),
+    max_float(std::numeric_limits<double>::max())
   {
   }
 
@@ -65,8 +65,8 @@ namespace OpenMS
     valid_strings(),
     min_int(-std::numeric_limits<Int>::max()),
     max_int(std::numeric_limits<Int>::max()),
-    min_float(-std::numeric_limits<DoubleReal>::max()),
-    max_float(std::numeric_limits<DoubleReal>::max())
+    min_float(-std::numeric_limits<double>::max()),
+    max_float(std::numeric_limits<double>::max())
   {
   }
 

@@ -88,7 +88,7 @@ namespace OpenMS
       search_engine_name = protein_ids.begin()->getSearchEngine();
     }
 
-    f.precision(writtenDigits<DoubleReal>());
+    f.precision(writtenDigits<double>(0.0));
 
     f << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << "\n";
     f << "<msms_pipeline_analysis date=\"2007-12-05T17:49:46\" xmlns=\"http://regis-web.systemsbiology.net/pepXML\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://regis-web.systemsbiology.net/pepXML http://www.matrixscience.com/xmlns/schema/pepXML_v18/pepXML_v18.xsd\" summary_xml=\".xml\">" << "\n";
@@ -211,7 +211,7 @@ namespace OpenMS
         }
         PeptideHit h = *it->getHits().begin();
         AASequence seq = h.getSequence();
-        DoubleReal precursor_neutral_mass = seq.getMonoWeight();
+        double precursor_neutral_mass = seq.getMonoWeight();
 
         Int scan_index;
         if (it->metaValueExists("RT_index"))
@@ -229,10 +229,9 @@ namespace OpenMS
           << " precursor_neutral_mass=\"" << precisionWrapper(precursor_neutral_mass) << "\""
           << " assumed_charge=\"" << h.getCharge() << "\" index=\"" << count << "\"";
 
-        DataValue dv = it->getMetaValue("RT");
-        if (dv != DataValue::EMPTY)
+		    if (it->hasRT())
         {
-          f << " retention_time_sec=\"" << dv << "\" ";
+		      f << " retention_time_sec=\"" << it->getRT() << "\" ";
         }
 
         f << ">\n";
@@ -298,9 +297,9 @@ namespace OpenMS
   }
 
 
-  void PepXMLFile::matchModification_(const DoubleReal mass, const String& origin, String& modification_description)
+  void PepXMLFile::matchModification_(const double mass, const String& origin, String& modification_description)
   {
-    DoubleReal mod_mass = mass - ResidueDB::getInstance()->getResidue(origin)->getMonoWeight(Residue::Internal);
+    double mod_mass = mass - ResidueDB::getInstance()->getResidue(origin)->getMonoWeight(Residue::Internal);
     vector<String> mods;
     ModificationsDB::getInstance()->getModificationsByDiffMonoMass(mods, origin, mod_mass, 0.001);
 
@@ -347,7 +346,7 @@ namespace OpenMS
 
   void PepXMLFile::readRTMZCharge_(const xercesc::Attributes & attributes)
   {
-    DoubleReal mass = attributeAsDouble_(attributes, "precursor_neutral_mass");
+    double mass = attributeAsDouble_(attributes, "precursor_neutral_mass");
     charge_ = attributeAsInt_(attributes, "assumed_charge");
     mz_ = (mass + hydrogen_mass_ * charge_) / charge_;
     rt_ = 0;
@@ -388,7 +387,7 @@ namespace OpenMS
         }
         else if (!rt_present || Math::approximatelyEqual(spec.getRT(), rt_, 0.001))
         {
-          DoubleReal prec_mz = 0, prec_rt = 0;
+          double prec_mz = 0, prec_rt = 0;
           vector<Precursor> precursors = spec.getPrecursors();
           if (!precursors.empty())
           {
@@ -404,7 +403,7 @@ namespace OpenMS
           // (otherwise, precursor mapping is wrong)
           if ((prec_mz > 0) && Math::approximatelyEqual(prec_mz, mz_, mz_tol_)    && (prec_rt > 0) && (!rt_present || Math::approximatelyEqual(prec_rt, rt_, rt_tol_)))
           {
-            // DoubleReal diff;
+            // double diff;
             // diff = mz_ - prec_mz;
             // cout << "m/z difference: " << diff << " ("
             //       << diff / max(mz_, prec_mz) * 100 << "%)\n";
@@ -434,7 +433,7 @@ namespace OpenMS
   }
 
 
-  void PepXMLFile::load(const String& filename, vector<ProteinIdentification>& 
+  void PepXMLFile::load(const String& filename, vector<ProteinIdentification>&
                         proteins, vector<PeptideIdentification>& peptides,
                         const String& experiment_name, const MSExperiment<>&
                         experiment, bool use_precursor_data)
@@ -475,7 +474,7 @@ namespace OpenMS
     // without experiment name, don't care about these two:
     seen_experiment_ = exp_name_.empty();
     checked_base_name_ = exp_name_.empty();
-   
+
     parse_(filename, this);
 
     if (!seen_experiment_)
@@ -564,7 +563,7 @@ namespace OpenMS
     else if (element == "search_score") // parent: "search_hit"
     {
       String name = attributeAsString_(attributes, "name");
-      DoubleReal value;
+      double value;
 
       // TODO: deal with different scores
       if (name == "expect") // X!Tandem or Mascot E-value
@@ -624,8 +623,10 @@ namespace OpenMS
     else if (element == "search_result") // parent: "spectrum_query"
     {     // creates a new PeptideIdentification
       current_peptide_ = PeptideIdentification();
-      current_peptide_.setMetaValue("RT", rt_);
-      current_peptide_.setMetaValue("MZ", mz_);
+      current_peptide_.setRT(rt_);
+      current_peptide_.setMZ(mz_);
+      current_peptide_.setBaseName(current_base_name_);
+
       search_id_ = 1; // references "search_summary"
       optionalAttributeAsUInt_(search_id_, attributes, "search_id");
       current_peptide_.setIdentifier(current_proteins_[search_id_ - 1]->getIdentifier());
@@ -640,7 +641,7 @@ namespace OpenMS
       // maybe TODO: deal with meta data associated with PeptideProphet search
       if (current_peptide_.getScoreType() != "InterProphet probability")
       {
-        DoubleReal value = attributeAsDouble_(attributes, "probability");
+        double value = attributeAsDouble_(attributes, "probability");
         peptide_hit_.setScore(value);
         current_peptide_.setScoreType("PeptideProphet probability");
         current_peptide_.setHigherScoreBetter(true);
@@ -650,7 +651,7 @@ namespace OpenMS
     {
       // InterProphet probability overwrites PeptideProphet probability and
       // original search score
-      DoubleReal value = attributeAsDouble_(attributes, "probability");
+      double value = attributeAsDouble_(attributes, "probability");
       peptide_hit_.setScore(value);
       current_peptide_.setScoreType("InterProphet probability");
       current_peptide_.setHigherScoreBetter(true);
@@ -659,7 +660,7 @@ namespace OpenMS
     else if (element == "modification_info") // parent: "search_hit" (in "search result")
     {
       // Has N-Term Modification
-      DoubleReal mod_nterm_mass;
+      double mod_nterm_mass;
       if (optionalAttributeAsDouble_(mod_nterm_mass, attributes, "mod_nterm_mass"))  // this specifies a terminal modification
       {
         // lookup the modification in the search_summary by mass
@@ -667,7 +668,7 @@ namespace OpenMS
         {
           if (mod_nterm_mass == it->mass && it->terminus == "n")
           {
-            DoubleReal massdiff = (it->massdiff).toDouble();
+            double massdiff = (it->massdiff).toDouble();
             vector<String> mods;
             ModificationsDB::getInstance()->getTerminalModificationsByDiffMonoMass(mods, massdiff, 0.001, ResidueModification::N_TERM);
             if (!mods.empty())
@@ -684,7 +685,7 @@ namespace OpenMS
       }
 
       // Has C-Term Modification
-      DoubleReal mod_cterm_mass;
+      double mod_cterm_mass;
       if (optionalAttributeAsDouble_(mod_cterm_mass, attributes, "mod_cterm_mass"))  // this specifies a terminal modification
       {
         // lookup the modification in the search_summary by mass
@@ -692,7 +693,7 @@ namespace OpenMS
         {
           if (mod_cterm_mass == it->mass && it->terminus == "c")
           {
-            DoubleReal massdiff = (it->massdiff).toDouble();
+            double massdiff = (it->massdiff).toDouble();
             vector<String> mods;
             ModificationsDB::getInstance()->getTerminalModificationsByDiffMonoMass(mods, massdiff, 0.001, ResidueModification::C_TERM);
             if (!mods.empty())
@@ -719,7 +720,7 @@ namespace OpenMS
     }
     else if (element == "mod_aminoacid_mass") // parent: "modification_info" (in "search_hit")
     {
-      DoubleReal modification_mass = attributeAsDouble_(attributes, "mass");
+      double modification_mass = attributeAsDouble_(attributes, "mass");
       Size modification_position = attributeAsInt_(attributes, "position");
       String origin = String(current_sequence_[modification_position - 1]);
       String temp_description = "";
@@ -868,11 +869,11 @@ namespace OpenMS
     }
     else if (element == "search_summary") // parent: "msms_run_summary"
     { // creates a new ProteinIdentification (usually)
+      current_base_name_ = "";
+      optionalAttributeAsString_(current_base_name_, attributes, "base_name");
       if (!checked_base_name_) // work-around for files exported by Mascot
       {
-        String base_name = "";
-        optionalAttributeAsString_(base_name, attributes, "base_name");
-        if (base_name.hasSuffix(exp_name_))
+        if (current_base_name_.hasSuffix(exp_name_))
         {
           seen_experiment_ = true;
         }
@@ -996,7 +997,7 @@ namespace OpenMS
     }
     else if (element == "search_hit")
     {
-      AASequence temp_aa_sequence = AASequence(current_sequence_);
+      AASequence temp_aa_sequence = AASequence::fromString(current_sequence_);
 
       // modification position is 1-based
       for (vector<pair<String, Size> >::const_iterator it = current_modifications_.begin(); it != current_modifications_.end(); ++it)
@@ -1032,7 +1033,7 @@ namespace OpenMS
         }
         else
         {
-          DoubleReal new_mass = it->mass - residue->getMonoWeight(Residue::Internal);
+          double new_mass = it->mass - residue->getMonoWeight(Residue::Internal);
           vector<String> mods;
           ModificationsDB::getInstance()->getModificationsByDiffMonoMass(mods, it->aminoacid, new_mass, 0.001);
           if (!mods.empty())

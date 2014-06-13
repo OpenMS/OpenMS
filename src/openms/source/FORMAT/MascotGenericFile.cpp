@@ -38,6 +38,8 @@
 #include <QtCore/QRegExp>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
+
 using namespace std;
 
 namespace OpenMS
@@ -284,7 +286,7 @@ namespace OpenMS
                                                                              " the maximum upper limit. Only centroided data is allowed. This is most likely raw data.",
                                     String(spec.size()));
     }
-    DoubleReal mz(precursor.getMZ()), rt(spec.getRT());
+    double mz(precursor.getMZ()), rt(spec.getRT());
 
     if (mz == 0)
     {

@@ -36,11 +36,12 @@
 #include <OpenMS/test_config.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 
-
 ///////////////////////////
 #include <OpenMS/ANALYSIS/MAPMATCHING/SimplePairFinder.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 ///////////////////////////
+
+#include <OpenMS/KERNEL/ConversionHelper.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -121,8 +122,8 @@ START_SECTION((virtual void run(const std::vector< ConsensusMap > &input_maps, C
   
   SimplePairFinder spf;
 	std::vector<ConsensusMap> input(2);
-	ConsensusMap::convert(0,model,input[0]);
-	ConsensusMap::convert(1,scene,input[1]);
+	MapConversion::convert(0,model,input[0]);
+	MapConversion::convert(1,scene,input[1]);
 	ConsensusMap result;
   spf.run(input,result);
 	TEST_EQUAL(result.size(),3);

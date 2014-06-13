@@ -262,10 +262,10 @@ protected:
     String inputfile_name = getStringOption_("in");
     String outputfile_name = getStringOption_("out");
 
-    DoubleReal peptide_significance_threshold_fraction = getDoubleOption_("thresh:pep");
-    DoubleReal protein_significance_threshold_fraction = getDoubleOption_("thresh:prot");
-    DoubleReal peptide_threshold_score = getDoubleOption_("score:pep");
-    DoubleReal protein_threshold_score = getDoubleOption_("score:prot");
+    double peptide_significance_threshold_fraction = getDoubleOption_("thresh:pep");
+    double protein_significance_threshold_fraction = getDoubleOption_("thresh:prot");
+    double peptide_threshold_score = getDoubleOption_("score:pep");
+    double protein_threshold_score = getDoubleOption_("score:prot");
 
     Int best_n_peptide_hits = getIntOption_("best:n_peptide_hits");
     Int best_n_protein_hits = getIntOption_("best:n_protein_hits");
@@ -274,7 +274,7 @@ protected:
     Int best_n_to_m_peptide_hits_m = numeric_limits<Int>::max();
 
     const double double_max = numeric_limits<double>::max();
-    DoubleReal rt_low, rt_high, mz_low, mz_high;
+    double rt_low, rt_high, mz_low, mz_high;
     rt_high = mz_high = double_max;
     rt_low = mz_low = -double_max;
 
@@ -292,7 +292,7 @@ protected:
       return ILLEGAL_PARAMETERS;
     }
 
-    bool precursor_missing = getFlag_("precursor:allow_missing");
+    // bool precursor_missing = getFlag_("precursor:allow_missing");
     bool best_strict = getFlag_("best:strict");
     UInt min_length = getIntOption_("min_length");
     UInt max_length = getIntOption_("max_length");
@@ -305,8 +305,8 @@ protected:
 
     String exclusion_peptides_file_name = getStringOption_("blacklist:peptides").trim();
 
-    DoubleReal pv_rt_filtering = getDoubleOption_("rt:p_value");
-    DoubleReal pv_rt_filtering_1st_dim = getDoubleOption_("rt:p_value_1st_dim");
+    double pv_rt_filtering = getDoubleOption_("rt:p_value");
+    double pv_rt_filtering_1st_dim = getDoubleOption_("rt:p_value_1st_dim");
 
     bool unique = getFlag_("unique");
     bool unique_per_protein = getFlag_("unique_per_protein");
@@ -314,7 +314,7 @@ protected:
     bool keep_unreferenced_protein_hits = getFlag_("keep_unreferenced_protein_hits");
     bool delete_unreferenced_peptide_hits = getFlag_("delete_unreferenced_peptide_hits");
 
-    DoubleReal mz_error = getDoubleOption_("mz:error");
+    double mz_error = getDoubleOption_("mz:error");
     bool mz_error_filtering = (mz_error < 0) ? false : true;
     bool mz_error_unit_ppm = (getStringOption_("mz:unit") == "ppm") ? true : false;
 
@@ -352,21 +352,26 @@ protected:
 
     std::set<String> applied_filters;
 
-    // Filtering peptide identification according to set criteria
+	  // Filtering peptide identification according to set criteria
+	  if ((rt_high < double_max) || (rt_low > -double_max))
+	  {
+		  std::vector<PeptideIdentification> tmp;
+		  applied_filters.insert("Filtering by precursor RT ...\n");
+		  filter.filterIdentificationsByRT(identifications, rt_low, rt_high, tmp);
+		  identifications.swap(tmp);
+	  }
+
+	  if ((mz_high < double_max) || (mz_low > -double_max))
+	  {
+		  std::vector<PeptideIdentification> tmp;
+		  applied_filters.insert("Filtering by precursor MZ ...\n");
+		  filter.filterIdentificationsByMZ(identifications, mz_low, mz_high, tmp);
+		  identifications.swap(tmp);
+	  }
+		
+	  // Filtering peptide identification according to set criteria
     for (Size i = 0; i < identifications.size(); i++)
     {
-      if ((rt_high < double_max) || (rt_low > -double_max))
-      {
-        applied_filters.insert("Filtering by precursor RT ...\n");
-        if (!filter.filterIdentificationsByMetaValueRange(identifications[i], "RT", rt_low, rt_high, precursor_missing)) continue; // don't keep this peptide ID
-      }
-
-      if ((mz_high < double_max) || (mz_low > -double_max))
-      {
-        applied_filters.insert("Filtering by precursor m/z ...\n");
-        if (!filter.filterIdentificationsByMetaValueRange(identifications[i], "MZ", mz_low, mz_high, precursor_missing)) continue; // don't keep this peptide ID
-      }
-
       if (unique_per_protein)
       {
         applied_filters.insert("Filtering unique per proteins ...\n");
@@ -509,8 +514,8 @@ protected:
 
       if (!filtered_identification.getHits().empty())
       {
-        filtered_identification.setMetaValue("RT", identifications[i].getMetaValue("RT"));
-        filtered_identification.setMetaValue("MZ", identifications[i].getMetaValue("MZ"));
+        filtered_identification.setRT(identifications[i].getRT());
+        filtered_identification.setMZ(identifications[i].getMZ());
         filtered_peptide_identifications.push_back(filtered_identification);
       }
 

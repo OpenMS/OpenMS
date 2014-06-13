@@ -40,7 +40,7 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
-#include <iostream>
+#include <iosfwd>
 #include <set>
 #include <vector>
 
@@ -73,15 +73,15 @@ public:
       return internal_to_full;
     }
 
-    inline static DoubleReal getInternalToFullAverageWeight()
+    inline static double getInternalToFullAverageWeight()
     {
-      static const DoubleReal internal_to_full_average_weight = getInternalToFull().getAverageWeight();
+      static const double internal_to_full_average_weight = getInternalToFull().getAverageWeight();
       return internal_to_full_average_weight;
     }
 
-    inline static DoubleReal getInternalToFullMonoWeight()
+    inline static double getInternalToFullMonoWeight()
     {
-      static const DoubleReal internal_to_full_mono_weight = getInternalToFull().getMonoWeight();
+      static const double internal_to_full_mono_weight = getInternalToFull().getMonoWeight();
       return internal_to_full_mono_weight;
     }
 
@@ -92,15 +92,15 @@ public:
       return Nterminal_to_full;
     }
 
-    inline static DoubleReal getNTerminalToFullAverageWeight()
+    inline static double getNTerminalToFullAverageWeight()
     {
-      static const DoubleReal Nterminal_to_full_average_weight = getNTerminalToFull().getAverageWeight();
+      static const double Nterminal_to_full_average_weight = getNTerminalToFull().getAverageWeight();
       return Nterminal_to_full_average_weight;
     }
 
-    inline static DoubleReal getNTerminalToFullMonoWeight()
+    inline static double getNTerminalToFullMonoWeight()
     {
-      static const DoubleReal Nterminal_to_full_mono_weight = getNTerminalToFull().getMonoWeight();
+      static const double Nterminal_to_full_mono_weight = getNTerminalToFull().getMonoWeight();
       return Nterminal_to_full_mono_weight;
     }
 
@@ -111,15 +111,15 @@ public:
       return Cterminal_to_full;
     }
 
-    inline static DoubleReal getCTerminalToFullAverageWeight()
+    inline static double getCTerminalToFullAverageWeight()
     {
-      static const DoubleReal Cterminal_to_full_average_weight = getCTerminalToFull().getAverageWeight();
+      static const double Cterminal_to_full_average_weight = getCTerminalToFull().getAverageWeight();
       return Cterminal_to_full_average_weight;
     }
 
-    inline static DoubleReal getCTerminalToFullMonoWeight()
+    inline static double getCTerminalToFullMonoWeight()
     {
-      static const DoubleReal Cterminal_to_full_mono_weight = getCTerminalToFull().getMonoWeight();
+      static const double Cterminal_to_full_mono_weight = getCTerminalToFull().getMonoWeight();
       return Cterminal_to_full_mono_weight;
     }
 
@@ -130,15 +130,15 @@ public:
       return b_ion_to_full;
     }
 
-    inline static DoubleReal getBIonToFullAverageWeight()
+    inline static double getBIonToFullAverageWeight()
     {
-      static const DoubleReal b_ion_to_full_average_weight = getBIonToFull().getAverageWeight();
+      static const double b_ion_to_full_average_weight = getBIonToFull().getAverageWeight();
       return b_ion_to_full_average_weight;
     }
 
-    inline static DoubleReal getBIonToFullMonoWeight()
+    inline static double getBIonToFullMonoWeight()
     {
-      static const DoubleReal b_ion_to_full_mono_weight = getBIonToFull().getMonoWeight();
+      static const double b_ion_to_full_mono_weight = getBIonToFull().getMonoWeight();
       return b_ion_to_full_mono_weight;
     }
 
@@ -149,15 +149,15 @@ public:
       return a_ion_to_full;
     }
 
-    inline static DoubleReal getAIonToFullAverageWeight()
+    inline static double getAIonToFullAverageWeight()
     {
-      static const DoubleReal a_ion_to_full_average_weight = getAIonToFull().getAverageWeight();
+      static const double a_ion_to_full_average_weight = getAIonToFull().getAverageWeight();
       return a_ion_to_full_average_weight;
     }
 
-    inline static DoubleReal getAIonToFullMonoWeight()
+    inline static double getAIonToFullMonoWeight()
     {
-      static const DoubleReal a_ion_to_full_mono_weight = getAIonToFull().getMonoWeight();
+      static const double a_ion_to_full_mono_weight = getAIonToFull().getMonoWeight();
       return a_ion_to_full_mono_weight;
     }
 
@@ -168,15 +168,15 @@ public:
       return y_ion_to_full;
     }
 
-    inline static DoubleReal getYIonToFullAverageWeight()
+    inline static double getYIonToFullAverageWeight()
     {
-      static const DoubleReal y_ion_to_full_average_weight = getYIonToFull().getAverageWeight();
+      static const double y_ion_to_full_average_weight = getYIonToFull().getAverageWeight();
       return y_ion_to_full_average_weight;
     }
 
-    inline static DoubleReal getYIonToFullMonoWeight()
+    inline static double getYIonToFullMonoWeight()
     {
-      static const DoubleReal y_ion_to_full_mono_weight = getYIonToFull().getMonoWeight();
+      static const double y_ion_to_full_mono_weight = getYIonToFull().getMonoWeight();
       return y_ion_to_full_mono_weight;
     }
 
@@ -187,15 +187,15 @@ public:
       return c_ion_to_full;
     }
 
-    inline static DoubleReal getCIonToFullAverageWeight()
+    inline static double getCIonToFullAverageWeight()
     {
-      static const DoubleReal c_ion_to_full_average_weight = getCIonToFull().getAverageWeight();
+      static const double c_ion_to_full_average_weight = getCIonToFull().getAverageWeight();
       return c_ion_to_full_average_weight;
     }
 
-    inline static DoubleReal getCIonToFullMonoWeight()
+    inline static double getCIonToFullMonoWeight()
     {
-      static const DoubleReal c_ion_to_full_mono_weight = getCIonToFull().getMonoWeight();
+      static const double c_ion_to_full_mono_weight = getCIonToFull().getMonoWeight();
       return c_ion_to_full_mono_weight;
     }
 
@@ -206,15 +206,15 @@ public:
       return c_ion_to_full;
     }
 
-    inline static DoubleReal getCIonMinusOneToFullAverageWeight()
+    inline static double getCIonMinusOneToFullAverageWeight()
     {
-      static const DoubleReal c_ion_to_full_average_weight = getCIonMinusOneToFull().getAverageWeight();
+      static const double c_ion_to_full_average_weight = getCIonMinusOneToFull().getAverageWeight();
       return c_ion_to_full_average_weight;
     }
 
-    inline static DoubleReal getCIonMinusOneToFullMonoWeight()
+    inline static double getCIonMinusOneToFullMonoWeight()
     {
-      static const DoubleReal c_ion_to_full_mono_weight = getCIonMinusOneToFull().getMonoWeight();
+      static const double c_ion_to_full_mono_weight = getCIonMinusOneToFull().getMonoWeight();
       return c_ion_to_full_mono_weight;
     }
 
@@ -225,15 +225,15 @@ public:
       return c_ion_to_full;
     }
 
-    inline static DoubleReal getCIonPlusOneToFullAverageWeight()
+    inline static double getCIonPlusOneToFullAverageWeight()
     {
-      static const DoubleReal c_ion_to_full_average_weight = getCIonPlusOneToFull().getAverageWeight();
+      static const double c_ion_to_full_average_weight = getCIonPlusOneToFull().getAverageWeight();
       return c_ion_to_full_average_weight;
     }
 
-    inline static DoubleReal getCIonPlusOneToFullMonoWeight()
+    inline static double getCIonPlusOneToFullMonoWeight()
     {
-      static const DoubleReal c_ion_to_full_mono_weight = getCIonPlusOneToFull().getMonoWeight();
+      static const double c_ion_to_full_mono_weight = getCIonPlusOneToFull().getMonoWeight();
       return c_ion_to_full_mono_weight;
     }
 
@@ -244,15 +244,15 @@ public:
       return c_ion_to_full;
     }
 
-    inline static DoubleReal getCIonPlusTwoToFullAverageWeight()
+    inline static double getCIonPlusTwoToFullAverageWeight()
     {
-      static const DoubleReal c_ion_to_full_average_weight = getCIonPlusTwoToFull().getAverageWeight();
+      static const double c_ion_to_full_average_weight = getCIonPlusTwoToFull().getAverageWeight();
       return c_ion_to_full_average_weight;
     }
 
-    inline static DoubleReal getCIonPlusTwoToFullMonoWeight()
+    inline static double getCIonPlusTwoToFullMonoWeight()
     {
-      static const DoubleReal c_ion_to_full_mono_weight = getCIonPlusTwoToFull().getMonoWeight();
+      static const double c_ion_to_full_mono_weight = getCIonPlusTwoToFull().getMonoWeight();
       return c_ion_to_full_mono_weight;
     }
 
@@ -263,15 +263,15 @@ public:
       return x_ion_to_full;
     }
 
-    inline static DoubleReal getXIonToFullAverageWeight()
+    inline static double getXIonToFullAverageWeight()
     {
-      static const DoubleReal x_ion_to_full_average_weight = getXIonToFull().getAverageWeight();
+      static const double x_ion_to_full_average_weight = getXIonToFull().getAverageWeight();
       return x_ion_to_full_average_weight;
     }
 
-    inline static DoubleReal getXIonToFullMonoWeight()
+    inline static double getXIonToFullMonoWeight()
     {
-      static const DoubleReal x_ion_to_full_mono_weight = getXIonToFull().getMonoWeight();
+      static const double x_ion_to_full_mono_weight = getXIonToFull().getMonoWeight();
       return x_ion_to_full_mono_weight;
     }
 
@@ -282,15 +282,15 @@ public:
       return z_ion_to_full;
     }
 
-    inline static DoubleReal getZIonToFullAverageWeight()
+    inline static double getZIonToFullAverageWeight()
     {
-      static const DoubleReal z_ion_to_full_average_weight = getZIonToFull().getAverageWeight();
+      static const double z_ion_to_full_average_weight = getZIonToFull().getAverageWeight();
       return z_ion_to_full_average_weight;
     }
 
-    inline static DoubleReal getZIonToFullMonoWeight()
+    inline static double getZIonToFullMonoWeight()
     {
-      static const DoubleReal z_ion_to_full_mono_weight = getZIonToFull().getMonoWeight();
+      static const double z_ion_to_full_mono_weight = getZIonToFull().getMonoWeight();
       return z_ion_to_full_mono_weight;
     }
 
@@ -301,15 +301,15 @@ public:
       return z_ion_to_full;
     }
 
-    inline static DoubleReal getZIonMinusOneToFullAverageWeight()
+    inline static double getZIonMinusOneToFullAverageWeight()
     {
-      static const DoubleReal z_ion_to_full_average_weight = getZIonMinusOneToFull().getAverageWeight();
+      static const double z_ion_to_full_average_weight = getZIonMinusOneToFull().getAverageWeight();
       return z_ion_to_full_average_weight;
     }
 
-    inline static DoubleReal getZIonMinusOneToFullMonoWeight()
+    inline static double getZIonMinusOneToFullMonoWeight()
     {
-      static const DoubleReal z_ion_to_full_mono_weight = getZIonMinusOneToFull().getMonoWeight();
+      static const double z_ion_to_full_mono_weight = getZIonMinusOneToFull().getMonoWeight();
       return z_ion_to_full_mono_weight;
     }
 
@@ -320,15 +320,15 @@ public:
       return z_ion_to_full;
     }
 
-    inline static DoubleReal getZIonPlusOneToFullAverageWeight()
+    inline static double getZIonPlusOneToFullAverageWeight()
     {
-      static const DoubleReal z_ion_to_full_average_weight = getZIonPlusOneToFull().getAverageWeight();
+      static const double z_ion_to_full_average_weight = getZIonPlusOneToFull().getAverageWeight();
       return z_ion_to_full_average_weight;
     }
 
-    inline static DoubleReal getZIonPlusOneToFullMonoWeight()
+    inline static double getZIonPlusOneToFullMonoWeight()
     {
-      static const DoubleReal z_ion_to_full_mono_weight = getZIonPlusOneToFull().getMonoWeight();
+      static const double z_ion_to_full_mono_weight = getZIonPlusOneToFull().getMonoWeight();
       return z_ion_to_full_mono_weight;
     }
 
@@ -339,15 +339,15 @@ public:
       return z_ion_to_full;
     }
 
-    inline static DoubleReal getZIonPlusTwoToFullAverageWeight()
+    inline static double getZIonPlusTwoToFullAverageWeight()
     {
-      static const DoubleReal z_ion_to_full_average_weight = getZIonPlusTwoToFull().getAverageWeight();
+      static const double z_ion_to_full_average_weight = getZIonPlusTwoToFull().getAverageWeight();
       return z_ion_to_full_average_weight;
     }
 
-    inline static DoubleReal getZIonPlusTwoToFullMonoWeight()
+    inline static double getZIonPlusTwoToFullMonoWeight()
     {
-      static const DoubleReal z_ion_to_full_mono_weight = getZIonPlusTwoToFull().getMonoWeight();
+      static const double z_ion_to_full_mono_weight = getZIonPlusTwoToFull().getMonoWeight();
       return z_ion_to_full_mono_weight;
     }
 
@@ -489,16 +489,16 @@ public:
     EmpiricalFormula getFormula(ResidueType res_type = Full) const;
 
     /// sets average weight of the residue (must be full, with N and C-terminus)
-    void setAverageWeight(DoubleReal weight);
+    void setAverageWeight(double weight);
 
     /// returns average weight of the residue
-    DoubleReal getAverageWeight(ResidueType res_type = Full) const;
+    double getAverageWeight(ResidueType res_type = Full) const;
 
     /// sets mono weight of the residue (must be full, with N and C-terminus)
-    void setMonoWeight(DoubleReal weight);
+    void setMonoWeight(double weight);
 
     /// returns mono weight of the residue
-    DoubleReal getMonoWeight(ResidueType res_type = Full) const;
+    double getMonoWeight(ResidueType res_type = Full) const;
 
     /// sets by the name, this mod should be present in ModificationsDB
     void setModification(const String & name);
@@ -544,43 +544,43 @@ public:
     bool operator!=(char one_letter_code) const;
 
     /// returns the pka of the residue
-    DoubleReal getPka() const;
+    double getPka() const;
 
     /// returns the pkb of the residue
-    DoubleReal getPkb() const;
+    double getPkb() const;
 
     /// returns the pkc of the residue if it exists otherwise -1
-    DoubleReal getPkc() const;
+    double getPkc() const;
 
     /// calculates the isoelectric point using the pk* values
-    DoubleReal getPiValue() const;
+    double getPiValue() const;
 
     /// sets the pka of the residue
-    void setPka(DoubleReal value);
+    void setPka(double value);
 
     /// sets the pkb of the residue
-    void setPkb(DoubleReal value);
+    void setPkb(double value);
 
     /// sets the pkc of the residue
-    void setPkc(DoubleReal value);
+    void setPkc(double value);
 
     /// returns the side chain basicity
-    DoubleReal getSideChainBasicity() const;
+    double getSideChainBasicity() const;
 
     /// sets the side chain basicity
-    void setSideChainBasicity(DoubleReal gb_sc);
+    void setSideChainBasicity(double gb_sc);
 
     /// returns the backbone basicitiy if located in N-terminal direction
-    DoubleReal getBackboneBasicityLeft() const;
+    double getBackboneBasicityLeft() const;
 
     /// sets the N-terminal direction backbone basicitiy
-    void setBackboneBasicityLeft(DoubleReal gb_bb_l);
+    void setBackboneBasicityLeft(double gb_bb_l);
 
     /// returns the C-terminal direction backbone basicitiy
-    DoubleReal getBackboneBasicityRight() const;
+    double getBackboneBasicityRight() const;
 
     /// sets the C-terminal direction backbone basicity
-    void setBackboneBasicityRight(DoubleReal gb_bb_r);
+    void setBackboneBasicityRight(double gb_bb_r);
 
     /// true if the residue is a modified one
     bool isModified() const;
@@ -609,9 +609,9 @@ protected:
 
     EmpiricalFormula internal_formula_;
 
-    DoubleReal average_weight_;
+    double average_weight_;
 
-    DoubleReal mono_weight_;
+    double mono_weight_;
 
     // modification
     bool is_modified_;
@@ -629,27 +629,27 @@ protected:
 
     std::vector<EmpiricalFormula> NTerm_loss_formulas_;
 
-    DoubleReal loss_average_weight_;
+    double loss_average_weight_;
 
-    DoubleReal loss_mono_weight_;
+    double loss_mono_weight_;
 
     // low mass markers like immonium ions
     std::vector<EmpiricalFormula> low_mass_ions_;
 
     // pka values
-    DoubleReal pka_;
+    double pka_;
 
     // pkb values
-    DoubleReal pkb_;
+    double pkb_;
 
     // pkc values
-    DoubleReal pkc_;
+    double pkc_;
 
-    DoubleReal gb_sc_;
+    double gb_sc_;
 
-    DoubleReal gb_bb_l_;
+    double gb_bb_l_;
 
-    DoubleReal gb_bb_r_;
+    double gb_bb_r_;
 
     // residue sets this amino acid is contained in
     std::set<String> residue_sets_;

@@ -154,14 +154,14 @@ private:
     ///Internal class needed for type-punning
     union Reinterpreter64_
     {
-      DoubleReal f;
+      double f;
       Int64 i;
     };
 
     ///Internal class needed for type-punning
     union Reinterpreter32_
     {
-      Real f;
+      float f;
       Int32 i;
     };
 
@@ -384,7 +384,7 @@ private:
     {
       if (element_size == 4)
       {
-        const Real * float_buffer = reinterpret_cast<const Real *>(byte_buffer);
+        const float * float_buffer = reinterpret_cast<const float *>(byte_buffer);
         if (buffer_size % element_size != 0)
           throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Bad BufferCount?");
         Size float_count = buffer_size / element_size;
@@ -394,7 +394,7 @@ private:
       }
       else
       {
-        const DoubleReal * float_buffer = reinterpret_cast<const DoubleReal *>(byte_buffer);
+        const double * float_buffer = reinterpret_cast<const double *>(byte_buffer);
 
         if (buffer_size % element_size != 0)
           throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Bad BufferCount?");
@@ -417,7 +417,7 @@ private:
     {
       if (element_size == 4)
       {
-        const Real * float_buffer = reinterpret_cast<const Real *>(byte_buffer);
+        const float * float_buffer = reinterpret_cast<const float *>(byte_buffer);
         if (buffer_size % element_size != 0)
           throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Bad BufferCount while decoding?");
 
@@ -426,7 +426,7 @@ private:
       }
       else
       {
-        const DoubleReal * float_buffer = reinterpret_cast<const DoubleReal *>(byte_buffer);
+        const double * float_buffer = reinterpret_cast<const double *>(byte_buffer);
 
         if (buffer_size % element_size != 0)
           throw Exception::ConversionError(__FILE__, __LINE__, __PRETTY_FUNCTION__, "Bad BufferCount while decoding?");
@@ -488,7 +488,7 @@ private:
     out.reserve((UInt)(std::ceil((4.0 * src_size) / 3.0) + 6.0));
 
     // sort all read bytes correctly into a char[4] (double) or
-    // char[8] (Real) and push_back when necessary.
+    // char[8] (float) and push_back when necessary.
     for (Size i = 0; i < src_size; i += 4)
     {
       // decode 4 Base64-Chars to 3 Byte
@@ -677,7 +677,7 @@ private:
     czip.resize(4);
     czip[0] = (bazip.size() & 0xff000000) >> 24;
     czip[1] = (bazip.size() & 0x00ff0000) >> 16;
-    czip[2] = (bazip.size() | 0x00000800) >> 8;
+    czip[2] = (bazip.size() & 0x0000ff00) >> 8;
     czip[3] = (bazip.size() & 0x000000ff);
     czip += bazip;
     QByteArray base64_uncompressed = qUncompress(czip);
@@ -814,7 +814,7 @@ private:
     out.reserve((UInt)(std::ceil((4.0 * src_size) / 3.0) + 6.0));
 
     // sort all read bytes correctly into a char[4] (double) or
-    // char[8] (Real) and push_back when necessary.
+    // char[8] (float) and push_back when necessary.
     for (Size i = 0; i < src_size; i += 4)
     {
 //printf ("start: i=%d, offset %d\n", i, offset);

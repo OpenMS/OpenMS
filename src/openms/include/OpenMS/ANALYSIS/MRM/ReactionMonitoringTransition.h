@@ -47,7 +47,7 @@ namespace OpenMS
     @brief This class stores a SRM/MRM transition
 
     The default values for precursor and product m/z values are
-    set to numeric_limits<DoubleReal>::max(). Default values for
+    set to numeric_limits<double>::max(). Default values for
     precursor an product charge is set to numeric_limits<Int>::max().
   */
   class OPENMS_DLLAPI ReactionMonitoringTransition :
@@ -104,9 +104,9 @@ public:
     const String & getCompoundRef() const;
 
     /// sets the precursor mz (Q1 value)
-    void setPrecursorMZ(DoubleReal mz);
+    void setPrecursorMZ(double mz);
 
-    DoubleReal getPrecursorMZ() const;
+    double getPrecursorMZ() const;
 
     void setPrecursorCVTermList(const CVTermList & list);
 
@@ -114,9 +114,9 @@ public:
 
     const CVTermList & getPrecursorCVTermList() const;
 
-    void setProductMZ(DoubleReal mz);
+    void setProductMZ(double mz);
 
-    DoubleReal getProductMZ() const;
+    double getProductMZ() const;
 
     //void setProductCVTermList(const CVTermList& list);
 
@@ -148,9 +148,9 @@ public:
 
     void setDecoyTransitionType(const DecoyTransitionType & d);
 
-    DoubleReal getLibraryIntensity() const;
+    double getLibraryIntensity() const;
 
-    void setLibraryIntensity(DoubleReal intensity);
+    void setLibraryIntensity(double intensity);
 
     //@}
 
@@ -206,7 +206,7 @@ protected:
     // cvparam / userParam
 
     // A transition has exactly one precursor and it must supply the CV Term 1000827 (isolation window target m/z
-    DoubleReal precursor_mz_;
+    double precursor_mz_;
     CVTermList precursor_cv_terms_;
 
     Product product_;
@@ -221,7 +221,7 @@ protected:
     /// specific properties of a transition (e.g. specific CV terms)
     DecoyTransitionType decoy_type_;
 
-    DoubleReal library_intensity_;
+    double library_intensity_;
   };
 }
 

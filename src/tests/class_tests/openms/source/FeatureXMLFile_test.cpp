@@ -45,7 +45,7 @@
 using namespace OpenMS;
 using namespace std;
 
-DRange<1> makeRange(DoubleReal a, DoubleReal b)
+DRange<1> makeRange(double a, double b)
 {
   DPosition<1> pa(a), pb(b);
   return DRange<1>(pa, pb);
@@ -112,7 +112,7 @@ START_SECTION((void load(const String &filename, FeatureMap<>&feature_map)))
   TEST_REAL_SIMILAR(e[0].getIntensity(), 300)
   TEST_EQUAL(e[0].getMetaValue("stringparametername"), "stringparametervalue")
   TEST_EQUAL((UInt)e[0].getMetaValue("intparametername"), 4)
-  TEST_REAL_SIMILAR((DoubleReal)e[0].getMetaValue("floatparametername"), 4.551)
+  TEST_REAL_SIMILAR((double)e[0].getMetaValue("floatparametername"), 4.551)
   TEST_REAL_SIMILAR(e[1].getRT(), 0)
   TEST_REAL_SIMILAR(e[1].getMZ(), 35)
   TEST_REAL_SIMILAR(e[1].getIntensity(), 500)
@@ -138,26 +138,26 @@ START_SECTION((void load(const String &filename, FeatureMap<>&feature_map)))
   //peptide identifications
   TEST_EQUAL(e[0].getPeptideIdentifications().size(), 2)
   TEST_EQUAL(e[0].getPeptideIdentifications()[0].getHits().size(), 1)
-  TEST_EQUAL(e[0].getPeptideIdentifications()[0].getHits()[0].getSequence(), "A")
+  TEST_EQUAL(e[0].getPeptideIdentifications()[0].getHits()[0].getSequence(), AASequence::fromString("A"))
   TEST_EQUAL(e[0].getPeptideIdentifications()[1].getHits().size(), 2)
-  TEST_EQUAL(e[0].getPeptideIdentifications()[1].getHits()[0].getSequence(), "C")
-  TEST_EQUAL(e[0].getPeptideIdentifications()[1].getHits()[1].getSequence(), "D")
+  TEST_EQUAL(e[0].getPeptideIdentifications()[1].getHits()[0].getSequence(), AASequence::fromString("C"))
+  TEST_EQUAL(e[0].getPeptideIdentifications()[1].getHits()[1].getSequence(), AASequence::fromString("D"))
   TEST_EQUAL(e[1].getPeptideIdentifications().size(), 1)
   TEST_EQUAL(e[1].getPeptideIdentifications()[0].getHits().size(), 1)
-  TEST_EQUAL(e[1].getPeptideIdentifications()[0].getHits()[0].getSequence(), "E")
+  TEST_EQUAL(e[1].getPeptideIdentifications()[0].getHits()[0].getSequence(), AASequence::fromString("E"))
   //unassigned peptide identifications
   TEST_EQUAL(e.getUnassignedPeptideIdentifications().size(), 2)
   TEST_EQUAL(e.getUnassignedPeptideIdentifications()[0].getHits().size(), 1)
-  TEST_EQUAL(e.getUnassignedPeptideIdentifications()[0].getHits()[0].getSequence(), "F")
+  TEST_EQUAL(e.getUnassignedPeptideIdentifications()[0].getHits()[0].getSequence(), AASequence::fromString("F"))
   TEST_EQUAL(e.getUnassignedPeptideIdentifications()[1].getHits().size(), 2)
-  TEST_EQUAL(e.getUnassignedPeptideIdentifications()[1].getHits()[0].getSequence(), "G")
-  TEST_EQUAL(e.getUnassignedPeptideIdentifications()[1].getHits()[1].getSequence(), "H")
+  TEST_EQUAL(e.getUnassignedPeptideIdentifications()[1].getHits()[0].getSequence(), AASequence::fromString("G"))
+  TEST_EQUAL(e.getUnassignedPeptideIdentifications()[1].getHits()[1].getSequence(), AASequence::fromString("H"))
 
   // test meta values:
   TEST_EQUAL(e[0].getMetaValue("myIntList") == ListUtils::create<Int>("1,10,12"), true);
-  TEST_EQUAL(e[0].getMetaValue("myDoubleList") == ListUtils::create<DoubleReal>("1.111,10.999,12.45"), true);
+  TEST_EQUAL(e[0].getMetaValue("myDoubleList") == ListUtils::create<double>("1.111,10.999,12.45"), true);
   TEST_EQUAL(e[0].getMetaValue("myStringList") == ListUtils::create<String>("myABC1,Stuff,12"), true);
-  TEST_EQUAL(e[1].getMetaValue("myDoubleList") == ListUtils::create<DoubleReal>("6.442"), true);
+  TEST_EQUAL(e[1].getMetaValue("myDoubleList") == ListUtils::create<double>("6.442"), true);
 
   //test if loading a second file works (initialization)
   FeatureMap<> e2;
@@ -266,8 +266,8 @@ END_SECTION
 START_SECTION([EXTRA] static bool isValid(const String& filename))
 {
   FeatureXMLFile f;
-  TEST_EQUAL(f.isValid(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_1.featureXML")), true);
-  TEST_EQUAL(f.isValid(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_2_options.featureXML")), true);
+  TEST_EQUAL(f.isValid(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_1.featureXML"), std::cerr), true);
+  TEST_EQUAL(f.isValid(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_2_options.featureXML"), std::cerr), true);
 
   FeatureMap<> e;
   String filename;
@@ -275,13 +275,13 @@ START_SECTION([EXTRA] static bool isValid(const String& filename))
   //test if empty file is valid
   NEW_TMP_FILE(filename)
   f.store(filename, e);
-  TEST_EQUAL(f.isValid(filename), true);
+  TEST_EQUAL(f.isValid(filename, std::cerr), true);
 
   //test if full file is valid
   NEW_TMP_FILE(filename);
   f.load(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_1.featureXML"), e);
   f.store(filename, e);
-  TEST_EQUAL(f.isValid(filename), true);
+  TEST_EQUAL(f.isValid(filename, std::cerr), true);
 }
 END_SECTION
 

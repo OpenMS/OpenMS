@@ -23,8 +23,8 @@
 			<UserParam type="string" value="PeptideIdentification" name="name"/>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="MOWSE" higher_score_better="true">
-			<PeptideHit sequence="PEP3" score="44.4" charge="2" />
-			<PeptideHit sequence="PEP4" score="33.3" charge="2" />
+			<PeptideHit sequence="PEPTIDERRR" score="44.4" charge="2" />
+			<PeptideHit sequence="PEPTIDERRRR" score="33.3" charge="2" />
 		</PeptideIdentification>
 	</IdentificationRun>
 	<IdentificationRun date="2007-01-12T12:13:14" search_engine="Mascot" search_parameters_ref="SP_2" search_engine_version="2.1.1">
@@ -32,7 +32,7 @@
 			<ProteinHit score="100.0" id="PH_5" accession="PROT3" />
 		</ProteinIdentification>
 		<PeptideIdentification score_type="MOWSE" higher_score_better="true">
-			<PeptideHit sequence="PEP5" score="1.4" charge="1" protein_refs="PH_5"/>
+			<PeptideHit sequence="PEPTIDERRRRR" score="1.4" charge="1" protein_refs="PH_5"/>
 		</PeptideIdentification>
 	</IdentificationRun>
 </IdXML>

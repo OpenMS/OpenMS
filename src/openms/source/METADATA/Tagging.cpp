@@ -90,12 +90,12 @@ namespace OpenMS
     return tmp;
   }
 
-  DoubleReal Tagging::getMassShift() const
+  double Tagging::getMassShift() const
   {
     return mass_shift_;
   }
 
-  void Tagging::setMassShift(DoubleReal mass_shift)
+  void Tagging::setMassShift(double mass_shift)
   {
     mass_shift_ = mass_shift;
   }

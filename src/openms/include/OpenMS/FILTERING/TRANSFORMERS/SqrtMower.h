@@ -72,7 +72,7 @@ public:
       bool warning = false;
       for (typename SpectrumType::Iterator it = spectrum.begin(); it != spectrum.end(); ++it)
       {
-        DoubleReal intens = it->getIntensity();
+        double intens = it->getIntensity();
         if (intens < 0)
         {
           intens = 0;

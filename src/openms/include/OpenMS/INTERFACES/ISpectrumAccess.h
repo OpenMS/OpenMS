@@ -52,7 +52,7 @@ namespace Interfaces
   class OPENMS_DLLAPI ISpectraReader
   {
 public:
-    virtual ~ISpectraReader() {};
+    virtual ~ISpectraReader() {}
     /// Return a pointer to a spectrum at the given id
     virtual SpectrumPtr getSpectrumById(int id) const = 0;
     /// Return a pointer to a spectrum at the given string id
@@ -65,7 +65,7 @@ public:
     virtual SpectrumMetaPtr getSpectrumMetaById(int id) const = 0;
 
     /*
-     * Do we need an Iterator here? 
+     * Do we need an Iterator here?
      * We would have to provide our own iterator wrapper class because we don't
      * know whether all the spectra are loaded at any given timepoint
     typedef SpectrumPtr const ConstSpectraIterator;
@@ -73,7 +73,7 @@ public:
     ConstSpectraIterator endSpectra() const;
     */
   };
-  OPENMS_DLLAPI typedef boost::shared_ptr<ISpectraReader> SpectraReaderPtr;
+  typedef boost::shared_ptr<ISpectraReader> SpectraReaderPtr;
 
 
   /**
@@ -82,7 +82,7 @@ public:
   class OPENMS_DLLAPI IChromatogramsReader
   {
 public:
-    virtual ~IChromatogramsReader() {};
+    virtual ~IChromatogramsReader() {}
     /// Return a pointer to a chromatogram at the given id
     virtual ChromatogramPtr getChromatogramById(int id) const = 0;
     /// Return a pointer to a chromatogram at the given string id
@@ -95,38 +95,38 @@ public:
     virtual ChromatogramMetaPtr getChromatogramMetaById(int id) const = 0;
 
     /*
-     * Do we need an Iterator here? 
+     * Do we need an Iterator here?
      * We would have to provide our own iterator wrapper class because we don't
      * know whether all the chromatograms are loaded at any given timepoint
     ConstChromatogramIterator beginChromatograms() const;
     ConstChromatogramIterator endChromatograms() const;
     */
   };
-  OPENMS_DLLAPI typedef boost::shared_ptr<IChromatogramsReader> ChromatogramsReaderPtr;
+  typedef boost::shared_ptr<IChromatogramsReader> ChromatogramsReaderPtr;
 
 
   class OPENMS_DLLAPI ISpectraWriter
   {
 public:
-    virtual ~ISpectraWriter() {};
-    /// Append a spectrum to the end 
+    virtual ~ISpectraWriter() {}
+    /// Append a spectrum to the end
     virtual void appendSpectrum(SpectrumPtr spectrum, bool write_through=false) = 0;
     /// write all cached data to disk
-    virtual void flush() = 0; 
+    virtual void flush() = 0;
   };
-  OPENMS_DLLAPI typedef boost::shared_ptr<ISpectraWriter> SpectraWriterPtr;
+  typedef boost::shared_ptr<ISpectraWriter> SpectraWriterPtr;
 
 
   class OPENMS_DLLAPI IChromatogramsWriter
   {
 public:
-    virtual ~IChromatogramsWriter() {};
-    /// Append a chromatogram to the end 
+    virtual ~IChromatogramsWriter() {}
+    /// Append a chromatogram to the end
     virtual void appendChromatogram(ChromatogramPtr chromatogram, bool write_through=false) = 0;
     /// write all cached data to disk
-    virtual void flush() = 0; 
+    virtual void flush() = 0;
   };
-  OPENMS_DLLAPI typedef boost::shared_ptr<IChromatogramsWriter> ChromatogramsWriterPtr;
+  typedef boost::shared_ptr<IChromatogramsWriter> ChromatogramsWriterPtr;
 
 } //end namespace Interfaces
 } //end namespace OpenMS

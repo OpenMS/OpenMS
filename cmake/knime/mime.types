@@ -23,6 +23,7 @@ image/png png
 application/x-xmass fid
 text/tsv tsv
 text/csv csv
+application/x-mrm mrm
 application/x-peplist pepList
 application/x-hardkloer hardkloer
 application/x-kroenik kroenik

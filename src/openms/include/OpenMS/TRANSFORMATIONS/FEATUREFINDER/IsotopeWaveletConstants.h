@@ -37,7 +37,6 @@
 
 namespace OpenMS
 {
-  //We cannot define these constants as extern variable because of the cuda interface
   namespace Constants
   {
 #undef OPENMS_DEBUG_ISOTOPE_WAVELET
@@ -88,28 +87,6 @@ namespace OpenMS
     const double SHIFT23_00 = (1.0 / (1 << 23));
     const double LOG_CONST = 0.346607f;
     const double POW_CONST = 0.33971f;
-
-    const int CUDA_INIT_SUCCESS = 1;
-    const int CUDA_INIT_FAIL = -1;
-
-    const int CUDA_BLOCKS_PER_GRID_MAX = 65535;
-    const int CUDA_BLOCK_SIZE_MAX = 256;    //limited due to the shared memory
-    const int CUDA_EXTENDED_BLOCK_SIZE_MAX = 2039;
-    const int CUDA_TEXTURE_THREAD_LIMIT = 384;    //limited due to the number of used registers
-
-    const int CUDA_ELEMENTS_SORT = 512;
-    const int CUDA_THREADS_SORT =  (CUDA_ELEMENTS_SORT >> 2);
-    const int CUDA_SORT_NUM = 0xFFFFFE00;
-    const int CUDA_ELEMENTS_MERGE = 1024;
-    const int CUDA_MERGE_NUM = 0xFFFFFC00;
-    const int CUDA_THREADS_MERGE = (CUDA_ELEMENTS_MERGE >> 2);
-    const int CUDA_ELEMENTS_GL = 2;
-    const int CUDA_THREADS_GL = 256;
-    const int CUDA_MIN_SORT_SIZE = CUDA_ELEMENTS_SORT;
-
-    const int TBB_NUM_OF_GPU_DEVICES = 2;
-
-#define CUDA_CHECK_ERROR
   }
 }
 

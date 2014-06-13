@@ -111,7 +111,7 @@ START_SECTION((void store(const String& filename, const Param& param) const))
 	TEST_EQUAL(p3.getSectionDescription("test2:a"),"adesc")
 	TEST_EQUAL(p3.hasTag("test2:b:b1","advanced"),true)
 	TEST_EQUAL(p3.hasTag("test2:a:a1","advanced"),false)
-	TEST_EQUAL(ParamXMLFile().isValid(filename),true)
+	TEST_EQUAL(ParamXMLFile().isValid(filename, std::cerr),true)
 
 	//advanced
 	NEW_TMP_FILE(filename);
@@ -120,7 +120,7 @@ START_SECTION((void store(const String& filename, const Param& param) const))
 	p7.setValue("false",5,"");
 
 	paramFile.store(filename,p7);
-	TEST_EQUAL(ParamXMLFile().isValid(filename),true)
+	TEST_EQUAL(ParamXMLFile().isValid(filename, std::cerr),true)
 	Param p8;
 	paramFile.load(filename,p8);
 
@@ -172,10 +172,10 @@ START_SECTION((void store(const String& filename, const Param& param) const))
 	p5.setMinInt("intlist4",0);
 	p5.setMaxInt("intlist4",15);
 
-	p5.setValue("doublelist",ListUtils::create<DoubleReal>("1.2,3.33,4.44"));
-	p5.setValue("doublelist2",ListUtils::create<DoubleReal>("1.2,3.33,4.44"));
-	p5.setValue("doublelist3",ListUtils::create<DoubleReal>("1.2,3.33,4.44"));
-	p5.setValue("doublelist4",ListUtils::create<DoubleReal>("1.2,3.33,4.44"));
+	p5.setValue("doublelist",ListUtils::create<double>("1.2,3.33,4.44"));
+	p5.setValue("doublelist2",ListUtils::create<double>("1.2,3.33,4.44"));
+	p5.setValue("doublelist3",ListUtils::create<double>("1.2,3.33,4.44"));
+	p5.setValue("doublelist4",ListUtils::create<double>("1.2,3.33,4.44"));
 
 	p5.setMinFloat("doublelist2",1.1);
 	p5.setMaxFloat("doublelist3",4.45);
@@ -184,7 +184,7 @@ START_SECTION((void store(const String& filename, const Param& param) const))
 
 
 	paramFile.store(filename,p5);
-	TEST_EQUAL(paramFile.isValid(filename),true)
+	TEST_EQUAL(paramFile.isValid(filename, std::cerr),true)
 	Param p6;
 	paramFile.load(filename,p6);
 
@@ -198,11 +198,11 @@ START_SECTION((void store(const String& filename, const Param& param) const))
 	TEST_EQUAL(p6.getEntry("int_min_max").min_int, 0)
 	TEST_EQUAL(p6.getEntry("int_min_max").max_int, 10)
 
-	TEST_REAL_SIMILAR(p6.getEntry("float").min_float, -numeric_limits<DoubleReal>::max())
-	TEST_REAL_SIMILAR(p6.getEntry("float").max_float, numeric_limits<DoubleReal>::max())
+	TEST_REAL_SIMILAR(p6.getEntry("float").min_float, -numeric_limits<double>::max())
+	TEST_REAL_SIMILAR(p6.getEntry("float").max_float, numeric_limits<double>::max())
 	TEST_REAL_SIMILAR(p6.getEntry("float_min").min_float, 4.1)
-	TEST_REAL_SIMILAR(p6.getEntry("float_min").max_float, numeric_limits<DoubleReal>::max())
-	TEST_REAL_SIMILAR(p6.getEntry("float_max").min_float, -numeric_limits<DoubleReal>::max())
+	TEST_REAL_SIMILAR(p6.getEntry("float_min").max_float, numeric_limits<double>::max())
+	TEST_REAL_SIMILAR(p6.getEntry("float_max").min_float, -numeric_limits<double>::max())
 	TEST_REAL_SIMILAR(p6.getEntry("float_max").max_float, 6.1)
 	TEST_REAL_SIMILAR(p6.getEntry("float_min_max").min_float, 0.1)
 	TEST_REAL_SIMILAR(p6.getEntry("float_min_max").max_float, 10.1)
@@ -228,11 +228,11 @@ START_SECTION((void store(const String& filename, const Param& param) const))
 	TEST_EQUAL(p6.getEntry("intlist4").min_int, 0)
 	TEST_EQUAL(p6.getEntry("intlist4").max_int, 15)
 
-	TEST_REAL_SIMILAR(p6.getEntry("doublelist").min_float, -numeric_limits<DoubleReal>::max())
-	TEST_REAL_SIMILAR(p6.getEntry("doublelist").max_float, numeric_limits<DoubleReal>::max())
+	TEST_REAL_SIMILAR(p6.getEntry("doublelist").min_float, -numeric_limits<double>::max())
+	TEST_REAL_SIMILAR(p6.getEntry("doublelist").max_float, numeric_limits<double>::max())
 	TEST_REAL_SIMILAR(p6.getEntry("doublelist2").min_float, 1.1)
-	TEST_REAL_SIMILAR(p6.getEntry("doublelist2").max_float, numeric_limits<DoubleReal>::max())
-	TEST_REAL_SIMILAR(p6.getEntry("doublelist3").min_float, -numeric_limits<DoubleReal>::max())
+	TEST_REAL_SIMILAR(p6.getEntry("doublelist2").max_float, numeric_limits<double>::max())
+	TEST_REAL_SIMILAR(p6.getEntry("doublelist3").min_float, -numeric_limits<double>::max())
 	TEST_REAL_SIMILAR(p6.getEntry("doublelist3").max_float, 4.45)
 	TEST_REAL_SIMILAR(p6.getEntry("doublelist4").min_float, 0.1)
 	TEST_REAL_SIMILAR(p6.getEntry("doublelist4").max_float, 5.8)
@@ -240,7 +240,7 @@ START_SECTION((void store(const String& filename, const Param& param) const))
 	NEW_TMP_FILE(filename);
 	Param p4;
 	paramFile.store(filename,p4);
-	TEST_EQUAL(paramFile.isValid(filename),true)
+	TEST_EQUAL(paramFile.isValid(filename, std::cerr),true)
 END_SECTION
 
 START_SECTION((void writeXMLToStream(std::ostream *os_ptr, const Param &param) const ))
@@ -255,8 +255,8 @@ START_SECTION((void writeXMLToStream(std::ostream *os_ptr, const Param &param) c
 	p.setValue("intlist3", ListUtils::create<Int>("1"));
 	p.setValue("stringlist3", ListUtils::create<String>("1"));
 	p.setValue("item3", 7.6);
-	p.setValue("doublelist", ListUtils::create<DoubleReal>("1.22,2.33,4.55"));
-	p.setValue("doublelist3", ListUtils::create<DoubleReal>("1.4"));
+	p.setValue("doublelist", ListUtils::create<double>("1.22,2.33,4.55"));
+	p.setValue("doublelist3", ListUtils::create<double>("1.4"));
   p.setValue("file_parameter", "", "This is a file parameter.");
   p.addTag("file_parameter", "input file");
   p.setValidStrings("file_parameter", ListUtils::create<String>("*.mzML,*.mzXML"));
@@ -284,9 +284,9 @@ START_SECTION([EXTRA] loading and storing of lists)
 	p.setValue("intlist3", ListUtils::create<Int>("1"));
 	p.setValue("stringlist3", ListUtils::create<String>("1"));
 	p.setValue("item3", 7.6);
-	p.setValue("doublelist", ListUtils::create<DoubleReal>("1.22,2.33,4.55"));
-	p.setValue("doublelist2", ListUtils::create<DoubleReal>(""));
-	p.setValue("doublelist3", ListUtils::create<DoubleReal>("1.4"));
+	p.setValue("doublelist", ListUtils::create<double>("1.22,2.33,4.55"));
+	p.setValue("doublelist2", ListUtils::create<double>(""));
+	p.setValue("doublelist3", ListUtils::create<double>("1.4"));
 	//store
 	String filename;
 	NEW_TMP_FILE(filename);

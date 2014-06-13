@@ -53,11 +53,13 @@ namespace OpenMS
     public HierarchicalClustering<SILACPattern *>
   {
 public:
-    const DoubleReal rt_min;
-    const DoubleReal rt_max_spacing;
+    const double rt_min;
+    const double rt_max_spacing;
 
-    SILACClustering(const PointCoordinate & cluster_dimension, DoubleReal rt_min, DoubleReal rt_max_spacing) :
-      HierarchicalClustering<SILACPattern *>(cluster_dimension), rt_min(rt_min), rt_max_spacing(rt_max_spacing)
+    SILACClustering(const PointCoordinate & local_cluster_dimension, double local_rt_min, double local_rt_max_spacing) :
+      HierarchicalClustering<SILACPattern *>(local_cluster_dimension),
+      rt_min(local_rt_min),
+      rt_max_spacing(local_rt_max_spacing)
     {}
 
     /**

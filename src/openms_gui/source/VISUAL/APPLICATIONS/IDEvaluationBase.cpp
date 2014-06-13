@@ -112,7 +112,7 @@ namespace OpenMS
     DefaultParamHandler("IDEvaluationBase"),
     spec_1d_(0)
   {
-    for (DoubleReal d = 0.0; d <= 1.0; d += (1.0) / 100)
+    for (double d = 0.0; d <= 1.0; d += (1.0) / 100)
     {
       q_value_thresholds_.push_back(d);
     }
@@ -294,7 +294,7 @@ namespace OpenMS
   }
 
   bool IDEvaluationBase::getPoints(std::vector<PeptideIdentification>& peptides /* cannot be const, to avoid copy */,
-                                   const std::vector<DoubleReal>& q_value_thresholds, MSSpectrum<>& points)
+                                   const std::vector<double>& q_value_thresholds, MSSpectrum<>& points)
   {
     points.clear(true);
 
@@ -311,7 +311,7 @@ namespace OpenMS
     }
 
     // get list of q-values and sort them
-    std::vector<DoubleReal> q_values;
+    std::vector<double> q_values;
     q_values.reserve(peptides.size());
     for (vector<PeptideIdentification>::iterator it = peptides.begin(); it != peptides.end(); ++it)
     {
@@ -325,7 +325,7 @@ namespace OpenMS
     for (Size i = 0; i < q_value_thresholds.size(); ++i)
     {
       // get position in sorted q-values where cutoff is reached
-      std::vector<DoubleReal>::iterator pos = std::upper_bound(q_values.begin(), q_values.end(), q_value_thresholds[i]);
+      std::vector<double>::iterator pos = std::upper_bound(q_values.begin(), q_values.end(), q_value_thresholds[i]);
       Peak1D p;
       p.setMZ(q_value_thresholds[i] * 100);
       p.setIntensity(std::distance(q_values.begin(), pos));
@@ -440,26 +440,26 @@ namespace OpenMS
     }
     bool svg = (suffix.compare("svg", Qt::CaseInsensitive) == 0);
 
-    QSize items_bounding_rect = spec_1d_->size();
-    qreal wh_proportion = (qreal)(items_bounding_rect.width()) / (qreal)(items_bounding_rect.height());
-    bool w_larger_than_h = wh_proportion > 1;
-    qreal x2, y2;
+    // QSize items_bounding_rect = spec_1d_->size();
+    // qreal wh_proportion = (qreal)(items_bounding_rect.width()) / (qreal)(items_bounding_rect.height());
+    // bool w_larger_than_h = wh_proportion > 1;
 
-    qreal small_edge_length = svg ? 500 : 4000;
+    // qreal small_edge_length = svg ? 500 : 4000;
 
-    if (w_larger_than_h)
-    {
-      x2 = wh_proportion * small_edge_length;
-      y2 = small_edge_length;
-    }
-    else
-    {
-      x2 = small_edge_length;
-      y2 = (1.0 / wh_proportion) * small_edge_length;
-    }
+    // qreal x2, y2;
+    // if (w_larger_than_h)
+    // {
+    //   x2 = wh_proportion * small_edge_length;
+    //   y2 = small_edge_length;
+    // }
+    // else
+    // {
+    //   x2 = small_edge_length;
+    //   y2 = (1.0 / wh_proportion) * small_edge_length;
+    // }
     
-    DoubleReal h = param_.getValue("image:height");
-    DoubleReal w = param_.getValue("image:width");
+    double h = param_.getValue("image:height");
+    double w = param_.getValue("image:width");
     setGeometry(QRect(0, 0, w, h)); // does the layout -- otherwise we'd need show() to get it right
 
     if (svg)
@@ -595,7 +595,7 @@ namespace OpenMS
     e->ignore();
   }
 
-  void IDEvaluationBase::closeEvent(QCloseEvent* event)
+  void IDEvaluationBase::closeEvent(QCloseEvent* /* event */)
   {
     //ws_->closeAllWindows();
     //event->accept();

@@ -57,10 +57,10 @@ namespace OpenMS
   {
 
 public:
-    typedef DoubleReal IntensityType;
+    typedef double IntensityType;
     typedef DPosition<1> PositionType;
-    typedef DoubleReal CoordinateType;
-    typedef Math::LinearInterpolation<DoubleReal> LinearInterpolation;
+    typedef double CoordinateType;
+    typedef Math::LinearInterpolation<double> LinearInterpolation;
 
     /// Default constructor
     InterpolationModel() :
@@ -153,7 +153,6 @@ public:
     virtual CoordinateType getCenter() const
     {
       throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
-      return CoordinateType();           // we will never get here, but this avoids a warning
     }
 
     /// set sample/supporting points of interpolation wrt params.

@@ -59,7 +59,7 @@ public:
     /**
         @brief Applies the algorithm
     */
-    virtual void evaluate(const ConsensusMap & consensus_map_in, const ConsensusMap & consensus_map_gt, const DoubleReal & rt_dev, const DoubleReal & mz_dev, const Peak2D::IntensityType & int_dev, const bool use_charge, DoubleReal & out);
+    virtual void evaluate(const ConsensusMap & consensus_map_in, const ConsensusMap & consensus_map_gt, const double & rt_dev, const double & mz_dev, const Peak2D::IntensityType & int_dev, const bool use_charge, double & out);
 
     /// Creates a new instance of this class (for Factory)
     static MapAlignmentEvaluationAlgorithm * create()

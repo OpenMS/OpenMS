@@ -34,7 +34,7 @@
 
 #include <OpenMS/DATASTRUCTURES/Adduct.h>
 
-using namespace std;
+#include <iostream>
 
 namespace OpenMS
 {
@@ -61,7 +61,7 @@ namespace OpenMS
   {
   }
 
-  Adduct::Adduct(Int charge, Int amount, DoubleReal singleMass, String formula, DoubleReal log_prob, DoubleReal rt_shift, const String label) :
+  Adduct::Adduct(Int charge, Int amount, double singleMass, String formula, double log_prob, double rt_shift, const String label) :
     charge_(charge),
     amount_(amount),
     singleMass_(singleMass),
@@ -124,22 +124,22 @@ namespace OpenMS
     amount_ = amount;
   }
 
-  const DoubleReal & Adduct::getSingleMass() const
+  const double & Adduct::getSingleMass() const
   {
     return singleMass_;
   }
 
-  void Adduct::setSingleMass(const DoubleReal & singleMass)
+  void Adduct::setSingleMass(const double & singleMass)
   {
     singleMass_ = singleMass;
   }
 
-  const DoubleReal & Adduct::getLogProb() const
+  const double & Adduct::getLogProb() const
   {
     return log_prob_;
   }
 
-  void Adduct::setLogProb(const DoubleReal & log_prob)
+  void Adduct::setLogProb(const double & log_prob)
   {
     log_prob_ = log_prob;
   }
@@ -154,7 +154,7 @@ namespace OpenMS
     formula_ = checkFormula_(formula);
   }
 
-  const DoubleReal & Adduct::getRTShift() const
+  const double & Adduct::getRTShift() const
   {
     return rt_shift_;
   }

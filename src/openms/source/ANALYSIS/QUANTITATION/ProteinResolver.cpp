@@ -107,7 +107,6 @@ namespace OpenMS
   void ProteinResolver::resolveID(vector<PeptideIdentification> & peptide_identifications)
   {
     vector<ProteinEntry> * protein_nodes = new vector<ProteinEntry>;
-    protein_nodes->resize(protein_data_.size());
     vector<PeptideEntry> * peptide_nodes = new vector<PeptideEntry>;
     vector<ISDGroup> * isd_groups = new vector<ISDGroup>;
     vector<MSDGroup> * msd_groups = new vector<MSDGroup>;
@@ -116,10 +115,10 @@ namespace OpenMS
 
     // building ISD Groups
     buildingISDGroups_(*protein_nodes, *peptide_nodes, *isd_groups);
+    LOG_INFO << "ISD groups done! size: " << isd_groups->size() << std::endl;
 
     // Including all MSMS derived peptides into the graph
-    Size found_peptides;
-    found_peptides = includeMSMSPeptides_(peptide_identifications, *peptide_nodes);
+    includeMSMSPeptides_(peptide_identifications, *peptide_nodes);
 
     // building MSD Groups
     buildingMSDGroups_(*msd_groups, *isd_groups);
@@ -149,7 +148,6 @@ namespace OpenMS
   void ProteinResolver::resolveConsensus(ConsensusMap & consensus)
   {
     vector<ProteinEntry> * protein_nodes = new vector<ProteinEntry>;
-    protein_nodes->resize(protein_data_.size());
     vector<PeptideEntry> * peptide_nodes = new vector<PeptideEntry>;
     vector<ISDGroup> * isd_groups = new vector<ISDGroup>;
     vector<MSDGroup> * msd_groups = new vector<MSDGroup>;
@@ -160,8 +158,7 @@ namespace OpenMS
     buildingISDGroups_(*protein_nodes, *peptide_nodes, *isd_groups);
 
     // Including all MSMS derived peptides into the graph
-    Size found_peptides;
-    found_peptides = includeMSMSPeptides_(consensus, *peptide_nodes);
+    includeMSMSPeptides_(consensus, *peptide_nodes);
 
     // building MSD Groups
     buildingMSDGroups_(*msd_groups, *isd_groups);
@@ -244,21 +241,7 @@ namespace OpenMS
     }
   }
 
-  //travers Protein and peptide nodes. Once for building ISD groups and once for building MSD groups
-  void ProteinResolver::traversProtein_(ProteinEntry * prot_node, ISDGroup & group)
-  {
-    group.proteins.push_back(prot_node);
-    prot_node->isd_group = group.index;
-    for (list<PeptideEntry *>::iterator i = prot_node->peptides.begin(); i != prot_node->peptides.end(); ++i)
-    {
-      if (!(*i)->traversed)
-      {
-        (*i)->traversed = true;
-        traversPeptide_((*i), group);
-      }
-    }
-  }
-
+  //travers Protein and peptide nodes for building MSD groups
   void ProteinResolver::traversProtein_(ProteinEntry * prot_node, MSDGroup & group)
   {
     group.proteins.push_back(prot_node);
@@ -274,20 +257,6 @@ namespace OpenMS
         {
           traversPeptide_((*i), group);
         }
-      }
-    }
-  }
-
-  void ProteinResolver::traversPeptide_(PeptideEntry * pep_node, ISDGroup & group)
-  {
-    group.peptides.push_back(pep_node);
-    pep_node->isd_group = group.index;
-    for (list<ProteinEntry *>::iterator i = pep_node->proteins.begin(); i != pep_node->proteins.end(); ++i)
-    {
-      if (!(*i)->traversed)
-      {
-        (*i)->traversed = true;
-        traversProtein_((*i), group);
       }
     }
   }
@@ -384,7 +353,7 @@ namespace OpenMS
     Size found_peptide = 0;
     for (Size pep = 0; pep != consensus.size(); ++pep)
     {
-      ConsensusFeature & feature = consensus.at(pep);
+      ConsensusFeature & feature = consensus[pep];
 
       // get all peptide identifications
       const vector<PeptideIdentification> & pep_id  = feature.getPeptideIdentifications();
@@ -392,22 +361,22 @@ namespace OpenMS
 
       for (Size cons_pep = 0; cons_pep < pep_id.size(); ++cons_pep)
       {
-        String seq = pep_id.at(cons_pep).getHits().front().getSequence().toUnmodifiedString();
+        String seq = pep_id[cons_pep].getHits().front().getSequence().toUnmodifiedString();
         Size peptide_entry = findPeptideEntry_(seq, peptide_nodes);
 
         if (peptide_entry != peptide_nodes.size())
         {
-          if (!peptide_nodes.at(peptide_entry).experimental)
+          if (!peptide_nodes[peptide_entry].experimental)
           {
             ++found_peptide;
           }
           //should be changed -- for consensus peptide_identification is the consensus and peptide_hit is the PeptideIdentification. PeptideHit is only top hit at the moment
-          peptide_nodes.at(peptide_entry).peptide_identification = pep;
-          peptide_nodes.at(peptide_entry).peptide_hit = cons_pep; //only top hit is used at the moment
-          peptide_nodes.at(peptide_entry).experimental = true;
+          peptide_nodes[peptide_entry].peptide_identification = pep;
+          peptide_nodes[peptide_entry].peptide_hit = cons_pep; //only top hit is used at the moment
+          peptide_nodes[peptide_entry].experimental = true;
           // get intensity of the feature
-          peptide_nodes.at(peptide_entry).intensity = feature.getIntensity();
-          peptide_nodes.at(peptide_entry).origin = feature.getMetaValue("file_origin");
+          peptide_nodes[peptide_entry].intensity = feature.getIntensity();
+          peptide_nodes[peptide_entry].origin = feature.getMetaValue("file_origin");
         }
       }
     }
@@ -489,22 +458,22 @@ namespace OpenMS
     //-------------------------------------------------------------
 
     vector<AASequence> temp_peptides;
-    map<String, set<Size> > peptides;
-
+    map<String, set<Size> > peptides; // map peptide seq to all its proteins
+    protein_nodes.resize(protein_data_.size());
     for (Size i = 0; i < protein_data_.size(); ++i)
     {
       protein_nodes[i].fasta_entry = &protein_data_[i];
       protein_nodes[i].traversed = false;
       protein_nodes[i].index = i;
       protein_nodes[i].protein_type = ProteinEntry::secondary;
-      protein_nodes[i].weight = AASequence(protein_data_[i].sequence).getMonoWeight();
+      protein_nodes[i].weight = AASequence::fromString(protein_data_[i].sequence).getMonoWeight();
       protein_nodes[i].coverage = 0.;
       protein_nodes[i].number_of_experimental_peptides = 0;
-      digestor.digest(AASequence(protein_data_[i].sequence), temp_peptides);
+      digestor.digest(AASequence::fromString(protein_data_[i].sequence), temp_peptides);
       for (Size j = 0; j < temp_peptides.size(); ++j)
       {
         if (temp_peptides[j].size() >= min_size)
-        {
+        { // all peptides -> set of protein indices
           peptides[temp_peptides[j].toUnmodifiedString()].insert(i);
         }
       }
@@ -521,26 +490,65 @@ namespace OpenMS
       pep_node->sequence = (*i).first;
       pep_node->experimental = false;
       for (set<Size>::iterator j = (*i).second.begin(); j != (*i).second.end(); ++j)
-      {
+      { // this builds the bipartite graph
         pep_node->proteins.push_back(&protein_nodes[*j]);
         protein_nodes[*j].peptides.push_back(&*pep_node);
       }
     }
-    //ISDGraph constructed
+    // ISDGraph construction (find connected components)
     Size isd_group_counter = 0;
     Size i = 0;
     for (vector<ProteinEntry>::iterator prot_node = protein_nodes.begin(); prot_node != protein_nodes.end(); ++prot_node)
     {
       ++i;
-      if (!prot_node->traversed)
+      std::vector<ProteinEntry*> q_prot;
+      std::vector<PeptideEntry*> q_pep;
+      // initial node
+      q_prot.push_back(&*prot_node);
+
+      ISDGroup group;
+      group.index = isd_group_counter;
+      ++isd_group_counter;
+      while (!(q_prot.empty() && q_pep.empty()))
       {
-        prot_node->traversed = true;
-        ISDGroup group;
-        group.index = isd_group_counter;
-        ++isd_group_counter;
-        traversProtein_(&*prot_node, group);
-        isd_groups.push_back(group);
+        if (!q_prot.empty())
+        {
+          ProteinEntry* prot = q_prot.back();
+          q_prot.pop_back();
+          if (!prot->traversed)
+          {
+            prot->traversed = true;
+            group.proteins.push_back(prot);
+            prot->isd_group = group.index;
+            for (list<PeptideEntry *>::iterator itp = prot->peptides.begin(); itp != prot->peptides.end(); ++itp)
+            {
+              if (!(*itp)->traversed)
+              {
+                q_pep.push_back(*itp);
+              }
+            }
+          }
+        }
+        if (!q_pep.empty())
+        {
+          PeptideEntry* pep = q_pep.back();
+          q_pep.pop_back();
+          if (!pep->traversed)
+          {
+            pep->traversed = true;
+            group.peptides.push_back(pep);
+            pep->isd_group = group.index;
+            for (list<ProteinEntry *>::iterator itp = pep->proteins.begin(); itp != pep->proteins.end(); ++itp)
+            {
+              if (!(*itp)->traversed)
+              {
+                q_prot.push_back(*itp);
+              }
+            }
+          }
+        }
       }
+      isd_groups.push_back(group);
     }
   }
 

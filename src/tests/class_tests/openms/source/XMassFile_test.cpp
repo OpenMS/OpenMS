@@ -67,7 +67,6 @@ START_SECTION(template<typename SpectrumType> void load(const String& filename, 
 	MSSpectrum<>::ConstIterator it;
   TextFile::Iterator f_it;
 	XMassFile f;
-	Size index;
 
 	TEST_EXCEPTION(Exception::FileNotFound, f.load("data_Idontexist", s);)
 
@@ -85,7 +84,7 @@ START_SECTION(template<typename SpectrumType> void load(const String& filename, 
 
 	for(it=s.begin(), f_it = file.begin(); it != s.end() && f_it != file.end(); ++it, ++f_it)
 	{
-    DoubleList test_values = ListUtils::create<DoubleReal>(*f_it);
+    DoubleList test_values = ListUtils::create<double>(*f_it);
     ABORT_IF(test_values.size() != 2)
 
 	  TEST_REAL_SIMILAR(it->getPosition()[0], test_values[0])

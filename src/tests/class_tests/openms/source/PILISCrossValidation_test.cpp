@@ -92,7 +92,7 @@ START_SECTION((void apply(Param &PILIS_param, const PILISModel &base_model, cons
 }
 END_SECTION
 
-START_SECTION((DoubleReal scoreHits(const std::vector< std::vector< std::vector< RichPeakSpectrum > > > &sim_spectra, const std::vector< std::vector< RichPeakSpectrum > > &exp_spectra)))
+START_SECTION((double scoreHits(const std::vector< std::vector< std::vector< RichPeakSpectrum > > > &sim_spectra, const std::vector< std::vector< RichPeakSpectrum > > &exp_spectra)))
 {
   // TODO
 }

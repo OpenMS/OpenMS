@@ -35,6 +35,9 @@
 #include <OpenMS/FORMAT/MzTab.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/FORMAT/TextFile.h>
+
+#include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
+
 #include <fstream>
 
 using namespace OpenMS;
@@ -181,27 +184,27 @@ namespace OpenMS
           }
           else if (meta_key_fields[1].hasPrefix("contact") && meta_key_fields[2] == "name")
           {
-            MzTabString s;
-            s.fromCellString(cells[2]);
-            mz_tab_metadata[unit_id].contact_name.push_back(s);
+            MzTabString ls;
+            ls.fromCellString(cells[2]);
+            mz_tab_metadata[unit_id].contact_name.push_back(ls);
           }
           else if (meta_key_fields[1].hasPrefix("contact") && meta_key_fields[2] == "affiliation")
           {
-            MzTabString s;
-            s.fromCellString(cells[2]);
-            mz_tab_metadata[unit_id].contact_affiliation.push_back(s);
+            MzTabString ls;
+            ls.fromCellString(cells[2]);
+            mz_tab_metadata[unit_id].contact_affiliation.push_back(ls);
           }
           else if (meta_key_fields[1].hasPrefix("contact") && meta_key_fields[2] == "email")
           {
-            MzTabString s;
-            s.fromCellString(cells[2]);
-            mz_tab_metadata[unit_id].contact_email.push_back(s);
+            MzTabString ls;
+            ls.fromCellString(cells[2]);
+            mz_tab_metadata[unit_id].contact_email.push_back(ls);
           }
           else if (meta_key_fields[1] == "uri")
           {
-            MzTabString s;
-            s.fromCellString(cells[2]);
-            mz_tab_metadata[unit_id].uri.push_back(s);
+            MzTabString ls;
+            ls.fromCellString(cells[2]);
+            mz_tab_metadata[unit_id].uri.push_back(ls);
           }
           else if (meta_key_fields[1] == "mod")
           {
@@ -259,18 +262,18 @@ namespace OpenMS
           }
           else if (meta_key_fields[1].hasPrefix("colunit") && meta_key_fields[2] == "protein")
           {
-            String s = cells[2];
-            mz_tab_metadata[unit_id].colunit_protein.push_back(s);
+            String ls = cells[2];
+            mz_tab_metadata[unit_id].colunit_protein.push_back(ls);
           }
           else if (meta_key_fields[1].hasPrefix("colunit") && meta_key_fields[2] == "peptide")
           {
-            String s = cells[2];
-            mz_tab_metadata[unit_id].colunit_peptide.push_back(s);
+            String ls = cells[2];
+            mz_tab_metadata[unit_id].colunit_peptide.push_back(ls);
           }
           else if (meta_key_fields[1].hasPrefix("colunit") && meta_key_fields[2] == "small_molecule")
           {
-            String s = cells[2];
-            mz_tab_metadata[unit_id].colunit_small_molecule.push_back(s);
+            String ls = cells[2];
+            mz_tab_metadata[unit_id].colunit_small_molecule.push_back(ls);
           }
           else if (meta_key_fields[1].hasPrefix("species"))
           {
@@ -461,9 +464,9 @@ namespace OpenMS
         // custom opt_
         for (Size i = 0; i != protein_custom_opt_columns.size(); ++i)
         {
-          MzTabString s;
-          s.fromCellString(cells[current_index++]);
-          row.opt_.push_back(make_pair(protein_custom_opt_columns[i], s));
+          MzTabString ls;
+          ls.fromCellString(cells[current_index++]);
+          row.opt_.push_back(make_pair(protein_custom_opt_columns[i], ls));
         }
 
         mz_tab_protein_section_data[unit_id].push_back(row);
@@ -496,9 +499,9 @@ namespace OpenMS
       }
 
       // parse peptide section
-      std::vector<DoubleReal> peptide_abundance_sub; // Peptide abundance in the subsample;
-      std::vector<DoubleReal> peptide_abundance_stdev_sub; // Peptide abundance standard deviation.
-      std::vector<DoubleReal> peptide_abundance_std_error_sub; // Peptide abundance standard error.
+      std::vector<double> peptide_abundance_sub; // Peptide abundance in the subsample;
+      std::vector<double> peptide_abundance_stdev_sub; // Peptide abundance standard deviation.
+      std::vector<double> peptide_abundance_std_error_sub; // Peptide abundance standard error.
       std::vector<MzTabOptionalColumnEntry> pep_opt_; // Optional columns must start with opt_.
 
       if (prefix == "PEP")
@@ -535,9 +538,9 @@ namespace OpenMS
         // custom opt_
         for (Size i = 0; i != peptide_custom_opt_columns.size(); ++i)
         {
-          MzTabString s;
-          s.fromCellString(cells[current_index++]);
-          row.opt_.push_back(make_pair(peptide_custom_opt_columns[i], s));
+          MzTabString ls;
+          ls.fromCellString(cells[current_index++]);
+          row.opt_.push_back(make_pair(peptide_custom_opt_columns[i], ls));
         }
 
         mz_tab_peptide_section_data[unit_id].push_back(row);
@@ -615,9 +618,9 @@ namespace OpenMS
         // custom opt_
         for (Size i = 0; i != small_molecule_custom_opt_columns.size(); ++i)
         {
-          MzTabString s;
-          s.fromCellString(cells[current_index++]);
-          row.opt_.push_back(make_pair(small_molecule_custom_opt_columns[i], s));
+          MzTabString ls;
+          ls.fromCellString(cells[current_index++]);
+          row.opt_.push_back(make_pair(small_molecule_custom_opt_columns[i], ls));
         }
 
         mz_tab_small_molecule_section_data[unit_id].push_back(row);
@@ -1219,8 +1222,8 @@ namespace OpenMS
     for (; mprot_it != map_run_to_proids.end(); ++mprot_it) // iterate over runs
     {
       // extract ProteinIdentifications of this run (should be only 1)
-      const vector<ProteinIdentification>& prot_ids = mprot_it->second;
-      for (vector<ProteinIdentification>::const_iterator it = prot_ids.begin(); it != prot_ids.end(); ++it)
+      const vector<ProteinIdentification>& local_prot_ids = mprot_it->second;
+      for (vector<ProteinIdentification>::const_iterator it = local_prot_ids.begin(); it != local_prot_ids.end(); ++it)
       {
         String UNIT_ID = "OpenMS_" + String(run_count);
         String title = document_id;
@@ -1255,9 +1258,9 @@ namespace OpenMS
     for (; mprot_it != map_run_to_proids.end(); ++mprot_it, ++mpep_it) // iterate over runs
     {
       // extract ProteinIdentifications of this run (should be only 1)
-      const vector<ProteinIdentification>& prot_ids = mprot_it->second;
-      for (vector<ProteinIdentification>::const_iterator prot_id_it = prot_ids.begin();
-           prot_id_it != prot_ids.end(); ++prot_id_it, ++run_count)
+      const vector<ProteinIdentification>& local_prot_ids = mprot_it->second;
+      for (vector<ProteinIdentification>::const_iterator prot_id_it = local_prot_ids.begin();
+           prot_id_it != local_prot_ids.end(); ++prot_id_it, ++run_count)
       {
         writeProteinData_(output, *prot_id_it, run_count, in, has_coverage, map_run_accesion_to_peptides, map_run_to_n_subsamples);
       }
@@ -1274,18 +1277,18 @@ namespace OpenMS
     for (; mpep_it != map_run_to_pepids.end(); ++mprot_it, ++mpep_it, ++run_count) // iterate over runs
     {
       // extract ProteinIdentifications of this run (should be only 1)
-      const vector<ProteinIdentification>& prot_ids = mprot_it->second;
+      const vector<ProteinIdentification>& local_prot_ids = mprot_it->second;
       // extract PeptideIdentifications of this run
-      const vector<PeptideIdentification>& pep_ids = mpep_it->second;
+      const vector<PeptideIdentification>& local_pep_ids = mpep_it->second;
       // iterate over runs of peptide identifications
-      for (vector<PeptideIdentification>::const_iterator pep_id_it = pep_ids.begin();
-           pep_id_it != pep_ids.end(); ++pep_id_it)
+      for (vector<PeptideIdentification>::const_iterator pep_id_it = local_pep_ids.begin();
+           pep_id_it != local_pep_ids.end(); ++pep_id_it)
       {
         // TODO: check if bad design of Protein/PeptideIdentification as search engine parameters are stored in prot.
-        String openms_search_engine_name = prot_ids[0].getSearchEngine();
+        String openms_search_engine_name = local_prot_ids[0].getSearchEngine();
         String search_engine_cvParams = mapSearchEngineToCvParam_(openms_search_engine_name);
 
-        const ProteinIdentification::SearchParameters& sp = prot_ids[0].getSearchParameters();
+        const ProteinIdentification::SearchParameters& sp = local_prot_ids[0].getSearchParameters();
         String UNIT_ID_String = "OpenMS_" + String(run_count);
         String database_String = (sp.db != "" ? sp.db : "--");
         database_String = "file://" + database_String;
@@ -1334,9 +1337,9 @@ namespace OpenMS
           }
 
           String retention_time;
-          if (pep_id_it->metaValueExists("RT")) // Note: RT stored on pep_id_it not on hit
+          if (pep_id_it->hasRT()) // Note: RT stored on pep_id_it not on hit
           {
-            retention_time = String::number(String(pep_id_it->getMetaValue("RT")).toDouble(), 2);
+            retention_time = String::number(pep_id_it->getRT(), 2);
           }
           else
           {
@@ -1344,9 +1347,9 @@ namespace OpenMS
           }
 
           String mass_to_charge;
-          if (pep_id_it->metaValueExists("MZ")) // Note: MZ stored on pep_id_it not on hit
+          if (pep_id_it->hasMZ()) // Note: MZ stored on pep_id_it not on hit
           {
-            mass_to_charge = String::number(String(pep_id_it->getMetaValue("MZ")).toDouble(), 10);
+            mass_to_charge = String::number(pep_id_it->getMZ(), 10);
           }
           else
           {
@@ -1764,8 +1767,8 @@ namespace OpenMS
     // std::vector<String> variable_modifications; ///< Allowed variable modifications
     // ProteinIdentification::NamesOfDigestionEnzyme[sp.enzyme]
     // UInt missed_cleavages; ///< The number of allowed missed cleavages
-    // DoubleReal peak_mass_tolerance; ///< Mass tolerance of fragment ions (Dalton)
-    // DoubleReal precursor_tolerance; ///< Mass tolerance of precursor ions (Dalton)
+    // double peak_mass_tolerance; ///< Mass tolerance of fragment ions (Dalton)
+    // double precursor_tolerance; ///< Mass tolerance of precursor ions (Dalton)
 
     // in OpenMS global to a ProteinIdentification
     String UNIT_ID_String = "OpenMS_" + String(run_count);
@@ -1904,7 +1907,7 @@ namespace OpenMS
     return ret;
   }
 
-  String MzTabFile::mapSearchEngineScoreToCvParam_(const String& openms_search_engine_name, DoubleReal score, String score_type)
+  String MzTabFile::mapSearchEngineScoreToCvParam_(const String& openms_search_engine_name, double score, String score_type)
   {
     String s;
 

@@ -71,7 +71,7 @@ public:
      * @brief Coordinate of a point to be clustered.
      *  @attention To be replaced by a %OpenMS coordinate type.
      */
-    typedef DPosition<2, DoubleReal> PointCoordinate;
+    typedef DPosition<2, double> PointCoordinate;
 
     /**
      *  @brief Bounding box of cluster.
@@ -136,8 +136,8 @@ public:
 public:
       BoundingBox bbox;
 
-      Cluster(const BoundingBox & bbox) :
-        bbox(bbox)
+      Cluster(const BoundingBox & local_bbox) :
+        bbox(local_bbox)
       {}
     };
 
@@ -165,15 +165,23 @@ public:
       const bool center;
       const PointRef ref;
 
-      TreeNode(const PointCoordinate & coord, const PointRef & ref, bool center) :
-        coord(coord), bbox(coord), left(0), right(0), points(1), center(center), ref(ref)
+      TreeNode(const PointCoordinate & local_coord, const PointRef & local_ref, bool local_center) :
+        coord(local_coord),
+        bbox(local_coord),
+        left(0),
+        right(0),
+        points(1),
+        center(local_center),
+        ref(local_ref)
       {}
 
-      TreeNode(const PointCoordinate & coord, const BoundingBox & bbox, TreeNode * left, TreeNode * right) :
-        coord(coord), bbox(bbox),
-        left(left), right(right),
-        points(left->points + right->points),
-        center(left->center && right->center),
+      TreeNode(const PointCoordinate & local_coord, const BoundingBox & local_bbox, TreeNode * local_left, TreeNode * local_right) :
+        coord(local_coord),
+        bbox(local_bbox),
+        left(local_left),
+        right(local_right),
+        points(local_left->points + local_right->points),
+        center(local_left->center && local_right->center),
         ref(PointRef())
       {}
     };
@@ -185,11 +193,13 @@ public:
     class TreeDistance
     {
 public:
-      DoubleReal distance;
+      double distance;
       TreeNode * left, * right;
 
-      TreeDistance(const DoubleReal & distance, TreeNode * left, TreeNode * right) :
-        distance(distance), left(left), right(right)
+      TreeDistance(const double & local_distance, TreeNode * local_left, TreeNode * local_right) :
+        distance(local_distance),
+        left(local_left),
+        right(local_right)
       {}
 
       bool operator>(const TreeDistance & rhs) const
@@ -207,8 +217,8 @@ public:
      * @brief Constructor
      * @param cluster_dimension Max dimension of cluster
      */
-    HierarchicalClustering(const PointCoordinate & cluster_dimension) :
-      grid(cluster_dimension)
+    HierarchicalClustering(const PointCoordinate & local_cluster_dimension) :
+      grid(local_cluster_dimension)
     {}
 
     /**
@@ -239,6 +249,7 @@ public:
     }
 
 protected:
+
     /**
      * @brief Insert new Cluster into grid.
      * @param p Point to insert.
@@ -291,14 +302,14 @@ protected:
     void addTreeDistance_(TreeNode * tree, ClusterTrees & trees, TreeDistanceQueue & dists)
     {
       // Infinity: no valid distance
-      DoubleReal dist_min = std::numeric_limits<DoubleReal>::infinity();
+      double dist_min = std::numeric_limits<double>::infinity();
       typename ClusterTrees::const_iterator dist_it = trees.end();
 
       // Generate minimal distance to existing trees
       for (typename ClusterTrees::const_iterator it = trees.begin(); it != trees.end(); ++it)
       {
         if (tree == *it) continue;
-        DoubleReal dist = treeDistance_(tree, *it);
+        double dist = treeDistance_(tree, *it);
         if (dist < dist_min)
         {
           dist_min = dist;
@@ -319,12 +330,12 @@ protected:
      * It checks the size of the bounding box and returns INFINITY if it gets
      * to large.
      */
-    DoubleReal treeDistance_(TreeNode * left, TreeNode * right)
+    double treeDistance_(TreeNode * left, TreeNode * right)
     {
       const BoundingBox bbox = left->bbox | right->bbox;
       if (coordElemGreater_(bbox.size(), grid.cell_dimension))
       {
-        return std::numeric_limits<DoubleReal>::infinity();
+        return std::numeric_limits<double>::infinity();
       }
 
       const PointCoordinate left_scaled = coordElemDiv_(left->coord, grid.cell_dimension);
@@ -373,7 +384,7 @@ protected:
       delete tree->right;
     }
 
-    static PointCoordinate coordScalarDiv_(const PointCoordinate & lhs, const DoubleReal & rhs)
+    static PointCoordinate coordScalarDiv_(const PointCoordinate & lhs, const double & rhs)
     {
       PointCoordinate ret;
       typename PointCoordinate::iterator it = ret.begin();
@@ -401,9 +412,9 @@ protected:
       return false;
     }
 
-    static DoubleReal coordDist_(const PointCoordinate & lhs, const PointCoordinate & rhs)
+    static double coordDist_(const PointCoordinate & lhs, const PointCoordinate & rhs)
     {
-      DoubleReal ret = 0;
+      double ret = 0;
       PointCoordinate p = lhs - rhs;
       typename PointCoordinate::const_iterator it = p.begin();
       for (; it != p.end(); ++it) ret += std::pow(*it, 2.);

@@ -81,7 +81,7 @@ START_SECTION(AcquisitionInfo(const AcquisitionInfo& source))
 	TEST_EQUAL(tmp2.size(), 1);
 	TEST_EQUAL(tmp2[0].getIdentifier(), "4711");  
 	TEST_EQUAL(tmp2.getMethodOfCombination(), "Combo");  
-	TEST_REAL_SIMILAR((DoubleReal)(tmp2.getMetaValue("bla")), 4.0)
+	TEST_REAL_SIMILAR((double)(tmp2.getMetaValue("bla")), 4.0)
 END_SECTION
 
 START_SECTION(AcquisitionInfo& operator= (const AcquisitionInfo& source))
@@ -98,7 +98,7 @@ START_SECTION(AcquisitionInfo& operator= (const AcquisitionInfo& source))
 	TEST_EQUAL(tmp2.size(), 1);
 	TEST_EQUAL(tmp2[0].getIdentifier(), "4711");  
 	TEST_EQUAL(tmp2.getMethodOfCombination(), "Combo");
-	TEST_REAL_SIMILAR((DoubleReal)(tmp2.getMetaValue("bla")), 4.0)
+	TEST_REAL_SIMILAR((double)(tmp2.getMetaValue("bla")), 4.0)
 		
 	//assignment of a empty value
 	tmp2 = AcquisitionInfo();

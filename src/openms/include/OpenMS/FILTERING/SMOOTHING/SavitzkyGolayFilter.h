@@ -39,12 +39,6 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
-#include <gsl/gsl_vector.h>
-#include <gsl/gsl_matrix.h>
-#include <gsl/gsl_linalg.h>
-#include <gsl/gsl_permutation.h>
-#include <gsl/gsl_pow_int.h>
-
 namespace OpenMS
 {
   /**
@@ -244,7 +238,7 @@ public:
 
 protected:
     /// Coefficients
-    std::vector<DoubleReal> coeffs_;
+    std::vector<double> coeffs_;
     /// UInt of the filter kernel (number of pre-tabulated coefficients)
     UInt frame_size_;
     /// The order of the smoothing polynomial.

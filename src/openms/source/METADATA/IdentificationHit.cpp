@@ -124,22 +124,22 @@ namespace OpenMS
     return charge_;
   }
 
-  void IdentificationHit::setCalculatedMassToCharge(DoubleReal mz)
+  void IdentificationHit::setCalculatedMassToCharge(double mz)
   {
     calculated_mass_to_charge_ = mz;
   }
 
-  DoubleReal IdentificationHit::getCalculatedMassToCharge() const
+  double IdentificationHit::getCalculatedMassToCharge() const
   {
     return calculated_mass_to_charge_;
   }
 
-  void IdentificationHit::setExperimentalMassToCharge(DoubleReal mz)
+  void IdentificationHit::setExperimentalMassToCharge(double mz)
   {
     experimental_mass_to_charge_ = mz;
   }
 
-  DoubleReal IdentificationHit::getExperimentalMassToCharge() const
+  double IdentificationHit::getExperimentalMassToCharge() const
   {
     return experimental_mass_to_charge_;
   }

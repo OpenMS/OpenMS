@@ -39,13 +39,9 @@
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/MATH/MISC/CubicSpline2d.h>
 
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
-
-#include <gsl/gsl_spline.h>
-#include <gsl/gsl_interp.h>
-
-#include <map>
 
 
 #define DEBUG_PEAK_PICKING
@@ -86,14 +82,40 @@ public:
 
     /// Destructor
     virtual ~PeakPickerHiRes();
+    
+    /// structure for peak boundaries
+    struct PeakBoundary
+    {
+        double mz_min;
+        double mz_max;
+    };
 
     /**
-      @brief Applies the peak-picking algorithm to a single spectrum
-      (MSSpectrum). The resulting picked peaks are written to the output
-      spectrum.
-    */
+     * @brief Applies the peak-picking algorithm to a single spectrum
+     * (MSSpectrum). The resulting picked peaks are written to the output
+     * spectrum.
+     * 
+     * @param input  input spectrum in profile mode
+     * @param output  output spectrum with picked peaks
+     */
     template <typename PeakType>
     void pick(const MSSpectrum<PeakType> & input, MSSpectrum<PeakType> & output) const
+    {
+        std::vector<PeakBoundary> boundaries;
+        pick(input, output, boundaries);
+    }
+
+    /**
+     * @brief Applies the peak-picking algorithm to a single spectrum
+     * (MSSpectrum). The resulting picked peaks are written to the output
+     * spectrum. Peak boundaries are written to a separate structure.
+     * 
+     * @param input  input spectrum in profile mode
+     * @param output  output spectrum with picked peaks
+     * @param boundaries  boundaries of the picked peaks
+     */
+    template <typename PeakType>
+    void pick(const MSSpectrum<PeakType> & input, MSSpectrum<PeakType> & output, std::vector<PeakBoundary> & boundaries) const
     {
       // copy meta data of the input spectrum
       output.clear(true);
@@ -122,6 +144,12 @@ public:
         double central_peak_mz = input[i].getMZ(), central_peak_int = input[i].getIntensity();
         double left_neighbor_mz = input[i - 1].getMZ(), left_neighbor_int = input[i - 1].getIntensity();
         double right_neighbor_mz = input[i + 1].getMZ(), right_neighbor_int = input[i + 1].getIntensity();
+
+        //do not interpolate when the left or right support is a zero-data-point
+        if(std::fabs(left_neighbor_int) < std::numeric_limits<double>::epsilon() )
+          continue;
+        if(std::fabs(right_neighbor_int) < std::numeric_limits<double>::epsilon() )
+          continue;
 
         // MZ spacing sanity checks
         double left_to_central = std::fabs(central_peak_mz - left_neighbor_mz);
@@ -158,21 +186,18 @@ public:
             act_snt_r2 = snt.getSignalToNoise(input[i + 2]);
           }
 
-          if ((i > 1
-              && std::fabs(left_neighbor_mz - input[i - 2].getMZ()) < spacing_difference_ * min_spacing
+          //checking signal-to-noise?
+          if (std::fabs(left_neighbor_mz - input[i - 2].getMZ()) < spacing_difference_ * min_spacing
               && left_neighbor_int < input[i - 2].getIntensity()
-              && act_snt_l2 >= signal_to_noise_)
-             &&
-              ((i + 2) < input.size()
+              && act_snt_l2 >= signal_to_noise_
+              && (i + 2) < input.size()
               && std::fabs(input[i + 2].getMZ() - right_neighbor_mz) < spacing_difference_ * min_spacing
               && right_neighbor_int < input[i + 2].getIntensity()
               && act_snt_r2 >= signal_to_noise_)
-              )
           {
             ++i;
             continue;
           }
-
 
           std::map<double, double> peak_raw_data;
 
@@ -180,15 +205,15 @@ public:
           peak_raw_data[left_neighbor_mz] = left_neighbor_int;
           peak_raw_data[right_neighbor_mz] = right_neighbor_int;
 
-
           // peak core found, now extend it
           // to the left
           Size k = 2;
 
           Size missing_left(0);
-          Size missing_right(0);
+          Size left_boundary(i-1);    // index of the left boundary for the spline interpolation
 
-          while ((i - k + 1) > 0
+          while ( k <= i//prevent underflow
+                && (i - k + 1) > 0
                 && (missing_left < 2)
                 && input[i - k].getIntensity() <= peak_raw_data.begin()->second)
           {
@@ -211,12 +236,17 @@ public:
               ++missing_left;
             }
 
+            left_boundary = i - k;
             ++k;
 
           }
 
           // to the right
           k = 2;
+          
+          Size missing_right(0);
+          Size right_boundary(i+1);    // index of the left boundary for the spline interpolation
+          
           while ((i + k) < input.size()
                 && (missing_right < 2)
                 && input[i + k].getIntensity() <= peak_raw_data.rbegin()->second)
@@ -239,42 +269,20 @@ public:
               ++missing_right;
             }
 
+            right_boundary = i + k;
             ++k;
           }
 
+          //skip if the minimal number of 3 points for fitting is not reached
+          if(peak_raw_data.size() < 4)
+            continue;
 
-          // output all raw data points selected for one peak
-          // TODO: #ifdef DEBUG_ ...
-          // for (std::map<double, double>::const_iterator map_it = peak_raw_data.begin(); map_it != peak_raw_data.end(); ++map_it) {
-          // PeakType peak;
-          // peak.setMZ(map_it->first);
-          // peak.setIntensity(map_it->second);
-          // output.push_back(peak);
-          // std::cout << map_it->first << " " << map_it->second << " snt: " << std::endl;
-          // }
-          // std::cout << "--------------------" << std::endl;
-
-          const Size num_raw_points = peak_raw_data.size();
-
-          std::vector<double> raw_mz_values;
-          std::vector<double> raw_int_values;
-
-          for (std::map<double, double>::const_iterator map_it = peak_raw_data.begin(); map_it != peak_raw_data.end(); ++map_it)
-          {
-            raw_mz_values.push_back(map_it->first);
-            raw_int_values.push_back(map_it->second);
-          }
-
-          // setup gsl splines
-          gsl_interp_accel * spline_acc = gsl_interp_accel_alloc();
-          gsl_interp_accel * first_deriv_acc = gsl_interp_accel_alloc();
-          gsl_spline * peak_spline = gsl_spline_alloc(gsl_interp_cspline, num_raw_points);
-          gsl_spline_init(peak_spline, &(*raw_mz_values.begin()), &(*raw_int_values.begin()), num_raw_points);
-
+          CubicSpline2d peak_spline (peak_raw_data);
 
           // calculate maximum by evaluating the spline's 1st derivative
           // (bisection method)
-          double max_peak_mz = central_peak_mz, max_peak_int = central_peak_int;
+          double max_peak_mz = central_peak_mz;
+          double max_peak_int = central_peak_int;
           double threshold = 0.000001;
           double lefthand = left_neighbor_mz;
           double righthand = right_neighbor_mz;
@@ -282,13 +290,11 @@ public:
           bool lefthand_sign = 1;
           double eps = std::numeric_limits<double>::epsilon();
 
-
           // bisection
           do
           {
             double mid = (lefthand + righthand) / 2;
-
-            double midpoint_deriv_val = gsl_spline_eval_deriv(peak_spline, mid, first_deriv_acc);
+            double midpoint_deriv_val = peak_spline.derivatives(mid, 1);
 
             // if deriv nearly zero then maximum already found
             if (!(std::fabs(midpoint_deriv_val) > eps))
@@ -306,30 +312,22 @@ public:
             {
               lefthand = mid;
             }
-
-            // TODO: #ifdef DEBUG_ ...
-            // PeakType peak;
-            // peak.setMZ(mid);
-            // peak.setIntensity(gsl_spline_eval(peak_spline, mid, spline_acc));
-            // output.push_back(peak);
-
           }
           while (std::fabs(lefthand - righthand) > threshold);
 
           // sanity check?
           max_peak_mz = (lefthand + righthand) / 2;
-          max_peak_int = gsl_spline_eval(peak_spline, max_peak_mz, spline_acc);
+          max_peak_int = peak_spline.eval( max_peak_mz );
 
           // save picked pick into output spectrum
           PeakType peak;
+          PeakBoundary peak_boundary;
           peak.setMZ(max_peak_mz);
           peak.setIntensity(max_peak_int);
+          peak_boundary.mz_min = input[left_boundary].getMZ();
+          peak_boundary.mz_max = input[right_boundary].getMZ();
           output.push_back(peak);
-
-          // free allocated gsl memory
-          gsl_spline_free(peak_spline);
-          gsl_interp_accel_free(spline_acc);
-          gsl_interp_accel_free(first_deriv_acc);
+          boundaries.push_back(peak_boundary);
 
           // jump over raw data points that have been considered already
           i = i + k - 1;
@@ -339,13 +337,30 @@ public:
       return;
     }
 
-    /**
-      @brief Applies the peak-picking algorithm to a single chromatogram
-      (MSChromatogram). The resulting picked peaks are written to the output
-      chromatogram.
-    */
+     /**
+     * @brief Applies the peak-picking algorithm to a single chromatogram
+     * (MSChromatogram). The resulting picked peaks are written to the output chromatogram.
+     * 
+     * @param input  input chromatogram in profile mode
+     * @param output  output chromatogram with picked peaks
+     */
     template <typename PeakType>
     void pick(const MSChromatogram<PeakType> & input, MSChromatogram<PeakType> & output) const
+    {
+        std::vector<PeakBoundary> boundaries;
+        pick(input, output, boundaries);
+    }
+    
+    /**
+     * @brief Applies the peak-picking algorithm to a single chromatogram
+     * (MSChromatogram). The resulting picked peaks are written to the output chromatogram.
+     * 
+     * @param input  input chromatogram in profile mode
+     * @param output  output chromatogram with picked peaks
+     * @param boundaries  boundaries of the picked peaks
+     */
+    template <typename PeakType>
+    void pick(const MSChromatogram<PeakType> & input, MSChromatogram<PeakType> & output, std::vector<PeakBoundary> & boundaries) const
     {
       // copy meta data of the input chromatogram
       output.clear(true);
@@ -359,7 +374,7 @@ public:
       {
         input_spectrum.push_back(*it);
       }
-      pick(input_spectrum, output_spectrum);
+      pick(input_spectrum, output_spectrum, boundaries);
       for (typename MSSpectrum<PeakType>::const_iterator it = output_spectrum.begin(); it != output_spectrum.end(); ++it)
       {
         output.push_back(*it);
@@ -368,12 +383,33 @@ public:
     }
 
     /**
-      @brief Applies the peak-picking algorithm to a map (MSExperiment). This
-      method picks peaks for each scan in the map consecutively. The resulting
-      picked peaks are written to the output map.
-    */
+     * @brief Applies the peak-picking algorithm to a map (MSExperiment). This
+     * method picks peaks for each scan in the map consecutively. The resulting
+     * picked peaks are written to the output map.
+     * 
+     * @param input  input map in profile mode
+     * @param output  output map with picked peaks
+     */
     template <typename PeakType, typename ChromatogramPeakT>
     void pickExperiment(const MSExperiment<PeakType, ChromatogramPeakT> & input, MSExperiment<PeakType, ChromatogramPeakT> & output) const
+    {
+        std::vector<std::vector<PeakBoundary> > boundaries_spec;
+        std::vector<std::vector<PeakBoundary> > boundaries_chrom;
+        pickExperiment(input, output, boundaries_spec, boundaries_chrom);
+    }
+
+    /**
+     * @brief Applies the peak-picking algorithm to a map (MSExperiment). This
+     * method picks peaks for each scan in the map consecutively. The resulting
+     * picked peaks are written to the output map.
+     * 
+     * @param input  input map in profile mode
+     * @param output  output map with picked peaks
+     * @param boundaries_spec  boundaries of the picked peaks in spectra
+     * @param boundaries_chrom  boundaries of the picked peaks in chromatograms
+     */
+    template <typename PeakType, typename ChromatogramPeakT>
+    void pickExperiment(const MSExperiment<PeakType, ChromatogramPeakT> & input, MSExperiment<PeakType, ChromatogramPeakT> & output, std::vector<std::vector<PeakBoundary> > & boundaries_spec, std::vector<std::vector<PeakBoundary> > & boundaries_chrom) const
     {
       // make sure that output is clear
       output.clear(true);
@@ -396,15 +432,19 @@ public:
         }
         else
         {
-          pick(input[scan_idx], output[scan_idx]);
+          std::vector<PeakBoundary> boundaries_s;    // peak boundaries of a single spectrum
+          pick(input[scan_idx], output[scan_idx], boundaries_s);
+          boundaries_spec.push_back(boundaries_s);
         }
         setProgress(++progress);
       }
       for (Size i = 0; i < input.getChromatograms().size(); ++i)
       {
         MSChromatogram<ChromatogramPeakT> chromatogram;
-        pick(input.getChromatograms()[i], chromatogram);
+        std::vector<PeakBoundary> boundaries_c;    // peak boundaries of a single chromatogram
+        pick(input.getChromatograms()[i], chromatogram, boundaries_c);
         output.addChromatogram(chromatogram);
+        boundaries_chrom.push_back(boundaries_c);
         setProgress(++progress);
       }
 

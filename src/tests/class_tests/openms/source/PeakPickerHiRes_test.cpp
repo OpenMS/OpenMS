@@ -44,6 +44,10 @@
 using namespace OpenMS;
 using namespace std;
 
+//uncomment if the reference files should be re-written
+//(only do this if you are sure that the PeamPickerHiRes is working correctly)
+//#define WRITE_REF_FILES
+
 START_TEST(PeakPickerHiRes, "$Id$")
 
 /////////////////////////////////////////////////////////////
@@ -78,11 +82,11 @@ MSExperiment<Peak1D> input, output;
 // load Orbitrap input data
 MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("PeakPickerHiRes_orbitrap.mzML"),input);
 
-////////////////////////////////////////////
-// ORBITRAP test 1 (w/o noise estimation) //
-////////////////////////////////////////////
+/////////////////////////////////////////
+// ORBITRAP test 1 (signal-to-noise 1) //
+/////////////////////////////////////////
 
-MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("PeakPickerHiRes_orbitrap_sn0_out.mzML"),output);
+MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("PeakPickerHiRes_orbitrap_sn1_out.mzML"),output);
 
 //set data type (this is not stored correctly in mzData)
 for (Size scan_idx = 0; scan_idx < output.size(); ++scan_idx)
@@ -91,58 +95,97 @@ for (Size scan_idx = 0; scan_idx < output.size(); ++scan_idx)
 }
 
 // PeakPickerHiRes config
-param.setValue("signal_to_noise",0.0);
+param.setValue("signal_to_noise",1.0);
 pp_hires.setParameters(param);
 
 START_SECTION((template < typename PeakType > void pick(const MSSpectrum< PeakType > &input, MSSpectrum< PeakType > &output) const ))
   MSSpectrum<Peak1D> tmp_spec;
-pp_hires.pick(input[0],tmp_spec);
+  pp_hires.pick(input[0], tmp_spec);
+#ifdef WRITE_REF_FILES
+  MSExperiment<> tmp_exp = input;
+  for (Size scan_idx = 0; scan_idx < tmp_exp.size(); ++scan_idx)
+  {
+    pp_hires.pick(input[scan_idx],tmp_spec);
+    tmp_exp[scan_idx] = tmp_spec;
+  }
+  MzMLFile().store("./PeakPickerHiRes_orbitrap_sn1_out.mzML", tmp_exp);
+#endif
 
-// TEST_EQUAL(tmp_spec.SpectrumSettings::operator==(output[0]), true)
   for (Size peak_idx = 0; peak_idx < tmp_spec.size(); ++peak_idx)
-    {
-        TEST_REAL_SIMILAR(tmp_spec[peak_idx].getMZ(), output[0][peak_idx].getMZ())
-        TEST_REAL_SIMILAR(tmp_spec[peak_idx].getIntensity(), output[0][peak_idx].getIntensity())
-    }
+  {
+    TEST_REAL_SIMILAR(tmp_spec[peak_idx].getMZ(), output[0][peak_idx].getMZ())
+    TEST_REAL_SIMILAR(tmp_spec[peak_idx].getIntensity(), output[0][peak_idx].getIntensity())
+  }
+
 END_SECTION
 
-START_SECTION((template < typename PeakType > void pick(const MSChromatogram< PeakType > &input, MSChromatogram< PeakType > &output) const ))
+START_SECTION((template < typename PeakType > void pick(const MSSpectrum< PeakType > &input, MSSpectrum< PeakType > &output, std::vector<PeakBoundary> & boundaries) const ))
+  MSSpectrum<Peak1D> tmp_spec;
+  std::vector<PeakPickerHiRes::PeakBoundary> tmp_boundaries;
+  pp_hires.pick(input[0], tmp_spec, tmp_boundaries);
+#ifdef WRITE_REF_FILES
+  MSExperiment<> tmp_exp = input;
+  for (Size scan_idx = 0; scan_idx < tmp_exp.size(); ++scan_idx)
+  {
+    pp_hires.pick(input[scan_idx],tmp_spec);
+    tmp_exp[scan_idx] = tmp_spec;
+  }
+  MzMLFile().store("./PeakPickerHiRes_orbitrap_sn1_out.mzML", tmp_exp);
+#endif
+
+  for (Size peak_idx = 0; peak_idx < tmp_spec.size(); ++peak_idx)
+  {
+    TEST_REAL_SIMILAR(tmp_spec[peak_idx].getMZ(), output[0][peak_idx].getMZ())
+    TEST_REAL_SIMILAR(tmp_spec[peak_idx].getIntensity(), output[0][peak_idx].getIntensity())
+  }
+  
+  TEST_REAL_SIMILAR(tmp_boundaries[25].mz_min, 359.728698730469)
+  TEST_REAL_SIMILAR(tmp_boundaries[25].mz_max, 359.736419677734)
+  TEST_REAL_SIMILAR(tmp_boundaries[26].mz_min, 360.155609130859)
+  TEST_REAL_SIMILAR(tmp_boundaries[26].mz_max, 360.173675537109)
+
+END_SECTION
+
+START_SECTION([EXTRA](template <typename PeakType> void pickExperiment(const MSExperiment<PeakType>& input, MSExperiment<PeakType>& output)))
+    // does the same as pick method for spectra
+    NOT_TESTABLE
+END_SECTION
+
+START_SECTION([EXTRA](template <typename PeakType> void pickExperiment(const MSExperiment<PeakType>& input, MSExperiment<PeakType>& output, std::vector<std::vector<PeakBoundary> > & boundaries_spec, std::vector<std::vector<PeakBoundary> > & boundaries_chrom)))
     // does the same as pick method for spectra
     NOT_TESTABLE
 END_SECTION
 
 START_SECTION((template < typename PeakType, typename ChromatogramPeakT > void pickExperiment(const MSExperiment< PeakType, ChromatogramPeakT > &input, MSExperiment< PeakType, ChromatogramPeakT > &output) const ))
   MSExperiment<Peak1D> tmp_exp;
-pp_hires.pickExperiment(input,tmp_exp);
+  pp_hires.pickExperiment(input,tmp_exp);
 
-TEST_EQUAL(tmp_exp.ExperimentalSettings::operator==(input), true)
   for (Size scan_idx = 0; scan_idx < tmp_exp.size(); ++scan_idx)
+  {
+    for (Size peak_idx = 0; peak_idx < tmp_exp[scan_idx].size(); ++peak_idx)
     {
-    // TEST_EQUAL(tmp_exp[scan_idx].SpectrumSettings::operator==(output[scan_idx]), true)
-        for (Size peak_idx = 0; peak_idx < tmp_exp[scan_idx].size(); ++peak_idx)
-        {
-            TEST_REAL_SIMILAR(tmp_exp[scan_idx][peak_idx].getMZ(), output[scan_idx][peak_idx].getMZ())
-            TEST_REAL_SIMILAR(tmp_exp[scan_idx][peak_idx].getIntensity(), output[scan_idx][peak_idx].getIntensity())
-        }
+      TEST_REAL_SIMILAR(tmp_exp[scan_idx][peak_idx].getMZ(), output[scan_idx][peak_idx].getMZ())
+      TEST_REAL_SIMILAR(tmp_exp[scan_idx][peak_idx].getIntensity(), output[scan_idx][peak_idx].getIntensity())
     }
+  }
 END_SECTION
 
 output.clear(true);
 
 
 
-/////////////////////////////////////////
-// ORBITRAP test 2 (signal-to-noise 4) //
-/////////////////////////////////////////
+///////////////////////////////////////////
+//// ORBITRAP test 2 (signal-to-noise 4) //
+///////////////////////////////////////////
 
 
 MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("PeakPickerHiRes_orbitrap_sn4_out.mzML"),output);
 
 //set data type (this is not stored correctly in mzData)
 for (Size scan_idx = 0; scan_idx < output.size(); ++scan_idx)
-    {
-        output[scan_idx].setType(SpectrumSettings::PEAKS);
-    }
+{
+  output[scan_idx].setType(SpectrumSettings::PEAKS);
+}
 
 //set up PeakPicker
 param.setValue("signal_to_noise",4.0);
@@ -150,37 +193,43 @@ pp_hires.setParameters(param);
 
 START_SECTION([EXTRA](template <typename PeakType> void pick(const MSSpectrum<PeakType>& input, MSSpectrum<PeakType>& output)))
   MSSpectrum<Peak1D> tmp_spec;
-pp_hires.pick(input[0],tmp_spec);
+  pp_hires.pick(input[0],tmp_spec);
+#ifdef WRITE_REF_FILES
+  MSExperiment<> tmp_exp = input;
+  for (Size scan_idx = 0; scan_idx < tmp_exp.size(); ++scan_idx)
+  {
+    pp_hires.pick(input[scan_idx],tmp_spec);
+    tmp_exp[scan_idx] = tmp_spec;
+  }
+  MzMLFile().store("./PeakPickerHiRes_orbitrap_sn4_out.mzML", tmp_exp);
+#endif
 
-// TEST_EQUAL(tmp_spec.SpectrumSettings::operator==(output[0]), true)
   for (Size peak_idx = 0; peak_idx < tmp_spec.size(); ++peak_idx)
-        {
-            TEST_REAL_SIMILAR(tmp_spec[peak_idx].getMZ(), output[0][peak_idx].getMZ())
-                TEST_REAL_SIMILAR(tmp_spec[peak_idx].getIntensity(), output[0][peak_idx].getIntensity())
-                }
+  {
+    TEST_REAL_SIMILAR(tmp_spec[peak_idx].getMZ(), output[0][peak_idx].getMZ())
+    TEST_REAL_SIMILAR(tmp_spec[peak_idx].getIntensity(), output[0][peak_idx].getIntensity())
+  }
 END_SECTION
 
 START_SECTION([EXTRA](template <typename PeakType> void pickExperiment(const MSExperiment<PeakType>& input, MSExperiment<PeakType>& output)))
   MSExperiment<Peak1D> tmp_exp;
-pp_hires.pickExperiment(input,tmp_exp);
+  pp_hires.pickExperiment(input,tmp_exp);
 
-TEST_EQUAL(tmp_exp.ExperimentalSettings::operator==(input), true)
   for (Size scan_idx = 0; scan_idx < tmp_exp.size(); ++scan_idx)
-        {
-    // TEST_EQUAL(tmp_exp[scan_idx].SpectrumSettings::operator==(output[scan_idx]), true)
-                for (Size peak_idx = 0; peak_idx < tmp_exp[scan_idx].size(); ++peak_idx)
-                    {
-                        TEST_REAL_SIMILAR(tmp_exp[scan_idx][peak_idx].getMZ(), output[scan_idx][peak_idx].getMZ())
-                            TEST_REAL_SIMILAR(tmp_exp[scan_idx][peak_idx].getIntensity(), output[scan_idx][peak_idx].getIntensity())
-                            }
-        }
+  {
+    for (Size peak_idx = 0; peak_idx < tmp_exp[scan_idx].size(); ++peak_idx)
+    {
+      TEST_REAL_SIMILAR(tmp_exp[scan_idx][peak_idx].getMZ(), output[scan_idx][peak_idx].getMZ())
+      TEST_REAL_SIMILAR(tmp_exp[scan_idx][peak_idx].getIntensity(), output[scan_idx][peak_idx].getIntensity())
+    }
+  }
 END_SECTION
 
 output.clear(true);
 input.clear(true);
-
-/////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////
+//
+///////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////
 
 /////////////////////////
 // FTICR-MS data tests //
@@ -190,48 +239,39 @@ input.clear(true);
 // load FTMS input data
 MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("PeakPickerHiRes_ftms.mzML"),input);
 
-////////////////////////////////////////////
-// FTICR-MS test 1 (w/o noise estimation) //
-////////////////////////////////////////////
+////////////////////////////////////////////////
+//// FTICR-MS test 1 (signal-to-noise 1) //
+////////////////////////////////////////////////
 
-MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("PeakPickerHiRes_ftms_sn0_out.mzML"),output);
+MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("PeakPickerHiRes_ftms_sn1_out.mzML"),output);
 
 //set data type (this is not stored correctly in mzML)
 for (Size scan_idx = 0; scan_idx < output.size(); ++scan_idx)
-    {
-        output[scan_idx].setType(SpectrumSettings::PEAKS);
-    }
+{
+  output[scan_idx].setType(SpectrumSettings::PEAKS);
+}
 
 // PeakPickerHiRes config
-param.setValue("signal_to_noise",0.0);
+param.setValue("signal_to_noise",1.0);
 pp_hires.setParameters(param);
 
 START_SECTION([EXTRA](template <typename PeakType> void pick(const MSSpectrum<PeakType>& input, MSSpectrum<PeakType>& output)))
   MSSpectrum<Peak1D> tmp_spec;
-pp_hires.pick(input[0],tmp_spec);
-
-// TEST_EQUAL(tmp_spec.SpectrumSettings::operator==(output[0]), true)
-  for (Size peak_idx = 0; peak_idx < tmp_spec.size(); ++peak_idx)
-        {
-            TEST_REAL_SIMILAR(tmp_spec[peak_idx].getMZ(), output[0][peak_idx].getMZ())
-                TEST_REAL_SIMILAR(tmp_spec[peak_idx].getIntensity(), output[0][peak_idx].getIntensity())
-                }
-END_SECTION
-
-START_SECTION([EXTRA](template <typename PeakType> void pickExperiment(const MSExperiment<PeakType>& input, MSExperiment<PeakType>& output)))
-  MSExperiment<Peak1D> tmp_exp;
-pp_hires.pickExperiment(input,tmp_exp);
-
-TEST_EQUAL(tmp_exp.ExperimentalSettings::operator==(input), true)
+  pp_hires.pick(input[0],tmp_spec);
+#ifdef WRITE_REF_FILES
+  MSExperiment<> tmp_exp = input;
   for (Size scan_idx = 0; scan_idx < tmp_exp.size(); ++scan_idx)
-        {
-    // TEST_EQUAL(tmp_exp[scan_idx].SpectrumSettings::operator==(output[scan_idx]), true)
-                for (Size peak_idx = 0; peak_idx < tmp_exp[scan_idx].size(); ++peak_idx)
-                    {
-                        TEST_REAL_SIMILAR(tmp_exp[scan_idx][peak_idx].getMZ(), output[scan_idx][peak_idx].getMZ())
-                            TEST_REAL_SIMILAR(tmp_exp[scan_idx][peak_idx].getIntensity(), output[scan_idx][peak_idx].getIntensity())
-                            }
-        }
+  {
+    pp_hires.pick(input[scan_idx],tmp_spec);
+    tmp_exp[scan_idx] = tmp_spec;
+  }
+  MzMLFile().store("./PeakPickerHiRes_ftms_sn1_out.mzML", tmp_exp);
+#endif
+  for (Size peak_idx = 0; peak_idx < tmp_spec.size(); ++peak_idx)
+  {
+    TEST_REAL_SIMILAR(tmp_spec[peak_idx].getMZ(), output[0][peak_idx].getMZ())
+    TEST_REAL_SIMILAR(tmp_spec[peak_idx].getIntensity(), output[0][peak_idx].getIntensity())
+  }
 END_SECTION
 
 output.clear(true);
@@ -247,9 +287,9 @@ MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("PeakPickerHiRes_ftms_sn4_out.mzML"),o
 
 //set data type (this is not stored correctly in mzML)
 for (Size scan_idx = 0; scan_idx < output.size(); ++scan_idx)
-    {
-        output[scan_idx].setType(SpectrumSettings::PEAKS);
-    }
+{
+  output[scan_idx].setType(SpectrumSettings::PEAKS);
+}
 
 //set up PeakPicker
 param.setValue("signal_to_noise",4.0);
@@ -257,30 +297,36 @@ pp_hires.setParameters(param);
 
 START_SECTION([EXTRA](template <typename PeakType> void pick(const MSSpectrum<PeakType>& input, MSSpectrum<PeakType>& output)))
   MSSpectrum<Peak1D> tmp_spec;
-pp_hires.pick(input[0],tmp_spec);
+  pp_hires.pick(input[0],tmp_spec);
+#ifdef WRITE_REF_FILES
+  MSExperiment<> tmp_exp = input;
+  for (Size scan_idx = 0; scan_idx < tmp_exp.size(); ++scan_idx)
+  {
+    pp_hires.pick(input[scan_idx],tmp_spec);
+    tmp_exp[scan_idx] = tmp_spec;
+  }
+  MzMLFile().store("./PeakPickerHiRes_ftms_sn4_out.mzML", tmp_exp);
+#endif
 
-// TEST_EQUAL(tmp_spec.SpectrumSettings::operator==(output[0]), true)
   for (Size peak_idx = 0; peak_idx < tmp_spec.size(); ++peak_idx)
-        {
-            TEST_REAL_SIMILAR(tmp_spec[peak_idx].getMZ(), output[0][peak_idx].getMZ())
-                TEST_REAL_SIMILAR(tmp_spec[peak_idx].getIntensity(), output[0][peak_idx].getIntensity())
-                }
+  {
+    TEST_REAL_SIMILAR(tmp_spec[peak_idx].getMZ(), output[0][peak_idx].getMZ())
+    TEST_REAL_SIMILAR(tmp_spec[peak_idx].getIntensity(), output[0][peak_idx].getIntensity())
+  }
 END_SECTION
 
 START_SECTION([EXTRA](template <typename PeakType> void pickExperiment(const MSExperiment<PeakType>& input, MSExperiment<PeakType>& output)))
   MSExperiment<Peak1D> tmp_exp;
-pp_hires.pickExperiment(input,tmp_exp);
+  pp_hires.pickExperiment(input,tmp_exp);
 
-TEST_EQUAL(tmp_exp.ExperimentalSettings::operator==(input), true)
   for (Size scan_idx = 0; scan_idx < tmp_exp.size(); ++scan_idx)
-        {
-    // TEST_EQUAL(tmp_exp[scan_idx].SpectrumSettings::operator==(output[scan_idx]), true)
-                for (Size peak_idx = 0; peak_idx < tmp_exp[scan_idx].size(); ++peak_idx)
-                    {
-                        TEST_REAL_SIMILAR(tmp_exp[scan_idx][peak_idx].getMZ(), output[scan_idx][peak_idx].getMZ())
-                            TEST_REAL_SIMILAR(tmp_exp[scan_idx][peak_idx].getIntensity(), output[scan_idx][peak_idx].getIntensity())
-                            }
-        }
+  {
+    for (Size peak_idx = 0; peak_idx < tmp_exp[scan_idx].size(); ++peak_idx)
+    {
+      TEST_REAL_SIMILAR(tmp_exp[scan_idx][peak_idx].getMZ(), output[scan_idx][peak_idx].getMZ())
+      TEST_REAL_SIMILAR(tmp_exp[scan_idx][peak_idx].getIntensity(), output[scan_idx][peak_idx].getIntensity())
+    }
+  }
 END_SECTION
 
 output.clear(true);
@@ -304,16 +350,16 @@ for (Size scan_idx = 0; scan_idx < outRich.size(); ++scan_idx)
 param.setValue("signal_to_noise",4.0);
 pp_hires.setParameters(param);
 
+
 START_SECTION([EXTRA](template <typename PeakType> void pick(const MSSpectrum<PeakType>& inRich, MSSpectrum<PeakType>& outRich)))
   MSSpectrum<RichPeak1D> tmp_spec;
-pp_hires.pick(inRich[0],tmp_spec);
+  pp_hires.pick(inRich[0],tmp_spec);
 
-// TEST_EQUAL(tmp_spec.SpectrumSettings::operator==(outRich[0]), true)
   for (Size peak_idx = 0; peak_idx < tmp_spec.size(); ++peak_idx)
-        {
-            TEST_REAL_SIMILAR(tmp_spec[peak_idx].getMZ(), outRich[0][peak_idx].getMZ())
-                TEST_REAL_SIMILAR(tmp_spec[peak_idx].getIntensity(), outRich[0][peak_idx].getIntensity())
-                }
+  {
+    TEST_REAL_SIMILAR(tmp_spec[peak_idx].getMZ(), outRich[0][peak_idx].getMZ())
+    TEST_REAL_SIMILAR(tmp_spec[peak_idx].getIntensity(), outRich[0][peak_idx].getIntensity())
+    }
 END_SECTION
 
 START_SECTION([EXTRA](template <typename PeakType> void pickExperiment(const MSExperiment<PeakType>& inRich, MSExperiment<PeakType>& outRich)))
@@ -322,10 +368,8 @@ pp_hires.pickExperiment(inRich,tmp_exp);
 
 
 TOLERANCE_RELATIVE(1e-4)
-TEST_EQUAL(tmp_exp.ExperimentalSettings::operator==(inRich), true)
   for (Size scan_idx = 0; scan_idx < tmp_exp.size(); ++scan_idx)
     {
-    // TEST_EQUAL(tmp_exp[scan_idx].SpectrumSettings::operator==(outRich[scan_idx]), true)
         for (Size peak_idx = 0; peak_idx < tmp_exp[scan_idx].size(); ++peak_idx)
         {
             TEST_REAL_SIMILAR(tmp_exp[scan_idx][peak_idx].getMZ(), outRich[scan_idx][peak_idx].getMZ())

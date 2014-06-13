@@ -35,7 +35,7 @@
 #ifndef OPENMS_CHEMISTRY_EMPIRICALFORMULA_H
 #define OPENMS_CHEMISTRY_EMPIRICALFORMULA_H
 
-#include <iostream>
+#include <iosfwd>
 #include <vector>
 
 #include <OpenMS/DATASTRUCTURES/String.h>
@@ -113,10 +113,10 @@ public:
     */
     //@{
     /// returns the mono isotopic weight of the formula (includes proton charges)
-    DoubleReal getMonoWeight() const;
+    double getMonoWeight() const;
 
     /// returns the average weight of the formula (includes proton charges)
-    DoubleReal getAverageWeight() const;
+    double getAverageWeight() const;
 
     /** @brief returns the isotope distribution of the formula
         *	The details of the calculation of the isotope distribution

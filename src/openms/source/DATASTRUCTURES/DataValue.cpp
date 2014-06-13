@@ -37,8 +37,10 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/PrecisionWrapper.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
 #include <QtCore/QString>
@@ -626,7 +628,7 @@ namespace OpenMS
     {
     case DataValue::EMPTY_VALUE: break;
 
-    case DataValue::STRING_VALUE: return *(data_.str_); break;
+    case DataValue::STRING_VALUE: return *(data_.str_);
 
     case DataValue::STRING_LIST: ss << *(data_.str_list_); break;
 

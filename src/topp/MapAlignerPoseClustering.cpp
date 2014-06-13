@@ -205,7 +205,7 @@ protected:
 #ifdef _OPENMP
 #pragma omp parallel for schedule(dynamic, 1)
 #endif
-    for (Int i = 0; i < in_files.size(); ++i)
+    for (Int i = 0; i < static_cast<Int>(in_files.size()); ++i)
     {
       TransformationDescription trafo;
       if (in_type == FileTypes::FEATUREXML)
@@ -215,7 +215,7 @@ protected:
         FeatureXMLFile f_fxml_tmp; // do not use OMP-firstprivate, since FeatureXMLFile has no copy c'tor
         f_fxml_tmp.getOptions() = f_fxml.getOptions();
         f_fxml_tmp.load(in_files[i], map);
-        if (i == reference_index) trafo.fitModel("identity");
+        if (i == static_cast<Int>(reference_index)) trafo.fitModel("identity");
         else algorithm.align(map, trafo);
         if (out_files.size())
         {
@@ -229,7 +229,7 @@ protected:
       {
         MSExperiment<> map;
         MzMLFile().load(in_files[i], map);
-        if (i == reference_index) trafo.fitModel("identity");
+        if (i == static_cast<Int>(reference_index)) trafo.fitModel("identity");
         else algorithm.align(map, trafo);
         if (out_files.size())
         {

@@ -84,7 +84,7 @@ public:
       bool enable_mir_cuts;
       bool enable_cov_cuts;
       bool enable_clq_cuts;
-      DoubleReal mip_gap;
+      double mip_gap;
       Int time_limit;
       Int output_freq;
       Int output_delay;
@@ -142,11 +142,11 @@ public:
 
     // problem creation/manipulation
     /// adds a row to the LP matrix, returns index
-    Int addRow(std::vector<Int> row_indices, std::vector<DoubleReal> row_values, const String & name);
+    Int addRow(std::vector<Int> row_indices, std::vector<double> row_values, const String & name);
     /// adds an empty column to the LP matrix, returns index
     Int addColumn();
     /// adds a column to the LP matrix, returns index
-    Int addColumn(std::vector<Int> column_indices, std::vector<DoubleReal> column_values, const String & name);
+    Int addColumn(std::vector<Int> column_indices, std::vector<double> column_values, const String & name);
 
     /**
       @brief Adds a row with boundaries to the LP matrix, returns index
@@ -160,7 +160,7 @@ public:
       @param upper_bound
       @param type Type of the row 1 - unbounded, 2 - only lower bound, 3 - only upper bound, 4 - double-bounded variable, 5 - fixed variable
     */
-    Int addRow(std::vector<Int> & row_indices, std::vector<DoubleReal> & row_values, const String & name, DoubleReal lower_bound, DoubleReal upper_bound, Type type);
+    Int addRow(std::vector<Int> & row_indices, std::vector<double> & row_values, const String & name, double lower_bound, double upper_bound, Type type);
 
     /**
       @brief Adds a column with boundaries to the LP matrix, returns index
@@ -172,7 +172,7 @@ public:
       @param upper_bound
       @param type 1 - unbounded, 2 - only lower bound, 3 - only upper bound, 4 - double-bounded variable, 5 - fixed variable
     */
-    Int addColumn(std::vector<Int> & column_indices, std::vector<DoubleReal> & column_values, const String & name, DoubleReal lower_bound, DoubleReal upper_bound, Type type);
+    Int addColumn(std::vector<Int> & column_indices, std::vector<double> & column_values, const String & name, double lower_bound, double upper_bound, Type type);
 
     /// delete index-th row
     void deleteRow(Int index);
@@ -187,13 +187,13 @@ public:
     /// gets index of the column with name
     Int getColumnIndex(const String & name);
     /// gets column's upper bound
-    DoubleReal getColumnUpperBound(Int index);
+    double getColumnUpperBound(Int index);
     /// gets column's lower bound
-    DoubleReal getColumnLowerBound(Int index);
+    double getColumnLowerBound(Int index);
     /// gets row's upper bound
-    DoubleReal getRowUpperBound(Int index);
+    double getRowUpperBound(Int index);
     /// gets row's lower bound
-    DoubleReal getRowLowerBound(Int index);
+    double getRowLowerBound(Int index);
     /// sets name of the index-th row
     void setRowName(Int index, const String & name);
 
@@ -205,7 +205,7 @@ public:
       @param upper_bound
       @param type 1 - unbounded, 2 - only lower bound, 3 - only upper bound, 4 - double-bounded variable, 5 - fixed variable
      */
-    void setColumnBounds(Int index, DoubleReal lower_bound, DoubleReal upper_bound, Type type);
+    void setColumnBounds(Int index, double lower_bound, double upper_bound, Type type);
 
     /**
       @brief Set row bounds.
@@ -215,7 +215,7 @@ public:
       @param upper_bound
       @param type 1 - unbounded, 2 - only lower bound, 3 - only upper bound, 4 - double-bounded variable, 5 - fixed constraint
      */
-    void setRowBounds(Int index, DoubleReal lower_bound, DoubleReal upper_bound, Type type);
+    void setRowBounds(Int index, double lower_bound, double upper_bound, Type type);
 
     /**
       @brief Set column/variable type.
@@ -234,9 +234,9 @@ public:
     VariableType getColumnType(Int index);
 
     /// set objective value for column with index
-    void setObjective(Int index, DoubleReal obj_value);
+    void setObjective(Int index, double obj_value);
     /// get objective value for column with index
-    DoubleReal getObjective(Int index);
+    double getObjective(Int index);
 
     /**
       @brief Set objective direction.
@@ -251,8 +251,8 @@ public:
     /// get number of rows
     Int getNumberOfRows();
 
-    void setElement(Int row_index, Int column_index, DoubleReal value);
-    DoubleReal getElement(Int row_index, Int column_index);
+    void setElement(Int row_index, Int column_index, double value);
+    double getElement(Int row_index, Int column_index);
 
     // problem reading/writing
     /**
@@ -291,8 +291,8 @@ public:
     SolverStatus getStatus();
 
     // solution access
-    DoubleReal getObjectiveValue();
-    DoubleReal getColumnValue(Int index);
+    double getObjectiveValue();
+    double getColumnValue(Int index);
 
     Int getNumberOfNonZeroEntriesInRow(Int idx);
     void getMatrixRow(Int idx, std::vector<Int> & indexes);
@@ -307,7 +307,7 @@ public:
 protected:
 #if COINOR_SOLVER == 1
     CoinModel * model_;
-    std::vector<DoubleReal> solution_;
+    std::vector<double> solution_;
 #endif
 
     glp_prob * lp_problem_;

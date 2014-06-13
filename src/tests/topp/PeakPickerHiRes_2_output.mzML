@@ -265,6 +265,6 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</chromatogram>
-    </chromatogramList>
+		</chromatogramList>
 	</run>
 </mzML>

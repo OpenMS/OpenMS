@@ -310,7 +310,7 @@ RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMasse
   std::cout << "Filtering on restrictions... " << endl;
   // filtering on restrictions
   std::vector<pair<String, String> > violates_restriction; // elemental composition, nucleotide style formula
-  for (Map<String, DoubleReal>::ConstIterator mit = result.mod_masses.begin(); mit != result.mod_masses.end(); ++mit)
+  for (Map<String, double>::ConstIterator mit = result.mod_masses.begin(); mit != result.mod_masses.end(); ++mit)
   {
     // remove additive or subtractive modifications from string as these are not used in string comparison
     const set<String>& ambiguities = result.mod_combinations[mit->first];
@@ -394,8 +394,8 @@ RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMasse
 
   // output index  -> empirical formula -> (ambigous) nucleotide formulas
   // nucleotide formulas which only differ in nucleotide ordering are only printed once
-  DoubleReal pseudo_rt = 1;
-  for (Map<String, DoubleReal>::ConstIterator mit = result.mod_masses.begin(); mit != result.mod_masses.end(); ++mit)
+  double pseudo_rt = 1;
+  for (Map<String, double>::ConstIterator mit = result.mod_masses.begin(); mit != result.mod_masses.end(); ++mit)
   {
     result.mod_formula_idx[pseudo_rt] = mit->first;
 

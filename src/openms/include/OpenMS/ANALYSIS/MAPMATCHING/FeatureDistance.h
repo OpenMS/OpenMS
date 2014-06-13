@@ -78,7 +78,7 @@ namespace OpenMS
   {
 public:
     /// Value to return if max. difference is exceeded or if charge states don't match
-    static const DoubleReal infinity;
+    static const double infinity;
 
     /**
          @brief Constructor
@@ -86,7 +86,7 @@ public:
          @param max_intensity Maximum intensity of features (for normalization)
          @param force_constraints Check "max. difference" constraints given in the parameters and return @ref infinity if violated?
     */
-    FeatureDistance(DoubleReal max_intensity = 1.0,
+    FeatureDistance(double max_intensity = 1.0,
                     bool force_constraints = false);
 
     /// Destructor
@@ -100,7 +100,7 @@ public:
 
          @returns In the first element, whether constraints were satisfied; in the second element, the distance (@ref infinity if constraints were violated and @ref force_constraints_ is true).
     */
-    std::pair<bool, DoubleReal> operator()(const BaseFeature & left,
+    std::pair<bool, double> operator()(const BaseFeature & left,
                                            const BaseFeature & right);
 
 protected:
@@ -122,7 +122,7 @@ protected:
         if (!relevant) weight = 0.0;
       }
 
-      DoubleReal max_difference, exponent, weight, norm_factor;
+      double max_difference, exponent, weight, norm_factor;
       bool max_diff_ppm, relevant;
     };
 
@@ -130,16 +130,16 @@ protected:
     void updateMembers_();
 
     /// Computes a distance component given absolute difference and parameters
-    inline DoubleReal distance_(DoubleReal diff, const DistanceParams_ & params) const;
+    inline double distance_(double diff, const DistanceParams_ & params) const;
 
     /// Storage of parameters for the individual distance components
     DistanceParams_ params_rt_, params_mz_, params_intensity_;
 
     /// Reciprocal value of the total weight in the distance function
-    DoubleReal total_weight_reciprocal_;
+    double total_weight_reciprocal_;
 
     /// Maximum intensity of features (for normalization)
-    DoubleReal max_intensity_;
+    double max_intensity_;
 
     /// Compute a distance even if charge states don't match?
     bool ignore_charge_;

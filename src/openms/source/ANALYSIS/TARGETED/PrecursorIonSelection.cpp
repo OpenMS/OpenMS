@@ -87,12 +87,12 @@ namespace OpenMS
 
   }
 
-  const DoubleReal & PrecursorIonSelection::getMaxScore() const
+  const double & PrecursorIonSelection::getMaxScore() const
   {
     return max_score_;
   }
 
-  void PrecursorIonSelection::setMaxScore(const DoubleReal & max_score)
+  void PrecursorIonSelection::setMaxScore(const double & max_score)
   {
     max_score_ = max_score;
   }
@@ -107,8 +107,8 @@ namespace OpenMS
     std::cout << "Get next precursors" << std::endl;
     std::cout << solution_indices.size() << " entries in solution indices.\n";
 #endif
-    DoubleReal min_rt = param_.getValue("Preprocessing:rt_settings:min_rt");
-    DoubleReal rt_step_size = param_.getValue("Preprocessing:rt_settings:rt_step_size");
+    double min_rt = param_.getValue("Preprocessing:rt_settings:min_rt");
+    double rt_step_size = param_.getValue("Preprocessing:rt_settings:rt_step_size");
     new_features.clear(true);
     sort(variable_indices.begin(), variable_indices.end(), PSLPFormulation::VariableIndexLess());
     Size prots = 0;
@@ -172,12 +172,12 @@ namespace OpenMS
 #endif
   }
 
-  void PrecursorIonSelection::getNextPrecursorsSeq(FeatureMap<> & features, FeatureMap<> & next_features, UInt number, DoubleReal & rt)
+  void PrecursorIonSelection::getNextPrecursorsSeq(FeatureMap<> & features, FeatureMap<> & next_features, UInt number, double & rt)
   {
     std::sort(features.begin(), features.end(), SeqTotalScoreMore());
     UInt count = 0;
-    DoubleReal min_rt = param_.getValue("Preprocessing:rt_settings:min_rt");
-    DoubleReal rt_step_size = param_.getValue("Preprocessing:rt_settings:rt_step_size");
+    double min_rt = param_.getValue("Preprocessing:rt_settings:min_rt");
+    double rt_step_size = param_.getValue("Preprocessing:rt_settings:rt_step_size");
     if (fraction_counter_[(Size)(rt - min_rt) / rt_step_size] >= (Size)param_.getValue("rt_bin_capacity"))
     {
       rt = rt + 0.1;
@@ -278,15 +278,15 @@ namespace OpenMS
   void PrecursorIonSelection::rescore_(FeatureMap<> & features, std::vector<PeptideIdentification> & new_pep_ids,
                                        PrecursorIonSelectionPreprocessing & preprocessed_db, PSProteinInference & protein_inference)
   {
-    DoubleReal min_protein_probability = param_.getValue("MIPFormulation:thresholds:min_protein_id_probability");
-    DoubleReal min_protein_probability_for_change = param_.getValue("MIPFormulation:thresholds:min_protein_probability");
+    double min_protein_probability = param_.getValue("MIPFormulation:thresholds:min_protein_id_probability");
+    double min_protein_probability_for_change = param_.getValue("MIPFormulation:thresholds:min_protein_probability");
     // get maximal score in the list
     FeatureMap<>::Iterator iter = features.begin();
     for (; iter != features.end(); ++iter)
     {
-      if ((DoubleReal)iter->getMetaValue("msms_score") > max_score_)
+      if ((double)iter->getMetaValue("msms_score") > max_score_)
       {
-        max_score_ = (DoubleReal)iter->getMetaValue("msms_score");
+        max_score_ = (double)iter->getMetaValue("msms_score");
       }
     }
     std::set<String> status_changed;
@@ -436,34 +436,34 @@ namespace OpenMS
   void PrecursorIonSelection::shiftDown_(FeatureMap<> & features, PrecursorIonSelectionPreprocessing & preprocessed_db,
                                          String protein_acc)
   {
-    const std::vector<DoubleReal> & masses = preprocessed_db.getMasses(protein_acc);
+    const std::vector<double> & masses = preprocessed_db.getMasses(protein_acc);
 #ifdef PIS_DEBUG
     std::cout << protein_acc << "  shift down  " << masses.size() << " peptides" << std::endl;
 #endif
     // go through all tryptic peptide masses of this protein
-    std::vector<DoubleReal>::const_iterator aa_vec_iter = masses.begin();
+    std::vector<double>::const_iterator aa_vec_iter = masses.begin();
     for (; aa_vec_iter != masses.end(); ++aa_vec_iter)
     {
       FeatureMap<>::Iterator f_iter = features.begin();
       for (; f_iter != features.end(); ++f_iter)
       {
-        if ((DoubleReal) f_iter->getMetaValue("msms_score") > 0
+        if ((double) f_iter->getMetaValue("msms_score") > 0
            && f_iter->getMetaValue("fragmented") == "false"
            && f_iter->getMetaValue("shifted") != "down"
            && f_iter->getMetaValue("shifted") != "both")
         {
-          DoubleReal weight = preprocessed_db.getWeight(*aa_vec_iter);
+          double weight = preprocessed_db.getWeight(*aa_vec_iter);
           if (mz_tolerance_unit_ == "ppm")
           {
 
             if (fabs(f_iter->getMZ() - *aa_vec_iter) < ((f_iter->getMZ() * mz_tolerance_) / 1e06))
             {
               // matching mass
-              DoubleReal score = (DoubleReal)f_iter->getMetaValue("msms_score");
+              double score = (double)f_iter->getMetaValue("msms_score");
               f_iter->setMetaValue("msms_score", (max(score - (score / 2.) * (1 - weight), 0.)));
 #ifdef PIS_DEBUG
               std::cout << f_iter->getRT() << "\t" << f_iter->getMZ() << "\t"
-                        << score << " --> " << (DoubleReal)f_iter->getMetaValue("msms_score")
+                        << score << " --> " << (double)f_iter->getMetaValue("msms_score")
                         << std::endl;
 #endif
               if (f_iter->getMetaValue("shifted") == "up")
@@ -479,11 +479,11 @@ namespace OpenMS
           else if (fabs(f_iter->getMZ() - *aa_vec_iter) < mz_tolerance_)
           {
             // matching mass
-            DoubleReal score = (DoubleReal)f_iter->getMetaValue("msms_score");
+            double score = (double)f_iter->getMetaValue("msms_score");
             f_iter->setMetaValue("msms_score", (max(score - (score / 2.) * (1 - weight), 0.)));
 #ifdef PIS_DEBUG
             std::cout << f_iter->getRT() << "\t" << f_iter->getMZ() << "\t"
-                      << score << " --> " << (DoubleReal)f_iter->getMetaValue("msms_score")
+                      << score << " --> " << (double)f_iter->getMetaValue("msms_score")
                       << std::endl;
 #endif
             if (f_iter->getMetaValue("shifted") == "up")
@@ -504,23 +504,23 @@ namespace OpenMS
   void PrecursorIonSelection::shiftUp_(FeatureMap<> & features, PrecursorIonSelectionPreprocessing & preprocessed_db,
                                        String protein_acc)
   {
-    const std::vector<DoubleReal> & masses = preprocessed_db.getMasses(protein_acc);
+    const std::vector<double> & masses = preprocessed_db.getMasses(protein_acc);
 #ifdef PIS_DEBUG
     std::cout << protein_acc << "  shift up  " << masses.size() << " peptides" << std::endl;
 #endif
     // go through all tryptic peptide masses of this protein
-    std::vector<DoubleReal>::const_iterator aa_vec_iter = masses.begin();
+    std::vector<double>::const_iterator aa_vec_iter = masses.begin();
     for (; aa_vec_iter != masses.end(); ++aa_vec_iter)
     {
       FeatureMap<>::Iterator f_iter = features.begin();
       for (; f_iter != features.end(); ++f_iter)
       {
-        if ((DoubleReal) f_iter->getMetaValue("msms_score") > 0
+        if ((double) f_iter->getMetaValue("msms_score") > 0
            && f_iter->getMetaValue("fragmented") == "false"
            && f_iter->getMetaValue("shifted") != "up"
            && f_iter->getMetaValue("shifted") != "both")
         {
-          DoubleReal weight = preprocessed_db.getWeight(*aa_vec_iter);
+          double weight = preprocessed_db.getWeight(*aa_vec_iter);
           if (mz_tolerance_unit_ == "ppm")
           {
 
@@ -529,11 +529,11 @@ namespace OpenMS
                && f_iter->getMetaValue("shifted") != "both")
             {
               // matching mass
-              DoubleReal score = (DoubleReal)f_iter->getMetaValue("msms_score");
+              double score = (double)f_iter->getMetaValue("msms_score");
               f_iter->setMetaValue("msms_score", score + (max_score_ - score) * (1 - weight));
 #ifdef PIS_DEBUG
               std::cout << f_iter->getRT() << "\t" << f_iter->getMZ() << "\t"
-                        << score << " --> " << (DoubleReal)f_iter->getMetaValue("msms_score")
+                        << score << " --> " << (double)f_iter->getMetaValue("msms_score")
                         << std::endl;
 #endif
               if (f_iter->getMetaValue("shifted") == "down")
@@ -551,11 +551,11 @@ namespace OpenMS
                   && f_iter->getMetaValue("shifted") != "both")
           {
             // matching mass
-            DoubleReal score = (DoubleReal)f_iter->getMetaValue("msms_score");
+            double score = (double)f_iter->getMetaValue("msms_score");
             f_iter->setMetaValue("msms_score", score + (max_score_ - score) * (1 - weight));
 #ifdef PIS_DEBUG
             std::cout << f_iter->getRT() << "\t" << f_iter->getMZ() << "\t"
-                      << score << " --> " << (DoubleReal)f_iter->getMetaValue("msms_score")
+                      << score << " --> " << (double)f_iter->getMetaValue("msms_score")
                       << std::endl;
 #endif
             if (f_iter->getMetaValue("shifted") == "down")
@@ -683,9 +683,9 @@ namespace OpenMS
               << "sps " << SPS << "\n"
               << "dex " << DEX << "\n";
 #endif
-    DoubleReal min_rt = param_.getValue("Preprocessing:rt_settings:min_rt");
-    DoubleReal max_rt = param_.getValue("Preprocessing:rt_settings:max_rt");
-    DoubleReal rt_step_size = param_.getValue("Preprocessing:rt_settings:rt_step_size");
+    double min_rt = param_.getValue("Preprocessing:rt_settings:min_rt");
+    double max_rt = param_.getValue("Preprocessing:rt_settings:max_rt");
+    double rt_step_size = param_.getValue("Preprocessing:rt_settings:rt_step_size");
     Size steps = (Size)ceil((max_rt - min_rt) / rt_step_size) + 1;
     std::cout << "steps " << steps << " " << min_rt << " " << max_rt << " " << rt_step_size << std::endl;
     fraction_counter_ = vector<Size>(steps, 0);
@@ -714,11 +714,11 @@ namespace OpenMS
     PSProteinInference protein_inference;
     protein_inference.setSolver(solver_);
 
-    DoubleReal protein_id_threshold = param_.getValue("MIPFormulation:thresholds:min_protein_id_probability");
+    double protein_id_threshold = param_.getValue("MIPFormulation:thresholds:min_protein_id_probability");
 
     // get first precursors
     FeatureMap<> new_features;
-    DoubleReal curr_rt = min_rt;
+    double curr_rt = min_rt;
     if (sequential_order)
     {
       getNextPrecursorsSeq(features, new_features, step_size, curr_rt);
@@ -784,7 +784,7 @@ namespace OpenMS
           std::cout << std::endl;
         }
 
-        if ((DoubleReal)new_features[c].getMetaValue("init_msms_score") == 0 && !pep_ids.empty())
+        if ((double)new_features[c].getMetaValue("init_msms_score") == 0 && !pep_ids.empty())
         {
           std::cout << "Attention: score was 0, but spectrum led to an id!!! "
                     << std::endl;
@@ -1015,7 +1015,7 @@ namespace OpenMS
     }
     UInt step_size(param_.getValue("step_size"));
     UInt rt_bin_capacity(param_.getValue("rt_bin_capacity"));
-    DoubleReal protein_id_threshold = param_.getValue("MIPFormulation:thresholds:min_protein_id_probability");
+    double protein_id_threshold = param_.getValue("MIPFormulation:thresholds:min_protein_id_probability");
     PSLPFormulation ilp_wrapper;
     Param mip_param = param_.copy("MIPFormulation:", true);
     mip_param.setValue("mz_tolerance", param_.getValue("Preprocessing:precursor_mass_tolerance"));
@@ -1357,7 +1357,7 @@ namespace OpenMS
       type_ = DEX;
     min_pep_ids_ = (UInt)param_.getValue("MIPFormulation:thresholds:min_peptide_ids");
     mz_tolerance_unit_ = (String)param_.getValue("Preprocessing:precursor_mass_tolerance_unit");
-    mz_tolerance_ = (DoubleReal)param_.getValue("Preprocessing:precursor_mass_tolerance");
+    mz_tolerance_ = (double)param_.getValue("Preprocessing:precursor_mass_tolerance");
     max_iteration_ = (UInt) param_.getValue("max_iteration");
   }
 

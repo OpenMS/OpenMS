@@ -39,15 +39,16 @@
 
 namespace OpenMS
 {
-    /**
-      @brief Empty (NOP) function
-    */
-    extern void FunctionSpectrumNOP (MSSpectrum<Peak1D> & /* s */);
 
     /**
       @brief Empty (NOP) function
     */
-    extern void FunctionChromatogramNOP (MSChromatogram<ChromatogramPeak> & /* c */);
+    OPENMS_DLLAPI extern void FunctionSpectrumNOP (MSSpectrum<Peak1D> & /* s */);
+
+    /**
+      @brief Empty (NOP) function
+    */
+    OPENMS_DLLAPI extern void FunctionChromatogramNOP (MSChromatogram<ChromatogramPeak> & /* c */);
 
     /**
       @brief Transforming consumer of MS data
@@ -55,7 +56,7 @@ namespace OpenMS
       Is able to transform a spectra on the fly while it is read using a
       function pointer that can be set on the object.
     */
-    class OPENMS_DLLAPI MSDataTransformingConsumer : 
+    class OPENMS_DLLAPI MSDataTransformingConsumer :
       public Interfaces::IMSDataConsumer<>
     {
 
@@ -67,8 +68,8 @@ namespace OpenMS
       /**
         @brief Constructor
       */
-      MSDataTransformingConsumer() 
-      { 
+      MSDataTransformingConsumer()
+      {
         sprocessing_ptr_ = &FunctionSpectrumNOP; // setting default processing action to noop
         cprocessing_ptr_ = &FunctionChromatogramNOP; // setting default processing action to noop
       }
@@ -103,7 +104,7 @@ namespace OpenMS
         cprocessing_ptr_ = cproptr;
       }
 
-      virtual void setExperimentalSettings(const OpenMS::ExperimentalSettings&) {};
+      virtual void setExperimentalSettings(const OpenMS::ExperimentalSettings&) {}
 
     protected:
       void (*sprocessing_ptr_)(SpectrumType&);

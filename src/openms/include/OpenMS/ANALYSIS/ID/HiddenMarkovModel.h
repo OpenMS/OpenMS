@@ -165,10 +165,10 @@ public:
     void write(std::ostream & out) const;
 
     /// returns the transition probability of the given state names
-    DoubleReal getTransitionProbability(const String & s1, const String & s2) const;
+    double getTransitionProbability(const String & s1, const String & s2) const;
 
     /// sets the transition probability of the given state names to prob
-    void setTransitionProbability(const String & s1, const String & s2, DoubleReal prob);
+    void setTransitionProbability(const String & s1, const String & s2, double prob);
 
     /// return the number of states
     Size getNumberOfStates() const;
@@ -189,13 +189,13 @@ public:
     void train();
 
     /// sets the initial transition probability of the given state to prob
-    void setInitialTransitionProbability(const String & state, DoubleReal prob);
+    void setInitialTransitionProbability(const String & state, double prob);
 
     /// clears the initial probabilities
     void clearInitialTransitionProbabilities();
 
     /// sets the emission probability of the given state to prob
-    void setTrainingEmissionProbability(const String & state, DoubleReal prob);
+    void setTrainingEmissionProbability(const String & state, double prob);
 
     /// clear the emission probabilities
     void clearTrainingEmissionProbabilities();
@@ -210,7 +210,7 @@ public:
     void disableTransitions();
 
     /// calculates the emission probabilities of the HMM (of course only of the non-hidden states)
-    void calculateEmissionProbabilities(Map<HMMState *, DoubleReal> & emission_probs);
+    void calculateEmissionProbabilities(Map<HMMState *, double> & emission_probs);
 
     /// writes some stats to cerr
     void dump();
@@ -234,10 +234,10 @@ public:
     void clear();
 
     /// sets the pseudo count that are added instead of zero
-    void setPseudoCounts(DoubleReal pseudo_counts);
+    void setPseudoCounts(double pseudo_counts);
 
     /// returns the pseudo counts
-    DoubleReal getPseudoCounts() const;
+    double getPseudoCounts() const;
 
     void setVariableModifications(const StringList & modifications);
     //@}
@@ -251,13 +251,13 @@ protected:
     void enableTransition_(HMMState * s1, HMMState * s2);
 
     /// sets the emission probability of the given state to prob
-    void setTrainingEmissionProbability_(HMMState * state, DoubleReal prob);
+    void setTrainingEmissionProbability_(HMMState * state, double prob);
 
     /// sets the transition probability of the given states to prob
-    void setTransitionProbability_(HMMState * s1, HMMState * s2, DoubleReal prob);
+    void setTransitionProbability_(HMMState * s1, HMMState * s2, double prob);
 
     /// returns the transition probability of the given states
-    DoubleReal getTransitionProbability_(HMMState * s1, HMMState * s2) const;
+    double getTransitionProbability_(HMMState * s1, HMMState * s2) const;
 
 
     /// performs the forward algorithm
@@ -267,41 +267,41 @@ protected:
     void calculateBackwardPart_();
 
     /// returns the forward variable
-    DoubleReal getForwardVariable_(HMMState *);
+    double getForwardVariable_(HMMState *);
 
     /// returns the backward variable
-    DoubleReal getBackwardVariable_(HMMState *);
+    double getBackwardVariable_(HMMState *);
 
 private:
 
     // transition probs
-    Map<HMMState *, Map<HMMState *, DoubleReal> > trans_;
+    Map<HMMState *, Map<HMMState *, double> > trans_;
 
     // transition prob counts
-    Map<HMMState *, Map<HMMState *, DoubleReal> > count_trans_;
+    Map<HMMState *, Map<HMMState *, double> > count_trans_;
 
-    Map<HMMState *, Map<HMMState *, std::vector<DoubleReal> > > count_trans_all_;
+    Map<HMMState *, Map<HMMState *, std::vector<double> > > count_trans_all_;
 
     // all transition probs of all training steps (for model checking)
-    Map<HMMState *, Map<HMMState *, std::vector<DoubleReal> > > train_count_trans_all_;
+    Map<HMMState *, Map<HMMState *, std::vector<double> > > train_count_trans_all_;
 
     // number of training steps of the transitions
     Map<HMMState *, Map<HMMState *, Size> > training_steps_count_;
 
     // forward variables
-    Map<HMMState *, DoubleReal> forward_;
+    Map<HMMState *, double> forward_;
 
     // backward variables
-    Map<HMMState *, DoubleReal> backward_;
+    Map<HMMState *, double> backward_;
 
     // name to state Mapping
     Map<String, HMMState *> name_to_state_;
 
     // emission probabilities
-    Map<HMMState *, DoubleReal> train_emission_prob_;
+    Map<HMMState *, double> train_emission_prob_;
 
     // initial transition probabilities
-    Map<HMMState *, DoubleReal> init_prob_;
+    Map<HMMState *, double> init_prob_;
 
     // all states of the HMM
     std::set<HMMState *> states_;
@@ -319,7 +319,7 @@ private:
     Map<HMMState *, std::set<HMMState *> > enabled_trans_;
 
     // pseudocounts used in this instance
-    DoubleReal pseudo_counts_;
+    double pseudo_counts_;
 
     // copy all the stuff from one HMM to this
     void copy_(const HiddenMarkovModel & source);

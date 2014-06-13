@@ -41,6 +41,8 @@
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/KERNEL/ChromatogramPeak.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
+
 #include <OpenMS/FILTERING/TRANSFORMERS/LinearResampler.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/LinearResamplerAlign.h>
 
@@ -192,10 +194,6 @@ public:
         picked_chroms[chr_idx][peak_idx] << " with borders " << best_left << " " <<
         best_right << " (" << best_right - best_left << ")" << std::endl;
 
-      // Remove other, overlapping, picked peaks (in this and other
-      // chromatograms) and then ensure that at least one peak is set to zero
-      // (the currently best peak).
-      remove_overlapping_features(picked_chroms, best_left, best_right);
       if (recalculate_peaks_)
       {
         // This may change best_left / best_right
@@ -208,6 +206,11 @@ public:
       }
       picked_chroms[chr_idx][peak_idx].setIntensity(0.0);
 
+      // Remove other, overlapping, picked peaks (in this and other
+      // chromatograms) and then ensure that at least one peak is set to zero
+      // (the currently best peak).
+      remove_overlapping_features(picked_chroms, best_left, best_right);
+
       // Check for minimal peak width -> return empty feature (Intensity zero)
       if (min_peak_width_ > 0.0 && std::fabs(best_right - best_left) < min_peak_width_) {return mrmFeature; }
 
@@ -217,6 +220,7 @@ public:
         double qual = computeQuality_(transition_group, picked_chroms, chr_idx, best_left, best_right, outlier);
         if (qual < min_qual_) {return mrmFeature; }
         mrmFeature.setMetaValue("potentialOutlier", outlier);
+        mrmFeature.setMetaValue("initialPeakQuality", qual);
         mrmFeature.setOverallQuality(qual);
       }
 
@@ -246,7 +250,7 @@ public:
         f.setOverallQuality(quality);
 
         ConvexHull2D::PointArrayType hull_points;
-        DoubleReal intensity_sum(0.0), rt_sum(0.0);
+        double intensity_sum(0.0), rt_sum(0.0);
         double peak_apex_int = -1;
         double peak_apex_dist = std::fabs(used_chromatogram.begin()->getMZ() - peak_apex);
         // FEATURE : use RTBegin / MZBegin -> for this we need to know whether the template param is a real chromatogram or a spectrum!
@@ -581,7 +585,8 @@ protected:
       coel_score = (coel_score - 1.0) / 2.0;
 
       double score = shape_score - coel_score - 1.0 * missing_peaks / picked_chroms.size();
-      LOG_DEBUG << " computed score  " << score << std::endl;
+      LOG_DEBUG << " computed score  " << score << " (from " <<  shape_score << 
+        " - " << coel_score << " - " << 1.0 * missing_peaks / picked_chroms.size() << ")" << std::endl;
       return score;
     }
 
@@ -737,12 +742,12 @@ protected:
     String background_subtraction_;
     bool recalculate_peaks_;
     bool compute_peak_quality_;
-    DoubleReal min_qual_;
+    double min_qual_;
 
     int stop_after_feature_;
-    DoubleReal stop_after_intensity_ratio_;
-    DoubleReal min_peak_width_;
-    DoubleReal recalculate_peaks_max_z_;
+    double stop_after_intensity_ratio_;
+    double min_peak_width_;
+    double recalculate_peaks_max_z_;
   };
 }
 

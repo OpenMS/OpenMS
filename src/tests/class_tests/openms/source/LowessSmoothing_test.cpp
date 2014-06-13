@@ -37,10 +37,17 @@
 
 ///////////////////////////
 #include <OpenMS/FILTERING/SMOOTHING/LowessSmoothing.h>
+#include <boost/random/mersenne_twister.hpp>
+#include <boost/random/normal_distribution.hpp>
 ///////////////////////////
 
 using namespace OpenMS;
 using namespace std;
+
+double targetFunction(double x)
+{
+  return 10 + 20*x + 40*x*x;
+}
 
 START_TEST(LowessSmoothing, "$Id$")
 
@@ -63,56 +70,62 @@ START_SECTION(~LowessSmoothing())
 END_SECTION
 
 /////
+std::vector<double> x, y, y_noisy, out;
 
-std::vector<DoubleReal> x, y, out;
-
-DoubleReal exp1[20] = {10, 20, 30, 40, 50, 60, 70.75057075, 81.91410776, 90.49938042, 93.67188213, 90.49938042, 81.91410776, 70.75057075, 60, 50, 40, 30, 20, 10, 7.638334409e-14};
-DoubleReal exp2[20] = {4.940778184, 19.1953138, 32.45871201, 44.62566121, 55.59150285, 65.28588352, 73.78027456, 81.64413917, 87.38364167, 89.36964666, 87.38364167, 81.64413917, 72.86539444, 63.49165214, 53.94643243, 43.76172539, 32.89091229, 21.38760603, 9.323517923, -3.233540303};
-
-
-for (DoubleReal i = 1.0; i <= 20.0; i += 1.0)
+//exact data
+for (double i = 1.0; i <= 20.0; i += 1.0)
 {
     x.push_back(i);
+    y.push_back(targetFunction(i));
 }
 
-for (DoubleReal i = 1.0; i <= 10.0; i += 1.0)
+//noisy data
+// make some noise
+
+boost::random::mt19937 rnd_gen_;
+for (Size i = 0; i < y.size(); ++i)
 {
-    y.push_back(i*10);
+  boost::normal_distribution<float> udist (y.at(i), 0.05);
+  y_noisy.push_back( udist(rnd_gen_) );
 }
-
-for (DoubleReal i = 1.0; i <= 10.0; i += 1.0)
-{
-    y.push_back(100.0 - i*10);
-}
-
-y.push_back(10.0);
 
 LowessSmoothing lowsmooth;
 Param lowpar;
 lowpar.setValue("window_size", 15);
 
+TOLERANCE_RELATIVE(1.0004);
+TOLERANCE_ABSOLUTE(0.07);
 START_SECTION(void smoothData(const DoubleVector&, const DoubleVector&, DoubleVector&))
 {
+    y.push_back(-1.0);
     TEST_EXCEPTION(Exception::InvalidValue, lowsmooth.smoothData(x, y, out));
-
     y.pop_back();
     out.clear();
 
     lowsmooth.smoothData(x, y, out);
-
-    for (Size i = 0; i < out.size(); ++i)
+    Size idx = 1;
+    for (Size i = 0; i < out.size(); ++i, ++idx)
     {
-        TEST_REAL_SIMILAR(out[i], exp1[i]);
+        TEST_REAL_SIMILAR(out[i], targetFunction(idx));
     }
 
     out.clear();
     lowsmooth.setParameters(lowpar);
     lowsmooth.smoothData(x, y, out);
-
-    for (Size i = 0; i < out.size(); ++i)
+    idx = 1;
+    for (Size i = 0; i < out.size(); ++i, ++idx)
     {
-        TEST_REAL_SIMILAR(out[i], exp2[i]);
+        TEST_REAL_SIMILAR(out[i], targetFunction(idx));
     }
+
+    out.clear();
+    lowsmooth.smoothData(x, y_noisy, out);
+    idx = 1;
+    for (Size i = 0; i < out.size(); ++i, ++idx)
+    {
+        TEST_REAL_SIMILAR(out[i], targetFunction(idx));
+    }
+
 }
 END_SECTION
 

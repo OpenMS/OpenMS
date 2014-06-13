@@ -37,12 +37,13 @@
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
-
+#include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 
 #include <set>
 
 #include <boost/lexical_cast.hpp>
+
 
 using namespace std;
 
@@ -228,7 +229,7 @@ namespace OpenMS
         current_id_hit_.setRank(attributeAsInt_(attributes, "rank"));
 
         // optional attributes
-        DoubleReal double_value(0);
+        double double_value(0);
         if (optionalAttributeAsDouble_(double_value, attributes, "calculatedMassToCharge"))
         {
           current_id_hit_.setCalculatedMassToCharge(double_value);
@@ -282,7 +283,7 @@ namespace OpenMS
       if (tag_ == "peptideSequence")
       {
         String pep = sm_.convert(chars);
-        actual_peptide_ = AASequence(pep);
+        actual_peptide_ = AASequence::fromString(pep);
         return;
       }
 
@@ -647,8 +648,8 @@ namespace OpenMS
           }
 
           String cmz(jt->getSequence().getMonoWeight(res_type_, jt->getCharge()));       //calculatedMassToCharge
-          String emz(String(it->getMetaValue("MZ")));       //precursor MassToCharge
-          String ert(String(it->getMetaValue("RT")));       //precursor MassToCharge
+          String emz(it->getMZ());
+          String ert(it->getRT()); 
           String r(jt->getRank());      //rank
           String sc(jt->getScore());       //score TODO what if there is no score?
           String st(it->getScoreType());       //scoretype

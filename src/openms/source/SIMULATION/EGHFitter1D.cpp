@@ -43,46 +43,15 @@
 
 namespace OpenMS
 {
-  EGHFitter1D::EGHFitter1D() :
-    LevMarqFitter1D()
+  int EGHFitter1D::EGHFitterFunctor::operator()(const Eigen::VectorXd &x, Eigen::VectorXd &fvec)
   {
-    setName(getProductName());
-    defaults_.setValue("statistics:variance", 1.0, "Variance of the model.", ListUtils::create<String>("advanced"));
-    defaultsToParam_();
-  }
+    Size n = m_data->n;
+    RawDataArrayType set = m_data->set;
 
-  EGHFitter1D::EGHFitter1D(const EGHFitter1D & source) :
-    LevMarqFitter1D(source)
-  {
-    setParameters(source.getParameters());
-    updateMembers_();
-  }
-
-  EGHFitter1D::~EGHFitter1D()
-  {
-  }
-
-  EGHFitter1D & EGHFitter1D::operator=(const EGHFitter1D & source)
-  {
-    if (&source == this)
-      return *this;
-
-    LevMarqFitter1D::operator=(source);
-    setParameters(source.getParameters());
-    updateMembers_();
-
-    return *this;
-  }
-
-  Int EGHFitter1D::residual_(const gsl_vector * x, void * params, gsl_vector * f)
-  {
-    Size n = static_cast<EGHFitter1D::Data *>(params)->n;
-    RawDataArrayType set = static_cast<EGHFitter1D::Data *>(params)->set;
-
-    CoordinateType H  = gsl_vector_get(x, 0);
-    CoordinateType tR = gsl_vector_get(x, 1);
-    CoordinateType sigma_square = gsl_vector_get(x, 2);
-    CoordinateType tau = gsl_vector_get(x, 3);
+    CoordinateType H  = x(0);
+    CoordinateType tR = x(1);
+    CoordinateType sigma_square = x(2);
+    CoordinateType tau = x(3);
 
     CoordinateType t_diff, t_diff2, denominator = 0.0;
 
@@ -91,7 +60,7 @@ namespace OpenMS
     // iterate over all points of the signal
     for (Size i = 0; i < n; i++)
     {
-      DoubleReal t = set[i].getPos();
+      double t = set[i].getPos();
 
       t_diff = t - tR;
       t_diff2 = t_diff * t_diff; // -> (t - t_R)^2
@@ -107,21 +76,20 @@ namespace OpenMS
         fegh = 0.0;
       }
 
-      gsl_vector_set(f, i, (fegh - set[i].getIntensity()));
+      fvec(i) = (fegh - set[i].getIntensity());
     }
-
-    return GSL_SUCCESS;
+    return 0;
   }
-
-  Int EGHFitter1D::jacobian_(const gsl_vector * x, void * params, gsl_matrix * J)
+  // compute Jacobian matrix for the different parameters
+  int EGHFitter1D::EGHFitterFunctor::df(const Eigen::VectorXd &x, Eigen::MatrixXd &J)
   {
-    Size n =  static_cast<EGHFitter1D::Data *>(params)->n;
-    RawDataArrayType set = static_cast<EGHFitter1D::Data *>(params)->set;
+    Size n =  m_data->n;
+    RawDataArrayType set = m_data->set;
 
-    CoordinateType H  = gsl_vector_get(x, 0);
-    CoordinateType tR = gsl_vector_get(x, 1);
-    CoordinateType sigma_square = gsl_vector_get(x, 2);
-    CoordinateType tau = gsl_vector_get(x, 3);
+    CoordinateType H  = x(0);
+    CoordinateType tR = x(1);
+    CoordinateType sigma_square = x(2);
+    CoordinateType tau = x(3);
 
     CoordinateType derivative_H, derivative_tR, derivative_sigma_square, derivative_tau = 0.0;
     CoordinateType t_diff, t_diff2, exp1, denominator = 0.0;
@@ -162,31 +130,43 @@ namespace OpenMS
       }
 
       // set the jacobian matrix
-      gsl_matrix_set(J, i, 0, derivative_H);
-      gsl_matrix_set(J, i, 1, derivative_tR);
-      gsl_matrix_set(J, i, 2, derivative_sigma_square);
-      gsl_matrix_set(J, i, 3, derivative_tau);
+      J(i, 0) = derivative_H;
+      J(i, 1) = derivative_tR;
+      J(i, 2) = derivative_sigma_square;
+      J(i, 3) = derivative_tau;
     }
-
-    return GSL_SUCCESS;
+    return 0;
   }
 
-  Int EGHFitter1D::evaluate_(const gsl_vector * x, void * params, gsl_vector * f, gsl_matrix * J)
+  EGHFitter1D::EGHFitter1D() :
+    LevMarqFitter1D()
   {
-    EGHFitter1D::residual_(x, params, f);
-    EGHFitter1D::jacobian_(x, params, J);
-
-    return GSL_SUCCESS;
+    setName(getProductName());
+    defaults_.setValue("statistics:variance", 1.0, "Variance of the model.", ListUtils::create<String>("advanced"));
+    defaultsToParam_();
   }
 
-  void EGHFitter1D::printState_(Int iter, gsl_multifit_fdfsolver * s)
+  EGHFitter1D::EGHFitter1D(const EGHFitter1D & source) :
+    LevMarqFitter1D(source)
   {
-    printf("iter: %4u x = % 15.8f % 15.8f  % 15.8f  % 15.8f |f(x)| = %g\n", iter,
-           gsl_vector_get(s->x, 0),
-           gsl_vector_get(s->x, 1),
-           gsl_vector_get(s->x, 2),
-           gsl_vector_get(s->x, 3),
-           gsl_blas_dnrm2(s->f));
+    setParameters(source.getParameters());
+    updateMembers_();
+  }
+
+  EGHFitter1D::~EGHFitter1D()
+  {
+  }
+
+  EGHFitter1D & EGHFitter1D::operator=(const EGHFitter1D & source)
+  {
+    if (&source == this)
+      return *this;
+
+    LevMarqFitter1D::operator=(source);
+    setParameters(source.getParameters());
+    updateMembers_();
+
+    return *this;
   }
 
   EGHFitter1D::QualityType EGHFitter1D::fit1d(const RawDataArrayType & set, InterpolationModel * & model)
@@ -217,9 +197,14 @@ namespace OpenMS
     // Compute start parameters
     setInitialParameters_(set);
 
-    // Optimize parameter with Levenberg-Marquardt algorithm (GLS)
-    CoordinateType x_init[4] = { height_, retention_, sigma_square_, tau_ };
-    optimize_(set, 4, x_init, &(residual_), &(jacobian_), &(evaluate_), &d);
+    Eigen::VectorXd x_init (4);
+    x_init(0) = height_;
+    x_init(1) = retention_;
+    x_init(2) = sigma_square_;
+    x_init(3) = tau_;
+
+    EGHFitterFunctor functor (4, &d);
+    optimize_(x_init, functor);
 
     // Set optimized parameters
     height_ = x_init[0];
@@ -233,11 +218,6 @@ namespace OpenMS
     LOG_DEBUG << "retention:    " << retention_ << "\n";
     LOG_DEBUG << "sigma_square: " << sigma_square_ << "\n";
     LOG_DEBUG << "tau:          " << tau_ << std::endl;
-
-    if (getGslStatus_() != "success")
-    {
-      std::cout << "status: " << getGslStatus_() << std::endl;
-    }
 #endif
 
     // build model
@@ -263,9 +243,9 @@ namespace OpenMS
 
 
     // calculate pearson correlation
-    std::vector<Real> real_data;
+    std::vector<float> real_data;
     real_data.reserve(set.size());
-    std::vector<Real> model_data;
+    std::vector<float> model_data;
     model_data.reserve(set.size());
 
     for (Size i = 0; i < set.size(); ++i)
@@ -290,7 +270,7 @@ namespace OpenMS
 
     // calculate the median
     //Size median = 0;
-    //Real count = 0.0;
+    //float count = 0.0;
     Size apex_rt = 0;
     CoordinateType apex = 0.0;
     for (Size i = 0; i < set.size(); ++i)

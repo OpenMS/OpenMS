@@ -53,7 +53,7 @@ namespace OpenMS
   {
   }
 
-  void Spectrum2DGoToDialog::setRange(Real min_rt, Real max_rt, Real min_mz, Real max_mz)
+  void Spectrum2DGoToDialog::setRange(float min_rt, float max_rt, float min_mz, float max_mz)
   {
     min_rt_->setText(QString::number(min_rt));
     max_rt_->setText(QString::number(max_rt));
@@ -61,7 +61,7 @@ namespace OpenMS
     max_mz_->setText(QString::number(max_mz));
   }
 
-  void Spectrum2DGoToDialog::setMinMaxOfRange(Real min_rt, Real max_rt, Real min_mz, Real max_mz)
+  void Spectrum2DGoToDialog::setMinMaxOfRange(float min_rt, float max_rt, float min_mz, float max_mz)
   {
     min_rt_const_->setText(QString("min: ") + QString::number(min_rt));
     max_rt_const_->setText(QString("max: ") + QString::number(max_rt));
@@ -72,10 +72,10 @@ namespace OpenMS
   void Spectrum2DGoToDialog::fixRange()
   {
     // load from GUI
-    Real min_rt=min_rt_->text().toFloat();
-    Real max_rt=max_rt_->text().toFloat();
-    Real min_mz=min_mz_->text().toFloat();
-    Real max_mz=max_mz_->text().toFloat();
+    float min_rt=min_rt_->text().toFloat();
+    float max_rt=max_rt_->text().toFloat();
+    float min_mz=min_mz_->text().toFloat();
+    float max_mz=max_mz_->text().toFloat();
 
     // ensure correct order of min and max
     if (min_rt > max_rt) swap(min_rt, max_rt);
@@ -100,22 +100,22 @@ namespace OpenMS
     max_mz_->setText(QString::number(max_mz));
   }
 
-  Real Spectrum2DGoToDialog::getMinRT() const
+  float Spectrum2DGoToDialog::getMinRT() const
   {
     return min_rt_->text().toFloat();
   }
 
-  Real Spectrum2DGoToDialog::getMaxRT() const
+  float Spectrum2DGoToDialog::getMaxRT() const
   {
     return max_rt_->text().toFloat();
   }
 
-  Real Spectrum2DGoToDialog::getMinMZ() const
+  float Spectrum2DGoToDialog::getMinMZ() const
   {
     return min_mz_->text().toFloat();
   }
 
-  Real Spectrum2DGoToDialog::getMaxMZ() const
+  float Spectrum2DGoToDialog::getMaxMZ() const
   {
     return max_mz_->text().toFloat();
   }

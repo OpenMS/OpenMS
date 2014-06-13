@@ -155,7 +155,7 @@ namespace OpenMS
 
   void EGHModel::setOffset(CoordinateType offset)
   {
-    DoubleReal diff = offset - getInterpolation().getOffset();
+    double diff = offset - getInterpolation().getOffset();
     min_ += diff;
     max_ += diff;
 

@@ -67,8 +67,11 @@ public:
     /** @name Constructors and Destructors
       */
     //@{
+    /// Default constructor
+    RawMSSignalSimulation();
+
     /// Constructor taking a random generator
-    explicit RawMSSignalSimulation(const SimRandomNumberGenerator & rng);
+    explicit RawMSSignalSimulation(MutableSimRandomNumberGeneratorPtr rng);
 
     /// Copy constructor
     RawMSSignalSimulation(const RawMSSignalSimulation & source);
@@ -92,10 +95,6 @@ protected:
     enum IONIZATIONMETHOD {IM_ESI = 0, IM_MALDI = 1, IM_ALL = 2};
     enum PROFILESHAPE {RT_RECTANGULAR, RT_GAUSSIAN};
     enum RESOLUTIONMODEL {RES_CONSTANT, RES_LINEAR, RES_SQRT};
-
-
-    /// Default constructor
-    RawMSSignalSimulation();
 
     /// Synchronize members with param class
     void updateMembers_();
@@ -162,7 +161,7 @@ protected:
     /**
      @brief Add the correct Elution profile to the passed ProductModel
      */
-    void chooseElutionProfile_(EGHModel * const elutionmodel, Feature & feature, const double scale, const DoubleReal rt_sampling_rate, const MSSimExperiment & experiment);
+    void chooseElutionProfile_(EGHModel * const elutionmodel, Feature & feature, const double scale, const double rt_sampling_rate, const MSSimExperiment & experiment);
 
     /**
      @brief build contaminant feature map
@@ -217,12 +216,12 @@ protected:
                    - RES_SQRT: the resolution decreases with square root of mass, i.e. at 1600 Th, it will have 50% of original (sqrt(400) = sqrt(1600)*0.5)
 
      */
-    DoubleReal getResolution_(const DoubleReal query_mz, const DoubleReal resolution, const RESOLUTIONMODEL model) const;
+    double getResolution_(const double query_mz, const double resolution, const RESOLUTIONMODEL model) const;
 
     /**
       @brief compute the peak's SD (Gaussian) at a given m/z (internally the resolution model is used)
     */
-    DoubleReal getPeakWidth_(const DoubleReal mz, const bool is_gaussian) const;
+    double getPeakWidth_(const double mz, const bool is_gaussian) const;
 
     /// Scaling factor of peak intensities
     SimIntensityType intensity_scale_;
@@ -233,18 +232,18 @@ protected:
     /// model of how resolution behaves with increasing m/z
     RESOLUTIONMODEL res_model_;
     /// base resolution at 400 Th
-    DoubleReal res_base_;
+    double res_base_;
     /// m/z sampling grid for all signals
     std::vector<SimCoordinateType> grid_;
 
     /// Random number generator
-    SimRandomNumberGenerator const * rnd_gen_;
+    MutableSimRandomNumberGeneratorPtr rnd_gen_;
 
     struct ContaminantInfo
     {
       String name;
       EmpiricalFormula sf;
-      DoubleReal rt_start, rt_end, intensity;
+      double rt_start, rt_end, intensity;
       Int q;
       PROFILESHAPE shape;
       IONIZATIONMETHOD im;

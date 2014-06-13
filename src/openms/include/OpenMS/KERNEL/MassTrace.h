@@ -65,10 +65,10 @@ public:
     MassTrace();
 
     /// Detailed constructor 1
-    MassTrace(const std::list<PeakType>& trace_peaks, const DoubleReal & scan_time = 1.0);
+    MassTrace(const std::list<PeakType>& trace_peaks, const double & scan_time = 1.0);
 
     /// Detailed constructor 2
-    MassTrace(const std::vector<PeakType>& trace_peaks, const DoubleReal & scan_time = 1.0);
+    MassTrace(const std::vector<PeakType>& trace_peaks, const double & scan_time = 1.0);
 
     /// Destructor
     ~MassTrace();
@@ -154,35 +154,35 @@ public:
     }
 
     /// Returns the centroid m/z.
-    DoubleReal getCentroidMZ() const
+    double getCentroidMZ() const
     {
       return centroid_mz_;
     }
 
     /// Returns the centroid RT.
-    DoubleReal getCentroidRT() const
+    double getCentroidRT() const
     {
       return centroid_rt_;
     }
 
-    DoubleReal getCentroidSD() const
+    double getCentroidSD() const
     {
       return centroid_sd_;
     }
 
-    void setCentroidSD(const DoubleReal & tmp_sd)
+    void setCentroidSD(const double & tmp_sd)
     {
       centroid_sd_ = tmp_sd;
     }
 
-    DoubleReal getFWHM() const
+    double getFWHM() const
     {
         return fwhm_;
     }
 
-    DoubleReal getTraceLength() const
+    double getTraceLength() const
     {
-        DoubleReal length(0.0);
+        double length(0.0);
 
         if (trace_peaks_.size() > 1)
         {
@@ -198,13 +198,13 @@ public:
     }
 
     /// Gets smoothed intensities (empty if no smoothing was explicitly done beforehand!).
-    const std::vector<DoubleReal>& getSmoothedIntensities() const
+    const std::vector<double>& getSmoothedIntensities() const
     {
       return smoothed_intensities_;
     }
 
     /// Set smoothed intensities (smoothing is done externally, e.g. by LowessSmoothing).
-    void setSmoothedIntensities(const std::vector<DoubleReal> & db_vec)
+    void setSmoothedIntensities(const std::vector<double> & db_vec)
     {
       if (trace_peaks_.size() != db_vec.size())
       {
@@ -215,7 +215,7 @@ public:
     }
 
     /// Get scan time of mass trace
-    DoubleReal getScanTime() const
+    double getScanTime() const
     {
       return scan_time_;
     }
@@ -223,30 +223,30 @@ public:
     /** @name Computational methods
         */
     /// Sum all non-negative (smoothed!) intensities  in the mass trace
-    DoubleReal computeSmoothedPeakArea() const;
+    double computeSmoothedPeakArea() const;
 
     /// Sum intensities of all peaks in the mass trace
-    DoubleReal computePeakArea() const;
+    double computePeakArea() const;
 
     /// Return the index of the mass trace's highest peak within the MassTrace container (based either on raw or smoothed intensities).
     Size findMaxByIntPeak(bool use_smoothed_ints = false) const;
 
     /// Estimate FWHM of chromatographic peak in seconds (based on either raw or smoothed intensities).
     /// stores result internally, use getFWHM().
-    DoubleReal estimateFWHM(bool use_smoothed_ints = false);
+    double estimateFWHM(bool use_smoothed_ints = false);
 
     /// Instead of estimating a FWHM and LC peak borders, use the whole mass trace, i.e. set borders to the margins of the array.
     /// Useful for direct injection data.
     void disableFHWM();
 
     /// Compute chromatographic peak area within the FWHM range.
-    DoubleReal computeFwhmAreaSmooth() const;
-    DoubleReal computeFwhmArea() const;
-    DoubleReal computeFwhmAreaSmoothRobust() const;
-    DoubleReal computeFwhmAreaRobust() const;
+    double computeFwhmAreaSmooth() const;
+    double computeFwhmArea() const;
+    double computeFwhmAreaSmoothRobust() const;
+    double computeFwhmAreaRobust() const;
 
-    DoubleReal getIntensity(bool smoothed) const;
-    DoubleReal getMaxIntensity(bool smoothed) const;
+    double getIntensity(bool smoothed) const;
+    double getMaxIntensity(bool smoothed) const;
 
     /// Return the mass trace's convex hull.
     ConvexHull2D getConvexhull() const;
@@ -284,24 +284,24 @@ private:
     std::vector<PeakType> trace_peaks_;
 
     /// Centroid m/z
-    DoubleReal centroid_mz_;
+    double centroid_mz_;
 
     /// intensity-weighted STD
-    DoubleReal centroid_sd_;
+    double centroid_sd_;
 
     /// Centroid RT
-    DoubleReal centroid_rt_;
+    double centroid_rt_;
 
     /// Trace label
     String label_;
 
     /// Container for smoothed intensities. Smoothing must be done externally.
-    std::vector<DoubleReal> smoothed_intensities_;
+    std::vector<double> smoothed_intensities_;
 
-    DoubleReal fwhm_;
+    double fwhm_;
 
     /// Scan time (time difference between two consecutive scans)
-    DoubleReal scan_time_;
+    double scan_time_;
 
     Size fwhm_start_idx_;
     Size fwhm_end_idx_;

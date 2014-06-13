@@ -34,93 +34,24 @@
 
 
 #include <OpenMS/DATASTRUCTURES/SuffixArraySeqan.h>
-#include <stack>
-#include <fstream>
 #include <cmath>
-#include <typeinfo>
 #include <ctime>
 #include <cstdio>
+#include <fstream>
+#include <stack>
+#include <typeinfo>
 
 #include <OpenMS/CHEMISTRY/ModifierRep.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
-using namespace seqan;
+//using namespace seqan; // do not use since seqan defines a class set, which makes std::set ambiguous
 using namespace std;
 
 
 namespace OpenMS
 {
-  /**
-  @brief comperator for two doubles with a tolerance value
-  */
-  struct FloatsWithTolLess :
-    public binary_function<DoubleReal, DoubleReal, bool>
-  {
-    /**
-    @brief constructor
-    @param t const reference to the tolerance
-    */
-    explicit FloatsWithTolLess(const DoubleReal & t) :
-      tol_(t) {}
-    /**
-    @brief copy constructor
-    */
-    FloatsWithTolLess(const FloatsWithTolLess & rhs) :
-      tol_(rhs.tol_) {}
-
-    /**
-    @brief implementation of the '<' operator for two doubles with the tolerance value
-    @param f1 first DoubleReal
-    @param f2 second DoubleReal
-    @return true if first DoubleReal '<' second DoubleReal-tolerance
-    */
-    bool operator()(DoubleReal f1, DoubleReal f2) const
-    {
-      return f1 < (f2 - tol_);
-    }
-
-protected:
-    DoubleReal const & tol_;     ///< tolerance value
-  };
-
-  /**
-  @brief comperator for two doubles with a tolerance value
-  @todo Think about that this does and if it is really necessary (why DoubleReal, DoubleReal????) (Andreas, Clemens)
-  */
-  struct IntsInRangeLess :
-    public binary_function<DoubleReal, DoubleReal, bool>
-  {
-    /**
-    @brief constructor
-    @param t const reference to the tolerance
-    */
-    IntsInRangeLess(const int & s, const int & e) :
-      start_(s), end_(e) {}
-    /**
-    @brief copy constructor
-    */
-    IntsInRangeLess(const IntsInRangeLess & source) :
-      start_(source.start_), end_(source.end_) {}
-
-    /**
-    @brief implementation of the '<' operator for two doubles with the tolerance value
-    @param f1 first DoubleReal
-    @param f2 second DoubleReal
-    @return true if first DoubleReal '<' second DoubleReal-tolerance
-    */
-    bool operator()(int f1, int f2) const
-    {
-      //cout<<"f1:"<<f1<<" f2:"<<f2<<" start:"<<start_<< " end:" << end_<<endl;
-      return (f2 == end_) ? f1 <= f2 - start_ : f1 < f2;
-    }
-
-protected:
-    int const & start_;     ///< start index
-    int const & end_;     ///< end index
-  };
-
 
   // constructor
   SuffixArraySeqan::SuffixArraySeqan(const String & st, const String & sa_file_name, const WeightWrapper::WEIGHTMODE weight_mode) :
@@ -220,15 +151,15 @@ protected:
       throw Exception::FileNotFound(__FILE__, __LINE__, __PRETTY_FUNCTION__, (file_name + ".txt"));
     }
 
-    if (!indexSupplied(index_, EsaSA()) ||
-        !indexSupplied(index_, EsaLcp()) ||
-        !indexSupplied(index_, EsaChildtab()))
+    if (!seqan::indexSupplied(index_, seqan::EsaSA()) ||
+        !seqan::indexSupplied(index_, seqan::EsaLcp()) ||
+        !seqan::indexSupplied(index_, seqan::EsaChildtab()))
     {
       //cout<<"creating index " << endl;
 
-      indexRequire(index_, EsaSA());
-      indexRequire(index_, EsaLcp());
-      indexRequire(index_, EsaChildtab());
+      seqan::indexRequire(index_, seqan::EsaSA());
+      seqan::indexRequire(index_, seqan::EsaLcp());
+      seqan::indexRequire(index_, seqan::EsaChildtab());
       seqan::save(index_, file_name.c_str());
     }
 
@@ -281,36 +212,36 @@ protected:
     return number_of_modifications_;
   }
 
-  SignedSize SuffixArraySeqan::findFirst_(const vector<DoubleReal> & spec, DoubleReal & m, SignedSize start, SignedSize  end)
+  SignedSize SuffixArraySeqan::findFirst_(const vector<double> & spec, double & m, SignedSize start, SignedSize  end)
   {
 
     if (end - start <= 1)
-      return (spec.at(start) < m - tol_) ? end : start;
+      return (spec[start] < m - tol_) ? end : start;
 
     SignedSize middle = ((end - start) / 2) + start;
 
-    if (spec.at(middle) < m - tol_)
+    if (spec[middle] < m - tol_)
     {
       return findFirst_(spec, m, middle, end);
     }
-    if (spec.at(middle) > m + tol_)
+    if (spec[middle] > m + tol_)
     {
       return findFirst_(spec, m, start, middle);
     }
-    while (middle >= 0 && spec.at(middle) >= m - tol_)
+    while (middle >= 0 && spec[middle] >= m - tol_)
     {
-      middle--;
+      --middle;
     }
     return middle + 1;
   }
 
-  SignedSize SuffixArraySeqan::findFirst_(const vector<DoubleReal> & spec, DoubleReal & m)
+  SignedSize SuffixArraySeqan::findFirst_(const vector<double> & spec, double & m)
   {
     return findFirst_(spec, m, 0, spec.size() - 1);
   }
 
-  // finds all occurences of a given spectrum
-  void SuffixArraySeqan::findSpec(vector<vector<pair<pair<SignedSize, SignedSize>, DoubleReal> > > & candidates, const vector<DoubleReal> & spec)
+  // finds all occurrences of a given spectrum
+  void SuffixArraySeqan::findSpec(vector<vector<pair<pair<SignedSize, SignedSize>, double> > > & candidates, const vector<double> & spec)
   {
     if (spec.empty())
     {
@@ -343,9 +274,9 @@ protected:
         seqan::String<char> s(tags_.at(i).c_str());
         goDown(*it_, s);
         seqan::String<Size> occs = getOccurrences(*it_);
-        for (Size i = 0; i < length(occs); ++i)
+        for (Size j = 0; j < length(occs); ++j)
         {
-          tag_indices.push_back(occs[i]);
+          tag_indices.push_back(occs[j]);
         }
       }
       sort(tag_indices.begin(), tag_indices.end());
@@ -354,18 +285,18 @@ protected:
     it_ = new TIter(index_);
 
     // preparing result vector
-    //vector<vector<pair<pair<SignedSize, SignedSize>,DoubleReal> > > res;
+    //vector<vector<pair<pair<SignedSize, SignedSize>,double> > > res;
     for (Size i = 0; i < spec.size(); i++)
     {
-      vector<pair<pair<SignedSize, SignedSize>, DoubleReal> > v;
+      vector<pair<pair<SignedSize, SignedSize>, double> > v;
       candidates.push_back(v);
     }
-    DoubleReal mmax = spec.back();
-    stack<DoubleReal> allm;
-    stack<map<DoubleReal, SignedSize> > history;
-    history.push(map<DoubleReal, SignedSize>());
+    double mmax = spec.back();
+    stack<double> allm;
+    stack<map<double, SignedSize> > history;
+    history.push(map<double, SignedSize>());
 
-    DoubleReal m = getWeight(EmpiricalFormula("H2O"));
+    double m = getWeight(EmpiricalFormula("H2O"));
     goNext_(*it_, m, allm, history);
     //goNextSubTree(*it_);
     SignedSize nres = 0;
@@ -376,13 +307,13 @@ protected:
     {
       SignedSize start_index_in_text = getOccurrence(*it_);
       char start_char = s_[start_index_in_text];
-      char next_char = ((Size)start_index_in_text == length(s_) - 1) ? 'R' : s_[start_index_in_text + 1];
+      char next_char = ((Size)start_index_in_text == seqan::length(s_) - 1) ? 'R' : s_[start_index_in_text + 1];
 
-      map<DoubleReal, SignedSize> modification_map(history.top());
+      map<double, SignedSize> modification_map(history.top());
 
-      /*
-      because of searching only candidates generated by a specific digestion enzyme we are either looking for candidates with the specific start pattern or for the start indicated by the separator character
-      */
+      // because of searching only candidates generated by a specific digestion
+      // enzyme we are either looking for candidates with the specific start
+      // pattern or for the start indicated by the separator character
       if (start_index_in_text == 0 || start_char == '$' || isDigestingEnd(start_char, next_char))
       {
         SignedSize edge_length = length(parentEdgeLabel(*it_));
@@ -390,8 +321,8 @@ protected:
         char cc;
         char ccn;
 
-        DoubleReal subm = 0;
-        DoubleReal mm = 0;
+        double subm = 0;
+        double mm = 0;
         
         // br indicates if break was used
         bool br = false;
@@ -404,19 +335,22 @@ protected:
           {
             modifier.refreshModificationList(modification_map, cc);
           }
-          // for the next character we have to keep attention if we are on the end of the string. Therefor the next character has to be set to a amino accid so that the digesting enzyme will cut before this position (i.e. for trypsin everything but P)
+          // for the next character we have to keep attention if we are on the
+          // end of the string. Therefor the next character has to be set to a
+          // amino acid so that the digesting enzyme will cut before this
+          // position (i.e. for trypsin everything but P)
           ccn = ((Size)(length_till_node + i + start_index_in_text + 1) == s_.length() - 1) ? 'R' : s_[length_till_node + i + start_index_in_text + 1];
           subm += masse_[(int)cc];
           mm = m + subm;
 
           // we always have to substract the mass of the start character (either $ or for trypsin K or R)
-          DoubleReal newm = (mm - masse_[(SignedSize)start_char]);
+          double newm = (mm - masse_[(SignedSize)start_char]);
 
           // if we reached the maxmimal mass we can directly skip the sub tree
           if (newm > mmax + tol_)
           {
             allm.push(0);
-            history.push(map<DoubleReal, SignedSize>());
+            history.push(map<double, SignedSize>());
             goNextSubTree_(*it_, m, allm, history);
             br = true;
             break;
@@ -429,17 +363,23 @@ protected:
                 binary_search(tag_indices.begin(), tag_indices.end(), Size(length_till_node + i + start_index_in_text - 2) /*, IntsInRangeLess(length_till_node+i-2,length_till_node+i+start_index_in_text-2)*/)
                 )
             {
-              // if the mass is in spectrum but only if the digesting enzyme will not cut after the last character (because if it does the canditate was already added to the result the step before)
-              // for every modification mass within the modification_map we check if the mass + modification_mass is in the given spectrum. if it is we will add it to a vector of masses and adding this to result vector
+              // if the mass is in spectrum but only if the digesting enzyme
+              // will not cut after the last character (because if it does the
+              // candidate was already added to the result the step before)
+              // 
+              // for every modification mass within the modification_map we
+              // check if the mass + modification_mass is in the given
+              // spectrum. If it is we will add it to a vector of masses and
+              // adding this to result vector
               if ((!isDigestingEnd(s_[length_till_node + i + start_index_in_text - 1], cc)))
               {
-                vector<DoubleReal> found_masses;
+                vector<double> found_masses;
                 if (binary_search(spec.begin(), spec.end(), newm, FloatsWithTolLess(tol_)))
                 {
                   found_masses.push_back(0);
                 }
                 // if the mass is in spectrum we will add the entry to all matching masses
-                map<DoubleReal, SignedSize>::iterator it;
+                map<double, SignedSize>::iterator it;
                 for (it = modification_map.begin(); it != modification_map.end(); ++it)
                 {
                   if (binary_search(spec.begin(), spec.end(), newm + it->first, FloatsWithTolLess(tol_)))
@@ -449,7 +389,7 @@ protected:
                 }
                 for (Size o = 0; o < found_masses.size(); o++)
                 {
-                  DoubleReal mass_with_mods = newm + found_masses.at(o);
+                  double mass_with_mods = newm + found_masses.at(o);
                   ++steps4;
                   // getting all occurences and adding the to the specific masses
                   seqan::String<Size> occ = getOccurrences(*it_);
@@ -458,7 +398,7 @@ protected:
                   for (Size k = 0; k < length(occ); ++k)
                   {
                     Size first_occ = findFirst_(spec, mass_with_mods);
-                    pair<pair<SignedSize, SignedSize>, DoubleReal> p(pair<SignedSize, SignedSize>(occ[k] + 1, length_till_node + i - 1), found_masses.at(o));
+                    pair<pair<SignedSize, SignedSize>, double> p(pair<SignedSize, SignedSize>(occ[k] + 1, length_till_node + i - 1), found_masses.at(o));
 
                     while (first_occ < spec.size() && spec.at(first_occ) <= mass_with_mods + tol_)
                     {
@@ -471,7 +411,7 @@ protected:
               }
             }
             // because of having reached a separator we can skip the sub tree
-            history.push(map<DoubleReal, SignedSize>());
+            history.push(map<double, SignedSize>());
             allm.push(0);
             goNextSubTree_(*it_, m, allm, history);
             br = true;
@@ -480,36 +420,42 @@ protected:
 
 
           // if we reached a digesting site
-          // the case that i==(edge_length-1) means we are at a node. if we are at a node we cannot just look at one following caracter but instead we must look an the next of every outgoing edge and deciding whether this is a digenting site
+          // the case that i==(edge_length-1) means we are at a node. If we are
+          // at a node we cannot just look at one following character but
+          // instead we must look at the next of every outgoing edge and
+          // deciding whether this is a digesting site
           if (i == (edge_length - 1) || isDigestingEnd(cc, ccn))
           {
-            DoubleReal newm = (mm - masse_[(int)start_char]);
+            double local_newm = (mm - masse_[(int)start_char]);
             // if the mass is in the spectrum
             if (!use_tags_ ||
                 binary_search(tag_indices.begin(), tag_indices.end(), Size(length_till_node + i + start_index_in_text - 2) /*,
                                 IntsInRangeLess(length_till_node+i-2,length_till_node+i+start_index_in_text-2)*/)
                 )
             {
-              // for every modification mass within the modification_map we check if the mass + modification_mass is in the given spectrum. if it is we will add it to a vector of masses and adding this to result vector
-              vector<DoubleReal> found_masses;
-              if (binary_search(spec.begin(), spec.end(), newm, FloatsWithTolLess(tol_)))
+              // for every modification mass within the modification_map we
+              // check if the mass + modification_mass is in the given
+              // spectrum. If it is we will add it to a vector of masses and
+              // adding this to result vector
+              vector<double> found_masses;
+              if (binary_search(spec.begin(), spec.end(), local_newm, FloatsWithTolLess(tol_)))
               {
                 found_masses.push_back(0);
               }
               // if the mass is in spectrum we will add the entry to all matching masses
-              map<DoubleReal, SignedSize>::iterator it;
+              map<double, SignedSize>::iterator it;
               for (it = modification_map.begin(); it != modification_map.end(); ++it)
               {
-                if (binary_search(spec.begin(), spec.end(), newm + (DoubleReal)it->first, FloatsWithTolLess(tol_)))
+                if (binary_search(spec.begin(), spec.end(), local_newm + (double)it->first, FloatsWithTolLess(tol_)))
                 {
                   found_masses.push_back(it->first);
                 }
               }
               for (Size o = 0; o < found_masses.size(); o++)
               {
-                DoubleReal mass_with_mods = newm + found_masses.at(o);
-                //if (binary_search(spec.begin(),spec.end(),(newm), FloatsWithTolLess(tol_))){
-                // getting all occurences and adding the to the specific masses
+                double mass_with_mods = local_newm + found_masses.at(o);
+                //if (binary_search(spec.begin(),spec.end(),(local_newm), FloatsWithTolLess(tol_))){
+                // getting all occurrences and adding the to the specific masses
                 ++steps4;
 
                 seqan::String<Size> occ = getOccurrences(*it_);
@@ -519,7 +465,7 @@ protected:
                   if (i < (edge_length - 1) || (isDigestingEnd(s_[occ[k] + length_till_node + i], s_[occ[k] + 1 + length_till_node + i])))
                   {
                     Size first_occ = findFirst_(spec, mass_with_mods);
-                    pair<pair<SignedSize, SignedSize>, DoubleReal> p(pair<SignedSize, SignedSize>(occ[k] + 1, length_till_node + i), found_masses.at(o));
+                    pair<pair<SignedSize, SignedSize>, double> p(pair<SignedSize, SignedSize>(occ[k] + 1, length_till_node + i), found_masses.at(o));
                     ++nres;
                     while (first_occ < spec.size() && spec.at(first_occ) <= mass_with_mods + tol_)
                     {
@@ -532,6 +478,7 @@ protected:
             }
           }
         }
+
         // if we breaked before we are already at the next sub tree so we will not use goNext
         if (!br)
         {
@@ -540,7 +487,7 @@ protected:
           //TODO: why would that be?! (Andreas)
           if (steps4 > 1000)
           {
-            DoubleReal mpart = getWeight(EmpiricalFormula("H2O"));
+            double mpart = getWeight(EmpiricalFormula("H2O"));
             seqan::String<char> seq = representative(*it_);
             for (Size w = 0; w < length(seq); ++w)
             {
@@ -549,7 +496,7 @@ protected:
             m = mpart;
             steps4 = 0;
           }
-          history.push(map<DoubleReal, SignedSize>(modification_map));
+          history.push(map<double, SignedSize>(modification_map));
           allm.push(subm);
           goNext_(*it_, m, allm, history);
         }
@@ -557,7 +504,7 @@ protected:
       }
       else
       {
-        history.push(map<DoubleReal, SignedSize>());
+        history.push(map<double, SignedSize>());
         allm.push(0);
         goNextSubTree_(*it_, m, allm, history);
       }
@@ -569,7 +516,7 @@ protected:
     return;
   }
 
-  void SuffixArraySeqan::setTolerance(DoubleReal t)
+  void SuffixArraySeqan::setTolerance(double t)
   {
     if (t < 0)
     {
@@ -578,7 +525,7 @@ protected:
     tol_ = t;
   }
 
-  DoubleReal SuffixArraySeqan::getTolerance() const
+  double SuffixArraySeqan::getTolerance() const
   {
     return tol_;
   }

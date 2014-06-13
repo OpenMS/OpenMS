@@ -119,7 +119,6 @@ namespace OpenMS
 
     default: return "none";
     }
-    return "";
   }
 
   String ControlledVocabulary::CVTerm::toXMLString(const OpenMS::String& ref, const String& value) const

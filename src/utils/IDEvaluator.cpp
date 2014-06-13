@@ -129,7 +129,7 @@ protected:
     registerSubsection_("algorithm", "Additional parameters for FDR and image sizes.");
   }
 
-  ExitCodes main_(int argc, const char ** argv)
+  ExitCodes main_(int, const char **)
   {
     //----------------------------------------------------------------
     // load data
@@ -163,8 +163,8 @@ protected:
       }
     }
 
-    DoubleReal q_min = getDoubleOption_("q_min");
-    DoubleReal q_max = getDoubleOption_("q_max");
+    double q_min = getDoubleOption_("q_min");
+    double q_max = getDoubleOption_("q_max");
     if (q_min >= q_max)
     {
       LOG_ERROR << "The parameter 'q_min' must be smaller than 'q_max'. Quitting..." << std::endl;

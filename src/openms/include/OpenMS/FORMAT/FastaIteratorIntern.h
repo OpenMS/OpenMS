@@ -113,7 +113,7 @@ public:
     @note note available for FastaIterator
     @throw Exception::NotImplemented
     */
-    virtual void setSpectrum(const std::vector<DoubleReal> & /*spec*/)
+    virtual void setSpectrum(const std::vector<double> & /*spec*/)
     {
       throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
     }
@@ -123,7 +123,7 @@ public:
     @note note available for FastaIterator
     @throw Exception::NotImplemented
     */
-    virtual const std::vector<DoubleReal> & getSpectrum()
+    virtual const std::vector<double> & getSpectrum()
     {
       throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
     }
@@ -133,7 +133,7 @@ public:
     @note note available for FastaIterator
     @throw Exception::NotImplemented
     */
-    virtual void setTolerance(DoubleReal /* t */)
+    virtual void setTolerance(double /* t */)
     {
       throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
     }
@@ -144,7 +144,7 @@ public:
     @return tolerance
     @throw Exception::NotImplemented
     */
-    virtual DoubleReal getTolerance()
+    virtual double getTolerance()
     {
       throw Exception::NotImplemented(__FILE__, __LINE__, __PRETTY_FUNCTION__);
     }

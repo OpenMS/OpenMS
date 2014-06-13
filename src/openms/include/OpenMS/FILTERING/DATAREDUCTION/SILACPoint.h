@@ -49,27 +49,27 @@ public:
     /**
      * @brief m/z value of the element
      */
-    DoubleReal mz;
+    double mz;
 
     /**
      *@brief RT value of the element
      */
-    DoubleReal rt;
+    double rt;
 
     /**
      * @brief exact m/z positions at which the intensities are read
      */
-    std::vector<std::vector<DoubleReal> > mz_positions;
+    std::vector<std::vector<double> > mz_positions;
 
     /**
      * @brief intensities at RT and the exact m/z positions
      */
-    std::vector<std::vector<DoubleReal> > intensities;
+    std::vector<std::vector<double> > intensities;
 
     /**
      * @brief mass shifts [Da] used in the filter
      */
-    std::vector<DoubleReal> mass_shifts;
+    std::vector<double> mass_shifts;
 
     /**
      * @brief charge of the cluster (i.e. peptide) which the data point is part of
@@ -84,7 +84,7 @@ public:
     /**
      * @brief quality of the cluster
      */
-    DoubleReal quality;
+    double quality;
 
     SILACPoint() :
       mz(0), rt(0), charge(0), isotopes_per_peptide(0), quality(0)

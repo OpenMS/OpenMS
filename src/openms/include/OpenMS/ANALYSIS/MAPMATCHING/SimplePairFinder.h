@@ -120,17 +120,17 @@ protected:
     virtual void updateMembers_();
 
     /// A parameter for similarity_().
-    DoubleReal diff_exponent_[2];
+    double diff_exponent_[2];
 
     /// A parameter for similarity_().
-    DoubleReal diff_intercept_[2];
+    double diff_intercept_[2];
 
     /// Minimal pair quality
-    DoubleReal pair_min_quality_;
+    double pair_min_quality_;
 
     /**@brief Compute the similarity for a pair of elements.
     */
-    DoubleReal similarity_(ConsensusFeature const & left, ConsensusFeature const & right) const;
+    double similarity_(ConsensusFeature const & left, ConsensusFeature const & right) const;
 
   }; // SimplePairFinder
 

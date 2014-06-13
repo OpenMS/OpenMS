@@ -282,9 +282,9 @@ public:
         chrom.setAcquisitionInfo(settings.getAcquisitionInfo());
         chrom.setSourceFile(settings.getSourceFile());
 
-        for (Size i = 0; i < settings.getDataProcessing().size(); ++i)
+        for (Size j = 0; j < settings.getDataProcessing().size(); ++j)
         {
-          DataProcessing dp = settings.getDataProcessing()[i];
+          DataProcessing dp = settings.getDataProcessing()[j];
           dp.setMetaValue("performed_on_spectra", "true");
           chrom.getDataProcessing().push_back(dp);
         }
@@ -488,9 +488,9 @@ private:
         chrom.setAcquisitionInfo(settings.getAcquisitionInfo());
         chrom.setSourceFile(settings.getSourceFile());
 
-        for (Size i = 0; i < settings.getDataProcessing().size(); ++i)
+        for (Size j = 0; j < settings.getDataProcessing().size(); ++j)
         {
-          DataProcessing dp = settings.getDataProcessing()[i];
+          DataProcessing dp = settings.getDataProcessing()[j];
           dp.setMetaValue("performed_on_spectra", "true");
           chrom.getDataProcessing().push_back(dp);
         }

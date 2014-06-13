@@ -67,6 +67,20 @@ namespace OpenMS
     bool use_nr_peaks_score_;
     bool use_sn_score_;
     bool use_dia_scores_;
+    
+    OpenSwath_Scores_Usage() :
+      use_coelution_score_(true),
+      use_shape_score_(true),
+      use_rt_score_(true),
+      use_library_score_(true),
+      use_elution_model_score_(true),
+      use_intensity_score_(true),
+      use_total_xic_score_(true),
+      use_nr_peaks_score_(true),
+      use_sn_score_(true),
+      use_dia_scores_(true)
+    {}
+
   };
 
   /** @brief A structure to hold the different scores computed by OpenSWATH
@@ -142,8 +156,8 @@ namespace OpenMS
     }
 
 
-    double get_quick_lda_score(double library_corr, double library_norm_manhattan, double norm_rt_score, double xcorr_coelution_score,
-                               double xcorr_shape_score, double log_sn_score)
+    double get_quick_lda_score(double library_corr_, double library_norm_manhattan_, double norm_rt_score_, double xcorr_coelution_score_,
+                               double xcorr_shape_score_, double log_sn_score_)
     {
       // some scores based on manual evaluation of 80 chromatograms
       // quick LDA average model on 100 2 x Crossvalidated runs (0.85 TPR/0.17 FDR)
@@ -158,12 +172,12 @@ namespace OpenMS
       //
       // NOTE this score means "better" if it is more negative!
       double lda_quick_score =
-        library_corr                    * -0.5319046 +
-        library_norm_manhattan          *  2.1643962 +
-        norm_rt_score                   *  8.0353047 +
-        xcorr_coelution_score           *  0.1458914 +
-        xcorr_shape_score               * -1.6901925 +
-        log_sn_score                    * -0.8002824;
+        library_corr_                    * -0.5319046 +
+        library_norm_manhattan_          *  2.1643962 +
+        norm_rt_score_                   *  8.0353047 +
+        xcorr_coelution_score_           *  0.1458914 +
+        xcorr_shape_score_               * -1.6901925 +
+        log_sn_score_                    * -0.8002824;
       return lda_quick_score;
     }
 
@@ -376,9 +390,9 @@ var_yseries_score   -0.0327896378737766
     typedef OpenSwath::LightPeptide PeptideType;
     typedef OpenSwath::LightTransition TransitionType;
 
-    DoubleReal rt_normalization_factor_;
+    double rt_normalization_factor_;
     int add_up_spectra_;
-    DoubleReal spacing_for_spectra_resampling_;
+    double spacing_for_spectra_resampling_;
     OpenSwath_Scores_Usage su_;
 
   public:
@@ -399,8 +413,8 @@ var_yseries_score   -0.0327896378737766
      * @param su_ Which scores to actually compute
      *
     */
-    void initialize(DoubleReal rt_normalization_factor_,
-      int add_up_spectra_, DoubleReal spacing_for_spectra_resampling_,
+    void initialize(double rt_normalization_factor_,
+      int add_up_spectra_, double spacing_for_spectra_resampling_,
       OpenSwath_Scores_Usage & su_);
 
     /** @brief Score a single peakgroup in a chromatogram using only chromatographic properties.

@@ -76,7 +76,7 @@ public:
     virtual ~ISignalToNoise() {}
     virtual double getValueAtRT(double RT) = 0;
   };
-  OPENSWATHALGO_DLLAPI typedef boost::shared_ptr<ISignalToNoise> ISignalToNoisePtr;
+  typedef boost::shared_ptr<ISignalToNoise> ISignalToNoisePtr;
 
 
 } //end Namespace OpenSwath

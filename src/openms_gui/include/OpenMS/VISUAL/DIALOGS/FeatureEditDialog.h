@@ -36,6 +36,9 @@
 #ifndef OPENMS_VISUAL_DIALOGS_FEATUREEDITDIALOG_H
 #define OPENMS_VISUAL_DIALOGS_FEATUREEDITDIALOG_H
 
+// OpenMS_GUI config
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
+
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/VISUAL/DIALOGS/UIC/ui_FeatureEditDialog.h>
 
