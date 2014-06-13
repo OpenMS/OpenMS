@@ -38,6 +38,8 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/PeakPattern.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/FilterResult.h>
+#include <OpenMS/FILTERING/DATAREDUCTION/FilterResultRaw.h>
+#include <OpenMS/FILTERING/DATAREDUCTION/FilterResultPeak.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/SplinePackage.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/SplineSpectrum.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/MultiplexFiltering.h>
@@ -144,7 +146,7 @@ namespace OpenMS
                 }
 
                 int spectrum = it_rt_profile - exp_profile_.begin();    // index of the spectrum in exp_profile_, exp_picked_ and boundaries_
-                double rt_profile = it_rt_profile->getRT();
+                //double rt_profile = it_rt_profile->getRT();
                 double rt_picked = it_rt_picked->getRT();
                 //cout << "    RT (profile) = " << rt_profile << "    RT (picked) = " << rt_picked << "\n";
                 
@@ -213,7 +215,7 @@ namespace OpenMS
                     }
                      
                     // Arrangement of peaks looks promising. Now scan through the spline fitted data.
-                    vector<double> raw_entries;    // raw data points of this peak that will pass the remaining filters
+                    vector<FilterResultRaw> results_raw;    // raw data points of this peak that will pass the remaining filters
                     bool blacklisted = false;    // Has this peak already been blacklisted?
                     for (double mz = peak_min[peak]; mz < peak_max[peak]; mz = nav.getNextMz(mz))
                     {
@@ -308,7 +310,8 @@ namespace OpenMS
                         }
                         
                         // add raw data point to list that passed all filters
-                        // TO DO
+                        FilterResultRaw result_raw (mz, mz_shifts_actual, intensities_actual);
+                        results_raw.push_back(result_raw);
                         
                         // blacklist peaks in the current spectrum and the two neighbouring ones
                         if (!blacklisted)
@@ -317,9 +320,18 @@ namespace OpenMS
                             blacklisted = true;
                         }
                         
-                        // add the peak with its corresponding raw data to the result
-                        // TO DO
-                        
+                    }
+                    
+                    // add the peak with its corresponding raw data to the result
+                    if (results_raw.size() > 2)
+                    {
+                        // Scanning over the profile of the peak, we want at least three raw data points to pass all filters.
+                        vector<double> intensities_actual;
+                        for (unsigned i = 0; i < mz_shifts_actual_indices.size(); ++i)
+                        {
+                            intensities_actual.push_back(peak_intensity[mz_shifts_actual_indices[i]]);
+                        }
+                        result.addFilterResultPeak(peak_position[peak], rt_picked, mz_shifts_actual, intensities_actual, results_raw);
                     }
                      
                 }                
@@ -333,7 +345,7 @@ namespace OpenMS
         return filter_results;
     }
     
-    int MultiplexFiltering::positionsAndBlacklistFilter(PeakPattern pattern, int spectrum, std::vector<double> peak_position, int peak, std::vector<double> & mz_shifts_actual, std::vector<int> & mz_shifts_actual_indices)
+    int MultiplexFiltering::positionsAndBlacklistFilter(PeakPattern pattern, int spectrum, vector<double> peak_position, int peak, vector<double> & mz_shifts_actual, vector<int> & mz_shifts_actual_indices)
     {
         // Try to find peaks at the expected m/z positions
         // loop over expected m/z shifts of a peak pattern
