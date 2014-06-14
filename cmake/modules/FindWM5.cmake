@@ -34,7 +34,7 @@ find_path(_WM5_INCLUDE_DIR
             Wm5Core.h
           HINTS
             ${WM5_DIR}/include
-          PATH_SUFFIXES WildMagic
+          PATH_SUFFIXES WildMagic libwildmagic
 )
 
 #------------------------------------------------------------------------------
@@ -67,7 +67,7 @@ foreach(_lib ${WM5_LIBS})
     set(_ALL_WM5_LIBS_FOUND FALSE)
   endif(${_WM5LIB}_LIBRARY)
 
-  set(_WM5_LIBRARIES ${WM5_LIBRARIES} ${${_WM5LIB}_LIBRARY})
+  set(_WM5_LIBRARIES ${_WM5_LIBRARIES} ${${_WM5LIB}_LIBRARY})
 endforeach(_lib ${WM5_LIBS})
 
 #------------------------------------------------------------------------------

@@ -48,7 +48,7 @@ if("${CMAKE_FIND_ROOT_PATH}" STREQUAL "")
   else()
 		# Append a few unusual default search directories for convenience
 		# if no FIND ROOT PATH was specified.
-		list(APPEND CONTRIB_DIR /opt/local /usr/local)
+		list(APPEND CONTRIB_DIR /opt/local /usr/local /usr)
 	endif()
 endif()
 
