@@ -72,6 +72,10 @@ namespace OpenMS
     defaults_.setValue("variable_modifications", ListUtils::create<String>(""), "Variable modifications given as UniMod definitions.");
     defaults_.setValidStrings("variable_modifications", all_mods);
 
+    // list from Mascot 2.4; there's also "Phospho (STY)", but that can be 
+    // represented using "Phospho (ST)" and "Phospho (Y)":
+    defaults_.setValue("special_modifications", "Cation:Na (DE),Deamidated (NQ),Oxidation (HW),Phospho (ST),Sulfo (ST)", "Modifications with specificity groups that are used by Mascot and have to be treated specially", ListUtils::create<String>("advanced"));
+
     defaults_.setValue("mass_type", "monoisotopic", "Defines the mass type, either monoisotopic or average");
     defaults_.setValidStrings("mass_type", ListUtils::create<String>("monoisotopic,average"));
     defaults_.setValue("number_of_hits", 0, "Number of hits which should be returned, if 0 AUTO mode is enabled.");
@@ -98,17 +102,15 @@ namespace OpenMS
 
     // special cases for specificity groups: OpenMS uses e.g. "Deamidated (N)"
     // and "Deamidated (Q)", but Mascot only understands "Deamidated (NQ)"
-    vector<String> mod_groups = ListUtils::create<String>(
-      "Cation:Na (DE),Deamidated (NQ),Oxidation (HW),Phospho (ST),Sulfo (ST)");
-    // list from Mascot 2.4; there's also "Phospho (STY)", but that can be 
-    // represented using "Phospho (ST)" and "Phospho (Y)"
-    for (StringList::iterator mod_it = mod_groups.begin(); 
+    String special_mods = param_.getValue("special_modifications");
+    vector<String> mod_groups = ListUtils::create<String>(special_mods);
+    for (StringList::const_iterator mod_it = mod_groups.begin(); 
          mod_it != mod_groups.end(); ++mod_it)
     {
       String mod = mod_it->prefix(' ');
       String residues = mod_it->suffix('(').prefix(')');
-      for (String::iterator res_it = residues.begin(); res_it != residues.end();
-           ++res_it)
+      for (String::const_iterator res_it = residues.begin(); 
+           res_it != residues.end(); ++res_it)
       {
         mod_group_map_[mod + " (" + String(*res_it) + ")"] = *mod_it;
       }
@@ -161,8 +163,14 @@ namespace OpenMS
     for (StringList::const_iterator it = mods.begin(); it != mods.end(); ++it)
     {
       map<String, String>::iterator pos = mod_group_map_.find(*it);
-      if (pos == mod_group_map_.end()) filtered_mods.insert(*it);
-      else filtered_mods.insert(pos->second);
+      if (pos == mod_group_map_.end())
+      {
+        filtered_mods.insert(*it);
+      }
+      else
+      {
+        filtered_mods.insert(pos->second);
+      }
     }
     for (set<String>::const_iterator it = filtered_mods.begin(); 
          it != filtered_mods.end(); ++it)
