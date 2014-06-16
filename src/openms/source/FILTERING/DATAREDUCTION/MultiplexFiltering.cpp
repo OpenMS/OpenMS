@@ -229,7 +229,7 @@ namespace OpenMS
                          * Are the spline interpolated intensities at m/z above the threshold?
                          */
                         vector<double> intensities_actual;    // spline interpolated intensities @ m/z + actual m/z shift
-                        int peaks_found_in_all_peptides_spline = nonLocalIntensityFilter(patterns_[pattern], spectrum, mz_shifts_actual, mz_shifts_actual_indices, nav, intensities_actual, peaks_found_in_all_peptides, mz);
+                        int peaks_found_in_all_peptides_spline = nonLocalIntensityFilter(patterns_[pattern], mz_shifts_actual, mz_shifts_actual_indices, nav, intensities_actual, peaks_found_in_all_peptides, mz);
                         if (peaks_found_in_all_peptides_spline < peaks_per_peptide_min_)
                         {
                             if (debug_)
@@ -347,6 +347,9 @@ namespace OpenMS
             // write debug output
             if (debug_)
             {
+                // Writes for each peak pattern two debug files.
+                // One containg rejected data points. The intensity encodes which of the six filters failed.
+                // The second file containing data points that passed all filters.
                 writeDebug(pattern, true, debug_rejected);
                 writeDebug(pattern, false, debug_filtered);
             }
@@ -470,7 +473,7 @@ namespace OpenMS
         return false;
     }
     
-    int MultiplexFiltering::nonLocalIntensityFilter(PeakPattern pattern, int spectrum_index, std::vector<double> & mz_shifts_actual, std::vector<int> & mz_shifts_actual_indices, SplineSpectrum::Navigator nav, std::vector<double> & intensities_actual, int peaks_found_in_all_peptides, double mz)
+    int MultiplexFiltering::nonLocalIntensityFilter(PeakPattern pattern, std::vector<double> & mz_shifts_actual, std::vector<int> & mz_shifts_actual_indices, SplineSpectrum::Navigator nav, std::vector<double> & intensities_actual, int peaks_found_in_all_peptides, double mz)
     {
         // calculate intensities
         for (int i = 0; i < (int) mz_shifts_actual_indices.size(); ++i)
@@ -607,6 +610,7 @@ namespace OpenMS
         MSSpectrum<Peak1D> specDebug;        
         
         double rt = -1000;
+        int spec_id = 0;
         for (vector<DebugPoint>::iterator it = points.begin(); it != points.end(); ++it)
         {
             if ((*it).rt > rt)
@@ -614,13 +618,14 @@ namespace OpenMS
                 if (rt>-1000)
                 {
                     expDebug.addSpectrum(specDebug);
+                    ++spec_id;
                 }
                 
                 rt = (*it).rt;
                 specDebug.clear(true);
                 specDebug.setRT(rt);
                 specDebug.setMSLevel(1);
-                specDebug.setNativeID(String("spectrum with debug output"));
+                specDebug.setNativeID(String(spec_id));
             }
             
             Peak1D peak;
@@ -631,7 +636,17 @@ namespace OpenMS
         }
             
         MzMLFile fileSpline;
-        fileSpline.store("debug.mzML", expDebug);
+        String file_name;
+        if (rejected)
+        {
+            file_name = "debug_rejected_";
+        }
+        else
+        {
+            file_name = "debug_passed_";
+        }
+        file_name = file_name + pattern + ".mzML";
+        fileSpline.store(file_name, expDebug);
 
     }
     
